@@ -1,6 +1,6 @@
-(*  Title: 	ZF/nat.ML
+(*  Title:      ZF/nat.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 For nat.thy.  Natural numbers in Zermelo-Fraenkel Set Theory 
@@ -41,7 +41,7 @@ qed "nat_2I";
 
 goal Nat.thy "bool <= nat";
 by (REPEAT (ares_tac [subsetI,nat_0I,nat_1I] 1
-	    ORELSE eresolve_tac [boolE,ssubst] 1));
+            ORELSE eresolve_tac [boolE,ssubst] 1));
 qed "bool_subset_nat";
 
 val bool_into_nat = bool_subset_nat RS subsetD;
@@ -59,8 +59,8 @@ qed "nat_induct";
 (*Perform induction on n, then prove the n:nat subgoal using prems. *)
 fun nat_ind_tac a prems i = 
     EVERY [res_inst_tac [("n",a)] nat_induct i,
-	   rename_last_tac a ["1"] (i+2),
-	   ares_tac prems i];
+           rename_last_tac a ["1"] (i+2),
+           ares_tac prems i];
 
 val major::prems = goal Nat.thy
     "[| n: nat;  n=0 ==> P;  !!x. [| x: nat; n=succ(x) |] ==> P |] ==> P";
@@ -94,12 +94,12 @@ by (etac ltD 1);
 qed "Limit_nat";
 
 goal Nat.thy "!!i. Limit(i) ==> nat le i";
-by (resolve_tac [subset_imp_le] 1);
+by (rtac subset_imp_le 1);
 by (rtac subsetI 1);
-by (eresolve_tac [nat_induct] 1);
+by (etac nat_induct 1);
 by (fast_tac (ZF_cs addIs [Limit_has_succ RS ltD, ltI, Limit_is_Ord]) 2);
 by (REPEAT (ares_tac [Limit_has_0 RS ltD,
-		      Ord_nat, Limit_is_Ord] 1));
+                      Ord_nat, Limit_is_Ord] 1));
 qed "nat_le_Limit";
 
 (* succ(i): nat ==> i: nat *)
@@ -163,13 +163,13 @@ goal Nat.thy
 by (etac nat_induct 1);
 by (ALLGOALS
     (EVERY' [rtac (impI RS impI), rtac (nat_induct RS ballI), assume_tac,
-	     fast_tac lt_cs, fast_tac lt_cs]));
+             fast_tac lt_cs, fast_tac lt_cs]));
 qed "succ_lt_induct_lemma";
 
 val prems = goal Nat.thy
-    "[| m<n;  n: nat;  					\
-\       P(m,succ(m));  					\
-\       !!x. [| x: nat;  P(m,x) |] ==> P(m,succ(x)) 	\
+    "[| m<n;  n: nat;                                   \
+\       P(m,succ(m));                                   \
+\       !!x. [| x: nat;  P(m,x) |] ==> P(m,succ(x))     \
 \    |] ==> P(m,n)";
 by (res_inst_tac [("P4","P")] 
      (succ_lt_induct_lemma RS mp RS mp RS bspec RS mp) 1);
@@ -209,7 +209,7 @@ val [prem] = goal Nat.thy
     "m: nat ==> nat_rec(succ(m),a,b) = b(m, nat_rec(m,a,b))";
 by (rtac nat_rec_trans 1);
 by (simp_tac (ZF_ss addsimps [prem, nat_case_succ, nat_succI, Memrel_iff, 
-			      vimage_singleton_iff]) 1);
+                              vimage_singleton_iff]) 1);
 qed "nat_rec_succ";
 
 (** The union of two natural numbers is a natural number -- their maximum **)

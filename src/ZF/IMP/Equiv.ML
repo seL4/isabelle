@@ -1,6 +1,6 @@
-(*  Title: 	ZF/IMP/Equiv.ML
+(*  Title:      ZF/IMP/Equiv.ML
     ID:         $Id$
-    Author: 	Heiko Loetzbeyer & Robert Sandner, TUM
+    Author:     Heiko Loetzbeyer & Robert Sandner, TUM
     Copyright   1994 TUM
 *)
 
@@ -9,7 +9,7 @@ val prems = goal Equiv.thy "[| a: aexp; sigma: loc -> nat |] ==> \
 by (res_inst_tac [("x","n")] spec 1);                       (* quantify n *)
 by (res_inst_tac [("x","a")] aexp.induct 1);                (* struct. ind. *)
 by (resolve_tac prems 1);                                   (* type prem. *)
-by (rewrite_goals_tac A_rewrite_rules);			    (* rewr. Den.   *)
+by (rewrite_goals_tac A_rewrite_rules);                     (* rewr. Den.   *)
 by (TRYALL (fast_tac (ZF_cs addSIs (evala.intrs@prems)
                             addSEs aexp_elim_cases)));
 qed "aexp_iff";
@@ -17,7 +17,7 @@ qed "aexp_iff";
 
 val aexp1 = prove_goal Equiv.thy
         "[| <a,sigma> -a-> n; a: aexp; sigma: loc -> nat |] \
-        \ ==> A(a,sigma) = n"	    (* destruction rule *)
+        \ ==> A(a,sigma) = n"       (* destruction rule *)
      (fn prems => [(fast_tac (ZF_cs addSIs ((aexp_iff RS iffD1)::prems)) 1)]);
 val aexp2 = aexp_iff RS iffD2;
 
@@ -35,10 +35,10 @@ val bexp_elim_cases =
 
 val prems = goal Equiv.thy "[| b: bexp; sigma: loc -> nat |] ==> \
 \ <b,sigma> -b-> w <-> B(b,sigma) = w";
-by (res_inst_tac [("x","w")] spec 1);			(* quantify w *)
-by (res_inst_tac [("x","b")] bexp.induct 1);		(* struct. ind. *)
-by (resolve_tac prems 1);				(* type prem. *)
-by (rewrite_goals_tac B_rewrite_rules);			(* rewr. Den.   *)
+by (res_inst_tac [("x","w")] spec 1);                   (* quantify w *)
+by (res_inst_tac [("x","b")] bexp.induct 1);            (* struct. ind. *)
+by (resolve_tac prems 1);                               (* type prem. *)
+by (rewrite_goals_tac B_rewrite_rules);                 (* rewr. Den.   *)
 by (TRYALL (fast_tac (ZF_cs addSIs (evalb.intrs@prems@[aexp2])
                             addSDs [aexp1] addSEs bexp_elim_cases)));
 qed "bexp_iff";
@@ -70,12 +70,12 @@ by (asm_simp_tac (ZF_ss addsimps [bexp1]) 1);
 
 (* while *)
 by (etac (rewrite_rule [Gamma_def]
-	  (Gamma_bnd_mono RS lfp_Tarski RS ssubst)) 1);
+          (Gamma_bnd_mono RS lfp_Tarski RS ssubst)) 1);
 by (asm_simp_tac (ZF_ss addsimps [bexp1]) 1);
 by (fast_tac (comp_cs addSIs [bexp1,idI]@evalb_type_intrs) 1);
 
 by (etac (rewrite_rule [Gamma_def]
-	  (Gamma_bnd_mono RS lfp_Tarski RS ssubst)) 1);
+          (Gamma_bnd_mono RS lfp_Tarski RS ssubst)) 1);
 by (asm_simp_tac (ZF_ss addsimps [bexp1]) 1);
 by (fast_tac (comp_cs addSIs [bexp1,compI]@evalb_type_intrs) 1);
 

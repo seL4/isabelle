@@ -21,13 +21,13 @@ struct
 open HOLCFlogic;
 
 val user_keywords = (*####*)filter_out (fn s => s mem (ThyAxioms.axioms_keywords@
-		    ThyOps.ops_keywords)) (*####*)ThySynData.user_keywords @ 
+                    ThyOps.ops_keywords)) (*####*)ThySynData.user_keywords @ 
                     ThyAxioms.axioms_keywords @ 
                     ThyOps.ops_keywords;
 
 val user_sections = (*####*)filter_out (fn (s,_) => s mem (map fst (
-		    ThyAxioms.axioms_sections@ ThyOps.ops_sections))) (*####*)
-		      ThySynData.user_sections @
+                    ThyAxioms.axioms_sections@ ThyOps.ops_sections))) (*####*)
+                      ThySynData.user_sections @
                     ThyAxioms.axioms_sections @
                     ThyOps.ops_sections;
 end;

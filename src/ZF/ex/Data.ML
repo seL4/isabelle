@@ -1,6 +1,6 @@
-(*  Title: 	ZF/ex/Data.ML
+(*  Title:      ZF/ex/Data.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Sample datatype definition.  
@@ -28,7 +28,7 @@ goalw Data.thy (data.defs@data.con_defs) "data(univ(A),univ(A)) <= univ(A)";
 by (rtac lfp_lowerbound 1);
 by (rtac ([A_subset_univ, Un_upper1] MRS subset_trans RS univ_mono) 2);
 by (fast_tac (ZF_cs addSIs [zero_in_univ, Inl_in_univ, Inr_in_univ,
-			    Pair_in_univ]) 1);
+                            Pair_in_univ]) 1);
 qed "data_univ";
 
 bind_thm ("data_subset_univ", ([data_mono, data_univ] MRS subset_trans));

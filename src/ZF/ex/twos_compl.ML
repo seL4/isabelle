@@ -1,6 +1,6 @@
-(*  Title: 	ZF/ex/twos-compl.ML
+(*  Title:      ZF/ex/twos-compl.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 ML code for Arithmetic on binary integers; the model for theory Bin

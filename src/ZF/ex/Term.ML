@@ -1,6 +1,6 @@
-(*  Title: 	ZF/ex/Term.ML
+(*  Title:      ZF/ex/Term.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Datatype definition of terms over an alphabet.
@@ -90,10 +90,10 @@ qed "term_rec";
 
 (*Slightly odd typing condition on r in the second premise!*)
 val major::prems = goal Term.thy
-    "[| t: term(A);					\
-\       !!x zs r. [| x: A;  zs: list(term(A)); 		\
-\                    r: list(UN t:term(A). C(t)) |]	\
-\                 ==> d(x, zs, r): C(Apply(x,zs))  	\
+    "[| t: term(A);                                     \
+\       !!x zs r. [| x: A;  zs: list(term(A));          \
+\                    r: list(UN t:term(A). C(t)) |]     \
+\                 ==> d(x, zs, r): C(Apply(x,zs))       \
 \    |] ==> term_rec(t,d) : C(t)";
 by (rtac (major RS term.induct) 1);
 by (forward_tac [list_CollectD] 1);
@@ -113,9 +113,9 @@ by (rtac (tslist RS term_rec) 1);
 qed "def_term_rec";
 
 val prems = goal Term.thy
-    "[| t: term(A);					     \
+    "[| t: term(A);                                          \
 \       !!x zs r. [| x: A;  zs: list(term(A));  r: list(C) |]  \
-\                 ==> d(x, zs, r): C  		     \
+\                 ==> d(x, zs, r): C                 \
 \    |] ==> term_rec(t,d) : C";
 by (REPEAT (ares_tac (term_rec_type::prems) 1));
 by (etac (subset_refl RS UN_least RS list_mono RS subsetD) 1);
@@ -208,7 +208,7 @@ qed "term_size_term_map";
 goal Term.thy "!!t A. t: term(A) ==> term_size(reflect(t)) = term_size(t)";
 by (etac term_induct_eqn 1);
 by (asm_simp_tac (term_ss addsimps [rev_map_distrib RS sym, map_compose,
-				    list_add_rev]) 1);
+                                    list_add_rev]) 1);
 qed "term_size_reflect";
 
 goal Term.thy "!!t A. t: term(A) ==> term_size(t) = length(preorder(t))";
@@ -222,7 +222,7 @@ qed "term_size_length";
 goal Term.thy "!!t A. t: term(A) ==> reflect(reflect(t)) = t";
 by (etac term_induct_eqn 1);
 by (asm_simp_tac (term_ss addsimps [rev_map_distrib, map_compose,
-				    map_ident, rev_rev_ident]) 1);
+                                    map_ident, rev_rev_ident]) 1);
 qed "reflect_reflect_ident";
 
 

@@ -1,12 +1,12 @@
-(*  Title: 	ZF/Order.ML
+(*  Title:      ZF/Order.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Orders in Zermelo-Fraenkel Set Theory 
 
 Results from the book "Set Theory: an Introduction to Independence Proofs"
-	by Ken Kunen.  Chapter 1, section 6.
+        by Ken Kunen.  Chapter 1, section 6.
 *)
 
 open Order;
@@ -34,12 +34,12 @@ qed "linearE";
 (*Does the case analysis, deleting linear(A,r) and proving trivial subgoals*)
 val linear_case_tac =
     SELECT_GOAL (EVERY [etac linearE 1, assume_tac 1, assume_tac 1,
-			REPEAT_SOME (assume_tac ORELSE' contr_tac)]);
+                        REPEAT_SOME (assume_tac ORELSE' contr_tac)]);
 
 (** General properties of well_ord **)
 
 goalw Order.thy [irrefl_def, part_ord_def, tot_ord_def, 
-		 trans_on_def, well_ord_def]
+                 trans_on_def, well_ord_def]
     "!!r. [| wf[A](r); linear(A,r) |] ==> well_ord(A,r)";
 by (asm_simp_tac (ZF_ss addsimps [wf_on_not_refl]) 1);
 by (fast_tac (ZF_cs addEs [linearE, wf_on_asym, wf_on_chain3]) 1);
@@ -195,17 +195,17 @@ by (step_tac ZF_cs 1);
 by (linear_case_tac 1);
 by (REPEAT 
     (EVERY [eresolve_tac [wf_on_not_refl RS notE] 1,
-	    eresolve_tac [ssubst] 2,
-	    fast_tac ZF_cs 2,
-	    REPEAT (ares_tac [apply_type] 1)]));
+            etac ssubst 2,
+            fast_tac ZF_cs 2,
+            REPEAT (ares_tac [apply_type] 1)]));
 qed "mono_map_is_inj";
 
 
 (** Order-isomorphisms -- or similarities, as Suppes calls them **)
 
 val prems = goalw Order.thy [ord_iso_def]
-    "[| f: bij(A, B);	\
-\       !!x y. [| x:A; y:A |] ==> <x, y> : r <-> <f`x, f`y> : s	\
+    "[| f: bij(A, B);   \
+\       !!x y. [| x:A; y:A |] ==> <x, y> : r <-> <f`x, f`y> : s \
 \    |] ==> f: ord_iso(A,r,B,s)";
 by (fast_tac (ZF_cs addSIs prems) 1);
 qed "ord_isoI";
@@ -233,7 +233,7 @@ goalw Order.thy [ord_iso_def]
 by (etac CollectE 1);
 by (etac (bspec RS bspec RS iffD2) 1);
 by (REPEAT (eresolve_tac [asm_rl, 
-			  bij_converse_bij RS bij_is_fun RS apply_type] 1));
+                          bij_converse_bij RS bij_is_fun RS apply_type] 1));
 by (asm_simp_tac (ZF_ss addsimps [right_inverse_bij]) 1);
 qed "ord_iso_converse";
 
@@ -241,7 +241,7 @@ qed "ord_iso_converse";
 (*Rewriting with bijections and converse (function inverse)*)
 val bij_inverse_ss = 
     ZF_ss setsolver (type_auto_tac [ord_iso_is_bij, bij_is_fun, apply_type, 
-				    bij_converse_bij, comp_fun, comp_bij])
+                                    bij_converse_bij, comp_fun, comp_bij])
           addsimps [right_inverse_bij, left_inverse_bij, comp_fun_apply];
 
 
@@ -276,7 +276,7 @@ qed "ord_iso_trans";
 (** Two monotone maps can make an order-isomorphism **)
 
 goalw Order.thy [ord_iso_def, mono_map_def]
-    "!!f g. [| f: mono_map(A,r,B,s);  g: mono_map(B,s,A,r);	\
+    "!!f g. [| f: mono_map(A,r,B,s);  g: mono_map(B,s,A,r);     \
 \              f O g = id(B);  g O f = id(A) |] ==> f: ord_iso(A,r,B,s)";
 by (safe_tac ZF_cs);
 by (REPEAT_FIRST (ares_tac [fg_imp_bijective]));
@@ -288,8 +288,8 @@ by (asm_full_simp_tac
 qed "mono_ord_isoI";
 
 goal Order.thy
-    "!!B. [| well_ord(A,r);  well_ord(B,s); 				\
-\            f: mono_map(A,r,B,s);  converse(f): mono_map(B,s,A,r)	\
+    "!!B. [| well_ord(A,r);  well_ord(B,s);                             \
+\            f: mono_map(A,r,B,s);  converse(f): mono_map(B,s,A,r)      \
 \         |] ==> f: ord_iso(A,r,B,s)";
 by (REPEAT (ares_tac [mono_ord_isoI] 1));
 by (forward_tac [mono_map_is_fun RS fun_is_rel] 1);
@@ -327,7 +327,7 @@ by (safe_tac eq_cs);
 by (dtac equalityD1 1);
 by (fast_tac (ZF_cs addSIs [bexI]) 1);
 by (fast_tac (ZF_cs addSIs [bexI]
-	      addIs [bij_is_fun RS apply_type]) 1);
+              addIs [bij_is_fun RS apply_type]) 1);
 qed "wf_on_ord_iso";
 
 goalw Order.thy [well_ord_def, tot_ord_def]
@@ -359,14 +359,14 @@ by (metacut_tac well_ord_iso_subset_lemma 1);
 by (REPEAT_FIRST (ares_tac [pred_subset]));
 (*Now we know  f`x < x *)
 by (EVERY1 [dtac (ord_iso_is_bij RS bij_is_fun RS apply_type),
-	     assume_tac]);
+             assume_tac]);
 (*Now we also know f`x : pred(A,x,r);  contradiction! *)
 by (asm_full_simp_tac (ZF_ss addsimps [well_ord_def, pred_def]) 1);
 qed "well_ord_iso_predE";
 
 (*Simple consequence of Lemma 6.1*)
 goal Order.thy
- "!!r. [| well_ord(A,r);  f : ord_iso(pred(A,a,r), r, pred(A,c,r), r);	\
+ "!!r. [| well_ord(A,r);  f : ord_iso(pred(A,a,r), r, pred(A,c,r), r);  \
 \         a:A;  c:A |] ==> a=c";
 by (forward_tac [well_ord_is_trans_on] 1);
 by (forward_tac [well_ord_is_linear] 1);
@@ -374,20 +374,20 @@ by (linear_case_tac 1);
 by (dtac ord_iso_sym 1);
 by (REPEAT   (*because there are two symmetric cases*)
     (EVERY [eresolve_tac [pred_subset RSN (2, well_ord_subset) RS
-			  well_ord_iso_predE] 1,
-	    fast_tac (ZF_cs addSIs [predI]) 2,
-	    asm_simp_tac (ZF_ss addsimps [trans_pred_pred_eq]) 1]));
+                          well_ord_iso_predE] 1,
+            fast_tac (ZF_cs addSIs [predI]) 2,
+            asm_simp_tac (ZF_ss addsimps [trans_pred_pred_eq]) 1]));
 qed "well_ord_iso_pred_eq";
 
 (*Does not assume r is a wellordering!*)
 goalw Order.thy [ord_iso_def, pred_def]
- "!!r. [| f : ord_iso(A,r,B,s);	  a:A |] ==> 	\
+ "!!r. [| f : ord_iso(A,r,B,s);   a:A |] ==>    \
 \      f `` pred(A,a,r) = pred(B, f`a, s)";
 by (etac CollectE 1);
 by (asm_simp_tac 
     (ZF_ss addsimps [[bij_is_fun, Collect_subset] MRS image_fun]) 1);
 by (safe_tac (eq_cs addSEs [bij_is_fun RS apply_type]));
-by (resolve_tac [RepFun_eqI] 1);
+by (rtac RepFun_eqI 1);
 by (fast_tac (ZF_cs addSIs [right_inverse_bij RS sym]) 1);
 by (asm_simp_tac bij_inverse_ss 1);
 qed "ord_iso_image_pred";
@@ -395,10 +395,10 @@ qed "ord_iso_image_pred";
 (*But in use, A and B may themselves be initial segments.  Then use
   trans_pred_pred_eq to simplify the pred(pred...) terms.  See just below.*)
 goal Order.thy
- "!!r. [| f : ord_iso(A,r,B,s);	  a:A |] ==> 	\
+ "!!r. [| f : ord_iso(A,r,B,s);   a:A |] ==>    \
 \      restrict(f, pred(A,a,r)) : ord_iso(pred(A,a,r), r, pred(B, f`a, s), s)";
 by (asm_simp_tac (ZF_ss addsimps [ord_iso_image_pred RS sym]) 1);
-by (rewrite_goals_tac [ord_iso_def]);
+by (rewtac ord_iso_def);
 by (etac CollectE 1);
 by (rtac CollectI 1);
 by (asm_full_simp_tac (ZF_ss addsimps [pred_def]) 2);
@@ -407,15 +407,15 @@ qed "ord_iso_restrict_pred";
 
 (*Tricky; a lot of forward proof!*)
 goal Order.thy
- "!!r. [| well_ord(A,r);  well_ord(B,s);  <a,c>: r;	\
-\         f : ord_iso(pred(A,a,r), r, pred(B,b,s), s);	\
-\         g : ord_iso(pred(A,c,r), r, pred(B,d,s), s);	\
+ "!!r. [| well_ord(A,r);  well_ord(B,s);  <a,c>: r;     \
+\         f : ord_iso(pred(A,a,r), r, pred(B,b,s), s);  \
+\         g : ord_iso(pred(A,c,r), r, pred(B,d,s), s);  \
 \         a:A;  c:A;  b:B;  d:B |] ==> <b,d>: s";
 by (forward_tac [ord_iso_is_bij RS bij_is_fun RS apply_type] 1  THEN
     REPEAT1 (eresolve_tac [asm_rl, predI, predE] 1));
 by (subgoal_tac "b = g`a" 1);
 by (asm_simp_tac ZF_ss 1);
-by (resolve_tac [well_ord_iso_pred_eq] 1);
+by (rtac well_ord_iso_pred_eq 1);
 by (REPEAT_SOME assume_tac);
 by (forward_tac [ord_iso_restrict_pred] 1  THEN
     REPEAT1 (eresolve_tac [asm_rl, predI] 1));
@@ -479,44 +479,44 @@ qed "converse_ord_iso_map";
 goalw Order.thy [ord_iso_map_def, function_def]
     "!!B. well_ord(B,s) ==> function(ord_iso_map(A,r,B,s))";
 by (safe_tac ZF_cs);
-by (resolve_tac [well_ord_iso_pred_eq] 1);
+by (rtac well_ord_iso_pred_eq 1);
 by (REPEAT_SOME assume_tac);
 by (eresolve_tac [ord_iso_sym RS ord_iso_trans] 1);
 by (assume_tac 1);
 qed "function_ord_iso_map";
 
 goal Order.thy
-    "!!B. well_ord(B,s) ==> ord_iso_map(A,r,B,s) 	\
+    "!!B. well_ord(B,s) ==> ord_iso_map(A,r,B,s)        \
 \          : domain(ord_iso_map(A,r,B,s)) -> range(ord_iso_map(A,r,B,s))";
 by (asm_simp_tac 
     (ZF_ss addsimps [Pi_iff, function_ord_iso_map,
-		     ord_iso_map_subset RS domain_times_range]) 1);
+                     ord_iso_map_subset RS domain_times_range]) 1);
 qed "ord_iso_map_fun";
 
 goalw Order.thy [mono_map_def]
-    "!!B. [| well_ord(A,r);  well_ord(B,s) |] ==> ord_iso_map(A,r,B,s) 	\
-\          : mono_map(domain(ord_iso_map(A,r,B,s)), r, 	\
-\	              range(ord_iso_map(A,r,B,s)), s)";
+    "!!B. [| well_ord(A,r);  well_ord(B,s) |] ==> ord_iso_map(A,r,B,s)  \
+\          : mono_map(domain(ord_iso_map(A,r,B,s)), r,  \
+\                     range(ord_iso_map(A,r,B,s)), s)";
 by (asm_simp_tac (ZF_ss addsimps [ord_iso_map_fun]) 1);
 by (safe_tac ZF_cs);
 by (subgoals_tac ["x:A", "xa:A", "y:B", "ya:B"] 1);
 by (REPEAT 
     (fast_tac (ZF_cs addSEs [ord_iso_map_subset RS subsetD RS SigmaE]) 2));
 by (asm_simp_tac (ZF_ss addsimps [ord_iso_map_fun RSN (2,apply_equality)]) 1);
-by (rewrite_goals_tac [ord_iso_map_def]);
+by (rewtac ord_iso_map_def);
 by (safe_tac (ZF_cs addSEs [UN_E]));
-by (resolve_tac [well_ord_iso_preserving] 1 THEN REPEAT_FIRST assume_tac);
+by (rtac well_ord_iso_preserving 1 THEN REPEAT_FIRST assume_tac);
 qed "ord_iso_map_mono_map";
 
 goalw Order.thy [mono_map_def]
-    "!!B. [| well_ord(A,r);  well_ord(B,s) |] ==> ord_iso_map(A,r,B,s) 	\
-\          : ord_iso(domain(ord_iso_map(A,r,B,s)), r, 	\
-\	              range(ord_iso_map(A,r,B,s)), s)";
-by (resolve_tac [well_ord_mono_ord_isoI] 1);
+    "!!B. [| well_ord(A,r);  well_ord(B,s) |] ==> ord_iso_map(A,r,B,s)  \
+\          : ord_iso(domain(ord_iso_map(A,r,B,s)), r,   \
+\                     range(ord_iso_map(A,r,B,s)), s)";
+by (rtac well_ord_mono_ord_isoI 1);
 by (resolve_tac [converse_ord_iso_map RS subst] 4);
 by (asm_simp_tac 
     (ZF_ss addsimps [ord_iso_map_subset RS converse_converse, 
-		     domain_converse, range_converse]) 4);
+                     domain_converse, range_converse]) 4);
 by (REPEAT (ares_tac [ord_iso_map_mono_map] 3));
 by (ALLGOALS (etac well_ord_subset));
 by (ALLGOALS (resolve_tac [domain_ord_iso_map, range_ord_iso_map]));
@@ -524,8 +524,8 @@ qed "ord_iso_map_ord_iso";
 
 (*One way of saying that domain(ord_iso_map(A,r,B,s)) is downwards-closed*)
 goalw Order.thy [ord_iso_map_def]
-  "!!B. [| well_ord(A,r);  well_ord(B,s);    		\
-\          a: A;  a ~: domain(ord_iso_map(A,r,B,s)) 	\
+  "!!B. [| well_ord(A,r);  well_ord(B,s);               \
+\          a: A;  a ~: domain(ord_iso_map(A,r,B,s))     \
 \       |] ==>  domain(ord_iso_map(A,r,B,s)) <= pred(A, a, r)";
 by (safe_tac (ZF_cs addSIs [predI]));
 (*Case analysis on  xaa vs a in r *)
@@ -546,7 +546,7 @@ qed "domain_ord_iso_map_subset";
 (*For the 4-way case analysis in the main result*)
 goal Order.thy
   "!!B. [| well_ord(A,r);  well_ord(B,s) |] ==> \
-\       domain(ord_iso_map(A,r,B,s)) = A |	\
+\       domain(ord_iso_map(A,r,B,s)) = A |      \
 \       (EX x:A. domain(ord_iso_map(A,r,B,s)) = pred(A,x,r))";
 by (forward_tac [well_ord_is_wf] 1);
 by (rewrite_goals_tac [wf_on_def, wf_def]);
@@ -566,8 +566,8 @@ qed "domain_ord_iso_map_cases";
 
 (*As above, by duality*)
 goal Order.thy
-  "!!B. [| well_ord(A,r);  well_ord(B,s) |] ==>	\
-\       range(ord_iso_map(A,r,B,s)) = B |	\
+  "!!B. [| well_ord(A,r);  well_ord(B,s) |] ==> \
+\       range(ord_iso_map(A,r,B,s)) = B |       \
 \       (EX y:B. range(ord_iso_map(A,r,B,s))= pred(B,y,s))";
 by (resolve_tac [converse_ord_iso_map RS subst] 1);
 by (asm_simp_tac
@@ -576,22 +576,22 @@ qed "range_ord_iso_map_cases";
 
 (*Kunen's Theorem 6.3: Fundamental Theorem for Well-Ordered Sets*)
 goal Order.thy
-  "!!B. [| well_ord(A,r);  well_ord(B,s) |] ==>  	\
-\       ord_iso_map(A,r,B,s) : ord_iso(A, r, B, s) |	\
+  "!!B. [| well_ord(A,r);  well_ord(B,s) |] ==>         \
+\       ord_iso_map(A,r,B,s) : ord_iso(A, r, B, s) |    \
 \       (EX x:A. ord_iso_map(A,r,B,s) : ord_iso(pred(A,x,r), r, B, s)) | \
 \       (EX y:B. ord_iso_map(A,r,B,s) : ord_iso(A, r, pred(B,y,s), s))";
 by (forw_inst_tac [("B","B")] domain_ord_iso_map_cases 1);
 by (forw_inst_tac [("B","B")] range_ord_iso_map_cases 2);
 by (REPEAT_FIRST (eresolve_tac [asm_rl, disjE, bexE]));
-by (ALLGOALS (dresolve_tac [ord_iso_map_ord_iso] THEN' assume_tac THEN' 
-	      asm_full_simp_tac (ZF_ss addsimps [bexI])));
+by (ALLGOALS (dtac ord_iso_map_ord_iso THEN' assume_tac THEN' 
+              asm_full_simp_tac (ZF_ss addsimps [bexI])));
 by (resolve_tac [wf_on_not_refl RS notE] 1);
-by (eresolve_tac [well_ord_is_wf] 1);
+by (etac well_ord_is_wf 1);
 by (assume_tac 1);
 by (subgoal_tac "<x,y>: ord_iso_map(A,r,B,s)" 1);
-by (dresolve_tac [rangeI] 1);
+by (dtac rangeI 1);
 by (asm_full_simp_tac (ZF_ss addsimps [pred_def]) 1);
-by (rewrite_goals_tac [ord_iso_map_def]);
+by (rewtac ord_iso_map_def);
 by (fast_tac ZF_cs 1);
 qed "well_ord_trichotomy";
 

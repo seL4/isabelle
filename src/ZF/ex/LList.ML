@@ -1,6 +1,6 @@
-(*  Title: 	ZF/ex/LList.ML
+(*  Title:      ZF/ex/LList.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Codatatype definition of Lazy Lists
@@ -33,10 +33,10 @@ qed "llist_mono";
 (** Closure of quniv(A) under llist -- why so complex?  Its a gfp... **)
 
 val quniv_cs = subset_cs addSIs [QPair_Int_Vset_subset_UN RS subset_trans, 
-				 QPair_subset_univ,
-				 empty_subsetI, one_in_quniv RS qunivD]
+                                 QPair_subset_univ,
+                                 empty_subsetI, one_in_quniv RS qunivD]
                  addIs  [Int_lower1 RS subset_trans]
-		 addSDs [qunivD]
+                 addSDs [qunivD]
                  addSEs [Ord_in_Ord];
 
 goal LList.thy
@@ -65,7 +65,7 @@ bind_thm ("llist_subset_quniv",
 (*** Lazy List Equality: lleq ***)
 
 val lleq_cs = subset_cs
-	addSIs [QPair_Int_Vset_subset_UN RS subset_trans, QPair_mono]
+        addSIs [QPair_Int_Vset_subset_UN RS subset_trans, QPair_mono]
         addSEs [Ord_in_Ord, Pair_inject];
 
 (*Lemma for proving finality.  Unfold the lazy list; use induction hypothesis*)
@@ -80,7 +80,7 @@ by (fast_tac (subset_cs addSEs [Ord_trans, make_elim bspec]) 1);
 qed "lleq_Int_Vset_subset_lemma";
 
 bind_thm ("lleq_Int_Vset_subset",
-	(lleq_Int_Vset_subset_lemma RS spec RS spec RS mp));
+        (lleq_Int_Vset_subset_lemma RS spec RS spec RS mp));
 
 
 (*lleq(A) is a symmetric relation because qconverse(lleq(A)) is a fixedpoint*)
@@ -118,7 +118,7 @@ goalw LList.thy llist.con_defs "bnd_mono(univ(a), %l. LCons(a,l))";
 by (rtac bnd_monoI 1);
 by (REPEAT (ares_tac [subset_refl, QInr_mono, QPair_mono] 2));
 by (REPEAT (ares_tac [subset_refl, A_subset_univ, 
-		      QInr_subset_univ, QPair_subset_univ] 1));
+                      QInr_subset_univ, QPair_subset_univ] 1));
 qed "lconst_fun_bnd_mono";
 
 (* lconst(a) = LCons(a,lconst(a)) *)

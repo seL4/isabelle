@@ -1,6 +1,6 @@
-(*  Title: 	Modal/ex/ROOT
+(*  Title:      Modal/ex/ROOT
     ID:         $Id$
-    Author: 	Martin Coen
+    Author:     Martin Coen
     Copyright   1991  University of Cambridge
 *)
 

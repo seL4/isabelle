@@ -27,7 +27,7 @@ Idea: (%i.%G.iterate i G UU) is a chain of continuous functions and
 Since we already proved the theorem
 
 val cont_lubcfun = prove_goal Cfun2.thy 
-	"is_chain ?F ==> cont (%x. lub (range (%j. ?F j`x)))"
+        "is_chain ?F ==> cont (%x. lub (range (%j. ?F j`x)))"
 
 
 it suffices to prove:
@@ -51,12 +51,12 @@ by (res_inst_tac
  [("t","Ifix"),("s","(%f.lub(range(%j.(LAM f. iterate j f UU)`f)))")]
   ssubst 1);
 by (rtac ext 1);
-by (rewrite_goals_tac [Ifix_def] );
+by (rewtac Ifix_def );
 by (subgoal_tac 
   "range(% i.iterate i f UU) = range(%j.(LAM f. iterate j f UU)`f)" 1);
 by (etac arg_cong 1);
 by (subgoal_tac 
-	"(% i.iterate i f UU) = (%j.(LAM f. iterate j f UU)`f)" 1);
+        "(% i.iterate i f UU) = (%j.(LAM f. iterate j f UU)`f)" 1);
 by (etac arg_cong 1);
 by (rtac ext 1);
 by (rtac (beta_cfun RS ssubst) 1);
@@ -90,7 +90,7 @@ val fix_lemma1 = result();
 val prems = goal Fix.thy  
 " Ifix = (%f.lub(range(%j.(LAM f.iterate j f UU)`f)))";
 by (rtac ext 1);
-by (rewrite_goals_tac [Ifix_def] ); 
+by (rewtac Ifix_def ); 
 by (rtac (fix_lemma1 RS ssubst) 1);
 by (rtac refl 1);
 val fix_lemma2 = result();

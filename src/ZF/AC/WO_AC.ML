@@ -1,6 +1,6 @@
-(*  Title: 	ZF/AC/WO_AC.ML
+(*  Title:      ZF/AC/WO_AC.ML
     ID:         $Id$
-    Author: 	Krzysztof Grabczewski
+    Author:     Krzysztof Grabczewski
 
 Lemmas used in the proofs like WO? ==> AC?
 *)
@@ -8,9 +8,9 @@ Lemmas used in the proofs like WO? ==> AC?
 open WO_AC;
 
 goal thy "!!A. [| well_ord(Union(A),r); 0~:A; B:A |]  \
-\		==> (THE b. first(b,B,r)) : B";
+\               ==> (THE b. first(b,B,r)) : B";
 by (fast_tac (AC_cs addSEs [well_ord_imp_ex1_first RS theI RS
-		(first_def RS def_imp_iff RS iffD1 RS conjunct1)]) 1);
+                (first_def RS def_imp_iff RS iffD1 RS conjunct1)]) 1);
 val first_in_B = result();
 
 goal thy "!!A. [| well_ord(Union(A), R); 0~:A |] ==> EX f. f:(PROD X:A. X)";

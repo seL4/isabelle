@@ -1,6 +1,6 @@
-(*  Title: 	ZF/ex/comb.ML
+(*  Title:      ZF/ex/comb.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson
+    Author:     Lawrence C Paulson
     Copyright   1993  University of Cambridge
 
 Combinatory Logic example: the Church-Rosser Theorem
@@ -42,10 +42,10 @@ bind_thm ("rtrancl_into_rtrancl2",
     (r_into_rtrancl RS (trans_rtrancl RS transD)));
 
 val reduction_rls = [reduction_refl, contract.K, contract.S, 
-		     contract.K RS rtrancl_into_rtrancl2,
-		     contract.S RS rtrancl_into_rtrancl2,
-		     contract.Ap1 RS rtrancl_into_rtrancl2,
-		     contract.Ap2 RS rtrancl_into_rtrancl2];
+                     contract.K RS rtrancl_into_rtrancl2,
+                     contract.S RS rtrancl_into_rtrancl2,
+                     contract.Ap1 RS rtrancl_into_rtrancl2,
+                     contract.Ap2 RS rtrancl_into_rtrancl2];
 
 (*Example only: not used*)
 goalw Comb.thy [I_def] "!!p. p:comb ==> I#p ---> p";
@@ -65,10 +65,10 @@ val Ap_contractE = contract.mk_cases comb.con_defs "p#q -1-> r";
 
 val contract_cs =
     ZF_cs addSIs comb.intrs
-	  addIs  contract.intrs
-	  addSEs [contract_combD1,contract_combD2]     (*type checking*)
-	  addSEs [K_contractE, S_contractE, Ap_contractE]
-	  addSEs comb.free_SEs;
+          addIs  contract.intrs
+          addSEs [contract_combD1,contract_combD2]     (*type checking*)
+          addSEs [K_contractE, S_contractE, Ap_contractE]
+          addSEs comb.free_SEs;
 
 goalw Comb.thy [I_def] "!!r. I -1-> r ==> P";
 by (fast_tac contract_cs 1);
@@ -129,7 +129,7 @@ val parcontract_combD2 = parcontract.dom_subset RS subsetD RS SigmaD2;
 
 goal Comb.thy "field(parcontract) = comb";
 by (fast_tac (ZF_cs addIs [equalityI, parcontract.K] 
-	            addSEs [parcontract_combE2]) 1);
+                    addSEs [parcontract_combE2]) 1);
 qed "field_parcontract_eq";
 
 (*Derive a case for each combinator constructor*)
@@ -139,10 +139,10 @@ val Ap_parcontractE = parcontract.mk_cases comb.con_defs "p#q =1=> r";
 
 val parcontract_cs =
     ZF_cs addSIs comb.intrs
-	  addIs  parcontract.intrs
-	  addSEs [Ap_E, K_parcontractE, S_parcontractE, 
-		  Ap_parcontractE]
-	  addSEs [parcontract_combD1, parcontract_combD2]     (*type checking*)
+          addIs  parcontract.intrs
+          addSEs [Ap_E, K_parcontractE, S_parcontractE, 
+                  Ap_parcontractE]
+          addSEs [parcontract_combD1, parcontract_combD2]     (*type checking*)
           addSEs comb.free_SEs;
 
 (*** Basic properties of parallel contraction ***)
@@ -176,18 +176,18 @@ goalw Comb.thy [diamond_def]
 by (etac trancl_induct 1);
 by (fast_tac (ZF_cs addIs [r_into_trancl]) 1);
 by (slow_best_tac (ZF_cs addSDs [spec RS mp]
-		         addIs  [r_into_trancl, trans_trancl RS transD]) 1);
+                         addIs  [r_into_trancl, trans_trancl RS transD]) 1);
 qed "diamond_trancl_lemma";
 
 val diamond_lemmaE = diamond_trancl_lemma RS spec RS mp RS exE;
 
 val [major] = goal Comb.thy "diamond(r) ==> diamond(r^+)";
-bw diamond_def;  (*unfold only in goal, not in premise!*)
+by (rewtac diamond_def);  (*unfold only in goal, not in premise!*)
 by (rtac (impI RS allI RS allI) 1);
 by (etac trancl_induct 1);
 by (ALLGOALS
     (slow_best_tac (ZF_cs addIs [r_into_trancl, trans_trancl RS transD]
-		          addEs [major RS diamond_lemmaE])));
+                          addEs [major RS diamond_lemmaE])));
 qed "diamond_trancl";
 
 
@@ -204,7 +204,7 @@ by (dtac (field_contract_eq RS equalityD1 RS subsetD) 1);
 by (etac rtrancl_induct 1);
 by (fast_tac (parcontract_cs addIs [r_into_trancl]) 1);
 by (fast_tac (ZF_cs addIs [contract_imp_parcontract, 
-			   r_into_trancl, trans_trancl RS transD]) 1);
+                           r_into_trancl, trans_trancl RS transD]) 1);
 qed "reduce_imp_parreduce";
 
 

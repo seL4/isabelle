@@ -1,6 +1,6 @@
-(*  Title: 	ZF/ex/CoUnit.ML
+(*  Title:      ZF/ex/CoUnit.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Trivial codatatype definitions, one of which goes wrong!
@@ -59,13 +59,13 @@ by (etac counit2.elim 1);
 by (etac counit2.elim 1);
 by (rewrite_goals_tac counit2.con_defs);
 val lleq_cs = subset_cs
-	addSIs [QPair_Int_Vset_subset_UN RS subset_trans, QPair_mono]
+        addSIs [QPair_Int_Vset_subset_UN RS subset_trans, QPair_mono]
         addSEs [Ord_in_Ord, Pair_inject];
 by (fast_tac lleq_cs 1);
 qed "counit2_Int_Vset_subset_lemma";
 
 val counit2_Int_Vset_subset = standard
-	(counit2_Int_Vset_subset_lemma RS spec RS spec RS mp);
+        (counit2_Int_Vset_subset_lemma RS spec RS spec RS mp);
 
 goal CoUnit.thy "!!x y. [| x: counit2;  y: counit2 |] ==> x=y";
 by (rtac equalityI 1);

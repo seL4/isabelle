@@ -1,6 +1,6 @@
-(*  Title: 	ZF/AC/Hartog.ML
+(*  Title:      ZF/AC/Hartog.ML
     ID:         $Id$
-    Author: 	Krzysztof Grabczewski
+    Author:     Krzysztof Grabczewski
 
   Some proofs on the Hartogs function.
 *)
@@ -13,23 +13,23 @@ by (fast_tac ZF_cs 1);
 qed "Ords_in_set";
 
 goalw thy [lepoll_def] "!!X. [| Ord(a); a lepoll X |] ==>  \
-\		EX Y. Y<=X & (EX R. well_ord(Y,R) & ordertype(Y,R)=a)";
+\               EX Y. Y<=X & (EX R. well_ord(Y,R) & ordertype(Y,R)=a)";
 by (etac exE 1);
 by (REPEAT (resolve_tac [exI, conjI] 1));
 by (eresolve_tac [inj_is_fun RS fun_is_rel RS image_subset] 1);
 by (rtac exI 1);
 by (rtac conjI 1);
 by (eresolve_tac [well_ord_Memrel RSN (2, subset_refl RSN (2, 
-	restrict_bij RS bij_converse_bij) RS bij_is_inj RS well_ord_rvimage)] 1
-	THEN (assume_tac 1));
+        restrict_bij RS bij_converse_bij) RS bij_is_inj RS well_ord_rvimage)] 1
+        THEN (assume_tac 1));
 by (resolve_tac [subset_refl RSN (2, restrict_bij RS bij_converse_bij) RS
-	(well_ord_Memrel RSN (2, bij_ordertype_vimage)) RS 
-	(ordertype_Memrel RSN (2, trans))] 1
-	THEN (REPEAT (assume_tac 1)));
+        (well_ord_Memrel RSN (2, bij_ordertype_vimage)) RS 
+        (ordertype_Memrel RSN (2, trans))] 1
+        THEN (REPEAT (assume_tac 1)));
 qed "Ord_lepoll_imp_ex_well_ord";
 
 goal thy "!!X. [| Ord(a); a lepoll X |] ==>  \
-\		EX Y. Y<=X & (EX R. R<=X*X & ordertype(Y,R)=a)";
+\               EX Y. Y<=X & (EX R. R<=X*X & ordertype(Y,R)=a)";
 by (dtac Ord_lepoll_imp_ex_well_ord 1 THEN (assume_tac 1));
 by (step_tac ZF_cs 1);
 by (REPEAT (ares_tac [exI, conjI] 1));
@@ -38,8 +38,8 @@ by (fast_tac ZF_cs 1);
 qed "Ord_lepoll_imp_eq_ordertype";
 
 goal thy "!!X. ALL a. Ord(a) --> a lepoll X ==>  \
-\	ALL a. Ord(a) -->  \
-\	a:{a. Z:Pow(X)*Pow(X*X), EX Y R. Z=<Y,R> & ordertype(Y,R)=a}";
+\       ALL a. Ord(a) -->  \
+\       a:{a. Z:Pow(X)*Pow(X*X), EX Y R. Z=<Y,R> & ordertype(Y,R)=a}";
 by (REPEAT (resolve_tac [allI,impI] 1));
 by (REPEAT (eresolve_tac [allE, impE] 1));
 by (assume_tac 1);
@@ -76,7 +76,7 @@ qed "less_HartogE1";
 
 goal thy "!!i. [| i < Hartog(A); i eqpoll Hartog(A) |] ==> P";
 by (fast_tac (ZF_cs addEs [less_HartogE1, eqpoll_sym RS eqpoll_imp_lepoll
-		RS lepoll_trans RS HartogE]) 1);
+                RS lepoll_trans RS HartogE]) 1);
 qed "less_HartogE";
 
 goal thy "Card(Hartog(A))";

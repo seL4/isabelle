@@ -1,6 +1,6 @@
-(*  Title: 	ZF/AC/AC18_AC19.ML
+(*  Title:      ZF/AC/AC18_AC19.ML
     ID:         $Id$
-    Author: 	Krzysztof Grabczewski
+    Author:     Krzysztof Grabczewski
 
 The proof of AC1 ==> AC18 ==> AC19 ==> AC1
 *)
@@ -8,11 +8,11 @@ The proof of AC1 ==> AC18 ==> AC19 ==> AC1
 open AC18_AC19;
 
 (* ********************************************************************** *)
-(* AC1 ==> AC18								  *)
+(* AC1 ==> AC18                                                           *)
 (* ********************************************************************** *)
 
 goal thy "!!f. [| f: (PROD b:{P(a). a:A}. b); ALL a:A. P(a)<=Q(a) |]  \
-\		==> (lam a:A. f`P(a)):(PROD a:A. Q(a))";
+\               ==> (lam a:A. f`P(a)):(PROD a:A. Q(a))";
 by (rtac lam_type 1);
 by (dtac apply_type 1);
 by (rtac RepFunI 1 THEN (assume_tac 1));
@@ -26,23 +26,23 @@ by (rtac subsetI 1);
 by (eres_inst_tac [("x","{{b:B(a). x:X(a,b)}. a:A}")] allE 1);
 by (etac impE 1);
 by (fast_tac (AC_cs addSEs [RepFunE] addSDs [INT_E]
-		addEs [UN_E, sym RS equals0D]) 1);
+                addEs [UN_E, sym RS equals0D]) 1);
 by (etac exE 1);
 by (rtac UN_I 1);
 by (fast_tac (AC_cs addSEs [PROD_subsets]) 1);
 by (simp_tac AC_ss 1);
 by (fast_tac (FOL_cs addSEs [not_emptyE] addDs [RepFunI RSN (2, apply_type)]
-		addEs [CollectD2] addSIs [INT_I]) 1);
+                addEs [CollectD2] addSIs [INT_I]) 1);
 val lemma_AC18 = result();
 
 val [prem] = goalw thy (AC18_def::AC_defs) "AC1 ==> AC18";
 by (resolve_tac [prem RS revcut_rl] 1);
 by (fast_tac (AC_cs addSEs [lemma_AC18, UN_E, not_emptyE, apply_type]
-		addSIs [equalityI, INT_I, UN_I]) 1);
+                addSIs [equalityI, INT_I, UN_I]) 1);
 qed "AC1_AC18";
 
 (* ********************************************************************** *)
-(* AC18 ==> AC19 							  *)
+(* AC18 ==> AC19                                                          *)
 (* ********************************************************************** *)
 
 val [prem] = goalw thy [AC18_def, AC19_def] "AC18 ==> AC19";
@@ -52,14 +52,14 @@ by (fast_tac AC_cs 1);
 qed "AC18_AC19";
 
 (* ********************************************************************** *)
-(* AC19 ==> AC1								  *)
+(* AC19 ==> AC1                                                           *)
 (* ********************************************************************** *)
 
 goalw thy [u_def]
-	"!!A. [| A ~= 0; 0 ~: A |] ==> {u_(a). a:A} ~= 0 & 0 ~: {u_(a). a:A}";
+        "!!A. [| A ~= 0; 0 ~: A |] ==> {u_(a). a:A} ~= 0 & 0 ~: {u_(a). a:A}";
 by (fast_tac (AC_cs addSIs [not_emptyI, RepFunI]
-		addSEs [not_emptyE, RepFunE]
-		addSDs [sym RS (RepFun_eq_0_iff RS iffD1)]) 1);
+                addSEs [not_emptyE, RepFunE]
+                addSDs [sym RS (RepFun_eq_0_iff RS iffD1)]) 1);
 val RepRep_conj = result();
 
 goal thy "!!c. [|c : a; x = c Un {0}; x ~: a |] ==> x - {0} : a";
@@ -74,16 +74,16 @@ by (fast_tac (AC_cs addEs [notE, subst_elem] addSIs [equalityI])  1);
 val lemma1_1 = result();
 
 goalw thy [u_def]
-	"!!a. [| f`(u_(a)) ~: a; f: (PROD B:{u_(a). a:A}. B); a:A |]  \
-\		==> f`(u_(a))-{0} : a";
+        "!!a. [| f`(u_(a)) ~: a; f: (PROD B:{u_(a). a:A}. B); a:A |]  \
+\               ==> f`(u_(a))-{0} : a";
 by (fast_tac (AC_cs addSEs [RepFunI, RepFunE, lemma1_1]
-		addSDs [apply_type]) 1);
+                addSDs [apply_type]) 1);
 val lemma1_2 = result();
 
 goal thy  "!!A. EX f. f: (PROD B:{u_(a). a:A}. B) ==> EX f. f: (PROD B:A. B)";
 by (etac exE 1);
 by (res_inst_tac
-	[("x","lam a:A. if(f`(u_(a)) : a, f`(u_(a)), f`(u_(a))-{0})")] exI 1);
+        [("x","lam a:A. if(f`(u_(a)) : a, f`(u_(a)), f`(u_(a))-{0})")] exI 1);
 by (rtac lam_type 1);
 by (split_tac [expand_if] 1);
 by (rtac conjI 1);

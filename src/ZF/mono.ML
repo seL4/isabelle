@@ -1,6 +1,6 @@
-(*  Title: 	ZF/mono
+(*  Title:      ZF/mono
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Monotonicity of various operations (for lattice properties see subset.ML)
@@ -187,5 +187,5 @@ qed "all_mono";
 
 (*Used in intr_elim.ML and in individual datatype definitions*)
 val basic_monos = [subset_refl, imp_refl, disj_mono, conj_mono, 
-		   ex_mono, Collect_mono, Part_mono, in_mono];
+                   ex_mono, Collect_mono, Part_mono, in_mono];
 

@@ -1,6 +1,6 @@
-(*  Title: 	ZF/pair
+(*  Title:      ZF/pair
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 Ordered pairs in Zermelo-Fraenkel Set Theory 
@@ -80,7 +80,7 @@ qed_goal "SigmaD2" ZF.thy "<a,b> : Sigma(A,B) ==> b : B(a)"
 
 (*Also provable via 
   rule_by_tactic (REPEAT_FIRST (etac Pair_inject ORELSE' bound_hyp_subst_tac)
-		  THEN prune_params_tac)
+                  THEN prune_params_tac)
       (read_instantiate [("c","<a,b>")] SigmaE);  *)
 qed_goal "SigmaE2" ZF.thy
     "[| <a,b> : Sigma(A,B);    \
@@ -105,7 +105,7 @@ qed_goal "Sigma_empty2" ZF.thy "A*0 = 0"
 val pair_cs = upair_cs 
     addSIs [SigmaI]
     addSEs [SigmaE2, SigmaE, Pair_inject, make_elim succ_inject,
-	    Pair_neq_0, sym RS Pair_neq_0, succ_neq_0, sym RS succ_neq_0];
+            Pair_neq_0, sym RS Pair_neq_0, succ_neq_0, sym RS succ_neq_0];
 
 
 (*** Projections: fst, snd ***)
@@ -166,8 +166,8 @@ by (asm_simp_tac pair_ss 1);
 qed "splitI";
 
 val major::sigma::prems = goalw ZF.thy [split_def]
-    "[| split(R,z);  z:Sigma(A,B);  			\
-\       !!x y. [| z = <x,y>;  R(x,y) |] ==> P 		\
+    "[| split(R,z);  z:Sigma(A,B);                      \
+\       !!x y. [| z = <x,y>;  R(x,y) |] ==> P           \
 \    |] ==> P";
 by (rtac (sigma RS SigmaE) 1);
 by (cut_facts_tac [major] 1);
@@ -184,7 +184,7 @@ qed "splitD";
 fun prove_fun s = 
     (writeln s;  prove_goal ZF.thy s
        (fn prems => [ (cut_facts_tac prems 1), 
-		      (fast_tac (pair_cs addSIs [equalityI]) 1) ]));
+                      (fast_tac (pair_cs addSIs [equalityI]) 1) ]));
 
 (*INCLUDED IN ZF_ss*)
 val mem_simps = map prove_fun

@@ -1,6 +1,6 @@
-(*  Title: 	ZF/AC/first.ML
+(*  Title:      ZF/AC/first.ML
     ID:         $Id$
-    Author: 	Krzysztof Grabczewski
+    Author:     Krzysztof Grabczewski
 
 Lemmas involving the first element of a well ordered set
 *)
@@ -11,8 +11,8 @@ goalw thy [first_def] "!!b. first(b,B,r) ==> b:B";
 by (fast_tac AC_cs 1);
 val first_is_elem = result();
 
-goalw thy [well_ord_def, wf_on_def, wf_def, 	first_def] 
-	"!!r. [| well_ord(A,r); B<=A; B~=0 |] ==> (EX! b. first(b,B,r))";
+goalw thy [well_ord_def, wf_on_def, wf_def,     first_def] 
+        "!!r. [| well_ord(A,r); B<=A; B~=0 |] ==> (EX! b. first(b,B,r))";
 by (REPEAT (eresolve_tac [conjE,allE,disjE] 1));
 by (contr_tac 1);
 by (etac bexE 1);

@@ -1,6 +1,6 @@
-(*  Title: 	ZF/ex/acc
+(*  Title:      ZF/ex/acc
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Inductive definition of acc(r)
@@ -26,8 +26,8 @@ by (fast_tac ZF_cs 1);
 qed "acc_downward";
 
 val [major,indhyp] = goal Acc.thy
-    "[| a : acc(r);						\
-\       !!x. [| x: acc(r);  ALL y. <y,x>:r --> P(y) |] ==> P(x)	\
+    "[| a : acc(r);                                             \
+\       !!x. [| x: acc(r);  ALL y. <y,x>:r --> P(y) |] ==> P(x) \
 \    |] ==> P(a)";
 by (rtac (major RS acc.induct) 1);
 by (rtac indhyp 1);

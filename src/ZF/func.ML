@@ -1,6 +1,6 @@
-(*  Title: 	ZF/func
+(*  Title:      ZF/func
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 Functions in Zermelo-Fraenkel Set Theory
@@ -112,7 +112,7 @@ val [major] = goal ZF.thy
     "f: Pi(A,B) ==> <a,b>: f <-> a:A & f`a = b";
 by (cut_facts_tac [major RS fun_is_rel] 1);
 by (fast_tac (ZF_cs addSIs [major RS apply_Pair, 
-			    major RSN (2,apply_equality)]) 1);
+                            major RSN (2,apply_equality)]) 1);
 qed "apply_iff";
 
 (*Refining one Pi type to another*)
@@ -207,7 +207,7 @@ val prems = goal ZF.thy
     "[| f : Pi(A,B);  g: Pi(A,D);  \
 \       !!x. x:A ==> f`x = g`x       |] ==> f=g";
 by (REPEAT (ares_tac (prems @ (prems RL [sym]) @
-		      [subset_refl,equalityI,fun_subset]) 1));
+                      [subset_refl,equalityI,fun_subset]) 1));
 qed "fun_extension";
 
 goal ZF.thy "!!f A B. f : Pi(A,B) ==> (lam x:A. f`x) = f";
@@ -275,7 +275,7 @@ qed "domain_restrict";
 val [prem] = goalw ZF.thy [restrict_def]
     "A<=C ==> restrict(lam x:C. b(x), A) = (lam x:A. b(x))";
 by (rtac (refl RS lam_cong) 1);
-by (etac (prem RS subsetD RS beta) 1);	(*easier than calling simp_tac*)
+by (etac (prem RS subsetD RS beta) 1);  (*easier than calling simp_tac*)
 qed "restrict_lam_eq";
 
 
@@ -302,8 +302,8 @@ qed "fun_Union";
 (** The Union of 2 disjoint functions is a function **)
 
 val Un_rls = [Un_subset_iff, domain_Un_eq, SUM_Un_distrib1, prod_Un_distrib2, 
-	      Un_upper1 RSN (2, subset_trans), 
-	      Un_upper2 RSN (2, subset_trans)];
+              Un_upper1 RSN (2, subset_trans), 
+              Un_upper2 RSN (2, subset_trans)];
 
 goal ZF.thy
     "!!f. [| f: A->B;  g: C->D;  A Int C = 0  |] ==>  \
@@ -315,7 +315,7 @@ by (safe_tac ZF_cs);
 (*Solve the two cases that contradict A Int C = 0*)
 by (deepen_tac ZF_cs 2 2);
 by (deepen_tac ZF_cs 2 2);
-bw function_def;
+by (rewtac function_def);
 by (REPEAT_FIRST (dtac (spec RS spec)));
 by (deepen_tac ZF_cs 1 1);
 by (deepen_tac ZF_cs 1 1);
@@ -388,10 +388,10 @@ by (fast_tac (ZF_cs addEs [restrict_type2]) 2);
 by (rtac UN_I 1 THEN assume_tac 1);
 by (rtac (apply_funtype RS UN_I) 1 THEN REPEAT (ares_tac [consI1] 1));
 by (simp_tac (FOL_ss addsimps cons_iff::mem_simps) 1);
-by (resolve_tac [fun_extension] 1 THEN REPEAT (ares_tac [fun_extend] 1));
+by (rtac fun_extension 1 THEN REPEAT (ares_tac [fun_extend] 1));
 by (etac consE 1);
 by (ALLGOALS 
     (asm_simp_tac (FOL_ss addsimps [restrict, fun_extend_apply1, 
-				    fun_extend_apply2])));
+                                    fun_extend_apply2])));
 qed "cons_fun_eq";
 

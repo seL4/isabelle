@@ -1,6 +1,6 @@
-(*  Title: 	ZF/ex/ramsey.ML
+(*  Title:      ZF/ex/ramsey.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 Ramsey's Theorem (finite exponent 2 version)
@@ -94,7 +94,7 @@ by (nat_ind_tac "m" prems 1);
 by (fast_tac (ZF_cs addSIs [Atleast0]) 1);
 by (asm_simp_tac arith_ss 1);
 by (rtac ballI 1);
-by (rename_tac "n" 1);		(*simplifier does NOT preserve bound names!*)
+by (rename_tac "n" 1);          (*simplifier does NOT preserve bound names!*)
 by (nat_ind_tac "n" [] 1);
 by (fast_tac (ZF_cs addSIs [Atleast0]) 1);
 by (asm_simp_tac (arith_ss addsimps [add_succ_right]) 1);
@@ -157,7 +157,7 @@ val prems = goalw Ramsey.thy [Symmetric_def,Indept_def]
 \       Atleast(j,I) |] ==>   \
 \    Indept(cons(a,I), V, E) & Atleast(succ(j), cons(a,I))";
 by (cut_facts_tac prems 1);
-by (fast_tac (ZF_cs addSEs [Atleast_succI]) 1);	 (*34 secs*)
+by (fast_tac (ZF_cs addSEs [Atleast_succI]) 1);  (*34 secs*)
 qed "Indept_succ";
 
 val prems = goalw Ramsey.thy [Symmetric_def,Clique_def]
@@ -184,14 +184,14 @@ by (rtac (ram1 RS spec RS spec RS mp RS disjE) 1);
 by (fast_tac ZF_cs 1);
 by (fast_tac (ZF_cs addEs [Clique_superset]) 1); (*easy -- given a Clique*)
 by (safe_tac ZF_cs);
-by (eresolve_tac (swapify [exI]) 1);		 (*ignore main EX quantifier*)
-by (REPEAT (ares_tac [Indept_succ] 1));  	 (*make a bigger Indept*)
+by (eresolve_tac (swapify [exI]) 1);             (*ignore main EX quantifier*)
+by (REPEAT (ares_tac [Indept_succ] 1));          (*make a bigger Indept*)
 (*case n*)
 by (rtac (ram2 RS spec RS spec RS mp RS disjE) 1);
 by (fast_tac ZF_cs 1);
 by (safe_tac ZF_cs);
 by (rtac exI 1);
-by (REPEAT (ares_tac [Clique_succ] 1));  	 (*make a bigger Clique*)
+by (REPEAT (ares_tac [Clique_succ] 1));          (*make a bigger Clique*)
 by (fast_tac (ZF_cs addEs [Indept_superset]) 1); (*easy -- given an Indept*)
 qed "Ramsey_step_lemma";
 

@@ -1,6 +1,6 @@
-(*  Title: 	ZF/AC/AC1_AC17.ML
+(*  Title:      ZF/AC/AC1_AC17.ML
     ID:         $Id$
-    Author: 	Krzysztof Grabczewski
+    Author:     Krzysztof Grabczewski
 
 The proof of AC1 ==> AC17
 *)

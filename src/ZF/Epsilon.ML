@@ -1,6 +1,6 @@
-(*  Title: 	ZF/epsilon.ML
+(*  Title:      ZF/epsilon.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 For epsilon.thy.  Epsilon induction and recursion
@@ -53,7 +53,7 @@ qed "eps_induct";
 (*Perform epsilon-induction on i. *)
 fun eps_ind_tac a = 
     EVERY' [res_inst_tac [("a",a)] eps_induct,
-	    rename_last_tac a ["1"]];
+            rename_last_tac a ["1"]];
 
 
 (*** Leastness of eclose ***)
@@ -77,9 +77,9 @@ qed "eclose_least";
 
 (*COMPLETELY DIFFERENT induction principle from eclose_induct!!*)
 val [major,base,step] = goal Epsilon.thy
-    "[| a: eclose(b);						\
-\       !!y.   [| y: b |] ==> P(y);				\
-\       !!y z. [| y: eclose(b);  P(y);  z: y |] ==> P(z)	\
+    "[| a: eclose(b);                                           \
+\       !!y.   [| y: b |] ==> P(y);                             \
+\       !!y z. [| y: eclose(b);  P(y);  z: y |] ==> P(z)        \
 \    |] ==> P(a)";
 by (rtac (major RSN (3, eclose_least RS subsetD RS CollectD2)) 1);
 by (rtac (CollectI RS subsetI) 2);
@@ -127,7 +127,7 @@ by (rtac (kmemj RS eclose_induct) 1);
 by (rtac wfrec_ssubst 1);
 by (rtac wfrec_ssubst 1);
 by (asm_simp_tac (ZF_ss addsimps [under_Memrel_eclose,
-				  jmemi RSN (2,mem_eclose_sing_trans)]) 1);
+                                  jmemi RSN (2,mem_eclose_sing_trans)]) 1);
 qed "wfrec_eclose_eq";
 
 val [prem] = goal Epsilon.thy
@@ -140,7 +140,7 @@ goalw Epsilon.thy [transrec_def]
     "transrec(a,H) = H(a, lam x:a. transrec(x,H))";
 by (rtac wfrec_ssubst 1);
 by (simp_tac (ZF_ss addsimps [wfrec_eclose_eq2, arg_in_eclose_sing,
-			      under_Memrel_eclose]) 1);
+                              under_Memrel_eclose]) 1);
 qed "transrec";
 
 (*Avoids explosions in proofs; resolve it with a meta-level definition.*)
@@ -221,9 +221,9 @@ goal Epsilon.thy "rank(Pow(a)) = succ(rank(a))";
 by (rtac (rank RS trans) 1);
 by (rtac le_anti_sym 1);
 by (DO_GOAL [rtac (Ord_rank RS Ord_succ RS UN_least_le),
-	     etac (PowD RS rank_mono RS succ_leI)] 1);
+             etac (PowD RS rank_mono RS succ_leI)] 1);
 by (DO_GOAL [rtac ([Pow_top, le_refl] MRS UN_upper_le),
-	     REPEAT o rtac (Ord_rank RS Ord_succ)] 1);
+             REPEAT o rtac (Ord_rank RS Ord_succ)] 1);
 qed "rank_Pow";
 
 goal Epsilon.thy "rank(0) = 0";

@@ -1,6 +1,6 @@
-(*  Title: 	SubUnion.ML
+(*  Title:      SubUnion.ML
     ID:         $Id$
-    Author: 	Ole Rasmussen
+    Author:     Ole Rasmussen
     Copyright   1995  University of Cambridge
     Logic Image: ZF
 *)
@@ -45,23 +45,23 @@ val union_App = result();
 
 val union_ss = redexes_ss addsimps 
                 (Ssub.intrs@bool_simps@bool_typechecks@
-		 Sreg.intrs@Scomp.intrs@
-		 [or_1 RSN (3,or_commute RS trans),
-		  or_0 RSN (3,or_commute RS trans),
-		  union_App,union_Fun,union_Var,compD2,compD1,regD]);
+                 Sreg.intrs@Scomp.intrs@
+                 [or_1 RSN (3,or_commute RS trans),
+                  or_0 RSN (3,or_commute RS trans),
+                  union_App,union_Fun,union_Var,compD2,compD1,regD]);
 
 val union_cs = (ZF_cs addIs Scomp.intrs addSEs 
-		[Sreg.mk_cases redexes.con_defs "regular(App(b,f,a))",
-		 Sreg.mk_cases redexes.con_defs "regular(Fun(b))",
-		 Sreg.mk_cases redexes.con_defs "regular(Var(b))",
-		 Scomp.mk_cases redexes.con_defs "Fun(u) ~ Fun(t)",
-		 Scomp.mk_cases redexes.con_defs "u ~ Fun(t)",
-		 Scomp.mk_cases redexes.con_defs "u ~ Var(n)",
-		 Scomp.mk_cases redexes.con_defs "u ~ App(b,t,a)",
-		 Scomp.mk_cases redexes.con_defs "Fun(t) ~ v",
-		 Scomp.mk_cases redexes.con_defs "App(b,f,a) ~ v",
-		 Scomp.mk_cases redexes.con_defs "Var(n) ~ u"
-		 ]);
+                [Sreg.mk_cases redexes.con_defs "regular(App(b,f,a))",
+                 Sreg.mk_cases redexes.con_defs "regular(Fun(b))",
+                 Sreg.mk_cases redexes.con_defs "regular(Var(b))",
+                 Scomp.mk_cases redexes.con_defs "Fun(u) ~ Fun(t)",
+                 Scomp.mk_cases redexes.con_defs "u ~ Fun(t)",
+                 Scomp.mk_cases redexes.con_defs "u ~ Var(n)",
+                 Scomp.mk_cases redexes.con_defs "u ~ App(b,t,a)",
+                 Scomp.mk_cases redexes.con_defs "Fun(t) ~ v",
+                 Scomp.mk_cases redexes.con_defs "App(b,f,a) ~ v",
+                 Scomp.mk_cases redexes.con_defs "Var(n) ~ u"
+                 ]);
 
 
 
@@ -76,7 +76,7 @@ val comp_refl = result();
 
 goal SubUnion.thy 
     "!!u.u ~ v ==> v ~ u";
-by (eresolve_tac [comp_induct] 1);
+by (etac comp_induct 1);
 by (ALLGOALS(fast_tac union_cs));
 val comp_sym = result();
 
@@ -88,7 +88,7 @@ val comp_sym_iff = result();
 
 goal SubUnion.thy 
     "!!u.u ~ v ==> ALL w.v ~ w-->u ~ w";
-by (eresolve_tac [comp_induct] 1);
+by (etac comp_induct 1);
 by (ALLGOALS(fast_tac union_cs));
 val comp_trans1 = result();
 
@@ -103,21 +103,21 @@ val sub_induct = standard
 
 goal SubUnion.thy 
     "!!u.u ~ v ==> u <== (u un v)";
-by (eresolve_tac [comp_induct] 1);
-by (eresolve_tac [boolE] 3);
+by (etac comp_induct 1);
+by (etac boolE 3);
 by (ALLGOALS(asm_full_simp_tac union_ss));
 val union_l = result();
 
 goal SubUnion.thy 
     "!!u.u ~ v ==> v <== (u un v)";
-by (eresolve_tac [comp_induct] 1);
+by (etac comp_induct 1);
 by (eres_inst_tac [("c","b2")] boolE 3);
 by (ALLGOALS(asm_full_simp_tac union_ss));
 val union_r = result();
 
 goal SubUnion.thy 
     "!!u.u ~ v ==> u un v = v un u";
-by (eresolve_tac [comp_induct] 1);
+by (etac comp_induct 1);
 by (ALLGOALS(asm_simp_tac (union_ss addsimps [or_commute])));
 val union_sym = result();
 
@@ -127,9 +127,9 @@ val union_sym = result();
 
 goal SubUnion.thy 
     "!!u.u ~ v ==> regular(u)-->regular(v)-->regular(u un v)";
-by (eresolve_tac [comp_induct] 1);
+by (etac comp_induct 1);
 by (ALLGOALS(asm_full_simp_tac
-	     (union_ss setloop(SELECT_GOAL (safe_tac union_cs)))));
+             (union_ss setloop(SELECT_GOAL (safe_tac union_cs)))));
 by (dres_inst_tac [("psi", "regular(Fun(?u) un ?v)")] asm_rl 1);
 by (asm_full_simp_tac union_ss 1);
 val union_preserve_regular = result();

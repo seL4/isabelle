@@ -1,6 +1,6 @@
-(*  Title: 	ZF/trancl.ML
+(*  Title:      ZF/trancl.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 For trancl.thy.  Transitive closure of a relation
@@ -17,7 +17,7 @@ qed "rtrancl_bnd_mono";
 val [prem] = goalw Trancl.thy [rtrancl_def] "r<=s ==> r^* <= s^*";
 by (rtac lfp_mono 1);
 by (REPEAT (resolve_tac [rtrancl_bnd_mono, prem, subset_refl, id_mono,
-			 comp_mono, Un_mono, field_mono, Sigma_mono] 1));
+                         comp_mono, Un_mono, field_mono, Sigma_mono] 1));
 qed "rtrancl_mono";
 
 (* r^* = id(field(r)) Un ( r O r^* )    *)
@@ -56,7 +56,7 @@ qed "r_subset_rtrancl";
 
 goal Trancl.thy "field(r^*) = field(r)";
 by (fast_tac (eq_cs addIs [r_into_rtrancl] 
-		    addSDs [rtrancl_type RS subsetD]) 1);
+                    addSDs [rtrancl_type RS subsetD]) 1);
 qed "rtrancl_field";
 
 
@@ -75,9 +75,9 @@ qed "rtrancl_full_induct";
   Tried adding the typing hypotheses y,z:field(r), but these
   caused expensive case splits!*)
 val major::prems = goal Trancl.thy
-  "[| <a,b> : r^*;   						\
-\     P(a); 							\
-\     !!y z.[| <a,y> : r^*;  <y,z> : r;  P(y) |] ==> P(z) 	\
+  "[| <a,b> : r^*;                                              \
+\     P(a);                                                     \
+\     !!y z.[| <a,y> : r^*;  <y,z> : r;  P(y) |] ==> P(z)       \
 \  |] ==> P(b)";
 (*by induction on this formula*)
 by (subgoal_tac "ALL y. <a,b> = <a,y> --> P(y)" 1);
@@ -97,8 +97,8 @@ qed "trans_rtrancl";
 
 (*elimination of rtrancl -- by induction on a special formula*)
 val major::prems = goal Trancl.thy
-    "[| <a,b> : r^*;  (a=b) ==> P;			 \
-\	!!y.[| <a,y> : r^*;   <y,b> : r |] ==> P |]	 \
+    "[| <a,b> : r^*;  (a=b) ==> P;                       \
+\       !!y.[| <a,y> : r^*;   <y,b> : r |] ==> P |]      \
 \    ==> P";
 by (subgoal_tac "a = b  | (EX y. <a,y> : r^* & <y,b> : r)" 1);
 (*see HOL/trancl*)
@@ -151,9 +151,9 @@ qed "rtrancl_into_trancl2";
 
 (*Nice induction rule for trancl*)
 val major::prems = goal Trancl.thy
-  "[| <a,b> : r^+;    					\
-\     !!y.  [| <a,y> : r |] ==> P(y); 			\
-\     !!y z.[| <a,y> : r^+;  <y,z> : r;  P(y) |] ==> P(z) 	\
+  "[| <a,b> : r^+;                                      \
+\     !!y.  [| <a,y> : r |] ==> P(y);                   \
+\     !!y z.[| <a,y> : r^+;  <y,z> : r;  P(y) |] ==> P(z)       \
 \  |] ==> P(b)";
 by (rtac (rewrite_rule [trancl_def] major  RS  compEpair) 1);
 (*by induction on this formula*)
@@ -168,7 +168,7 @@ qed "trancl_induct";
 val major::prems = goal Trancl.thy
     "[| <a,b> : r^+;  \
 \       <a,b> : r ==> P; \
-\	!!y.[| <a,y> : r^+; <y,b> : r |] ==> P  \
+\       !!y.[| <a,y> : r^+; <y,b> : r |] ==> P  \
 \    |] ==> P";
 by (subgoal_tac "<a,b> : r | (EX y. <a,y> : r^+  &  <y,b> : r)" 1);
 by (fast_tac (ZF_cs addIs prems) 1);

@@ -1,6 +1,6 @@
-(*  Title: 	ZF/QPair.ML
+(*  Title:      ZF/QPair.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 For QPair.thy.  
@@ -59,7 +59,7 @@ qed_goalw "QSigmaE" thy [QSigma_def]
 
 val QSigmaE2 = 
   rule_by_tactic (REPEAT_FIRST (etac QPair_inject ORELSE' bound_hyp_subst_tac)
-		  THEN prune_params_tac)
+                  THEN prune_params_tac)
       (read_instantiate [("c","<a;b>")] QSigmaE);  
 
 qed_goal "QSigmaD1" thy "<a;b> : QSigma(A,B) ==> a : A"
@@ -143,8 +143,8 @@ by (asm_simp_tac qpair_ss 1);
 qed "qsplitI";
 
 val major::sigma::prems = goalw thy [qsplit_def]
-    "[| qsplit(R,z);  z:QSigma(A,B);  			\
-\       !!x y. [| z = <x;y>;  R(x,y) |] ==> P  		\
+    "[| qsplit(R,z);  z:QSigma(A,B);                    \
+\       !!x y. [| z = <x;y>;  R(x,y) |] ==> P           \
 \   |] ==> P";
 by (rtac (sigma RS QSigmaE) 1);
 by (cut_facts_tac [major] 1);
@@ -177,7 +177,7 @@ qed_goalw "qconverseE" thy [qconverse_def]
     (assume_tac 1) ]);
 
 val qconverse_cs = qpair_cs addSIs [qconverseI] 
-			    addSEs [qconverseD,qconverseE];
+                            addSEs [qconverseD,qconverseE];
 
 qed_goal "qconverse_qconverse" thy
     "!!A B r. r<=QSigma(A,B) ==> qconverse(qconverse(r)) = r"
@@ -292,7 +292,7 @@ val major::prems = goal thy
 by (rtac (major RS qsumE) 1);
 by (ALLGOALS (etac ssubst));
 by (ALLGOALS (asm_simp_tac (ZF_ss addsimps
-			    (prems@[qcase_QInl,qcase_QInr]))));
+                            (prems@[qcase_QInl,qcase_QInr]))));
 qed "qcase_type";
 
 (** Rules for the Part primitive **)

@@ -1,13 +1,13 @@
-(*  Title: 	ZF/IMP/Com.ML
+(*  Title:      ZF/IMP/Com.ML
     ID:         $Id$
-    Author: 	Heiko Loetzbeyer & Robert Sandner, TUM
+    Author:     Heiko Loetzbeyer & Robert Sandner, TUM
     Copyright   1994 TUM
 *)
 
 open Com;
 
 val assign_type = prove_goalw Com.thy [assign_def]
-	"!!n. [| sigma:loc -> nat; n:nat |] ==> sigma[n/x] : loc -> nat"
+        "!!n. [| sigma:loc -> nat; n:nat |] ==> sigma[n/x] : loc -> nat"
     (fn _ => [ fast_tac (ZF_cs addIs [apply_type,lam_type,if_type]) 1 ]);
 
 val type_cs = ZF_cs addSDs [evala.dom_subset RS subsetD,

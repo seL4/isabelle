@@ -1,6 +1,6 @@
-(*  Title: 	ZF/fixedpt.ML
+(*  Title:      ZF/fixedpt.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 For fixedpt.thy.  Least and greatest fixed points; the Knaster-Tarski Theorem
@@ -129,8 +129,8 @@ qed "Collect_is_pre_fixedpt";
 (*This rule yields an induction hypothesis in which the components of a
   data structure may be assumed to be elements of lfp(D,h)*)
 val prems = goal Fixedpt.thy
-    "[| bnd_mono(D,h);  a : lfp(D,h);   		\
-\       !!x. x : h(Collect(lfp(D,h),P)) ==> P(x) 	\
+    "[| bnd_mono(D,h);  a : lfp(D,h);                   \
+\       !!x. x : h(Collect(lfp(D,h),P)) ==> P(x)        \
 \    |] ==> P(a)";
 by (rtac (Collect_is_pre_fixedpt RS lfp_lowerbound RS subsetD RS CollectD2) 1);
 by (rtac (lfp_subset RS (Collect_subset RS subset_trans)) 3);
@@ -158,7 +158,7 @@ qed "lfp_Int_lowerbound";
 (*Monotonicity of lfp, where h precedes i under a domain-like partial order
   monotonicity of h is not strictly necessary; h must be bounded by D*)
 val [hmono,imono,subhi] = goal Fixedpt.thy
-    "[| bnd_mono(D,h);  bnd_mono(E,i); 		\
+    "[| bnd_mono(D,h);  bnd_mono(E,i);          \
 \       !!X. X<=D ==> h(X) <= i(X)  |] ==> lfp(D,h) <= lfp(E,i)";
 by (rtac (bnd_monoD1 RS lfp_greatest) 1);
 by (rtac imono 1);
@@ -294,7 +294,7 @@ qed "def_Collect_coinduct";
 
 (*Monotonicity of gfp!*)
 val [hmono,subde,subhi] = goal Fixedpt.thy
-    "[| bnd_mono(D,h);  D <= E; 		\
+    "[| bnd_mono(D,h);  D <= E;                 \
 \       !!X. X<=D ==> h(X) <= i(X)  |] ==> gfp(D,h) <= gfp(E,i)";
 by (rtac gfp_upperbound 1);
 by (rtac (hmono RS gfp_lemma2 RS subset_trans) 1);

@@ -1,6 +1,6 @@
-(*  Title: 	ZF/IMP/ROOT.ML
+(*  Title:      ZF/IMP/ROOT.ML
     ID:         $Id$
-    Author: 	Heiko Loetzbeyer & Robert Sandner, TUM
+    Author:     Heiko Loetzbeyer & Robert Sandner, TUM
     Copyright   1994 TUM
 
 Executes the formalization of the denotational and operational semantics of a
@@ -12,7 +12,7 @@ MIT Press, 1993.
 
 *)
 
-ZF_build_completed;	(*Make examples fail if ZF did*)
+ZF_build_completed;     (*Make examples fail if ZF did*)
 
 writeln"Root file for ZF/IMP";
 proof_timing := true;

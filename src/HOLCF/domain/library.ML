@@ -20,7 +20,7 @@ fun foldr'' f (l,f2) =
   in  itr l  end;
 fun foldr' f l = foldr'' f (l,Id);
 fun map_cumulr f start xs = foldr (fn (x,(ys,res)) => case f(x,res) of (y,res2) => 
-						      (y::ys,res2)) (xs,([],start));
+                                                      (y::ys,res2)) (xs,([],start));
 
 
 fun first  (x,_,_) = x; fun second (_,x,_) = x; fun third  (_,_,x) = x;
@@ -37,10 +37,10 @@ in bb y (length is) j end;
 
 fun atomize thm = case concl_of thm of
       _ $ (Const("op &",_) $ _ $ _)       => atomize (thm RS conjunct1) @
-				             atomize (thm RS conjunct2)
+                                             atomize (thm RS conjunct2)
     | _ $ (Const("All" ,_) $ Abs (s,_,_)) => atomize (thm RS 
-					     (read_instantiate [("x","?"^s)] spec))
-    | _				      => [thm];
+                                             (read_instantiate [("x","?"^s)] spec))
+    | _                               => [thm];
 
 (* ----- specific support for domain ---------------------------------------------- *)
 
@@ -59,8 +59,8 @@ val strip_esc = let
 in implode o strip o explode end;
 
 fun extern_name con = case explode con of 
-		   ("o"::"p"::" "::rest) => implode rest
-		   | _ => con;
+                   ("o"::"p"::" "::rest) => implode rest
+                   | _ => con;
 fun dis_name  con = "is_"^ (extern_name con);
 fun dis_name_ con = "is_"^ (strip_esc   con);
 
@@ -72,8 +72,8 @@ fun mk_var_names types : string list = let
       | typid (TFree (id,_)   ) = hd (tl (explode id))
       | typid (TVar ((id,_),_)) = hd (tl (explode id));
     fun nonreserved id = let val cs = explode id in
-			 if not(hd cs mem ["x","f","P"]) then id
-			 else implode(chr(1+ord (hd cs))::tl cs) end;
+                         if not(hd cs mem ["x","f","P"]) then id
+                         else implode(chr(1+ord (hd cs))::tl cs) end;
     fun index_vnames(vn::vns,tab) =
           (case assoc(tab,vn) of
              None => if vn mem vns
@@ -96,14 +96,14 @@ val NoSyn' = ThyOps.Mixfix NoSyn;
 
 (* ----- constructor list handling ----- *)
 
-type cons = (string *			(* operator name of constr *)
-	    ((bool*int)*		(*  (lazy,recursive element or ~1) *)
-	      string*			(*   selector name    *)
-	      string)			(*   argument name    *)
-	    list);			(* argument list      *)
-type eq = (string *		(* name      of abstracted type *)
-	   typ list) *		(* arguments of abstracted type *)
-	  cons list;		(* represented type, as a constructor list *)
+type cons = (string *                   (* operator name of constr *)
+            ((bool*int)*                (*  (lazy,recursive element or ~1) *)
+              string*                   (*   selector name    *)
+              string)                   (*   argument name    *)
+            list);                      (* argument list      *)
+type eq = (string *             (* name      of abstracted type *)
+           typ list) *          (* arguments of abstracted type *)
+          cons list;            (* represented type, as a constructor list *)
 
 val rec_of    = snd o first;
 val is_lazy   = fst o first;
@@ -114,7 +114,7 @@ fun is_rec         arg = rec_of arg >=0;
 fun is_nonlazy_rec arg = is_rec arg andalso not (is_lazy arg);
 fun nonlazy args       = map vname (filter_out is_lazy args);
 fun is_one_con_one_arg p cons = length cons = 1 andalso let val args = snd(hd cons) in
-				length args = 1 andalso p (hd args) end;
+                                length args = 1 andalso p (hd args) end;
 
 (* ----- support for term expressions ----- *)
 
@@ -130,14 +130,14 @@ fun mk_imp  (S,T) = imp  $ S $ T;
 fun mk_lam  (x,T) = Abs(x,dummyT,T);
 fun mk_all  (x,P) = HOLogic.mk_all (x,dummyT,P);
 local 
-		    fun tf (Type (s,args)) = foldl (op $) (%s,map tf args)
-		    |   tf (TFree(s,_   )) = %s
-		    |   tf _              = Imposs "mk_constrainall";
+                    fun tf (Type (s,args)) = foldl (op $) (%s,map tf args)
+                    |   tf (TFree(s,_   )) = %s
+                    |   tf _              = Imposs "mk_constrainall";
 in
 fun mk_constrain      (typ,T) = %%"_constrain" $ T $ tf typ;
 fun mk_constrainall (x,typ,P) = %%"All" $ (%%"_constrainAbs"$Abs(x,dummyT,P)$tf typ);
 end;
-			
+                        
 fun mk_ex   (x,P) = mk_exists (x,dummyT,P);
 fun mk_not     P  = Const("not" ,boolT --> boolT) $ P;
 end;
@@ -177,26 +177,26 @@ fun bound_arg vns v = Bound(length vns-find(v,vns)-1);
 fun cont_eta_contract (Const("fabs",TT) $ Abs(a,T,body)) = 
       (case cont_eta_contract body  of
         body' as (Const("fapp",Ta) $ f $ Bound 0) => 
-	  if not (0 mem loose_bnos f) then incr_boundvars ~1 f 
-	  else   Const("fabs",TT) $ Abs(a,T,body')
+          if not (0 mem loose_bnos f) then incr_boundvars ~1 f 
+          else   Const("fabs",TT) $ Abs(a,T,body')
       | body' => Const("fabs",TT) $ Abs(a,T,body'))
 |   cont_eta_contract(f$t) = cont_eta_contract f $ cont_eta_contract t
 |   cont_eta_contract t    = t;
 
 fun idx_name dnames s n = s ^ (if length dnames = 1 then "" else string_of_int n);
 fun when_funs cons = if length cons = 1 then ["f"] 
-		     else mapn (fn n => K("f"^(string_of_int n))) 1 cons;
+                     else mapn (fn n => K("f"^(string_of_int n))) 1 cons;
 fun when_body cons funarg = let
-	fun one_fun n (_,[]  ) = /\ "dummy" (funarg(1,n))
-	|   one_fun n (_,args) = let
-		val l2 = length args;
-		fun idxs m arg = (if is_lazy arg then fn x=> %%"lift"`%%"ID"`x
-					         else Id) (Bound(l2-m));
-		in cont_eta_contract (foldr'' 
-			 (fn (a,t) => %%"ssplit"`(/\# (a,t)))
-			 (args,
-			  fn a => /\# (a,(mk_cfapp(funarg (l2,n),mapn idxs 1 args))))
-			 ) end;
+        fun one_fun n (_,[]  ) = /\ "dummy" (funarg(1,n))
+        |   one_fun n (_,args) = let
+                val l2 = length args;
+                fun idxs m arg = (if is_lazy arg then fn x=> %%"lift"`%%"ID"`x
+                                                 else Id) (Bound(l2-m));
+                in cont_eta_contract (foldr'' 
+                         (fn (a,t) => %%"ssplit"`(/\# (a,t)))
+                         (args,
+                          fn a => /\# (a,(mk_cfapp(funarg (l2,n),mapn idxs 1 args))))
+                         ) end;
 in foldr' (fn (x,y)=> %%"sswhen"`x`y) (mapn one_fun 1 cons) end;
 
 end; (* struct *)

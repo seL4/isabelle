@@ -1,13 +1,13 @@
-(*  Title: 	ZF/AC/DC_lemmas.ML
+(*  Title:      ZF/AC/DC_lemmas.ML
     ID:         $Id$
-    Author: 	Krzysztof Grabczewski
+    Author:     Krzysztof Grabczewski
 
 More general lemmas used in the proofs concerning DC
 
 *)
 
 val [prem] = goalw thy [lepoll_def]
-	"Ord(a) ==> {P(b). b:a} lepoll a";
+        "Ord(a) ==> {P(b). b:a} lepoll a";
 by (res_inst_tac [("x","lam z:RepFun(a,P). LEAST i. z=P(i)")] exI 1);
 by (res_inst_tac [("d","%z. P(z)")] (sym RSN (2, lam_injective)) 1);
 by (fast_tac (AC_cs addSEs [RepFunE] addSIs [Least_in_Ord, prem]) 1);
@@ -21,12 +21,12 @@ by (rtac notI 1);
 by (etac eqpollE 1);
 by (rtac succ_lepoll_natE 1 THEN (assume_tac 2));
 by (eresolve_tac [nat_succI RS (Ord_nat RSN (2, OrdmemD) RS
-	subset_imp_lepoll) RS lepoll_trans] 1
-	THEN (assume_tac 1));
+        subset_imp_lepoll) RS lepoll_trans] 1
+        THEN (assume_tac 1));
 val n_lesspoll_nat = result();
 
 goalw thy [lepoll_def]
-	"!!f. [| f:X->Y; Ord(X) |] ==> f``X lepoll X";
+        "!!f. [| f:X->Y; Ord(X) |] ==> f``X lepoll X";
 by (res_inst_tac [("x","lam x:f``X. LEAST y. f`y = x")] exI 1);
 by (res_inst_tac [("d","%z. f`z")] lam_injective 1);
 by (fast_tac (AC_cs addSIs [Least_in_Ord, apply_equality]) 1);
@@ -42,8 +42,8 @@ by (fast_tac (AC_cs addSIs [restrict_type]) 1);
 val restrict_0 = result();
 
 val [major, minor] = goal thy
-	"[| (!!g. g:X ==> EX u. <g,u>:R); R<=X*X  \
-\	|] ==> range(R) <= domain(R)";
+        "[| (!!g. g:X ==> EX u. <g,u>:R); R<=X*X  \
+\       |] ==> range(R) <= domain(R)";
 by (rtac subsetI 1);
 by (etac rangeE 1);
 by (dresolve_tac [minor RS subsetD RS SigmaD2 RS major] 1);
@@ -66,7 +66,7 @@ goal thy "!!g. g:n->X ==> cons(<n,x>, g) : succ(n) -> cons(x, X)";
 by (resolve_tac [Pi_iff_old RS iffD2] 1);
 by (rtac conjI 1);
 by (fast_tac (AC_cs addSIs [cons_subset, succI1]
-	addEs [fun_is_rel RS subset_trans RS subsetD, succI2]) 1);
+        addEs [fun_is_rel RS subset_trans RS subsetD, succI2]) 1);
 by (rtac ballI 1);
 by (etac succE 1);
 by (fast_tac (AC_cs addDs [domain_of_fun, domainI] addSEs [mem_irrefl]) 1);
@@ -114,12 +114,12 @@ val restrict_cons_eq = result();
 goal thy "!!k. [| Ord(k); i:k |] ==> succ(i) : succ(k)";
 by (resolve_tac [Ord_linear RS disjE] 1 THEN (assume_tac 3));
 by (REPEAT (fast_tac (AC_cs addSIs [Ord_succ]
-	addEs [Ord_in_Ord, mem_irrefl, mem_asym]
-	addSDs [succ_inject]) 1));
+        addEs [Ord_in_Ord, mem_irrefl, mem_asym]
+        addSDs [succ_inject]) 1));
 val succ_in_succ = result();
 
 goalw thy [restrict_def]
-	"!!f. [| restrict(f, domain(g)) = g; x: domain(g) |] ==> f`x = g`x";
+        "!!f. [| restrict(f, domain(g)) = g; x: domain(g) |] ==> f`x = g`x";
 by (etac subst 1);
 by (asm_full_simp_tac AC_ss 1);
 val restrict_eq_imp_val_eq = result();

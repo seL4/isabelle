@@ -1,6 +1,6 @@
-(*  Title: 	ZF/Perm.ML
+(*  Title:      ZF/Perm.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 The theory underlying permutation groups
@@ -19,7 +19,7 @@ qed "surj_is_fun";
 
 goalw Perm.thy [surj_def] "!!f A B. f : Pi(A,B) ==> f: surj(A,range(f))";
 by (fast_tac (ZF_cs addIs [apply_equality] 
-		    addEs [range_of_fun,domain_type]) 1);
+                    addEs [range_of_fun,domain_type]) 1);
 qed "fun_is_surj";
 
 goalw Perm.thy [surj_def] "!!f A B. f: surj(A,B) ==> range(f)=B";
@@ -35,9 +35,9 @@ by (fast_tac (ZF_cs addIs prems) 1);
 qed "f_imp_surjective";
 
 val prems = goal Perm.thy
-    "[| !!x. x:A ==> c(x): B;		\
-\       !!y. y:B ==> d(y): A; 		\
-\       !!y. y:B ==> c(d(y)) = y      	\
+    "[| !!x. x:A ==> c(x): B;           \
+\       !!y. y:B ==> d(y): A;           \
+\       !!y. y:B ==> c(d(y)) = y        \
 \    |] ==> (lam x:A.c(x)) : surj(A,B)";
 by (res_inst_tac [("d", "d")] f_imp_surjective 1);
 by (ALLGOALS (asm_simp_tac (ZF_ss addsimps ([lam_type]@prems)) ));
@@ -78,8 +78,8 @@ by (REPEAT (ares_tac prems 1));
 qed "f_imp_injective";
 
 val prems = goal Perm.thy
-    "[| !!x. x:A ==> c(x): B;		\
-\       !!x. x:A ==> d(c(x)) = x      	\
+    "[| !!x. x:A ==> c(x): B;           \
+\       !!x. x:A ==> d(c(x)) = x        \
 \    |] ==> (lam x:A.c(x)) : inj(A,B)";
 by (res_inst_tac [("d", "d")] f_imp_injective 1);
 by (ALLGOALS (asm_simp_tac (ZF_ss addsimps ([lam_type]@prems)) ));
@@ -99,10 +99,10 @@ qed "bij_is_surj";
 bind_thm ("bij_is_fun", (bij_is_inj RS inj_is_fun));
 
 val prems = goalw Perm.thy [bij_def]
-    "[| !!x. x:A ==> c(x): B;		\
-\       !!y. y:B ==> d(y): A;  		\
-\       !!x. x:A ==> d(c(x)) = x;      	\
-\       !!y. y:B ==> c(d(y)) = y	\
+    "[| !!x. x:A ==> c(x): B;           \
+\       !!y. y:B ==> d(y): A;           \
+\       !!x. x:A ==> d(c(x)) = x;       \
+\       !!y. y:B ==> c(d(y)) = y        \
 \    |] ==> (lam x:A.c(x)) : bij(A,B)";
 by (REPEAT (ares_tac (prems @ [IntI, lam_injective, lam_surjective]) 1));
 qed "lam_bijective";
@@ -164,7 +164,7 @@ qed "subset_iff_id";
 val [prem] = goal Perm.thy "f: inj(A,B) ==> converse(f) : range(f)->A";
 by (cut_facts_tac [prem] 1);
 by (asm_full_simp_tac (ZF_ss addsimps [inj_def, Pi_iff, domain_converse]) 1);
-by (resolve_tac [conjI] 1);
+by (rtac conjI 1);
 by (deepen_tac ZF_cs 0 2);
 by (simp_tac (ZF_ss addsimps [function_def, converse_iff]) 1);
 by (fast_tac (ZF_cs addEs [prem RSN (3,inj_equality)]) 1);
@@ -201,16 +201,16 @@ qed "right_inverse";
 goalw Perm.thy [bij_def]
     "!!f. [| f: bij(A,B);  b: B |] ==> f`(converse(f)`b) = b";
 by (EVERY1 [etac IntE, etac right_inverse, 
-	    etac (surj_range RS ssubst),
-	    assume_tac]);
+            etac (surj_range RS ssubst),
+            assume_tac]);
 qed "right_inverse_bij";
 
 (** Converses of injections, surjections, bijections **)
 
 goal Perm.thy "!!f A B. f: inj(A,B) ==> converse(f): inj(range(f), A)";
-by (resolve_tac [f_imp_injective] 1);
-by (eresolve_tac [inj_converse_fun] 1);
-by (resolve_tac [right_inverse] 1);
+by (rtac f_imp_injective 1);
+by (etac inj_converse_fun 1);
+by (rtac right_inverse 1);
 by (REPEAT (assume_tac 1));
 qed "inj_converse_inj";
 
@@ -247,8 +247,8 @@ qed "compE";
 
 val compEpair = 
     rule_by_tactic (REPEAT_FIRST (etac Pair_inject ORELSE' bound_hyp_subst_tac)
-		    THEN prune_params_tac)
-	(read_instantiate [("xz","<a,c>")] compE);
+                    THEN prune_params_tac)
+        (read_instantiate [("xz","<a,c>")] compE);
 
 val comp_cs = ZF_cs addSIs [idI] addIs [compI] addSEs [compE,idE];
 
@@ -327,16 +327,16 @@ qed "comp_fun";
 
 goal Perm.thy "!!f g. [| g: A->B;  f: B->C;  a:A |] ==> (f O g)`a = f`(g`a)";
 by (REPEAT (ares_tac [comp_fun,apply_equality,compI,
-		      apply_Pair,apply_type] 1));
+                      apply_Pair,apply_type] 1));
 qed "comp_fun_apply";
 
 (*Simplifies compositions of lambda-abstractions*)
 val [prem] = goal Perm.thy
-    "[| !!x. x:A ==> b(x): B 	\
+    "[| !!x. x:A ==> b(x): B    \
 \    |] ==> (lam y:B.c(y)) O (lam x:A. b(x)) = (lam x:A. c(b(x)))";
-by (resolve_tac [fun_extension] 1);
-by (resolve_tac [comp_fun] 1);
-by (resolve_tac [lam_funtype] 2);
+by (rtac fun_extension 1);
+by (rtac comp_fun 1);
+by (rtac lam_funtype 2);
 by (typechk_tac (prem::ZF_typechecks));
 by (asm_simp_tac (ZF_ss addsimps [comp_fun_apply]
              setsolver type_auto_tac [lam_type, lam_funtype, prem]) 1);
@@ -412,11 +412,11 @@ val [prem] = goal Perm.thy
 val injfD = prem RSN (3,inj_equality);
 by (cut_facts_tac [prem RS inj_is_fun] 1);
 by (fast_tac (comp_cs addIs [equalityI,apply_Pair] 
-		      addEs [domain_type, make_elim injfD]) 1);
+                      addEs [domain_type, make_elim injfD]) 1);
 qed "left_comp_inverse";
 
 (*right inverse of composition; one inclusion is
-	        f: A->B ==> f O converse(f) <= id(B) 
+                f: A->B ==> f O converse(f) <= id(B) 
 *)
 val [prem] = goalw Perm.thy [surj_def]
     "f: surj(A,B) ==> f O converse(f) = id(B)";
@@ -454,7 +454,7 @@ qed "nilpotent_imp_bijective";
 
 goal Perm.thy "!!f A B. [| converse(f): B->A;  f: A->B |] ==> f : bij(A,B)";
 by (asm_simp_tac (ZF_ss addsimps [fg_imp_bijective, comp_eq_id_iff, 
-				  left_inverse_lemma, right_inverse_lemma]) 1);
+                                  left_inverse_lemma, right_inverse_lemma]) 1);
 qed "invertible_imp_bijective";
 
 (** Unions of functions -- cf similar theorems on func.ML **)
@@ -463,9 +463,9 @@ goalw Perm.thy [surj_def]
     "!!f g. [| f: surj(A,B);  g: surj(C,D);  A Int C = 0 |] ==> \
 \           (f Un g) : surj(A Un C, B Un D)";
 by (DEPTH_SOLVE_1 (eresolve_tac [fun_disjoint_apply1, fun_disjoint_apply2] 1
-	    ORELSE ball_tac 1
-	    ORELSE (rtac trans 1 THEN atac 2)
-	    ORELSE step_tac (ZF_cs addIs [fun_disjoint_Un]) 1));
+            ORELSE ball_tac 1
+            ORELSE (rtac trans 1 THEN atac 2)
+            ORELSE step_tac (ZF_cs addIs [fun_disjoint_Un]) 1));
 qed "surj_disjoint_Un";
 
 (*A simple, high-level proof; the version for injections follows from it,
@@ -551,6 +551,6 @@ by (REPEAT_FIRST (eresolve_tac [consE,ssubst]));
 (*Assumption ALL w:A. ALL x:A. f`w = f`x --> w=x would make asm_simp_tac loop
   using ZF_ss!  But FOL_ss ignores the assumption...*)
 by (ALLGOALS (asm_simp_tac 
-	      (FOL_ss addsimps [fun_extend_apply2,fun_extend_apply1])));
+              (FOL_ss addsimps [fun_extend_apply2,fun_extend_apply1])));
 by (ALLGOALS (fast_tac (ZF_cs addIs [apply_type])));
 qed "inj_extend";

@@ -26,9 +26,9 @@ val codatatype_elims = [make_elim QInlD, make_elim QInrD];
 
 signature INDUCTIVE_THMS =
   sig
-  val monos      : thm list		(*monotonicity of each M operator*)
-  val type_intrs : thm list		(*type-checking intro rules*)
-  val type_elims : thm list		(*type-checking elim rules*)
+  val monos      : thm list             (*monotonicity of each M operator*)
+  val type_intrs : thm list             (*type-checking intro rules*)
+  val type_elims : thm list             (*type-checking elim rules*)
   end;
 
 functor Data_section_Fun
@@ -37,7 +37,7 @@ functor Data_section_Fun
 struct
 
 structure Con = Constructor_Fun 
- 	(structure Const = Arg and Pr=Standard_Prod and Su=Standard_Sum);
+        (structure Const = Arg and Pr=Standard_Prod and Su=Standard_Sum);
 
 structure Inductive = Ind_section_Fun
    (open Arg; 
@@ -55,7 +55,7 @@ functor CoData_section_Fun
 struct
 
 structure Con = Constructor_Fun 
- 	(structure Const = Arg and Pr=Quine_Prod and Su=Quine_Sum);
+        (structure Const = Arg and Pr=Quine_Prod and Su=Quine_Sum);
 
 structure CoInductive = CoInd_section_Fun
    (open Arg; 

@@ -1,6 +1,6 @@
-(*  Title: 	ZF/ex/tf.ML
+(*  Title:      ZF/ex/tf.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Trees & forests, a mutually recursive type definition.
@@ -90,11 +90,11 @@ val TF_rec_ss = list_ss addsimps
 
 val major::prems = goal TF.thy
     "[| z: tree_forest(A);  \
-\       !!x f r. [| x: A;  f: forest(A);  r: C(f) 		\
-\                 |] ==> b(x,f,r): C(Tcons(x,f));     	\
-\	c : C(Fnil);        					\
+\       !!x f r. [| x: A;  f: forest(A);  r: C(f)               \
+\                 |] ==> b(x,f,r): C(Tcons(x,f));       \
+\       c : C(Fnil);                                            \
 \       !!t f r1 r2. [| t: tree(A);  f: forest(A);  r1: C(t); r2: C(f) \
-\                     |] ==> d(t,f,r1,r2): C(Fcons(t,f))    	\
+\                     |] ==> d(t,f,r1,r2): C(Fcons(t,f))        \
 \    |] ==> TF_rec(z,b,c,d) : C(z)";
 by (rtac (major RS tree_forest.induct) 1);
 by (ALLGOALS (asm_simp_tac (TF_rec_ss addsimps prems)));
@@ -102,12 +102,12 @@ qed "TF_rec_type";
 
 (*Mutually recursive version*)
 val prems = goal TF.thy
-    "[| !!x f r. [| x: A;  f: forest(A);  r: D(f) 		\
-\                 |] ==> b(x,f,r): C(Tcons(x,f));    	 	\
-\	c : D(Fnil);        					\
+    "[| !!x f r. [| x: A;  f: forest(A);  r: D(f)               \
+\                 |] ==> b(x,f,r): C(Tcons(x,f));               \
+\       c : D(Fnil);                                            \
 \       !!t f r1 r2. [| t: tree(A);  f: forest(A);  r1: C(t); r2: D(f) \
-\                     |] ==> d(t,f,r1,r2): D(Fcons(t,f))    	\
-\    |] ==> (ALL t:tree(A).    TF_rec(t,b,c,d)  : C(t)) &  	\
+\                     |] ==> d(t,f,r1,r2): D(Fcons(t,f))        \
+\    |] ==> (ALL t:tree(A).    TF_rec(t,b,c,d)  : C(t)) &       \
 \           (ALL f: forest(A). TF_rec(f,b,c,d) : D(f))";
 by (rewtac Ball_def);
 by (rtac tree_forest.mutual_induct 1);
@@ -136,13 +136,13 @@ by (rtac TF_rec_Fcons 1);
 qed "def_TF_rec_Fcons";
 
 fun TF_recs def = map standard 
-    	([def] RL [def_TF_rec_Tcons, def_TF_rec_Fnil, def_TF_rec_Fcons]);
+        ([def] RL [def_TF_rec_Tcons, def_TF_rec_Fnil, def_TF_rec_Fcons]);
 
 
 (** list_of_TF and TF_of_list **)
 
 val [list_of_TF_Tcons, list_of_TF_Fnil, list_of_TF_Fcons] =
-	TF_recs list_of_TF_def;
+        TF_recs list_of_TF_def;
 
 goalw TF.thy [list_of_TF_def]
     "!!z A. z: tree_forest(A) ==> list_of_TF(z) : list(tree(A))";
@@ -183,7 +183,7 @@ qed "TF_size_type";
 (** TF_preorder **)
 
 val [TF_preorder_Tcons, TF_preorder_Fnil, TF_preorder_Fcons] =
-	TF_recs TF_preorder_def;
+        TF_recs TF_preorder_def;
 
 goalw TF.thy [TF_preorder_def]
     "!!z A. z: tree_forest(A) ==> TF_preorder(z) : list(A)";
@@ -215,7 +215,7 @@ val TF_ss = list_ss addsimps TF_rewrites
 
 (*essentially the same as list induction*)
 val major::prems = goal TF.thy 
-    "[| f: forest(A);  	\
+    "[| f: forest(A);   \
 \       R(Fnil);        \
 \       !!t f. [| t: tree(A);  f: forest(A);  R(f) |] ==> R(Fcons(t,f))  \
 \    |] ==> R(f)";

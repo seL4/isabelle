@@ -1,6 +1,6 @@
-(*  Title: 	ZF/ex/Primrec
+(*  Title:      ZF/ex/Primrec
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Primitive Recursive Functions
@@ -25,8 +25,8 @@ val pr_typechecks =
 val pr_ss = arith_ss 
     addsimps list.case_eqns
     addsimps [list_rec_Nil, list_rec_Cons, 
-	      drop_0, drop_Nil, drop_succ_Cons,
-	      map_Nil, map_Cons]
+              drop_0, drop_Nil, drop_succ_Cons,
+              map_Nil, map_Cons]
     setsolver (type_auto_tac pr_typechecks);
 
 goalw Primrec.thy [SC_def]
@@ -68,7 +68,7 @@ val primrec_into_fun = primrec.dom_subset RS subsetD;
 
 val pr_ss = pr_ss 
     setsolver (type_auto_tac ([primrec_into_fun] @ 
-			      pr_typechecks @ primrec.intrs));
+                              pr_typechecks @ primrec.intrs));
 
 goalw Primrec.thy [ACK_def] "!!i. i:nat ==> ACK(i): primrec";
 by (etac nat_induct 1);
@@ -112,7 +112,7 @@ qed "ack_succ_succ";
 
 val ack_ss = 
     pr_ss addsimps [ack_0, ack_succ_0, ack_succ_succ, 
-		    ack_type, nat_into_Ord];
+                    ack_type, nat_into_Ord];
 
 (*PROPERTY A 4*)
 goal Primrec.thy "!!i. i:nat ==> ALL j:nat. j < ack(i,j)";
@@ -121,9 +121,9 @@ by (asm_simp_tac ack_ss 1);
 by (rtac ballI 1);
 by (eres_inst_tac [("n","j")] nat_induct 1);
 by (DO_GOAL [rtac (nat_0I RS nat_0_le RS lt_trans),
-	     asm_simp_tac ack_ss] 1);
+             asm_simp_tac ack_ss] 1);
 by (DO_GOAL [etac (succ_leI RS lt_trans1),
-	     asm_simp_tac ack_ss] 1);
+             asm_simp_tac ack_ss] 1);
 qed "lt_ack2_lemma";
 bind_thm ("lt_ack2", (lt_ack2_lemma RS bspec));
 
@@ -273,15 +273,15 @@ val PROJ_case = PROJ_case_lemma RS bspec;
 (** COMP case **)
 
 goal Primrec.thy
- "!!fs. fs : list({f: primrec .					\
-\              	   EX kf:nat. ALL l:list(nat). 			\
-\		    	      f`l < ack(kf, list_add(l))})	\
-\      ==> EX k:nat. ALL l: list(nat). 				\
+ "!!fs. fs : list({f: primrec .                                 \
+\                  EX kf:nat. ALL l:list(nat).                  \
+\                             f`l < ack(kf, list_add(l))})      \
+\      ==> EX k:nat. ALL l: list(nat).                          \
 \                list_add(map(%f. f ` l, fs)) < ack(k, list_add(l))";
 by (etac list.induct 1);
 by (DO_GOAL [res_inst_tac [("x","0")] bexI,
-	     asm_simp_tac (ack2_ss addsimps [lt_ack1, nat_0_le]),
-	     resolve_tac nat_typechecks] 1);
+             asm_simp_tac (ack2_ss addsimps [lt_ack1, nat_0_le]),
+             resolve_tac nat_typechecks] 1);
 by (safe_tac ZF_cs);
 by (asm_simp_tac ack2_ss 1);
 by (rtac (ballI RS bexI) 1);
@@ -292,11 +292,11 @@ by (tc_tac []);
 qed "COMP_map_lemma";
 
 goalw Primrec.thy [COMP_def]
- "!!g. [| g: primrec;  kg: nat;					\
-\         ALL l:list(nat). g`l < ack(kg, list_add(l));		\
-\         fs : list({f: primrec .				\
-\                    EX kf:nat. ALL l:list(nat). 		\
-\		    	f`l < ack(kf, list_add(l))}) 		\
+ "!!g. [| g: primrec;  kg: nat;                                 \
+\         ALL l:list(nat). g`l < ack(kg, list_add(l));          \
+\         fs : list({f: primrec .                               \
+\                    EX kf:nat. ALL l:list(nat).                \
+\                       f`l < ack(kf, list_add(l))})            \
 \      |] ==> EX k:nat. ALL l: list(nat). COMP(g,fs)`l < ack(k, list_add(l))";
 by (asm_simp_tac ZF_ss 1);
 by (forward_tac [list_CollectD] 1);
@@ -312,11 +312,11 @@ qed "COMP_case";
 (** PREC case **)
 
 goalw Primrec.thy [PREC_def]
- "!!f g. [| ALL l:list(nat). f`l #+ list_add(l) < ack(kf, list_add(l));	\
-\           ALL l:list(nat). g`l #+ list_add(l) < ack(kg, list_add(l));	\
-\           f: primrec;  kf: nat;					\
-\           g: primrec;  kg: nat;					\
-\           l: list(nat)						\
+ "!!f g. [| ALL l:list(nat). f`l #+ list_add(l) < ack(kf, list_add(l)); \
+\           ALL l:list(nat). g`l #+ list_add(l) < ack(kg, list_add(l)); \
+\           f: primrec;  kf: nat;                                       \
+\           g: primrec;  kg: nat;                                       \
+\           l: list(nat)                                                \
 \        |] ==> PREC(f,g)`l #+ list_add(l) < ack(succ(kf#+kg), list_add(l))";
 by (etac list.elim 1);
 by (asm_simp_tac (ack2_ss addsimps [[nat_le_refl, lt_ack2] MRS lt_trans]) 1);
@@ -325,8 +325,8 @@ by (etac ssubst 1);  (*get rid of the needless assumption*)
 by (eres_inst_tac [("n","a")] nat_induct 1);
 (*base case*)
 by (DO_GOAL [asm_simp_tac ack2_ss, rtac lt_trans, etac bspec,
-	     assume_tac, rtac (add_le_self RS ack_lt_mono1),
-	     REPEAT o ares_tac (ack_typechecks)] 1);
+             assume_tac, rtac (add_le_self RS ack_lt_mono1),
+             REPEAT o ares_tac (ack_typechecks)] 1);
 (*ind step*)
 by (asm_simp_tac (ack2_ss addsimps [add_succ_right]) 1);
 by (rtac (succ_leI RS lt_trans1) 1);
@@ -343,19 +343,19 @@ by (tc_tac []);
 qed "PREC_case_lemma";
 
 goal Primrec.thy
- "!!f g. [| f: primrec;  kf: nat;				\
-\           g: primrec;  kg: nat;				\
-\           ALL l:list(nat). f`l < ack(kf, list_add(l));	\
-\           ALL l:list(nat). g`l < ack(kg, list_add(l)) 	\
-\        |] ==> EX k:nat. ALL l: list(nat). 			\
-\		    PREC(f,g)`l< ack(k, list_add(l))";
+ "!!f g. [| f: primrec;  kf: nat;                               \
+\           g: primrec;  kg: nat;                               \
+\           ALL l:list(nat). f`l < ack(kf, list_add(l));        \
+\           ALL l:list(nat). g`l < ack(kg, list_add(l))         \
+\        |] ==> EX k:nat. ALL l: list(nat).                     \
+\                   PREC(f,g)`l< ack(k, list_add(l))";
 by (rtac (ballI RS bexI) 1);
 by (rtac ([add_le_self, PREC_case_lemma] MRS lt_trans1) 1);
 by (REPEAT
     (SOMEGOAL
      (FIRST' [test_assume_tac,
-	      match_tac (ack_typechecks),
-	      rtac (ack_add_bound2 RS ballI) THEN' etac bspec])));
+              match_tac (ack_typechecks),
+              rtac (ack_add_bound2 RS ballI) THEN' etac bspec])));
 qed "PREC_case";
 
 goal Primrec.thy
@@ -364,7 +364,7 @@ by (etac primrec.induct 1);
 by (safe_tac ZF_cs);
 by (DEPTH_SOLVE
     (ares_tac ([SC_case, CONST_case, PROJ_case, COMP_case, PREC_case,
-		       bexI, ballI] @ nat_typechecks) 1));
+                       bexI, ballI] @ nat_typechecks) 1));
 qed "ack_bounds_primrec";
 
 goal Primrec.thy

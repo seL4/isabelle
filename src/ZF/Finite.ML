@@ -1,6 +1,6 @@
-(*  Title: 	ZF/Finite.ML
+(*  Title:      ZF/Finite.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Finite powerset operator; finite function space
@@ -33,7 +33,7 @@ val major::prems = goal Finite.thy
 \    |] ==> P(b)";
 by (rtac (major RS Fin.induct) 1);
 by (excluded_middle_tac "a:b" 2);
-by (etac (cons_absorb RS ssubst) 3 THEN assume_tac 3);	    (*backtracking!*)
+by (etac (cons_absorb RS ssubst) 3 THEN assume_tac 3);      (*backtracking!*)
 by (REPEAT (ares_tac prems 1));
 qed "Fin_induct";
 
@@ -68,19 +68,19 @@ by (REPEAT (ares_tac [Fin_subset_lemma RS spec RS mp] 1));
 qed "Fin_subset";
 
 val major::prems = goal Finite.thy 
-    "[| c: Fin(A);  b: Fin(A);  				\
-\       P(b);       						\
+    "[| c: Fin(A);  b: Fin(A);                                  \
+\       P(b);                                                   \
 \       !!x y. [| x: A;  y: Fin(A);  x:y;  P(y) |] ==> P(y-{x}) \
 \    |] ==> c<=b --> P(b-c)";
 by (rtac (major RS Fin_induct) 1);
 by (rtac (Diff_cons RS ssubst) 2);
 by (ALLGOALS (asm_simp_tac (Fin_ss addsimps (prems@[Diff_0, cons_subset_iff, 
-				Diff_subset RS Fin_subset]))));
+                                Diff_subset RS Fin_subset]))));
 qed "Fin_0_induct_lemma";
 
 val prems = goal Finite.thy 
-    "[| b: Fin(A);  						\
-\       P(b);        						\
+    "[| b: Fin(A);                                              \
+\       P(b);                                                   \
 \       !!x y. [| x: A;  y: Fin(A);  x:y;  P(y) |] ==> P(y-{x}) \
 \    |] ==> P(0)";
 by (rtac (Diff_cancel RS subst) 1);

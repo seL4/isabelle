@@ -1,6 +1,6 @@
-(*  Title: 	ZF/Ordinal.thy
+(*  Title:      ZF/Ordinal.thy
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 For Ordinal.thy.  Ordinals in Zermelo-Fraenkel Set Theory 
@@ -29,7 +29,7 @@ qed "Transset_doubleton_D";
 
 val [prem1,prem2] = goalw Ordinal.thy [Pair_def]
     "[| Transset(C); <a,b>: C |] ==> a:C & b: C";
-by (cut_facts_tac [prem2] 1);	
+by (cut_facts_tac [prem2] 1);   
 by (fast_tac (ZF_cs addSDs [prem1 RS Transset_doubleton_D]) 1);
 qed "Transset_Pair_D";
 
@@ -137,7 +137,7 @@ qed "Ord_0";
 goal Ordinal.thy "!!i. Ord(i) ==> Ord(succ(i))";
 by (REPEAT (ares_tac [OrdI,Transset_succ] 1
      ORELSE eresolve_tac [succE,ssubst,Ord_is_Transset,
-			  Ord_contains_Transset] 1));
+                          Ord_contains_Transset] 1));
 qed "Ord_succ";
 
 bind_thm ("Ord_1", Ord_0 RS Ord_succ);
@@ -205,11 +205,11 @@ by (fast_tac ZF_cs 1);
 qed "not_lt0";
 
 goal Ordinal.thy "!!i j. j<i ==> Ord(j)";
-by (eresolve_tac [ltE] 1 THEN assume_tac 1);
+by (etac ltE 1 THEN assume_tac 1);
 qed "lt_Ord";
 
 goal Ordinal.thy "!!i j. j<i ==> Ord(i)";
-by (eresolve_tac [ltE] 1 THEN assume_tac 1);
+by (etac ltE 1 THEN assume_tac 1);
 qed "lt_Ord2";
 
 (* "ja le j ==> Ord(j)" *)
@@ -317,12 +317,12 @@ qed "Memrel_1";
   Proof idea: show A<=B by applying the foundation axiom to A-B *)
 goalw Ordinal.thy [wf_def] "wf(Memrel(A))";
 by (EVERY1 [rtac (foundation RS disjE RS allI),
-	    etac disjI1,
-	    etac bexE, 
-	    rtac (impI RS allI RS bexI RS disjI2),
-	    etac MemrelE,
-	    etac bspec,
-	    REPEAT o assume_tac]);
+            etac disjI1,
+            etac bexE, 
+            rtac (impI RS allI RS bexI RS disjI2),
+            etac MemrelE,
+            etac bspec,
+            REPEAT o assume_tac]);
 qed "wf_Memrel";
 
 (*Transset(i) does not suffice, though ALL j:i.Transset(j) does*)
@@ -370,8 +370,8 @@ qed "trans_induct";
 (*Perform induction on i, then prove the Ord(i) subgoal using prems. *)
 fun trans_ind_tac a prems i = 
     EVERY [res_inst_tac [("i",a)] trans_induct i,
-	   rename_last_tac a ["1"] (i+1),
-	   ares_tac prems i];
+           rename_last_tac a ["1"] (i+1),
+           ares_tac prems i];
 
 
 (*** Fundamental properties of the epsilon ordering (< on ordinals) ***)
@@ -466,7 +466,7 @@ qed "le_imp_subset";
 
 goal Ordinal.thy "j le i <-> j<=i & Ord(i) & Ord(j)";
 by (fast_tac (ZF_cs addSEs [subset_imp_le, le_imp_subset]
-	            addEs [ltE, make_elim Ord_succD]) 1);
+                    addEs [ltE, make_elim Ord_succD]) 1);
 qed "le_subset_iff";
 
 goal Ordinal.thy "i le succ(j) <-> i le j | i=succ(j) & Ord(i)";
@@ -547,7 +547,7 @@ qed "Un_least_lt_iff";
 val [ordi,ordj,ordk] = goal Ordinal.thy
     "[| Ord(i); Ord(j); Ord(k) |] ==> i Un j : k  <->  i:k & j:k";
 by (cut_facts_tac [[ordi,ordj] MRS 
-		   read_instantiate [("k","k")] Un_least_lt_iff] 1);
+                   read_instantiate [("k","k")] Un_least_lt_iff] 1);
 by (asm_full_simp_tac (ZF_ss addsimps [lt_def,ordi,ordj,ordk]) 1);
 qed "Un_least_mem_iff";
 
@@ -601,10 +601,10 @@ qed "UN_upper_le";
 
 val [leprem] = goal Ordinal.thy
     "[| !!x. x:A ==> c(x) le d(x) |] ==> (UN x:A. c(x)) le (UN x:A. d(x))";
-by (resolve_tac [UN_least_le] 1);
-by (resolve_tac [UN_upper_le] 2);
+by (rtac UN_least_le 1);
+by (rtac UN_upper_le 2);
 by (REPEAT (ares_tac [leprem] 2));
-by (resolve_tac [Ord_UN] 1);
+by (rtac Ord_UN 1);
 by (REPEAT (eresolve_tac [asm_rl, leprem RS ltE] 1
      ORELSE dtac Ord_succD 1));
 qed "le_implies_UN_le_UN";
@@ -664,22 +664,22 @@ by (fast_tac (ZF_cs addSIs [non_succ_LimitI, Ord_0_lt]
 qed "Ord_cases_disj";
 
 val major::prems = goal Ordinal.thy
-    "[| Ord(i);			\
-\       i=0                          ==> P;	\
-\       !!j. [| Ord(j); i=succ(j) |] ==> P;	\
-\       Limit(i)                     ==> P	\
+    "[| Ord(i);                 \
+\       i=0                          ==> P;     \
+\       !!j. [| Ord(j); i=succ(j) |] ==> P;     \
+\       Limit(i)                     ==> P      \
 \    |] ==> P";
 by (cut_facts_tac [major RS Ord_cases_disj] 1);
 by (REPEAT (eresolve_tac (prems@[asm_rl, disjE, exE, conjE]) 1));
 qed "Ord_cases";
 
 val major::prems = goal Ordinal.thy
-     "[| Ord(i);  		\
-\        P(0);		  	\
-\        !!x. [| Ord(x);  P(x) |] ==> P(succ(x));  	\
-\        !!x. [| Limit(x);  ALL y:x. P(y) |] ==> P(x)  	\
+     "[| Ord(i);                \
+\        P(0);                  \
+\        !!x. [| Ord(x);  P(x) |] ==> P(succ(x));       \
+\        !!x. [| Limit(x);  ALL y:x. P(y) |] ==> P(x)   \
 \     |] ==> P(i)";
 by (resolve_tac [major RS trans_induct] 1);
-by (eresolve_tac [Ord_cases] 1);
+by (etac Ord_cases 1);
 by (ALLGOALS (fast_tac (ZF_cs addIs prems)));
 qed "trans_induct3";

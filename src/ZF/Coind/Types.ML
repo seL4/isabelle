@@ -1,6 +1,6 @@
-(*  Title: 	ZF/Coind/Types.ML
+(*  Title:      ZF/Coind/Types.ML
     ID:         $Id$
-    Author: 	Jacob Frost, Cambridge University Computer Laboratory
+    Author:     Jacob Frost, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
 *)
 

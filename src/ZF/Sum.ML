@@ -1,6 +1,6 @@
-(*  Title: 	ZF/Sum
+(*  Title:      ZF/Sum
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 Disjoint sums in Zermelo-Fraenkel Set Theory 
@@ -134,7 +134,7 @@ val major::prems = goal Sum.thy
 by (rtac (major RS sumE) 1);
 by (ALLGOALS (etac ssubst));
 by (ALLGOALS (asm_simp_tac (ZF_ss addsimps
-			    (prems@[case_Inl,case_Inr]))));
+                            (prems@[case_Inl,case_Inr]))));
 qed "case_type";
 
 goal Sum.thy
@@ -150,16 +150,16 @@ by (fast_tac sum_cs 1);
 qed "expand_case";
 
 val major::prems = goal Sum.thy
-  "[| z: A+B; 	\
-\     !!x. x:A ==> c(x)=c'(x); 	\
-\     !!y. y:B ==> d(y)=d'(y) 	\
+  "[| z: A+B;   \
+\     !!x. x:A ==> c(x)=c'(x);  \
+\     !!y. y:B ==> d(y)=d'(y)   \
 \  |] ==> case(c,d,z) = case(c',d',z)";
 by (resolve_tac [major RS sumE] 1);
 by (ALLGOALS (asm_simp_tac (ZF_ss addsimps ([case_Inl, case_Inr] @ prems))));
 qed "case_cong";
 
 val [major] = goal Sum.thy
-  "z: A+B ==> 	\
+  "z: A+B ==>   \
 \  case(c, d, case(%x. Inl(c'(x)), %y. Inr(d'(y)), z)) = \
 \  case(%x. c(c'(x)), %y. d(d'(y)), z)";
 by (resolve_tac [major RS sumE] 1);
@@ -167,8 +167,8 @@ by (ALLGOALS (asm_simp_tac (ZF_ss addsimps [case_Inl, case_Inr])));
 qed "case_case";
 
 val sum_ss = ZF_ss addsimps [InlI, InrI, Inl_iff, Inr_iff, 
-			     Inl_Inr_iff, Inr_Inl_iff,
-			     case_Inl, case_Inr];
+                             Inl_Inr_iff, Inr_Inl_iff,
+                             case_Inl, case_Inr];
 
 (*** More rules for Part(A,h) ***)
 

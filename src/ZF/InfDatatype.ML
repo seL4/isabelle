@@ -1,6 +1,6 @@
-(*  Title: 	ZF/InfDatatype.ML
+(*  Title:      ZF/InfDatatype.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Infinite-branching datatype definitions
@@ -11,17 +11,17 @@ val fun_Limit_VfromE =
    |> standard;
 
 goal InfDatatype.thy
-    "!!K. [| f: W -> Vfrom(A,csucc(K));  |W| le K;  InfCard(K)	\
+    "!!K. [| f: W -> Vfrom(A,csucc(K));  |W| le K;  InfCard(K)  \
 \         |] ==> EX j. f: W -> Vfrom(A,j) & j < csucc(K)";
 by (res_inst_tac [("x", "UN w:W. LEAST i. f`w : Vfrom(A,i)")] exI 1);
-by (resolve_tac [conjI] 1);
-by (resolve_tac [le_UN_Ord_lt_csucc] 2);
+by (rtac conjI 1);
+by (rtac le_UN_Ord_lt_csucc 2);
 by (rtac ballI 4  THEN
-    eresolve_tac [fun_Limit_VfromE] 4 THEN REPEAT_SOME assume_tac);
+    etac fun_Limit_VfromE 4 THEN REPEAT_SOME assume_tac);
 by (fast_tac (ZF_cs addEs [Least_le RS lt_trans1, ltE]) 2);
-by (resolve_tac [Pi_type] 1);
+by (rtac Pi_type 1);
 by (rename_tac "w" 2);
-by (eresolve_tac [fun_Limit_VfromE] 2 THEN REPEAT_SOME assume_tac);
+by (etac fun_Limit_VfromE 2 THEN REPEAT_SOME assume_tac);
 by (subgoal_tac "f`w : Vfrom(A, LEAST i. f`w : Vfrom(A,i))" 1);
 by (fast_tac (ZF_cs addEs [LeastI, ltE]) 2);
 by (eresolve_tac [[subset_refl, UN_upper] MRS Vfrom_mono RS subsetD] 1);
@@ -29,7 +29,7 @@ by (assume_tac 1);
 qed "fun_Vcsucc_lemma";
 
 goal InfDatatype.thy
-    "!!K. [| W <= Vfrom(A,csucc(K));  |W| le K;  InfCard(K)	\
+    "!!K. [| W <= Vfrom(A,csucc(K));  |W| le K;  InfCard(K)     \
 \         |] ==> EX j. W <= Vfrom(A,j) & j < csucc(K)";
 by (asm_full_simp_tac (ZF_ss addsimps [subset_iff_id, fun_Vcsucc_lemma]) 1);
 qed "subset_Vcsucc";
@@ -40,18 +40,18 @@ goal InfDatatype.thy
 \         W -> Vfrom(A,csucc(K)) <= Vfrom(A,csucc(K))";
 by (safe_tac (ZF_cs addSDs [fun_Vcsucc_lemma, subset_Vcsucc]));
 by (resolve_tac [Vfrom RS ssubst] 1);
-by (dresolve_tac [fun_is_rel] 1);
+by (dtac fun_is_rel 1);
 (*This level includes the function, and is below csucc(K)*)
 by (res_inst_tac [("a1", "succ(succ(j Un ja))")] (UN_I RS UnI2) 1);
 by (eresolve_tac [subset_trans RS PowI] 2);
 by (fast_tac (ZF_cs addIs [Pair_in_Vfrom, Vfrom_UnI1, Vfrom_UnI2]) 2);
 by (REPEAT (ares_tac [ltD, InfCard_csucc, InfCard_is_Limit, 
-		      Limit_has_succ, Un_least_lt] 1));
+                      Limit_has_succ, Un_least_lt] 1));
 qed "fun_Vcsucc";
 
 goal InfDatatype.thy
-    "!!K. [| f: W -> Vfrom(A, csucc(K));  |W| le K;  InfCard(K);	\
-\            W <= Vfrom(A,csucc(K)) 					\
+    "!!K. [| f: W -> Vfrom(A, csucc(K));  |W| le K;  InfCard(K);        \
+\            W <= Vfrom(A,csucc(K))                                     \
 \         |] ==> f: Vfrom(A,csucc(K))";
 by (REPEAT (ares_tac [fun_Vcsucc RS subsetD] 1));
 qed "fun_in_Vcsucc";
@@ -65,8 +65,8 @@ goal InfDatatype.thy
     "!!K. InfCard(K) ==> K -> Vfrom(A,csucc(K)) <= Vfrom(A,csucc(K))";
 by (forward_tac [InfCard_is_Card RS Card_is_Ord] 1);
 by (REPEAT (ares_tac [fun_Vcsucc, Ord_cardinal_le,
-		      i_subset_Vfrom,
-		      lt_csucc RS leI RS le_imp_subset RS subset_trans] 1));
+                      i_subset_Vfrom,
+                      lt_csucc RS leI RS le_imp_subset RS subset_trans] 1));
 qed "Card_fun_Vcsucc";
 
 goal InfDatatype.thy
@@ -89,13 +89,13 @@ bind_thm ("nat_into_Vcsucc", Limit_csucc RSN (2, nat_into_VLimit));
 (*For handling Cardinals of the form  (nat Un |X|) *)
 
 bind_thm ("InfCard_nat_Un_cardinal",
-	  [InfCard_nat, Card_cardinal] MRS InfCard_Un);
+          [InfCard_nat, Card_cardinal] MRS InfCard_Un);
 
 bind_thm ("le_nat_Un_cardinal",
-	  [Ord_nat, Card_cardinal RS Card_is_Ord] MRS Un_upper2_le);
+          [Ord_nat, Card_cardinal RS Card_is_Ord] MRS Un_upper2_le);
 
 bind_thm ("UN_upper_cardinal",
-	  UN_upper RS subset_imp_lepoll RS lepoll_imp_Card_le);
+          UN_upper RS subset_imp_lepoll RS lepoll_imp_Card_le);
 
 (*For most K-branching datatypes with domain Vfrom(A, csucc(K)) *)
 val inf_datatype_intrs =  

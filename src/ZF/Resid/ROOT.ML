@@ -1,6 +1,6 @@
-(*  Title: 	ZF/Resid/ROOT
+(*  Title:      ZF/Resid/ROOT
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
 
 Executes the Residuals example.
@@ -12,7 +12,7 @@ Gérard Huet.  Residual Theory in Lambda-Calculus: A Formal Development.
 J. Functional Programming 4(3) 1994, 371-394.
 *)
 
-ZF_build_completed;	(*Make examples fail if ZF did*)
+ZF_build_completed;     (*Make examples fail if ZF did*)
 
 writeln"Root file for ZF/Resid";
 proof_timing := true;

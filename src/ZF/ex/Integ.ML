@@ -1,6 +1,6 @@
-(*  Title: 	ZF/ex/integ.ML
+(*  Title:      ZF/ex/integ.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 For integ.thy.  The integers as equivalence classes over nat*nat.
@@ -70,7 +70,7 @@ qed "equiv_intrel";
 
 val intrel_ss = 
     arith_ss addsimps [equiv_intrel RS eq_equiv_class_iff, intrel_iff,
-		       add_0_right, add_succ_right]
+                       add_0_right, add_succ_right]
              addcongs [conj_cong];
 
 val eq_intrelD = equiv_intrel RSN (2,eq_equiv_class);
@@ -104,7 +104,7 @@ val zminus_ize = RSLIST [equiv_intrel, zminus_congruent];
 goalw Integ.thy [integ_def,zminus_def]
     "!!z. z : integ ==> $~z : integ";
 by (typechk_tac [split_type, SigmaI, zminus_ize UN_equiv_class_type,
-		 quotientI]);
+                 quotientI]);
 qed "zminus_type";
 
 goalw Integ.thy [integ_def,zminus_def]
@@ -113,7 +113,7 @@ by (etac (zminus_ize UN_equiv_class_inject) 1);
 by (safe_tac intrel_cs);
 (*The setloop is only needed because assumptions are in the wrong order!*)
 by (asm_full_simp_tac (intrel_ss addsimps add_ac
-		       setloop dtac eq_intrelD) 1);
+                       setloop dtac eq_intrelD) 1);
 qed "zminus_inject";
 
 goalw Integ.thy [zminus_def]
@@ -139,7 +139,7 @@ by (safe_tac intrel_cs);
 by (dres_inst_tac [("psi", "?lhs=?rhs")] asm_rl 1);
 by (dres_inst_tac [("psi", "?lhs<?rhs")] asm_rl 1);
 by (fast_tac (FOL_cs addss
-	      (intrel_ss addsimps [add_le_self2 RS le_imp_not_lt])) 1);
+              (intrel_ss addsimps [add_le_self2 RS le_imp_not_lt])) 1);
 qed "not_znegative_znat";
 
 goalw Integ.thy [znegative_def, znat_def]
@@ -147,7 +147,7 @@ goalw Integ.thy [znegative_def, znat_def]
 by (asm_simp_tac (intrel_ss addsimps [zminus]) 1);
 by (REPEAT 
     (ares_tac [refl, exI, conjI, nat_0_le,
-	       refl RS intrelI RS imageI, consI1, nat_0I, nat_succI] 1));
+               refl RS intrelI RS imageI, consI1, nat_0I, nat_succI] 1));
 qed "znegative_zminus_znat";
 
 
@@ -178,7 +178,7 @@ val zmagnitude_ize = RSLIST [equiv_intrel, zmagnitude_congruent];
 goalw Integ.thy [integ_def,zmagnitude_def]
     "!!z. z : integ ==> zmagnitude(z) : nat";
 by (typechk_tac [split_type, zmagnitude_ize UN_equiv_class_type,
-		 add_type, diff_type]);
+                 add_type, diff_type]);
 qed "zmagnitude_type";
 
 goalw Integ.thy [zmagnitude_def]
@@ -203,7 +203,7 @@ qed "zmagnitude_zminus_znat";
 (** Congruence property for addition **)
 
 goalw Integ.thy [congruent2_def]
-    "congruent2(intrel, %z1 z2.     	             \
+    "congruent2(intrel, %z1 z2.                      \
 \         let <x1,y1>=z1; <x2,y2>=z2                 \
 \                           in intrel``{<x1#+x2, y1#+y2>})";
 (*Proof via congruent2_commuteI seems longer*)
@@ -228,9 +228,9 @@ by (REPEAT (ares_tac [split_type, add_type, quotientI, SigmaI] 1));
 qed "zadd_type";
 
 goalw Integ.thy [zadd_def]
-  "!!x1 y1. [| x1: nat; y1: nat;  x2: nat; y2: nat |] ==>	\
-\           (intrel``{<x1,y1>}) $+ (intrel``{<x2,y2>}) =	\
-\	    intrel `` {<x1#+x2, y1#+y2>}";
+  "!!x1 y1. [| x1: nat; y1: nat;  x2: nat; y2: nat |] ==>       \
+\           (intrel``{<x1,y1>}) $+ (intrel``{<x2,y2>}) =        \
+\           intrel `` {<x1#+x2, y1#+y2>}";
 by (asm_simp_tac (ZF_ss addsimps [zadd_ize UN_equiv_class2, SigmaI]) 1);
 by (simp_tac (ZF_ss addsimps [Let_def]) 1);
 qed "zadd";
@@ -299,8 +299,8 @@ qed "zadd_0_right";
 (** Congruence property for multiplication **)
 
 goal Integ.thy 
-    "congruent2(intrel, %p1 p2.  		\
-\               split(%x1 y1. split(%x2 y2. 	\
+    "congruent2(intrel, %p1 p2.                 \
+\               split(%x1 y1. split(%x2 y2.     \
 \                   intrel``{<x1#*x2 #+ y1#*y2, x1#*y2 #+ y1#*x2>}, p2), p1))";
 by (rtac (equiv_intrel RS congruent2_commuteI) 1);
 by (safe_tac intrel_cs);
@@ -321,13 +321,13 @@ val zmult_ize = RSLIST [equiv_intrel, zmult_congruent2];
 goalw Integ.thy [integ_def,zmult_def]
     "!!z w. [| z: integ;  w: integ |] ==> z $* w : integ";
 by (REPEAT (ares_tac [zmult_ize UN_equiv_class_type2,
-		      split_type, add_type, mult_type, 
-		      quotientI, SigmaI] 1));
+                      split_type, add_type, mult_type, 
+                      quotientI, SigmaI] 1));
 qed "zmult_type";
 
 goalw Integ.thy [zmult_def]
-     "!!x1 x2. [| x1: nat; y1: nat;  x2: nat; y2: nat |] ==> 	\
-\              (intrel``{<x1,y1>}) $* (intrel``{<x2,y2>}) = 	\
+     "!!x1 x2. [| x1: nat; y1: nat;  x2: nat; y2: nat |] ==>    \
+\              (intrel``{<x1,y1>}) $* (intrel``{<x2,y2>}) =     \
 \              intrel `` {<x1#*x2 #+ y1#*y2, x1#*y2 #+ y1#*x2>}";
 by (asm_simp_tac (ZF_ss addsimps [zmult_ize UN_equiv_class2, SigmaI]) 1);
 qed "zmult";
@@ -367,7 +367,7 @@ goalw Integ.thy [integ_def]
 by (REPEAT (eresolve_tac [quotientE, SigmaE, ssubst] 1));
 by (asm_simp_tac 
     (intrel_ss addsimps ([zmult, add_mult_distrib_left, 
-			  add_mult_distrib] @ add_ac @ mult_ac)) 1);
+                          add_mult_distrib] @ add_ac @ mult_ac)) 1);
 qed "zmult_assoc";
 
 (*For AC rewriting*)
@@ -375,7 +375,7 @@ qed_goal "zmult_left_commute" Integ.thy
     "!!z1 z2 z3. [| z1:integ;  z2:integ;  z3: integ |] ==> \
 \                z1$*(z2$*z3) = z2$*(z1$*z3)"
  (fn _ => [asm_simp_tac (ZF_ss addsimps [zmult_assoc RS sym, 
-					 zmult_commute]) 1]);
+                                         zmult_commute]) 1]);
 
 (*Integer multiplication is an AC operator*)
 val zmult_ac = [zmult_assoc, zmult_commute, zmult_left_commute];
@@ -386,7 +386,7 @@ goalw Integ.thy [integ_def]
 by (REPEAT (eresolve_tac [quotientE, SigmaE, ssubst] 1));
 by (asm_simp_tac 
     (intrel_ss addsimps ([zadd, zmult, add_mult_distrib] @ 
-			 add_ac @ mult_ac)) 1);
+                         add_ac @ mult_ac)) 1);
 qed "zadd_zmult_distrib";
 
 val integ_typechecks =
@@ -401,5 +401,5 @@ val zmult_simps = [zmult_0, zmult_1, zmult_zminus];
 
 val integ_ss =
     arith_ss addsimps (zadd_simps @ zminus_simps @ zmult_simps @ 
-		       [zmagnitude_znat, zmagnitude_zminus_znat] @ 
-		       integ_typechecks);
+                       [zmagnitude_znat, zmagnitude_zminus_znat] @ 
+                       integ_typechecks);

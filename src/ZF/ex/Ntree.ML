@@ -1,6 +1,6 @@
-(*  Title: 	ZF/ex/Ntree.ML
+(*  Title:      ZF/ex/Ntree.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Datatype definition n-ary branching trees
@@ -22,9 +22,9 @@ qed "ntree_unfold";
 
 (*A nicer induction rule than the standard one*)
 val major::prems = goal Ntree.thy
-    "[| t: ntree(A); 							\
+    "[| t: ntree(A);                                                    \
 \       !!x n h. [| x: A;  n: nat;  h: n -> ntree(A);  ALL i:n. P(h`i)  \
-\                |] ==> P(Branch(x,h))  				\
+\                |] ==> P(Branch(x,h))                                  \
 \    |] ==> P(t)";
 by (rtac (major RS ntree.induct) 1);
 by (etac UN_E 1);
@@ -35,14 +35,14 @@ qed "ntree_induct";
 
 (*Induction on ntree(A) to prove an equation*)
 val major::prems = goal Ntree.thy
-  "[| t: ntree(A);  f: ntree(A)->B;  g: ntree(A)->B;			  \
+  "[| t: ntree(A);  f: ntree(A)->B;  g: ntree(A)->B;                      \
 \     !!x n h. [| x: A;  n: nat;  h: n -> ntree(A);  f O h = g O h |] ==> \
-\              f ` Branch(x,h) = g ` Branch(x,h)  			  \
+\              f ` Branch(x,h) = g ` Branch(x,h)                          \
 \  |] ==> f`t=g`t";
 by (rtac (major RS ntree_induct) 1);
 by (REPEAT_SOME (ares_tac prems));
 by (cut_facts_tac prems 1);
-br fun_extension 1;
+by (rtac fun_extension 1);
 by (REPEAT_SOME (ares_tac [comp_fun]));
 by (asm_simp_tac (ZF_ss addsimps [comp_fun_apply]) 1);
 qed "ntree_induct_eqn";
@@ -77,10 +77,10 @@ qed "maptree_unfold";
 
 (*A nicer induction rule than the standard one*)
 val major::prems = goal Ntree.thy
-    "[| t: maptree(A); 							\
-\       !!x n h. [| x: A;  h: maptree(A) -||> maptree(A);  		\
-\                   ALL y: field(h). P(y)  				\
-\                |] ==> P(Sons(x,h))  					\
+    "[| t: maptree(A);                                                  \
+\       !!x n h. [| x: A;  h: maptree(A) -||> maptree(A);               \
+\                   ALL y: field(h). P(y)                               \
+\                |] ==> P(Sons(x,h))                                    \
 \    |] ==> P(t)";
 by (rtac (major RS maptree.induct) 1);
 by (REPEAT_SOME (ares_tac prems));
@@ -102,14 +102,14 @@ qed "maptree2_unfold";
 
 (*A nicer induction rule than the standard one*)
 val major::prems = goal Ntree.thy
-    "[| t: maptree2(A,B); 						  \
+    "[| t: maptree2(A,B);                                                 \
 \       !!x n h. [| x: A;  h: B -||> maptree2(A,B);  ALL y:range(h). P(y) \
-\                |] ==> P(Sons2(x,h))  					  \
+\                |] ==> P(Sons2(x,h))                                     \
 \    |] ==> P(t)";
 by (rtac (major RS maptree2.induct) 1);
 by (REPEAT_SOME (ares_tac prems));
 by (eresolve_tac [[subset_refl, Collect_subset] MRS
-		  FiniteFun_mono RS subsetD] 1);
+                  FiniteFun_mono RS subsetD] 1);
 by (dresolve_tac [FiniteFun.dom_subset RS subsetD] 1);
 by (dresolve_tac [Fin.dom_subset RS subsetD] 1);
 by (fast_tac ZF_cs 1);

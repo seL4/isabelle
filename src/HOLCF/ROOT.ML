@@ -1,7 +1,7 @@
-(*  Title:	HOLCF/ROOT
+(*  Title:      HOLCF/ROOT
     ID:         $Id$
-    Author: 	Franz Regensburger
-    Copyright	1993 Technische Universitaet Muenchen
+    Author:     Franz Regensburger
+    Copyright   1993 Technische Universitaet Muenchen
 
 ROOT file for the conservative extension of HOL by the LCF logic.
 Should be executed in subdirectory HOLCF.
@@ -40,4 +40,4 @@ init_pps ();
 
 print_depth 100;  
 
-val HOLCF_build_completed = ();	(*indicate successful build*)
+val HOLCF_build_completed = (); (*indicate successful build*)

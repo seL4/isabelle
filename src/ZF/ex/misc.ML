@@ -1,6 +1,6 @@
-(*  Title: 	ZF/ex/misc
+(*  Title:      ZF/ex/misc
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Miscellaneous examples for Zermelo-Fraenkel Set Theory 
@@ -82,7 +82,7 @@ fun forw_typechk tyrls [] = []
 fun forw_iterate tyrls rls facts 0 = facts
   | forw_iterate tyrls rls facts n =
       let val facts' = 
-	  gen_union eq_thm (forw_typechk (tyrls@facts) (facts RL rls), facts);
+          gen_union eq_thm (forw_typechk (tyrls@facts) (facts RL rls), facts);
       in  forw_iterate tyrls rls facts' (n-1)  end;
 
 val pastre_rls =
@@ -93,49 +93,49 @@ fun pastre_facts (fact1::fact2::fact3::prems) =
                pastre_rls [fact1,fact2,fact3] 4;
 
 val prems = goalw Perm.thy [bij_def]
-    "[| (h O g O f): inj(A,A);		\
-\       (f O h O g): surj(B,B); 	\
-\       (g O f O h): surj(C,C); 	\
+    "[| (h O g O f): inj(A,A);          \
+\       (f O h O g): surj(B,B);         \
+\       (g O f O h): surj(C,C);         \
 \       f: A->B;  g: B->C;  h: C->A |] ==> h: bij(C,A)";
 by (REPEAT (resolve_tac (IntI :: pastre_facts prems) 1));
 qed "pastre1";
 
 val prems = goalw Perm.thy [bij_def]
-    "[| (h O g O f): surj(A,A);		\
-\       (f O h O g): inj(B,B); 		\
-\       (g O f O h): surj(C,C); 	\
+    "[| (h O g O f): surj(A,A);         \
+\       (f O h O g): inj(B,B);          \
+\       (g O f O h): surj(C,C);         \
 \       f: A->B;  g: B->C;  h: C->A |] ==> h: bij(C,A)";
 by (REPEAT (resolve_tac (IntI :: pastre_facts prems) 1));
 qed "pastre2";
 
 val prems = goalw Perm.thy [bij_def]
-    "[| (h O g O f): surj(A,A);		\
-\       (f O h O g): surj(B,B); 	\
-\       (g O f O h): inj(C,C); 		\
+    "[| (h O g O f): surj(A,A);         \
+\       (f O h O g): surj(B,B);         \
+\       (g O f O h): inj(C,C);          \
 \       f: A->B;  g: B->C;  h: C->A |] ==> h: bij(C,A)";
 by (REPEAT (resolve_tac (IntI :: pastre_facts prems) 1));
 qed "pastre3";
 
 val prems = goalw Perm.thy [bij_def]
-    "[| (h O g O f): surj(A,A);		\
-\       (f O h O g): inj(B,B); 		\
-\       (g O f O h): inj(C,C); 		\
+    "[| (h O g O f): surj(A,A);         \
+\       (f O h O g): inj(B,B);          \
+\       (g O f O h): inj(C,C);          \
 \       f: A->B;  g: B->C;  h: C->A |] ==> h: bij(C,A)";
 by (REPEAT (resolve_tac (IntI :: pastre_facts prems) 1));
 qed "pastre4";
 
 val prems = goalw Perm.thy [bij_def]
-    "[| (h O g O f): inj(A,A);		\
-\       (f O h O g): surj(B,B); 	\
-\       (g O f O h): inj(C,C); 		\
+    "[| (h O g O f): inj(A,A);          \
+\       (f O h O g): surj(B,B);         \
+\       (g O f O h): inj(C,C);          \
 \       f: A->B;  g: B->C;  h: C->A |] ==> h: bij(C,A)";
 by (REPEAT (resolve_tac (IntI :: pastre_facts prems) 1));
 qed "pastre5";
 
 val prems = goalw Perm.thy [bij_def]
-    "[| (h O g O f): inj(A,A);		\
-\       (f O h O g): inj(B,B); 		\
-\       (g O f O h): surj(C,C); 	\
+    "[| (h O g O f): inj(A,A);          \
+\       (f O h O g): inj(B,B);          \
+\       (g O f O h): surj(C,C);         \
 \       f: A->B;  g: B->C;  h: C->A |] ==> h: bij(C,A)";
 by (REPEAT (resolve_tac (IntI :: pastre_facts prems) 1));
 qed "pastre6";

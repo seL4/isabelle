@@ -1,6 +1,6 @@
-(*  Title: 	ZF/ZF.ML
+(*  Title:      ZF/ZF.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson and Martin D Coen, CU Computer Laboratory
+    Author:     Lawrence C Paulson and Martin D Coen, CU Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Basic introduction and elimination rules for Zermelo-Fraenkel Set Theory 
@@ -209,9 +209,9 @@ qed_goal "Replace_cong" ZF.thy
    let val substprems = prems RL [subst, ssubst]
        and iffprems = prems RL [iffD1,iffD2]
    in [ (rtac equalityI 1),
-	(REPEAT (eresolve_tac (substprems@[asm_rl, ReplaceE, spec RS mp]) 1
-	 ORELSE resolve_tac [subsetI, ReplaceI] 1
-	 ORELSE (resolve_tac iffprems 1 THEN assume_tac 2))) ]
+        (REPEAT (eresolve_tac (substprems@[asm_rl, ReplaceE, spec RS mp]) 1
+         ORELSE resolve_tac [subsetI, ReplaceI] 1
+         ORELSE (resolve_tac iffprems 1 THEN assume_tac 2))) ]
    end);
 
 (*** Rules for RepFun ***)
@@ -248,7 +248,7 @@ qed_goalw "RepFun_iff" ZF.thy [Bex_def]
 qed_goalw "separation" ZF.thy [Collect_def]
     "a : {x:A. P(x)} <-> a:A & P(a)"
  (fn _=> [ (fast_tac (FOL_cs addIs  [bexI,ReplaceI] 
-		             addSEs [bexE,ReplaceE]) 1) ]);
+                             addSEs [bexE,ReplaceE]) 1) ]);
 
 qed_goal "CollectI" ZF.thy
     "[| a:A;  P(a) |] ==> a : {x:A. P(x)}"
@@ -296,7 +296,7 @@ qed_goal "UnionE" ZF.thy
 qed_goalw "Inter_iff" ZF.thy [Inter_def,Ball_def]
     "A : Inter(C) <-> (ALL x:C. A: x) & (EX x. x:C)"
  (fn _=> [ (rtac (separation RS iff_trans) 1),
-	   (fast_tac (FOL_cs addIs [UnionI] addSEs [UnionE]) 1) ]);
+           (fast_tac (FOL_cs addIs [UnionI] addSEs [UnionE]) 1) ]);
 
 (* Intersection is well-behaved only if the family is non-empty! *)
 qed_goalw "InterI" ZF.thy [Inter_def]
@@ -349,8 +349,8 @@ qed_goal "UN_cong" ZF.thy
 qed_goal "INT_iff" ZF.thy
     "b : (INT x:A. B(x)) <-> (ALL x:A. b : B(x)) & (EX x. x:A)"
  (fn _=> [ (simp_tac (FOL_ss addsimps [Inter_def, Ball_def, Bex_def, 
-				       separation, Union_iff, RepFun_iff]) 1),
-	   (fast_tac FOL_cs 1) ]);
+                                       separation, Union_iff, RepFun_iff]) 1),
+           (fast_tac FOL_cs 1) ]);
 
 qed_goal "INT_I" ZF.thy
     "[| !!x. x: A ==> b: B(x);  a: A |] ==> b: (INT x:A. B(x))"
@@ -419,7 +419,7 @@ val subset0_cs = FOL_cs
   addSIs [ballI, InterI, CollectI, PowI, empty_subsetI]
   addIs [bexI, UnionI, ReplaceI, RepFunI]
   addSEs [bexE, make_elim PowD, UN_E, UnionE, ReplaceE2, RepFunE,
-	  CollectE, emptyE]
+          CollectE, emptyE]
   addEs [rev_ballE, InterD, make_elim InterD, subsetD];
 
 (*Standard claset*)

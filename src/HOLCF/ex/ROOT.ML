@@ -1,6 +1,6 @@
-(*  Title:  	HOLCF/ex/ROOT
+(*  Title:      HOLCF/ex/ROOT
     ID:         $Id$
-    Author: 	Tobias Nipkow
+    Author:     Tobias Nipkow
     Copyright   1994 TU Muenchen
 
 Executes all examples for HOLCF. 

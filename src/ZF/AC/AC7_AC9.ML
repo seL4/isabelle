@@ -1,16 +1,16 @@
-(*  Title: 	ZF/AC/AC7-AC9.ML
+(*  Title:      ZF/AC/AC7-AC9.ML
     ID:         $Id$
-    Author: 	Krzysztof Grabczewski
+    Author:     Krzysztof Grabczewski
 
 The proofs needed to state that AC7, AC8 and AC9 are equivalent to the previous
 instances of AC.
 *)
 
 (* ********************************************************************** *)
-(* Lemmas used in the proofs AC7 ==> AC6 and AC9 ==> AC1		  *)
-(*  - Sigma_fun_space_not0						  *)
-(*  - all_eqpoll_imp_pair_eqpoll					  *)
-(*  - Sigma_fun_space_eqpoll						  *)
+(* Lemmas used in the proofs AC7 ==> AC6 and AC9 ==> AC1                  *)
+(*  - Sigma_fun_space_not0                                                *)
+(*  - all_eqpoll_imp_pair_eqpoll                                          *)
+(*  - Sigma_fun_space_eqpoll                                              *)
 (* ********************************************************************** *)
 
 goal ZF.thy "!!A. [| C~:A; B:A |] ==> B~=C";
@@ -19,25 +19,25 @@ val mem_not_eq_not_mem = result();
 
 goal thy "!!A. [| 0~:A; B:A |] ==> (nat->Union(A))*B ~= 0";
 by (fast_tac (ZF_cs addSDs [Sigma_empty_iff RS iffD1]
-		addDs [fun_space_emptyD, mem_not_eq_not_mem]
-		addEs [equals0D]
-		addSIs [equals0I,UnionI]) 1);
+                addDs [fun_space_emptyD, mem_not_eq_not_mem]
+                addEs [equals0D]
+                addSIs [equals0I,UnionI]) 1);
 val Sigma_fun_space_not0 = result();
 
 goal thy "!!A C. (ALL B:A. B eqpoll C) ==> (ALL B1:A. ALL B2:A. B1 eqpoll B2)";
 by (REPEAT (rtac ballI 1));
 by (resolve_tac [bspec RS (bspec RSN (2, eqpoll_sym RSN (2, eqpoll_trans)))] 1
-	THEN REPEAT (assume_tac 1));
+        THEN REPEAT (assume_tac 1));
 val all_eqpoll_imp_pair_eqpoll = result();
 
 goal thy "!!A. [| ALL a:A. if(a=b, P(a), Q(a)) = if(a=b, R(a), S(a)); b:A   \
-\	|] ==> P(b)=R(b)";
+\       |] ==> P(b)=R(b)";
 by (dtac bspec 1 THEN (assume_tac 1));
 by (asm_full_simp_tac ZF_ss 1);
 val if_eqE1 = result();
 
 goal thy "!!A. ALL a:A. if(a=b, P(a), Q(a)) = if(a=b, R(a), S(a))  \
-\	==> ALL a:A. a~=b --> Q(a)=S(a)";
+\       ==> ALL a:A. a~=b --> Q(a)=S(a)";
 by (rtac ballI 1);
 by (rtac impI 1);
 by (dtac bspec 1 THEN (assume_tac 1));
@@ -46,17 +46,17 @@ val if_eqE2 = result();
 
 goal thy "!!A. [| (lam x:A. f(x))=(lam x:A. g(x)); a:A |] ==> f(a)=g(a)";
 by (fast_tac (ZF_cs addDs [subsetD]
-		addSIs [lamI]
-		addEs [equalityE, lamE]) 1);
+                addSIs [lamI]
+                addEs [equalityE, lamE]) 1);
 val lam_eqE = result();
 
 goalw thy [inj_def]
-	"!!A. C:A ==> (lam g:(nat->Union(A))*C.  \
-\		(lam n:nat. if(n=0, snd(g), fst(g)`(n #- 1))))  \
-\		: inj((nat->Union(A))*C, (nat->Union(A)) ) ";
+        "!!A. C:A ==> (lam g:(nat->Union(A))*C.  \
+\               (lam n:nat. if(n=0, snd(g), fst(g)`(n #- 1))))  \
+\               : inj((nat->Union(A))*C, (nat->Union(A)) ) ";
 by (rtac CollectI 1);
 by (fast_tac (ZF_cs addSIs [lam_type,RepFunI,if_type,snd_type,apply_type,
-				fst_type,diff_type,nat_succI,nat_0I]) 1);
+                                fst_type,diff_type,nat_succI,nat_0I]) 1);
 by (REPEAT (resolve_tac [ballI, impI] 1));
 by (asm_full_simp_tac ZF_ss 1);
 by (REPEAT (etac SigmaE 1));
@@ -69,20 +69,20 @@ by (rtac fun_extension 1 THEN  REPEAT (assume_tac 1));
 by (dresolve_tac [nat_succI RSN (2, lam_eqE)] 1 THEN (assume_tac 1));
 by (asm_full_simp_tac (AC_ss addsimps [succ_not_0 RS if_not_P]) 1);
 by (fast_tac (AC_cs addSEs [diff_succ_succ RS (diff_0 RSN (2, trans)) RS subst]
-		addSIs [nat_0I]) 1);
+                addSIs [nat_0I]) 1);
 val lemma = result();
 
 goal thy "!!A. [| C:A; 0~:A |] ==> (nat->Union(A)) * C eqpoll (nat->Union(A))";
 by (rtac eqpollI 1);
 by (fast_tac (ZF_cs addSEs [prod_lepoll_self, not_sym RS not_emptyE,
-		subst_elem] addEs [swap]) 2);
+                subst_elem] addEs [swap]) 2);
 by (rewtac lepoll_def);
 by (fast_tac (ZF_cs addSIs [lemma]) 1);
 val Sigma_fun_space_eqpoll = result();
 
 
 (* ********************************************************************** *)
-(* AC6 ==> AC7								  *)
+(* AC6 ==> AC7                                                            *)
 (* ********************************************************************** *)
 
 goalw thy AC_defs "!!Z. AC6 ==> AC7";
@@ -90,9 +90,9 @@ by (fast_tac ZF_cs 1);
 qed "AC6_AC7";
 
 (* ********************************************************************** *)
-(* AC7 ==> AC6, Rubin & Rubin p. 12, Theorem 2.8			  *)
-(* The case of the empty family of sets added in order to complete	  *)
-(* the proof.								  *)
+(* AC7 ==> AC6, Rubin & Rubin p. 12, Theorem 2.8                          *)
+(* The case of the empty family of sets added in order to complete        *)
+(* the proof.                                                             *)
 (* ********************************************************************** *)
 
 goal thy "!!y. y: (PROD B:A. Y*B) ==> (lam B:A. snd(y`B)): (PROD B:A. B)";
@@ -100,19 +100,19 @@ by (fast_tac (ZF_cs addSIs [lam_type, snd_type, apply_type]) 1);
 val lemma1_1 = result();
 
 goal thy "!!A. y: (PROD B:{Y*C. C:A}. B)  \
-\		==> (lam B:A. y`(Y*B)): (PROD B:A. Y*B)";
+\               ==> (lam B:A. y`(Y*B)): (PROD B:A. Y*B)";
 by (fast_tac (ZF_cs addSIs [lam_type, apply_type]) 1);
 val lemma1_2 = result();
 
 goal thy "!!A. (PROD B:{(nat->Union(A))*C. C:A}. B) ~= 0  \
-\		==> (PROD B:A. B) ~= 0";
+\               ==> (PROD B:A. B) ~= 0";
 by (fast_tac (ZF_cs addSIs [equals0I,lemma1_1, lemma1_2]
-		addSEs [equals0D]) 1);
+                addSEs [equals0D]) 1);
 val lemma1 = result();
 
 goal thy "!!A. 0 ~: A ==> 0 ~: {(nat -> Union(A)) * C. C:A}";
 by (fast_tac (ZF_cs addEs [RepFunE,
-		Sigma_fun_space_not0 RS not_sym RS notE]) 1);
+                Sigma_fun_space_not0 RS not_sym RS notE]) 1);
 val lemma2 = result();
 
 goalw thy AC_defs "!!Z. AC7 ==> AC6";
@@ -124,18 +124,18 @@ by (rtac lemma1 1);
 by (etac allE 1);
 by (etac impE 1 THEN (assume_tac 2));
 by (fast_tac (AC_cs addSEs [RepFunE]
-	addSIs [lemma2, all_eqpoll_imp_pair_eqpoll,
-		Sigma_fun_space_eqpoll]) 1);
+        addSIs [lemma2, all_eqpoll_imp_pair_eqpoll,
+                Sigma_fun_space_eqpoll]) 1);
 qed "AC7_AC6";
 
 
 (* ********************************************************************** *)
-(* AC1 ==> AC8								  *)
+(* AC1 ==> AC8                                                            *)
 (* ********************************************************************** *)
 
 goalw thy [eqpoll_def]
-	"!!A. ALL B:A. EX B1 B2. B=<B1,B2> & B1 eqpoll B2  \
-\	==> 0 ~: { bij(fst(B),snd(B)). B:A }";
+        "!!A. ALL B:A. EX B1 B2. B=<B1,B2> & B1 eqpoll B2  \
+\       ==> 0 ~: { bij(fst(B),snd(B)). B:A }";
 by (rtac notI 1);
 by (etac RepFunE 1);
 by (dtac bspec 1 THEN (assume_tac 1));
@@ -146,7 +146,7 @@ by (fast_tac (AC_cs addSEs [sym RS equals0D]) 1);
 val lemma1 = result();
 
 goal thy "!!A. [| f: (PROD X:RepFun(A,p). X); D:A |]  \
-\		==> (lam x:A. f`p(x))`D : p(D)";
+\               ==> (lam x:A. f`p(x))`D : p(D)";
 by (resolve_tac [beta RS ssubst] 1 THEN (assume_tac 1));
 by (fast_tac (AC_cs addSEs [apply_type]) 1);
 val lemma2 = result();
@@ -162,13 +162,13 @@ qed "AC1_AC8";
 
 
 (* ********************************************************************** *)
-(* AC8 ==> AC9								  *)
-(*  - this proof replaces the following two from Rubin & Rubin:		  *)
-(*    AC8 ==> AC1 and AC1 ==> AC9					  *)
+(* AC8 ==> AC9                                                            *)
+(*  - this proof replaces the following two from Rubin & Rubin:           *)
+(*    AC8 ==> AC1 and AC1 ==> AC9                                         *)
 (* ********************************************************************** *)
 
 goal thy "!!A. ALL B1:A. ALL B2:A. B1 eqpoll B2 ==>  \
-\		ALL B:A*A. EX B1 B2. B=<B1,B2> & B1 eqpoll B2";
+\               ALL B:A*A. EX B1 B2. B=<B1,B2> & B1 eqpoll B2";
 by (fast_tac ZF_cs 1);
 val lemma1 = result();
 
@@ -187,37 +187,37 @@ qed "AC8_AC9";
 
 
 (* ********************************************************************** *)
-(* AC9 ==> AC1								  *)
+(* AC9 ==> AC1                                                            *)
 (* The idea of this proof comes from "Equivalents of the Axiom of Choice" *)
-(* by Rubin & Rubin. But (x * y) is not necessarily equipollent to	  *)
-(* (x * y) Un {0} when y is a set of total functions acting from nat to	  *)
-(* Union(A) -- therefore we have used the set (y * nat) instead of y.	  *)
+(* by Rubin & Rubin. But (x * y) is not necessarily equipollent to        *)
+(* (x * y) Un {0} when y is a set of total functions acting from nat to   *)
+(* Union(A) -- therefore we have used the set (y * nat) instead of y.     *)
 (* ********************************************************************** *)
 
 (* Rules nedded to prove lemma1 *)
 val snd_lepoll_SigmaI = prod_lepoll_self RS 
         ((prod_commute_eqpoll RS eqpoll_imp_lepoll) RSN (2,lepoll_trans));
 val lemma1_cs = FOL_cs addSEs [UnE, RepFunE]
-		addSIs [all_eqpoll_imp_pair_eqpoll, ballI,
-			nat_cons_eqpoll RS eqpoll_trans]
-		addEs [Sigma_fun_space_not0 RS not_emptyE]
-		addIs [snd_lepoll_SigmaI, eqpoll_refl RSN 
-			(2, prod_eqpoll_cong), Sigma_fun_space_eqpoll];
+                addSIs [all_eqpoll_imp_pair_eqpoll, ballI,
+                        nat_cons_eqpoll RS eqpoll_trans]
+                addEs [Sigma_fun_space_not0 RS not_emptyE]
+                addIs [snd_lepoll_SigmaI, eqpoll_refl RSN 
+                        (2, prod_eqpoll_cong), Sigma_fun_space_eqpoll];
 
 goal thy "!!A. [| 0~:A; A~=0 |]  \
-\	==> ALL B1: ({((nat->Union(A))*B)*nat. B:A}  \
-\		Un {cons(0,((nat->Union(A))*B)*nat). B:A}).  \
-\	ALL B2: ({((nat->Union(A))*B)*nat. B:A}  \
-\		Un {cons(0,((nat->Union(A))*B)*nat). B:A}).  \
-\	B1 eqpoll B2";
+\       ==> ALL B1: ({((nat->Union(A))*B)*nat. B:A}  \
+\               Un {cons(0,((nat->Union(A))*B)*nat). B:A}).  \
+\       ALL B2: ({((nat->Union(A))*B)*nat. B:A}  \
+\               Un {cons(0,((nat->Union(A))*B)*nat). B:A}).  \
+\       B1 eqpoll B2";
 by (fast_tac lemma1_cs 1);
 val lemma1 = result();
 
 goal thy "!!A. ALL B1:{(F*B)*N. B:A} Un {cons(0,(F*B)*N). B:A}.  \
-\	ALL B2:{(F*B)*N. B:A}  \
-\	Un {cons(0,(F*B)*N). B:A}. f`<B1,B2> : bij(B1, B2)  \
-\	==> (lam B:A. snd(fst((f`<cons(0,(F*B)*N),(F*B)*N>)`0))) :  \
-\		(PROD X:A. X)";
+\       ALL B2:{(F*B)*N. B:A}  \
+\       Un {cons(0,(F*B)*N). B:A}. f`<B1,B2> : bij(B1, B2)  \
+\       ==> (lam B:A. snd(fst((f`<cons(0,(F*B)*N),(F*B)*N>)`0))) :  \
+\               (PROD X:A. X)";
 by (rtac lam_type 1);
 by (rtac snd_type 1);
 by (rtac fst_type 1);

@@ -1,6 +1,6 @@
-(*  Title: 	ZF/AC/HH.ML
+(*  Title:      ZF/AC/HH.ML
     ID:         $Id$
-    Author: 	Krzysztof Grabczewski
+    Author:     Krzysztof Grabczewski
 
 Some properties of the recursive definition of HH used in the proofs of
   AC17 ==> AC1
@@ -11,12 +11,12 @@ Some properties of the recursive definition of HH used in the proofs of
 open HH;
 
 (* ********************************************************************** *)
-(* Lemmas useful in each of the three proofs 				  *)
+(* Lemmas useful in each of the three proofs                              *)
 (* ********************************************************************** *)
 
 goal thy "HH(f,x,a) =  \
-\	(let z = x - (UN b:a. HH(f,x,b))  \
-\	in  if(f`z:Pow(z)-{0}, f`z, {x}))";
+\       (let z = x - (UN b:a. HH(f,x,b))  \
+\       in  if(f`z:Pow(z)-{0}, f`z, {x}))";
 by (resolve_tac [HH_def RS def_transrec RS trans] 1);
 by (simp_tac ZF_ss 1);
 val HH_def_satisfies_eq = result();
@@ -42,13 +42,13 @@ val Ord_DiffE = result();
 val prems = goal thy "(!!y. y:A ==> P(y) = {x}) ==> x - (UN y:A. P(y)) = x";
 by (asm_full_simp_tac (AC_ss addsimps prems) 1);
 by (fast_tac (AC_cs addSIs [equalityI] addSDs [prem]
-		addSEs [RepFunE, mem_irrefl]) 1);
+                addSEs [RepFunE, mem_irrefl]) 1);
 val Diff_UN_eq_self = result();
 
 goal thy "!!a. x - (UN b:a. HH(f,x,b)) = x - (UN b:a1. HH(f,x,b))  \
-\		==> HH(f,x,a) = HH(f,x,a1)";
+\               ==> HH(f,x,a) = HH(f,x,a1)";
 by (resolve_tac [HH_def_satisfies_eq RS
-		(HH_def_satisfies_eq RS sym RSN (3, trans RS trans))] 1);
+                (HH_def_satisfies_eq RS sym RSN (3, trans RS trans))] 1);
 by (etac subst_context 1);
 val HH_eq = result();
 
@@ -58,7 +58,7 @@ by (eresolve_tac [lt_Ord2 RS trans_induct] 1);
 by (rtac impI 1);
 by (resolve_tac [HH_eq RS trans] 1 THEN (assume_tac 2));
 by (resolve_tac [leI RS le_imp_subset RS subset_imp_Diff_eq RS ssubst] 1
-	THEN (assume_tac 1));
+        THEN (assume_tac 1));
 by (res_inst_tac [("t","%z. z-?X")] subst_context 1);
 by (rtac Diff_UN_eq_self 1);
 by (dtac Ord_DiffE 1 THEN (assume_tac 1));
@@ -73,7 +73,7 @@ by (fast_tac (AC_cs addSEs [mem_irrefl]) 1);
 val HH_subset_x_lt_too = result();
 
 goal thy "!!a. HH(f,x,a) : Pow(x)-{0}   \
-\		==> HH(f,x,a) : Pow(x - (UN b:a. HH(f,x,b)))-{0}";
+\               ==> HH(f,x,a) : Pow(x - (UN b:a. HH(f,x,b)))-{0}";
 by (dresolve_tac [HH_def_satisfies_eq RS subst] 1);
 by (resolve_tac [HH_def_satisfies_eq RS ssubst] 1);
 by (asm_full_simp_tac (AC_ss addsimps [Let_def, Diff_subset RS PowI]) 1);
@@ -90,26 +90,26 @@ by (fast_tac (AC_cs addSIs [singleton_iff RS iffD2, equals0I]) 1);
 val HH_eq_arg_lt = result();
 
 goal thy "!!x. [| HH(f,x,v)=HH(f,x,w); HH(f,x,w): Pow(x)-{0};  \
-\		Ord(v); Ord(w) |] ==> v=w";
+\               Ord(v); Ord(w) |] ==> v=w";
 by (res_inst_tac [("j","w")] Ord_linear_lt 1 THEN TRYALL assume_tac);
 by (resolve_tac [sym RS (ltD RSN (3, HH_eq_arg_lt))] 2
-	THEN REPEAT (assume_tac 2));
+        THEN REPEAT (assume_tac 2));
 by (dtac subst_elem 1 THEN (assume_tac 1));
 by (fast_tac (FOL_cs addDs [ltD] addSEs [HH_eq_arg_lt]) 1);
 val HH_eq_imp_arg_eq = result();
 
 goalw thy [lepoll_def, inj_def]
-	"!!i. [| HH(f, x, i) : Pow(x)-{0}; Ord(i) |] ==> i lepoll Pow(x)-{0}";
+        "!!i. [| HH(f, x, i) : Pow(x)-{0}; Ord(i) |] ==> i lepoll Pow(x)-{0}";
 by (res_inst_tac [("x","lam j:i. HH(f, x, j)")] exI 1);
 by (asm_simp_tac AC_ss 1);
 by (fast_tac (FOL_cs addSEs [HH_eq_imp_arg_eq, Ord_in_Ord, HH_subset_x_lt_too]
-		addSIs [lam_type, ballI, ltI] addIs [bexI]) 1);
+                addSIs [lam_type, ballI, ltI] addIs [bexI]) 1);
 val HH_subset_x_imp_lepoll = result();
 
 goal thy "HH(f, x, Hartog(Pow(x)-{0})) = {x}";
 by (resolve_tac [HH_values RS disjE] 1 THEN (assume_tac 2));
 by (fast_tac (FOL_cs addSDs [HH_subset_x_imp_lepoll]
-		addSIs [Ord_Hartog] addSEs [HartogE]) 1);
+                addSIs [Ord_Hartog] addSEs [HartogE]) 1);
 val HH_Hartog_is_x = result();
 
 goal thy "HH(f, x, LEAST i. HH(f, x, i) = {x}) = {x}";
@@ -124,20 +124,20 @@ by (assume_tac 1);
 val less_Least_subset_x = result();
 
 (* ********************************************************************** *)
-(* Lemmas used in the proofs of AC1 ==> WO2 and AC17 ==> AC1		  *)
+(* Lemmas used in the proofs of AC1 ==> WO2 and AC17 ==> AC1              *)
 (* ********************************************************************** *)
 
 goalw thy [inj_def]
-	"(lam a:(LEAST i. HH(f,x,i)={x}). HH(f,x,a)) :  \
-\		inj(LEAST i. HH(f,x,i)={x}, Pow(x)-{0})";
+        "(lam a:(LEAST i. HH(f,x,i)={x}). HH(f,x,a)) :  \
+\               inj(LEAST i. HH(f,x,i)={x}, Pow(x)-{0})";
 by (asm_full_simp_tac AC_ss 1);
 by (fast_tac (AC_cs  addSIs [lam_type] addDs [less_Least_subset_x]
-		addSEs [HH_eq_imp_arg_eq, Ord_Least RS Ord_in_Ord]) 1);
+                addSEs [HH_eq_imp_arg_eq, Ord_Least RS Ord_in_Ord]) 1);
 val lam_Least_HH_inj_Pow = result();
 
 goal thy "!!x. ALL a:(LEAST i. HH(f,x,i)={x}). EX z:x. HH(f,x,a) = {z}  \
-\		==> (lam a:(LEAST i. HH(f,x,i)={x}). HH(f,x,a))  \
-\			: inj(LEAST i. HH(f,x,i)={x}, {{y}. y:x})";
+\               ==> (lam a:(LEAST i. HH(f,x,i)={x}). HH(f,x,a))  \
+\                       : inj(LEAST i. HH(f,x,i)={x}, {{y}. y:x})";
 by (resolve_tac [lam_Least_HH_inj_Pow RS inj_strengthen_type] 1);
 by (asm_full_simp_tac AC_ss 1);
 by (fast_tac (AC_cs addSEs [RepFun_eqI]) 1);
@@ -148,9 +148,9 @@ by (fast_tac AC_cs 1);
 val elem_of_sing_eq = result();
 
 goalw thy [surj_def]
-	"!!x. [| x - (UN a:A. F(a)) = 0;  \
-\		ALL a:A. EX z:x. F(a) = {z} |]  \
-\		==> (lam a:A. F(a)) : surj(A, {{y}. y:x})";
+        "!!x. [| x - (UN a:A. F(a)) = 0;  \
+\               ALL a:A. EX z:x. F(a) = {z} |]  \
+\               ==> (lam a:A. F(a)) : surj(A, {{y}. y:x})";
 by (asm_full_simp_tac (AC_ss addsimps [Diff_eq_0_iff]) 1);
 by (rtac conjI 1);
 by (fast_tac (AC_cs addSIs [lam_type] addSEs [RepFun_eqI]) 1);
@@ -167,42 +167,42 @@ val lam_surj_sing = result();
 
 goal thy "!!x. y:Pow(x)-{0} ==> x ~= 0";
 by (fast_tac (AC_cs addSIs [equals0I, singletonI RS subst_elem]
-		addSDs [equals0D]) 1);
+                addSDs [equals0D]) 1);
 val not_emptyI2 = result();
 
 goal thy "!!f. f`(x - (UN j:i. HH(f,x,j))): Pow(x - (UN j:i. HH(f,x,j)))-{0}  \
-\	==> HH(f, x, i) : Pow(x) - {0}";
+\       ==> HH(f, x, i) : Pow(x) - {0}";
 by (resolve_tac [HH_def_satisfies_eq RS ssubst] 1);
 by (asm_full_simp_tac (AC_ss addsimps [Let_def, Diff_subset RS PowI,
-		not_emptyI2 RS if_P]) 1);
+                not_emptyI2 RS if_P]) 1);
 by (fast_tac AC_cs 1);
 val f_subset_imp_HH_subset = result();
 
 val [prem] = goal thy "(!!z. z:Pow(x)-{0} ==> f`z : Pow(z)-{0}) ==>  \
-\	x - (UN j: (LEAST i. HH(f,x,i)={x}). HH(f,x,j)) = 0";
+\       x - (UN j: (LEAST i. HH(f,x,i)={x}). HH(f,x,j)) = 0";
 by (excluded_middle_tac "?P : {0}" 1);
 by (fast_tac AC_cs 2);
 by (dresolve_tac [Diff_subset RS PowI RS DiffI RS prem RS
-		f_subset_imp_HH_subset] 1);
+                f_subset_imp_HH_subset] 1);
 by (fast_tac (AC_cs addSDs [HH_Least_eq_x RS sym RSN (2, subst_elem)]
-		addSEs [mem_irrefl]) 1);
+                addSEs [mem_irrefl]) 1);
 val f_subsets_imp_UN_HH_eq_x = result();
 
 goal thy "HH(f,x,i)=f`(x - (UN j:i. HH(f,x,j))) | HH(f,x,i)={x}";
 by (resolve_tac [HH_def_satisfies_eq RS ssubst] 1);
 by (simp_tac (ZF_ss addsimps [Let_def, Diff_subset RS PowI]
-	      setloop split_tac [expand_if]) 1);
+              setloop split_tac [expand_if]) 1);
 val HH_values2 = result();
 
 goal thy
      "!!f. HH(f,x,i): Pow(x)-{0} ==> HH(f,x,i)=f`(x - (UN j:i. HH(f,x,j)))";
 by (resolve_tac [HH_values2 RS disjE] 1 THEN (assume_tac 1));
 by (fast_tac (AC_cs addSEs [equalityE, mem_irrefl]
-	addSDs [singleton_subsetD]) 1);
+        addSDs [singleton_subsetD]) 1);
 val HH_subset_imp_eq = result();
 
 goal thy "!!f. [| f : (PROD X:Pow(x)-{0}. {{z}. z:x});  \
-\	a:(LEAST i. HH(f,x,i)={x}) |] ==> EX z:x. HH(f,x,a) = {z}";
+\       a:(LEAST i. HH(f,x,i)={x}) |] ==> EX z:x. HH(f,x,a) = {z}";
 by (dtac less_Least_subset_x 1);
 by (forward_tac [HH_subset_imp_eq] 1);
 by (dtac apply_type 1);
@@ -212,19 +212,19 @@ by (fast_tac (AC_cs addSEs [RepFunE] addEs [ssubst]) 1);
 val f_sing_imp_HH_sing = result();
 
 goalw thy [bij_def] 
-	"!!f. [| x - (UN j: (LEAST i. HH(f,x,i)={x}). HH(f,x,j)) = 0;  \
-\	f : (PROD X:Pow(x)-{0}. {{z}. z:x}) |]  \
-\	==> (lam a:(LEAST i. HH(f,x,i)={x}). HH(f,x,a))  \
-\			: bij(LEAST i. HH(f,x,i)={x}, {{y}. y:x})";
+        "!!f. [| x - (UN j: (LEAST i. HH(f,x,i)={x}). HH(f,x,j)) = 0;  \
+\       f : (PROD X:Pow(x)-{0}. {{z}. z:x}) |]  \
+\       ==> (lam a:(LEAST i. HH(f,x,i)={x}). HH(f,x,a))  \
+\                       : bij(LEAST i. HH(f,x,i)={x}, {{y}. y:x})";
 by (fast_tac (AC_cs addSIs [lam_Least_HH_inj, lam_surj_sing,
-		f_sing_imp_HH_sing]) 1);
+                f_sing_imp_HH_sing]) 1);
 val f_sing_lam_bij = result();
 
 goal thy "!!f. f: (PROD X: Pow(x)-{0}. F(X))  \
-\	==> (lam X:Pow(x)-{0}. {f`X}) : (PROD X: Pow(x)-{0}. {{z}. z:F(X)})";
+\       ==> (lam X:Pow(x)-{0}. {f`X}) : (PROD X: Pow(x)-{0}. {{z}. z:F(X)})";
 by (fast_tac (FOL_cs addSIs [lam_type, RepFun_eqI, singleton_eq_iff RS iffD2]
-	addDs [apply_type]) 1);
+        addDs [apply_type]) 1);
 val lam_singI = result();
 
 val bij_Least_HH_x = standard (lam_singI RSN (2, 
-	[f_sing_lam_bij, lam_sing_bij RS bij_converse_bij] MRS comp_bij));
+        [f_sing_lam_bij, lam_sing_bij RS bij_converse_bij] MRS comp_bij));

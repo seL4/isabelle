@@ -1,6 +1,6 @@
-(*  Title: 	Terms.ML
+(*  Title:      Terms.ML
     ID:         $Id$
-    Author: 	Ole Rasmussen
+    Author:     Ole Rasmussen
     Copyright   1995  University of Cambridge
     Logic Image: ZF
 *)
@@ -33,7 +33,7 @@ val unmark_App = result();
 
 
 val term_ss = res1_ss addsimps ([unmark_App,unmark_Fun,unmark_Var,
-				lambda.dom_subset RS subsetD]@lambda.intrs);
+                                lambda.dom_subset RS subsetD]@lambda.intrs);
 
 
 (* ------------------------------------------------------------------------- *)

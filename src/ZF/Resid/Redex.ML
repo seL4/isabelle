@@ -1,6 +1,6 @@
-(*  Title: 	Redex.ML
+(*  Title:      Redex.ML
     ID:         $Id$
-    Author: 	Ole Rasmussen
+    Author:     Ole Rasmussen
     Copyright   1995  University of Cambridge
     Logic Image: ZF
 *)
@@ -28,7 +28,7 @@ by (simp_tac (rank_ss addsimps redexes.con_defs)  1);
 val redex_rec_App = result();
 
 val redexes_ss = (arith_ss addsimps 
-		  ([redex_rec_App,redex_rec_Fun,redex_rec_Var]@redexes.intrs));
+                  ([redex_rec_App,redex_rec_Fun,redex_rec_Var]@redexes.intrs));
 
 
 

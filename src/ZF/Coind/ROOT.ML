@@ -1,6 +1,6 @@
-(*  Title: 	ZF/Coind/MT.ML
+(*  Title:      ZF/Coind/MT.ML
     ID:         $Id$
-    Author: 	Jacob Frost, Cambridge University Computer Laboratory
+    Author:     Jacob Frost, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
 
 Based upon the article
@@ -13,7 +13,7 @@ Written up as
     Report, Computer Lab, University of Cambridge (1995).
 *)
 
-ZF_build_completed;	(*Make examples fail if ZF did*)
+ZF_build_completed;     (*Make examples fail if ZF did*)
 
 writeln"Root file for ZF/Coind";
 proof_timing := true;

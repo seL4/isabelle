@@ -1,6 +1,6 @@
-(*  Title: 	ZF/equalities
+(*  Title:      ZF/equalities
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 Set Theory examples: Union, Intersection, Inclusion, etc.
@@ -292,7 +292,7 @@ qed "SUM_Un_distrib2";
 
 (*First-order version of the above, for rewriting*)
 goal ZF.thy "I * (A Un B) = I*A Un I*B";
-by (resolve_tac [SUM_Un_distrib2] 1);
+by (rtac SUM_Un_distrib2 1);
 qed "prod_Un_distrib2";
 
 goal ZF.thy "(SUM i:I Int J. C(i)) = (SUM i:I. C(i)) Int (SUM j:J. C(j))";
@@ -306,7 +306,7 @@ qed "SUM_Int_distrib2";
 
 (*First-order version of the above, for rewriting*)
 goal ZF.thy "I * (A Int B) = I*A Int I*B";
-by (resolve_tac [SUM_Int_distrib2] 1);
+by (rtac SUM_Int_distrib2 1);
 qed "prod_Int_distrib2";
 
 (*Cf Aczel, Non-Well-Founded Sets, page 115*)

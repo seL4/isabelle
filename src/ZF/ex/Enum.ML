@@ -1,6 +1,6 @@
-(*  Title: 	ZF/ex/Enum
+(*  Title:      ZF/ex/Enum
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Example of a BIG enumeration type

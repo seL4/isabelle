@@ -1,6 +1,6 @@
-(*  Title: 	ZF/upair
+(*  Title:      ZF/upair
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 UNORDERED pairs in Zermelo-Fraenkel Set Theory 
@@ -14,9 +14,9 @@ Observe the order of dependence:
 
 (*** Lemmas about power sets  ***)
 
-val Pow_bottom = empty_subsetI RS PowI;		(* 0 : Pow(B) *)
-val Pow_top = subset_refl RS PowI;		(* A : Pow(A) *)
-val Pow_neq_0 = Pow_top RSN (2,equals0D);	(* Pow(a)=0 ==> P *) 
+val Pow_bottom = empty_subsetI RS PowI;         (* 0 : Pow(B) *)
+val Pow_top = subset_refl RS PowI;              (* A : Pow(A) *)
+val Pow_neq_0 = Pow_top RSN (2,equals0D);       (* Pow(a)=0 ==> P *) 
 
 
 (*** Unordered pairs - Upair ***)
@@ -176,7 +176,7 @@ qed_goalw "the_equality" ZF.thy [the_def]
     "[| P(a);  !!x. P(x) ==> x=a |] ==> (THE x. P(x)) = a"
  (fn [pa,eq] =>
   [ (fast_tac (lemmas_cs addSIs [singletonI,pa] addIs [equalityI]
-	                 addEs [eq RS subst]) 1) ]);
+                         addEs [eq RS subst]) 1) ]);
 
 (* Only use this if you already know EX!x. P(x) *)
 qed_goal "the_equality2" ZF.thy
@@ -194,8 +194,8 @@ qed_goal "theI" ZF.thy "EX! x. P(x) ==> P(THE x. P(x))"
 qed_goal "theI2" ZF.thy
     "[| EX! x. P(x);  !!x. P(x) ==> Q(x) |] ==> Q(THE x.P(x))"
  (fn prems => [ resolve_tac prems 1, 
-	        rtac theI 1, 
-		resolve_tac prems 1 ]);
+                rtac theI 1, 
+                resolve_tac prems 1 ]);
 
 (*the_cong is no longer necessary: if (ALL y.P(y)<->Q(y)) then 
   (THE x.P(x))  rewrites to  (THE x. Q(x))  *)
@@ -238,8 +238,8 @@ val if_ss = FOL_ss addsimps  [if_true,if_false];
 qed_goal "expand_if" ZF.thy
     "P(if(Q,x,y)) <-> ((Q --> P(x)) & (~Q --> P(y)))"
  (fn _=> [ (excluded_middle_tac "Q" 1),
-	   (asm_simp_tac if_ss 1),
-	   (asm_simp_tac if_ss 1) ]);
+           (asm_simp_tac if_ss 1),
+           (asm_simp_tac if_ss 1) ]);
 
 qed_goal "if_iff" ZF.thy "a: if(P,x,y) <-> P & a:x | ~P & a:y"
  (fn _=> [ (simp_tac (if_ss setloop split_tac [expand_if]) 1) ]);
@@ -247,7 +247,7 @@ qed_goal "if_iff" ZF.thy "a: if(P,x,y) <-> P & a:x | ~P & a:y"
 qed_goal "if_type" ZF.thy
     "[| P ==> a: A;  ~P ==> b: A |] ==> if(P,a,b): A"
  (fn prems=> [ (simp_tac 
-		(if_ss addsimps prems setloop split_tac [expand_if]) 1) ]);
+                (if_ss addsimps prems setloop split_tac [expand_if]) 1) ]);
 
 
 (*** Foundation lemmas ***)
@@ -259,7 +259,7 @@ qed_goal "mem_asym" ZF.thy "!!P. [| a:b;  b:a |] ==> P"
     (etac equals0D 1),
     (rtac consI1 1),
     (fast_tac (lemmas_cs addIs [consI1,consI2]
-		         addSEs [consE,equalityE]) 1) ]);
+                         addSEs [consE,equalityE]) 1) ]);
 
 (*was called mem_anti_refl*)
 qed_goal "mem_irrefl" ZF.thy "a:a ==> P"

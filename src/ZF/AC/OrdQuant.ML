@@ -1,6 +1,6 @@
-(*  Title: 	ZF/AC/OrdQuant.thy
+(*  Title:      ZF/AC/OrdQuant.thy
     ID:         $Id$
-    Authors: 	Krzysztof Grabczewski and L C Paulson
+    Authors:    Krzysztof Grabczewski and L C Paulson
 
 Quantifiers and union operator for ordinals. 
 *)
@@ -91,14 +91,14 @@ qed_goal "OUN_cong" thy
         simp_tac (ZF_ss addcongs [oex_cong] addsimps (OUN_iff::prems)) 1 ]);
 
 val OrdQuant_cs = ZF_cs
-		  addSIs [oallI]
-		  addIs  [oexI, OUN_I]
-		  addSEs [oexE, OUN_E]
-		  addEs  [rev_oallE];
+                  addSIs [oallI]
+                  addIs  [oexI, OUN_I]
+                  addSEs [oexE, OUN_E]
+                  addEs  [rev_oallE];
 
 val Ord_atomize = atomize (("oall", [ospec])::ZF_conn_pairs, 
-			   ZF_mem_pairs);
+                           ZF_mem_pairs);
 
 val OrdQuant_ss = ZF_ss setmksimps (map mk_meta_eq o Ord_atomize o gen_all)
-			addsimps [oall_simp, ltD RS beta]
+                        addsimps [oall_simp, ltD RS beta]
                         addcongs [oall_cong, oex_cong, OUN_cong];

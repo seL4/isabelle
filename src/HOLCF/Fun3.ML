@@ -1,6 +1,6 @@
-(*  Title: 	HOLCF/fun3.ML
+(*  Title:      HOLCF/fun3.ML
     ID:         $Id$
-    Author: 	Franz Regensburger
+    Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 *)
 

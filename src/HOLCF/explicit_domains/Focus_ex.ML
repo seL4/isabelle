@@ -1,6 +1,6 @@
 (*
     ID:         $Id$
-    Author: 	Franz Regensburger
+    Author:     Franz Regensburger
     Copyright   1995 Technische Universitaet Muenchen
 
 *)
@@ -12,19 +12,19 @@ open Focus_ex;
 val prems = goal Focus_ex.thy
 "is_g(g) = \ 
 \ (? f. is_f(f) & (!x.(? z. <g`x,z> = f`<x,z> & \
-\	     (! w y. <y,w> = f`<x,w>  --> z << w))))";
+\            (! w y. <y,w> = f`<x,w>  --> z << w))))";
 by (simp_tac (!simpset addsimps [is_g,is_net_g]) 1);
 by (fast_tac HOL_cs 1);
 val lemma1 = result();
 
 val prems = goal Focus_ex.thy
 "(? f. is_f(f) & (!x. (? z. <g`x,z> = f`<x,z> & \
-\ 		     (! w y. <y,w> = f`<x,w>  --> z << w)))) \
+\                    (! w y. <y,w> = f`<x,w>  --> z << w)))) \
 \ = \ 
 \ (? f. is_f(f) & (!x. ? z.\
 \       g`x = cfst`(f`<x,z>) & \
 \         z = csnd`(f`<x,z>) & \
-\	(! w y.  <y,w> = f`<x,w> --> z << w)))";
+\       (! w y.  <y,w> = f`<x,w> --> z << w)))";
 by (rtac iffI 1);
 by (etac exE 1);
 by (res_inst_tac [("x","f")] exI 1);

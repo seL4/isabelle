@@ -1,6 +1,6 @@
-(*  Title: 	ZF/AC/Transrec2.ML
+(*  Title:      ZF/AC/Transrec2.ML
     ID:         $Id$
-    Author: 	Krzysztof Grabczewski
+    Author:     Krzysztof Grabczewski
 
 Transfinite recursion introduced to handle definitions based on the three
 cases of ordinals.
@@ -20,7 +20,7 @@ val THE_succ_eq = result();
 goal thy "transrec2(succ(i),a,b) = b(i, transrec2(i,a,b))";
 by (rtac (transrec2_def RS def_transrec RS trans) 1);
 by (simp_tac (ZF_ss addsimps [succ_not_0, THE_succ_eq, if_P]
-	            setsolver K (fast_tac FOL_cs)) 1);
+                    setsolver K (fast_tac FOL_cs)) 1);
 val transrec2_succ = result();
 
 goal thy "!!i. Limit(i) ==> transrec2(i,a,b) = (UN j<i. transrec2(j,a,b))";

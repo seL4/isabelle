@@ -1,6 +1,6 @@
-(*  Title: 	HOLCF/HOLCF.ML
+(*  Title:      HOLCF/HOLCF.ML
     ID:         $Id$
-    Author: 	Franz Regensburger
+    Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 *)
 

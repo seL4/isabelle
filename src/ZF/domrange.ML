@@ -1,6 +1,6 @@
-(*  Title: 	ZF/domrange
+(*  Title:      ZF/domrange
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 Converse, domain, range of a relation or function
@@ -31,7 +31,7 @@ qed_goalw "converseE" ZF.thy [converse_def]
     (assume_tac 1) ]);
 
 val converse_cs = pair_cs addSIs [converseI] 
-			  addSEs [converseD,converseE];
+                          addSEs [converseD,converseE];
 
 qed_goal "converse_converse" ZF.thy
     "!!A B r. r<=Sigma(A,B) ==> converse(converse(r)) = r"
@@ -137,7 +137,7 @@ qed_goalw "image_iff" ZF.thy [image_def]
 qed_goal "image_singleton_iff" ZF.thy
     "b : r``{a} <-> <a,b>:r"
  (fn _ => [ rtac (image_iff RS iff_trans) 1,
-	    fast_tac pair_cs 1 ]);
+            fast_tac pair_cs 1 ]);
 
 qed_goalw "imageI" ZF.thy [image_def]
     "!!a b r. [| <a,b>: r;  a:A |] ==> b : r``A"
@@ -163,7 +163,7 @@ qed_goalw "vimage_iff" ZF.thy [vimage_def,image_def,converse_def]
 qed_goal "vimage_singleton_iff" ZF.thy
     "a : r-``{b} <-> <a,b>:r"
  (fn _ => [ rtac (vimage_iff RS iff_trans) 1,
-	    fast_tac pair_cs 1 ]);
+            fast_tac pair_cs 1 ]);
 
 qed_goalw "vimageI" ZF.thy [vimage_def]
     "!!A B r. [| <a,b>: r;  b:B |] ==> a : r-``B"

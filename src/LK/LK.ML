@@ -1,6 +1,6 @@
-(*  Title: 	LK/lk.ML
+(*  Title:      LK/lk.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 Tactics and lemmas for lk.thy (thanks also to Philippe de Groote)  
@@ -74,14 +74,14 @@ fun (Pack(safes,unsafes)) add_unsafes ths =
 
 (*The rules of LK*)
 val prop_pack = empty_pack add_safes 
-	        [basic, refl, conjL, conjR, disjL, disjR, impL, impR, 
-		 notL, notR, iffL, iffR];
+                [basic, refl, conjL, conjR, disjL, disjR, impL, impR, 
+                 notL, notR, iffL, iffR];
 
 val LK_pack = prop_pack add_safes   [allR, exL] 
-			add_unsafes [allL_thin, exR_thin];
+                        add_unsafes [allL_thin, exR_thin];
 
 val LK_dup_pack = prop_pack add_safes   [allR, exL] 
-			    add_unsafes [allL, exR];
+                            add_unsafes [allL, exR];
 
 
 
@@ -105,7 +105,7 @@ fun could_resolve_seq (prem,conc) =
   case (prem,conc) of
       (_ $ Abs(_,_,leftp) $ Abs(_,_,rightp),
        _ $ Abs(_,_,leftc) $ Abs(_,_,rightc)) =>
-	  could_res (leftp,leftc)  andalso  could_res (rightp,rightc)
+          could_res (leftp,leftc)  andalso  could_res (rightp,rightc)
     | _ => false;
 
 
@@ -134,12 +134,12 @@ fun has_prems n rule =  (nprems_of rule = n);
 fun RESOLVE_THEN rules =
   let val [rls0,rls1,rls2] = partition_list has_prems 0 2 rules;
       fun tac nextac i = STATE (fn state =>  
-	  filseq_resolve_tac rls0 9999 i 
-	  ORELSE
-	  (DETERM(filseq_resolve_tac rls1 9999 i) THEN  TRY(nextac i))
-	  ORELSE
-	  (DETERM(filseq_resolve_tac rls2 9999 i) THEN  TRY(nextac(i+1))
-					THEN  TRY(nextac i)) )
+          filseq_resolve_tac rls0 9999 i 
+          ORELSE
+          (DETERM(filseq_resolve_tac rls1 9999 i) THEN  TRY(nextac i))
+          ORELSE
+          (DETERM(filseq_resolve_tac rls2 9999 i) THEN  TRY(nextac(i+1))
+                                        THEN  TRY(nextac i)) )
   in  tac  end;
 
 
@@ -179,7 +179,7 @@ fun fast_tac thm_pack =
 
 fun best_tac thm_pack  = 
   SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, size_of_thm) 
-	       (step_tac thm_pack 1));
+               (step_tac thm_pack 1));
 
 (** Contraction.  Useful since some rules are not complete. **)
 

@@ -1,6 +1,6 @@
-(*  Title: 	Substitution.ML
+(*  Title:      Substitution.ML
     ID:         $Id$
-    Author: 	Ole Rasmussen
+    Author:     Ole Rasmussen
     Copyright   1995  University of Cambridge
     Logic Image: ZF
 *)
@@ -19,26 +19,26 @@ val gt_not_eq = result();
 val succ_pred = prove_goal Arith.thy 
     "!!i.[|j:nat; i:nat|]==> i < j --> succ(j #- 1) = j"
  (fn prems =>[(etac nat_induct 1),
-	      (fast_tac lt_cs 1),
-	      (asm_simp_tac arith_ss 1)]);
+              (fast_tac lt_cs 1),
+              (asm_simp_tac arith_ss 1)]);
 
 goal Arith.thy 
     "!!i.[|succ(x)<n; n:nat; x:nat|]==> x < n#-1 ";
-by (resolve_tac [succ_leE] 1);
+by (rtac succ_leE 1);
 by (forward_tac [nat_into_Ord RS le_refl RS lt_trans] 1 THEN assume_tac 1);
 by (asm_simp_tac (arith_ss addsimps [succ_pred]) 1);
 val lt_pred = result();
 
 goal Arith.thy 
     "!!i.[|n < succ(x); p<n; p:nat; n:nat; x:nat|]==> n#-1 < x ";
-by (resolve_tac [succ_leE] 1);
+by (rtac succ_leE 1);
 by (asm_simp_tac (arith_ss addsimps [succ_pred]) 1);
 val gt_pred = result();
 
 
 val lift_ss = (union_ss addsimps 
-	       [add_0_right,add_succ_right,nat_into_Ord,
-		not_lt_iff_le,if_P,if_not_P]);
+               [add_0_right,add_succ_right,nat_into_Ord,
+                not_lt_iff_le,if_P,if_not_P]);
 
 
 (* ------------------------------------------------------------------------- *)
@@ -111,7 +111,7 @@ by (asm_full_simp_tac (lift_ss) 1);
 val subst_App = result();
 
 fun addsplit ss = (ss setloop (split_tac [expand_if]) 
-		addsimps [lift_rec_Var,subst_Var]);
+                addsimps [lift_rec_Var,subst_Var]);
 
 
 goal Substitution.thy  
@@ -127,15 +127,15 @@ goalw Substitution.thy []
 by (eresolve_tac [redexes.induct] 1);
 by (ALLGOALS(asm_full_simp_tac 
     ((addsplit lift_ss) addsimps [subst_Fun,subst_App,
-		       lift_rec_type])));
+                       lift_rec_type])));
 val subst_type_a = result();
 val subst_type = subst_type_a RS bspec RS bspec;
 
 
 val subst_ss = (lift_ss addsimps 
-		[subst_eq,subst_gt,subst_lt,subst_Fun,subst_App,subst_type,
-		 lift_rec_le,lift_rec_gt,lift_rec_Fun,lift_rec_App,
-		 lift_rec_type]);
+                [subst_eq,subst_gt,subst_lt,subst_Fun,subst_App,subst_type,
+                 lift_rec_le,lift_rec_gt,lift_rec_Fun,lift_rec_App,
+                 lift_rec_type]);
 
 
 (* ------------------------------------------------------------------------- *)
@@ -201,7 +201,7 @@ by (asm_full_simp_tac (subst_ss) 1);
 by (eres_inst_tac [("i","x")] leE 1);
 by (forward_tac  [lt_trans1] 1 THEN assume_tac 1);
 by (ALLGOALS(asm_full_simp_tac 
-	     (subst_ss addsimps [succ_pred,leI,gt_pred])));
+             (subst_ss addsimps [succ_pred,leI,gt_pred])));
 by (hyp_subst_tac 1);
 by (asm_full_simp_tac (subst_ss addsimps [leI]) 1);
 by (excluded_middle_tac "na < xa" 1);
@@ -234,7 +234,7 @@ by (step_tac ZF_cs 1);
 by (excluded_middle_tac "na  le succ(xa)" 1);
 by (asm_full_simp_tac (subst_ss) 1);
 by (forward_tac [nat_into_Ord RS le_refl RS lt_trans] 1 THEN assume_tac 1);
-by (eresolve_tac [leE] 1);
+by (etac leE 1);
 by (asm_simp_tac (subst_ss addsimps [succ_pred,lt_pred]) 2);
 by (forward_tac [succ_leI RS lt_trans] 1 THEN assume_tac 1);
 by (forw_inst_tac [("i","x")] 
@@ -267,16 +267,16 @@ val substitution = result();
 
 goal Substitution.thy
     "!!n.[|n:nat; u ~ v|]==> ALL m:nat.lift_rec(u,m) ~ lift_rec(v,m)";
-by (eresolve_tac [comp_induct] 1);
+by (etac comp_induct 1);
 by (ALLGOALS(asm_simp_tac (subst_ss addsimps [comp_refl])));
 val lift_rec_preserve_comp = result();
 
 goal Substitution.thy
     "!!n.u2 ~ v2 ==> ALL m:nat.ALL u1:redexes.ALL v1:redexes.\
 \            u1 ~ v1--> subst_rec(u1,u2,m) ~ subst_rec(v1,v2,m)";
-by (eresolve_tac [comp_induct] 1);
+by (etac comp_induct 1);
 by (ALLGOALS(asm_full_simp_tac ((addsplit subst_ss) addsimps 
-	    ([lift_rec_preserve_comp,comp_refl]))));
+            ([lift_rec_preserve_comp,comp_refl]))));
 val subst_rec_preserve_comp = result();
 
 goal Substitution.thy
@@ -290,5 +290,5 @@ goal Substitution.thy
 \       ALL m:nat.ALL u:redexes.regular(u)-->regular(subst_rec(u,v,m))";
 by (eresolve_tac [Sreg.induct] 1);
 by (ALLGOALS(asm_full_simp_tac ((addsplit subst_ss) addsimps 
-	    [lift_rec_preserve_reg])));
+            [lift_rec_preserve_reg])));
 val subst_rec_preserve_reg = result();

@@ -1,6 +1,6 @@
-(*  Title: 	ZF/quniv
+(*  Title:      ZF/quniv
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 For quniv.thy.  A small universe for lazy recursive types
@@ -59,14 +59,14 @@ by (rtac (arg_subset_eclose RS univ_mono RS Pow_mono) 1);
 qed "Pow_univ_subset_quniv";
 
 bind_thm ("univ_subset_into_quniv", 
-	  PowI RS (Pow_univ_subset_quniv RS subsetD));
+          PowI RS (Pow_univ_subset_quniv RS subsetD));
 
 bind_thm ("zero_in_quniv", zero_in_univ RS univ_into_quniv);
 bind_thm ("one_in_quniv", one_in_univ RS univ_into_quniv);
 bind_thm ("two_in_quniv", two_in_univ RS univ_into_quniv);
 
 bind_thm ("A_subset_quniv",
-	  [A_subset_univ, univ_subset_quniv] MRS subset_trans);
+          [A_subset_univ, univ_subset_quniv] MRS subset_trans);
 
 val A_into_quniv = A_subset_quniv RS subsetD;
 
@@ -110,13 +110,13 @@ by (REPEAT (ares_tac [subsetI, QPair_in_quniv] 1
 qed "QSigma_quniv";
 
 bind_thm ("QSigma_subset_quniv",
-	  [QSigma_mono, QSigma_quniv] MRS subset_trans);
+          [QSigma_mono, QSigma_quniv] MRS subset_trans);
 
 (*The opposite inclusion*)
 goalw QUniv.thy [quniv_def,QPair_def]
     "!!A a b. <a;b> : quniv(A) ==> a: quniv(A) & b: quniv(A)";
 by (etac ([Transset_eclose RS Transset_univ, PowD] MRS 
-	  Transset_includes_summands RS conjE) 1);
+          Transset_includes_summands RS conjE) 1);
 by (REPEAT (ares_tac [conjI,PowI] 1));
 qed "quniv_QPair_D";
 
@@ -149,13 +149,13 @@ bind_thm ("qsum_subset_quniv", [qsum_mono, qsum_quniv] MRS subset_trans);
 (*** The natural numbers ***)
 
 bind_thm ("nat_subset_quniv",
-	  [nat_subset_univ, univ_subset_quniv] MRS subset_trans);
+          [nat_subset_univ, univ_subset_quniv] MRS subset_trans);
 
 (* n:nat ==> n:quniv(A) *)
 bind_thm ("nat_into_quniv", (nat_subset_quniv RS subsetD));
 
 bind_thm ("bool_subset_quniv",
-	  [bool_subset_univ, univ_subset_quniv] MRS subset_trans);
+          [bool_subset_univ, univ_subset_quniv] MRS subset_trans);
 
 bind_thm ("bool_into_quniv", bool_subset_quniv RS subsetD);
 
@@ -191,7 +191,7 @@ by (fast_tac (ZF_cs addSDs [doubleton_in_Vfrom_D, Vfrom_doubleton_D]) 1);
 qed "Pair_in_Vfrom_D";
 
 goal Univ.thy
- "!!X. Transset(X) ==> 		\
+ "!!X. Transset(X) ==>          \
 \      (a*b) Int Vfrom(X, succ(i)) <= (a Int Vfrom(X,i)) * (b Int Vfrom(X,i))";
 by (fast_tac (ZF_cs addSDs [Pair_in_Vfrom_D]) 1);
 qed "product_Int_Vfrom_subset";
@@ -199,12 +199,12 @@ qed "product_Int_Vfrom_subset";
 (*** Intersecting <a;b> with Vfrom... ***)
 
 goalw QUniv.thy [QPair_def,sum_def]
- "!!X. Transset(X) ==> 		\
+ "!!X. Transset(X) ==>          \
 \      <a;b> Int Vfrom(X, succ(i))  <=  <a Int Vfrom(X,i);  b Int Vfrom(X,i)>";
 by (rtac (Int_Un_distrib RS ssubst) 1);
 by (rtac Un_mono 1);
 by (REPEAT (ares_tac [product_Int_Vfrom_subset RS subset_trans,
-		      [Int_lower1, subset_refl] MRS Sigma_mono] 1));
+                      [Int_lower1, subset_refl] MRS Sigma_mono] 1));
 qed "QPair_Int_Vfrom_succ_subset";
 
 (**** "Take-lemma" rules for proving a=b by coinduction and c: quniv(A) ****)
@@ -212,14 +212,14 @@ qed "QPair_Int_Vfrom_succ_subset";
 (*Rule for level i -- preserving the level, not decreasing it*)
 
 goalw QUniv.thy [QPair_def]
- "!!X. Transset(X) ==> 		\
+ "!!X. Transset(X) ==>          \
 \      <a;b> Int Vfrom(X,i)  <=  <a Int Vfrom(X,i);  b Int Vfrom(X,i)>";
 by (etac (Transset_Vfrom RS Transset_sum_Int_subset) 1);
 qed "QPair_Int_Vfrom_subset";
 
 (*[| a Int Vset(i) <= c; b Int Vset(i) <= d |] ==> <a;b> Int Vset(i) <= <c;d>*)
 bind_thm ("QPair_Int_Vset_subset_trans", 
-	  [Transset_0 RS QPair_Int_Vfrom_subset, QPair_mono] MRS subset_trans);
+          [Transset_0 RS QPair_Int_Vfrom_subset, QPair_mono] MRS subset_trans);
 
 goal QUniv.thy 
  "!!i. [| Ord(i) \
@@ -233,5 +233,5 @@ by (rtac (Transset_0 RS QPair_Int_Vfrom_succ_subset RS subset_trans) 1);
 by (rtac (succI1 RS UN_upper) 1);
 (*Limit(i) case*)
 by (asm_simp_tac (ZF_ss addsimps [Limit_Vfrom_eq, Int_UN_distrib, subset_refl,
-				  UN_mono, QPair_Int_Vset_subset_trans]) 1);
+                                  UN_mono, QPair_Int_Vset_subset_trans]) 1);
 qed "QPair_Int_Vset_subset_UN";

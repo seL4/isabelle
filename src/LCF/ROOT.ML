@@ -1,6 +1,6 @@
-(*  Title: 	LCF/ROOT
+(*  Title:      LCF/ROOT
     ID:         $Id$
-    Author: 	Tobias Nipkow
+    Author:     Tobias Nipkow
     Copyright   1992  University of Cambridge
 
 Adds LCF to a database containing First-Order Logic.
@@ -17,4 +17,4 @@ use"simpdata.ML";
 use"pair.ML";
 use"fix.ML";
 
-val LCF_build_completed = ();	(*indicate successful build*)
+val LCF_build_completed = ();   (*indicate successful build*)

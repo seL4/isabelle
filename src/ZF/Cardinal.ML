@@ -1,6 +1,6 @@
-(*  Title: 	ZF/Cardinal.ML
+(*  Title:      ZF/Cardinal.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Cardinals in Zermelo-Fraenkel Set Theory 
@@ -20,13 +20,13 @@ by (REPEAT (ares_tac [Diff_subset, subset_refl, Diff_mono, image_mono] 1));
 qed "decomp_bnd_mono";
 
 val [gfun] = goal Cardinal.thy
-    "g: Y->X ==>   					\
-\    g``(Y - f`` lfp(X, %W. X - g``(Y - f``W))) = 	\
+    "g: Y->X ==>                                        \
+\    g``(Y - f`` lfp(X, %W. X - g``(Y - f``W))) =       \
 \    X - lfp(X, %W. X - g``(Y - f``W)) ";
 by (res_inst_tac [("P", "%u. ?v = X-u")] 
      (decomp_bnd_mono RS lfp_Tarski RS ssubst) 1);
 by (simp_tac (ZF_ss addsimps [subset_refl, double_complement,
-			     gfun RS fun_is_rel RS image_subset]) 1);
+                             gfun RS fun_is_rel RS image_subset]) 1);
 qed "Banach_last_equation";
 
 val prems = goal Cardinal.thy
@@ -192,9 +192,9 @@ qed "less_LeastE";
 qed_goal "LeastI2" Cardinal.thy
     "[| P(i);  Ord(i);  !!j. P(j) ==> Q(j) |] ==> Q(LEAST j. P(j))"
  (fn prems => [ resolve_tac prems 1, 
-	        rtac LeastI 1, 
-		resolve_tac prems 1, 
-		resolve_tac prems 1 ]);
+                rtac LeastI 1, 
+                resolve_tac prems 1, 
+                resolve_tac prems 1 ]);
 
 (*If there is no such P then LEAST is vacuously 0*)
 goalw Cardinal.thy [Least_def]
@@ -281,8 +281,8 @@ goal Cardinal.thy "Card(K) <-> Ord(K) & (ALL j. j<K --> ~ j eqpoll K)";
 by (safe_tac (ZF_cs addSIs [CardI, Card_is_Ord]));
 by (fast_tac ZF_cs 2);
 by (rewrite_goals_tac [Card_def, cardinal_def]);
-by (resolve_tac [less_LeastE] 1);
-by (eresolve_tac [subst] 2);
+by (rtac less_LeastE 1);
+by (etac subst 2);
 by (ALLGOALS assume_tac);
 qed "Card_iff_initial";
 
@@ -344,7 +344,7 @@ qed "cardinal_lt_imp_lt";
 
 goal Cardinal.thy "!!i j. [| |i| < K;  Ord(i);  Card(K) |] ==> i < K";
 by (asm_simp_tac (ZF_ss addsimps 
-		  [cardinal_lt_imp_lt, Card_is_Ord, Card_cardinal_eq]) 1);
+                  [cardinal_lt_imp_lt, Card_is_Ord, Card_cardinal_eq]) 1);
 qed "Card_lt_imp_lt";
 
 goal Cardinal.thy "!!i j. [| Ord(i);  Card(K) |] ==> (|i| < K) <-> (i < K)";
@@ -353,8 +353,8 @@ qed "Card_lt_iff";
 
 goal Cardinal.thy "!!i j. [| Ord(i);  Card(K) |] ==> (K le |i|) <-> (K le i)";
 by (asm_simp_tac (ZF_ss addsimps 
-		  [Card_lt_iff, Card_is_Ord, Ord_cardinal, 
-		   not_lt_iff_le RS iff_sym]) 1);
+                  [Card_lt_iff, Card_is_Ord, Ord_cardinal, 
+                   not_lt_iff_le RS iff_sym]) 1);
 qed "Card_le_iff";
 
 
@@ -393,7 +393,7 @@ by (fast_tac (ZF_cs addSIs [nat_0_le]) 1);
 by (rtac ballI 1);
 by (eres_inst_tac [("n","n")] natE 1);
 by (asm_simp_tac (ZF_ss addsimps [lepoll_def, inj_def, 
-				  succI1 RS Pi_empty2]) 1);
+                                  succI1 RS Pi_empty2]) 1);
 by (fast_tac (ZF_cs addSIs [succ_leI] addSDs [succ_lepoll_succD]) 1);
 val nat_lepoll_imp_le_lemma = result();
 
@@ -442,7 +442,7 @@ qed "lesspoll_succ_imp_lepoll";
 
 goal Cardinal.thy "!!m. m:nat ==> A lesspoll succ(m) <-> A lepoll m";
 by (fast_tac (ZF_cs addSIs [lepoll_imp_lesspoll_succ, 
-			    lesspoll_succ_imp_lepoll]) 1);
+                            lesspoll_succ_imp_lepoll]) 1);
 qed "lesspoll_succ_iff";
 
 goal Cardinal.thy "!!A m. [| A lepoll succ(m);  m:nat |] ==>  \
@@ -549,7 +549,7 @@ goalw Cardinal.thy [eqpoll_def]
     "!!f. [| f: inj(A,B);  A Int B = 0 |] ==> A Un (B - range(f)) eqpoll B";
 by (rtac exI 1);
 by (res_inst_tac [("c", "%x. if(x:A, f`x, x)"),
-		  ("d", "%y. if(y: range(f), converse(f)`y, y)")] 
+                  ("d", "%y. if(y: range(f), converse(f)`y, y)")] 
     lam_bijective 1);
 by (fast_tac (ZF_cs addSIs [if_type, apply_type] addIs [inj_is_fun]) 1);
 by (asm_simp_tac 
@@ -612,7 +612,7 @@ goalw Cardinal.thy [Finite_def]
      "!!X. [| Y lepoll X;  Finite(X) |] ==> Finite(Y)";
 by (fast_tac (ZF_cs addSEs [eqpollE] 
                     addEs [lepoll_trans RS 
-		     rewrite_rule [Finite_def] lepoll_nat_imp_Finite]) 1);
+                     rewrite_rule [Finite_def] lepoll_nat_imp_Finite]) 1);
 qed "lepoll_Finite";
 
 goalw Cardinal.thy [Finite_def] "!!x. Finite(x) ==> Finite(cons(y,x))";
@@ -662,7 +662,7 @@ by (fast_tac (ZF_cs addSIs [tot_ord_converse, nat_wf_on_converse_Memrel]) 1);
 qed "nat_well_ord_converse_Memrel";
 
 goal Cardinal.thy
-    "!!A. [| well_ord(A,r); 	\
+    "!!A. [| well_ord(A,r);     \
 \            well_ord(ordertype(A,r), converse(Memrel(ordertype(A, r)))) \
 \         |] ==> well_ord(A,converse(r))";
 by (resolve_tac [well_ord_Int_iff RS iffD1] 1);
@@ -670,7 +670,7 @@ by (forward_tac [ordermap_bij RS bij_is_inj RS well_ord_rvimage] 1);
 by (assume_tac 1);
 by (asm_full_simp_tac
     (ZF_ss addsimps [rvimage_converse, converse_Int, converse_prod, 
-		     ordertype_ord_iso RS ord_iso_rvimage_eq]) 1);
+                     ordertype_ord_iso RS ord_iso_rvimage_eq]) 1);
 qed "well_ord_converse";
 
 goal Cardinal.thy

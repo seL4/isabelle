@@ -1,6 +1,6 @@
-(*  Title: 	ZF/subset
+(*  Title:      ZF/subset
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 Derived rules involving subsets
@@ -193,7 +193,7 @@ qed "RepFun_subset";
 (*A more powerful claset for subset reasoning*)
 val subset_cs = subset0_cs 
   addSIs [subset_refl,cons_subsetI,subset_consI,Union_least,UN_least,Un_least,
-	  Inter_greatest,Int_greatest,RepFun_subset]
+          Inter_greatest,Int_greatest,RepFun_subset]
   addSIs [Un_upper1,Un_upper2,Int_lower1,Int_lower2]
   addIs  [Union_upper,Inter_lower]
   addSEs [cons_subsetE];

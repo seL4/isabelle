@@ -1,6 +1,6 @@
 (*
     ID:         $Id$
-    Author: 	Franz Regensburger
+    Author:     Franz Regensburger
     Copyright   1995 Technische Universitaet Muenchen
 
 *)

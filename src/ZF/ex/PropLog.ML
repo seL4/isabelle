@@ -1,6 +1,6 @@
-(*  Title: 	ZF/ex/prop-log.ML
+(*  Title:      ZF/ex/prop-log.ML
     ID:         $Id$
-    Author: 	Tobias Nipkow & Lawrence C Paulson
+    Author:     Tobias Nipkow & Lawrence C Paulson
     Copyright   1992  University of Cambridge
 
 For ex/prop-log.thy.  Inductive definition of propositional logic.
@@ -47,7 +47,7 @@ qed "is_true_Fls";
 
 goalw PropLog.thy [is_true_def] "is_true(#v,t) <-> v:t";
 by (simp_tac (prop_rec_ss addsimps [one_not_0 RS not_sym] 
-	      setloop (split_tac [expand_if])) 1);
+              setloop (split_tac [expand_if])) 1);
 qed "is_true_Var";
 
 goalw PropLog.thy [is_true_def]
@@ -72,7 +72,7 @@ qed "hyps_Imp";
 val prop_ss = prop_rec_ss 
     addsimps prop.intrs
     addsimps [is_true_Fls, is_true_Var, is_true_Imp,
-	      hyps_Fls, hyps_Var, hyps_Imp];
+              hyps_Fls, hyps_Var, hyps_Imp];
 
 (*** Proof theory of propositional logic ***)
 
@@ -177,9 +177,9 @@ by (rtac (expand_if RS iffD2) 1);
 by (rtac (major RS prop.induct) 1);
 by (ALLGOALS (asm_simp_tac (prop_ss addsimps [thms_I, thms.H])));
 by (safe_tac (ZF_cs addSEs [Fls_Imp RS weaken_left_Un1, 
-			    Fls_Imp RS weaken_left_Un2]));
+                            Fls_Imp RS weaken_left_Un2]));
 by (ALLGOALS (fast_tac (ZF_cs addIs [weaken_left_Un1, weaken_left_Un2, 
-				     weaken_right, Imp_Fls])));
+                                     weaken_right, Imp_Fls])));
 qed "hyps_thms_if";
 
 (*Key lemma for completeness; yields a set of assumptions satisfying p*)
@@ -252,7 +252,7 @@ val [major] = goal PropLog.thy
     "p: prop ==> hyps(p,t) : Fin(UN v:nat. {#v, #v=>Fls})";
 by (rtac (major RS prop.induct) 1);
 by (asm_simp_tac (prop_ss addsimps (Fin.intrs @ [UN_I, cons_iff])
-		  setloop (split_tac [expand_if])) 2);
+                  setloop (split_tac [expand_if])) 2);
 by (ALLGOALS (asm_simp_tac (prop_ss addsimps [Un_0, Fin.emptyI, Fin_UnI])));
 qed "hyps_finite";
 
@@ -307,7 +307,7 @@ val completeness = completeness_lemma RS bspec RS mp;
 
 val [finite] = goal PropLog.thy "H: Fin(prop) ==> H |- p <-> H |= p & p:prop";
 by (fast_tac (ZF_cs addSEs [soundness, finite RS completeness, 
-			    thms_in_pl]) 1);
+                            thms_in_pl]) 1);
 qed "thms_iff";
 
 writeln"Reached end of file.";

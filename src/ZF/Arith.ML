@@ -1,6 +1,6 @@
-(*  Title: 	ZF/arith.ML
+(*  Title:      ZF/arith.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 For arith.thy.  Arithmetic operators and their definitions
@@ -47,7 +47,7 @@ val nat_le_refl = nat_into_Ord RS le_refl;
 val nat_typechecks = [rec_type, nat_0I, nat_1I, nat_succI, Ord_nat];
 
 val nat_simps = [rec_0, rec_succ, not_lt0, nat_0_le, le0_iff, succ_le_iff,
-		 nat_le_refl];
+                 nat_le_refl];
 
 val nat_ss = ZF_ss addsimps (nat_simps @ nat_typechecks);
 
@@ -113,15 +113,15 @@ by (etac leE 3);
 by (ALLGOALS
     (asm_simp_tac
      (nat_ss addsimps (prems @ [le_iff, diff_0, diff_0_eq_0, 
-				diff_succ_succ, nat_into_Ord]))));
+                                diff_succ_succ, nat_into_Ord]))));
 qed "diff_le_self";
 
 (*** Simplification over add, mult, diff ***)
 
 val arith_typechecks = [add_type, mult_type, diff_type];
 val arith_simps = [add_0, add_succ,
-		   mult_0, mult_succ,
-		   diff_0, diff_0_eq_0, diff_succ_succ];
+                   mult_0, mult_succ,
+                   diff_0, diff_0_eq_0, diff_succ_succ];
 
 val arith_ss = nat_ss addsimps (arith_simps@arith_typechecks);
 
@@ -195,7 +195,7 @@ qed_goal "mult_commute" Arith.thy
  (fn prems=>
   [ (nat_ind_tac "m" prems 1),
     (ALLGOALS (asm_simp_tac
-	     (arith_ss addsimps (prems@[mult_0_right, mult_succ_right])))) ]);
+             (arith_ss addsimps (prems@[mult_0_right, mult_succ_right])))) ]);
 
 (*addition distributes over multiplication*)
 qed_goal "add_mult_distrib" Arith.thy 
@@ -224,8 +224,8 @@ qed_goal "mult_left_commute" Arith.thy
     "!!m n k. [| m:nat;  n:nat;  k:nat |] ==> m #* (n #* k) = n #* (m #* k)"
  (fn _ => [rtac (mult_commute RS trans) 1, 
            rtac (mult_assoc RS trans) 3, 
-	   rtac (mult_commute RS subst_context) 6,
-	   REPEAT (ares_tac [mult_type] 1)]);
+           rtac (mult_commute RS subst_context) 6,
+           REPEAT (ares_tac [mult_type] 1)]);
 
 val mult_ac = [mult_assoc,mult_commute,mult_left_commute];
 
@@ -277,13 +277,13 @@ by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (ALLGOALS (asm_simp_tac (nat_ss addsimps [diff_le_self,diff_succ_succ])));
 qed "div_termination";
 
-val div_rls =	(*for mod and div*)
+val div_rls =   (*for mod and div*)
     nat_typechecks @
     [Ord_transrec_type, apply_type, div_termination RS ltD, if_type,
      nat_into_Ord, not_lt_iff_le RS iffD1];
 
 val div_ss = ZF_ss addsimps [nat_into_Ord, div_termination RS ltD,
-			     not_lt_iff_le RS iffD2];
+                             not_lt_iff_le RS iffD2];
 
 (*Type checking depends upon termination!*)
 goalw Arith.thy [mod_def] "!!m n. [| 0<n;  m:nat;  n:nat |] ==> m mod n : nat";
@@ -331,8 +331,8 @@ by (asm_simp_tac (arith_ss addsimps [mod_less, div_less]) 2);
 (*case n le x*)
 by (asm_full_simp_tac
      (arith_ss addsimps [not_lt_iff_le, nat_into_Ord,
-			 mod_geq, div_geq, add_assoc,
-			 div_termination RS ltD, add_diff_inverse]) 1);
+                         mod_geq, div_geq, add_assoc,
+                         div_termination RS ltD, add_diff_inverse]) 1);
 qed "mod_div_equality";
 
 
@@ -363,16 +363,16 @@ goal Arith.thy "!!i j k l. [| i<j; k<l; j:nat; l:nat |] ==> i#+k < j#+l";
 by (rtac (add_lt_mono1 RS lt_trans) 1);
 by (REPEAT (eresolve_tac [asm_rl, lt_nat_in_nat] 1));
 by (EVERY [rtac (add_commute RS ssubst) 1,
-	   rtac (add_commute RS ssubst) 3,
-	   rtac add_lt_mono1 5]);
+           rtac (add_commute RS ssubst) 3,
+           rtac add_lt_mono1 5]);
 by (REPEAT (eresolve_tac [asm_rl, lt_nat_in_nat] 1));
 qed "add_lt_mono";
 
 (*A [clumsy] way of lifting < monotonicity to le monotonicity *)
 val lt_mono::ford::prems = goal Ordinal.thy
-     "[| !!i j. [| i<j; j:k |] ==> f(i) < f(j);	\
-\        !!i. i:k ==> Ord(f(i));		\
-\        i le j;  j:k				\
+     "[| !!i j. [| i<j; j:k |] ==> f(i) < f(j); \
+\        !!i. i:k ==> Ord(f(i));                \
+\        i le j;  j:k                           \
 \     |] ==> f(i) le f(j)";
 by (cut_facts_tac prems 1);
 by (fast_tac (lt_cs addSIs [lt_mono,ford] addSEs [leE]) 1);
@@ -391,7 +391,7 @@ goal Arith.thy
 by (rtac (add_le_mono1 RS le_trans) 1);
 by (REPEAT (eresolve_tac [asm_rl, lt_nat_in_nat, nat_succI] 1));
 by (EVERY [rtac (add_commute RS ssubst) 1,
-	   rtac (add_commute RS ssubst) 3,
-	   rtac add_le_mono1 5]);
+           rtac (add_commute RS ssubst) 3,
+           rtac add_le_mono1 5]);
 by (REPEAT (eresolve_tac [asm_rl, lt_nat_in_nat, nat_succI] 1));
 qed "add_le_mono";

@@ -1,6 +1,6 @@
-(*  Title: 	91/Modal/prover
+(*  Title:      91/Modal/prover
     ID:         $Id$
-    Author: 	Martin Coen
+    Author:     Martin Coen
     Copyright   1991  University of Cambridge
 *)
 
@@ -45,7 +45,7 @@ fun could_resolve_seq (prem,conc) =
   case (prem,conc) of
       (_ $ Abs(_,_,leftp) $ Abs(_,_,rightp),
        _ $ Abs(_,_,leftc) $ Abs(_,_,rightc)) =>
-	  could_res (leftp,leftc)  andalso  could_res (rightp,rightc)
+          could_res (leftp,leftc)  andalso  could_res (rightp,rightc)
     | _ => false;
 
 (*Like filt_resolve_tac, using could_resolve_seq
@@ -75,16 +75,16 @@ fun UPTOGOAL n tf = let fun tac i = if i<n then all_tac
 fun solven_tac d n = STATE (fn state =>
         if d<0 then no_tac
         else if (nprems_of state = 0) then all_tac 
-	else (DETERM(fres_safe_tac n) THEN UPTOGOAL n (solven_tac d)) ORELSE
-	         ((fres_unsafe_tac n  THEN UPTOGOAL n (solven_tac d)) APPEND
-	           (fres_bound_tac n  THEN UPTOGOAL n (solven_tac (d-1)))));
+        else (DETERM(fres_safe_tac n) THEN UPTOGOAL n (solven_tac d)) ORELSE
+                 ((fres_unsafe_tac n  THEN UPTOGOAL n (solven_tac d)) APPEND
+                   (fres_bound_tac n  THEN UPTOGOAL n (solven_tac (d-1)))));
 
 fun solve_tac d = rewrite_goals_tac rewrite_rls THEN solven_tac d 1;
 
 fun step_tac n = STATE (fn state =>  
       if (nprems_of state = 0) then all_tac 
       else (DETERM(fres_safe_tac n)) ORELSE 
-	   (fres_unsafe_tac n APPEND fres_bound_tac n));
+           (fres_unsafe_tac n APPEND fres_bound_tac n));
 
 end;
 end;

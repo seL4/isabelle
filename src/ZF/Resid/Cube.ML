@@ -1,6 +1,6 @@
-(*  Title: 	Cube.ML
+(*  Title:      Cube.ML
     ID:         $Id$
-    Author: 	Ole Rasmussen
+    Author:     Ole Rasmussen
     Copyright   1995  University of Cambridge
     Logic Image: ZF
 *)
@@ -8,8 +8,8 @@
 open Cube;
 
 val prism_ss = (res1L_ss addsimps 
-		[commutation,residuals_preserve_comp,sub_preserve_reg,
-		 residuals_preserve_reg,sub_comp,sub_comp RS comp_sym]);
+                [commutation,residuals_preserve_comp,sub_preserve_reg,
+                 residuals_preserve_reg,sub_comp,sub_comp RS comp_sym]);
 
 (* ------------------------------------------------------------------------- *)
 (*         Prism theorem                                                     *)
@@ -21,7 +21,7 @@ goal Cube.thy
     "!!u.v<==u ==> \
 \   regular(u)-->(ALL w.w~v-->w~u-->  \
 \             w |> u = (w|>v) |> (u|>v))";
-by (eresolve_tac [sub_induct] 1);
+by (etac sub_induct 1);
 by (asm_simp_tac (prism_ss) 1);
 by (asm_simp_tac (prism_ss ) 1);
 by (asm_simp_tac (prism_ss ) 1);
@@ -38,7 +38,7 @@ goal Cube.thy
     "!!u.[|v <== u; regular(u); w~v|]==> \
 \       w |> u = (w|>v) |> (u|>v)";
 by (resolve_tac [prism_l RS mp RS spec RS mp RS mp ] 1);
-by (resolve_tac [comp_trans] 4);
+by (rtac comp_trans 4);
 by (assume_tac 4);
 by (ALLGOALS(asm_simp_tac (prism_ss)));
 val prism = result();
@@ -71,7 +71,7 @@ goal Cube.thy
 \            regular(vu) & (w|>v)~uv & regular(uv) ";
 by (forw_inst_tac [("x1","v")] (comp_sym RS comp_trans) 1);
 by (REPEAT(step_tac ZF_cs 1));
-by (resolve_tac [cube] 1);
+by (rtac cube 1);
 by (ALLGOALS(asm_simp_tac (prism_ss addsimps [comp_sym_iff])));
 val paving = result();
 

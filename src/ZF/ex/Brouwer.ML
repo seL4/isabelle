@@ -1,6 +1,6 @@
-(*  Title: 	ZF/ex/Brouwer.ML
+(*  Title:      ZF/ex/Brouwer.ML
     ID:         $ $
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Infinite branching datatype definitions
@@ -21,11 +21,11 @@ qed "brouwer_unfold";
 
 (*A nicer induction rule than the standard one*)
 val major::prems = goal Brouwer.thy
-    "[| b: brouwer;  					\
-\       P(Zero);					\
-\	!!b. [| b: brouwer;  P(b) |] ==> P(Suc(b));	\
-\	!!h. [| h: nat -> brouwer;  ALL i:nat. P(h`i)	\
-\            |] ==> P(Lim(h))				\
+    "[| b: brouwer;                                     \
+\       P(Zero);                                        \
+\       !!b. [| b: brouwer;  P(b) |] ==> P(Suc(b));     \
+\       !!h. [| h: nat -> brouwer;  ALL i:nat. P(h`i)   \
+\            |] ==> P(Lim(h))                           \
 \    |] ==> P(b)";
 by (rtac (major RS brouwer.induct) 1);
 by (REPEAT_SOME (ares_tac prems));
@@ -45,9 +45,9 @@ qed "Well_unfold";
 
 (*A nicer induction rule than the standard one*)
 val major::prems = goal Brouwer.thy
-    "[| w: Well(A,B);  							\
-\	!!a f. [| a: A;  f: B(a) -> Well(A,B);  ALL y: B(a). P(f`y)	\
-\            |] ==> P(Sup(a,f))						\
+    "[| w: Well(A,B);                                                   \
+\       !!a f. [| a: A;  f: B(a) -> Well(A,B);  ALL y: B(a). P(f`y)     \
+\            |] ==> P(Sup(a,f))                                         \
 \    |] ==> P(w)";
 by (rtac (major RS Well.induct) 1);
 by (REPEAT_SOME (ares_tac prems));

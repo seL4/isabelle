@@ -1,6 +1,6 @@
-(*  Title: 	LK/ex/prop
+(*  Title:      LK/ex/prop
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 Classical sequent calculus: examples with propositional connectives

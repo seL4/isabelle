@@ -1,6 +1,6 @@
-(*  Title: 	ZF/Univ
+(*  Title:      ZF/Univ
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 The cumulative hierarchy and a small universe for recursive types
@@ -128,7 +128,7 @@ qed "Vfrom_0";
 goal Univ.thy "!!i. Ord(i) ==> Vfrom(A,succ(i)) = A Un Pow(Vfrom(A,i))";
 by (rtac (Vfrom RS trans) 1);
 by (rtac (succI1 RS RepFunI RS Union_upper RSN
-	      (2, equalityI RS subst_context)) 1);
+              (2, equalityI RS subst_context)) 1);
 by (rtac UN_least 1);
 by (rtac (subset_refl RS Vfrom_mono RS Pow_mono) 1);
 by (etac (ltI RS le_imp_subset) 1);
@@ -180,8 +180,8 @@ by (REPEAT (ares_tac [ltD RS UN_I] 1));
 qed "Limit_VfromI";
 
 val prems = goal Univ.thy
-    "[| a: Vfrom(A,i);  Limit(i);		\
-\       !!x. [| x<i;  a: Vfrom(A,x) |] ==> R 	\
+    "[| a: Vfrom(A,i);  Limit(i);               \
+\       !!x. [| x<i;  a: Vfrom(A,x) |] ==> R    \
 \    |] ==> R";
 by (rtac (Limit_Vfrom_eq RS equalityD1 RS subsetD RS UN_E) 1);
 by (REPEAT (ares_tac (prems @ [ltI, Limit_is_Ord]) 1));
@@ -230,10 +230,10 @@ by (REPEAT (ares_tac [subsetI,Pair_in_VLimit] 1
 qed "product_VLimit";
 
 bind_thm ("Sigma_subset_VLimit",
-	  [Sigma_mono, product_VLimit] MRS subset_trans);
+          [Sigma_mono, product_VLimit] MRS subset_trans);
 
 bind_thm ("nat_subset_VLimit", 
-	  [nat_le_Limit RS le_imp_subset, i_subset_Vfrom] MRS subset_trans);
+          [nat_le_Limit RS le_imp_subset, i_subset_Vfrom] MRS subset_trans);
 
 goal Univ.thy "!!i. [| n: nat;  Limit(i) |] ==> n : Vfrom(A,i)";
 by (REPEAT (ares_tac [nat_subset_VLimit RS subsetD] 1));
@@ -271,7 +271,7 @@ goal Univ.thy "!!i A. Transset(A) ==> Transset(Vfrom(A,i))";
 by (eps_ind_tac "i" 1);
 by (rtac (Vfrom RS ssubst) 1);
 by (fast_tac (ZF_cs addSIs [Transset_Union_family, Transset_Un,
-			    Transset_Pow]) 1);
+                            Transset_Pow]) 1);
 qed "Transset_Vfrom";
 
 goal Univ.thy "!!A i. Transset(A) ==> Vfrom(A, succ(i)) = Pow(Vfrom(A,i))";
@@ -303,9 +303,9 @@ qed "Transset_Pair_subset_VLimit";
 
 (*General theorem for membership in Vfrom(A,i) when i is a limit ordinal*)
 val [aprem,bprem,limiti,step] = goal Univ.thy
-  "[| a: Vfrom(A,i);  b: Vfrom(A,i);  Limit(i);			\
+  "[| a: Vfrom(A,i);  b: Vfrom(A,i);  Limit(i);                 \
 \     !!x y j. [| j<i; 1:j; x: Vfrom(A,j); y: Vfrom(A,j) \
-\              |] ==> EX k. h(x,y): Vfrom(A,k) & k<i |] ==> 	\
+\              |] ==> EX k. h(x,y): Vfrom(A,k) & k<i |] ==>     \
 \  h(a,b) : Vfrom(A,i)";
 (*Infer that a, b occur at ordinals x,xa < i.*)
 by (rtac ([aprem,limiti] MRS Limit_VfromE) 1);
@@ -334,7 +334,7 @@ val [aprem,bprem,limiti,transset] = goal Univ.thy
 \  a*b : Vfrom(A,i)";
 by (rtac ([aprem,bprem,limiti] MRS in_VLimit) 1);
 by (REPEAT (ares_tac [exI, conjI, prod_in_Vfrom, transset,
-		      limiti RS Limit_has_succ] 1));
+                      limiti RS Limit_has_succ] 1));
 qed "prod_in_VLimit";
 
 (** Disjoint sums, aka Quine ordered pairs **)
@@ -346,7 +346,7 @@ by (dtac Transset_Vfrom 1);
 by (rtac subset_mem_Vfrom 1);
 by (rewtac Transset_def);
 by (fast_tac (ZF_cs addIs [zero_in_Vfrom, Pair_in_Vfrom, 
-			   i_subset_Vfrom RS subsetD]) 1);
+                           i_subset_Vfrom RS subsetD]) 1);
 qed "sum_in_Vfrom";
 
 val [aprem,bprem,limiti,transset] = goal Univ.thy
@@ -354,7 +354,7 @@ val [aprem,bprem,limiti,transset] = goal Univ.thy
 \  a+b : Vfrom(A,i)";
 by (rtac ([aprem,bprem,limiti] MRS in_VLimit) 1);
 by (REPEAT (ares_tac [exI, conjI, sum_in_Vfrom, transset,
-		      limiti RS Limit_has_succ] 1));
+                      limiti RS Limit_has_succ] 1));
 qed "sum_in_VLimit";
 
 (** function space! **)
@@ -379,7 +379,7 @@ val [aprem,bprem,limiti,transset] = goal Univ.thy
 \  a->b : Vfrom(A,i)";
 by (rtac ([aprem,bprem,limiti] MRS in_VLimit) 1);
 by (REPEAT (ares_tac [exI, conjI, fun_in_Vfrom, transset,
-		      limiti RS Limit_has_succ] 1));
+                      limiti RS Limit_has_succ] 1));
 qed "fun_in_VLimit";
 
 
@@ -437,10 +437,10 @@ by (rtac (rank RS ssubst) 1);
 by (rtac equalityI 1);
 by (safe_tac ZF_cs);
 by (EVERY' [rtac UN_I, 
-	    etac (i_subset_Vfrom RS subsetD),
-	    etac (Ord_in_Ord RS rank_of_Ord RS ssubst),
-	    assume_tac,
-	    rtac succI1] 3);
+            etac (i_subset_Vfrom RS subsetD),
+            etac (Ord_in_Ord RS rank_of_Ord RS ssubst),
+            assume_tac,
+            rtac succI1] 3);
 by (REPEAT (eresolve_tac [asm_rl, VsetD RS ltD, Ord_trans] 1));
 qed "rank_Vset";
 
@@ -454,7 +454,7 @@ qed "arg_subset_Vset_rank";
 val [iprem] = goal Univ.thy
     "[| !!i. Ord(i) ==> a Int Vset(i) <= b |] ==> a <= b";
 by (rtac ([subset_refl, arg_subset_Vset_rank] MRS 
-	  Int_greatest RS subset_trans) 1);
+          Int_greatest RS subset_trans) 1);
 by (rtac (Ord_rank RS iprem) 1);
 qed "Int_Vset_subset";
 
@@ -473,7 +473,7 @@ val rank_ss = ZF_ss
 goalw Univ.thy [Vrec_def] "Vrec(a,H) = H(a, lam x:Vset(rank(a)). Vrec(x,H))";
 by (rtac (transrec RS ssubst) 1);
 by (simp_tac (ZF_ss addsimps [Ord_rank, Ord_succ, VsetD RS ltD RS beta, 
-			      VsetI RS beta, le_refl]) 1);
+                              VsetI RS beta, le_refl]) 1);
 qed "Vrec";
 
 (*This form avoids giant explosions in proofs.  NOTE USE OF == *)
@@ -508,8 +508,8 @@ by (etac (univ_eq_UN RS subst) 1);
 qed "subset_univ_eq_Int";
 
 val [aprem, iprem] = goal Univ.thy
-    "[| a <= univ(X);			 	\
-\       !!i. i:nat ==> a Int Vfrom(X,i) <= b 	\
+    "[| a <= univ(X);                           \
+\       !!i. i:nat ==> a Int Vfrom(X,i) <= b    \
 \    |] ==> a <= b";
 by (rtac (aprem RS subset_univ_eq_Int RS ssubst) 1);
 by (rtac UN_least 1);
@@ -615,19 +615,19 @@ bind_thm ("sum_subset_univ", [sum_mono, sum_univ] MRS subset_trans);
 
 goal Univ.thy
    "!!i. [| b: Fin(Vfrom(A,i));  Limit(i) |] ==> EX j. b <= Vfrom(A,j) & j<i";
-by (eresolve_tac [Fin_induct] 1);
+by (etac Fin_induct 1);
 by (fast_tac (ZF_cs addSDs [Limit_has_0]) 1);
 by (safe_tac ZF_cs);
-by (eresolve_tac [Limit_VfromE] 1);
+by (etac Limit_VfromE 1);
 by (assume_tac 1);
 by (res_inst_tac [("x", "xa Un j")] exI 1);
 by (best_tac (ZF_cs addIs [subset_refl RS Vfrom_mono RS subsetD, 
-			   Un_least_lt]) 1);
+                           Un_least_lt]) 1);
 val Fin_Vfrom_lemma = result();
 
 goal Univ.thy "!!i. Limit(i) ==> Fin(Vfrom(A,i)) <= Vfrom(A,i)";
 by (rtac subsetI 1);
-by (dresolve_tac [Fin_Vfrom_lemma] 1);
+by (dtac Fin_Vfrom_lemma 1);
 by (safe_tac ZF_cs);
 by (resolve_tac [Vfrom RS ssubst] 1);
 by (fast_tac (ZF_cs addSDs [ltD]) 1);
@@ -645,7 +645,7 @@ goal Univ.thy
     "!!i. [| n: nat;  Limit(i) |] ==> n -> Vfrom(A,i) <= Vfrom(A,i)";
 by (eresolve_tac [nat_fun_subset_Fin RS subset_trans] 1);
 by (REPEAT (ares_tac [Fin_subset_VLimit, Sigma_subset_VLimit,
-		      nat_subset_VLimit, subset_refl] 1));
+                      nat_subset_VLimit, subset_refl] 1));
 val nat_fun_VLimit = result();
 
 bind_thm ("nat_fun_subset_VLimit", [Pi_mono, nat_fun_VLimit] MRS subset_trans);
@@ -672,7 +672,7 @@ val FiniteFun_univ1 = result();
 goal Univ.thy
    "!!i.  [| W <= Vfrom(A,i); Limit(i) |] ==> W -||> Vfrom(A,i) <= Vfrom(A,i)";
 by (eresolve_tac [subset_refl RSN (2, FiniteFun_mono) RS subset_trans] 1);
-by (eresolve_tac [FiniteFun_VLimit1] 1);
+by (etac FiniteFun_VLimit1 1);
 val FiniteFun_VLimit = result();
 
 goalw Univ.thy [univ_def]

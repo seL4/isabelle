@@ -1,6 +1,6 @@
-(*  Title: 	ZF/Rel.ML
+(*  Title:      ZF/Rel.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 For Rel.thy.  Relations in Zermelo-Fraenkel Set Theory 

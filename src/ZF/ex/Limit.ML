@@ -1,6 +1,6 @@
-(*  Title: 	ZF/ex/Limit
+(*  Title:      ZF/ex/Limit
     ID:         $Id$
-    Author: 	Sten Agerholm
+    Author:     Sten Agerholm
 
 The inverse limit construction.
 *)
@@ -8,7 +8,7 @@ The inverse limit construction.
 open Limit; 
 
 (*----------------------------------------------------------------------*)
-(* Useful goal commands. 						*)
+(* Useful goal commands.                                                *)
 (*----------------------------------------------------------------------*)
 
 val brr = fn thl => fn n => by(REPEAT(ares_tac thl n));
@@ -16,17 +16,17 @@ val trr = fn thl => fn n => (REPEAT(ares_tac thl n));
 fun rotate n i = EVERY(replicate n (etac revcut_rl i));    
 
 (*----------------------------------------------------------------------*)
-(* Preliminary theorems. 						*)
+(* Preliminary theorems.                                                *)
 (*----------------------------------------------------------------------*)
 
 val theI2 = prove_goal ZF.thy  (* From Larry *)
     "[| EX! x. P(x);  !!x. P(x) ==> Q(x) |] ==> Q(THE x.P(x))"
  (fn prems => [ resolve_tac prems 1, 
-	        rtac theI 1, 
-		resolve_tac prems 1 ]);
+                rtac theI 1, 
+                resolve_tac prems 1 ]);
 
 (*----------------------------------------------------------------------*)
-(* Basic results.	 						*)
+(* Basic results.                                                       *)
 (*----------------------------------------------------------------------*)
 
 val prems = goalw Limit.thy [set_def] 
@@ -45,7 +45,7 @@ by (assume_tac 1);
 val rel_E = result();
 
 (*----------------------------------------------------------------------*)
-(* I/E/D rules for po and cpo.			 			*)
+(* I/E/D rules for po and cpo.                                          *)
 (*----------------------------------------------------------------------*)
 
 val prems = goalw Limit.thy [po_def]
@@ -118,7 +118,7 @@ brr[ex]1; (* above theorem would loop *)
 val cpo_islub = result();
 
 (*----------------------------------------------------------------------*)
-(* Theorems about isub and islub.			 		*)
+(* Theorems about isub and islub.                                       *)
 (*----------------------------------------------------------------------*)
 
 val prems = goalw Limit.thy [islub_def]  (* islub_isub *)
@@ -181,7 +181,7 @@ brr[islub_isub,islub_in]1;
 val islub_unique = result();
 
 (*----------------------------------------------------------------------*)
-(* lub gives the least upper bound of chains.				*)
+(* lub gives the least upper bound of chains.                           *)
 (*----------------------------------------------------------------------*)
 
 val prems = goalw Limit.thy [lub_def]
@@ -196,7 +196,7 @@ brr prems 1;
 val cpo_lub = result();
 
 (*----------------------------------------------------------------------*)
-(* Theorems about chains.						*)
+(* Theorems about chains.                                               *)
 (*----------------------------------------------------------------------*)
 
 val chainI = prove_goalw Limit.thy [chain_def]
@@ -251,7 +251,7 @@ brr(cpo_refl::chain_in::chain_rel::nat_0I::nat_succI::prems)1;
 val chain_rel_gen = result();
 
 (*----------------------------------------------------------------------*)
-(* Theorems about pcpos and bottom. 					*)
+(* Theorems about pcpos and bottom.                                     *)
 (*----------------------------------------------------------------------*)
 
 val prems = goalw Limit.thy [pcpo_def]  (* pcpoI *)
@@ -309,7 +309,7 @@ brr(pcpo_cpo::bot_in::bot_least::prems)1;
 val bot_unique = result();
 
 (*----------------------------------------------------------------------*)
-(* Constant chains and lubs and cpos.					*)
+(* Constant chains and lubs and cpos.                                   *)
 (*----------------------------------------------------------------------*)
 
 val prems = goalw Limit.thy [chain_def] (* chain_const *)
@@ -341,7 +341,7 @@ by(REPEAT(resolve_tac prems 1));
 val lub_const = result();
 
 (*----------------------------------------------------------------------*)
-(* Taking the suffix of chains has no effect on ub's.			*) 
+(* Taking the suffix of chains has no effect on ub's.                   *) 
 (*----------------------------------------------------------------------*)
 
 val prems = goalw Limit.thy [isub_def,suffix_def]  (* isub_suffix *)
@@ -368,7 +368,7 @@ by(asm_simp_tac (FOL_ss addsimps islub_suffix::prems) 1);
 val lub_suffix = result();
 
 (*----------------------------------------------------------------------*)
-(* Dominate and subchain.						*) 
+(* Dominate and subchain.                                               *) 
 (*----------------------------------------------------------------------*)
 
 val dominateI = prove_goalw Limit.thy [dominate_def]
@@ -442,7 +442,7 @@ by(REPEAT(resolve_tac (islub_in::prems) 1));
 val dominate_islub_eq = result();
 
 (*----------------------------------------------------------------------*)
-(* Matrix.								*) 
+(* Matrix.                                                              *) 
 (*----------------------------------------------------------------------*)
 
 val prems = goalw Limit.thy [matrix_def]  (* matrix_fun *)
@@ -660,7 +660,7 @@ by(asm_full_simp_tac ZF_ss 1);
 val lub_matrix_diag_sym = result();
 
 (*----------------------------------------------------------------------*)
-(* I/E/D rules for mono and cont.			 		*)
+(* I/E/D rules for mono and cont.                                       *)
 (*----------------------------------------------------------------------*)
 
 val prems = goalw Limit.thy [mono_def]  (* monoI *)
@@ -724,7 +724,7 @@ by(REPEAT(resolve_tac prems 1));
 val cont_lub = result();
 
 (*----------------------------------------------------------------------*)
-(* Continuity and chains.						*) 
+(* Continuity and chains.                                               *) 
 (*----------------------------------------------------------------------*)
 
 val prems = goalw Limit.thy []  (* mono_chain *)
@@ -753,7 +753,7 @@ by(REPEAT(resolve_tac (cont2mono::prems) 1));
 val cont_chain = result();
 
 (*----------------------------------------------------------------------*)
-(* I/E/D rules about (set+rel) cf, the continuous function space. 	*)
+(* I/E/D rules about (set+rel) cf, the continuous function space.       *)
 (*----------------------------------------------------------------------*)
 
 (* The following development more difficult with cpo-as-relation approach. *)
@@ -787,7 +787,7 @@ by(asm_full_simp_tac ZF_ss 1);
 val rel_cf = result();
 
 (*----------------------------------------------------------------------*)
-(* Theorems about the continuous function space.			*)
+(* Theorems about the continuous function space.                        *)
 (*----------------------------------------------------------------------*)
 
 val prems = goalw Limit.thy []  (* chain_cf *)
@@ -960,7 +960,7 @@ brr(pcpo_cf::cf_least::(bot_in RS const_cont RS cont_cf)::
 val bot_cf = result();
 
 (*----------------------------------------------------------------------*)
-(* Identity and composition. 						*)
+(* Identity and composition.                                            *)
 (*----------------------------------------------------------------------*)
 
 val id_thm = prove_goalw Perm.thy [id_def] "x:X ==> (id(X)`x) = x"
@@ -1049,7 +1049,7 @@ brr((cont_fun RS apply_type)::(chain_in RS cf_cont)::lam_type::prems)1;
 val comp_lubs = result();
 
 (*----------------------------------------------------------------------*)
-(* A couple (out of many) theorems about arithmetic.			*)
+(* A couple (out of many) theorems about arithmetic.                    *)
 (*----------------------------------------------------------------------*)
 
 val prems = goal Arith.thy  (* le_cases *)
@@ -1065,7 +1065,7 @@ brr((not_le_iff_lt RS iffD1)::nat_into_Ord::prems)1;
 val lt_cases = result();
 
 (*----------------------------------------------------------------------*)
-(* Theorems about projpair. 						*)
+(* Theorems about projpair.                                             *)
 (*----------------------------------------------------------------------*)
 
 val prems = goalw Limit.thy [projpair_def]  (* projpairI *)
@@ -1109,12 +1109,12 @@ val projpair_rel = result();
 val projpairDs = [projpair_e_cont,projpair_p_cont,projpair_eq,projpair_rel];
 
 (*----------------------------------------------------------------------*)
-(* NB! projpair_e_cont and projpair_p_cont cannot be used repeatedly	*)
+(* NB! projpair_e_cont and projpair_p_cont cannot be used repeatedly    *)
 (*     at the same time since both match a goal of the form f:cont(X,Y).*)
 (*----------------------------------------------------------------------*)
 
 (*----------------------------------------------------------------------*)
-(* Uniqueness of embedding projection pairs. 				*)
+(* Uniqueness of embedding projection pairs.                            *)
 (*----------------------------------------------------------------------*)
 
 val id_comp = fun_is_rel RS left_comp_id;
@@ -1242,7 +1242,7 @@ val embRp_eq_thm = result();
 
 
 (*----------------------------------------------------------------------*)
-(* The identity embedding.						*)
+(* The identity embedding.                                              *)
 (*----------------------------------------------------------------------*)
 
 val prems = goalw Limit.thy [projpair_def]  (* projpair_id *)
@@ -1264,7 +1264,7 @@ brr(Rp_unique::projpair_id::prems)1;
 val Rp_id = result();
 
 (*----------------------------------------------------------------------*)
-(* Composition preserves embeddings.					*)
+(* Composition preserves embeddings.                                    *)
 (*----------------------------------------------------------------------*)
 
 (* Considerably shorter, only partly due to a simpler comp_assoc. *)
@@ -1305,7 +1305,7 @@ val emb_comp = lemma RS embI;
 val Rp_comp = lemma RS Rp_unique;
 
 (*----------------------------------------------------------------------*)
-(* Infinite cartesian product.						*)
+(* Infinite cartesian product.                                          *)
 (*----------------------------------------------------------------------*)
 
 val prems = goalw Limit.thy [set_def,iprod_def]  (* iprodI *)
@@ -1425,7 +1425,7 @@ brr((cpo_lub RS islub_unique)::islub_iprod::cpo_iprod::prems)1;
 val lub_iprod = result();
 
 (*----------------------------------------------------------------------*)
-(* The notion of subcpo. 						*)
+(* The notion of subcpo.                                                *)
 (*----------------------------------------------------------------------*)
 
 val prems = goalw Limit.thy [subcpo_def]  (* subcpoI *)
@@ -1472,7 +1472,7 @@ brr(isubI::(hd prems RS subcpo_subset RS subsetD)::
 brr(isubD1::prems)1;
 brr((hd prems RS subcpo_relD1)::chain_in::isubD1::isubD2::prems)1;
 val ub_subcpo = result();
-	
+        
 (* STRIP_TAC and HOL resolution is efficient sometimes. The following
    theorem is proved easily in HOL without intro and elim rules. *)
 
@@ -1508,7 +1508,7 @@ brr((cpo_lub RS islub_unique)::islub_subcpo::(hd prems RS subcpo_cpo)::prems)1;
 val lub_subcpo = result();
 
 (*----------------------------------------------------------------------*)
-(* Making subcpos using mkcpo. 						*)
+(* Making subcpos using mkcpo.                                          *)
 (*----------------------------------------------------------------------*)
 
 val prems = goalw Limit.thy [set_def,mkcpo_def]  (* mkcpoI *)
@@ -1587,7 +1587,7 @@ brr(mkcpoI::(cpo_lub RS islub_in)::chain_mkcpo::prems)1;
 val subcpo_mkcpo = result();
 
 (*----------------------------------------------------------------------*)
-(* Embedding projection chains of cpos. 				*)
+(* Embedding projection chains of cpos.                                 *)
 (*----------------------------------------------------------------------*)
 
 val prems = goalw Limit.thy [emb_chain_def]  (* emb_chainI *)
@@ -1606,7 +1606,7 @@ val emb_chain_emb = prove_goalw Limit.thy [emb_chain_def]
   (fn prems => [fast_tac ZF_cs 1]);
 
 (*----------------------------------------------------------------------*)
-(* Dinf, the inverse Limit. 						*)
+(* Dinf, the inverse Limit.                                             *)
 (*----------------------------------------------------------------------*)
 
 val prems = goalw Limit.thy [Dinf_def]  (* DinfI *)
@@ -1693,7 +1693,7 @@ brr(cpo_iprod::emb_chain_cpo::lub_iprod::chain_Dinf::prems)1;
 val lub_Dinf = result();
 
 (*----------------------------------------------------------------------*)
-(* Generalising embedddings D_m -> D_{m+1} to embeddings D_m -> D_n, 	*)
+(* Generalising embedddings D_m -> D_{m+1} to embeddings D_m -> D_n,    *)
 (* defined as eps(DD,ee,m,n), via e_less and e_gr.                      *)
 (*----------------------------------------------------------------------*)
 
@@ -2257,7 +2257,7 @@ brr prems 1; (* 20 trivial subgoals *)
 val eps_split_right = result();
 
 (*----------------------------------------------------------------------*)
-(* That was eps: D_m -> D_n, NEXT rho_emb: D_n -> Dinf.			*)
+(* That was eps: D_m -> D_n, NEXT rho_emb: D_n -> Dinf.                 *)
 (*----------------------------------------------------------------------*)
 
 (* Considerably shorter. *)
@@ -2479,7 +2479,7 @@ brr(rho_projpair::projpair_p_cont::prems)1;
 val rho_proj_cont = result();
 
 (*----------------------------------------------------------------------*)
-(* Commutivity and universality.					*)
+(* Commutivity and universality.                                        *)
 (*----------------------------------------------------------------------*)
 
 val prems = goalw Limit.thy [commute_def]  (* commuteI *)

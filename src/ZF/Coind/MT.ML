@@ -1,6 +1,6 @@
-(*  Title: 	ZF/Coind/MT.ML
+(*  Title:      ZF/Coind/MT.ML
     ID:         $Id$
-    Author: 	Jacob Frost, Cambridge University Computer Laboratory
+    Author:     Jacob Frost, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
 *)
 
@@ -12,7 +12,7 @@ open MT;
 (* ############################################################ *)
 
 val prems = goal MT.thy 
-  "[| c:Const; hastyenv(ve,te);<te,e_const(c),t>:ElabRel |] ==> 	\
+  "[| c:Const; hastyenv(ve,te);<te,e_const(c),t>:ElabRel |] ==>         \
 \  <v_const(c), t> : HasTyRel";
 by (cut_facts_tac prems 1);
 by (fast_tac htr_cs 1);
@@ -20,7 +20,7 @@ qed "consistency_const";
 
 
 val prems = goalw  MT.thy [hastyenv_def]
-  "[| x:ve_dom(ve); hastyenv(ve,te); <te,e_var(x),t>:ElabRel |] ==> 	\
+  "[| x:ve_dom(ve); hastyenv(ve,te); <te,e_var(x),t>:ElabRel |] ==>     \
 \  <ve_app(ve,x),t>:HasTyRel";
 by (cut_facts_tac prems 1);
 by (fast_tac static_cs 1);
@@ -28,9 +28,9 @@ qed "consistency_var";
 
 
 val prems = goalw MT.thy [hastyenv_def]
-  "[| ve:ValEnv; x:ExVar; e:Exp; hastyenv(ve,te); 	\
-\     <te,e_fn(x,e),t>:ElabRel 	\
-\  |] ==> 	\
+  "[| ve:ValEnv; x:ExVar; e:Exp; hastyenv(ve,te);       \
+\     <te,e_fn(x,e),t>:ElabRel  \
+\  |] ==>       \
 \  <v_clos(x, e, ve), t> : HasTyRel";
 by (cut_facts_tac prems 1);
 by (best_tac htr_cs 1);
@@ -51,9 +51,9 @@ val clean_tac =
     (ematch_tac [te_owrE] i));
 
 val prems = goalw MT.thy [hastyenv_def]
-  "[| ve:ValEnv; x:ExVar; e:Exp; f:ExVar; cl:Val; 		\
-\     v_clos(x,e,ve_owr(ve,f,cl)) = cl; 			\ 
-\     hastyenv(ve,te); <te,e_fix(f,x,e),t>:ElabRel |] ==> 	\
+  "[| ve:ValEnv; x:ExVar; e:Exp; f:ExVar; cl:Val;               \
+\     v_clos(x,e,ve_owr(ve,f,cl)) = cl;                         \ 
+\     hastyenv(ve,te); <te,e_fix(f,x,e),t>:ElabRel |] ==>       \
 \  <cl,t>:HasTyRel";
 by (cut_facts_tac prems 1);
 by (etac elab_fixE 1);
@@ -97,15 +97,15 @@ qed "consistency_fix";
 
 
 val prems = goal MT.thy
-  " [| ve:ValEnv; e1:Exp; e2:Exp; c1:Const; c2:Const; 	\
-\     <ve,e1,v_const(c1)>:EvalRel; 			\
-\     ALL t te. 					\
+  " [| ve:ValEnv; e1:Exp; e2:Exp; c1:Const; c2:Const;   \
+\     <ve,e1,v_const(c1)>:EvalRel;                      \
+\     ALL t te.                                         \
 \       hastyenv(ve,te) --> <te,e1,t>:ElabRel --> <v_const(c1),t>:HasTyRel; \
-\     <ve, e2, v_const(c2)> : EvalRel; 			\
-\     ALL t te. 					\
+\     <ve, e2, v_const(c2)> : EvalRel;                  \
+\     ALL t te.                                         \
 \       hastyenv(ve,te) --> <te,e2,t>:ElabRel --> <v_const(c2),t>:HasTyRel; \
-\     hastyenv(ve, te); 				\
-\     <te,e_app(e1,e2),t>:ElabRel |] ==> 		\
+\     hastyenv(ve, te);                                 \
+\     <te,e_app(e1,e2),t>:ElabRel |] ==>                \
 \   <v_const(c_app(c1, c2)),t>:HasTyRel";
 by (cut_facts_tac prems 1);
 by (etac elab_appE 1);
@@ -113,23 +113,23 @@ by (fast_tac ((mk_htr_cs ZF_cs) addSIs [c_appI] addIs [isof_app]) 1);
 qed "consistency_app1";
 
 val prems = goal MT.thy
-  " [| ve:ValEnv; vem:ValEnv; e1:Exp; e2:Exp; em:Exp; xm:ExVar; v:Val; 	\
-\      <ve,e1,v_clos(xm,em,vem)>:EvalRel; 	\
-\      ALL t te. 				\
-\        hastyenv(ve,te) --> 			\
-\        <te,e1,t>:ElabRel --> 			\
-\        <v_clos(xm,em,vem),t>:HasTyRel; 	\
-\      <ve,e2,v2>:EvalRel; 			\
-\      ALL t te. 				\
-\        hastyenv(ve,te) --> 			\
-\        <te,e2,t>:ElabRel -->		 	\
-\        <v2,t>:HasTyRel; 			\
-\      <ve_owr(vem,xm,v2),em,v>:EvalRel; 	\
-\      ALL t te. 				\
-\        hastyenv(ve_owr(vem,xm,v2),te) --> 	\
-\        <te,em,t>:ElabRel --> 			\
-\        <v,t>:HasTyRel; 			\
-\      hastyenv(ve,te); <te,e_app(e1,e2),t>:ElabRel |] ==> 	\
+  " [| ve:ValEnv; vem:ValEnv; e1:Exp; e2:Exp; em:Exp; xm:ExVar; v:Val;  \
+\      <ve,e1,v_clos(xm,em,vem)>:EvalRel;       \
+\      ALL t te.                                \
+\        hastyenv(ve,te) -->                    \
+\        <te,e1,t>:ElabRel -->                  \
+\        <v_clos(xm,em,vem),t>:HasTyRel;        \
+\      <ve,e2,v2>:EvalRel;                      \
+\      ALL t te.                                \
+\        hastyenv(ve,te) -->                    \
+\        <te,e2,t>:ElabRel -->                  \
+\        <v2,t>:HasTyRel;                       \
+\      <ve_owr(vem,xm,v2),em,v>:EvalRel;        \
+\      ALL t te.                                \
+\        hastyenv(ve_owr(vem,xm,v2),te) -->     \
+\        <te,em,t>:ElabRel -->                  \
+\        <v,t>:HasTyRel;                        \
+\      hastyenv(ve,te); <te,e_app(e1,e2),t>:ElabRel |] ==>      \
 \   <v,t>:HasTyRel ";
 by (cut_facts_tac prems 1);
 by (etac elab_appE 1);
@@ -157,7 +157,7 @@ qed "consistency_app2";
 fun mt_cases_tac t = ((rtac t 1) THEN (TRYALL assume_tac)); 
 
 val prems = goal MT.thy 
-  "<ve,e,v>:EvalRel ==> 	\
+  "<ve,e,v>:EvalRel ==>         \
 \  (ALL t te. hastyenv(ve,te) --> <te,e,t>:ElabRel --> <v,t>:HasTyRel)";
 by (rtac (EvalRel.mutual_induct RS spec RS spec RS spec RS impE) 1);
 by (resolve_tac prems 7 THEN assume_tac 7);
@@ -172,11 +172,11 @@ qed "consistency";
 
 
 val prems = goal MT.thy
-  "[| ve:ValEnv; te:TyEnv;		\
-\     isofenv(ve,te); 			\
-\     <ve,e,v_const(c)>:EvalRel; 	\
-\     <te,e,t>:ElabRel 			\
-\  |] ==>				\
+  "[| ve:ValEnv; te:TyEnv;              \
+\     isofenv(ve,te);                   \
+\     <ve,e,v_const(c)>:EvalRel;        \
+\     <te,e,t>:ElabRel                  \
+\  |] ==>                               \
 \  isof(c,t)";
 by (cut_facts_tac prems 1);
 by (rtac (htr_constE) 1);

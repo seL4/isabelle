@@ -1,6 +1,6 @@
-(*  Title: 	ZF/indrule.ML
+(*  Title:      ZF/indrule.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Induction rule module -- for Inductive/Coinductive Definitions
@@ -10,8 +10,8 @@ Proves a strong induction rule and a mutual induction rule
 
 signature INDRULE =
   sig
-  val induct        : thm			(*main induction rule*)
-  val mutual_induct : thm			(*mutual induction rule*)
+  val induct        : thm                       (*main induction rule*)
+  val mutual_induct : thm                       (*mutual induction rule*)
   end;
 
 
@@ -32,7 +32,7 @@ val _ = writeln "  Proving the induction rule...";
 
 (*** Prove the main induction rule ***)
 
-val pred_name = "P";		(*name for predicate variables*)
+val pred_name = "P";            (*name for predicate variables*)
 
 val big_rec_def::part_rec_defs = Intr_elim.defs;
 
@@ -40,20 +40,20 @@ val big_rec_def::part_rec_defs = Intr_elim.defs;
    ind_alist = [(rec_tm1,pred1),...]  -- associates predicates with rec ops
    prem is a premise of an intr rule*)
 fun add_induct_prem ind_alist (prem as Const("Trueprop",_) $ 
-		 (Const("op :",_)$t$X), iprems) =
+                 (Const("op :",_)$t$X), iprems) =
      (case gen_assoc (op aconv) (ind_alist, X) of
-	  Some pred => prem :: Ind_Syntax.mk_tprop (pred $ t) :: iprems
-	| None => (*possibly membership in M(rec_tm), for M monotone*)
-	    let fun mk_sb (rec_tm,pred) = 
-			(rec_tm, Ind_Syntax.Collect_const$rec_tm$pred)
-	    in  subst_free (map mk_sb ind_alist) prem :: iprems  end)
+          Some pred => prem :: Ind_Syntax.mk_tprop (pred $ t) :: iprems
+        | None => (*possibly membership in M(rec_tm), for M monotone*)
+            let fun mk_sb (rec_tm,pred) = 
+                        (rec_tm, Ind_Syntax.Collect_const$rec_tm$pred)
+            in  subst_free (map mk_sb ind_alist) prem :: iprems  end)
   | add_induct_prem ind_alist (prem,iprems) = prem :: iprems;
 
 (*Make a premise of the induction rule.*)
 fun induct_prem ind_alist intr =
   let val quantfrees = map dest_Free (term_frees intr \\ rec_params)
       val iprems = foldr (add_induct_prem ind_alist)
-			 (Logic.strip_imp_prems intr,[])
+                         (Logic.strip_imp_prems intr,[])
       val (t,X) = Ind_Syntax.rule_concl intr
       val (Some pred) = gen_assoc (op aconv) (ind_alist, X)
       val concl = Ind_Syntax.mk_tprop (pred $ t)
@@ -64,8 +64,8 @@ fun induct_prem ind_alist intr =
   Intro rules with extra Vars in premises still cause some backtracking *)
 fun ind_tac [] 0 = all_tac
   | ind_tac(prem::prems) i = 
-    	DEPTH_SOLVE_1 (ares_tac [prem, refl] i) THEN
-	ind_tac prems (i-1);
+        DEPTH_SOLVE_1 (ares_tac [prem, refl] i) THEN
+        ind_tac prems (i-1);
 
 val pred = Free(pred_name, Ind_Syntax.iT --> Ind_Syntax.oT);
 
@@ -76,15 +76,15 @@ val quant_induct =
     prove_goalw_cterm part_rec_defs 
       (cterm_of sign 
        (Logic.list_implies (ind_prems, 
-		Ind_Syntax.mk_tprop (Ind_Syntax.mk_all_imp(big_rec_tm,pred)))))
+                Ind_Syntax.mk_tprop (Ind_Syntax.mk_all_imp(big_rec_tm,pred)))))
       (fn prems =>
        [rtac (impI RS allI) 1,
-	DETERM (etac Intr_elim.raw_induct 1),
-	(*Push Part inside Collect*)
-	asm_full_simp_tac (FOL_ss addsimps [Part_Collect]) 1,
-	REPEAT (FIRSTGOAL (eresolve_tac [CollectE, exE, conjE, disjE] ORELSE'
-			   hyp_subst_tac)),
-	ind_tac (rev prems) (length prems) ]);
+        DETERM (etac Intr_elim.raw_induct 1),
+        (*Push Part inside Collect*)
+        asm_full_simp_tac (FOL_ss addsimps [Part_Collect]) 1,
+        REPEAT (FIRSTGOAL (eresolve_tac [CollectE, exE, conjE, disjE] ORELSE'
+                           hyp_subst_tac)),
+        ind_tac (rev prems) (length prems) ]);
 
 (*** Prove the simultaneous induction rule ***)
 
@@ -111,11 +111,11 @@ fun mk_predpair rec_tm =
       val pfree = Free(pred_name ^ "_" ^ rec_name, T)
       val frees = mk_frees "za" (binder_types T)
       val qconcl = 
-	foldr Ind_Syntax.mk_all (frees, 
-	                Ind_Syntax.imp $ 
-			  (Ind_Syntax.mem_const $ foldr1 (app Pr.pair) frees $
-			   rec_tm)
-			  $ (list_comb (pfree,frees)))
+        foldr Ind_Syntax.mk_all (frees, 
+                        Ind_Syntax.imp $ 
+                          (Ind_Syntax.mem_const $ foldr1 (app Pr.pair) frees $
+                           rec_tm)
+                          $ (list_comb (pfree,frees)))
   in  (Ind_Syntax.ap_split Pr.fsplit_const pfree (binder_types T), 
       qconcl)  
   end;
@@ -130,20 +130,20 @@ fun mk_rec_imp (rec_tm,pred) =
 (*To instantiate the main induction rule*)
 val induct_concl = 
  Ind_Syntax.mk_tprop(Ind_Syntax.mk_all_imp(big_rec_tm,
-	     Abs("z", Ind_Syntax.iT, 
-		 fold_bal (app Ind_Syntax.conj) 
-		 (map mk_rec_imp (Inductive.rec_tms~~preds)))))
+             Abs("z", Ind_Syntax.iT, 
+                 fold_bal (app Ind_Syntax.conj) 
+                 (map mk_rec_imp (Inductive.rec_tms~~preds)))))
 and mutual_induct_concl =
  Ind_Syntax.mk_tprop(fold_bal (app Ind_Syntax.conj) qconcls);
 
 val lemma = (*makes the link between the two induction rules*)
     prove_goalw_cterm part_rec_defs 
-	  (cterm_of sign (Logic.mk_implies (induct_concl,mutual_induct_concl)))
-	  (fn prems =>
-	   [cut_facts_tac prems 1, 
-	    REPEAT (eresolve_tac [asm_rl, conjE, PartE, mp] 1
-	     ORELSE resolve_tac [allI, impI, conjI, Part_eqI] 1
-	     ORELSE dresolve_tac [spec, mp, Pr.fsplitD] 1)]);
+          (cterm_of sign (Logic.mk_implies (induct_concl,mutual_induct_concl)))
+          (fn prems =>
+           [cut_facts_tac prems 1, 
+            REPEAT (eresolve_tac [asm_rl, conjE, PartE, mp] 1
+             ORELSE resolve_tac [allI, impI, conjI, Part_eqI] 1
+             ORELSE dresolve_tac [spec, mp, Pr.fsplitD] 1)]);
 
 (*Mutual induction follows by freeness of Inl/Inr.*)
 
@@ -167,42 +167,42 @@ fun mutual_ind_tac [] 0 = all_tac
   | mutual_ind_tac(prem::prems) i = 
       DETERM
        (SELECT_GOAL 
-	  (
-	   (*Simplify the assumptions and goal by unfolding Part and
-	     using freeness of the Sum constructors; proves all but one
+          (
+           (*Simplify the assumptions and goal by unfolding Part and
+             using freeness of the Sum constructors; proves all but one
              conjunct by contradiction*)
-	   rewrite_goals_tac all_defs  THEN
-	   simp_tac (mut_ss addsimps [Part_iff]) 1  THEN
-	   IF_UNSOLVED (*simp_tac may have finished it off!*)
-	     ((*simplify assumptions, but don't accept new rewrite rules!*)
-	      asm_full_simp_tac (mut_ss setmksimps (fn _=>[])) 1  THEN
-	      (*unpackage and use "prem" in the corresponding place*)
-	      REPEAT (rtac impI 1)  THEN
-	      rtac (rewrite_rule all_defs prem) 1  THEN
-	      (*prem must not be REPEATed below: could loop!*)
-	      DEPTH_SOLVE (FIRSTGOAL (ares_tac [impI] ORELSE' 
-				      eresolve_tac (conjE::mp::cmonos))))
-	  ) i)
+           rewrite_goals_tac all_defs  THEN
+           simp_tac (mut_ss addsimps [Part_iff]) 1  THEN
+           IF_UNSOLVED (*simp_tac may have finished it off!*)
+             ((*simplify assumptions, but don't accept new rewrite rules!*)
+              asm_full_simp_tac (mut_ss setmksimps (fn _=>[])) 1  THEN
+              (*unpackage and use "prem" in the corresponding place*)
+              REPEAT (rtac impI 1)  THEN
+              rtac (rewrite_rule all_defs prem) 1  THEN
+              (*prem must not be REPEATed below: could loop!*)
+              DEPTH_SOLVE (FIRSTGOAL (ares_tac [impI] ORELSE' 
+                                      eresolve_tac (conjE::mp::cmonos))))
+          ) i)
        THEN mutual_ind_tac prems (i-1);
 
 val _ = writeln "  Proving the mutual induction rule...";
 
 val mutual_induct_fsplit = 
     prove_goalw_cterm []
-	  (cterm_of sign
-	   (Logic.list_implies 
-	      (map (induct_prem (Inductive.rec_tms~~preds)) Inductive.intr_tms,
-	       mutual_induct_concl)))
-	  (fn prems =>
-	   [rtac (quant_induct RS lemma) 1,
-	    mutual_ind_tac (rev prems) (length prems)]);
+          (cterm_of sign
+           (Logic.list_implies 
+              (map (induct_prem (Inductive.rec_tms~~preds)) Inductive.intr_tms,
+               mutual_induct_concl)))
+          (fn prems =>
+           [rtac (quant_induct RS lemma) 1,
+            mutual_ind_tac (rev prems) (length prems)]);
 
 (*Attempts to remove all occurrences of fsplit*)
 val fsplit_tac =
     REPEAT (SOMEGOAL (FIRST' [rtac Pr.fsplitI, 
-			      dtac Pr.fsplitD,
-			      etac Pr.fsplitE,	(*apparently never used!*)
-			      bound_hyp_subst_tac]))
+                              dtac Pr.fsplitD,
+                              etac Pr.fsplitE,  (*apparently never used!*)
+                              bound_hyp_subst_tac]))
     THEN prune_params_tac
 
 in
@@ -214,7 +214,7 @@ in
     recursion or because it involves tuples.  This saves storage.*)
   val mutual_induct = 
       if length Intr_elim.rec_names > 1 orelse
-	 is_sigma Inductive.dom_sum 
+         is_sigma Inductive.dom_sum 
       then rule_by_tactic fsplit_tac mutual_induct_fsplit
       else TrueI;
   end

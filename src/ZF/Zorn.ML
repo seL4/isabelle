@@ -1,6 +1,6 @@
-(*  Title: 	ZF/Zorn.ML
+(*  Title:      ZF/Zorn.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Proofs from the paper
@@ -57,14 +57,14 @@ qed "TFin_induct";
 (*Perform induction on n, then prove the major premise using prems. *)
 fun TFin_ind_tac a prems i = 
     EVERY [res_inst_tac [("n",a)] TFin_induct i,
-	   rename_last_tac a ["1"] (i+1),
-	   rename_last_tac a ["2"] (i+2),
-	   ares_tac prems i];
+           rename_last_tac a ["1"] (i+1),
+           rename_last_tac a ["2"] (i+2),
+           ares_tac prems i];
 
 (*** Section 3.  Some Properties of the Transfinite Construction ***)
 
 bind_thm ("increasing_trans", 
-	  TFin_is_subset RSN (3, increasingD2 RSN (2,subset_trans)));
+          TFin_is_subset RSN (3, increasingD2 RSN (2,subset_trans)));
 
 (*Lemma 1 of section 3.1*)
 val major::prems = goal Zorn.thy
@@ -73,7 +73,7 @@ val major::prems = goal Zorn.thy
 \    |] ==> n<=m | next`m<=n";
 by (cut_facts_tac prems 1);
 by (rtac (major RS TFin_induct) 1);
-by (etac Union_lemma0 2);		(*or just fast_tac ZF_cs*)
+by (etac Union_lemma0 2);               (*or just fast_tac ZF_cs*)
 by (fast_tac (subset_cs addIs [increasing_trans]) 1);
 qed "TFin_linear_lemma1";
 
@@ -120,7 +120,7 @@ goal Zorn.thy
 by (rtac (TFin_linear_lemma2 RSN (3,TFin_linear_lemma1) RS disjE) 1);
 by (REPEAT (assume_tac 1) THEN etac disjI2 1);
 by (fast_tac (subset_cs addIs [increasingD2 RS subset_trans, 
-			       TFin_is_subset]) 1);
+                               TFin_is_subset]) 1);
 qed "TFin_subset_linear";
 
 
@@ -168,8 +168,8 @@ by (rtac Collect_subset 1);
 qed "maxchain_subset_chain";
 
 goal Zorn.thy
-    "!!S. [| ch : (PROD X:Pow(chain(S)) - {0}. X);	\
-\            X : chain(S);  X ~: maxchain(S)		\
+    "!!S. [| ch : (PROD X:Pow(chain(S)) - {0}. X);      \
+\            X : chain(S);  X ~: maxchain(S)            \
 \         |] ==> ch ` super(S,X) : super(S,X)";
 by (etac apply_type 1);
 by (rewrite_goals_tac [super_def, maxchain_def]);
@@ -177,8 +177,8 @@ by (fast_tac ZF_cs 1);
 qed "choice_super";
 
 goal Zorn.thy
-    "!!S. [| ch : (PROD X:Pow(chain(S)) - {0}. X);	\
-\            X : chain(S);  X ~: maxchain(S)		\
+    "!!S. [| ch : (PROD X:Pow(chain(S)) - {0}. X);      \
+\            X : chain(S);  X ~: maxchain(S)            \
 \         |] ==> ch ` super(S,X) ~= X";
 by (rtac notI 1);
 by (dtac choice_super 1);
@@ -189,8 +189,8 @@ qed "choice_not_equals";
 
 (*This justifies Definition 4.4*)
 goal Zorn.thy
-    "!!S. ch: (PROD X: Pow(chain(S))-{0}. X) ==>	\
-\          EX next: increasing(S). ALL X: Pow(S). 	\
+    "!!S. ch: (PROD X: Pow(chain(S))-{0}. X) ==>        \
+\          EX next: increasing(S). ALL X: Pow(S).       \
 \                     next`X = if(X: chain(S)-maxchain(S), ch`super(S,X), X)";
 by (rtac bexI 1);
 by (rtac ballI 1);
@@ -201,8 +201,8 @@ by (rtac CollectI 1);
 by (rtac lam_type 1);
 by (asm_simp_tac (ZF_ss setloop split_tac [expand_if]) 1);
 by (fast_tac (ZF_cs addSIs [super_subset_chain RS subsetD,
-			    chain_subset_Pow RS subsetD,
-			    choice_super]) 1);
+                            chain_subset_Pow RS subsetD,
+                            choice_super]) 1);
 (*Now, verify that it increases*)
 by (asm_simp_tac (ZF_ss addsimps [Pow_iff, subset_refl]
                         setloop split_tac [expand_if]) 1);
@@ -215,16 +215,16 @@ qed "Hausdorff_next_exists";
 
 (*Lemma 4*)
 goal Zorn.thy
- "!!S. [| c: TFin(S,next);				\
-\	  ch: (PROD X: Pow(chain(S))-{0}. X);		\
-\         next: increasing(S);			 	\
-\         ALL X: Pow(S). next`X = 	\
-\			  if(X: chain(S)-maxchain(S), ch`super(S,X), X)	\
+ "!!S. [| c: TFin(S,next);                              \
+\         ch: (PROD X: Pow(chain(S))-{0}. X);           \
+\         next: increasing(S);                          \
+\         ALL X: Pow(S). next`X =       \
+\                         if(X: chain(S)-maxchain(S), ch`super(S,X), X) \
 \      |] ==> c: chain(S)";
 by (etac TFin_induct 1);
 by (asm_simp_tac 
     (ZF_ss addsimps [chain_subset_Pow RS subsetD, 
-		     choice_super RS (super_subset_chain RS subsetD)]
+                     choice_super RS (super_subset_chain RS subsetD)]
            setloop split_tac [expand_if]) 1);
 by (rewtac chain_def);
 by (rtac CollectI 1 THEN fast_tac ZF_cs 1);
@@ -252,7 +252,7 @@ by (assume_tac 2);
 by (rtac refl 2);
 by (asm_full_simp_tac 
     (ZF_ss addsimps [subset_refl RS TFin_UnionI RS
-		     (TFin.dom_subset RS subsetD)]
+                     (TFin.dom_subset RS subsetD)]
            setloop split_tac [expand_if]) 1);
 by (eresolve_tac [choice_not_equals RS notE] 1);
 by (REPEAT (assume_tac 1));
@@ -291,11 +291,11 @@ qed "Zorn";
 
 (*Lemma 5*)
 val major::prems = goal Zorn.thy
-    "[| n: TFin(S,next);  Z <= TFin(S,next);  z:Z;  ~ Inter(Z) : Z	\
+    "[| n: TFin(S,next);  Z <= TFin(S,next);  z:Z;  ~ Inter(Z) : Z      \
 \    |] ==> ALL m:Z. n<=m";
 by (cut_facts_tac prems 1);
 by (rtac (major RS TFin_induct) 1);
-by (fast_tac ZF_cs 2);			(*second induction step is easy*)
+by (fast_tac ZF_cs 2);                  (*second induction step is easy*)
 by (rtac ballI 1);
 by (rtac (bspec RS TFin_subsetD RS disjE) 1);
 by (REPEAT_SOME (eresolve_tac [asm_rl,subsetD]));
@@ -340,7 +340,7 @@ qed "well_ord_TFin";
 (** Defining the "next" operation for Zermelo's Theorem **)
 
 goal AC.thy
-    "!!S. [| ch : (PROD X:Pow(S) - {0}. X);  X<=S;  X~=S	\
+    "!!S. [| ch : (PROD X:Pow(S) - {0}. X);  X<=S;  X~=S        \
 \         |] ==> ch ` (S-X) : S-X";
 by (etac apply_type 1);
 by (fast_tac (eq_cs addEs [equalityE]) 1);
@@ -348,8 +348,8 @@ qed "choice_Diff";
 
 (*This justifies Definition 6.1*)
 goal Zorn.thy
-    "!!S. ch: (PROD X: Pow(S)-{0}. X) ==>		\
-\          EX next: increasing(S). ALL X: Pow(S). 	\
+    "!!S. ch: (PROD X: Pow(S)-{0}. X) ==>               \
+\          EX next: increasing(S). ALL X: Pow(S).       \
 \                     next`X = if(X=S, S, cons(ch`(S-X), X))";
 by (rtac bexI 1);
 by (rtac ballI 1);
@@ -372,10 +372,10 @@ qed "Zermelo_next_exists";
 
 (*The construction of the injection*)
 goal Zorn.thy
-  "!!S. [| ch: (PROD X: Pow(S)-{0}. X);			\
-\          next: increasing(S);			 	\
-\          ALL X: Pow(S). next`X = if(X=S, S, cons(ch`(S-X), X))	\
-\       |] ==> (lam x:S. Union({y: TFin(S,next). x~: y})) 	\
+  "!!S. [| ch: (PROD X: Pow(S)-{0}. X);                 \
+\          next: increasing(S);                         \
+\          ALL X: Pow(S). next`X = if(X=S, S, cons(ch`(S-X), X))        \
+\       |] ==> (lam x:S. Union({y: TFin(S,next). x~: y}))       \
 \              : inj(S, TFin(S,next) - {S})";
 by (res_inst_tac [("d", "%y. ch`(S-y)")] lam_injective 1);
 by (rtac DiffI 1);
@@ -392,15 +392,15 @@ by (subgoal_tac "~ next ` Union({y: TFin(S,next). x~: y}) <= \
 \                  Union({y: TFin(S,next). x~: y})" 1);
 by (asm_simp_tac 
     (ZF_ss addsimps [Collect_subset RS TFin_UnionI RS TFin_is_subset,
-		     Pow_iff, cons_subset_iff, subset_refl,
-		     choice_Diff RS DiffD2]
+                     Pow_iff, cons_subset_iff, subset_refl,
+                     choice_Diff RS DiffD2]
            setloop split_tac [expand_if]) 2);
 by (subgoal_tac "x : next ` Union({y: TFin(S,next). x~: y})" 1);
 by (fast_tac (subset_cs addSIs [Collect_subset RS TFin_UnionI, TFin_nextI]) 2);
 (*End of the lemmas!*)
 by (asm_full_simp_tac 
     (ZF_ss addsimps [Collect_subset RS TFin_UnionI RS TFin_is_subset,
-		     Pow_iff, cons_subset_iff, subset_refl]
+                     Pow_iff, cons_subset_iff, subset_refl]
            setloop split_tac [expand_if]) 1);
 by (REPEAT (eresolve_tac [asm_rl, consE, sym, notE] 1));
 qed "choice_imp_injection";

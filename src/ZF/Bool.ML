@@ -1,6 +1,6 @@
-(*  Title: 	ZF/bool
+(*  Title:      ZF/bool
     ID:         $Id$
-    Author: 	Martin D Coen, Cambridge University Computer Laboratory
+    Author:     Martin D Coen, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 For ZF/bool.thy.  Booleans in Zermelo-Fraenkel Set Theory 
@@ -89,7 +89,7 @@ qed_goalw "xor_type" Bool.thy [xor_def]
  (fn prems=> [ (typechk_tac(prems@[bool_1I, bool_0I, cond_type, not_type])) ]);
 
 val bool_typechecks = [bool_1I, bool_0I, cond_type, not_type, and_type, 
-		       or_type, xor_type]
+                       or_type, xor_type]
 
 val bool_simps = [cond_1,cond_0,not_1,not_0,and_1,and_0,or_1,or_0,xor_1,xor_0];
 

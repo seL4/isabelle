@@ -1,6 +1,6 @@
-(*  Title: 	ZF/IMP/Denotation.ML
+(*  Title:      ZF/IMP/Denotation.ML
     ID:         $Id$
-    Author: 	Heiko Loetzbeyer & Robert Sandner, TUM
+    Author:     Heiko Loetzbeyer & Robert Sandner, TUM
     Copyright   1994 TUM
 *)
 
@@ -20,7 +20,7 @@ val C_rewrite_rules =
 (**** Type_intr for A ****)
 
 val A_type = prove_goal Denotation.thy
-	"!!a.[|a:aexp; sigma:loc->nat|] ==> A(a,sigma):nat"
+        "!!a.[|a:aexp; sigma:loc->nat|] ==> A(a,sigma):nat"
    (fn _ => [(etac aexp.induct 1),
              (rewrite_goals_tac A_rewrite_rules),
              (ALLGOALS (fast_tac (ZF_cs addSIs [apply_type])))]);
@@ -28,7 +28,7 @@ val A_type = prove_goal Denotation.thy
 (**** Type_intr for B ****)
 
 val B_type = prove_goal Denotation.thy
-	"!!b. [|b:bexp; sigma:loc->nat|] ==> B(b,sigma):bool"
+        "!!b. [|b:bexp; sigma:loc->nat|] ==> B(b,sigma):bool"
    (fn _ => [(etac bexp.induct 1),
              (rewrite_goals_tac B_rewrite_rules),
              (ALLGOALS (fast_tac (ZF_cs 
@@ -37,7 +37,7 @@ val B_type = prove_goal Denotation.thy
 (**** C_subset ****)
 
 val C_subset = prove_goal Denotation.thy 
-	"!!c. c:com ==> C(c) <= (loc->nat)*(loc->nat)"
+        "!!c. c:com ==> C(c) <= (loc->nat)*(loc->nat)"
    (fn _ => [(etac com.induct 1),
              (rewrite_tac C_rewrite_rules),
              (ALLGOALS (fast_tac (comp_cs addDs [lfp_subset RS subsetD])))]);
@@ -45,17 +45,17 @@ val C_subset = prove_goal Denotation.thy
 (**** Type_elims for C ****)
 
 val C_type = prove_goal Denotation.thy
-	"[| <x,y>:C(c); c:com; 					\
-\	     !!c. [| x:loc->nat; y:loc->nat |]  ==> R |]	\
-\	  ==> R"
+        "[| <x,y>:C(c); c:com;                                  \
+\            !!c. [| x:loc->nat; y:loc->nat |]  ==> R |]        \
+\         ==> R"
      (fn prems => [(cut_facts_tac prems 1),
                    (fast_tac (ZF_cs addSIs prems 
                                     addDs  [(C_subset RS subsetD)]) 1)]);
 
 val C_type_fst = prove_goal Denotation.thy
-	"[| x:C(c); c:com; 					\
-\	     !!c. [| fst(x):loc->nat |]  ==> R |]	\
-\	  ==> R"
+        "[| x:C(c); c:com;                                      \
+\            !!c. [| fst(x):loc->nat |]  ==> R |]       \
+\         ==> R"
      (fn prems => [(cut_facts_tac prems 1),
                    (resolve_tac prems 1),
                    (dtac (C_subset RS subsetD) 1),
@@ -67,7 +67,7 @@ val C_type_fst = prove_goal Denotation.thy
 (**** bnd_mono (nat->nat*nat->nat,Gamma(b,c) ****)
 
 val Gamma_bnd_mono = prove_goalw Denotation.thy [bnd_mono_def,Gamma_def]
-	"!!c. c:com ==> bnd_mono ((loc->nat)*(loc->nat),Gamma(b,c))"
+        "!!c. c:com ==> bnd_mono ((loc->nat)*(loc->nat),Gamma(b,c))"
      (fn prems => [(best_tac (comp_cs addEs [C_type]) 1)]);
 
 (**** End ***)

@@ -1,6 +1,6 @@
-(*  Title: 	ZF/ex/listn
+(*  Title:      ZF/ex/listn
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Inductive definition of lists of n elements
@@ -24,7 +24,7 @@ goal ListN.thy "<n,l> : listn(A) <-> l:list(A) & length(l)=n";
 by (rtac iffI 1);
 by (etac listn_induct 1);
 by (safe_tac (ZF_cs addSIs (list_typechecks @
-			    [length_Nil, length_Cons, list_into_listn])));
+                            [length_Nil, length_Cons, list_into_listn])));
 qed "listn_iff";
 
 goal ListN.thy "listn(A)``{n} = {l:list(A). length(l)=n}";

@@ -1,6 +1,6 @@
-(*  Title: 	91/Modal/ROOT
+(*  Title:      91/Modal/ROOT
     ID:         $Id$
-    Author: 	Martin Coen
+    Author:     Martin Coen
     Copyright   1991  University of Cambridge
 *)
 
@@ -18,13 +18,13 @@ local
   val iffR = prove_goal thy 
       "[| $H,P |- $E,Q,$F;  $H,Q |- $E,P,$F |] ==> $H |- $E, P <-> Q, $F"
    (fn prems=>
-    [ (rewrite_goals_tac [iff_def]),
+    [ (rewtac iff_def),
       (REPEAT (resolve_tac (prems@[conjR,impR]) 1)) ]);
 
   val iffL = prove_goal thy 
      "[| $H,$G |- $E,P,Q;  $H,Q,P,$G |- $E |] ==> $H, P <-> Q, $G |- $E"
    (fn prems=>
-    [ rewrite_goals_tac [iff_def],
+    [ rewtac iff_def,
       (REPEAT (resolve_tac (prems@[conjL,impL,basic]) 1)) ])
 in
 val safe_rls   = [basic,conjL,conjR,disjL,disjR,impL,impR,notL,notR,iffL,iffR];
@@ -78,6 +78,6 @@ in structure MP_Rule : MODAL_PROVER_RULE =
 end;
 structure S43_Prover = Modal_ProverFun(MP_Rule);  
 
-val Modal_build_completed = ();	(*indicate successful build*)
+val Modal_build_completed = (); (*indicate successful build*)
 
 (*printing functions are inherited from LK*)

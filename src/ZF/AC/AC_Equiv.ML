@@ -1,6 +1,6 @@
-(*  Title: 	ZF/AC/AC_Equiv.ML
+(*  Title:      ZF/AC/AC_Equiv.ML
     ID:         $Id$
-    Author: 	Krzysztof Grabczewski
+    Author:     Krzysztof Grabczewski
 
 *)
 
@@ -45,8 +45,8 @@ val nat_le_imp_lepoll = nat_le_imp_lepoll_lemma RS bspec RS mp |> standard;
 (* ********************************************************************** *)
 
 (* The following two theorms are useful when rewriting only one instance  *) 
-(* of a definition							  *)
-(* first one for definitions of formulae and the second for terms	  *)
+(* of a definition                                                        *)
+(* first one for definitions of formulae and the second for terms         *)
 
 val prems = goal ZF.thy "(A == B) ==> A <-> B";
 by (asm_simp_tac (ZF_ss addsimps prems) 1);
@@ -101,7 +101,7 @@ val rvimage_id = result();
 
 (* used only in Hartog.ML *)
 goal Cardinal.thy
-	"!!A r. well_ord(A,r) ==> ordertype(A, r Int A*A) = ordertype(A,r)";
+        "!!A r. well_ord(A,r) ==> ordertype(A, r Int A*A) = ordertype(A,r)";
 by (res_inst_tac [("P","%a. ordertype(A,a)=ordertype(A,r)")] 
     (rvimage_id RS subst) 1);
 by (eresolve_tac [id_bij RS bij_ordertype_vimage] 1);
@@ -109,13 +109,13 @@ val ordertype_Int = result();
 
 (* used only in AC16_lemmas.ML *)
 goalw CardinalArith.thy [InfCard_def]
-	"!!i. [| ~Finite(i); Card(i) |] ==> InfCard(i)";
+        "!!i. [| ~Finite(i); Card(i) |] ==> InfCard(i)";
 by (asm_simp_tac (ZF_ss addsimps [Card_is_Ord RS nat_le_infinite_Ord]) 1);
 val Inf_Card_is_InfCard = result();
 
 goal thy "(THE z. {x}={z}) = x";
 by (fast_tac (AC_cs addSIs [the_equality]
-		addSEs [singleton_eq_iff RS iffD1 RS sym]) 1);
+                addSEs [singleton_eq_iff RS iffD1 RS sym]) 1);
 val the_element = result();
 
 goal thy "(lam x:A. {x}) : bij(A, {{x}. x:A})";
@@ -125,15 +125,15 @@ by (REPEAT (asm_full_simp_tac (AC_ss addsimps [the_element]) 1));
 val lam_sing_bij = result();
 
 val [major,minor] = goal thy 
-	"[| f : Pi(A,B); (!!x. x:A ==> B(x)<=C(x)) |] ==> f : Pi(A,C)";
+        "[| f : Pi(A,B); (!!x. x:A ==> B(x)<=C(x)) |] ==> f : Pi(A,C)";
 by (fast_tac (AC_cs addSIs [major RS Pi_type, minor RS subsetD,
-		major RS apply_type]) 1);
+                major RS apply_type]) 1);
 val Pi_weaken_type = result();
 
 val [major, minor] = goalw thy [inj_def]
-	"[| f:inj(A, B); (!!a. a:A ==> f`a : C) |] ==> f:inj(A,C)";
+        "[| f:inj(A, B); (!!a. a:A ==> f`a : C) |] ==> f:inj(A,C)";
 by (fast_tac (AC_cs addSEs [minor]
-	addSIs [major RS CollectD1 RS Pi_type, major RS CollectD2]) 1);
+        addSIs [major RS CollectD1 RS Pi_type, major RS CollectD2]) 1);
 val inj_strengthen_type = result();
 
 goal thy "A*B=0 <-> A=0 | B=0";
@@ -146,13 +146,13 @@ val nat_into_Finite = result();
 
 goalw thy [Finite_def] "~Finite(nat)";
 by (fast_tac (AC_cs addSDs [eqpoll_imp_lepoll]
-		addIs [Ord_nat RSN (2, ltI) RS lt_not_lepoll RS notE]) 1);
+                addIs [Ord_nat RSN (2, ltI) RS lt_not_lepoll RS notE]) 1);
 val nat_not_Finite = result();
 
 val le_imp_lepoll = le_imp_subset RS subset_imp_lepoll;
 
 (* ********************************************************************** *)
-(* Another elimination rule for EX!					  *)
+(* Another elimination rule for EX!                                       *)
 (* ********************************************************************** *)
 
 goal thy "!!x. [| EX! x. P(x); P(x); P(y) |] ==> x=y";
@@ -163,14 +163,14 @@ by (fast_tac AC_cs 1);
 val ex1_two_eq = result();
 
 (* ********************************************************************** *)
-(* image of a surjection						  *)
+(* image of a surjection                                                  *)
 (* ********************************************************************** *)
 
 goalw thy [surj_def] "!!f. f : surj(A, B) ==> f``A = B";
 by (etac CollectE 1);
 by (resolve_tac [subset_refl RSN (2, image_fun) RS ssubst] 1 THEN (assume_tac 1));
 by (fast_tac (AC_cs addSEs [RepFunE, apply_type]
-		addSIs [RepFunI] addIs [equalityI]) 1);
+                addSIs [RepFunI] addIs [equalityI]) 1);
 val surj_image_eq = result();
 
 

@@ -1,6 +1,6 @@
 (*
     ID:         $Id$
-    Author: 	Franz Regensburger
+    Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
 Lemmas for theory Stream2.thy
@@ -13,7 +13,7 @@ open Stream2;
 (* ------------------------------------------------------------------------- *)
 
 val smap_def2 = fix_prover2 Stream2.thy smap_def 
-	"smap = (LAM f s. stream_when`(LAM x l.scons`(f`x) `(smap`f`l)) `s)";
+        "smap = (LAM f s. stream_when`(LAM x l.scons`(f`x) `(smap`f`l)) `s)";
 
 
 (* ------------------------------------------------------------------------- *)
@@ -23,21 +23,21 @@ val smap_def2 = fix_prover2 Stream2.thy smap_def
 
 qed_goal "smap1" Stream2.thy "smap`f`UU = UU"
  (fn prems =>
-	[
-	(rtac (smap_def2 RS ssubst) 1),
-	(simp_tac (!simpset addsimps stream_when) 1)
-	]);
+        [
+        (rtac (smap_def2 RS ssubst) 1),
+        (simp_tac (!simpset addsimps stream_when) 1)
+        ]);
 
 qed_goal "smap2" Stream2.thy 
-	"x~=UU ==> smap`f`(scons`x`xs) = scons `(f`x) `(smap`f`xs)"
+        "x~=UU ==> smap`f`(scons`x`xs) = scons `(f`x) `(smap`f`xs)"
  (fn prems =>
-	[
-	(cut_facts_tac prems 1),
-	(rtac trans 1),
-	(rtac (smap_def2 RS ssubst) 1),
-	(asm_simp_tac (!simpset addsimps stream_rews) 1),
-	(rtac refl 1)
-	]);
+        [
+        (cut_facts_tac prems 1),
+        (rtac trans 1),
+        (rtac (smap_def2 RS ssubst) 1),
+        (asm_simp_tac (!simpset addsimps stream_rews) 1),
+        (rtac refl 1)
+        ]);
 
 
 val stream2_rews = [smap1, smap2];

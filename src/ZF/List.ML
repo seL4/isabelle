@@ -1,6 +1,6 @@
-(*  Title: 	ZF/List.ML
+(*  Title:      ZF/List.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Datatype definition of Lists
@@ -20,8 +20,8 @@ val Nil_Cons_iff = list.mk_free "~ Nil=Cons(a,l)";
 (*Perform induction on l, then prove the major premise using prems. *)
 fun list_ind_tac a prems i = 
     EVERY [res_inst_tac [("x",a)] list.induct i,
-	   rename_last_tac a ["1"] (i+2),
-	   ares_tac prems i];
+           rename_last_tac a ["1"] (i+2),
+           ares_tac prems i];
 
 goal List.thy "list(A) = {0} + (A * list(A))";
 let open list;  val rew = rewrite_rule con_defs in  
@@ -43,7 +43,7 @@ goalw List.thy (list.defs@list.con_defs) "list(univ(A)) <= univ(A)";
 by (rtac lfp_lowerbound 1);
 by (rtac (A_subset_univ RS univ_mono) 2);
 by (fast_tac (ZF_cs addSIs [zero_in_univ, Inl_in_univ, Inr_in_univ,
-			    Pair_in_univ]) 1);
+                            Pair_in_univ]) 1);
 qed "list_univ";
 
 (*These two theorems justify datatypes involving list(nat), list(A), ...*)
@@ -138,7 +138,7 @@ val prems = goal List.thy
 \    |] ==> list_rec(l,c,h) : C(l)";
 by (list_ind_tac "l" prems 1);
 by (ALLGOALS (asm_simp_tac
-	      (ZF_ss addsimps (prems@[list_rec_Nil,list_rec_Cons]))));
+              (ZF_ss addsimps (prems@[list_rec_Nil,list_rec_Cons]))));
 qed "list_rec_type";
 
 (** Versions for use with definitions **)
@@ -156,7 +156,7 @@ by (rtac list_rec_Cons 1);
 qed "def_list_rec_Cons";
 
 fun list_recs def = map standard
-    	([def] RL [def_list_rec_Nil, def_list_rec_Cons]);
+        ([def] RL [def_list_rec_Nil, def_list_rec_Cons]);
 
 (** map **)
 
@@ -229,9 +229,9 @@ val list_typechecks =
 val list_ss = arith_ss 
     addsimps list.case_eqns
     addsimps [list_rec_Nil, list_rec_Cons, 
-	      map_Nil, map_Cons, app_Nil, app_Cons,
-	      length_Nil, length_Cons, rev_Nil, rev_Cons,
-	      flat_Nil, flat_Cons, list_add_Nil, list_add_Cons]
+              map_Nil, map_Cons, app_Nil, app_Cons,
+              length_Nil, length_Cons, rev_Nil, rev_Cons,
+              flat_Nil, flat_Cons, list_add_Nil, list_add_Cons]
     setsolver (type_auto_tac list_typechecks);
 
 

@@ -7,7 +7,7 @@ val YYS_def2 = fix_prover2 Dagstuhl.thy YYS_def "YYS = scons`y`(scons`y`YYS)";
 
 
 val prems = goal Dagstuhl.thy "YYS << scons`y`YYS";
-by (rewrite_goals_tac [YYS_def]);
+by (rewtac YYS_def);
 by (rtac fix_ind 1);
 by (resolve_tac adm_thms 1);
 by (cont_tacR 1);
@@ -52,7 +52,7 @@ val wir_moel=result();
 (* ------------------------------------------------------------------------ *)
 
 val prems = goal Dagstuhl.thy "YYS << YS";
-by (rewrite_goals_tac [YYS_def]);
+by (rewtac YYS_def);
 by (rtac fix_least 1);
 by (rtac (beta_cfun RS ssubst) 1);
 by (cont_tacR 1);
@@ -60,7 +60,7 @@ by (simp_tac (!simpset addsimps [YS_def2 RS sym]) 1);
 val lemma6=result();
 
 val prems = goal Dagstuhl.thy "YS << YYS";
-by (rewrite_goals_tac [YS_def]);
+by (rewtac YS_def);
 by (rtac fix_ind 1);
 by (resolve_tac adm_thms 1);
 by (cont_tacR 1);

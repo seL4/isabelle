@@ -1,6 +1,6 @@
-(*  Title: 	ZF/constructor.ML
+(*  Title:      ZF/constructor.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Constructor function module -- for (Co)Datatype Definitions
@@ -8,20 +8,20 @@ Constructor function module -- for (Co)Datatype Definitions
 
 signature CONSTRUCTOR_ARG =
   sig
-  val thy    	   : theory		(*parent containing constructor defs*)
-  val big_rec_name : string		(*name of mutually recursive set*)
+  val thy          : theory             (*parent containing constructor defs*)
+  val big_rec_name : string             (*name of mutually recursive set*)
   val con_ty_lists : ((string*typ*mixfix) * 
-		      string * term list * term list) list list
-					(*description of constructors*)
+                      string * term list * term list) list list
+                                        (*description of constructors*)
   end;
 
 signature CONSTRUCTOR_RESULT =
   sig
-  val con_defs	 : thm list		(*definitions made in thy*)
-  val case_eqns  : thm list		(*equations for case operator*)
-  val free_iffs  : thm list		(*freeness rewrite rules*)
-  val free_SEs   : thm list		(*freeness destruct rules*)
-  val mk_free    : string -> thm	(*makes freeness theorems*)
+  val con_defs   : thm list             (*definitions made in thy*)
+  val case_eqns  : thm list             (*equations for case operator*)
+  val free_iffs  : thm list             (*freeness rewrite rules*)
+  val free_SEs   : thm list             (*freeness destruct rules*)
+  val mk_free    : string -> thm        (*makes freeness theorems*)
   end;
 
 
@@ -82,11 +82,11 @@ in
     con1(x)=con1(y) ==> x=y, con1(x)=con1(y) <-> x=y, etc.  *)
   fun mk_free s =
       prove_goalw Const.thy con_defs s
-	(fn prems => [cut_facts_tac prems 1, 
-		      fast_tac (ZF_cs addSEs free_SEs) 1]);
+        (fn prems => [cut_facts_tac prems 1, 
+                      fast_tac (ZF_cs addSEs free_SEs) 1]);
 
   val case_eqns = map prove_case_equation 
-	      (flat Const.con_ty_lists ~~ big_case_args ~~ tl con_defs);
+              (flat Const.con_ty_lists ~~ big_case_args ~~ tl con_defs);
   end
 end;
 

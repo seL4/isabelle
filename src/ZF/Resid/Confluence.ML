@@ -1,6 +1,6 @@
-(*  Title: 	Confluence.ML
+(*  Title:      Confluence.ML
     ID:         $Id$
-    Author: 	Ole Rasmussen
+    Author:     Ole Rasmussen
     Copyright   1995  University of Cambridge
     Logic Image: ZF
 *)
@@ -27,7 +27,7 @@ val lemma1 = result();
 goalw Confluence.thy [confluence_def,strip_def] 
     "!!u.[|confluence(Spar_red1)|]==> strip";
 by (resolve_tac [impI RS allI RS allI] 1);
-by (eresolve_tac [par_red_induct] 1);
+by (etac par_red_induct 1);
 by (fast_tac reduc_cs  1);
 by (fast_tac (ZF_cs addIs [Spar_red.trans]) 1);
 val strip_lemma_r = result();
@@ -36,7 +36,7 @@ val strip_lemma_r = result();
 goalw Confluence.thy [confluence_def,strip_def] 
     "!!u.strip==> confluence(Spar_red)";
 by (resolve_tac [impI RS allI RS allI] 1);
-by (eresolve_tac [par_red_induct] 1);
+by (etac par_red_induct 1);
 by (fast_tac reduc_cs  1);
 by (step_tac ZF_cs 1);
 by (dres_inst_tac [("x1","z")] (spec RS mp) 1);

@@ -111,11 +111,11 @@ end;
 (* Changing a->b->c res. a*b->c to a=>b=>c. Called by syn_decls. *) 
 (*####*)
 fun op_to_fun true  sign (Type("->" ,[larg,t]))=
-					 Type("fun",[larg,op_to_fun true sign t])
+                                         Type("fun",[larg,op_to_fun true sign t])
   | op_to_fun false sign (Type("->",[args,res])) = let
-		fun otf (Type("*",[larg,rargs])) = Type("fun",[larg,otf rargs])
-		|   otf t			 = Type("fun",[t,res]);
-		in otf args end
+                fun otf (Type("*",[larg,rargs])) = Type("fun",[larg,otf rargs])
+                |   otf t                        = Type("fun",[t,res]);
+                in otf args end
   | op_to_fun _     sign t = t(*error("Wrong type for cinfix/cmixfix : "^
                               (Sign.string_of_typ sign t))*);
 (*####*)
@@ -167,12 +167,12 @@ fun xrules_of true ((name,typ,CInfixl(i))::tail) =
     ::xrules_of true tail
 (*####*)
   | xrules_of true ((name,typ,CMixfix(_))::tail) = let
-	fun argnames n (Type("->" ,[_,t]))= chr n :: argnames (n+1) t
-	|   argnames _ _ = [];
-	val names = argnames (ord"A") typ;
-	in if names = [] then [] else [mk_appl (Constant name) (map Variable names)<->
-	    foldl (fn (t,arg) => (mk_appl (Constant "@fapp") [t,Variable arg]))
-		  (Constant name,names)] end
+        fun argnames n (Type("->" ,[_,t]))= chr n :: argnames (n+1) t
+        |   argnames _ _ = [];
+        val names = argnames (ord"A") typ;
+        in if names = [] then [] else [mk_appl (Constant name) (map Variable names)<->
+            foldl (fn (t,arg) => (mk_appl (Constant "@fapp") [t,Variable arg]))
+                  (Constant name,names)] end
     @xrules_of true tail
 (*####*)
   | xrules_of false ((name,typ,CInfixl(i))::tail) = 
@@ -187,20 +187,20 @@ fun xrules_of true ((name,typ,CInfixl(i))::tail) =
     ::xrules_of false tail
 (*####*)
   | xrules_of false ((name,typ,CMixfix(_))::tail) = let
-	fun foldr' f l =
-	  let fun itr []  = raise LIST "foldr'"
-	        | itr [a] = a
-	        | itr (a::l) = f(a, itr l)
-	  in  itr l end;
-	fun argnames n (Type("*" ,[_,t]))= chr n :: argnames (n+1) t
-	|   argnames n _ = [chr n];
-	val vars = map Variable (case typ of (Type("->" ,[t,_])) =>argnames (ord"A") t
-					     | _ => []);
-	in if vars = [] then [] else [mk_appl (Constant name) vars <->
-	    (mk_appl (Constant "@fapp") [Constant name, case vars of [v] => v
-		| args => mk_appl (Constant "@ctuple") [hd args,foldr' (fn (t,arg) => 
-				mk_appl (Constant "_args") [t,arg]) (tl args)]])]
-	end
+        fun foldr' f l =
+          let fun itr []  = raise LIST "foldr'"
+                | itr [a] = a
+                | itr (a::l) = f(a, itr l)
+          in  itr l end;
+        fun argnames n (Type("*" ,[_,t]))= chr n :: argnames (n+1) t
+        |   argnames n _ = [chr n];
+        val vars = map Variable (case typ of (Type("->" ,[t,_])) =>argnames (ord"A") t
+                                             | _ => []);
+        in if vars = [] then [] else [mk_appl (Constant name) vars <->
+            (mk_appl (Constant "@fapp") [Constant name, case vars of [v] => v
+                | args => mk_appl (Constant "@ctuple") [hd args,foldr' (fn (t,arg) => 
+                                mk_appl (Constant "_args") [t,arg]) (tl args)]])]
+        end
     @xrules_of false tail
 (*####*)
   | xrules_of c ((name,typ,Mixfix(_))::tail) = xrules_of c tail

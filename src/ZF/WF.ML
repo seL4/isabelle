@@ -1,6 +1,6 @@
-(*  Title: 	ZF/wf.ML
+(*  Title:      ZF/wf.ML
     ID:         $Id$
-    Author: 	Tobias Nipkow and Lawrence C Paulson
+    Author:     Tobias Nipkow and Lawrence C Paulson
     Copyright   1992  University of Cambridge
 
 For wf.thy.  Well-founded Recursion
@@ -89,8 +89,8 @@ qed "wf_induct";
 (*Perform induction on i, then prove the wf(r) subgoal using prems. *)
 fun wf_ind_tac a prems i = 
     EVERY [res_inst_tac [("a",a)] wf_induct i,
-	   rename_last_tac a ["1"] (i+1),
-	   ares_tac prems i];
+           rename_last_tac a ["1"] (i+1),
+           ares_tac prems i];
 
 (*The form of this rule is designed to match wfI*)
 val wfr::amem::prems = goal WF.thy
@@ -109,8 +109,8 @@ by (fast_tac ZF_cs 1);
 qed "field_Int_square";
 
 val wfr::amem::prems = goalw WF.thy [wf_on_def]
-    "[| wf[A](r);  a:A;  					\
-\       !!x.[| x: A;  ALL y:A. <y,x>: r --> P(y) |] ==> P(x) 	\
+    "[| wf[A](r);  a:A;                                         \
+\       !!x.[| x: A;  ALL y:A. <y,x>: r --> P(y) |] ==> P(x)    \
 \    |]  ==>  P(a)";
 by (rtac ([wfr, amem, field_Int_square] MRS wf_induct2) 1);
 by (REPEAT (ares_tac prems 1));
@@ -119,8 +119,8 @@ qed "wf_on_induct";
 
 fun wf_on_ind_tac a prems i = 
     EVERY [res_inst_tac [("a",a)] wf_on_induct i,
-	   rename_last_tac a ["1"] (i+2),
-	   REPEAT (ares_tac prems i)];
+           rename_last_tac a ["1"] (i+2),
+           REPEAT (ares_tac prems i)];
 
 (*If r allows well-founded induction then wf(r)*)
 val [subs,indhyp] = goal WF.thy
@@ -224,7 +224,7 @@ fun indhyp_tac hyps =
     resolve_tac (TrueI::refl::hyps) ORELSE' 
     (cut_facts_tac hyps THEN'
        DEPTH_SOLVE_1 o (ares_tac [TrueI, ballI] ORELSE'
-		        eresolve_tac [underD, transD, spec RS mp]));
+                        eresolve_tac [underD, transD, spec RS mp]));
 
 (*** NOTE! some simplifications need a different solver!! ***)
 val wf_super_ss = ZF_ss setsolver indhyp_tac;
@@ -249,7 +249,7 @@ by (rtac (consI1 RS restrict_type RS fun_extension) 1);
 by (etac is_recfun_type 1);
 by (ALLGOALS
     (asm_simp_tac (wf_super_ss addsimps
-		   [ [wfr,transr,recf,recg] MRS is_recfun_equal ])));
+                   [ [wfr,transr,recf,recg] MRS is_recfun_equal ])));
 qed "is_recfun_cut";
 
 (*** Main Existence Lemma ***)
@@ -302,7 +302,7 @@ goalw WF.thy [wftrec_def]
 \         wftrec(r,a,H) = H(a, lam x: r-``{a}. wftrec(r,x,H))";
 by (rtac (rewrite_rule [is_recfun_def] unfold_the_recfun RS ssubst) 1);
 by (ALLGOALS (asm_simp_tac
-	(ZF_ss addsimps [vimage_singleton_iff RS iff_sym, the_recfun_cut])));
+        (ZF_ss addsimps [vimage_singleton_iff RS iff_sym, the_recfun_cut])));
 qed "wftrec";
 
 (** Removal of the premise trans(r) **)
