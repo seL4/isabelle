@@ -61,10 +61,11 @@ struct
   fun print _ ({space, attrs}) =
     let
       fun prt_attr (name, ((_, comment), _)) = Pretty.block
-        [Pretty.str (NameSpace.cond_extern space name ^ ":"), Pretty.brk 2, Pretty.str comment];
+        [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
     in
       Pretty.writeln (Display.pretty_name_space ("attribute name space", space));
-      Pretty.writeln (Pretty.big_list "attributes:" (map prt_attr (Symtab.dest attrs)))
+      Pretty.writeln (Pretty.big_list "attributes:"
+        (map prt_attr (NameSpace.cond_extern_table space attrs)))
     end;
 end;
 

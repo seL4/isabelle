@@ -150,10 +150,6 @@ fun print_sign sg =
     fun prt_arity t (c, Ss) = Sign.pretty_arity sg (t, Ss, [c]);
     fun prt_typ ty = Pretty.quote (Sign.pretty_typ sg ty);
 
-    val ext_class = Sign.cond_extern sg Sign.classK;
-    val ext_tycon = Sign.cond_extern sg Sign.typeK;
-    val ext_const = Sign.cond_extern sg Sign.constK;
-
 
     fun pretty_classes cs = Pretty.block
       (Pretty.breaks (Pretty.str "classes:" :: map prt_cls cs));
@@ -166,7 +162,7 @@ fun print_sign sg =
       [Pretty.str "default:", Pretty.brk 1, prt_sort S];
 
     fun pretty_ty (t, n) = Pretty.block
-      [Pretty.str (ext_tycon t), Pretty.spc 1, Pretty.str (string_of_int n)];
+      [Pretty.str (Sign.cond_extern sg Sign.typeK t), Pretty.spc 1, Pretty.str (string_of_int n)];
 
     fun pretty_abbr (t, (vs, rhs)) = Pretty.block
       [prt_typ (Type (t, map (fn v => TVar ((v, 0), [])) vs)),
@@ -178,10 +174,10 @@ fun print_sign sg =
       [Pretty.str c, Pretty.str " ::", Pretty.brk 1, prt_typ ty];
 
     val {self = _, tsig, const_tab, syn = _, path, spaces, data} = Sign.rep_sg sg;
-    val spaces' = sort_wrt fst spaces;
+    val spaces' = Library.sort_wrt fst spaces;
     val {classes, classrel, default, tycons, abbrs, arities} =
       Type.rep_tsig tsig;
-    val consts = sort_wrt fst (map (apfst ext_const) (Symtab.dest const_tab));
+    val consts = Sign.cond_extern_table sg Sign.constK const_tab;
   in
     Pretty.writeln (Pretty.strs ("stamps:" :: Sign.stamp_names_of sg));
     Pretty.writeln (Pretty.strs ("data:" :: Sign.data_kinds data));
@@ -202,15 +198,13 @@ fun print_sign sg =
 fun print_thy thy =
   let
     val {sign, axioms, oracles, ...} = Theory.rep_theory thy;
-    val axioms = Symtab.dest axioms;
-    val oras = map fst (Symtab.dest oracles);
+    fun cond_externs kind = Sign.cond_extern_table sign kind;
 
     fun prt_axm (a, t) = Pretty.block
-      [Pretty.str (Sign.cond_extern sign Theory.axiomK a ^ ":"), Pretty.brk 1,
-        Pretty.quote (Sign.pretty_term sign t)];
+      [Pretty.str (a ^ ":"), Pretty.brk 1, Pretty.quote (Sign.pretty_term sign t)];
   in
-    Pretty.writeln (Pretty.big_list "axioms:" (map prt_axm axioms));
-    Pretty.writeln (Pretty.strs ("oracles:" :: oras))
+    Pretty.writeln (Pretty.big_list "axioms:" (map prt_axm (cond_externs Theory.axiomK axioms)));
+    Pretty.writeln (Pretty.strs ("oracles:" :: (map #1 (cond_externs Theory.oracleK oracles))))
   end;
 
 fun print_theory thy = (print_sign (Theory.sign_of thy); print_thy thy);

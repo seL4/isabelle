@@ -85,7 +85,7 @@ struct
             Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 1, prt_thm th]
         | prt_thms (name, ths) = Pretty.big_list (name ^ ":") (map prt_thm ths);
 
-      val thmss = sort_wrt fst (map (apfst (NameSpace.cond_extern space)) (Symtab.dest thms_tab));
+      val thmss = NameSpace.cond_extern_table space thms_tab;
     in
       Pretty.writeln (Display.pretty_name_space ("theorem name space", space));
       Pretty.writeln (Pretty.big_list "theorems:" (map prt_thms thmss))
