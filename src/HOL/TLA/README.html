@@ -1,0 +1,45 @@
+<HTML><HEAD><TITLE>HOL/TLA/README</TITLE></HEAD><BODY bgcolor="white">
+
+<H3>TLA: A formalization of TLA in HOL</H3>
+
+Author:     Stephan Merz<BR>
+Copyright   1997 Universit&auml;t M&uuml;nchen<P>
+
+The distribution contains a representation of Lamport's
+<A HREF="http://www.research.digital.com/SRC/personal/Leslie_Lamport/tla/tla.html">
+Temporal Logic of Actions</A>
+in Isabelle/HOL.
+
+<p>
+
+The encoding is mainly oriented towards practical verification
+examples. It does not contain a formalization of TLA's semantics;
+instead, it is based on a 
+<A HREF="doc/PTLA.dvi">complete axiomatization</A> of the "raw"
+(stuttering-sensitive) variant of propositional TLA. It is
+accompanied by a
+<A HREF="doc/design.dvi">design note</A> that explains the basic 
+setup and use of the prover.
+
+<p>
+
+The distribution includes the following examples:
+<UL>
+  <li> a verification of Lamport's <quote>increment</quote> example
+  (subdirectory inc),<P>
+
+  <li> a proof that two buffers in a row implement a single buffer
+  (subdirectory buffer), and<P>
+
+   <li> the verification of Broy and Lamport's RPC-Memory example. For details see:<BR>
+
+        Mart&iacute;n Abadi, Leslie Lamport, and Stephan Merz: 
+        <A HREF="http://www4.informatik.tu-muenchen.de/~merz/papers/RPCMemory.html">
+        A TLA Solution to the RPC-Memory Specification Problem</A>.
+        In: <i>Formal System Specification</i>, LNCS 1169, 1996, 21-69.
+</UL>
+
+If you use Isabelle/TLA and have any comments, suggestions or contributions,
+please contact <A HREF="mailto:merz@informatik.uni-muenchen.de">Stephan Merz</A>.
+
+</BODY></HTML>
