@@ -24,7 +24,7 @@ sig
   val find_first: term -> term list -> term list
   (*proof tools*)
   val prove_conv: tactic list -> Sign.sg -> 
-                  thm list -> term * term -> thm option
+                  thm list -> string list -> term * term -> thm option
   val norm_tac: tactic                (*proves the result*)
   val simplify_meta_eq: thm -> thm    (*simplifies the result*)
 end;
@@ -52,10 +52,7 @@ fun find_common (terms1,terms2) =
 (*the simplification procedure*)
 fun proc sg hyps t =
   let (*first freeze any Vars in the term to prevent flex-flex problems*)
-      val rand_s = gensym"_"
-      fun mk_inst (var as Var((a,i),T))  = 
-	    (var,  Free((a ^ rand_s ^ string_of_int i), T))
-      val t' = subst_atomic (map mk_inst (term_vars t)) t
+      val (t', xs) = Term.adhoc_freeze_vars t;
       val (t1,t2) = Data.dest_bal t' 
       val terms1 = Data.dest_sum t1
       and terms2 = Data.dest_sum t2
@@ -63,7 +60,7 @@ fun proc sg hyps t =
       val terms1' = Data.find_first u terms1
       and terms2' = Data.find_first u terms2
       val reshape = 
-	    Data.prove_conv [Data.norm_tac] sg hyps
+	    Data.prove_conv [Data.norm_tac] sg hyps xs
 	        (t', 
 		 Data.mk_bal (Data.mk_sum (u::terms1'), 
 		              Data.mk_sum (u::terms2')))

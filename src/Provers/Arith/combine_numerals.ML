@@ -27,7 +27,7 @@ sig
   (*rules*)
   val left_distrib: thm
   (*proof tools*)
-  val prove_conv: tactic list -> Sign.sg -> term * term -> thm option
+  val prove_conv: tactic list -> Sign.sg -> string list -> term * term -> thm option
   val trans_tac: thm option -> tactic (*applies the initial lemma*)
   val norm_tac: tactic                (*proves the initial lemma*)
   val numeral_simp_tac: tactic        (*proves the final theorem*)
@@ -66,16 +66,13 @@ fun find_repeated (tab, _, []) = raise TERM("find_repeated", [])
 (*the simplification procedure*)
 fun proc sg _ t =
   let (*first freeze any Vars in the term to prevent flex-flex problems*)
-      val rand_s = gensym"_"
-      fun mk_inst (var as Var((a,i),T))  = 
-	    (var,  Free((a ^ rand_s ^ string_of_int i), T))
-      val t' = subst_atomic (map mk_inst (term_vars t)) t
+      val (t', xs) = Term.adhoc_freeze_vars t;
       val (u,m,n,terms) = find_repeated (Termtab.empty, [], Data.dest_sum t')
       val reshape =  (*Move i*u to the front and put j*u into standard form
 		       i + #m + j + k == #m + i + (j + k) *)
 	    if m=0 orelse n=0 then   (*trivial, so do nothing*)
 		raise TERM("combine_numerals", []) 
-	    else Data.prove_conv [Data.norm_tac] sg 
+	    else Data.prove_conv [Data.norm_tac] sg xs
 			(t', 
 			 Data.mk_sum ([Data.mk_coeff(m,u),
 				       Data.mk_coeff(n,u)] @ terms))
@@ -83,7 +80,7 @@ fun proc sg _ t =
       apsome Data.simplify_meta_eq
 	 (Data.prove_conv 
 	    [Data.trans_tac reshape, rtac Data.left_distrib 1,
-	     Data.numeral_simp_tac] sg
+	     Data.numeral_simp_tac] sg xs
 	    (t', Data.mk_sum (Data.mk_coeff(Data.add(m,n), u) :: terms)))
   end
   handle TERM _ => None

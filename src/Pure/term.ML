@@ -195,6 +195,7 @@ sig
   val no_dummy_patterns: term -> term
   val replace_dummy_patterns: int * term -> int * term
   val is_replaced_dummy_pattern: indexname -> bool
+  val adhoc_freeze_vars: term -> term * string list
 end;
 
 structure Term: TERM =
@@ -1099,6 +1100,18 @@ val replace_dummy_patterns = replace_dummy [];
 
 fun is_replaced_dummy_pattern ("_dummy_", _) = true
   | is_replaced_dummy_pattern _ = false;
+
+
+(* adhoc freezing *)
+
+fun adhoc_freeze_vars tm =
+  let
+    fun mk_inst (var as Var ((a, i), T)) =
+      let val x = a ^ Library.gensym "_" ^ string_of_int i
+      in ((var,  Free(x, T)), x) end;
+    val (insts, xs) = split_list (map mk_inst (term_vars tm));
+  in (subst_atomic insts tm, xs) end;
+
 
 end;
 
