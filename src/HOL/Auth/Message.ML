@@ -134,11 +134,16 @@ goal thy "parts(G Un H) = parts(G) Un parts(H)";
 by (REPEAT (ares_tac [equalityI, parts_Un_subset1, parts_Un_subset2] 1));
 qed "parts_Un";
 
-(*TWO inserts to avoid looping.  This rewrite is better than nothing...*)
-goal thy "parts (insert X (insert Y H)) = parts {X} Un parts {Y} Un parts H";
+goal thy "parts (insert X H) = parts {X} Un parts H";
 by (stac (read_instantiate [("A","H")] insert_is_Un) 1);
-by (stac (read_instantiate [("A","{Y} Un H")] insert_is_Un) 1);
-by (simp_tac (HOL_ss addsimps [parts_Un, Un_assoc]) 1);
+by (simp_tac (HOL_ss addsimps [parts_Un]) 1);
+qed "parts_insert";
+
+(*TWO inserts to avoid looping.  This rewrite is better than nothing.
+  Not suitable for Addsimps: its behaviour can be strange.*)
+goal thy "parts (insert X (insert Y H)) = parts {X} Un parts {Y} Un parts H";
+by (simp_tac (!simpset addsimps [Un_assoc]) 1);
+by (simp_tac (!simpset addsimps [parts_insert RS sym]) 1);
 qed "parts_insert2";
 
 goal thy "(UN x:A. parts(H x)) <= parts(UN x:A. H x)";
@@ -190,9 +195,11 @@ be parts_trans 1;
 by (Fast_tac 1);
 qed "parts_cut";
 
+val parts_insertI = impOfSubs (subset_insertI RS parts_mono);
+
 goal thy "!!H. X: parts H ==> parts (insert X H) = parts H";
 by (fast_tac (!claset addSEs [parts_cut]
-                      addIs [impOfSubs (subset_insertI RS parts_mono)]) 1);
+                      addIs  [parts_insertI]) 1);
 qed "parts_cut_eq";
 
 
@@ -257,7 +264,7 @@ by (REPEAT (eresolve_tac [asm_rl, analz.Fst, analz.Snd] 1));
 qed "MPair_analz";
 
 AddIs  [analz.Inj];
-AddSEs [MPair_analz];
+AddSEs [MPair_analz];      (*Perhaps it should NOT be deemed safe!*)
 AddDs  [analz.Decrypt];
 
 Addsimps [analz.Inj];
@@ -488,6 +495,18 @@ Addsimps [analz_UN_analz];
 
 AddIs  synth.intrs;
 
+(*Can only produce a nonce or key if it is already known,
+  but can synth a pair or encryption from its components...*)
+val mk_cases = synth.mk_cases msg.simps;
+
+(*NO Agent_synth, as any Agent name can be synthd*)
+val Nonce_synth = mk_cases "Nonce n : synth H";
+val Key_synth   = mk_cases "Key K : synth H";
+val MPair_synth = mk_cases "{|X,Y|} : synth H";
+val Crypt_synth = mk_cases "Crypt X K : synth H";
+
+AddSEs [Nonce_synth, Key_synth, MPair_synth, Crypt_synth];
+
 goal thy "H <= synth(H)";
 by (Fast_tac 1);
 qed "synth_increasing";
@@ -533,19 +552,6 @@ be synth_trans 1;
 by (Fast_tac 1);
 qed "synth_cut";
 
-
-(*Can only produce a nonce or key if it is already known,
-  but can synth a pair or encryption from its components...*)
-val mk_cases = synth.mk_cases msg.simps;
-
-(*NO Agent_synth, as any Agent name can be synthd*)
-val Nonce_synth = mk_cases "Nonce n : synth H";
-val Key_synth   = mk_cases "Key K : synth H";
-val MPair_synth = mk_cases "{|X,Y|} : synth H";
-val Crypt_synth = mk_cases "Crypt X K : synth H";
-
-AddSEs [Nonce_synth, Key_synth, MPair_synth, Crypt_synth];
-
 goal thy "Agent A : synth H";
 by (Fast_tac 1);
 qed "Agent_synth";
@@ -558,7 +564,11 @@ goal thy "(Key K : synth H) = (Key K : H)";
 by (Fast_tac 1);
 qed "Key_synth_eq";
 
-Addsimps [Agent_synth, Nonce_synth_eq, Key_synth_eq];
+goal thy "!!K. Key K ~: H ==> (Crypt X K : synth H) = (Crypt X K: H)";
+by (Fast_tac 1);
+qed "Crypt_synth_eq";
+
+Addsimps [Agent_synth, Nonce_synth_eq, Key_synth_eq, Crypt_synth_eq];
 
 
 goalw thy [keysFor_def]
@@ -633,6 +643,16 @@ by (best_tac (!claset addIs [impOfSubs (analz_mono RS synth_mono)]
 by (Full_simp_tac 1);
 by (Fast_tac 1);
 qed "Fake_analz_insert";
+
+goal thy "(X: analz H & X: parts H) = (X: analz H)";
+by (fast_tac (!claset addDs [impOfSubs analz_subset_parts]) 1);
+val analz_conj_parts = result();
+
+goal thy "(X: analz H | X: parts H) = (X: parts H)";
+by (fast_tac (!claset addDs [impOfSubs analz_subset_parts]) 1);
+val analz_disj_parts = result();
+
+AddIffs [analz_conj_parts, analz_disj_parts];
 
 (*Without this equation, other rules for synth and analz would yield
   redundant cases*)
