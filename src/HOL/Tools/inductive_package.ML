@@ -781,8 +781,9 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
       else
         prove_indrule cs cTs sumT rec_const params intr_ts mono fp_def
           rec_sets_defs thy1;
-    val induct = if coind orelse no_ind orelse length cs > 1 then raw_induct
-      else standard (raw_induct RSN (2, rev_mp));
+    val induct =
+      if coind orelse no_ind orelse length cs > 1 then (raw_induct, [RuleCases.consumes 0])
+      else (raw_induct RSN (2, rev_mp), [RuleCases.consumes 1]);
 
     val (thy2, intrs') =
       thy1 |> PureThy.add_thms ((intr_names ~~ intrs) ~~ intr_atts);
@@ -792,9 +793,8 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
         [(("intros", intrs'), []),
           (("elims", elims), [RuleCases.consumes 1])]
       |>>> PureThy.add_thms
-        [((coind_prefix coind ^ "induct", rulify induct),
-         [RuleCases.case_names induct_cases,
-          RuleCases.consumes 1])]
+        [((coind_prefix coind ^ "induct", rulify (#1 induct)),
+         (RuleCases.case_names induct_cases :: #2 induct))]
       |>> Theory.parent_path;
   in (thy3,
     {defs = fp_def :: rec_sets_defs,
