@@ -19,7 +19,6 @@ sig
   include BASIC_RECORD_PACKAGE
   val quiet_mode: bool ref
   val updateN: string
-  val moreS: sort
   val mk_fieldT: (string * typ) * typ -> typ
   val dest_fieldT: typ -> (string * typ) * typ
   val mk_field: (string * term) * term -> term
@@ -115,6 +114,7 @@ val updateN = "_update";
 val makeN = "make";
 val extendN = "extend";
 val truncateN = "truncate";
+val fieldsN = "fields";
 
 
 (*see typedef_package.ML*)
@@ -124,11 +124,6 @@ val AbsN = "Abs_";
 
 
 (** tuple operations **)
-
-(* more type class *)
-
-val moreS = ["Record.more"];
-
 
 (* types *)
 
@@ -570,13 +565,11 @@ fun field_typedefs zeta moreT names theory =
     val UNIV = HOLogic.mk_UNIV (HOLogic.mk_prodT (aT, moreT));
 
     fun type_def (thy, name) =
-      let val (thy', {type_definition, set_def = Some def, ...}) = thy
-        |> setmp TypedefPackage.quiet_mode true
+      let val (thy', {type_definition, set_def = Some def, ...}) =
+        thy |> setmp TypedefPackage.quiet_mode true
           (TypedefPackage.add_typedef_i true None
             (suffix field_typeN (Sign.base_name name), [alpha, zeta], Syntax.NoSyn) UNIV None
           (Tactic.rtac UNIV_witness 1))
-        |>> setmp AxClass.quiet_mode true (AxClass.add_inst_arity_i
-            (suffix field_typeN name, [HOLogic.termS, moreS], moreS) all_tac)
       in (thy', Tactic.rewrite_rule [def] type_definition) end
   in foldl_map type_def (theory, names) end;
 
@@ -630,23 +623,24 @@ fun field_definitions fields names xs alphas zeta moreT more vars named_vars thy
 
     fun make th = map (fn prod_type => Drule.standard (th OF [prod_type])) prod_types;
 
-    val field_injects = make product_type_inject;
     val dest_convs = make product_type_conv1 @ make product_type_conv2;
+    val field_injects = make product_type_inject;
     val field_inducts = make product_type_induct;
     val field_cases = make product_type_cases;
     val field_splits = make product_type_split_paired_all;
 
-    val thms_thy =
-      defs_thy
+    val (thms_thy, [field_defs', dest_defs', dest_convs', field_injects',
+        field_splits', field_inducts', field_cases']) = defs_thy
       |> (PureThy.add_thmss o map Thm.no_attributes)
-        [("field_defs", field_defs),
-          ("dest_defs", dest_defs1 @ dest_defs2),
-          ("dest_convs", dest_convs),
-          ("field_inducts", field_inducts),
-          ("field_cases", field_cases),
-          ("field_splits", field_splits)] |> #1;
+       [("field_defs", field_defs),
+        ("dest_defs", dest_defs1 @ dest_defs2),
+        ("dest_convs", dest_convs),
+        ("field_injects", field_injects),
+        ("field_splits", field_splits),
+        ("field_inducts", field_inducts),
+        ("field_cases", field_cases)];
 
-  in (thms_thy, dest_convs, field_injects, field_splits, field_inducts, field_cases) end;
+  in (thms_thy, dest_convs', field_injects', field_splits', field_inducts', field_cases') end;
 
 
 (* record_definition *)
@@ -690,7 +684,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
     val all_named_vars = parent_named_vars @ named_vars;
 
     val zeta = variant alphas "'z";
-    val moreT = TFree (zeta, moreS);
+    val moreT = TFree (zeta, HOLogic.termS);
     val more = Free (moreN, moreT);
     val full_moreN = full moreN;
     fun more_part t = mk_more t full_moreN;
@@ -864,26 +858,31 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
         [Method.insert_tac prems 1, res_inst_tac [(rN, rN)] cases_scheme 1,
          Simplifier.asm_full_simp_tac (HOL_basic_ss addsimps [unit_all_eq1]) 1]);
 
-    val simps = field_simps @ sel_convs @ update_convs @ [equality];
+    val (thms_thy, ([sel_convs', update_convs', sel_defs', update_defs', _],
+        [equality', induct_scheme', induct', cases_scheme', cases'])) =
+      defs_thy
+      |> (PureThy.add_thmss o map Thm.no_attributes)
+       [("select_convs", sel_convs),
+        ("update_convs", update_convs),
+        ("select_defs", sel_defs),
+        ("update_defs", update_defs),
+        ("derived_defs", derived_defs)]
+      |>>> PureThy.add_thms
+       [(("equality", equality), [Classical.xtra_intro_global]),
+        (("induct_scheme", induct_scheme), [RuleCases.case_names [fieldsN],
+          InductAttrib.induct_type_global (suffix schemeN name)]),
+        (("induct", induct), [RuleCases.case_names [fieldsN],
+          InductAttrib.induct_type_global name]),
+        (("cases_scheme", cases_scheme), [RuleCases.case_names [fieldsN],
+          InductAttrib.cases_type_global (suffix schemeN name)]),
+        (("cases", cases), [RuleCases.case_names [fieldsN],
+          InductAttrib.cases_type_global name])];
+
+    val simps = field_simps @ sel_convs' @ update_convs' @ [equality'];
     val iffs = field_injects;
 
-    val thms_thy =
-      defs_thy
-      |> (#1 oo (PureThy.add_thmss o map Thm.no_attributes))
-        [("select_defs", sel_defs),
-          ("update_defs", update_defs),
-          ("derived_defs", derived_defs),
-          ("select_convs", sel_convs),
-          ("update_convs", update_convs)]
-      |> (#1 oo PureThy.add_thms)
-          [(("equality", equality), [Classical.xtra_intro_global]),
-           (("induct_scheme", induct_scheme),
-             [InductAttrib.induct_type_global (suffix schemeN name)]),
-           (("induct", induct), [InductAttrib.induct_type_global name]),
-           (("cases_scheme", cases_scheme),
-             [InductAttrib.cases_type_global (suffix schemeN name)]),
-           (("cases", cases), [InductAttrib.cases_type_global name])]
-      |> (#1 oo PureThy.add_thmss)
+    val thms_thy' =
+      thms_thy |> (#1 oo PureThy.add_thmss)
         [(("simps", simps), [Simplifier.simp_add_global]),
          (("iffs", iffs), [iff_add_global])];
 
@@ -891,9 +890,9 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
     (* 4th stage: final_thy *)
 
     val final_thy =
-      thms_thy
-      |> put_record name (make_record_info args parent fields simps induct_scheme cases_scheme)
-      |> put_sel_upd (names @ [full_moreN]) (field_simps @ sel_defs @ update_defs)
+      thms_thy'
+      |> put_record name (make_record_info args parent fields simps induct_scheme' cases_scheme')
+      |> put_sel_upd (names @ [full_moreN]) (field_simps @ sel_defs' @ update_defs')
       |> Theory.parent_path;
 
   in (final_thy, {simps = simps, iffs = iffs}) end;
@@ -1038,7 +1037,6 @@ val recordP =
 val _ = OuterSyntax.add_parsers [recordP];
 
 end;
-
 
 end;
 
