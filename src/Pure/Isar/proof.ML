@@ -42,17 +42,19 @@ sig
   val simple_have_thms: string -> thm list -> state -> state
   val fix: (string * string option) list -> state -> state
   val fix_i: (string * typ) list -> state -> state
-  val assm: (int -> tactic) * (int -> tactic) -> string -> context attribute list
-    -> (string * (string list * string list)) list -> state -> state
-  val assm_i: (int -> tactic) * (int -> tactic) -> string -> context attribute list
-    -> (term * (term list * term list)) list -> state -> state
-  val assume: string -> context attribute list -> (string * (string list * string list)) list
+  val assm: (int -> tactic) * (int -> tactic)
+    -> (string * context attribute list * (string * (string list * string list)) list) list
     -> state -> state
-  val assume_i: string -> context attribute list -> (term * (term list * term list)) list
+  val assm_i: (int -> tactic) * (int -> tactic)
+    -> (string * context attribute list * (term * (term list * term list)) list) list
     -> state -> state
-  val presume: string -> context attribute list -> (string * (string list * string list)) list
+  val assume: (string * context attribute list * (string * (string list * string list)) list) list
     -> state -> state
-  val presume_i: string -> context attribute list -> (term * (term list * term list)) list
+  val assume_i: (string * context attribute list * (term * (term list * term list)) list) list
+    -> state -> state
+  val presume: (string * context attribute list * (string * (string list * string list)) list) list
+    -> state -> state
+  val presume_i: (string * context attribute list * (term * (term list * term list)) list) list
     -> state -> state
   val theorem: bstring -> theory attribute list -> string * (string list * string list)
     -> theory -> state
@@ -526,25 +528,32 @@ val fix_i = gen_fix ProofContext.fix_i;
 
 (* assume *)
 
-fun gen_assume f tacs name atts props state =
+local
+
+fun def_name (name, x, y) = (PureThy.default_name name, x, y);
+
+fun gen_assume f tac args state =
   state
   |> assert_forward
-  |> map_context_result (f tacs (PureThy.default_name name) atts props)
-  |> (fn (st, (facts, prems)) =>
-    (st, facts)
-    |> these_facts
-    |> put_thms ("prems", prems));
-
-val assm = gen_assume ProofContext.assume;
-val assm_i = gen_assume ProofContext.assume_i;
+  |> map_context_result (f tac (map def_name args))
+  |> (fn (st, (factss, prems)) =>
+    foldl these_facts (st, factss)
+    |> put_thms ("prems", prems)
+    |> put_facts (Some (flat (map #2 factss))));
 
 val hard_asm_tac = Tactic.etac Drule.triv_goal;
 val soft_asm_tac = Tactic.rtac Drule.triv_goal;
 
+in
+
+val assm = gen_assume ProofContext.assume;
+val assm_i = gen_assume ProofContext.assume_i;
 val assume = assm (hard_asm_tac, soft_asm_tac);
 val assume_i = assm_i (hard_asm_tac, soft_asm_tac);
 val presume = assm (soft_asm_tac, soft_asm_tac);
 val presume_i = assm_i (soft_asm_tac, soft_asm_tac);
+
+end;
 
 
 

@@ -39,7 +39,7 @@ fun gen_def fix prep_term match_binds name atts ((x, raw_T), (raw_rhs, raw_pats)
     else ();
     state'
     |> match_binds [(raw_pats, raw_rhs)]   (*note: raw_rhs prepared twice!*)
-    |> Proof.assm_i (refl_tac, refl_tac) name atts [(eq, ([], []))]
+    |> Proof.assm_i (refl_tac, refl_tac) [(name, atts, [(eq, ([], []))])]
   end;
 
 val def = gen_def Proof.fix ProofContext.read_term Proof.match_bind;

@@ -83,14 +83,14 @@ sig
     * Comment.text -> bool -> theory -> ProofHistory.T
   val lemma_i: (bstring * theory attribute list * (term * (term list * term list)))
     * Comment.text -> bool -> theory -> ProofHistory.T
-  val assume: (string * Args.src list * (string * (string list * string list)) list)
-    * Comment.text -> ProofHistory.T -> ProofHistory.T
-  val assume_i: (string * Proof.context attribute list * (term * (term list * term list)) list)
-    * Comment.text -> ProofHistory.T -> ProofHistory.T
-  val presume: (string * Args.src list * (string * (string list * string list)) list)
-    * Comment.text -> ProofHistory.T -> ProofHistory.T
-  val presume_i: (string * Proof.context attribute list * (term * (term list * term list)) list)
-    * Comment.text -> ProofHistory.T -> ProofHistory.T
+  val assume: ((string * Args.src list * (string * (string list * string list)) list)
+    * Comment.text) list -> ProofHistory.T -> ProofHistory.T
+  val assume_i: ((string * Proof.context attribute list * (term * (term list * term list)) list)
+    * Comment.text) list -> ProofHistory.T -> ProofHistory.T
+  val presume: ((string * Args.src list * (string * (string list * string list)) list)
+    * Comment.text) list -> ProofHistory.T -> ProofHistory.T
+  val presume_i: ((string * Proof.context attribute list * (term * (term list * term list)) list)
+    * Comment.text) list -> ProofHistory.T -> ProofHistory.T
   val local_def: (string * Args.src list * ((string * string option) * (string * string list)))
     * Comment.text -> ProofHistory.T -> ProofHistory.T
   val local_def_i: (string * Args.src list * ((string * typ) * (term * term list)))
@@ -273,6 +273,8 @@ val match_bind_i = ProofHistory.apply o Proof.match_bind_i o map Comment.ignore;
 
 (* statements *)
 
+local
+
 fun global_statement f (name, src, s) int thy =
   ProofHistory.init (Toplevel.undo_limit int)
     (f name (map (Attrib.global_attribute thy) src) s thy);
@@ -285,14 +287,22 @@ fun local_statement f g (name, src, s) = ProofHistory.apply (fn state =>
 
 fun local_statement_i f g (name, atts, t) = ProofHistory.apply (f name atts t o g);
 
+fun multi_statement f args = ProofHistory.apply (fn state =>
+  f (map (fn (name, src, s) =>
+      (name, map (Attrib.local_attribute (Proof.theory_of state)) src, s)) args) state);
+
+fun multi_statement_i f args = ProofHistory.apply (f args);
+
+in
+
 val theorem     = global_statement Proof.theorem o Comment.ignore;
 val theorem_i   = global_statement_i Proof.theorem_i o Comment.ignore;
 val lemma       = global_statement Proof.lemma o Comment.ignore;
 val lemma_i     = global_statement_i Proof.lemma_i o Comment.ignore;
-val assume      = local_statement Proof.assume I o Comment.ignore;
-val assume_i    = local_statement_i Proof.assume_i I o Comment.ignore;
-val presume     = local_statement Proof.presume I o Comment.ignore;
-val presume_i   = local_statement_i Proof.presume_i I o Comment.ignore;
+val assume      = multi_statement Proof.assume o map Comment.ignore;
+val assume_i    = multi_statement_i Proof.assume_i o map Comment.ignore;
+val presume     = multi_statement Proof.presume o map Comment.ignore;
+val presume_i   = multi_statement_i Proof.presume_i o map Comment.ignore;
 val local_def   = local_statement LocalDefs.def I o Comment.ignore;
 val local_def_i = local_statement LocalDefs.def_i I o Comment.ignore;
 val show        = local_statement (Proof.show Seq.single) I o Comment.ignore;
@@ -303,6 +313,8 @@ val thus        = local_statement (Proof.show Seq.single) Proof.chain o Comment.
 val thus_i      = local_statement_i (Proof.show_i Seq.single) Proof.chain o Comment.ignore;
 val hence       = local_statement (Proof.have Seq.single) Proof.chain o Comment.ignore;
 val hence_i     = local_statement_i (Proof.have_i Seq.single) Proof.chain o Comment.ignore;
+
+end;
 
 
 (* blocks *)
