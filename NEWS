@@ -33,6 +33,16 @@ New in this Isabelle release
 * Pure: tuned internal renaming of symbolic identifiers -- attach
   primes instead of base 26 numbers.
 
+* Pure: clear separation of logical types and nonterminals, where the
+  latter may only occur in 'syntax' specifications or type
+  abbreviations.  Before that distinction was only partially
+  implemented via type class "logic" vs. "{}".  Potential
+  INCOMPATIBILITY in rare cases of improper use of 'types'/'consts'
+  instead of 'nonterminals'/'syntax'.  Some very exotic syntax
+  specifications requiring additional non-logical non-syntactic types
+  (apart from 'prop' vs. 'logic') may need to be reformulated with
+  duplicated 'consts'/'syntax' declarations (e.g. see Cube/Base.thy).
+
 
 *** HOL ***
 
