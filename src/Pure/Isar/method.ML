@@ -36,14 +36,15 @@ sig
   val syntax: (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list)) ->
     Proof.context -> Args.src -> Proof.context * 'a
   val no_args: Proof.method -> Args.src -> Proof.context -> Proof.method
-  val sectioned_args: ((Args.T list -> Proof.context attribute * Args.T list) list ->
+  type modifier
+  val sectioned_args: ((Args.T list -> modifier * Args.T list) list ->
       Proof.context * Args.T list -> 'a * (Proof.context * Args.T list)) ->
-    (Args.T list -> Proof.context attribute * Args.T list) list ->
+    (Args.T list -> modifier * Args.T list) list ->
     ('a -> Proof.context -> Proof.method) -> Args.src -> Proof.context -> Proof.method
-  val default_sectioned_args: Proof.context attribute ->
-    (Args.T list -> Proof.context attribute * Args.T list) list ->
+  val default_sectioned_args: modifier ->
+    (Args.T list -> modifier * Args.T list) list ->
     (Proof.context -> Proof.method) -> Args.src -> Proof.context -> Proof.method
-  val only_sectioned_args: (Args.T list -> Proof.context attribute * Args.T list) list ->
+  val only_sectioned_args: (Args.T list -> modifier * Args.T list) list ->
     (Proof.context -> Proof.method) -> Args.src -> Proof.context -> Proof.method
   val thms_args: (thm list -> Proof.method) -> Args.src -> Proof.context -> Proof.method
   datatype text =
@@ -241,27 +242,35 @@ fun no_args (x: Proof.method) src ctxt = #2 (syntax (Scan.succeed x) ctxt src);
 
 (* sections *)
 
+type modifier = (Proof.context -> Proof.context) * Proof.context attribute;
+
+local
+
 fun sect ss = Scan.first (map (fn s => Scan.lift (s --| Args.$$$ ":")) ss);
 fun thms ss = Scan.unless (sect ss) Attrib.local_thms;
 fun thmss ss = Scan.repeat (thms ss) >> flat;
 
-fun apply att (ctxt, ths) = Thm.applys_attributes ((ctxt, ths), [att]);
+fun apply (f, att) (ctxt, ths) = Thm.applys_attributes ((f ctxt, ths), [att]);
 
-fun section ss = (sect ss -- thmss ss) :-- (fn (att, ths) => Scan.depend (fn ctxt =>
-  Scan.succeed (apply att (ctxt, ths)))) >> #2;
+fun section ss = (sect ss -- thmss ss) :-- (fn (m, ths) => Scan.depend (fn ctxt =>
+  Scan.succeed (apply m (ctxt, ths)))) >> #2;
 
 fun sectioned args ss = args ss -- Scan.repeat (section ss);
 
+in
 
 fun sectioned_args args ss f src ctxt =
   let val (ctxt', (x, _)) = syntax (sectioned args ss) ctxt src
   in f x ctxt' end;
 
-fun default_sectioned_args att ss f src ctxt =
-  sectioned_args thmss ss (fn ths => fn ctxt' => f (#1 (apply att (ctxt', ths)))) src ctxt;
+fun default_sectioned_args m ss f src ctxt =
+  sectioned_args thmss ss (fn ths => fn ctxt' => f (#1 (apply m (ctxt', ths)))) src ctxt;
 
 fun only_sectioned_args ss f = sectioned_args (K (Scan.succeed ())) ss (fn () => f);
+
 fun thms_args f = sectioned_args thmss [] (fn ths => fn _ => f ths);
+
+end;
 
 
 
