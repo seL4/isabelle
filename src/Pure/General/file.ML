@@ -14,6 +14,7 @@ sig
   val tmp_path: Path.T -> Path.T
   eqtype info
   val info: Path.T -> info option
+  val join_info: info -> info -> info
   val exists: Path.T -> bool
   val read: Path.T -> string
   val write: Path.T -> string -> unit
@@ -42,13 +43,15 @@ fun tmp_path path =
 
 (* info / exists *)
 
-datatype info = Info of string;
+datatype info = Info of string list;
+
+fun join_info (Info xs) (Info ys) = Info (xs @ ys);
 
 fun info path =
   let val name = sysify path in
     (case file_info name of
       "" => None
-    | s => Some (Info (name ^ ": " ^ s)))	(* FIXME include full path (!?) *)
+    | s => Some (Info [name ^ ": " ^ s]))	(* FIXME include full path (!?) *)
   end;
 
 val exists = is_some o info;
