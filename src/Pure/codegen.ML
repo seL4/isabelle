@@ -206,33 +206,6 @@ fun assoc_types xs thy = foldl (fn (thy, (s, syn)) =>
 fun get_assoc_type thy s = assoc (#types (CodegenData.get thy), s);
 
 
-(**** retrieve definition of constant ****)
-
-fun is_instance thy T1 T2 =
-  Type.typ_instance (Sign.tsig_of (sign_of thy), T1, Type.varifyT T2);
-
-fun get_assoc_code thy s T = apsome snd (find_first (fn ((s', T'), _) =>
-  s = s' andalso is_instance thy T T') (#consts (CodegenData.get thy)));
-
-fun get_defn thy s T =
-  let
-    val axms = flat (map (Symtab.dest o #axioms o Theory.rep_theory)
-      (thy :: Theory.ancestors_of thy));
-    val defs = mapfilter (fn (_, t) =>
-      (let
-         val (lhs, rhs) = Logic.dest_equals t;
-         val (c, args) = strip_comb lhs;
-         val (s', T') = dest_Const c
-       in if s=s' then Some (T', (args, rhs)) else None end) handle TERM _ =>
-         None) axms;
-    val i = find_index (is_instance thy T o fst) defs
-  in
-    if i>=0 then Some (snd (nth_elem (i, defs)),
-      if length defs = 1 then None else Some i)
-    else None
-  end;
-
-
 (**** make valid ML identifiers ****)
 
 fun gen_mk_id kind rename sg s =
@@ -254,9 +227,10 @@ val mk_const_id = gen_mk_id Sign.constK
 val mk_type_id = gen_mk_id Sign.typeK
   (fn s => if s mem ThmDatabase.ml_reserved then s ^ "_type" else s);
 
-fun rename_term t =
+fun rename_terms ts =
   let
-    val names = add_term_names (t, map (fst o fst o dest_Var) (term_vars t));
+    val names = foldr add_term_names
+      (ts, map (fst o fst) (Drule.vars_of_terms ts));
     val clash = names inter ThmDatabase.ml_reserved;
     val ps = clash ~~ variantlist (clash, names);
 
@@ -266,7 +240,36 @@ fun rename_term t =
       | rename (t $ u) = rename t $ rename u
       | rename t = t;
   in
-    rename t
+    map rename ts
+  end;
+
+val rename_term = hd o rename_terms o single;
+
+
+(**** retrieve definition of constant ****)
+
+fun is_instance thy T1 T2 =
+  Type.typ_instance (Sign.tsig_of (sign_of thy), T1, Type.varifyT T2);
+
+fun get_assoc_code thy s T = apsome snd (find_first (fn ((s', T'), _) =>
+  s = s' andalso is_instance thy T T') (#consts (CodegenData.get thy)));
+
+fun get_defn thy s T =
+  let
+    val axms = flat (map (Symtab.dest o #axioms o Theory.rep_theory)
+      (thy :: Theory.ancestors_of thy));
+    val defs = mapfilter (fn (_, t) =>
+      (let
+         val (lhs, rhs) = Logic.dest_equals t;
+         val (c, args) = strip_comb lhs;
+         val (s', T') = dest_Const c
+       in if s=s' then Some (T', split_last (rename_terms (args @ [rhs])))
+         else None end) handle TERM _ => None) axms;
+    val i = find_index (is_instance thy T o fst) defs
+  in
+    if i>=0 then Some (snd (nth_elem (i, defs)),
+      if length defs = 1 then None else Some i)
+    else None
   end;
 
 
@@ -441,6 +444,8 @@ val generate_code = gen_generate_code
 
 (**** Interface ****)
 
+val str = setmp print_mode [] Pretty.str;
+
 fun parse_mixfix rd s =
   (case Scan.finite Symbol.stopper (Scan.repeat
      (   $$ "_" >> K Arg
@@ -453,7 +458,7 @@ fun parse_mixfix rd s =
       || Scan.repeat1
            (   $$ "'" |-- Scan.one Symbol.not_eof
             || Scan.unless ($$ "_" || $$ "?" || $$ "/" || $$ "{" |-- $$ "*")
-                 (Scan.one Symbol.not_eof)) >> (Pretty o Pretty.str o implode)))
+                 (Scan.one Symbol.not_eof)) >> (Pretty o str o implode)))
        (Symbol.explode s) of
      (p, []) => p
    | _ => error ("Malformed annotation: " ^ quote s));
