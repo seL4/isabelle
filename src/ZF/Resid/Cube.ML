@@ -5,8 +5,6 @@
     Logic Image: ZF
 *)
 
-open Cube;
-
 Addsimps [commutation, residuals_preserve_comp, sub_preserve_reg,
 	  residuals_preserve_reg, sub_comp, sub_comp RS comp_sym];
 

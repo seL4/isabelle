@@ -312,8 +312,7 @@ val Xub = rewrite_rule[islub_def]Xlub RS conjunct1;
 val Yub = rewrite_rule[islub_def]Ylub RS conjunct1;
 val Xub_y = Yub RS (dom RS dominate_isub);
 val lem = Xub_y RS (rewrite_rule[islub_def]Xlub RS conjunct2 RS spec RS mp);
-val thm = Y RS (X RS (cpo RS lem));
-by (rtac thm 1);
+by (rtac (Y RS (X RS (cpo RS lem))) 1);
 qed "dominate_islub";
 
 val prems = Goalw [subchain_def]  (* subchainE *)

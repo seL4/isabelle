@@ -19,19 +19,20 @@ codatatype <= "quniv(Const Un ExVar Un Exp)"
   type_intrs "[A_into_univ, mapQU]"
 
 consts
-  ve_emp :: i
   ve_owr :: [i,i,i] => i
   ve_dom :: i=>i
   ve_app :: [i,i] => i
-defs
-  ve_emp_def "ve_emp == ve_mk(map_emp)"
-  ve_owr_def
-    "ve_owr(ve,x,v) ==   
-    ve_mk(Val_ValEnv_case(%x.0,%x y z.0,%m. map_owr(m,x,v),ve))"
-  ve_dom_def
-    "ve_dom(ve) == Val_ValEnv_case(%x.0,%x y z.0,%m. domain(m),ve)"
-  ve_app_def
-    "ve_app(ve,a) == Val_ValEnv_case(%x.0,%x y z.0,%m. map_app(m,a),ve)"
+
+
+primrec "ve_owr(ve_mk(m), x, v) = ve_mk(map_owr(m,x,v))"
+
+primrec "ve_dom(ve_mk(m)) = domain(m)"
+
+primrec "ve_app(ve_mk(m), a) = map_app(m,a)"
+
+constdefs
+  ve_emp :: i
+   "ve_emp == ve_mk(map_emp)"
 
 end
 

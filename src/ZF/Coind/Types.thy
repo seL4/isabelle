@@ -23,19 +23,17 @@ datatype <= "univ(Ty Un ExVar)"
           | te_owr("te:TyEnv","x:ExVar","t:Ty") 
 
 consts
-  te_rec :: [i,i,[i,i,i,i]=>i] => i
-defs
-  te_rec_def
-    "te_rec(te,c,h) ==   
-    Vrec(te,%te g. TyEnv_case(c,%tem x t. h(tem,x,t,g`tem),te))"
-  
-consts
   te_dom :: i => i
   te_app :: [i,i] => i
-defs
-  te_dom_def "te_dom(te) == te_rec(te,0,% te x t r. r Un {x})"
-  te_app_def "te_app(te,x) == te_rec(te,0, % te y t r. if(x=y,t,r))"
-  
+
+
+primrec (*domain of the type environment*)
+  "te_dom (te_emp) = 0"
+  "te_dom(te_owr(te,x,v)) = te_dom(te) Un {x}"
+
+primrec (*lookup up identifiers in the type environment*)
+  "te_app (te_emp,x) = 0"
+  "te_app (te_owr(te,y,t),x) = if(x=y, t, te_app(te,x))"
 
 end
 

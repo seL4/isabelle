@@ -50,43 +50,38 @@ by (etac Scomp.induct 1);
 by (ALLGOALS Fast_tac);
 qed "residuals_intro";
 
-val prems = 
-Goal "[| u~v;  residuals(u,v,THE w. residuals(u, v, w))==> R; \
-\        regular(v) |] ==> R";
-by (cut_facts_tac prems 1);
-by (resolve_tac prems 1);
+Goal "[| u~v;  regular(v) |] ==> residuals(u,v,THE w. residuals(u, v, w))";
 by (resolve_tac [residuals_intro RS mp RS exE] 1);
 by (stac the_equality 3);
 by (ALLGOALS (blast_tac (claset() addIs [residuals_function])));
-qed "comp_resfuncE";
+qed "comp_resfuncD";
 
 
 (* ------------------------------------------------------------------------- *)
 (*               Residual function                                           *)
 (* ------------------------------------------------------------------------- *)
 
-Goalw [res_func_def]
-    "n:nat ==> Var(n) |> Var(n) = Var(n)";
+Goalw [res_func_def] "n:nat ==> Var(n) |> Var(n) = Var(n)";
 by (Blast_tac 1);
 qed "res_Var";
 
 Goalw [res_func_def]
     "[|s~t; regular(t)|]==> Fun(s) |> Fun(t) = Fun(s |> t)";
-by (blast_tac (claset() addSEs [comp_resfuncE]
+by (blast_tac (claset() addSDs [comp_resfuncD]
 			addIs [residuals_function]) 1);
 qed "res_Fun";
 
 Goalw [res_func_def]
     "[|s~u; regular(u); t~v; regular(v); b:bool|]==> \
 \           App(b,s,t) |> App(0,u,v) = App(b, s |> u, t |> v)";
-by (blast_tac (claset() addSEs [comp_resfuncE]
+by (blast_tac (claset() addSDs [comp_resfuncD]
 			addIs [residuals_function]) 1);
 qed "res_App";
 
 Goalw [res_func_def]
     "[|s~u; regular(u); t~v; regular(v); b:bool|]==> \
 \           App(b,Fun(s),t) |> App(1,Fun(u),v) = (t |> v)/ (s |> u)";
-by (blast_tac (claset() addSEs [comp_resfuncE]
+by (blast_tac (claset() addSDs [comp_resfuncD]
 			addIs [residuals_function]) 1);
 qed "res_redex";
 
@@ -99,10 +94,11 @@ by (auto_tac (claset(),
 	      simpset() addsimps [res_Fun]));
 qed "resfunc_type";
 
-Addsimps ([res_Var, res_Fun, res_App, res_redex, lift_rec_preserve_comp,
+Addsimps [res_Var, res_Fun, res_App, res_redex, lift_rec_preserve_comp,
 	  lift_rec_preserve_reg, subst_rec_preserve_comp, resfunc_type,
-	  subst_rec_preserve_reg] @
-	  redexes.free_iffs);
+	  subst_rec_preserve_reg];
+
+Addsimps redexes.free_iffs;
 
 
 (* ------------------------------------------------------------------------- *)
@@ -124,7 +120,7 @@ Goal "[|u~v; k:nat|]==> regular(v)--> (ALL n:nat.  \
 by (etac Scomp.induct 1);
 by Safe_tac;
 by (ALLGOALS
-    (asm_simp_tac
+    (asm_full_simp_tac
      (simpset() addsimps [lift_rec_Var,subst_Var,lift_subst])));
 by (rotate_tac ~2 1);
 by (Asm_full_simp_tac 1);

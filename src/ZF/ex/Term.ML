@@ -16,7 +16,7 @@ end;
 qed "term_unfold";
 
 (*Induction on term(A) followed by induction on List *)
-val major::prems = goal Term.thy
+val major::prems = Goal
     "[| t: term(A);  \
 \       !!x.      [| x: A |] ==> P(Apply(x,Nil));  \
 \       !!x z zs. [| x: A;  z: term(A);  zs: list(term(A));  P(Apply(x,zs))  \
@@ -29,7 +29,7 @@ by (REPEAT (ares_tac (prems@[list_CollectD]) 1));
 qed "term_induct2";
 
 (*Induction on term(A) to prove an equation*)
-val major::prems = goal Term.thy
+val major::prems = Goal
     "[| t: term(A);  \
 \       !!x zs. [| x: A;  zs: list(term(A));  map(f,zs) = map(g,zs) |] ==> \
 \               f(Apply(x,zs)) = g(Apply(x,zs))  \
@@ -66,28 +66,27 @@ qed "term_into_univ";
 (*** term_rec -- by Vset recursion ***)
 
 (*Lemma: map works correctly on the underlying list of terms*)
-val [major,ordi] = goal list.thy
-    "[| l: list(A);  Ord(i) |] ==>  \
-\    rank(l)<i --> map(%z. (lam x:Vset(i).h(x)) ` z, l) = map(h,l)";
-by (rtac (major RS list.induct) 1);
+Goal "[| l: list(A);  Ord(i) |] ==>  \
+\     rank(l)<i --> map(%z. (lam x:Vset(i).h(x)) ` z, l) = map(h,l)";
+by (etac list.induct 1);
 by (Simp_tac 1);
 by (rtac impI 1);
-by (forward_tac [rank_Cons1 RS lt_trans] 1);
-by (dtac (rank_Cons2 RS lt_trans) 1);
-by (asm_simp_tac (simpset() addsimps [ordi, VsetI]) 1);
+by (subgoal_tac "rank(a)<i & rank(l) < i" 1);
+by (asm_simp_tac (simpset() addsimps [VsetI]) 1);
+by (full_simp_tac (simpset() addsimps list.con_defs) 1);
+by (blast_tac (claset() addDs (rank_rls RL [lt_trans])) 1);
 qed "map_lemma";
 
 (*Typing premise is necessary to invoke map_lemma*)
-val [prem] = goal Term.thy
-    "ts: list(A) ==> \
-\    term_rec(Apply(a,ts), d) = d(a, ts, map (%z. term_rec(z,d), ts))";
+Goal "ts: list(A) ==> \
+\     term_rec(Apply(a,ts), d) = d(a, ts, map (%z. term_rec(z,d), ts))";
 by (rtac (term_rec_def RS def_Vrec RS trans) 1);
 by (rewrite_goals_tac term.con_defs);
-by (simp_tac (simpset() addsimps [Ord_rank, rank_pair2, prem RS map_lemma]) 1);;
+by (asm_simp_tac (simpset() addsimps [Ord_rank, rank_pair2, map_lemma]) 1);;
 qed "term_rec";
 
 (*Slightly odd typing condition on r in the second premise!*)
-val major::prems = goal Term.thy
+val major::prems = Goal
     "[| t: term(A);                                     \
 \       !!x zs r. [| x: A;  zs: list(term(A));          \
 \                    r: list(UN t:term(A). C(t)) |]     \
@@ -103,14 +102,14 @@ by (etac CollectE 1);
 by (REPEAT (ares_tac [list.Cons_I, UN_I] 1));
 qed "term_rec_type";
 
-val [rew,tslist] = goal Term.thy
+val [rew,tslist] = Goal
     "[| !!t. j(t)==term_rec(t,d);  ts: list(A) |] ==> \
 \    j(Apply(a,ts)) = d(a, ts, map(%Z. j(Z), ts))";
 by (rewtac rew);
 by (rtac (tslist RS term_rec) 1);
 qed "def_term_rec";
 
-val prems = goal Term.thy
+val prems = Goal
     "[| t: term(A);                                          \
 \       !!x zs r. [| x: A;  zs: list(term(A));  r: list(C) |]  \
 \                 ==> d(x, zs, r): C                 \
@@ -124,14 +123,13 @@ qed "term_rec_simple_type";
 
 bind_thm ("term_map", (term_map_def RS def_term_rec));
 
-val prems = goalw Term.thy [term_map_def]
+val prems = Goalw [term_map_def]
     "[| t: term(A);  !!x. x: A ==> f(x): B |] ==> term_map(f,t) : term(B)";
 by (REPEAT (ares_tac ([term_rec_simple_type, term.Apply_I] @ prems) 1));
 qed "term_map_type";
 
-val [major] = goal Term.thy
-    "t: term(A) ==> term_map(f,t) : term({f(u). u:A})";
-by (rtac (major RS term_map_type) 1);
+Goal "t: term(A) ==> term_map(f,t) : term({f(u). u:A})";
+by (etac term_map_type 1);
 by (etac RepFunI 1);
 qed "term_map_type2";
 

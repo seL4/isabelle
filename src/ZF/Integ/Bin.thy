@@ -21,13 +21,13 @@ Division is not defined yet!
 Bin = Int + Datatype + 
 
 consts
-  bin_rec   :: [i, i, i, [i,i,i]=>i] => i
   integ_of  :: i=>i
   NCons     :: [i,i]=>i
   bin_succ  :: i=>i
   bin_pred  :: i=>i
   bin_minus :: i=>i
   bin_add   :: [i,i]=>i
+  adding    :: [i,i,i]=>i
   bin_mult  :: [i,i]=>i
 
   bin       :: i
@@ -42,52 +42,62 @@ datatype
   type_intrs "[bool_into_univ]"
 
 
-defs
-
-  bin_rec_def
-      "bin_rec(z,a,b,h) == 
-      Vrec(z, %z g. bin_case(a, b, %w x. h(w, x, g`w), z))"
-
-  integ_of_def
-      "integ_of(w) == bin_rec(w, $#0, $~($#1), %w x r. $#x $+ r $+ r)"
+primrec
+  "integ_of (Pls)       = $# 0"
+  "integ_of (Min)       = $~($#1)"
+  "integ_of (Cons(w,b)) = $#b $+ integ_of(w) $+ integ_of(w)"
 
     (** recall that cond(1,b,c)=b and cond(0,b,c)=0 **)
 
-  (*NCons adds a bit, suppressing leading 0s and 1s*)
-  NCons_def
-      "NCons(w,b) ==   
-       bin_case(cond(b,Cons(w,b),w), cond(b,w,Cons(w,b)),   
-                %w' x'. Cons(w,b), w)"
+primrec (*NCons adds a bit, suppressing leading 0s and 1s*)
+  "NCons (Pls,b)       = cond(b,Cons(Pls,b),Pls)"
+  "NCons (Min,b)       = cond(b,Min,Cons(Min,b))"
+  "NCons (Cons(w,c),b) = Cons(Cons(w,c),b)"
 
-  bin_succ_def
-      "bin_succ(w0) ==   
-       bin_rec(w0, Cons(Pls,1), Pls,   
-               %w x r. cond(x, Cons(r,0), NCons(w,1)))"
+primrec (*successor.  If a Cons, can change a 0 to a 1 without recursion.*)
+  bin_succ_Pls
+    "bin_succ (Pls)       = Cons(Pls,1)"
+  bin_succ_Min
+    "bin_succ (Min)       = Pls"
+      "bin_succ (Cons(w,b)) = cond(b, Cons(bin_succ(w), 0),
+				    NCons(w,1))"
 
-  bin_pred_def
-      "bin_pred(w0) == 
-       bin_rec(w0, Min, Cons(Min,0),   
-               %w x r. cond(x, NCons(w,0), Cons(r,1)))"
+primrec (*predecessor*)
+  bin_pred_Pls
+    "bin_pred (Pls)       = Min"
+  bin_pred_Min
+    "bin_pred (Min)       = Cons(Min,0)"
+    "bin_pred (Cons(w,b)) = cond(b, NCons(w,0),
+				    Cons(bin_pred(w), 1))"
 
-  bin_minus_def
-      "bin_minus(w0) == 
-       bin_rec(w0, Pls, Cons(Pls,1),   
-               %w x r. cond(x, bin_pred(NCons(r,0)), Cons(r,0)))"
+primrec (*unary negation*)
+  bin_minus_Pls
+    "bin_minus (Pls)       = Pls"
+  bin_minus_Min
+    "bin_minus (Min)       = Cons(Pls,1)"
+    "bin_minus (Cons(w,b)) = cond(b, bin_pred(NCons(bin_minus(w),0)),
+				     Cons(bin_minus(w),0))"
 
-  bin_add_def
-      "bin_add(v0,w0) ==                        
-       bin_rec(v0,                             
-         lam w:bin. w,                 
-         lam w:bin. bin_pred(w),       
-         %v x r. lam w1:bin.           
-                  bin_rec(w1, Cons(v,x), bin_pred(Cons(v,x)),    
-                    %w y s. NCons(r`cond(x and y, bin_succ(w), w), 
-                                          x xor y)))    ` w0"
+(*Mutual recursion is not always sound, but it is for primitive recursion.*)
+primrec (*sum*)
+  "bin_add (Pls,w)       = w"
+  "bin_add (Min,w)       = bin_pred(w)"
+  "bin_add (Cons(v,x),w) = adding(v,x,w)"
 
-  bin_mult_def
-      "bin_mult(v0,w) ==                        
-       bin_rec(v0, Pls, bin_minus(w),         
-         %v x r. cond(x, bin_add(NCons(r,0),w), NCons(r,0)))"
+primrec (*auxilliary function for sum*)
+  "adding (v,x,Pls)       = Cons(v,x)"
+  "adding (v,x,Min)       = bin_pred(Cons(v,x))"
+  "adding (v,x,Cons(w,y)) = NCons(bin_add (v, cond(x and y, bin_succ(w), w)), 
+				  x xor y)"
+
+primrec
+  bin_mult_Pls
+    "bin_mult (Pls,w)       = Pls"
+  bin_mult_Min
+    "bin_mult (Min,w)       = bin_minus(w)"
+    "bin_mult (Cons(v,b),w) = cond(b, bin_add(NCons(bin_mult(v,w),0),w),
+				      NCons(bin_mult(v,w),0))"
+
 end
 
 

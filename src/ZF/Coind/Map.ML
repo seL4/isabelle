@@ -33,6 +33,10 @@ result();
 (* Lemmas                                                       *)
 (* ############################################################ *)
 
+Goal "Sigma(A,B)``{a} = if (a:A, B(a), 0)";
+by Auto_tac;
+qed "qbeta_if";
+
 Goal "a:A ==> Sigma(A,B)``{a} = B(a)";
 by (Fast_tac 1);
 qed "qbeta";
@@ -190,59 +194,15 @@ qed "map_domain_owr";
 (** Application **)
 
 Goalw [map_app_def,map_owr_def] 
-  "map_app(map_owr(f,a,b),a) = b";
-by (stac qbeta 1);
+  "map_app(map_owr(f,a,b),c) = if (c=a, b, map_app(f,c))";
+by (asm_simp_tac (simpset() addsimps [qbeta_if]) 1);
 by (Fast_tac 1);
-by (Simp_tac 1);
+qed "map_app_owr";
+
+Goal "map_app(map_owr(f,a,b),a) = b";
+by (asm_simp_tac (simpset() addsimps [map_app_owr]) 1);
 qed "map_app_owr1";
 
-Goalw [map_app_def,map_owr_def] 
-  "c ~= a ==> map_app(map_owr(f,a,b),c)= map_app(f,c)";
-by (rtac (excluded_middle RS disjE) 1);
-by (stac qbeta_emp 1);
-by (assume_tac 1);
-by (Fast_tac 1);
-by (etac (qbeta RS ssubst) 1);
-by (Asm_simp_tac 1);
+Goal "c ~= a ==> map_app(map_owr(f,a,b),c)= map_app(f,c)";
+by (asm_simp_tac (simpset() addsimps [map_app_owr]) 1);
 qed "map_app_owr2";
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

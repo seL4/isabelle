@@ -5,8 +5,6 @@
     Logic Image: ZF
 *)
 
-open Substitution;
-
 (* ------------------------------------------------------------------------- *)
 (*   Arithmetic extensions                                                   *)
 (* ------------------------------------------------------------------------- *)
@@ -42,88 +40,78 @@ Addsimps [nat_into_Ord, not_lt_iff_le, if_P, if_not_P];
 (* ------------------------------------------------------------------------- *)
 (*     lift_rec equality rules                                               *)
 (* ------------------------------------------------------------------------- *)
-Goalw [lift_rec_def] 
-    "[|n:nat; i:nat|]==> lift_rec(Var(i),n) =if(i<n,Var(i),Var(succ(i)))";
-by (Asm_simp_tac 1);
+Goal "[|n:nat; i:nat|]==> lift_rec(Var(i),n) =if(i<n,Var(i),Var(succ(i)))";
+by (asm_simp_tac (simpset() addsimps [lift_rec_def]) 1);
 qed "lift_rec_Var";
 
-Goalw [lift_rec_def] 
-    "[|n:nat; i:nat; k:nat; k le i|]==> lift_rec(Var(i),k) = Var(succ(i))";
-by (Asm_simp_tac 1);
+Goal "[|n:nat; i:nat; k:nat; k le i|]==> lift_rec(Var(i),k) = Var(succ(i))";
+by (asm_simp_tac (simpset() addsimps [lift_rec_def]) 1);
 qed "lift_rec_le";
 
-Goalw [lift_rec_def] 
-    "[|i:nat; k:nat; i<k |]==> lift_rec(Var(i),k) = Var(i)";
-by (Asm_simp_tac 1);
+Goal "[|i:nat; k:nat; i<k |]==> lift_rec(Var(i),k) = Var(i)";
+by (asm_simp_tac (simpset() addsimps [lift_rec_def]) 1);
 qed "lift_rec_gt";
 
-Goalw [lift_rec_def] 
-    "[|n:nat; k:nat|]==>   \
+Goal "[|n:nat; k:nat|]==>   \
 \        lift_rec(Fun(t),k) = Fun(lift_rec(t,succ(k)))";
-by (Asm_simp_tac 1);
+by (asm_simp_tac (simpset() addsimps [lift_rec_def]) 1);
 qed "lift_rec_Fun";
 
-Goalw [lift_rec_def] 
-    "[|n:nat; k:nat|]==>   \
+Goal "[|n:nat; k:nat|]==>   \
 \        lift_rec(App(b,f,a),k) = App(b,lift_rec(f,k),lift_rec(a,k))";
-by (Asm_simp_tac 1);
+by (asm_simp_tac (simpset() addsimps [lift_rec_def]) 1);
 qed "lift_rec_App";
+
 
 (* ------------------------------------------------------------------------- *)
 (*    substitution quality rules                                             *)
 (* ------------------------------------------------------------------------- *)
 
-Goalw [subst_rec_def] 
-    "[|i:nat; k:nat; u:redexes|]==>  \
-\        subst_rec(u,Var(i),k) = if(k<i,Var(i #- 1),if(k=i,u,Var(i)))";
-by (asm_simp_tac (simpset() addsimps [gt_not_eq,leI]) 1);
+Goal "[|i:nat; k:nat; u:redexes|]==>  \
+\     subst_rec(u,Var(i),k) = if(k<i,Var(i #- 1),if(k=i,u,Var(i)))";
+by (asm_simp_tac (simpset() addsimps [subst_rec_def, gt_not_eq, leI]) 1);
 qed "subst_Var";
 
-Goalw [subst_rec_def] 
-    "[|n:nat; u:redexes|]==> subst_rec(u,Var(n),n) = u";
-by (Asm_simp_tac 1);
+Goal "[|n:nat; u:redexes|]==> subst_rec(u,Var(n),n) = u";
+by (asm_simp_tac (simpset() addsimps [subst_rec_def]) 1);
 qed "subst_eq";
 
-Goalw [subst_rec_def] 
-    "[|n:nat; u:redexes; p:nat; p<n|]==>  \
-\        subst_rec(u,Var(n),p) = Var(n #- 1)";
-by (Asm_simp_tac 1);
+Goal "[|n:nat; u:redexes; p:nat; p<n|]==>  \
+\     subst_rec(u,Var(n),p) = Var(n #- 1)";
+by (asm_simp_tac (simpset() addsimps [subst_rec_def]) 1);
 qed "subst_gt";
 
-Goalw [subst_rec_def] 
-    "[|n:nat; u:redexes; p:nat; n<p|]==>  \
-\        subst_rec(u,Var(n),p) = Var(n)";
-by (asm_simp_tac (simpset() addsimps [gt_not_eq,leI]) 1);
+Goal "[|n:nat; u:redexes; p:nat; n<p|]==>  \
+\     subst_rec(u,Var(n),p) = Var(n)";
+by (asm_simp_tac (simpset() addsimps [subst_rec_def, gt_not_eq, leI]) 1);
 qed "subst_lt";
 
-Goalw [subst_rec_def] 
-    "[|p:nat; u:redexes|]==>  \
-\        subst_rec(u,Fun(t),p) = Fun(subst_rec(lift(u),t,succ(p))) ";
-by (Asm_simp_tac 1);
+Goal "[|p:nat; u:redexes|]==>  \
+\     subst_rec(u,Fun(t),p) = Fun(subst_rec(lift(u),t,succ(p))) ";
+by (asm_simp_tac (simpset() addsimps [subst_rec_def]) 1);
 qed "subst_Fun";
 
-Goalw [subst_rec_def] 
-    "[|p:nat; u:redexes|]==>  \
-\        subst_rec(u,App(b,f,a),p) = App(b,subst_rec(u,f,p),subst_rec(u,a,p))";
-by (Asm_simp_tac 1);
+Goal "[|p:nat; u:redexes|]==>  \
+\     subst_rec(u,App(b,f,a),p) = App(b,subst_rec(u,f,p),subst_rec(u,a,p))";
+by (asm_simp_tac (simpset() addsimps [subst_rec_def]) 1);
 qed "subst_App";
 
+(*But not lift_rec_Var, subst_Var: too many case splits*)
 Addsimps [subst_Fun, subst_App];
+
 
 Goal "u:redexes ==> ALL k:nat. lift_rec(u,k):redexes";
 by (etac redexes.induct 1);
 by (ALLGOALS
     (asm_simp_tac (simpset() addsimps [lift_rec_Var,
-					    lift_rec_Fun, lift_rec_App])));
-qed "lift_rec_type_a";
-val lift_rec_type = lift_rec_type_a RS bspec;
+				       lift_rec_Fun, lift_rec_App])));
+bind_thm ("lift_rec_type", result() RS bspec);
 
 Goal "v:redexes ==>  ALL n:nat. ALL u:redexes. subst_rec(u,v,n):redexes";
 by (etac redexes.induct 1);
 by (ALLGOALS(asm_simp_tac 
     (simpset() addsimps [subst_Var, lift_rec_type])));
-qed "subst_type_a";
-val subst_type = subst_type_a RS bspec RS bspec;
+bind_thm ("subst_type", result() RS bspec RS bspec);
 
 
 Addsimps [subst_eq, subst_gt, subst_lt, subst_type,
@@ -137,13 +125,13 @@ Addsimps [subst_eq, subst_gt, subst_lt, subst_type,
 
 Goal "u:redexes ==> ALL n:nat. ALL i:nat. i le n -->   \
 \       (lift_rec(lift_rec(u,i),succ(n)) = lift_rec(lift_rec(u,n),i))";
-by ((etac redexes.induct 1) THEN (ALLGOALS Asm_simp_tac));
+by (etac redexes.induct 1);
+by (ALLGOALS Asm_simp_tac);
 by Safe_tac;
 by (case_tac "n < xa" 1);
 by ((forward_tac [lt_trans2] 1) THEN (assume_tac 1));
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [lift_rec_Var, leI])));
 qed "lift_lift_rec";
-
 
 Goal "[|u:redexes; n:nat|]==>  \
 \      lift_rec(lift(u),succ(n)) = lift(lift_rec(u,n))";

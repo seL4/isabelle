@@ -8,7 +8,6 @@ Binary trees
 
 BT = Datatype +
 consts
-    bt_rec      :: [i, i, [i,i,i,i,i]=>i] => i
     n_nodes     :: i=>i
     n_leaves    :: i=>i
     bt_reflect  :: i=>i
@@ -18,12 +17,17 @@ consts
 datatype
   "bt(A)" = Lf  |  Br ("a: A",  "t1: bt(A)",  "t2: bt(A)")
   
-defs
-  bt_rec_def
-    "bt_rec(t,c,h) == Vrec(t, %t g. bt_case(c, %x y z. h(x,y,z,g`y,g`z), t))"
 
-  n_nodes_def   "n_nodes(t) == bt_rec(t,  0,  %x y z r s. succ(r#+s))"
-  n_leaves_def  "n_leaves(t) == bt_rec(t,  succ(0),  %x y z r s. r#+s)"
-  bt_reflect_def "bt_reflect(t) == bt_rec(t,  Lf,  %x y z r s. Br(x,s,r))"
+primrec
+  "n_nodes(Lf) = 0"
+  "n_nodes(Br(a,l,r)) = succ(n_nodes(l) #+ n_nodes(r))"
+
+primrec
+  "n_leaves(Lf) = 1"
+  "n_leaves(Br(a,l,r)) = n_leaves(l) #+ n_leaves(r)"
+
+primrec
+  "bt_reflect(Lf) = Lf"
+  "bt_reflect(Br(a,l,r)) = Br(a, bt_reflect(r), bt_reflect(l))"
 
 end

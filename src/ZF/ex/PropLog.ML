@@ -9,29 +9,7 @@ Soundness and completeness w.r.t. truth-tables.
 Prove: If H|=p then G|=p where G:Fin(H)
 *)
 
-open PropLog;
-
-(*** prop_rec -- by Vset recursion ***)
-
-(** conversion rules **)
-
-Goal "prop_rec(Fls,b,c,d) = b";
-by (rtac (prop_rec_def RS def_Vrec RS trans) 1);
-by (simp_tac (simpset() addsimps prop.con_defs) 1);
-qed "prop_rec_Fls";
-
-Goal "prop_rec(#v,b,c,d) = c(v)";
-by (rtac (prop_rec_def RS def_Vrec RS trans) 1);
-by (simp_tac (simpset() addsimps prop.con_defs) 1);
-qed "prop_rec_Var";
-
-Goal "prop_rec(p=>q,b,c,d) = \
-\      d(p, q, prop_rec(p,b,c,d), prop_rec(q,b,c,d))";
-by (rtac (prop_rec_def RS def_Vrec RS trans) 1);
-by (simp_tac (rank_ss addsimps prop.con_defs) 1);
-qed "prop_rec_Imp";
-
-Addsimps [prop_rec_Fls, prop_rec_Var, prop_rec_Imp];
+Addsimps prop.intrs;
 
 (*** Semantics of propositional logic ***)
 
@@ -49,23 +27,8 @@ Goalw [is_true_def] "is_true(p=>q,t) <-> (is_true(p,t)-->is_true(q,t))";
 by (Simp_tac 1);
 qed "is_true_Imp";
 
-(** The function hyps **)
+Addsimps [is_true_Fls, is_true_Var, is_true_Imp];
 
-Goalw [hyps_def] "hyps(Fls,t) = 0";
-by (Simp_tac 1);
-qed "hyps_Fls";
-
-Goalw [hyps_def] "hyps(#v,t) = {if(v:t, #v, #v=>Fls)}";
-by (Simp_tac 1);
-qed "hyps_Var";
-
-Goalw [hyps_def] "hyps(p=>q,t) = hyps(p,t) Un hyps(q,t)";
-by (Simp_tac 1);
-qed "hyps_Imp";
-
-Addsimps prop.intrs;
-Addsimps [is_true_Fls, is_true_Var, is_true_Imp,
-	  hyps_Fls, hyps_Var, hyps_Imp];
 
 (*** Proof theory of propositional logic ***)
 
@@ -138,8 +101,7 @@ bind_thm ("thms_notE", (thms_MP RS thms_FlsE));
 (*Soundness of the rules wrt truth-table semantics*)
 Goalw [logcon_def] "H |- p ==> H |= p";
 by (etac thms.induct 1);
-by (fast_tac (claset() addSDs [is_true_Imp RS iffD1 RS mp]) 5);
-by (ALLGOALS Asm_simp_tac);
+by Auto_tac;
 qed "soundness";
 
 (*** Towards the completeness proof ***)
@@ -165,7 +127,7 @@ qed "Imp_Fls";
 
 (*Typical example of strengthening the induction formula*)
 Goal "p: prop ==> hyps(p,t) |- if(is_true(p,t), p, p=>Fls)";
-by (rtac (split_if RS iffD2) 1);
+by (Simp_tac 1);
 by (etac prop.induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [thms_I, thms.H])));
 by (safe_tac (claset() addSEs [Fls_Imp RS weaken_left_Un1, 

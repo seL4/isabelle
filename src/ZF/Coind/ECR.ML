@@ -45,25 +45,15 @@ claset_ref() := mk_htr_cs (claset());
 
 (* Properties of the pointwise extension to environments *)
 
+bind_thm ("HasTyRel_non_zero", 
+	  HasTyRel.dom_subset RS subsetD RS SigmaD1 RS ValNEE);
+
 Goalw [hastyenv_def]
   "[| ve:ValEnv; te:TyEnv; hastyenv(ve,te); <v,t>:HasTyRel |] ==> \
 \   hastyenv(ve_owr(ve,x,v),te_owr(te,x,t))";
-by Safe_tac;
-by (stac ve_dom_owr 1);
-by (assume_tac 1);
-by (etac (HasTyRel.dom_subset RS subsetD RS SigmaD1 RS ValNEE) 1);
-by (stac te_dom_owr 1);
-by (Asm_simp_tac 1);
-by (rtac (excluded_middle RS disjE) 1);
-by (stac ve_app_owr2 1);
-by (assume_tac 1);
-by (assume_tac 1);
-by (stac te_app_owr2 1);
-by (assume_tac 1);
-by (dtac (ve_dom_owr RS subst) 1);
-by (etac (HasTyRel.dom_subset RS subsetD RS SigmaD1 RS ValNEE) 1);
-by ((Fast_tac 1) THEN (Fast_tac 1));
-by (asm_simp_tac (simpset() addsimps [ve_app_owr1,te_app_owr1]) 1);
+by (asm_full_simp_tac
+    (simpset() addsimps [ve_app_owr, HasTyRel_non_zero, ve_dom_owr]) 1);
+by Auto_tac;
 qed "hastyenv_owr";
 
 Goalw  [isofenv_def,hastyenv_def]

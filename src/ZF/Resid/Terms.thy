@@ -23,10 +23,11 @@ inductive
     Lambda_App  "[|u:lambda; v:lambda|]==> Apl(u,v):lambda"
   type_intrs    "redexes.intrs@bool_typechecks"
 
-defs
-  unmark_def    "unmark(u) == redex_rec(u,%i. Var(i),   
-                                          %x m. Fun(m),   
-                                          %b x y m p. Apl(m,p))"
+primrec
+  "unmark(Var(n)) = Var(n)"
+  "unmark(Fun(u)) = Fun(unmark(u))"
+  "unmark(App(b,f,a)) = Apl(unmark(f), unmark(a))"
+
 end
 
 

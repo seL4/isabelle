@@ -4,9 +4,6 @@
     Copyright   1995  University of Cambridge
 *)
 
-open MT;
-
-       
 (* ############################################################ *)
 (* The Consistency theorem                                      *)
 (* ############################################################ *)
@@ -28,13 +25,13 @@ Goalw [hastyenv_def]
   "[| ve:ValEnv; x:ExVar; e:Exp; hastyenv(ve,te);       \
 \          <te,e_fn(x,e),t>:ElabRel  \
 \       |] ==> <v_clos(x, e, ve), t> : HasTyRel";
-by (Best_tac 1);
+by (Blast_tac 1);
 qed "consistency_fn";
 
 AddIs (Ty.intrs@TyEnv.intrs@Val_ValEnv.intrs);
 AddDs [te_owrE,(ElabRel.dom_subset RS subsetD)];
 
-Addsimps [ve_dom_owr, te_dom_owr, ve_app_owr1, ve_app_owr2, 
+Addsimps [ve_dom_owr, ve_app_owr1, ve_app_owr2, 
           te_app_owr1, te_app_owr2];
 
 val clean_tac = 
@@ -43,12 +40,11 @@ val clean_tac =
     (match_tac (Ty.intrs@TyEnv.intrs@Val_ValEnv.intrs) i) ORELSE
     (ematch_tac [te_owrE] i));
 
-val prems = goalw MT.thy [hastyenv_def]
+Goalw [hastyenv_def]
   "[| ve:ValEnv; x:ExVar; e:Exp; f:ExVar; cl:Val;               \
 \     v_clos(x,e,ve_owr(ve,f,cl)) = cl;                         \ 
 \     hastyenv(ve,te); <te,e_fix(f,x,e),t>:ElabRel |] ==>       \
 \  <cl,t>:HasTyRel";
-by (cut_facts_tac prems 1);
 by (etac elab_fixE 1);
 by Safe_tac;
 by (EVERY [forward_tac [subst] 1,atac 2,rtac htr_closCI 1]);
@@ -82,8 +78,8 @@ by Auto_tac;
 qed "consistency_fix";
 
 
-val prems = goal MT.thy
-  " [| ve:ValEnv; e1:Exp; e2:Exp; c1:Const; c2:Const;   \
+Goal
+   "[| ve:ValEnv; e1:Exp; e2:Exp; c1:Const; c2:Const;   \
 \     <ve,e1,v_const(c1)>:EvalRel;                      \
 \     ALL t te.                                         \
 \       hastyenv(ve,te) --> <te,e1,t>:ElabRel --> <v_const(c1),t>:HasTyRel; \
@@ -93,13 +89,12 @@ val prems = goal MT.thy
 \     hastyenv(ve, te);                                 \
 \     <te,e_app(e1,e2),t>:ElabRel |] ==>                \
 \   <v_const(c_app(c1, c2)),t>:HasTyRel";
-by (cut_facts_tac prems 1);
 by (etac elab_appE 1);
 by (fast_tac ((mk_htr_cs ZF_cs) addSIs [c_appI] addIs [isof_app]) 1);
 qed "consistency_app1";
 
-val prems = goal MT.thy
-  " [| ve:ValEnv; vem:ValEnv; e1:Exp; e2:Exp; em:Exp; xm:ExVar; v:Val;  \
+Goal
+   "[| ve:ValEnv; vem:ValEnv; e1:Exp; e2:Exp; em:Exp; xm:ExVar; v:Val;  \
 \      <ve,e1,v_clos(xm,em,vem)>:EvalRel;       \
 \      ALL t te.                                \
 \        hastyenv(ve,te) -->                    \
@@ -117,7 +112,6 @@ val prems = goal MT.thy
 \        <v,t>:HasTyRel;                        \
 \      hastyenv(ve,te); <te,e_app(e1,e2),t>:ElabRel |] ==>      \
 \   <v,t>:HasTyRel ";
-by (cut_facts_tac prems 1);
 by (etac elab_appE 1);
 by (dtac (spec RS spec RS mp RS mp) 1);
 by (assume_tac 1);
@@ -136,7 +130,7 @@ by (rtac hastyenv_owr 1);
 by (assume_tac 1);
 by (assume_tac 1);
 by (assume_tac 2);
-by (rewrite_tac [hastyenv_def]);
+by (simp_tac (simpset() addsimps [hastyenv_def]) 1);
 by (Fast_tac 1);
 qed "consistency_app2";
 
@@ -155,20 +149,15 @@ by (mt_cases_tac consistency_app2);
 qed "consistency";
 
 
-val prems = goal MT.thy
+Goal
   "[| ve:ValEnv; te:TyEnv;              \
 \     isofenv(ve,te);                   \
 \     <ve,e,v_const(c)>:EvalRel;        \
 \     <te,e,t>:ElabRel                  \
 \  |] ==>                               \
 \  isof(c,t)";
-by (cut_facts_tac prems 1);
 by (rtac (htr_constE) 1);
 by (dtac consistency 1);
 by (fast_tac (claset() addSIs [basic_consistency_lem]) 1);
 by (assume_tac 1);
 qed "basic_consistency";
-
-
-
-

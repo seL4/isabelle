@@ -84,48 +84,47 @@ qed "ValNEE";
 
 (* Equalities for value environments *)
 
-val prems = goalw Values.thy [ve_dom_def,ve_owr_def]
-  "[| ve:ValEnv; v ~=0 |] ==> ve_dom(ve_owr(ve,x,v)) = ve_dom(ve) Un {x}";
-by (cut_facts_tac prems 1);
+Goal "[| ve:ValEnv; v ~=0 |] ==> ve_dom(ve_owr(ve,x,v)) = ve_dom(ve) Un {x}";
 by (etac ValEnvE 1);
-by (asm_full_simp_tac (simpset() addsimps Val_ValEnv.case_eqns) 1);
+by (Asm_full_simp_tac 1);
 by (stac map_domain_owr 1);
 by (assume_tac 1);
 by (rtac Un_commute 1);
 qed "ve_dom_owr";
 
-Goalw [ve_app_def,ve_owr_def]
-"ve:ValEnv ==> ve_app(ve_owr(ve,x,v),x) = v"; 
+Goal "ve:ValEnv ==> ve_app(ve_owr(ve,y,v),x) = if(x=y, v, ve_app(ve,x))"; 
 by (etac ValEnvE 1);
-by (asm_full_simp_tac (simpset() addsimps Val_ValEnv.case_eqns) 1);
+by (asm_simp_tac (simpset() addsimps [map_app_owr]) 1);
+qed "ve_app_owr";
+
+Goal "ve:ValEnv ==> ve_app(ve_owr(ve,x,v),x) = v"; 
+by (etac ValEnvE 1);
+by (Asm_full_simp_tac 1);
 by (rtac map_app_owr1 1);
 qed "ve_app_owr1";
 
-Goalw [ve_app_def,ve_owr_def]
- "ve:ValEnv ==> x ~= y ==> ve_app(ve_owr(ve,x,v),y) = ve_app(ve,y)";
+Goal "ve:ValEnv ==> x ~= y ==> ve_app(ve_owr(ve,x,v),y) = ve_app(ve,y)";
 by (etac ValEnvE 1);
-by (asm_full_simp_tac (simpset() addsimps Val_ValEnv.case_eqns) 1);
+by (Asm_full_simp_tac 1);
 by (rtac map_app_owr2 1);
 by (Fast_tac 1);
 qed "ve_app_owr2";
 
 (* Introduction rules for operators on value environments *)
 
-Goalw [ve_app_def,ve_owr_def,ve_dom_def]
-  "[| ve:ValEnv; x:ve_dom(ve) |] ==> ve_app(ve,x):Val";
+Goal "[| ve:ValEnv; x:ve_dom(ve) |] ==> ve_app(ve,x):Val";
 by (etac ValEnvE 1);
 by (hyp_subst_tac 1);
-by (asm_full_simp_tac (simpset() addsimps Val_ValEnv.case_eqns) 1);
+by (Asm_full_simp_tac 1);
 by (rtac pmap_appI 1);
 by (assume_tac 1);
 by (assume_tac 1);
 qed "ve_appI";
 
-Goalw [ve_dom_def]
-  "[| ve:ValEnv; x:ve_dom(ve) |] ==> x:ExVar";
+Goal "[| ve:ValEnv; x:ve_dom(ve) |] ==> x:ExVar";
 by (etac ValEnvE 1);
 by (hyp_subst_tac 1);
-by (asm_full_simp_tac (simpset() addsimps Val_ValEnv.case_eqns) 1);
+by (Asm_full_simp_tac 1);
 by (rtac pmap_domainD 1);
 by (assume_tac 1);
 by (assume_tac 1);
@@ -136,10 +135,10 @@ by (rtac Val_ValEnv.ve_mk_I 1);
 by (rtac pmap_empI 1);
 qed "ve_empI";
 
-Goalw [ve_owr_def] "[|ve:ValEnv; x:ExVar; v:Val |] ==> ve_owr(ve,x,v):ValEnv";
+Goal "[|ve:ValEnv; x:ExVar; v:Val |] ==> ve_owr(ve,x,v):ValEnv";
 by (etac ValEnvE 1);
 by (hyp_subst_tac 1);
-by (asm_full_simp_tac (simpset() addsimps Val_ValEnv.case_eqns) 1);
+by (Asm_full_simp_tac 1);
 by (rtac Val_ValEnv.ve_mk_I 1);
 by (etac pmap_owrI 1);
 by (assume_tac 1);

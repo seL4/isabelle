@@ -21,6 +21,8 @@ datatype
 (** The proof system **)
 consts
   thms     :: i => i
+
+syntax
   "|-"     :: [i,i] => o                        (infixl 50)
 
 translations
@@ -39,29 +41,27 @@ inductive
 
 (** The semantics **)
 consts
-  prop_rec :: [i, i, i=>i, [i,i,i,i]=>i] => i
-  is_true  :: [i,i] => o
-  "|="     :: [i,i] => o                        (infixl 50)
-  hyps     :: [i,i] => i
+  "|="        :: [i,i] => o                        (infixl 50)
+  hyps        :: [i,i] => i
+  is_true_fun :: [i,i] => i
+
+constdefs (*this definitionis necessary since predicates can't be recursive*)
+  is_true     :: [i,i] => o
+    "is_true(p,t) == is_true_fun(p,t)=1"
 
 defs
-
-  prop_rec_def
-   "prop_rec(p,b,c,h) == 
-   Vrec(p, %p g. prop_case(b, c, %x y. h(x, y, g`x, g`y), p))"
-
-  (** Semantics of propositional logic **)
-  is_true_def
-   "is_true(p,t) == prop_rec(p, 0,  %v. if(v:t, 1, 0), 
-                               %p q tp tq. if(tp=1,tq,1))         =  1"
-
   (*Logical consequence: for every valuation, if all elements of H are true
      then so is p*)
   logcon_def  "H |= p == ALL t. (ALL q:H. is_true(q,t)) --> is_true(p,t)"
 
-  (** A finite set of hypotheses from t and the Vars in p **)
-  hyps_def
-   "hyps(p,t) == prop_rec(p, 0,  %v. {if(v:t, #v, #v=>Fls)}, 
-                            %p q Hp Hq. Hp Un Hq)"
+primrec (** A finite set of hypotheses from t and the Vars in p **)
+  "hyps(Fls, t)    = 0"
+  "hyps(Var(v), t) = if(v:t, {#v}, {#v=>Fls})"
+  "hyps(p=>q, t)   = hyps(p,t) Un hyps(q,t)"
+ 
+primrec (** Semantics of propositional logic **)
+  "is_true_fun(Fls, t)    = 0"
+  "is_true_fun(Var(v), t) = if(v:t, 1, 0)"
+  "is_true_fun(p=>q, t)   = if(is_true_fun(p,t)=1, is_true_fun(q,t), 1)"
 
 end

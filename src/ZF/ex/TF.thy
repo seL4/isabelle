@@ -8,12 +8,12 @@ Trees & forests, a mutually recursive type definition.
 
 TF = List +
 consts
-  TF_rec      :: [i, [i,i,i]=>i, i, [i,i,i,i]=>i] => i
-  TF_map      :: [i=>i, i] => i
-  TF_size     :: i=>i
-  TF_preorder :: i=>i
+  map      :: [i=>i, i] => i
+  size     :: i=>i
+  preorder :: i=>i
   list_of_TF  :: i=>i
-  TF_of_list  :: i=>i
+  of_list  :: i=>i
+  reflect  :: i=>i
 
   tree, forest, tree_forest    :: i=>i
 
@@ -22,28 +22,35 @@ datatype
 and
   "forest(A)" = Fnil  |  Fcons ("t: tree(A)",  "f: forest(A)")
 
-defs
-  TF_rec_def
-    "TF_rec(z,b,c,d) == Vrec(z,                         
-      %z r. tree_forest_case(%x f. b(x, f, r`f),        
-                             c,                         
-                              %t f. d(t, f, r`t, r`f), z))"
+primrec
+  "list_of_TF (Tcons(x,f))  = [Tcons(x,f)]"
+  "list_of_TF (Fnil)        = []"
+  "list_of_TF (Fcons(t,tf)) = Cons (t, list_of_TF(tf))"
 
-  list_of_TF_def
-    "list_of_TF(z) == TF_rec(z, %x f r. [Tcons(x,f)], [], 
-                             %t f r1 r2. Cons(t, r2))"
+primrec
+  "of_list([])        = Fnil"
+  "of_list(Cons(t,l)) = Fcons(t, of_list(l))"
 
-  TF_of_list_def
-    "TF_of_list(f) == list_rec(f, Fnil,  %t f r. Fcons(t,r))"
+primrec
+  "map (h, Tcons(x,f))  = Tcons(h(x), map(h,f))"
+  "map (h, Fnil)        = Fnil"
+  "map (h, Fcons(t,tf)) = Fcons (map(h, t), map(h, tf))"
 
-  TF_map_def
-    "TF_map(h,z) == TF_rec(z, %x f r. Tcons(h(x),r), Fnil, 
-                           %t f r1 r2. Fcons(r1,r2))"
-
-  TF_size_def
-    "TF_size(z) == TF_rec(z, %x f r. succ(r), 0, %t f r1 r2. r1#+r2)"
-
-  TF_preorder_def
-    "TF_preorder(z) == TF_rec(z, %x f r. Cons(x,r), Nil, %t f r1 r2. r1@r2)"
+primrec
+  "size (Tcons(x,f))  = succ(size(f))"
+  "size (Fnil)        = 0"
+  "size (Fcons(t,tf)) = size(t) #+ size(tf)"
+ 
+primrec
+  "preorder (Tcons(x,f))  = Cons(x, preorder(f))"
+  "preorder (Fnil)        = Nil"
+  "preorder (Fcons(t,tf)) = preorder(t) @ preorder(tf)"
+ 
+primrec
+  "reflect (Tcons(x,f))  = Tcons(x, reflect(f))"
+  "reflect (Fnil)        = Fnil"
+  "reflect (Fcons(t,tf)) = of_list
+                               (list_of_TF (reflect(tf)) @
+				Cons(reflect(t), Nil))"
 
 end
