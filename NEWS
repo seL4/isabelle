@@ -170,7 +170,10 @@ renamed "Product_Type.unit";
 *** HOLCF ***
 
 * proper rep_datatype lift (see theory Lift); use plain induct_tac
-instead of lift.induct_tac, use UU instead of Undef in all cases;
+instead of former lift.induct_tac; always use UU instead of Undef;
+
+* 'domain' package adapted to new-style theories, e.g. see
+HOLCF/ex/Dnat.thy;
 
 
 *** ZF ***
