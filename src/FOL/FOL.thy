@@ -24,7 +24,8 @@ theorems case_split = case_split_thm [case_names True False, cases type: o]
 
 use "cladata.ML"
 setup Cla.setup
-setup clasetup
+setup cla_setup
+setup case_setup
 
 use "blastdata.ML"
 setup Blast.setup
