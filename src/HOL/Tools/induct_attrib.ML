@@ -160,8 +160,8 @@ fun spec k = (Args.$$$ k -- Args.colon) |-- Args.!!! Args.name;
 
 fun attrib sign_of add_type add_set = Scan.depend (fn x =>
   let val sg = sign_of x in
-    spec typeN >> (add_type o Sign.intern_tycon sg) ||
-    spec setN  >> (add_set o Sign.intern_const sg)
+    spec typeN >> (add_type o Sign.certify_tycon sg o Sign.intern_tycon sg) ||
+    spec setN  >> (add_set o Sign.certify_const sg o Sign.intern_const sg)
   end >> pair x);
 
 in
