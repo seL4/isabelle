@@ -26,6 +26,7 @@ consts
   dropWhile   :: ('a => bool) => 'a list => 'a list
   tl,ttl      :: 'a list => 'a list
   rev         :: 'a list => 'a list
+  replicate   :: nat => 'a => 'a list
 
 syntax
   (* list Enumeration *)
@@ -109,6 +110,9 @@ primrec takeWhile list
 primrec dropWhile list
   "dropWhile P [] = []"
   "dropWhile P (x#xs) = (if P x then dropWhile P xs else x#xs)"
+primrec replicate nat
+replicate_0   "replicate 0 x       = []"
+replicate_Suc "replicate (Suc n) x = x # replicate n x"
 
 end
 

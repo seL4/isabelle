@@ -196,6 +196,16 @@ by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "rev_map";
 
+(* a congruence rule for map: *)
+goal thy
+ "(xs=ys) --> (!x. x : set ys --> f x = g x) --> map f xs = map g ys";
+by(rtac impI 1);
+by(hyp_subst_tac 1);
+by(induct_tac "ys" 1);
+by(ALLGOALS Asm_simp_tac);
+val lemma = result();
+bind_thm("map_cong",impI RSN (2,allI RSN (2,lemma RS mp RS mp)));
+
 (** rev **)
 
 section "rev";
@@ -617,3 +627,15 @@ by (induct_tac "xs" 1);
 by (asm_full_simp_tac (!simpset setloop (split_tac[expand_if])) 1);
 qed_spec_mp"set_of_list_take_whileD";
 
+(** replicate **)
+section "replicate";
+
+goal thy "set(replicate (Suc n) x) = {x}";
+by(induct_tac "n" 1);
+by(ALLGOALS Asm_full_simp_tac);
+val lemma = result();
+
+goal thy "!!n. n ~= 0 ==> set(replicate n x) = {x}";
+by(fast_tac (!claset addSDs [not0_implies_Suc] addSIs [lemma]) 1);
+qed "set_replicate";
+Addsimps [set_replicate];
