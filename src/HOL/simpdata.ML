@@ -517,9 +517,8 @@ val simpsetup =
 (*** integration of simplifier with classical reasoner ***)
 
 structure Clasimp = ClasimpFun
- (structure Simplifier = Simplifier 
-        and Classical  = Classical 
-        and Blast      = Blast);
+ (structure Simplifier = Simplifier and Splitter = Splitter
+   and Classical  = Classical and Blast = Blast);
 open Clasimp;
 
 val HOL_css = (HOL_cs, HOL_ss);
