@@ -22,7 +22,7 @@ is_flat         :: "'a=>bool"
 
 defs
 
-iterate_def   "iterate n F c == nat_rec n c (%n x.F`x)"
+iterate_def   "iterate n F c == nat_rec c (%n x.F`x) n"
 Ifix_def      "Ifix F == lub(range(%i.iterate i F UU))"
 fix_def       "fix == (LAM f. Ifix f)"
 
