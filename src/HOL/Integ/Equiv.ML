@@ -125,22 +125,19 @@ by (assume_tac 2);
 by (Fast_tac 1);
 qed "quotientE";
 
-(** Not needed by Theory Integ --> bypassed **)
-(**goalw Equiv.thy [equiv_def,refl_def,quotient_def]
+goalw Equiv.thy [equiv_def,refl_def,quotient_def]
     "!!A r. equiv A r ==> Union(A/r) = A";
-by (Fast_tac 1);
+by (blast_tac (!claset addSIs [equalityI]) 1);
 qed "Union_quotient";
-**)
 
-(** Not needed by Theory Integ --> bypassed **)
-(*goalw Equiv.thy [quotient_def]
-    "!!A r. [| equiv A r;  X: A/r;  Y: A/r |] ==> X=Y | (X Int Y <= 0)";
+goalw Equiv.thy [quotient_def]
+    "!!A r. [| equiv A r;  X: A/r;  Y: A/r |] ==> X=Y | (X Int Y = {})";
 by (safe_tac (!claset addSIs [equiv_class_eq]));
 by (assume_tac 1);
 by (rewrite_goals_tac [equiv_def,trans_def,sym_def]);
-by (Fast_tac 1);
+by (blast_tac (!claset addSIs [equalityI]) 1);
 qed "quotient_disj";
-**)
+
 
 (**** Defining unary operations upon equivalence classes ****)
 
