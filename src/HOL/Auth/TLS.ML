@@ -179,7 +179,7 @@ fun analz_induct_tac i =
     ALLGOALS (asm_simp_tac (simpset() addsimps split_ifs @ pushes))  THEN
     (*Remove instances of pubK B:  the Spy already knows all public keys.
       Combining the two simplifier calls makes them run extremely slowly.*)
-    ALLGOALS (asm_simp_tac (simpset() addsimps [insert_absorb]));
+    ALLGOALS (asm_simp_tac (simpset() addsimps [image_eq_UN, insert_absorb]));
 
 
 (*** Properties of items found in Notes ***)
@@ -405,9 +405,9 @@ by (etac rev_mp 1);
 by (hyp_subst_tac 1);
 by (analz_induct_tac 1);
 (*SpyKeys*)
-by (Blast_tac 3);
+by (Blast_tac 2);
 (*Fake*)
-by (blast_tac (claset() addIs [parts_insertI]) 2);
+by (blast_tac (claset() addIs [parts_insertI]) 1);
 (** LEVEL 6 **)
 (*Oops*)
 by (REPEAT 
@@ -440,11 +440,9 @@ by (etac rev_mp 1);
 by (etac rev_mp 1);
 by (analz_induct_tac 1);        (*5 seconds*)
 (*SpyKeys*)
-by (blast_tac (claset() addDs [Says_imp_spies RS analz.Inj]) 3);
+by (blast_tac (claset() addDs [Says_imp_spies RS analz.Inj]) 2);
 (*Fake*) 
-by (spy_analz_tac 2);
-(*Base*)
-by (Blast_tac 1);
+by (spy_analz_tac 1);
 qed "sessionK_not_spied";
 
 

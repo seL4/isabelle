@@ -149,7 +149,7 @@ qed "Nonce_supply";
 (*Tactic for possibility theorems*)
 fun possibility_tac st = st |>
     REPEAT (*omit used_Says so that Nonces start from different traces!*)
-    (ALLGOALS (simp_tac (simpset() delsimps [used_Says] setSolver safe_solver))
+    (ALLGOALS (simp_tac (simpset() delsimps [used_Says]))
      THEN
      REPEAT_FIRST (eq_assume_tac ORELSE' 
                    resolve_tac [refl, conjI, Nonce_supply]));

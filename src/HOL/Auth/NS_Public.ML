@@ -13,6 +13,8 @@ AddDs [impOfSubs Fake_parts_insert];
 
 AddIffs [Spy_in_bad];
 
+Addsimps [image_eq_UN];  (*accelerates proofs involving nested images*)
+
 (*A "possibility property": there are traces that reach the end*)
 Goal
    "EX NB. EX evs: ns_public. Says A B (Crypt (pubK B) (Nonce NB)) : set evs";
