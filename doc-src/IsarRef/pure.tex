@@ -904,7 +904,7 @@ as well.  These typically achieve a stronger forward style of reasoning.
 \end{descr}
 
 
-\subsection{Emulating tactic scripts}
+\subsection{Emulating tactic scripts}\label{sec:tactical-proof}
 
 The following elements emulate unstructured tactic scripts to some extent.
 While these are anathema for writing proper Isar proof documents, they might
@@ -915,17 +915,40 @@ preparation, for example).
 \indexisarcmd{apply}\indexisarcmd{apply-end}
 \indexisarcmd{defer}\indexisarcmd{prefer}\indexisarcmd{back}
 \indexisarmeth{tactic}
+\indexisarmeth{res-inst-tac}\indexisarmeth{eres-inst-tac}
+\indexisarmeth{dres-inst-tac}\indexisarmeth{forw-inst-tac}
+\indexisarmeth{subgoal-tac}
 \begin{matharray}{rcl}
-  \isarcmd{apply} & : & \isartrans{proof(prove)}{proof(prove)} \\
-  \isarcmd{apply_end} & : & \isartrans{proof(state)}{proof(state)} \\
-  \isarcmd{defer} & : & \isartrans{proof}{proof} \\
-  \isarcmd{prefer} & : & \isartrans{proof}{proof} \\
-  \isarcmd{back} & : & \isartrans{proof}{proof} \\
-  tactic & : & \isarmeth \\
+  \isarcmd{apply}^* & : & \isartrans{proof(prove)}{proof(prove)} \\
+  \isarcmd{apply_end}^* & : & \isartrans{proof(state)}{proof(state)} \\
+  \isarcmd{defer}^* & : & \isartrans{proof}{proof} \\
+  \isarcmd{prefer}^* & : & \isartrans{proof}{proof} \\
+  \isarcmd{back}^* & : & \isartrans{proof}{proof} \\
+  tactic^* & : & \isarmeth \\
+  res_inst_tac^* & : & \isarmeth \\
+  eres_inst_tac^* & : & \isarmeth \\
+  dres_inst_tac^* & : & \isarmeth \\
+  forw_inst_tac^* & : & \isarmeth \\
+  subgoal_tac^* & : & \isarmeth \\
 \end{matharray}
 
 \railalias{applyend}{apply\_end}
 \railterm{applyend}
+
+\railalias{resinsttac}{res\_inst\_tac}
+\railterm{resinsttac}
+
+\railalias{eresinsttac}{eres\_inst\_tac}
+\railterm{eresinsttac}
+
+\railalias{dresinsttac}{dres\_inst\_tac}
+\railterm{dresinsttac}
+
+\railalias{forwinsttac}{forw\_inst\_tac}
+\railterm{forwinsttac}
+
+\railalias{subgoaltac}{subgoal\_tac}
+\railterm{subgoaltac}
 
 \begin{rail}
   'apply' method
@@ -937,6 +960,10 @@ preparation, for example).
   'prefer' nat
   ;
   'tactic' text
+  ;
+  ( resinsttac | eresinsttac | dresinsttac | forwinsttac ) goalspec? ((name '=' term) + 'and')
+  ;
+  subgoaltac goalspec? prop
   ;
 \end{rail}
 
@@ -979,6 +1006,20 @@ val thms  : string -> thm list
   indicates any current facts for forward-chaining, and
   \texttt{thm}~/~\texttt{thms} retrieve named facts (including global
   theorems) from the context.
+\item [$res_inst_tac$ etc.] do resolution of rules with explicit
+  instantiation.  This works the same way as the corresponding ML tactics, see
+  \cite[\S3]{isabelle-ref}.
+  
+  It is very important to note that the instantiations are read and
+  type-checked according to the dynamic goal state, rather than the static
+  proof context!  In particular, locally fixed variables and term
+  abbreviations may not be included in the term specifications.
+\item [$subgoal_tac$] emulates the ML tactic of the same name, see
+  \cite[\S3]{isabelle-ref}.  Syntactically, the given proposition is handled
+  as the instantiations in $res_inst_tac$ etc.
+  
+  Note that the proper Isar command $\PRESUMENAME$ achieves a similar effect
+  as $subgoal_tac$.
 \end{descr}
 
 
