@@ -33,6 +33,9 @@ sig
   val elim_bang_local: Proof.context attribute
   val intro_bang_local: Proof.context attribute
   val rule_del_local: Proof.context attribute
+  val RAW_METHOD: (thm list -> tactic) -> Proof.method
+  val RAW_METHOD_CASES:
+    (thm list -> thm -> (thm * (string * RuleCases.T) list) Seq.seq) -> Proof.method
   val METHOD: (thm list -> tactic) -> Proof.method
   val METHOD_CASES:
     (thm list -> thm -> (thm * (string * RuleCases.T) list) Seq.seq) -> Proof.method
@@ -100,24 +103,24 @@ sig
   val refine_end: text -> Proof.state -> Proof.state Seq.seq
   val proof: text option -> Proof.state -> Proof.state Seq.seq
   val local_qed: bool -> text option
-    -> (Proof.context -> {kind: string, name: string, thm: thm} -> unit) *
+    -> (Proof.context -> string * (string * thm list) list -> unit) *
       (Proof.context -> thm -> unit) -> Proof.state -> Proof.state Seq.seq
   val local_terminal_proof: text * text option
-    -> (Proof.context -> {kind: string, name: string, thm: thm} -> unit) *
+    -> (Proof.context -> string * (string * thm list) list -> unit) *
       (Proof.context -> thm -> unit) -> Proof.state -> Proof.state Seq.seq
-  val local_default_proof: (Proof.context -> {kind: string, name: string, thm: thm} -> unit) *
+  val local_default_proof: (Proof.context -> string * (string * thm list) list -> unit) *
     (Proof.context -> thm -> unit) -> Proof.state -> Proof.state Seq.seq
-  val local_immediate_proof: (Proof.context -> {kind: string, name: string, thm: thm} -> unit) *
+  val local_immediate_proof: (Proof.context -> string * (string * thm list) list -> unit) *
     (Proof.context -> thm -> unit) -> Proof.state -> Proof.state Seq.seq
-  val local_done_proof: (Proof.context -> {kind: string, name: string, thm: thm} -> unit) *
+  val local_done_proof: (Proof.context -> string * (string * thm list) list -> unit) *
     (Proof.context -> thm -> unit) -> Proof.state -> Proof.state Seq.seq
   val global_qed: bool -> text option
-    -> Proof.state -> theory * {kind: string, name: string, thm: thm}
+    -> Proof.state -> theory * (string * (string * thm list) list)
   val global_terminal_proof: text * text option
-    -> Proof.state -> theory * {kind: string, name: string, thm: thm}
-  val global_default_proof: Proof.state -> theory * {kind: string, name: string, thm: thm}
-  val global_immediate_proof: Proof.state -> theory * {kind: string, name: string, thm: thm}
-  val global_done_proof: Proof.state -> theory * {kind: string, name: string, thm: thm}
+    -> Proof.state -> theory * (string * (string * thm list) list)
+  val global_default_proof: Proof.state -> theory * (string * (string * thm list) list)
+  val global_immediate_proof: Proof.state -> theory * (string * (string * thm list) list)
+  val global_done_proof: Proof.state -> theory * (string * (string * thm list) list)
   val goal_args: (Args.T list -> 'a * Args.T list) -> ('a -> int -> tactic)
     -> Args.src -> Proof.context -> Proof.method
   val goal_args': (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list))
@@ -262,8 +265,12 @@ val rule_atts =
 
 (* make methods *)
 
-val METHOD = Proof.method;
-val METHOD_CASES = Proof.method_cases;
+val RAW_METHOD = Proof.method;
+val RAW_METHOD_CASES = Proof.method_cases;
+
+fun METHOD m = Proof.method (fn facts => TRY Tactic.conjunction_tac THEN m facts);
+fun METHOD_CASES m =
+  Proof.method_cases (fn facts => Seq.THEN (TRY Tactic.conjunction_tac, m facts));
 
 
 (* primitive *)
