@@ -137,6 +137,7 @@ fun mk_simproc (name, proc, lhs, id) =
              mk_sym: turns == around; (needs Drule!)
              mk_eq_True: turns P into P == True - logic specific;
     termless: relation for ordered rewriting;
+    depth: depth of conditional rewriting;
 *)
 
 datatype meta_simpset =
@@ -149,22 +150,26 @@ datatype meta_simpset =
     mk_rews: {mk: thm -> thm list,
               mk_sym: thm -> thm option,
               mk_eq_True: thm -> thm option},
-    termless: term * term -> bool};
+    termless: term * term -> bool,
+    depth: int};
 
-fun mk_mss (rules, congs, procs, bounds, prems, mk_rews, termless) =
+fun mk_mss (rules, congs, procs, bounds, prems, mk_rews, termless, depth) =
   Mss {rules = rules, congs = congs, procs = procs, bounds = bounds,
-       prems=prems, mk_rews=mk_rews, termless=termless};
+       prems=prems, mk_rews=mk_rews, termless=termless, depth=depth};
 
-fun upd_rules(Mss{rules,congs,procs,bounds,prems,mk_rews,termless}, rules') =
-  mk_mss(rules',congs,procs,bounds,prems,mk_rews,termless);
+fun upd_rules(Mss{rules,congs,procs,bounds,prems,mk_rews,termless,depth}, rules') =
+  mk_mss(rules',congs,procs,bounds,prems,mk_rews,termless,depth);
 
 val empty_mss =
   let val mk_rews = {mk = K [], mk_sym = K None, mk_eq_True = K None}
-  in mk_mss (Net.empty, ([], []), Net.empty, [], [], mk_rews, Term.termless) end;
+  in mk_mss (Net.empty, ([], []), Net.empty, [], [], mk_rews, Term.termless, 0) end;
 
 fun clear_mss (Mss {mk_rews, termless, ...}) =
-  mk_mss (Net.empty, ([], []), Net.empty, [], [], mk_rews, termless);
+  mk_mss (Net.empty, ([], []), Net.empty, [], [], mk_rews, termless,0);
 
+fun incr_depth(Mss{rules,congs,procs,bounds,prems,mk_rews,termless,depth}) =
+  mk_mss (rules, congs, procs, bounds, prems, mk_rews, termless, depth+1)
+ 
 
 
 (** simpset operations **)
@@ -187,11 +192,11 @@ fun dest_mss (Mss {rules, congs, procs, ...}) =
      |> Library.sort_wrt #1};
 
 
-(* merge_mss *)		(*NOTE: ignores mk_rews and termless of 2nd mss*)
+(* merge_mss *)	      (*NOTE: ignores mk_rews, termless and depth of 2nd mss*)
 
 fun merge_mss
  (Mss {rules = rules1, congs = (congs1,weak1), procs = procs1,
-       bounds = bounds1, prems = prems1, mk_rews, termless},
+       bounds = bounds1, prems = prems1, mk_rews, termless, depth},
   Mss {rules = rules2, congs = (congs2,weak2), procs = procs2,
        bounds = bounds2, prems = prems2, ...}) =
       mk_mss
@@ -201,7 +206,7 @@ fun merge_mss
         Net.merge (procs1, procs2, eq_simproc),
         merge_lists bounds1 bounds2,
         generic_merge eq_prem I I prems1 prems2,
-        mk_rews, termless);
+        mk_rews, termless, depth);
 
 
 (* add_simps *)
@@ -365,7 +370,7 @@ in
   is_full_cong_prems prems (xs ~~ ys)
 end
 
-fun add_cong (Mss {rules,congs,procs,bounds,prems,mk_rews,termless}, thm) =
+fun add_cong (Mss {rules,congs,procs,bounds,prems,mk_rews,termless,depth}, thm) =
   let
     val (lhs, _) = Drule.dest_equals (Drule.strip_imp_concl (cprop_of thm)) handle TERM _ =>
       raise SIMPLIFIER ("Congruence not a meta-equality", thm);
@@ -377,7 +382,7 @@ fun add_cong (Mss {rules,congs,procs,bounds,prems,mk_rews,termless}, thm) =
            ("Overwriting congruence rule for " ^ quote a);
     val weak2 = if is_full_cong thm then weak else a::weak
   in
-    mk_mss (rules, (alist2,weak2), procs, bounds, prems, mk_rews, termless)
+    mk_mss (rules,(alist2,weak2),procs,bounds,prems,mk_rews,termless,depth)
   end;
 
 val (op add_congs) = foldl add_cong;
@@ -385,7 +390,7 @@ val (op add_congs) = foldl add_cong;
 
 (* del_congs *)
 
-fun del_cong (Mss {rules,congs,procs,bounds,prems,mk_rews,termless}, thm) =
+fun del_cong (Mss {rules,congs,procs,bounds,prems,mk_rews,termless,depth}, thm) =
   let
     val (lhs, _) = Logic.dest_equals (concl_of thm) handle TERM _ =>
       raise SIMPLIFIER ("Congruence not a meta-equality", thm);
@@ -398,7 +403,7 @@ fun del_cong (Mss {rules,congs,procs,bounds,prems,mk_rews,termless}, thm) =
                                               else Some a)
                    alist2
   in
-    mk_mss (rules, (alist2,weak2), procs, bounds, prems, mk_rews, termless)
+    mk_mss (rules,(alist2,weak2),procs,bounds,prems,mk_rews,termless,depth)
   end;
 
 val (op del_congs) = foldl del_cong;
@@ -406,7 +411,7 @@ val (op del_congs) = foldl del_cong;
 
 (* add_simprocs *)
 
-fun add_proc (mss as Mss {rules,congs,procs,bounds,prems,mk_rews,termless},
+fun add_proc (mss as Mss {rules,congs,procs,bounds,prems,mk_rews,termless,depth},
     (name, lhs, proc, id)) =
   let val {sign, t, ...} = rep_cterm lhs
   in (trace_term false ("Adding simplification procedure " ^ quote name ^ " for")
@@ -417,7 +422,7 @@ fun add_proc (mss as Mss {rules,congs,procs,bounds,prems,mk_rews,termless},
 	    (warning ("Ignoring duplicate simplification procedure \"" 
 	              ^ name ^ "\""); 
 	     procs),
-        bounds, prems, mk_rews, termless))
+        bounds, prems, mk_rews, termless,depth))
   end;
 
 fun add_simproc (mss, (name, lhss, proc, id)) =
@@ -428,14 +433,14 @@ val add_simprocs = foldl add_simproc;
 
 (* del_simprocs *)
 
-fun del_proc (mss as Mss {rules,congs,procs,bounds,prems,mk_rews,termless},
+fun del_proc (mss as Mss {rules,congs,procs,bounds,prems,mk_rews,termless,depth},
     (name, lhs, proc, id)) =
   mk_mss (rules, congs,
     Net.delete_term ((term_of lhs, mk_simproc (name, proc, lhs, id)), procs, eq_simproc)
       handle Net.DELETE => 
 	  (warning ("Simplification procedure \"" ^ name ^
 		       "\" not in simpset"); procs),
-      bounds, prems, mk_rews, termless);
+      bounds, prems, mk_rews, termless, depth);
 
 fun del_simproc (mss, (name, lhss, proc, id)) =
   foldl del_proc (mss, map (fn lhs => (name, lhs, proc, id)) lhss);
@@ -445,8 +450,8 @@ val del_simprocs = foldl del_simproc;
 
 (* prems *)
 
-fun add_prems (Mss {rules,congs,procs,bounds,prems,mk_rews,termless}, thms) =
-  mk_mss (rules, congs, procs, bounds, thms @ prems, mk_rews, termless);
+fun add_prems (Mss {rules,congs,procs,bounds,prems,mk_rews,termless,depth}, thms) =
+  mk_mss (rules, congs, procs, bounds, thms @ prems, mk_rews, termless, depth);
 
 fun prems_of_mss (Mss {prems, ...}) = prems;
 
@@ -454,28 +459,28 @@ fun prems_of_mss (Mss {prems, ...}) = prems;
 (* mk_rews *)
 
 fun set_mk_rews
-  (Mss {rules, congs, procs, bounds, prems, mk_rews, termless}, mk) =
+  (Mss {rules, congs, procs, bounds, prems, mk_rews, termless, depth}, mk) =
     mk_mss (rules, congs, procs, bounds, prems,
             {mk=mk, mk_sym= #mk_sym mk_rews, mk_eq_True= #mk_eq_True mk_rews},
-            termless);
+            termless, depth);
 
 fun set_mk_sym
-  (Mss {rules, congs, procs, bounds, prems, mk_rews, termless}, mk_sym) =
+  (Mss {rules,congs,procs,bounds,prems,mk_rews,termless,depth}, mk_sym) =
     mk_mss (rules, congs, procs, bounds, prems,
             {mk= #mk mk_rews, mk_sym= mk_sym, mk_eq_True= #mk_eq_True mk_rews},
-            termless);
+            termless,depth);
 
 fun set_mk_eq_True
-  (Mss {rules, congs, procs, bounds, prems, mk_rews, termless}, mk_eq_True) =
+  (Mss {rules,congs,procs,bounds,prems,mk_rews,termless,depth}, mk_eq_True) =
     mk_mss (rules, congs, procs, bounds, prems,
             {mk= #mk mk_rews, mk_sym= #mk_sym mk_rews, mk_eq_True= mk_eq_True},
-            termless);
+            termless,depth);
 
 (* termless *)
 
 fun set_termless
-  (Mss {rules, congs, procs, bounds, prems, mk_rews, termless = _}, termless) =
-    mk_mss (rules, congs, procs, bounds, prems, mk_rews, termless);
+  (Mss {rules, congs, procs, bounds, prems, mk_rews, depth, ...}, termless) =
+    mk_mss (rules, congs, procs, bounds, prems, mk_rews, termless, depth);
 
 
 
@@ -563,7 +568,7 @@ fun cond_skel(args as (congs,(lhs,rhs))) =
 *)
 
 fun rewritec (prover, signt, maxt)
-             (mss as Mss{rules, procs, termless, prems, congs, ...}) t =
+             (mss as Mss{rules, procs, termless, prems, congs, depth,...}) t =
   let
     val eta_thm = Thm.eta_conversion t;
     val eta_t' = rhs_of eta_thm;
@@ -588,24 +593,26 @@ fun rewritec (prover, signt, maxt)
         then (trace_thm false "Cannot apply permutative rewrite rule:" thm;
               trace_thm false "Term does not become smaller:" thm'; None)
         else
-          (trace_thm false "Applying instance of rewrite rule:" thm;
+          let val ds = "[" ^ string_of_int depth ^ "]"
+          in trace_thm false "Applying instance of rewrite rule:" thm;
            if unconditional
            then
-             (trace_thm false "Rewriting:" thm';
+             (trace_thm false (ds ^ "Rewriting:") thm';
               let val lr = Logic.dest_equals prop;
                   val Some thm'' = check_conv false eta_thm thm'
               in Some (thm'', uncond_skel (congs, lr)) end)
            else
-             (trace_thm false "Trying to rewrite:" thm';
-              case prover mss thm' of
-                None       => (trace_thm false "FAILED" thm'; None)
+             (trace_thm false (ds ^ "Trying to rewrite:") thm';
+              case prover (incr_depth mss) thm' of
+                None       => (trace_thm false (ds ^ "FAILED") thm'; None)
               | Some thm2 =>
                   (case check_conv true eta_thm thm2 of
                      None => None |
                      Some thm2' =>
                        let val concl = Logic.strip_imp_concl prop
                            val lr = Logic.dest_equals concl
-                       in Some (thm2', cond_skel (congs, lr)) end)))
+                       in Some (thm2', cond_skel (congs, lr)) end))
+          end
       end
 
     fun rews [] = None
@@ -694,12 +701,12 @@ fun bottomc ((simprem,useprem,mutsimp), prover, sign, maxidx) =
              Some trec1 => trec1 | None => (reflexive t))
 
     and subc skel
-          (mss as Mss{rules,congs,procs,bounds,prems,mk_rews,termless}) t0 =
+          (mss as Mss{rules,congs,procs,bounds,prems,mk_rews,termless,depth}) t0 =
        (case term_of t0 of
            Abs (a, T, t) =>
              let val b = variant bounds a
                  val (v, t') = Thm.dest_abs (Some ("." ^ b)) t0
-                 val mss' = mk_mss (rules, congs, procs, b :: bounds, prems, mk_rews, termless)
+                 val mss' = mk_mss (rules, congs, procs, b :: bounds, prems, mk_rews, termless,depth)
                  val skel' = case skel of Abs (_, _, sk) => sk | _ => skel0
              in case botc skel' mss' t' of
                   Some thm => Some (abstract_rule a v thm)
