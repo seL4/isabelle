@@ -571,8 +571,14 @@ Addsimps [nth_drop];
 
 section "takeWhile & dropWhile";
 
-goal thy
-  "x:set xs & ~P(x) --> takeWhile P (xs @ ys) = takeWhile P xs";
+goal thy "takeWhile P xs @ dropWhile P xs = xs";
+by (induct_tac "xs" 1);
+ by (Simp_tac 1);
+by (asm_full_simp_tac (!simpset setloop (split_tac[expand_if])) 1);
+qed "takeWhile_dropWhile_id";
+Addsimps [takeWhile_dropWhile_id];
+
+goal thy  "x:set xs & ~P(x) --> takeWhile P (xs @ ys) = takeWhile P xs";
 by (induct_tac "xs" 1);
  by (Simp_tac 1);
 by (asm_full_simp_tac (!simpset setloop (split_tac[expand_if])) 1);
