@@ -72,30 +72,32 @@ fun gen_obtain prep_vars prep_propp prep_att (raw_vars, raw_asms) state =
     val (vars_ctxt, vars) =
       foldl_map prep_vars (Proof.context_of state, map Comment.ignore raw_vars);
     val xs = flat (map fst vars);
-    val thesisN = Term.variant xs AutoBind.thesisN;
-
-    val bind_skolem = ProofContext.bind_skolem vars_ctxt (xs @ [thesisN]);
-    fun bind_propp (prop, (pats1, pats2)) =
-      (bind_skolem prop, (map bind_skolem pats1, map bind_skolem pats2));
+    val fix_ctxt = vars_ctxt |> ProofContext.fix_i vars;
 
     (*obtain asms*)
-    val (asms_ctxt, proppss) = prep_propp (vars_ctxt, map (snd o Comment.ignore) raw_asms);
+    val (asms_ctxt, proppss) = prep_propp (fix_ctxt, map (snd o Comment.ignore) raw_asms);
     val asm_props = flat (map (map fst) proppss);
 
-    fun prep_asm ((name, src), propps) = ((name, map (prep_att thy) src), map bind_propp propps);
+    fun prep_asm ((name, src), propps) = ((name, map (prep_att thy) src), propps);
     val asms = map2 prep_asm (map (fst o Comment.ignore) raw_asms, proppss);
 
-    val _ = ProofContext.warn_extra_tfrees vars_ctxt asms_ctxt;
+    val _ = ProofContext.warn_extra_tfrees fix_ctxt asms_ctxt;
 
     (*that_prop*)
-    fun find_free x t =
-      (case ProofContext.find_free t x of Some (Free a) => Some a | _ => None);
-    fun occs_var x = Library.get_first (find_free x) asm_props;
-    val xs' = mapfilter occs_var xs;
-    val parms = map (bind_skolem o Free) xs';
+    val thesisN = Term.variant xs AutoBind.thesisN;
+    val bound_thesis =
+      ProofContext.bind_skolem fix_ctxt [thesisN] (AutoBind.atomic_judgment thy thesisN);
 
-    val bound_thesis = bind_skolem (AutoBind.atomic_judgment thy thesisN);
-    val that_prop = Term.list_all_free (xs', Logic.list_implies (asm_props, bound_thesis));
+    fun occs_var x = Library.get_first (fn t =>
+      ProofContext.find_free t (ProofContext.get_skolem fix_ctxt x)) asm_props;
+    val raw_parms = map occs_var xs;
+    val parms = mapfilter I raw_parms;
+    val parm_names =
+      mapfilter (fn (Some (Free a), x) => Some (a, x) | _ => None) (raw_parms ~~ xs);
+
+    val that_prop =
+      Term.list_all_free (map #1 parm_names, Logic.list_implies (asm_props, bound_thesis))
+      |> Library.curry Logic.list_rename_params (map #2 parm_names);
 
     fun export_obtained rule =
       (disch_obtained state parms rule, fn _ => fn _ => []);
