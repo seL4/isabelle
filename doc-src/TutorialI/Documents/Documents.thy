@@ -100,8 +100,8 @@ text {*
 
   \end{enumerate}
 
-  Here $ident$ may be any identifier according to the usual Isabelle
-  conventions.  This results in an infinite store of symbols, whose
+  Here $ident$ is any sequence of letters. 
+  This results in an infinite store of symbols, whose
   interpretation is left to further front-end tools.  For example, the
   user-interface of Proof~General + X-Symbol and the Isabelle document
   processor (see \S\ref{sec:document-preparation}) display the
@@ -116,6 +116,24 @@ text {*
   \verb,\,\verb,<^sup>, for sub- and superscript of the subsequent
   printable symbol, respectively.  For example, \verb,A\<^sup>\<star>, is
   output as @{text "A\<^sup>\<star>"}.
+
+  A number of symbols are considered letters by the Isabelle lexer 
+  and can be used as part of identifiers. These are the greek letters
+  @{text "\<alpha>"} (\verb+\+\verb+<alpha>+), @{text "\<beta>"}, etc apart from
+  @{text "\<lambda>"}, caligraphic letters like @{text "\<A>"}
+  (\verb+\+\verb+<A>+) and @{text "\<AA>"} (\verb+\+\verb+<AA>+), 
+  and the special control symbols \verb+\+\verb+<^isub>+ and 
+  \verb+\+\verb+<^isup>+ for single letter sub and super scripts. This
+  means that the input 
+
+  \medskip
+  {\small\noindent \verb,\,\verb,<forall>\,\verb,<alpha>\<^isub>1.\,\verb,<alpha>\<^isub>1=\,\verb,<Pi>\<^isup>\<A>,}
+
+  \medskip
+  \noindent is recognized as the term @{term "\<forall>\<alpha>\<^isub>1. \<alpha>\<^isub>1 = \<Pi>\<^isup>\<A>"} 
+  by Isabelle. Note that @{text "\<Pi>\<^isup>\<A>"} is a single entity like 
+  @{text "PA"}, not an exponentiation.
+
 
   \medskip Replacing our definition of @{text xor} by the following
   specifies an Isabelle symbol for the new operator:
