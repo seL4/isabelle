@@ -75,9 +75,11 @@ axioms
 
   Base_not_Object: "Base \<noteq> Object"
   Ext_not_Object:  "Ext  \<noteq> Object"
+  e_not_This:      "e \<noteq> This"
 
 declare Base_not_Object [simp] Ext_not_Object [simp]
-declare Base_not_Object [THEN not_sym, simp] 
+declare e_not_This [simp]
+declare Base_not_Object [THEN not_sym, simp]
 declare Ext_not_Object  [THEN not_sym, simp]
 
 consts
@@ -329,6 +331,7 @@ lemma wt_test: "(tprg, empty(e\<mapsto>Class Base))\<turnstile>
 apply (tactic t) (* ;; *)
 apply  (tactic t) (* Expr *)
 apply  (tactic t) (* LAss *)
+apply    simp (* e \<noteq> This *)
 apply    (tactic t) (* LAcc *)
 apply     (simp (no_asm))
 apply    (simp (no_asm))
