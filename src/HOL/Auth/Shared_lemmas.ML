@@ -20,6 +20,13 @@ AddIffs [inj_shrK RS inj_eq];
 (* invKey(shrK A) = shrK A *)
 Addsimps [rewrite_rule [isSymKey_def] isSym_keys];
 
+
+Goal "[| Crypt K X \\<in> analz H;  Key K  \\<in> analz H |] ==> X \\<in> analz H";
+by Auto_tac;  
+qed "analz_Decrypt'";
+AddDs [analz_Decrypt'];
+Delrules [analz.Decrypt];
+
 (** Rewrites should not refer to  initState(Friend i) 
     -- not in normal form! **)
 
