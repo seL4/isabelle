@@ -647,6 +647,12 @@ fun sys_error msg = (writeln "*** SYSTEM ERROR ***"; error msg);
 fun assert p msg = if p then () else error msg;
 fun deny p msg = if p then error msg else ();
 
+(*Assert pred for every member of l, generating a message if pred fails*)
+fun assert_all pred l msg_fn = 
+  let fun asl [] = ()
+	| asl (x::xs) = if pred x then asl xs
+	                else error (msg_fn x)
+  in  asl l  end;
 
 (* FIXME close file (?) *)
 (*for the "test" target in Makefiles -- signifies successful termination*)
