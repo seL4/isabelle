@@ -35,6 +35,8 @@ use "net.ML";
 use "logic.ML";
 use "theory.ML";
 use "thm.ML";
+use "deriv.ML";
+use "display.ML";
 use "drule.ML";
 use "tctical.ML";
 use "search.ML";
