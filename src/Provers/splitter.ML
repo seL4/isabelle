@@ -261,21 +261,21 @@ fun split_tac [] i = no_tac
                            val (Const(a,_),args) = strip_comb lhs
                        in (a,(thm,fastype_of t,length args)) end
       val cmap = map const splits;
-      fun lift Ts t p state = rtac (inst_lift Ts t p state trlift i) i
-      fun lift_split state =
-            let val (Ts,t,splits) = select cmap state i
+      fun lift_tac Ts t p st = (rtac (inst_lift Ts t p st trlift i) i) st
+      fun lift_split_tac st = st |>
+            let val (Ts,t,splits) = select cmap st i
             in case splits of
                  [] => no_tac
                | (thm,apsns,pos,TB,tt)::_ =>
                    (case apsns of
-                      [] => STATE(fn state => rtac (inst_split Ts t tt thm TB state) i)
-                    | p::_ => EVERY[STATE(lift Ts t p),
+                      [] => (fn state => state |>
+			           rtac (inst_split Ts t tt thm TB state) i)
+                    | p::_ => EVERY[lift_tac Ts t p,
                                     rtac reflexive_thm (i+1),
-                                    STATE lift_split])
+                                    lift_split_tac])
             end
-  in STATE(fn thm =>
-       if i <= nprems_of thm then rtac iffD i THEN STATE lift_split
-       else no_tac)
+  in COND (has_fewer_prems i) no_tac 
+          (rtac iffD i THEN lift_split_tac)
   end;
 
 in split_tac end;

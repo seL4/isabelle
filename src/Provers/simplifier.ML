@@ -272,9 +272,8 @@ fun Delsimprocs procs = (simpset := ! simpset delsimprocs procs);
 
 (** simplification tactics **)
 
-fun NEWSUBGOALS tac tacf =
-  STATE (fn state0 =>
-    tac THEN STATE (fn state1 => tacf (nprems_of state1 - nprems_of state0)));
+fun NEWSUBGOALS tac tacf st0 = st0 |>
+    (tac THEN (fn st1 => tacf (nprems_of st1 - nprems_of st0) st1));
 
 (*not totally safe: may instantiate unknowns that appear also in other subgoals*)
 fun basic_gen_simp_tac mode =

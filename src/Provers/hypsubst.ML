@@ -116,12 +116,11 @@ fun eq_var bnd novars =
   since e.g. z=f(x); x=z changes to z=f(x); x=f(x) and the second equality
   must NOT be deleted.  Tactic must rotate or delete m assumptions.
 *)
-fun thin_leading_eqs_tac bnd m i = STATE(fn state =>
+fun thin_leading_eqs_tac bnd m = SUBGOAL (fn (Bi,i) =>
     let fun count []      = 0
 	  | count (A::Bs) = ((inspect_pair bnd true (dest_eq A);  
 			      1 + count Bs)
                              handle Match => 0)
-	val (_,_,Bi,_) = dest_state(state,i)
         val j = Int.min(m, count (Logic.strip_assums_hyp Bi))
     in  REPEAT_DETERM_N j (etac thin_rl i)  THEN  rotate_tac (m-j) i
     end);
@@ -141,17 +140,16 @@ in
 
   (*Select a suitable equality assumption and substitute throughout the subgoal
     Replaces only Bound variables if bnd is true*)
-  fun gen_hyp_subst_tac bnd i = DETERM (STATE(fn state =>
-	let val (_,_,Bi,_) = dest_state(state,i)
-	    val n = length(Logic.strip_assums_hyp Bi) - 1
+  fun gen_hyp_subst_tac bnd = SUBGOAL(fn (Bi,i) =>
+	let val n = length(Logic.strip_assums_hyp Bi) - 1
 	    val (k,_) = eq_var bnd true Bi
 	in 
-	   EVERY [rotate_tac k i,
-		  asm_full_simp_tac hyp_subst_ss i,
-		  etac thin_rl i,
-		  thin_leading_eqs_tac bnd (n-k) i]
+	   DETERM (EVERY [rotate_tac k i,
+			  asm_full_simp_tac hyp_subst_ss i,
+			  etac thin_rl i,
+			  thin_leading_eqs_tac bnd (n-k) i])
 	end
-	handle THM _ => no_tac | EQ_VAR => no_tac));
+	handle THM _ => no_tac | EQ_VAR => no_tac);
 
 end;
 
@@ -159,18 +157,18 @@ val ssubst = standard (sym RS subst);
 
 (*Old version of the tactic above -- slower but the only way
   to handle equalities containing Vars.*)
-fun vars_gen_hyp_subst_tac bnd i = DETERM (STATE(fn state =>
-      let val (_,_,Bi,_) = dest_state(state,i)
-	  val n = length(Logic.strip_assums_hyp Bi) - 1
+fun vars_gen_hyp_subst_tac bnd = SUBGOAL(fn (Bi,i) =>
+      let val n = length(Logic.strip_assums_hyp Bi) - 1
 	  val (k,symopt) = eq_var bnd false Bi
       in 
-	 EVERY [REPEAT_DETERM_N k (etac rev_mp i),
-		etac revcut_rl i,
-		REPEAT_DETERM_N (n-k) (etac rev_mp i),
-		etac (if symopt then ssubst else subst) i,
-		REPEAT_DETERM_N n (rtac imp_intr i THEN rotate_tac ~1 i)]
+	 DETERM
+           (EVERY [REPEAT_DETERM_N k (etac rev_mp i),
+		   etac revcut_rl i,
+		   REPEAT_DETERM_N (n-k) (etac rev_mp i),
+		   etac (if symopt then ssubst else subst) i,
+		   REPEAT_DETERM_N n (rtac imp_intr i THEN rotate_tac ~1 i)])
       end
-      handle THM _ => no_tac | EQ_VAR => no_tac));
+      handle THM _ => no_tac | EQ_VAR => no_tac);
 
 (*Substitutes for Free or Bound variables*)
 val hyp_subst_tac = 

@@ -245,8 +245,8 @@ fun cnf_aux seen (th,ths) =
   handle THM _ => (*disjunction?*)
     let val tac = 
         (METAHYPS (resop (cnf_nil seen)) 1) THEN
-        (STATE (fn st' => 
-                METAHYPS (resop (cnf_nil (literals (concl_of st') @ seen))) 1))
+        (fn st' => st' |>
+                METAHYPS (resop (cnf_nil (literals (concl_of st') @ seen))) 1)
     in  Sequence.list_of_s (tac (th RS disj_forward)) @ ths  end
 and cnf_nil seen th = cnf_aux seen (th,[]);
 

@@ -67,18 +67,18 @@ fun eq_var bnd =
 
 (*Select a suitable equality assumption and substitute throughout the subgoal
   Replaces only Bound variables if bnd is true*)
-fun gen_hyp_subst_tac bnd i = DETERM (STATE(fn state =>
-      let val (_,_,Bi,_) = dest_state(state,i)
-          val n = length(Logic.strip_assums_hyp Bi) - 1
+fun gen_hyp_subst_tac bnd = SUBGOAL(fn (Bi,i) =>
+      let val n = length(Logic.strip_assums_hyp Bi) - 1
           val (k,symopt) = eq_var bnd Bi
       in 
-         EVERY [REPEAT_DETERM_N k (etac rev_mp i),
-                etac revcut_rl i,
-                REPEAT_DETERM_N (n-k) (etac rev_mp i),
-                etac (symopt RS subst) i,
-                REPEAT_DETERM_N n (rtac imp_intr i)]
+         DETERM
+           (EVERY [REPEAT_DETERM_N k (etac rev_mp i),
+		   etac revcut_rl i,
+		   REPEAT_DETERM_N (n-k) (etac rev_mp i),
+		   etac (symopt RS subst) i,
+		   REPEAT_DETERM_N n (rtac imp_intr i)])
       end
-      handle THM _ => no_tac | EQ_VAR => no_tac));
+      handle THM _ => no_tac | EQ_VAR => no_tac);
 
 (*Substitutes for Free or Bound variables*)
 val hyp_subst_tac = gen_hyp_subst_tac false;

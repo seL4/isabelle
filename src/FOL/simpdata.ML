@@ -257,18 +257,21 @@ add_thy_reader_file "thy_data.ML";
 
 (* rot_eq_tac rotates the first equality premise of subgoal i to the front,
    fails if there is no equaliy or if an equality is already at the front *)
-fun rot_eq_tac i = let
+local
   fun is_eq (Const ("Trueprop", _) $ (Const("op ="  ,_) $ _ $ _)) = true
-  |   is_eq (Const ("Trueprop", _) $ (Const("op <->",_) $ _ $ _)) = true
-  |   is_eq _ = false;
+    | is_eq (Const ("Trueprop", _) $ (Const("op <->",_) $ _ $ _)) = true
+    | is_eq _ = false;
   fun find_eq n [] = None
-  |   find_eq n (t :: ts) = if (is_eq t) then Some n else find_eq (n + 1) ts;
-  fun rot_eq state = let val (_, _, Bi, _) = dest_state (state, i) in
-	    (case find_eq 0 (Logic.strip_assums_hyp Bi) of
-	      None   => no_tac
-	    | Some 0 => no_tac
-	    | Some n => rotate_tac n i) end;
-in STATE rot_eq end;
+    | find_eq n (t :: ts) = if (is_eq t) then Some n 
+			    else find_eq (n + 1) ts;
+in
+val rot_eq_tac = 
+     SUBGOAL (fn (Bi,i) => 
+	      case find_eq 0 (Logic.strip_assums_hyp Bi) of
+		  None   => no_tac
+		| Some 0 => no_tac
+		| Some n => rotate_tac n i)
+end;
 
 
 fun safe_asm_more_full_simp_tac ss = TRY o rot_eq_tac THEN' 

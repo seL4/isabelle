@@ -595,7 +595,7 @@ fun dup_step_tac (cs as (CS{dup_netpair,...})) =
   biresolve_from_nets_tac dup_netpair;
 
 (*Searching to depth m.*)
-fun depth_tac cs m i = STATE(fn state => 
+fun depth_tac cs m i state = 
   SELECT_GOAL 
    (getWrapper cs
     (fn i => REPEAT_DETERM1 (COND (has_fewer_prems i) no_tac
@@ -605,7 +605,7 @@ fun depth_tac cs m i = STATE(fn state =>
       COND (K(m=0)) no_tac
         ((instp_step_tac cs i APPEND dup_step_tac cs i)
 	 THEN DEPTH_SOLVE (depth_tac cs (m-1) i)))) 1)
-  i);
+  i state;
 
 (*Search, with depth bound m.  
   This is the "entry point", which does safe inferences first.*)

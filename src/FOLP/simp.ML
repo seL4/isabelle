@@ -202,15 +202,15 @@ let val thm' = mk_trans2 thm;
     val hvars = foldr it_asms (asms,hvars)
     val hvs = map (#1 o dest_Var) hvars
     val refl1_tac = refl_tac 1
-    val add_norm_tac = DEPTH_FIRST (has_fewer_prems nops)
-              (STATE(fn thm =>
-                case head_of(rhs_of_eq 1 thm) of
-                  Var(ixn,_) => if ixn mem hvs then refl1_tac
-                                else resolve_tac normI_thms 1 ORELSE refl1_tac
-                | Const _ => resolve_tac normI_thms 1 ORELSE
-                             resolve_tac congs 1 ORELSE refl1_tac
-                | Free _ => resolve_tac congs 1 ORELSE refl1_tac
-                | _ => refl1_tac))
+    fun norm_step_tac st = st |>
+	 (case head_of(rhs_of_eq 1 st) of
+	    Var(ixn,_) => if ixn mem hvs then refl1_tac
+			  else resolve_tac normI_thms 1 ORELSE refl1_tac
+	  | Const _ => resolve_tac normI_thms 1 ORELSE
+		       resolve_tac congs 1 ORELSE refl1_tac
+	  | Free _ => resolve_tac congs 1 ORELSE refl1_tac
+	  | _ => refl1_tac)
+    val add_norm_tac = DEPTH_FIRST (has_fewer_prems nops) norm_step_tac
     val Some(thm'',_) = Sequence.pull(add_norm_tac thm')
 in thm'' end;
 

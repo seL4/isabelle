@@ -83,9 +83,8 @@ fun could_IH x = could_unify(x,hd (prems_of rcallT)) orelse
                  could_unify(x,hd (prems_of rcall2T)) orelse
                  could_unify(x,hd (prems_of rcall3T));
 
-fun IHinst tac rls i = STATE (fn state =>
-  let val (_,_,Bi,_) = dest_state(state,i);
-      val bvs = bvars Bi [];
+fun IHinst tac rls = SUBGOAL (fn (Bi,i) =>
+  let val bvs = bvars Bi [];
       val ihs = filter could_IH (Logic.strip_assums_hyp Bi);
       val rnames = map (fn x=>
                     let val (a,b) = get_bno [] 0 x
@@ -113,12 +112,8 @@ fun raw_step_tac prems i = ares_tac (prems@type_rls) i ORELSE
                            ematch_tac [SubtypeE] i ORELSE
                            match_tac [SubtypeI] i;
 
-fun tc_step_tac prems i = STATE(fn state =>
-          if (i>length(prems_of state)) 
-             then no_tac
-             else let val (_,_,c,_) = dest_state(state,i)
-                  in if is_rigid_prog c then raw_step_tac prems i else no_tac
-                  end);
+fun tc_step_tac prems = SUBGOAL (fn (Bi,i) =>
+          if is_rigid_prog Bi then raw_step_tac prems i else no_tac);
 
 fun typechk_tac rls i = SELECT_GOAL (REPEAT_FIRST (tc_step_tac rls)) i;
 
