@@ -1,9 +1,26 @@
+
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
 *** Overview of INCOMPATIBILITIES ***
 
 * HOL: induct renamed to lfp_induct;
+
+
+*** Document preparation ***
+
+* improved isabelle style files; more abstract symbol implementation
+(should now use \isamath{...} and \isatext{...} in custom symbol
+definitions);
+
+
+*** HOL ***
+
+* HOL/Library: a collection of generic theories to be used together
+with main HOL; the theory loader path already includes this directory
+by default; the following existing theories have been moved here:
+HOL/Induct/Multiset, HOL/Induct/Acc (as Accessible_Part), HOL/While
+(as While_Combinator);
 
 
 New in Isabelle99-1 (October 2000)
