@@ -5,22 +5,32 @@
 Setup the actual Pure and CPure theories.
 *)
 
-structure Pure =
-struct
-  val thy =
-    PureThy.begin_theory "Pure" [ProtoPure.thy]
-    |> Theory.add_syntax Syntax.pure_appl_syntax
-    |> Theory.apply Locale.setup
-    |> PureThy.end_theory;
-end;
+local
+  val common_setup =
+    ObjectLogic.setup @
+    Locale.setup @
+    ProofContext.setup @
+    Method.setup @
+    Attrib.setup;
+in
+  structure Pure =
+  struct
+    val thy =
+      PureThy.begin_theory "Pure" [ProtoPure.thy]
+      |> Theory.add_syntax Syntax.pure_appl_syntax
+      |> Theory.apply common_setup
+      |> PureThy.end_theory;
+  end;
 
-structure CPure =
-struct
-  val thy =
-    PureThy.begin_theory "CPure" [ProtoPure.thy]
-    |> Theory.add_syntax Syntax.pure_applC_syntax
-    |> Theory.apply Locale.setup
-    |> PureThy.end_theory;
+  structure CPure =
+  struct
+    val thy =
+      PureThy.begin_theory "CPure" [ProtoPure.thy]
+      |> Theory.add_syntax Syntax.pure_applC_syntax
+      |> Theory.apply common_setup
+      |> Theory.prep_ext                  (*copy shared data!*)
+      |> PureThy.end_theory;
+  end;
 end;
 
 ThyInfo.loaded_thys :=
