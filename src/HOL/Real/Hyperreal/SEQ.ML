@@ -1040,6 +1040,7 @@ by (dtac starfun_le_mono 1);
 by (REPEAT(dtac (HNatInfinite_whn RSN (2,bspec)) 1));
 by (dres_inst_tac [("x","whn")] spec 1);
 by (REPEAT(dtac (bex_Infinitesimal_iff2 RS iffD2) 1));
+by Auto_tac;
 by (auto_tac (claset() addIs 
     [hypreal_of_real_le_add_Infininitesimal_cancel2], simpset()));
 qed "NSLIMSEQ_le";
