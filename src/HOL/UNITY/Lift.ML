@@ -6,27 +6,6 @@
 The Lift-Control Example
 *)
 
-
-Addsimps [integ_of_Pls RS sym];
-(*AND ALSO   int 1 = #1  ??*)
-
-
-(**INTDEF.ML**)
-Goal "(int m) + (int n + z) = int (m + n) + z";
-by (simp_tac (simpset() addsimps [zadd_int, zadd_assoc RS sym]) 1);
-qed "zadd_int_left";
-
-
-(**INT.ML**)
-
-
-(**BIN.ML**)
-
-    Goal "#0 <= int m";
-    by (simp_tac (simpset_of Bin.thy addsimps [integ_of_Pls]) 1);
-    qed "zero_zle_int";
-    AddIffs [zero_zle_int];
-
 Goal "~ z < w ==> (z < w + #1) = (z = w)";
 by (asm_simp_tac (simpset() addsimps [zless_add1_eq, integ_le_less]) 1);
 qed "not_zless_zless1_eq";
@@ -49,16 +28,16 @@ fun distinct_tac i =
 
 (** Rules to move "metric n s" out of the assumptions, for case splitting **)
 val mov_metric1 = read_instantiate_sg (sign_of thy) 
-                 [("P", "?x < metric ?n ?s")] rev_mp;
+                   [("P", "?x < metric ?n ?s")] rev_mp;
 
 val mov_metric2 = read_instantiate_sg (sign_of thy) 
-                 [("P", "?x = metric ?n ?s")] rev_mp;
+                   [("P", "?x = metric ?n ?s")] rev_mp;
 
 val mov_metric3 = read_instantiate_sg (sign_of thy) 
-                 [("P", "~ (?x < metric ?n ?s)")] rev_mp;
+                   [("P", "~ (?x < metric ?n ?s)")] rev_mp;
 
 val mov_metric4 = read_instantiate_sg (sign_of thy) 
-                 [("P", "(?x <= metric ?n ?s)")] rev_mp;
+                   [("P", "(?x <= metric ?n ?s)")] rev_mp;
 
 (*The order in which they are applied seems to be critical...*)
 val mov_metrics = [mov_metric2, mov_metric3, mov_metric1, mov_metric4];
@@ -267,7 +246,7 @@ by (REPEAT_FIRST distinct_tac);
 (** LEVEL 6 **)
 by (ALLGOALS (asm_simp_tac (simpset() addsimps 
 			    [zle_def] @ metric_simps @ zcompare_rls)));
-by (ALLGOALS (asm_simp_tac (simpset() addsimps zadd_ac)));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps int_0::zadd_ac)));
 qed "E_thm12b";
 
 (*lift_4*)
@@ -308,7 +287,8 @@ by (ensures_tac "req_down" 1);
 by Auto_tac;
 by (REPEAT_FIRST (eresolve_tac mov_metrics));
 by (ALLGOALS
-    (asm_simp_tac (simpset() addsimps [zle_def]@metric_simps @ zcompare_rls)));
+    (asm_simp_tac (simpset() addsimps [int_0, zle_def] @ 
+		                      metric_simps @ zcompare_rls)));
 (** LEVEL 5 **)
 by (dres_inst_tac [("z1","Max")] (zle_iff_zadd RS iffD1) 1);
 by (etac exE 1);  

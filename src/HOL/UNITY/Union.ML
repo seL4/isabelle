@@ -14,8 +14,7 @@ by (simp_tac (simpset() addsimps [Join_def]) 1);
 qed "Init_Join";
 
 Goal "Acts (Join prgF prgG) = Acts prgF Un Acts prgG";
-by (auto_tac (claset(),
-	      simpset() addsimps [Acts_def, Join_def]));
+by (auto_tac (claset(), simpset() addsimps [Join_def]));
 qed "Acts_Join";
 
 Goal "Init (JN i:I. prg i) = (INT i:I. Init (prg i))";
@@ -23,14 +22,14 @@ by (simp_tac (simpset() addsimps [JOIN_def]) 1);
 qed "Init_JN";
 
 Goal "Acts (JN i:I. prg i) = insert id (UN i:I. Acts (prg i))";
-by (auto_tac (claset(),
-	      simpset() addsimps [Acts_def, JOIN_def]));
+by (auto_tac (claset(), simpset() addsimps [JOIN_def]));
 qed "Acts_JN";
 
 Addsimps [Init_Join, Init_JN];
 
 Goal "(JN x:insert a A. B x) = Join (B a) (JN x:A. B x)";
-by (simp_tac (simpset() addsimps [Acts_def, JOIN_def, Join_def]) 1);
+br program_equalityI 1;
+by (ALLGOALS (simp_tac (simpset() addsimps [JOIN_def, Join_def])));
 qed "JN_insert";
 Addsimps[JN_insert];
 
@@ -42,41 +41,18 @@ by (simp_tac (simpset() addsimps [Join_def, Un_commute, Int_commute]) 1);
 qed "Join_commute";
 
 Goal "Join (Join prgF prgG) prgH = Join prgF (Join prgG prgH)";
-by (simp_tac (simpset() addsimps Un_ac@[Join_def, Acts_def, Int_assoc]) 1);
+by (simp_tac (simpset() addsimps Un_ac@[Join_def, Int_assoc]) 1);
 qed "Join_assoc";
-
-
-(*
-val field_defs = thms"program.field_defs";
-val dest_defs = thms"program.dest_defs";
-val dest_convs = thms"program.dest_convs";
-
-val update_defs = thms"program.update_defs";
-val make_defs = thms"program.make_defs";
-val update_convs = thms"program.update_convs";
-val simps = thms"program.simps";
-*)
-
-
-
-
-
-(**NOT PROVABLE because no "surjective pairing" for records
+ 
 Goalw [Join_def, SKIP_def] "Join prgF SKIP = prgF";
-by (asm_simp_tac (simpset() addsimps [insert_absorb]) 1);
+br program_equalityI 1;
+by (ALLGOALS (simp_tac (simpset() addsimps [insert_absorb])));
 qed "Join_SKIP";
 
-    In order to prove Join_SKIP, we possibly need
-    "Acts0 = ... - {id}" in JOIN_def and Join_def.  But then Join_absorb only
-    holds if id ~: Acts0(prg).  Or else we need to change 'a program to 
-    an abstract type!  Then equality could be made to ignore Acts0.
-
-NOT PROVABLE because no "surjective pairing" for records
 Goalw [Join_def] "Join prgF prgF = prgF";
+br program_equalityI 1;
 by Auto_tac;
 qed "Join_absorb";
-*)
-
 
 
 Goal "(JN G:{}. G) = SKIP";
@@ -93,7 +69,8 @@ Goalw [constrains_def, JOIN_def]
     "I ~= {} ==> \
 \    constrains (Acts (JN i:I. prg i)) A B = \
 \    (ALL i:I. constrains (Acts (prg i)) A B)";
-by Auto_tac;
+by (Simp_tac 1);
+by (Blast_tac 1);
 qed "constrains_JN";
 
 (**FAILS, I think; see 5.4.1, Substitution Axiom.
@@ -108,7 +85,7 @@ Goal "constrains (Acts (Join prgF prgG)) A B =  \
 \     (constrains (Acts prgF) A B & constrains (Acts prgG) A B)";
 by (auto_tac
     (claset(),
-     simpset() addsimps [constrains_def, Join_def, Acts_def, ball_Un]));
+     simpset() addsimps [constrains_def, Join_def, ball_Un]));
 qed "constrains_Join";
 
 Goal "[| constrains (Acts prgF) A A';  constrains (Acts prgG) B B' |] \
@@ -143,7 +120,7 @@ qed "transient_JN";
 Goal "transient (Acts (Join prgF prgG)) A = \
 \     (transient (Acts prgF) A | transient (Acts prgG) A)";
 by (auto_tac (claset(),
-	      simpset() addsimps [bex_Un, Acts_def, transient_def,
+	      simpset() addsimps [bex_Un, transient_def,
 				  Join_def]));
 qed "transient_Join";
 

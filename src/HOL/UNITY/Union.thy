@@ -12,15 +12,15 @@ Union = SubstAx + FP +
 
 constdefs
    JOIN  :: ['a set, 'a => 'b program] => 'b program
-    "JOIN I prg == (|Init  = INT i:I. Init (prg i),
-	             Acts0 = UN  i:I. Acts (prg i)|)"
+    "JOIN I prg == mk_program (INT i:I. Init (prg i),
+			       UN  i:I. Acts (prg i))"
 
    Join :: ['a program, 'a program] => 'a program
-    "Join prgF prgG == (|Init  = Init prgF Int Init prgG,
-			 Acts0 = Acts prgF Un Acts prgG|)"
+    "Join prgF prgG == mk_program (Init prgF Int Init prgG,
+				   Acts prgF Un Acts prgG)"
 
    SKIP :: 'a program
-    "SKIP == (|Init = UNIV, Acts0 = {}|)"
+    "SKIP == mk_program (UNIV, {})"
 
 syntax
   "@JOIN"      :: [pttrn, 'a set, 'b set] => 'b set  ("(3JN _:_./ _)" 10)

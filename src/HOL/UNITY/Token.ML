@@ -54,7 +54,7 @@ Goalw [nodeOrder_def, next_def, inv_image_def]
 by (auto_tac (claset(),
 	      simpset() addsimps [Suc_lessI, mod_Suc, mod_less, mod_geq]));
 by (subgoal_tac "(j + N - i) = Suc (j + N - Suc i)" 1);
-by (asm_simp_tac (simpset() addsimps [Suc_diff_Suc, Suc_leI, 
+by (asm_simp_tac (simpset() addsimps [Suc_diff_Suc, Suc_leI, less_imp_le,
                                       diff_add_assoc]) 2);
 by (full_simp_tac (simpset() addsimps [nat_neq_iff]) 1);
 by (asm_full_simp_tac (simpset() addsimps [less_Suc_eq, mod_Suc]) 1);

@@ -24,14 +24,18 @@ inductive "traces Init Acts"
 	   ==> (s', s#evs) : traces Init Acts"
 
 
-record 'a program =
-  Init  :: 'a set
-  Acts0 :: "('a * 'a)set set"
-
+typedef (Program)
+  'a program = "{(init:: 'a set, acts :: ('a * 'a)set set). id:acts}"
 
 constdefs
+    mk_program :: "('a set * ('a * 'a)set set) => 'a program"
+    "mk_program == %(init, acts). Abs_Program (init, insert id acts)"
+
+    Init :: "'a program => 'a set"
+    "Init prg == fst (Rep_Program prg)"
+
     Acts :: "'a program => ('a * 'a)set set"
-    "Acts prg == insert id (Acts0 prg)"
+    "Acts prg == snd (Rep_Program prg)"
 
 
 consts reachable :: "'a program => 'a set"

@@ -87,7 +87,7 @@ Addsimps [atLeast_0];
 
 Goalw [atLeast_def] "atLeast (Suc k) = atLeast k - {k}";
 by (simp_tac (simpset() addsimps [Suc_le_eq]) 1);
-by (simp_tac (simpset() addsimps [le_eq_less_or_eq]) 1);
+by (simp_tac (simpset() addsimps [order_le_less]) 1);
 by (Blast_tac 1);
 qed "atLeast_Suc";
 
@@ -119,7 +119,7 @@ qed "atMost_0";
 Addsimps [atMost_0];
 
 Goalw [atMost_def] "atMost (Suc k) = insert (Suc k) (atMost k)";
-by (simp_tac (simpset() addsimps [less_Suc_eq, le_eq_less_or_eq]) 1);
+by (simp_tac (simpset() addsimps [less_Suc_eq, order_le_less]) 1);
 by (Blast_tac 1);
 qed "atMost_Suc";
 
