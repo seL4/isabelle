@@ -10,8 +10,9 @@ TODO:
 *)
 
 signature TYPE =
-sig
-  structure Symtab: SYMTAB
+  sig
+  exception TUNIFY
+  exception TYPE_MATCH
   val no_tvars: typ -> typ
   val varifyT: typ -> typ
   val unvarifyT: typ -> typ
@@ -57,15 +58,10 @@ sig
   val unify: type_sig -> int -> (indexname * typ) list -> (typ * typ)
     -> (indexname * typ) list * int
   val raw_unify: typ * typ -> bool
-  exception TUNIFY
-  exception TYPE_MATCH
-end;
+  end;
 
-functor TypeFun(structure Symtab: SYMTAB and Syntax: SYNTAX): TYPE =
+structure Type : TYPE =
 struct
-
-structure Symtab = Symtab;
-
 
 (*** TFrees vs TVars ***)
 
