@@ -27,7 +27,6 @@ sig
   val pretty_theory	: theory -> Pretty.T
   val pprint_theory	: theory -> pprint_args -> unit
   val print_syntax	: theory -> unit
-  val print_data	: theory -> string -> unit
   val print_theory	: theory -> unit
   val pretty_name_space : string * NameSpace.T -> Pretty.T
   val show_consts	: bool ref
@@ -106,7 +105,6 @@ val pretty_theory = Sign.pretty_sg o sign_of;
 val pprint_theory = Sign.pprint_sg o sign_of;
 
 val print_syntax = Syntax.print_syntax o syn_of;
-val print_data = Sign.print_data o sign_of;
 
 
 (* pretty_name_space  *)
@@ -192,8 +190,7 @@ fun print_thy thy =
         Pretty.quote (Sign.pretty_term sign t)];
   in
     Pretty.writeln (Pretty.big_list "axioms:" (map prt_axm axioms));
-    Pretty.writeln (Pretty.strs ("oracles:" :: oras));
-    print_data thy "Pure/theorems"	(*forward reference!*)
+    Pretty.writeln (Pretty.strs ("oracles:" :: oras))
   end;
 
 fun print_theory thy = (print_sign (sign_of thy); print_thy thy);
