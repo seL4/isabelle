@@ -35,7 +35,7 @@ consts
   Pow           :: 'a set => 'a set set                 (*powerset*)
   range         :: ('a => 'b) => 'b set                 (*of function*)
   Ball, Bex     :: ['a set, 'a => bool] => bool         (*bounded quantifiers*)
-  "``"          :: ['a => 'b, 'a set] => ('b set)   (infixr 90)
+  "image"       :: ['a => 'b, 'a set] => ('b set)   (infixr "``" 90)
   (*membership*)
   "op :"        :: ['a, 'a set] => bool             ("(_/ : _)" [50, 51] 50)
 

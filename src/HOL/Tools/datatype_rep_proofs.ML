@@ -31,7 +31,7 @@ val (_ $ (_ $ (_ $ (distinct_f $ _) $ _))) = hd (prems_of distinct_lemma);
 
 (* figure out internal names *)
 
-val image_name = Sign.intern_const (Theory.sign_of Set.thy) "op ``";
+val image_name = Sign.intern_const (Theory.sign_of Set.thy) "image";
 val UNIV_name = Sign.intern_const (Theory.sign_of Set.thy) "UNIV";
 val inj_on_name = Sign.intern_const (Theory.sign_of Fun.thy) "inj_on";
 val inv_name = Sign.intern_const (Theory.sign_of Fun.thy) "inv";

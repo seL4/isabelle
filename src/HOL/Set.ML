@@ -135,7 +135,7 @@ overload_1st_set "Ball";		(*need UNION, INTER also?*)
 overload_1st_set "Bex";
 
 (*Image: retain the type of the set being expressed*)
-Blast.overloaded ("op ``", domain_type);
+Blast.overloaded ("image", domain_type);
 
 (*Rule in Modus Ponens style*)
 Goalw [subset_def] "[| A <= B;  c:A |] ==> c:B";
