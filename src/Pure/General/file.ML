@@ -94,10 +94,14 @@ val exists = is_some o info;
 
 val quote_sysify = enclose "'" "'" o sysify_path;
 
-fun mkdir path = (execute ("mkdir -p " ^ quote_sysify path); ());
+fun system_command cmd =
+  if system cmd <> 0 then error ("System command failed: " ^ cmd)
+  else ();
+    
+fun mkdir path = system_command ("mkdir -p " ^ quote_sysify path);
 
 fun copy_all path1 path2 =
-  (execute ("cp -R " ^ quote_sysify path1 ^ " " ^ quote_sysify path2); ());
+  system_command ("cp -R " ^ quote_sysify path1 ^ " " ^ quote_sysify path2);
 
 
 (* symbol_use *)
