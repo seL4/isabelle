@@ -362,7 +362,7 @@ by (safe_tac (!claset addSDs [Limit_nat RS Limit_le_succD]));
 by (rewtac Card_def);
 by (dtac trans 1);
 by (etac (le_imp_subset RS nat_succ_eqpoll RS cardinal_cong) 1);
-by (etac (Ord_succD RS Ord_cardinal_le RS lt_trans2 RS lt_irrefl) 1);
+by (etac (Ord_cardinal_le RS lt_trans2 RS lt_irrefl) 1);
 by (REPEAT (ares_tac [le_eqI, Ord_cardinal] 1));
 qed "InfCard_is_Limit";
 

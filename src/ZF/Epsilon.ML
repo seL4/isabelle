@@ -66,7 +66,7 @@ goalw Epsilon.thy [Transset_def]
 by (etac nat_induct 1);
 by (asm_simp_tac (!simpset addsimps [nat_rec_0]) 1);
 by (asm_simp_tac (!simpset addsimps [nat_rec_succ]) 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "eclose_least_lemma";
 
 goalw Epsilon.thy [eclose_def]
@@ -86,7 +86,7 @@ by (rtac (CollectI RS subsetI) 2);
 by (etac (arg_subset_eclose RS subsetD) 2);
 by (etac base 2);
 by (rewtac Transset_def);
-by (fast_tac (!claset addEs [step,ecloseD]) 1);
+by (blast_tac (!claset addIs [step,ecloseD]) 1);
 qed "eclose_induct_down";
 
 goal Epsilon.thy "!!X. Transset(X) ==> eclose(X) = X";
@@ -112,7 +112,7 @@ qed "mem_eclose_sing_trans";
 
 goalw Epsilon.thy [Transset_def]
     "!!i j. [| Transset(i);  j:i |] ==> Memrel(i)-``{j} = j";
-by (fast_tac (!claset addSIs [MemrelI] addSEs [MemrelE]) 1);
+by (blast_tac (!claset addSIs [MemrelI] addSEs [MemrelE]) 1);
 qed "under_Memrel";
 
 (* j : eclose(A) ==> Memrel(eclose(A)) -`` j = j *)
@@ -228,14 +228,14 @@ qed "rank_Pow";
 
 goal Epsilon.thy "rank(0) = 0";
 by (rtac (rank RS trans) 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "rank_0";
 
 goal Epsilon.thy "rank(succ(x)) = succ(rank(x))";
 by (rtac (rank RS trans) 1);
 by (rtac ([UN_least, succI1 RS UN_upper] MRS equalityI) 1);
 by (etac succE 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 by (etac (rank_lt RS leI RS succ_leI RS le_imp_subset) 1);
 qed "rank_succ";
 
@@ -307,22 +307,21 @@ by (Simp_tac 1);
 qed "transrec2_0";
 
 goal thy "(THE j. i=j) = i";
-by (fast_tac (!claset addSIs [the_equality]) 1);
+by (blast_tac (!claset addSIs [the_equality]) 1);
 qed "THE_eq";
 
 goal thy "transrec2(succ(i),a,b) = b(i, transrec2(i,a,b))";
 by (rtac (transrec2_def RS def_transrec RS trans) 1);
 by (simp_tac (!simpset addsimps [succ_not_0, THE_eq, if_P]
-                    setSolver K Fast_tac) 1);
+                    setloop split_tac [expand_if]) 1);
+by (Blast_tac 1);
 qed "transrec2_succ";
 
 goal thy "!!i. Limit(i) ==> transrec2(i,a,b) = (UN j<i. transrec2(j,a,b))";
 by (rtac (transrec2_def RS def_transrec RS trans) 1);
-by (resolve_tac [if_not_P RS trans] 1 THEN
-    fast_tac (!claset addSDs [Limit_has_0] addSEs [ltE]) 1);
-by (resolve_tac [if_not_P RS trans] 1 THEN
-    fast_tac (!claset addSEs [succ_LimitE]) 1);
-by (Simp_tac 1);
+by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
+by (blast_tac (!claset addSDs [Limit_has_0] addSEs [succ_LimitE]) 1);
 qed "transrec2_Limit";
 
 Addsimps [transrec2_0, transrec2_succ];
+

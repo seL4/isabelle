@@ -27,7 +27,7 @@ by (REPEAT_SOME assume_tac);
 qed "cardinal_eqE";
 
 goal Cardinal_AC.thy "|X| = |Y| <-> X eqpoll Y";
-by (fast_tac (!claset addSEs [cardinal_cong, cardinal_eqE]) 1);
+by (blast_tac (!claset addIs [cardinal_cong, cardinal_eqE]) 1);
 qed "cardinal_eqpoll_iff";
 
 goal Cardinal_AC.thy
@@ -93,11 +93,8 @@ goalw Cardinal_AC.thy [surj_def] "!!f. f: surj(X,Y) ==> EX g. g: inj(Y,X)";
 by (etac CollectE 1);
 by (res_inst_tac [("A1", "Y"), ("B1", "%y. f-``{y}")] (AC_Pi RS exE) 1);
 by (fast_tac (!claset addSEs [apply_Pair]) 1);
-by (rtac exI 1);
-by (rtac f_imp_injective 1);
-by (rtac Pi_type 1 THEN assume_tac 1);
-by (fast_tac (!claset addDs [apply_type] addDs [Pi_memberD]) 1);
-by (fast_tac (!claset addDs [apply_type] addEs [apply_equality]) 1);
+by (blast_tac (!claset addDs [apply_type, Pi_memberD] 
+                       addIs [apply_equality, Pi_type, f_imp_injective]) 1);
 qed "surj_implies_inj";
 
 (*Kunen's Lemma 10.20*)
@@ -123,14 +120,14 @@ by (rtac exI 1);
 by (subgoal_tac
     "ALL z: (UN i:K. X(i)). z: X(LEAST i. z:X(i)) & (LEAST i. z:X(i)) : K" 1);
 by (fast_tac (!claset addSIs [Least_le RS lt_trans1 RS ltD, ltI]
-                    addSEs [LeastI, Ord_in_Ord]) 2);
+                      addSEs [LeastI, Ord_in_Ord]) 2);
 by (res_inst_tac [("c", "%z. <LEAST i. z:X(i), f ` (LEAST i. z:X(i)) ` z>"),
                   ("d", "%<i,j>. converse(f`i) ` j")] 
         lam_injective 1);
 (*Instantiate the lemma proved above*)
 by (ALLGOALS ball_tac);
-by (fast_tac (!claset addEs [inj_is_fun RS apply_type]
-                    addDs [apply_type]) 1);
+by (blast_tac (!claset addIs [inj_is_fun RS apply_type]
+                       addDs [apply_type]) 1);
 by (dtac apply_type 1);
 by (etac conjunct2 1);
 by (asm_simp_tac (!simpset addsimps [left_inverse]) 1);
@@ -152,8 +149,8 @@ goal Cardinal_AC.thy
 \         (UN i:K. j(i)) < csucc(K)";
 by (resolve_tac [cardinal_UN_lt_csucc RS Card_lt_imp_lt] 1);
 by (assume_tac 1);
-by (fast_tac (!claset addIs [Ord_cardinal_le RS lt_trans1] addEs [ltE]) 1);
-by (fast_tac (!claset addSIs [Ord_UN] addEs [ltE]) 1);
+by (blast_tac (!claset addIs [Ord_cardinal_le RS lt_trans1] addEs [ltE]) 1);
+by (blast_tac (!claset addSIs [Ord_UN] addEs [ltE]) 1);
 by (eresolve_tac [InfCard_is_Card RS Card_is_Ord RS Card_csucc] 1);
 qed "cardinal_UN_Ord_lt_csucc";
 
@@ -194,7 +191,7 @@ by (safe_tac (!claset addSIs [equalityI]));
 by (swap_res_tac [[inj_UN_subset, cardinal_UN_Ord_lt_csucc] 
                   MRS lt_subset_trans] 1);
 by (REPEAT (assume_tac 1));
-by (fast_tac (!claset addSIs [Ord_UN] addEs [ltE]) 2);
+by (blast_tac (!claset addSIs [Ord_UN] addEs [ltE]) 2);
 by (asm_simp_tac (!simpset addsimps [inj_converse_fun RS apply_type]
                         setloop split_tac [expand_if]) 1);
 qed "le_UN_Ord_lt_csucc";

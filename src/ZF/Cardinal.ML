@@ -159,8 +159,8 @@ goalw Cardinal.thy [inj_def, surj_def]
 by (safe_tac (claset_of"ZF"));
 by (swap_res_tac [exI] 1);
 by (res_inst_tac [("a", "lam z:A. if(f`z=m, y, f`z)")] CollectI 1);
-by (fast_tac (!claset addSIs [if_type RS lam_type]
-                      addEs [apply_funtype RS succE]) 1);
+by (best_tac (!claset addSIs [if_type RS lam_type]
+                       addEs [apply_funtype RS succE]) 1);
 (*Proving it's injective*)
 by (asm_simp_tac (!simpset setloop split_tac [expand_if]) 1);
 by (blast_tac (!claset delrules [equalityI]) 1);
@@ -170,17 +170,17 @@ qed "inj_not_surj_succ";
 
 goalw Cardinal.thy [lesspoll_def]
       "!!X. [| X lesspoll Y; Y lesspoll Z |] ==> X lesspoll Z";
-by (fast_tac (!claset addSIs [eqpollI] addSEs [eqpollE] addIs [lepoll_trans]) 1);
+by (blast_tac (!claset addSEs [eqpollE] addIs [eqpollI, lepoll_trans]) 1);
 qed "lesspoll_trans";
 
 goalw Cardinal.thy [lesspoll_def]
       "!!X. [| X lesspoll Y; Y lepoll Z |] ==> X lesspoll Z";
-by (fast_tac (!claset addSIs [eqpollI] addSEs [eqpollE] addIs [lepoll_trans]) 1);
+by (blast_tac (!claset addSEs [eqpollE] addIs [eqpollI, lepoll_trans]) 1);
 qed "lesspoll_lepoll_lesspoll";
 
 goalw Cardinal.thy [lesspoll_def] 
       "!!X. [| X lesspoll Y; Z lepoll X |] ==> Z lesspoll Y";
-by (fast_tac (!claset addSIs [eqpollI] addSEs [eqpollE] addIs [lepoll_trans]) 1);
+by (blast_tac (!claset addSEs [eqpollE] addIs [eqpollI, lepoll_trans]) 1);
 qed "lepoll_lesspoll_lesspoll";
 
 
@@ -213,7 +213,7 @@ by (rtac impI 1);
 by (rtac classical 1);
 by (EVERY1 [stac Least_equality, assume_tac, assume_tac]);
 by (etac le_refl 2);
-by (fast_tac (!claset addEs [ltE, lt_trans1] addIs [leI, ltI]) 1);
+by (blast_tac (!claset addEs [ltE] addIs [leI, ltI, lt_trans1]) 1);
 qed "Least_le";
 
 (*LEAST really is the smallest*)
@@ -259,7 +259,7 @@ qed "Least_cong";
   Converse also requires AC, but see well_ord_cardinal_eqE*)
 goalw Cardinal.thy [eqpoll_def,cardinal_def] "!!X Y. X eqpoll Y ==> |X| = |Y|";
 by (rtac Least_cong 1);
-by (blast_tac (!claset addIs [comp_bij,bij_converse_bij]) 1);
+by (blast_tac (!claset addIs [comp_bij, bij_converse_bij]) 1);
 qed "cardinal_cong";
 
 (*Under AC, the premise becomes trivial; one consequence is ||A|| = |A|*)
@@ -700,10 +700,10 @@ qed "lepoll_nat_imp_Finite";
 
 goalw Cardinal.thy [Finite_def]
      "!!X. [| Y lepoll X;  Finite(X) |] ==> Finite(Y)";
-by (fast_tac (!claset addSEs [eqpollE] 
-                      addEs [lepoll_trans RS 
-			     rewrite_rule [Finite_def] 
-			     lepoll_nat_imp_Finite]) 1);
+by (blast_tac 
+    (!claset addSEs [eqpollE] 
+             addIs [lepoll_trans RS 
+		    rewrite_rule [Finite_def] lepoll_nat_imp_Finite]) 1);
 qed "lepoll_Finite";
 
 bind_thm ("subset_Finite", subset_imp_lepoll RS lepoll_Finite);
@@ -734,7 +734,7 @@ qed "nat_le_infinite_Ord";
 goalw Cardinal.thy [Finite_def, eqpoll_def]
     "!!A. Finite(A) ==> EX r. well_ord(A,r)";
 by (blast_tac (!claset addIs [well_ord_rvimage, bij_is_inj, well_ord_Memrel, 
-                           nat_into_Ord]) 1);
+			      nat_into_Ord]) 1);
 qed "Finite_imp_well_ord";
 
 
@@ -756,7 +756,8 @@ qed "nat_wf_on_converse_Memrel";
 goal Cardinal.thy "!!n. n:nat ==> well_ord(n,converse(Memrel(n)))";
 by (forward_tac [Ord_nat RS Ord_in_Ord RS well_ord_Memrel] 1);
 by (rewtac well_ord_def);
-by (blast_tac (!claset addSIs [tot_ord_converse, nat_wf_on_converse_Memrel]) 1);
+by (blast_tac (!claset addSIs [tot_ord_converse, 
+			       nat_wf_on_converse_Memrel]) 1);
 qed "nat_well_ord_converse_Memrel";
 
 goal Cardinal.thy
@@ -784,5 +785,5 @@ goalw Cardinal.thy [Finite_def]
     "!!A. [| Finite(A);  well_ord(A,r) |] ==> well_ord(A,converse(r))";
 by (rtac well_ord_converse 1 THEN assume_tac 1);
 by (blast_tac (!claset addDs [ordertype_eq_n] 
-                    addSIs [nat_well_ord_converse_Memrel]) 1);
+                       addSIs [nat_well_ord_converse_Memrel]) 1);
 qed "Finite_well_ord_converse";

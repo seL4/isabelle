@@ -56,13 +56,13 @@ qed "bnd_mono_Int";
 (*lfp is contained in each pre-fixedpoint*)
 goalw Fixedpt.thy [lfp_def]
     "!!A. [| h(A) <= A;  A<=D |] ==> lfp(D,h) <= A";
-by (Fast_tac 1);
+by (Blast_tac 1);
 (*or  by (rtac (PowI RS CollectI RS Inter_lower) 1); *)
 qed "lfp_lowerbound";
 
 (*Unfolding the defn of Inter dispenses with the premise bnd_mono(D,h)!*)
 goalw Fixedpt.thy [lfp_def,Inter_def] "lfp(D,h) <= D";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "lfp_subset";
 
 (*Used in datatype package*)
@@ -190,7 +190,7 @@ by (REPEAT (resolve_tac prems 1));
 qed "gfp_upperbound";
 
 goalw Fixedpt.thy [gfp_def] "gfp(D,h) <= D";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "gfp_subset";
 
 (*Used in datatype package*)

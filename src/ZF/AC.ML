@@ -12,9 +12,9 @@ open AC;
 val [nonempty] = goal AC.thy
      "[| !!x. x:A ==> (EX y. y:B(x)) |] ==> EX z. z : Pi(A,B)";
 by (excluded_middle_tac "A=0" 1);
-by (asm_simp_tac (!simpset addsimps [Pi_empty1]) 2 THEN Fast_tac 2);
+by (asm_simp_tac (!simpset addsimps [Pi_empty1]) 2 THEN Blast_tac 2);
 (*The non-trivial case*)
-by (fast_tac (!claset addIs [AC, nonempty]) 1);
+by (blast_tac (!claset addIs [AC, nonempty]) 1);
 qed "AC_Pi";
 
 (*Using dtac, this has the advantage of DELETING the universal quantifier*)
@@ -27,7 +27,7 @@ qed "AC_ball_Pi";
 goal AC.thy "EX f. f: (PROD X: Pow(C)-{0}. X)";
 by (res_inst_tac [("B1", "%x.x")] (AC_Pi RS exE) 1);
 by (etac exI 2);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "AC_Pi_Pow";
 
 val [nonempty] = goal AC.thy
@@ -35,12 +35,12 @@ val [nonempty] = goal AC.thy
 \     |] ==> EX f: A->Union(A). ALL x:A. f`x : x";
 by (res_inst_tac [("B1", "%x.x")] (AC_Pi RS exE) 1);
 by (etac nonempty 1);
-by (fast_tac (!claset addDs [apply_type] addIs [Pi_type]) 1);
+by (blast_tac (!claset addDs [apply_type] addIs [Pi_type]) 1);
 qed "AC_func";
 
 goal ZF.thy "!!x A. [| 0 ~: A;  x: A |] ==> EX y. y:x";
 by (subgoal_tac "x ~= 0" 1);
-by (ALLGOALS (Fast_tac));
+by (ALLGOALS Blast_tac);
 qed "non_empty_family";
 
 goal AC.thy "!!A. 0 ~: A ==> EX f: A->Union(A). ALL x:A. f`x : x";
@@ -53,7 +53,7 @@ by (resolve_tac [AC_func0 RS bexE] 1);
 by (rtac bexI 2);
 by (assume_tac 2);
 by (etac fun_weaken_type 2);
-by (ALLGOALS (Fast_tac));
+by (ALLGOALS Blast_tac);
 qed "AC_func_Pow";
 
 goal AC.thy "!!A. 0 ~: A ==> EX f. f: (PROD x:A. x)";

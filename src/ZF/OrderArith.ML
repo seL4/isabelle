@@ -82,16 +82,12 @@ by (subgoal_tac "ALL x:A. Inl(x): Ba" 1);
 by (thin_tac "y : A + B" 2);
 by (rtac ballI 2);
 by (eres_inst_tac [("r","r"),("a","x")] wf_on_induct 2 THEN assume_tac 2);
-by (etac (bspec RS mp) 2);
-by (Blast_tac 2);
-by (best_tac (!claset addSEs [raddE]) 2);
+by (best_tac (!claset addSEs [raddE, bspec RS mp]) 2);
 (*Returning to main part of proof*)
 by (REPEAT_FIRST (eresolve_tac [sumE, ssubst]));
-by (Best_tac 1);
-by (eres_inst_tac [("r","s"),("a","ya")] wf_on_induct 1 THEN assume_tac 1);
-by (etac (bspec RS mp) 1);
 by (Blast_tac 1);
-by (best_tac (!claset addSEs [raddE]) 1);
+by (eres_inst_tac [("r","s"),("a","ya")] wf_on_induct 1 THEN assume_tac 1);
+by (best_tac (!claset addSEs [raddE, bspec RS mp]) 1);
 qed "wf_on_radd";
 
 goal OrderArith.thy
@@ -225,9 +221,7 @@ by (Blast_tac 1);
 by (eres_inst_tac [("a","x")] wf_on_induct 1 THEN assume_tac 1);
 by (rtac ballI 1);
 by (eres_inst_tac [("a","b")] wf_on_induct 1 THEN assume_tac 1);
-by (etac (bspec RS mp) 1);
-by (Blast_tac 1);
-by (best_tac (!claset addSEs [rmultE]) 1);
+by (best_tac (!claset addSEs [rmultE, bspec RS mp]) 1);
 qed "wf_on_rmult";
 
 
@@ -267,7 +261,7 @@ by (safe_tac (!claset addSIs [prod_bij]));
 by (ALLGOALS
     (asm_full_simp_tac (!simpset addsimps [bij_is_fun RS apply_type])));
 by (Blast_tac 1);
-by (fast_tac (!claset addSEs [bij_is_inj RS inj_apply_equality]) 1);
+by (blast_tac (!claset addIs [bij_is_inj RS inj_apply_equality]) 1);
 qed "prod_ord_iso_cong";
 
 goal OrderArith.thy "(lam z:A. <x,z>) : bij(A, {x}*A)";
@@ -313,8 +307,8 @@ by (asm_simp_tac
     (!simpset addsimps [pred_iff, well_ord_is_wf RS wf_on_not_refl]) 1);
 by (Asm_simp_tac 1);
 by (REPEAT_FIRST (eresolve_tac [SigmaE, sumE, predE]));
-by (ALLGOALS (Asm_simp_tac));
-by (ALLGOALS (fast_tac (!claset addEs [well_ord_is_wf RS wf_on_asym])));
+by (ALLGOALS Asm_simp_tac);
+by (ALLGOALS (blast_tac (!claset addEs [well_ord_is_wf RS wf_on_asym])));
 qed "prod_sum_singleton_ord_iso";
 
 (** Distributive law **)
@@ -334,7 +328,7 @@ goal OrderArith.thy
 \           (A*C)+(B*C), radd(A*C, rmult(A,r,C,t), B*C, rmult(B,s,C,t)))";
 by (resolve_tac [sum_prod_distrib_bij RS ord_isoI] 1);
 by (REPEAT_FIRST (eresolve_tac [SigmaE, sumE]));
-by (ALLGOALS (Asm_simp_tac));
+by (ALLGOALS Asm_simp_tac);
 qed "sum_prod_distrib_ord_iso";
 
 (** Associativity **)
@@ -442,5 +436,5 @@ qed "ord_iso_rvimage";
 
 goalw OrderArith.thy [ord_iso_def, rvimage_def]
     "!!A B. f: ord_iso(A,r, B,s) ==> rvimage(A,f,s) = r Int A*A";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "ord_iso_rvimage_eq";

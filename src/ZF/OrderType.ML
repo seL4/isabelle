@@ -155,9 +155,9 @@ bind_thm ("ordermap_surj",
 goalw OrderType.thy [well_ord_def, tot_ord_def, bij_def, inj_def]
     "!!r. well_ord(A,r) ==> ordermap(A,r) : bij(A, ordertype(A,r))";
 by (fast_tac (!claset addSIs [ordermap_type, ordermap_surj]
-                    addEs [linearE]
-                    addDs [ordermap_mono]
-                    addss (!simpset addsimps [mem_not_refl])) 1);
+                      addEs [linearE]
+                      addDs [ordermap_mono]
+                      addss (!simpset addsimps [mem_not_refl])) 1);
 qed "ordermap_bij";
 
 (*** Isomorphisms involving ordertype ***)
@@ -455,12 +455,12 @@ goal OrderType.thy
 by (rtac Ord_linear_lt 1);
 by (REPEAT_SOME assume_tac);
 by (ALLGOALS
-    (fast_tac (!claset addDs [oadd_lt_mono2] addEs [lt_irrefl, lt_asym])));
+    (blast_tac (!claset addDs [oadd_lt_mono2] addEs [lt_irrefl, lt_asym])));
 qed "oadd_lt_cancel2";
 
 goal OrderType.thy
     "!!i j k. [| Ord(i); Ord(j); Ord(k) |] ==> i++j < i++k <-> j<k";
-by (fast_tac (!claset addSIs [oadd_lt_mono2] addSEs [oadd_lt_cancel2]) 1);
+by (blast_tac (!claset addSIs [oadd_lt_mono2] addSDs [oadd_lt_cancel2]) 1);
 qed "oadd_lt_iff2";
 
 goal OrderType.thy
@@ -469,7 +469,7 @@ by (rtac Ord_linear_lt 1);
 by (REPEAT_SOME assume_tac);
 by (ALLGOALS
     (fast_tac (!claset addDs [oadd_lt_mono2] 
-                     addss (!simpset addsimps [lt_not_refl]))));
+                       addss (!simpset addsimps [lt_not_refl]))));
 qed "oadd_inject";
 
 goalw OrderType.thy [oadd_def] 
@@ -508,7 +508,7 @@ by (rtac (subsetI RS equalityI) 1);
 by (eresolve_tac [ltI RS lt_oadd_disj RS disjE] 1);
 by (REPEAT (ares_tac [Ord_oadd] 1));
 by (fast_tac (!claset addIs [lt_oadd1, oadd_lt_mono2]
-                    addss (!simpset addsimps [Ord_mem_iff_lt, Ord_oadd])) 3);
+                      addss (!simpset addsimps [Ord_mem_iff_lt, Ord_oadd])) 3);
 by (Blast_tac 2);
 by (blast_tac (!claset addSEs [ltE]) 1);
 qed "oadd_unfold";
@@ -667,7 +667,7 @@ qed "Ord_omult";
 (*** A useful unfolding law ***)
 
 goalw OrderType.thy [pred_def]
- "!!A B. [| a:A;  b:B |] ==>  \
+ "!!A B. [| a:A;  b:B |] ==>                    \
 \        pred(A*B, <a,b>, rmult(A,r,B,s)) =     \
 \        pred(A,a,r)*B Un ({a} * pred(B,b,s))";
 by (rtac equalityI 1);
@@ -677,9 +677,9 @@ by (ALLGOALS (Blast_tac));
 qed "pred_Pair_eq";
 
 goal OrderType.thy
- "!!A B. [| a:A;  b:B;  well_ord(A,r);  well_ord(B,s) |] ==>  \
+ "!!A B. [| a:A;  b:B;  well_ord(A,r);  well_ord(B,s) |] ==>           \
 \        ordertype(pred(A*B, <a,b>, rmult(A,r,B,s)), rmult(A,r,B,s)) = \
-\        ordertype(pred(A,a,r)*B + pred(B,b,s),                 \
+\        ordertype(pred(A,a,r)*B + pred(B,b,s),                        \
 \                 radd(A*B, rmult(A,r,B,s), B, s))";
 by (asm_simp_tac (!simpset addsimps [pred_Pair_eq]) 1);
 by (resolve_tac [ordertype_eq RS sym] 1);
@@ -689,12 +689,12 @@ by (blast_tac (!claset addSEs [predE]) 1);
 qed "ordertype_pred_Pair_eq";
 
 goalw OrderType.thy [oadd_def, omult_def]
- "!!i j. [| i'<i;  j'<j |] ==>  \
+ "!!i j. [| i'<i;  j'<j |] ==>                                         \
 \        ordertype(pred(i*j, <i',j'>, rmult(i,Memrel(i),j,Memrel(j))), \
-\                  rmult(i,Memrel(i),j,Memrel(j))) = \
+\                  rmult(i,Memrel(i),j,Memrel(j))) =                   \
 \        j**i' ++ j'";
 by (asm_simp_tac (!simpset addsimps [ordertype_pred_Pair_eq, lt_pred_Memrel, 
-                                  ltD, lt_Ord2, well_ord_Memrel]) 1);
+				     ltD, lt_Ord2, well_ord_Memrel]) 1);
 by (rtac trans 1);
 by (resolve_tac [ordertype_ord_iso RS sum_ord_iso_cong RS ordertype_eq] 2);
 by (rtac ord_iso_refl 3);
@@ -702,10 +702,9 @@ by (resolve_tac [id_bij RS ord_isoI RS ordertype_eq] 1);
 by (REPEAT_FIRST (eresolve_tac [SigmaE, sumE, ltE, ssubst]));
 by (REPEAT_FIRST (ares_tac [well_ord_rmult, well_ord_radd, well_ord_Memrel, 
                             Ord_ordertype]));
-by (ALLGOALS 
-    (asm_simp_tac (!simpset addsimps [rmult_iff, id_conv, Memrel_iff])));
+by (ALLGOALS (asm_simp_tac (!simpset addsimps [Memrel_iff])));
 by (safe_tac (!claset));
-by (ALLGOALS (fast_tac (!claset addEs [Ord_trans])));
+by (ALLGOALS (blast_tac (!claset addIs [Ord_trans])));
 qed "ordertype_pred_Pair_lemma";
 
 goalw OrderType.thy [omult_def]

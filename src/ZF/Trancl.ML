@@ -68,7 +68,7 @@ val major::prems = goal Trancl.thy
 \     !!x y z.[| P(<x,y>); <x,y>: r^*; <y,z>: r |]  ==>  P(<x,z>) |] \
 \  ==>  P(<a,b>)";
 by (rtac ([rtrancl_def, rtrancl_bnd_mono, major] MRS def_induct) 1);
-by (fast_tac (!claset addIs prems) 1);
+by (blast_tac (!claset addIs prems) 1);
 qed "rtrancl_full_induct";
 
 (*nice induction rule.
@@ -85,7 +85,7 @@ by (subgoal_tac "ALL y. <a,b> = <a,y> --> P(y)" 1);
 by (EVERY1 [etac (spec RS mp), rtac refl]);
 (*now do the induction*)
 by (resolve_tac [major RS rtrancl_full_induct] 1);
-by (ALLGOALS (fast_tac (!claset addIs prems)));
+by (ALLGOALS (blast_tac (!claset addIs prems)));
 qed "rtrancl_induct";
 
 (*transitivity of transitive closure!! -- by induction.*)
@@ -111,33 +111,30 @@ qed "rtranclE";
 
 (*Transitivity of r^+ is proved by transitivity of r^*  *)
 goalw Trancl.thy [trans_def,trancl_def] "trans(r^+)";
-by (safe_tac (!claset));
-by (rtac (rtrancl_into_rtrancl RS (trans_rtrancl RS transD RS compI)) 1);
-by (REPEAT (assume_tac 1));
+by (blast_tac (!claset addIs [rtrancl_into_rtrancl RS 
+			      (trans_rtrancl RS transD RS compI)]) 1);
 qed "trans_trancl";
 
 (** Conversions between trancl and rtrancl **)
 
-val [major] = goalw Trancl.thy [trancl_def] "<a,b> : r^+ ==> <a,b> : r^*";
-by (resolve_tac [major RS compEpair] 1);
-by (REPEAT (ares_tac [rtrancl_into_rtrancl] 1));
+goalw Trancl.thy [trancl_def] "!!r. <a,b> : r^+ ==> <a,b> : r^*";
+by (blast_tac (!claset addIs [rtrancl_into_rtrancl]) 1);
 qed "trancl_into_rtrancl";
 
 (*r^+ contains all pairs in r  *)
-val [prem] = goalw Trancl.thy [trancl_def] "<a,b> : r ==> <a,b> : r^+";
-by (REPEAT (ares_tac [prem,compI,rtrancl_refl,fieldI1] 1));
+goalw Trancl.thy [trancl_def] "!!r. <a,b> : r ==> <a,b> : r^+";
+by (blast_tac (!claset addSIs [rtrancl_refl]) 1);
 qed "r_into_trancl";
 
 (*The premise ensures that r consists entirely of pairs*)
-val prems = goal Trancl.thy "r <= Sigma(A,B) ==> r <= r^+";
-by (cut_facts_tac prems 1);
+goal Trancl.thy "!!r. r <= Sigma(A,B) ==> r <= r^+";
 by (blast_tac (!claset addIs [r_into_trancl]) 1);
 qed "r_subset_trancl";
 
 (*intro rule by definition: from r^* and r  *)
-val prems = goalw Trancl.thy [trancl_def]
-    "[| <a,b> : r^*;  <b,c> : r |]   ==>  <a,c> : r^+";
-by (REPEAT (resolve_tac ([compI]@prems) 1));
+goalw Trancl.thy [trancl_def]
+    "!!r. [| <a,b> : r^*;  <b,c> : r |]   ==>  <a,c> : r^+";
+by (Blast_tac 1);
 qed "rtrancl_into_trancl1";
 
 (*intro rule from r and r^*  *)

@@ -618,9 +618,7 @@ by (blast_tac (!claset addSDs [Limit_has_0]) 1);
 by (safe_tac (!claset));
 by (etac Limit_VfromE 1);
 by (assume_tac 1);
-by (res_inst_tac [("x", "xa Un j")] exI 1);
-by (best_tac (!claset addIs [subset_refl RS Vfrom_mono RS subsetD, 
-			     Un_least_lt]) 1);
+by (blast_tac (!claset addSIs [Un_least_lt] addIs [Vfrom_UnI1, Vfrom_UnI2]) 1);
 val Fin_Vfrom_lemma = result();
 
 goal Univ.thy "!!i. Limit(i) ==> Fin(Vfrom(A,i)) <= Vfrom(A,i)";

@@ -25,7 +25,7 @@ open WF;
 (** Equivalences between wf and wf_on **)
 
 goalw WF.thy [wf_def, wf_on_def] "!!A r. wf(r) ==> wf[A](r)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "wf_imp_wf_on";
 
 goalw WF.thy [wf_def, wf_on_def] "!!r. wf[field(r)](r) ==> wf(r)";
@@ -33,7 +33,7 @@ by (Fast_tac 1);
 qed "wf_on_field_imp_wf";
 
 goal WF.thy "wf(r) <-> wf[field(r)](r)";
-by (fast_tac (!claset addSEs [wf_imp_wf_on, wf_on_field_imp_wf]) 1);
+by (blast_tac (!claset addIs [wf_imp_wf_on, wf_on_field_imp_wf]) 1);
 qed "wf_iff_wf_on_field";
 
 goalw WF.thy [wf_on_def, wf_def] "!!A B r. [| wf[A](r);  B<=A |] ==> wf[B](r)";
@@ -52,7 +52,7 @@ val [prem] = goalw WF.thy [wf_on_def, wf_def]
 \    ==>  wf[A](r)";
 by (rtac (equals0I RS disjCI RS allI) 1);
 by (res_inst_tac [ ("Z", "Z") ] prem 1);
-by (ALLGOALS (Fast_tac));
+by (ALLGOALS Blast_tac);
 qed "wf_onI";
 
 (*If r allows well-founded induction over A then wf[A](r)
@@ -65,7 +65,7 @@ val [prem] = goal WF.thy
 by (rtac wf_onI 1);
 by (res_inst_tac [ ("c", "u") ] (prem RS DiffE) 1);
 by (contr_tac 3);
-by (Fast_tac 2);
+by (Blast_tac 2);
 by (Fast_tac 1);
 qed "wf_onI2";
 
@@ -79,9 +79,9 @@ val [major,minor] = goalw WF.thy [wf_def]
 \    |]  ==>  P(a)";
 by (res_inst_tac [ ("x", "{z:domain(r) Un {a}. ~P(z)}") ]  (major RS allE) 1);
 by (etac disjE 1);
-by (fast_tac (!claset addEs [equalityE]) 1);
+by (blast_tac (!claset addEs [equalityE]) 1);
 by (asm_full_simp_tac (!simpset addsimps [domainI]) 1);
-by (fast_tac (!claset addSDs [minor]) 1);
+by (blast_tac (!claset addSDs [minor]) 1);
 qed "wf_induct";
 
 (*Perform induction on i, then prove the wf(r) subgoal using prems. *)
@@ -99,11 +99,11 @@ by (rtac (amem RS rev_mp) 1);
 by (wf_ind_tac "a" [wfr] 1);
 by (rtac impI 1);
 by (eresolve_tac prems 1);
-by (fast_tac (!claset addIs (prems RL [subsetD])) 1);
+by (blast_tac (!claset addIs (prems RL [subsetD])) 1);
 qed "wf_induct2";
 
 goal domrange.thy "!!r A. field(r Int A*A) <= A";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "field_Int_square";
 
 val wfr::amem::prems = goalw WF.thy [wf_on_def]
@@ -112,7 +112,7 @@ val wfr::amem::prems = goalw WF.thy [wf_on_def]
 \    |]  ==>  P(a)";
 by (rtac ([wfr, amem, field_Int_square] MRS wf_induct2) 1);
 by (REPEAT (ares_tac prems 1));
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "wf_on_induct";
 
 fun wf_on_ind_tac a prems i = 
@@ -135,26 +135,26 @@ qed "wfI";
 
 goal WF.thy "!!r. wf(r) ==> <a,a> ~: r";
 by (wf_ind_tac "a" [] 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "wf_not_refl";
 
 goal WF.thy "!!r. [| wf(r);  <a,x>:r;  <x,a>:r |] ==> P";
 by (subgoal_tac "ALL x. <a,x>:r --> <x,a>:r --> P" 1);
 by (wf_ind_tac "a" [] 2);
-by (Fast_tac 2);
-by (Fast_tac 1);
+by (Blast_tac 2);
+by (Blast_tac 1);
 qed "wf_asym";
 
 goal WF.thy "!!r. [| wf[A](r); a: A |] ==> <a,a> ~: r";
 by (wf_on_ind_tac "a" [] 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "wf_on_not_refl";
 
 goal WF.thy "!!r. [| wf[A](r);  <a,b>:r;  <b,a>:r;  a:A;  b:A |] ==> P";
 by (subgoal_tac "ALL y:A. <a,y>:r --> <y,a>:r --> P" 1);
 by (wf_on_ind_tac "a" [] 2);
-by (Fast_tac 2);
-by (Fast_tac 1);
+by (Blast_tac 2);
+by (Blast_tac 1);
 qed "wf_on_asym";
 
 (*Needed to prove well_ordI.  Could also reason that wf[A](r) means
@@ -164,8 +164,8 @@ goal WF.thy
 by (subgoal_tac
     "ALL y:A. ALL z:A. <a,y>:r --> <y,z>:r --> <z,a>:r --> P" 1);
 by (wf_on_ind_tac "a" [] 2);
-by (Fast_tac 2);
-by (Fast_tac 1);
+by (Blast_tac 2);
+by (Blast_tac 1);
 qed "wf_on_chain3";
 
 
@@ -178,20 +178,15 @@ val [wfr,subs] = goal WF.thy
 by (rtac wf_onI2 1);
 by (bchain_tac 1);
 by (eres_inst_tac [("a","y")] (wfr RS wf_on_induct) 1);
-by (rtac (impI RS ballI) 1);
-by (etac tranclE 1);
-by (etac (bspec RS mp) 1 THEN assume_tac 1);
-by (Fast_tac 1);
 by (cut_facts_tac [subs] 1);
-(*astar_tac is slightly faster*)
-by (Best_tac 1);
+by (blast_tac (!claset addEs [tranclE]) 1);
 qed "wf_on_trancl";
 
 goal WF.thy "!!r. wf(r) ==> wf(r^+)";
 by (asm_full_simp_tac (!simpset addsimps [wf_iff_wf_on_field]) 1);
 by (rtac (trancl_type RS field_rel_subset RSN (2, wf_on_subset_A)) 1);
 by (etac wf_on_trancl 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "wf_trancl";
 
 

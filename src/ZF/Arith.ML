@@ -51,7 +51,7 @@ goal Arith.thy "!!k. [| 0<k; k: nat |] ==> EX j: nat. k = succ(j)";
 by (etac rev_mp 1);
 by (etac nat_induct 1);
 by (Simp_tac 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 val lemma = result();
 
 (* [| 0 < k; k: nat; !!j. [| j: nat; k = succ(j) |] ==> Q |] ==> Q *)
@@ -428,7 +428,7 @@ by (subgoal_tac "k mod 2: 2" 1);
 by (asm_simp_tac (!simpset addsimps [mod_less_divisor RS ltD]) 2);
 by (dtac ltD 1);
 by (asm_simp_tac (!simpset setloop split_tac [expand_if]) 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "mod2_cases";
 
 goal Arith.thy "!!m. m:nat ==> succ(succ(m)) mod 2 = m mod 2";
@@ -483,7 +483,7 @@ val lt_mono::ford::prems = goal Ordinal.thy
 \        i le j;  j:k                           \
 \     |] ==> f(i) le f(j)";
 by (cut_facts_tac prems 1);
-by (fast_tac (le_cs addSIs [lt_mono,ford] addSEs [leE]) 1);
+by (blast_tac (le_cs addSIs [lt_mono,ford] addSEs [leE]) 1);
 qed "Ord_lt_mono_imp_le_mono";
 
 (*le monotonicity, 1st argument*)
@@ -586,7 +586,7 @@ qed "mult_eq_self_implies_10";
 goal Arith.thy  (* add_le_elim1 *)
     "!!m n k. [|m#+n le m#+k; m:nat; n:nat; k:nat|] ==> n le k";
 by (etac rev_mp 1);
-by (eres_inst_tac[("n","n")]nat_induct 1);
+by (eres_inst_tac [("n","n")] nat_induct 1);
 by (Asm_simp_tac 1);
 by (Step_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [not_le_iff_lt,nat_into_Ord]) 1);
@@ -594,6 +594,6 @@ by (etac lt_asym 1);
 by (assume_tac 1);
 by (Asm_full_simp_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [le_iff, nat_into_Ord]) 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "add_le_elim1";
 

@@ -51,7 +51,7 @@ qed_goal "QPair_inject2" thy "<a;b> = <c;d> ==> b=d"
 
 qed_goalw "QSigmaI" thy [QSigma_def]
     "!!A B. [| a:A;  b:B(a) |] ==> <a;b> : QSigma(A,B)"
- (fn _ => [ Fast_tac 1 ]);
+ (fn _ => [ Blast_tac 1 ]);
 
 AddSIs [QSigmaI];
 
@@ -88,10 +88,10 @@ qed_goalw "QSigma_cong" thy [QSigma_def]
  (fn prems=> [ (simp_tac (!simpset addsimps prems) 1) ]);
 
 qed_goal "QSigma_empty1" thy "QSigma(0,B) = 0"
- (fn _ => [ (Fast_tac 1) ]);
+ (fn _ => [ (Blast_tac 1) ]);
 
 qed_goal "QSigma_empty2" thy "A <*> 0 = 0"
- (fn _ => [ (Fast_tac 1) ]);
+ (fn _ => [ (Blast_tac 1) ]);
 
 Addsimps [QSigma_empty1, QSigma_empty2];
 
@@ -100,11 +100,11 @@ Addsimps [QSigma_empty1, QSigma_empty2];
 
 qed_goalw "qfst_conv" thy [qfst_def] "qfst(<a;b>) = a"
  (fn _=> 
-  [ (fast_tac (!claset addIs [the_equality]) 1) ]);
+  [ (blast_tac (!claset addIs [the_equality]) 1) ]);
 
 qed_goalw "qsnd_conv" thy [qsnd_def] "qsnd(<a;b>) = b"
  (fn _=> 
-  [ (fast_tac (!claset addIs [the_equality]) 1) ]);
+  [ (blast_tac (!claset addIs [the_equality]) 1) ]);
 
 Addsimps [qfst_conv, qsnd_conv];
 
@@ -171,11 +171,11 @@ qed "qsplitD";
 
 qed_goalw "qconverseI" thy [qconverse_def]
     "!!a b r. <a;b>:r ==> <b;a>:qconverse(r)"
- (fn _ => [ (Fast_tac 1) ]);
+ (fn _ => [ (Blast_tac 1) ]);
 
 qed_goalw "qconverseD" thy [qconverse_def]
     "!!a b r. <a;b> : qconverse(r) ==> <b;a> : r"
- (fn _ => [ (Fast_tac 1) ]);
+ (fn _ => [ (Blast_tac 1) ]);
 
 qed_goalw "qconverseE" thy [qconverse_def]
     "[| yx : qconverse(r);  \
@@ -192,17 +192,17 @@ AddSEs [qconverseD, qconverseE];
 
 qed_goal "qconverse_qconverse" thy
     "!!A B r. r<=QSigma(A,B) ==> qconverse(qconverse(r)) = r"
- (fn _ => [ (Fast_tac 1) ]);
+ (fn _ => [ (Blast_tac 1) ]);
 
 qed_goal "qconverse_type" thy
     "!!A B r. r <= A <*> B ==> qconverse(r) <= B <*> A"
- (fn _ => [ (Fast_tac 1) ]);
+ (fn _ => [ (Blast_tac 1) ]);
 
 qed_goal "qconverse_prod" thy "qconverse(A <*> B) = B <*> A"
- (fn _ => [ (Fast_tac 1) ]);
+ (fn _ => [ (Blast_tac 1) ]);
 
 qed_goal "qconverse_empty" thy "qconverse(0) = 0"
- (fn _ => [ (Fast_tac 1) ]);
+ (fn _ => [ (Blast_tac 1) ]);
 
 
 (**** The Quine-inspired notion of disjoint sum ****)
@@ -212,11 +212,11 @@ val qsum_defs = [qsum_def,QInl_def,QInr_def,qcase_def];
 (** Introduction rules for the injections **)
 
 goalw thy qsum_defs "!!a A B. a : A ==> QInl(a) : A <+> B";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "QInlI";
 
 goalw thy qsum_defs "!!b A B. b : B ==> QInr(b) : A <+> B";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "QInrI";
 
 (** Elimination rules **)
@@ -267,27 +267,27 @@ AddSDs [QInl_inject, QInr_inject];
 Addsimps [QInl_iff, QInr_iff, QInl_QInr_iff, QInr_QInl_iff, qsum_empty];
 
 goal thy "!!A B. QInl(a): A<+>B ==> a: A";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "QInlD";
 
 goal thy "!!A B. QInr(b): A<+>B ==> b: B";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "QInrD";
 
 (** <+> is itself injective... who cares?? **)
 
 goal thy
     "u: A <+> B <-> (EX x. x:A & u=QInl(x)) | (EX y. y:B & u=QInr(y))";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "qsum_iff";
 
 goal thy "A <+> B <= C <+> D <-> A<=C & B<=D";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "qsum_subset_iff";
 
 goal thy "A <+> B = C <+> D <-> A=C & B=D";
 by (simp_tac (!simpset addsimps [extension,qsum_subset_iff]) 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "qsum_equal_iff";
 
 (*** Eliminator -- qcase ***)
@@ -315,17 +315,17 @@ qed "qcase_type";
 (** Rules for the Part primitive **)
 
 goal thy "Part(A <+> B,QInl) = {QInl(x). x: A}";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Part_QInl";
 
 goal thy "Part(A <+> B,QInr) = {QInr(y). y: B}";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Part_QInr";
 
 goal thy "Part(A <+> B, %x.QInr(h(x))) = {QInr(y). y: Part(B,h)}";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Part_QInr2";
 
 goal thy "!!A B C. C <= A <+> B ==> Part(C,QInl) Un Part(C,QInr) = C";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Part_qsum_equality";

@@ -28,7 +28,7 @@ fun list_ind_tac a prems i =
 
 goal List.thy "list(A) = {0} + (A * list(A))";
 let open list;  val rew = rewrite_rule con_defs in  
-by (fast_tac (!claset addSIs (map rew intrs) addEs [rew elim]) 1)
+by (blast_tac (!claset addSIs (map rew intrs) addEs [rew elim]) 1)
 end;
 qed "list_unfold";
 
@@ -44,7 +44,7 @@ qed "list_mono";
 goalw List.thy (list.defs@list.con_defs) "list(univ(A)) <= univ(A)";
 by (rtac lfp_lowerbound 1);
 by (rtac (A_subset_univ RS univ_mono) 2);
-by (fast_tac (!claset addSIs [zero_in_univ, Inl_in_univ, Inr_in_univ,
+by (blast_tac (!claset addSIs [zero_in_univ, Inl_in_univ, Inr_in_univ,
                             Pair_in_univ]) 1);
 qed "list_univ";
 
@@ -233,7 +233,7 @@ Addsimps [set_of_list_Nil,set_of_list_Cons];
 goalw List.thy [set_of_list_def] 
     "!!l. l: list(A) ==> set_of_list(l) : Pow(A)";
 by (etac list_rec_type 1);
-by (ALLGOALS (Fast_tac));
+by (ALLGOALS (Blast_tac));
 qed "set_of_list_type";
 
 goal List.thy
@@ -267,19 +267,19 @@ simpset := !simpset setSolver (type_auto_tac list_typechecks);
 val prems = goal List.thy
     "l: list(A) ==> map(%u.u, l) = l";
 by (list_ind_tac "l" prems 1);
-by (ALLGOALS (Asm_simp_tac));
+by (ALLGOALS Asm_simp_tac);
 qed "map_ident";
 
 val prems = goal List.thy
     "l: list(A) ==> map(h, map(j,l)) = map(%u.h(j(u)), l)";
 by (list_ind_tac "l" prems 1);
-by (ALLGOALS (Asm_simp_tac));
+by (ALLGOALS Asm_simp_tac);
 qed "map_compose";
 
 val prems = goal List.thy
     "xs: list(A) ==> map(h, xs@ys) = map(h,xs) @ map(h,ys)";
 by (list_ind_tac "xs" prems 1);
-by (ALLGOALS (Asm_simp_tac));
+by (ALLGOALS Asm_simp_tac);
 qed "map_app_distrib";
 
 val prems = goal List.thy
@@ -293,7 +293,7 @@ val prems = goal List.thy
 \    list_rec(map(h,l), c, d) = \
 \    list_rec(l, c, %x xs r. d(h(x), map(h,xs), r))";
 by (list_ind_tac "l" prems 1);
-by (ALLGOALS (Asm_simp_tac));
+by (ALLGOALS Asm_simp_tac);
 qed "list_rec_map";
 
 (** theorems about list(Collect(A,P)) -- used in ex/term.ML **)
@@ -304,7 +304,7 @@ bind_thm ("list_CollectD", (Collect_subset RS list_mono RS subsetD));
 val prems = goal List.thy
     "l: list({x:A. h(x)=j(x)}) ==> map(h,l) = map(j,l)";
 by (list_ind_tac "l" prems 1);
-by (ALLGOALS (Asm_simp_tac));
+by (ALLGOALS Asm_simp_tac);
 qed "map_list_Collect";
 
 (*** theorems about length ***)
@@ -312,13 +312,13 @@ qed "map_list_Collect";
 val prems = goal List.thy
     "xs: list(A) ==> length(map(h,xs)) = length(xs)";
 by (list_ind_tac "xs" prems 1);
-by (ALLGOALS (Asm_simp_tac));
+by (ALLGOALS Asm_simp_tac);
 qed "length_map";
 
 val prems = goal List.thy
     "xs: list(A) ==> length(xs@ys) = length(xs) #+ length(ys)";
 by (list_ind_tac "xs" prems 1);
-by (ALLGOALS (Asm_simp_tac));
+by (ALLGOALS Asm_simp_tac);
 qed "length_app";
 
 (* [| m: nat; n: nat |] ==> m #+ succ(n) = succ(n) #+ m 
@@ -345,7 +345,7 @@ goal List.thy
 \          ALL x.  EX z zs. drop(length(xs), Cons(x,xs)) = Cons(z,zs)";
 by (etac list.induct 1);
 by (ALLGOALS Asm_simp_tac);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "drop_length_Cons_lemma";
 bind_thm ("drop_length_Cons", (drop_length_Cons_lemma RS spec));
 
@@ -359,12 +359,8 @@ by (rtac ballI 1);
 by (rtac natE 1);
 by (etac ([asm_rl, length_type, Ord_nat] MRS Ord_trans) 1);
 by (assume_tac 1);
-by (Asm_simp_tac 1);
-by (Fast_tac 1);
-by (Asm_simp_tac 1);
-by (dtac bspec 1);
-by (Fast_tac 2);
-by (fast_tac (!claset addEs [succ_in_naturalD,length_type]) 1);
+by (ALLGOALS Asm_simp_tac);
+by (ALLGOALS (blast_tac (!claset addIs [succ_in_naturalD, length_type])));
 qed "drop_length_lemma";
 bind_thm ("drop_length", (drop_length_lemma RS bspec));
 
@@ -373,12 +369,12 @@ bind_thm ("drop_length", (drop_length_lemma RS bspec));
 
 val [major] = goal List.thy "xs: list(A) ==> xs@Nil=xs";
 by (rtac (major RS list.induct) 1);
-by (ALLGOALS (Asm_simp_tac));
+by (ALLGOALS Asm_simp_tac);
 qed "app_right_Nil";
 
 val prems = goal List.thy "xs: list(A) ==> (xs@ys)@zs = xs@(ys@zs)";
 by (list_ind_tac "xs" prems 1);
-by (ALLGOALS (Asm_simp_tac));
+by (ALLGOALS Asm_simp_tac);
 qed "app_assoc";
 
 val prems = goal List.thy

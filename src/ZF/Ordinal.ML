@@ -110,6 +110,8 @@ qed "Ord_in_Ord";
 (* Ord(succ(j)) ==> Ord(j) *)
 val Ord_succD = succI1 RSN (2, Ord_in_Ord);
 
+AddSDs [Ord_succD];
+
 goal Ordinal.thy "!!i j. [| Ord(i);  Transset(j);  j<=i |] ==> Ord(j)";
 by (REPEAT (ares_tac [OrdI] 1
      ORELSE eresolve_tac [Ord_contains_Transset, subsetD] 1));
@@ -480,8 +482,8 @@ by (blast_tac (subset_cs addIs [OrdmemD] addEs [ltE]) 1);
 qed "le_imp_subset";
 
 goal Ordinal.thy "j le i <-> j<=i & Ord(i) & Ord(j)";
-by (fast_tac (!claset addSEs [subset_imp_le, le_imp_subset]
-                      addEs [ltE, make_elim Ord_succD]) 1);
+by (blast_tac (!claset addDs [Ord_succD, subset_imp_le, le_imp_subset]
+                       addEs [ltE]) 1);
 qed "le_subset_iff";
 
 goal Ordinal.thy "i le succ(j) <-> i le j | i=succ(j) & Ord(i)";
@@ -513,7 +515,7 @@ qed "le_trans";
 goal Ordinal.thy "!!i j. i<j ==> succ(i) le j";
 by (rtac (not_lt_iff_le RS iffD1) 1);
 by (blast_tac le_cs 3);
-by (ALLGOALS (blast_tac (!claset addEs [ltE] addIs [Ord_succ])));
+by (ALLGOALS (blast_tac (!claset addEs [ltE])));
 qed "succ_leI";
 
 (*Identical to  succ(i) < succ(j) ==> i<j  *)
@@ -627,12 +629,12 @@ by (REPEAT (eresolve_tac [asm_rl, leprem RS ltE] 1
 qed "le_implies_UN_le_UN";
 
 goal Ordinal.thy "!!i. Ord(i) ==> (UN y:i. succ(y)) = i";
-by (best_tac (!claset addEs [Ord_trans]) 1);
+by (blast_tac (!claset addIs [Ord_trans]) 1);
 qed "Ord_equality";
 
 (*Holds for all transitive sets, not just ordinals*)
 goal Ordinal.thy "!!i. Ord(i) ==> Union(i) <= i";
-by (fast_tac (!claset addSEs [Ord_trans]) 1);
+by (blast_tac (!claset addIs [Ord_trans]) 1);
 qed "Ord_Union_subset";
 
 
