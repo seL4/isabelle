@@ -18,219 +18,225 @@
 % automatically inserts italic corrections around symbols wherever
 % appropriate.
 
-\newcommand{\isasymspacespace}{~~}
-\newcommand{\isasymGamma}{$\Gamma$}
-\newcommand{\isasymDelta}{$\Delta$}
-\newcommand{\isasymTheta}{$\Theta$}
-\newcommand{\isasymLambda}{$\Lambda$}
-\newcommand{\isasymXi}{$\Xi$}
-\newcommand{\isasymPi}{$\Pi$}
-\newcommand{\isasymSigma}{$\Sigma$}
-\newcommand{\isasymUpsilon}{$\Upsilon$}
-\newcommand{\isasymPhi}{$\Phi$}
-\newcommand{\isasymPsi}{$\Psi$}
-\newcommand{\isasymOmega}{$\Omega$}
-\newcommand{\isasymalpha}{$\alpha$}
-\newcommand{\isasymbeta}{$\beta$}
-\newcommand{\isasymgamma}{$\gamma$}
-\newcommand{\isasymdelta}{$\delta$}
-\newcommand{\isasymepsilon}{$\varepsilon$}
-\newcommand{\isasymzeta}{$\zeta$}
-\newcommand{\isasymeta}{$\eta$}
-\newcommand{\isasymtheta}{$\vartheta$}
-\newcommand{\isasymiota}{$\iota$}
-\newcommand{\isasymkappa}{$\kappa$}
-\newcommand{\isasymlambda}{$\lambda$}
-\newcommand{\isasymmu}{$\mu$}
-\newcommand{\isasymnu}{$\nu$}
-\newcommand{\isasymxi}{$\xi$}
-\newcommand{\isasympi}{$\pi$}
-\newcommand{\isasymrho}{$\varrho$}
-\newcommand{\isasymsigma}{$\sigma$}
-\newcommand{\isasymtau}{$\tau$}
-\newcommand{\isasymupsilon}{$\upsilon$}
-\newcommand{\isasymphi}{$\varphi$}
-\newcommand{\isasymchi}{$\chi$}
-\newcommand{\isasympsi}{$\psi$}
-\newcommand{\isasymomega}{$\omega$}
-\newcommand{\isasymnot}{\emph{$\neg$}}
-\newcommand{\isasymand}{\emph{$\wedge$}}
-\newcommand{\isasymor}{\emph{$\vee$}}
-\newcommand{\isasymforall}{\emph{$\forall\,$}}
-\newcommand{\isasymexists}{\emph{$\exists\,$}}
-\newcommand{\isasymAnd}{\emph{$\bigwedge\,$}}
-\newcommand{\isasymlceil}{\emph{$\lceil$}}
-\newcommand{\isasymrceil}{\emph{$\rceil$}}
-\newcommand{\isasymlfloor}{\emph{$\lfloor$}}
-\newcommand{\isasymrfloor}{\emph{$\rfloor$}}
-\newcommand{\isasymturnstile}{\emph{$\vdash$}}
-\newcommand{\isasymTurnstile}{\emph{$\models$}}
-\newcommand{\isasymlbrakk}{\emph{$\mathopen{\lbrack\mkern-3mu\lbrack}$}}
-\newcommand{\isasymrbrakk}{\emph{$\mathclose{\rbrack\mkern-3mu\rbrack}$}}
-\newcommand{\isasymcdot}{\emph{$\cdot$}}
-\newcommand{\isasymin}{\emph{$\in$}}
-\newcommand{\isasymsubseteq}{\emph{$\subseteq$}}
-\newcommand{\isasyminter}{\emph{$\cap$}}
-\newcommand{\isasymunion}{\emph{$\cup$}}
-\newcommand{\isasymInter}{\emph{$\bigcap\,$}}
-\newcommand{\isasymUnion}{\emph{$\bigcup\,$}}
-\newcommand{\isasymsqinter}{\emph{$\sqcap$}}
-\newcommand{\isasymsqunion}{\emph{$\sqcup$}}
-\newcommand{\isasymSqinter}{\emph{$\bigsqcap\,$}}  %requires stmaryrd
-\newcommand{\isasymSqunion}{\emph{$\bigsqcup\,$}}
-\newcommand{\isasymbottom}{\emph{$\bot$}}
-\newcommand{\isasymdoteq}{\emph{$\doteq$}}
-\newcommand{\isasymequiv}{\emph{$\equiv$}}
-\newcommand{\isasymnoteq}{\emph{$\not=$}}
-\newcommand{\isasymsqsubset}{\emph{$\sqsubset$}}
-\newcommand{\isasymsqsubseteq}{\emph{$\sqsubseteq$}}
-\newcommand{\isasymprec}{\emph{$\prec$}}
-\newcommand{\isasympreceq}{\emph{$\preceq$}}
-\newcommand{\isasymsucc}{\emph{$\succ$}}
-\newcommand{\isasymapprox}{\emph{$\approx$}}
-\newcommand{\isasymsim}{\emph{$\sim$}}
-\newcommand{\isasymsimeq}{\emph{$\simeq$}}
-\newcommand{\isasymle}{\emph{$\le$}}
-\newcommand{\isasymColon}{\emph{$\mathrel{::}$}}
-\newcommand{\isasymleftarrow}{\emph{$\leftarrow$}}
-\newcommand{\isasymmidarrow}{\emph{$\relbar$}}
-\newcommand{\isasymrightarrow}{\emph{$\rightarrow$}}
-\newcommand{\isasymLeftarrow}{\emph{$\Leftarrow$}}
-\newcommand{\isasymMidarrow}{\emph{$\Relbar$}}
-\newcommand{\isasymRightarrow}{\emph{$\Rightarrow$}}
-\newcommand{\isasymfrown}{\emph{$\frown$}}
-\newcommand{\isasymmapsto}{\emph{$\mapsto$}}
-\newcommand{\isasymleadsto}{\emph{$\leadsto$}}  %requires latexsym
-\newcommand{\isasymup}{\emph{$\uparrow$}}
-\newcommand{\isasymdown}{\emph{$\downarrow$}}
-\newcommand{\isasymnotin}{\emph{$\notin$}}
-\newcommand{\isasymtimes}{\emph{$\times$}}
-\newcommand{\isasymoplus}{\emph{$\oplus$}}
-\newcommand{\isasymominus}{\emph{$\ominus$}}
-\newcommand{\isasymotimes}{\emph{$\otimes$}}
-\newcommand{\isasymoslash}{\emph{$\oslash$}}
-\newcommand{\isasymsubset}{\emph{$\subset$}}
-\newcommand{\isasyminfinity}{\emph{$\infty$}}
-\newcommand{\isasymbox}{\emph{$\Box$}}  %requires latexsym
-\newcommand{\isasymdiamond}{\emph{$\Diamond$}}  %requires latexsym
-\newcommand{\isasymcirc}{\emph{$\circ$}}
-\newcommand{\isasymbullet}{\emph{$\bullet$}}
-\newcommand{\isasymparallel}{\emph{$\parallel$}}
-\newcommand{\isasymsurd}{\emph{$\surd$}}
-\newcommand{\isasymcopyright}{\emph{\copyright}}
-\newcommand{\isasymplusminus}{\emph{$\pm$}}
-\newcommand{\isasymdiv}{\emph{$\div$}}
-\newcommand{\isasymlongrightarrow}{\emph{$\longrightarrow$}}
-\newcommand{\isasymlongleftarrow}{\emph{$\longleftarrow$}}
-\newcommand{\isasymlongleftrightarrow}{\emph{$\longleftrightarrow$}}
-\newcommand{\isasymLongrightarrow}{\emph{$\Longrightarrow$}}
-\newcommand{\isasymLongleftarrow}{\emph{$\Longleftarrow$}}
-\newcommand{\isasymLongleftrightarrow}{\emph{$\Longleftrightarrow$}}
-\newcommand{\isasymbar}{\emph{$\mid$}}
-\newcommand{\isasymhyphen}{\emph{\rm-}}
-\newcommand{\isasymmacron}{\emph{\rm\=\relax}}
-\newcommand{\isasymexclamdown}{\emph{\rm\textexclamdown}}
-\newcommand{\isasymquestiondown}{\emph{\rm\textquestiondown}}
-\newcommand{\isasymguillemotleft}{\emph{\flqq}}  %requires babel
-\newcommand{\isasymguillemotright}{\emph{\frqq}}  %requires babel
-\newcommand{\isasymdegree}{\emph{\rm\textdegree}}  %requires latin1
-\newcommand{\isasymonesuperior}{\emph{$\mathonesuperior$}}  %requires latin1
-\newcommand{\isasymonequarter}{\emph{\rm\textonequarter}}  %requires latin1
-\newcommand{\isasymtwosuperior}{\emph{$\mathtwosuperior$}}  %requires latin1
-\newcommand{\isasymonehalf}{\emph{\rm\textonehalf}}  %requires latin1
-\newcommand{\isasymthreesuperior}{\emph{$\maththreesuperior$}}  %requires latin1
-\newcommand{\isasymthreequarters}{\emph{\rm\textthreequarters}}  %requires latin1
-\newcommand{\isasymparagraph}{\emph{\P}}
-\newcommand{\isasymregistered}{\emph{\rm\textregistered}}
-\newcommand{\isasymordfeminine}{\emph{\rm\textordfeminine}}
-\newcommand{\isasymordmasculine}{\emph{\rm\textordmasculine}}
-\newcommand{\isasymsection}{\emph{\S}}
-\newcommand{\isasympounds}{\emph{$\pounds$}}
-\newcommand{\isasymyen}{\emph{\yen}}  %requires amssymb
-\newcommand{\isasymcent}{\emph{\cent}}  %requires wasysym
-\newcommand{\isasymcurrency}{\emph{\currency}}  %requires wasysym
-\newcommand{\isasymlbrace}{\emph{$\mathopen{\lbrace\mkern-4.5mu\mid}$}}
-\newcommand{\isasymrbrace}{\emph{$\mathclose{\mid\mkern-4.5mu\rbrace}$}}
-\newcommand{\isasymtop}{\emph{$\top$}}
-\newcommand{\isasymcong}{\emph{$\cong$}}
-\newcommand{\isasymclubsuit}{\emph{$\clubsuit$}}
-\newcommand{\isasymdiamondsuit}{\emph{$\diamondsuit$}}
-\newcommand{\isasymheartsuit}{\emph{$\heartsuit$}}
-\newcommand{\isasymspadesuit}{\emph{$\spadesuit$}}
-\newcommand{\isasymleftrightarrow}{\emph{$\leftrightarrow$}}
-\newcommand{\isasymge}{\emph{$\ge$}}
-\newcommand{\isasympropto}{\emph{$\propto$}}
-\newcommand{\isasympartial}{\emph{$\partial$}}
-\newcommand{\isasymdots}{\emph{$\dots$}}
-\newcommand{\isasymaleph}{\emph{$\aleph$}}
-\newcommand{\isasymIm}{\emph{$\Im$}}
-\newcommand{\isasymRe}{\emph{$\Re$}}
-\newcommand{\isasymwp}{\emph{$\wp$}}
-\newcommand{\isasymemptyset}{\emph{$\emptyset$}}
-\newcommand{\isasymangle}{\emph{$\angle$}}
-\newcommand{\isasymnabla}{\emph{$\nabla$}}
-\newcommand{\isasymProd}{\emph{$\prod\,$}}
-\newcommand{\isasymLeftrightarrow}{\emph{$\Leftrightarrow$}}
-\newcommand{\isasymUparrow}{\emph{$\Uparrow$}}
-\newcommand{\isasymDownarrow}{\emph{$\Downarrow$}}
-\newcommand{\isasymlozenge}{\emph{$\lozenge$}}  %requires amssym
-\newcommand{\isasymlangle}{\emph{$\langle$}}
-\newcommand{\isasymrangle}{\emph{$\rangle$}}
-\newcommand{\isasymSum}{\emph{$\sum\,$}}
-\newcommand{\isasymintegral}{\emph{$\int\,$}}
-\newcommand{\isasymdagger}{\emph{$\dagger$}}
-\newcommand{\isasymsharp}{\emph{$\sharp$}}
-\newcommand{\isasymstar}{\emph{$\star$}}
-\newcommand{\isasymtriangleright}{\emph{$\triangleright$}}
-\newcommand{\isasymlhd}{\emph{$\lhd$}}
-\newcommand{\isasymtriangle}{\emph{$\triangle$}}
-\newcommand{\isasymrhd}{\emph{$\rhd$}}
-\newcommand{\isasymunlhd}{\emph{$\unlhd$}}
-\newcommand{\isasymunrhd}{\emph{$\unrhd$}}
-\newcommand{\isasymtriangleleft}{\emph{$\triangleleft$}}
-\newcommand{\isasymnatural}{\emph{$\natural$}}
-\newcommand{\isasymflat}{\emph{$\flat$}}
-\newcommand{\isasymamalg}{\emph{$\amalg$}}
-\newcommand{\isasymmho}{\emph{$\mho$}}  %requires latexsym
-\newcommand{\isasymupdownarrow}{\emph{$\updownarrow$}}
-\newcommand{\isasymlongmapsto}{\emph{$\longmapsto$}}
-\newcommand{\isasymUpdownarrow}{\emph{$\Updownarrow$}}
-\newcommand{\isasymhookleftarrow}{\emph{$\hookleftarrow$}}
-\newcommand{\isasymhookrightarrow}{\emph{$\hookrightarrow$}}
-\newcommand{\isasymrightleftharpoons}{\emph{$\rightleftharpoons$}}
-\newcommand{\isasymleftharpoondown}{\emph{$\leftharpoondown$}}
-\newcommand{\isasymrightharpoondown}{\emph{$\rightharpoondown$}}
-\newcommand{\isasymleftharpoonup}{\emph{$\leftharpoonup$}}
-\newcommand{\isasymrightharpoonup}{\emph{$\rightharpoonup$}}
-\newcommand{\isasymasymp}{\emph{$\asymp$}}
-\newcommand{\isasymminusplus}{\emph{$\mp$}}
-\newcommand{\isasymbowtie}{\emph{$\bowtie$}}
-\newcommand{\isasymcdots}{\emph{$\cdots$}}
-\newcommand{\isasymodot}{\emph{$\odot$}}
-\newcommand{\isasymsupset}{\emph{$\supset$}}
-\newcommand{\isasymsupseteq}{\emph{$\supseteq$}}
-\newcommand{\isasymsqsupset}{\emph{$\sqsupset$}}  %requires latexsym
-\newcommand{\isasymsqsupseteq}{\emph{$\sqsupseteq$}}
-\newcommand{\isasymll}{\emph{$\ll$}}
-\newcommand{\isasymgg}{\emph{$\gg$}}
-\newcommand{\isasymuplus}{\emph{$\uplus$}}
-\newcommand{\isasymsmile}{\emph{$\smile$}}
-\newcommand{\isasymsucceq}{\emph{$\succeq$}}
-\newcommand{\isasymstileturn}{\emph{$\dashv$}}
-\newcommand{\isasymOr}{\emph{$\bigvee$}}
-\newcommand{\isasymbiguplus}{\emph{$\biguplus$}}
-\newcommand{\isasymddagger}{\emph{$\ddagger$}}
-\newcommand{\isasymJoin}{\emph{$\Join$}}  %requires latexsym
-\newcommand{\isasymbool}{\emph{$\mathrm{I}\mkern-3.8mu\mathrm{B}$}}
-\newcommand{\isasymcomplex}{\emph{$\mathrm{C}\mkern-15mu{\phantom{\mathrm{t}}\vrule}\mkern9mu$}}
-\newcommand{\isasymnat}{\emph{$\mathrm{I}\mkern-3.8mu\mathrm{N}$}}
-\newcommand{\isasymrat}{\emph{$\mathrm{Q}\mkern-16mu{\phantom{\mathrm{t}}\vrule}\mkern10mu$}}
-\newcommand{\isasymreal}{\emph{$\mathrm{I}\mkern-3.8mu\mathrm{R}$}}
-\newcommand{\isasymint}{\emph{$\mathsf{Z}\mkern-7.5mu\mathsf{Z}$}}
-\newcommand{\isasymlesssim}{\emph{$\lesssim$}}  %requires amssymb
-\newcommand{\isasymgreatersim}{\emph{$\gtrsim$}}  %requires amssymb
-\newcommand{\isasymlessapprox}{\emph{$\lessapprox$}}  %requires amssymb
-\newcommand{\isasymgreaterapprox}{\emph{$\gtrapprox$}}  %requires amssymb
-\newcommand{\isasymtriangleq}{\emph{$\triangleq$}}  %requires amssymb
-\newcommand{\isasymlparr}{\emph{$\mathopen{(\mkern-3mu\mid}$}}
-\newcommand{\isasymrparr}{\emph{$\mathclose{\mid\mkern-3mu)}$}}
+\newcommand{\isamath}[1]{\emph{$#1$}}
+\newcommand{\isatext}[1]{\emph{#1}}
+
+
+% symbol definitions
+
+\newcommand{\isasymspacespace}{\isamath{~~}}
+\newcommand{\isasymGamma}{\isamath{\Gamma}}
+\newcommand{\isasymDelta}{\isamath{\Delta}}
+\newcommand{\isasymTheta}{\isamath{\Theta}}
+\newcommand{\isasymLambda}{\isamath{\Lambda}}
+\newcommand{\isasymXi}{\isamath{\Xi}}
+\newcommand{\isasymPi}{\isamath{\Pi}}
+\newcommand{\isasymSigma}{\isamath{\Sigma}}
+\newcommand{\isasymUpsilon}{\isamath{\Upsilon}}
+\newcommand{\isasymPhi}{\isamath{\Phi}}
+\newcommand{\isasymPsi}{\isamath{\Psi}}
+\newcommand{\isasymOmega}{\isamath{\Omega}}
+\newcommand{\isasymalpha}{\isamath{\alpha}}
+\newcommand{\isasymbeta}{\isamath{\beta}}
+\newcommand{\isasymgamma}{\isamath{\gamma}}
+\newcommand{\isasymdelta}{\isamath{\delta}}
+\newcommand{\isasymepsilon}{\isamath{\varepsilon}}
+\newcommand{\isasymzeta}{\isamath{\zeta}}
+\newcommand{\isasymeta}{\isamath{\eta}}
+\newcommand{\isasymtheta}{\isamath{\vartheta}}
+\newcommand{\isasymiota}{\isamath{\iota}}
+\newcommand{\isasymkappa}{\isamath{\kappa}}
+\newcommand{\isasymlambda}{\isamath{\lambda}}
+\newcommand{\isasymmu}{\isamath{\mu}}
+\newcommand{\isasymnu}{\isamath{\nu}}
+\newcommand{\isasymxi}{\isamath{\xi}}
+\newcommand{\isasympi}{\isamath{\pi}}
+\newcommand{\isasymrho}{\isamath{\varrho}}
+\newcommand{\isasymsigma}{\isamath{\sigma}}
+\newcommand{\isasymtau}{\isamath{\tau}}
+\newcommand{\isasymupsilon}{\isamath{\upsilon}}
+\newcommand{\isasymphi}{\isamath{\varphi}}
+\newcommand{\isasymchi}{\isamath{\chi}}
+\newcommand{\isasympsi}{\isamath{\psi}}
+\newcommand{\isasymomega}{\isamath{\omega}}
+\newcommand{\isasymnot}{\isamath{\neg}}
+\newcommand{\isasymand}{\isamath{\wedge}}
+\newcommand{\isasymor}{\isamath{\vee}}
+\newcommand{\isasymforall}{\isamath{\forall\,}}
+\newcommand{\isasymexists}{\isamath{\exists\,}}
+\newcommand{\isasymAnd}{\isamath{\bigwedge\,}}
+\newcommand{\isasymlceil}{\isamath{\lceil}}
+\newcommand{\isasymrceil}{\isamath{\rceil}}
+\newcommand{\isasymlfloor}{\isamath{\lfloor}}
+\newcommand{\isasymrfloor}{\isamath{\rfloor}}
+\newcommand{\isasymturnstile}{\isamath{\vdash}}
+\newcommand{\isasymTurnstile}{\isamath{\models}}
+\newcommand{\isasymlbrakk}{\isamath{\mathopen{\lbrack\mkern-3mu\lbrack}}}
+\newcommand{\isasymrbrakk}{\isamath{\mathclose{\rbrack\mkern-3mu\rbrack}}}
+\newcommand{\isasymcdot}{\isamath{\cdot}}
+\newcommand{\isasymin}{\isamath{\in}}
+\newcommand{\isasymsubseteq}{\isamath{\subseteq}}
+\newcommand{\isasyminter}{\isamath{\cap}}
+\newcommand{\isasymunion}{\isamath{\cup}}
+\newcommand{\isasymInter}{\isamath{\bigcap\,}}
+\newcommand{\isasymUnion}{\isamath{\bigcup\,}}
+\newcommand{\isasymsqinter}{\isamath{\sqcap}}
+\newcommand{\isasymsqunion}{\isamath{\sqcup}}
+\newcommand{\isasymSqinter}{\isamath{\bigsqcap\,}}  %requires stmaryrd
+\newcommand{\isasymSqunion}{\isamath{\bigsqcup\,}}
+\newcommand{\isasymbottom}{\isamath{\bot}}
+\newcommand{\isasymdoteq}{\isamath{\doteq}}
+\newcommand{\isasymequiv}{\isamath{\equiv}}
+\newcommand{\isasymnoteq}{\isamath{\not=}}
+\newcommand{\isasymsqsubset}{\isamath{\sqsubset}}
+\newcommand{\isasymsqsubseteq}{\isamath{\sqsubseteq}}
+\newcommand{\isasymprec}{\isamath{\prec}}
+\newcommand{\isasympreceq}{\isamath{\preceq}}
+\newcommand{\isasymsucc}{\isamath{\succ}}
+\newcommand{\isasymapprox}{\isamath{\approx}}
+\newcommand{\isasymsim}{\isamath{\sim}}
+\newcommand{\isasymsimeq}{\isamath{\simeq}}
+\newcommand{\isasymle}{\isamath{\le}}
+\newcommand{\isasymColon}{\isamath{\mathrel{::}}}
+\newcommand{\isasymleftarrow}{\isamath{\leftarrow}}
+\newcommand{\isasymmidarrow}{\isamath{\relbar}}
+\newcommand{\isasymrightarrow}{\isamath{\rightarrow}}
+\newcommand{\isasymLeftarrow}{\isamath{\Leftarrow}}
+\newcommand{\isasymMidarrow}{\isamath{\Relbar}}
+\newcommand{\isasymRightarrow}{\isamath{\Rightarrow}}
+\newcommand{\isasymfrown}{\isamath{\frown}}
+\newcommand{\isasymmapsto}{\isamath{\mapsto}}
+\newcommand{\isasymleadsto}{\isamath{\leadsto}}  %requires latexsym
+\newcommand{\isasymup}{\isamath{\uparrow}}
+\newcommand{\isasymdown}{\isamath{\downarrow}}
+\newcommand{\isasymnotin}{\isamath{\notin}}
+\newcommand{\isasymtimes}{\isamath{\times}}
+\newcommand{\isasymoplus}{\isamath{\oplus}}
+\newcommand{\isasymominus}{\isamath{\ominus}}
+\newcommand{\isasymotimes}{\isamath{\otimes}}
+\newcommand{\isasymoslash}{\isamath{\oslash}}
+\newcommand{\isasymsubset}{\isamath{\subset}}
+\newcommand{\isasyminfinity}{\isamath{\infty}}
+\newcommand{\isasymbox}{\isamath{\Box}}  %requires latexsym
+\newcommand{\isasymdiamond}{\isamath{\Diamond}}  %requires latexsym
+\newcommand{\isasymcirc}{\isamath{\circ}}
+\newcommand{\isasymbullet}{\isamath{\bullet}}
+\newcommand{\isasymparallel}{\isamath{\parallel}}
+\newcommand{\isasymsurd}{\isamath{\surd}}
+\newcommand{\isasymcopyright}{\isatext{\copyright}}
+\newcommand{\isasymplusminus}{\isamath{\pm}}
+\newcommand{\isasymdiv}{\isamath{\div}}
+\newcommand{\isasymlongrightarrow}{\isamath{\longrightarrow}}
+\newcommand{\isasymlongleftarrow}{\isamath{\longleftarrow}}
+\newcommand{\isasymlongleftrightarrow}{\isamath{\longleftrightarrow}}
+\newcommand{\isasymLongrightarrow}{\isamath{\Longrightarrow}}
+\newcommand{\isasymLongleftarrow}{\isamath{\Longleftarrow}}
+\newcommand{\isasymLongleftrightarrow}{\isamath{\Longleftrightarrow}}
+\newcommand{\isasymbar}{\isamath{\mid}}
+\newcommand{\isasymhyphen}{\isatext{\rm-}}
+\newcommand{\isasymmacron}{\isatext{\rm\=\relax}}
+\newcommand{\isasymexclamdown}{\isatext{\rm\textexclamdown}}
+\newcommand{\isasymquestiondown}{\isatext{\rm\textquestiondown}}
+\newcommand{\isasymguillemotleft}{\isatext{\flqq}}  %requires babel
+\newcommand{\isasymguillemotright}{\isatext{\frqq}}  %requires babel
+\newcommand{\isasymdegree}{\isatext{\rm\textdegree}}  %requires latin1
+\newcommand{\isasymonesuperior}{\isamath{\mathonesuperior}}  %requires latin1
+\newcommand{\isasymonequarter}{\isatext{\rm\textonequarter}}  %requires latin1
+\newcommand{\isasymtwosuperior}{\isamath{\mathtwosuperior}}  %requires latin1
+\newcommand{\isasymonehalf}{\isatext{\rm\textonehalf}}  %requires latin1
+\newcommand{\isasymthreesuperior}{\isamath{\maththreesuperior}}  %requires latin1
+\newcommand{\isasymthreequarters}{\isatext{\rm\textthreequarters}}  %requires latin1
+\newcommand{\isasymparagraph}{\isatext{\P}}
+\newcommand{\isasymregistered}{\isatext{\rm\textregistered}}
+\newcommand{\isasymordfeminine}{\isatext{\rm\textordfeminine}}
+\newcommand{\isasymordmasculine}{\isatext{\rm\textordmasculine}}
+\newcommand{\isasymsection}{\isatext{\S}}
+\newcommand{\isasympounds}{\isamath{\pounds}}
+\newcommand{\isasymyen}{\isatext{\yen}}  %requires amssymb
+\newcommand{\isasymcent}{\isatext{\cent}}  %requires wasysym
+\newcommand{\isasymcurrency}{\isatext{\currency}}  %requires wasysym
+\newcommand{\isasymlbrace}{\isamath{\mathopen{\lbrace\mkern-4.5mu\mid}}}
+\newcommand{\isasymrbrace}{\isamath{\mathclose{\mid\mkern-4.5mu\rbrace}}}
+\newcommand{\isasymtop}{\isamath{\top}}
+\newcommand{\isasymcong}{\isamath{\cong}}
+\newcommand{\isasymclubsuit}{\isamath{\clubsuit}}
+\newcommand{\isasymdiamondsuit}{\isamath{\diamondsuit}}
+\newcommand{\isasymheartsuit}{\isamath{\heartsuit}}
+\newcommand{\isasymspadesuit}{\isamath{\spadesuit}}
+\newcommand{\isasymleftrightarrow}{\isamath{\leftrightarrow}}
+\newcommand{\isasymge}{\isamath{\ge}}
+\newcommand{\isasympropto}{\isamath{\propto}}
+\newcommand{\isasympartial}{\isamath{\partial}}
+\newcommand{\isasymdots}{\isamath{\dots}}
+\newcommand{\isasymaleph}{\isamath{\aleph}}
+\newcommand{\isasymIm}{\isamath{\Im}}
+\newcommand{\isasymRe}{\isamath{\Re}}
+\newcommand{\isasymwp}{\isamath{\wp}}
+\newcommand{\isasymemptyset}{\isamath{\emptyset}}
+\newcommand{\isasymangle}{\isamath{\angle}}
+\newcommand{\isasymnabla}{\isamath{\nabla}}
+\newcommand{\isasymProd}{\isamath{\prod\,}}
+\newcommand{\isasymLeftrightarrow}{\isamath{\Leftrightarrow}}
+\newcommand{\isasymUparrow}{\isamath{\Uparrow}}
+\newcommand{\isasymDownarrow}{\isamath{\Downarrow}}
+\newcommand{\isasymlozenge}{\isamath{\lozenge}}  %requires amssym
+\newcommand{\isasymlangle}{\isamath{\langle}}
+\newcommand{\isasymrangle}{\isamath{\rangle}}
+\newcommand{\isasymSum}{\isamath{\sum\,}}
+\newcommand{\isasymintegral}{\isamath{\int\,}}
+\newcommand{\isasymdagger}{\isamath{\dagger}}
+\newcommand{\isasymsharp}{\isamath{\sharp}}
+\newcommand{\isasymstar}{\isamath{\star}}
+\newcommand{\isasymtriangleright}{\isamath{\triangleright}}
+\newcommand{\isasymlhd}{\isamath{\lhd}}
+\newcommand{\isasymtriangle}{\isamath{\triangle}}
+\newcommand{\isasymrhd}{\isamath{\rhd}}
+\newcommand{\isasymunlhd}{\isamath{\unlhd}}
+\newcommand{\isasymunrhd}{\isamath{\unrhd}}
+\newcommand{\isasymtriangleleft}{\isamath{\triangleleft}}
+\newcommand{\isasymnatural}{\isamath{\natural}}
+\newcommand{\isasymflat}{\isamath{\flat}}
+\newcommand{\isasymamalg}{\isamath{\amalg}}
+\newcommand{\isasymmho}{\isamath{\mho}}  %requires latexsym
+\newcommand{\isasymupdownarrow}{\isamath{\updownarrow}}
+\newcommand{\isasymlongmapsto}{\isamath{\longmapsto}}
+\newcommand{\isasymUpdownarrow}{\isamath{\Updownarrow}}
+\newcommand{\isasymhookleftarrow}{\isamath{\hookleftarrow}}
+\newcommand{\isasymhookrightarrow}{\isamath{\hookrightarrow}}
+\newcommand{\isasymrightleftharpoons}{\isamath{\rightleftharpoons}}
+\newcommand{\isasymleftharpoondown}{\isamath{\leftharpoondown}}
+\newcommand{\isasymrightharpoondown}{\isamath{\rightharpoondown}}
+\newcommand{\isasymleftharpoonup}{\isamath{\leftharpoonup}}
+\newcommand{\isasymrightharpoonup}{\isamath{\rightharpoonup}}
+\newcommand{\isasymasymp}{\isamath{\asymp}}
+\newcommand{\isasymminusplus}{\isamath{\mp}}
+\newcommand{\isasymbowtie}{\isamath{\bowtie}}
+\newcommand{\isasymcdots}{\isamath{\cdots}}
+\newcommand{\isasymodot}{\isamath{\odot}}
+\newcommand{\isasymsupset}{\isamath{\supset}}
+\newcommand{\isasymsupseteq}{\isamath{\supseteq}}
+\newcommand{\isasymsqsupset}{\isamath{\sqsupset}}  %requires latexsym
+\newcommand{\isasymsqsupseteq}{\isamath{\sqsupseteq}}
+\newcommand{\isasymll}{\isamath{\ll}}
+\newcommand{\isasymgg}{\isamath{\gg}}
+\newcommand{\isasymuplus}{\isamath{\uplus}}
+\newcommand{\isasymsmile}{\isamath{\smile}}
+\newcommand{\isasymsucceq}{\isamath{\succeq}}
+\newcommand{\isasymstileturn}{\isamath{\dashv}}
+\newcommand{\isasymOr}{\isamath{\bigvee}}
+\newcommand{\isasymbiguplus}{\isamath{\biguplus}}
+\newcommand{\isasymddagger}{\isamath{\ddagger}}
+\newcommand{\isasymJoin}{\isamath{\Join}}  %requires latexsym
+\newcommand{\isasymbool}{\isamath{\mathrm{I}\mkern-3.8mu\mathrm{B}}}
+\newcommand{\isasymcomplex}{\isamath{\mathrm{C}\mkern-15mu{\phantom{\mathrm{t}}\vrule}\mkern9mu}}
+\newcommand{\isasymnat}{\isamath{\mathrm{I}\mkern-3.8mu\mathrm{N}}}
+\newcommand{\isasymrat}{\isamath{\mathrm{Q}\mkern-16mu{\phantom{\mathrm{t}}\vrule}\mkern10mu}}
+\newcommand{\isasymreal}{\isamath{\mathrm{I}\mkern-3.8mu\mathrm{R}}}
+\newcommand{\isasymint}{\isamath{\mathsf{Z}\mkern-7.5mu\mathsf{Z}}}
+\newcommand{\isasymlesssim}{\isamath{\lesssim}}  %requires amssymb
+\newcommand{\isasymgreatersim}{\isamath{\gtrsim}}  %requires amssymb
+\newcommand{\isasymlessapprox}{\isamath{\lessapprox}}  %requires amssymb
+\newcommand{\isasymgreaterapprox}{\isamath{\gtrapprox}}  %requires amssymb
+\newcommand{\isasymtriangleq}{\isamath{\triangleq}}  %requires amssymb
+\newcommand{\isasymlparr}{\isamath{\mathopen{(\mkern-3mu\mid}}}
+\newcommand{\isasymrparr}{\isamath{\mathclose{\mid\mkern-3mu)}}}
