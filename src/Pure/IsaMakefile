@@ -24,7 +24,7 @@ FILES = ML-Systems/polyml.ML ML-Systems/smlnj-0.93.ML ML-Systems/smlnj-1.09.ML \
 $(OUT)/Pure: $(FILES)
 	@./mk
 
-$(OUT)/RAW: $(FILES)
+RAW: $(FILES)
 	@./mk -r
 
 test: Pure
