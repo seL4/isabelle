@@ -17,9 +17,8 @@ function fail_out()
 }
 
 
-## locations and settings
+## Poly/ML programs
 
-ML_DBASE=$ML_HOME/ML_dbase
 POLY=$ML_HOME/poly
 DISCGARB=$ML_HOME/discgarb
 
@@ -35,7 +34,7 @@ esac
 MLINIT=""
 
 if [ -z "$INFILE" ]; then
-  INFILE="$ML_DBASE"
+  INFILE="$ML_HOME/ML_dbase"
   MLINIT="val use = PolyML.use; val exit = PolyML.exit; fun init_database () = ();"
 fi
 
@@ -60,22 +59,19 @@ fi
 ## run it!
 
 START_POLY="$POLY $ML_OPTIONS $DB"
-DB_INFO=$(ls -l $DB)
+DB_INFO=$(ls -l "$DB")
 
 [ -n "$MLINIT" ] && MLTEXT="$MLINIT $MLTEXT"
 
 if [ -n "$TERMINATE" ]; then
   echo "$MLTEXT" | $START_POLY
   RC=$?
-elif [ -z "$MLTEXT" ]; then
-  $START_POLY
-  RC=$?
 else
-  { echo "$MLTEXT"; $ISABELLE_HOME/lib/scripts/ucat } | $START_POLY
+  { echo "$MLTEXT"; $ISABELLE_HOME/lib/Tools/symbolinput } | $START_POLY
   RC=$?
 fi
 
-NEW_DB_INFO=$(ls -l $DB)
+NEW_DB_INFO=$(ls -l "$DB")
 [ $RC -eq 0 -a -n "$OUTFILE" -a "$DB_INFO" != "$NEW_DB_INFO" ] && $DISCGARB "$OUTFILE"
 
 exit $RC
