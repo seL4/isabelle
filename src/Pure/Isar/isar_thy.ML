@@ -517,8 +517,17 @@ fun gen_begin_theory bg name parents files =
 
 val begin_theory = gen_begin_theory ThyInfo.begin_theory;
 val begin_update_theory = gen_begin_theory ThyInfo.begin_update_theory;
-val end_theory = ThyInfo.end_theory;
-fun kill_theory thy = ThyInfo.remove_thy (PureThy.get_name thy);
+
+fun check_known_thy name =
+  ThyInfo.known_thy name orelse (warning ("Lost theory " ^ quote name); false);
+
+fun end_theory thy =
+  if check_known_thy (PureThy.get_name thy) then ThyInfo.end_theory thy
+  else thy;
+
+fun kill_theory thy =
+  let val name = PureThy.get_name thy
+  in if check_known_thy name then ThyInfo.remove_thy name else () end;
 
 
 fun bg_theory (name, parents, files) int =
