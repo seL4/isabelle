@@ -436,7 +436,6 @@ val asm_full_rewrite = simp_cterm (true, true, false);
 (* add / del *)
 
 val simpN = "simp";
-val asm_simpN = "asm_simp";
 val addN = "add";
 val delN = "del";
 val onlyN = "only";
@@ -487,14 +486,6 @@ val simp_modifiers' =
   Args.$$$ onlyN >> K (map_local_simpset clear_ss, simp_add_local),
   Args.$$$ otherN >> K (I, I)];
 
-val simp_args = Method.only_sectioned_args simp_modifiers';
-
-fun simp_meth thin cut tac ctxt = Method.METHOD (fn facts =>
-  FIRSTGOAL
-    ((if thin then REPEAT_DETERM o etac Drule.thin_rl else K all_tac)
-      THEN' (if cut then Method.insert_tac facts else K all_tac)
-      THEN' tac (get_local_simpset ctxt)));
-
 fun simp_method tac =
   (fn prems => fn ctxt => Method.METHOD (fn facts =>
     FIRSTGOAL (Method.insert_tac (prems @ facts) THEN' tac (get_local_simpset ctxt))))
@@ -504,15 +495,12 @@ fun simp_method tac =
 (* setup_methods *)
 
 val setup_methods = Method.add_methods
- [(simpN,               simp_method true true (CHANGED oo asm_full_simp_tac),
-    "full simplification (including facts, excluding assumptions)"),
-  (asm_simpN,           simp_method false true (CHANGED oo asm_full_simp_tac),
-    "full simplification (including facts and assumptions)"),
-  ("simp_tac",          simp_method false false simp_tac, "simp_tac (improper!)"),
-  ("asm_simp_tac",      simp_method false false asm_simp_tac, "asm_simp_tac (improper!)"),
-  ("full_simp_tac",     simp_method false false full_simp_tac, "full_simp_tac (improper!)"),
-  ("asm_full_simp_tac", simp_method false false asm_full_simp_tac, "asm_full_simp_tac (improper!)"),
-  ("asm_lr_simp_tac",   simp_method false false asm_lr_simp_tac, "asm_lr_simp_tac (improper!)")];
+ [(simpN,               simp_method (CHANGED oo asm_full_simp_tac), "full simplification"),
+  ("simp_tac",          simp_method simp_tac, "simp_tac (improper!)"),
+  ("asm_simp_tac",      simp_method asm_simp_tac, "asm_simp_tac (improper!)"),
+  ("full_simp_tac",     simp_method full_simp_tac, "full_simp_tac (improper!)"),
+  ("asm_full_simp_tac", simp_method asm_full_simp_tac, "asm_full_simp_tac (improper!)"),
+  ("asm_lr_simp_tac",   simp_method asm_lr_simp_tac, "asm_lr_simp_tac (improper!)")];
 
 
 
