@@ -387,20 +387,20 @@ val forget_proofP =
 (* proof steps *)
 
 val deferP =
-  OuterSyntax.command "defer" "shuffle internal proof state"
-    K.prf_script (Scan.option P.nat >> (Toplevel.print oo (Toplevel.proof o IsarThy.defer)));
+  OuterSyntax.command "defer" "shuffle internal proof state" K.prf_script
+    (Scan.option P.nat -- P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.defer)));
 
 val preferP =
-  OuterSyntax.command "prefer" "shuffle internal proof state"
-    K.prf_script (P.nat >> (Toplevel.print oo (Toplevel.proof o IsarThy.prefer)));
+  OuterSyntax.command "prefer" "shuffle internal proof state" K.prf_script
+    (P.nat -- P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.prefer)));
 
 val applyP =
-  OuterSyntax.command "apply" "initial refinement step (unstructured)"
-    K.prf_script (P.method >> (Toplevel.print oo (Toplevel.proof o IsarThy.apply)));
+  OuterSyntax.command "apply" "initial refinement step (unstructured)" K.prf_script
+    (P.method -- P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.apply)));
 
 val apply_endP =
-  OuterSyntax.command "apply_end" "terminal refinement (unstructured)"
-    K.prf_script (P.method >> (Toplevel.print oo (Toplevel.proof o IsarThy.apply_end)));
+  OuterSyntax.command "apply_end" "terminal refinement (unstructured)" K.prf_script
+    (P.method -- P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.apply_end)));
 
 val proofP =
   OuterSyntax.command "proof" "backward proof" K.prf_block
