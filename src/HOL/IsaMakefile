@@ -304,15 +304,13 @@ HOL-Auth: HOL $(LOG)/HOL-Auth.gz
 $(LOG)/HOL-Auth.gz: $(OUT)/HOL Auth/Event_lemmas.ML Auth/Event.thy \
   Auth/Message_lemmas.ML Auth/Message.thy Auth/NS_Public.thy \
   Auth/NS_Public_Bad.thy \
-  Auth/NS_Shared.thy Auth/OtwayRees.ML Auth/OtwayRees.thy \
-  Auth/OtwayRees_AN.ML Auth/OtwayRees_AN.thy Auth/OtwayRees_Bad.ML \
+  Auth/NS_Shared.thy Auth/OtwayRees.thy Auth/OtwayRees_AN.thy \
   Auth/OtwayRees_Bad.thy Auth/Public_lemmas.ML Auth/Public.thy Auth/ROOT.ML \
   Auth/Recur.ML Auth/Recur.thy Auth/Shared_lemmas.ML Auth/Shared.thy \
-  Auth/TLS.ML Auth/TLS.thy Auth/WooLam.ML Auth/WooLam.thy \
+  Auth/TLS.ML Auth/TLS.thy Auth/WooLam.thy \
   Auth/Kerberos_BAN.ML Auth/Kerberos_BAN.thy \
   Auth/KerberosIV.ML Auth/KerberosIV.thy \
-  Auth/Yahalom.ML Auth/Yahalom.thy Auth/Yahalom2.ML Auth/Yahalom2.thy \
-  Auth/Yahalom_Bad.ML Auth/Yahalom_Bad.thy
+  Auth/Yahalom.thy Auth/Yahalom2.thy Auth/Yahalom_Bad.thy
 	@$(ISATOOL) usedir $(OUT)/HOL Auth
 
 

@@ -135,6 +135,8 @@ inductive_cases Crypt_synth [elim!]: "Crypt K X \<in> synth H"
 
 use "Message_lemmas.ML"
 
+lemmas analz_into_parts = analz_subset_parts [THEN subsetD, standard]
+
 lemma Fake_parts_insert_in_Un:
      "[|Z \<in> parts (insert X H);  X: synth (analz H)|] 
       ==> Z \<in>  synth (analz H) \<union> parts H";

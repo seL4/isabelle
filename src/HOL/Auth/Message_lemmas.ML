@@ -50,7 +50,7 @@ Goal "(Friend x \\<in> Friend`A) = (x:A)";
 by Auto_tac;
 qed "Friend_image_eq";
 
-Goal "(Key x \\<in> Key`A) = (x:A)";
+Goal "(Key x \\<in> Key`A) = (x\\<in>A)";
 by Auto_tac;
 qed "Key_image_eq";
 
@@ -82,12 +82,12 @@ Goalw [keysFor_def] "keysFor (H Un H') = keysFor H Un keysFor H'";
 by (Blast_tac 1);
 qed "keysFor_Un";
 
-Goalw [keysFor_def] "keysFor (UN i:A. H i) = (UN i:A. keysFor (H i))";
+Goalw [keysFor_def] "keysFor (\\<Union>i\\<in>A. H i) = (\\<Union>i\\<in>A. keysFor (H i))";
 by (Blast_tac 1);
 qed "keysFor_UN";
 
 (*Monotonicity*)
-Goalw [keysFor_def] "G<=H ==> keysFor(G) <= keysFor(H)";
+Goalw [keysFor_def] "G\\<subseteq>H ==> keysFor(G) \\<subseteq> keysFor(H)";
 by (Blast_tac 1);
 qed "keysFor_mono";
 
@@ -154,7 +154,7 @@ AddSEs [MPair_parts, make_elim parts.Body];
   MPair_parts is left as SAFE because it speeds up proofs.
   The Crypt rule is normally kept UNSAFE to avoid breaking up certificates.*)
 
-Goal "H <= parts(H)";
+Goal "H \\<subseteq> parts(H)";
 by (Blast_tac 1);
 qed "parts_increasing";
 
@@ -167,13 +167,13 @@ by (ALLGOALS Blast_tac);
 qed "parts_empty";
 Addsimps [parts_empty];
 
-Goal "X: parts{} ==> P";
+Goal "X\\<in> parts{} ==> P";
 by (Asm_full_simp_tac 1);
 qed "parts_emptyE";
 AddSEs [parts_emptyE];
 
 (*WARNING: loops if H = {Y}, therefore must not be repeated!*)
-Goal "X: parts H ==> EX Y:H. X: parts {Y}";
+Goal "X\\<in> parts H ==> \\<exists>Y\\<in>H. X\\<in> parts {Y}";
 by (etac parts.induct 1);
 by (ALLGOALS Blast_tac);
 qed "parts_singleton";
@@ -181,11 +181,11 @@ qed "parts_singleton";
 
 (** Unions **)
 
-Goal "parts(G) Un parts(H) <= parts(G Un H)";
+Goal "parts(G) Un parts(H) \\<subseteq> parts(G Un H)";
 by (REPEAT (ares_tac [Un_least, parts_mono, Un_upper1, Un_upper2] 1));
 val parts_Un_subset1 = result();
 
-Goal "parts(G Un H) <= parts(G) Un parts(H)";
+Goal "parts(G Un H) \\<subseteq> parts(G) Un parts(H)";
 by (rtac subsetI 1);
 by (etac parts.induct 1);
 by (ALLGOALS Blast_tac);
@@ -207,17 +207,17 @@ by (simp_tac (simpset() addsimps [Un_assoc]) 1);
 by (simp_tac (simpset() addsimps [parts_insert RS sym]) 1);
 qed "parts_insert2";
 
-Goal "(UN x:A. parts(H x)) <= parts(UN x:A. H x)";
+Goal "(\\<Union>x\\<in>A. parts(H x)) \\<subseteq> parts(\\<Union>x\\<in>A. H x)";
 by (REPEAT (ares_tac [UN_least, parts_mono, UN_upper] 1));
 val parts_UN_subset1 = result();
 
-Goal "parts(UN x:A. H x) <= (UN x:A. parts(H x))";
+Goal "parts(\\<Union>x\\<in>A. H x) \\<subseteq> (\\<Union>x\\<in>A. parts(H x))";
 by (rtac subsetI 1);
 by (etac parts.induct 1);
 by (ALLGOALS Blast_tac);
 val parts_UN_subset2 = result();
 
-Goal "parts(UN x:A. H x) = (UN x:A. parts(H x))";
+Goal "parts(\\<Union>x\\<in>A. H x) = (\\<Union>x\\<in>A. parts(H x))";
 by (REPEAT (ares_tac [equalityI, parts_UN_subset1, parts_UN_subset2] 1));
 qed "parts_UN";
 
@@ -227,13 +227,13 @@ Addsimps [parts_Un, parts_UN];
 AddSEs [parts_Un RS equalityD1 RS subsetD RS UnE,
 	parts_UN RS equalityD1 RS subsetD RS UN_E];
 
-Goal "insert X (parts H) <= parts(insert X H)";
+Goal "insert X (parts H) \\<subseteq> parts(insert X H)";
 by (blast_tac (claset() addIs [impOfSubs parts_mono]) 1);
 qed "parts_insert_subset";
 
 (** Idempotence and transitivity **)
 
-Goal "X: parts (parts H) ==> X: parts H";
+Goal "X\\<in> parts (parts H) ==> X\\<in> parts H";
 by (etac parts.induct 1);
 by (ALLGOALS Blast_tac);
 qed "parts_partsD";
@@ -244,19 +244,19 @@ by (Blast_tac 1);
 qed "parts_idem";
 Addsimps [parts_idem];
 
-Goal "[| X: parts G;  G <= parts H |] ==> X: parts H";
+Goal "[| X\\<in> parts G;  G \\<subseteq> parts H |] ==> X\\<in> parts H";
 by (dtac parts_mono 1);
 by (Blast_tac 1);
 qed "parts_trans";
 
 (*Cut*)
-Goal "[| Y: parts (insert X G);  X: parts H |] \
-\              ==> Y: parts (G Un H)";
+Goal "[| Y\\<in> parts (insert X G);  X\\<in> parts H |] \
+\              ==> Y\\<in> parts (G Un H)";
 by (etac parts_trans 1);
 by Auto_tac;
 qed "parts_cut";
 
-Goal "X: parts H ==> parts (insert X H) = parts H";
+Goal "X\\<in> parts H ==> parts (insert X H) = parts H";
 by (fast_tac (claset() addSDs [parts_cut]
                        addIs  [parts_insertI] 
                        addss (simpset())) 1);
@@ -326,7 +326,7 @@ Addsimps [parts_image_Key];
 
 
 (*In any message, there is an upper bound N on its greatest nonce.*)
-Goal "EX N. ALL n. N<=n --> Nonce n \\<notin> parts {msg}";
+Goal "\\<exists>N. \\<forall>n. N\\<le>n --> Nonce n \\<notin> parts {msg}";
 by (induct_tac "msg" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [exI, parts_insert2])));
 (*MPair case: blast_tac works out the necessary sum itself!*)
@@ -350,11 +350,11 @@ qed "MPair_analz";
 
 AddSEs [MPair_analz];     (*Making it safe speeds up proofs*)
 
-Goal "H <= analz(H)";
+Goal "H \\<subseteq> analz(H)";
 by (Blast_tac 1);
 qed "analz_increasing";
 
-Goal "analz H <= parts H";
+Goal "analz H \\<subseteq> parts H";
 by (rtac subsetI 1);
 by (etac analz.induct 1);
 by (ALLGOALS Blast_tac);
@@ -391,11 +391,11 @@ Addsimps [analz_empty];
 
 (*Converse fails: we can analz more from the union than from the 
   separate parts, as a key in one might decrypt a message in the other*)
-Goal "analz(G) Un analz(H) <= analz(G Un H)";
+Goal "analz(G) Un analz(H) \\<subseteq> analz(G Un H)";
 by (REPEAT (ares_tac [Un_least, analz_mono, Un_upper1, Un_upper2] 1));
 qed "analz_Un";
 
-Goal "insert X (analz H) <= analz(insert X H)";
+Goal "insert X (analz H) \\<subseteq> analz(insert X H)";
 by (blast_tac (claset() addIs [impOfSubs analz_mono]) 1);
 qed "analz_insert";
 
@@ -447,7 +447,7 @@ by (analz_tac 1);
 qed "analz_insert_Crypt";
 
 Goal "Key (invKey K) \\<in> analz H ==>  \
-\              analz (insert (Crypt K X) H) <= \
+\              analz (insert (Crypt K X) H) \\<subseteq> \
 \              insert (Crypt K X) (analz (insert X H))";
 by (rtac subsetI 1);
 by (eres_inst_tac [("xa","x")] analz.induct 1);
@@ -455,7 +455,7 @@ by Auto_tac;
 val lemma1 = result();
 
 Goal "Key (invKey K) \\<in> analz H ==>  \
-\              insert (Crypt K X) (analz (insert X H)) <= \
+\              insert (Crypt K X) (analz (insert X H)) \\<subseteq> \
 \              analz (insert (Crypt K X) H)";
 by Auto_tac;
 by (eres_inst_tac [("xa","x")] analz.induct 1);
@@ -487,7 +487,7 @@ Addsimps [analz_insert_Agent, analz_insert_Nonce,
           analz_insert_Hash, analz_insert_MPair, analz_Crypt_if];
 
 (*This rule supposes "for the sake of argument" that we have the key.*)
-Goal  "analz (insert (Crypt K X) H) <=  \
+Goal  "analz (insert (Crypt K X) H) \\<subseteq>  \
 \          insert (Crypt K X) (analz (insert X H))";
 by (rtac subsetI 1);
 by (etac analz.induct 1);
@@ -506,7 +506,7 @@ Addsimps [analz_image_Key];
 
 (** Idempotence and transitivity **)
 
-Goal "X: analz (analz H) ==> X: analz H";
+Goal "X\\<in> analz (analz H) ==> X\\<in> analz H";
 by (etac analz.induct 1);
 by (ALLGOALS Blast_tac);
 qed "analz_analzD";
@@ -517,13 +517,13 @@ by (Blast_tac 1);
 qed "analz_idem";
 Addsimps [analz_idem];
 
-Goal "[| X: analz G;  G <= analz H |] ==> X: analz H";
+Goal "[| X\\<in> analz G;  G \\<subseteq> analz H |] ==> X\\<in> analz H";
 by (dtac analz_mono 1);
 by (Blast_tac 1);
 qed "analz_trans";
 
 (*Cut; Lemma 2 of Lowe*)
-Goal "[| Y: analz (insert X H);  X: analz H |] ==> Y: analz H";
+Goal "[| Y\\<in> analz (insert X H);  X\\<in> analz H |] ==> Y\\<in> analz H";
 by (etac analz_trans 1);
 by (Blast_tac 1);
 qed "analz_cut";
@@ -535,15 +535,15 @@ qed "analz_cut";
 (*This rewrite rule helps in the simplification of messages that involve
   the forwarding of unknown components (X).  Without it, removing occurrences
   of X can be very complicated. *)
-Goal "X: analz H ==> analz (insert X H) = analz H";
+Goal "X\\<in> analz H ==> analz (insert X H) = analz H";
 by (blast_tac (claset() addIs [analz_cut, analz_insertI]) 1);
 qed "analz_insert_eq";
 
 
 (** A congruence rule for "analz" **)
 
-Goal "[| analz G <= analz G'; analz H <= analz H' \
-\              |] ==> analz (G Un H) <= analz (G' Un H')";
+Goal "[| analz G \\<subseteq> analz G'; analz H \\<subseteq> analz H' \
+\              |] ==> analz (G Un H) \\<subseteq> analz (G' Un H')";
 by (Clarify_tac 1);
 by (etac analz.induct 1);
 by (ALLGOALS (best_tac (claset() addIs [analz_mono RS subsetD])));
@@ -562,20 +562,19 @@ by (asm_simp_tac (simpset() addsimps [insert_def] delsimps [singleton_conv]
 qed "analz_insert_cong";
 
 (*If there are no pairs or encryptions then analz does nothing*)
-Goal "[| ALL X Y. {|X,Y|} \\<notin> H;  ALL X K. Crypt K X \\<notin> H |] ==> \
-\         analz H = H";
+Goal "[| \\<forall>X Y. {|X,Y|} \\<notin> H;  \\<forall>X K. Crypt K X \\<notin> H |] ==> analz H = H";
 by Safe_tac;
 by (etac analz.induct 1);
 by (ALLGOALS Blast_tac);
 qed "analz_trivial";
 
 (*These two are obsolete (with a single Spy) but cost little to prove...*)
-Goal "X: analz (UN i:A. analz (H i)) ==> X: analz (UN i:A. H i)";
+Goal "X\\<in> analz (\\<Union>i\\<in>A. analz (H i)) ==> X\\<in> analz (\\<Union>i\\<in>A. H i)";
 by (etac analz.induct 1);
 by (ALLGOALS (blast_tac (claset() addIs [impOfSubs analz_mono])));
 val lemma = result();
 
-Goal "analz (UN i:A. analz (H i)) = analz (UN i:A. H i)";
+Goal "analz (\\<Union>i\\<in>A. analz (H i)) = analz (\\<Union>i\\<in>A. H i)";
 by (blast_tac (claset() addIs [lemma, impOfSubs analz_mono]) 1);
 qed "analz_UN_analz";
 Addsimps [analz_UN_analz];
@@ -583,7 +582,7 @@ Addsimps [analz_UN_analz];
 
 (**** Inductive relation "synth" ****)
 
-Goal "H <= synth(H)";
+Goal "H \\<subseteq> synth(H)";
 by (Blast_tac 1);
 qed "synth_increasing";
 
@@ -591,17 +590,17 @@ qed "synth_increasing";
 
 (*Converse fails: we can synth more from the union than from the 
   separate parts, building a compound message using elements of each.*)
-Goal "synth(G) Un synth(H) <= synth(G Un H)";
+Goal "synth(G) Un synth(H) \\<subseteq> synth(G Un H)";
 by (REPEAT (ares_tac [Un_least, synth_mono, Un_upper1, Un_upper2] 1));
 qed "synth_Un";
 
-Goal "insert X (synth H) <= synth(insert X H)";
+Goal "insert X (synth H) \\<subseteq> synth(insert X H)";
 by (blast_tac (claset() addIs [impOfSubs synth_mono]) 1);
 qed "synth_insert";
 
 (** Idempotence and transitivity **)
 
-Goal "X: synth (synth H) ==> X: synth H";
+Goal "X\\<in> synth (synth H) ==> X\\<in> synth H";
 by (etac synth.induct 1);
 by (ALLGOALS Blast_tac);
 qed "synth_synthD";
@@ -611,13 +610,13 @@ Goal "synth (synth H) = synth H";
 by (Blast_tac 1);
 qed "synth_idem";
 
-Goal "[| X: synth G;  G <= synth H |] ==> X: synth H";
+Goal "[| X\\<in> synth G;  G \\<subseteq> synth H |] ==> X\\<in> synth H";
 by (dtac synth_mono 1);
 by (Blast_tac 1);
 qed "synth_trans";
 
 (*Cut; Lemma 2 of Lowe*)
-Goal "[| Y: synth (insert X H);  X: synth H |] ==> Y: synth H";
+Goal "[| Y\\<in> synth (insert X H);  X\\<in> synth H |] ==> Y\\<in> synth H";
 by (etac synth_trans 1);
 by (Blast_tac 1);
 qed "synth_cut";
@@ -688,23 +687,23 @@ Addsimps [analz_analz_Un, analz_synth_Un, analz_synth];
 
 (** For reasoning about the Fake rule in traces **)
 
-Goal "X: G ==> parts(insert X H) <= parts G Un parts H";
+Goal "X\\<in> G ==> parts(insert X H) \\<subseteq> parts G Un parts H";
 by (rtac ([parts_mono, parts_Un_subset2] MRS subset_trans) 1);
 by (Blast_tac 1);
 qed "parts_insert_subset_Un";
 
 (*More specifically for Fake.  Very occasionally we could do with a version
-  of the form  parts{X} <= synth (analz H) Un parts H *)
-Goal "X: synth (analz H) ==> \
-\     parts (insert X H) <= synth (analz H) Un parts H";
+  of the form  parts{X} \\<subseteq> synth (analz H) Un parts H *)
+Goal "X\\<in> synth (analz H) ==> \
+\     parts (insert X H) \\<subseteq> synth (analz H) Un parts H";
 by (dtac parts_insert_subset_Un 1);
 by (Full_simp_tac 1);
 by (Blast_tac 1);
 qed "Fake_parts_insert";
 
 (*H is sometimes (Key ` KK Un spies evs), so can't put G=H*)
-Goal "X: synth (analz G) ==> \
-\     analz (insert X H) <= synth (analz G) Un analz (G Un H)";
+Goal "X\\<in> synth (analz G) ==> \
+\     analz (insert X H) \\<subseteq> synth (analz G) Un analz (G Un H)";
 by (rtac subsetI 1);
 by (subgoal_tac "x \\<in> analz (synth (analz G) Un H)" 1);
 by (blast_tac (claset() addIs [impOfSubs analz_mono,
@@ -713,11 +712,11 @@ by (Full_simp_tac 1);
 by (Blast_tac 1);
 qed "Fake_analz_insert";
 
-Goal "(X: analz H & X: parts H) = (X: analz H)";
+Goal "(X\\<in> analz H & X\\<in> parts H) = (X\\<in> analz H)";
 by (blast_tac (claset() addIs [impOfSubs analz_subset_parts]) 1);
 val analz_conj_parts = result();
 
-Goal "(X: analz H | X: parts H) = (X: parts H)";
+Goal "(X\\<in> analz H | X\\<in> parts H) = (X\\<in> parts H)";
 by (blast_tac (claset() addIs [impOfSubs analz_subset_parts]) 1);
 val analz_disj_parts = result();
 

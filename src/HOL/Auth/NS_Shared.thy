@@ -20,8 +20,8 @@ inductive "ns_shared"
 	(*The spy MAY say anything he CAN say.  We do not expect him to
 	  invent new nonces here, but he can also use NS1.  Common to
 	  all similar protocols.*)
-  Fake: "\<lbrakk>evs \<in> ns_shared;  X \<in> synth (analz (spies evs))\<rbrakk>
-	 \<Longrightarrow> Says Spy B X # evs \<in> ns_shared"
+  Fake: "\<lbrakk>evsf \<in> ns_shared;  X \<in> synth (analz (spies evsf))\<rbrakk>
+	 \<Longrightarrow> Says Spy B X # evsf \<in> ns_shared"
 
 	(*Alice initiates a protocol run, requesting to talk to any B*)
   NS1:  "\<lbrakk>evs1 \<in> ns_shared;  Nonce NA \<notin> used evs1\<rbrakk>
@@ -74,10 +74,8 @@ inductive "ns_shared"
 
 declare Says_imp_knows_Spy [THEN parts.Inj, dest]
 declare parts.Body  [dest]
-declare MPair_parts [elim!]    (*can speed up some proofs*)
-
-declare analz_subset_parts [THEN subsetD, dest]
-declare Fake_parts_insert  [THEN subsetD, dest]
+declare Fake_parts_insert_in_Un  [dest]
+declare analz_into_parts [dest]
 declare image_eq_UN [simp]  (*accelerates proofs involving nested images*)
 
 
@@ -122,7 +120,6 @@ apply (erule ns_shared.induct, force, frule_tac [4] NS3_msg_in_parts_spies)
 apply simp_all
 apply blast+;
 done
-
 
 lemma Spy_analz_shrK [simp]:
      "evs \<in> ns_shared \<Longrightarrow> (Key (shrK A) \<in> analz (spies evs)) = (A \<in> bad)"
@@ -310,8 +307,7 @@ lemma A_trusts_NS4_lemma [rule_format]:
       Crypt K (Nonce NB) \<in> parts (spies evs) \<longrightarrow>
       Says B A (Crypt K (Nonce NB)) \<in> set evs"
 apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies)
-apply analz_mono_contra
-apply simp_all
+apply (analz_mono_contra, simp_all)
 apply blast     (*Fake*)
 (*NS2: contradiction from the assumptions  
   Key K \<notin> used evs2  and Crypt K (Nonce NB) \<in> parts (spies evs2) *)
