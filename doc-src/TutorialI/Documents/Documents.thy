@@ -13,12 +13,11 @@ text {*
   parser and output templates for the pretty printer.
 
   In full generality, the whole affair of parser and pretty printer
-  configuration is rather subtle, see \cite{isabelle-ref} for further
-  details.  Any syntax specifications given by end-users need to
-  interact properly with the existing setup of Isabelle/Pure and
-  Isabelle/HOL.  It is particularly important to get the precedence of
-  new syntactic constructs right, avoiding ambiguities with existing
-  elements.
+  configuration is rather subtle, see also \cite{isabelle-ref}.  Any
+  syntax specifications given by end-users need to interact properly
+  with the existing setup of Isabelle/Pure and Isabelle/HOL.  It is
+  particularly important to get the precedence of new syntactic
+  constructs right, avoiding ambiguities with existing elements.
 
   \medskip Subsequently we introduce a few simple declaration forms
   that already cover the most common situations fairly well.
@@ -37,7 +36,7 @@ text {*
 
   Infix declarations\index{infix annotations} provide a useful special
   case of mixfixes, where users need not care about the full details
-  of priorities, nesting, spacing, etc.  The subsequent example of the
+  of priorities, nesting, spacing, etc.  The following example of the
   exclusive-or operation on boolean values illustrates typical infix
   declarations arising in practice.
 *}
@@ -77,10 +76,10 @@ text {*
   "*"}) above 50.  User syntax should strive to coexist with common
   HOL forms, or use the mostly unused range 100--900.
 
-  \medskip The keyword \isakeyword{infixl} specifies an operator that
-  is nested to the \emph{left}: in iterated applications the more
-  complex expression appears on the left-hand side: @{term "A [+] B
-  [+] C"} stands for @{text "(A [+] B) [+] C"}.  Similarly,
+  The keyword \isakeyword{infixl} specifies an operator that is nested
+  to the \emph{left}: in iterated applications the more complex
+  expression appears on the left-hand side: @{term "A [+] B [+] C"}
+  stands for @{text "(A [+] B) [+] C"}.  Similarly,
   \isakeyword{infixr} specifies to nesting to the \emph{right},
   reading @{term "A [+] B [+] C"} as @{text "A [+] (B [+] C)"}.  In
   contrast, a \emph{non-oriented} declaration via \isakeyword{infix}
@@ -96,11 +95,10 @@ text {*
   limitations.  Rich mathematical notation demands a larger repertoire
   of symbols.  Several standards of extended character sets have been
   proposed over decades, but none has become universally available so
-  far, not even Unicode\index{Unicode}.  Isabelle supports a generic
-  notion of \bfindex{symbols} as the smallest entities of source text,
-  without referring to internal encodings.
-
-  There are three kinds of such ``generalized characters'' available:
+  far.  Isabelle supports a generic notion of \bfindex{symbols} as the
+  smallest entities of source text, without referring to internal
+  encodings.  There are three kinds of such ``generalized
+  characters'':
 
   \begin{enumerate}
 
@@ -117,7 +115,7 @@ text {*
   interpretation is left to further front-end tools.  For example,
   both by the user-interface of Proof~General + X-Symbol and the
   Isabelle document processor (see \S\ref{sec:document-preparation})
-  display the \verb,\,\verb,<forall>, symbol really as ``$\forall$''.
+  display the \verb,\,\verb,<forall>, symbol really as @{text \<forall>}.
 
   A list of standard Isabelle symbols is given in
   \cite[appendix~A]{isabelle-sys}.  Users may introduce their own
@@ -127,7 +125,7 @@ text {*
   few predefined control symbols, such as \verb,\,\verb,<^sub>, and
   \verb,\,\verb,<^sup>, for sub- and superscript of the subsequent
   (printable) symbol, respectively.  For example, \verb,A\<^sup>\<star>, is
-  shown as ``@{text "A\<^sup>\<star>"}''.
+  shown as @{text "A\<^sup>\<star>"}.
 
   \medskip The following version of our @{text xor} definition uses a
   standard Isabelle symbol to achieve typographically pleasing output.
@@ -135,7 +133,7 @@ text {*
 
 (*<*)
 hide const xor
-ML_setup {* Context.>> (Theory.add_path "1") *}
+ML_setup {* Context.>> (Theory.add_path "version1") *}
 (*>*)
 constdefs
   xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl "\<oplus>" 60)
@@ -160,7 +158,7 @@ text {*
 
 (*<*)
 hide const xor
-ML_setup {* Context.>> (Theory.add_path "2") *}
+ML_setup {* Context.>> (Theory.add_path "version2") *}
 (*>*)
 constdefs
   xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl "[+]\<ignore>" 60)
@@ -231,20 +229,8 @@ text {*
   subject to our concrete syntax.  This simple form already achieves
   conformance with notational standards of the European Commission.
 
-  \medskip Certainly, the same idea of prefix syntax also works for
-  \isakeyword{consts}, \isakeyword{constdefs} etc.  The slightly
-  unusual syntax declaration below decorates the existing @{typ
-  currency} type with the international currency symbol @{text \<currency>}
-  (\verb,\,\verb,<currency>,).
-*}
-
-syntax
-  currency :: type    ("\<currency>")
-
-text {*
-  \noindent Here @{typ type} refers to the builtin syntactic category
-  of Isabelle types.  We may now write down funny things like @{text
-  "\<euro> :: nat \<Rightarrow> \<currency>"}, for example.
+  Prefix syntax also works for plain \isakeyword{consts} or
+  \isakeyword{constdefs}, of course.
 *}
 
 
@@ -263,11 +249,11 @@ text{*
   \commdx{translations} relates the input forms with more complex
   logical expressions.  This essentially provides a simple mechanism
   for for syntactic macros; even heavier transformations may be
-  programmed in ML \cite{isabelle-ref}.
+  written in ML \cite{isabelle-ref}.
 
   \medskip A typical example of syntax translations is to decorate
-  relational expressions (set membership of tuples) with nice symbolic
-  notation, such as @{text "(x, y) \<in> sim"} versus @{text "x \<approx> y"}.
+  relational expressions with nice symbolic notation, such as @{text
+  "(x, y) \<in> sim"} versus @{text "x \<approx> y"}.
 *}
 
 consts
@@ -300,13 +286,13 @@ text {*
   within the logic, using \isakeyword{consts} + \isakeyword{defs}
   instead of \isakeyword{syntax} + \isakeyword{translations}.  The
   present formulation has the virtue that expressions are immediately
-  replaced by its ``definition'' upon parsing; the effect is reversed
-  upon printing.  Internally, @{text"\<noteq>"} never appears.
+  replaced by the ``definition'' upon parsing; the effect is reversed
+  upon printing.
 
   Simulating definitions via translations is adequate for very basic
-  logical concepts, where a new representation is a trivial variation
-  on an existing one.  On the other hand, syntax translations do not
-  scale up well to large hierarchies of concepts built on each other.
+  principles, where a new representation is a trivial variation on an
+  existing one.  On the other hand, syntax translations do not scale
+  up well to large hierarchies of concepts built on each other.
 *}
 
 
@@ -314,30 +300,29 @@ section {* Document Preparation \label{sec:document-preparation} *}
 
 text {*
   Isabelle/Isar is centered around the concept of \bfindex{formal
-  proof documents}\index{documents|bold}.  Ultimately the result of
-  the user's theory development efforts is meant to be a
-  human-readable record, presented as a browsable PDF file or printed
-  on paper.  The overall document structure follows traditional
-  mathematical articles, with sectioning, intermediate explanations,
-  definitions, theorem statements and proofs.
+  proof documents}\index{documents|bold}.  The ultimate result of a
+  formal development effort is meant to be a human-readable record,
+  presented as browsable PDF file or printed on paper.  The overall
+  document structure follows traditional mathematical articles, with
+  sections, intermediate explanations, definitions, theorems and
+  proofs.
 
   The Isar proof language \cite{Wenzel-PhD}, which is not covered in
   this book, admits to write formal proof texts that are acceptable
   both to the machine and human readers at the same time.  Thus
   marginal comments and explanations may be kept at a minimum.  Even
   without proper coverage of human-readable proofs, Isabelle document
-  is very useful to produce formally derived texts (elaborating on the
-  specifications etc.).  Unstructured proof scripts given here may be
-  just ignored by readers, or intentionally suppressed from the text
-  by the writer (see also \S\ref{sec:doc-prep-suppress}).
+  is very useful to produce formally derived texts.  Unstructured
+  proof scripts given here may be just ignored by readers, or
+  intentionally suppressed from the text by the writer (see also
+  \S\ref{sec:doc-prep-suppress}).
 
   \medskip The Isabelle document preparation system essentially acts
   like a formal front-end to {\LaTeX}.  After checking specifications
   and proofs, the theory sources are turned into typesetting
   instructions in a well-defined manner.  This enables users to write
-  authentic reports on formal theory developments with little
-  additional effort, the most tedious consistency checks are handled
-  by the system.
+  authentic reports on formal developments with little effort, most
+  tedious consistency checks are handled by the system.
 *}
 
 
@@ -360,11 +345,11 @@ text {*
   \begin{itemize}
 
   \item Directory \texttt{MySession} contains the required theory
-  files ($A@1$\texttt{.thy}, \dots, $A@n$\texttt{.thy}).
+  files $T@1$\texttt{.thy}, \dots, $T@n$\texttt{.thy}.
 
   \item File \texttt{MySession/ROOT.ML} holds appropriate ML commands
   for loading all wanted theories, usually just
-  ``\texttt{use_thy~"$A@i$";}'' for any $A@i$ in leaf position of the
+  ``\texttt{use_thy"$T@i$";}'' for any $T@i$ in leaf position of the
   theory dependency graph.
 
   \item Directory \texttt{MySession/document} contains everything
@@ -373,13 +358,13 @@ text {*
 
   The latter file holds appropriate {\LaTeX} code to commence a
   document (\verb,\documentclass, etc.), and to include the generated
-  files $A@i$\texttt{.tex} for each theory.  The generated
+  files $T@i$\texttt{.tex} for each theory.  The generated
   \texttt{session.tex} will hold {\LaTeX} commands to include all
   theory output files in topologically sorted order, so
   \verb,\input{session}, in \texttt{root.tex} will do it in most
   situations.
 
-  \item In addition, \texttt{IsaMakefile} outside of the directory
+  \item \texttt{IsaMakefile} outside of the directory
   \texttt{MySession} holds appropriate dependencies and invocations of
   Isabelle tools to control the batch job.  In fact, several sessions
   may be controlled by the same \texttt{IsaMakefile}.  See also
@@ -392,7 +377,7 @@ text {*
   should be sufficient to process the Isabelle session completely,
   with the generated document appearing in its proper place.
 
-  \medskip In practice, users may want to have \texttt{isatool mkdir}
+  \medskip In reality, users may want to have \texttt{isatool mkdir}
   generate an initial working setup without further ado.  For example,
   an empty session \texttt{MySession} derived from \texttt{HOL} may be
   produced as follows:
@@ -450,16 +435,15 @@ text {*
   {\LaTeX} conventions, with chapters, sections, subsubsections etc.
   The Isar language includes separate \bfindex{markup commands}, which
   do not effect the formal content of a theory (or proof), but result
-  in corresponding {\LaTeX} elements issued to the output.
+  in corresponding {\LaTeX} elements.
 
-  There are separate markup commands for different formal contexts: in
-  header position (just before a \isakeyword{theory} command), within
-  the theory body, or within a proof.  Note that the header needs to
-  be treated specially, since ordinary theory and proof commands may
-  only occur \emph{after} the initial \isakeyword{theory}
-  specification.
+  There are separate markup commands depending on the textual context:
+  in header position (just before \isakeyword{theory}), within the
+  theory body, or within a proof.  The header needs to be treated
+  specially here, since ordinary theory and proof commands may only
+  occur \emph{after} the initial \isakeyword{theory} specification.
 
-  \smallskip
+  \medskip
 
   \begin{tabular}{llll}
   header & theory & proof & default meaning \\\hline
@@ -509,7 +493,7 @@ text {*
   \end{ttbox}
 
   Users may occasionally want to change the meaning of markup
-  commands, say via \verb,\renewcommand, in \texttt{root.tex}.  The
+  commands, say via \verb,\renewcommand, in \texttt{root.tex};
   \verb,\isamarkupheader, is a good candidate for some adaption, e.g.\
   moving it up in the hierarchy to become \verb,\chapter,.
 
@@ -540,23 +524,29 @@ text {*
 subsection {* Formal Comments and Antiquotations *}
 
 text {*
-  FIXME check
-
-  Source comments of the form \verb,(,\verb,*,~\dots~\verb,*,\verb,),
-  essentially act like white space and do not contribute to the formal
-  text at all.  They mainly serve technical purposes to mark certain
-  oddities or problems with the raw sources.
-
-  In contrast, \bfindex{formal comments} are portions of text that are
-  associated with formal Isabelle/Isar commands (\bfindex{marginal
-  comments}), or even as stanalone paragraphs positioned explicitly
-  within a theory or proof context (\bfindex{text blocks}).
+  Isabelle source comments, which are of the form
+  \verb,(,\verb,*,~\dots~\verb,*,\verb,),, essentially act like white
+  space and do not really contribute to the content.  They mainly
+  serve technical purposes to mark certain oddities in the raw input
+  text.  In contrast, \bfindex{formal comments} are portions of text
+  that are associated with formal Isabelle/Isar commands
+  (\bfindex{marginal comments}), or as stanalone paragraphs within a
+  theory or proof context (\bfindex{text blocks}).
 
   \medskip Marginal comments are part of each command's concrete
-  syntax \cite{isabelle-ref}; the common form \verb,--,~text, where
-  $text$, delimited by \verb,",\dots\verb,", or
+  syntax \cite{isabelle-ref}; the common form is ``\verb,--,~text''
+  where $text$ is delimited by \verb,",\dots\verb,", or
   \verb,{,\verb,*,~\dots~\verb,*,\verb,}, as usual.  Multiple marginal
   comments may be given at the same time.  Here is a simple example:
+*}
+
+lemma "A --> A"
+  -- "a triviality of propositional logic"
+  -- "(should not really bother)"
+  by (rule impI) -- "implicit assumption step involved here"
+
+text {*
+  \noindent The above output has been produced as follows:
 
 \begin{verbatim}
   lemma "A --> A"
@@ -565,71 +555,69 @@ text {*
     by (rule impI) -- "implicit assumption step involved here"
 \end{verbatim}
 
-  From the {\LaTeX} view, \verb,--, acts like a markup command, the
-  corresponding macro is \verb,\isamarkupcmt, (of a single argument).
+  From the {\LaTeX} view, ``\verb,--,'' acts like a markup command,
+  the corresponding macro is \verb,\isamarkupcmt, (with a single
+  argument).
 
-  \medskip The commands \bfindex{text} and \bfindex{txt} both
-  introduce a text block (for theory and proof contexts,
-  respectively), taking a single $text$ argument.  The {\LaTeX} output
-  appears as a free-form text, surrounded with separate paragraphs and
-  additional vertical spacing.  This behavior is determined by the
-  {\LaTeX} environment definitions \verb,isamarkuptext, and
-  \verb,isamarkuptxt,, respectively.  This may be changed via
-  \verb,\renewenvironment,, but it is often sufficient to redefine
-  \verb,\isastyletext, or \verb,\isastyletxt, only, which determine
-  the body text style.
+  \medskip Text blocks are introduced by the commands \bfindex{text}
+  and \bfindex{txt}, for theory and proof contexts, respectively.
+  Each takes again a single $text$ argument, which is interpreted as a
+  free-form paragraph in {\LaTeX} (surrounded by some additional
+  vertical space).  The exact behavior may be changed by redefining
+  the {\LaTeX} environments of \verb,isamarkuptext, or
+  \verb,isamarkuptxt,, respectively.  The text style of the body is
+  determined by the \verb,\isastyletext, and \verb,\isastyletxt,
+  macros; the default uses a smaller font within proofs.
 
   \medskip The $text$ part of each of the various markup commands
-  considered so far essentially inserts \emph{quoted} material within
-  a formal text, essentially for instruction of the reader only
-  (arbitrary {\LaTeX} macros may be included).
+  considered so far essentially inserts quoted material within a
+  formal text, mainly for instruction of the reader (arbitrary
+  {\LaTeX} macros may be also included).  An \bfindex{antiquotation}
+  is again a formal object that has been embedded into such an
+  informal portion.  The interpretation of antiquotations is limited
+  to some well-formedness checks, with the result being pretty printed
+  to the resulting document.  So quoted text blocks together with
+  antiquotations provide very handsome means to reference formal
+  entities with good confidence in technical details (especially
+  syntax and types).
 
-  An \bfindex{antiquotation} is again a formal object that has been
-  embedded into such an informal portion of text.  Typically, the
-  interpretation of an antiquotation is limited to well-formedness
-  checks, with the result being pretty printed into the resulting
-  document output.  So quoted text blocks together with antiquotations
-  provide very handsome means to reference formal entities within
-  informal expositions, with a high level of confidence in the
-  technical details (especially syntax and types).
-
-  The general format of antiquotations is as follows:
+  The general syntax of antiquotations is as follows:
   \texttt{{\at}{\ttlbrace}$name$ $arguments${\ttrbrace}}, or
   \texttt{{\at}{\ttlbrace}$name$ [$options$] $arguments${\ttrbrace}}
-  for a comma-separated list of $name$ or assignments
-  \texttt{$name$=$value$} of $options$ (see \cite{isabelle-isar-ref}
-  for details).  The syntax of $arguments$ depends on the
-  antiquotation name, it generally follows the same conventions for
-  types, terms, or theorems as in the formal part of a theory.
+  for a comma-separated list of options consisting of a $name$ or
+  \texttt{$name$=$value$} pair \cite{isabelle-isar-ref}.  The syntax
+  of $arguments$ depends on the kind of antiquotation, it generally
+  follows the same conventions for types, terms, or theorems as in the
+  formal part of a theory.
 
-  \medskip Here is an example use of the quotation-antiquotation
+  \medskip Here is an example of the quotation-antiquotation
   technique: @{term "%x y. x"} is a well-typed term.
 
-  \medskip This output has been produced as follows:
+  \medskip\noindent The above output has been produced as follows:
   \begin{ttbox}
 text {\ttlbrace}*
-  Here is an example use of the quotation-antiquotation technique:
+  Here is an example of the quotation-antiquotation technique:
   {\at}{\ttlbrace}term "%x y. x"{\ttrbrace} is a well-typed term.
 *{\ttrbrace}
   \end{ttbox}
 
   From the notational change of the ASCII character \verb,%, to the
   symbol @{text \<lambda>} we see that the term really got printed by the
-  system --- recall that the document preparation system enables
-  symbolic output by default.
+  system (after parsing and type-checking), document preparation
+  enables symbolic output by default.
 
-  \medskip In the following example we include an option to enable the
-  \verb,show_types, flag of Isabelle: the antiquotation
+  \medskip The next example includes an option to modify the
+  \verb,show_types, flag of Isabelle:
   \texttt{{\at}}\verb,{term [show_types] "%x y. x"}, produces @{term
   [show_types] "%x y. x"}.  Here type-inference has figured out the
-  most general typings in the present (theory) context.  Within a
-  proof, one may get different results according to typings that have
-  already been figured out in the text so far, say some fixed
-  variables in the main statement given before hand.
+  most general typings in the present (theory) context.  Note that
+  term fragments may acquire a different typings due to constraints
+  imposed by previous text (within a proof), say by the main goal
+  statement given before hand.
 
   \medskip Several further kinds of antiquotations (and options) are
-  available \cite{isabelle-sys}.  The most commonly used combinations
-  are as follows:
+  available \cite{isabelle-sys}.  Here are a few commonly used
+  combinations are as follows:
 
   \medskip
 
@@ -637,62 +625,79 @@ text {\ttlbrace}*
   \texttt{\at}\verb,{typ,~$\tau$\verb,}, & print type $\tau$ \\
   \texttt{\at}\verb,{term,~$t$\verb,}, & print term $t$ \\
   \texttt{\at}\verb,{prop,~$\phi$\verb,}, & print proposition $\phi$ \\
+  \texttt{\at}\verb,{prop [display],~$\phi$\verb,}, & print large proposition $\phi$ (with linebreaks) \\
   \texttt{\at}\verb,{prop [source],~$\phi$\verb,}, & check proposition $\phi$, print its input \\
   \texttt{\at}\verb,{thm,~$a$\verb,}, & print fact $a$ \\
   \texttt{\at}\verb,{thm,~$a$~\verb,[no_vars]}, & print fact $a$, fixing schematic variables \\
-  \texttt{\at}\verb,{thm [source],~$a$\verb,}, & check availability of fact $a$, print its name \\
+  \texttt{\at}\verb,{thm [source],~$a$\verb,}, & check validity of fact $a$, print its name \\
   \texttt{\at}\verb,{text,~$s$\verb,}, & print uninterpreted text $s$ \\
   \end{tabular}
 
   \medskip
 
-  Note that \verb,no_vars, given above is \emph{not} an option, but
-  merely an attribute of the theorem argument given here.
+  Note that \attrdx{no_vars} given above is \emph{not} an
+  antiquotation option, but an attribute of the theorem argument given
+  here.  This might be useful with a diagnostic command like
+  \isakeyword{thm}, too.
 
-  The \texttt{\at}\verb,{text, $s$\verb,}, antiquotation is
+  \medskip The \texttt{\at}\verb,{text, $s$\verb,}, antiquotation is
   particularly interesting.  Embedding uninterpreted text within an
-  informal text body might appear useless at first sight.  Here the
-  key virtue is that the string $s$ is processed as proper Isabelle
-  output, interpreting Isabelle symbols (\S\ref{sec:syntax-symbols})
-  appropriately.
+  informal body might appear useless at first sight.  Here the key
+  virtue is that the string $s$ is processed as Isabelle output,
+  interpreting Isabelle symbols appropriately.
 
-  For example, \texttt{\at}\verb,{text "\<forall>\<exists>"}, produces @{text "\<forall>\<exists>"},
-  according to the standard interpretation of these symbol (cf.\
-  \S\ref{sec:doc-prep-symbols}).  Thus we achieve consistent
+  For example, \texttt{\at}\verb,{text "\<forall>\<exists>"}, produces @{text
+  "\<forall>\<exists>"}, according to the standard interpretation of these symbol
+  (cf.\ \S\ref{sec:doc-prep-symbols}).  Thus we achieve consistent
   mathematical notation in both the formal and informal parts of the
-  document very easily.  Manual {\LaTeX} code leaves more control over
-  the type-setting, but is slightly more tedious.  Also note that
-  Isabelle symbols may be also displayed within the editor buffer of
-  Proof~General.
+  document very easily.  Manual {\LaTeX} code would leave more control
+  over the type-setting, but is also slightly more tedious.
 *}
 
 
 subsection {* Interpretation of symbols \label{sec:doc-prep-symbols} *}
 
 text {*
-  FIXME tune
+  As has been pointed out before (\S\ref{sec:syntax-symbols}),
+  Isabelle symbols are the the smallest syntactic entities, a
+  straight-forward generalization of ASCII characters.  While Isabelle
+  does not impose any interpretation of the infinite collection of
+  symbols, the {\LaTeX} document output produces the canonical output
+  for certain standard symbols \cite[appendix~A]{isabelle-sys}.
 
-  According to \S\ref{sec:syntax-symbols}, the smalles syntactic
-  entities of Isabelle text are symbols, a straight-forward
-  generalization of ASCII characters.  Concerning document
-  preperation, symbols are translated uniformly to {\LaTeX} code as
-  follows.
+  The {\LaTeX} code produced from Isabelle text follows a relatively
+  simple scheme (see below).  Users may wish to tune the final
+  appearance by redefining certain macros, say in \texttt{root.tex} of
+  the document.
 
   \begin{enumerate} \item 7-bit ASCII characters: letters
   \texttt{A\dots Z} and \texttt{a\dots z} are output verbatim, digits
   are passed as an argument to the \verb,\isadigit, macro, other
-  characters are replaced by specific macros \verb,\isacharXYZ, (see
-  also \texttt{isabelle.sty}).
+  characters are replaced by specifically named macros of the form
+  \verb,\isacharXYZ,.
 
   \item Named symbols: \verb,\,\verb,<,$XYZ$\verb,>, become
-  \verb,\{\isasym,$XYZ$\verb,}, each (note the additional braces).
-  See \cite[appendix~A]{isabelle-sys} and \texttt{isabellesym.sty} for
-  the collection of predefined standard symbols.
+  \verb,{\isasym,$XYZ$\verb,}, each (note the additional braces).  See
+  \cite[appendix~A]{isabelle-sys} and \texttt{isabellesym.sty} for the
+  collection of predefined standard symbols.
 
   \item Named control symbols: \verb,\,\verb,<^,$XYZ$\verb,>, become
   \verb,\isactrl,$XYZ$; subsequent symbols may act as arguments, if
   the corresponding macro is defined accordingly.
   \end{enumerate}
+
+  Users may occasionally wish to invent new named symbols; this merely
+  requires an appropriate definition of \verb,\,\verb,<,$XYZ$\verb,>,
+  as far as {\LaTeX} output is concerned.  Control symbols are
+  slightly more difficult to get right, though.
+
+  \medskip The \verb,\isabellestyle, macro provides a high-level
+  interface to tune the general appearance of individual symbols.  For
+  example, \verb,\isabellestyle{it}, uses italics fonts to mimic the
+  general appearance of the {\LaTeX} math mode; double quotes are not
+  printed at all.  The resulting quality of type-setting is quite
+  good, so this should probably be the default style for real
+  production work that gets distributed to a broader audience.
 *}
 
 
@@ -718,7 +723,7 @@ text {*
   like this:
 
 \begin{verbatim}
-  no_document use_thy "A";
+  no_document use_thy "T";
 \end{verbatim}
 
   \medskip Theory output may be also suppressed in smaller portions as
@@ -737,7 +742,7 @@ text {*
 
   \begin{tabular}{l}
   \verb,(,\verb,*,\verb,<,\verb,*,\verb,), \\
-  \texttt{theory A = Main:} \\
+  \texttt{theory T = Main:} \\
   \verb,(,\verb,*,\verb,>,\verb,*,\verb,), \\
   ~~$\vdots$ \\
   \verb,(,\verb,*,\verb,<,\verb,*,\verb,), \\
@@ -772,7 +777,7 @@ text {*
   etc.) that have been hidden from sight beforehand.
 
   Some minor technical subtleties of the
-  \verb,(,\verb,*,\verb,<,\verb,*,\verb,),-\verb,(,\verb,*,\verb,>,\verb,*,\verb,),
+  \verb,(,\verb,*,\verb,<,\verb,*,\verb,),~\verb,(,\verb,*,\verb,>,\verb,*,\verb,),
   elements need to be kept in mind as well, since the system performs
   little sanity checks here.  Arguments of markup commands and formal
   comments must not be hidden, otherwise presentation fails.  Open and
