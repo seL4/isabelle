@@ -250,7 +250,7 @@ fun atom_arg is_symid blk =
     (position (short_ident || long_ident || sym_ident || term_var ||
         type_ident || type_var || number) >> Args.ident ||
       position (keyword_symid is_symid) >> Args.keyword ||
-      position string >> Args.string ||
+      position (string || verbatim) >> Args.string ||
       position (if blk then $$$ "," else Scan.fail) >> Args.keyword);
 
 fun paren_args l r scan = position ($$$ l) -- !!! (scan true -- position ($$$ r))
