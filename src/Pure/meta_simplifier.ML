@@ -742,9 +742,7 @@ fun bottomc ((simprem,useprem,mutsimp), prover, sign, maxidx) =
                 | None => None
              end
          | t $ _ => (case t of
-             Const ("==>", _) $ _  =>
-               let val (s, u) = Drule.dest_implies t0
-               in impc t0 mss end
+             Const ("==>", _) $ _  => impc t0 mss
            | Abs _ =>
                let val thm = beta_conversion false t0
                in case subc skel0 mss (rhs_of thm) of
