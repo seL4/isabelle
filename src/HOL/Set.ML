@@ -240,6 +240,11 @@ qed "UNIV_I";
 Addsimps [UNIV_I];
 AddIs    [UNIV_I];  (*unsafe makes it less likely to cause problems*)
 
+Goal "EX x. x : UNIV";
+by (Simp_tac 1);
+qed "UNIV_witness";
+AddXIs [UNIV_witness];
+
 Goal "A <= UNIV";
 by (rtac subsetI 1);
 by (rtac UNIV_I 1);
@@ -702,6 +707,7 @@ val [major,minor] = Goal
 by (rtac (major RS imageE) 1);
 by (etac minor 1);
 qed "rangeE";
+AddXEs [rangeE];
 
 
 (*** Set reasoning tools ***)
