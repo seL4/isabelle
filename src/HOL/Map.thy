@@ -264,6 +264,9 @@ apply (rule ext)
 apply auto
 done
 
+lemma map_add_upds[simp]: "m1 ++ (m2(xs[\<mapsto>]ys)) = (m1++m2)(xs[\<mapsto>]ys)"
+by(simp add:map_upds_def)
+
 lemma map_of_append[simp]: "map_of (xs@ys) = map_of ys ++ map_of xs"
 apply (unfold map_add_def)
 apply (induct_tac "xs")
@@ -292,6 +295,12 @@ by (rule ext, auto)
 
 subsection {* @{term restrict_map} *}
 
+lemma restrict_map_to_empty[simp]: "m\<lfloor>{} = empty"
+by(simp add: restrict_map_def)
+
+lemma restrict_map_empty[simp]: "empty\<lfloor>D = empty"
+by(simp add: restrict_map_def)
+
 lemma restrict_in [simp]: "x \<in> A \<Longrightarrow> (m\<lfloor>A) x = m x"
 by (auto simp: restrict_map_def)
 
@@ -301,7 +310,7 @@ by (auto simp: restrict_map_def)
 lemma ran_restrictD: "y \<in> ran (m\<lfloor>A) \<Longrightarrow> \<exists>x\<in>A. m x = Some y"
 by (auto simp: restrict_map_def ran_def split: split_if_asm)
 
-lemma dom_valF_restrict [simp]: "dom (m\<lfloor>A) = dom m \<inter> A"
+lemma dom_restrict [simp]: "dom (m\<lfloor>A) = dom m \<inter> A"
 by (auto simp: restrict_map_def dom_def split: split_if_asm)
 
 lemma restrict_upd_same [simp]: "m(x\<mapsto>y)\<lfloor>(-{x}) = m\<lfloor>(-{x})"
@@ -309,6 +318,22 @@ by (rule ext, auto simp: restrict_map_def)
 
 lemma restrict_restrict [simp]: "m\<lfloor>A\<lfloor>B = m\<lfloor>(A\<inter>B)"
 by (rule ext, auto simp: restrict_map_def)
+
+lemma restrict_fun_upd[simp]:
+ "m(x := y)\<lfloor>D = (if x \<in> D then (m\<lfloor>(D-{x}))(x := y) else m\<lfloor>D)"
+by(simp add: restrict_map_def expand_fun_eq)
+
+lemma fun_upd_None_restrict[simp]:
+  "(m\<lfloor>D)(x := None) = (if x:D then m\<lfloor>(D - {x}) else m\<lfloor>D)"
+by(simp add: restrict_map_def expand_fun_eq)
+
+lemma fun_upd_restrict:
+ "(m\<lfloor>D)(x := y) = (m\<lfloor>(D-{x}))(x := y)"
+by(simp add: restrict_map_def expand_fun_eq)
+
+lemma fun_upd_restrict_conv[simp]:
+ "x \<in> D \<Longrightarrow> (m\<lfloor>D)(x := y) = (m\<lfloor>(D-{x}))(x := y)"
+by(simp add: restrict_map_def expand_fun_eq)
 
 
 subsection {* @{term map_upds} *}
@@ -346,6 +371,18 @@ apply(induct xs)
 apply(case_tac ys)
  apply(auto simp: map_upd_upds_conv_if)
 done
+
+lemma restrict_map_upds[simp]: "!!m ys.
+ \<lbrakk> length xs = length ys; set xs \<subseteq> D \<rbrakk>
+ \<Longrightarrow> m(xs [\<mapsto>] ys)\<lfloor>D = (m\<lfloor>(D - set xs))(xs [\<mapsto>] ys)"
+apply(induct xs)
+ apply simp
+apply(case_tac ys)
+ apply simp
+apply(simp add:Diff_insert[symmetric] insert_absorb)
+apply(simp add: map_upd_upds_conv_if)
+done
+
 
 subsection {* @{term map_upd_s} *}
 
