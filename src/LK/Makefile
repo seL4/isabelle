@@ -19,6 +19,7 @@
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
 FILES =  ROOT.ML lk.thy lk.ML
+EX_FILES = ex/ROOT.ML ex/hardquant.ML ex/prop.ML ex/quant.ML
 
 $(BIN)/LK:   $(BIN)/Pure  $(FILES) 
 	case "$(COMP)" in \
@@ -32,7 +33,7 @@ $(BIN)/LK:   $(BIN)/Pure  $(FILES)
 $(BIN)/Pure:
 	cd ../Pure;  $(MAKE)
 
-test:   ex/ROOT.ML  $(BIN)/LK
+test:   ex/ROOT.ML  $(BIN)/LK  $(EX_FILES)
 	case "$(COMP)" in \
 	poly*)	echo 'use"ex/ROOT.ML"; quit();' | $(COMP) $(BIN)/LK ;;\
 	sml*)	echo 'use"ex/ROOT.ML";' | $(BIN)/LK;;\

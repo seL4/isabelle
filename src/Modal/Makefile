@@ -19,6 +19,7 @@
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
 FILES = ROOT.ML modal0.thy prover.ML t.thy s4.thy s43.thy
+EX_FILES = ex/ROOT.ML ex/S43thms.ML ex/S4thms.ML ex/Tthms.ML
 
 #Uses cp rather than make_database because Poly/ML allows only 3 levels
 $(BIN)/Modal:   $(BIN)/LK  $(FILES) 
@@ -32,7 +33,7 @@ $(BIN)/Modal:   $(BIN)/LK  $(FILES)
 $(BIN)/LK:
 	cd ../LK;  $(MAKE)
 
-test:   ex/ROOT.ML  $(BIN)/Modal
+test:   ex/ROOT.ML  $(BIN)/Modal  $(EX_FILES)
 	case "$(COMP)" in \
 	poly*)	echo 'use"ex/ROOT.ML"; quit();' | $(COMP) $(BIN)/Modal ;;\
 	sml*)	echo 'use"ex/ROOT.ML";' | $(BIN)/Modal;;\
