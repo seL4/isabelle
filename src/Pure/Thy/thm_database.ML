@@ -142,21 +142,21 @@ fun index_elims c =
       val named_thms = thms_containing [c]
   in filter topc named_thms end;
 
-(*assume that parameters have unique names*)
+(*assume that parameters have unique names; reverse them for substitution*)
 fun goal_params i =
   let val gi = getgoal i
-      val frees = map Free (Logic.strip_params gi)
-  in (gi,frees) end;
+      val rfrees = rev(map Free (Logic.strip_params gi))
+  in (gi,rfrees) end;
 
 fun concl_of_goal i =
-  let val (gi,frees) = goal_params i
+  let val (gi,rfrees) = goal_params i
       val B = Logic.strip_assums_concl gi
-  in subst_bounds(frees,B) end;
+  in subst_bounds(rfrees,B) end;
 
 fun prems_of_goal i =
-  let val (gi,frees) = goal_params i
+  let val (gi,rfrees) = goal_params i
       val As = Logic.strip_assums_hyp gi
-  in map (fn A => subst_bounds(frees,A)) As end;
+  in map (fn A => subst_bounds(rfrees,A)) As end;
 
 (*returns all those named_thms whose subterm extracted by extract can be
   instantiated to obj; the list is sorted according to the number of premises
