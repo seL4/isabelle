@@ -498,7 +498,7 @@ sig
   val build_nchotomy: Sign.sg -> thm list -> cterm
 
   val prove_case_cong: thm -> thm list -> cterm -> thm
-  val prove_nchotomy: (string -> int -> tactic) -> thm list -> cterm -> thm
+  val prove_nchotomy: (string -> int -> tactic) -> cterm -> thm
 
   val case_thms : Sign.sg -> thm list -> (string -> int -> tactic)
                    -> {nchotomy:thm, case_cong:thm}
@@ -758,19 +758,28 @@ fun build_nchotomy sign case_rewrites =
 
 (*---------------------------------------------------------------------------
  * Takes the induction tactic for the datatype, and the result from 
- * "build_nchotomy" and proves the theorem.
+ * "build_nchotomy" 
+ *
+ *    !v. (EX y1..yi. v = C1 y1..yi) | ... | (EX y1..yj. v = Cn y1..yj)
+ *
+ * and proves the theorem. The proof works along a diagonal: the nth 
+ * disjunct in the nth subgoal is easy to solve. Thus this routine depends 
+ * on the order of goals arising out of the application of the induction 
+ * tactic. A more general solution would have to use injectiveness and 
+ * distinctness rewrite rules.
  *---------------------------------------------------------------------------*)
-
-fun prove_nchotomy induct_tac case_rewrites ctm =
- let val {sign,t,...} = rep_cterm ctm
-     val (Const ("Trueprop",_) $ g) = t
+fun prove_nchotomy induct_tac ctm =
+ let val (Const ("Trueprop",_) $ g) = #t(rep_cterm ctm)
      val (Const ("All",_) $ Abs (v,_,_)) = g
+     (* For goal i, select the correct disjunct to attack, then prove it *)
+     fun tac i 0 = (rtac disjI1 i ORELSE all_tac) THEN
+                   REPEAT (rtac exI i) THEN (rtac refl i)
+       | tac i n = rtac disjI2 i THEN tac i (n-1)
  in 
  prove_goalw_cterm[] ctm
      (fn _ => [rtac allI 1,
                induct_tac v 1,
-               ALLGOALS (simp_tac (HOL_ss addsimps case_rewrites)),
-               ALLGOALS (fast_tac HOL_cs)])
+               ALLGOALS (fn i => tac i (i-1))])
  end
  handle _ => raise DTYPE_ERR {func="prove_nchotomy", mesg="failed"};
 
@@ -779,12 +788,13 @@ fun prove_nchotomy induct_tac case_rewrites ctm =
  * Brings the preceeding functions together.
  *---------------------------------------------------------------------------*)
 fun case_thms sign case_rewrites induct_tac =
-  let val nchotomy = prove_nchotomy induct_tac case_rewrites
-                            (build_nchotomy sign case_rewrites)
+  let val nchotomy = prove_nchotomy induct_tac
+                                    (build_nchotomy sign case_rewrites)
       val cong = prove_case_cong nchotomy case_rewrites
                                  (build_case_cong sign case_rewrites)
   in {nchotomy=nchotomy, case_cong=cong}
   end;
+
 
 (*---------------------------------------------------------------------------
  * Tests
