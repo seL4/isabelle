@@ -187,6 +187,13 @@ val theI = prove_goal ZF.thy "EX! x. P(x) ==> P(THE x. P(x))"
     (resolve_tac [major RS the_equality2 RS ssubst] 1),
     (REPEAT (assume_tac 1)) ]);
 
+(*Easier to apply than theI: conclusion has only one occurrence of P*)
+val theI2 = prove_goal ZF.thy
+    "[| EX! x. P(x);  !!x. P(x) ==> Q(x) |] ==> Q(THE x.P(x))"
+ (fn prems => [ resolve_tac prems 1, 
+	        rtac theI 1, 
+		resolve_tac prems 1 ]);
+
 (*the_cong is no longer necessary: if (ALL y.P(y)<->Q(y)) then 
   (THE x.P(x))  rewrites to  (THE x. Q(x))  *)
 
