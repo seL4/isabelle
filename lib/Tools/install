@@ -35,7 +35,7 @@ DIR=""
 
 ## main
 
-[ ! -d "$DIR" ] && fail "Bad directory: $DIR"
+mkdir -p "$DIR" || fail "Bad directory: $DIR"
 
 BASH=$(type -path bash)
 [ -z "$BASH" ] && fail "Cannot find bash!"
