@@ -1,6 +1,7 @@
 (*  Title:      Pure/Thy/thy_info.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Theory loader database, including theory and file dependencies.
 *)
@@ -40,8 +41,8 @@ sig
   val load_file: bool -> Path.T -> unit
   val use: string -> unit
   val quiet_update_thy: bool -> string -> unit
-  val begin_theory: string -> string list -> (Path.T * bool) list -> theory
-  val begin_update_theory: string -> string list -> (Path.T * bool) list -> theory
+  val begin_theory: (string -> string list -> (Path.T * bool) list -> theory -> theory) ->
+    bool -> string -> string list -> (Path.T * bool) list -> theory
   val end_theory: theory -> theory
   val finish: unit -> unit
   val register_theory: theory -> unit
@@ -370,8 +371,9 @@ fun remove_thy name =
 
 (* begin / end theory *)
 
-fun gen_begin_theory assert_thy name parents paths =
+fun begin_theory present upd name parents paths =
   let
+    val assert_thy = if upd then quiet_update_thy true else weak_use_thy;
     val _ = check_unfinished error name;
     val _ = (map Path.basic parents; seq assert_thy parents);
     val theory = PureThy.begin_theory name (map get_theory parents);
@@ -380,10 +382,9 @@ fun gen_begin_theory assert_thy name parents paths =
       else (init_deps None (map #1 paths));   (*records additional ML files only!*)
     val _ = change_thys (update_node name parents (deps, Some theory));
     val use_paths = mapfilter (fn (x, true) => Some x | _ => None) paths;
-  in Context.setmp (Some theory) (seq (load_file false)) use_paths; theory end;
-
-val begin_theory = gen_begin_theory weak_use_thy;
-val begin_update_theory = gen_begin_theory (quiet_update_thy true);
+    val theory' = theory |> present name parents paths;
+    val ((), theory'') = Context.pass_theory theory' (seq (load_file false)) use_paths;
+  in theory'' end;
 
 fun end_theory theory =
   let
