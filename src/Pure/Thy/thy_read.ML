@@ -1,6 +1,6 @@
 (*  Title:      Pure/Thy/thy_read.ML
     ID:         $Id$
-    Author:     Sonia Mahjoub / Tobias Nipkow / L C Paulson
+    Author:     Sonia Mahjoub / Tobias Nipkow / L C Paulson / Carsten Clasohm
     Copyright   1993  TU Muenchen
 
 Reading and writing the theory definition files.
@@ -15,7 +15,7 @@ datatype thy_info = ThyInfo of {name: string, path: string,
                                 thy_info: string option, ml_info: string option,
                                 theory: Thm.theory option};
 
-signature THY_READ =
+signature READTHY =
 sig
   datatype basetype = Thy  of string
                     | File of string
@@ -33,7 +33,7 @@ sig
 end;
 
 
-functor ThyReadFun(structure ThyParse: THY_PARSE): THY_READ =
+functor ReadthyFUN(structure ThySyn: THY_SYN): READTHY =
 struct
 
 datatype basetype = Thy  of string
@@ -53,11 +53,10 @@ fun out_name thy = "." ^ thy ^ ".thy.ML";
 (*Read a file specified by thy_file containing theory thy *)
 fun read_thy thy thy_file =
   let 
-    open ThyParse;
     val instream  = open_in thy_file;
     val outstream = open_out (out_name thy);
   in  
-    output (outstream, parse_thy pure_syntax (input (instream, 999999)));
+    output (outstream, ThySyn.parse (input (instream, 999999)));
     close_out outstream;
     close_in instream
   end;
