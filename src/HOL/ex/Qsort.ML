@@ -6,92 +6,60 @@
 Two verifications of Quicksort
 *)
 
+
+Addsimps [Ball_insert,Ball_Un];
+
+(* Towards a proof of qsort_ind
+
+A short proof of Konrad's wf_minimal in WF1.ML:
+
+val [p1] = goalw WF.thy [wf_def]
+"wf(R) ==> (!Q. (? x. Q x) --> (? min. Q min & (!b. (b,min):R --> (~ Q b))))";
+by (rtac allI 1);
+by(cut_inst_tac[("x","%u.~Q u")](p1 RS spec) 1);
+by (fast_tac HOL_cs 1);
+val wf_minimal = result();
+
+*)
+
+
 Addsimps ([Qsort.qsort_Nil,Qsort.qsort_Cons]@conj_comms);
 
 goal Qsort.thy "!x. mset (qsort le xs) x = mset xs x";
 by (res_inst_tac[("xs","xs"),("p","le")]Qsort.qsort_ind 1);
 by (ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
-result();
+qed "qsort_permutes";
 
-
-goal Qsort.thy "(Alls x:[x:xs.P(x)].Q(x)) = (Alls x:xs. P(x)-->Q(x))";
+goal Sorting.thy "set_of_list xs = {x.mset xs x ~= 0}";
 by (list.induct_tac "xs" 1);
 by (ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
-Addsimps [result()];
-
-goal Qsort.thy
- "((Alls x:xs.P(x)) & (Alls x:xs.Q(x))) = (Alls x:xs. P(x)&Q(x))";
-by (list.induct_tac "xs" 1);
-by (ALLGOALS Asm_simp_tac);
-val alls_lemma=result();
-Addsimps [alls_lemma];
-
-goal HOL.thy "((P --> Q) & (~P --> Q)) = Q";
 by (Fast_tac 1);
-val lemma = result();
+qed "set_of_list_via_mset";
 
-goal Qsort.thy "(Alls x:qsort le xs.P(x))  =  (Alls x:xs.P(x))";
-by (res_inst_tac[("xs","xs"),("p","le")]Qsort.qsort_ind 1);
-by (Asm_simp_tac 1);
-by (asm_simp_tac (!simpset delsimps [alls_lemma, list_all_Cons])1);
-by (asm_simp_tac (!simpset addsimps [lemma]) 1);
-Addsimps [result()];
+goal Qsort.thy "set_of_list(qsort le xs) = set_of_list xs";
+by(simp_tac (!simpset addsimps [set_of_list_via_mset,qsort_permutes]) 1);
+qed "set_of_list_qsort";
+Addsimps [set_of_list_qsort];
+
+goal List.thy
+  "(!x:set_of_list[x:xs.P(x)].Q(x)) = (!x:set_of_list xs. P(x)-->Q(x))";
+by (list.induct_tac "xs" 1);
+by (ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
+qed"Ball_set_of_list_filter";
+Addsimps [Ball_set_of_list_filter];
 
 goal Qsort.thy
  "sorted le (xs@ys) = (sorted le xs & sorted le ys & \
-\                     (Alls x:xs. Alls y:ys. le x y))";
+\                     (!x:set_of_list xs. !y:set_of_list ys. le x y))";
 by (list.induct_tac "xs" 1);
-by (Asm_simp_tac 1);
-by (asm_simp_tac (!simpset delsimps [alls_lemma]) 1);
-Addsimps [result()];
-
-
-
+by (ALLGOALS Asm_simp_tac);
+qed "sorted_append";
+Addsimps [sorted_append];
 
 goal Qsort.thy 
  "!!le. [| total(le); transf(le) |] ==>  sorted le (qsort le xs)";
 by (res_inst_tac[("xs","xs"),("p","le")]Qsort.qsort_ind 1);
-by (Asm_simp_tac 1);
-by (asm_full_simp_tac (!simpset addsimps []) 1);
-by (asm_full_simp_tac (!simpset addsimps [list_all_mem_conv]) 1);
+by (ALLGOALS Asm_simp_tac);
 by (rewrite_goals_tac [Sorting.total_def,Sorting.transf_def]);
 by (Fast_tac 1);
-result();
-
-(* A verification based on predicate calculus rather than combinators *)
-
-val sorted_Cons =
-  rewrite_rule [list_all_mem_conv RS eq_reflection] Sorting.sorted_Cons;
-
-Addsimps [sorted_Cons];
-
-
-goal Qsort.thy "x mem qsort le xs = x mem xs";
-by (res_inst_tac[("xs","xs"),("p","le")]Qsort.qsort_ind 1);
-by (ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
-by (Fast_tac 1);
-Addsimps [result()];
-
-goal Qsort.thy
- "sorted le (xs@ys) = (sorted le xs & sorted le ys & \
-\                     (!x. x mem xs --> (!y. y mem ys --> le x y)))";
-by (list.induct_tac "xs" 1);
-by (Asm_simp_tac 1);
-by (asm_simp_tac (!simpset setloop (split_tac [expand_if])
-                          delsimps [list_all_conj]
-                          addsimps [list_all_mem_conv]) 1);
-by (Fast_tac 1);
-Addsimps [result()];
-
-goal Qsort.thy
-  "!!xs. [| total(le); transf(le) |] ==>  sorted le (qsort le xs)";
-by (res_inst_tac[("xs","xs"),("p","le")]Qsort.qsort_ind 1);
-by (Simp_tac 1);
-by (asm_simp_tac (!simpset setloop (split_tac [expand_if])
-                          delsimps [list_all_conj]
-                          addsimps [list_all_mem_conv]) 1);
-by (rewrite_goals_tac [Sorting.total_def,Sorting.transf_def]);
-by (Fast_tac 1);
-result();
-
-
+qed "sorted_qsort";

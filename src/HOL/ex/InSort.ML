@@ -6,6 +6,8 @@
 Correctness proof of insertion sort.
 *)
 
+Addsimps [Ball_insert];
+
 goalw InSort.thy [Sorting.total_def]
   "!!f. [| total(f); ~f x y |] ==> f y x";
 by (Fast_tac 1);
@@ -16,29 +18,24 @@ goalw InSort.thy [Sorting.transf_def]
 by (Fast_tac 1);
 qed "transfD";
 
-goal InSort.thy "list_all p (ins f x xs) = (list_all p xs & p(x))";
+goal InSort.thy "set_of_list(ins f x xs) = insert x (set_of_list xs)";
 by (list.induct_tac "xs" 1);
 by (Asm_simp_tac 1);
 by (asm_simp_tac (!simpset setloop (split_tac [expand_if])) 1);
 by (Fast_tac 1);
-Addsimps [result()];
-
-goal InSort.thy "(!x. p(x) --> q(x)) --> list_all p xs --> list_all q xs";
-by (list.induct_tac "xs" 1);
-by (ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
-qed "list_all_imp";
+qed "set_of_list_ins";
+Addsimps [set_of_list_ins];
 
 val prems = goal InSort.thy
   "[| total(f); transf(f) |] ==>  sorted f (ins f x xs) = sorted f xs";
 by (list.induct_tac "xs" 1);
 by (ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
 by (cut_facts_tac prems 1);
-by (cut_inst_tac [("p","f(a)"),("q","f(x)")] list_all_imp 1);
 by (fast_tac (!claset addDs [totalD,transfD]) 1);
-Addsimps [result()];
+qed "sorted_ins";
+Addsimps [sorted_ins];
 
 goal InSort.thy "!!f. [| total(f); transf(f) |] ==>  sorted f (insort f xs)";
 by (list.induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "sorted_insort";
-
