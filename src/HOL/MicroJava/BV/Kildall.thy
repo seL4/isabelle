@@ -212,10 +212,10 @@ val thy = the_context ()
 val [iter_wf,iter_tc] = RecdefPackage.tcs_of thy "iter";
 in
 goalw_cterm [] (cterm_of (sign_of thy) (HOLogic.mk_Trueprop iter_wf));
-by (REPEAT(rtac wf_same_fstI 1));
+by (REPEAT(rtac wf_same_fst 1));
 by (split_all_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [thm "lesssub_def"]) 1);
-by (REPEAT(rtac wf_same_fstI 1));
+by (REPEAT(rtac wf_same_fst 1));
 by (rtac wf_lex_prod 1);
  by (rtac wf_finite_psubset 2);
 by (Clarify_tac 1);
@@ -264,7 +264,6 @@ by (asm_full_simp_tac (simpset() delsimps [thm "listE_length"]
 qed "iter_tc"
 end
 *}
-
 
 lemma iter_induct:
   "(!!A r f step succs ss w. 
