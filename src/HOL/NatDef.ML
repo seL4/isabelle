@@ -276,7 +276,7 @@ qed "Suc_less_SucD";
 Goal "(Suc(m) < Suc(n)) = (m<n)";
 by (EVERY1 [rtac iffI, etac Suc_less_SucD, etac Suc_mono]);
 qed "Suc_less_eq";
-Addsimps [Suc_less_eq];
+AddIffs [Suc_less_eq];
 
 (*Goal "~(Suc(n) < n)";
 by (blast_tac (claset() addEs [Suc_lessD RS less_irrefl]) 1);
