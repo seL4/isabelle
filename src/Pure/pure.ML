@@ -12,7 +12,8 @@ local
     HTML.setup @
     ProofContext.setup @
     Method.setup @
-    Attrib.setup;
+    Attrib.setup @
+    AxClass.setup;
 in
   structure Pure =
   struct
