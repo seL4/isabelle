@@ -87,8 +87,8 @@
 \binperiod     %%%treat . like a binary operator
 
 \begin{document}
-%CADE%\pagestyle{empty}
-%CADE%\begin{titlepage}
+\pagestyle{empty}
+\begin{titlepage}
 \maketitle 
 \begin{abstract}
   This paper presents a fixedpoint approach to inductive definitions.
@@ -110,10 +110,10 @@
   are simple user's manuals for this Isabelle/ZF package.\fi
 \end{abstract}
 %
-%CADE%\bigskip\centerline{Copyright \copyright{} \number\year{} by Lawrence C. Paulson}
-%CADE%\thispagestyle{empty} 
-%CADE%\end{titlepage}
-%CADE%\tableofcontents\cleardoublepage\pagestyle{headings}
+\bigskip\centerline{Copyright \copyright{} \number\year{} by Lawrence C. Paulson}
+\thispagestyle{empty} 
+\end{titlepage}
+\tableofcontents\cleardoublepage\pagestyle{plain}
 
 \section{Introduction}
 Several theorem provers provide commands for formalizing recursive data
@@ -446,8 +446,9 @@ Proving the premises establishes $P_i(z)$ for $z\in R_i$ and $i=1$,
 \ldots,~$n$.
 
 \item If the domain of some $R_i$ is the Cartesian product
-$A_1\times\cdots\times A_m$, then the corresponding predicate $P_i$ takes $m$
-arguments and the corresponding conjunct of the conclusion is
+  $A_1\times\cdots\times A_m$ (associated to the right), then the
+  corresponding predicate $P_i$ takes $m$ arguments and the corresponding
+  conjunct of the conclusion is
 \[ (\forall z_1\ldots z_m.\pair{z_1,\ldots,z_m}\in R_i\imp P_i(z_1,\ldots,z_m))
 \]
 \end{itemize}
@@ -498,26 +499,25 @@ lists of $n$ elements, bisimulations on lazy lists, the well-founded part
 of a relation, and the primitive recursive functions.
 
 \subsection{The finite powerset operator}
-This operator has been discussed extensively above.  Here
-is the corresponding ML invocation (note that $\cons(a,b)$ abbreviates
-$\{a\}\un b$ in Isabelle/ZF):
+This operator has been discussed extensively above.  Here is the
+corresponding invocation in an Isabelle theory file.  Note that
+$\cons(a,b)$ abbreviates $\{a\}\un b$ in Isabelle/ZF.
 \begin{ttbox}
-structure Fin = Inductive_Fun
- (val thy        = Arith.thy |> add_consts [("Fin", "i=>i", NoSyn)]
-  val thy_name   = "Fin"
-  val rec_doms   = [("Fin","Pow(A)")]
-  val sintrs     = ["0 : Fin(A)",
-                    "[| a: A;  b: Fin(A) |] ==> cons(a,b) : Fin(A)"]
-  val monos      = []
-  val con_defs   = []
-  val type_intrs = [empty_subsetI, cons_subsetI, PowI]
-  val type_elims = [make_elim PowD]);
+Finite = Arith + 
+consts      Fin :: "i=>i"
+inductive
+  domains   "Fin(A)" <= "Pow(A)"
+  intrs
+    emptyI  "0 : Fin(A)"
+    consI   "[| a: A;  b: Fin(A) |] ==> cons(a,b) : Fin(A)"
+  type_intrs "[empty_subsetI, cons_subsetI, PowI]"
+  type_elims "[make_elim PowD]"
+end
 \end{ttbox}
-We apply the functor {\tt Inductive\_Fun} to a structure describing the
-desired inductive definition.  The parent theory~{\tt thy} is obtained from
-{\tt Arith.thy} by adding the unary function symbol~$\Fin$.  Its domain is
+Theory {\tt Finite} extends the parent theory {\tt Arith} by declaring the
+unary function symbol~$\Fin$, which is defined inductively.  Its domain is
 specified as $\pow(A)$, where $A$ is the parameter appearing in the
-introduction rules.  For type-checking, the structure supplies introduction
+introduction rules.  For type-checking, we supply two introduction
 rules:
 \[ \emptyset\sbs A              \qquad
    \infer{\{a\}\un B\sbs C}{a\in C & B\sbs C}
@@ -526,12 +526,12 @@ A further introduction rule and an elimination rule express the two
 directions of the equivalence $A\in\pow(B)\bimp A\sbs B$.  Type-checking
 involves mostly introduction rules.  
 
-ML is Isabelle's top level, so such functor invocations can take place at
-any time.  The result structure is declared with the name~{\tt Fin}; we can
-refer to the $\Fin(A)$ introduction rules as {\tt Fin.intrs}, the induction
-rule as {\tt Fin.induct} and so forth.  There are plans to integrate the
-package better into Isabelle so that users can place inductive definitions
-in Isabelle theory files instead of applying functors.
+Like all Isabelle theory files, this one yields a structure containing the
+new theory as an \ML{} value.  Structure {\tt Finite} also has a
+substructure, called~{\tt Fin}.  After declaring \hbox{\tt open Finite;} we
+can refer to the $\Fin(A)$ introduction rules as the list {\tt Fin.intrs}
+or individually as {\tt Fin.emptyI} and {\tt Fin.consI}.  The induction
+rule is {\tt Fin.induct}.
 
 
 \subsection{Lists of $n$ elements}\label{listn-sec}
@@ -546,24 +546,6 @@ But her introduction rules
 are not acceptable to the inductive definition package:
 $\listn$ occurs with three different parameter lists in the definition.
 
-\begin{figure}
-\begin{ttbox}
-structure ListN = Inductive_Fun
- (val thy        = ListFn.thy |> add_consts [("listn","i=>i",NoSyn)]
-  val thy_name   = "ListN"
-  val rec_doms   = [("listn", "nat*list(A)")]
-  val sintrs     = 
-        ["<0,Nil>: listn(A)",
-         "[| a: A;  <n,l>: listn(A) |] ==> <succ(n), Cons(a,l)>: listn(A)"]
-  val monos      = []
-  val con_defs   = []
-  val type_intrs = nat_typechecks @ List.intrs @ [SigmaI]
-  val type_elims = []);
-\end{ttbox}
-\hrule
-\caption{Defining lists of $n$ elements} \label{listn-fig}
-\end{figure} 
-
 The Isabelle/ZF version of this example suggests a general treatment of
 varying parameters.  Here, we use the existing datatype definition of
 $\lst(A)$, with constructors $\Nil$ and~$\Cons$.  Then incorporate the
@@ -576,13 +558,24 @@ rules are
    \infer{\pair{\succ(n),\Cons(a,l)}\in\listn(A)}
          {a\in A & \pair{n,l}\in\listn(A)}
 \]
-Figure~\ref{listn-fig} presents the ML invocation.  A theory of lists,
-extended with a declaration of $\listn$, is the parent theory.  The domain
-is specified as $\nat\times\lst(A)$.  The type-checking rules include those
-for 0, $\succ$, $\Nil$ and $\Cons$.  Because $\listn(A)$ is a set of pairs,
-type-checking also requires introduction and elimination rules to express
-both directions of the equivalence $\pair{a,b}\in A\times B \bimp a\in A
-\conj b\in B$. 
+The Isabelle theory file takes, as parent, the theory~{\tt List} of lists.
+We declare the constant~$\listn$ and supply an inductive definition,
+specifying the domain as $\nat\times\lst(A)$:
+\begin{ttbox}
+ListN = List +
+consts  listn ::"i=>i"
+inductive
+  domains   "listn(A)" <= "nat*list(A)"
+  intrs
+    NilI  "<0,Nil> : listn(A)"
+    ConsI "[| a: A;  <n,l> : listn(A) |] ==> <succ(n), Cons(a,l)> : listn(A)"
+  type_intrs "nat_typechecks @ list.intrs"
+end
+\end{ttbox}
+The type-checking rules include those for 0, $\succ$, $\Nil$ and $\Cons$.
+Because $\listn(A)$ is a set of pairs, type-checking requires the
+equivalence $\pair{a,b}\in A\times B \bimp a\in A \conj b\in B$; the
+package always includes the necessary rules.
 
 The package returns introduction, elimination and induction rules for
 $\listn$.  The basic induction rule, {\tt ListN.induct}, is
@@ -687,25 +680,21 @@ introduction rules
     \infer[(-)]{\pair{\LCons(a,l),\LCons(a,l')} \in\lleq(A)}
           {a\in A & \pair{l,l'}\in \lleq(A)}
 \]
-To make this coinductive definition, we invoke \verb|CoInductive_Fun|:
+To make this coinductive definition, the theory file includes (after the
+declaration of $\llist(A)$) the following lines:
 \begin{ttbox}
-structure LList_Eq = CoInductive_Fun
- (val thy        = LList.thy |> add_consts [("lleq","i=>i",NoSyn)]
-  val thy_name   = "LList_Eq"
-  val rec_doms   = [("lleq", "llist(A) * llist(A)")]
-  val sintrs     = 
-       ["<LNil, LNil> : lleq(A)",
-        "[| a:A; <l,l'>: lleq(A) |] ==> <LCons(a,l),LCons(a,l')>: lleq(A)"]
-  val monos      = []
-  val con_defs   = []
-  val type_intrs = LList.intrs
-  val type_elims = []);
+consts    lleq :: "i=>i"
+coinductive
+  domains "lleq(A)" <= "llist(A) * llist(A)"
+  intrs
+    LNil  "<LNil, LNil> : lleq(A)"
+    LCons "[| a:A; <l,l'>: lleq(A) |] ==> <LCons(a,l), LCons(a,l')>: lleq(A)"
+  type_intrs  "llist.intrs"
 \end{ttbox}
 Again, {\tt addconsts} declares a constant for $\lleq$ in the parent theory. 
 The domain of $\lleq(A)$ is $\llist(A)\times\llist(A)$.  The type-checking
-rules include the introduction rules for lazy lists as well as rules
-for both directions of the equivalence
-$\pair{a,b}\in A\times B \bimp a\in A \conj b\in B$.
+rules include the introduction rules for $\llist(A)$, whose 
+declaration is discussed below (\S\ref{lists-sec}).
 
 The package returns the introduction rules and the elimination rule, as
 usual.  But instead of induction rules, it returns a coinduction rule.
@@ -749,21 +738,20 @@ express $\forall y.y\prec a\imp y\in\acc(\prec)$ we need only find a
 term~$t$ such that $y\in t$ if and only if $y\prec a$.  A suitable $t$ is
 the inverse image of~$\{a\}$ under~$\prec$.
 
-The ML invocation below follows this approach.  Here $r$ is~$\prec$ and
+The theory file below follows this approach.  Here $r$ is~$\prec$ and
 $\field(r)$ refers to~$D$, the domain of $\acc(r)$.  (The field of a
-relation is the union of its domain and range.)  Finally
-$r^{-}``\{a\}$ denotes the inverse image of~$\{a\}$ under~$r$.  The package is
-supplied the theorem {\tt Pow\_mono}, which asserts that $\pow$ is monotonic.
+relation is the union of its domain and range.)  Finally $r^{-}``\{a\}$
+denotes the inverse image of~$\{a\}$ under~$r$.  We supply the theorem {\tt
+  Pow\_mono}, which asserts that $\pow$ is monotonic.
 \begin{ttbox}
-structure Acc = Inductive_Fun
- (val thy        = WF.thy |> add_consts [("acc","i=>i",NoSyn)]
-  val thy_name   = "Acc"
-  val rec_doms   = [("acc", "field(r)")]
-  val sintrs     = ["[| r-``\{a\}:\,Pow(acc(r)); a:\,field(r) |] ==> a:\,acc(r)"]
-  val monos      = [Pow_mono]
-  val con_defs   = []
-  val type_intrs = []
-  val type_elims = []);
+Acc = WF + 
+consts    acc :: "i=>i"
+inductive
+  domains "acc(r)" <= "field(r)"
+  intrs
+    vimage  "[| r-``\{a\}: Pow(acc(r)); a: field(r) |] ==> a: acc(r)"
+  monos     "[Pow_mono]"
+end
 \end{ttbox}
 The Isabelle theory proceeds to prove facts about $\acc(\prec)$.  For
 instance, $\prec$ is well-founded if and only if its field is contained in
@@ -831,20 +819,28 @@ each operation on primitive recursive functions combined just two functions.
 
 \begin{figure}
 \begin{ttbox}
-structure Primrec = Inductive_Fun
- (val thy        = Primrec0.thy
-  val thy_name   = "Primrec"
-  val rec_doms   = [("primrec", "list(nat)->nat")]
-  val sintrs     = 
-        ["SC : primrec",
-         "k: nat ==> CONST(k) : primrec",
-         "i: nat ==> PROJ(i) : primrec",
-         "[| g: primrec; fs: list(primrec) |] ==> COMP(g,fs): primrec",
-         "[| f: primrec; g: primrec |] ==> PREC(f,g): primrec"]
-  val monos      = [list_mono]
-  val con_defs   = [SC_def,CONST_def,PROJ_def,COMP_def,PREC_def]
-  val type_intrs = pr0_typechecks
-  val type_elims = []);
+Primrec = List +
+consts
+  primrec :: "i"
+  SC      :: "i"
+  \(\vdots\)
+defs
+  SC_def    "SC == lam l:list(nat).list_case(0, %x xs.succ(x), l)"
+  \(\vdots\)
+inductive
+  domains "primrec" <= "list(nat)->nat"
+  intrs
+    SC       "SC : primrec"
+    CONST    "k: nat ==> CONST(k) : primrec"
+    PROJ     "i: nat ==> PROJ(i) : primrec"
+    COMP     "[| g: primrec; fs: list(primrec) |] ==> COMP(g,fs): primrec"
+    PREC     "[| f: primrec; g: primrec |] ==> PREC(f,g): primrec"
+  monos      "[list_mono]"
+  con_defs   "[SC_def,CONST_def,PROJ_def,COMP_def,PREC_def]"
+  type_intrs "nat_typechecks @ list.intrs @                     \ttback
+\ttback             [lam_type, list_case_type, drop_type, map_type,   \ttback
+\ttback             apply_type, rec_type]"
+end
 \end{ttbox}
 \hrule
 \caption{Inductive definition of the primitive recursive functions} 
@@ -869,10 +865,10 @@ structural induction on lists, yielding two subcases: either $\fs=\Nil$ or
 else $\fs=\Cons(f,\fs')$, where $f\in\primrec$, $P(f)$, and $\fs'$ is
 another list of primitive recursive functions satisfying~$P$.
 
-Figure~\ref{primrec-fig} presents the ML invocation.  Theory {\tt
-  Primrec0.thy} defines the constants $\SC$, $\CONST$, etc.  These are not
-constructors of a new datatype, but functions over lists of numbers.  Their
-definitions, which are omitted, consist of routine list programming.  In
+Figure~\ref{primrec-fig} presents the theory file.  Theory {\tt Primrec}
+defines the constants $\SC$, $\CONST$, etc.  These are not constructors of
+a new datatype, but functions over lists of numbers.  Their definitions,
+most of which are omitted, consist of routine list programming.  In
 Isabelle/ZF, the primitive recursive functions are defined as a subset of
 the function set $\lst(\nat)\to\nat$.
 
@@ -996,57 +992,39 @@ To see how constructors and the case analysis operator are defined, let us
 examine some examples.  These include lists and trees/forests, which I have
 discussed extensively in another paper~\cite{paulson-set-II}.
 
-\begin{figure}
+
+\subsection{Example: lists and lazy lists}\label{lists-sec}
+Here is a theory file that declares the datatype of lists:
 \begin{ttbox} 
-structure List = Datatype_Fun
- (val thy        = Univ.thy
-  val thy_name   = "List"
-  val rec_specs  = [("list", "univ(A)",
-                      [(["Nil"],    "i",        NoSyn), 
-                       (["Cons"],   "[i,i]=>i", NoSyn)])]
-  val rec_styp   = "i=>i"
-  val sintrs     = ["Nil : list(A)",
-                    "[| a: A;  l: list(A) |] ==> Cons(a,l) : list(A)"]
-  val monos      = []
-  val type_intrs = datatype_intrs
-  val type_elims = datatype_elims);
+List = Univ + 
+consts  list :: "i=>i"
+datatype "list(A)" = Nil | Cons ("a:A", "l: list(A)")
+end
 \end{ttbox}
-\hrule
-\caption{Defining the datatype of lists} \label{list-fig}
-
-\medskip
+And here is the theory file that declares the codatatype of lazy lists:
 \begin{ttbox}
-structure LList = CoDatatype_Fun
- (val thy        = QUniv.thy
-  val thy_name   = "LList"
-  val rec_specs  = [("llist", "quniv(A)",
-                      [(["LNil"],   "i",        NoSyn), 
-                       (["LCons"],  "[i,i]=>i", NoSyn)])]
-  val rec_styp   = "i=>i"
-  val sintrs     = ["LNil : llist(A)",
-                    "[| a: A;  l: llist(A) |] ==> LCons(a,l) : llist(A)"]
-  val monos      = []
-  val type_intrs = codatatype_intrs
-  val type_elims = codatatype_elims);
+LList = QUniv + 
+consts  llist :: "i=>i"
+codatatype "llist(A)" = LNil | LCons ("a: A", "l: llist(A)")
+end
 \end{ttbox}
-\hrule
-\caption{Defining the codatatype of lazy lists} \label{llist-fig}
-\end{figure}
-
-\subsection{Example: lists and lazy lists}
-Figures \ref{list-fig} and~\ref{llist-fig} present the ML definitions of
-lists and lazy lists, respectively.  They highlight the (many) similarities
-and (few) differences between datatype and codatatype definitions.
+They highlight the (many) similarities and (few) differences between
+datatype and codatatype definitions.\footnote{The real theory files contain
+  many more declarations, mainly of functions over lists; the declaration
+  of lazy lists is followed by the coinductive definition of lazy list
+  equality.} 
 
 Each form of list has two constructors, one for the empty list and one for
 adding an element to a list.  Each takes a parameter, defining the set of
 lists over a given set~$A$.  Each uses the appropriate domain from a
 Isabelle/ZF theory:
 \begin{itemize}
-\item $\lst(A)$ specifies domain $\univ(A)$ and parent theory {\tt Univ.thy}.
+\item $\lst(A)$ requires the parent theory {\tt Univ}.  The package
+  automatically uses the domain $\univ(A)$ (the default choice can be
+  overridden). 
 
-\item $\llist(A)$ specifies domain $\quniv(A)$ and parent theory {\tt
-QUniv.thy}.
+\item $\llist(A)$ requires the parent theory {\tt QUniv}.  The package
+  automatically uses the domain $\quniv(A)$.
 \end{itemize}
 
 Since $\lst(A)$ is a datatype, it enjoys a structural induction rule, {\tt
@@ -1095,36 +1073,18 @@ Let us verify the two equations:
      & = & h(x,y)
 \end{eqnarray*} 
 
-\begin{figure}
-\begin{ttbox}
-structure TF = Datatype_Fun
- (val thy        = Univ.thy
-  val thy_name   = "TF"
-  val rec_specs  = [("tree", "univ(A)",
-                       [(["Tcons"],  "[i,i]=>i",  NoSyn)]),
-                    ("forest", "univ(A)",
-                       [(["Fnil"],   "i",         NoSyn),
-                        (["Fcons"],  "[i,i]=>i",  NoSyn)])]
-  val rec_styp   = "i=>i"
-  val sintrs     = 
-        ["[| a:A;  f: forest(A) |] ==> Tcons(a,f) : tree(A)",
-         "Fnil : forest(A)",
-         "[| t: tree(A);  f: forest(A) |] ==> Fcons(t,f) : forest(A)"]
-  val monos      = []
-  val type_intrs = datatype_intrs
-  val type_elims = datatype_elims);
-\end{ttbox}
-\hrule
-\caption{Defining the datatype of trees and forests} \label{tf-fig}
-\end{figure}
-
 
 \subsection{Example: mutual recursion}
 In mutually recursive trees and forests~\cite[\S4.5]{paulson-set-II}, trees
 have the one constructor $\Tcons$, while forests have the two constructors
-$\Fnil$ and~$\Fcons$.  Figure~\ref{tf-fig} presents the ML
-definition.  It has much in common with that of $\lst(A)$, including its
-use of $\univ(A)$ for the domain and {\tt Univ.thy} for the parent theory.
+$\Fnil$ and~$\Fcons$:
+\begin{ttbox}
+TF = List +
+consts  tree, forest, tree_forest    :: "i=>i"
+datatype "tree(A)"   = Tcons ("a: A",  "f: forest(A)")
+and      "forest(A)" = Fnil  |  Fcons ("t: tree(A)",  "f: forest(A)")
+end
+\end{ttbox}
 The three introduction rules define the mutual recursion.  The
 distinguishing feature of this example is its two induction rules.
 
@@ -1183,37 +1143,22 @@ forests:
     \case(\split(f),\, \case(\lambda u.c, \split(g)))
 \end{eqnarray*}
 
-\begin{figure}
-\begin{ttbox}
-structure Data = Datatype_Fun
- (val thy        = Univ.thy
-  val thy_name   = "Data"
-  val rec_specs  = [("data", "univ(A Un B)",
-                       [(["Con0"],   "i",           NoSyn),
-                        (["Con1"],   "i=>i",        NoSyn),
-                        (["Con2"],   "[i,i]=>i",    NoSyn),
-                        (["Con3"],   "[i,i,i]=>i",  NoSyn)])]
-  val rec_styp   = "[i,i]=>i"
-  val sintrs     = 
-        ["Con0 : data(A,B)",
-         "[| a: A |] ==> Con1(a) : data(A,B)",
-         "[| a: A; b: B |] ==> Con2(a,b) : data(A,B)",
-         "[| a: A; b: B;  d: data(A,B) |] ==> Con3(a,b,d) : data(A,B)"]
-  val monos      = []
-  val type_intrs = datatype_intrs
-  val type_elims = datatype_elims);
-\end{ttbox}
-\hrule
-\caption{Defining the four-constructor sample datatype} \label{data-fig}
-\end{figure}
 
 \subsection{A four-constructor datatype}
 Finally let us consider a fairly general datatype.  It has four
-constructors $\Con_0$, \ldots, $\Con_3$, with the
-corresponding arities.  Figure~\ref{data-fig} presents the ML definition. 
-Because this datatype has two set parameters, $A$ and~$B$, it specifies
-$\univ(A\un B)$ as its domain.  The structural induction rule has four
-minor premises, one per constructor:
+constructors $\Con_0$, \ldots, $\Con_3$, with the corresponding arities.
+\begin{ttbox}
+Data = Univ +
+consts    data :: "[i,i] => i"
+datatype  "data(A,B)" = Con0
+                      | Con1 ("a: A")
+                      | Con2 ("a: A", "b: B")
+                      | Con3 ("a: A", "b: B", "d: data(A,B)")
+end
+\end{ttbox}
+Because this datatype has two set parameters, $A$ and~$B$, the package
+automatically supplies $\univ(A\un B)$ as its domain.  The structural
+induction rule has four minor premises, one per constructor:
 \[ \infer{P(x)}{x\in\data(A,B) & 
     P(\Con_0) &
     \infer*{P(\Con_1(a))}{[a\in A]_a} &
@@ -1392,9 +1337,14 @@ defining the corresponding types may cause complications.
 \newpage
 \appendix
 \section{Inductive and coinductive definitions: users guide}
-The ML functors \verb|Inductive_Fun| and \verb|CoInductive_Fun| build
-inductive and coinductive definitions, respectively.  This section describes
-how to invoke them.  
+A theory file may contain any number of inductive and coinductive
+definitions.  They may be intermixed with other declarations; in
+particular, the (co)inductive sets {\bf must} be declared separately as
+constants, and may have mixfix syntax or be subject to syntax translations.
+
+Each (co)inductive definition adds definitions to the theory and also
+proves some theorems.  Each definition creates an ML structure, which is a
+substructure of the main theory structure.
 
 \subsection{The result structure}
 Many of the result structure's components have been discussed
@@ -1412,7 +1362,8 @@ the recursive sets, in the case of mutual recursion).
 \item[\tt dom\_subset] is a theorem stating inclusion in the domain.
 
 \item[\tt intrs] is the list of introduction rules, now proved as theorems, for
-the recursive sets.
+the recursive sets.  The rules are also available individually, using the
+names given them in the theory file. 
 
 \item[\tt elim] is the elimination rule.
 
@@ -1447,66 +1398,63 @@ end
 \end{ttbox}
 \hrule
 \caption{The result of a (co)inductive definition} \label{def-result-fig}
-
-\medskip
-\begin{ttbox}
-sig  
-val thy          : theory
-val thy_name     : string
-val rec_doms     : (string*string) list
-val sintrs       : string list
-val monos        : thm list
-val con_defs     : thm list
-val type_intrs   : thm list
-val type_elims   : thm list
-end
-\end{ttbox}
-\hrule
-\caption{The argument of a (co)inductive definition} \label{def-arg-fig}
 \end{figure}
 
-\subsection{The argument structure}
-Both \verb|Inductive_Fun| and \verb|CoInductive_Fun| take the same argument
-structure (Figure~\ref{def-arg-fig}).  Its components are as follows:
+\subsection{The syntax of a (co)inductive definition}
+An inductive definition has the form
+\begin{ttbox}
+inductive
+  domains    {\it domain declarations}
+  intrs      {\it introduction rules}
+  monos      {\it monotonicity theorems}
+  con_defs   {\it constructor definitions}
+  type_intrs {\it introduction rules for type-checking}
+  type_elims {\it elimination rules for type-checking}
+\end{ttbox}
+A coinductive definition is identical save that it starts with the keyword
+{\tt coinductive}.  
+
+The {\tt monos}, {\tt con\_defs}, {\tt type\_intrs} and {\tt type\_elims}
+sections are optional.  If present, each is specified as a string, which
+must be a valid ML expression of type {\tt thm list}.  It is simply
+inserted into the {\tt .thy.ML} file; if it is ill-formed, it will trigger
+ML error messages.  You can then inspect the file on your directory.
+
 \begin{description}
-\item[\tt thy] is the definition's parent theory, which {\it must\/}
-declare constants for the recursive sets.
+\item[\it domain declarations] consist of one or more items of the form
+  {\it string\/}~{\tt <=}~{\it string}, associating each recursive set with
+  its domain.
 
-\item[\tt thy\_name] is a string, informing Isabelle's theory database of
-  the name you will give to the result structure.
+\item[\it introduction rules] specify one or more introduction rules in
+  the form {\it ident\/}~{\it string}, where the identifier gives the name of
+  the rule in the result structure.
 
-\item[\tt rec\_doms] is a list of pairs, associating the name of each recursive
-set with its domain.
+\item[\it monotonicity theorems] are required for each operator applied to
+  a recursive set in the introduction rules.  There {\bf must} be a theorem
+  of the form $A\sbs B\Imp M(A)\sbs M(B)$, for each premise $t\in M(R_i)$
+  in an introduction rule!
 
-\item[\tt sintrs] specifies the desired introduction rules as strings.
+\item[\it constructor definitions] contain definitions of constants
+  appearing in the introduction rules.  The (co)datatype package supplies
+  the constructors' definitions here.  Most (co)inductive definitions omit
+  this section; one exception is the primitive recursive functions example
+  (\S\ref{primrec-sec}).
 
-\item[\tt monos] consists of monotonicity theorems for each operator applied
-to a recursive set in the introduction rules.
-
-\item[\tt con\_defs] contains definitions of constants appearing in the
-introduction rules.  The (co)datatype package supplies the constructors'
-definitions here.  Most direct calls of \verb|Inductive_Fun| or
-\verb|CoInductive_Fun| pass the empty list; one exception is the primitive
-recursive functions example (\S\ref{primrec-sec}).
-
-\item[\tt type\_intrs] consists of introduction rules for type-checking the
+\item[\it type\_intrs] consists of introduction rules for type-checking the
   definition, as discussed in~\S\ref{basic-sec}.  They are applied using
   depth-first search; you can trace the proof by setting
+
   \verb|trace_DEPTH_FIRST := true|.
 
-\item[\tt type\_elims] consists of elimination rules for type-checking the
-definition.  They are presumed to be `safe' and are applied as much as
-possible, prior to the {\tt type\_intrs} search.
+\item[\it type\_elims] consists of elimination rules for type-checking the
+  definition.  They are presumed to be `safe' and are applied as much as
+  possible, prior to the {\tt type\_intrs} search.
 \end{description}
+
 The package has a few notable restrictions:
 \begin{itemize}
-\item The parent theory, {\tt thy}, must declare the recursive sets as
-  constants.  You can extend a theory with new constants using {\tt
-    addconsts}, as illustrated in~\S\ref{ind-eg-sec}.  If the inductive
-  definition also requires new concrete syntax, then it is simpler to
-  express the parent theory using a theory file.  It is often convenient to
-  define an infix syntax for relations, say $a\prec b$ for $\pair{a,b}\in
-  R$.
+\item The theory must separately declare the recursive sets as
+  constants.
 
 \item The names of the recursive sets must be identifiers, not infix
 operators.  
@@ -1517,16 +1465,14 @@ may contain any number of side-conditions.
 
 
 \section{Datatype and codatatype definitions: users guide}
-The ML functors \verb|Datatype_Fun| and \verb|CoDatatype_Fun| define datatypes
-and codatatypes, invoking \verb|Datatype_Fun| and
-\verb|CoDatatype_Fun| to make the underlying (co)inductive definitions. 
+This section explains how to include (co)datatype declarations in a theory
+file.  
 
 
 \subsection{The result structure}
 The result structure extends that of (co)inductive definitions
 (Figure~\ref{def-result-fig}) with several additional items:
 \begin{ttbox}
-val con_thy   : theory
 val con_defs  : thm list
 val case_eqns : thm list
 val free_iffs : thm list
@@ -1535,11 +1481,6 @@ val mk_free   : string -> thm
 \end{ttbox}
 Most of these have been discussed in~\S\ref{data-sec}.  Here is a summary:
 \begin{description}
-\item[\tt con\_thy] is a new theory containing definitions of the
-(co)datatype's constructors and case operator.  It also declares the
-recursive sets as constants, so that it may serve as the parent
-theory for the (co)inductive definition.
-
 \item[\tt con\_defs] is a list of definitions: the case operator followed by
 the constructors.  This theorem list can be supplied to \verb|mk_cases|, for
 example.
@@ -1570,74 +1511,60 @@ The result structure also inherits everything from the underlying
 and (co)induction rule.
 
 
-\begin{figure}
+\subsection{The syntax of a (co)datatype definition}
+A datatype definition has the form
 \begin{ttbox}
-sig
-val thy       : theory
-val thy_name  : string
-val rec_specs : (string * string * (string list*string)list) list
-val rec_styp  : string
-val sintrs    : string list
-val monos     : thm list
-val type_intrs: thm list
-val type_elims: thm list
-end
+datatype <={\it domain}
+ {\it datatype declaration} and {\it datatype declaration} and \ldots
+  monos      {\it monotonicity theorems}
+  type_intrs {\it introduction rules for type-checking}
+  type_elims {\it elimination rules for type-checking}
 \end{ttbox}
-\hrule
-\caption{The argument of a (co)datatype definition} \label{data-arg-fig}
-\end{figure}
+A codatatype definition is identical save that it starts with the keyword
+{\tt codatatype}.  The syntax is rather complicated; please consult the
+examples above (\S\ref{lists-sec}) and the theory files on the ZF source
+directory.
 
-\subsection{The argument structure}
-Both (co)datatype functors take the same argument structure
-(Figure~\ref{data-arg-fig}).  It does not extend that for (co)inductive
-definitions, but shares several components  and passes them uninterpreted to
-\verb|Datatype_Fun| or \verb|CoDatatype_Fun|.  The new components are as
-follows: 
+The {\tt monos}, {\tt type\_intrs} and {\tt type\_elims} sections are
+optional.  They are treated like their counterparts in a (co)inductive
+definition, as described above.  The package supplements your type-checking
+rules (if any) with additional ones that should cope with any
+finitely-branching (co)datatype definition.
+
 \begin{description}
-\item[\tt thy] is the (co)datatype's parent theory. It {\it must not\/}
-declare constants for the recursive sets.  Recall that (co)inductive
-definitions have the opposite restriction.
+\item[\it domain] specifies a single domain to use for all the mutually
+  recursive (co)datatypes.  If it (and the preceeding~{\tt <=}) are
+  omitted, the package supplies a domain automatically.  Suppose the
+  definition involves the set parameters $A_1$, \ldots, $A_k$.  Then
+  $\univ(A_1\un\cdots\un A_k)$ is used for a datatype definition and
+  $\quniv(A_1\un\cdots\un A_k)$ is used for a codatatype definition.
 
-\item[\tt rec\_specs] is a list of triples of the form ({\it recursive set\/},
-{\it domain\/}, {\it constructors\/}) for each mutually recursive set.  {\it
-Constructors\/} is a list of the form (names, type, mixfix).  The mixfix
-component is usually {\tt NoSyn}, specifying no special syntax for the
-constructor; other useful possibilities are {\tt Infixl}~$p$ and {\tt
-  Infixr}~$p$, specifying an infix operator of priority~$p$.
-Section~\ref{data-sec} presents examples.
+  These choices should work for all finitely-branching (co)datatype
+  definitions.  For examples of infinitely-branching datatype
+  definitions, see the file {\tt ZF/ex/Brouwer.thy}.
 
-\item[\tt rec\_styp] is the common meta-type of the mutually recursive sets,
-specified as a string.  They must all have the same type because all must
-take the same parameters.
+\item[\it datatype declaration] has the form
+\begin{quote}
+ {\it string\/} {\tt =} {\it constructor} {\tt|} {\it constructor} {\tt|}
+ \ldots 
+\end{quote}
+The {\it string\/} is the datatype, say {\tt"list(A)"}.  Each
+{\it constructor\/} has the form 
+\begin{quote}
+ {\it name\/} {\tt(} {\it premise} {\tt,} {\it premise} {\tt,} \ldots {\tt)}
+ {\it mixfix\/}
+\end{quote}
+The {\it name\/} specifies a new constructor while the {\it premises\/} its
+typing conditions.  The optional {\it mixfix\/} phrase may give
+the constructor infix, for example.
+
+Mutually recursive {\it datatype declarations\/} are separated by the
+keyword~{\tt and}.
 \end{description}
-The choice of domain is usually simple.  Isabelle/ZF defines the set
-$\univ(A)$, which contains~$A$ and is closed under the standard Cartesian
-products and disjoint sums \cite[\S4.2]{paulson-set-II}.  In a typical
-datatype definition with set parameters $A_1$, \ldots, $A_k$, a suitable
-domain for all the recursive sets is $\univ(A_1\un\cdots\un A_k)$.  For a
-codatatype definition, the set
-$\quniv(A)$ contains~$A$ and is closed under the variant Cartesian products
-and disjoint sums; the appropriate domain is
-$\quniv(A_1\un\cdots\un A_k)$.
 
-The {\tt sintrs} specify the introduction rules, which govern the recursive
-structure of the datatype.  Introduction rules may involve monotone
-operators and side-conditions to express things that go beyond the usual
-notion of datatype.  The theorem lists {\tt monos}, {\tt type\_intrs} and
-{\tt type\_elims} should contain precisely what is needed for the
-underlying (co)inductive definition.  Isabelle/ZF defines lists of
-type-checking rules that can be supplied for the latter two components:
-\begin{itemize}
-\item {\tt datatype\_intrs} and {\tt datatype\_elims} are rules
-for $\univ(A)$.
-\item {\tt codatatype\_intrs} and {\tt codatatype\_elims} are
-rules for $\quniv(A)$.
-\end{itemize}
-In typical definitions, these theorem lists need not be supplemented with
-other theorems.
-
-The constructor definitions' right-hand sides can overlap.  A
-simple example is the datatype for the combinators, whose constructors are 
+\paragraph*{Note.}
+In the definitions of the constructors, the right-hand sides may overlap.
+For instance, the datatype of combinators has constructors defined by
 \begin{eqnarray*}
   {\tt K} & \equiv & \Inl(\emptyset) \\
   {\tt S} & \equiv & \Inr(\Inl(\emptyset)) \\
