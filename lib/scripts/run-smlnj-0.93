@@ -19,9 +19,13 @@ function fail_out()
 
 ## prepare databases
 
-EXIT="val exit = System.Unsafe.CInterface.exit;"
+if [ -z "$INFILE" ]; then
+  INFILE="$ML_HOME/sml"
+  EXIT="val exit = System.Unsafe.CInterface.exit;"
+else
+  EXIT=""
+fi
 
-[ -z "$INFILE" ] && INFILE="$ML_HOME/sml"
 MOVE=""
 
 if [ -z "$OUTFILE" ]; then
