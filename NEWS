@@ -9,7 +9,7 @@ New in Isabelle??? (FIXME)
   default simpset using Addsplits just like Addsimps. They can be removed via
   Delsplits just like Delsimps. For applications see HOL below.
 
-* changed wrapper mechanism for the classical reasoner now allows for selected
+* Changed wrapper mechanism for the classical reasoner now allows for selected
   deletion of wrappers, by introduction of names for wrapper functionals.
   This implies that addbefore, addSbefore, addaltern, and addSaltern now take
   a pair (name, tactic) as argument, and that adding two tactics with the same
@@ -19,7 +19,10 @@ New in Isabelle??? (FIXME)
   delWrapper, delSWrapper: claset *  string -> claset
   getWrapper is renamed to appWrappers, getSWrapper to appSWrappers;
 
+
 *** HOL ***
+
+* HOL/Arithmetic: removed 'pred' (predecessor) function;
 
 * The rule expand_if is now part of the default simpset. This means that
   the simplifier will eliminate all ocurrences of if-then-else in the
@@ -31,9 +34,10 @@ New in Isabelle??? (FIXME)
   simpset: every datatype generates a suitable rule `split_t_case' (where t
   is the name of the datatype).
 
-* New theory Vimage (inverse image of a function, syntax f-``B)
+* new theory Vimage (inverse image of a function, syntax f-``B);
 
-* Many new identities for unions, intersections, etc.
+* many new identities for unions, intersections, etc.;
+
 
 
 New in Isabelle98 (January 1998)

@@ -22,9 +22,6 @@ primrec "op -" nat
   diff_0   "m - 0 = m"
   diff_Suc "m - Suc n = (case m - n of 0 => 0 | Suc k => k)"
 
-syntax pred :: nat => nat
-translations "pred m" => "m - 1"
-
 primrec "op *"  nat 
   mult_0   "0 * n = 0"
   mult_Suc "Suc m * n = n + (m * n)"
