@@ -112,6 +112,8 @@ int(m) < int(n)'.
 * Many properties of integer multiplication, division and remainder are now
 available.
 
+* IsaMakefile: the HOL-Real target now builds an actual image;
+
 * New bounded quantifier syntax (input only):
   ! x < y. P, ! x <= y. P, ? x < y. P, ? x <= y. P
 

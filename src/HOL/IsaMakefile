@@ -7,8 +7,8 @@
 ## targets
 
 default: HOL
-images: HOL TLA
-test: HOL-Subst HOL-Induct HOL-IMP HOL-Hoare HOL-Lex HOL-Real \
+images: HOL HOL-Real TLA
+test: HOL-Subst HOL-Induct HOL-IMP HOL-Hoare HOL-Lex \
   HOL-Auth HOL-UNITY HOL-Modelcheck HOL-Lambda HOL-W0 HOL-MiniML HOL-IOA \
   HOL-AxClasses HOL-AxClasses-Group HOL-AxClasses-Lattice \
   HOL-AxClasses-Tutorial HOL-Quot HOL-ex HOL-Isar_examples TLA-Inc \
@@ -67,6 +67,21 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML \
   hologic.ML mono.ML mono.thy simpdata.ML subset.ML subset.thy \
   thy_syntax.ML
 	@$(ISATOOL) usedir -b $(OUT)/Pure HOL
+
+
+## HOL-Real
+
+HOL-Real: HOL $(OUT)/HOL-Real
+
+$(OUT)/HOL-Real: $(OUT)/HOL \
+  Real/Lubs.ML Real/Lubs.thy Real/PNat.ML Real/PNat.thy \
+  Real/PRat.ML Real/PRat.thy Real/PReal.ML Real/PReal.thy \
+  Real/RComplete.ML Real/RComplete.thy Real/Real.ML Real/Real.thy \
+  Real/RealDef.ML Real/RealDef.thy Real/simproc.ML \
+  Real/RealAbs.ML Real/RealAbs.thy Real/ROOT.ML \
+  Real/Hyperreal/Filter.ML Real/Hyperreal/Filter.thy \
+  Real/Hyperreal/Zorn.ML Real/Hyperreal/Zorn.thy
+	@cd Real; $(ISATOOL) usedir -b $(OUT)/HOL HOL-Real
 
 
 ## HOL-Subst
@@ -132,21 +147,6 @@ $(LOG)/HOL-Lex.gz: $(OUT)/HOL \
   Lex/RegExp.thy Lex/RegSet.thy Lex/RegSet.ML \
   Lex/RegSet_of_nat_DA.thy Lex/RegSet_of_nat_DA.ML
 	@$(ISATOOL) usedir $(OUT)/HOL Lex
-
-
-## HOL-Real
-
-HOL-Real: HOL $(LOG)/HOL-Real.gz
-
-$(LOG)/HOL-Real.gz: $(OUT)/HOL \
-  Real/Lubs.ML Real/Lubs.thy Real/PNat.ML Real/PNat.thy \
-  Real/PRat.ML Real/PRat.thy Real/PReal.ML Real/PReal.thy \
-  Real/RComplete.ML Real/RComplete.thy Real/Real.ML Real/Real.thy \
-  Real/RealDef.ML Real/RealDef.thy Real/simproc.ML \
-  Real/RealAbs.ML Real/RealAbs.thy Real/ROOT.ML \
-  Real/Hyperreal/Filter.ML Real/Hyperreal/Filter.thy \
-  Real/Hyperreal/Zorn.ML Real/Hyperreal/Zorn.thy
-	@$(ISATOOL) usedir $(OUT)/HOL Real
 
 
 ## HOL-Auth
@@ -390,9 +390,9 @@ $(LOG)/TLA-Memory.gz: $(OUT)/TLA TLA/Memory/MIParameters.thy \
 ## clean
 
 clean:
-	@rm -f $(OUT)/HOL $(LOG)/HOL.gz $(LOG)/HOL-Subst.gz \
+	@rm -f $(OUT)/HOL $(OUT)/HOL-Real $(LOG)/HOL.gz $(LOG)/HOL-Subst.gz \
 	  $(LOG)/HOL-Induct.gz $(LOG)/HOL-IMP.gz $(LOG)/HOL-Hoare.gz \
-	  $(LOG)/HOL-Lex.gz $(LOG)/HOL-Real.gz $(LOG)/HOL-Auth.gz $(LOG)/HOL-UNITY.gz \
+	  $(LOG)/HOL-Lex.gz $(LOG)/HOL-Auth.gz $(LOG)/HOL-UNITY.gz \
 	  $(LOG)/HOL-Modelcheck.gz $(LOG)/HOL-Lambda.gz $(LOG)/HOL-W0.gz \
 	  $(LOG)/HOL-MiniML.gz $(LOG)/HOL-IOA.gz $(LOG)/HOL-AxClasses.gz \
 	  $(LOG)/HOL-AxClasses-Group.gz $(LOG)/HOL-AxClasses-Lattice.gz \
