@@ -151,12 +151,9 @@ val trans_pat =
   Scan.optional (P.$$$ "(" |-- P.!!! (P.xname --| P.$$$ ")")) "logic" -- P.string;
 
 fun trans_arrow toks =
-  (P.$$$ "=>" >> K Syntax.ParseRule ||
-    P.$$$ "\\<rightharpoonup>" >> K Syntax.ParseRule ||
-    P.$$$ "<=" >> K Syntax.PrintRule ||
-    P.$$$ "\\<leftharpoondown>" >> K Syntax.PrintRule ||
-    P.$$$ "==" >> K Syntax.ParsePrintRule ||
-    P.$$$ "\\<rightleftharpoons>" >> K Syntax.ParsePrintRule) toks;
+  ((P.$$$ "\\<rightharpoonup>" || P.$$$ "=>") >> K Syntax.ParseRule ||
+    (P.$$$ "\\<leftharpoondown>" || P.$$$ "<=") >> K Syntax.PrintRule ||
+    (P.$$$ "\\<rightleftharpoons>" || P.$$$ "==") >> K Syntax.ParsePrintRule) toks;
 
 val trans_line =
   trans_pat -- P.!!! (trans_arrow -- trans_pat)
@@ -348,7 +345,7 @@ val presumeP =
 
 val defP =
   OuterSyntax.command "def" "local definition" K.prf_asm
-    (P.opt_thm_name ":" -- (P.name -- (P.$$$ "==" |-- P.!!! P.termp))
+    (P.opt_thm_name ":" -- (P.name -- ((P.$$$ "\\<equiv>" || P.$$$ "==") |-- P.!!! P.termp))
       -- P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.local_def)));
 
 val fixP =
@@ -670,8 +667,9 @@ val welcomeP =
 val keywords =
  ["!", "!!", "%", "%%", "(", ")", "+", ",", "--", ":", "::", ";", "<",
   "<=", "=", "==", "=>", "?", "[", "]", "and", "binder", "concl",
-  "files", "in", "infixl", "infixr", "is", "output", "overloaded", "|",
-  "\\<rightharpoonup>", "\\<leftharpoondown>", "\\<rightleftharpoons>"];
+  "files", "in", "infixl", "infixr", "is", "output", "overloaded",
+  "|", "\\<rightharpoonup>", "\\<leftharpoondown>",
+  "\\<rightleftharpoons>", "\\<equiv>"];
 
 val parsers = [
   (*theory structure*)
