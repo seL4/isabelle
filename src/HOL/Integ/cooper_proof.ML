@@ -108,10 +108,6 @@ val eq_pinf_disjI = thm "eq_pinf_disjI";
 val modd_pinf_disjI = thm "modd_pinf_disjI";
 val modd_pinf_conjI = thm "modd_pinf_conjI";
 
-(*A/B - set Theorem *)
-
-val bst_thm = thm "bst_thm";
-val ast_thm = thm "ast_thm";
 
 (*Cooper Backwards...*)
 (*Bset*)
@@ -684,8 +680,7 @@ fun prove_elementar sg s fm2 = case s of
   (*"ss" like simplification with simpset*)
   "ss" =>
     let
-      val ss = presburger_ss addsimps
-        [zdvd_iff_zmod_eq_0,unity_coeff_ex]
+      val ss = presburger_ss addsimps [zdvd_iff_zmod_eq_0]
       val ct =  cert_Trueprop sg fm2
     in 
       simple_prove_goal_cterm2 ct [simp_tac ss 1, TRY (simple_arith_tac 1)]
@@ -1096,37 +1091,6 @@ end;
 				 
 
 
-
-(* ------------------------------------------------------------------------- *)
-(* Here we generate the theorem for the Bset Property in the simple direction*)
-(* It is just an instantiation*)
-(* ------------------------------------------------------------------------- *)
-fun bsetproof_of sg (Bset(x as Free(xn,xT),fm,bs,dlcm))   = 
-  let
-    val cp = cterm_of sg (absfree (xn,xT,(norm_zero_one fm)))
-    val cdlcm = cterm_of sg dlcm
-    val cB = cterm_of sg (list_to_set HOLogic.intT (map norm_zero_one bs))
-  in instantiate' [] [Some cdlcm,Some cB, Some cp] (bst_thm)
-    end;
-
-
-
-
-(* ------------------------------------------------------------------------- *)
-(* Here we generate the theorem for the Bset Property in the simple direction*)
-(* It is just an instantiation*)
-(* ------------------------------------------------------------------------- *)
-fun asetproof_of sg (Aset(x as Free(xn,xT),fm,ast,dlcm))   = 
-  let
-    val cp = cterm_of sg (absfree (xn,xT,(norm_zero_one fm)))
-    val cdlcm = cterm_of sg dlcm
-    val cA = cterm_of sg (list_to_set HOLogic.intT (map norm_zero_one ast))
-  in instantiate' [] [Some cdlcm,Some cA, Some cp] (ast_thm)
-end;
-
-
-
-
 (* ------------------------------------------------------------------------- *)    
 (* Protokol interpretation function for the backwards direction for cooper's Theorem*)
 
@@ -1324,13 +1288,12 @@ end;
 
 fun coopermi_proof_of sg x (Cooper (dlcm,Simp(fm,miprt),bsprt,nbst_p_prt)) =
   (* Get the Bset thm*)
-  let val bst = bsetproof_of sg bsprt
-      val (mit1,mit2) = minf_proof_of sg dlcm miprt
+  let val (mit1,mit2) = minf_proof_of sg dlcm miprt
       val fm1 = norm_zero_one (simpl fm) 
       val dpos = prove_elementar sg "ss" (HOLogic.mk_binrel "op <" (zero,dlcm));
       val nbstpthm = not_bst_p_proof_of sg nbst_p_prt
     (* Return the four theorems needed to proove the whole Cooper Theorem*)
-  in (dpos,mit2,bst,nbstpthm,mit1)
+  in (dpos,mit2,nbstpthm,mit1)
 end;
 
 
@@ -1340,12 +1303,11 @@ end;
 
 
 fun cooperpi_proof_of sg x (Cooper (dlcm,Simp(fm,miprt),bsprt,nast_p_prt)) =
-  let val ast = asetproof_of sg bsprt
-      val (mit1,mit2) = pinf_proof_of sg dlcm miprt
+  let val (mit1,mit2) = pinf_proof_of sg dlcm miprt
       val fm1 = norm_zero_one (simpl fm) 
       val dpos = prove_elementar sg "ss" (HOLogic.mk_binrel "op <" (zero,dlcm));
       val nastpthm = not_ast_p_proof_of sg nast_p_prt
-  in (dpos,mit2,ast,nastpthm,mit1)
+  in (dpos,mit2,nastpthm,mit1)
 end;
 
 
@@ -1357,12 +1319,12 @@ end;
 
 fun cooper_thm sg s (x as Free(xn,xT)) vars cfm = case s of
   "pi" => let val (rs,prt) = cooperpi_wp (xn::vars) (HOLogic.mk_exists(xn,xT,cfm))
-	      val (dpsthm,th1,th2,nbpth,th3) = cooperpi_proof_of sg x prt
-		   in [dpsthm,th1,th2,nbpth,th3] MRS (cppi_eq)
+	      val (dpsthm,th1,nbpth,th3) = cooperpi_proof_of sg x prt
+		   in [dpsthm,th1,nbpth,th3] MRS (cppi_eq)
            end
   |"mi" => let val (rs,prt) = coopermi_wp (xn::vars) (HOLogic.mk_exists(xn,xT,cfm))
-	       val (dpsthm,th1,th2,nbpth,th3) = coopermi_proof_of sg x prt
-		   in [dpsthm,th1,th2,nbpth,th3] MRS (cpmi_eq)
+	       val (dpsthm,th1,nbpth,th3) = coopermi_proof_of sg x prt
+		   in [dpsthm,th1,nbpth,th3] MRS (cpmi_eq)
                 end
  |_ => error "parameter error";
 

@@ -207,16 +207,7 @@ lemma not_bst_p_Q_elim: "
 ==> (ALL x. ~(EX (j::int) : {1..d}. EX (b::int) : B. P(b+j)) -->P(x) --> P(x - d))"
 by blast
 (*=============================================================================*)
-(*The Theorem for the second proof step- about bset. it is trivial too. *)
-lemma bst_thm: " (EX (j::int) : {1..d}. EX (b::int) : B. P (b+j) )--> (EX x::int. P (x)) "
-by blast
 
-(*The Theorem for the second proof step- about aset. it is trivial too. *)
-lemma ast_thm: " (EX (j::int) : {1..d}. EX (a::int) : A. P (a - j) )--> (EX x::int. P (x)) "
-by blast
-
-
-(*=============================================================================*)
 (*This is the first direction of cooper's theorem*)
 lemma cooper_thm: "(R --> (EX x::int. P x))  ==> (Q -->(EX x::int.  P x )) ==> ((R|Q) --> (EX x::int. P x )) "
 by blast
@@ -738,7 +729,6 @@ next
 qed
 
 lemma cpmi_eq: "0 < D \<Longrightarrow> (EX z::int. ALL x. x < z --> (P x = P1 x))
-==> (EX (j::int) : {1..D}. EX (b::int) : B. P (b+j)) --> (EX (x::int). P x) 
 ==> ALL x.~(EX (j::int) : {1..D}. EX (b::int) : B. P(b+j)) --> P (x) --> P (x - D) 
 ==> (ALL (x::int). ALL (k::int). ((P1 x)= (P1 (x-k*D))))
 ==> (EX (x::int). P(x)) = ((EX (j::int) : {1..D} . (P1(j))) | (EX (j::int) : {1..D}. EX (b::int) : B. P (b+j)))"
@@ -762,7 +752,6 @@ done
 
 (* Cooper Thm `, plus infinity version*)
 lemma cppi_eq: "0 < D \<Longrightarrow> (EX z::int. ALL x. z < x --> (P x = P1 x))
-==> (EX (j::int) : {1..D}. EX (a::int) : A. P (a - j)) --> (EX (x::int). P x) 
 ==> ALL x.~(EX (j::int) : {1..D}. EX (a::int) : A. P(a - j)) --> P (x) --> P (x + D) 
 ==> (ALL (x::int). ALL (k::int). ((P1 x)= (P1 (x+k*D))))
 ==> (EX (x::int). P(x)) = ((EX (j::int) : {1..D} . (P1(j))) | (EX (j::int) : {1..D}. EX (a::int) : A. P (a - j)))"
