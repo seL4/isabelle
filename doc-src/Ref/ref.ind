@@ -70,8 +70,8 @@
   \item {\tt Asm_full_simp_tac}, \bold{100}, 105
   \item {\tt asm_full_simp_tac}, 22, 105, \bold{106}, 109
   \item {\tt asm_rl} theorem, 21
-  \item {\tt Asm_simp_tac}, \bold{100}, 105
-  \item {\tt asm_simp_tac}, 105, \bold{106}, 107, 116
+  \item {\tt Asm_simp_tac}, \bold{100}, 105, 107
+  \item {\tt asm_simp_tac}, 105, \bold{106}, 116
   \item associative-commutative operators, 110
   \item {\tt assume}, \bold{42}
   \item {\tt assume_ax}, 8, \bold{55}
@@ -742,12 +742,12 @@
   \item {\tt trace_DEPTH_FIRST}, \bold{31}
   \item {\tt trace_goalno_tac}, \bold{34}
   \item {\tt trace_REPEAT}, \bold{29}
-  \item {\tt trace_simp}, 100, 108
+  \item {\tt trace_simp}, 100, 107
   \item tracing
     \subitem of classical prover, 125
     \subitem of macros, 88
     \subitem of searching tacticals, 31
-    \subitem of simplification, 100, 108--109
+    \subitem of simplification, 100, 107--108
     \subitem of tactics, 25
     \subitem of unification, 40
   \item {\tt transitive}, \bold{43}
