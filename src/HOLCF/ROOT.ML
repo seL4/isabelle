@@ -31,7 +31,7 @@ use "domain/theorems.ML";
 use "domain/extender.ML";
 use "domain/interface.ML";
 
-init_thy_reader();
+set_parser ThySyn.parse;
 
 fun qed_spec_mp name =
   let val thm = normalize_thm [RSspec,RSmp] (result())
