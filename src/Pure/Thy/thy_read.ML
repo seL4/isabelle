@@ -39,8 +39,9 @@ sig
   val theory_of_sign: Sign.sg -> theory
   val theory_of_thm: thm -> theory
   val store_thm: string * thm -> thm
+  val bind_thm: string * thm -> unit
   val qed: string -> unit
-  val qed_goal_thm: thm ref
+  val qed_thm: thm ref
   val qed_goal: string -> theory -> string -> (thm list -> tactic list) -> unit
   val qed_goalw: string -> theory->thm list->string->(thm list->tactic list)
                  -> unit
@@ -491,19 +492,24 @@ fun store_thm (name, thm) =
   end;
 
 (*Store result of proof in loaded_thys and as ML value*)
+
+val qed_thm = ref flexpair_def(*dummy*);
+
+fun bind_thm (name, thm) =
+  (qed_thm := thm;
+   use_string ["val " ^ name ^ " = standard (store_thm (" ^ quote name ^
+               ", !qed_thm));"]);
+
 fun qed name =
   use_string ["val " ^ name ^ " = store_thm (" ^ quote name ^ ", result ());"];
 
-val qed_goal_thm = ref flexpair_def(*dummy*);
 fun qed_goal name thy agoal tacsf =
-  (qed_goal_thm := prove_goal thy agoal tacsf;
-   use_string ["val " ^ name ^ " = store_thm (" ^ quote name ^ 
-               ", !qed_goal_thm);"]);
+  (qed_thm := prove_goal thy agoal tacsf;
+   use_string ["val " ^ name ^ " = store_thm (" ^ quote name ^", !qed_thm);"]);
 
 fun qed_goalw name thy rths agoal tacsf =
-  (qed_goal_thm := prove_goalw thy rths agoal tacsf;
-   use_string ["val " ^ name ^ " = store_thm (" ^ quote name ^ 
-               ", !qed_goal_thm);"]);
+  (qed_thm := prove_goalw thy rths agoal tacsf;
+   use_string ["val " ^ name ^ " = store_thm (" ^ quote name ^", !qed_thm);"]);
 
 (* Retrieve theorems *)
 
