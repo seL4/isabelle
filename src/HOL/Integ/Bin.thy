@@ -1,4 +1,5 @@
 (*  Title:	HOL/Integ/Bin.thy
+    ID:         $Id$
     Authors:	Lawrence C Paulson, Cambridge University Computer Laboratory
 		David Spelt, University of Twente 
     Copyright	1994  University of Cambridge
@@ -22,36 +23,29 @@ by proof.  Then uniqueness of the quotient and remainder yields theorems
 quoting the previously computed values.  (Or code an oracle...)
 *)
 
-Bin = Int + Datatype +
-
-syntax
-  "_Int"           :: xnum => int        ("_")
-
-datatype
-    bin = Pls
-        | Min
-        | BIT bin bool	(infixl 90)
+Bin = Int + Numeral +
 
 consts
-  integ_of         :: bin=>int
   NCons            :: [bin,bool]=>bin
   bin_succ         :: bin=>bin
   bin_pred         :: bin=>bin
   bin_minus        :: bin=>bin
   bin_add,bin_mult :: [bin,bin]=>bin
-  adding            :: [bin,bool,bin]=>bin
+  adding           :: [bin,bool,bin]=>bin
 
 (*NCons inserts a bit, suppressing leading 0s and 1s*)
 primrec
   NCons_Pls "NCons Pls b = (if b then (Pls BIT b) else Pls)"
   NCons_Min "NCons Min b = (if b then Min else (Min BIT b))"
   NCons_BIT "NCons (w BIT x) b = (w BIT x) BIT b"
- 
+
+instance
+  int :: numeral 
 primrec
-  integ_of_Pls  "integ_of Pls = int 0"
-  integ_of_Min  "integ_of Min = - (int 1)"
-  integ_of_BIT  "integ_of(w BIT x) = (if x then int 1 else int 0) +
-	                             (integ_of w) + (integ_of w)" 
+  number_of_Pls  "number_of Pls = int 0"
+  number_of_Min  "number_of Min = - (int 1)"
+  number_of_BIT  "number_of(w BIT x) = (if x then int 1 else int 0) +
+	                             (number_of w) + (number_of w)" 
 
 primrec
   bin_succ_Pls  "bin_succ Pls = Pls BIT True" 
@@ -95,85 +89,3 @@ primrec
 
 
 end
-
-ML
-
-(** Concrete syntax for integers **)
-
-local
-
-  (* Bits *)
-
-  fun mk_bit 0 = Syntax.const "False"
-    | mk_bit 1 = Syntax.const "True"
-    | mk_bit _ = sys_error "mk_bit";
-
-  fun dest_bit (Const ("False", _)) = 0
-    | dest_bit (Const ("True", _)) = 1
-    | dest_bit _ = raise Match;
-
-
-  (* Bit strings *)   (*we try to handle superfluous leading digits nicely*)
-
-  fun prefix_len _ [] = 0
-    | prefix_len pred (x :: xs) =
-        if pred x then 1 + prefix_len pred xs else 0;
-
-  fun mk_bin str =
-    let
-      val (sign, digs) =
-        (case Symbol.explode str of
-          "#" :: "-" :: cs => (~1, cs)
-        | "#" :: cs => (1, cs)
-        | _ => raise ERROR);
-
-      fun bin_of 0  = []
-        | bin_of ~1 = [~1]
-        | bin_of n  = (n mod 2) :: bin_of (n div 2);
-
-      fun term_of []   = Syntax.const "Bin.bin.Pls"
-        | term_of [~1] = Syntax.const "Bin.bin.Min"
-        | term_of (b :: bs) = Syntax.const "Bin.bin.op BIT" $ term_of bs $ mk_bit b;
-    in
-      term_of (bin_of (sign * (#1 (read_int digs))))
-    end;
-
-  fun dest_bin tm =
-    let
-      (*we consider both "spellings", since Min might be declared elsewhere*)
-      fun bin_of (Const ("Pls", _))     = []
-        | bin_of (Const ("bin.Pls", _)) = []
-        | bin_of (Const ("Min", _))     = [~1]
-        | bin_of (Const ("bin.Min", _)) = [~1]
-        | bin_of (Const ("op BIT", _) $ bs $ b)     = dest_bit b :: bin_of bs
-        | bin_of (Const ("bin.op BIT", _) $ bs $ b) = dest_bit b :: bin_of bs
-        | bin_of _ = raise Match;
-
-      fun int_of [] = 0
-        | int_of (b :: bs) = b + 2 * int_of bs;
-
-      val rev_digs = bin_of tm;
-      val (sign, zs) =
-        (case rev rev_digs of
-          ~1 :: bs => ("-", prefix_len (equal 1) bs)
-        | bs => ("", prefix_len (equal 0) bs));
-      val num = string_of_int (abs (int_of rev_digs));
-    in
-      "#" ^ sign ^ implode (replicate zs "0") ^ num
-    end;
-
-
-  (* translation of integer constant tokens to and from binary *)
-
-  fun int_tr (*"_Int"*) [t as Free (str, _)] =
-        (Syntax.const "integ_of" $
-          (mk_bin str handle ERROR => raise TERM ("int_tr", [t])))
-    | int_tr (*"_Int"*) ts = raise TERM ("int_tr", ts);
-
-  fun int_tr' (*"integ_of"*) [t] =
-        Syntax.const "_Int" $ (Syntax.const "_xnum" $ Syntax.free (dest_bin t))
-    | int_tr' (*"integ_of"*) _ = raise Match;
-in
-  val parse_translation = [("_Int", int_tr)];
-  val print_translation = [("integ_of", int_tr')]; 
-end;
