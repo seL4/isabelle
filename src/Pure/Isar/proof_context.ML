@@ -1381,7 +1381,7 @@ fun lthms_containing (ctxt as Context {thms = (_, _, _, index), ...}) idx =
 fun print_thms_containing ctxt ss =
   let
     val prt_term = pretty_term ctxt;
-    val prt_fact = pretty_fact ctxt o apsnd (map (#1 o Drule.freeze_thaw));
+    val prt_fact = pretty_fact ctxt;
     fun prt_consts [] = []
       | prt_consts cs = [Pretty.block (Pretty.breaks (Pretty.str "constants" ::
           map (Pretty.quote o prt_term o Syntax.const) cs))];
@@ -1394,7 +1394,7 @@ fun print_thms_containing ctxt ss =
     val empty_idx = Library.null cs andalso Library.null xs;
 
     val header =
-      if empty_idx then []
+      if empty_idx then [Pretty.block [Pretty.str "All known facts:", Pretty.fbrk]]
       else [Pretty.block (Pretty.breaks (Pretty.str "Facts containing" ::
         separate (Pretty.str "and") (prt_consts cs @ prt_frees xs)) @
           [Pretty.str ":", Pretty.fbrk])]
