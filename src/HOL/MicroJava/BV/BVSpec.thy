@@ -129,6 +129,14 @@ primrec
 	 (\\<exists>ts ts' ST'. ST = ts' # ts # ST' \\<and> 	 
 		       G \\<turnstile> (ts # ts' # ST' , LT) <=s phi ! (pc+1)))"
 
+"wt_OS ADD G phi max_pc pc =
+	(let (ST,LT) = phi ! pc
+	 in
+	 pc+1 < max_pc \\<and>
+	 (\\<exists>ST'. ST = (PrimT Integer) # (PrimT Integer) # ST' \\<and> 	 
+		       G \\<turnstile> ((PrimT Integer) # ST' , LT) <=s phi ! (pc+1)))"
+
+
 consts 
  wt_BR	:: "[branch,jvm_prog,method_type,p_count,p_count] \\<Rightarrow> bool" 
 primrec

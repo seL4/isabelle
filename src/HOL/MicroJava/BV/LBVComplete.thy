@@ -615,7 +615,7 @@ proof (simp only:);
     case OS;
     with 1 3;
     show ?thesis; 
-      by - (cases op_stack, (elim, clarsimp_tac simp add: sup_state_Cons2)+);
+      by - (cases op_stack, (elim, clarsimp_tac simp add: sup_state_Cons2 PrimT_PrimT)+);
 
   next;
     case BR;

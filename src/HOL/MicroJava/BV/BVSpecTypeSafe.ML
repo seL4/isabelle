@@ -510,6 +510,20 @@ by (fast_tac (claset() addIs [approx_stk_imp_approx_stk_sup,approx_val_imp_appro
 	addss (simpset() addsimps [map_eq_Cons]@defs1)) 1);
 qed "Swap_correct";
 
+
+Goal 
+"\\<lbrakk> wf_prog wt G; \
+\  method (G,C) sig = Some (C,rT,maxl,ins); \
+\  ins ! pc = OS ADD; \
+\  wt_instr (ins!pc) G rT (phi C sig) (length ins) pc; \
+\  Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; \
+\  G,phi \\<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\\<surd> \\<rbrakk> \
+\\\<Longrightarrow> G,phi \\<turnstile>JVM state'\\<surd>";
+by (fast_tac (claset() addIs [approx_stk_imp_approx_stk_sup,approx_val_imp_approx_val_sup,approx_loc_imp_approx_loc_sup]
+  addss (simpset() addsimps [map_eq_Cons, approx_val_def]@defs1)) 1);
+qed "ADD_correct";
+
+
 Goal
 "\\<lbrakk> wt_jvm_prog G phi; \
 \  method (G,C) sig = Some (C,rT,maxl,ins); \
@@ -522,7 +536,7 @@ by(forward_tac [wt_jvm_prog_impl_wt_instr_cor] 1);
  ba 1;
 by(rewtac wt_jvm_prog_def);
 by (case_tac "os_com" 1);
-by (ALLGOALS (fast_tac (claset() addIs [Pop_correct,Dup_correct,Dup_x1_correct,Dup_x2_correct,Swap_correct])));
+by (ALLGOALS (fast_tac (claset() addIs [Pop_correct,Dup_correct,Dup_x1_correct,Dup_x2_correct,Swap_correct,ADD_correct])));
 qed "OS_correct";
 
 (** Main **)

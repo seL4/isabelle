@@ -130,6 +130,12 @@ primrec
 	 (\\<exists>ts ts' ST'. ST = ts' # ts # ST' \\<and> 	 
 		       (ts # ts' # ST' , LT) = s'))"
 
+"wtl_OS ADD s s' max_pc pc =
+	(let (ST,LT) = s
+	 in
+	 pc+1 < max_pc \\<and>
+	 (\\<exists>ST'. ST = (PrimT Integer) # (PrimT Integer) # ST' \\<and> 	 
+		       ((PrimT Integer) # ST' , LT) = s'))"
 consts 
  wtl_BR	:: "[branch,jvm_prog,state_type,state_type,certificate,p_count,p_count] \\<Rightarrow> bool" 
 primrec

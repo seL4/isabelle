@@ -17,6 +17,7 @@ datatype
  | Dup_x1
  | Dup_x2
  | Swap
+ | ADD
 	  
 consts
  exec_os :: "[op_stack,opstack,p_count] \\<Rightarrow> (opstack \\<times> p_count)" 
@@ -34,5 +35,10 @@ primrec
 	(let (val1,val2) = (hd stk,hd (tl stk))
 	 in
 	 (val2#val1#(tl (tl stk)) , pc+1))"
+
+  "exec_os ADD stk pc =
+  (let (val1,val2) = (hd stk,hd (tl stk))
+   in
+   (Intg ((the_Intg val1)+(the_Intg val2))#(tl (tl stk)), pc+1))"
 
 end

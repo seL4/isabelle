@@ -138,9 +138,9 @@ proof -;
   qed;  
   with all; 
   show ?thesis;  
-  proof elim; 
+  proof (elim exE allE impE conjE); 
     show "wtl_inst_list is G rT s0 s2 cert (0+length is) 0"; by simp; 
-  qed (auto simp add: fits_def); 
+  qed (auto simp add: fits_def);  
 qed; 
 
 
