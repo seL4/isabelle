@@ -60,6 +60,10 @@ defs with = and pattern matching??
 Minor fixes in the tutorial
 ===========================
 
+1/2 no longer abbrevs for Suc.
+Warning: needs simplification to turn 1 into Suc 0. arith does so
+automatically.
+
 recdef: failed tcs no longer shown! (sec:Recursion over nested datatypes)
 say something about how conditions are proved?
 No, better show failed proof attempts.
