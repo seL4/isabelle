@@ -8,6 +8,7 @@ structure Hypsubst_Data =
   val dest_Trueprop = FOLogic.dest_Trueprop
   val dest_imp = FOLogic.dest_imp
   val eq_reflection = eq_reflection
+  val rev_eq_reflection = meta_eq_to_obj_eq
   val imp_intr = impI
   val rev_mp = rev_mp
   val subst = subst
