@@ -11,7 +11,7 @@ sig
   val no_tvars: typ -> typ
   val varifyT: typ -> typ
   val unvarifyT: typ -> typ
-  val varify: term * string list -> term
+  val varify: term * string list -> term * (string * indexname) list
   val freeze_thaw_type : typ -> typ * (typ -> typ)
   val freeze_thaw : term -> term * (term -> term)
 
@@ -84,8 +84,9 @@ struct
 (*** TFrees and TVars ***)
 
 fun no_tvars T =
-  if null (typ_tvars T) then T
-  else raise TYPE ("Illegal schematic type variable(s)", [T], []);
+  (case typ_tvars T of [] => T
+  | vs => raise TYPE ("Illegal schematic type variable(s): " ^
+      commas (map (Syntax.string_of_vname o #1) vs), [T], []));
 
 
 (* varify, unvarify *)
@@ -100,12 +101,12 @@ fun varify (t, fixed) =
   let
     val fs = add_term_tfree_names (t, []) \\ fixed;
     val ixns = add_term_tvar_ixns (t, []);
-    val fmap = fs ~~ variantlist (fs, map #1 ixns)
+    val fmap = fs ~~ map (rpair 0) (variantlist (fs, map #1 ixns))
     fun thaw (f as (a, S)) =
       (case assoc (fmap, a) of
         None => TFree f
-      | Some b => TVar ((b, 0), S));
-  in map_term_types (map_type_tfree thaw) t end;
+      | Some b => TVar (b, S));
+  in (map_term_types (map_type_tfree thaw) t, fmap) end;
 
 
 (* freeze_thaw: freeze TVars in a term; return the "thaw" inverse *)
