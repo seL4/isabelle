@@ -73,7 +73,7 @@ Goal "[| ALL m. F : {m} Co (maxfg m); \
 \               n: common |]  \
 \     ==> F : (atMost n) LeadsTo common";
 by (rtac LeadsTo_weaken_R 1);
-by (res_inst_tac [("f","%x. x"), ("l", "n")] GreaterThan_bounded_induct 1);
+by (res_inst_tac [("f","id"), ("l","n")] GreaterThan_bounded_induct 1);
 by (ALLGOALS Asm_simp_tac);
 by (rtac subset_refl 2);
 by (blast_tac (claset() addDs [PSP_Stable2] 
