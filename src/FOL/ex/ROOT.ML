@@ -25,6 +25,7 @@ time_use     "ex/prop.ML";
 time_use     "ex/quant.ML";
 
 writeln"\n** Classical examples **\n";
+time_use     "ex/mini.ML";
 time_use     "ex/cla.ML";
 time_use_thy "ex/If";
 
