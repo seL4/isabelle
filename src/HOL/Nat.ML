@@ -234,7 +234,7 @@ val prems = goalw Nat.thy [less_def] "n<m ==> ~ m<(n::nat)";
 by (fast_tac (!claset addIs ([wf_pred_nat, wf_trancl RS wf_asym]@prems))1);
 qed "less_not_sym";
 
-(* [| n(m; m(n |] ==> R *)
+(* [| n<m; m<n |] ==> R *)
 bind_thm ("less_asym", (less_not_sym RS notE));
 
 goalw Nat.thy [less_def] "~ n<(n::nat)";
@@ -391,6 +391,10 @@ qed "less_induct";
 
 
 (*** Properties of <= ***)
+
+goalw Nat.thy [le_def] "(m <= n) = (m < Suc n)";
+by (rtac not_less_eq 1);
+qed "le_eq_less_Suc";
 
 goalw Nat.thy [le_def] "0 <= n";
 by (rtac not_less0 1);
@@ -565,15 +569,14 @@ by (rtac prem 1);
 qed "not_less_Least";
 
 qed_goalw "Least_Suc" Nat.thy [Least_def]
- "[| ? n. P (Suc n); ~ P 0 |] ==> (LEAST n. P n) = Suc (LEAST m. P (Suc m))"
- (fn prems => [
-	cut_facts_tac prems 1,
+ "!!P. [| ? n. P(Suc n); ~ P 0 |] ==> (LEAST n. P n) = Suc (LEAST m. P(Suc m))"
+ (fn _ => [
 	rtac select_equality 1,
 	fold_goals_tac [Least_def],
 	safe_tac (!claset addSEs [LeastI]),
 	res_inst_tac [("n","j")] natE 1,
 	Fast_tac 1,
-	fast_tac (!claset addDs [Suc_less_SucD] addDs [not_less_Least]) 1,	
+	fast_tac (!claset addDs [Suc_less_SucD, not_less_Least]) 1,
 	res_inst_tac [("n","k")] natE 1,
 	Fast_tac 1,
 	hyp_subst_tac 1,
