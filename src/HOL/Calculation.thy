@@ -188,6 +188,4 @@ lemmas trans_rules [trans] =
   trans
   transitive
 
-lemmas [elim?] = sym
-
 end
