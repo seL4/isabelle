@@ -401,8 +401,11 @@ qed "Compl_INT";
 
 Addsimps [Compl_Un, Compl_Int, Compl_UN, Compl_INT];
 
-(*Halmos, Naive Set Theory, page 16.*)
+Goal "(A <= -A) = (A = {})";
+by (Blast_tac 1);
+qed "subset_Compl_self_eq";
 
+(*Halmos, Naive Set Theory, page 16.*)
 Goal "((A Int B) Un C = A Int (B Un C)) = (C<=A)";
 by (blast_tac (claset() addSEs [equalityCE]) 1);
 qed "Un_Int_assoc_eq";
