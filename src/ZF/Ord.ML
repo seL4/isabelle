@@ -157,6 +157,14 @@ goal Ord.thy "Ord(succ(i)) <-> Ord(i)";
 by (fast_tac (ZF_cs addIs [Ord_succ] addDs [Ord_succD]) 1);
 val Ord_succ_iff = result();
 
+goalw Ord.thy [Ord_def] "!!i j. [| Ord(i); Ord(j) |] ==> Ord(i Un j)";
+by (fast_tac (ZF_cs addSIs [Transset_Un]) 1);
+val Ord_Un = result();
+
+goalw Ord.thy [Ord_def] "!!i j. [| Ord(i); Ord(j) |] ==> Ord(i Int j)";
+by (fast_tac (ZF_cs addSIs [Transset_Int]) 1);
+val Ord_Int = result();
+
 val nonempty::prems = goal Ord.thy
     "[| j:A;  !!i. i:A ==> Ord(i) |] ==> Ord(Inter(A))";
 by (rtac (nonempty RS Transset_Inter_family RS OrdI) 1);
@@ -442,6 +450,16 @@ by (REPEAT (ares_tac [iffI,succ_leI,succ_leE] 1));
 val succ_le_iff = result();
 
 (** Union and Intersection **)
+
+goal Ord.thy "!!i j. [| Ord(i); Ord(j) |] ==> i le i Un j";
+by (rtac (Un_upper1 RS subset_imp_le) 1);
+by (REPEAT (ares_tac [Ord_Un] 1));
+val Un_upper1_le = result();
+
+goal Ord.thy "!!i j. [| Ord(i); Ord(j) |] ==> j le i Un j";
+by (rtac (Un_upper2 RS subset_imp_le) 1);
+by (REPEAT (ares_tac [Ord_Un] 1));
+val Un_upper2_le = result();
 
 (*Replacing k by succ(k') yields the similar rule for le!*)
 goal Ord.thy "!!i j k. [| i<k;  j<k |] ==> i Un j < k";
