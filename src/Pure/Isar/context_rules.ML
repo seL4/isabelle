@@ -11,17 +11,17 @@ signature CONTEXT_RULES =
 sig
   type netpair
   type T
-  val netpair_bang: Proof.context -> netpair
-  val netpair: Proof.context -> netpair
+  val netpair_bang: ProofContext.context -> netpair
+  val netpair: ProofContext.context -> netpair
   val orderlist: ((int * int) * 'a) list -> 'a list
   val find_rules_netpair: bool -> thm list -> term -> netpair -> thm list
-  val find_rules: bool -> thm list -> term -> Proof.context -> thm list list
+  val find_rules: bool -> thm list -> term -> ProofContext.context -> thm list list
   val print_global_rules: theory -> unit
-  val print_local_rules: Proof.context -> unit
+  val print_local_rules: ProofContext.context -> unit
   val addSWrapper: ((int -> tactic) -> int -> tactic) -> theory -> theory
   val addWrapper: ((int -> tactic) -> int -> tactic) -> theory -> theory
-  val Swrap: Proof.context -> (int -> tactic) -> int -> tactic
-  val wrap: Proof.context -> (int -> tactic) -> int -> tactic
+  val Swrap: ProofContext.context -> (int -> tactic) -> int -> tactic
+  val wrap: ProofContext.context -> (int -> tactic) -> int -> tactic
   val intro_bang_global: int option -> theory attribute
   val elim_bang_global: int option -> theory attribute
   val dest_bang_global: int option -> theory attribute
@@ -32,24 +32,24 @@ sig
   val elim_query_global: int option -> theory attribute
   val dest_query_global: int option -> theory attribute
   val rule_del_global: theory attribute
-  val intro_bang_local: int option -> Proof.context attribute
-  val elim_bang_local: int option -> Proof.context attribute
-  val dest_bang_local: int option -> Proof.context attribute
-  val intro_local: int option -> Proof.context attribute
-  val elim_local: int option -> Proof.context attribute
-  val dest_local: int option -> Proof.context attribute
-  val intro_query_local: int option -> Proof.context attribute
-  val elim_query_local: int option -> Proof.context attribute
-  val dest_query_local: int option -> Proof.context attribute
-  val rule_del_local: Proof.context attribute
+  val intro_bang_local: int option -> ProofContext.context attribute
+  val elim_bang_local: int option -> ProofContext.context attribute
+  val dest_bang_local: int option -> ProofContext.context attribute
+  val intro_local: int option -> ProofContext.context attribute
+  val elim_local: int option -> ProofContext.context attribute
+  val dest_local: int option -> ProofContext.context attribute
+  val intro_query_local: int option -> ProofContext.context attribute
+  val elim_query_local: int option -> ProofContext.context attribute
+  val dest_query_local: int option -> ProofContext.context attribute
+  val rule_del_local: ProofContext.context attribute
   val addXIs_global: theory * thm list -> theory
   val addXEs_global: theory * thm list -> theory
   val addXDs_global: theory * thm list -> theory
   val delrules_global: theory * thm list -> theory
-  val addXIs_local: Proof.context * thm list -> Proof.context
-  val addXEs_local: Proof.context * thm list -> Proof.context
-  val addXDs_local: Proof.context * thm list -> Proof.context
-  val delrules_local: Proof.context * thm list -> Proof.context
+  val addXIs_local: ProofContext.context * thm list -> ProofContext.context
+  val addXEs_local: ProofContext.context * thm list -> ProofContext.context
+  val addXDs_local: ProofContext.context * thm list -> ProofContext.context
+  val delrules_local: ProofContext.context * thm list -> ProofContext.context
   val setup: (theory -> theory) list
 end;
 
@@ -264,37 +264,11 @@ val addXDs_local = modifier (dest_query_local None);
 val delrules_local = modifier rule_del_local;
 
 
-(* concrete syntax *)
-
-fun add_args a b c x = Attrib.syntax
-  (Scan.lift ((Args.bang >> K a || Args.query >> K c || Scan.succeed b) -- (Scan.option Args.nat))
-    >> (fn (f, n) => f n)) x;
-
-fun del_args att = Attrib.syntax (Scan.lift Args.del >> K att);
-
-
-val rule_atts =
- [("intro",
-   (add_args intro_bang_global intro_global intro_query_global,
-    add_args intro_bang_local intro_local intro_query_local),
-    "declaration of introduction rule"),
-  ("elim",
-   (add_args elim_bang_global elim_global elim_query_global,
-    add_args elim_bang_local elim_local elim_query_local),
-    "declaration of elimination rule"),
-  ("dest",
-   (add_args dest_bang_global dest_global dest_query_global,
-    add_args dest_bang_local dest_local dest_query_local),
-    "declaration of destruction rule"),
-  ("rule", (del_args rule_del_global, del_args rule_del_local),
-    "remove declaration of intro/elim/dest rule")];
-
-
 
 (** theory setup **)
 
 val setup =
- [GlobalRules.init, LocalRules.init, Attrib.add_attributes rule_atts];
+ [GlobalRules.init, LocalRules.init];
 
 
 end;
