@@ -42,7 +42,7 @@ constdefs
 
   o  :: ['b => 'c, 'a => 'b, 'a] => 'c   (infixl 55)
     "f o g == %x. f(g(x))"
-  
+
   inv :: ('a => 'b) => ('b => 'a)
     "inv(f::'a=>'b) == % y. @x. f(x)=y"
 
