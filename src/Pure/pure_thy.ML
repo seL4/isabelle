@@ -28,6 +28,8 @@ sig
   val thms_containing: theory -> string list -> (string * thm) list
   val store_thm: (bstring * thm) * theory attribute list -> theory -> theory * thm
   val smart_store_thms: (bstring * thm list) -> thm list
+  val forall_elim_var: int -> thm -> thm
+  val forall_elim_vars: int -> thm -> thm
   val add_thms: ((bstring * thm) * theory attribute list) list -> theory -> theory
   val add_thmss: ((bstring * thm list) * theory attribute list) list -> theory -> theory
   val have_thmss: bstring -> theory attribute list ->
@@ -266,10 +268,29 @@ fun smart_store_thms (name, []) = error ("Cannot store empty list of theorems: "
       in enter_thmx (Sign.deref sg_ref) name_multi (name, thms) end;
 
 
+(* forall_elim_vars (belongs to drule.ML) *)
+
+(*Replace outermost quantified variable by Var of given index.
+    Could clash with Vars already present.*)
+fun forall_elim_var i th =
+    let val {prop,sign,...} = rep_thm th
+    in case prop of
+          Const("all",_) $ Abs(a,T,_) =>
+              forall_elim (cterm_of sign (Var((a,i), T)))  th
+        | _ => raise THM("forall_elim_var", i, [th])
+    end;
+
+(*Repeat forall_elim_var until all outer quantifiers are removed*)
+fun forall_elim_vars i th =
+    forall_elim_vars i (forall_elim_var i th)
+        handle THM _ => th;
+
+
 (* store axioms as theorems *)
 
 local
-  fun get_axs thy named_axs = map (Thm.get_axiom thy o fst) named_axs;
+  fun get_axs thy named_axs =
+    map (forall_elim_vars 0 o Thm.get_axiom thy o fst) named_axs;
 
   fun add_single add ((name, ax), atts) thy =
     let
