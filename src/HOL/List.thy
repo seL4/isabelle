@@ -99,8 +99,8 @@ primrec map list
   "map f [] = []"
   "map f (x#xs) = f(x)#map f xs"
 primrec "op @" list
-  "[] @ ys = ys"
-  "(x#xs)@ys = x#(xs@ys)"
+append_Nil  "[]    @ys = ys"
+append_Cons "(x#xs)@ys = x#(xs@ys)"
 primrec rev list
   "rev([]) = []"
   "rev(x#xs) = rev(xs) @ [x]"

@@ -779,3 +779,60 @@ Goal "n ~= 0 ==> set(replicate n x) = {x}";
 by (fast_tac (claset() addSDs [not0_implies_Suc] addSIs [lemma]) 1);
 qed "set_replicate";
 Addsimps [set_replicate];
+
+
+(***
+Simplification procedure for all list equalities.
+Currently only tries to rearranges @ to see if
+- both lists end in a singleton list,
+- or both lists end in the same list.
+***)
+local
+
+val list_eq_pattern =
+  read_cterm (sign_of List.thy) ("(xs::'a list) = ys",HOLogic.boolT);
+
+fun last (cons as Const("List.op #",_) $ _ $ xs) =
+      (case xs of Const("List.[]",_) => cons | _ => last xs)
+  | last (Const("List.op @",_) $ _ $ ys) = last ys
+  | last t = t;
+
+fun list1 (Const("List.op #",_) $ _ $ Const("List.[]",_)) = true
+  | list1 _ = false;
+
+fun butlast ((cons as Const("List.op #",_) $ x) $ xs) =
+      (case xs of Const("List.[]",_) => xs | _ => cons $ butlast xs)
+  | butlast ((app as Const("List.op @",_) $ xs) $ ys) = app $ butlast ys
+  | butlast xs = Const("List.[]",fastype_of xs);
+
+val rearr_tac =
+  simp_tac (HOL_basic_ss addsimps [append_assoc,append_Nil,append_Cons]);
+
+fun list_eq sg _ (F as (eq as Const(_,eqT)) $ lhs $ rhs) =
+  let
+    val lastl = last lhs and lastr = last rhs
+    fun rearr conv =
+      let val lhs1 = butlast lhs and rhs1 = butlast rhs
+          val Type(_,listT::_) = eqT
+          val appT = [listT,listT] ---> listT
+          val app = Const("List.op @",appT)
+          val F2 = eq $ (app$lhs1$lastl) $ (app$rhs1$lastr)
+          val ct = cterm_of sg (HOLogic.mk_Trueprop(HOLogic.mk_eq(F,F2)))
+          val thm = prove_goalw_cterm [] ct (K [rearr_tac 1])
+            handle ERROR =>
+            error("The error(s) above occurred while trying to prove " ^
+                  string_of_cterm ct)
+      in Some((conv RS (thm RS trans)) RS eq_reflection) end
+
+  in if list1 lastl andalso list1 lastr
+     then rearr append1_eq_conv
+     else
+     if lastl aconv lastr
+     then rearr append_same_eq
+     else None
+  end;
+in
+val list_eq_simproc = mk_simproc "list_eq" [list_eq_pattern] list_eq;
+end;
+
+Addsimprocs [list_eq_simproc];
