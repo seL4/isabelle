@@ -836,7 +836,7 @@ val setup =
  [InductiveData.init,
   Method.add_methods [("ind_cases", mk_cases_meth oo mk_cases_args,
     "dynamic case analysis on sets")],
-  Attrib.add_attributes [("mono", mono_attr, "monotonicity rule")]];
+  Attrib.add_attributes [("mono", mono_attr, "declaration of monotonicity rule")]];
 
 
 (* outer syntax *)

@@ -305,9 +305,9 @@ val defer_recdef_i = gen_defer_recdef Tfl.defer_i IsarThy.apply_theorems_i;
 val setup =
  [GlobalRecdefData.init, LocalRecdefData.init,
   Attrib.add_attributes
-   [("recdef_simp", simp_attr, "declare recdef simp rule"),
-    ("recdef_cong", cong_attr, "declare recdef cong rule"),
-    ("recdef_wf", wf_attr, "declare recdef wf rule")]];
+   [("recdef_simp", simp_attr, "declaration of recdef simp rule"),
+    ("recdef_cong", cong_attr, "declaration of recdef cong rule"),
+    ("recdef_wf", wf_attr, "declaration of recdef wf rule")]];
 
 
 (* outer syntax *)

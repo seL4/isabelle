@@ -276,6 +276,6 @@ val hypsubst_setup =
   [("hypsubst", hyp_subst_meth, "substitution using an assumption (improper)"),
    ("subst", subst_meth, "substitution")],
   Attrib.add_attributes
-  [("symmetric", (gen_symmetric, gen_symmetric), "apply symmetry of == or =")]];
+  [("symmetric", (gen_symmetric, gen_symmetric), "resolution with symmetry of == or =")]];
 
 end;

@@ -308,7 +308,7 @@ fun auto_meth None = clasimp_meth (CHANGED o auto_tac)
 
 val setup =
  [Attrib.add_attributes
-  [("iff", iff_attr, "declare simplifier / classical rules")],
+  [("iff", iff_attr, "declaration of Simplifier / Classical rules")],
   Method.add_methods
    [("fastsimp", clasimp_method' fast_simp_tac, "combined fast and simp"),
     ("slowsimp", clasimp_method' slow_simp_tac, "combined slow and simp"),

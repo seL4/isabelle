@@ -453,8 +453,8 @@ end;
 val setup =
   [GlobalInduct.init, LocalInduct.init,
    Attrib.add_attributes
-    [(casesN, cases_attr, "cases rule for type or set"),
-     (inductN, induct_attr, "induction rule for type or set")],
+    [(casesN, cases_attr, "declaration of cases rule for type or set"),
+     (inductN, induct_attr, "declaration of induction rule for type or set")],
    Method.add_methods
     [("cases", cases_meth oo cases_args, "case analysis on types or sets"),
      ("induct", induct_meth oo induct_args, "induction on types or sets")],

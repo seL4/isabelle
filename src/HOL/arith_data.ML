@@ -426,4 +426,4 @@ val arith_setup =
     "decide linear arithmethic")],
   Attrib.add_attributes [("arith_split",
     (Attrib.no_args arith_split_add, Attrib.no_args Attrib.undef_local_attribute),
-    "declare split rules for arithmetic procedure")]];
+    "declaration of split rules for arithmetic procedure")]];
