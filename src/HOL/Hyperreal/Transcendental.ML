@@ -2157,7 +2157,7 @@ by (res_inst_tac [("x","(pi/2) - e")] exI 1);
 by (Asm_simp_tac 1);
 by (dres_inst_tac [("x","(pi/2) - e")] spec 1);
 by (auto_tac (claset(),simpset() addsimps [abs_eqI2,tan_def]));
-by (rtac (real_inverse_less_iff RS iffD1) 1);
+by (rtac (inverse_less_iff_less RS iffD1) 1);
 by (auto_tac (claset(),simpset() addsimps [real_divide_def]));
 by (rtac (real_mult_order) 1);
 by (subgoal_tac "0 < sin e" 3);

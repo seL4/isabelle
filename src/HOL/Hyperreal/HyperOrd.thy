@@ -415,9 +415,6 @@ ML
 val hrabs_def = thm "hrabs_def";
 val hypreal_hrabs = thm "hypreal_hrabs";
 
-val hypreal_add_cancel_21 = thm"hypreal_add_cancel_21";
-val hypreal_add_cancel_end = thm"hypreal_add_cancel_end";
-val hypreal_minus_diff_eq = thm"hypreal_minus_diff_eq";
 val hypreal_less_swap_iff = thm"hypreal_less_swap_iff";
 val hypreal_gt_zero_iff = thm"hypreal_gt_zero_iff";
 val hypreal_add_less_mono1 = thm"hypreal_add_less_mono1";

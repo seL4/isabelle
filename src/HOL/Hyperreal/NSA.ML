@@ -1551,8 +1551,10 @@ by (dtac (SReal_hypreal_of_real RS SReal_Infinitesimal_zero) 4);
 by Auto_tac;
 qed "hypreal_of_real_less_Infinitesimal_le_zero";
 
-(*used once, in NSDERIV_inverse*)
+(*used once, in Lim/NSDERIV_inverse*)
 Goal "[| h: Infinitesimal; x ~= 0 |] ==> hypreal_of_real x + h ~= 0";
+by Auto_tac;
+by (subgoal_tac "h = - hypreal_of_real x" 1);
 by Auto_tac;
 qed "Infinitesimal_add_not_zero";
 
