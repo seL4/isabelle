@@ -13,7 +13,10 @@ include ../Makefile.in
 
 NAME = axclass
 
-FILES = axclass.tex body.tex ../iman.sty ../extra.sty ../pdfsetup.sty
+FILES = axclass.tex body.tex ../iman.sty ../extra.sty ../isar.sty \
+  ../pdfsetup.sty generated/Group.tex generated/NatClass.tex \
+  generated/Product.tex generated/Semigroup.tex generated/Semigroups.tex \
+  generated/session.tex
 
 dvi: $(NAME).dvi
 

@@ -1,15 +1,3 @@
-(*  Title:      FOL/ex/NatClass.thy
-    ID:         $Id$
-    Author:     Markus Wenzel, TU Muenchen
-
-This is an abstract version of Nat.thy. Instead of axiomatizing a
-single type "nat" we define the class of all these types (up to
-isomorphism).
-
-Note: The "rec" operator had to be made 'monomorphic', because class
-axioms may not contain more than one type variable.
-*)
-
 theory NatClass = FOL:;
 
 consts
