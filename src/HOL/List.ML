@@ -134,7 +134,8 @@ store_thm("nth_Suc",nth_Suc);
 
 (** Additional mapping lemmas **)
 
-goal List.thy "map (%x.x) xs = xs";
+goal List.thy "map (%x.x) = (%xs.xs)";
+by (rtac ext 1);
 by (list.induct_tac "xs" 1);
 by (ALLGOALS (asm_simp_tac list_ss));
 qed "map_ident";
