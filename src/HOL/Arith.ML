@@ -516,13 +516,15 @@ by (induct_tac "k" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [add_le_mono])));
 qed "mult_le_mono1";
 
-(*<=monotonicity, BOTH arguments*)
+Goal "i <= (j::nat) ==> k*i <= k*j";
+by (dtac mult_le_mono1 1);
+by (asm_simp_tac (simpset() addsimps [mult_commute]) 1);
+qed "mult_le_mono2";
+
+(* <= monotonicity, BOTH arguments*)
 Goal "[| i <= (j::nat); k <= l |] ==> i*k <= j*l";
 by (etac (mult_le_mono1 RS le_trans) 1);
-by (rtac le_trans 1);
-by (stac mult_commute 2);
-by (etac mult_le_mono1 2);
-by (simp_tac (simpset() addsimps [mult_commute]) 1);
+by (etac mult_le_mono2 1);
 qed "mult_le_mono";
 
 (*strict, in 1st argument; proof is by induction on k>0*)
