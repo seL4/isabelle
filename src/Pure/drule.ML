@@ -374,7 +374,7 @@ fun standard' th =
 val standard = close_derivation o standard';
 
 fun local_standard th =
-  th |> strip_shyps_warning |> zero_var_indexes
+  th |> strip_shyps |> zero_var_indexes
   |> Thm.compress |> close_derivation;
 
 
