@@ -223,19 +223,17 @@ by (fold_tac [real_le_def]);
 by (dtac lemma_skolemize_LIM2 1);
 by Safe_tac;
 by (dres_inst_tac [("x","Abs_hypreal(hyprel``{X})")] spec 1);
-by (asm_full_simp_tac
-    (simpset() addsimps [starfun, hypreal_minus, 
-                         hypreal_of_real_def,hypreal_add]) 1);
-by Safe_tac;
+by (auto_tac
+    (claset(),
+     simpset() addsimps [starfun, hypreal_minus, 
+                         hypreal_of_real_def,hypreal_add]));
 by (dtac (lemma_simp RS real_seq_to_hypreal_Infinitesimal) 1);
 by (asm_full_simp_tac
     (simpset() addsimps 
        [Infinitesimal_FreeUltrafilterNat_iff,hypreal_of_real_def,
         hypreal_minus, hypreal_add]) 1);
 by (Blast_tac 1); 
-by (rotate_tac 2 1);
-by (dres_inst_tac [("x","r")] spec 1);
-by (Clarify_tac 1);
+by (dtac spec 1 THEN dtac mp 1 THEN assume_tac 1);
 by (dtac FreeUltrafilterNat_all 1);
 by (Ultra_tac 1);
 qed "NSLIM_LIM";

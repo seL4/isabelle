@@ -785,12 +785,13 @@ by (auto_tac (claset(),simpset() addsimps [hcomplex_minus,hcomplex_add,
     Infinitesimal_FreeUltrafilterNat_iff2]));
 by (dres_inst_tac [("x","m")] spec 1);
 by (Ultra_tac 1);
+by (rename_tac "Z x" 1);
 by (res_inst_tac [("z","X x")] eq_Abs_complex 1);
 by (res_inst_tac [("z","Y x")] eq_Abs_complex 1);
 by (auto_tac (claset(),simpset() addsimps [complex_minus,complex_add,
     complex_mod] delsimps [realpow_Suc]));
 by (rtac order_le_less_trans 1 THEN assume_tac 2);
-by (dres_inst_tac [("t","Ya x")] sym 1);
+by (dres_inst_tac [("t","Z x")] sym 1);
 by (auto_tac (claset(),simpset() addsimps [abs_eqI1] delsimps [realpow_Suc]));
 qed "hcomplex_capproxD1";
 
@@ -805,12 +806,13 @@ by (auto_tac (claset(),simpset() addsimps [hcomplex_minus,hcomplex_add,
     Infinitesimal_FreeUltrafilterNat_iff2]));
 by (dres_inst_tac [("x","m")] spec 1);
 by (Ultra_tac 1);
+by (rename_tac "Z x" 1);
 by (res_inst_tac [("z","X x")] eq_Abs_complex 1);
 by (res_inst_tac [("z","Y x")] eq_Abs_complex 1);
 by (auto_tac (claset(),simpset() addsimps [complex_minus,complex_add,
     complex_mod] delsimps [realpow_Suc]));
 by (rtac order_le_less_trans 1 THEN assume_tac 2);
-by (dres_inst_tac [("t","Ya x")] sym 1);
+by (dres_inst_tac [("t","Z x")] sym 1);
 by (auto_tac (claset(),simpset() addsimps [abs_eqI1] delsimps [realpow_Suc]));
 qed "hcomplex_capproxD2";
 
@@ -894,13 +896,14 @@ Goal "[| Abs_hypreal(hyprel `` {%n. Re(X n)}) : HFinite; \
 \     |] ==> Abs_hcomplex(hcomplexrel ``{%n. X n}) : CFinite";
 by (auto_tac (claset(),simpset() addsimps [CFinite_hcmod_iff,
     hcmod,HFinite_FreeUltrafilterNat_iff]));
+by (rename_tac "Y Z u v" 1);
 by (rtac bexI 1 THEN rtac lemma_hyprel_refl 2);
-by (res_inst_tac [("x","2*(u + ua)")] exI 1);
+by (res_inst_tac [("x","2*(u + v)")] exI 1);
 by (Ultra_tac 1);
 by (dtac sym 1 THEN res_inst_tac [("z","X x")] eq_Abs_complex 1);
 by (auto_tac (claset(),simpset() addsimps [complex_mod,two_eq_Suc_Suc] delsimps [realpow_Suc]));
 by (subgoal_tac "0 < u" 1 THEN arith_tac 2);
-by (subgoal_tac "0 < ua" 1 THEN arith_tac 2);
+by (subgoal_tac "0 < v" 1 THEN arith_tac 2);
 by (rtac (realpow_two_abs RS subst) 1);
 by (res_inst_tac [("x1","Y x")] (realpow_two_abs RS subst) 1);
 by (simp_tac (simpset() addsimps [two_eq_Suc_Suc RS sym]) 1);

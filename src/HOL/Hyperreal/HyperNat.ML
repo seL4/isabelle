@@ -48,9 +48,9 @@ Goalw [hypnatrel_def] "(x,x): hypnatrel";
 by Auto_tac;
 qed "hypnatrel_refl";
 
-Goalw [hypnatrel_def] "(x,y): hypnatrel --> (y,x):hypnatrel";
-by (auto_tac (claset() addIs [lemma_perm RS subst], simpset()));
-qed_spec_mp "hypnatrel_sym";
+Goal "(x,y): hypnatrel ==> (y,x):hypnatrel";
+by (auto_tac (claset(), simpset() addsimps [hypnatrel_def, eq_commute]));
+qed "hypnatrel_sym";
 
 Goalw [hypnatrel_def]
      "(x,y): hypnatrel --> (y,z):hypnatrel --> (x,z):hypnatrel";
@@ -950,7 +950,7 @@ qed "inv_hypnat_of_nat_image";
 
 Goalw [SHNat_def] 
      "[| EX x. x: P; P <= Nats |] ==> EX Q. P = hypnat_of_nat ` Q";
-by (Best_tac 1); 
+by (Blast_tac 1);
 qed "SHNat_hypnat_of_nat_image";
 
 Goalw [SHNat_def] 
@@ -1215,6 +1215,7 @@ qed "HNat_mult";
     Embedding of the hypernaturals into the hyperreal
  --------------------------------------------------------------*)
 
+(*WARNING: FRAGILE!*)
 Goal "(Ya : hyprel ``{%n. f(n)}) = \
 \     ({n. f n = Ya n} : FreeUltrafilterNat)";
 by Auto_tac;

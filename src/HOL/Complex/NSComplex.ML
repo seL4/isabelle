@@ -36,9 +36,9 @@ Goalw [hcomplexrel_def] "(x,x): hcomplexrel";
 by (Auto_tac);
 qed "hcomplexrel_refl";
 
-Goalw [hcomplexrel_def] "(x,y): hcomplexrel --> (y,x):hcomplexrel";
-by (auto_tac (claset() addIs [lemma_perm RS subst],simpset()));
-qed_spec_mp "hcomplexrel_sym";
+Goalw [hcomplexrel_def] "(x,y): hcomplexrel ==> (y,x):hcomplexrel";
+by (auto_tac (claset(), simpset() addsimps [eq_commute]));
+qed "hcomplexrel_sym";
 
 Goalw [hcomplexrel_def]
       "(x,y): hcomplexrel --> (y,z):hcomplexrel --> (x,z):hcomplexrel";
@@ -659,7 +659,8 @@ Goalw [hcomplex_of_hypreal_def]
   "hcomplex_of_hypreal (Abs_hypreal(hyprel `` {%n. X n})) = \
 \     Abs_hcomplex(hcomplexrel `` {%n. complex_of_real (X n)})";
 by (res_inst_tac [("f","Abs_hcomplex")] arg_cong 1);
-by (Auto_tac THEN Ultra_tac 1);
+by Auto_tac;
+by (Ultra_tac 1);
 qed "hcomplex_of_hypreal";
 
 Goal "inj hcomplex_of_hypreal";
@@ -711,8 +712,8 @@ qed "hcomplex_of_hypreal_mult";
 
 Goalw [hcomplex_divide_def]
   "hcomplex_of_hypreal x / hcomplex_of_hypreal y = hcomplex_of_hypreal(x/y)";
-by (hypreal_div_undefined_case_tac "y=0" 1);
-by (simp_tac (simpset() addsimps [rename_numerals HYPREAL_DIVISION_BY_ZERO,
+by (case_tac "y=0" 1);
+by (asm_simp_tac (simpset() addsimps [HYPREAL_DIVISION_BY_ZERO,HYPREAL_INVERSE_ZERO,
     HCOMPLEX_INVERSE_ZERO]) 1);
 by (auto_tac (claset(),simpset() addsimps [hcomplex_of_hypreal_mult,
     hcomplex_of_hypreal_inverse RS sym]));
@@ -1592,7 +1593,8 @@ Goalw [hcis_def]
   "hcis (Abs_hypreal(hyprel `` {%n. X n})) = \
 \     Abs_hcomplex(hcomplexrel `` {%n. cis (X n)})";
 by (res_inst_tac [("f","Abs_hcomplex")] arg_cong 1);
-by (Auto_tac THEN Ultra_tac 1);
+by Auto_tac;
+by (Ultra_tac 1);
 qed "hcis";
 
 Goal 

@@ -18,15 +18,6 @@ by (Simp_tac 1);
 qed "hrabs_number_of";
 Addsimps [hrabs_number_of];
 
-Goalw [hrabs_def]
-     "abs (Abs_hypreal (hyprel `` {X})) = \
-\     Abs_hypreal(hyprel `` {%n. abs (X n)})";
-by (auto_tac (claset(),
-              simpset_of HyperDef.thy 
-                  addsimps [hypreal_zero_def, hypreal_le,hypreal_minus]));
-by (ALLGOALS(Ultra_tac THEN' arith_tac ));
-qed "hypreal_hrabs";
-
 (*------------------------------------------------------------
    Properties of the absolute value function over the reals
    (adapted version of previously proved theorems about abs)

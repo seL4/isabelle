@@ -7,21 +7,16 @@
 
 theory HyperOrd = HyperDef:
 
+defs (overloaded)
+  hrabs_def:  "abs (r::hypreal) == (if 0 \<le> r then r else -r)"
 
-method_setup fuf = {*
-    Method.ctxt_args (fn ctxt =>
-        Method.METHOD (fn facts =>
-            fuf_tac (Classical.get_local_claset ctxt,
-                     Simplifier.get_local_simpset ctxt) 1)) *}
-    "free ultrafilter tactic"
 
-method_setup ultra = {*
-    Method.ctxt_args (fn ctxt =>
-        Method.METHOD (fn facts =>
-            ultra_tac (Classical.get_local_claset ctxt,
-                       Simplifier.get_local_simpset ctxt) 1)) *}
-    "ultrafilter tactic"
-
+lemma hypreal_hrabs:
+     "abs (Abs_hypreal (hyprel `` {X})) = 
+      Abs_hypreal(hyprel `` {%n. abs (X n)})"
+apply (auto simp add: hrabs_def hypreal_zero_def hypreal_le hypreal_minus)
+apply (ultra, arith)+
+done
 
 instance hypreal :: order
   by (intro_classes,
@@ -344,8 +339,7 @@ declare hypreal_self_le_add_pos2 [simp]
                Existence of infinite hyperreal number
  ----------------------------------------------------------------------------*)
 
-lemma Rep_hypreal_omega: "Rep_hypreal(omega) : hypreal"
-
+lemma Rep_hypreal_omega: "Rep_hypreal(omega) \<in> hypreal"
 apply (unfold omega_def)
 apply (rule Rep_hypreal)
 done
@@ -355,19 +349,19 @@ done
 (* a few lemmas first *)
 
 lemma lemma_omega_empty_singleton_disj: "{n::nat. x = real n} = {} |  
-      (EX y. {n::nat. x = real n} = {y})"
+      (\<exists>y. {n::nat. x = real n} = {y})"
 by (force dest: inj_real_of_nat [THEN injD])
 
 lemma lemma_finite_omega_set: "finite {n::nat. x = real n}"
 by (cut_tac x = x in lemma_omega_empty_singleton_disj, auto)
 
 lemma not_ex_hypreal_of_real_eq_omega: 
-      "~ (EX x. hypreal_of_real x = omega)"
+      "~ (\<exists>x. hypreal_of_real x = omega)"
 apply (unfold omega_def hypreal_of_real_def)
 apply (auto simp add: real_of_nat_Suc diff_eq_eq [symmetric] lemma_finite_omega_set [THEN FreeUltrafilterNat_finite])
 done
 
-lemma hypreal_of_real_not_eq_omega: "hypreal_of_real x ~= omega"
+lemma hypreal_of_real_not_eq_omega: "hypreal_of_real x \<noteq> omega"
 by (cut_tac not_ex_hypreal_of_real_eq_omega, auto)
 
 (* existence of infinitesimal number also not *)
@@ -377,7 +371,7 @@ lemma real_of_nat_inverse_inj: "inverse (real (x::nat)) = inverse (real y) ==> x
 by (rule inj_real_of_nat [THEN injD], simp)
 
 lemma lemma_epsilon_empty_singleton_disj: "{n::nat. x = inverse(real(Suc n))} = {} |  
-      (EX y. {n::nat. x = inverse(real(Suc n))} = {y})"
+      (\<exists>y. {n::nat. x = inverse(real(Suc n))} = {y})"
 apply (auto simp add: inj_real_of_nat [THEN inj_eq])
 done
 
@@ -385,15 +379,15 @@ lemma lemma_finite_epsilon_set: "finite {n. x = inverse(real(Suc n))}"
 by (cut_tac x = x in lemma_epsilon_empty_singleton_disj, auto)
 
 lemma not_ex_hypreal_of_real_eq_epsilon: 
-      "~ (EX x. hypreal_of_real x = epsilon)"
+      "~ (\<exists>x. hypreal_of_real x = epsilon)"
 apply (unfold epsilon_def hypreal_of_real_def)
 apply (auto simp add: lemma_finite_epsilon_set [THEN FreeUltrafilterNat_finite])
 done
 
-lemma hypreal_of_real_not_eq_epsilon: "hypreal_of_real x ~= epsilon"
+lemma hypreal_of_real_not_eq_epsilon: "hypreal_of_real x \<noteq> epsilon"
 by (cut_tac not_ex_hypreal_of_real_eq_epsilon, auto)
 
-lemma hypreal_epsilon_not_zero: "epsilon ~= 0"
+lemma hypreal_epsilon_not_zero: "epsilon \<noteq> 0"
 by (unfold epsilon_def hypreal_zero_def, auto)
 
 lemma hypreal_epsilon_inverse_omega: "epsilon = inverse(omega)"
@@ -470,9 +464,20 @@ by (auto dest: order_less_not_sym simp add: hypreal_0_less_mult_iff linorder_not
 lemma hypreal_mult_less_zero2: "[| (0::hypreal) < x; y < 0 |] ==> y*x < 0"
 by (auto simp add: hypreal_mult_commute hypreal_mult_less_zero)
 
+(*TO BE DELETED*)
+ML
+{*
+val hypreal_add_ac = thms"hypreal_add_ac";
+val hypreal_mult_ac = thms"hypreal_mult_ac";
+
+val hypreal_less_irrefl = thm"hypreal_less_irrefl";
+*}
 
 ML
 {*
+val hrabs_def = thm "hrabs_def";
+val hypreal_hrabs = thm "hypreal_hrabs";
+
 val hypreal_add_cancel_21 = thm"hypreal_add_cancel_21";
 val hypreal_add_cancel_end = thm"hypreal_add_cancel_end";
 val hypreal_minus_diff_eq = thm"hypreal_minus_diff_eq";

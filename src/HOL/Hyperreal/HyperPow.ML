@@ -252,7 +252,7 @@ qed_spec_mp "hrealpow_HFinite";
 Goalw [congruent_def]
      "congruent hyprel \
 \    (%X Y. hyprel``{%n. ((X::nat=>real) n ^ (Y::nat=>nat) n)})";
-by (safe_tac (claset() addSIs [ext]));
+by (auto_tac (claset() addSIs [ext], simpset()));
 by (ALLGOALS(Fuf_tac));
 qed "hyperpow_congruent";
 

@@ -6,9 +6,6 @@
 
 HRealAbs = HyperArith + RealArith + 
 
-defs
-    hrabs_def "abs r  == if (0::hypreal) <=r then r else -r" 
-
 constdefs
   
   hypreal_of_nat :: nat => hypreal                   

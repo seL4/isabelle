@@ -122,7 +122,8 @@ Goalw [hlog_def]
      "hlog (Abs_hypreal(hyprel `` {X})) (Abs_hypreal(hyprel `` {Y})) = \
 \     Abs_hypreal(hyprel `` {%n. log (X n) (Y n)})";
 by (res_inst_tac [("f","Abs_hypreal")] arg_cong 1);
-by (Auto_tac THEN Ultra_tac 1);
+by Auto_tac;
+by (Ultra_tac 1);
 qed "hlog";
 
 Goal "( *f* ln) x = hlog (( *f* exp) 1) x";

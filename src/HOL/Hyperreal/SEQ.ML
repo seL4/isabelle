@@ -127,6 +127,7 @@ by (auto_tac (claset(),simpset() addsimps [starfunNat,
     mem_infmal_iff RS sym,hypreal_of_real_def,
     hypreal_minus,hypreal_add,
     Infinitesimal_FreeUltrafilterNat_iff]));
+by (rename_tac "Y" 1);
 by (dres_inst_tac [("x","r")] spec 1 THEN Step_tac 1);
 by (dtac FreeUltrafilterNat_Int 1 THEN assume_tac 1);
 by (dtac (lemmaLIM RSN (2,FreeUltrafilterNat_subset)) 1);
@@ -814,6 +815,7 @@ by (dtac (approx_minus_iff RS iffD1) 1);
 by (dtac (mem_infmal_iff RS iffD2) 1);
 by (auto_tac (claset(), simpset() addsimps [hypreal_minus,
     hypreal_add,Infinitesimal_FreeUltrafilterNat_iff]));
+by (rename_tac "Y" 1);
 by (dres_inst_tac [("x","e")] spec 1 THEN Auto_tac);
 by (dtac FreeUltrafilterNat_Int 1 THEN assume_tac 1);
 by (dtac (CLAIM "{n. X (f n) + - X (fa n) = Y n} Int \

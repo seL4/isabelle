@@ -193,7 +193,7 @@ qed "Rep_hypreal_FreeUltrafilterNat";
  -----------------------------------------------------------------------*) 
 
 Goalw [congruent_def] "congruent hyprel (%X. hyprel``{%n. f (X n)})";
-by Safe_tac;
+by Auto_tac;
 by (ALLGOALS(Fuf_tac));
 qed "starfun_congruent";
 
@@ -407,7 +407,8 @@ Goalw [starset_def]
       "( *f* f) x : *s* A ==> x : *s* {x. f x : A}";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),simpset() addsimps [starfun]));
-by (dres_inst_tac [("x","%n. f (Xa n)")] bspec 1);
+by (rename_tac "X" 1);
+by (dres_inst_tac [("x","%n. f (X n)")] bspec 1);
 by (Auto_tac THEN Fuf_tac 1);
 qed "starfun_mem_starset";
 

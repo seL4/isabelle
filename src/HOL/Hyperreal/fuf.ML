@@ -9,6 +9,11 @@ Simple tactics to help proofs involving our free ultrafilter
 finite intersection property.
 *)
 
+val FreeUltrafilterNat_empty = thm "FreeUltrafilterNat_empty";
+val FreeUltrafilterNat_subset = thm "FreeUltrafilterNat_subset";
+val FreeUltrafilterNat_Compl_mem = thm "FreeUltrafilterNat_Compl_mem";
+val FreeUltrafilterNat_Int = thm "FreeUltrafilterNat_Int";
+
 local
 
 exception FUFempty;

@@ -1967,8 +1967,6 @@ by Auto_tac;
 by (dres_inst_tac [("x","u")] spec 1 THEN
     REPEAT(dtac FreeUltrafilterNat_Compl_mem 1));
 by (dtac FreeUltrafilterNat_Int 1 THEN assume_tac 1);
-
-
 by (asm_full_simp_tac (simpset() addsimps [lemma_Compl_eq,
     lemma_Compl_eq2,lemma_Int_eq1]) 1);
 by (auto_tac (claset() addDs [FreeUltrafilterNat_const_Finite],
