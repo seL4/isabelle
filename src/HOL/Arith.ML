@@ -179,16 +179,6 @@ by (simp_tac (simpset() addsimps [add_commute, not_add_less1]) 1);
 qed "not_add_less2";
 AddIffs [not_add_less1, not_add_less2];
 
-Goal "!!k::nat. m <= n ==> m <= n+k";
-by (etac le_trans 1);
-by (rtac le_add1 1);
-qed "le_imp_add_le";
-
-Goal "!!k::nat. m < n ==> m < n+k";
-by (etac less_le_trans 1);
-by (rtac le_add1 1);
-qed "less_imp_add_less";
-
 Goal "m+k<=n --> m<=(n::nat)";
 by (induct_tac "k" 1);
 by (ALLGOALS Asm_simp_tac);
