@@ -4,11 +4,6 @@
     Copyright   1995 TU Muenchen
 
 Parallel reduction and a complete developments function "cd".
-Follows the first two pages of
-
-@article{Takahashi-IC-95,author="Masako Takahashi",
-title="Parallel Reductions in $\lambda$-Calculus",
-journal=IC,year=1995,volume=118,pages="120--127"}
 *)
 
 ParRed = Lambda + Confluence +
