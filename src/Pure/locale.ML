@@ -620,11 +620,11 @@ in
         Pretty.blk (0, [Pretty.str (begin_goal ^ " " ^ string_of_int n ^ ". "), prt_term A]);
       fun pretty_subgoals As = map pretty_subgoal (1 upto length As ~~ As);
 
-      val pretty_ffpairs = pretty_list "Flex-flex pairs:" (prt_term o Logic.mk_flexpair);
+      val pretty_ffpairs = pretty_list "flex-flex pairs:" (prt_term o Logic.mk_flexpair);
 
-      val pretty_consts = pretty_list "Constants:" prt_consts o consts_of;
-      val pretty_vars = pretty_list "Variables:" prt_vars o vars_of;
-      val pretty_varsT = pretty_list "Type variables:" prt_varsT o varsT_of;
+      val pretty_consts = pretty_list "constants:" prt_consts o consts_of;
+      val pretty_vars = pretty_list "variables:" prt_vars o vars_of;
+      val pretty_varsT = pretty_list "type variables:" prt_varsT o varsT_of;
 
 
       val {prop, ...} = rep_thm state;
