@@ -852,7 +852,7 @@ fun add_assm (ctxt, ((name, attrs), props)) =
     val (ctxt', [(_, thms)]) =
       ctxt
       |> auto_bind_facts name props
-      |> have_thmss [((name, attrs @ [Drule.tag_assumption]), ths)];
+      |> have_thmss [((name, attrs), ths)];
   in (ctxt', (cprops, (name, asms), (name, thms))) end;
 
 fun gen_assms prepp exp args ctxt =
