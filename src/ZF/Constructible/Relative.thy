@@ -64,6 +64,12 @@ constdefs
        number1(M,n1) & cartprod(M,n1,A,A0) & upair(M,n1,n1,s1) &
        cartprod(M,s1,B,B1) & union(M,A0,B1,Z)"
 
+  is_Inl :: "[i=>o,i,i] => o"
+    "is_Inl(M,a,z) == \<exists>zero[M]. empty(M,zero) & pair(M,zero,a,z)"
+
+  is_Inr :: "[i=>o,i,i] => o"
+    "is_Inr(M,a,z) == \<exists>n1[M]. number1(M,n1) & pair(M,n1,a,z)"
+
   is_converse :: "[i=>o,i,i] => o"
     "is_converse(M,r,z) == 
 	\<forall>x[M]. x \<in> z <-> 
@@ -899,6 +905,22 @@ lemma (in M_axioms) sum_abs [simp]:
      "[| M(A); M(B); M(Z) |] ==> is_sum(M,A,B,Z) <-> (Z = A+B)"
 by (simp add: is_sum_def sum_def singleton_0 nat_into_M)
 
+lemma (in M_triv_axioms) Inl_in_M_iff [iff]:
+     "M(Inl(a)) <-> M(a)"
+by (simp add: Inl_def) 
+
+lemma (in M_triv_axioms) Inl_abs [simp]:
+     "M(Z) ==> is_Inl(M,a,Z) <-> (Z = Inl(a))"
+by (simp add: is_Inl_def Inl_def)
+
+lemma (in M_triv_axioms) Inr_in_M_iff [iff]:
+     "M(Inr(a)) <-> M(a)"
+by (simp add: Inr_def) 
+
+lemma (in M_triv_axioms) Inr_abs [simp]:
+     "M(Z) ==> is_Inr(M,a,Z) <-> (Z = Inr(a))"
+by (simp add: is_Inr_def Inr_def)
+
 
 subsubsection {*converse of a relation*}
 
@@ -1155,6 +1177,186 @@ lemma (in M_axioms) finite_funspace_closed [intro,simp]:
      "[|n\<in>nat; M(B)|] ==> M(n->B)"
 apply (induct_tac n, simp)
 apply (simp add: funspace_succ nat_into_M) 
+done
+
+
+subsection{*Relativization and Absoluteness for List Operators*}
+
+constdefs
+
+  is_Nil :: "[i=>o, i] => o"
+     --{* because @{term "[] \<equiv> Inl(0)"}*}
+    "is_Nil(M,xs) == \<exists>zero[M]. empty(M,zero) & is_Inl(M,zero,xs)"
+
+  is_Cons :: "[i=>o,i,i,i] => o"
+     --{* because @{term "Cons(a, l) \<equiv> Inr(\<langle>a,l\<rangle>)"}*}
+    "is_Cons(M,a,l,Z) == \<exists>p[M]. pair(M,a,l,p) & is_Inr(M,p,Z)"
+
+
+lemma (in M_triv_axioms) Nil_in_M [intro,simp]: "M(Nil)"
+by (simp add: Nil_def)
+
+lemma (in M_triv_axioms) Nil_abs [simp]: "M(Z) ==> is_Nil(M,Z) <-> (Z = Nil)"
+by (simp add: is_Nil_def Nil_def)
+
+lemma (in M_triv_axioms) Cons_in_M_iff [iff]: "M(Cons(a,l)) <-> M(a) & M(l)"
+by (simp add: Cons_def) 
+
+lemma (in M_triv_axioms) Cons_abs [simp]:
+     "[|M(a); M(l); M(Z)|] ==> is_Cons(M,a,l,Z) <-> (Z = Cons(a,l))"
+by (simp add: is_Cons_def Cons_def)
+
+
+constdefs
+
+  quasilist :: "i => o"
+    "quasilist(xs) == xs=Nil | (\<exists>x l. xs = Cons(x,l))"
+
+  is_quasilist :: "[i=>o,i] => o"
+    "is_quasilist(M,z) == is_Nil(M,z) | (\<exists>x[M]. \<exists>l[M]. is_Cons(M,x,l,z))"
+
+  list_case' :: "[i, [i,i]=>i, i] => i"
+    --{*A version of @{term list_case} that's always defined.*}
+    "list_case'(a,b,xs) == 
+       if quasilist(xs) then list_case(a,b,xs) else 0"  
+
+  is_list_case :: "[i=>o, i, [i,i,i]=>o, i, i] => o"
+    --{*Returns 0 for non-lists*}
+    "is_list_case(M, a, is_b, xs, z) == 
+       (is_Nil(M,xs) --> z=a) &
+       (\<forall>x[M]. \<forall>l[M]. is_Cons(M,x,l,xs) --> is_b(x,l,z)) &
+       (is_quasilist(M,xs) | empty(M,z))"
+
+  hd' :: "i => i"
+    --{*A version of @{term hd} that's always defined.*}
+    "hd'(xs) == if quasilist(xs) then hd(xs) else 0"  
+
+  tl' :: "i => i"
+    --{*A version of @{term tl} that's always defined.*}
+    "tl'(xs) == if quasilist(xs) then tl(xs) else 0"  
+
+  is_hd :: "[i=>o,i,i] => o"
+     --{* @{term "hd([]) = 0"} no constraints if not a list.
+          Avoiding implication prevents the simplifier's looping.*}
+    "is_hd(M,xs,H) == 
+       (is_Nil(M,xs) --> empty(M,H)) &
+       (\<forall>x[M]. \<forall>l[M]. ~ is_Cons(M,x,l,xs) | H=x) &
+       (is_quasilist(M,xs) | empty(M,H))"
+
+  is_tl :: "[i=>o,i,i] => o"
+     --{* @{term "tl([]) = []"}; see comments about @{term is_hd}*}
+    "is_tl(M,xs,T) == 
+       (is_Nil(M,xs) --> T=xs) &
+       (\<forall>x[M]. \<forall>l[M]. ~ is_Cons(M,x,l,xs) | T=l) &
+       (is_quasilist(M,xs) | empty(M,T))"
+
+subsubsection{*@{term quasilist}: For Case-Splitting with @{term list_case'}*}
+
+lemma [iff]: "quasilist(Nil)"
+by (simp add: quasilist_def)
+
+lemma [iff]: "quasilist(Cons(x,l))"
+by (simp add: quasilist_def)
+
+lemma list_imp_quasilist: "l \<in> list(A) ==> quasilist(l)"
+by (erule list.cases, simp_all)
+
+subsubsection{*@{term list_case'}, the Modified Version of @{term list_case}*}
+
+lemma list_case'_Nil [simp]: "list_case'(a,b,Nil) = a"
+by (simp add: list_case'_def quasilist_def)
+
+lemma list_case'_Cons [simp]: "list_case'(a,b,Cons(x,l)) = b(x,l)"
+by (simp add: list_case'_def quasilist_def)
+
+lemma non_list_case: "~ quasilist(x) ==> list_case'(a,b,x) = 0" 
+by (simp add: quasilist_def list_case'_def) 
+
+lemma list_case'_eq_list_case [simp]:
+     "xs \<in> list(A) ==>list_case'(a,b,xs) = list_case(a,b,xs)"
+by (erule list.cases, simp_all)
+
+lemma (in M_axioms) list_case'_closed [intro,simp]:
+  "[|M(k); M(a); \<forall>x[M]. \<forall>y[M]. M(b(x,y))|] ==> M(list_case'(a,b,k))"
+apply (case_tac "quasilist(k)") 
+ apply (simp add: quasilist_def, force) 
+apply (simp add: non_list_case) 
+done
+
+lemma (in M_triv_axioms) quasilist_abs [simp]: 
+     "M(z) ==> is_quasilist(M,z) <-> quasilist(z)"
+by (auto simp add: is_quasilist_def quasilist_def)
+
+lemma (in M_triv_axioms) list_case_abs [simp]: 
+     "[| relativize2(M,is_b,b); M(k); M(z) |] 
+      ==> is_list_case(M,a,is_b,k,z) <-> z = list_case'(a,b,k)"
+apply (case_tac "quasilist(k)") 
+ prefer 2 
+ apply (simp add: is_list_case_def non_list_case) 
+ apply (force simp add: quasilist_def) 
+apply (simp add: quasilist_def is_list_case_def)
+apply (elim disjE exE) 
+ apply (simp_all add: relativize2_def) 
+done
+
+
+subsubsection{*The Modified Operators @{term hd'} and @{term tl'}*}
+
+lemma (in M_triv_axioms) is_hd_Nil: "is_hd(M,[],Z) <-> empty(M,Z)"
+by (simp add: is_hd_def )
+
+lemma (in M_triv_axioms) is_hd_Cons:
+     "[|M(a); M(l)|] ==> is_hd(M,Cons(a,l),Z) <-> Z = a"
+by (force simp add: is_hd_def ) 
+
+lemma (in M_triv_axioms) hd_abs [simp]:
+     "[|M(x); M(y)|] ==> is_hd(M,x,y) <-> y = hd'(x)"
+apply (simp add: hd'_def)
+apply (intro impI conjI)
+ prefer 2 apply (force simp add: is_hd_def) 
+apply (simp add: quasilist_def is_hd_def )
+apply (elim disjE exE, auto)
+done 
+
+lemma (in M_triv_axioms) is_tl_Nil: "is_tl(M,[],Z) <-> Z = []"
+by (simp add: is_tl_def )
+
+lemma (in M_triv_axioms) is_tl_Cons:
+     "[|M(a); M(l)|] ==> is_tl(M,Cons(a,l),Z) <-> Z = l"
+by (force simp add: is_tl_def ) 
+
+lemma (in M_triv_axioms) tl_abs [simp]:
+     "[|M(x); M(y)|] ==> is_tl(M,x,y) <-> y = tl'(x)"
+apply (simp add: tl'_def)
+apply (intro impI conjI)
+ prefer 2 apply (force simp add: is_tl_def) 
+apply (simp add: quasilist_def is_tl_def )
+apply (elim disjE exE, auto)
+done 
+
+lemma (in M_triv_axioms) relativize1_tl: "relativize1(M, is_tl(M), tl')"  
+by (simp add: relativize1_def)
+
+lemma hd'_Nil: "hd'([]) = 0"
+by (simp add: hd'_def)
+
+lemma hd'_Cons: "hd'(Cons(a,l)) = a"
+by (simp add: hd'_def)
+
+lemma tl'_Nil: "tl'([]) = []"
+by (simp add: tl'_def)
+
+lemma tl'_Cons: "tl'(Cons(a,l)) = l"
+by (simp add: tl'_def)
+
+lemma iterates_tl_Nil: "n \<in> nat ==> tl'^n ([]) = []"
+apply (induct_tac n) 
+apply (simp_all add: tl'_Nil) 
+done
+
+lemma (in M_axioms) tl'_closed: "M(x) ==> M(tl'(x))"
+apply (simp add: tl'_def)
+apply (force simp add: quasilist_def)
 done
 
 
