@@ -14,7 +14,7 @@ sig
   val goal: term -> (indexname * term option) list
   val facts: string -> term list -> (indexname * term option) list
   val thesisN: string
-  val atomic_thesis: term -> term * term
+  val is_judgment: term -> bool
   val add_judgment: bstring * string * mixfix -> theory -> theory
   val add_judgment_i: bstring * typ * mixfix -> theory -> theory
 end;
@@ -58,17 +58,17 @@ fun facts _ [] = []
       in [(Syntax.dddot_indexname, get_subject prop)] @ statement_binds (thisN, prop) end;
 
 
-(* atomic_thesis *)
 
-fun mk_free t = Free (thesisN, Term.fastype_of t);
+(** judgments **)
 
-fun atomic_thesis ((c as Const ("Trueprop", _)) $ t) = (t, c $ mk_free t)
-  | atomic_thesis t = (t, mk_free t);
+fun is_judgment (Const ("Trueprop", _) $ _) = true
+  | is_judgment _ = false;
 
 
-(** judgment **)
-
-fun gen_add_judgment add args = PureThy.local_path o add [args] o PureThy.global_path;
+fun gen_add_judgment add (name, T, syn) thy =
+  if name = "Trueprop" then
+    thy |> PureThy.global_path |> add [(name, T, syn)] |> PureThy.local_path
+  else error "Judgment name has to be \"Trueprop\"";
 
 val add_judgment = gen_add_judgment Theory.add_consts;
 val add_judgment_i = gen_add_judgment Theory.add_consts_i;
