@@ -142,6 +142,22 @@ qed_goal "split_weak_cong" Prod.thy
 qed_goal "split_eta" Prod.thy "(%(x,y). f(x,y)) = f"
   (K [rtac ext 1, split_all_tac 1, rtac split 1]);
 
+qed_goal "cond_split_eta" Prod.thy 
+	"!!f. (!!x y. f x y = g(x,y)) ==> (%(x,y). f x y) = g"
+  (K [asm_simp_tac (simpset() addsimps [split_eta]) 1]);
+(*Addsimps [cond_split_eta];  with this version of split_eta, the simplifier 
+			      can eta-contract arbitrarily tupled functions.
+  Unfortunately, this renders some existing proofs very inefficient.
+                 stac split_eta does not work in general either. *)
+val split_etas = split_eta::map (fn s => prove_goal Prod.thy s 
+  (K [simp_tac (simpset() addsimps [cond_split_eta]) 1]))
+["(%(a,b,c    ). f(a,b,c    )) = f","(%(a,b,c,d    ). f(a,b,c,d    )) = f",
+ "(%(a,b,c,d,e). f(a,b,c,d,e)) = f","(%(a,b,c,d,e,g). f(a,b,c,d,e,g)) = f"];
+Addsimps split_etas; (* pragmatic solution *)
+
+Goal "(%(x,y,z).f(x,y,z)) = t";
+by(simp_tac (simpset() addsimps [cond_split_eta]) 1);
+
 qed_goal "split_beta" Prod.thy "(%(x,y). P x y) z = P (fst z) (snd z)"
 	(K [stac surjective_pairing 1, stac split 1, rtac refl 1]);
 
