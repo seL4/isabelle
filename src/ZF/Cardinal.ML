@@ -754,7 +754,7 @@ by (Blast.depth_tac (!claset) 4 1);
 qed "nat_wf_on_converse_Memrel";
 
 goal Cardinal.thy "!!n. n:nat ==> well_ord(n,converse(Memrel(n)))";
-by (forward_tac [transfer thy Ord_nat RS Ord_in_Ord RS well_ord_Memre] 1);
+by (forward_tac [transfer thy Ord_nat RS Ord_in_Ord RS well_ord_Memrel] 1);
 by (rewtac well_ord_def);
 by (blast_tac (!claset addSIs [tot_ord_converse, 
 			       nat_wf_on_converse_Memrel]) 1);
