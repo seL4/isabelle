@@ -28,7 +28,8 @@ DISTPREFIX=$HOME/isadist
 MAIL=$HOME/bin/pmail
 
 # where the logs are
-ERRORLOG=$HOME/var/error.log
+ERRORDIR=$HOME/var
+ERRORLOG=$ERRORDIR/error.log
 MASTERLOG=$HOME/log/isatest.log
 
 # where the test-still-running files are
@@ -89,8 +90,9 @@ if [ -e $ERRORLOG ]; then
     echo "Have a nice day," >> $TMP
     echo "  isatest" >> $TMP
 
+    cd $ERRORDIR
     for R in $MAILTO; do
-        $MAIL "isabelle test failed" $R $TMP
+        $MAIL "isabelle test failed" $R $TMP *.log
     done
 
     rm $TMP

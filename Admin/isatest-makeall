@@ -14,7 +14,8 @@ HOME=/usr/stud/isatest
 # where the log files are
 LOGPREFIX=$HOME/log
 MASTERLOG=$LOGPREFIX/isatest.log
-ERRORLOG=$HOME/var/error.log
+ERRORDIR=$HOME/var
+ERRORLOG=$ERRORDIR/error.log
 
 # where to put test-is-running files
 RUNNING=$HOME/var/running
@@ -121,13 +122,13 @@ for SETTINGS in $@; do
         echo ------------------- test FAILED --- `date` --- $HOSTNAME >> $TESTLOG 2>&1
 
         # error log
-        echo "Test for platform ${SHORT} failed. Log file available at" >> $ERRORLOG
-        echo "$HOSTNAME:$TESTLOG" >> $ERRORLOG
+        echo "Test for platform ${SHORT} failed. Log file attached." >> $ERRORLOG
         echo "[...]" >> $ERRORLOG
-        tail -3 $L >> $ERRORLOG
+        tail -3 $TESTLOG >> $ERRORLOG
         echo >> $ERRORLOG
 
         FAIL="$FAIL$SHORT "
+        (cd $ERRORDIR; ln -s $TESTLOG)
     fi
 
     rm -f $RUNNING/$SHORT.running
