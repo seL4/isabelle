@@ -80,8 +80,8 @@ text {*
 
 lemma is_Inf_Meet [intro?]: "is_Inf A (\<Sqinter>A)"
 proof (unfold Meet_def)
-  from ex_Inf show "is_Inf A (SOME inf. is_Inf A inf)"
-    by (rule someI_ex)
+  from ex_Inf
+  show "is_Inf A (SOME inf. is_Inf A inf)" ..
 qed
 
 lemma Meet_greatest [intro?]: "(\<And>a. a \<in> A \<Longrightarrow> x \<sqsubseteq> a) \<Longrightarrow> x \<sqsubseteq> \<Sqinter>A"
@@ -93,8 +93,8 @@ lemma Meet_lower [intro?]: "a \<in> A \<Longrightarrow> \<Sqinter>A \<sqsubseteq
 
 lemma is_Sup_Join [intro?]: "is_Sup A (\<Squnion>A)"
 proof (unfold Join_def)
-  from ex_Sup show "is_Sup A (SOME sup. is_Sup A sup)"
-    by (rule someI_ex)
+  from ex_Sup
+  show "is_Sup A (SOME sup. is_Sup A sup)" ..
 qed
 
 lemma Join_least [intro?]: "(\<And>a. a \<in> A \<Longrightarrow> a \<sqsubseteq> x) \<Longrightarrow> \<Squnion>A \<sqsubseteq> x"
