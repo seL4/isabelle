@@ -51,7 +51,7 @@ by (rtac zeroT 1);
 by (etac contrapos 1);
 by (rtac po_trans 1);
 by (assume_tac 2);
-by (rtac (napplyBzero RS ssubst) 1);
+by (stac napplyBzero 1);
 by (rtac po_cong 1 THEN rtac po_bot 1);
 qed "npo_INCL";
 
@@ -117,8 +117,8 @@ val idgen_lemmas =
 
 val [p1,p2,p3] = goal CCL.thy
     "[| ALL x.t ` x [= u ` x;  EX f.t=lam x.f(x);  EX f.u=lam x.f(x) |] ==> t [= u";
-by (rtac (p2 RS cond_eta RS ssubst) 1);
-by (rtac (p3 RS cond_eta RS ssubst) 1);
+by (stac (p2 RS cond_eta) 1);
+by (stac (p3 RS cond_eta) 1);
 by (rtac (p1 RS (po_lam RS iffD2)) 1);
 qed "po_eta";
 
@@ -184,7 +184,7 @@ by (res_inst_tac [("x","t")] spec 1);
 by (rtac fix_ind 1);
 by (rewtac idgen_def);
 by (REPEAT_SOME (ares_tac [allI]));
-by (rtac (applyBbot RS ssubst) 1);
+by (stac applyBbot 1);
 by (resolve_tac prems 1);
 br (applyB RS ssubst )1;
 by (res_inst_tac [("t","xa")] term_case 1);

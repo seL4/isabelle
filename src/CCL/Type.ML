@@ -302,7 +302,7 @@ qed "def_gfpI";
 val prems = goal Type.thy 
     "letrec g x be zero$g(x) in g(bot) : Lists(Nat)";
 by (rtac (refl RS (XH_to_I UnitXH) RS (Lists_def RS def_gfpI)) 1);
-by (rtac (letrecB RS ssubst) 1);
+by (stac letrecB 1);
 by (rewtac cons_def);
 by (fast_tac type_cs 1);
 result();

@@ -7,7 +7,7 @@ Lemmas and tactics for using the rule coinduct3 on [= and =.
 *)
 
 val [mono,prem] = goal Lfp.thy "[| mono(f);  a : f(lfp(f)) |] ==> a : lfp(f)";
-by (rtac ((mono RS lfp_Tarski) RS ssubst) 1);
+by (stac (mono RS lfp_Tarski) 1);
 by (rtac prem 1);
 qed "lfpI";
 

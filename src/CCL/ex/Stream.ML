@@ -108,7 +108,7 @@ by (eq_coinduct3_tac
 by (fast_tac (type_cs addSIs [napplyBzero RS sym,
                               napplyBzero RS sym RS arg_cong]) 1);
 by (EQgen_tac list_ss [iter1B,iter2Blemma] 1);
-by (rtac (napply_f RS ssubst) 1 THEN atac 1);
+by (stac napply_f 1 THEN atac 1);
 by (res_inst_tac [("f1","f")] (napplyBsucc RS subst) 1);
 by (fast_tac type_cs 1);
 qed "iter1_iter2_eq";

@@ -14,7 +14,7 @@ val major::prems = goal Wfd.thy
 \    letrec g x be h(x,g) in g(a) : D(a)";
 by (rtac (major RS rev_mp) 1);
 by (rtac (wf_wf RS wfd_induct) 1);
-by (rtac (letrecB RS ssubst) 1);
+by (stac letrecB 1);
 by (rtac impI 1);
 by (eresolve_tac prems 1);
 by (rtac ballI 1);
@@ -35,7 +35,7 @@ val prems = goalw Wfd.thy [letrec2_def]
 \    letrec g x y be h(x,y,g) in g(a,b) : D(a,b)";
 by (rtac (SPLITB RS subst) 1);
 by (REPEAT (ares_tac ([letrecT,pairT,splitT]@prems) 1));
-by (rtac (SPLITB RS ssubst) 1);
+by (stac SPLITB 1);
 by (REPEAT (ares_tac ([ballI,SubtypeI]@prems) 1));
 by (rtac (SPLITB RS subst) 1);
 by (REPEAT (ares_tac ([letrecT,SubtypeI,pairT,splitT]@prems) 1 ORELSE 

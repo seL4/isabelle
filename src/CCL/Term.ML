@@ -56,13 +56,13 @@ qed "letrecB";
 val rawBs = caseBs @ [applyB,applyBbot];
 
 fun raw_mk_beta_rl defs s = prove_goalw Term.thy defs s
-           (fn _ => [rtac (letrecB RS ssubst) 1,
+           (fn _ => [stac letrecB 1,
                      simp_tac (CCL_ss addsimps rawBs) 1]);
 fun mk_beta_rl s = raw_mk_beta_rl data_defs s;
 
 fun raw_mk_beta_rl defs s = prove_goalw Term.thy defs s
            (fn _ => [simp_tac (CCL_ss addsimps rawBs 
-                               setloop (rtac (letrecB RS ssubst))) 1]);
+                               setloop (stac letrecB)) 1]);
 fun mk_beta_rl s = raw_mk_beta_rl data_defs s;
 
 val ifBtrue    = mk_beta_rl "if true then t else u = t";

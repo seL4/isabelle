@@ -121,4 +121,4 @@ val set_congs = [ball_cong, bex_cong, INT_cong, UN_cong];
 
 val set_ss = FOL_ss addcongs set_congs
                     delsimps (ex_simps @ all_simps)  (*NO miniscoping*)
-		    addsimps mem_rews;
+                    addsimps mem_rews;
