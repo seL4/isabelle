@@ -100,6 +100,7 @@ signature THM =
   val implies_intr_shyps: thm -> thm
   val get_axiom         : theory -> xstring -> thm
   val name_thm          : string * thm -> thm
+  val name_of_thm	: thm -> string
   val axioms_of         : theory -> (string * thm) list
 
   (*meta rules*)
@@ -603,13 +604,18 @@ fun axioms_of thy =
     (Symtab.dest (#axioms (rep_theory thy)));
 
 (*Attach a label to a theorem to make proof objects more readable*)
-fun name_thm (name, th as Thm {sign_ref, der, maxidx, shyps, hyps, prop}) = 
-    Thm {sign_ref = sign_ref, 
-         der = Join (Theorem name, [der]),
-         maxidx = maxidx,
-         shyps = shyps, 
-         hyps = hyps, 
-         prop = prop};
+fun name_thm (name, th as Thm {sign_ref, der, maxidx, shyps, hyps, prop}) =
+  (case der of
+    Join (Theorem _, _) => th
+  | Join (Axiom _, _) => th
+  | _ => Thm {sign_ref = sign_ref, der = Join (Theorem name, [der]),
+      maxidx = maxidx, shyps = shyps, hyps = hyps, prop = prop});
+
+fun name_of_thm (Thm {der, ...}) =
+  (case der of
+    Join (Theorem name, _) => name
+  | Join (Axiom (_, name), _) => name
+  | _ => "");
 
 
 (*Compression of theorems -- a separate rule, not integrated with the others,
