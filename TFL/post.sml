@@ -168,7 +168,7 @@ fun proof_stage ss theory {f, R, rules, full_pats_TCs, TCs} =
 
 
 (*lcp: curry the predicate of the induction rule*)
-fun curry_rule rl = Prod_Syntax.split_rule_var
+fun curry_rule rl = split_rule_var
                         (head_of (HOLogic.dest_Trueprop (concl_of rl)), 
 			 rl);
 
