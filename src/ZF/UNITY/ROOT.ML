@@ -8,12 +8,14 @@ Root file for ZF/UNITY proofs.
 
 add_path "../Induct";  (*for Multisets*)
 
+(*Simple examples: no composition*)
+time_use_thy"Mutex";
+
 (*Basic meta-theory*)
 time_use_thy "Guar";
 
 (* Prefix relation; part of the Allocator example *)
 time_use_thy "GenPrefix";
 
-(*Simple examples: no composition*)
-time_use_thy"Mutex";
+time_use_thy "Distributor";
 

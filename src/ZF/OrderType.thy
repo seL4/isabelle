@@ -1003,6 +1003,9 @@ done
 lemma tot_ord_Lt: "tot_ord(nat,Lt)"
 by (simp add: tot_ord_def linear_Lt part_ord_Lt)
 
+lemma well_ord_Lt: "well_ord(nat,Lt)"
+by (simp add: well_ord_def wf_Lt wf_imp_wf_on tot_ord_Lt)
+
 
 
 ML {*
@@ -1117,6 +1120,7 @@ val trans_Lt = thm "trans_Lt";
 val part_ord_Lt = thm "part_ord_Lt";
 val linear_Lt = thm "linear_Lt";
 val tot_ord_Lt = thm "tot_ord_Lt";
+val well_ord_Lt = thm "well_ord_Lt";
 *}
 
 end
