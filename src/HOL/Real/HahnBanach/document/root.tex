@@ -1,6 +1,6 @@
 
 \documentclass[10pt,a4paper,twoside]{article}
-
+\usepackage{graphicx}
 \usepackage{latexsym,theorem}
 \usepackage{isabelle,isabellesym}
 \usepackage{pdfsetup} %last one!
@@ -17,7 +17,7 @@
 \pagestyle{headings}
 \pagenumbering{arabic}
 
-\title{The Hahn-Banach Theorem for Real Vector Spaces}
+\title{The Hahn-Banach Theorem \\ for Real Vector Spaces}
 \author{Gertrud Bauer \\ \url{http://www.in.tum.de/~bauerg/}}
 \maketitle
 
@@ -44,12 +44,16 @@ Hahn-Banach Theorem is given in \cite{Narici:1996}.
 
 \medskip The document is structured as follows.  The first part contains
 definitions of basic notions of linear algebra: vector spaces, subspaces,
-normed spaces, continuous linearforms, norm of functions and an order on
+normed spaces, continuous linear-forms, norm of functions and an order on
 functions by domain extension.  The second part contains some lemmas about the
 supremum (w.r.t.\ the function order) and extension of non-maximal functions.
 With these preliminaries, the main proof of the theorem (in its two versions)
-is conducted in the third part.
+is conducted in the third part.  The dependencies of individual theories are
+as follows.
 
+\begin{center}
+  \includegraphics[scale=0.7]{session_graph}  
+\end{center}
 
 \clearpage
 \part {Basic Notions}
