@@ -30,6 +30,7 @@ signature DRULE =
   val flexpair_abs_elim_list: cterm list -> thm -> thm
   val forall_intr_list	: cterm list -> thm -> thm
   val forall_intr_frees	: thm -> thm
+  val forall_intr_vars	: thm -> thm
   val forall_elim_list	: cterm list -> thm -> thm
   val forall_elim_var	: int -> thm -> thm
   val forall_elim_vars	: int -> thm -> thm
@@ -642,6 +643,27 @@ fun eq_thm_sg (th1,th2) = Sign.eq_sg(#sign(rep_thm th1), #sign(rep_thm th2));
 
 (*Useful "distance" function for BEST_FIRST*)
 val size_of_thm = size_of_term o #prop o rep_thm;
+
+
+(** Mark Staples's weaker version of eq_thm: ignores variable renaming and
+    (some) type variable renaming **)
+
+ (* Can't use term_vars, because it sorts the resulting list of variable names.
+    We instead need the unique list noramlised by the order of appearance
+    in the term. *)
+fun term_vars' (t as Var(v,T)) = [t]
+  | term_vars' (Abs(_,_,b)) = term_vars' b
+  | term_vars' (f$a) = (term_vars' f) @ (term_vars' a)
+  | term_vars' _ = [];
+
+fun forall_intr_vars th =
+  let val {prop,sign,...} = rep_thm th;
+      val vars = distinct (term_vars' prop);
+  in forall_intr_list (map (cterm_of sign) vars) th end;
+
+fun weak_eq_thm (tha,thb) = 
+    eq_thm(forall_intr_vars (freezeT tha), forall_intr_vars (freezeT thb));
+
 
 
 (*** Meta-Rewriting Rules ***)
