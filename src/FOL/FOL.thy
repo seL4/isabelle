@@ -26,6 +26,8 @@ use "cladata.ML"
 setup Cla.setup
 setup clasetup
 
+declare disjI1 [elim?]  disjI2 [elim?]
+
 use "blastdata.ML"
 setup Blast.setup
 use "FOL_lemmas2.ML"

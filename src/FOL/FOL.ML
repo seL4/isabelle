@@ -5,6 +5,4 @@ struct
   val classical = classical;
 end;
 
-AddXEs [disjI1, disjI2];
-
 open FOL;
