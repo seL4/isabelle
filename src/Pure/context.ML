@@ -17,7 +17,8 @@ sig
   val get_context: unit -> theory option
   val set_context: theory option -> unit
   val reset_context: unit -> unit
-  val setmp: theory -> ('a -> 'b) -> 'a -> 'b
+  val setmp: theory option -> ('a -> 'b) -> 'a -> 'b
+  val save: ('a -> 'b) -> 'a -> 'b
   val >> : (theory -> theory) -> unit
 end;
 
@@ -32,7 +33,7 @@ local
 in
   fun get_context () = ! current_theory;
   fun set_context opt_thy = current_theory := opt_thy;
-  fun setmp thy f x = Library.setmp current_theory (Some thy) f x;
+  fun setmp opt_thy f x = Library.setmp current_theory opt_thy f x;
 end;
 
 fun the_context () =
@@ -42,6 +43,8 @@ fun the_context () =
 
 fun context thy = set_context (Some thy);
 fun reset_context () = set_context None;
+
+fun save f x = setmp (get_context ()) f x;
 
 
 (* map context *)
