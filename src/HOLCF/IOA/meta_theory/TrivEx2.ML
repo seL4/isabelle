@@ -64,3 +64,9 @@ by (asm_full_simp_tac (simpset() addsimps [h_abs_def]) 1);
 qed"TrivEx2_abstraction";
 
 
+(*
+goal thy "validIOA aut_ioa (Box (Init (%(s,a,t). a= Some(Alarm(APonR)))) 
+IMPLIES (Next (Init (%(s,a,t). info_comp(s) = APonR))))";
+
+*)
+

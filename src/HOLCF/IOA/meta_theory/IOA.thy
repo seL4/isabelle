@@ -8,6 +8,6 @@ The theory of I/O automata in HOLCF.
 
  
 	       
-IOA = RefCorrectness + Compositionality + Deadlock
+IOA = SimCorrectness + RefCorrectness + Compositionality + Deadlock
 
 
