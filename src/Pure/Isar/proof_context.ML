@@ -37,6 +37,8 @@ sig
   val read_termTs: context -> (string * typ) list -> term list * (indexname * typ) list
   val read_term: context -> string -> term
   val read_prop: context -> string -> term
+  val read_terms: context -> string list -> term list
+  val read_props: context -> string list -> term list
   val read_termT_pats: context -> (string * typ) list -> term list
   val read_term_pats: typ -> context -> string list -> term list
   val read_prop_pats: context -> string list -> term list
@@ -56,14 +58,14 @@ sig
   val auto_bind_facts: string -> term list -> context -> context
   val match_bind: bool -> (string list * string) list -> context -> context
   val match_bind_i: bool -> (term list * term) list -> context -> context
-  val read_propp: context * (string * (string list * string list))
-    -> context * (term * (term list * term list))
-  val cert_propp: context * (term * (term list * term list))
-    -> context * (term * (term list * term list))
-  val bind_propp: context * (string * (string list * string list))
-    -> context * (term * (context -> context))
-  val bind_propp_i: context * (term * (term list * term list))
-    -> context * (term * (context -> context))
+  val read_propp: context * (string * (string list * string list)) list list
+    -> context * (term * (term list * term list)) list list
+  val cert_propp: context * (term * (term list * term list)) list list
+    -> context * (term * (term list * term list)) list list
+  val bind_propp: context * (string * (string list * string list)) list list
+    -> context * (term list list * (context -> context))
+  val bind_propp_i: context * (term * (term list * term list)) list list
+    -> context * (term list list * (context -> context))
   val get_thm: context -> string -> thm
   val get_thm_closure: context -> string -> thm
   val get_thms: context -> string -> thm list
@@ -76,10 +78,10 @@ sig
     ((string * context attribute list) * (thm list * context attribute list) list) list ->
       context -> context * (string * thm list) list
   val assume: exporter
-    -> (string * context attribute list * (string * (string list * string list)) list) list
+    -> ((string * context attribute list) * (string * (string list * string list)) list) list
     -> context -> context * ((string * thm list) list * thm list)
   val assume_i: exporter
-    -> (string * context attribute list * (term * (term list * term list)) list) list
+    -> ((string * context attribute list) * (term * (term list * term list)) list) list
     -> context -> context * ((string * thm list) list * thm list)
   val read_vars: context * (string list * string option) -> context * (string list * typ option)
   val cert_vars: context * (string list * typ option) -> context * (string list * typ option)
@@ -474,6 +476,9 @@ fun read_def_termT freeze sg defs sT = apfst hd (read_def_termTs freeze sg defs 
 
 fun read_term_sg freeze sg defs s = #1 (read_def_termT freeze sg defs (s, TypeInfer.logicT));
 fun read_prop_sg freeze sg defs s = #1 (read_def_termT freeze sg defs (s, propT));
+fun read_terms_sg freeze sg defs =
+  #1 o read_def_termTs freeze sg defs o map (rpair TypeInfer.logicT);
+fun read_props_sg freeze sg defs = #1 o read_def_termTs freeze sg defs o map (rpair propT);
 
 
 fun cert_term_sg sg t = Thm.term_of (Thm.cterm_of sg t);
@@ -482,10 +487,7 @@ fun cert_prop_sg sg tm =
   let
     val ctm = Thm.cterm_of sg tm;
     val {t, T, ...} = Thm.rep_cterm ctm;
-  in
-    if T = propT then t
-    else raise TERM ("Term not of type prop", [t])
-  end;
+  in if T = propT then t else raise TERM ("Term not of type prop", [t]) end;
 
 
 (* norm_term *)
@@ -548,6 +550,8 @@ val read_prop_pats = read_term_pats propT;
 
 val read_term = gen_read (read_term_sg true) I false;
 val read_prop = gen_read (read_prop_sg true) I false;
+val read_terms = gen_read (read_terms_sg true) map false;
+val read_props = gen_read (read_props_sg true) map false;
 
 
 (* certify terms *)
@@ -759,14 +763,14 @@ fun simult_matches ctxt [] = []
         val maxidx = foldl (fn (i, (t1, t2)) =>
           Int.max (i, Int.max (Term.maxidx_of_term t1, Term.maxidx_of_term t2))) (~1, pairs);
         val envs = Unify.smash_unifiers (sign_of ctxt, Envir.empty maxidx, pairs);
-        val env =
+        val env = (*pick first result*)
           (case Seq.pull envs of
-            None => raise CONTEXT ("Pattern match failed!", ctxt)      (* FIXME improve msg (!?) *)
+            None => raise CONTEXT ("Pattern match failed!", ctxt)
           | Some (env, _) => env);
-        val binds =
-          (*Note: Envir.norm_term ensures proper type instantiation*)
-          map (apsnd (Envir.norm_term env)) (Envir.alist_of env);
-      in binds end;
+        val add_dom = Term.foldl_aterms (fn (dom, Var (xi, _)) => xi ins dom | (dom, _) => dom);
+        val domain = foldl add_dom ([], map #1 pairs);
+        fun norm_bind (xi, t) = if xi mem domain then Some (xi, Envir.norm_term env t) else None;
+      in mapfilter norm_bind (Envir.alist_of env) end;
 
 
 (* add_binds(_i) *)
@@ -793,17 +797,18 @@ end;
 
 local
 
-fun prep_bind (prep, prep_pats) (ctxt, (raw_pats, raw_t)) =
+fun prep_bind prep_pats (ctxt, (raw_pats, t)) =
   let
-    val t = prep ctxt raw_t;
     val ctxt' = declare_term t ctxt;
     val pats = prep_pats (fastype_of t) ctxt' raw_pats;
     val binds = simult_matches ctxt' (map (rpair t) pats);
   in (ctxt', binds) end;
 
-fun gen_binds prepp gen raw_binds ctxt =
+fun gen_binds prep_terms prep_pats gen raw_binds ctxt =
   let
-    val (ctxt', binds) = apsnd flat (foldl_map (prep_bind prepp) (ctxt, raw_binds));
+    val ts = prep_terms ctxt (map snd raw_binds);
+    val (ctxt', binds) =
+      apsnd flat (foldl_map (prep_bind prep_pats) (ctxt, map fst raw_binds ~~ ts));
     val binds' =
       if gen then map (apsnd (generalize ctxt' ctxt)) binds
       else binds;
@@ -816,42 +821,51 @@ fun gen_binds prepp gen raw_binds ctxt =
 
 in
 
-val match_bind = gen_binds (read_term, read_term_pats);
-val match_bind_i = gen_binds (cert_term, cert_term_pats);
+val match_bind = gen_binds read_terms read_term_pats;
+val match_bind_i = gen_binds (map o cert_term) cert_term_pats;
 
 end;
 
 
-(* proposition patterns *)
+(* propositions with patterns *)
 
-fun prep_propp prep_prop prep_pats (ctxt, (raw_prop, (raw_pats1, raw_pats2))) =
+local
+
+fun prep_propp prep_props prep_pats (context, args) =
   let
-    val prop = prep_prop ctxt raw_prop;
-    val ctxt' = declare_term prop ctxt;
+    fun prep ((ctxt, prop :: props), (_, (raw_pats1, raw_pats2))) =
+          let
+            val ctxt' = declare_term prop ctxt;
+            val pats = prep_pats ctxt' (raw_pats1 @ raw_pats2);    (*simultaneous type inference!*)
+            val len1 = length raw_pats1;
+          in ((ctxt', props), (prop, (take (len1, pats), drop (len1, pats)))) end
+      | prep _ = sys_error "prep_propp";
+    val ((context', _), propp) = foldl_map (foldl_map prep)
+        ((context, prep_props context (flat (map (map fst) args))), args);
+  in (context', propp) end;
 
-    val pats = prep_pats ctxt' (raw_pats1 @ raw_pats2);    (*simultaneous type inference!*)
-    val len1 = length raw_pats1;
-  in (ctxt', (prop, (take (len1, pats), drop (len1, pats)))) end;
+fun matches ctxt (prop, (pats1, pats2)) =
+  simult_matches ctxt (map (rpair prop) pats1 @ map (rpair (Logic.strip_imp_concl prop)) pats2);
 
-val read_propp = prep_propp read_prop read_prop_pats;
-val cert_propp = prep_propp cert_prop cert_prop_pats;
-
-
-fun gen_bind_propp prepp (ctxt, propp) =
+fun gen_bind_propp prepp (ctxt, raw_args) =
   let
-    val (ctxt', (prop, (pats1, pats2))) = prepp (ctxt, propp);
-    val pairs =
-      map (rpair prop) pats1 @
-      map (rpair (Logic.strip_imp_concl prop)) pats2;   (* FIXME handle params!? *)
-    val binds = simult_matches ctxt' pairs;
+    val (ctxt', args) = prepp (ctxt, raw_args);
+    val binds = flat (flat (map (map (matches ctxt')) args));
+    val propss = map (map #1) args;
 
-    (*note: context evaluated now, binds added later (lazy)*)
+    (*generalize result: context evaluated now, binds to be added later*)
     val gen = generalize ctxt' ctxt;
-    fun gen_binds ct = ct |> add_binds_i (map (apsnd (Some o gen)) binds);
-  in (ctxt' |> add_binds_i (map (apsnd Some) binds), (prop, gen_binds)) end;
+    fun gen_binds c = c |> add_binds_i (map (apsnd (Some o gen)) binds);
+  in (ctxt' |> add_binds_i (map (apsnd Some) binds), (propss, gen_binds)) end;
 
+in
+
+val read_propp = prep_propp read_props read_prop_pats;
+val cert_propp = prep_propp (map o cert_prop) cert_prop_pats;
 val bind_propp = gen_bind_propp read_propp;
 val bind_propp_i = gen_bind_propp cert_propp;
+
+end;
 
 
 
@@ -918,32 +932,32 @@ fun have_thmss args ctxt = foldl_map have_thss (ctxt, args);
 
 local
 
-fun gen_assm prepp (ctxt, (name, attrs, raw_prop_pats)) =
+fun add_assm (ctxt, ((name, attrs), props)) =
   let
-    val (ctxt', props) = foldl_map prepp (ctxt, raw_prop_pats);
-
-    val cprops = map (Thm.cterm_of (sign_of ctxt')) props;
+    val cprops = map (Thm.cterm_of (sign_of ctxt)) props;
     val asms = map (norm_hhf o Drule.assume_goal) cprops;
 
     val ths = map (fn th => ([th], [])) asms;
-    val (ctxt'', [(_, thms)]) =
-      ctxt'
+    val (ctxt', [(_, thms)]) =
+      ctxt
       |> auto_bind_facts name props
       |> have_thmss [((name, attrs @ [Drule.tag_assumption]), ths)];
-  in (ctxt'', (cprops, (name, asms), (name, thms))) end;
+  in (ctxt', (cprops, (name, asms), (name, thms))) end;
 
 fun gen_assms prepp exp args ctxt =
   let
-    val (ctxt', results) = foldl_map (gen_assm prepp) (ctxt, args);
+    val (ctxt1, propss) = prepp (ctxt, map snd args);
+    val (ctxt2, results) = foldl_map add_assm (ctxt1, map fst args ~~ propss);
+
     val cprops = flat (map #1 results);
     val asmss = map #2 results;
     val thmss = map #3 results;
-    val ctxt'' =
-      ctxt'
+    val ctxt3 =
+      ctxt2
       |> map_context (fn (thy, data, ((asms_ct, asms_th), fixes), binds, thms, cases, defs) =>
         (thy, data, ((asms_ct @ [(cprops, exp)], asms_th @ asmss), fixes), binds, thms,
           cases, defs));
-  in (warn_extra_tfrees ctxt ctxt'', (thmss, prems_of ctxt'')) end;
+  in (warn_extra_tfrees ctxt ctxt3, (thmss, prems_of ctxt3)) end;
 
 in
 
