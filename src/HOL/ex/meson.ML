@@ -6,6 +6,9 @@
 The MESON resolution proof procedure for HOL
 
 When making clauses, avoids using the rewriter -- instead uses RS recursively
+
+NEED TO SORT LITERALS BY # OF VARS, USING ==>I/E.  ELIMINATES NEED FOR
+FUNCTION nodups -- if done to goal clauses too!
 *)
 
 writeln"File HOL/ex/meson.";
@@ -314,11 +317,11 @@ fun sort_clauses ths = sort fewerlits (filter (not o is_taut) ths);
 (*Convert all suitable free variables to schematic variables*)
 fun generalize th = forall_elim_vars 0 (forall_intr_frees th);
 
-(*make clauses from a list of theorems*)
+(*Make clauses from a list of theorems.  These are HOL disjunctions.*)
 fun make_clauses ths = 
     sort_clauses (map (generalize o nodups) (foldr cnf (ths,[])));
 
-(*Create a Horn clause*)
+(*Create a meta-level Horn clause*)
 fun make_horn crules th = make_horn crules (tryres(th,crules)) 
                           handle THM _ => th;
 
@@ -332,9 +335,17 @@ fun add_contras crules (th,hcs) =
       | n => rots(n, assoc_right th)
   end;
 
+(*Use "theorem naming" to label the clauses*)
+fun name_thms label = 
+    let fun name1 (th, (k,ths)) =
+          (k-1, Thm.name_thm (label ^ string_of_int k, th) :: ths)
+        
+    in  fn ths => #2 (foldr name1 (ths, (length ths, [])))  end;
+
 (*Convert a list of clauses to (contrapositive) Horn clauses*)
 fun make_horns ths = 
-    gen_distinct eq_thm (foldr (add_contras clause_rules) (ths,[]));
+    name_thms "Horn#"
+      (gen_distinct eq_thm (foldr (add_contras clause_rules) (ths,[])));
 
 (*Find an all-negative support clause*)
 fun is_negative th = forall (not o #1) (literals (prop_of th));
@@ -394,18 +405,19 @@ fun depth_prolog_tac horns =
     DEPTH_FIRST (has_fewer_prems 1) (prolog_step_tac horns 1);
 
 (*Return all negative clauses, as possible goal clauses*)
-fun gocls cls = map make_goal (neg_clauses cls);
+fun gocls cls = name_thms "Goal#" (map make_goal (neg_clauses cls));
 
 
 fun skolemize_tac prems = 
     cut_facts_tac (map (skolemize o make_nnf) prems)  THEN'
     REPEAT o (etac exE);
 
-fun MESON sko_tac = SELECT_GOAL
+(*Shell of all meson-tactics.  Supplies cltac with clauses: HOL disjunctions*)
+fun MESON cltac = SELECT_GOAL
  (EVERY1 [rtac ccontr,
           METAHYPS (fn negs =>
                     EVERY1 [skolemize_tac negs,
-                            METAHYPS (sko_tac o make_clauses)])]);
+                            METAHYPS (cltac o make_clauses)])]);
 
 (** Best-first search versions **)
 
