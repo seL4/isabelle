@@ -37,37 +37,38 @@ fun type_auto_tac tyrls hyps = SELECT_GOAL
 
 (*Should False yield False<->True, or should it solve goals some other way?*)
 
+(*Analyse a theorem to atomic rewrite rules*)
+fun atomize (conn_pairs, mem_pairs) th = 
+  let fun tryrules pairs t =
+	  case head_of t of
+	      Const(a,_) => 
+		(case assoc(pairs,a) of
+		     Some rls => flat (map (atomize (conn_pairs, mem_pairs))
+				       ([th] RL rls))
+		   | None     => [th])
+	    | _ => [th]
+  in case concl_of th of 
+	 Const("Trueprop",_) $ P => 
+	    (case P of
+		 Const("op :",_) $ a $ b => tryrules mem_pairs b
+	       | Const("True",_)         => []
+	       | Const("False",_)        => []
+	       | A => tryrules conn_pairs A)
+       | _                       => [th]
+  end;
+
 (*Analyse a rigid formula*)
-val atomize_pairs =
+val ZF_conn_pairs =
   [("Ball",	[bspec]), 
    ("All",	[spec]),
    ("op -->",	[mp]),
    ("op &",	[conjunct1,conjunct2])];
 
 (*Analyse a:b, where b is rigid*)
-val atomize_mem_pairs = 
+val ZF_mem_pairs = 
   [("Collect",	[CollectD1,CollectD2]),
    ("op -",	[DiffD1,DiffD2]),
    ("op Int",	[IntD1,IntD2])];
-
-(*Analyse a theorem to atomic rewrite rules*)
-fun atomize th = 
-  let fun tryrules pairs t =
-	  case head_of t of
-	      Const(a,_) => 
-		(case assoc(pairs,a) of
-		     Some rls => flat (map atomize ([th] RL rls))
-		   | None     => [th])
-	    | _ => [th]
-  in case concl_of th of 
-       Const("Trueprop",_) $ P => 
-	  (case P of
-	       Const("op :",_) $ a $ b => tryrules atomize_mem_pairs b
-	     | Const("True",_)         => []
-	     | Const("False",_)        => []
-	     | A => tryrules atomize_pairs A)
-     | _                       => [th]
-  end;
 
 val ZF_simps = 
     [empty_subsetI, consI1, succI1, ball_simp, if_true, if_false, 
@@ -80,8 +81,10 @@ val ZF_simps =
 val ZF_congs =
    [ball_cong, bex_cong, Replace_cong, RepFun_cong, Collect_cong, lam_cong];
 
+val ZF_atomize = atomize (ZF_conn_pairs, ZF_mem_pairs);
+
 val ZF_ss = FOL_ss 
-      setmksimps (map mk_meta_eq o atomize o gen_all)
+      setmksimps (map mk_meta_eq o ZF_atomize o gen_all)
       addsimps (ZF_simps @ mem_simps @ bquant_simps @ 
 		Collect_simps @ UnInt_simps)
       addcongs ZF_congs;
