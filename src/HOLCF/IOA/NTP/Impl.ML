@@ -178,34 +178,30 @@ val tac2 = asm_full_simp_tac (ss addsimps [inv2_def]);
   by (forward_tac [rewrite_rule [Impl.inv1_def]
                                 (inv1 RS invariantE) RS conjunct1] 1);
   by (tac2 1);
-  by (fast_tac (claset() addDs [add_leD1,leD]) 1);
+  by(nat_arith_tac 1);
 
   (* 3 *)
   by (forward_tac [rewrite_rule [Impl.inv1_def] (inv1 RS invariantE)] 1);
 
   by (tac2 1);
   by (fold_tac [rewrite_rule [Packet.hdr_def]Impl.hdr_sum_def]);
-  by (fast_tac (claset() addDs [add_leD1,leD]) 1);
+  by(nat_arith_tac 1);
 
   (* 2 *)
   by (tac2 1);
   by (forward_tac [rewrite_rule [Impl.inv1_def]
                                (inv1 RS invariantE) RS conjunct1] 1);
-  by (rtac impI 1);
-  by (rtac impI 1);
+  by (strip_tac 1);
   by (REPEAT (etac conjE 1));
-  by (dres_inst_tac [("m","count (rsch s) (~sbit(sen s))")] trans_le_add1 1);
   by (Asm_full_simp_tac 1);
 
   (* 1 *)
   by (tac2 1);
   by (forward_tac [rewrite_rule [Impl.inv1_def]
                                (inv1 RS invariantE) RS conjunct2] 1);
-  by (rtac impI 1);
-  by (rtac impI 1);
+  by (strip_tac 1);
   by (REPEAT (etac conjE 1));
   by (fold_tac  [rewrite_rule[Packet.hdr_def]Impl.hdr_sum_def]);
-  by (dres_inst_tac [("m","hdr_sum (srch s) (sbit(sen s))")] trans_le_add1 1);
   by (Asm_full_simp_tac 1);
 qed "inv2";
 
@@ -223,7 +219,7 @@ Goal "invariant impl_ioa inv3";
   by (asm_simp_tac (simpset() addsimps impl_ioas delsplits [split_if]) 1);
   by (induct_tac "a" 1);
 
-val tac3 = asm_full_simp_tac (ss addsimps [inv3_def] addsplits [split_if]);
+val tac3 = asm_full_simp_tac (ss addsimps [inv3_def]);
 
   (* 10 - 8 *)
 
@@ -238,7 +234,7 @@ val tac3 = asm_full_simp_tac (ss addsimps [inv3_def] addsplits [split_if]);
   (* 7 *)
   by (tac3 1);
   by (tac_ren 1);
-  by (Fast_tac 1);
+  by (Blast_tac 1);
 
   (* 6 - 3 *)
 
@@ -289,19 +285,17 @@ Goal "invariant impl_ioa inv4";
   by (asm_simp_tac (simpset() addsimps impl_ioas delsplits [split_if]) 1);
   by (induct_tac "a" 1);
 
-val tac4 =  asm_full_simp_tac (ss addsimps [inv4_def]
-                              setloop (split_tac [split_if]));
+val tac4 =  asm_full_simp_tac (ss addsimps [inv4_def]);
 
   (* 10 - 2 *)
-  
+
   by (EVERY1[tac4,tac4,tac4,tac4,tac4,tac4,tac4,tac4,tac4]);
 
  (* 2 b *)
- 
+
   by (strip_tac  1 THEN REPEAT (etac conjE 1));
   by (forward_tac [rewrite_rule [Impl.inv2_def]
                                (inv2 RS invariantE)] 1);
-  by (tac4 1);
   by (Asm_full_simp_tac 1);
 
   (* 1 *)
@@ -314,9 +308,6 @@ val tac4 =  asm_full_simp_tac (ss addsimps [inv4_def]
                                (inv3 RS invariantE)] 1);
   by (Asm_full_simp_tac 1);
   by (eres_inst_tac [("x","m")] allE 1);
-  by (dtac less_le_trans 1);
-  by (dtac add_leD1 1);
-  by (Asm_full_simp_tac 1);
   by (Asm_full_simp_tac 1);
 qed "inv4";
 
