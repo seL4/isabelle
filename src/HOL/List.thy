@@ -5,6 +5,8 @@
 
 Definition of type 'a list as a datatype. This allows primrec to work.
 
+TODO: delete list_all from this theory and from ex/Sorting, etc.
+      use setOfList instead
 *)
 
 List = Arith +
@@ -20,6 +22,7 @@ consts
   foldl     :: [['b,'a] => 'b, 'b, 'a list] => 'b
   hd        :: 'a list => 'a
   length    :: 'a list => nat
+  setOfList :: ('a list => 'a set)
   list_all  :: ('a => bool) => ('a list => bool)
   map       :: ('a=>'b) => ('a list => 'b list)
   mem       :: ['a, 'a list] => bool                    (infixl 55)
@@ -56,6 +59,9 @@ primrec ttl list
 primrec "op mem" list
   mem_Nil  "x mem [] = False"
   mem_Cons "x mem (y#ys) = (if y=x then True else x mem ys)"
+primrec setOfList list
+  setOfList_Nil  "setOfList [] = {}"
+  setOfList_Cons "setOfList (x#xs) = insert x (setOfList xs)"
 primrec list_all list
   list_all_Nil  "list_all P [] = True"
   list_all_Cons "list_all P (x#xs) = (P(x) & list_all P xs)"

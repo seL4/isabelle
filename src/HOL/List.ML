@@ -80,6 +80,21 @@ by (list.induct_tac "xs" 1);
 by (ALLGOALS (asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
 qed "mem_filter";
 
+(** setOfList **)
+
+goal thy "setOfList (xs@ys) = (setOfList xs Un setOfList ys)";
+by (list.induct_tac "xs" 1);
+by (ALLGOALS Asm_simp_tac);
+by (Fast_tac 1);
+qed "setOfList_append";
+
+goal thy "(x mem xs) = (x: setOfList xs)";
+by (list.induct_tac "xs" 1);
+by (ALLGOALS (asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
+by (Fast_tac 1);
+qed "setOfList_mem_eq";
+
+
 (** list_all **)
 
 goal List.thy "(Alls x:xs.True) = True";
