@@ -10,9 +10,20 @@
 \addtolength{\voffset}{-2cm}
 \addtolength{\textheight}{4cm}
 
-\renewcommand{\thesection}{\arabic{section}}
-\renewcommand{\isamarkupheader}[1]{\newpage\markright{Theory~\isabellecontext}\section{#1}}
+%subsection instead of section to make the toc readable
+\renewcommand{\thesubsection}{\arabic{subsection}}
+\renewcommand{\isamarkupheader}[1]{\newpage\markright{Theory~\isabellecontext}\subsection{#1}}
+
+%remove spaces from the isabelle environment (trivlist makes them too large)
+\renewenvironment{isabelle}
+{\begin{isabellebody}}
+{\end{isabellebody}}
+
 \newcommand{\mJava}{$\mu$Java}
+
+%remove clutter from the toc
+\setcounter{secnumdepth}{2}
+\setcounter{tocdepth}{2}
 
 \begin{document}
 
@@ -20,12 +31,15 @@
 \author{Gerwin Klein \\ Tobias Nipkow \\ David von Oheimb \\ Cornelia Pusch}
 \maketitle
 
-\begin{abstract}
+\begin{abstract}\noindent
   This formal development defines {\mJava}, a small fragment of the
   programming language Java (with essentially just classes), together with a
-  corresponding virtual machine and a specification of its bytecode verifier.
+  corresponding virtual machine, a specification of its bytecode verifier
+  and a lightweight bytecode verifier.
   It is shown that {\mJava} and the given specification of the bytecode
-  verifier are type-safe.
+  verifier are type-safe, and that the lightweight bytecode verifier
+  is functionally equivalent to the bytecode verifier specification.
+  See also the homepage of project Bali at \url{http://isabelle.in.tum.de/Bali/}.
 \end{abstract}
 
 \tableofcontents
@@ -34,6 +48,7 @@
 \newpage
 \input{session}
 
+\newpage
 \nocite{*}
 \bibliographystyle{abbrv}
 \bibliography{root}
