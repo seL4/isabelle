@@ -66,7 +66,7 @@ sig
   val pls_const: term
   val min_const: term
   val bit_const: term
-  val number_of_const: term
+  val number_of_const: typ -> term
   val int_of: int list -> int
   val dest_binum: term -> int
 end;
@@ -246,8 +246,9 @@ val binT = Type ("Numeral.bin", []);
 
 val pls_const =  Const ("Numeral.bin.Pls", binT)
 and min_const = Const ("Numeral.bin.Min", binT)
-and bit_const = Const ("Numeral.bin.Bit", [binT, boolT] ---> binT)
-and number_of_const = Const ("Numeral.number_of", binT --> natT);
+and bit_const = Const ("Numeral.bin.Bit", [binT, boolT] ---> binT);
+
+fun number_of_const T = Const ("Numeral.number_of", binT --> T);
 
 
 fun int_of [] = 0
