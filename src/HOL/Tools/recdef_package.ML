@@ -105,7 +105,7 @@ struct
   val name = "HOL/recdef";
   type T = recdef_info Symtab.table * hints;
 
-  val empty = (Symtab.empty, mk_hints ([], [], []));
+  val empty = (Symtab.empty, mk_hints ([], [], [])): T;
   val copy = I;
   val prep_ext = I;
   fun merge
