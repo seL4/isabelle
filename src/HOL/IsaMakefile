@@ -586,6 +586,7 @@ HOL-ex: HOL $(LOG)/HOL-ex.gz
 $(LOG)/HOL-ex.gz: $(OUT)/HOL ex/AVL.ML ex/AVL.thy ex/Antiquote.thy \
   ex/BT.thy ex/BinEx.thy ex/Group.ML ex/Group.thy ex/Higher_Order_Logic.thy \
   ex/Hilbert_Classical.thy ex/InSort.thy ex/IntRing.ML \
+  ex/InductiveInvariant.thy  ex/InductiveInvariant_examples.thy\
   ex/IntRing.thy ex/Intuitionistic.thy \
   ex/Lagrange.ML ex/Lagrange.thy ex/Locales.thy ex/MergeSort.thy \
   ex/MT.ML ex/MT.thy ex/MonoidGroup.thy ex/Multiquote.thy \

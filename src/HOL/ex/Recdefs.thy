@@ -33,7 +33,7 @@ recdef finiteRchain  "measure (\<lambda>(R, l). size l)"
 
 text {* Not handled automatically: too complicated. *}
 consts variant :: "nat * nat list => nat"
-recdef (permissive) variant  "measure (\<lambda>(n::nat, ns). size (filter (\<lambda>y. n \<le> y) ns))"
+recdef (permissive) variant "measure (\<lambda>(n,ns). size (filter (\<lambda>y. n \<le> y) ns))"
   "variant (x, L) = (if x mem L then variant (Suc x, L) else x)"
 
 consts gcd :: "nat * nat => nat"
