@@ -478,6 +478,10 @@ lemma split_part [simp]: "(%(a,b). P & Q a b) = (%ab. P & split Q ab)"
   apply blast
   done
 
+lemma split_comp_eq [simp]: 
+"(%u. f (g (fst u)) (snd u)) = (split (%x. f (g x)))"
+by (rule ext, auto)
+
 lemma The_split_eq [simp]: "(THE (x',y'). x = x' & y = y') = (x, y)"
   by blast
 
@@ -540,6 +544,19 @@ proof -
     done
 qed
 
+
+constdefs
+  upd_fst :: "('a => 'c) => 'a * 'b => 'c * 'b"
+ "upd_fst f == prod_fun f id"
+
+  upd_snd :: "('b => 'c) => 'a * 'b => 'a * 'c"
+ "upd_snd f == prod_fun id f"
+
+lemma upd_fst_conv [simp]: "upd_fst f (x,y) = (f x,y)" 
+by (simp add: upd_fst_def)
+
+lemma upd_snd_conv [simp]: "upd_snd f (x,y) = (x,f y)" 
+by (simp add: upd_snd_def)
 
 text {*
   \bigskip Disjoint union of a family of sets -- Sigma.

@@ -257,7 +257,7 @@ by (simp add: bij_lift_map [THEN rename_guarantees_eq_rename_inv] lift_def)
 lemma lift_preserves_snd_I: "F \<in> preserves snd ==> lift i F \<in> preserves snd"
 apply (drule_tac w1=snd in subset_preserves_o [THEN subsetD])
 apply (simp add: lift_def rename_preserves)
-apply (simp add: lift_map_def o_def split_def)
+apply (simp add: lift_map_def o_def split_def del: split_comp_eq)
 done
 
 lemma delete_map_eqE':
@@ -332,7 +332,7 @@ lemma lift_preserves_sub:
 apply (drule subset_preserves_o [THEN subsetD])
 apply (simp add: lift_preserves_eq o_def drop_map_lift_map_eq)
 apply (auto cong del: if_weak_cong 
-            simp add: lift_map_def eq_commute split_def o_def)
+       simp add: lift_map_def eq_commute split_def o_def simp del:split_comp_eq)
 done
 
 
