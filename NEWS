@@ -34,6 +34,10 @@ New in this Isabelle release
 * Provers/blast.ML:  new reference depth_limit to make blast's depth
   limit (previously hard-coded with a value of 20) user-definable.
 
+* Pure: thin_tac now works even if the assumption being deleted contains !! or ==>. 
+  More generally, erule now works even if the major premise of the elimination rule
+  contains !! or ==>.
+
 * Pure: considerably improved version of 'constdefs' command.  Now
   performs automatic type-inference of declared constants; additional
   support for local structure declarations (cf. locales and HOL

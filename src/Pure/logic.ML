@@ -46,7 +46,7 @@ sig
   val auto_rename       : bool ref
   val set_rename_prefix : string -> unit
   val list_rename_params: string list * term -> term
-  val assum_pairs       : term -> (term*term)list
+  val assum_pairs       : int * term -> (term*term)list
   val varify            : term -> term
   val unvarify          : term -> term
   val get_goal          : term -> int -> term
@@ -296,9 +296,14 @@ fun list_rename_params (cs, Const("==>", _) $ A $ B) =
   the the parameters to be flattened, but it allows erule to work on 
   assumptions of the form !!x. phi. Any !! after the outermost string
   will be regarded as belonging to the conclusion, and left untouched.
-  Used ONLY by assum_pairs. *)
-fun strip_assums_imp (Hs, Const("==>", _) $ H $ B) = strip_assums_imp (H::Hs, B)
-  | strip_assums_imp (Hs, B) = (Hs, B);
+  Used ONLY by assum_pairs.
+      Unless nasms<0, it can terminate the recursion early; that allows
+  erule to work on assumptions of the form P==>Q.*)
+fun strip_assums_imp (0, Hs, B) = (Hs, B)  (*recursion terminated by nasms*)
+  | strip_assums_imp (nasms, Hs, Const("==>", _) $ H $ B) = 
+      strip_assums_imp (nasms-1, H::Hs, B)
+  | strip_assums_imp (_, Hs, B) = (Hs, B); (*recursion terminated by B*)
+
 
 (*Strips OUTER parameters only, unlike similar legacy versions.*)
 fun strip_assums_all (params, Const("all",_)$Abs(a,T,t)) =
@@ -307,10 +312,12 @@ fun strip_assums_all (params, Const("all",_)$Abs(a,T,t)) =
 
 (*Produces disagreement pairs, one for each assumption proof, in order.
   A is the first premise of the lifted rule, and thus has the form
-    H1 ==> ... Hk ==> B   and the pairs are (H1,B),...,(Hk,B) *)
-fun assum_pairs A =
+    H1 ==> ... Hk ==> B   and the pairs are (H1,B),...,(Hk,B).
+  nasms is the number of assumptions in the original subgoal, needed when B
+    has the form B1 ==> B2: it stops B1 from being taken as an assumption. *)
+fun assum_pairs(nasms,A) =
   let val (params, A') = strip_assums_all ([],A)
-      val (Hs,B) = strip_assums_imp ([],A')
+      val (Hs,B) = strip_assums_imp (nasms,[],A')
       fun abspar t = Unify.rlist_abs(params, t)
       val D = abspar B
       fun pairrev ([], pairs) = pairs

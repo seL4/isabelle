@@ -1143,14 +1143,14 @@ fun assumption i state =
              (Seq.mapp (newth n)
                 (Unify.unifiers(Sign.deref sign_ref,Envir.empty maxidx, (t,u)::tpairs))
                 (addprfs apairs (n+1))))
-  in  addprfs (Logic.assum_pairs Bi) 1 end;
+  in  addprfs (Logic.assum_pairs (~1,Bi)) 1 end;
 
 (*Solve subgoal Bi of proof state B1...Bn/C by assumption.
   Checks if Bi's conclusion is alpha-convertible to one of its assumptions*)
 fun eq_assumption i state =
   let val Thm{sign_ref,der,maxidx,hyps,prop,...} = state;
       val (tpairs, Bs, Bi, C) = dest_state(state,i)
-  in  (case find_index (op aconv) (Logic.assum_pairs Bi) of
+  in  (case find_index (op aconv) (Logic.assum_pairs (~1,Bi)) of
          (~1) => raise THM("eq_assumption", 0, [state])
        | n => fix_shyps [state] []
                 (Thm{sign_ref = sign_ref, 
@@ -1403,13 +1403,13 @@ fun bicompose_aux match (state, (stpairs, Bs, Bi, C), lifted)
      fun tryasms (_, _, _, []) = Seq.empty
        | tryasms (A, As, n, (t,u)::apairs) =
           (case Seq.pull(Unify.unifiers(sign, env, (t,u)::dpairs))  of
-               None                   => tryasms (A, As, n+1, apairs)
-             | cell as Some((_,tpairs),_) =>
-                   Seq.it_right (addth A (newAs(As, n, [BBi,(u,t)], tpairs)))
-                       (Seq.make (fn()=> cell),
-                        Seq.make (fn()=> Seq.pull (tryasms (A, As, n+1, apairs)))));
+	      None                   => tryasms (A, As, n+1, apairs)
+	    | cell as Some((_,tpairs),_) =>
+		Seq.it_right (addth A (newAs(As, n, [BBi,(u,t)], tpairs)))
+		    (Seq.make(fn()=> cell),
+		     Seq.make(fn()=> Seq.pull (tryasms(A, As, n+1, apairs)))))
      fun eres [] = raise THM("bicompose: no premises", 0, [orule,state])
-       | eres (A1::As) = tryasms (Some A1, As, 1, Logic.assum_pairs A1);
+       | eres (A1::As) = tryasms(Some A1, As, 1, Logic.assum_pairs(nlift+1,A1))
      (*ordinary resolution*)
      fun res(None) = Seq.empty
        | res(cell as Some((_,tpairs),_)) =
