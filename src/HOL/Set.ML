@@ -70,11 +70,16 @@ by (REPEAT (eresolve_tac (prems @ [asm_rl,conjE]) 1));
 qed "bexE";
 
 (*Trival rewrite rule;   (! x:A.P)=P holds only if A is nonempty!*)
-goal Set.thy "(! x:A. True) = True";
-by (REPEAT (ares_tac [TrueI,ballI,iffI] 1));
+goalw Set.thy [Ball_def] "(! x:A. True) = True";
+by (Simp_tac 1);
 qed "ball_True";
 
-Addsimps [ball_True];
+(*Dual form for existentials*)
+goalw Set.thy [Bex_def] "(? x:A. False) = False";
+by (Simp_tac 1);
+qed "bex_False";
+
+Addsimps [ball_True, bex_False];
 
 (** Congruence rules **)
 
@@ -355,8 +360,11 @@ qed "singleton_inject";
 
 section "The universal set -- UNIV";
 
+qed_goal "UNIV_I" Set.thy "x : UNIV"
+  (fn _ => [rtac ComplI 1, etac emptyE 1]);
+
 qed_goal "subset_UNIV" Set.thy "A <= UNIV"
-  (fn _ => [rtac subsetI 1, rtac ComplI 1, etac emptyE 1]);
+  (fn _ => [rtac subsetI 1, rtac UNIV_I 1]);
 
 
 section "Unions of families -- UNION x:A. B(x) is Union(B``A)";
