@@ -296,24 +296,23 @@ qed "Always_weaken";
 
 (*** "Co" rules involving Always ***)
 
-Goal "[| F : Always INV;  F : (INV Int A) Co A' |] ==> F : A Co A'";
-by (asm_full_simp_tac
+Goal "F : Always INV ==> (F : (INV Int A) Co A') = (F : A Co A')";
+by (asm_simp_tac
     (simpset() addsimps [Always_includes_reachable RS Int_absorb2,
 			 Constrains_def, Int_assoc RS sym]) 1);
-qed "Always_ConstrainsI";
+qed "Always_Constrains_pre";
 
-(* [| F : Always INV; F : (INV Int A) Co A |]
-   ==> F : Stable A *)
-bind_thm ("Always_StableI", Always_ConstrainsI RS StableI);
-
-Goal "[| F : Always INV;  F : A Co A' |]   \
-\     ==> F : A Co (INV Int A')";
-by (asm_full_simp_tac
+Goal "F : Always INV ==> (F : A Co (INV Int A')) = (F : A Co A')";
+by (asm_simp_tac
     (simpset() addsimps [Always_includes_reachable RS Int_absorb2,
 			 Constrains_eq_constrains, Int_assoc RS sym]) 1);
-qed "Always_ConstrainsD";
+qed "Always_Constrains_post";
 
-bind_thm ("Always_StableD", StableD RSN (2,Always_ConstrainsD));
+(* [| F : Always INV;  F : (INV Int A) Co A' |] ==> F : A Co A' *)
+bind_thm ("Always_ConstrainsI", Always_Constrains_pre RS iffD1);
+
+(* [| F : Always INV;  F : A Co A' |] ==> F : A Co (INV Int A') *)
+bind_thm ("Always_ConstrainsD", Always_Constrains_post RS iffD2);
 
 
 
@@ -352,3 +351,4 @@ fun constrains_tac i =
 	      ALLGOALS Asm_full_simp_tac]) i;
 
 
+leadsTo_wf_induct
