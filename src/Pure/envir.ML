@@ -120,7 +120,7 @@ fun lookup (Envir{asol,...}, xname) : term option = xsearch (asol,xname);
 fun update ((xname, t), Envir{maxidx, asol, iTs}) =
   Envir{maxidx=maxidx, asol=xinsert_new ((xname,t), asol), iTs=iTs};
 
-(*The empty environment.  New variables will start with the given index.*)
+(*The empty environment.  New variables will start with the given index+1.*)
 fun empty m = Envir{maxidx=m, asol=null_olist, iTs=[]};
 
 (*Test for empty environment*)
