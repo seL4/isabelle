@@ -61,16 +61,6 @@ val nat_exhaust_le_pred =
 val nat_exhaust_pred_le = 
     read_instantiate_sg (sign_of thy) [("P", "?y-1 <= ?m")] nat.exhaust;
 
-Goal "0 < n ==> (m <= n-1) = (m<n)";
-by (exhaust_tac "n" 1);
-by Auto_tac;
-qed "le_pred_eq";
-
-Goal "0 < n ==> (m-1 < n) = (m<=n)";
-by (exhaust_tac "m" 1);
-by (auto_tac (claset(), simpset() addsimps [Suc_le_eq]));
-qed "less_pred_eq";
-
 Goal "m < n ==> m <= n-1";
 by (asm_simp_tac (simpset() addsimps [gr_implies_gr0 RS le_pred_eq]) 1);
 qed "less_imp_le_pred";
