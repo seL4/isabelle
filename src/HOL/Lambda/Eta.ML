@@ -12,7 +12,6 @@ confluence of beta+eta
 open Eta;
 
 Addsimps eta.intrs;
-Addsimps [imp_disj];
 
 val eta_cases = map (eta.mk_cases db.simps)
     ["Fun s -e> z","s @ t -e> u","Var i -e> t"];
@@ -23,35 +22,6 @@ val beta_cases = map (beta.mk_cases db.simps)
 AddIs eta.intrs;
 AddSEs (beta_cases@eta_cases);
 
-section "Arithmetic lemmas";
-
-goal HOL.thy "!!P. P ==> P=True";
-by (fast_tac HOL_cs 1);
-qed "True_eq";
-
-Addsimps [less_not_sym RS True_eq];
-
-goal Arith.thy "i < j --> pred i < j";
-by (nat_ind_tac "j" 1);
-by (ALLGOALS(asm_simp_tac(!simpset addsimps [less_Suc_eq])));
-by (nat_ind_tac "j1" 1);
-by (ALLGOALS Asm_simp_tac);
-qed_spec_mp "less_imp_pred_less";
-
-goal Arith.thy "i<j --> ~ pred j < i";
-by (nat_ind_tac "j" 1);
-by (ALLGOALS(asm_simp_tac(!simpset addsimps [less_Suc_eq])));
-qed_spec_mp "less_imp_not_pred_less";
-Addsimps [less_imp_not_pred_less];
-
-goal Nat.thy "i < j --> j < Suc(Suc i) --> j = Suc i";
-by (nat_ind_tac "j" 1);
-by (ALLGOALS Simp_tac);
-by (simp_tac(!simpset addsimps [less_Suc_eq])1);
-by (fast_tac (HOL_cs addDs [less_not_sym]) 1);
-qed_spec_mp "less_interval1";
-
-
 section "decr and free";
 
 goal Eta.thy "!i k. free (lift t k) i = \
@@ -59,30 +29,23 @@ goal Eta.thy "!i k. free (lift t k) i = \
 by (db.induct_tac "t" 1);
 by (ALLGOALS(asm_full_simp_tac (addsplit (!simpset) addcongs [conj_cong])));
 by (fast_tac HOL_cs 2);
-by (safe_tac (HOL_cs addSIs [iffI]));
-by (dtac Suc_mono 1);
-by (ALLGOALS(Asm_full_simp_tac));
-by (dtac less_trans_Suc 1 THEN atac 1);
-by (dtac less_trans_Suc 2 THEN atac 2);
-by (ALLGOALS(Asm_full_simp_tac));
+by(simp_tac (!simpset addsimps [pred_def]
+                      setloop (split_tac [expand_nat_case])) 1);
+by (safe_tac HOL_cs);
+by (ALLGOALS trans_tac);
 qed "free_lift";
 Addsimps [free_lift];
 
 goal Eta.thy "!i k t. free (s[t/k]) i = \
 \              (free s k & free t i | free s (if i<k then i else Suc i))";
 by (db.induct_tac "s" 1);
-by (ALLGOALS(asm_full_simp_tac (addsplit (!simpset) addsimps
-[less_not_refl2,less_not_refl2 RS not_sym])));
-by (fast_tac HOL_cs 2);
-by (safe_tac (HOL_cs addSIs [iffI]));
-by (ALLGOALS(Asm_simp_tac));
-by (fast_tac (HOL_cs addEs [less_imp_not_pred_less RS notE]) 1);
-by (fast_tac (HOL_cs addDs [less_not_sym]) 1);
-by (dtac Suc_mono 1);
-by (dtac less_interval1 1 THEN atac 1);
-by (asm_full_simp_tac (!simpset addsimps [eq_sym_conv]) 1);
-by (dtac less_trans_Suc 1 THEN atac 1);
-by (Asm_full_simp_tac 1);
+by (Asm_simp_tac 2);
+by (Fast_tac 2);
+by (asm_full_simp_tac (addsplit (!simpset)) 2);
+by(simp_tac (!simpset addsimps [pred_def,subst_Var]
+                      setloop (split_tac [expand_if,expand_nat_case])) 1);
+by (safe_tac (HOL_cs addSEs [nat_neqE]));
+by (ALLGOALS trans_tac);
 qed "free_subst";
 Addsimps [free_subst];
 
@@ -248,7 +211,7 @@ by (db.induct_tac "s" 1);
     by (fast_tac (HOL_cs addDs [less_not_refl2]) 1);
    by (Simp_tac 1);
   by (Simp_tac 1);
- by (asm_simp_tac (!simpset addsimps [de_Morgan_disj]) 1);
+ by (Asm_simp_tac 1);
  by (etac thin_rl 1);
  by (etac thin_rl 1);
  by (rtac allI 1);
