@@ -12,7 +12,7 @@ open Porder;
 (* lubs are unique                                                          *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "unique_lub "thy [is_lub, is_ub] 
+qed_goalw "unique_lub" thy [is_lub, is_ub] 
         "[| S <<| x ; S <<| y |] ==> x=y"
 ( fn prems =>
         [

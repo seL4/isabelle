@@ -66,7 +66,7 @@ qed_goalw "monofun_Ispair2" Sprod2.thy [monofun] "monofun(Ispair(x))"
         ]);
 
 
-qed_goal " monofun_Ispair" Sprod2.thy 
+qed_goal "monofun_Ispair" Sprod2.thy 
  "[|x1<<x2; y1<<y2|] ==> Ispair x1 y1 << Ispair x2 y2"
 (fn prems =>
         [
