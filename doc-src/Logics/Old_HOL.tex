@@ -1,13 +1,13 @@
 %% $Id$
-\chapter{Higher-order logic}
-The directory~\ttindexbold{HOL} contains a theory for higher-order logic
-based on Gordon's~{\sc hol} system~\cite{mgordon88a}, which itself is based on
-Church~\cite{church40}.  Andrews~\cite{andrews86} is a full description of
-higher-order logic.  Gordon's work has demonstrated that higher-order logic
-is useful for hardware verification; beyond this, it is widely applicable
-in many areas of mathematics.  It is weaker than {\ZF} set theory but for
-most applications this does not matter.  If you prefer {\ML} to Lisp, you
-will probably prefer {\HOL} to~{\ZF}.
+\chapter{Higher-Order logic}
+The directory~\ttindexbold{HOL} contains a theory for higher-order logic.
+It is based on Gordon's~{\sc hol} system~\cite{mgordon88a}, which itself is
+based on Church~\cite{church40}.  Andrews~\cite{andrews86} is a full
+description of higher-order logic.  Gordon's work has demonstrated that
+higher-order logic is useful for hardware verification; beyond this, it is
+widely applicable in many areas of mathematics.  It is weaker than {\ZF}
+set theory but for most applications this does not matter.  If you prefer
+{\ML} to Lisp, you will probably prefer {\HOL} to~{\ZF}.
 
 Previous releases of Isabelle included a completely different version
 of~{\HOL}, with explicit type inference rules~\cite{paulson-COLOG}.  This
@@ -136,16 +136,17 @@ overloading of the operators {\tt+}, {\tt-} and {\tt*}.  In particular,
 \index{*"+}\index{-@{\tt-}}\index{*@{\tt*}}
 
 Figure~\ref{hol-constants} lists the constants (including infixes and
-binders), while Figure~\ref{hol-grammar} presents the grammar.  Note that
-$a$\verb|~=|$b$ is translated to \verb|~(|$a$=$b$\verb|)|.
+binders), while Fig.\ts \ref{hol-grammar} presents the grammar of
+higher-order logic.  Note that $a$\verb|~=|$b$ is translated to
+\verb|~(|$a$=$b$\verb|)|.
 
-\subsection{Types}
+\subsection{Types}\label{HOL-types}
 The type of formulae, {\it bool} belongs to class {\it term}; thus,
 formulae are terms.  The built-in type~$fun$, which constructs function
 types, is overloaded such that $\sigma\To\tau$ belongs to class~$term$ if
 $\sigma$ and~$\tau$ do; this allows quantification over functions.  Types
-in {\HOL} must be non-empty because of the form of quantifier
-rules~\cite[\S7]{paulson-COLOG}.
+in {\HOL} must be non-empty; otherwise the quantifier rules would be
+unsound~\cite[\S7]{paulson-COLOG}.
 
 Gordon's {\sc hol} system supports {\bf type definitions}.  A type is
 defined by exhibiting an existing type~$\sigma$, a predicate~$P::\sigma\To
@@ -198,11 +199,11 @@ display \hbox{\tt \at $x$.\at $y$.$P[x,y]$} as
 \hbox{\tt \at $x\,y$.$P[x,y]$}.
 \end{warn}
 
-\begin{figure} \makeatother
-\begin{ttbox}
+\begin{figure} 
+\begin{ttbox}\makeatother
 \idx{refl}           t = t::'a
 \idx{subst}          [| s=t; P(s) |] ==> P(t::'a)
-\idx{ext}            (!!x::'a. f(x)::'b = g(x)) ==> (%x.f(x)) = (%x.g(x))
+\idx{ext}            (!!x::'a. f(x)::'b = g(x)) ==> (\%x.f(x)) = (\%x.g(x))
 \idx{impI}           (P ==> Q) ==> P-->Q
 \idx{mp}             [| P-->Q;  P |] ==> Q
 \idx{iff}            (P-->Q) --> (Q-->P) --> (P=Q)
@@ -210,26 +211,26 @@ display \hbox{\tt \at $x$.\at $y$.$P[x,y]$} as
 \idx{True_or_False}  (P=True) | (P=False)
 \subcaption{basic rules}
 
-\idx{True_def}       True  = ((%x.x)=(%x.x))
-\idx{All_def}        All   = (%P. P = (%x.True))
-\idx{Ex_def}         Ex    = (%P. P(@x.P(x)))
+\idx{True_def}       True  = ((\%x.x)=(\%x.x))
+\idx{All_def}        All   = (\%P. P = (\%x.True))
+\idx{Ex_def}         Ex    = (\%P. P(@x.P(x)))
 \idx{False_def}      False = (!P.P)
-\idx{not_def}        not   = (%P. P-->False)
-\idx{and_def}        op &  = (%P Q. !R. (P-->Q-->R) --> R)
-\idx{or_def}         op |  = (%P Q. !R. (P-->R) --> (Q-->R) --> R)
-\idx{Ex1_def}        Ex1   = (%P. ? x. P(x) & (! y. P(y) --> y=x))
+\idx{not_def}        not   = (\%P. P-->False)
+\idx{and_def}        op &  = (\%P Q. !R. (P-->Q-->R) --> R)
+\idx{or_def}         op |  = (\%P Q. !R. (P-->R) --> (Q-->R) --> R)
+\idx{Ex1_def}        Ex1   = (\%P. ? x. P(x) & (! y. P(y) --> y=x))
 \subcaption{Definitions of the logical constants}
 
-\idx{Inv_def}   Inv  = (%(f::'a=>'b) y. @x. f(x)=y)
-\idx{o_def}     op o = (%(f::'b=>'c) g (x::'a). f(g(x)))
-\idx{if_def}    if   = (%P x y.@z::'a.(P=True --> z=x) & (P=False --> z=y))
+\idx{Inv_def}   Inv  = (\%(f::'a=>'b) y. @x. f(x)=y)
+\idx{o_def}     op o = (\%(f::'b=>'c) g (x::'a). f(g(x)))
+\idx{if_def}    if   = (\%P x y.@z::'a.(P=True --> z=x) & (P=False --> z=y))
 \subcaption{Further definitions}
 \end{ttbox}
 \caption{Rules of {\tt HOL}} \label{hol-rules}
 \end{figure}
 
 
-\begin{figure} \makeatother
+\begin{figure}
 \begin{ttbox}
 \idx{sym}         s=t ==> t=s
 \idx{trans}       [| r=s; s=t |] ==> r=t
@@ -270,8 +271,8 @@ display \hbox{\tt \at $x$.\at $y$.$P[x,y]$} as
 \end{figure}
 
 
-\begin{figure} \makeatother
-\begin{ttbox}
+\begin{figure}
+\begin{ttbox}\makeatother
 \idx{allI}      (!!x::'a. P(x)) ==> !x. P(x)
 \idx{spec}      !x::'a.P(x) ==> P(x)
 \idx{allE}      [| !x.P(x);  P(x) ==> R |] ==> R
@@ -294,7 +295,7 @@ display \hbox{\tt \at $x$.\at $y$.$P[x,y]$} as
 \idx{disjCI}    (~Q ==> P) ==> P|Q
 \idx{exCI}      (! x. ~ P(x) ==> P(a)) ==> ? x.P(x)
 \idx{impCE}     [| P-->Q; ~ P ==> R; Q ==> R |] ==> R
-\idx{iffCE}     [| P<->Q;  [| P; Q |] ==> R;  [| ~P; ~Q |] ==> R |] ==> R
+\idx{iffCE}     [| P=Q;  [| P; Q |] ==> R;  [| ~P; ~Q |] ==> R |] ==> R
 \idx{notnotD}   ~~P ==> P
 \idx{swap}      ~P ==> (~Q ==> P) ==> Q
 \subcaption{Classical logic}
@@ -319,11 +320,12 @@ Figure~\ref{hol-rules} shows the inference rules with their~{\ML} names.
 They follow standard practice in higher-order logic: only a few connectives
 are taken as primitive, with the remainder defined obscurely.  
 
-Unusually, the definitions use object-equality~({\tt=}) rather than
-meta-equality~({\tt==}).  This is possible because equality in higher-order
-logic may equate formulae and even functions over formulae.  On the other
-hand, meta-equality is Isabelle's usual symbol for making definitions.
-Take care to note which form of equality is used before attempting a proof.
+Unusually, the definitions are expressed using object-equality~({\tt=})
+rather than meta-equality~({\tt==}).  This is possible because equality in
+higher-order logic may equate formulae and even functions over formulae.
+On the other hand, meta-equality is Isabelle's usual symbol for making
+definitions.  Take care to note which form of equality is used before
+attempting a proof.
 
 Some of the rules mention type variables; for example, {\tt refl} mentions
 the type variable~{\tt'a}.  This facilitates explicit instantiation of the
@@ -373,14 +375,14 @@ Note the equality rules: \ttindexbold{ssubst} performs substitution in
 backward proofs, while \ttindexbold{box_equals} supports reasoning by
 simplifying both sides of an equation.
 
-See the files \ttindexbold{HOL/hol.thy} and
-\ttindexbold{HOL/hol.ML} for complete listings of the rules and
+See the files {\tt HOL/hol.thy} and
+{\tt HOL/hol.ML} for complete listings of the rules and
 derived rules.
 
 
 \section{Generic packages}
 {\HOL} instantiates most of Isabelle's generic packages;
-see \ttindexbold{HOL/ROOT.ML} for details.
+see {\tt HOL/ROOT.ML} for details.
 \begin{itemize}
 \item 
 Because it includes a general substitution rule, {\HOL} instantiates the
@@ -390,7 +392,7 @@ throughout a subgoal and its hypotheses.
 It instantiates the simplifier, defining~\ttindexbold{HOL_ss} as the
 simplification set for higher-order logic.  Equality~($=$), which also
 expresses logical equivalence, may be used for rewriting.  See the file
-\ttindexbold{HOL/simpdata.ML} for a complete listing of the simplification
+{\tt HOL/simpdata.ML} for a complete listing of the simplification
 rules. 
 \item 
 It instantiates the classical reasoning module.  See~\S\ref{hol-cla-prover}
@@ -519,7 +521,7 @@ for details.
 \end{figure} 
 
 
-\begin{figure} \makeatother
+\begin{figure} \underscoreon
 \begin{ttbox}
 \idx{mem_Collect_eq}    (a : \{x.P(x)\}) = P(a)
 \idx{Collect_mem_eq}    \{x.x:A\} = A
@@ -552,7 +554,7 @@ for details.
 \end{figure}
 
 
-\begin{figure} \makeatother
+\begin{figure} \underscoreon
 \begin{ttbox}
 \idx{CollectI}      [| P(a) |] ==> a : \{x.P(x)\}
 \idx{CollectD}      [| a : \{x.P(x)\} |] ==> P(a)
@@ -593,7 +595,7 @@ for details.
 \end{figure}
 
 
-\begin{figure} \makeatother
+\begin{figure} \underscoreon
 \begin{ttbox}
 \idx{emptyE}   a : \{\} ==> P
 
@@ -653,13 +655,13 @@ do in~{\ZF}.  In {\HOL} the intersection of the empty set is well-defined,
 denoting the universal set for the given type.
 
 \subsection{Syntax of set theory}
-The type $\alpha\,set$ is essentially the same as $\alpha\To bool$.  The new
-type is defined for clarity and to avoid complications involving function
-types in unification.  Since Isabelle does not support type definitions (as
-discussed above), the isomorphisms between the two types are declared
-explicitly.  Here they are natural: {\tt Collect} maps $\alpha\To bool$ to
-$\alpha\,set$, while \hbox{\tt op :} maps in the other direction (ignoring
-argument order).  
+The type $\alpha\,set$ is essentially the same as $\alpha\To bool$.  The
+new type is defined for clarity and to avoid complications involving
+function types in unification.  Since Isabelle does not support type
+definitions (as mentioned in \S\ref{HOL-types}), the isomorphisms between
+the two types are declared explicitly.  Here they are natural: {\tt
+  Collect} maps $\alpha\To bool$ to $\alpha\,set$, while \hbox{\tt op :}
+maps in the other direction (ignoring argument order).
 
 Figure~\ref{hol-set-syntax} lists the constants, infixes, and syntax
 translations.  Figure~\ref{hol-set-syntax2} presents the grammar of the new
@@ -709,13 +711,13 @@ A$) are not binders, but equals $\bigcup@{x\in A}x$ and $\bigcap@{x\in
 The axioms \ttindexbold{mem_Collect_eq} and
 \ttindexbold{Collect_mem_eq} assert that the functions {\tt Collect} and
 \hbox{\tt op :} are isomorphisms. 
-All the other axioms are definitions; see Figure~\ref{hol-set-rules}.
+All the other axioms are definitions; see Fig.\ts \ref{hol-set-rules}.
 These include straightforward properties of functions: image~({\tt``}) and
 {\tt range}, and predicates concerning monotonicity, injectiveness, etc.
 
 {\HOL}'s set theory has the {\ML} identifier \ttindexbold{Set.thy}.
 
-\begin{figure} \makeatother
+\begin{figure} \underscoreon
 \begin{ttbox}
 \idx{imageI}     [| x:A |] ==> f(x) : f``A
 \idx{imageE}     [| b : f``A;  !!x.[| b=f(x);  x:A |] ==> P |] ==> P
@@ -752,7 +754,7 @@ These include straightforward properties of functions: image~({\tt``}) and
 \end{figure}
 
 
-\begin{figure} \makeatother
+\begin{figure} \underscoreon
 \begin{ttbox}
 \idx{Union_upper}     B:A ==> B <= Union(A)
 \idx{Union_least}     [| !!X. X:A ==> X<=C |] ==> Union(A) <= C
@@ -772,7 +774,7 @@ These include straightforward properties of functions: image~({\tt``}) and
 \end{figure}
 
 
-\begin{figure} \makeatother
+\begin{figure} \underscoreon
 \begin{ttbox}
 \idx{Int_absorb}         A Int A = A
 \idx{Int_commute}        A Int B = B Int A
@@ -791,12 +793,12 @@ These include straightforward properties of functions: image~({\tt``}) and
 \idx{Compl_Int}          Compl(A Int B) = Compl(A) Un Compl(B)
 
 \idx{Union_Un_distrib}   Union(A Un B) = Union(A) Un Union(B)
-\idx{Int_Union_image}    A Int Union(B) = (UN C:B. A Int C)
+\idx{Int_Union}          A Int Union(B) = (UN C:B. A Int C)
 \idx{Un_Union_image} 
     (UN x:C. A(x) Un B(x)) = Union(A``C)  Un  Union(B``C)
 
 \idx{Inter_Un_distrib}   Inter(A Un B) = Inter(A) Int Inter(B)
-\idx{Un_Inter_image}     A Un Inter(B) = (INT C:B. A Un C)
+\idx{Un_Inter}           A Un Inter(B) = (INT C:B. A Un C)
 \idx{Int_Inter_image}
    (INT x:C. A(x) Int B(x)) = Inter(A``C) Int Inter(B``C)
 \end{ttbox}
@@ -813,36 +815,40 @@ designed for classical reasoning; the more natural rules \ttindexbold{subsetD},
 \ttindexbold{bexI}, \ttindexbold{Un1} and~\ttindexbold{Un2} are not
 strictly necessary.  Similarly, \ttindexbold{equalityCE} supports classical
 reasoning about extensionality, after the fashion of \ttindex{iffCE}.  See
-the file \ttindexbold{HOL/set.ML} for proofs pertaining to set theory.
+the file {\tt HOL/set.ML} for proofs pertaining to set theory.
 
-Figure~\ref{hol-fun} presents derived rules involving functions.  See
-the file \ttindexbold{HOL/fun.ML} for a complete listing.
+Figure~\ref{hol-fun} presents derived inference rules involving functions.  See
+the file {\tt HOL/fun.ML} for a complete listing.
 
 Figure~\ref{hol-subset} presents lattice properties of the subset relation.
-See \ttindexbold{HOL/subset.ML}.
+See the file {\tt HOL/subset.ML}.
 
 Figure~\ref{hol-equalities} presents set equalities.  See
-\ttindexbold{HOL/equalities.ML}.
+{\tt HOL/equalities.ML}.
 
 
-\begin{figure} \makeatother
+\begin{figure}
 \begin{center}
 \begin{tabular}{rrr} 
   \it name      &\it meta-type  & \it description \\ 
   \idx{Pair}    & $[\alpha,\beta]\To \alpha\times\beta$
         & ordered pairs $\langle a,b\rangle$ \\
-  \idx{fst}     & $\alpha\times\beta \To \alpha$                & first projection\\
+  \idx{fst}     & $\alpha\times\beta \To \alpha$        & first projection\\
   \idx{snd}     & $\alpha\times\beta \To \beta$         & second projection\\
   \idx{split}   & $[\alpha\times\beta, [\alpha,\beta]\To\gamma] \To \gamma$ 
-        & generalized projection
+        & generalized projection\\
+  \idx{Sigma}  & 
+        $[\alpha\,set, \alpha\To\beta\,set]\To(\alpha\times\beta)set$ &
+        general sum of sets
 \end{tabular}
 \end{center}
 \subcaption{Constants}
 
-\begin{ttbox}
+\begin{ttbox}\makeatletter
 \idx{fst_def}      fst(p)     == @a. ? b. p = <a,b>
 \idx{snd_def}      snd(p)     == @b. ? a. p = <a,b>
 \idx{split_def}    split(p,c) == c(fst(p),snd(p))
+\idx{Sigma_def}    Sigma(A,B) == UN x:A. UN y:B(x). \{<x,y>\}
 \subcaption{Definitions}
 
 \idx{Pair_inject}  [| <a, b> = <a',b'>;  [| a=a';  b=b' |] ==> R |] ==> R
@@ -852,6 +858,11 @@ Figure~\ref{hol-equalities} presents set equalities.  See
 \idx{split}        split(<a,b>, c) = c(a,b)
 
 \idx{surjective_pairing}  p = <fst(p),snd(p)>
+
+\idx{SigmaI}       [| a:A;  b:B(a) |] ==> <a,b> : Sigma(A,B)
+
+\idx{SigmaE}       [| c: Sigma(A,B);  
+                !!x y.[| x:A; y:B(x); c=<x,y> |] ==> P |] ==> P
 \subcaption{Derived rules}
 \end{ttbox}
 \caption{Type $\alpha\times\beta$} 
@@ -859,7 +870,7 @@ Figure~\ref{hol-equalities} presents set equalities.  See
 \end{figure} 
 
 
-\begin{figure} \makeatother
+\begin{figure}
 \begin{center}
 \begin{tabular}{rrr} 
   \it name      &\it meta-type  & \it description \\ 
@@ -871,8 +882,8 @@ Figure~\ref{hol-equalities} presents set equalities.  See
 \end{center}
 \subcaption{Constants}
 
-\begin{ttbox}
-\idx{case_def}     case == (%p f g. @z. (!x. p=Inl(x) --> z=f(x)) &
+\begin{ttbox}\makeatletter
+\idx{case_def}     case == (\%p f g. @z. (!x. p=Inl(x) --> z=f(x)) &
                                   (!y. p=Inr(y) --> z=g(y)))
 \subcaption{Definition}
 
@@ -903,16 +914,16 @@ product, sum, natural number and list types.
 \subsection{Product and sum types}
 {\HOL} defines the product type $\alpha\times\beta$ and the sum type
 $\alpha+\beta$, with the ordered pair syntax {\tt<$a$,$b$>}, using fairly
-standard constructions (Figures~\ref{hol-prod} and~\ref{hol-sum}).  Because
-Isabelle does not support type definitions, the isomorphisms between these
-types and their representations are made explicitly.
+standard constructions (Figs.~\ref{hol-prod} and~\ref{hol-sum}).  Because
+Isabelle does not support abstract type definitions, the isomorphisms
+between these types and their representations are made explicitly.
 
 Most of the definitions are suppressed, but observe that the projections
 and conditionals are defined as descriptions.  Their properties are easily
-proved using \ttindex{select_equality}.  See \ttindexbold{HOL/prod.thy} and
-\ttindexbold{HOL/sum.thy} for details.
+proved using \ttindex{select_equality}.  See {\tt HOL/prod.thy} and
+{\tt HOL/sum.thy} for details.
 
-\begin{figure} \makeatother
+\begin{figure} 
 \indexbold{*"<}
 \begin{center}
 \begin{tabular}{rrr} 
@@ -945,27 +956,27 @@ proved using \ttindex{select_equality}.  See \ttindexbold{HOL/prod.thy} and
 \end{center}
 \subcaption{Constants and infixes}
 
-\begin{ttbox}
-\idx{nat_case_def}  nat_case == (%n a f. @z. (n=0 --> z=a) & 
+\begin{ttbox}\makeatother
+\idx{nat_case_def}  nat_case == (\%n a f. @z. (n=0 --> z=a) & 
                                         (!x. n=Suc(x) --> z=f(x)))
 \idx{pred_nat_def}  pred_nat == \{p. ? n. p = <n, Suc(n)>\} 
 \idx{less_def}      m<n      == <m,n>:pred_nat^+
 \idx{nat_rec_def}   nat_rec(n,c,d) == 
-               wfrec(pred_nat, n, %l g.nat_case(l, c, %m.d(m,g(m))))
+               wfrec(pred_nat, n, \%l g.nat_case(l, c, \%m.d(m,g(m))))
 
-\idx{add_def}   m+n  == nat_rec(m, n, %u v.Suc(v))
-\idx{diff_def}  m-n  == nat_rec(n, m, %u v. nat_rec(v, 0, %x y.x))
-\idx{mult_def}  m*n  == nat_rec(m, 0, %u v. n + v)
-\idx{mod_def}   m//n == wfrec(trancl(pred_nat), m, %j f. if(j<n,j,f(j-n)))
+\idx{add_def}   m+n  == nat_rec(m, n, \%u v.Suc(v))
+\idx{diff_def}  m-n  == nat_rec(n, m, \%u v. nat_rec(v, 0, \%x y.x))
+\idx{mult_def}  m*n  == nat_rec(m, 0, \%u v. n + v)
+\idx{mod_def}   m//n == wfrec(trancl(pred_nat), m, \%j f. if(j<n,j,f(j-n)))
 \idx{quo_def}   m/n  == wfrec(trancl(pred_nat), 
-                        m, %j f. if(j<n,0,Suc(f(j-n))))
+                        m, \%j f. if(j<n,0,Suc(f(j-n))))
 \subcaption{Definitions}
 \end{ttbox}
 \caption{Defining $nat$, the type of natural numbers} \label{hol-nat1}
 \end{figure}
 
 
-\begin{figure} \makeatother
+\begin{figure} \underscoreon
 \begin{ttbox}
 \idx{nat_induct}     [| P(0); !!k. [| P(k) |] ==> P(Suc(k)) |]  ==> P(n)
 
@@ -1015,8 +1026,8 @@ between~$nat$ and its representation are made explicitly.
 The definition makes use of a least fixed point operator \ttindex{lfp},
 defined using the Knaster-Tarski theorem.  This in turn defines an operator
 \ttindex{trancl} for taking the transitive closure of a relation.  See
-files \ttindexbold{HOL/lfp.thy} and \ttindexbold{HOL/trancl.thy} for
-details.  The definition of~$nat$ resides on \ttindexbold{HOL/nat.thy}.  
+files {\tt HOL/lfp.thy} and {\tt HOL/trancl.thy} for
+details.  The definition of~$nat$ resides on {\tt HOL/nat.thy}.  
 
 Type $nat$ is postulated to belong to class~$ord$, which overloads $<$ and
 $\leq$ on the natural numbers.  As of this writing, Isabelle provides no
@@ -1024,20 +1035,20 @@ means of verifying that such overloading is sensible.  On the other hand,
 the {\HOL} theory includes no polymorphic axioms stating general properties
 of $<$ and $\leq$.
 
-File \ttindexbold{HOL/arith.ML} develops arithmetic on the natural numbers.
+File {\tt HOL/arith.ML} develops arithmetic on the natural numbers.
 It defines addition, multiplication, subtraction, division, and remainder,
 proving the theorem $a \bmod b + (a/b)\times b = a$.  Division and
 remainder are defined by repeated subtraction, which requires well-founded
 rather than primitive recursion.
 
 Primitive recursion makes use of \ttindex{wfrec}, an operator for recursion
-along arbitrary well-founded relations; see \ttindexbold{HOL/wf.ML} for the
+along arbitrary well-founded relations; see {\tt HOL/wf.ML} for the
 development.  The predecessor relation, \ttindexbold{pred_nat}, is shown to
 be well-founded; recursion along this relation is primitive recursion,
 while its transitive closure is~$<$.
 
 
-\begin{figure} \makeatother
+\begin{figure}
 \begin{center}
 \begin{tabular}{rrr} 
   \it symbol    & \it meta-type & \it description \\ 
@@ -1054,7 +1065,7 @@ while its transitive closure is~$<$.
 \subcaption{Constants}
 
 \begin{ttbox}
-\idx{map_def}     map(f,xs) == list_rec(xs, Nil, %x l r. Cons(f(x), r))
+\idx{map_def}     map(f,xs) == list_rec(xs, Nil, \%x l r. Cons(f(x), r))
 \subcaption{Definition}
 
 \idx{list_induct}
@@ -1076,7 +1087,7 @@ while its transitive closure is~$<$.
 \subsection{The type constructor for lists, $\alpha\,list$}
 {\HOL}'s definition of lists is an example of an experimental method for
 handling recursive data types.  The details need not concern us here; see
-the file \ttindexbold{HOL/list.ML}.  Figure~\ref{hol-list} presents the
+the file {\tt HOL/list.ML}.  Figure~\ref{hol-list} presents the
 basic list operations, with their types and properties.  In particular,
 \ttindexbold{list_rec} is a primitive recursion operator for lists, in the
 style of Martin-L\"of type theory.  It is derived from well-founded
@@ -1092,7 +1103,7 @@ simple functions such as map and append.  Co-recursion cannot easily define
 operations such as filter, which can compute indefinitely before yielding
 the next element (if any!) of the lazy list.  A co-induction principle is
 defined for proving equations on lazy lists.  See the files
-\ttindexbold{HOL/llist.thy} and \ttindexbold{HOL/llist.ML} for the formal
+{\tt HOL/llist.thy} and {\tt HOL/llist.ML} for the formal
 derivations.  I have written a report discussing the treatment of lazy
 lists, and finite lists also~\cite{paulson-coind}.
 
@@ -1100,7 +1111,7 @@ lists, and finite lists also~\cite{paulson-coind}.
 \section{Classical proof procedures} \label{hol-cla-prover}
 {\HOL} derives classical introduction rules for $\disj$ and~$\exists$, as
 well as classical elimination rules for~$\imp$ and~$\bimp$, and the swap
-rule (Figure~\ref{hol-lemmas2}).
+rule (Fig.~\ref{hol-lemmas2}).
 
 The classical reasoning module is set up for \HOL, as the structure 
 \ttindexbold{Classical}.  This structure is open, so {\ML} identifiers such
@@ -1150,33 +1161,34 @@ theory~\cite{mw81}.
 Directory {\tt ex} contains other examples and experimental proofs in
 {\HOL}.  Here is an overview of the more interesting files.
 \begin{description}
-\item[\ttindexbold{HOL/ex/meson.ML}]
+\item[{\tt HOL/ex/meson.ML}]
 contains an experimental implementation of the MESON proof procedure,
 inspired by Plaisted~\cite{plaisted90}.  It is much more powerful than
 Isabelle's classical module.  
 
-\item[\ttindexbold{HOL/ex/mesontest.ML}]
+\item[{\tt HOL/ex/mesontest.ML}]
 contains test data for the MESON proof procedure.
 
-\item[\ttindexbold{HOL/ex/set.ML}]
-proves Cantor's Theorem (see below) and the Schr\"oder-Bernstein Theorem.
+\item[{\tt HOL/ex/set.ML}] 
+  proves Cantor's Theorem, which is presented below, and the
+  Schr\"oder-Bernstein Theorem.
 
-\item[\ttindexbold{HOL/ex/pl.ML}]
+\item[{\tt HOL/ex/pl.ML}]
 proves the soundness and completeness of classical propositional logic,
 given a truth table semantics.  The only connective is $\imp$.  A
 Hilbert-style axiom system is specified, and its set of theorems defined
 inductively.
 
-\item[\ttindexbold{HOL/ex/term.ML}] 
+\item[{\tt HOL/ex/term.ML}] 
   contains proofs about an experimental recursive type definition;
   the recursion goes through the type constructor~$list$.
 
-\item[\ttindexbold{HOL/ex/simult.ML}]
+\item[{\tt HOL/ex/simult.ML}]
 defines primitives for solving mutually recursive equations over sets.
 It constructs sets of trees and forests as an example, including induction
 and recursion rules that handle the mutual recursion.
 
-\item[\ttindexbold{HOL/ex/mt.ML}]
+\item[{\tt HOL/ex/mt.ML}]
 contains Jacob Frost's formalization~\cite{frost93} of a co-induction
 example by Milner and Tofte~\cite{milner-coind}.
 \end{description}
@@ -1220,6 +1232,7 @@ by (resolve_tac [allI] 1);
 {\out Level 2}
 {\out P & Q}
 {\out  1. !!R. (P --> Q --> R) --> R}
+\ttbreak
 by (resolve_tac [impI] 1);
 {\out Level 3}
 {\out P & Q}
@@ -1259,19 +1272,20 @@ val prems = goal HOL.thy "[| P & Q |] ==> P";
 Working with premises that involve defined constants can be tricky.  We
 must expand the definition of conjunction in the meta-assumption $P\conj
 Q$.  The rule \ttindex{subst} performs substitution in forward proofs.
-We get two resolvents, since the vacuous substitution is valid:
+We get {\it two\/} resolvents since the vacuous substitution is valid:
 \begin{ttbox}
 prems RL [and_def RS subst];
 {\out val it = ["! R. (P --> Q --> R) --> R  [P & Q]",}
 {\out           "P & Q  [P & Q]"] : thm list}
 \end{ttbox}
 By applying $(\forall E)$ and $({\imp}E)$ to the resolvents, we dispose of
-the vacuous one and put the other into a convenient form:\footnote
-{In higher-order logic, {\tt spec RS mp} fails because the resolution yields
-two results, namely ${\List{\forall x.x; P}\Imp Q}$ and ${\List{\forall
-  x.P(x)\imp Q(x); P(x)}\Imp Q(x)}$.  In first-order logic, the resolution
-yields only the latter result.}
-\index{*RL}
+the vacuous one and put the other into a convenient form:\footnote {Why use
+  {\tt [spec] RL [mp]} instead of {\tt [spec RS mp]} to join the rules?  In
+  higher-order logic, {\tt spec RS mp} fails because the resolution yields
+  two results, namely ${\List{\forall x.x; P}\Imp Q}$ and ${\List{\forall
+      x.P(x)\imp Q(x); P(x)}\Imp Q(x)}$.  In first-order logic, the
+  resolution yields only the latter result because $\forall x.x$ is not a
+  first-order formula; in fact, it is equivalent to falsity.} \index{*RL}
 \begin{ttbox}
 prems RL [and_def RS subst] RL [spec] RL [mp];
 {\out val it = ["P --> Q --> ?Q ==> ?Q  [P & Q]"] : thm list}
@@ -1304,7 +1318,6 @@ it is so easily expressed:
 Viewing types as sets, $\alpha\To bool$ represents the powerset
 of~$\alpha$.  This version states that for every function from $\alpha$ to
 its powerset, some subset is outside its range.
-
 The Isabelle proof uses {\HOL}'s set theory, with the type $\alpha\,set$ and
 the operator \ttindex{range}.  Since it avoids quantification, we may
 inspect the subset found by the proof.
@@ -1321,6 +1334,7 @@ by (resolve_tac [notI] 1);
 {\out Level 1}
 {\out ~ ?S : range(f)}
 {\out  1. ?S : range(f) ==> False}
+\ttbreak
 by (eresolve_tac [rangeE] 1);
 {\out Level 2}
 {\out ~ ?S : range(f)}
@@ -1347,8 +1361,8 @@ by (dresolve_tac [CollectD] 1);
 {\out  2. !!x. [| ~ ?c3(x) : \{x. ?P7(x)\}; ~ ?c3(x) : f(x) |] ==> False}
 \end{ttbox}
 Forcing a contradiction between the two assumptions of subgoal~1 completes
-the instantiation of~$S$.  It is now $\{x. x\not\in f(x)\}$, the standard
-diagonal construction.
+the instantiation of~$S$.  It is now the set $\{x. x\not\in f(x)\}$, the
+standard diagonal construction.
 \begin{ttbox}
 by (contr_tac 1);
 {\out Level 5}
@@ -1362,6 +1376,7 @@ by (swap_res_tac [CollectI] 1);
 {\out Level 6}
 {\out ~ \{x. ~ x : f(x)\} : range(f)}
 {\out  1. !!x. [| ~ x : f(x); ~ False |] ==> ~ x : f(x)}
+\ttbreak
 by (assume_tac 1);
 {\out Level 7}
 {\out ~ \{x. ~ x : f(x)\} : range(f)}
@@ -1378,6 +1393,7 @@ choplev 0;
 {\out Level 0}
 {\out ~ ?S : range(f)}
 {\out  1. ~ ?S : range(f)}
+\ttbreak
 by (best_tac (set_cs addSEs [equalityCE]) 1);
 {\out Level 1}
 {\out ~ \{x. ~ x : f(x)\} : range(f)}

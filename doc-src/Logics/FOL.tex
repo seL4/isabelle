@@ -1,5 +1,5 @@
 %% $Id$
-\chapter{First-order logic}
+\chapter{First-Order logic}
 The directory~\ttindexbold{FOL} contains theories for first-order logic
 based on Gentzen's natural deduction systems (which he called {\sc nj} and
 {\sc nk}).  Intuitionistic logic is defined first; then classical logic is
@@ -34,7 +34,7 @@ $\exists!x. \exists!y.P(x,y)$; note that this does not mean that there
 exists a unique pair $(x,y)$ satisfying~$P(x,y)$.
 
 Some intuitionistic derived rules are shown in
-Figure~\ref{fol-int-derived}, again with their \ML\ names.  These include
+Fig.\ts\ref{fol-int-derived}, again with their \ML\ names.  These include
 rules for the defined symbols $\neg$, $\bimp$ and $\exists!$.  Natural
 deduction typically involves a combination of forwards and backwards
 reasoning, particularly with the destruction rules $(\conj E)$,
@@ -46,8 +46,8 @@ re-inserts the quantified formula for later use.  The rules {\tt
 conj_impE}, etc., support the intuitionistic proof procedure
 (see~\S\ref{fol-int-prover}).
 
-See the files \ttindexbold{FOL/ifol.thy}, \ttindexbold{FOL/ifol.ML} and
-\ttindexbold{FOL/intprover.ML} for complete listings of the rules and
+See the files {\tt FOL/ifol.thy}, {\tt FOL/ifol.ML} and
+{\tt FOL/intprover.ML} for complete listings of the rules and
 derived rules.
 
 \begin{figure} 
@@ -194,7 +194,7 @@ derived rules.
 
 \section{Generic packages}
 \FOL{} instantiates most of Isabelle's generic packages;
-see \ttindexbold{FOL/ROOT.ML} for details.
+see {\tt FOL/ROOT.ML} for details.
 \begin{itemize}
 \item 
 Because it includes a general substitution rule, \FOL{} instantiates the
@@ -205,7 +205,7 @@ It instantiates the simplifier. \ttindexbold{IFOL_ss} is the simplification
 set for intuitionistic first-order logic, while \ttindexbold{FOL_ss} is the
 simplification set for classical logic.  Both equality ($=$) and the
 biconditional ($\bimp$) may be used for rewriting.  See the file
-\ttindexbold{FOL/simpdata.ML} for a complete listing of the simplification
+{\tt FOL/simpdata.ML} for a complete listing of the simplification
 rules. 
 \item 
 It instantiates the classical reasoning module.  See~\S\ref{fol-cla-prover}
@@ -228,7 +228,7 @@ needed twice:
 \]
 The theorem prover for intuitionistic logic does not use~{\tt impE}.\@
 Instead, it simplifies implications using derived rules
-(Figure~\ref{fol-int-derived}).  It reduces the antecedents of implications
+(Fig.\ts\ref{fol-int-derived}).  It reduces the antecedents of implications
 to atoms and then uses Modus Ponens: from $P\imp Q$ and $P$ deduce~$Q$.
 The rules \ttindex{conj_impE} and \ttindex{disj_impE} are 
 straightforward: $(P\conj Q)\imp S$ is equivalent to $P\imp (Q\imp S)$, and
@@ -254,7 +254,7 @@ Int.best_tac      : int -> tactic
 \end{ttbox}
 Most of these belong to the structure \ttindexbold{Int}.  They are
 similar or identical to tactics (with the same names) provided by
-Isabelle's classical module (see {\em The Isabelle Reference Manual\/}).
+Isabelle's classical module (see the {\em Reference Manual\/}).
 
 \begin{description}
 \item[\ttindexbold{mp_tac} {\it i}] 
@@ -328,7 +328,7 @@ $$ \vcenter{\infer{P}{\infer*{P}{[\neg P]}}} \eqno(classical) $$
 Natural deduction in classical logic is not really all that natural.
 {\FOL} derives classical introduction rules for $\disj$ and~$\exists$, as
 well as classical elimination rules for~$\imp$ and~$\bimp$, and the swap
-rule (see Figure~\ref{fol-cla-derived}).
+rule (see Fig.\ts\ref{fol-cla-derived}).
 
 The classical reasoning module is set up for \FOL, as the
 structure~\ttindexbold{Cla}.  This structure is open, so \ML{} identifiers
@@ -361,7 +361,7 @@ formulae may be duplicated --- but frequently fails to terminate.  It is
 generally unsuitable for depth-first search.
 \end{description}
 \noindent
-See the file \ttindexbold{FOL/fol.ML} for derivations of the
+See the file {\tt FOL/fol.ML} for derivations of the
 classical rules, and the {\em Reference Manual} for more discussion of
 classical proof methods.
 
@@ -537,6 +537,7 @@ by (REPEAT (eresolve_tac [FalseE] 2));
 {\out Level 5}
 {\out ~ ~ ((P --> Q) | (Q --> P))}
 {\out  1. [| P; Q --> False; Q; P --> False |] ==> P}
+\ttbreak
 by (assume_tac 1);
 {\out Level 6}
 {\out ~ ~ ((P --> Q) | (Q --> P))}
@@ -835,13 +836,17 @@ choplev 0;
 {\out Level 0}
 {\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))}
 {\out  1. if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))}
-\ttbreak
+\end{ttbox}
+This time, simply unfold using the definition of $if$:
+\begin{ttbox}
 by (rewrite_goals_tac [if_def]);
 {\out Level 1}
 {\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))}
 {\out  1. (P & Q | ~ P & R) & A | ~ (P & Q | ~ P & R) & B <->}
 {\out     P & (Q & A | ~ Q & B) | ~ P & (R & A | ~ R & B)}
-\ttbreak
+\end{ttbox}
+We are left with a subgoal in pure first-order logic:
+\begin{ttbox}
 by (fast_tac FOL_cs 1);
 {\out Level 2}
 {\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))}

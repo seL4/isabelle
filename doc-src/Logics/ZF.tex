@@ -1,6 +1,6 @@
 %% $Id$
 %%%See grant/bra/Lib/ZF.tex for lfp figure
-\chapter{Zermelo-Fraenkel set theory}
+\chapter{Zermelo-Fraenkel Set Theory}
 The directory~\ttindexbold{ZF} implements Zermelo-Fraenkel set
 theory~\cite{halmos60,suppes72} as an extension of~\ttindex{FOL}, classical
 first-order logic.  The theory includes a collection of derived natural
@@ -162,8 +162,10 @@ obvious manner using~{\tt cons} and~$\emptyset$ (the empty set):
 The constant \ttindexbold{Pair} constructs ordered pairs, as in {\tt
 Pair($a$,$b$)}.  Ordered pairs may also be written within angle brackets,
 as {\tt<$a$,$b$>}.  The $n$-tuple {\tt<$a@1$,\ldots,$a@{n-1}$,$a@n$>}
-abbreviates the nest of pairs {\tt
-  Pair($a@1$,\ldots,Pair($a@{n-1}$,$a@n$)\ldots)}. 
+abbreviates the nest of pairs 
+\begin{quote}
+  \tt Pair($a@1$,\ldots,Pair($a@{n-1}$,$a@n$)\ldots).
+\end{quote}
 
 In {\ZF}, a function is a set of pairs.  A {\ZF} function~$f$ is simply an
 individual as far as Isabelle is concerned: its Isabelle type is~$i$, not
@@ -175,7 +177,7 @@ syntax for image is~$f{\tt``}A$ and that for inverse image is~$f{\tt-``}A$.
 \begin{figure} 
 \indexbold{*"-">}
 \indexbold{*"*}
-\begin{center} \tt\frenchspacing
+\begin{center} \footnotesize\tt\frenchspacing
 \begin{tabular}{rrr} 
   \it external          & \it internal  & \it description \\ 
   $a$ \ttilde: $b$      & \ttilde($a$ : $b$)    & \rm negated membership\\
@@ -280,16 +282,18 @@ predicate is also called a {\bf class function}.
 The constant \ttindexbold{RepFun} expresses a special case of replacement,
 where $Q[x,y]$ has the form $y=b[x]$.  Such a $Q$ is trivially
 single-valued, since it is just the graph of the meta-level
-function~$\lambda x.b[x]$.  The syntax is \hbox{\tt\{$b[x]$.$x$:$A$\}},
-denoting set {\tt RepFun($A$,$\lambda x.b[x]$)} of all $b[x]$ for~$x\in A$.
-This is analogous to the \ML{} functional {\tt map}, since it applies a
-function to every element of a set.
+function~$\lambda x.b[x]$.  The resulting set consists of all $b[x]$
+for~$x\in A$.  This is analogous to the \ML{} functional {\tt map}, since
+it applies a function to every element of a set.  The syntax is
+\hbox{\tt\{$b[x]$.$x$:$A$\}}, which expands to {\tt RepFun($A$,$\lambda
+  x.b[x]$)}.
 
-\indexbold{*INT}\indexbold{*UN}
-General unions and intersections of families, namely $\bigcup@{x\in A}B[x]$ and
-$\bigcap@{x\in A}B[x]$, are written \hbox{\tt UN $x$:$A$.$B[x]$} and
-\hbox{\tt INT $x$:$A$.$B[x]$}.  Their meaning is expressed using {\tt
-RepFun} as
+
+\indexbold{*INT}\indexbold{*UN} 
+General unions and intersections of indexed
+families of sets, namely $\bigcup@{x\in A}B[x]$ and $\bigcap@{x\in A}B[x]$,
+are written \hbox{\tt UN $x$:$A$.$B[x]$} and \hbox{\tt INT $x$:$A$.$B[x]$}.
+Their meaning is expressed using {\tt RepFun} as
 \[ \bigcup(\{B[x]. x\in A\}) \qquad\hbox{and}\qquad 
    \bigcap(\{B[x]. x\in A\}). 
 \]
@@ -355,7 +359,7 @@ write
 \subcaption{The Zermelo-Fraenkel Axioms}
 
 \idx{Replace_def}  Replace(A,P) == 
-                   PrimReplace(A, %x y. (EX!z.P(x,z)) & P(x,y))
+                   PrimReplace(A, \%x y. (EX!z.P(x,z)) & P(x,y))
 \idx{RepFun_def}   RepFun(A,f)  == \{y . x:A, y=f(x)\}
 \idx{the_def}      The(P)       == Union(\{y . x:\{0\}, P(y)\})
 \idx{if_def}       if(P,a,b)    == THE z. P & z=a | ~P & z=b
@@ -383,8 +387,8 @@ write
 
 \idx{Pair_def}       <a,b>      == \{\{a,a\}, \{a,b\}\}
 \idx{split_def}      split(c,p) == THE y. EX a b. p=<a,b> & y=c(a,b)
-\idx{fst_def}        fst(A)     == split(%x y.x, p)
-\idx{snd_def}        snd(A)     == split(%x y.y, p)
+\idx{fst_def}        fst(A)     == split(\%x y.x, p)
+\idx{snd_def}        snd(A)     == split(\%x y.y, p)
 \idx{Sigma_def}      Sigma(A,B) == UN x:A. UN y:B(x). \{<x,y>\}
 \subcaption{Ordered pairs and Cartesian products}
 
@@ -495,12 +499,12 @@ write
 
 
 \section{The Zermelo-Fraenkel axioms}
-The axioms appear in Figure~\ref{ZF-rules}.  They resemble those
+The axioms appear in Fig.\ts \ref{ZF-rules}.  They resemble those
 presented by Suppes~\cite{suppes72}.  Most of the theory consists of
 definitions.  In particular, bounded quantifiers and the subset relation
 appear in other axioms.  Object-level quantifiers and implications have
 been replaced by meta-level ones wherever possible, to simplify use of the
-axioms.  See the file \ttindexbold{ZF/zf.thy} for details.
+axioms.  See the file {\tt ZF/zf.thy} for details.
 
 The traditional replacement axiom asserts
 \[ y \in {\tt PrimReplace}(A,P) \bimp (\exists x\in A. P(x,y)) \]
@@ -527,7 +531,7 @@ successor (\ttindexbold{succ}).  Although this set is not uniquely defined,
 the theory names it (\ttindexbold{Inf}) in order to simplify the
 construction of the natural numbers.
                                              
-Further definitions appear in Figure~\ref{ZF-defs}.  Ordered pairs are
+Further definitions appear in Fig.\ts\ref{ZF-defs}.  Ordered pairs are
 defined in the standard way, $\pair{a,b}\equiv\{\{a\},\{a,b\}\}$.  Recall
 that \ttindexbold{Sigma}$(A,B)$ generalizes the Cartesian product of two
 sets.  It is defined to be the union of all singleton sets
@@ -584,7 +588,7 @@ natural deduction rules for \ttindex{Collect}.  The elimination rule
 \ttindex{CollectD1} and \ttindex{CollectD2}, but each rule is suited to
 particular circumstances.  Although too many rules can be confusing, there
 is no reason to aim for a minimal set of rules.  See the file
-\ttindexbold{ZF/zf.ML} for a complete listing.
+{\tt ZF/zf.ML} for a complete listing.
 
 Figure~\ref{ZF-lemmas3} presents rules for general union and intersection.
 The empty intersection should be undefined.  We cannot have
@@ -684,7 +688,7 @@ Finally, the impossibility of having both $a\in b$ and $b\in a$
 (\ttindex{mem_anti_sym}) is proved by applying the axiom of foundation to
 the set $\{a,b\}$.  The impossibility of $a\in a$ is a trivial consequence.
 
-See the file \ttindexbold{ZF/upair.ML} for full details.
+See the file {\tt ZF/upair.ML} for full details.
 
 
 %%% subset.ML
@@ -718,7 +722,7 @@ See the file \ttindexbold{ZF/upair.ML} for full details.
 Figure~\ref{ZF-subset} shows that the subset relation is a complete
 lattice.  Unions form least upper bounds; non-empty intersections form
 greatest lower bounds.  A few other laws involving subsets are included.
-See the file \ttindexbold{ZF/subset.ML}.
+See the file {\tt ZF/subset.ML}.
 
 %%% pair.ML
 
@@ -731,7 +735,7 @@ See the file \ttindexbold{ZF/subset.ML}.
 
 \idx{fst}       fst(<a,b>) = a
 \idx{snd}       snd(<a,b>) = b
-\idx{split}     split(%x y.c(x,y), <a,b>) = c(a,b)
+\idx{split}     split(\%x y.c(x,y), <a,b>) = c(a,b)
 
 \idx{SigmaI}    [| a:A;  b:B(a) |] ==> <a,b> : Sigma(A,B)
 
@@ -747,7 +751,7 @@ See the file \ttindexbold{ZF/subset.ML}.
 
 \subsection{Ordered pairs}
 Figure~\ref{ZF-pair} presents the rules governing ordered pairs,
-projections and general sums.  File \ttindexbold{ZF/pair.ML} contains the
+projections and general sums.  File {\tt ZF/pair.ML} contains the
 full (and tedious) proof that $\{\{a\},\{a,b\}\}$ functions as an ordered
 pair.  This property is expressed as two destruction rules,
 \ttindexbold{Pair_inject1} and \ttindexbold{Pair_inject2}, and equivalently
@@ -811,7 +815,7 @@ some pair of the form~$\pair{x,y}$.  The range operation is similar, and
 the field of a relation is merely the union of its domain and range.  Note
 that image and inverse image are generalizations of range and domain,
 respectively.  See the file
-\ttindexbold{ZF/domrange.ML} for derivations of the rules.
+{\tt ZF/domrange.ML} for derivations of the rules.
 
 
 %%% func.ML
@@ -876,7 +880,7 @@ respectively.  See the file
 
 \subsection{Functions}
 Functions, represented by graphs, are notoriously difficult to reason
-about.  The file \ttindexbold{ZF/func.ML} derives many rules, which overlap
+about.  The file {\tt ZF/func.ML} derives many rules, which overlap
 more than they ought.  One day these rules will be tidied up; this section
 presents only the more important ones.
 
@@ -907,7 +911,7 @@ disjoint.
 \begin{center}
 \begin{tabular}{rrr} 
   \it name      &\it meta-type  & \it description \\ 
-  \idx{id}      & $i$           & identity function \\
+  \idx{id}      & $\To i$       & identity function \\
   \idx{inj}     & $[i,i]\To i$  & injective function space\\
   \idx{surj}    & $[i,i]\To i$  & surjective function space\\
   \idx{bij}     & $[i,i]\To i$  & bijective function space
@@ -1104,7 +1108,7 @@ disjoint.
 \idx{sum_def}        A+B == \{0\}*A Un \{1\}*B
 \idx{Inl_def}        Inl(a) == <0,a>
 \idx{Inr_def}        Inr(b) == <1,b>
-\idx{case_def}       case(c,d,u) == split(%y z. cond(y, d(z), c(z)), u)
+\idx{case_def}       case(c,d,u) == split(\%y z. cond(y, d(z), c(z)), u)
 \subcaption{Definitions}
 
 \idx{bool_1I}        1 : bool
@@ -1140,7 +1144,7 @@ disjoint.
 \idx{qsum_def}        A <+> B      == (\{0\} <*> A) Un (\{1\} <*> B)
 \idx{QInl_def}        QInl(a)      == <0;a>
 \idx{QInr_def}        QInr(b)      == <1;b>
-\idx{qcase_def}       qcase(c,d)   == qsplit(%y z. cond(y, d(z), c(z)))
+\idx{qcase_def}       qcase(c,d)   == qsplit(\%y z. cond(y, d(z), c(z)))
 \end{ttbox}
 \caption{Non-standard pairs, products and sums} \label{zf-qpair}
 \end{figure}
@@ -1154,13 +1158,13 @@ disjoint.
               THE y. k=0 & y=a | (EX x. k=succ(x) & y=b(x))
 
 \idx{rec_def}       rec(k,a,b) ==  
-              transrec(k, %n f. nat_case(a, %m. b(m, f`m), n))
+              transrec(k, \%n f. nat_case(a, \%m. b(m, f`m), n))
 
-\idx{add_def}       m#+n == rec(m, n, %u v.succ(v))
-\idx{diff_def}      m#-n == rec(n, m, %u v. rec(v, 0, %x y.x))
-\idx{mult_def}      m#*n == rec(m, 0, %u v. n #+ v)
-\idx{mod_def}       m mod n == transrec(m, %j f. if(j:n, j, f`(j#-n)))
-\idx{div_def}       m div n == transrec(m, %j f. if(j:n, 0, succ(f`(j#-n))))
+\idx{add_def}       m#+n == rec(m, n, \%u v.succ(v))
+\idx{diff_def}      m#-n == rec(n, m, \%u v. rec(v, 0, \%x y.x))
+\idx{mult_def}      m#*n == rec(m, 0, \%u v. n #+ v)
+\idx{mod_def}       m mod n == transrec(m, \%j f. if(j:n, j, f`(j#-n)))
+\idx{div_def}       m div n == transrec(m, \%j f. if(j:n, 0, succ(f`(j#-n))))
 \subcaption{Definitions}
 
 \idx{nat_0I}        0 : nat
@@ -1213,13 +1217,13 @@ disjoint.
 \begin{figure}\underscoreon %%because @ is used here
 \begin{ttbox}
 \idx{list_rec_def}    list_rec(l,c,h) == 
-                Vrec(l, %l g.list_case(c, %x xs. h(x, xs, g`xs), l))
+                Vrec(l, \%l g.list_case(c, \%x xs. h(x, xs, g`xs), l))
 
-\idx{map_def}         map(f,l)  == list_rec(l,  0,  %x xs r. <f(x), r>)
-\idx{length_def}      length(l) == list_rec(l,  0,  %x xs r. succ(r))
-\idx{app_def}         xs@ys     == list_rec(xs, ys, %x xs r. <x,r>)
-\idx{rev_def}         rev(l)    == list_rec(l,  0,  %x xs r. r @ <x,0>)
-\idx{flat_def}        flat(ls)  == list_rec(ls, 0,  %l ls r. l @ r)
+\idx{map_def}         map(f,l)  == list_rec(l,  0,  \%x xs r. <f(x), r>)
+\idx{length_def}      length(l) == list_rec(l,  0,  \%x xs r. succ(r))
+\idx{app_def}         xs@ys     == list_rec(xs, ys, \%x xs r. <x,r>)
+\idx{rev_def}         rev(l)    == list_rec(l,  0,  \%x xs r. r @ <x,0>)
+\idx{flat_def}        flat(ls)  == list_rec(ls, 0,  \%l ls r. l @ r)
 \subcaption{Definitions}
 
 \idx{NilI}            Nil : list(A)
@@ -1239,8 +1243,8 @@ disjoint.
 \idx{list_rec_Nil}    list_rec(Nil,c,h) = c
 \idx{list_rec_Cons}   list_rec(Cons(a,l), c, h) = h(a, l, list_rec(l,c,h))
 
-\idx{map_ident}       l: list(A) ==> map(%u.u, l) = l
-\idx{map_compose}     l: list(A) ==> map(h, map(j,l)) = map(%u.h(j(u)), l)
+\idx{map_ident}       l: list(A) ==> map(\%u.u, l) = l
+\idx{map_compose}     l: list(A) ==> map(h, map(j,l)) = map(\%u.h(j(u)), l)
 \idx{map_app_distrib} xs: list(A) ==> map(h, xs@ys) = map(h,xs) @ map(h,ys)
 \idx{map_type}
     [| l: list(A);  !!x. x: A ==> h(x): B |] ==> map(h,l) : list(B)
@@ -1258,12 +1262,12 @@ theory extensions.
 
 Figure~\ref{zf-equalities} presents commutative, associative, distributive,
 and idempotency laws of union and intersection, along with other equations.
-See file \ttindexbold{ZF/equalities.ML}.
+See file {\tt ZF/equalities.ML}.
 
 Figure~\ref{zf-sum} defines $\{0,1\}$ as a set of booleans, with the usual
 operators including a conditional.  It also defines the disjoint union of
 two sets, with injections and a case analysis operator.  See files
-\ttindexbold{ZF/bool.ML} and \ttindexbold{ZF/sum.ML}.
+{\tt ZF/bool.ML} and {\tt ZF/sum.ML}.
 
 Figure~\ref{zf-qpair} defines a notion of ordered pair that admits
 non-well-founded tupling.  Such pairs are written {\tt<$a$;$b$>}.  It also
@@ -1276,35 +1280,35 @@ definitions, for example of infinite lists.  See file \ttindexbold{qpair.thy}.
 
 Monotonicity properties of most of the set-forming operations are proved.
 These are useful for applying the Knaster-Tarski Fixedpoint Theorem.
-See file \ttindexbold{ZF/mono.ML}.
+See file {\tt ZF/mono.ML}.
 
 Figure~\ref{zf-fixedpt} presents the Knaster-Tarski Fixedpoint Theorem, proved
 for the lattice of subsets of a set.  The theory defines least and greatest
 fixedpoint operators with corresponding induction and co-induction rules.
 Later definitions use these, such as the natural numbers and
 the transitive closure operator.  The (co-)inductive definition
-package also uses them.    See file \ttindexbold{ZF/fixedpt.ML}.
+package also uses them.    See file {\tt ZF/fixedpt.ML}.
 
 Figure~\ref{zf-perm} defines composition and injective, surjective and
 bijective function spaces, with proofs of many of their properties.
-See file \ttindexbold{ZF/perm.ML}.
+See file {\tt ZF/perm.ML}.
 
 Figure~\ref{zf-nat} presents the natural numbers, with induction and a
-primitive recursion operator.  See file \ttindexbold{ZF/nat.ML}.  File
-\ttindexbold{ZF/arith.ML} develops arithmetic on the natural numbers.  It
+primitive recursion operator.  See file {\tt ZF/nat.ML}.  File
+{\tt ZF/arith.ML} develops arithmetic on the natural numbers.  It
 defines addition, multiplication, subtraction, division, and remainder,
 proving the theorem $a \bmod b + (a/b)\times b = a$.  Division and
 remainder are defined by repeated subtraction, which requires well-founded
 rather than primitive recursion.
 
-The file \ttindexbold{ZF/univ.ML} defines a ``universe'' ${\tt univ}(A)$,
+The file {\tt ZF/univ.ML} defines a ``universe'' ${\tt univ}(A)$,
 for constructing datatypes such as trees.  This set contains $A$ and the
 natural numbers.  Vitally, it is closed under finite products: ${\tt
   univ}(A)\times{\tt univ}(A)\subseteq{\tt univ}(A)$.  This file also
 defines set theory's cumulative hierarchy, traditionally written $V@\alpha$
 where $\alpha$ is any ordinal.
 
-The file \ttindexbold{ZF/quniv.ML} defines a ``universe'' ${\tt quniv}(A)$,
+The file {\tt ZF/quniv.ML} defines a ``universe'' ${\tt quniv}(A)$,
 for constructing co-datatypes such as streams.  It is analogous to ${\tt
   univ}(A)$ but is closed under the non-standard product and sum.
 
@@ -1312,34 +1316,34 @@ Figure~\ref{zf-fin} presents the finite set operator; ${\tt Fin}(A)$ is the
 set of all finite sets over~$A$.  The definition employs Isabelle's
 inductive definition package, which proves the introduction rules
 automatically.  The induction rule shown is stronger than the one proved by
-the package.  See file \ttindexbold{ZF/fin.ML}.
+the package.  See file {\tt ZF/fin.ML}.
 
 Figure~\ref{zf-list} presents the set of lists over~$A$, ${\tt list}(A)$.
 The definition employs Isabelle's datatype package, which defines the
 introduction and induction rules automatically, as well as the constructors
-and case operator (\verb|list_case|).  See file \ttindexbold{ZF/list.ML}.
-The file \ttindexbold{ZF/listfn.thy} proceeds to define structural
+and case operator (\verb|list_case|).  See file {\tt ZF/list.ML}.
+The file {\tt ZF/listfn.thy} proceeds to define structural
 recursion and the usual list functions.
 
 The constructions of the natural numbers and lists make use of a suite of
 operators for handling recursive function definitions.  The developments are
 summarized below:
 \begin{description}
-\item[\ttindexbold{ZF/trancl.ML}]
+\item[{\tt ZF/trancl.ML}]
 defines the transitive closure of a relation (as a least fixedpoint).
 
-\item[\ttindexbold{ZF/wf.ML}]
+\item[{\tt ZF/wf.ML}]
 proves the Well-Founded Recursion Theorem, using an elegant
 approach of Tobias Nipkow.  This theorem permits general recursive
 definitions within set theory.
 
-\item[\ttindexbold{ZF/ord.ML}] defines the notions of transitive set and
+\item[{\tt ZF/ord.ML}] defines the notions of transitive set and
   ordinal number.  It derives transfinite induction.  A key definition is
   {\bf less than}: $i<j$ if and only if $i$ and $j$ are both ordinals and
   $i\in j$.  As a special case, it includes less than on the natural
   numbers.
 
-\item[\ttindexbold{ZF/epsilon.ML}]
+\item[{\tt ZF/epsilon.ML}]
 derives $\epsilon$-induction and $\epsilon$-recursion, which are
 generalizations of transfinite induction.  It also defines
 \ttindexbold{rank}$(x)$, which is the least ordinal $\alpha$ such that $x$
@@ -1367,7 +1371,7 @@ V@{\alpha+1}$).
 
 \section{Simplification rules}
 {\ZF} does not merely inherit simplification from \FOL, but instantiates
-the rewriting package new.  File \ttindexbold{ZF/simpdata.ML} contains the
+the rewriting package new.  File {\tt ZF/simpdata.ML} contains the
 details; here is a summary of the key differences:
 \begin{itemize}
 \item 
@@ -1379,7 +1383,7 @@ f(x)=g(x)$.
 \ttindexbold{ZF_ss} contains congruence rules for all the operators of
 {\ZF}, including the binding operators.  It contains all the conversion
 rules, such as \ttindex{fst} and \ttindex{snd}, as well as the
-rewrites shown in Figure~\ref{ZF-simpdata}.
+rewrites shown in Fig.\ts\ref{ZF-simpdata}.
 \item
 \ttindexbold{FOL_ss} is redeclared with the same {\FOL} rules as the
 previous version, so that it may still be used.  
@@ -1390,61 +1394,61 @@ previous version, so that it may still be used.
 This directory contains further developments in {\ZF} set theory.  Here is
 an overview; see the files themselves for more details.
 \begin{description}
-\item[\ttindexbold{ZF/ex/misc.ML}] contains miscellaneous examples such as
+\item[{\tt ZF/ex/misc.ML}] contains miscellaneous examples such as
   Cantor's Theorem, the Schr\"oder-Bernstein Theorem.  and the
   ``Composition of homomorphisms'' challenge~\cite{boyer86}.
 
-\item[\ttindexbold{ZF/ex/ramsey.ML}]
+\item[{\tt ZF/ex/ramsey.ML}]
 proves the finite exponent 2 version of Ramsey's Theorem, following Basin
 and Kaufmann's presentation~\cite{basin91}.
 
-\item[\ttindexbold{ZF/ex/equiv.ML}]
+\item[{\tt ZF/ex/equiv.ML}]
 develops a ZF theory of equivalence classes, not using the Axiom of Choice.
 
-\item[\ttindexbold{ZF/ex/integ.ML}]
+\item[{\tt ZF/ex/integ.ML}]
 develops a theory of the integers as equivalence classes of pairs of
 natural numbers.
 
-\item[\ttindexbold{ZF/ex/bin.ML}]
+\item[{\tt ZF/ex/bin.ML}]
 defines a datatype for two's complement binary integers.  File
-\ttindexbold{ZF/ex/binfn.ML} then develops rewrite rules for binary
+{\tt binfn.ML} then develops rewrite rules for binary
 arithmetic.  For instance, $1359\times {-}2468 = {-}3354012$ takes under
 14 seconds.
 
-\item[\ttindexbold{ZF/ex/bt.ML}]
+\item[{\tt ZF/ex/bt.ML}]
 defines the recursive data structure ${\tt bt}(A)$, labelled binary trees.
 
-\item[\ttindexbold{ZF/ex/term.ML}] 
-  and \ttindexbold{ZF/ex/termfn.ML} define a recursive data structure for
+\item[{\tt ZF/ex/term.ML}] 
+  and {\tt termfn.ML} define a recursive data structure for
   terms and term lists.  These are simply finite branching trees.
 
-\item[\ttindexbold{ZF/ex/tf.ML}]
-  and \ttindexbold{ZF/ex/tf_fn.ML} define primitives for solving mutually
+\item[{\tt ZF/ex/tf.ML}]
+  and {\tt tf_fn.ML} define primitives for solving mutually
   recursive equations over sets.  It constructs sets of trees and forests
   as an example, including induction and recursion rules that handle the
   mutual recursion.
 
-\item[\ttindexbold{ZF/ex/prop.ML}]
-  and \ttindexbold{ZF/ex/proplog.ML} proves soundness and completeness of
+\item[{\tt ZF/ex/prop.ML}]
+  and {\tt proplog.ML} proves soundness and completeness of
   propositional logic.  This illustrates datatype definitions, inductive
   definitions, structural induction and rule induction.
 
-\item[\ttindexbold{ZF/ex/listn.ML}]
+\item[{\tt ZF/ex/listn.ML}]
 presents the inductive definition of the lists of $n$ elements~\cite{paulin92}.
 
-\item[\ttindexbold{ZF/ex/acc.ML}]
+\item[{\tt ZF/ex/acc.ML}]
 presents the inductive definition of the accessible part of a
 relation~\cite{paulin92}. 
 
-\item[\ttindexbold{ZF/ex/comb.ML}]
-  presents the datatype definition of combinators.  File
-  \ttindexbold{ZF/ex/contract0.ML} defines contraction, while file
-  \ttindexbold{ZF/ex/parcontract.ML} defines parallel contraction and
+\item[{\tt ZF/ex/comb.ML}]
+  presents the datatype definition of combinators.  The file
+  {\tt contract0.ML} defines contraction, while file
+  {\tt parcontract.ML} defines parallel contraction and
   proves the Church-Rosser Theorem.  This case study follows Camilleri and
   Melham~\cite{camilleri92}. 
 
-\item[\ttindexbold{ZF/ex/llist.ML}]
-  and \ttindexbold{ZF/ex/llist_eq.ML} develop lazy lists in ZF and a notion
+\item[{\tt ZF/ex/llist.ML}]
+  and {\tt llist_eq.ML} develop lazy lists in ZF and a notion
   of co-induction for proving equations between them.
 \end{description}
 
@@ -1467,6 +1471,7 @@ goal ZF.thy "Pow(A Int B) = Pow(A) Int Pow(B)";
 {\out Level 0}
 {\out Pow(A Int B) = Pow(A) Int Pow(B)}
 {\out  1. Pow(A Int B) = Pow(A) Int Pow(B)}
+\ttbreak
 by (resolve_tac [equalityI] 1);
 {\out Level 1}
 {\out Pow(A Int B) = Pow(A) Int Pow(B)}
@@ -1493,6 +1498,7 @@ by (resolve_tac [Int_lower1 RS Pow_mono] 1);
 {\out Pow(A Int B) = Pow(A) Int Pow(B)}
 {\out  1. Pow(A Int B) <= Pow(B)}
 {\out  2. Pow(A) Int Pow(B) <= Pow(A Int B)}
+\ttbreak
 by (resolve_tac [Int_lower2 RS Pow_mono] 1);
 {\out Level 4}
 {\out Pow(A Int B) = Pow(A) Int Pow(B)}
@@ -1507,8 +1513,9 @@ by (resolve_tac [subsetI] 1);
 {\out  1. !!x. x : Pow(A) Int Pow(B) ==> x : Pow(A Int B)}
 \end{ttbox}
 The subgoal is to show $x\in {\tt Pow}(A\cap B)$ assuming $x\in{\tt
-Pow}(A)\cap {\tt Pow}(B)$.  Eliminating this assumption produces two
-subgoals, since intersection is like conjunction.\index{*IntE}
+Pow}(A)\cap {\tt Pow}(B)$; eliminating this assumption produces two
+subgoals.  The rule \ttindex{IntE} treats the intersection like a conjunction
+instead of unfolding its definition.
 \begin{ttbox}
 by (eresolve_tac [IntE] 1);
 {\out Level 6}
@@ -1523,41 +1530,52 @@ by (resolve_tac [PowI] 1);
 {\out Pow(A Int B) = Pow(A) Int Pow(B)}
 {\out  1. !!x. [| x : Pow(A); x : Pow(B) |] ==> x <= A Int B}
 \end{ttbox}
-We perform the same replacement in the assumptions:\index{*PowD}
+We perform the same replacement in the assumptions.  This is a good
+demonstration of the tactic \ttindex{dresolve_tac}:\index{*PowD}
 \begin{ttbox}
 by (REPEAT (dresolve_tac [PowD] 1));
 {\out Level 8}
 {\out Pow(A Int B) = Pow(A) Int Pow(B)}
 {\out  1. !!x. [| x <= A; x <= B |] ==> x <= A Int B}
 \end{ttbox}
-Here, $x$ is a lower bound of $A$ and~$B$, but $A\inter B$ is the greatest
-lower bound:\index{*Int_greatest}
+The assumptions are that $x$ is a lower bound of both $A$ and~$B$, but
+$A\inter B$ is the greatest lower bound:\index{*Int_greatest}
 \begin{ttbox}
 by (resolve_tac [Int_greatest] 1);
 {\out Level 9}
 {\out Pow(A Int B) = Pow(A) Int Pow(B)}
 {\out  1. !!x. [| x <= A; x <= B |] ==> x <= A}
 {\out  2. !!x. [| x <= A; x <= B |] ==> x <= B}
+\end{ttbox}
+To conclude the proof, we clear up the trivial subgoals:
+\begin{ttbox}
 by (REPEAT (assume_tac 1));
 {\out Level 10}
 {\out Pow(A Int B) = Pow(A) Int Pow(B)}
 {\out No subgoals!}
 \end{ttbox}
+\medskip
 We could have performed this proof in one step by applying
-\ttindex{fast_tac} with the classical rule set \ttindex{ZF_cs}.  But we
-must add \ttindex{equalityI} as an introduction rule, since extensionality
-is not used by default:
+\ttindex{fast_tac} with the classical rule set \ttindex{ZF_cs}.  Let us
+go back to the start:
 \begin{ttbox}
 choplev 0;
 {\out Level 0}
 {\out Pow(A Int B) = Pow(A) Int Pow(B)}
 {\out  1. Pow(A Int B) = Pow(A) Int Pow(B)}
+\end{ttbox}
+We must add \ttindex{equalityI} to {\tt ZF_cs} as an introduction rule.
+Extensionality is not used by default because many equalities can be proved
+by rewriting.
+\begin{ttbox}
 by (fast_tac (ZF_cs addIs [equalityI]) 1);
 {\out Level 1}
 {\out Pow(A Int B) = Pow(A) Int Pow(B)}
 {\out No subgoals!}
 \end{ttbox}
-
+In the past this was regarded as a difficult proof, as indeed it is if all
+the symbols are replaced by their definitions.
+\goodbreak
 
 \section{Monotonicity of the union operator}
 For another example, we prove that general union is monotonic:
@@ -1619,10 +1637,10 @@ step, provided we somehow supply it with~{\tt prem}.  We can either add
 this premise to the assumptions using \ttindex{cut_facts_tac}, or add
 \hbox{\tt prem RS subsetD} to \ttindex{ZF_cs} as an introduction rule.
 
-The file \ttindex{ZF/equalities.ML} has many similar proofs.
+The file {\tt ZF/equalities.ML} has many similar proofs.
 Reasoning about general intersection can be difficult because of its anomalous
 behavior on the empty set.  However, \ttindex{fast_tac} copes well with
-these.  Here is a typical example:
+these.  Here is a typical example, borrowed from Devlin[page 12]{devlin79}:
 \begin{ttbox}
 a:C ==> (INT x:C. A(x) Int B(x)) = (INT x:C.A(x)) Int (INT x:C.B(x))
 \end{ttbox}
@@ -1639,7 +1657,7 @@ functions as sets of ordered pairs.  But sometimes we must look at the
 underlying representation, as in the following proof
 of~\ttindex{fun_disjoint_apply1}.  This states that if $f$ and~$g$ are
 functions with disjoint domains~$A$ and~$C$, and if $a\in A$, then
-$(f\union g)`a = f`a$:
+$(f\un g)`a = f`a$:
 \begin{ttbox}
 val prems = goal ZF.thy
     "[| a:A;  f: A->B;  g: C->D;  A Int C = 0 |] ==>  \ttback
@@ -1647,14 +1665,17 @@ val prems = goal ZF.thy
 {\out Level 0}
 {\out (f Un g) ` a = f ` a}
 {\out  1. (f Un g) ` a = f ` a}
-\ttbreak
+\end{ttbox}
+Isabelle has produced the output above; the \ML{} top-level now echoes the
+binding of {\tt prems}.
+\begin{ttbox}
 {\out val prems = ["a : A  [a : A]",}
 {\out              "f : A -> B  [f : A -> B]",}
 {\out              "g : C -> D  [g : C -> D]",}
 {\out              "A Int C = 0  [A Int C = 0]"] : thm list}
 \end{ttbox}
 Using \ttindex{apply_equality}, we reduce the equality to reasoning about
-ordered pairs.
+ordered pairs.  The second subgoal is to verify that $f\un g$ is a function.
 \begin{ttbox}
 by (resolve_tac [apply_equality] 1);
 {\out Level 1}
@@ -1722,5 +1743,5 @@ by (resolve_tac prems 1);
 {\out (f Un g) ` a = f ` a}
 {\out No subgoals!}
 \end{ttbox}
-See the files \ttindex{ZF/func.ML} and \ttindex{ZF/wf.ML} for more
+See the files {\tt ZF/func.ML} and {\tt ZF/wf.ML} for more
 examples of reasoning about functions.
