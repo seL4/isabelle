@@ -108,9 +108,18 @@ fun execute command =
   end;
 
 
-(*"false" writes an image file that is executed via the MLWorks "mlimage" 
-  script, while "true" would yield a larger, self-contained executable.*)
-fun xML filename = Shell.saveImage (filename, false);
+(* getenv *)
+
+local
+  fun drop_last [] = []
+    | drop_last [x] = []
+    | drop_last (x :: xs) = x :: drop_last xs;
+
+  val drop_last_char = implode o drop_last o explode;
+in
+  fun getenv var = drop_last_char
+    (execute ("env | grep '^" ^ var ^ "=' | sed -e 's/" ^ var ^ "=//'"));
+end;
 
 
 (*Non-printing and 8-bit chars are forbidden in string constants*)
