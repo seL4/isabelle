@@ -177,11 +177,9 @@ val the_equality = prove_goalw ZF.thy [the_def]
 
 (* Only use this if you already know EX!x. P(x) *)
 val the_equality2 = prove_goal ZF.thy
-    "[| EX! x. P(x);  P(a) |] ==> (THE x. P(x)) = a"
- (fn major::prems=>
-  [ (rtac the_equality 1),
-    (rtac (major RS ex1_equalsE) 2),
-    (REPEAT (ares_tac prems 1)) ]);
+    "!!P. [| EX! x. P(x);  P(a) |] ==> (THE x. P(x)) = a"
+ (fn _ =>
+  [ (deepen_tac (lemmas_cs addSIs [the_equality]) 1 1) ]);
 
 val theI = prove_goal ZF.thy "EX! x. P(x) ==> P(THE x. P(x))"
  (fn [major]=>
@@ -243,13 +241,12 @@ val if_type = result();
 (*** Foundation lemmas ***)
 
 (*was called mem_anti_sym*)
-val mem_asym = prove_goal ZF.thy "[| a:b;  b:a |] ==> P"
- (fn prems=>
-  [ (rtac disjE 1),
-    (res_inst_tac [("A","{a,b}")] foundation 1),
+val mem_asym = prove_goal ZF.thy "!!P. [| a:b;  b:a |] ==> P"
+ (fn _=>
+  [ (res_inst_tac [("A1","{a,b}")] (foundation RS disjE) 1),
     (etac equals0D 1),
     (rtac consI1 1),
-    (fast_tac (lemmas_cs addIs (prems@[consI1,consI2]) 
+    (fast_tac (lemmas_cs addIs [consI1,consI2]
 		         addSEs [consE,equalityE]) 1) ]);
 
 (*was called mem_anti_refl*)
@@ -299,11 +296,10 @@ val succ_not_0 = prove_goal ZF.thy "succ(n) ~= 0"
 (* succ(c) <= B ==> c : B *)
 val succ_subsetD = succI1 RSN (2,subsetD);
 
-val succ_inject = prove_goal ZF.thy "succ(m) = succ(n) ==> m=n"
- (fn [major]=>
-  [ (rtac (major RS equalityE) 1),
-    (REPEAT (eresolve_tac [asm_rl, sym, succE, make_elim succ_subsetD,
-			   mem_asym] 1)) ]);
+val succ_inject = prove_goal ZF.thy "!!m n. succ(m) = succ(n) ==> m=n"
+ (fn _ =>
+  [ (fast_tac (lemmas_cs addSEs [succE, equalityE, make_elim succ_subsetD] 
+                         addEs [mem_asym]) 1) ]);
 
 val succ_inject_iff = prove_goal ZF.thy "succ(m) = succ(n) <-> m=n"
  (fn _=> [ (fast_tac (FOL_cs addSEs [succ_inject]) 1) ]);
