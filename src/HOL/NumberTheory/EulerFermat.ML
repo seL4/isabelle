@@ -88,7 +88,7 @@ by Auto_tac;
 val lemma = result();
 
 Goalw [norRRset_def]
-      "[| #1<m; zgcd(a,m) = #1 |] ==> (EX! b. [a = b](mod m) & b:(norRRset m))";
+     "[| #1<m; zgcd(a,m) = #1 |] ==> (EX! b. [a = b](mod m) & b:(norRRset m))";
 by (cut_inst_tac [("a","a"),("m","m")] zcong_zless_unique 1);
 by Auto_tac;
 by (res_inst_tac [("m","m")] zcong_zless_imp_eq 2);
@@ -147,17 +147,10 @@ by (rtac Bnor_in_RsetR 1);
 by (ALLGOALS Asm_simp_tac);
 qed "noX_is_RRset";
 
-Goal "EX! a. P a ==> P (@ a. P a)";
-by Auto_tac;
-by (stac select_equality 1);
-by Auto_tac;
-val lemma = result();
-
 Goal "[| #1<m; is_RRset A m; a:A |] \
 \    ==> zcong a (@ b. [a = b](mod m) & b : norRRset m) m & \
 \        (@ b. [a = b](mod m) & b : norRRset m) : norRRset m";
-by (rtac lemma 1);
-by (rtac norR_mem_unique 1);
+by (rtac (norR_mem_unique RS ex1_implies_ex RS ex_someI) 1);
 by (rtac RRset_gcd 2);
 by (ALLGOALS Asm_simp_tac);
 val lemma_some = result();

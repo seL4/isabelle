@@ -124,10 +124,7 @@ qed_spec_mp "zcong_funprod";
 (* Chinese: Existence *)
 
 Goal "[| 0<n; i<n |] ==> Suc (i+(n-Suc(i))) = n";
-by (subgoal_tac "Suc (i+(n-1-i)) = n" 1);
-by (stac le_add_diff_inverse 2);
-by (stac le_pred_eq 2);
-by Auto_tac;
+by (arith_tac 1);
 val suclemma = result();
 
 Goal "[| 0<n; i<=n; m_cond n mf; km_cond n kf mf |] \
@@ -193,12 +190,6 @@ qed "x_sol_lin";
 
 (* Chinese *)
 
-Goal "EX! a. P a ==> P (@ a. P a)";
-by Auto_tac;
-by (stac select_equality 1);
-by Auto_tac;
-val delemma = result();
-
 Goal "[| 0<n; m_cond n mf; km_cond n kf mf |] \
 \     ==> (EX! x. #0 <= x & x < (funprod mf 0 n) & \
 \                 (lincong_sol n kf bf mf x))";
@@ -222,7 +213,7 @@ by (subgoal_tac "#0<=(xilin_sol i n kf bf mf) & \
 by (asm_full_simp_tac (simpset() addsimps zmult_ac) 7);
 by (rewtac xilin_sol_def);
 by (Asm_simp_tac 7);
-by (rtac delemma 7);
+by (rtac (ex1_implies_ex RS ex_someI) 7);
 by (rtac unique_xi_sol 7);
 by (rtac funprod_zdvd 4);
 by (rewtac m_cond_def);
