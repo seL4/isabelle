@@ -1,0 +1,138 @@
+
+<html>
+
+<!-- $Id$ -->
+
+<head>
+<title>The Isabelle System Distribution</title>
+</head>
+
+<body>
+
+<h1>The Isabelle System Distribution</h1>
+
+<h2>Version information</h2>
+
+This is <strong>Isabelle-94 revision 8</strong> as of May
+1997. Basically, it should be backwards compatible to earlier
+Isabelle-94 releases. Older versions (like Isabelle-93) are quite
+different, though. See also the <tt>NEWS</tt> file in the distribution
+for a more detailed list of new features and changes.
+
+
+<h2>System requirements</h2>
+
+Isabelle requires a real Unix box with sufficient resources. Fun
+starts at about 32MB of RAM (somewhat depending on your ML system),
+several tens of MB disk space and with a relatively fast CPU.
+
+<p>
+
+Furthermore, it needs the following software, which is not part of the
+distribution:
+<ul>
+<li> A full Standard ML Compiler (e.g. Poly/ML or SML of New Jersey).
+<li> The GNU bash shell (version 1.14.x or 2.x).
+<li> Perl 5.x - the Pathologically Eclectic Rubbish Lister.
+</ul>
+
+The ML system and GNU bash are absolutely essential. Perl is optional
+for core functionality, but still highly recommended.
+
+<p>
+
+The following ML system and platform combinations are known to work
+quite well:
+<ul>
+<li> Poly/ML versions 2.x and 3.1 on Suns (running SunOS 4.1.x or
+Solaris 2.x).
+<li> SML/NJ 0.93 on Suns and SGIs. There seem to be several
+problems with Linux and HP-UX.
+<li> SML/NJ 1.07 on Suns, Linux, etc.
+<li> SML/NJ 1.09.27 on Suns, Linux, etc.
+</ul>
+
+<p>
+
+Poly/ML is a commercial product and costs money, but it is stable and
+efficient. It requires relatively little memory (starting at about
+16MB) and disk space (about 40MB for all distributed object logics).
+See <a href="http://www.ahl.co.uk/poly-ml.html">here</a> for more
+information.
+
+<p>
+
+SML/NJ needs lots of store and disk space, but it is free.  The last
+offificial release is 0.93.
+
+Recent working versions may be better suited, under normal
+circumstances.  Beware of the many incompatibilities among SML/NJ
+versions! From the 1.09.x family, we now only support 1.09.27, or
+later.
+
+<p>
+
+To obtain Standard ML of New Jersey, see the <a
+href="http://cm.bell-labs.com/cm/cs/what/smlnj/software.html">here</a>. An
+unofficial pre-built binary distribution of SML/NJ 1.09.27 for Linux
+is available <a
+href="http://www4.informatik.tu-muenchen.de/~wenzelm/resources.html">here</a>.
+
+
+<h2>Installation</h2>
+
+See file <tt>INSTALL</tt> in the Isabelle sources on how to build the
+system. Further background information may be found in the
+<em>Isabelle System Manual</em>, distributed as <tt>dvi</tt> with the
+sources.
+
+
+<h2>Other sources of information</h2>
+
+<h3>Mailing list</h3>
+
+The electronic mailing list <tt>isabelle-users@cl.cam.ac.uk</tt>
+provides a forum for Isabelle users to discuss problems and exchange
+information. To join, send a message to
+<tt>isabelle-users-request@cl.cam.ac.uk</tt>.
+
+
+<h3>Personal mail</h3>
+
+<a href="http://www.cl.cam.ac.uk/users/lcp/">Lawrence C Paulson</a><br>
+Computer Laboratory<br>
+University of Cambridge<br>
+Pembroke Street<br>
+Cambridge CB2 3QG<br>
+England<br>
+<br>
+E-mail: lcp@cl.cam.ac.uk<br>
+Phone: +44-223-334600<br>
+Fax:   +44-223-334748<br>
+
+<p>
+or
+<p>
+
+<a href="http://www4.informatik.tu-muenchen.de:80/~nipkow/">Tobias Nipkow</a><br>
+Institut fuer Informatik<br>
+T. U. Muenchen<br>	
+D-80290 Muenchen<br>
+Germany<br>
+<br>
+E-mail: nipkow@informatik.tu-muenchen.de<br>
+Phone: +49-89-289-22690<br>
+Fax:   +49-89-289-28183<br>
+
+<p>
+
+<hr>
+
+Please report any problems you encounter.  While we shall try to be
+helpful, we can accept no responsibility for the deficiences of
+Isabelle and their consequences.
+
+<hr>
+
+</body>
+</html>
