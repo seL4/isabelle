@@ -1,146 +1,47 @@
 
 \chapter{Generic Tools and Packages}\label{ch:gen-tools}
 
-\section{Basic proof methods}\label{sec:pure-meth}
+\section{Axiomatic Type Classes}\label{sec:axclass}
 
-\indexisarmeth{fail}\indexisarmeth{succeed}\indexisarmeth{$-$}
-\indexisarmeth{assumption}\indexisarmeth{this}
-\indexisarmeth{fold}\indexisarmeth{unfold}
-\indexisarmeth{rule}\indexisarmeth{erule}
+\indexisarcmd{axclass}\indexisarcmd{instance}\indexisarmeth{intro-classes}
 \begin{matharray}{rcl}
-  - & : & \isarmeth \\
-  assumption & : & \isarmeth \\
-  this & : & \isarmeth \\
-  rule & : & \isarmeth \\
-  erule^* & : & \isarmeth \\[0.5ex]
-  fold & : & \isarmeth \\
-  unfold & : & \isarmeth \\[0.5ex]
-  succeed & : & \isarmeth \\
-  fail & : & \isarmeth \\
+  \isarcmd{axclass} & : & \isartrans{theory}{theory} \\
+  \isarcmd{instance} & : & \isartrans{theory}{proof(prove)} \\
+  intro_classes & : & \isarmeth \\
 \end{matharray}
 
+Axiomatic type classes are provided by Isabelle/Pure as a \emph{definitional}
+interface to type classes (cf.~\S\ref{sec:classes}).  Thus any object logic
+may make use of this light-weight mechanism of abstract theories.  See
+\cite{Wenzel:1997:TPHOL} for more information.  There is also a tutorial on
+\emph{Using Axiomatic Type Classes in Isabelle} that is part of the standard
+Isabelle documentation.
+%FIXME cite
+
 \begin{rail}
-  ('fold' | 'unfold' | 'rule' | 'erule') thmrefs
+  'axclass' classdecl (axmdecl prop comment? +)
+  ;
+  'instance' (nameref '<' nameref | nameref '::' simplearity) comment?
   ;
 \end{rail}
 
 \begin{descr}
-\item [``$-$''] does nothing but insert the forward chaining facts as premises
-  into the goal.  Note that command $\PROOFNAME$ without any method actually
-  performs a single reduction step using the $rule$ method (see below); thus a
-  plain \emph{do-nothing} proof step would be $\PROOF{-}$ rather than
-  $\PROOFNAME$ alone.
-\item [$assumption$] solves some goal by assumption.  Any facts given are
-  guaranteed to participate in the refinement.
-\item [$this$] applies the current facts directly as rules.  Note that
-  ``$\DOT$'' (dot) abbreviates $\BY{this}$.
-\item [$rule~thms$] applies some rule given as argument in backward manner;
-  facts are used to reduce the rule before applying it to the goal.  Thus
-  $rule$ without facts is plain \emph{introduction}, while with facts it
-  becomes a (generalized) \emph{elimination}.
+\item [$\isarkeyword{axclass}~c < \vec c~axms$] defines an axiomatic type
+  class as the intersection of existing classes, with additional axioms
+  holding.  Class axioms may not contain more than one type variable.  The
+  class axioms (with implicit sort constraints added) are bound to the given
+  names.  Furthermore a class introduction rule is generated, which is
+  employed by method $intro_classes$ to support instantiation proofs of this
+  class.
   
-  Note that the classical reasoner introduces another version of $rule$ that
-  is able to pick appropriate rules automatically, whenever $thms$ are omitted
-  (see \S\ref{sec:classical-basic}); that method is the default for
-  $\PROOFNAME$ steps.  Note that ``$\DDOT$'' (double-dot) abbreviates
-  $\BY{default}$.
-\item [$erule~thms$] is similar to $rule$, but applies rules by
-  elim-resolution.  This is an improper method, mainly for experimentation and
-  porting of old scripts.  Actual elimination proofs are usually done with
-  $rule$ (single step, involving facts) or $elim$ (repeated steps, see
-  \S\ref{sec:classical-basic}).
-\item [$unfold~thms$ and $fold~thms$] expand and fold back again the given
-  meta-level definitions throughout all goals; any facts provided are inserted
-  into the goal and subject to rewriting as well.
-\item [$succeed$] yields a single (unchanged) result; it is the identity of
-  the ``\texttt{,}'' method combinator (cf.\ \S\ref{sec:syn-meth}).
-\item [$fail$] yields an empty result sequence; it is the identity of the
-  ``\texttt{|}'' method combinator (cf.\ \S\ref{sec:syn-meth}).
-\end{descr}
-
-
-\section{Miscellaneous attributes}
-
-\indexisaratt{tag}\indexisaratt{untag}\indexisaratt{COMP}\indexisaratt{RS}
-\indexisaratt{OF}\indexisaratt{where}\indexisaratt{of}\indexisaratt{standard}
-\indexisaratt{elimify}\indexisaratt{transfer}\indexisaratt{export}
-\indexisaratt{unfold}\indexisaratt{fold}
-\begin{matharray}{rcl}
-  tag & : & \isaratt \\
-  untag & : & \isaratt \\[0.5ex]
-  OF & : & \isaratt \\
-  RS & : & \isaratt \\
-  COMP & : & \isaratt \\[0.5ex]
-  of & : & \isaratt \\
-  where & : & \isaratt \\[0.5ex]
-  unfold & : & \isaratt \\
-  fold & : & \isaratt \\[0.5ex]
-  standard & : & \isaratt \\
-  elimify & : & \isaratt \\
-  export^* & : & \isaratt \\
-  transfer & : & \isaratt \\[0.5ex]
-\end{matharray}
-
-\begin{rail}
-  'tag' (nameref+)
-  ;
-  'untag' name
-  ;
-  'OF' thmrefs
-  ;
-  ('RS' | 'COMP') nat? thmref
-  ;
-  'of' (inst * ) ('concl' ':' (inst * ))?
-  ;
-  'where' (name '=' term * 'and')
-  ;
-  ('unfold' | 'fold') thmrefs
-  ;
-
-  inst: underscore | term
-  ;
-\end{rail}
-
-\begin{descr}
-\item [$tag~name~args$ and $untag~name$] add and remove $tags$ of some
-  theorem.  Tags may be any list of strings that serve as comment for some
-  tools (e.g.\ $\LEMMANAME$ causes the tag ``$lemma$'' to be added to the
-  result).  The first string is considered the tag name, the rest its
-  arguments.  Note that untag removes any tags of the same name.
-\item [$OF~thms$, $RS~n~thm$, and $COMP~n~thm$] compose rules.  $OF$ applies
-  $thms$ in parallel (cf.\ \texttt{MRS} in \cite[\S5]{isabelle-ref}, but note
-  the reversed order).  Note that premises may be skipped by including
-  ``$\_$'' (underscore) as argument.
-  
-  $RS$ resolves with the $n$-th premise of $thm$; $COMP$ is a version of $RS$
-  that skips the automatic lifting process that is normally intended (cf.\ 
-  \texttt{RS} and \texttt{COMP} in \cite[\S5]{isabelle-ref}).
-  
-\item [$of~\vec t$ and $where~\vec x = \vec t$] perform positional and named
-  instantiation, respectively.  The terms given in $of$ are substituted for
-  any schematic variables occurring in a theorem from left to right;
-  ``\texttt{_}'' (underscore) indicates to skip a position.  Arguments
-  following a ``$concl\colon$'' specification refer to positions of the
-  conclusion of a rule.
-  
-\item [$unfold~thms$ and $fold~thms$] expand and fold back again the given
-  meta-level definitions throughout a rule.
- 
-\item [$standard$] puts a theorem into the standard form of object-rules, just
-  as the ML function \texttt{standard} (see \cite[\S5]{isabelle-ref}).
-  
-\item [$elimify$] turns an destruction rule into an elimination, just as the
-  ML function \texttt{make\_elim} (see \cite{isabelle-ref}).
-  
-\item [$export$] lifts a local result out of the current proof context,
-  generalizing all fixed variables and discharging all assumptions.  Note that
-  (partial) export is usually done automatically behind the scenes.  This
-  attribute is mainly for experimentation.
-  
-\item [$transfer$] promotes a theorem to the current theory context, which has
-  to enclose the former one.  Normally, this is done automatically when rules
-  are joined by inference.
-
+\item [$\isarkeyword{instance}~c@1 < c@2$ and $\isarkeyword{instance}~t ::
+  (\vec s)c$] setup up a goal stating the class relation or type arity.  The
+  proof would usually proceed by $intro_classes$, and then establish the
+  characteristic theorems of the type classes involved.  After finishing the
+  proof, the theory will be augmented by a type signature declaration
+  corresponding to the resulting theorem.
+\item [$intro_classes$] repeatedly expands all class introduction rules of
+  this theory.
 \end{descr}
 
 
@@ -205,12 +106,6 @@ command required.
   context, by adding or deleting theorems (the default is to add).
 \end{descr}
 
-%FIXME
-%See theory \texttt{HOL/Isar_examples/Group} for a simple application of
-%calculations for basic equational reasoning.
-%\texttt{HOL/Isar_examples/KnasterTarski} involves a few more advanced
-%calculational steps in combination with natural deduction.
-
 
 \section{Named local contexts (cases)}\label{sec:cases}
 
@@ -218,7 +113,7 @@ command required.
 \indexisaratt{case-names}\indexisaratt{params}
 \begin{matharray}{rcl}
   \isarcmd{case} & : & \isartrans{proof(state)}{proof(state)} \\
-  \isarcmd{print_cases} & : & \isarkeep{proof} \\[0.5ex]
+  \isarcmd{print_cases}^* & : & \isarkeep{proof} \\
   case_names & : & \isaratt \\
   params & : & \isaratt \\
 \end{matharray}
@@ -279,52 +174,172 @@ manually may be used in advanced case analysis later.
 \end{descr}
 
 
-\section{Axiomatic Type Classes}\label{sec:axclass}
+\section{Generalized existence}
 
-\indexisarcmd{axclass}\indexisarcmd{instance}\indexisarmeth{intro-classes}
+\indexisarcmd{obtain}
 \begin{matharray}{rcl}
-  \isarcmd{axclass} & : & \isartrans{theory}{theory} \\
-  \isarcmd{instance} & : & \isartrans{theory}{proof(prove)} \\
-  intro_classes & : & \isarmeth \\
+  \isarcmd{obtain} & : & \isartrans{proof(prove)}{proof(state)} \\
 \end{matharray}
 
-Axiomatic type classes are provided by Isabelle/Pure as a \emph{definitional}
-interface to type classes (cf.~\S\ref{sec:classes}).  Thus any object logic
-may make use of this light-weight mechanism of abstract theories.  See
-\cite{Wenzel:1997:TPHOL} for more information.  There is also a tutorial on
-\emph{Using Axiomatic Type Classes in Isabelle} that is part of the standard
-Isabelle documentation.
-%FIXME cite
+Generalized existence reasoning means that additional elements with certain
+properties are introduced, together with a soundness proof of that context
+change (the rest of the main goal is left unchanged).
+
+Syntactically, the $\OBTAINNAME$ language element is like a proof method to
+the present goal, followed by a proof of its additional claim, followed by the
+actual context commands (cf.\ $\FIXNAME$ and $\ASSUMENAME$,
+\S\ref{sec:proof-context}).
 
 \begin{rail}
-  'axclass' classdecl (axmdecl prop comment? +)
+  'obtain' (vars + 'and') comment? \\ 'where' (assm comment? + 'and')
   ;
-  'instance' (nameref '<' nameref | nameref '::' simplearity) comment?
+\end{rail}
+
+$\OBTAINNAME$ is defined as a derived Isar command as follows, where the
+preceding goal shall be $\psi$, with (optional) facts $\vec b$ indicated for
+forward chaining.
+\begin{matharray}{l}
+  \OBTAIN{\vec x}{a}{\vec \phi}~~\langle proof\rangle \equiv {} \\[0.5ex]
+  \quad \PROOF{succeed} \\
+  \qquad \DEF{}{thesis \equiv \psi} \\
+  \qquad \PRESUME{that}{\All{\vec x} \vec\phi \Imp thesis} \\
+  \qquad \FROM{\vec b}~\SHOW{}{thesis}~~\langle proof\rangle \\
+  \quad \NEXT \\
+  \qquad \FIX{\vec x}~\ASSUME{a}{\vec\phi} \\
+\end{matharray}
+
+Typically, the soundness proof is relatively straight-forward, often just by
+canonical automated tools such as $\BY{simp}$ (see \S\ref{sec:simp}) or
+$\BY{blast}$ (see \S\ref{sec:classical-auto}).  Note that the ``$that$''
+presumption above is usually declared as simplification and (unsafe)
+introduction rule, somewhat depending on the object-logic's policy,
+though.\footnote{Major object-logics such as HOL and HOLCF do this already.}
+
+The original goal statement is wrapped into a local definition in order to
+avoid any automated tools descending into it.  Usually, any statement would
+admit the intended reduction; only in very rare cases $thesis_def$ has to be
+expanded to complete the soundness proof.
+
+\medskip
+
+In a sense, $\OBTAINNAME$ represents at the level of Isar proofs what would be
+meta-logical existential quantifiers and conjunctions.  This concept has a
+broad range of useful applications, ranging from plain elimination (or even
+introduction) of object-level existentials and conjunctions, to elimination
+over results of symbolic evaluation of recursive definitions, for example.
+
+
+\section{Miscellaneous methods and attributes}
+
+\indexisarmeth{unfold}\indexisarmeth{fold}
+\indexisarmeth{erule}\indexisarmeth{drule}\indexisarmeth{frule}
+\indexisarmeth{fail}\indexisarmeth{succeed}
+\begin{matharray}{rcl}
+  unfold & : & \isarmeth \\
+  fold & : & \isarmeth \\[0.5ex]
+  erule^* & : & \isarmeth \\
+  drule^* & : & \isarmeth \\
+  frule^* & : & \isarmeth \\[0.5ex]
+  succeed & : & \isarmeth \\
+  fail & : & \isarmeth \\
+\end{matharray}
+
+\begin{rail}
+  ('fold' | 'unfold' | 'erule' | 'drule' | 'frule') thmrefs
   ;
 \end{rail}
 
 \begin{descr}
-\item [$\isarkeyword{axclass}~c < \vec c~axms$] defines an axiomatic type
-  class as the intersection of existing classes, with additional axioms
-  holding.  Class axioms may not contain more than one type variable.  The
-  class axioms (with implicit sort constraints added) are bound to the given
-  names.  Furthermore a class introduction rule is generated, which is
-  employed by method $intro_classes$ to support instantiation proofs of this
-  class.
+\item [$unfold~thms$ and $fold~thms$] expand and fold back again the given
+  meta-level definitions throughout all goals; any facts provided are inserted
+  into the goal and subject to rewriting as well.
+\item [$erule~thms$, $drule~thms$, and $frule~thms$] are similar to the basic
+  $rule$ method (see \S\ref{sec:pure-meth-att}), but apply rules by
+  elim-resolution, destruct-resolution, and forward-resolution, respectively
+  \cite{isabelle-ref}.  These are improper method, mainly for experimentation
+  and emulating tactic scripts.
   
-\item [$\isarkeyword{instance}~c@1 < c@2$ and $\isarkeyword{instance}~t ::
-  (\vec s)c$] setup up a goal stating the class relation or type arity.  The
-  proof would usually proceed by $intro_classes$, and then establish the
-  characteristic theorems of the type classes involved.  After finishing the
-  proof, the theory will be augmented by a type signature declaration
-  corresponding to the resulting theorem.
-\item [$intro_classes$] repeatedly expands all class introduction rules of
-  this theory.
+  Different modes of basic rule application are usually expressed in Isar at
+  the proof language level, rather than via implicit proof state
+  modifications.  For example, a proper single-step elimination would be done
+  using the basic $rule$ method, with forward chaining of current facts.
+\item [$succeed$] yields a single (unchanged) result; it is the identity of
+  the ``\texttt{,}'' method combinator (cf.\ \S\ref{sec:syn-meth}).
+\item [$fail$] yields an empty result sequence; it is the identity of the
+  ``\texttt{|}'' method combinator (cf.\ \S\ref{sec:syn-meth}).
 \end{descr}
 
-%FIXME
-%See theory \texttt{HOL/Isar_examples/Group} for a simple example of using
-%axiomatic type classes, including instantiation proofs.
+
+\indexisaratt{standard}
+\indexisaratt{elimify}
+
+\indexisaratt{RS}\indexisaratt{COMP}
+\indexisaratt{where}
+\indexisaratt{tag}\indexisaratt{untag}
+\indexisaratt{transfer}
+\indexisaratt{export}
+\indexisaratt{unfold}\indexisaratt{fold}
+\begin{matharray}{rcl}
+  tag & : & \isaratt \\
+  untag & : & \isaratt \\[0.5ex]
+  RS & : & \isaratt \\
+  COMP & : & \isaratt \\[0.5ex]
+  where & : & \isaratt \\[0.5ex]
+  unfold & : & \isaratt \\
+  fold & : & \isaratt \\[0.5ex]
+  standard & : & \isaratt \\
+  elimify & : & \isaratt \\
+  export^* & : & \isaratt \\
+  transfer & : & \isaratt \\[0.5ex]
+\end{matharray}
+
+\begin{rail}
+  'tag' (nameref+)
+  ;
+  'untag' name
+  ;
+  ('RS' | 'COMP') nat? thmref
+  ;
+  'where' (name '=' term * 'and')
+  ;
+  ('unfold' | 'fold') thmrefs
+  ;
+\end{rail}
+
+\begin{descr}
+\item [$tag~name~args$ and $untag~name$] add and remove $tags$ of some
+  theorem.  Tags may be any list of strings that serve as comment for some
+  tools (e.g.\ $\LEMMANAME$ causes the tag ``$lemma$'' to be added to the
+  result).  The first string is considered the tag name, the rest its
+  arguments.  Note that untag removes any tags of the same name.
+\item [$RS~n~thm$ and $COMP~n~thm$] compose rules.  $RS$ resolves with the
+  $n$-th premise of $thm$; $COMP$ is a version of $RS$ that skips the
+  automatic lifting process that is normally intended (cf.\ \texttt{RS} and
+  \texttt{COMP} in \cite[\S5]{isabelle-ref}).
+\item [$where~\vec x = \vec t$] perform named instantiation of schematic
+  variables occurring in a theorem.  Unlike instantiation tactics (such as
+  \texttt{res_inst_tac}, see \cite{isabelle-ref}), actual schematic variables
+  have to be specified (e.g.\ $\Var{x@3}$).
+  
+\item [$unfold~thms$ and $fold~thms$] expand and fold back again the given
+  meta-level definitions throughout a rule.
+ 
+\item [$standard$] puts a theorem into the standard form of object-rules, just
+  as the ML function \texttt{standard} (see \cite[\S5]{isabelle-ref}).
+  
+\item [$elimify$] turns an destruction rule into an elimination, just as the
+  ML function \texttt{make\_elim} (see \cite{isabelle-ref}).
+  
+\item [$export$] lifts a local result out of the current proof context,
+  generalizing all fixed variables and discharging all assumptions.  Note that
+  (partial) export is usually done automatically behind the scenes.  This
+  attribute is mainly for experimentation.
+  
+\item [$transfer$] promotes a theorem to the current theory context, which has
+  to enclose the former one.  Normally, this is done automatically when rules
+  are joined by inference.
+
+\end{descr}
 
 
 \section{The Simplifier}
@@ -374,7 +389,7 @@ full context of assumptions is only included in the $simp!$ versions, which
 should be used with some care, though.
 
 Note that there is no separate $split$ method.  The effect of
-\texttt{split_tac} can be simulated via $(simp~only\colon~split\colon~thms)$.
+\texttt{split_tac} can be simulated by $(simp~only\colon~split\colon~thms)$.
 
 
 \subsection{Declaring rules}
@@ -436,11 +451,12 @@ information.
 
 \begin{descr}
 \item [$rule$] as offered by the classical reasoner is a refinement over the
-  primitive one (see \S\ref{sec:pure-meth}).  In case that no rules are
+  primitive one (see \S\ref{sec:pure-meth-att}).  In case that no rules are
   provided as arguments, it automatically determines elimination and
   introduction rules from the context (see also \S\ref{sec:classical-mod}).
-  In that form it is the default method for basic proof steps, such as
-  $\PROOFNAME$ and ``$\DDOT$'' (two dots).
+  This is made the default method for basic proof steps, such as $\PROOFNAME$
+  and ``$\DDOT$'' (two dots), see also \S\ref{sec:proof-steps} and
+  \S\ref{sec:pure-meth-att}.
   
 \item [$intro$ and $elim$] repeatedly refine some goal by intro- or
   elim-resolution, after having inserted any facts.  Omitting the arguments
@@ -490,7 +506,7 @@ information.
 \end{descr}
 
 Any of above methods support additional modifiers of the context of classical
-rules.  There semantics is analogous to the attributes given in
+rules.  Their semantics is analogous to the attributes given in
 \S\ref{sec:classical-mod}.  Facts provided by forward chaining are inserted
 into the goal before doing the search.  The ``!''~argument causes the full
 context of assumptions to be included as well.\footnote{This is slightly less
@@ -546,11 +562,11 @@ context of assumptions to be included as well.\footnote{This is slightly less
 \end{rail}
 
 \begin{descr}
-\item [$intro$, $elim$, $dest$] add introduction, elimination, destruct rules,
-  respectively.  By default, rules are considered as \emph{safe}, while a
-  single ``?'' classifies as \emph{unsafe}, and ``??'' as \emph{extra} (i.e.\ 
-  not applied in the search-oriented automated methods, but only in
-  single-step methods such as $rule$).
+\item [$intro$, $elim$, and $dest$] declare introduction, elimination, and
+  destruct rules, respectively.  By default, rules are considered as
+  \emph{safe}, while a single ``?'' classifies as \emph{unsafe}, and ``??'' as
+  \emph{extra} (i.e.\ not applied in the search-oriented automated methods,
+  but only in single-step methods such as $rule$).
   
 \item [$iff$] declares equations both as rewrite rules for the simplifier and
   classical reasoning rules.
