@@ -25,6 +25,8 @@ sig
   val intro_local: Proof.context attribute
   val delrule_local: Proof.context attribute
   val METHOD: (thm list -> tactic) -> Proof.method
+  val METHOD_CASES:
+    (thm list -> thm -> (thm * (string * RuleCases.T) list) Seq.seq) -> Proof.method
   val METHOD0: tactic -> Proof.method
   val fail: Proof.method
   val succeed: Proof.method
@@ -37,8 +39,9 @@ sig
   val fold: thm list -> Proof.method
   val multi_resolve: thm list -> thm -> thm Seq.seq
   val multi_resolves: thm list -> thm list -> thm Seq.seq
-  val multi_resolveq: thm list -> thm Seq.seq -> thm Seq.seq
   val resolveq_tac: thm Seq.seq -> int -> tactic
+  val resolveq_cases_tac: (thm * string list) Seq.seq
+    -> int -> thm -> (thm * (string * RuleCases.T) list) Seq.seq
   val rule_tac: thm list -> thm list -> int -> tactic
   val rule: thm list -> Proof.method
   val erule: thm list -> Proof.method
@@ -193,9 +196,11 @@ val rule_atts =
 
 (** proof methods **)
 
-(* method from tactic *)
+(* make methods *)
 
 val METHOD = Proof.method;
+val METHOD_CASES = Proof.method_cases;
+
 fun METHOD0 tac = METHOD (fn [] => tac | _ => error "Method may not be used with facts");
 
 
@@ -251,24 +256,28 @@ fun multi_res _ [] rule = Seq.single rule
 in
 
 val multi_resolve = multi_res 1;
-fun multi_resolveq facts rules = Seq.flat (Seq.map (multi_resolve facts) rules);
-fun multi_resolves facts = multi_resolveq facts o Seq.of_list;
+fun multi_resolves facts rules = Seq.flat (Seq.map (multi_resolve facts) (Seq.of_list rules));
 
 end;
 
 
-(* rule *)
+(* general rule *)
 
 fun gen_resolveq_tac tac rules i st =
-  Seq.flat (Seq.map (fn rule => tac [rule] i st) rules);
+  Seq.flat (Seq.map (fn rule => tac rule i st) rules);
 
-val resolveq_tac = gen_resolveq_tac Tactic.resolve_tac;
+val resolveq_tac = gen_resolveq_tac Tactic.rtac;
 
+val resolveq_cases_tac = gen_resolveq_tac (fn (rule, cases) => fn i => fn st =>
+  Seq.map (rpair (RuleCases.make rule cases)) (Tactic.rtac rule i st));
+
+
+(* simple rule *)
 
 local
 
 fun gen_rule_tac tac rules [] = tac rules
-  | gen_rule_tac tac erules facts = gen_resolveq_tac tac (multi_resolves facts erules);
+  | gen_rule_tac tac erules facts = gen_resolveq_tac (tac o single) (multi_resolves facts erules);
 
 fun gen_rule tac rules = METHOD (FINDGOAL o tac rules);
 
@@ -336,10 +345,12 @@ val tactic_ref = ref ((fn _ => raise Match): Proof.context -> thm list -> tactic
 fun set_tactic f = tactic_ref := f;
 
 fun tactic txt ctxt = METHOD (fn facts =>
-  (Context.use_mltext
-    ("let fun (tactic: Proof.context -> thm list -> tactic) ctxt facts = " ^ txt ^
-     "in Method.set_tactic tactic end")
-    false (Some (ProofContext.theory_of ctxt)); ! tactic_ref ctxt facts));
+ (Context.use_mltext
+   ("let fun (tactic: Proof.context -> thm list -> tactic) ctxt facts = \
+    \let val thm = ProofContext.get_thm ctxt and thms = ProofContext.get_thms ctxt in\n"
+    ^ txt ^
+    "\nend in Method.set_tactic tactic end")
+  false (Some (ProofContext.theory_of ctxt)); ! tactic_ref ctxt facts));
 
 
 
