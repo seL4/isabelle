@@ -261,7 +261,7 @@ goal thy
 by (etac yahalom.induct 1);
 by analz_Fake_tac;
 by (REPEAT_FIRST (resolve_tac [allI, analz_image_newK_lemma]));
-by (ALLGOALS  (*Takes 26 secs*)
+by (ALLGOALS
     (asm_simp_tac 
      (!simpset addsimps ([insert_Key_singleton, insert_Key_image, pushKey_newK]
                          @ pushes)
@@ -455,7 +455,7 @@ goal thy
  "!!evs. evs : yahalom lost ==> EX NA' A' B'. ALL NA A B. \
 \      Crypt {|Agent A, Nonce NA, NB|} (shrK B) : parts(sees lost Spy evs) \
 \      --> B ~: lost --> NA = NA' & A = A' & B = B'";
-by (parts_induct_tac 1);  (*TWO MINUTES*)
+by (parts_induct_tac 1);  (*100 seconds??*)
 by (simp_tac (!simpset addsimps [all_conj_distrib]) 1); 
 (*YM2: creation of new Nonce.  Move assertion into global context*)
 by (expand_case_tac "NB = ?y" 1);
@@ -650,7 +650,7 @@ goal thy
 \            : set_of_list evs)  |  Nonce NB : analz (sees lost Spy evs)";
 by (etac yahalom.induct 1);
 by analz_Fake_tac;
-by (ALLGOALS  (*45 SECONDS*)
+by (ALLGOALS  (*28 seconds*)
     (asm_simp_tac 
      (!simpset addsimps ([analz_subset_parts RS contra_subsetD,
                           analz_image_newK,
@@ -661,7 +661,7 @@ by (ALLGOALS  (*45 SECONDS*)
 by (fast_tac (!claset addss (!simpset)) 1);
 (*Fake*) (** LEVEL 4 **)
 by (spy_analz_tac 1);
-(*YM1-YM3*)
+(*YM1-YM3*) (*29 seconds*)
 by (EVERY (map grind_tac [3,2,1]));
 (*Oops*)
 by (Full_simp_tac 2);
