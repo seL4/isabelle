@@ -176,6 +176,7 @@ perl -pi -e \
  "s/{ISABELLE}/$DISTNAME/g; \
   s/{PACKED_SIZE}/$PACKED_SIZE/g; \
   s/{UNPACKED_SIZE}/$UNPACKED_SIZE/g; \
+  s/{AUTHOR}/$LOGNAME/g; \
   s/{DATE}/$DATE/g;" index.html
 
 
