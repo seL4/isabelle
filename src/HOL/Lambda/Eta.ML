@@ -185,17 +185,17 @@ by (Simp_tac 1);
 qed "decr_Fun";
 Addsimps [decr_Fun];
 
-goal Eta.thy "!i. ~free t (Suc i) --> decr t i = decr t (Suc i)";
+goal Eta.thy "!i. ~free t (Suc i) --> decr t (Suc i) = decr t i";
 by (db.induct_tac "t" 1);
-by (ALLGOALS(asm_simp_tac (addsplit (!simpset) addsimps [le_def, less_Suc_eq])));
-by (fast_tac HOL_cs 1);
-qed "decr_not_free";
+by (ALLGOALS
+    (asm_simp_tac (addsplit (!simpset) addsimps [le_def, less_Suc_eq])));
+qed_spec_mp "decr_not_free";
 Addsimps [decr_not_free];
 
 goal Eta.thy "!!s t. s -e> t ==> (!i. lift s i -e> lift t i)";
 by (etac eta.induct 1);
 by (ALLGOALS(asm_simp_tac (addsplit (!simpset) addsimps [decr_def])));
-by (asm_simp_tac (addsplit (!simpset) addsimps [subst_decr]) 1);
+by (asm_simp_tac (!simpset addsimps [subst_decr]) 1);
 qed_spec_mp "eta_lift";
 Addsimps [eta_lift];
 

@@ -638,13 +638,7 @@ by (safe_tac (!claset));
 by (asm_full_simp_tac
     (!simpset addsimps [zadd, zminus, Image_iff, Bex_def]) 1);
 by (res_inst_tac [("m1", "x+ya"), ("n1", "xa+y")] (less_linear RS disjE) 1);
-by (etac disjE 2);
-by (assume_tac 2);
-by (DEPTH_SOLVE
-    (swap_res_tac [exI] 1 THEN 
-     swap_res_tac [exI] 1 THEN 
-     etac conjI 1 THEN 
-     simp_tac (!simpset addsimps add_ac)  1));
+by (REPEAT (fast_tac (!claset addss (!simpset addsimps add_ac)) 1));
 qed "zless_linear";
 
 

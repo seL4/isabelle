@@ -137,19 +137,12 @@ by (simp_tac (!simpset addsimps [and_de_morgan_and_absorbe,l_iff_red_nil]) 1);
 by (List.list.induct_tac "l" 1);
 by (Simp_tac 1);
 by (case_tac "list=[]" 1);
- by (asm_full_simp_tac (!simpset addsimps [reverse_Nil,reverse_Cons]) 1);
-by (rtac (expand_if RS ssubst) 1);
- by (Fast_tac 1);
- by (rtac impI 1);
-by (Simp_tac 1);
-by (cut_inst_tac [("l","list")] cons_not_nil 1);
- by (asm_full_simp_tac impl_ss 1);
- by (REPEAT (etac exE 1));
- by (hyp_subst_tac 1);
-by (asm_full_simp_tac (impl_ss addsimps [last_ind_on_first,l_iff_red_nil]) 1);
-by (rtac (expand_if RS ssubst) 1);
-by (rtac (expand_if RS ssubst) 1);
-by (asm_full_simp_tac impl_ss 1);
+by (cut_inst_tac [("l","list")] cons_not_nil 2);
+by (asm_full_simp_tac (!simpset setloop split_tac [expand_if]) 1);
+by (auto_tac (!claset, 
+	      impl_ss addsimps [last_ind_on_first,l_iff_red_nil] 
+                      setloop split_tac [expand_if]));
+by (asm_full_simp_tac (!simpset setloop split_tac [expand_if]) 1);
 qed"reduce_hd";
 
 
@@ -166,11 +159,9 @@ by (Asm_full_simp_tac 1);
 by (rtac (expand_if RS ssubst) 1);
 by (rtac conjI 1);
 by (simp_tac (!simpset addsimps [and_de_morgan_and_absorbe]) 2);
-by (ALLGOALS (EVERY'[rtac impI,etac conjE,cut_inst_tac [("l","xs")] cons_not_nil,Asm_full_simp_tac]));
-by (REPEAT (etac exE 1));
-by (REPEAT (etac exE 2));
-by (REPEAT(hyp_subst_tac 2));
-by (ALLGOALS (Asm_full_simp_tac));
+by (Step_tac 1);
+by (ALLGOALS (cut_inst_tac [("l","xs")] cons_not_nil));
+by (Auto_tac());
 val reduce_tl =result();
 
 

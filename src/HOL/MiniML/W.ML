@@ -217,6 +217,7 @@ by (fast_tac (HOL_cs addDs [mgu_free, codD,free_tv_subst_var RS subsetD,
   addss !simpset) 1); 
 qed_spec_mp "free_tv_W"; 
 
+
 (* Completeness of W w.r.t. has_type *)
 goal thy
  "!s' a t' n. $s' a |- e :: t' --> new_tv n a -->     \
@@ -330,7 +331,7 @@ by (dres_inst_tac [("ts1","$ s a")] (subst_comp_tel RSN (2,trans)) 2);
 by (dtac eq_subst_tel_eq_free 2);
 by (fast_tac (HOL_cs addIs [free_tv_W,free_tv_le_new_tv] addDs [new_tv_W]) 2);
 by (asm_full_simp_tac (!simpset addsimps [free_tv_subst,dom_def,de_Morgan_disj]) 2);
-
+(** LEVEL 74 **)
 by (asm_simp_tac (!simpset setloop (split_tac [expand_bind])) 1); 
 by (safe_tac HOL_cs );
 by (dtac mgu_Ok 1);
@@ -348,6 +349,7 @@ by (simp_tac (!simpset addsimps [subst_comp_tel RS sym]) 1);
 by (res_inst_tac [("ts2","($ sa ($ s a))")] ((subst_comp_tel RS sym) RSN 
     (2,trans)) 1);
 by ( asm_full_simp_tac (!simpset addsimps [o_def,eq_sym_conv]) 1);
+(** LEVEL 90 **)
 by (rtac eq_free_eq_subst_tel 1);
 by ( safe_tac HOL_cs );
 by (subgoal_tac "ma ~= na" 1);
@@ -358,6 +360,7 @@ by (fast_tac (HOL_cs addIs [new_tv_list_le] addDs [sym RS W_var_geD]) 2);
 by (( forw_inst_tac [("n","m")] (sym RSN (2,new_tv_W)) 2) THEN (atac 2));
 by (etac conjE 2);
 by (dtac (free_tv_app_subst_tel RS subsetD) 2);
+(** LEVEL 100 **)
 by (fast_tac (set_cs addDs [W_var_geD,new_tv_list_le,codD,
     new_tv_not_free_tv]) 2);
 by (case_tac "na: free_tv t - free_tv sa" 1);
@@ -367,8 +370,10 @@ by (asm_full_simp_tac (!simpset setloop (split_tac [expand_if])) 2);
 by (asm_full_simp_tac (!simpset setloop (split_tac [expand_if])) 1);
 by (dtac (free_tv_app_subst_tel RS subsetD) 1);
 by (fast_tac (set_cs addDs [codD,subst_comp_tel RSN (2,trans),
-    eq_subst_tel_eq_free] addss ((!simpset addsimps 
-    [de_Morgan_disj,free_tv_subst,dom_def]))) 1);
+			    eq_subst_tel_eq_free] 
+       addss ((!simpset addsimps [de_Morgan_disj,free_tv_subst,dom_def]))) 1);
+(** LEVEL 106 **)
+by (Fast_tac 1);
 qed_spec_mp "W_complete_lemma";
 
 goal W.thy
