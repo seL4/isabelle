@@ -21,6 +21,24 @@ lemma multiply_by_add: "VARS m s a b
   {s = A*B}"
 by vcg_simp
 
+lemma "VARS M N P :: int
+ {m=M & n=N}
+ IF M < 0 THEN M := -M; N := -N ELSE SKIP FI;
+ P := 0;
+ WHILE 0 < M
+ INV {0 <= M & (EX p. p = (if m<0 then -m else m) & p*N = m*n & P = (p-M)*N)}
+ DO P := P+N; M := M - 1 OD
+ {P = m*n}"
+apply vcg_simp
+ apply (simp add:int_distrib)
+apply clarsimp
+apply(subgoal_tac "M=0")
+ prefer 2 apply simp
+apply clarsimp
+apply(rule conjI)
+ apply clarsimp
+apply clarsimp
+done
 
 (** Euclid's algorithm for GCD **)
 
