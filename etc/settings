@@ -48,6 +48,7 @@ ML_PLATFORM=$(eval $($ML_HOME/.arch-n-opsys 2>/dev/null); echo $HEAP_SUFFIX)
 ###
 
 ISABELLE_USEDIR_OPTIONS="-i false"
+#ISABELLE_USEDIR_OPTIONS="-i true -d pdf"
 
 
 ###
