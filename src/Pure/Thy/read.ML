@@ -120,7 +120,7 @@ fun use_thy name =
                       then (find_file path (thy ^ ".ML")
                             handle FILE_NOT_FOUND => 
                              error ("Could find no .thy or .ML file for theory "
-                                    ^ name))
+                                    ^ thy_name))
                       else if file_exists (thy_path ^ thy ^ ".ML")
                       then thy_path ^ thy ^ ".ML"
                       else ""
@@ -187,8 +187,8 @@ fun use_thy name =
                  use ml_file;
                  let val outstream = open_out (".tmp.ML") 
                  in
-                    output (outstream, "store_theory " ^ quote name ^ " " ^ name
-                                       ^ ".thy;\n");
+                    output (outstream, "store_theory " ^ quote thy_name ^ " "
+                                       ^ thy_name ^ ".thy;\n");
                     close_out outstream 
                  end;
                  use ".tmp.ML";
@@ -198,7 +198,7 @@ fun use_thy name =
 
          (*Now set the correct info.*)
          (set_info (file_info thy_file) (file_info ml_file) thy
-          handle THY_NOT_FOUND => error ("Could not find theory \"" ^ name
+          handle THY_NOT_FOUND => error ("Could not find theory \"" ^ thy
                                          ^ "\" (wrong filename?)"));
 
          (*Mark theories that have to be reloaded.*)
