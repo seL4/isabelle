@@ -128,10 +128,8 @@ fun prepare_proof rths chorn =
   let val {sign, t=horn,...} = rep_cterm chorn;
       val (_,As,B) = Logic.strip_horn(horn);
       val cAs = map (cterm_of sign) As;
-      val p_rew = if null rths then I else rewrite_rule rths;
-      val c_rew = if null rths then I else rewrite_goals_rule rths;
-      val prems = map (p_rew o forall_elim_vars(0) o assume) cAs
-      and st0 = c_rew (trivial (cterm_of sign B))
+      val prems = map (rewrite_rule rths o forall_elim_vars(0) o assume) cAs
+      and st0 = (rewrite_goals_rule rths o trivial) (cterm_of sign B)
       fun result_error state msg = 
         (writeln ("Bad final proof state:");
  	 !print_goals_ref (!goals_limit) state;
