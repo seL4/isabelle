@@ -54,6 +54,7 @@ sig
   val typ_match: type_sig -> (indexname * typ) list * (typ * typ)
     -> (indexname * typ) list
   val typ_instance: type_sig * typ * typ -> bool
+  val of_sort: type_sig -> typ * sort -> bool
 
   (*type unification*)
   exception TUNIFY
@@ -268,8 +269,11 @@ fun inst_typ tye =
   in map_type_tvar inst end;
 
 
-fun check_has_sort (TySg {classrel, arities, ...}, T, S) =
-  if Sorts.of_sort classrel arities (T, S) then ()
+
+fun of_sort (TySg {classrel, arities, ...}) = Sorts.of_sort classrel arities;
+
+fun check_has_sort (tsig, T, S) =
+  if of_sort tsig (T, S) then ()
   else raise_type ("Type not of sort " ^ Sorts.str_of_sort S) [T] [];
 
 
