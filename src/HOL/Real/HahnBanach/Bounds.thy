@@ -5,8 +5,8 @@
 
 header {* Bounds *};
 
-theory Bounds = Main + Real:; (*<*)
-
+theory Bounds = Main + Real:;
+(*<*)
 subsection {* The sets of lower and upper bounds *};
 
 constdefs
@@ -66,7 +66,6 @@ translations
 
 
 subsection {* Infimum and Supremum *};
-
 (*>*)
 text {*
  A supremum\footnote{The definition of the supremum is based on one in
@@ -83,8 +82,8 @@ constdefs
   "is_Sup A B x == isLub A B x"
 
   Sup :: "('a::order) set => 'a set => 'a"
-  "Sup A B == Eps (is_Sup A B)"; (*<*)
-
+  "Sup A B == Eps (is_Sup A B)";
+(*<*)
 constdefs
   is_Inf :: "('a::order) set => 'a set => 'a => bool"
   "is_Inf A B x == x:A & is_Greatest (LowerBounds A B) x"
@@ -107,7 +106,6 @@ translations
   "SUP x. P" == "SUP x:UNIV. P"
   "INF x:A. P" == "Inf A (Collect (\<lambda>x. P))"
   "INF x. P" == "INF x:UNIV. P";
-
 (*>*)
 text{* The supremum of $B$ is less than any upper bound
 of $B$.*};

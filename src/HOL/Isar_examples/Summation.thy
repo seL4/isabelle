@@ -47,8 +47,8 @@ translations
   "SUM i < k. b" == "sum (\\<lambda>i. b) k";
 
 
-subsection {* Summation laws *}; (*<*)
-
+subsection {* Summation laws *};
+(*<*)
 (* FIXME binary arithmetic does not yet work here *)
 
 syntax
@@ -62,7 +62,6 @@ translations
   "6" == "Suc (Suc 4)";
 
 theorems [simp] = add_mult_distrib add_mult_distrib2 mult_ac;
-
 (*>*)
 
 text {*
