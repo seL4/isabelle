@@ -16,6 +16,8 @@ structure String =
   struct
   fun substring (s,i,j) = StringBuiltIns.substring (s, i+1, j)
                           handle Substring => raise Subscript
+  fun isPrefix s1 s2 = (s1 = substring(s2,0, size s1))
+                       handle Subscript => false
   val concat = implode
   end;
 
