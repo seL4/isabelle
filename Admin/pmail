@@ -4,16 +4,20 @@
 # Author: Gerwin Klein, TU Muenchen
 # License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
-# DESCRIPTION: send email platform independently.
+# DESCRIPTION: send email with text attachments.
+# (works for "mail" command of SunOS 5.8)
+#
 
 PRG="$(basename "$0")"
+
+MIME_BOUNDARY="==PM_=_37427935"
 
 function usage()
 {
   echo
-  echo "Usage: $PRG subject recipient body"
+  echo "Usage: $PRG subject recipient <body> [<attachments>]"
   echo
-  echo "  Send email platform independently. Body is a file."
+  echo "  Send email with text attachments. <body> is a file."
   echo
   exit 1
 }
@@ -24,33 +28,68 @@ function fail()
   exit 2
 }
 
+#
+# print_attachment <file>
+#
+# print mime "encoded" <file> to stdout (text/plain, 8bit)
+#
+function print_attachment()
+{
+    local FILE=$1
+    local NAME=${FILE##*/}
+
+    cat <<EOF
+$MIME_BOUNDARY
+Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
+Content-Disposition: attachment; filename="$NAME"
+
+EOF
+    cat $FILE
+}
+
+
+#
+# print_body subject <message-file> [<attachments>]
+#
+# prints mime "encoded" message with text attachments to stdout
+#
+function print_body()
+{
+    local SUBJECT=$1
+    local BODY=$2
+    shift 2
+
+    cat <<EOF
+Subject: $SUBJECT
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="$MIME_BOUNDARY"
+
+$MIME_BOUNDARY
+Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
+
+EOF
+    cat $BODY
+
+    for a in $@; do print_attachment $a; done
+
+    echo "$MIME_BOUNDARY"
+}
+
 ## main
 
 # argument checking
 
 [ "$1" = "-?" ] && usage
-[ "$#" != "3" ] && usage
+[ "$#" -lt "3" ] && usage
 
 SUBJECT="$1"
 TO="$2"
 BODY="$3"
 
+shift 3
+
 [ -r "$BODY" ] || fail "could not read $BODY"
 
-case `uname` in
-    linux*|Linux*)
-    mail -s "$SUBJECT" "$TO" < "$BODY"
-    ;;
-
-    SunOS*)
-    mail -t "$TO" <<EOF
-Subject: $SUBJECT
-
-`cat $BODY`
-EOF
-    ;;
-
-    *)  
-    fail "unkown platform"
-    ;;
-esac
+print_body "$SUBJECT" "$BODY" $@ | mail -t "$TO"
