@@ -109,15 +109,13 @@ goal ZF.thy "!!r s. r<=s ==> domain(r)<=domain(s)";
 by (fast_tac ZF_cs 1);
 qed "domain_mono";
 
-val domain_rel_subset = 
-	[domain_mono, domain_subset] MRS subset_trans |> standard;
+bind_thm ("domain_rel_subset", [domain_mono, domain_subset] MRS subset_trans);
 
 goal ZF.thy "!!r s. r<=s ==> range(r)<=range(s)";
 by (fast_tac ZF_cs 1);
 qed "range_mono";
 
-val range_rel_subset = 
-	[range_mono, range_subset] MRS subset_trans |> standard;
+bind_thm ("range_rel_subset", [range_mono, range_subset] MRS subset_trans);
 
 goal ZF.thy "!!r s. r<=s ==> field(r)<=field(s)";
 by (fast_tac ZF_cs 1);
