@@ -40,6 +40,6 @@ text {* advanced examples *};
 term ".(.(` `x + `y).).";
 term ".(.(` `x + `y). o `f).";
 term ".(`(f o `g)).";
-term ".(.(`(`(f o `g))).).";
+term ".(.( ` `(f o `g) ).).";
 
 end;
