@@ -24,8 +24,8 @@ in
     in (map tmbind tm_theta, map tybind ty_theta)
     end
 
- fun match_type thry pat ob = 
-    map tybind(Type.typ_match (#tsig(Sign.rep_sg(Theory.sign_of thry))) ([],(pat,ob)))
+ fun match_type thry pat ob = map tybind (Vartab.dest
+   (Type.typ_match (#tsig(Sign.rep_sg(Theory.sign_of thry))) (Vartab.empty, (pat,ob))))
 end;
 
 
