@@ -15,7 +15,7 @@ text {*
 *}
 
 consts
-  sigma_algebra :: "'a set set => 'a set set"    ("\<sigma>'_algebra")
+  \<sigma>_algebra :: "'a set set => 'a set set"
 
 inductive "\<sigma>_algebra A"
   intros
@@ -32,8 +32,8 @@ text {*
 
 theorem sigma_algebra_empty: "{} \<in> \<sigma>_algebra A"
 proof -
-  have "UNIV \<in> \<sigma>_algebra A" by (rule sigma_algebra.UNIV)
-  hence "-UNIV \<in> \<sigma>_algebra A" by (rule sigma_algebra.complement)
+  have "UNIV \<in> \<sigma>_algebra A" by (rule \<sigma>_algebra.UNIV)
+  hence "-UNIV \<in> \<sigma>_algebra A" by (rule \<sigma>_algebra.complement)
   also have "-UNIV = {}" by simp
   finally show ?thesis .
 qed
@@ -42,9 +42,9 @@ theorem sigma_algebra_Inter:
   "(!!i::nat. a i \<in> \<sigma>_algebra A) ==> (\<Inter>i. a i) \<in> \<sigma>_algebra A"
 proof -
   assume "!!i::nat. a i \<in> \<sigma>_algebra A"
-  hence "!!i::nat. -(a i) \<in> \<sigma>_algebra A" by (rule sigma_algebra.complement)
-  hence "(\<Union>i. -(a i)) \<in> \<sigma>_algebra A" by (rule sigma_algebra.Union)
-  hence "-(\<Union>i. -(a i)) \<in> \<sigma>_algebra A" by (rule sigma_algebra.complement)
+  hence "!!i::nat. -(a i) \<in> \<sigma>_algebra A" by (rule \<sigma>_algebra.complement)
+  hence "(\<Union>i. -(a i)) \<in> \<sigma>_algebra A" by (rule \<sigma>_algebra.Union)
+  hence "-(\<Union>i. -(a i)) \<in> \<sigma>_algebra A" by (rule \<sigma>_algebra.complement)
   also have "-(\<Union>i. -(a i)) = (\<Inter>i. a i)" by simp
   finally show ?thesis .
 qed

@@ -64,13 +64,8 @@ primrec
   "veblen (Limit f) = \<nabla>(OpLim (\<lambda>n. veblen (f n)))"
 
 constdefs
-  veb :: "ordinal => ordinal"
   "veb a == veblen a Zero"
-
-constdefs
-  epsilon0 :: ordinal    ("\<epsilon>\<^sub>0")
-  "\<epsilon>\<^sub>0 == veb Zero"
-  Gamma0 :: ordinal    ("\<Gamma>\<^sub>0")
-  "\<Gamma>\<^sub>0 == Limit (\<lambda>n. iter veb n Zero)"
+  "\<epsilon>\<^isub>0 == veb Zero"
+  "\<Gamma>\<^isub>0 == Limit (\<lambda>n. iter veb n Zero)"
 
 end
