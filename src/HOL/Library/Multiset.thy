@@ -109,11 +109,12 @@ theorem union_lcomm: "M + (N + K) = N + (M + (K::'a multiset))"
 theorems union_ac = union_assoc union_commute union_lcomm
 
 instance multiset :: (type) plus_ac0
-  apply intro_classes
-    apply (rule union_commute)
-   apply (rule union_assoc)
-  apply simp
-  done
+proof 
+  fix a b c :: "'a multiset"
+  show "(a + b) + c = a + (b + c)" by (rule union_assoc)
+  show "a + b = b + a" by (rule union_commute)
+  show "0 + a = a" by simp
+qed
 
 
 subsubsection {* Difference *}
