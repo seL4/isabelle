@@ -96,6 +96,11 @@ by (etac (major RS inj_ontoD) 2);
 by (REPEAT (resolve_tac prems 1));
 qed "inj_onto_contraD";
 
+goalw Fun.thy [inj_onto_def]
+    "!!A B. [| A<=B; inj_onto f B |] ==> inj_onto f A";
+by (Blast_tac 1);
+qed "subset_inj_onto";
+
 
 (*** Lemmas about inj ***)
 
