@@ -6,7 +6,7 @@
 Examples of recdef definitions.  Most, but not all, are handled automatically.
 *)
 
-Recdefs = Recdef + List +
+Recdefs = Main +
 
 consts fact :: "nat => nat"
 recdef fact "less_than"

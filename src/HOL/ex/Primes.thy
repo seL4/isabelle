@@ -11,7 +11,7 @@ The "simpset" clause in the recdef declaration is omitted on purpose:
 	Isabelle prove those conditions.
 *)
 
-Primes = Divides + Recdef + Datatype +
+Primes = Main +
 consts
   is_gcd  :: [nat,nat,nat]=>bool          (*gcd as a relation*)
   gcd     :: "nat*nat=>nat"               (*Euclid's algorithm *)
@@ -19,7 +19,7 @@ consts
   prime   :: nat set
   
 recdef gcd "measure ((%(m,n).n) ::nat*nat=>nat)"
-(*  simpset "!simpset addsimps [mod_less_divisor, zero_less_eq]" *)
+(*  simpset "simpset() addsimps [mod_less_divisor, zero_less_eq]" *)
     "gcd (m, n) = (if n=0 then m else gcd(n, m mod n))"
 
 defs
