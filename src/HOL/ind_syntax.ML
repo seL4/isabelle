@@ -37,8 +37,8 @@ val unitT = Type("unit",[]);
 
 fun mk_prod (T1,T2) = Type("*", [T1,T2]);
 
-(*Maps the type T1*...*Tn to [T1,...,Tn], if nested to the right*)
-fun factors (Type("*", [T1,T2])) = T1 :: factors T2
+(*Maps the type T1*...*Tn to [T1,...,Tn], however nested*)
+fun factors (Type("*", [T1,T2])) = factors T1 @ factors T2
   | factors T                    = [T];
 
 (*Make a correctly typed ordered pair*)
@@ -50,21 +50,41 @@ fun mk_Pair (t1,t2) =
 fun split_const(Ta,Tb,Tc) = 
     Const("split", [[Ta,Tb]--->Tc, mk_prod(Ta,Tb)] ---> Tc);
 
-(*Given u expecting arguments of types [T1,...,Tn], create term of 
-  type T1*...*Tn => Tc using split.  Here * associates to the LEFT*)
-fun ap_split_l Tc u [ ]   = Abs("null", unitT, u)
-  | ap_split_l Tc u [_]   = u
-  | ap_split_l Tc u (Ta::Tb::Ts) = ap_split_l Tc (split_const(Ta,Tb,Tc) $ u) 
-                                              (mk_prod(Ta,Tb) :: Ts);
+(*In ap_split S T u, term u expects separate arguments for the factors of S,
+  with result type T.  The call creates a new term expecting one argument
+  of type S.*)
+fun ap_split (Type("*", [T1,T2])) T3 u = 
+      split_const(T1,T2,T3) $ 
+      Abs("v", T1, 
+	  ap_split T2 T3
+	     ((ap_split T1 (factors T2 ---> T3) (incr_boundvars 1 u)) $ 
+	      Bound 0))
+  | ap_split T T3 u = u;
 
-(*Given u expecting arguments of types [T1,...,Tn], create term of 
-  type T1*...*Tn => i using split.  Here * associates to the RIGHT*)
-fun ap_split Tc u [ ]   = Abs("null", unitT, u)
-  | ap_split Tc u [_]   = u
-  | ap_split Tc u [Ta,Tb] = split_const(Ta,Tb,Tc) $ u
-  | ap_split Tc u (Ta::Ts) = 
-      split_const(Ta, foldr1 mk_prod Ts, Tc) $ 
-      (Abs("v", Ta, ap_split Tc (u $ Bound(length Ts - 2)) Ts));
+(*Makes a nested tuple from a list, following the product type structure*)
+fun mk_tuple (Type("*", [T1,T2])) tms = 
+        mk_Pair (mk_tuple T1 tms, 
+		 mk_tuple T2 (drop (length (factors T1), tms)))
+  | mk_tuple T (t::_) = t;
+
+(*Attempts to remove occurrences of split, and pair-valued parameters*)
+val remove_split = rewrite_rule [split RS eq_reflection]  o  
+	           rule_by_tactic (ALLGOALS split_all_tac);
+
+(*Uncurries any Var of function type in the rule*)
+fun split_rule_var (t as Var(v, Type("fun",[T1,T2])), rl) =
+      let val T' = factors T1 ---> T2
+	  val newt = ap_split T1 T2 (Var(v,T'))
+	  val cterm = Thm.cterm_of (#sign(rep_thm rl))
+      in
+	  remove_split (instantiate ([], [(cterm t, cterm newt)]) rl)
+      end
+  | split_rule_var (t,rl) = rl;
+
+(*Uncurries ALL function variables occurring in a rule's conclusion*)
+fun split_rule rl = foldr split_rule_var (term_vars (concl_of rl), rl)
+                    |> standard;
+
 
 (** Disjoint sum type **)
 

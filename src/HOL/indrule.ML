@@ -99,23 +99,26 @@ val quant_induct =
 (*** Prove the simultaneous induction rule ***)
 
 (*Make distinct predicates for each inductive set.
-  Splits cartesian products in elem_type, IF nested to the right! *)
+  Splits cartesian products in elem_type, however nested*)
+
+(*The components of the element type, several if it is a product*)
+val elem_factors = Ind_Syntax.factors elem_type;
+val elem_frees = mk_frees "za" elem_factors;
+val elem_tuple = Ind_Syntax.mk_tuple elem_type elem_frees;
 
 (*Given a recursive set, return the "split" predicate
   and a conclusion for the simultaneous induction rule*)
 fun mk_predpair rec_tm = 
   let val rec_name = (#1 o dest_Const o head_of) rec_tm
-      val T = Ind_Syntax.factors elem_type ---> Ind_Syntax.boolT
-      val pfree = Free(pred_name ^ "_" ^ rec_name, T)
-      val frees = mk_frees "za" (binder_types T)
+      val pfree = Free(pred_name ^ "_" ^ rec_name, 
+		       elem_factors ---> Ind_Syntax.boolT)
       val qconcl = 
         foldr Ind_Syntax.mk_all 
-          (frees, 
-           Ind_Syntax.imp $ (Ind_Syntax.mk_mem 
-                             (foldr1 Ind_Syntax.mk_Pair frees, rec_tm))
-                $ (list_comb (pfree,frees)))
-  in  (Ind_Syntax.ap_split Ind_Syntax.boolT pfree (binder_types T), 
-      qconcl)  
+          (elem_frees, 
+           Ind_Syntax.imp $ (Ind_Syntax.mk_mem (elem_tuple, rec_tm))
+                $ (list_comb (pfree, elem_frees)))
+  in  (Ind_Syntax.ap_split elem_type Ind_Syntax.boolT pfree, 
+       qconcl)  
   end;
 
 val (preds,qconcls) = split_list (map mk_predpair Inductive.rec_tms);
@@ -135,15 +138,18 @@ val induct_concl =
 and mutual_induct_concl = 
     Ind_Syntax.mk_Trueprop (fold_bal (app Ind_Syntax.conj) qconcls);
 
+val lemma_tac = FIRST' [eresolve_tac [asm_rl, conjE, PartE, mp],
+			resolve_tac [allI, impI, conjI, Part_eqI, refl],
+			dresolve_tac [spec, mp, splitD]];
+
 val lemma = (*makes the link between the two induction rules*)
     prove_goalw_cterm part_rec_defs 
           (cterm_of sign (Logic.mk_implies (induct_concl,
                                             mutual_induct_concl)))
           (fn prems =>
            [cut_facts_tac prems 1,
-            REPEAT (eresolve_tac [asm_rl, conjE, PartE, mp] 1
-             ORELSE resolve_tac [allI, impI, conjI, Part_eqI, refl] 1
-             ORELSE dresolve_tac [spec, mp, splitD] 1)])
+            REPEAT (rewrite_goals_tac [split RS eq_reflection] THEN
+		    lemma_tac 1)])
     handle e => print_sign_exn sign e;
 
 (*Mutual induction follows by freeness of Inl/Inr.*)
@@ -151,9 +157,9 @@ val lemma = (*makes the link between the two induction rules*)
 (*Simplification largely reduces the mutual induction rule to the 
   standard rule*)
 val mut_ss = simpset_of "Fun"
-             addsimps [Inl_Inr_eq, Inr_Inl_eq, Inl_eq, Inr_eq];
+             addsimps [Inl_Inr_eq, Inr_Inl_eq, Inl_eq, Inr_eq, split];
 
-val all_defs = Inductive.con_defs @ part_rec_defs;
+val all_defs = [split RS eq_reflection] @ Inductive.con_defs @ part_rec_defs;
 
 (*Removes Collects caused by M-operators in the intro rules*)
 val cmonos = [subset_refl RS Int_Collect_mono] RL Inductive.monos RLN
@@ -172,7 +178,7 @@ fun mutual_ind_tac [] 0 = all_tac
            simp_tac (mut_ss addsimps [Part_def]) 1  THEN
            IF_UNSOLVED (*simp_tac may have finished it off!*)
              ((*simplify assumptions, but don't accept new rewrite rules!*)
-              asm_full_simp_tac (mut_ss setmksimps K[]) 1  THEN
+              full_simp_tac mut_ss 1  THEN
               (*unpackage and use "prem" in the corresponding place*)
               REPEAT (rtac impI 1)  THEN
               rtac (rewrite_rule all_defs prem) 1  THEN
@@ -195,23 +201,27 @@ val mutual_induct_split =
             mutual_ind_tac (rev prems) (length prems)])
     handle e => print_sign_exn sign e;
 
-(*Attempts to remove all occurrences of split*)
-val split_tac =
-    REPEAT (SOMEGOAL (FIRST' [rtac splitI, 
-                              dtac splitD,
-                              etac splitE,
-                              bound_hyp_subst_tac]))
-    THEN prune_params_tac;
+(** Uncurrying the predicate in the ordinary induction rule **)
+
+(*The name "x.1" comes from the "RS spec" !*)
+val xvar = cterm_of sign (Var(("x",1), elem_type));
+
+(*strip quantifier and instantiate the variable to a tuple*)
+val induct0 = quant_induct RS spec RSN (2,rev_mp) |>
+              freezeT |>     (*Because elem_type contains TFrees not TVars*)
+              instantiate ([], [(xvar, cterm_of sign elem_tuple)]);
 
 in
   struct
-  (*strip quantifier*)
-  val induct = standard (quant_induct RS spec RSN (2,rev_mp));
+  val induct = standard 
+                  (Ind_Syntax.split_rule_var
+		    (Var((pred_name,2), elem_type --> Ind_Syntax.boolT),
+		     induct0));
 
+  (*Just "True" unless there's true mutual recursion.  This saves storage.*)
   val mutual_induct = 
-      if length Intr_elim.rec_names > 1 orelse
-         length (Ind_Syntax.factors elem_type) > 1
-      then rule_by_tactic split_tac mutual_induct_split
+      if length Intr_elim.rec_names > 1
+      then Ind_Syntax.remove_split mutual_induct_split
       else TrueI;
   end
 end;
