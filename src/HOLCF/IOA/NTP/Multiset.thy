@@ -40,7 +40,7 @@ countm_nonempty_def
    "countm (addm M x) P == countm M P + (if P x then Suc 0 else 0)"
 
 count_def
-   "count M x == countm M (%y.y = x)"
+   "count M x == countm M (%y. y = x)"
 
 induction
    "[| P({|}); !!M x. P(M) ==> P(addm M x) |] ==> P(M)"

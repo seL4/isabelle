@@ -36,7 +36,7 @@ defs
  rsch_def "rsch == snd o snd o snd"
 
 hdr_sum_def
-   "hdr_sum M b == countm M (%pkt.hdr(pkt) = b)"
+   "hdr_sum M b == countm M (%pkt. hdr(pkt) = b)"
 
 (* Lemma 5.1 *)
 inv1_def 

@@ -31,7 +31,7 @@ val set_lemmas =
 
 (* 2 Lemmas to add to set_lemmas ... , used also for action handling, 
    namely for Intersections and the empty list (compatibility of IOA!)  *)
-goal Set.thy "(UN b.{x.x=f(b)})= (UN b.{f(b)})"; 
+goal Set.thy "(UN b.{x. x=f(b)})= (UN b.{f(b)})"; 
  by (rtac set_ext 1);
  by (Fast_tac 1);
 val singleton_set =result();

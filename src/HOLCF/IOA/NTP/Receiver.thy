@@ -65,7 +65,7 @@ receiver_trans_def "receiver_trans ==
                      rsending(t) |                                      
       R_ack(b) => False |                                               
       C_m_s => False |                                                  
- C_m_r => count (rsent s) (~rbit s) < countm (rrcvd s) (%y.hdr(y)=rbit(s)) & 
+ C_m_r => count (rsent s) (~rbit s) < countm (rrcvd s) (%y. hdr(y)=rbit(s)) & 
              rq(t) = rq(s)                        &                     
              rsent(t)=rsent(s)                    &                     
              rrcvd(t)=rrcvd(s)                    &                     
@@ -73,7 +73,7 @@ receiver_trans_def "receiver_trans ==
              rsending(s)                          &                     
              ~rsending(t) |                                             
     C_r_s => False |                                                    
- C_r_r(m) => count (rsent s) (rbit s) <= countm (rrcvd s) (%y.hdr(y)=rbit(s)) & 
+ C_r_r(m) => count (rsent s) (rbit s) <= countm (rrcvd s) (%y. hdr(y)=rbit(s)) & 
              count (rsent s) (~rbit s) < count (rrcvd s) (rbit(s),m) &  
              rq(t) = rq(s)@[m]                         &                
              rsent(t)=rsent(s)                         &                
