@@ -1,10 +1,12 @@
 #!/bin/bash
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # DESCRIPTION: translate symbols into \<...> sequences
 
 #set by configure
 AUTO_PERL=perl
 
-exec $AUTO_PERL -w $ISABELLE_HOME/lib/scripts/symbolinput.pl "$@"
+exec "$AUTO_PERL" -w "$ISABELLE_HOME/lib/scripts/symbolinput.pl" "$@"

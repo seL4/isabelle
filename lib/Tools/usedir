@@ -1,13 +1,15 @@
 #!/bin/bash
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # DESCRIPTION: build object-logic or run examples
 
 
 ## diagnostics
 
-PRG=$(basename $0)
+PRG=$(basename "$0")
 
 function usage()
 {
@@ -92,12 +94,12 @@ shift $(($OPTIND - 1))
 
 # args
 
-[ $# -ne 2 ] && usage
+[ "$#" -ne 2 ] && usage
 
 LOGIC="$1"; shift
 NAME="$1"; shift
 
-[ -z "$SESSION" ] && SESSION=$(basename $NAME)
+[ -z "$SESSION" ] && SESSION=$(basename "$NAME")
 
 
 
@@ -105,10 +107,10 @@ NAME="$1"; shift
 
 # prepare browser info dir
 
-if [ "$INFO" = "true" -a ! -f $ISABELLE_BROWSER_INFO/index.html ]; then
-  mkdir -p $ISABELLE_BROWSER_INFO
-  cp $ISABELLE_HOME/lib/logo/isabelle.gif $ISABELLE_BROWSER_INFO/isabelle.gif
-  cp $ISABELLE_HOME/lib/html/index.html $ISABELLE_BROWSER_INFO/index.html
+if [ "$INFO" = "true" -a ! -f "$ISABELLE_BROWSER_INFO/index.html" ]; then
+  mkdir -p "$ISABELLE_BROWSER_INFO"
+  cp "$ISABELLE_HOME/lib/logo/isabelle.gif" "$ISABELLE_BROWSER_INFO/isabelle.gif"
+  cp "$ISABELLE_HOME/lib/html/index.html" "$ISABELLE_BROWSER_INFO/index.html"
 fi
 
 
@@ -126,7 +128,7 @@ PARENT=$(basename "$LOGIC")
 
 if [ "$DOCUMENT" != false -a -d document ]; then
   DOC="$DOCUMENT"
-  [ -n "$DUMP" -a -d "$DUMP" ] && $ISATOOL latex -o sty "$DUMP/root.tex" >/dev/null
+  [ -n "$DUMP" -a -d "$DUMP" ] && "$ISATOOL" latex -o sty "$DUMP/root.tex" >/dev/null
 else
   DOC=""
 fi
@@ -142,34 +144,34 @@ if [ -n "$BUILD" ]; then
   OPT_C=""
   [ "$COMPRESS" = true ] && OPT_C="-c"
 
-  $ISABELLE \
+  "$ISABELLE" \
     -e "Session.use_dir $RESET $INFO \"$DOC\" \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\";" \
-    $OPT_C -q -w $LOGIC $NAME > $LOG 2>&1
-  RC=$?
+    $OPT_C -q -w $LOGIC $NAME > "$LOG" 2>&1
+  RC="$?"
 else
-  ITEM=$(basename $LOGIC)-"$SESSION"
+  ITEM=$(basename "$LOGIC")-"$SESSION"
   echo "Running $ITEM ..."
   LOG="$LOGDIR/$ITEM"
 
-  $ISABELLE \
+  "$ISABELLE" \
     -e "Session.use_dir $RESET $INFO \"$DOC\" \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\"; quit();" \
-    -r -q $LOGIC > $LOG 2>&1
-  RC=$?
+    -r -q "$LOGIC" > "$LOG" 2>&1
+  RC="$?"
   cd ..
 fi
 
-ELAPSED=$($ISABELLE_HOME/lib/scripts/showtime $SECONDS)
+ELAPSED=$("$ISABELLE_HOME/lib/scripts/showtime" "$SECONDS")
 
 
 # exit status
 
-if [ $RC -eq 0 ]; then
+if [ "$RC" -eq 0 ]; then
   echo "Finished $ITEM ($ELAPSED elapsed time)"
   gzip --force "$LOG"
 else
   echo "$ITEM FAILED"
   echo "(see also $LOG)"
-  echo; tail $LOG; echo
+  echo; tail "$LOG"; echo
 fi
 
-exit $RC
+exit "$RC"

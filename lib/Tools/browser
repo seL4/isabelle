@@ -1,11 +1,13 @@
 #!/bin/bash
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # DESCRIPTION: Isabelle graph browser
 
 
-PRG=$(basename $0)
+PRG=$(basename "$0")
 
 function usage()
 {
@@ -42,14 +44,14 @@ shift $(($OPTIND - 1))
 # args
 
 GRAPHFILE=""
-[ $# -gt 0 ] && { GRAPHFILE="$1"; shift; }
-[ $# -ne 0 ] && usage
+[ "$#" -gt 0 ] && { GRAPHFILE="$1"; shift; }
+[ "$#" -ne 0 ] && usage
 
 
 ## main
 
-export CLASSPATH=$ISABELLE_HOME/lib/browser
-[ -z "$GRAPHFILE" ] && cd $ISABELLE_BROWSER_INFO
+export CLASSPATH="$ISABELLE_HOME/lib/browser"
+[ -z "$GRAPHFILE" ] && cd "$ISABELLE_BROWSER_INFO"
 
-java GraphBrowser.GraphBrowser $GRAPHFILE
+java GraphBrowser.GraphBrowser "$GRAPHFILE"
 [ -n "$GRAPHFILE" -a -n "$DELETE" ] && rm -f "$GRAPHFILE"

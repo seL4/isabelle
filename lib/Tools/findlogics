@@ -1,11 +1,13 @@
 #!/bin/bash
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # DESCRIPTION: collect heap names from ISABELLE_PATH
 
 
-PRG=$(basename $0)
+PRG=$(basename "$0")
 
 function usage()
 {
@@ -20,14 +22,17 @@ function usage()
 
 ## main
 
-[ $# -ne 0 ] && usage
+[ "$#" -ne 0 ] && usage
 
 
 LOGICS=""
 
-for DIR in $(echo $ISABELLE_PATH | tr : " ")
+ORIG_IFS="$IFS"
+IFS=":"
+for DIR in $ISABELLE_PATH
 do
-  for FILE in $DIR/*
+  DIR="$DIR/$ML_IDENTIFIER"
+  for FILE in "$DIR"/*
   do
     if [ -f "$FILE" ]; then
       NAME=$(basename "$FILE")
@@ -35,5 +40,6 @@ do
     fi
   done
 done
+IFS="$ORIG_IFS"
 
-echo $({ for L in $LOGICS; do echo $L; done; } | sort | uniq)
+echo $({ for L in $LOGICS; do echo "$L"; done; } | sort | uniq)

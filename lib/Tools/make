@@ -1,11 +1,13 @@
 #!/bin/bash
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # DESCRIPTION: Isabelle make utility
 
 
-PRG=$(basename $0)
+PRG=$(basename "$0")
 
 function usage()
 {

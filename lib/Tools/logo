@@ -1,11 +1,13 @@
 #!/bin/bash
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # DESCRIPTION: create an instance of the Isabelle logo
 
 
-PRG=$(basename $0)
+PRG=$(basename "$0")
 
 function usage()
 {
@@ -56,9 +58,9 @@ shift $(($OPTIND - 1))
 # args
 
 NAME="-"
-[ $# -ge 1 ] && { NAME="$1"; shift; }
+[ "$#" -ge 1 ] && { NAME="$1"; shift; }
 
-[ $# -ne 0 -o "$NAME" = "-" ] && usage
+[ "$#" -ne 0 -o "$NAME" = "-" ] && usage
 
 
 ## main
@@ -73,8 +75,8 @@ fi
 AUTO_PERL=perl
 
 if [ "$OUTFILE" = "-" ]; then
-  $AUTO_PERL -p -e "s/<any>/$NAME/" $ISABELLE_HOME/lib/logo/isabelle_any.eps
+  "$AUTO_PERL" -p -e "s/<any>/$NAME/" "$ISABELLE_HOME/lib/logo/isabelle_any.eps"
 else
   [ -z "$QUIET" ] && echo "$OUTFILE" >&2
-  $AUTO_PERL -p -e "s/<any>/$NAME/" $ISABELLE_HOME/lib/logo/isabelle_any.eps > $OUTFILE
+  "$AUTO_PERL" -p -e "s/<any>/$NAME/" "$ISABELLE_HOME/lib/logo/isabelle_any.eps" > "$OUTFILE"
 fi

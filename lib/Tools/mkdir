@@ -1,13 +1,15 @@
 #!/bin/bash
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # DESCRIPTION: prepare logic session directory
 
 
 ## diagnostics
 
-PRG=$(basename $0)
+PRG=$(basename "$0")
 
 function usage()
 {
@@ -69,10 +71,10 @@ shift $(($OPTIND - 1))
 # args
 
 
-if [ $# -eq 1 ]; then
+if [ "$#" -eq 1 ]; then
   LOGIC="$ISABELLE_LOGIC"
   DIR_NAME="$1"; shift
-elif [ $# -eq 2 ]; then
+elif [ "$#" -eq 2 ]; then
   LOGIC="$1"; shift
   DIR_NAME="$1"; shift
 else

@@ -1,6 +1,8 @@
 #!/bin/bash
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # DESCRIPTION: apply make utility to all logics
 
@@ -11,7 +13,7 @@ ALL_LOGICS="CCL CTT Cube FOL FOLP HOL HOLCF LCF Pure Sequents ZF"
 
 ## diagnostics
 
-PRG=$(basename $0)
+PRG=$(basename "$0")
 
 function usage()
 {
@@ -36,10 +38,10 @@ echo "Started at $DATE ($HOST)"
 
 for L in $ALL_LOGICS
 do
-  ( cd $ISABELLE_HOME/src/$L; $ISATOOL make "$@" )
+  ( cd "$ISABELLE_HOME/src/$L"; "$ISATOOL" make "$@" )
 done
 
 echo -n "Finished at "; date
 
-ELAPSED=$($ISABELLE_HOME/lib/scripts/showtime $SECONDS)
+ELAPSED=$("$ISABELLE_HOME/lib/scripts/showtime" "$SECONDS")
 echo "$ELAPSED total elapsed time"

@@ -1,13 +1,15 @@
 #!/bin/bash
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # DESCRIPTION: replace goal(w) commands by implicit versions Goal(w)
 
 
 ## diagnostics
 
-PRG=$(basename $0)
+PRG=$(basename "$0")
 
 function usage()
 {
@@ -25,9 +27,9 @@ function usage()
 
 ## process command line
 
-[ $# -eq 0 -o "$1" = "-?" ] && usage
+[ "$#" -eq 0 -o "$1" = "-?" ] && usage
 
-SPECS="$@"; shift $#
+SPECS="$@"; shift "$#"
 
 
 ## main
@@ -35,4 +37,4 @@ SPECS="$@"; shift $#
 #set by configure
 AUTO_PERL=perl
 
-find $SPECS -name \*.ML -print | xargs $AUTO_PERL -w $ISABELLE_HOME/lib/scripts/fixgoal.pl
+find $SPECS -name \*.ML -print | xargs "$AUTO_PERL" -w "$ISABELLE_HOME/lib/scripts/fixgoal.pl"

@@ -1,11 +1,13 @@
 #!/bin/bash
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # DESCRIPTION: run LaTeX (and related tools)
 
 
-PRG=$(basename $0)
+PRG=$(basename "$0")
 
 function usage()
 {
@@ -53,9 +55,9 @@ shift $(($OPTIND - 1))
 # args
 
 FILE="root.tex"
-[ $# -ge 1 ] && { FILE="$1"; shift; }
+[ "$#" -ge 1 ] && { FILE="$1"; shift; }
 
-[ $# -ne 0 ] && usage
+[ "$#" -ne 0 ] && usage
 
 
 ## main
@@ -63,11 +65,8 @@ FILE="root.tex"
 # root file
 
 DIR=$(dirname "$FILE")
-if [ "$DIR" = . ]; then
-  FILEBASE=$(basename "$FILE" .tex)
-else
-  FILEBASE=$DIR/$(basename "$FILE" .tex)
-fi
+FILEBASE=$(basename "$FILE" .tex)
+[ "$DIR" = . ] || FILEBASE="$DIR/$FILEBASE"
 
 function check_root () { [ -f "$FILEBASE.tex" ] || fail "Bad file '$FILE'"; }
 
@@ -82,7 +81,7 @@ function run_thumbpdf () { [ -n "$ISABELLE_THUMBPDF" ] && $ISABELLE_THUMBPDF "$F
 
 function update_styles ()
 {
-  for NAME in $ISABELLE_HOME/lib/texinputs/*.sty
+  for NAME in "$ISABELLE_HOME/lib/texinputs"/*.sty
   do
     DEST="$DIR"/$(basename "$NAME")
     if [ ! -e "$DEST" -o "$NAME" -nt "$DEST" ]; then
@@ -96,49 +95,49 @@ case "$OUTFORMAT" in
   dvi)
     check_root && \
     run_latex
-    RC=$?
+    RC="$?"
     ;;
   dvi.gz)
     check_root && \
     run_latex && \
     gzip -f "$FILEBASE.dvi"
-    RC=$?
+    RC="$?"
     ;;
   ps)
     check_root && \
     run_latex && \
     run_dvips &&
-    RC=$?
+    RC="$?"
     ;;
   ps.gz)
     check_root && \
     run_latex && \
     run_dvips &&
     gzip -f "$FILEBASE.ps"
-    RC=$?
+    RC="$?"
     ;;
   pdf)
     check_root && \
     run_pdflatex
-    RC=$?
+    RC="$?"
     ;;
   bbl)
     check_root && \
     run_bibtex
-    RC=$?
+    RC="$?"
     ;;
   png)
     check_root && \
     run_thumbpdf
-    RC=$?
+    RC="$?"
     ;;
   sty)
     update_styles
-    RC=$?
+    RC="$?"
     ;;
   *)
     fail "Bad output format '$OUTFORMAT'"
     ;;
 esac
 
-exit $RC
+exit "$RC"

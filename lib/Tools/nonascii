@@ -1,13 +1,15 @@
 #!/bin/bash
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # DESCRIPTION: check files for non-ASCII characters
 
 
 ## diagnostics
 
-PRG=$(basename $0)
+PRG=$(basename "$0")
 
 function usage()
 {
@@ -22,9 +24,9 @@ function usage()
 
 ## process command line
 
-[ $# -eq 0 -o "$1" = "-?" ] && usage
+[ "$#" -eq 0 -o "$1" = "-?" ] && usage
 
-SPECS="$@"; shift $#
+SPECS="$@"; shift "$#"
 
 
 ## main
@@ -33,5 +35,5 @@ SPECS="$@"; shift $#
 AUTO_PERL=perl
 
 find $SPECS \( -name \*.ML -o -name \*.thy \) -print | \
-  xargs $AUTO_PERL -w -e \
+  xargs "$AUTO_PERL" -w -e \
     'while(<ARGV>) { if (m/[\x80-\xff]/) { print "$ARGV: $_"; }}'

@@ -1,11 +1,13 @@
 #!/bin/bash
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # DESCRIPTION: prepare theory session document
 
 
-PRG=$(basename $0)
+PRG=$(basename "$0")
 
 function usage()
 {
@@ -58,9 +60,9 @@ shift $(($OPTIND - 1))
 # args
 
 DIR="document"
-[ $# -ge 1 ] && { DIR="$1"; shift; }
+[ "$#" -ge 1 ] && { DIR="$1"; shift; }
 
-[ $# -ne 0 ] && usage
+[ "$#" -ne 0 ] && usage
 
 
 ## main
@@ -84,11 +86,11 @@ function pre_latex ()
   [ -n "$CLEAN" ] && rm -f *.aux *.out
   if [ -f root.bib ]
   then
-    $ISATOOL latex -o "$FMT" && \
-    $ISATOOL latex -o bbl && \
-    $ISATOOL latex -o "$FMT"
+    "$ISATOOL" latex -o "$FMT" && \
+    "$ISATOOL" latex -o bbl && \
+    "$ISATOOL" latex -o "$FMT"
   else
-    $ISATOOL latex -o "$FMT"
+    "$ISATOOL" latex -o "$FMT"
   fi
 }
 
@@ -98,20 +100,20 @@ function pre_latex ()
   [ -n "$CLEAN" ] && rm -f "../document.$OUTFORMAT"
 
   if [ -f IsaMakefile ]; then
-    $ISATOOL make "$OUTFORMAT"
-    RC=$?
+    "$ISATOOL" make "$OUTFORMAT"
+    RC="$?"
   elif [ "$OUTFORMAT" = pdf ]; then
     pre_latex pdf && \
-    $ISATOOL latex -o pdf && \
+    "$ISATOOL" latex -o pdf && \
     { if [ -n "$ISABELLE_THUMBPDF" ]; then
-        $ISATOOL latex -o png && \
-        $ISATOOL latex -o pdf
+        "$ISATOOL" latex -o png && \
+        "$ISATOOL" latex -o pdf
       fi; }
-    RC=$?
+    RC="$?"
   else
     pre_latex dvi && \
-    $ISATOOL latex -o "$OUTFORMAT"
-    RC=$?
+    "$ISATOOL" latex -o "$OUTFORMAT"
+    RC="$?"
   fi
 
   [ "$RC" -eq 0 -a -f "root.$OUTFORMAT" ] && \
@@ -119,7 +121,7 @@ function pre_latex ()
 
   exit "$RC"
 )
-RC=$?
+RC="$?"
 
 
 # install

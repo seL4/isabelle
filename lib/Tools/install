@@ -1,11 +1,13 @@
 #!/bin/bash
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # DESCRIPTION: install standalone Isabelle executables
 
 
-PRG=$(basename $0)
+PRG=$(basename "$0")
 
 function usage()
 {
@@ -67,7 +69,7 @@ shift $(($OPTIND - 1))
 
 # args
 
-[ $# -ne 0 -o -n "$NO_OPTS" ] && usage
+[ "$#" -ne 0 -o -n "$NO_OPTS" ] && usage
 
 
 ## main
@@ -88,10 +90,10 @@ if [ -n "$BINDIR" ]; then
     BIN="$BINDIR/$NAME"
     DIST="$DISTDIR/bin/$NAME"
     echo "installing $BIN"
-    echo "#!$AUTO_BASH" >$BIN || fail "Cannot write file: $BIN"
-    echo >>$BIN
-    echo "exec $DIST \"\$@\"" >>$BIN
-    chmod +x $BIN
+    echo "#!$AUTO_BASH" > "$BIN" || fail "Cannot write file: $BIN"
+    echo >> "$BIN"
+    echo "exec \"$DIST\" \"\$@\"" >> "$BIN"
+    chmod +x "$BIN"
   done
 fi
 
@@ -100,28 +102,28 @@ fi
 
 KDEHOME=~/.kde
 KDEAPP=~/Desktop/Isabelle.kdelnk
-KDEICONS=$KDEHOME/share/icons
+KDEICONS="$KDEHOME/share/icons"
 
 if [ "$KDE" = true ]; then
-  mkdir -p $KDEICONS || fail "Bad directory: $KDEICONS"
-  mkdir -p $KDEICONS/mini || fail "Bad directory: $KDEICONS/mini"
+  mkdir -p "$KDEICONS" || fail "Bad directory: $KDEICONS"
+  mkdir -p "$KDEICONS/mini" || fail "Bad directory: $KDEICONS/mini"
 
-  [ -f $KDEICONS/isabelle.xpm ] || cp $ISABELLE_HOME/lib/icons/isabelle.xpm $KDEICONS || \
+  [ -f "$KDEICONS/isabelle.xpm" ] || cp "$ISABELLE_HOME/lib/icons/isabelle.xpm" "$KDEICONS" || \
     fail "Cannot write file: $KDEICONS/isabelle.xpm"
-  [ -f $KDEICONS/mini/isabelle.xpm ] || \
-    cp $ISABELLE_HOME/lib/icons/isabelle-mini.xpm $KDEICONS/mini/isabelle.xpm || \
+  [ -f "$KDEICONS/mini/isabelle.xpm" ] || \
+    cp "$ISABELLE_HOME/lib/icons/isabelle-mini.xpm" "$KDEICONS/mini/isabelle.xpm" || \
     fail "Cannot write file: $KDEICONS/mini/isabelle.xpm"
 
   echo "installing $KDEAPP"
-  echo "# KDE Config File" >$KDEAPP || fail "Cannot write file: $KDEAPP"
-  echo "[KDE Desktop Entry]" >>$KDEAPP
-  echo "Type=Application" >>$KDEAPP
-  echo "Exec=$DISTDIR/bin/Isabelle %f" >>$KDEAPP
-  echo "Icon=isabelle.xpm" >>$KDEAPP
-  echo "TerminalOptions=" >>$KDEAPP
-  echo "Path=" >>$KDEAPP
-  echo "Terminal=0" >>$KDEAPP
-  echo "Name=Isabelle" >>$KDEAPP
+  echo "# KDE Config File" > "$KDEAPP" || fail "Cannot write file: $KDEAPP"
+  echo "[KDE Desktop Entry]" >> "$KDEAPP"
+  echo "Type=Application" >> "$KDEAPP"
+  echo "Exec=$DISTDIR/bin/Isabelle %f" >> "$KDEAPP"
+  echo "Icon=isabelle.xpm" >> "$KDEAPP"
+  echo "TerminalOptions=" >> "$KDEAPP"
+  echo "Path=" >> "$KDEAPP"
+  echo "Terminal=0" >> "$KDEAPP"
+  echo "Name=Isabelle" >> "$KDEAPP"
 
-  type -p kfmclient >/dev/null && kfmclient refreshDesktop
+  echo "Please refresh your KDE now!"
 fi

@@ -1,13 +1,15 @@
 #!/bin/bash
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # DESCRIPTION: adapt theories and proof scripts to new datatype package
 
 
 ## diagnostics
 
-PRG=$(basename $0)
+PRG=$(basename "$0")
 
 function usage()
 {
@@ -25,9 +27,9 @@ function usage()
 
 ## process command line
 
-[ $# -eq 0 -o "$1" = "-?" ] && usage
+[ "$#" -eq 0 -o "$1" = "-?" ] && usage
 
-SPECS="$@"; shift $#
+SPECS="$@"; shift "$#"
 
 
 ## main
@@ -36,4 +38,4 @@ SPECS="$@"; shift $#
 AUTO_PERL=perl
 
 find $SPECS \( -name \*.thy -o -name \*.ML \) -print | \
-  xargs $AUTO_PERL -w $ISABELLE_HOME/lib/scripts/fixdatatype.pl
+  xargs "$AUTO_PERL" -w "$ISABELLE_HOME/lib/scripts/fixdatatype.pl"

@@ -1,11 +1,13 @@
 #!/bin/bash
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # DESCRIPTION: view Isabelle documentation
 
 
-PRG=$(basename $0)
+PRG=$(basename "$0")
 
 function usage()
 {
@@ -27,24 +29,28 @@ function fail()
 ## args
 
 DOC=""
-[ $# -ge 1 ] && { DOC="$1"; shift; }
+[ "$#" -ge 1 ] && { DOC="$1"; shift; }
 
-[ $# -ne 0 -o "$DOC" = "-?" ] && usage
+[ "$#" -ne 0 -o "$DOC" = "-?" ] && usage
 
 
 ## main
 
-DOCS=$(echo $ISABELLE_DOCS | tr : " ")
-
 if [ -z "$DOC" ]; then
-  for DIR in $DOCS
+  ORIG_IFS="$IFS"
+  IFS=":"
+  for DIR in $ISABELLE_DOCS
   do
-    [ -f $DIR/Contents ] && grep -v "^>>" $DIR/Contents
+    [ -f "$DIR/Contents" ] && grep -v "^>>" "$DIR/Contents"
   done
+  IFS="$ORIG_IFS"
 else
-  for DIR in $DOCS
+  ORIG_IFS="$IFS"
+  IFS=":"
+  for DIR in $ISABELLE_DOCS
   do
-    [ -f $DIR/$DOC.dvi ] && { cd $DIR; exec $DVI_VIEWER $DOC.dvi; }
+    [ -f "$DIR/$DOC.dvi" ] && { cd "$DIR"; IFS="$ORIG_IFS"; exec $DVI_VIEWER "$DOC.dvi"; }
   done
+  IFS="$ORIG_IFS"
   fail "Unknown Isabelle document: $DOC"  
 fi

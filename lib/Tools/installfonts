@@ -1,11 +1,13 @@
 #!/bin/bash
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # DESCRIPTION: install the isabelle fonts into your X11 server
 
 
-PRG=$(basename $0)
+PRG=$(basename "$0")
 
 function usage()
 {
@@ -37,7 +39,7 @@ function checkfonts()
 
 ## main
 
-[ $# -ne 0 ] && usage
+[ "$#" -ne 0 ] && usage
 
 checkfonts || eval $ISABELLE_INSTALLFONTS
 checkfonts || echo "WARNING: Isabelle fonts probably not installed correctly!" >&2

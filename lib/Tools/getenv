@@ -1,13 +1,15 @@
 #!/bin/bash
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # DESCRIPTION: get values from Isabelle settings environment
 
 
 ## diagnostics
 
-PRG=$(basename $0)
+PRG=$(basename "$0")
 
 function usage()
 {
@@ -51,7 +53,7 @@ shift $(($OPTIND - 1))
 
 # args
 
-[ -n "$ALL" -a $# -ne 0 ] && usage
+[ -n "$ALL" -a "$#" -ne 0 ] && usage
 
 
 ## main
@@ -59,7 +61,7 @@ shift $(($OPTIND - 1))
 if [ -n "$ALL" ]; then
   env | sort
 else
-  for VAR in $*
+  for VAR in "$@"
   do
     if [ -n "$BASE" ]; then
       eval "echo \$$VAR"

@@ -1,13 +1,15 @@
 #!/bin/bash
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # DESCRIPTION: ensure that dots in formulas are followed by non-idents
 
 
 ## diagnostics
 
-PRG=$(basename $0)
+PRG=$(basename "$0")
 
 function usage()
 {
@@ -25,9 +27,9 @@ function usage()
 
 ## process command line
 
-[ $# -eq 0 -o "$1" = "-?" ] && usage
+[ "$#" -eq 0 -o "$1" = "-?" ] && usage
 
-SPECS="$@"; shift $#
+SPECS="$@"; shift "$#"
 
 
 ## main
@@ -36,4 +38,4 @@ SPECS="$@"; shift $#
 AUTO_PERL=perl
 
 find $SPECS \( -name \*.thy -o -name \*.ML \) -print | \
-  xargs $AUTO_PERL -w $ISABELLE_HOME/lib/scripts/fixdots.pl
+  xargs "$AUTO_PERL" -w "$ISABELLE_HOME/lib/scripts/fixdots.pl"
