@@ -8,12 +8,12 @@ Binary trees
 
 BT = Datatype +
 consts
-    bt_rec    	:: "[i, i, [i,i,i,i,i]=>i] => i"
-    n_nodes	:: "i=>i"
-    n_leaves   	:: "i=>i"
-    bt_reflect 	:: "i=>i"
+    bt_rec    	:: [i, i, [i,i,i,i,i]=>i] => i
+    n_nodes	:: i=>i
+    n_leaves   	:: i=>i
+    bt_reflect 	:: i=>i
 
-    bt 	        :: "i=>i"
+    bt 	        :: i=>i
 
 datatype
   "bt(A)" = Lf  |  Br ("a: A",  "t1: bt(A)",  "t2: bt(A)")

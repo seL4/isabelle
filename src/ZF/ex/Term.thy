@@ -9,13 +9,13 @@ Illustrates the list functor (essentially the same type as in Trees & Forests)
 
 Term = List +
 consts
-  term_rec  :: "[i, [i,i,i]=>i] => i"
-  term_map  :: "[i=>i, i] => i"
-  term_size :: "i=>i"
-  reflect   :: "i=>i"
-  preorder  :: "i=>i"
+  term_rec  :: [i, [i,i,i]=>i] => i
+  term_map  :: [i=>i, i] => i
+  term_size :: i=>i
+  reflect   :: i=>i
+  preorder  :: i=>i
 
-  term      :: "i=>i"
+  term      :: i=>i
 
 datatype
   "term(A)" = Apply ("a: A", "l: list(term(A))")

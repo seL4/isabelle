@@ -10,8 +10,8 @@ Infinite branching datatype definitions
 
 Brouwer = InfDatatype +
 consts
-  brouwer :: "i"
-  Well    :: "[i,i=>i]=>i"
+  brouwer :: i
+  Well    :: [i,i=>i]=>i
  
 datatype <= "Vfrom(0, csucc(nat))"
   "brouwer" = Zero | Suc ("b: brouwer") | Lim ("h: nat -> brouwer")

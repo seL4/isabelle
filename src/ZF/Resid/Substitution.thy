@@ -8,10 +8,10 @@
 Substitution = SubUnion +
 
 consts
-  lift_rec	:: "[i,i]=> i"
-  lift		:: "i=>i"
-  subst_rec	:: "[i,i,i]=> i"
-  "'/"          :: "[i,i]=>i"  (infixl 70)  (*subst*)
+  lift_rec	:: [i,i]=> i
+  lift		:: i=>i
+  subst_rec	:: [i,i,i]=> i
+  "'/"          :: [i,i]=>i  (infixl 70)  (*subst*)
 translations
   "lift(r)"  == "lift_rec(r,0)"
   "u/v" == "subst_rec(u,v,0)"

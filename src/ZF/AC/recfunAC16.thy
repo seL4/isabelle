@@ -9,7 +9,7 @@ recfunAC16 = Transrec2 + Cardinal +
 
 consts
 
-  recfunAC16              :: "[i, i, i, i] => i"
+  recfunAC16              :: [i, i, i, i] => i
 
 defs
 

@@ -10,7 +10,7 @@ Transrec2 = OrdQuant + Epsilon +
 
 consts
   
-  transrec2               :: "[i, i, [i,i]=>i] =>i"
+  transrec2               :: [i, i, [i,i]=>i] =>i
 
 defs
 

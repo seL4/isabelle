@@ -21,18 +21,18 @@ Division is not defined yet!
 Bin = Integ + Datatype + "twos_compl" +
 
 consts
-  bin_rec          :: "[i, i, i, [i,i,i]=>i] => i"
-  integ_of_bin     :: "i=>i"
-  norm_Bcons       :: "[i,i]=>i"
-  bin_succ         :: "i=>i"
-  bin_pred         :: "i=>i"
-  bin_minus        :: "i=>i"
-  bin_add,bin_mult :: "[i,i]=>i"
+  bin_rec          :: [i, i, i, [i,i,i]=>i] => i
+  integ_of_bin     :: i=>i
+  norm_Bcons       :: [i,i]=>i
+  bin_succ         :: i=>i
+  bin_pred         :: i=>i
+  bin_minus        :: i=>i
+  bin_add,bin_mult :: [i,i]=>i
 
-  bin              :: "i"
+  bin              :: i
 
 syntax
-  "_Int"           :: "xnum => i"        ("_")
+  "_Int"           :: xnum => i        ("_")
 
 datatype
   "bin" = Plus

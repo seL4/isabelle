@@ -12,10 +12,10 @@ WO6_WO1 = "rel_is_fun" + AC_Equiv + Let +
 
 consts
 (* Auxiliary definitions used in proof *)
-  NN            :: "i => i"
-  uu            :: "[i, i, i, i] => i"
-  vv1, ww1, gg1 :: "[i, i, i] => i"
-  vv2, ww2, gg2 :: "[i, i, i, i] => i"
+  NN            :: i => i
+  uu            :: [i, i, i, i] => i
+  vv1, ww1, gg1 :: [i, i, i] => i
+  vv2, ww2, gg2 :: [i, i, i, i] => i
 
 defs
 

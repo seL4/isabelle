@@ -11,8 +11,8 @@ And their Operational semantics
 Com = Datatype +
 
 (** Arithmetic expressions **)
-consts  loc  :: "i"
-        aexp :: "i"
+consts  loc  :: i
+        aexp :: i
 
 datatype <= "univ(loc Un (nat->nat) Un ((nat*nat) -> nat) )"
   "aexp" = N ("n: nat")
@@ -22,8 +22,8 @@ datatype <= "univ(loc Un (nat->nat) Un ((nat*nat) -> nat) )"
 
 
 (** Evaluation of arithmetic expressions **)
-consts  evala    :: "i"
-       "@evala"  :: "[i,i,i] => o"		("<_,_>/ -a-> _"  [0,0,50] 50)
+consts  evala    :: i
+       "@evala"  :: [i,i,i] => o		("<_,_>/ -a-> _"  [0,0,50] 50)
 translations
     "<ae,sig> -a-> n" == "<ae,sig,n> : evala"
 inductive
@@ -39,7 +39,7 @@ inductive
 
 
 (** Boolean expressions **)
-consts  bexp :: "i"
+consts  bexp :: i
 
 datatype <= "univ(aexp Un ((nat*nat)->bool) )"
   "bexp" = true
@@ -51,8 +51,8 @@ datatype <= "univ(aexp Un ((nat*nat)->bool) )"
 
 
 (** Evaluation of boolean expressions **)
-consts evalb	:: "i"	
-       "@evalb" :: "[i,i,i] => o"		("<_,_>/ -b-> _" [0,0,50] 50)
+consts evalb	:: i	
+       "@evalb" :: [i,i,i] => o		("<_,_>/ -b-> _" [0,0,50] 50)
 
 translations
     "<be,sig> -b-> b" == "<be,sig,b> : evalb"
@@ -76,7 +76,7 @@ inductive
 
 
 (** Commands **)
-consts  com :: "i"
+consts  com :: i
 
 datatype <= "univ(loc Un aexp Un bexp)"
   "com" = skip
@@ -89,9 +89,9 @@ datatype <= "univ(loc Un aexp Un bexp)"
   with [| m: nat; x: loc; ... |] ==> ...  It usually will need parentheses.*)
 
 (** Execution of commands **)
-consts  evalc    :: "i"
-        "@evalc" :: "[i,i,i] => o"   		("<_,_>/ -c-> _" [0,0,50] 50)
-	"assign" :: "[i,i,i] => i"   		("_[_'/_]"       [95,0,0] 95)
+consts  evalc    :: i
+        "@evalc" :: [i,i,i] => o   		("<_,_>/ -c-> _" [0,0,50] 50)
+	"assign" :: [i,i,i] => i   		("_[_'/_]"       [95,0,0] 95)
 
 translations
        "<ce,sig> -c-> s" == "<ce,sig,s> : evalc"

@@ -8,8 +8,8 @@ Transitive closure of a relation
 
 Trancl = Fixedpt + Perm + "mono" + Rel + 
 consts
-    rtrancl :: "i=>i"  ("(_^*)" [100] 100)  (*refl/transitive closure*)
-    trancl  :: "i=>i"  ("(_^+)" [100] 100)  (*transitive closure*)
+    rtrancl :: i=>i  ("(_^*)" [100] 100)  (*refl/transitive closure*)
+    trancl  :: i=>i  ("(_^+)" [100] 100)  (*transitive closure*)
 
 defs
     rtrancl_def	"r^* == lfp(field(r)*field(r), %s. id(field(r)) Un (r O s))"

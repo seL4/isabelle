@@ -7,7 +7,7 @@
 Dynamic = Values +
 
 consts
-  EvalRel :: "i"
+  EvalRel :: i
 inductive
   domains "EvalRel" <= "ValEnv * Exp * Val"
   intrs

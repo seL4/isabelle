@@ -13,20 +13,20 @@ although complicating its derivation.
 List = Datatype + 
 
 consts
-  "@"	     :: "[i,i]=>i"      			(infixr 60)
-  list_rec   :: "[i, i, [i,i,i]=>i] => i"
-  map 	     :: "[i=>i, i] => i"
-  length,rev :: "i=>i"
-  flat       :: "i=>i"
-  list_add   :: "i=>i"
-  hd,tl      :: "i=>i"
-  drop	     :: "[i,i]=>i"
+  "@"	     :: [i,i]=>i      			(infixr 60)
+  list_rec   :: [i, i, [i,i,i]=>i] => i
+  map 	     :: [i=>i, i] => i
+  length,rev :: i=>i
+  flat       :: i=>i
+  list_add   :: i=>i
+  hd,tl      :: i=>i
+  drop	     :: [i,i]=>i
 
  (* List Enumeration *)
- "[]"        :: "i" 	                           	("[]")
- "@List"     :: "is => i" 	                   	("[(_)]")
+ "[]"        :: i 	                           	("[]")
+ "@List"     :: is => i 	                   	("[(_)]")
 
-  list	     :: "i=>i"
+  list	     :: i=>i
 
   
 datatype

@@ -8,12 +8,12 @@ Arithmetic operators and their definitions
 
 Arith = Epsilon + "simpdata" +
 consts
-    rec  :: "[i, i, [i,i]=>i]=>i"
-    "#*" :: "[i,i]=>i"      		(infixl 70)
-    div  :: "[i,i]=>i"      		(infixl 70) 
-    mod  :: "[i,i]=>i"      		(infixl 70)
-    "#+" :: "[i,i]=>i"      		(infixl 65)
-    "#-" :: "[i,i]=>i"      		(infixl 65)
+    rec  :: [i, i, [i,i]=>i]=>i
+    "#*" :: [i,i]=>i      		(infixl 70)
+    div  :: [i,i]=>i      		(infixl 70) 
+    mod  :: [i,i]=>i      		(infixl 70)
+    "#+" :: [i,i]=>i      		(infixl 65)
+    "#-" :: [i,i]=>i      		(infixl 65)
 
 defs
     rec_def  "rec(k,a,b) ==  transrec(k, %n f. nat_case(a, %m. b(m, f`m), n))"

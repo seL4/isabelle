@@ -17,7 +17,7 @@ a typing rule for it, based on some notion of "productivity..."
 LList = Datatype +
 
 consts
-  llist  :: "i=>i"
+  llist  :: i=>i
 
 codatatype
   "llist(A)" = LNil | LCons ("a: A", "l: llist(A)")
@@ -25,7 +25,7 @@ codatatype
 
 (*Coinductive definition of equality*)
 consts
-  lleq :: "i=>i"
+  lleq :: i=>i
 
 (*Previously used <*> in the domain and variant pairs as elements.  But
   standard pairs work just as well.  To use variant pairs, must change prefix
@@ -40,8 +40,8 @@ coinductive
 
 (*Lazy list functions; flip is not definitional!*)
 consts
-  lconst   :: "i => i"
-  flip     :: "i => i"
+  lconst   :: i => i
+  flip     :: i => i
 
 defs
   lconst_def  "lconst(a) == lfp(univ(a), %l. LCons(a,l))"

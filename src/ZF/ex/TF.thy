@@ -8,14 +8,14 @@ Trees & forests, a mutually recursive type definition.
 
 TF = List +
 consts
-  TF_rec      :: "[i, [i,i,i]=>i, i, [i,i,i,i]=>i] => i"
-  TF_map      :: "[i=>i, i] => i"
-  TF_size     :: "i=>i"
-  TF_preorder :: "i=>i"
-  list_of_TF  :: "i=>i"
-  TF_of_list  :: "i=>i"
+  TF_rec      :: [i, [i,i,i]=>i, i, [i,i,i,i]=>i] => i
+  TF_map      :: [i=>i, i] => i
+  TF_size     :: i=>i
+  TF_preorder :: i=>i
+  list_of_TF  :: i=>i
+  TF_of_list  :: i=>i
 
-  tree, forest, tree_forest    :: "i=>i"
+  tree, forest, tree_forest    :: i=>i
 
 datatype
   "tree(A)"   = Tcons ("a: A",  "f: forest(A)")

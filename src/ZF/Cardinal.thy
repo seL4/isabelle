@@ -8,11 +8,11 @@ Cardinals in Zermelo-Fraenkel Set Theory
 
 Cardinal = OrderType + Fixedpt + Nat + Sum + 
 consts
-  Least            :: "(i=>o) => i"    (binder "LEAST " 10)
+  Least            :: (i=>o) => i    (binder "LEAST " 10)
   eqpoll, lepoll,
-          lesspoll :: "[i,i] => o"     (infixl 50)
-  cardinal         :: "i=>i"           ("|_|")
-  Finite, Card     :: "i=>o"
+          lesspoll :: [i,i] => o     (infixl 50)
+  cardinal         :: i=>i           ("|_|")
+  Finite, Card     :: i=>o
 
 defs
 

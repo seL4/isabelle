@@ -9,7 +9,7 @@ of the chain AC1 ==> AC18 ==> AC19 ==> AC1
 AC18_AC19 = AC_Equiv +
 
 consts
-  u_    :: "i => i"
+  u_    :: i => i
   
 defs
 

@@ -11,7 +11,7 @@ Can go up to at least 100 constructors, but it takes nearly 7 minutes...
 Enum = Datatype + 
 
 consts
-  enum :: "i"
+  enum :: i
 
 datatype
   "enum" = C00 | C01 | C02 | C03 | C04 | C05 | C06 | C07 | C08 | C09

@@ -17,19 +17,19 @@ AC_Equiv = CardinalArith + Univ + OrdQuant +
 consts
   
 (* Well Ordering Theorems *)
-  WO1, WO2, WO3, WO5, WO6, WO7, WO8 :: "o"
-  WO4                               :: "i => o"
+  WO1, WO2, WO3, WO5, WO6, WO7, WO8 :: o
+  WO4                               :: i => o
 
 (* Axioms of Choice *)  
   AC0, AC1, AC2, AC3, AC4, AC5, AC6, AC7, AC8, AC9,
-  AC11, AC12, AC14, AC15, AC17, AC19 :: "o"
-  AC10, AC13              :: "i => o"
-  AC16                    :: "[i, i] => o"
-  AC18                    :: "prop"       ("AC18")
+  AC11, AC12, AC14, AC15, AC17, AC19 :: o
+  AC10, AC13              :: i => o
+  AC16                    :: [i, i] => o
+  AC18                    :: prop       ("AC18")
 
 (* Auxiliary definitions used in definitions *)
-  pairwise_disjoint       :: "i => o"
-  sets_of_size_between    :: "[i, i, i] => o"
+  pairwise_disjoint       :: i => o
+  sets_of_size_between    :: [i, i, i] => o
 
 defs
 

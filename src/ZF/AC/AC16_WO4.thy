@@ -7,11 +7,11 @@ AC16_WO4 = OrderType + AC16_lemmas + Cardinal_aux +
 
 consts
 
-  ww  :: "[i, i] => i"
-  s_u :: "[i, i, i, i] => i"
-  MM  :: "[i, i, i] => i"
-  LL  :: "[i, i, i] => i"
-  GG  :: "[i, i, i] => i"
+  ww  :: [i, i] => i
+  s_u :: [i, i, i, i] => i
+  MM  :: [i, i, i] => i
+  LL  :: [i, i, i] => i
+  GG  :: [i, i, i] => i
   
 defs
 

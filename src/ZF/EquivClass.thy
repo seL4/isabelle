@@ -8,9 +8,9 @@ Equivalence relations in Zermelo-Fraenkel Set Theory
 
 EquivClass = Rel + Perm + 
 consts
-    "'/"        ::      "[i,i]=>i"  (infixl 90)  (*set of equiv classes*)
-    congruent	::	"[i,i=>i]=>o"
-    congruent2  ::      "[i,[i,i]=>i]=>o"
+    "'/"        ::      [i,i]=>i  (infixl 90)  (*set of equiv classes*)
+    congruent	::	[i,i=>i]=>o
+    congruent2  ::      [i,[i,i]=>i]=>o
 
 defs
     quotient_def  "A/r == {r``{x} . x:A}"

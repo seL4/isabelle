@@ -14,10 +14,10 @@ Union_in_Pow is proved in ZF.ML
 Zorn = OrderArith + AC + Inductive +
 
 consts
-  Subset_rel      :: "i=>i"
-  increasing      :: "i=>i"
-  chain, maxchain :: "i=>i"
-  super           :: "[i,i]=>i"
+  Subset_rel      :: i=>i
+  increasing      :: i=>i
+  chain, maxchain :: i=>i
+  super           :: [i,i]=>i
 
 defs
   Subset_rel_def "Subset_rel(A) == {z: A*A . EX x y. z=<x,y> & x<=y & x~=y}"
@@ -34,7 +34,7 @@ defs
     are therefore unconditional.
 **)
 consts
-  "TFin" :: "[i,i]=>i"
+  "TFin" :: [i,i]=>i
 
 inductive
   domains       "TFin(S,next)" <= "Pow(S)"

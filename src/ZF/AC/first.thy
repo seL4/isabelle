@@ -9,7 +9,7 @@ first = Order +
 
 consts
 
-  first                   :: "[i, i, i] => o"
+  first                   :: [i, i, i] => o
 
 defs
 

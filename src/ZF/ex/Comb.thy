@@ -16,7 +16,7 @@ Example taken from
 Comb = Datatype +
 
 (** Datatype definition of combinators S and K, with infixed application **)
-consts comb :: "i"
+consts comb :: i
 datatype (* <= "univ(0)" *)
   "comb" = K
          | S
@@ -26,9 +26,9 @@ datatype (* <= "univ(0)" *)
              and (multi-step) reductions, --->
 **)
 consts
-  contract  :: "i"
-  "-1->"    :: "[i,i] => o"    			(infixl 50)
-  "--->"    :: "[i,i] => o"    			(infixl 50)
+  contract  :: i
+  "-1->"    :: [i,i] => o    			(infixl 50)
+  "--->"    :: [i,i] => o    			(infixl 50)
 
 translations
   "p -1-> q" == "<p,q> : contract"
@@ -48,9 +48,9 @@ inductive
              and (multi-step) parallel reductions, ===>
 **)
 consts
-  parcontract :: "i"
-  "=1=>"    :: "[i,i] => o"    			(infixl 50)
-  "===>"    :: "[i,i] => o"    			(infixl 50)
+  parcontract :: i
+  "=1=>"    :: [i,i] => o    			(infixl 50)
+  "===>"    :: [i,i] => o    			(infixl 50)
 
 translations
   "p =1=> q" == "<p,q> : parcontract"
@@ -68,8 +68,8 @@ inductive
 
 (*Misc definitions*)
 consts
-  diamond   :: "i => o"
-  I         :: "i"
+  diamond   :: i => o
+  I         :: i
 
 defs
 

@@ -8,8 +8,8 @@ Towards ordinal arithmetic
 
 OrderArith = Order + Sum + 
 consts
-  radd, rmult      :: "[i,i,i,i]=>i"
-  rvimage          :: "[i,i,i]=>i"
+  radd, rmult      :: [i,i,i,i]=>i
+  rvimage          :: [i,i,i]=>i
 
 defs
   (*disjoint sum of two relations; underlies ordinal addition*)

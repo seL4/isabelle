@@ -9,7 +9,7 @@ Hartog = Cardinal +
 
 consts
 
-  Hartog :: "i => i"
+  Hartog :: i => i
 
 defs
 

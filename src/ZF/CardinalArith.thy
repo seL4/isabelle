@@ -9,12 +9,12 @@ Cardinal Arithmetic
 CardinalArith = Cardinal + OrderArith + Arith + Finite + 
 consts
 
-  InfCard       :: "i=>o"
-  "|*|"         :: "[i,i]=>i"       (infixl 70)
-  "|+|"         :: "[i,i]=>i"       (infixl 65)
-  csquare_rel   :: "i=>i"
-  jump_cardinal :: "i=>i"
-  csucc         :: "i=>i"
+  InfCard       :: i=>o
+  "|*|"         :: [i,i]=>i       (infixl 70)
+  "|+|"         :: [i,i]=>i       (infixl 65)
+  csquare_rel   :: i=>i
+  jump_cardinal :: i=>i
+  csucc         :: i=>i
 
 defs
 

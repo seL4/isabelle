@@ -7,7 +7,7 @@
 
 Redex = Univ +
 consts
-  redexes     :: "i"
+  redexes     :: i
 
 datatype
   "redexes" = Var ("n: nat")	        
@@ -17,7 +17,7 @@ datatype
   
 
 consts
-  redex_rec   	:: "[i, i=>i, [i,i]=>i, [i,i,i,i,i]=>i]=>i"
+  redex_rec   	:: [i, i=>i, [i,i]=>i, [i,i,i,i,i]=>i]=>i
  
 defs
   redex_rec_def

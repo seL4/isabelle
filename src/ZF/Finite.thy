@@ -8,8 +8,8 @@ Finite powerset operator
 
 Finite = Arith + Inductive +
 consts
-  Fin 	    :: "i=>i"
-  FiniteFun :: "[i,i]=>i"		("(_ -||>/ _)" [61, 60] 60)
+  Fin 	    :: i=>i
+  FiniteFun :: [i,i]=>i		("(_ -||>/ _)" [61, 60] 60)
 
 inductive
   domains   "Fin(A)" <= "Pow(A)"

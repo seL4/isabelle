@@ -8,17 +8,17 @@ The integers as equivalence classes over nat*nat.
 
 Integ = EquivClass + Arith +
 consts
-    intrel,integ::      "i"
-    znat	::	"i=>i"		("$# _" [80] 80)
-    zminus	::	"i=>i"		("$~ _" [80] 80)
-    znegative	::	"i=>o"
-    zmagnitude	::	"i=>i"
-    "$*"        ::      "[i,i]=>i"      (infixl 70)
-    "$'/"       ::      "[i,i]=>i"      (infixl 70) 
-    "$'/'/"     ::      "[i,i]=>i"      (infixl 70)
-    "$+"	::      "[i,i]=>i"      (infixl 65)
-    "$-"        ::      "[i,i]=>i"      (infixl 65)
-    "$<"	:: 	"[i,i]=>o"  	(infixl 50)
+    intrel,integ::      i
+    znat	::	i=>i		("$# _" [80] 80)
+    zminus	::	i=>i		("$~ _" [80] 80)
+    znegative	::	i=>o
+    zmagnitude	::	i=>i
+    "$*"        ::      [i,i]=>i      (infixl 70)
+    "$'/"       ::      [i,i]=>i      (infixl 70) 
+    "$'/'/"     ::      [i,i]=>i      (infixl 70)
+    "$+"	::      [i,i]=>i      (infixl 65)
+    "$-"        ::      [i,i]=>i      (infixl 65)
+    "$<"	:: 	[i,i]=>o  	(infixl 50)
 
 defs
 

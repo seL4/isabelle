@@ -9,9 +9,9 @@
 Residuals = Substitution+
 
 consts
-  Sres		:: "i"
-  residuals	:: "[i,i,i]=>i"
-  "|>"		:: "[i,i]=>i"     (infixl 70)
+  Sres		:: i
+  residuals	:: [i,i,i]=>i
+  "|>"		:: [i,i]=>i     (infixl 70)
   
 translations
   "residuals(u,v,w)"  == "<u,v,w>:Sres"

@@ -20,9 +20,9 @@ See also
 
 Ramsey = Arith +
 consts
-  Symmetric   		:: "i=>o"
-  Atleast     		:: "[i,i]=>o"
-  Clique,Indept,Ramsey	:: "[i,i,i]=>o"
+  Symmetric   		:: i=>o
+  Atleast     		:: [i,i]=>o
+  Clique,Indept,Ramsey	:: [i,i,i]=>o
 
 defs
 

@@ -9,7 +9,7 @@ Inductive definition of an operator to "map" a relation over a list
 Rmap = List +
 
 consts
-  rmap :: "i=>i"
+  rmap :: i=>i
 
 inductive
   domains "rmap(r)" <= "list(domain(r))*list(range(r))"

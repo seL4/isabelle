@@ -11,7 +11,7 @@ PropLog = Finite + Datatype +
 
 (** The datatype of propositions; note mixfix syntax **)
 consts
-  prop     :: "i"
+  prop     :: i
 
 datatype
   "prop" = Fls
@@ -20,8 +20,8 @@ datatype
 
 (** The proof system **)
 consts
-  thms     :: "i => i"
-  "|-"     :: "[i,i] => o"    			(infixl 50)
+  thms     :: i => i
+  "|-"     :: [i,i] => o    			(infixl 50)
 
 translations
   "H |- p" == "p : thms(H)"
@@ -39,10 +39,10 @@ inductive
 
 (** The semantics **)
 consts
-  prop_rec :: "[i, i, i=>i, [i,i,i,i]=>i] => i"
-  is_true  :: "[i,i] => o"
-  "|="     :: "[i,i] => o"    			(infixl 50)
-  hyps     :: "[i,i] => i"
+  prop_rec :: [i, i, i=>i, [i,i,i,i]=>i] => i
+  is_true  :: [i,i] => o
+  "|="     :: [i,i] => o    			(infixl 50)
+  hyps     :: [i,i] => i
 
 defs
 

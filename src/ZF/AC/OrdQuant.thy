@@ -10,16 +10,16 @@ OrdQuant = Ordinal +
 consts
   
   (* Ordinal Quantifiers *)
-  oall, oex   :: "[i, i => o] => o"
+  oall, oex   :: [i, i => o] => o
 
   (* Ordinal Union *)
-  OUnion      :: "[i, i => i] => i"
+  OUnion      :: [i, i => i] => i
   
 syntax
   
-  "@oall"     :: "[idt, i, o] => o"        ("(3ALL _<_./ _)" 10)
-  "@oex"      :: "[idt, i, o] => o"        ("(3EX _<_./ _)" 10)
-  "@OUNION"   :: "[idt, i, i] => i"        ("(3UN _<_./ _)" 10)
+  "@oall"     :: [idt, i, o] => o        ("(3ALL _<_./ _)" 10)
+  "@oex"      :: [idt, i, o] => o        ("(3EX _<_./ _)" 10)
+  "@OUNION"   :: [idt, i, i] => i        ("(3UN _<_./ _)" 10)
 
 translations
   

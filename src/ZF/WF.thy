@@ -8,13 +8,13 @@ Well-founded Recursion
 
 WF = Trancl + "mono" + "equalities" +
 consts
-  wf           :: "i=>o"
-  wf_on        :: "[i,i]=>o"			("wf[_]'(_')")
+  wf           :: i=>o
+  wf_on        :: [i,i]=>o			("wf[_]'(_')")
 
-  wftrec,wfrec :: "[i, i, [i,i]=>i] =>i"
-  wfrec_on     :: "[i, i, i, [i,i]=>i] =>i"	("wfrec[_]'(_,_,_')")
-  is_recfun    :: "[i, i, [i,i]=>i, i] =>o"
-  the_recfun   :: "[i, i, [i,i]=>i] =>i"
+  wftrec,wfrec :: [i, i, [i,i]=>i] =>i
+  wfrec_on     :: [i, i, i, [i,i]=>i] =>i	("wfrec[_]'(_,_,_')")
+  is_recfun    :: [i, i, [i,i]=>i, i] =>o
+  the_recfun   :: [i, i, [i,i]=>i] =>i
 
 defs
   (*r is a well-founded relation*)

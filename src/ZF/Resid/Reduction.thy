@@ -8,8 +8,8 @@
 Reduction = Terms+
 
 consts
-  Sred1, Sred,  Spar_red1,Spar_red    :: "i"
-  "-1->","--->","=1=>",   "===>"      :: "[i,i]=>o" (infixl 50)
+  Sred1, Sred,  Spar_red1,Spar_red    :: i
+  "-1->","--->","=1=>",   "===>"      :: [i,i]=>o (infixl 50)
 
 translations
   "a -1-> b" == "<a,b>:Sred1"

@@ -7,7 +7,7 @@
 Static = BCR +
 
 consts
-  ElabRel :: "i"
+  ElabRel :: i
 inductive
   domains "ElabRel" <= "TyEnv * Exp * Ty"
   intrs

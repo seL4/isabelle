@@ -8,8 +8,8 @@ Epsilon induction and recursion
 
 Epsilon = Nat + "mono" +
 consts
-    eclose,rank ::      "i=>i"
-    transrec    ::      "[i, [i,i]=>i] =>i"
+    eclose,rank ::      i=>i
+    transrec    ::      [i, [i,i]=>i] =>i
 
 defs
   eclose_def	"eclose(A) == UN n:nat. nat_rec(n, A, %m r. Union(r))"

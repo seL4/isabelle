@@ -10,7 +10,7 @@ Research Report 92-49, LIP, ENS Lyon.  Dec 1992.
 *)
 
 ListN = List +
-consts	listn ::"i=>i"
+consts	listn ::i=>i
 inductive
   domains   "listn(A)" <= "nat*list(A)"
   intrs

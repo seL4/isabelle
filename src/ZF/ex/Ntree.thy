@@ -11,9 +11,9 @@ Based upon ex/Term.thy
 
 Ntree = InfDatatype +
 consts
-  ntree    :: "i=>i"
-  maptree  :: "i=>i"
-  maptree2 :: "[i,i] => i"
+  ntree    :: i=>i
+  maptree  :: i=>i
+  maptree2 :: [i,i] => i
 
 datatype
   "ntree(A)" = Branch ("a: A", "h: (UN n:nat. n -> ntree(A))")

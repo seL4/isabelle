@@ -9,7 +9,7 @@ ECR = Static + Dynamic +
 (* The extended correspondence relation *)
 
 consts
-  HasTyRel :: "i"
+  HasTyRel :: i
 coinductive
   domains "HasTyRel" <= "Val * Ty"
   intrs
@@ -28,7 +28,7 @@ coinductive
 (* Pointwise extension to environments *)
  
 consts
-  hastyenv :: "[i,i] => o"
+  hastyenv :: [i,i] => o
 defs
   hastyenv_def 
     " hastyenv(ve,te) == 			

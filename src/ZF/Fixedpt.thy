@@ -8,8 +8,8 @@ Least and greatest fixed points
 
 Fixedpt = ZF + "domrange" +
 consts
-  bnd_mono    :: "[i,i=>i]=>o"
-  lfp, gfp    :: "[i,i=>i]=>i"
+  bnd_mono    :: [i,i=>i]=>o
+  lfp, gfp    :: [i,i=>i]=>i
 
 defs
   (*monotone operator from Pow(D) to itself*)

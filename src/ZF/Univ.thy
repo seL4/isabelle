@@ -13,10 +13,10 @@ NOTE: univ(A) could be a translation; would simplify many proofs!
 
 Univ = Arith + Sum + Finite + "mono" +
 consts
-    Vfrom       :: "[i,i]=>i"
-    Vset        :: "i=>i"
-    Vrec        :: "[i, [i,i]=>i] =>i"
-    univ        :: "i=>i"
+    Vfrom       :: [i,i]=>i
+    Vset        :: i=>i
+    Vrec        :: [i, [i,i]=>i] =>i
+    univ        :: i=>i
 
 translations
     "Vset(x)"   == 	"Vfrom(0,x)"

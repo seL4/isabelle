@@ -9,9 +9,9 @@ DC  =  AC_Equiv + Hartog + first + Cardinal_aux + "DC_lemmas" +
 
 consts
 
-  DC  :: "i => o"
-  DC0 :: "o"
-  ff  :: "[i, i, i, i] => i"
+  DC  :: i => o
+  DC0 :: o
+  ff  :: [i, i, i, i] => i
 
 rules
 

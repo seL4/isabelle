@@ -12,13 +12,13 @@ types
   letbinds  letbind
 
 consts
-  Let           :: "['a, 'a => 'b] => 'b"
+  Let           :: ['a, 'a => 'b] => 'b
 
 syntax
-  "_bind"       :: "[pttrn, 'a] => letbind"           ("(2_ =/ _)" 10)
-  ""            :: "letbind => letbinds"              ("_")
-  "_binds"      :: "[letbind, letbinds] => letbinds"  ("_;/ _")
-  "_Let"        :: "[letbinds, 'a] => 'a"             ("(let (_)/ in (_))" 10)
+  "_bind"       :: [pttrn, 'a] => letbind           ("(2_ =/ _)" 10)
+  ""            :: letbind => letbinds              ("_")
+  "_binds"      :: [letbind, letbinds] => letbinds  ("_;/ _")
+  "_Let"        :: [letbinds, 'a] => 'a             ("(let (_)/ in (_))" 10)
 
 translations
   "_Let(_binds(b, bs), e)"  == "_Let(b, _Let(bs, e))"

@@ -8,11 +8,11 @@ Ordinals in Zermelo-Fraenkel Set Theory
 
 Ordinal = WF + Bool + "simpdata" + "equalities" +
 consts
-  Memrel      	:: "i=>i"
-  Transset,Ord  :: "i=>o"
-  "<"           :: "[i,i] => o"  (infixl 50) (*less than on ordinals*)
-  "le"          :: "[i,i] => o"  (infixl 50) (*less than or equals*)
-  Limit         :: "i=>o"
+  Memrel      	:: i=>i
+  Transset,Ord  :: i=>o
+  "<"           :: [i,i] => o  (infixl 50) (*less than on ordinals*)
+  "le"          :: [i,i] => o  (infixl 50) (*less than or equals*)
+  Limit         :: i=>o
 
 translations
   "x le y"      == "x < succ(y)"

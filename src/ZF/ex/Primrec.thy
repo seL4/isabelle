@@ -16,14 +16,14 @@ See also E. Mendelson, Introduction to Mathematical Logic.
 
 Primrec = List +
 consts
-    primrec :: "i"
-    SC      :: "i"
-    CONST   :: "i=>i"
-    PROJ    :: "i=>i"
-    COMP    :: "[i,i]=>i"
-    PREC    :: "[i,i]=>i"
-    ACK	    :: "i=>i"
-    ack	    :: "[i,i]=>i"
+    primrec :: i
+    SC      :: i
+    CONST   :: i=>i
+    PROJ    :: i=>i
+    COMP    :: [i,i]=>i
+    PREC    :: [i,i]=>i
+    ACK	    :: i=>i
+    ack	    :: [i,i]=>i
 
 translations
   "ack(x,y)"  == "ACK(x) ` [y]"

@@ -8,10 +8,10 @@
 SubUnion = Redex +
 
 consts
-  Ssub,Scomp,Sreg  :: "i"
-  "<==","~"        :: "[i,i]=>o" (infixl 70)
-  un               :: "[i,i]=>i" (infixl 70)
-  regular	   :: "i=>o"
+  Ssub,Scomp,Sreg  :: i
+  "<==","~"        :: [i,i]=>o (infixl 70)
+  un               :: [i,i]=>i (infixl 70)
+  regular	   :: i=>o
   
 translations
   "a<==b"        == "<a,b>:Ssub"

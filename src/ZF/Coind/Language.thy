@@ -7,8 +7,8 @@
 Language ="Datatype" + QUniv +
 
 consts
-  Const :: "i"			(* Abstract type of constants *)
-  c_app :: "[i,i] => i"		(*Abstract constructor for fun application*)
+  Const :: i			(* Abstract type of constants *)
+  c_app :: [i,i] => i		(*Abstract constructor for fun application*)
 
 rules
   constNEE  "c:Const ==> c ~= 0"
@@ -16,8 +16,8 @@ rules
 
 
 consts
-  Exp   :: "i"			(* Datatype of expressions *)
-  ExVar :: "i"			(* Abstract type of variables *)
+  Exp   :: i			(* Datatype of expressions *)
+  ExVar :: i			(* Abstract type of variables *)
 datatype <= "univ(Const Un ExVar)"
   "Exp" = e_const("c:Const")
         | e_var("x:ExVar")

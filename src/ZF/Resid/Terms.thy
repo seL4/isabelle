@@ -8,9 +8,9 @@
 Terms = Cube+
 
 consts
-  lambda	:: "i"
-  unmark	:: "i=>i"
-  Apl		:: "[i,i]=>i"
+  lambda	:: i
+  unmark	:: i=>i
+  Apl		:: [i,i]=>i
 
 translations
   "Apl(n,m)" == "App(0,n,m)"

@@ -9,10 +9,10 @@ Disjoint sums in Zermelo-Fraenkel Set Theory
 
 Sum = Bool + "simpdata" +
 consts
-    "+"    	:: "[i,i]=>i"      		(infixr 65)
-    Inl,Inr     :: "i=>i"
-    case        :: "[i=>i, i=>i, i]=>i"
-    Part        :: "[i,i=>i] => i"
+    "+"    	:: [i,i]=>i      		(infixr 65)
+    Inl,Inr     :: i=>i
+    case        :: [i=>i, i=>i, i]=>i
+    Part        :: [i,i=>i] => i
 
 defs
     sum_def     "A+B == {0}*A Un {1}*B"

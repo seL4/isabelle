@@ -9,10 +9,10 @@
 Conversion = Confluence+
 
 consts
-  Sconv1	:: "i"
-  "<-1->"	:: "[i,i]=>o" (infixl 50)
-  Sconv		:: "i"
-  "<--->"	:: "[i,i]=>o" (infixl 50)
+  Sconv1	:: i
+  "<-1->"	:: [i,i]=>o (infixl 50)
+  Sconv		:: i
+  "<--->"	:: [i,i]=>o (infixl 50)
 
 translations
   "a<-1->b"    == "<a,b>:Sconv1"

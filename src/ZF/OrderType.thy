@@ -10,14 +10,14 @@ The order type of a well-ordering is the least ordinal isomorphic to it.
 
 OrderType = OrderArith + Ordinal + 
 consts
-  ordermap  :: "[i,i]=>i"
-  ordertype :: "[i,i]=>i"
+  ordermap  :: [i,i]=>i
+  ordertype :: [i,i]=>i
 
-  Ord_alt   :: "i => o"   
+  Ord_alt   :: i => o   
 
-  "**"      :: "[i,i]=>i"           (infixl 70)
-  "++"      :: "[i,i]=>i"           (infixl 65)
-  "--"      :: "[i,i]=>i"           (infixl 65)
+  "**"      :: [i,i]=>i           (infixl 70)
+  "++"      :: [i,i]=>i           (infixl 65)
+  "--"      :: [i,i]=>i           (infixl 65)
  
 
 defs

@@ -11,9 +11,9 @@ The theory underlying permutation groups
 
 Perm = ZF + "mono" +
 consts
-    O    	::      "[i,i]=>i"      (infixr 60)
-    id  	::      "i=>i"
-    inj,surj,bij::      "[i,i]=>i"
+    O    	::      [i,i]=>i      (infixr 60)
+    id  	::      i=>i
+    inj,surj,bij::      [i,i]=>i
 
 defs
 

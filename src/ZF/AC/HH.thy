@@ -12,7 +12,7 @@ HH = AC_Equiv + Hartog + WO_AC + Let +
 
 consts
  
-  HH                      :: "[i, i, i] => i"
+  HH                      :: [i, i, i] => i
 
 defs
 

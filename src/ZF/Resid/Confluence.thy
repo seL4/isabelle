@@ -8,8 +8,8 @@
 Confluence = Reduction+
 
 consts
-  confluence	:: "i=>o"
-  strip		:: "o"
+  confluence	:: i=>o
+  strip		:: o
 
 defs
   confluence_def "confluence(R) ==   

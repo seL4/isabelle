@@ -8,9 +8,9 @@ Natural numbers in Zermelo-Fraenkel Set Theory
 
 Nat = Ordinal + Bool + "mono" +
 consts
-    nat 	::      "i"
-    nat_case    ::      "[i, i=>i, i]=>i"
-    nat_rec     ::      "[i, i, [i,i]=>i]=>i"
+    nat 	::      i
+    nat_case    ::      [i, i=>i, i]=>i
+    nat_rec     ::      [i, i, [i,i]=>i]=>i
 
 defs
 

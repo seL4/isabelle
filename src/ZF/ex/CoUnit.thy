@@ -17,7 +17,7 @@ CoUnit = Datatype +
   Coalgebra Theorem
 *)
 consts
-  counit :: "i"
+  counit :: i
 codatatype
   "counit" = Con ("x: counit")
 
@@ -27,7 +27,7 @@ codatatype
 *)
 
 consts
-  counit2 :: "i"
+  counit2 :: i
 codatatype
   "counit2" = Con2 ("x: counit2", "y: counit2")
 
