@@ -78,7 +78,7 @@
   \item {\tt assume_tac}, \bold{17}, 122
   \item {\tt assumption}, \bold{45}
   \item assumptions
-    \subitem contradictory, 128
+    \subitem contradictory, 129
     \subitem deleting, 22
     \subitem in simplification, 99, 104
     \subitem inserting, 19
@@ -110,7 +110,7 @@
   \item {\tt bes}, \bold{11}
   \item {\tt BEST_FIRST}, \bold{31}, 32
   \item {\tt Best_tac}, \bold{128}
-  \item {\tt best_tac}, \bold{126}
+  \item {\tt best_tac}, \bold{127}
   \item {\tt beta_conversion}, \bold{43}
   \item {\tt bicompose}, \bold{46}
   \item {\tt bimatch_tac}, \bold{23}
@@ -118,10 +118,10 @@
   \item binders, \bold{74}
   \item {\tt biresolution}, \bold{45}
   \item {\tt biresolve_tac}, \bold{23}, 129
-  \item {\tt Blast.depth_tac}, \bold{125}
-  \item {\tt Blast.trace}, \bold{125}
+  \item {\tt Blast.depth_tac}, \bold{126}
+  \item {\tt Blast.trace}, \bold{126}
   \item {\tt Blast_tac}, \bold{128}
-  \item {\tt blast_tac}, \bold{125}
+  \item {\tt blast_tac}, \bold{126}
   \item {\tt Bound}, \bold{57}, 80, 82, 83
   \item {\tt bound_hyp_subst_tac}, \bold{96}
   \item {\tt br}, \bold{11}
@@ -139,16 +139,20 @@
   \item {\tt CHANGED}, \bold{30}
   \item {\tt chop}, \bold{9}, 13
   \item {\tt choplev}, \bold{9}
+  \item {\tt Clarify_step_tac}, \bold{128}
+  \item {\tt clarify_step_tac}, \bold{125}
+  \item {\tt Clarify_tac}, \bold{128}
+  \item {\tt clarify_tac}, \bold{125}
   \item claset
-    \subitem current, 127
+    \subitem current, 128
   \item {\tt claset} ML type, 122
   \item classes
     \subitem context conditions, 52
   \item classical reasoner, 118--130
     \subitem setting up, 129
-    \subitem tactics, 124
+    \subitem tactics, 125
   \item classical sets, 122
-  \item {\tt ClassicalFun}, 129
+  \item {\tt ClassicalFun}, 130
   \item {\tt combination}, \bold{44}
   \item {\tt commit}, \bold{2}
   \item {\tt COMP}, \bold{46}
@@ -164,7 +168,7 @@
   \item constants, \bold{57}
     \subitem for translations, 69
     \subitem syntactic, 84
-  \item {\tt contr_tac}, \bold{128}
+  \item {\tt contr_tac}, \bold{129}
   \item {\tt could_unify}, \bold{24}
   \item {\tt CPure} theory, 49
   \item {\tt CPure.thy}, \bold{55}
@@ -224,7 +228,7 @@
   \item {\tt empty_ss}, 105, 116
   \item {\tt eq_assume_tac}, \bold{17}, 122
   \item {\tt eq_assumption}, \bold{45}
-  \item {\tt eq_mp_tac}, \bold{128}
+  \item {\tt eq_mp_tac}, \bold{129}
   \item {\tt eq_reflection} theorem, \bold{97}, 113
   \item {\tt eq_thm}, \bold{32}
   \item {\tt equal_elim}, \bold{43}
@@ -252,7 +256,7 @@
 
   \item {\tt fa}, \bold{11}
   \item {\tt Fast_tac}, \bold{128}
-  \item {\tt fast_tac}, \bold{126}
+  \item {\tt fast_tac}, \bold{127}
   \item {\tt fd}, \bold{11}
   \item {\tt fds}, \bold{11}
   \item {\tt fe}, \bold{11}
@@ -310,8 +314,8 @@
 
   \item {\tt has_fewer_prems}, \bold{32}
   \item {\tt hyp_subst_tac}, \bold{96}
-  \item {\tt hyp_subst_tacs}, \bold{129}
-  \item {\tt HypsubstFun}, 97, 129
+  \item {\tt hyp_subst_tacs}, \bold{130}
+  \item {\tt HypsubstFun}, 97, 130
 
   \indexspace
 
@@ -331,7 +335,7 @@
   \item {\tt indexname} ML type, 57, 67
   \item infixes, \bold{73}
   \item {\tt insert} constant, 88
-  \item {\tt inst_step_tac}, \bold{127}
+  \item {\tt inst_step_tac}, \bold{128}
   \item {\tt instance} section, 51
   \item {\tt instantiate}, \bold{45}
   \item instantiation, 17, 38, 45
@@ -386,8 +390,8 @@
   \item {\tt mk_case_split_tac}, \bold{116}
   \item {\tt ML} section, 51, 91, 93
   \item model checkers, 75
-  \item {\tt mp} theorem, \bold{129}
-  \item {\tt mp_tac}, \bold{128}
+  \item {\tt mp} theorem, \bold{130}
+  \item {\tt mp_tac}, \bold{129}
   \item {\tt MRL}, \bold{37}
   \item {\tt MRS}, \bold{37}
 
@@ -400,7 +404,7 @@
   \item {\tt net_resolve_tac}, \bold{24}
   \item {\tt no_tac}, \bold{30}
   \item {\tt None}, \bold{26}
-  \item {\tt not_elim} theorem, \bold{129}
+  \item {\tt not_elim} theorem, \bold{130}
   \item {\tt nprems_of}, \bold{39}
   \item numerals, 66
 
@@ -481,6 +485,8 @@
   \item {\tt prthq}, \bold{37}
   \item {\tt prths}, \bold{37}
   \item {\tt prune_params_tac}, \bold{22}
+  \item {\tt pttrn} nonterminal, \bold{66}
+  \item {\tt pttrns} nonterminal, \bold{66}
   \item {\tt Pure} theory, 49, 64, 68
   \item {\tt Pure.thy}, \bold{55}
   \item {\tt push_proof}, \bold{14}
@@ -553,7 +559,9 @@
   \indexspace
 
   \item {\tt safe_asm_full_simp_tac}, \bold{104}, 105
+  \item {\tt Safe_step_tac}, \bold{128}
   \item {\tt safe_step_tac}, 123, \bold{127}
+  \item {\tt Safe_tac}, \bold{128}
   \item {\tt safe_tac}, \bold{127}
   \item {\tt save_proof}, \bold{14}
   \item saving your work, \bold{1}
@@ -599,11 +607,11 @@
   \item {\tt simpset} ML type, 105
   \item {\tt simpset} ML value, 101
   \item {\tt simpset_of}, 106
-  \item {\tt size_of_thm}, 31, \bold{32}, 129
-  \item {\tt sizef}, \bold{129}
-  \item {\tt slow_best_tac}, \bold{126}
-  \item {\tt slow_step_tac}, 123, \bold{127}
-  \item {\tt slow_tac}, \bold{126}
+  \item {\tt size_of_thm}, 31, \bold{32}, 130
+  \item {\tt sizef}, \bold{130}
+  \item {\tt slow_best_tac}, \bold{127}
+  \item {\tt slow_step_tac}, 124, \bold{128}
+  \item {\tt slow_tac}, \bold{127}
   \item {\tt Some}, \bold{26}
   \item {\tt SOMEGOAL}, \bold{34}
   \item {\tt sort} nonterminal, \bold{66}
@@ -620,7 +628,7 @@
   \item {\tt standard}, \bold{39}
   \item starting up, \bold{1}
   \item {\tt Step_tac}, \bold{128}
-  \item {\tt step_tac}, 123, \bold{127}
+  \item {\tt step_tac}, 124, \bold{128}
   \item {\tt store_thm}, \bold{8}
   \item {\tt string_of_cterm}, \bold{59}
   \item {\tt string_of_ctyp}, \bold{60}
@@ -634,8 +642,8 @@
   \item {\tt subst} theorem, 95, \bold{97}
   \item substitution
     \subitem rules, 95
-  \item {\tt swap} theorem, \bold{129}
-  \item {\tt swap_res_tac}, \bold{128}
+  \item {\tt swap} theorem, \bold{130}
+  \item {\tt swap_res_tac}, \bold{129}
   \item {\tt swapify}, \bold{129}
   \item {\tt sym} theorem, 96, \bold{97}
   \item {\tt symmetric}, \bold{43}
@@ -676,9 +684,9 @@
     \subitem debugging, 14
     \subitem filtering results of, 30
     \subitem for composition, 22
-    \subitem for contradiction, 128
+    \subitem for contradiction, 129
     \subitem for inserting facts, 19
-    \subitem for Modus Ponens, 128
+    \subitem for Modus Ponens, 129
     \subitem instantiation, 17
     \subitem matching, 17
     \subitem meta-rewriting, 18, \bold{20}
@@ -746,7 +754,7 @@
   \item {\tt trace_REPEAT}, \bold{29}
   \item {\tt trace_simp}, 100, 107
   \item tracing
-    \subitem of classical prover, 125
+    \subitem of classical prover, 126
     \subitem of macros, 88
     \subitem of searching tacticals, 31
     \subitem of simplification, 100, 107--108
