@@ -177,9 +177,7 @@ by (etac trancl_induct 1);
 by (fast_tac (ZF_cs addIs [r_into_trancl]) 1);
 by (slow_best_tac (ZF_cs addSDs [spec RS mp]
                          addIs  [r_into_trancl, trans_trancl RS transD]) 1);
-qed "diamond_trancl_lemma";
-
-val diamond_lemmaE = diamond_trancl_lemma RS spec RS mp RS exE;
+val diamond_strip_lemmaE = result() RS spec RS mp RS exE;
 
 val [major] = goal Comb.thy "diamond(r) ==> diamond(r^+)";
 by (rewtac diamond_def);  (*unfold only in goal, not in premise!*)
@@ -187,7 +185,7 @@ by (rtac (impI RS allI RS allI) 1);
 by (etac trancl_induct 1);
 by (ALLGOALS
     (slow_best_tac (ZF_cs addIs [r_into_trancl, trans_trancl RS transD]
-                          addEs [major RS diamond_lemmaE])));
+                          addEs [major RS diamond_strip_lemmaE])));
 qed "diamond_trancl";
 
 
