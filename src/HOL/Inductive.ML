@@ -75,7 +75,7 @@ Ind_section_Fun
     val rec_tms = map (readtm sign termTVar) srec_tms
     and intr_tms = map (readtm sign propT) sintrs;
     val thy = thy |> Ind.add_fp_def_i(rec_tms, intr_tms) 
-                  |> add_thyname thy_name);
+                  |> Theory.add_name thy_name);
 
 
 

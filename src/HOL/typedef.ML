@@ -107,17 +107,17 @@ fun ext_typedef prep_term name (t, vs, mx) raw_set axms thms usr_tac thy =
     prove_nonempty cset (map (get_axiom thy) axms @ thms) usr_tac;
 
     thy
-    |> add_types [(t, tlen, mx)]
-    |> add_arities
+    |> Theory.add_types [(t, tlen, mx)]
+    |> Theory.add_arities
      [(tname, replicate tlen logicS, logicS),
       (tname, replicate tlen termS, termS)]
-    |> add_consts_i
+    |> Theory.add_consts_i
      [(name, setT, NoSyn),
       (Rep_name, newT --> oldT, NoSyn),
       (Abs_name, oldT --> newT, NoSyn)]
-    |> add_defs_i
+    |> Theory.add_defs_i
      [(name ^ "_def", mk_equals (setC, set))]
-    |> add_axioms_i
+    |> Theory.add_axioms_i
      [(Rep_name, rep_type),
       (Rep_name ^ "_inverse", rep_type_inv),
       (Abs_name ^ "_inverse", abs_type_inv)]

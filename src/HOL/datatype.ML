@@ -504,14 +504,14 @@ in
           val defpairT as (_, _ $ Const(_,T) $ _ ) = inferT_axm sg defpair;
           val varT = Type.varifyT T;
           val ftyp = the (Sign.const_type sg fname);
-        in add_defs_i [defpairT] thy end;
+        in Theory.add_defs_i [defpairT] thy end;
 
     in
-      (thy |> add_types types
-           |> add_arities arities
-           |> add_consts consts
-           |> add_trrules xrules
-           |> add_axioms rules, add_primrec, size_eqns)
+      (thy |> Theory.add_types types
+           |> Theory.add_arities arities
+           |> Theory.add_consts consts
+           |> Theory.add_trrules xrules
+           |> Theory.add_axioms rules, add_primrec, size_eqns)
     end
 
 (*Warn if the (induction) variable occurs Free among the premises, which

@@ -157,7 +157,7 @@ fun add_fp_def_i (rec_tms, intr_tms) thy =
              | x::_ => error ("Illegal occurrence of recursion op: " ^ x ^
                                "\n\t*Consider adding type constraints*"))
 
-  in  thy |> add_defs_i axpairs  end
+  in  thy |> Theory.add_defs_i axpairs  end
 
 
 (****************************************************************OMITTED
@@ -240,10 +240,6 @@ fun add_constructs_def (rec_names, con_ty_lists) thy =
 *   val axpairs =
         big_case_def :: flat (ListPair.map mk_con_defs ((1 upto npart), con_ty_lists))
 
-*   in  thy |> add_consts_i const_decs |> add_defs_i axpairs  end;
+*   in  thy |> Theory.add_consts_i const_decs |> Theory.add_defs_i axpairs  end;
 ****************************************************************)
 end;
-
-
-
-

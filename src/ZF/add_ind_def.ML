@@ -162,7 +162,7 @@ fun add_fp_def_i (rec_tms, dom_sum, intr_tms) thy =
 
     val dummy = seq (writeln o Sign.string_of_term sign o #2) axpairs
   
-  in  thy |> add_defs_i axpairs  end
+  in  thy |> Theory.add_defs_i axpairs  end
 
 
 (*Expects the recursive sets to have been defined already.
@@ -250,5 +250,5 @@ fun add_constructs_def (rec_names, con_ty_lists) thy =
         big_case_def :: flat (ListPair.map mk_con_defs
 			      (1 upto npart, con_ty_lists))
 
-    in  thy |> add_consts_i const_decs |> add_defs_i axpairs  end;
+    in  thy |> Theory.add_consts_i const_decs |> Theory.add_defs_i axpairs  end;
 end;

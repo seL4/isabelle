@@ -11,16 +11,16 @@ Some examples from Lawrence Paulson's book Logic and Computation.
 
 val ex_thy =
   thy
-  |> add_consts
+  |> Theory.add_consts
    [("P", "'a => tr", NoSyn),
     ("G", "'a => 'a", NoSyn),
     ("H", "'a => 'a", NoSyn),
     ("K", "('a => 'a) => ('a => 'a)", NoSyn)]
-  |> add_axioms
+  |> Theory.add_axioms
    [("P_strict", "P(UU) = UU"),
     ("K", "K = (%h x. P(x) => x | h(h(G(x))))"),
     ("H", "H = FIX(K)")]
-  |> add_thyname "Ex 10.4";
+  |> Theory.add_name "Ex 10.4";
 
 val ax = get_axiom ex_thy;
 
@@ -55,17 +55,17 @@ val H_idemp = rewrite_rule [mk_meta_eq (H RS sym)] H_idemp_lemma;
 
 val ex_thy =
   thy
-  |> add_consts
+  |> Theory.add_consts
    [("P", "'a => tr", NoSyn),
     ("F", "'a => 'a", NoSyn),
     ("G", "'a => 'a", NoSyn),
     ("H", "'a => 'b => 'b", NoSyn),
     ("K", "('a => 'b => 'b) => ('a => 'b => 'b)", NoSyn)]
-  |> add_axioms
+  |> Theory.add_axioms
    [("F_strict", "F(UU) = UU"),
     ("K", "K = (%h x y. P(x) => y | F(h(G(x),y)))"),
     ("H", "H = FIX(K)")]
-  |> add_thyname "Ex 3.8";
+  |> Theory.add_name "Ex 3.8";
 
 val ax = get_axiom ex_thy;
 
@@ -87,13 +87,13 @@ result();
 
 val ex_thy =
   thy
-  |> add_consts
+  |> Theory.add_consts
    [("s", "'a => 'a", NoSyn),
     ("p", "'a => 'a => 'a", NoSyn)]
-  |> add_axioms
+  |> Theory.add_axioms
    [("p_strict", "p(UU) = UU"),
     ("p_s", "p(s(x),y) = s(p(x,y))")]
-  |> add_thyname "fix ex";
+  |> Theory.add_name "fix ex";
 
 val ax = get_axiom ex_thy;
 
