@@ -45,11 +45,8 @@ by (REPEAT (ares_tac prems 1
 qed "nat_induct";
 
 (*Perform induction on n. *)
-local fun raw_nat_ind_tac a i = 
-    res_inst_tac [("n",a)] nat_induct i  THEN  rename_last_tac a [""] (i+1)
-in
-val nat_ind_tac = Datatype.occs_in_prems raw_nat_ind_tac
-end;
+fun nat_ind_tac a i = 
+  res_inst_tac [("n",a)] nat_induct i  THEN  rename_last_tac a [""] (i+1);
 
 (*A special form of induction for reasoning about m<n and m-n*)
 val prems = goal thy
@@ -63,17 +60,6 @@ by (rtac allI 2);
 by (nat_ind_tac "x" 2);
 by (REPEAT (ares_tac (prems@[allI]) 1 ORELSE etac spec 1));
 qed "diff_induct";
-
-(*Case analysis on the natural numbers*)
-val prems = goal thy 
-    "[| n=0 ==> P;  !!x. n = Suc(x) ==> P |] ==> P";
-by (subgoal_tac "n=0 | (EX x. n = Suc(x))" 1);
-by (fast_tac (claset() addSEs prems) 1);
-by (nat_ind_tac "n" 1);
-by (rtac (refl RS disjI1) 1);
-by (Blast_tac 1);
-qed "natE";
-
 
 (*** Isomorphisms: Abs_Nat and Rep_Nat ***)
 
@@ -130,74 +116,13 @@ qed "n_not_Suc_n";
 
 bind_thm ("Suc_n_not_n", n_not_Suc_n RS not_sym);
 
-Goal "n ~= 0 ==> EX m. n = Suc m";
-by (rtac natE 1);
-by (REPEAT (Blast_tac 1));
-qed "not0_implies_Suc";
-
-
-(*** nat_case -- the selection operator for nat ***)
-
-Goalw [nat_case_def] "nat_case a f 0 = a";
-by (Blast_tac 1);
-qed "nat_case_0";
-
-Goalw [nat_case_def] "nat_case a f (Suc k) = f(k)";
-by (Blast_tac 1);
-qed "nat_case_Suc";
+(*** Basic properties of "less than" ***)
 
 Goalw [wf_def, pred_nat_def] "wf(pred_nat)";
 by (Clarify_tac 1);
 by (nat_ind_tac "x" 1);
 by (ALLGOALS Blast_tac);
 qed "wf_pred_nat";
-
-
-(*** nat_rec -- by wf recursion on pred_nat ***)
-
-(* The unrolling rule for nat_rec *)
-Goal
-   "nat_rec c d = wfrec pred_nat (%f. nat_case c (%m. d m (f m)))";
-  by (simp_tac (HOL_ss addsimps [nat_rec_def]) 1);
-bind_thm("nat_rec_unfold", wf_pred_nat RS 
-                            ((result() RS eq_reflection) RS def_wfrec));
-
-(*---------------------------------------------------------------------------
- * Old:
- * bind_thm ("nat_rec_unfold", (wf_pred_nat RS (nat_rec_def RS def_wfrec))); 
- *---------------------------------------------------------------------------*)
-
-(** conversion rules **)
-
-Goal "nat_rec c h 0 = c";
-by (rtac (nat_rec_unfold RS trans) 1);
-by (simp_tac (simpset() addsimps [nat_case_0]) 1);
-qed "nat_rec_0";
-
-Goal "nat_rec c h (Suc n) = h n (nat_rec c h n)";
-by (rtac (nat_rec_unfold RS trans) 1);
-by (simp_tac (simpset() addsimps [nat_case_Suc, pred_nat_def, cut_apply]) 1);
-qed "nat_rec_Suc";
-
-(*These 2 rules ease the use of primitive recursion.  NOTE USE OF == *)
-val [rew] = goal thy
-    "[| !!n. f(n) == nat_rec c h n |] ==> f(0) = c";
-by (rewtac rew);
-by (rtac nat_rec_0 1);
-qed "def_nat_rec_0";
-
-val [rew] = goal thy
-    "[| !!n. f(n) == nat_rec c h n |] ==> f(Suc(n)) = h n (f n)";
-by (rewtac rew);
-by (rtac nat_rec_Suc 1);
-qed "def_nat_rec_Suc";
-
-fun nat_recs def =
-      [standard (def RS def_nat_rec_0),
-       standard (def RS def_nat_rec_Suc)];
-
-
-(*** Basic properties of "less than" ***)
 
 (*Used in TFL/post.sml*)
 Goalw [less_def] "(m,n) : pred_nat^+ = (m<n)";
@@ -290,36 +215,6 @@ by (simp_tac (simpset() addsimps [less_Suc_eq]) 1);
 qed "less_one";
 AddIffs [less_one];
 
-val prems = goal thy "m<n ==> n ~= 0";
-by (res_inst_tac [("n","n")] natE 1);
-by (cut_facts_tac prems 1);
-by (ALLGOALS Asm_full_simp_tac);
-qed "gr_implies_not0";
-
-Goal "(n ~= 0) = (0 < n)";
-by (rtac natE 1);
-by (Blast_tac 1);
-by (Blast_tac 1);
-qed "neq0_conv";
-AddIffs [neq0_conv];
-
-(*This theorem is useful with blast_tac: (n=0 ==> False) ==> 0<n *)
-bind_thm ("gr0I", [neq0_conv, notI] MRS iffD1);
-
-Goal "(~(0 < n)) = (n=0)";
-by (rtac iffI 1);
- by (etac swap 1);
- by (ALLGOALS Asm_full_simp_tac);
-qed "not_gr0";
-Addsimps [not_gr0];
-
-Goal "m<n ==> 0 < n";
-by (dtac gr_implies_not0 1);
-by (Asm_full_simp_tac 1);
-qed "gr_implies_gr0";
-Addsimps [gr_implies_gr0];
-
-
 Goal "m<n ==> Suc(m) < Suc(n)";
 by (etac rev_mp 1);
 by (nat_ind_tac "n" 1);
@@ -410,24 +305,6 @@ by (wf_ind_tac "n" [wf_pred_nat RS wf_trancl] 1);
 by (eresolve_tac prems 1);
 qed "less_induct";
 
-qed_goal "nat_induct2" thy 
-"[| P 0; P 1; !!k. P k ==> P (Suc (Suc k)) |] ==> P n" (fn prems => [
-        cut_facts_tac prems 1,
-        rtac less_induct 1,
-        res_inst_tac [("n","n")] natE 1,
-         hyp_subst_tac 1,
-         atac 1,
-        hyp_subst_tac 1,
-        res_inst_tac [("n","x")] natE 1,
-         hyp_subst_tac 1,
-         atac 1,
-        hyp_subst_tac 1,
-        resolve_tac prems 1,
-        dtac spec 1,
-        etac mp 1,
-        rtac (lessI RS less_trans) 1,
-        rtac (lessI RS Suc_mono) 1]);
-
 (*** Properties of <= ***)
 
 Goalw [le_def] "(m <= n) = (m < Suc n)";
@@ -453,8 +330,7 @@ AddIffs [le_0_eq];
 
 Addsimps [(*less_Suc_eq, makes simpset non-confluent*) le0, le_0_eq,
           Suc_n_not_le_n,
-          n_not_Suc_n, Suc_n_not_n,
-          nat_case_0, nat_case_Suc, nat_rec_0, nat_rec_Suc];
+          n_not_Suc_n, Suc_n_not_n];
 
 Goal "(m <= Suc(n)) = (m<=n | m = Suc n)";
 by (simp_tac (simpset() addsimps [le_eq_less_Suc]) 1);
@@ -473,19 +349,6 @@ qed "Suc_le_eq";
 this could make the simpset (with less_Suc_eq added again) more confluent,
 but less_Suc_eq makes additional problems with terms of the form 0 < Suc (...)
 *)
-
-(*Prevents simplification of f and g: much faster*)
-qed_goal "nat_case_weak_cong" thy
-  "m=n ==> nat_case a f m = nat_case a f n"
-  (fn [prem] => [rtac (prem RS arg_cong) 1]);
-
-qed_goal "nat_rec_weak_cong" thy
-  "m=n ==> nat_rec a f m = nat_rec a f n"
-  (fn [prem] => [rtac (prem RS arg_cong) 1]);
-
-qed_goal "split_nat_case" thy
-  "P(nat_case z s n) = ((n=0 --> P z) & (!m. n = Suc m --> P(s m)))"
-  (fn _ => [nat_ind_tac "n" 1, ALLGOALS Asm_simp_tac]);
 
 val prems = goalw thy [le_def] "~n<m ==> m<=(n::nat)";
 by (resolve_tac prems 1);
@@ -679,33 +542,6 @@ by (etac (rewrite_rule [le_def] Least_le RS notE) 1);
 by (rtac prem 1);
 qed "not_less_Least";
 
-qed_goalw "Least_Suc" thy [Least_nat_def]
- "!!P. [| ? n. P(Suc n); ~ P 0 |] ==> (LEAST n. P n) = Suc (LEAST m. P(Suc m))"
- (fn _ => [
-        rtac select_equality 1,
-        fold_goals_tac [Least_nat_def],
-        safe_tac (claset() addSEs [LeastI]),
-        rename_tac "j" 1,
-        res_inst_tac [("n","j")] natE 1,
-        Blast_tac 1,
-        blast_tac (claset() addDs [Suc_less_SucD, not_less_Least]) 1,
-        rename_tac "k n" 1,
-        res_inst_tac [("n","k")] natE 1,
-        Blast_tac 1,
-        hyp_subst_tac 1,
-        rewtac Least_nat_def,
-        rtac (select_equality RS arg_cong RS sym) 1,
-        Safe_tac,
-        dtac Suc_mono 1,
-        Blast_tac 1,
-        cut_facts_tac [less_linear] 1,
-        Safe_tac,
-        atac 2,
-        Blast_tac 2,
-        dtac Suc_mono 1,
-        Blast_tac 1]);
-
-
 (*** Instantiation of transitivity prover ***)
 
 structure Less_Arith =
@@ -773,13 +609,3 @@ open Trans_Tac;
 
 (*** eliminates ~= in premises, which trans_tac cannot deal with ***)
 bind_thm("nat_neqE", nat_neq_iff RS iffD1 RS disjE);
-
-
-(* add function nat_add_primrec *) 
-val (_, nat_add_primrec, _, _) = 
-    Datatype.add_datatype ([], "nat", 
-			   [("0", [], Mixfix ("0", [], max_pri)), 
-			    ("Suc", [dtTyp ([], "nat")], NoSyn)])
-    (Theory.add_name "Arith" HOL.thy);
-
-(*pretend Arith is part of the basic theory to fool package*)

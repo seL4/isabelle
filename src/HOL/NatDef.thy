@@ -47,18 +47,15 @@ instance
 consts
   "0"       :: nat                ("0")
   Suc       :: nat => nat
-  nat_case  :: ['a, nat => 'a, nat] => 'a
   pred_nat  :: "(nat * nat) set"
-  nat_rec   :: ['a, [nat, 'a] => 'a, nat] => 'a
 
 syntax
   "1"       :: nat                ("1")
   "2"       :: nat                ("2")
 
 translations
-   "1"  == "Suc 0"
-   "2"  == "Suc 1"
-  "case p of 0 => a | Suc y => b" == "nat_case a (%y. b) p"
+  "1"  == "Suc 0"
+  "2"  == "Suc 1"
 
 
 local
@@ -68,14 +65,10 @@ defs
   Suc_def       "Suc == (%n. Abs_Nat(Suc_Rep(Rep_Nat(n))))"
 
   (*nat operations and recursion*)
-  nat_case_def  "nat_case a f n == @z.  (n=0 --> z=a)  
-                                        & (!x. n=Suc x --> z=f(x))"
   pred_nat_def  "pred_nat == {(m,n). n = Suc m}"
 
   less_def      "m<n == (m,n):trancl(pred_nat)"
 
   le_def        "m<=(n::nat) == ~(n<m)"
 
-  nat_rec_def   "nat_rec c d ==
-                 wfrec pred_nat (%f. nat_case c (%m. d m (f m)))"
 end
