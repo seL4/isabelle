@@ -45,8 +45,10 @@ instead);
 Lfp, Gfp, WF); this only affects ML packages that refer to const names
 internally;
 
-* HOL, ZF: syntax for quotienting wrt an equivalence relation changed from
-  A/r to A//r;
+* HOL, ZF: syntax for quotienting wrt an equivalence relation changed
+from A/r to A//r;
+
+* HOL: qed_spec_mp now also removes bounded ALL;
 
 * ZF: new treatment of arithmetic (nat & int) may break some old proofs;
 
@@ -57,6 +59,8 @@ should have to change intro!! to intro? only);
 * Isar: changed syntax of local blocks from {{ }} to { };
 
 * Isar: renamed 'RS' attribute to 'THEN';
+
+* Isar: renamed some attributes (rulify -> rulified, elimify -> elimified, ...);
 
 * Isar/HOL: renamed "intrs" to "intros" in inductive definitions;
 
@@ -293,8 +297,8 @@ element: {..u}, {..u(}, {l..}, {)l..}. See theory SetInterval.
 induct_tac th "x1 ... xn" expects th to have a conclusion of the form
 P v1 ... vn and abbreviates res_inst_tac [("v1","x1"),...,("vn","xn")] th;
 
-* new function rulify: thm -> thm for turning outer -->/! into ==>/?;
-behaves like qed_spec_mp;
+* new functions rulify/rulify_no_asm: thm -> thm for turning outer
+-->/All/Ball into ==>/!!; qed_spec_mp now uses rulify_no_asm;
 
 * theory Sexp now in HOL/Induct examples (it used to be part of main
 HOL, but was unused);
