@@ -209,10 +209,9 @@ sig
   (*I/O and diagnostics*)
   val cd: string -> unit
   val pwd: unit -> string
-  val prs_fn: (string -> unit) ref
+  val writeln_fn: (string -> unit) ref
   val warning_fn: (string -> unit) ref
   val error_fn: (string -> unit) ref
-  val prs: string -> unit
   val writeln: string -> unit
   val warning: string -> unit
   exception ERROR
@@ -1049,13 +1048,11 @@ fun prefix_lines prfx txt =
   txt |> split_lines |> map (fn s => prfx ^ s) |> cat_lines;
 
 (*hooks for output channels: normal, warning, error*)
-val prs_fn = ref std_output;
+val writeln_fn = ref (std_output o suffix "\n");
 val warning_fn = ref (std_output o suffix "\n" o prefix_lines "### ");
 val error_fn = ref (std_output o suffix "\n" o prefix_lines "*** ");
 
-fun prs s = ! prs_fn s;
-fun writeln s = prs (s ^ "\n");
-
+fun writeln s = ! writeln_fn s;
 fun warning s = ! warning_fn s;
 
 (*print error message and abort to top level*)
