@@ -285,17 +285,15 @@ Addsimps [div_less_dividend];
 
 Goal "0<n ==> Suc(m) mod n = (if Suc(m mod n) = n then 0 else Suc(m mod n))";
 by (res_inst_tac [("n","m")] less_induct 1);
-by (excluded_middle_tac "Suc(na)<n" 1);
+by (case_tac "Suc(na)<n" 1);
 (* case Suc(na) < n *)
-by (forward_tac [lessI RS less_trans] 2);
-by (asm_simp_tac (simpset() addsimps [less_not_refl3]) 2);
+by (forward_tac [lessI RS less_trans] 1 
+    THEN asm_simp_tac (simpset() addsimps [less_not_refl3]) 1);
 (* case n <= Suc(na) *)
 by (asm_full_simp_tac (simpset() addsimps [not_less_iff_le, le_Suc_eq, 
 					   mod_geq]) 1);
-by (etac disjE 1);
- by (Asm_simp_tac 2);
-by (asm_simp_tac (simpset() addsimps [Suc_diff_le, diff_less, 
-				      le_mod_geq]) 1);
+by (auto_tac (claset(), 
+	      simpset() addsimps [Suc_diff_le, diff_less, le_mod_geq]));
 qed "mod_Suc";
 
 Goal "0<n ==> m mod n < n";
