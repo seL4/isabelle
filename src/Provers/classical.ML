@@ -1079,7 +1079,7 @@ end;
 (* METHOD_CLASET' *)
 
 fun METHOD_CLASET' tac ctxt =
-  Method.METHOD (HEADGOAL o tac (get_local_claset ctxt));
+  Method.METHOD (HEADGOAL o tac ctxt (get_local_claset ctxt));
 
 
 val trace_rules = ref false;
@@ -1105,7 +1105,6 @@ fun find_erules [] _ = []
         fun erules_of (_, enet) = order_rules (may_unify enet fact);
       in flat (map erules_of nets) end;
 
-
 fun some_rule_tac cs facts =
   let
     val nets = get_nets cs;
@@ -1119,17 +1118,17 @@ fun some_rule_tac cs facts =
       in trace rules i; fn st => Seq.flat (Seq.map (fn rule => Tactic.rtac rule i st) ruleq) end);
   in tac end;
 
-fun rule_tac [] cs facts = some_rule_tac cs facts
-  | rule_tac rules _ facts = Method.rule_tac rules facts;
+fun rule_tac [] ctxt cs facts =
+    some_rule_tac cs facts ORELSE' Method.some_rule_tac [] ctxt facts
+  | rule_tac rules _ _ facts = Method.rule_tac rules facts;
 
 fun default_tac rules ctxt cs facts =
-  rule_tac rules cs facts ORELSE'
-  Method.some_rule_tac rules ctxt facts ORELSE'
+  rule_tac rules ctxt cs facts ORELSE'
   AxClass.default_intro_classes_tac facts;
 
 in
   val rule = METHOD_CLASET' o rule_tac;
-  fun default rules ctxt = METHOD_CLASET' (default_tac rules ctxt) ctxt;
+  val default = METHOD_CLASET' o default_tac;
 end;
 
 
@@ -1137,7 +1136,7 @@ end;
 
 local
 
-fun intro_elim_tac netpair_of res_tac rules cs facts =
+fun intro_elim_tac netpair_of res_tac rules _ cs facts =
   let
     val tac =
       if null rules then FIRST' (map (bimatch_from_nets_tac o netpair_of) (get_nets cs))
