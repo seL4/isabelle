@@ -1,6 +1,7 @@
-Tutorials
+Learning Isabelle
   tutorial      Tutorial on Isabelle/HOL
   isar-overview Tutorial on Isar
+  exercises     Exercises for Isabelle/HOL
 
 Reference Manuals
   isar-ref      The Isabelle/Isar Reference Manual
