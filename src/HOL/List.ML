@@ -558,7 +558,7 @@ by (ALLGOALS Asm_full_simp_tac);
 qed_spec_mp "nth_take";
 Addsimps [nth_take];
 
-goal thy  "!xs i. n + i < length xs --> nth i (drop n xs) = nth (n + i) xs";
+goal thy  "!xs i. n + i <= length xs --> nth i (drop n xs) = nth (n + i) xs";
 by (nat_ind_tac "n" 1);
  by (ALLGOALS Asm_simp_tac);
 by (rtac allI 1);
