@@ -136,6 +136,12 @@ New in this Isabelle release
   these are subject to the DVI_VIEWER and PRINT_COMMAND settings,
   respectively.
 
+* Document preparation: Proof scripts as well as some other commands
+  such as ML or parse/print_translation can now be hidden in the document.
+  Hiding can be enabled either via the option '-H true' of isatool usedir
+  or by setting the reference variable IsarOutput.hide_commands. Additional
+  commands to be hidden may be declared using IsarOutput.add_hidden_commands.
+
 * ML: output via the Isabelle channels of writeln/warning/error
   etc. is now passed through Output.output, with a hook for arbitrary
   transformations depending on the print_mode (cf. Output.add_mode --
