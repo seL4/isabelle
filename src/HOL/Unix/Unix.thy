@@ -843,50 +843,44 @@ text {*
 *}
 
 
-subsection {* The particular setup *}
+subsection {* The particular situation *}
 
 text {*
   We introduce a few global declarations and axioms to describe our
-  particular setup considered here.  Thus we avoid excessive use of
-  local parameters in the subsequent development.
+  particular situation considered here.  Thus we avoid excessive use
+  of local parameters in the subsequent development.
 *}
 
-consts
-  users :: "uid set"
-  user1 :: uid
-  user2 :: uid
-  name1 :: name
-  name2 :: name
-  name3 :: name
-  perms1 :: perms
-  perms2 :: perms
+locale situation =
+  fixes users :: "uid set"
+    and user1 :: uid
+    and user2 :: uid
+    and name1 :: name
+    and name2 :: name
+    and name3 :: name
+    and perms1 :: perms
+    and perms2 :: perms
+  assumes user1_known: "user1 \<in> users"
+    and user1_not_root: "user1 \<noteq> 0"
+    and users_neq: "user1 \<noteq> user2"
+    and perms1_writable: "Writable \<in> perms1"
+    and perms2_not_writable: "Writable \<notin> perms2"
+  notes facts = user1_known user1_not_root users_neq
+    perms1_writable perms2_not_writable
 
-axioms
-  user1_known: "user1 \<in> users"
-  user1_not_root: "user1 \<noteq> 0"
-  users_neq: "user1 \<noteq> user2"
-  perms1_writable: "Writable \<in> perms1"
-  perms2_not_writable: "Writable \<notin> perms2"
-
-lemmas "setup" =
-  user1_known user1_not_root users_neq
-  perms1_writable perms2_not_writable
+  fixes bogus :: "operation list"
+    and bogus_path :: path
+  defines "bogus \<equiv>
+     [Mkdir user1 perms1 [user1, name1],
+      Mkdir user2 perms2 [user1, name1, name2],
+      Creat user2 perms2 [user1, name1, name2, name3]]"
+    and "bogus_path \<equiv> [user1, name1, name2]"
 
 text {*
-  \medskip The @{term bogus} operations are the ones that lead into
-  the uncouth situation; @{term bogus_path} is the key position within
-  the file-system where things go awry.
+  The @{term bogus} operations are the ones that lead into the uncouth
+  situation; @{term bogus_path} is the key position within the
+  file-system where things go awry.
 *}
-
-constdefs
-  bogus :: "operation list"
-  "bogus \<equiv>
-   [Mkdir user1 perms1 [user1, name1],
-    Mkdir user2 perms2 [user1, name1, name2],
-    Creat user2 perms2 [user1, name1, name2, name3]]"
-
-  bogus_path :: path
-  "bogus_path \<equiv> [user1, name1, name2]"
 
 
 subsection {* Invariance lemmas \label{sec:unix-inv-lemmas} *}
@@ -898,9 +892,9 @@ text {*
   neither owned and nor writable by @{term user1}.
 *}
 
-constdefs
-  invariant :: "file \<Rightarrow> path \<Rightarrow> bool"
-  "invariant root path \<equiv>
+locale invariant = situation +
+  fixes invariant :: "file \<Rightarrow> path \<Rightarrow> bool"
+  defines "invariant root path \<equiv>
     (\<exists>att dir.
       access root path user1 {} = Some (Env att dir) \<and> dir \<noteq> empty \<and>
       user1 \<noteq> owner att \<and>
@@ -938,8 +932,9 @@ text {*
   we just have to inspect rather special cases.
 *}
 
-lemma cannot_rmdir: "invariant root bogus_path \<Longrightarrow>
-  root \<midarrow>(Rmdir user1 [user1, name1])\<rightarrow> root' \<Longrightarrow> False"
+lemma (in invariant)
+  cannot_rmdir: "invariant root bogus_path \<Longrightarrow>
+    root \<midarrow>(Rmdir user1 [user1, name1])\<rightarrow> root' \<Longrightarrow> False"
 proof -
   assume "invariant root bogus_path"
   then obtain file where "access root bogus_path user1 {} = Some file"
@@ -954,9 +949,10 @@ proof -
   ultimately show False by (simp add: bogus_path_def)
 qed
 
-lemma init_invariant: "init users =bogus\<Rightarrow> root \<Longrightarrow> invariant root bogus_path"
+lemma (in invariant)
+  init_invariant: "init users =bogus\<Rightarrow> root \<Longrightarrow> invariant root bogus_path"
 proof -
-  note eval = "setup" access_def init_def
+  note eval = facts access_def init_def
   case rule_context thus ?thesis
     apply (unfold bogus_def bogus_path_def)
     apply (drule transitions_consD, rule transition.intros,
@@ -977,8 +973,9 @@ text {*
   required here.
 *}
 
-lemma preserve_invariant: "root \<midarrow>x\<rightarrow> root' \<Longrightarrow>
-  invariant root path \<Longrightarrow> uid_of x = user1 \<Longrightarrow> invariant root' path"
+lemma (in invariant)
+  preserve_invariant: "root \<midarrow>x\<rightarrow> root' \<Longrightarrow>
+    invariant root path \<Longrightarrow> uid_of x = user1 \<Longrightarrow> invariant root' path"
 proof -
   assume tr: "root \<midarrow>x\<rightarrow> root'"
   assume inv: "invariant root path"
@@ -1121,9 +1118,9 @@ text {*
   overall procedure (see \secref{sec:unix-inv-procedure}).
 *}
 
-corollary
+corollary (in invariant)  (* FIXME in situation!? *)
   "init users =bogus\<Rightarrow> root \<Longrightarrow>
-  \<not> (\<exists>xs. (\<forall>x \<in> set xs. uid_of x = user1) \<and>
+    \<not> (\<exists>xs. (\<forall>x \<in> set xs. uid_of x = user1) \<and>
       can_exec root (xs @ [Rmdir user1 [user1, name1]]))"
 proof -
   case rule_context
