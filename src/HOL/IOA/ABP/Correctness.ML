@@ -227,9 +227,10 @@ qed"receiver_abstraction";
 goal Correctness.thy 
       "is_weak_pmap (%id.id) sender_ioa sender_ioa";
 by (simp_tac (!simpset addsimps [Solve.is_weak_pmap_def]) 1);
-by (rtac conjI 1);
+by (TRY(
+   (rtac conjI 1) THEN
 (* start states *)
-by (fast_tac set_cs 1);
+   (fast_tac set_cs 1)));
 (* main-part *)
 by (REPEAT (rtac allI 1));
 by (rtac imp_conj_lemma 1);
@@ -242,9 +243,10 @@ qed"sender_unchanged";
 goal Correctness.thy 
       "is_weak_pmap (%id.id) receiver_ioa receiver_ioa";
 by (simp_tac (!simpset addsimps [Solve.is_weak_pmap_def]) 1);
-by (rtac conjI 1);
+by (TRY(
+   (rtac conjI 1) THEN
  (* start states *)
-by (fast_tac set_cs 1);
+   (fast_tac set_cs 1)));
 (* main-part *)
 by (REPEAT (rtac allI 1));
 by (rtac imp_conj_lemma 1);
@@ -256,9 +258,10 @@ qed"receiver_unchanged";
 goal Correctness.thy 
       "is_weak_pmap (%id.id) env_ioa env_ioa";
 by (simp_tac (!simpset addsimps [Solve.is_weak_pmap_def]) 1);
-by (rtac conjI 1);
+by (TRY(
+   (rtac conjI 1) THEN
 (* start states *)
-by (fast_tac set_cs 1);
+   (fast_tac set_cs 1)));
 (* main-part *)
 by (REPEAT (rtac allI 1));
 by (rtac imp_conj_lemma 1);
