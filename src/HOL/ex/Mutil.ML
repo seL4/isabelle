@@ -57,8 +57,8 @@ by (subgoal_tac    (*seems the easiest way of turning one to the other*)
 \    {(i, n1+n1), (i, Suc(n1+n1))}" 1);
 by (Fast_tac 2);
 by (asm_simp_tac (!simpset addsimps [domino.horiz]) 1);
-by (fast_tac (!claset addIs [equalityI, lessI] addEs [less_irrefl, less_asym]
-                      addDs [below_less_iff RS iffD1]) 1);
+by (fast_tac (!claset addEs  [less_asym]
+                      addSDs [below_less_iff RS iffD1]) 1);
 qed "dominoes_tile_row";
 
 goal thy "(below m) Times below(n + n) : tiling domino";
