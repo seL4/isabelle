@@ -33,11 +33,9 @@ workshops and courses.
 
 <h2>Obtaining Isabelle</h2>
 
-Several mirror sites provide the Isabelle <a
-href="dist/index.html">distribution</a>, which includes source and
-binary <a href="dist/packages.html">packages</a> and browsable <a
-href="dist/docs.html">documentation</a>.  The current version is
-<strong><!-- _GP_ distname --></strong>.
+The <strong><!-- _GP_ distname --></strong> distribution is available
+from several <a href="dist/index.html">mirror sites</a>.  It includes
+source and binary packages and browsable documentation.
 
 <p>
 
