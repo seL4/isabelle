@@ -20,7 +20,7 @@ val prems = goal Acc.thy
 by (fast_tac (claset() addIs (prems@acc.intrs)) 1);
 qed "accI";
 
-Goal "!!a b r. [| b: acc(r);  <a,b>: r |] ==> a: acc(r)";
+Goal "[| b: acc(r);  <a,b>: r |] ==> a: acc(r)";
 by (etac acc.elim 1);
 by (Fast_tac 1);
 qed "acc_downward";

@@ -35,7 +35,7 @@ Goalw [quniv_def]
 by (etac PowD 1);
 qed "qunivD";
 
-Goalw [quniv_def] "!!A B. A<=B ==> quniv(A) <= quniv(B)";
+Goalw [quniv_def] "A<=B ==> quniv(A) <= quniv(B)";
 by (etac (eclose_mono RS univ_mono RS Pow_mono) 1);
 qed "quniv_mono";
 
@@ -80,7 +80,7 @@ qed "QPair_subset_univ";
 
 (** Quine disjoint sum **)
 
-Goalw [QInl_def] "!!A a. a <= univ(A) ==> QInl(a) <= univ(A)";
+Goalw [QInl_def] "a <= univ(A) ==> QInl(a) <= univ(A)";
 by (etac (empty_subsetI RS QPair_subset_univ) 1);
 qed "QInl_subset_univ";
 
@@ -91,7 +91,7 @@ val naturals_subset_nat =
 val naturals_subset_univ = 
     [naturals_subset_nat, nat_subset_univ] MRS subset_trans;
 
-Goalw [QInr_def] "!!A a. a <= univ(A) ==> QInr(a) <= univ(A)";
+Goalw [QInr_def] "a <= univ(A) ==> QInr(a) <= univ(A)";
 by (etac (nat_1I RS naturals_subset_univ RS QPair_subset_univ) 1);
 qed "QInr_subset_univ";
 
@@ -130,11 +130,11 @@ qed "quniv_QPair_iff";
 
 (** Quine disjoint sum **)
 
-Goalw [QInl_def] "!!A a. a: quniv(A) ==> QInl(a) : quniv(A)";
+Goalw [QInl_def] "a: quniv(A) ==> QInl(a) : quniv(A)";
 by (REPEAT (ares_tac [zero_in_quniv,QPair_in_quniv] 1));
 qed "QInl_in_quniv";
 
-Goalw [QInr_def] "!!A b. b: quniv(A) ==> QInr(b) : quniv(A)";
+Goalw [QInr_def] "b: quniv(A) ==> QInr(b) : quniv(A)";
 by (REPEAT (ares_tac [one_in_quniv, QPair_in_quniv] 1));
 qed "QInr_in_quniv";
 

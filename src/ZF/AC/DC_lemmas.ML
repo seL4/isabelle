@@ -14,7 +14,7 @@ by (fast_tac (claset() addSEs [RepFunE] addSIs [Least_in_Ord, prem]) 1);
 by (REPEAT (eresolve_tac [RepFunE, LeastI, prem RS Ord_in_Ord] 1));
 qed "RepFun_lepoll";
 
-Goalw [lesspoll_def] "!!n. n:nat ==> n lesspoll nat";
+Goalw [lesspoll_def] "n:nat ==> n lesspoll nat";
 by (rtac conjI 1);
 by (eresolve_tac [Ord_nat RSN (2, OrdmemD) RS subset_imp_lepoll] 1);
 by (rtac notI 1);
@@ -46,35 +46,35 @@ val prems = goal thy "!!k. k:n ==> k~=n";
 by (fast_tac (claset() addSEs [mem_irrefl]) 1);
 qed "mem_not_eq";
 
-Goalw [succ_def] "!!g. g:n->X ==> cons(<n,x>, g) : succ(n) -> cons(x, X)";
+Goalw [succ_def] "g:n->X ==> cons(<n,x>, g) : succ(n) -> cons(x, X)";
 by (fast_tac (claset() addSIs [fun_extend] addSEs [mem_irrefl]) 1);
 qed "cons_fun_type";
 
-Goal "!!g. [| g:n->X; x:X |] ==> cons(<n,x>, g) : succ(n) -> X";
+Goal "[| g:n->X; x:X |] ==> cons(<n,x>, g) : succ(n) -> X";
 by (etac (cons_absorb RS subst) 1 THEN etac cons_fun_type 1);
 qed "cons_fun_type2";
 
-Goal "!!n. n: nat ==> cons(<n,x>, g)``n = g``n";
+Goal "n: nat ==> cons(<n,x>, g)``n = g``n";
 by (fast_tac (claset() addSEs [mem_irrefl]) 1);
 qed "cons_image_n";
 
-Goal "!!n. g:n->X ==> cons(<n,x>, g)`n = x";
+Goal "g:n->X ==> cons(<n,x>, g)`n = x";
 by (fast_tac (claset() addSIs [apply_equality] addSEs [cons_fun_type]) 1);
 qed "cons_val_n";
 
-Goal "!!k. k : n ==> cons(<n,x>, g)``k = g``k";
+Goal "k : n ==> cons(<n,x>, g)``k = g``k";
 by (fast_tac (claset() addEs [mem_asym]) 1);
 qed "cons_image_k";
 
-Goal "!!k. [| k:n; g:n->X |] ==> cons(<n,x>, g)`k = g`k";
+Goal "[| k:n; g:n->X |] ==> cons(<n,x>, g)`k = g`k";
 by (fast_tac (claset() addSIs [apply_equality, consI2] addSEs [cons_fun_type, apply_Pair]) 1);
 qed "cons_val_k";
 
-Goal "!!f. domain(f)=x ==> domain(cons(<x,y>, f)) = succ(x)";
+Goal "domain(f)=x ==> domain(cons(<x,y>, f)) = succ(x)";
 by (asm_full_simp_tac (simpset() addsimps [domain_cons, succ_def]) 1);
 qed "domain_cons_eq_succ";
 
-Goalw [restrict_def] "!!g. g:n->X ==> restrict(cons(<n,x>, g), n)=g";
+Goalw [restrict_def] "g:n->X ==> restrict(cons(<n,x>, g), n)=g";
 by (rtac fun_extension 1);
 by (rtac lam_type 1);
 by (eresolve_tac [cons_fun_type RS apply_type] 1);
@@ -83,7 +83,7 @@ by (assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [cons_val_k]) 1);
 qed "restrict_cons_eq";
 
-Goal "!!k. [| Ord(k); i:k |] ==> succ(i) : succ(k)";
+Goal "[| Ord(k); i:k |] ==> succ(i) : succ(k)";
 by (resolve_tac [Ord_linear RS disjE] 1 THEN (assume_tac 3));
 by (REPEAT (fast_tac (claset() addSIs [Ord_succ]
         addEs [Ord_in_Ord, mem_irrefl, mem_asym]
@@ -96,12 +96,12 @@ by (etac subst 1);
 by (Asm_full_simp_tac 1);
 qed "restrict_eq_imp_val_eq";
 
-Goal "!!f. [| domain(f)=A; f:B->C |] ==> f:A->C";
+Goal "[| domain(f)=A; f:B->C |] ==> f:A->C";
 by (forward_tac [domain_of_fun] 1);
 by (Fast_tac 1);
 qed "domain_eq_imp_fun_type";
 
-Goal "!!R. [| R <= A * B; R ~= 0 |] ==> EX x. x:domain(R)";
+Goal "[| R <= A * B; R ~= 0 |] ==> EX x. x:domain(R)";
 by (fast_tac (claset() addSEs [not_emptyE]) 1);
 qed "ex_in_domain";
 

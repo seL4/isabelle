@@ -25,10 +25,9 @@ by (stac nat_unfold 1);
 by (rtac (singletonI RS UnI1) 1);
 qed "nat_0I";
 
-val prems = goal Nat.thy "n : nat ==> succ(n) : nat";
+Goal "n : nat ==> succ(n) : nat";
 by (stac nat_unfold 1);
-by (rtac (RepFunI RS UnI2) 1);
-by (resolve_tac prems 1);
+by (etac (RepFunI RS UnI2) 1);
 qed "nat_succI";
 
 Goal "1 : nat";
@@ -39,8 +38,8 @@ Goal "2 : nat";
 by (rtac (nat_1I RS nat_succI) 1);
 qed "nat_2I";
 
-Addsimps [nat_0I, nat_1I, nat_2I, nat_succI];
-AddSIs   [nat_0I, nat_1I, nat_2I];
+Addsimps [nat_0I, nat_1I, nat_2I];
+AddSIs   [nat_0I, nat_1I, nat_2I, nat_succI];
 
 Goal "bool <= nat";
 by (REPEAT (ares_tac [subsetI,nat_0I,nat_1I] 1
@@ -93,14 +92,22 @@ by (REPEAT (ares_tac [empty_subsetI,succ_subsetI] 1));
 qed "Ord_nat";
 
 Goalw [Limit_def] "Limit(nat)";
-by (safe_tac (claset() addSIs [ltI, nat_succI, Ord_nat]));
+by (safe_tac (claset() addSIs [ltI, Ord_nat]));
 by (etac ltD 1);
 qed "Limit_nat";
 
-Addsimps [Ord_nat, Limit_nat];
+(* succ(i): nat ==> i: nat *)
+val succ_natD = [succI1, asm_rl, Ord_nat] MRS Ord_trans;
+AddSDs   [succ_natD];
+
+Goal "succ(n): nat <-> n: nat";
+by (Blast_tac 1);
+qed "nat_succ_iff";
+
+Addsimps [Ord_nat, Limit_nat, nat_succ_iff];
 AddSIs   [Ord_nat, Limit_nat];
 
-Goal "!!i. Limit(i) ==> nat le i";
+Goal "Limit(i) ==> nat le i";
 by (rtac subset_imp_le 1);
 by (rtac subsetI 1);
 by (etac nat_induct 1);
@@ -109,13 +116,10 @@ by (REPEAT (ares_tac [Limit_has_0 RS ltD,
                       Ord_nat, Limit_is_Ord] 1));
 qed "nat_le_Limit";
 
-(* succ(i): nat ==> i: nat *)
-val succ_natD = [succI1, asm_rl, Ord_nat] MRS Ord_trans;
-
 (* [| succ(i): k;  k: nat |] ==> i: k *)
 val succ_in_naturalD = [succI1, asm_rl, nat_into_Ord] MRS Ord_trans;
 
-Goal "!!m n. [| m<n;  n: nat |] ==> m: nat";
+Goal "[| m<n;  n: nat |] ==> m: nat";
 by (etac ltE 1);
 by (etac (Ord_nat RSN (3,Ord_trans)) 1);
 by (assume_tac 1);
@@ -221,12 +225,12 @@ qed "nat_rec_succ";
 
 (** The union of two natural numbers is a natural number -- their maximum **)
 
-Goal "!!i j. [| i: nat; j: nat |] ==> i Un j: nat";
+Goal "[| i: nat; j: nat |] ==> i Un j: nat";
 by (rtac (Un_least_lt RS ltD) 1);
 by (REPEAT (ares_tac [ltI, Ord_nat] 1));
 qed "Un_nat_type";
 
-Goal "!!i j. [| i: nat; j: nat |] ==> i Int j: nat";
+Goal "[| i: nat; j: nat |] ==> i Int j: nat";
 by (rtac (Int_greatest_lt RS ltD) 1);
 by (REPEAT (ares_tac [ltI, Ord_nat] 1));
 qed "Int_nat_type";

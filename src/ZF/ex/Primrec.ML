@@ -64,7 +64,7 @@ val primrec_into_fun = primrec.dom_subset RS subsetD;
 simpset_ref() := simpset() setSolver (type_auto_tac ([primrec_into_fun] @ 
 					      pr_typechecks @ primrec.intrs));
 
-Goalw [ACK_def] "!!i. i:nat ==> ACK(i): primrec";
+Goalw [ACK_def] "i:nat ==> ACK(i): primrec";
 by (etac nat_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "ACK_in_primrec";
@@ -79,14 +79,14 @@ fun tc_tac rls =
     REPEAT
       (SOMEGOAL (test_assume_tac ORELSE' match_tac (rls @ ack_typechecks)));
 
-Goal "!!i j. [| i:nat;  j:nat |] ==>  ack(i,j): nat";
+Goal "[| i:nat;  j:nat |] ==>  ack(i,j): nat";
 by (tc_tac []);
 qed "ack_type";
 
 (** Ackermann's function cases **)
 
 (*PROPERTY A 1*)
-Goalw [ACK_def] "!!j. j:nat ==> ack(0,j) = succ(j)";
+Goalw [ACK_def] "j:nat ==> ack(0,j) = succ(j)";
 by (asm_simp_tac (simpset() addsimps [SC]) 1);
 qed "ack_0";
 
@@ -107,7 +107,7 @@ qed "ack_succ_succ";
 Addsimps [ack_0, ack_succ_0, ack_succ_succ, ack_type, nat_into_Ord];
 
 (*PROPERTY A 4*)
-Goal "!!i. i:nat ==> ALL j:nat. j < ack(i,j)";
+Goal "i:nat ==> ALL j:nat. j < ack(i,j)";
 by (etac nat_induct 1);
 by (Asm_simp_tac 1);
 by (rtac ballI 1);
@@ -120,13 +120,13 @@ qed "lt_ack2_lemma";
 bind_thm ("lt_ack2", (lt_ack2_lemma RS bspec));
 
 (*PROPERTY A 5-, the single-step lemma*)
-Goal "!!i j. [| i:nat; j:nat |] ==> ack(i,j) < ack(i, succ(j))";
+Goal "[| i:nat; j:nat |] ==> ack(i,j) < ack(i, succ(j))";
 by (etac nat_induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [lt_ack2])));
 qed "ack_lt_ack_succ2";
 
 (*PROPERTY A 5, monotonicity for < *)
-Goal "!!i j k. [| j<k; i:nat; k:nat |] ==> ack(i,j) < ack(i,k)";
+Goal "[| j<k; i:nat; k:nat |] ==> ack(i,j) < ack(i,k)";
 by (forward_tac [lt_nat_in_nat] 1 THEN assume_tac 1);
 by (etac succ_lt_induct 1);
 by (assume_tac 1);
@@ -152,14 +152,14 @@ by (REPEAT (ares_tac (ack_typechecks) 1));
 qed "ack2_le_ack1";
 
 (*PROPERTY A 7-, the single-step lemma*)
-Goal "!!i j. [| i:nat; j:nat |] ==> ack(i,j) < ack(succ(i),j)";
+Goal "[| i:nat; j:nat |] ==> ack(i,j) < ack(succ(i),j)";
 by (rtac (ack_lt_mono2 RS lt_trans2) 1);
 by (rtac ack2_le_ack1 4);
 by (REPEAT (ares_tac ([nat_le_refl, ack_type] @ pr_typechecks) 1));
 qed "ack_lt_ack_succ1";
 
 (*PROPERTY A 7, monotonicity for < *)
-Goal "!!i j k. [| i<j; j:nat; k:nat |] ==> ack(i,k) < ack(j,k)";
+Goal "[| i<j; j:nat; k:nat |] ==> ack(i,k) < ack(j,k)";
 by (forward_tac [lt_nat_in_nat] 1 THEN assume_tac 1);
 by (etac succ_lt_induct 1);
 by (assume_tac 1);
@@ -175,13 +175,13 @@ by (REPEAT (ares_tac [ack_lt_mono1, ack_type RS nat_into_Ord] 1));
 qed "ack_le_mono1";
 
 (*PROPERTY A 8*)
-Goal "!!j. j:nat ==> ack(1,j) = succ(succ(j))";
+Goal "j:nat ==> ack(1,j) = succ(succ(j))";
 by (etac nat_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "ack_1";
 
 (*PROPERTY A 9*)
-Goal "!!j. j:nat ==> ack(succ(1),j) = succ(succ(succ(j#+j)))";
+Goal "j:nat ==> ack(succ(1),j) = succ(succ(succ(j#+j)))";
 by (etac nat_induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [ack_1, add_succ_right])));
 qed "ack_2";
@@ -233,7 +233,7 @@ by (asm_simp_tac (simpset() addsimps [ack_1, add_le_self]) 1);
 qed "SC_case";
 
 (*PROPERTY A 4'? Extra lemma needed for CONST case, constant functions*)
-Goal "!!j. [| i:nat; j:nat |] ==> i < ack(i,j)";
+Goal "[| i:nat; j:nat |] ==> i < ack(i,j)";
 by (etac nat_induct 1);
 by (asm_simp_tac (simpset() addsimps [nat_0_le]) 1);
 by (etac ([succ_leI, ack_lt_ack_succ1] MRS lt_trans1) 1);

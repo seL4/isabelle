@@ -44,7 +44,7 @@ val bexp1 = bexp_iff RS iffD1;
 val bexp2 = bexp_iff RS iffD2;
 
 
-Goal "!!c. <c,sigma> -c-> sigma' ==> <sigma,sigma'> : C(c)";
+Goal "<c,sigma> -c-> sigma' ==> <sigma,sigma'> : C(c)";
 by (etac evalc.induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [bexp1])));
 (* skip *)
@@ -70,7 +70,7 @@ AddIs  evalc.intrs;
 AddEs  [C_type,C_type_fst];
 
 
-Goal "!!c. c : com ==> ALL x:C(c). <c,fst(x)> -c-> snd(x)";
+Goal "c : com ==> ALL x:C(c). <c,fst(x)> -c-> snd(x)";
 by (etac com.induct 1);
 (* skip *)
 by (fast_tac (claset() addss (simpset())) 1);

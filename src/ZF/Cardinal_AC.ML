@@ -19,7 +19,7 @@ qed "cardinal_eqpoll";
 
 val cardinal_idem = cardinal_eqpoll RS cardinal_cong;
 
-Goal "!!X Y. |X| = |Y| ==> X eqpoll Y";
+Goal "|X| = |Y| ==> X eqpoll Y";
 by (resolve_tac [AC_well_ord RS exE] 1);
 by (resolve_tac [AC_well_ord RS exE] 1);
 by (rtac well_ord_cardinal_eqE 1);
@@ -37,7 +37,7 @@ by (asm_full_simp_tac (simpset() addsimps [cardinal_eqpoll_iff,
                                        eqpoll_disjoint_Un]) 1);
 qed "cardinal_disjoint_Un";
 
-Goal "!!A B. A lepoll B ==> |A| le |B|";
+Goal "A lepoll B ==> |A| le |B|";
 by (resolve_tac [AC_well_ord RS exE] 1);
 by (etac well_ord_lepoll_imp_Card_le 1);
 by (assume_tac 1);
@@ -67,7 +67,7 @@ by (rtac well_ord_cadd_cmult_distrib 1);
 by (REPEAT_SOME assume_tac);
 qed "cadd_cmult_distrib";
 
-Goal "!!A. InfCard(|A|) ==> A*A eqpoll A";
+Goal "InfCard(|A|) ==> A*A eqpoll A";
 by (resolve_tac [AC_well_ord RS exE] 1);
 by (etac well_ord_InfCard_square_eq 1);
 by (assume_tac 1);
@@ -76,20 +76,20 @@ qed "InfCard_square_eq";
 
 (*** Other applications of AC ***)
 
-Goal "!!A B. |A| le |B| ==> A lepoll B";
+Goal "|A| le |B| ==> A lepoll B";
 by (resolve_tac [cardinal_eqpoll RS eqpoll_sym RS eqpoll_imp_lepoll RS 
                  lepoll_trans] 1);
 by (eresolve_tac [le_imp_subset RS subset_imp_lepoll RS lepoll_trans] 1);
 by (resolve_tac [cardinal_eqpoll RS eqpoll_imp_lepoll] 1);
 qed "Card_le_imp_lepoll";
 
-Goal "!!A K. Card(K) ==> |A| le K <-> A lepoll K";
+Goal "Card(K) ==> |A| le K <-> A lepoll K";
 by (eresolve_tac [Card_cardinal_eq RS subst] 1 THEN
     rtac iffI 1 THEN
     DEPTH_SOLVE (eresolve_tac [Card_le_imp_lepoll,lepoll_imp_Card_le] 1));
 qed "le_Card_iff";
 
-Goalw [surj_def] "!!f. f: surj(X,Y) ==> EX g. g: inj(Y,X)";
+Goalw [surj_def] "f: surj(X,Y) ==> EX g. g: inj(Y,X)";
 by (etac CollectE 1);
 by (res_inst_tac [("A1", "Y"), ("B1", "%y. f-``{y}")] (AC_Pi RS exE) 1);
 by (fast_tac (claset() addSEs [apply_Pair]) 1);
@@ -98,7 +98,7 @@ by (blast_tac (claset() addDs [apply_type, Pi_memberD]
 qed "surj_implies_inj";
 
 (*Kunen's Lemma 10.20*)
-Goal "!!f. f: surj(X,Y) ==> |Y| le |X|";
+Goal "f: surj(X,Y) ==> |Y| le |X|";
 by (rtac lepoll_imp_Card_le 1);
 by (eresolve_tac [surj_implies_inj RS exE] 1);
 by (rewtac lepoll_def);
@@ -192,7 +192,6 @@ by (swap_res_tac [[inj_UN_subset, cardinal_UN_Ord_lt_csucc]
                   MRS lt_subset_trans] 1);
 by (REPEAT (assume_tac 1));
 by (blast_tac (claset() addSIs [Ord_UN] addEs [ltE]) 2);
-by (asm_simp_tac (simpset() addsimps [inj_converse_fun RS apply_type]
-                        addsplits [split_if]) 1);
+by (asm_simp_tac (simpset() addsimps [inj_converse_fun RS apply_type]) 1);
 qed "le_UN_Ord_lt_csucc";
 

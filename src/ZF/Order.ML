@@ -618,7 +618,7 @@ qed "tot_ord_converse";
 (** By Krzysztof Grabczewski.
     Lemmas involving the first element of a well ordered set **)
 
-Goalw [first_def] "!!b. first(b,B,r) ==> b:B";
+Goalw [first_def] "first(b,B,r) ==> b:B";
 by (Blast_tac 1);
 qed "first_is_elem";
 
@@ -633,7 +633,7 @@ by (rewrite_goals_tac [tot_ord_def, linear_def]);
 by (Blast.depth_tac (claset()) 7 1);
 qed "well_ord_imp_ex1_first";
 
-Goal "!!r. [| well_ord(A,r); B<=A; B~=0 |] ==> (THE b. first(b,B,r)) : B";
+Goal "[| well_ord(A,r); B<=A; B~=0 |] ==> (THE b. first(b,B,r)) : B";
 by (dtac well_ord_imp_ex1_first 1 THEN REPEAT (assume_tac 1));
 by (rtac first_is_elem 1);
 by (etac theI 1);

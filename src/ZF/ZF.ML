@@ -9,7 +9,7 @@ Basic introduction and elimination rules for Zermelo-Fraenkel Set Theory
 open ZF;
 
 (*Useful examples:  singletonI RS subst_elem,  subst_elem RSN (2,IntI) *)
-Goal "!!a b A. [| b:A;  a=b |] ==> a:A";
+Goal "[| b:A;  a=b |] ==> a:A";
 by (etac ssubst 1);
 by (assume_tac 1);
 val subst_elem = result();

@@ -19,7 +19,7 @@ qed "WO7_iff_LEMMA";
 (* It is also easy to show that LEMMA implies WO1.                        *)
 (* ********************************************************************** *)
 
-Goalw [WO1_def] "!!Z. ALL X. ~Finite(X) -->  \
+Goalw [WO1_def] "ALL X. ~Finite(X) -->  \
 \               (EX R. well_ord(X,R) & ~well_ord(X,converse(R))) ==> WO1";
 by (rtac allI 1);
 by (etac allE 1);
@@ -37,7 +37,7 @@ qed "LEMMA_imp_WO1";
 (* This statement can be proved by the following two theorems.            *)
 (* But moreover we need to show similar property for any well ordered     *)
 (* infinite set. It is not very difficult thanks to Isabelle order types  *)
-(* We show that if a set is well ordered by some relation and by it's     *)
+(* We show that if a set is well ordered by some relation and by its     *)
 (* converse, then apropriate order type is well ordered by the converse   *)
 (* of it's membership relation, which in connection with the previous     *)
 (* gives the conclusion.                                                  *)
@@ -51,10 +51,7 @@ by (rtac notI 1);
 by (eres_inst_tac [("x","nat")] allE 1);
 by (etac disjE 1);
 by (fast_tac (claset() addSDs [nat_0I RSN (2,equals0D)]) 1);
-by (etac bexE 1);
-by (eres_inst_tac [("x","succ(x)")] allE 1);
-by (fast_tac (claset() addSIs [nat_succI, converseI, MemrelI, 
-                            nat_succI RSN (2, subsetD)]) 1);
+by (Blast_tac 1);
 qed "converse_Memrel_not_wf_on";
 
 Goalw [well_ord_def] 
@@ -62,7 +59,7 @@ Goalw [well_ord_def]
 by (fast_tac (claset() addSDs [converse_Memrel_not_wf_on]) 1);
 qed "converse_Memrel_not_well_ord";
 
-Goal "!!A. [| well_ord(A,r); well_ord(A,converse(r)) |]  \
+Goal "[| well_ord(A,r); well_ord(A,converse(r)) |]  \
 \       ==> well_ord(ordertype(A,r), converse(Memrel(ordertype(A, r))))";
 by (rtac ([ordertype_ord_iso RS ord_iso_sym RS ord_iso_rvimage_eq, 
                 Memrel_type RS (subset_Int_iff RS iffD1)] 
@@ -74,7 +71,7 @@ by (etac (ordertype_ord_iso RS ord_iso_sym RS ord_iso_is_bij RS
         THEN (assume_tac 1));
 qed "well_ord_converse_Memrel";
 
-Goalw [WO1_def] "!!Z. WO1 ==> ALL X. ~Finite(X) -->  \
+Goalw [WO1_def] "WO1 ==> ALL X. ~Finite(X) -->  \
 \                       (EX R. well_ord(X,R) & ~well_ord(X,converse(R)))";
 by (REPEAT (resolve_tac [allI,impI] 1));
 by (REPEAT (eresolve_tac [allE,exE] 1));

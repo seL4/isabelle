@@ -74,7 +74,7 @@ Goalw [equiv_def,trans_def,sym_def]
 by (Blast_tac 1);
 qed "equiv_class_nondisjoint";
 
-Goalw [equiv_def] "!!A r. equiv(A,r) ==> r <= A*A";
+Goalw [equiv_def] "equiv(A,r) ==> r <= A*A";
 by (safe_tac subset_cs);
 qed "equiv_type";
 

@@ -7,7 +7,7 @@ Lemmas used in the proofs concerning AC16
 
 open AC16_lemmas;
 
-Goal "!!a. a~:A ==> cons(a,A)-{a}=A";
+Goal "a~:A ==> cons(a,A)-{a}=A";
 by (Fast_tac 1);
 qed "cons_Diff_eq";
 
@@ -61,7 +61,7 @@ by (resolve_tac [subsets_eqpoll_1_eq RS ssubst] 1);
 by (resolve_tac [eqpoll_RepFun_sing RS eqpoll_sym] 1);
 qed "subsets_eqpoll_1_eqpoll";
 
-Goal "!!x. [| InfCard(x); y:Pow(x); y eqpoll succ(z) |]  \
+Goal "[| InfCard(x); y:Pow(x); y eqpoll succ(z) |]  \
 \               ==> (LEAST i. i:y) : y";
 by (eresolve_tac [eqpoll_sym RS eqpoll_imp_lepoll RS 
                 succ_lepoll_imp_not_empty RS not_emptyE] 1);
@@ -70,7 +70,7 @@ by (fast_tac (claset() addIs [LeastI]
         addEs [Ord_in_Ord]) 1);
 qed "InfCard_Least_in";
 
-Goalw [lepoll_def] "!!i. [| InfCard(x); n:nat |] ==>  \
+Goalw [lepoll_def] "[| InfCard(x); n:nat |] ==>  \
 \       {y:Pow(x). y eqpoll succ(succ(n))} lepoll  \
 \       x*{y:Pow(x). y eqpoll succ(n)}";
 by (res_inst_tac [("x","lam y:{y:Pow(x). y eqpoll succ(succ(n))}. \
@@ -104,7 +104,7 @@ by (fast_tac (claset() addDs prems) 1);
 by (fast_tac (claset() addSEs [leE,ltE]) 1);
 qed "set_of_Ord_succ_Union";
 
-Goal "!!i. j<=i ==> i ~: j";
+Goal "j<=i ==> i ~: j";
 by (fast_tac (claset() addSEs [mem_irrefl]) 1);
 qed "subset_not_mem";
 
@@ -117,15 +117,15 @@ Goal "Union(cons(succ(Union(z)),z)) = succ(Union(z))";
 by (Fast_tac 1);
 qed "Union_cons_eq_succ_Union";
 
-Goal "!!i. [| Ord(i); Ord(j) |] ==> i Un j = i | i Un j = j";
+Goal "[| Ord(i); Ord(j) |] ==> i Un j = i | i Un j = j";
 by (fast_tac (claset() addSDs [le_imp_subset] addEs [Ord_linear_le]) 1);
 qed "Un_Ord_disj";
 
-Goal "!!X. x:X ==> Union(X) = x Un Union(X-{x})";
+Goal "x:X ==> Union(X) = x Un Union(X-{x})";
 by (Fast_tac 1);
 qed "Union_eq_Un";
 
-Goal "!!n. n:nat ==>  \
+Goal "n:nat ==>  \
 \       ALL z. (ALL y:z. Ord(y)) & z eqpoll n & z~=0 --> Union(z) : z";
 by (etac nat_induct 1);
 by (fast_tac (claset() addSDs [eqpoll_imp_lepoll RS lepoll_0_is_0]) 1);
@@ -149,13 +149,13 @@ by (etac subst_elem 1 THEN (assume_tac 1));
 by (rtac subst_elem 1 THEN (TRYALL assume_tac));
 qed "Union_in_lemma";
 
-Goal "!!z. [| ALL x:z. Ord(x); z eqpoll n; z~=0; n:nat |]  \
+Goal "[| ALL x:z. Ord(x); z eqpoll n; z~=0; n:nat |]  \
 \               ==> Union(z) : z";
 by (dtac Union_in_lemma 1);
 by (fast_tac FOL_cs 1);
 qed "Union_in";
 
-Goal "!!x. [| InfCard(x); z:Pow(x); z eqpoll n; n:nat |]  \
+Goal "[| InfCard(x); z:Pow(x); z eqpoll n; n:nat |]  \
 \               ==> succ(Union(z)) : x";
 by (resolve_tac [Limit_has_succ RS ltE] 1 THEN (assume_tac 3));
 by (etac InfCard_is_Limit 1);
@@ -170,7 +170,7 @@ by (fast_tac (claset() addSIs [Union_in]
 		 (2, InfCard_is_Card RS Card_is_Ord RS Ord_in_Ord)]) 1);
 qed "succ_Union_in_x";
 
-Goalw [lepoll_def] "!!X. [| InfCard(x); n:nat |] ==>  \
+Goalw [lepoll_def] "[| InfCard(x); n:nat |] ==>  \
 \       {y:Pow(x). y eqpoll succ(n)} lepoll  \
 \       {y:Pow(x). y eqpoll succ(succ(n))}";
 by (res_inst_tac [("x","lam z:{y:Pow(x). y eqpoll succ(n)}.  \
@@ -185,10 +185,10 @@ by (fast_tac (claset() addSEs [cons_eqpoll_succ]
                     addSIs [succ_Union_not_mem] 
                     addSDs [InfCard_is_Card RS Card_is_Ord] 
                     addEs  [Ord_in_Ord]) 2);
-by (fast_tac (claset() addSIs [succ_Union_in_x, nat_succI]) 1);
+by (fast_tac (claset() addSIs [succ_Union_in_x]) 1);
 qed "succ_lepoll_succ_succ";
 
-Goal "!!X. [| InfCard(X); n:nat |]  \
+Goal "[| InfCard(X); n:nat |]  \
 \       ==> {Y:Pow(X). Y eqpoll succ(n)} eqpoll X";
 by (etac nat_induct 1);
 by (rtac subsets_eqpoll_1_eqpoll 1);
@@ -205,18 +205,18 @@ by (fast_tac (claset() addEs [eqpoll_sym RS eqpoll_imp_lepoll RS lepoll_trans]
         addSIs [succ_lepoll_succ_succ]) 1);
 qed "subsets_eqpoll_X";
 
-Goalw [surj_def] "!!f. [| f:surj(A,B); y<=B |]  \
+Goalw [surj_def] "[| f:surj(A,B); y<=B |]  \
 \       ==> f``(converse(f)``y) = y";
 by (fast_tac (claset() addDs [apply_equality2]
 	              addEs [apply_iff RS iffD2]) 1);
 qed "image_vimage_eq";
 
-Goal "!!f. [| f:inj(A,B); y<=A |] ==> converse(f)``(f``y) = y";
+Goal "[| f:inj(A,B); y<=A |] ==> converse(f)``(f``y) = y";
 by (fast_tac (claset() addSEs [inj_is_fun RS apply_Pair]
                 addDs [inj_equality]) 1);
 qed "vimage_image_eq";
 
-Goalw [eqpoll_def] "!!A B. A eqpoll B  \
+Goalw [eqpoll_def] "A eqpoll B  \
 \       ==> {Y:Pow(A). Y eqpoll n} eqpoll {Y:Pow(B). Y eqpoll n}";
 by (etac exE 1);
 by (res_inst_tac [("x","lam X:{Y:Pow(A). EX f. f : bij(Y, n)}. f``X")] exI 1);
@@ -232,22 +232,22 @@ by (fast_tac (claset() addSEs [bij_is_inj RS vimage_image_eq]) 1);
 by (fast_tac (claset() addSEs [bij_is_surj RS image_vimage_eq]) 1);
 qed "subsets_eqpoll";
 
-Goalw [WO2_def] "!!X. WO2 ==> EX a. Card(a) & X eqpoll a";
+Goalw [WO2_def] "WO2 ==> EX a. Card(a) & X eqpoll a";
 by (REPEAT (eresolve_tac [allE,exE,conjE] 1));
 by (fast_tac (claset() addSEs [well_ord_Memrel RS well_ord_cardinal_eqpoll RS
                 (eqpoll_sym RSN (2, eqpoll_trans)) RS eqpoll_sym]
                 addSIs [Card_cardinal]) 1);
 qed "WO2_imp_ex_Card";
 
-Goal "!!X. [| X lepoll Y; ~Finite(X) |] ==> ~Finite(Y)";
+Goal "[| X lepoll Y; ~Finite(X) |] ==> ~Finite(Y)";
 by (fast_tac (empty_cs addEs [notE, lepoll_Finite] addSIs [notI]) 1); 
 qed "lepoll_infinite";
 
-Goalw [InfCard_def] "!!X. [| ~Finite(X); Card(X) |] ==> InfCard(X)";
+Goalw [InfCard_def] "[| ~Finite(X); Card(X) |] ==> InfCard(X)";
 by (fast_tac (claset() addSEs [Card_is_Ord RS nat_le_infinite_Ord]) 1);
 qed "infinite_Card_is_InfCard";
 
-Goal "!!X n. [| WO2; n:nat; ~Finite(X) |]  \
+Goal "[| WO2; n:nat; ~Finite(X) |]  \
 \       ==> {Y:Pow(X). Y eqpoll succ(n)} eqpoll X";
 by (dtac WO2_imp_ex_Card 1);
 by (REPEAT (eresolve_tac [allE,exE,conjE] 1));
@@ -259,12 +259,12 @@ by (etac subsets_eqpoll_X 1 THEN (assume_tac 1));
 by (etac eqpoll_sym 1);
 qed "WO2_infinite_subsets_eqpoll_X";
 
-Goal "!!X. well_ord(X,R) ==> EX a. Card(a) & X eqpoll a";
+Goal "well_ord(X,R) ==> EX a. Card(a) & X eqpoll a";
 by (fast_tac (claset() addSEs [well_ord_cardinal_eqpoll RS eqpoll_sym]
                 addSIs [Card_cardinal]) 1);
 qed "well_ord_imp_ex_Card";
 
-Goal "!!X n. [| well_ord(X,R); n:nat; ~Finite(X) |]  \
+Goal "[| well_ord(X,R); n:nat; ~Finite(X) |]  \
 \               ==> {Y:Pow(X). Y eqpoll succ(n)} eqpoll X";
 by (dtac well_ord_imp_ex_Card 1);
 by (REPEAT (eresolve_tac [allE,exE,conjE] 1));

@@ -18,7 +18,7 @@ by (blast_tac (claset() addIs [AC, nonempty]) 1);
 qed "AC_Pi";
 
 (*Using dtac, this has the advantage of DELETING the universal quantifier*)
-Goal "!!A B. ALL x:A. EX y. y:B(x) ==> EX y. y : Pi(A,B)";
+Goal "ALL x:A. EX y. y:B(x) ==> EX y. y : Pi(A,B)";
 by (rtac AC_Pi 1);
 by (etac bspec 1);
 by (assume_tac 1);
@@ -43,7 +43,7 @@ by (subgoal_tac "x ~= 0" 1);
 by (ALLGOALS Blast_tac);
 qed "non_empty_family";
 
-Goal "!!A. 0 ~: A ==> EX f: A->Union(A). ALL x:A. f`x : x";
+Goal "0 ~: A ==> EX f: A->Union(A). ALL x:A. f`x : x";
 by (rtac AC_func 1);
 by (REPEAT (ares_tac [non_empty_family] 1));
 qed "AC_func0";
@@ -56,7 +56,7 @@ by (etac fun_weaken_type 2);
 by (ALLGOALS Blast_tac);
 qed "AC_func_Pow";
 
-Goal "!!A. 0 ~: A ==> EX f. f: (PROD x:A. x)";
+Goal "0 ~: A ==> EX f. f: (PROD x:A. x)";
 by (rtac AC_Pi 1);
 by (REPEAT (ares_tac [non_empty_family] 1));
 qed "AC_Pi0";

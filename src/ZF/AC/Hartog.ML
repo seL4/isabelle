@@ -7,12 +7,12 @@
 
 open Hartog;
 
-Goal "!!X. ALL a. Ord(a) --> a:X ==> P";
+Goal "ALL a. Ord(a) --> a:X ==> P";
 by (res_inst_tac [("X1","{y:X. Ord(y)}")] (ON_class RS revcut_rl) 1);
 by (Fast_tac 1);
 qed "Ords_in_set";
 
-Goalw [lepoll_def] "!!X. [| Ord(a); a lepoll X |] ==>  \
+Goalw [lepoll_def] "[| Ord(a); a lepoll X |] ==>  \
 \               EX Y. Y<=X & (EX R. well_ord(Y,R) & ordertype(Y,R)=a)";
 by (etac exE 1);
 by (REPEAT (resolve_tac [exI, conjI] 1));
@@ -28,7 +28,7 @@ by (resolve_tac [subset_refl RSN (2, restrict_bij RS bij_converse_bij) RS
         THEN (REPEAT (assume_tac 1)));
 qed "Ord_lepoll_imp_ex_well_ord";
 
-Goal "!!X. [| Ord(a); a lepoll X |] ==>  \
+Goal "[| Ord(a); a lepoll X |] ==>  \
 \               EX Y. Y<=X & (EX R. R<=X*X & ordertype(Y,R)=a)";
 by (dtac Ord_lepoll_imp_ex_well_ord 1 THEN (assume_tac 1));
 by Safe_tac;
@@ -37,7 +37,7 @@ by (etac ordertype_Int 2);
 by (Fast_tac 1);
 qed "Ord_lepoll_imp_eq_ordertype";
 
-Goal "!!X. ALL a. Ord(a) --> a lepoll X ==>  \
+Goal "ALL a. Ord(a) --> a lepoll X ==>  \
 \       ALL a. Ord(a) -->  \
 \       a:{a. Z:Pow(X)*Pow(X*X), EX Y R. Z=<Y,R> & ordertype(Y,R)=a}";
 by (REPEAT (resolve_tac [allI,impI] 1));
@@ -47,7 +47,7 @@ by (dtac Ord_lepoll_imp_eq_ordertype 1 THEN (assume_tac 1));
 by (fast_tac (claset() addSIs [ReplaceI] addEs [sym]) 1);
 qed "Ords_lepoll_set_lemma";
 
-Goal "!!X. ALL a. Ord(a) --> a lepoll X ==> P";
+Goal "ALL a. Ord(a) --> a lepoll X ==> P";
 by (eresolve_tac [Ords_lepoll_set_lemma RS Ords_in_set] 1);
 qed "Ords_lepoll_set";
 
@@ -70,11 +70,11 @@ Goalw [Hartog_def] "Ord(Hartog(A))";
 by (rtac Ord_Least 1);
 qed "Ord_Hartog";
 
-Goalw [Hartog_def] "!!i. [| i < Hartog(A); ~ i lepoll A |] ==> P";
+Goalw [Hartog_def] "[| i < Hartog(A); ~ i lepoll A |] ==> P";
 by (fast_tac (claset() addEs [less_LeastE]) 1);
 qed "less_HartogE1";
 
-Goal "!!i. [| i < Hartog(A); i eqpoll Hartog(A) |] ==> P";
+Goal "[| i < Hartog(A); i eqpoll Hartog(A) |] ==> P";
 by (fast_tac (claset() addEs [less_HartogE1, eqpoll_sym RS eqpoll_imp_lepoll
                 RS lepoll_trans RS HartogE]) 1);
 qed "less_HartogE";

@@ -9,7 +9,7 @@ The proof of WO8 <-> WO1 (Rubin & Rubin p. 6)
 (* Trivial implication "WO1 ==> WO8"                                      *)
 (* ********************************************************************** *)
 
-Goalw WO_defs "!!Z. WO1 ==> WO8";
+Goalw WO_defs "WO1 ==> WO8";
 by (Fast_tac 1);
 qed "WO1_WO8";
 
@@ -17,7 +17,7 @@ qed "WO1_WO8";
 (* The proof of "WO8 ==> WO1" - faithful image of Rubin & Rubin's proof   *)
 (* ********************************************************************** *)
 
-Goalw WO_defs "!!Z. WO8 ==> WO1";
+Goalw WO_defs "WO8 ==> WO1";
 by (rtac allI 1);
 by (eres_inst_tac [("x","{{x}. x:A}")] allE 1);
 by (etac impE 1);

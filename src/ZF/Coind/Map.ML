@@ -36,15 +36,15 @@ result();
 (* Lemmas                                                       *)
 (* ############################################################ *)
 
-Goal "!!A. a:A ==> Sigma(A,B)``{a} = B(a)";
+Goal "a:A ==> Sigma(A,B)``{a} = B(a)";
 by (Fast_tac 1);
 qed "qbeta";
 
-Goal "!!A. a~:A ==> Sigma(A,B)``{a} = 0";
+Goal "a~:A ==> Sigma(A,B)``{a} = 0";
 by (Fast_tac 1);
 qed "qbeta_emp";
 
-Goal "!!A. a ~: A ==> Sigma(A,B)``{a}=0";
+Goal "a ~: A ==> Sigma(A,B)``{a}=0";
 by (Fast_tac 1);
 qed "image_Sigma1";
 
@@ -113,8 +113,7 @@ by (Deepen_tac 2 1);
 by (rtac (excluded_middle RS disjE) 1);
 by (etac image_Sigma1 1);
 by (dres_inst_tac [("psi", "?uu ~: B")] asm_rl 1);
-by (asm_full_simp_tac
-    (simpset() addsimps [qbeta] addsplits [split_if]) 1);
+by (asm_full_simp_tac (simpset() addsimps [qbeta]) 1);
 by Safe_tac;
 by (dres_inst_tac [("psi", "?uu ~: B")] asm_rl 3);
 by (ALLGOALS Asm_full_simp_tac);

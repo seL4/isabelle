@@ -7,7 +7,7 @@ The proof of AC1 ==> WO2
 
 open AC15_WO6;
 
-Goal "!!x. Ord(x) ==> (UN a<x. F(a)) = (UN a:x. F(a))";
+Goal "Ord(x) ==> (UN a<x. F(a)) = (UN a:x. F(a))";
 by (fast_tac (claset() addSIs [ltI] addSDs [ltD]) 1);
 qed "OUN_eq_UN";
 

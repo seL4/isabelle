@@ -27,13 +27,13 @@ Rubin & Rubin do.
 (*  - ex_fun_AC13_AC15                                                    *)
 (* ********************************************************************** *)
 
-Goalw [lepoll_def] "!!A. A~=0 ==> B lepoll A*B";
+Goalw [lepoll_def] "A~=0 ==> B lepoll A*B";
 by (etac not_emptyE 1);
 by (res_inst_tac [("x","lam z:B. <x,z>")] exI 1);
 by (fast_tac (claset() addSIs [snd_conv, lam_injective]) 1);
 qed "lepoll_Sigma";
 
-Goal "!!A. 0~:A ==> ALL B:{cons(0,x*nat). x:A}. ~Finite(B)";
+Goal "0~:A ==> ALL B:{cons(0,x*nat). x:A}. ~Finite(B)";
 by (rtac ballI 1);
 by (etac RepFunE 1);
 by (hyp_subst_tac 1);
@@ -44,7 +44,7 @@ by (resolve_tac [lepoll_Sigma RS lepoll_Finite RS (nat_not_Finite RS notE)] 1
 by (Fast_tac 1);
 qed "cons_times_nat_not_Finite";
 
-Goal "!!A. [| Union(C)=A; a:A |] ==> EX B:C. a:B & B <= A";
+Goal "[| Union(C)=A; a:A |] ==> EX B:C. a:B & B <= A";
 by (Fast_tac 1);
 val lemma1 = result();
 
@@ -72,7 +72,7 @@ by (REPEAT (etac conjE 1));
 by (rtac lemma2 1 THEN (REPEAT (assume_tac 1)));
 val lemma3 = result();
 
-Goalw [lepoll_def] "!!A. [| A lepoll i; Ord(i) |] ==> {P(a). a:A} lepoll i";
+Goalw [lepoll_def] "[| A lepoll i; Ord(i) |] ==> {P(a). a:A} lepoll i";
 by (etac exE 1);
 by (res_inst_tac
         [("x", "lam x:RepFun(A, P). LEAST j. EX a:A. x=P(a) & f`a=j")] exI 1);
@@ -88,7 +88,7 @@ by (fast_tac (claset() addSEs [Ord_in_Ord, inj_is_fun RS apply_type]) 1);
 by (fast_tac (claset() addEs [sym, left_inverse RS ssubst]) 1);
 val lemma4 = result();
 
-Goal "!!A. [| n:nat; B:A; u(B) <= cons(0, B*nat); 0:u(B); 2 lepoll u(B);  \
+Goal "[| n:nat; B:A; u(B) <= cons(0, B*nat); 0:u(B); 2 lepoll u(B);  \
 \       u(B) lepoll succ(n) |]  \
 \       ==> (lam x:A. {fst(x). x:u(x)-{0}})`B ~= 0 &  \
 \               (lam x:A. {fst(x). x:u(x)-{0}})`B <= B &  \
@@ -105,7 +105,7 @@ by (fast_tac (claset() addSEs [equalityE,
                 Diff_lepoll RS (nat_into_Ord RSN (2, lemma4))]) 1);
 val lemma5 = result();
 
-Goal "!!A. [| EX f. ALL B:{cons(0, x*nat). x:A}.  \
+Goal "[| EX f. ALL B:{cons(0, x*nat). x:A}.  \
 \               pairwise_disjoint(f`B) &  \
 \               sets_of_size_between(f`B, 2, succ(n)) &  \
 \               Union(f`B)=B; n:nat |]  \
@@ -123,7 +123,7 @@ qed "ex_fun_AC13_AC15";
 (* AC10(n) ==> AC11                                                       *)
 (* ********************************************************************** *)
 
-Goalw AC_defs "!!Z. [| n:nat; 1 le n; AC10(n) |] ==> AC11";
+Goalw AC_defs "[| n:nat; 1 le n; AC10(n) |] ==> AC11";
 by (rtac bexI 1 THEN (assume_tac 2));
 by (Fast_tac 1);
 qed "AC10_AC11";
@@ -132,7 +132,7 @@ qed "AC10_AC11";
 (* AC11 ==> AC12                                                          *)
 (* ********************************************************************** *)
 
-Goalw AC_defs "!! Z. AC11 ==> AC12";
+Goalw AC_defs "AC11 ==> AC12";
 by (fast_tac (FOL_cs addSEs [bexE] addIs [bexI]) 1);
 qed "AC11_AC12";
 
@@ -140,7 +140,7 @@ qed "AC11_AC12";
 (* AC12 ==> AC15                                                          *)
 (* ********************************************************************** *)
 
-Goalw AC_defs "!!Z. AC12 ==> AC15";
+Goalw AC_defs "AC12 ==> AC15";
 by Safe_tac;
 by (etac allE 1);
 by (etac impE 1);
@@ -166,7 +166,7 @@ qed "AC12_AC15";
 (* AC10(n) implies AC13(n) for (1 le n)                                   *)
 (* ********************************************************************** *)
 
-Goalw AC_defs "!!n. [| n:nat; 1 le n; AC10(n) |] ==> AC13(n)";
+Goalw AC_defs "[| n:nat; 1 le n; AC10(n) |] ==> AC13(n)";
 by Safe_tac;
 by (fast_tac (empty_cs addSEs [allE, cons_times_nat_not_Finite RSN (2, impE),
                                 ex_fun_AC13_AC15]) 1);
@@ -180,7 +180,7 @@ qed "AC10_AC13";
 (* AC1 ==> AC13(1)                                                        *)
 (* ********************************************************************** *)
 
-Goalw AC_defs "!!Z. AC1 ==> AC13(1)";
+Goalw AC_defs "AC1 ==> AC13(1)";
 by (rtac allI 1);
 by (etac allE 1);
 by (rtac impI 1);
@@ -197,7 +197,7 @@ qed "AC1_AC13";
 (* AC13(m) ==> AC13(n) for m <= n                                         *)
 (* ********************************************************************** *)
 
-Goalw AC_defs "!!m n. [| m:nat; n:nat; m le n; AC13(m) |] ==> AC13(n)";
+Goalw AC_defs "[| m:nat; n:nat; m le n; AC13(m) |] ==> AC13(n)";
 by (dtac nat_le_imp_lepoll 1 THEN REPEAT (assume_tac 1));
 by (fast_tac (claset() addSEs [lepoll_trans]) 1);
 qed "AC13_mono";
@@ -210,7 +210,7 @@ qed "AC13_mono";
 (* AC13(n) ==> AC14  if 1 <= n                                            *)
 (* ********************************************************************** *)
 
-Goalw AC_defs "!!n. [| n:nat; 1 le n; AC13(n) |] ==> AC14";
+Goalw AC_defs "[| n:nat; 1 le n; AC13(n) |] ==> AC14";
 by (fast_tac (FOL_cs addIs [bexI]) 1);
 qed "AC13_AC14";
 
@@ -218,7 +218,7 @@ qed "AC13_AC14";
 (* AC14 ==> AC15                                                          *)
 (* ********************************************************************** *)
 
-Goalw AC_defs "!!Z. AC14 ==> AC15";
+Goalw AC_defs "AC14 ==> AC15";
 by (Fast_tac 1);
 qed "AC14_AC15";
 
@@ -230,11 +230,11 @@ qed "AC14_AC15";
 (* AC13(1) ==> AC1                                                        *)
 (* ********************************************************************** *)
 
-Goal "!!A. [| A~=0; A lepoll 1 |] ==> EX a. A={a}";
+Goal "[| A~=0; A lepoll 1 |] ==> EX a. A={a}";
 by (fast_tac (claset() addSEs [not_emptyE, lepoll_1_is_sing]) 1);
 qed "lemma_aux";
 
-Goal "!!f. ALL B:A. f(B)~=0 & f(B)<=B & f(B) lepoll 1  \
+Goal "ALL B:A. f(B)~=0 & f(B)<=B & f(B) lepoll 1  \
 \               ==> (lam x:A. THE y. f(x)={y}) : (PROD X:A. X)";
 by (rtac lam_type 1);
 by (dtac bspec 1 THEN (assume_tac 1));
@@ -244,7 +244,7 @@ by (asm_full_simp_tac (simpset() addsimps [the_element]) 1);
 by (fast_tac (claset() addEs [ssubst]) 1);
 val lemma = result();
 
-Goalw AC_defs "!!Z. AC13(1) ==> AC1";
+Goalw AC_defs "AC13(1) ==> AC1";
 by (fast_tac (claset() addSEs [lemma]) 1);
 qed "AC13_AC1";
 

@@ -23,16 +23,15 @@ qed "HH_def_satisfies_eq";
 
 Goal "HH(f,x,a) : Pow(x)-{0} | HH(f,x,a)={x}";
 by (resolve_tac [HH_def_satisfies_eq RS ssubst] 1);
-by (simp_tac (simpset() addsimps [Let_def, Diff_subset RS PowI] 
-                    addsplits [split_if]) 1);
+by (simp_tac (simpset() addsimps [Let_def, Diff_subset RS PowI]) 1);
 by (Fast_tac 1);
 qed "HH_values";
 
-Goal "!!A. B<=A ==> X-(UN a:A. P(a)) = X-(UN a:A-B. P(a))-(UN b:B. P(b))";
+Goal "B<=A ==> X-(UN a:A. P(a)) = X-(UN a:A-B. P(a))-(UN b:B. P(b))";
 by (Fast_tac 1);
 qed "subset_imp_Diff_eq";
 
-Goal "!!c. [| c:a-b; b<a |] ==> c=b | b<c & c<a";
+Goal "[| c:a-b; b<a |] ==> c=b | b<c & c<a";
 by (etac ltE 1);
 by (dtac Ord_linear 1);
 by (fast_tac (claset() addSIs [ltI] addIs [Ord_in_Ord]) 2);
@@ -44,14 +43,14 @@ by (asm_full_simp_tac (simpset() addsimps prems) 1);
 by (fast_tac (claset() addSDs [prem] addSEs [mem_irrefl]) 1);
 qed "Diff_UN_eq_self";
 
-Goal "!!a. x - (UN b:a. HH(f,x,b)) = x - (UN b:a1. HH(f,x,b))  \
+Goal "x - (UN b:a. HH(f,x,b)) = x - (UN b:a1. HH(f,x,b))  \
 \               ==> HH(f,x,a) = HH(f,x,a1)";
 by (resolve_tac [HH_def_satisfies_eq RS
                 (HH_def_satisfies_eq RS sym RSN (3, trans RS trans))] 1);
 by (etac subst_context 1);
 qed "HH_eq";
 
-Goal "!!a. [| HH(f,x,b)={x}; b<a |] ==> HH(f,x,a)={x}";
+Goal "[| HH(f,x,b)={x}; b<a |] ==> HH(f,x,a)={x}";
 by (res_inst_tac [("P","b<a")] impE 1 THEN REPEAT (assume_tac 2));
 by (eresolve_tac [lt_Ord2 RS trans_induct] 1);
 by (rtac impI 1);
@@ -64,31 +63,31 @@ by (dtac Ord_DiffE 1 THEN (assume_tac 1));
 by (fast_tac (claset() addEs [ltE]) 1);
 qed "HH_is_x_gt_too";
 
-Goal "!!a. [| HH(f,x,a) : Pow(x)-{0}; b<a |] ==> HH(f,x,b) : Pow(x)-{0}";
+Goal "[| HH(f,x,a) : Pow(x)-{0}; b<a |] ==> HH(f,x,b) : Pow(x)-{0}";
 by (resolve_tac [HH_values RS disjE] 1 THEN (assume_tac 1));
 by (dtac HH_is_x_gt_too 1 THEN (assume_tac 1));
 by (dtac subst 1 THEN (assume_tac 1));
 by (fast_tac (claset() addSEs [mem_irrefl]) 1);
 qed "HH_subset_x_lt_too";
 
-Goal "!!a. HH(f,x,a) : Pow(x)-{0}   \
+Goal "HH(f,x,a) : Pow(x)-{0}   \
 \               ==> HH(f,x,a) : Pow(x - (UN b:a. HH(f,x,b)))-{0}";
 by (dresolve_tac [HH_def_satisfies_eq RS subst] 1);
 by (resolve_tac [HH_def_satisfies_eq RS ssubst] 1);
 by (asm_full_simp_tac (simpset() addsimps [Let_def, Diff_subset RS PowI]) 1);
 by (dresolve_tac [split_if RS iffD1] 1);
-by (simp_tac (simpset() addsplits [split_if] ) 1);
+by (Simp_tac 1);
 by (fast_tac (subset_cs addSEs [mem_irrefl]) 1);
 qed "HH_subset_x_imp_subset_Diff_UN";
 
-Goal "!!x. [| HH(f,x,v)=HH(f,x,w); HH(f,x,v): Pow(x)-{0}; v:w |] ==> P";
+Goal "[| HH(f,x,v)=HH(f,x,w); HH(f,x,v): Pow(x)-{0}; v:w |] ==> P";
 by (forw_inst_tac [("P","%y. y: Pow(x)-{0}")] subst 1 THEN (assume_tac 1));
 by (dres_inst_tac [("a","w")] HH_subset_x_imp_subset_Diff_UN 1);
 by (dtac subst_elem 1 THEN (assume_tac 1));
 by (fast_tac (claset() addSIs [singleton_iff RS iffD2, equals0I]) 1);
 qed "HH_eq_arg_lt";
 
-Goal "!!x. [| HH(f,x,v)=HH(f,x,w); HH(f,x,w): Pow(x)-{0};  \
+Goal "[| HH(f,x,v)=HH(f,x,w); HH(f,x,w): Pow(x)-{0};  \
 \               Ord(v); Ord(w) |] ==> v=w";
 by (res_inst_tac [("j","w")] Ord_linear_lt 1 THEN TRYALL assume_tac);
 by (resolve_tac [sym RS (ltD RSN (3, HH_eq_arg_lt))] 2
@@ -115,7 +114,7 @@ Goal "HH(f, x, LEAST i. HH(f, x, i) = {x}) = {x}";
 by (fast_tac (claset() addSIs [Ord_Hartog, HH_Hartog_is_x, LeastI]) 1);
 qed "HH_Least_eq_x";
 
-Goal "!!a. a:(LEAST i. HH(f,x,i)={x}) ==> HH(f,x,a) : Pow(x)-{0}";
+Goal "a:(LEAST i. HH(f,x,i)={x}) ==> HH(f,x,a) : Pow(x)-{0}";
 by (resolve_tac [HH_values RS disjE] 1 THEN (assume_tac 1));
 by (rtac less_LeastE 1);
 by (eresolve_tac [Ord_Least RSN (2, ltI)] 2);
@@ -134,7 +133,7 @@ by (fast_tac (claset()  addSIs [lam_type] addDs [less_Least_subset_x]
                 addSEs [HH_eq_imp_arg_eq, Ord_Least RS Ord_in_Ord]) 1);
 qed "lam_Least_HH_inj_Pow";
 
-Goal "!!x. ALL a:(LEAST i. HH(f,x,i)={x}). EX z:x. HH(f,x,a) = {z}  \
+Goal "ALL a:(LEAST i. HH(f,x,i)={x}). EX z:x. HH(f,x,a) = {z}  \
 \               ==> (lam a:(LEAST i. HH(f,x,i)={x}). HH(f,x,a))  \
 \                       : inj(LEAST i. HH(f,x,i)={x}, {{y}. y:x})";
 by (resolve_tac [lam_Least_HH_inj_Pow RS inj_strengthen_type] 1);
@@ -151,12 +150,12 @@ by (set_mp_tac 1);
 by (deepen_tac (claset() addSIs [bexI] addSEs [equalityE]) 4 1);
 qed "lam_surj_sing";
 
-Goal "!!x. y:Pow(x)-{0} ==> x ~= 0";
+Goal "y:Pow(x)-{0} ==> x ~= 0";
 by (fast_tac (claset() addSIs [equals0I, singletonI RS subst_elem]
                 addSDs [equals0D]) 1);
 qed "not_emptyI2";
 
-Goal "!!f. f`(x - (UN j:i. HH(f,x,j))): Pow(x - (UN j:i. HH(f,x,j)))-{0}  \
+Goal "f`(x - (UN j:i. HH(f,x,j))): Pow(x - (UN j:i. HH(f,x,j)))-{0}  \
 \       ==> HH(f, x, i) : Pow(x) - {0}";
 by (resolve_tac [HH_def_satisfies_eq RS ssubst] 1);
 by (asm_full_simp_tac (simpset() addsimps [Let_def, Diff_subset RS PowI,
@@ -176,8 +175,7 @@ qed "f_subsets_imp_UN_HH_eq_x";
 
 Goal "HH(f,x,i)=f`(x - (UN j:i. HH(f,x,j))) | HH(f,x,i)={x}";
 by (resolve_tac [HH_def_satisfies_eq RS ssubst] 1);
-by (simp_tac (simpset() addsimps [Let_def, Diff_subset RS PowI]
-              addsplits [split_if]) 1);
+by (simp_tac (simpset() addsimps [Let_def, Diff_subset RS PowI]) 1);
 qed "HH_values2";
 
 Goal
@@ -187,7 +185,7 @@ by (fast_tac (claset() addSEs [equalityE, mem_irrefl]
         addSDs [singleton_subsetD]) 1);
 qed "HH_subset_imp_eq";
 
-Goal "!!f. [| f : (Pow(x)-{0}) -> {{z}. z:x};  \
+Goal "[| f : (Pow(x)-{0}) -> {{z}. z:x};  \
 \       a:(LEAST i. HH(f,x,i)={x}) |] ==> EX z:x. HH(f,x,a) = {z}";
 by (dtac less_Least_subset_x 1);
 by (forward_tac [HH_subset_imp_eq] 1);
@@ -207,7 +205,7 @@ by (fast_tac (claset() addSIs [lam_Least_HH_inj, lam_surj_sing,
                               f_sing_imp_HH_sing]) 1);
 qed "f_sing_lam_bij";
 
-Goal "!!f. f: (PROD X: Pow(x)-{0}. F(X))  \
+Goal "f: (PROD X: Pow(x)-{0}. F(X))  \
 \       ==> (lam X:Pow(x)-{0}. {f`X}) : (PROD X: Pow(x)-{0}. {{z}. z:F(X)})";
 by (fast_tac (FOL_cs addSIs [lam_type, RepFun_eqI, singleton_eq_iff RS iffD2]
                      addDs [apply_type]) 1);

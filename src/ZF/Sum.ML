@@ -48,11 +48,11 @@ qed "Sigma_bool";
 
 (** Introduction rules for the injections **)
 
-Goalw sum_defs "!!a A B. a : A ==> Inl(a) : A+B";
+Goalw sum_defs "a : A ==> Inl(a) : A+B";
 by (Blast_tac 1);
 qed "InlI";
 
-Goalw sum_defs "!!b A B. b : B ==> Inr(b) : A+B";
+Goalw sum_defs "b : B ==> Inr(b) : A+B";
 by (Blast_tac 1);
 qed "InrI";
 
@@ -103,11 +103,11 @@ AddSDs [Inl_inject, Inr_inject];
 
 Addsimps [InlI, InrI, Inl_iff, Inr_iff, Inl_Inr_iff, Inr_Inl_iff, sum_empty];
 
-Goal "!!A B. Inl(a): A+B ==> a: A";
+Goal "Inl(a): A+B ==> a: A";
 by (Blast_tac 1);
 qed "InlD";
 
-Goal "!!A B. Inr(b): A+B ==> b: B";
+Goal "Inr(b): A+B ==> b: B";
 by (Blast_tac 1);
 qed "InrD";
 
@@ -178,7 +178,7 @@ qed "case_case";
 
 (*** More rules for Part(A,h) ***)
 
-Goal "!!A B h. A<=B ==> Part(A,h)<=Part(B,h)";
+Goal "A<=B ==> Part(A,h)<=Part(B,h)";
 by (Blast_tac 1);
 qed "Part_mono";
 
@@ -196,7 +196,7 @@ Goal "Part(A+B,Inr) = {Inr(y). y: B}";
 by (Blast_tac 1);
 qed "Part_Inr";
 
-Goalw [Part_def] "!!a. a : Part(A,h) ==> a : A";
+Goalw [Part_def] "a : Part(A,h) ==> a : A";
 by (etac CollectD1 1);
 qed "PartD1";
 
@@ -208,6 +208,6 @@ Goal "Part(A+B, %x. Inr(h(x))) = {Inr(y). y: Part(B,h)}";
 by (Blast_tac 1);
 qed "Part_Inr2";
 
-Goal "!!A B C. C <= A+B ==> Part(C,Inl) Un Part(C,Inr) = C";
+Goal "C <= A+B ==> Part(C,Inl) Un Part(C,Inr) = C";
 by (Blast_tac 1);
 qed "Part_sum_equality";

@@ -37,7 +37,7 @@ val reducL_ss = simpset() setloop (SELECT_GOAL Safe_tac);
 (*     Lemmas for reduction                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-Goal  "!!u. m--->n ==> Fun(m) ---> Fun(n)";
+Goal  "m--->n ==> Fun(m) ---> Fun(n)";
 by (etac Sred.induct 1);
 by (resolve_tac [Sred.trans] 3);
 by (ALLGOALS (Asm_simp_tac ));
@@ -76,23 +76,23 @@ qed "red_beta";
 (* ------------------------------------------------------------------------- *)
 
 
-Goal "!!u. m:lambda==> m =1=> m";
+Goal "m:lambda==> m =1=> m";
 by (eresolve_tac [lambda.induct] 1);
 by (ALLGOALS (Asm_simp_tac ));
 qed "refl_par_red1";
 
-Goal "!!u. m-1->n ==> m=1=>n";
+Goal "m-1->n ==> m=1=>n";
 by (etac Sred1.induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [refl_par_red1]) ));
 qed "red1_par_red1";
 
-Goal "!!u. m--->n ==> m===>n";
+Goal "m--->n ==> m===>n";
 by (etac Sred.induct 1);
 by (resolve_tac [Spar_red.trans] 3);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [refl_par_red1,red1_par_red1]) ));
 qed "red_par_red";
 
-Goal "!!u. m===>n ==> m--->n";
+Goal "m===>n ==> m--->n";
 by (etac Spar_red.induct 1);
 by (etac Spar_red1.induct 1);
 by (resolve_tac [Sred.trans] 5);

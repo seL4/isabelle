@@ -197,12 +197,12 @@ by (rtac ballI 1);
 by (nat_ind_tac "j" [] 1);
 by (fast_tac (claset() addSIs [Ramseyi0]) 1);
 by (fast_tac (claset() addSDs [bspec]
-		      addSIs [nat_succI,add_type,Ramsey_step_lemma]) 1);
+ 		       addSIs [add_type,Ramsey_step_lemma]) 1);
 qed "ramsey_lemma";
 
 (*Final statement in a tidy form, without succ(...) *)
-Goal "!!i j. [| i: nat;  j: nat |] ==> EX n:nat. Ramsey(n,i,j)";
-by (best_tac (claset() addDs [ramsey_lemma] addSIs [nat_succI]) 1);
+Goal "[| i: nat;  j: nat |] ==> EX n:nat. Ramsey(n,i,j)";
+by (best_tac (claset() addDs [ramsey_lemma]) 1);
 qed "ramsey";
 
 (*Compute Ramsey numbers according to proof above -- which, actually,

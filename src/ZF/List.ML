@@ -34,7 +34,7 @@ qed "list_unfold";
 
 (**  Lemmas to justify using "list" in other recursive type definitions **)
 
-Goalw list.defs "!!A B. A<=B ==> list(A) <= list(B)";
+Goalw list.defs "A<=B ==> list(A) <= list(B)";
 by (rtac lfp_mono 1);
 by (REPEAT (rtac list.bnd_mono 1));
 by (REPEAT (ares_tac (univ_mono::basic_monos) 1));
@@ -51,7 +51,7 @@ qed "list_univ";
 (*These two theorems justify datatypes involving list(nat), list(A), ...*)
 bind_thm ("list_subset_univ", ([list_mono, list_univ] MRS subset_trans));
 
-Goal "!!l A B. [| l: list(A);  A <= univ(B) |] ==> l: univ(B)";
+Goal "[| l: list(A);  A <= univ(B) |] ==> l: univ(B)";
 by (REPEAT (ares_tac [list_subset_univ RS subsetD] 1));
 qed "list_into_univ";
 
@@ -94,7 +94,7 @@ qed "tl_Cons";
 
 Addsimps [hd_Cons, tl_Nil, tl_Cons];
 
-Goal "!!l. l: list(A) ==> tl(l) : list(A)";
+Goal "l: list(A) ==> tl(l) : list(A)";
 by (etac list.elim 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps list.intrs)));
 qed "tl_type";
@@ -105,7 +105,7 @@ Goalw [drop_def] "drop(0, l) = l";
 by (rtac rec_0 1);
 qed "drop_0";
 
-Goalw [drop_def] "!!i. i:nat ==> drop(i, Nil) = Nil";
+Goalw [drop_def] "i:nat ==> drop(i, Nil) = Nil";
 by (etac nat_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "drop_Nil";

@@ -23,7 +23,7 @@ Goalw [recfunAC16_def] "recfunAC16(f,fa,succ(i),a) =  \
 by (rtac transrec2_succ 1);
 qed "recfunAC16_succ";
 
-Goalw [recfunAC16_def] "!!i. Limit(i)  \
+Goalw [recfunAC16_def] "Limit(i)  \
 \       ==> recfunAC16(f,fa,i,a) = (UN j<i. recfunAC16(f,fa,j,a))";
 by (etac transrec2_Limit 1);
 qed "recfunAC16_Limit";

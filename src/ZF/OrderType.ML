@@ -195,7 +195,7 @@ qed "ordertype_eq_imp_ord_iso";
 (*** Basic equalities for ordertype ***)
 
 (*Ordertype of Memrel*)
-Goal "!!i. j le i ==> ordertype(j,Memrel(i)) = j";
+Goal "j le i ==> ordertype(j,Memrel(i)) = j";
 by (resolve_tac [Ord_iso_implies_eq RS sym] 1);
 by (etac ltE 1);
 by (REPEAT (ares_tac [le_well_ord_Memrel, Ord_ordertype] 1));
@@ -288,7 +288,7 @@ qed "ordertype_pred_unfold";
 (**** Alternative definition of ordinal ****)
 
 (*proof by Krzysztof Grabczewski*)
-Goalw [Ord_alt_def] "!!i. Ord(i) ==> Ord_alt(i)";
+Goalw [Ord_alt_def] "Ord(i) ==> Ord_alt(i)";
 by (rtac conjI 1);
 by (etac well_ord_Memrel 1);
 by (rewrite_goals_tac [Ord_def, Transset_def, pred_def, Memrel_def]);
@@ -386,12 +386,12 @@ qed "Ord_oadd";
 
 (** Ordinal addition with zero **)
 
-Goalw [oadd_def] "!!i. Ord(i) ==> i++0 = i";
+Goalw [oadd_def] "Ord(i) ==> i++0 = i";
 by (asm_simp_tac (simpset() addsimps [Memrel_0, ordertype_sum_0_eq, 
                                   ordertype_Memrel, well_ord_Memrel]) 1);
 qed "oadd_0";
 
-Goalw [oadd_def] "!!i. Ord(i) ==> 0++i = i";
+Goalw [oadd_def] "Ord(i) ==> 0++i = i";
 by (asm_simp_tac (simpset() addsimps [Memrel_0, ordertype_0_sum_eq, 
                                   ordertype_Memrel, well_ord_Memrel]) 1);
 qed "oadd_0_left";
@@ -401,7 +401,7 @@ Addsimps [oadd_0, oadd_0_left];
 (*** Further properties of ordinal addition.  Statements by Grabczewski,
     proofs by lcp. ***)
 
-Goalw [oadd_def] "!!i j k. [| k<i;  Ord(j) |] ==> k < i++j";
+Goalw [oadd_def] "[| k<i;  Ord(j) |] ==> k < i++j";
 by (rtac ltE 1 THEN assume_tac 1);
 by (rtac ltI 1);
 by (REPEAT (ares_tac [Ord_ordertype, well_ord_radd, well_ord_Memrel] 2));
@@ -414,7 +414,7 @@ by (asm_simp_tac
 qed "lt_oadd1";
 
 (*Thus also we obtain the rule  i++j = k ==> i le k *)
-Goal "!!i j. [| Ord(i);  Ord(j) |] ==> i le i++j";
+Goal "[| Ord(i);  Ord(j) |] ==> i le i++j";
 by (rtac all_lt_imp_le 1);
 by (REPEAT (ares_tac [Ord_oadd, lt_oadd1] 1));
 qed "oadd_le_self";
@@ -438,7 +438,7 @@ by (eresolve_tac [OrdmemD RS id_ord_iso_Memrel RS ord_iso_sym] 1);
 by (REPEAT_FIRST (ares_tac [well_ord_radd, well_ord_Memrel]));
 qed "ordertype_sum_Memrel";
 
-Goalw [oadd_def] "!!i j k. [| k<j;  Ord(i) |] ==> i++k < i++j";
+Goalw [oadd_def] "[| k<j;  Ord(i) |] ==> i++k < i++j";
 by (rtac ltE 1 THEN assume_tac 1);
 by (resolve_tac [ordertype_pred_unfold RS equalityD2 RS subsetD RS ltI] 1);
 by (REPEAT_FIRST (ares_tac [Ord_ordertype, well_ord_radd, well_ord_Memrel]));
@@ -513,7 +513,7 @@ by (Blast_tac 2);
 by (blast_tac (claset() addSEs [ltE]) 1);
 qed "oadd_unfold";
 
-Goal "!!i. Ord(i) ==> i++1 = succ(i)";
+Goal "Ord(i) ==> i++1 = succ(i)";
 by (asm_simp_tac (simpset() addsimps [oadd_unfold, Ord_1, oadd_0]) 1);
 by (Blast_tac 1);
 qed "oadd_1";
@@ -546,7 +546,7 @@ qed "oadd_Limit";
 
 (** Order/monotonicity properties of ordinal addition **)
 
-Goal "!!i j. [| Ord(i);  Ord(j) |] ==> i le j++i";
+Goal "[| Ord(i);  Ord(j) |] ==> i le j++i";
 by (eres_inst_tac [("i","i")] trans_induct3 1);
 by (asm_simp_tac (simpset() addsimps [Ord_0_le]) 1);
 by (asm_simp_tac (simpset() addsimps [oadd_succ, succ_leI]) 1);
@@ -558,7 +558,7 @@ by (asm_simp_tac (simpset() addsimps [Union_eq_UN RS sym, Limit_Union_eq,
                                      le_refl, Limit_is_Ord]) 1);
 qed "oadd_le_self2";
 
-Goal "!!i j k. [| k le j;  Ord(i) |] ==> k++i le j++i";
+Goal "[| k le j;  Ord(i) |] ==> k++i le j++i";
 by (forward_tac [lt_Ord] 1);
 by (forward_tac [le_Ord2] 1);
 by (etac trans_induct3 1);
@@ -569,13 +569,13 @@ by (rtac le_implies_UN_le_UN 1);
 by (Blast_tac 1);
 qed "oadd_le_mono1";
 
-Goal "!!i j. [| i' le i;  j'<j |] ==> i'++j' < i++j";
+Goal "[| i' le i;  j'<j |] ==> i'++j' < i++j";
 by (rtac lt_trans1 1);
 by (REPEAT (eresolve_tac [asm_rl, oadd_le_mono1, oadd_lt_mono2, ltE,
                           Ord_succD] 1));
 qed "oadd_lt_mono";
 
-Goal "!!i j. [| i' le i;  j' le j |] ==> i'++j' le i++j";
+Goal "[| i' le i;  j' le j |] ==> i'++j' le i++j";
 by (asm_simp_tac (simpset() addsimps [oadd_succ RS sym, le_Ord2, oadd_lt_mono]) 1);
 qed "oadd_le_mono";
 
@@ -596,7 +596,7 @@ by (res_inst_tac [("d", "case(%x. x, %y. y)")] lam_bijective 1);
 by (blast_tac (claset() addSIs [if_type]) 1);
 by (fast_tac (claset() addSIs [case_type]) 1);
 by (etac sumE 2);
-by (ALLGOALS (asm_simp_tac (simpset() addsplits [split_if])));
+by (ALLGOALS Asm_simp_tac);
 qed "bij_sum_Diff";
 
 Goal
@@ -607,8 +607,7 @@ by (safe_tac (claset() addSDs [le_subset_iff RS iffD1]));
 by (resolve_tac [bij_sum_Diff RS ord_isoI RS ord_iso_sym RS ordertype_eq] 1);
 by (etac well_ord_Memrel 3);
 by (assume_tac 1);
-by (asm_simp_tac 
-     (simpset() addsplits [split_if] addsimps [Memrel_iff]) 1);
+by (asm_simp_tac (simpset() addsimps [Memrel_iff]) 1);
 by (forw_inst_tac [("j", "y")] Ord_in_Ord 1 THEN assume_tac 1);
 by (forw_inst_tac [("j", "x")] Ord_in_Ord 1 THEN assume_tac 1);
 by (asm_simp_tac (simpset() addsimps [Ord_mem_iff_lt, lt_Ord, not_lt_iff_le]) 1);
@@ -626,7 +625,7 @@ by (REPEAT (ares_tac [well_ord_radd, well_ord_Memrel RS well_ord_subset,
                       Diff_subset] 1));
 qed "oadd_ordertype_Diff";
 
-Goal "!!i j. i le j ==> i ++ (j--i) = j";
+Goal "i le j ==> i ++ (j--i) = j";
 by (asm_simp_tac (simpset() addsimps [oadd_ordertype_Diff, ordertype_sum_Diff, 
                                   ordertype_Memrel, lt_Ord2 RS Ord_succD]) 1);
 qed "oadd_odiff_inverse";
@@ -760,7 +759,7 @@ Addsimps [omult_0, omult_0_left];
 
 (** Ordinal multiplication by 1 **)
 
-Goalw [omult_def] "!!i. Ord(i) ==> i**1 = i";
+Goalw [omult_def] "Ord(i) ==> i**1 = i";
 by (resolve_tac [ord_isoI RS ordertype_eq RS trans] 1);
 by (res_inst_tac [("c", "snd"), ("d", "%z.<0,z>")] lam_bijective 1);
 by (REPEAT_FIRST (eresolve_tac [snd_type, SigmaE, succE, emptyE, 
@@ -768,7 +767,7 @@ by (REPEAT_FIRST (eresolve_tac [snd_type, SigmaE, succE, emptyE,
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [rmult_iff, Memrel_iff])));
 qed "omult_1";
 
-Goalw [omult_def] "!!i. Ord(i) ==> 1**i = i";
+Goalw [omult_def] "Ord(i) ==> 1**i = i";
 by (resolve_tac [ord_isoI RS ordertype_eq RS trans] 1);
 by (res_inst_tac [("c", "fst"), ("d", "%z.<z,0>")] lam_bijective 1);
 by (REPEAT_FIRST (eresolve_tac [fst_type, SigmaE, succE, emptyE, 
@@ -794,7 +793,7 @@ by (REPEAT (ares_tac [well_ord_rmult, well_ord_radd, well_ord_Memrel,
                       Ord_ordertype] 1));
 qed "oadd_omult_distrib";
 
-Goal "!!i. [| Ord(i);  Ord(j) |] ==> i**succ(j) = (i**j)++i";
+Goal "[| Ord(i);  Ord(j) |] ==> i**succ(j) = (i**j)++i";
                 (*ZF_ss prevents looping*)
 by (asm_simp_tac (ZF_ss addsimps [oadd_1 RS sym]) 1);
 by (asm_simp_tac 
@@ -837,19 +836,19 @@ qed "omult_Limit";
 (*** Ordering/monotonicity properties of ordinal multiplication ***)
 
 (*As a special case we have "[| 0<i;  0<j |] ==> 0 < i**j" *)
-Goal "!!i j. [| k<i;  0<j |] ==> k < i**j";
+Goal "[| k<i;  0<j |] ==> k < i**j";
 by (safe_tac (claset() addSEs [ltE] addSIs [ltI, Ord_omult]));
 by (asm_simp_tac (simpset() addsimps [omult_unfold]) 1);
 by (REPEAT_FIRST (ares_tac [bexI]));
 by (Asm_simp_tac 1);
 qed "lt_omult1";
 
-Goal "!!i j. [| Ord(i);  0<j |] ==> i le i**j";
+Goal "[| Ord(i);  0<j |] ==> i le i**j";
 by (rtac all_lt_imp_le 1);
 by (REPEAT (ares_tac [Ord_omult, lt_omult1, lt_Ord2] 1));
 qed "omult_le_self";
 
-Goal "!!i j k. [| k le j;  Ord(i) |] ==> k**i le j**i";
+Goal "[| k le j;  Ord(i) |] ==> k**i le j**i";
 by (forward_tac [lt_Ord] 1);
 by (forward_tac [le_Ord2] 1);
 by (etac trans_induct3 1);
@@ -860,7 +859,7 @@ by (rtac le_implies_UN_le_UN 1);
 by (Blast_tac 1);
 qed "omult_le_mono1";
 
-Goal "!!i j k. [| k<j;  0<i |] ==> i**k < i**j";
+Goal "[| k<j;  0<i |] ==> i**k < i**j";
 by (rtac ltI 1);
 by (asm_simp_tac (simpset() addsimps [omult_unfold, lt_Ord2]) 1);
 by (safe_tac (claset() addSEs [ltE] addSIs [Ord_omult]));
@@ -868,14 +867,14 @@ by (REPEAT_FIRST (ares_tac [bexI]));
 by (asm_simp_tac (simpset() addsimps [Ord_omult]) 1);
 qed "omult_lt_mono2";
 
-Goal "!!i j k. [| k le j;  Ord(i) |] ==> i**k le i**j";
+Goal "[| k le j;  Ord(i) |] ==> i**k le i**j";
 by (rtac subset_imp_le 1);
 by (safe_tac (claset() addSEs [ltE, make_elim Ord_succD] addSIs [Ord_omult]));
 by (asm_full_simp_tac (simpset() addsimps [omult_unfold]) 1);
 by (deepen_tac (claset() addEs [Ord_trans]) 0 1);
 qed "omult_le_mono2";
 
-Goal "!!i j. [| i' le i;  j' le j |] ==> i'**j' le i**j";
+Goal "[| i' le i;  j' le j |] ==> i'**j' le i**j";
 by (rtac le_trans 1);
 by (REPEAT (eresolve_tac [asm_rl, omult_le_mono1, omult_le_mono2, ltE,
                           Ord_succD] 1));
@@ -888,7 +887,7 @@ by (REPEAT (eresolve_tac [asm_rl, omult_le_mono1, omult_lt_mono2, ltE,
                           Ord_succD] 1));
 qed "omult_lt_mono";
 
-Goal "!!i j. [| Ord(i);  0<j |] ==> i le j**i";
+Goal "[| Ord(i);  0<j |] ==> i le j**i";
 by (forward_tac [lt_Ord2] 1);
 by (eres_inst_tac [("i","i")] trans_induct3 1);
 by (asm_simp_tac (simpset() addsimps [omult_0, Ord_0 RS le_refl]) 1);
@@ -908,7 +907,7 @@ qed "omult_le_self2";
 
 (** Further properties of ordinal multiplication **)
 
-Goal "!!i j. [| i**j = i**k;  0<i;  Ord(j);  Ord(k) |] ==> j=k";
+Goal "[| i**j = i**k;  0<i;  Ord(j);  Ord(k) |] ==> j=k";
 by (rtac Ord_linear_lt 1);
 by (REPEAT_SOME assume_tac);
 by (ALLGOALS

@@ -55,7 +55,7 @@ fun bool_tac i = fast_tac (claset() addSEs [boolE] addss (simpset())) i;
 
 
 Goal 
-    "!!b. [|  b: bool;  c: A(1);  d: A(0) |] ==> cond(b,c,d): A(b)";
+    "[|  b: bool;  c: A(1);  d: A(0) |] ==> cond(b,c,d): A(b)";
 by (bool_tac 1);
 qed "cond_type";
 
@@ -99,15 +99,15 @@ val bool_typechecks = [bool_1I, bool_0I, cond_type, not_type, and_type,
 
 (*** Laws for 'not' ***)
 
-Goal "!!a. a:bool ==> not(not(a)) = a";
+Goal "a:bool ==> not(not(a)) = a";
 by (bool_tac 1);
 qed "not_not";
 
-Goal "!!a b. a:bool ==> not(a and b) = not(a) or not(b)";
+Goal "a:bool ==> not(a and b) = not(a) or not(b)";
 by (bool_tac 1);
 qed "not_and";
 
-Goal "!!a b. a:bool ==> not(a or b) = not(a) and not(b)";
+Goal "a:bool ==> not(a or b) = not(a) and not(b)";
 by (bool_tac 1);
 qed "not_or";
 
@@ -115,44 +115,44 @@ Addsimps [not_not, not_and, not_or];
 
 (*** Laws about 'and' ***)
 
-Goal "!!a. a: bool ==> a and a = a";
+Goal "a: bool ==> a and a = a";
 by (bool_tac 1);
 qed "and_absorb";
 
 Addsimps [and_absorb];
 
-Goal "!!a b. [| a: bool; b:bool |] ==> a and b = b and a";
+Goal "[| a: bool; b:bool |] ==> a and b = b and a";
 by (bool_tac 1);
 qed "and_commute";
 
-Goal "!!a. a: bool ==> (a and b) and c  =  a and (b and c)";
+Goal "a: bool ==> (a and b) and c  =  a and (b and c)";
 by (bool_tac 1);
 qed "and_assoc";
 
 Goal
- "!!a. [| a: bool; b:bool; c:bool |] ==> \
+ "[| a: bool; b:bool; c:bool |] ==> \
 \      (a or b) and c  =  (a and c) or (b and c)";
 by (bool_tac 1);
 qed "and_or_distrib";
 
 (** binary orion **)
 
-Goal "!!a. a: bool ==> a or a = a";
+Goal "a: bool ==> a or a = a";
 by (bool_tac 1);
 qed "or_absorb";
 
 Addsimps [or_absorb];
 
-Goal "!!a b. [| a: bool; b:bool |] ==> a or b = b or a";
+Goal "[| a: bool; b:bool |] ==> a or b = b or a";
 by (bool_tac 1);
 qed "or_commute";
 
-Goal "!!a. a: bool ==> (a or b) or c  =  a or (b or c)";
+Goal "a: bool ==> (a or b) or c  =  a or (b or c)";
 by (bool_tac 1);
 qed "or_assoc";
 
 Goal
- "!!a b c. [| a: bool; b: bool; c: bool |] ==> \
+ "[| a: bool; b: bool; c: bool |] ==> \
 \          (a and b) or c  =  (a or c) and (b or c)";
 by (bool_tac 1);
 qed "or_and_distrib";

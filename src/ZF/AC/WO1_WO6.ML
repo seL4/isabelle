@@ -13,7 +13,7 @@
 
 (* ********************************************************************** *)
 
-Goalw WO_defs "!!Z. WO2 ==> WO3";
+Goalw WO_defs "WO2 ==> WO3";
 by (Fast_tac 1);
 qed "WO2_WO3";
 
@@ -32,20 +32,20 @@ qed "WO1_WO2";
 
 (* ********************************************************************** *)
 
-Goal "!!f. f: A->B ==> (lam x:A. {f`x}): A -> {{b}. b:B}";
+Goal "f: A->B ==> (lam x:A. {f`x}): A -> {{b}. b:B}";
 by (fast_tac (claset() addSIs [lam_type, apply_type]) 1);
 qed "lam_sets";
 
-Goalw [surj_def] "!!f. f:surj(A,B) ==> (UN a:A. {f`a}) = B";
+Goalw [surj_def] "f:surj(A,B) ==> (UN a:A. {f`a}) = B";
 by (fast_tac (claset() addSEs [apply_type]) 1);
 qed "surj_imp_eq_";
 
-Goal "!!f. [| f:surj(A,B); Ord(A) |] ==> (UN a<A. {f`a}) = B";
+Goal "[| f:surj(A,B); Ord(A) |] ==> (UN a<A. {f`a}) = B";
 by (fast_tac (claset() addSDs [surj_imp_eq_]
                 addSIs [ltI] addSEs [ltE]) 1);
 qed "surj_imp_eq";
 
-Goalw WO_defs "!!Z. WO1 ==> WO4(1)";
+Goalw WO_defs "WO1 ==> WO4(1)";
 by (rtac allI 1);
 by (eres_inst_tac [("x","A")] allE 1);
 by (etac exE 1);
@@ -61,20 +61,20 @@ qed "WO1_WO4";
 
 (* ********************************************************************** *)
 
-Goalw WO_defs "!!Z. [| m:nat; n:nat; m le n; WO4(m) |] ==> WO4(n)";
+Goalw WO_defs "[| m:nat; n:nat; m le n; WO4(m) |] ==> WO4(n)";
 by (fast_tac (claset() addIs [nat_le_imp_lepoll RSN (2, lepoll_trans)]) 1);
 qed "WO4_mono";
 
 (* ********************************************************************** *)
 
-Goalw WO_defs "!!Z. [| m:nat; 1 le m; WO4(m) |] ==> WO5";
+Goalw WO_defs "[| m:nat; 1 le m; WO4(m) |] ==> WO5";
     (*ZF_cs is essential: default claset's too slow*)
 by (fast_tac ZF_cs 1);
 qed "WO4_WO5";
 
 (* ********************************************************************** *)
 
-Goalw WO_defs "!!Z. WO5 ==> WO6";
+Goalw WO_defs "WO5 ==> WO6";
     (*ZF_cs is essential: default claset's too slow*)
 by (fast_tac ZF_cs 1);
 qed "WO5_WO6";

@@ -14,7 +14,7 @@ open Finite;
 
 (*** Finite powerset operator ***)
 
-Goalw Fin.defs "!!A B. A<=B ==> Fin(A) <= Fin(B)";
+Goalw Fin.defs "A<=B ==> Fin(A) <= Fin(B)";
 by (rtac lfp_mono 1);
 by (REPEAT (rtac Fin.bnd_mono 1));
 by (REPEAT (ares_tac (Pow_mono::basic_monos) 1));
@@ -56,7 +56,7 @@ by (ALLGOALS Asm_simp_tac);
 qed "Fin_UnionI";
 
 (*Every subset of a finite set is finite.*)
-Goal "!!b A. b: Fin(A) ==> ALL z. z<=b --> z: Fin(A)";
+Goal "b: Fin(A) ==> ALL z. z<=b --> z: Fin(A)";
 by (etac Fin_induct 1);
 by (simp_tac (simpset() addsimps [subset_empty_iff]) 1);
 by (asm_simp_tac (simpset() addsimps subset_cons_iff::distrib_simps) 1);
@@ -65,7 +65,7 @@ by (eres_inst_tac [("b","z")] (cons_Diff RS subst) 1);
 by (Asm_simp_tac 1);
 qed "Fin_subset_lemma";
 
-Goal "!!c b A. [| c<=b;  b: Fin(A) |] ==> c: Fin(A)";
+Goal "[| c<=b;  b: Fin(A) |] ==> c: Fin(A)";
 by (REPEAT (ares_tac [Fin_subset_lemma RS spec RS mp] 1));
 qed "Fin_subset";
 
@@ -108,17 +108,17 @@ by (REPEAT (rtac FiniteFun.bnd_mono 1));
 by (REPEAT (ares_tac (Fin_mono::Sigma_mono::basic_monos) 1));
 qed "FiniteFun_mono";
 
-Goal "!!A B. A<=B ==> A -||> A  <=  B -||> B";
+Goal "A<=B ==> A -||> A  <=  B -||> B";
 by (REPEAT (ares_tac [FiniteFun_mono] 1));
 qed "FiniteFun_mono1";
 
-Goal "!!h. h: A -||>B ==> h: domain(h) -> B";
+Goal "h: A -||>B ==> h: domain(h) -> B";
 by (etac FiniteFun.induct 1);
 by (simp_tac (simpset() addsimps [empty_fun, domain_0]) 1);
 by (asm_simp_tac (simpset() addsimps [fun_extend3, domain_cons]) 1);
 qed "FiniteFun_is_fun";
 
-Goal "!!h. h: A -||>B ==> domain(h) : Fin(A)";
+Goal "h: A -||>B ==> domain(h) : Fin(A)";
 by (etac FiniteFun.induct 1);
 by (simp_tac (simpset() addsimps [domain_0]) 1);
 by (asm_simp_tac (simpset() addsimps [domain_cons]) 1);
@@ -127,7 +127,7 @@ qed "FiniteFun_domain_Fin";
 bind_thm ("FiniteFun_apply_type", FiniteFun_is_fun RS apply_type);
 
 (*Every subset of a finite function is a finite function.*)
-Goal "!!b A. b: A-||>B ==> ALL z. z<=b --> z: A-||>B";
+Goal "b: A-||>B ==> ALL z. z<=b --> z: A-||>B";
 by (etac FiniteFun.induct 1);
 by (simp_tac (simpset() addsimps subset_empty_iff::FiniteFun.intrs) 1);
 by (asm_simp_tac (simpset() addsimps subset_cons_iff::distrib_simps) 1);
@@ -137,7 +137,7 @@ by (dtac (spec RS mp) 1 THEN assume_tac 1);
 by (fast_tac (claset() addSIs FiniteFun.intrs) 1);
 qed "FiniteFun_subset_lemma";
 
-Goal "!!c b A. [| c<=b;  b: A-||>B |] ==> c: A-||>B";
+Goal "[| c<=b;  b: A-||>B |] ==> c: A-||>B";
 by (REPEAT (ares_tac [FiniteFun_subset_lemma RS spec RS mp] 1));
 qed "FiniteFun_subset";
 

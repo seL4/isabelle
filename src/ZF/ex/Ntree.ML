@@ -48,7 +48,7 @@ qed "ntree_induct_eqn";
 
 (**  Lemmas to justify using "Ntree" in other recursive type definitions **)
 
-Goalw ntree.defs "!!A B. A<=B ==> ntree(A) <= ntree(B)";
+Goalw ntree.defs "A<=B ==> ntree(A) <= ntree(B)";
 by (rtac lfp_mono 1);
 by (REPEAT (rtac ntree.bnd_mono 1));
 by (REPEAT (ares_tac (univ_mono::basic_monos) 1));

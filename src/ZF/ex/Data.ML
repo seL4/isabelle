@@ -17,7 +17,7 @@ qed "data_unfold";
 
 (**  Lemmas to justify using "data" in other recursive type definitions **)
 
-Goalw data.defs "!!A B. [| A<=C; B<=D |] ==> data(A,B) <= data(C,D)";
+Goalw data.defs "[| A<=C; B<=D |] ==> data(A,B) <= data(C,D)";
 by (rtac lfp_mono 1);
 by (REPEAT (rtac data.bnd_mono 1));
 by (REPEAT (ares_tac (univ_mono::Un_mono::basic_monos) 1));

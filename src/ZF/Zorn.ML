@@ -199,13 +199,12 @@ by (assume_tac 1);
 by (rewtac increasing_def);
 by (rtac CollectI 1);
 by (rtac lam_type 1);
-by (asm_simp_tac (simpset() addsplits [split_if]) 1);
+by (Asm_simp_tac 1);
 by (fast_tac (claset() addSIs [super_subset_chain RS subsetD,
 			      chain_subset_Pow RS subsetD,
 			      choice_super]) 1);
 (*Now, verify that it increases*)
-by (asm_simp_tac (simpset() addsimps [Pow_iff, subset_refl]
-                        addsplits [split_if]) 1);
+by (asm_simp_tac (simpset() addsimps [Pow_iff, subset_refl]) 1);
 by Safe_tac;
 by (dtac choice_super 1);
 by (REPEAT (assume_tac 1));
@@ -224,8 +223,7 @@ Goal
 by (etac TFin_induct 1);
 by (asm_simp_tac 
     (simpset() addsimps [chain_subset_Pow RS subsetD, 
-                     choice_super RS (super_subset_chain RS subsetD)]
-           addsplits [split_if]) 1);
+			 choice_super RS (super_subset_chain RS subsetD)]) 1);
 by (rewtac chain_def);
 by (rtac CollectI 1 THEN Blast_tac 1);
 by Safe_tac;
@@ -249,8 +247,7 @@ by (assume_tac 2);
 by (rtac refl 2);
 by (asm_full_simp_tac 
     (simpset() addsimps [subset_refl RS TFin_UnionI RS
-                     (TFin.dom_subset RS subsetD)]
-           addsplits [split_if]) 1);
+			 (TFin.dom_subset RS subsetD)]) 1);
 by (eresolve_tac [choice_not_equals RS notE] 1);
 by (REPEAT (assume_tac 1));
 qed "Hausdorff";
@@ -302,7 +299,7 @@ by (Blast_tac 1);
 qed "TFin_well_lemma5";
 
 (*Well-ordering of TFin(S,next)*)
-Goal "!!Z. [| Z <= TFin(S,next);  z:Z |] ==> Inter(Z) : Z";
+Goal "[| Z <= TFin(S,next);  z:Z |] ==> Inter(Z) : Z";
 by (rtac classical 1);
 by (subgoal_tac "Z = {Union(TFin(S,next))}" 1);
 by (asm_simp_tac (simpset() addsimps [Inter_singleton]) 1);
@@ -358,11 +355,10 @@ by (rtac lam_type 1);
 (*Verify that it increases*)
 by (rtac allI 2);
 by (rtac impI 2);
-by (asm_simp_tac (simpset() addsimps [Pow_iff, subset_consI, subset_refl]
-                        addsplits [split_if]) 2);
+by (asm_simp_tac (simpset() addsimps [Pow_iff, subset_consI, subset_refl]) 2);
 (*Type checking is surprisingly hard!*)
-by (asm_simp_tac (simpset() addsimps [Pow_iff, cons_subset_iff, subset_refl]
-                        addsplits [split_if]) 1);
+by (asm_simp_tac
+    (simpset() addsimps [Pow_iff, cons_subset_iff, subset_refl]) 1);
 by (blast_tac (claset() addSIs [choice_Diff RS DiffD1]) 1);
 qed "Zermelo_next_exists";
 
@@ -391,15 +387,13 @@ by (asm_simp_tac
     (simpset() delsimps [Union_iff]
               addsimps [Collect_subset RS TFin_UnionI RS TFin_is_subset,
                      Pow_iff, cons_subset_iff, subset_refl,
-                     choice_Diff RS DiffD2]
-           addsplits [split_if]) 2);
+                     choice_Diff RS DiffD2]) 2);
 by (subgoal_tac "x : next ` Union({y: TFin(S,next). x~: y})" 1);
 by (blast_tac (subset_cs addSIs [Collect_subset RS TFin_UnionI, TFin_nextI]) 2);
 (*End of the lemmas!*)
 by (asm_full_simp_tac 
     (simpset() addsimps [Collect_subset RS TFin_UnionI RS TFin_is_subset,
-                     Pow_iff, cons_subset_iff, subset_refl]
-           addsplits [split_if]) 1);
+                     Pow_iff, cons_subset_iff, subset_refl]) 1);
 by (REPEAT (eresolve_tac [asm_rl, consE, sym, notE] 1));
 qed "choice_imp_injection";
 

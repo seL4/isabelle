@@ -70,7 +70,7 @@ val reduction_rls = [contract.K RS rtrancl_into_rtrancl2,
                      contract.Ap2 RS rtrancl_into_rtrancl2];
 
 (*Example only: not used*)
-Goalw [I_def] "!!p. p:comb ==> I#p ---> p";
+Goalw [I_def] "p:comb ==> I#p ---> p";
 by (blast_tac (claset() addIs reduction_rls) 1);
 qed "reduce_I";
 
@@ -88,15 +88,15 @@ val Ap_contractE = contract.mk_cases comb.con_defs "p#q -1-> r";
 AddIs  [contract.Ap1, contract.Ap2];
 AddSEs [K_contractE, S_contractE, Ap_contractE];
 
-Goalw [I_def] "!!r. I -1-> r ==> P";
+Goalw [I_def] "I -1-> r ==> P";
 by (Blast_tac 1);
 qed "I_contract_E";
 
-Goal "!!p r. K#p -1-> r ==> (EX q. r = K#q & p -1-> q)";
+Goal "K#p -1-> r ==> (EX q. r = K#q & p -1-> q)";
 by (Blast_tac 1);
 qed "K1_contractD";
 
-Goal "!!p r. [| p ---> q;  r: comb |] ==> p#r ---> q#r";
+Goal "[| p ---> q;  r: comb |] ==> p#r ---> q#r";
 by (forward_tac [rtrancl_type RS subsetD RS SigmaD1] 1);
 by (dtac (field_contract_eq RS equalityD1 RS subsetD) 1);
 by (etac rtrancl_induct 1);
@@ -105,7 +105,7 @@ by (etac (trans_rtrancl RS transD) 1);
 by (blast_tac (claset() addIs (contract_combD2::reduction_rls)) 1);
 qed "Ap_reduce1";
 
-Goal "!!p r. [| p ---> q;  r: comb |] ==> r#p ---> r#q";
+Goal "[| p ---> q;  r: comb |] ==> r#p ---> r#q";
 by (forward_tac [rtrancl_type RS subsetD RS SigmaD1] 1);
 by (dtac (field_contract_eq RS equalityD1 RS subsetD) 1);
 by (etac rtrancl_induct 1);
@@ -157,11 +157,11 @@ AddSEs [Ap_E, K_parcontractE, S_parcontractE, Ap_parcontractE];
 
 (*** Basic properties of parallel contraction ***)
 
-Goal "!!p r. K#p =1=> r ==> (EX p'. r = K#p' & p =1=> p')";
+Goal "K#p =1=> r ==> (EX p'. r = K#p' & p =1=> p')";
 by (Blast_tac 1);
 qed "K1_parcontractD";
 
-Goal "!!p r. S#p =1=> r ==> (EX p'. r = S#p' & p =1=> p')";
+Goal "S#p =1=> r ==> (EX p'. r = S#p' & p =1=> p')";
 by (Blast_tac 1);
 qed "S1_parcontractD";
 
@@ -181,12 +181,12 @@ qed "diamond_parcontract";
 
 (*** Equivalence of p--->q and p===>q ***)
 
-Goal "!!p q. p-1->q ==> p=1=>q";
+Goal "p-1->q ==> p=1=>q";
 by (etac contract.induct 1);
 by (ALLGOALS Blast_tac);
 qed "contract_imp_parcontract";
 
-Goal "!!p q. p--->q ==> p===>q";
+Goal "p--->q ==> p===>q";
 by (forward_tac [rtrancl_type RS subsetD RS SigmaD1] 1);
 by (dtac (field_contract_eq RS equalityD1 RS subsetD) 1);
 by (etac rtrancl_induct 1);
@@ -196,7 +196,7 @@ by (blast_tac (claset() addIs [contract_imp_parcontract,
 qed "reduce_imp_parreduce";
 
 
-Goal "!!p q. p=1=>q ==> p--->q";
+Goal "p=1=>q ==> p--->q";
 by (etac parcontract.induct 1);
 by (blast_tac (claset() addIs reduction_rls) 1);
 by (blast_tac (claset() addIs reduction_rls) 1);
@@ -207,7 +207,7 @@ by (blast_tac
 		    parcontract_combD2]) 1);
 qed "parcontract_imp_reduce";
 
-Goal "!!p q. p===>q ==> p--->q";
+Goal "p===>q ==> p--->q";
 by (forward_tac [trancl_type RS subsetD RS SigmaD1] 1);
 by (dtac (field_parcontract_eq RS equalityD1 RS subsetD) 1);
 by (etac trancl_induct 1);

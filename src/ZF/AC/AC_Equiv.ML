@@ -38,7 +38,7 @@ val nat_le_imp_lepoll = nat_le_imp_lepoll_lemma RS bspec RS mp |> standard;
 (*             lemmas concerning FOL and pure ZF theory                   *)
 (* ********************************************************************** *)
 
-Goal "!!X. (A->X)=0 ==> X=0";
+Goal "(A->X)=0 ==> X=0";
 by (fast_tac (claset() addSIs [equals0I] addEs [lam_type RSN (2, equals0D)]) 1);
 qed "fun_space_emptyD";
 
@@ -122,7 +122,7 @@ Goal "A*B=0 <-> A=0 | B=0";
 by (fast_tac (claset() addSIs [equals0I] addEs [equals0D]) 1);
 qed "Sigma_empty_iff";
 
-Goalw [Finite_def] "!!n. n:nat ==> Finite(n)";
+Goalw [Finite_def] "n:nat ==> Finite(n)";
 by (fast_tac (claset() addSIs [eqpoll_refl]) 1);
 qed "nat_into_Finite";
 
@@ -137,7 +137,7 @@ val le_imp_lepoll = le_imp_subset RS subset_imp_lepoll;
 (* Another elimination rule for EX!                                       *)
 (* ********************************************************************** *)
 
-Goal "!!x. [| EX! x. P(x); P(x); P(y) |] ==> x=y";
+Goal "[| EX! x. P(x); P(x); P(y) |] ==> x=y";
 by (etac ex1E 1);
 by (res_inst_tac [("b","xa")] (sym RSN (2, trans)) 1);
 by (Fast_tac 1);
@@ -148,7 +148,7 @@ qed "ex1_two_eq";
 (* image of a surjection                                                  *)
 (* ********************************************************************** *)
 
-Goalw [surj_def] "!!f. f : surj(A, B) ==> f``A = B";
+Goalw [surj_def] "f : surj(A, B) ==> f``A = B";
 by (etac CollectE 1);
 by (resolve_tac [subset_refl RSN (2, image_fun) RS ssubst] 1 
     THEN (assume_tac 1));
@@ -156,11 +156,11 @@ by (fast_tac (claset() addSEs [apply_type] addIs [equalityI]) 1);
 qed "surj_image_eq";
 
 
-Goal "!!y. succ(x) lepoll y ==> y ~= 0";
+Goal "succ(x) lepoll y ==> y ~= 0";
 by (fast_tac (claset() addSDs [lepoll_0_is_0]) 1);
 qed "succ_lepoll_imp_not_empty";
 
-Goal "!!x. x eqpoll succ(n) ==> x ~= 0";
+Goal "x eqpoll succ(n) ==> x ~= 0";
 by (fast_tac (claset() addSEs [eqpoll_sym RS eqpoll_0_is_0 RS succ_neq_0]) 1);
 qed "eqpoll_succ_imp_not_empty";
 

@@ -5,13 +5,13 @@
 The proof of AC1 ==> AC17
 *)
 
-Goal "!!f. f : (PROD X:Pow(A) - {0}. X) ==> f : (Pow(A) - {0} -> A)";
+Goal "f : (PROD X:Pow(A) - {0}. X) ==> f : (Pow(A) - {0} -> A)";
 by (rtac Pi_type 1 THEN (assume_tac 1));
 by (dtac apply_type 1 THEN (assume_tac 1));
 by (Fast_tac 1);
 val lemma1 = result();
 
-Goalw AC_defs "!!Z. AC1 ==> AC17";
+Goalw AC_defs "AC1 ==> AC17";
 by (rtac allI 1);
 by (rtac ballI 1);
 by (eres_inst_tac [("x","Pow(A)-{0}")] allE 1);

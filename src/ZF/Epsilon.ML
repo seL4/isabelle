@@ -89,7 +89,7 @@ by (rewtac Transset_def);
 by (blast_tac (claset() addIs [step,ecloseD]) 1);
 qed "eclose_induct_down";
 
-Goal "!!X. Transset(X) ==> eclose(X) = X";
+Goal "Transset(X) ==> eclose(X) = X";
 by (etac ([eclose_least, arg_subset_eclose] MRS equalityI) 1);
 by (rtac subset_refl 1);
 qed "Transset_eclose_eq_arg";
@@ -98,7 +98,7 @@ qed "Transset_eclose_eq_arg";
 (*** Epsilon recursion ***)
 
 (*Unused...*)
-Goal "!!A B C. [| A: eclose(B);  B: eclose(C) |] ==> A: eclose(C)";
+Goal "[| A: eclose(B);  B: eclose(C) |] ==> A: eclose(C)";
 by (rtac ([Transset_eclose, eclose_subset] MRS eclose_least RS subsetD) 1);
 by (REPEAT (assume_tac 1));
 qed "mem_eclose_trans";
@@ -158,7 +158,7 @@ by (stac transrec 1);
 by (REPEAT (ares_tac (prems @ [lam_type]) 1 ORELSE etac bspec 1));
 qed "transrec_type";
 
-Goal "!!i. Ord(i) ==> eclose({i}) <= succ(i)";
+Goal "Ord(i) ==> eclose({i}) <= succ(i)";
 by (etac (Ord_is_Transset RS Transset_succ RS eclose_least) 1);
 by (rtac (succI1 RS singleton_subsetI) 1);
 qed "eclose_sing_Ord";
@@ -195,7 +195,7 @@ by (stac rank 1);
 by (asm_simp_tac (simpset() addsimps [Ord_equality]) 1);
 qed "rank_of_Ord";
 
-Goal "!!a b. a:b ==> rank(a) < rank(b)";
+Goal "a:b ==> rank(a) < rank(b)";
 by (res_inst_tac [("a1","b")] (rank RS ssubst) 1);
 by (etac (UN_I RS ltI) 1);
 by (rtac succI1 1);
@@ -209,7 +209,7 @@ by (etac (rank_lt RS lt_trans) 1);
 by (assume_tac 1);
 qed "eclose_rank_lt";
 
-Goal "!!a b. a<=b ==> rank(a) le rank(b)";
+Goal "a<=b ==> rank(a) le rank(b)";
 by (rtac subset_imp_le 1);
 by (stac rank 1);
 by (stac rank 1);
@@ -271,12 +271,12 @@ qed "rank_pair2";
 
 (*** Corollaries of leastness ***)
 
-Goal "!!A B. A:B ==> eclose(A)<=eclose(B)";
+Goal "A:B ==> eclose(A)<=eclose(B)";
 by (rtac (Transset_eclose RS eclose_least) 1);
 by (etac (arg_into_eclose RS eclose_subset) 1);
 qed "mem_eclose_subset";
 
-Goal "!!A B. A<=B ==> eclose(A) <= eclose(B)";
+Goal "A<=B ==> eclose(A) <= eclose(B)";
 by (rtac (Transset_eclose RS eclose_least) 1);
 by (etac subset_trans 1);
 by (rtac arg_subset_eclose 1);
@@ -304,14 +304,13 @@ qed "THE_eq";
 
 Goal "transrec2(succ(i),a,b) = b(i, transrec2(i,a,b))";
 by (rtac (transrec2_def RS def_transrec RS trans) 1);
-by (simp_tac (simpset() addsimps [succ_not_0, THE_eq, if_P]
-                    addsplits [split_if]) 1);
+by (simp_tac (simpset() addsimps [succ_not_0, THE_eq, if_P]) 1);
 by (Blast_tac 1);
 qed "transrec2_succ";
 
-Goal "!!i. Limit(i) ==> transrec2(i,a,b) = (UN j<i. transrec2(j,a,b))";
+Goal "Limit(i) ==> transrec2(i,a,b) = (UN j<i. transrec2(j,a,b))";
 by (rtac (transrec2_def RS def_transrec RS trans) 1);
-by (simp_tac (simpset() addsplits [split_if]) 1);
+by (Simp_tac 1);
 by (blast_tac (claset() addSDs [Limit_has_0] addSEs [succ_LimitE]) 1);
 qed "transrec2_Limit";
 

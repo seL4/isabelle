@@ -227,11 +227,11 @@ qed "integ_of_bin_minus";
 
 (*** bin_add: binary addition ***)
 
-Goalw [bin_add_def] "!!w. w: bin ==> bin_add(Plus,w) = w";
+Goalw [bin_add_def] "w: bin ==> bin_add(Plus,w) = w";
 by (Asm_simp_tac 1);
 qed "bin_add_Plus";
 
-Goalw [bin_add_def] "!!w. w: bin ==> bin_add(Minus,w) = bin_pred(w)";
+Goalw [bin_add_def] "w: bin ==> bin_add(Minus,w) = bin_pred(w)";
 by (Asm_simp_tac 1);
 qed "bin_add_Minus";
 

@@ -117,17 +117,17 @@ qed "trans_trancl";
 
 (** Conversions between trancl and rtrancl **)
 
-Goalw [trancl_def] "!!r. <a,b> : r^+ ==> <a,b> : r^*";
+Goalw [trancl_def] "<a,b> : r^+ ==> <a,b> : r^*";
 by (blast_tac (claset() addIs [rtrancl_into_rtrancl]) 1);
 qed "trancl_into_rtrancl";
 
 (*r^+ contains all pairs in r  *)
-Goalw [trancl_def] "!!r. <a,b> : r ==> <a,b> : r^+";
+Goalw [trancl_def] "<a,b> : r ==> <a,b> : r^+";
 by (blast_tac (claset() addSIs [rtrancl_refl]) 1);
 qed "r_into_trancl";
 
 (*The premise ensures that r consists entirely of pairs*)
-Goal "!!r. r <= Sigma(A,B) ==> r <= r^+";
+Goal "r <= Sigma(A,B) ==> r <= r^+";
 by (blast_tac (claset() addIs [r_into_trancl]) 1);
 qed "r_subset_trancl";
 

@@ -11,7 +11,7 @@ open AC18_AC19;
 (* AC1 ==> AC18                                                           *)
 (* ********************************************************************** *)
 
-Goal "!!f. [| f: (PROD b:{P(a). a:A}. b); ALL a:A. P(a)<=Q(a) |]  \
+Goal "[| f: (PROD b:{P(a). a:A}. b); ALL a:A. P(a)<=Q(a) |]  \
 \               ==> (lam a:A. f`P(a)):(PROD a:A. Q(a))";
 by (rtac lam_type 1);
 by (dtac apply_type 1);
@@ -20,7 +20,7 @@ by (dtac bspec 1 THEN (assume_tac 1));
 by (etac subsetD 1 THEN (assume_tac 1));
 qed "PROD_subsets";
 
-Goal "!!X. [| ALL A. 0 ~: A --> (EX f. f : (PROD X:A. X)); A ~= 0 |] ==>  \
+Goal "[| ALL A. 0 ~: A --> (EX f. f : (PROD X:A. X)); A ~= 0 |] ==>  \
 \  (INT a:A. UN b:B(a). X(a, b)) <= (UN f:PROD a:A. B(a). INT a:A. X(a, f`a))";
 by (rtac subsetI 1);
 by (eres_inst_tac [("x","{{b:B(a). x:X(a,b)}. a:A}")] allE 1);
@@ -62,7 +62,7 @@ by (fast_tac (claset() addSIs [not_emptyI, RepFunI]
                 addSDs [sym RS (RepFun_eq_0_iff RS iffD1)]) 1);
 qed "RepRep_conj";
 
-Goal "!!c. [|c : a; x = c Un {0}; x ~: a |] ==> x - {0} : a";
+Goal "[|c : a; x = c Un {0}; x ~: a |] ==> x - {0} : a";
 by (hyp_subst_tac 1);
 by (rtac subst_elem 1 THEN (assume_tac 1));
 by (rtac equalityI 1);
@@ -80,7 +80,7 @@ by (fast_tac (claset() addSEs [RepFunI, RepFunE, lemma1_1]
                 addSDs [apply_type]) 1);
 val lemma1_2 = result();
 
-Goal  "!!A. EX f. f: (PROD B:{u_(a). a:A}. B) ==> EX f. f: (PROD B:A. B)";
+Goal  "EX f. f: (PROD B:{u_(a). a:A}. B) ==> EX f. f: (PROD B:A. B)";
 by (etac exE 1);
 by (res_inst_tac
         [("x","lam a:A. if(f`(u_(a)) : a, f`(u_(a)), f`(u_(a))-{0})")] exI 1);
@@ -91,21 +91,21 @@ by (Fast_tac 1);
 by (fast_tac (claset() addSEs [lemma1_2]) 1);
 val lemma1 = result();
 
-Goalw [u_def] "!!a. a~=0 ==> 0: (UN b:u_(a). b)";
+Goalw [u_def] "a~=0 ==> 0: (UN b:u_(a). b)";
 by (fast_tac (claset() addSEs [not_emptyE] addSIs [UN_I, RepFunI]) 1);
 val lemma2_1 = result();
 
-Goal "!!A C. [| A~=0; 0~:A |] ==> (INT x:{u_(a). a:A}. UN b:x. b) ~= 0";
+Goal "[| A~=0; 0~:A |] ==> (INT x:{u_(a). a:A}. UN b:x. b) ~= 0";
 by (etac not_emptyE 1);
 by (res_inst_tac [("a","0")] not_emptyI 1);
 by (fast_tac (claset() addSIs [INT_I, RepFunI, lemma2_1] addSEs [RepFunE]) 1);
 val lemma2 = result();
 
-Goal "!!F. (UN f:F. P(f)) ~= 0 ==> F ~= 0";
+Goal "(UN f:F. P(f)) ~= 0 ==> F ~= 0";
 by (fast_tac (claset() addSEs [not_emptyE]) 1);
 val lemma3 = result();
 
-Goalw AC_defs "!!Z. AC19 ==> AC1";
+Goalw AC_defs "AC19 ==> AC1";
 by (REPEAT (resolve_tac [allI,impI] 1));
 by (excluded_middle_tac "A=0" 1);
 by (fast_tac (claset() addSIs [exI, empty_fun]) 2);

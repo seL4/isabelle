@@ -19,7 +19,7 @@ fun bt_ind_tac a prems i =
 
 (**  Lemmas to justify using "bt" in other recursive type definitions **)
 
-Goalw bt.defs "!!A B. A<=B ==> bt(A) <= bt(B)";
+Goalw bt.defs "A<=B ==> bt(A) <= bt(B)";
 by (rtac lfp_mono 1);
 by (REPEAT (rtac bt.bnd_mono 1));
 by (REPEAT (ares_tac (univ_mono::basic_monos) 1));
@@ -110,7 +110,7 @@ qed "n_leaves_type";
 val [bt_reflect_Lf, bt_reflect_Br] = bt_recs bt_reflect_def;
 Addsimps [bt_reflect_Lf, bt_reflect_Br];
 
-Goalw [bt_reflect_def] "!!xs. xs: bt(A) ==> bt_reflect(xs) : bt(A)";
+Goalw [bt_reflect_def] "xs: bt(A) ==> bt_reflect(xs) : bt(A)";
 by (REPEAT (ares_tac (bt.intrs @ [bt_rec_type]) 1));
 qed "bt_reflect_type";
 

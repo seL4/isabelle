@@ -75,7 +75,7 @@ qed "v_constNE";
 
 (* Proving that the empty set is not a value *)
 
-Goal "!!v. v:Val ==> v ~= 0";
+Goal "v:Val ==> v ~= 0";
 by (etac ValE 1);
 by (ALLGOALS hyp_subst_tac);
 by (etac v_constNE 1);

@@ -65,7 +65,7 @@ AddSEs [Sreg.mk_cases redexes.con_defs "regular(App(b,f,a))",
 (*    comp proofs                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-Goal "!!u. u:redexes ==> u ~ u";
+Goal "u:redexes ==> u ~ u";
 by (eresolve_tac [redexes.induct] 1);
 by (ALLGOALS Fast_tac);
 qed "comp_refl";

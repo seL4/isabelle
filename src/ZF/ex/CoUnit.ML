@@ -66,7 +66,7 @@ qed "counit2_Int_Vset_subset_lemma";
 val counit2_Int_Vset_subset = standard
         (counit2_Int_Vset_subset_lemma RS spec RS spec RS mp);
 
-Goal "!!x y. [| x: counit2;  y: counit2 |] ==> x=y";
+Goal "[| x: counit2;  y: counit2 |] ==> x=y";
 by (rtac equalityI 1);
 by (REPEAT (ares_tac [conjI, counit2_Int_Vset_subset RS Int_Vset_subset] 1));
 qed "counit2_implies_equal";

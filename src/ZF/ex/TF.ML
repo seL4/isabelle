@@ -216,7 +216,7 @@ by (rtac (major RS (tree_forest.mutual_induct RS conjunct2 RS spec RSN (2,rev_mp
 by (REPEAT (ares_tac (TrueI::prems) 1));
 qed "forest_induct";
 
-Goal "!!f A. f: forest(A) ==> TF_of_list(list_of_TF(f)) = f";
+Goal "f: forest(A) ==> TF_of_list(list_of_TF(f)) = f";
 by (etac forest_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "forest_iso";
@@ -229,7 +229,7 @@ qed "tree_list_iso";
 
 (** theorems about TF_map **)
 
-Goal "!!z A. z: tree_forest(A) ==> TF_map(%u. u, z) = z";
+Goal "z: tree_forest(A) ==> TF_map(%u. u, z) = z";
 by (etac tree_forest.induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "TF_map_ident";
@@ -256,7 +256,7 @@ qed "TF_size_length";
 
 (** theorems about TF_preorder **)
 
-Goal "!!z A. z: tree_forest(A) ==> \
+Goal "z: tree_forest(A) ==> \
 \                      TF_preorder(TF_map(h,z)) = map(h, TF_preorder(z))";
 by (etac tree_forest.induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [map_app_distrib])));

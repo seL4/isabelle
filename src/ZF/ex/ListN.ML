@@ -11,7 +11,7 @@ Research Report 92-49, LIP, ENS Lyon.  Dec 1992.
 
 open ListN;
 
-Goal "!!l. l:list(A) ==> <length(l),l> : listn(A)";
+Goal "l:list(A) ==> <length(l),l> : listn(A)";
 by (etac list.induct 1);
 by (ALLGOALS Asm_simp_tac);
 by (REPEAT (ares_tac listn.intrs 1));
@@ -29,7 +29,7 @@ by (rtac equality_iffI 1);
 by (simp_tac (simpset() addsimps [listn_iff,separation,image_singleton_iff]) 1);
 qed "listn_image_eq";
 
-Goalw listn.defs "!!A B. A<=B ==> listn(A) <= listn(B)";
+Goalw listn.defs "A<=B ==> listn(A) <= listn(B)";
 by (rtac lfp_mono 1);
 by (REPEAT (rtac listn.bnd_mono 1));
 by (REPEAT (ares_tac ([univ_mono,Sigma_mono,list_mono] @ basic_monos) 1));

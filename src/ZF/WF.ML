@@ -136,24 +136,24 @@ qed "wfI";
 
 (*** Properties of well-founded relations ***)
 
-Goal "!!r. wf(r) ==> <a,a> ~: r";
+Goal "wf(r) ==> <a,a> ~: r";
 by (wf_ind_tac "a" [] 1);
 by (Blast_tac 1);
 qed "wf_not_refl";
 
-Goal "!!r. [| wf(r);  <a,x>:r;  <x,a>:r |] ==> P";
+Goal "[| wf(r);  <a,x>:r;  <x,a>:r |] ==> P";
 by (subgoal_tac "ALL x. <a,x>:r --> <x,a>:r --> P" 1);
 by (wf_ind_tac "a" [] 2);
 by (Blast_tac 2);
 by (Blast_tac 1);
 qed "wf_asym";
 
-Goal "!!r. [| wf[A](r); a: A |] ==> <a,a> ~: r";
+Goal "[| wf[A](r); a: A |] ==> <a,a> ~: r";
 by (wf_on_ind_tac "a" [] 1);
 by (Blast_tac 1);
 qed "wf_on_not_refl";
 
-Goal "!!r. [| wf[A](r);  <a,b>:r;  <b,a>:r;  a:A;  b:A |] ==> P";
+Goal "[| wf[A](r);  <a,b>:r;  <b,a>:r;  a:A;  b:A |] ==> P";
 by (subgoal_tac "ALL y:A. <a,y>:r --> <y,a>:r --> P" 1);
 by (wf_on_ind_tac "a" [] 2);
 by (Blast_tac 2);
@@ -185,7 +185,7 @@ by (cut_facts_tac [subs] 1);
 by (blast_tac (claset() addEs [tranclE]) 1);
 qed "wf_on_trancl";
 
-Goal "!!r. wf(r) ==> wf(r^+)";
+Goal "wf(r) ==> wf(r^+)";
 by (asm_full_simp_tac (simpset() addsimps [wf_iff_wf_on_field]) 1);
 by (rtac (trancl_type RS field_rel_subset RSN (2, wf_on_subset_A)) 1);
 by (etac wf_on_trancl 1);

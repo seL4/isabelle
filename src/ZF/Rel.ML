@@ -29,7 +29,7 @@ val prems = goalw Rel.thy [sym_def]
 by (REPEAT (ares_tac (prems @ [allI,impI]) 1));
 qed "symI";
 
-Goalw [sym_def] "!!r. [| sym(r); <x,y>: r |]  ==>  <y,x>: r";
+Goalw [sym_def] "[| sym(r); <x,y>: r |]  ==>  <y,x>: r";
 by (Blast_tac 1);
 qed "symE";
 

@@ -38,14 +38,14 @@ by (rtac minor 1);
 by (rtac subset_refl 1);
 qed "bnd_mono_subset";
 
-Goal "!!A B. [| bnd_mono(D,h);  A <= D;  B <= D |] ==> \
+Goal "[| bnd_mono(D,h);  A <= D;  B <= D |] ==> \
 \                         h(A) Un h(B) <= h(A Un B)";
 by (REPEAT (ares_tac [Un_upper1, Un_upper2, Un_least] 1
      ORELSE etac bnd_monoD2 1));
 qed "bnd_mono_Un";
 
 (*Useful??*)
-Goal "!!A B. [| bnd_mono(D,h);  A <= D;  B <= D |] ==> \
+Goal "[| bnd_mono(D,h);  A <= D;  B <= D |] ==> \
 \                        h(A Int B) <= h(A) Int h(B)";
 by (REPEAT (ares_tac [Int_lower1, Int_lower2, Int_greatest] 1
      ORELSE etac bnd_monoD2 1));
@@ -244,7 +244,7 @@ qed "def_gfp_Tarski";
 (*** Coinduction rules for greatest fixed points ***)
 
 (*weak version*)
-Goal "!!X h. [| a: X;  X <= h(X);  X <= D |] ==> a : gfp(D,h)";
+Goal "[| a: X;  X <= h(X);  X <= D |] ==> a : gfp(D,h)";
 by (REPEAT (ares_tac [gfp_upperbound RS subsetD] 1));
 qed "weak_coinduct";
 
