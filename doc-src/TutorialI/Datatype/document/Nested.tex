@@ -13,6 +13,7 @@ Consider the following model of terms
 where function symbols can be applied to a list of arguments:%
 \end{isamarkuptext}%
 \isamarkuptrue%
+\isanewline
 \isamarkupfalse%
 \isacommand{datatype}\ {\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}{\isachardoublequote}term{\isachardoublequote}\ {\isacharequal}\ Var\ {\isacharprime}v\ {\isacharbar}\ App\ {\isacharprime}f\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term\ list{\isachardoublequote}\isamarkupfalse%
 %
@@ -126,6 +127,7 @@ that the suggested equation holds:%
 \isamarkupfalse%
 \isamarkupfalse%
 \isanewline
+\isanewline
 \isamarkupfalse%
 \isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}subst\ s\ {\isacharparenleft}App\ f\ ts{\isacharparenright}\ {\isacharequal}\ App\ f\ {\isacharparenleft}map\ {\isacharparenleft}subst\ s{\isacharparenright}\ ts{\isacharparenright}{\isachardoublequote}\isanewline
 \isamarkupfalse%
@@ -159,6 +161,7 @@ constructor \isa{Sum} in \S\ref{sec:datatype-mut-rec} could take a list of
 expressions as its argument: \isa{Sum}~\isa{{\isachardoublequote}{\isacharprime}a\ aexp\ list{\isachardoublequote}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
+\isanewline
 \isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:

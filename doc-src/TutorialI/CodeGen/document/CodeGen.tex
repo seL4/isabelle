@@ -113,6 +113,7 @@ First, we must prove a lemma about executing the concatenation of two
 instruction sequences:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
+\isanewline
 \isamarkupfalse%
 \isacommand{lemma}\ exec{\isacharunderscore}app{\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\isanewline
 \ \ {\isachardoublequote}{\isasymforall}vs{\isachardot}\ exec\ {\isacharparenleft}xs{\isacharat}ys{\isacharparenright}\ s\ vs\ {\isacharequal}\ exec\ ys\ s\ {\isacharparenleft}exec\ xs\ s\ vs{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
@@ -136,6 +137,7 @@ rewritten as%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isamarkupfalse%
+\isanewline
 \isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharcomma}\ simp{\isacharunderscore}all\ split{\isacharcolon}\ instr{\isachardot}split{\isacharparenright}\isamarkupfalse%
 \isamarkupfalse%
@@ -153,6 +155,7 @@ its instance.%
 \isamarkuptrue%
 \isamarkupfalse%
 \isamarkupfalse%
+\isanewline
 \isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:

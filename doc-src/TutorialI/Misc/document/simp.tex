@@ -217,6 +217,7 @@ can be proved by simplification. Thus we could have proved the lemma outright by
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isamarkupfalse%
+\isanewline
 \isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}\ xor{\isacharunderscore}def{\isacharparenright}\isamarkupfalse%
 \isamarkupfalse%
@@ -340,6 +341,7 @@ This splitting idea generalizes from \isa{if} to \sdx{case}.
 Let us simplify a case analysis over lists:\index{*list.split (theorem)}%
 \end{isamarkuptxt}%
 \isamarkuptrue%
+\isanewline
 \isamarkupfalse%
 \isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ zs\ {\isacharbar}\ y{\isacharhash}ys\ {\isasymRightarrow}\ y{\isacharhash}{\isacharparenleft}ys{\isacharat}zs{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ xs{\isacharat}zs{\isachardoublequote}\isanewline
 \isamarkupfalse%
@@ -360,6 +362,7 @@ lemma above can be proved in one step by%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isamarkupfalse%
+\isanewline
 \isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}simp\ split{\isacharcolon}\ list{\isachardot}split{\isacharparenright}\isamarkupfalse%
 \isamarkupfalse%
@@ -381,6 +384,7 @@ The \isa{split} attribute can be removed with the \isa{del} modifier,
 either locally%
 \end{isamarkuptext}%
 \isamarkuptrue%
+\isanewline
 \isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}simp\ split\ del{\isacharcolon}\ split{\isacharunderscore}if{\isacharparenright}\isamarkupfalse%
 \isamarkupfalse%
@@ -489,6 +493,7 @@ rules.  Thus it is advisable to reset it:%
 \isamarkuptrue%
 \isacommand{ML}\ {\isachardoublequote}reset\ trace{\isacharunderscore}simp{\isachardoublequote}\isanewline
 \isamarkupfalse%
+\isanewline
 \isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:

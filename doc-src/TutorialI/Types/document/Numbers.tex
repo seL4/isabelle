@@ -218,8 +218,11 @@ a\ mod\ {\isadigit{0}}\ {\isacharequal}\ a%
 \rulename{dvd_add}
 
 For the integers, I'd list a few theorems that somehow involve negative 
-numbers.  
-
+numbers.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
 Division, remainder of negatives
 
 
@@ -287,6 +290,31 @@ a\ {\isacharasterisk}\ b\ mod\ c\ {\isacharequal}\ a\ {\isacharasterisk}\ {\isac
 \isacommand{lemma}\ {\isachardoublequote}abs\ {\isacharparenleft}{\isadigit{2}}{\isacharasterisk}x{\isacharparenright}\ {\isacharequal}\ {\isadigit{2}}\ {\isacharasterisk}\ abs\ {\isacharparenleft}x\ {\isacharcolon}{\isacharcolon}\ int{\isacharparenright}{\isachardoublequote}\isanewline
 \isamarkupfalse%
 \isacommand{by}\ {\isacharparenleft}simp\ add{\isacharcolon}\ zabs{\isacharunderscore}def{\isacharparenright}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Induction rules for the Integers
+
+\begin{isabelle}%
+{\isasymlbrakk}k\ {\isasymle}\ i{\isacharsemicolon}\ P\ k{\isacharsemicolon}\ {\isasymAnd}i{\isachardot}\ {\isasymlbrakk}k\ {\isasymle}\ i{\isacharsemicolon}\ P\ i{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}i\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ i%
+\end{isabelle}
+\rulename{int_ge_induct}
+
+\begin{isabelle}%
+{\isasymlbrakk}k\ {\isacharless}\ i{\isacharsemicolon}\ P\ {\isacharparenleft}k\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}{\isacharsemicolon}\ {\isasymAnd}i{\isachardot}\ {\isasymlbrakk}k\ {\isacharless}\ i{\isacharsemicolon}\ P\ i{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}i\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ i%
+\end{isabelle}
+\rulename{int_gr_induct}
+
+\begin{isabelle}%
+{\isasymlbrakk}i\ {\isasymle}\ k{\isacharsemicolon}\ P\ k{\isacharsemicolon}\ {\isasymAnd}i{\isachardot}\ {\isasymlbrakk}i\ {\isasymle}\ k{\isacharsemicolon}\ P\ i{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}i\ {\isacharminus}\ {\isadigit{1}}{\isacharparenright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ i%
+\end{isabelle}
+\rulename{int_le_induct}
+
+\begin{isabelle}%
+{\isasymlbrakk}i\ {\isacharless}\ k{\isacharsemicolon}\ P\ {\isacharparenleft}k\ {\isacharminus}\ {\isadigit{1}}{\isacharparenright}{\isacharsemicolon}\ {\isasymAnd}i{\isachardot}\ {\isasymlbrakk}i\ {\isacharless}\ k{\isacharsemicolon}\ P\ i{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}i\ {\isacharminus}\ {\isadigit{1}}{\isacharparenright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ i%
+\end{isabelle}
+\rulename{int_less_induct}%
+\end{isamarkuptext}%
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 REALS
