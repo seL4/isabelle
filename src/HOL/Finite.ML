@@ -186,6 +186,12 @@ by (rtac finite 1);
 by (rtac finite 1);
 qed "finite_Prod";
 
+Goal "finite (UNIV :: unit set)";
+by (subgoal_tac "UNIV = {()}" 1);
+by (etac ssubst 1);
+by Auto_tac;
+qed "finite_unit";
+
 (** The powerset of a finite set **)
 
 Goal "finite(Pow A) ==> finite A";
