@@ -8,17 +8,12 @@ Class instance of  ++ for class pcpo
 
 Ssum3 = Ssum2 +
 
-arities "++" :: (pcpo,pcpo)pcpo                 (* Witness ssum2.ML *)
+instance "++" :: (pcpo,pcpo)pcpo (least_ssum,cpo_ssum)
 
 consts  
         sinl    :: "'a -> ('a++'b)" 
         sinr    :: "'b -> ('a++'b)" 
         sswhen  :: "('a->'c)->('b->'c)->('a ++ 'b)-> 'c"
-
-rules 
-
-inst_ssum_pcpo  "(UU::'a++'b) = Isinl(UU)"
-
 
 defs
 

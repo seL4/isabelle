@@ -8,9 +8,5 @@ Top theory for HOLCF system
 
 *)
 
-HOLCF = Lift3 +
-
-default pcpo
-
-end
+HOLCF = One + Tr
 

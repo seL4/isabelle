@@ -1,22 +1,31 @@
+(*  Title:      HOLCF/Pcpo.thy
+    ID:         $Id$
+    Author:     Franz Regensburger
+    Copyright   1993 Technische Universitaet Muenchen
+
+introduction of the classes cpo and pcpo 
+*)
 Pcpo = Porder +
 
-classes pcpo < po
+(* The class cpo of chain complete partial orders *)
+(* ********************************************** *)
+axclass cpo < po
+        (* class axiom: *)
+  cpo   "is_chain S ==> ? x. range(S) <<| (x::'a::po)" 
 
-arities void :: pcpo
+(* The class pcpo of pointed cpos *)
+(* ****************************** *)
+axclass pcpo < cpo
+
+  least         "? x.!y.x<<y"
 
 consts
-
-  UU		:: "'a::pcpo"        
+  UU            :: "'a::pcpo"        
 
 syntax (symbols)
+  UU            :: "'a::pcpo"                           ("\\<bottom>")
 
-  UU		:: "'a::pcpo"				("\\<bottom>")
-
-rules
-
-  minimal	"UU << x"       
-  cpo		"is_chain S ==> ? x. range(S) <<| (x::'a::pcpo)" 
-
-inst_void_pcpo  "(UU::void) = UU_void"
+defs
+  UU_def        "UU == @x.!y.x<<y"       
 
 end 

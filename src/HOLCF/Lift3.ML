@@ -9,6 +9,13 @@ Theorems for Lift3.thy
 
 open Lift3;
 
+(* for compatibility with old HOLCF-Version *)
+qed_goal "inst_lift_pcpo" thy "UU = Undef"
+ (fn prems => 
+        [
+        (simp_tac (HOL_ss addsimps [UU_def,UU_lift_def]) 1)
+        ]);
+
 (* ----------------------------------------------------------- *)
 (*                        From Undef to UU		       *)
 (* ----------------------------------------------------------- *)
@@ -117,8 +124,6 @@ by (cut_facts_tac prems 1);
 by (fast_tac (HOL_cs addSDs [DefE]) 1);
 val DefE2 = result();
 
-
-
 (* ---------------------------------------------------------- *)
 (*                          Lift is flat                     *)
 (* ---------------------------------------------------------- *)
@@ -127,7 +132,7 @@ goalw Lift3.thy [flat_def] "flat (x::'a lift)";
 by (simp_tac (!simpset addsimps [less_lift]) 1);
 val flat_lift = result();
 
-
+bind_thm("ax_flat_lift",flat_lift RS flatE);
 
 
 (* ---------------------------------------------------------- *)
@@ -236,90 +241,5 @@ Addsimps 	   [cont_flift1_arg,cont_flift2_arg,
 fun cont_tac  i = resolve_tac cont_lemmas2 i;
 fun cont_tacR i = simp_tac (!simpset addsimps [flift1_def,flift2_def]) i THEN
 		  REPEAT (cont_tac i);
-
-(* --------------------------------------------------------- *)
-(*                Admissibility tactic and tricks            *)
-(* --------------------------------------------------------- *)
-
-
-goal Lift3.thy "x~=FF = (x=TT|x=UU)";
-by (res_inst_tac [("p","x")] trE 1);
-  by (TRYALL (Asm_full_simp_tac));
-qed"adm_trick_1";
-
-goal Lift3.thy "x~=TT = (x=FF|x=UU)";
-by (res_inst_tac [("p","x")] trE 1);
-  by (TRYALL (Asm_full_simp_tac));
-qed"adm_trick_2";
-
-
-val adm_tricks = [adm_trick_1,adm_trick_2];
-
-(*val adm_tac = (fn i => ((resolve_tac adm_lemmas i)));*)
-(*val adm_tacR = (fn i => (REPEAT (adm_tac i)));*)
-(*val adm_cont_tac = (fn i => ((adm_tacR i) THEN (cont_tacR i)));*)
-
-(* ----------------------------------------------------------------- *)
-(*     Relations between domains and terms using lift constructs     *)
-(* ----------------------------------------------------------------- *)
-
-goal Lift3.thy
-"!!t.[|t~=UU|]==> ((t andalso s)~=FF)=(t~=FF & s~=FF)";
-by (rtac iffI 1);
-(* 1 *)
-by (res_inst_tac [("p","t")] trE 1);
-by (fast_tac HOL_cs 1);
-by (res_inst_tac [("p","s")] trE 1);
-by (Asm_full_simp_tac 1);
-by (Asm_full_simp_tac 1);
-by (subgoal_tac "(t andalso s) = FF" 1);
-by (fast_tac HOL_cs 1);
-by (Asm_full_simp_tac 1);
-by (res_inst_tac [("p","s")] trE 1);
-by (subgoal_tac "(t andalso s) = FF" 1);
-by (fast_tac HOL_cs 1);
-by (Asm_full_simp_tac 1);
-by (subgoal_tac "(t andalso s) = FF" 1);
-by (fast_tac HOL_cs 1);
-by (Asm_full_simp_tac 1);
-by (subgoal_tac "(t andalso s) = FF" 1);
-by (fast_tac HOL_cs 1);
-by (Asm_full_simp_tac 1);
-(* 2*)
-by (res_inst_tac [("p","t")] trE 1);
-by (fast_tac HOL_cs 1);
-by (Asm_full_simp_tac 1);
-by (fast_tac HOL_cs 1);
-qed"andalso_and";
-
-
-goal Lift3.thy "blift x ~=UU";
-by (simp_tac (!simpset addsimps [blift_def])1);
-by (case_tac "x" 1);
- by (Asm_full_simp_tac 1);
-by (Asm_full_simp_tac 1);
-qed"blift_not_UU";
-
-goal Lift3.thy "(blift x ~=FF)= x";
-by (simp_tac (!simpset addsimps [blift_def]) 1);
-by (case_tac "x" 1); 
- by (Asm_full_simp_tac 1);
-by (Asm_full_simp_tac 1);
-qed"blift_and_bool";
-
-goal Lift3.thy "plift P`(Def y) = blift (P y)";
-by (simp_tac (!simpset addsimps [plift_def,flift1_def]) 1);
-qed"plift2blift";
-
-goal Lift3.thy 
-  "(If blift P then A else B fi)= (if P then A else B)";
-by (simp_tac (!simpset addsimps [blift_def]) 1);
-by (res_inst_tac [("P","P"),("Q","P")] impCE 1);
-by (fast_tac HOL_cs 1);
-by (REPEAT (Asm_full_simp_tac 1));
-qed"If_and_if";
-
-
-Addsimps [plift2blift,If_and_if,blift_not_UU,blift_and_bool];
 
 simpset := !simpset addsolver (K (DEPTH_SOLVE_1 o cont_tac));

@@ -1,8 +1,7 @@
-(*  Title:      HOLCF/cprod3.thy
+(*  Title:      HOLCF/Cprod3.thy
     ID:         $Id$
     Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
-
 
 Class instance of  * for class pcpo
 
@@ -10,7 +9,7 @@ Class instance of  * for class pcpo
 
 Cprod3 = Cprod2 +
 
-arities "*" :: (pcpo,pcpo)pcpo                  (* Witness cprod2.ML *)
+instance "*" :: (pcpo,pcpo)pcpo   (least_cprod,cpo_cprod)
 
 consts  
         cpair        :: "'a -> 'b -> ('a*'b)" (* continuous  pairing *)
@@ -21,14 +20,9 @@ consts
 syntax  
         "@ctuple"    :: "['a, args] => 'a * 'b"         ("(1<_,/ _>)")
 
-
 translations 
         "<x, y, z>"   == "<x, <y, z>>"
         "<x, y>"      == "cpair`x`y"
-
-rules 
-
-inst_cprod_pcpo "(UU::'a*'b) = (UU,UU)"
 
 defs
 cpair_def       "cpair  == (LAM x y.(x,y))"
@@ -69,7 +63,6 @@ translations
 defs
   (* Misc Definitions *)
   CLet_def       "CLet == LAM s. LAM f.f`s"
-
 
 syntax
   (* syntax for LAM <x,y,z>.E *)

@@ -1,20 +1,18 @@
-(*  Title:      HOLCF/porder.thy
+(*  Title:      HOLCF/Porder.thy
     ID:         $Id$
     Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
-Lemmas for theory porder.thy 
+Lemmas for theory Porder.thy 
 *)
 
-open Porder0;
 open Porder;
-
 
 (* ------------------------------------------------------------------------ *)
 (* the reverse law of anti--symmetrie of <<                                 *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "antisym_less_inverse" Porder.thy "x=y ==> x << y & y << x"
+qed_goal "antisym_less_inverse" thy "x=y ==> x << y & y << x"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -24,7 +22,7 @@ qed_goal "antisym_less_inverse" Porder.thy "x=y ==> x << y & y << x"
         ]);
 
 
-qed_goal "box_less" Porder.thy 
+qed_goal "box_less" thy 
 "[| a << b; c << a; b << d|] ==> c << d"
  (fn prems =>
         [
@@ -38,7 +36,7 @@ qed_goal "box_less" Porder.thy
 (* lubs are unique                                                          *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "unique_lub " Porder.thy [is_lub, is_ub] 
+qed_goalw "unique_lub "thy [is_lub, is_ub] 
         "[| S <<| x ; S <<| y |] ==> x=y"
 ( fn prems =>
         [
@@ -54,8 +52,7 @@ qed_goalw "unique_lub " Porder.thy [is_lub, is_ub]
 (* chains are monotone functions                                            *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "chain_mono" Porder.thy [is_chain]
-        " is_chain(F) ==> x<y --> F(x)<<F(y)"
+qed_goalw "chain_mono" thy [is_chain] "is_chain F ==> x<y --> F x<<F y"
 ( fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -74,8 +71,7 @@ qed_goalw "chain_mono" Porder.thy [is_chain]
         (atac 1)
         ]);
 
-qed_goal "chain_mono3"  Porder.thy 
-        "[| is_chain(F); x <= y |] ==> F(x) << F(y)"
+qed_goal "chain_mono3" thy "[| is_chain F; x <= y |] ==> F x << F y"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -92,7 +88,7 @@ qed_goal "chain_mono3"  Porder.thy
 (* The range of a chain is a totaly ordered     <<                           *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "chain_is_tord" Porder.thy [is_tord] 
+qed_goalw "chain_is_tord" thy [is_tord] 
 "!!F. is_chain(F) ==> is_tord(range(F))"
  (fn _ =>
         [
@@ -103,8 +99,9 @@ qed_goalw "chain_is_tord" Porder.thy [is_tord]
 (* ------------------------------------------------------------------------ *)
 (* technical lemmas about lub and is_lub                                    *)
 (* ------------------------------------------------------------------------ *)
+bind_thm("lub",lub_def RS meta_eq_to_obj_eq);
 
-qed_goal "lubI" Porder.thy "(? x. M <<| x) ==> M <<| lub(M)"
+qed_goal "lubI" thy "? x. M <<| x ==> M <<| lub(M)"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -112,15 +109,14 @@ qed_goal "lubI" Porder.thy "(? x. M <<| x) ==> M <<| lub(M)"
         (etac (select_eq_Ex RS iffD2) 1)
         ]);
 
-qed_goal "lubE" Porder.thy " M <<| lub(M) ==>  ? x. M <<| x"
+qed_goal "lubE" thy "M <<| lub(M) ==> ? x. M <<| x"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
         (etac exI 1)
         ]);
 
-qed_goal "lub_eq" Porder.thy 
-        "(? x. M <<| x)  = M <<| lub(M)"
+qed_goal "lub_eq" thy "(? x. M <<| x)  = M <<| lub(M)"
 (fn prems => 
         [
         (stac lub 1),
@@ -129,7 +125,7 @@ qed_goal "lub_eq" Porder.thy
         ]);
 
 
-qed_goal "thelubI"  Porder.thy " M <<| l ==> lub(M) = l"
+qed_goal "thelubI" thy "M <<| l ==> lub(M) = l"
 (fn prems =>
         [
         (cut_facts_tac prems 1), 
@@ -144,7 +140,7 @@ qed_goal "thelubI"  Porder.thy " M <<| l ==> lub(M) = l"
 (* access to some definition as inference rule                              *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "is_lubE"  Porder.thy [is_lub]
+qed_goalw "is_lubE" thy [is_lub]
         "S <<| x  ==> S <| x & (! u. S <| u  --> x << u)"
 (fn prems =>
         [
@@ -152,7 +148,7 @@ qed_goalw "is_lubE"  Porder.thy [is_lub]
         (atac 1)
         ]);
 
-qed_goalw "is_lubI"  Porder.thy [is_lub]
+qed_goalw "is_lubI" thy [is_lub]
         "S <| x & (! u. S <| u  --> x << u) ==> S <<| x"
 (fn prems =>
         [
@@ -160,15 +156,13 @@ qed_goalw "is_lubI"  Porder.thy [is_lub]
         (atac 1)
         ]);
 
-qed_goalw "is_chainE" Porder.thy [is_chain] 
- "is_chain(F) ==> ! i. F(i) << F(Suc(i))"
+qed_goalw "is_chainE" thy [is_chain] "is_chain F ==> !i. F(i) << F(Suc(i))"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
         (atac 1)]);
 
-qed_goalw "is_chainI" Porder.thy [is_chain] 
- "! i. F(i) << F(Suc(i)) ==> is_chain(F) "
+qed_goalw "is_chainI" thy [is_chain] "!i. F i << F(Suc i) ==> is_chain F"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -178,8 +172,7 @@ qed_goalw "is_chainI" Porder.thy [is_chain]
 (* technical lemmas about (least) upper bounds of chains                    *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "ub_rangeE"  Porder.thy [is_ub]
-        "range(S) <| x  ==> ! i. S(i) << x"
+qed_goalw "ub_rangeE" thy [is_ub] "range S <| x  ==> !i. S(i) << x"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -189,8 +182,7 @@ qed_goalw "ub_rangeE"  Porder.thy [is_ub]
         (rtac rangeI 1)
         ]);
 
-qed_goalw "ub_rangeI" Porder.thy [is_ub]
-        "! i. S(i) << x  ==> range(S) <| x"
+qed_goalw "ub_rangeI" thy [is_ub] "!i. S i << x  ==> range S <| x"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -207,85 +199,11 @@ bind_thm ("is_lub_lub", is_lubE RS conjunct2 RS spec RS mp);
 (* [| ?S3 <<| ?x3; ?S3 <| ?x1 |] ==> ?x3 << ?x1                             *)
 
 (* ------------------------------------------------------------------------ *)
-(* Prototype lemmas for class pcpo                                          *)
-(* ------------------------------------------------------------------------ *)
-
-(* ------------------------------------------------------------------------ *)
-(* a technical argument about << on void                                    *)
-(* ------------------------------------------------------------------------ *)
-
-qed_goal "less_void" Porder.thy "((u1::void) << u2) = (u1 = u2)"
-(fn prems =>
-        [
-        (stac inst_void_po 1),
-        (rewtac less_void_def),
-        (rtac iffI 1),
-        (rtac injD 1),
-        (atac 2),
-        (rtac inj_inverseI 1),
-        (rtac Rep_Void_inverse 1),
-        (etac arg_cong 1)
-        ]);
-
-(* ------------------------------------------------------------------------ *)
-(* void is pointed. The least element is UU_void                            *)
-(* ------------------------------------------------------------------------ *)
-
-qed_goal "minimal_void" Porder.thy      "UU_void << x"
-(fn prems =>
-        [
-        (stac inst_void_po 1),
-        (rewtac less_void_def),
-        (simp_tac (!simpset addsimps [unique_void]) 1)
-        ]);
-
-(* ------------------------------------------------------------------------ *)
-(* UU_void is the trivial lub of all chains in void                         *)
-(* ------------------------------------------------------------------------ *)
-
-qed_goalw "lub_void"  Porder.thy [is_lub] "M <<| UU_void"
-(fn prems =>
-        [
-        (rtac conjI 1),
-        (rewtac is_ub),
-        (strip_tac 1),
-        (stac inst_void_po 1),
-        (rewtac less_void_def),
-        (simp_tac (!simpset addsimps [unique_void]) 1),
-        (strip_tac 1),
-        (rtac minimal_void 1)
-        ]);
-
-(* ------------------------------------------------------------------------ *)
-(* lub(?M) = UU_void                                                        *)
-(* ------------------------------------------------------------------------ *)
-
-bind_thm ("thelub_void", lub_void RS thelubI);
-
-(* ------------------------------------------------------------------------ *)
-(* void is a cpo wrt. countable chains                                      *)
-(* ------------------------------------------------------------------------ *)
-
-qed_goal "cpo_void" Porder.thy
-        "is_chain((S::nat=>void)) ==> ? x. range(S) <<| x "
-(fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (res_inst_tac [("x","UU_void")] exI 1),
-        (rtac lub_void 1)
-        ]);
-
-(* ------------------------------------------------------------------------ *)
-(* end of prototype lemmas for class pcpo                                   *)
-(* ------------------------------------------------------------------------ *)
-
-
-(* ------------------------------------------------------------------------ *)
 (* results about finite chains                                              *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "lub_finch1" Porder.thy [max_in_chain_def]
-        "[| is_chain(C) ; max_in_chain i C|] ==> range(C) <<| C(i)"
+qed_goalw "lub_finch1" thy [max_in_chain_def]
+        "[| is_chain C; max_in_chain i C|] ==> range C <<| C i"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -306,7 +224,7 @@ qed_goalw "lub_finch1" Porder.thy [max_in_chain_def]
         (etac (ub_rangeE RS spec) 1)
         ]);     
 
-qed_goalw "lub_finch2" Porder.thy [finite_chain_def]
+qed_goalw "lub_finch2" thy [finite_chain_def]
         "finite_chain(C) ==> range(C) <<| C(@ i. max_in_chain i C)"
  (fn prems=>
         [
@@ -318,7 +236,7 @@ qed_goalw "lub_finch2" Porder.thy [finite_chain_def]
         ]);
 
 
-qed_goal "bin_chain" Porder.thy "x<<y ==> is_chain (%i. if i=0 then x else y)"
+qed_goal "bin_chain" thy "x<<y ==> is_chain (%i. if i=0 then x else y)"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -330,7 +248,7 @@ qed_goal "bin_chain" Porder.thy "x<<y ==> is_chain (%i. if i=0 then x else y)"
         (rtac refl_less 1)
         ]);
 
-qed_goalw "bin_chainmax" Porder.thy [max_in_chain_def,le_def]
+qed_goalw "bin_chainmax" thy [max_in_chain_def,le_def]
         "x<<y ==> max_in_chain (Suc 0) (%i. if (i=0) then x else y)"
 (fn prems =>
         [
@@ -341,7 +259,7 @@ qed_goalw "bin_chainmax" Porder.thy [max_in_chain_def,le_def]
         (Asm_simp_tac 1)
         ]);
 
-qed_goal "lub_bin_chain" Porder.thy 
+qed_goal "lub_bin_chain" thy 
         "x << y ==> range(%i. if (i=0) then x else y) <<| y"
 (fn prems=>
         [ (cut_facts_tac prems 1),
@@ -356,8 +274,8 @@ qed_goal "lub_bin_chain" Porder.thy
 (* the maximal element in a chain is its lub                                *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "lub_chain_maxelem" Porder.thy
-"[|? i.Y(i)=c;!i.Y(i)<<c|] ==> lub(range(Y)) = c"
+qed_goal "lub_chain_maxelem" thy
+"[|? i.Y i=c;!i.Y i<<c|] ==> lub(range Y) = c"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -375,7 +293,7 @@ qed_goal "lub_chain_maxelem" Porder.thy
 (* the lub of a constant chain is the constant                              *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "lub_const" Porder.thy "range(%x.c) <<| c"
+qed_goal "lub_const" thy "range(%x.c) <<| c"
  (fn prems =>
         [
         (rtac is_lubI 1),

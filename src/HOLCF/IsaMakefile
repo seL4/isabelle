@@ -8,16 +8,19 @@
 
 OUT = $(ISABELLE_OUTPUT_DIR)
 
-THYS = Void.thy Porder.thy Pcpo.thy \
+THYS = Porder.thy Porder0.thy Pcpo.thy \
        Fun1.thy Fun2.thy Fun3.thy \
        Cfun1.thy Cfun2.thy Cfun3.thy Cont.thy \
        Cprod1.thy Cprod2.thy Cprod3.thy \
        Sprod0.thy Sprod1.thy Sprod2.thy Sprod3.thy \
        Ssum0.thy Ssum1.thy Ssum2.thy Ssum3.thy \
-       Up1.thy Up2.thy Up3.thy Fix.thy ccc1.thy One.thy \
-       Tr1.thy Tr2.thy Lift1.thy Lift2.thy Lift2.thy HOLCF.thy
+       Up1.thy Up2.thy Up3.thy Fix.thy ccc1.thy \
+       One.thy Tr.thy\
+       Lift1.thy Lift2.thy Lift3.thy HOLCF.thy 
 
-FILES = ROOT.ML Porder0.thy  $(THYS) $(THYS:.thy=.ML)
+ONLYTHYS = Lift.thy
+
+FILES = ROOT.ML $(THYS) $(ONLYTHYS) $(THYS:.thy=.ML)
 
 $(OUT)/HOLCF: $(OUT)/HOL $(FILES)
 	@$(ISABELLE) -e "make_html := $(ISABELLE_HTML);" -qu -c $(OUT)/HOL HOLCF

@@ -1,9 +1,9 @@
-(*  Title:      HOLCF/ssum1.ML
+(*  Title:      HOLCF/Ssum1.ML
     ID:         $Id$
     Author:     Franz Regensburger
     Copyright   1993  Technische Universitaet Muenchen
 
-Lemmas for theory ssum1.thy
+Lemmas for theory Ssum1.thy
 *)
 
 open Ssum1;
@@ -40,8 +40,8 @@ fun UU_right s1 =
 
 in
 
-val less_ssum1a = prove_goalw Ssum1.thy [less_ssum_def]
-"[|s1=Isinl(x::'a); s2=Isinl(y::'a)|] ==> less_ssum s1 s2 = (x << y)"
+val less_ssum1a = prove_goalw thy [less_ssum_def]
+"[|s1=Isinl(x::'a); s2=Isinl(y::'a)|] ==> less s1 s2 = (x << y)"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -81,8 +81,8 @@ val less_ssum1a = prove_goalw Ssum1.thy [less_ssum_def]
         ]);
 
 
-val less_ssum1b = prove_goalw Ssum1.thy [less_ssum_def]
-"[|s1=Isinr(x::'b); s2=Isinr(y::'b)|] ==> less_ssum s1 s2 = (x << y)"
+val less_ssum1b = prove_goalw thy [less_ssum_def]
+"[|s1=Isinr(x::'b); s2=Isinr(y::'b)|] ==> less s1 s2 = (x << y)"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -123,8 +123,8 @@ val less_ssum1b = prove_goalw Ssum1.thy [less_ssum_def]
         ]);
 
 
-val less_ssum1c = prove_goalw Ssum1.thy [less_ssum_def]
-"[|s1=Isinl(x::'a); s2=Isinr(y::'b)|] ==> less_ssum s1 s2 = ((x::'a) = UU)"
+val less_ssum1c = prove_goalw thy [less_ssum_def]
+"[|s1=Isinl(x::'a); s2=Isinr(y::'b)|] ==> less s1 s2 = ((x::'a) = UU)"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -165,8 +165,8 @@ val less_ssum1c = prove_goalw Ssum1.thy [less_ssum_def]
         ]);
 
 
-val less_ssum1d = prove_goalw Ssum1.thy [less_ssum_def]
-"[|s1=Isinr(x); s2=Isinl(y)|] ==> less_ssum s1 s2 = (x = UU)"
+val less_ssum1d = prove_goalw thy [less_ssum_def]
+"[|s1=Isinr(x); s2=Isinl(y)|] ==> less s1 s2 = (x = UU)"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -212,8 +212,8 @@ end;
 (* optimize lemmas about less_ssum                                          *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "less_ssum2a" Ssum1.thy 
-        "less_ssum (Isinl x) (Isinl y) = (x << y)"
+qed_goal "less_ssum2a" thy 
+        "less (Isinl x) (Isinl y) = (x << y)"
  (fn prems =>
         [
         (rtac less_ssum1a 1),
@@ -221,8 +221,8 @@ qed_goal "less_ssum2a" Ssum1.thy
         (rtac refl 1)
         ]);
 
-qed_goal "less_ssum2b" Ssum1.thy 
-        "less_ssum (Isinr x) (Isinr y) = (x << y)"
+qed_goal "less_ssum2b" thy 
+        "less (Isinr x) (Isinr y) = (x << y)"
  (fn prems =>
         [
         (rtac less_ssum1b 1),
@@ -230,8 +230,8 @@ qed_goal "less_ssum2b" Ssum1.thy
         (rtac refl 1)
         ]);
 
-qed_goal "less_ssum2c" Ssum1.thy 
-        "less_ssum (Isinl x) (Isinr y) = (x = UU)"
+qed_goal "less_ssum2c" thy 
+        "less (Isinl x) (Isinr y) = (x = UU)"
  (fn prems =>
         [
         (rtac less_ssum1c 1),
@@ -239,8 +239,8 @@ qed_goal "less_ssum2c" Ssum1.thy
         (rtac refl 1)
         ]);
 
-qed_goal "less_ssum2d" Ssum1.thy 
-        "less_ssum (Isinr x) (Isinl y) = (x = UU)"
+qed_goal "less_ssum2d" thy 
+        "less (Isinr x) (Isinl y) = (x = UU)"
  (fn prems =>
         [
         (rtac less_ssum1d 1),
@@ -253,7 +253,7 @@ qed_goal "less_ssum2d" Ssum1.thy
 (* less_ssum is a partial order on ++                                     *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "refl_less_ssum" Ssum1.thy "less_ssum p p"
+qed_goal "refl_less_ssum" thy "less (p::'a++'b) p"
  (fn prems =>
         [
         (res_inst_tac [("p","p")] IssumE2 1),
@@ -265,8 +265,8 @@ qed_goal "refl_less_ssum" Ssum1.thy "less_ssum p p"
         (rtac refl_less 1)
         ]);
 
-qed_goal "antisym_less_ssum" Ssum1.thy 
- "[|less_ssum p1 p2; less_ssum p2 p1|] ==> p1=p2"
+qed_goal "antisym_less_ssum" thy 
+ "[|less (p1::'a++'b) p2; less p2 p1|] ==> p1=p2"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -295,8 +295,8 @@ qed_goal "antisym_less_ssum" Ssum1.thy
         (etac (less_ssum2b RS iffD1) 1)
         ]);
 
-qed_goal "trans_less_ssum" Ssum1.thy 
- "[|less_ssum p1 p2; less_ssum p2 p3|] ==> less_ssum p1 p3"
+qed_goal "trans_less_ssum" thy 
+ "[|less (p1::'a++'b) p2; less p2 p3|] ==> less p1 p3"
  (fn prems =>
         [
         (cut_facts_tac prems 1),

@@ -1,55 +1,58 @@
-(*  Title:      HOLCF/ssum2.ML
+(*  Title:      HOLCF/Ssum2.ML
     ID:         $Id$
     Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
-Lemmas for ssum2.thy
+Lemmas for Ssum2.thy
 *)
 
 open Ssum2;
+
+(* for compatibility with old HOLCF-Version *)
+qed_goal "inst_ssum_po" thy "(op <<)=(%s1 s2.@z.\
+\         (! u x.s1=Isinl u & s2=Isinl x --> z = u << x)\
+\        &(! v y.s1=Isinr v & s2=Isinr y --> z = v << y)\
+\        &(! u y.s1=Isinl u & s2=Isinr y --> z = (u = UU))\
+\        &(! v x.s1=Isinr v & s2=Isinl x --> z = (v = UU)))"
+ (fn prems => 
+        [
+        (fold_goals_tac [po_def,less_ssum_def]),
+        (rtac refl 1)
+        ]);
 
 (* ------------------------------------------------------------------------ *)
 (* access to less_ssum in class po                                          *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "less_ssum3a" Ssum2.thy 
-        "(Isinl(x) << Isinl(y)) = (x << y)"
+qed_goal "less_ssum3a" thy "Isinl x << Isinl y = x << y"
  (fn prems =>
         [
-        (stac inst_ssum_po 1),
-        (rtac less_ssum2a 1)
+        (simp_tac (!simpset addsimps [po_def,less_ssum2a]) 1)
         ]);
 
-qed_goal "less_ssum3b" Ssum2.thy 
-        "(Isinr(x) << Isinr(y)) = (x << y)"
+qed_goal "less_ssum3b" thy "Isinr x << Isinr y = x << y"
  (fn prems =>
         [
-        (stac inst_ssum_po 1),
-        (rtac less_ssum2b 1)
+        (simp_tac (!simpset addsimps [po_def,less_ssum2b]) 1)
         ]);
 
-qed_goal "less_ssum3c" Ssum2.thy 
-        "(Isinl(x) << Isinr(y)) = (x = UU)"
+qed_goal "less_ssum3c" thy "Isinl x << Isinr y = (x = UU)"
  (fn prems =>
         [
-        (stac inst_ssum_po 1),
-        (rtac less_ssum2c 1)
+        (simp_tac (!simpset addsimps [po_def,less_ssum2c]) 1)
         ]);
 
-qed_goal "less_ssum3d" Ssum2.thy 
-        "(Isinr(x) << Isinl(y)) = (x = UU)"
+qed_goal "less_ssum3d" thy "Isinr x << Isinl y = (x = UU)"
  (fn prems =>
         [
-        (stac inst_ssum_po 1),
-        (rtac less_ssum2d 1)
+        (simp_tac (!simpset addsimps [po_def,less_ssum2d]) 1)
         ]);
-
 
 (* ------------------------------------------------------------------------ *)
 (* type ssum ++ is pointed                                                  *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "minimal_ssum" Ssum2.thy "Isinl(UU) << s"
+qed_goal "minimal_ssum" thy "Isinl UU << s"
  (fn prems =>
         [
         (res_inst_tac [("p","s")] IssumE2 1),
@@ -62,19 +65,27 @@ qed_goal "minimal_ssum" Ssum2.thy "Isinl(UU) << s"
         (rtac minimal 1)
         ]);
 
+bind_thm ("UU_ssum_def",minimal_ssum RS minimal2UU RS sym);
+
+qed_goal "least_ssum" thy "? x::'a++'b.!y.x<<y"
+(fn prems =>
+        [
+        (res_inst_tac [("x","Isinl UU")] exI 1),
+        (rtac (minimal_ssum RS allI) 1)
+        ]);
 
 (* ------------------------------------------------------------------------ *)
 (* Isinl, Isinr are monotone                                                *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "monofun_Isinl" Ssum2.thy [monofun] "monofun(Isinl)"
+qed_goalw "monofun_Isinl" thy [monofun] "monofun(Isinl)"
  (fn prems =>
         [
         (strip_tac 1),
         (etac (less_ssum3a RS iffD2) 1)
         ]);
 
-qed_goalw "monofun_Isinr" Ssum2.thy [monofun] "monofun(Isinr)"
+qed_goalw "monofun_Isinr" thy [monofun] "monofun(Isinr)"
  (fn prems =>
         [
         (strip_tac 1),
@@ -87,7 +98,7 @@ qed_goalw "monofun_Isinr" Ssum2.thy [monofun] "monofun(Isinr)"
 (* ------------------------------------------------------------------------ *)
 
 
-qed_goalw "monofun_Iwhen1" Ssum2.thy [monofun] "monofun(Iwhen)"
+qed_goalw "monofun_Iwhen1" thy [monofun] "monofun(Iwhen)"
  (fn prems =>
         [
         (strip_tac 1),
@@ -103,7 +114,7 @@ qed_goalw "monofun_Iwhen1" Ssum2.thy [monofun] "monofun(Iwhen)"
         (asm_simp_tac Ssum0_ss 1)
         ]);
 
-qed_goalw "monofun_Iwhen2" Ssum2.thy [monofun] "monofun(Iwhen(f))"
+qed_goalw "monofun_Iwhen2" thy [monofun] "monofun(Iwhen(f))"
  (fn prems =>
         [
         (strip_tac 1),
@@ -117,7 +128,7 @@ qed_goalw "monofun_Iwhen2" Ssum2.thy [monofun] "monofun(Iwhen(f))"
         (etac monofun_cfun_fun 1)
         ]);
 
-qed_goalw "monofun_Iwhen3" Ssum2.thy [monofun] "monofun(Iwhen(f)(g))"
+qed_goalw "monofun_Iwhen3" thy [monofun] "monofun(Iwhen(f)(g))"
  (fn prems =>
         [
         (strip_tac 1),
@@ -158,14 +169,11 @@ qed_goalw "monofun_Iwhen3" Ssum2.thy [monofun] "monofun(Iwhen(f)(g))"
         ]);
 
 
-
-
 (* ------------------------------------------------------------------------ *)
 (* some kind of exhaustion rules for chains in 'a ++ 'b                     *)
 (* ------------------------------------------------------------------------ *)
 
-
-qed_goal "ssum_lemma1" Ssum2.thy 
+qed_goal "ssum_lemma1" thy 
 "[|~(!i.? x.Y(i::nat)=Isinl(x))|] ==> (? i.! x.Y(i)~=Isinl(x))"
  (fn prems =>
         [
@@ -173,7 +181,7 @@ qed_goal "ssum_lemma1" Ssum2.thy
         (fast_tac HOL_cs 1)
         ]);
 
-qed_goal "ssum_lemma2" Ssum2.thy 
+qed_goal "ssum_lemma2" thy 
 "[|(? i.!x.(Y::nat => 'a++'b)(i::nat)~=Isinl(x::'a))|] ==>\
 \   (? i y. (Y::nat => 'a++'b)(i::nat)=Isinr(y::'b) & y~=UU)"
  (fn prems =>
@@ -189,7 +197,7 @@ qed_goal "ssum_lemma2" Ssum2.thy
         ]);
 
 
-qed_goal "ssum_lemma3" Ssum2.thy 
+qed_goal "ssum_lemma3" thy 
 "[|is_chain(Y);(? i x. Y(i)=Isinr(x::'b) & (x::'b)~=UU)|] ==>\
 \ (!i.? y.Y(i)=Isinr(y))"
  (fn prems =>
@@ -222,7 +230,7 @@ qed_goal "ssum_lemma3" Ssum2.thy
         (atac 1)
         ]);
 
-qed_goal "ssum_lemma4" Ssum2.thy 
+qed_goal "ssum_lemma4" thy 
 "is_chain(Y) ==> (!i.? x.Y(i)=Isinl(x))|(!i.? y.Y(i)=Isinr(y))"
  (fn prems =>
         [
@@ -240,7 +248,7 @@ qed_goal "ssum_lemma4" Ssum2.thy
 (* restricted surjectivity of Isinl                                         *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "ssum_lemma5" Ssum2.thy 
+qed_goal "ssum_lemma5" thy 
 "z=Isinl(x)==> Isinl((Iwhen (LAM x.x) (LAM y.UU))(z)) = z"
  (fn prems =>
         [
@@ -255,7 +263,7 @@ qed_goal "ssum_lemma5" Ssum2.thy
 (* restricted surjectivity of Isinr                                         *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "ssum_lemma6" Ssum2.thy 
+qed_goal "ssum_lemma6" thy 
 "z=Isinr(x)==> Isinr((Iwhen (LAM y.UU) (LAM x.x))(z)) = z"
  (fn prems =>
         [
@@ -270,7 +278,7 @@ qed_goal "ssum_lemma6" Ssum2.thy
 (* technical lemmas                                                         *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "ssum_lemma7" Ssum2.thy 
+qed_goal "ssum_lemma7" thy 
 "[|Isinl(x) << z; x~=UU|] ==> ? y.z=Isinl(y) & y~=UU"
  (fn prems =>
         [
@@ -288,7 +296,7 @@ qed_goal "ssum_lemma7" Ssum2.thy
         (atac 1)
         ]);
 
-qed_goal "ssum_lemma8" Ssum2.thy 
+qed_goal "ssum_lemma8" thy 
 "[|Isinr(x) << z; x~=UU|] ==> ? y.z=Isinr(y) & y~=UU"
  (fn prems =>
         [
@@ -308,7 +316,7 @@ qed_goal "ssum_lemma8" Ssum2.thy
 (* the type 'a ++ 'b is a cpo in three steps                                *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "lub_ssum1a" Ssum2.thy 
+qed_goal "lub_ssum1a" thy 
 "[|is_chain(Y);(!i.? x.Y(i)=Isinl(x))|] ==>\
 \ range(Y) <<|\
 \ Isinl(lub(range(%i.(Iwhen (LAM x.x) (LAM y.UU))(Y i))))"
@@ -349,7 +357,7 @@ qed_goal "lub_ssum1a" Ssum2.thy
         ]);
 
 
-qed_goal "lub_ssum1b" Ssum2.thy 
+qed_goal "lub_ssum1b" thy 
 "[|is_chain(Y);(!i.? x.Y(i)=Isinr(x))|] ==>\
 \ range(Y) <<|\
 \ Isinr(lub(range(%i.(Iwhen (LAM y.UU) (LAM x.x))(Y i))))"
@@ -404,7 +412,7 @@ bind_thm ("thelub_ssum1b", lub_ssum1b RS thelubI);
  (lub (range (%i. Iwhen (LAM y. UU) (LAM x. x) (?Y1 i))))
 *)
 
-qed_goal "cpo_ssum" Ssum2.thy 
+qed_goal "cpo_ssum" thy 
         "is_chain(Y::nat=>'a ++'b) ==> ? x.range(Y) <<|x"
  (fn prems =>
         [

@@ -1,37 +1,48 @@
-(*  Title:      HOLCF/cfun1.ML
+(*  Title:      HOLCF/Cfun1.ML
     ID:         $Id$
     Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
-Lemmas for cfun1.thy 
+Lemmas for Cfun1.thy 
 *)
 
 open Cfun1;
 
 (* ------------------------------------------------------------------------ *)
-(* A non-emptyness result for Cfun                                          *)
+(* derive old type definition rules for fabs & fapp                         *)
+(* fapp and fabs should be replaced by Rep_Cfun anf Abs_Cfun in future      *)
 (* ------------------------------------------------------------------------ *)
-
-qed_goalw "CfunI" Cfun1.thy [Cfun_def] "(% x.x):Cfun"
- (fn prems =>
+qed_goalw "Rep_Cfun" thy [fapp_def] "fapp fo : CFun"
+(fn prems =>
         [
-        (stac mem_Collect_eq 1),
-        (rtac cont_id 1)
+        (rtac Rep_CFun 1)
         ]);
 
+qed_goalw "Rep_Cfun_inverse" thy [fapp_def,fabs_def] "fabs (fapp fo) = fo"
+(fn prems =>
+        [
+        (rtac Rep_CFun_inverse 1)
+        ]);
+
+qed_goalw "Abs_Cfun_inverse" thy [fapp_def,fabs_def] "f:CFun==>fapp(fabs f)=f"
+(fn prems =>
+        [
+	(cut_facts_tac prems 1),
+        (etac Abs_CFun_inverse 1)
+        ]);
 
 (* ------------------------------------------------------------------------ *)
 (* less_cfun is a partial order on type 'a -> 'b                            *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "refl_less_cfun" Cfun1.thy [less_cfun_def] "less_cfun f f"
+qed_goalw "refl_less_cfun" thy [less_cfun_def] "less(f::'a::pcpo->'b::pcpo) f"
 (fn prems =>
         [
         (rtac refl_less 1)
         ]);
 
-qed_goalw "antisym_less_cfun" Cfun1.thy [less_cfun_def] 
-        "[|less_cfun f1 f2; less_cfun f2 f1|] ==> f1 = f2"
+qed_goalw "antisym_less_cfun" thy [less_cfun_def] 
+        "[|less (f1::'a::pcpo->'b::pcpo) f2; less f2 f1|] ==> f1 = f2"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -43,8 +54,8 @@ qed_goalw "antisym_less_cfun" Cfun1.thy [less_cfun_def]
         (rtac Rep_Cfun_inverse 1)
         ]);
 
-qed_goalw "trans_less_cfun" Cfun1.thy [less_cfun_def] 
-        "[|less_cfun f1 f2; less_cfun f2 f3|] ==> less_cfun f1 f3"
+qed_goalw "trans_less_cfun" thy [less_cfun_def] 
+        "[|less (f1::'a::pcpo->'b::pcpo) f2; less f2 f3|] ==> less f1 f3"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -56,7 +67,7 @@ qed_goalw "trans_less_cfun" Cfun1.thy [less_cfun_def]
 (* lemmas about application of continuous functions                         *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "cfun_cong" Cfun1.thy 
+qed_goal "cfun_cong" thy 
          "[| f=g; x=y |] ==> f`x = g`y"
 (fn prems =>
         [
@@ -64,7 +75,7 @@ qed_goal "cfun_cong" Cfun1.thy
         (fast_tac HOL_cs 1)
         ]);
 
-qed_goal "cfun_fun_cong" Cfun1.thy "f=g ==> f`x = g`x"
+qed_goal "cfun_fun_cong" thy "f=g ==> f`x = g`x"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -72,7 +83,7 @@ qed_goal "cfun_fun_cong" Cfun1.thy "f=g ==> f`x = g`x"
         (rtac refl 1)
         ]);
 
-qed_goal "cfun_arg_cong" Cfun1.thy "x=y ==> f`x = f`y"
+qed_goal "cfun_arg_cong" thy "x=y ==> f`x = f`y"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -86,12 +97,12 @@ qed_goal "cfun_arg_cong" Cfun1.thy "x=y ==> f`x = f`y"
 (* additional lemma about the isomorphism between -> and Cfun               *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "Abs_Cfun_inverse2" Cfun1.thy "cont(f) ==> fapp(fabs(f)) = f"
+qed_goal "Abs_Cfun_inverse2" thy "cont f ==> fapp (fabs f) = f"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
         (rtac Abs_Cfun_inverse 1),
-        (rewtac Cfun_def),
+        (rewtac CFun_def),
         (etac (mem_Collect_eq RS ssubst) 1)
         ]);
 
@@ -99,8 +110,7 @@ qed_goal "Abs_Cfun_inverse2" Cfun1.thy "cont(f) ==> fapp(fabs(f)) = f"
 (* simplification of application                                            *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "Cfunapp2" Cfun1.thy 
-        "cont(f) ==> (fabs f)`x = f x"
+qed_goal "Cfunapp2" thy "cont f ==> (fabs f)`x = f x"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -111,7 +121,7 @@ qed_goal "Cfunapp2" Cfun1.thy
 (* beta - equality for continuous functions                                 *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "beta_cfun" Cfun1.thy 
+qed_goal "beta_cfun" thy 
         "cont(c1) ==> (LAM x .c1 x)`u = c1 u"
 (fn prems =>
         [

@@ -8,14 +8,7 @@ Class Instance ++::(pcpo,pcpo)po
 
 Ssum2 = Ssum1 + 
 
-arities "++" :: (pcpo,pcpo)po
-(* Witness for the above arity axiom is ssum1.ML *)
-
-rules
-
-(* instance of << for type ['a ++ 'b]  *)
-
-inst_ssum_po    "((op <<)::['a ++ 'b,'a ++ 'b]=>bool) = less_ssum"
+instance "++"::(pcpo,pcpo)po (refl_less_ssum,antisym_less_ssum,trans_less_ssum)
 
 end
 

@@ -6,11 +6,18 @@
 
 open Cfun3;
 
+(* for compatibility with old HOLCF-Version *)
+qed_goal "inst_cfun_pcpo" thy "UU = fabs(%x.UU)"
+ (fn prems => 
+        [
+        (simp_tac (HOL_ss addsimps [UU_def,UU_cfun_def]) 1)
+        ]);
+
 (* ------------------------------------------------------------------------ *)
 (* the contlub property for fapp its 'first' argument                       *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "contlub_fapp1" Cfun3.thy "contlub(fapp)"
+qed_goal "contlub_fapp1" thy "contlub(fapp)"
 (fn prems =>
         [
         (rtac contlubI 1),
@@ -31,7 +38,7 @@ qed_goal "contlub_fapp1" Cfun3.thy "contlub(fapp)"
 (* the cont property for fapp in its first argument                        *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "cont_fapp1" Cfun3.thy "cont(fapp)"
+qed_goal "cont_fapp1" thy "cont(fapp)"
 (fn prems =>
         [
         (rtac monocontlub2cont 1),
@@ -44,7 +51,7 @@ qed_goal "cont_fapp1" Cfun3.thy "cont(fapp)"
 (* contlub, cont properties of fapp in its first argument in mixfix _[_]   *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "contlub_cfun_fun" Cfun3.thy 
+qed_goal "contlub_cfun_fun" thy 
 "is_chain(FY) ==>\
 \ lub(range FY)`x = lub(range (%i.FY(i)`x))"
 (fn prems =>
@@ -58,7 +65,7 @@ qed_goal "contlub_cfun_fun" Cfun3.thy
         ]);
 
 
-qed_goal "cont_cfun_fun" Cfun3.thy 
+qed_goal "cont_cfun_fun" thy 
 "is_chain(FY) ==>\
 \ range(%i.FY(i)`x) <<| lub(range FY)`x"
 (fn prems =>
@@ -74,7 +81,7 @@ qed_goal "cont_cfun_fun" Cfun3.thy
 (* contlub, cont  properties of fapp in both argument in mixfix _[_]       *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "contlub_cfun" Cfun3.thy 
+qed_goal "contlub_cfun" thy 
 "[|is_chain(FY);is_chain(TY)|] ==>\
 \ (lub(range FY))`(lub(range TY)) = lub(range(%i.FY(i)`(TY i)))"
 (fn prems =>
@@ -88,7 +95,7 @@ qed_goal "contlub_cfun" Cfun3.thy
         (atac 1)
         ]);
 
-qed_goal "cont_cfun" Cfun3.thy 
+qed_goal "cont_cfun" thy 
 "[|is_chain(FY);is_chain(TY)|] ==>\
 \ range(%i.(FY i)`(TY i)) <<| (lub (range FY))`(lub(range TY))"
 (fn prems =>
@@ -109,7 +116,7 @@ qed_goal "cont_cfun" Cfun3.thy
 (* cont2cont lemma for fapp                                               *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "cont2cont_fapp" Cfun3.thy 
+qed_goal "cont2cont_fapp" thy 
         "[|cont(%x.ft x);cont(%x.tt x)|] ==> cont(%x. (ft x)`(tt x))"
  (fn prems =>
         [
@@ -129,7 +136,7 @@ qed_goal "cont2cont_fapp" Cfun3.thy
 (* cont2mono Lemma for %x. LAM y. c1(x)(y)                                  *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "cont2mono_LAM" Cfun3.thy 
+qed_goal "cont2mono_LAM" thy 
  "[|!x.cont(c1 x); !y.monofun(%x.c1 x y)|] ==>\
 \                       monofun(%x. LAM y. c1 x y)"
 (fn prems =>
@@ -151,7 +158,7 @@ qed_goal "cont2mono_LAM" Cfun3.thy
 (* cont2cont Lemma for %x. LAM y. c1 x y)                                 *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "cont2cont_LAM" Cfun3.thy 
+qed_goal "cont2cont_LAM" thy 
  "[| !x.cont(c1 x); !y.cont(%x.c1 x y) |] ==> cont(%x. LAM y. c1 x y)"
 (fn prems =>
         [
@@ -207,11 +214,10 @@ Addsimps cont_lemmas1;
 (* function application _[_]  is strict in its first arguments              *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "strict_fapp1" Cfun3.thy "(UU::'a->'b)`x = (UU::'b)"
+qed_goal "strict_fapp1" thy "(UU::'a->'b)`x = (UU::'b)"
  (fn prems =>
         [
         (stac inst_cfun_pcpo 1),
-        (rewtac UU_cfun_def),
         (stac beta_cfun 1),
         (Simp_tac 1),
         (rtac refl 1)
@@ -222,14 +228,14 @@ qed_goal "strict_fapp1" Cfun3.thy "(UU::'a->'b)`x = (UU::'b)"
 (* results about strictify                                                  *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "Istrictify1" Cfun3.thy [Istrictify_def]
+qed_goalw "Istrictify1" thy [Istrictify_def]
         "Istrictify(f)(UU)= (UU)"
  (fn prems =>
         [
         (Simp_tac 1)
         ]);
 
-qed_goalw "Istrictify2" Cfun3.thy [Istrictify_def]
+qed_goalw "Istrictify2" thy [Istrictify_def]
         "~x=UU ==> Istrictify(f)(x)=f`x"
  (fn prems =>
         [
@@ -237,7 +243,7 @@ qed_goalw "Istrictify2" Cfun3.thy [Istrictify_def]
         (Asm_simp_tac 1)
         ]);
 
-qed_goal "monofun_Istrictify1" Cfun3.thy "monofun(Istrictify)"
+qed_goal "monofun_Istrictify1" thy "monofun(Istrictify)"
  (fn prems =>
         [
         (rtac monofunI 1),
@@ -257,7 +263,7 @@ qed_goal "monofun_Istrictify1" Cfun3.thy "monofun(Istrictify)"
         (rtac refl_less 1)
         ]);
 
-qed_goal "monofun_Istrictify2" Cfun3.thy "monofun(Istrictify(f))"
+qed_goal "monofun_Istrictify2" thy "monofun(Istrictify(f))"
  (fn prems =>
         [
         (rtac monofunI 1),
@@ -276,7 +282,7 @@ qed_goal "monofun_Istrictify2" Cfun3.thy "monofun(Istrictify(f))"
         ]);
 
 
-qed_goal "contlub_Istrictify1" Cfun3.thy "contlub(Istrictify)"
+qed_goal "contlub_Istrictify1" thy "contlub(Istrictify)"
  (fn prems =>
         [
         (rtac contlubI 1),
@@ -303,7 +309,7 @@ qed_goal "contlub_Istrictify1" Cfun3.thy "contlub(Istrictify)"
         (rtac (refl RS allI) 1)
         ]);
 
-qed_goal "contlub_Istrictify2" Cfun3.thy "contlub(Istrictify(f::'a -> 'b))"
+qed_goal "contlub_Istrictify2" thy "contlub(Istrictify(f::'a -> 'b))"
  (fn prems =>
         [
         (rtac contlubI 1),
@@ -352,7 +358,7 @@ bind_thm ("cont_Istrictify2", contlub_Istrictify2 RS
         (monofun_Istrictify2 RS monocontlub2cont)); 
 
 
-qed_goalw "strictify1" Cfun3.thy [strictify_def] "strictify`f`UU=UU" (fn _ => [
+qed_goalw "strictify1" thy [strictify_def] "strictify`f`UU=UU" (fn _ => [
         (stac beta_cfun 1),
          (simp_tac (!simpset addsimps [cont_Istrictify2,cont_Istrictify1,
 					cont2cont_CF1L]) 1),
@@ -361,7 +367,7 @@ qed_goalw "strictify1" Cfun3.thy [strictify_def] "strictify`f`UU=UU" (fn _ => [
         (rtac Istrictify1 1)
         ]);
 
-qed_goalw "strictify2" Cfun3.thy [strictify_def]
+qed_goalw "strictify2" thy [strictify_def]
         "~x=UU ==> strictify`f`x=f`x"  (fn prems => [
         (stac beta_cfun 1),
          (simp_tac (!simpset addsimps [cont_Istrictify2,cont_Istrictify1,

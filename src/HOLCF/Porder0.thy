@@ -1,53 +1,33 @@
-(*  Title:      HOLCF/porder0.thy
+(*  Title:      HOLCF/Porder0.thy
     ID:         $Id$
     Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
 Definition of class porder (partial order)
 
-The prototype theory for this class is void.thy 
-
 *)
 
-Porder0 = Void +
+Porder0 = Nat +
 
-(* Introduction of new class. The witness is type void. *)
-
-classes po < term
-
-(* default type is still term ! *)
-(* void is the prototype in po *)
-
-arities void :: po
-
+(* first the global constant for HOLCF type classes *)
 consts
+  "less"        :: "['a,'a] => bool" (infixl "\\<sqsubseteq>\\<sqsubseteq>" 55)
 
-  "<<"		:: "['a,'a::po] => bool"	(infixl 55)
+axclass po < term
+        (* class axioms: *)
+ax_refl_less       "less x x"        
+ax_antisym_less    "[|less x y; less y x |] ==> x = y"    
+ax_trans_less      "[|less x y; less y z |] ==> less x z"
+ 
+	(* characteristic constant << on po *)
+consts
+  "<<"          :: "['a,'a::po] => bool"        (infixl 55)
 
 syntax (symbols)
+  "op <<"       :: "['a,'a::po] => bool"        (infixl "\\<sqsubseteq>" 55)
 
-  "op <<"	:: "['a,'a::po] => bool"	(infixl "\\<sqsubseteq>" 55)
-
-rules
-
-(* class axioms: justification is theory Void *)
-
-refl_less       "x<<x"        
-                                (* witness refl_less_void    *)
-
-antisym_less    "[|x<<y ; y<<x |] ==> x = y"    
-                                (* witness antisym_less_void *)
-
-trans_less      "[|x<<y ; y<<z |] ==> x<<z"
-                                (* witness trans_less_void   *)
-
-(* instance of << for the prototype void *)
-
-inst_void_po    "((op <<)::[void,void]=>bool) = less_void"
-
+defs
+po_def             "(op <<) == less"
 end 
-
-
-
 
 

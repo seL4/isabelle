@@ -8,18 +8,25 @@ Lemmas for Up3.thy
 
 open Up3;
 
+(* for compatibility with old HOLCF-Version *)
+qed_goal "inst_up_pcpo" thy "UU = Abs_Up(Inl ())"
+ (fn prems => 
+        [
+        (simp_tac (HOL_ss addsimps [UU_def,UU_up_def]) 1)
+        ]);
+
 (* -------------------------------------------------------------------------*)
 (* some lemmas restated for class pcpo                                      *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "less_up3b" Up3.thy "~ Iup(x) << UU"
+qed_goal "less_up3b" thy "~ Iup(x) << UU"
  (fn prems =>
         [
         (stac inst_up_pcpo 1),
         (rtac less_up2b 1)
         ]);
 
-qed_goal "defined_Iup2" Up3.thy "Iup(x) ~= UU"
+qed_goal "defined_Iup2" thy "Iup(x) ~= UU"
  (fn prems =>
         [
         (stac inst_up_pcpo 1),
@@ -30,7 +37,7 @@ qed_goal "defined_Iup2" Up3.thy "Iup(x) ~= UU"
 (* continuity for Iup                                                       *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "contlub_Iup" Up3.thy "contlub(Iup)"
+qed_goal "contlub_Iup" thy "contlub(Iup)"
  (fn prems =>
         [
         (rtac contlubI 1),
@@ -47,7 +54,7 @@ qed_goal "contlub_Iup" Up3.thy "contlub(Iup)"
         (asm_simp_tac Up0_ss 1)
         ]);
 
-qed_goal "cont_Iup" Up3.thy "cont(Iup)"
+qed_goal "cont_Iup" thy "cont(Iup)"
  (fn prems =>
         [
         (rtac monocontlub2cont 1),
@@ -60,7 +67,7 @@ qed_goal "cont_Iup" Up3.thy "cont(Iup)"
 (* continuity for Ifup                                                     *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "contlub_Ifup1" Up3.thy "contlub(Ifup)"
+qed_goal "contlub_Ifup1" thy "contlub(Ifup)"
  (fn prems =>
         [
         (rtac contlubI 1),
@@ -77,7 +84,7 @@ qed_goal "contlub_Ifup1" Up3.thy "contlub(Ifup)"
         ]);
 
 
-qed_goal "contlub_Ifup2" Up3.thy "contlub(Ifup(f))"
+qed_goal "contlub_Ifup2" thy "contlub(Ifup(f))"
  (fn prems =>
         [
         (rtac contlubI 1),
@@ -124,7 +131,7 @@ qed_goal "contlub_Ifup2" Up3.thy "contlub(Ifup(f))"
         (atac 1)
         ]);
 
-qed_goal "cont_Ifup1" Up3.thy "cont(Ifup)"
+qed_goal "cont_Ifup1" thy "cont(Ifup)"
  (fn prems =>
         [
         (rtac monocontlub2cont 1),
@@ -132,7 +139,7 @@ qed_goal "cont_Ifup1" Up3.thy "cont(Ifup)"
         (rtac contlub_Ifup1 1)
         ]);
 
-qed_goal "cont_Ifup2" Up3.thy "cont(Ifup(f))"
+qed_goal "cont_Ifup2" thy "cont(Ifup(f))"
  (fn prems =>
         [
         (rtac monocontlub2cont 1),
@@ -145,7 +152,7 @@ qed_goal "cont_Ifup2" Up3.thy "cont(Ifup(f))"
 (* continuous versions of lemmas for ('a)u                                  *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "Exh_Up1" Up3.thy [up_def] "z = UU | (? x. z = up`x)"
+qed_goalw "Exh_Up1" thy [up_def] "z = UU | (? x. z = up`x)"
  (fn prems =>
         [
         (simp_tac (Up0_ss addsimps [cont_Iup]) 1),
@@ -153,7 +160,7 @@ qed_goalw "Exh_Up1" Up3.thy [up_def] "z = UU | (? x. z = up`x)"
         (rtac Exh_Up 1)
         ]);
 
-qed_goalw "inject_up" Up3.thy [up_def] "up`x=up`y ==> x=y"
+qed_goalw "inject_up" thy [up_def] "up`x=up`y ==> x=y"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -163,14 +170,14 @@ qed_goalw "inject_up" Up3.thy [up_def] "up`x=up`y ==> x=y"
         (simp_tac (Up0_ss addsimps [cont_Iup]) 1)
         ]);
 
-qed_goalw "defined_up" Up3.thy [up_def] " up`x ~= UU"
+qed_goalw "defined_up" thy [up_def] " up`x ~= UU"
  (fn prems =>
         [
         (simp_tac (Up0_ss addsimps [cont_Iup]) 1),
         (rtac defined_Iup2 1)
         ]);
 
-qed_goalw "upE1" Up3.thy [up_def] 
+qed_goalw "upE1" thy [up_def] 
         "[| p=UU ==> Q; !!x. p=up`x==>Q|] ==>Q"
  (fn prems =>
         [
@@ -184,7 +191,7 @@ qed_goalw "upE1" Up3.thy [up_def]
 val tac = (simp_tac (!simpset addsimps [cont_Iup,cont_Ifup1,
                 cont_Ifup2,cont2cont_CF1L]) 1);
 
-qed_goalw "fup1" Up3.thy [up_def,fup_def] "fup`f`UU=UU"
+qed_goalw "fup1" thy [up_def,fup_def] "fup`f`UU=UU"
  (fn prems =>
         [
         (stac inst_up_pcpo 1),
@@ -195,7 +202,7 @@ qed_goalw "fup1" Up3.thy [up_def,fup_def] "fup`f`UU=UU"
         (simp_tac (Up0_ss addsimps [cont_Iup,cont_Ifup1,cont_Ifup2]) 1)
         ]);
 
-qed_goalw "fup2" Up3.thy [up_def,fup_def] "fup`f`(up`x)=f`x"
+qed_goalw "fup2" thy [up_def,fup_def] "fup`f`(up`x)=f`x"
  (fn prems =>
         [
         (stac beta_cfun 1),
@@ -207,14 +214,14 @@ qed_goalw "fup2" Up3.thy [up_def,fup_def] "fup`f`(up`x)=f`x"
         (simp_tac (Up0_ss addsimps [cont_Iup,cont_Ifup1,cont_Ifup2]) 1)
         ]);
 
-qed_goalw "less_up4b" Up3.thy [up_def,fup_def] "~ up`x << UU"
+qed_goalw "less_up4b" thy [up_def,fup_def] "~ up`x << UU"
  (fn prems =>
         [
         (simp_tac (Up0_ss addsimps [cont_Iup]) 1),
         (rtac less_up3b 1)
         ]);
 
-qed_goalw "less_up4c" Up3.thy [up_def,fup_def]
+qed_goalw "less_up4c" thy [up_def,fup_def]
          "(up`x << up`y) = (x<<y)"
  (fn prems =>
         [
@@ -222,7 +229,7 @@ qed_goalw "less_up4c" Up3.thy [up_def,fup_def]
         (rtac less_up2c 1)
         ]);
 
-qed_goalw "thelub_up2a" Up3.thy [up_def,fup_def] 
+qed_goalw "thelub_up2a" thy [up_def,fup_def] 
 "[| is_chain(Y); ? i x. Y(i) = up`x |] ==>\
 \      lub(range(Y)) = up`(lub(range(%i. fup`(LAM x. x)`(Y i))))"
  (fn prems =>
@@ -247,7 +254,7 @@ qed_goalw "thelub_up2a" Up3.thy [up_def,fup_def]
 
 
 
-qed_goalw "thelub_up2b" Up3.thy [up_def,fup_def] 
+qed_goalw "thelub_up2b" thy [up_def,fup_def] 
 "[| is_chain(Y); ! i x. Y(i) ~= up`x |] ==> lub(range(Y)) = UU"
  (fn prems =>
         [
@@ -267,7 +274,7 @@ qed_goalw "thelub_up2b" Up3.thy [up_def,fup_def]
         ]);
 
 
-qed_goal "up_lemma2" Up3.thy  " (? x.z = up`x) = (z~=UU)"
+qed_goal "up_lemma2" thy  " (? x.z = up`x) = (z~=UU)"
  (fn prems =>
         [
         (rtac iffI 1),
@@ -281,7 +288,7 @@ qed_goal "up_lemma2" Up3.thy  " (? x.z = up`x) = (z~=UU)"
         ]);
 
 
-qed_goal "thelub_up2a_rev" Up3.thy  
+qed_goal "thelub_up2a_rev" thy  
 "[| is_chain(Y); lub(range(Y)) = up`x |] ==> ? i x. Y(i) = up`x"
  (fn prems =>
         [
@@ -295,7 +302,7 @@ qed_goal "thelub_up2a_rev" Up3.thy
         (atac 1)
         ]);
 
-qed_goal "thelub_up2b_rev" Up3.thy  
+qed_goal "thelub_up2b_rev" thy  
 "[| is_chain(Y); lub(range(Y)) = UU |] ==> ! i x.  Y(i) ~= up`x"
  (fn prems =>
         [
@@ -308,7 +315,7 @@ qed_goal "thelub_up2b_rev" Up3.thy
         ]);
 
 
-qed_goal "thelub_up3" Up3.thy  
+qed_goal "thelub_up3" thy  
 "is_chain(Y) ==> lub(range(Y)) = UU |\
 \                lub(range(Y)) = up`(lub(range(%i. fup`(LAM x.x)`(Y i))))"
  (fn prems =>
@@ -326,7 +333,7 @@ qed_goal "thelub_up3" Up3.thy
         (fast_tac HOL_cs 1)
         ]);
 
-qed_goal "fup3" Up3.thy "fup`up`x=x"
+qed_goal "fup3" thy "fup`up`x=x"
  (fn prems =>
         [
         (res_inst_tac [("p","x")] upE1 1),

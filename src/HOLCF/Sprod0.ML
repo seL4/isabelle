@@ -19,7 +19,6 @@ qed_goalw "SprodI" Sprod0.thy [Sprod_def]
         (EVERY1 [rtac CollectI, rtac exI,rtac exI, rtac refl])
         ]);
 
-
 qed_goal "inj_onto_Abs_Sprod" Sprod0.thy 
         "inj_onto Abs_Sprod Sprod"
 (fn prems =>
@@ -28,11 +27,9 @@ qed_goal "inj_onto_Abs_Sprod" Sprod0.thy
         (etac Abs_Sprod_inverse 1)
         ]);
 
-
 (* ------------------------------------------------------------------------ *)
 (* Strictness and definedness of Spair_Rep                                  *)
 (* ------------------------------------------------------------------------ *)
-
 
 qed_goalw "strict_Spair_Rep" Sprod0.thy [Spair_Rep_def]
  "(a=UU | b=UU) ==> (Spair_Rep a b) = (Spair_Rep UU UU)"
@@ -374,3 +371,13 @@ qed_goal "surjective_pairing_Sprod" Sprod0.thy
         (asm_simp_tac Sprod0_ss 1)
         ]);
 
+qed_goal "Sel_injective_Sprod" thy 
+        "[|Isfst x = Isfst y; Issnd x = Issnd y|] ==> x = y"
+(fn prems =>
+        [
+        (cut_facts_tac prems 1),
+        (subgoal_tac "Ispair(Isfst x)(Issnd x)=Ispair(Isfst y)(Issnd y)" 1),
+        (rotate_tac ~1 1),
+        (asm_full_simp_tac(HOL_ss addsimps[surjective_pairing_Sprod RS sym])1),
+        (Asm_simp_tac 1)
+        ]);

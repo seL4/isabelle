@@ -33,10 +33,8 @@ syntax (symbols)
 defs
 
 (* class definitions *)
-
 is_ub           "S  <| x == ! y.y:S --> y<<x"
 is_lub          "S <<| x == S <| x & (! u. S <| u  --> x << u)"
-
 
 (* Arbitrary chains are total orders    *)                  
 is_tord         "is_tord S == ! x y. x:S & y:S --> (x<<y | y<<x)"
@@ -45,14 +43,10 @@ is_tord         "is_tord S == ! x y. x:S & y:S --> (x<<y | y<<x)"
 is_chain        "is_chain F == (! i.F(i) << F(Suc(i)))"
 
 (* finite chains, needed for monotony of continouous functions *)
-
 max_in_chain_def "max_in_chain i C == ! j. i <= j --> C(i) = C(j)" 
-
 finite_chain_def "finite_chain C == is_chain(C) & (? i. max_in_chain i C)"
 
-rules
-
-lub             "lub S = (@x. S <<| x)"
+lub_def          "lub S == (@x. S <<| x)"
 
 end 
 

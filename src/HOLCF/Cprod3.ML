@@ -8,6 +8,13 @@ Lemmas for Cprod3.thy
 
 open Cprod3;
 
+(* for compatibility with old HOLCF-Version *)
+qed_goal "inst_cprod_pcpo" thy "UU = (UU,UU)"
+ (fn prems => 
+        [
+        (simp_tac (HOL_ss addsimps [UU_def,UU_cprod_def]) 1)
+        ]);
+
 (* ------------------------------------------------------------------------ *)
 (* continuity of (_,_) , fst, snd                                           *)
 (* ------------------------------------------------------------------------ *)
@@ -226,9 +233,9 @@ qed_goalw "csnd2" Cprod3.thy [csnd_def,cpair_def]
         ]);
 
 qed_goal "cfst_strict" Cprod3.thy "cfst`UU = UU" (fn _ => [
-                      (simp_tac (HOL_ss addsimps [inst_cprod_pcpo2,cfst2]) 1)]);
+             (simp_tac (HOL_ss addsimps [inst_cprod_pcpo2,cfst2]) 1)]);
 qed_goal "csnd_strict" Cprod3.thy "csnd`UU = UU" (fn _ => [
-                      (simp_tac (HOL_ss addsimps [inst_cprod_pcpo2,csnd2]) 1)]);
+             (simp_tac (HOL_ss addsimps [inst_cprod_pcpo2,csnd2]) 1)]);
 
 qed_goalw "surjective_pairing_Cprod2" Cprod3.thy 
         [cfst_def,csnd_def,cpair_def] "<cfst`p , csnd`p> = p"
@@ -242,22 +249,6 @@ qed_goalw "surjective_pairing_Cprod2" Cprod3.thy
         (rtac (surjective_pairing RS sym) 1)
         ]);
 
-
-qed_goalw "less_cprod5b" Cprod3.thy [cfst_def,csnd_def,cpair_def]
- " (p1 << p2) = (cfst`p1 << cfst`p2 & csnd`p1 << csnd`p2)"
- (fn prems =>
-        [
-        (stac beta_cfun 1),
-        (rtac cont_snd 1),
-        (stac beta_cfun 1),
-        (rtac cont_snd 1),
-        (stac beta_cfun 1),
-        (rtac cont_fst 1),
-        (stac beta_cfun 1),
-        (rtac cont_fst 1),
-        (rtac less_cprod3b 1)
-        ]);
-
 qed_goalw "less_cprod5c" Cprod3.thy [cfst_def,csnd_def,cpair_def]
  "<xa,ya> << <x,y> ==> xa<<x & ya << y"
  (fn prems =>
@@ -268,7 +259,6 @@ qed_goalw "less_cprod5c" Cprod3.thy [cfst_def,csnd_def,cpair_def]
         (dtac (beta_cfun_cprod RS subst) 1),
         (atac 1)
         ]);
-
 
 qed_goalw "lub_cprod2" Cprod3.thy [cfst_def,csnd_def,cpair_def]
 "[|is_chain(S)|] ==> range(S) <<| \

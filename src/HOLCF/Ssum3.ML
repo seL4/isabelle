@@ -8,10 +8,16 @@ Lemmas for ssum3.thy
 
 open Ssum3;
 
+(* for compatibility with old HOLCF-Version *)
+qed_goal "inst_ssum_pcpo" thy "UU = Isinl UU"
+ (fn prems => 
+        [
+        (simp_tac (HOL_ss addsimps [UU_def,UU_ssum_def]) 1)
+        ]);
+
 (* ------------------------------------------------------------------------ *)
 (* continuity for Isinl and Isinr                                           *)
 (* ------------------------------------------------------------------------ *)
-
 
 qed_goal "contlub_Isinl" Ssum3.thy "contlub(Isinl)"
  (fn prems =>

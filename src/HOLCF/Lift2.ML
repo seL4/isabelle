@@ -6,20 +6,32 @@
 Theorems for Lift2.thy
 *)
 
-
 open Lift2;
-Addsimps [less_lift_def];
 
+(* for compatibility with old HOLCF-Version *)
+qed_goal "inst_lift_po" thy "(op <<)=(%x y.x=y|x=Undef)"
+ (fn prems => 
+        [
+        (fold_goals_tac [po_def,less_lift_def]),
+        (rtac refl 1)
+        ]);
 
 (* -------------------------------------------------------------------------*)
 (* type ('a)lift is pointed                                                *)
 (* ------------------------------------------------------------------------ *)
- 
 
 goal Lift2.thy  "Undef << x";
 by (simp_tac (!simpset addsimps [inst_lift_po]) 1);
 qed"minimal_lift";
 
+bind_thm ("UU_lift_def",minimal_lift RS minimal2UU RS sym);
+
+qed_goal "least_lift" thy "? x::'a lift.!y.x<<y"
+(fn prems =>
+        [
+        (res_inst_tac [("x","Undef")] exI 1),
+        (rtac (minimal_lift RS allI) 1)
+        ]);
 
 (* ------------------------------------------------------------------------ *)
 (* ('a)lift is a cpo                                                       *)

@@ -8,88 +8,70 @@ Lemmas for cprod2.thy
 
 open Cprod2;
 
-qed_goal "less_cprod3a" Cprod2.thy 
-        "p1=(UU,UU) ==> p1 << p2"
+(* for compatibility with old HOLCF-Version *)
+qed_goal "inst_cprod_po" thy "(op <<)=(%x y.fst x<<fst y & snd x<<snd y)"
+ (fn prems => 
+        [
+        (fold_goals_tac [po_def,less_cprod_def]),
+        (rtac refl 1)
+        ]);
+
+qed_goalw "less_cprod4c" thy [inst_cprod_po RS eq_reflection]
+ "(x1,y1) << (x2,y2) ==> x1 << x2 & y1 << y2"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (stac inst_cprod_po 1),
-        (stac less_cprod1b 1),
-        (hyp_subst_tac 1),
-        (Asm_simp_tac  1)
-        ]);
-
-qed_goal "less_cprod3b" Cprod2.thy
- "(p1 << p2) = (fst(p1)<<fst(p2) & snd(p1)<<snd(p2))"
- (fn prems =>
-        [
-        (stac inst_cprod_po 1),
-        (rtac less_cprod1b 1)
-        ]);
-
-qed_goal "less_cprod4a" Cprod2.thy 
-        "(x1,x2) << (UU,UU) ==> x1=UU & x2=UU"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (rtac less_cprod2a 1),
-        (etac (inst_cprod_po RS subst) 1)
-        ]);
-
-qed_goal "less_cprod4b" Cprod2.thy 
-        "p << (UU,UU) ==> p = (UU,UU)"
-(fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (rtac less_cprod2b 1),
-        (etac (inst_cprod_po RS subst) 1)
-        ]);
-
-qed_goal "less_cprod4c" Cprod2.thy
- " (xa,ya) << (x,y) ==> xa<<x & ya << y"
-(fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (rtac less_cprod2c 1),
-        (etac (inst_cprod_po RS subst) 1),
-        (REPEAT (atac 1))
+        (etac conjE 1),
+        (dtac (fst_conv RS subst) 1),
+        (dtac (fst_conv RS subst) 1),
+        (dtac (fst_conv RS subst) 1),
+        (dtac (snd_conv RS subst) 1),
+        (dtac (snd_conv RS subst) 1),
+        (dtac (snd_conv RS subst) 1),
+        (rtac conjI 1),
+        (atac 1),
+        (atac 1)
         ]);
 
 (* ------------------------------------------------------------------------ *)
 (* type cprod is pointed                                                    *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "minimal_cprod" Cprod2.thy  "(UU,UU)<<p"
+qed_goal "minimal_cprod" thy  "(UU,UU)<<p"
 (fn prems =>
         [
-        (rtac less_cprod3a 1),
-        (rtac refl 1)
+        (simp_tac(!simpset addsimps[inst_cprod_po])1)
+        ]);
+
+bind_thm ("UU_cprod_def",minimal_cprod RS minimal2UU RS sym);
+
+qed_goal "least_cprod" thy "? x::'a*'b.!y.x<<y"
+(fn prems =>
+        [
+        (res_inst_tac [("x","(UU,UU)")] exI 1),
+        (rtac (minimal_cprod RS allI) 1)
         ]);
 
 (* ------------------------------------------------------------------------ *)
 (* Pair <_,_>  is monotone in both arguments                                *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "monofun_pair1" Cprod2.thy [monofun] "monofun(Pair)"
+qed_goalw "monofun_pair1" thy [monofun] "monofun Pair"
  (fn prems =>
         [
         (strip_tac 1),
         (rtac (less_fun RS iffD2) 1),
         (strip_tac 1),
-        (rtac (less_cprod3b RS iffD2) 1),
-        (Simp_tac 1)
+        (asm_simp_tac (!simpset addsimps [inst_cprod_po]) 1)
         ]);
 
-qed_goalw "monofun_pair2" Cprod2.thy [monofun] "monofun(Pair(x))"
+qed_goalw "monofun_pair2" thy [monofun] "monofun(Pair x)"
  (fn prems =>
         [
-        (strip_tac 1),
-        (rtac (less_cprod3b RS iffD2) 1),
-        (Simp_tac 1)
+        (asm_simp_tac (!simpset addsimps [inst_cprod_po]) 1)
         ]);
 
-qed_goal "monofun_pair" Cprod2.thy 
- "[|x1<<x2; y1<<y2|] ==> (x1,y1) << (x2,y2)"
+qed_goal "monofun_pair" thy "[|x1<<x2; y1<<y2|] ==> (x1,y1) << (x2,y2)"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -105,7 +87,7 @@ qed_goal "monofun_pair" Cprod2.thy
 (* fst and snd are monotone                                                 *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "monofun_fst" Cprod2.thy [monofun] "monofun(fst)"
+qed_goalw "monofun_fst" thy [monofun] "monofun fst"
  (fn prems =>
         [
         (strip_tac 1),
@@ -117,7 +99,7 @@ qed_goalw "monofun_fst" Cprod2.thy [monofun] "monofun(fst)"
         (etac (less_cprod4c RS conjunct1) 1)
         ]);
 
-qed_goalw "monofun_snd" Cprod2.thy [monofun] "monofun(snd)"
+qed_goalw "monofun_snd" thy [monofun] "monofun snd"
  (fn prems =>
         [
         (strip_tac 1),
@@ -133,17 +115,14 @@ qed_goalw "monofun_snd" Cprod2.thy [monofun] "monofun(snd)"
 (* the type 'a * 'b is a cpo                                                *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "lub_cprod" Cprod2.thy 
-" is_chain(S) ==> range(S) <<| \
-\   (lub(range(%i.fst(S i))),lub(range(%i.snd(S i)))) "
+qed_goal "lub_cprod" thy 
+"is_chain S ==> range S<<|(lub(range(%i.fst(S i))),lub(range(%i.snd(S i))))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac is_lubI 1),
-        (rtac conjI 1),
-        (rtac ub_rangeI 1),
-        (rtac allI 1),
-        (res_inst_tac [("t","S(i)")] (surjective_pairing RS ssubst) 1),
+        (rtac (conjI RS is_lubI) 1),
+        (rtac (allI RS ub_rangeI) 1),
+        (res_inst_tac [("t","S i")] (surjective_pairing RS ssubst) 1),
         (rtac monofun_pair 1),
         (rtac is_ub_thelub 1),
         (etac (monofun_fst RS ch2ch_monofun) 1),
@@ -168,8 +147,7 @@ bind_thm ("thelub_cprod", lub_cprod RS thelubI);
 
 *)
 
-qed_goal "cpo_cprod" Cprod2.thy 
-        "is_chain(S::nat=>'a*'b)==>? x.range(S)<<| x"
+qed_goal "cpo_cprod" thy "is_chain(S::nat=>'a*'b)==>? x.range S<<| x"
 (fn prems =>
         [
         (cut_facts_tac prems 1),

@@ -10,22 +10,15 @@ Class instance of  ('a)u for class pcpo
 
 Up3 = Up2 +
 
-arities "u" :: (pcpo)pcpo                       (* Witness up2.ML *)
+instance u :: (pcpo)pcpo      (least_up,cpo_up)
 
-consts  
-        up  :: "'a -> ('a)u" 
+constdefs  
+        up  :: "'a -> ('a)u"
+       "up  == (LAM x.Iup(x))"
         fup :: "('a->'c)-> ('a)u -> 'c"
-
-rules 
-
-        inst_up_pcpo  "(UU::('a)u) = UU_up"
-
-defs
-        up_def   "up  == (LAM x.Iup(x))"
-        fup_def  "fup == (LAM f p.Ifup(f)(p))"
+       "fup == (LAM f p.Ifup(f)(p))"
 
 translations
-
 "case l of up`x => t1" == "fup`(LAM x.t1)`l"
 
 end

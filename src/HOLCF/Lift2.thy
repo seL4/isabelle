@@ -8,13 +8,8 @@ Class Instance lift::(term)po
 
 Lift2 = Lift1 + 
 
-default term
-
-arities "lift" :: (term)po
-
-rules
-
- inst_lift_po   "((op <<)::['a lift,'a lift]=>bool) = less_lift"
+instance "lift" :: (term)po (refl_less_lift,antisym_less_lift,trans_less_lift)
 
 end
+
 

@@ -8,11 +8,23 @@ Lemmas for pcpo.thy
  
 open Pcpo;
 
+
+(* ------------------------------------------------------------------------ *)
+(* derive the old rule minimal                                              *)
+(* ------------------------------------------------------------------------ *)
+
+qed_goalw "UU_least" thy [ UU_def ] "!z.UU << z"
+(fn prems => [ 
+        (rtac (select_eq_Ex RS iffD2) 1),
+        (rtac least 1)]);
+
+bind_thm("minimal",UU_least RS spec);
+
 (* ------------------------------------------------------------------------ *)
 (* in pcpo's everthing equal to THE lub has lub properties for every chain  *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "thelubE"  Pcpo.thy 
+qed_goal "thelubE"  thy 
         "[| is_chain(S);lub(range(S)) = (l::'a::pcpo)|] ==> range(S) <<| l "
 (fn prems =>
         [
@@ -33,7 +45,7 @@ bind_thm ("is_ub_thelub", cpo RS lubI RS is_ub_lub);
 bind_thm ("is_lub_thelub", cpo RS lubI RS is_lub_lub);
 (* [| is_chain(?S5); range(?S5) <| ?x1 |] ==> lub(range(?S5)) << ?x1        *)
 
-qed_goal "maxinch_is_thelub" Pcpo.thy "is_chain Y ==> \
+qed_goal "maxinch_is_thelub" thy "is_chain Y ==> \
 \       max_in_chain i Y = (lub(range(Y)) = ((Y i)::'a::pcpo))" 
 (fn prems => 
         [
@@ -52,7 +64,7 @@ qed_goal "maxinch_is_thelub" Pcpo.thy "is_chain Y ==> \
 (* the << relation between two chains is preserved by their lubs            *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "lub_mono" Pcpo.thy 
+qed_goal "lub_mono" thy 
         "[|is_chain(C1::(nat=>'a::pcpo));is_chain(C2); ! k. C1(k) << C2(k)|]\
 \           ==> lub(range(C1)) << lub(range(C2))"
 (fn prems =>
@@ -70,7 +82,7 @@ qed_goal "lub_mono" Pcpo.thy
 (* the = relation between two chains is preserved by their lubs            *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "lub_equal" Pcpo.thy
+qed_goal "lub_equal" thy
 "[| is_chain(C1::(nat=>'a::pcpo));is_chain(C2);!k.C1(k)=C2(k)|]\
 \       ==> lub(range(C1))=lub(range(C2))"
 (fn prems =>
@@ -95,7 +107,7 @@ qed_goal "lub_equal" Pcpo.thy
 (* more results about mono and = of lubs of chains                          *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "lub_mono2" Pcpo.thy 
+qed_goal "lub_mono2" thy 
 "[|? j.!i. j<i --> X(i::nat)=Y(i);is_chain(X::nat=>'a::pcpo);is_chain(Y)|]\
 \ ==> lub(range(X))<<lub(range(Y))"
  (fn prems =>
@@ -124,7 +136,7 @@ qed_goal "lub_mono2" Pcpo.thy
         (resolve_tac prems 1)
         ]);
 
-qed_goal "lub_equal2" Pcpo.thy 
+qed_goal "lub_equal2" thy 
 "[|? j.!i. j<i --> X(i)=Y(i);is_chain(X::nat=>'a::pcpo);is_chain(Y)|]\
 \ ==> lub(range(X))=lub(range(Y))"
  (fn prems =>
@@ -141,7 +153,7 @@ qed_goal "lub_equal2" Pcpo.thy
         (fast_tac HOL_cs 1)
         ]);
 
-qed_goal "lub_mono3" Pcpo.thy "[|is_chain(Y::nat=>'a::pcpo);is_chain(X);\
+qed_goal "lub_mono3" thy "[|is_chain(Y::nat=>'a::pcpo);is_chain(X);\
 \! i. ? j. Y(i)<< X(j)|]==> lub(range(Y))<<lub(range(X))"
  (fn prems =>
         [
@@ -162,10 +174,10 @@ qed_goal "lub_mono3" Pcpo.thy "[|is_chain(Y::nat=>'a::pcpo);is_chain(X);\
 (* usefull lemmas about UU                                                  *)
 (* ------------------------------------------------------------------------ *)
 
-val eq_UU_sym = prove_goal Pcpo.thy "(UU = x) = (x = UU)" (fn _ => [
+val eq_UU_sym = prove_goal thy "(UU = x) = (x = UU)" (fn _ => [
         fast_tac HOL_cs 1]);
 
-qed_goal "eq_UU_iff" Pcpo.thy "(x=UU)=(x<<UU)"
+qed_goal "eq_UU_iff" thy "(x=UU)=(x<<UU)"
  (fn prems =>
         [
         (rtac iffI 1),
@@ -176,14 +188,14 @@ qed_goal "eq_UU_iff" Pcpo.thy "(x=UU)=(x<<UU)"
         (rtac minimal 1)
         ]);
 
-qed_goal "UU_I" Pcpo.thy "x << UU ==> x = UU"
+qed_goal "UU_I" thy "x << UU ==> x = UU"
  (fn prems =>
         [
         (stac eq_UU_iff 1),
         (resolve_tac prems 1)
         ]);
 
-qed_goal "not_less2not_eq" Pcpo.thy "~x<<y ==> ~x=y"
+qed_goal "not_less2not_eq" thy "~x<<y ==> ~x=y"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -193,7 +205,7 @@ qed_goal "not_less2not_eq" Pcpo.thy "~x<<y ==> ~x=y"
         (rtac refl_less 1)
         ]);
 
-qed_goal "chain_UU_I" Pcpo.thy
+qed_goal "chain_UU_I" thy
         "[|is_chain(Y);lub(range(Y))=UU|] ==> ! i.Y(i)=UU"
  (fn prems =>
         [
@@ -206,7 +218,7 @@ qed_goal "chain_UU_I" Pcpo.thy
         ]);
 
 
-qed_goal "chain_UU_I_inverse" Pcpo.thy 
+qed_goal "chain_UU_I_inverse" thy 
         "!i.Y(i::nat)=UU ==> lub(range(Y::(nat=>'a::pcpo)))=UU"
  (fn prems =>
         [
@@ -219,7 +231,7 @@ qed_goal "chain_UU_I_inverse" Pcpo.thy
         (etac spec 1)
         ]);
 
-qed_goal "chain_UU_I_inverse2" Pcpo.thy 
+qed_goal "chain_UU_I_inverse2" thy 
         "~lub(range(Y::(nat=>'a::pcpo)))=UU ==> ? i.~ Y(i)=UU"
  (fn prems =>
         [
@@ -232,7 +244,7 @@ qed_goal "chain_UU_I_inverse2" Pcpo.thy
         ]);
 
 
-qed_goal "notUU_I" Pcpo.thy "[| x<<y; ~x=UU |] ==> ~y=UU"
+qed_goal "notUU_I" thy "[| x<<y; ~x=UU |] ==> ~y=UU"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -243,7 +255,7 @@ qed_goal "notUU_I" Pcpo.thy "[| x<<y; ~x=UU |] ==> ~y=UU"
         ]);
 
 
-qed_goal "chain_mono2" Pcpo.thy 
+qed_goal "chain_mono2" thy 
 "[|? j.~Y(j)=UU;is_chain(Y::nat=>'a::pcpo)|]\
 \ ==> ? j.!i.j<i-->~Y(i)=UU"
  (fn prems =>
@@ -257,25 +269,3 @@ qed_goal "chain_mono2" Pcpo.thy
         (etac (chain_mono RS mp) 1),
         (atac 1)
         ]);
-
-
-
-
-(* ------------------------------------------------------------------------ *)
-(* uniqueness in void                                                       *)
-(* ------------------------------------------------------------------------ *)
-
-qed_goal "unique_void2" Pcpo.thy "(x::void)=UU"
- (fn prems =>
-        [
-        (stac inst_void_pcpo 1),
-        (rtac (Rep_Void_inverse RS subst) 1),
-        (rtac (Rep_Void_inverse RS subst) 1),
-        (rtac arg_cong 1),
-        (rtac box_equals 1),
-        (rtac refl 1),
-        (rtac (unique_void RS sym) 1),
-        (rtac (unique_void RS sym) 1)
-        ]);
-
-

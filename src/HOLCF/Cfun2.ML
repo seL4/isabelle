@@ -8,30 +8,44 @@ Lemmas for cfun2.thy
 
 open Cfun2;
 
+(* for compatibility with old HOLCF-Version *)
+qed_goal "inst_cfun_po" thy "(op <<)=(%f1 f2.fapp f1 << fapp f2)"
+ (fn prems => 
+        [
+	(fold_goals_tac [po_def,less_cfun_def]),
+	(rtac refl 1)
+        ]);
+
 (* ------------------------------------------------------------------------ *)
 (* access to less_cfun in class po                                          *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "less_cfun" Cfun2.thy "( f1 << f2 ) = (fapp(f1) << fapp(f2))"
+qed_goal "less_cfun" thy "( f1 << f2 ) = (fapp(f1) << fapp(f2))"
 (fn prems =>
         [
-        (stac inst_cfun_po 1),
-        (fold_goals_tac [less_cfun_def]),
-        (rtac refl 1)
+        (simp_tac (!simpset addsimps [inst_cfun_po]) 1)
         ]);
 
 (* ------------------------------------------------------------------------ *)
 (* Type 'a ->'b  is pointed                                                 *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "minimal_cfun" Cfun2.thy [UU_cfun_def] "UU_cfun << f"
+qed_goal "minimal_cfun" thy "fabs(% x.UU) << f"
 (fn prems =>
         [
         (stac less_cfun 1),
         (stac Abs_Cfun_inverse2 1),
         (rtac cont_const 1),
-        (fold_goals_tac [UU_fun_def]),
         (rtac minimal_fun 1)
+        ]);
+
+bind_thm ("UU_cfun_def",minimal_cfun RS minimal2UU RS sym);
+
+qed_goal "least_cfun" thy "? x::'a->'b.!y.x<<y"
+(fn prems =>
+        [
+        (res_inst_tac [("x","fabs(% x.UU)")] exI 1),
+        (rtac (minimal_cfun RS allI) 1)
         ]);
 
 (* ------------------------------------------------------------------------ *)
@@ -40,11 +54,11 @@ qed_goalw "minimal_cfun" Cfun2.thy [UU_cfun_def] "UU_cfun << f"
 (* cont_fapp2 ==> monofun_fapp2 & contlub_fapp2                            *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "cont_fapp2" Cfun2.thy "cont(fapp(fo))"
+qed_goal "cont_fapp2" thy "cont(fapp(fo))"
 (fn prems =>
         [
         (res_inst_tac [("P","cont")] CollectD 1),
-        (fold_goals_tac [Cfun_def]),
+        (fold_goals_tac [CFun_def]),
         (rtac Rep_Cfun 1)
         ]);
 
@@ -71,7 +85,7 @@ bind_thm ("contlub_cfun_arg", (contlub_fapp2 RS contlubE RS spec RS mp));
 (* fapp is monotone in its 'first' argument                                 *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "monofun_fapp1" Cfun2.thy [monofun] "monofun(fapp)"
+qed_goalw "monofun_fapp1" thy [monofun] "monofun(fapp)"
 (fn prems =>
         [
         (strip_tac 1),
@@ -83,7 +97,7 @@ qed_goalw "monofun_fapp1" Cfun2.thy [monofun] "monofun(fapp)"
 (* monotonicity of application fapp in mixfix syntax [_]_                   *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "monofun_cfun_fun" Cfun2.thy  "f1 << f2 ==> f1`x << f2`x"
+qed_goal "monofun_cfun_fun" thy  "f1 << f2 ==> f1`x << f2`x"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -100,7 +114,7 @@ bind_thm ("monofun_cfun_arg", monofun_fapp2 RS monofunE RS spec RS spec RS mp);
 (* monotonicity of fapp in both arguments in mixfix syntax [_]_             *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "monofun_cfun" Cfun2.thy
+qed_goal "monofun_cfun" thy
         "[|f1<<f2;x1<<x2|] ==> f1`x1 << f2`x2"
 (fn prems =>
         [
@@ -111,7 +125,7 @@ qed_goal "monofun_cfun" Cfun2.thy
         ]);
 
 
-qed_goal "strictI" Cfun2.thy "f`x = UU ==> f`UU = UU" (fn prems => [
+qed_goal "strictI" thy "f`x = UU ==> f`UU = UU" (fn prems => [
         cut_facts_tac prems 1,
         rtac (eq_UU_iff RS iffD2) 1,
         etac subst 1,
@@ -123,7 +137,7 @@ qed_goal "strictI" Cfun2.thy "f`x = UU ==> f`UU = UU" (fn prems => [
 (* use MF2 lemmas from Cont.ML                                              *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "ch2ch_fappR" Cfun2.thy 
+qed_goal "ch2ch_fappR" thy 
  "is_chain(Y) ==> is_chain(%i. f`(Y i))"
 (fn prems =>
         [
@@ -141,7 +155,7 @@ bind_thm ("ch2ch_fappL", monofun_fapp1 RS ch2ch_MF2L);
 (* use MF2 lemmas from Cont.ML                                              *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "lub_cfun_mono" Cfun2.thy 
+qed_goal "lub_cfun_mono" thy 
         "is_chain(F) ==> monofun(% x.lub(range(% j.(F j)`x)))"
 (fn prems =>
         [
@@ -157,7 +171,7 @@ qed_goal "lub_cfun_mono" Cfun2.thy
 (* use MF2 lemmas from Cont.ML                                              *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "ex_lubcfun" Cfun2.thy
+qed_goal "ex_lubcfun" thy
         "[| is_chain(F); is_chain(Y) |] ==>\
 \               lub(range(%j. lub(range(%i. F(j)`(Y i))))) =\
 \               lub(range(%i. lub(range(%j. F(j)`(Y i)))))"
@@ -175,7 +189,7 @@ qed_goal "ex_lubcfun" Cfun2.thy
 (* the lub of a chain of cont. functions is continuous                      *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "cont_lubcfun" Cfun2.thy 
+qed_goal "cont_lubcfun" thy 
         "is_chain(F) ==> cont(% x.lub(range(% j.F(j)`x)))"
 (fn prems =>
         [
@@ -194,7 +208,7 @@ qed_goal "cont_lubcfun" Cfun2.thy
 (* type 'a -> 'b is chain complete                                          *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "lub_cfun" Cfun2.thy 
+qed_goal "lub_cfun" thy 
   "is_chain(CCF) ==> range(CCF) <<| (LAM x.lub(range(% i.CCF(i)`x)))"
 (fn prems =>
         [
@@ -222,7 +236,7 @@ bind_thm ("thelub_cfun", lub_cfun RS thelubI);
 is_chain(?CCF1) ==>  lub (range ?CCF1) = (LAM x. lub (range (%i. ?CCF1 i`x)))
 *)
 
-qed_goal "cpo_cfun" Cfun2.thy 
+qed_goal "cpo_cfun" thy 
   "is_chain(CCF::nat=>('a::pcpo->'b::pcpo)) ==> ? x. range(CCF) <<| x"
 (fn prems =>
         [
@@ -250,7 +264,7 @@ qed_goal "ext_cfun" Cfun1.thy "(!!x. f`x = g`x) ==> f = g"
 (* Monotonicity of fabs                                                     *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "semi_monofun_fabs" Cfun2.thy 
+qed_goal "semi_monofun_fabs" thy 
         "[|cont(f);cont(g);f<<g|]==>fabs(f)<<fabs(g)"
  (fn prems =>
         [
@@ -266,7 +280,7 @@ qed_goal "semi_monofun_fabs" Cfun2.thy
 (* Extenionality wrt. << in 'a -> 'b                                        *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "less_cfun2" Cfun2.thy "(!!x. f`x << g`x) ==> f << g"
+qed_goal "less_cfun2" thy "(!!x. f`x << g`x) ==> f << g"
  (fn prems =>
         [
         (res_inst_tac [("t","f")] (Rep_Cfun_inverse RS subst) 1),
