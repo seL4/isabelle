@@ -568,6 +568,8 @@ fun DEEPEN tacf m i = STATE(fn state =>
    else (writeln ("Depth = " ^ string_of_int m);
 	 tacf m i  ORELSE  DEEPEN tacf (m+2) i));
 
+(*Search, with depth bound m.  
+  This is the "entry point", which does safe inferences first.*)
 fun safe_depth_tac cs m = 
   SUBGOAL 
     (fn (prem,i) =>
