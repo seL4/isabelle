@@ -31,6 +31,7 @@ struct
   val arbitrary_def = arbitrary_def;
 end;
 
-AddXIs [disjI1, disjI2, ext];
+AddXIs [equal_intr_rule, disjI1, disjI2, ext];
+AddXEs [ex1_implies_ex];
 
 open HOL;

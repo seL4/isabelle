@@ -5,6 +5,6 @@ struct
   val classical = classical;
 end;
 
-AddXIs [disjI1, disjI2];
+AddXIs [equal_intr_rule, disjI1, disjI2];
 
 open FOL;
