@@ -269,14 +269,15 @@ fun adjust_maxidx (ct as Cterm {sign_ref, T, t, maxidx, ...}) =
 (*Form cterm out of a function and an argument*)
 fun capply (Cterm {t=f, sign_ref=sign_ref1, T=Type("fun",[dty,rty]), maxidx=maxidx1})
            (Cterm {t=x, sign_ref=sign_ref2, T, maxidx=maxidx2}) =
-      if T = dty then Cterm{t=f$x, sign_ref=Sign.merge_refs(sign_ref1,sign_ref2), T=rty,
-                            maxidx=Int.max(maxidx1, maxidx2)}
+      if T = dty then
+        Cterm{t=Sign.nodup_vars (f$x), sign_ref=Sign.merge_refs(sign_ref1,sign_ref2), T=rty,
+          maxidx=Int.max(maxidx1, maxidx2)}
       else raise CTERM "capply: types don't agree"
   | capply _ _ = raise CTERM "capply: first arg is not a function"
 
 fun cabs (Cterm {t=Free(a,ty), sign_ref=sign_ref1, T=T1, maxidx=maxidx1})
          (Cterm {t=t2, sign_ref=sign_ref2, T=T2, maxidx=maxidx2}) =
-      Cterm {t=absfree(a,ty,t2), sign_ref=Sign.merge_refs(sign_ref1,sign_ref2),
+      Cterm {t=Sign.nodup_vars (absfree(a,ty,t2)), sign_ref=Sign.merge_refs(sign_ref1,sign_ref2),
              T = ty --> T2, maxidx=Int.max(maxidx1, maxidx2)}
   | cabs _ _ = raise CTERM "cabs: first arg is not a free variable";
 
@@ -644,8 +645,8 @@ fun compress (Thm {sign_ref, der, maxidx, shyps, hyps, prop}) =
 (*Check that term does not contain same var with different typing/sorting.
   If this check must be made, recalculate maxidx in hope of preventing its
   recurrence.*)
-fun nodup_Vars (thm as Thm{sign_ref, der, maxidx, shyps, hyps, prop}) s =
-  (Sign.nodup_Vars prop; 
+fun nodup_vars (thm as Thm{sign_ref, der, maxidx, shyps, hyps, prop}) s =
+  (Sign.nodup_vars prop; 
    Thm {sign_ref = sign_ref, 
          der = der,     
          maxidx = maxidx_of_term prop,
@@ -653,6 +654,7 @@ fun nodup_Vars (thm as Thm{sign_ref, der, maxidx, shyps, hyps, prop}) s =
          hyps = hyps, 
          prop = prop})
   handle TYPE(msg,Ts,ts) => raise TYPE(s^": "^msg,Ts,ts);
+
 
 (** 'primitive' rules **)
 
@@ -763,7 +765,7 @@ fun forall_elim ct (th as Thm{sign_ref,der,maxidx,hyps,prop,...}) : thm =
                          hyps = hyps,  
                          prop = betapply(A,t)})
                in if maxt >= 0 andalso maxidx >= 0
-                  then nodup_Vars thm "forall_elim" 
+                  then nodup_vars thm "forall_elim" 
                   else thm (*no new Vars: no expensive check!*)
                end
       | _ => raise THM("forall_elim: not quantified", 0, [th])
@@ -824,7 +826,7 @@ fun transitive th1 th2 =
                      hyps = union_term(hyps1,hyps2),
                      prop = eq$t1$t2})
                  in if max1 >= 0 andalso max2 >= 0
-                    then nodup_Vars thm "transitive" 
+                    then nodup_vars thm "transitive" 
                     else thm (*no new Vars: no expensive check!*)
                  end
      | _ =>  err"premises"
@@ -929,7 +931,7 @@ fun combination th1 th2 =
                             hyps = union_term(hyps1,hyps2),
                             prop = Logic.mk_equals(f$t, g$u)}
           in if max1 >= 0 andalso max2 >= 0
-             then nodup_Vars thm "combination" 
+             then nodup_vars thm "combination" 
              else thm (*no new Vars: no expensive check!*)  
           end
      | _ =>  raise THM("combination: premises", 0, [th1,th2])
@@ -1084,7 +1086,7 @@ fun instantiate ([], []) th = th
       then raise THM("instantiate: variables not distinct", 0, [th])
       else if not(null(findrep(map #1 vTs)))
       then raise THM("instantiate: type variables not distinct", 0, [th])
-      else nodup_Vars newth "instantiate"
+      else nodup_vars newth "instantiate"
   end
   handle TERM _ => raise THM("instantiate: incompatible signatures", 0, [th])
        | TYPE (msg, _, _) => raise THM (msg, 0, [th]);
@@ -1133,9 +1135,9 @@ fun varifyT' fixed (Thm{sign_ref,der,maxidx,shyps,hyps,prop}) =
         shyps = shyps, 
         hyps = hyps,
         prop = Type.varify(prop,tfrees)}
-     in nodup_Vars thm "varifyT" end
-(* this nodup_Vars check can be removed if thms are guaranteed not to contain
-duplicate TVars with differnt sorts *)
+     in nodup_vars thm "varifyT" end
+(* this nodup_vars check can be removed if thms are guaranteed not to contain
+duplicate TVars with different sorts *)
   end;
 
 val varifyT = varifyT' [];
