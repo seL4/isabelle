@@ -24,12 +24,10 @@ fun list_ind_tac a prems i =
 	   ares_tac prems i];
 
 goal List.thy "list(A) = {0} + (A * list(A))";
-by (rtac (list.unfold RS trans) 1);
-bws list.con_defs;
-br equalityI 1;
-by (fast_tac sum_cs 1);
-by (fast_tac (sum_cs addIs datatype_intrs
-		     addDs [list.dom_subset RS subsetD]) 1);
+let open list;  val rew = rewrite_rule con_defs in  
+by (fast_tac (sum_cs addSIs (equalityI :: map rew intrs)
+                     addEs [rew elim]) 1)
+end;
 val list_unfold = result();
 
 (**  Lemmas to justify using "list" in other recursive type definitions **)
@@ -48,6 +46,7 @@ by (fast_tac (ZF_cs addSIs [zero_in_univ, Inl_in_univ, Inr_in_univ,
 			    Pair_in_univ]) 1);
 val list_univ = result();
 
+(*These two theorems are unused -- useful??*)
 val list_subset_univ = standard ([list_mono, list_univ] MRS subset_trans);
 
 goal List.thy "!!l A B. [| l: list(A);  A <= univ(B) |] ==> l: univ(B)";
