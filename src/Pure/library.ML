@@ -725,6 +725,15 @@ fun accesses_bal (f, g, x) n =
 
 datatype order = LESS | EQUAL | GREATER;
 
+fun rev_order LESS = GREATER
+  | rev_order EQUAL = EQUAL
+  | rev_order GREATER = LESS;
+
+fun make_ord rel (x, y) =
+  if rel (x, y) then LESS
+  else if rel (y, x) then GREATER
+  else EQUAL;
+
 fun int_ord (i, j: int) =
   if i < j then LESS
   else if i = j then EQUAL
@@ -887,19 +896,27 @@ fun partition_list p i j =
 
 (* sorting *)
 
-(*insertion sort; stable (does not reorder equal elements)
-  'less' is less-than test on type 'a*)
-fun sort (less: 'a*'a -> bool) =
-  let fun insert (x, []) = [x]
-        | insert (x, y::ys) =
-              if less(y, x) then y :: insert (x, ys) else x::y::ys;
-      fun sort1 [] = []
-        | sort1 (x::xs) = insert (x, sort1 xs)
-  in  sort1  end;
+(*quicksort (stable, i.e. does not reorder equal elements)*)
+fun sort ord =
+  let
+    fun qsort xs =
+      let val len = length xs in
+        if len <= 1 then xs
+        else
+          let val (lts, eqs, gts) = part (nth_elem (len div 2, xs)) xs in
+            qsort lts @ eqs @ qsort gts
+          end
+      end
+    and part _ [] = ([], [], [])
+      | part pivot (x :: xs) = add (ord (x, pivot)) x (part pivot xs)
+    and add LESS x (lts, eqs, gts) = (x :: lts, eqs, gts)
+      | add EQUAL x (lts, eqs, gts) = (lts, x :: eqs, gts)
+      | add GREATER x (lts, eqs, gts) = (lts, eqs, x :: gts);
+  in qsort end;
 
 (*sort strings*)
-fun sort_wrt sel xs = sort (op <= o pairself (sel: 'a -> string)) xs;
-val sort_strings = sort_wrt I;
+val sort_strings = sort string_ord;
+fun sort_wrt sel xs = sort (string_ord o pairself sel) xs;
 
 
 (* transitive closure (not Warshall's algorithm) *)
