@@ -121,7 +121,7 @@ subsection{*Separation for Cartesian Product*}
 lemma cartprod_Reflects:
      "REFLECTS[\<lambda>z. \<exists>x[L]. x\<in>A & (\<exists>y[L]. y\<in>B & pair(L,x,y,z)),
                 \<lambda>i z. \<exists>x\<in>Lset(i). x\<in>A & (\<exists>y\<in>Lset(i). y\<in>B &
-                                   pair(**Lset(i),x,y,z))]"
+                                   pair(##Lset(i),x,y,z))]"
 by (intro FOL_reflections function_reflections)
 
 lemma cartprod_separation:
@@ -136,7 +136,7 @@ subsection{*Separation for Image*}
 
 lemma image_Reflects:
      "REFLECTS[\<lambda>y. \<exists>p[L]. p\<in>r & (\<exists>x[L]. x\<in>A & pair(L,x,y,p)),
-           \<lambda>i y. \<exists>p\<in>Lset(i). p\<in>r & (\<exists>x\<in>Lset(i). x\<in>A & pair(**Lset(i),x,y,p))]"
+           \<lambda>i y. \<exists>p\<in>Lset(i). p\<in>r & (\<exists>x\<in>Lset(i). x\<in>A & pair(##Lset(i),x,y,p))]"
 by (intro FOL_reflections function_reflections)
 
 lemma image_separation:
@@ -153,7 +153,7 @@ subsection{*Separation for Converse*}
 lemma converse_Reflects:
   "REFLECTS[\<lambda>z. \<exists>p[L]. p\<in>r & (\<exists>x[L]. \<exists>y[L]. pair(L,x,y,p) & pair(L,y,x,z)),
      \<lambda>i z. \<exists>p\<in>Lset(i). p\<in>r & (\<exists>x\<in>Lset(i). \<exists>y\<in>Lset(i).
-                     pair(**Lset(i),x,y,p) & pair(**Lset(i),y,x,z))]"
+                     pair(##Lset(i),x,y,p) & pair(##Lset(i),y,x,z))]"
 by (intro FOL_reflections function_reflections)
 
 lemma converse_separation:
@@ -169,7 +169,7 @@ subsection{*Separation for Restriction*}
 
 lemma restrict_Reflects:
      "REFLECTS[\<lambda>z. \<exists>x[L]. x\<in>A & (\<exists>y[L]. pair(L,x,y,z)),
-        \<lambda>i z. \<exists>x\<in>Lset(i). x\<in>A & (\<exists>y\<in>Lset(i). pair(**Lset(i),x,y,z))]"
+        \<lambda>i z. \<exists>x\<in>Lset(i). x\<in>A & (\<exists>y\<in>Lset(i). pair(##Lset(i),x,y,z))]"
 by (intro FOL_reflections function_reflections)
 
 lemma restrict_separation:
@@ -187,8 +187,8 @@ lemma comp_Reflects:
                   pair(L,x,z,xz) & pair(L,x,y,xy) & pair(L,y,z,yz) &
                   xy\<in>s & yz\<in>r,
         \<lambda>i xz. \<exists>x\<in>Lset(i). \<exists>y\<in>Lset(i). \<exists>z\<in>Lset(i). \<exists>xy\<in>Lset(i). \<exists>yz\<in>Lset(i).
-                  pair(**Lset(i),x,z,xz) & pair(**Lset(i),x,y,xy) &
-                  pair(**Lset(i),y,z,yz) & xy\<in>s & yz\<in>r]"
+                  pair(##Lset(i),x,z,xz) & pair(##Lset(i),x,y,xy) &
+                  pair(##Lset(i),y,z,yz) & xy\<in>s & yz\<in>r]"
 by (intro FOL_reflections function_reflections)
 
 lemma comp_separation:
@@ -210,7 +210,7 @@ subsection{*Separation for Predecessors in an Order*}
 
 lemma pred_Reflects:
      "REFLECTS[\<lambda>y. \<exists>p[L]. p\<in>r & pair(L,y,x,p),
-                    \<lambda>i y. \<exists>p \<in> Lset(i). p\<in>r & pair(**Lset(i),y,x,p)]"
+                    \<lambda>i y. \<exists>p \<in> Lset(i). p\<in>r & pair(##Lset(i),y,x,p)]"
 by (intro FOL_reflections function_reflections)
 
 lemma pred_separation:
@@ -225,7 +225,7 @@ subsection{*Separation for the Membership Relation*}
 
 lemma Memrel_Reflects:
      "REFLECTS[\<lambda>z. \<exists>x[L]. \<exists>y[L]. pair(L,x,y,z) & x \<in> y,
-            \<lambda>i z. \<exists>x \<in> Lset(i). \<exists>y \<in> Lset(i). pair(**Lset(i),x,y,z) & x \<in> y]"
+            \<lambda>i z. \<exists>x \<in> Lset(i). \<exists>y \<in> Lset(i). pair(##Lset(i),x,y,z) & x \<in> y]"
 by (intro FOL_reflections function_reflections)
 
 lemma Memrel_separation:
@@ -244,8 +244,8 @@ lemma funspace_succ_Reflects:
             upair(L,cnbf,cnbf,z)),
         \<lambda>i z. \<exists>p \<in> Lset(i). p\<in>A & (\<exists>f \<in> Lset(i). \<exists>b \<in> Lset(i).
               \<exists>nb \<in> Lset(i). \<exists>cnbf \<in> Lset(i).
-                pair(**Lset(i),f,b,p) & pair(**Lset(i),n,b,nb) &
-                is_cons(**Lset(i),nb,f,cnbf) & upair(**Lset(i),cnbf,cnbf,z))]"
+                pair(##Lset(i),f,b,p) & pair(##Lset(i),n,b,nb) &
+                is_cons(##Lset(i),nb,f,cnbf) & upair(##Lset(i),cnbf,cnbf,z))]"
 by (intro FOL_reflections function_reflections)
 
 lemma funspace_succ_replacement:
@@ -269,9 +269,9 @@ lemma is_recfun_reflects:
                 (\<exists>fx[L]. \<exists>gx[L]. fun_apply(L,f,x,fx) & fun_apply(L,g,x,gx) &
                                    fx \<noteq> gx),
    \<lambda>i x. \<exists>xa \<in> Lset(i). \<exists>xb \<in> Lset(i).
-          pair(**Lset(i),x,a,xa) & xa \<in> r & pair(**Lset(i),x,b,xb) & xb \<in> r &
-                (\<exists>fx \<in> Lset(i). \<exists>gx \<in> Lset(i). fun_apply(**Lset(i),f,x,fx) &
-                  fun_apply(**Lset(i),g,x,gx) & fx \<noteq> gx)]"
+          pair(##Lset(i),x,a,xa) & xa \<in> r & pair(##Lset(i),x,b,xb) & xb \<in> r &
+                (\<exists>fx \<in> Lset(i). \<exists>gx \<in> Lset(i). fun_apply(##Lset(i),f,x,fx) &
+                  fun_apply(##Lset(i),g,x,gx) & fx \<noteq> gx)]"
 by (intro FOL_reflections function_reflections fun_plus_reflections)
 
 lemma is_recfun_separation:

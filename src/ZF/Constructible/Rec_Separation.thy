@@ -56,18 +56,18 @@ by (simp add: rtran_closure_mem_fm_def)
 lemma sats_rtran_closure_mem_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
     ==> sats(A, rtran_closure_mem_fm(x,y,z), env) <->
-        rtran_closure_mem(**A, nth(x,env), nth(y,env), nth(z,env))"
+        rtran_closure_mem(##A, nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: rtran_closure_mem_fm_def rtran_closure_mem_def)
 
 lemma rtran_closure_mem_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==> rtran_closure_mem(**A, x, y, z) <-> sats(A, rtran_closure_mem_fm(i,j,k), env)"
+       ==> rtran_closure_mem(##A, x, y, z) <-> sats(A, rtran_closure_mem_fm(i,j,k), env)"
 by (simp add: sats_rtran_closure_mem_fm)
 
 lemma rtran_closure_mem_reflection:
      "REFLECTS[\<lambda>x. rtran_closure_mem(L,f(x),g(x),h(x)),
-               \<lambda>i x. rtran_closure_mem(**Lset(i),f(x),g(x),h(x))]"
+               \<lambda>i x. rtran_closure_mem(##Lset(i),f(x),g(x),h(x))]"
 apply (simp only: rtran_closure_mem_def)
 apply (intro FOL_reflections function_reflections fun_plus_reflections)
 done
@@ -100,18 +100,18 @@ by (simp add: rtran_closure_fm_def)
 lemma sats_rtran_closure_fm [simp]:
    "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
     ==> sats(A, rtran_closure_fm(x,y), env) <->
-        rtran_closure(**A, nth(x,env), nth(y,env))"
+        rtran_closure(##A, nth(x,env), nth(y,env))"
 by (simp add: rtran_closure_fm_def rtran_closure_def)
 
 lemma rtran_closure_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y;
           i \<in> nat; j \<in> nat; env \<in> list(A)|]
-       ==> rtran_closure(**A, x, y) <-> sats(A, rtran_closure_fm(i,j), env)"
+       ==> rtran_closure(##A, x, y) <-> sats(A, rtran_closure_fm(i,j), env)"
 by simp
 
 theorem rtran_closure_reflection:
      "REFLECTS[\<lambda>x. rtran_closure(L,f(x),g(x)),
-               \<lambda>i x. rtran_closure(**Lset(i),f(x),g(x))]"
+               \<lambda>i x. rtran_closure(##Lset(i),f(x),g(x))]"
 apply (simp only: rtran_closure_def)
 apply (intro FOL_reflections function_reflections rtran_closure_mem_reflection)
 done
@@ -132,18 +132,18 @@ by (simp add: tran_closure_fm_def)
 lemma sats_tran_closure_fm [simp]:
    "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
     ==> sats(A, tran_closure_fm(x,y), env) <->
-        tran_closure(**A, nth(x,env), nth(y,env))"
+        tran_closure(##A, nth(x,env), nth(y,env))"
 by (simp add: tran_closure_fm_def tran_closure_def)
 
 lemma tran_closure_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y;
           i \<in> nat; j \<in> nat; env \<in> list(A)|]
-       ==> tran_closure(**A, x, y) <-> sats(A, tran_closure_fm(i,j), env)"
+       ==> tran_closure(##A, x, y) <-> sats(A, tran_closure_fm(i,j), env)"
 by simp
 
 theorem tran_closure_reflection:
      "REFLECTS[\<lambda>x. tran_closure(L,f(x),g(x)),
-               \<lambda>i x. tran_closure(**Lset(i),f(x),g(x))]"
+               \<lambda>i x. tran_closure(##Lset(i),f(x),g(x))]"
 apply (simp only: tran_closure_def)
 apply (intro FOL_reflections function_reflections
              rtran_closure_reflection composition_reflection)
@@ -156,7 +156,7 @@ lemma wellfounded_trancl_reflects:
   "REFLECTS[\<lambda>x. \<exists>w[L]. \<exists>wx[L]. \<exists>rp[L].
                  w \<in> Z & pair(L,w,x,wx) & tran_closure(L,r,rp) & wx \<in> rp,
    \<lambda>i x. \<exists>w \<in> Lset(i). \<exists>wx \<in> Lset(i). \<exists>rp \<in> Lset(i).
-       w \<in> Z & pair(**Lset(i),w,x,wx) & tran_closure(**Lset(i),r,rp) &
+       w \<in> Z & pair(##Lset(i),w,x,wx) & tran_closure(##Lset(i),r,rp) &
        wx \<in> rp]"
 by (intro FOL_reflections function_reflections fun_plus_reflections
           tran_closure_reflection)
@@ -199,10 +199,10 @@ lemma list_replacement1_Reflects:
  "REFLECTS
    [\<lambda>x. \<exists>u[L]. u \<in> B \<and> (\<exists>y[L]. pair(L,u,y,x) \<and>
          is_wfrec(L, iterates_MH(L, is_list_functor(L,A), 0), memsn, u, y)),
-    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B \<and> (\<exists>y \<in> Lset(i). pair(**Lset(i), u, y, x) \<and>
-         is_wfrec(**Lset(i),
-                  iterates_MH(**Lset(i),
-                          is_list_functor(**Lset(i), A), 0), memsn, u, y))]"
+    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B \<and> (\<exists>y \<in> Lset(i). pair(##Lset(i), u, y, x) \<and>
+         is_wfrec(##Lset(i),
+                  iterates_MH(##Lset(i),
+                          is_list_functor(##Lset(i), A), 0), memsn, u, y))]"
 by (intro FOL_reflections function_reflections is_wfrec_reflection
           iterates_MH_reflection list_functor_reflection)
 
@@ -225,7 +225,7 @@ lemma list_replacement2_Reflects:
    [\<lambda>x. \<exists>u[L]. u \<in> B & u \<in> nat &
                 is_iterates(L, is_list_functor(L, A), 0, u, x),
     \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B & u \<in> nat &
-               is_iterates(**Lset(i), is_list_functor(**Lset(i), A), 0, u, x)]"
+               is_iterates(##Lset(i), is_list_functor(##Lset(i), A), 0, u, x)]"
 by (intro FOL_reflections 
           is_iterates_reflection list_functor_reflection)
 
@@ -251,10 +251,10 @@ lemma formula_replacement1_Reflects:
  "REFLECTS
    [\<lambda>x. \<exists>u[L]. u \<in> B & (\<exists>y[L]. pair(L,u,y,x) &
          is_wfrec(L, iterates_MH(L, is_formula_functor(L), 0), memsn, u, y)),
-    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B & (\<exists>y \<in> Lset(i). pair(**Lset(i), u, y, x) &
-         is_wfrec(**Lset(i),
-                  iterates_MH(**Lset(i),
-                          is_formula_functor(**Lset(i)), 0), memsn, u, y))]"
+    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B & (\<exists>y \<in> Lset(i). pair(##Lset(i), u, y, x) &
+         is_wfrec(##Lset(i),
+                  iterates_MH(##Lset(i),
+                          is_formula_functor(##Lset(i)), 0), memsn, u, y))]"
 by (intro FOL_reflections function_reflections is_wfrec_reflection
           iterates_MH_reflection formula_functor_reflection)
 
@@ -275,7 +275,7 @@ lemma formula_replacement2_Reflects:
    [\<lambda>x. \<exists>u[L]. u \<in> B & u \<in> nat &
                 is_iterates(L, is_formula_functor(L), 0, u, x),
     \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B & u \<in> nat &
-               is_iterates(**Lset(i), is_formula_functor(**Lset(i)), 0, u, x)]"
+               is_iterates(##Lset(i), is_formula_functor(##Lset(i)), 0, u, x)]"
 by (intro FOL_reflections 
           is_iterates_reflection formula_functor_reflection)
 
@@ -310,7 +310,7 @@ by (simp add: nth_fm_def)
 lemma sats_nth_fm [simp]:
    "[| x < length(env); y \<in> nat; z \<in> nat; env \<in> list(A)|]
     ==> sats(A, nth_fm(x,y,z), env) <->
-        is_nth(**A, nth(x,env), nth(y,env), nth(z,env))"
+        is_nth(##A, nth(x,env), nth(y,env), nth(z,env))"
 apply (frule lt_length_in_nat, assumption)  
 apply (simp add: nth_fm_def is_nth_def sats_is_iterates_fm) 
 done
@@ -318,12 +318,12 @@ done
 lemma nth_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i < length(env); j \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==> is_nth(**A, x, y, z) <-> sats(A, nth_fm(i,j,k), env)"
+       ==> is_nth(##A, x, y, z) <-> sats(A, nth_fm(i,j,k), env)"
 by (simp add: sats_nth_fm)
 
 theorem nth_reflection:
      "REFLECTS[\<lambda>x. is_nth(L, f(x), g(x), h(x)),  
-               \<lambda>i x. is_nth(**Lset(i), f(x), g(x), h(x))]"
+               \<lambda>i x. is_nth(##Lset(i), f(x), g(x), h(x))]"
 apply (simp only: is_nth_def)
 apply (intro FOL_reflections is_iterates_reflection
              hd_reflection tl_reflection) 
@@ -338,10 +338,10 @@ lemma nth_replacement_Reflects:
  "REFLECTS
    [\<lambda>x. \<exists>u[L]. u \<in> B & (\<exists>y[L]. pair(L,u,y,x) &
          is_wfrec(L, iterates_MH(L, is_tl(L), z), memsn, u, y)),
-    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B & (\<exists>y \<in> Lset(i). pair(**Lset(i), u, y, x) &
-         is_wfrec(**Lset(i),
-                  iterates_MH(**Lset(i),
-                          is_tl(**Lset(i)), z), memsn, u, y))]"
+    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B & (\<exists>y \<in> Lset(i). pair(##Lset(i), u, y, x) &
+         is_wfrec(##Lset(i),
+                  iterates_MH(##Lset(i),
+                          is_tl(##Lset(i)), z), memsn, u, y))]"
 by (intro FOL_reflections function_reflections is_wfrec_reflection
           iterates_MH_reflection tl_reflection)
 
@@ -395,9 +395,9 @@ lemma eclose_replacement1_Reflects:
  "REFLECTS
    [\<lambda>x. \<exists>u[L]. u \<in> B & (\<exists>y[L]. pair(L,u,y,x) &
          is_wfrec(L, iterates_MH(L, big_union(L), A), memsn, u, y)),
-    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B & (\<exists>y \<in> Lset(i). pair(**Lset(i), u, y, x) &
-         is_wfrec(**Lset(i),
-                  iterates_MH(**Lset(i), big_union(**Lset(i)), A),
+    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B & (\<exists>y \<in> Lset(i). pair(##Lset(i), u, y, x) &
+         is_wfrec(##Lset(i),
+                  iterates_MH(##Lset(i), big_union(##Lset(i)), A),
                   memsn, u, y))]"
 by (intro FOL_reflections function_reflections is_wfrec_reflection
           iterates_MH_reflection)
@@ -419,7 +419,7 @@ lemma eclose_replacement2_Reflects:
    [\<lambda>x. \<exists>u[L]. u \<in> B & u \<in> nat &
                 is_iterates(L, big_union(L), A, u, x),
     \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B & u \<in> nat &
-               is_iterates(**Lset(i), big_union(**Lset(i)), A, u, x)]"
+               is_iterates(##Lset(i), big_union(##Lset(i)), A, u, x)]"
 by (intro FOL_reflections function_reflections is_iterates_reflection)
 
 lemma eclose_replacement2:

@@ -21,7 +21,7 @@ lemma well_ord_iso_Reflects:
   "REFLECTS[\<lambda>x. x\<in>A -->
                 (\<exists>y[L]. \<exists>p[L]. fun_apply(L,f,x,y) & pair(L,y,x,p) & p \<in> r),
         \<lambda>i x. x\<in>A --> (\<exists>y \<in> Lset(i). \<exists>p \<in> Lset(i).
-                fun_apply(**Lset(i),f,x,y) & pair(**Lset(i),y,x,p) & p \<in> r)]"
+                fun_apply(##Lset(i),f,x,y) & pair(##Lset(i),y,x,p) & p \<in> r)]"
 by (intro FOL_reflections function_reflections)
 
 lemma well_ord_iso_separation:
@@ -42,8 +42,8 @@ lemma obase_reflects:
              ordinal(L,x) & membership(L,x,mx) & pred_set(L,A,a,r,par) &
              order_isomorphism(L,par,r,x,mx,g),
         \<lambda>i a. \<exists>x \<in> Lset(i). \<exists>g \<in> Lset(i). \<exists>mx \<in> Lset(i). \<exists>par \<in> Lset(i).
-             ordinal(**Lset(i),x) & membership(**Lset(i),x,mx) & pred_set(**Lset(i),A,a,r,par) &
-             order_isomorphism(**Lset(i),par,r,x,mx,g)]"
+             ordinal(##Lset(i),x) & membership(##Lset(i),x,mx) & pred_set(##Lset(i),A,a,r,par) &
+             order_isomorphism(##Lset(i),par,r,x,mx,g)]"
 by (intro FOL_reflections function_reflections fun_plus_reflections)
 
 lemma obase_separation:
@@ -66,9 +66,9 @@ lemma obase_equals_reflects:
                 membership(L,y,my) & pred_set(L,A,x,r,pxr) &
                 order_isomorphism(L,pxr,r,y,my,g))),
         \<lambda>i x. x\<in>A --> ~(\<exists>y \<in> Lset(i). \<exists>g \<in> Lset(i).
-                ordinal(**Lset(i),y) & (\<exists>my \<in> Lset(i). \<exists>pxr \<in> Lset(i).
-                membership(**Lset(i),y,my) & pred_set(**Lset(i),A,x,r,pxr) &
-                order_isomorphism(**Lset(i),pxr,r,y,my,g)))]"
+                ordinal(##Lset(i),y) & (\<exists>my \<in> Lset(i). \<exists>pxr \<in> Lset(i).
+                membership(##Lset(i),y,my) & pred_set(##Lset(i),A,x,r,pxr) &
+                order_isomorphism(##Lset(i),pxr,r,y,my,g)))]"
 by (intro FOL_reflections function_reflections fun_plus_reflections)
 
 lemma obase_equals_separation:
@@ -91,9 +91,9 @@ lemma omap_reflects:
      pred_set(L,A,a,r,par) & order_isomorphism(L,par,r,x,mx,g)),
  \<lambda>i z. \<exists>a \<in> Lset(i). a\<in>B & (\<exists>x \<in> Lset(i). \<exists>g \<in> Lset(i). \<exists>mx \<in> Lset(i).
         \<exists>par \<in> Lset(i).
-         ordinal(**Lset(i),x) & pair(**Lset(i),a,x,z) &
-         membership(**Lset(i),x,mx) & pred_set(**Lset(i),A,a,r,par) &
-         order_isomorphism(**Lset(i),par,r,x,mx,g))]"
+         ordinal(##Lset(i),x) & pair(##Lset(i),a,x,z) &
+         membership(##Lset(i),x,mx) & pred_set(##Lset(i),A,a,r,par) &
+         order_isomorphism(##Lset(i),par,r,x,mx,g))]"
 by (intro FOL_reflections function_reflections fun_plus_reflections)
 
 lemma omap_replacement:
@@ -135,9 +135,9 @@ subsubsection{*Separation for @{term "wfrank"}*}
 lemma wfrank_Reflects:
  "REFLECTS[\<lambda>x. \<forall>rplus[L]. tran_closure(L,r,rplus) -->
               ~ (\<exists>f[L]. M_is_recfun(L, %x f y. is_range(L,f,y), rplus, x, f)),
-      \<lambda>i x. \<forall>rplus \<in> Lset(i). tran_closure(**Lset(i),r,rplus) -->
+      \<lambda>i x. \<forall>rplus \<in> Lset(i). tran_closure(##Lset(i),r,rplus) -->
          ~ (\<exists>f \<in> Lset(i).
-            M_is_recfun(**Lset(i), %x f y. is_range(**Lset(i),f,y),
+            M_is_recfun(##Lset(i), %x f y. is_range(##Lset(i),f,y),
                         rplus, x, f))]"
 by (intro FOL_reflections function_reflections is_recfun_reflection tran_closure_reflection)
 
@@ -160,10 +160,10 @@ lemma wfrank_replacement_Reflects:
                         M_is_recfun(L, %x f y. is_range(L,f,y), rplus, x, f) &
                         is_range(L,f,y))),
  \<lambda>i z. \<exists>x \<in> Lset(i). x \<in> A &
-      (\<forall>rplus \<in> Lset(i). tran_closure(**Lset(i),r,rplus) -->
-       (\<exists>y \<in> Lset(i). \<exists>f \<in> Lset(i). pair(**Lset(i),x,y,z)  &
-         M_is_recfun(**Lset(i), %x f y. is_range(**Lset(i),f,y), rplus, x, f) &
-         is_range(**Lset(i),f,y)))]"
+      (\<forall>rplus \<in> Lset(i). tran_closure(##Lset(i),r,rplus) -->
+       (\<exists>y \<in> Lset(i). \<exists>f \<in> Lset(i). pair(##Lset(i),x,y,z)  &
+         M_is_recfun(##Lset(i), %x f y. is_range(##Lset(i),f,y), rplus, x, f) &
+         is_range(##Lset(i),f,y)))]"
 by (intro FOL_reflections function_reflections fun_plus_reflections
              is_recfun_reflection tran_closure_reflection)
 
@@ -191,12 +191,12 @@ lemma Ord_wfrank_Reflects:
              is_range(L,f,rangef) -->
              M_is_recfun(L, \<lambda>x f y. is_range(L,f,y), rplus, x, f) -->
              ordinal(L,rangef)),
-      \<lambda>i x. \<forall>rplus \<in> Lset(i). tran_closure(**Lset(i),r,rplus) -->
+      \<lambda>i x. \<forall>rplus \<in> Lset(i). tran_closure(##Lset(i),r,rplus) -->
           ~ (\<forall>f \<in> Lset(i). \<forall>rangef \<in> Lset(i).
-             is_range(**Lset(i),f,rangef) -->
-             M_is_recfun(**Lset(i), \<lambda>x f y. is_range(**Lset(i),f,y),
+             is_range(##Lset(i),f,rangef) -->
+             M_is_recfun(##Lset(i), \<lambda>x f y. is_range(##Lset(i),f,y),
                          rplus, x, f) -->
-             ordinal(**Lset(i),rangef))]"
+             ordinal(##Lset(i),rangef))]"
 by (intro FOL_reflections function_reflections is_recfun_reflection
           tran_closure_reflection ordinal_reflection)
 

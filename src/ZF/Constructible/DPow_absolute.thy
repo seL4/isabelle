@@ -47,7 +47,7 @@ lemma sats_formula_rec_fm:
   shows 
       "[|x \<in> nat; z \<in> nat; env \<in> list(A)|]
        ==> sats(A, formula_rec_fm(p,x,z), env) <-> 
-           is_formula_rec(**A, MH, nth(x,env), nth(z,env))"
+           is_formula_rec(##A, MH, nth(x,env), nth(z,env))"
 by (simp add: formula_rec_fm_def sats_is_transrec_fm is_formula_rec_def 
               MH_iff_sats [THEN iff_sym])
 
@@ -62,15 +62,15 @@ lemma formula_rec_iff_sats:
   shows
   "[|nth(i,env) = x; nth(k,env) = z; 
       i \<in> nat; k \<in> nat; env \<in> list(A)|]
-   ==> is_formula_rec(**A, MH, x, z) <-> sats(A, formula_rec_fm(p,i,k), env)" 
+   ==> is_formula_rec(##A, MH, x, z) <-> sats(A, formula_rec_fm(p,i,k), env)" 
 by (simp add: sats_formula_rec_fm [OF MH_iff_sats])
 
 theorem formula_rec_reflection:
   assumes MH_reflection:
     "!!f' f g h. REFLECTS[\<lambda>x. MH(L, f'(x), f(x), g(x), h(x)), 
-                     \<lambda>i x. MH(**Lset(i), f'(x), f(x), g(x), h(x))]"
+                     \<lambda>i x. MH(##Lset(i), f'(x), f(x), g(x), h(x))]"
   shows "REFLECTS[\<lambda>x. is_formula_rec(L, MH(L,x), f(x), h(x)), 
-               \<lambda>i x. is_formula_rec(**Lset(i), MH(**Lset(i),x), f(x), h(x))]"
+               \<lambda>i x. is_formula_rec(##Lset(i), MH(##Lset(i),x), f(x), h(x))]"
 apply (simp (no_asm_use) only: is_formula_rec_def)
 apply (intro FOL_reflections function_reflections fun_plus_reflections
              depth_reflection is_transrec_reflection MH_reflection)
@@ -90,19 +90,19 @@ by (simp add: satisfies_fm_def)
 lemma sats_satisfies_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
     ==> sats(A, satisfies_fm(x,y,z), env) <->
-        is_satisfies(**A, nth(x,env), nth(y,env), nth(z,env))"
+        is_satisfies(##A, nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: satisfies_fm_def is_satisfies_def sats_satisfies_MH_fm
               sats_formula_rec_fm)
 
 lemma satisfies_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
           i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==> is_satisfies(**A, x, y, z) <-> sats(A, satisfies_fm(i,j,k), env)"
+       ==> is_satisfies(##A, x, y, z) <-> sats(A, satisfies_fm(i,j,k), env)"
 by (simp add: sats_satisfies_fm)
 
 theorem satisfies_reflection:
      "REFLECTS[\<lambda>x. is_satisfies(L,f(x),g(x),h(x)),
-               \<lambda>i x. is_satisfies(**Lset(i),f(x),g(x),h(x))]"
+               \<lambda>i x. is_satisfies(##Lset(i),f(x),g(x),h(x))]"
 apply (simp only: is_satisfies_def)
 apply (intro formula_rec_reflection satisfies_MH_reflection)
 done
@@ -163,19 +163,19 @@ by (simp add: DPow_sats_fm_def)
 lemma sats_DPow_sats_fm [simp]:
    "[| u \<in> nat; x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
     ==> sats(A, DPow_sats_fm(u,x,y,z), env) <->
-        is_DPow_sats(**A, nth(u,env), nth(x,env), nth(y,env), nth(z,env))"
+        is_DPow_sats(##A, nth(u,env), nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: DPow_sats_fm_def is_DPow_sats_def)
 
 lemma DPow_sats_iff_sats:
   "[| nth(u,env) = nu; nth(x,env) = nx; nth(y,env) = ny; nth(z,env) = nz;
       u \<in> nat; x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-   ==> is_DPow_sats(**A,nu,nx,ny,nz) <->
+   ==> is_DPow_sats(##A,nu,nx,ny,nz) <->
        sats(A, DPow_sats_fm(u,x,y,z), env)"
 by simp
 
 theorem DPow_sats_reflection:
      "REFLECTS[\<lambda>x. is_DPow_sats(L,f(x),g(x),h(x),g'(x)),
-               \<lambda>i x. is_DPow_sats(**Lset(i),f(x),g(x),h(x),g'(x))]"
+               \<lambda>i x. is_DPow_sats(##Lset(i),f(x),g(x),h(x),g'(x))]"
 apply (unfold is_DPow_sats_def) 
 apply (intro FOL_reflections function_reflections extra_reflections
              satisfies_reflection)
@@ -260,9 +260,9 @@ lemma DPow_replacement_Reflects:
                is_Collect (L, A, is_DPow_sats(L,A,env,p), x)),
     \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B &
              (\<exists>env \<in> Lset(i). \<exists>p \<in> Lset(i).
-               mem_formula(**Lset(i),p) & mem_list(**Lset(i),A,env) & 
-               pair(**Lset(i),env,p,u) &
-               is_Collect (**Lset(i), A, is_DPow_sats(**Lset(i),A,env,p), x))]"
+               mem_formula(##Lset(i),p) & mem_list(##Lset(i),A,env) & 
+               pair(##Lset(i),env,p,u) &
+               is_Collect (##Lset(i), A, is_DPow_sats(##Lset(i),A,env,p), x))]"
 apply (unfold is_Collect_def) 
 apply (intro FOL_reflections function_reflections mem_formula_reflection
           mem_list_reflection DPow_sats_reflection)
@@ -326,7 +326,7 @@ lemma sats_Collect_fm:
   shows 
       "[|x \<in> nat; y \<in> nat; env \<in> list(A)|]
        ==> sats(A, Collect_fm(x,p,y), env) <->
-           is_Collect(**A, nth(x,env), is_P, nth(y,env))"
+           is_Collect(##A, nth(x,env), is_P, nth(y,env))"
 by (simp add: Collect_fm_def is_Collect_def is_P_iff_sats [THEN iff_sym])
 
 lemma Collect_iff_sats:
@@ -335,7 +335,7 @@ lemma Collect_iff_sats:
   shows 
   "[| nth(i,env) = x; nth(j,env) = y;
       i \<in> nat; j \<in> nat; env \<in> list(A)|]
-   ==> is_Collect(**A, x, is_P, y) <-> sats(A, Collect_fm(i,p,j), env)"
+   ==> is_Collect(##A, x, is_P, y) <-> sats(A, Collect_fm(i,p,j), env)"
 by (simp add: sats_Collect_fm [OF is_P_iff_sats])
 
 
@@ -344,9 +344,9 @@ text{*The second argument of @{term is_P} gives it direct access to @{term x},
 theorem Collect_reflection:
   assumes is_P_reflection:
     "!!h f g. REFLECTS[\<lambda>x. is_P(L, f(x), g(x)),
-                     \<lambda>i x. is_P(**Lset(i), f(x), g(x))]"
+                     \<lambda>i x. is_P(##Lset(i), f(x), g(x))]"
   shows "REFLECTS[\<lambda>x. is_Collect(L, f(x), is_P(L,x), g(x)),
-               \<lambda>i x. is_Collect(**Lset(i), f(x), is_P(**Lset(i), x), g(x))]"
+               \<lambda>i x. is_Collect(##Lset(i), f(x), is_P(##Lset(i), x), g(x))]"
 apply (simp (no_asm_use) only: is_Collect_def)
 apply (intro FOL_reflections is_P_reflection)
 done
@@ -377,7 +377,7 @@ lemma sats_Replace_fm:
   shows 
       "[|x \<in> nat; y \<in> nat; env \<in> list(A)|]
        ==> sats(A, Replace_fm(x,p,y), env) <->
-           is_Replace(**A, nth(x,env), is_P, nth(y,env))"
+           is_Replace(##A, nth(x,env), is_P, nth(y,env))"
 by (simp add: Replace_fm_def is_Replace_def is_P_iff_sats [THEN iff_sym])
 
 lemma Replace_iff_sats:
@@ -387,7 +387,7 @@ lemma Replace_iff_sats:
   shows 
   "[| nth(i,env) = x; nth(j,env) = y;
       i \<in> nat; j \<in> nat; env \<in> list(A)|]
-   ==> is_Replace(**A, x, is_P, y) <-> sats(A, Replace_fm(i,p,j), env)"
+   ==> is_Replace(##A, x, is_P, y) <-> sats(A, Replace_fm(i,p,j), env)"
 by (simp add: sats_Replace_fm [OF is_P_iff_sats])
 
 
@@ -396,9 +396,9 @@ text{*The second argument of @{term is_P} gives it direct access to @{term x},
 theorem Replace_reflection:
   assumes is_P_reflection:
     "!!h f g. REFLECTS[\<lambda>x. is_P(L, f(x), g(x), h(x)),
-                     \<lambda>i x. is_P(**Lset(i), f(x), g(x), h(x))]"
+                     \<lambda>i x. is_P(##Lset(i), f(x), g(x), h(x))]"
   shows "REFLECTS[\<lambda>x. is_Replace(L, f(x), is_P(L,x), g(x)),
-               \<lambda>i x. is_Replace(**Lset(i), f(x), is_P(**Lset(i), x), g(x))]"
+               \<lambda>i x. is_Replace(##Lset(i), f(x), is_P(##Lset(i), x), g(x))]"
 apply (simp (no_asm_use) only: is_Replace_def)
 apply (intro FOL_reflections is_P_reflection)
 done
@@ -431,18 +431,18 @@ by (simp add: DPow'_fm_def)
 lemma sats_DPow'_fm [simp]:
    "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
     ==> sats(A, DPow'_fm(x,y), env) <->
-        is_DPow'(**A, nth(x,env), nth(y,env))"
+        is_DPow'(##A, nth(x,env), nth(y,env))"
 by (simp add: DPow'_fm_def is_DPow'_def sats_subset_fm' sats_Collect_fm)
 
 lemma DPow'_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; 
           i \<in> nat; j \<in> nat; env \<in> list(A)|]
-       ==> is_DPow'(**A, x, y) <-> sats(A, DPow'_fm(i,j), env)"
+       ==> is_DPow'(##A, x, y) <-> sats(A, DPow'_fm(i,j), env)"
 by (simp add: sats_DPow'_fm)
 
 theorem DPow'_reflection:
      "REFLECTS[\<lambda>x. is_DPow'(L,f(x),g(x)),
-               \<lambda>i x. is_DPow'(**Lset(i),f(x),g(x))]"
+               \<lambda>i x. is_DPow'(##Lset(i),f(x),g(x))]"
 apply (simp only: is_DPow'_def)
 apply (intro FOL_reflections function_reflections mem_formula_reflection
              mem_list_reflection Collect_reflection DPow_sats_reflection)
@@ -534,7 +534,7 @@ lemma strong_rep_Reflects:
  "REFLECTS [\<lambda>u. \<exists>v[L]. v \<in> B & (\<exists>gy[L].
                           v \<in> x & fun_apply(L,g,v,gy) & is_DPow'(L,gy,u)),
    \<lambda>i u. \<exists>v \<in> Lset(i). v \<in> B & (\<exists>gy \<in> Lset(i).
-            v \<in> x & fun_apply(**Lset(i),g,v,gy) & is_DPow'(**Lset(i),gy,u))]"
+            v \<in> x & fun_apply(##Lset(i),g,v,gy) & is_DPow'(##Lset(i),gy,u))]"
 by (intro FOL_reflections function_reflections DPow'_reflection)
 
 lemma strong_rep:
@@ -558,14 +558,14 @@ lemma transrec_rep_Reflects:
                      \<exists>gy[L]. y \<in> x & fun_apply(L,f,y,gy) & 
                       is_DPow'(L,gy,z), r) & big_union(L,r,u), mr, v, y)),
     \<lambda>i x. \<exists>v \<in> Lset(i). v \<in> B &
-              (\<exists>y \<in> Lset(i). pair(**Lset(i),v,y,x) &
-             is_wfrec (**Lset(i), \<lambda>x f u. \<exists>r \<in> Lset(i).
-                is_Replace (**Lset(i), x, \<lambda>y z. 
-                     \<exists>gy \<in> Lset(i). y \<in> x & fun_apply(**Lset(i),f,y,gy) & 
-                      is_DPow'(**Lset(i),gy,z), r) & 
-                      big_union(**Lset(i),r,u), mr, v, y))]" 
+              (\<exists>y \<in> Lset(i). pair(##Lset(i),v,y,x) &
+             is_wfrec (##Lset(i), \<lambda>x f u. \<exists>r \<in> Lset(i).
+                is_Replace (##Lset(i), x, \<lambda>y z. 
+                     \<exists>gy \<in> Lset(i). y \<in> x & fun_apply(##Lset(i),f,y,gy) & 
+                      is_DPow'(##Lset(i),gy,z), r) & 
+                      big_union(##Lset(i),r,u), mr, v, y))]" 
 apply (simp only: rex_setclass_is_bex [symmetric])
-  --{*Convert @{text "\<exists>y\<in>Lset(i)"} to @{text "\<exists>y[**Lset(i)]"} within the body
+  --{*Convert @{text "\<exists>y\<in>Lset(i)"} to @{text "\<exists>y[##Lset(i)]"} within the body
        of the @{term is_wfrec} application. *}
 apply (intro FOL_reflections function_reflections 
           is_wfrec_reflection Replace_reflection DPow'_reflection) 
