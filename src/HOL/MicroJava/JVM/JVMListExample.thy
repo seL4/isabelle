@@ -96,8 +96,6 @@ types_code
 consts_code
   "new_Addr" ("new'_addr {* %x. case x of None => True | Some y => False *}/ {* None *}/ {* Loc *}")
 
-  "wf" ("true?")
-
   "arbitrary" ("(raise ERROR)")
   "arbitrary" :: "val" ("{* Unit *}")
   "arbitrary" :: "cname" ("Object")
