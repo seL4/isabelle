@@ -455,9 +455,11 @@ fun result1 tacf mss thm =
     None => None
   | Some(thm,_) => Some(thm);
 
-(*Rewrite subgoal i only *)
-fun asm_rewrite_goal_tac mode prover_tac mss i =
-      PRIMITIVE(rewrite_goal_rule mode (result1 prover_tac) mss i);
+(*Rewrite subgoal i only.  SELECT_GOAL avoids inefficiencies in goals_conv.*)
+fun asm_rewrite_goal_tac mode prover_tac mss =
+      SELECT_GOAL 
+        (PRIMITIVE
+	   (rewrite_goal_rule mode (result1 prover_tac) mss 1));
 
 (*Rewrite throughout proof state. *)
 fun rewrite_tac defs = PRIMITIVE(rewrite_rule defs);
@@ -472,7 +474,7 @@ fun rewtac def = rewrite_goals_tac [def];
 
 (*The depth of nesting in a term*)
 fun term_depth (Abs(a,T,t)) = 1 + term_depth t
-  | term_depth (f$t) = 1 + max [term_depth f, term_depth t]
+  | term_depth (f$t) = 1 + Int.max(term_depth f, term_depth t)
   | term_depth _ = 0;
 
 val lhs_of_thm = #1 o Logic.dest_equals o #prop o rep_thm;
