@@ -322,7 +322,7 @@ fun insert (nI,nE) = insert_tagged_list o (tag_brls (~(2*nI+nE))) o joinrules;
 
 fun delete_tagged_list brls netpr = foldr delete_tagged_brl (brls, netpr);
 
-val delete = delete_tagged_list o joinrules;
+fun delete x = delete_tagged_list (joinrules x);
 
 val mem_thm = gen_mem eq_thm
 and rem_thm = gen_rem eq_thm;
