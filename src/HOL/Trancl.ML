@@ -139,11 +139,10 @@ by (fast_tac (comp_cs addIs prems) 1);
 qed "rtrancl_induct";
 
 (*transitivity of transitive closure!! -- by induction.*)
-goal Trancl.thy "trans(r^*)";
-by (rtac transI 1);
-by (res_inst_tac [("b","z")] rtrancl_induct 1);
-by (DEPTH_SOLVE (eresolve_tac [asm_rl, rtrancl_into_rtrancl] 1));
-qed "trans_rtrancl";
+goal Trancl.thy "!!r. [| (a,b):r^*; (b,c):r^* |] ==> (a,c):r^*";
+by (eres_inst_tac [("b","c")] rtrancl_induct 1);
+by(ALLGOALS(fast_tac (HOL_cs addIs [rtrancl_into_rtrancl])));
+qed "rtrancl_trans";
 
 (*elimination of rtrancl -- by induction on a special formula*)
 val major::prems = goal Trancl.thy
@@ -186,7 +185,7 @@ val prems = goal Trancl.thy
 by (resolve_tac (prems RL [rtranclE]) 1);
 by (etac subst 1);
 by (resolve_tac (prems RL [r_into_trancl]) 1);
-by (rtac (trans_rtrancl RS transD RS rtrancl_into_trancl1) 1);
+by (rtac (rtrancl_trans RS rtrancl_into_trancl1) 1);
 by (REPEAT (ares_tac (prems@[r_into_rtrancl]) 1));
 qed "rtrancl_into_trancl2";
 
@@ -209,7 +208,7 @@ qed "tranclE";
 goalw Trancl.thy [trancl_def] "trans(r^+)";
 by (rtac transI 1);
 by (REPEAT (etac compEpair 1));
-by (rtac (rtrancl_into_rtrancl RS (trans_rtrancl RS transD RS compI)) 1);
+by (rtac (rtrancl_into_rtrancl RS (rtrancl_trans RS compI)) 1);
 by (REPEAT (assume_tac 1));
 qed "trans_trancl";
 
@@ -222,11 +221,6 @@ qed "trancl_into_trancl2";
 
 (*More about r^*)
 
-goal Trancl.thy "!!r. (b,c):r^* ==> !a. (a,b):r^* --> (a,c):r^*";
-be rtrancl_induct 1;
-by(ALLGOALS(fast_tac (comp_cs addIs [rtrancl_into_rtrancl])));
-bind_thm ("rtrancl_comp", result() RS spec RSN (2,rev_mp));
-
 goal Trancl.thy "(r^*)^* = r^*";
 br set_ext 1;
 by(res_inst_tac [("p","x")] PairE 1);
@@ -234,7 +228,7 @@ by(hyp_subst_tac 1);
 br iffI 1;
 be rtrancl_induct 1;
 br rtrancl_refl 1;
-by(fast_tac (HOL_cs addEs [rtrancl_comp]) 1);
+by(fast_tac (HOL_cs addEs [rtrancl_trans]) 1);
 be r_into_rtrancl 1;
 qed "rtrancl_idemp";
 
