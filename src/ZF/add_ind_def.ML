@@ -169,7 +169,7 @@ fun add_fp_def_i (rec_tms, domts, intr_tms) thy =
 	     | _ => rec_tms ~~		(*define the sets as Parts*)
 		    map (subst_atomic [(Free(X',iT),big_rec_tm)]) parts));
 
-  in  thy |> add_defns_i axpairs  end
+  in  thy |> add_defs_i axpairs  end
 
 
 (*external, string-based version; needed?*)
@@ -259,9 +259,5 @@ fun add_constructs_def (rec_names, con_ty_lists) thy =
     val axpairs =
 	big_case_def :: flat (map mk_con_defs ((1 upto npart) ~~ con_ty_lists))
 
-    in  thy |> add_consts_i const_decs |> add_defns_i axpairs  end;
+    in  thy |> add_consts_i const_decs |> add_defs_i axpairs  end;
 end;
-
-
-
-
