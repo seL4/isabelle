@@ -18,7 +18,7 @@ time_use_thy "ex/ramsey";
 time_use_thy "ex/equiv";
 time_use_thy "ex/integ";
 (*Binary integer arithmetic*)
-use          "ex/twos-compl.ML";
+use          "ex/twos_compl.ML";
 time_use     "ex/bin.ML";
 time_use_thy "ex/binfn";
 
