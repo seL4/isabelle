@@ -1329,7 +1329,7 @@ fun tryInThy thy lim s =
 
 (** method setup **)
 
-val setup = [Method.add_methods [("blast", Data.cla_method' blast_tac, "blast")]];
+val setup = [Method.add_methods [("blast", Data.cla_method' blast_tac, "tableau prover")]];
 
 
 end;
