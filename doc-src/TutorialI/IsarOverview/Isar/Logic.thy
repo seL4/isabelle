@@ -1,5 +1,6 @@
 (*<*)theory Logic = Main:(*>*)
-text{* We begin by looking at a simplified grammar for Isar proofs:
+text{* We begin by looking at a simplified grammar for Isar proofs
+where paranthesis are used for grouping and $^?$ indicates an optional item:
 \begin{center}
 \begin{tabular}{lrl}
 \emph{proof} & ::= & \isakeyword{proof} \emph{method}$^?$
@@ -7,36 +8,40 @@ text{* We begin by looking at a simplified grammar for Isar proofs:
                      \isakeyword{qed} \\
                  &$\mid$& \isakeyword{by} \emph{method}\\[1ex]
 \emph{statement} &::= & \isakeyword{fix} \emph{variables} \\
-             &$\mid$& \isakeyword{assume} proposition* \\
+             &$\mid$& \isakeyword{assume} \emph{proposition}
+                      (\isakeyword{and} \emph{proposition})*\\
              &$\mid$& (\isakeyword{from} \emph{label}$^*$ $\mid$
-                       \isakeyword{then})$^?$ \\
-                   && (\isakeyword{show} $\mid$ \isakeyword{have})
-                      \emph{proposition} \emph{proof} \\[1ex]
+                       \isakeyword{then})$^?$ 
+                    (\isakeyword{show} $\mid$ \isakeyword{have})
+                      \emph{string} \emph{proof} \\[1ex]
 \emph{proposition} &::=& (\emph{label}{\bf:})$^?$ \emph{string}
 \end{tabular}
 \end{center}
-where paranthesis are used for grouping and $^?$ indicates an optional item.
 
 This is a typical proof skeleton:
-
 \begin{center}
 \begin{tabular}{@ {}ll}
 \isakeyword{proof}\\
 \hspace*{3ex}\isakeyword{assume} @{text"\""}\emph{the-assm}@{text"\""}\\
-\hspace*{3ex}\isakeyword{have} @{text"\""}\dots@{text"\""}  & -- "intermediate result"\\
+\hspace*{3ex}\isakeyword{have} @{text"\""}\dots@{text"\""}  & -- intermediate result\\
 \hspace*{3ex}\vdots\\
-\hspace*{3ex}\isakeyword{have} @{text"\""}\dots@{text"\""}  & -- "intermediate result"\\
+\hspace*{3ex}\isakeyword{have} @{text"\""}\dots@{text"\""}  & -- intermediate result\\
 \hspace*{3ex}\isakeyword{show} @{text"\""}\emph{the-concl}@{text"\""}\\
 \isakeyword{qed}
 \end{tabular}
 \end{center}
-It proves \emph{the-assm}~@{text"\<Longrightarrow>"}~\emph{the-concl}.*}
+It proves \emph{the-assm}~@{text"\<Longrightarrow>"}~\emph{the-concl}.
+Text starting with ``--'' is a comment.
+*}
 
 section{*Logic*}
 
 subsection{*Propositional logic*}
 
 subsubsection{*Introduction rules*}
+
+text{* We start with a really trivial toy proof to introduce the basic
+features of structured proofs. *}
 
 lemma "A \<longrightarrow> A"
 proof (rule impI)
@@ -45,12 +50,13 @@ proof (rule impI)
 qed
 
 text{*\noindent
-The operational reading: the assume-show block proves @{prop"A \<Longrightarrow> A"},
+The operational reading: the \isakeyword{assume}-\isakeyword{show} block
+proves @{prop"A \<Longrightarrow> A"},
 which rule @{thm[source]impI} turns into the desired @{prop"A \<longrightarrow> A"}.
 However, this text is much too detailled for comfort. Therefore Isar
 implements the following principle:
 \begin{quote}\em
-Command \isakeyword{proof} automatically tries select an introduction rule
+Command \isakeyword{proof} automatically tries to select an introduction rule
 based on the goal and a predefined list of rules.
 \end{quote}
 Here @{thm[source]impI} is applied automatically:
@@ -85,8 +91,9 @@ qed
 text{*\noindent A drawback of these implicit proofs by assumption is that it
 is no longer obvious where an assumption is used.
 
-Proofs of the form \isakeyword{by}@{text"(rule <name>)"} can be abbreviated
-to ``..'' if @{text"<name>"} is one of the predefined introduction rules.  Thus
+Proofs of the form \isakeyword{by}@{text"(rule"}~\emph{name}@{text")"} can be
+abbreviated to ``..''
+if \emph{name} is one of the predefined introduction rules:
 *}
 
 lemma "A \<longrightarrow> A \<and> A"
@@ -96,9 +103,9 @@ proof
 qed
 
 text{*\noindent
-What happens: first the matching introduction rule @{thm[source]conjI}
-is applied (first "."), then the two subgoals are solved by assumption
-(second "."). *}
+This is what happens: first the matching introduction rule @{thm[source]conjI}
+is applied (first ``.''), then the two subgoals are solved by assumption
+(second ``.''). *}
 
 subsubsection{*Elimination rules*}
 
@@ -111,7 +118,7 @@ lemma "A \<and> B \<longrightarrow> B \<and> A"
 proof
   assume AB: "A \<and> B"
   show "B \<and> A"
-  proof (rule conjE[OF AB])
+  proof (rule conjE[OF AB])  -- {*@{prop"(A \<Longrightarrow> B \<Longrightarrow> R) \<Longrightarrow> R"}*}
     assume A and B
     show ?thesis ..
   qed
@@ -166,7 +173,7 @@ qed
 text{*\noindent
 A final simplification: \isakeyword{from}~@{text this} can be
 abbreviated to \isakeyword{thus}.
-\bigskip
+\medskip
 
 Here is an alternative proof that operates purely by forward reasoning: *}
 
@@ -197,7 +204,8 @@ by the given facts in the given order.
 \item If there is no matching elimination rule, introduction rules are tried,
 again using the facts to prove the premises.
 \end{itemize}
-In this case, the proof succeeds with @{thm[source]conjI}. Note that the proof would fail if we had written \isakeyword{from}~@{text"a b"}
+In this case, the proof succeeds with @{thm[source]conjI}. Note that the proof
+would fail if we had written \isakeyword{from}~@{text"a b"}
 instead of \isakeyword{from}~@{text"b a"}.
 
 This treatment of facts fed into a proof is not restricted to implicit
@@ -205,7 +213,7 @@ application of introduction and elimination rules but applies to explicit
 application of rules as well. Thus you could replace the final ``..'' above
 with \isakeyword{by}@{text"(rule conjI)"}. 
 
-Note Isar's predefined introduction and elimination rules include all the
+Note that Isar's predefined introduction and elimination rules include all the
 usual natural deduction rules for propositional logic. We conclude this
 section with an extended example --- which rules are used implicitly where?
 Rule @{thm[source]ccontr} is @{thm ccontr[no_vars]}.
@@ -216,7 +224,7 @@ proof
   assume n: "\<not>(A \<and> B)"
   show "\<not>A \<or> \<not>B"
   proof (rule ccontr)
-    assume nn: "\<not>(\<not> A \<or> \<not>B)"
+    assume nn: "\<not>(\<not>A \<or> \<not>B)"
     from n show False
     proof
       show "A \<and> B"
@@ -224,14 +232,14 @@ proof
 	show A
 	proof (rule ccontr)
 	  assume "\<not>A"
-	  have "\<not> A \<or> \<not> B" ..
+	  have "\<not>A \<or> \<not>B" ..
 	  from nn this show False ..
 	qed
       next
 	show B
 	proof (rule ccontr)
 	  assume "\<not>B"
-	  have "\<not> A \<or> \<not> B" ..
+	  have "\<not>A \<or> \<not>B" ..
 	  from nn this show False ..
 	qed
       qed
@@ -246,13 +254,13 @@ feature to deal with multiple subgoals: \isakeyword{next}.  When showing
 is proved separately, in \emph{any} order. The individual proofs are
 separated by \isakeyword{next}.  *}
 
-subsection{*Becoming more concise*}
+subsection{*Avoiding duplication*}
 
 text{* So far our examples have been a bit unnatural: normally we want to
 prove rules expressed with @{text"\<Longrightarrow>"}, not @{text"\<longrightarrow>"}. Here is an example:
 *}
 
-lemma "\<lbrakk> A \<Longrightarrow> False \<rbrakk> \<Longrightarrow> \<not> A"
+lemma "(A \<Longrightarrow> False) \<Longrightarrow> \<not> A"
 proof
   assume "A \<Longrightarrow> False" "A"
   thus False .
@@ -260,7 +268,10 @@ qed
 
 text{*\noindent The \isakeyword{proof} always works on the conclusion,
 @{prop"\<not>A"} in our case, thus selecting $\neg$-introduction. Hence we can
-additionally assume @{prop"A"}.
+additionally assume @{prop"A"}. Why does ``.'' prove @{prop False}? Because
+``.'' tries any of the assumptions, including proper rules (here: @{prop"A \<Longrightarrow>
+False"}), such that all of its premises can be solved directly by some other
+assumption (here: @{prop A}).
 
 This is all very well as long as formulae are small. Let us now look at some
 devices to avoid repeating (possibly large) formulae. A very general method
@@ -275,16 +286,16 @@ qed
 
 text{*\noindent Any formula may be followed by
 @{text"("}\isakeyword{is}~\emph{pattern}@{text")"} which causes the pattern
-to be matched against the formula, instantiating the ?-variables in the
-pattern. Subsequent uses of these variables in other terms simply causes them
-to be replaced by the terms they stand for.
+to be matched against the formula, instantiating the @{text"?"}-variables in
+the pattern. Subsequent uses of these variables in other terms simply causes
+them to be replaced by the terms they stand for.
 
 We can simplify things even more by stating the theorem by means of the
 \isakeyword{assumes} and \isakeyword{shows} primitives which allow direct
 naming of assumptions: *}
 
 lemma assumes A: "large_formula \<Longrightarrow> False"
-      shows "\<not> large_formula" (is "\<not> ?P")
+  shows "\<not> large_formula" (is "\<not> ?P")
 proof
   assume ?P
   with A show False .
@@ -345,23 +356,22 @@ qed
 text {*\noindent
 Explicit $\exists$-elimination as seen above can become
 cumbersome in practice.  The derived Isar language element
- ``\isakeyword{obtain}'' provides a more handsome way to perform
+\isakeyword{obtain} provides a more handsome way to perform
 generalized existence reasoning:
 *}
 
 lemma assumes Pf: "\<exists>x. P(f x)" shows "\<exists>y. P y"
 proof -
-  from Pf obtain x where "P(f x)" ..
+  from Pf obtain a where "P(f a)" ..
   thus "\<exists>y. P y" ..
 qed
 
 text {*\noindent Note how the proof text follows the usual mathematical style
-of concluding $P x$ from $\exists x. P(x)$, while carefully introducing $x$
-as a new local variable.
-Technically, \isakeyword{obtain} is similar to \isakeyword{fix} and
-\isakeyword{assume} together with a soundness proof of the
-elimination involved.  Thus it behaves similar to any other forward
-proof element.
+of concluding $P(x)$ from $\exists x. P(x)$, while carefully introducing $x$
+as a new local variable.  Technically, \isakeyword{obtain} is similar to
+\isakeyword{fix} and \isakeyword{assume} together with a soundness proof of
+the elimination involved.  Thus it behaves similar to any other forward proof
+element.
 
 Here is a proof of a well known tautology which employs another useful
 abbreviation: \isakeyword{hence} abbreviates \isakeyword{from}~@{text
@@ -388,7 +398,7 @@ proof
     assume "?S \<in> range f"
     then obtain y where fy: "?S = f y" ..
     show False
-    proof (cases)
+    proof cases
       assume "y \<in> ?S"
       with fy show False by blast
     next
@@ -403,7 +413,7 @@ For a start, the example demonstrates two new language elements:
 \begin{itemize}
 \item \isakeyword{let} introduces an abbreviation for a term, in our case
 the witness for the claim, because the term occurs multiple times in the proof.
-\item Proof by @{text"(cases)"} starts a proof by cases. Note that it remains
+\item Proof by @{text"cases"} starts a proof by cases. Note that it remains
 implicit what the two cases are: it is merely expected that the two subproofs
 prove @{prop"P \<Longrightarrow> Q"} and @{prop"\<not>P \<Longrightarrow> Q"} for suitable @{term P} and
 @{term Q}.
@@ -424,7 +434,7 @@ proof
     assume "?S \<in> range f"
     then obtain y where fy: "?S = f y" ..
     show False
-    proof (cases)
+    proof cases
       assume A: "y \<in> ?S"
       hence isin: "y \<in> f y"   by(simp add:fy)
       from A have "y \<notin> f y"   by simp
@@ -515,24 +525,23 @@ qed
 
 text{*\noindent Here \isakeyword{case}~@{text Nil} abbreviates
 \isakeyword{assume}~@{prop"x = []"} and \isakeyword{case}~@{text Cons}
-abbreviates \isakeyword{assume}~@{text"xs = a # list"}. However, we
-cannot refer to @{term a} and @{term list} because this would lead to
-brittle proofs: these names have been chosen by the system and have
-not been introduced via \isakeyword{fix}. Luckily, the proof is simple
-enough we do not need to refer to @{term a} and @{term list}. However,
-in general one may have to. Hence Isar offers a simple scheme for
-naming those variables: Replace the anonymous @{text Cons} by, for
-example, @{text"(Cons y ys)"}, which abbreviates
-\isakeyword{fix}~@{text"y ys"} \isakeyword{assume}~@{text"xs = Cons y
-ys"}, i.e.\ @{prop"xs = y # ys"}. Here is a (somewhat contrived)
-example: *}
+abbreviates \isakeyword{assume}~@{text"xs = _ # _"}. The names of the head
+and tail of @{text xs} have been chosen by the system. Therefore we cannot
+refer to them (this would lead to brittle proofs) and have not even shown
+them. Luckily, the proof is simple enough we do not need to refer to them.
+However, in general one may have to. Hence Isar offers a simple scheme for
+naming those variables: Replace the anonymous @{text Cons} by, for example,
+@{text"(Cons y ys)"}, which abbreviates \isakeyword{fix}~@{text"y ys"}
+\isakeyword{assume}~@{text"xs = Cons y ys"}, i.e.\ @{prop"xs = y # ys"}. Here
+is a (somewhat contrived) example: *}
 
 lemma "length(tl xs) = length xs - 1"
 proof (cases xs)
   case Nil thus ?thesis by simp
 next
   case (Cons y ys)
-  hence "length xs = length ys + 1 & length(tl xs) = length ys" by simp
+  hence "length(tl xs) = length ys  \<and>  length xs = length ys + 1"
+    by simp
   thus ?thesis by simp
 qed
 
@@ -574,14 +583,13 @@ next
 qed
 
 text{* \noindent The implicitly defined @{text ?case} refers to the
-corresponding case to be proved, i.e.\ @{text"?P 0"} in the first case
-and @{text"?P(Suc n)"} in the second case. Context
-\isakeyword{case}~@{text 0} is empty whereas \isakeyword{case}~@{text
-Suc} assumes @{text"?P n"}. Again we have the same problem as with
-case distinctions: we cannot refer to @{term n} in the induction step
-because it has not been introduced via \isakeyword{fix} (in contrast
-to the previous proof). The solution is the same as above: @{text"(Suc
-i)"} instead of just @{term Suc}: *}
+corresponding case to be proved, i.e.\ @{text"?P 0"} in the first case and
+@{text"?P(Suc n)"} in the second case. Context \isakeyword{case}~@{text 0} is
+empty whereas \isakeyword{case}~@{text Suc} assumes @{text"?P n"}. Again we
+have the same problem as with case distinctions: we cannot refer to @{term n}
+in the induction step because it has not been introduced via \isakeyword{fix}
+(in contrast to the previous proof). The solution is the same as above:
+replace @{term Suc} by @{text"(Suc i)"}: *}
 
 lemma fixes n::nat shows "n < n*n + 1"
 proof (induct n)
@@ -607,7 +615,7 @@ proof (induct n)
 next
   case (Suc n m)
   show ?case
-  proof (cases)
+  proof cases
     assume eq: "m = n"
     from Suc A have "P n" by blast
     with eq show "P m" by simp
@@ -618,7 +626,8 @@ next
   qed
 qed
 
-text{* \noindent In contrast to the style advertized in the
+text{* \noindent Let us first examine the statement of the lemma.
+In contrast to the style advertized in the
 Tutorial~\cite{LNCS2283}, structured Isar proofs do not need to
 introduce @{text"\<forall>"} or @{text"\<longrightarrow>"} into a theorem to strengthen it
 for induction --- we use @{text"\<And>"} and @{text"\<Longrightarrow>"} instead. This
@@ -628,20 +637,19 @@ two kinds of connectives. As usual, at the end of the proof
 @{text"?"}-variable. Thus @{thm[source]cind_lemma} becomes
 @{thm[display,indent=5] cind_lemma} Complete induction is an easy
 corollary: instantiation followed by
-simplification @{thm[source] cind_lemma[of _ n "Suc n", simplified]}
+simplification, @{thm[source] cind_lemma[of _ n "Suc n", simplified]},
 yields @{thm[display,indent=5] cind_lemma[of _ n "Suc n", simplified]}
 
-So what is this funny case @{text"(Suc n m)"} in the proof of
-@{thm[source] cind_lemma}? It looks confusing at first and reveals
-that the very suggestive @{text"(Suc n)"} used above is not the whole
-truth. The variable names after the case name (here: @{term Suc}) are
-the names of the parameters of that subgoal. So far the only
-parameters where the arguments to the constructor, but now we have an
-additonal parameter coming from the @{text"\<And>m"} in the
-\isakeyword{shows} clause. Thus @{text"(Suc n m)"} does not mean that
+Now we examine the proof.  So what is this funny case @{text"(Suc n m)"}? It
+looks confusing at first and reveals that the very suggestive @{text"(Suc
+n)"} used above is not the whole truth. The variable names after the case
+name (here: @{term Suc}) are the names of the parameters of that subgoal. So
+far the only parameters where the arguments to the constructor, but now we
+have an additonal parameter coming from the @{text"\<And>m"} in the main
+\isakeyword{shows} clause. Thus  Thus @{text"(Suc n m)"} does not mean that
 constructor @{term Suc} is applied to two arguments but that the two
-parameters in the @{term Suc} case are to be named @{text n} and
-@{text m}. *}
+parameters in the @{term Suc} case are to be named @{text n} and @{text
+m}. *}
 
 subsubsection{*Rule induction*}
 
@@ -657,7 +665,7 @@ step:  "\<lbrakk> (x,y) \<in> r; (y,z) \<in> r* \<rbrakk> \<Longrightarrow> (x,z
 text{* \noindent and prove that @{term"r*"} is indeed transitive: *}
 
 lemma assumes A: "(x,y) \<in> r*"
-      shows "(y,z) \<in> r* \<Longrightarrow> (x,z) \<in> r*" (is "PROP ?P x y")
+  shows "(y,z) \<in> r* \<Longrightarrow> (x,z) \<in> r*" (is "PROP ?P x y")
 proof -
   from A show "PROP ?P x y"
   proof induct
@@ -671,19 +679,19 @@ proof -
 qed
 
 text{*\noindent Rule induction is triggered by a fact $(x_1,\dots,x_n) \in R$
-piped into the proof, here \isakeyword{from}~@{text A}. The proof
-itself follows the two rules of the inductive definition very closely.
-The only surprising thing should be the keyword @{text PROP}: because
-of certain syntactic subleties it is required in front of terms of
-type @{typ prop} (the type of meta-level propositions) which are not
-obviously of type @{typ prop} because they do not contain a tell-tale
-constant such as @{text"\<And>"} or @{text"\<Longrightarrow>"}.
+piped into the proof, here \isakeyword{from}~@{text A}. The proof itself
+follows the two rules of the inductive definition very closely.  The only
+surprising thing should be the keyword @{text PROP}: because of certain
+syntactic subleties it is required in front of terms of type @{typ prop} (the
+type of meta-level propositions) which are not obviously of type @{typ prop}
+(e.g.\ @{text"?P x y"}) because they do not contain a tell-tale constant such
+as @{text"\<And>"} or @{text"\<Longrightarrow>"}.
 
-However, the proof is rather terse. Here is a more detailed version:
+However, the proof is rather terse. Here is a more readable version:
 *}
 
-lemma assumes A:"(x,y) \<in> r*" and B:"(y,z) \<in> r*"
-      shows "(x,z) \<in> r*"
+lemma assumes A: "(x,y) \<in> r*" and B: "(y,z) \<in> r*"
+  shows "(x,z) \<in> r*"
 proof -
   from A B show ?thesis
   proof induct
