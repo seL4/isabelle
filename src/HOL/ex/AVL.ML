@@ -93,7 +93,6 @@ by (case_tac "r" 1);
 by (case_tac "tree1" 1);
  by (Asm_simp_tac 1);
 by (asm_simp_tac (simpset() addsimps [max_def]) 1);
-by (arith_tac 1);
 qed_spec_mp "height_rl_rot";
 
 

@@ -136,6 +136,7 @@ lemma Semaphores_parameterized_mutex:
  COEND
   .{False}." 
 apply oghoare
+--{* 20 vc *}
 apply auto
 done
 
@@ -169,7 +170,9 @@ lemma Ticket_mutex:
 apply oghoare
 --{* 35 vc *}
 apply simp_all
+--{* 21 vc *}
 apply(tactic {* ALLGOALS Clarify_tac *})
+--{* 11 vc *}
 apply simp_all
 apply(tactic {* ALLGOALS Clarify_tac *})
 --{* 11 subgoals left *}
@@ -194,17 +197,12 @@ apply(erule_tac x=i in allE)
 apply force
 --{* 5 subgoals left *}
 prefer 5
-apply(rule conjI)
- apply clarify
-prefer 2
-apply(case_tac "j=i")
- apply simp
-apply simp
---{* 4 subgoals left *}
 apply(tactic {* ALLGOALS (case_tac "j=k") *})
+--{* 10 subgoals left *}
 apply simp_all
 apply(erule_tac x=i in allE)
 apply force
+--{* 9 subgoals left *}
 apply(case_tac "j=l")
  apply simp
  apply(erule_tac x=k in allE)
@@ -224,18 +222,21 @@ apply(erule_tac x=l in allE)
 apply force
 apply force
 apply force
+--{* 5 subgoals left *}
 apply(erule_tac x=k in allE)
 apply(erule_tac x=l in allE)
 apply(case_tac "j=l")
  apply force
 apply force
 apply force
+--{* 3 subgoals left *}
 apply(erule_tac x=k in allE)
 apply(erule_tac x=l in allE)
 apply(case_tac "j=l")
  apply force
 apply force
 apply force
+--{* 1 subgoals left *}
 apply(erule_tac x=k in allE)
 apply(erule_tac x=l in allE)
 apply(case_tac "j=l")
@@ -482,10 +483,7 @@ lemma Example1_list:
    COEND 
     .{\<forall>i < n. \<acute>A!i = 0}."
 apply oghoare
-apply simp_all
-  apply force+
-apply clarify
-apply (simp add:nth_list_update)
+apply force+
 done
 
 subsubsection {* Increment a Variable in Parallel *}
@@ -508,7 +506,7 @@ apply(simp add:less_Suc_eq)
 apply(subgoal_tac "n - j = Suc(n- Suc j)")
   apply simp
 apply arith
-done 
+done
 
 lemma Example2_lemma2_aux2: 
   "!!b. j\<le> s \<Longrightarrow> (\<Sum>i<j. (b (s:=t)) i) = (\<Sum>i<j. b i)"

@@ -1,4 +1,3 @@
-
 header {* \section{The Proof System} *}
 
 theory RG_Hoare = RG_Tran:
@@ -1143,8 +1142,7 @@ apply(case_tac "i=length xs")
 apply(case_tac "i-length xs")
  apply arith
 apply(simp add:nth_append del:map.simps last.simps)
-apply(rule conjI,clarify,arith)
-apply clarify
+apply(rotate_tac -3)
 apply(subgoal_tac "i- Suc (length xs)=nat")
  prefer 2
  apply arith
@@ -1281,7 +1279,6 @@ apply(erule disjE)
  apply(case_tac "i=ib",simp)
   apply(erule etran.elims,simp)
  apply(erule_tac x="ib" and P="\<lambda>i. ?H i \<longrightarrow> (?I i) \<or> (?J i)" in allE,simp)
- apply(erule disjE,arith)
  apply(case_tac "ia=m",simp)
   apply(erule etran.elims,simp)
  apply(erule_tac x=ia and P="\<lambda>j. ?H j \<longrightarrow> (\<forall> i. ?P i j)" in allE)
@@ -1325,7 +1322,6 @@ apply clarify
 apply(case_tac "i=ia",simp)
  apply(erule etran.elims,simp)
 apply(erule_tac x="ia" and P="\<lambda>i. ?H i \<longrightarrow> (?I i) \<or> (?J i)" in allE,simp)
- apply(erule disjE,arith)
 apply(erule_tac x=j and P="\<lambda>j. \<forall>i. ?S j i \<longrightarrow> (?I j i, ?H j i)\<in> ctran \<longrightarrow> (?P i j)" in allE)
 apply(erule_tac x=ia and P="\<lambda>j. ?S j \<longrightarrow> (?I j, ?H j)\<in> ctran \<longrightarrow> (?P j)" in allE)
 apply(simp add:same_state_def)

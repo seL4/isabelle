@@ -93,7 +93,6 @@ apply (unfold mul_mutator_defs)
 apply interfree_aux
 apply safe
 apply(simp_all add: nth_list_update)
-apply force+
 done
 
 lemma Mul_interfree_Redirect_Edge_Color_Target: 
@@ -112,7 +111,6 @@ apply (unfold mul_mutator_defs)
 apply interfree_aux
 apply safe
 apply(simp_all add:nth_list_update)
-apply (drule not_sym,force)+
 done
 
 lemma Mul_interfree_Color_Target_Color_Target: 
@@ -122,7 +120,6 @@ apply (unfold mul_mutator_defs)
 apply interfree_aux
 apply safe
 apply(simp_all add: nth_list_update)
-apply (drule not_sym,force)
 done
 
 lemmas mul_mutator_interfree = 
@@ -138,7 +135,6 @@ apply(simp_all add: mul_mutator_defs)
 apply(tactic {* TRYALL (interfree_aux_tac) *})
 apply(tactic {* ALLGOALS Clarify_tac *})
 apply (simp_all add:nth_list_update)
-apply force+
 done
 
 subsubsection {* Modular Parameterized Mutators *}
@@ -154,7 +150,7 @@ lemma Mul_Parameterized_Mutators: "0<n \<Longrightarrow>
 apply oghoare
 apply(force simp add:Mul_Mutator_def mul_mutator_defs nth_list_update)
 apply(erule Mul_Mutator)
-apply(simp add:Mul_interfree_Mutator_Mutator) 
+apply(simp add:Mul_interfree_Mutator_Mutator)
 apply(force simp add:Mul_Mutator_def mul_mutator_defs nth_list_update)
 done
 
@@ -204,8 +200,6 @@ apply annhoare
 apply(simp_all add:mul_collector_defs Graph_defs)
 apply safe
 apply(simp_all add:nth_list_update)
-   apply (erule less_SucE)
-    apply simp+
   apply (erule less_SucE)
    apply simp+
  apply(drule le_imp_less_or_eq)

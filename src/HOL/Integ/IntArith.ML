@@ -40,7 +40,6 @@ by (case_tac "k = f(n+1)" 1);
 by (etac impE 1);
  by (asm_full_simp_tac (simpset() addsimps [zabs_def] 
                                  addsplits [split_if_asm]) 1);
- by (arith_tac 1);
 by (blast_tac (claset() addIs [le_SucI]) 1);
 val lemma = result();
 

@@ -64,8 +64,6 @@ by (case_tac "d a i = k" 1);
  by (Asm_full_simp_tac 1);
  by (blast_tac (claset() addDs [in_set_butlastD]) 1);
 by (Asm_simp_tac 1);
-by (rtac conjI 1);
- by (Blast_tac 1);
 by (strip_tac 1);
 by (etac allE 1);
 by (etac impE 1);

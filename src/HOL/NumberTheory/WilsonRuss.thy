@@ -344,7 +344,6 @@ lemma prime_g_5: "p \<in> zprime \<Longrightarrow> p \<noteq> 2 \<Longrightarrow
    apply safe
      apply (rule_tac x = "2" in exI)
      apply auto
-  apply arith
   done
 
 theorem Wilson_Russ:

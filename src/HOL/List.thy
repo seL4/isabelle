@@ -531,7 +531,6 @@ apply (induct j)
  apply simp_all
 apply(erule ssubst)
 apply auto
-apply arith
 done
 
 lemma in_set_conv_decomp: "(x : set xs) = (\<exists>ys zs. xs = ys @ x # zs)"

@@ -185,7 +185,6 @@ lemma two_is_prime: "2 \<in> prime"
   apply (auto simp add: prime_def)
   apply (case_tac m)
    apply (auto dest!: dvd_imp_le)
-  apply arith
   done
 
 text {*

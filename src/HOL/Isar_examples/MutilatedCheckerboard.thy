@@ -79,7 +79,7 @@ lemma Sigma_Suc1:
 lemma Sigma_Suc2:
     "m = n + 2 ==> A <*> below m =
       (A <*> {n}) Un (A <*> {n + 1}) Un (A <*> below n)"
-  by (auto simp add: below_def) arith
+  by (auto simp add: below_def)
 
 lemmas Sigma_Suc = Sigma_Suc1 Sigma_Suc2
 

@@ -340,10 +340,10 @@ theorem Euler_Fermat:
   apply (subst RRset2norRR_eq_norR [symmetric])
     apply (rule_tac [3] inj_func_bijR)
       apply auto
-      apply (unfold zcongm_def)
-      apply (rule_tac [3] RRset2norRR_correct1)
-        apply (rule_tac [6] RRset2norRR_inj)
-         apply (auto intro: order_less_le [THEN iffD2]
+     apply (unfold zcongm_def)
+     apply (rule_tac [2] RRset2norRR_correct1)
+       apply (rule_tac [5] RRset2norRR_inj)
+        apply (auto intro: order_less_le [THEN iffD2]
 	   simp add: noX_is_RRset)
   apply (unfold noXRRset_def norRRset_def)
   apply (rule finite_imageI)

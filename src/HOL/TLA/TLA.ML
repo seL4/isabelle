@@ -999,8 +999,6 @@ by (subgoal_tac "sigma |= []<><~( (n`,$n) : #less_than )>_n" 1);
  by (etac STL4E 1); 
  by (rtac DmdImpl 1);
  by (clarsimp_tac (temp_css addsimps2 [angle_def]) 1);
- by (rtac nat_less_cases 1);
- by Auto_tac;
 by (rtac (temp_use wf_box_dmd_decrease) 1);
 by (auto_tac (temp_css addSEs2 [STL4E,DmdImplE]));
 qed "nat_box_dmd_decrease";

@@ -264,12 +264,10 @@ lemma zgcd_zminus2 [simp]: "zgcd (m, -n) = zgcd (m, n)"
 lemma zgcd_non_0: "0 < n ==> zgcd (m, n) = zgcd (n, m mod n)"
   apply (frule_tac b = n and a = m in pos_mod_sign)
   apply (simp add: zgcd_def zabs_def nat_mod_distrib)
-  apply (cut_tac a = "-m" and b = n in zmod_zminus1_eq_if)
   apply (auto simp add: gcd_non_0 nat_mod_distrib [symmetric] zmod_zminus1_eq_if)
   apply (frule_tac a = m in pos_mod_bound)
-  apply (simp add: nat_diff_distrib)
-  apply (rule gcd_diff2)
-  apply (simp add: nat_le_eq_zle)
+  apply (simp add: nat_diff_distrib gcd_diff2 nat_le_eq_zle)
+  apply (simp add: gcd_non_0 nat_mod_distrib [symmetric])
   done
 
 lemma zgcd_eq: "zgcd (m, n) = zgcd (n, m mod n)"
@@ -707,7 +705,6 @@ lemma aux1:
    prefer 2
    apply (frule_tac a = "r'" in pos_mod_sign)
    apply auto
-   apply arith
   apply (rule exI)
   apply (rule exI)
   apply (subst xzgcda.simps)
@@ -727,7 +724,6 @@ lemma aux2:
    prefer 2
    apply (frule_tac a = "r'" in pos_mod_sign)
    apply auto
-   apply arith
   apply (erule_tac P = "xzgcda ?u = ?v" in rev_mp)
   apply (subst xzgcda.simps)
   apply auto

@@ -265,8 +265,7 @@ lemma list_lemmas: "length []=0 \<and> length (x#xs) = Suc(length xs)
 \<and> (x#xs) ! 0=x \<and> (x#xs) ! Suc n = xs ! n"
 by simp
 lemma le_Suc_eq_insert: "{i. i <Suc n} = insert n {i. i< n}"
-apply auto
-by arith
+by auto
 lemmas primrecdef_list = "pre.simps" "assertions.simps" "atomics.simps" "atom_com.simps"
 lemmas my_simp_list = list_lemmas fst_conv snd_conv
 not_less0 refl le_Suc_eq_insert Suc_not_Zero Zero_not_Suc Suc_Suc_eq

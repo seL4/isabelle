@@ -69,9 +69,6 @@ lemma free_subst [simp]:
    prefer 2
    apply simp
   apply (simp add: diff_Suc subst_Var split: nat.split)
-  apply clarify
-  apply (erule linorder_neqE)
-  apply simp_all
   done
 
 lemma free_eta [rule_format]:

@@ -30,10 +30,8 @@ Goal "|- VARS a b. \
 by (hoare_tac (K all_tac) 1);
 (*Now prove the verification conditions*)
 by   Auto_tac;
-by    (etac gcd_nnn 4);
-by   (asm_full_simp_tac (simpset() addsimps [not_less_iff_le, gcd_diff_l]) 3);
-by  (force_tac (claset(),
-               simpset() addsimps [not_less_iff_le, le_eq_less_or_eq]) 2);
+by    (etac gcd_nnn 3);
+by   (asm_full_simp_tac (simpset() addsimps [not_less_iff_le, gcd_diff_l]) 2);
 by (asm_simp_tac (simpset() addsimps [gcd_diff_r,less_imp_le]) 1);
 qed "Euclid_GCD";
 

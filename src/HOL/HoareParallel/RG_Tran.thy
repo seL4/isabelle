@@ -1,4 +1,3 @@
-
 header {* \section{Operational Semantics} *}
 
 theory RG_Tran = RG_Com:
@@ -617,7 +616,6 @@ apply(erule disjE)
    apply simp
    apply(case_tac j,simp)
     apply(rule tl_zero)
-      apply(drule_tac t=l in not_sym,simp)
       apply(erule_tac x=l in allE, erule impE, assumption, 
             erule_tac x=1 and P="\<lambda>j.  (?H j) \<longrightarrow> (snd (?d j))=(snd (?e j))" in allE,simp)
       apply(force elim:etran.elims intro:Env)
@@ -654,7 +652,6 @@ apply(erule disjE)
     apply(erule_tac x=l  in allE, erule impE, assumption,
           erule_tac x=1 and P="\<lambda>j. ?H j \<longrightarrow> (snd (?d j))=(snd (?e j))" in allE)
     apply(erule_tac x=l and P="\<lambda>j. ?H j \<longrightarrow> ?I j \<longrightarrow> ?J j" in allE,erule impE, assumption,simp)
-    apply(drule not_sym,erule impE,assumption )
     apply(erule etran.elims,simp)
    apply(rule tl_zero)
     apply force
@@ -669,7 +666,6 @@ apply(erule disjE)
     apply(erule_tac x=ia  in allE, erule impE, assumption,
     erule_tac x=1 and P="\<lambda>j. ?H j \<longrightarrow> (snd (?d j))=(snd (?e j))" in allE)
     apply(erule_tac x=ia and P="\<lambda>j. ?H j \<longrightarrow> ?I j \<longrightarrow> ?J j" in allE,erule impE, assumption,simp)
-    apply(drule not_sym,erule impE,assumption)
     apply(force elim:etran.elims intro:Env)
    apply force
   apply(erule_tac x=ia and P="\<lambda>j. ?H j \<longrightarrow> (length (?s j) = ?t)" in allE,force)
@@ -858,7 +854,6 @@ apply(case_tac j)
   apply clarify
   apply(rule_tac x=i in exI,simp)
  apply clarify
- apply(drule not_sym,simp)
  apply(rule Env)
 apply simp
 apply(erule_tac x=nat and P="\<lambda>j. ?H j \<longrightarrow> (?P j \<or> ?Q j)" in allE,simp)

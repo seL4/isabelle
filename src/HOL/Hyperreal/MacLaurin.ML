@@ -443,8 +443,6 @@ qed "MVT2";
 
 Goal "d < (4::nat) ==> d = 0 | d = 1 | d = 2 | d = 3";
 by (case_tac "d" 1 THEN Auto_tac);
-by (case_tac "nat" 1 THEN Auto_tac);
-by (case_tac "nata" 1 THEN Auto_tac);
 qed "lemma_exhaust_less_4";
 
 bind_thm ("real_mult_le_lemma",

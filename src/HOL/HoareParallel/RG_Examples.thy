@@ -147,7 +147,10 @@ apply(rule Parallel)
     apply simp
    apply clarify
    apply simp
-   apply(case_tac j,simp,simp)
+   apply(subgoal_tac "j=0")
+    apply (rotate_tac -1)
+    apply simp
+   apply arith
   apply clarify
   apply(case_tac i,simp,simp)
  apply clarify   
@@ -324,7 +327,7 @@ apply(rule While)
     apply force
    apply(rule Basic)
       apply force
-     apply force
+     apply fastsimp
     apply force
    apply force
   apply(rule Basic)
@@ -340,7 +343,7 @@ apply(rule While)
      apply(erule_tac x=j in allE)
      apply force
     apply clarsimp
-    apply force
+    apply fastsimp
 apply force+
 done
 

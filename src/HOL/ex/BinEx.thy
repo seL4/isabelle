@@ -342,18 +342,35 @@ lemma normal_Pls_eq_0: "w \<in> normal ==> (w = Pls) = (number_of w = (0::int))"
   apply (erule normal.induct)
      apply auto
   done
-
+(*
 lemma bin_minus_normal: "w \<in> normal ==> bin_minus w \<in> normal"
   apply (erule normal.induct)
      apply (simp_all add: bin_minus_BIT)
   apply (rule normal.intros)
-  apply assumption
+   apply assumption
   apply (simp add: normal_Pls_eq_0)
   apply (simp only: number_of_minus iszero_def zminus_equation [of _ "0"])
+
+The previous command should have finished the proof but the lin-arith
+procedure at the end of simplificatioon fails.
+Problem: lin-arith correctly derives the contradictory thm
+"number_of w + 1 + - 0 \<le> 0 + number_of w"  [..]
+which its local simplification setup should turn into False.
+But on the way we get
+
+Procedure "int_add_eval_numerals" produced rewrite rule:
+number_of ?v3 + 1 \<equiv> number_of (bin_add ?v3 (Pls BIT True))
+
+and eventually we arrive not at false but at
+
+"\<not> neg (number_of (bin_add w (bin_minus (bin_add w (Pls BIT True)))))"
+
+The next 2 commands should now be obsolete:
   apply (rule not_sym)
   apply simp
   done
 
+needs the previous thm:
 lemma bin_mult_normal [rule_format]:
     "w \<in> normal ==> z \<in> normal --> bin_mult w z \<in> normal"
   apply (erule normal.induct)
@@ -361,5 +378,5 @@ lemma bin_mult_normal [rule_format]:
   apply (safe dest!: normal_BIT_D)
   apply (simp add: bin_add_normal)
   done
-
+*)
 end

@@ -174,8 +174,7 @@ lemma pc_0: "x < n \<Longrightarrow> (x \<in> [0, n) \<Longrightarrow> P x) \<Lo
 
 lemma pc_next: "x \<in> [n0, n) \<Longrightarrow> P n0 \<Longrightarrow> (x \<in> [Suc n0, n) \<Longrightarrow> P x) \<Longrightarrow> P x"
   apply (cases "x=n0")
-  apply (auto simp add: intervall_def) 
-  apply arith
+  apply (auto simp add: intervall_def)
   done
 
 lemma pc_end: "x \<in> [n,n) \<Longrightarrow> P x" 
