@@ -13,8 +13,6 @@ end;
 structure SymbolInput: SYMBOL_INPUT =
 struct
 
-fun file_exists name = file_info name <> "";
-
 fun fix_name name =
   if file_exists name then name
   else if file_exists (name ^ ".ML") then name ^ ".ML"
