@@ -3,10 +3,13 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
-Functions in Zermelo-Fraenkel Set Theory
 *)
 
+header{*Functions, Function Spaces, Lambda-Abstraction*}
+
 theory func = equalities:
+
+subsection{*The Pi Operator: Dependent Function Space*}
 
 lemma subset_Sigma_imp_relation: "r <= Sigma(A,B) ==> relation(r)"
 by (simp add: relation_def, blast)
@@ -17,8 +20,6 @@ by (simp add: relation_def, blast)
 
 lemma relation_restrict [simp]:  "relation(restrict(r,A))"
 by (simp add: restrict_def relation_def, blast) 
-
-(*** The Pi operator -- dependent function space ***)
 
 lemma Pi_iff:
     "f: Pi(A,B) <-> function(f) & f<=Sigma(A,B) & A<=domain(f)"
@@ -56,7 +57,7 @@ by (simp add: Pi_def cong add: Sigma_cong)
 lemma fun_weaken_type: "[| f: A->B;  B<=D |] ==> f: A->D"
 by (unfold Pi_def, best)
 
-(*** Function Application ***)
+subsection{*Function Application*}
 
 lemma apply_equality2: "[| <a,b>: f;  <a,c>: f;  f: Pi(A,B) |] ==> b=c"
 by (unfold Pi_def function_def, blast)
@@ -130,7 +131,7 @@ by (blast dest: fun_is_rel)
 lemma Pair_mem_PiD: "[| <a,b>: f;  f: Pi(A,B) |] ==> a:A & b:B(a) & f`a = b"
 by (blast intro: domain_type range_type apply_equality)
 
-(*** Lambda Abstraction ***)
+subsection{*Lambda Abstraction*}
 
 lemma lamI: "a:A ==> <a,b(a)> : (lam x:A. b(x))"
 apply (unfold lam_def)
@@ -203,7 +204,7 @@ apply (fast intro!: equals0I intro: lam_type)
 done
 
 
-(** Extensionality **)
+subsection{*Extensionality*}
 
 (*Semi-extensionality!*)
 
@@ -243,7 +244,7 @@ apply (blast intro: major apply_type)+
 done
 
 
-(** Images of functions **)
+subsection{*Images of Functions*}
 
 lemma image_lam: "C <= A ==> (lam x:A. b(x)) `` C = {b(x). x:C}"
 by (unfold lam_def, blast)
@@ -275,7 +276,7 @@ lemma Pi_image_cons:
 by (blast dest: apply_equality apply_Pair)
 
 
-(*** properties of "restrict" ***)
+subsection{*Properties of @{term "restrict(f,A)"}*}
 
 lemma restrict_subset: "restrict(f,A) <= f"
 by (unfold restrict_def, blast)
@@ -335,7 +336,7 @@ apply (auto dest!: Pi_memberD simp add: restrict_def lam_def)
 done
 
 
-(*** Unions of functions ***)
+subsection{*Unions of Functions*}
 
 (** The Union of a set of COMPATIBLE functions is a function **)
 
@@ -378,7 +379,7 @@ by (simp add: apply_def, blast)
 lemma fun_disjoint_apply2: "c \<notin> domain(f) ==> (f Un g)`c = g`c"
 by (simp add: apply_def, blast) 
 
-(** Domain and range of a function/relation **)
+subsection{*Domain and Range of a Function or Relation*}
 
 lemma domain_of_fun: "f : Pi(A,B) ==> domain(f)=A"
 by (unfold Pi_def, blast)
@@ -389,7 +390,7 @@ by (erule apply_Pair [THEN rangeI], assumption)
 lemma range_of_fun: "f : Pi(A,B) ==> f : A->range(f)"
 by (blast intro: Pi_type apply_rangeI)
 
-(*** Extensions of functions ***)
+subsection{*Extensions of Functions*}
 
 lemma fun_extend:
      "[| f: A->B;  c~:A |] ==> cons(<c,b>,f) : cons(c,A) -> cons(b,B)"
@@ -434,6 +435,56 @@ done
 
 lemma succ_fun_eq: "succ(n) -> B = (\<Union>f \<in> n->B. \<Union>b\<in>B. {cons(<n,b>, f)})"
 by (simp add: succ_def mem_not_refl cons_fun_eq)
+
+
+subsection{*Function Updates*}
+
+constdefs
+  update  :: "[i,i,i] => i"
+   "update(f,a,b) == lam x: cons(a, domain(f)). if(x=a, b, f`x)"
+
+nonterminals
+  updbinds  updbind
+
+syntax
+
+  (* Let expressions *)
+
+  "_updbind"    :: "[i, i] => updbind"               ("(2_ :=/ _)")
+  ""            :: "updbind => updbinds"             ("_")
+  "_updbinds"   :: "[updbind, updbinds] => updbinds" ("_,/ _")
+  "_Update"     :: "[i, updbinds] => i"              ("_/'((_)')" [900,0] 900)
+
+translations
+  "_Update (f, _updbinds(b,bs))"  == "_Update (_Update(f,b), bs)"
+  "f(x:=y)"                       == "update(f,x,y)"
+
+
+lemma update_apply [simp]: "f(x:=y) ` z = (if z=x then y else f`z)"
+apply (simp add: update_def)
+apply (rule_tac P="z \<in> domain(f)" in case_split_thm)   
+apply (simp_all add: apply_0)
+done
+
+lemma update_idem: "[| f`x = y;  f: Pi(A,B);  x: A |] ==> f(x:=y) = f"
+apply (unfold update_def)
+apply (simp add: domain_of_fun cons_absorb)
+apply (rule fun_extension)
+apply (best intro: apply_type if_type lam_type, assumption, simp)
+done
+
+
+(* [| f: Pi(A, B); x:A |] ==> f(x := f`x) = f *)
+declare refl [THEN update_idem, simp]
+
+lemma domain_update [simp]: "domain(f(x:=y)) = cons(x, domain(f))"
+by (unfold update_def, simp)
+
+lemma update_type: "[| f: A -> B;  x : A;  y: B |] ==> f(x:=y) : A -> B"
+apply (unfold update_def)
+apply (simp add: domain_of_fun cons_absorb apply_funtype lam_type)
+done
+
 
 ML
 {*
@@ -508,6 +559,12 @@ val fun_extend3 = thm "fun_extend3";
 val fun_extend_apply = thm "fun_extend_apply";
 val singleton_apply = thm "singleton_apply";
 val cons_fun_eq = thm "cons_fun_eq";
+
+val update_def = thm "update_def";
+val update_apply = thm "update_apply";
+val update_idem = thm "update_idem";
+val domain_update = thm "domain_update";
+val update_type = thm "update_type";
 *}
 
 end
