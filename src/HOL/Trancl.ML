@@ -293,17 +293,18 @@ qed "trancl_insert";
 
 Goalw [trancl_def] "(r^-1)^+ = (r^+)^-1";
 by (simp_tac (simpset() addsimps [rtrancl_converse,converse_comp]) 1);
-by (simp_tac (simpset() addsimps [rtrancl_converse RS sym,r_comp_rtrancl_eq])1);
+by (simp_tac (simpset() addsimps [rtrancl_converse RS sym,
+				  r_comp_rtrancl_eq]) 1);
 qed "trancl_converse";
 
-val irrefl_tranclI = prove_goal Trancl.thy 
-	"!!r. r^-1 Int r^+ = {} ==> !x. (x, x) ~: r^+" (K [
-	rtac allI 1,
-	subgoal_tac "!y. (x, y) : r^+ --> x~=y" 1,
-	 Fast_tac 1,
-	strip_tac 1,
-	etac trancl_induct 1,
-	 auto_tac (claset() addEs [equals0E, r_into_trancl], simpset())]);
+(*Unused*)
+qed_goal "irrefl_tranclI" Trancl.thy 
+   "!!r. r^-1 Int r^+ = {} ==> (x, x) ~: r^+" 
+ (K [subgoal_tac "!y. (x, y) : r^+ --> x~=y" 1,
+     Fast_tac 1,
+     strip_tac 1,
+     etac trancl_induct 1,
+     auto_tac (claset() addIs [r_into_trancl], simpset())]);
 
 Goal "[| (a,b) : r^*;  r <= A Times A |] ==> a=b | a:A";
 by (etac rtrancl_induct 1);
