@@ -16,6 +16,8 @@ structure R = Rules;
 structure S = USyntax;
 structure U = S.Utils;
 
+fun TFL_ERR{func,mesg} = U.ERR{module = "Tfl", func = func, mesg = mesg};
+
 val concl = #2 o R.dest_thm;
 val hyp = #1 o R.dest_thm;
 
@@ -28,8 +30,14 @@ fun stringize [] = ""
   | stringize [i] = Int.toString i
   | stringize (h::t) = (Int.toString h^", "^stringize t);
 
+fun front_last [] = raise TFL_ERR {func="front_last", mesg="empty list"}
+  | front_last [x] = ([],x)
+  | front_last (h::t) =
+     let val (pref,x) = front_last t 
+     in 
+        (h::pref,x) 
+     end;
 
-fun TFL_ERR{func,mesg} = U.ERR{module = "Tfl", func = func, mesg = mesg};
 
 
 (*---------------------------------------------------------------------------
@@ -45,7 +53,6 @@ fun congs ths = default_congs @ eq_reflect_list ths;
 
 val default_simps = 
     [less_Suc_eq RS iffD2, lex_prod_def, measure_def, inv_image_def];
-
 
 
 
@@ -288,13 +295,16 @@ fun no_repeat_vars thy pat =
  in check (FV_multiset pat)
  end;
 
+fun dest_atom (Free p) = p
+  | dest_atom (Const p) = p
+  | dest_atom  _ = raise TFL_ERR {func="dest_atom", 
+				  mesg="function name not an identifier"};
+
+
 local fun mk_functional_err s = raise TFL_ERR{func = "mk_functional", mesg=s}
-      fun single [Free(a,_)] = 
-	      mk_functional_err (a ^ " has not been declared as a constant")
-        | single [_$_] = 
+      fun single [_$_] = 
 	      mk_functional_err "recdef does not allow currying"
-        | single [Const arg] = arg
-	| single [_] = mk_functional_err "recdef: bad function name"
+        | single [f] = f
         | single fs  = mk_functional_err (Int.toString (length fs) ^ 
                                           " distinct function names!")
 in
@@ -304,9 +314,10 @@ fun mk_functional thy clauses =
 		       {func = "mk_functional", 
 			mesg = "recursion equations must use the = relation"}
      val (funcs,pats) = ListPair.unzip (map (fn (t$u) =>(t,u)) L)
-     val (fname, ftype) = single (gen_distinct (op aconv) funcs)
+     val atom = single (gen_distinct (op aconv) funcs)
+     val (fname,ftype) = dest_atom atom
      val dummy = map (no_repeat_vars thy) pats
-     val rows = ListPair.zip (map (fn x => ([],[x])) pats,
+     val rows = ListPair.zip (map (fn x => ([]:term list,[x])) pats,
                               map GIVEN (enumerate R))
      val names = foldr add_term_names (R,[])
      val atype = type_of(hd pats)
@@ -327,8 +338,8 @@ fun mk_functional thy clauses =
           | L => mk_functional_err("The following rows (counting from zero)\
                                    \ are inaccessible: "^stringize L)
  in {functional = Abs(Sign.base_name fname, ftype,
-		      abstract_over (Const(fname,ftype), 
-				     absfree(aname, atype, case_tm))),
+		      abstract_over (atom, 
+				     absfree(aname,atype, case_tm))),
      pats = patts2}
 end end;
 
@@ -439,27 +450,36 @@ fun post_definition meta_tflCongs (theory, (def, pats)) =
 (*---------------------------------------------------------------------------
  * Perform the extraction without making the definition. Definition and
  * extraction commute for the non-nested case.  (Deferred recdefs)
+ *
+ * The purpose of wfrec_eqns is merely to instantiate the recursion theorem
+ * and extract termination conditions: no definition is made.
  *---------------------------------------------------------------------------*)
+
 fun wfrec_eqns thy fid tflCongs eqns =
- let val {functional as Abs(Name, Ty, _),  pats} = mk_functional thy eqns
+ let val {lhs,rhs} = S.dest_eq (hd eqns)
+     val (f,args) = S.strip_comb lhs
+     val (fname,fty) = dest_atom f
+     val (SV,a) = front_last args    (* SV = schematic variables *)
+     val g = list_comb(f,SV)
+     val h = Free(fname,type_of g)
+     val eqns1 = map (subst_free[(g,h)]) eqns
+     val {functional as Abs(Name, Ty, _),  pats} = mk_functional thy eqns1
      val given_pats = givens pats
-     val f = #1 (S.strip_comb(#lhs(S.dest_eq (hd eqns))))
      (* val f = Free(Name,Ty) *)
      val Type("fun", [f_dty, f_rty]) = Ty
      val dummy = if Name<>fid then 
-			raise TFL_ERR{func = "lazyR_def",
+			raise TFL_ERR{func = "wfrec_eqns",
 				      mesg = "Expected a definition of " ^ 
 				      quote fid ^ " but found one of " ^
 				      quote Name}
 		 else ()
-     val SV = S.free_vars_lr functional  (* schema variables *)
      val (case_rewrites,context_congs) = extraction_thms thy
      val tych = Thry.typecheck thy
      val WFREC_THM0 = R.ISPEC (tych functional) Thms.WFREC_COROLLARY
      val Const("All",_) $ Abs(Rname,Rtype,_) = concl WFREC_THM0
      val R = Free (variant (foldr add_term_names (eqns,[])) Rname,
 		   Rtype)
-     val WFREC_THM = R.ISPECL [tych R, tych f] WFREC_THM0
+     val WFREC_THM = R.ISPECL [tych R, tych g] WFREC_THM0
      val ([proto_def, WFR],_) = S.strip_imp(concl WFREC_THM)
      val dummy = 
 	   if !trace then
@@ -472,9 +492,11 @@ fun wfrec_eqns thy fid tflCongs eqns =
      val corollaries' = map (rewrite_rule case_rewrites) corollaries
      fun extract X = R.CONTEXT_REWRITE_RULE 
 	               (f, R1::SV, cut_apply, tflCongs@context_congs) X
- in {proto_def =   (*Use == rather than = for definitions*)
+ in {proto_def = proto_def,
+     (*LCP: want this??
+  (*Use == rather than = for definitions*)
 	 mk_const_def (Theory.sign_of thy) 
-	              (Name, Ty, S.rhs proto_def), 
+	              (Name, Ty, S.rhs proto_def), *)
      SV=SV,
      WFR=WFR, 
      pats=pats,
@@ -488,11 +510,13 @@ fun wfrec_eqns thy fid tflCongs eqns =
  * choice operator on the extracted conditions (plus the condition that
  * such a relation must be wellfounded).
  *---------------------------------------------------------------------------*)
+
 fun lazyR_def thy fid tflCongs eqns =
  let val {proto_def,WFR,pats,extracta,SV} = 
 	   wfrec_eqns thy fid (congs tflCongs) eqns
      val R1 = S.rand WFR
-     val f = #1 (Logic.dest_equals proto_def)
+     val f = #lhs(S.dest_eq proto_def)
+(*LCP: want this?     val f = #1 (Logic.dest_equals proto_def) *)
      val (extractants,TCl) = ListPair.unzip extracta
      val dummy = if !trace 
 		 then (writeln "Extractants = ";
@@ -508,14 +532,26 @@ fun lazyR_def thy fid tflCongs eqns =
 					 Sign.string_of_term
 					 (Theory.sign_of thy) proto_def')
 	                   else ()
+     val {lhs,rhs} = S.dest_eq proto_def'
+     val (c,args) = S.strip_comb lhs
+     val (Name,Ty) = dest_atom c
+     val defn = mk_const_def (Theory.sign_of thy) 
+                 (Name, Ty, S.list_mk_abs (args,rhs)) 
+     (*LCP: want this??
      val theory =
        thy
        |> PureThy.add_defs_i 
             [Thm.no_attributes (fid ^ "_def", proto_def')];
      val def = get_axiom theory (fid ^ "_def") RS meta_eq_to_obj_eq
+     *)
+     val theory =
+       thy
+       |> PureThy.add_defs_i 
+            [Thm.no_attributes (fid ^ "_def", defn)]
+     val def = freezeT (get_axiom theory (fid ^ "_def"))
      val dummy = if !trace then writeln ("DEF = " ^ string_of_thm def)
 	                   else ()
-     val fconst = #lhs(S.dest_eq(concl def)) 
+     (* val fconst = #lhs(S.dest_eq(concl def))  *)
      val tych = Thry.typecheck theory
      val full_rqt_prop = map (Dcterm.mk_prop o tych) full_rqt
 	 (*lcp: a lot of object-logic inference to remove*)
@@ -525,10 +561,12 @@ fun lazyR_def thy fid tflCongs eqns =
      val dum = if !trace then writeln ("baz = " ^ string_of_thm baz)
 	                   else ()
      val f_free = Free (fid, fastype_of f)  (*'cos f is a Const*)
-     val def' = R.MP (R.SPEC (tych fconst) 
-                             (R.SPEC (tych R')
-			      (R.GENL[tych R1, tych f_free] baz)))
-                     def
+     val SV' = map tych SV;
+     val SVrefls = map reflexive SV'
+     val def0 = (U.rev_itlist (fn x => fn th => R.rbeta(combination th x))
+                   SVrefls def) 
+                RS meta_eq_to_obj_eq 
+     val def' = R.MP (R.SPEC (tych R') (R.GEN (tych R1) baz)) def0
      val body_th = R.LIST_CONJ (map R.ASSUME full_rqt_prop)
      val bar = R.MP (R.ISPECL[tych R'abs, tych R1] Thms.SELECT_AX)
                     body_th
@@ -888,13 +926,13 @@ let val tych = Thry.typecheck theory
     *   3. replace tc by tc' in both the rules and the induction theorem.
     *---------------------------------------------------------------------*)
 
-fun print_thms s L = 
-  if !trace then writeln (cat_lines (s :: map string_of_thm L))
-  else ();
+   fun print_thms s L = 
+     if !trace then writeln (cat_lines (s :: map string_of_thm L))
+     else ();
 
-fun print_cterms s L = 
-  if !trace then writeln (cat_lines (s :: map string_of_cterm L))
-  else ();;
+   fun print_cterms s L = 
+     if !trace then writeln (cat_lines (s :: map string_of_cterm L))
+     else ();;
 
    fun simplify_tc tc (r,ind) =
        let val tc1 = tych tc

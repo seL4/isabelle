@@ -85,8 +85,8 @@ fun gen_add_recdef tfl_fn prep_ss app_thms raw_name R eqs raw_ss raw_congs thy =
 
     val ss = (case raw_ss of None => Simplifier.simpset_of thy | Some x => prep_ss x);
     val (thy1, congs) = thy |> app_thms raw_congs;
-    val (thy2, pats) = tfl_fn thy1 name R eqs;
-    val (result as {rules, induct, tcs}) = Tfl.simplify_defn (ss, congs) (thy2, (name, pats));
+    val (thy2, result as {rules, induct, tcs}) = 
+        tfl_fn thy1 name R (ss, congs) eqs
     val thy3 =
       thy2
       |> Theory.add_path bname

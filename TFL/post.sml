@@ -8,6 +8,9 @@ Postprocessing of TFL definitions
 
 signature TFL = 
   sig
+
+   val trace : bool ref
+
    structure Prim : TFL_sig
    val quiet_mode : bool ref
    val message : string -> unit
@@ -19,17 +22,21 @@ signature TFL =
                            -> {induction:thm, rules:thm, TCs:term list list} 
                            -> {induction:thm, rules:thm, nested_tcs:thm list}
 
-   val define_i : theory -> string -> term -> term list
-                  -> theory * Prim.pattern list
+   val define_i : theory -> xstring -> term 
+                  -> simpset * thm list (*allows special simplication*)
+                  -> term list
+                  -> theory * {rules:thm list, induct:thm, tcs:term list}
 
-   val define   : theory -> string -> string -> string list
-                  -> theory * Prim.pattern list
+   val define   : theory -> xstring -> string 
+                  -> simpset * thm list 
+                  -> string list 
+                  -> theory * {rules:thm list, induct:thm, tcs:term list}
 
-   val defer_i : theory -> string
+   val defer_i : theory -> xstring
                   -> thm list (* congruence rules *)
                   -> term list -> theory * thm
 
-   val defer : theory -> string
+   val defer : theory -> xstring
                   -> thm list 
                   -> string list -> theory * thm
 
@@ -44,7 +51,6 @@ structure Tfl: TFL =
 struct
  structure Prim = Prim
  structure S = USyntax
-
 
  (* messages *)
 
@@ -94,19 +100,6 @@ struct
 
  val concl = #2 o Rules.dest_thm;
 
- (*---------------------------------------------------------------------------
-  * Defining a function with an associated termination relation. 
-  *---------------------------------------------------------------------------*)
- fun define_i thy fid R eqs = 
-   let val {functional,pats} = Prim.mk_functional thy eqs
-   in (Prim.wfrec_definition0 thy (Sign.base_name fid) R functional, pats)
-   end;
-
- fun define thy fid R eqs = 
-   let fun read thy = readtm (Theory.sign_of thy) (TVar(("DUMMY",0),[])) 
-   in  define_i thy fid (read thy R) (map (read thy) eqs)  end
-   handle Utils.ERR {mesg,...} => error mesg;
-
 (*---------------------------------------------------------------------------
  * Postprocess a definition made by "define". This is a separate stage of 
  * processing from the definition stage.
@@ -152,7 +145,8 @@ struct
    let val dummy = message "Proving induction theorem ..."
        val ind = Prim.mk_induction theory 
                     {fconst=f, R=R, SV=[], pat_TCs_list=full_pats_TCs}
-       val dummy = (message "Proved induction theorem."; message "Postprocessing ...");
+       val dummy = (message "Proved induction theorem."; 
+		    message "Postprocessing ...");
        val {rules, induction, nested_tcs} = 
 	   std_postprocessor ss theory {rules=rules, induction=ind, TCs=TCs}
    in
@@ -194,15 +188,7 @@ struct
  (*Strip off the outer !P*)
  val spec'= read_instantiate [("x","P::?'b=>bool")] spec;
 
- val wf_rel_defs = [lex_prod_def, measure_def, inv_image_def];
-
- (*Convert conclusion from = to ==*)
- val eq_reflect_list = map (fn th => (th RS eq_reflection) handle _ => th);
-
- (*---------------------------------------------------------------------------
-  * Install the basic context notions. Others (for nat and list and prod) 
-  * have already been added in thry.sml
-  *---------------------------------------------------------------------------*)
+ (*this function could be combined with define_i --lcp*)
  fun simplify_defn (ss, tflCongs) (thy,(id,pats)) =
     let val dummy = deny (id mem (Sign.stamp_names_of (Theory.sign_of thy)))
 			 ("Recursive definition " ^ id ^ 
@@ -230,6 +216,22 @@ struct
 		       "\n    (In TFL function " ^ module ^ "." ^ func ^ ")");
 
 (*---------------------------------------------------------------------------
+ * Defining a function with an associated termination relation. 
+ *---------------------------------------------------------------------------*)
+ fun define_i thy fid R ss_congs eqs = 
+   let val {functional,pats} = Prim.mk_functional thy eqs
+       val thy = Prim.wfrec_definition0 thy (Sign.base_name fid) R functional
+   in (thy, simplify_defn ss_congs (thy, (fid, pats)))
+   end;
+
+ fun define thy fid R ss_congs seqs = 
+   let val _ =  writeln ("Recursive function " ^ fid)
+       val read = readtm (Theory.sign_of thy) (TVar(("DUMMY",0),[])) 
+   in  define_i thy fid (read R) ss_congs (map read seqs)  end
+   handle Utils.ERR {mesg,...} => error mesg;
+
+
+(*---------------------------------------------------------------------------
  *
  *     Definitions with synthesized termination relation
  *
@@ -245,7 +247,8 @@ struct
   let val {rules,R,theory,full_pats_TCs,SV,...} = 
 	      Prim.lazyR_def thy (Sign.base_name fid) congs eqs
       val f = func_of_cond_eqn (concl(R.CONJUNCT1 rules handle _ => rules))
-      val dummy = (message "Definition made."; message "Proving induction theorem ...");
+      val dummy = (message "Definition made."; 
+		   message "Proving induction theorem ...");
       val induction = Prim.mk_induction theory 
                          {fconst=f, R=R, SV=SV, pat_TCs_list=full_pats_TCs}
       val dummy = message "Induction theorem proved."
@@ -256,10 +259,9 @@ struct
   end
 
  fun defer thy fid congs seqs = 
-   let fun read thy = readtm (Theory.sign_of thy) (TVar(("DUMMY",0),[]))
-   in  defer_i thy fid congs (map (read thy) seqs)  end
+   let val read = readtm (Theory.sign_of thy) (TVar(("DUMMY",0),[]))
+   in  defer_i thy fid congs (map read seqs)  end
    handle Utils.ERR {mesg,...} => error mesg;
-
  end;
 
 end;

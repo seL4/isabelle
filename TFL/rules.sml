@@ -46,6 +46,10 @@ fun ALPHA thm ctm1 =
    in equal_elim (transitive ctm2_eq ctm1_eq) thm
    end;
 
+fun rbeta th = 
+  case Dcterm.strip_comb (cconcl th)
+   of (eeq,[l,r]) => transitive th (beta_conversion r)
+    | _ => raise RULES_ERR{func="rbeta", mesg =""};
 
 (*----------------------------------------------------------------------------
  *        typ instantiation
@@ -772,7 +776,8 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
     (if (is_cong thm) then cong_prover else restrict_prover) mss thm
     end
     val ctm = cprop_of th
-    val th1 = Thm.rewrite_cterm(false,true,false) (add_congs(mss_of [cut_lemma'], congs))
+    val th1 = Thm.rewrite_cterm(false,true,false) 
+                      (add_congs(mss_of [cut_lemma'], congs))
                             prover ctm
     val th2 = equal_elim th1 th
  in
