@@ -85,7 +85,7 @@ qed "mk_disjoint_insert";
 bind_thm ("insert_Collect", prove_goal thy 
 	  "insert a (Collect P) = {u. u ~= a --> P u}" (K [Auto_tac]));
 
-Goal "A~={} ==> (UN x:A. insert a (B x)) = insert a (UN x:A. B x)";
+Goal "u: A ==> (UN x:A. insert a (B x)) = insert a (UN x:A. B x)";
 by (Blast_tac 1);
 qed "UN_insert_distrib";
 
@@ -442,7 +442,6 @@ section "UN and INT";
 (*Basic identities*)
 
 val not_empty = prove_goal Set.thy "(A ~= {}) = (? x. x:A)" (K [Blast_tac 1]);
-(*Addsimps[not_empty];*)
 
 Goal "(UN x:{}. B x) = {}";
 by (Blast_tac 1);
@@ -490,7 +489,7 @@ by (Blast_tac 1);
 qed "INT_insert";
 Addsimps[INT_insert];
 
-Goal "A~={} ==> (INT x:A. insert a (B x)) = insert a (INT x:A. B x)";
+Goal "u: A ==> (INT x:A. insert a (B x)) = insert a (INT x:A. B x)";
 by (Blast_tac 1);
 qed "INT_insert_distrib";
 
@@ -502,12 +501,12 @@ Goal "Inter(B``A) = (INT x:A. B(x))";
 by (Blast_tac 1);
 qed "Inter_image_eq";
 
-Goal "A~={} ==> (UN y:A. c) = c";
+Goal "u: A ==> (UN y:A. c) = c";
 by (Blast_tac 1);
 qed "UN_constant";
 Addsimps[UN_constant];
 
-Goal "A~={} ==> (INT y:A. c) = c";
+Goal "u: A ==> (INT y:A. c) = c";
 by (Blast_tac 1);
 qed "INT_constant";
 Addsimps[INT_constant];
@@ -783,9 +782,9 @@ local
   fun prover s = prove_goal thy s (fn _ => [Blast_tac 1])
 in
 val UN_simps = map prover 
-    ["!!C. C ~= {} ==> (UN x:C. insert a (B x)) = insert a (UN x:C. B x)",
-     "!!C. C ~= {} ==> (UN x:C. A x Un B)   = ((UN x:C. A x) Un B)",
-     "!!C. C ~= {} ==> (UN x:C. A Un B x)   = (A Un (UN x:C. B x))",
+    ["!!C. c: C ==> (UN x:C. insert a (B x)) = insert a (UN x:C. B x)",
+     "!!C. c: C ==> (UN x:C. A x Un B)   = ((UN x:C. A x) Un B)",
+     "!!C. c: C ==> (UN x:C. A Un B x)   = (A Un (UN x:C. B x))",
      "(UN x:C. A x Int B)  = ((UN x:C. A x) Int B)",
      "(UN x:C. A Int B x)  = (A Int (UN x:C. B x))",
      "(UN x:C. A x - B)    = ((UN x:C. A x) - B)",
@@ -793,10 +792,10 @@ val UN_simps = map prover
      "(UN x:f``A. B x)     = (UN a:A. B(f a))"];
 
 val INT_simps = map prover
-    ["!!C. C ~= {} ==> (INT x:C. A x Int B) = ((INT x:C. A x) Int B)",
-     "!!C. C ~= {} ==> (INT x:C. A Int B x) = (A Int (INT x:C. B x))",
-     "!!C. C ~= {} ==> (INT x:C. A x - B)   = ((INT x:C. A x) - B)",
-     "!!C. C ~= {} ==> (INT x:C. A - B x)   = (A - (UN x:C. B x))",
+    ["!!C. c: C ==> (INT x:C. A x Int B) = ((INT x:C. A x) Int B)",
+     "!!C. c: C ==> (INT x:C. A Int B x) = (A Int (INT x:C. B x))",
+     "!!C. c: C ==> (INT x:C. A x - B)   = ((INT x:C. A x) - B)",
+     "!!C. c: C ==> (INT x:C. A - B x)   = (A - (UN x:C. B x))",
      "(INT x:C. insert a (B x)) = insert a (INT x:C. B x)",
      "(INT x:C. A x Un B)  = ((INT x:C. A x) Un B)",
      "(INT x:C. A Un B x)  = (A Un (INT x:C. B x))",
