@@ -118,7 +118,6 @@ lemma Call_type_sound:
           xi\<le>|h' \<and> (h', xj)::\<preceq>(G, lT) \<and> (x' = None --> G,h'\<turnstile>v::\<preceq>T));  
   G,xh\<turnstile>a'::\<preceq> Class C |] ==>  
   xc\<le>|h' \<and> (h', l)::\<preceq>(G, lT) \<and>  (x' = None --> G,h'\<turnstile>v::\<preceq>rTa)"
-apply (unfold wf_java_prog_def)
 apply( drule max_spec2mheads)
 apply( clarify)
 apply( drule (2) non_np_objD')
@@ -187,7 +186,6 @@ apply( simp_all)
 apply( tactic "ALLGOALS strip_tac")
 apply( tactic {* ALLGOALS (eresolve_tac (thms "ty_expr_ty_exprs_wt_stmt.elims") THEN_ALL_NEW Full_simp_tac) *})
 apply( tactic "ALLGOALS (EVERY' [REPEAT o (etac conjE), REPEAT o hyp_subst_tac])")
-apply( unfold wf_java_prog_def)
 
 (* Level 7 *)
 
@@ -308,10 +306,10 @@ apply( drule (1) ty_expr_is_type)
 apply(clarsimp)
 apply(unfold is_class_def)
 apply(clarsimp)
-apply(rule Call_type_sound [unfolded wf_java_prog_def]);
+apply(rule Call_type_sound);
 prefer 11
 apply blast
-apply (simp (no_asm_simp))+
+apply (simp (no_asm_simp))+ 
 done
 ML{*
 Unify.search_bound := 20;
@@ -342,7 +340,6 @@ theorem all_methods_understood:
   method (G,fst (the (heap s' (the_Addr a')))) sig \<noteq> None"
 apply( drule (4) eval_type_sound)
 apply(clarsimp)
-apply(unfold wf_java_prog_def)
 apply( frule widen_methd)
 apply(   assumption)
 prefer 2
