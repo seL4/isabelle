@@ -549,8 +549,14 @@ lemma induct_implies_conj: "induct_implies C (induct_conj A B) =
     induct_conj (induct_implies C A) (induct_implies C B)"
   by (unfold induct_implies_def induct_conj_def) rules
 
-lemma induct_conj_curry: "(induct_conj A B ==> C) == (A ==> B ==> C)"
-  by (simp only: atomize_imp atomize_eq induct_conj_def) (rules intro: equal_intr_rule)
+lemma induct_conj_curry: "(induct_conj A B ==> PROP C) == (A ==> B ==> PROP C)"
+proof
+  assume r: "induct_conj A B ==> PROP C" and A B
+  show "PROP C" by (rule r) (simp! add: induct_conj_def)
+next
+  assume r: "A ==> B ==> PROP C" and "induct_conj A B"
+  show "PROP C" by (rule r) (simp! add: induct_conj_def)+
+qed
 
 lemma induct_impliesI: "(A ==> B) ==> induct_implies A B"
   by (simp add: induct_implies_def)
