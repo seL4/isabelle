@@ -591,7 +591,8 @@ result();
 
 writeln"Problem 66";  
 Goal (axjoin([axa,axb,axc,axd], "! x. T(i x(n(n x)))"));
-(*TOO SLOW: more than 24 minutes!
+(*TOO SLOW, several minutes!  
+     208346 inferences so far.  Searching to depth 23
 by (safe_meson_tac 1);
 result();
 *)
