@@ -101,12 +101,11 @@ ML
 (** Concrete syntax for integers **)
 
 local
-  open Syntax;
 
   (* Bits *)
 
-  fun mk_bit 0 = const "False"
-    | mk_bit 1 = const "True"
+  fun mk_bit 0 = Syntax.const "False"
+    | mk_bit 1 = Syntax.const "True"
     | mk_bit _ = sys_error "mk_bit";
 
   fun dest_bit (Const ("False", _)) = 0
@@ -132,16 +131,16 @@ local
         | bin_of ~1 = [~1]
         | bin_of n  = (n mod 2) :: bin_of (n div 2);
 
-      fun term_of []   = const "Bin.bin.Pls"
-        | term_of [~1] = const "Bin.bin.Min"
-        | term_of (b :: bs) = const "Bin.bin.op BIT" $ term_of bs $ mk_bit b;
+      fun term_of []   = Syntax.const "Bin.bin.Pls"
+        | term_of [~1] = Syntax.const "Bin.bin.Min"
+        | term_of (b :: bs) = Syntax.const "Bin.bin.op BIT" $ term_of bs $ mk_bit b;
     in
       term_of (bin_of (sign * (#1 (read_int digs))))
     end;
 
   fun dest_bin tm =
     let
-      (*We consider both "spellings", since Min might be declared elsewhere*)
+      (*we consider both "spellings", since Min might be declared elsewhere*)
       fun bin_of (Const ("Pls", _))     = []
         | bin_of (Const ("bin.Pls", _)) = []
         | bin_of (Const ("Min", _))     = [~1]
@@ -167,11 +166,12 @@ local
   (* translation of integer constant tokens to and from binary *)
 
   fun int_tr (*"_Int"*) [t as Free (str, _)] =
-        (const "integ_of" $
+        (Syntax.const "integ_of" $
           (mk_bin str handle ERROR => raise TERM ("int_tr", [t])))
     | int_tr (*"_Int"*) ts = raise TERM ("int_tr", ts);
 
-  fun int_tr' (*"integ_of"*) [t] = const "_Int" $ free (dest_bin t)
+  fun int_tr' (*"integ_of"*) [t] =
+        Syntax.const "_Int" $ (Syntax.const "_xnum" $ Syntax.free (dest_bin t))
     | int_tr' (*"integ_of"*) _ = raise Match;
 in
   val parse_translation = [("_Int", int_tr)];
