@@ -13,13 +13,11 @@ No other changes should be visible in the Emacs interface.
 If the loss of preferences is a serious problem, please use a "sticky"
 check-out of the previous version of this file, version 1.27.
 
-A version of Proof General which supports the new PGIP format for
+A version of Emacs Proof General which supports the new PGIP format for
 preferences will be available shortly.  
 ===========================================================================
 
-STATUS: this version is an interim experimental version that was
-used from 07.2003-08.2004 for the development of PGIP 1.X.  This will
-soon be replaced by a version for PGIP 2.X.
+STATUS: this version is an experimental version that supports PGIP 2.X.
 
 *)
 
@@ -52,6 +50,8 @@ end;
 
 structure ProofGeneral : PROOF_GENERAL =
 struct
+
+structure P = OuterParse
 
 (* PGIP messaging mode (independent of PGML output) *)
 
@@ -201,6 +201,7 @@ in
 				  
  fun assemble_pgipe resp attrs = assemble_pgips [XML.element resp attrs []]
 
+ (* FIXME: need to add stuff to gather PGIPs here *)
  fun issue_pgip resp attrs = writeln_default o (assemble_pgip resp attrs)
 
 (*  FIXME: temporarily to support PG 3.4.  *)
@@ -663,8 +664,6 @@ fun askids (None, Some "theory")  = send_thy_idtable None (ThyInfo.names())
   | askids (Some thy, Some "theorem") = send_thm_idtable (Some thy) (ThyInfo.get_theory thy)
   | askids (Some thy, None) = (send_thy_idtable (Some thy) (ThyInfo.get_preds thy);
                                send_thm_idtable (Some thy) (ThyInfo.get_theory thy)) 
-(*  | askids (Some thy, "type") = send_type_idtable (Some thy) (ThyInfo.get_theory thy) *)
-  | askids (_, Nothing) = error "No objects of any type are available here."
   | askids (_, Some ot) = error ("No objects of type "^(quote ot)^" are available here.")
 
 fun showid (_,        "theory", n) = 
@@ -675,93 +674,216 @@ fun showid (_,        "theory", n) =
     with_displaywrap (idvalue "theorem" t) (fn ()=>pthm (topthy()) t)
   | showid (_, ot, _) = error ("Cannot show objects of type "^ot)
 
-(* Return script command to set an identifier to some value *)
-(* TODO: support object preference setting here *)
-fun bindid (name, "thm", [XML.Elem ("objval",_,[XML.Text objval])]) = 
-    ("lemmas " ^ name ^ " = " ^ objval)
-  | bindid (name, ot, _) = error ("Cannot bind objects of type " ^ ot)
-
 end
 	 
 (** Parsing proof scripts without execution **)
 
 local
-    (* This is a temporary hack until we have decent parsing of proof scripts *)
-    fun xmle elt = XML.element elt [] []
-    fun xmlc elt str = XML.element elt [] [XML.text str]
+    fun markup_text str elt = [XML.element elt [] [XML.text str]]
+    fun markup_text_attrs str elt attrs = [XML.element elt attrs [XML.text str]]
+    fun empty elt = [XML.element elt [] []]
 
-    fun make_opengoal args =
-	(* For now, strictly only args like <lemma foo: "P->Q"> *)
-	let
-	    val tstart = find_index_eq "\"" (explode args)
-	    val tend = find_index_eq "\"" (drop (tstart, (explode args)))
-	    val nend = find_index_eq ":" (explode args)
-	    val uptonend = (rev (take (nend-1,explode args)))
-	    val nstart = (length uptonend) - 
-			 (find_index (not o Symbol.is_letter) uptonend)
+    fun named_item_elt toks str elt nameP objtyp = 
+	let 
+	    val name = (fst (nameP toks))
+			handle _ => (error ("Error occurred in name parser for " ^ elt);
+				     "")
+				     
 	in 
-	    (XML.element 
-		"opengoal" 
-		[("thmname", String.substring(args,nstart,nend-nstart))]
-		[XML.text (String.substring(args, tstart+1, tend))])
+	    [XML.element elt 
+			 ((if name="" then [] else [("name", name)])@
+			  (if objtyp="" then [] else [("objtype", objtyp)]))
+			 ([XML.text str])]
 	end
 
-    fun make_theory args =
-	(* For now, strictly only args like <theory Foo=Main:> *)
-	let
-	    val argstart = find_index_eq "=" (explode args)
-	    val argend = find_index_eq ":" (explode args)
-	    val (name1,arg1) = splitAt(argstart, explode args)
-	    val namecs = dropwhile (fn c => c mem [" ","\t","\n"]) (rev name1)
-	    val nameend = find_index (fn c=> not (Symbol.is_quasi_letter c)) namecs
-	    val (namecs',_) = splitAt(nameend, namecs)
-	    val name = implode (rev namecs')
-	    val (arg2, _) = splitAt(argend-argstart-1, tl arg1)
-            val arg = implode arg2
+    fun parse_warning msg = warning ("script->PGIP markup parser: " ^ msg)
+
+    (* FIXME: allow dynamic extensions to language here: we need a hook in
+       outer_syntax.ML to reset this table. *)
+
+    val keywords_classification_table = ref (None:(string Symtab.table) option)
+
+    fun get_keywords_classification_table () = 
+	case (!keywords_classification_table) of
+	    Some t => t
+	  | None => (let
+			 val tab = foldl (fn (tab,(c,_,k,_))=>Symtab.update((c,k),tab)) 
+					 (Symtab.empty,OuterSyntax.dest_parsers())
+		     in (keywords_classification_table := Some tab; tab) end)
+
+
+		    
+    fun xmls_of_thy_begin (name,toks,str) = (* see isar_syn.ML/theoryP *)
+	let 
+	    val ((thyname,imports,files),_) = ThyHeader.args toks
 	in 
-	    XML.element "opentheory" [("thyname", name)] [XML.text arg]
+	    markup_text_attrs str "opentheory" [("thyname",thyname)]
+	end 
+
+    fun xmls_of_thy_decl (name,toks,str) = (* see isar_syn.ML/thy_decl cases  *)
+	let 
+	    (* NB: PGIP only deals with single name bindings at the moment;
+	       potentially we could markup grouped definitions several times but
+	       that might suggest the wrong structure to the editor?
+	       Better alternative would be to put naming closer around text,
+	       but to do that we'd be much better off modifying the real parser
+	       instead of reconstructing it here. *)
+
+	    val plain_items = (* no names, unimportant names, or too difficult *)
+		["defaultsort","arities","judgement","finalconsts",
+		 "syntax", "nonterminals", "translations",
+		 "global", "local", "hide",
+		 "ML_setup", "setup", "method_setup",
+		 "parse_ast_translation", "parse_translation", "print_translation",
+		 "typed_print_translation", "print_ast_translation", "token_translation",
+		 "oracle",
+		 "declare"]
+
+	    val plain_item   = markup_text str "theoryitem"
+	    val comment_item = markup_text str "litcomment"
+	    val named_item   = named_item_elt toks str "theoryitem"
+
+	    val opt_overloaded = P.opt_keyword "overloaded";
+
+	    val thmnameP = (* see isar_syn.ML/theoremsP *)
+		let 
+		    val name_facts = P.and_list1 ((P.opt_thm_name "=" --| P.xthms1) >> #1)
+		    val theoremsP = P.locale_target |-- name_facts >> (fn [] => "" | x::_ => x)
+		in 
+		    theoremsP
+		end
+	in 
+	    if (name mem plain_items) then plain_item
+	    else case name of
+		     "text"      => comment_item
+		   | "text_raw"  => comment_item
+		   | "typedecl"  => named_item (P.type_args |-- P.name) "type"
+		   | "types"     => named_item (P.type_args |-- P.name) "type"
+		   | "classes"   => named_item P.name "class"
+		   | "classrel"  => named_item P.name "class"
+		   | "consts"    => named_item (P.const >> #1) "term"
+		   | "axioms"    => named_item (P.spec_name >> (#1 o #1)) "theorem"
+		   | "defs"	 => named_item (opt_overloaded |-- P.spec_name >> (#1 o #1)) "theorem"
+		   | "constdefs" => named_item P.name (* FIXME: heavily simplified/wrong *) "term"
+		   | "theorems"  => named_item thmnameP "thmset"
+		   | "lemmas"    => named_item thmnameP "thmset"
+		   | "oracle"    => named_item P.name "oracle"
+		   | "locale"	 => named_item ((P.opt_keyword "open" >> not) |-- P.name) "locale"
+		   | _ => (parse_warning ("Unrecognized thy-decl command: " ^ name); plain_item)
 	end
+
+    fun xmls_of_thy_goal (name,toks,str) = 
+	let 
+	    val nameP = P.locale_target |-- ((P.opt_thm_name ":") >> #1)
+	    (* TODO: add preference values for attributes 
+	       val prefval = XML.element "prefval" [("name","thm-kind"),("value",name)]
+	    *)
+	in 
+	    named_item_elt toks str "opengoal" nameP ""
+	end
+
+    fun xmls_of_qed (name,markup) = case name of
+      "sorry"         => markup "giveupgoal"
+    | "oops"          => markup "postponegoal"
+    | "done"          => markup "closegoal" 
+    | "by"            => markup "closegoal"  (* nested or toplevel *)
+    | "qed"           => markup "closegoal"  (* nested or toplevel *)
+    | "."	      => markup "closegoal"  (* nested or toplevel *)
+    | ".."	      => markup "closegoal"  (* nested or toplevel *)
+    | other => (* default to closegoal: may be wrong for extns *)
+      (parse_warning ("Unrecognized qed command: " ^ quote other); markup "closegoal")
+
+    fun xmls_of_kind kind (name,toks,str) = 
+    let val markup = markup_text str in 
+    case kind of
+      "control"        => markup "badcmd"
+    | "diag"           => markup "spuriouscmd"
+    (* theory/files *)
+    | "theory-begin"   => xmls_of_thy_begin (name,toks,str)
+    | "theory-decl"    => xmls_of_thy_decl (name,toks,str)
+    | "theory-heading" => markup "litcomment"
+    | "theory-script"  => markup "theorystep"
+    (* proof control *)
+    | "theory-goal"    => xmls_of_thy_goal (name,toks,str)
+    | "proof-heading"  => markup "litcomment"
+    | "proof-goal"     => markup "opengoal"  (* nested proof: have, show, ... *)
+    | "proof-block"    => markup "proofstep" (* context-shift: proof, next; really "newgoal" *)
+    | "proof-open"     => (empty "openblock") @ (markup "proofstep")
+    | "proof-close"    => (markup "proofstep") @ (empty "closeblock")
+    | "proof-script"   => markup "proofstep"
+    | "proof-chain"    => markup "proofstep"
+    | "proof-decl"     => markup "proofstep"
+    | "proof-asm"      => markup "proofstep"
+    | "proof-asm-goal" => markup "proofstep"
+    | "qed"            => xmls_of_qed (name,markup)
+    | "qed-block"      => xmls_of_qed (name,markup)
+    | "qed-global"     => xmls_of_qed (name,markup)
+    | other => (* default for anything else is "spuriouscmd", ignored for undo. *)
+      (parse_warning ("Internal inconsistency, unrecognized keyword kind: " ^ quote other);
+       markup "spuriouscmd")
+    end 
 in
-fun xmls_of_transition (name,toks,tr) = 
+
+fun xmls_of_transition (name,str,toks) = 
    let 
-       val str = name ^ " " ^ (space_implode " " (map OuterLex.unparse toks))
-   in
-    case name of (* NB: see isar_syn.ML for names of standard commands *)
-         "done"       => [xmle "closegoal"]  
-       | "sorry"      => [xmle "giveupgoal"]
-       | "oops"       => [xmle "postponegoal"]
-       | "by"         => [xmlc "proofstep" ("apply " ^ str),
-			  xmle "closegoal"] (* FIXME: tactic proofs only just now *)
-       (* theories *)
-       | "theory"     => [make_theory str]
-       (* goals *)
-       | "lemma"      => [make_opengoal str]
-       | "theorem"    => [make_opengoal str]
-       | "corollary"  => [make_opengoal str]
-       (* literate text *)
-       | "text"       => [xmlc "litcomment" str]
-       | "sect"       => [xmlc "litcomment" ("ion " ^ str)]
-       | "subsect"    => [xmlc "litcomment" ("ion " ^ str)]
-       | "subsubsect" => [xmlc "litcomment" ("ion " ^ str)]
-       | "txt"	      => [xmlc "litcomment" str]
-       | _ => [xmlc "proofstep" str]  (* default for anything else *)
-   end
+       val classification = Symtab.lookup (get_keywords_classification_table(),name)
+   in case classification of
+	  Some k => (xmls_of_kind k (name,toks,str))
+	| None => (* an uncategorized keyword ignored for undo (maybe wrong) *)
+	  (parse_warning ("Uncategorized command found: " ^ name ^ " -- using spuriouscmd");
+	   markup_text str "spuriouscmd")
+   end 
 
-(* FIXME: need to handle parse errors gracefully below, perhaps returning partial parse *)
-(* NB: comments are ignored by below; not good if we use this to reconstruct script *)
-
-fun xmls_of_str str =
-   let fun parse_loop (nm_lex_trs,xmls) = 
-	   (case nm_lex_trs of
-	      [] => xmls  
-	    | (nm,toks,tr)::rest  => 
-	      let 
-		val xmls_tr = xmls_of_transition (nm,toks,tr)
-	      in  
-	         parse_loop (rest, xmls @ xmls_tr)
-	      end)
+fun xmls_of_impropers [] = []
+  | xmls_of_impropers toks = 
+    let 
+	val (whs,rest) = take_prefix (not o OuterLex.is_proper) toks
+	fun markup [] _ = []
+	  | markup toks x = markup_text (implode (map OuterLex.unparse toks)) x
     in
-	parse_loop (OuterSyntax.read str, [])
+	(markup whs "comment") @ (markup rest "unparseable")
+    end
+    
+end
+
+
+local
+    (* we have to weave together the whitespace/comments with proper tokens 
+       to reconstruct the input. *)
+
+    fun match_tokens ([],us,vs) = (rev vs,us)  (* used, unused *)
+      | match_tokens (t::ts,w::ws,vs) = 
+	if (t = w) then match_tokens (ts,ws,w::vs)
+	else match_tokens (t::ts,ws,w::vs)
+      | match_tokens _ = error ("match_tokens: mismatched input parse")
+in
+    fun xmls_of_str str =
+    let 
+       val toks = OuterSyntax.scan str
+
+       (* parsing:   See outer_syntax.ML/toplevel_source *)
+    
+       fun parse_loop ([],[],xmls) = xmls
+	 | parse_loop ([],itoks,xmls) = xmls @ (xmls_of_impropers itoks)
+	 | parse_loop ((nm,toks,_)::trs,itoks,xmls) =
+	   let 
+	       (* first proper token is command, except FIXME for -- *)
+	       val (prewhs,cmditoks') = take_prefix (not o OuterLex.is_proper) itoks
+	       val (cmdtok,itoks') = case cmditoks' of x::xs => (x,xs)
+						  | _ => error("proof_general/parse_loop impossible") 
+	       val (utoks,itoks'') = match_tokens (toks,itoks',[])
+               (* FIXME: should take trailing [w/s+] semicolon too in utoks *)
+
+	       val str = implode (map OuterLex.unparse (cmdtok::utoks))
+
+	       val xmls_whs = xmls_of_impropers prewhs 
+	       val xmls_tr  = xmls_of_transition (nm,str,toks)
+	   in
+	       parse_loop(trs,itoks'',xmls @ xmls_whs @ xmls_tr)
+	   end
+    in
+	(* FIXME: put errors/warnings inside the parse result *)
+	parse_loop (OuterSyntax.read toks, toks, [])
     end
 
 
@@ -775,7 +897,7 @@ end
 (**** PGIP:  Isabelle -> Interface ****)
 
 val isabelle_pgml_version_supported = "1.0"; 
-val isabelle_pgip_version_supported = "1.0"
+val isabelle_pgip_version_supported = "2.0"
 
 fun usespgip () = 
     issue_pgipe "usespgip" [("version", isabelle_pgip_version_supported)];
@@ -816,16 +938,15 @@ exception PGIP_QUIT;
 
 (* Sending commands to Isar *)
 
-(* FIXME Makarius:
-   'isarcmd': consider using 'Toplevel.>>>' instead of
-   'Toplevel.loop'; unsure about the exact error behaviour required here;
-*)
-val isarcmd = Toplevel.loop o
-		(OuterSyntax.isar_readstring 
-		    (Position.name "PGIP message")) (* FIXME: could do better *)
+fun isarcmd s = 
+    s |> OuterSyntax.scan |> OuterSyntax.read 
+      |> map (Toplevel.position (Position.name "PGIP message") o #3) |> Toplevel.>>>;
 
-fun isarscript s = isarcmd s   (* send a script command *)
-   (* was: (isarcmd s;  issue_pgip "scriptinsert" [] (XML.text s)) *)
+fun xmltext ((XML.Text text)::ts) = text ^ (xmltext ts)
+  | xmltext [] = ""
+  | xmltext _ = raise PGIP "Expected text (PCDATA/CDATA)"
+			
+fun isarscript xmls = isarcmd (xmltext xmls)   (* send a script command *)
 
 
 (* load an arbitrary (.thy or .ML) file *)
@@ -853,50 +974,11 @@ local
 	   Some value => value 
 	 | None => raise PGIP ("Missing attribute: " ^ attr))
 
-  fun xmltext [XML.Text text] = text
-    | xmltext ((XML.Text text)::ts) = text ^ " " ^ (xmltext ts)  (* FIXME: space shouldn't be needed *)
-    | xmltext _ = raise PGIP "Expected text (PCDATA/CDATA)"
-			
   val thyname_attr = "thyname"
   val objtype_attr = "objtype"
   val name_attr = "name"
   val dirname_attr = "dir"
   fun comment x = "(* " ^ x ^ " *)"
-
-(* return script portion corresponding to a PGIP command.
-   We only unparse proper proof commands. 
-   (we might unparse gui opns too, if they didn't have opcmd settings?)
-*)
-  fun unparse (elem,attrs,xmls) = 
-      (case elem of 
-         "opengoal" => "lemma " ^ (xmlattr attrs "thmname") ^ ": " ^
-					  (quote (xmltext xmls))
-	  (* FIXME: should maybe remove    ^^^^^^^^^^ 
-	     to provide for Isar's parenthetical phrases (is ...) *)
-       | "proofstep" => xmltext xmls
-       | "closegoal" => "done"   (* FIXME: or qed? Maybe nothing? *)
-
-       | "opentheory" => ("theory " ^ (xmlattr attrs thyname_attr) ^ 
-					" = " ^ (xmltext xmls) ^ ":")
-       | "closetheory" => "end"
-       | "postponegoal" => "sorry"
-       | "giveupgoal" => "oops"
-
-       | "bindid" => (bindid (xmlattr attrs objtype_attr, 
-				 xmlattr attrs name_attr, 
-				 xmls))
-       | "comment" => comment (xmltext xmls)
-       | "litcomment" => xmltext xmls
-       | _ => error ("unparse called with improper proof command: " ^ elem))
-
-  fun unparsecmds xmls = 
-      let
-	  fun upc (XML.Elem elt) = (unparse elt) 
-	    | upc (XML.Text t) = (warning ("unprasecmds: ignoring spurious text: " ^ t); "")
-      in 
-	  issue_pgip "unparseresult" [] 
-		     (XML.text (cat_lines (map upc xmls))) (* FIXME: use cdata? *)
-      end
 
   (* parse URLs like "file://host/name.thy" *)
   (* FIXME: instead of this, extend code in General/url.ML & use that. *)
@@ -931,74 +1013,77 @@ local
   val topthy_name = PureThy.get_name o topthy
 
   val currently_open_file = ref (None : string option)
+
 in
 
-fun process_pgip_element pgipxml =
-    (case pgipxml of 
-	 (XML.Text t) => warning ("Ignored text in PGIP packet: \n" ^ t)
-       | (XML.Elem (xml as (elem, attrs, xmls))) => (case elem of
-(* protocol config *)
-  "askpgip"  	   => (usespgip (); send_pgip_config ())
-| "askpgml"  	   => usespgml ()
-(* proverconfig *)
-| "askprefs" 	   => hasprefs ()
-| "getpref"  	   => getpref (xmlattr attrs name_attr)
-| "setpref"  	   => setpref (xmlattr attrs name_attr) (xmltext xmls)
-(* provercontrol *)
-| "proverinit" 	   => isar_restart ()
-| "proverexit" 	   => isarcmd "quit"
-| "startquiet" 	   => isarcmd "disable_pr"
-| "stopquiet"  	   => isarcmd "enable_pr"
-| "pgmlsymbolson"  => (print_mode := (["xsymbols", "symbols"] @ ! print_mode))
-| "pgmlsymbolsoff" => (print_mode := (Library.gen_rems 
-					  (op =) (! print_mode, ["xsymbols", "symbols"])))
-(* provercmd: proper commands which belong in script *)
-| "proofstep"      => isarscript (unparse xml)
-| "opengoal"       => isarscript (unparse xml)
-| "closegoal"      => isarscript (unparse xml)
-| "postponegoal"   => isarscript (unparse xml)
-| "giveupgoal"     => isarscript (unparse xml)
-| "comment"	   => isarscript (unparse xml)
-| "litcomment"	   => isarscript (unparse xml)
-(* provercmd: improper commands which *do not* belong in script *)
-| "undostep"       => isarcmd "ProofGeneral.undo"
-| "abortgoal"      => isarcmd "ProofGeneral.kill_proof"  
-| "forget"         => error ("Not implemented") 
-| "restoregoal"    => error ("Not implemented")  (* could just treat as forget? *)
-(* proofctxt: improper commands *)
-| "askids"         => askids (xmlattro attrs thyname_attr, 
-		              xmlattro attrs objtype_attr)
-| "showid"	   => showid (xmlattro attrs thyname_attr, 
-		              xmlattr attrs objtype_attr,
-		     	      xmlattr attrs name_attr)
-| "parsescript"    => parsescript (xmltext xmls)
-| "unparsecmds"    => unparsecmds xmls
-| "showproofstate" => isarcmd "pr"
-| "showctxt"       => isarcmd "print_theory" (* more useful than print_context *)
-| "searchtheorems" => isarcmd ("thms_containing " ^ (xmltext xmls))
-| "setlinewidth"   => isarcmd ("pretty_setmargin " ^ (xmltext xmls))
-(* proofctxt: proper commands *)
-| "bindid"         => isarscript (unparse xml)
-(* filecmd: proper commands *)
-| "opentheory"     => isarscript (unparse xml)
-| "closetheory"    => (isarscript (unparse xml);
-		       writeln ("Theory "^(topthy_name())^" completed."))
-(* filecmd: improper commands *)
-| "aborttheory"    => isarcmd ("init_toplevel")
-| "retracttheory"  => isarcmd ("kill_thy " ^
-			       (quote (xmlattr attrs thyname_attr)))
-| "loadfile"       => use_thy_or_ml_file    (fileurl_of attrs)
-| "openfile"       => (inform_file_retracted (fileurl_of attrs);
-		       currently_open_file := Some (fileurl_of attrs))
-| "closefile"      => (case !currently_open_file of 
-			   Some f => (inform_file_processed f;
-				      currently_open_file := None)
-			 | None => raise PGIP ("closefile when no file is open!"))
-| "abortfile"      => (currently_open_file := None) (* might give error for no file open *)
-| "changecwd"      => ThyLoad.add_path (xmlattr attrs dirname_attr)
-(* unofficial command for debugging *)
-| "quitpgip" => raise PGIP_QUIT  
-| _ => raise PGIP ("Unrecognized PGIP element: " ^ elem)))
+fun process_pgip_element pgipxml = (case pgipxml of 
+  (XML.Text t) => warning ("Ignored text in PGIP packet: \n" ^ t)
+| (XML.Elem (xml as (elem, attrs, data))) => 
+  (case elem of
+       (* protocol config *)
+       "askpgip"  	=> (usespgip (); send_pgip_config ())
+     | "askpgml"  	=> usespgml ()
+     (* proverconfig *)
+     | "askprefs" 	=> hasprefs ()
+     | "getpref"  	=> getpref (xmlattr attrs name_attr)
+     | "setpref"  	=> setpref (xmlattr attrs name_attr) (xmltext data)
+     (* provercontrol *)
+     | "proverinit" 	=> isar_restart ()
+     | "proverexit" 	=> isarcmd "quit"
+     | "startquiet" 	=> isarcmd "disable_pr"
+     | "stopquiet"  	=> isarcmd "enable_pr"
+     | "pgmlsymbolson"   => (print_mode := (["xsymbols", "symbols"] @ ! print_mode))
+     | "pgmlsymbolsoff"  => (print_mode := (Library.gen_rems 
+						(op =) 
+						(! print_mode, ["xsymbols", "symbols"])))
+     (* properproofcmd: proper commands which belong in script *)
+     | "opengoal"       => isarscript data
+     | "proofstep"      => isarscript data
+     | "closegoal"      => isarscript data
+     | "giveupgoal"     => isarscript data
+     | "postponegoal"   => isarscript data
+     | "comment"	=> isarscript data
+     | "litcomment"     => isarscript data
+     | "spuriouscmd"    => isarscript data
+     | "badcmd"		=> isarscript data
+     (* improperproofcmd: improper commands which *do not* belong in script *)
+     | "undostep"       => isarcmd "ProofGeneral.undo"
+     | "abortgoal"      => isarcmd "ProofGeneral.kill_proof"  
+     | "forget"         => error "Not implemented" 
+     | "restoregoal"    => error "Not implemented"  (* could just treat as forget? *)
+     (* proofctxt: improper commands *)
+     | "askids"         => askids (xmlattro attrs thyname_attr, 
+				   xmlattro attrs objtype_attr)
+     | "showid"	        => showid (xmlattro attrs thyname_attr, 
+				   xmlattr attrs objtype_attr,
+		     		   xmlattr attrs name_attr)
+     | "parsescript"    => parsescript (xmltext data)
+     | "showproofstate" => isarcmd "pr"
+     | "showctxt"       => isarcmd "print_theory"   (* more useful than print_context *)
+     | "searchtheorems" => isarcmd ("thms_containing " ^ (xmltext data))
+     | "setlinewidth"   => isarcmd ("pretty_setmargin " ^ (xmltext data))
+     | "viewdoc"	=> isarcmd ("print_" ^ (xmltext data)) (* FIXME: isatool doc? *)
+     (* properfilecmd: proper theory-level script commands *)
+     | "opentheory"     => isarscript data
+     | "theoryitem"     => isarscript data
+     | "closetheory"    => (isarscript data;
+			    writeln ("Theory "^(topthy_name())^" completed."))
+     (* improperfilecmd: theory-level commands not in script *)
+     | "aborttheory"    => isarcmd ("init_toplevel")
+     | "retracttheory"  => isarcmd ("kill_thy " ^
+				    (quote (xmlattr attrs thyname_attr)))
+     | "loadfile"       => use_thy_or_ml_file    (fileurl_of attrs)
+     | "openfile"       => (inform_file_retracted (fileurl_of attrs);
+			    currently_open_file := Some (fileurl_of attrs))
+     | "closefile"      => (case !currently_open_file of 
+				Some f => (inform_file_processed f;
+					   currently_open_file := None)
+			      | None => raise PGIP ("closefile when no file is open!"))
+     | "abortfile"      => (currently_open_file := None) (* perhaps error for no file open *)
+     | "changecwd"      => ThyLoad.add_path (xmlattr attrs dirname_attr)
+     (* unofficial command for debugging *)
+     | "quitpgip" => raise PGIP_QUIT  
+     | _ => raise PGIP ("Unrecognized PGIP element: " ^ elem)))
 
 fun process_pgip_tree s = 
     (pgip_refseq := None; 
@@ -1036,40 +1121,40 @@ end
 (* PGIP loop: process PGIP input only *)
 
 local  
-(* NB: simple tty for now; later might read from other sources, open sockets, etc. *)
-(* FIXME da: doesn't setting the stopper at a single element mean we have to
-  parse the whole tree on one go anyway? *)
-val tty_src = Source.set_prompt ""
-	      (Source.source Symbol.stopper (XML.parse_elem >> single)
-					None Source.tty);
 
-(* FIXME: Makarius:
- 'read_pgip()': some content may be left in the internal buffer after
- Source.get_single, which will got lost between calls; try to avoid
- building the tty source over and over again;
-*)
+exception XML_PARSE
 
-fun read_pgip () =  Source.get_single tty_src
-
-fun loop () =
+fun loop src : unit =
     let 
 	val _ = issue_pgipe "ready" []
+	val pgipo = (Source.get_single src) 
+			handle e => raise XML_PARSE
     in
-	case (read_pgip()) of  
+	case pgipo of  
 	     None  => ()
-	   | Some (pgip,_) =>  (process_pgip_tree pgip; loop()) handle e => handler e
-    end handle e => handler e
+	   | Some (pgip,src') =>  
+	     ((process_pgip_tree pgip); loop src') handle e => handler (e,Some src')
+    end handle e => handler (e,Some src)  (* i.e. error in ready/XML parse *)
 
-and handler e = 
-    case e of
-        PGIP_QUIT => ()
-      | ERROR => loop() (* message already given *)
-      | Interrupt => (error "Interrupt during PGIP processing"; loop())
-      | Toplevel.UNDEF => (error "No working context defined"; loop()) (* usually *)
-      | e => (error (Toplevel.exn_message e); loop())
-      (* Also seen: Scan.FAIL (not exported from Scan -- needs catching in xml.ML) *)
+and handler (e,srco) = 
+    case (e,srco) of
+        (XML_PARSE,Some src) => 
+	(* (!error_fn "Invalid XML input, aborting"; ()) NB: loop OK for tty, but want exit on EOF *)
+         panic "Invalid XML input, aborting"
+      | (PGIP_QUIT,_) => ()
+      | (ERROR,Some src) => loop src (* message already given *)
+      | (Interrupt,Some src) => (!error_fn "Interrupt during PGIP processing"; loop src)
+      | (Toplevel.UNDEF,Some src) => (error "No working context defined"; loop src) (* usually *)
+      | (e,Some src) => (error (Toplevel.exn_message e); loop src)
+      | (_,None) => ()
 in
-   val pgip_toplevel =  loop
+  (* NB: simple tty for now; later might read from other tty-style sources (e.g. sockets). *)
+
+  val xmlP = XML.scan_comment_whspc |-- XML.parse_elem >> single
+
+  val tty_src = Source.set_prompt "" (Source.source Symbol.stopper xmlP None Source.tty)
+
+  val pgip_toplevel =  loop 
 end
 
 
@@ -1159,7 +1244,7 @@ fun init isar =
 		    Isar.sync_main ()) else isa_restart ());
 
 fun init_pgip false = panic "Sorry, PGIP not supported for Isabelle/classic mode."
-  | init_pgip true = (init_setup true true; pgip_toplevel());
+  | init_pgip true = (init_setup true true; pgip_toplevel tty_src);
 
 
 
