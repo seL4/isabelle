@@ -312,7 +312,7 @@ higher-order logic may equate formulae and even functions over formulae.
 But theory~\HOL{}, like all other Isabelle theories, uses
 meta-equality~({\tt==}) for definitions.
 \begin{warn}
-The above definitions should never be expanded and are shown for completeness
+The definitions above should never be expanded and are shown for completeness
 only. Instead users should reason in terms of the derived rules shown below
 or, better still, using high-level tactics
 (see~\S\ref{sec:HOL:generic-packages}).
@@ -846,8 +846,8 @@ intersections and complements.  For a complete listing see the file {\tt
 HOL/equalities.ML}.
 
 \begin{warn}
-Many set theoretic theorems are proved automatically by {\tt Fast_tac}.
-Hence you rarely need to refer to the above theorems explicitly.
+\texttt{Blast_tac} proves many set-theoretic theorems automatically.
+Hence you seldom need to refer to the theorems above.
 \end{warn}
 
 \begin{figure}
@@ -885,15 +885,13 @@ on sets in the file {\tt HOL/mono.ML}.
 \section{Generic packages}
 \label{sec:HOL:generic-packages}
 
-\HOL\ instantiates most of Isabelle's generic packages.
+\HOL\ instantiates most of Isabelle's generic packages, making available the
+simplifier and the classical reasoner.
 
 \subsection{Substitution and simplification}
 
-%Because it includes a general substitution rule, \HOL\ instantiates the
-%tactic {\tt hyp_subst_tac}, which substitutes for an equality throughout a
-%subgoal and its hypotheses.
-
-It instantiates the simplifier.  Tactics such as {\tt Asm_simp_tac} and {\tt
+The simplifier is available in \HOL.  Tactics such as {\tt Asm_simp_tac} and
+{\tt 
 Full_simp_tac} use the default simpset ({\tt!simpset}), which works for most
 purposes.  A minimal simplification set for higher-order logic
 is~\ttindexbold{HOL_ss}.  Equality~($=$), which also expresses logical
@@ -904,17 +902,16 @@ See \iflabelundefined{chap:classical}{the {\em Reference Manual\/}}%
 {Chaps.\ts\ref{substitution} and~\ref{simp-chap}} for details of substitution
 and simplification.
 
-\begin{warn}\index{simplification!of conjunctions}
-  The simplifier is not set up to reduce, for example, \verb$a = b & ...a...$
-  to \verb$a = b & ...b...$: it does not use the left part of a conjunction
-  while simplifying the right part. This can be changed by including
-  \ttindex{conj_cong} in a simpset: \verb$addcongs [conj_cong]$. It can slow
-  down rewriting and is therefore not included by default.
+\begin{warn}\index{simplification!of conjunctions}%
+  Reducing $a=b\conj P(a)$ to $a=b\conj P(b)$ is sometimes advantageous.  The
+  left part of a conjunction helps in simplifying the right part.  This effect
+  is not available by default: it can be slow.  It can be obtained by
+  including \ttindex{conj_cong} in a simpset, \verb$addcongs [conj_cong]$.
 \end{warn}
 
-In case a rewrite rule cannot be dealt with by the simplifier (either because
-of nontermination or because its left-hand side is too flexible), HOL
-provides {\tt stac}:
+If the simplifier cannot use a certain rewrite rule---either because of
+nontermination or because its left-hand side is too flexible---then you might
+try {\tt stac}:
 \begin{ttdescription}
 \item[\ttindexbold{stac} $thm$ $i,$] where $thm$ is of the form $lhs = rhs$,
   replaces in subgoal $i$ instances of $lhs$ by corresponding instances of
@@ -925,9 +922,9 @@ If $thm$ is a conditional equality, the instantiated condition becomes an
 additional (first) subgoal.
 \end{ttdescription}
 
-Because \HOL\ includes a general substitution rule, the tactic {\tt
-hyp_subst_tac}, which substitutes for an equality throughout a subgoal and
-its hypotheses, is also available.
+ \HOL{} provides the tactic \ttindex{hyp_subst_tac}, which substitutes
+  for an equality throughout a subgoal and its hypotheses.  This tactic uses
+  \HOL's general substitution rule.
 
 
 \subsection{Classical reasoning}
@@ -936,7 +933,7 @@ its hypotheses, is also available.
 well as classical elimination rules for~$\imp$ and~$\bimp$, and the swap
 rule; recall Fig.\ts\ref{hol-lemmas2} above.
 
-The classical reasoner is installed.  Tactics such as {\tt Fast_tac} and {\tt
+The classical reasoner is installed.  Tactics such as {\tt Blast_tac} and {\tt
 Best_tac} use the default claset ({\tt!claset}), which works for most
 purposes.  Named clasets include \ttindexbold{prop_cs}, which includes the
 propositional rules, and \ttindexbold{HOL_cs}, which also includes quantifier
@@ -984,8 +981,8 @@ type construction, the {\tt datatype}, is treated separately in
 \tdx{split}        split c (a,b) = c a b
 \tdx{expand_split} R(split c p) = (! x y. p = (x,y) --> R(c x y))
 
-\tdx{SigmaI}       [| a:A;  b:B a |] ==> (a,b) : Sigma A B
-\tdx{SigmaE}       [| c:Sigma A B; !!x y.[| x:A; y:B x; c=(x,y) |] ==> P |] ==> P
+\tdx{SigmaI}    [| a:A;  b:B a |] ==> (a,b) : Sigma A B
+\tdx{SigmaE}    [| c:Sigma A B; !!x y.[| x:A; y:B x; c=(x,y) |] ==> P |] ==> P
 \end{ttbox}
 \caption{Type $\alpha\times\beta$}\label{hol-prod}
 \end{figure} 
@@ -1309,9 +1306,6 @@ null (x#xs) = False
 
 hd (x#xs) = x
 tl (x#xs) = xs
-%
-%ttl [] = []
-%ttl (x#xs) = xs
 
 [] @ ys = ys
 (x#xs) @ ys = x # xs @ ys
@@ -1321,9 +1315,6 @@ map f (x#xs) = f x # map f xs
 
 filter P [] = []
 filter P (x#xs) = (if P x then x#filter P xs else filter P xs)
-
-list_all P [] = True
-list_all P (x#xs) = (P x & list_all P xs)
 
 set_of_list [] = \{\}
 set_of_list (x#xs) = insert x (set_of_list xs)
@@ -1466,8 +1457,7 @@ way, namely by providing models based on already existing types. Given some
 abstract axiomatic description $P$ of a type, this involves two steps:
 \begin{enumerate}
 \item Find an appropriate type $\tau$ and subset $A$ which has the desired
-  properties $P$, and make the above type definition based on this
-  representation.
+  properties $P$, and make a type definition based on this representation.
 \item Prove that $P$ holds for $ty$ by lifting $P$ from the representation.
 \end{enumerate}
 You can now forget about the representation and work solely in terms of the
@@ -2008,10 +1998,11 @@ inductive "acc r"
   monos   "[Pow_mono]"
 end
 \end{ttbox}
-The HOL distribution contains many other inductive definitions, such as the
-theory {\tt HOL/ex/PropLog.thy} and the subdirectories {\tt IMP}, {\tt Lambda}
-and {\tt Auth}.  The theory {\tt HOL/ex/LList.thy} contains coinductive
-definitions.
+The HOL distribution contains many other inductive definitions.  Simple
+examples are collected on subdirectory \texttt{Induct}.  The theory {\tt
+  HOL/Induct/LList.thy} contains coinductive definitions.  Larger examples may
+be found on other subdirectories, such as {\tt IMP}, {\tt Lambda} and {\tt
+  Auth}.
 
 \index{*coinductive|)} \index{*inductive|)}
 
@@ -2027,7 +2018,8 @@ and the Otway-Rees protocol.
 
 Directory {\tt HOL/IMP} contains a formalization of various denotational,
 operational and axiomatic semantics of a simple while-language, the necessary
-equivalence proofs, soundness and completeness of the Hoare rules w.r.t.\ the
+equivalence proofs, soundness and completeness of the Hoare rules with respect
+to the 
 denotational semantics, and soundness and completeness of a verification
 condition generator. Much of development is taken from
 Winskel~\cite{winskel93}. For details see~\cite{nipkow-IMP}.
@@ -2048,8 +2040,44 @@ substitutions and unifiers.  It is based on Paulson's previous
 mechanisation in {\LCF}~\cite{paulson85} of Manna and Waldinger's
 theory~\cite{mw81}. 
 
+Directory {\tt HOL/Induct} presents simple examples of (co)inductive
+definitions.  
+\begin{itemize}
+\item Theory {\tt PropLog} proves the soundness and completeness of
+  classical propositional logic, given a truth table semantics.  The only
+  connective is $\imp$.  A Hilbert-style axiom system is specified, and its
+  set of theorems defined inductively.  A similar proof in \ZF{} is
+  described elsewhere~\cite{paulson-set-II}.
+
+\item Theory {\tt Term} develops an experimental recursive type definition;
+  the recursion goes through the type constructor~\tydx{list}.
+
+\item Theory {\tt Simult} constructs mutually recursive sets of trees and
+  forests, including induction and recursion rules.
+
+\item The definition of lazy lists demonstrates methods for handling
+  infinite data structures and coinduction in higher-order
+  logic~\cite{paulson-coind}.%
+\footnote{To be precise, these lists are \emph{potentially infinite} rather
+  than lazy.  Lazy implies a particular operational semantics.}
+  Theory \thydx{LList} defines an operator for
+  corecursion on lazy lists, which is used to define a few simple functions
+  such as map and append.   A coinduction principle is defined
+  for proving equations on lazy lists.
+  
+\item Theory \thydx{LFilter} defines the filter functional for lazy lists.
+  This functional is notoriously difficult to define because finding the next
+  element meeting the predicate requires possibly unlimited search.  It is not
+  computable, but can be expressed using a combination of induction and
+  corecursion.  
+
+\item Theory \thydx{Exp} illustrates the use of iterated inductive definitions
+  to express a programming language semantics that appears to require mutual
+  induction.  Iterated induction allows greater modularity.
+\end{itemize}
+
 Directory {\tt HOL/ex} contains other examples and experimental proofs in
-{\HOL}.  Here is an overview of the more interesting files.
+{\HOL}.  
 \begin{itemize}
 \item File {\tt cla.ML} demonstrates the classical reasoner on over sixty
   predicate calculus theorems, ranging from simple tautologies to
@@ -2066,27 +2094,6 @@ Directory {\tt HOL/ex} contains other examples and experimental proofs in
 
 \item File {\tt set.ML} proves Cantor's Theorem, which is presented in
   \S\ref{sec:hol-cantor} below, and the Schr\"oder-Bernstein Theorem.
-
-\item The definition of lazy lists demonstrates methods for handling
-  infinite data structures and coinduction in higher-order
-  logic~\cite{paulson-coind}.  Theory \thydx{LList} defines an operator for
-  corecursion on lazy lists, which is used to define a few simple functions
-  such as map and append.  Corecursion cannot easily define operations such
-  as filter, which can compute indefinitely before yielding the next
-  element (if any!) of the lazy list.  A coinduction principle is defined
-  for proving equations on lazy lists.
-
-\item Theory {\tt PropLog} proves the soundness and completeness of
-  classical propositional logic, given a truth table semantics.  The only
-  connective is $\imp$.  A Hilbert-style axiom system is specified, and its
-  set of theorems defined inductively.  A similar proof in \ZF{} is
-  described elsewhere~\cite{paulson-set-II}.
-
-\item Theory {\tt Term} develops an experimental recursive type definition;
-  the recursion goes through the type constructor~\tydx{list}.
-
-\item Theory {\tt Simult} constructs mutually recursive sets of trees and
-  forests, including induction and recursion rules.
 
 \item Theory {\tt MT} contains Jacob Frost's formalization~\cite{frost93} of
   Milner and Tofte's coinduction example~\cite{milner-coind}.  This
