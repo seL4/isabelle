@@ -77,7 +77,8 @@ fun thms_containing raw_consts =
     val sign = sign_of_thm (topthm ());
     val consts = map (Sign.intern_const sign) raw_consts;
     val thy = ThyInfo.theory_of_sign sign;
-  in PureThy.thms_containing thy consts end;
+  in PureThy.thms_containing thy consts end
+  handle THEORY (msg,_) => error msg;
 
 
 (*top_const: main constant, ignoring Trueprop*)
