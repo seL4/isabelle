@@ -369,8 +369,8 @@ let
 			if name="auto" then
 				None
 			else
-				((if name="dpll" then
-					warning ("Using SAT solver \"dpll\"; for better performance, consider using an external solver.")
+				((if name="dpll" orelse name="enumerate" then
+					warning ("Using SAT solver " ^ quote name ^ "; for better performance, consider using an external solver.")
 				else
 					());
 				solver fm)) (rev (!SatSolver.solvers))
