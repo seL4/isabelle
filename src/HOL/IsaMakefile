@@ -345,7 +345,7 @@ $(LOG)/HOL-MiniML.gz: $(OUT)/HOL MiniML/Generalize.ML \
 
 HOL-MicroJava: HOL $(LOG)/HOL-MicroJava.gz
 
-$(LOG)/HOL-MicroJava.gz: $(OUT)/HOL MicroJava/ROOT.ML \
+$(LOG)/HOL-MicroJava.gz: $(OUT)/HOL MicroJava/ROOT.ML MicroJava/Digest.thy \
   MicroJava/J/Conform.ML MicroJava/J/Conform.thy \
   MicroJava/J/Eval.thy MicroJava/J/Eval.ML MicroJava/J/JBasis.ML \
   MicroJava/J/JBasis.thy MicroJava/J/JTypeSafe.thy MicroJava/J/JTypeSafe.ML \
@@ -357,7 +357,7 @@ $(LOG)/HOL-MicroJava.gz: $(OUT)/HOL MicroJava/ROOT.ML \
   MicroJava/J/Example.ML MicroJava/J/Example.thy \
   MicroJava/JVM/JVMExec.thy MicroJava/JVM/JVMInstructions.thy\
   MicroJava/JVM/JVMState.thy MicroJava/JVM/JVMExecInstr.thy\
-  MicroJava/JVM/Store.thy MicroJava/JVM/Store.ML \
+  MicroJava/JVM/Store.thy \
   MicroJava/BV/BVSpec.thy MicroJava/BV/Step.thy\
   MicroJava/BV/BVSpecTypeSafe.thy MicroJava/BV/Correct.thy \
   MicroJava/BV/Convert.thy MicroJava/BV/StepMono.thy \
