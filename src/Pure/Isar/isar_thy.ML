@@ -225,7 +225,11 @@ fun gen_have_thmss get attrib f ((name, more_srcs), th_srcs) x =
   f name (map (attrib x) more_srcs)
     (map (fn (s, srcs) => (get x s, map (attrib x) srcs)) th_srcs) x;
 
-fun global_have_thmss x = gen_have_thmss PureThy.get_thms Attrib.global_attribute x;
+fun global_have_thmss kind f (x as ((name, _), _)) thy =
+  let val (thy', thms) = gen_have_thmss PureThy.get_thms Attrib.global_attribute f x thy in
+    if kind <> "" then Context.setmp (Some thy') (Present.results kind name) thms else ();
+    (thy', thms)
+  end;
 
 fun local_have_thmss x =
   gen_have_thmss (ProofContext.get_thms o Proof.context_of)
@@ -237,11 +241,11 @@ fun gen_have_thmss_i f ((name, more_atts), th_atts) =
 fun have_lemss name atts = PureThy.have_thmss name (atts @ [Drule.tag_lemma]);
 
 
-fun apply_theorems th_srcs = global_have_thmss PureThy.have_thmss (("", []), th_srcs);
+fun apply_theorems th_srcs = global_have_thmss "" PureThy.have_thmss (("", []), th_srcs);
 fun apply_theorems_i th_srcs = gen_have_thmss_i PureThy.have_thmss (("", []), th_srcs);
-val have_theorems = #1 oo (global_have_thmss PureThy.have_thmss o Comment.ignore);
+val have_theorems = #1 oo (global_have_thmss "theorems" PureThy.have_thmss o Comment.ignore);
 val have_theorems_i = #1 oo (gen_have_thmss_i PureThy.have_thmss o Comment.ignore);
-val have_lemmas = #1 oo (global_have_thmss have_lemss o Comment.ignore);
+val have_lemmas = #1 oo (global_have_thmss "lemmas" have_lemss o Comment.ignore);
 val have_lemmas_i = #1 oo (gen_have_thmss_i have_lemss o Comment.ignore);
 val have_facts = ProofHistory.apply o local_have_thmss (Proof.have_thmss []) o Comment.ignore;
 val have_facts_i = ProofHistory.apply o gen_have_thmss_i (Proof.have_thmss []) o Comment.ignore;
@@ -335,11 +339,16 @@ val proof = ProofHistory.applys o Method.proof o
 
 (* print result *)
 
+local
+
 fun pretty_result {kind, name, thm} =
-  Pretty.block [Pretty.str (kind ^ " " ^ name ^ ":"), Pretty.fbrk, Proof.pretty_thm thm];
+  Pretty.block [Pretty.str (kind ^ (if name = "" then "" else " " ^ name ^ ":")),
+    Pretty.fbrk, Proof.pretty_thm thm];
 
 fun pretty_rule thm =
   Pretty.block [Pretty.str "trying to solve goal by rule:", Pretty.fbrk, Proof.pretty_thm thm];
+
+in
 
 val print_result = Pretty.writeln o pretty_result;
 
@@ -348,6 +357,8 @@ fun cond_print_result_rule int =
   else (K (), K ());
 
 fun proof'' f = Toplevel.proof' (f o cond_print_result_rule);
+
+end;
 
 
 (* local endings *)
@@ -373,8 +384,8 @@ fun global_result finish = Toplevel.proof_to_theory (fn prf =>
   let
     val state = ProofHistory.current prf;
     val _ = if Proof.at_bottom state then () else raise Toplevel.UNDEF;
-    val (thy, res) = finish state;
-  in print_result res; thy end);
+    val (thy, res as {kind, name, thm}) = finish state;
+  in print_result res; Context.setmp (Some thy) (Present.result kind name) thm; thy end);
 
 val global_qed = global_result o Method.global_qed o apsome Comment.ignore_interest;
 val global_terminal_proof = global_result o Method.global_terminal_proof o ignore_interests;

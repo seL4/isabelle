@@ -32,6 +32,8 @@ sig
     (Url.T option * Url.T * bool option) list -> text -> text
   val end_theory: text
   val ml_file: Url.T -> string -> text
+  val result: string -> string -> thm -> text
+  val results: string -> string -> thm list -> text
   val theorem: string -> thm -> text
   val theorems: string -> thm list -> text
   val section: string -> text
@@ -242,15 +244,26 @@ fun ml_file path str =
 
 (* theorems *)
 
+local
+
 val string_of_thm =
   Pretty.setmp_margin 80 Pretty.string_of o
     Display.pretty_thm_no_quote o #1 o Drule.freeze_thaw;
 
 fun thm th = preform (prefix_lines "  " (html_mode string_of_thm th));
 
-fun theorem a th = para (keyword "theorem" ^ " " ^ name (a ^ ":") ^ "\n" ^ thm th);
-fun theorems a ths =
-  para (cat_lines ((keyword "theorems" ^ " " ^ name (a ^ ":")) :: map thm ths));
+fun thm_name "" = ""
+  | thm_name a = " " ^ name (a ^ ":");
+
+in
+
+fun result k a th = para (keyword k ^ thm_name a ^ "\n" ^ thm th);
+fun results k a ths = para (cat_lines ((keyword k ^ thm_name a) :: map thm ths));
+
+val theorem = result "theorem";
+val theorems = results "theorems";
+
+end;
 
 
 (* section *)

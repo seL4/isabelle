@@ -18,6 +18,8 @@ sig
   val theory_source: string -> (string, 'a) Source.source -> unit
   val begin_theory: string -> string list -> (Path.T * bool) list -> theory -> theory
   val end_theory: string -> unit
+  val result: string -> string -> thm -> unit
+  val results: string -> string -> thm list -> unit
   val theorem: string -> thm -> unit
   val theorems: string -> thm list -> unit
   val setup: (theory -> theory) list
@@ -31,7 +33,8 @@ struct
 
 val output_path = Path.variable "ISABELLE_BROWSER_INFO";
 
-fun top_path sess_path offset = Path.append (Path.appends (replicate (offset + length sess_path) Path.parent));
+fun top_path sess_path offset =
+  Path.append (Path.appends (replicate (offset + length sess_path) Path.parent));
 
 val html_ext = Path.ext "html";
 val html_path = html_ext o Path.basic;
@@ -359,8 +362,10 @@ fun begin_theory name raw_parents orig_files thy =
 
 fun end_theory _ = ();
 
-fun theorem name thm = with_session () (fn _ => with_context add_html (HTML.theorem name thm));
-fun theorems name thms = with_session () (fn _ => with_context add_html (HTML.theorems name thms));
+fun result k a thm = with_session () (fn _ => with_context add_html (HTML.result k a thm));
+fun results k a thms = with_session () (fn _ => with_context add_html (HTML.results k a thms));
+fun theorem a thm = with_session () (fn _ => with_context add_html (HTML.theorem a thm));
+fun theorems a thms = with_session () (fn _ => with_context add_html (HTML.theorems a thms));
 fun section s = with_session () (fn _ => with_context add_html (HTML.section s));
 
 
