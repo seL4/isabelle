@@ -214,7 +214,7 @@ fun read_instantiate context_of insts x thm =
     val (xs, ss) = Library.split_list insts;
     val Ts = map get_typ xs;
 
-    val (ts, envT) = ProofContext.read_termTs (ctxt |> ProofContext.declare_thm thm) (ss ~~ Ts);
+    val (ts, envT) = ProofContext.read_termTs ctxt (ss ~~ Ts);
     val cenvT = map (apsnd (Thm.ctyp_of sign)) envT;
     val cenv =
       map (fn (xi, t) => pairself (Thm.cterm_of sign) (Var (xi, fastype_of t), t))
