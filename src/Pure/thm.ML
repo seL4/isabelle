@@ -99,6 +99,7 @@ sig
 
   (*meta rules*)
   val assume            : cterm -> thm
+  val compress          : thm -> thm
   val implies_intr      : cterm -> thm -> thm
   val implies_elim      : thm -> thm -> thm
   val forall_intr       : cterm -> thm -> thm
@@ -246,10 +247,12 @@ fun read_cterms sign (bs, Ts) =
 
 (*** Meta theorems ***)
 
-(* FIXME comment *)
 datatype thm = Thm of
-  {sign: Sign.sg, maxidx: int,
-    shyps: sort list, hyps: term list, prop: term};
+  {sign: Sign.sg,		(*signature for hyps and prop*)
+   maxidx: int,			(*maximum index of any Var or TVar*)
+   shyps: sort list,		(* FIXME comment *)
+   hyps: term list,		(*hypotheses*)
+   prop: term};			(*conclusion*)
 
 fun rep_thm (Thm args) = args;
 
@@ -326,6 +329,16 @@ fun add_thms_shyps ([], Ss) = Ss
 (*get 'dangling' sort constraints of a thm*)
 fun extra_shyps (th as Thm {shyps, ...}) =
   shyps \\ add_thm_sorts (th, []);
+
+
+(*Compression of theorems -- a separate rule, not integrated with the others,
+  as it could be slow.*)
+fun compress (Thm {sign, maxidx, shyps, hyps, prop}) = 
+    Thm {sign = sign, 
+	 maxidx = maxidx,
+	 shyps = shyps, 
+	 hyps = map Term.compress_term hyps, 
+	 prop = Term.compress_term prop};
 
 
 (* fix_shyps *)
@@ -528,7 +541,9 @@ fun inferT_axm sg (name, pre_tm) =
 fun ext_axms prep_axm axms (thy as Theory {sign, ...}) =
   let
     val sign1 = Sign.make_draft sign;
-    val axioms = map (apsnd Logic.varify o prep_axm sign) axms;
+    val axioms = map (apsnd (Term.compress_term o Logic.varify) o 
+		      prep_axm sign) 
+	         axms;
   in
     ext_thy thy sign1 axioms
   end;
