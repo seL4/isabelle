@@ -56,6 +56,8 @@ shift $(($OPTIND - 1))
 
 ## main
 
+# get compatibility file
+
 ML_SYSTEM_BASE=$(echo $ML_SYSTEM | cut -f1 -d-)
 [ -z "$ML_SYSTEM" ] && \
   fail "Missing ML system settings! Probably not run via 'isatool make'?."
@@ -65,14 +67,51 @@ COMPAT=""
 [ -f "ML-Systems/$ML_SYSTEM.ML" ] && COMPAT="ML-Systems/$ML_SYSTEM.ML"
 [ -z "$COMPAT" ] && fail "Missing compatibility file for ML system \"$ML_SYSTEM\"!"
 
+
+# prepare log dir
+
+LOGDIR="$ISABELLE_OUTPUT/log"
+mkdir -p "$LOGDIR"
+
+
+# run isabelle
+
+SECONDS=0
+
 if [ -z "$RAW" ]; then
+  ITEM="Pure"
+  echo -n "Building $ITEM ... "
+  LOG="$LOGDIR/$ITEM"
+
   $ISABELLE \
     -e "val ml_system = \"$ML_SYSTEM\";" \
     -e "use\"$COMPAT\"; use\"ROOT.ML\" handle _ => exit 1;" \
-    -q -w RAW_ML_SYSTEM Pure
+    -q -w RAW_ML_SYSTEM Pure > $LOG
 else
+  ITEM="RAW"
+  echo -n "Building $ITEM ... "
+  LOG="$LOGDIR/$ITEM"
+
   $ISABELLE \
     -e "val ml_system = \"$ML_SYSTEM\";" \
     -e "use\"$COMPAT\";" \
-    -q -w RAW_ML_SYSTEM RAW
+    -q -w RAW_ML_SYSTEM RAW > $LOG
 fi
+
+RC=$?
+
+ELAPSED=$($ISABELLE_HOME/lib/scripts/showtime $SECONDS)
+
+
+# exit status
+
+if [ $RC -eq 0 ]; then
+  echo "OK  ($ELAPSED elapsed time)"
+  gzip --force "$LOG"
+else
+  echo "FAILED"
+  echo "(see also $LOG)"
+  echo; tail $LOG; echo
+fi
+
+exit $RC
