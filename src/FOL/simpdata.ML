@@ -41,8 +41,14 @@ val iff_simps = map int_prove_fun
   "(P <-> P) <-> True",
   "(False <-> P) <-> ~P",       "(P <-> False) <-> ~P"];
 
+(*The x=t versions are needed for the simplification procedures*)
 val quant_simps = map int_prove_fun
- ["(ALL x. P) <-> P",    "(EX x. P) <-> P"];
+ ["(ALL x. P) <-> P",   
+  "(ALL x. x=t --> P(x)) <-> P(t)",
+  "(ALL x. t=x --> P(x)) <-> P(t)",
+  "(EX x. P) <-> P",
+  "(EX x. x=t & P(x)) <-> P(t)", 
+  "(EX x. t=x & P(x)) <-> P(t)"];
 
 (*These are NOT supplied by default!*)
 val distrib_simps  = map int_prove_fun
@@ -96,30 +102,43 @@ fun prove_fun s =
   cases boil down to the same thing.*) 
 val cases_simp = prove_fun "(P --> Q) & (~P --> Q) <-> Q";
 
-(*At present, miniscoping is for classical logic only.  We do NOT include
-  distribution of ALL over &, or dually that of EX over |.*)
 
-(*Miniscoping: pushing in existential quantifiers*)
-val ex_simps = map prove_fun 
-                ["(EX x. x=t & P(x)) <-> P(t)",
-                 "(EX x. t=x & P(x)) <-> P(t)",
-                 "(EX x. P(x) & Q) <-> (EX x. P(x)) & Q",
-                 "(EX x. P & Q(x)) <-> P & (EX x. Q(x))",
-                 "(EX x. P(x) | Q) <-> (EX x. P(x)) | Q",
-                 "(EX x. P | Q(x)) <-> P | (EX x. Q(x))",
-                 "(EX x. P(x) --> Q) <-> (ALL x. P(x)) --> Q",
-                 "(EX x. P --> Q(x)) <-> P --> (EX x. Q(x))"];
+(*** Miniscoping: pushing quantifiers in
+     We do NOT distribute of ALL over &, or dually that of EX over |
+     Baaz and Leitsch, On Skolemization and Proof Complexity (1994) 
+     show that this step can increase proof length!
+***)
 
-(*Miniscoping: pushing in universal quantifiers*)
-val all_simps = map prove_fun
-                ["(ALL x. x=t --> P(x)) <-> P(t)",
-                 "(ALL x. t=x --> P(x)) <-> P(t)",
-                 "(ALL x. P(x) & Q) <-> (ALL x. P(x)) & Q",
-                 "(ALL x. P & Q(x)) <-> P & (ALL x. Q(x))",
-                 "(ALL x. P(x) | Q) <-> (ALL x. P(x)) | Q",
-                 "(ALL x. P | Q(x)) <-> P | (ALL x. Q(x))",
-                 "(ALL x. P(x) --> Q) <-> (EX x. P(x)) --> Q",
-                 "(ALL x. P --> Q(x)) <-> P --> (ALL x. Q(x))"];
+(*existential miniscoping*)
+val int_ex_simps = map int_prove_fun 
+		     ["(EX x. P(x) & Q) <-> (EX x. P(x)) & Q",
+		      "(EX x. P & Q(x)) <-> P & (EX x. Q(x))",
+		      "(EX x. P(x) | Q) <-> (EX x. P(x)) | Q",
+		      "(EX x. P | Q(x)) <-> P | (EX x. Q(x))"];
+
+(*classical rules*)
+val cla_ex_simps = map prove_fun 
+                     ["(EX x. P(x) --> Q) <-> (ALL x. P(x)) --> Q",
+		      "(EX x. P --> Q(x)) <-> P --> (EX x. Q(x))"];
+
+val ex_simps = int_ex_simps @ cla_ex_simps;
+
+(*universal miniscoping*)
+val int_all_simps = map int_prove_fun
+		      ["(ALL x. P(x) & Q) <-> (ALL x. P(x)) & Q",
+		       "(ALL x. P & Q(x)) <-> P & (ALL x. Q(x))",
+		       "(ALL x. P(x) --> Q) <-> (EX x. P(x)) --> Q",
+		       "(ALL x. P --> Q(x)) <-> P --> (ALL x. Q(x))"];
+
+(*classical rules*)
+val cla_all_simps = map prove_fun
+                      ["(ALL x. P(x) | Q) <-> (ALL x. P(x)) | Q",
+		       "(ALL x. P | Q(x)) <-> P | (ALL x. Q(x))"];
+
+val all_simps = int_all_simps @ cla_all_simps;
+
+
+(*** Named rewrite rules proved for IFOL ***)
 
 fun int_prove nm thm  = qed_goal nm IFOL.thy thm
     (fn prems => [ (cut_facts_tac prems 1), 
@@ -168,7 +187,50 @@ int_prove "all_conj_distrib"
 val meta_eq_to_obj_eq = prove_goal IFOL.thy "x==y ==> x=y"
   (fn [prem] => [rewtac prem, rtac refl 1]);
 
-(*** case splitting ***)
+
+open Simplifier;
+
+(** make simplification procedures for quantifier elimination **)
+structure Quantifier1 = Quantifier1Fun(
+struct
+  (*abstract syntax*)
+  fun dest_eq((c as Const("op =",_)) $ s $ t) = Some(c,s,t)
+    | dest_eq _ = None;
+  fun dest_conj((c as Const("op &",_)) $ s $ t) = Some(c,s,t)
+    | dest_conj _ = None;
+  val conj = FOLogic.conj
+  val imp  = FOLogic.imp
+  (*rules*)
+  val iff_reflection = iff_reflection
+  val iffI = iffI
+  val sym  = sym
+  val conjI= conjI
+  val conjE= conjE
+  val impI = impI
+  val impE = impE
+  val mp   = mp
+  val exI  = exI
+  val exE  = exE
+  val allI = allI
+  val allE = allE
+end);
+
+local
+val ex_pattern =
+  read_cterm (sign_of FOL.thy) ("EX x. P(x) & Q(x)", FOLogic.oT)
+
+val all_pattern =
+  read_cterm (sign_of FOL.thy) ("ALL x. P(x) & P'(x) --> Q(x)", FOLogic.oT)
+
+in
+val defEX_regroup =
+  mk_simproc "defined EX" [ex_pattern] Quantifier1.rearrange_ex;
+val defALL_regroup =
+  mk_simproc "defined ALL" [all_pattern] Quantifier1.rearrange_all;
+end;
+
+
+(*** Case splitting ***)
 
 qed_goal "meta_iffD" IFOL.thy "[| P==Q; Q |] ==> P"
         (fn [prem1,prem2] => [rewtac prem1, rtac prem2 1]);
@@ -192,7 +254,7 @@ val split_asm_tac = mk_case_split_asm_tac split_tac
 
 structure Induction = InductionFun(struct val spec=IFOL.spec end);
 
-open Simplifier Induction;
+open Induction;
 
 (*Add congruence rules for = or <-> (instead of ==) *)
 infix 4 addcongs delcongs;
@@ -222,12 +284,13 @@ fun   safe_solver prems = FIRST'[match_tac (triv_rls@prems),
 
 (*No simprules, but basic infastructure for simplification*)
 val FOL_basic_ss = empty_ss setsubgoaler asm_simp_tac
+                            addsimprocs [defALL_regroup,defEX_regroup]
 			    setSSolver   safe_solver
 			    setSolver  unsafe_solver
 			    setmksimps (map mk_meta_eq o atomize o gen_all);
 
 (*intuitionistic simprules only*)
-val IFOL_ss = FOL_basic_ss addsimps IFOL_simps
+val IFOL_ss = FOL_basic_ss addsimps (IFOL_simps @ int_ex_simps @ int_all_simps)
 			   addcongs [imp_cong];
 
 val cla_simps = 
@@ -240,7 +303,7 @@ val cla_simps =
       "(~P <-> ~Q) <-> (P<->Q)"];
 
 (*classical simprules too*)
-val FOL_ss = IFOL_ss addsimps (cla_simps @ ex_simps @ all_simps);
+val FOL_ss = IFOL_ss addsimps (cla_simps @ cla_ex_simps @ cla_all_simps);
 
 simpset_ref() := FOL_ss;
 

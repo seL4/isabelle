@@ -19,8 +19,10 @@ use "$ISABELLE_HOME/src/Provers/ind.ML";
 use "$ISABELLE_HOME/src/Provers/hypsubst.ML";
 use "$ISABELLE_HOME/src/Provers/classical.ML";
 use "$ISABELLE_HOME/src/Provers/blast.ML";
+use "$ISABELLE_HOME/src/Provers/quantifier1.ML";
 
 use_thy "IFOL";
+use "fologic.ML";
 
 (** Applying HypsubstFun to generate hyp_subst_tac **)
 structure Hypsubst_Data =
