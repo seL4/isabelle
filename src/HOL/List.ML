@@ -111,6 +111,12 @@ by (Auto_tac);
 qed "length_greater_0_conv";
 AddIffs [length_greater_0_conv];
 
+Goal "(length xs = Suc n) = (? y ys. xs = y#ys & length ys = n)";
+by (induct_tac "xs" 1);
+by (Auto_tac);
+qed "length_Suc_conv";
+AddIffs [length_Suc_conv];
+
 (** @ - append **)
 
 section "@ - append";
@@ -160,8 +166,9 @@ by (induct_tac "xs" 1);
                       addEs [less_not_refl2 RSN (2,rev_notE)]) 1);
 by (rtac allI 1);
 by (exhaust_tac "ys" 1);
- by (fast_tac (claset() addIs [less_add_Suc2] addss simpset()
-                      addEs [(less_not_refl2 RS not_sym) RSN (2,rev_notE)]) 1);
+by (fast_tac (claset() addIs [less_add_Suc2] 
+		       addss (simpset() delsimps [length_Suc_conv])
+                       addEs [(less_not_refl2 RS not_sym) RSN (2,rev_notE)]) 1);
 by (Asm_simp_tac 1);
 qed_spec_mp "append_eq_append_conv";
 Addsimps [append_eq_append_conv];
@@ -358,6 +365,11 @@ Addsimps[mem_filter];
 (** set **)
 
 section "set";
+
+qed_goal "finite_set" thy "finite (set xs)" 
+	(K [induct_tac "xs" 1, Auto_tac]);
+Addsimps[finite_set];
+AddSIs[finite_set];
 
 Goal "set (xs@ys) = (set xs Un set ys)";
 by (induct_tac "xs" 1);
@@ -885,14 +897,15 @@ Goal
 by(induct_tac "n" 1);
  by(Simp_tac 1);
  by(Blast_tac 1);
-by(asm_full_simp_tac (simpset() addsimps [lex_prod_def]) 1);
-by(Auto_tac);
+by(asm_full_simp_tac (simpset() delsimps [length_Suc_conv] 
+				addsimps [lex_prod_def]) 1);
+by(auto_tac (claset(), simpset() delsimps [length_Suc_conv]));
   by(Blast_tac 1);
  by(rename_tac "a xys x xs' y ys'" 1);
  by(res_inst_tac [("x","a#xys")] exI 1);
  by(Simp_tac 1);
 by(exhaust_tac "xys" 1);
- by(ALLGOALS Asm_full_simp_tac);
+ by(ALLGOALS (asm_full_simp_tac (simpset() delsimps [length_Suc_conv])));
 by(Blast_tac 1);
 qed "lexn_conv";
 
@@ -900,7 +913,7 @@ Goalw [lex_def]
  "lex r = \
 \ {(xs,ys). length xs = length ys & \
 \           (? xys x y xs' ys'. xs= xys @ x#xs' & ys= xys @ y#ys' & (x,y):r)}";
-by(force_tac (claset(), simpset() addsimps [lexn_conv]) 1);
+by(force_tac (claset(), simpset() delsimps [length_Suc_conv] addsimps [lexn_conv]) 1);
 qed "lex_conv";
 
 Goalw [lexico_def] "wf r ==> wf(lexico r)";
