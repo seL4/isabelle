@@ -99,27 +99,28 @@ fun Clarsimp_tac i = clarsimp_tac (Classical.claset(), Simplifier.simpset()) i;
 fun blast_depth_tac cs m i thm =
     Blast.depth_tac cs m i thm 
       handle Blast.TRANS s => (warning ("Blast_tac: " ^ s); Seq.empty);
-
+ 
 (* a variant of depth_tac that avoids interference of the simplifier 
    with dup_step_tac when they are combined by auto_tac *)
-fun nodup_depth_tac cs m i state = CHANGED (SELECT_GOAL 
-   (REPEAT_DETERM1 (COND (has_fewer_prems 1) no_tac
-                                             (Classical.safe_step_tac cs 1))
-    THEN_ELSE (DEPTH_SOLVE (nodup_depth_tac cs m 1),
-	Classical.appWrappers cs (fn i => Classical.inst0_step_tac cs i APPEND
-        COND (K(m=0)) no_tac
-            ((Classical.instp_step_tac cs i APPEND Classical.step_tac cs i)
-            THEN DEPTH_SOLVE (nodup_depth_tac cs (m-1) i))) 1))
-  i) state;
+local
+fun slow_step_tac' cs = Classical.appWrappers cs 
+	(Classical.instp_step_tac cs APPEND' Classical.haz_step_tac cs);
+in fun nodup_depth_tac cs m i state = SELECT_GOAL 
+   (Classical.safe_steps_tac cs 1 THEN_ELSE 
+	(DEPTH_SOLVE (nodup_depth_tac cs m 1),
+	 Classical.inst0_step_tac cs 1 APPEND COND (K (m=0)) no_tac
+	     (slow_step_tac' cs 1 THEN DEPTH_SOLVE (nodup_depth_tac cs (m-1) 1))
+        )) i state;
+end;
 
 (*Designed to be idempotent, except if best_tac instantiates variables
   in some of the subgoals*)
 fun mk_auto_tac (cs, ss) m n =
     let val cs' = cs addss ss
         val maintac = 
-          blast_depth_tac cs m		(* fast but can't use addss *)
+          blast_depth_tac cs m		     (* fast but can't use wrappers *)
           ORELSE'
-          nodup_depth_tac cs' n;	(* slower but more general *)
+          (CHANGED o nodup_depth_tac cs' n); (* slower but more general *)
     in  EVERY [ALLGOALS (Simplifier.asm_full_simp_tac ss),
 	       TRY (Classical.safe_tac cs),
 	       REPEAT (FIRSTGOAL maintac),
