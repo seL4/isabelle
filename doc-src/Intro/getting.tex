@@ -883,7 +883,7 @@ see \iflabelundefined{chap:classical}{the {\em Reference Manual\/}}%
 Rules are packaged into {\bf classical sets}.  The classical reasoner
 provides several tactics, which apply rules using naive algorithms.
 Unification handles quantifiers as shown above.  The most useful tactic
-is~\ttindex{fast_tac}.  
+is~\ttindex{Blast_tac}.  
 
 Let us solve problems~40 and~60 of Pelletier~\cite{pelletier86}.  (The
 backslashes~\hbox{\verb|\|\ldots\verb|\|} are an \ML{} string escape
@@ -897,10 +897,11 @@ goal FOL.thy "(EX y. ALL x. J(y,x) <-> ~J(x,x))  \ttback
 {\out  1. (EX y. ALL x. J(y,x) <-> ~J(x,x)) -->}
 {\out     ~(ALL x. EX y. ALL z. J(z,y) <-> ~J(z,x))}
 \end{ttbox}
-The rules of classical logic are bundled as {\tt FOL_cs}.  We may solve
-subgoal~1 at a stroke, using~\ttindex{fast_tac}.
+\ttindex{Blast_tac} proves subgoal~1 at a stroke.
 \begin{ttbox}
-by (fast_tac FOL_cs 1);
+by (Blast_tac 1);
+{\out Depth = 0}
+{\out Depth = 1}
 {\out Level 1}
 {\out (EX y. ALL x. J(y,x) <-> ~J(x,x)) -->}
 {\out ~(ALL x. EX y. ALL z. J(z,y) <-> ~J(z,x))}
@@ -919,7 +920,9 @@ goal FOL.thy "ALL x. P(x,f(x)) <-> \ttback
 \end{ttbox}
 Again, subgoal~1 succumbs immediately.
 \begin{ttbox}
-by (fast_tac FOL_cs 1);
+by (Blast_tac 1);
+{\out Depth = 0}
+{\out Depth = 1}
 {\out Level 1}
 {\out ALL x. P(x,f(x)) <-> (EX y. (ALL z. P(z,y) --> P(z,f(x))) & P(x,y))}
 {\out No subgoals!}

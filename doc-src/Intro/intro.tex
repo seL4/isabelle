@@ -1,8 +1,7 @@
 \documentclass[12pt]{article}
-\usepackage{a4}
+\usepackage{a4,proof}
 
 \makeatletter
-\input{../proof.sty}
 \input{../iman.sty}
 \input{../extra.sty}
 \makeatother
@@ -15,8 +14,9 @@
 
 \title{Introduction to Isabelle}   
 \author{{\em Lawrence C. Paulson}\\
-        Computer Laboratory \\ University of Cambridge \\[2ex]
-        {\small{\em Electronic mail\/}: {\tt lcp@cl.cam.ac.uk}}
+        Computer Laboratory \\ University of Cambridge \\
+        \texttt{lcp@cl.cam.ac.uk}\\[3ex] 
+        With Contributions by Tobias Nipkow and Markus Wenzel
 }
 \makeindex
 
@@ -106,7 +106,7 @@ They assume familiarity with the concepts presented here.
 
 \subsubsection*{Acknowledgements} 
 Tobias Nipkow contributed most of the section on defining theories.
-Stefan Berghofer, Sara Kalvala and Markus Wenzel suggested improvements.
+Stefan Berghofer and Sara Kalvala suggested improvements.
 
 Tobias Nipkow has made immense contributions to Isabelle, including the
 parser generator, type classes, and the simplifier.  Carsten Clasohm and
@@ -114,9 +114,9 @@ Markus Wenzel made major contributions; Sonia Mahjoub and Karin Nimmermann
 also helped.  Isabelle was developed using Dave Matthews's Standard~{\sc
   ml} compiler, Poly/{\sc ml}.  Many people have contributed to Isabelle's
 standard object-logics, including Martin Coen, Philippe de Groote, Philippe
-No\"el.  The research has been funded by the SERC (grants GR/G53279,
-GR/H40570) and by ESPRIT (projects 3245: Logical Frameworks, and 6453:
-Types).
+No\"el.  The research has been funded by the EPSRC (grants
+GR/G53279, GR/H40570, GR/K57381, GR/K77051)
+and by ESPRIT (projects 3245: Logical Frameworks, and 6453: Types).
 
 \newpage
 \pagestyle{plain} \tableofcontents 
