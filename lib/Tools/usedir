@@ -27,6 +27,7 @@ function usage()
   echo "    -p LEVEL     set level of detail for proof objects"
   echo "    -r           reset session path"
   echo "    -s NAME      override session NAME"
+  echo "    -v BOOL      be verbose (default false)"
   echo
   echo "  Build object-logic or run examples. Also creates browsing"
   echo "  information (HTML etc.) according to settings."
@@ -34,6 +35,22 @@ function usage()
   echo "  ISABELLE_USEDIR_OPTIONS=$ISABELLE_USEDIR_OPTIONS"
   echo
   exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+function check_bool()
+{
+  [ "$1" = true -o "$1" = false ] || fail "Bad boolean: \"$1\""
+}
+
+function check_number()
+{
+  [ -n "$1" -a -z "$(echo "$1" | tr -d [0-9])" ] || fail "Bad number: \"$1\""
 }
 
 
@@ -51,11 +68,12 @@ MODES=""
 RESET=false
 SESSION=""
 PROOFS=0
+VERBOSE=false
 
 function getoptions()
 {
   OPTIND=1
-  while getopts "D:P:bc:d:i:m:p:rs:" OPT
+  while getopts "D:P:bc:d:i:m:p:rs:v:" OPT
   do
     case "$OPT" in
       D)
@@ -68,12 +86,14 @@ function getoptions()
         BUILD=true
         ;;
       c)
+        check_bool "$OPTARG"
         COMPRESS="$OPTARG"
         ;;
       d)
         DOCUMENT="$OPTARG"
         ;;
       i)
+        check_bool "$OPTARG"
         INFO="$OPTARG"
         ;;
       m)
@@ -84,6 +104,7 @@ function getoptions()
         fi
         ;;
       p)
+        check_number "$OPTARG"
         PROOFS="$OPTARG"
         ;;
       r)
@@ -91,6 +112,10 @@ function getoptions()
         ;;
       s)
         SESSION="$OPTARG"
+        ;;
+      v)
+        check_bool "$OPTARG"
+        VERBOSE="$OPTARG"
         ;;
       \?)
         usage
@@ -151,24 +176,24 @@ SECONDS=0
 
 if [ -n "$BUILD" ]; then
   ITEM="$SESSION"
-  echo "Building $ITEM ..."
+  echo "Building $ITEM ..." >&2
   LOG="$LOGDIR/$ITEM"
 
   OPT_C=""
   [ "$COMPRESS" = true ] && OPT_C="-c"
 
   "$ISABELLE" \
-    -e "Session.use_dir [$MODES] $RESET $INFO \"$DOC\" \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\" $PROOFS;" \
-    $OPT_C -q -w $LOGIC $NAME > "$LOG" 2>&1
+    -e "Session.use_dir [$MODES] $RESET $INFO \"$DOC\" \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\" $PROOFS $VERBOSE;" \
+    $OPT_C -q -w $LOGIC $NAME > "$LOG"
   RC="$?"
 else
   ITEM=$(basename "$LOGIC")-"$SESSION"
-  echo "Running $ITEM ..."
+  echo "Running $ITEM ..." >&2
   LOG="$LOGDIR/$ITEM"
 
   "$ISABELLE" \
-    -e "Session.use_dir [$MODES] $RESET $INFO \"$DOC\" \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\" $PROOFS; quit();" \
-    -r -q "$LOGIC" > "$LOG" 2>&1
+    -e "Session.use_dir [$MODES] $RESET $INFO \"$DOC\" \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\" $PROOFS $VERBOSE; quit();" \
+    -r -q "$LOGIC" > "$LOG"
   RC="$?"
   cd ..
 fi
@@ -179,12 +204,12 @@ ELAPSED=$("$ISABELLE_HOME/lib/scripts/showtime" "$SECONDS")
 # exit status
 
 if [ "$RC" -eq 0 ]; then
-  echo "Finished $ITEM ($ELAPSED elapsed time)"
+  echo "Finished $ITEM ($ELAPSED elapsed time)" >&2
   gzip --force "$LOG"
 else
-  echo "$ITEM FAILED"
-  echo "(see also $LOG)"
-  echo; tail "$LOG"; echo
+  { echo "$ITEM FAILED";
+    echo "(see also $LOG)";
+    echo; tail "$LOG"; echo; } >&2
 fi
 
 exit "$RC"
