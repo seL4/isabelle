@@ -126,8 +126,12 @@ qed_goal "contrapos" HOL.thy "[| ~Q;  P==>Q |] ==> ~P"
   [ (rtac (major RS notE RS notI) 1), 
     (etac minor 1) ]);
 
+qed_goal "rev_contrapos" HOL.thy "[| P==>Q; ~Q |] ==> ~P"
+ (fn [major,minor]=> 
+  [ (rtac (minor RS contrapos) 1), (etac major 1) ]);
+
 (* ~(?t = ?s) ==> ~(?s = ?t) *)
-val [not_sym] = compose(sym,2,contrapos);
+bind_thm("not_sym", sym COMP rev_contrapos);
 
 
 (** Existential quantifier **)
