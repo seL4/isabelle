@@ -626,7 +626,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       map (Free o apfst fst o dest_Var) Ps;
     val indrule_lemma' = cterm_instantiate (map cert Ps ~~ map cert frees) indrule_lemma;
 
-    val dt_induct = prove_goalw_cterm [] (cert
+    val dt_induct = prove_goalw_cterm [InductivePackage.inductive_forall_def] (cert
       (DatatypeProp.make_ind descr sorts)) (fn prems =>
         [rtac indrule_lemma' 1, indtac rep_induct 1,
          EVERY (map (fn (prem, r) => (EVERY
@@ -638,7 +638,8 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     val (thy7, [dt_induct']) = thy6 |>
       Theory.add_path big_name |>
-      PureThy.add_thms [(("induct", dt_induct), [case_names_induct])] |>>
+      PureThy.add_thms [(("induct", dt_induct),
+        [Drule.rule_attribute (K InductivePackage.rulify), case_names_induct])] |>>
       Theory.parent_path;
 
   in (thy7, constr_inject', distinct_thms', dist_rewrites, simproc_dists, dt_induct')

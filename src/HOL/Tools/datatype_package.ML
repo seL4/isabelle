@@ -532,7 +532,8 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
     val (thy3, (([induct], [rec_thms]), inject)) =
       thy2 |>
       Theory.add_path (space_implode "_" new_type_names) |>
-      PureThy.add_axioms_i [(("induct", DatatypeProp.make_ind descr sorts), [case_names_induct])] |>>>
+      PureThy.add_axioms_i [(("induct", DatatypeProp.make_ind descr sorts),
+        [Drule.rule_attribute (K InductivePackage.rulify), case_names_induct])] |>>>
       PureThy.add_axiomss_i [(("recs", rec_axs), [])] |>>
       (if no_size then I else #1 o PureThy.add_axiomss_i [(("size", size_axs), [])]) |>>
       Theory.parent_path |>>>

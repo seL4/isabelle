@@ -238,7 +238,8 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
         val induct' = cterm_instantiate ((map cert induct_Ps) ~~
           (map cert insts)) induct;
         val (tac, _) = foldl mk_unique_tac
-          ((rtac induct' 1, rec_intrs), descr' ~~ rec_elims ~~ recTs ~~ rec_result_Ts)
+          (((rtac induct' THEN_ALL_NEW atomize_strip_tac) 1, rec_intrs),
+            descr' ~~ rec_elims ~~ recTs ~~ rec_result_Ts);
 
       in split_conj_thm (prove_goalw_cterm []
         (cert (HOLogic.mk_Trueprop (mk_conj rec_unique_ts))) (K [tac]))
