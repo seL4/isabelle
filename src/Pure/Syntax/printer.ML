@@ -48,11 +48,11 @@ val show_no_free_types = ref false;
 
 (* apply print (ast) translation function *)
 
-fun apply_last [] x = raise Match
-  | apply_last (f :: fs) x = apply_last fs x handle Match => f x;
+fun apply_first [] x = raise Match
+  | apply_first (f :: fs) x = f x handle Match => apply_first fs x;
 
 fun apply_trans name a fs args =
-  (apply_last fs args handle
+  (apply_first fs args handle
     Match => raise Match
   | exn => (priority ("Error in " ^ name ^ " for " ^ quote a); raise exn));
 
@@ -77,7 +77,6 @@ fun simple_ast_of (Const (c, _)) = Ast.Constant c
 
 fun ast_of_termT trf tm =
   let
-    (* FIXME improve: lookup token classes *)
     fun ast_of (t as Const ("_class", _) $ Free _) = simple_ast_of t
       | ast_of (t as Const ("_tfree", _) $ Free _) = simple_ast_of t
       | ast_of (t as Const ("_tvar", _) $ Var _) = simple_ast_of t
@@ -236,23 +235,16 @@ val empty_prtabs = [];
 
 fun extend_prtabs prtabs mode xprods =
   let
-    val fmts = rev (mapfilter xprod_to_fmt xprods);
+    val fmts = mapfilter xprod_to_fmt xprods;
     val tab = get_tab prtabs mode;
-    val new_tab =
-      if null fmts then tab
-      else Symtab.make_multi (fmts @ Symtab.dest_multi tab)     (*prefer new entries*)
+    val new_tab = foldr Symtab.update_multi (rev fmts, tab);
   in overwrite (prtabs, (mode, new_tab)) end;
 
 fun merge_prtabs prtabs1 prtabs2 =
   let
     val modes = distinct (map fst (prtabs1 @ prtabs2));
-    fun merge mode =
-      (mode,
-        generic_merge (op =) Symtab.dest_multi Symtab.make_multi
-          (get_tab prtabs2 mode) (get_tab prtabs1 mode));       (*prefer 2nd over 1st*)
-  in
-    map merge modes
-  end;
+    fun merge m = (m, Symtab.merge_multi' (op =) (get_tab prtabs1 m, get_tab prtabs2 m));
+  in map merge modes end;
 
 
 

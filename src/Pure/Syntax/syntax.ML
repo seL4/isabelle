@@ -69,7 +69,7 @@ struct
 (** tables of translation functions **)
 
 fun mk_trfun (c, f) = (c, (f, stamp ()));
-fun eq_trfuns ((c1:string, (_, s1:stamp)), (c2, (_, s2))) = c1 = c2 andalso s1 = s2;
+fun eq_trfuns ((_, s1:stamp), (_, s2)) = s1 = s2;
 
 
 (* parse (ast) translations *)
@@ -91,11 +91,8 @@ fun merge_trtabs tab1 tab2 name =
 (* print (ast) translations *)
 
 fun lookup_tr' tab c = map fst (Symtab.lookup_multi (tab, c));
-
-fun extend_tr'tab tab trfuns =
-  generic_extend eq_trfuns Symtab.dest_multi Symtab.make_multi tab (map mk_trfun trfuns);
-
-fun merge_tr'tabs tabs = generic_merge eq_trfuns Symtab.dest_multi Symtab.make_multi tabs;
+fun extend_tr'tab tab trfuns = foldr Symtab.update_multi (map mk_trfun trfuns, tab);
+fun merge_tr'tabs tab1 tab2 = Symtab.merge_multi' eq_trfuns (tab1, tab2);
 
 
 
@@ -147,11 +144,9 @@ fun lookup_ruletab tab a = Symtab.lookup_multi (tab, a);
 (* empty, extend, merge ruletabs *)
 
 fun extend_ruletab tab rules =
-  generic_extend (op =) Symtab.dest_multi Symtab.make_multi tab
-    (map (fn r => (Ast.head_of_rule r, r)) (distinct rules));
+  foldr Symtab.update_multi (map (fn r => (Ast.head_of_rule r, r)) rules, tab);
 
-fun merge_ruletabs tab1 tab2 =
-  generic_merge (op =) Symtab.dest_multi Symtab.make_multi tab1 tab2;
+fun merge_ruletabs tab1 tab2 = Symtab.merge_multi' (op =) (tab1, tab2);
 
 
 
@@ -206,7 +201,7 @@ fun extend_syntax (mode, inout) (Syntax tabs) syn_ext =
   in
     Syntax {
       lexicon = if inout then Scan.extend_lexicon lexicon (SynExt.delims_of xprods) else lexicon,
-      logtypes = extend_list logtypes1 logtypes2,
+      logtypes = merge_lists logtypes1 logtypes2,
       gram = if inout then Parser.extend_gram gram xprods else gram,
       consts = consts2 @ consts1,
       prmodes = (mode ins_string prmodes2) union_string prmodes1,
@@ -350,8 +345,8 @@ fun read_asts (Syntax tabs) xids root str =
     val chars = Symbol.explode str;
     val pts = Parser.parse gram root' (Lexicon.tokenize lexicon xids chars);
 
-    fun show_pt pt = warning (Pretty.string_of 
-			(Ast.pretty_ast (SynTrans.pt_to_ast (K None) pt)));
+    fun show_pt pt =
+      warning (Pretty.string_of (Ast.pretty_ast (SynTrans.pt_to_ast (K None) pt)));
   in
     if length pts > ! ambiguity_level then
       (warning ("Ambiguous input " ^ quote str);
