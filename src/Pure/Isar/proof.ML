@@ -329,12 +329,12 @@ fun varify_frees names thm =
 
     fun find_free t x = foldl_aterms (get_free x) (None, t);
 
-    val {sign, maxidx, prop, ...} = Thm.rep_thm thm;
+    val {sign, prop, ...} = Thm.rep_thm thm;
     val frees = map (Thm.cterm_of sign) (mapfilter (find_free prop) names);
   in
     thm
     |> Drule.forall_intr_list frees
-    |> Drule.forall_elim_vars (maxidx + 1)
+    |> Drule.forall_elim_vars 0
   end;
 
 fun varify_tfrees thm =
