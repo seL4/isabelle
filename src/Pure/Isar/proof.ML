@@ -26,13 +26,12 @@ sig
   val sign_of: state -> Sign.sg
   val map_context: (context -> context) -> state -> state
   val warn_extra_tfrees: state -> state -> state
+  val put_thms: string * thm list -> state -> state
   val reset_thms: string -> state -> state
   val the_facts: state -> thm list
   val the_fact: state -> thm
   val get_goal: state -> context * (thm list * thm)
   val goal_facts: (state -> thm list) -> state -> state
-  val use_facts: state -> state
-  val reset_facts: state -> state
   val get_mode: state -> mode
   val is_chain: state -> bool
   val assert_forward: state -> state
