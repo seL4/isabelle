@@ -10,8 +10,8 @@ From the book
     Artificial Intelligence Programming.
     (Lawrence Erlbaum Associates, 1980).  [Chapter 14]
 
-match_term no longer treats abstractions as wildcards but as the constant
-*Abs*.  Requires operands to be beta-eta-normal.
+match_term no longer treats abstractions as wildcards; instead they match 
+only wildcards in patterns.  Requires operands to be beta-eta-normal.
 *)
 
 signature NET = 
@@ -39,10 +39,10 @@ datatype key = CombK | VarK | AtomK of string;
 (*Bound variables*)
 fun string_of_bound i = "*B*" ^ chr i;
 
-(*Keys are preorder lists of symbols -- constants, Vars, bound vars, ...
+(*Keys are preorder lists of symbols -- Combinations, Vars, Atoms.
   Any term whose head is a Var is regarded entirely as a Var.
-  Abstractions are also regarded as Vars.  This covers eta-conversion
-    and "near" eta-conversions such as %x.P(?f(x)).
+  Abstractions are also regarded as Vars;  this covers eta-conversion
+    and "near" eta-conversions such as %x.?P(?f(x)).
 *)
 fun add_key_of_terms (t, cs) = 
   let fun rands (f$t, cs) = CombK :: rands (f, add_key_of_terms(t, cs))
@@ -51,7 +51,7 @@ fun add_key_of_terms (t, cs) =
 	| rands (Bound i,  cs)   = AtomK (string_of_bound i) :: cs
   in case (head_of t) of
       Var _ => VarK :: cs
-    | Abs (_,_,t) => VarK :: cs
+    | Abs _ => VarK :: cs
     | _     => rands(t,cs)
   end;
 
@@ -188,19 +188,19 @@ fun matching unif t (net,nets) =
 	      | Const(c,_) => look1 (alist, c) nets
 	      | Free(c,_)  => look1 (alist, c) nets
 	      | Bound i    => look1 (alist, string_of_bound i) nets
-	      | Abs _      => look1 (alist, "*Abs*") nets
+	      | _      	   => nets
   in 
      case net of
 	 Leaf _ => nets
        | Net{var,...} =>
 	   case (head_of t) of
-	       Var _      => if unif then net_skip (net,nets)
-			     else var::nets	   (*only matches Var in net*)
+	       Var _ => if unif then net_skip (net,nets)
+			else var::nets	   	(*only matches Var in net*)
 (*If "unif" then a var instantiation in the abstraction could allow
   an eta-reduction, so regard the abstraction as a wildcard.*)
-	     | Abs(_,_,u) => if unif then net_skip (net,nets)
-                             else rands t (net, var::nets)
-	     | _ => rands t (net, var::nets)	   (*var could match also*)
+	     | Abs _ => if unif then net_skip (net,nets)
+			else var::nets		(*only a Var can match*)
+	     | _ => rands t (net, var::nets)	(*var could match also*)
   end;
 
 val extract_leaves = flat o map (fn Leaf(xs) => xs);
