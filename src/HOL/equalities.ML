@@ -105,7 +105,7 @@ qed "insert_image";
 Addsimps [insert_image];
 
 goal thy "(f``A = {}) = (A = {})";
-by (blast_tac (claset() addSEs [equalityE]) 1);
+by (blast_tac (claset() addSEs [equalityCE]) 1);
 qed "image_is_empty";
 AddIffs [image_is_empty];
 
@@ -149,7 +149,7 @@ qed "Int_empty_right";
 Addsimps[Int_empty_right];
 
 goal thy "(A Int B = {}) = (A <= Compl B)";
-by (blast_tac (claset() addSEs [equalityE]) 1);
+by (blast_tac (claset() addSEs [equalityCE]) 1);
 qed "disjoint_eq_subset_Compl";
 
 goal thy "UNIV Int B = B";
@@ -171,7 +171,7 @@ by (Blast_tac 1);
 qed "Int_Un_distrib2";
 
 goal thy "(A<=B) = (A Int B = A)";
-by (blast_tac (claset() addSEs [equalityE]) 1);
+by (blast_tac (claset() addSEs [equalityCE]) 1);
 qed "subset_Int_eq";
 
 goal thy "(A Int B = UNIV) = (A = UNIV & B = UNIV)";
@@ -233,13 +233,13 @@ qed "Un_insert_right";
 Addsimps[Un_insert_right];
 
 goal thy "(insert a B) Int C = (if a:C then insert a (B Int C) \
-\                                          else        B Int C)";
+\                                      else        B Int C)";
 by (simp_tac (simpset() addsplits [expand_if]) 1);
 by (Blast_tac 1);
 qed "Int_insert_left";
 
 goal thy "A Int (insert a B) = (if a:A then insert a (A Int B) \
-\                                          else        A Int B)";
+\                                      else        A Int B)";
 by (simp_tac (simpset() addsplits [expand_if]) 1);
 by (Blast_tac 1);
 qed "Int_insert_right";
@@ -254,7 +254,7 @@ by (Blast_tac 1);
 qed "Un_Int_crazy";
 
 goal thy "(A<=B) = (A Un B = B)";
-by (blast_tac (claset() addSEs [equalityE]) 1);
+by (blast_tac (claset() addSEs [equalityCE]) 1);
 qed "subset_Un_eq";
 
 goal thy "(A <= insert b C) = (A <= C | b:A & A-{b} <= C)";
@@ -301,7 +301,7 @@ qed "Compl_INT";
 (*Halmos, Naive Set Theory, page 16.*)
 
 goal thy "((A Int B) Un C = A Int (B Un C)) = (C<=A)";
-by (blast_tac (claset() addSEs [equalityE]) 1);
+by (blast_tac (claset() addSEs [equalityCE]) 1);
 qed "Un_Int_assoc_eq";
 
 
@@ -332,12 +332,12 @@ by (Blast_tac 1);
 qed "Union_Int_subset";
 
 goal thy "(Union M = {}) = (! A : M. A = {})"; 
-by (blast_tac (claset() addEs [equalityE]) 1);
-qed"Union_empty_conv"; 
+by (blast_tac (claset() addEs [equalityCE]) 1);
+qed "Union_empty_conv"; 
 AddIffs [Union_empty_conv];
 
 goal thy "(Union(C) Int A = {}) = (! B:C. B Int A = {})";
-by (blast_tac (claset() addSEs [equalityE]) 1);
+by (blast_tac (claset() addSEs [equalityCE]) 1);
 qed "Union_disjoint";
 
 section "Inter";
@@ -444,7 +444,7 @@ goal thy "A Int Union(B) = (UN C:B. A Int C)";
 by (Blast_tac 1);
 qed "Int_Union";
 
-(* Devlin, Setdamentals of Contemporary Set Theory, page 12, exercise 5: 
+(* Devlin, Fundamentals of Contemporary Set Theory, page 12, exercise 5: 
    Union of a family of unions **)
 goal thy "(UN x:C. A(x) Un B(x)) = Union(A``C)  Un  Union(B``C)";
 by (Blast_tac 1);
