@@ -17,7 +17,7 @@ qed "times_commuteL";
 
 val times_cong = read_instantiate [("f1","op *")] (arg_cong RS cong);
 
-Goal "!!x::'a::ring. zero*x = zero";
+Goal "!!x::'a::ring. 0*x = 0";
 by (rtac trans 1);
  by (rtac right_inv 2);
 by (rtac trans 1);
@@ -37,7 +37,7 @@ by (rtac trans 1);
 by (rtac (zeroR RS sym) 1);
 qed "mult_zeroL";
 
-Goal "!!x::'a::ring. x*zero = zero";
+Goal "!!x::'a::ring. x*0 = 0";
 by (rtac trans 1);
  by (rtac right_inv 2);
 by (rtac trans 1);
@@ -57,7 +57,7 @@ by (rtac trans 1);
 by (rtac (zeroR RS sym) 1);
 qed "mult_zeroR";
 
-Goal "!!x::'a::ring. (zero-x)*y = zero-(x*y)";
+Goal "!!x::'a::ring. (0-x)*y = 0-(x*y)";
 by (rtac trans 1);
  by (rtac zeroL 2);
 by (rtac trans 1);
@@ -83,7 +83,7 @@ by (rtac trans 1);
 by (rtac (zeroR RS sym) 1);
 qed "mult_invL";
 
-Goal "!!x::'a::ring. x*(zero-y) = zero-(x*y)";
+Goal "!!x::'a::ring. x*(0-y) = 0-(x*y)";
 by (rtac trans 1);
  by (rtac zeroL 2);
 by (rtac trans 1);

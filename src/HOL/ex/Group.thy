@@ -6,11 +6,7 @@
 A little bit of group theory leading up to rings. Hence groups are additive.
 *)
 
-Group = Set +
-
-(* 0 already used in Nat *)
-axclass  zero < term
-consts   zero :: "'a::zero"
+Group = Main +
 
 (* additive semigroups *)
 
@@ -21,20 +17,20 @@ axclass  add_semigroup < plus
 (* additive monoids *)
 
 axclass  add_monoid < add_semigroup, zero
-  zeroL    "zero + x = x"
-  zeroR    "x + zero = x"
+  zeroL    "0 + x = x"
+  zeroR    "x + 0 = x"
 
 (* additive groups *)
 (*
 The inverse is the binary `-'. Groups with unary and binary inverse are
-interdefinable: x-y := x+(zero-y) and -x := zero-x. The law left_inv is
-simply the translation of (-x)+x = zero. This characterizes groups already,
-provided we only allow (zero-x). Law minus_inv `defines' the general x-y in
-terms of the specific zero-y.
+interdefinable: x-y := x+(0-y) and -x := 0-x. The law left_inv is
+simply the translation of (-x)+x = 0. This characterizes groups already,
+provided we only allow (0-x). Law minus_inv `defines' the general x-y in
+terms of the specific 0-y.
 *)
 axclass  add_group < add_monoid, minus
-  left_inv  "(zero-x)+x = zero"
-  minus_inv "x-y = x + (zero-y)"
+  left_inv  "(0-x)+x = 0"
+  minus_inv "x-y = x + (0-y)"
 
 (* additive abelian groups *)
 

@@ -23,7 +23,7 @@ val [gcd_eq] = gcd.simps;
 val prems = goal thy
      "[| !!m. P m 0;     \
 \        !!m n. [| 0<n;  P n (m mod n) |] ==> P m n  \
-\     |] ==> P m n";
+\     |] ==> P (m::nat) (n::nat)";
 by (res_inst_tac [("u","m"),("v","n")] gcd.induct 1);
 by (case_tac "n=0" 1);
 by (asm_simp_tac (simpset() addsimps prems) 1);
