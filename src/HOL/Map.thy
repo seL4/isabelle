@@ -81,7 +81,7 @@ map_subst_def: "m(a~>b)     == %x. if m x = Some a then Some b else m x"
 dom_def: "dom(m) == {a. m a ~= None}"
 ran_def: "ran(m) == {b. EX a. m a = Some b}"
 
-map_le_def: "m1 \<subseteq>\<^sub>m m2  ==  ALL a : dom m1. m1 a = m2 a"
+map_le_def: "m\<^isub>1 \<subseteq>\<^sub>m m\<^isub>2  ==  ALL a : dom m\<^isub>1. m\<^isub>1 a = m\<^isub>2 a"
 
 primrec
   "map_of [] = empty"
