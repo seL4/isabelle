@@ -21,7 +21,7 @@ TFL   = dcterm.sml post.sml rules.new.sml rules.sig \
 
 FILES = ROOT.ML add_ind_def.ML datatype.ML hologic.ML \
 	ind_syntax.ML cladata.ML simpdata.ML \
-	typedef.ML thy_syntax.ML ../Pure/section_utils.ML \
+	typedef.ML thy_syntax.ML thy_data.ML ../Pure/section_utils.ML \
 	$(NAMES:%=%.thy) $(NAMES:%=%.ML) $(TFL:%=../TFL/%) \
 	$(PROVERS:%=../Provers/%)
 
