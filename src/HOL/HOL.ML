@@ -29,13 +29,12 @@ qed "def_imp_eq";
         a = b
         |   |
         c = d   *)
-qed_goal "box_equals" HOL.thy
-    "[| a=b;  a=c;  b=d |] ==> c=d"  
- (fn prems=>
-  [ (rtac trans 1),
-    (rtac trans 1),
-    (rtac sym 1),
-    (REPEAT (resolve_tac prems 1)) ]);
+Goal "[| a=b;  a=c;  b=d |] ==> c=d";
+by (rtac trans 1);
+by (rtac trans 1);
+by (rtac sym 1);
+by (REPEAT (assume_tac 1)) ;
+qed "box_equals";
 
 
 (** Congruence rules for meta-application **)
@@ -58,9 +57,10 @@ qed_goal "cong" HOL.thy
 (** Equality of booleans -- iff **)
 section "iff";
 
-qed_goal "iffI" HOL.thy
-   "[| P ==> Q;  Q ==> P |] ==> P=Q"
- (fn prems=> [ (REPEAT (ares_tac (prems@[impI, iff RS mp RS mp]) 1)) ]);
+val prems = Goal
+   "[| P ==> Q;  Q ==> P |] ==> P=Q";
+by (REPEAT (ares_tac (prems@[impI, iff RS mp RS mp]) 1));
+qed "iffI";
 
 qed_goal "iffD2" HOL.thy "[| P=Q; Q |] ==> P"
  (fn prems =>
@@ -81,7 +81,7 @@ qed_goal "iffE" HOL.thy
 section "True";
 
 qed_goalw "TrueI" HOL.thy [True_def] "True"
-  (fn _ => [rtac refl 1]);
+  (fn _ => [(rtac refl 1)]);
 
 qed_goal "eqTrueI" HOL.thy "P ==> P=True" 
  (fn prems => [REPEAT(resolve_tac ([iffI,TrueI]@prems) 1)]);
@@ -94,19 +94,19 @@ qed_goal "eqTrueE" HOL.thy "P=True ==> P"
 section "!";
 
 qed_goalw "allI" HOL.thy [All_def] "(!!x::'a. P(x)) ==> !x. P(x)"
- (fn prems => [resolve_tac (prems RL [eqTrueI RS ext]) 1]);
+ (fn prems => [(resolve_tac (prems RL [eqTrueI RS ext]) 1)]);
 
 qed_goalw "spec" HOL.thy [All_def] "! x::'a. P(x) ==> P(x)"
  (fn prems => [rtac eqTrueE 1, resolve_tac (prems RL [fun_cong]) 1]);
 
-qed_goal "allE" HOL.thy "[| !x. P(x);  P(x) ==> R |] ==> R"
- (fn major::prems=>
-  [ (REPEAT (resolve_tac (prems @ [major RS spec]) 1)) ]);
+val major::prems= goal HOL.thy "[| !x. P(x);  P(x) ==> R |] ==> R";
+by (REPEAT (resolve_tac (prems @ [major RS spec]) 1)) ;
+qed "allE";
 
-qed_goal "all_dupE" HOL.thy 
-    "[| ! x. P(x);  [| P(x); ! x. P(x) |] ==> R |] ==> R"
- (fn prems =>
-  [ (REPEAT (resolve_tac (prems @ (prems RL [spec])) 1)) ]);
+val prems = goal HOL.thy 
+    "[| ! x. P(x);  [| P(x); ! x. P(x) |] ==> R |] ==> R";
+by (REPEAT (resolve_tac (prems @ (prems RL [spec])) 1)) ;
+qed "all_dupE";
 
 
 (** False ** Depends upon spec; it is impossible to do propositional logic
@@ -127,10 +127,10 @@ qed_goalw "notI" HOL.thy [not_def] "(P ==> False) ==> ~P"
  (fn prems=> [rtac impI 1, eresolve_tac prems 1]);
 
 qed_goal "False_not_True" HOL.thy "False ~= True"
-  (K [rtac notI 1, etac False_neq_True 1]);
+  (fn _ => [rtac notI 1, etac False_neq_True 1]);
 
 qed_goal "True_not_False" HOL.thy "True ~= False"
-  (K [rtac notI 1, dtac sym 1, etac False_neq_True 1]);
+  (fn _ => [rtac notI 1, dtac sym 1, etac False_neq_True 1]);
 
 qed_goalw "notE" HOL.thy [not_def] "[| ~P;  P |] ==> R"
  (fn prems => [rtac (prems MRS mp RS FalseE) 1]);
@@ -144,21 +144,24 @@ qed_goal "rev_notE" HOL.thy "!!P R. [| P; ~P |] ==> R"
 (** Implication **)
 section "-->";
 
-qed_goal "impE" HOL.thy "[| P-->Q;  P;  Q ==> R |] ==> R"
- (fn prems=> [ (REPEAT (resolve_tac (prems@[mp]) 1)) ]);
+val prems = Goal "[| P-->Q;  P;  Q ==> R |] ==> R";
+by (REPEAT (resolve_tac (prems@[mp]) 1));
+qed "impE";
 
 (* Reduces Q to P-->Q, allowing substitution in P. *)
-qed_goal "rev_mp" HOL.thy "[| P;  P --> Q |] ==> Q"
- (fn prems=>  [ (REPEAT (resolve_tac (prems@[mp]) 1)) ]);
+Goal "[| P;  P --> Q |] ==> Q";
+by (REPEAT (ares_tac [mp] 1)) ;
+qed "rev_mp";
 
-qed_goal "contrapos" HOL.thy "[| ~Q;  P==>Q |] ==> ~P"
- (fn [major,minor]=> 
-  [ (rtac (major RS notE RS notI) 1), 
-    (etac minor 1) ]);
+val [major,minor] = Goal "[| ~Q;  P==>Q |] ==> ~P";
+by (rtac (major RS notE RS notI) 1);
+by (etac minor 1) ;
+qed "contrapos";
 
-qed_goal "rev_contrapos" HOL.thy "[| P==>Q; ~Q |] ==> ~P"
- (fn [major,minor]=> 
-  [ (rtac (minor RS contrapos) 1), (etac major 1) ]);
+val [major,minor] = Goal "[| P==>Q; ~Q |] ==> ~P";
+by (rtac (minor RS contrapos) 1);
+by (etac major 1) ;
+qed "rev_contrapos";
 
 (* ~(?t = ?s) ==> ~(?s = ?t) *)
 bind_thm("not_sym", sym COMP rev_contrapos);
@@ -226,21 +229,25 @@ qed_goalw "classical" HOL.thy [not_def]  "(~P ==> P) ==> P"
 val ccontr = FalseE RS classical;
 
 (*Double negation law*)
-qed_goal "notnotD" HOL.thy "~~P ==> P"
- (fn [major]=>
-  [ (rtac classical 1), (eresolve_tac [major RS notE] 1) ]);
+Goal "~~P ==> P";
+by (rtac classical 1);
+by (etac notE 1);
+by (assume_tac 1);
+qed "notnotD";
 
-qed_goal "contrapos2" HOL.thy "[| Q; ~ P ==> ~ Q |] ==> P" (fn [p1,p2] => [
-        rtac classical 1,
-        dtac p2 1,
-        etac notE 1,
-        rtac p1 1]);
+val [p1,p2] = Goal "[| Q; ~ P ==> ~ Q |] ==> P";
+by (rtac classical 1);
+by (dtac p2 1);
+by (etac notE 1);
+by (rtac p1 1);
+qed "contrapos2";
 
-qed_goal "swap2" HOL.thy "[| P;  Q ==> ~ P |] ==> ~ Q" (fn [p1,p2] => [
-        rtac notI 1,
-        dtac p2 1,
-        etac notE 1,
-        rtac p1 1]);
+val [p1,p2] = Goal "[| P;  Q ==> ~ P |] ==> ~ Q";
+by (rtac notI 1);
+by (dtac p2 1);
+by (etac notE 1);
+by (rtac p1 1);
+qed "swap2";
 
 (** Unique existence **)
 section "?!";
@@ -251,10 +258,11 @@ qed_goalw "ex1I" HOL.thy [Ex1_def]
   [REPEAT (ares_tac (prems@[exI,conjI,allI,impI]) 1)]);
 
 (*Sometimes easier to use: the premises have no shared variables.  Safe!*)
-qed_goal "ex_ex1I" HOL.thy
-    "[| ? x. P(x);  !!x y. [| P(x); P(y) |] ==> x=y |] ==> ?! x. P(x)"
- (fn [ex,eq] => [ (rtac (ex RS exE) 1),
-                  (REPEAT (ares_tac [ex1I,eq] 1)) ]);
+val [ex,eq] = Goal
+    "[| ? x. P(x);  !!x y. [| P(x); P(y) |] ==> x=y |] ==> ?! x. P(x)";
+by (rtac (ex RS exE) 1);
+by (REPEAT (ares_tac [ex1I,eq] 1)) ;
+qed "ex_ex1I";
 
 qed_goalw "ex1E" HOL.thy [Ex1_def]
     "[| ?! x. P(x);  !!x. [| P(x);  ! y. P(y) --> y=x |] ==> R |] ==> R"
@@ -272,90 +280,102 @@ qed "ex1_implies_ex";
 section "@";
 
 (*Easier to apply than selectI: conclusion has only one occurrence of P*)
-qed_goal "selectI2" HOL.thy
-    "[| P a;  !!x. P x ==> Q x |] ==> Q (@x. P x)"
- (fn prems => [ resolve_tac prems 1, 
-                rtac selectI 1, 
-                resolve_tac prems 1 ]);
+val prems = Goal
+    "[| P a;  !!x. P x ==> Q x |] ==> Q (@x. P x)";
+by (resolve_tac prems 1);
+by (rtac selectI 1);
+by (resolve_tac prems 1) ;
+qed "selectI2";
 
 (*Easier to apply than selectI2 if witness ?a comes from an EX-formula*)
 qed_goal "selectI2EX" HOL.thy
   "[| ? a. P a; !!x. P x ==> Q x |] ==> Q (Eps P)"
 (fn [major,minor] => [rtac (major RS exE) 1, etac selectI2 1, etac minor 1]);
 
-qed_goal "select_equality" HOL.thy
-    "[| P a;  !!x. P x ==> x=a |] ==> (@x. P x) = a"
- (fn prems => [ rtac selectI2 1, 
-                REPEAT (ares_tac prems 1) ]);
+val prems = Goal
+    "[| P a;  !!x. P x ==> x=a |] ==> (@x. P x) = a";
+by (rtac selectI2 1);
+by (REPEAT (ares_tac prems 1)) ;
+qed "select_equality";
 
-qed_goalw "select1_equality" HOL.thy [Ex1_def]
-  "!!P. [| ?!x. P x; P a |] ==> (@x. P x) = a" (K [
-	  rtac select_equality 1, atac 1,
-          etac exE 1, etac conjE 1,
-          rtac allE 1, atac 1,
-          etac impE 1, atac 1, etac ssubst 1,
-          etac allE 1, etac impE 1, atac 1, etac ssubst 1,
-          rtac refl 1]);
+Goalw [Ex1_def] "[| ?!x. P x; P a |] ==> (@x. P x) = a";
+by (rtac select_equality 1);
+by (atac 1);
+by (etac exE 1);
+by (etac conjE 1);
+by (rtac allE 1);
+by (atac 1);
+by (etac impE 1);
+by (atac 1);
+by (etac ssubst 1);
+by (etac allE 1);
+by (etac mp 1);
+by (atac 1);
+qed "select1_equality";
 
-qed_goal "select_eq_Ex" HOL.thy "P (@ x. P x) =  (? x. P x)" (K [
-        rtac iffI 1,
-        etac exI 1,
-        etac exE 1,
-        etac selectI 1]);
+Goal "P (@ x. P x) =  (? x. P x)";
+by (rtac iffI 1);
+by (etac exI 1);
+by (etac exE 1);
+by (etac selectI 1);
+qed "select_eq_Ex";
 
-qed_goal "Eps_eq" HOL.thy "(@y. y=x) = x" (K [
-	rtac select_equality 1,
-	rtac refl 1,
-	atac 1]);
+Goal "(@y. y=x) = x";
+by (rtac select_equality 1);
+by (rtac refl 1);
+by (atac 1);
+qed "Eps_eq";
 
-qed_goal "Eps_sym_eq" HOL.thy "(Eps (op = x)) = x" (K [
-	rtac select_equality 1,
-	rtac refl 1,
-	etac sym 1]);
+Goal "(Eps (op = x)) = x";
+by (rtac select_equality 1);
+by (rtac refl 1);
+by (etac sym 1);
+qed "Eps_sym_eq";
 
 (** Classical intro rules for disjunction and existential quantifiers *)
 section "classical intro rules";
 
-qed_goal "disjCI" HOL.thy "(~Q ==> P) ==> P|Q"
- (fn prems=>
-  [ (rtac classical 1),
-    (REPEAT (ares_tac (prems@[disjI1,notI]) 1)),
-    (REPEAT (ares_tac (prems@[disjI2,notE]) 1)) ]);
+val prems= Goal "(~Q ==> P) ==> P|Q";
+by (rtac classical 1);
+by (REPEAT (ares_tac (prems@[disjI1,notI]) 1));
+by (REPEAT (ares_tac (prems@[disjI2,notE]) 1)) ;
+qed "disjCI";
 
-qed_goal "excluded_middle" HOL.thy "~P | P"
- (fn _ => [ (REPEAT (ares_tac [disjCI] 1)) ]);
+Goal "~P | P";
+by (REPEAT (ares_tac [disjCI] 1)) ;
+qed "excluded_middle";
 
 (*For disjunctive case analysis*)
 fun excluded_middle_tac sP =
     res_inst_tac [("Q",sP)] (excluded_middle RS disjE);
 
 (*Classical implies (-->) elimination. *)
-qed_goal "impCE" HOL.thy "[| P-->Q; ~P ==> R; Q ==> R |] ==> R" 
- (fn major::prems=>
-  [ rtac (excluded_middle RS disjE) 1,
-    REPEAT (DEPTH_SOLVE_1 (ares_tac (prems @ [major RS mp]) 1))]);
+val major::prems = Goal "[| P-->Q; ~P ==> R; Q ==> R |] ==> R";
+by (rtac (excluded_middle RS disjE) 1);
+by (REPEAT (DEPTH_SOLVE_1 (ares_tac (prems @ [major RS mp]) 1)));
+qed "impCE";
 
 (*This version of --> elimination works on Q before P.  It works best for
   those cases in which P holds "almost everywhere".  Can't install as
   default: would break old proofs.*)
-qed_goal "impCE'" thy 
-    "[| P-->Q;  Q ==> R;  ~P ==> R |] ==> R"
- (fn major::prems=>
-  [ (resolve_tac [excluded_middle RS disjE] 1),
-    (DEPTH_SOLVE (ares_tac (prems@[major RS mp]) 1)) ]);
+val major::prems = Goal
+    "[| P-->Q;  Q ==> R;  ~P ==> R |] ==> R";
+by (resolve_tac [excluded_middle RS disjE] 1);
+by (DEPTH_SOLVE (ares_tac (prems@[major RS mp]) 1)) ;
+qed "impCE'";
 
 (*Classical <-> elimination. *)
-qed_goal "iffCE" HOL.thy
-    "[| P=Q;  [| P; Q |] ==> R;  [| ~P; ~Q |] ==> R |] ==> R"
- (fn major::prems =>
-  [ (rtac (major RS iffE) 1),
-    (REPEAT (DEPTH_SOLVE_1 
-        (eresolve_tac ([asm_rl,impCE,notE]@prems) 1))) ]);
+val major::prems = Goal
+    "[| P=Q;  [| P; Q |] ==> R;  [| ~P; ~Q |] ==> R |] ==> R";
+by (rtac (major RS iffE) 1);
+by (REPEAT (DEPTH_SOLVE_1 
+	    (eresolve_tac ([asm_rl,impCE,notE]@prems) 1)));
+qed "iffCE";
 
-qed_goal "exCI" HOL.thy "(! x. ~P(x) ==> P(a)) ==> ? x. P(x)"
- (fn prems=>
-  [ (rtac ccontr 1),
-    (REPEAT (ares_tac (prems@[exI,allI,notI,notE]) 1))  ]);
+val prems = Goal "(! x. ~P(x) ==> P(a)) ==> ? x. P(x)";
+by (rtac ccontr 1);
+by (REPEAT (ares_tac (prems@[exI,allI,notI,notE]) 1))  ;
+qed "exCI";
 
 
 (* case distinction *)
@@ -425,7 +445,7 @@ end;
 
 local
 
-fun gen_rulify x = Attrib.no_args (Drule.rule_attribute (K (normalize_thm [RSspec, RSmp]))) x;
+fun gen_rulify x = Attrib.no_args (Drule.rule_attribute (fn _ => (normalize_thm [RSspec, RSmp]))) x;
 
 in
 

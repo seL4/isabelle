@@ -5,77 +5,92 @@
 
 Derived rules
 *)
-open Option;
 
-qed_goal "not_None_eq" thy "(x ~= None) = (? y. x = Some y)"
-	(K [induct_tac "x" 1, Auto_tac]);
+Goal "(x ~= None) = (? y. x = Some y)";
+by (induct_tac "x" 1);
+by Auto_tac;
+qed "not_None_eq";
 AddIffs[not_None_eq];
 
-qed_goal "not_Some_eq" thy "(!y. x ~= Some y) = (x = None)"
-	(K [induct_tac "x" 1, Auto_tac]);
+Goal "(!y. x ~= Some y) = (x = None)";
+by (induct_tac "x" 1);
+by Auto_tac;
+qed "not_Some_eq";
 AddIffs[not_Some_eq];
 
 
 section "case analysis in premises";
 
-val optionE = prove_goal thy 
-	"[| opt = None ==> P;  !!x. opt = Some x ==> P |] ==> P" (fn prems => [
-	case_tac "opt = None" 1,
-	 eresolve_tac prems 1,
-	dtac (not_None_eq RS iffD1) 1,
-	etac exE 1,
-	eresolve_tac prems 1]);
-fun optionE_tac s = res_inst_tac [("opt",s)] optionE THEN_ALL_NEW hyp_subst_tac;
+val prems = Goal
+	"[| opt = None ==> P;  !!x. opt = Some x ==> P |] ==> P";
+by (case_tac "opt = None" 1);
+by (eresolve_tac prems 1);
+by (dtac (not_None_eq RS iffD1) 1);
+by (etac exE 1);
+by (eresolve_tac prems 1);
+qed "optionE";
 
-qed_goal "option_caseE" thy "[|case x of None => P | Some y => Q y; \
-\                  [|x = None;   P  |] ==> R; \
-\             !!y. [|x = Some y; Q y|] ==> R|] ==> R" (fn prems => [
-	cut_facts_tac prems 1,
-	res_inst_tac [("opt","x")] optionE 1,
-	 forward_tac prems 1,
-	  forward_tac prems 3, 
-	   Auto_tac]);
-fun option_case_tac i = EVERY [
-	etac option_caseE i,
-	 hyp_subst_tac (i+1),
-	hyp_subst_tac i];
+val prems = Goal
+     "[| case x of None => P | Some y => Q y; \
+\        [| x = None;   P  |] ==> R; \
+\        !!y. [|x = Some y; Q y|] ==> R|] ==> R";
+by (cut_facts_tac prems 1);
+by (res_inst_tac [("opt","x")] optionE 1);
+by (forward_tac prems 1);
+by (forward_tac prems 3);
+by Auto_tac;
+qed "option_caseE";
 
 
 section "the";
 
-qed_goalw "the_Some" thy [the_def]
-	"the (Some x) = x" (K [Simp_tac 1]);
+Goalw [the_def] "the (Some x) = x";
+by (Simp_tac 1);
+qed "the_Some";
+
 Addsimps [the_Some];
 
 
 
 section "option_map";
 
-qed_goalw "option_map_None" thy [option_map_def] 
-	"option_map f None = None" (K [Simp_tac 1]);
-qed_goalw "option_map_Some" thy [option_map_def] 
-	"option_map f (Some x) = Some (f x)" (K [Simp_tac 1]);
+Goalw [option_map_def] "option_map f None = None";
+by (Simp_tac 1);
+qed "option_map_None";
+
+Goalw [option_map_def] "option_map f (Some x) = Some (f x)";
+by (Simp_tac 1);
+qed "option_map_Some";
+
 Addsimps [option_map_None, option_map_Some];
 
-val option_map_eq_Some = prove_goalw thy [option_map_def]
-	"(option_map f xo = Some y) = (? z. xo = Some z & f z = y)" 
- (K [asm_full_simp_tac (simpset() addsplits [option.split]) 1]);
+Goalw [option_map_def]
+    "(option_map f xo = Some y) = (? z. xo = Some z & f z = y)";
+by (asm_full_simp_tac (simpset() addsplits [option.split]) 1);
+qed "option_map_eq_Some";
 AddIffs[option_map_eq_Some];
 
 
 section "o2s";
 
-qed_goal "ospec" thy 
-	"!!x. [| !x:o2s A. P x; A = Some x |] ==> P x" (K [Auto_tac]);
+Goal "[| !x:o2s A. P x; A = Some x |] ==> P x";
+by Auto_tac;
+qed "ospec";
 AddDs[ospec];
+
 claset_ref() := claset() addSD2 ("ospec", ospec);
 
 
-val elem_o2s = prove_goal thy "!!X. x : o2s xo = (xo = Some x)"
- (K [optionE_tac "xo" 1, Auto_tac]);
+Goal "x : o2s xo = (xo = Some x)";
+by (exhaust_tac "xo" 1);
+by Auto_tac;
+qed "elem_o2s";
 AddIffs [elem_o2s];
 
-val o2s_empty_eq = prove_goal thy "(o2s xo = {}) = (xo = None)"
- (K [optionE_tac "xo" 1, Auto_tac]);
+Goal "(o2s xo = {}) = (xo = None)";
+by (exhaust_tac "xo" 1);
+by Auto_tac;
+qed "o2s_empty_eq";
+
 Addsimps [o2s_empty_eq];
 

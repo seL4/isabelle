@@ -235,16 +235,14 @@ by (cut_facts_tac [less_linear] 1);
 by (Blast_tac 1);
 qed "nat_neq_iff";
 
-qed_goal "nat_less_cases" thy 
-   "[| (m::nat)<n ==> P n m; m=n ==> P n m; n<m ==> P n m |] ==> P n m"
-( fn [major,eqCase,lessCase] =>
-        [
-        (rtac (less_linear RS disjE) 1),
-        (etac disjE 2),
-        (etac lessCase 1),
-        (etac (sym RS eqCase) 1),
-        (etac major 1)
-        ]);
+val [major,eqCase,lessCase] = Goal 
+   "[| (m::nat)<n ==> P n m; m=n ==> P n m; n<m ==> P n m |] ==> P n m";
+by (rtac (less_linear RS disjE) 1);
+by (etac disjE 2);
+by (etac lessCase 1);
+by (etac (sym RS eqCase) 1);
+by (etac major 1);
+qed "nat_less_cases";
 
 
 (** Inductive (?) properties **)
