@@ -155,7 +155,7 @@ DVI_VIEWER=xdvi
 #The pdf file viewer
 PDF_VIEWER=acroread
 #PDF_VIEWER=xpdf
-#PDF_VIEWER=xpdf    ##best for Mac users: will open in preferred PDF app.
+#PDF_VIEWER=open  ##best for Mac users: will open in default PDF viewer
 
 #Printer spool command for PS files
 PRINT_COMMAND=lp
