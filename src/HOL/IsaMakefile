@@ -43,24 +43,24 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/cancel_sums.ML \
   $(SRC)/TFL/thms.sig $(SRC)/TFL/thms.sml $(SRC)/TFL/thry.sig \
   $(SRC)/TFL/thry.sml $(SRC)/TFL/usyntax.sig $(SRC)/TFL/usyntax.sml \
   $(SRC)/TFL/utils.sig $(SRC)/TFL/utils.sml Arith.ML Arith.thy \
-  Datatype.thy Divides.ML Divides.thy Finite.ML Finite.thy Fun.ML \
-  Fun.thy Gfp.ML Gfp.thy HOL.ML HOL.thy Inductive.thy Integ/Bin.ML \
-  Integ/Bin.thy Integ/Equiv.ML Integ/Equiv.thy Integ/IntDef.ML \
-  Integ/IntDef.thy Integ/Int.ML Integ/Int.thy Integ/simproc.ML Lfp.ML \
-  Lfp.thy List.ML List.thy Main.thy Map.ML Map.thy Nat.ML Nat.thy \
-  NatDef.ML NatDef.thy Option.ML Option.thy Ord.ML Ord.thy Power.ML \
-  Power.thy Prod.ML Prod.thy ROOT.ML Recdef.thy Record.thy RelPow.ML \
-  RelPow.thy Relation.ML Relation.thy Set.ML Set.thy Sexp.ML Sexp.thy \
-  String.thy Sum.ML Sum.thy Tools/datatype_aux.ML \
-  Tools/datatype_abs_proofs.ML Tools/datatype_package.ML \
-  Tools/datatype_prop.ML Tools/datatype_rep_proofs.ML \
-  Tools/induct_method.ML Tools/inductive_package.ML \
-  Tools/primrec_package.ML Tools/recdef_package.ML \
-  Tools/record_package.ML Tools/typedef_package.ML Trancl.ML \
-  Trancl.thy Univ.ML Univ.thy Vimage.ML Vimage.thy WF.ML WF.thy \
-  WF_Rel.ML WF_Rel.thy cladata.ML equalities.ML equalities.thy \
-  hologic.ML mono.ML mono.thy simpdata.ML subset.ML subset.thy \
-  thy_syntax.ML
+  Calculation.thy Datatype.thy Divides.ML Divides.thy Finite.ML \
+  Finite.thy Fun.ML Fun.thy Gfp.ML Gfp.thy HOL.ML HOL.thy \
+  Inductive.thy Integ/Bin.ML Integ/Bin.thy Integ/Equiv.ML \
+  Integ/Equiv.thy Integ/IntDef.ML Integ/IntDef.thy Integ/Int.ML \
+  Integ/Int.thy Integ/simproc.ML Lfp.ML Lfp.thy List.ML List.thy \
+  Main.thy Map.ML Map.thy Nat.ML Nat.thy NatDef.ML NatDef.thy \
+  Option.ML Option.thy Ord.ML Ord.thy Power.ML Power.thy Prod.ML \
+  Prod.thy ROOT.ML Recdef.thy Record.thy RelPow.ML RelPow.thy \
+  Relation.ML Relation.thy Set.ML Set.thy Sexp.ML Sexp.thy String.thy \
+  Sum.ML Sum.thy Tools/datatype_aux.ML Tools/datatype_abs_proofs.ML \
+  Tools/datatype_package.ML Tools/datatype_prop.ML \
+  Tools/datatype_rep_proofs.ML Tools/induct_method.ML \
+  Tools/inductive_package.ML Tools/primrec_package.ML \
+  Tools/recdef_package.ML Tools/record_package.ML \
+  Tools/typedef_package.ML Trancl.ML Trancl.thy Univ.ML Univ.thy \
+  Vimage.ML Vimage.thy WF.ML WF.thy WF_Rel.ML WF_Rel.thy cladata.ML \
+  equalities.ML equalities.thy hologic.ML mono.ML mono.thy simpdata.ML \
+  subset.ML subset.thy thy_syntax.ML
 	@$(ISATOOL) usedir -b $(OUT)/Pure HOL
 
 
