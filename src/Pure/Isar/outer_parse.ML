@@ -13,6 +13,7 @@ sig
   val !!! : (token list -> 'a) -> token list -> 'a
   val !!!! : (token list -> 'a) -> token list -> 'a
   val $$$ : string -> token list -> string * token list
+  val semicolon: token list -> string * token list
   val position: (token list -> 'a * 'b) -> token list -> ('a * Position.T) * 'b
   val command: token list -> string * token list
   val keyword: token list -> string * token list
@@ -56,6 +57,7 @@ sig
   val prop: token list -> string * token list
   val propp: token list -> (string * (string list * string list)) * token list
   val termp: token list -> (string * string list) * token list
+  val arguments: token list -> Args.T list * token list
   val attribs: token list -> Args.src list * token list
   val opt_attribs: token list -> Args.src list * token list
   val thm_name: string -> token list -> (bstring * Args.src list) * token list
@@ -73,7 +75,8 @@ end;
 structure OuterParse: OUTER_PARSE =
 struct
 
-type token = OuterLex.token;
+structure T = OuterLex;
+type token = T.token;
 
 
 (** error handling **)
@@ -82,8 +85,8 @@ type token = OuterLex.token;
 
 fun fail_with s = Scan.fail_with
   (fn [] => s ^ " expected (past end-of-file!)"
-    | (tok :: _) => s ^ " expected,\nbut " ^ OuterLex.name_of tok ^ " " ^
-      quote (OuterLex.val_of tok) ^ OuterLex.pos_of tok ^ " was found");
+    | (tok :: _) => s ^ " expected,\nbut " ^ T.name_of tok ^ " " ^
+      quote (T.val_of tok) ^ T.pos_of tok ^ " was found");
 
 fun group s scan = scan || fail_with s;
 
@@ -93,7 +96,7 @@ fun group s scan = scan || fail_with s;
 fun cut kind scan =
   let
     fun get_pos [] = " (past end-of-file!)"
-      | get_pos (tok :: _) = OuterLex.pos_of tok;
+      | get_pos (tok :: _) = T.pos_of tok;
 
     fun err (toks, None) = kind ^ get_pos toks
       | err (toks, Some msg) = kind ^ get_pos toks ^ ": " ^ msg;
@@ -116,33 +119,34 @@ fun triple_swap ((x, y), z) = ((x, z), y);
 (* tokens *)
 
 fun position scan =
-  (Scan.ahead (Scan.one OuterLex.not_eof) >> OuterLex.position_of) -- scan >> Library.swap;
+  (Scan.ahead (Scan.one T.not_eof) >> T.position_of) -- scan >> Library.swap;
 
 fun kind k =
-  group (OuterLex.str_of_kind k)
-    (Scan.one (OuterLex.is_kind k) >> OuterLex.val_of);
+  group (T.str_of_kind k) (Scan.one (T.is_kind k) >> T.val_of);
 
-val command = kind OuterLex.Command;
-val keyword = kind OuterLex.Keyword;
-val short_ident = kind OuterLex.Ident;
-val long_ident = kind OuterLex.LongIdent;
-val sym_ident = kind OuterLex.SymIdent;
-val term_var = kind OuterLex.Var;
-val type_ident = kind OuterLex.TypeIdent;
-val type_var = kind OuterLex.TypeVar;
-val number = kind OuterLex.Nat;
-val string = kind OuterLex.String;
-val verbatim = kind OuterLex.Verbatim;
-val sync = kind OuterLex.Sync;
-val eof = kind OuterLex.EOF;
+val command = kind T.Command;
+val keyword = kind T.Keyword;
+val short_ident = kind T.Ident;
+val long_ident = kind T.LongIdent;
+val sym_ident = kind T.SymIdent;
+val term_var = kind T.Var;
+val type_ident = kind T.TypeIdent;
+val type_var = kind T.TypeVar;
+val number = kind T.Nat;
+val string = kind T.String;
+val verbatim = kind T.Verbatim;
+val sync = kind T.Sync;
+val eof = kind T.EOF;
 
 fun $$$ x =
-  group (OuterLex.str_of_kind OuterLex.Keyword ^ " " ^ quote x)
-    (Scan.one (OuterLex.keyword_with (equal x)) >> OuterLex.val_of);
+  group (T.str_of_kind T.Keyword ^ " " ^ quote x)
+    (Scan.one (T.keyword_with (equal x)) >> T.val_of);
+
+val semicolon = $$$ ";";
 
 val nat = number >> (fst o Term.read_int o Symbol.explode);
 
-val not_eof = Scan.one OuterLex.not_eof;
+val not_eof = Scan.one T.not_eof;
 
 val opt_unit = Scan.optional ($$$ "(" -- $$$ ")" >> (K ())) ();
 
@@ -251,8 +255,8 @@ val termp = term -- Scan.optional ($$$ "(" |-- !!! (is_terms --| $$$ ")")) [];
 
 (* arguments *)
 
-fun keyword_symid is_symid = Scan.one (OuterLex.keyword_with is_symid) >> OuterLex.val_of;
-val keyword_sid = keyword_symid OuterLex.is_sid;
+fun keyword_symid is_symid = Scan.one (T.keyword_with is_symid) >> T.val_of;
+val keyword_sid = keyword_symid T.is_sid;
 
 fun atom_arg is_symid blk =
   group "argument"
@@ -272,10 +276,12 @@ and args1 is_symid blk x =
       paren_args "(" ")" (args is_symid) ||
       paren_args "[" "]" (args is_symid))) >> flat) x;
 
+val arguments = args T.is_sid false;
+
 
 (* theorem specifications *)
 
-val attrib = position ((keyword_sid || xname) -- !!! (args OuterLex.is_sid false)) >> Args.src;
+val attrib = position ((keyword_sid || xname) -- !!! arguments) >> Args.src;
 val attribs = $$$ "[" |-- !!! (list attrib --| $$$ "]");
 val opt_attribs = Scan.optional attribs [];
 
@@ -293,7 +299,7 @@ val xthms1 = Scan.repeat1 xthm;
 (* proof methods *)
 
 fun is_symid_meth s =
-  s <> "|" andalso s <> "?" andalso s <> "+" andalso OuterLex.is_sid s;
+  s <> "|" andalso s <> "?" andalso s <> "+" andalso T.is_sid s;
 
 fun meth4 x =
  (position (xname >> rpair []) >> (Method.Source o Args.src) ||
