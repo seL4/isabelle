@@ -91,17 +91,21 @@ fun unifyT sg env T U =
   let
     val Envir.Envir {asol, iTs, maxidx} = env;
     val (iTs', maxidx') = Type.unify (Sign.tsig_of sg) maxidx iTs (T, U)
-  in Envir.Envir {asol=asol, iTs=iTs', maxidx=maxidx'} end;
+  in Envir.Envir {asol=asol, iTs=iTs', maxidx=maxidx'} end
+  handle Type.TUNIFY => error ("Non-unifiable types:\n" ^
+    Sign.string_of_typ sg T ^ "\n\n" ^ Sign.string_of_typ sg U);
 
 fun decompose sg env Ts
-    (Const ("all", _) $ Abs (_, T, t)) (Const ("all", _) $ Abs (_, U, u)) =
-      decompose sg (unifyT sg env T U) (T::Ts) t u
+    (Const ("all", _) $ t) (Const ("all", _) $ u) = decompose sg env Ts t u
   | decompose sg env Ts
     (Const ("==>", _) $ t1 $ t2) (Const ("==>", _) $ u1 $ u2) =
-      apsnd (cons (mk_abs Ts t1, mk_abs Ts u1)) (decompose sg env Ts t2 u2)
+      let val (env', cs) = decompose sg env Ts t1 u1
+      in apsnd (curry op @ cs) (decompose sg env' Ts t2 u2) end
+  | decompose sg env Ts (Abs (_, T, t)) (Abs (_, U, u)) =
+      decompose sg (unifyT sg env T U) (T::Ts) t u
   | decompose sg env Ts t u = (env, [(mk_abs Ts t, mk_abs Ts u)]);
 
-fun cantunify sg t u = error ("Cannot unify:\n" ^
+fun cantunify sg t u = error ("Non-unifiable terms:\n" ^
   Sign.string_of_term sg t ^ "\n\n" ^ Sign.string_of_term sg u);
 
 fun make_constraints_cprf sg env ts cprf =
@@ -237,12 +241,13 @@ fun upd_constrs env cs =
   solution of constraints
 *********************************************************************************)
 
-exception IMPOSS;
-
 fun solve _ [] bigenv = bigenv
   | solve sg cs bigenv =
       let
-        fun search env [] = raise IMPOSS
+        fun search env [] = error ("Unsolvable constraints:\n" ^
+              Pretty.string_of (Pretty.chunks (map (fn (_, p, _) =>
+                Sign.pretty_term sg (Logic.mk_flexpair (pairself
+                  (Envir.norm_term bigenv) p))) cs)))
           | search env ((u, p as (t1, t2), vs)::ps) =
               if u then
                 let
