@@ -159,7 +159,7 @@ bind_thm("not_sym", sym COMP rev_contrapos);
 (** Existential quantifier **)
 section "?";
 
-qed_goalw "exI" HOL.thy [Ex_def] "P(x) ==> ? x::'a. P(x)"
+qed_goalw "exI" HOL.thy [Ex_def] "P x ==> ? x::'a. P x"
  (fn prems => [rtac selectI 1, resolve_tac prems 1]);
 
 qed_goalw "exE" HOL.thy [Ex_def]
@@ -256,23 +256,23 @@ section "@";
 
 (*Easier to apply than selectI: conclusion has only one occurrence of P*)
 qed_goal "selectI2" HOL.thy
-    "[| P(a);  !!x. P(x) ==> Q(x) |] ==> Q(@x. P(x))"
+    "[| P a;  !!x. P x ==> Q x |] ==> Q (@x. P x)"
  (fn prems => [ resolve_tac prems 1, 
                 rtac selectI 1, 
                 resolve_tac prems 1 ]);
 
 (*Easier to apply than selectI2 if witness ?a comes from an EX-formula*)
 qed_goal "selectI2EX" HOL.thy
-  "[| ? a. P a; !!x. P x ==> Q x |] ==> Q(Eps P)"
+  "[| ? a. P a; !!x. P x ==> Q x |] ==> Q (Eps P)"
 (fn [major,minor] => [rtac (major RS exE) 1, etac selectI2 1, etac minor 1]);
 
 qed_goal "select_equality" HOL.thy
-    "[| P(a);  !!x. P(x) ==> x=a |] ==> (@x. P(x)) = a"
+    "[| P a;  !!x. P x ==> x=a |] ==> (@x. P x) = a"
  (fn prems => [ rtac selectI2 1, 
                 REPEAT (ares_tac prems 1) ]);
 
 qed_goalw "select1_equality" HOL.thy [Ex1_def]
-  "!!P. [| ?!x. P(x); P(a) |] ==> (@x. P(x)) = a" (K [
+  "!!P. [| ?!x. P x; P a |] ==> (@x. P x) = a" (K [
 	  rtac select_equality 1, atac 1,
           etac exE 1, etac conjE 1,
           rtac allE 1, atac 1,
@@ -285,22 +285,6 @@ qed_goal "select_eq_Ex" HOL.thy "P (@ x. P x) =  (? x. P x)" (K [
         etac exI 1,
         etac exE 1,
         etac selectI 1]);
-
-val Eps_eq = prove_goal HOL.thy "Eps (op = x) = x" (K [
-	rtac select_equality 1, rtac refl 1, etac sym 1]);
-
-val ex1_Eps_eq = prove_goal HOL.thy "!!X. [|?!x. P x; P y|] ==> Eps P = y" (K [
-	rtac select_equality 1,
-	 atac 1,
-	etac ex1E 1,
-	etac all_dupE 1,
-	etac impE 1,
-	 atac 1,
-	rtac trans 1,
-	 etac sym 2,
-	dtac spec 1,
-	etac impE 1,
-	 ALLGOALS atac]);
 
 
 (** Classical intro rules for disjunction and existential quantifiers *)
