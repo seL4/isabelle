@@ -1145,8 +1145,11 @@ fun some_rule_tac cs facts =
       in trace rules i; fn st => Seq.flat (Seq.map (fn rule => Tactic.rtac rule i st) ruleq) end);
   in tac end;
 
+fun rule_tac [] cs facts = some_rule_tac cs facts
+  | rule_tac rules _ facts = Method.rule_tac rules facts;
+
 in
-  val some_rule = METHOD_CLASET' some_rule_tac;
+  val rule = METHOD_CLASET' o rule_tac;
 end;
 
 
@@ -1204,10 +1207,10 @@ val cla_method' = cla_args o cla_meth';
 (** setup_methods **)
 
 val setup_methods = Method.add_methods
- [("default", Method.no_args some_rule, "apply some standard rule"),
-  ("some_rule", Method.no_args some_rule, "apply some standard rule"),
-  ("intro", Method.thms_args intro, "apply some introduction rule"),
-  ("elim", Method.thms_args elim, "apply some elimination rule"),
+ [("default", Method.thms_args rule, "apply some rule (chain facts)"),
+  ("rule", Method.thms_args rule, "apply some rule (chain facts)"),
+  ("intro", Method.thms_args intro, "apply some introduction rule (cut facts)"),
+  ("elim", Method.thms_args elim, "apply some elimination rule (cut facts)"),
   ("contradiction", Method.no_args contradiction, "proof by contradiction"),
   ("safe_tac", cla_method safe_tac, "safe_tac (improper!)"),
   ("safe_step_tac", cla_method' safe_step_tac, "safe_step_tac (improper!)"),
