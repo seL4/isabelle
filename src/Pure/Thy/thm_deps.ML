@@ -22,8 +22,8 @@ struct
 
 open Proofterm;
 
-fun enable () = keep_derivs := ThmDeriv;
-fun disable () = keep_derivs := MinDeriv;
+fun enable () = if ! proofs = 0 then proofs := 1 else ();
+fun disable () = proofs := 0;
 
 fun dest_thm_axm (PThm (nt, prf, _, _)) = (nt, prf)
   | dest_thm_axm (PAxm (n, _, _)) = ((n ^ " (Ax)", []), MinProof [])

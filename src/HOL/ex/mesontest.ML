@@ -10,7 +10,7 @@ Use the "mesonlog" shell script to process logs.
 
 show_hyps := false;
 
-keep_derivs := MinDeriv;
+proofs := 0;
 by (rtac ccontr 1);
 val [prem] = gethyps 1;
 val nnf = make_nnf prem;
@@ -23,7 +23,7 @@ val goes = gocls clauses;
 
 Goal "False";
 by (resolve_tac goes 1);
-keep_derivs := FullDeriv;
+proofs := 2;
 
 by (prolog_step_tac horns 1);
 by (iter_deepen_prolog_tac horns);

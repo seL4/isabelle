@@ -10,8 +10,7 @@ infix 8 % %% %%%;
 
 signature BASIC_PROOFTERM =
 sig
-  datatype deriv_kind = MinDeriv | ThmDeriv | FullDeriv;
-  val keep_derivs : deriv_kind ref
+  val proofs: int ref
 
   datatype proof =
      PBound of int
@@ -171,25 +170,28 @@ fun mk_min_proof (prfs, Abst (_, _, prf)) = mk_min_proof (prfs, prf)
 
 (** proof objects with different levels of detail **)
 
-datatype deriv_kind = MinDeriv | ThmDeriv | FullDeriv;
+val proofs = ref 2;
 
-val keep_derivs = ref FullDeriv;
+fun err_illegal_level i =
+  error ("Illegal level of detail for proof objects: " ^ string_of_int i);
 
 fun if_ora b = if b then oracles_of_proof else K;
 
 fun infer_derivs f (ora1, prf1) (ora2, prf2) =
   (ora1 orelse ora2, 
-   case !keep_derivs of
-     FullDeriv => f prf1 prf2
-   | ThmDeriv => MinProof (mk_min_proof (mk_min_proof ([], prf1), prf2))
-   | MinDeriv => MinProof (if_ora ora2 (if_ora ora1 [] prf1) prf2));
+   case !proofs of
+     2 => f prf1 prf2
+   | 1 => MinProof (mk_min_proof (mk_min_proof ([], prf1), prf2))
+   | 0 => MinProof (if_ora ora2 (if_ora ora1 [] prf1) prf2)
+   | i => err_illegal_level i);
 
 fun infer_derivs' f (ora, prf) =
   (ora,
-   case !keep_derivs of
-     FullDeriv => f prf
-   | ThmDeriv => MinProof (mk_min_proof ([], prf))
-   | MinDeriv => MinProof (if_ora ora [] prf));
+   case !proofs of
+     2 => f prf
+   | 1 => MinProof (mk_min_proof ([], prf))
+   | 0 => MinProof (if_ora ora [] prf)
+   | i => err_illegal_level i);
 
 fun (prf %%% t) = prf %% Some t;
 
@@ -978,7 +980,7 @@ fun thm_proof sign (name, tags) hyps prop prf =
     val args = map (fn (v as Var (ixn, _)) =>
         if ixn mem nvs then Some v else None) (vars_of prop) @
       map Some (sort (make_ord atless) (term_frees prop));
-    val opt_prf = if !keep_derivs=FullDeriv then
+    val opt_prf = if ! proofs = 2 then
         #4 (shrink [] 0 (rewrite_prf fst (!(ProofData.get_sg sign))
           (foldr (uncurry implies_intr_proof) (hyps', prf))))
       else MinProof (mk_min_proof ([], prf));
