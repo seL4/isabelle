@@ -509,14 +509,6 @@ by (induct_tac "m" 1);
 by Auto_tac;
 qed "lt_succ_eq_0_disj";
 
-Goal "[| m:nat; n:nat |] ==> (m < succ(n)) <-> (m < n | m =n)";
-by (induct_tac "n" 1);
-by (auto_tac (claset() addIs [leI], simpset()));
-by (dtac not_lt_imp_le 1);
-by Auto_tac;
-by (auto_tac (claset(), simpset() addsimps [le_iff]));
-qed "lt_succ_iff";
-
 Goal "[| j:nat; k:nat |] ==> ALL i:nat. (i < j #- k) <-> (i #+ k < j)";
 by (eres_inst_tac [("m", "k")] diff_induct  1);
 by Auto_tac;

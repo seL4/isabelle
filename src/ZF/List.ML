@@ -1133,11 +1133,10 @@ by (auto_tac (claset() addSDs [not_lt_imp_le],
 qed "length_upt";
 Addsimps [length_upt];
 
-Goal "[| i:nat; j:nat; k:nat |] ==> \
-\ i #+ k < j --> nth(k, upt(i,j)) = i #+ k";
+Goal "[| i:nat; j:nat; k:nat |] ==> i #+ k < j --> nth(k, upt(i,j)) = i #+ k";
 by (induct_tac "j" 1);
 by (Asm_simp_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [nth_append,lt_succ_iff] 
+by (asm_full_simp_tac (simpset() addsimps [nth_append,le_iff] 
                                  addsplits [nat_diff_split]) 1);
 by Safe_tac;
 by (auto_tac (claset() addSDs [not_lt_imp_le], 
