@@ -18,7 +18,7 @@ fun gen_fp_oper a (X,T,t) =
 
 structure Lfp_items =
   struct
-  val checkThy	= (fn thy => require_thy thy "Lfp" "inductive definitions")
+  val checkThy	= (fn thy => Theory.require thy "Lfp" "inductive definitions")
   val oper      = gen_fp_oper "lfp"
   val Tarski    = def_lfp_Tarski
   val induct    = def_induct
@@ -26,7 +26,7 @@ structure Lfp_items =
 
 structure Gfp_items =
   struct
-  val checkThy	= (fn thy => require_thy thy "Gfp" "coinductive definitions")
+  val checkThy	= (fn thy => Theory.require thy "Gfp" "coinductive definitions")
   val oper      = gen_fp_oper "gfp"
   val Tarski    = def_gfp_Tarski
   val induct    = def_Collect_coinduct
