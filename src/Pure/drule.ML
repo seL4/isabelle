@@ -73,9 +73,10 @@ sig
   val triv_forall_equality: thm
   val swap_prems_rl     : thm
   val equal_intr_rule   : thm
-  val triv_goal: thm
-  val rev_triv_goal: thm
-  val instantiate': ctyp option list -> cterm option list -> thm -> thm
+  val triv_goal		: thm
+  val rev_triv_goal	: thm
+  val mk_triv_goal      : cterm -> thm
+  val instantiate'	: ctyp option list -> cterm option list -> thm -> thm
 end;
 
 structure Drule : DRULE =
@@ -629,6 +630,9 @@ fun instantiate' cTs cts thm =
       else Thm.instantiate ([], map inst_of (zip_vars (vars_of thm') cts)) thm'
     end;
 
+
+(*Make an initial proof state, "PROP A ==> (PROP A)" *)
+fun mk_triv_goal ct = instantiate' [] [Some ct] triv_goal;
 
 end;
 

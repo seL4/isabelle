@@ -61,6 +61,7 @@ signature GOALS =
   val prove_goal	: theory -> string -> (thm list -> tactic list) -> thm
   val prove_goalw      : theory->thm list->string->(thm list->tactic list)->thm
   val prove_goalw_cterm	: thm list->cterm->(thm list->tactic list)->thm
+  val prove_goalw_cterm_nocheck	: thm list->cterm->(thm list->tactic list)->thm
   val push_proof	: unit -> unit
   val read		: string -> term
   val ren		: string -> int -> unit
@@ -159,7 +160,7 @@ fun prepare_proof atomic rths chorn =
       val cAs = map (cterm_of sign) As;
       val prems = map (rewrite_rule rths o forall_elim_vars(0) o assume) cAs;
       val cB = cterm_of sign B;
-      val st0 = let val st = Drule.instantiate' [] [Some cB] Drule.triv_goal
+      val st0 = let val st = Drule.mk_triv_goal cB
                 in  rewrite_goals_rule rths st end
       (*discharges assumptions from state in the order they appear in goal;
 	checks (if requested) that resulting theorem is equivalent to goal. *)
@@ -225,17 +226,21 @@ fun print_sign_exn sign e = (print_sign_exn_unit sign e; raise ERROR);
     Syntax is similar to "goal" command for easy keyboard use. **)
 
 (*Version taking the goal as a cterm*)
-fun prove_goalw_cterm rths chorn tacsf =
+fun prove_goalw_cterm_general check rths chorn tacsf =
   let val (prems, st0, mkresult) = prepare_proof false rths chorn
       val tac = EVERY (tacsf prems)
       fun statef() = 
 	  (case Seq.pull (tac st0) of 
 	       Some(st,_) => st
 	     | _ => error ("prove_goal: tactic failed"))
-  in  mkresult (true, cond_timeit (!proof_timing) statef)  end
+  in  mkresult (check, cond_timeit (!proof_timing) statef)  end
   handle e => (print_sign_exn_unit (#sign (rep_cterm chorn)) e;
 	       error ("The exception above was raised for\n" ^ 
 		      string_of_cterm chorn));
+
+(*Two variants: one checking the result, one not*)
+val prove_goalw_cterm         = prove_goalw_cterm_general true
+and prove_goalw_cterm_nocheck = prove_goalw_cterm_general false;
 
 
 (*Version taking the goal as a string*)
