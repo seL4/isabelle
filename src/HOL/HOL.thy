@@ -270,6 +270,12 @@ apply (erule subst)
 apply (rule refl)
 done
 
+lemma arg_cong2: "\<lbrakk> a = b; c = d \<rbrakk> \<Longrightarrow> f a c = f b d"
+apply (erule ssubst)+
+apply (rule refl)
+done
+
+
 lemma cong: "[| f = g; (x::'a) = y |] ==> f(x) = g(y)"
 apply (erule subst)+
 apply (rule refl)
