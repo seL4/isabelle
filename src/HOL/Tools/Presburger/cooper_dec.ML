@@ -39,6 +39,8 @@ sig
   val has_bound : term -> bool
   val minusinf : term -> term -> term
   val plusinf : term -> term -> term
+  val onatoms : (term -> term) -> term -> term
+  val evalc : term -> term
 end;
 
 structure  CooperDec : COOPER_DEC =
