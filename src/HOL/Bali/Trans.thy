@@ -10,47 +10,7 @@ PRELIMINARY!!!!!!!!
 *)
 
 theory Trans = Evaln:
-(*
-constdefs inj_stmt:: "stmt \<Rightarrow> term" ("\<langle>_\<rangle>\<^sub>s" 83)
-    "\<langle>s\<rangle>\<^sub>s \<equiv> In1r s"
 
-constdefs inj_expr:: "expr \<Rightarrow> term" ("\<langle>_\<rangle>\<^sub>e" 83)
-    "\<langle>e\<rangle>\<^sub>e \<equiv> In1l e"
-*)
-axclass inj_term < "type"
-consts inj_term:: "'a::inj_term \<Rightarrow> term" ("\<langle>_\<rangle>" 83)
-
-instance stmt::inj_term ..
-
-defs (overloaded)
-stmt_inj_term_def: "\<langle>c::stmt\<rangle> \<equiv> In1r c"
-
-lemma stmt_inj_term_simp: "\<langle>c::stmt\<rangle> = In1r c"
-by (simp add: stmt_inj_term_def)
-
-instance expr::inj_term ..
-
-defs (overloaded)
-expr_inj_term_def: "\<langle>e::expr\<rangle> \<equiv> In1l e"
-
-lemma expr_inj_term_simp: "\<langle>e::expr\<rangle> = In1l e"
-by (simp add: expr_inj_term_def)
-
-instance var::inj_term ..
-
-defs (overloaded)
-var_inj_term_def: "\<langle>v::var\<rangle> \<equiv> In2 v"
-
-lemma var_inj_term_simp: "\<langle>v::var\<rangle> = In2 v"
-by (simp add: var_inj_term_def)
-
-instance "list":: (type) inj_term ..
-
-defs (overloaded)
-expr_list_inj_term_def: "\<langle>es::expr list\<rangle> \<equiv> In3 es"
-
-lemma expr_list_inj_term_simp: "\<langle>es::expr list\<rangle> = In3 es"
-by (simp add: expr_list_inj_term_def)
 
 constdefs groundVar:: "var \<Rightarrow> bool"
 "groundVar v \<equiv> (case v of
