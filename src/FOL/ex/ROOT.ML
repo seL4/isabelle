@@ -37,5 +37,9 @@ writeln"\n** Simplification examples **\n";
 time_use_thy "Nat2";
 time_use_thy "List";
 
+writeln"\n** How to declare an oracle **\n";
+time_use_thy "IffOracle";
+
+
 cd "..";
 maketest"END: Root file for FOL examples";
