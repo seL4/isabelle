@@ -126,7 +126,7 @@ fun print_current_node _ (State None) = ()
 val print_state_context = print_current_node print_node_ctxt;
 
 fun print_state_default prf_only state =
-  let val ref (begin_state, end_state, _) = Goals.current_goals_markers in
+  let val ref (begin_state, end_state, _) = Display.current_goals_markers in
     if begin_state = "" then () else writeln begin_state;
     print_current_node (print_node prf_only) state;
     if end_state = "" then () else writeln end_state
