@@ -358,3 +358,9 @@ qed_goal "ex_impE" IFOL.thy
     "[| (EX x.P(x))-->S;  P(x)-->S ==> R |] ==> R"
  (fn major::prems=>
   [ (REPEAT (ares_tac ([exI, impI, major RS mp]@prems) 1)) ]);
+
+(*Courtesy Krzysztof Grabczewski*)
+val major::prems = goal IFOL.thy "[| P|Q;  P==>R;  Q==>S |] ==> R|S";
+br (major RS disjE) 1;
+by (REPEAT (eresolve_tac (prems RL [disjI1, disjI2]) 1));
+qed "disj_imp_disj";
