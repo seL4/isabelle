@@ -67,7 +67,7 @@ fun simple_ast_of (Const (c, _)) = Constant c
       let val (f, args) = strip_comb t in
         mk_appl (simple_ast_of f) (map simple_ast_of args)
       end
-  | simple_ast_of (Bound _) = sys_error "simple_ast_of: Bound"
+  | simple_ast_of (Bound i) = Variable ("B." ^ string_of_int i)
   | simple_ast_of (Abs _) = sys_error "simple_ast_of: Abs";
 
 
