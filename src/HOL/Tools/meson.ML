@@ -345,7 +345,7 @@ fun meson_claset_tac cs =
 val meson_tac = CLASET' meson_claset_tac;
 
 
-(** Code to support ordinary resolution, rather than Model Elimination **)
+(**** Code to support ordinary resolution, rather than Model Elimination ****)
 
 (*Convert a list of clauses to meta-level clauses, with no contrapositives,
   for ordinary resolution.*)
@@ -381,6 +381,23 @@ val negate_head = rewrite_rule [atomize_not, not_not RS eq_reflection];
 (*Maps the clause  [P1,...Pn]==>False to [P1,...,P(i-1),P(i+1),...Pn] ==> ~P*)
 fun select_literal i cl = negate_head (make_last i cl);
 
+(*Top-level Skolemization. Allows part of the conversion to clauses to be
+  expressed as a tactic (or Isar method).  Each assumption of the selected 
+  goal is converted to NNF and then its existential quantifiers are pulled
+  to the front. Finally, all existential quantifiers are eliminated, 
+  leaving !!-quantified variables. Perhaps Safe_tac should follow, but it
+  might generate many subgoals.*)
+val skolemize_tac = 
+  SUBGOAL
+    (fn (prop,_) =>
+     let val ts = Logic.strip_assums_hyp prop
+     in EVERY1 
+	 [METAHYPS
+	    (fn hyps => (cut_facts_tac (map (skolemize o make_nnf) hyps) 1
+                         THEN REPEAT (etac exE 1))),
+	  REPEAT_DETERM_N (length ts) o (etac thin_rl)]
+     end);
+
 
 
 (** proof method setup **)
@@ -395,7 +412,10 @@ in
 
 val meson_setup =
  [Method.add_methods
-  [("meson", Method.ctxt_args meson_meth, "The MESON resolution proof procedure")]];
+  [("meson", Method.ctxt_args meson_meth, 
+    "The MESON resolution proof procedure"),
+   ("skolemize", Method.no_args (Method.METHOD (fn _ => skolemize_tac 1)), 
+    "Skolemization into existential quantifiers")]];
 
 end;
 
