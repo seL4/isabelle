@@ -111,7 +111,8 @@ rules
   eq_reflection   "(x=y)   ==> (x==y)"
   iff_reflection  "(P<->Q) ==> (P==Q)"
 
+
+setup
+  Simplifier.setup
+
 end
-
-
-ML val thy_setup = [Simplifier.setup];

@@ -4,6 +4,7 @@ FOL = IFOL +
 rules
   classical "(~P ==> P) ==> P"
 
-end
+setup
+  ClasetThyData.setup
 
-ML val thy_setup = [ClasetThyData.setup];
+end

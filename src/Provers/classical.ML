@@ -28,7 +28,7 @@ signature CLASET_THY_DATA =
 sig
   val clasetK: string
   exception ClasetData of object ref
-  val setup: theory -> theory
+  val setup: (theory -> theory) list
   val fix_methods: object * (object -> object) *
     (object * object -> object) * (Sign.sg -> object -> unit) -> unit
 end;
@@ -155,7 +155,7 @@ local
   fun merge exn = ! merge_fn exn;
   fun print sg exn = ! print_fn sg exn;
 in
-  val setup = Theory.init_data [(clasetK, (empty, prep_ext, merge, print))];
+  val setup = [Theory.init_data [(clasetK, (empty, prep_ext, merge, print))]];
   fun fix_methods (e, ext, mrg, prt) =
     (empty_ref := e; prep_ext_fn := ext; merge_fn := mrg; print_fn := prt);
 end;
