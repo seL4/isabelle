@@ -28,10 +28,12 @@ sig
   val str_of_action: action -> string
   val add_hook: (action -> string -> unit) -> unit
   val names: unit -> string list
+  val known_thy: string -> bool
   val lookup_theory: string -> theory option
   val get_theory: string -> theory
   val get_preds: string -> string list
-  val loaded_files: string -> ((Path.T * File.info) * bool) list
+  val loaded_files: string -> Path.T option * (Path.T * bool) list
+  val touch_child_thys: string -> unit
   val touch_all_thys: unit -> unit
   val may_load_file: bool -> bool -> Path.T -> unit
   val use_path: Path.T -> unit
@@ -121,6 +123,7 @@ fun get_names () = Graph.keys (get_thys ());
 (* access thy *)
 
 fun lookup_thy name = Some (thy_graph Graph.get_node name) handle Graph.UNDEFINED _ => None;
+val known_thy = is_some o lookup_thy;
 
 fun get_thy name =
   (case lookup_thy name of
@@ -141,9 +144,10 @@ fun get_files name = (case get_deps name of Some {files, ...} => files | _ => []
 
 fun loaded_files name =
   (case get_deps name of
-    Some {master = Some master, files, ...} => (ThyLoad.get_thy master, true) :: mapfilter #2 files
-  | Some {files, ...} => mapfilter #2 files
-  | None => []);
+    None => (None, [])
+  | Some {master, files, ...} =>
+      (apsome (#1 o ThyLoad.get_thy) master,
+        map (fn ((p, _), r) => (p, r)) (mapfilter #2 files)));
 
 fun get_preds name =
   (thy_graph Graph.imm_preds name) handle Graph.UNDEFINED _ =>
@@ -185,11 +189,17 @@ fun outdate_thy name =
   else (change_deps name (apsome (fn {present, outdated = _, master, files} =>
     make_deps present true master files)); perform Outdate name);
 
+fun check_unfinished name =
+  if is_finished name then (warning (loader_msg "tried to touch finished theory" [name]); None)
+  else Some name;
+
 in
 
-fun touch_thy name =
-  if is_finished name then warning (loader_msg "tried to touch finished theory" [name])
-  else seq outdate_thy (thy_graph Graph.all_succs [name]);
+fun touch_thys names =
+  seq outdate_thy (thy_graph Graph.all_succs (mapfilter check_unfinished names));
+
+fun touch_thy name = touch_thys [name];
+fun touch_child_thys name = touch_thys (thy_graph Graph.imm_succs name);
 
 fun touch_all_thys () = seq outdate_thy (get_names ());
 
@@ -199,7 +209,7 @@ end;
 (* check 'finished' state *)
 
 fun check_unfinished fail name =
-  if is_some (lookup_thy name) andalso is_finished name then
+  if known_thy name andalso is_finished name then
     fail (loader_msg "cannot update finished theory" [name])
   else ();
 
@@ -212,17 +222,17 @@ fun may_run_file really path =
   let
     val load = ThyLoad.may_load_file really;
     fun provide name info (deps as Some {present, outdated, master, files}) =
-          if exists (equal path o #1) files then
+          (if exists (equal path o #1) files then ()
+            else warning (loader_msg "undeclared dependency of theory" [name] ^
+              " on file: " ^ quote (Path.pack path));
             Some (make_deps present outdated master
-              (overwrite (files, (path, Some (info, really)))))
-          else (warning (loader_msg "undeclared dependency of theory" [name] ^
-            " on file: " ^ quote (Path.pack path)); deps)
+              (overwrite (files, (path, Some (info, really))))))
       | provide _ _ None = None;
   in
     (case apsome PureThy.get_name (Context.get_context ()) of
       None => (load path; ())
     | Some name =>
-        if is_some (lookup_thy name) then change_deps name (provide name (load path))
+        if known_thy name then change_deps name (provide name (load path))
         else (load path; ()))
   end;
 
@@ -348,8 +358,7 @@ end;
 (* remove_thy *)
 
 fun remove_thy name =
-  if is_none (lookup_thy name) then warning (loader_msg "nothing known about theory" [name])
-  else if is_finished name then error (loader_msg "cannot remove finished theory" [name])
+  if is_finished name then error (loader_msg "cannot remove finished theory" [name])
   else
     let val succs = thy_graph Graph.all_succs [name] in
       writeln (loader_msg "removing" succs);
