@@ -89,6 +89,22 @@ qed "ordermap_pred_unfold";
 (*pred-unfolded version.  NOT suitable for rewriting -- loops!*)
 bind_thm ("ordermap_unfold", rewrite_rule [pred_def] ordermap_pred_unfold);
 
+(*The theorem above is 
+
+[| wf[A](r); x : A |]
+==> ordermap(A,r) ` x = {ordermap(A,r) ` y . y: {y: A . <y,x> : r}}
+
+NOTE: the definition of ordermap used here delivers ordinals only if r is
+transitive.  If r is the predecessor relation on the naturals then
+ordermap(nat,predr) ` n equals {n-1} and not n.  A more complicated definition,
+like
+
+  ordermap(A,r) ` x = Union{succ(ordermap(A,r) ` y) . y: {y: A . <y,x> : r}},
+
+might eliminate the need for r to be transitive.
+*)
+
+
 (*** Showing that ordermap, ordertype yield ordinals ***)
 
 fun ordermap_elim_tac i =

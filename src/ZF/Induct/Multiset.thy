@@ -16,6 +16,14 @@ translations
   "Mult(A)" => "A-||>nat-{0}"
   
 constdefs
+  
+  (* This is the original "restrict" from ZF.thy.
+     Restricts the function f to the domain A 
+     FIXME: adapt Multiset to the new "restrict". *)
+
+  funrestrict :: "[i,i] => i"
+  "funrestrict(f,A) == lam x:A. f`x"
+
   (* M is a multiset *)
   multiset :: i => o
   "multiset(M) == EX A. M:A->nat-{0} & Finite(A)"
@@ -30,7 +38,7 @@ constdefs
 
   (* eliminating 0's from a function *)
   normalize :: i => i   
-  "normalize(M) == restrict(M, {x:mset_of(M). 0<M`x})"
+  "normalize(M) == funrestrict(M, {x:mset_of(M). 0<M`x})"
 
   mdiff  :: "[i, i] => i" (infixl "-#" 65)
   "M -# N ==  normalize(lam x:mset_of(M).
@@ -41,7 +49,7 @@ constdefs
   "{#a#} == {<a, 1>}"
   
   MCollect :: [i, i=>o] => i (*comprehension*)
-  "MCollect(M, P) == restrict(M, {x:mset_of(M). P(x)})"
+  "MCollect(M, P) == funrestrict(M, {x:mset_of(M). P(x)})"
 
   (* Counts the number of occurences of an element in a multiset *)
   mcount :: [i, i] => i

@@ -1,4 +1,4 @@
-(*  Title:      ZF/Induct/Multiset.thy
+(*  Title:      ZF/Induct/Multiset
     ID:         $Id$
     Author:     Sidi O Ehmety, Cambridge University Computer Laboratory
 
@@ -8,6 +8,45 @@ proof for the multiset order.
 The theory features ordinal multisets and the usual ordering.
 
 *)
+
+(* Properties of the original "restrict" from ZF.thy. *)
+
+Goalw [funrestrict_def,lam_def]
+    "[| f: Pi(C,B);  A<=C |] ==> funrestrict(f,A) <= f";
+by (blast_tac (claset() addIs [apply_Pair]) 1);
+qed "funrestrict_subset";
+
+val prems = Goalw [funrestrict_def]
+    "[| !!x. x:A ==> f`x: B(x) |] ==> funrestrict(f,A) : Pi(A,B)";  
+by (rtac lam_type 1);
+by (eresolve_tac prems 1);
+qed "funrestrict_type";
+
+Goal "[| f: Pi(C,B);  A<=C |] ==> funrestrict(f,A) : Pi(A,B)";  
+by (blast_tac (claset() addIs [apply_type, funrestrict_type]) 1);
+qed "funrestrict_type2";
+
+Goalw [funrestrict_def] "a : A ==> funrestrict(f,A) ` a = f`a";
+by (etac beta 1);
+qed "funrestrict";
+
+Goalw [funrestrict_def] "funrestrict(f,0) = 0";
+by (Simp_tac 1);
+qed "funrestrict_empty";
+
+Addsimps [funrestrict, funrestrict_empty];
+
+Goalw [funrestrict_def, lam_def] "domain(funrestrict(f,C)) = C";
+by (Blast_tac 1);
+qed "domain_funrestrict";
+Addsimps [domain_funrestrict];
+
+Goal "f : cons(a, b) -> B ==> f = cons(<a, f ` a>, funrestrict(f, b))";
+by (rtac equalityI 1);
+by (blast_tac (claset() addIs [apply_Pair, impOfSubs funrestrict_subset]) 2);
+by (auto_tac (claset() addSDs [Pi_memberD],
+	       simpset() addsimps [funrestrict_def, lam_def]));
+qed "fun_cons_funrestrict_eq";
 
 Addsimps [domain_of_fun];
 Delrules [domainE];
@@ -146,7 +185,7 @@ AddIffs [msingle_multiset];
 
 (** normalize **)
 
-Goalw [normalize_def, restrict_def, mset_of_def]
+Goalw [normalize_def, funrestrict_def, mset_of_def]
  "normalize(normalize(f)) = normalize(f)";
 by Auto_tac;
 qed "normalize_idem";
@@ -156,7 +195,7 @@ Goalw [multiset_def]
  "multiset(M) ==> normalize(M) = M";
 by (rewrite_goals_tac [normalize_def, mset_of_def]);
 by (auto_tac (claset(), simpset() 
-          addsimps [restrict_def, multiset_fun_iff]));
+          addsimps [funrestrict_def, multiset_fun_iff]));
 qed "normalize_multiset";
 Addsimps [normalize_multiset];
 
@@ -166,7 +205,7 @@ by (rewrite_goals_tac [normalize_def, mset_of_def]);
 by Auto_tac;
 by (res_inst_tac [("x", "{x:A . 0<f`x}")] exI 1);
 by (auto_tac (claset() addIs [Collect_subset RS subset_Finite,
-                              restrict_type], simpset()));
+                              funrestrict_type], simpset()));
 qed "normalize_multiset";
 
 (** Typechecking rules for union and difference of multisets **)
@@ -243,7 +282,7 @@ AddIffs [mdiff_self_eq_0];
 Goalw [multiset_def] "multiset(M) ==> M -# 0 = M & 0 -# M = 0";
 by (rewrite_goals_tac [mdiff_def, normalize_def]);
 by (auto_tac (claset(), simpset() 
-         addsimps [multiset_fun_iff, mset_of_def, restrict_def]));
+         addsimps [multiset_fun_iff, mset_of_def, funrestrict_def]));
 qed "mdiff_0";
 Addsimps [mdiff_0];
 
@@ -254,7 +293,7 @@ by (auto_tac (claset(), simpset() addsimps [multiset_fun_iff]));
 by (rtac fun_extension 1);
 by Auto_tac;
 by (res_inst_tac [("P", "%x. ?u : Pi(x, ?v)")] subst 1);
-by (rtac restrict_type 2);
+by (rtac funrestrict_type 2);
 by (rtac equalityI 1);
 by (ALLGOALS(Clarify_tac));
 by Auto_tac;
@@ -512,7 +551,7 @@ qed "setsum_decr";
 Goalw [multiset_def]
      "Finite(A) \
 \     ==> ALL M. multiset(M) --> (ALL a:mset_of(M).            \
-\          setsum(%x'. $# mcount(restrict(M, mset_of(M)-{a}), x'), A) = \
+\          setsum(%x'. $# mcount(funrestrict(M, mset_of(M)-{a}), x'), A) = \
 \          (if a:A then setsum(%x'. $# mcount(M, x'), A) $- $# M`a     \
 \           else setsum(%x'. $# mcount(M, x'), A)))";
 by (etac Finite_induct 1);
@@ -522,11 +561,11 @@ by (auto_tac (claset(),
 qed "setsum_decr2";
 
 Goal "[| Finite(A); multiset(M); a:mset_of(M) |] \
-\     ==> setsum(%x. $# mcount(restrict(M, mset_of(M)-{a}), x), A - {a}) = \
+\     ==> setsum(%x. $# mcount(funrestrict(M, mset_of(M)-{a}), x), A - {a}) = \
 \         (if a:A then setsum(%x. $# mcount(M, x), A) $- $# M`a\
 \          else setsum(%x. $# mcount(M, x), A))";
-by (subgoal_tac "setsum(%x. $# mcount(restrict(M, mset_of(M)-{a}),x),A-{a}) = \
-\                setsum(%x. $# mcount(restrict(M, mset_of(M)-{a}),x),A)" 1);
+by (subgoal_tac "setsum(%x. $# mcount(funrestrict(M, mset_of(M)-{a}),x),A-{a}) = \
+\                setsum(%x. $# mcount(funrestrict(M, mset_of(M)-{a}),x),A)" 1);
 by (rtac (setsum_Diff RS sym) 2);
 by (REPEAT(asm_simp_tac (simpset() addsimps [mcount_def, mset_of_def]) 2));
 by (rtac sym 1 THEN rtac ssubst 1);
@@ -599,34 +638,34 @@ by (Blast_tac 2);
 by (rotate_simp_tac "cons(a, A) = A" 1);
 by (rotate_simp_tac "ALL x:A. ?u(x)" 1);
 by (rotate_simp_tac "ALL x:A. ?u(x)" 2);
-by (subgoal_tac "M=cons(<a, M`a>, restrict(M, A-{a}))" 1);
-by (rtac  fun_cons_restrict_eq 2);
+by (subgoal_tac "M=cons(<a, M`a>, funrestrict(M, A-{a}))" 1);
+by (rtac  fun_cons_funrestrict_eq 2);
 by (subgoal_tac "cons(a, A-{a}) = A" 2);
 by (REPEAT(Force_tac 2));
-by (res_inst_tac [("a", "cons(<a, 1>, restrict(M, A - {a}))")] ssubst 1);
+by (res_inst_tac [("a", "cons(<a, 1>, funrestrict(M, A - {a}))")] ssubst 1);
 by (Asm_full_simp_tac 1);
-by (subgoal_tac "multiset(restrict(M, A - {a}))" 1);
+by (subgoal_tac "multiset(funrestrict(M, A - {a}))" 1);
 by (simp_tac (simpset() addsimps [multiset_def, multiset_fun_iff]) 2);
 by (res_inst_tac [("x", "A-{a}")] exI 2);
 by Safe_tac;
 by (res_inst_tac [("A", "A-{a}")] apply_type 3);
-by (asm_simp_tac (simpset() addsimps [restrict]) 5);
-by (REPEAT(blast_tac (claset() addIs [Finite_Diff, restrict_type]) 2));;
+by (asm_simp_tac (simpset() addsimps [funrestrict]) 5);
+by (REPEAT(blast_tac (claset() addIs [Finite_Diff, funrestrict_type]) 2));;
 by (resolve_tac prems 1);
 by (assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [mset_of_def]) 1);
-by (dres_inst_tac [("x", "restrict(M, A-{a})")] spec 1);
+by (dres_inst_tac [("x", "funrestrict(M, A-{a})")] spec 1);
 by (dtac mp 1);
 by (res_inst_tac [("x", "A-{a}")] exI 1);
-by (auto_tac (claset() addIs [Finite_Diff, restrict_type], 
-             simpset() addsimps [restrict]));
+by (auto_tac (claset() addIs [Finite_Diff, funrestrict_type], 
+             simpset() addsimps [funrestrict]));
 by (forw_inst_tac [("A", "A"), ("M", "M"), ("a", "a")] setsum_decr3 1);
 by (asm_simp_tac  (simpset() addsimps [multiset_def, multiset_fun_iff]) 1);
 by (Blast_tac 1);
 by (asm_simp_tac (simpset() addsimps [mset_of_def]) 1);
 by (dres_inst_tac [("b", "if ?u then ?v else ?w")] sym 1);
 by (ALLGOALS(rotate_simp_tac "ALL x:A. ?u(x)"));
-by (subgoal_tac "{x:A - {a} . 0 < restrict(M, A - {x}) ` x} = A - {a}" 1);
+by (subgoal_tac "{x:A - {a} . 0 < funrestrict(M, A - {x}) ` x} = A - {a}" 1);
 by (auto_tac (claset() addSIs [setsum_cong], 
               simpset() addsimps [zdiff_eq_iff, 
                zadd_commute, multiset_def, multiset_fun_iff,mset_of_def]));
@@ -703,7 +742,7 @@ by (Clarify_tac 1);
 by (res_inst_tac [("x", "{x:A. P(x)}")] exI 1);
 by (auto_tac (claset()  addDs [CollectD1 RSN (2,apply_type)]
                         addIs [Collect_subset RS subset_Finite,
-                               restrict_type],
+                               funrestrict_type],
               simpset()));
 qed "MCollect_multiset";
 Addsimps [MCollect_multiset];
@@ -711,7 +750,7 @@ Addsimps [MCollect_multiset];
 Goalw [mset_of_def, MCollect_def]
  "multiset(M) ==> mset_of({# x:M. P(x) #}) <= mset_of(M)";
 by (auto_tac (claset(), 
-              simpset() addsimps [multiset_def, restrict_def]));
+              simpset() addsimps [multiset_def, funrestrict_def]));
 qed "mset_of_MCollect";
 Addsimps [mset_of_MCollect];
 

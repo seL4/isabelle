@@ -262,8 +262,8 @@ defs
   apply_def     "f`a == THE y. <a,y> : f"
   Pi_def        "Pi(A,B)  == {f: Pow(Sigma(A,B)). A<=domain(f) & function(f)}"
 
-  (* Restrict the function f to the domain A *)
-  restrict_def  "restrict(f,A) == lam x:A. f`x"
+  (* Restrict the relation r to the domain A *)
+  restrict_def  "restrict(r,A) == {z : r. EX x:A. EX y. z = <x,y>}"
 
 end
 

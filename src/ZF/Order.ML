@@ -402,11 +402,12 @@ qed "ord_iso_image_pred";
 Goal "[| f : ord_iso(A,r,B,s);   a:A |] ==>    \
 \      restrict(f, pred(A,a,r)) : ord_iso(pred(A,a,r), r, pred(B, f`a, s), s)";
 by (asm_simp_tac (simpset() addsimps [ord_iso_image_pred RS sym]) 1);
-by (rewtac ord_iso_def);
+by (rewtac ord_iso_def); 
 by (etac CollectE 1);
 by (rtac CollectI 1);
-by (asm_full_simp_tac (simpset() addsimps [pred_def]) 2);
 by (eresolve_tac [[bij_is_inj, pred_subset] MRS restrict_bij] 1);
+by (ftac bij_is_fun 1);
+by (auto_tac (claset(), simpset() addsimps [pred_def])); 
 qed "ord_iso_restrict_pred";
 
 (*Tricky; a lot of forward proof!*)

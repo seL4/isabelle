@@ -15,7 +15,7 @@ theory AC17_AC1 = HH:
     AC0 comes from Suppes, AC1 from Rubin & Rubin **)
 
 lemma AC0_AC1_lemma: "[| f:(\<Pi>X \<in> A. X); D \<subseteq> A |] ==> \<exists>g. g:(\<Pi>X \<in> D. X)"
-by (fast intro!: restrict_type apply_type)
+by (fast intro!: lam_type apply_type)
 
 lemma AC0_AC1: "AC0 ==> AC1"
 apply (unfold AC0_def AC1_def)
@@ -75,7 +75,7 @@ apply (erule swap)
 apply (rule allI)
 apply (erule swap)
 apply (rule_tac x = "Union (A)" in exI)
-apply (blast intro: restrict_type)
+apply (blast intro: lam_type)
 done
 
 lemma lemma1:

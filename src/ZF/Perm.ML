@@ -497,9 +497,8 @@ qed "surj_image";
 
 Goal "[| f: Pi(C,B);  A<=C |] ==> restrict(f,A)``A = f``A";
 by (rtac equalityI 1);
-by (SELECT_GOAL (rewtac restrict_def) 2);
-by (REPEAT (eresolve_tac [imageE, apply_equality RS subst] 2
-     ORELSE ares_tac [subsetI,lamI,imageI] 2));
+by (asm_full_simp_tac (simpset() addsimps [restrict_def]) 2); 
+by (blast_tac (claset() addIs [apply_Pair]) 2); 
 by (REPEAT (ares_tac [image_mono,restrict_subset,subset_refl] 1));
 qed "restrict_image";
 

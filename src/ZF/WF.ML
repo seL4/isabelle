@@ -212,23 +212,29 @@ by (res_inst_tac [("P", "%x.?t(x) = (?u::i)")] (isrec RS ssubst) 1);
 by (rtac (rel RS underI RS beta) 1);
 qed "apply_recfun";
 
-Goalw [is_recfun_def]
-    "[| wf(r);  trans(r);  is_recfun(r,a,H,f);  is_recfun(r,b,H,g) |] ==> \
-\    <x,a>:r --> <x,b>:r --> f`x=g`x";
+Goal "[| wf(r);  trans(r);  is_recfun(r,a,H,f);  is_recfun(r,b,H,g) |]  \
+\     ==> <x,a>:r --> <x,b>:r --> f`x=g`x";
+by (forw_inst_tac [("f","f")] is_recfun_type 1); 
+by (forw_inst_tac [("f","g")] is_recfun_type 1); 
+by (asm_full_simp_tac (simpset() addsimps [is_recfun_def]) 1); 
 by (wf_ind_tac "x" [] 1);
 by (REPEAT (rtac impI 1 ORELSE etac ssubst 1));
 by (asm_simp_tac (simpset() addsimps [vimage_singleton_iff, restrict_def]) 1); 
-by (subgoal_tac "ALL y. y : r-``{x1} --> f`y = g`y" 1);
- by (Asm_simp_tac 1);
-by (blast_tac (claset() addDs [transD]) 1); 
+by (res_inst_tac [("t","%z. H(?x,z)")] subst_context 1); 
+by (subgoal_tac "ALL y : r-``{x1}. ALL z. <y,z>:f <-> <y,z>:g" 1);
+ by (blast_tac (claset() addDs [transD]) 1); 
+by (asm_full_simp_tac (simpset() addsimps [apply_iff]) 1); 
+by (blast_tac (claset() addDs [transD] addIs [sym]) 1); 
 qed_spec_mp "is_recfun_equal";
 
 Goal "[| wf(r);  trans(r);       \
 \        is_recfun(r,a,H,f);  is_recfun(r,b,H,g);  <b,a>:r |]  \
 \     ==> restrict(f, r-``{b}) = g";
-by (rtac (consI1 RS restrict_type RS fun_extension) 1);
-by (etac is_recfun_type 1);
-by (asm_full_simp_tac (simpset() addsimps [vimage_singleton_iff]) 1);
+by (forw_inst_tac [("f","f")] is_recfun_type 1); 
+by (rtac fun_extension 1);
+  by (blast_tac (claset() addDs [transD] addIs [restrict_type2]) 1); 
+ by (etac is_recfun_type 1);
+by (Asm_full_simp_tac 1);
 by (blast_tac (claset() addDs [transD]
 			addIs [is_recfun_equal]) 1);
 qed "is_recfun_cut";
@@ -236,9 +242,8 @@ qed "is_recfun_cut";
 (*** Main Existence Lemma ***)
 
 Goal "[| wf(r); trans(r); is_recfun(r,a,H,f); is_recfun(r,a,H,g) |]  ==>  f=g";
-by (rtac fun_extension 1);
-by (REPEAT (ares_tac [is_recfun_equal] 1
-     ORELSE eresolve_tac [is_recfun_type,underD] 1));
+by (blast_tac (claset() addIs [fun_extension, is_recfun_type, 
+                               is_recfun_equal]) 1); 
 qed "is_recfun_functional";
 
 (*If some f satisfies is_recfun(r,a,H,-) then so does the_recfun(r,a,H) *)
@@ -257,8 +262,12 @@ by (rewrite_goals_tac [is_recfun_def, wftrec_def]);
 (*Applying the substitution: must keep the quantified assumption!!*)
 by (REPEAT (dtac underD 1 ORELSE resolve_tac [refl, lam_cong] 1));
 by (fold_tac [is_recfun_def]);
-by (rtac (consI1 RS restrict_type RSN (2,fun_extension) RS subst_context) 1);
- by (blast_tac (claset() addIs [is_recfun_type]) 1);
+by (res_inst_tac [("t","%z. H(?x,z)")] subst_context 1); 
+by (rtac fun_extension 1);
+  by (blast_tac (claset() addIs [is_recfun_type]) 1);
+ by (rtac (lam_type RS restrict_type2) 1); 
+  by (Blast_tac 1); 
+ by (blast_tac (claset() addDs [transD]) 1); 
 by (ftac (spec RS mp) 1 THEN assume_tac 1);
 by (subgoal_tac "<xa,a1> : r" 1);
 by (dres_inst_tac [("x1","xa")] (spec RS mp) 1 THEN assume_tac 1);

@@ -57,12 +57,8 @@ lemma domain_cons_eq_succ: "domain(f)=x ==> domain(cons(<x,y>, f)) = succ(x)"
 by (simp add: domain_cons succ_def)
 
 lemma restrict_cons_eq: "g \<in> n->X ==> restrict(cons(<n,x>, g), n) = g"
-apply (unfold restrict_def)
-apply (rule fun_extension)
-apply (rule lam_type)
-apply (erule cons_fun_type [THEN apply_type])
-apply (erule succI2, assumption)
-apply (simp add: cons_val_k)
+apply (simp add: restrict_def Pi_iff)
+apply (blast intro: elim: mem_irrefl)  
 done
 
 lemma succ_in_succ: "[| Ord(k); i \<in> k |] ==> succ(i) \<in> succ(k)"
@@ -71,10 +67,9 @@ apply (fast elim: Ord_in_Ord mem_irrefl mem_asym)+
 done
 
 lemma restrict_eq_imp_val_eq: 
-      "[| restrict(f, domain(g)) = g; x \<in> domain(g) |] ==> f`x = g`x"
-apply (unfold restrict_def) 
-apply (erule subst, simp)
-done
+      "[|restrict(f, domain(g)) = g; x \<in> domain(g)|] 
+       ==> f`x = g`x" 
+by (erule subst, simp add: restrict)
 
 lemma domain_eq_imp_fun_type: "[| domain(f)=A; f \<in> B->C |] ==> f \<in> A->C"
 by (frule domain_of_fun, fast)
@@ -220,7 +215,7 @@ apply (rule restrict_eq_imp_val_eq [symmetric])
  apply (simp add: RR_def)
 apply (drule lemma2, assumption+)
 apply (blast dest!: domain_of_fun 
-             intro: nat_into_Ord OrdmemD [THEN subsetD])
+	     intro: nat_into_Ord OrdmemD [THEN subsetD])
 done
 
 lemma (in DC0_imp) lemma3:
@@ -370,11 +365,9 @@ lemma (in imp_DC0) restrict_cons_eq_restrict:
      "[| restrict(h, domain(u))=u;  h \<in> n->X;  domain(u) \<subseteq> n |]   
       ==> restrict(cons(<n, y>, h), domain(u)) = u"
 apply (unfold restrict_def)
+apply (simp add: restrict_def Pi_iff)
 apply (erule sym [THEN trans, symmetric])
-apply (rule fun_extension)
-apply (fast intro!: lam_type)
-apply (fast intro!: lam_type)
-apply (simp add: subsetD [THEN cons_val_k])
+apply (blast elim: mem_irrefl)  
 done
 
 lemma (in imp_DC0) all_in_image_restrict_eq:

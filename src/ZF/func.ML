@@ -291,47 +291,78 @@ qed "Pi_image_cons";
 
 (*** properties of "restrict" ***)
 
-Goalw [restrict_def,lam_def]
+Goalw [restrict_def]
     "[| f: Pi(C,B);  A<=C |] ==> restrict(f,A) <= f";
 by (blast_tac (claset() addIs [apply_Pair]) 1);
 qed "restrict_subset";
 
-val prems = Goalw [restrict_def]
-    "[| !!x. x:A ==> f`x: B(x) |] ==> restrict(f,A) : Pi(A,B)";  
-by (rtac lam_type 1);
-by (eresolve_tac prems 1);
-qed "restrict_type";
+Goalw [restrict_def, function_def]
+    "function(f) ==> function(restrict(f,A))";  
+by (Blast_tac 1); 
+qed "function_restrictI";
 
 Goal "[| f: Pi(C,B);  A<=C |] ==> restrict(f,A) : Pi(A,B)";  
-by (blast_tac (claset() addIs [apply_type, restrict_type]) 1);
+by (asm_full_simp_tac
+    (simpset() addsimps [Pi_iff, function_def, restrict_def]) 1); 
+by (Blast_tac 1); 
 qed "restrict_type2";
 
-Goalw [restrict_def] "a : A ==> restrict(f,A) ` a = f`a";
-by (etac beta 1);
+(*Fails with the new definition of restrict
+    "[| !!x. x:A ==> f`x: B(x) |] ==> restrict(f,A) : Pi(A,B)";  
+qed "restrict_type";
+*)
+
+(*FIXME: move to FOL?*)
+Goal "EX x. a = x";
+by Auto_tac;
+qed "ex_equals_triv"; 
+
+Goal "a : A ==> restrict(f,A) ` a = f`a";
+by (asm_full_simp_tac
+    (simpset() addsimps [apply_def, restrict_def, ex_equals_triv]) 1); 
 qed "restrict";
 
 Goalw [restrict_def] "restrict(f,0) = 0";
 by (Simp_tac 1);
 qed "restrict_empty";
+Addsimps [restrict_empty];
 
-Addsimps [restrict, restrict_empty];
+Goalw [restrict_def, lam_def] "domain(restrict(Lambda(A,f),C)) = A Int C";
+by (rtac equalityI 1);  
+by (auto_tac (claset(), simpset() addsimps [domain_iff])); 
+qed "domain_restrict_lam";
+Addsimps [domain_restrict_lam];
 
-(*NOT SAFE as a congruence rule for the simplifier!  Can cause it to fail!*)
-val prems = Goalw [restrict_def]
-    "[| A=B;  !!x. x:B ==> f`x=g`x |] ==> restrict(f,A) = restrict(g,B)";
-by (REPEAT (ares_tac (prems@[lam_cong]) 1));
-qed "restrict_eqI";
+Goalw [restrict_def] "restrict(restrict(r,A),B) = restrict(r, A Int B)";
+by (Blast_tac 1); 
+qed "restrict_restrict";
+Addsimps [restrict_restrict];
 
-Goalw [restrict_def, lam_def] "domain(restrict(f,C)) = C";
-by (Blast_tac 1);
+Goalw [restrict_def] "domain(restrict(f,C)) = domain(f) Int C"; 
+by (auto_tac (claset(), simpset() addsimps [domain_def])); 
 qed "domain_restrict";
 Addsimps [domain_restrict];
 
-Goalw [restrict_def]
+Goal "f <= Sigma(A,B) ==> restrict(f,A) = f"; 
+by (asm_full_simp_tac (simpset() addsimps [restrict_def]) 1);  
+by (Blast_tac 1); 
+qed "restrict_idem";
+Addsimps [restrict_idem];
+
+Goal "restrict(f,A) ` a = (if a : A then f`a else 0)";
+by (asm_full_simp_tac (simpset() addsimps [restrict, apply_0]) 1); 
+qed "restrict_if";
+Addsimps [restrict_if];
+
+(*No longer true and no longer needed
+val prems = Goalw [restrict_def]
+    "[| A=B;  !!x. x:B ==> f`x=g`x |] ==> restrict(f,A) = restrict(g,B)";
+qed "restrict_eqI";
+*)
+
+Goalw [restrict_def, lam_def]
     "A<=C ==> restrict(lam x:C. b(x), A) = (lam x:A. b(x))";
-by (rtac (refl RS lam_cong) 1);
-by (set_mp_tac 1);
-by (Asm_simp_tac 1);
+by Auto_tac; 
 qed "restrict_lam_eq";
 
 Goal "f : cons(a, b) -> B ==> f = cons(<a, f ` a>, restrict(f, b))";

@@ -750,3 +750,16 @@ Goal "{x:cons(a,B). P(x)} = \
 by (simp_tac (simpset() addsplits [split_if]) 1);
 by (Blast_tac 1);
 qed "Collect_cons";
+
+Goal "A Int Collect(A,P) = Collect(A,P)";
+by (Blast_tac 1); 
+qed "Int_Collect_self_eq";
+
+Goal "Collect(Collect(A,P), Q) = Collect(A, %x. P(x) & Q(x))";
+by (Blast_tac 1); 
+qed "Collect_Collect_eq";
+Addsimps [Collect_Collect_eq];
+
+Goal "Collect(A,P) Int Collect(A,Q) = Collect(A, %x. P(x) & Q(x))";
+by (Blast_tac 1); 
+qed "Collect_Int_Collect_eq";
