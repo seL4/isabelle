@@ -160,12 +160,13 @@ val delete_tmpfiles = ref true;
    structures inherit this value.)
 *)
 val gif_path = ref (tack_on ("/" ^
-  space_implode "/" (rev (tl (tl (rev (space_explode "/" (pwd ())))))))
+  space_implode "/" (rev (tl (tl (rev (space_explode "/" 
+				       (OS.FileSys.getDir ())))))))
   "Tools");
 
 (*Path of Isabelle's main directory*)
 val base_path = ref (
-  "/" ^ space_implode "/" (rev (tl (tl (rev (space_explode "/" (pwd ())))))));
+  "/" ^ space_implode "/" (rev (tl (tl (rev (space_explode "/" (OS.FileSys.getDir ())))))));
 
 
 (** HTML variables **)
@@ -181,7 +182,7 @@ val make_html = ref false;
 
 (*HTML file of theory currently being read
   (Initialized by thyfile2html; used by use_thy and store_thm)*)
-val cur_htmlfile = ref None : outstream option ref;
+val cur_htmlfile = ref None : TextIO.outstream option ref;
 
 (*Boolean variable which indicates if the title "Theorems proved in foo.ML"
   has already been inserted into the current HTML file*)
@@ -192,18 +193,18 @@ val cur_thyname = ref "";
 
 
 
-(*Make name of the output ML file for a theory *)
+(*Make name of the TextIO.output ML file for a theory *)
 fun out_name tname = "." ^ tname ^ ".thy.ML";
 
 (*Read a file specified by thy_file containing theory thy *)
 fun read_thy tname thy_file =
   let
-    val instream  = open_in thy_file;
-    val outstream = open_out (out_name tname);
+    val instream  = TextIO.openIn thy_file;
+    val outstream = TextIO.openOut (out_name tname);
   in
-    output (outstream, ThySyn.parse tname (input (instream, 999999)));
-    close_out outstream;
-    close_in instream
+    TextIO.output (outstream, ThySyn.parse tname (TextIO.inputAll instream));
+    TextIO.closeOut outstream;
+    TextIO.closeIn instream
   end;
 
 fun file_exists file = (file_info file <> "");
@@ -286,7 +287,7 @@ fun find_file "" name =
 fun get_filenames path name =
   let fun new_filename () =
         let val found = find_file path (name ^ ".thy");
-            val absolute_path = absolute_path (pwd ());
+            val absolute_path = absolute_path (OS.FileSys.getDir ());
             val thy_file = absolute_path found;
             val (thy_path, _) = split_filename thy_file;
             val found = find_file path (name ^ ".ML");
@@ -389,7 +390,7 @@ fun delete_thms tname =
     index_path: relative path to directory containing main theory chart
 *)
 fun mk_charthead file tname title repeats gif_path index_path package =
-  output (file,
+  TextIO.output (file,
    "<HTML><HEAD><TITLE>" ^ title ^ " of " ^ tname ^
    "</TITLE></HEAD>\n<H2>" ^ title ^ " of theory " ^ tname ^
    "</H2>\nThe name of every theory is linked to its theory file<BR>\n" ^
@@ -499,8 +500,8 @@ fun thyfile2html tpath tname =
 
     (** Make chart of super-theories **)
 
-    val sup_out = open_out (tack_on tpath ("." ^ tname ^ "_sup.html"));
-    val sub_out = open_out (tack_on tpath ("." ^ tname ^ "_sub.html"));
+    val sup_out = TextIO.openOut (tack_on tpath ("." ^ tname ^ "_sup.html"));
+    val sub_out = TextIO.openOut (tack_on tpath ("." ^ tname ^ "_sub.html"));
 
     (*Theories that already have been listed in this chart*)
     val listed = ref [];
@@ -528,7 +529,7 @@ fun thyfile2html tpath tname =
                 | mk_offset (l::ls) cur =
                     implode (replicate (l - cur) "    ") ^ "|   " ^
                     mk_offset ls (l+1);
-            in output (sup_out,
+            in TextIO.output (sup_out,
                  " " ^ mk_offset continued 0 ^
                  "\\__" ^ (if is_pure then t else
                              "<A HREF=\"" ^ tack_on rel_path ("." ^ t) ^
@@ -554,31 +555,31 @@ fun thyfile2html tpath tname =
           filter (fn s => s mem wanted_theories) (parents_of_name tname);
       in mk_entry relatives end;
   in if is_some (!cur_htmlfile) then
-       (close_out (the (!cur_htmlfile));
+       (TextIO.closeOut (the (!cur_htmlfile));
         warning "Last theory's HTML file has not been closed.")
      else ();
-     cur_htmlfile := Some (open_out (tack_on tpath ("." ^ tname ^ ".html")));
+     cur_htmlfile := Some (TextIO.openOut (tack_on tpath ("." ^ tname ^ ".html")));
      cur_has_title := false;
-     output (the (!cur_htmlfile), gettext (tack_on tpath tname ^ ".thy"));
+     TextIO.output (the (!cur_htmlfile), gettext (tack_on tpath tname ^ ".thy"));
 
      mk_charthead sup_out tname "Ancestors" true gif_path rel_index_path
                   package;
-     output(sup_out,
+     TextIO.output(sup_out,
        "<A HREF=\"." ^ tname ^ ".html\">" ^ tname ^ "</A> \
        \<A HREF = \"." ^ tname ^
        "_sub.html\"><IMG ALIGN=BOTTOM BORDER=0 SRC = \"" ^
        tack_on gif_path "red_arrow.gif\" ALT = \\/></A>\n");
      list_ancestors tname 0 [];
-     output (sup_out, "</PRE><HR></BODY></HTML>");
-     close_out sup_out;
+     TextIO.output (sup_out, "</PRE><HR></BODY></HTML>");
+     TextIO.closeOut sup_out;
 
      mk_charthead sub_out tname "Children" false gif_path rel_index_path
                   package;
-     output(sub_out,
+     TextIO.output(sub_out,
        "<A HREF=\"." ^ tname ^ ".html\">" ^ tname ^ "</A> \
        \<A HREF = \"." ^ tname ^ "_sup.html\"><IMG SRC = \"" ^
        tack_on gif_path "blue_arrow.gif\" BORDER=0 ALT = \\/></A>\n");
-     close_out sub_out
+     TextIO.closeOut sub_out
   end;
 
 (*Invoke every put method stored in a theory's methods table to initialize
@@ -694,11 +695,11 @@ fun use_thy1 tmp_loadpath_valid name =
 
                 val fname = tack_on path ("." ^ t ^ "_sub.html");
                 val out = if file_exists fname then
-                            open_append fname  handle e  =>
+                            TextIO.openAppend fname  handle e  =>
                               (warning ("Unable to write to file " ^
                                         fname); raise e)
                           else raise MK_HTML;
-            in output (out,
+            in TextIO.output (out,
                  " |\n \\__<A HREF=\"" ^
                  tack_on rel_path ("." ^ tname) ^ ".html\">" ^ tname ^
                  "</A> <A HREF = \"" ^ tpath ^ "_sub.html\">\
@@ -707,11 +708,11 @@ fun use_thy1 tmp_loadpath_valid name =
                  \<A HREF = \"" ^ tpath ^ "_sup.html\">\
                  \<IMG ALIGN=BOTTOM BORDER=0 SRC = \"" ^
                  tack_on gif_path "blue_arrow.gif\" ALT = /\\></A>\n");
-               close_out out
+               TextIO.closeOut out
             end;
  
           val theory_list =
-            open_append (tack_on (!index_path) ".theory_list.txt")
+            TextIO.openAppend (tack_on (!index_path) ".theory_list.txt")
               handle _ => (make_html := false;
                            writeln ("Warning: Cannot write to " ^
                                   (!index_path) ^ " while making HTML files.\n\
@@ -719,8 +720,8 @@ fun use_thy1 tmp_loadpath_valid name =
                                   \Call init_html() from within a \
                                   \writeable directory to reactivate it.");
                            raise MK_HTML)
-      in output (theory_list, tname ^ " " ^ abs_path ^ "\n");
-         close_out theory_list;
+      in TextIO.output (theory_list, tname ^ " " ^ abs_path ^ "\n");
+         TextIO.closeOut theory_list;
  
          robust_seq add_to_parents new_parents
       end
@@ -761,7 +762,7 @@ fun use_thy1 tmp_loadpath_valid name =
           in map store_thm_db axioms end;
 
           if not (!delete_tmpfiles) then ()
-          else delete_file (out_name tname);
+          else OS.FileSys.remove (out_name tname);
 
           if not (!make_html) then ()
           else thyfile2html abs_path tname
@@ -798,8 +799,8 @@ fun use_thy1 tmp_loadpath_valid name =
 
        (*Close HTML file*)
        case !cur_htmlfile of
-           Some out => (output (out, "<HR></BODY></HTML>\n");
-                        close_out out;
+           Some out => (TextIO.output (out, "<HR></BODY></HTML>\n");
+                        TextIO.closeOut out;
                         cur_htmlfile := None)
          | None => ()
       )
@@ -1064,7 +1065,7 @@ val theory_of_thm = theory_of_sign o #sign o rep_thm;
 fun mk_theorems_title out =
   if not (!cur_has_title) then
     (cur_has_title := true;
-     output (out, "<HR><H2>Theorems proved in <A HREF = \"" ^
+     TextIO.output (out, "<HR><H2>Theorems proved in <A HREF = \"" ^
                   (!cur_thyname) ^ ".ML\">" ^ (!cur_thyname) ^
                   ".ML</A>:</H2>\n"))
   else ();
@@ -1095,10 +1096,10 @@ fun store_thm (name, thm) =
       in case !cur_htmlfile of
              Some out =>
                (mk_theorems_title out;
-                output (out, "<DD><EM>" ^ name ^ "</EM>\n<PRE>" ^
+                TextIO.output (out, "<DD><EM>" ^ name ^ "</EM>\n<PRE>" ^
                              escape 
-			      (explode 
-			       (string_of_thm (#1 (freeze_thaw thm)))) ^
+                              (explode 
+                               (string_of_thm (#1 (freeze_thaw thm)))) ^
                              "</PRE><P>\n")
                )
            | None => ()
@@ -1173,16 +1174,16 @@ val thms_of = Symtab.dest o thmtab_of_thy;
 
 (*Init HTML generator by setting paths and creating new files*)
 fun init_html () =
-  let val cwd = pwd();
+  let val cwd = OS.FileSys.getDir();
 
-      val theory_list = close_out (open_out ".theory_list.txt");
+      val theory_list = TextIO.closeOut (TextIO.openOut ".theory_list.txt");
 
       val rel_gif_path = relative_path cwd (!gif_path);
 
       (*Make new HTML files for Pure and CPure*)
       fun init_pure_html () =
-        let val pure_out = open_out ".Pure_sub.html";
-            val cpure_out = open_out ".CPure_sub.html";
+        let val pure_out = TextIO.openOut ".Pure_sub.html";
+            val cpure_out = TextIO.openOut ".CPure_sub.html";
             val package =
               if cwd subdir_of (!base_path) then
                 relative_path (!base_path) cwd
@@ -1191,10 +1192,10 @@ fun init_html () =
                         package;
            mk_charthead cpure_out "CPure" "Children" false rel_gif_path ""
                         package;
-           output (pure_out, "Pure\n");
-           output (cpure_out, "CPure\n");
-           close_out pure_out;
-           close_out cpure_out;
+           TextIO.output (pure_out, "Pure\n");
+           TextIO.output (cpure_out, "CPure\n");
+           TextIO.closeOut pure_out;
+           TextIO.closeOut cpure_out;
            pure_subchart := Some cwd
         end;
   in make_html := true;
@@ -1202,9 +1203,9 @@ fun init_html () =
 
      (*Make sure that base_path contains the physical path and no
        symbolic links*)
-     cd (!base_path);
-     base_path := pwd();
-     cd cwd;
+     OS.FileSys.chDir (!base_path);
+     base_path := OS.FileSys.getDir();
+     OS.FileSys.chDir cwd;
 
      if cwd subdir_of (!base_path) then ()
      else warning "The current working directory seems to be no \
@@ -1221,9 +1222,9 @@ fun init_html () =
 (*Generate index.html*)
 fun finish_html () = if not (!make_html) then () else
   let val tlist_path = tack_on (!index_path) ".theory_list.txt";
-      val theory_list = open_in tlist_path;
-      val theories = space_explode "\n" (input (theory_list, 999999));
-      val dummy = (close_in theory_list; delete_file tlist_path);
+      val theory_list = TextIO.openIn tlist_path;
+      val theories = space_explode "\n" (TextIO.inputAll theory_list);
+      val dummy = (TextIO.closeIn theory_list; OS.FileSys.remove tlist_path);
 
       val gif_path = relative_path (!index_path) (!gif_path);
 
@@ -1243,7 +1244,7 @@ fun finish_html () = if not (!make_html) then () else
            ".html\">" ^ tname ^ "</A><BR>\n"
         end;
 
-      val out = open_out (tack_on (!index_path) "index.html");
+      val out = TextIO.openOut (tack_on (!index_path) "index.html");
 
       (*Find out in which subdirectory of Isabelle's main directory the
         index.html is placed; if index_path is no subdirectory of base_path
@@ -1269,25 +1270,25 @@ fun finish_html () = if not (!make_html) then () else
 
       (*Add link to current directory to 'super' index.html*)
       fun link_directory () =
-        let val old_index = open_in (super_index ^ "/index.html");
-            val content = rev (explode (input (old_index, 999999)));
-            val dummy = close_in old_index;
+        let val old_index = TextIO.openIn (super_index ^ "/index.html");
+            val content = rev (explode (TextIO.inputAll old_index));
+            val dummy = TextIO.closeIn old_index;
 
-            val out = open_append (super_index ^ "/index.html");
+            val out = TextIO.openAppend (super_index ^ "/index.html");
             val rel_path = space_implode "/" (drop (level, subdirs));
         in 
-           output (out,
+           TextIO.output (out,
              (if nth_elem (3, content) <> "!" then ""
               else "\n<HR><H3>Subdirectories:</H3>\n") ^
              "<H3><A HREF = \"" ^ rel_path ^ "/index.html\">" ^ rel_path ^
              "</A></H3>\n");
-           close_out out
+           TextIO.closeOut out
         end;
 
      (*If index_path is no subdirectory of base_path then the title should
        not contain the string "Isabelle/"*)
      val title = (if inside_isabelle then "Isabelle/" else "") ^ subdir;
-  in output (out,
+  in TextIO.output (out,
        "<HTML><HEAD><TITLE>" ^ title ^ "</TITLE></HEAD>\n\
        \<BODY><H2>" ^ title ^ "</H2>\n\
        \The name of every theory is linked to its theory file<BR>\n\
@@ -1309,7 +1310,7 @@ fun finish_html () = if not (!make_html) then () else
           "<BR>View the <A HREF = \"README\">ReadMe</A> file.\n"
         else "") ^
        "<HR>" ^ implode (map main_entry theories) ^ "<!-->");
-     close_out out;
+     TextIO.closeOut out;
      if super_index = "" orelse (inside_isabelle andalso level = 0) then ()
         else link_directory ()
   end;
@@ -1318,7 +1319,7 @@ fun finish_html () = if not (!make_html) then () else
 fun section s =
   case !cur_htmlfile of
       Some out => (mk_theorems_title out;
-                   output (out, "<H3>" ^ s ^ "</H3>\n"))
+                   TextIO.output (out, "<H3>" ^ s ^ "</H3>\n"))
     | None => ();
 
 
@@ -1354,7 +1355,7 @@ fun add_thydata tname (new_methods as (id, ThyMethods {get, ...})) =
 
 (*Add file to thy_reader_files list*)
 fun set_thy_reader_file file =
-  let val file' = absolute_path (pwd ()) file;
+  let val file' = absolute_path (OS.FileSys.getDir ()) file;
   in thy_reader_files := file' :: (!thy_reader_files) end;
 
 (*Add file and also 'use' it*)
@@ -1377,12 +1378,12 @@ fun get_thydata tname id =
 local
 
   fun gen_use_dir use_cmd dirname =
-    let val old_dir = pwd ();
-    in cd dirname;
+    let val old_dir = OS.FileSys.getDir ();
+    in OS.FileSys.chDir dirname;
        if !make_html then init_html() else ();
        use_cmd "ROOT.ML";
        finish_html();
-       cd old_dir
+       OS.FileSys.chDir old_dir
     end;
 
 in

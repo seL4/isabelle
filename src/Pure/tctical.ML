@@ -1,6 +1,6 @@
-(*  Title: 	tctical
+(*  Title:      tctical
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Tacticals
@@ -15,53 +15,53 @@ infix 0 THEN_ELSE;
 signature TACTICAL =
   sig
   type tactic  (* = thm -> thm Sequence.seq*)
-  val all_tac		: tactic
-  val ALLGOALS		: (int -> tactic) -> tactic   
-  val APPEND		: tactic * tactic -> tactic
-  val APPEND'		: ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
-  val CHANGED		: tactic -> tactic
-  val COND		: (thm -> bool) -> tactic -> tactic -> tactic   
-  val DETERM		: tactic -> tactic
-  val EVERY		: tactic list -> tactic   
-  val EVERY'		: ('a -> tactic) list -> 'a -> tactic
-  val EVERY1		: (int -> tactic) list -> tactic
-  val FILTER		: (thm -> bool) -> tactic -> tactic
-  val FIRST		: tactic list -> tactic   
-  val FIRST'		: ('a -> tactic) list -> 'a -> tactic
-  val FIRST1		: (int -> tactic) list -> tactic
-  val FIRSTGOAL		: (int -> tactic) -> tactic
-  val goals_limit	: int ref
-  val INTLEAVE		: tactic * tactic -> tactic
-  val INTLEAVE'		: ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
-  val METAHYPS		: (thm list -> tactic) -> int -> tactic
-  val no_tac		: tactic
-  val ORELSE		: tactic * tactic -> tactic
-  val ORELSE'		: ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
-  val pause_tac		: tactic
-  val print_tac		: tactic
-  val REPEAT		: tactic -> tactic
-  val REPEAT1		: tactic -> tactic
-  val REPEAT_DETERM_N	: int -> tactic -> tactic
-  val REPEAT_DETERM	: tactic -> tactic
-  val REPEAT_DETERM1	: tactic -> tactic
+  val all_tac           : tactic
+  val ALLGOALS          : (int -> tactic) -> tactic   
+  val APPEND            : tactic * tactic -> tactic
+  val APPEND'           : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
+  val CHANGED           : tactic -> tactic
+  val COND              : (thm -> bool) -> tactic -> tactic -> tactic   
+  val DETERM            : tactic -> tactic
+  val EVERY             : tactic list -> tactic   
+  val EVERY'            : ('a -> tactic) list -> 'a -> tactic
+  val EVERY1            : (int -> tactic) list -> tactic
+  val FILTER            : (thm -> bool) -> tactic -> tactic
+  val FIRST             : tactic list -> tactic   
+  val FIRST'            : ('a -> tactic) list -> 'a -> tactic
+  val FIRST1            : (int -> tactic) list -> tactic
+  val FIRSTGOAL         : (int -> tactic) -> tactic
+  val goals_limit       : int ref
+  val INTLEAVE          : tactic * tactic -> tactic
+  val INTLEAVE'         : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
+  val METAHYPS          : (thm list -> tactic) -> int -> tactic
+  val no_tac            : tactic
+  val ORELSE            : tactic * tactic -> tactic
+  val ORELSE'           : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
+  val pause_tac         : tactic
+  val print_tac         : tactic
+  val REPEAT            : tactic -> tactic
+  val REPEAT1           : tactic -> tactic
+  val REPEAT_DETERM_N   : int -> tactic -> tactic
+  val REPEAT_DETERM     : tactic -> tactic
+  val REPEAT_DETERM1    : tactic -> tactic
   val REPEAT_DETERM_FIRST: (int -> tactic) -> tactic
   val REPEAT_DETERM_SOME: (int -> tactic) -> tactic
-  val REPEAT_FIRST	: (int -> tactic) -> tactic
-  val REPEAT_SOME	: (int -> tactic) -> tactic
-  val SELECT_GOAL	: tactic -> int -> tactic
-  val SOMEGOAL		: (int -> tactic) -> tactic   
-  val STATE		: (thm -> tactic) -> tactic
-  val strip_context	: term -> (string * typ) list * term list * term
-  val SUBGOAL		: ((term*int) -> tactic) -> int -> tactic
-  val suppress_tracing	: bool ref
-  val THEN		: tactic * tactic -> tactic
-  val THEN'		: ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
-  val THEN_ELSE		: tactic * (tactic*tactic) -> tactic
-  val traced_tac	: (thm -> (thm * thm Sequence.seq) option) -> tactic
-  val tracify		: bool ref -> tactic -> thm -> thm Sequence.seq
-  val trace_REPEAT	: bool ref
-  val TRY		: tactic -> tactic
-  val TRYALL		: (int -> tactic) -> tactic   
+  val REPEAT_FIRST      : (int -> tactic) -> tactic
+  val REPEAT_SOME       : (int -> tactic) -> tactic
+  val SELECT_GOAL       : tactic -> int -> tactic
+  val SOMEGOAL          : (int -> tactic) -> tactic   
+  val STATE             : (thm -> tactic) -> tactic
+  val strip_context     : term -> (string * typ) list * term list * term
+  val SUBGOAL           : ((term*int) -> tactic) -> int -> tactic
+  val suppress_tracing  : bool ref
+  val THEN              : tactic * tactic -> tactic
+  val THEN'             : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
+  val THEN_ELSE         : tactic * (tactic*tactic) -> tactic
+  val traced_tac        : (thm -> (thm * thm Sequence.seq) option) -> tactic
+  val tracify           : bool ref -> tactic -> thm -> thm Sequence.seq
+  val trace_REPEAT      : bool ref
+  val TRY               : tactic -> tactic
+  val TRYALL            : (int -> tactic) -> tactic   
   end;
 
 
@@ -91,7 +91,7 @@ fun (tac1 THEN tac2) st = Sequence.flats (Sequence.maps tac2 (tac1 st));
   Does not backtrack to tac2 if tac1 was initially chosen. *)
 fun (tac1 ORELSE tac2) st =
     case Sequence.pull(tac1 st) of
-	None       => tac2 st
+        None       => tac2 st
       | sequencecell => Sequence.seqof(fn()=> sequencecell);
 
 
@@ -100,22 +100,22 @@ fun (tac1 ORELSE tac2) st =
   The tactic tac2 is not applied until needed.*)
 fun (tac1 APPEND tac2) st = 
   Sequence.append(tac1 st,
-		  Sequence.seqof(fn()=> Sequence.pull (tac2 st)));
+                  Sequence.seqof(fn()=> Sequence.pull (tac2 st)));
 
 (*Like APPEND, but interleaves results of tac1 and tac2.*)
 fun (tac1 INTLEAVE tac2) st = 
     Sequence.interleave(tac1 st,
-			Sequence.seqof(fn()=> Sequence.pull (tac2 st)));
+                        Sequence.seqof(fn()=> Sequence.pull (tac2 st)));
 
 (*Conditional tactic.
-	tac1 ORELSE tac2 = tac1 THEN_ELSE (all_tac, tac2)
-	tac1 THEN tac2   = tac1 THEN_ELSE (tac2, no_tac)
+        tac1 ORELSE tac2 = tac1 THEN_ELSE (all_tac, tac2)
+        tac1 THEN tac2   = tac1 THEN_ELSE (tac2, no_tac)
 *)
 fun (tac THEN_ELSE (tac1, tac2)) st = 
     case Sequence.pull(tac st) of
-	None    => tac2 st		(*failed; try tactic 2*)
-      | seqcell => Sequence.flats 	(*succeeded; use tactic 1*)
-	            (Sequence.maps tac1 (Sequence.seqof(fn()=> seqcell)));
+        None    => tac2 st              (*failed; try tactic 2*)
+      | seqcell => Sequence.flats       (*succeeded; use tactic 1*)
+                    (Sequence.maps tac1 (Sequence.seqof(fn()=> seqcell)));
 
 
 (*Versions for combining tactic-valued functions, as in
@@ -135,7 +135,7 @@ fun no_tac st  = Sequence.null;
 (*Make a tactic deterministic by chopping the tail of the proof sequence*)
 fun DETERM tac st =  
       case Sequence.pull (tac st) of
-	      None => Sequence.null
+              None => Sequence.null
             | Some(x,_) => Sequence.cons(x, Sequence.null);
 
 
@@ -182,7 +182,7 @@ val print_tac =
 (*Pause until a line is typed -- if non-empty then fail. *)
 fun pause_tac st =  
   (prs"** Press RETURN to continue: ";
-   if input(std_in,1) = "\n" then Sequence.single st
+   if TextIO.inputLine TextIO.stdIn = "\n" then Sequence.single st
    else (prs"Goodbye\n";  Sequence.null));
 
 exception TRACE_EXIT of thm
@@ -194,7 +194,7 @@ and suppress_tracing = ref false;
 
 (*Handle all tracing commands for current state and tactic *)
 fun exec_trace_command flag (tac, st) = 
-   case input_line(std_in) of
+   case TextIO.inputLine(TextIO.stdIn) of
        "\n" => tac st
      | "f\n" => Sequence.null
      | "o\n" => (flag:=false;  tac st)
@@ -215,15 +215,15 @@ fun exec_trace_command flag (tac, st) =
 fun tracify flag tac st =
   if !flag andalso not (!suppress_tracing)
            then (!print_goals_ref (!goals_limit) st;  
-		 prs"** Press RETURN to continue: ";
-		 exec_trace_command flag (tac,st))
+                 prs"** Press RETURN to continue: ";
+                 exec_trace_command flag (tac,st))
   else tac st;
 
 (*Create a tactic whose outcome is given by seqf, handling TRACE_EXIT*)
 fun traced_tac seqf st = 
     (suppress_tracing := false;
      Sequence.seqof (fn()=> seqf st
-		         handle TRACE_EXIT st' => Some(st', Sequence.null)));
+                         handle TRACE_EXIT st' => Some(st', Sequence.null)));
 
 
 (*Deterministic REPEAT: only retains the first outcome; 
@@ -232,10 +232,10 @@ fun traced_tac seqf st =
 fun REPEAT_DETERM_N n tac = 
   let val tac = tracify trace_REPEAT tac
       fun drep 0 st = Some(st, Sequence.null)
-	| drep n st =
-	   (case Sequence.pull(tac st) of
-		None       => Some(st, Sequence.null)
-	      | Some(st',_) => drep (n-1) st')
+        | drep n st =
+           (case Sequence.pull(tac st) of
+                None       => Some(st, Sequence.null)
+              | Some(st',_) => drep (n-1) st')
   in  traced_tac (drep n)  end;
 
 (*Allows any number of repetitions*)
@@ -245,12 +245,12 @@ val REPEAT_DETERM = REPEAT_DETERM_N ~1;
 fun REPEAT tac = 
   let val tac = tracify trace_REPEAT tac
       fun rep qs st = 
-	case Sequence.pull(tac st) of
-  	    None       => Some(st, Sequence.seqof(fn()=> repq qs))
+        case Sequence.pull(tac st) of
+            None       => Some(st, Sequence.seqof(fn()=> repq qs))
           | Some(st',q) => rep (q::qs) st'
       and repq [] = None
         | repq(q::qs) = case Sequence.pull q of
-  	    None       => repq qs
+            None       => repq qs
           | Some(st,q) => rep (q::qs) st
   in  traced_tac (rep [])  end;
 
@@ -276,13 +276,13 @@ fun CHANGED tac st =
   Essential to work backwards since tac(i) may add/delete subgoals at i. *)
 fun ALLGOALS tac st = 
   let fun doall 0 = all_tac
-	| doall n = tac(n) THEN doall(n-1)
+        | doall n = tac(n) THEN doall(n-1)
   in  doall(nprems_of st)st  end;
 
 (*For n subgoals, performs tac(n) ORELSE ... ORELSE tac(1)  *)
 fun SOMEGOAL tac st = 
   let fun find 0 = no_tac
-	| find n = tac(n) ORELSE find(n-1)
+        | find n = tac(n) ORELSE find(n-1)
   in  find(nprems_of st)st  end;
 
 (*For n subgoals, performs tac(1) ORELSE ... ORELSE tac(n).
@@ -334,9 +334,9 @@ fun eq_trivial ct =
       val ct_eq_x = mk_prop_equals (ct, xfree)
       and refl_ct = reflexive ct
       fun restore th = 
-	  implies_elim 
-	    (forall_elim ct (forall_intr xfree (implies_intr ct_eq_x th)))
-	    refl_ct
+          implies_elim 
+            (forall_elim ct (forall_intr xfree (implies_intr ct_eq_x th)))
+            refl_ct
   in  (equal_elim
          (combination (combination refl_implies refl_ct) (assume ct_eq_x))
          (trivial ct),
@@ -348,7 +348,7 @@ fun eq_trivial ct =
 fun select tac st0 i =
   let val cprem::_ = drop(i-1, cprems_of st0)
       val (eq_cprem, restore) = (*we hope maxidx goes to ~1*)
-	                        eq_trivial (adjust_maxidx cprem)
+                                eq_trivial (adjust_maxidx cprem)
       fun next st = bicompose false (false, restore st, nprems_of st) i st0
   in  Sequence.flats (Sequence.maps next (tac eq_cprem))
   end;
@@ -361,13 +361,13 @@ val dummy_quant_rl =
 (* Prevent the subgoal's assumptions from becoming additional subgoals in the
    new proof state by enclosing them by a universal quantification *)
 fun protect_subgoal st i =
-	Sequence.hd (bicompose false (false,dummy_quant_rl,1) i st)
-	handle _ => error"SELECT_GOAL -- impossible error???";
+        Sequence.hd (bicompose false (false,dummy_quant_rl,1) i st)
+        handle _ => error"SELECT_GOAL -- impossible error???";
 
 fun SELECT_GOAL tac i st = 
   case (i, drop(i-1, prems_of st)) of
       (_,[]) => Sequence.null
-    | (1,[_]) => tac st		(*If i=1 and only one subgoal do nothing!*)
+    | (1,[_]) => tac st         (*If i=1 and only one subgoal do nothing!*)
     | (_, (Const("==>",_)$_$_) :: _) => select tac (protect_subgoal st i) i
     | (_, _::_) => select tac st i;
 
@@ -377,10 +377,10 @@ fun SELECT_GOAL tac i st =
   Main difference from strip_assums concerns parameters: 
     it replaces the bound variables by free variables.  *)
 fun strip_context_aux (params, Hs, Const("==>", _) $ H $ B) = 
-	strip_context_aux (params, H::Hs, B)
+        strip_context_aux (params, H::Hs, B)
   | strip_context_aux (params, Hs, Const("all",_)$Abs(a,T,t)) =
         let val (b,u) = variant_abs(a,T,t)
-	in  strip_context_aux ((b,T)::params, Hs, u)  end
+        in  strip_context_aux ((b,T)::params, Hs, u)  end
   | strip_context_aux (params, Hs, B) = (rev params, rev Hs, B);
 
 fun strip_context A = strip_context_aux ([],[],A);
@@ -409,7 +409,7 @@ local
 
   fun free_of s ((a,i), T) =
         Free(s ^ (case i of 0 => a | _ => a ^ "_" ^ string_of_int i),
-	     T)
+             T)
 
   fun mk_inst (var as Var(v,T))  = (var,  free_of "METAHYP1_" (v,T))
 in
@@ -431,17 +431,17 @@ fun metahyps_aux_tac tacf (prem,i) state =
       (*Subgoal variables: make Free; lift type over params*)
       fun mk_subgoal_inst concl_vars (var as Var(v,T)) = 
           if var mem concl_vars 
-	  then (var, true, free_of "METAHYP2_" (v,T))
-	  else (var, false,
-		free_of "METAHYP2_" (v, map #2 params --->T))
+          then (var, true, free_of "METAHYP2_" (v,T))
+          else (var, false,
+                free_of "METAHYP2_" (v, map #2 params --->T))
       (*Instantiate subgoal vars by Free applied to params*)
       fun mk_ctpair (t,in_concl,u) = 
-	  if in_concl then (cterm t,  cterm u)
+          if in_concl then (cterm t,  cterm u)
           else (cterm t,  cterm (list_comb (u,fparams)))
       (*Restore Vars with higher type and index*)
       fun mk_subgoal_swap_ctpair 
-		(t as Var((a,i),_), in_concl, u as Free(_,U)) = 
-	  if in_concl then (cterm u, cterm t)
+                (t as Var((a,i),_), in_concl, u as Free(_,U)) = 
+          if in_concl then (cterm u, cterm t)
           else (cterm u, cterm(Var((a, i+maxidx), U)))
       (*Embed B in the original context of params and hyps*)
       fun embed B = list_all_free (params, Logic.list_implies (hyps, B))
@@ -449,34 +449,34 @@ fun metahyps_aux_tac tacf (prem,i) state =
       fun elim Bhyp = implies_elim_list (forall_elim_list cparams Bhyp) hypths
       (*Embed an ff pair in the original params*)
       fun embed_ff(t,u) = Logic.mk_flexpair (list_abs_free (params, t), 
-					     list_abs_free (params, u))
+                                             list_abs_free (params, u))
       (*Remove parameter abstractions from the ff pairs*)
       fun elim_ff ff = flexpair_abs_elim_list cparams ff
       (*A form of lifting that discharges assumptions.*)
       fun relift st = 
-	let val prop = #prop(rep_thm st)
-	    val subgoal_vars = (*Vars introduced in the subgoals*)
-		  foldr add_term_vars (Logic.strip_imp_prems prop, [])
-	    and concl_vars = add_term_vars (Logic.strip_imp_concl prop, [])
-	    val subgoal_insts = map (mk_subgoal_inst concl_vars) subgoal_vars
-	    val st' = instantiate ([], map mk_ctpair subgoal_insts) st
-	    val emBs = map (cterm o embed) (prems_of st')
+        let val prop = #prop(rep_thm st)
+            val subgoal_vars = (*Vars introduced in the subgoals*)
+                  foldr add_term_vars (Logic.strip_imp_prems prop, [])
+            and concl_vars = add_term_vars (Logic.strip_imp_concl prop, [])
+            val subgoal_insts = map (mk_subgoal_inst concl_vars) subgoal_vars
+            val st' = instantiate ([], map mk_ctpair subgoal_insts) st
+            val emBs = map (cterm o embed) (prems_of st')
             and ffs = map (cterm o embed_ff) (tpairs_of st')
-	    val Cth  = implies_elim_list st' 
-			    (map (elim_ff o assume) ffs @
-			     map (elim o assume) emBs)
-	in  (*restore the unknowns to the hypotheses*)
-	    free_instantiate (map swap_ctpair insts @
-			      map mk_subgoal_swap_ctpair subgoal_insts)
-		(*discharge assumptions from state in same order*)
-		(implies_intr_list (ffs@emBs)
-		  (forall_intr_list cparams (implies_intr_list chyps Cth)))
-	end
+            val Cth  = implies_elim_list st' 
+                            (map (elim_ff o assume) ffs @
+                             map (elim o assume) emBs)
+        in  (*restore the unknowns to the hypotheses*)
+            free_instantiate (map swap_ctpair insts @
+                              map mk_subgoal_swap_ctpair subgoal_insts)
+                (*discharge assumptions from state in same order*)
+                (implies_intr_list (ffs@emBs)
+                  (forall_intr_list cparams (implies_intr_list chyps Cth)))
+        end
       val subprems = map (forall_elim_vars 0) hypths
       and st0 = trivial (cterm concl)
       (*function to replace the current subgoal*)
       fun next st = bicompose false (false, relift st, nprems_of st)
-	            i state
+                    i state
   in  Sequence.flats (Sequence.maps next (tacf subprems st0))
   end;
 end;
