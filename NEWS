@@ -143,7 +143,7 @@ for 'intros' (was found too confusing);
 * HOL: properly declared induction rules less_induct and
 wf_induct_rule;
 
-* HOLCF: domain package adapted to new-style theories, e.g. see
+* HOLCF: domain package adapted to new-style theory format, e.g. see
 HOLCF/ex/Dnat.thy;
 
 * ZF: proper integration of logic-specific tools and packages,
@@ -245,9 +245,9 @@ renamed "Product_Type.unit";
 * HOL/GroupTheory: group theory examples including Sylow's theorem (by
 Florian Kammüller);
 
-* HOL/IMP: updated and converted to new-style theory; several parts
-turned into readable document, with proper Isar proof texts and some
-explanations (by Gerwin Klein);
+* HOL/IMP: updated and converted to new-style theory format; several
+parts turned into readable document, with proper Isar proof texts and
+some explanations (by Gerwin Klein);
 
 
 *** HOLCF ***
@@ -267,8 +267,11 @@ theory on Main_ZFC;
 * ZF/UNITY: Chandy and Misra's UNITY is now available in ZF, giving a
 typeless version of the formalism;
 
+* ZF/IMP: updated and converted to new-style theory format;
+
 * ZF/Induct: new directory for examples of inductive definitions,
-including theory Multiset for multiset orderings;
+including theory Multiset for multiset orderings; converted to
+new-style theory format;
 
 * ZF: the integer library now covers quotients and remainders, with
 many laws relating division to addition, multiplication, etc.;
