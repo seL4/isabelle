@@ -439,16 +439,24 @@ val ins_used = foldl_types (foldl_atyps
     | (used, TVar ((x, _), _)) => x ins used
     | (used, _) => used));
 
+fun ins_skolem def_type = foldr
+  (fn ((x, x'), types) =>
+    (case def_type x' of
+      Some T => Vartab.update (((x, ~1), T), types)
+    | None => types));
+
 fun map_defaults f = map_context
   (fn (thy, data, asms, binds, thms, defs) => (thy, data, asms, binds, thms, f defs));
 
-fun declare (ctxt, t) =
+fun declare (ctxt as Context {asms = (_, (fixes, _)), ...}, t) =
   ctxt
   |> map_defaults (fn (types, sorts, maxidx, used) => (ins_types (types, t), sorts, maxidx, used))
   |> map_defaults (fn (types, sorts, maxidx, used) => (types, ins_sorts (sorts, t), maxidx, used))
   |> map_defaults (fn (types, sorts, maxidx, used) => (types, sorts, maxidx, ins_used (used, t)))
   |> map_defaults (fn (types, sorts, maxidx, used) =>
-      (types, sorts, Int.max (maxidx, Term.maxidx_of_term t), used));
+      (types, sorts, Int.max (maxidx, Term.maxidx_of_term t), used))
+  |> map_defaults (fn (types, sorts, maxidx, used) =>
+      (ins_skolem (fn x => Vartab.lookup (types, (x, ~1))) (fixes, types), sorts, maxidx, used));
 
 
 fun declare_term t ctxt = declare (ctxt, t);
@@ -495,9 +503,10 @@ val add_binds_i = gen_binds cert_term;
 
 fun prep_declare_match (prep_pat, prep) (ctxt, (raw_pats, raw_t)) =
   let
-    val pats = map (prep_pat ctxt) raw_pats;		(* FIXME seq / par / simult (??) *)
     val t = prep ctxt raw_t;
-  in (ctxt |> declare_term t, (map (rpair t) pats, t)) end;
+    val ctxt' = ctxt |> declare_term t;
+    val pats = map (prep_pat ctxt') raw_pats;		(* FIXME seq / par / simult (??) *)
+  in (ctxt', (map (rpair t) pats, t)) end;
 
 fun gen_match_binds _ [] ctxt = ctxt
   | gen_match_binds prepp raw_pairs ctxt =
