@@ -8,7 +8,7 @@ Instantiation of the generic simplifier for HOL.
 
 section "Simplifier";
 
-(*** Addition of rules to simpsets and clasets simultaneously ***)
+(*** Addition of rules to simpsets and clasets simultaneously ***)	(* FIXME move to Provers/clasimp.ML? *)
 
 infix 4 addIffs delIffs;
 
@@ -54,6 +54,38 @@ val op addIffs = foldl addIff;
 val op delIffs = foldl delIff;
 fun AddIffs thms = store_clasimp ((claset (), simpset ()) addIffs thms);
 fun DelIffs thms = store_clasimp ((claset (), simpset ()) delIffs thms);
+end;
+
+
+(* "iff" attribute *)
+
+local
+  fun change_global_css f (thy, th) =
+    let
+      val cs_ref = Classical.claset_ref_of thy;
+      val ss_ref = Simplifier.simpset_ref_of thy;
+      val (cs', ss') = f ((! cs_ref, ! ss_ref), [th]);
+    in cs_ref := cs'; ss_ref := ss'; (thy, th) end;
+
+  fun change_local_css f (ctxt, th) =
+    let
+      val cs = Classical.get_local_claset ctxt;
+      val ss = Simplifier.get_local_simpset ctxt;
+      val (cs', ss') = f ((cs, ss), [th]);
+      val ctxt' =
+        ctxt
+        |> Classical.put_local_claset cs'
+        |> Simplifier.put_local_simpset ss';
+    in (ctxt', th) end;
+in
+
+val iff_add_global = change_global_css (op addIffs);
+val iff_add_local = change_local_css (op addIffs);
+
+val simpdata_setup =
+  [Attrib.add_attributes [("iff", (Attrib.no_args iff_add_global, Attrib.no_args iff_add_local),
+    "add rules to simpset and claset simultaneously")]];
+
 end;
 
 
