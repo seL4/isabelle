@@ -33,6 +33,7 @@
 \newcommand{\I@optmeth}[1]{\ifthenelse{\equal{}{#1}}{}{~(#1)}}
 
 \newcommand{\AND}{\isarkeyword{and}}
+\newcommand{\IN}{\isarkeyword{in}}
 \newcommand{\COROLLARYNAME}{\isarkeyword{corollary}}
 \newcommand{\LEMMANAME}{\isarkeyword{lemma}}
 \newcommand{\THEOREMNAME}{\isarkeyword{theorem}}
@@ -40,6 +41,11 @@
 \newcommand{\FROMNAME}{\isarkeyword{from}}
 \newcommand{\WITHNAME}{\isarkeyword{with}}
 \newcommand{\USINGNAME}{\isarkeyword{using}}
+\newcommand{\FIXESNAME}{\isarkeyword{fixes}}
+\newcommand{\ASSUMESNAME}{\isarkeyword{assumes}}
+\newcommand{\DEFINESNAME}{\isarkeyword{defines}}
+\newcommand{\NOTESNAME}{\isarkeyword{notes}}
+\newcommand{\INCLUDESNAME}{\isarkeyword{includes}}
 \newcommand{\FIXNAME}{\isarkeyword{fix}}
 \newcommand{\ASSUMENAME}{\isarkeyword{assume}}
 \newcommand{\PRESUMENAME}{\isarkeyword{presume}}
@@ -70,12 +76,20 @@
 \newcommand{\AXCLASS}{\isarkeyword{axclass}}
 \newcommand{\INSTANCE}{\isarkeyword{instance}}
 \newcommand{\DECLARE}{\isarkeyword{declare}}
+\newcommand{\LEMMAS}{\isarkeyword{lemmas}}
+\newcommand{\THEOREMS}{\isarkeyword{theorems}}
+\newcommand{\LOCALE}{\isarkeyword{locale}}
 \newcommand{\TEXT}{\isarkeyword{text}}
 \newcommand{\TXT}{\isarkeyword{txt}}
 \newcommand{\NOTE}[2]{\NOTENAME~\ifthenelse{\equal{}{#1}}{}{#1=}#2}
 \newcommand{\FROM}[1]{\FROMNAME~#1}
 \newcommand{\WITH}[1]{\WITHNAME~#1}
 \newcommand{\USING}[1]{\USINGNAME~#1}
+\newcommand{\FIXES}[1]{\FIXESNAME~#1}
+\newcommand{\ASSUMES}[2]{\ASSUMESNAME\I@optname{#1}~#2}
+\newcommand{\DEFINES}[2]{\DEFINESNAME\I@optname{#1}~#2}
+\newcommand{\NOTES}[2]{\NOTESNAME~\ifthenelse{\equal{}{#1}}{}{#1=}#2}
+\newcommand{\INCLUDES}[1]{\INCLUDESNAME~#1}
 \newcommand{\FIX}[1]{\FIXNAME~#1}
 \newcommand{\ASSUME}[2]{\ASSUMENAME\I@optname{#1}~#2}
 \newcommand{\PRESUME}[2]{\PRESUMENAME\I@optname{#1}~#2}
