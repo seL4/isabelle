@@ -318,11 +318,15 @@ fun add_constdefs_i args = gen_add_constdefs Theory.add_consts_i add_defs_i args
 
 (* theorems *)
 
+local
+
 fun prep_thmss get attrib = map (fn ((name, more_srcs), th_srcs) =>
   ((name, map attrib more_srcs), map (fn (s, srcs) => (get s, map attrib srcs)) th_srcs));
 
 fun flat_unnamed (x, ys) = (x, flat (map snd ys));
 fun cond_kind k = if k = "" then [] else [Drule.kind k];
+
+in
 
 fun global_have_thmss kind f args thy =
   let
@@ -359,6 +363,8 @@ fun have_theorems_i kind =
 
 val have_facts = ProofHistory.apply o local_have_thmss Proof.have_thmss o map Comment.ignore;
 val have_facts_i = ProofHistory.apply o gen_have_thmss_i Proof.have_thmss o map Comment.ignore;
+
+end;
 
 
 (* forward chaining *)
