@@ -51,7 +51,7 @@ fun action_rewrite th = (rewrite_rule action_rews (th RS inteq_reflection));
 *)
 fun maybe_unlift th =
     (case concl_of th of
-         Const("TrueInt",_) $ p 
+         Const("Intensional.TrueInt",_) $ p 
            => (action_unlift th
                   handle _ => int_unlift th)
        | _ => th);

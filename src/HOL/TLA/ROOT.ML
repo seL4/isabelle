@@ -12,6 +12,8 @@ val banner = "Temporal Logic of Actions";
 *)
 Syntax.ambiguity_level := 10000;
 
+reset global_names;
+
 use_thy "TLA";
 
 val TLA_build_completed = ();

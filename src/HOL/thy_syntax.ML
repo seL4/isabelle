@@ -143,7 +143,8 @@ local
     \ fun induct_tac a = res_inst_tac [(" ^ quote tname ^ ", a)] induct;\n\
     \end;\n\
     \val dummy = datatypes := Dtype.build_record (thy, " ^
-      mk_pair (quote tname, mk_list (map (fst o fst) cons)) ^
+      mk_pair ("Sign.intern_tycon (sign_of thy) " ^ quote tname,
+        mk_list (map (fst o fst) cons)) ^
       ", " ^ tname ^ ".induct_tac) :: (!datatypes);\n\
     \val dummy = Addsimps(" ^ tname ^ ".cases @ " ^ tname ^ ".recs);\n\
     \val dummy = AddIffs " ^ tname ^ ".inject;\n\

@@ -86,7 +86,7 @@ fun int_rewrite th = (rewrite_rule intensional_rews (th RS inteq_reflection));
 *)
 fun maybe_unlift th =
     (case concl_of th of
-	 Const("TrueInt",_) $ p => int_unlift th
+	 Const("Intensional.TrueInt",_) $ p => int_unlift th
        | _ => th);
 
 simpset := !simpset setmksimps ((mksimps mksimps_pairs) o maybe_unlift);

@@ -88,7 +88,7 @@ fun has_vars t = maxidx_of_term t <> ~1;
    Is type ty the type of a state variable? Only then do we substitute
    in applications. This function either returns true or raises Match.
 *)
-fun is_stvar (Type("fun", Type("state",[])::_)) = true;
+fun is_stvar (Type("fun", Type("Stfun.state",[])::_)) = true;
 
 
 (*If novars then we forbid Vars in the equality.

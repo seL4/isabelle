@@ -4,8 +4,6 @@
                 Konrad Slind
    Copyright 1995 TU Muenchen
 
-TODO:
-  - handle internal / external names
 *)
 
 (** Information about datatypes **)
@@ -129,7 +127,7 @@ fun subst_apps (_,_) [] t = t
       | subst (funct $ body) = 
         let val (f,b) = strip_comb (funct$body)
         in 
-          if is_Const f andalso fst(dest_Const f) = fname 
+          if is_Const f andalso Sign.base_name (fst(dest_Const f)) = fname 
             then 
               let val (ls,rest) = (take(rpos,b), drop(rpos,b));
                 val (xk,rs) = (hd rest,tl rest)
@@ -181,9 +179,9 @@ fun dest_rec eq =
       raise RecError "more than one non-variable in pattern"
     else if not(null(findrep (map fst (ls @ rs @ cargs)))) then 
       raise RecError "repeated variable name in pattern" 
-         else (fst(dest_Const name) handle TERM _ => 
+         else (Sign.base_name (fst(dest_Const name)) handle TERM _ => 
                raise RecError "function is not declared as constant in theory"
-                 ,rpos,ls,fst( dest_Const c),cargs,rs,rhs)
+                 ,rpos,ls, Sign.base_name (fst(dest_Const c)),cargs,rs,rhs)
   end; 
 
 (* check function specified for all constructors and sort function terms *)
@@ -506,7 +504,7 @@ in
                          Logic.mk_equals (Const(fname,dummyT), rhs))
           val defpairT as (_, _ $ Const(_,T) $ _ ) = inferT_axm sg defpair;
           val varT = Type.varifyT T;
-          val ftyp = the (Sign.const_type sg fname);
+          val ftyp = the (Sign.const_type sg (Sign.intern_const sg fname));
         in Theory.add_defs_i [defpairT] thy end;
 
     in
@@ -962,7 +960,10 @@ local fun mk_rw th = (th RS eq_reflection) handle _ => th
 in
 fun build_record (thy,(ty,cl),itac) =
  let val sign = sign_of thy
-     fun const s = Const(s, the(Sign.const_type sign s))
+     val intern_const = Sign.intern_const sign;
+     fun const s =
+       let val s' = intern_const s
+       in Const(s', the (Sign.const_type sign s')) end
      val case_rewrites = map (fn c => get_fact thy (ty^"_case_"^c)) cl
      val {nchotomy,case_cong} = case_thms sign case_rewrites itac
      val exhaustion = mk_exhaust nchotomy
