@@ -205,8 +205,8 @@ $(LOG)/HOL-Induct.gz: $(OUT)/HOL \
   Induct/LList.ML Induct/LList.thy Induct/Mutil.ML Induct/Mutil.thy \
   Induct/Perm.ML Induct/Perm.thy Induct/PropLog.ML \
   Induct/PropLog.thy Induct/ROOT.ML Induct/Sexp.ML Induct/Sexp.thy \
-  Induct/SList.ML Induct/SList.thy Induct/ABexp.ML Induct/ABexp.thy \
-  Induct/Term.ML Induct/Term.thy
+  Induct/Sigma_Algebra.thy Induct/SList.ML Induct/SList.thy \
+  Induct/ABexp.ML Induct/ABexp.thy Induct/Term.ML Induct/Term.thy
 	@$(ISATOOL) usedir $(OUT)/HOL Induct
 
 
