@@ -9,7 +9,6 @@ The abstract type "theory" of theories.
 signature BASIC_THEORY =
 sig
   type theory
-  type local_theory
   exception THEORY of string * theory list
   val rep_theory: theory ->
     {sign: Sign.sg,
@@ -109,9 +108,6 @@ datatype theory =
     oracles: ((Sign.sg * Object.T -> term) * stamp) Symtab.table,
     parents: theory list,
     ancestors: theory list};
-
-(*forward definition for Isar proof contexts*)
-type local_theory = theory * Object.T Symtab.table;
 
 fun make_theory sign axms oras parents ancestors =
   Theory {sign = sign, axioms = axms, oracles = oras,
