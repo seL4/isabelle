@@ -30,6 +30,10 @@ syntax (xsymbols)
   funcset :: "['a set, 'b set] => ('a => 'b) set"  (infixr "\<rightarrow>" 60) 
   "@lam" :: "[pttrn, 'a set, 'a => 'b] => ('a=>'b)"  ("(3\<lambda>_\<in>_./ _)" [0,0,3] 3)
 
+syntax (HTML output)
+  "@Pi" :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3\<Pi> _\<in>_./ _)"   10)
+  "@lam" :: "[pttrn, 'a set, 'a => 'b] => ('a=>'b)"  ("(3\<lambda>_\<in>_./ _)" [0,0,3] 3)
+
 translations
   "PI x:A. B" => "Pi A (%x. B)"
   "A -> B"    => "Pi A (_K B)"

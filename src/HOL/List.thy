@@ -71,6 +71,8 @@ translations
 
 syntax (xsymbols)
   "@filter" :: "[pttrn, 'a list, bool] => 'a list"("(1[_\<in>_ ./ _])")
+syntax (HTML output)
+  "@filter" :: "[pttrn, 'a list, bool] => 'a list"("(1[_\<in>_ ./ _])")
 
 
 text {*

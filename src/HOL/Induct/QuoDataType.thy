@@ -26,6 +26,8 @@ syntax
   "_msgrel" :: "[freemsg, freemsg] => bool"  (infixl "~~" 50)
 syntax (xsymbols)
   "_msgrel" :: "[freemsg, freemsg] => bool"  (infixl "\<sim>" 50)
+syntax (HTML output)
+  "_msgrel" :: "[freemsg, freemsg] => bool"  (infixl "\<sim>" 50)
 translations
   "X \<sim> Y" == "(X,Y) \<in> msgrel"
 

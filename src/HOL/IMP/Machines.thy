@@ -50,6 +50,14 @@ syntax (xsymbols)
   "_exec0n" :: "[instrs, nat,state, nat, nat,state] \<Rightarrow> bool"
                ("(_/ \<turnstile> (1\<langle>_,/_\<rangle>)/ -_\<rightarrow> (1\<langle>_,/_\<rangle>))" [50,0,0,0,0] 50)
 
+syntax (HTML output)
+  "_exec01" :: "[instrs, nat,state, nat,state] \<Rightarrow> bool"
+               ("(_/ |- (1\<langle>_,/_\<rangle>)/ -1\<rightarrow> (1\<langle>_,/_\<rangle>))" [50,0,0,0,0] 50)
+  "_exec0s" :: "[instrs, nat,state, nat,state] \<Rightarrow> bool"
+               ("(_/ |- (1\<langle>_,/_\<rangle>)/ -*\<rightarrow> (1\<langle>_,/_\<rangle>))" [50,0,0,0,0] 50)
+  "_exec0n" :: "[instrs, nat,state, nat, nat,state] \<Rightarrow> bool"
+               ("(_/ |- (1\<langle>_,/_\<rangle>)/ -_\<rightarrow> (1\<langle>_,/_\<rangle>))" [50,0,0,0,0] 50)
+
 translations  
   "p \<turnstile> \<langle>i,s\<rangle> -1\<rightarrow> \<langle>j,t\<rangle>" == "((i,s),j,t) : (exec01 p)"
   "p \<turnstile> \<langle>i,s\<rangle> -*\<rightarrow> \<langle>j,t\<rangle>" == "((i,s),j,t) : (exec01 p)^*"

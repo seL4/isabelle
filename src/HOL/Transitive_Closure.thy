@@ -43,6 +43,11 @@ syntax (xsymbols)
   trancl :: "('a \<times> 'a) set => ('a \<times> 'a) set"    ("(_\<^sup>+)" [1000] 999)
   "_reflcl" :: "('a \<times> 'a) set => ('a \<times> 'a) set"    ("(_\<^sup>=)" [1000] 999)
 
+syntax (HTML output)
+  rtrancl :: "('a \<times> 'a) set => ('a \<times> 'a) set"    ("(_\<^sup>*)" [1000] 999)
+  trancl :: "('a \<times> 'a) set => ('a \<times> 'a) set"    ("(_\<^sup>+)" [1000] 999)
+  "_reflcl" :: "('a \<times> 'a) set => ('a \<times> 'a) set"    ("(_\<^sup>=)" [1000] 999)
+
 
 subsection {* Reflexive-transitive closure *}
 

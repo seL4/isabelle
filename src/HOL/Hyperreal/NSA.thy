@@ -43,6 +43,9 @@ defs (overloaded)
 syntax (xsymbols)
     approx :: "[hypreal, hypreal] => bool"    (infixl "\<approx>" 50)
 
+syntax (HTML output)
+    approx :: "[hypreal, hypreal] => bool"    (infixl "\<approx>" 50)
+
 
 
 subsection{*Closure Laws for  Standard Reals*}

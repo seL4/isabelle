@@ -16,6 +16,8 @@ typedef (Sprod)  ('a, 'b) "**" (infixr 20) = "{f. ? a b. f = Spair_Rep (a::'a) (
 
 syntax (xsymbols)
   "**"		:: [type, type] => type	 ("(_ \\<otimes>/ _)" [21,20] 20)
+syntax (HTML output)
+  "**"		:: [type, type] => type	 ("(_ \\<otimes>/ _)" [21,20] 20)
 
 consts
   Ispair        :: "['a,'b] => ('a ** 'b)"

@@ -162,7 +162,16 @@ syntax (xsymbols)
   "_liftNotMem" :: [lift, lift] => lift                ("(_/ \\<notin> _)" [50, 51] 50)
 
 syntax (HTML output)
+  "_liftNeq"    :: [lift, lift] => lift                (infixl "\\<noteq>" 50)
   "_liftNot"    :: lift => lift                        ("\\<not> _" [40] 40)
+  "_liftAnd"    :: [lift, lift] => lift                (infixr "\\<and>" 35)
+  "_liftOr"     :: [lift, lift] => lift                (infixr "\\<or>" 30)
+  "_RAll"       :: [idts, lift] => lift                ("(3\\<forall>_./ _)" [0, 10] 10)
+  "_REx"        :: [idts, lift] => lift                ("(3\\<exists>_./ _)" [0, 10] 10)
+  "_REx1"       :: [idts, lift] => lift                ("(3\\<exists>!_./ _)" [0, 10] 10)
+  "_liftLeq"    :: [lift, lift] => lift                ("(_/ \\<le> _)" [50, 51] 50)
+  "_liftMem"    :: [lift, lift] => lift                ("(_/ \\<in> _)" [50, 51] 50)
+  "_liftNotMem" :: [lift, lift] => lift                ("(_/ \\<notin> _)" [50, 51] 50)
 
 rules
   Valid_def   "|- A    ==  ALL w. w |= A"

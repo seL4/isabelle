@@ -260,6 +260,12 @@ syntax (xsymbols)
   bitor  :: "bit => bit => bit" (infixr "\<or>\<^sub>b" 30)
   bitxor :: "bit => bit => bit" (infixr "\<oplus>\<^sub>b" 30)
 
+syntax (HTML output)
+  bitnot :: "bit => bit"        ("\<not>\<^sub>b _" [40] 40)
+  bitand :: "bit => bit => bit" (infixr "\<and>\<^sub>b" 35)
+  bitor  :: "bit => bit => bit" (infixr "\<or>\<^sub>b" 30)
+  bitxor :: "bit => bit => bit" (infixr "\<oplus>\<^sub>b" 30)
+
 primrec
   bitnot_zero: "(bitnot \<zero>) = \<one>"
   bitnot_one : "(bitnot \<one>)  = \<zero>"

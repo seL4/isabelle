@@ -166,6 +166,8 @@ constdefs MGT    :: "stmt => state =>  triple"
          "MGTe e Z \<equiv> (\<lambda>s. Z = s, e, \<lambda>v t. \<exists>n. Z -e>v-n-> t)"
 syntax (xsymbols)
          MGTe    :: "expr => state => etriple" ("MGT\<^sub>e")
+syntax (HTML output)
+         MGTe    :: "expr => state => etriple" ("MGT\<^sub>e")
 
 lemma MGF_implies_complete:
  "\<forall>Z. {} |\<turnstile> { MGT c Z} \<Longrightarrow> \<Turnstile>  {P} c {Q} \<Longrightarrow> {} \<turnstile>  {P} c {Q}"

@@ -34,6 +34,8 @@ translations
 
 syntax (xsymbols)
   "op le"       :: "[i,i] => o"  (infixl "\<le>" 50)  (*less-than or equals*)
+syntax (HTML output)
+  "op le"       :: "[i,i] => o"  (infixl "\<le>" 50)  (*less-than or equals*)
 
 
 subsection{*Rules for Transset*}

@@ -42,6 +42,8 @@ syntax (xsymbols)
 
 syntax (HTML output)
   "NOT"    ::"'a predicate => 'a predicate" ("\\<not> _" [40] 40)
+  "AND"    ::"'a predicate => 'a predicate => 'a predicate"    (infixr "\\<and>" 35)
+  "OR"     ::"'a predicate => 'a predicate => 'a predicate"    (infixr "\\<or>" 30)
 
 
 defs

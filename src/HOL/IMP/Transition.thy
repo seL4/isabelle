@@ -35,6 +35,10 @@ syntax (xsymbols)
   "_angle" :: "[com, state] \<Rightarrow> com option \<times> state" ("\<langle>_,_\<rangle>")
   "_angle2" :: "state \<Rightarrow> com option \<times> state" ("\<langle>_\<rangle>")
 
+syntax (HTML output)
+  "_angle" :: "[com, state] \<Rightarrow> com option \<times> state" ("\<langle>_,_\<rangle>")
+  "_angle2" :: "state \<Rightarrow> com option \<times> state" ("\<langle>_\<rangle>")
+
 translations
   "\<langle>c,s\<rangle>" == "(Some c, s)"
   "\<langle>s\<rangle>" == "(None, s)"

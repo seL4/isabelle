@@ -39,6 +39,14 @@ syntax (xsymbols)
   "_stepan" :: "[instr list,state,nat,nat,state,nat] \<Rightarrow> bool"
                ("_ \<turnstile>/ (3\<langle>_,_\<rangle>/ -(_)\<rightarrow> \<langle>_,_\<rangle>)" [50,0,0,0,0,0] 50)
 
+syntax (HTML output)
+  "_stepa1" :: "[instr list,state,nat,state,nat] \<Rightarrow> bool"
+               ("_ |- (3\<langle>_,_\<rangle>/ -1\<rightarrow> \<langle>_,_\<rangle>)" [50,0,0,0,0] 50)
+  "_stepa" :: "[instr list,state,nat,state,nat] \<Rightarrow> bool"
+               ("_ |-/ (3\<langle>_,_\<rangle>/ -*\<rightarrow> \<langle>_,_\<rangle>)" [50,0,0,0,0] 50)
+  "_stepan" :: "[instr list,state,nat,nat,state,nat] \<Rightarrow> bool"
+               ("_ |-/ (3\<langle>_,_\<rangle>/ -(_)\<rightarrow> \<langle>_,_\<rangle>)" [50,0,0,0,0,0] 50)
+
 translations  
   "P \<turnstile> \<langle>s,m\<rangle> -1\<rightarrow> \<langle>t,n\<rangle>" == "((s,m),t,n) : stepa1 P"
   "P \<turnstile> \<langle>s,m\<rangle> -*\<rightarrow> \<langle>t,n\<rangle>" == "((s,m),t,n) : ((stepa1 P)^*)"

@@ -60,6 +60,12 @@ syntax (xsymbols)
 
 syntax (HTML output)
   Not           :: "o => o"                     ("\<not> _" [40] 40)
+  "op &"        :: "[o, o] => o"                (infixr "\<and>" 35)
+  "op |"        :: "[o, o] => o"                (infixr "\<or>" 30)
+  "ALL "        :: "[idts, o] => o"             ("(3\<forall>_./ _)" [0, 10] 10)
+  "EX "         :: "[idts, o] => o"             ("(3\<exists>_./ _)" [0, 10] 10)
+  "EX! "        :: "[idts, o] => o"             ("(3\<exists>!_./ _)" [0, 10] 10)
+  "_not_equal"  :: "['a, 'a] => o"              (infixl "\<noteq>" 50)
 
 
 local

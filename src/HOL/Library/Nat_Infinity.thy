@@ -30,6 +30,9 @@ consts
 syntax (xsymbols)
   Infty :: inat    ("\<infinity>")
 
+syntax (HTML output)
+  Infty :: inat    ("\<infinity>")
+
 defs
   Zero_inat_def: "0 == Fin 0"
   iSuc_def: "iSuc i == case i of Fin n  => Fin (Suc n) | \<infinity> => \<infinity>"

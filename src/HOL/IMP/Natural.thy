@@ -17,6 +17,9 @@ syntax "_evalc" :: "[com,state,state] \<Rightarrow> bool" ("<_,_>/ -c-> _" [0,0,
 syntax (xsymbols)
   "_evalc" :: "[com,state,state] \<Rightarrow> bool" ("\<langle>_,_\<rangle>/ \<longrightarrow>\<^sub>c _" [0,0,60] 60)
 
+syntax (HTML output)
+  "_evalc" :: "[com,state,state] \<Rightarrow> bool" ("\<langle>_,_\<rangle>/ \<longrightarrow>\<^sub>c _" [0,0,60] 60)
+
 text {*
   We write @{text "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c s'"} for \emph{Statement @{text c}, started 
   in state @{text s}, terminates in state @{text s'}}. Formally,

@@ -102,7 +102,14 @@ syntax (xsymbols output)
   "_not_equal"  :: "['a, 'a] => bool"                    (infix "\<noteq>" 50)
 
 syntax (HTML output)
+  "_not_equal"  :: "['a, 'a] => bool"                    (infix "\<noteq>" 50)
   Not           :: "bool => bool"                        ("\<not> _" [40] 40)
+  "op &"        :: "[bool, bool] => bool"                (infixr "\<and>" 35)
+  "op |"        :: "[bool, bool] => bool"                (infixr "\<or>" 30)
+  "_not_equal"  :: "['a, 'a] => bool"                    (infix "\<noteq>" 50)
+  "ALL "        :: "[idts, bool] => bool"                ("(3\<forall>_./ _)" [0, 10] 10)
+  "EX "         :: "[idts, bool] => bool"                ("(3\<exists>_./ _)" [0, 10] 10)
+  "EX! "        :: "[idts, bool] => bool"                ("(3\<exists>!_./ _)" [0, 10] 10)
 
 syntax (HOL)
   "ALL "        :: "[idts, bool] => bool"                ("(3! _./ _)" [0, 10] 10)
@@ -639,6 +646,10 @@ syntax (xsymbols)
   "op <="       :: "['a::ord, 'a] => bool"             ("op \<le>")
   "op <="       :: "['a::ord, 'a] => bool"             ("(_/ \<le> _)"  [50, 51] 50)
 
+syntax (HTML output)
+  "op <="       :: "['a::ord, 'a] => bool"             ("op \<le>")
+  "op <="       :: "['a::ord, 'a] => bool"             ("(_/ \<le> _)"  [50, 51] 50)
+
 
 lemma Not_eq_iff: "((~P) = (~Q)) = (P = Q)"
 by blast
@@ -1055,6 +1066,12 @@ syntax (HOL)
   "_lessEx"  :: "[idt, 'a, bool] => bool"   ("(3? _<_./ _)"  [0, 0, 10] 10)
   "_leAll"   :: "[idt, 'a, bool] => bool"   ("(3! _<=_./ _)" [0, 0, 10] 10)
   "_leEx"    :: "[idt, 'a, bool] => bool"   ("(3? _<=_./ _)" [0, 0, 10] 10)
+
+syntax (HTML output)
+  "_lessAll" :: "[idt, 'a, bool] => bool"   ("(3\<forall>_<_./ _)"  [0, 0, 10] 10)
+  "_lessEx"  :: "[idt, 'a, bool] => bool"   ("(3\<exists>_<_./ _)"  [0, 0, 10] 10)
+  "_leAll"   :: "[idt, 'a, bool] => bool"   ("(3\<forall>_\<le>_./ _)" [0, 0, 10] 10)
+  "_leEx"    :: "[idt, 'a, bool] => bool"   ("(3\<exists>_\<le>_./ _)" [0, 0, 10] 10)
 
 translations
  "ALL x<y. P"   =>  "ALL x. x < y --> P"

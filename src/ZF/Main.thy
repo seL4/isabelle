@@ -21,6 +21,8 @@ constdefs
 
 syntax (xsymbols)
   iterates_omega :: "[i=>i,i] => i"   ("(_^\<omega> '(_'))" [60,1000] 60)
+syntax (HTML output)
+  iterates_omega :: "[i=>i,i] => i"   ("(_^\<omega> '(_'))" [60,1000] 60)
 
 lemma iterates_triv:
      "[| n\<in>nat;  F(x) = x |] ==> F^n (x) = x"  

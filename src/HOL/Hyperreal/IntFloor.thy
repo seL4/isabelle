@@ -20,6 +20,9 @@ syntax (xsymbols)
   floor :: "real => int"     ("\<lfloor>_\<rfloor>")
   ceiling :: "real => int"   ("\<lceil>_\<rceil>")
 
+syntax (HTML output)
+  floor :: "real => int"     ("\<lfloor>_\<rfloor>")
+  ceiling :: "real => int"   ("\<lceil>_\<rceil>")
 
 
 lemma number_of_less_real_of_int_iff [simp]:

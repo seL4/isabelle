@@ -39,6 +39,9 @@ constdefs
 syntax (xsymbols)
   "op |+|"     :: "[i,i] => i"          (infixl "\<oplus>" 65)
   "op |*|"     :: "[i,i] => i"          (infixl "\<otimes>" 70)
+syntax (HTML output)
+  "op |+|"     :: "[i,i] => i"          (infixl "\<oplus>" 65)
+  "op |*|"     :: "[i,i] => i"          (infixl "\<otimes>" 70)
 
 
 lemma Card_Union [simp,intro,TC]: "(ALL x:A. Card(x)) ==> Card(Union(A))"

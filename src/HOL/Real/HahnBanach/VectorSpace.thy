@@ -20,6 +20,8 @@ consts
 
 syntax (xsymbols)
   prod  :: "real \<Rightarrow> 'a \<Rightarrow> 'a"                          (infixr "\<cdot>" 70)
+syntax (HTML output)
+  prod  :: "real \<Rightarrow> 'a \<Rightarrow> 'a"                          (infixr "\<cdot>" 70)
 
 
 subsection {* Vector space laws *}

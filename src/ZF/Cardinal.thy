@@ -39,6 +39,10 @@ syntax (xsymbols)
   "lesspoll"    :: "[i,i] => o"       (infixl "\<prec>" 50)
   "LEAST "         :: "[pttrn, o] => i"  ("(3\<mu>_./ _)" [0, 10] 10)
 
+syntax (HTML output)
+  "eqpoll"      :: "[i,i] => o"       (infixl "\<approx>" 50)
+  "LEAST "         :: "[pttrn, o] => i"  ("(3\<mu>_./ _)" [0, 10] 10)
+
 subsection{*The Schroeder-Bernstein Theorem*}
 text{*See Davey and Priestly, page 106*}
 

@@ -82,6 +82,7 @@ syntax (xsymbols)
 
 syntax (HTML output)
   zmult :: "[i,i]=>i"          (infixl "$\<times>" 70)
+  zle   :: "[i,i]=>o"          (infixl "$\<le>" 50)
 
 
 declare quotientE [elim!]

@@ -68,6 +68,10 @@ syntax (xsymbols)
   omega   :: hypreal   ("\<omega>")
   epsilon :: hypreal   ("\<epsilon>")
 
+syntax (HTML output)
+  omega   :: hypreal   ("\<omega>")
+  epsilon :: hypreal   ("\<epsilon>")
+
 
 defs (overloaded)
 

@@ -62,6 +62,10 @@ syntax (xsymbols)
   "_EEx"     :: [idts, lift] => lift                ("(3\\<exists>\\<exists> _./ _)" [0,10] 10)
   "_AAll"    :: [idts, lift] => lift                ("(3\\<forall>\\<forall> _./ _)" [0,10] 10)
 
+syntax (HTML output)
+  "_EEx"     :: [idts, lift] => lift                ("(3\\<exists>\\<exists> _./ _)" [0,10] 10)
+  "_AAll"    :: [idts, lift] => lift                ("(3\\<forall>\\<forall> _./ _)" [0,10] 10)
+
 rules
   (* Definitions of derived operators *)
   dmd_def      "TEMP <>F  ==  TEMP ~[]~F"

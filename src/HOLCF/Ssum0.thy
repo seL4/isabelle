@@ -19,6 +19,8 @@ typedef (Ssum)  ('a, 'b) "++" (infixr 10) =
 
 syntax (xsymbols)
   "++"		:: [type, type] => type	("(_ \\<oplus>/ _)" [21, 20] 20)
+syntax (HTML output)
+  "++"		:: [type, type] => type	("(_ \\<oplus>/ _)" [21, 20] 20)
 
 consts
   Isinl         :: "'a => ('a ++ 'b)"

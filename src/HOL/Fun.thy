@@ -52,6 +52,8 @@ lemmas o_def = comp_def
 
 syntax (xsymbols)
   comp :: "['b => 'c, 'a => 'b, 'a] => 'c"        (infixl "\<circ>" 55)
+syntax (HTML output)
+  comp :: "['b => 'c, 'a => 'b, 'a] => 'c"        (infixl "\<circ>" 55)
 
 
 constdefs

@@ -359,6 +359,10 @@ syntax (xsymbols)
   "MOST " :: "[idts, bool] \<Rightarrow> bool"       ("(3\<forall>\<^sub>\<infinity>_./ _)" [0,10] 10)
   "INF "    :: "[idts, bool] \<Rightarrow> bool"     ("(3\<exists>\<^sub>\<infinity>_./ _)" [0,10] 10)
 
+syntax (HTML output)
+  "MOST " :: "[idts, bool] \<Rightarrow> bool"       ("(3\<forall>\<^sub>\<infinity>_./ _)" [0,10] 10)
+  "INF "    :: "[idts, bool] \<Rightarrow> bool"     ("(3\<exists>\<^sub>\<infinity>_./ _)" [0,10] 10)
+
 lemma INF_EX:
   "(\<exists>\<^sub>\<infinity>x. P x) \<Longrightarrow> (\<exists>x. P x)"
 proof (unfold INF_def, rule ccontr)
