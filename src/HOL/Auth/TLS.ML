@@ -90,8 +90,9 @@ AddIffs (keys_distinct @ (keys_distinct RL [not_sym]));
 (*Possibility property ending with ClientAccepts.*)
 goal thy 
  "!!A B. [| ALL evs. (@ N. Nonce N ~: used evs) ~: range PRF;  \
-\           A ~= B |] ==> EX SID M. EX evs: tls.    \
-\  Notes A {|Number SID, Agent A, Agent B, Nonce M|} : set evs";
+\           A ~= B |]            \
+\  ==> EX SID M. EX evs: tls.    \
+\        Notes A {|Number SID, Agent A, Agent B, Nonce M|} : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (tls.Nil RS tls.ClientHello RS tls.ServerHello RS tls.Certificate RS
 	  tls.ClientKeyExch RS tls.ClientFinished RS tls.ServerFinished RS
@@ -103,8 +104,9 @@ result();
 (*And one for ServerAccepts.  Either FINISHED message may come first.*)
 goal thy 
  "!!A B. [| ALL evs. (@ N. Nonce N ~: used evs) ~: range PRF;  \
-\           A ~= B |] ==> EX SID NA PA NB PB M. EX evs: tls.    \
-\  Notes B {|Number SID, Agent A, Agent B, Nonce M|} : set evs";
+\           A ~= B |]                        \
+\  ==> EX SID NA PA NB PB M. EX evs: tls.    \
+\        Notes B {|Number SID, Agent A, Agent B, Nonce M|} : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (tls.Nil RS tls.ClientHello RS tls.ServerHello RS tls.Certificate RS
 	  tls.ClientKeyExch RS tls.ServerFinished RS tls.ClientFinished RS
@@ -116,7 +118,8 @@ result();
 (*Another one, for CertVerify (which is optional)*)
 goal thy 
  "!!A B. [| ALL evs. (@ N. Nonce N ~: used evs) ~: range PRF;  \
-\           A ~= B |] ==> EX NB PMS. EX evs: tls.   \
+\           A ~= B |]                       \
+\  ==> EX NB PMS. EX evs: tls.   \
 \  Says A B (Crypt (priK A) (Hash{|Nonce NB, Agent B, Nonce PMS|})) : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (tls.Nil RS tls.ClientHello RS tls.ServerHello RS tls.Certificate RS
@@ -131,11 +134,12 @@ goal thy
 \           Notes A {|Number SID, Agent A, Agent B, Nonce M|} : set evs0; \
 \           Notes B {|Number SID, Agent A, Agent B, Nonce M|} : set evs0; \
 \           ALL evs. (@ N. Nonce N ~: used evs) ~: range PRF;  \
-\           A ~= B |] ==> EX NA PA NB PB. EX evs: tls.    \
-\  Says A B (Crypt (clientK(NA,NB,M))                           \
-\            (Hash{|Number SID, Nonce M,             \
-\                   Nonce NA, Number PA, Agent A,      \
-\                   Nonce NB, Number PB, Agent B|})) : set evs";
+\           A ~= B |] ==> EX NA PA NB PB X. EX evs: tls.    \
+\      X = Hash{|Number SID, Nonce M,             \
+\                       Nonce NA, Number PA, Agent A,      \
+\                       Nonce NB, Number PB, Agent B|}  &  \
+\      Says A B (Crypt (clientK(NA,NB,M)) X) : set evs  &  \
+\      Says B A (Crypt (serverK(NA,NB,M)) X) : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (etac (tls.ClientHello RS tls.ServerHello RS tls.ServerResume RS 
 	  tls.ClientResume) 2);
@@ -820,3 +824,4 @@ qed "AuthClientFinished";
 (*24/9/97: loads in 672s, which is 11 minutes 12 seconds [stronger theorems]*)
 (*29/9/97: loads in 481s, after removing Certificate from ClientKeyExch*)
 (*30/9/97: loads in 476s, after removing unused theorems*)
+(*30/9/97: loads in 448s, after fixing ServerResume*)
