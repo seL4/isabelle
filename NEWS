@@ -351,6 +351,12 @@ subgoal;
 
 * Display.print_goals function moved to Locale.print_goals;
 
+* standard print function for goals supports current_goals_markers
+variable for marking begin of proof, end of proof, start of goal; the
+default is ("", "", ""); setting current_goals_markers := ("<proof>",
+"</proof>", "<goal>") causes SGML like tagged proof state printing,
+for example;
+
 
 
 New in Isabelle98 (January 1998)
