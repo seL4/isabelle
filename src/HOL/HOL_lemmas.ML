@@ -144,7 +144,7 @@ val major::prems= goal (the_context ()) "[| ALL x. P(x);  P(x) ==> R |] ==> R";
 by (REPEAT (resolve_tac (prems @ [major RS spec]) 1)) ;
 qed "allE";
 
-val prems = goal (the_context ()) 
+val prems = goal (the_context ())
     "[| ALL x. P(x);  [| P(x); ALL x. P(x) |] ==> R |] ==> R";
 by (REPEAT (resolve_tac (prems @ (prems RL [spec])) 1)) ;
 qed "all_dupE";
@@ -224,7 +224,7 @@ Goalw [Ex_def] "P x ==> EX x::'a. P x";
 by (etac selectI 1) ;
 qed "exI";
 
-val [major,minor] = 
+val [major,minor] =
 Goalw [Ex_def] "[| EX x::'a. P(x); !!x. P(x) ==> Q |] ==> Q";
 by (rtac (major RS minor) 1);
 qed "exE";
@@ -451,8 +451,8 @@ qed "impCE'";
 val major::prems = Goal
     "[| P=Q;  [| P; Q |] ==> R;  [| ~P; ~Q |] ==> R |] ==> R";
 by (rtac (major RS iffE) 1);
-by (REPEAT (DEPTH_SOLVE_1 
-	    (eresolve_tac ([asm_rl,impCE,notE]@prems) 1)));
+by (REPEAT (DEPTH_SOLVE_1
+            (eresolve_tac ([asm_rl,impCE,notE]@prems) 1)));
 qed "iffCE";
 
 val prems = Goal "(ALL x. ~P(x) ==> P(a)) ==> EX x. P(x)";
@@ -471,9 +471,9 @@ by (rtac (thm"plus_ac0.commute" RS trans) 1);
 by (rtac (thm"plus_ac0.zero") 1);
 qed "plus_ac0_zero_right";
 
-bind_thms ("plus_ac0", [thm"plus_ac0.assoc", thm"plus_ac0.commute", 
-			plus_ac0_left_commute,
-			thm"plus_ac0.zero", plus_ac0_zero_right]);
+bind_thms ("plus_ac0", [thm"plus_ac0.assoc", thm"plus_ac0.commute",
+                        plus_ac0_left_commute,
+                        thm"plus_ac0.zero", plus_ac0_zero_right]);
 
 (* case distinction *)
 
@@ -488,7 +488,7 @@ fun case_tac a = res_inst_tac [("P",a)] case_split_thm;
 
 (** Standard abbreviations **)
 
-(* combination of (spec RS spec RS ...(j times) ... spec RS mp *) 
+(* combination of (spec RS spec RS ...(j times) ... spec RS mp *)
 local
   fun wrong_prem (Const ("All", _) $ (Abs (_, _, t))) = wrong_prem t
   |   wrong_prem (Bound _) = true
@@ -500,4 +500,4 @@ in
 end;
 
 
-fun strip_tac i = REPEAT(resolve_tac [impI,allI] i); 
+fun strip_tac i = REPEAT(resolve_tac [impI,allI] i);

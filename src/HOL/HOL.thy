@@ -7,8 +7,8 @@ Higher-Order Logic.
 *)
 
 theory HOL = CPure
-files ("HOL_lemmas.ML") ("cladata.ML") ("blastdata.ML") ("simpdata.ML") 
-      ("Tools/meson.ML"):
+files ("HOL_lemmas.ML") ("cladata.ML") ("blastdata.ML") ("simpdata.ML")
+  ("meson_lemmas.ML") ("Tools/meson.ML"):
 
 
 (** Core syntax **)
@@ -54,7 +54,7 @@ consts
 
 (* Overloaded Constants *)
 
-axclass zero  < "term" 
+axclass zero  < "term"
 axclass plus  < "term"
 axclass minus < "term"
 axclass times < "term"
@@ -65,7 +65,7 @@ consts
   "+"           :: "['a::plus, 'a]  => 'a"          (infixl 65)
   -             :: "['a::minus, 'a] => 'a"          (infixl 65)
   uminus        :: "['a::minus] => 'a"              ("- _" [81] 80)
-  abs		:: "('a::minus) => 'a"
+  abs           :: "('a::minus) => 'a"
   *             :: "['a::times, 'a] => 'a"          (infixl 70)
   (*See Nat.thy for "^"*)
 
@@ -193,7 +193,11 @@ defs
 (* theory and package setup *)
 
 use "HOL_lemmas.ML"
-use "cladata.ML"	setup hypsubst_setup setup Classical.setup setup clasetup
+
+use "cladata.ML"
+setup hypsubst_setup
+setup Classical.setup
+setup clasetup
 
 lemma all_eq: "(!!x. P x) == Trueprop (ALL x. P x)"
 proof (rule equal_intr_rule)
@@ -216,12 +220,17 @@ qed
 
 lemmas atomize = all_eq imp_eq
 
-use "blastdata.ML"	setup Blast.setup
-use "simpdata.ML"	setup Simplifier.setup
-			setup "Simplifier.method_setup Splitter.split_modifiers" setup simpsetup
-                        setup Splitter.setup setup Clasimp.setup
-			setup rulify_attrib_setup
+use "blastdata.ML"
+setup Blast.setup
 
+use "simpdata.ML"
+setup Simplifier.setup
+setup "Simplifier.method_setup Splitter.split_modifiers" setup simpsetup
+setup Splitter.setup setup Clasimp.setup
+setup rulify_attrib_setup
+
+use "meson_lemmas.ML"
 use "Tools/meson.ML"
+setup meson_setup
 
 end
