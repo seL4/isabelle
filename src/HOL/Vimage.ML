@@ -64,9 +64,13 @@ goal thy "f-``(insert a B) = (f-``{a}) Un (f-``B)";
 by (Blast_tac 1);
 qed "vimage_insert";
 
-goal thy "f-``(A Int B) <= (f-``A) Int (f-``B)";
+goal thy "f-``(A Int B) = (f-``A) Int (f-``B)";
 by (Blast_tac 1);
-qed "vimage_Int_subset";
+qed "vimage_Int";
+
+goal thy "f-``(A-B) = (f-``A) - (f-``B)";
+by (Blast_tac 1);
+qed "vimage_Diff";
 
 goal thy "f-``UNIV = UNIV";
 by (Blast_tac 1);
