@@ -23,7 +23,7 @@ use "obtain.ML";
 
 (*outer syntax*)
 use "comment.ML";
-use "outer_lex.ML";
+(*use "outer_lex.ML";*)	  (*see ../Thy/ROOT.ML*)
 use "outer_parse.ML";
 
 (*toplevel environment*)
