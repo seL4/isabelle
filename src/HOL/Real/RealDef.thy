@@ -158,12 +158,12 @@ lemma real_add:
      "Abs_Real (realrel``{(x,y)}) + Abs_Real (realrel``{(u,v)}) =
       Abs_Real (realrel``{(x+u, y+v)})"
 proof -
-  have "congruent2 realrel
+  have "congruent2 realrel realrel
         (\<lambda>z w. (\<lambda>(x,y). (\<lambda>(u,v). {Abs_Real (realrel `` {(x+u, y+v)})}) w) z)"
     by (simp add: congruent2_def, blast intro: real_add_congruent2_lemma) 
   thus ?thesis
     by (simp add: real_add_def UN_UN_split_split_eq
-                  UN_equiv_class2 [OF equiv_realrel])
+                  UN_equiv_class2 [OF equiv_realrel equiv_realrel])
 qed
 
 lemma real_add_commute: "(z::real) + w = w + z"
@@ -207,10 +207,10 @@ apply (simp add: preal_add_commute)
 done
 
 lemma real_mult_congruent2:
-    "congruent2 realrel (%p1 p2.
+    "congruent2 realrel realrel (%p1 p2.
         (%(x1,y1). (%(x2,y2). 
           { Abs_Real (realrel``{(x1*x2 + y1*y2, x1*y2+y1*x2)}) }) p2) p1)"
-apply (rule equiv_realrel [THEN congruent2_commuteI], clarify)
+apply (rule congruent2_commuteI [OF equiv_realrel], clarify)
 apply (simp add: preal_mult_commute preal_add_commute)
 apply (auto simp add: real_mult_congruent2_lemma)
 done
@@ -219,7 +219,7 @@ lemma real_mult:
       "Abs_Real((realrel``{(x1,y1)})) * Abs_Real((realrel``{(x2,y2)})) =
        Abs_Real(realrel `` {(x1*x2+y1*y2,x1*y2+y1*x2)})"
 by (simp add: real_mult_def UN_UN_split_split_eq
-              UN_equiv_class2 [OF equiv_realrel real_mult_congruent2])
+         UN_equiv_class2 [OF equiv_realrel equiv_realrel real_mult_congruent2])
 
 lemma real_mult_commute: "(z::real) * w = w * z"
 by (cases z, cases w, simp add: real_mult preal_add_ac preal_mult_ac)

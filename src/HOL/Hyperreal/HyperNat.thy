@@ -139,14 +139,14 @@ by (rule eq_Abs_hypnat [of z], blast)
 subsection{*Hypernat Addition*}
 
 lemma hypnat_add_congruent2:
-     "congruent2 hypnatrel (%X Y. hypnatrel``{%n. X n + Y n})"
-apply (simp add: congruent2_def, auto, ultra)
-done
+     "congruent2 hypnatrel hypnatrel (%X Y. hypnatrel``{%n. X n + Y n})"
+by (simp add: congruent2_def, auto, ultra)
 
 lemma hypnat_add:
   "Abs_hypnat(hypnatrel``{%n. X n}) + Abs_hypnat(hypnatrel``{%n. Y n}) =
    Abs_hypnat(hypnatrel``{%n. X n + Y n})"
-by (simp add: hypnat_add_def UN_equiv_class2 [OF equiv_hypnatrel hypnat_add_congruent2])
+by (simp add: hypnat_add_def 
+    UN_equiv_class2 [OF equiv_hypnatrel equiv_hypnatrel hypnat_add_congruent2])
 
 lemma hypnat_add_commute: "(z::hypnat) + w = w + z"
 apply (cases z, cases w)
@@ -173,14 +173,14 @@ subsection{*Subtraction inverse on @{typ hypreal}*}
 
 
 lemma hypnat_minus_congruent2:
-    "congruent2 hypnatrel (%X Y. hypnatrel``{%n. X n - Y n})"
-apply (simp add: congruent2_def, auto, ultra)
-done
+    "congruent2 hypnatrel hypnatrel (%X Y. hypnatrel``{%n. X n - Y n})"
+by (simp add: congruent2_def, auto, ultra)
 
 lemma hypnat_minus:
   "Abs_hypnat(hypnatrel``{%n. X n}) - Abs_hypnat(hypnatrel``{%n. Y n}) =
    Abs_hypnat(hypnatrel``{%n. X n - Y n})"
-by (simp add: hypnat_minus_def UN_equiv_class2 [OF equiv_hypnatrel hypnat_minus_congruent2])
+by (simp add: hypnat_minus_def 
+  UN_equiv_class2 [OF equiv_hypnatrel equiv_hypnatrel hypnat_minus_congruent2])
 
 lemma hypnat_minus_zero: "z - z = (0::hypnat)"
 apply (cases z)
@@ -241,18 +241,17 @@ declare hypnat_diff_add_0 [simp]
 subsection{*Hyperreal Multiplication*}
 
 lemma hypnat_mult_congruent2:
-    "congruent2 hypnatrel (%X Y. hypnatrel``{%n. X n * Y n})"
+    "congruent2 hypnatrel hypnatrel (%X Y. hypnatrel``{%n. X n * Y n})"
 by (simp add: congruent2_def, auto, ultra)
 
 lemma hypnat_mult:
   "Abs_hypnat(hypnatrel``{%n. X n}) * Abs_hypnat(hypnatrel``{%n. Y n}) =
    Abs_hypnat(hypnatrel``{%n. X n * Y n})"
-by (simp add: hypnat_mult_def UN_equiv_class2 [OF equiv_hypnatrel hypnat_mult_congruent2])
+by (simp add: hypnat_mult_def
+   UN_equiv_class2 [OF equiv_hypnatrel equiv_hypnatrel hypnat_mult_congruent2])
 
 lemma hypnat_mult_commute: "(z::hypnat) * w = w * z"
-apply (cases z, cases w)
-apply (simp add: hypnat_mult mult_ac)
-done
+by (cases z, cases w, simp add: hypnat_mult mult_ac)
 
 lemma hypnat_mult_assoc: "((z1::hypnat) * z2) * z3 = z1 * (z2 * z3)"
 apply (cases z1, cases z2, cases z3)
@@ -797,11 +796,6 @@ val hypnat_one_def = thm"hypnat_one_def";
 val hypnat_omega_def = thm"hypnat_omega_def";
 
 val hypnatrel_iff = thm "hypnatrel_iff";
-val hypnatrel_refl = thm "hypnatrel_refl";
-val hypnatrel_sym = thm "hypnatrel_sym";
-val hypnatrel_trans = thm "hypnatrel_trans";
-val equiv_hypnatrel = thm "equiv_hypnatrel";
-val equiv_hypnatrel_iff = thms "equiv_hypnatrel_iff";
 val hypnatrel_in_hypnat = thm "hypnatrel_in_hypnat";
 val inj_on_Abs_hypnat = thm "inj_on_Abs_hypnat";
 val inj_Rep_hypnat = thm "inj_Rep_hypnat";
@@ -809,7 +803,6 @@ val lemma_hypnatrel_refl = thm "lemma_hypnatrel_refl";
 val hypnat_empty_not_mem = thm "hypnat_empty_not_mem";
 val Rep_hypnat_nonempty = thm "Rep_hypnat_nonempty";
 val eq_Abs_hypnat = thm "eq_Abs_hypnat";
-val hypnat_add_congruent2 = thm "hypnat_add_congruent2";
 val hypnat_add = thm "hypnat_add";
 val hypnat_add_commute = thm "hypnat_add_commute";
 val hypnat_add_assoc = thm "hypnat_add_assoc";

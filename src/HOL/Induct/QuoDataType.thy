@@ -85,36 +85,36 @@ subsubsection{*The Left Projection*}
 
 text{*A function to return the left part of the top pair in a message.  It will
 be lifted to the initial algrebra, to serve as an example of that process.*}
-consts free_left :: "freemsg \<Rightarrow> freemsg"
+consts freeleft :: "freemsg \<Rightarrow> freemsg"
 primrec
-   "free_left (NONCE N) = NONCE N"
-   "free_left (MPAIR X Y) = X"
-   "free_left (CRYPT K X) = free_left X"
-   "free_left (DECRYPT K X) = free_left X"
+   "freeleft (NONCE N) = NONCE N"
+   "freeleft (MPAIR X Y) = X"
+   "freeleft (CRYPT K X) = freeleft X"
+   "freeleft (DECRYPT K X) = freeleft X"
 
 text{*This theorem lets us prove that the left function respects the
 equivalence relation.  It also helps us prove that MPair
   (the abstract constructor) is injective*}
-theorem msgrel_imp_eqv_free_left:
-     "U \<sim> V \<Longrightarrow> free_left U \<sim> free_left V"
+theorem msgrel_imp_eqv_freeleft:
+     "U \<sim> V \<Longrightarrow> freeleft U \<sim> freeleft V"
 by (erule msgrel.induct, auto intro: msgrel.intros)
 
 
 subsubsection{*The Right Projection*}
 
 text{*A function to return the right part of the top pair in a message.*}
-consts free_right :: "freemsg \<Rightarrow> freemsg"
+consts freeright :: "freemsg \<Rightarrow> freemsg"
 primrec
-   "free_right (NONCE N) = NONCE N"
-   "free_right (MPAIR X Y) = Y"
-   "free_right (CRYPT K X) = free_right X"
-   "free_right (DECRYPT K X) = free_right X"
+   "freeright (NONCE N) = NONCE N"
+   "freeright (MPAIR X Y) = Y"
+   "freeright (CRYPT K X) = freeright X"
+   "freeright (DECRYPT K X) = freeright X"
 
 text{*This theorem lets us prove that the right function respects the
 equivalence relation.  It also helps us prove that MPair
   (the abstract constructor) is injective*}
-theorem msgrel_imp_eqv_free_right:
-     "U \<sim> V \<Longrightarrow> free_right U \<sim> free_right V"
+theorem msgrel_imp_eqv_freeright:
+     "U \<sim> V \<Longrightarrow> freeright U \<sim> freeright V"
 by (erule msgrel.induct, auto intro: msgrel.intros)
 
 
@@ -147,15 +147,15 @@ constdefs
 
   MPair :: "[msg,msg] \<Rightarrow> msg"
    "MPair X Y ==
-       Abs_Msg (\<Union>U \<in> Rep_Msg X. \<Union>V \<in> Rep_Msg Y. msgrel``{MPAIR U V})"
+       Abs_Msg (\<Union>\<^bsub>U \<in> Rep_Msg X\<^esub> \<Union>\<^bsub>V \<in> Rep_Msg Y\<^esub> msgrel``{MPAIR U V})"
 
   Crypt :: "[nat,msg] \<Rightarrow> msg"
    "Crypt K X ==
-       Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{CRYPT K U})"
+       Abs_Msg (\<Union>\<^bsub>U \<in> Rep_Msg X\<^esub> msgrel``{CRYPT K U})"
 
   Decrypt :: "[nat,msg] \<Rightarrow> msg"
    "Decrypt K X ==
-       Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{DECRYPT K U})"
+       Abs_Msg (\<Union>\<^bsub>U \<in> Rep_Msg X\<^esub> msgrel``{DECRYPT K U})"
 
 
 text{*Reduces equality of equivalence classes to the @{term msgrel} relation:
@@ -185,10 +185,10 @@ subsubsection{*Characteristic Equations for the Abstract Constructors*}
 lemma MPair: "MPair (Abs_Msg(msgrel``{U})) (Abs_Msg(msgrel``{V})) = 
               Abs_Msg (msgrel``{MPAIR U V})"
 proof -
-  have "congruent2 msgrel (\<lambda>U V. msgrel `` {MPAIR U V})"
+  have "congruent2 msgrel msgrel (\<lambda>U V. msgrel `` {MPAIR U V})"
     by (simp add: congruent2_def msgrel.MPAIR)
   thus ?thesis
-    by (simp add: MPair_def UN_equiv_class2 [OF equiv_msgrel])
+    by (simp add: MPair_def UN_equiv_class2 [OF equiv_msgrel equiv_msgrel])
 qed
 
 lemma Crypt: "Crypt K (Abs_Msg(msgrel``{U})) = Abs_Msg (msgrel``{CRYPT K U})"
@@ -228,7 +228,7 @@ subsection{*The Abstract Function to Return the Set of Nonces*}
 
 constdefs
   nonces :: "msg \<Rightarrow> nat set"
-   "nonces X == \<Union>U \<in> Rep_Msg X. freenonces U"
+   "nonces X == \<Union>\<^bsub>U \<in> Rep_Msg X\<^esub> freenonces U"
 
 lemma nonces_congruent: "congruent msgrel freenonces"
 by (simp add: congruent_def msgrel_imp_eq_freenonces) 
@@ -263,10 +263,10 @@ subsection{*The Abstract Function to Return the Left Part*}
 
 constdefs
   left :: "msg \<Rightarrow> msg"
-   "left X == Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{free_left U})"
+   "left X == Abs_Msg (\<Union>\<^bsub>U \<in> Rep_Msg X\<^esub> msgrel``{freeleft U})"
 
-lemma left_congruent: "congruent msgrel (\<lambda>U. msgrel `` {free_left U})"
-by (simp add: congruent_def msgrel_imp_eqv_free_left) 
+lemma left_congruent: "congruent msgrel (\<lambda>U. msgrel `` {freeleft U})"
+by (simp add: congruent_def msgrel_imp_eqv_freeleft) 
 
 text{*Now prove the four equations for @{term left}*}
 
@@ -297,10 +297,10 @@ subsection{*The Abstract Function to Return the Right Part*}
 
 constdefs
   right :: "msg \<Rightarrow> msg"
-   "right X == Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{free_right U})"
+   "right X == Abs_Msg (\<Union>\<^bsub>U \<in> Rep_Msg X\<^esub> msgrel``{freeright U})"
 
-lemma right_congruent: "congruent msgrel (\<lambda>U. msgrel `` {free_right U})"
-by (simp add: congruent_def msgrel_imp_eqv_free_right) 
+lemma right_congruent: "congruent msgrel (\<lambda>U. msgrel `` {freeright U})"
+by (simp add: congruent_def msgrel_imp_eqv_freeright) 
 
 text{*Now prove the four equations for @{term right}*}
 
@@ -337,7 +337,7 @@ lemma Nonce_Nonce_eq [iff]: "(Nonce m = Nonce n) = (m = n)"
 by (auto simp add: Nonce_def msgrel_refl dest: NONCE_imp_eq)
 
 lemma MPAIR_imp_eqv_left: "MPAIR X Y \<sim> MPAIR X' Y' \<Longrightarrow> X \<sim> X'"
-by (drule msgrel_imp_eqv_free_left, simp)
+by (drule msgrel_imp_eqv_freeleft, simp)
 
 lemma MPair_imp_eq_left: 
   assumes eq: "MPair X Y = MPair X' Y'" shows "X = X'"
@@ -348,7 +348,7 @@ proof -
 qed
 
 lemma MPAIR_imp_eqv_right: "MPAIR X Y \<sim> MPAIR X' Y' \<Longrightarrow> Y \<sim> Y'"
-by (drule msgrel_imp_eqv_free_right, simp)
+by (drule msgrel_imp_eqv_freeright, simp)
 
 lemma MPair_imp_eq_right: "MPair X Y = MPair X' Y' \<Longrightarrow> Y = Y'" 
 apply (cases X, cases X', cases Y, cases Y') 

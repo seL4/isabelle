@@ -133,12 +133,12 @@ lemma add:
      "Abs_Integ (intrel``{(x,y)}) + Abs_Integ (intrel``{(u,v)}) =
       Abs_Integ (intrel``{(x+u, y+v)})"
 proof -
-  have "congruent2 intrel
+  have "congruent2 intrel intrel
         (\<lambda>z w. (\<lambda>(x,y). (\<lambda>(u,v). intrel `` {(x+u, y+v)}) w) z)"
     by (simp add: congruent2_def)
   thus ?thesis
     by (simp add: add_int_def UN_UN_split_split_eq
-                  UN_equiv_class2 [OF equiv_intrel])
+                  UN_equiv_class2 [OF equiv_intrel equiv_intrel])
 qed
 
 lemma zminus_zadd_distrib: "- (z + w) = (- z) + (- w::int)"
@@ -187,7 +187,7 @@ subsection{*Integer Multiplication*}
 
 text{*Congruence property for multiplication*}
 lemma mult_congruent2:
-     "congruent2 intrel
+     "congruent2 intrel intrel
         (%p1 p2. (%(x,y). (%(u,v).
                     intrel``{(x*u + y*v, x*v + y*u)}) p2) p1)"
 apply (rule equiv_intrel [THEN congruent2_commuteI])
@@ -204,7 +204,7 @@ lemma mult:
      "Abs_Integ((intrel``{(x,y)})) * Abs_Integ((intrel``{(u,v)})) =
       Abs_Integ(intrel `` {(x*u + y*v, x*v + y*u)})"
 by (simp add: mult_int_def UN_UN_split_split_eq mult_congruent2
-              equiv_intrel [THEN UN_equiv_class2])
+              UN_equiv_class2 [OF equiv_intrel equiv_intrel])
 
 lemma zmult_zminus: "(- z) * w = - (z * (w::int))"
 by (cases z, cases w, simp add: minus mult add_ac)

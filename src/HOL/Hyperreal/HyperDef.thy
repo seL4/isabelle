@@ -317,16 +317,15 @@ by (rule eq_Abs_hypreal [of z], blast)
 subsection{*Hyperreal Addition*}
 
 lemma hypreal_add_congruent2: 
-    "congruent2 hyprel (%X Y. hyprel``{%n. X n + Y n})"
+    "congruent2 hyprel hyprel (%X Y. hyprel``{%n. X n + Y n})"
 apply (simp add: congruent2_def, auto, ultra)
 done
 
 lemma hypreal_add: 
   "Abs_hypreal(hyprel``{%n. X n}) + Abs_hypreal(hyprel``{%n. Y n}) =  
    Abs_hypreal(hyprel``{%n. X n + Y n})"
-apply (simp add: hypreal_add_def)
-apply (simp add: UN_equiv_class2 [OF equiv_hyprel hypreal_add_congruent2])
-done
+by (simp add: hypreal_add_def 
+         UN_equiv_class2 [OF equiv_hyprel equiv_hyprel hypreal_add_congruent2])
 
 lemma hypreal_add_commute: "(z::hypreal) + w = w + z"
 apply (cases z, cases w)
@@ -383,16 +382,14 @@ by (simp add: hypreal_add_commute hypreal_add_minus)
 subsection{*Hyperreal Multiplication*}
 
 lemma hypreal_mult_congruent2: 
-    "congruent2 hyprel (%X Y. hyprel``{%n. X n * Y n})"
-apply (simp add: congruent2_def, auto, ultra)
-done
+    "congruent2 hyprel hyprel (%X Y. hyprel``{%n. X n * Y n})"
+by (simp add: congruent2_def, auto, ultra)
 
 lemma hypreal_mult: 
   "Abs_hypreal(hyprel``{%n. X n}) * Abs_hypreal(hyprel``{%n. Y n}) =  
    Abs_hypreal(hyprel``{%n. X n * Y n})"
-apply (simp add: hypreal_mult_def)
-apply (simp add: UN_equiv_class2 [OF equiv_hyprel hypreal_mult_congruent2])
-done
+by (simp add: hypreal_mult_def
+        UN_equiv_class2 [OF equiv_hyprel equiv_hyprel hypreal_mult_congruent2])
 
 lemma hypreal_mult_commute: "(z::hypreal) * w = w * z"
 apply (cases z, cases w)
@@ -765,10 +762,6 @@ val FreeUltrafilterNat_Ex_P = thm "FreeUltrafilterNat_Ex_P";
 val FreeUltrafilterNat_all = thm "FreeUltrafilterNat_all";
 val FreeUltrafilterNat_Un = thm "FreeUltrafilterNat_Un";
 val hyprel_iff = thm "hyprel_iff";
-val hyprel_refl = thm "hyprel_refl";
-val hyprel_sym = thm "hyprel_sym";
-val hyprel_trans = thm "hyprel_trans";
-val equiv_hyprel = thm "equiv_hyprel";
 val hyprel_in_hypreal = thm "hyprel_in_hypreal";
 val Abs_hypreal_inverse = thm "Abs_hypreal_inverse";
 val inj_on_Abs_hypreal = thm "inj_on_Abs_hypreal";
@@ -780,7 +773,6 @@ val inj_hypreal_of_real = thm "inj_hypreal_of_real";
 val eq_Abs_hypreal = thm "eq_Abs_hypreal";
 val hypreal_minus_congruent = thm "hypreal_minus_congruent";
 val hypreal_minus = thm "hypreal_minus";
-val hypreal_add_congruent2 = thm "hypreal_add_congruent2";
 val hypreal_add = thm "hypreal_add";
 val hypreal_diff = thm "hypreal_diff";
 val hypreal_add_commute = thm "hypreal_add_commute";
@@ -789,7 +781,6 @@ val hypreal_add_zero_left = thm "hypreal_add_zero_left";
 val hypreal_add_zero_right = thm "hypreal_add_zero_right";
 val hypreal_add_minus = thm "hypreal_add_minus";
 val hypreal_add_minus_left = thm "hypreal_add_minus_left";
-val hypreal_mult_congruent2 = thm "hypreal_mult_congruent2";
 val hypreal_mult = thm "hypreal_mult";
 val hypreal_mult_commute = thm "hypreal_mult_commute";
 val hypreal_mult_assoc = thm "hypreal_mult_assoc";

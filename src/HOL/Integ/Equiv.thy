@@ -8,7 +8,7 @@ header {* Equivalence relations in Higher-Order Set Theory *}
 
 theory Equiv = Relation + Finite_Set:
 
-subsection {* Equiv relations *}
+subsection {* Equivalence relations *}
 
 locale equiv =
   fixes A and r
@@ -37,9 +37,7 @@ lemma equiv_comp_eq: "equiv A r ==> r\<inverse> O r = r"
    apply (rules intro: sym_trans_comp_subset refl_comp_subset)+
   done
 
-text {*
-  Second half.
-*}
+text {* Second half. *}
 
 lemma comp_equivI:
     "r\<inverse> O r = r ==> Domain r = A ==> equiv A r"
@@ -136,9 +134,10 @@ lemma quotient_eq_iff:
 
 subsection {* Defining unary operations upon equivalence classes *}
 
+text{*A congruence-preserving function*}
 locale congruent =
   fixes r and f
-  assumes congruent: "(y, z) \<in> r ==> f y = f z"
+  assumes congruent: "(y,z) \<in> r ==> f y = f z"
 
 lemma UN_constant_eq: "a \<in> A ==> \<forall>y \<in> A. f y = c ==> (\<Union>y \<in> A. f(y))=c"
   -- {* lemma required to prove @{text UN_equiv_class} *}
@@ -186,18 +185,19 @@ lemma UN_equiv_class_inject:
 
 subsection {* Defining binary operations upon equivalence classes *}
 
+text{*A congruence-preserving function of two arguments*}
 locale congruent2 =
-  fixes r and f
+  fixes r1 and r2 and f
   assumes congruent2:
-    "(y1, z1) \<in> r ==> (y2, z2) \<in> r ==> f y1 y2 = f z1 z2"
+    "(y1,z1) \<in> r1 ==> (y2,z2) \<in> r2 ==> f y1 y2 = f z1 z2"
 
 lemma congruent2_implies_congruent:
-    "equiv A r ==> congruent2 r f ==> a \<in> A ==> congruent r (f a)"
+    "equiv A r1 ==> congruent2 r1 r2 f ==> a \<in> A ==> congruent r2 (f a)"
   by (unfold congruent_def congruent2_def equiv_def refl_def) blast
 
 lemma congruent2_implies_congruent_UN:
-  "equiv A r ==> congruent2 r f ==> a \<in> A ==>
-    congruent r (\<lambda>x1. \<Union>x2 \<in> r``{a}. f x1 x2)"
+  "equiv A1 r1 ==> equiv A2 r2 ==> congruent2 r1 r2 f ==> a \<in> A2 ==>
+    congruent r1 (\<lambda>x1. \<Union>x2 \<in> r2``{a}. f x1 x2)"
   apply (unfold congruent_def)
   apply clarify
   apply (rule equiv_type [THEN subsetD, THEN SigmaE2], assumption+)
@@ -207,14 +207,15 @@ lemma congruent2_implies_congruent_UN:
   done
 
 lemma UN_equiv_class2:
-  "equiv A r ==> congruent2 r f ==> a1 \<in> A ==> a2 \<in> A
-    ==> (\<Union>x1 \<in> r``{a1}. \<Union>x2 \<in> r``{a2}. f x1 x2) = f a1 a2"
+  "equiv A1 r1 ==> equiv A2 r2 ==> congruent2 r1 r2 f ==> a1 \<in> A1 ==> a2 \<in> A2
+    ==> (\<Union>x1 \<in> r1``{a1}. \<Union>x2 \<in> r2``{a2}. f x1 x2) = f a1 a2"
   by (simp add: UN_equiv_class congruent2_implies_congruent
     congruent2_implies_congruent_UN)
 
 lemma UN_equiv_class_type2:
-  "equiv A r ==> congruent2 r f ==> X1 \<in> A//r ==> X2 \<in> A//r
-    ==> (!!x1 x2. x1 \<in> A ==> x2 \<in> A ==> f x1 x2 \<in> B)
+  "equiv A1 r1 ==> equiv A2 r2 ==> congruent2 r1 r2 f
+    ==> X1 \<in> A1//r1 ==> X2 \<in> A2//r2
+    ==> (!!x1 x2. x1 \<in> A1 ==> x2 \<in> A2 ==> f x1 x2 \<in> B)
     ==> (\<Union>x1 \<in> X1. \<Union>x2 \<in> X2. f x1 x2) \<in> B"
   apply (unfold quotient_def)
   apply clarify
@@ -230,10 +231,10 @@ lemma UN_UN_split_split_eq:
   by auto
 
 lemma congruent2I:
-  "equiv A r
-    ==> (!!y z w. w \<in> A ==> (y, z) \<in> r ==> f y w = f z w)
-    ==> (!!y z w. w \<in> A ==> (y, z) \<in> r ==> f w y = f w z)
-    ==> congruent2 r f"
+  "equiv A1 r1 ==> equiv A2 r2
+    ==> (!!y z w. w \<in> A2 ==> (y,z) \<in> r1 ==> f y w = f z w)
+    ==> (!!y z w. w \<in> A1 ==> (y,z) \<in> r2 ==> f w y = f w z)
+    ==> congruent2 r1 r2 f"
   -- {* Suggested by John Harrison -- the two subproofs may be *}
   -- {* \emph{much} simpler than the direct proof. *}
   apply (unfold congruent2_def equiv_def refl_def)
@@ -244,9 +245,9 @@ lemma congruent2I:
 lemma congruent2_commuteI:
   assumes equivA: "equiv A r"
     and commute: "!!y z. y \<in> A ==> z \<in> A ==> f y z = f z y"
-    and congt: "!!y z w. w \<in> A ==> (y, z) \<in> r ==> f w y = f w z"
-  shows "congruent2 r f"
-  apply (rule equivA [THEN congruent2I])
+    and congt: "!!y z w. w \<in> A ==> (y,z) \<in> r ==> f w y = f w z"
+  shows "congruent2 r r f"
+  apply (rule congruent2I [OF equivA equivA])
    apply (rule commute [THEN trans])
      apply (rule_tac [3] commute [THEN trans, symmetric])
        apply (rule_tac [5] sym)

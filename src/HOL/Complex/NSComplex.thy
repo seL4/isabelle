@@ -243,7 +243,7 @@ by (simp add: hcomplex_one_def hIm hypreal_one_def hypreal_zero_num)
 subsection{*Addition for Nonstandard Complex Numbers*}
 
 lemma hcomplex_add_congruent2:
-    "congruent2 hcomplexrel (%X Y. hcomplexrel `` {%n. X n + Y n})"
+    "congruent2 hcomplexrel hcomplexrel (%X Y. hcomplexrel `` {%n. X n + Y n})"
 by (auto simp add: congruent2_def iff: hcomplexrel_iff, ultra) 
 
 lemma hcomplex_add:
@@ -1562,7 +1562,6 @@ val hcomplex_hRe_one = thm"hcomplex_hRe_one";
 val hcomplex_hIm_one = thm"hcomplex_hIm_one";
 val inj_hcomplex_of_complex = thm"inj_hcomplex_of_complex";
 val hcomplex_of_complex_i = thm"hcomplex_of_complex_i";
-val hcomplex_add_congruent2 = thm"hcomplex_add_congruent2";
 val hcomplex_add = thm"hcomplex_add";
 val hcomplex_add_commute = thm"hcomplex_add_commute";
 val hcomplex_add_assoc = thm"hcomplex_add_assoc";
