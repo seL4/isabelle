@@ -1,5 +1,8 @@
 open I;
 
+Unify.trace_bound := 45;
+Unify.search_bound := 50;
+
 goal thy
   "! a m s s' t n.  \
 \    (new_tv m a & new_tv m s) --> I e a m s = Ok(s',t,n) -->   \
