@@ -505,6 +505,10 @@ qed "mod_Suc";
 (** Divides Relation                           **)
 (************************************************)
 
+Goalw [dvd_def] "n = m * k \\<Longrightarrow> m dvd n";
+by (Blast_tac 1); 
+qed "dvdI";
+
 Goalw [dvd_def] "!!P. [|m dvd n;  !!k. n = m*k ==> P|] ==> P";
 by (Blast_tac 1); 
 qed "dvdE";
@@ -517,6 +521,11 @@ AddIffs [dvd_0_right];
 Goalw [dvd_def] "0 dvd m ==> m = (0::nat)";
 by Auto_tac;
 qed "dvd_0_left";
+
+Goal "(0 dvd (m::nat)) = (m = 0)";
+by (blast_tac (claset() addIs [dvd_0_left]) 1); 
+qed "dvd_0_left_iff";
+AddIffs [dvd_0_left_iff];
 
 Goalw [dvd_def] "1 dvd (k::nat)";
 by (Simp_tac 1);
