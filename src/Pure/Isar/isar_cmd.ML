@@ -51,7 +51,8 @@ val quit = Toplevel.imperative quit;
 
 (* use ML text *)
 
-fun use name = Toplevel.imperative (fn () => ThyInfo.use name);
+fun use name = Toplevel.keep (fn state =>
+  Context.setmp (try Toplevel.theory_of state) ThyInfo.use name);
 
 (*passes changes of theory context*)
 val use_mltext_theory = Toplevel.theory o IsarThy.use_mltext_theory;
