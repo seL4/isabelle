@@ -185,7 +185,7 @@ fun eval_antiquote lex state (str, pos) =
 
 val interest_level = ref 0;
 
-val hide_commands = ref false;
+val hide_commands = ref true;
 val hidden_commands = ref ([] : string list);
 
 fun add_hidden_commands cmds = (hidden_commands := !hidden_commands @ cmds);
@@ -296,6 +296,7 @@ val _ = add_options
  [("show_types", Library.setmp Syntax.show_types o boolean),
   ("show_sorts", Library.setmp Syntax.show_sorts o boolean),
   ("show_structs", Library.setmp show_structs o boolean),
+  ("show_var_qmarks", Library.setmp show_var_qmarks o boolean),
   ("long_names", Library.setmp NameSpace.long_names o boolean),
   ("eta_contract", Library.setmp Syntax.eta_contract o boolean),
   ("locale", Library.setmp locale),
