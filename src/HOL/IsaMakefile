@@ -542,6 +542,7 @@ $(LOG)/HOL-Bali.gz: $(OUT)/HOL Bali/AxCompl.thy Bali/AxExample.thy	\
   Bali/Example.thy Bali/Name.thy Bali/ROOT.ML Bali/State.thy		\
   Bali/Table.thy Bali/Term.thy Bali/Trans.thy Bali/Type.thy		\
   Bali/TypeRel.thy Bali/TypeSafe.thy Bali/Value.thy Bali/WellForm.thy	\
+  Bali/DefiniteAssignment.thy Bali/DefiniteAssignmentCorrect.thy \
   Bali/WellType.thy Bali/document/root.tex
 	@$(ISATOOL) usedir -g true $(OUT)/HOL Bali
 
