@@ -51,7 +51,7 @@ recdef contrived
 
 text{*
 Lexicographic products of measure functions already go a long
-way. Furthermore you may embedding some type in an
+way. Furthermore you may embed some type in an
 existing well-founded relation via the inverse image construction @{term
 inv_image}. All these constructions are known to \isacommand{recdef}. Thus you
 will never have to prove well-foundedness of any relation composed
