@@ -199,14 +199,14 @@ fun pretty_full_theory thy =
             prt_typ_no_tvars T, Pretty.str " ::", Pretty.brk 1, prt_sort S];
 
     val tfrees = map (fn v => TFree (v, []));
-    fun pretty_type syn ((_, t), (Type.LogicalType n, _)) =
+    fun pretty_type syn (t, Type.LogicalType n) =
           if syn then None
           else Some (prt_typ (Type (t, tfrees (Term.invent_names [] "'a" n))))
-      | pretty_type syn ((_, t), (Type.Abbreviation (vs, U, syn'), _)) =
+      | pretty_type syn (t, Type.Abbreviation (vs, U, syn')) =
           if syn <> syn' then None
           else Some (Pretty.block
             [prt_typ (Type (t, tfrees vs)), Pretty.str " =", Pretty.brk 1, prt_typ U])
-      | pretty_type syn ((_, t), (Type.Nonterminal, _)) =
+      | pretty_type syn (t, Type.Nonterminal) =
           if not syn then None
           else Some (prt_typ (Type (t, [])));
 
@@ -229,9 +229,8 @@ fun pretty_full_theory thy =
     val {classes, default, types, arities, log_types = _, witness} = Type.rep_tsig tsig;
 
     val spcs = Library.sort_wrt #1 spaces;
-    val tdecls =
-      map (apfst (fn t => (Sign.cond_extern sg Sign.typeK t, t))) (Symtab.dest types)
-      |> Library.sort_wrt (#1 o #1);
+    val tdecls = Symtab.dest types |> map (fn (t, (d, _)) =>
+      (Sign.cond_extern sg Sign.typeK t, (t, d))) |> Library.sort_wrt #1 |> map #2;
     val cnsts = Sign.cond_extern_table sg Sign.constK consts;
     val finals = Sign.cond_extern_table sg Sign.constK final_consts;
     val axms = Sign.cond_extern_table sg Theory.axiomK axioms;
