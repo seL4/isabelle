@@ -1,9 +1,9 @@
-(*  Title:      CTT/ctt.ML
+(*  Title:      CTT/CTT.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
-Tactics and lemmas for ctt.thy (Constructive Type Theory)
+Tactics and derived rules for Constructive Type Theory
 *)
 
 (*Formation rules*)
@@ -33,30 +33,30 @@ val element_rls = intr_rls @ elim_rls;
 val basic_defs = [fst_def,snd_def];
 
 (*Compare with standard version: B is applied to UNSIMPLIFIED expression! *)
-val prems= goal CTT.thy
-    "[| c=a : A;  d=b : B(a) |] ==> <c,d> = <a,b> : Sum(A,B)";
+Goal "[| c=a : A;  d=b : B(a) |] ==> <c,d> = <a,b> : Sum(A,B)";
 by (rtac sym_elem 1);
 by (rtac SumIL 1);
 by (ALLGOALS (rtac sym_elem ));
-by (ALLGOALS (resolve_tac prems)) ;
+by (ALLGOALS assume_tac) ;
 qed "SumIL2";
 
 val intrL2_rls = [NI_succL, ProdIL, SumIL2, PlusI_inlL, PlusI_inrL];
 
 (*Exploit p:Prod(A,B) to create the assumption z:B(a).  
   A more natural form of product elimination. *)
-val prems= goal CTT.thy
-    "[| p: Prod(A,B);  a: A;  !!z. z: B(a) ==> c(z): C(z) \
+val prems = Goal "[| p: Prod(A,B);  a: A;  !!z. z: B(a) ==> c(z): C(z) \
 \    |] ==> c(p`a): C(p`a)";
-by (REPEAT (resolve_tac (prems@[ProdE]) 1)) ;
+by (REPEAT (resolve_tac (ProdE::prems) 1)) ;
 qed "subst_prodE";
 
 (** Tactics for type checking **)
 
-fun is_rigid_elem (Const("CTT.Elem",_) $ a $ _) = not (is_Var (head_of a))
+fun is_rigid_elem (Const("CTT.Elem",_) $ a $ _) = not(is_Var (head_of a))
+  | is_rigid_elem (Const("CTT.Eqelem",_) $ a $ _ $ _) = not(is_Var (head_of a))
+  | is_rigid_elem (Const("CTT.Type",_) $ a) = not(is_Var (head_of a))
   | is_rigid_elem _ = false;
 
-(*Try solving a:A by assumption provided a is rigid!*) 
+(*Try solving a:A or a=b:A by assumption provided a is rigid!*) 
 val test_assume_tac = SUBGOAL(fn (prem,i) =>
     if is_rigid_elem (Logic.strip_assums_concl prem)
     then  assume_tac i  else  no_tac);
@@ -72,7 +72,7 @@ fun routine_tac rls prems = ASSUME (filt_resolve_tac (prems @ rls) 4);
 
 
 (*Solve all subgoals "A type" using formation rules. *)
-val form_tac = REPEAT_FIRST (filt_resolve_tac(form_rls) 1);
+val form_tac = REPEAT_FIRST (ASSUME (filt_resolve_tac(form_rls) 1));
 
 
 (*Type checking: solve a:A (a rigid, A flexible) by intro and elim rules. *)
@@ -98,16 +98,15 @@ fun equal_tac thms =
 (*** Simplification ***)
 
 (*To simplify the type in a goal*)
-val prems= goal CTT.thy
-    "[| B = A;  a : A |] ==> a : B";
+Goal "[| B = A;  a : A |] ==> a : B";
 by (rtac equal_types 1);
 by (rtac sym_type 2);
-by (ALLGOALS (resolve_tac prems)) ;
+by (ALLGOALS assume_tac) ;
 qed "replace_type";
 
 (*Simplify the parameter of a unary type operator.*)
-val prems= goal CTT.thy
-    "a=c : A ==> (!!z. z:A ==> B(z) type) ==> B(a)=B(c)";
+val prems = Goal
+     "[| a=c : A;  !!z. z:A ==> B(z) type |] ==> B(a)=B(c)";
 by (rtac subst_typeL 1);
 by (rtac refl_type 2);
 by (ALLGOALS (resolve_tac prems));
@@ -175,14 +174,13 @@ fun pc_tac thms = DEPTH_SOLVE_1 o (step_tac thms);
 
 (** The elimination rules for fst/snd **)
 
-val [major] = goalw CTT.thy basic_defs
-    "p : Sum(A,B) ==> fst(p) : A";
-by (rtac (major RS SumE) 1);
-by (assume_tac 1) ;
+Goalw basic_defs "p : Sum(A,B) ==> fst(p) : A";
+by (etac SumE 1);
+by (assume_tac 1);
 qed "SumE_fst";
 
 (*The first premise must be p:Sum(A,B) !!*)
-val major::prems= goalw CTT.thy basic_defs
+val major::prems= Goalw basic_defs
     "[| p: Sum(A,B);  A type;  !!x. x:A ==> B(x) type \
 \    |] ==> snd(p) : B(fst(p))";
 by (rtac (major RS SumE) 1);

@@ -1,9 +1,9 @@
-(*  Title:      CTT/bool
+(*  Title:      CTT/Bool
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
-Theorems for bool.thy (booleans and conditionals)
+The two-element type (booleans and conditionals)
 *)
 
 val bool_defs = [Bool_def,true_def,false_def,cond_def];
