@@ -1,0 +1,15 @@
+#
+# getsettings - bash source script to augment current env
+#
+# $Id$
+#
+
+#value set by caller
+export ISABELLE_HOME
+
+set -o allexport
+
+. $ISABELLE_HOME/etc/settings
+[ -f $ISABELLE_HOME_USER/etc/settings ] && . $ISABELLE_HOME_USER/etc/settings
+
+set +o allexport
