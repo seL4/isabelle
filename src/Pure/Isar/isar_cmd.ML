@@ -51,7 +51,7 @@ val quit = Toplevel.imperative quit;
 
 (* use ML text *)
 
-fun use name = Toplevel.imperative (fn () => ThyInfo.load_file (Path.unpack name));
+fun use name = Toplevel.imperative (fn () => ThyInfo.use name);
 
 (*passes changes of theory context*)
 val use_mltext_theory = Toplevel.theory o IsarThy.use_mltext_theory;
@@ -74,8 +74,8 @@ val pwd = Toplevel.imperative print_cd;
 
 (* load theory files *)
 
-fun use_thy name = Toplevel.imperative (fn () => ThyInfo.use_thy name);
-fun update_thy name = Toplevel.imperative (fn () => ThyInfo.update_thy name);
+fun use_thy name = Toplevel.imperative (fn () => Context.save ThyInfo.use_thy name);
+fun update_thy name = Toplevel.imperative (fn () => Context.save ThyInfo.update_thy name);
 
 
 (* print theory contents *)
