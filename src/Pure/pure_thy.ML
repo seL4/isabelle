@@ -130,8 +130,8 @@ fun enter_thms sg single (raw_name, thms) =
         if NameSpace.declared space name then err_dup name else ()
     | Some thms' =>
         if length thms' = len andalso eq_thms (thms', named_thms) then
-          warn_overwrite name
-        else warn_same name);
+          warn_same name
+        else warn_overwrite name);
 
     r :=
      {space = NameSpace.extend ([name], space),
