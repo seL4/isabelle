@@ -538,11 +538,11 @@ fun get_thm thy name =
   let fun get [] [] searched =
            raise THEORY ("get_thm: no theorem " ^ quote name, [thy])
         | get [] ng searched =
-            get (distinct (gen_rems (op =) (ng, searched))) [] searched
+            get (ng \\ searched) [] searched
         | get (t::ts) ng searched =
             (case Symtab.lookup (thmtab_ofname t, name) of
                  Some thm => thm
-               | None => get ts (ng @ get_parents t) (t::searched));
+               | None => get ts (ng union (get_parents t)) (t::searched));
 
       val (tname, _) = thyinfo_of_sign (sign_of thy);
   in get [tname] [] [] end;
