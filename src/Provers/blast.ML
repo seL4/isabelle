@@ -486,12 +486,12 @@ fun fromRule vars rl =
 	  TRACE rl (etac (if dup then rev_dup_elim rl else rl)) i
 	  THEN rot_subgoals_tac (map nNewHyps (#2 trl)) i
 	  
-  in General.SOME (trl, tac) end
+  in SOME (trl, tac) end
   handle Bind => (*reject: conclusion is not just a variable*)
    (if !trace then (writeln"Warning: ignoring ill-formed elimination rule";
 		    print_thm rl)
     else ();
-    General.NONE);
+    NONE);
 
 
 (*** Conversion of Introduction Rules (needed for efficiency in 
