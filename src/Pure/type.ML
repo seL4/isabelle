@@ -61,12 +61,13 @@ sig
   val raw_unify: typ * typ -> bool
 
   (*type inference*)
-  val get_sort: type_sig -> (indexname -> sort option) -> (indexname * sort) list
-    -> indexname -> sort
+  val get_sort: type_sig -> (indexname -> sort option) -> (sort -> sort)
+    -> (indexname * sort) list -> indexname -> sort
   val constrain: term -> typ -> term
   val infer_types: (term -> Pretty.T) -> (typ -> Pretty.T)
     -> type_sig -> (string -> typ option) -> (indexname -> typ option)
-    -> (indexname -> sort option) -> string list -> bool -> typ list -> term list
+    -> (indexname -> sort option) -> (string -> string) -> (typ -> typ)
+    -> (sort -> sort) -> string list -> bool -> typ list -> term list
     -> term list * (indexname * typ) list
 end;
 
@@ -79,7 +80,7 @@ struct
 (*disallow TVars*)
 fun no_tvars T =
   if null (typ_tvars T) then T
-  else raise_type "Illegal schematic type variable(s)" [T] [];
+  else raise TYPE ("Illegal schematic type variable(s)", [T], []);
 
 (* varify, unvarify *)
 
@@ -109,10 +110,10 @@ fun newName (ix, (pairs,used)) =
       let val v = variant used (string_of_indexname ix)
       in  ((ix,v)::pairs, v::used)  end;
 
-fun freezeOne alist (ix,sort) = TFree (the (assoc (alist, ix)), sort)
-      handle OPTION _ => 
-	  raise_type ("Failure during freezing of ?" ^
-		      string_of_indexname ix) [] [];
+fun freezeOne alist (ix,sort) =
+  TFree (the (assoc (alist, ix)), sort)
+    handle OPTION _ =>
+      raise TYPE ("Failure during freezing of ?" ^ string_of_indexname ix, [], []);
 
 fun thawOne alist (a,sort) = TVar (the (assoc (alist,a)), sort)
       handle OPTION _ => TFree(a,sort);
@@ -249,7 +250,7 @@ fun of_sort (TySg {classrel, arities, ...}) = Sorts.of_sort classrel arities;
 
 fun check_has_sort (tsig, T, S) =
   if of_sort tsig (T, S) then ()
-  else raise_type ("Type not of sort " ^ Sorts.str_of_sort S) [T] [];
+  else raise TYPE ("Type not of sort " ^ Sorts.str_of_sort S, [T], []);
 
 
 (*Instantiation of type variables in types *)
@@ -340,7 +341,7 @@ fun typ_errors tsig (typ, errors) =
 fun cert_typ tsig T =
   (case typ_errors tsig (T, []) of
     [] => norm_typ tsig T
-  | errs => raise_type (cat_lines errs) [T] []);
+  | errs => raise TYPE (cat_lines errs, [T], []));
 
 
 
@@ -427,7 +428,7 @@ fun merge_abbrs (abbrs1, abbrs2) =
   let val abbrs = abbrs1 union abbrs2 in
     (case gen_duplicates eq_fst abbrs of
       [] => abbrs
-    | dups => raise_term (dup_tyabbrs (map fst dups)) [])
+    | dups => raise TERM (dup_tyabbrs (map fst dups), []))
   end;
 
 
@@ -783,17 +784,33 @@ fun raw_unify (ty1, ty2) =
 
 (** type inference **)
 
-(* constraints *)
+(* sort constraints *)
 
-fun get_sort tsig def_sort env xi =
-  (case (assoc (env, xi), def_sort xi) of
-    (None, None) => defaultS tsig
-  | (None, Some S) => S
-  | (Some S, None) => S
-  | (Some S, Some S') =>
-      if eq_sort tsig (S, S') then S
-      else error ("Sort constraint inconsistent with default for type variable " ^
-        quote (Syntax.string_of_vname' xi)));
+fun get_sort tsig def_sort map_sort raw_env =
+  let
+    fun eq ((xi, S), (xi', S')) =
+      xi = xi' andalso eq_sort tsig (S, S');
+
+    val env = gen_distinct eq (map (apsnd map_sort) raw_env);
+    val _ =
+      (case gen_duplicates eq_fst env of
+        [] => ()
+      | dups => error ("Inconsistent sort constraints for type variable(s) " ^
+          commas (map (quote o Syntax.string_of_vname' o fst) dups)));
+
+    fun get xi =
+      (case (assoc (env, xi), def_sort xi) of
+        (None, None) => defaultS tsig
+      | (None, Some S) => S
+      | (Some S, None) => S
+      | (Some S, Some S') =>
+          if eq_sort tsig (S, S') then S
+          else error ("Sort constraint inconsistent with default for type variable " ^
+            quote (Syntax.string_of_vname' xi)));
+  in get end;
+
+
+(* type constraints *)
 
 fun constrain t T =
   if T = dummyT then t
@@ -803,13 +820,14 @@ fun constrain t T =
 (* decode_types *)
 
 (*transform parse tree into raw term (idempotent)*)
-fun decode_types tsig is_const def_type def_sort tm =
+fun decode_types tsig is_const def_type def_sort map_const map_type map_sort tm =
   let
     fun get_type xi = if_none (def_type xi) dummyT;
-    val sort_env = Syntax.raw_term_sorts (eq_sort tsig) tm;
+    val raw_env = Syntax.raw_term_sorts tm;
+    val sort_of = get_sort tsig def_sort map_sort raw_env;
 
     fun decodeT t =
-      cert_typ tsig (Syntax.typ_of_term (get_sort tsig def_sort sort_env) t);
+      cert_typ tsig (map_type (Syntax.typ_of_term sort_of t));
 
     fun decode (Const ("_constrain", _) $ t $ typ) =
           constrain (decode t) (decodeT typ)
@@ -819,14 +837,16 @@ fun decode_types tsig is_const def_type def_sort tm =
       | decode (Abs (x, T, t)) = Abs (x, T, decode t)
       | decode (t $ u) = decode t $ decode u
       | decode (t as Free (x, T)) =
-          if is_const x then Const (x, T)
-          else if T = dummyT then Free (x, get_type (x, ~1))
-          else constrain t (get_type (x, ~1))
+          let val c = map_const x in
+            if is_const c then Const (c, T)
+            else if T = dummyT then Free (x, get_type (x, ~1))
+            else constrain t (get_type (x, ~1))
+          end
       | decode (t as Var (xi, T)) =
           if T = dummyT then Var (xi, get_type xi)
           else constrain t (get_type xi)
       | decode (t as Bound _) = t
-      | decode (t as Const _) = t;
+      | decode (Const (c, T)) = Const (map_const c, T);
   in
     decode tm
   end;
@@ -839,30 +859,33 @@ fun decode_types tsig is_const def_type def_sort tm =
   unifies with Ti (for i=1,...,n).
 
   tsig: type signature
-  const_type: term signature
+  const_type: name mapping and signature lookup
   def_type: partial map from indexnames to types (constrains Frees, Vars)
   def_sort: partial map from indexnames to sorts (constrains TFrees, TVars)
   used: list of already used type variables
   freeze: if true then generated parameters are turned into TFrees, else TVars
 *)
 
-(*user-supplied inference parameters*)
+(*user-supplied inference parameters: ??x.i *)
 fun q_is_param (x, _) =
   (case explode x of
     "?" :: _ => true
   | _ => false);
 
-fun infer_types prt prT tsig const_type def_type def_sort used freeze pat_Ts raw_ts =
+fun infer_types prt prT tsig const_type def_type def_sort
+    map_const map_type map_sort used freeze pat_Ts raw_ts =
   let
     val TySg {classrel, arities, ...} = tsig;
     val pat_Ts' = map (cert_typ tsig) pat_Ts;
+    val is_const = is_some o const_type;
     val raw_ts' =
-      map (decode_types tsig (is_some o const_type) def_type def_sort) raw_ts;
+      map (decode_types tsig is_const def_type def_sort map_const map_type map_sort) raw_ts;
     val (ts, Ts, unifier) =
       TypeInfer.infer_types prt prT const_type classrel arities used freeze
         q_is_param raw_ts' pat_Ts';
   in
     (ts, unifier)
   end;
+
 
 end;
