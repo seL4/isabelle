@@ -21,11 +21,11 @@ sig
   val all_succs: 'a T -> key list -> key list
   val find_paths: 'a T -> key * key -> key list list
   exception DUPLICATE of key
-  val add_node: key * 'a -> 'a T -> 'a T
+  val new_node: key * 'a -> 'a T -> 'a T
   val add_edge: key * key -> 'a T -> 'a T
+  val del_edge: key * key -> 'a T -> 'a T
   exception CYCLES of key list list
   val add_edge_acyclic: key * key -> 'a T -> 'a T
-  val derive_node: key * 'a -> key list -> 'a T -> 'a T
 end;
 
 functor GraphFun(Key: KEY): GRAPH =
@@ -43,6 +43,9 @@ val op mem_key = gen_mem eq_key;
 
 infix ins_key;
 val op ins_key = gen_ins eq_key;
+
+infix del_key;
+fun xs del_key x = if x mem_key xs then gen_rem eq_key (xs, x) else xs;
 
 
 (* tables and sets of keys *)
@@ -123,13 +126,19 @@ fun find_paths G (x, y) =
 
 exception DUPLICATE of key;
 
-fun add_node (x, info) (Graph tab) =
+fun new_node (x, info) (Graph tab) =
   Graph (Table.update_new ((x, (info, ([], []))), tab)
     handle Table.DUP key => raise DUPLICATE key);
 
-fun add_edge (x, y) G =
-  G |> map_entry x (fn (i, (preds, succs)) => (i, (preds, y ins_key succs)))
-    |> map_entry y (fn (i, (preds, succs)) => (i, (x ins_key preds, succs)));
+
+fun add_edge (x, y) =
+  map_entry x (fn (i, (preds, succs)) => (i, (preds, y ins_key succs))) o
+   map_entry y (fn (i, (preds, succs)) => (i, (x ins_key preds, succs)));
+
+fun del_edge (x, y) =
+  map_entry x (fn (i, (preds, succs)) => (i, (preds, succs del_key y))) o
+   map_entry y (fn (i, (preds, succs)) => (i, (preds del_key x, succs)));
+
 
 exception CYCLES of key list list;
 
@@ -137,9 +146,6 @@ fun add_edge_acyclic (x, y) G =
   (case find_paths G (y, x) of
     [] => add_edge (x, y) G
   | cycles => raise CYCLES (map (cons x) cycles));
-
-fun derive_node (x, y) zs G =
-  foldl (fn (H, z) => add_edge_acyclic (z, x) H) (add_node (x, y) G, zs);
 
 
 end;
