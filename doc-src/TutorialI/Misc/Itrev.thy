@@ -2,23 +2,25 @@
 theory Itrev = Main:;
 (*>*)
 
-text{*
-We define a tail-recursive version of list-reversal,
-i.e.\ one that can be compiled into a loop:
-*};
+text{* Function \isa{rev} has quadratic worst-case running time
+because it calls function \isa{\at} for each element of the list and
+\isa{\at} is linear in its first argument.  A linear time version of
+\isa{rev} reqires an extra argument where the result is accumulated
+gradually, using only \isa{\#}:*}
 
 consts itrev :: "'a list \\<Rightarrow> 'a list \\<Rightarrow> 'a list";
 primrec
 "itrev []     ys = ys"
 "itrev (x#xs) ys = itrev xs (x#ys)";
 
-text{*\noindent
-The behaviour of \isa{itrev} is simple: it reverses its first argument by
-stacking its elements onto the second argument, and returning that second
-argument when the first one becomes empty.
-We need to show that \isa{itrev} does indeed reverse its first argument
-provided the second one is empty:
-*};
+text{*\noindent The behaviour of \isa{itrev} is simple: it reverses
+its first argument by stacking its elements onto the second argument,
+and returning that second argument when the first one becomes
+empty. Note that \isa{itrev} is tail-recursive, i.e.\ it can be
+compiled into a loop.
+
+Naturally, we would like to show that \isa{itrev} does indeed reverse
+its first argument provided the second one is empty: *};
 
 lemma "itrev xs [] = rev xs";
 
