@@ -18,11 +18,12 @@ sig
   val of_string: string -> (string, string list) source
   val of_stream: TextIO.instream -> TextIO.outstream -> (string, unit) source
   val tty: (string, unit) source
-  val state_source: 'a -> 'b * ('b -> bool) -> ('a * 'b list -> 'c list * ('a * 'b list))
-    -> ('b, 'd) source -> ('c, 'a * ('b, 'd) source) source
-  val source: 'a * ('a -> bool) -> ('a list -> 'b list * 'a list)
-    -> ('a, 'c) source -> ('b, ('a, 'c) source) source
-  val test: ('a -> string) -> ('a, 'b) source -> unit
+  val source': 'a -> 'b * ('b -> bool) -> ('a * 'b list -> 'c list * ('a * 'b list)) ->
+    ('a * 'b list -> 'd * ('a * 'b list)) option ->
+    ('b, 'e) source -> ('c, 'a * ('b, 'e) source) source
+  val source: 'a * ('a -> bool) -> ('a list -> 'b list * 'a list) ->
+    ('a list -> 'c * 'a list) option ->
+    ('a, 'd) source -> ('b, ('a, 'd) source) source
 end;
 
 structure Source: SOURCE =
@@ -122,29 +123,22 @@ val tty = of_stream TextIO.stdIn TextIO.stdOut;
 
 (** compose sources **)
 
-fun drain_source source stopper scan prompt src =
-  source prompt get_prompt unget stopper scan src;
+fun drain_source source stopper scan recover prompt src =
+  source prompt get_prompt unget stopper scan recover src;
 
 
 (* state-based *)
 
-fun state_source init_state stopper scan src =
-  make_source [] (init_state, src) default_prompt (drain_source Scan.source' stopper scan);
+fun source' init_state stopper scan recover src =
+  make_source [] (init_state, src) default_prompt
+    (drain_source Scan.source' stopper scan recover);
 
 
 (* non state-based *)
 
-fun source stopper scan src =
-   make_source [] src default_prompt (drain_source Scan.source stopper scan);
-
-
-
-(** test source interactively **)
-
-fun test str_of src =
-  (case get src handle Interrupt => ([], src) of
-    ([], _) => writeln "Terminated."
-  | (xs, src') => (seq writeln (map str_of xs); test str_of src'));
+fun source stopper scan recover src =
+  make_source [] src default_prompt
+    (drain_source Scan.source stopper scan recover);
 
 
 end;
