@@ -69,13 +69,13 @@ by (nat_ind_tac "n" prems 1);
 by (REPEAT (ares_tac [Ord_0, Ord_succ] 1));
 val naturals_are_ordinals = result();
 
-(* i: nat ==> 0: succ(i) *)
-val nat_0_in_succ = naturals_are_ordinals RS Ord_0_in_succ;
+(* i: nat ==> 0 le i *)
+val nat_0_le = naturals_are_ordinals RS Ord_0_le;
 
 goal Nat.thy "!!n. n: nat ==> n=0 | 0:n";
 by (etac nat_induct 1);
 by (fast_tac ZF_cs 1);
-by (fast_tac (ZF_cs addIs [nat_0_in_succ]) 1);
+by (fast_tac (ZF_cs addIs [nat_0_le]) 1);
 val natE0 = result();
 
 goal Nat.thy "Ord(nat)";
@@ -93,6 +93,13 @@ val succ_natD = [succI1, asm_rl, Ord_nat] MRS Ord_trans;
 (* [| succ(i): k;  k: nat |] ==> i: k *)
 val succ_in_naturalD = [succI1, asm_rl, naturals_are_ordinals] MRS Ord_trans;
 
+goal Nat.thy "!!m n. [| m<n;  n: nat |] ==> m: nat";
+by (etac ltE 1);
+by (etac (Ord_nat RSN (3,Ord_trans)) 1);
+by (assume_tac 1);
+val lt_nat_in_nat = result();
+
+
 (** Variations on mathematical induction **)
 
 (*complete induction*)
@@ -100,20 +107,19 @@ val complete_induct = Ord_nat RSN (2, Ord_induct);
 
 val prems = goal Nat.thy
     "[| m: nat;  n: nat;  \
-\       !!x. [| x: nat;  m<=x;  P(x) |] ==> P(succ(x)) \
-\    |] ==> m <= n --> P(m) --> P(n)";
+\       !!x. [| x: nat;  m le x;  P(x) |] ==> P(succ(x)) \
+\    |] ==> m le n --> P(m) --> P(n)";
 by (nat_ind_tac "n" prems 1);
 by (ALLGOALS
     (asm_simp_tac
-     (ZF_ss addsimps (prems@distrib_rews@[subset_empty_iff, subset_succ_iff, 
-					  naturals_are_ordinals]))));
+     (ZF_ss addsimps (prems@distrib_rews@[le0_iff, le_succ_iff]))));
 val nat_induct_from_lemma = result();
 
 (*Induction starting from m rather than 0*)
 val prems = goal Nat.thy
-    "[| m <= n;  m: nat;  n: nat;  \
+    "[| m le n;  m: nat;  n: nat;  \
 \       P(m);  \
-\       !!x. [| x: nat;  m<=x;  P(x) |] ==> P(succ(x)) \
+\       !!x. [| x: nat;  m le x;  P(x) |] ==> P(succ(x)) \
 \    |] ==> P(n)";
 by (rtac (nat_induct_from_lemma RS mp RS mp) 1);
 by (REPEAT (ares_tac prems 1));
@@ -122,8 +128,8 @@ val nat_induct_from = result();
 (*Induction suitable for subtraction and less-than*)
 val prems = goal Nat.thy
     "[| m: nat;  n: nat;  \
-\       !!x. [| x: nat |] ==> P(x,0);  \
-\       !!y. [| y: nat |] ==> P(0,succ(y));  \
+\       !!x. x: nat ==> P(x,0);  \
+\       !!y. y: nat ==> P(0,succ(y));  \
 \       !!x y. [| x: nat;  y: nat;  P(x,y) |] ==> P(succ(x),succ(y))  \
 \    |] ==> P(m,n)";
 by (res_inst_tac [("x","m")] bspec 1);
@@ -138,23 +144,22 @@ val diff_induct = result();
 
 goal Nat.thy
  "!!m. m: nat ==> P(m,succ(m)) --> (ALL x: nat. P(m,x) --> P(m,succ(x))) --> \
-\               (ALL n:nat. m:n --> P(m,n))";
+\                 (ALL n:nat. m<n --> P(m,n))";
 by (etac nat_induct 1);
 by (ALLGOALS
     (EVERY' [rtac (impI RS impI), rtac (nat_induct RS ballI), assume_tac,
-	     fast_tac ZF_cs, fast_tac ZF_cs]));
-val succ_less_induct_lemma = result();
+	     fast_tac lt_cs, fast_tac lt_cs]));
+val succ_lt_induct_lemma = result();
 
 val prems = goal Nat.thy
-    "[| m: n;  n: nat;  	\
-\       P(m,succ(m));  		\
-\       !!x. [| x: nat;  P(m,x) |] ==> P(m,succ(x)) \
+    "[| m<n;  n: nat;  					\
+\       P(m,succ(m));  					\
+\       !!x. [| x: nat;  P(m,x) |] ==> P(m,succ(x)) 	\
 \    |] ==> P(m,n)";
 by (res_inst_tac [("P4","P")] 
-     (succ_less_induct_lemma RS mp RS mp RS bspec RS mp) 1);
-by (rtac (Ord_nat RSN (3,Ord_trans)) 1);
-by (REPEAT (ares_tac (prems @ [ballI,impI]) 1));
-val succ_less_induct = result();
+     (succ_lt_induct_lemma RS mp RS mp RS bspec RS mp) 1);
+by (REPEAT (ares_tac (prems @ [ballI, impI, lt_nat_in_nat]) 1));
+val succ_lt_induct = result();
 
 (** nat_case **)
 
@@ -170,14 +175,13 @@ val major::prems = goal Nat.thy
     "[| n: nat;  a: C(0);  !!m. m: nat ==> b(m): C(succ(m))  \
 \    |] ==> nat_case(a,b,n) : C(n)";
 by (rtac (major RS nat_induct) 1);
-by (REPEAT (resolve_tac [nat_case_0 RS ssubst,
-			 nat_case_succ RS ssubst] 1 
-       THEN resolve_tac prems 1));
-by (assume_tac 1);
+by (ALLGOALS 
+    (asm_simp_tac (ZF_ss addsimps (prems @ [nat_case_0, nat_case_succ]))));
 val nat_case_type = result();
 
 
-(** nat_rec -- used to define eclose and transrec, then obsolete **)
+(** nat_rec -- used to define eclose and transrec, then obsolete;
+    rec, from arith.ML, has fewer typing conditions **)
 
 val nat_rec_trans = wf_Memrel RS (nat_rec_def RS def_wfrec RS trans);
 
@@ -195,9 +199,12 @@ val nat_rec_succ = result();
 
 (** The union of two natural numbers is a natural number -- their maximum **)
 
-(*  [| i : nat; j : nat |] ==> i Un j : nat  *)
-val Un_nat_type = standard (Ord_nat RSN (3,Ord_member_UnI));
+goal Nat.thy "!!i j. [| i: nat; j: nat |] ==> i Un j: nat";
+by (rtac (Un_least_lt RS ltD) 1);
+by (REPEAT (ares_tac [ltI, Ord_nat] 1));
+val Un_nat_type = result();
 
-(*  [| i : nat; j : nat |] ==> i Int j : nat  *)
-val Int_nat_type = standard (Ord_nat RSN (3,Ord_member_IntI));
-
+goal Nat.thy "!!i j. [| i: nat; j: nat |] ==> i Int j: nat";
+by (rtac (Int_greatest_lt RS ltD) 1);
+by (REPEAT (ares_tac [ltI, Ord_nat] 1));
+val Int_nat_type = result();

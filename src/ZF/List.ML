@@ -67,11 +67,11 @@ val list_case_type = result();
 
 (** For recursion **)
 
-goalw List.thy List.con_defs "rank(a) : rank(Cons(a,l))";
+goalw List.thy List.con_defs "rank(a) < rank(Cons(a,l))";
 by (simp_tac rank_ss 1);
 val rank_Cons1 = result();
 
-goalw List.thy List.con_defs "rank(l) : rank(Cons(a,l))";
+goalw List.thy List.con_defs "rank(l) < rank(Cons(a,l))";
 by (simp_tac rank_ss 1);
 val rank_Cons2 = result();
 
