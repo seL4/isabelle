@@ -9,13 +9,14 @@ signature RECDEF_PACKAGE =
 sig
   val quiet_mode: bool ref
   val print_recdefs: theory -> unit
-  val get_recdef: theory -> string -> {simps: thm list, induct: thm, tcs: term list} option
-  val add_recdef: xstring -> string -> string list -> simpset option
-    -> (xstring * Args.src list) list -> theory
-    -> theory * {simps: thm list, induct: thm, tcs: term list}
-  val add_recdef_i: xstring -> term -> term list -> simpset option
-    -> (thm * theory attribute list) list
-    -> theory -> theory * {simps: thm list, induct: thm, tcs: term list}
+  val get_recdef: theory -> string
+    -> {simps: thm list, rules: thm list list, induct: thm, tcs: term list} option
+  val add_recdef: xstring -> string -> ((bstring * string) * Args.src list) list
+    -> simpset option -> (xstring * Args.src list) list -> theory
+    -> theory * {simps: thm list, rules: thm list list, induct: thm, tcs: term list}
+  val add_recdef_i: xstring -> term -> ((bstring * term) * theory attribute list) list
+    -> simpset option -> (thm * theory attribute list) list
+    -> theory -> theory * {simps: thm list, rules: thm list list, induct: thm, tcs: term list}
   val defer_recdef: xstring -> string list -> (xstring * Args.src list) list
     -> theory -> theory * {induct_rules: thm}
   val defer_recdef_i: xstring -> term list -> (thm * theory attribute list) list
@@ -35,7 +36,7 @@ val message = Tfl.message;
 
 (* data kind 'HOL/recdef' *)
 
-type recdef_info = {simps: thm list, induct: thm, tcs: term list};
+type recdef_info = {simps: thm list, rules: thm list list, induct: thm, tcs: term list};
 
 structure RecdefArgs =
 struct
@@ -72,14 +73,7 @@ fun put_recdef name info thy =
 
 fun requires_recdef thy = Theory.requires thy "Recdef" "recursive functions";
 
-
-fun prepare_simps no_tcs ixsimps =
-  let val partnd = partition_eq (fn ((_,i),(_,j)) => i=j) ixsimps;
-      val attr = if no_tcs then [Simplifier.simp_add_global] else []
-  in map (fn (rl,i)::rls => ((string_of_int i, rl::map fst rls), attr)) partnd
-  end;
-
-fun gen_add_recdef tfl_fn prep_ss app_thms raw_name R eqs raw_ss raw_congs thy =
+fun gen_add_recdef tfl_fn prep_att prep_ss app_thms raw_name R eq_srcs raw_ss raw_congs thy =
   let
     val name = Sign.intern_const (Theory.sign_of thy) raw_name;
     val bname = Sign.base_name name;
@@ -87,27 +81,32 @@ fun gen_add_recdef tfl_fn prep_ss app_thms raw_name R eqs raw_ss raw_congs thy =
     val _ = requires_recdef thy;
     val _ = message ("Defining recursive function " ^ quote name ^ " ...");
 
+    val ((eq_names, eqs), raw_eq_atts) = apfst split_list (split_list eq_srcs);
+    val eq_atts = map (map (prep_att thy)) raw_eq_atts;
     val ss = (case raw_ss of None => Simplifier.simpset_of thy | Some x => prep_ss x);
     val (thy, congs) = thy |> app_thms raw_congs;
-    val (thy, {rules, induct, tcs}) = tfl_fn thy name R (ss, congs) eqs;
-    val named_simps = prepare_simps (null tcs) rules
+
+    val (thy, {rules = rules_idx, induct, tcs}) = tfl_fn thy name R (ss, congs) eqs;
+    val rules = map (map #1) (Library.partition_eq Library.eq_snd rules_idx);
+    val simp_att = if null tcs then [Simplifier.simp_add_global] else [];
+
     val case_numbers = map Library.string_of_int (1 upto Thm.nprems_of induct);
-    val (thy, (simpss, [induct])) =
+    val (thy, (simps' :: rules', [induct'])) =
       thy
       |> Theory.add_path bname
-      |> PureThy.add_thmss named_simps
+      |> PureThy.add_thmss ((("simps", flat rules), simp_att) :: ((eq_names ~~ rules) ~~ eq_atts))
       |>>> PureThy.add_thms [(("induct", induct), [RuleCases.case_names case_numbers])];
-    val result = {simps = flat simpss, induct = induct, tcs = tcs};
+    val result = {simps = simps', rules = rules', induct = induct', tcs = tcs};
     val thy =
       thy
       |> put_recdef name result
       |> Theory.parent_path;
   in (thy, result) end;
 
-val add_recdef = gen_add_recdef Tfl.define I IsarThy.apply_theorems;
-val add_recdef_x = gen_add_recdef Tfl.define (Simplifier.simpset_of o ThyInfo.get_theory)
-  IsarThy.apply_theorems;
-val add_recdef_i = gen_add_recdef Tfl.define_i I IsarThy.apply_theorems_i;
+val add_recdef = gen_add_recdef Tfl.define Attrib.global_attribute I IsarThy.apply_theorems;
+val add_recdef_x = gen_add_recdef Tfl.define Attrib.global_attribute
+  (Simplifier.simpset_of o ThyInfo.get_theory) IsarThy.apply_theorems;
+val add_recdef_i = gen_add_recdef Tfl.define_i (K I) I IsarThy.apply_theorems_i;
 
 
 
@@ -147,10 +146,10 @@ val setup = [RecdefData.init];
 local structure P = OuterParse and K = OuterSyntax.Keyword in
 
 val recdef_decl =
-  P.name -- P.term -- Scan.repeat1 (P.term --| P.marg_comment) --
+  P.name -- P.term -- Scan.repeat1 (P.opt_thm_name ":" -- P.prop --| P.marg_comment) --
   Scan.optional (P.$$$ "(" |-- P.$$$ "congs" |-- P.!!! (P.xthms1 --| P.$$$ ")")) [] --
   Scan.option (P.$$$ "(" |-- P.$$$ "simpset" |-- P.!!! (P.name --| P.$$$ ")"))
-  >> (fn ((((f, R), eqs), congs), ss) => #1 o add_recdef_x f R eqs ss congs);
+  >> (fn ((((f, R), eqs), congs), ss) => #1 o add_recdef_x f R (map P.triple_swap eqs) ss congs);
 
 val recdefP =
   OuterSyntax.command "recdef" "define general recursive functions (TFL)" K.thy_decl
@@ -158,7 +157,7 @@ val recdefP =
 
 
 val defer_recdef_decl =
-  P.name -- Scan.repeat1 P.term --
+  P.name -- Scan.repeat1 P.prop --
   Scan.optional (P.$$$ "(" |-- P.$$$ "congs" |-- P.!!! (P.xthms1 --| P.$$$ ")")) []
   >> (fn ((f, eqs), congs) => #1 o defer_recdef f eqs congs);
 

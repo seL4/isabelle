@@ -129,9 +129,14 @@ as $subgoal_tac$, see \S\ref{sec:tactical-proof}.
 \end{matharray}
 
 \begin{rail}
-  'primrec' parname? (thmdecl? prop comment? + )
+  'primrec' parname? (equation + )
   ;
-  'recdef' name term (term comment? +) \\ ('congs' thmrefs)? ('simpset' name)?
+  'recdef' name term (equation +) hints
+  ;
+
+  equation: thmdecl? prop comment?
+  ;
+  hints: ('congs' thmrefs)? ('simpset' name)?
   ;
 \end{rail}
 
@@ -148,6 +153,12 @@ of the function definition) refers to a specific induction rule, with
 parameters named according to the user-specified equations.  Case names of
 $\isarkeyword{primrec}$ are that of the datatypes involved, while those of
 $\isarkeyword{recdef}$ are numbered (starting from $1$).
+
+The equations provided by these packages may be referred later as theorem list
+$f\mathord.simps$, where $f$ is the (collective) name of the functions
+defined.  Individual equations may be named explicitly as well; note that for
+$\isarkeyword{recdef}$ each specification given by the user may result in
+several theorems.
 
 See \cite{isabelle-HOL} for further information on recursive function
 definitions in HOL.

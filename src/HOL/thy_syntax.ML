@@ -193,19 +193,17 @@ end;
 
 (** primrec **)
 
+fun mk_patterns eqns = mk_list (map (fn (s, _) => if s = "" then "_" else s) eqns);
+fun mk_eqns eqns = mk_list (map (fn (x, y) => mk_pair (mk_pair (quote x, y), "[]")) eqns);
+
 fun mk_primrec_decl (alt_name, eqns) =
-  let
-    val names = map (fn (s, _) => if s = "" then "_" else s) eqns
-  in
-    ";\nval (thy, " ^ mk_list names ^ ") = PrimrecPackage.add_primrec " ^ alt_name ^ " " ^
-    mk_list (map (fn (x, y) => mk_pair (mk_pair (quote x, y), "[]")) eqns) ^
-    " " ^ " thy;\n\
-    \val thy = thy\n"
-  end;
+  ";\nval (thy, " ^ mk_patterns eqns ^ ") = PrimrecPackage.add_primrec " ^ alt_name ^ " "
+  ^ mk_eqns eqns ^ " " ^ " thy;\n\
+  \val thy = thy\n"
 
 (* either names and axioms or just axioms *)
-val primrec_decl = (optional ("(" $$-- name --$$ ")") "\"\"" --
-  (repeat1 ((ident -- string) || (string >> pair "")))) >> mk_primrec_decl;
+val primrec_decl = optional ("(" $$-- name --$$ ")") "\"\"" --
+  repeat1 (ident -- string || (string >> pair "")) >> mk_primrec_decl;
 
 
 (*** recdef: interface to Slind's TFL ***)
@@ -213,21 +211,20 @@ val primrec_decl = (optional ("(" $$-- name --$$ ")") "\"\"" --
 (** TFL with explicit WF relations **)
 
 (*fname: name of function being defined; rel: well-founded relation*)
-fun mk_recdef_decl ((((fname, rel), congs), ss), axms) =
+fun mk_recdef_decl ((((fname, rel), congs), ss), eqns) =
   let
     val fid = unenclose fname;
     val congs_text = mk_list (map (fn c => mk_pair (c, "[]")) congs);
-    val axms_text = mk_big_list axms;
   in
     ";\n\n\
     \local\n\
     \fun simpset() = Simplifier.simpset_of thy;\n\
     \val (thy, result) = thy |> RecdefPackage.add_recdef " ^ quote fid ^ " " ^ rel ^ "\n" ^
-    axms_text ^ "\n(Some (" ^ ss ^ "))\n" ^ congs_text ^ ";\n\
+    mk_eqns eqns ^ "\n(Some (" ^ ss ^ "))\n" ^ congs_text ^ ";\n\
     \in\n\
     \structure " ^ fid ^ " =\n\
     \struct\n\
-    \  val {simps, induct, tcs} = result;\n\
+    \  val {simps, rules = " ^ mk_patterns eqns ^ ", induct, tcs} = result;\n\
     \end;\n\
     \val thy = thy;\n\
     \end;\n\
@@ -235,10 +232,10 @@ fun mk_recdef_decl ((((fname, rel), congs), ss), axms) =
   end;
 
 val recdef_decl =
-  (name -- string --
+  name -- string --
     optional ("congs" $$-- list1 name) [] --
     optional ("simpset" $$-- string >> unenclose) "simpset()" --
-    repeat1 string >> mk_recdef_decl);
+    repeat1 (ident -- string || (string >> pair "")) >> mk_recdef_decl;
 
 
 (** TFL with no WF relation supplied **)
