@@ -123,8 +123,7 @@ ISABELLE_HOME/bin;
 
 *** HOL ***
 
-** There is now a HOL TUTORIAL **
-   Use `isatool doc tutorial' or see Doc/Tutorial.
+* there is now a tutorial on Isabelle/HOL (do 'isatool doc tutorial');
 
 * HOL/inductive package reorganized and improved: now supports mutual
 definitions such as
