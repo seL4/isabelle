@@ -836,11 +836,6 @@ by (hyp_subst_tac 1);
 by (Asm_full_simp_tac 1); 
 (* ~ P a *)
 by (Asm_full_simp_tac 1); 
-by (rtac impI 1);
-by (rotate_tac ~1 1);
-by (Asm_full_simp_tac 1); 
-by (REPEAT (etac conjE 1));
-by (assume_tac 1);
 qed"divide_Seq_lemma";
 
 goal thy "!! x. (x>>xs) << Filter P`y  \

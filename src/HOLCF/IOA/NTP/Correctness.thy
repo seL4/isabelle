@@ -12,6 +12,6 @@ constdefs
 
   hom :: 'm impl_state => 'm list
   "hom(s) == rq(rec(s)) @ (if rbit(rec s) = sbit(sen s) then sq(sen s) 
-                          else ttl(sq(sen s)))"
+                           else tl(sq(sen s)))"
 
 end
