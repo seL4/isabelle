@@ -20,6 +20,7 @@ qed "subset_consI";
 Goal "cons(a,B)<=C <-> a:C & B<=C";
 by (Blast_tac 1);
 qed "cons_subset_iff";
+AddIffs [cons_subset_iff];
 
 (*A safe special case of subset elimination, adding no new variables 
   [| cons(a,B) <= C; [| a : C; B <= C |] ==> R |] ==> R *)
