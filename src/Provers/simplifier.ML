@@ -7,7 +7,7 @@ for the actual meta level rewriting engine.
 *)
 
 infix 4
-  setsubgoaler setloop addloop setSSolver addSSolver setSolver
+  setsubgoaler setloop addloop delloop setSSolver addSSolver setSolver
   addSolver addsimps delsimps addeqcongs deleqcongs
   setmksimps setmkeqTrue setmksym settermless addsimprocs delsimprocs;
 
@@ -30,6 +30,7 @@ sig
   val setsubgoaler: simpset *  (simpset -> int -> tactic) -> simpset
   val setloop:      simpset *             (int -> tactic) -> simpset
   val addloop:      simpset *  (string * (int -> tactic)) -> simpset
+  val delloop:      simpset *   string                    -> simpset
   val setSSolver:   simpset * (thm list -> int -> tactic) -> simpset
   val addSSolver:   simpset * (thm list -> int -> tactic) -> simpset
   val setSolver:    simpset * (thm list -> int -> tactic) -> simpset
@@ -151,6 +152,13 @@ fun (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac})
     addloop atac =
   make_ss (mss, subgoal_tac, overwrite(loop_tacs,atac),
            finish_tac, unsafe_finish_tac);
+
+fun (ss as Simpset {mss,subgoal_tac,loop_tacs,finish_tac,unsafe_finish_tac})
+    delloop name =
+  let val (del,rest) = partition (fn (n,_) => n=name) loop_tacs
+  in if null del then (warning ("No such looper in simpset: " ^ name); ss)
+     else make_ss (mss, subgoal_tac, rest, finish_tac, unsafe_finish_tac)
+  end;
 
 fun (Simpset {mss, subgoal_tac, loop_tacs, finish_tac = _, unsafe_finish_tac})
     setSSolver finish_tac =
