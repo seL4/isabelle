@@ -135,23 +135,23 @@ by (Simp_tac 2 THEN assume_tac 1);
 by (Clarify_tac 1);
 by (subgoal_tac "ALL p b. p : evnodd a b --> p ~: evnodd ta b" 1);
 by (asm_simp_tac (simpset() addsimps [tiling_domino_finite]) 1);
-by (blast_tac (claset() addSDs [evnodd_subset RS subsetD] addEs [equalityE]) 1);
+by (blast_tac (claset() addSDs [evnodd_subset RS subsetD] 
+                        addEs  [equalityE]) 1);
 qed "tiling_domino_0_1";
 
+(*Final argument is surprisingly complex.  Note the use of small simpsets
+  to avoid moving Sucs, etc.*)
 goal thy "!!m n. [| t = below(Suc m + Suc m) Times below(Suc n + Suc n);   \
 \                   t' = t - {(0,0)} - {(Suc(m+m), Suc(n+n))}              \
 \                |] ==> t' ~: tiling domino";
 by (rtac notI 1);
-by (dtac tiling_domino_0_1 1);
 by (subgoal_tac "card(evnodd t' 0) < card(evnodd t' 1)" 1);
-by (Asm_full_simp_tac 1);
+by (asm_full_simp_tac (HOL_ss addsimps [less_not_refl, tiling_domino_0_1]) 1);
 by (subgoal_tac "t : tiling domino" 1);
-(*Requires a small simpset that won't move the Suc applications*)
 by (asm_simp_tac (HOL_ss addsimps [dominoes_tile_matrix]) 2);
-by (subgoal_tac "(m+m)+(n+n) = (m+n)+(m+n)" 1);
-by (asm_simp_tac (simpset() delsimprocs nat_cancel addsimps add_ac) 2);
-by (asm_full_simp_tac 
-    (simpset() delsimprocs nat_cancel addsimps [mod_less, tiling_domino_0_1 RS sym]) 1);
+by (asm_full_simp_tac (simpset() 
+		       addsimps [mod_less, tiling_domino_0_1 RS sym]) 1);
+(*Cardinality is smaller because of the two elements fewer*)
 by (rtac less_trans 1);
 by (REPEAT
     (rtac card_Diff 1 
