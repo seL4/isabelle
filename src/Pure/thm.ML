@@ -760,7 +760,7 @@ fun trivial ct : thm =
       else Thm{sign= sign, maxidx= maxidx, hyps= [], prop= implies$A$A}
   end;
 
-(*Axiom-scheme reflecting signature contents: "(| ?'a::c : c_class |)".
+(*Axiom-scheme reflecting signature contents: "OFCLASS(?'a::c, c_class)".
   Is weaker than some definition of c_class, e.g. "c_class == %x.T";
   may be interpreted as an instance of A==>A.*)
 fun class_triv thy c =
