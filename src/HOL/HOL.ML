@@ -257,15 +257,24 @@ qed_goal "selectI2" HOL.thy
                 rtac selectI 1, 
                 resolve_tac prems 1 ]);
 
+(*Easier to apply than selectI2 if witness ?a comes from an EX-formula*)
+qed_goal "selectI2EX" HOL.thy
+  "[| ? a.P a; !!x. P x ==> Q x |] ==> Q(Eps P)"
+(fn [major,minor] => [rtac (major RS exE) 1, etac selectI2 1, etac minor 1]);
+
 qed_goal "select_equality" HOL.thy
     "[| P(a);  !!x. P(x) ==> x=a |] ==> (@x.P(x)) = a"
  (fn prems => [ rtac selectI2 1, 
                 REPEAT (ares_tac prems 1) ]);
 
-(*Easier to apply than selectI2 if witness ?a comes from an EX-formula*)
-qed_goal "selectI2EX" HOL.thy
-  "[| ? a.P a; !!x. P x ==> Q x |] ==> Q(Eps P)"
-(fn [major,minor] => [rtac (major RS exE) 1, etac selectI2 1, etac minor 1]);
+qed_goalw "select1_equality" HOL.thy [Ex1_def]
+  "!!P. [| ?!x.P(x); P(a) |] ==> (@x.P(x)) = a"
+(fn _ => [rtac select_equality 1, atac 1,
+          etac exE 1, etac conjE 1,
+          rtac allE 1, atac 1,
+          etac impE 1, atac 1, etac ssubst 1,
+          etac allE 1, etac impE 1, atac 1, etac ssubst 1,
+          rtac refl 1]);
 
 qed_goal "select_eq_Ex" HOL.thy "P (@ x. P x) =  (? x. P x)" (fn prems => [
         rtac iffI 1,
