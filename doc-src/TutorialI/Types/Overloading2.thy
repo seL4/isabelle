@@ -32,14 +32,12 @@ The most important ones are listed in Table~\ref{tab:overloading} in the appendi
 defined on all numeric types and sometimes on other types as well, for example
 $-$ and @{text"\<le>"} on sets.
 
-In addition there is a special input syntax for bounded quantifiers:
+In addition there is a special syntax for bounded quantifiers:
 \begin{center}
 \begin{tabular}{lcl}
-@{text"\<forall>x \<le> y. P x"} & @{text"\<rightharpoonup>"} & @{prop"\<forall>x. x \<le> y \<longrightarrow> P x"} \\
-@{text"\<exists>x \<le> y. P x"} & @{text"\<rightharpoonup>"} & @{prop"\<exists>x. x \<le> y \<and> P x"}
+@{prop"\<forall>x \<le> y. P x"} & @{text"\<rightleftharpoons>"} & @{prop [source] "\<forall>x. x \<le> y \<longrightarrow> P x"} \\
+@{prop"\<exists>x \<le> y. P x"} & @{text"\<rightleftharpoons>"} & @{prop [source] "\<exists>x. x \<le> y \<and> P x"}
 \end{tabular}
 \end{center}
 And analogously for @{text"<"} instead of @{text"\<le>"}.
-The form on the left is translated into the one on the right upon input.
-For technical reasons, it is not translated back upon output.
 *}(*<*)end(*>*)
