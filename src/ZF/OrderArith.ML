@@ -59,8 +59,8 @@ bind_thm ("field_radd", radd_type RS field_rel_subset);
 
 (** Linearity **)
 
-Addsimps [radd_Inl_iff, radd_Inr_iff, 
-          radd_Inl_Inr_iff, radd_Inr_Inl_iff];
+AddIffs [radd_Inl_iff, radd_Inr_iff, 
+	 radd_Inl_Inr_iff, radd_Inr_Inl_iff];
 
 Goalw [linear_def]
     "[| linear(A,r);  linear(B,s) |] ==> linear(A+B,radd(A,r,B,s))";
@@ -161,7 +161,7 @@ Goalw [rmult_def]
 by (Blast_tac 1);
 qed "rmult_iff";
 
-Addsimps [rmult_iff];
+AddIffs [rmult_iff];
 
 val major::prems = Goal
     "[| <<a',b'>, <a,b>> : rmult(A,r,B,s);              \
@@ -225,8 +225,8 @@ qed "well_ord_rmult";
 
 (** An ord_iso congruence law **)
 
-Goal "[| f: bij(A,C);  g: bij(B,D) |] ==> \
-\        (lam <x,y>:A*B. <f`x, g`y>) : bij(A*B, C*D)";
+Goal "[| f: bij(A,C);  g: bij(B,D) |]   \
+\     ==> (lam <x,y>:A*B. <f`x, g`y>) : bij(A*B, C*D)";
 by (res_inst_tac [("d", "%<x,y>. <converse(f)`x, converse(g)`y>")] 
     lam_bijective 1);
 by Safe_tac;
@@ -234,13 +234,12 @@ by (ALLGOALS (asm_simp_tac bij_inverse_ss));
 qed "prod_bij";
 
 Goalw [ord_iso_def]
-    "[| f: ord_iso(A,r,A',r');  g: ord_iso(B,s,B',s') |] ==>     \
-\           (lam <x,y>:A*B. <f`x, g`y>)                                 \
-\           : ord_iso(A*B, rmult(A,r,B,s), A'*B', rmult(A',r',B',s'))";
+    "[| f: ord_iso(A,r,A',r');  g: ord_iso(B,s,B',s') |]     \
+\    ==> (lam <x,y>:A*B. <f`x, g`y>)                                 \
+\        : ord_iso(A*B, rmult(A,r,B,s), A'*B', rmult(A',r',B',s'))";
 by (safe_tac (claset() addSIs [prod_bij]));
 by (ALLGOALS
     (asm_full_simp_tac (simpset() addsimps [bij_is_fun RS apply_type])));
-by (Blast_tac 1);
 by (blast_tac (claset() addIs [bij_is_inj RS inj_apply_equality]) 1);
 qed "prod_ord_iso_cong";
 

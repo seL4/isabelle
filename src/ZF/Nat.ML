@@ -220,7 +220,7 @@ qed "nat_rec_0";
 
 Goal "m: nat ==> nat_rec(succ(m),a,b) = b(m, nat_rec(m,a,b))";
 by (rtac lemma 1);
-by (asm_simp_tac (simpset() addsimps [Memrel_iff, vimage_singleton_iff]) 1);
+by (asm_simp_tac (simpset() addsimps [vimage_singleton_iff]) 1);
 qed "nat_rec_succ";
 
 (** The union of two natural numbers is a natural number -- their maximum **)

@@ -397,7 +397,7 @@ Goalw [csquare_rel_def]
  "[| <<x,y>, <z,z>> : csquare_rel(K);  x<K;  y<K;  z<K |] ==> x le z & y le z";
 by (etac rev_mp 1);
 by (REPEAT (etac ltE 1));
-by (asm_simp_tac (simpset() addsimps [rvimage_iff, rmult_iff, Memrel_iff,
+by (asm_simp_tac (simpset() addsimps [rvimage_iff, 
 				      Un_absorb, Un_least_mem_iff, ltD]) 1);
 by (safe_tac (claset() addSEs [mem_irrefl] 
                        addSIs [Un_upper1_le, Un_upper2_le]));
@@ -417,7 +417,7 @@ Goalw [csquare_rel_def]
 by (subgoals_tac ["x<K", "y<K"] 1);
 by (REPEAT (eresolve_tac [asm_rl, lt_trans] 2));
 by (REPEAT (etac ltE 1));
-by (asm_simp_tac (simpset() addsimps [rvimage_iff, rmult_iff, Memrel_iff,
+by (asm_simp_tac (simpset() addsimps [rvimage_iff, 
 				      Un_absorb, Un_least_mem_iff, ltD]) 1);
 qed "csquare_ltI";
 
@@ -428,7 +428,7 @@ Goalw [csquare_rel_def]
 by (subgoals_tac ["x<K", "y<K"] 1);
 by (REPEAT (eresolve_tac [asm_rl, lt_trans1] 2));
 by (REPEAT (etac ltE 1));
-by (asm_simp_tac (simpset() addsimps [rvimage_iff, rmult_iff, Memrel_iff,
+by (asm_simp_tac (simpset() addsimps [rvimage_iff, 
 				      Un_absorb, Un_least_mem_iff, ltD]) 1);
 by (REPEAT_FIRST (etac succE));
 by (ALLGOALS

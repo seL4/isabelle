@@ -302,9 +302,11 @@ val le_cs = claset() addSIs [leCI] addSEs [leE] addEs [lt_asym];
 Goalw [Memrel_def] "<a,b> : Memrel(A) <-> a:b & a:A & b:A";
 by (Blast_tac 1);
 qed "Memrel_iff";
+Addsimps [Memrel_iff];  
+  (*MemrelI/E give better speed than AddIffs here*)
 
 Goal "[| a: b;  a: A;  b: A |] ==> <a,b> : Memrel(A)";
-by (REPEAT (ares_tac [conjI, Memrel_iff RS iffD2] 1));
+by Auto_tac;
 qed "MemrelI";
 
 val [major,minor] = Goal

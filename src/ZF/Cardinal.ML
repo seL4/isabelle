@@ -771,7 +771,7 @@ Goal "n:nat ==> wf[n](converse(Memrel(n)))";
 by (etac nat_induct 1);
 by (blast_tac (claset() addIs [wf_onI]) 1);
 by (rtac wf_onI 1);
-by (asm_full_simp_tac (simpset() addsimps [wf_on_def, wf_def, Memrel_iff]) 1);
+by (asm_full_simp_tac (simpset() addsimps [wf_on_def, wf_def]) 1);
 by (excluded_middle_tac "x:Z" 1);
 by (dres_inst_tac [("x", "x")] bspec 2 THEN assume_tac 2);
 by (blast_tac (claset() addEs [mem_irrefl, mem_asym]) 2);
