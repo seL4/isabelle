@@ -274,8 +274,10 @@ fun use_thy name =
          (*Mark theories that have to be reloaded.*)
          mark_children thy_name;
 
-         if !delete_tmpfiles then delete_file (out_name thyl)
-                            else ()
+         if not (!delete_tmpfiles) orelse (thy_file = "") 
+            orelse thy_uptodate 
+         then ()
+         else delete_file (out_name thyl)
         )
     end;
 
