@@ -44,7 +44,7 @@ lemma PrimT_PrimT2: "(G \<turnstile> PrimT p \<preceq> xb) = (xb = PrimT p)"
 
 lemma is_tyI:
   "[| is_type G T; wf_prog wf_mb G |] ==> is_ty G T"
-  by (auto simp add: is_ty_def dest: subcls_C_Object 
+  by (auto simp add: is_ty_def intro: subcls_C_Object 
            split: ty.splits ref_ty.splits)
 
 lemma is_type_conv: 

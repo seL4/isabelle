@@ -143,6 +143,8 @@ lemma special_ex_swap_lemma [iff]:
   "(? X. (? n. X = A n & P n) & Q X) = (? n. Q(A n) & P n)"
   by blast
 
+lemmas [iff del] = not_None_eq
+
 theorem exec_pres_type:
   "[| wf_prog wf_mb S |] ==> 
       pres_type (exec S maxs rT bs) (size bs) (states S maxs maxr)"
@@ -176,17 +178,21 @@ theorem exec_pres_type:
  defer
 
  apply (simp add: Un_subset_iff)
- apply (drule method_wf_mdecl, assumption)
+ apply (drule method_wf_mdecl, assumption+)
  apply (simp add: wf_mdecl_def wf_mhead_def)
 
- apply (drule fields_is_type)
- apply assumption
- apply (subgoal_tac "((vname, cname), vT) \<in> set (fields (S, cname))")
- apply assumption
-  apply (simp add: field_def)
-  apply (drule map_of_SomeD)
-  apply auto
+ apply (rule_tac fn = "(vname,cname)" in fields_is_type)
+ defer
+ apply assumption+
+ apply (simp add: field_def)
+ apply (drule map_of_SomeD)
+ apply (rule map_of_SomeI)
+ apply (auto simp add: unique_fields)
  done
+
+
+lemmas [iff] = not_None_eq
+
 
 theorem exec_mono:
   "wf_prog wf_mb G ==>
