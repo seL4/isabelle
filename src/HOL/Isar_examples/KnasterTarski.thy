@@ -11,7 +11,7 @@ theory KnasterTarski = Main:;
 
 theorems [dest] = monoD;  (* FIXME [dest!!] *)
 
-(*
+text {*
  The proof of Knaster-Tarski below closely follows the presentation in
  'Introduction to Lattices' and Order by Davey/Priestley, pages
  93--94.  All of their narration has been rephrased in terms of formal
@@ -22,7 +22,7 @@ theorems [dest] = monoD;  (* FIXME [dest!!] *)
 
  Just as many textbook-style proofs, there is a strong bias towards
  forward reasoning, with little hierarchical structure.
-*)
+*};
 
 theorem KnasterTarski: "mono f ==> EX a::'a set. f a = a";
 proof;
