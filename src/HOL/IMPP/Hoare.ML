@@ -260,9 +260,8 @@ Goal "[| !!G ts. ts <= G ==> P G ts;\
 by (cut_facts_tac (premises()) 1);
 by (induct_tac "n" 1);
 by  (ALLGOALS Clarsimp_tac);
-bd  card_seteq 1;
-by    (Asm_simp_tac 1);
-be   finite_imageI 1;
+by  (subgoal_tac "G = mgt_call `` U" 1);
+by   (asm_simp_tac (simpset() addsimps [card_seteq, finite_imageI]) 2);
 by  (Asm_full_simp_tac 1);
 by  (eresolve_tac (tl(tl(premises()))(*MGF_lemma1*)) 1);
 br  ballI 1;
