@@ -11,7 +11,7 @@ TODO:
       . clear division with outer_syntax.ML (!?);
   - improve transactions; only in interactive mode!
   - init / exit proof;
-  - display stack size in prompt;
+  - display stack size in prompt (prompt: state -> string (hook));
 *)
 
 signature TOPLEVEL =
@@ -20,6 +20,8 @@ sig
   type state
   exception UNDEF
   val toplevel: state
+  val print_state_default: state -> unit
+  val print_state_fn: (state -> unit) ref
   val print_state: state -> unit
   val node_of: state -> node
   val node_cases: (theory -> 'a) -> (Proof.state -> 'a) -> state -> 'a
@@ -76,8 +78,8 @@ fun print_node (Theory thy) = Pretty.writeln (Pretty.block
       [Pretty.str "Theory:", Pretty.brk 1, Pretty.str (PureThy.get_name thy),
         Pretty.str " =", Pretty.brk 1, Display.pretty_theory thy])
   | print_node (Proof prf) =
-      (writeln "Proof:"; writeln ("Step #" ^ string_of_int (ProofHistory.position prf));
-        Proof.print_state (ProofHistory.current prf); writeln "Proof.");
+      (writeln ("Proof: step #" ^ string_of_int (ProofHistory.position prf));
+        Proof.print_state (ProofHistory.current prf));
 
 
 (* datatype state *)
@@ -89,14 +91,27 @@ exception UNDEF;
 val toplevel = State [];
 fun append_states (State ns) (State ms) = State (ns @ ms);
 
-fun print_state (State []) = ()
-  | print_state (State [(node, _)]) = print_node node
-  | print_state (State ((node, _) :: nodes)) =
-      (writeln ("Stack size: " ^ string_of_int (length nodes)); print_node node);
-
 fun str_of_state (State []) = "at top level"
   | str_of_state (State ((Theory _, _) :: _)) = "in theory mode"
   | str_of_state (State ((Proof _, _) :: _)) = "in proof mode";
+
+
+(* print_state hook *)
+
+fun print_topnode (State []) = ()
+  | print_topnode (State [(node, _)]) = print_node node
+  | print_topnode (State ((node, _) :: nodes)) =
+      (writeln ("Stack size: " ^ string_of_int (length nodes)); print_node node);
+
+fun print_state_default state =
+  let val ref (begin_state, end_state, _) = Goals.current_goals_markers in
+    if begin_state = "" then () else writeln begin_state;
+    print_topnode state;
+    if end_state = "" then () else writeln end_state
+  end;
+
+val print_state_fn = ref print_state_default;
+fun print_state state = ! print_state_fn state;
 
 
 (* top node *)
