@@ -14,7 +14,7 @@ writeln banner;
 print_depth 1;
 use_thy "LCF";
 use"simpdata.ML";
-use"pair.ML";
-use"fix.ML";
+use_thy"pair";
+use_thy"fix";
 
 val LCF_build_completed = ();   (*indicate successful build*)
