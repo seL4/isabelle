@@ -6,9 +6,11 @@ axioms
   classical: "(~P ==> P) ==> P"
 
 use "FOL_lemmas1.ML"
-use "cladata.ML"	setup Cla.setup setup clasetup
-use "blastdata.ML"	setup Blast.setup
+use "cladata.ML"        setup Cla.setup setup clasetup
+use "blastdata.ML"      setup Blast.setup
 use "FOL_lemmas2.ML"
-use "simpdata.ML"	setup simpsetup setup Clasimp.setup
+use "simpdata.ML"       setup simpsetup
+                        setup "Simplifier.method_setup Splitter.split_modifiers"
+                        setup Splitter.setup setup Clasimp.setup
 
 end
