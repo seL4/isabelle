@@ -11,7 +11,6 @@ Derived rules from Appendix of Mike Gordons HOL Report, Cambridge TR 68.
 val plusI = thm "plusI";
 val minusI = thm "minusI";
 val timesI = thm "timesI";
-val powerI = thm "powerI";
 val eq_reflection = thm "eq_reflection";
 val refl = thm "refl";
 val subst = thm "subst";

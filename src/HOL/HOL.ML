@@ -8,7 +8,6 @@ struct
   val plusI = plusI;
   val minusI = minusI;
   val timesI = timesI;
-  val powerI = powerI;
   val eq_reflection = eq_reflection;
   val refl = refl;
   val subst = subst;
