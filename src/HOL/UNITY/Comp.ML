@@ -10,6 +10,12 @@ From Chandy and Sanders, "Reasoning About Program Composition"
 
 (*** component ***)
 
+Goalw [component_def]
+     "(F component G) = (Init G <= Init F & Acts F <= Acts G)";
+by (force_tac (claset() addSIs [exI, program_equalityI], 
+	       simpset() addsimps [Acts_Join]) 1);
+qed "component_eq_subset";
+
 Goalw [component_def] "SKIP component F";
 by (force_tac (claset() addIs [Join_SKIP_left], simpset()) 1);
 qed "component_SKIP";
@@ -37,17 +43,9 @@ Goalw [component_def] "[| F component G; G component H |] ==> F component H";
 by (blast_tac (claset() addIs [Join_assoc RS sym]) 1);
 qed "component_trans";
 
-Goalw [component_def] "F component G ==> Acts F <= Acts G";
-by (force_tac (claset(), simpset() addsimps [Acts_Join]) 1);
-qed "component_Acts";
-
-Goalw [component_def,Join_def] "F component G ==> Init G <= Init F";
-by Auto_tac;
-qed "component_Init";
-
 Goal "[| F component G; G component F |] ==> F=G";
-by (blast_tac (claset() addSIs [program_equalityI, 
-				component_Init, component_Acts]) 1);
+by (full_simp_tac (simpset() addsimps [component_eq_subset]) 1);
+by (blast_tac (claset() addSIs [program_equalityI]) 1);
 qed "component_antisym";
 
 Goalw [component_def]
