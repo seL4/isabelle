@@ -313,36 +313,34 @@ qed "Nonce_supply";
 (*** Supply fresh keys for possibility theorems. ***)
 
 goal thy "EX K. Key K ~: used evs";
-by (rtac (Fin.emptyI RS Key_supply_ax RS exE) 1);
+by (rtac (Finites.emptyI RS Key_supply_ax RS exE) 1);
 by (Blast_tac 1);
 qed "Key_supply1";
 
-val Fin_UNIV_insertI = UNIV_I RS Fin.insertI;
-
 goal thy "EX K K'. Key K ~: used evs & Key K' ~: used evs' & K ~= K'";
-by (cut_inst_tac [("evs","evs")] (Fin.emptyI RS Key_supply_ax) 1);
+by (cut_inst_tac [("evs","evs")] (Finites.emptyI RS Key_supply_ax) 1);
 by (etac exE 1);
 by (cut_inst_tac [("evs","evs'")] 
-    (Fin.emptyI RS Fin_UNIV_insertI RS Key_supply_ax) 1);
+    (Finites.emptyI RS Finites.insertI RS Key_supply_ax) 1);
 by (Auto_tac());
 qed "Key_supply2";
 
 goal thy "EX K K' K''. Key K ~: used evs & Key K' ~: used evs' & \
 \                      Key K'' ~: used evs'' & K ~= K' & K' ~= K'' & K ~= K''";
-by (cut_inst_tac [("evs","evs")] (Fin.emptyI RS Key_supply_ax) 1);
+by (cut_inst_tac [("evs","evs")] (Finites.emptyI RS Key_supply_ax) 1);
 by (etac exE 1);
 by (cut_inst_tac [("evs","evs'")] 
-    (Fin.emptyI RS Fin_UNIV_insertI RS Key_supply_ax) 1);
+    (Finites.emptyI RS Finites.insertI RS Key_supply_ax) 1);
 by (etac exE 1);
 by (cut_inst_tac [("evs","evs''")] 
-    (Fin.emptyI RS Fin_UNIV_insertI RS Fin_UNIV_insertI RS Key_supply_ax) 1);
+    (Finites.emptyI RS Finites.insertI RS Finites.insertI RS Key_supply_ax) 1);
 by (Step_tac 1);
 by (Full_simp_tac 1);
 by (fast_tac (!claset addSEs [allE]) 1);
 qed "Key_supply3";
 
 goal thy "Key (@ K. Key K ~: used evs) ~: used evs";
-by (rtac (Fin.emptyI RS Key_supply_ax RS exE) 1);
+by (rtac (Finites.emptyI RS Key_supply_ax RS exE) 1);
 by (rtac selectI 1);
 by (Blast_tac 1);
 qed "Key_supply";

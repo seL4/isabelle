@@ -117,8 +117,7 @@ by (REPEAT (asm_full_simp_tac (!simpset addsimps
 qed "domino_singleton";
 
 goal thy "!!d. d:domino ==> finite d";
-by (blast_tac (!claset addSIs [finite_insertI, finite_emptyI] 
-                      addSEs [domino.elim]) 1);
+by (blast_tac (!claset addSEs [domino.elim]) 1);
 qed "domino_finite";
 
 
@@ -126,7 +125,7 @@ qed "domino_finite";
 
 goal thy "!!t. t:tiling domino ==> finite t";
 by (eresolve_tac [tiling.induct] 1);
-by (rtac finite_emptyI 1);
+by (rtac Finites.emptyI 1);
 by (blast_tac (!claset addSIs [finite_UnI] addIs [domino_finite]) 1);
 qed "tiling_domino_finite";
 

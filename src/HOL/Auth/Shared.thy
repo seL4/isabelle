@@ -59,7 +59,7 @@ rules
     assumes that their keys are dispersed so as to leave room for infinitely
     many fresh session keys.  We could, alternatively, restrict agents to
     an unspecified finite number.*)
-  Key_supply_ax  "KK: Fin UNIV ==> EX K. K ~: KK & Key K ~: used evs"
+  Key_supply_ax  "finite KK ==> EX K. K ~: KK & Key K ~: used evs"
 
 
 (*Agents generate random (symmetric) keys and nonces.

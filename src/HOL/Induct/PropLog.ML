@@ -167,13 +167,16 @@ goal Set.thy "insert a (B-{c}) - D <= insert a (B-insert c D)";
 by (Fast_tac 1);
 qed "insert_Diff_subset2";
 
-(*The set hyps(p,t) is finite, and elements have the form #v or #v->false;
- could probably prove the stronger hyps(p,t) : Fin(hyps(p,{}) Un hyps(p,nat))*)
-goal PropLog.thy "hyps p t : Fin(UN v:{x.True}. {#v, #v->false})";
+goal PropLog.thy "finite(hyps p t)";
+by (induct_tac "p" 1);
+by (ALLGOALS Asm_simp_tac);
+qed "hyps_finite";
+
+goal PropLog.thy "hyps p t <= (UN v. {#v, #v->false})";
 by (PropLog.pl.induct_tac "p" 1);
 by (ALLGOALS (simp_tac (!simpset setloop (split_tac [expand_if]))));
-by (ALLGOALS (fast_tac (!claset addSIs Fin.intrs@[Fin_UnI])));
-qed "hyps_finite";
+by (Blast_tac 1);
+qed "hyps_subset";
 
 val Diff_weaken_left = subset_refl RSN (2, Diff_mono) RS weaken_left;
 
@@ -181,9 +184,9 @@ val Diff_weaken_left = subset_refl RSN (2, Diff_mono) RS weaken_left;
   We may repeatedly subtract assumptions until none are left!*)
 val [sat] = goal PropLog.thy
     "{} |= p ==> !t. hyps p t - hyps p t0 |- p";
-by (rtac (hyps_finite RS Fin_induct) 1);
+by (rtac (hyps_subset RS (hyps_finite RS finite_subset_induct)) 1);
 by (simp_tac (!simpset addsimps [sat RS sat_thms_p]) 1);
-by (safe_tac (!claset));
+by (Step_tac 1);
 (*Case hyps(p,t)-insert(#v,Y) |- p *)
 by (rtac thms_excluded_middle_rule 1);
 by (rtac (insert_Diff_same RS weaken_left) 1);
@@ -212,8 +215,8 @@ by (Simp_tac 1);
 by (Fast_tac 1);
 qed "sat_imp";
 
-val [finite] = goal PropLog.thy "H: Fin({p.True}) ==> !p. H |= p --> H |- p";
-by (rtac (finite RS Fin_induct) 1);
+goal PropLog.thy "!!H. finite H ==> !p. H |= p --> H |- p";
+by (etac finite_induct 1);
 by (safe_tac ((claset_of "Fun") addSIs [completeness_0]));
 by (rtac (weaken_left_insert RS thms.MP) 1);
 by (fast_tac ((claset_of "Fun") addSIs [sat_imp]) 1);
@@ -222,8 +225,6 @@ qed "completeness_lemma";
 
 val completeness = completeness_lemma RS spec RS mp;
 
-val [finite] = goal PropLog.thy "H: Fin({p.True}) ==> (H |- p) = (H |= p)";
-by (fast_tac (!claset addSEs [soundness, finite RS completeness]) 1);
-qed "thms_iff";
-
-writeln"Reached end of file.";
+goal PropLog.thy "!!H. finite H ==> (H |- p) = (H |= p)";
+by (fast_tac (!claset addSEs [soundness, completeness]) 1);
+qed "syntax_iff_semantics";
