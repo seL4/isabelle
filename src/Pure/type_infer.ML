@@ -17,21 +17,6 @@ structure TypeInfer: TYPE_INFER =
 struct
 
 
-(** generic utils **)
-
-fun seq2 _ [] [] = ()
-  | seq2 f (x :: xs) (y :: ys) = (f x y; seq2 f xs ys)
-  | seq2 _ _ _ = raise LIST "seq2";
-
-fun scan _ (xs, []) = (xs, [])
-  | scan f (xs, y :: ys) =
-      let
-        val (xs', y') = f (xs, y);
-        val (xs'', ys') = scan f (xs', ys);
-      in (xs'', y' :: ys') end;
-
-
-
 (** term encodings **)
 
 (*
@@ -126,7 +111,7 @@ fun pretyp_of is_param (params, typ) =
           else PType (a, map pre_of Ts);
   in (params', pre_of typ) end;
 
-fun pretyps_of is_param = scan (pretyp_of is_param);
+fun pretyps_of is_param = foldl_map (pretyp_of is_param);
 
 
 (* preterm(s)_of *)
@@ -182,7 +167,7 @@ fun preterm_of const_type is_param ((vparams, params), tm) =
     ((vparams', params'), tm')
   end;
 
-fun preterms_of const_type is_param = scan (preterm_of const_type is_param);
+fun preterms_of const_type is_param = foldl_map (preterm_of const_type is_param);
 
 
 
@@ -232,15 +217,15 @@ fun simple_term_of (PConst (c, T)) = Const (c, simple_typ_of T)
 
 fun typs_terms_of used mk_var prfx (Ts, ts) =
   let
-    fun elim (r as ref (Param S)) x = r := mk_var (x, S)
-      | elim _ _ = ();
+    fun elim (r as ref (Param S), x) = r := mk_var (x, S)
+      | elim _ = ();
 
     val used' = foldl add_names (foldl add_namesT (used, Ts), ts);
     val parms = rev (foldl add_parms (foldl add_parmsT ([], Ts), ts));
     val pre_names = replicate (length parms) (prfx ^ "'");
     val names = variantlist (pre_names, prfx ^ "'" :: used');
   in
-    seq2 elim parms names;
+    seq2 elim (parms, names);
     (map simple_typ_of Ts, map simple_term_of ts)
   end;
 
@@ -260,21 +245,21 @@ fun unify classrel arities =
       "Variable " ^ x ^ "::" ^ Sorts.str_of_sort S' ^ " not of sort " ^
         Sorts.str_of_sort S ^ ".";
 
-    fun meet _ [] = ()
-      | meet (Link (r as (ref (Param S')))) S =
+    fun meet (_, []) = ()
+      | meet (Link (r as (ref (Param S'))), S) =
           if Sorts.sort_le classrel (S', S) then ()
           else r := mk_param (Sorts.inter_sort classrel (S', S))
-      | meet (Link (ref T)) S = meet T S
-      | meet (PType (a, Ts)) S =
-          seq2 meet Ts (Sorts.mg_domain classrel arities a S
+      | meet (Link (ref T), S) = meet (T, S)
+      | meet (PType (a, Ts), S) =
+          seq2 meet (Ts, Sorts.mg_domain classrel arities a S
             handle TYPE (msg, _, _) => raise NO_UNIFIER msg)
-      | meet (PTFree (x, S')) S =
+      | meet (PTFree (x, S'), S) =
           if Sorts.sort_le classrel (S', S) then ()
           else raise NO_UNIFIER (not_in_sort x S' S)
-      | meet (PTVar (xi, S')) S =
+      | meet (PTVar (xi, S'), S) =
           if Sorts.sort_le classrel (S', S) then ()
           else raise NO_UNIFIER (not_in_sort (Syntax.string_of_vname xi) S' S)
-      | meet (Param _) _ = sys_error "meet";
+      | meet (Param _, _) = sys_error "meet";
 
 
     (* occurs check and assigment *)
@@ -288,21 +273,21 @@ fun unify classrel arities =
     fun assign r T S =
       (case deref T of
         T' as Link (r' as ref (Param _)) =>
-          if r = r' then () else (r := T'; meet T' S)
-      | T' => (occurs_check r T'; r := T'; meet T' S));
+          if r = r' then () else (r := T'; meet (T', S))
+      | T' => (occurs_check r T'; r := T'; meet (T', S)));
 
 
     (* unification *)
 
-    fun unif (Link (r as ref (Param S))) T = assign r T S
-      | unif T (Link (r as ref (Param S))) = assign r T S
-      | unif (Link (ref T)) U = unif T U
-      | unif T (Link (ref U)) = unif T U
-      | unif (PType (a, Ts)) (PType (b, Us)) =
+    fun unif (Link (r as ref (Param S)), T) = assign r T S
+      | unif (T, Link (r as ref (Param S))) = assign r T S
+      | unif (Link (ref T), U) = unif (T, U)
+      | unif (T, Link (ref U)) = unif (T, U)
+      | unif (PType (a, Ts), PType (b, Us)) =
           if a <> b then
             raise NO_UNIFIER ("Clash of types " ^ quote a ^ " and " ^ quote b ^ ".")
-          else seq2 unif Ts Us
-      | unif T U = if T = U then () else raise NO_UNIFIER "";
+          else seq2 unif (Ts, Us)
+      | unif (T, U) = if T = U then () else raise NO_UNIFIER "";
 
   in unif end;
 
@@ -378,11 +363,11 @@ fun infer prt prT classrel arities =
             val U = inf bs u;
             val V = mk_param [];
             val U_to_V = PType ("fun", [U, V]);
-            val _ = unif U_to_V T handle NO_UNIFIER msg => err_appl msg bs t T u U;
+            val _ = unif (U_to_V, T) handle NO_UNIFIER msg => err_appl msg bs t T u U;
           in V end
       | inf bs (Constraint (t, U)) =
           let val T = inf bs t in
-            unif T U handle NO_UNIFIER msg => err_constraint msg bs t T U;
+            unif (T, U) handle NO_UNIFIER msg => err_constraint msg bs t T U;
             T
           end;
 
@@ -415,5 +400,6 @@ fun infer_types prt prT const_type classrel arities used freeze is_param ts Ts =
   in
     (final_ts, final_Ts, final_env)
   end;
+
 
 end;
