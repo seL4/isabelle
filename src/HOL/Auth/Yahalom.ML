@@ -165,9 +165,7 @@ by (REPEAT_FIRST (resolve_tac [allI, impI]));
 by (REPEAT_FIRST (rtac analz_image_freshK_lemma));
 by (ALLGOALS (asm_simp_tac analz_image_freshK_ss));
 (*Fake*) 
-by (spy_analz_tac 2);
-(*Base*)
-by (Blast_tac 1);
+by (spy_analz_tac 1);
 qed_spec_mp "analz_image_freshK";
 
 goal thy
@@ -386,11 +384,9 @@ by (ALLGOALS  (*12 seconds*)
 		 KeyWithNonce_Says, fresh_not_KeyWithNonce, 
 		 imp_disj_not1,		     (*Moves NBa~=NB to the front*)
 		 Says_Server_KeyWithNonce])));
-(*Base*)
-by (Blast_tac 1);
 (*Fake*) 
 by (spy_analz_tac 1);
-(*YM4*)  (** LEVEL 7 **)
+(*YM4*)  (** LEVEL 6 **)
 by (not_bad_tac "A" 1);
 by (dtac (Says_imp_spies RS parts.Inj RS parts.Fst RS A_trusts_YM3) 1
     THEN REPEAT (assume_tac 1));

@@ -214,9 +214,7 @@ by (REPEAT_FIRST (rtac analz_image_freshK_lemma));
 (*Takes 9 secs*)
 by (ALLGOALS (asm_simp_tac analz_image_freshK_ss));
 (*Fake*) 
-by (spy_analz_tac 2);
-(*Base*)
-by (Blast_tac 1);
+by (spy_analz_tac 1);
 qed_spec_mp "analz_image_freshK";
 
 

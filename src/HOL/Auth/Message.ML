@@ -18,11 +18,19 @@ open Message;
 AddIffs atomic.inject;
 AddIffs msg.inject;
 
-(*Holds because Friend is injective: thus cannot prove for all f*)
+(*Equations hold because constructors are injective; cannot prove for all f*)
 goal thy "(Friend x : Friend``A) = (x:A)";
 by (Auto_tac());
 qed "Friend_image_eq";
-Addsimps [Friend_image_eq];
+
+goal thy "(Key x : Key``A) = (x:A)";
+by (Auto_tac());
+qed "Key_image_eq";
+
+goal thy "(Nonce x ~: Key``A)";
+by (Auto_tac());
+qed "Nonce_Key_image_eq";
+Addsimps [Friend_image_eq, Key_image_eq, Nonce_Key_image_eq];
 
 
 (** Inverse of keys **)

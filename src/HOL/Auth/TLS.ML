@@ -197,14 +197,14 @@ fun analz_induct_tac i =
     ClientKeyExch_tac  (i+6)  THEN	(*ClientKeyExch*)
     ALLGOALS (asm_simp_tac 
               (simpset() addcongs [if_weak_cong]
-                        addsimps (expand_ifs@pushes)
-                        addsplits [expand_if]))  THEN
+                         addsimps (expand_ifs@pushes)
+                         addsplits [expand_if]))  THEN
     (*Remove instances of pubK B:  the Spy already knows all public keys.
       Combining the two simplifier calls makes them run extremely slowly.*)
     ALLGOALS (asm_simp_tac 
               (simpset() addcongs [if_weak_cong]
-			addsimps [insert_absorb]
-                        addsplits [expand_if]));
+			 addsimps [insert_absorb]
+                         addsplits [expand_if]));
 
 
 (*** Properties of items found in Notes ***)
@@ -228,7 +228,7 @@ by (ALLGOALS Clarify_tac);
 by (blast_tac (claset() addIs [parts_insertI]) 1);
 (*Client, Server Accept*)
 by (REPEAT (blast_tac (claset() addSEs spies_partsEs
-                               addSDs [Notes_Crypt_parts_spies]) 1));
+                                addSDs [Notes_Crypt_parts_spies]) 1));
 qed "Notes_master_imp_Crypt_PMS";
 
 (*Compared with the theorem above, both premise and conclusion are stronger*)
@@ -380,9 +380,7 @@ by (ALLGOALS
     (asm_simp_tac (analz_image_keys_ss
 		   addsimps (certificate_def::keys_distinct))));
 (*Fake*) 
-by (spy_analz_tac 2);
-(*Base*)
-by (Blast_tac 1);
+by (spy_analz_tac 1);
 qed_spec_mp "analz_image_priK";
 
 
@@ -412,16 +410,14 @@ by (etac tls.induct 1);
 by (ClientKeyExch_tac 7);
 by (REPEAT_FIRST (resolve_tac [allI, impI]));
 by (REPEAT_FIRST (rtac analz_image_keys_lemma));
-by (ALLGOALS    (*15 seconds*)
+by (ALLGOALS    (*18 seconds*)
     (asm_simp_tac (analz_image_keys_ss 
 		   addsimps (expand_ifs@pushes)
 		   addsimps [range_sessionkeys_not_priK, 
                              analz_image_priK, certificate_def])));
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [insert_absorb])));
 (*Fake*) 
-by (spy_analz_tac 2);
-(*Base*)
-by (Blast_tac 1);
+by (spy_analz_tac 1);
 qed_spec_mp "analz_image_keys";
 
 (*Knowing some session keys is no help in getting new nonces*)
@@ -542,7 +538,7 @@ by (REPEAT (blast_tac (claset() addDs [Spy_not_see_PMS,
 by (Blast_tac 3);
 (*SpyKeys: by secrecy of the PMS, Spy cannot make the MS*)
 by (blast_tac (claset() addSDs [Spy_not_see_PMS, 
-			       Says_imp_spies RS analz.Inj]) 2);
+				Says_imp_spies RS analz.Inj]) 2);
 (*Fake*)
 by (spy_analz_tac 1);
 (*ServerHello and ClientKeyExch: mostly freshness reasoning*)
@@ -659,7 +655,7 @@ goal thy
 \            Notes A {|Agent B, Nonce PMS|} : set evs --> \
 \            X : parts (spies evs) --> Says B A X : set evs";
 by (hyp_subst_tac 1);
-by (analz_induct_tac 1);        (*22 seconds*)
+by (analz_induct_tac 1);        (*26 seconds*)
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [all_conj_distrib])));
 (*proves ServerResume*)
 by (ALLGOALS Clarify_tac);
@@ -668,7 +664,7 @@ by (fast_tac (claset() addSEs [PMS_Crypt_sessionK_spiedE]) 2);
 (*Fake: the Spy doesn't have the critical session key!*)
 by (subgoal_tac "Key (serverK(Na,Nb,PRF(PMS,NA,NB))) ~: analz(spies evsa)" 1);
 by (asm_simp_tac (simpset() addsimps [Spy_not_see_MS, 
-				     not_parts_not_analz]) 2);
+				      not_parts_not_analz]) 2);
 by (Fake_parts_insert_tac 1);
 val lemma = normalize_thm [RSmp] (result());
 
@@ -731,7 +727,7 @@ goal thy
 \           evs : tls;  A ~: bad;  B ~: bad |]          \
 \        ==> EX A'. Says B A' (Crypt (serverK(Na,Nb,M)) Y) : set evs";
 by (blast_tac (claset() addIs [lemma]
-                       addEs [serverK_Oops_ALL RSN(2, rev_notE)]) 1);
+                        addEs [serverK_Oops_ALL RSN(2, rev_notE)]) 1);
 qed_spec_mp "TrustServerMsg";
 
 
@@ -760,7 +756,7 @@ by (fast_tac (claset() addSEs [PMS_Crypt_sessionK_spiedE]) 2);
 (*Fake: the Spy doesn't have the critical session key!*)
 by (subgoal_tac "Key (clientK(Na,Nb,PRF(PMS,NA,NB))) ~: analz(spies evsa)" 1);
 by (asm_simp_tac (simpset() addsimps [Spy_not_see_MS, 
-				     not_parts_not_analz]) 2);
+				      not_parts_not_analz]) 2);
 by (Fake_parts_insert_tac 1);
 val lemma = normalize_thm [RSmp] (result());
 

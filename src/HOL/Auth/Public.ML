@@ -34,6 +34,24 @@ qed "not_isSymKey_priK";
 
 AddIffs [not_isSymKey_pubK, not_isSymKey_priK];
 
+
+(** "Image" equations that hold for injective functions **)
+
+goal thy "(invKey x : invKey``A) = (x:A)";
+by (Auto_tac());
+qed "invKey_image_eq";
+
+(*holds because invKey is injective*)
+goal thy "(pubK x : pubK``A) = (x:A)";
+by (Auto_tac());
+qed "pubK_image_eq";
+
+goal thy "(priK x ~: pubK``A)";
+by (Auto_tac());
+qed "priK_pubK_image_eq";
+Addsimps [invKey_image_eq, pubK_image_eq, priK_pubK_image_eq];
+
+
 (** Rewrites should not refer to  initState(Friend i) 
     -- not in normal form! **)
 
