@@ -101,11 +101,10 @@ val [subs,PQimp] = Goal
 by (blast_tac (claset() addIs [subs RS subsetD, PQimp RS mp]) 1);
 qed "Int_Collect_mono";
 
-(*Used in individual datatype definitions*)
 val basic_monos = [subset_refl, imp_refl, disj_mono, conj_mono, 
                    ex_mono, Collect_mono, in_mono];
 
-(* Courtesy of Stefan Merz *)
+(* Courtesy of Stephan Merz *)
 Goalw [Least_def,mono_def]
   "[| mono (f::'a::order => 'b::order); ? x:S. ! y:S. x <= y |] \
 \  ==> (LEAST y. y : f``S) = f(LEAST x. x : S)";
