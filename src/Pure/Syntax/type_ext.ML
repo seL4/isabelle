@@ -2,71 +2,71 @@
     ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 
-The concrete syntax of types (used to bootstrap Pure).
+Utilities for input and output of types. Also the concrete syntax of
+types, which is used to bootstrap Pure.
 *)
 
 signature TYPE_EXT0 =
-  sig
-  val raw_term_sorts: term -> (indexname * sort) list
-  val typ_of_term: (indexname * sort) list -> (indexname -> sort) -> term -> typ
-  end;
+sig
+  val raw_term_sorts: (sort * sort -> bool) -> term -> (indexname * sort) list
+  val typ_of_term: (indexname -> sort) -> term -> typ
+end;
 
 signature TYPE_EXT =
-  sig
+sig
   include TYPE_EXT0
+  val term_of_sort: sort -> term
   val term_of_typ: bool -> typ -> term
   val tappl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
   val type_ext: SynExt.syn_ext
-  end;
+end;
 
 structure TypeExt : TYPE_EXT =
 struct
+
 open Lexicon SynExt Ast;
 
-(** raw_term_sorts **)
 
-fun raw_term_sorts tm =
+(** input utils **)
+
+(* raw_term_sorts *)
+
+fun raw_term_sorts eq_sort tm =
   let
-    fun show_var (xi as (x, i)) = if i < 0 then x else string_of_vname xi;
-
     fun classes (Const (c, _)) = [c]
       | classes (Free (c, _)) = [c]
       | classes (Const ("_classes", _) $ Const (c, _) $ cls) = c :: classes cls
       | classes (Const ("_classes", _) $ Free (c, _) $ cls) = c :: classes cls
       | classes tm = raise_term "raw_term_sorts: bad encoding of classes" [tm];
 
-    fun sort (Const ("_emptysort", _)) = []
-      | sort (Const (s, _)) = [s]
-      | sort (Free (s, _)) = [s]
+    fun sort (Const ("_topsort", _)) = []
+      | sort (Const (c, _)) = [c]
+      | sort (Free (c, _)) = [c]
       | sort (Const ("_sort", _) $ cls) = classes cls
       | sort tm = raise_term "raw_term_sorts: bad encoding of sort" [tm];
 
-    fun env_of (Const ("_ofsort", _) $ Free (x, _) $ srt) = [((x, ~1), sort srt)]
-      | env_of (Const ("_ofsort", _) $ Var (xi, _) $ srt) = [(xi, sort srt)]
+    fun eq ((xi, S), (xi', S')) =
+      xi = xi' andalso eq_sort (S, S');
+
+    fun env_of (Const ("_ofsort", _) $ Free (x, _) $ cls) = [((x, ~1), sort cls)]
+      | env_of (Const ("_ofsort", _) $ Var (xi, _) $ cls) = [(xi, sort cls)]
       | env_of (Abs (_, _, t)) = env_of t
-      | env_of (t1 $ t2) = env_of t1 @ env_of t2
+      | env_of (t1 $ t2) = gen_union eq (env_of t1, env_of t2)
       | env_of t = [];
 
-    val env = distinct (env_of tm);
+    val env = env_of tm;
   in
-    (case gen_duplicates 
-		(fn ((n,s),(m,t)) => n=m andalso not(eq_set_string(s,t))) env of
+    (case gen_duplicates eq_fst env of
       [] => env
     | dups => error ("Inconsistent sort constraints for type variable(s) " ^
-        commas (map (quote o show_var o #1) dups)))
+        commas (map (quote o string_of_vname' o #1) dups)))
   end;
 
 
+(* typ_of_term *)
 
-(** typ_of_term **)
-
-fun typ_of_term sort_env def_sort t =
+fun typ_of_term get_sort t =
   let
-    fun get_sort xi =
-      (case assoc (sort_env, xi) of
-        None => def_sort xi
-      | Some s => s);
-
     fun typ_of (Free (x, _)) =
           if is_tid x then TFree (x, get_sort (x, ~1))
           else Type (x, [])
@@ -92,24 +92,36 @@ fun typ_of_term sort_env def_sort t =
 
 
 
-(** term_of_typ **)
+(** output utils **)
+
+(* term_of_sort *)		(* FIXME mark whole sort vs. ind. classes !? *)
+
+fun term_of_sort S =
+  let
+    fun class c = free c;       (* FIXME mark *)
+
+    fun classes [] = sys_error "term_of_sort"
+      | classes [c] = class c
+      | classes (c :: cs) = const "_classes" $ class c $ classes cs;
+  in
+    (case S of
+      [] => const "_topsort"
+    | [c] => class c
+    | cs => const "_sort" $ classes cs)
+  end;
+
+
+(* term_of_typ *)
 
 fun term_of_typ show_sorts ty =
   let
-    fun classes [] = raise Match
-      | classes [c] = free c
-      | classes (c :: cs) = const "_classes" $ free c $ classes cs;
-
-    fun sort [] = const "_emptysort"
-      | sort [s] = free s
-      | sort ss = const "_sort" $ classes ss;
-
-    fun of_sort t ss =
-      if show_sorts then const "_ofsort" $ t $ sort ss else t;
+    fun of_sort t S =
+      if show_sorts then const "_ofsort" $ t $ term_of_sort S
+      else t;
 
     fun term_of (Type (a, tys)) = list_comb (const a, map term_of tys)
-      | term_of (TFree (x, ss)) = of_sort (free x) ss
-      | term_of (TVar (xi, ss)) = of_sort (var xi) ss;
+      | term_of (TFree (x, S)) = of_sort (free x) S	(* FIXME mark? *)
+      | term_of (TVar (xi, S)) = of_sort (var xi) S;	(* FIXME mark? *)
   in
     term_of ty
   end;
@@ -159,7 +171,7 @@ val type_ext = mk_syn_ext false []
    Mfix ("_::_",        [tidT, sortT] ---> typeT,      "_ofsort", [max_pri, 0], max_pri),
    Mfix ("_::_",        [tvarT, sortT] ---> typeT,     "_ofsort", [max_pri, 0], max_pri),
    Mfix ("_",           idT --> sortT,                 "", [], max_pri),
-   Mfix ("{}",          sortT,                         "_emptysort", [], max_pri),
+   Mfix ("{}",          sortT,                         "_topsort", [], max_pri),
    Mfix ("{_}",         classesT --> sortT,            "_sort", [], max_pri),
    Mfix ("_",           idT --> classesT,              "", [], max_pri),
    Mfix ("_,_",         [idT, classesT] ---> classesT, "_classes", [], max_pri),
