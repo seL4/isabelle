@@ -150,16 +150,16 @@ qed "imperative_append";
 
 (*** ARRAYS ***)
 
-(* Search for 0 *)
+(* Search for a key *)
 Goal
 "|- VARS A i. \
 \ {True} \
 \ i := 0; \
-\ WHILE i < length A & A!i ~= 0 \
-\ INV {!j. j<i --> A!j ~= 0} \
+\ WHILE i < length A & A!i ~= key \
+\ INV {!j. j<i --> A!j ~= key} \
 \ DO i := i+1 OD \
-\ {(i < length A --> A!i = 0) & \
-\  (i = length A --> (!j. j < length A --> A!j ~= 0))}";
+\ {(i < length A --> A!i = key) & \
+\  (i = length A --> (!j. j < length A --> A!j ~= key))}";
 by (hoare_tac Asm_full_simp_tac 1);
 by (blast_tac (claset() addSEs [less_SucE]) 1);
 qed "zero_search";
