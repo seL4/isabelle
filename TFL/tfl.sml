@@ -25,12 +25,7 @@ val hyp = #1 o R.dest_thm;
 
 val list_mk_type = U.end_itlist (curry(op -->));
 
-fun enumerate l = 
-     rev(#1(foldl (fn ((alist,i), x) => ((x,i)::alist, i+1)) (([],0), l)));
-
-fun stringize [] = ""
-  | stringize [i] = Int.toString i
-  | stringize (h::t) = (Int.toString h^", "^stringize t);
+fun enumerate xs = ListPair.zip(xs, 0 upto (length xs - 1));
 
 fun front_last [] = raise TFL_ERR {func="front_last", mesg="empty list"}
   | front_last [x] = ([],x)
@@ -115,19 +110,25 @@ fun ipartition gv (constructors,rows) =
  * This datatype carries some information about the origin of a
  * clause in a function definition.
  *---------------------------------------------------------------------------*)
+(*
 datatype pattern = GIVEN   of term * int
                  | OMITTED of term * int
+*)
+(* True means the pattern was given by the user
+   (or is an instantiation of a user supplied pattern)
+*)
+type pattern = term * (int * bool)
 
-fun pattern_map f (GIVEN (tm,i)) = GIVEN(f tm, i)
-  | pattern_map f (OMITTED (tm,i)) = OMITTED(f tm, i);
+fun pattern_map f (tm,x) = (f tm, x);
 
 fun pattern_subst theta = pattern_map (subst_free theta);
-
+(*
 fun dest_pattern (GIVEN (tm,i)) = ((GIVEN,i),tm)
   | dest_pattern (OMITTED (tm,i)) = ((OMITTED,i),tm);
-
-val pat_of = #2 o dest_pattern;
-val row_of_pat = #2 o #1 o dest_pattern;
+*)
+val pat_of = fst;
+val row_of_pat = fst o snd;
+val given = snd o snd;
 
 (*---------------------------------------------------------------------------
  * Produce an instance of a constructor, plus genvars for its arguments.
@@ -170,7 +171,7 @@ let val fresh = fresh_constr ty_match colty gv
              val (in_group, not_in_group) = mk_group Name rows
              val in_group' =
                  if (null in_group)  (* Constructor not given *)
-                 then [((prfx, #2(fresh c)), OMITTED (S.ARB res_ty, ~1))]
+                 then [((prfx, #2(fresh c)), (S.ARB res_ty, (~1,false)))]
                  else in_group
          in 
          part{constrs = crst, 
@@ -225,10 +226,8 @@ fun mk_case ty_info ty_match usednames range_ty =
             in map expnd (map fresh constructors)  end
        else [row]
  fun mk{rows=[],...} = mk_case_fail"no rows"
-   | mk{path=[], rows = ((prfx, []), rhs)::_} =  (* Done *)
-        let val (tag,tm) = dest_pattern rhs
-        in ([(prfx,tag,[])], tm)
-        end
+   | mk{path=[], rows = ((prfx, []), (tm,tag))::_} =  (* Done *)
+        ([(prfx,tag,[])], tm)
    | mk{path=[], rows = _::_} = mk_case_fail"blunder"
    | mk{path as u::rstp, rows as ((prfx, []), rhs)::rst} = 
         mk{path = path, 
@@ -327,7 +326,7 @@ fun mk_functional thy clauses =
      val (fname,ftype) = dest_atom atom
      val dummy = map (no_repeat_vars thy) pats
      val rows = ListPair.zip (map (fn x => ([]:term list,[x])) pats,
-                              map GIVEN (enumerate R))
+                              map (fn (t,i) => (t,(i,true))) (enumerate R))
      val names = foldr add_term_names (R,[])
      val atype = type_of(hd pats)
      and aname = variant names "a"
@@ -337,7 +336,7 @@ fun mk_functional thy clauses =
      val range_ty = type_of (hd R)
      val (patts, case_tm) = mk_case ty_info ty_match (aname::names) range_ty 
                                     {path=[a], rows=rows}
-     val patts1 = map (fn (_,(tag,i),[pat]) => tag (pat,i)) patts 
+     val patts1 = map (fn (_,tag,[pat]) => (pat,tag)) patts 
 	  handle _ => mk_functional_err "error in pattern-match translation"
      val patts2 = U.sort(fn p1=>fn p2=> row_of_pat p1 < row_of_pat p2) patts1
      val finals = map row_of_pat patts2
@@ -345,7 +344,7 @@ fun mk_functional thy clauses =
      val dummy = case (originals\\finals)
              of [] => ()
           | L => mk_functional_err ("The following rows are inaccessible: " ^
-                   stringize (map (fn i => i + 1) L))
+                   commas (map Int.toString L))
  in {functional = Abs(Sign.base_name fname, ftype,
 		      abstract_over (atom, 
 				     absfree(aname,atype, case_tm))),
@@ -424,16 +423,16 @@ in
 end;
 
 
-fun givens [] = []
-  | givens (GIVEN(tm,_)::pats) = tm :: givens pats
-  | givens (OMITTED _::pats)   = givens pats;
+fun givens pats = map pat_of (filter given pats);
 
 (*called only by Tfl.simplify_defn*)
 fun post_definition meta_tflCongs (theory, (def, pats)) =
  let val tych = Thry.typecheck theory 
      val f = #lhs(S.dest_eq(concl def))
      val corollary = R.MATCH_MP Thms.WFREC_COROLLARY def
-     val given_pats = givens pats
+     val pats' = filter given pats
+     val given_pats = map pat_of pats'
+     val rows = map row_of_pat pats'
      val WFR = #ant(S.dest_imp(concl corollary))
      val R = #Rand(S.dest_comb WFR)
      val corollary' = R.UNDISCH corollary  (* put WF R on assums *)
@@ -450,9 +449,9 @@ fun post_definition meta_tflCongs (theory, (def, pats)) =
  in
  {theory = theory,   (* holds def, if it's needed *)
   rules = rules1,
+  rows = rows,
   full_pats_TCs = merge (map pat_of pats) (ListPair.zip (given_pats, TCs)), 
-  TCs = TCs, 
-  patterns = pats}
+  TCs = TCs}
  end;
 
 

@@ -25,12 +25,12 @@ signature TFL =
    val define_i : theory -> xstring -> term 
                   -> simpset * thm list (*allows special simplication*)
                   -> term list
-                  -> theory * {rules:thm list, induct:thm, tcs:term list}
+                  -> theory * {rules:(thm*int)list, induct:thm, tcs:term list}
 
    val define   : theory -> xstring -> string 
                   -> simpset * thm list 
                   -> string list 
-                  -> theory * {rules:thm list, induct:thm, tcs:term list}
+                  -> theory * {rules:(thm*int)list, induct:thm, tcs:term list}
 
    val defer_i : theory -> xstring
                   -> thm list (* congruence rules *)
@@ -39,11 +39,11 @@ signature TFL =
    val defer : theory -> xstring
                   -> thm list 
                   -> string list -> theory * thm
-
+(*
    val simplify_defn : simpset * thm list 
                         -> theory * (string * Prim.pattern list)
                         -> {rules:thm list, induct:thm, tcs:term list}
-
+*)
   end;
 
 
@@ -194,7 +194,7 @@ struct
 			 ("Recursive definition " ^ id ^ 
 			  " would clash with the theory of the same name!")
 	val def = freezeT(get_def thy id)   RS   meta_eq_to_obj_eq
-	val {theory,rules,TCs,full_pats_TCs,patterns} = 
+	val {theory,rules,rows,TCs,full_pats_TCs} = 
 		 Prim.post_definition (Prim.congs tflCongs)
 		    (thy, (def,pats))
 	val {lhs=f,rhs} = S.dest_eq(concl def)
@@ -208,7 +208,7 @@ struct
 	val rules' = map (standard o normalize_thm [RSmp]) (R.CONJUNCTS rules)
     in  {induct = meta_outer
 		   (normalize_thm [RSspec,RSmp] (induction RS spec')), 
-	 rules = rules', 
+	 rules = ListPair.zip(rules', rows),
 	 tcs = (termination_goals rules') @ tcs}
     end
    handle Utils.ERR {mesg,func,module} => 

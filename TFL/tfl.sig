@@ -15,8 +15,7 @@ sig
 
    val congs : thm list -> thm list  (*fn to make congruent rules*)
 
-   datatype pattern = GIVEN of term * int
-                    | OMITTED of term * int
+   type pattern
 
    val mk_functional : theory -> term list
                        -> {functional:term,
@@ -26,10 +25,10 @@ sig
 
    val post_definition : thm list -> theory * (thm * pattern list)
 				  -> {theory : theory,
-				     rules  : thm, 
+				     rules  : thm,
+                                      rows  : int list,
 				       TCs  : term list list,
-			     full_pats_TCs  : (term * term list) list, 
-				  patterns  : pattern list}
+			     full_pats_TCs  : (term * term list) list}
 
    val wfrec_eqns : theory -> xstring
 	             -> thm list (* congruence rules *)
