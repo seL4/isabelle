@@ -678,11 +678,9 @@ If an ambiguity can be resolved by type inference the following
 warning is shown to remind the user that parsing is (unnecessarily)
 slowed down. In cases where it's not easily possible to eliminate the
 ambiguity the frequency of the warning can be controlled by changing
-the value of {\tt Sign.ambiguity_level} which has type {\tt int
+the value of {\tt Syntax.ambiguity_level} which has type {\tt int
 ref}. Its default value is 1 and by increasing it one can control how
-many parse trees are necessary to generate the warning. (Regardless of
-{\tt Sign.ambiguity_level} still only one of these parse trees is
-allowed to be type correct.)
+many parse trees are necessary to generate the warning.
 
 \begin{ttbox}
 {\out Warning: Ambiguous input "..."}
