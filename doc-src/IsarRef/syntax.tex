@@ -13,9 +13,8 @@ most important aspect to be noted is the difference of \emph{inner} versus
 \emph{outer} syntax.  Inner syntax is that of Isabelle types and terms of the
 logic, while outer syntax is that of Isabelle/Isar theories (and proofs).  As
 a general rule, inner syntax entities may occur only as \emph{atomic entities}
-within outer syntax.  For example, quoted string \texttt{"x + y"} and
-identifier \texttt{z} are legal term specifications, while \texttt{x + y} is
-not.
+within outer syntax.  Thus, string \texttt{"x + y"} and identifier \texttt{z}
+are legal term specifications, while \texttt{x + y} is not.
 
 \begin{warn}
   Note that old-style Isabelle theories used to fake parts of the inner type
@@ -42,15 +41,16 @@ be confused, though.
   typefree & = & \verb,',ident \\
   typevar & = & \verb,?,typefree ~|~ \verb,?,typefree\verb,.,nat \\
   string & = & \verb,", ~\dots~ \verb,", \\
-  verbatim & = & \verb,{*, ~\dots~ \verb,*}, \\[2ex]
-
+  verbatim & = & \verb,{*, ~\dots~ \verb,*}, \\
+\end{matharray}
+\begin{matharray}{rcl}
   letter & = & \verb,a, ~|~ \dots ~|~ \verb,z, ~|~ \verb,A, ~|~ \dots ~|~ \verb,Z, \\
   digit & = & \verb,0, ~|~ \dots ~|~ \verb,9, \\
   quasiletter & = & letter ~|~ digit ~|~ \verb,_, ~|~ \verb,', \\
   sym & = & \verb,!, ~|~ \verb,#, ~|~ \verb,$, ~|~ \verb,%, ~|~ \verb,&, ~|~  %$
-   \verb,*, ~|~ \verb,+, ~|~ \verb,-, ~|~ \verb,/, ~|~ \verb,:, ~|~ \verb,<, ~|~
-   \verb,=, ~|~ \verb,>, ~|~ \verb,?, ~|~ \mathtt{\at} ~|~ \verb,^, ~|~ \verb,_, ~|~
-   \verb,`, ~|~ \verb,|, ~|~ \verb,~, \\
+   \verb,*, ~|~ \verb,+, ~|~ \verb,-, ~|~ \verb,/, ~|~ \verb,:, ~|~
+   \verb,<, ~|~ \verb,=, ~|~ \verb,>, ~|~ \verb,?, ~|~ \mathtt{\at} ~|~ \\
+  & & \verb,^, ~|~ \verb,_, ~|~ \verb,`, ~|~ \verb,|, ~|~ \verb,~, \\
 \end{matharray}
 
 The syntax of \texttt{string} admits any characters, including newlines;

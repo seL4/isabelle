@@ -154,6 +154,7 @@ calculational steps in combination with natural deduction.
 \begin{matharray}{rcl}
   \isarcmd{axclass} & : & \isartrans{theory}{theory} \\
   \isarcmd{instance} & : & \isartrans{theory}{proof(prove)} \\
+  expand_classes & : & \isarmeth \\
 \end{matharray}
 
 Axiomatic type classes are provided by Isabelle/Pure as a purely
@@ -178,8 +179,12 @@ the standard Isabelle documentation.
   characteristic theorems of the type classes involved.  After finishing the
   proof the theory will be augmented by a type signature declaration
   corresponding to the resulting theorem.
+\item [Method $expand_classes$] iteratively expands the class introduction
+  rules
 \end{descr}
 
+See theory \texttt{HOL/Isar_examples/Group} for a simple example of using
+axiomatic type classes, including instantiation proofs.
 
 
 \section{The Simplifier}
@@ -194,12 +199,14 @@ the standard Isabelle documentation.
 \end{matharray}
 
 \begin{rail}
-  'simp' (simpmod+)?
+  'simp' (simpmod * )
   ;
 
   simpmod: ('add' | 'del' | 'only' | 'other') ':' thmrefs
   ;
 \end{rail}
+
+FIXME
 
 
 \subsection{Forward simplification}

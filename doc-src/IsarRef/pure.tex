@@ -117,8 +117,9 @@ terms.\footnote{The current version of Isabelle/Isar does not process formal
   mark chapter and section headings.
 \item [$\TEXT~text$] specifies an actual body of prose text, including
   references to formal entities.\footnote{The latter feature is not yet
-    exploited.  Nevertheless, any text of the form \texttt{\at\{\dots\}}
-    should be considered as reserved for future use.}
+    exploited.  Nevertheless, any text of the form
+    \texttt{\at\ttlbrace\dots\ttrbrace} should be considered as reserved for
+    future use.}
 \end{descr}
 
 
@@ -444,7 +445,7 @@ The logical proof context consists of fixed variables and assumptions.  The
 former closely correspond to Skolem constants, or meta-level universal
 quantification as provided by the Isabelle/Pure logical framework.
 Introducing some \emph{arbitrary, but fixed} variable via $\FIX x$ results in
-a local entity that may be used in the subsequent proof as any other variable
+a local object that may be used in the subsequent proof as any other variable
 or constant.  Furthermore, any result $\phi[x]$ exported from the current
 context will be universally closed wrt.\ $x$ at the outermost level (this is
 expressed using Isabelle's meta-variables).
@@ -459,8 +460,8 @@ assumption command used: while $\ASSUMENAME$ solves the subgoal by unifying
 with some premise of the goal, $\PRESUMENAME$ leaves the subgoal unchanged to
 be proved later by the user.
 
-Local definitions, introduced by $\DEF{a}{x \equiv t}$, are achieved by
-combining $\FIX x$ with another version of assumption that causes any
+Local definitions, introduced by $\DEF{}{x \equiv t}$, are achieved by
+combining $\FIX x$ with another kind of assumption that causes any
 hypothetical equation $x = t$ to be eliminated by reflexivity.  Thus,
 exporting some result $\phi[x]$ simply yields $\phi[t]$.
 
@@ -481,20 +482,20 @@ exporting some result $\phi[x]$ simply yields $\phi[t]$.
 \begin{descr}
 \item [$\FIX{x}$] introduces a local \emph{arbitrary, but fixed} variable $x$.
 \item [$\ASSUME{a}{\Phi}$ and $\PRESUME{a}{\Phi}$] introduce local theorems
-  $\Phi$.  Subsequent results used to solve some enclosing goal (e.g.\ via
+  $\Phi$.  Subsequent results applied to some enclosing goal (e.g.\ via
   $\SHOWNAME$) are handled as follows: $\ASSUMENAME$ expects to be able to
   unify with existing premises in the goal, while $\PRESUMENAME$ leaves $\Phi$
   as new subgoals.  Note that several lists of assumptions may be given
-  (separated by \railterm{and}); the resulting list of current facts consists
-  of all of these.
+  (separated by $\isarkeyword{and}$); the resulting list of facts consists of
+  all of these concatenated.
 \item [$\DEF{a}{x \equiv t}$] introduces a local (non-polymorphic) definition.
   In results exported from the context, $x$ is replaced by $t$.  Basically,
   $\DEF{}{x \equiv t}$ abbreviates $\FIX{x}~\PRESUME{}{x \equiv t}$ (the
   resulting hypothetical equation is solved by reflexivity, though).
 \end{descr}
 
-The internal register $prems$\indexisarreg{prems} refers to all current
-assumptions as a list of theorems.
+The internal register $prems$\indexisarreg{prems} refers to the current list
+of assumptions.
 
 
 \subsection{Facts and forward chaining}
@@ -507,10 +508,12 @@ assumptions as a list of theorems.
   \isarcmd{with} & : & \isartrans{proof(state)}{proof(chain)} \\
 \end{matharray}
 
-New facts are established either by assumption or proof of local statements
-(via $\HAVENAME$ or $\SHOWNAME$).  Any facts will usually be involved in
-proofs of further results: either as explicit arguments of proof methods or
-when forward chaining towards the next goal via $\THEN$ (and variants).
+New facts are established either by assumption or proof of local statements.
+Any facts will usually be involved in proofs of further results: either as
+explicit arguments of proof methods or when forward chaining towards the next
+goal via $\THEN$ (and variants).  Note that the internal register of
+\emph{current facts} may be referred as theorem list
+$facts$.\indexisarreg{facts}
 
 \begin{rail}
   'note' thmdef? thmrefs comment?
@@ -535,9 +538,6 @@ when forward chaining towards the next goal via $\THEN$ (and variants).
 \item [$\WITH{\vec b}$] abbreviates $\FROM{\vec b~facts}$; thus the forward
   chaining is from earlier facts together with the current ones.
 \end{descr}
-
-Note that the internal register of \emph{current facts} may be referred as
-theorem list $facts$.\indexisarreg{facts}
 
 
 \subsection{Goal statements}
@@ -666,7 +666,7 @@ terminal method is ``$finish$''; it solves all goals by assumption.
   \texttt{quick_and_dirty} is enabled, $\isarkeyword{sorry}$ pretends to solve
   the goal without much ado.  Of course, the result is a fake theorem only,
   involving some oracle in its internal derivation object (this is indicated
-  as $[!]$ in the printed result.  The main application of
+  as $[!]$ in the printed result).  The main application of
   $\isarkeyword{sorry}$ is to support top-down proof development.
 \end{descr}
 
@@ -725,8 +725,8 @@ dummies ``\verb,_,'' (underscore).\index{dummy variables} Note that in the
 $\LETNAME$ form the patterns occur on the left-hand side, while the $\ISNAME$
 patterns are in postfix position.
 
-Note that term abbreviations are quite different from actual local definitions
-as introduced via $\DEFNAME$ (see \S\ref{sec:proof-context}).  The latter are
+Term abbreviations are quite different from actual local definitions as
+introduced via $\DEFNAME$ (see \S\ref{sec:proof-context}).  The latter are
 visible within the logic as actual equations, while abbreviations disappear
 during the input process just after type checking.
 
@@ -746,10 +746,11 @@ The syntax of $\ISNAME$ patterns follows \railnonterm{termpat} or
   but part of others (such as $\ASSUMENAME$, $\HAVENAME$ etc.).
 \end{descr}
 
-Furthermore, a few automatic term abbreviations\index{automatic abbreviation}
-for goals and facts are available.  For any open goal, $\VVar{thesis}$ refers
-to its object-logic statement, $\VVar{thesis_prop}$ to the full proposition
-(which may be a rule), and $\VVar{thesis_concl}$ to its (atomic) conclusion.
+A few \emph{automatic} term abbreviations\index{automatic abbreviation} for
+goals and facts are available as well.  For any open goal, $\VVar{thesis}$
+refers to its object-logical statement, $\VVar{thesis_prop}$ to the full
+proposition (which may be a rule), and $\VVar{thesis_concl}$ to its (atomic)
+conclusion.
 
 Facts (i.e.\ assumptions and finished goals) that have an application $f(x)$
 as object-logic statement get $x$ bound to the special text variable

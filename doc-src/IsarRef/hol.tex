@@ -51,9 +51,10 @@
 \item [$\isarkeyword{record}~(\vec\alpha)t = \tau + \vec c :: \vec\sigma$]
   defines extensible record type $(\vec\alpha)t$, derived from the optional
   parent record $\tau$ by adding new field components $\vec c :: \vec\sigma$.
-  See \cite{isabelle-HOL,NaraschewskiW-TPHOLs98} for more information only
-  simply-typed extensible records.
 \end{descr}
+
+See \cite{isabelle-HOL,NaraschewskiW-TPHOLs98} for more information only
+simply-typed extensible records.
 
 
 \section{Datatypes}\label{sec:datatype}
@@ -78,9 +79,14 @@
 \end{rail}
 
 \begin{descr}
-\item [$\isarkeyword{datatype}$] FIXME
-\item [$\isarkeyword{rep_datatype}$] FIXME
+\item [$\isarkeyword{datatype}$] defines inductive datatypes in HOL.
+\item [$\isarkeyword{rep_datatype}$] represents existing types as inductive
+  ones, generating the standard infrastructure of derived concepts (primitive
+  recursion etc.).
 \end{descr}
+
+See \cite{isabelle-HOL} for more details on datatypes.  Note that the theory
+syntax above has been slightly simplified over the old version.
 
 
 \section{Recursive functions}
@@ -101,9 +107,13 @@
 \end{rail}
 
 \begin{descr}
-\item [$\isarkeyword{primrec}$] FIXME
-\item [$\isarkeyword{recdef}$] FIXME
+\item [$\isarkeyword{primrec}$] defines primitive recursive functions over
+  datatypes.
+\item [$\isarkeyword{recdef}$] defines general well-founded recursive
+  functions (using the TFL package).
 \end{descr}
+
+See \cite{isabelle-HOL} for more information.
 
 
 \section{(Co)Inductive sets}
@@ -129,14 +139,47 @@
 \end{rail}
 
 \begin{descr}
-\item [$\isarkeyword{inductive}$ and $\isarkeyword{coinductive}$] FIXME
-\item [$\isarkeyword{inductive_cases}$] FIXME
+\item [$\isarkeyword{inductive}$ and $\isarkeyword{coinductive}$] define
+  (co)inductive sets from the given introduction rules.
+\item [$\isarkeyword{inductive_cases}$] creates simplified instances of
+  elimination rules of (co)inductive sets.
 \end{descr}
+
+See \cite{isabelle-HOL} for more information.  Note that
+$\isarkeyword{inductive_cases}$ corresponds to the ML function
+\texttt{mk_cases}.
 
 
 \section{Proof by induction}
 
-FIXME induct proof method
+\indexisarmeth{induct}
+\begin{matharray}{rcl}
+  induct & : & \isarmeth \\
+\end{matharray}
+
+The $induct$ method provides a uniform interface to induction over datatypes,
+inductive sets, and recursive functions.  Basically, it is just an interface
+to the $rule$ method applied to appropriate instances of the corresponding
+induction rules.
+
+\begin{rail}
+  'induct' (inst * 'and') kind?
+  ;
+
+  inst: term term?
+  ;
+  kind: ('type' | 'set' | 'function') ':' nameref
+  ;
+\end{rail}
+
+\begin{descr}
+\item [$induct~insts~kind$] abbreviates method $rule~R$, where $R$ is the
+  induction rule of the type/set/function specified by $kind$ and instantiated
+  by $insts$.  The latter either consists of pairs $P$ $x$ (induction
+  predicate and variable), where $P$ is optional.  If $kind$ is omitted, the
+  default is to pick a datatype induction rule according to the type of some
+  induction variable (at least one has to be given in that case).
+\end{descr}
 
 
 %%% Local Variables: 
