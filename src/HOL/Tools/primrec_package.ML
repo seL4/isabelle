@@ -4,17 +4,13 @@
     Copyright   1998  TU Muenchen
 
 Package for defining functions on datatypes by primitive recursion.
-
-TODO:
-  - add_primrec(_i): improve prep of args;
-  - quiet_mode (!?);
 *)
 
 signature PRIMREC_PACKAGE =
 sig
-  val add_primrec: string -> ((string * string) * Args.src list) list
+  val add_primrec: string -> ((bstring * string) * Args.src list) list
     -> theory -> theory * thm list
-  val add_primrec_i: string -> ((string * term) * theory attribute list) list
+  val add_primrec_i: string -> ((bstring * term) * theory attribute list) list
     -> theory -> theory * thm list
 end;
 
