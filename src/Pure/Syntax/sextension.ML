@@ -55,6 +55,7 @@ sig
   val constants: sext -> (string list * string) list
   val pure_sext: sext
   val syntax_types: string list
+  val syntax_consts: (string list * string) list
   val constrainAbsC: string
 end;
 
@@ -211,7 +212,7 @@ fun bigimpl_ast_tr (*"_bigimpl"*) [asms, concl] =
   | bigimpl_ast_tr (*"_bigimpl"*) asts = raise_ast "bigimpl_ast_tr" asts;
 
 
-(* explode atoms *)  (* FIXME check, leading 0s (?) *)
+(* explode atoms *)
 
 fun explode_tr (*"_explode"*) [consC, nilC, bit0, bit1, Free (str, _)] =
       let
@@ -222,7 +223,7 @@ fun explode_tr (*"_explode"*) [consC, nilC, bit0, bit1, Free (str, _)] =
           | encode_bit 1 = bit1
           | encode_bit _ = sys_error "encode_bit";
 
-        fun encode_char c =
+        fun encode_char c =   (* FIXME leading 0s (?) *)
           mk_list (map encode_bit (radixpand (2, (ord c))));
       in
         mk_list (map encode_char (explode str))
@@ -335,20 +336,22 @@ fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
   | dependent_tr' _ _ = raise Match;
 
 
-(* implode atoms *)  (* FIXME check *)
+(* implode atoms *)
 
 fun implode_ast_tr' (*"_implode"*) (asts as [Constant cons_name, nilC,
     bit0, bit1, bitss]) =
       let
-        fun fail () = raise_ast "implode_ast_tr'" asts;
+        fun err () = raise_ast "implode_ast_tr'" asts;
 
         fun strip_list lst =
           let val (xs, y) = unfold_ast_p cons_name lst
-          in if y = nilC then xs else fail ()
+          in if y = nilC then xs else err ()
           end;
 
         fun decode_bit bit =
-          if bit = bit0 then "0" else if bit = bit1 then "1" else fail ();
+          if bit = bit0 then "0"
+          else if bit = bit1 then "1"
+          else err ();
 
         fun decode_char bits =
           chr (#1 (scan_radixint (2, map decode_bit (strip_list bits))));
@@ -512,8 +515,10 @@ val pure_sext =
     print_ast_translation = [("_abs", abs_ast_tr'), ("_idts", idts_ast_tr'),
       ("==>", impl_ast_tr'), ("_implode", implode_ast_tr')]};
 
-val syntax_types = terminals @ [logic, "type", "types", "sort", "classes",
-  args, "idt", "idts", "aprop", "asms"];
+val syntax_types = terminals @ ["syntax", logic, "type", "types", "sort",
+  "classes", args, "idt", "idts", "aprop", "asms"];
+
+val syntax_consts = [(["_K", "_explode", "_implode"], "syntax")];
 
 val constrainAbsC = "_constrainAbs";
 val apropC = "_aprop";
