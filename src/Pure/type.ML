@@ -547,12 +547,8 @@ fun err_neg_args c =
   error ("Negative number of arguments in type constructor declaration: " ^ quote c);
 
 fun err_in_decls c decl decl' =
-  let
-    val s = str_of_decl decl;
-    val s' = str_of_decl decl';
-  in
-    if s = s' then
-      error ("Duplicate declaration of " ^ s ^ ": " ^ quote c)
+  let val s = str_of_decl decl and s' = str_of_decl decl' in
+    if s = s' then error ("Duplicate declaration of " ^ s ^ ": " ^ quote c)
     else error ("Conflict of " ^ s ^ " with " ^ s' ^ ": " ^ quote c)
   end;
 
@@ -569,7 +565,7 @@ fun change_types f = change_tsig (fn (classes, default, types, arities) =>
 fun add_abbr (a, vs, rhs) tsig = tsig |> change_types (fn types =>
   let
     fun err msg =
-      error (msg ^ "\nThe error(s) above occurred in type abbreviation " ^ quote a);
+      error (msg ^ "\nThe error(s) above occurred in type abbreviation: " ^ quote a);
     val rhs' = strip_sorts (varifyT (no_tvars (cert_typ_syntax tsig rhs)))
       handle TYPE (msg, _, _) => err msg;
   in
