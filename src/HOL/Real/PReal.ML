@@ -31,7 +31,7 @@ bind_thm ("empty_not_mem_prealE", empty_not_mem_preal RS notE);
 
 Addsimps [empty_not_mem_preal];
 
-Goalw [preal_def] "{x::prat. x < $#Abs_pnat 1} : preal";
+Goalw [preal_def] "{x::prat. x < prat_of_pnat (Abs_pnat 1)} : preal";
 by (rtac preal_1 1);
 qed "one_set_mem_preal";
 
@@ -114,7 +114,7 @@ by (auto_tac (claset(),simpset() addsimps [psubset_def]));
 by (blast_tac (claset() addIs [set_ext] addEs [swap]) 1);
 qed "not_mem_Rep_preal_Ex";
 
-(** prat_pnat: the injection from prat to preal **)
+(** preal_of_prat: the injection from prat to preal **)
 (** A few lemmas **)
 Goal "{} < {xa::prat. xa < y}";
 by (cut_facts_tac [qless_Ex] 1);
@@ -145,14 +145,14 @@ by (eres_inst_tac [("c","xa")] equalityCE 1);
 by (auto_tac (claset() addDs [prat_less_not_sym],simpset()));
 qed "lemma_prat_set_eq";
 
-Goal "inj(preal_prat)";
+Goal "inj(preal_of_prat)";
 by (rtac injI 1);
-by (rewtac preal_prat_def);
+by (rewtac preal_of_prat_def);
 by (dtac (inj_on_Abs_preal RS inj_onD) 1);
 by (rtac lemma_prat_less_set_mem_preal 1);
 by (rtac lemma_prat_less_set_mem_preal 1);
 by (etac lemma_prat_set_eq 1);
-qed "inj_preal_prat";
+qed "inj_preal_of_prat";
 
       (*** theorems for ordering ***)
 (* prove introduction and elimination rules for preal_less *)
@@ -249,9 +249,9 @@ Goal "!y: {w. ? x: Rep_preal R. ? y: Rep_preal S. w = x + y}. \
 \         !z. z < y --> z : {w. ? x:Rep_preal R. ? y:Rep_preal S. w = x + y}";
 by Auto_tac;
 by (forward_tac [prat_mult_qinv_less_1] 1);
-by (forw_inst_tac [("x","x"),("q2.0","$#Abs_pnat 1")] 
+by (forw_inst_tac [("x","x"),("q2.0","prat_of_pnat (Abs_pnat 1)")] 
     prat_mult_less2_mono1 1);
-by (forw_inst_tac [("x","ya"),("q2.0","$#Abs_pnat 1")] 
+by (forw_inst_tac [("x","ya"),("q2.0","prat_of_pnat (Abs_pnat 1)")] 
     prat_mult_less2_mono1 1);
 by (Asm_full_simp_tac 1);
 by (REPEAT(dtac (Rep_preal RS prealE_lemma3a) 1));
@@ -385,7 +385,8 @@ val preal_mult_ac = [preal_mult_assoc,
 
 (* Positive Real 1 is the multiplicative identity element *) 
 (* long *)
-Goalw [preal_prat_def,preal_mult_def] "(@#($#Abs_pnat 1)) * z = z";
+Goalw [preal_of_prat_def,preal_mult_def] 
+      "(preal_of_prat (prat_of_pnat (Abs_pnat 1))) * z = z";
 by (rtac (Rep_preal_inverse RS subst) 1);
 by (res_inst_tac [("f","Abs_preal")] arg_cong 1);
 by (rtac (one_set_mem_preal RS Abs_preal_inverse RS ssubst) 1);
@@ -401,7 +402,7 @@ by (rtac exI 1 THEN Auto_tac THEN res_inst_tac [("x","u")] bexI 1);
 by (auto_tac (claset(),simpset() addsimps [prat_mult_assoc]));
 qed "preal_mult_1";
 
-Goal "z * (@#($#Abs_pnat 1)) = z";
+Goal "z * (preal_of_prat (prat_of_pnat (Abs_pnat 1))) = z";
 by (rtac (preal_mult_commute RS subst) 1);
 by (rtac preal_mult_1 1);
 qed "preal_mult_1_right";
@@ -585,9 +586,10 @@ by (rtac preal_inv_set_lemma4 1);
 qed "preal_mem_inv_set";
 
 (*more lemmas for inverse *)
-Goal "x: Rep_preal(pinv(A)*A) ==> x: Rep_preal(@#($#Abs_pnat 1))";
+Goal "x: Rep_preal(pinv(A)*A) ==> \
+\     x: Rep_preal(preal_of_prat (prat_of_pnat (Abs_pnat 1)))";
 by (auto_tac (claset() addSDs [mem_Rep_preal_multD],
-              simpset() addsimps [pinv_def,preal_prat_def] ));
+              simpset() addsimps [pinv_def,preal_of_prat_def] ));
 by (dtac (preal_mem_inv_set RS Abs_preal_inverse RS subst) 1);
 by (auto_tac (claset() addSDs [not_in_preal_ub],simpset()));
 by (dtac prat_mult_less_mono 1 THEN Blast_tac 1);
@@ -596,11 +598,12 @@ qed "preal_mem_mult_invD";
 
 (*** Gleason's Lemma 9-3.4 p 122 ***)
 Goal "! xa : Rep_preal(A). xa + x : Rep_preal(A) ==> \
-\            ? xb : Rep_preal(A). xb + ($#p)*x : Rep_preal(A)";
+\            ? xb : Rep_preal(A). xb + (prat_of_pnat p)*x : Rep_preal(A)";
 by (cut_facts_tac [mem_Rep_preal_Ex] 1);
 by (res_inst_tac [("n","p")] pnat_induct 1);
 by (auto_tac (claset(),simpset() addsimps [pnat_one_def,
-    pSuc_is_plus_one,prat_add_mult_distrib,prat_pnat_add,prat_add_assoc RS sym]));
+    pSuc_is_plus_one,prat_add_mult_distrib,
+   prat_of_pnat_add,prat_add_assoc RS sym]));
 qed "lemma1_gleason9_34";
 
 Goal "Abs_prat (ratrel ^^ {(y, z)}) < xb + \
@@ -622,9 +625,9 @@ by (dres_inst_tac [("p","y*xb")] lemma1_gleason9_34 1);
 by (etac bexE 1);
 by (cut_inst_tac [("x","y"),("y","xb"),("w","xaa"),
     ("z","ya"),("xb","xba")] lemma1b_gleason9_34 1);
-by (dres_inst_tac [("x","xba + $#(y * xb) * x")]  bspec 1);
+by (dres_inst_tac [("x","xba + prat_of_pnat (y * xb) * x")]  bspec 1);
 by (auto_tac (claset() addIs [prat_less_asym],
-    simpset() addsimps [prat_pnat_def]));
+    simpset() addsimps [prat_of_pnat_def]));
 qed "lemma_gleason9_34a";
 
 Goal "? r: Rep_preal(R). r + x ~: Rep_preal(R)";
@@ -648,7 +651,7 @@ qed "lemma2_gleason9_36";
 (******)
 
 (*** FIXME: long! ***)
-Goal "$#1p < x ==> ? r: Rep_preal(A). r*x ~: Rep_preal(A)";
+Goal "prat_of_pnat 1p < x ==> ? r: Rep_preal(A). r*x ~: Rep_preal(A)";
 by (res_inst_tac [("X1","A")] (mem_Rep_preal_Ex RS exE) 1);
 by (res_inst_tac [("Q","xa*x : Rep_preal(A)")] (excluded_middle RS disjE) 1);
 by (Fast_tac 1);
@@ -671,15 +674,17 @@ by (dres_inst_tac [("y","r*x")] (Rep_preal RS prealE_lemma3b) 1);
 by Auto_tac;
 qed "lemma_gleason9_36";
 
-Goal "$#Abs_pnat 1 < x ==> ? r: Rep_preal(A). r*x ~: Rep_preal(A)";
+Goal "prat_of_pnat (Abs_pnat 1) < x ==> \
+\     ? r: Rep_preal(A). r*x ~: Rep_preal(A)";
 by (rtac lemma_gleason9_36 1);
 by (asm_simp_tac (simpset() addsimps [pnat_one_def]) 1);
 qed "lemma_gleason9_36a";
 
 (*** Part 2 of existence of inverse ***)
-Goal "x: Rep_preal(@#($#Abs_pnat 1)) ==> x: Rep_preal(pinv(A)*A)";
+Goal "x: Rep_preal(preal_of_prat (prat_of_pnat (Abs_pnat 1))) \
+\     ==> x: Rep_preal(pinv(A)*A)";
 by (auto_tac (claset() addSIs [mem_Rep_preal_multI],
-              simpset() addsimps [pinv_def,preal_prat_def] ));
+              simpset() addsimps [pinv_def,preal_of_prat_def] ));
 by (rtac (preal_mem_inv_set RS Abs_preal_inverse RS ssubst) 1);
 by (dtac prat_qinv_gt_1 1);
 by (dres_inst_tac [("A","A")] lemma_gleason9_36a 1);
@@ -696,13 +701,13 @@ by (auto_tac (claset(),simpset() addsimps [prat_mult_assoc,
     prat_mult_left_commute]));
 qed "preal_mem_mult_invI";
 
-Goal "pinv(A)*A = (@#($#Abs_pnat 1))";
+Goal "pinv(A)*A = (preal_of_prat (prat_of_pnat (Abs_pnat 1)))";
 by (rtac (inj_Rep_preal RS injD) 1);
 by (rtac set_ext 1);
 by (fast_tac (claset() addDs [preal_mem_mult_invD,preal_mem_mult_invI]) 1);
 qed "preal_mult_inv";
 
-Goal "A*pinv(A) = (@#($#Abs_pnat 1))";
+Goal "A*pinv(A) = (preal_of_prat (prat_of_pnat (Abs_pnat 1)))";
 by (rtac (preal_mult_commute RS subst) 1);
 by (rtac preal_mult_inv 1);
 qed "preal_mult_inv_right";
@@ -1240,8 +1245,9 @@ by (dtac (prat_add_commute RS subst) 1);
 by (etac lemma_preal_rat_less 1);
 qed "lemma_preal_rat_less2";
 
-Goalw [preal_prat_def,preal_add_def] 
-            "@#((z1::prat) + z2) = @#z1 + @#z2";
+Goalw [preal_of_prat_def,preal_add_def] 
+      "preal_of_prat ((z1::prat) + z2) = \
+\      preal_of_prat z1 + preal_of_prat z2";
 by (res_inst_tac [("f","Abs_preal")] arg_cong 1);
 by (auto_tac (claset() addIs [prat_add_less_mono] addSIs [set_ext],simpset() addsimps 
     [lemma_prat_less_set_mem_preal RS Abs_preal_inverse]));
@@ -1251,7 +1257,7 @@ by (res_inst_tac [("x","x*z2*qinv(z1+z2)")] exI 1 THEN rtac conjI 1);
 by (etac lemma_preal_rat_less2 1);
 by (asm_full_simp_tac (simpset() addsimps [prat_add_mult_distrib RS sym,
      prat_add_mult_distrib2 RS sym] @ prat_mult_ac) 1);
-qed "preal_prat_add";
+qed "preal_of_prat_add";
 
 Goal "x < xa ==> x*z1*qinv(xa) < z1";
 by (dres_inst_tac [("x","z1 * qinv xa")] prat_mult_less2_mono1 1);
@@ -1265,8 +1271,9 @@ by (dtac (prat_mult_left_commute RS subst) 1);
 by (asm_full_simp_tac (simpset() addsimps prat_mult_ac) 1);
 qed "lemma_preal_rat_less4";
 
-Goalw [preal_prat_def,preal_mult_def] 
-            "@#((z1::prat) * z2) = @#z1 * @#z2";
+Goalw [preal_of_prat_def,preal_mult_def] 
+      "preal_of_prat ((z1::prat) * z2) = \
+\      preal_of_prat z1 * preal_of_prat z2";
 by (res_inst_tac [("f","Abs_preal")] arg_cong 1);
 by (auto_tac (claset() addIs [prat_mult_less_mono] addSIs [set_ext],simpset() addsimps 
     [lemma_prat_less_set_mem_preal RS Abs_preal_inverse]));
@@ -1280,15 +1287,15 @@ by (asm_full_simp_tac (simpset()
     addsimps [qinv_mult_eq RS sym] @ prat_mult_ac) 1);
 by (asm_full_simp_tac (simpset() 
     addsimps [prat_mult_assoc RS sym]) 1);
-qed "preal_prat_mult";
+qed "preal_of_prat_mult";
 
-Goalw [preal_prat_def,preal_less_def] 
-      "(@#p < @#q) = (p < q)";
+Goalw [preal_of_prat_def,preal_less_def] 
+      "(preal_of_prat p < preal_of_prat q) = (p < q)";
 by (auto_tac (claset() addSDs [lemma_prat_set_eq] addEs [prat_less_trans],
     simpset() addsimps [lemma_prat_less_set_mem_preal,
     psubset_def,prat_less_not_refl]));
 by (res_inst_tac [("q1.0","p"),("q2.0","q")] prat_linear_less2 1);
 by (auto_tac (claset() addIs [prat_less_irrefl],simpset()));
-qed "preal_prat_less_iff";
+qed "preal_of_prat_less_iff";
 
-Addsimps [preal_prat_less_iff];
+Addsimps [preal_of_prat_less_iff];

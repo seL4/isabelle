@@ -15,8 +15,8 @@ instance
    preal :: {ord, plus, times}
 
 constdefs
-  preal_prat :: prat => preal              ("@#_" [80] 80)
-   "@# q     == Abs_preal({x::prat. x < q})"
+  preal_of_prat :: prat => preal             
+   "preal_of_prat q     == Abs_preal({x::prat. x < q})"
 
   pinv       :: preal => preal
   "pinv(R)   == Abs_preal({w. ? y. w < y & qinv y ~: Rep_preal(R)})" 

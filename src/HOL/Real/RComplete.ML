@@ -10,6 +10,75 @@ open RComplete;
 
 claset_ref() := claset() delWrapper "bspec";
 
+(*---------------------------------------------------------
+       Completeness of reals: use supremum property of 
+       preal and theorems about real_preal. Theorems 
+       previously in Real.ML. 
+ ---------------------------------------------------------*)
+ (*a few lemmas*)
+Goal "! x:P. 0r < x ==> \ 
+\       ((? x:P. y < x) = (? X. real_of_preal X : P & \
+\                          y < real_of_preal X))";
+by (blast_tac (claset() addSDs [bspec,
+    real_gt_zero_preal_Ex RS iffD1]) 1);
+qed "real_sup_lemma1";
+
+Goal "[| ! x:P. 0r < x; ? x. x: P; ? y. !x: P. x < y |] \
+\         ==> (? X. X: {w. real_of_preal w : P}) & \
+\             (? Y. !X: {w. real_of_preal w : P}. X < Y)";
+by (rtac conjI 1);
+by (blast_tac (claset() addDs [bspec,
+    real_gt_zero_preal_Ex RS iffD1]) 1);
+by Auto_tac;
+by (dtac bspec 1 THEN assume_tac 1);
+by (forward_tac [bspec] 1  THEN assume_tac 1);
+by (dtac real_less_trans 1 THEN assume_tac 1);
+by (dtac (real_gt_zero_preal_Ex RS iffD1) 1 THEN etac exE 1);
+by (res_inst_tac [("x","ya")] exI 1);
+by Auto_tac;
+by (dres_inst_tac [("x","real_of_preal X")] bspec 1 THEN assume_tac 1);
+by (etac real_of_preal_lessD 1);
+qed "real_sup_lemma2";
+
+(*-------------------------------------------------------------
+            Completeness of Positive Reals
+ -------------------------------------------------------------*)
+
+(* Supremum property for the set of positive reals *)
+(* FIXME: long proof - can be improved - need only have 
+   one case split *) (* will do for now *)
+Goal "[| ! x:P. 0r < x; ? x. x: P; ? y. !x: P. x < y |] \
+\         ==> (? S. !y. (? x: P. y < x) = (y < S))";
+by (res_inst_tac 
+   [("x","real_of_preal (psup({w. real_of_preal w : P}))")] exI 1);
+by Auto_tac;
+by (forward_tac [real_sup_lemma2] 1 THEN Auto_tac);
+by (case_tac "0r < ya" 1);
+by (dtac (real_gt_zero_preal_Ex RS iffD1) 1);
+by (dtac real_less_all_real2 2);
+by Auto_tac;
+by (rtac (preal_complete RS spec RS iffD1) 1);
+by Auto_tac;
+by (forward_tac [real_gt_preal_preal_Ex] 1);
+by Auto_tac;
+(* second part *)
+by (rtac (real_sup_lemma1 RS iffD2) 1 THEN assume_tac 1);
+by (case_tac "0r < ya" 1);
+by (auto_tac (claset() addSDs [real_less_all_real2,
+        real_gt_zero_preal_Ex RS iffD1],simpset()));
+by (forward_tac [real_sup_lemma2] 2 THEN Auto_tac);
+by (forward_tac [real_sup_lemma2] 1 THEN Auto_tac);
+by (rtac (preal_complete RS spec RS iffD2 RS bexE) 1);
+by (Blast_tac 3);
+by (Blast_tac 1);
+by (Blast_tac 1);
+by (Blast_tac 1);
+qed "posreal_complete";
+
+(*--------------------------------------------------------
+   Completeness properties using isUb, isLub etc.
+ -------------------------------------------------------*)
+
 Goal "!!(x::real). [| isLub R S x; isLub R S y |] ==> x = y";
 by (forward_tac [isLub_isUb] 1);
 by (forw_inst_tac [("x","y")] isLub_isUb 1);
@@ -30,26 +99,26 @@ Goal "[| ALL x: S. 0r < x; \
 \                 EX x. x: S; \
 \                 EX u. isUb (UNIV::real set) S u \
 \              |] ==> EX t. isLub (UNIV::real set) S t";
-by (res_inst_tac [("x","%#psup({w. %#w : S})")] exI 1);
+by (res_inst_tac [("x","real_of_preal(psup({w. real_of_preal w : S}))")] exI 1);
 by (auto_tac (claset(), simpset() addsimps [isLub_def,leastP_def,isUb_def]));
 by (auto_tac (claset() addSIs [setleI,setgeI] 
 	               addSDs [real_gt_zero_preal_Ex RS iffD1],simpset()));
 by (forw_inst_tac [("x","y")] bspec 1 THEN assume_tac 1);
 by (dtac (real_gt_zero_preal_Ex RS iffD1) 1);
-by (auto_tac (claset(), simpset() addsimps [real_preal_le_iff]));
+by (auto_tac (claset(), simpset() addsimps [real_of_preal_le_iff]));
 by (rtac preal_psup_leI2a 1);
-by (forw_inst_tac [("y","%#ya")] setleD 1 THEN assume_tac 1);
+by (forw_inst_tac [("y","real_of_preal ya")] setleD 1 THEN assume_tac 1);
 by (forward_tac  [real_ge_preal_preal_Ex] 1);
 by (Step_tac 1);
 by (res_inst_tac [("x","y")] exI 1);
-by (blast_tac (claset() addSDs [setleD] addIs [real_preal_le_iff RS iffD1]) 1);
+by (blast_tac (claset() addSDs [setleD] addIs [real_of_preal_le_iff RS iffD1]) 1);
 by (forw_inst_tac [("x","x")] bspec 1 THEN assume_tac 1);
 by (forward_tac [isUbD2] 1);
 by (dtac (real_gt_zero_preal_Ex RS iffD1) 1);
 by (auto_tac (claset() addSDs [isUbD, real_ge_preal_preal_Ex],
-	      simpset() addsimps [real_preal_le_iff]));
+	      simpset() addsimps [real_of_preal_le_iff]));
 by (blast_tac (claset() addSDs [setleD] addSIs [psup_le_ub1] 
-	                addIs [real_preal_le_iff RS iffD1]) 1);
+	                addIs [real_of_preal_le_iff RS iffD1]) 1);
 qed "posreals_complete";
 
 
@@ -142,24 +211,26 @@ by (auto_tac (claset(),
 qed "reals_complete";
 
 (*----------------------------------------------------------------
-        Related property: Archimedean property of reals
+        Related: Archimedean property of reals
  ----------------------------------------------------------------*)
 
-Goal "0r < x ==> EX n. rinv(%%#n) < x";
-by (stac real_nat_rinv_Ex_iff 1);
+Goal "0r < x ==> EX n. rinv(real_of_posnat n) < x";
+by (stac real_of_posnat_rinv_Ex_iff 1);
 by (EVERY1[rtac ccontr, Asm_full_simp_tac]);
 by (fold_tac [real_le_def]);
-by (subgoal_tac "isUb (UNIV::real set) {z. EX n. z = x*%%#n} 1r" 1);
-by (subgoal_tac "EX X. X : {z. EX n. z = x*%%#n}" 1);
+by (subgoal_tac "isUb (UNIV::real set) \
+\   {z. EX n. z = x*(real_of_posnat n)} 1r" 1);
+by (subgoal_tac "EX X. X : {z. EX n. z = x*(real_of_posnat n)}" 1);
 by (dtac reals_complete 1);
 by (auto_tac (claset() addIs [isUbI,setleI],simpset()));
-by (subgoal_tac "ALL m. x*(%%#Suc m) <= t" 1);
+by (subgoal_tac "ALL m. x*(real_of_posnat(Suc m)) <= t" 1);
 by (asm_full_simp_tac (simpset() addsimps 
-   [real_nat_Suc,real_add_mult_distrib2]) 1);
+   [real_of_posnat_Suc,real_add_mult_distrib2]) 1);
 by (blast_tac (claset() addIs [isLubD2]) 2);
 by (asm_full_simp_tac
     (simpset() addsimps [real_le_diff_eq RS sym, real_diff_def]) 1);
-by (subgoal_tac "isUb (UNIV::real set) {z. EX n. z = x*%%#n} (t + -x)" 1);
+by (subgoal_tac "isUb (UNIV::real set) \
+\   {z. EX n. z = x*(real_of_posnat n)} (t + -x)" 1);
 by (blast_tac (claset() addSIs [isUbI,setleI]) 2);
 by (dres_inst_tac [("y","t+-x")] isLub_le_isUb 1);
 by (dres_inst_tac [("x","-t")] real_add_left_le_mono1 2);
@@ -168,20 +239,20 @@ by (auto_tac (claset() addDs [real_le_less_trans,
 	      simpset() addsimps [real_less_not_refl,real_add_assoc RS sym]));
 qed "reals_Archimedean";
 
-Goal "EX n. (x::real) < %%#n";
+Goal "EX n. (x::real) < real_of_posnat n";
 by (res_inst_tac [("R1.0","x"),("R2.0","0r")] real_linear_less2 1);
 by (res_inst_tac [("x","0")] exI 1);
 by (res_inst_tac [("x","0")] exI 2);
 by (auto_tac (claset() addEs [real_less_trans],
-	      simpset() addsimps [real_nat_one,real_zero_less_one]));
+	      simpset() addsimps [real_of_posnat_one,real_zero_less_one]));
 by (forward_tac [(real_rinv_gt_zero RS reals_Archimedean)] 1);
 by (Step_tac 1 THEN res_inst_tac [("x","n")] exI 1);
 by (forw_inst_tac [("y","rinv x")] real_mult_less_mono1 1);
 by (auto_tac (claset(),simpset() addsimps [real_not_refl2 RS not_sym]));
 by (dres_inst_tac [("n1","n"),("y","1r")] 
-     (real_nat_less_zero RS real_mult_less_mono2)  1);
+     (real_of_posnat_less_zero RS real_mult_less_mono2)  1);
 by (auto_tac (claset(),
-	      simpset() addsimps [real_nat_less_zero,
+	      simpset() addsimps [real_of_posnat_less_zero,
 				  real_not_refl2 RS not_sym,
 				  real_mult_assoc RS sym]));
 qed "reals_Archimedean2";

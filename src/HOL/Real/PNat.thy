@@ -7,10 +7,6 @@
 
 PNat = Arith +
 
-(** type pnat **)
-
-(* type definition *)
-
 typedef
   pnat = "lfp(%X. {1} Un (Suc``X))"   (lfp_def)
 
@@ -24,14 +20,15 @@ consts
 
 constdefs
   
-  pnat_nat  :: nat => pnat                  ("*# _" [80] 80) 
-  "*# n     == Abs_pnat(n + 1)"
+  pnat_of_nat  :: nat => pnat           
+  "pnat_of_nat n     == Abs_pnat(n + 1)"
  
 defs
 
-  pnat_one_def      "1p == Abs_pnat(1)"
-  pnat_Suc_def      "pSuc == (%n. Abs_pnat(Suc(Rep_pnat(n))))"
-
+  pnat_one_def      
+       "1p == Abs_pnat(1)"
+  pnat_Suc_def      
+       "pSuc == (%n. Abs_pnat(Suc(Rep_pnat(n))))"
 
   pnat_add_def
        "x + y == Abs_pnat(Rep_pnat(x) +  Rep_pnat(y))"
@@ -39,10 +36,10 @@ defs
   pnat_mult_def
        "x * y == Abs_pnat(Rep_pnat(x) * Rep_pnat(y))"
 
- pnat_less_def
+  pnat_less_def
        "x < (y::pnat) == Rep_pnat(x) < Rep_pnat(y)"
 
- pnat_le_def
+  pnat_le_def
        "x <= (y::pnat) ==  ~(y < x)"
 
 end

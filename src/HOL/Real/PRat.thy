@@ -18,11 +18,11 @@ instance
 
 constdefs
 
-  prat_pnat :: pnat => prat              ("$#_" [80] 80)
-  "$# m     == Abs_prat(ratrel^^{(m,Abs_pnat 1)})"
+  prat_of_pnat :: pnat => prat           
+  "prat_of_pnat m     == Abs_prat(ratrel^^{(m,Abs_pnat 1)})"
 
   qinv      :: prat => prat
-  "qinv(Q)  == Abs_prat(UN p:Rep_prat(Q). split (%x y. ratrel^^{(y,x)}) p)" 
+  "qinv(Q)  == Abs_prat(UN (x,y):Rep_prat(Q). ratrel^^{(y,x)})" 
 
 defs
 

@@ -1,9 +1,8 @@
-(*  Title:      Real/Real.thy
-    ID:         $Id$
-    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1998  University of Cambridge
-
-Type "real" is a linear order
+(*  Title:       Real/Real.thy
+    Author:      Lawrence C. Paulson
+                 Jacques D. Fleuriot
+    Copyright:   1998  University of Cambridge
+    Description: Type "real" is a linear order
 *)
 
 Real = RealDef +

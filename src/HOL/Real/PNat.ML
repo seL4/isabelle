@@ -662,22 +662,23 @@ qed "eq_Abs_pnat";
 (** embedding of naturals in positive naturals **)
 
 (* pnat_one_eq! *)
-Goalw [pnat_nat_def,pnat_one_def]"1p = *#0";
+Goalw [pnat_of_nat_def,pnat_one_def]"1p = pnat_of_nat 0";
 by (Full_simp_tac 1);
 qed "pnat_one_iff";
 
-Goalw [pnat_nat_def,pnat_one_def,pnat_add_def] "1p + 1p = *#1";
+Goalw [pnat_of_nat_def,pnat_one_def,
+       pnat_add_def] "1p + 1p = pnat_of_nat 1";
 by (res_inst_tac [("f","Abs_pnat")] arg_cong 1);
 by (auto_tac (claset() addIs [(gt_0_mem_pnat RS Abs_pnat_inverse RS ssubst)],
     simpset()));
 qed "pnat_two_eq";
 
-Goal "inj(pnat_nat)";
+Goal "inj(pnat_of_nat)";
 by (rtac injI 1);
-by (rewtac pnat_nat_def);
+by (rewtac pnat_of_nat_def);
 by (dtac (inj_on_Abs_pnat RS inj_onD) 1);
 by (auto_tac (claset() addSIs [gt_0_mem_pnat],simpset()));
-qed "inj_pnat_nat";
+qed "inj_pnat_of_nat";
 
 Goal "0 < n + 1";
 by Auto_tac;
@@ -688,8 +689,9 @@ by Auto_tac;
 qed "nat_add_one_less1";
 
 (* this worked with one call to auto_tac before! *)
-Goalw [pnat_add_def,pnat_nat_def,pnat_one_def] 
-          "*#n1 + *#n2 = *#(n1 + n2) + 1p";
+Goalw [pnat_add_def,pnat_of_nat_def,pnat_one_def] 
+      "pnat_of_nat n1 + pnat_of_nat n2 = \
+\      pnat_of_nat (n1 + n2) + 1p";
 by (res_inst_tac [("f","Abs_pnat")] arg_cong 1);
 by (rtac (gt_0_mem_pnat RS Abs_pnat_inverse RS ssubst) 1);
 by (rtac (gt_0_mem_pnat RS Abs_pnat_inverse RS ssubst) 2);
@@ -698,12 +700,12 @@ by (rtac (gt_0_mem_pnat RS Abs_pnat_inverse RS ssubst) 4);
 by (auto_tac (claset(),
 	      simpset() addsimps [sum_Rep_pnat_sum,
 				  nat_add_one_less,nat_add_one_less1]));
-qed "pnat_nat_add";
+qed "pnat_of_nat_add";
 
-Goalw [pnat_nat_def,pnat_less_def] "(n < m) = (*#n < *#m)";
+Goalw [pnat_of_nat_def,pnat_less_def] 
+       "(n < m) = (pnat_of_nat n < pnat_of_nat m)";
 by (auto_tac (claset(),simpset() 
     addsimps [Abs_pnat_inverse,Collect_pnat_gt_0]));
-qed "pnat_nat_less_iff";
-
-Addsimps [pnat_nat_less_iff RS sym];
+qed "pnat_of_nat_less_iff";
+Addsimps [pnat_of_nat_less_iff RS sym];
 

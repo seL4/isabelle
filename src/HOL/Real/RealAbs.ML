@@ -122,6 +122,12 @@ by (auto_tac (claset() addSDs [not_real_leE,real_less_asym] addIs [real_le_anti_
    simpset() addsimps [real_ge_zero_iff]));
 qed "rabs_minus_cancel";
 
+Goal "rabs(x + -y) = rabs (y + -x)";
+by (rtac (rabs_minus_cancel RS subst) 1);
+by (simp_tac (simpset() addsimps 
+    [real_add_commute]) 1);
+qed "rabs_minus_add_cancel";
+
 Goal "rabs(x + -y) <= rabs x + rabs y";
 by (res_inst_tac [("x1","y")] (rabs_minus_cancel RS subst) 1);
 by (rtac rabs_triangle_ineq 1);
@@ -133,6 +139,13 @@ by (res_inst_tac [("x1","y")] (real_add_left_commute RS ssubst) 1);
 by (rtac (real_add_assoc RS subst) 1);
 by (rtac rabs_triangle_ineq 1);
 qed "rabs_sum_triangle_ineq";
+
+Goal "rabs(x) <= rabs(x + -y) + rabs(y)";
+by (res_inst_tac [("j","rabs(x + -y + y)")] real_le_trans 1);
+by (simp_tac (simpset() addsimps [real_add_assoc]) 1);
+by (simp_tac (simpset() addsimps [real_add_assoc RS sym,
+              rabs_triangle_ineq]) 1);
+qed "rabs_triangle_ineq_minus_cancel";
 
 Goal "[| rabs x < r; rabs y < s |] ==> rabs(x+y) < r+s";
 by (rtac real_le_less_trans 1);
@@ -234,4 +247,68 @@ by (EVERY1 [dtac (real_less_swap_iff RS iffD1), rotate_tac 1,
             cut_inst_tac [("x","x")] rabs_disj, dtac disjE ]);
 by (assume_tac 3 THEN Auto_tac);
 qed "rabs_interval_iff";
+
+Goal "(rabs x < r) = (-x < r & x < r)";
+by (auto_tac (claset(),simpset() addsimps [rabs_interval_iff]));
+by (dtac (real_less_swap_iff RS iffD1) 1);
+by (dtac (real_less_swap_iff RS iffD1) 2);
+by (Auto_tac);
+qed "rabs_interval_iff2";
+
+Goal "!!x. rabs x <= r ==> -r<=x & x<=r";
+by (dtac real_le_imp_less_or_eq 1);
+by (auto_tac (claset() addSDs [real_less_imp_le],
+    simpset() addsimps [rabs_interval_iff,rabs_ge_self]));
+by (auto_tac (claset(),simpset() addsimps [real_le_def]));
+by (dtac (real_less_swap_iff RS iffD1) 1);
+by (auto_tac (claset() addSDs [rabs_ge_minus_self 
+    RS real_le_less_trans],simpset() addsimps [real_less_not_refl]));
+qed "rabs_leD";
+
+Goal "!!x. [| -r<x; x<=r |] ==> rabs x <= r";
+by (dtac real_le_imp_less_or_eq 1);
+by (Step_tac 1);
+by (blast_tac (claset() addIs 
+    [rabs_interval_iff RS iffD2 RS real_less_imp_le]) 1);
+by (auto_tac (claset() addSDs [rabs_eqI2],simpset() addsimps 
+    [real_le_def,real_gt_zero_iff RS sym,real_less_not_refl]));
+qed "rabs_leI1";
+
+Goal "!!x. [| -r<=x; x<=r |] ==> rabs x <= r";
+by (REPEAT(dtac real_le_imp_less_or_eq 1));
+by (Step_tac 1);
+by (blast_tac (claset() addIs 
+    [rabs_interval_iff RS iffD2 RS real_less_imp_le]) 1);
+by (auto_tac (claset() addSDs [rabs_eqI2],simpset() addsimps 
+    [real_le_def,real_gt_zero_iff RS sym,real_less_not_refl,
+    rabs_minus_cancel]));
+by (cut_inst_tac [("x","r")] rabs_disj 1);
+by (rotate_tac 1 1);
+by (auto_tac (claset(),simpset() addsimps [real_less_not_refl]));
+qed "rabs_leI";
+
+Goal "(rabs x <= r) = (-r<=x & x<=r)";
+by (blast_tac (claset() addSIs [rabs_leD,rabs_leI]) 1);
+qed "rabs_le_interval_iff";
+
+Goal 
+     "(rabs (x + -y) < r) = (y + -r < x & x < y + r)";
+by (auto_tac (claset(),simpset() addsimps 
+     [rabs_interval_iff]));
+by (ALLGOALS(dtac real_less_sum_gt_zero));
+by (ALLGOALS(dtac real_less_sum_gt_zero));
+by (ALLGOALS(rtac real_sum_gt_zero_less));
+by (auto_tac (claset(),simpset() addsimps 
+    [real_minus_add_distrib] addsimps real_add_ac));
+qed "rabs_add_minus_interval_iff";
+
+Goal "!!k. 0r < k ==> 0r < k + rabs(x)";
+by (res_inst_tac [("t","0r")] (real_add_zero_right RS subst) 1);
+by (etac (rabs_ge_zero RSN (2,real_add_less_le_mono)) 1);
+qed "rabs_add_pos_gt_zero";
+
+Goal "0r < 1r + rabs(x)";
+by (rtac (real_zero_less_one RS rabs_add_pos_gt_zero) 1);
+qed "rabs_add_one_gt_zero";
+Addsimps [rabs_add_one_gt_zero];
 
