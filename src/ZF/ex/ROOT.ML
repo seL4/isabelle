@@ -55,6 +55,6 @@ time_use_thy "ex/primrec0";
 time_use_thy "ex/LList";
 time_use     "ex/llist_eq.ML";
 time_use_thy "ex/llistfn";
-
+time_use     "ex/counit.ML";
 
 maketest"END: Root file for ZF Set Theory examples";

@@ -30,6 +30,8 @@ val lleq_cs = subset_cs
 		QPair_Int_Vset_succ_subset_trans,
 		QPair_Int_Vset_subset_trans];
 
+(** Some key feature of this proof needs to be made a general theorem! **)
+
 (*Keep unfolding the lazy list until the induction hypothesis applies*)
 goal LList_Eq.thy
    "!!i. Ord(i) ==> ALL l l'. <l;l'> : lleq(A) --> l Int Vset(i) <= l'";

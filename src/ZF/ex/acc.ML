@@ -13,7 +13,7 @@ structure Acc = Inductive_Fun
  (val thy = WF.thy addconsts [(["acc"],"i=>i")];
   val rec_doms = [("acc", "field(r)")];
   val sintrs = 
-      ["[| r-``{b} : Pow(acc(r));  b : field(r) |] ==> b : acc(r)"];
+      ["[| r-``{a} : Pow(acc(r));  a : field(r) |] ==> a : acc(r)"];
   val monos = [Pow_mono];
   val con_defs = [];
   val type_intrs = [];
