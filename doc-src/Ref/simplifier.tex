@@ -139,11 +139,12 @@ designed simpsets need few temporary additions or deletions.
 
 
 \section{Simplification sets}\index{simplification sets} 
-The simplification tactics are controlled by {\bf simpsets}.  These consist
-of five components: rewrite rules, congruence rules, the subgoaler, the
-solver and the looper.  The simplifier should be set up with sensible
-defaults so that most simplifier calls specify only rewrite rules.
-Experienced users can exploit the other components to streamline proofs.
+The simplification tactics are controlled by {\bf simpsets}.  These
+consist of several components, including rewrite rules, congruence
+rules, the subgoaler, the solver and the looper.  The simplifier
+should be set up with sensible defaults so that most simplifier calls
+specify only rewrite rules.  Experienced users can exploit the other
+components to streamline proofs.
 
 Logics like \HOL, which support a current
 simpset\index{simpset!current}, store its value in an ML reference
@@ -374,12 +375,12 @@ signature SIMPLIFIER =
 sig
   type simpset
   val empty_ss: simpset
-  val rep_ss: simpset -> {simps: thm list, procs: string list, 
+  val rep_ss: simpset -> {\ttlbrace}simps: thm list, procs: string list, 
                           congs: thm list,
                           subgoal_tac:        simpset -> int -> tactic,
                           loop_tac:                      int -> tactic,
                                  finish_tac: thm list -> int -> tactic,
-                          unsafe_finish_tac: thm list -> int -> tactic}
+                          unsafe_finish_tac: thm list -> int -> tactic{\ttrbrace}
   val setsubgoaler: simpset *  (simpset -> int -> tactic) -> simpset
   val setloop:      simpset *             (int -> tactic) -> simpset
   val addloop:      simpset *             (int -> tactic) -> simpset
