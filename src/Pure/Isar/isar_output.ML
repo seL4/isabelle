@@ -335,7 +335,7 @@ val _ = add_commands
  [("thm", args Attrib.local_thmss (output_seq_with pretty_thm)),
   ("prop", args Args.local_prop (output_with pretty_term)),
   ("term", args Args.local_term (output_with pretty_term)),
-  ("typ", args Args.local_typ_no_norm (output_with ProofContext.pretty_typ)),
+  ("typ", args Args.local_typ_raw (output_with ProofContext.pretty_typ)),
   ("text", args (Scan.lift Args.name) (output_with (K pretty_text))),
   ("goals", output_goals true),
   ("subgoals", output_goals false),
