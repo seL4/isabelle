@@ -267,9 +267,7 @@ Goal "i le i <-> Ord(i)";
 by (asm_simp_tac (simpset() addsimps [lt_not_refl, le_iff]) 1);
 qed "le_refl_iff";
 
-Addsimps [le_refl_iff];
-AddSIs [le_refl];
-AddSDs [le_refl_iff RS iffD1];
+AddIffs [le_refl_iff];
 
 val [prem] = Goal "(~ (i=j & Ord(j)) ==> i<j) ==> i le j";
 by (rtac (disjCI RS (le_iff RS iffD2)) 1);
