@@ -203,6 +203,11 @@ fun nat_recs def =
 
 (*** Basic properties of "less than" ***)
 
+(*Used in TFL/post.sml*)
+goalw thy [less_def] "(m,n) : pred_nat^+ = (m<n)";
+by (rtac refl 1);
+qed "less_eq";
+
 (** Introduction properties **)
 
 val prems = goalw thy [less_def] "[| i<j;  j<k |] ==> i<(k::nat)";
