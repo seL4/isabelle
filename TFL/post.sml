@@ -84,9 +84,8 @@ val concl = #2 o Rules.dest_thm;
  * Defining a function with an associated termination relation. 
  *---------------------------------------------------------------------------*)
 fun define_i thy fid R eqs = 
-  let val dummy = Theory.requires thy "WF_Rel" "recursive function definitions"
-      val {functional,pats} = Prim.mk_functional thy eqs
-  in (Prim.wfrec_definition0 thy fid R functional, pats)
+  let val {functional,pats} = Prim.mk_functional thy eqs
+  in (Prim.wfrec_definition0 thy (Sign.base_name fid) R functional, pats)
   end;
 
 (*lcp's version: takes strings; doesn't return "thm" 
