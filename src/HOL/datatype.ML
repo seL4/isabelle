@@ -209,7 +209,7 @@ fun trans_recs _ _ [] = error("No primrec equations.")
 in
   fun add_datatype (typevars, tname, cons_list') thy = 
     let
-      val dummy = require_thy thy "Arith" "datatype definitions";
+      val dummy = Theory.require thy "Arith" "datatype definitions";
       
       fun typid(dtRek(_,id)) = id
         | typid(dtVar s) = implode (tl (explode s))
@@ -506,14 +506,14 @@ in
           val defpairT as (_, _ $ Const(_,T) $ _ ) = inferT_axm sg defpair;
           val varT = Type.varifyT T;
           val ftyp = the (Sign.const_type sg (Sign.intern_const sg fname));
-        in PureThy.add_store_defs_i [defpairT] thy end;
+        in PureThy.add_defs_i [(defpairT, [])] thy end;
 
     in
       (thy |> Theory.add_types types
            |> Theory.add_arities arities
            |> Theory.add_consts consts
            |> Theory.add_trrules xrules
-           |> PureThy.add_store_axioms rules,
+           |> PureThy.add_axioms (map Attribute.none rules),
        add_primrec, size_eqns, (split_eqn,split_eqn_prem))
     end
 
