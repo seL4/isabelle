@@ -1,6 +1,6 @@
 (*  Title:      Pure/Syntax/parser.ML
     ID:         $Id$
-    Author:     Sonia Mahjoub, Markus Wenzel, and Carsten Clasohm, TU Muenchen
+    Author:     Carsten Clasohm, Sonia Mahjoub, and Markus Wenzel, TU Muenchen
 
 Isabelle's main parser (used for terms and types).
 *)
@@ -487,8 +487,6 @@ fun extend_gram gram [] = gram
     val (nt_count', prod_count', tags', xprods') =
       prod_of xprods nt_count prod_count tags [];
 
-    val dummy = writeln "Building new grammar...";
-
     (*Copy array containing productions of old grammar;
       this has to be done to preserve the old grammar while being able
       to change the array's content*)
@@ -512,8 +510,6 @@ fun extend_gram gram [] = gram
 (*Merge two grammars*)
 fun merge_grams gram_a gram_b =
   let
-    val dummy = writeln "Building new grammar...";
-
     (*find out which grammar is bigger*)
     val (Gram {nt_count = nt_count1, prod_count = prod_count1, tags = tags1,
                chains = chains1, lambdas = lambdas1, prods = prods1},
