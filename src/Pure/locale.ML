@@ -20,8 +20,10 @@ TODO:
 signature BASIC_LOCALE =
 sig
   val print_locales: theory -> unit
-  val print_goals: int -> thm -> unit
+  val pretty_goals_marker: string -> int -> thm -> Pretty.T list
+  val pretty_goals: int -> thm -> Pretty.T list
   val print_goals_marker: string -> int -> thm -> unit
+  val print_goals: int -> thm -> unit
   val thm: xstring -> thm
   val thms: xstring -> thm list
   val Open_locale: xstring -> unit
@@ -587,7 +589,7 @@ local
 
 in
 
-  fun print_goals_marker begin_goal maxgoals state =
+  fun pretty_goals_marker begin_goal maxgoals state =
     let
       val {sign, ...} = rep_thm state;
 
@@ -610,47 +612,45 @@ in
       val prt_varsT = prt_atoms prt_varT prt_sort;
 
 
-      fun print_list _ _ [] = ()
-        | print_list name prt lst = (writeln "";
-            Pretty.writeln (Pretty.big_list name (map prt lst)));
+      fun pretty_list _ _ [] = []
+        | pretty_list name prt lst = [Pretty.big_list name (map prt lst)];
 
-      fun print_subgoals (_, []) = ()
-        | print_subgoals (n, A :: As) = (Pretty.writeln (Pretty.blk (0,
-            [Pretty.str (begin_goal ^ " " ^ string_of_int n ^ ". "), prt_term A]));
-              print_subgoals (n + 1, As));
+      fun pretty_subgoal (n, A) = 
+        Pretty.blk (0, [Pretty.str (begin_goal ^ " " ^ string_of_int n ^ ". "), prt_term A]);
+      fun pretty_subgoals As = map pretty_subgoal (1 upto length As ~~ As);
 
-      val print_ffpairs =
-        print_list "Flex-flex pairs:" (prt_term o Logic.mk_flexpair);
+      val pretty_ffpairs = pretty_list "Flex-flex pairs:" (prt_term o Logic.mk_flexpair);
 
-      val print_consts = print_list "Constants:" prt_consts o consts_of;
-      val print_vars = print_list "Variables:" prt_vars o vars_of;
-      val print_varsT = print_list "Type variables:" prt_varsT o varsT_of;
+      val pretty_consts = pretty_list "Constants:" prt_consts o consts_of;
+      val pretty_vars = pretty_list "Variables:" prt_vars o vars_of;
+      val pretty_varsT = pretty_list "Type variables:" prt_varsT o varsT_of;
 
 
       val {prop, ...} = rep_thm state;
       val (tpairs, As, B) = Logic.strip_horn prop;
       val ngoals = length As;
 
-      fun print_gs (types, sorts) =
-       (Pretty.writeln (prt_term B);
-        if ngoals = 0 then writeln "No subgoals!"
-        else if ngoals > maxgoals then
-          (print_subgoals (1, take (maxgoals, As));
-            writeln ("A total of " ^ string_of_int ngoals ^ " subgoals..."))
-        else print_subgoals (1, As);
-
-        print_ffpairs tpairs;
-
-        if types andalso ! show_consts then print_consts prop else ();
-        if types then print_vars prop else ();
-        if sorts then print_varsT prop else ());
+      fun pretty_gs (types, sorts) =
+        [prt_term B] @
+         (if ngoals = 0 then [Pretty.str "No subgoals!"]
+          else if ngoals > maxgoals then
+            pretty_subgoals (take (maxgoals, As)) @
+              [Pretty.str ("A total of " ^ string_of_int ngoals ^ " subgoals...")]
+          else pretty_subgoals As) @
+        pretty_ffpairs tpairs @
+        (if types andalso ! show_consts then pretty_consts prop else []) @
+        (if types then pretty_vars prop else []) @
+        (if sorts then pretty_varsT prop else []);
     in
       setmp show_no_free_types true
         (setmp show_types (! show_types orelse ! show_sorts)
-          (setmp show_sorts false print_gs))
+          (setmp show_sorts false pretty_gs))
      (! show_types orelse ! show_sorts, ! show_sorts)
   end;
 
+  val print_goals_marker = (Pretty.writeln o Pretty.chunks) ooo pretty_goals_marker;
+
+  val pretty_goals = pretty_goals_marker "";
   val print_goals = print_goals_marker "";
 
 end;
