@@ -9,6 +9,7 @@
 \usepackage[only,bigsqcap]{stmaryrd}
 \usepackage{wasysym}
 \usepackage{supertabular}
+\let\intorig=\int  %iman.sty redefines \int
 \usepackage{graphicx,../iman,../extra,../ttbox,../../Distribution/lib/texinputs/isabelle,../../Distribution/lib/texinputs/isabellesym,../pdfsetup}
 
 \isabellestyle{it}
@@ -39,6 +40,7 @@
 \include{fonts}
 
 \appendix
+\let\int\intorig
 \include{symbols}
 
 \begingroup
