@@ -98,12 +98,75 @@ fun string_of_cterm ct =
 val print_cterm = writeln o string_of_cterm;
 
 
-(* print theory *)
+
+(** print theory **)
 
 val pprint_theory = Sign.pprint_sg o sign_of;
 
 val print_syntax = Syntax.print_syntax o syn_of;
 val print_data = Sign.print_data o sign_of;
+
+
+(* print signature *)
+
+fun print_sign sg =
+  let
+    fun prt_cls c = Sign.pretty_sort sg [c];
+    fun prt_sort S = Sign.pretty_sort sg S;
+    fun prt_arity t (c, Ss) = Sign.pretty_arity sg (t, Ss, [c]);
+    fun prt_typ ty = Pretty.quote (Sign.pretty_typ sg ty);
+
+    val ext_class = Sign.cond_extern sg Sign.classK;
+    val ext_tycon = Sign.cond_extern sg Sign.typeK;
+    val ext_const = Sign.cond_extern sg Sign.constK;
+
+
+    fun pretty_space (kind, space) = Pretty.block (Pretty.breaks
+      (map Pretty.str (kind ^ ":" :: map quote (NameSpace.dest space))));
+
+    fun pretty_classes cs = Pretty.block
+      (Pretty.breaks (Pretty.str "classes:" :: map prt_cls cs));
+
+    fun pretty_classrel (c, cs) = Pretty.block
+      (prt_cls c :: Pretty.str " <" :: Pretty.brk 1 ::
+        Pretty.commas (map prt_cls cs));
+
+    fun pretty_default S = Pretty.block
+      [Pretty.str "default:", Pretty.brk 1, prt_sort S];
+
+    fun pretty_ty (t, n) = Pretty.block
+      [Pretty.str (ext_tycon t), Pretty.str (" " ^ string_of_int n)];
+
+    fun pretty_abbr (t, (vs, rhs)) = Pretty.block
+      [prt_typ (Type (t, map (fn v => TVar ((v, 0), [])) vs)),
+        Pretty.str " =", Pretty.brk 1, prt_typ rhs];
+
+    fun pretty_arities (t, ars) = map (prt_arity t) ars;
+
+    fun pretty_const (c, ty) = Pretty.block
+      [Pretty.str c, Pretty.str " ::", Pretty.brk 1, prt_typ ty];
+
+    val {self = _, tsig, const_tab, syn = _, path, spaces, data} = Sign.rep_sg sg;
+    val spaces' = sort (fn ((k1, _), (k2, _)) => k1 < k2) spaces;
+    val {classes, classrel, default, tycons, abbrs, arities} =
+      Type.rep_tsig tsig;
+    val consts = sort_wrt fst (map (apfst ext_const) (Symtab.dest const_tab));
+  in
+    Pretty.writeln (Pretty.strs ("stamps:" :: Sign.stamp_names_of sg));
+    Pretty.writeln (Pretty.strs ("data:" :: Data.kinds data));
+    Pretty.writeln (Pretty.strs ["name entry path:", NameSpace.pack path]);
+    Pretty.writeln (Pretty.big_list "name spaces:" (map pretty_space spaces'));
+    Pretty.writeln (pretty_classes classes);
+    Pretty.writeln (Pretty.big_list "class relation:" (map pretty_classrel classrel));
+    Pretty.writeln (pretty_default default);
+    Pretty.writeln (Pretty.big_list "type constructors:" (map pretty_ty tycons));
+    Pretty.writeln (Pretty.big_list "type abbreviations:" (map pretty_abbr abbrs));
+    Pretty.writeln (Pretty.big_list "type arities:" (flat (map pretty_arities arities)));
+    Pretty.writeln (Pretty.big_list "consts:" (map pretty_const consts))
+  end;
+
+
+(* print axioms, oracles, theorems *)
 
 fun print_thy thy =
   let
@@ -120,13 +183,15 @@ fun print_thy thy =
     print_data thy "theorems"
   end;
 
-fun print_theory thy = (Sign.print_sg (sign_of thy); print_thy thy);
+fun print_theory thy = (print_sign (sign_of thy); print_thy thy);
 
 
 
-(** Print thm A1,...,An/B in "goal style" -- premises as numbered subgoals **)
+(** print_goals **)
 
-(*show consts in case of showing types?*)
+(*print thm A1,...,An/B in "goal style" -- premises as numbered subgoals*)
+
+(*also show consts in case of showing types?*)
 val show_consts = ref false;
 
 
@@ -167,8 +232,6 @@ local
   fun varsT_of t = rev (sort_idxs (it_term_types add_varsT (t, [])));
 
 in
-
-  (* print_goals *)
 
   fun print_goals maxgoals state =
     let
