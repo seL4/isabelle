@@ -76,7 +76,7 @@ text {*
 *}
 
 constdefs
-  equivalence_class :: "'a::equiv => 'a quot"    ("\<lfloor>_\<rfloor>")
+  class :: "'a::equiv => 'a quot"    ("\<lfloor>_\<rfloor>")
   "\<lfloor>a\<rfloor> == Abs_quot {x. a \<sim> x}"
 
 theorem quot_exhaust: "\<exists>a. A = \<lfloor>a\<rfloor>"
@@ -84,7 +84,7 @@ proof (cases A)
   fix R assume R: "A = Abs_quot R"
   assume "R \<in> quot" hence "\<exists>a. R = {x. a \<sim> x}" by blast
   with R have "\<exists>a. A = Abs_quot {x. a \<sim> x}" by blast
-  thus ?thesis by (unfold equivalence_class_def)
+  thus ?thesis by (unfold class_def)
 qed
 
 lemma quot_cases [cases type: quot]: "(!!a. A = \<lfloor>a\<rfloor> ==> C) ==> C"
@@ -104,7 +104,7 @@ proof
   show "a \<sim> b"
   proof -
     from eq have "{x. a \<sim> x} = {x. b \<sim> x}"
-      by (simp only: equivalence_class_def Abs_quot_inject quotI)
+      by (simp only: class_def Abs_quot_inject quotI)
     moreover have "a \<sim> a" ..
     ultimately have "a \<in> {x. b \<sim> x}" by blast
     hence "b \<sim> a" by blast
@@ -127,7 +127,7 @@ next
         finally show "a \<sim> x" .
       qed
     qed
-    thus ?thesis by (simp only: equivalence_class_def)
+    thus ?thesis by (simp only: class_def)
   qed
 qed
 
