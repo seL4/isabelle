@@ -186,9 +186,9 @@ fun mfix_to_xprod convert logtypes (Mfix (sy, typ, const, pris, pri)) =
       fun scan_delim_char ("'" :: c :: cs) =
             if is_blank c then raise LEXICAL_ERROR else (c, cs)
         | scan_delim_char ["'"] = err "trailing escape character"
-        | scan_delim_char ("\\" :: "{" :: cs) =
+        | scan_delim_char ("\\" :: "<" :: cs) =
             let
-              val (ch_name, cs') = (scan_id -- $$ "}" >> #1) cs
+              val (ch_name, cs') = (scan_id -- $$ ">" >> #1) cs
                 handle LEXICAL_ERROR => err "malformed symbolic char specification";
               val c = the (SymbolFont.char ch_name)
                 handle OPTION _ => err ("unknown symbolic char name: " ^ quote ch_name);
