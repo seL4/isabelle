@@ -136,18 +136,18 @@ val defALL_regroup =
 
 (*Make meta-equalities.  The operator below is Trueprop*)
 
-fun mk_meta_eq r = r nRS eq_reflection;
+fun mk_meta_eq r = r RS eq_reflection;
 fun safe_mk_meta_eq r = mk_meta_eq r handle Thm.THM _ => r;
 
 fun mk_eq th = case concl_of th of
         Const("==",_)$_$_       => th
     |   _$(Const("op =",_)$_$_) => mk_meta_eq th
-    |   _$(Const("Not",_)$_)    => th nRS Eq_FalseI
-    |   _                       => th nRS Eq_TrueI;
+    |   _$(Const("Not",_)$_)    => th RS Eq_FalseI
+    |   _                       => th RS Eq_TrueI;
 (* Expects Trueprop(.) if not == *)
 
 fun mk_eq_True r =
-  Some (r nRS meta_eq_to_obj_eq nRS Eq_TrueI) handle Thm.THM _ => None;
+  Some (r RS meta_eq_to_obj_eq RS Eq_TrueI) handle Thm.THM _ => None;
 
 (*Congruence rules for = (instead of ==)*)
 fun mk_meta_cong rl =
@@ -204,7 +204,7 @@ fun mk_atomize pairs =
              (case head_of p of
                 Const(a,_) =>
                   (case assoc(pairs,a) of
-                     Some(rls) => flat (map atoms (map (apl(th,op nRS)) rls))
+                     Some(rls) => flat (map atoms ([th] RL rls))
                    | None => [th])
               | _ => [th])
          | _ => [th])
