@@ -14,7 +14,7 @@ New in this Isabelle version
 * ML: PureThy.add_thms/add_axioms/add_defs now return theorems;
 
 
-*** Isabelle document preparation ***
+*** Document preparation ***
 
 * isatool mkdir provides easy setup of Isabelle session directories,
 including proper documents;
@@ -35,10 +35,14 @@ Provers/classical ones!
 * Pure: new 'obtain' language element supports generalized existence
 proofs;
 
-* Pure: much better support for case-analysis type proofs: new 'case'
+* Pure: scalable support for case-analysis type proofs: new 'case'
 language element refers to local contexts symbolically, as produced by
 certain proof methods; internally, case names are attached to theorems
 as "tags";
+
+* Provers: splitter support (via 'split' attribute and 'simp' method
+modifier); 'simp' method: 'only:' modifier removes loopers as well
+(including splits);
 
 * HOL: new proof method 'cases' and improved version of 'induct' now
 support named cases; major packages (inductive, datatype, primrec,
@@ -50,6 +54,12 @@ method anyway;
 * names of theorems etc. may be natural numbers as well;
 
 * intro/elim/dest attributes: changed ! / !! flags to ? / ??;
+
+* 'pr' command: optional goals_limit argument;
+
+* diagnostic commands 'pr', 'thm', 'prop', 'term', 'typ' admit
+additional print modes to be specified; e.g. pr(latex) will print
+proof according to the Isabelle LaTeX style;
 
 
 *** HOL ***
