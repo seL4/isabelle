@@ -275,10 +275,10 @@ fun print_state (state as State ({context, facts, mode, goal = _}, nodes)) =
       | levels_up i = " (" ^ string_of_int i ^ " levels up)";
 
     fun print_goal (i, ((kind, name, _, _), (_, thm))) =
-      (writeln (kind_name kind ^ " " ^ quote name ^ levels_up (i div 1) ^ ":"); (* FIXME *)
+      (writeln (kind_name kind ^ " " ^ quote name ^ levels_up (i div 2) ^ ":");
         Locale.print_goals_marker begin_goal (! goals_limit) thm);
   in
-    writeln ("Nesting level: " ^ string_of_int (length nodes div 1));   (* FIXME *)
+    writeln ("Nesting level: " ^ string_of_int (length nodes div 2));
     writeln "";
     writeln (mode_name mode ^ " mode");
     writeln "";

@@ -42,7 +42,7 @@ fun welcome () = "Welcome to Isabelle/" ^ str_of (! session) ^ " (" ^ version ^ 
 
 fun init reset parent name =
   if not (parent mem_string (! session)) orelse not (! session_finished) then
-    error ("Unfinished parent session " ^ quote (str_of (! session)) ^ " for " ^ quote name)
+    error ("Unfinished parent session " ^ quote parent ^ " for " ^ quote name)
   else (add_path reset name; session_finished := false);
 
 
