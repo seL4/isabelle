@@ -177,13 +177,13 @@ val COMP_global = gen_COMP global_thm;
 val COMP_local = gen_COMP local_thm;
 
 
-(* RS *)
+(* THEN, which corresponds to RS *)
 
 fun resolve (i, B) (x, A) = (x, A RSN (i, B));
 
-fun gen_RS thm = syntax (Scan.lift (Scan.optional (Args.bracks Args.nat) 1) -- thm >> resolve);
-val RS_global = gen_RS global_thm;
-val RS_local = gen_RS local_thm;
+fun gen_THEN thm = syntax (Scan.lift (Scan.optional (Args.bracks Args.nat) 1) -- thm >> resolve);
+val THEN_global = gen_THEN global_thm;
+val THEN_local = gen_THEN local_thm;
 
 
 (* OF *)
@@ -382,7 +382,7 @@ val pure_attributes =
  [("tagged", (gen_tagged, gen_tagged), "tagged theorem"),
   ("untagged", (gen_untagged, gen_untagged), "untagged theorem"),
   ("COMP", (COMP_global, COMP_local), "direct composition with rules (no lifting)"),
-  ("THEN", (RS_global, RS_local), "resolution with rule"),
+  ("THEN", (THEN_global, THEN_local), "resolution with rule"),
   ("OF", (OF_global, OF_local), "rule applied to facts"),
   ("where", (where_global, where_local), "named instantiation of theorem"),
   ("of", (of_global, of_local), "rule applied to terms"),
