@@ -192,11 +192,15 @@ val lemmasP =
 
 val globalP =
   OuterSyntax.command "global" "disable prefixing of theory name" K.thy_decl
-    (Scan.succeed (Toplevel.theory PureThy.global_path));
+    (P.marg_comment >> (Toplevel.theory o IsarThy.global_path));
 
 val localP =
   OuterSyntax.command "local" "enable prefixing of theory name" K.thy_decl
-    (Scan.succeed (Toplevel.theory PureThy.local_path));
+    (P.marg_comment >> (Toplevel.theory o IsarThy.local_path));
+
+val hideP =
+  OuterSyntax.command "hide" "hide names from given name space" K.thy_decl
+    (P.name -- Scan.repeat1 P.xname -- P.marg_comment >> (Toplevel.theory o IsarThy.hide_space));
 
 
 (* use ML text *)
@@ -636,8 +640,8 @@ val parsers = [
   (*theory sections*)
   classesP, classrelP, defaultsortP, typedeclP, typeabbrP, nontermP,
   aritiesP, judgmentP, constsP, syntaxP, translationsP, axiomsP,
-  defsP, constdefsP, theoremsP, lemmasP, globalP, localP, useP, mlP,
-  ml_commandP, ml_setupP, setupP, parse_ast_translationP,
+  defsP, constdefsP, theoremsP, lemmasP, globalP, localP, hideP, useP,
+  mlP, ml_commandP, ml_setupP, setupP, parse_ast_translationP,
   parse_translationP, print_translationP, typed_print_translationP,
   print_ast_translationP, token_translationP, oracleP,
   (*proof commands*)
