@@ -79,8 +79,8 @@ fun merge_opts _ (None, None) = None
   | merge_opts merge (Some x, Some y) = Some (merge (x, y));
 
 (*handle partial functions*)
+fun can f x = (f x; true) handle _ => false;
 fun try f x = Some (f x) handle _ => None;
-fun can f x = is_some (try f x);
 
 
 
@@ -204,7 +204,7 @@ fun foldr f (l, e) =
 (*  (op @) [x1, ..., xn]  ===>   x1 @ (x2 ... @ (x[n-1] @ xn))
     for n > 0, operators that associate to the right (not tail recursive)*)
 fun foldr1 f l =
-  let fun itr [x] = x                       (* FIXME [] case: elim warn (?) *)
+  let fun itr [x] = x
         | itr (x::l) = f(x, itr l)
   in  itr l  end;
 

@@ -152,7 +152,6 @@ lynx -dump README.html >README
 
 cd $DISTBASE
 
-#FIXME sometimes doesn't work!?
 chown -R $LOGNAME:isabelle $DISTNAME
 chmod -R u+w $DISTNAME
 chmod -R g+w $DISTNAME
