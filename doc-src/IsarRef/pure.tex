@@ -743,11 +743,29 @@ some pending goal or whether forward chaining is indicated.
   also equivalent to $\FROM{this}~\SHOWNAME$.
 \end{descr}
 
-Note that any goal statement causes some term abbreviations (such as
-$\Var{thesis}$, $\dots$) to be bound automatically, see also
-\S\ref{sec:term-abbrev}.  Furthermore, the local context of a (non-atomic)
-goal is provided via the case name $antecedent$\indexisarcase{antecedent}, see
-also \S\ref{sec:cases}.
+Any goal statement causes some term abbreviations (such as $\Var{thesis}$,
+$\dots$) to be bound automatically, see also \S\ref{sec:term-abbrev}.
+Furthermore, the local context of a (non-atomic) goal is provided via the case
+name $antecedent$\indexisarcase{antecedent}, see also \S\ref{sec:cases}.
+
+\medskip
+
+\begin{warn}
+  Isabelle/Isar suffers theory-level goal statements to contain \emph{unbound
+    schematic variables}, although this does not conform to the aim of
+  human-readable proof documents!  The main problem with schematic goals is
+  that the actual outcome is usually hard to predict, depending on the
+  behavior of the actual proof methods applied during the reasoning.  Note
+  that most semi-automated methods heavily depend on several kinds of implicit
+  rule declarations within the current theory context.  As this would also
+  result in non-compositional checking of sub-proofs, \emph{local goals} are
+  not allowed to be schematic at all.
+  
+  Nevertheless, schematic goals do have their use in Prolog-style interactive
+  synthesis of proven results, usually by stepwise refinement via emulation of
+  traditional Isabelle tactic scripts (see also \S\ref{sec:tactic-commands}).
+  In any case, users should know what they are doing!
+\end{warn}
 
 
 \subsection{Initial and terminal proof steps}\label{sec:proof-steps}
