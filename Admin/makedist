@@ -123,6 +123,7 @@ find . -name CVS -exec rm -rf {} \;
 
 find Doc \( -name \*.dvi -o -name \*.eps -o -name \*.ps \) -exec mv {} Distribution/doc \;
 rm Distribution/doc/Isa-logics.eps
+cp Admin/index.html $DISTBASE
 rm -rf Admin Doc
 
 mkdir src
@@ -157,10 +158,25 @@ chmod -R u+w $DISTNAME
 
 if type -path gtar
 then
-  gtar czf $DISTNAME.tar.gz $DISTNAME
+  gtar cf $DISTNAME.tar $DISTNAME
 else
-  tar cf - $DISTNAME | gzip >$DISTNAME.tar.gz
+  tar cf $DISTNAME.tar $DISTNAME
 fi
+
+UNPACKED_SIZE=$[ $(wc -c <$DISTNAME.tar) / 1024 ]
+
+gzip $DISTNAME.tar
+
+PACKED_SIZE=$[ $(wc -c <$DISTNAME.tar.gz) / 1024 ]
+
+
+# prepare index.html
+
+perl -pi -e \
+ "s/{ISABELLE}/$DISTNAME/g; \
+  s/{PACKED_SIZE}/$PACKED_SIZE/g; \
+  s/{UNPACKED_SIZE}/$UNPACKED_SIZE/g; \
+  s/{DATE}/$DATE/g;" index.html
 
 
 # final note
