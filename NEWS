@@ -365,6 +365,9 @@ for hiding of names;
 option of isabelle and isatool usedir (currently only observed by
 Poly/ML);
 
+* system: isatool installfonts may handle X-Symbol fonts as well (very
+useful for remote X11);
+
 * system: provide TAGS file for Isabelle sources;
 
 * settings: smart setup of canonical ML_HOME, ISABELLE_INTERFACE, and
