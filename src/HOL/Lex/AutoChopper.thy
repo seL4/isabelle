@@ -14,6 +14,9 @@ WARNING: auto_chopper is exponential(?)
 if the recursive calls in the penultimate argument are evaluated eagerly.
 
 A more efficient version is defined in AutoChopper1.
+
+But both versions are far too specific. Better development in Scanner.thy and
+its antecedents.
 *)
 
 AutoChopper = Prefix + DA + Chopper +
@@ -24,21 +27,20 @@ constdefs
     !A. is_longest_prefix_chopper(accepts A)(chopperf A)"
 
 consts
-  acc :: "['a list, 's, 'a list, 'a list, 'a list list*'a list, ('a,'s)da]
+  acc :: "[('a,'s)da, 's, 'a list list*'a list, 'a list, 'a list, 'a list]
           => 'a list list * 'a list"
 primrec acc List.list
-  "acc [] st ys zs chopsr A =
-              (if ys=[] then chopsr else (ys#fst(chopsr),snd(chopsr)))" 
-  "acc(x#xs) s ys zs chopsr A =
+  "acc A s r []     ys zs = (if ys=[] then r else (ys#fst(r),snd(r)))" 
+  "acc A s r (x#xs) ys zs =
             (let t = next A x s
              in if fin A t
-                then acc xs t (zs@[x]) (zs@[x])
-                         (acc xs (start A) [] [] ([],xs) A) A
-                else acc xs t ys (zs@[x]) chopsr A)"
+                then acc A t (acc A (start A) ([],xs) xs [] [])
+                         xs (zs@[x]) (zs@[x])
+                else acc A t r xs ys (zs@[x]))"
 
 constdefs
  auto_chopper :: ('a,'s)da => 'a chopper
-"auto_chopper A xs == acc xs (start A) [] [] ([],xs) A"
+"auto_chopper A xs == acc A (start A) ([],xs) xs [] []"
 
 (* acc_prefix is an auxiliary notion for the proof *)
 constdefs

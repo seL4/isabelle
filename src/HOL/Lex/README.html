@@ -1,45 +1,31 @@
+<!-- $Id$ -->
 <HTML><HEAD><TITLE>HOL/Lex/README</TITLE></HEAD>
 <BODY>
 
 <H1>A Simplified Scanner Generator</H1>
 
-This is half of a simplified functional scanner generator. The overall design
-is like this:
-<PRE>
-         regular expression
-                  |
-                  v
-             -----------
-             | mk_auto |
-             -----------
-                  |
-        deterministic automaton
-                  |
-                  v
-           ----------------
-string --> | auto_chopper | --> chopped up string
-           ----------------
-</PRE>
-A chopped up string is a pair of
-<UL>
-<LI>a prefix of the input string, chopped up into words of the language,
-<LI>together with the remaining suffix.
-</UL>
-For example, if the language consists just of the word <KBD>ab</KBD>, the
-input <KBD>ababaab</KBD> is partitioned into a chopped up prefix
-<KBD>[ab,ab]</KBD> and the suffix <KBD>aab</KBD>.
-<P>
+This directory contains the theories for the functional scanner generator
+described
+<A HREF="http://www4.informatik.tu-muenchen.de/~nipkow/pubs/tphols98.html">
+here</A>.
+<br>
+Overview:
+<dl>
+<dt>Automata</dt>
+<dd>AutoProj, NA, NAe, DA, Automata</dd>
+<dt>Regular expressions and their conversion to automata</dt>
+<dd>RegSet, RegExp, RegExp2NAe</dd>
+<dt>Scanning</dt>
+<dd>Prefix, MaxPrefix, MaxChop, AutoMaxChop, Scanner</dd>
+</dl>
+In addition there are some bits and pieces:
+<ul>
+<li> Regset_of_nat_DA describes the translation of deterministic automata
+     into regular sets. Should be completed to translate finite automata
+     into regular expressions.
+<li> Chopper, AutoChopper and AutoChopper1 are old versions of the scanner
+     (excluding regular expressions). Mainly of historic interest.
+</ul>
 
-The auto_chopper is implemented in theory AutoChopper. An alternative (more
-efficient) version is defined in AutoChopper1. However, no properties have
-been proved for it yet.
-
-The top part of the diagram, i.e. the translation of regular expressions into
-deterministic finite automata is still missing (although we have some bits
-and pieces).
-<P>
-
-The directory also contains Regset_of_auto, a theory describing the
-translation of deterministic automata into regular sets.
 </BODY>
 </HTML>
