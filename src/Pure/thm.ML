@@ -2152,7 +2152,7 @@ fun congc (prover,sign_reft,maxt) {thm=cong,lhs=lhs} (t,(shypst,hypst,ders)) =
   in case prover thm' of
        None => err()
      | Some(thm2) => (case check_conv(thm2,prop',ders) of
-                        None => err() | some => some)
+                        None => err() | Some trec => trec)
   end;
 
 fun bottomc ((simprem,useprem,mutsimp),prover,sign_ref,maxidx) =
@@ -2217,8 +2217,22 @@ fun bottomc ((simprem,useprem,mutsimp),prover,sign_ref,maxidx) =
                       (case assoc_string(fst congs,a) of
                          None => appc()
                        | Some(cong) =>
-                           (congc (prover mss,sign_ref,maxidx) cong trec
-                            handle Pattern.MATCH => appc() ) )
+(* post processing: some partial applications h t1 ... tj, j <= length ts,
+   may be a redex. Example: map (%x.x) = (%xs.xs) wrt map_cong *)
+                          (let val ctrec as (t,etc) =
+                                 congc (prover mss,sign_ref,maxidx) cong trec
+                           in case t of
+                                l$r =>
+                                  let val dVar = Var(("",0),dummyT)
+                                      val skel =
+                                      list_comb(h,replicate (length ts) dVar)
+                                  in case botc true skel mss (l,etc) of
+                                       None => Some ctrec
+                                     | Some(l',etc') => Some(l'$r,etc')
+                                  end
+                              | _ => error "congc result"
+                           end
+                           handle Pattern.MATCH => appc() ) )
                   | _ => appc()
                end)
          | _ => None)
