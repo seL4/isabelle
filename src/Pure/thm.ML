@@ -7,7 +7,7 @@ The core of Isabelle's Meta Logic: certified types and terms, meta
 theorems, meta rules (including resolution and simplification).
 *)
 
-signature THM =
+signature BASIC_THM =
   sig
   (*certified types*)
   type ctyp
@@ -41,12 +41,13 @@ signature THM =
 
   (*proof terms [must DUPLICATE declaration as a specification]*)
   datatype deriv_kind = MinDeriv | ThmDeriv | FullDeriv;
+  type tag		(* = string * string list *)
   val keep_derivs       : deriv_kind ref
   datatype rule = 
       MinProof                          
     | Oracle		  of string * Sign.sg * Object.T
-    | Axiom               of string
-    | Theorem             of string       
+    | Axiom               of string * tag list
+    | Theorem             of string * tag list
     | Assume              of cterm
     | Implies_intr        of cterm
     | Implies_intr_shyps
@@ -77,18 +78,18 @@ signature THM =
     | CongC               of cterm
     | Rewrite_cterm       of cterm
     | Rename_params_rule  of string list * int;
-
-  type deriv   (* = rule mtree *)
+  type deriv	(* = rule mtree *)
 
   (*meta theorems*)
   type thm
-  exception THM of string * int * thm list
   val rep_thm           : thm -> {sign: Sign.sg, der: deriv, maxidx: int,
                                   shyps: sort list, hyps: term list, 
                                   prop: term}
   val crep_thm          : thm -> {sign: Sign.sg, der: deriv, maxidx: int,
                                   shyps: sort list, hyps: cterm list, 
                                   prop: cterm}
+  exception THM of string * int * thm list
+  type 'a attribute 	(* = 'a * thm -> 'a * thm *)
   val eq_thm		: thm * thm -> bool
   val sign_of_thm       : thm -> Sign.sg
   val transfer_sg	: Sign.sg -> thm -> thm
@@ -104,8 +105,6 @@ signature THM =
   val implies_intr_shyps: thm -> thm
   val get_axiom         : theory -> xstring -> thm
   val get_def           : theory -> xstring -> thm
-  val name_thm          : string * thm -> thm
-  val name_of_thm	: thm -> string
   val axioms_of         : theory -> (string * thm) list
 
   (*meta rules*)
@@ -173,6 +172,19 @@ signature THM =
                           (meta_simpset -> thm -> thm option) -> cterm -> thm
 
   val invoke_oracle     : theory -> xstring -> Sign.sg * Object.T -> thm
+end;
+
+signature THM =
+sig
+  include BASIC_THM
+  val no_attributes	: 'a -> 'a * 'b attribute list
+  val apply_attributes	: ('a * thm) * 'a attribute list -> ('a * thm)
+  val applys_attributes	: ('a * thm list) * 'a attribute list -> ('a * thm list)
+  val get_name_tags	: thm -> string * tag list
+  val put_name_tags	: string * tag list -> thm -> thm
+  val name_of_thm	: thm -> string
+  val tags_of_thm	: thm -> tag list
+  val name_thm		: string * thm -> thm
 end;
 
 structure Thm: THM =
@@ -294,14 +306,17 @@ fun read_cterm sign = #1 o read_def_cterm (sign, K None, K None) [] true;
 
 (*** Derivations ***)
 
+(*tags provide additional comment, apart from the axiom/theorem name*)
+type tag = string * string list;
+
 (*Names of rules in derivations.  Includes logically trivial rules, if 
   executed in ML.*)
 datatype rule = 
     MinProof                            (*for building minimal proof terms*)
   | Oracle              of string * Sign.sg * Object.T       (*oracles*)
 (*Axioms/theorems*)
-  | Axiom               of string
-  | Theorem             of string
+  | Axiom               of string * tag list
+  | Theorem             of string * tag list
 (*primitive inferences and compound versions of them*)
   | Assume              of cterm
   | Implies_intr        of cterm
@@ -403,6 +418,13 @@ fun crep_thm (Thm {sign_ref, der, maxidx, shyps, hyps, prop}) =
 
 (*errors involving theorems*)
 exception THM of string * int * thm list;
+
+(*attributes subsume any kind of rules or addXXXs modifiers*)
+type 'a attribute = 'a * thm -> 'a * thm;
+
+fun no_attributes x = (x, []);
+fun apply_attributes (x_th, atts) = Library.apply atts x_th;
+fun applys_attributes (x_ths, atts) = foldl_map (Library.apply atts) x_ths;
 
 (*equality of theorems uses equality of signatures and the
   a-convertible test for terms*)
@@ -584,7 +606,7 @@ fun get_axiom theory raw_name =
               Some t =>
                 Some (fix_shyps [] []
                   (Thm {sign_ref = Sign.self_ref sign,
-                    der = infer_derivs (Axiom name, []),
+                    der = infer_derivs (Axiom (name, []), []),
                     maxidx = maxidx_of_term t,
                     shyps = [], 
                     hyps = [], 
@@ -605,19 +627,31 @@ fun axioms_of thy =
   map (fn (s, _) => (s, get_axiom thy s))
     (Symtab.dest (#axioms (rep_theory thy)));
 
-(*Attach a label to a theorem to make proof objects more readable*)
-fun name_thm (name, th as Thm {sign_ref, der, maxidx, shyps, hyps, prop}) =
-  (case der of
-    Join (Theorem _, _) => th
-  | Join (Axiom _, _) => th
-  | _ => Thm {sign_ref = sign_ref, der = Join (Theorem name, [der]),
-      maxidx = maxidx, shyps = shyps, hyps = hyps, prop = prop});
 
-fun name_of_thm (Thm {der, ...}) =
+(* name and tags -- make proof objects more readable *)
+
+fun get_name_tags (Thm {der, ...}) =
   (case der of
-    Join (Theorem name, _) => name
-  | Join (Axiom name, _) => name
-  | _ => "");
+    Join (Theorem x, _) => x
+  | Join (Axiom x, _) => x
+  | _ => ("", []));
+
+fun put_name_tags x (Thm {sign_ref, der, maxidx, shyps, hyps, prop}) =
+  let
+    val der' =
+      (case der of
+        Join (Theorem _, ds) => Join (Theorem x, ds)
+      | Join (Axiom _, ds) => Join (Axiom x, ds)
+      | _ => Join (Theorem x, [der]));
+  in
+    Thm {sign_ref = sign_ref, der = der', maxidx = maxidx,
+      shyps = shyps, hyps = hyps, prop = prop}
+  end;
+
+val name_of_thm = #1 o get_name_tags;
+val tags_of_thm = #2 o get_name_tags;
+
+fun name_thm (name, thm) = put_name_tags (name, tags_of_thm thm) thm;
 
 
 (*Compression of theorems -- a separate rule, not integrated with the others,
@@ -2289,4 +2323,6 @@ fun invoke_oracle thy raw_name =
 
 end;
 
-open Thm;
+
+structure BasicThm: BASIC_THM = Thm;
+open BasicThm;
