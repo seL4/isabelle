@@ -215,3 +215,7 @@ end;
 
 
 open ArithData;
+
+
+context Arith.thy;
+Addsimprocs nat_cancel;
