@@ -24,6 +24,7 @@ sig
   val load_thy: string -> bool -> bool -> (Path.T * File.info) list
 end;
 
+(*backdoor sealed later*)
 signature PRIVATE_THY_LOAD =
 sig
   include THY_LOAD
