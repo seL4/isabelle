@@ -37,7 +37,7 @@ wellfounded.
 
 Each \isacommand{recdef} definition should be accompanied (after the
 name of the function) by a wellfounded relation on the argument type
-of the function. For example, @{term measure} is defined by
+of the function. For example, \isaindexbold{measure} is defined by
 @{prop[display]"measure(f::'a \<Rightarrow> nat) \<equiv> {(y,x). f y < f x}"}
 and it has been proved that @{term"measure f"} is always wellfounded.
 
