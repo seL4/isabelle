@@ -21,6 +21,8 @@ sig
   val keyword_with: (string -> bool) -> token -> bool
   val name_of: token -> string
   val is_proper: token -> bool
+  val is_begin_ignore: token -> bool
+  val is_end_ignore: token -> bool
   val is_indent: token -> bool
   val val_of: token -> string
   val is_sid: string -> bool
@@ -98,6 +100,12 @@ fun name_of (Token (_, (k, _))) = str_of_kind k;
 fun is_proper (Token (_, (Space, _))) = false
   | is_proper (Token (_, (Comment, _))) = false
   | is_proper _ = true;
+
+fun is_begin_ignore (Token (_, (Comment, "<"))) = true
+  | is_begin_ignore _ = false;
+
+fun is_end_ignore (Token (_, (Comment, ">"))) = true
+  | is_end_ignore _ = false;
 
 (*indentations; note that space tokens obey lines*)
 fun is_indent (Token (_, (Space, s))) =
