@@ -119,7 +119,7 @@ defs
 use "Product_Type_lemmas.ML"
 
 constdefs
-  internal_split :: "('a \<Rightarrow> 'b => 'c) => 'a * 'b => 'c"
+  internal_split :: "('a => 'b => 'c) => 'a * 'b => 'c"
   "internal_split == split"
 
 lemma internal_split_conv: "internal_split c (a, b) = c a b"
