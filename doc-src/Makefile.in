@@ -7,9 +7,11 @@
 ## settings
 
 LATEX = latex
+PDFLATEX = pdflatex
 BIBTEX = bibtex
 RAIL = rail
 SEDINDEX = ../sedindex
+FIXBOOKMARKS = perl -pi ../fixbookmarks.pl
 
 GARBAGE = *.aux *.log *.toc *.idx *.rai *.rao *.bbl *.ind *.blg *.out
 OUTPUT = *.dvi *.pdf *.ps
@@ -26,10 +28,19 @@ mrproper:
 	@rm -f $(OUTPUT) $(GARBAGE)
 
 isabelle.eps:
-	test -r $* || ln -s ../gfx/$* .
+	test -r isabelle.eps || ln -s ../gfx/isabelle.eps .
 
 isabelle_hol.eps:
-	test -r $* || ln -s ../gfx/$* .
+	test -r isabelle_hol.eps || ln -s ../gfx/isabelle_hol.eps .
 
 isabelle_zf.eps:
-	test -r $* || ln -s ../gfx/$* .
+	test -r isabelle_zf.eps || ln -s ../gfx/isabelle_zf.eps .
+
+isabelle.png:
+	test -r isabelle.png || ln -s ../gfx/isabelle.png .
+
+isabelle_hol.png:
+	test -r isabelle_hol.png || ln -s ../gfx/isabelle_hol.png .
+
+isabelle_zf.png:
+	test -r isabelle_zf.png || ln -s ../gfx/isabelle_zf.png .
