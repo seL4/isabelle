@@ -1,0 +1,582 @@
+\begin{theindex}
+
+  \item {\tt\#*} symbol, 45
+  \item {\tt\#+} symbol, 45
+  \item {\tt\#-} symbol, 45
+  \item {\tt\&} symbol, 5
+  \item {\tt *} symbol, 25
+  \item {\tt +} symbol, 41
+  \item {\tt -} symbol, 24
+  \item {\tt -->} symbol, 5
+  \item {\tt ->} symbol, 25
+  \item {\tt -``} symbol, 24
+  \item {\tt :} symbol, 24
+  \item {\tt <->} symbol, 5
+  \item {\tt <=} symbol, 24
+  \item {\tt =} symbol, 5
+  \item {\tt `} symbol, 24
+  \item {\tt ``} symbol, 24
+  \item {\tt |} symbol, 5
+
+  \indexspace
+
+  \item {\tt 0} constant, 24
+
+  \indexspace
+
+  \item {\tt add_0} theorem, 45
+  \item {\tt add_mult_dist} theorem, 45
+  \item {\tt add_succ} theorem, 45
+  \item {\tt ALL} symbol, 5, 25
+  \item {\tt All} constant, 5
+  \item {\tt all_dupE} theorem, 3, 7
+  \item {\tt all_impE} theorem, 7
+  \item {\tt allE} theorem, 3, 7
+  \item {\tt allI} theorem, 6
+  \item {\tt and_def} theorem, 41
+  \item {\tt apply_def} theorem, 29
+  \item {\tt apply_equality} theorem, 38, 39, 69
+  \item {\tt apply_equality2} theorem, 38
+  \item {\tt apply_iff} theorem, 38
+  \item {\tt apply_Pair} theorem, 38, 69
+  \item {\tt apply_type} theorem, 38
+  \item {\tt Arith} theory, 42
+  \item assumptions
+    \subitem contradictory, 14
+
+  \indexspace
+
+  \item {\tt Ball} constant, 24, 27
+  \item {\tt ball_cong} theorem, 31, 32
+  \item {\tt Ball_def} theorem, 28
+  \item {\tt ballE} theorem, 31, 32
+  \item {\tt ballI} theorem, 31
+  \item {\tt beta} theorem, 38, 39
+  \item {\tt Bex} constant, 24, 27
+  \item {\tt bex_cong} theorem, 31, 32
+  \item {\tt Bex_def} theorem, 28
+  \item {\tt bexCI} theorem, 31
+  \item {\tt bexE} theorem, 31
+  \item {\tt bexI} theorem, 31
+  \item {\tt bij} constant, 44
+  \item {\tt bij_converse_bij} theorem, 44
+  \item {\tt bij_def} theorem, 44
+  \item {\tt bij_disjoint_Un} theorem, 44
+  \item {\tt Blast_tac}, 15, 67, 68
+  \item {\tt blast_tac}, 16, 17, 19
+  \item {\tt bnd_mono_def} theorem, 43
+  \item {\tt Bool} theory, 39
+  \item {\tt bool_0I} theorem, 41
+  \item {\tt bool_1I} theorem, 41
+  \item {\tt bool_def} theorem, 41
+  \item {\tt boolE} theorem, 41
+  \item {\tt bspec} theorem, 31
+
+  \indexspace
+
+  \item {\tt case} constant, 41
+  \item {\tt case_def} theorem, 41
+  \item {\tt case_Inl} theorem, 41
+  \item {\tt case_Inr} theorem, 41
+  \item {\tt coinduct} theorem, 43
+  \item {\tt coinductive}, 57--62
+  \item {\tt Collect} constant, 24, 25, 30
+  \item {\tt Collect_def} theorem, 28
+  \item {\tt Collect_subset} theorem, 35
+  \item {\tt CollectD1} theorem, 32, 33
+  \item {\tt CollectD2} theorem, 32, 33
+  \item {\tt CollectE} theorem, 32, 33
+  \item {\tt CollectI} theorem, 33
+  \item {\tt comp_assoc} theorem, 44
+  \item {\tt comp_bij} theorem, 44
+  \item {\tt comp_def} theorem, 44
+  \item {\tt comp_func} theorem, 44
+  \item {\tt comp_func_apply} theorem, 44
+  \item {\tt comp_inj} theorem, 44
+  \item {\tt comp_surj} theorem, 44
+  \item {\tt comp_type} theorem, 44
+  \item {\tt cond_0} theorem, 41
+  \item {\tt cond_1} theorem, 41
+  \item {\tt cond_def} theorem, 41
+  \item congruence rules, 32
+  \item {\tt conj_cong}, 4
+  \item {\tt conj_impE} theorem, 7, 8
+  \item {\tt conjE} theorem, 7
+  \item {\tt conjI} theorem, 6
+  \item {\tt conjunct1} theorem, 6
+  \item {\tt conjunct2} theorem, 6
+  \item {\tt cons} constant, 23, 24
+  \item {\tt cons_def} theorem, 29
+  \item {\tt Cons_iff} theorem, 47
+  \item {\tt consCI} theorem, 34
+  \item {\tt consE} theorem, 34
+  \item {\tt ConsI} theorem, 47
+  \item {\tt consI1} theorem, 34
+  \item {\tt consI2} theorem, 34
+  \item {\tt converse} constant, 24, 37
+  \item {\tt converse_def} theorem, 29
+  \item {\tt cut_facts_tac}, 17
+
+  \indexspace
+
+  \item {\tt datatype}, 48--55
+  \item {\tt Diff_cancel} theorem, 40
+  \item {\tt Diff_contains} theorem, 35
+  \item {\tt Diff_def} theorem, 28
+  \item {\tt Diff_disjoint} theorem, 40
+  \item {\tt Diff_Int} theorem, 40
+  \item {\tt Diff_partition} theorem, 40
+  \item {\tt Diff_subset} theorem, 35
+  \item {\tt Diff_Un} theorem, 40
+  \item {\tt DiffD1} theorem, 34
+  \item {\tt DiffD2} theorem, 34
+  \item {\tt DiffE} theorem, 34
+  \item {\tt DiffI} theorem, 34
+  \item {\tt disj_impE} theorem, 7, 8, 12
+  \item {\tt disjCI} theorem, 9
+  \item {\tt disjE} theorem, 6
+  \item {\tt disjI1} theorem, 6
+  \item {\tt disjI2} theorem, 6
+  \item {\tt div} symbol, 45
+  \item {\tt div_def} theorem, 45
+  \item {\tt domain} constant, 24, 37
+  \item {\tt domain_def} theorem, 29
+  \item {\tt domain_of_fun} theorem, 38
+  \item {\tt domain_subset} theorem, 37
+  \item {\tt domain_type} theorem, 38
+  \item {\tt domainE} theorem, 37
+  \item {\tt domainI} theorem, 37
+  \item {\tt double_complement} theorem, 40
+  \item {\tt dresolve_tac}, 66
+
+  \indexspace
+
+  \item {\tt empty_subsetI} theorem, 31
+  \item {\tt emptyE} theorem, 31
+  \item {\tt eq_mp_tac}, \bold{8}
+  \item {\tt equalityD1} theorem, 31
+  \item {\tt equalityD2} theorem, 31
+  \item {\tt equalityE} theorem, 31
+  \item {\tt equalityI} theorem, 31, 65
+  \item {\tt equals0D} theorem, 31
+  \item {\tt equals0I} theorem, 31
+  \item {\tt eresolve_tac}, 14
+  \item {\tt eta} theorem, 38, 39
+  \item {\tt EX} symbol, 5, 25
+  \item {\tt Ex} constant, 5
+  \item {\tt EX!} symbol, 5
+  \item {\tt ex/Term} theory, 49
+  \item {\tt Ex1} constant, 5
+  \item {\tt ex1_def} theorem, 6
+  \item {\tt ex1E} theorem, 7
+  \item {\tt ex1I} theorem, 7
+  \item {\tt ex_impE} theorem, 7
+  \item {\tt exCI} theorem, 9, 13
+  \item {\tt excluded_middle} theorem, 9
+  \item {\tt exE} theorem, 6
+  \item {\tt exhaust_tac}, \bold{51}
+  \item {\tt exI} theorem, 6
+  \item {\tt extension} theorem, 28
+
+  \indexspace
+
+  \item {\tt False} constant, 5
+  \item {\tt FalseE} theorem, 6
+  \item {\tt field} constant, 24
+  \item {\tt field_def} theorem, 29
+  \item {\tt field_subset} theorem, 37
+  \item {\tt fieldCI} theorem, 37
+  \item {\tt fieldE} theorem, 37
+  \item {\tt fieldI1} theorem, 37
+  \item {\tt fieldI2} theorem, 37
+  \item {\tt Fin.consI} theorem, 46
+  \item {\tt Fin.emptyI} theorem, 46
+  \item {\tt Fin_induct} theorem, 46
+  \item {\tt Fin_mono} theorem, 46
+  \item {\tt Fin_subset} theorem, 46
+  \item {\tt Fin_UnI} theorem, 46
+  \item {\tt Fin_UnionI} theorem, 46
+  \item first-order logic, 3--21
+  \item {\tt Fixedpt} theory, 42
+  \item {\tt flat} constant, 47
+  \item {\tt FOL} theory, 3, 9
+  \item {\tt FOL_cs}, \bold{9}, 48
+  \item {\tt FOL_ss}, \bold{4}, 46
+  \item {\tt foundation} theorem, 28
+  \item {\tt fst} constant, 24, 30
+  \item {\tt fst_conv} theorem, 36
+  \item {\tt fst_def} theorem, 29
+  \item {\tt fun_disjoint_apply1} theorem, 38, 69
+  \item {\tt fun_disjoint_apply2} theorem, 38
+  \item {\tt fun_disjoint_Un} theorem, 38, 70
+  \item {\tt fun_empty} theorem, 38
+  \item {\tt fun_extension} theorem, 38, 39
+  \item {\tt fun_is_rel} theorem, 38
+  \item {\tt fun_single} theorem, 38
+  \item function applications
+    \subitem in \ZF, 24
+
+  \indexspace
+
+  \item {\tt gfp_def} theorem, 43
+  \item {\tt gfp_least} theorem, 43
+  \item {\tt gfp_mono} theorem, 43
+  \item {\tt gfp_subset} theorem, 43
+  \item {\tt gfp_Tarski} theorem, 43
+  \item {\tt gfp_upperbound} theorem, 43
+  \item {\tt Goalw}, 16, 17
+
+  \indexspace
+
+  \item {\tt hyp_subst_tac}, 4
+
+  \indexspace
+
+  \item {\textit {i}} type, 23
+  \item {\tt id} constant, 44
+  \item {\tt id_def} theorem, 44
+  \item {\tt if} constant, 24
+  \item {\tt if_def} theorem, 16, 28
+  \item {\tt if_not_P} theorem, 34
+  \item {\tt if_P} theorem, 34
+  \item {\tt ifE} theorem, 17
+  \item {\tt iff_def} theorem, 6
+  \item {\tt iff_impE} theorem, 7
+  \item {\tt iffCE} theorem, 9
+  \item {\tt iffD1} theorem, 7
+  \item {\tt iffD2} theorem, 7
+  \item {\tt iffE} theorem, 7
+  \item {\tt iffI} theorem, 7, 17
+  \item {\tt ifI} theorem, 17
+  \item {\tt IFOL} theory, 3
+  \item {\tt IFOL_ss}, \bold{4}
+  \item {\tt image_def} theorem, 29
+  \item {\tt imageE} theorem, 37
+  \item {\tt imageI} theorem, 37
+  \item {\tt imp_impE} theorem, 7, 12
+  \item {\tt impCE} theorem, 9
+  \item {\tt impE} theorem, 7, 8
+  \item {\tt impI} theorem, 6
+  \item {\tt in} symbol, 26
+  \item {\tt induct} theorem, 43
+  \item {\tt induct_tac}, \bold{51}
+  \item {\tt inductive}, 57--62
+  \item {\tt Inf} constant, 24, 30
+  \item {\tt infinity} theorem, 29
+  \item {\tt inj} constant, 44
+  \item {\tt inj_converse_inj} theorem, 44
+  \item {\tt inj_def} theorem, 44
+  \item {\tt Inl} constant, 41
+  \item {\tt Inl_def} theorem, 41
+  \item {\tt Inl_inject} theorem, 41
+  \item {\tt Inl_neq_Inr} theorem, 41
+  \item {\tt Inr} constant, 41
+  \item {\tt Inr_def} theorem, 41
+  \item {\tt Inr_inject} theorem, 41
+  \item {\tt INT} symbol, 25, 27
+  \item {\tt Int} symbol, 24
+  \item {\tt Int_absorb} theorem, 40
+  \item {\tt Int_assoc} theorem, 40
+  \item {\tt Int_commute} theorem, 40
+  \item {\tt Int_def} theorem, 28
+  \item {\tt INT_E} theorem, 33
+  \item {\tt Int_greatest} theorem, 35, 65, 66
+  \item {\tt INT_I} theorem, 33
+  \item {\tt Int_lower1} theorem, 35, 65
+  \item {\tt Int_lower2} theorem, 35, 65
+  \item {\tt Int_Un_distrib} theorem, 40
+  \item {\tt Int_Union_RepFun} theorem, 40
+  \item {\tt IntD1} theorem, 34
+  \item {\tt IntD2} theorem, 34
+  \item {\tt IntE} theorem, 34, 66
+  \item {\tt Inter} constant, 24
+  \item {\tt Inter_def} theorem, 28
+  \item {\tt Inter_greatest} theorem, 35
+  \item {\tt Inter_lower} theorem, 35
+  \item {\tt Inter_Un_distrib} theorem, 40
+  \item {\tt InterD} theorem, 33
+  \item {\tt InterE} theorem, 33
+  \item {\tt InterI} theorem, 32, 33
+  \item {\tt IntI} theorem, 34
+  \item {\tt IntPr.best_tac}, \bold{9}
+  \item {\tt IntPr.fast_tac}, \bold{8}, 11
+  \item {\tt IntPr.inst_step_tac}, \bold{8}
+  \item {\tt IntPr.safe_step_tac}, \bold{8}
+  \item {\tt IntPr.safe_tac}, \bold{8}
+  \item {\tt IntPr.step_tac}, \bold{8}
+
+  \indexspace
+
+  \item {\tt lam} symbol, 25, 27
+  \item {\tt lam_def} theorem, 29
+  \item {\tt lam_type} theorem, 38
+  \item {\tt Lambda} constant, 24, 27
+  \item $\lambda$-abstractions
+    \subitem in \ZF, 25
+  \item {\tt lamE} theorem, 38, 39
+  \item {\tt lamI} theorem, 38, 39
+  \item {\tt le_cs}, \bold{48}
+  \item {\tt left_comp_id} theorem, 44
+  \item {\tt left_comp_inverse} theorem, 44
+  \item {\tt left_inverse} theorem, 44
+  \item {\tt length} constant, 47
+  \item {\tt Let} constant, 23, 24
+  \item {\tt let} symbol, 26
+  \item {\tt Let_def} theorem, 23, 28
+  \item {\tt lfp_def} theorem, 43
+  \item {\tt lfp_greatest} theorem, 43
+  \item {\tt lfp_lowerbound} theorem, 43
+  \item {\tt lfp_mono} theorem, 43
+  \item {\tt lfp_subset} theorem, 43
+  \item {\tt lfp_Tarski} theorem, 43
+  \item {\tt list} constant, 47
+  \item {\tt List.induct} theorem, 47
+  \item {\tt list_case} constant, 47
+  \item {\tt list_mono} theorem, 47
+  \item {\tt logic} class, 3
+
+  \indexspace
+
+  \item {\tt map} constant, 47
+  \item {\tt map_app_distrib} theorem, 47
+  \item {\tt map_compose} theorem, 47
+  \item {\tt map_flat} theorem, 47
+  \item {\tt map_ident} theorem, 47
+  \item {\tt map_type} theorem, 47
+  \item {\tt mem_asym} theorem, 34, 35
+  \item {\tt mem_irrefl} theorem, 34
+  \item {\tt mk_cases}, 54, 61
+  \item {\tt mod} symbol, 45
+  \item {\tt mod_def} theorem, 45
+  \item {\tt mod_quo_equality} theorem, 45
+  \item {\tt mp} theorem, 6
+  \item {\tt mp_tac}, \bold{8}
+  \item {\tt mult_0} theorem, 45
+  \item {\tt mult_assoc} theorem, 45
+  \item {\tt mult_commute} theorem, 45
+  \item {\tt mult_succ} theorem, 45
+  \item {\tt mult_type} theorem, 45
+
+  \indexspace
+
+  \item {\tt Nat} theory, 42
+  \item {\tt nat} constant, 45
+  \item {\tt nat_0I} theorem, 45
+  \item {\tt nat_case} constant, 45
+  \item {\tt nat_case_0} theorem, 45
+  \item {\tt nat_case_def} theorem, 45
+  \item {\tt nat_case_succ} theorem, 45
+  \item {\tt nat_def} theorem, 45
+  \item {\tt nat_induct} theorem, 45
+  \item {\tt nat_succI} theorem, 45
+  \item {\tt Nil_Cons_iff} theorem, 47
+  \item {\tt NilI} theorem, 47
+  \item {\tt Not} constant, 5
+  \item {\tt not_def} theorem, 6, 41
+  \item {\tt not_impE} theorem, 7
+  \item {\tt notE} theorem, 7, 8
+  \item {\tt notI} theorem, 7
+  \item {\tt notnotD} theorem, 9
+
+  \indexspace
+
+  \item {\tt O} symbol, 44
+  \item {\textit {o}} type, 3
+  \item {\tt or_def} theorem, 41
+
+  \indexspace
+
+  \item {\tt Pair} constant, 24, 25
+  \item {\tt Pair_def} theorem, 29
+  \item {\tt Pair_inject} theorem, 36
+  \item {\tt Pair_inject1} theorem, 36
+  \item {\tt Pair_inject2} theorem, 36
+  \item {\tt Pair_neq_0} theorem, 36
+  \item {\tt pairing} theorem, 33
+  \item {\tt Perm} theory, 42
+  \item {\tt Pi} constant, 24, 27, 39
+  \item {\tt Pi_def} theorem, 29
+  \item {\tt Pi_type} theorem, 38, 39
+  \item {\tt Pow} constant, 24
+  \item {\tt Pow_iff} theorem, 28
+  \item {\tt Pow_mono} theorem, 65
+  \item {\tt PowD} theorem, 31, 66
+  \item {\tt PowI} theorem, 31, 66
+  \item {\tt primrec}, 55--57
+  \item {\tt PrimReplace} constant, 24, 30
+  \item priorities, 1
+  \item {\tt PROD} symbol, 25, 27
+  \item {\tt prop_cs}, \bold{9}
+
+  \indexspace
+
+  \item {\tt qcase_def} theorem, 42
+  \item {\tt qconverse} constant, 39
+  \item {\tt qconverse_def} theorem, 42
+  \item {\tt qed_spec_mp}, 54
+  \item {\tt qfsplit_def} theorem, 42
+  \item {\tt QInl_def} theorem, 42
+  \item {\tt QInr_def} theorem, 42
+  \item {\tt QPair} theory, 39
+  \item {\tt QPair_def} theorem, 42
+  \item {\tt QSigma} constant, 39
+  \item {\tt QSigma_def} theorem, 42
+  \item {\tt qsplit} constant, 39
+  \item {\tt qsplit_def} theorem, 42
+  \item {\tt qsum_def} theorem, 42
+  \item {\tt QUniv} theory, 46
+
+  \indexspace
+
+  \item {\tt range} constant, 24
+  \item {\tt range_def} theorem, 29
+  \item {\tt range_of_fun} theorem, 38, 39
+  \item {\tt range_subset} theorem, 37
+  \item {\tt range_type} theorem, 38
+  \item {\tt rangeE} theorem, 37
+  \item {\tt rangeI} theorem, 37
+  \item {\tt rank} constant, 62
+  \item recursion
+    \subitem primitive, 57
+  \item recursive functions, \see{recursion}{55}
+  \item {\tt refl} theorem, 6
+  \item {\tt RepFun} constant, 24, 27, 30, 32
+  \item {\tt RepFun_def} theorem, 28
+  \item {\tt RepFunE} theorem, 33
+  \item {\tt RepFunI} theorem, 33
+  \item {\tt Replace} constant, 24, 25, 30, 32
+  \item {\tt Replace_def} theorem, 28
+  \item {\tt ReplaceE} theorem, 33
+  \item {\tt ReplaceI} theorem, 33
+  \item {\tt replacement} theorem, 28
+  \item {\tt restrict} constant, 24, 30
+  \item {\tt restrict} theorem, 38
+  \item {\tt restrict_bij} theorem, 44
+  \item {\tt restrict_def} theorem, 29
+  \item {\tt restrict_type} theorem, 38
+  \item {\tt rev} constant, 47
+  \item {\tt rew_tac}, 17
+  \item {\tt rewrite_rule}, 17
+  \item {\tt right_comp_id} theorem, 44
+  \item {\tt right_comp_inverse} theorem, 44
+  \item {\tt right_inverse} theorem, 44
+
+  \indexspace
+
+  \item {\tt separation} theorem, 33
+  \item set theory, 22--70
+  \item {\tt Sigma} constant, 24, 27, 30, 36
+  \item {\tt Sigma_def} theorem, 29
+  \item {\tt SigmaE} theorem, 36
+  \item {\tt SigmaE2} theorem, 36
+  \item {\tt SigmaI} theorem, 36
+  \item simplification
+    \subitem of conjunctions, 4
+  \item {\tt singletonE} theorem, 34
+  \item {\tt singletonI} theorem, 34
+  \item {\tt snd} constant, 24, 30
+  \item {\tt snd_conv} theorem, 36
+  \item {\tt snd_def} theorem, 29
+  \item {\tt spec} theorem, 6
+  \item {\tt split} constant, 24, 30
+  \item {\tt split} theorem, 36
+  \item {\tt split_def} theorem, 29
+  \item {\tt ssubst} theorem, 7
+  \item {\tt Step_tac}, 20
+  \item {\tt step_tac}, 21
+  \item {\tt subset_def} theorem, 28
+  \item {\tt subset_refl} theorem, 31
+  \item {\tt subset_trans} theorem, 31
+  \item {\tt subsetCE} theorem, 31
+  \item {\tt subsetD} theorem, 31, 68
+  \item {\tt subsetI} theorem, 31, 66, 67
+  \item {\tt subst} theorem, 6
+  \item {\tt succ} constant, 24, 30
+  \item {\tt succ_def} theorem, 29
+  \item {\tt succ_inject} theorem, 34
+  \item {\tt succ_neq_0} theorem, 34
+  \item {\tt succCI} theorem, 34
+  \item {\tt succE} theorem, 34
+  \item {\tt succI1} theorem, 34
+  \item {\tt succI2} theorem, 34
+  \item {\tt SUM} symbol, 25, 27
+  \item {\tt Sum} theory, 39
+  \item {\tt sum_def} theorem, 41
+  \item {\tt sum_InlI} theorem, 41
+  \item {\tt sum_InrI} theorem, 41
+  \item {\tt SUM_Int_distrib1} theorem, 40
+  \item {\tt SUM_Int_distrib2} theorem, 40
+  \item {\tt SUM_Un_distrib1} theorem, 40
+  \item {\tt SUM_Un_distrib2} theorem, 40
+  \item {\tt sumE2} theorem, 41
+  \item {\tt surj} constant, 44
+  \item {\tt surj_def} theorem, 44
+  \item {\tt swap} theorem, 9
+  \item {\tt swap_res_tac}, 14
+  \item {\tt sym} theorem, 7
+
+  \indexspace
+
+  \item {\tt term} class, 3
+  \item {\tt THE} symbol, 25, 27, 35
+  \item {\tt The} constant, 24, 27, 30
+  \item {\tt the_def} theorem, 28
+  \item {\tt the_equality} theorem, 34, 35
+  \item {\tt theI} theorem, 34, 35
+  \item {\tt trace_induct}, \bold{59}
+  \item {\tt trans} theorem, 7
+  \item {\tt True} constant, 5
+  \item {\tt True_def} theorem, 6
+  \item {\tt TrueI} theorem, 7
+  \item {\tt Trueprop} constant, 5
+
+  \indexspace
+
+  \item {\tt UN} symbol, 25, 27
+  \item {\tt Un} symbol, 24
+  \item {\tt Un_absorb} theorem, 40
+  \item {\tt Un_assoc} theorem, 40
+  \item {\tt Un_commute} theorem, 40
+  \item {\tt Un_def} theorem, 28
+  \item {\tt UN_E} theorem, 33
+  \item {\tt UN_I} theorem, 33
+  \item {\tt Un_Int_distrib} theorem, 40
+  \item {\tt Un_Inter_RepFun} theorem, 40
+  \item {\tt Un_least} theorem, 35
+  \item {\tt Un_upper1} theorem, 35
+  \item {\tt Un_upper2} theorem, 35
+  \item {\tt UnCI} theorem, 32, 34
+  \item {\tt UnE} theorem, 34
+  \item {\tt UnI1} theorem, 32, 34, 69
+  \item {\tt UnI2} theorem, 32, 34
+  \item {\tt Union} constant, 24
+  \item {\tt Union_iff} theorem, 28
+  \item {\tt Union_least} theorem, 35
+  \item {\tt Union_Un_distrib} theorem, 40
+  \item {\tt Union_upper} theorem, 35
+  \item {\tt UnionE} theorem, 33, 67
+  \item {\tt UnionI} theorem, 33, 67
+  \item {\tt Univ} theory, 42
+  \item {\tt Upair} constant, 23, 24, 30
+  \item {\tt Upair_def} theorem, 28
+  \item {\tt UpairE} theorem, 33
+  \item {\tt UpairI1} theorem, 33
+  \item {\tt UpairI2} theorem, 33
+
+  \indexspace
+
+  \item {\tt vimage_def} theorem, 29
+  \item {\tt vimageE} theorem, 37
+  \item {\tt vimageI} theorem, 37
+
+  \indexspace
+
+  \item {\tt xor_def} theorem, 41
+
+  \indexspace
+
+  \item {\tt ZF} theory, 22
+  \item {\tt ZF_cs}, \bold{48}
+  \item {\tt ZF_ss}, \bold{46}
+
+\end{theindex}
