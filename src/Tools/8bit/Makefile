@@ -44,13 +44,11 @@ USE2E='-2e'
 #GMAKE=make
 GMAKE=gmake
 
-#keycode for Super_L       26 on SUN, 64  on Linux box 
-#SUPER_L=64
-SUPER_L=26
+#keycode for Super_L  (= left Meta)
+SUPER_L=127
 
-#keycode for Hyper_R       20 on SUN, 113 on Linux box 
-#HYPER_R=113
-HYPER_R=20
+#keycode for Hyper_R (= right Meta)
+HYPER_R=129
 
 CONFIGFILES = config/Makefile config/key-table.inp config/conv-tables.inp
 
@@ -151,7 +149,7 @@ $(CONFIGFILES): Makefile
 #######      Generators        
 
 # ----------------------------------------------------
-	
+
 bin/gen-isa2latex: Makefile #perl/generators/gen-isa2latex.pl
 	@echo "configuring gen-isa2latex"
 	@cd perl/generators;\
@@ -163,7 +161,7 @@ bin/gen-isa2latex: Makefile #perl/generators/gen-isa2latex.pl
 	ln -s ../perl/generators/gen-isa2latex.pl bin/gen-isa2latex
 
 # ----------------------------------------------------
-	
+
 bin/gen-isaterm: Makefile #perl/generators/gen-isaterm.pl
 	@echo "configuring gen-isaterm"
 	@cd perl/generators;\
@@ -174,7 +172,7 @@ bin/gen-isaterm: Makefile #perl/generators/gen-isaterm.pl
 	ln -s ../perl/generators/gen-isaterm.pl bin/gen-isaterm
 
 # ----------------------------------------------------
-	
+
 bin/gen-isavim: Makefile #perl/generators/gen-isavim.pl
 	@echo "configuring gen-isavim"
 	@cd perl/generators;\
@@ -185,7 +183,7 @@ bin/gen-isavim: Makefile #perl/generators/gen-isavim.pl
 	ln -s ../perl/generators/gen-isavim.pl bin/gen-isavim
 
 # ----------------------------------------------------
-	
+
 bin/gen-isaaxe: Makefile #perl/generators/gen-isaaxe.pl
 	@echo "configuring gen-isaaxe"
 	@cd perl/generators;\
@@ -196,7 +194,7 @@ bin/gen-isaaxe: Makefile #perl/generators/gen-isaaxe.pl
 	ln -s ../perl/generators/gen-isaaxe.pl bin/gen-isaaxe
 
 # ----------------------------------------------------
-	
+
 bin/gen-isa_gnu_emacs: Makefile #perl/generators/gen-isa_gnu_emacs.pl
 	@echo "configuring gen-isa_gnu_emacs"
 	@cd perl/generators;\
@@ -207,7 +205,7 @@ bin/gen-isa_gnu_emacs: Makefile #perl/generators/gen-isa_gnu_emacs.pl
 	ln -s ../perl/generators/gen-isa_gnu_emacs.pl bin/gen-isa_gnu_emacs
 
 # ----------------------------------------------------
-	
+
 bin/gen-isa_xemacs: Makefile #perl/generators/gen-isa_xemacs.pl
 	@echo "configuring gen-isa_xemacs"
 	@cd perl/generators;\
@@ -218,7 +216,7 @@ bin/gen-isa_xemacs: Makefile #perl/generators/gen-isa_xemacs.pl
 	ln -s ../perl/generators/gen-isa_xemacs.pl bin/gen-isa_xemacs
 
 # ----------------------------------------------------
-	
+
 bin/gen-isadoc: Makefile #perl/generators/gen-isadoc.pl
 	@echo "configuring gen-isadoc"
 	@cd perl/generators;\
@@ -234,7 +232,7 @@ bin/gen-isadoc: Makefile #perl/generators/gen-isadoc.pl
 #######      Converter        
 
 # ----------------------------------------------------
-	
+
 #isa2latex, editor support, font documentation:
 configuration:
 	@cd config; $(GMAKE)
@@ -263,7 +261,7 @@ bin/ax2isa: c-sources/a2isa/ax2isa
 #######      Editors        
 
 # ----------------------------------------------------
-	
+
 bin/isa_gnu_emacs: Makefile #gnu_emacs/isa_gnu_emacs
 	@echo "installing GNU emacs"
 	@cd gnu_emacs;\
@@ -276,7 +274,7 @@ bin/isa_gnu_emacs: Makefile #gnu_emacs/isa_gnu_emacs
 	ln -s ../gnu_emacs/isa_gnu_emacs bin/isa_gnu_emacs
 
 # ----------------------------------------------------
-	
+
 bin/isa_xemacs: Makefile #xemacs/isa_xemacs
 	@echo "installing xemacs"
 	@@cd xemacs;\
@@ -289,7 +287,7 @@ bin/isa_xemacs: Makefile #xemacs/isa_xemacs
 	ln -s ../xemacs/isa_xemacs bin/isa_xemacs
 
 # ----------------------------------------------------
-	
+
 bin/isavim: Makefile #vim/isavim
 	@echo "installing vim"
 	@@cd vim;\
@@ -303,7 +301,7 @@ bin/isavim: Makefile #vim/isavim
 	ln -s ../vim/isavim bin/isavim
 
 # ----------------------------------------------------
-	
+
 bin/isaaxe: Makefile #axe/isaaxe
 	@echo "installing axe"
 	@cd axe;\
@@ -314,7 +312,7 @@ bin/isaaxe: Makefile #axe/isaaxe
 	ln -s ../axe/isaaxe bin/isaaxe
 
 # ----------------------------------------------------
-	
+
 bin/isa_xmosaic: Makefile #xmosaic/isa_xmosaic
 	@echo "installing xmosaic"
 	@cd xmosaic;\
