@@ -8,25 +8,25 @@ The Mutilated Chess Board Problem, formalized inductively
   Popularized as the Mutilated Checkerboard Problem by J McCarthy
 *)
 
-Mutil = Finite +
-consts
-  domino  :: "(nat*nat)set set"
-  tiling  :: "'a set set => 'a set set"
-  below   :: "nat => nat set"
-  evnodd  :: "[(nat*nat)set, nat] => (nat*nat)set"
+Mutil = Main +
 
+consts    domino :: "(nat*nat)set set"
 inductive domino
   intrs
     horiz  "{(i, j), (i, Suc j)} : domino"
     vertl  "{(i, j), (Suc i, j)} : domino"
 
+consts     tiling :: "'a set set => 'a set set"
 inductive "tiling A"
   intrs
     empty  "{} : tiling A"
     Un     "[| a: A;  t: tiling A;  a <= -t |] ==> a Un t : tiling A"
 
-defs
-  below_def  "below n    == {i. i<n}"
-  evnodd_def "evnodd A b == A Int {(i,j). (i+j) mod 2 = b}"
+constdefs
+  below   :: "nat => nat set"
+   "below n    == {i. i<n}"
+  
+  evnodd  :: "[(nat*nat)set, nat] => (nat*nat)set"
+   "evnodd A b == A Int {(i,j). (i+j) mod 2 = b}"
 
 end
