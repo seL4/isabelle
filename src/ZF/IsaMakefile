@@ -77,15 +77,15 @@ $(LOG)/ZF-Coind.gz: $(OUT)/ZF Coind/BCR.thy Coind/Dynamic.thy \
 
 ZF-AC: ZF $(LOG)/ZF-AC.gz
 
-$(LOG)/ZF-AC.gz: $(OUT)/ZF AC/AC0_AC1.ML AC/AC10_AC15.ML \
+$(LOG)/ZF-AC.gz: $(OUT)/ZF \
   AC/AC15_WO6.ML AC/AC15_WO6.thy AC/AC16_WO4.ML AC/AC16_WO4.thy \
   AC/AC16_lemmas.ML AC/AC16_lemmas.thy AC/AC17_AC1.ML AC/AC17_AC1.thy \
-  AC/AC18_AC19.ML AC/AC18_AC19.thy AC/AC1_AC17.ML AC/AC1_WO2.ML \
-  AC/AC1_WO2.thy AC/AC2_AC6.ML AC/AC7_AC9.ML AC/AC_Equiv.ML \
+  AC/AC18_AC19.ML AC/AC18_AC19.thy AC/AC1_WO2.ML \
+  AC/AC1_WO2.thy AC/AC7_AC9.ML AC/AC_Equiv.ML \
   AC/AC_Equiv.thy AC/Cardinal_aux.ML AC/Cardinal_aux.thy AC/DC.ML \
   AC/DC.thy AC/DC_lemmas.ML AC/DC_lemmas.thy AC/HH.ML AC/HH.thy \
   AC/Hartog.ML AC/Hartog.thy AC/ROOT.ML AC/WO1_AC.ML AC/WO1_AC.thy \
-  AC/WO1_WO6.ML AC/WO1_WO7.ML AC/WO1_WO7.thy AC/WO1_WO8.ML AC/WO2_AC16.ML \
+  AC/WO1_WO7.ML AC/WO1_WO7.thy AC/WO2_AC16.ML \
   AC/WO2_AC16.thy AC/WO6_WO1.ML AC/WO6_WO1.thy AC/WO_AC.ML AC/WO_AC.thy \
   AC/recfunAC16.ML AC/recfunAC16.thy AC/rel_is_fun.ML AC/rel_is_fun.thy
 	@$(ISATOOL) usedir $(OUT)/ZF AC

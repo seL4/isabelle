@@ -89,33 +89,20 @@ qed "succ_not_lepoll_imp_eqpoll";
 (* There is a k-2 element subset of y                                     *)
 (* ********************************************************************** *)
 
-Goalw [lepoll_def, eqpoll_def]
-        "[| n \\<in> nat; nat lepoll X |] ==> \\<exists>Y. Y \\<subseteq> X & n eqpoll Y";
-by (fast_tac (subset_cs addSDs [Ord_nat RSN (2, OrdmemD) RSN (2, restrict_inj)]
-        addSEs [restrict_bij, inj_is_fun RS fun_is_rel RS image_subset]) 1);
-qed "nat_lepoll_imp_ex_eqpoll_n";
-
 val ordertype_eqpoll =
         ordermap_bij RS (exI RS (eqpoll_def RS def_imp_iff RS iffD2));
-
-Goalw [lesspoll_def] "n \\<in> nat ==> n lesspoll nat";
-by (fast_tac (claset() addSEs [Ord_nat RSN (2, ltI) RS leI RS le_imp_lepoll,
-			       eqpoll_sym RS eqpoll_imp_lepoll]
-	      addIs [Ord_nat RSN (2, nat_succI RS ltI) RS leI
-		     RS le_imp_lepoll RS lepoll_trans RS succ_lepoll_natE]) 1);
-qed "n_lesspoll_nat";
 
 Goal "[| a \\<subseteq> y; b \\<in> y-a; u \\<in> x |] ==> cons(b, cons(u, a)) \\<in> Pow(x Un y)";
 by (Fast_tac 1);
 qed "cons_cons_subset";
 
-Goal "[| a eqpoll k; a \\<subseteq> y; b \\<in> y-a; u \\<in> x; x Int y = 0  \
-\       |] ==> cons(b, cons(u, a)) eqpoll succ(succ(k))";
+Goal "[| a eqpoll k; a \\<subseteq> y; b \\<in> y-a; u \\<in> x; x Int y = 0 |]   \
+\     ==> cons(b, cons(u, a)) eqpoll succ(succ(k))";
 by (fast_tac (claset() addSIs [cons_eqpoll_succ]) 1);
 qed "cons_cons_eqpoll";
 
-Goal "[| succ(k) eqpoll A; k eqpoll B; B \\<subseteq> A; a \\<in> A-B; k \\<in> nat  \
-\       |] ==> A = cons(a, B)";
+Goal "[| succ(k) eqpoll A; k eqpoll B; B \\<subseteq> A; a \\<in> A-B; k \\<in> nat |]   \
+\     ==> A = cons(a, B)";
 by (rtac equalityI 1);
 by (Fast_tac 2);
 by (resolve_tac [Diff_eq_0_iff RS iffD1] 1);

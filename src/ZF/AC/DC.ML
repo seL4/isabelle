@@ -199,11 +199,6 @@ qed "DC0_imp_DC_nat";
                                                                           
 ************************************************************************* *)
 
-Goalw [lesspoll_def, Finite_def]
-        "A lesspoll nat ==> Finite(A)";
-by (fast_tac (claset() addSDs [ltD, lepoll_imp_ex_le_eqpoll]) 1);
-qed "lesspoll_nat_is_Finite";
-
 Goal "n \\<in> nat ==> \\<forall>A. (A eqpoll n & A \\<subseteq> X) --> A \\<in> Fin(X)";
 by (induct_tac "n" 1);
 by (rtac allI 1);
