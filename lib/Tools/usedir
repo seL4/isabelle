@@ -24,6 +24,7 @@ function usage()
   echo "    -d FORMAT    build document as FORMAT (default false)"
   echo "    -i BOOL      generate theory browser information (default false)"
   echo "    -m MODE      add print mode for output"
+  echo "    -p LEVEL     set level of detail for proof objects"
   echo "    -r           reset session path"
   echo "    -s NAME      override session NAME"
   echo
@@ -49,11 +50,12 @@ INFO=false
 MODES=""
 RESET=false
 SESSION=""
+PROOF=MinDeriv
 
 function getoptions()
 {
   OPTIND=1
-  while getopts "D:P:bc:d:i:m:rs:" OPT
+  while getopts "D:P:bc:d:i:m:p:rs:" OPT
   do
     case "$OPT" in
       D)
@@ -80,6 +82,9 @@ function getoptions()
         else
           MODES="\"$OPTARG\", $MODES"
         fi
+        ;;
+      p)
+        PROOF="$OPTARG"
         ;;
       r)
         RESET=true
@@ -153,7 +158,7 @@ if [ -n "$BUILD" ]; then
   [ "$COMPRESS" = true ] && OPT_C="-c"
 
   "$ISABELLE" \
-    -e "Session.use_dir [$MODES] $RESET $INFO \"$DOC\" \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\";" \
+    -e "Session.use_dir [$MODES] $RESET $INFO \"$DOC\" \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\" $PROOF;" \
     $OPT_C -q -w $LOGIC $NAME > "$LOG" 2>&1
   RC="$?"
 else
@@ -162,7 +167,7 @@ else
   LOG="$LOGDIR/$ITEM"
 
   "$ISABELLE" \
-    -e "Session.use_dir [$MODES] $RESET $INFO \"$DOC\" \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\"; quit();" \
+    -e "Session.use_dir [$MODES] $RESET $INFO \"$DOC\" \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\" $PROOF; quit();" \
     -r -q "$LOGIC" > "$LOG" 2>&1
   RC="$?"
   cd ..
