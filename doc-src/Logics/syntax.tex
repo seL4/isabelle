@@ -1,0 +1,62 @@
+%% $Id$
+%% THIS FILE IS COMMON TO ALL LOGIC MANUALS
+
+\chapter{Syntax definitions}
+The syntax of each logic is presented using a context-free grammar.
+These grammars obey the following conventions:
+\begin{itemize}
+\item identifiers denote nonterminal symbols
+\item \texttt{typewriter} font denotes terminal symbols
+\item parentheses $(\ldots)$ express grouping
+\item constructs followed by a Kleene star, such as $id^*$ and $(\ldots)^*$
+can be repeated~0 or more times 
+\item alternatives are separated by a vertical bar,~$|$
+\item the symbol for alphanumeric identifiers is~{\it id\/} 
+\item the symbol for scheme variables is~{\it var}
+\end{itemize}
+To reduce the number of nonterminals and grammar rules required, Isabelle's
+syntax module employs {\bf priorities},\index{priorities} or precedences.
+Each grammar rule is given by a mixfix declaration, which has a priority,
+and each argument place has a priority.  This general approach handles
+infix operators that associate either to the left or to the right, as well
+as prefix and binding operators.
+
+In a syntactically valid expression, an operator's arguments never involve
+an operator of lower priority unless brackets are used.  Consider
+first-order logic, where $\exists$ has lower priority than $\disj$,
+which has lower priority than $\conj$.  There, $P\conj Q \disj R$
+abbreviates $(P\conj Q) \disj R$ rather than $P\conj (Q\disj R)$.  Also,
+$\exists x.P\disj Q$ abbreviates $\exists x.(P\disj Q)$ rather than
+$(\exists x.P)\disj Q$.  Note especially that $P\disj(\exists x.Q)$
+becomes syntactically invalid if the brackets are removed.
+
+A {\bf binder} is a symbol associated with a constant of type
+$(\sigma\To\tau)\To\tau'$.  For instance, we may declare~$\forall$ as
+a binder for the constant~$All$, which has type $(\alpha\To o)\To o$.
+This defines the syntax $\forall x.t$ to mean $All(\lambda x.t)$.  We
+can also write $\forall x@1\ldots x@m.t$ to abbreviate $\forall x@1.
+\ldots \forall x@m.t$; this is possible for any constant provided that
+$\tau$ and $\tau'$ are the same type.  \HOL's description operator
+$\varepsilon x.P\,x$ has type $(\alpha\To bool)\To\alpha$ and can bind
+only one variable, except when $\alpha$ is $bool$.  \ZF's bounded
+quantifier $\forall x\in A.P(x)$ cannot be declared as a binder
+because it has type $[i, i\To o]\To o$.  The syntax for binders allows
+type constraints on bound variables, as in
+\[ \forall (x{::}\alpha) \; (y{::}\beta) \; z{::}\gamma. Q(x,y,z) \]
+
+To avoid excess detail, the logic descriptions adopt a semi-formal style.
+Infix operators and binding operators are listed in separate tables, which
+include their priorities.  Grammar descriptions do not include numeric
+priorities; instead, the rules appear in order of decreasing priority.
+This should suffice for most purposes; for full details, please consult the
+actual syntax definitions in the {\tt.thy} files.
+
+Each nonterminal symbol is associated with some Isabelle type.  For
+example, the formulae of first-order logic have type~$o$.  Every
+Isabelle expression of type~$o$ is therefore a formula.  These include
+atomic formulae such as $P$, where $P$ is a variable of type~$o$, and more
+generally expressions such as $P(t,u)$, where $P$, $t$ and~$u$ have
+suitable types.  Therefore, `expression of type~$o$' is listed as a
+separate possibility in the grammar for formulae.
+
+

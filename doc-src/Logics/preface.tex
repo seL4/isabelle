@@ -1,0 +1,60 @@
+%% $Id$
+\chapter*{Preface}
+Several logics come with Isabelle.  Many of them are sufficiently developed
+to serve as comfortable reasoning environments.  They are also good
+starting points for defining new logics.  Each logic is distributed with
+sample proofs, some of which are described in this document.
+
+The logics \texttt{FOL} (first-order logic) and \texttt{ZF} (axiomatic set
+theory) are described in a separate manual~\cite{isabelle-ZF}.  Here are the
+others:
+
+\begin{ttdescription}
+\item[\thydx{CCL}] is Martin Coen's Classical Computational Logic,
+  which is the basis of a preliminary method for deriving programs from
+  proofs~\cite{coen92}.  It is built upon classical~\FOL{}.
+ 
+\item[\thydx{LCF}] is a version of Scott's Logic for Computable
+  Functions, which is also implemented by the~{\sc lcf}
+  system~\cite{paulson87}.  It is built upon classical~\FOL{}.
+
+\item[\thydx{HOL}] is the higher-order logic of Church~\cite{church40},
+which is also implemented by Gordon's~{\sc hol} system~\cite{mgordon-hol}.
+This object-logic should not be confused with Isabelle's meta-logic, which is
+also a form of higher-order logic.
+
+\item[\thydx{HOLCF}] is a version of {\sc lcf}, defined as an
+  extension of \texttt{HOL}\@.
+ 
+\item[\thydx{CTT}] is a version of Martin-L\"of's Constructive Type
+Theory~\cite{nordstrom90}, with extensional equality.  Universes are not
+included.
+
+\item[\thydx{Cube}] is Barendregt's $\lambda$-cube.
+ \end{ttdescription}
+
+The directory \texttt{Sequents} contains several logics based
+  upon the sequent calculus.  Sequents have the form $A@1,\ldots,A@m\turn
+B@1,\ldots,B@n$; rules are applied using associative matching.
+\begin{ttdescription}
+\item[\thydx{LK}] is classical first-order logic as a sequent calculus.
+
+\item[\thydx{Modal}] implements the modal logics $T$, $S4$, and~$S43$.  
+
+\item[\thydx{ILL}] implements intuitionistic linear logic.
+\end{ttdescription}
+
+The logics \texttt{CCL}, \texttt{LCF}, \texttt{HOLCF}, \texttt{Modal}, \texttt{ILL} and {\tt
+  Cube} are undocumented.  All object-logics' sources are
+distributed with Isabelle (see the directory \texttt{src}).  They are
+also available for browsing on the WWW at
+\begin{ttbox}
+http://www4.informatik.tu-muenchen.de/~nipkow/isabelle/
+\end{ttbox}
+Note that this is not necessarily consistent with your local sources!
+
+\medskip Do not read this manual before reading \emph{Introduction to
+  Isabelle} and performing some Isabelle proofs.  Consult the {\em Reference
+  Manual} for more information on tactics, packages, etc.
+
+
