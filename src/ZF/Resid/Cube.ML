@@ -54,10 +54,17 @@ goal Cube.thy
 by (res_inst_tac [("u2","u"),("v2","v")](preservation RS ssubst) 1 
     THEN assume_tac 1 THEN assume_tac 1);
 by (res_inst_tac [("u2","v"),("v2","u")](preservation RS ssubst) 1);
-by (ALLGOALS(asm_full_simp_tac (res1_ss addsimps 
-    [prism RS sym,union_r,union_l,union_preserve_comp,union_preserve_regular,
-     read_instantiate [("u2","w"),("x1","v")] comp_trans,comp_sym_iff,
-     union_sym])));
+by (etac comp_sym 1);
+by (atac 1);
+by(rtac (prism RS sym RS ssubst) 1);
+by (asm_full_simp_tac (res1_ss addsimps 
+    [prism RS sym,union_l,union_preserve_regular,
+     comp_sym_iff, union_sym]) 4);
+by (asm_full_simp_tac (res1_ss addsimps [union_r, comp_sym_iff]) 1);
+by (asm_full_simp_tac (res1_ss addsimps 
+    [union_preserve_regular, comp_sym_iff]) 1);
+by (etac comp_trans 1);
+by (atac 1);
 val cube = result();
 
 
@@ -72,6 +79,16 @@ goal Cube.thy
 by (forw_inst_tac [("x1","v")] (comp_sym RS comp_trans) 1);
 by (REPEAT(step_tac ZF_cs 1));
 by (rtac cube 1);
-by (ALLGOALS(asm_simp_tac (prism_ss addsimps [comp_sym_iff])));
+by (asm_simp_tac (prism_ss addsimps [comp_sym_iff]) 1);
+by (asm_simp_tac (prism_ss addsimps [comp_sym_iff]) 1);
+by (asm_simp_tac (prism_ss addsimps [comp_sym_iff]) 1);
+by (atac 1);
+by (etac (residuals_preserve_comp RS spec RS mp RS mp RS mp) 1);
+ by(atac 1);
+ by(etac comp_sym 1);
+ by(atac 1);
+by (asm_simp_tac (prism_ss addsimps [comp_sym_iff]) 1);
+by (asm_simp_tac prism_ss 1);
+by (asm_simp_tac (prism_ss addsimps [comp_sym_iff]) 1);
 val paving = result();
 

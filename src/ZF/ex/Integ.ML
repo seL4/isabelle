@@ -384,9 +384,8 @@ goalw Integ.thy [integ_def]
     "!!z1 z2 z3. [| z1: integ;  z2: integ;  w: integ |] ==> \
 \                (z1 $+ z2) $* w = (z1 $* w) $+ (z2 $* w)";
 by (REPEAT (eresolve_tac [quotientE, SigmaE, ssubst] 1));
-by (asm_simp_tac 
-    (intrel_ss addsimps ([zadd, zmult, add_mult_distrib] @ 
-                         add_ac @ mult_ac)) 1);
+by (asm_simp_tac (intrel_ss addsimps [zadd, zmult, add_mult_distrib]) 1);
+by (asm_simp_tac (intrel_ss addsimps (add_ac @ mult_ac)) 1);
 qed "zadd_zmult_distrib";
 
 val integ_typechecks =

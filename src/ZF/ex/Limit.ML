@@ -2167,9 +2167,9 @@ by (asm_full_simp_tac (ZF_ss addsimps
      add_type::nat_into_Ord::prems)) 1);
 by (etac lt_asym 1);
 by (assume_tac 1);
+by (asm_full_simp_tac (ZF_ss addsimps add_succ_right::succ_le_iff::prems) 1);
 by (asm_full_simp_tac (ZF_ss addsimps 
-    (succ_le_iff::add_succ::add_succ_right::le_iff::
-     add_type::nat_into_Ord::prems)) 1);
+    (add_succ::le_iff::add_type::nat_into_Ord::prems)) 1);
 by (safe_tac lemmas_cs);
 by (etac lt_irrefl 1);
 val add_le_elim1 = result();
