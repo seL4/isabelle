@@ -21,7 +21,7 @@
 #ISABELLE_PATH=other-places-where-heaps-may-reside:$ISABELLE_PATH
 #ISABELLE_OUTPUT=somewhere-else
 
-#DEFAULT_LOGIC=ZF
+#ISABELLE_LOGIC=ZF
 
 
 ###

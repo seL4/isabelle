@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/wiss/wenzelm/bin/bash
 #
 # $Id$
 #
@@ -27,7 +27,7 @@ function usage()
   echo "    -q           non-interactive session"
   echo "    -r           open heap file read-only"
   echo
-  echo "  INPUT (default \"$DEFAULT_LOGIC\") and OUTPUT specify in/out heaps."
+  echo "  INPUT (default \"$ISABELLE_LOGIC\") and OUTPUT specify in/out heaps."
   echo "  These are either names to be searched in the Isabelle path, or actual"
   echo "  file names (then containing at least one /)."
   echo "  If INPUT is \"RAW_ML_SYSTEM\", just start the bare bones ML system."
@@ -104,7 +104,7 @@ fi
 
 ## input heap file
 
-[ -z "$INPUT" ] && INPUT="$DEFAULT_LOGIC"
+[ -z "$INPUT" ] && INPUT="$ISABELLE_LOGIC"
 
 case "$INPUT" in
   RAW_ML_SYSTEM)

@@ -68,7 +68,7 @@ else
 fi
 
 #Users may want to change this.
-DEFAULT_LOGIC=HOL
+ISABELLE_LOGIC=HOL
 
 
 ## Docs
