@@ -72,7 +72,7 @@ trivial) goal $0 + (x + 0) = x + 0 + 0$ can be solved by a single call
 of \texttt{Simp_tac} as follows:
 \begin{ttbox}
 context Arith.thy;
-goal Arith.thy "0 + (x + 0) = x + 0 + 0";
+Goal "0 + (x + 0) = x + 0 + 0";
 {\out  1. 0 + (x + 0) = x + 0 + 0}
 by (Simp_tac 1);
 {\out Level 1}
@@ -180,22 +180,22 @@ explicitly adding or deleting theorems and simplification procedures.
 
 \medskip
 
-Good simpsets are hard to design.  As a rule of thump, generally
-useful ``simplification rules'' like $\Var{n}+0 = \Var{n}$ should be
-added to the current simpset right after they have been proved.  Those
-of a more specific nature (e.g.\ the laws of de~Morgan, which alter
-the structure of a formula) should only be added for specific proofs
-and deleted again afterwards.  Conversely, it may also happen that a
-generally useful rule needs to be removed for a certain proof and is
-added again afterwards.  The need of frequent temporary additions or
-deletions may indicate a badly designed simpset.
+Good simpsets are hard to design.  Rules that obviously simplify,
+like $\Var{n}+0 = \Var{n}$, should be added to the current simpset right after
+they have been proved.  More specific ones (such as distributive laws, which
+duplicate subterms) should be added only for specific proofs and deleted
+afterwards.  Conversely, sometimes a rule needs
+to be removed for a certain proof and restored afterwards.  The need of
+frequent additions or deletions may indicate a badly designed
+simpset.
 
 \begin{warn}
   The union of the parent simpsets (as described above) is not always
   a good starting point for the new theory.  If some ancestors have
   deleted simplification rules because they are no longer wanted,
   while others have left those rules in, then the union will contain
-  the unwanted rules.
+  the unwanted rules.  After this union is formed, changes to 
+  a parent simpset have no effect on the child simpset.
 \end{warn}
 
 
@@ -728,7 +728,7 @@ omitted in forward simplification.
 
 \section{Examples of using the simplifier}
 \index{examples!of simplification} Assume we are working within {\tt
-  FOL} (cf.\ \texttt{FOL/ex/Nat}) and that
+  FOL} (see the file \texttt{FOL/ex/Nat}) and that
 \begin{ttdescription}
 \item[Nat.thy] 
   is a theory including the constants $0$, $Suc$ and $+$,
@@ -750,7 +750,7 @@ Addsimps [add_0, add_Suc];
 Proofs by induction typically involve simplification.  Here is a proof
 that~0 is a right identity:
 \begin{ttbox}
-goal Nat.thy "m+0 = m";
+Goal "m+0 = m";
 {\out Level 0}
 {\out m + 0 = m}
 {\out  1. m + 0 = m}
@@ -786,7 +786,7 @@ by (Asm_simp_tac 1);
 Let us prove a similar result involving more complex terms.  We prove
 that addition is commutative.
 \begin{ttbox}
-goal Nat.thy "m+Suc(n) = Suc(m+n)";
+Goal "m+Suc(n) = Suc(m+n)";
 {\out Level 0}
 {\out m + Suc(n) = Suc(m + n)}
 {\out  1. m + Suc(n) = Suc(m + n)}
@@ -850,8 +850,7 @@ by (ALLGOALS Asm_simp_tac);
 Here is a conjecture to be proved for an arbitrary function~$f$
 satisfying the law $f(Suc(\Var{n})) = Suc(f(\Var{n}))$:
 \begin{ttbox}
-val [prem] = goal Nat.thy
-    "(!!n. f(Suc(n)) = Suc(f(n))) ==> f(i+j) = i+f(j)";
+val [prem] = Goal "(!!n. f(Suc(n)) = Suc(f(n))) ==> f(i+j) = i+f(j)";
 {\out Level 0}
 {\out f(i + j) = i + f(j)}
 {\out  1. f(i + j) = i + f(j)}
@@ -1014,7 +1013,7 @@ Addsimps add_ac;
 Our desired theorem now reads $\texttt{sum} \, (\lambda i.i) \, (n+1) =
 n\times(n+1)/2$.  The Isabelle goal has both sides multiplied by~$2$:
 \begin{ttbox}
-goal NatSum.thy "2 * sum (\%i.i) (Suc n) = n * Suc n";
+Goal "2 * sum (\%i.i) (Suc n) = n * Suc n";
 {\out Level 0}
 {\out 2 * sum (\%i. i) (Suc n) = n * Suc n}
 {\out  1. 2 * sum (\%i. i) (Suc n) = n * Suc n}

@@ -24,9 +24,9 @@ Isabelle session, this state consists of a dummy formula.
 
 
 \section{Basic commands}
-Most proofs begin with {\tt goal} or {\tt goalw} and require no other
-commands than {\tt by}, {\tt chop} and {\tt undo}.  They typically end
-with a call to {\tt qed}.
+Most proofs begin with \texttt{goal} or \texttt{goalw} and require no other
+commands than \texttt{by}, \texttt{chop} and \texttt{undo}.  They typically end
+with a call to \texttt{qed}.
 \subsection{Starting a backward proof}
 \index{proofs!starting}
 \begin{ttbox} 
@@ -35,7 +35,7 @@ goalw       : theory -> thm list -> string -> thm list
 goalw_cterm : thm list -> cterm -> thm list 
 premises    : unit -> thm list
 \end{ttbox}
-The {\tt goal} commands start a new proof by setting the goal.  They
+The \texttt{goal} commands start a new proof by setting the goal.  They
 replace the current state list by a new one consisting of the initial proof
 state.  They also empty the \ttindex{undo} list; this command cannot be
 undone!
@@ -48,22 +48,15 @@ val prems = goal{\it theory\/ formula};
 \end{ttbox}\index{assumptions!of main goal}
 These assumptions serve as the premises when you are deriving a rule.
 They are also stored internally and can be retrieved later by the
-function {\tt premises}.  When the proof is finished, {\tt qed}
+function \texttt{premises}.  When the proof is finished, \texttt{qed}
 compares the stored assumptions with the actual assumptions in the
 proof state.
 
 \index{definitions!unfolding}
 Some of the commands unfold definitions using meta-rewrite rules.  This
 expansion affects both the initial subgoal and the premises, which would
-otherwise require use of {\tt rewrite_goals_tac} and
-{\tt rewrite_rule}.
-
-\index{*"!"! symbol!in main goal}
-If the main goal has the form {\tt"!!{\it vars}.\ \ldots"}, with an
-outermost quantifier, then the list of premises will be empty.  Subgoal~1
-will contain the meta-quantified {\it vars\/} as parameters and the goal's
-premises as assumptions.  This avoids having to call
-\ttindex{cut_facts_tac} with the list of premises (\S\ref{cut_facts_tac}).
+otherwise require use of \texttt{rewrite_goals_tac} and
+\texttt{rewrite_rule}.
 
 \begin{ttdescription}
 \item[\ttindexbold{goal} {\it theory} {\it formula};] 
@@ -71,14 +64,14 @@ begins a new proof, where {\it theory} is usually an \ML\ identifier
 and the {\it formula\/} is written as an \ML\ string.
 
 \item[\ttindexbold{goalw} {\it theory} {\it defs} {\it formula};] 
-is like {\tt goal} but also applies the list of {\it defs\/} as
+is like \texttt{goal} but also applies the list of {\it defs\/} as
 meta-rewrite rules to the first subgoal and the premises.
 \index{meta-rewriting}
 
 \item[\ttindexbold{goalw_cterm} {\it theory} {\it defs} {\it ct};] is
-  a version of {\tt goalw} for programming applications.  The main
+  a version of \texttt{goalw} for programming applications.  The main
   goal is supplied as a cterm, not as a string.  Typically, the cterm
-  is created from a term~$t$ by \hbox{\tt cterm_of (sign_of thy) $t$}.
+  is created from a term~$t$ by \texttt{cterm_of (sign_of thy) $t$}.
   \index{*cterm_of}\index{*sign_of}
 
 \item[\ttindexbold{premises}()] 
@@ -96,13 +89,13 @@ byev : tactic list -> unit
 These commands extend the state list.  They apply a tactic to the current
 proof state.  If the tactic succeeds, it returns a non-empty sequence of
 next states.  The head of the sequence becomes the next state, while the
-tail is retained for backtracking (see~{\tt back}).
+tail is retained for backtracking (see~\texttt{back}).
 \begin{ttdescription} \item[\ttindexbold{by} {\it tactic};] 
 applies the {\it tactic\/} to the proof state.
 
 \item[\ttindexbold{byev} {\it tactics};] 
 applies the list of {\it tactics}, one at a time.  It is useful for testing
-calls to {\tt prove_goal}, and abbreviates \hbox{\tt by (EVERY {\it
+calls to \texttt{prove_goal}, and abbreviates \texttt{by (EVERY {\it
 tactics})}.
 \end{ttdescription}
 
@@ -130,19 +123,19 @@ store_thm : string * thm -> thm
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{qed} $name$;] is the usual way of ending a proof.
-  It combines {\tt result} and {\tt bind_thm}: it gets the theorem
-  using {\tt result()} and stores it the theorem database associated
+  It combines \texttt{result} and \texttt{bind_thm}: it gets the theorem
+  using \texttt{result()} and stores it the theorem database associated
   with its theory.  See below for details.
 
 \item[\ttindexbold{result}()]\index{assumptions!of main goal}
   returns the final theorem, after converting the free variables to
   schematics.  It discharges the assumptions supplied to the matching 
-  {\tt goal} command.  
+  \texttt{goal} command.  
 
   It raises an exception unless the proof state passes certain checks.  There
-  must be no assumptions other than those supplied to {\tt goal}.  There
+  must be no assumptions other than those supplied to \texttt{goal}.  There
   must be no subgoals.  The theorem proved must be a (first-order) instance
-  of the original goal, as stated in the {\tt goal} command.  This allows
+  of the original goal, as stated in the \texttt{goal} command.  This allows
   {\bf answer extraction} --- instantiation of variables --- but no other
   changes to the main goal.  The theorem proved must have the same signature
   as the initial proof state.
@@ -150,17 +143,17 @@ store_thm : string * thm -> thm
   These checks are needed because an Isabelle tactic can return any proof
   state at all.
 
-\item[\ttindexbold{uresult}()] is like {\tt result()} but omits the checks.
+\item[\ttindexbold{uresult}()] is like \texttt{result()} but omits the checks.
   It is needed when the initial goal contains function unknowns, when
   definitions are unfolded in the main goal (by calling
   \ttindex{rewrite_tac}),\index{definitions!unfolding} or when
   \ttindex{assume_ax} has been used.
   
 \item[\ttindexbold{bind_thm} ($name$, $thm$);]\index{theorems!storing}
-  stores {\tt standard $thm$} (see \S\ref{MiscellaneousForwardRules})
+  stores \texttt{standard $thm$} (see \S\ref{MiscellaneousForwardRules})
   in the theorem database associated with its theory and in the {\ML}
   variable $name$.  The theorem can be retrieved from the database
-  using {\tt get_thm} (see \S\ref{BasicOperationsOnTheories}).
+  using \texttt{get_thm} (see \S\ref{BasicOperationsOnTheories}).
   
 \item[\ttindexbold{store_thm} ($name$, $thm$)]\index{theorems!storing}
   stores $thm$ in the theorem database associated with its theory and
@@ -186,17 +179,17 @@ thms_containing : xstring list -> (string * thm) list
 \item[\ttindexbold{findI} $i$]\index{assumptions!of main goal}
   returns all ``introduction rules'' applicable to subgoal $i$ --- all
   theorems whose conclusion matches (rather than unifies with) subgoal
-  $i$.  Useful in connection with {\tt resolve_tac}.
+  $i$.  Useful in connection with \texttt{resolve_tac}.
 
 \item[\ttindexbold{findE} $n$ $i$] returns all ``elimination rules''
   applicable to premise $n$ of subgoal $i$ --- all those theorems whose
   first premise matches premise $n$ of subgoal $i$.  Useful in connection with
-  {\tt eresolve_tac} and {\tt dresolve_tac}.
+  \texttt{eresolve_tac} and \texttt{dresolve_tac}.
 
 \item[\ttindexbold{findEs} $i$] returns all ``elimination rules'' applicable
   to subgoal $i$ --- all those theorems whose first premise matches some
-  premise of subgoal $i$.  Useful in connection with {\tt eresolve_tac} and
-  {\tt dresolve_tac}.
+  premise of subgoal $i$.  Useful in connection with \texttt{eresolve_tac} and
+  \texttt{dresolve_tac}.
   
 \item[\ttindexbold{thms_containing} $consts$] returns all theorems
   that contain all of a given set of constants.  Note that a few basic
@@ -214,13 +207,13 @@ undo    : unit -> unit
 \begin{ttdescription}
 \item[\ttindexbold{chop}();] 
 deletes the top level of the state list, cancelling the last \ttindex{by}
-command.  It provides a limited undo facility, and the {\tt undo} command
+command.  It provides a limited undo facility, and the \texttt{undo} command
 can cancel it.
 
 \item[\ttindexbold{choplev} {\it n};] 
 truncates the state list to level~{\it n}, if $n\geq0$.  A negative value
 of~$n$ refers to the $n$th previous level: 
-\hbox{\verb|choplev ~1|} has the same effect as {\tt chop}.
+\hbox{\verb|choplev ~1|} has the same effect as \texttt{chop}.
 
 \item[\ttindexbold{back}();]
 searches the state list for a non-empty branch point, starting from the top
@@ -230,21 +223,21 @@ backtracking.
 
 \item[\ttindexbold{undo}();] 
 cancels the most recent change to the proof state by the commands \ttindex{by},
-{\tt chop}, {\tt choplev}, and~{\tt back}.  It {\bf cannot}
-cancel {\tt goal} or {\tt undo} itself.  It can be repeated to
+\texttt{chop}, \texttt{choplev}, and~\texttt{back}.  It {\bf cannot}
+cancel \texttt{goal} or \texttt{undo} itself.  It can be repeated to
 cancel a series of commands.
 \end{ttdescription}
 
 \goodbreak
-\noindent{\it Error indications for {\tt back}:}\par\nobreak
+\noindent{\it Error indications for \texttt{back}:}\par\nobreak
 \begin{itemize}
 \item{\footnotesize\tt"Warning:\ same as previous choice at this level"}
-  means {\tt back} found a non-empty branch point, but that it contained
+  means \texttt{back} found a non-empty branch point, but that it contained
   the same proof state as the current one.
 \item{\footnotesize\tt "Warning:\ signature of proof state has changed"}
   means the signature of the alternative proof state differs from that of
   the current state.
-\item {\footnotesize\tt "back:\ no alternatives"} means {\tt back} could
+\item {\footnotesize\tt "back:\ no alternatives"} means \texttt{back} could
   find no alternative proof state.
 \end{itemize}
 
@@ -269,7 +262,7 @@ you to review earlier stages of the proof.
 
 \item[\ttindexbold{prlim} {\it k};] 
 prints the current proof state, limiting the number of subgoals to~$k$.  It
-updates {\tt goals_limit} (see below) and is helpful when there are many
+updates \texttt{goals_limit} (see below) and is helpful when there are many
 subgoals. 
 
 \item[\ttindexbold{goals_limit} := {\it k};] 
@@ -291,7 +284,7 @@ processor time was spent.  This information is compiler-dependent.
 
 
 \section{Shortcuts for applying tactics}
-\index{shortcuts!for {\tt by} commands}
+\index{shortcuts!for \texttt{by} commands}
 These commands call \ttindex{by} with common tactics.  Their chief purpose
 is to minimise typing, although the scanning shortcuts are useful in their
 own right.  Chapter~\ref{tactics} explains the tactics themselves.
@@ -309,32 +302,32 @@ bds : thm list -> int -> unit
 
 \begin{ttdescription}
 \item[\ttindexbold{ba} {\it i};] 
-performs \hbox{\tt by (assume_tac {\it i});}
+performs \texttt{by (assume_tac {\it i});}
 
 \item[\ttindexbold{br} {\it thm} {\it i};] 
-performs \hbox{\tt by (resolve_tac [{\it thm}] {\it i});}
+performs \texttt{by (resolve_tac [{\it thm}] {\it i});}
 
 \item[\ttindexbold{be} {\it thm} {\it i};] 
-performs \hbox{\tt by (eresolve_tac [{\it thm}] {\it i});}
+performs \texttt{by (eresolve_tac [{\it thm}] {\it i});}
 
 \item[\ttindexbold{bd} {\it thm} {\it i};] 
-performs \hbox{\tt by (dresolve_tac [{\it thm}] {\it i});}
+performs \texttt{by (dresolve_tac [{\it thm}] {\it i});}
 
 \item[\ttindexbold{brs} {\it thms} {\it i};] 
-performs \hbox{\tt by (resolve_tac {\it thms} {\it i});}
+performs \texttt{by (resolve_tac {\it thms} {\it i});}
 
 \item[\ttindexbold{bes} {\it thms} {\it i};] 
-performs \hbox{\tt by (eresolve_tac {\it thms} {\it i});}
+performs \texttt{by (eresolve_tac {\it thms} {\it i});}
 
 \item[\ttindexbold{bds} {\it thms} {\it i};] 
-performs \hbox{\tt by (dresolve_tac {\it thms} {\it i});}
+performs \texttt{by (dresolve_tac {\it thms} {\it i});}
 \end{ttdescription}
 
 
 \subsection{Scanning shortcuts}
 These shortcuts scan for a suitable subgoal (starting from subgoal~1).
 They refine the first subgoal for which the tactic succeeds.  Thus, they
-require less typing than {\tt br}, etc.  They display the selected
+require less typing than \texttt{br}, etc.  They display the selected
 subgoal's number; please watch this, for it may not be what you expect!
 
 \begin{ttbox} 
@@ -352,22 +345,22 @@ fds : thm list -> unit
 solves some subgoal by assumption.
 
 \item[\ttindexbold{fr} {\it thm};] 
-refines some subgoal using \hbox{\tt resolve_tac [{\it thm}]}
+refines some subgoal using \texttt{resolve_tac [{\it thm}]}
 
 \item[\ttindexbold{fe} {\it thm};] 
-refines some subgoal using \hbox{\tt eresolve_tac [{\it thm}]}
+refines some subgoal using \texttt{eresolve_tac [{\it thm}]}
 
 \item[\ttindexbold{fd} {\it thm};] 
-refines some subgoal using \hbox{\tt dresolve_tac [{\it thm}]}
+refines some subgoal using \texttt{dresolve_tac [{\it thm}]}
 
 \item[\ttindexbold{frs} {\it thms};] 
-refines some subgoal using \hbox{\tt resolve_tac {\it thms}}
+refines some subgoal using \texttt{resolve_tac {\it thms}}
 
 \item[\ttindexbold{fes} {\it thms};] 
-refines some subgoal using \hbox{\tt eresolve_tac {\it thms}} 
+refines some subgoal using \texttt{eresolve_tac {\it thms}} 
 
 \item[\ttindexbold{fds} {\it thms};] 
-refines some subgoal using \hbox{\tt dresolve_tac {\it thms}} 
+refines some subgoal using \texttt{dresolve_tac {\it thms}} 
 \end{ttdescription}
 
 \subsection{Other shortcuts}
@@ -377,17 +370,17 @@ bws : thm list -> unit
 ren : string -> int -> unit
 \end{ttbox}
 \begin{ttdescription}
-\item[\ttindexbold{bw} {\it def};] performs \hbox{\tt by
+\item[\ttindexbold{bw} {\it def};] performs \texttt{by
     (rewrite_goals_tac [{\it def}]);} It unfolds definitions in the
   subgoals (but not the main goal), by meta-rewriting with the given
   definition (see also \S\ref{sec:rewrite_goals}).
   \index{meta-rewriting}
 
 \item[\ttindexbold{bws}] 
-is like {\tt bw} but takes a list of definitions.
+is like \texttt{bw} but takes a list of definitions.
 
 \item[\ttindexbold{ren} {\it names} {\it i};] 
-performs \hbox{\tt by (rename_tac {\it names} {\it i});} it renames
+performs \texttt{by (rename_tac {\it names} {\it i});} it renames
 parameters in subgoal~$i$.  (Ignore the message {\footnotesize\tt Warning:\
   same as previous level}.)
 \index{parameters!renaming}
@@ -408,8 +401,8 @@ prove_goalw_cterm:               thm list -> cterm  -> tacfun -> thm
 These batch functions create an initial proof state, then apply a tactic to
 it, yielding a sequence of final proof states.  The head of the sequence is
 returned, provided it is an instance of the theorem originally proposed.
-The forms {\tt prove_goal}, {\tt prove_goalw} and {\tt prove_goalw_cterm}
-are analogous to {\tt goal}, {\tt goalw} and {\tt goalw_cterm}.
+The forms \texttt{prove_goal}, \texttt{prove_goalw} and \texttt{prove_goalw_cterm}
+are analogous to \texttt{goal}, \texttt{goalw} and \texttt{goalw_cterm}.
 
 The tactic is specified by a function from theorem lists to tactic lists.
 The function is applied to the list of meta-assumptions taken from
@@ -426,7 +419,7 @@ qed_goal "my_thm" {\it theory} {\it formula}
  (fn prems=> [ \(tac@1\), \ldots, \(tac@n\) ]);
 \end{ttbox}
 The methods perform identical processing of the initial {\it formula} and
-the final proof state.  But {\tt prove_goal} executes the tactic as a
+the final proof state.  But \texttt{prove_goal} executes the tactic as a
 atomic operation, bypassing the subgoal module; the current interactive
 proof is unaffected.
 %
@@ -436,21 +429,21 @@ executes a proof of the {\it formula\/} in the given {\it theory}, using
 the given tactic function.
 
 \item[\ttindexbold{qed_goal} $name$ $theory$ $formula$ $tacsf$;] acts
-  like {\tt prove_goal} but also stores the resulting theorem in the
+  like \texttt{prove_goal} but also stores the resulting theorem in the
   theorem database associated with its theory and in the {\ML}
   variable $name$ (see \S\ref{ExtractingAndStoringTheProvedTheorem}).
 
 \item[\ttindexbold{prove_goalw} {\it theory} {\it defs} {\it formula} 
       {\it tacsf};]\index{meta-rewriting}
-is like {\tt prove_goal} but also applies the list of {\it defs\/} as
+is like \texttt{prove_goal} but also applies the list of {\it defs\/} as
 meta-rewrite rules to the first subgoal and the premises.
 
 \item[\ttindexbold{qed_goalw} $name$ $theory$ $defs$ $formula$ $tacsf$;]
-is analogous to {\tt qed_goal}.
+is analogous to \texttt{qed_goal}.
 
 \item[\ttindexbold{prove_goalw_cterm} {\it theory} {\it defs} {\it ct}
       {\it tacsf};] 
-is a version of {\tt prove_goalw} for programming applications.  The main
+is a version of \texttt{prove_goalw} for programming applications.  The main
 goal is supplied as a cterm, not as a string.  Typically, the cterm is
 created from a term~$t$ as follows:
 \begin{ttbox}
@@ -482,16 +475,16 @@ pop_proof    : unit -> thm list
 rotate_proof : unit -> thm list
 \end{ttbox}
 The subgoal module maintains a stack of proof states.  Most subgoal
-commands affect only the top of the stack.  The \ttindex{goal} command {\em
+commands affect only the top of the stack.  The \ttindex{Goal} command {\em
 replaces\/} the top of the stack; the only command that pushes a proof on the
-stack is {\tt push_proof}.
+stack is \texttt{push_proof}.
 
-To save some point of the proof, call {\tt push_proof}.  You may now
-state a lemma using {\tt goal}, or simply continue to apply tactics.
-Later, you can return to the saved point by calling {\tt pop_proof} or 
-{\tt rotate_proof}. 
+To save some point of the proof, call \texttt{push_proof}.  You may now
+state a lemma using \texttt{goal}, or simply continue to apply tactics.
+Later, you can return to the saved point by calling \texttt{pop_proof} or 
+\texttt{rotate_proof}. 
 
-To view the entire stack, call {\tt rotate_proof} repeatedly; as it rotates
+To view the entire stack, call \texttt{rotate_proof} repeatedly; as it rotates
 the stack, it prints the new top element.
 
 \begin{ttdescription}
@@ -574,7 +567,7 @@ would supply to a tactic at this point.  It omits the post-processing of
 
 \item[\ttindexbold{getgoal} {\it i}]  
 returns subgoal~$i$ of the proof state, as a term.  You may print
-this using {\tt prin}, though you may have to examine the internal
+this using \texttt{prin}, though you may have to examine the internal
 data structure in order to locate the problem!
 
 \item[\ttindexbold{gethyps} {\it i}]
@@ -591,7 +584,7 @@ filter_goal: (term*term->bool) -> thm list -> int -> thm list
 
 \begin{ttdescription}
 \item[\ttindexbold{filter_goal} {\it could} {\it ths} {\it i}] 
-applies \hbox{\tt filter_thms {\it could}} to subgoal~$i$ of the proof
+applies \texttt{filter_thms {\it could}} to subgoal~$i$ of the proof
 state and returns the list of theorems that survive the filtering. 
 \end{ttdescription}
 

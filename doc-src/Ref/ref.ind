@@ -1,7 +1,6 @@
 \begin{theindex}
 
   \item {\tt !!} symbol, 69
-    \subitem in main goal, 8
   \item {\tt\$}, \bold{60}, 86
   \item {\tt\%} symbol, 69
   \item {\tt ::} symbol, 69, 70
@@ -65,7 +64,7 @@
   \item {\tt APPEND}, \bold{29}, 31
   \item {\tt APPEND'}, 36
   \item {\tt Appl}, 83
-  \item {\tt aprop} nonterminal, \bold{68}
+  \item {\tt aprop} nonterminal, \bold{70}
   \item {\tt ares_tac}, \bold{20}
   \item {\tt args} nonterminal, 93
   \item {\tt Arith} theory, 118
@@ -186,7 +185,7 @@
   \item {\tt cterm_of}, 8, 14, \bold{62}
   \item {\tt ctyp}, \bold{63}
   \item {\tt ctyp_of}, \bold{64}
-  \item {\tt cut_facts_tac}, 8, \bold{20}, 101
+  \item {\tt cut_facts_tac}, \bold{20}, 101
   \item {\tt cut_inst_tac}, \bold{20}
   \item {\tt cut_rl} theorem, 22
 
@@ -242,7 +241,7 @@
   \item {\tt ematch_tac}, \bold{18}
   \item {\tt empty} constant, 92
   \item {\tt empty_cs}, \bold{132}
-  \item {\tt empty_ss}, \bold{107}
+  \item {\tt empty_ss}, \bold{106}
   \item {\tt eq_assume_tac}, \bold{18}, 131
   \item {\tt eq_assumption}, \bold{47}
   \item {\tt eq_mp_tac}, \bold{139}
@@ -333,7 +332,8 @@
   \item {\tt get_thms}, \bold{57}
   \item {\tt getgoal}, \bold{16}
   \item {\tt gethyps}, \bold{16}, 34
-  \item {\tt goal}, \bold{8}, 14
+  \item {\tt Goal}, 14
+  \item {\tt goal}, \bold{8}
   \item {\tt goals_limit}, \bold{11}
   \item {\tt goalw}, \bold{8}
   \item {\tt goalw_cterm}, \bold{8}
@@ -619,8 +619,8 @@
   \item {\tt setsubgoaler}, \bold{110}, 125
   \item {\tt settermless}, \bold{117}
   \item shortcuts
+    \subitem for \texttt{by} commands, 11
     \subitem for tactics, 20
-    \subitem for {\tt by} commands, 11
   \item {\tt show_brackets}, \bold{4}
   \item {\tt show_consts}, \bold{4}
   \item {\tt show_hyps}, \bold{4}
@@ -759,7 +759,7 @@
     \subitem joining by resolution, 38
     \subitem of pure theory, 22
     \subitem printing of, 37
-    \subitem retrieving, 10
+    \subitem retrieving, 9
     \subitem size of, 33
     \subitem standardizing, 40
     \subitem storing, 9

@@ -799,7 +799,7 @@ end
 After loading this definition from the file {\tt Hilbert.thy}, you can
 start to prove theorems in the logic:
 \begin{ttbox}
-goal Hilbert.thy "P --> P";
+Goal "P --> P";
 {\out Level 0}
 {\out P --> P}
 {\out  1.  P --> P}
@@ -880,7 +880,7 @@ MinIFC = MinIF + MinC
 \end{ttbox}
 Now we can prove mixed theorems like
 \begin{ttbox}
-goal MinIFC.thy "P & False --> Q";
+Goal "P & False --> Q";
 by (resolve_tac [MinI.impI] 1);
 by (dresolve_tac [MinC.conjE2] 1);
 by (eresolve_tac [MinIF.FalseE] 1);

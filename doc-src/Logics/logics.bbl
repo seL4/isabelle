@@ -192,6 +192,13 @@ Lawrence~C. Paulson.
 \newblock In Alan Bundy, editor, {\em Automated Deduction --- {CADE}-12
   International Conference}, LNAI 814, pages 148--161. Springer, 1994.
 
+\bibitem{paulson-final}
+Lawrence~C. Paulson.
+\newblock A concrete final coalgebra theorem for {ZF} set theory.
+\newblock In Peter Dybjer, Bengt Nordstr{\"om}, and Jan Smith, editors, {\em
+  Types for Proofs and Programs: International Workshop {TYPES '94}}, LNCS 996,
+  pages 120--139. Springer, 1995.
+
 \bibitem{paulson-set-II}
 Lawrence~C. Paulson.
 \newblock Set theory for verification: {II}. {Induction} and recursion.
@@ -221,13 +228,6 @@ Lawrence~C. Paulson.
 \newblock In P.~Martin-L\"of and G.~Mints, editors, {\em COLOG-88:
   International Conference on Computer Logic}, LNCS 417, pages 246--274,
   Tallinn, Published 1990. Estonian Academy of Sciences, Springer.
-
-\bibitem{paulson-final}
-Lawrence~C. Paulson.
-\newblock A concrete final coalgebra theorem for {ZF} set theory.
-\newblock In Peter Dybjer, Bengt Nordstr{\"om}, and Jan Smith, editors, {\em
-  Types for Proofs and Programs: International Workshop {TYPES '94}}, LNCS 996,
-  pages 120--139. Springer, published 1995.
 
 \bibitem{pelletier86}
 F.~J. Pelletier.

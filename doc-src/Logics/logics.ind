@@ -352,7 +352,7 @@
   \item {\tt gfp_subset} theorem, 45
   \item {\tt gfp_Tarski} theorem, 45
   \item {\tt gfp_upperbound} theorem, 45
-  \item {\tt goalw}, 18, 19
+  \item {\tt Goalw}, 18, 19
 
   \indexspace
 

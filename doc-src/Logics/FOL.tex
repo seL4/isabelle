@@ -678,7 +678,7 @@ so we use \texttt{blast_tac}.
 
 The introduction rule, given the premises $P\Imp Q$ and $\neg P\Imp R$,
 concludes $if(P,Q,R)$.  We propose the conclusion as the main goal
-using~\ttindex{goalw}, which uses \texttt{if_def} to rewrite occurrences
+using~\ttindex{Goalw}, which uses \texttt{if_def} to rewrite occurrences
 of $if$ in the subgoal.
 \begin{ttbox}
 val prems = Goalw [if_def]
@@ -710,7 +710,7 @@ val major::prems = Goalw [if_def]
 {\out  1. S}
 \end{ttbox}
 The major premise contains an occurrence of~$if$, but the version returned
-by \ttindex{goalw} (and bound to the {\ML} variable~\texttt{major}) has the
+by \ttindex{Goalw} (and bound to the {\ML} variable~\texttt{major}) has the
 definition expanded.  Now \ttindex{cut_facts_tac} inserts~\texttt{major} as an
 assumption in the subgoal, so that \ttindex{blast_tac} can break it down.
 \begin{ttbox}
@@ -729,9 +729,9 @@ As you may recall from
 \iflabelundefined{definitions}{{\em Introduction to Isabelle}}%
         {\S\ref{definitions}}, there are other
 ways of treating definitions when deriving a rule.  We can start the
-proof using \texttt{goal}, which does not expand definitions, instead of
-\texttt{goalw}.  We can use \ttindex{rew_tac}
-to expand definitions in the subgoals --- perhaps after calling
+proof using \texttt{Goal}, which does not expand definitions, instead of
+\texttt{Goalw}.  We can use \ttindex{rew_tac}
+to expand definitions in the subgoals---perhaps after calling
 \ttindex{cut_facts_tac} to insert the rule's premises.  We can use
 \ttindex{rewrite_rule}, which is a meta-inference rule, to expand
 definitions in the premises directly.

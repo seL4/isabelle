@@ -12,9 +12,9 @@ provide such fancy output as an option.
 Object-logics are built upon Pure Isabelle, which implements the
 meta-logic and provides certain fundamental data structures: types,
 terms, signatures, theorems and theories, tactics and tacticals.
-These data structures have the corresponding \ML{} types {\tt typ},
-{\tt term}, {\tt Sign.sg}, {\tt thm}, {\tt theory} and {\tt tactic};
-tacticals have function types such as {\tt tactic->tactic}.  Isabelle
+These data structures have the corresponding \ML{} types \texttt{typ},
+\texttt{term}, \texttt{Sign.sg}, \texttt{thm}, \texttt{theory} and \texttt{tactic};
+tacticals have function types such as \texttt{tactic->tactic}.  Isabelle
 users can operate on these data structures by writing \ML{} programs.
 
 
@@ -33,7 +33,7 @@ Note that just typing \texttt{isabelle} usually brings up higher-order logic
 \index{identifiers}\index{reserved words} 
 An {\bf identifier} is a string of letters, digits, underscores~(\verb|_|)
 and single quotes~({\tt'}), beginning with a letter.  Single quotes are
-regarded as primes; for instance {\tt x'} is read as~$x'$.  Identifiers are
+regarded as primes; for instance \texttt{x'} is read as~$x'$.  Identifiers are
 separated by white space and special characters.  {\bf Reserved words} are
 identifiers that appear in Isabelle syntax definitions.
 
@@ -78,7 +78,7 @@ braces~\} and \{; singleton sorts may be abbreviated by dropping the braces.
 \index{types!syntax of|bold}\index{sort constraints} Types are written
 with a syntax like \ML's.  The built-in type \tydx{prop} is the type
 of propositions.  Type variables can be constrained to particular
-classes or sorts, for example {\tt 'a::term} and {\tt ?'b::\ttlbrace
+classes or sorts, for example \texttt{'a::term} and \texttt{?'b::\ttlbrace
   ord, arith\ttrbrace}.
 \[\dquotes
 \index{*:: symbol}\index{*=> symbol}
@@ -116,7 +116,7 @@ which differs from that used in \FOL\@.
 The theorems and rules of an object-logic are represented by theorems in
 the meta-logic, which are expressed using meta-formulae.  Since the
 meta-logic is higher-order, meta-formulae~$\phi$, $\psi$, $\theta$,~\ldots{}
-are just terms of type~{\tt prop}.  
+are just terms of type~\texttt{prop}.  
 \index{meta-implication}
 \index{meta-quantifiers}\index{meta-equality}
 \index{*"!"! symbol}\index{*"["| symbol}\index{*"|"] symbol}
@@ -146,7 +146,7 @@ latter, $P\Imp Q$ really abbreviates $Trueprop(P)\Imp Trueprop(Q)$.  To
 prevent such ambiguities, Isabelle's syntax does not allow a meta-formula
 to consist of a variable.  Variables of type~\tydx{prop} are seldom
 useful, but you can make a variable stand for a meta-formula by prefixing
-it with the symbol {\tt PROP}:\index{*PROP symbol}
+it with the symbol \texttt{PROP}:\index{*PROP symbol}
 \begin{ttbox} 
 PROP ?psi ==> PROP ?theta 
 \end{ttbox}
@@ -201,9 +201,9 @@ implemented using the {\sc lcf} approach: each meta-level inference rule is
 represented by a function from theorems to theorems.  Object-level rules
 are taken as axioms.
 
-The main theorem printing commands are {\tt prth}, {\tt prths} and~{\tt
-  prthq}.  Of the other operations on theorems, most useful are {\tt RS}
-and {\tt RSN}, which perform resolution.
+The main theorem printing commands are \texttt{prth}, \texttt{prths} and~{\tt
+  prthq}.  Of the other operations on theorems, most useful are \texttt{RS}
+and \texttt{RSN}, which perform resolution.
 
 \index{theorems!printing of}
 \begin{ttdescription}
@@ -250,11 +250,11 @@ appears in{\out slanted typewriter characters}.  \ML's response {\out val
   }~\ldots{} is compiler-dependent and will sometimes be suppressed.  This
 session illustrates two formats for the display of theorems.  Isabelle's
 top-level displays theorems as \ML{} values, enclosed in quotes.  Printing
-commands like {\tt prth} omit the quotes and the surrounding {\tt val
+commands like \texttt{prth} omit the quotes and the surrounding \texttt{val
   \ldots :\ thm}.  Ignoring their side-effects, the commands are identity
 functions.
 
-To contrast {\tt RS} with {\tt RSN}, we resolve
+To contrast \texttt{RS} with \texttt{RSN}, we resolve
 \tdx{conjunct1}, which stands for~$(\conj E1)$, with~\tdx{mp}.
 \begin{ttbox} 
 conjunct1 RS mp;
@@ -269,8 +269,8 @@ These correspond to the following proofs:
 \]
 %
 Rules can be derived by pasting other rules together.  Let us join
-\tdx{spec}, which stands for~$(\forall E)$, with {\tt mp} and {\tt
-  conjunct1}.  In \ML{}, the identifier~{\tt it} denotes the value just
+\tdx{spec}, which stands for~$(\forall E)$, with \texttt{mp} and {\tt
+  conjunct1}.  In \ML{}, the identifier~\texttt{it} denotes the value just
 printed.
 \begin{ttbox} 
 spec;
@@ -302,7 +302,7 @@ and $\{\Var{f} \equiv \lambda x.x,\, \Var{g} \equiv \lambda x.0\}$.  Huet's
 procedure does not enumerate the unifiers; instead, it retains flex-flex
 equations as constraints on future unifications.  Flex-flex constraints
 occasionally become attached to a proof state; more frequently, they appear
-during use of {\tt RS} and~{\tt RSN}:
+during use of \texttt{RS} and~\texttt{RSN}:
 \begin{ttbox} 
 refl;
 {\out val it = "?a = ?a" : thm}
@@ -333,7 +333,7 @@ y.\Var{g}(y)$.  By $\eta$-conversion, this simplifies to the assignment
 $\Var{g}\equiv\lambda y.?h(k(y))$.
 
 \begin{warn}
-\ttindex{RS} and \ttindex{RSN} fail (by raising exception {\tt THM}) unless
+\ttindex{RS} and \ttindex{RSN} fail (by raising exception \texttt{THM}) unless
 the resolution delivers {\bf exactly one} resolvent.  For multiple results,
 use \ttindex{RL} and \ttindex{RLN}, which operate on theorem lists.  The
 following example uses \ttindex{read_instantiate} to create an instance
@@ -362,14 +362,14 @@ four resolvents:
 \index{forward proof|)}
 
 \section{Backward proof}
-Although {\tt RS} and {\tt RSN} are fine for simple forward reasoning,
+Although \texttt{RS} and \texttt{RSN} are fine for simple forward reasoning,
 large proofs require tactics.  Isabelle provides a suite of commands for
 conducting a backward proof using tactics.
 
 \subsection{The basic tactics}
-The tactics {\tt assume_tac}, {\tt
-resolve_tac}, {\tt eresolve_tac}, and {\tt dresolve_tac} suffice for most
-single-step proofs.  Although {\tt eresolve_tac} and {\tt dresolve_tac} are
+The tactics \texttt{assume_tac}, {\tt
+resolve_tac}, \texttt{eresolve_tac}, and \texttt{dresolve_tac} suffice for most
+single-step proofs.  Although \texttt{eresolve_tac} and \texttt{dresolve_tac} are
 not strictly necessary, they simplify proofs involving elimination and
 destruction rules.  All the tactics act on a subgoal designated by a
 positive integer~$i$, failing if~$i$ is out of range.  The resolution
@@ -391,9 +391,9 @@ tactics try their list of theorems in left-to-right order.
   none of the rules generates next states.
 
 \item[\ttindex{eresolve_tac} {\it thms} {\it i}] \index{elim-resolution}
-  performs elim-resolution.  Like {\tt resolve_tac~{\it thms}~{\it i\/}}
-  followed by {\tt assume_tac~{\it i}}, it applies a rule then solves its
-  first premise by assumption.  But {\tt eresolve_tac} additionally deletes
+  performs elim-resolution.  Like \texttt{resolve_tac~{\it thms}~{\it i\/}}
+  followed by \texttt{assume_tac~{\it i}}, it applies a rule then solves its
+  first premise by assumption.  But \texttt{eresolve_tac} additionally deletes
   that assumption from any subgoals arising from the resolution.
 
 \item[\ttindex{dresolve_tac} {\it thms} {\it i}]
@@ -410,7 +410,7 @@ proof state and manages the proof construction.  It allows interactive
 backtracking through the proof space, going away to prove lemmas, etc.; of
 its many commands, most important are the following:
 \begin{ttdescription}
-\item[\ttindex{goal} {\it theory} {\it formula}; ] 
+\item[\ttindex{Goal} {\it formula}; ] 
 begins a new proof, where $theory$ is usually an \ML\ identifier
 and the {\it formula\/} is written as an \ML\ string.
 
@@ -428,7 +428,7 @@ returns the theorem just proved, in a standard format.  It fails if
 unproved subgoals are left, etc.
 
 \item[\ttindex{qed} {\it name};] is the usual way of ending a proof.
-  It gets the theorem using {\tt result}, stores it in Isabelle's
+  It gets the theorem using \texttt{result}, stores it in Isabelle's
   theorem database and binds it to an \ML{} identifier.
 
 \end{ttdescription}
@@ -451,21 +451,19 @@ shortcuts:
 \subsection{A trivial example in propositional logic}
 \index{examples!propositional}
 
-Directory {\tt FOL} of the Isabelle distribution defines the theory of
+Directory \texttt{FOL} of the Isabelle distribution defines the theory of
 first-order logic.  Let us try the example from \S\ref{prop-proof},
 entering the goal $P\disj P\imp P$ in that theory.\footnote{To run these
-  examples, see the file {\tt FOL/ex/intro.ML}.  The files {\tt README} and
-  {\tt Makefile} on the directories {\tt Pure} and {\tt FOL} explain how to
-  build first-order logic.}
+  examples, see the file \texttt{FOL/ex/intro.ML}.}
 \begin{ttbox}
-goal FOL.thy "P|P --> P"; 
+Goal "P|P --> P"; 
 {\out Level 0} 
 {\out P | P --> P} 
 {\out 1. P | P --> P} 
 \end{ttbox}\index{level of a proof}
 Isabelle responds by printing the initial proof state, which has $P\disj
 P\imp P$ as the main goal and the only subgoal.  The {\bf level} of the
-state is the number of {\tt by} commands that have been applied to reach
+state is the number of \texttt{by} commands that have been applied to reach
 it.  We now use \ttindex{resolve_tac} to apply the rule \tdx{impI},
 or~$({\imp}I)$, to subgoal~1:
 \begin{ttbox}
@@ -496,7 +494,7 @@ by (assume_tac 3);
 {\out 1. P | P ==> ?P1 | P} 
 {\out 2. [| P | P; ?P1 |] ==> P}
 \end{ttbox}
-Next we tackle subgoal~2, instantiating {\tt?P1} to~{\tt P} in subgoal~1.
+Next we tackle subgoal~2, instantiating {\tt?P1} to~\texttt{P} in subgoal~1.
 \begin{ttbox}
 by (assume_tac 2); 
 {\out Level 4} 
@@ -511,12 +509,12 @@ by (assume_tac 1);
 {\out No subgoals!}
 \end{ttbox}
 Isabelle tells us that there are no longer any subgoals: the proof is
-complete.  Calling {\tt qed} stores the theorem.
+complete.  Calling \texttt{qed} stores the theorem.
 \begin{ttbox}
 qed "mythm";
 {\out val mythm = "?P | ?P --> ?P" : thm} 
 \end{ttbox}
-Isabelle has replaced the free variable~{\tt P} by the scheme
+Isabelle has replaced the free variable~\texttt{P} by the scheme
 variable~{\tt?P}\@.  Free variables in the proof state remain fixed
 throughout the proof.  Isabelle finally converts them to scheme variables
 so that the resulting theorem can be instantiated with any formula.
@@ -528,12 +526,12 @@ instantiations affect the proof state.
 \subsection{Part of a distributive law}
 \index{examples!propositional}
 To demonstrate the tactics \ttindex{eresolve_tac}, \ttindex{dresolve_tac}
-and the tactical {\tt REPEAT}, let us prove part of the distributive
+and the tactical \texttt{REPEAT}, let us prove part of the distributive
 law 
 \[ (P\conj Q)\disj R \,\bimp\, (P\disj R)\conj (Q\disj R). \]
 We begin by stating the goal to Isabelle and applying~$({\imp}I)$ to it:
 \begin{ttbox}
-goal FOL.thy "(P & Q) | R  --> (P | R)";
+Goal "(P & Q) | R  --> (P | R)";
 {\out Level 0}
 {\out P & Q | R --> P | R}
 {\out  1. P & Q | R --> P | R}
@@ -543,7 +541,7 @@ by (resolve_tac [impI] 1);
 {\out P & Q | R --> P | R}
 {\out  1. P & Q | R ==> P | R}
 \end{ttbox}
-Previously we applied~(${\disj}E)$ using {\tt resolve_tac}, but 
+Previously we applied~(${\disj}E)$ using \texttt{resolve_tac}, but 
 \ttindex{eresolve_tac} deletes the assumption after use.  The resulting proof
 state is simpler.
 \begin{ttbox}
@@ -556,9 +554,9 @@ by (eresolve_tac [disjE] 1);
 Using \ttindex{dresolve_tac}, we can apply~(${\conj}E1)$ to subgoal~1,
 replacing the assumption $P\conj Q$ by~$P$.  Normally we should apply the
 rule~(${\conj}E)$, given in~\S\ref{destruct}.  That is an elimination rule
-and requires {\tt eresolve_tac}; it would replace $P\conj Q$ by the two
+and requires \texttt{eresolve_tac}; it would replace $P\conj Q$ by the two
 assumptions~$P$ and~$Q$.  Because the present example does not need~$Q$, we
-may try out {\tt dresolve_tac}.
+may try out \texttt{dresolve_tac}.
 \begin{ttbox}
 by (dresolve_tac [conjunct1] 1);
 {\out Level 3}
@@ -580,8 +578,8 @@ by (resolve_tac [disjI2] 2);
 {\out  1. P ==> P}
 {\out  2. R ==> R}
 \end{ttbox}
-Two calls of {\tt assume_tac} can finish the proof.  The
-tactical~\ttindex{REPEAT} here expresses a tactic that calls {\tt assume_tac~1}
+Two calls of \texttt{assume_tac} can finish the proof.  The
+tactical~\ttindex{REPEAT} here expresses a tactic that calls \texttt{assume_tac~1}
 as many times as possible.  We can restrict attention to subgoal~1 because
 the other subgoals move up after subgoal~1 disappears.
 \begin{ttbox}
@@ -617,7 +615,7 @@ equality, and happens automatically.
 The proof of $\forall x.\exists y.x=y$ demonstrates the introduction rules
 $(\forall I)$ and~$(\exists I)$.  We state the goal and apply $(\forall I)$:
 \begin{ttbox}
-goal FOL.thy "ALL x. EX y. x=y";
+Goal "ALL x. EX y. x=y";
 {\out Level 0}
 {\out ALL x. EX y. x = y}
 {\out  1. ALL x. EX y. x = y}
@@ -627,9 +625,9 @@ by (resolve_tac [allI] 1);
 {\out ALL x. EX y. x = y}
 {\out  1. !!x. EX y. x = y}
 \end{ttbox}
-The variable~{\tt x} is no longer universally quantified, but is a
+The variable~\texttt{x} is no longer universally quantified, but is a
 parameter in the subgoal; thus, it is universally quantified at the
-meta-level.  The subgoal must be proved for all possible values of~{\tt x}.
+meta-level.  The subgoal must be proved for all possible values of~\texttt{x}.
 
 To remove the existential quantifier, we apply the rule $(\exists I)$:
 \begin{ttbox}
@@ -638,9 +636,9 @@ by (resolve_tac [exI] 1);
 {\out ALL x. EX y. x = y}
 {\out  1. !!x. x = ?y1(x)}
 \end{ttbox}
-The bound variable {\tt y} has become {\tt?y1(x)}.  This term consists of
-the function unknown~{\tt?y1} applied to the parameter~{\tt x}.
-Instances of {\tt?y1(x)} may or may not contain~{\tt x}.  We resolve the
+The bound variable \texttt{y} has become {\tt?y1(x)}.  This term consists of
+the function unknown~{\tt?y1} applied to the parameter~\texttt{x}.
+Instances of {\tt?y1(x)} may or may not contain~\texttt{x}.  We resolve the
 subgoal with the reflexivity axiom.
 \begin{ttbox}
 by (resolve_tac [refl] 1);
@@ -658,7 +656,7 @@ $x=\Var{y@1}(x)$ collapses to~$x=x$ by $\beta$-reduction.
 We state the goal $\exists y.\forall x.x=y$, which is not a theorem, and
 try~$(\exists I)$:
 \begin{ttbox}
-goal FOL.thy "EX y. ALL x. x=y";
+Goal "EX y. ALL x. x=y";
 {\out Level 0}
 {\out EX y. ALL x. x = y}
 {\out  1. EX y. ALL x. x = y}
@@ -668,8 +666,8 @@ by (resolve_tac [exI] 1);
 {\out EX y. ALL x. x = y}
 {\out  1. ALL x. x = ?y}
 \end{ttbox}
-The unknown {\tt ?y} may be replaced by any term, but this can never
-introduce another bound occurrence of~{\tt x}.  We now apply~$(\forall I)$:
+The unknown \texttt{?y} may be replaced by any term, but this can never
+introduce another bound occurrence of~\texttt{x}.  We now apply~$(\forall I)$:
 \begin{ttbox}
 by (resolve_tac [allI] 1);
 {\out Level 2}
@@ -677,7 +675,7 @@ by (resolve_tac [allI] 1);
 {\out  1. !!x. x = ?y}
 \end{ttbox}
 Compare our position with the previous Level~2.  Instead of {\tt?y1(x)} we
-have~{\tt?y}, whose instances may not contain the bound variable~{\tt x}.
+have~{\tt?y}, whose instances may not contain the bound variable~\texttt{x}.
 The reflexivity axiom does not unify with subgoal~1.
 \begin{ttbox}
 by (resolve_tac [refl] 1);
@@ -696,10 +694,10 @@ Multiple quantifiers create complex terms.  Proving
 will demonstrate how parameters and unknowns develop.  If they appear in
 the wrong order, the proof will fail.
 
-This section concludes with a demonstration of {\tt REPEAT}
-and~{\tt ORELSE}.  
+This section concludes with a demonstration of \texttt{REPEAT}
+and~\texttt{ORELSE}.  
 \begin{ttbox}
-goal FOL.thy "(ALL x y.P(x,y))  -->  (ALL z w.P(w,z))";
+Goal "(ALL x y.P(x,y))  -->  (ALL z w.P(w,z))";
 {\out Level 0}
 {\out (ALL x y. P(x,y)) --> (ALL z w. P(w,z))}
 {\out  1. (ALL x y. P(x,y)) --> (ALL z w. P(w,z))}
@@ -711,7 +709,7 @@ by (resolve_tac [impI] 1);
 \end{ttbox}
 
 \paragraph{The wrong approach.}
-Using {\tt dresolve_tac}, we apply the rule $(\forall E)$, bound to the
+Using \texttt{dresolve_tac}, we apply the rule $(\forall E)$, bound to the
 \ML\ identifier \tdx{spec}.  Then we apply $(\forall I)$.
 \begin{ttbox}
 by (dresolve_tac [spec] 1);
@@ -724,7 +722,7 @@ by (resolve_tac [allI] 1);
 {\out (ALL x y. P(x,y)) --> (ALL z w. P(w,z))}
 {\out  1. !!z. ALL y. P(?x1,y) ==> ALL w. P(w,z)}
 \end{ttbox}
-The unknown {\tt ?x1} and the parameter {\tt z} have appeared.  We again
+The unknown \texttt{?x1} and the parameter \texttt{z} have appeared.  We again
 apply $(\forall E)$ and~$(\forall I)$.
 \begin{ttbox}
 by (dresolve_tac [spec] 1);
@@ -737,10 +735,10 @@ by (resolve_tac [allI] 1);
 {\out (ALL x y. P(x,y)) --> (ALL z w. P(w,z))}
 {\out  1. !!z w. P(?x1,?y3(z)) ==> P(w,z)}
 \end{ttbox}
-The unknown {\tt ?y3} and the parameter {\tt w} have appeared.  Each
+The unknown \texttt{?y3} and the parameter \texttt{w} have appeared.  Each
 unknown is applied to the parameters existing at the time of its creation;
-instances of~{\tt ?x1} cannot contain~{\tt z} or~{\tt w}, while instances
-of {\tt?y3(z)} can only contain~{\tt z}.  Due to the restriction on~{\tt ?x1},
+instances of~\texttt{?x1} cannot contain~\texttt{z} or~\texttt{w}, while instances
+of {\tt?y3(z)} can only contain~\texttt{z}.  Due to the restriction on~\texttt{?x1},
 proof by assumption will fail.
 \begin{ttbox}
 by (assume_tac 1);
@@ -771,7 +769,7 @@ by (resolve_tac [allI] 1);
 {\out (ALL x y. P(x,y)) --> (ALL z w. P(w,z))}
 {\out  1. !!z w. ALL x y. P(x,y) ==> P(w,z)}
 \end{ttbox}
-The parameters {\tt z} and~{\tt w} have appeared.  We now create the
+The parameters \texttt{z} and~\texttt{w} have appeared.  We now create the
 unknowns:
 \begin{ttbox}
 by (dresolve_tac [spec] 1);
@@ -785,7 +783,7 @@ by (dresolve_tac [spec] 1);
 {\out  1. !!z w. P(?x3(z,w),?y4(z,w)) ==> P(w,z)}
 \end{ttbox}
 Both {\tt?x3(z,w)} and~{\tt?y4(z,w)} could become any terms containing {\tt
-z} and~{\tt w}:
+z} and~\texttt{w}:
 \begin{ttbox}
 by (assume_tac 1);
 {\out Level 6}
@@ -825,9 +823,9 @@ the equivalence
 \[ (\forall x. P(x) \imp Q) \,\bimp\, ((\exists x. P(x)) \imp Q). \]
 We state the left-to-right half to Isabelle in the normal way.
 Since $\imp$ is nested to the right, $({\imp}I)$ can be applied twice; we
-use {\tt REPEAT}:
+use \texttt{REPEAT}:
 \begin{ttbox}
-goal FOL.thy "(ALL x.P(x) --> Q) --> (EX x.P(x)) --> Q";
+Goal "(ALL x.P(x) --> Q) --> (EX x.P(x)) --> Q";
 {\out Level 0}
 {\out (ALL x. P(x) --> Q) --> (EX x. P(x)) --> Q}
 {\out  1. (ALL x. P(x) --> Q) --> (EX x. P(x)) --> Q}
@@ -857,7 +855,7 @@ by (dresolve_tac [spec] 1);
 {\out  1. !!x. [| P(x); P(?x3(x)) --> Q |] ==> Q}
 \end{ttbox}
 Because we applied $(\exists E)$ before $(\forall E)$, the unknown
-term~{\tt?x3(x)} may depend upon the parameter~{\tt x}.
+term~{\tt?x3(x)} may depend upon the parameter~\texttt{x}.
 
 Although $({\imp}E)$ is a destruction rule, it works with 
 \ttindex{eresolve_tac} to perform backward chaining.  This technique is
@@ -868,8 +866,8 @@ by (eresolve_tac [mp] 1);
 {\out (ALL x. P(x) --> Q) --> (EX x. P(x)) --> Q}
 {\out  1. !!x. P(x) ==> P(?x3(x))}
 \end{ttbox}
-The tactic has reduced~{\tt Q} to~{\tt P(?x3(x))}, deleting the
-implication.  The final step is trivial, thanks to the occurrence of~{\tt x}.
+The tactic has reduced~\texttt{Q} to~\texttt{P(?x3(x))}, deleting the
+implication.  The final step is trivial, thanks to the occurrence of~\texttt{x}.
 \begin{ttbox}
 by (assume_tac 1);
 {\out Level 5}
@@ -895,7 +893,7 @@ Let us solve problems~40 and~60 of Pelletier~\cite{pelletier86}.  (The
 backslashes~\hbox{\verb|\|\ldots\verb|\|} are an \ML{} string escape
 sequence, to break the long string over two lines.)
 \begin{ttbox}
-goal FOL.thy "(EX y. ALL x. J(y,x) <-> ~J(x,x))  \ttback
+Goal "(EX y. ALL x. J(y,x) <-> ~J(x,x))  \ttback
 \ttback       -->  ~ (ALL x. EX y. ALL z. J(z,y) <-> ~ J(z,x))";
 {\out Level 0}
 {\out (EX y. ALL x. J(y,x) <-> ~J(x,x)) -->}
@@ -914,10 +912,10 @@ by (Blast_tac 1);
 {\out No subgoals!}
 \end{ttbox}
 Sceptics may examine the proof by calling the package's single-step
-tactics, such as~{\tt step_tac}.  This would take up much space, however,
+tactics, such as~\texttt{step_tac}.  This would take up much space, however,
 so let us proceed to the next example:
 \begin{ttbox}
-goal FOL.thy "ALL x. P(x,f(x)) <-> \ttback
+Goal "ALL x. P(x,f(x)) <-> \ttback
 \ttback       (EX y. (ALL z. P(z,y) --> P(z,f(x))) & P(x,y))";
 {\out Level 0}
 {\out ALL x. P(x,f(x)) <-> (EX y. (ALL z. P(z,y) --> P(z,f(x))) & P(x,y))}
