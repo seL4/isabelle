@@ -337,8 +337,11 @@ val split_asm_tac = mk_case_split_asm_tac split_tac
 			(disjE,conjE,exE,contrapos,contrapos2,notnotD);
 
 infix 4 addsplits;
-fun ss addsplits splits = ss addloop (split_tac splits);
-
+fun ss addsplits splits =
+  let fun addsplit(ss,split) =
+        let val name = "split " ^ const_of_split_thm split
+        in ss addloop (name,split_tac [split]) end
+  in foldl addsplit (ss,splits) end;
 
 qed_goal "if_cancel" HOL.thy "(if c then x else x) = x"
   (K [split_tac [expand_if] 1, blast_tac HOL_cs 1]);

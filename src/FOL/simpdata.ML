@@ -267,7 +267,11 @@ fun Addcongs congs = (simpset_ref() := simpset() addcongs congs);
 fun Delcongs congs = (simpset_ref() := simpset() delcongs congs);
 
 infix 4 addsplits;
-fun ss addsplits splits = ss addloop (split_tac splits);
+fun ss addsplits splits =
+  let fun addsplit(ss,split) =
+        let val name = "split " ^ const_of_split_thm split
+        in ss addloop (name,split_tac [split]) end
+  in foldl addsplit (ss,splits) end;
 
 val IFOL_simps =
    [refl RS P_iff_T] @ conj_simps @ disj_simps @ not_simps @ 
