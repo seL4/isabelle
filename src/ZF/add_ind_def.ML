@@ -187,7 +187,7 @@ fun add_constructs_def (rec_names, con_ty_lists) thy =
               mk_defpair (list_comb (Const(name,T), args),
                           mk_inject npart kpart
                           (mk_inject ncon kcon (mk_tuple args)))
-      in  map mk_def (con_ty_list ~~ (1 upto ncon))  end;
+      in  ListPair.map mk_def (con_ty_list, 1 upto ncon)  end;
 
     (** Define the case operator **)
 
@@ -241,7 +241,8 @@ fun add_constructs_def (rec_names, con_ty_lists) thy =
         (big_case_name, big_case_typ, NoSyn) :: map #1 (flat con_ty_lists);
 
     val axpairs =
-        big_case_def :: flat (map mk_con_defs ((1 upto npart) ~~ con_ty_lists))
+        big_case_def :: flat (ListPair.map mk_con_defs
+			      (1 upto npart, con_ty_lists))
 
     in  thy |> add_consts_i const_decs |> add_defs_i axpairs  end;
 end;

@@ -277,7 +277,8 @@ fun flatten_params n A =
     let val params = strip_params A;
 	val vars = if !auto_rename 
 		   then rename_vars (!rename_prefix, params)
-		   else variantlist(map #1 params,[]) ~~ map #2 params
+		   else ListPair.zip (variantlist(map #1 params,[]),
+				      map #2 params)
     in  list_all (vars, remove_params (length vars) n A)
     end;
 

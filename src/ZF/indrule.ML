@@ -143,7 +143,7 @@ val induct_concl =
        (big_rec_tm,
         Abs("z", Ind_Syntax.iT, 
             fold_bal (app Ind_Syntax.conj) 
-            (map mk_rec_imp (Inductive.rec_tms~~preds)))))
+            (ListPair.map mk_rec_imp (Inductive.rec_tms,preds)))))
 and mutual_induct_concl =
  Ind_Syntax.mk_tprop(fold_bal (app Ind_Syntax.conj) qconcls);
 

@@ -267,7 +267,7 @@ fun read_cterms sign (bs, Ts) =
 				  K None, K None, 
 				  [], true, 
 				  map (Sign.certify_typ sign) Ts, 
-				  map read (bs~~Ts))
+				  ListPair.map read (bs,Ts))
   in  map (cterm_of sign) us  end
   handle TYPE arg => error (Sign.exn_type_msg sign arg)
        | TERM (msg, _) => error msg;

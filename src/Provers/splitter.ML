@@ -57,9 +57,9 @@ fun mk_cntxt Ts t pos T maxi =
       fun down [] t i = Bound 0
         | down (p::ps) t i =
             let val (h,ts) = strip_comb t
-                val v1 = map var (take(p,ts) ~~ (i upto (i+p-1)))
+                val v1 = ListPair.map var (take(p,ts), i upto (i+p-1))
                 val u::us = drop(p,ts)
-                val v2 = map var (us ~~ ((i+p) upto (i+length(ts)-2)))
+                val v2 = ListPair.map var (us, (i+p) upto (i+length(ts)-2))
       in list_comb(h,v1@[down ps u (i+length ts)]@v2) end;
   in Abs("", T, down (rev pos) t maxi) end;
 

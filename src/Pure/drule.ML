@@ -339,7 +339,8 @@ fun zero_var_indexes th =
         val bs = foldl add_new_id ([], map (fn Var((a,_),_)=>a) vars)
         val inrs = add_term_tvars(prop,[]);
         val nms' = rev(foldl add_new_id ([], map (#1 o #1) inrs));
-        val tye = map (fn ((v,rs),a) => (v, TVar((a,0),rs))) (inrs ~~ nms')
+        val tye = ListPair.map (fn ((v,rs),a) => (v, TVar((a,0),rs)))
+	             (inrs, nms')
         val ctye = map (fn (v,T) => (v,ctyp_of sign T)) tye;
         fun varpairs([],[]) = []
           | varpairs((var as Var(v,T)) :: vars, b::bs) =
