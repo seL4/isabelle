@@ -27,7 +27,7 @@ constdefs
   "Id == {p. EX x. p = (x,x)}"
 
   diag  :: "'a set => ('a * 'a) set"  -- {* diagonal: identity over a set *}
-  "diag A == UN x:A. {(x,x)}"
+  "diag A == \<Union>x\<in>A. {(x,x)}"
 
   Domain :: "('a * 'b) set => 'a set"
   "Domain r == {x. EX y. (x,y):r}"
@@ -36,7 +36,7 @@ constdefs
   "Range r == Domain(r^-1)"
 
   Field :: "('a * 'a) set => 'a set"
-  "Field r == Domain r Un Range r"
+  "Field r == Domain r \<union> Range r"
 
   refl   :: "['a set, ('a * 'a) set] => bool"  -- {* reflexivity over a set *}
   "refl A r == r \<subseteq> A \<times> A & (ALL x: A. (x,x) : r)"
@@ -232,16 +232,16 @@ lemma Domain_Id [simp]: "Domain Id = UNIV"
 lemma Domain_diag [simp]: "Domain (diag A) = A"
   by blast
 
-lemma Domain_Un_eq: "Domain(A Un B) = Domain(A) Un Domain(B)"
+lemma Domain_Un_eq: "Domain(A \<union> B) = Domain(A) \<union> Domain(B)"
   by blast
 
-lemma Domain_Int_subset: "Domain(A Int B) \<subseteq> Domain(A) Int Domain(B)"
+lemma Domain_Int_subset: "Domain(A \<inter> B) \<subseteq> Domain(A) \<inter> Domain(B)"
   by blast
 
 lemma Domain_Diff_subset: "Domain(A) - Domain(B) \<subseteq> Domain(A - B)"
   by blast
 
-lemma Domain_Union: "Domain (Union S) = (UN A:S. Domain A)"
+lemma Domain_Union: "Domain (Union S) = (\<Union>A\<in>S. Domain A)"
   by blast
 
 lemma Domain_mono: "r \<subseteq> s ==> Domain r \<subseteq> Domain s"
@@ -271,16 +271,16 @@ lemma Range_Id [simp]: "Range Id = UNIV"
 lemma Range_diag [simp]: "Range (diag A) = A"
   by auto
 
-lemma Range_Un_eq: "Range(A Un B) = Range(A) Un Range(B)"
+lemma Range_Un_eq: "Range(A \<union> B) = Range(A) \<union> Range(B)"
   by blast
 
-lemma Range_Int_subset: "Range(A Int B) \<subseteq> Range(A) Int Range(B)"
+lemma Range_Int_subset: "Range(A \<inter> B) \<subseteq> Range(A) \<inter> Range(B)"
   by blast
 
 lemma Range_Diff_subset: "Range(A) - Range(B) \<subseteq> Range(A - B)"
   by blast
 
-lemma Range_Union: "Range (Union S) = (UN A:S. Range A)"
+lemma Range_Union: "Range (Union S) = (\<Union>A\<in>S. Range A)"
   by blast
 
 
@@ -312,13 +312,17 @@ lemma Image_empty [simp]: "R``{} = {}"
 lemma Image_Id [simp]: "Id `` A = A"
   by blast
 
-lemma Image_diag [simp]: "diag A `` B = A Int B"
+lemma Image_diag [simp]: "diag A `` B = A \<inter> B"
   by blast
 
-lemma Image_Int_subset: "R `` (A Int B) \<subseteq> R `` A Int R `` B"
+lemma Image_Int_subset: "R `` (A \<inter> B) \<subseteq> R `` A \<inter> R `` B"
   by blast
 
-lemma Image_Un: "R `` (A Un B) = R `` A Un R `` B"
+lemma Image_Int_eq:
+     "single_valued (converse R) ==> R `` (A \<inter> B) = R `` A \<inter> R `` B"
+  by (simp add: single_valued_def, blast) 
+
+lemma Image_Un: "R `` (A \<union> B) = R `` A \<union> R `` B"
   by blast
 
 lemma Un_Image: "(R \<union> S) `` A = R `` A \<union> S `` A"
@@ -327,19 +331,26 @@ lemma Un_Image: "(R \<union> S) `` A = R `` A \<union> S `` A"
 lemma Image_subset: "r \<subseteq> A \<times> B ==> r``C \<subseteq> B"
   by (rules intro!: subsetI elim!: ImageE dest!: subsetD SigmaD2)
 
-lemma Image_eq_UN: "r``B = (UN y: B. r``{y})"
+lemma Image_eq_UN: "r``B = (\<Union>y\<in> B. r``{y})"
   -- {* NOT suitable for rewriting *}
   by blast
 
 lemma Image_mono: "r' \<subseteq> r ==> A' \<subseteq> A ==> (r' `` A') \<subseteq> (r `` A)"
   by blast
 
-lemma Image_UN: "(r `` (UNION A B)) = (UN x:A.(r `` (B x)))"
+lemma Image_UN: "(r `` (UNION A B)) = (\<Union>x\<in>A. r `` (B x))"
   by blast
 
-lemma Image_INT_subset: "(r `` (INTER A B)) \<subseteq> (INT x:A.(r `` (B x)))"
-  -- {* Converse inclusion fails *}
+lemma Image_INT_subset: "(r `` INTER A B) \<subseteq> (\<Inter>x\<in>A. r `` (B x))"
   by blast
+
+text{*Converse inclusion requires some assumptions*}
+lemma Image_INT_eq:
+     "[|single_valued (r\<inverse>); A\<noteq>{}|] ==> r `` INTER A B = (\<Inter>x\<in>A. r `` B x)"
+apply (rule equalityI)
+ apply (rule Image_INT_subset) 
+apply  (simp add: single_valued_def, blast)
+done
 
 lemma Image_subset_eq: "(r``A \<subseteq> B) = (A \<subseteq> - ((r^-1) `` (-B)))"
   by blast
