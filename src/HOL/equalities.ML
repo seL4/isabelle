@@ -265,7 +265,7 @@ by (Blast_tac 1);
 qed "Un_absorb";
 Addsimps[Un_absorb];
 
-Goal " A Un (A Un B) = A Un B";
+Goal "A Un (A Un B) = A Un B";
 by (Blast_tac 1);
 qed "Un_left_absorb";
 
@@ -910,31 +910,32 @@ qed "distinct_lemma";
 
 (** Miniscoping: pushing in big Unions and Intersections **)
 local
-  fun prover s = prove_goal (the_context ()) s (fn _ => [Blast_tac 1])
+  fun prover s = prove_goal (the_context ()) s
+                   (fn _ => [Simp_tac 1, ALLGOALS Blast_tac])
 in
 val UN_simps = map prover 
-    ["!!C. c: C ==> (UN x:C. insert a (B x)) = insert a (UN x:C. B x)",
-     "!!C. c: C ==> (UN x:C. A x Un B)   = ((UN x:C. A x) Un B)",
-     "!!C. c: C ==> (UN x:C. A Un B x)   = (A Un (UN x:C. B x))",
-     "(UN x:C. A x Int B)  = ((UN x:C. A x) Int B)",
-     "(UN x:C. A Int B x)  = (A Int (UN x:C. B x))",
-     "(UN x:C. A x - B)    = ((UN x:C. A x) - B)",
-     "(UN x:C. A - B x)    = (A - (INT x:C. B x))",
-     "(UN x: Union A. B x) = (UN y:A. UN x:y. B x)",
-     "(UN z: UNION A B. C z) = (UN  x:A. UN z: B(x). C z)",
-     "(UN x:f`A. B x)     = (UN a:A. B(f a))"];
+  ["(UN x:C. insert a (B x)) = (if C={} then {} else insert a (UN x:C. B x))",
+   "(UN x:C. A x Un B)   = ((if C={} then {} else (UN x:C. A x) Un B))",
+   "(UN x:C. A Un B x)   = ((if C={} then {} else A Un (UN x:C. B x)))",
+   "(UN x:C. A x Int B)  = ((UN x:C. A x) Int B)",
+   "(UN x:C. A Int B x)  = (A Int (UN x:C. B x))",
+   "(UN x:C. A x - B)    = ((UN x:C. A x) - B)",
+   "(UN x:C. A - B x)    = (A - (INT x:C. B x))",
+   "(UN x: Union A. B x) = (UN y:A. UN x:y. B x)",
+   "(UN z: UNION A B. C z) = (UN  x:A. UN z: B(x). C z)",
+   "(UN x:f`A. B x)     = (UN a:A. B(f a))"];
 
 val INT_simps = map prover
-    ["!!C. c: C ==> (INT x:C. A x Int B) = ((INT x:C. A x) Int B)",
-     "!!C. c: C ==> (INT x:C. A Int B x) = (A Int (INT x:C. B x))",
-     "!!C. c: C ==> (INT x:C. A x - B)   = ((INT x:C. A x) - B)",
-     "!!C. c: C ==> (INT x:C. A - B x)   = (A - (UN x:C. B x))",
-     "(INT x:C. insert a (B x)) = insert a (INT x:C. B x)",
-     "(INT x:C. A x Un B)  = ((INT x:C. A x) Un B)",
-     "(INT x:C. A Un B x)  = (A Un (INT x:C. B x))",
-     "(INT x: Union A. B x) = (INT y:A. INT x:y. B x)",
-     "(INT z: UNION A B. C z) = (INT x:A. INT z: B(x). C z)",
-     "(INT x:f`A. B x)    = (INT a:A. B(f a))"];
+  ["(INT x:C. A x Int B) = (if C={} then UNIV else (INT x:C. A x) Int B)",
+   "(INT x:C. A Int B x) = (if C={} then UNIV else A Int (INT x:C. B x))",
+   "(INT x:C. A x - B)   = (if C={} then UNIV else (INT x:C. A x) - B)",
+   "(INT x:C. A - B x)   = (if C={} then UNIV else A - (UN x:C. B x))",
+   "(INT x:C. insert a (B x)) = insert a (INT x:C. B x)",
+   "(INT x:C. A x Un B)  = ((INT x:C. A x) Un B)",
+   "(INT x:C. A Un B x)  = (A Un (INT x:C. B x))",
+   "(INT x: Union A. B x) = (INT y:A. INT x:y. B x)",
+   "(INT z: UNION A B. C z) = (INT x:A. INT z: B(x). C z)",
+   "(INT x:f`A. B x)    = (INT a:A. B(f a))"];
 
 
 val ball_simps = map prover
