@@ -384,23 +384,20 @@ struct
   fun print sg ({records = recs, ...}: record_data) =
     let
       val prt_typ = Sign.pretty_typ sg;
-      val ext_const = Sign.cond_extern sg Sign.constK;
 
       fun pretty_parent None = []
         | pretty_parent (Some (Ts, name)) =
             [Pretty.block [prt_typ (Type (name, Ts)), Pretty.str " +"]];
 
       fun pretty_field (c, T) = Pretty.block
-        [Pretty.str (ext_const c), Pretty.str " ::", Pretty.brk 1, Pretty.quote (prt_typ T)];
+        [Pretty.str (Sign.cond_extern sg Sign.constK c), Pretty.str " ::",
+          Pretty.brk 1, Pretty.quote (prt_typ T)];
 
       fun pretty_record (name, {args, parent, fields, simps = _, induct = _, cases = _}) =
         Pretty.block (Pretty.fbreaks (Pretty.block
           [prt_typ (Type (name, map TFree args)), Pretty.str " = "] ::
           pretty_parent parent @ map pretty_field fields));
-    in
-      map pretty_record (Sign.cond_extern_table sg Sign.typeK recs)
-      |> Pretty.chunks |> Pretty.writeln
-    end;
+    in map pretty_record (Symtab.dest recs) |> Pretty.chunks |> Pretty.writeln end;
 end;
 
 structure RecordsData = TheoryDataFun(RecordsArgs);
