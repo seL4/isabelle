@@ -8,7 +8,7 @@ Type inference for let-free MiniML
 
 HOL_build_completed;    (*Make examples fail if HOL did*)
 
-writeln"Root file for HOL/MiniML";
+writeln"Root file for HOL/W0";
 Unify.trace_bound := 20;
 
 AddSEs [less_SucE];
