@@ -31,6 +31,7 @@ struct
 
 val proof_generalN = "ProofGeneral";
 val xsymbolsN = "xsymbols";
+val thm_depsN = "thm_deps";
 
 val pgmlN = "PGML";
 fun pgml () = pgmlN mem_string ! print_mode;
@@ -160,21 +161,23 @@ fun setup_state () =
 end;
 
 
-(* result dependency output *)
+(* theorem dependency output *)
 
 local
 
 fun tell_thm_deps ths =
-  let
-    val names = map Thm.name_of_thm ths;
-    val refs =
-      foldl (uncurry Proofterm.thms_of_proof) (Symtab.empty, map Thm.proof_of ths)
-      |> Symtab.keys;
-    val deps = refs \\ names \ "";
-  in
-    if null deps then ()
-    else notify ("Proof General, result dependencies are: " ^ space_implode " " (map quote deps))
-  end;
+  conditional (thm_depsN mem_string ! print_mode) (fn () =>
+    let
+      val names = map Thm.name_of_thm ths;
+      val refs =
+        foldl (uncurry Proofterm.thms_of_proof) (Symtab.empty, map Thm.proof_of ths)
+        |> Symtab.keys;
+      val deps = refs \\ names \ "";
+    in
+      if null deps then ()
+      else notify ("Proof General, theorem dependencies are: "
+        ^ space_implode " " (map quote deps))    (* FIXME output names \ "" as well!? *)
+    end);
 
 in
 

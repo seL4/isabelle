@@ -19,51 +19,72 @@ subsection {* Overview *}
 text {*
   Locales provide a mechanism for encapsulating local contexts.  The
   original version due to Florian Kammüller \cite{Kamm-et-al:1999}
-  refers directly to the raw meta-logic of Isabelle.  Semantically, a
-  locale is just a (curried) predicate of the pure meta-logic
-  \cite{Paulson:1989}.
+  refers directly to Isabelle's meta-logic \cite{Paulson:1989}, which
+  is minimal higher-order logic with connectives @{text "\<And>"}
+  (universal quantification), @{text "\<Longrightarrow>"} (implication), and @{text
+  "\<equiv>"} (equality).
 
-  The present version for Isabelle/Isar builds on top of the rich
-  infrastructure of proof contexts
-  \cite{Wenzel:1999,Wenzel:2001:isar-ref,Wenzel:2001:Thesis},
-  achieving a tight integration with Isar proof texts, and a slightly
-  more abstract view of the underlying concepts.  An Isar proof
-  context encapsulates certain language elements that correspond to
-  @{text \<And>} (universal quantification), @{text \<Longrightarrow>} (implication), and
-  @{text "\<equiv>"} (definitions) of the pure Isabelle framework.  Moreover,
-  there are extra-logical concepts like term abbreviations or local
-  theorem attributes (declarations of simplification rules etc.) that
-  are indispensable in realistic applications.
+  From this perspective, a locale is essentially a meta-level
+  predicate, together with some infrastructure to manage the
+  abstracted parameters (@{text "\<And>"}), assumptions (@{text "\<Longrightarrow>"}), and
+  definitions for (@{text "\<equiv>"}) in a reasonable way during the proof
+  process.  This simple predicate view also provides a solid
+  semantical basis for our specification concepts to be developed
+  later.
 
-  Locales support concrete syntax, providing a localized version of
+  \medskip The present version of locales for Isabelle/Isar builds on
+  top of the rich infrastructure of proof contexts
+  \cite{Wenzel:1999,Wenzel:2001:isar-ref,Wenzel:2001:Thesis}, which in
+  turn is based on the same meta-logic.  Thus we achieve a tight
+  integration with Isar proof texts, and a slightly more abstract view
+  of the underlying logical concepts.  An Isar proof context
+  encapsulates certain language elements that correspond to @{text
+  "\<And>/\<Longrightarrow>/\<equiv>"} at the level of structure proof texts.  Moreover, there are
+  extra-logical concepts like term abbreviations or local theorem
+  attributes (declarations of simplification rules etc.) that are
+  useful in applications (e.g.\ consider standard simplification rules
+  declared in a group context).
+
+  Locales also support concrete syntax, i.e.\ a localized version of
   the existing concept of mixfix annotations of Isabelle
   \cite{Paulson:1994:Isabelle}.  Furthermore, there is a separate
   concept of ``implicit structures'' that admits to refer to
-  particular locale parameters in a casual manner (essentially derived
-  from the basic idea of ``anti-quotations'' or generalized de-Bruijn
-  indexes demonstrated in \cite[\S13--14]{Wenzel:2001:Isar-examples}).
+  particular locale parameters in a casual manner (basically a
+  simplified version of the idea of ``anti-quotations'', or
+  generalized de-Bruijn indexes as demonstrated elsewhere
+  \cite[\S13--14]{Wenzel:2001:Isar-examples}).
 
   Implicit structures work particular well together with extensible
-  records in HOL \cite{Naraschewski-Wenzel:1998} (the
-  ``object-oriented'' features discussed there are not required here).
-  Thus we shall essentially use record types to represent polymorphic
-  signatures of mathematical structures, while locales describe their
-  logical properties as a predicate.  Due to type inference of
-  simply-typed records we are able to give succinct specifications,
-  without caring about signature morphisms ourselves.  Further
-  eye-candy is provided by the independent concept of ``indexed
-  concrete syntax'' for record selectors.
+  records in HOL \cite{Naraschewski-Wenzel:1998} (without the
+  ``object-oriented'' features discussed there as well).  Thus we
+  achieve a specification technique where record type schemes
+  represent polymorphic signatures of mathematical structures, and
+  actual locales describe the corresponding logical properties.
+  Semantically speaking, such abstract mathematical structures are
+  just predicates over record types.  Due to type inference of
+  simply-typed records (which subsumes structural subtyping) we arrive
+  at succinct specification texts --- ``signature morphisms''
+  degenerate to implicit type-instantiations.  Additional eye-candy is
+  provided by the separate concept of ``indexed concrete syntax'' used
+  for record selectors, so we get close to informal mathematical
+  notation.
 
-  Operations for building up locale contexts from existing definitions
-  cover common operations of \emph{merge} (disjunctive union in
-  canonical order) and \emph{rename} (of term parameters; types are
-  always inferred automatically).
+  \medskip Operations for building up locale contexts from existing
+  ones include \emph{merge} (disjoint union) and \emph{rename} (of
+  term parameters only, types are inferred automatically).  Here we
+  draw from existing traditions of algebraic specification languages.
+  A structured specification corresponds to a directed acyclic graph
+  of potentially renamed nodes (due to distributivity renames may
+  pushed inside of merges).  The result is a ``flattened'' list of
+  primitive context elements in canonical order (corresponding to
+  left-to-right reading of merges, while suppressing duplicates).
 
-  \medskip Note that the following further concepts are still
-  \emph{absent}:
+  \medskip The present version of Isabelle/Isar locales still lacks
+  some important specification concepts.
+
   \begin{itemize}
 
-  \item Specific language elements for \emph{instantiation} of
+  \item Separate language elements for \emph{instantiation} of
   locales.
 
   Currently users may simulate this to some extend by having primitive
@@ -71,8 +92,8 @@ text {*
   for composition, \cite{Wenzel:2001:isar-ref}) act on the
   automatically exported results stemming from different contexts.
 
-  \item Interpretation of locales, analogous to ``functors'' in
-  abstract algebra.
+  \item Interpretation of locales (think of ``views'', ``functors''
+  etc.).
 
   In principle one could directly work with functions over structures
   (extensible records), and predicates being derived from locale
@@ -85,13 +106,14 @@ text {*
   abstract algebraic reasoning.
 *}
 
+
 subsection {* Local contexts as mathematical structures *}
 
 text {*
-  The following definitions of @{text group} and @{text abelian_group}
-  merely encapsulate local parameters (with private syntax) and
-  assumptions; local definitions may be given as well, but are not
-  shown here.
+  The following definitions of @{text group_context} and @{text
+  abelian_group_context} merely encapsulate local parameters (with
+  private syntax) and assumptions; local definitions of derived
+  concepts could be given, too, but are unused below.
 *}
 
 locale group_context =
@@ -109,7 +131,8 @@ text {*
   \medskip We may now prove theorems within a local context, just by
   including a directive ``@{text "(\<IN> name)"}'' in the goal
   specification.  The final result will be stored within the named
-  locale; a second copy is exported to the enclosing theory context.
+  locale, still holding the context; a second copy is exported to the
+  enclosing theory context (with qualified name).
 *}
 
 theorem (in group_context)
@@ -137,9 +160,17 @@ proof -
 qed
 
 text {*
-  \medskip Apart from the named context we may also refer to further
-  context elements (parameters, assumptions, etc.) in a casual manner;
-  these are discharged when the proof is finished.
+  Facts like @{text right_one} are available @{text group_context} as
+  stated above.  The exported version looses the additional
+  infrastructure of Isar proof contexts (syntax etc.) retaining only
+  the pure logical content: @{thm [source] group_context.right_one}
+  becomes @{thm group_context.right_one} (in Isabelle outermost @{text
+  \<And>} quantification is replaced by schematic variables).
+
+  \medskip Apart from a named locale we may also refer to further
+  context elements (parameters, assumptions, etc.) in an ad-hoc
+  fashion, just for this particular statement.  In the result (local
+  or global), any additional elements are discharged as usual.
 *}
 
 theorem (in group_context)
@@ -371,7 +402,8 @@ text {*
 
 constdefs
   semigroup_product :: "'a semigroup \<Rightarrow> 'b semigroup \<Rightarrow> ('a \<times> 'b) semigroup"
-  "semigroup_product S T \<equiv> \<lparr>prod = \<lambda>p q. (prod S (fst p) (fst q), prod T (snd p) (snd q))\<rparr>"
+  "semigroup_product S T \<equiv>
+    \<lparr>prod = \<lambda>p q. (prod S (fst p) (fst q), prod T (snd p) (snd q))\<rparr>"
 
 lemma semigroup_product [intro]:
   assumes S: "semigroup S"
@@ -385,7 +417,8 @@ proof
   moreover have "prod T (prod T (snd p) (snd q)) (snd r) =
       prod T (snd p) (prod T (snd q) (snd r))"
     by (rule semigroup.assoc [OF T])
-  ultimately show "prod (semigroup_product S T) (prod (semigroup_product S T) p q) r =
+  ultimately
+  show "prod (semigroup_product S T) (prod (semigroup_product S T) p q) r =
       prod (semigroup_product S T) p (prod (semigroup_product S T) q r)"
     by (simp add: semigroup_product_def)
 qed
@@ -442,7 +475,8 @@ proof
   proof -
     let ?G' = "semigroup.truncate G" and ?H' = "semigroup.truncate H"
     have "prod (semigroup_product ?G' ?H') = prod I"
-      by (simp add: I_def group_product_def semigroup_product_def group.defs semigroup.defs)
+      by (simp add: I_def group_product_def group.defs
+	semigroup_product_def semigroup.defs)
     moreover
     have "semigroup ?G'" and "semigroup ?H'"
       using prems by (simp_all add: semigroup_def semigroup.defs)
@@ -457,11 +491,13 @@ proof
     moreover have "(snd p)\<inv>\<^sub>2 \<cdot>\<^sub>2 snd p = \<one>\<^sub>2"
       by (rule H.left_inv)
     ultimately show "p\<inv>\<^sub>3 \<cdot>\<^sub>3 p = \<one>\<^sub>3"
-      by (simp add: I_def group_product_def semigroup_product_def group.defs semigroup.defs)
+      by (simp add: I_def group_product_def group.defs
+	semigroup_product_def semigroup.defs)
     have "\<one>\<^sub>1 \<cdot>\<^sub>1 fst p = fst p" by (rule G.left_one)
     moreover have "\<one>\<^sub>2 \<cdot>\<^sub>2 snd p = snd p" by (rule H.left_one)
     ultimately show "\<one>\<^sub>3 \<cdot>\<^sub>3 p = p"
-      by (simp add: I_def group_product_def semigroup_product_def group.defs semigroup.defs)
+      by (simp add: I_def group_product_def group.defs
+	semigroup_product_def semigroup.defs)
   qed
 qed
 
