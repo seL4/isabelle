@@ -551,7 +551,7 @@ Addsimps [Union_image_eq];
 
 Goal "f `` Union S = (UN x:S. f `` x)";
 by (Blast_tac 1);
-qed "image_Union_eq";
+qed "image_Union";
 
 Goal "Inter(B``A) = (INT x:A. B(x))";
 by (Blast_tac 1);
