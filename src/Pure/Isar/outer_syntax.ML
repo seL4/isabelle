@@ -295,7 +295,7 @@ fun try_ml_file name ml time =
     val tr_name = if time then "time_use" else "use";
   in
     if not ml orelse is_none (ThyLoad.check_file path) then ()
-    else Toplevel.excursion [Toplevel.empty |> Toplevel.name tr_name |> tr]
+    else Toplevel.excursion_error [Toplevel.empty |> Toplevel.name tr_name |> tr]
   end;
 
 fun parse_thy (src, pos) =
@@ -323,8 +323,7 @@ fun run_thy name path =
   let val (src, pos) = File.source path in
     Present.theory_source name src;
     if is_old_theory (src, pos) then ThySyn.load_thy name (Source.exhaust src)
-    else (Toplevel.excursion (parse_thy (src, pos))
-      handle exn => error (Toplevel.exn_message exn))
+    else Toplevel.excursion_error (parse_thy (src, pos))
   end;
 
 fun load_thy name ml time path =

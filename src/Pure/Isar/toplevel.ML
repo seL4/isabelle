@@ -49,6 +49,7 @@ sig
   val exn_message: exn -> string
   val apply: bool -> transition -> state -> (state * (exn * string) option) option
   val excursion: transition list -> unit
+  val excursion_error: transition list -> unit
   val set_state: state -> unit
   val get_state: unit -> state
   val exn: unit -> (exn * string) option
@@ -402,6 +403,9 @@ fun excursion trs =
   (case excur trs (State []) of
     State [] => ()
   | _ => raise ERROR_MESSAGE "Open block(s) pending at end of input");
+
+fun excursion_error trs =
+  excursion trs handle exn => error (exn_message exn);
 
 end;
 
