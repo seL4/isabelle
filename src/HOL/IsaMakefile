@@ -9,8 +9,8 @@
 default: HOL
 images: HOL HOL-Real TLA
 test: HOL-Subst HOL-Induct HOL-IMP HOL-Hoare HOL-Lex \
-  HOL-Auth HOL-UNITY HOL-Modelcheck HOL-Lambda HOL-W0 HOL-MiniML HOL-IOA \
-  HOL-AxClasses HOL-AxClasses-Group HOL-AxClasses-Lattice \
+  HOL-Auth HOL-UNITY HOL-Modelcheck HOL-Lambda HOL-W0 HOL-MiniML \
+  HOL-IOA HOL-AxClasses-Group HOL-AxClasses-Lattice \
   HOL-AxClasses-Tutorial HOL-Quot HOL-ex HOL-Isar_examples TLA-Inc \
   TLA-Buffer TLA-Memory
 
@@ -254,17 +254,9 @@ $(LOG)/HOL-IOA.gz: $(OUT)/HOL IOA/Asig.ML IOA/Asig.thy IOA/IOA.ML \
 	@$(ISATOOL) usedir $(OUT)/HOL IOA
 
 
-## HOL-AxClasses
-
-HOL-AxClasses: HOL $(LOG)/HOL-AxClasses.gz
-
-$(LOG)/HOL-AxClasses.gz: $(OUT)/HOL AxClasses/ROOT.ML
-	@$(ISATOOL) usedir $(OUT)/HOL AxClasses
-
-
 ## HOL-AxClasses-Group
 
-HOL-AxClasses-Group: HOL-AxClasses $(LOG)/HOL-AxClasses-Group.gz
+HOL-AxClasses-Group: HOL $(LOG)/HOL-AxClasses-Group.gz
 
 $(LOG)/HOL-AxClasses-Group.gz: $(OUT)/HOL AxClasses/Group/Group.ML \
   AxClasses/Group/Group.thy AxClasses/Group/GroupDefs.ML \
@@ -276,7 +268,7 @@ $(LOG)/HOL-AxClasses-Group.gz: $(OUT)/HOL AxClasses/Group/Group.ML \
 
 ## HOL-AxClasses-Lattice
 
-HOL-AxClasses-Lattice: HOL-AxClasses $(LOG)/HOL-AxClasses-Lattice.gz
+HOL-AxClasses-Lattice: HOL $(LOG)/HOL-AxClasses-Lattice.gz
 
 $(LOG)/HOL-AxClasses-Lattice.gz: $(OUT)/HOL AxClasses/Lattice/CLattice.ML \
   AxClasses/Lattice/CLattice.thy AxClasses/Lattice/LatInsts.ML \
@@ -292,7 +284,7 @@ $(LOG)/HOL-AxClasses-Lattice.gz: $(OUT)/HOL AxClasses/Lattice/CLattice.ML \
 
 ## HOL-AxClasses-Tutorial
 
-HOL-AxClasses-Tutorial: HOL-AxClasses $(LOG)/HOL-AxClasses-Tutorial.gz
+HOL-AxClasses-Tutorial: HOL $(LOG)/HOL-AxClasses-Tutorial.gz
 
 $(LOG)/HOL-AxClasses-Tutorial.gz: $(OUT)/HOL \
   AxClasses/Tutorial/BoolGroupInsts.thy AxClasses/Tutorial/Group.ML \
@@ -398,9 +390,10 @@ clean:
 	@rm -f $(OUT)/HOL $(OUT)/HOL-Real $(LOG)/HOL.gz $(LOG)/HOL-Subst.gz \
 	  $(LOG)/HOL-Induct.gz $(LOG)/HOL-IMP.gz $(LOG)/HOL-Hoare.gz \
 	  $(LOG)/HOL-Lex.gz $(LOG)/HOL-Auth.gz $(LOG)/HOL-UNITY.gz \
-	  $(LOG)/HOL-Modelcheck.gz $(LOG)/HOL-Lambda.gz $(LOG)/HOL-W0.gz \
-	  $(LOG)/HOL-MiniML.gz $(LOG)/HOL-IOA.gz $(LOG)/HOL-AxClasses.gz \
-	  $(LOG)/HOL-AxClasses-Group.gz $(LOG)/HOL-AxClasses-Lattice.gz \
+	  $(LOG)/HOL-Modelcheck.gz $(LOG)/HOL-Lambda.gz \
+	  $(LOG)/HOL-W0.gz $(LOG)/HOL-MiniML.gz $(LOG)/HOL-IOA.gz \
+	  $(LOG)/HOL-AxClasses-Group.gz		\
+	  $(LOG)/HOL-AxClasses-Lattice.gz	\
 	  $(LOG)/HOL-AxClasses-Tutorial.gz $(LOG)/HOL-Quot.gz \
 	  $(LOG)/HOL-ex.gz $(LOG)/HOL-Isar_examples.gz $(OUT)/TLA \
 	  $(LOG)/TLA.gz $(LOG)/TLA-Inc.gz $(LOG)/TLA-Buffer.gz \
