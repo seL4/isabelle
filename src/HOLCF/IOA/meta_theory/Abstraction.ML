@@ -69,7 +69,7 @@ by (asm_full_simp_tac (simpset() addsimps [is_abstraction_def])1);
 by (forward_tac [reachable.reachable_n] 1);
 by (assume_tac 1);
 by (Asm_full_simp_tac 1);
-qed"exec_frag_abstraction";
+qed_spec_mp"exec_frag_abstraction";
 
 
 Goal "!!A. is_abstraction h C A ==> weakeningIOA A C h";
@@ -80,7 +80,7 @@ by (asm_full_simp_tac (simpset() addsimps [executions_def]) 1);
 by (rtac conjI 1);
 by (asm_full_simp_tac (simpset() addsimps [is_abstraction_def,cex_abs_def]) 1);
 (* is-execution-fragment *)
-by (etac (exec_frag_abstraction RS spec RS mp) 1);
+by (etac exec_frag_abstraction 1);
 by (asm_full_simp_tac (simpset() addsimps [reachable.reachable_0]) 1);
 qed"abs_is_weakening";
 
@@ -185,6 +185,8 @@ by (Asm_full_simp_tac 1);
 by (pair_induct_tac "xs" [] 1);
 qed"traces_coincide_abs";
 
+(* 
+FIX: Is this needed anywhere? 
 
 Goalw [cex_abs_def]
  "!!f.[| is_abstraction h C A |] ==>\
@@ -205,6 +207,7 @@ by (forward_tac [reachable.reachable_n] 1);
 by (assume_tac 1);
 by (Asm_full_simp_tac 1);
 qed_spec_mp"correp_is_exec_abs";
+*) 
 
 (* Does not work with abstraction_is_ref_map as proof of abs_safety, because
    is_live_abstraction includes temp_strengthening which is necessarily based
@@ -232,7 +235,7 @@ by (safe_tac set_cs);
   by (rtac conjI 1);
   by (asm_full_simp_tac (simpset() addsimps [is_abstraction_def,cex_abs_def]) 1);
   (* is-execution-fragment *)
-  by (etac correp_is_exec_abs 1);
+  by (etac exec_frag_abstraction 1);
   by (asm_full_simp_tac (simpset() addsimps [reachable.reachable_0]) 1);
 
  (* Liveness *) 
@@ -376,8 +379,8 @@ Goal
 \ (! ex. (s~=nil & s~=UU & ex2seq ex = s1 @@ s) --> (? ex'. s = ex2seq ex'))";
 by (rtac impI 1);
 by (Seq_Finite_induct_tac 1);
-(* main case *)
 by (Blast_tac 1);
+(* main case *)
 by (clarify_tac set_cs 1);
 by (pair_tac "ex" 1);
 by (Seq_case_simp_tac "y" 1);
@@ -489,7 +492,6 @@ by (pair_tac "a" 1);
 by Auto_tac;
 qed"TLex2seq";
 
-
 Goal "(TL`(ex2seq ex)~=UU) = ((snd ex)~=UU)";
 by (pair_tac "ex" 1);
 by (Seq_case_simp_tac "y" 1);
@@ -497,7 +499,7 @@ by (pair_tac "a" 1);
 by (Seq_case_simp_tac "s" 1);
 by (pair_tac "a" 1);
 qed"ex2seqUUTL";
-
+ 
 Goal "(TL`(ex2seq ex)~=nil) = ((snd ex)~=nil)";
 by (pair_tac "ex" 1);
 by (Seq_case_simp_tac "y" 1);
