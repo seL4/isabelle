@@ -1,0 +1,612 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Tutorial}%
+\isamarkupfalse%
+%
+\isamarkupchapter{Introduction%
+}
+\isamarkuptrue%
+%
+\isamarkupchapter{Interaction and debugging%
+}
+\isamarkuptrue%
+%
+\isamarkupchapter{Calculational reasoning%
+}
+\isamarkuptrue%
+%
+\isamarkupchapter{Proof by cases and induction%
+}
+\isamarkuptrue%
+%
+\isamarkupchapter{General natural deduction%
+}
+\isamarkuptrue%
+%
+\isamarkupchapter{Example: FIXME%
+}
+\isamarkuptrue%
+%
+\isamarkupchapter{FIXME%
+}
+\isamarkuptrue%
+%
+\isamarkupsection{Formal document preparation%
+}
+\isamarkuptrue%
+%
+\isamarkupsubsection{Example%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+See this very document itself.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Getting started%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\verb"isatool mkdir Test && isatool make"%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Human-readable proof composition in Isar%
+}
+\isamarkuptrue%
+%
+\isamarkupsubsection{Getting started%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Claim a trivial goal in order to enter proof mode \isa{{\isasymdots}}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ True\isanewline
+\isamarkupfalse%
+\isacommand{proof}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+After the canonical initial refinement step we are left
+    within an \emph{proof body}.%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+%
+\begin{isamarkuptxt}%
+Here we may augment the present local {proof context} as we
+    please.%
+\end{isamarkuptxt}%
+\ \ \isamarkuptrue%
+\isacommand{fix}\ something\isanewline
+\ \ \isamarkupfalse%
+\isacommand{assume}\ a{\isacharcolon}\ {\isachardoublequote}anything\ something{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+Note that the present configuration may be inspected by
+  several \emph{diagnostic commands}.%
+\end{isamarkuptxt}%
+\ \ \isamarkuptrue%
+\isacommand{term}\ something\ \ %
+\isamarkupcmt{\isa{something{\isasymColon}{\isacharprime}a}%
+}
+\isanewline
+\ \ \isamarkupfalse%
+\isacommand{term}\ anything\ \ %
+\isamarkupcmt{\isa{anything{\isasymColon}{\isacharprime}a\ {\isasymRightarrow}\ bool}%
+}
+\isanewline
+\ \ \isamarkupfalse%
+\isacommand{thm}\ a\ \ %
+\isamarkupcmt{\isa{anything\ something}%
+}
+\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+We may state local (auxiliary) results as well.%
+\end{isamarkuptxt}%
+\ \ \isamarkuptrue%
+\isacommand{have}\ True\ \isamarkupfalse%
+\isacommand{proof}\ \isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+We are now satisfied.%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\isacommand{qed}\isamarkupfalse%
+%
+\isamarkupsubsection{Calculational Reasoning%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Isar is mainly about Natural Deduction, but Calculational Reasoning
+  turns out as a simplified instance of that, so we demonstrate it
+  first.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Transitive chains%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Technique: establish a chain of local facts, separated by \cmd{also}
+  and terminated by \cmd{finally}; another goal has to follow to point
+  out the final result.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}x{\isadigit{1}}\ {\isacharequal}\ x{\isadigit{4}}{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{proof}\ {\isacharminus}\ \ %
+\isamarkupcmt{do nothing yet%
+}
+\isanewline
+\ \ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}x{\isadigit{1}}\ {\isacharequal}\ x{\isadigit{2}}{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{also}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}x{\isadigit{2}}\ {\isacharequal}\ x{\isadigit{3}}{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{also}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}x{\isadigit{3}}\ {\isacharequal}\ x{\isadigit{4}}{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{finally}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{show}\ {\isachardoublequote}x{\isadigit{1}}\ {\isacharequal}\ x{\isadigit{4}}{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+This may be written more succinctly, using the special term binds
+  ``\isa{{\isasymdots}}'' (for the right-hand side of the last statement) and
+  ``\isa{{\isacharquery}thesis}'' (for the original claim at the head of the
+  proof).%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}x{\isadigit{1}}\ {\isacharequal}\ x{\isadigit{4}}{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{proof}\ {\isacharminus}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}x{\isadigit{1}}\ {\isacharequal}\ x{\isadigit{2}}{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{also}\ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}{\isasymdots}\ {\isacharequal}\ x{\isadigit{3}}{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{also}\ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}{\isasymdots}\ {\isacharequal}\ x{\isadigit{4}}{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{finally}\ \isamarkupfalse%
+\isacommand{show}\ {\isacharquery}thesis\ \isamarkupfalse%
+\isacommand{{\isachardot}}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+The (implicit) forward-chaining steps involved in \cmd{also} and
+  \cmd{finally} are declared in the current context.  The main library
+  of Isabelle/HOL already knows about (mixed) transitivities of \isa{{\isacharequal}}, \isa{{\isacharless}}, \isa{{\isasymle}} etc.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}x{\isadigit{1}}{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ {\isacharless}\ x{\isadigit{6}}{\isachardoublequote}\isanewline
+\ \ %
+\isamarkupcmt{restriction to type \isa{nat} ensures that \isa{{\isacharless}} is really transitive%
+}
+\isanewline
+\isamarkupfalse%
+\isacommand{proof}\ {\isacharminus}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}x{\isadigit{1}}\ {\isacharless}\ x{\isadigit{2}}{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{also}\ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}{\isasymdots}\ {\isasymle}\ x{\isadigit{3}}{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{also}\ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}{\isasymdots}\ {\isacharequal}\ x{\isadigit{4}}{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{also}\ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}{\isasymdots}\ {\isacharless}\ x{\isadigit{5}}{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{also}\ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}{\isasymdots}\ {\isacharequal}\ x{\isadigit{6}}{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{finally}\ \isamarkupfalse%
+\isacommand{show}\ {\isacharquery}thesis\ \isamarkupfalse%
+\isacommand{{\isachardot}}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+We may also calculate on propositions.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ True\isanewline
+\isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}A\ {\isasymlongrightarrow}\ B\ {\isasymlongrightarrow}\ C{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{also}\ \isamarkupfalse%
+\isacommand{have}\ A\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{also}\ \isamarkupfalse%
+\isacommand{have}\ B\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{finally}\ \isamarkupfalse%
+\isacommand{have}\ C\ \isamarkupfalse%
+\isacommand{{\isachardot}}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+This is getting pretty close to Dijkstra's preferred proof style.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ True\isanewline
+\isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{have}\ {\isacharbrackleft}trans{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isasymAnd}X\ Y\ Z{\isachardot}\ X\ {\isasymlongrightarrow}\ Y\ {\isasymLongrightarrow}\ Y\ {\isasymlongrightarrow}\ Z\ {\isasymLongrightarrow}\ X\ {\isasymlongrightarrow}\ Z{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{by}\ rules\isanewline
+\ \ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}A\ {\isasymlongrightarrow}\ B{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{also}\ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}{\isasymdots}\ {\isasymlongrightarrow}\ C{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{also}\ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}{\isasymdots}\ {\isasymlongrightarrow}\ D{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{finally}\ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}A\ {\isasymlongrightarrow}\ D{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\isamarkupsubsubsection{Degenerate calculations and bigstep reasoning%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Instead of \cmd{also}/\cmd{finally} we may use degenerative steps
+  \cmd{moreover}/\cmd{ultimately} to accumulate facts, without
+  applying any forward rules yet.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ True\isanewline
+\isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{have}\ A\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{moreover}\ \isamarkupfalse%
+\isacommand{have}\ B\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{moreover}\ \isamarkupfalse%
+\isacommand{have}\ C\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{ultimately}\ \isamarkupfalse%
+\isacommand{have}\ A\ \isakeyword{and}\ B\ \isakeyword{and}\ C\ \isamarkupfalse%
+\isacommand{{\isachardot}}\ \ %
+\isamarkupcmt{Pretty obvious, right?%
+}
+\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Both kinds of calculational elements may be used together.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ True\isanewline
+\isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{assume}\ reasoning{\isacharunderscore}pattern\ {\isacharbrackleft}trans{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}A\ {\isasymLongrightarrow}\ B\ {\isasymLongrightarrow}\ C\ {\isasymLongrightarrow}\ D{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{have}\ A\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{moreover}\ \isamarkupfalse%
+\isacommand{have}\ B\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{moreover}\ \isamarkupfalse%
+\isacommand{have}\ C\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{finally}\ \isamarkupfalse%
+\isacommand{have}\ D\ \isamarkupfalse%
+\isacommand{{\isachardot}}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\isamarkupsubsection{Natural deduction%
+}
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Primitive patterns%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The default theory context admits to perform canonical single-step
+  reasoning (similar to Gentzen) without further ado.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ True\isanewline
+\isamarkupfalse%
+\isacommand{proof}\isanewline
+\isanewline
+\ \ \isamarkupfalse%
+\isacommand{have}\ True\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\isanewline
+\ \ \isamarkupfalse%
+\isacommand{{\isacharbraceleft}}\ \isamarkupfalse%
+\isacommand{assume}\ False\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{then}\ \isamarkupfalse%
+\isacommand{have}\ C\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\ \isamarkupfalse%
+\isacommand{{\isacharbraceright}}\isanewline
+\isanewline
+\ \ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}{\isasymnot}\ A{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{assume}\ A\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{show}\ False\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{qed}\isanewline
+\isanewline
+\ \ \isamarkupfalse%
+\isacommand{{\isacharbraceleft}}\ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}{\isasymnot}\ A{\isachardoublequote}\ \isakeyword{and}\ A\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{then}\ \isamarkupfalse%
+\isacommand{have}\ C\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\ \isamarkupfalse%
+\isacommand{{\isacharbraceright}}\isanewline
+\isanewline
+\ \ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}A\ {\isasymlongrightarrow}\ B{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{assume}\ A\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{show}\ B\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{qed}\isanewline
+\isanewline
+\ \ \isamarkupfalse%
+\isacommand{{\isacharbraceleft}}\ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}A\ {\isasymlongrightarrow}\ B{\isachardoublequote}\ \isakeyword{and}\ A\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{then}\ \isamarkupfalse%
+\isacommand{have}\ B\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\ \isamarkupfalse%
+\isacommand{{\isacharbraceright}}\isanewline
+\isanewline
+\ \ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}A\ {\isasymand}\ B{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{show}\ A\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{show}\ B\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{qed}\isanewline
+\isanewline
+\ \ \isamarkupfalse%
+\isacommand{{\isacharbraceleft}}\ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}A\ {\isasymand}\ B{\isachardoublequote}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{then}\ \isamarkupfalse%
+\isacommand{have}\ A\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\ \isamarkupfalse%
+\isacommand{{\isacharbraceright}}\isanewline
+\isanewline
+\ \ \isamarkupfalse%
+\isacommand{{\isacharbraceleft}}\ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}A\ {\isasymand}\ B{\isachardoublequote}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{then}\ \isamarkupfalse%
+\isacommand{have}\ B\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\ \isamarkupfalse%
+\isacommand{{\isacharbraceright}}\isanewline
+\isanewline
+\ \ \isamarkupfalse%
+\isacommand{{\isacharbraceleft}}\ \isamarkupfalse%
+\isacommand{assume}\ A\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{then}\ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}A\ {\isasymor}\ B{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\ \isamarkupfalse%
+\isacommand{{\isacharbraceright}}\isanewline
+\isanewline
+\ \ \isamarkupfalse%
+\isacommand{{\isacharbraceleft}}\ \isamarkupfalse%
+\isacommand{assume}\ B\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{then}\ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}A\ {\isasymor}\ B{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\ \isamarkupfalse%
+\isacommand{{\isacharbraceright}}\isanewline
+\isanewline
+\ \ \isamarkupfalse%
+\isacommand{{\isacharbraceleft}}\ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}A\ {\isasymor}\ B{\isachardoublequote}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{then}\ \isamarkupfalse%
+\isacommand{have}\ C\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \ \ \ \ \isamarkupfalse%
+\isacommand{assume}\ A\isanewline
+\ \ \ \ \ \ \isamarkupfalse%
+\isacommand{then}\ \isamarkupfalse%
+\isacommand{show}\ {\isacharquery}thesis\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{next}\isanewline
+\ \ \ \ \ \ \isamarkupfalse%
+\isacommand{assume}\ B\isanewline
+\ \ \ \ \ \ \isamarkupfalse%
+\isacommand{then}\ \isamarkupfalse%
+\isacommand{show}\ {\isacharquery}thesis\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{qed}\ \isamarkupfalse%
+\isacommand{{\isacharbraceright}}\isanewline
+\isanewline
+\ \ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}{\isasymforall}x{\isachardot}\ P\ x{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{fix}\ x\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{show}\ {\isachardoublequote}P\ x{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{qed}\isanewline
+\isanewline
+\ \ \isamarkupfalse%
+\isacommand{{\isacharbraceleft}}\ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}{\isasymforall}x{\isachardot}\ P\ x{\isachardoublequote}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{then}\ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}P\ t{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\ \isamarkupfalse%
+\isacommand{{\isacharbraceright}}\isanewline
+\isanewline
+\ \ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}{\isasymexists}x{\isachardot}\ P\ x{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{show}\ {\isachardoublequote}P\ t{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{qed}\isanewline
+\ \ \isanewline
+\ \ \isamarkupfalse%
+\isacommand{{\isacharbraceleft}}\ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}{\isasymexists}x{\isachardot}\ P\ x{\isachardoublequote}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{then}\ \isamarkupfalse%
+\isacommand{obtain}\ x\ \isakeyword{where}\ {\isachardoublequote}P\ x{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{note}\ nothing\ \ %
+\isamarkupcmt{relax%
+}
+\ \isamarkupfalse%
+\isacommand{{\isacharbraceright}}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Certainly, this works with derived rules for defined concepts in the
+  same manner.  E.g.\ use the simple-typed set-theory of Isabelle/HOL.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ True\isanewline
+\isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}y\ {\isasymin}\ {\isacharparenleft}{\isasymInter}x\ {\isasymin}\ A{\isachardot}\ B\ x{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{fix}\ x\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}x\ {\isasymin}\ A{\isachardoublequote}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{show}\ {\isachardoublequote}y\ {\isasymin}\ B\ x{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{qed}\isanewline
+\isanewline
+\ \ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}y\ {\isasymin}\ {\isacharparenleft}{\isasymUnion}x\ {\isasymin}\ A{\isachardot}\ B\ x{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{show}\ {\isachardoublequote}a\ {\isasymin}\ A{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{show}\ {\isachardoublequote}y\ {\isasymin}\ B\ a{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{qed}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\isamarkupsubsubsection{Variations in structure%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The design of the Isar language takes the user seriously%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Generalized elimination%
+}
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Scalable cases and induction%
+}
+\isamarkuptrue%
+%
+\isamarkupsection{Assimilating the old tactical style%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Improper commands: 
+  Observation: every Isar subproof may start with a ``script'' of%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

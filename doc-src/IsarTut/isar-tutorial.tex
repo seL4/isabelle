@@ -1,0 +1,64 @@
+
+\documentclass[12pt,a4paper,fleqn]{report}
+\usepackage{graphicx,../iman,../extra,../isar}
+\usepackage{generated/isabelle,generated/isabellesym}
+\usepackage{../pdfsetup}  % last one!
+
+\isabellestyle{it}
+
+\renewcommand{\isacommand}[1]
+{\ifthenelse{\equal{sorry}{#1}}{$\;$\dummyproof}
+  {\ifthenelse{\equal{oops}{#1}}{$\vdots$}{\isakeyword{#1}}}}
+\newcommand{\idt}[1]{{\mathord{\mathit{#1}}}}
+\newcommand{\DUMMYPROOF}{{\langle\idt{proof}\rangle}}
+\newcommand{\dummyproof}{$\DUMMYPROOF$}
+
+\newcommand{\cmd}[1]{\isacommand{#1}}
+
+\newcommand{\secref}[1]{\S\ref{#1}}
+\newcommand{\figref}[1]{figure~\ref{#1}}
+
+\hyphenation{Isabelle}
+\hyphenation{Isar}
+\hyphenation{Haskell}
+
+\title{\includegraphics[scale=0.5]{isabelle_isar}
+  \\[4ex] The Art of structured proof composition \\ in Isabelle/Isar}
+\author{\emph{Markus Wenzel} \\ TU M\"unchen}
+
+
+\setcounter{secnumdepth}{2} \setcounter{tocdepth}{2}
+
+\pagestyle{headings}
+\sloppy
+\binperiod     %%%treat . like a binary operator
+
+
+\begin{document}
+
+\underscoreoff
+
+\maketitle
+
+\begin{abstract}
+  FIXME
+\end{abstract}
+
+
+\pagenumbering{roman} \tableofcontents \clearfirst
+
+\input{generated/Tutorial}
+
+\begingroup
+  \bibliographystyle{plain} \small\raggedright\frenchspacing
+  \bibliography{../manual}
+\endgroup
+
+\nocite{Wenzel-PhD}
+
+\end{document}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

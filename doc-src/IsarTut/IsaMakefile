@@ -1,0 +1,34 @@
+
+## targets
+
+default: Tutorial
+images:
+test: Tutorial
+
+all: images test
+
+
+## global settings
+
+SRC = $(ISABELLE_HOME)/src
+OUT = $(ISABELLE_OUTPUT)
+LOG = $(OUT)/log
+USEDIR = $(ISATOOL) usedir -i true -d "" -D ../generated
+
+
+## Tutorial
+
+Tutorial: HOL $(LOG)/HOL-Tutorial.gz
+
+HOL:
+	@cd $(SRC)/HOL; $(ISATOOL) make HOL
+
+$(LOG)/HOL-Tutorial.gz: $(OUT)/HOL Tutorial/ROOT.ML Tutorial/Tutorial.thy
+	@$(USEDIR) $(OUT)/HOL Tutorial
+	@rm -f generated/pdfsetup.sty generated/session.tex
+
+
+## clean
+
+clean:
+	@rm -f $(LOG)/HOL-Tutorial.gz
