@@ -214,8 +214,8 @@ and induction over datatypes, inductive sets, and recursive functions.  The
 corresponding rules may be specified and instantiated in a casual manner.
 Furthermore, these methods provide named local contexts that may be invoked
 via the $\CASENAME$ proof command within the subsequent proof text (cf.\ 
-\S\ref{sec:proof-context}).  This accommodates compact proof texts even when
-reasoning about large specifications.
+\S\ref{sec:cases}).  This accommodates compact proof texts even when reasoning
+about large specifications.
 
 \begin{rail}
   'cases' ('simplified' ':')? term? rule?  ;
@@ -268,9 +268,9 @@ reasoning about large specifications.
   application of the induction rule.
 \end{descr}
 
-Above methods produce named local contexts (cf.\ \S\ref{sec:proof-context}),
-as determined by the instantiated rule \emph{before} it has been applied to
-the internal proof state.\footnote{As a general principle, Isar proof text may
+Above methods produce named local contexts (cf.\ \S\ref{sec:cases}), as
+determined by the instantiated rule \emph{before} it has been applied to the
+internal proof state.\footnote{As a general principle, Isar proof text may
   never refer to parts of proof states directly.} Thus proper use of symbolic
 cases usually require the rule to be instantiated fully, as far as the
 emerging local contexts and subgoals are concerned.  In particular, for
@@ -282,7 +282,7 @@ The $\isarkeyword{print_cases}$ command (\S\ref{sec:diag}) prints all named
 cases present in the current proof context.
 
 
-\subsection{Augmenting the context}
+\subsection{Declaring rules}
 
 \indexisaratt{cases}\indexisaratt{induct}
 \begin{matharray}{rcl}
@@ -304,6 +304,9 @@ The $cases$ and $induct$ attributes augment the corresponding context of rules
 for reasoning about inductive sets and types.  The standard rules are already
 declared by HOL definitional packages.  For special applications, these may be
 replaced manually by variant versions.
+
+Refer to the $case_names$ and $params$ attributes (see \S\ref{sec:cases}) to
+adjust names of cases and parameters of a rule.
 
 
 \section{Arithmetic}
