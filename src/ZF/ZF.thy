@@ -17,88 +17,88 @@ arities
 
 consts
 
-  "0"          :: "i"                          ("0") (*the empty set*)
-  Pow          :: "i => i"                                 (*power sets*)
-  Inf          :: "i"                                      (*infinite set*)
+  "0"           :: "i"                          ("0") (*the empty set*)
+  Pow           :: "i => i"                         (*power sets*)
+  Inf           :: "i"                              (*infinite set*)
 
   (* Bounded Quantifiers *)
 
-  "@Ball"      :: "[idt, i, o] => o"           ("(3ALL _:_./ _)" 10)
-  "@Bex"       :: "[idt, i, o] => o"           ("(3EX _:_./ _)" 10)
-  Ball         :: "[i, i => o] => o"
-  Bex          :: "[i, i => o] => o"
+  "@Ball"       :: "[idt, i, o] => o"           ("(3ALL _:_./ _)" 10)
+  "@Bex"        :: "[idt, i, o] => o"           ("(3EX _:_./ _)" 10)
+  Ball          :: "[i, i => o] => o"
+  Bex           :: "[i, i => o] => o"
 
   (* General Union and Intersection *)
 
-  "@INTER"     :: "[idt, i, i] => i"           ("(3INT _:_./ _)" 10)
-  "@UNION"     :: "[idt, i, i] => i"           ("(3UN _:_./ _)" 10)
-  Union, Inter :: "i => i"
+  "@INTER"      :: "[idt, i, i] => i"           ("(3INT _:_./ _)" 10)
+  "@UNION"      :: "[idt, i, i] => i"           ("(3UN _:_./ _)" 10)
+  Union, Inter  :: "i => i"
 
   (* Variations on Replacement *)
 
-  "@Replace"   :: "[idt, idt, i, o] => i"      ("(1{_ ./ _: _, _})")
-  "@RepFun"    :: "[i, idt, i] => i"           ("(1{_ ./ _: _})")
-  "@Collect"   :: "[idt, i, o] => i"           ("(1{_: _ ./ _})")
-  PrimReplace  :: "[i, [i, i] => o] => i"
-  Replace      :: "[i, [i, i] => o] => i"
-  RepFun       :: "[i, i => i] => i"
-  Collect      :: "[i, i => o] => i"
+  "@Replace"    :: "[idt, idt, i, o] => i"      ("(1{_ ./ _: _, _})")
+  "@RepFun"     :: "[i, idt, i] => i"           ("(1{_ ./ _: _})")
+  "@Collect"    :: "[idt, i, o] => i"           ("(1{_: _ ./ _})")
+  PrimReplace   :: "[i, [i, i] => o] => i"
+  Replace       :: "[i, [i, i] => o] => i"
+  RepFun        :: "[i, i => i] => i"
+  Collect       :: "[i, i => o] => i"
 
   (* Descriptions *)
 
-  The          :: "(i => o) => i"              (binder "THE " 10)
-  if           :: "[o, i, i] => i"
+  The           :: "(i => o) => i"              (binder "THE " 10)
+  if            :: "[o, i, i] => i"
 
   (* Enumerations of type i *)
 
-  ""           :: "i => is"                    ("_")
-  "@Enum"      :: "[i, is] => is"              ("_,/ _")
+  ""            :: "i => is"                    ("_")
+  "@Enum"       :: "[i, is] => is"              ("_,/ _")
 
   (* Finite Sets *)
 
-  "@Finset"    :: "is => i"                    ("{(_)}")
-  Upair, cons  :: "[i, i] => i"
-  succ         :: "i => i"
+  "@Finset"     :: "is => i"                    ("{(_)}")
+  Upair, cons   :: "[i, i] => i"
+  succ          :: "i => i"
 
   (* Ordered Pairing and n-Tuples *)
 
-  "@Tuple"     :: "[i, is] => i"               ("<(_,/ _)>")
-  Pair         :: "[i, i] => i"
-  fst, snd     :: "i => i"
-  split        :: "[[i,i] => i, i] => i"
-  fsplit       :: "[[i,i] => o, i] => o"
+  "@Tuple"      :: "[i, is] => i"               ("<(_,/ _)>")
+  Pair          :: "[i, i] => i"
+  fst, snd      :: "i => i"
+  split         :: "[[i, i] => i, i] => i"
+  fsplit        :: "[[i, i] => o, i] => o"
 
   (* Sigma and Pi Operators *)
 
-  "@PROD"      :: "[idt, i, i] => i"           ("(3PROD _:_./ _)" 10)
-  "@SUM"       :: "[idt, i, i] => i"           ("(3SUM _:_./ _)" 10)
-  "@lam"       :: "[idt, i, i] => i"           ("(3lam _:_./ _)" 10)
-  Pi, Sigma    :: "[i, i => i] => i"
+  "@PROD"       :: "[idt, i, i] => i"           ("(3PROD _:_./ _)" 10)
+  "@SUM"        :: "[idt, i, i] => i"           ("(3SUM _:_./ _)" 10)
+  "@lam"        :: "[idt, i, i] => i"           ("(3lam _:_./ _)" 10)
+  Pi, Sigma     :: "[i, i => i] => i"
 
   (* Relations and Functions *)
 
-  domain       :: "i => i"
-  range        :: "i => i"
-  field        :: "i => i"
-  converse     :: "i => i"
-  Lambda       :: "[i, i => i] => i"
-  restrict     :: "[i, i] => i"
+  domain        :: "i => i"
+  range         :: "i => i"
+  field         :: "i => i"
+  converse      :: "i => i"
+  Lambda        :: "[i, i => i] => i"
+  restrict      :: "[i, i] => i"
 
   (* Infixes in order of decreasing precedence *)
 
-  "``"  :: "[i, i] => i"         (infixl 90) (*image*)
-  "-``" :: "[i, i] => i"         (infixl 90) (*inverse image*)
-  "`"   :: "[i, i] => i"         (infixl 90) (*function application*)
+  "``"  :: "[i, i] => i"    (infixl 90) (*image*)
+  "-``" :: "[i, i] => i"    (infixl 90) (*inverse image*)
+  "`"   :: "[i, i] => i"    (infixl 90) (*function application*)
 
-  (*Except for their translations, * and -> are right-associating infixes*)
-  " *"  :: "[i, i] => i"         ("(_ */ _)" [81, 80] 80) (*Cartesian product*)
-  "Int" :: "[i, i] => i"         (infixl 70) (*binary intersection*)
-  "Un"  :: "[i, i] => i"         (infixl 65) (*binary union*)
-  "-"   :: "[i, i] => i"         (infixl 65) (*set difference*)
-  " ->" :: "[i, i] => i"         ("(_ ->/ _)" [61, 60] 60) (*function space*)
-  "<="  :: "[i, i] => o"         (infixl 50) (*subset relation*)
-  ":"   :: "[i, i] => o"         (infixl 50) (*membership relation*)
-  "~:"  :: "[i, i] => o"         (infixl 50) (*negated membership relation*)
+  (*Except for their translations, * and -> are right and ~: left associative infixes*)
+  " *"  :: "[i, i] => i"    ("(_ */ _)" [81, 80] 80) (*Cartesian product*)
+  "Int" :: "[i, i] => i"    (infixl 70) (*binary intersection*)
+  "Un"  :: "[i, i] => i"    (infixl 65) (*binary union*)
+  "-"   :: "[i, i] => i"    (infixl 65) (*set difference*)
+  " ->" :: "[i, i] => i"    ("(_ ->/ _)" [61, 60] 60) (*function space*)
+  "<="  :: "[i, i] => o"    (infixl 50) (*subset relation*)
+  ":"   :: "[i, i] => o"    (infixl 50) (*membership relation*)
+  "~:"  :: "[i, i] => o"    ("(_ ~:/ _)" [50, 51] 50) (*negated membership relation*)
 
 
 translations
@@ -118,7 +118,7 @@ translations
   "lam x:A. f"  == "Lambda(A, %x. f)"
   "ALL x:A. P"  == "Ball(A, %x. P)"
   "EX x:A. P"   == "Bex(A, %x. P)"
-  "x ~: y"      == "~ (x:y)"
+  "x ~: y"      == "~ (x : y)"
 
 
 rules
