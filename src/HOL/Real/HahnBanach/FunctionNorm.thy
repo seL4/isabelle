@@ -18,16 +18,16 @@ so we can define continuous linear forms as bounded linear forms:
 
 constdefs
   is_continuous ::
-  "['a::{minus, plus} set, 'a => real, 'a => real] => bool" 
+  "['a::{plus, minus, zero} set, 'a => real, 'a => real] => bool" 
   "is_continuous V norm f == 
-    is_linearform V f & (EX c. ALL x:V. abs (f x) <= c * norm x)"
+    is_linearform V f \<and> (\<exists>c. \<forall>x \<in> V. |f x| <= c * norm x)"
 
 lemma continuousI [intro]: 
-  "[| is_linearform V f; !! x. x:V ==> abs (f x) <= c * norm x |] 
+  "[| is_linearform V f; !! x. x \<in> V ==> |f x| <= c * norm x |] 
   ==> is_continuous V norm f"
 proof (unfold is_continuous_def, intro exI conjI ballI)
-  assume r: "!! x. x:V ==> abs (f x) <= c * norm x" 
-  fix x assume "x:V" show "abs (f x) <= c * norm x" by (rule r)
+  assume r: "!! x. x \<in> V ==> |f x| <= c * norm x" 
+  fix x assume "x \<in> V" show "|f x| <= c * norm x" by (rule r)
 qed
   
 lemma continuous_linearform [intro??]: 
@@ -36,7 +36,7 @@ lemma continuous_linearform [intro??]:
 
 lemma continuous_bounded [intro??]:
   "is_continuous V norm f 
-  ==> EX c. ALL x:V. abs (f x) <= c * norm x"
+  ==> \<exists>c. \<forall>x \<in> V. |f x| <= c * norm x"
   by (unfold is_continuous_def) force
 
 subsection{* The norm of a linear form *}
@@ -59,14 +59,14 @@ $0$, as all other elements of are ${} \ge 0$.
 
 Thus we define the set $B$ the supremum is taken from as
 \[
-\{ 0 \} \Un \left\{ \frac{|f\ap x|}{\norm x} \dt x\neq \zero \And x\in F\right\}
+\{ 0 \} \Union \left\{ \frac{|f\ap x|}{\norm x} \dt x\neq \zero \And x\in F\right\}
  \]
 *}
 
 constdefs
-  B :: "[ 'a set, 'a => real, 'a => real ] => real set"
+  B :: "[ 'a set, 'a => real, 'a::{plus, minus, zero} => real ] => real set"
   "B V norm f == 
-  {#0} Un {abs (f x) * rinv (norm x) | x. x ~= 00 & x:V}"
+  {#0} \<union> {|f x| * rinv (norm x) | x. x \<noteq> 0 \<and> x \<in> V}"
 
 text{* $n$ is the function norm of $f$, iff 
 $n$ is the supremum of $B$. 
@@ -74,17 +74,20 @@ $n$ is the supremum of $B$.
 
 constdefs 
   is_function_norm :: 
-  " ['a set, 'a => real, 'a => real] => real => bool"
-  "is_function_norm V norm f fn == is_Sup UNIV (B V norm f) fn"
+  " ['a::{minus,plus,zero}  => real, 'a set, 'a => real] => real => bool"
+  "is_function_norm f V norm fn == is_Sup UNIV (B V norm f) fn"
 
 text{* $\idt{function{\dsh}norm}$ is equal to the supremum of $B$, 
 if the supremum exists. Otherwise it is undefined. *}
 
 constdefs 
-  function_norm :: " ['a set, 'a => real, 'a => real] => real"
-  "function_norm V norm f == Sup UNIV (B V norm f)"
+  function_norm :: " ['a::{minus,plus,zero} => real, 'a set, 'a => real] => real"
+  "function_norm f V norm == Sup UNIV (B V norm f)"
 
-lemma B_not_empty: "#0 : B V norm f"
+syntax   
+  function_norm :: " ['a => real, 'a set, 'a => real] => real" ("\<parallel>_\<parallel>_,_")
+
+lemma B_not_empty: "#0 \<in> B V norm f"
   by (unfold B_def, force)
 
 text {* The following lemma states that every continuous linear form
@@ -92,35 +95,35 @@ on a normed space $(V, \norm{\cdot})$ has a function norm. *}
 
 lemma ex_fnorm [intro??]: 
   "[| is_normed_vectorspace V norm; is_continuous V norm f|]
-     ==> is_function_norm V norm f (function_norm V norm f)" 
+     ==> is_function_norm f V norm \<parallel>f\<parallel>V,norm" 
 proof (unfold function_norm_def is_function_norm_def 
   is_continuous_def Sup_def, elim conjE, rule selectI2EX)
   assume "is_normed_vectorspace V norm"
   assume "is_linearform V f" 
-  and e: "EX c. ALL x:V. abs (f x) <= c * norm x"
+  and e: "\<exists>c. \<forall>x \<in> V. |f x| <= c * norm x"
 
   txt {* The existence of the supremum is shown using the 
   completeness of the reals. Completeness means, that
   every non-empty bounded set of reals has a 
   supremum. *}
-  show  "EX a. is_Sup UNIV (B V norm f) a" 
+  show  "\<exists>a. is_Sup UNIV (B V norm f) a" 
   proof (unfold is_Sup_def, rule reals_complete)
 
     txt {* First we have to show that $B$ is non-empty: *} 
 
-    show "EX X. X : B V norm f" 
+    show "\<exists>X. X \<in> B V norm f" 
     proof (intro exI)
-      show "#0 : (B V norm f)" by (unfold B_def, force)
+      show "#0 \<in> (B V norm f)" by (unfold B_def, force)
     qed
 
     txt {* Then we have to show that $B$ is bounded: *}
 
-    from e show "EX Y. isUb UNIV (B V norm f) Y"
+    from e show "\<exists>Y. isUb UNIV (B V norm f) Y"
     proof
 
       txt {* We know that $f$ is bounded by some value $c$. *}  
   
-      fix c assume a: "ALL x:V. abs (f x) <= c * norm x"
+      fix c assume a: "\<forall>x \<in> V. |f x| <= c * norm x"
       def b == "max c #0"
 
       show "?thesis"
@@ -141,7 +144,7 @@ proof (unfold function_norm_def is_function_norm_def
 
       next
 	fix x y
-        assume "x:V" "x ~= 00" (***
+        assume "x \<in> V" "x \<noteq> 0" (***
 
          have ge: "#0 <= rinv (norm x)";
           by (rule real_less_imp_le, rule real_rinv_gt_zero, 
@@ -152,11 +155,11 @@ proof (unfold function_norm_def is_function_norm_def
               show "#0 < norm x"; ..;
             qed;
           qed; *** )
-        have nz: "norm x ~= #0" 
+        have nz: "norm x \<noteq> #0" 
           by (rule not_sym, rule lt_imp_not_eq, 
               rule normed_vs_norm_gt_zero) (***
           proof (rule not_sym);
-            show "#0 ~= norm x"; 
+            show "#0 \<noteq> norm x"; 
             proof (rule lt_imp_not_eq);
               show "#0 < norm x"; ..;
             qed;
@@ -165,19 +168,19 @@ proof (unfold function_norm_def is_function_norm_def
         txt {* The thesis follows by a short calculation using the 
         fact that $f$ is bounded. *}
     
-        assume "y = abs (f x) * rinv (norm x)"
+        assume "y = |f x| * rinv (norm x)"
         also have "... <= c * norm x * rinv (norm x)"
         proof (rule real_mult_le_le_mono2)
           show "#0 <= rinv (norm x)"
             by (rule real_less_imp_le, rule real_rinv_gt_zero1, 
                 rule normed_vs_norm_gt_zero)
-          from a show "abs (f x) <= c * norm x" ..
+          from a show "|f x| <= c * norm x" ..
         qed
         also have "... = c * (norm x * rinv (norm x))" 
           by (rule real_mult_assoc)
         also have "(norm x * rinv (norm x)) = (#1::real)" 
         proof (rule real_mult_inv_right1)
-          show nz: "norm x ~= #0" 
+          show nz: "norm x \<noteq> #0" 
             by (rule not_sym, rule lt_imp_not_eq, 
               rule normed_vs_norm_gt_zero)
         qed
@@ -191,8 +194,8 @@ qed
 text {* The norm of a continuous function is always $\geq 0$. *}
 
 lemma fnorm_ge_zero [intro??]: 
-  "[| is_continuous V norm f; is_normed_vectorspace V norm|]
-   ==> #0 <= function_norm V norm f"
+  "[| is_continuous V norm f; is_normed_vectorspace V norm |]
+   ==> #0 <= \<parallel>f\<parallel>V,norm"
 proof -
   assume c: "is_continuous V norm f" 
      and n: "is_normed_vectorspace V norm"
@@ -203,14 +206,14 @@ proof -
 
   show ?thesis 
   proof (unfold function_norm_def, rule sup_ub1)
-    show "ALL x:(B V norm f). #0 <= x" 
+    show "\<forall>x \<in> (B V norm f). #0 <= x" 
     proof (intro ballI, unfold B_def,
            elim UnE singletonE CollectE exE conjE) 
       fix x r
-      assume "x : V" "x ~= 00" 
-        and r: "r = abs (f x) * rinv (norm x)"
+      assume "x \<in> V" "x \<noteq> 0" 
+        and r: "r = |f x| * rinv (norm x)"
 
-      have ge: "#0 <= abs (f x)" by (simp! only: abs_ge_zero)
+      have ge: "#0 <= |f x|" by (simp! only: abs_ge_zero)
       have "#0 <= rinv (norm x)" 
         by (rule real_less_imp_le, rule real_rinv_gt_zero1, rule)(***
         proof (rule real_less_imp_le);
@@ -225,13 +228,13 @@ proof -
 
     txt {* Since $f$ is continuous the function norm exists: *}
 
-    have "is_function_norm V norm f (function_norm V norm f)" ..
+    have "is_function_norm f V norm \<parallel>f\<parallel>V,norm" ..
     thus "is_Sup UNIV (B V norm f) (Sup UNIV (B V norm f))" 
       by (unfold is_function_norm_def function_norm_def)
 
     txt {* $B$ is non-empty by construction: *}
 
-    show "#0 : B V norm f" by (rule B_not_empty)
+    show "#0 \<in> B V norm f" by (rule B_not_empty)
   qed
 qed
   
@@ -242,13 +245,12 @@ text{* \medskip The fundamental property of function norms is:
 *}
 
 lemma norm_fx_le_norm_f_norm_x: 
-  "[| is_normed_vectorspace V norm; x:V; is_continuous V norm f |] 
-    ==> abs (f x) <= function_norm V norm f * norm x" 
+  "[| is_continuous V norm f; is_normed_vectorspace V norm; x \<in> V |] 
+    ==> |f x| <= \<parallel>f\<parallel>V,norm * norm x"
 proof - 
-  assume "is_normed_vectorspace V norm" "x:V" 
+  assume "is_normed_vectorspace V norm" "x \<in> V" 
   and c: "is_continuous V norm f"
   have v: "is_vectorspace V" ..
-  assume "x:V"
 
  txt{* The proof is by case analysis on $x$. *}
  
@@ -259,22 +261,22 @@ proof -
     from the linearity of $f$: for every linear function
     holds $f\ap \zero = 0$. *}
 
-    assume "x = 00"
-    have "abs (f x) = abs (f 00)" by (simp!)
-    also from v continuous_linearform have "f 00 = #0" ..
+    assume "x = 0"
+    have "|f x| = |f 0|" by (simp!)
+    also from v continuous_linearform have "f 0 = #0" ..
     also note abs_zero
-    also have "#0 <= function_norm V norm f * norm x"
+    also have "#0 <= \<parallel>f\<parallel>V,norm * norm x"
     proof (rule real_le_mult_order1a)
-      show "#0 <= function_norm V norm f" ..
+      show "#0 <= \<parallel>f\<parallel>V,norm" ..
       show "#0 <= norm x" ..
     qed
     finally 
-    show "abs (f x) <= function_norm V norm f * norm x" .
+    show "|f x| <= \<parallel>f\<parallel>V,norm * norm x" .
 
   next
-    assume "x ~= 00"
+    assume "x \<noteq> 0"
     have n: "#0 <= norm x" ..
-    have nz: "norm x ~= #0"
+    have nz: "norm x \<noteq> #0"
     proof (rule lt_imp_not_eq [RS not_sym])
       show "#0 < norm x" ..
     qed
@@ -282,28 +284,28 @@ proof -
     txt {* For the case $x\neq \zero$ we derive the following
     fact from the definition of the function norm:*}
 
-    have l: "abs (f x) * rinv (norm x) <= function_norm V norm f"
+    have l: "|f x| * rinv (norm x) <= \<parallel>f\<parallel>V,norm"
     proof (unfold function_norm_def, rule sup_ub)
       from ex_fnorm [OF _ c]
       show "is_Sup UNIV (B V norm f) (Sup UNIV (B V norm f))"
          by (simp! add: is_function_norm_def function_norm_def)
-      show "abs (f x) * rinv (norm x) : B V norm f" 
+      show "|f x| * rinv (norm x) \<in> B V norm f" 
         by (unfold B_def, intro UnI2 CollectI exI [of _ x]
             conjI, simp)
     qed
 
     txt {* The thesis now follows by a short calculation: *}
 
-    have "abs (f x) = abs (f x) * (#1::real)" by (simp!)
-    also from nz have "(#1::real) = rinv (norm x) * norm x" 
+    have "|f x| = |f x| * #1" by (simp!)
+    also from nz have "#1 = rinv (norm x) * norm x" 
       by (rule real_mult_inv_left1 [RS sym])
     also 
-    have "abs (f x) * ... = abs (f x) * rinv (norm x) * norm x"
-      by (simp! add: real_mult_assoc [of "abs (f x)"])
-    also have "... <= function_norm V norm f * norm x" 
+    have "|f x| * ... = |f x| * rinv (norm x) * norm x"
+      by (simp! add: real_mult_assoc)
+    also have "... <= \<parallel>f\<parallel>V,norm * norm x"
       by (rule real_mult_le_le_mono2 [OF n l])
     finally 
-    show "abs (f x) <= function_norm V norm f * norm x" .
+    show "|f x| <= \<parallel>f\<parallel>V,norm * norm x" .
   qed
 qed
 
@@ -315,13 +317,13 @@ which the following inequation holds:
 *}
 
 lemma fnorm_le_ub: 
-  "[| is_normed_vectorspace V norm; is_continuous V norm f;
-     ALL x:V. abs (f x) <= c * norm x; #0 <= c |]
-  ==> function_norm V norm f <= c"
+  "[| is_continuous V norm f; is_normed_vectorspace V norm; 
+     \<forall>x \<in> V. |f x| <= c * norm x; #0 <= c |]
+  ==> \<parallel>f\<parallel>V,norm <= c"
 proof (unfold function_norm_def)
   assume "is_normed_vectorspace V norm" 
   assume c: "is_continuous V norm f"
-  assume fb: "ALL x:V. abs (f x) <= c * norm x"
+  assume fb: "\<forall>x \<in> V. |f x| <= c * norm x"
          and "#0 <= c"
 
   txt {* Suppose the inequation holds for some $c\geq 0$.
@@ -336,12 +338,12 @@ proof (unfold function_norm_def)
     show "is_Sup UNIV (B V norm f) (Sup UNIV (B V norm f))" 
       by (simp! add: is_function_norm_def function_norm_def) 
   
-    txt {* $c$ is an upper bound of $B$, i.~e.~every
+    txt {* $c$ is an upper bound of $B$, i.e. every
     $y\in B$ is less than $c$. *}
 
     show "isUb UNIV (B V norm f) c"  
     proof (intro isUbI setleI ballI)
-      fix y assume "y: B V norm f"
+      fix y assume "y \<in> B V norm f"
       thus le: "y <= c"
       proof (unfold B_def, elim UnE CollectE exE conjE singletonE)
 
@@ -356,14 +358,14 @@ proof (unfold function_norm_def)
 
       next
 	fix x 
-        assume "x : V" "x ~= 00" 
+        assume "x \<in> V" "x \<noteq> 0" 
 
         have lz: "#0 < norm x" 
           by (simp! add: normed_vs_norm_gt_zero)
           
-        have nz: "norm x ~= #0" 
+        have nz: "norm x \<noteq> #0" 
         proof (rule not_sym)
-          from lz show "#0 ~= norm x"
+          from lz show "#0 \<noteq> norm x"
             by (simp! add: order_less_imp_not_eq)
         qed
             
@@ -372,10 +374,10 @@ proof (unfold function_norm_def)
 	hence rinv_gez: "#0 <= rinv (norm x)"
           by (rule real_less_imp_le)
 
-	assume "y = abs (f x) * rinv (norm x)" 
+	assume "y = |f x| * rinv (norm x)" 
 	also from rinv_gez have "... <= c * norm x * rinv (norm x)"
 	  proof (rule real_mult_le_le_mono2)
-	    show "abs (f x) <= c * norm x" by (rule bspec)
+	    show "|f x| <= c * norm x" by (rule bspec)
 	  qed
 	also have "... <= c" by (simp add: nz real_mult_assoc)
 	finally show ?thesis .

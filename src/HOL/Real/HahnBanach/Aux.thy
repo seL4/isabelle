@@ -17,22 +17,22 @@ lemmas chainE2 = chainD2 [elimify]
 text_raw {* \medskip *}
 text{* Lemmas about sets. *}
 
-lemma Int_singletonD: "[| A Int B = {v}; x:A; x:B |] ==> x = v"
+lemma Int_singletonD: "[| A \<inter> B = {v}; x \<in> A; x \<in> B |] ==> x = v"
   by (fast elim: equalityE)
 
-lemma set_less_imp_diff_not_empty: "H < E ==> EX x0:E. x0 ~: H"
+lemma set_less_imp_diff_not_empty: "H < E ==> \<exists>x0 \<in> E. x0 \<notin> H"
  by (force simp add: psubset_eq)
 
 text_raw {* \medskip *}
 text{* Some lemmas about orders. *}
 
-lemma lt_imp_not_eq: "x < (y::'a::order) ==> x ~= y" 
+lemma lt_imp_not_eq: "x < (y::'a::order) ==> x \<noteq> y" 
   by (rule order_less_le[RS iffD1, RS conjunct2])
 
 lemma le_noteq_imp_less: 
-  "[| x <= (r::'a::order); x ~= r |] ==> x < r"
+  "[| x <= (r::'a::order); x \<noteq> r |] ==> x < r"
 proof -
-  assume "x <= (r::'a::order)" and ne:"x ~= r"
+  assume "x <= r" and ne:"x \<noteq> r"
   hence "x < r | x = r" by (simp add: order_le_less)
   with ne show ?thesis by simp
 qed
@@ -116,10 +116,10 @@ proof -;
   thus ?thesis; by simp;
 qed;
 
-lemma real_mult_inv_right1: "x ~= #0 ==> x*rinv(x) = #1"
+lemma real_mult_inv_right1: "x \<noteq> #0 ==> x*rinv(x) = #1"
    by simp
 
-lemma real_mult_inv_left1: "x ~= #0 ==> rinv(x)*x = #1"
+lemma real_mult_inv_left1: "x \<noteq> #0 ==> rinv(x) * x = #1"
    by simp
 
 lemma real_le_mult_order1a: 

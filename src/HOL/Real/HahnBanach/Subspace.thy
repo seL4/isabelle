@@ -16,39 +16,39 @@ text {* A non-empty subset $U$ of a vector space $V$ is a
 scalar multiplication. *}
 
 constdefs 
-  is_subspace ::  "['a::{minus, plus} set, 'a set] => bool"
-  "is_subspace U V == U ~= {} & U <= V 
-     & (ALL x:U. ALL y:U. ALL a. x + y : U & a (*) x : U)"
+  is_subspace ::  "['a::{plus, minus, zero} set, 'a set] => bool"
+  "is_subspace U V == U \<noteq> {} \<and> U <= V 
+     \<and> (\<forall>x \<in> U. \<forall>y \<in> U. \<forall>a. x + y \<in> U \<and> a \<cdot> x\<in> U)"
 
 lemma subspaceI [intro]: 
-  "[| 00 : U; U <= V; ALL x:U. ALL y:U. (x + y : U); 
-  ALL x:U. ALL a. a (*) x : U |]
+  "[| 0 \<in> U; U <= V; \<forall>x \<in> U. \<forall>y \<in> U. (x + y \<in> U); 
+  \<forall>x \<in> U. \<forall>a. a \<cdot> x \<in> U |]
   ==> is_subspace U V"
 proof (unfold is_subspace_def, intro conjI) 
-  assume "00 : U" thus "U ~= {}" by fast
+  assume "0 \<in> U" thus "U \<noteq> {}" by fast
 qed (simp+)
 
-lemma subspace_not_empty [intro??]: "is_subspace U V ==> U ~= {}"
+lemma subspace_not_empty [intro??]: "is_subspace U V ==> U \<noteq> {}"
   by (unfold is_subspace_def) simp 
 
 lemma subspace_subset [intro??]: "is_subspace U V ==> U <= V"
   by (unfold is_subspace_def) simp
 
 lemma subspace_subsetD [simp, intro??]: 
-  "[| is_subspace U V; x:U |] ==> x:V"
+  "[| is_subspace U V; x \<in> U |] ==> x \<in> V"
   by (unfold is_subspace_def) force
 
 lemma subspace_add_closed [simp, intro??]: 
-  "[| is_subspace U V; x:U; y:U |] ==> x + y : U"
+  "[| is_subspace U V; x \<in> U; y \<in> U |] ==> x + y \<in> U"
   by (unfold is_subspace_def) simp
 
 lemma subspace_mult_closed [simp, intro??]: 
-  "[| is_subspace U V; x:U |] ==> a (*) x : U"
+  "[| is_subspace U V; x \<in> U |] ==> a \<cdot> x \<in> U"
   by (unfold is_subspace_def) simp
 
 lemma subspace_diff_closed [simp, intro??]: 
-  "[| is_subspace U V; is_vectorspace V; x:U; y:U |] 
-  ==> x - y : U"
+  "[| is_subspace U V; is_vectorspace V; x \<in> U; y \<in> U |] 
+  ==> x - y \<in> U"
   by (simp! add: diff_eq1 negate_eq1)
 
 text {* Similar as for linear spaces, the existence of the 
@@ -56,23 +56,23 @@ zero element in every subspace follows from the non-emptiness
 of the carrier set and by vector space laws.*}
 
 lemma zero_in_subspace [intro??]:
-  "[| is_subspace U V; is_vectorspace V |] ==> 00 : U"
+  "[| is_subspace U V; is_vectorspace V |] ==> 0 \<in> U"
 proof - 
   assume "is_subspace U V" and v: "is_vectorspace V"
-  have "U ~= {}" ..
-  hence "EX x. x:U" by force
+  have "U \<noteq> {}" ..
+  hence "\<exists>x. x \<in> U" by force
   thus ?thesis 
   proof 
-    fix x assume u: "x:U" 
-    hence "x:V" by (simp!)
-    with v have "00 = x - x" by (simp!)
-    also have "... : U" by (rule subspace_diff_closed)
+    fix x assume u: "x \<in> U" 
+    hence "x \<in> V" by (simp!)
+    with v have "0 = x - x" by (simp!)
+    also have "... \<in> U" by (rule subspace_diff_closed)
     finally show ?thesis .
   qed
 qed
 
 lemma subspace_neg_closed [simp, intro??]: 
-  "[| is_subspace U V; is_vectorspace V; x:U |] ==> - x : U"
+  "[| is_subspace U V; is_vectorspace V; x \<in> U |] ==> - x \<in> U"
   by (simp add: negate_eq1)
 
 text_raw {* \medskip *}
@@ -84,11 +84,11 @@ proof -
   assume "is_subspace U V" "is_vectorspace V"
   show ?thesis
   proof 
-    show "00 : U" ..
-    show "ALL x:U. ALL a. a (*) x : U" by (simp!)
-    show "ALL x:U. ALL y:U. x + y : U" by (simp!)
-    show "ALL x:U. - x = -#1 (*) x" by (simp! add: negate_eq1)
-    show "ALL x:U. ALL y:U. x - y =  x + - y" 
+    show "0 \<in> U" ..
+    show "\<forall>x \<in> U. \<forall>a. a \<cdot> x \<in> U" by (simp!)
+    show "\<forall>x \<in> U. \<forall>y \<in> U. x + y \<in> U" by (simp!)
+    show "\<forall>x \<in> U. - x = -#1 \<cdot> x" by (simp! add: negate_eq1)
+    show "\<forall>x \<in> U. \<forall>y \<in> U. x - y =  x + - y" 
       by (simp! add: diff_eq1)
   qed (simp! add: vs_add_mult_distrib1 vs_add_mult_distrib2)+
 qed
@@ -98,10 +98,10 @@ text {* The subspace relation is reflexive. *}
 lemma subspace_refl [intro]: "is_vectorspace V ==> is_subspace V V"
 proof 
   assume "is_vectorspace V"
-  show "00 : V" ..
+  show "0 \<in> V" ..
   show "V <= V" ..
-  show "ALL x:V. ALL y:V. x + y : V" by (simp!)
-  show "ALL x:V. ALL a. a (*) x : V" by (simp!)
+  show "\<forall>x \<in> V. \<forall>y \<in> V. x + y \<in> V" by (simp!)
+  show "\<forall>x \<in> V. \<forall>a. a \<cdot> x \<in> V" by (simp!)
 qed
 
 text {* The subspace relation is transitive. *}
@@ -111,22 +111,22 @@ lemma subspace_trans:
   ==> is_subspace U W"
 proof 
   assume "is_subspace U V" "is_subspace V W" "is_vectorspace V"
-  show "00 : U" ..
+  show "0 \<in> U" ..
 
   have "U <= V" ..
   also have "V <= W" ..
   finally show "U <= W" .
 
-  show "ALL x:U. ALL y:U. x + y : U" 
+  show "\<forall>x \<in> U. \<forall>y \<in> U. x + y \<in> U" 
   proof (intro ballI)
-    fix x y assume "x:U" "y:U"
-    show "x + y : U" by (simp!)
+    fix x y assume "x \<in> U" "y \<in> U"
+    show "x + y \<in> U" by (simp!)
   qed
 
-  show "ALL x:U. ALL a. a (*) x : U"
+  show "\<forall>x \<in> U. \<forall>a. a \<cdot> x \<in> U"
   proof (intro ballI allI)
-    fix x a assume "x:U"
-    show "a (*) x : U" by (simp!)
+    fix x a assume "x \<in> U"
+    show "a \<cdot> x \<in> U" by (simp!)
   qed
 qed
 
@@ -138,60 +138,60 @@ text {* The \emph{linear closure} of a vector $x$ is the set of all
 scalar multiples of $x$. *}
 
 constdefs
-  lin :: "'a => 'a set"
-  "lin x == {a (*) x | a. True}" 
+  lin :: "('a::{minus,plus,zero}) => 'a set"
+  "lin x == {a \<cdot> x | a. True}" 
 
-lemma linD: "x : lin v = (EX a::real. x = a (*) v)"
+lemma linD: "x \<in> lin v = (\<exists>a::real. x = a \<cdot> v)"
   by (unfold lin_def) fast
 
-lemma linI [intro??]: "a (*) x0 : lin x0"
+lemma linI [intro??]: "a \<cdot> x0 \<in> lin x0"
   by (unfold lin_def) fast
 
 text {* Every vector is contained in its linear closure. *}
 
-lemma x_lin_x: "[| is_vectorspace V; x:V |] ==> x : lin x"
+lemma x_lin_x: "[| is_vectorspace V; x \<in> V |] ==> x \<in> lin x"
 proof (unfold lin_def, intro CollectI exI conjI)
-  assume "is_vectorspace V" "x:V"
-  show "x = #1 (*) x" by (simp!)
+  assume "is_vectorspace V" "x \<in> V"
+  show "x = #1 \<cdot> x" by (simp!)
 qed simp
 
 text {* Any linear closure is a subspace. *}
 
 lemma lin_subspace [intro??]: 
-  "[| is_vectorspace V; x:V |] ==> is_subspace (lin x) V"
+  "[| is_vectorspace V; x \<in> V |] ==> is_subspace (lin x) V"
 proof
-  assume "is_vectorspace V" "x:V"
-  show "00 : lin x" 
+  assume "is_vectorspace V" "x \<in> V"
+  show "0 \<in> lin x" 
   proof (unfold lin_def, intro CollectI exI conjI)
-    show "00 = (#0::real) (*) x" by (simp!)
+    show "0 = (#0::real) \<cdot> x" by (simp!)
   qed simp
 
   show "lin x <= V"
   proof (unfold lin_def, intro subsetI, elim CollectE exE conjE) 
-    fix xa a assume "xa = a (*) x" 
-    show "xa:V" by (simp!)
+    fix xa a assume "xa = a \<cdot> x" 
+    show "xa \<in> V" by (simp!)
   qed
 
-  show "ALL x1 : lin x. ALL x2 : lin x. x1 + x2 : lin x" 
+  show "\<forall>x1 \<in> lin x. \<forall>x2 \<in> lin x. x1 + x2 \<in> lin x" 
   proof (intro ballI)
-    fix x1 x2 assume "x1 : lin x" "x2 : lin x" 
-    thus "x1 + x2 : lin x"
+    fix x1 x2 assume "x1 \<in> lin x" "x2 \<in> lin x" 
+    thus "x1 + x2 \<in> lin x"
     proof (unfold lin_def, elim CollectE exE conjE, 
       intro CollectI exI conjI)
-      fix a1 a2 assume "x1 = a1 (*) x" "x2 = a2 (*) x"
-      show "x1 + x2 = (a1 + a2) (*) x" 
+      fix a1 a2 assume "x1 = a1 \<cdot> x" "x2 = a2 \<cdot> x"
+      show "x1 + x2 = (a1 + a2) \<cdot> x" 
         by (simp! add: vs_add_mult_distrib2)
     qed simp
   qed
 
-  show "ALL xa:lin x. ALL a. a (*) xa : lin x" 
+  show "\<forall>xa \<in> lin x. \<forall>a. a \<cdot> xa \<in> lin x" 
   proof (intro ballI allI)
-    fix x1 a assume "x1 : lin x" 
-    thus "a (*) x1 : lin x"
+    fix x1 a assume "x1 \<in> lin x" 
+    thus "a \<cdot> x1 \<in> lin x"
     proof (unfold lin_def, elim CollectE exE conjE,
       intro CollectI exI conjI)
-      fix a1 assume "x1 = a1 (*) x"
-      show "a (*) x1 = (a * a1) (*) x" by (simp!)
+      fix a1 assume "x1 = a1 \<cdot> x"
+      show "a \<cdot> x1 = (a * a1) \<cdot> x" by (simp!)
     qed simp
   qed 
 qed
@@ -199,9 +199,9 @@ qed
 text {* Any linear closure is a vector space. *}
 
 lemma lin_vs [intro??]: 
-  "[| is_vectorspace V; x:V |] ==> is_vectorspace (lin x)"
+  "[| is_vectorspace V; x \<in> V |] ==> is_vectorspace (lin x)"
 proof (rule subspace_vs)
-  assume "is_vectorspace V" "x:V"
+  assume "is_vectorspace V" "x \<in> V"
   show "is_subspace (lin x) V" ..
 qed
 
@@ -215,22 +215,22 @@ all sums of elements from $U$ and $V$. *}
 instance set :: (plus) plus by intro_classes
 
 defs vs_sum_def:
-  "U + V == {u + v | u v. u:U & v:V}" (***
+  "U + V == {u + v | u v. u \<in> U \<and> v \<in> V}" (***
 
 constdefs 
   vs_sum :: 
-  "['a::{minus, plus} set, 'a set] => 'a set"         (infixl "+" 65)
-  "vs_sum U V == {x. EX u:U. EX v:V. x = u + v}";
+  "['a::{plus, minus, zero} set, 'a set] => 'a set"         (infixl "+" 65)
+  "vs_sum U V == {x. \<exists>u \<in> U. \<exists>v \<in> V. x = u + v}";
 ***)
 
 lemma vs_sumD: 
-  "x: U + V = (EX u:U. EX v:V. x = u + v)"
+  "x \<in> U + V = (\<exists>u \<in> U. \<exists>v \<in> V. x = u + v)"
     by (unfold vs_sum_def) fast
 
 lemmas vs_sumE = vs_sumD [RS iffD1, elimify]
 
 lemma vs_sumI [intro??]: 
-  "[| x:U; y:V; t= x + y |] ==> t : U + V"
+  "[| x \<in> U; y \<in> V; t= x + y |] ==> t \<in> U + V"
   by (unfold vs_sum_def) fast
 
 text{* $U$ is a subspace of $U + V$. *}
@@ -240,20 +240,20 @@ lemma subspace_vs_sum1 [intro??]:
   ==> is_subspace U (U + V)"
 proof 
   assume "is_vectorspace U" "is_vectorspace V"
-  show "00 : U" ..
+  show "0 \<in> U" ..
   show "U <= U + V"
   proof (intro subsetI vs_sumI)
-  fix x assume "x:U"
-    show "x = x + 00" by (simp!)
-    show "00 : V" by (simp!)
+  fix x assume "x \<in> U"
+    show "x = x + 0" by (simp!)
+    show "0 \<in> V" by (simp!)
   qed
-  show "ALL x:U. ALL y:U. x + y : U" 
+  show "\<forall>x \<in> U. \<forall>y \<in> U. x + y \<in> U" 
   proof (intro ballI)
-    fix x y assume "x:U" "y:U" show "x + y : U" by (simp!)
+    fix x y assume "x \<in> U" "y \<in> U" show "x + y \<in> U" by (simp!)
   qed
-  show "ALL x:U. ALL a. a (*) x : U" 
+  show "\<forall>x \<in> U. \<forall>a. a \<cdot> x \<in> U" 
   proof (intro ballI allI)
-    fix x a assume "x:U" show "a (*) x : U" by (simp!)
+    fix x a assume "x \<in> U" show "a \<cdot> x \<in> U" by (simp!)
   qed
 qed
 
@@ -264,38 +264,38 @@ lemma vs_sum_subspace [intro??]:
   ==> is_subspace (U + V) E"
 proof 
   assume "is_subspace U E" "is_subspace V E" "is_vectorspace E"
-  show "00 : U + V"
+  show "0 \<in> U + V"
   proof (intro vs_sumI)
-    show "00 : U" ..
-    show "00 : V" ..
-    show "(00::'a) = 00 + 00" by (simp!)
+    show "0 \<in> U" ..
+    show "0 \<in> V" ..
+    show "(0::'a) = 0 + 0" by (simp!)
   qed
   
   show "U + V <= E"
   proof (intro subsetI, elim vs_sumE bexE)
-    fix x u v assume "u : U" "v : V" "x = u + v"
-    show "x:E" by (simp!)
+    fix x u v assume "u \<in> U" "v \<in> V" "x = u + v"
+    show "x \<in> E" by (simp!)
   qed
   
-  show "ALL x: U + V. ALL y: U + V. x + y : U + V"
+  show "\<forall>x \<in> U + V. \<forall>y \<in> U + V. x + y \<in> U + V"
   proof (intro ballI)
-    fix x y assume "x : U + V" "y : U + V"
-    thus "x + y : U + V"
+    fix x y assume "x \<in> U + V" "y \<in> U + V"
+    thus "x + y \<in> U + V"
     proof (elim vs_sumE bexE, intro vs_sumI)
       fix ux vx uy vy 
-      assume "ux : U" "vx : V" "x = ux + vx" 
-	and "uy : U" "vy : V" "y = uy + vy"
+      assume "ux \<in> U" "vx \<in> V" "x = ux + vx" 
+	and "uy \<in> U" "vy \<in> V" "y = uy + vy"
       show "x + y = (ux + uy) + (vx + vy)" by (simp!)
     qed (simp!)+
   qed
 
-  show "ALL x : U + V. ALL a. a (*) x : U + V"
+  show "\<forall>x \<in> U + V. \<forall>a. a \<cdot> x \<in> U + V"
   proof (intro ballI allI)
-    fix x a assume "x : U + V"
-    thus "a (*) x : U + V"
+    fix x a assume "x \<in> U + V"
+    thus "a \<cdot> x \<in> U + V"
     proof (elim vs_sumE bexE, intro vs_sumI)
-      fix a x u v assume "u : U" "v : V" "x = u + v"
-      show "a (*) x = (a (*) u) + (a (*) v)" 
+      fix a x u v assume "u \<in> U" "v \<in> V" "x = u + v"
+      show "a \<cdot> x = (a \<cdot> u) + (a \<cdot> v)" 
         by (simp! add: vs_add_mult_distrib1)
     qed (simp!)+
   qed
@@ -323,154 +323,154 @@ $x = u + v$ with $u \in U$ and $v \in V$ is unique.*}
 
 lemma decomp: 
   "[| is_vectorspace E; is_subspace U E; is_subspace V E; 
-  U Int V = {00}; u1:U; u2:U; v1:V; v2:V; u1 + v1 = u2 + v2 |] 
-  ==> u1 = u2 & v1 = v2" 
+  U \<inter> V = {0}; u1 \<in> U; u2 \<in> U; v1 \<in> V; v2 \<in> V; u1 + v1 = u2 + v2 |] 
+  ==> u1 = u2 \<and> v1 = v2" 
 proof 
   assume "is_vectorspace E" "is_subspace U E" "is_subspace V E"  
-    "U Int V = {00}" "u1:U" "u2:U" "v1:V" "v2:V" 
+    "U \<inter> V = {0}" "u1 \<in> U" "u2 \<in> U" "v1 \<in> V" "v2 \<in> V" 
     "u1 + v1 = u2 + v2" 
   have eq: "u1 - u2 = v2 - v1" by (simp! add: vs_add_diff_swap)
-  have u: "u1 - u2 : U" by (simp!) 
-  with eq have v': "v2 - v1 : U" by simp 
-  have v: "v2 - v1 : V" by (simp!) 
-  with eq have u': "u1 - u2 : V" by simp
+  have u: "u1 - u2 \<in> U" by (simp!) 
+  with eq have v': "v2 - v1 \<in> U" by simp 
+  have v: "v2 - v1 \<in> V" by (simp!) 
+  with eq have u': "u1 - u2 \<in> V" by simp
   
   show "u1 = u2"
   proof (rule vs_add_minus_eq)
-    show "u1 - u2 = 00" by (rule Int_singletonD [OF _ u u']) 
-    show "u1 : E" ..
-    show "u2 : E" ..
+    show "u1 - u2 = 0" by (rule Int_singletonD [OF _ u u']) 
+    show "u1 \<in> E" ..
+    show "u2 \<in> E" ..
   qed
 
   show "v1 = v2"
   proof (rule vs_add_minus_eq [RS sym])
-    show "v2 - v1 = 00" by (rule Int_singletonD [OF _ v' v])
-    show "v1 : E" ..
-    show "v2 : E" ..
+    show "v2 - v1 = 0" by (rule Int_singletonD [OF _ v' v])
+    show "v1 \<in> E" ..
+    show "v2 \<in> E" ..
   qed
 qed
 
 text {* An application of the previous lemma will be used in the proof
-of the Hahn-Banach Theorem (see page \pageref{decomp-H0-use}): for any
+of the Hahn-Banach Theorem (see page \pageref{decomp-H-use}): for any
 element $y + a \mult x_0$ of the direct sum of a vectorspace $H$ and
 the linear closure of $x_0$ the components $y \in H$ and $a$ are
 uniquely determined. *}
 
-lemma decomp_H0: 
-  "[| is_vectorspace E; is_subspace H E; y1 : H; y2 : H; 
-  x0 ~: H; x0 : E; x0 ~= 00; y1 + a1 (*) x0 = y2 + a2 (*) x0 |]
-  ==> y1 = y2 & a1 = a2"
+lemma decomp_H': 
+  "[| is_vectorspace E; is_subspace H E; y1 \<in> H; y2 \<in> H; 
+  x' \<notin> H; x' \<in> E; x' \<noteq> 0; y1 + a1 \<cdot> x' = y2 + a2 \<cdot> x' |]
+  ==> y1 = y2 \<and> a1 = a2"
 proof
   assume "is_vectorspace E" and h: "is_subspace H E"
-     and "y1 : H" "y2 : H" "x0 ~: H" "x0 : E" "x0 ~= 00" 
-         "y1 + a1 (*) x0 = y2 + a2 (*) x0"
+     and "y1 \<in> H" "y2 \<in> H" "x' \<notin> H" "x' \<in> E" "x' \<noteq> 0" 
+         "y1 + a1 \<cdot> x' = y2 + a2 \<cdot> x'"
 
-  have c: "y1 = y2 & a1 (*) x0 = a2 (*) x0"
+  have c: "y1 = y2 \<and> a1 \<cdot> x' = a2 \<cdot> x'"
   proof (rule decomp) 
-    show "a1 (*) x0 : lin x0" .. 
-    show "a2 (*) x0 : lin x0" ..
-    show "H Int (lin x0) = {00}" 
+    show "a1 \<cdot> x' \<in> lin x'" .. 
+    show "a2 \<cdot> x' \<in> lin x'" ..
+    show "H \<inter> (lin x') = {0}" 
     proof
-      show "H Int lin x0 <= {00}" 
+      show "H \<inter> lin x' <= {0}" 
       proof (intro subsetI, elim IntE, rule singleton_iff[RS iffD2])
-        fix x assume "x:H" "x : lin x0" 
-        thus "x = 00"
+        fix x assume "x \<in> H" "x \<in> lin x'" 
+        thus "x = 0"
         proof (unfold lin_def, elim CollectE exE conjE)
-          fix a assume "x = a (*) x0"
+          fix a assume "x = a \<cdot> x'"
           show ?thesis
           proof cases
             assume "a = (#0::real)" show ?thesis by (simp!)
           next
-            assume "a ~= (#0::real)" 
-            from h have "rinv a (*) a (*) x0 : H" 
+            assume "a \<noteq> (#0::real)" 
+            from h have "rinv a \<cdot> a \<cdot> x' \<in> H" 
               by (rule subspace_mult_closed) (simp!)
-            also have "rinv a (*) a (*) x0 = x0" by (simp!)
-            finally have "x0 : H" .
+            also have "rinv a \<cdot> a \<cdot> x' = x'" by (simp!)
+            finally have "x' \<in> H" .
             thus ?thesis by contradiction
           qed
        qed
       qed
-      show "{00} <= H Int lin x0"
+      show "{0} <= H \<inter> lin x'"
       proof -
-	have "00: H Int lin x0"
+	have "0 \<in> H \<inter> lin x'"
 	proof (rule IntI)
-	  show "00:H" ..
-	  from lin_vs show "00 : lin x0" ..
+	  show "0 \<in> H" ..
+	  from lin_vs show "0 \<in> lin x'" ..
 	qed
 	thus ?thesis by simp
       qed
     qed
-    show "is_subspace (lin x0) E" ..
+    show "is_subspace (lin x') E" ..
   qed
   
   from c show "y1 = y2" by simp
   
   show  "a1 = a2" 
   proof (rule vs_mult_right_cancel [RS iffD1])
-    from c show "a1 (*) x0 = a2 (*) x0" by simp
+    from c show "a1 \<cdot> x' = a2 \<cdot> x'" by simp
   qed
 qed
 
-text {* Since for any element $y + a \mult x_0$ of the direct sum 
-of a vectorspace $H$ and the linear closure of $x_0$ the components
+text {* Since for any element $y + a \mult x'$ of the direct sum 
+of a vectorspace $H$ and the linear closure of $x'$ the components
 $y\in H$ and $a$ are unique, it follows from $y\in H$ that 
 $a = 0$.*} 
 
-lemma decomp_H0_H: 
-  "[| is_vectorspace E; is_subspace H E; t:H; x0 ~: H; x0:E;
-  x0 ~= 00 |] 
-  ==> (SOME (y, a). t = y + a (*) x0 & y : H) = (t, (#0::real))"
+lemma decomp_H'_H: 
+  "[| is_vectorspace E; is_subspace H E; t \<in> H; x' \<notin> H; x' \<in> E;
+  x' \<noteq> 0 |] 
+  ==> (SOME (y, a). t = y + a \<cdot> x' \<and> y \<in> H) = (t, (#0::real))"
 proof (rule, unfold split_tupled_all)
-  assume "is_vectorspace E" "is_subspace H E" "t:H" "x0 ~: H" "x0:E"
-    "x0 ~= 00"
+  assume "is_vectorspace E" "is_subspace H E" "t \<in> H" "x' \<notin> H" "x' \<in> E"
+    "x' \<noteq> 0"
   have h: "is_vectorspace H" ..
-  fix y a presume t1: "t = y + a (*) x0" and "y:H"
-  have "y = t & a = (#0::real)" 
-    by (rule decomp_H0) (assumption | (simp!))+
+  fix y a presume t1: "t = y + a \<cdot> x'" and "y \<in> H"
+  have "y = t \<and> a = (#0::real)" 
+    by (rule decomp_H') (assumption | (simp!))+
   thus "(y, a) = (t, (#0::real))" by (simp!)
 qed (simp!)+
 
-text {* The components $y\in H$ and $a$ in $y \plus a \mult x_0$ 
-are unique, so the function $h_0$ defined by 
-$h_0 (y \plus a \mult x_0) = h y + a \cdot \xi$ is definite. *}
+text {* The components $y\in H$ and $a$ in $y \plus a \mult x'$ 
+are unique, so the function $h'$ defined by 
+$h' (y \plus a \mult x') = h y + a \cdot \xi$ is definite. *}
 
-lemma h0_definite:
-  "[| h0 == (\\<lambda>x. let (y, a) = SOME (y, a). (x = y + a (*) x0 & y:H)
+lemma h'_definite:
+  "[| h' == (\<lambda>x. let (y, a) = SOME (y, a). (x = y + a \<cdot> x' \<and> y \<in> H)
                 in (h y) + a * xi);
-  x = y + a (*) x0; is_vectorspace E; is_subspace H E;
-  y:H; x0 ~: H; x0:E; x0 ~= 00 |]
-  ==> h0 x = h y + a * xi"
+  x = y + a \<cdot> x'; is_vectorspace E; is_subspace H E;
+  y \<in> H; x' \<notin> H; x' \<in> E; x' \<noteq> 0 |]
+  ==> h' x = h y + a * xi"
 proof -  
   assume 
-    "h0 == (\\<lambda>x. let (y, a) = SOME (y, a). (x = y + a (*) x0 & y:H)
+    "h' == (\<lambda>x. let (y, a) = SOME (y, a). (x = y + a \<cdot> x' \<and> y \<in> H)
                in (h y) + a * xi)"
-    "x = y + a (*) x0" "is_vectorspace E" "is_subspace H E"
-    "y:H" "x0 ~: H" "x0:E" "x0 ~= 00"
-  have "x : H + (lin x0)" 
+    "x = y + a \<cdot> x'" "is_vectorspace E" "is_subspace H E"
+    "y \<in> H" "x' \<notin> H" "x' \<in> E" "x' \<noteq> 0"
+  have "x \<in> H + (lin x')" 
     by (simp! add: vs_sum_def lin_def) force+
-  have "EX! xa. ((\\<lambda>(y, a). x = y + a (*) x0 & y:H) xa)" 
+  have "\<exists>! xa. ((\<lambda>(y, a). x = y + a \<cdot> x' \<and> y \<in> H) xa)" 
   proof
-    show "EX xa. ((\\<lambda>(y, a). x = y + a (*) x0 & y:H) xa)"
+    show "\<exists>xa. ((\<lambda>(y, a). x = y + a \<cdot> x' \<and> y \<in> H) xa)"
       by (force!)
   next
     fix xa ya
-    assume "(\\<lambda>(y,a). x = y + a (*) x0 & y : H) xa"
-           "(\\<lambda>(y,a). x = y + a (*) x0 & y : H) ya"
+    assume "(\<lambda>(y,a). x = y + a \<cdot> x' \<and> y \<in> H) xa"
+           "(\<lambda>(y,a). x = y + a \<cdot> x' \<and> y \<in> H) ya"
     show "xa = ya" 
     proof -
-      show "fst xa = fst ya & snd xa = snd ya ==> xa = ya" 
+      show "fst xa = fst ya \<and> snd xa = snd ya ==> xa = ya" 
         by (simp add: Pair_fst_snd_eq)
-      have x: "x = fst xa + snd xa (*) x0 & fst xa : H" 
+      have x: "x = fst xa + snd xa \<cdot> x' \<and> fst xa \<in> H" 
         by (force!)
-      have y: "x = fst ya + snd ya (*) x0 & fst ya : H" 
+      have y: "x = fst ya + snd ya \<cdot> x' \<and> fst ya \<in> H" 
         by (force!)
-      from x y show "fst xa = fst ya & snd xa = snd ya" 
-        by (elim conjE) (rule decomp_H0, (simp!)+)
+      from x y show "fst xa = fst ya \<and> snd xa = snd ya" 
+        by (elim conjE) (rule decomp_H', (simp!)+)
     qed
   qed
-  hence eq: "(SOME (y, a). x = y + a (*) x0 & y:H) = (y, a)" 
+  hence eq: "(SOME (y, a). x = y + a \<cdot> x' \<and> y \<in> H) = (y, a)" 
     by (rule select1_equality) (force!)
-  thus "h0 x = h y + a * xi" by (simp! add: Let_def)
+  thus "h' x = h y + a * xi" by (simp! add: Let_def)
 qed
 
 end
