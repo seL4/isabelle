@@ -222,8 +222,8 @@ let val {maxidx,sign,...} = rep_thm st
     val used = add_term_tvarnames
                   (#prop(rep_thm st) $ #prop(rep_thm rule),[])
     val (Tinsts,insts) = read_insts sign rts (types',sorts) used sinsts
-in instantiate (map lifttvar Tinsts, map liftpair insts)
-               (lift_rule (st,i) rule)
+in Drule.instantiate (map lifttvar Tinsts, map liftpair insts)
+                     (lift_rule (st,i) rule)
 end;
 
 (*
@@ -251,8 +251,8 @@ let val {maxidx,sign,...} = rep_thm st
     (*lift only Var, not term, which must be lifted already*)
     fun liftpair (v,t) = (cterm_of sign (liftvar v), cterm_of sign t)
     fun liftTpair((a,i),T) = ((a,i+inc), ctyp_of sign (incr_tvar inc T))
-in instantiate (map liftTpair Tinsts, map liftpair insts)
-               (lift_rule (st,i) rule)
+in Drule.instantiate (map liftTpair Tinsts, map liftpair insts)
+                     (lift_rule (st,i) rule)
 end;
 
 (*** Resolve after lifting and instantation; may refer to parameters of the

@@ -30,6 +30,8 @@ sig
   val freeze_thaw	: thm -> thm * (thm -> thm)
   val implies_elim_list	: thm -> thm list -> thm
   val implies_intr_list	: cterm list -> thm -> thm
+  val instantiate       :
+    (indexname * ctyp) list * (cterm * cterm) list -> thm -> thm
   val zero_var_indexes	: thm -> thm
   val standard		: thm -> thm
   val rotate_prems      : int -> thm -> thm
@@ -256,7 +258,7 @@ fun zero_var_indexes th =
                     cterm_of sign (Var((b,0),T'))) :: varpairs(vars,bs)
                 end
           | varpairs _ = raise TERM("varpairs", []);
-    in instantiate (ctye, varpairs(vars,rev bs)) th end;
+    in Thm.instantiate (ctye, varpairs(vars,rev bs)) th end;
 
 
 (*Standard form of object-rule: no hypotheses, Frees, or outer quantifiers;
@@ -293,7 +295,7 @@ fun freeze_thaw th =
 	     fun thaw th' = 
 		 th' |> forall_intr_list (map #2 insts)
 	             |> forall_elim_list (map #1 insts)
-	 in  (instantiate ([],insts) fth, thaw)  end
+	 in  (Thm.instantiate ([],insts) fth, thaw)  end
  end;
 
 
@@ -358,42 +360,6 @@ fun tha COMP thb =
     case compose(tha,1,thb) of
         [th] => th
       | _ =>   raise THM("COMP", 1, [tha,thb]);
-
-(*Instantiate theorem th, reading instantiations under signature sg*)
-fun read_instantiate_sg sg sinsts th =
-    let val ts = types_sorts th;
-        val used = add_term_tvarnames(#prop(rep_thm th),[]);
-    in  instantiate (read_insts sg ts ts used sinsts) th  end;
-
-(*Instantiate theorem th, reading instantiations under theory of th*)
-fun read_instantiate sinsts th =
-    read_instantiate_sg (#sign (rep_thm th)) sinsts th;
-
-
-(*Left-to-right replacements: tpairs = [...,(vi,ti),...].
-  Instantiates distinct Vars by terms, inferring type instantiations. *)
-local
-  fun add_types ((ct,cu), (sign,tye,maxidx)) =
-    let val {sign=signt, t=t, T= T, maxidx=maxt,...} = rep_cterm ct
-        and {sign=signu, t=u, T= U, maxidx=maxu,...} = rep_cterm cu;
-        val maxi = Int.max(maxidx, Int.max(maxt, maxu));
-        val sign' = Sign.merge(sign, Sign.merge(signt, signu))
-        val (tye',maxi') = Type.unify (#tsig(Sign.rep_sg sign')) maxi tye (T,U)
-          handle Type.TUNIFY => raise TYPE("add_types", [T,U], [t,u])
-    in  (sign', tye', maxi')  end;
-in
-fun cterm_instantiate ctpairs0 th =
-  let val (sign,tye,_) = foldr add_types (ctpairs0, (#sign(rep_thm th),[],0))
-      val tsig = #tsig(Sign.rep_sg sign);
-      fun instT(ct,cu) = let val inst = subst_TVars tye
-                         in (cterm_fun inst ct, cterm_fun inst cu) end
-      fun ctyp2 (ix,T) = (ix, ctyp_of sign T)
-  in  instantiate (map ctyp2 tye, map instT ctpairs0) th  end
-  handle TERM _ =>
-           raise THM("cterm_instantiate: incompatible signatures",0,[th])
-       | TYPE (msg, _, _) => raise THM(msg, 0, [th])
-end;
-
 
 (** theorem equality **)
 
@@ -495,45 +461,6 @@ fun rewrite_goal_rule mode prover mss i thm =
   else raise THM("rewrite_goal_rule",i,[thm]);
 
 
-(** Derived rules mainly for METAHYPS **)
-
-(*Given the term "a", takes (%x.t)==(%x.u) to t[a/x]==u[a/x]*)
-fun equal_abs_elim ca eqth =
-  let val {sign=signa, t=a, ...} = rep_cterm ca
-      and combth = combination eqth (reflexive ca)
-      val {sign,prop,...} = rep_thm eqth
-      val (abst,absu) = Logic.dest_equals prop
-      val cterm = cterm_of (Sign.merge (sign,signa))
-  in  transitive (symmetric (beta_conversion (cterm (abst$a))))
-           (transitive combth (beta_conversion (cterm (absu$a))))
-  end
-  handle THM _ => raise THM("equal_abs_elim", 0, [eqth]);
-
-(*Calling equal_abs_elim with multiple terms*)
-fun equal_abs_elim_list cts th = foldr (uncurry equal_abs_elim) (rev cts, th);
-
-local
-  val alpha = TVar(("'a",0), [])     (*  type ?'a::{}  *)
-  fun err th = raise THM("flexpair_inst: ", 0, [th])
-  fun flexpair_inst def th =
-    let val {prop = Const _ $ t $ u,  sign,...} = rep_thm th
-        val cterm = cterm_of sign
-        fun cvar a = cterm(Var((a,0),alpha))
-        val def' = cterm_instantiate [(cvar"t", cterm t), (cvar"u", cterm u)]
-                   def
-    in  equal_elim def' th
-    end
-    handle THM _ => err th | Bind => err th
-in
-val flexpair_intr = flexpair_inst (symmetric ProtoPure.flexpair_def)
-and flexpair_elim = flexpair_inst ProtoPure.flexpair_def
-end;
-
-(*Version for flexflex pairs -- this supports lifting.*)
-fun flexpair_abs_elim_list cts =
-    flexpair_intr o equal_abs_elim_list cts o flexpair_elim;
-
-
 (*** Some useful meta-theorems ***)
 
 (*The rule V/V, obtains assumption solving for eresolve_tac*)
@@ -602,7 +529,86 @@ val equal_intr_rule =
   end;
 
 
-(* GOAL (PROP A) <==> PROP A *)
+(*** Instantiate theorem th, reading instantiations under signature sg ****)
+
+(*Version that normalizes the result: Thm.instantiate no longer does that*)
+fun instantiate instpair th = Thm.instantiate instpair th  COMP   asm_rl;
+
+fun read_instantiate_sg sg sinsts th =
+    let val ts = types_sorts th;
+        val used = add_term_tvarnames(#prop(rep_thm th),[]);
+    in  instantiate (read_insts sg ts ts used sinsts) th  end;
+
+(*Instantiate theorem th, reading instantiations under theory of th*)
+fun read_instantiate sinsts th =
+    read_instantiate_sg (#sign (rep_thm th)) sinsts th;
+
+
+(*Left-to-right replacements: tpairs = [...,(vi,ti),...].
+  Instantiates distinct Vars by terms, inferring type instantiations. *)
+local
+  fun add_types ((ct,cu), (sign,tye,maxidx)) =
+    let val {sign=signt, t=t, T= T, maxidx=maxt,...} = rep_cterm ct
+        and {sign=signu, t=u, T= U, maxidx=maxu,...} = rep_cterm cu;
+        val maxi = Int.max(maxidx, Int.max(maxt, maxu));
+        val sign' = Sign.merge(sign, Sign.merge(signt, signu))
+        val (tye',maxi') = Type.unify (#tsig(Sign.rep_sg sign')) maxi tye (T,U)
+          handle Type.TUNIFY => raise TYPE("add_types", [T,U], [t,u])
+    in  (sign', tye', maxi')  end;
+in
+fun cterm_instantiate ctpairs0 th =
+  let val (sign,tye,_) = foldr add_types (ctpairs0, (#sign(rep_thm th),[],0))
+      val tsig = #tsig(Sign.rep_sg sign);
+      fun instT(ct,cu) = let val inst = subst_TVars tye
+                         in (cterm_fun inst ct, cterm_fun inst cu) end
+      fun ctyp2 (ix,T) = (ix, ctyp_of sign T)
+  in  instantiate (map ctyp2 tye, map instT ctpairs0) th  end
+  handle TERM _ =>
+           raise THM("cterm_instantiate: incompatible signatures",0,[th])
+       | TYPE (msg, _, _) => raise THM(msg, 0, [th])
+end;
+
+
+(** Derived rules mainly for METAHYPS **)
+
+(*Given the term "a", takes (%x.t)==(%x.u) to t[a/x]==u[a/x]*)
+fun equal_abs_elim ca eqth =
+  let val {sign=signa, t=a, ...} = rep_cterm ca
+      and combth = combination eqth (reflexive ca)
+      val {sign,prop,...} = rep_thm eqth
+      val (abst,absu) = Logic.dest_equals prop
+      val cterm = cterm_of (Sign.merge (sign,signa))
+  in  transitive (symmetric (beta_conversion (cterm (abst$a))))
+           (transitive combth (beta_conversion (cterm (absu$a))))
+  end
+  handle THM _ => raise THM("equal_abs_elim", 0, [eqth]);
+
+(*Calling equal_abs_elim with multiple terms*)
+fun equal_abs_elim_list cts th = foldr (uncurry equal_abs_elim) (rev cts, th);
+
+local
+  val alpha = TVar(("'a",0), [])     (*  type ?'a::{}  *)
+  fun err th = raise THM("flexpair_inst: ", 0, [th])
+  fun flexpair_inst def th =
+    let val {prop = Const _ $ t $ u,  sign,...} = rep_thm th
+        val cterm = cterm_of sign
+        fun cvar a = cterm(Var((a,0),alpha))
+        val def' = cterm_instantiate [(cvar"t", cterm t), (cvar"u", cterm u)]
+                   def
+    in  equal_elim def' th
+    end
+    handle THM _ => err th | Bind => err th
+in
+val flexpair_intr = flexpair_inst (symmetric ProtoPure.flexpair_def)
+and flexpair_elim = flexpair_inst ProtoPure.flexpair_def
+end;
+
+(*Version for flexflex pairs -- this supports lifting.*)
+fun flexpair_abs_elim_list cts =
+    flexpair_intr o equal_abs_elim_list cts o flexpair_elim;
+
+
+(*** GOAL (PROP A) <==> PROP A ***)
 
 local
   val A = read_prop "PROP A";

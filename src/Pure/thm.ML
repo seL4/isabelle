@@ -1064,15 +1064,14 @@ in
 
 (*Left-to-right replacements: ctpairs = [...,(vi,ti),...].
   Instantiates distinct Vars by terms of same type.
-  Normalizes the new theorem! *)
+  No longer normalizes the new theorem! *)
 fun instantiate ([], []) th = th
-  | instantiate (vcTs,ctpairs)  (th as Thm{sign_ref,der,maxidx,hyps,prop,...}) =
+  | instantiate (vcTs,ctpairs) (th as Thm{sign_ref,der,maxidx,hyps,prop,...}) =
   let val (newsign_ref,tpairs) = foldr add_ctpair (ctpairs, (sign_ref,[]));
       val (newsign_ref,vTs) = foldr add_ctyp (vcTs, (newsign_ref,[]));
-      val newprop =
-            Envir.norm_term (Envir.empty 0)
-              (subst_atomic tpairs
-               (Type.inst_term_tvars(Sign.tsig_of (Sign.deref newsign_ref),vTs) prop))
+      val newprop = subst_atomic tpairs
+	             (Type.inst_term_tvars
+		      (Sign.tsig_of (Sign.deref newsign_ref),vTs) prop)
       val newth =
             fix_shyps [th] (map snd vTs)
               (Thm{sign_ref = newsign_ref, 
