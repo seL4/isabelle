@@ -51,10 +51,7 @@ by auto
 
 text{*Now cancel the @{text dest} attribute given to
  @{text analz.Decrypt} in its declaration.*}
-ML
-{*
-Delrules [analz.Decrypt];
-*}
+declare analz.Decrypt [rule del]
 
 text{*Rewrites should not refer to  @{term "initState(Friend i)"} because
   that expression is not in normal form.*}
@@ -137,7 +134,7 @@ lemma Nonce_supply2: "\<exists>N N'. Nonce N \<notin> used evs & Nonce N' \<noti
 apply (cut_tac evs = evs in Nonce_supply_lemma)
 apply (cut_tac evs = "evs'" in Nonce_supply_lemma, clarify)
 apply (rule_tac x = N in exI)
-apply (rule_tac x = "Suc (N+Na) " in exI)
+apply (rule_tac x = "Suc (N+Na)" in exI)
 apply (simp (no_asm_simp) add: less_not_refl3 le_add1 le_add2 less_Suc_eq_le)
 done
 
@@ -147,7 +144,7 @@ apply (cut_tac evs = evs in Nonce_supply_lemma)
 apply (cut_tac evs = "evs'" in Nonce_supply_lemma)
 apply (cut_tac evs = "evs''" in Nonce_supply_lemma, clarify)
 apply (rule_tac x = N in exI)
-apply (rule_tac x = "Suc (N+Na) " in exI)
+apply (rule_tac x = "Suc (N+Na)" in exI)
 apply (rule_tac x = "Suc (Suc (N+Na+Nb))" in exI)
 apply (simp (no_asm_simp) add: less_not_refl3 le_add1 le_add2 less_Suc_eq_le)
 done
@@ -157,42 +154,12 @@ apply (rule Nonce_supply_lemma [THEN exE])
 apply (rule someI, blast)
 done
 
-subsection{*Supply fresh keys for possibility theorems.*}
-
-axioms
-  Key_supply_ax:  "finite KK ==> \<exists>K. K \<notin> KK & Key K \<notin> used evs"
-  --{*Unlike the corresponding property of nonces, this cannot be proved.
+text{*Unlike the corresponding property of nonces, we cannot prove
+    @{term "finite KK ==> \<exists>K. K \<notin> KK & Key K \<notin> used evs"}.
     We have infinitely many agents and there is nothing to stop their
-    long-term keys from exhausting all the natural numbers.  The axiom
-    assumes that their keys are dispersed so as to leave room for infinitely
-    many fresh session keys.  We could, alternatively, restrict agents to
-    an unspecified finite number.  We could however replace @{term"used evs"} 
-    by @{term "used []"}.*}
+    long-term keys from exhausting all the natural numbers.  Instead,
+    possibility theorems must assume the existence of a few keys.*}
 
-lemma Key_supply1: "\<exists>K. Key K \<notin> used evs"
-by (rule Finites.emptyI [THEN Key_supply_ax, THEN exE], blast)
-
-lemma Key_supply2: "\<exists>K K'. Key K \<notin> used evs & Key K' \<notin> used evs' & K \<noteq> K'"
-apply (cut_tac evs = evs in Finites.emptyI [THEN Key_supply_ax])
-apply (erule exE)
-apply (cut_tac evs="evs'" in Finites.emptyI [THEN Finites.insertI, THEN Key_supply_ax], auto) 
-done
-
-lemma Key_supply3: "\<exists>K K' K''. Key K \<notin> used evs & Key K' \<notin> used evs' &  
-                       Key K'' \<notin> used evs'' & K \<noteq> K' & K' \<noteq> K'' & K \<noteq> K''"
-apply (cut_tac evs = evs in Finites.emptyI [THEN Key_supply_ax])
-apply (erule exE)
-(*Blast_tac requires instantiation of the keys for some reason*)
-apply (cut_tac evs="evs'" and a1 = K in Finites.emptyI [THEN Finites.insertI, THEN Key_supply_ax])
-apply (erule exE)
-apply (cut_tac evs = "evs''" and a1 = Ka and a2 = K 
-       in Finites.emptyI [THEN Finites.insertI, THEN Finites.insertI, THEN Key_supply_ax], blast)
-done
-
-lemma Key_supply: "Key (@ K. Key K \<notin> used evs) \<notin> used evs"
-apply (rule Finites.emptyI [THEN Key_supply_ax, THEN exE])
-apply (rule someI, blast)
-done
 
 subsection{*Tactics for possibility theorems*}
 
@@ -200,8 +167,6 @@ ML
 {*
 val inj_shrK      = thm "inj_shrK";
 val isSym_keys    = thm "isSym_keys";
-val Key_supply_ax = thm "Key_supply_ax";
-val Key_supply = thm "Key_supply";
 val Nonce_supply = thm "Nonce_supply";
 val invKey_K = thm "invKey_K";
 val analz_Decrypt' = thm "analz_Decrypt'";
@@ -221,10 +186,6 @@ val Nonce_supply1 = thm "Nonce_supply1";
 val Nonce_supply2 = thm "Nonce_supply2";
 val Nonce_supply3 = thm "Nonce_supply3";
 val Nonce_supply = thm "Nonce_supply";
-val Key_supply1 = thm "Key_supply1";
-val Key_supply2 = thm "Key_supply2";
-val Key_supply3 = thm "Key_supply3";
-val Key_supply = thm "Key_supply";
 *}
 
 
@@ -238,7 +199,7 @@ fun gen_possibility_tac ss state = state |>
                          setSolver safe_solver))
      THEN
      REPEAT_FIRST (eq_assume_tac ORELSE' 
-                   resolve_tac [refl, conjI, Nonce_supply, Key_supply])))
+                   resolve_tac [refl, conjI, Nonce_supply])))
 
 (*Tactic for possibility theorems (ML script version)*)
 fun possibility_tac state = gen_possibility_tac (simpset()) state

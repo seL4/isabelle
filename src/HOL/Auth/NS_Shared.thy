@@ -80,12 +80,14 @@ declare image_eq_UN [simp]  (*accelerates proofs involving nested images*)
 
 
 text{*A "possibility property": there are traces that reach the end*}
-lemma "A \<noteq> Server \<Longrightarrow> \<exists>N K. \<exists>evs \<in> ns_shared.
-                              Says A B (Crypt K \<lbrace>Nonce N, Nonce N\<rbrace>) \<in> set evs"
+lemma "[| A \<noteq> Server; Key K \<notin> used [] |] 
+       ==> \<exists>N. \<exists>evs \<in> ns_shared.
+                    Says A B (Crypt K \<lbrace>Nonce N, Nonce N\<rbrace>) \<in> set evs"
 apply (intro exI bexI)
 apply (rule_tac [2] ns_shared.Nil
        [THEN ns_shared.NS1, THEN ns_shared.NS2, THEN ns_shared.NS3,
-	THEN ns_shared.NS4, THEN ns_shared.NS5], possibility)
+	THEN ns_shared.NS4, THEN ns_shared.NS5])
+apply (possibility, simp add: used_Cons) 
 done
 
 (*This version is similar, while instantiating ?K and ?N to epsilon-terms

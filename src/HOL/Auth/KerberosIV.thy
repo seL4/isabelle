@@ -242,9 +242,10 @@ inductive "kerberos"
 
 (*---------------------------------------------------------------------*)
 
-declare Says_imp_knows_Spy [THEN parts.Inj, dest] parts.Body [dest]
-declare analz_subset_parts [THEN subsetD, dest]
-declare Fake_parts_insert [THEN subsetD, dest]
+declare Says_imp_knows_Spy [THEN parts.Inj, dest] 
+declare parts.Body [dest]
+declare analz_into_parts [dest]
+declare Fake_parts_insert_in_Un [dest]
 
 
 subsection{*Lemmas about Lists*}
@@ -294,31 +295,27 @@ lemma AuthKeys_not_insert:
    ev \<noteq> Says Kas A (Crypt (shrK A) {|akey, Agent Peer, Tk,       
               (Crypt (shrK Peer) {|Agent A, Agent Peer, akey, Tk|})|}))  
        ==> AuthKeys (ev # evs) = AuthKeys evs"
-apply (unfold AuthKeys_def, auto)
-done
+by (unfold AuthKeys_def, auto)
 
 lemma AuthKeys_insert: 
   "AuthKeys  
      (Says Kas A (Crypt (shrK A) {|Key K, Agent Peer, Number Tk,  
       (Crypt (shrK Peer) {|Agent A, Agent Peer, Key K, Number Tk|})|}) # evs)  
        = insert K (AuthKeys evs)"
-apply (unfold AuthKeys_def, auto)
-done
+by (unfold AuthKeys_def, auto)
 
 lemma AuthKeys_simp: 
    "K \<in> AuthKeys  
     (Says Kas A (Crypt (shrK A) {|Key K', Agent Peer, Number Tk,  
      (Crypt (shrK Peer) {|Agent A, Agent Peer, Key K', Number Tk|})|}) # evs)  
         ==> K = K' | K \<in> AuthKeys evs"
-apply (unfold AuthKeys_def, auto)
-done
+by (unfold AuthKeys_def, auto)
 
 lemma AuthKeysI: 
    "Says Kas A (Crypt (shrK A) {|Key K, Agent Tgs, Number Tk,  
      (Crypt (shrK Tgs) {|Agent A, Agent Tgs, Key K, Number Tk|})|}) \<in> set evs  
         ==> K \<in> AuthKeys evs"
-apply (unfold AuthKeys_def, auto)
-done
+by (unfold AuthKeys_def, auto)
 
 lemma AuthKeys_used: "K \<in> AuthKeys evs ==> Key K \<in> used evs"
 by (simp add: AuthKeys_def, blast)
@@ -344,8 +341,7 @@ text{*--For reasoning about the encrypted portion of message K5--*}
 lemma K5_msg_in_parts_spies:
      "Says Tgs' A (Crypt AuthKey {|ServKey, Agent B, Tt, ServTicket|}) 
                \<in> set evs ==> ServTicket \<in> parts (spies evs)"
-apply blast
-done
+by blast
 
 lemma Oops_range_spies2:
      "[| Says Tgs A (Crypt AuthKey {|Key ServKey, Agent B, Tt, ServTicket|})  
@@ -358,8 +354,7 @@ done
 lemma Says_ticket_in_parts_spies:
      "Says S A (Crypt K {|SesKey, B, TimeStamp, Ticket|}) \<in> set evs  
       ==> Ticket \<in> parts (spies evs)"
-apply blast
-done
+by blast
 
 
 (*Spy never sees another agent's shared key! (unless it's lost at start)*)
@@ -980,8 +975,7 @@ lemma Confidentiality_Kas:
          ~ ExpirAuth Tk evs;
          A \<notin> bad;  evs \<in> kerberos |]
       ==> Key AuthKey \<notin> analz (spies evs)"
-apply (blast dest: Says_Kas_message_form Confidentiality_Kas_lemma)
-done
+by (blast dest: Says_Kas_message_form Confidentiality_Kas_lemma)
 
 
 subsection{* Guarantees for Tgs *}
@@ -1261,8 +1255,8 @@ lemma A_trusts_ServKey:
          ~ ExpirAuth Tk evs; A \<notin> bad; evs \<in> kerberos |]
  ==>Says Tgs A (Crypt AuthKey {|Key ServKey, Agent B, Number Tt, ServTicket|})
        \<in> set evs"
-apply (blast dest: A_trusts_AuthKey Confidentiality_Auth_A A_trusts_K4_bis)
-done
+by (blast dest: A_trusts_AuthKey Confidentiality_Auth_A A_trusts_K4_bis)
+
 text{*Note: requires a temporal check*}
 
 
@@ -1422,8 +1416,7 @@ lemma B_Knows_B_Knows_ServKey:
          ~ ExpirServ Tt evs; ~ ExpirAuth Tk evs;
          A \<notin> bad;  B \<notin> bad; B \<noteq> Tgs; evs \<in> kerberos |]
       ==> B Issues A with (Crypt ServKey (Number Ta)) on evs"
-apply (blast dest!: Confidentiality_B B_Knows_B_Knows_ServKey_lemma)
-done
+by (blast dest!: Confidentiality_B B_Knows_B_Knows_ServKey_lemma)
 
 lemma B_Knows_B_Knows_ServKey_refined:
      "[| Says B A (Crypt ServKey (Number Ta)) \<in> set evs;
@@ -1432,9 +1425,7 @@ lemma B_Knows_B_Knows_ServKey_refined:
          ~ ExpirServ Tt evs;
          A \<notin> bad;  B \<notin> bad; B \<noteq> Tgs; evs \<in> kerberos |]
       ==> B Issues A with (Crypt ServKey (Number Ta)) on evs"
-apply (blast dest!: Confidentiality_B_refined B_Knows_B_Knows_ServKey_lemma)
-done
-
+by (blast dest!: Confidentiality_B_refined B_Knows_B_Knows_ServKey_lemma)
 
 lemma A_Knows_B_Knows_ServKey:
      "[| Crypt ServKey (Number Ta) \<in> parts (spies evs);
@@ -1445,8 +1436,7 @@ lemma A_Knows_B_Knows_ServKey:
          ~ ExpirAuth Tk evs; ~ ExpirServ Tt evs;
          A \<notin> bad;  B \<notin> bad; B \<noteq> Tgs; evs \<in> kerberos |]
       ==> B Issues A with (Crypt ServKey (Number Ta)) on evs"
-apply (blast dest!: B_Authenticity Confidentiality_Serv_A B_Knows_B_Knows_ServKey_lemma)
-done
+by (blast dest!: B_Authenticity Confidentiality_Serv_A B_Knows_B_Knows_ServKey_lemma)
 
 lemma K3_imp_K2:
      "[| Says A Tgs
@@ -1525,8 +1515,7 @@ lemma A_Knows_A_Knows_ServKey:
          ~ ExpirAuth Tk evs; ~ ExpirServ Tt evs;
          B \<noteq> Tgs; A \<notin> bad;  B \<notin> bad;  evs \<in> kerberos |]
    ==> A Issues B with (Crypt ServKey {|Agent A, Number Ta|}) on evs"
-apply (blast dest!: Confidentiality_Serv_A A_Knows_A_Knows_ServKey_lemma)
-done
+by (blast dest!: Confidentiality_Serv_A A_Knows_A_Knows_ServKey_lemma)
 
 lemma B_Knows_A_Knows_ServKey:
      "[| Crypt ServKey {|Agent A, Number Ta|} \<in> parts (spies evs);
@@ -1539,8 +1528,7 @@ lemma B_Knows_A_Knows_ServKey:
          ~ ExpirServ Tt evs; ~ ExpirAuth Tk evs;
          B \<noteq> Tgs; A \<notin> bad;  B \<notin> bad;  evs \<in> kerberos |]
    ==> A Issues B with (Crypt ServKey {|Agent A, Number Ta|}) on evs"
-apply (blast dest: A_Authenticity Confidentiality_B A_Knows_A_Knows_ServKey_lemma)
-done
+by (blast dest: A_Authenticity Confidentiality_B A_Knows_A_Knows_ServKey_lemma)
 
 
 lemma B_Knows_A_Knows_ServKey_refined:
@@ -1550,7 +1538,6 @@ lemma B_Knows_A_Knows_ServKey_refined:
          ~ ExpirServ Tt evs;
          B \<noteq> Tgs; A \<notin> bad;  B \<notin> bad;  evs \<in> kerberos |]
    ==> A Issues B with (Crypt ServKey {|Agent A, Number Ta|}) on evs"
-apply (blast dest: A_Authenticity_refined Confidentiality_B_refined A_Knows_A_Knows_ServKey_lemma)
-done
+by (blast dest: A_Authenticity_refined Confidentiality_B_refined A_Knows_A_Knows_ServKey_lemma)
 
 end

@@ -89,16 +89,16 @@ declare Fake_parts_insert_in_Un  [dest]
 
 
 text{*A "possibility property": there are traces that reach the end*}
-lemma "B \<noteq> Server
-      ==> \<exists>K. \<exists>evs \<in> otway.
+lemma "[| B \<noteq> Server; Key K \<notin> used [] |]
+      ==> \<exists>evs \<in> otway.
              Says B A {|Nonce NA, Crypt (shrK A) {|Nonce NA, Key K|}|}
                \<in> set evs"
 apply (intro exI bexI)
 apply (rule_tac [2] otway.Nil
                     [THEN otway.OR1, THEN otway.Reception,
                      THEN otway.OR2, THEN otway.Reception,
-                     THEN otway.OR3, THEN otway.Reception, THEN otway.OR4], 
-       possibility)
+                     THEN otway.OR3, THEN otway.Reception, THEN otway.OR4]) 
+apply (possibility, simp add: used_Cons) 
 done
 
 lemma Gets_imp_Says [dest!]:

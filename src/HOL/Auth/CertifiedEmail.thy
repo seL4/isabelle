@@ -93,14 +93,15 @@ declare Says_imp_knows_Spy [THEN analz.Inj, dest]
 declare analz_into_parts [dest]
 
 (*A "possibility property": there are traces that reach the end*)
-lemma "\<exists>S2TTP. \<exists>evs \<in> certified_mail.
+lemma "[| Key K \<notin> used []; K \<in> symKeys |] ==> 
+       \<exists>S2TTP. \<exists>evs \<in> certified_mail.
            Says TTP S (Crypt (priSK TTP) S2TTP) \<in> set evs"
-apply (rule bexE [OF Key_supply1]) 
 apply (intro exI bexI)
 apply (rule_tac [2] certified_mail.Nil
                     [THEN certified_mail.CM1, THEN certified_mail.Reception,
                      THEN certified_mail.CM2, 
-                     THEN certified_mail.CM3], possibility, possibility, auto) 
+                     THEN certified_mail.CM3]) 
+apply (possibility, auto) 
 done
 
 

@@ -100,20 +100,22 @@ inductive "kerberos_ban"
 	  ==> Notes Spy {|Number Ts, Key K|} # evso \<in> kerberos_ban"
 
 
-declare Says_imp_knows_Spy [THEN parts.Inj, dest] parts.Body [dest]
-declare analz_subset_parts [THEN subsetD, dest]
-declare Fake_parts_insert [THEN subsetD, dest]
+declare Says_imp_knows_Spy [THEN parts.Inj, dest] 
+declare parts.Body [dest]
+declare analz_into_parts [dest]
+declare Fake_parts_insert_in_Un [dest]
 
 (*A "possibility property": there are traces that reach the end.*)
-lemma "\<exists>Timestamp K. \<exists>evs \<in> kerberos_ban.     
+lemma "Key K \<notin> used []
+       ==> \<exists>Timestamp. \<exists>evs \<in> kerberos_ban.     
              Says B A (Crypt K (Number Timestamp))  
                   \<in> set evs"
 apply (cut_tac SesKeyLife_LB)
 apply (intro exI bexI)
 apply (rule_tac [2] 
            kerberos_ban.Nil [THEN kerberos_ban.Kb1, THEN kerberos_ban.Kb2, 
-                             THEN kerberos_ban.Kb3, THEN kerberos_ban.Kb4], possibility)
-apply (simp_all (no_asm_simp))
+                             THEN kerberos_ban.Kb3, THEN kerberos_ban.Kb4])
+apply (possibility, simp_all (no_asm_simp) add: used_Cons)
 done
 
 

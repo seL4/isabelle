@@ -117,37 +117,40 @@ declare Fake_parts_insert_in_Un  [dest]
 
 
 text{*Simplest case: Alice goes directly to the server*}
-lemma "\<exists>K NA. \<exists>evs \<in> recur.
-   Says Server A {|Crypt (shrK A) {|Key K, Agent Server, Nonce NA|},
-                   END|}  \<in> set evs"
+lemma "Key K \<notin> used [] 
+       ==> \<exists>NA. \<exists>evs \<in> recur.
+              Says Server A {|Crypt (shrK A) {|Key K, Agent Server, Nonce NA|},
+                    END|}  \<in> set evs"
 apply (intro exI bexI)
 apply (rule_tac [2] recur.Nil [THEN recur.RA1, 
-                             THEN recur.RA3 [OF _ _ respond.One]], possibility)
+                             THEN recur.RA3 [OF _ _ respond.One]])
+apply (possibility, simp add: used_Cons) 
 done
 
 
 text{*Case two: Alice, Bob and the server*}
-lemma "\<exists>K. \<exists>NA. \<exists>evs \<in> recur.
+lemma "[| Key K \<notin> used []; Key K' \<notin> used []; K \<noteq> K' |]
+       ==> \<exists>K. \<exists>NA. \<exists>evs \<in> recur.
         Says B A {|Crypt (shrK A) {|Key K, Agent B, Nonce NA|},
                    END|}  \<in> set evs"
-apply (cut_tac Nonce_supply2 Key_supply2, clarify)
+apply (cut_tac Nonce_supply2, clarify)
 apply (intro exI bexI)
 apply (rule_tac [2] 
           recur.Nil [THEN recur.RA1, 
                      THEN recur.RA2,
                      THEN recur.RA3 [OF _ _ respond.One [THEN respond.Cons]],
                      THEN recur.RA4])
-apply (tactic "basic_possibility_tac")
-apply (tactic
-      "DEPTH_SOLVE (eresolve_tac [asm_rl, less_not_refl2, less_not_refl3] 1)")
+apply possibility
+apply (auto simp add: used_Cons)
 done
 
-(*Case three: Alice, Bob, Charlie and the server
-  Rather slow (16 seconds) to run every time...
-lemma "\<exists>K. \<exists>NA. \<exists>evs \<in> recur.
-        Says B A {|Crypt (shrK A) {|Key K, Agent B, Nonce NA|},
-                   END|}  \<in> set evs"
-apply (tactic "cut_facts_tac [Nonce_supply3, Key_supply3] 1", clarify)
+(*Case three: Alice, Bob, Charlie and the server Rather slow (5 seconds)*)
+lemma "[| Key K \<notin> used []; Key K' \<notin> used [];  
+                       Key K'' \<notin> used []; K \<noteq> K'; K' \<noteq> K''; K \<noteq> K'' |]
+       ==> \<exists>K. \<exists>NA. \<exists>evs \<in> recur.
+             Says B A {|Crypt (shrK A) {|Key K, Agent B, Nonce NA|},
+                        END|}  \<in> set evs"
+apply (cut_tac Nonce_supply3, clarify)
 apply (intro exI bexI)
 apply (rule_tac [2] 
           recur.Nil [THEN recur.RA1, 
@@ -157,11 +160,8 @@ apply (rule_tac [2]
                                   [THEN respond.Cons, THEN respond.Cons]],
                      THEN recur.RA4, THEN recur.RA4])
 apply (tactic "basic_possibility_tac")
-apply (tactic
-      "DEPTH_SOLVE (swap_res_tac [refl, conjI, disjCI] 1 ORELSE \
-\                   eresolve_tac [asm_rl, less_not_refl2, less_not_refl3] 1)")
+apply (tactic "DEPTH_SOLVE (swap_res_tac [refl, conjI, disjCI] 1)")
 done
-*)
 
 (**** Inductive proofs about recur ****)
 

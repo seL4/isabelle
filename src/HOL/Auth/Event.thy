@@ -35,12 +35,9 @@ translations
 
 text{*Spy has access to his own key for spoof messages, but Server is secure*}
 specification (bad)
-  bad_properties: "Spy \<in> bad & Server \<notin> bad"
+  Spy_in_bad     [iff]: "Spy \<in> bad"
+  Server_not_bad [iff]: "Server \<notin> bad"
     by (rule exI [of _ "{Spy}"], simp)
-
-lemmas Spy_in_bad = bad_properties [THEN conjunct1, iff]
-lemmas Server_not_bad = bad_properties [THEN conjunct2, iff]
-
 
 primrec
   knows_Nil:   "knows A [] = initState A"
@@ -111,8 +108,8 @@ lemma knows_Spy_Says [simp]:
      "knows Spy (Says A B X # evs) = insert X (knows Spy evs)"
 by simp
 
-text{*The point of letting the Spy see "bad" agents' notes is to prevent
-  redundant case-splits on whether A=Spy and whether A:bad*}
+text{*Letting the Spy see "bad" agents' notes avoids redundant case-splits
+      on whether @{term "A=Spy"} and whether @{term "A\<in>bad"}*}
 lemma knows_Spy_Notes [simp]:
      "knows Spy (Notes A X # evs) =  
           (if A:bad then insert X (knows Spy evs) else knows Spy evs)"

@@ -43,8 +43,9 @@ inductive ns_public
           \<Longrightarrow> Says A B (Crypt (pubEK B) (Nonce NB)) # evs3 \<in> ns_public"
 
 declare knows_Spy_partsEs [elim]
-declare analz_subset_parts [THEN subsetD, dest]
-declare Fake_parts_insert [THEN subsetD, dest]
+declare knows_Spy_partsEs [elim]
+declare analz_into_parts [dest]
+declare Fake_parts_insert_in_Un  [dest]
 declare image_eq_UN [simp]  (*accelerates proofs involving nested images*)
 
 (*A "possibility property": there are traces that reach the end*)
@@ -54,9 +55,6 @@ apply (rule_tac [2] ns_public.Nil [THEN ns_public.NS1, THEN ns_public.NS2,
                                    THEN ns_public.NS3])
 apply possibility
 done
-
-
-(**** Inductive proofs about ns_public ****)
 
 (** Theorems of the form X \<notin> parts (spies evs) imply that NOBODY
     sends messages containing X! **)
@@ -70,8 +68,7 @@ lemma Spy_analz_priEK [simp]:
       "evs \<in> ns_public \<Longrightarrow> (Key (priEK A) \<in> analz (spies evs)) = (A \<in> bad)"
 by auto
 
-
-(*** Authenticity properties obtained from NS2 ***)
+subsection{*Authenticity properties obtained from NS2*}
 
 
 (*It is impossible to re-use a nonce in both NS1 and NS2, provided the nonce
@@ -143,8 +140,7 @@ apply (blast intro!: analz_insertI)
 done
 
 
-
-(*** Authenticity properties obtained from NS2 ***)
+subsection{*Authenticity properties obtained from NS2*}
 
 (*Unicity for NS2: nonce NB identifies nonce NA and agents A, B 
   [unicity of B makes Lowe's fix work]
@@ -189,8 +185,7 @@ theorem B_trusts_NS3:
       \<Longrightarrow> Says A B (Crypt (pubEK B) (Nonce NB)) \<in> set evs"
 by (blast intro: B_trusts_NS3_lemma)
 
-(*** Overall guarantee for B ***)
-
+subsection{*Overall guarantee for B*}
 
 (*If NS3 has been sent and the nonce NB agrees with the nonce B joined with
   NA, then A initiated the run using NA.*)

@@ -88,15 +88,16 @@ declare Fake_parts_insert_in_Un  [dest]
 declare analz_into_parts [dest]
 
 (*A "possibility property": there are traces that reach the end*)
-lemma "A \<noteq> Server  
-      ==> \<exists>X NB K. \<exists>evs \<in> yahalom.           
+lemma "[| A \<noteq> Server; Key K \<notin> used [] |] 
+      ==> \<exists>X NB. \<exists>evs \<in> yahalom.           
              Says A B {|X, Crypt K (Nonce NB)|} \<in> set evs"
 apply (intro exI bexI)
 apply (rule_tac [2] yahalom.Nil
                     [THEN yahalom.YM1, THEN yahalom.Reception, 
                      THEN yahalom.YM2, THEN yahalom.Reception, 
                      THEN yahalom.YM3, THEN yahalom.Reception, 
-                     THEN yahalom.YM4], possibility)
+                     THEN yahalom.YM4])
+apply (possibility, simp add: used_Cons) 
 done
 
 lemma Gets_imp_Says:

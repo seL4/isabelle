@@ -46,8 +46,8 @@ inductive ns_public
           \<Longrightarrow> Says A B (Crypt (pubEK B) (Nonce NB)) # evs3 \<in> ns_public"
 
 declare knows_Spy_partsEs [elim]
-declare analz_subset_parts [THEN subsetD, dest]
-declare Fake_parts_insert [THEN subsetD, dest]
+declare analz_into_parts [dest]
+declare Fake_parts_insert_in_Un  [dest]
 declare image_eq_UN [simp]  (*accelerates proofs involving nested images*)
 
 (*A "possibility property": there are traces that reach the end*)
@@ -207,6 +207,9 @@ apply clarify
 apply (frule_tac A' = A in 
        Says_imp_knows_Spy [THEN parts.Inj, THEN unique_NB], auto)
 apply (rename_tac C B' evs3)
+txt{*This is the attack!
+@{subgoals[display,indent=0,margin=65]}
+*}
 oops
 
 (*

@@ -400,7 +400,7 @@ lemmas analz_image_freshK_simps =
        simp_thms mem_simps --{*these two allow its use with @{text "only:"}*}
        disj_comms 
        image_insert [THEN sym] image_Un [THEN sym] empty_subsetI insert_subset
-       analz_insert_eq Un_upper2 [THEN analz_mono, THEN [2] rev_subsetD]
+       analz_insert_eq Un_upper2 [THEN analz_mono, THEN subsetD]
        insert_Key_singleton 
        Key_not_used insert_Key_image Un_assoc [THEN sym]
 
@@ -411,20 +411,5 @@ val analz_image_freshK_ss =
 	       delsimps [imp_disjL]    (*reduces blow-up*)
 	       addsimps thms"analz_image_freshK_simps"
 *}
-
-axioms
-  Key_supply_ax:  "finite KK ==> \<exists>K\<in>symKeys. K \<notin> KK & Key K \<notin> used evs"
-  --{*Unlike the corresponding property of nonces, this cannot be proved.
-    We have infinitely many agents and there is nothing to stop their
-    long-term keys from exhausting all the natural numbers.  The axiom
-    assumes that their keys are dispersed so as to leave room for infinitely
-    many fresh session keys.  We could, alternatively, restrict agents to
-    an unspecified finite number.  We could however replace @{term"used evs"} 
-    by @{term "used []"}.*}
-
-
-lemma Key_supply1: "\<exists>K\<in>symKeys. Key K \<notin> used evs"
-by (rule Finites.emptyI [THEN Key_supply_ax, THEN bexE], blast)
-
 
 end
