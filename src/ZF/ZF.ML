@@ -53,10 +53,9 @@ AddEs  [rev_ballE];
 val ball_tac = dtac bspec THEN' assume_tac;
 
 (*Trival rewrite rule;   (ALL x:A.P)<->P holds only if A is nonempty!*)
-qed_goal "ball_simp" ZF.thy "(ALL x:A. True) <-> True"
- (fn _=> [ Blast_tac 1 ]);
-
-Addsimps [ball_simp];
+qed_goal "ball_triv" ZF.thy "(ALL x:A.P) <-> ((EX x. x:A) --> P)"
+ (fn _=> [ simp_tac (!simpset addsimps [Ball_def]) 1 ]);
+Addsimps [ball_triv];
 
 (*Congruence rule for rewriting*)
 qed_goalw "ball_cong" ZF.thy [Ball_def]
@@ -87,6 +86,9 @@ AddIs  [bexI];
 AddSEs [bexE];
 
 (*We do not even have (EX x:A. True) <-> True unless A is nonempty!!*)
+qed_goal  "bex_triv" ZF.thy "(EX x:A.P) <-> ((EX x. x:A) & P)"
+ (fn _=> [ simp_tac (!simpset addsimps [Bex_def]) 1 ]);
+Addsimps [bex_triv];
 
 qed_goalw "bex_cong" ZF.thy [Bex_def]
     "[| A=A';  !!x. x:A' ==> P(x) <-> P'(x) \

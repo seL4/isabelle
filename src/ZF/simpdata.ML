@@ -8,45 +8,60 @@ Rewriting for ZF set theory: specialized extraction of rewrites from theorems
 
 (** Rewriting **)
 
-(*For proving rewrite rules*)
-fun prove_fun s = 
-    (writeln s;  prove_goal ZF.thy s
-       (fn prems => [ (cut_facts_tac prems 1), (Fast_tac 1) ]));
+local
+  (*For proving rewrite rules*)
+  fun prover s = (prove_goal ZF.thy s (fn _ => [Blast_tac 1]));
 
-(*Are all these really suitable?*)
-val ball_simps = map prove_fun
-    ["(ALL x:0.P(x)) <-> True",
+in
+
+val ball_simps = map prover
+    ["(ALL x:A. P(x) | Q)   <-> ((ALL x:A. P(x)) | Q)",
+     "(ALL x:A. P | Q(x))   <-> (P | (ALL x:A. Q(x)))",
+     "(ALL x:A. P --> Q(x)) <-> (P --> (ALL x:A. Q(x)))",
+     "(ALL x:A. P(x) --> Q) <-> ((EX x:A. P(x)) --> Q)",
+     "(ALL x:0.P(x)) <-> True",
      "(ALL x:succ(i).P(x)) <-> P(i) & (ALL x:i.P(x))",
      "(ALL x:cons(a,B).P(x)) <-> P(a) & (ALL x:B.P(x))",
      "(ALL x:RepFun(A,f). P(x)) <-> (ALL y:A. P(f(y)))",
      "(ALL x:Union(A).P(x)) <-> (ALL y:A. ALL x:y. P(x))",
      "(ALL x:Collect(A,Q).P(x)) <-> (ALL x:A. Q(x) --> P(x))"];
 
-val bex_simps = map prove_fun
-    ["(EX x:0.P(x)) <-> False",
+val ball_conj_distrib = 
+    prover "(ALL x:A. P(x) & Q(x)) <-> ((ALL x:A. P(x)) & (ALL x:A. Q(x)))";
+
+val bex_simps = map prover
+    ["(EX x:A. P(x) & Q) <-> ((EX x:A. P(x)) & Q)",
+     "(EX x:A. P & Q(x)) <-> (P & (EX x:A. Q(x)))",
+     "(EX x:0.P(x)) <-> False",
      "(EX x:succ(i).P(x)) <-> P(i) | (EX x:i.P(x))",
      "(EX x:cons(a,B).P(x)) <-> P(a) | (EX x:B.P(x))",
      "(EX x:RepFun(A,f). P(x)) <-> (EX y:A. P(f(y)))",
      "(EX x:Union(A).P(x)) <-> (EX y:A. EX x:y.  P(x))",
      "(EX x:Collect(A,Q).P(x)) <-> (EX x:A. Q(x) & P(x))"];
 
-Addsimps (ball_simps @ bex_simps);
+val bex_disj_distrib = 
+    prover "(EX x:A. P(x) | Q(x)) <-> ((EX x:A. P(x)) | (EX x:A. Q(x)))";
 
-Addsimps (map prove_fun
-	  ["{x:0. P(x)} = 0",
-	   "{x:A. False} = 0",
-	   "{x:A. True} = A",
-	   "RepFun(0,f) = 0",
-	   "RepFun(succ(i),f) = cons(f(i), RepFun(i,f))",
-	   "RepFun(cons(a,B),f) = cons(f(a), RepFun(B,f))"]);
+val Rep_simps = map prover
+    ["{x:0. P(x)} = 0",
+     "{x:A. False} = 0",
+     "{x:A. True} = A",
+     "RepFun(0,f) = 0",
+     "RepFun(succ(i),f) = cons(f(i), RepFun(i,f))",
+     "RepFun(cons(a,B),f) = cons(f(a), RepFun(B,f))"]
 
-Addsimps (map prove_fun
-	  ["0 Un A = A",  "A Un 0 = A",
-	   "0 Int A = 0", "A Int 0 = 0",
-	   "0-A = 0",     "A-0 = A",
-	   "Union(0) = 0",
-	   "Union(cons(b,A)) = b Un Union(A)",
-	   "Inter({b}) = b"]);
+val misc_simps = map prover
+    ["0 Un A = A",  "A Un 0 = A",
+     "0 Int A = 0", "A Int 0 = 0",
+     "0-A = 0",     "A-0 = A",
+     "Union(0) = 0",
+     "Union(cons(b,A)) = b Un Union(A)",
+     "Inter({b}) = b"]
+
+end;
+
+Addsimps (ball_simps @ bex_simps @ Rep_simps @ misc_simps);
+
 
 (** New version of mk_rew_rules **)
 
