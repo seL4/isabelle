@@ -74,11 +74,6 @@ ba 1;
 ba 1;
 qed "new_tv_compatible_W";
 
-(* auxiliary lemma *)
-goal Maybe.thy "(y = Some x) = (Some x = y)";
-by( simp_tac (!simpset addsimps [eq_sym_conv]) 1);
-qed "rotate_Some";
-
 goal thy "!!sch. new_tv n sch --> new_tv (n + (min_new_bound_tv sch)) (bound_typ_inst (%b. TVar (b + n)) sch)";
 by (type_scheme.induct_tac "sch" 1);
 by (Asm_full_simp_tac 1);
@@ -335,11 +330,11 @@ qed_spec_mp "free_tv_W";
 
 goal thy "!!A. (!x. x : A --> x ~: B) ==> A Int B = {}";
 by (Fast_tac 1);
-qed "weaken_A_Int_B_eq_empty";
+val weaken_A_Int_B_eq_empty = result();
 
 goal thy "!!A. x ~: A | x : B ==> x ~: A - B";
 by (Fast_tac 1);
-qed "weaken_not_elem_A_minus_B";
+val weaken_not_elem_A_minus_B = result();
 
 (* correctness of W with respect to has_type *)
 goal W.thy
@@ -462,25 +457,11 @@ ba 2;
 by (asm_full_simp_tac (!simpset addsimps [not_less_iff_le]) 1);
 qed_spec_mp "W_correct_lemma";
 
-goal Type.thy "new_tv n (sch::type_scheme) --> \
-\              $(%k.if k<n then S k else S' k) sch = $S sch";
-by (type_scheme.induct_tac "sch" 1);
-by(ALLGOALS Asm_simp_tac);
-qed "new_if_subst_type_scheme";
-Addsimps [new_if_subst_type_scheme];
-
-goal Type.thy "new_tv n (A::type_scheme list) --> \
-\              $(%k.if k<n then S k else S' k) A = $S A";
-by (list.induct_tac "A" 1);
-by(ALLGOALS Asm_simp_tac);
-qed "new_if_subst_type_scheme_list";
-Addsimps [new_if_subst_type_scheme_list];
-
 goal Arith.thy "!!n::nat. ~ k+n < n";
 by (nat_ind_tac "k" 1);
 by(ALLGOALS Asm_simp_tac);
 by(trans_tac 1);
-qed "not_add_less1";
+val not_add_less1 = result();
 Addsimps [not_add_less1];
 
 (* Completeness of W w.r.t. has_type *)

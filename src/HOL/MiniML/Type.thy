@@ -54,6 +54,7 @@ primrec free_tv list
   "free_tv [] = {}"
   "free_tv (x#l) = (free_tv x) Un (free_tv l)"
 
+  
 (* executable version of free_tv: Implementation with lists *)
 consts
   free_tv_ML :: ['a::type_struct] => nat list

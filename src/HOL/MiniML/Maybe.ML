@@ -23,9 +23,14 @@ by (fast_tac (HOL_cs addss !simpset) 1);
 by (Asm_simp_tac 1);
 qed "expand_option_bind";
 
-goal Maybe.thy
+goal thy
   "((option_bind m f) = None) = ((m=None) | (? p. m = Some p & f p = None))";
 by(simp_tac (!simpset setloop (split_tac [expand_option_bind])) 1);
 qed "option_bind_eq_None";
 
 Addsimps [option_bind_eq_None];
+
+(* auxiliary lemma *)
+goal Maybe.thy "(y = Some x) = (Some x = y)";
+by( simp_tac (!simpset addsimps [eq_sym_conv]) 1);
+qed "rotate_Some";

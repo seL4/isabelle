@@ -9,7 +9,7 @@ Generalizing type schemes with respect to a context
 Generalize = Instance +
 
 
-(* gen: binding (generalising) the variables which are not free in the type scheme *)
+(* gen: binding (generalising) the variables which are not free in the context *)
 
 types ctxt = type_scheme list
     
@@ -18,7 +18,7 @@ consts
 
 primrec gen typ
   "gen A (TVar n) = (if (n:(free_tv A)) then (FVar n) else (BVar n))"
-  "gen A (t1 -> t2) = ((gen A t1) =-> (gen A t2))"
+  "gen A (t1 -> t2) = (gen A t1) =-> (gen A t2)"
 
 (* executable version of gen: Implementation with free_tv_ML *)
 
@@ -27,7 +27,7 @@ consts
 
 primrec gen_ML_aux typ
   "gen_ML_aux A (TVar n) = (if (n mem A) then (FVar n) else (BVar n))"
-  "gen_ML_aux A (t1 -> t2) = ((gen_ML_aux A t1) =-> (gen_ML_aux A t2))"
+  "gen_ML_aux A (t1 -> t2) = (gen_ML_aux A t1) =-> (gen_ML_aux A t2)"
 
 consts
   gen_ML :: [ctxt, typ] => type_scheme

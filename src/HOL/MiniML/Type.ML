@@ -16,7 +16,7 @@ by (Asm_full_simp_tac 1);
 by (Fast_tac 1);
 qed_spec_mp "mk_scheme_Fun";
 
-goal Type.thy "!t'.mk_scheme t = mk_scheme t' --> t=t'";
+goal thy "!t'.mk_scheme t = mk_scheme t' --> t=t'";
 by (typ.induct_tac "t" 1);
  br allI 1;
  by (typ.induct_tac "t'" 1);
@@ -96,18 +96,32 @@ goalw thy [new_tv_def]
 by (fast_tac (HOL_cs addss !simpset) 1);
 qed "new_tv_Cons";
 
-goalw Type.thy [new_tv_def] "!!n. new_tv n TVar";
+goalw thy [new_tv_def] "!!n. new_tv n TVar";
 by (strip_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [free_tv_subst,dom_def,cod_def]) 1);
 qed "new_tv_TVar_subst";
 
 Addsimps [new_tv_TVar,new_tv_FVar,new_tv_BVar,new_tv_Fun,new_tv_Fun2,new_tv_Nil,new_tv_Cons,new_tv_TVar_subst];
 
-goalw Type.thy [id_subst_def,new_tv_def,free_tv_subst,dom_def,cod_def]
+goalw thy [id_subst_def,new_tv_def,free_tv_subst,dom_def,cod_def]
   "new_tv n id_subst";
 by(Simp_tac 1);
 qed "new_tv_id_subst";
 Addsimps[new_tv_id_subst];
+
+goal thy "new_tv n (sch::type_scheme) --> \
+\              $(%k.if k<n then S k else S' k) sch = $S sch";
+by (type_scheme.induct_tac "sch" 1);
+by(ALLGOALS Asm_simp_tac);
+qed "new_if_subst_type_scheme";
+Addsimps [new_if_subst_type_scheme];
+
+goal thy "new_tv n (A::type_scheme list) --> \
+\              $(%k.if k<n then S k else S' k) A = $S A";
+by (list.induct_tac "A" 1);
+by(ALLGOALS Asm_simp_tac);
+qed "new_if_subst_type_scheme_list";
+Addsimps [new_if_subst_type_scheme_list];
 
 
 (* constructor laws for dom and cod *)
@@ -542,7 +556,7 @@ qed "less_maxL";
 goalw thy [max_def] "!!n::nat. m < n' ==> m < max n n'";
 by (simp_tac (!simpset setloop (split_tac [expand_if])) 1);
 by (fast_tac (!claset addDs [not_leE] addIs [less_trans]) 1);
-qed "less_maxR";
+val less_maxR = result();
 
 goalw thy [new_tv_def] "!!t::typ. ? n. (new_tv n t)";
 by (typ.induct_tac "t" 1);
@@ -574,12 +588,12 @@ Addsimps [fresh_variable_type_schemes];
 
 goalw thy [max_def] "!!n::nat. n <= (max n n')";
 by (simp_tac (!simpset setloop (split_tac [expand_if])) 1);
-qed "le_maxL";
+val le_maxL = result();
 
 goalw thy [max_def] "!!n'::nat. n' <= (max n n')";
 by (simp_tac (!simpset setloop (split_tac [expand_if])) 1);
 by (fast_tac (!claset addDs [not_leE] addIs [less_or_eq_imp_le]) 1);
-qed "le_maxR";
+val le_maxR = result();
 
 goal thy "!!A::type_scheme list. ? n. (new_tv n A)";
 by (list.induct_tac "A" 1);

@@ -15,6 +15,7 @@ by (ALLGOALS Asm_simp_tac);
 qed "bound_typ_inst_mk_scheme";
 
 Addsimps [bound_typ_inst_mk_scheme];
+
 goal thy "!!S. bound_typ_inst ($S o R) ($S sch) = $S (bound_typ_inst R sch)";
 by (type_scheme.induct_tac "sch" 1);
 by (ALLGOALS Asm_full_simp_tac);
@@ -25,6 +26,7 @@ Addsimps [bound_typ_inst_composed_subst];
 goal thy "!!S. S = S' ==> sch = sch' ==> bound_typ_inst S sch = bound_typ_inst S' sch'";
 by (Asm_full_simp_tac 1);
 qed "bound_typ_inst_eq";
+
 
 
 (* lemmatas for bound_scheme_inst *)
