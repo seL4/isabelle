@@ -71,24 +71,14 @@ Integ:	$(OUT)/HOL $(INTEG_FILES)
 	@$(ISATOOL) usedir $(OUT)/HOL Integ
 
 
-## I/O Automata
+## I/O Automata (meta theory only)
 
-IOA_NTP_NAMES = Abschannel Action Correctness Impl Lemmas Multiset Packet \
-		Receiver Sender
-IOA_ABP_NAMES = Action Correctness Lemmas
-IOA_MT_NAMES = Asig IOA Solve
 
-IOA_FILES = IOA/NTP/ROOT.ML IOA/ABP/ROOT.ML IOA/NTP/Spec.thy \
- $(IOA_NTP_NAMES:%=IOA/NTP/%.thy) $(IOA_NTP_NAMES:%=IOA/NTP/%.ML) \
- IOA/ABP/Abschannel.thy IOA/ABP/Abschannel_finite.thy IOA/ABP/Env.thy \
- IOA/ABP/Impl.thy IOA/ABP/Impl_finite.thy IOA/ABP/Packet.thy \
- IOA/ABP/Receiver.thy IOA/ABP/Sender.thy IOA/ABP/Spec.thy \
- $(IOA_ABP_NAMES:%=IOA/ABP/%.thy) $(IOA_ABP_NAMES:%=IOA/ABP/%.ML) \
- $(IOA_MT_NAMES:%=IOA/meta_theory/%.thy) $(IOA_MT_NAMES:%=IOA/meta_theory/%.ML)
+IOA_FILES = IOA/ROOT.ML IOA/Asig.thy IOA/Asig.ML IOA/IOA.thy \
+  IOA/IOA.ML IOA/Solve.thy IOA/Solve.ML
 
-IOA:	$(OUT)/HOL $(IOA_FILES)
-	@$(ISATOOL) usedir -s IOA-NTP $(OUT)/HOL IOA/NTP
-	@$(ISATOOL) usedir -s IOA-ABP $(OUT)/HOL IOA/ABP
+IOA: $(OUT)/HOL $(IOA_FILES)
+	@$(ISATOOL) usedir $(OUT)/HOL IOA
 
 
 ## Authentication & Security Protocols

@@ -121,30 +121,6 @@ Integ:	$(BIN)/HOL  $(INTEG_FILES)
 	else echo 'exit_use_dir"Integ";quit();' | $(LOGIC); \
 	fi
 
-##I/O Automata
-IOA_NTP_NAMES = Abschannel Action Correctness Impl Lemmas Multiset Packet\
-		Receiver Sender
-IOA_ABP_NAMES = Action Correctness Lemmas
-IOA_MT_NAMES = Asig IOA Solve
-
-IOA_FILES = IOA/NTP/ROOT.ML IOA/ABP/ROOT.ML IOA/NTP/Spec.thy\
- $(IOA_NTP_NAMES:%=IOA/NTP/%.thy) $(IOA_NTP_NAMES:%=IOA/NTP/%.ML)\
- IOA/ABP/Abschannel.thy IOA/ABP/Abschannel_finite.thy IOA/ABP/Env.thy\
- IOA/ABP/Impl.thy IOA/ABP/Impl_finite.thy IOA/ABP/Packet.thy\
- IOA/ABP/Receiver.thy IOA/ABP/Sender.thy IOA/ABP/Spec.thy\
- $(IOA_ABP_NAMES:%=IOA/ABP/%.thy) $(IOA_ABP_NAMES:%=IOA/ABP/%.ML)\
- $(IOA_MT_NAMES:%=IOA/meta_theory/%.thy) $(IOA_MT_NAMES:%=IOA/meta_theory/%.ML)
-
-IOA:	$(BIN)/HOL  $(IOA_FILES)
-	@if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
-	then echo 'make_html := true; exit_use_dir"IOA/NTP";quit();' \
-	       | $(LOGIC);\
-	     echo 'make_html := true; exit_use_dir"IOA/ABP";quit();' \
-	       | $(LOGIC);\
-	else echo 'exit_use_dir"IOA/NTP";quit();' | $(LOGIC); \
-	     echo 'exit_use_dir"IOA/ABP";quit();' | $(LOGIC); \
-	fi
-
 
 ##Authentication & Security Protocols
 Auth_NAMES = Message Shared NS_Shared OtwayRees OtwayRees_AN OtwayRees_Bad \
@@ -238,7 +214,7 @@ ex:	$(BIN)/HOL  $(EX_FILES)
 	fi
 
 #Full test.
-test:	$(BIN)/HOL TFL IMP Hoare Lex Integ Auth Subst Lambda MiniML IOA ex
+test:	$(BIN)/HOL TFL IMP Hoare Lex Integ Auth Subst Lambda MiniML ex
 	echo 'Test examples ran successfully' > test
 
 .PRECIOUS:  $(BIN)/Pure $(BIN)/HOL 
