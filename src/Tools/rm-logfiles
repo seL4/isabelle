@@ -1,6 +1,6 @@
 #! /bin/sh
 #rm-logfiles: remove useless files from subdirectories
-rm log */make*.log */make*.log.gz */make*.log.z
+rm log */make*.log */make*.log.gz
 rm */test
 rm */.*.thy.ML
 rm */ex/.*.thy.ML
