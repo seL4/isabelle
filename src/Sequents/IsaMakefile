@@ -1,0 +1,30 @@
+#
+# $Id$
+#
+# IsaMakefile for Sequents
+#
+
+OUT = $(ISABELLE_OUTPUT_DIR)
+
+NAMES = ILL LK S4 S43 T
+FILES = ROOT.ML Sequents.thy prover.ML $(NAMES:%=%.thy) $(NAMES:%=%.ML)
+
+ILL_NAMES = ILL_predlog washing
+EX_FILES = ex/ROOT.ML \
+    ex/LK/ROOT.ML ex/LK/hardquant.ML ex/LK/prop.ML ex/LK/quant.ML \
+    ex/Modal/ROOT.ML ex/Modal/S43thms.ML ex/Modal/S4thms.ML ex/Modal/Tthms.ML \
+    ex/ILL/ILL_kleene_lemmas.ML \
+    $(ILL_NAMES:%=ex/ILL/%.thy) $(ILL_NAMES:%=ex/ILL/%.ML)
+
+$(OUT)/Sequents: $(OUT)/Pure $(FILES)
+	@$(ISABELLE) -e "make_html := $(ISABELLE_HTML);" -qu $(OUT)/Pure Sequents
+	@chmod -w $@
+
+$(OUT)/Pure:
+	@cd ../Pure; $(ISATOOL) make
+
+test: $(OUT)/Sequents $(EX_FILES)
+	@$(ISABELLE) -e 'make_html := $(ISABELLE_HTML); exit_use"ex/ROOT.ML"; quit();' \
+	  -rq $(OUT)/Sequents
+
+.PRECIOUS: $(OUT)/Pure $(OUT)/Sequents
