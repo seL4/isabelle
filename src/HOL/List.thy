@@ -451,7 +451,7 @@ lemma map_injective:
 by (induct ys) (auto simp add: map_eq_Cons)
 
 lemma inj_mapI: "inj f ==> inj (map f)"
-by (rules dest: map_injective injD intro: injI)
+by (rules dest: map_injective injD intro: inj_onI)
 
 lemma inj_mapD: "inj (map f) ==> inj f"
 apply (unfold inj_on_def)
@@ -1241,7 +1241,7 @@ apply simp
 apply(rule wf_subset)
  prefer 2 apply (rule Int_lower1)
 apply(rule wf_prod_fun_image)
- prefer 2 apply (rule injI)
+ prefer 2 apply (rule inj_onI)
 apply auto
 done
 

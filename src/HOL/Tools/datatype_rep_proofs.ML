@@ -55,7 +55,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     val Numb_name = "Datatype_Universe.Numb";
     val Lim_name = "Datatype_Universe.Lim";
     val Funs_name = "Datatype_Universe.Funs";
-    val o_name = "Fun.op o";
+    val o_name = "Fun.comp";
     val sum_case_name = "Datatype.sum.sum_case";
 
     val [In0_inject, In1_inject, Scons_inject, Leaf_inject, In0_eq, In1_eq,

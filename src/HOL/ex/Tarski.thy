@@ -1,12 +1,11 @@
 (*  Title:      HOL/ex/Tarski.thy
     ID:         $Id$
     Author:     Florian Kammüller, Cambridge University Computer Laboratory
-    Copyright   1999  University of Cambridge
 *)
 
-header {* The full theorem of Tarski *}
+header {* The Full Theorem of Tarski *}
 
-theory Tarski = Main:
+theory Tarski = Main + FuncSet:
 
 text {*
   Minimal version of lattice theory plus the full theorem of Tarski:
@@ -21,39 +20,31 @@ record 'a potype =
   pset  :: "'a set"
   order :: "('a * 'a) set"
 
-syntax
-  "@pset"  :: "'a potype => 'a set"            ("_ .<A>"  [90] 90)
-  "@order" :: "'a potype => ('a *'a)set"       ("_ .<r>"  [90] 90)
-
-translations
-  "po.<A>" == "pset po"
-  "po.<r>" == "order po"
-
 constdefs
   monotone :: "['a => 'a, 'a set, ('a *'a)set] => bool"
   "monotone f A r == \<forall>x\<in>A. \<forall>y\<in>A. (x, y): r --> ((f x), (f y)) : r"
 
   least :: "['a => bool, 'a potype] => 'a"
-  "least P po == @ x. x: po.<A> & P x &
-                       (\<forall>y \<in> po.<A>. P y --> (x,y): po.<r>)"
+  "least P po == @ x. x: pset po & P x &
+                       (\<forall>y \<in> pset po. P y --> (x,y): order po)"
 
   greatest :: "['a => bool, 'a potype] => 'a"
-  "greatest P po == @ x. x: po.<A> & P x &
-                          (\<forall>y \<in> po.<A>. P y --> (y,x): po.<r>)"
+  "greatest P po == @ x. x: pset po & P x &
+                          (\<forall>y \<in> pset po. P y --> (y,x): order po)"
 
   lub  :: "['a set, 'a potype] => 'a"
-  "lub S po == least (%x. \<forall>y\<in>S. (y,x): po.<r>) po"
+  "lub S po == least (%x. \<forall>y\<in>S. (y,x): order po) po"
 
   glb  :: "['a set, 'a potype] => 'a"
-  "glb S po == greatest (%x. \<forall>y\<in>S. (x,y): po.<r>) po"
+  "glb S po == greatest (%x. \<forall>y\<in>S. (x,y): order po) po"
 
   isLub :: "['a set, 'a potype, 'a] => bool"
-  "isLub S po == %L. (L: po.<A> & (\<forall>y\<in>S. (y,L): po.<r>) &
-                     (\<forall>z\<in>po.<A>. (\<forall>y\<in>S. (y,z): po.<r>) --> (L,z): po.<r>))"
+  "isLub S po == %L. (L: pset po & (\<forall>y\<in>S. (y,L): order po) &
+                   (\<forall>z\<in>pset po. (\<forall>y\<in>S. (y,z): order po) --> (L,z): order po))"
 
   isGlb :: "['a set, 'a potype, 'a] => bool"
-  "isGlb S po == %G. (G: po.<A> & (\<forall>y\<in>S. (G,y): po.<r>) &
-                     (\<forall>z \<in> po.<A>. (\<forall>y\<in>S. (z,y): po.<r>) --> (z,G): po.<r>))"
+  "isGlb S po == %G. (G: pset po & (\<forall>y\<in>S. (G,y): order po) &
+                 (\<forall>z \<in> pset po. (\<forall>y\<in>S. (z,y): order po) --> (z,G): order po))"
 
   "fix"    :: "[('a => 'a), 'a set] => 'a set"
   "fix f A  == {x. x: A & f x = x}"
@@ -70,17 +61,17 @@ constdefs
   "Top po == greatest (%x. True) po"
 
   PartialOrder :: "('a potype) set"
-  "PartialOrder == {P. refl (P.<A>) (P.<r>) & antisym (P.<r>) &
-                       trans (P.<r>)}"
+  "PartialOrder == {P. refl (pset P) (order P) & antisym (order P) &
+                       trans (order P)}"
 
   CompleteLattice :: "('a potype) set"
   "CompleteLattice == {cl. cl: PartialOrder &
-                        (\<forall>S. S <= cl.<A> --> (\<exists>L. isLub S cl L)) &
-                        (\<forall>S. S <= cl.<A> --> (\<exists>G. isGlb S cl G))}"
+                        (\<forall>S. S <= pset cl --> (\<exists>L. isLub S cl L)) &
+                        (\<forall>S. S <= pset cl --> (\<exists>G. isGlb S cl G))}"
 
   CLF :: "('a potype * ('a => 'a)) set"
   "CLF == SIGMA cl: CompleteLattice.
-            {f. f: cl.<A> funcset cl.<A> & monotone f (cl.<A>) (cl.<r>)}"
+            {f. f: pset cl -> pset cl & monotone f (pset cl) (order cl)}"
 
   induced :: "['a set, ('a * 'a) set] => ('a *'a)set"
   "induced A r == {(a,b). a : A & b: A & (a,b): r}"
@@ -90,8 +81,8 @@ constdefs
   sublattice :: "('a potype * 'a set)set"
   "sublattice ==
       SIGMA cl: CompleteLattice.
-          {S. S <= cl.<A> &
-           (| pset = S, order = induced S (cl.<r>) |): CompleteLattice }"
+          {S. S <= pset cl &
+           (| pset = S, order = induced S (order cl) |): CompleteLattice }"
 
 syntax
   "@SL"  :: "['a set, 'a potype] => bool" ("_ <<= _" [51,50]50)
@@ -101,15 +92,15 @@ translations
 
 constdefs
   dual :: "'a potype => 'a potype"
-  "dual po == (| pset = po.<A>, order = converse (po.<r>) |)"
+  "dual po == (| pset = pset po, order = converse (order po) |)"
 
 locale (open) PO =
   fixes cl :: "'a potype"
     and A  :: "'a set"
     and r  :: "('a * 'a) set"
   assumes cl_po:  "cl : PartialOrder"
-  defines A_def: "A == cl.<A>"
-     and  r_def: "r == cl.<r>"
+  defines A_def: "A == pset cl"
+     and  r_def: "r == order cl"
 
 locale (open) CL = PO +
   assumes cl_co:  "cl : CompleteLattice"
@@ -254,8 +245,8 @@ lemma (in CL) CO_trans: "trans r"
 by (rule PO_imp_trans)
 
 lemma CompleteLatticeI:
-     "[| po \<in> PartialOrder; (\<forall>S. S <= po.<A> --> (\<exists>L. isLub S po L));
-         (\<forall>S. S <= po.<A> --> (\<exists>G. isGlb S po G))|]
+     "[| po \<in> PartialOrder; (\<forall>S. S <= pset po --> (\<exists>L. isLub S po L));
+         (\<forall>S. S <= pset po --> (\<exists>G. isGlb S po G))|]
       ==> po \<in> CompleteLattice"
 apply (unfold CompleteLattice_def, blast)
 done
@@ -268,19 +259,19 @@ apply (simp add: isLub_dual_isGlb [symmetric] isGlb_dual_isLub [symmetric]
                  dualPO)
 done
 
-lemma (in PO) dualA_iff: "(dual cl.<A>) = cl.<A>"
+lemma (in PO) dualA_iff: "pset (dual cl) = pset cl"
 by (simp add: dual_def)
 
-lemma (in PO) dualr_iff: "((x, y) \<in> (dual cl.<r>)) = ((y, x) \<in> cl.<r>)"
+lemma (in PO) dualr_iff: "((x, y) \<in> (order(dual cl))) = ((y, x) \<in> order cl)"
 by (simp add: dual_def)
 
 lemma (in PO) monotone_dual:
-     "monotone f (cl.<A>) (cl.<r>) ==> monotone f (dual cl.<A>) (dual cl.<r>)"
-apply (simp add: monotone_def dualA_iff dualr_iff)
-done
+     "monotone f (pset cl) (order cl) 
+     ==> monotone f (pset (dual cl)) (order(dual cl))"
+by (simp add: monotone_def dualA_iff dualr_iff)
 
 lemma (in PO) interval_dual:
-     "[| x \<in> A; y \<in> A|] ==> interval r x y = interval (dual cl.<r>) y x"
+     "[| x \<in> A; y \<in> A|] ==> interval r x y = interval (order(dual cl)) y x"
 apply (simp add: interval_def dualr_iff)
 apply (fold r_def, fast)
 done
@@ -416,7 +407,7 @@ text {*
 *}
 
 lemma (in CLF) [simp]:
-    "f: cl.<A> funcset cl.<A> & monotone f (cl.<A>) (cl.<r>)"
+    "f: pset cl -> pset cl & monotone f (pset cl) (order cl)"
 apply (insert f_cl)
 apply (simp add: CLF_def)
 done
@@ -424,7 +415,7 @@ done
 declare (in CLF) f_cl [simp]
 
 
-lemma (in CLF) f_in_funcset: "f \<in> A funcset A"
+lemma (in CLF) f_in_funcset: "f \<in> A -> A"
 by (simp add: A_def)
 
 lemma (in CLF) monotone_f: "monotone f A r"
@@ -460,7 +451,7 @@ apply (rule lub_in_lattice, fast)
 apply (rule ballI)
 apply (rule transE)
 apply (rule CO_trans)
--- {* instantiates @{text "(x, ???z) \<in> cl.<r> to (x, f x)"}, *}
+-- {* instantiates @{text "(x, ???z) \<in> order cl to (x, f x)"}, *}
 -- {* because of the def of @{text H} *}
 apply fast
 -- {* so it remains to show @{text "(f x, f (lub H cl)) \<in> r"} *}
@@ -807,7 +798,7 @@ apply (rule f_in_funcset [THEN funcset_mem])
 apply (simp add: intY1_def interval_def  intY1_elem)
 done
 
-lemma (in Tarski) intY1_func: "(%x: intY1. f x) \<in> intY1 funcset intY1"
+lemma (in Tarski) intY1_func: "(%x: intY1. f x) \<in> intY1 -> intY1"
 apply (rule restrictI)
 apply (erule intY1_f_closed)
 done

@@ -80,7 +80,7 @@ theorem nat_induct: "P 0 ==> (!!n. P n ==> P (Suc n)) ==> P n"
 text {* Isomorphisms: @{text Abs_Nat} and @{text Rep_Nat} *}
 
 lemma inj_Rep_Nat: "inj Rep_Nat"
-  apply (rule inj_inverseI)
+  apply (rule inj_on_inverseI)
   apply (rule Rep_Nat_inverse)
   done
 
@@ -111,7 +111,7 @@ text {* Injectiveness of @{term Suc} *}
 
 lemma inj_Suc: "inj Suc"
   apply (unfold Suc_def)
-  apply (rule injI)
+  apply (rule inj_onI)
   apply (drule inj_on_Abs_Nat [THEN inj_onD])
   apply (rule Rep_Nat Nat.Suc_RepI)+
   apply (drule inj_Suc_Rep [THEN injD])

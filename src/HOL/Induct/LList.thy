@@ -1,7 +1,6 @@
 (*  Title:      HOL/Induct/LList.thy
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1994  University of Cambridge
 
 Shares NIL, CONS, List_case with List.thy
 
@@ -445,7 +444,7 @@ done
 subsection{* Isomorphisms *}
 
 lemma inj_Rep_LList: "inj Rep_LList"
-apply (rule inj_inverseI)
+apply (rule inj_on_inverseI)
 apply (rule Rep_LList_inverse)
 done
 

@@ -2369,9 +2369,8 @@ lemma ws_unique_fields: "\<lbrakk>is_class G C; ws_prog G;
       unique (fields G C)" 
 apply (rule ws_subcls1_induct, assumption, assumption)
 apply (subst fields_rec, assumption)            
-apply (auto intro!: unique_map_inj injI 
-            elim!: unique_append ws_unique_fields_lemma fields_norec
-            )
+apply (auto intro!: unique_map_inj inj_onI 
+            elim!: unique_append ws_unique_fields_lemma fields_norec)
 done
 
 

@@ -83,7 +83,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   $(SRC)/TFL/usyntax.ML $(SRC)/TFL/utils.ML \
   Datatype.thy Datatype_Universe.ML Datatype_Universe.thy Divides_lemmas.ML \
   Divides.thy Extraction.thy Finite_Set.ML Finite_Set.thy \
-  Fun.ML Fun.thy Gfp.ML Gfp.thy \
+  Fun.thy Gfp.ML Gfp.thy \
   Hilbert_Choice.thy Hilbert_Choice_lemmas.ML HOL.ML \
   HOL.thy HOL_lemmas.ML Inductive.thy Integ/Bin.ML Integ/Bin.thy \
   Integ/Equiv.ML Integ/Equiv.thy Integ/int.ML Integ/Int.thy \
@@ -197,7 +197,8 @@ $(LOG)/HOL-Hyperreal-ex.gz: $(OUT)/HOL-Hyperreal Library/Primes.thy \
 HOL-Library: HOL $(LOG)/HOL-Library.gz
 
 $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/Accessible_Part.thy \
-  Library/Library.thy Library/List_Prefix.thy Library/Multiset.thy \
+  Library/FuncSet.thy Library/Library.thy \
+  Library/List_Prefix.thy Library/Multiset.thy \
   Library/Permutation.thy Library/Primes.thy \
   Library/Quotient.thy Library/Ring_and_Field.thy \
   Library/Ring_and_Field_Example.thy Library/Nat_Infinity.thy \
@@ -275,20 +276,16 @@ $(LOG)/HOL-NumberTheory.gz: $(OUT)/HOL \
 HOL-GroupTheory: HOL $(LOG)/HOL-GroupTheory.gz
 
 $(LOG)/HOL-GroupTheory.gz: $(OUT)/HOL \
-  Library/Primes.thy \
-  GroupTheory/Bij.thy GroupTheory/Bij.ML\
-  GroupTheory/Coset.thy GroupTheory/Coset.ML\
-  GroupTheory/DirProd.thy GroupTheory/DirProd.ML\
-  GroupTheory/Exponent.thy GroupTheory/Exponent.ML\
-  GroupTheory/FactGroup.thy GroupTheory/FactGroup.ML\
-  GroupTheory/Group.thy GroupTheory/Group.ML\
-  GroupTheory/Homomorphism.thy GroupTheory/Homomorphism.ML\
-  GroupTheory/PiSets.ML GroupTheory/PiSets.thy \
-  GroupTheory/Ring.thy GroupTheory/Ring.ML\
-  GroupTheory/RingConstr.thy GroupTheory/RingConstr.ML\
-  GroupTheory/Sylow.thy GroupTheory/Sylow.ML\
-  GroupTheory/ROOT.ML
-	@$(ISATOOL) usedir $(OUT)/HOL GroupTheory
+  Library/Primes.thy Library/FuncSet.thy \
+  GroupTheory/Bij.thy \
+  GroupTheory/Coset.thy \
+  GroupTheory/Exponent.thy \
+  GroupTheory/Group.thy \
+  GroupTheory/Ring.thy \
+  GroupTheory/Sylow.thy \
+  GroupTheory/ROOT.ML \
+  GroupTheory/document/root.tex
+	@$(ISATOOL) usedir -g true $(OUT)/HOL GroupTheory
 
 
 ## HOL-Hoare

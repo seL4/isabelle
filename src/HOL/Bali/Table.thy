@@ -213,7 +213,7 @@ apply auto
 done
 
 lemma inj_Pair_const2: "inj (\<lambda>k. (k, C))"
-apply (rule injI)
+apply (rule inj_onI)
 apply auto
 done
 

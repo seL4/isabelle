@@ -168,7 +168,7 @@ fun make_casedists descr sorts =
 
 fun make_primrecs new_type_names descr sorts thy =
   let
-    val o_name = "Fun.op o";
+    val o_name = "Fun.comp";
 
     val sign = Theory.sign_of thy;
 

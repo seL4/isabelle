@@ -39,6 +39,10 @@ constdefs
 use "Hilbert_Choice_lemmas.ML"
 declare someI_ex [elim?];
 
+lemma Inv_mem: "[| f ` A = B;  x \<in> B |] ==> Inv A f x \<in> A"
+apply (unfold Inv_def)
+apply (fast intro: someI2)
+done
 
 lemma tfl_some: "\<forall>P x. P x --> P (Eps P)"
   -- {* dynamically-scoped fact for TFL *}

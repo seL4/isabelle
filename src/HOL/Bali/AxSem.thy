@@ -413,7 +413,7 @@ translations
   "{P} .c. {Q}" == "{P} In1r c\<succ> {Q}"
 
 lemma inj_triple: "inj (\<lambda>(P,t,Q). {P} t\<succ> {Q})"
-apply (rule injI)
+apply (rule inj_onI)
 apply auto
 done
 
