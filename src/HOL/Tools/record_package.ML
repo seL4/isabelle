@@ -43,6 +43,7 @@ sig
   val setup: (theory -> theory) list
   val record_upd_simproc: simproc
   val record_split_simproc: (term -> bool) -> simproc
+  val record_ex_sel_eq_simproc: simproc
   val record_split_simp_tac: (term -> bool) -> int -> tactic
 end;
 
@@ -818,6 +819,41 @@ fun record_split_simproc P =
                      else None)
          else None
        | _ => None))
+
+(* record_ex_sel_eq_simproc *)
+(* record: (EX r. x = sel r) resp. (EX r. sel r = x) to True *) 
+val record_ex_sel_eq_simproc =
+  Simplifier.simproc (Theory.sign_of HOL.thy) "record_ex_sel_eq_simproc" ["Ex t"]
+    (fn sg => fn _ => fn t =>
+       let fun prove prop = (quick_and_dirty_prove sg [] [] prop 
+                             (fn _ => (simp_tac ((get_simpset sg) addsimps simp_thms
+                                       addsimprocs [record_split_simproc (K true)]) 1)));
+       in     
+         (case t of 
+           (Const ("Ex",Tex)$Abs(r,T,Const ("op =",Teq)$(Const (sel,Tsel)$Bound 0)$X)) =>
+             (case get_selectors sg sel of Some () =>
+                let 
+                  val X' = ("x",range_type Tsel);
+		  val prop = list_all ([X'], 
+                               Logic.mk_equals
+		                 (Const ("Ex",Tex)$Abs(r,T,Const ("op =",Teq)$
+                                                      (Const (sel,Tsel)$Bound 0)$Bound 1),
+                                  Const ("True",HOLogic.boolT)));
+                in Some (prove prop) end
+              | None => None)
+          |(Const ("Ex",Tex)$Abs(r,T,Const ("op =",Teq)$X$(Const (sel,Tsel)$Bound 0))) =>
+             (case get_selectors sg sel of Some () =>
+                let 
+                  val X' = ("x",range_type Tsel);
+		  val prop = list_all ([X'], 
+                               Logic.mk_equals
+		                 (Const ("Ex",Tex)$Abs(r,T,Const ("op =",Teq)$
+                                                     Bound 1$(Const (sel,Tsel)$Bound 0)),
+                                  Const ("True",HOLogic.boolT)));
+                in Some (prove prop) end 
+            | None => None)
+          | _ => None)
+         end)
 
 (** record field splitting **)
 
