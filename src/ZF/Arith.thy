@@ -307,6 +307,9 @@ done
 lemma add_lt_elim1: "[| k#+m < k#+n; m \<in> nat; n \<in> nat |] ==> m < n"
 by (drule add_lt_elim1_natify, auto)
 
+lemma zero_less_add: "[| n \<in> nat; m \<in> nat |] ==> 0 < m #+ n <-> (0<m | 0<n)"
+by (induct_tac "n", auto)
+
 
 subsection{*Monotonicity of Addition*}
 
