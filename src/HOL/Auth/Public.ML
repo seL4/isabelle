@@ -129,6 +129,10 @@ by (list.induct_tac "evs" 1);
 by (Auto_tac ());
 qed_spec_mp "Says_imp_sees_Spy";
 
+(*Use with addSEs to derive contradictions from old Says events containing
+  items known to be fresh*)
+val sees_Spy_partsEs = make_elim (Says_imp_sees_Spy RS parts.Inj):: partsEs;
+
 goal thy  
  "!!evs. [| Says A B (Crypt (pubK C) X) : set_of_list evs;  C : lost |] \
 \        ==> X : analz (sees lost Spy evs)";
