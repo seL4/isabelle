@@ -14,6 +14,7 @@ TODO:
   - 'result' command;
   - '--' (comment) option everywhere;
   - 'chapter', 'section' etc.;
+  - 'thm': xthms1;
 *)
 
 signature ISAR_SYN =
@@ -131,8 +132,8 @@ val translationsP =
 
 (* axioms and definitions *)
 
-val spec = thm_name -- prop >> (fn ((x, y), z) => ((x, z), y));
-val spec' = opt_thm_name -- prop >> (fn ((x, y), z) => ((x, z), y));
+val spec = thm_name ":" -- prop >> (fn ((x, y), z) => ((x, z), y));
+val spec' = opt_thm_name ":" -- prop >> (fn ((x, y), z) => ((x, z), y));
 
 val axiomsP =
   OuterSyntax.parser false "axioms" "state arbitrary propositions (axiomatic!)"
@@ -141,6 +142,19 @@ val axiomsP =
 val defsP =
   OuterSyntax.parser false "defs" "define constants"
     (Scan.repeat1 spec' >> (Toplevel.theory o IsarThy.add_defs));
+
+
+(* theorems *)
+
+val facts = opt_thm_name "=" -- xthms1;
+
+val theoremsP =
+  OuterSyntax.parser false "theorems" "define theorems"
+    (facts >> (Toplevel.theory o IsarThy.have_theorems));
+
+val lemmasP =
+  OuterSyntax.parser false "lemmas" "define lemmas"
+    (facts >> (Toplevel.theory o IsarThy.have_lemmas));
 
 
 (* axclass *)
@@ -232,7 +246,7 @@ val oracleP =
 
 (* statements *)
 
-fun statement f = opt_thm_name -- prop >> (fn ((x, y), z) => f x y z);
+fun statement f = opt_thm_name ":" -- prop >> (fn ((x, y), z) => f x y z);
 
 val theoremP =
   OuterSyntax.parser false "theorem" "state theorem"
@@ -251,27 +265,31 @@ val haveP =
     (statement IsarThy.have >> (fn f => Toplevel.print o Toplevel.proof f));
 
 
-(* forward chaining *)
+(* facts *)
 
 val thenP =
   OuterSyntax.parser false "then" "forward chaining"
     (Scan.succeed (Toplevel.print o Toplevel.proof IsarThy.chain));
 
 val fromP =
-  OuterSyntax.parser false "from" "forward chaining, from given facts"
-    (enum1 "," xname >> (fn x => Toplevel.print o Toplevel.proof (IsarThy.from_facts x)));
+  OuterSyntax.parser false "from" "forward chaining from given facts"
+    (xthms1 >> (fn x => Toplevel.print o Toplevel.proof (IsarThy.from_facts x)));
+
+val factsP =
+  OuterSyntax.parser false "note" "define facts"
+    (facts >> (Toplevel.proof o IsarThy.have_facts));
 
 
 (* proof context *)
 
 val assumeP =
   OuterSyntax.parser false "assume" "assume propositions"
-    (opt_thm_name -- enum1 "," prop >>
+    (opt_thm_name ":" -- Scan.repeat1 prop >>
       (fn ((x, y), z) => Toplevel.print o Toplevel.proof (IsarThy.assume x y z)));
 
 val fixP =
   OuterSyntax.parser false "fix" "fix variables (Skolem constants)"
-    (enum1 "," (name -- Scan.option ($$$ "::" |-- typ))
+    (Scan.repeat1 (name -- Scan.option ($$$ "::" |-- typ))
       >> (fn xs => Toplevel.print o Toplevel.proof (IsarThy.fix xs)));
 
 val letP =
@@ -398,12 +416,7 @@ val print_lthmsP =
     (Scan.succeed IsarCmd.print_lthms);
 
 val print_thmsP =
-  OuterSyntax.parser true "thms" "print theorems"
-    (xname -- opt_attribs >> IsarCmd.print_thms);
-
-val print_thmP =
-  OuterSyntax.parser true "thm" "print theorem"
-    (xname -- opt_attribs >> IsarCmd.print_thm);
+  OuterSyntax.parser true "thm" "print theorems" (xthm >> IsarCmd.print_thms);
 
 val print_propP =
   OuterSyntax.parser true "print_prop" "read and print proposition"
@@ -457,7 +470,7 @@ val exitP =
     (Scan.succeed IsarCmd.exit);
 
 val breakP =
-  OuterSyntax.parser true "break" "discontinue execution"
+  OuterSyntax.parser true "break" "discontinue excursion (keep current state)"
     (Scan.succeed IsarCmd.break);
 
 
@@ -478,19 +491,19 @@ val parsers = [
   (*theory sections*)
   textP, classesP, classrelP, defaultsortP, typedeclP, typeabbrP,
   nontermP, aritiesP, constsP, syntaxP, translationsP, axiomsP, defsP,
-  axclassP, instanceP, globalP, localP, pathP, useP, mlP, setupP,
-  parse_ast_translationP, parse_translationP, print_translationP,
-  typed_print_translationP, print_ast_translationP,
-  token_translationP, oracleP,
+  theoremsP, lemmasP, axclassP, instanceP, globalP, localP, pathP,
+  useP, mlP, setupP, parse_ast_translationP, parse_translationP,
+  print_translationP, typed_print_translationP,
+  print_ast_translationP, token_translationP, oracleP,
   (*proof commands*)
   theoremP, lemmaP, showP, haveP, assumeP, fixP, letP, thenP, fromP,
-  beginP, nextP, qedP, qed_withP, kill_proofP, refineP, then_refineP,
-  proofP, terminal_proofP, trivial_proofP, default_proofP,
-  clear_undoP, undoP, redoP, backP, prevP, upP, topP,
+  factsP, beginP, nextP, qedP, qed_withP, kill_proofP, refineP,
+  then_refineP, proofP, terminal_proofP, trivial_proofP,
+  default_proofP, clear_undoP, undoP, redoP, backP, prevP, upP, topP,
   (*diagnostic commands*)
   print_commandsP, print_theoryP, print_syntaxP, print_attributesP,
   print_methodsP, print_theoremsP, print_bindsP, print_lthmsP,
-  print_thmP, print_thmsP, print_propP, print_termP, print_typeP,
+  print_thmsP, print_propP, print_termP, print_typeP,
   (*system commands*)
   cdP, pwdP, use_thyP, loadP, prP, commitP, quitP, exitP, breakP];
 
