@@ -924,9 +924,6 @@ by (simp add: real_abs_def linorder_not_less [symmetric])
 lemma abs_minus_add_cancel: "abs(x + (-y)) = abs (y + (-(x::real)))"
 by (unfold real_abs_def, simp)
 
-lemma abs_minus_one [simp]: "abs (-1) = (1::real)"
-by (unfold real_abs_def, simp)
-
 lemma abs_interval_iff: "(abs x < r) = (-r < x & x < (r::real))"
 by (force simp add: Ring_and_Field.abs_less_iff)
 
@@ -983,7 +980,6 @@ val abs_inverse = thm"abs_inverse";
 val abs_triangle_ineq = thm"abs_triangle_ineq";
 val abs_minus_cancel = thm"abs_minus_cancel";
 val abs_minus_add_cancel = thm"abs_minus_add_cancel";
-val abs_minus_one = thm"abs_minus_one";
 val abs_interval_iff = thm"abs_interval_iff";
 val abs_le_interval_iff = thm"abs_le_interval_iff";
 val abs_add_one_gt_zero = thm"abs_add_one_gt_zero";

@@ -42,9 +42,6 @@ lemma realpow_less:
 apply (rule power_strict_mono, auto) 
 done
 
-lemma abs_realpow_minus_one [simp]: "abs((-1) ^ n) = (1::real)"
-by (simp add: power_abs)
-
 lemma realpow_two_le [simp]: "(0::real) \<le> r^ Suc (Suc 0)"
 by (simp add: real_le_square)
 
@@ -64,15 +61,6 @@ apply (subst mult_2)
 apply (rule real_add_less_le_mono)
 apply (auto simp add: two_realpow_ge_one)
 done
-
-lemma realpow_minus_one [simp]: "(-1) ^ (2*n) = (1::real)"
-by (induct_tac "n", auto)
-
-lemma realpow_minus_one_odd [simp]: "(-1) ^ Suc (2*n) = -(1::real)"
-by auto
-
-lemma realpow_minus_one_even [simp]: "(-1) ^ Suc (Suc (2*n)) = (1::real)"
-by auto
 
 lemma realpow_Suc_le_self: "[| 0 \<le> r; r \<le> (1::real) |] ==> r ^ Suc n \<le> r"
 by (insert power_decreasing [of 1 "Suc n" r], simp)
@@ -264,15 +252,11 @@ val realpow_not_zero = thm "realpow_not_zero";
 val realpow_zero_zero = thm "realpow_zero_zero";
 val realpow_two = thm "realpow_two";
 val realpow_less = thm "realpow_less";
-val abs_realpow_minus_one = thm "abs_realpow_minus_one";
 val realpow_two_le = thm "realpow_two_le";
 val abs_realpow_two = thm "abs_realpow_two";
 val realpow_two_abs = thm "realpow_two_abs";
 val two_realpow_ge_one = thm "two_realpow_ge_one";
 val two_realpow_gt = thm "two_realpow_gt";
-val realpow_minus_one = thm "realpow_minus_one";
-val realpow_minus_one_odd = thm "realpow_minus_one_odd";
-val realpow_minus_one_even = thm "realpow_minus_one_even";
 val realpow_Suc_le_self = thm "realpow_Suc_le_self";
 val realpow_Suc_less_one = thm "realpow_Suc_less_one";
 val realpow_minus_mult = thm "realpow_minus_mult";

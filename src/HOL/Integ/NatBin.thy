@@ -296,6 +296,12 @@ apply (induct_tac "n")
 apply (auto simp add: power_Suc power_add)
 done
 
+lemma power_even_eq: "(a::'a::ringpower) ^ (2*n) = (a^n)^2"
+by (simp add: power_mult power_mult_distrib power2_eq_square)
+
+lemma power_odd_eq: "(a::int) ^ Suc(2*n) = a * (a^n)^2"
+by (simp add: power_even_eq) 
+
 lemma power_minus_even [simp]:
      "(-a) ^ (2*n) = (a::'a::{ring,ringpower}) ^ (2*n)"
 by (simp add: power_minus1_even power_minus [of a]) 
@@ -510,14 +516,7 @@ by (simp only: simp_thms neg_nat not_neg_eq_ge_0 nat_number_of_def nat_power_eq
 declare power_nat_number_of [of _ "number_of w", standard, simp]
 
 
-
 text{*For the integers*}
-
-lemma zpower_even: "(z::int) ^ (2*a) = (z^a)^2"
-by (simp add: zpower_zpower mult_commute)
-
-lemma zpower_odd: "(z::int) ^ (2*a + 1) = z * (z^a)^2"
-by (simp add: zpower_even zpower_zadd_distrib)
 
 lemma zpower_number_of_even:
      "(z::int) ^ number_of (w BIT False) =  
@@ -526,7 +525,7 @@ apply (simp del: nat_number_of  add: nat_number_of_def number_of_BIT Let_def)
 apply (simp only: number_of_add) 
 apply (rule_tac x = "number_of w" in spec, clarify)
 apply (case_tac " (0::int) <= x")
-apply (auto simp add: nat_mult_distrib zpower_even power2_eq_square)
+apply (auto simp add: nat_mult_distrib power_even_eq power2_eq_square)
 done
 
 lemma zpower_number_of_odd:
@@ -537,7 +536,7 @@ lemma zpower_number_of_odd:
 apply (simp del: nat_number_of  add: nat_number_of_def number_of_BIT Let_def)
 apply (simp only: number_of_add nat_numeral_1_eq_1 not_neg_eq_ge_0 neg_eq_less_0) 
 apply (rule_tac x = "number_of w" in spec, clarify)
-apply (auto simp add: nat_add_distrib nat_mult_distrib zpower_even power2_eq_square neg_nat)
+apply (auto simp add: nat_add_distrib nat_mult_distrib power_even_eq power2_eq_square neg_nat)
 done
 
 declare zpower_number_of_even [of "number_of v", standard, simp]
@@ -603,6 +602,12 @@ lemmas nat_number =
 
 lemma Let_Suc [simp]: "Let (Suc n) f == f (Suc n)"
   by (simp add: Let_def)
+
+lemma power_m1_even: "(-1) ^ (2*n) = (1::'a::{number_ring,ringpower})"
+by (simp add: power_mult); 
+
+lemma power_m1_odd: "(-1) ^ Suc(2*n) = (-1::'a::{number_ring,ringpower})"
+by (simp add: power_mult power_Suc); 
 
 
 subsection{*Literal arithmetic and @{term of_nat}*}
@@ -769,8 +774,6 @@ val eq_number_of_Pls_Min = thm"eq_number_of_Pls_Min";
 val of_nat_number_of_eq = thm"of_nat_number_of_eq";
 val nat_power_eq = thm"nat_power_eq";
 val power_nat_number_of = thm"power_nat_number_of";
-val zpower_even = thm"zpower_even";
-val zpower_odd = thm"zpower_odd";
 val zpower_number_of_even = thm"zpower_number_of_even";
 val zpower_number_of_odd = thm"zpower_number_of_odd";
 val nat_number_of_Pls = thm"nat_number_of_Pls";
@@ -801,7 +804,6 @@ val nat_mult_less_cancel_disj = thm"nat_mult_less_cancel_disj";
 val nat_mult_eq_cancel_disj = thm"nat_mult_eq_cancel_disj";
 val nat_mult_div_cancel_disj = thm"nat_mult_div_cancel_disj";
 
-val power_minus1_even = thm"power_minus1_even";
 val power_minus_even = thm"power_minus_even";
 val zero_le_even_power = thm"zero_le_even_power";
 *}

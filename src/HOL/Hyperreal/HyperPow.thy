@@ -37,8 +37,7 @@ defs
                         hyprel``{%n::nat. (X n) ^ (Y n)})"
 
 lemma hrealpow_two: "(r::hypreal) ^ Suc (Suc 0) = r * r"
-apply (simp (no_asm))
-done
+by simp
 
 lemma hrealpow_two_le: "(0::hypreal) \<le> r ^ Suc (Suc 0)"
 by (auto simp add: zero_le_mult_iff)
@@ -46,8 +45,7 @@ declare hrealpow_two_le [simp]
 
 lemma hrealpow_two_le_add_order:
      "(0::hypreal) \<le> u ^ Suc (Suc 0) + v ^ Suc (Suc 0)"
-apply (simp only: hrealpow_two_le hypreal_le_add_order)
-done
+by (simp only: hrealpow_two_le hypreal_le_add_order)
 declare hrealpow_two_le_add_order [simp]
 
 lemma hrealpow_two_le_add_order2:

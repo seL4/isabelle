@@ -1423,4 +1423,5 @@ theorem n_subsets:
     "finite A ==> card {B. B <= A & card B = k} = (card A choose k)"
   by (simp add: n_sub_lemma)
 
+
 end

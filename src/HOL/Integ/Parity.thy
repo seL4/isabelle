@@ -249,6 +249,11 @@ lemma neg_one_odd_power [simp]:
      "odd x ==> (-1::'a::{number_ring,ringpower})^x = -1"
   by (rule neg_one_even_odd_power [THEN conjunct2, THEN mp], assumption)
 
+lemma neg_power_if:
+     "(-x::'a::{ring,ringpower}) ^ n = 
+      (if even n then (x ^ n) else -(x ^ n))"
+  by (induct n, simp_all split: split_if_asm add: power_Suc) 
+
 
 subsection {* Miscellaneous *}
 

@@ -69,8 +69,6 @@ lemma Let_1 [simp]: "Let 1 f == f 1"
 
 
 consts
-  ring_of :: "bin => 'a::ring"
-
   NCons     :: "[bin,bool]=>bin"
   bin_succ  :: "bin=>bin"
   bin_pred  :: "bin=>bin"
@@ -84,12 +82,6 @@ primrec
   NCons_Min:  "NCons bin.Min b = (if b then bin.Min else (bin.Min BIT b))"
   NCons_BIT:  "NCons (w BIT x) b = (w BIT x) BIT b"
 
-
-primrec 
-  ring_of_Pls: "ring_of bin.Pls = 0"
-  ring_of_Min: "ring_of bin.Min = - (1::'a::ring)"
-  ring_of_BIT: "ring_of(w BIT x) = (if x then 1 else 0) +
-	                               (ring_of w) + (ring_of w)"
 
 primrec
   bin_succ_Pls: "bin_succ bin.Pls = bin.Pls BIT True"

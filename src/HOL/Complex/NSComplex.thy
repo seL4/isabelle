@@ -932,17 +932,13 @@ apply (induct_tac "n")
 apply (auto simp add: hcmod_mult)
 done
 
-lemma hcomplexpow_minus:
-     "(-x::hcomplex) ^ n = (if even n then (x ^ n) else -(x ^ n))"
-by (induct_tac "n", auto)
-
 lemma hcpow_minus:
      "(-x::hcomplex) hcpow n =
       (if ( *pNat* even) n then (x hcpow n) else -(x hcpow n))"
 apply (rule eq_Abs_hcomplex [of x])
 apply (rule eq_Abs_hypnat [of n])
 apply (auto simp add: hcpow hyperpow starPNat hcomplex_minus, ultra)
-apply (auto simp add: complexpow_minus, ultra)
+apply (auto simp add: neg_power_if, ultra)
 done
 
 lemma hcpow_mult: "((r::hcomplex) * s) hcpow n = (r hcpow n) * (s hcpow n)"
@@ -1709,7 +1705,6 @@ val hcpow = thm"hcpow";
 val hcomplex_of_hypreal_hyperpow = thm"hcomplex_of_hypreal_hyperpow";
 val hcmod_hcomplexpow = thm"hcmod_hcomplexpow";
 val hcmod_hcpow = thm"hcmod_hcpow";
-val hcomplexpow_minus = thm"hcomplexpow_minus";
 val hcpow_minus = thm"hcpow_minus";
 val hcmod_hcomplex_inverse = thm"hcmod_hcomplex_inverse";
 val hcmod_divide = thm"hcmod_divide";

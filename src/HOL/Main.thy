@@ -6,7 +6,7 @@
 
 header {* Main HOL *}
 
-theory Main = Map + Hilbert_Choice + Extraction + Refute:
+theory Main = Map + Infinite_Set + Extraction + Refute:
 
 text {*
   Theory @{text Main} includes everything.  Note that theory @{text

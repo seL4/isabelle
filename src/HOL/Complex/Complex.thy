@@ -601,10 +601,6 @@ apply (induct_tac "n")
 apply (auto simp add: complex_mod_mult)
 done
 
-lemma complexpow_minus:
-     "(-x::complex) ^ n = (if even n then (x ^ n) else -(x ^ n))"
-by (induct_tac "n", auto)
-
 lemma complexpow_i_squared [simp]: "ii ^ 2 = -(1::complex)"
 by (simp add: i_def complex_mult complex_one_def complex_minus numeral_2_eq_2)
 
@@ -1065,7 +1061,6 @@ val complex_mod_diff_ineq = thm"complex_mod_diff_ineq";
 val complex_Re_le_cmod = thm"complex_Re_le_cmod";
 val complex_mod_gt_zero = thm"complex_mod_gt_zero";
 val complex_mod_complexpow = thm"complex_mod_complexpow";
-val complexpow_minus = thm"complexpow_minus";
 val complex_mod_inverse = thm"complex_mod_inverse";
 val complex_mod_divide = thm"complex_mod_divide";
 val complexpow_i_squared = thm"complexpow_i_squared";
