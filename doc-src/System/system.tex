@@ -2,8 +2,16 @@
 %% $Id$
 
 \documentclass[12pt,a4paper]{report}
-\usepackage{graphicx,../iman,../extra,../ttbox,../pdfsetup}
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage[english]{babel}
+\usepackage[latin1]{inputenc}
+\usepackage[only,bigsqcap]{stmaryrd}
+\usepackage{wasysym}
+\usepackage{supertabular}
+\usepackage{graphicx,../iman,../extra,../ttbox,../../Distribution/lib/texinputs/isabelle,../../Distribution/lib/texinputs/isabellesym,../pdfsetup}
 
+\isabellestyle{it}
 
 \title{\includegraphics[scale=0.5]{isabelle} \\[4ex] The Isabelle System Manual}
 
@@ -29,6 +37,9 @@
 \include{present}
 \include{misc}
 \include{fonts}
+
+\appendix
+\include{symbols}
 
 \begingroup
   \bibliographystyle{plain} \small\raggedright\frenchspacing

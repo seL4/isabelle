@@ -12,12 +12,15 @@ default: dvi
 include ../Makefile.in
 
 NAME = system
-FILES = system.tex basics.tex misc.tex fonts.tex present.tex \
+FILES = system.tex basics.tex misc.tex fonts.tex present.tex symbols.tex \
 	../iman.sty ../extra.sty ../ttbox.sty ../manual.bib
+
+syms.tex: showsymbols ../../Distribution/lib/texinputs/isabellesym.sty
+	@./showsymbols <../../Distribution/lib/texinputs/isabellesym.sty >syms.tex
 
 dvi: $(NAME).dvi
 
-$(NAME).dvi: $(FILES) isabelle.eps
+$(NAME).dvi: $(FILES) isabelle.eps syms.tex
 	$(LATEX) $(NAME)
 	$(BIBTEX) $(NAME)
 	$(LATEX) $(NAME)
@@ -27,7 +30,7 @@ $(NAME).dvi: $(FILES) isabelle.eps
 
 pdf: $(NAME).pdf
 
-$(NAME).pdf: $(FILES) isabelle.pdf
+$(NAME).pdf: $(FILES) isabelle.pdf syms.tex
 	$(PDFLATEX) $(NAME)
 	$(BIBTEX) $(NAME)
 	$(PDFLATEX) $(NAME)

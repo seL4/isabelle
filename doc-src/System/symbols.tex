@@ -1,0 +1,26 @@
+
+% $Id$
+
+\chapter{Isabelle symbols}\label{app:symbols}
+
+Isabelle supports an infinite number of non-ASCII symbols, which are
+represented in source text as \verb,\<,$name$\verb,>, (where $name$ may be any
+identifier).  It is left to front-end tools how these symbols are presented to
+the user.  The following predefined standard symbols are available by default
+for Isabelle document output; they are also supported by Proof~General when
+used together with the X-Symbol package.
+
+\begin{center}
+  \input{syms}  
+\end{center}
+
+Any symbol (or plain ASCII character) may be prefixed by a control sequence
+\verb,\<^sup>, for superscript and \verb,\<^sub>, for subscript.  E.g.\ 
+\verb,A\<^sup>\<star>, is presented in {\LaTeX} as
+\isa{A\isactrlsup{\isasymstar}}.  See also Chapter~\ref{ch:present} for more
+information on Isabelle document preparation and related issues.
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "system"
+%%% End: 

@@ -1,7 +1,7 @@
 
 %% $Id$
 
-\chapter{Presenting theories}
+\chapter{Presenting theories}\label{ch:present}
 
 Isabelle provides several ways to present the outcome of formal developments,
 including WWW-based browsable libraries or actual printable documents.
@@ -303,9 +303,9 @@ the underlying Isabelle \texttt{latex} utility already includes an appropriate
 If the text contains any references to Isabelle symbols (such as
 \verb,\<forall>,) then \texttt{isabellesym.sty} should be included as well.
 This package contains a standard set of {\LaTeX} macro definitions
-\verb,\isasym,$foo$ corresponding to \verb,\<,$foo$\verb,>,.  The user may
-refer to further symbols as well, simply by providing {\LaTeX} macros of the
-same sort.
+\verb,\isasym,$foo$ corresponding to \verb,\<,$foo$\verb,>, (see
+Appendix~\ref{app:symbols} for a complete list).  The user may refer to
+further symbols as well, simply by providing {\LaTeX} macros of the same sort.
 
 For proper setup of PDF documents (with hyperlinks, bookmarks, and thumbnail
 images), we recommend to include \verb,pdfsetup.sty, as well.  It is safe to
@@ -517,7 +517,6 @@ object-logics as a model for your own developments.  For example, see
 \texttt{src/FOL/IsaMakefile}.  The Isabelle \texttt{mkdir} tool (see
 \S\ref{sec:tool-mkdir}) creates \texttt{IsaMakefile}s with proper invocation
 of \texttt{usedir} as well.
-
 
 %%% Local Variables: 
 %%% mode: latex
