@@ -441,14 +441,6 @@ type isar =
       Position.T * (Symbol.symbol, (string, unit) Source.source) Source.source)
           Source.source) Source.source) Source.source) Source.source;
 
-fun transform_interrupt_isar f x =
-  let val y = ref (None: (transition * isar) option option);
-  in exhibit_interrupt (fn () => y := Some (f x)) (); the (! y) end;
-
-fun get_interruptible src =
-  Some (transform_interrupt_isar Source.get_single src)
-    handle Interrupt => None;
-
 
 (* apply transformers to global state *)
 
@@ -462,8 +454,12 @@ fun >> tr =
         check_stale state'; print_exn exn_info;
         true));
 
+(*Note: this is for Poly/ML only, we really do not intend to exhibit
+  interrupts here*)
+fun get_interrupt src = Some (Source.get_single src) handle Interrupt => None;
+
 fun raw_loop src =
-  (case get_interruptible (Source.set_prompt (prompt_state (get_state ())) src) of
+  (case get_interrupt (Source.set_prompt (prompt_state (get_state ())) src) of
     None => (writeln "\nInterrupt."; raw_loop src)
   | Some None => ()
   | Some (Some (tr, src')) => if >> tr then raw_loop src' else ());
