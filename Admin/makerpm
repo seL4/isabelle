@@ -183,7 +183,7 @@ done
 
 # invoke rpm
 
-chgrp -R isabelle "$TMP"
+chown -R root:root "$TMP" || chgrp -R isabelle "$TMP"
 
 echo "topdir: $TMP" >"$TMP/rpmrc"
 rpm --rcfile "$TMP/rpmrc" -bb "$TMP/SPECS/isabelle.spec"
