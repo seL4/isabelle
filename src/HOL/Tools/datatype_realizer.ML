@@ -29,7 +29,7 @@ fun forall_intr_prf (t, prf) =
 
 fun prove_goal' sg p f =
   let
-    val (_, As, B) = Logic.strip_horn p;
+    val (As, B) = Logic.strip_horn p;
     val cAs = map (cterm_of sg) As;
     val asms = map (norm_hhf_rule o assume) cAs;
     fun check thm = if nprems_of thm > 0 then
