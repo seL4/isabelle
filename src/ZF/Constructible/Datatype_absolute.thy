@@ -400,6 +400,9 @@ by  (simp add: RepFun_closed2 list_eq_Union
                list_replacement2' relativize1_def
                iterates_closed [of "is_list_functor(M,A)"])
 
+text{*WARNING: use only with @{text "dest:"} or with variables fixed!*}
+lemmas (in M_datatypes) list_into_M = transM [OF _ list_closed]
+
 lemma (in M_datatypes) list_N_abs [simp]:
      "[|M(A); n\<in>nat; M(Z)|] 
       ==> is_list_N(M,A,n,Z) <-> Z = list_N(A,n)"
@@ -445,6 +448,8 @@ apply  (simp add: RepFun_closed2 formula_eq_Union
                   formula_replacement2' relativize1_def
                   iterates_closed [of "is_formula_functor(M)"])
 done
+
+lemmas (in M_datatypes) formula_into_M = transM [OF _ formula_closed]
 
 lemma (in M_datatypes) is_formula_n_abs [simp]:
      "[|n\<in>nat; M(Z)|] 
@@ -718,6 +723,32 @@ by (simp add: Forall_def)
 
 subsection {*Absoluteness for @{term formula_rec}*}
 
+subsubsection{*@{term is_formula_case}: relativization of @{term formula_case}*}
+
+constdefs
+
+ is_formula_case :: 
+    "[i=>o, [i,i,i]=>o, [i,i,i]=>o, [i,i,i]=>o, [i,i]=>o, i, i] => o"
+  --{*no constraint on non-formulas*}
+  "is_formula_case(M, is_a, is_b, is_c, is_d, p, z) == 
+      (\<forall>x[M]. \<forall>y[M]. x\<in>nat --> y\<in>nat --> is_Member(M,x,y,p) --> is_a(x,y,z)) &
+      (\<forall>x[M]. \<forall>y[M]. x\<in>nat --> y\<in>nat --> is_Equal(M,x,y,p) --> is_b(x,y,z)) &
+      (\<forall>x[M]. \<forall>y[M]. x\<in>formula --> y\<in>formula --> 
+                     is_Nand(M,x,y,p) --> is_c(x,y,z)) &
+      (\<forall>x[M]. x\<in>formula --> is_Forall(M,x,p) --> is_d(x,z))"
+
+lemma (in M_datatypes) formula_case_abs [simp]: 
+     "[| Relativize2(M,nat,nat,is_a,a); Relativize2(M,nat,nat,is_b,b); 
+         Relativize2(M,formula,formula,is_c,c); Relativize1(M,formula,is_d,d); 
+         p \<in> formula; M(z) |] 
+      ==> is_formula_case(M,is_a,is_b,is_c,is_d,p,z) <-> 
+          z = formula_case(a,b,c,d,p)"
+apply (simp add: formula_into_M is_formula_case_def)
+apply (erule formula.cases) 
+   apply (simp_all add: Relativize1_def Relativize2_def) 
+done
+
+
 subsubsection{*@{term quasiformula}: For Case-Splitting with @{term formula_case'}*}
 
 constdefs
@@ -762,10 +793,10 @@ constdefs
     "formula_case'(a,b,c,d,p) == 
        if quasiformula(p) then formula_case(a,b,c,d,p) else 0"  
 
-  is_formula_case :: 
+  is_formula_case' :: 
       "[i=>o, [i,i,i]=>o, [i,i,i]=>o, [i,i,i]=>o, [i,i]=>o, i, i] => o"
     --{*Returns 0 for non-formulas*}
-    "is_formula_case(M, is_a, is_b, is_c, is_d, p, z) == 
+    "is_formula_case'(M, is_a, is_b, is_c, is_d, p, z) == 
 	(\<forall>x[M]. \<forall>y[M]. is_Member(M,x,y,p) --> is_a(x,y,z)) &
 	(\<forall>x[M]. \<forall>y[M]. is_Equal(M,x,y,p) --> is_b(x,y,z)) &
 	(\<forall>x[M]. \<forall>y[M]. is_Nand(M,x,y,p) --> is_c(x,y,z)) &
@@ -818,16 +849,16 @@ lemma (in M_datatypes) formula_case_closed [intro,simp]:
      \<forall>x[M]. x\<in>formula --> M(d(x))|] ==> M(formula_case(a,b,c,d,p))"
 by (erule formula.cases, simp_all) 
 
-lemma (in M_triv_axioms) formula_case_abs [simp]: 
+lemma (in M_triv_axioms) formula_case'_abs [simp]: 
      "[| relativize2(M,is_a,a); relativize2(M,is_b,b); 
          relativize2(M,is_c,c); relativize1(M,is_d,d); M(p); M(z) |] 
-      ==> is_formula_case(M,is_a,is_b,is_c,is_d,p,z) <-> 
+      ==> is_formula_case'(M,is_a,is_b,is_c,is_d,p,z) <-> 
           z = formula_case'(a,b,c,d,p)"
 apply (case_tac "quasiformula(p)") 
  prefer 2 
- apply (simp add: is_formula_case_def non_formula_case) 
+ apply (simp add: is_formula_case'_def non_formula_case) 
  apply (force simp add: quasiformula_def) 
-apply (simp add: quasiformula_def is_formula_case_def)
+apply (simp add: quasiformula_def is_formula_case'_def)
 apply (elim disjE exE) 
  apply (simp_all add: relativize1_def relativize2_def) 
 done

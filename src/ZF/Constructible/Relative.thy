@@ -2,6 +2,10 @@ header {*Relativization and Absoluteness*}
 
 theory Relative = Main:
 
+(*????????????????for IFOL.thy????????????????*)
+lemma eq_commute: "a=b <-> b=a"
+by blast 
+
 subsection{* Relativized versions of standard set-theoretic concepts *}
 
 constdefs
@@ -188,12 +192,40 @@ constdefs
   relativize1 :: "[i=>o, [i,i]=>o, i=>i] => o"
     "relativize1(M,is_f,f) == \<forall>x[M]. \<forall>y[M]. is_f(x,y) <-> y = f(x)"
 
+  Relativize1 :: "[i=>o, i, [i,i]=>o, i=>i] => o"
+    --{*as above, but typed*}
+    "Relativize1(M,A,is_f,f) == 
+        \<forall>x[M]. \<forall>y[M]. x\<in>A --> is_f(x,y) <-> y = f(x)"
+
   relativize2 :: "[i=>o, [i,i,i]=>o, [i,i]=>i] => o"
     "relativize2(M,is_f,f) == \<forall>x[M]. \<forall>y[M]. \<forall>z[M]. is_f(x,y,z) <-> z = f(x,y)"
+
+  Relativize2 :: "[i=>o, i, i, [i,i,i]=>o, [i,i]=>i] => o"
+    "Relativize2(M,A,B,is_f,f) ==
+        \<forall>x[M]. \<forall>y[M]. \<forall>z[M]. x\<in>A --> y\<in>B --> is_f(x,y,z) <-> z = f(x,y)"
 
   relativize3 :: "[i=>o, [i,i,i,i]=>o, [i,i,i]=>i] => o"
     "relativize3(M,is_f,f) == 
        \<forall>x[M]. \<forall>y[M]. \<forall>z[M]. \<forall>u[M]. is_f(x,y,z,u) <-> u = f(x,y,z)"
+
+  Relativize3 :: "[i=>o, i, i, i, [i,i,i,i]=>o, [i,i,i]=>i] => o"
+    "Relativize3(M,A,B,C,is_f,f) == 
+       \<forall>x[M]. \<forall>y[M]. \<forall>z[M]. \<forall>u[M]. 
+         x\<in>A --> y\<in>B --> z\<in>C --> is_f(x,y,z,u) <-> u = f(x,y,z)"
+
+  relativize4 :: "[i=>o, [i,i,i,i,i]=>o, [i,i,i,i]=>i] => o"
+    "relativize4(M,is_f,f) == 
+       \<forall>u[M]. \<forall>x[M]. \<forall>y[M]. \<forall>z[M]. \<forall>a[M]. is_f(u,x,y,z,a) <-> a = f(u,x,y,z)"
+
+
+text{*Useful when absoluteness reasoning has replaced the predicates by terms*}
+lemma triv_Relativize1:
+     "Relativize1(M, A, \<lambda>x y. y = f(x), f)"
+by (simp add: Relativize1_def) 
+
+lemma triv_Relativize2:
+     "Relativize2(M, A, B, \<lambda>x y a. a = f(x,y), f)"
+by (simp add: Relativize2_def) 
 
 
 subsection {*The relativized ZF axioms*}
@@ -643,15 +675,22 @@ done
 
 lemma (in M_triv_axioms) lambda_abs2 [simp]: 
      "[| strong_replacement(M, \<lambda>x y. x\<in>A & y = \<langle>x, b(x)\<rangle>);
-         relativize1(M,is_b,b); M(A); \<forall>m[M]. m\<in>A --> M(b(m)); M(z) |] 
+         Relativize1(M,A,is_b,b); M(A); \<forall>m[M]. m\<in>A --> M(b(m)); M(z) |] 
       ==> is_lambda(M,A,is_b,z) <-> z = Lambda(A,b)"
-apply (simp add: relativize1_def is_lambda_def)
+apply (simp add: Relativize1_def is_lambda_def)
 apply (rule iffI)
  prefer 2 apply (simp add: lam_def) 
 apply (rule M_equalityI)
   apply (simp add: lam_def) 
  apply (simp add: lam_closed2)+
 done
+
+lemma is_lambda_cong [cong]:
+     "[| A=A';  z=z'; 
+         !!x y. [| x\<in>A; M(x); M(y) |] ==> is_b(x,y) <-> is_b'(x,y) |] 
+      ==> is_lambda(M, A, %x y. is_b(x,y), z) <-> 
+          is_lambda(M, A', %x y. is_b'(x,y), z')" 
+by (simp add: is_lambda_def) 
 
 lemma (in M_triv_axioms) image_abs [simp]: 
      "[| M(r); M(A); M(z) |] ==> image(M,r,A,z) <-> z = r``A"
@@ -720,25 +759,6 @@ by (simp add: Inl_def)
 lemma (in M_triv_axioms) Inr_in_M_iff [iff]:
      "M(Inr(a)) <-> M(a)"
 by (simp add: Inr_def)
-
-
-subsection {*Absoluteness for Booleans*}
-
-lemma (in M_triv_axioms) bool_of_o_closed:
-     "M(bool_of_o(P))"
-by (simp add: bool_of_o_def) 
-
-lemma (in M_triv_axioms) and_closed:
-     "[| M(p); M(q) |] ==> M(p and q)"
-by (simp add: and_def cond_def) 
-
-lemma (in M_triv_axioms) or_closed:
-     "[| M(p); M(q) |] ==> M(p or q)"
-by (simp add: or_def cond_def) 
-
-lemma (in M_triv_axioms) not_closed:
-     "M(p) ==> M(not(p))"
-by (simp add: Bool.not_def cond_def) 
 
 
 subsection{*Absoluteness for Ordinals*}
@@ -1226,6 +1246,59 @@ lemma (in M_axioms) finite_funspace_closed [intro,simp]:
 apply (induct_tac n, simp)
 apply (simp add: funspace_succ nat_into_M) 
 done
+
+
+subsection{*Relativization and Absoluteness for Boolean Operators*}
+
+constdefs
+  is_bool_of_o :: "[i=>o, o, i] => o"
+   "is_bool_of_o(M,P,z) == (P & number1(M,z)) | (~P & empty(M,z))"
+
+  is_not :: "[i=>o, i, i] => o"
+   "is_not(M,a,z) == (number1(M,a)  & empty(M,z)) | 
+                     (~number1(M,a) & number1(M,z))"
+
+  is_and :: "[i=>o, i, i, i] => o"
+   "is_and(M,a,b,z) == (number1(M,a)  & z=b) | 
+                       (~number1(M,a) & empty(M,z))"
+
+  is_or :: "[i=>o, i, i, i] => o"
+   "is_or(M,a,b,z) == (number1(M,a)  & number1(M,z)) | 
+                      (~number1(M,a) & z=b)"
+
+lemma (in M_triv_axioms) bool_of_o_abs [simp]: 
+     "M(z) ==> is_bool_of_o(M,P,z) <-> z = bool_of_o(P)" 
+by (simp add: is_bool_of_o_def bool_of_o_def) 
+
+
+lemma (in M_triv_axioms) not_abs [simp]: 
+     "[| M(a); M(z)|] ==> is_not(M,a,z) <-> z = not(a)"
+by (simp add: Bool.not_def cond_def is_not_def) 
+
+lemma (in M_triv_axioms) and_abs [simp]: 
+     "[| M(a); M(b); M(z)|] ==> is_and(M,a,b,z) <-> z = a and b"
+by (simp add: Bool.and_def cond_def is_and_def) 
+
+lemma (in M_triv_axioms) or_abs [simp]: 
+     "[| M(a); M(b); M(z)|] ==> is_or(M,a,b,z) <-> z = a or b"
+by (simp add: Bool.or_def cond_def is_or_def)
+
+
+lemma (in M_triv_axioms) bool_of_o_closed [intro,simp]:
+     "M(bool_of_o(P))"
+by (simp add: bool_of_o_def) 
+
+lemma (in M_triv_axioms) and_closed [intro,simp]:
+     "[| M(p); M(q) |] ==> M(p and q)"
+by (simp add: and_def cond_def) 
+
+lemma (in M_triv_axioms) or_closed [intro,simp]:
+     "[| M(p); M(q) |] ==> M(p or q)"
+by (simp add: or_def cond_def) 
+
+lemma (in M_triv_axioms) not_closed [intro,simp]:
+     "M(p) ==> M(not(p))"
+by (simp add: Bool.not_def cond_def) 
 
 
 subsection{*Relativization and Absoluteness for List Operators*}
