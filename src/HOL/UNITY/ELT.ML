@@ -183,7 +183,8 @@ Goal "[| F : A leadsTo[CC'] A'; B<=A; A'<=B';  CC' <= CC |] \
 \     ==> F : B leadsTo[CC] B'";
 by (dtac (impOfSubs leadsETo_mono) 1);
 by (assume_tac 1);
-by (blast_tac (claset() addIs [leadsETo_weaken_R, leadsETo_weaken_L,
+by (blast_tac (claset() delrules [subsetCE]
+			addIs [leadsETo_weaken_R, leadsETo_weaken_L,
 			       leadsETo_Trans]) 1);
 qed "leadsETo_weaken";
 
@@ -534,7 +535,7 @@ by (blast_tac (claset() addSIs [preserves_givenBy_imp_stable,
 				project_preserves_I]) 1);
 result();
 
-(*Generalizes the version proved in Project.ML*)
+(*GENERALIZES the version proved in Project.ML*)
 Goal "[| G : preserves (v o f);  \
 \        project h C G : transient (C' Int D);  \
 \        project h C G : stable C';  D : givenBy v |]    \
@@ -570,7 +571,7 @@ by (asm_simp_tac (simpset() delsimps UN_simps
 		  addsimps [Int_UN_distrib, leadsETo_UN, extend_set_Union]) 3);
 by (blast_tac (claset() addIs [e_psp_stable2 RS leadsETo_weaken_L, 
 			       leadsETo_Trans]) 2);
-auto();
+by Auto_tac;
 by (force_tac (claset() addIs [leadsETo_Basis, subset_imp_ensures],
 	       simpset()) 1);
 by (rtac leadsETo_Basis 1);
@@ -641,72 +642,6 @@ qed "extending_LeadsETo";
 
 
 (*** leadsETo in the precondition ***)
-
-Goalw [transient_def]
-     "[| G : transient (C Int extend_set h A);  G : stable C |]  \
-\     ==> project h C G : transient (project_set h C Int A)";
-by (auto_tac (claset(), simpset() addsimps [Domain_project_act]));
-by (subgoal_tac "act ^^ (C Int extend_set h A) <= - extend_set h A" 1);
-by (asm_full_simp_tac 
-    (simpset() addsimps [stable_def, constrains_def]) 2);
-by (Blast_tac 2);
-(*back to main goal*)
-by (thin_tac "?AA <= -C Un ?BB" 1);
-by (ball_tac 1);
-by (asm_full_simp_tac 
-    (simpset() addsimps [extend_set_def, project_act_def]) 1);
-by (Blast_tac 1);
-qed "transient_extend_set_imp_project_transient";
-
-(*converse might hold too?*)
-Goalw [transient_def]
-     "project h C (extend h F) : transient (project_set h C Int D) \
-\     ==> F : transient (project_set h C Int D)";
-by (auto_tac (claset(), simpset() addsimps [Domain_project_act]));
-by (rtac bexI 1);
-by (assume_tac 2);
-by Auto_tac;
-by (rewtac extend_act_def);
-by (Blast_tac 1);
-qed "project_extend_transient_D";
-
-
-Goal "[| extend h F : stable C;  G : stable C;  \
-\        extend h F Join G : A ensures B;  A-B = C Int extend_set h D |]  \
-\     ==> F Join project h C G  \
-\           : (project_set h C Int project_set h A) ensures (project_set h B)";
-by (asm_full_simp_tac
-    (simpset() addsimps [ensures_def, Join_constrains, project_constrains, 
-			 Join_transient, extend_transient]) 1);
-by (Clarify_tac 1);
-by (REPEAT_FIRST (rtac conjI));
-(*first subgoal*)
-by (blast_tac (claset() addIs [extend_stable_project_set RS stableD RS 
-			       constrains_Int RS constrains_weaken]
-	                addSDs [extend_constrains_project_set]
-			addSEs [equalityE]) 1);
-(*2nd subgoal*)
-by (etac (stableD RS constrains_Int RS constrains_weaken) 1);
-by (assume_tac 1);
-by (Blast_tac 3);
-by (full_simp_tac (simpset() addsimps [extend_set_Int_distrib,
-				       extend_set_Un_distrib]) 2);
-by (blast_tac (claset() addSIs [impOfSubs extend_set_project_set]) 2);
-by (full_simp_tac (simpset() addsimps [extend_set_def]) 1);
-by (blast_tac (claset() addSEs [equalityE]) 1);
-(*The transient part*)
-by Auto_tac;
-by (force_tac (claset() addSEs [equalityE]
-	                addIs [transient_extend_set_imp_project_transient RS
-			       transient_strengthen], 
-              simpset()) 2);
-by (full_simp_tac (simpset() addsimps [Int_Diff]) 1);
-by (force_tac (claset() addSEs [equalityE]
-	                addIs [transient_extend_set_imp_project_transient RS 
-			 project_extend_transient_D RS transient_strengthen], 
-              simpset()) 1);
-qed "ensures_extend_set_imp_project_ensures";
-
 
 (*Lemma for the Trans case*)
 Goal "[| extend h F Join G : stable C;    \
