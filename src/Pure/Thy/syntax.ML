@@ -131,7 +131,7 @@ fun mk_simple_sext mfix =
   "Some (Syntax.simple_sext\n   " ^ mfix ^ ")";
 
 fun mk_ext ((cl, def, ty, ar, co, ax), sext) =
-  " (" ^ space_implode ",\n  " [cl, def, ty, ar, co, sext] ^ ")\n " ^ ax ^ "\n";
+  " (" ^ space_implode ",\n  " [cl, def, ty, "[]",ar, co, sext] ^ ")\n " ^ ax ^ "\n";
 
 fun mk_ext_thy (base, name, ext, sext) =
   "extend_theory (" ^ base ^ ")\n " ^ quote name ^ "\n" ^ mk_ext (ext, sext);
