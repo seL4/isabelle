@@ -6,7 +6,7 @@
 Notions about functions.
 *)
 
-theory Fun 
+theory Fun
 imports Typedef
 begin
 
@@ -92,6 +92,16 @@ by auto
 text{*The Identity Function: @{term id}*}
 lemma id_apply [simp]: "id x = x"
 by (simp add: id_def)
+
+lemma inj_on_id: "inj_on id A"
+by (simp add: inj_on_def) 
+
+lemma surj_id: "surj id"
+by (simp add: surj_def) 
+
+lemma bij_id: "bij id"
+by (simp add: bij_def inj_on_id surj_id) 
+
 
 
 subsection{*The Composition Operator: @{term "f \<circ> g"}*}
@@ -378,6 +388,10 @@ by (rule ext, auto)
 lemma inj_on_fun_updI: "\<lbrakk> inj_on f A; y \<notin> f`A \<rbrakk> \<Longrightarrow> inj_on (f(x:=y)) A"
 by(fastsimp simp:inj_on_def image_def)
 
+lemma fun_upd_image:
+     "f(x:=y) ` A = (if x \<in> A then insert y (f ` (A-{x})) else f ` A)"
+by auto
+
 subsection{* overwrite *}
 
 lemma overwrite_emptyset[simp]: "f(g|{}) = f"
@@ -388,6 +402,58 @@ by(simp add:overwrite_def)
 
 lemma overwrite_apply_in[simp]: "a : A ==> (f(g|A)) a = g a"
 by(simp add:overwrite_def)
+
+subsection{* swap *}
+
+constdefs
+  swap :: "['a, 'a, 'a => 'b] => ('a => 'b)"
+   "swap a b f == f(a := f b, b:= f a)"
+
+lemma swap_self: "swap a a f = f"
+by (simp add: swap_def) 
+
+lemma swap_commute: "swap a b f = swap b a f"
+by (rule ext, simp add: fun_upd_def swap_def)
+
+lemma swap_nilpotent [simp]: "swap a b (swap a b f) = f"
+by (rule ext, simp add: fun_upd_def swap_def)
+
+lemma inj_on_imp_inj_on_swap:
+     "[|inj_on f A; a \<in> A; b \<in> A|] ==> inj_on (swap a b f) A"
+by (simp add: inj_on_def swap_def, blast)
+
+lemma inj_on_swap_iff [simp]:
+  assumes A: "a \<in> A" "b \<in> A" shows "inj_on (swap a b f) A = inj_on f A"
+proof 
+  assume "inj_on (swap a b f) A"
+  with A have "inj_on (swap a b (swap a b f)) A" 
+    by (rules intro: inj_on_imp_inj_on_swap) 
+  thus "inj_on f A" by simp 
+next
+  assume "inj_on f A"
+  with A show "inj_on (swap a b f) A" by (rules intro: inj_on_imp_inj_on_swap)
+qed
+
+lemma surj_imp_surj_swap: "surj f ==> surj (swap a b f)"
+apply (simp add: surj_def swap_def, clarify)
+apply (rule_tac P = "y = f b" in case_split_thm, blast)
+apply (rule_tac P = "y = f a" in case_split_thm, auto)
+  --{*We don't yet have @{text case_tac}*}
+done
+
+lemma surj_swap_iff [simp]: "surj (swap a b f) = surj f"
+proof 
+  assume "surj (swap a b f)"
+  hence "surj (swap a b (swap a b f))" by (rule surj_imp_surj_swap) 
+  thus "surj f" by simp 
+next
+  assume "surj f"
+  thus "surj (swap a b f)" by (rule surj_imp_surj_swap) 
+qed
+
+lemma bij_swap_iff: "bij (swap a b f) = bij f"
+by (simp add: bij_def)
+ 
 
 text{*The ML section includes some compatibility bindings and a simproc
 for function updates, in addition to the usual ML-bindings of theorems.*}

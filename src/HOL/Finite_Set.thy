@@ -100,18 +100,23 @@ qed
 
 text{* Finite sets are the images of initial segments of natural numbers: *}
 
-lemma finite_imp_nat_seg_image:
-assumes fin: "finite A" shows "\<exists> (n::nat) f. A = f ` {i::nat. i<n}"
+lemma finite_imp_nat_seg_image_inj_on:
+  assumes fin: "finite A" 
+  shows "\<exists> (n::nat) f. A = f ` {i. i<n} & inj_on f {i. i<n}"
 using fin
 proof induct
   case empty
-  show ?case
-  proof show "\<exists>f. {} = f ` {i::nat. i < 0}" by(simp add:image_def) qed
+  show ?case  
+  proof show "\<exists>f. {} = f ` {i::nat. i < 0} & inj_on f {i. i<0}" by simp 
+  qed
 next
   case (insert a A)
-  from insert.hyps obtain n f where "A = f ` {i::nat. i < n}" by blast
-  hence "insert a A = (%i. if i<n then f i else a) ` {i. i < n+1}"
-    by (auto simp add:image_def Ball_def)
+  have notinA: "a \<notin> A" .
+  from insert.hyps obtain n f
+    where "A = f ` {i::nat. i < n}" "inj_on f {i. i < n}" by blast
+  hence "insert a A = f(n:=a) ` {i. i < Suc n}"
+        "inj_on (f(n:=a)) {i. i < Suc n}" using notinA
+    by (auto simp add: image_def Ball_def inj_on_def less_Suc_eq)
   thus ?case by blast
 qed
 
@@ -137,7 +142,7 @@ qed
 
 lemma finite_conv_nat_seg_image:
   "finite A = (\<exists> (n::nat) f. A = f ` {i::nat. i<n})"
-by(blast intro: finite_imp_nat_seg_image nat_seg_image_imp_finite)
+by(blast intro: nat_seg_image_imp_finite dest: finite_imp_nat_seg_image_inj_on)
 
 subsubsection{* Finiteness and set theoretic constructions *}
 
@@ -522,207 +527,142 @@ by(fastsimp intro: ACe.intro ACe_axioms.intro ACf_mult)
 
 subsubsection{*From @{term foldSet} to @{term fold}*}
 
-(* only used in the next lemma, but in there twice *)
-lemma card_lemma: assumes A1: "A = insert b B" and notinB: "b \<notin> B" and
-  card: "A = h`{i. i<Suc n}" and new: "\<not>(EX k<n. h n = h k)"
-shows "EX h. B = h`{i. i<n}" (is "EX h. ?P h")
-proof
-  let ?h = "%i. if h i = b then h n else h i"
-  show "B = ?h`{i. i<n}" (is "_ = ?r")
-  proof
-    show "B \<subseteq> ?r"
-    proof
-      fix u assume "u \<in> B"
-      hence uinA: "u \<in> A" and unotb: "u \<noteq> b" using A1 notinB by blast+
-      then obtain i\<^isub>u where below: "i\<^isub>u < Suc n" and [simp]: "u = h i\<^isub>u"
-	using card by(auto simp:image_def)
-      show "u \<in> ?r"
-      proof cases
-	assume "i\<^isub>u < n"
-	thus ?thesis using unotb by fastsimp
-      next
-	assume "\<not> i\<^isub>u < n"
-	with below have [simp]: "i\<^isub>u = n" by arith
-	obtain i\<^isub>k where i\<^isub>k: "i\<^isub>k < Suc n" and [simp]: "b = h i\<^isub>k"
-	  using A1 card by blast
-	have "i\<^isub>k < n"
-	proof (rule ccontr)
-	  assume "\<not> i\<^isub>k < n"
-	  hence "i\<^isub>k = n" using i\<^isub>k by arith
-	  thus False using unotb by simp
-	qed
-	thus ?thesis by(auto simp add:image_def)
-      qed
+lemma image_less_Suc: "h ` {i. i < Suc m} = insert (h m) (h ` {i. i < m})"
+by (auto simp add: less_Suc_eq) 
+
+lemma insert_image_inj_on_eq:
+     "[|insert (h m) A = h ` {i. i < Suc m}; h m \<notin> A; 
+        inj_on h {i. i < Suc m}|] 
+      ==> A = h ` {i. i < m}"
+apply (auto simp add: image_less_Suc inj_on_def)
+apply (blast intro: less_trans) 
+done
+
+lemma insert_inj_onE:
+  assumes aA: "insert a A = h`{i::nat. i<n}" and anot: "a \<notin> A" 
+      and inj_on: "inj_on h {i::nat. i<n}"
+  shows "\<exists>hm m. inj_on hm {i::nat. i<m} & A = hm ` {i. i<m} & m < n"
+proof (cases n)
+  case 0 thus ?thesis using aA by auto
+next
+  case (Suc m)
+  have nSuc: "n = Suc m" . 
+  have mlessn: "m<n" by (simp add: nSuc)
+  have "a \<in> h ` {i. i < n}" using aA by blast
+  then obtain k where hkeq: "h k = a" and klessn: "k<n" by blast
+  show ?thesis
+  proof cases
+    assume eq: "k=m"
+    show ?thesis
+    proof (intro exI conjI)
+      show "inj_on h {i::nat. i<m}" using inj_on
+	by (simp add: nSuc inj_on_def) 
+      show "m<n" by (rule mlessn)
+      show "A = h ` {i. i < m}" using aA anot nSuc hkeq eq inj_on
+	by (rules intro: insert_image_inj_on_eq) 
     qed
   next
-    show "?r \<subseteq> B"
-    proof
-      fix u assume "u \<in> ?r"
-      then obtain i\<^isub>u where below: "i\<^isub>u < n" and
-        or: "b = h i\<^isub>u \<and> u = h n \<or> h i\<^isub>u \<noteq> b \<and> h i\<^isub>u = u"
-	by(auto simp:image_def)
-      from or show "u \<in> B"
-      proof
-	assume [simp]: "b = h i\<^isub>u \<and> u = h n"
-	have "u \<in> A" using card by auto
-        moreover have "u \<noteq> b" using new below by auto
-	ultimately show "u \<in> B" using A1 by blast
-      next
-	assume "h i\<^isub>u \<noteq> b \<and> h i\<^isub>u = u"
-	moreover hence "u \<in> A" using card below by auto
-	ultimately show "u \<in> B" using A1 by blast
+    assume diff: "k~=m"
+    hence klessm: "k<m" using nSuc klessn by arith
+    have hdiff: "h k ~= h m" using diff inj_on klessn mlessn
+	by (auto simp add: inj_on_def) 
+    let ?hm = "swap k m h"
+    have inj_onhm_n: "inj_on ?hm {i. i < n}" using klessn mlessn 
+      by (simp add: inj_on_swap_iff inj_on)
+    hence inj_onhm_m: "inj_on ?hm {i. i < m}"
+      by (auto simp add: nSuc less_Suc_eq intro: subset_inj_on)
+    show ?thesis
+    proof (intro exI conjI)
+      show "inj_on ?hm {i. i < m}" by (rule inj_onhm_m)
+      show "m<n" by (simp add: nSuc)
+      show "A = ?hm ` {i. i < m}" 
+      proof (rule insert_image_inj_on_eq)
+	show "inj_on (swap k m h) {i. i < Suc m}" using inj_onhm_n
+	  by (simp add: nSuc)
+        show "?hm m \<notin> A" by (simp add: swap_def hkeq anot) 
+        show "insert (?hm m) A = ?hm ` {i. i < Suc m}"
+          using aA hkeq diff hdiff nSuc
+	  by (auto simp add: swap_def image_less_Suc fun_upd_image klessm 
+                             inj_on_image_set_diff [OF inj_on])
       qed
     qed
   qed
 qed
 
 lemma (in ACf) foldSet_determ_aux:
-  "!!A x x' h. \<lbrakk> A = h`{i::nat. i<n}; (A,x) : foldSet f g z; (A,x') : foldSet f g z \<rbrakk>
+  "!!A x x' h. \<lbrakk> A = h`{i::nat. i<n}; inj_on h {i. i<n}; 
+                (A,x) : foldSet f g z; (A,x') : foldSet f g z \<rbrakk>
    \<Longrightarrow> x' = x"
-proof (induct n)
-  case 0 thus ?case by auto
-next
-  case (Suc n)
-  have IH: "!!A x x' h. \<lbrakk>A = h`{i::nat. i<n}; (A,x) \<in> foldSet f g z; (A,x') \<in> foldSet f g z\<rbrakk>
-           \<Longrightarrow> x' = x" and card: "A = h`{i. i<Suc n}"
-  and Afoldx: "(A, x) \<in> foldSet f g z" and Afoldy: "(A,x') \<in> foldSet f g z" .
-  show ?case
-  proof cases
-    assume "EX k<n. h n = h k" 
-      --{*@{term h} is not injective, so the cardinality has not increased*}
-    hence card': "A = h ` {i. i < n}"
-      using card by (auto simp:image_def less_Suc_eq)
-    show ?thesis by(rule IH[OF card' Afoldx Afoldy])
-  next
-    assume new: "\<not>(EX k<n. h n = h k)"
-    show ?thesis
-    proof (rule foldSet.cases[OF Afoldx])
-      assume "(A, x) = ({}, z)"  --{*fold of a singleton set*}
-      thus "x' = x" using Afoldy by auto
+proof (induct n rule: less_induct)
+  case (less n)
+    have IH: "!!m h A x x'. 
+               \<lbrakk>m<n; A = h ` {i. i<m}; inj_on h {i. i<m}; 
+                (A,x) \<in> foldSet f g z; (A, x') \<in> foldSet f g z\<rbrakk> \<Longrightarrow> x' = x" .
+    have Afoldx: "(A,x) \<in> foldSet f g z" and Afoldx': "(A,x') \<in> foldSet f g z"
+     and A: "A = h`{i. i<n}" and injh: "inj_on h {i. i<n}" .
+    show ?case
+    proof (rule foldSet.cases [OF Afoldx])
+      assume "(A, x) = ({}, z)"
+      with Afoldx' show "x' = x" by blast
     next
-      fix B b y
-      assume eq1: "(A, x) = (insert b B, g b \<cdot> y)"
-	and y: "(B,y) \<in> foldSet f g z" and notinB: "b \<notin> B"
-      hence A1: "A = insert b B" and x: "x = g b \<cdot> y" by auto
-      show ?thesis
-      proof (rule foldSet.cases[OF Afoldy])
-	assume "(A,x') = ({}, z)"
-	thus ?thesis using A1 by auto
+      fix B b u
+      assume "(A,x) = (insert b B, g b \<cdot> u)" and notinB: "b \<notin> B"
+         and Bu: "(B,u) \<in> foldSet f g z"
+      hence AbB: "A = insert b B" and x: "x = g b \<cdot> u" by auto
+      show "x'=x" 
+      proof (rule foldSet.cases [OF Afoldx'])
+        assume "(A, x') = ({}, z)"
+        with AbB show "x' = x" by blast
       next
-	fix C c r
-	assume eq2: "(A,x') = (insert c C, g c \<cdot> r)"
-	  and r: "(C,r) \<in> foldSet f g z" and notinC: "c \<notin> C"
-	hence A2: "A = insert c C" and x': "x' = g c \<cdot> r" by auto
-	obtain hB where lessB: "B = hB ` {i. i<n}"
-	  using card_lemma[OF A1 notinB card new] by auto
-	obtain hC where lessC: "C = hC ` {i. i<n}"
-	  using card_lemma[OF A2 notinC card new] by auto
-	show ?thesis
+	fix C c v
+	assume "(A,x') = (insert c C, g c \<cdot> v)" and notinC: "c \<notin> C"
+	   and Cv: "(C,v) \<in> foldSet f g z"
+	hence AcC: "A = insert c C" and x': "x' = g c \<cdot> v" by auto
+	from A AbB have Beq: "insert b B = h`{i. i<n}" by simp
+        from insert_inj_onE [OF Beq notinB injh]
+        obtain hB mB where inj_onB: "inj_on hB {i. i < mB}" 
+                     and Beq: "B = hB ` {i. i < mB}"
+                     and lessB: "mB < n" by auto 
+	from A AcC have Ceq: "insert c C = h`{i. i<n}" by simp
+        from insert_inj_onE [OF Ceq notinC injh]
+        obtain hC mC where inj_onC: "inj_on hC {i. i < mC}"
+                       and Ceq: "C = hC ` {i. i < mC}"
+                       and lessC: "mC < n" by auto 
+	show "x'=x"
 	proof cases
-	  assume "b = c"
-	  then moreover have "B = C" using A1 A2 notinB notinC by auto
-	  ultimately show ?thesis using IH[OF lessB] y r x x' by auto
+          assume "b=c"
+	  then moreover have "B = C" using AbB AcC notinB notinC by auto
+	  ultimately show ?thesis  using Bu Cv x x' IH[OF lessC Ceq inj_onC]
+            by auto
 	next
 	  assume diff: "b \<noteq> c"
 	  let ?D = "B - {c}"
 	  have B: "B = insert c ?D" and C: "C = insert b ?D"
-	    using A1 A2 notinB notinC diff by(blast elim!:equalityE)+
+	    using AbB AcC notinB notinC diff by(blast elim!:equalityE)+
 	  have "finite A" by(rule foldSet_imp_finite[OF Afoldx])
-	  with A1 have "finite ?D" by simp
+	  with AbB have "finite ?D" by simp
 	  then obtain d where Dfoldd: "(?D,d) \<in> foldSet f g z"
 	    using finite_imp_foldSet by rules
 	  moreover have cinB: "c \<in> B" using B by auto
 	  ultimately have "(B,g c \<cdot> d) \<in> foldSet f g z"
 	    by(rule Diff1_foldSet)
-	  hence "g c \<cdot> d = y" by(rule IH[OF lessB y])
-          moreover have "g b \<cdot> d = r"
-	  proof (rule IH[OF lessC r])
-	    show "(C,g b \<cdot> d) \<in> foldSet f g z" using C notinB Dfoldd
+	  hence "g c \<cdot> d = u" by (rule IH [OF lessB Beq inj_onB Bu]) 
+          moreover have "g b \<cdot> d = v"
+	  proof (rule IH[OF lessC Ceq inj_onC Cv])
+	    show "(C, g b \<cdot> d) \<in> foldSet f g z" using C notinB Dfoldd
 	      by fastsimp
 	  qed
-	  ultimately show ?thesis using x x' by(auto simp:AC)
+	  ultimately show ?thesis using x x' by (auto simp: AC)
 	qed
       qed
     qed
   qed
-qed
 
-(* The same proof, but using card 
-lemma (in ACf) foldSet_determ_aux:
-  "!!A x x'. \<lbrakk> card A < n; (A,x) : foldSet f g e; (A,x') : foldSet f g e \<rbrakk>
-   \<Longrightarrow> x' = x"
-proof (induct n)
-  case 0 thus ?case by simp
-next
-  case (Suc n)
-  have IH: "!!A x x'. \<lbrakk>card A < n; (A,x) \<in> foldSet f g e; (A,x') \<in> foldSet f g e\<rbrakk>
-           \<Longrightarrow> x' = x" and card: "card A < Suc n"
-  and Afoldx: "(A, x) \<in> foldSet f g e" and Afoldy: "(A,x') \<in> foldSet f g e" .
-  from card have "card A < n \<or> card A = n" by arith
-  thus ?case
-  proof
-    assume less: "card A < n"
-    show ?thesis by(rule IH[OF less Afoldx Afoldy])
-  next
-    assume cardA: "card A = n"
-    show ?thesis
-    proof (rule foldSet.cases[OF Afoldx])
-      assume "(A, x) = ({}, e)"
-      thus "x' = x" using Afoldy by auto
-    next
-      fix B b y
-      assume eq1: "(A, x) = (insert b B, g b \<cdot> y)"
-	and y: "(B,y) \<in> foldSet f g e" and notinB: "b \<notin> B"
-      hence A1: "A = insert b B" and x: "x = g b \<cdot> y" by auto
-      show ?thesis
-      proof (rule foldSet.cases[OF Afoldy])
-	assume "(A,x') = ({}, e)"
-	thus ?thesis using A1 by auto
-      next
-	fix C c z
-	assume eq2: "(A,x') = (insert c C, g c \<cdot> z)"
-	  and z: "(C,z) \<in> foldSet f g e" and notinC: "c \<notin> C"
-	hence A2: "A = insert c C" and x': "x' = g c \<cdot> z" by auto
-	have finA: "finite A" by(rule foldSet_imp_finite[OF Afoldx])
-	with cardA A1 notinB have less: "card B < n" by simp
-	show ?thesis
-	proof cases
-	  assume "b = c"
-	  then moreover have "B = C" using A1 A2 notinB notinC by auto
-	  ultimately show ?thesis using IH[OF less] y z x x' by auto
-	next
-	  assume diff: "b \<noteq> c"
-	  let ?D = "B - {c}"
-	  have B: "B = insert c ?D" and C: "C = insert b ?D"
-	    using A1 A2 notinB notinC diff by(blast elim!:equalityE)+
-	  have "finite ?D" using finA A1 by simp
-	  then obtain d where Dfoldd: "(?D,d) \<in> foldSet f g e"
-	    using finite_imp_foldSet by rules
-	  moreover have cinB: "c \<in> B" using B by auto
-	  ultimately have "(B,g c \<cdot> d) \<in> foldSet f g e"
-	    by(rule Diff1_foldSet)
-	  hence "g c \<cdot> d = y" by(rule IH[OF less y])
-          moreover have "g b \<cdot> d = z"
-	  proof (rule IH[OF _ z])
-	    show "card C < n" using C cardA A1 notinB finA cinB
-	      by(auto simp:card_Diff1_less)
-	  next
-	    show "(C,g b \<cdot> d) \<in> foldSet f g e" using C notinB Dfoldd
-	      by fastsimp
-	  qed
-	  ultimately show ?thesis using x x' by(auto simp:AC)
-	qed
-      qed
-    qed
-  qed
-qed
-*)
 
 lemma (in ACf) foldSet_determ:
-  "(A, x) : foldSet f g z ==> (A, y) : foldSet f g z ==> y = x"
-apply(frule foldSet_imp_finite)
-apply(simp add:finite_conv_nat_seg_image)
-apply(blast intro: foldSet_determ_aux [rule_format])
+  "(A,x) : foldSet f g z ==> (A,y) : foldSet f g z ==> y = x"
+apply (frule foldSet_imp_finite [THEN finite_imp_nat_seg_image_inj_on]) 
+apply (blast intro: foldSet_determ_aux [rule_format])
 done
 
 lemma (in ACf) fold_equality: "(A, y) : foldSet f g z ==> fold f g z A = y"
