@@ -61,6 +61,22 @@ next
   thus "PROP P x" by (simp only: surjective_pairing [symmetric])
 qed
 
+lemma (in product_type) split_paired_All:
+  "(ALL x. P x) = (ALL a b. P (pair a b))"
+proof
+  fix a b
+  assume "ALL x. P x"
+  thus "ALL a b. P (pair a b)" by rules
+next
+  assume P: "ALL a b. P (pair a b)"
+  show "ALL x. P x"
+  proof
+    fix x
+    from P have "P (pair (dest1 x) (dest2 x))" by rules
+    thus "P x" by (simp only: surjective_pairing [symmetric])
+  qed
+qed
+
 
 subsection {* Concrete record syntax *}
 
