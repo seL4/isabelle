@@ -124,7 +124,7 @@ fun rename_numerals th =
 (** Simplification of arithmetic when nested to the right **)
 
 Goal "number_of v + (number_of w + z) = (number_of(bin_add v w) + z::hypreal)";
-by Auto_tac;
+by (asm_full_simp_tac (simpset() addsimps [add_assoc RS sym]) 1); 
 qed "hypreal_add_number_of_left";
 
 Goal "number_of v *(number_of w * z) = (number_of(bin_mult v w) * z::hypreal)";
@@ -139,7 +139,7 @@ qed "hypreal_add_number_of_diff1";
 Goal "number_of v + (c - number_of w) = \
 \     number_of (bin_add v (bin_minus w)) + (c::hypreal)";
 by (stac (diff_hypreal_number_of RS sym) 1);
-by Auto_tac;
+by (asm_full_simp_tac (HOL_ss addsimps [hypreal_diff_def]@add_ac) 1); 
 qed "hypreal_add_number_of_diff2";
 
 Addsimps [hypreal_add_number_of_left, hypreal_mult_number_of_left,
@@ -166,7 +166,7 @@ qed "hypreal_le_iff_diff_le_0";
 (** For combine_numerals **)
 
 Goal "i*u + (j*u + k) = (i+j)*u + (k::hypreal)";
-by (asm_simp_tac (simpset() addsimps [hypreal_add_mult_distrib]) 1);
+by (asm_simp_tac (simpset() addsimps [hypreal_add_mult_distrib] @ add_ac) 1);
 qed "left_hypreal_add_mult_distrib";
 
 
@@ -523,9 +523,6 @@ end;
 Addsimprocs Hyperreal_Numeral_Simprocs.eval_numerals;
 Addsimprocs Hyperreal_Numeral_Simprocs.cancel_numerals;
 Addsimprocs [Hyperreal_Numeral_Simprocs.combine_numerals];
-
-(*The Abel_Cancel simprocs are now obsolete*)
-Delsimprocs [Hyperreal_Cancel.sum_conv, Hyperreal_Cancel.rel_conv];
 
 (*examples:
 print_depth 22;
