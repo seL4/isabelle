@@ -54,7 +54,7 @@ echo Running on `hostname`
 echo Log files will be called make$$.log.gz
 
 case $FORCE.$EXEC in
-    on.on) (cd $ISABELLEBIN; rm -f Pure FOL ZF CCL LCF CTT LK Modal HOL Cube FOLP)
+    on.on) (cd $ISABELLEBIN; rm -f Pure FOL ZF CCL LCF CTT LK Modal HOL HOLCF Cube FOLP)
 esac
 
 set +e			#no longer fail upon errors -- e.g. if a "make" fails
@@ -138,8 +138,16 @@ echo '*****Higher-Order Logic (HOL)*****'
 (cd HOL;  make $NO $TEST > make$$.log)
 tail HOL/make$$.log
 gzip HOL/make$$.log
+#cannot delete HOL yet... it is needed for HOLCF!
+
+echo
+echo
+echo '*****LCF in HOL (HOL)*****'
+(cd HOLCF;  make $NO $TEST > make$$.log)
+tail HOLCF/make$$.log
+gzip HOLCF/make$$.log
 case $CLEAN.$EXEC in
-    on.on)	rm $ISABELLEBIN/HOL
+    on.on)	rm $ISABELLEBIN/HOL $ISABELLEBIN/HOLCF
 esac
 
 echo
@@ -166,6 +174,7 @@ case $TEST.$EXEC in
     test.on)	echo
 	        echo '***** Now check the dates on the "test" files *****'
         	ls -lrt FOL/test ZF/test CCL/test LCF/test CTT/test\
-              	        LK/test Modal/test HOL/test Cube/test FOLP/test
+              	        LK/test Modal/test HOL/test HOLCF/test Cube/test\
+                        FOLP/test
 esac
 echo Finished at `date`
