@@ -1,6 +1,14 @@
 (* ID:         $Id$ *)
-theory Force = Main:
+theory Force = Divides: (*Divides rather than Main so that the first proof
+                         isn't done by the nat_divide_cancel_factor simprocs.*)
 
+declare div_mult_self_is_m [simp del];
+
+lemma div_mult_self_is_m: 
+      "0<n \<Longrightarrow> (m*n) div n = (m::nat)"
+apply (insert mod_div_equality [of "m*n" n])
+apply simp
+done
 
 
 lemma "(\<forall>x. P x) \<and> (\<exists>x. Q x) \<longrightarrow> (\<forall>x. P x \<and> Q x)"

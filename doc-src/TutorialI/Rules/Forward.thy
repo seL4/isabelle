@@ -154,7 +154,7 @@ example of "insert"
 *}
 
 lemma relprime_dvd_mult: 
-      "\<lbrakk> gcd(k,n)=1; k dvd m*n \<rbrakk> \<Longrightarrow> k dvd m";
+      "\<lbrakk> gcd(k,n)=1; k dvd m*n \<rbrakk> \<Longrightarrow> k dvd m"
 apply (insert gcd_mult_distrib2 [of m k n])
 apply simp
 apply (erule_tac t="m" in ssubst);
@@ -169,11 +169,9 @@ Another example of "insert"
 \rulename{mod_div_equality}
 *};
 
-lemma div_mult_self_is_m: 
-      "0<n \<Longrightarrow> (m*n) div n = (m::nat)"
-apply (insert mod_div_equality [of "m*n" n])
-apply simp
-done
+(*MOVED to Force.thy, which now depends only on Divides.thy
+lemma div_mult_self_is_m: "0<n \<Longrightarrow> (m*n) div n = (m::nat)"
+*)
 
 lemma relprime_dvd_mult_iff: "gcd(k,n)=1 \<Longrightarrow> (k dvd m*n) = (k dvd m)";
 by (blast intro: relprime_dvd_mult dvd_trans)

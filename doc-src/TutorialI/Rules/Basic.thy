@@ -136,6 +136,9 @@ negation
 @{thm[display] contrapos_pp}
 \rulename{contrapos_pp}
 
+@{thm[display] contrapos_pn}
+\rulename{contrapos_pn}
+
 @{thm[display] contrapos_np}
 \rulename{contrapos_np}
 
@@ -263,7 +266,9 @@ apply (erule exE)
 	--{* @{subgoals[display,indent=0,margin=65]} *}
 apply (erule exE) 
 	--{* @{subgoals[display,indent=0,margin=65]} *}
-apply (rule_tac x="k*ka" in exI) 
+apply (rename_tac l)
+	--{* @{subgoals[display,indent=0,margin=65]} *}
+apply (rule_tac x="k*l" in exI) 
 	--{* @{subgoals[display,indent=0,margin=65]} *}
 apply simp
 done
@@ -394,7 +399,7 @@ apply (rule conjI)
  apply assumption
 oops
 
-lemma "\<forall> y. R y y \<Longrightarrow> \<exists>x. \<forall> y. R x y"
+lemma "\<forall>y. R y y \<Longrightarrow> \<exists>x. \<forall>y. R x y"
 apply (rule exI) 
   --{* @{subgoals[display,indent=0,margin=65]} *}
 apply (rule allI) 
@@ -403,13 +408,13 @@ apply (drule spec)
   --{* @{subgoals[display,indent=0,margin=65]} *}
 oops
 
-lemma "\<forall>x. \<exists> y. x=y"
+lemma "\<forall>x. \<exists>y. x=y"
 apply (rule allI)
 apply (rule exI)
 apply (rule refl)
 done
 
-lemma "\<exists>x. \<forall> y. x=y"
+lemma "\<exists>x. \<forall>y. x=y"
 apply (rule exI)
 apply (rule allI)
 oops

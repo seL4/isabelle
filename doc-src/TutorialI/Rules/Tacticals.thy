@@ -34,7 +34,6 @@ oops
 
 lemma "bigsubgoal1 \<and> bigsubgoal2 \<and> bigsubgoal3 \<and> bigsubgoal4 \<and> bigsubgoal5 \<and> bigsubgoal6"
 apply intro   --{* @{subgoals[display,indent=0,margin=65]} *}
-pr 2  
 txt{* @{subgoals[display,indent=0,margin=65]} 
 A total of 6 subgoals...
 *}
