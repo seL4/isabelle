@@ -787,15 +787,18 @@ in processS [] states ([], []) end;
 
 
 fun syntax_error toks allowed =
-  error 
-  ((if toks = [] then
-      "error: unexpected end of input\n"
-    else
-      "Syntax error at: " ^ quote (space_implode " " (map str_of_token 
-        ((rev o tl o rev) toks)))
-      ^ "\n")
-   ^ "Expected tokens: " 
-   ^ space_implode ", " (map (quote o str_of_token) allowed));
+  let
+    val msg =
+      if null toks then Pretty.str "Inner syntax error: unexpected end of input"
+      else
+        Pretty.block (Pretty.str "Inner syntax error at: \"" ::
+          Pretty.breaks (map (Pretty.str o str_of_token) (rev (tl (rev toks)))) @
+          [Pretty.str "\""]);
+    val expected =
+      Pretty.strs ("Expected tokens: " :: map (quote o str_of_token) allowed);
+  in
+    error (Pretty.string_of (Pretty.blk (0, [msg, Pretty.fbrk, expected])))
+  end;
 
 fun produce prods chains stateset i indata prev_token =
                                       (*prev_token is used for error messages*)
