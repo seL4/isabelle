@@ -1,0 +1,40 @@
+#!/bin/bash -norc
+#
+# $Id$
+#
+# build - compile parts of the Isabelle system
+
+
+LOGICS="Pure $*"
+
+ISATOOL=$PWD/bin/isatool
+
+
+## tell the user about current settings
+
+FILES=./etc/settings
+
+USER_SETTINGS=$($ISATOOL getenv -b ISABELLE_HOME_USER)/etc/settings
+[ -f $USER_SETTINGS ] && FILES="$FILES and $USER_SETTINGS"
+
+echo
+echo "Please check $FILES"
+echo "to make sure that Isabelle's ML system settings are appropriate."
+echo "Your current values are:"
+echo
+
+$ISATOOL getenv ML_SYSTEM ML_HOME ML_OPTIONS
+
+echo
+echo "RETURN starts compilation of: $LOGICS"
+read
+
+
+## build it
+
+# FIXME isatool makelogics
+
+for DIR in $LOGICS
+do
+  ( cd $DIR; $ISATOOL make)
+done
