@@ -16,12 +16,13 @@ sig
   val unpack: string -> string list
   val pack: string list -> string
   val base: string -> string
-  val qualified: string -> bool
+  val is_qualified: string -> bool
   val accesses: string -> string list
   type T
   val empty: T
   val extend: T * string list -> T
   val merge: T * T -> T
+  val hide: T * string list -> T
   val intern: T -> string -> string
   val extern: T -> string -> string
   val long_names: bool ref
@@ -46,6 +47,8 @@ fun suffixes1 xs = map rev (prefixes1 (rev xs));
 (** long identifiers **)
 
 val separator = ".";
+fun hidden name = "??." ^ name;
+fun is_hidden name = (case explode name of "?" :: "?" :: "." :: _ => true | _ => false);
 
 fun append name1 name2 = name1 ^ separator ^ name2;
 
@@ -53,7 +56,7 @@ val unpack = space_explode separator;
 val pack = space_implode separator;
 
 val base = last_elem o unpack;
-fun qualified name = length (unpack name) > 1;
+fun is_qualified name = length (unpack name) > 1;
 
 fun accesses name =
   let
@@ -67,36 +70,79 @@ fun accesses name =
 
 (** name spaces **)
 
+(* basic operations *)
+
+fun map_space f xname tab =
+  Symtab.update ((xname, f (if_none (Symtab.lookup (tab, xname)) ([], []))), tab);
+
+fun change f xname (name, tab) =
+  map_space (fn (names, names') => (f names name, names')) xname tab;
+
+fun change' f xname (name', tab) =
+  map_space (fn (names, names') => (names, f names' name')) xname tab;
+
+fun del names nm = if nm mem_string names then Library.gen_rem (op =) (names, nm) else names;
+fun add names nm = nm :: del names nm;
+
+
 (* datatype T *)
 
 datatype T =
-  NameSpace of string Symtab.table;
+  NameSpace of (string list * string list) Symtab.table;
 
 val empty = NameSpace Symtab.empty;
 
 
-(* extend, merge operations *)
+(* extend *)            (*later entries preferred*)
 
-fun add (tab, entry) = Symtab.update (entry, tab);
+fun extend_aux (name, tab) =
+  if is_hidden name then
+    error ("Attempt to declare hidden name " ^ quote name)
+  else foldl (fn (tb, xname) => change add xname (name, tb)) (tab, accesses name);
 
-fun extend (NameSpace tab, names) =
-  NameSpace (foldl add (tab, flat (map (fn name => map (rpair name) (accesses name)) names)));
+fun extend (NameSpace tab, names) = NameSpace (foldr extend_aux (names, tab));
 
-fun merge (NameSpace tab1, NameSpace tab2) =    (*2nd overrides 1st*)
-  NameSpace (Symtab.foldl add (tab1, tab2));
+
+(* merge *)             (*1st preferred over 2nd*)
+
+fun merge_aux (tab, (xname, (names, names'))) =
+  foldr (change add xname) (names, foldr (change' add xname) (names', tab));
+
+fun merge (NameSpace tab1, NameSpace tab2) =
+  NameSpace (Symtab.foldl merge_aux (tab2, tab1));
+
+
+(* hide *)
+
+fun hide_aux (name, tab) =
+  if not (is_qualified name) then
+    error ("Attempt to hide global name " ^ quote name)
+  else if is_hidden name then
+    error ("Attempt to hide hidden name " ^ quote name)
+  else (change' add name (name,
+    foldl (fn (tb, xname) => change del xname (name, tb)) (tab, accesses name)));
+
+fun hide (NameSpace tab, names) = NameSpace (foldr hide_aux (names, tab));
 
 
 (* intern / extern names *)
 
-fun intern (NameSpace tab) name =
-  if_none (Symtab.lookup (tab, name)) name;
+fun lookup (NameSpace tab) xname =
+  (case Symtab.lookup (tab, xname) of
+    None => (xname, true)
+  | Some ([name], _) => (name, true)
+  | Some (name :: _, _) => (name, false)
+  | Some ([], []) => (xname, true)
+  | Some ([], name' :: _) => (hidden name', true));
+
+fun intern spc xname = #1 (lookup spc xname);
 
 fun extern space name =
   let
-    fun try [] = "??" ^ separator ^ name      (*hidden name*)
+    fun try [] = hidden name
       | try (nm :: nms) =
-          if intern space nm = name then nm
-          else try nms;
+          let val (full_nm, uniq) = lookup space nm
+          in if full_nm = name andalso uniq then nm else try nms end
   in try (map pack (suffixes1 (unpack name))) end;
 
 (*prune names on output by default*)
@@ -110,9 +156,12 @@ fun cond_extern_table space tab =
 
 (* dest *)
 
+fun dest_entry (xname, ([], _)) = None
+  | dest_entry (xname, (name :: _, _)) = Some (name, xname);
+
 fun dest (NameSpace tab) =
   map (apsnd (sort (int_ord o pairself size)))
-    (Symtab.dest (Symtab.make_multi (map swap (Symtab.dest tab))));
+    (Symtab.dest (Symtab.make_multi (mapfilter dest_entry (Symtab.dest tab))));
 
 
 end;
