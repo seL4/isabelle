@@ -11,42 +11,42 @@ subsection {* Groups and calculational reasoning *}
 
 text {*
  Groups over signature $({\times} :: \alpha \To \alpha \To \alpha,
- \idt{one} :: \alpha, \idt{inv} :: \alpha \To \alpha)$ are defined as
- an axiomatic type class as follows.  Note that the parent class
+ \idt{one} :: \alpha, \idt{inverse} :: \alpha \To \alpha)$ are defined
+ as an axiomatic type class as follows.  Note that the parent class
  $\idt{times}$ is provided by the basic HOL theory.
 *}
 
 consts
   one :: "'a"
-  inv :: "'a => 'a"
+  inverse :: "'a => 'a"
 
 axclass
   group < times
   group_assoc:         "(x * y) * z = x * (y * z)"
-  group_left_unit:     "one * x = x"
-  group_left_inverse:  "inv x * x = one"
+  group_left_one:      "one * x = x"
+  group_left_inverse:  "inverse x * x = one"
 
 text {*
- The group axioms only state the properties of left unit and inverse,
+ The group axioms only state the properties of left one and inverse,
  the right versions may be derived as follows.
 *}
 
-theorem group_right_inverse: "x * inv x = (one::'a::group)"
+theorem group_right_inverse: "x * inverse x = (one::'a::group)"
 proof -
-  have "x * inv x = one * (x * inv x)"
-    by (simp only: group_left_unit)
-  also have "... = one * x * inv x"
+  have "x * inverse x = one * (x * inverse x)"
+    by (simp only: group_left_one)
+  also have "... = one * x * inverse x"
     by (simp only: group_assoc)
-  also have "... = inv (inv x) * inv x * x * inv x"
+  also have "... = inverse (inverse x) * inverse x * x * inverse x"
     by (simp only: group_left_inverse)
-  also have "... = inv (inv x) * (inv x * x) * inv x"
+  also have "... = inverse (inverse x) * (inverse x * x) * inverse x"
     by (simp only: group_assoc)
-  also have "... = inv (inv x) * one * inv x"
+  also have "... = inverse (inverse x) * one * inverse x"
     by (simp only: group_left_inverse)
-  also have "... = inv (inv x) * (one * inv x)"
+  also have "... = inverse (inverse x) * (one * inverse x)"
     by (simp only: group_assoc)
-  also have "... = inv (inv x) * inv x"
-    by (simp only: group_left_unit)
+  also have "... = inverse (inverse x) * inverse x"
+    by (simp only: group_left_one)
   also have "... = one"
     by (simp only: group_left_inverse)
   finally show ?thesis .
@@ -54,20 +54,20 @@ qed
 
 text {*
  With \name{group-right-inverse} already available,
- \name{group-right-unit}\label{thm:group-right-unit} is now
- established much easier.
+ \name{group-right-one}\label{thm:group-right-one} is now established
+ much easier.
 *}
 
-theorem group_right_unit: "x * one = (x::'a::group)"
+theorem group_right_one: "x * one = (x::'a::group)"
 proof -
-  have "x * one = x * (inv x * x)"
+  have "x * one = x * (inverse x * x)"
     by (simp only: group_left_inverse)
-  also have "... = x * inv x * x"
+  also have "... = x * inverse x * x"
     by (simp only: group_assoc)
   also have "... = one * x"
     by (simp only: group_right_inverse)
   also have "... = x"
-    by (simp only: group_left_unit)
+    by (simp only: group_left_one)
   finally show ?thesis .
 qed
 
@@ -97,13 +97,13 @@ text {*
 
 theorem "x * one = (x::'a::group)"
 proof -
-  have "x * one = x * (inv x * x)"
+  have "x * one = x * (inverse x * x)"
     by (simp only: group_left_inverse)
 
   note calculation = this
     -- {* first calculational step: init calculation register *}
 
-  have "... = x * inv x * x"
+  have "... = x * inverse x * x"
     by (simp only: group_assoc)
 
   note calculation = trans [OF calculation this]
@@ -116,7 +116,7 @@ proof -
     -- {* general calculational step: compose with transitivity rule *}
 
   have "... = x"
-    by (simp only: group_left_unit)
+    by (simp only: group_left_one)
 
   note calculation = trans [OF calculation this]
     -- {* final calculational step: compose with transitivity rule ... *}
@@ -145,24 +145,24 @@ text {*
 
 axclass monoid < times
   monoid_assoc:       "(x * y) * z = x * (y * z)"
-  monoid_left_unit:   "one * x = x"
-  monoid_right_unit:  "x * one = x"
+  monoid_left_one:   "one * x = x"
+  monoid_right_one:  "x * one = x"
 
 text {*
  Groups are \emph{not} yet monoids directly from the definition.  For
- monoids, \name{right-unit} had to be included as an axiom, but for
- groups both \name{right-unit} and \name{right-inverse} are derivable
- from the other axioms.  With \name{group-right-unit} derived as a
- theorem of group theory (see page~\pageref{thm:group-right-unit}), we
- may still instantiate $\idt{group} \subset \idt{monoid}$ properly as
- follows.
+ monoids, \name{right-one} had to be included as an axiom, but for
+ groups both \name{right-one} and \name{right-inverse} are derivable
+ from the other axioms.  With \name{group-right-one} derived as a
+ theorem of group theory (see page~\pageref{thm:group-right-one}), we
+ may still instantiate $\idt{group} \subseteq \idt{monoid}$ properly
+ as follows.
 *}
 
 instance group < monoid
   by (intro_classes,
        rule group_assoc,
-       rule group_left_unit,
-       rule group_right_unit)
+       rule group_left_one,
+       rule group_right_one)
 
 text {*
  The \isacommand{instance} command actually is a version of
@@ -172,5 +172,95 @@ text {*
  concluding the proof, the result is transformed into the intended
  type signature extension behind the scenes.
 *}
+
+subsection {* More theorems of group theory *}
+
+text {*
+ The one element is already uniquely determined by preserving an
+ \emph{arbitrary} group element.
+*}
+
+theorem group_one_equality: "e * x = x ==> one = (e::'a::group)"
+proof -
+  assume eq: "e * x = x"
+  have "one = x * inverse x"
+    by (simp only: group_right_inverse)
+  also have "... = (e * x) * inverse x"
+    by (simp only: eq)
+  also have "... = e * (x * inverse x)"
+    by (simp only: group_assoc)
+  also have "... = e * one"
+    by (simp only: group_right_inverse)
+  also have "... = e"
+    by (simp only: group_right_one)
+  finally show ?thesis .
+qed
+
+text {*
+ Likewise, the inverse is already determined by the cancel property.
+*}
+
+theorem group_inverse_equality:
+  "x' * x = one ==> inverse x = (x'::'a::group)"
+proof -
+  assume eq: "x' * x = one"
+  have "inverse x = one * inverse x"
+    by (simp only: group_left_one)
+  also have "... = (x' * x) * inverse x"
+    by (simp only: eq)
+  also have "... = x' * (x * inverse x)"
+    by (simp only: group_assoc)
+  also have "... = x' * one"
+    by (simp only: group_right_inverse)
+  also have "... = x'"
+    by (simp only: group_right_one)
+  finally show ?thesis .
+qed
+
+text {*
+ The inverse operation has some further characteristic properties.
+*}
+
+theorem group_inverse_times:
+  "inverse (x * y) = inverse y * inverse (x::'a::group)"
+proof (rule group_inverse_equality)
+  show "(inverse y * inverse x) * (x * y) = one"
+  proof -
+    have "(inverse y * inverse x) * (x * y) =
+        (inverse y * (inverse x * x)) * y"
+      by (simp only: group_assoc)
+    also have "... = (inverse y * one) * y"
+      by (simp only: group_left_inverse)
+    also have "... = inverse y * y"
+      by (simp only: group_right_one)
+    also have "... = one"
+      by (simp only: group_left_inverse)
+    finally show ?thesis .
+  qed
+qed
+
+theorem inverse_inverse: "inverse (inverse x) = (x::'a::group)"
+proof (rule group_inverse_equality)
+  show "x * inverse x = one"
+    by (simp only: group_right_inverse)
+qed
+
+theorem inverse_inject: "inverse x = inverse y ==> x = (y::'a::group)"
+proof -
+  assume eq: "inverse x = inverse y"
+  have "x = x * one"
+    by (simp only: group_right_one)
+  also have "... = x * (inverse y * y)"
+    by (simp only: group_left_inverse)
+  also have "... = x * (inverse x * y)"
+    by (simp only: eq)
+  also have "... = (x * inverse x) * y"
+    by (simp only: group_assoc)
+  also have "... = one * y"
+    by (simp only: group_right_inverse)
+  also have "... = y"
+    by (simp only: group_left_one)
+  finally show ?thesis .
+qed
 
 end
