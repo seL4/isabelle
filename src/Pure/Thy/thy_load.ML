@@ -19,7 +19,7 @@ end;
 signature THY_LOAD =
 sig
   include BASIC_THY_LOAD
-  val cond_with_path: Path.T -> ('a -> 'b) -> 'a -> 'b
+  val cond_add_path: Path.T -> ('a -> 'b) -> 'a -> 'b
   val ml_path: string -> Path.T
   val thy_path: string -> Path.T
   val check_file: Path.T -> (Path.T * File.info) option
@@ -52,10 +52,10 @@ fun show_path () = map Path.pack (! load_path);
 fun add_path s = change_path (cons (Path.unpack s));
 fun del_path s = change_path (filter_out (equal (Path.unpack s)));
 fun reset_path () = load_path := [Path.current];
-fun with_path s f x = Library.setmp load_path (Path.unpack s :: ! load_path) f x;
-fun with_paths ss f x = Library.setmp load_path (map Path.unpack ss @ ! load_path) f x;
+fun with_paths ss f x = Library.setmp load_path (! load_path @ map Path.unpack ss) f x;
+fun with_path s f x = with_paths [s] f x;
 
-fun cond_with_path path f x =
+fun cond_add_path path f x =
   if Path.is_current path then f x else Library.setmp load_path (path :: ! load_path) f x;
 
 
@@ -108,11 +108,11 @@ fun check_thy_aux (name, ml) =
 
 in
 
-fun check_thy dir name ml = Master (cond_with_path dir check_thy_aux (name, ml));
+fun check_thy dir name ml = Master (cond_add_path dir check_thy_aux (name, ml));
 
 fun process_thy dir f name ml =
   let val master as Master ((path, _), _) = check_thy dir name ml
-  in (master, cond_with_path dir f path) end;
+  in (master, cond_add_path dir f path) end;
 
 end;
 
