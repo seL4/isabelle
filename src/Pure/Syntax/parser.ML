@@ -792,7 +792,8 @@ fun syntax_error toks allowed =
       if null toks then Pretty.str "Inner syntax error: unexpected end of input"
       else
         Pretty.block (Pretty.str "Inner syntax error at: \"" ::
-          Pretty.breaks (map (Pretty.str o str_of_token) (rev (tl (rev toks)))) @
+          Pretty.breaks (map (Pretty.str o Symbol.output o str_of_token)
+		 (rev (tl (rev toks)))) @
           [Pretty.str "\""]);
     val expected =
       Pretty.strs ("Expected tokens: " :: map (quote o str_of_token) allowed);
