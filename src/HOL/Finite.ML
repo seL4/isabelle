@@ -215,8 +215,8 @@ by (asm_simp_tac (!simpset addsimps [Collect_conv_insert, less_Suc_eq]
 qed "finite_has_card";
 
 goal Finite.thy
-  "!!A.[| x ~: A; insert x A = {f i|i.i<n} |] ==> \
-\  ? m::nat. m<n & (? g. A = {g i|i.i<m})";
+  "!!A.[| x ~: A; insert x A = {f i|i. i<n} |] ==> \
+\  ? m::nat. m<n & (? g. A = {g i|i. i<m})";
 by (res_inst_tac [("n","n")] natE 1);
  by (hyp_subst_tac 1);
  by (Asm_full_simp_tac 1);
@@ -277,11 +277,11 @@ by (Blast_tac 1);
 val lemma = result();
 
 goal Finite.thy "!!A. [| finite A; x ~: A |] ==> \
-\ (LEAST n. ? f. insert x A = {f i|i.i<n}) = Suc(LEAST n. ? f. A={f i|i.i<n})";
+\ (LEAST n. ? f. insert x A = {f i|i. i<n}) = Suc(LEAST n. ? f. A={f i|i. i<n})";
 by (rtac Least_equality 1);
  by (dtac finite_has_card 1);
  by (etac exE 1);
- by (dres_inst_tac [("P","%n.? f. A={f i|i.i<n}")] LeastI 1);
+ by (dres_inst_tac [("P","%n.? f. A={f i|i. i<n}")] LeastI 1);
  by (etac exE 1);
  by (res_inst_tac
    [("x","%i. if i<(LEAST n. ? f. A={f i |i. i < n}) then f i else x")] exI 1);

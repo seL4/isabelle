@@ -27,9 +27,9 @@ consts  (* characteristic constant and Domain for per *)
         D         :: "'a::per set"
 defs
         per_def         "(op ===) == eqv"
-        Dom             "D=={x.x===x}"
+        Dom             "D=={x. x===x}"
 (* define ==== on and function type => *)
-        fun_per_def     "eqv f g == !x y.x:D & y:D & x===y --> f x === g y"
+        fun_per_def     "eqv f g == !x y. x:D & y:D & x===y --> f x === g y"
 
 syntax (symbols)
   "op ==="   :: "['a,'a::per] => bool"        (infixl "\\<sim>" 50)

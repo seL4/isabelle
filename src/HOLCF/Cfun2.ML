@@ -9,7 +9,7 @@ Lemmas for cfun2.thy
 open Cfun2;
 
 (* for compatibility with old HOLCF-Version *)
-qed_goal "inst_cfun_po" thy "(op <<)=(%f1 f2.fapp f1 << fapp f2)"
+qed_goal "inst_cfun_po" thy "(op <<)=(%f1 f2. fapp f1 << fapp f2)"
  (fn prems => 
         [
 	(fold_goals_tac [less_cfun_def]),
@@ -30,7 +30,7 @@ qed_goal "less_cfun" thy "( f1 << f2 ) = (fapp(f1) << fapp(f2))"
 (* Type 'a ->'b  is pointed                                                 *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "minimal_cfun" thy "fabs(% x.UU) << f"
+qed_goal "minimal_cfun" thy "fabs(% x. UU) << f"
 (fn prems =>
         [
         (stac less_cfun 1),
@@ -41,10 +41,10 @@ qed_goal "minimal_cfun" thy "fabs(% x.UU) << f"
 
 bind_thm ("UU_cfun_def",minimal_cfun RS minimal2UU RS sym);
 
-qed_goal "least_cfun" thy "? x::'a->'b::pcpo.!y.x<<y"
+qed_goal "least_cfun" thy "? x::'a->'b::pcpo.!y. x<<y"
 (fn prems =>
         [
-        (res_inst_tac [("x","fabs(% x.UU)")] exI 1),
+        (res_inst_tac [("x","fabs(% x. UU)")] exI 1),
         (rtac (minimal_cfun RS allI) 1)
         ]);
 
@@ -156,7 +156,7 @@ bind_thm ("ch2ch_fappL", monofun_fapp1 RS ch2ch_MF2L);
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "lub_cfun_mono" thy 
-        "is_chain(F) ==> monofun(% x.lub(range(% j.(F j)`x)))"
+        "is_chain(F) ==> monofun(% x. lub(range(% j.(F j)`x)))"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -190,7 +190,7 @@ qed_goal "ex_lubcfun" thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "cont_lubcfun" thy 
-        "is_chain(F) ==> cont(% x.lub(range(% j.F(j)`x)))"
+        "is_chain(F) ==> cont(% x. lub(range(% j. F(j)`x)))"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -209,7 +209,7 @@ qed_goal "cont_lubcfun" thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "lub_cfun" thy 
-  "is_chain(CCF) ==> range(CCF) <<| (LAM x.lub(range(% i.CCF(i)`x)))"
+  "is_chain(CCF) ==> range(CCF) <<| (LAM x. lub(range(% i. CCF(i)`x)))"
 (fn prems =>
         [
         (cut_facts_tac prems 1),

@@ -62,7 +62,7 @@ qed "gcd_swap";
 
 val prems=goalw thy [gcd_def] "n<=m ==> gcd m n = gcd (m-n) n";
 by (cut_facts_tac prems 1);
-by (subgoal_tac "n<=m ==> !x.cd x m n = cd x (m-n) n" 1);
+by (subgoal_tac "n<=m ==> !x. cd x m n = cd x (m-n) n" 1);
 by (Asm_simp_tac 1);
 by (rtac allI 1);
 by (etac cd_diff_l 1);
@@ -70,7 +70,7 @@ qed "gcd_diff_l";
 
 val prems=goalw thy [gcd_def] "m<=n ==> gcd m n = gcd m (n-m)";
 by (cut_facts_tac prems 1);
-by (subgoal_tac "m<=n ==> !x.cd x m n = cd x m (n-m)" 1);
+by (subgoal_tac "m<=n ==> !x. cd x m n = cd x m (n-m)" 1);
 by (Asm_simp_tac 1);
 by (rtac allI 1);
 by (etac cd_diff_r 1);

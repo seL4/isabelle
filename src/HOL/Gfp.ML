@@ -73,13 +73,13 @@ qed "gfp_fun_UnI2";
          - instead of the condition  X <= f(X)
                            consider  X <= (f(X) Un f(f(X)) ...) Un gfp(X) ***)
 
-val [prem] = goal Gfp.thy "mono(f) ==> mono(%x.f(x) Un X Un B)";
+val [prem] = goal Gfp.thy "mono(f) ==> mono(%x. f(x) Un X Un B)";
 by (REPEAT (ares_tac [subset_refl, monoI, Un_mono, prem RS monoD] 1));
 qed "coinduct3_mono_lemma";
 
 val [prem,mono] = goal Gfp.thy
-    "[| X <= f(lfp(%x.f(x) Un X Un gfp(f)));  mono(f) |] ==> \
-\    lfp(%x.f(x) Un X Un gfp(f)) <= f(lfp(%x.f(x) Un X Un gfp(f)))";
+    "[| X <= f(lfp(%x. f(x) Un X Un gfp(f)));  mono(f) |] ==> \
+\    lfp(%x. f(x) Un X Un gfp(f)) <= f(lfp(%x. f(x) Un X Un gfp(f)))";
 by (rtac subset_trans 1);
 by (rtac (mono RS coinduct3_mono_lemma RS lfp_lemma3) 1);
 by (rtac (Un_least RS Un_least) 1);
@@ -92,7 +92,7 @@ by (rtac Un_upper2 1);
 qed "coinduct3_lemma";
 
 val prems = goal Gfp.thy
-    "[| mono(f);  a:X;  X <= f(lfp(%x.f(x) Un X Un gfp(f))) |] ==> a : gfp(f)";
+    "[| mono(f);  a:X;  X <= f(lfp(%x. f(x) Un X Un gfp(f))) |] ==> a : gfp(f)";
 by (rtac (coinduct3_lemma RSN (2,weak_coinduct)) 1);
 by (resolve_tac (prems RL [coinduct3_mono_lemma RS lfp_Tarski RS ssubst]) 1);
 by (rtac (UnI2 RS UnI1) 1);
@@ -123,7 +123,7 @@ by (REPEAT (ares_tac (prems @ [subsetI,CollectI]) 1));
 qed "def_Collect_coinduct";
 
 val rew::prems = goal Gfp.thy
-    "[| A==gfp(f); mono(f);  a:X;  X <= f(lfp(%x.f(x) Un X Un A)) |] ==> a: A";
+    "[| A==gfp(f); mono(f);  a:X;  X <= f(lfp(%x. f(x) Un X Un A)) |] ==> a: A";
 by (rewtac rew);
 by (REPEAT (ares_tac (map (rewrite_rule [rew]) prems @ [coinduct3]) 1));
 qed "def_coinduct3";

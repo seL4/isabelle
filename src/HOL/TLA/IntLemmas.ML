@@ -359,24 +359,24 @@ qed_goal "specW" Intensional.thy "(RALL x. P(x)) ==> P(x)"
 
 
 qed_goal "allEW" Intensional.thy 
-         "[| RALL x.P(x);  P(x) ==> R |] ==> R::('w::world) form"
+         "[| RALL x. P(x);  P(x) ==> R |] ==> R::('w::world) form"
  (fn major::prems=>
   [ (REPEAT (resolve_tac (prems @ [major RS specW]) 1)) ]);
 
 qed_goal "all_dupEW" Intensional.thy 
-    "[| RALL x.P(x);  [| P(x); RALL x.P(x) |] ==> R |] ==> R::('w::world) form"
+    "[| RALL x. P(x);  [| P(x); RALL x. P(x) |] ==> R |] ==> R::('w::world) form"
  (fn prems =>
   [ (REPEAT (resolve_tac (prems @ (prems RL [specW])) 1)) ]);
 
 
-qed_goal "exIW" Intensional.thy "P(x) ==> REX x.P(x)"
+qed_goal "exIW" Intensional.thy "P(x) ==> REX x. P(x)"
   (fn [prem] => [rtac intI 1,
                  rewrite_goals_tac intensional_rews,
                  rtac exI 1,
                  rtac (prem RS intD) 1]);
 
 qed_goal "exEW" Intensional.thy 
-  "[| w |= REX x.P(x); !!x. P(x) .-> Q |] ==> w |= Q"
+  "[| w |= REX x. P(x); !!x. P(x) .-> Q |] ==> w |= Q"
   (fn [major,minor] => [rtac exE 1,
                         rtac (rewrite_rule intensional_rews major) 1,
                         etac rev_mpW 1,
@@ -385,7 +385,7 @@ qed_goal "exEW" Intensional.thy
 (** Classical quantifier reasoning **)
 
 qed_goal "exCIW" Intensional.thy 
-  "(w |= (RALL x. .~P(x)) .-> P(a)) ==> w |= REX x.P(x)"
+  "(w |= (RALL x. .~P(x)) .-> P(a)) ==> w |= REX x. P(x)"
   (fn prems => [cut_facts_tac prems 1,
                 rewrite_goals_tac intensional_rews,
                 fast_tac HOL_cs 1]);

@@ -21,7 +21,7 @@ end;
 
 (*** A unique fixpoint theorem --- fast/best/meson all fail ***)
 
-val [prem] = goal HOL.thy "?!x.f(g(x))=x ==> ?!y.g(f(y))=y";
+val [prem] = goal HOL.thy "?!x. f(g(x))=x ==> ?!y. g(f(y))=y";
 by (EVERY1[rtac (prem RS ex1E), rtac ex1I, etac arg_cong,
           rtac subst, atac, etac allE, rtac arg_cong, etac mp, etac arg_cong]);
 result();

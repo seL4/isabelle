@@ -112,7 +112,7 @@ types
 (* identity *)
 constdefs
         id_subst :: subst
-        "id_subst == (%n.TVar n)"
+        "id_subst == (%n. TVar n)"
 
 (* extension of substitution to type structures *)
 consts

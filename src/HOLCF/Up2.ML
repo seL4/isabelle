@@ -9,7 +9,7 @@ Lemmas for Up2.thy
 open Up2;
 
 (* for compatibility with old HOLCF-Version *)
-qed_goal "inst_up_po" thy "(op <<)=(%x1 x2.case Rep_Up(x1) of \               
+qed_goal "inst_up_po" thy "(op <<)=(%x1 x2. case Rep_Up(x1) of \               
 \               Inl(y1) => True \
 \             | Inr(y2) => (case Rep_Up(x2) of Inl(z1) => False \
 \                                            | Inr(z2) => y2<<z2))"
@@ -31,7 +31,7 @@ qed_goal "minimal_up" thy "Abs_Up(Inl ()) << z"
 
 bind_thm ("UU_up_def",minimal_up RS minimal2UU RS sym);
 
-qed_goal "least_up" thy "? x::'a u.!y.x<<y"
+qed_goal "least_up" thy "? x::'a u.!y. x<<y"
 (fn prems =>
         [
         (res_inst_tac [("x","Abs_Up(Inl ())")] exI 1),
@@ -99,7 +99,7 @@ qed_goalw "monofun_Ifup2" thy [monofun] "monofun(Ifup(f))"
 (* Some kind of surjectivity lemma                                          *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "up_lemma1" thy  "z=Iup(x) ==> Iup(Ifup(LAM x.x)(z)) = z"
+qed_goal "up_lemma1" thy  "z=Iup(x) ==> Iup(Ifup(LAM x. x)(z)) = z"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -111,8 +111,8 @@ qed_goal "up_lemma1" thy  "z=Iup(x) ==> Iup(Ifup(LAM x.x)(z)) = z"
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "lub_up1a" thy 
-"[|is_chain(Y);? i x.Y(i)=Iup(x)|] ==>\
-\ range(Y) <<| Iup(lub(range(%i.(Ifup (LAM x.x) (Y(i))))))"
+"[|is_chain(Y);? i x. Y(i)=Iup(x)|] ==>\
+\ range(Y) <<| Iup(lub(range(%i.(Ifup (LAM x. x) (Y(i))))))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -183,7 +183,7 @@ bind_thm ("thelub_up1b", lub_up1b RS thelubI);
 *)
 
 qed_goal "cpo_up" thy 
-        "is_chain(Y::nat=>('a)u) ==> ? x.range(Y) <<|x"
+        "is_chain(Y::nat=>('a)u) ==> ? x. range(Y) <<|x"
  (fn prems =>
         [
         (cut_facts_tac prems 1),

@@ -9,7 +9,7 @@ Lemmas for Sprod2.thy
 open Sprod2;
 
 (* for compatibility with old HOLCF-Version *)
-qed_goal "inst_sprod_po" thy "(op <<)=(%x y.Isfst x<<Isfst y&Issnd x<<Issnd y)"
+qed_goal "inst_sprod_po" thy "(op <<)=(%x y. Isfst x<<Isfst y&Issnd x<<Issnd y)"
  (fn prems => 
         [
 	(fold_goals_tac [less_sprod_def]),
@@ -28,7 +28,7 @@ qed_goal "minimal_sprod" thy "Ispair UU UU << p"
 
 bind_thm ("UU_sprod_def",minimal_sprod RS minimal2UU RS sym);
 
-qed_goal "least_sprod" thy "? x::'a**'b.!y.x<<y"
+qed_goal "least_sprod" thy "? x::'a**'b.!y. x<<y"
 (fn prems =>
         [
         (res_inst_tac [("x","Ispair UU UU")] exI 1),
@@ -96,7 +96,7 @@ qed_goalw "monofun_Issnd" Sprod2.thy [monofun] "monofun(Issnd)"
 
 qed_goal "lub_sprod" Sprod2.thy 
 "[|is_chain(S)|] ==> range(S) <<| \
-\ Ispair (lub(range(%i.Isfst(S i)))) (lub(range(%i.Issnd(S i))))"
+\ Ispair (lub(range(%i. Isfst(S i)))) (lub(range(%i. Issnd(S i))))"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -123,7 +123,7 @@ bind_thm ("thelub_sprod", lub_sprod RS thelubI);
 
 
 qed_goal "cpo_sprod" Sprod2.thy 
-        "is_chain(S::nat=>'a**'b)==>? x.range(S)<<| x"
+        "is_chain(S::nat=>'a**'b)==>? x. range(S)<<| x"
 (fn prems =>
         [
         (cut_facts_tac prems 1),

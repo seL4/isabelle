@@ -237,7 +237,7 @@ by (Asm_simp_tac 1);
 (* case Abs e *)
 by (strip_tac 1);
 by (eresolve_tac has_type_casesE 1);
-by (eres_inst_tac [("x","%x.if x=n then t1 else (s' x)")] allE 1);
+by (eres_inst_tac [("x","%x. if x=n then t1 else (s' x)")] allE 1);
 by (eres_inst_tac [("x","(TVar n)#a")] allE 1);
 by (eres_inst_tac [("x","t2")] allE 1);
 by (eres_inst_tac [("x","Suc n")] allE 1);
@@ -268,9 +268,9 @@ by (fast_tac (HOL_cs addIs [sym RS W_var_geD,new_tv_W RS
 
 (** LEVEL 35 **)
 by (subgoal_tac
-  "$ (%x.if x=ma then t' else (if x:(free_tv t - free_tv sa) then r x \
+  "$ (%x. if x=ma then t' else (if x:(free_tv t - free_tv sa) then r x \
 \        else ra x)) ($ sa t) = \
-\  $ (%x.if x=ma then t' else (if x:(free_tv t - free_tv sa) then r x \
+\  $ (%x. if x=ma then t' else (if x:(free_tv t - free_tv sa) then r x \
 \        else ra x)) (ta -> (TVar ma))" 1);
 by (res_inst_tac [("t","$ (%x. if x = ma then t' else \
 \   (if x:(free_tv t - free_tv sa) then r x else ra x)) ($ sa t)"),

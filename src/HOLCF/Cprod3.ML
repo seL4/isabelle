@@ -262,7 +262,7 @@ qed_goalw "less_cprod5c" Cprod3.thy [cfst_def,csnd_def,cpair_def]
 
 qed_goalw "lub_cprod2" Cprod3.thy [cfst_def,csnd_def,cpair_def]
 "[|is_chain(S)|] ==> range(S) <<| \
-\ <(lub(range(%i.cfst`(S i)))) , lub(range(%i.csnd`(S i)))>"
+\ <(lub(range(%i. cfst`(S i)))) , lub(range(%i. csnd`(S i)))>"
  (fn prems =>
         [
         (cut_facts_tac prems 1),

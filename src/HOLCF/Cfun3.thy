@@ -20,7 +20,7 @@ consts
 defs
 
 Istrictify_def  "Istrictify f x == if x=UU then UU else f`x"    
-strictify_def   "strictify == (LAM f x.Istrictify f x)"
+strictify_def   "strictify == (LAM f x. Istrictify f x)"
 
 consts
         ID      :: "('a::cpo) -> 'a"
@@ -32,7 +32,7 @@ translations    "f1 oo f2" == "cfcomp`f1`f2"
 
 defs
 
-  ID_def        "ID ==(LAM x.x)"
-  oo_def        "cfcomp == (LAM f g x.f`(g`x))" 
+  ID_def        "ID ==(LAM x. x)"
+  oo_def        "cfcomp == (LAM f g x. f`(g`x))" 
 
 end

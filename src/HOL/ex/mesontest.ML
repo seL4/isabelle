@@ -247,15 +247,15 @@ goal HOL.thy "(! x. P x & Q x) = ((! x. P x) & (! x. Q x))";
 by (safe_meson_tac 1);
 result(); 
 
-goal HOL.thy "(? x. P --> Q x)  =  (P --> (? x.Q x))";
+goal HOL.thy "(? x. P --> Q x)  =  (P --> (? x. Q x))";
 by (safe_meson_tac 1);
 result(); 
 
-goal HOL.thy "(? x.P x --> Q) = ((! x.P x) --> Q)";
+goal HOL.thy "(? x. P x --> Q) = ((! x. P x) --> Q)";
 by (safe_meson_tac 1);
 result(); 
 
-goal HOL.thy "((! x.P x) | Q)  =  (! x. P x | Q)";
+goal HOL.thy "((! x. P x) | Q)  =  (! x. P x | Q)";
 by (safe_meson_tac 1);
 result(); 
 
@@ -307,7 +307,7 @@ result();
 
 writeln"Problem 24";  (*The first goal clause is useless*)
 goal HOL.thy "~(? x. S x & Q x) & (! x. P x --> Q x | R x) &  \
-\    (~(? x.P x) --> (? x.Q x)) & (! x. Q x | R x --> S x)  \
+\    (~(? x. P x) --> (? x. Q x)) & (! x. Q x | R x --> S x)  \
 \   --> (? x. P x & R x)";
 by (safe_meson_tac 1); 
 result();
@@ -340,7 +340,7 @@ result();
 writeln"Problem 28.  AMENDED";  (*14 Horn clauses*)
 goal HOL.thy "(! x. P x --> (! x. Q x)) &   \
 \       ((! x. Q x | R x) --> (? x. Q x & S x)) &  \
-\       ((? x.S x) --> (! x. L x --> M x))  \
+\       ((? x. S x) --> (! x. L x --> M x))  \
 \   --> (! x. P x & L x --> M x)";
 by (safe_meson_tac 1);  
 result();
@@ -361,7 +361,7 @@ by (safe_meson_tac 1);
 result();
 
 writeln"Problem 31";  (*10 Horn clauses; first negative clauses is useless*)
-goal HOL.thy "~(? x.P x & (Q x | R x)) & \
+goal HOL.thy "~(? x. P x & (Q x | R x)) & \
 \       (? x. L x & P x) & \
 \       (! x. ~ R x --> M x)  \
 \   --> (? x. L x & M x)";
@@ -407,7 +407,7 @@ result();
 
 writeln"Problem 37";  (*10 Horn clauses*)
 goal HOL.thy "(! z. ? w. ! x. ? y. \
-\          (P x z --> P y w) & P y z & (P y w --> (? u.Q u w))) & \
+\          (P x z --> P y w) & P y z & (P y w --> (? u. Q u w))) & \
 \       (! x z. ~P x z --> (? y. Q y z)) & \
 \       ((? x y. Q x y) --> (! x. R x x))  \
 \   --> (! x. ? y. R x y)";
@@ -475,7 +475,7 @@ result();
 writeln"Problem 46";  (*26 Horn clauses; 21-step proof*)
 goal HOL.thy
     "(! x. f x & (! y. f y & h y x --> g y) --> g x) &      \
-\    ((? x.f x & ~g x) -->                                    \
+\    ((? x. f x & ~g x) -->                                    \
 \     (? x. f x & ~g x & (! y. f y & ~g y --> j x y))) &    \
 \    (! x y. f x & f y & h x y --> ~j y x)                    \
 \     --> (! x. f x --> g x)";
@@ -486,22 +486,22 @@ result();
 writeln"Problem 47.  Schubert's Steamroller";
         (*26 clauses; 63 Horn clauses*)
 goal HOL.thy
-    "(! x. P1 x --> P0 x) & (? x.P1 x) &     \
-\    (! x. P2 x --> P0 x) & (? x.P2 x) &     \
-\    (! x. P3 x --> P0 x) & (? x.P3 x) &     \
-\    (! x. P4 x --> P0 x) & (? x.P4 x) &     \
-\    (! x. P5 x --> P0 x) & (? x.P5 x) &     \
-\    (! x. Q1 x --> Q0 x) & (? x.Q1 x) &     \
-\    (! x. P0 x --> ((! y.Q0 y-->R x y) |    \
-\                     (! y.P0 y & S y x &     \
-\                          (? z.Q0 z&R y z) --> R x y))) &   \
+    "(! x. P1 x --> P0 x) & (? x. P1 x) &     \
+\    (! x. P2 x --> P0 x) & (? x. P2 x) &     \
+\    (! x. P3 x --> P0 x) & (? x. P3 x) &     \
+\    (! x. P4 x --> P0 x) & (? x. P4 x) &     \
+\    (! x. P5 x --> P0 x) & (? x. P5 x) &     \
+\    (! x. Q1 x --> Q0 x) & (? x. Q1 x) &     \
+\    (! x. P0 x --> ((! y. Q0 y-->R x y) |    \
+\                     (! y. P0 y & S y x &     \
+\                          (? z. Q0 z&R y z) --> R x y))) &   \
 \    (! x y. P3 y & (P5 x|P4 x) --> S x y) &        \
 \    (! x y. P3 x & P2 y --> S x y) &        \
 \    (! x y. P2 x & P1 y --> S x y) &        \
 \    (! x y. P1 x & (P2 y|Q1 y) --> ~R x y) &       \
 \    (! x y. P3 x & P4 y --> R x y) &        \
 \    (! x y. P3 x & P5 y --> ~R x y) &       \
-\    (! x. (P4 x|P5 x) --> (? y.Q0 y & R x y))      \
+\    (! x. (P4 x|P5 x) --> (? y. Q0 y & R x y))      \
 \    --> (? x y. P0 x & P0 y & (? z. Q1 z & R y z & R x y))";
 by (safe_meson_tac 1);   (*119 secs*)
 result();
@@ -518,14 +518,14 @@ result();
 (*A similar example, suggested by Johannes Schumann and credited to Pelletier*)
 goal HOL.thy "(!x y z. P x y --> P y z --> P x z) --> \
 \       (!x y z. Q x y --> Q y z --> Q x z) --> \
-\       (!x y.Q x y --> Q y x) -->  (!x y. P x y | Q x y) --> \
-\       (!x y.P x y) | (!x y.Q x y)";
+\       (!x y. Q x y --> Q y x) -->  (!x y. P x y | Q x y) --> \
+\       (!x y. P x y) | (!x y. Q x y)";
 by (safe_best_meson_tac 1);          (*2.7 secs*)
 result();
 
 writeln"Problem 50";  
 (*What has this to do with equality?*)
-goal HOL.thy "(! x. P a x | (! y.P x y)) --> (? x. ! y.P x y)";
+goal HOL.thy "(! x. P a x | (! y. P x y)) --> (? x. ! y. P x y)";
 by (safe_meson_tac 1);
 result();
 

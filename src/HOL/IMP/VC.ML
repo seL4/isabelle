@@ -10,7 +10,7 @@ open VC;
 
 AddIs hoare.intrs;
 
-val lemma = prove_goal HOL.thy "!s.P s --> P s" (K[Fast_tac 1]);
+val lemma = prove_goal HOL.thy "!s. P s --> P s" (K[Fast_tac 1]);
 
 goal VC.thy "!Q. (!s. vc c Q s) --> |- {awp c Q} astrip c {Q}";
 by (acom.induct_tac "c" 1);

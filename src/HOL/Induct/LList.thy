@@ -11,7 +11,7 @@ Still needs filter and flatten functions -- hard because they need
 bounds on the amount of lookahead required.
 
 Could try (but would it work for the gfp analogue of term?)
-  LListD_Fun_def "LListD_Fun(A) == (%Z.diag({Numb(0)}) <++> diag(A) <**> Z)"
+  LListD_Fun_def "LListD_Fun(A) == (%Z. diag({Numb(0)}) <++> diag(A) <**> Z)"
 
 A nice but complex example would be [ML for the Working Programmer, page 176]
   from(1) = enumerate (Lmap (Lmap(pack), makeqq(from(1),from(1))))
@@ -74,7 +74,7 @@ coinductive "LListD(r)"
             |] ==> (CONS a M, CONS b N) : LListD(r)"
 
 translations
-  "case p of LNil => a | LCons x l => b" == "llist_case a (%x l.b) p"
+  "case p of LNil => a | LCons x l => b" == "llist_case a (%x l. b) p"
 
 
 defs
@@ -108,7 +108,7 @@ defs
   llist_corec_def
    "llist_corec a f == 
        Abs_llist(LList_corec a 
-                 (%z.case f z of Inl x    => Inl(x)
+                 (%z. case f z of Inl x    => Inl(x)
                                | Inr(v,w) => Inr(Leaf(v), w)))"
 
   llistD_Fun_def

@@ -6,7 +6,7 @@
 
 open Prefix;
 
-val [maj,min] = goal Prefix.thy "[| Q([]); !! y ys. Q(y#ys) |] ==> ! l.Q(l)";
+val [maj,min] = goal Prefix.thy "[| Q([]); !! y ys. Q(y#ys) |] ==> ! l. Q(l)";
 by (rtac allI 1);
 by (list.induct_tac "l" 1);
 by (rtac maj 1);

@@ -125,8 +125,8 @@ rules
 
   (* Isomorphisms between Predicates and Sets *)
 
-  mem_Collect_eq    "(a : {x.P(x)}) = P(a)"
-  Collect_mem_eq    "{x.x:A} = A"
+  mem_Collect_eq    "(a : {x. P(x)}) = P(a)"
+  Collect_mem_eq    "{x. x:A} = A"
 
 
 defs
@@ -136,18 +136,18 @@ defs
   subset_def    "A <= B         == ! x:A. x:B"
   psubset_def   "A < B          == (A::'a set) <= B & ~ A=B"
   Compl_def     "Compl A        == {x. ~x:A}"
-  Un_def        "A Un B         == {x.x:A | x:B}"
-  Int_def       "A Int B        == {x.x:A & x:B}"
+  Un_def        "A Un B         == {x. x:A | x:B}"
+  Int_def       "A Int B        == {x. x:A & x:B}"
   set_diff_def  "A - B          == {x. x:A & ~x:B}"
   INTER_def     "INTER A B      == {y. ! x:A. y: B(x)}"
   UNION_def     "UNION A B      == {y. ? x:A. y: B(x)}"
-  INTER1_def    "INTER1 B       == INTER {x.True} B"
-  UNION1_def    "UNION1 B       == UNION {x.True} B"
+  INTER1_def    "INTER1 B       == INTER {x. True} B"
+  UNION1_def    "UNION1 B       == UNION {x. True} B"
   Inter_def     "Inter S        == (INT x:S. x)"
   Union_def     "Union S        == (UN x:S. x)"
   Pow_def       "Pow A          == {B. B <= A}"
   empty_def     "{}             == {x. False}"
-  insert_def    "insert a B     == {x.x=a} Un B"
+  insert_def    "insert a B     == {x. x=a} Un B"
   image_def     "f``A           == {y. ? x:A. y=f(x)}"
 
 end

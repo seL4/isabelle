@@ -80,7 +80,7 @@ qed"less_lift";
                  section"UU and Def";             
 (* ---------------------------------------------------------- *)
 
-goal thy "x=UU | (? y.x=Def y)"; 
+goal thy "x=UU | (? y. x=Def y)"; 
 by (lift.induct_tac "x" 1);
 by (Asm_simp_tac 1);
 by (rtac disjI2 1);
@@ -100,7 +100,7 @@ by (lift.induct_tac "x" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "expand_lift_case";
 
-goal thy "(x~=UU)=(? y.x=Def y)";
+goal thy "(x~=UU)=(? y. x=Def y)";
 by (rtac iffI 1);
 by (rtac Lift_cases 1);
 by (REPEAT (fast_tac (HOL_cs addSIs lift.distinct) 1));

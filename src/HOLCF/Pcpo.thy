@@ -17,7 +17,7 @@ axclass cpo < po
 (* ****************************** *)
 axclass pcpo < cpo
 
-  least         "? x.!y.x<<y"
+  least         "? x.!y. x<<y"
 
 consts
   UU            :: "'a::pcpo"        
@@ -26,16 +26,16 @@ syntax (symbols)
   UU            :: "'a::pcpo"                           ("\\<bottom>")
 
 defs
-  UU_def        "UU == @x.!y.x<<y"       
+  UU_def        "UU == @x.!y. x<<y"       
 
 (* further useful classes for HOLCF domains *)
 
 axclass chfin<cpo
 
-chfin 	"!Y.is_chain Y-->(? n.max_in_chain n Y)"
+chfin 	"!Y. is_chain Y-->(? n. max_in_chain n Y)"
 
 axclass flat<pcpo
 
-ax_flat	 	"! x y.x << y --> (x = UU) | (x=y)"
+ax_flat	 	"! x y. x << y --> (x = UU) | (x=y)"
 
 end 

@@ -274,7 +274,7 @@ qed_goalw "thelub_up2b" thy [up_def,fup_def]
         ]);
 
 
-qed_goal "up_lemma2" thy  " (? x.z = up`x) = (z~=UU)"
+qed_goal "up_lemma2" thy  " (? x. z = up`x) = (z~=UU)"
  (fn prems =>
         [
         (rtac iffI 1),
@@ -317,7 +317,7 @@ qed_goal "thelub_up2b_rev" thy
 
 qed_goal "thelub_up3" thy  
 "is_chain(Y) ==> lub(range(Y)) = UU |\
-\                lub(range(Y)) = up`(lub(range(%i. fup`(LAM x.x)`(Y i))))"
+\                lub(range(Y)) = up`(lub(range(%i. fup`(LAM x. x)`(Y i))))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),

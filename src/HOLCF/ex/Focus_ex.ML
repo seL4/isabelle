@@ -63,7 +63,7 @@ by (res_inst_tac [("x","f")] exI 1);
 by (REPEAT (etac conjE 1));
 by (etac conjI 1);
 by (strip_tac 1);
-by (res_inst_tac [("x","fix`(LAM k.csnd`(f`<x,k>))")] exI 1);
+by (res_inst_tac [("x","fix`(LAM k. csnd`(f`<x,k>))")] exI 1);
 by (rtac conjI 1);
  by (asm_simp_tac HOLCF_ss 1);
  by (rtac trans 1);

@@ -5,7 +5,7 @@ open Dlist;
 (* ------------------------------------------------------------------------- *)
 
 bind_thm ("lmap_def2", fix_prover2 Dlist.thy lmap_def 
-        "lmap = (LAM f s.case s of dnil => dnil | x ## l => f`x ## lmap`f`l )");
+        "lmap = (LAM f s. case s of dnil => dnil | x ## l => f`x ## lmap`f`l )");
 
 (* ------------------------------------------------------------------------- *)
 (* recursive  properties   of lmap                                           *)

@@ -131,6 +131,6 @@ is_g		"is_g g  == (? f.
 
 def_g		"def_g g == (? f.
 			is_f f  & 
-	      		g = (LAM x. cfst`(f`<x,fix`(LAM  k.csnd`(f`<x,k>))>)))" 
+	      		g = (LAM x. cfst`(f`<x,fix`(LAM  k. csnd`(f`<x,k>))>)))" 
 
 end

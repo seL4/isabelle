@@ -9,7 +9,7 @@ Lemmas for cprod2.thy
 open Cprod2;
 
 (* for compatibility with old HOLCF-Version *)
-qed_goal "inst_cprod_po" thy "(op <<)=(%x y.fst x<<fst y & snd x<<snd y)"
+qed_goal "inst_cprod_po" thy "(op <<)=(%x y. fst x<<fst y & snd x<<snd y)"
  (fn prems => 
         [
         (fold_goals_tac [less_cprod_def]),
@@ -45,7 +45,7 @@ qed_goal "minimal_cprod" thy  "(UU,UU)<<p"
 
 bind_thm ("UU_cprod_def",minimal_cprod RS minimal2UU RS sym);
 
-qed_goal "least_cprod" thy "? x::'a*'b.!y.x<<y"
+qed_goal "least_cprod" thy "? x::'a*'b.!y. x<<y"
 (fn prems =>
         [
         (res_inst_tac [("x","(UU,UU)")] exI 1),
@@ -116,7 +116,7 @@ qed_goalw "monofun_snd" thy [monofun] "monofun snd"
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "lub_cprod" thy 
-"is_chain S ==> range S<<|(lub(range(%i.fst(S i))),lub(range(%i.snd(S i))))"
+"is_chain S ==> range S<<|(lub(range(%i. fst(S i))),lub(range(%i. snd(S i))))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -147,7 +147,7 @@ bind_thm ("thelub_cprod", lub_cprod RS thelubI);
 
 *)
 
-qed_goal "cpo_cprod" thy "is_chain(S::nat=>'a::cpo*'b::cpo)==>? x.range S<<| x"
+qed_goal "cpo_cprod" thy "is_chain(S::nat=>'a::cpo*'b::cpo)==>? x. range S<<| x"
 (fn prems =>
         [
         (cut_facts_tac prems 1),

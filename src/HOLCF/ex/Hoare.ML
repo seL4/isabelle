@@ -20,7 +20,7 @@ val hoare_lemma2 = prove_goal HOLCF.thy "b~=TT ==> b=FF | b=UU"
         ]);
 
 val hoare_lemma3 = prove_goal HOLCF.thy 
-" (!k.b1`(iterate k g x) = TT) | (? k. b1`(iterate k g x)~=TT)"
+" (!k. b1`(iterate k g x) = TT) | (? k. b1`(iterate k g x)~=TT)"
  (fn prems =>
         [
         (fast_tac HOL_cs 1)
@@ -177,8 +177,8 @@ val hoare_lemma10 = "[| ? k. b1`(iterate k g ?x1) ~= TT;
 *)
 
 val hoare_lemma11 = prove_goal Hoare.thy 
-"(? n.b1`(iterate n g x) ~= TT) ==>\
-\ k=Least(%n.b1`(iterate n g x) ~= TT) & b1`(iterate k g x)=FF \
+"(? n. b1`(iterate n g x) ~= TT) ==>\
+\ k=Least(%n. b1`(iterate n g x) ~= TT) & b1`(iterate k g x)=FF \
 \ --> p`x = iterate k g x"
  (fn prems =>
         [

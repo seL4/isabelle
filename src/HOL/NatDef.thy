@@ -56,7 +56,7 @@ syntax
 translations
    "1"  == "Suc 0"
    "2"  == "Suc 1"
-  "case p of 0 => a | Suc y => b" == "nat_case a (%y.b) p"
+  "case p of 0 => a | Suc y => b" == "nat_case a (%y. b) p"
 
 
 defs

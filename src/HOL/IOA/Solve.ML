@@ -22,7 +22,7 @@ goalw Solve.thy [is_weak_pmap_def,traces_def]
   by (Asm_full_simp_tac 1);
 
   (* give execution of abstract automata *)
-  by (res_inst_tac[("x","(mk_trace A (fst ex),%i.f(snd ex i))")] bexI 1);
+  by (res_inst_tac[("x","(mk_trace A (fst ex),%i. f(snd ex i))")] bexI 1);
 
   (* Traces coincide *)
   by (asm_simp_tac (!simpset addsimps [mk_trace_def,filter_oseq_idemp])1);
@@ -68,9 +68,9 @@ goal Solve.thy "!!s.[| reachable (C1||C2) s |] ==> reachable C1 (fst s)";
 by (asm_full_simp_tac (!simpset addsimps [reachable_def]) 1); 
 by (etac bexE 1);
 by (res_inst_tac [("x",
-   "(filter_oseq (%a.a:actions(asig_of(C1))) \
+   "(filter_oseq (%a. a:actions(asig_of(C1))) \
 \                (fst ex),                                                \
-\    %i.fst (snd ex i))")]  bexI 1);
+\    %i. fst (snd ex i))")]  bexI 1);
 (* fst(s) is in projected execution *)
  by (Simp_tac 1);
  by (Fast_tac 1);
@@ -88,9 +88,9 @@ goal Solve.thy "!!s.[| reachable (C1||C2) s|] ==> reachable C2 (snd s)";
 by (asm_full_simp_tac (!simpset addsimps [reachable_def]) 1); 
 by (etac bexE 1);
 by (res_inst_tac [("x",
-   "(filter_oseq (%a.a:actions(asig_of(C2)))\
+   "(filter_oseq (%a. a:actions(asig_of(C2)))\
 \                (fst ex),                                                \
-\    %i.snd (snd ex i))")]  bexI 1);
+\    %i. snd (snd ex i))")]  bexI 1);
 (* fst(s) is in projected execution *)
  by (Simp_tac 1);
  by (Fast_tac 1);

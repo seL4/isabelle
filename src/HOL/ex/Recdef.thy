@@ -94,9 +94,9 @@ recdef fqsort "measure (size o snd)"
    TFL requires (%x.mapf x) instead of mapf.
 *)
 consts mapf :: nat => nat list
-recdef mapf "measure(%m.m)"
+recdef mapf "measure(%m. m)"
 congs "[map_cong]"
 "mapf 0 = []"
-"mapf (Suc n) = concat(map (%x.mapf x) (replicate n n))"
+"mapf (Suc n) = concat(map (%x. mapf x) (replicate n n))"
 
 end

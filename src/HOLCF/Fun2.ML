@@ -9,7 +9,7 @@ Lemmas for fun2.thy
 open Fun2;
 
 (* for compatibility with old HOLCF-Version *)
-qed_goal "inst_fun_po" thy "(op <<)=(%f g.!x.f x << g x)"
+qed_goal "inst_fun_po" thy "(op <<)=(%f g.!x. f x << g x)"
  (fn prems => 
         [
 	(fold_goals_tac [less_fun_def]),
@@ -20,7 +20,7 @@ qed_goal "inst_fun_po" thy "(op <<)=(%f g.!x.f x << g x)"
 (* Type 'a::term => 'b::pcpo is pointed                                     *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "minimal_fun" thy "(%z.UU) << x"
+qed_goal "minimal_fun" thy "(%z. UU) << x"
 (fn prems =>
         [
         (simp_tac (!simpset addsimps [inst_fun_po,minimal]) 1)
@@ -28,10 +28,10 @@ qed_goal "minimal_fun" thy "(%z.UU) << x"
 
 bind_thm ("UU_fun_def",minimal_fun RS minimal2UU RS sym);
 
-qed_goal "least_fun" thy "? x::'a=>'b::pcpo.!y.x<<y"
+qed_goal "least_fun" thy "? x::'a=>'b::pcpo.!y. x<<y"
 (fn prems =>
         [
-        (res_inst_tac [("x","(%z.UU)")] exI 1),
+        (res_inst_tac [("x","(%z. UU)")] exI 1),
         (rtac (minimal_fun RS allI) 1)
         ]);
 
@@ -52,7 +52,7 @@ qed_goal "less_fun" thy "(f1 << f2) = (! x. f1(x) << f2(x))"
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "ch2ch_fun" thy 
-        "is_chain(S::nat=>('a=>'b::po)) ==> is_chain(% i.S(i)(x))"
+        "is_chain(S::nat=>('a=>'b::po)) ==> is_chain(% i. S(i)(x))"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -87,7 +87,7 @@ qed_goal "ub2ub_fun" Fun2.thy
 
 qed_goal "lub_fun"  Fun2.thy
         "is_chain(S::nat=>('a::term => 'b::cpo)) ==> \
-\        range(S) <<| (% x.lub(range(% i.S(i)(x))))"
+\        range(S) <<| (% x. lub(range(% i. S(i)(x))))"
 (fn prems =>
         [
         (cut_facts_tac prems 1),

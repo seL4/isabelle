@@ -90,15 +90,15 @@ section "!";
 qed_goalw "allI" HOL.thy [All_def] "(!!x::'a. P(x)) ==> !x. P(x)"
  (fn prems => [resolve_tac (prems RL [eqTrueI RS ext]) 1]);
 
-qed_goalw "spec" HOL.thy [All_def] "! x::'a.P(x) ==> P(x)"
+qed_goalw "spec" HOL.thy [All_def] "! x::'a. P(x) ==> P(x)"
  (fn prems => [rtac eqTrueE 1, resolve_tac (prems RL [fun_cong]) 1]);
 
-qed_goal "allE" HOL.thy "[| !x.P(x);  P(x) ==> R |] ==> R"
+qed_goal "allE" HOL.thy "[| !x. P(x);  P(x) ==> R |] ==> R"
  (fn major::prems=>
   [ (REPEAT (resolve_tac (prems @ [major RS spec]) 1)) ]);
 
 qed_goal "all_dupE" HOL.thy 
-    "[| ! x.P(x);  [| P(x); ! x.P(x) |] ==> R |] ==> R"
+    "[| ! x. P(x);  [| P(x); ! x. P(x) |] ==> R |] ==> R"
  (fn prems =>
   [ (REPEAT (resolve_tac (prems @ (prems RL [spec])) 1)) ]);
 
@@ -155,11 +155,11 @@ bind_thm("not_sym", sym COMP rev_contrapos);
 (** Existential quantifier **)
 section "?";
 
-qed_goalw "exI" HOL.thy [Ex_def] "P(x) ==> ? x::'a.P(x)"
+qed_goalw "exI" HOL.thy [Ex_def] "P(x) ==> ? x::'a. P(x)"
  (fn prems => [rtac selectI 1, resolve_tac prems 1]);
 
 qed_goalw "exE" HOL.thy [Ex_def]
-  "[| ? x::'a.P(x); !!x. P(x) ==> Q |] ==> Q"
+  "[| ? x::'a. P(x); !!x. P(x) ==> Q |] ==> Q"
   (fn prems => [REPEAT(resolve_tac prems 1)]);
 
 
@@ -237,12 +237,12 @@ qed_goalw "ex1I" HOL.thy [Ex1_def]
 
 (*Sometimes easier to use: the premises have no shared variables.  Safe!*)
 qed_goal "ex_ex1I" HOL.thy
-    "[| ? x.P(x);  !!x y. [| P(x); P(y) |] ==> x=y |] ==> ?! x. P(x)"
+    "[| ? x. P(x);  !!x y. [| P(x); P(y) |] ==> x=y |] ==> ?! x. P(x)"
  (fn [ex,eq] => [ (rtac (ex RS exE) 1),
                   (REPEAT (ares_tac [ex1I,eq] 1)) ]);
 
 qed_goalw "ex1E" HOL.thy [Ex1_def]
-    "[| ?! x.P(x);  !!x. [| P(x);  ! y. P(y) --> y=x |] ==> R |] ==> R"
+    "[| ?! x. P(x);  !!x. [| P(x);  ! y. P(y) --> y=x |] ==> R |] ==> R"
  (fn major::prems =>
   [rtac (major RS exE) 1, REPEAT (etac conjE 1 ORELSE ares_tac prems 1)]);
 
@@ -252,23 +252,23 @@ section "@";
 
 (*Easier to apply than selectI: conclusion has only one occurrence of P*)
 qed_goal "selectI2" HOL.thy
-    "[| P(a);  !!x. P(x) ==> Q(x) |] ==> Q(@x.P(x))"
+    "[| P(a);  !!x. P(x) ==> Q(x) |] ==> Q(@x. P(x))"
  (fn prems => [ resolve_tac prems 1, 
                 rtac selectI 1, 
                 resolve_tac prems 1 ]);
 
 (*Easier to apply than selectI2 if witness ?a comes from an EX-formula*)
 qed_goal "selectI2EX" HOL.thy
-  "[| ? a.P a; !!x. P x ==> Q x |] ==> Q(Eps P)"
+  "[| ? a. P a; !!x. P x ==> Q x |] ==> Q(Eps P)"
 (fn [major,minor] => [rtac (major RS exE) 1, etac selectI2 1, etac minor 1]);
 
 qed_goal "select_equality" HOL.thy
-    "[| P(a);  !!x. P(x) ==> x=a |] ==> (@x.P(x)) = a"
+    "[| P(a);  !!x. P(x) ==> x=a |] ==> (@x. P(x)) = a"
  (fn prems => [ rtac selectI2 1, 
                 REPEAT (ares_tac prems 1) ]);
 
 qed_goalw "select1_equality" HOL.thy [Ex1_def]
-  "!!P. [| ?!x.P(x); P(a) |] ==> (@x.P(x)) = a"
+  "!!P. [| ?!x. P(x); P(a) |] ==> (@x. P(x)) = a"
 (fn _ => [rtac select_equality 1, atac 1,
           etac exE 1, etac conjE 1,
           rtac allE 1, atac 1,
@@ -313,7 +313,7 @@ qed_goal "iffCE" HOL.thy
     (REPEAT (DEPTH_SOLVE_1 
         (eresolve_tac ([asm_rl,impCE,notE]@prems) 1))) ]);
 
-qed_goal "exCI" HOL.thy "(! x. ~P(x) ==> P(a)) ==> ? x.P(x)"
+qed_goal "exCI" HOL.thy "(! x. ~P(x) ==> P(a)) ==> ? x. P(x)"
  (fn prems=>
   [ (rtac ccontr 1),
     (REPEAT (ares_tac (prems@[exI,allI,notI,notE]) 1))  ]);

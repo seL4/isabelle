@@ -134,7 +134,7 @@ qed_goal "sprod3_lemma4" thy
         (res_inst_tac [("f1","Ispair")] (arg_cong RS cong) 1),
         (rtac sym 1),
         (rtac lub_chain_maxelem 1),
-        (res_inst_tac [("P","%j.Y(j)~=UU")] exE 1),
+        (res_inst_tac [("P","%j. Y(j)~=UU")] exE 1),
         (rtac (not_all RS iffD1) 1),
         (res_inst_tac [("Q","lub(range(Y)) = UU")] contrapos 1),
         (atac 1),
@@ -315,7 +315,7 @@ qed_goal "spair_eq" thy "[|x1=x2;y1=y2|] ==> (|x1,y1|) = (|x2,y2|)"
 (* ------------------------------------------------------------------------ *)
 
 qed_goalw "beta_cfun_sprod" thy [spair_def]
-        "(LAM x y.Ispair x y)`a`b = Ispair a b"
+        "(LAM x y. Ispair x y)`a`b = Ispair a b"
  (fn prems =>
         [
         (stac beta_cfun 1),
@@ -564,7 +564,7 @@ qed_goalw "surjective_pairing_Sprod2" thy
 
 qed_goalw "lub_sprod2" thy [sfst_def,ssnd_def,spair_def]
 "[|is_chain(S)|] ==> range(S) <<| \
-\ (| lub(range(%i.sfst`(S i))), lub(range(%i.ssnd`(S i))) |)"
+\ (| lub(range(%i. sfst`(S i))), lub(range(%i. ssnd`(S i))) |)"
  (fn prems =>
         [
         (cut_facts_tac prems 1),

@@ -13,11 +13,11 @@ section "Relating predicates and sets";
 Addsimps [Collect_mem_eq];
 AddIffs  [mem_Collect_eq];
 
-goal Set.thy "!!a. P(a) ==> a : {x.P(x)}";
+goal Set.thy "!!a. P(a) ==> a : {x. P(x)}";
 by (Asm_simp_tac 1);
 qed "CollectI";
 
-val prems = goal Set.thy "!!a. a : {x.P(x)} ==> P(a)";
+val prems = goal Set.thy "!!a. a : {x. P(x)} ==> P(a)";
 by (Asm_full_simp_tac 1);
 qed "CollectD";
 
@@ -67,7 +67,7 @@ by (REPEAT (ares_tac (prems @ [exI,conjI]) 1));
 qed "bexI";
 
 qed_goal "bexCI" Set.thy 
-   "[| ! x:A. ~P(x) ==> P(a);  a:A |] ==> ? x:A.P(x)"
+   "[| ! x:A. ~P(x) ==> P(a);  a:A |] ==> ? x:A. P(x)"
  (fn prems=>
   [ (rtac classical 1),
     (REPEAT (ares_tac (prems@[bexI,ballI,notI,notE]) 1))  ]);
@@ -82,12 +82,12 @@ AddIs  [bexI];
 AddSEs [bexE];
 
 (*Trival rewrite rule*)
-goal Set.thy "(! x:A.P) = ((? x. x:A) --> P)";
+goal Set.thy "(! x:A. P) = ((? x. x:A) --> P)";
 by (simp_tac (!simpset addsimps [Ball_def]) 1);
 qed "ball_triv";
 
 (*Dual form for existentials*)
-goal Set.thy "(? x:A.P) = ((? x. x:A) & P)";
+goal Set.thy "(? x:A. P) = ((? x. x:A) & P)";
 by (simp_tac (!simpset addsimps [Bex_def]) 1);
 qed "bex_triv";
 
@@ -113,7 +113,7 @@ qed "bex_cong";
 
 section "Subsets";
 
-val prems = goalw Set.thy [subset_def] "(!!x.x:A ==> x:B) ==> A <= B";
+val prems = goalw Set.thy [subset_def] "(!!x. x:A ==> x:B) ==> A <= B";
 by (REPEAT (ares_tac (prems @ [ballI]) 1));
 qed "subsetI";
 
@@ -415,7 +415,7 @@ AddSIs [singletonI];
 AddSDs [singleton_inject];
 AddSEs [singletonE];
 
-goal Set.thy "{x.x=a} = {a}";
+goal Set.thy "{x. x=a} = {a}";
 by(Blast_tac 1);
 qed "singleton_conv";
 Addsimps [singleton_conv];
@@ -606,7 +606,7 @@ bind_thm ("imageI", refl RS image_eqI);
 
 (*The eta-expansion gives variable-name preservation.*)
 val major::prems = goalw thy [image_def]
-    "[| b : (%x.f(x))``A;  !!x.[| b=f(x);  x:A |] ==> P |] ==> P"; 
+    "[| b : (%x. f(x))``A;  !!x.[| b=f(x);  x:A |] ==> P |] ==> P"; 
 by (rtac (major RS CollectD RS bexE) 1);
 by (REPEAT (ares_tac prems 1));
 qed "imageE";
@@ -632,7 +632,7 @@ bind_thm ("range_eqI", UNIV_I RSN (2,image_eqI));
 bind_thm ("rangeI", UNIV_I RS imageI);
 
 val [major,minor] = goal thy 
-    "[| b : range(%x.f(x));  !!x. b=f(x) ==> P |] ==> P"; 
+    "[| b : range(%x. f(x));  !!x. b=f(x) ==> P |] ==> P"; 
 by (rtac (major RS imageE) 1);
 by (etac minor 1);
 qed "rangeE";

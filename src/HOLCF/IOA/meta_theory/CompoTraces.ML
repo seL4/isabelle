@@ -24,24 +24,24 @@ bind_thm ("mksch_unfold", fix_prover2 thy mksch_def
 \      | Def y => \
 \         (if y:act A then \
 \             (if y:act B then \ 
-\                   ((Takewhile (%a.a:int A)`schA) \
-\                         @@(Takewhile (%a.a:int B)`schB) \
+\                   ((Takewhile (%a. a:int A)`schA) \
+\                         @@(Takewhile (%a. a:int B)`schB) \
 \                              @@(y>>(mksch A B`xs   \
-\                                       `(TL`(Dropwhile (%a.a:int A)`schA))  \
-\                                       `(TL`(Dropwhile (%a.a:int B)`schB))  \
+\                                       `(TL`(Dropwhile (%a. a:int A)`schA))  \
+\                                       `(TL`(Dropwhile (%a. a:int B)`schB))  \
 \                    )))   \
 \              else  \
-\                 ((Takewhile (%a.a:int A)`schA)  \
+\                 ((Takewhile (%a. a:int A)`schA)  \
 \                      @@ (y>>(mksch A B`xs  \
-\                              `(TL`(Dropwhile (%a.a:int A)`schA))  \
+\                              `(TL`(Dropwhile (%a. a:int A)`schA))  \
 \                              `schB)))  \
 \              )   \
 \          else    \
 \             (if y:act B then  \ 
-\                 ((Takewhile (%a.a:int B)`schB)  \
+\                 ((Takewhile (%a. a:int B)`schB)  \
 \                       @@ (y>>(mksch A B`xs   \
 \                              `schA   \
-\                              `(TL`(Dropwhile (%a.a:int B)`schB))  \
+\                              `(TL`(Dropwhile (%a. a:int B)`schB))  \
 \                              )))  \
 \             else  \
 \               UU  \
@@ -62,8 +62,8 @@ qed"mksch_nil";
 
 goal thy "!!x.[|x:act A;x~:act B|]  \
 \   ==> mksch A B`(x>>tr)`schA`schB = \
-\         (Takewhile (%a.a:int A)`schA) \
-\         @@ (x>>(mksch A B`tr`(TL`(Dropwhile (%a.a:int A)`schA)) \
+\         (Takewhile (%a. a:int A)`schA) \
+\         @@ (x>>(mksch A B`tr`(TL`(Dropwhile (%a. a:int A)`schA)) \
 \                             `schB))";
 by (rtac trans 1);
 by (stac mksch_unfold 1);
@@ -73,8 +73,8 @@ qed"mksch_cons1";
 
 goal thy "!!x.[|x~:act A;x:act B|] \
 \   ==> mksch A B`(x>>tr)`schA`schB = \
-\        (Takewhile (%a.a:int B)`schB)  \
-\         @@ (x>>(mksch A B`tr`schA`(TL`(Dropwhile (%a.a:int B)`schB))  \
+\        (Takewhile (%a. a:int B)`schB)  \
+\         @@ (x>>(mksch A B`tr`schA`(TL`(Dropwhile (%a. a:int B)`schB))  \
 \                            ))";
 by (rtac trans 1);
 by (stac mksch_unfold 1);
@@ -84,10 +84,10 @@ qed"mksch_cons2";
 
 goal thy "!!x.[|x:act A;x:act B|] \
 \   ==> mksch A B`(x>>tr)`schA`schB = \
-\            (Takewhile (%a.a:int A)`schA) \
-\         @@ ((Takewhile (%a.a:int B)`schB)  \
-\         @@ (x>>(mksch A B`tr`(TL`(Dropwhile (%a.a:int A)`schA)) \
-\                            `(TL`(Dropwhile (%a.a:int B)`schB))))  \
+\            (Takewhile (%a. a:int A)`schA) \
+\         @@ ((Takewhile (%a. a:int B)`schB)  \
+\         @@ (x>>(mksch A B`tr`(TL`(Dropwhile (%a. a:int A)`schA)) \
+\                            `(TL`(Dropwhile (%a. a:int B)`schB))))  \
 \             )";
 by (rtac trans 1);
 by (stac mksch_unfold 1);
@@ -208,7 +208,7 @@ bind_thm ("ForallAnBmksch",ForallAnB_mksch RS spec RS spec RS mp);
 Delsimps [FiniteConc];
 
 goal thy "!! tr. [| Finite tr; is_asig(asig_of A); is_asig(asig_of B) |] ==> \
-\   ! x y. Forall (%x.x:act A) x & Forall (%x.x:act B) y & \
+\   ! x y. Forall (%x. x:act A) x & Forall (%x. x:act B) y & \
 \          Filter (%a. a:ext A)`x = Filter (%a. a:act A)`tr & \
 \          Filter (%a. a:ext B)`y = Filter (%a. a:act B)`tr &\
 \          Forall (%x. x:ext (A||B)) tr \
@@ -283,7 +283,7 @@ Addsimps [FiniteConc];
 Delsimps [FilterConc]; 
 
 goal thy " !!bs. [| Finite bs; is_asig(asig_of A); is_asig(asig_of B);compatible A B|] ==>  \
-\! y.Forall (%x.x:act B) y & Forall (%x. x:act B & x~:act A) bs &\
+\! y. Forall (%x. x:act B) y & Forall (%x. x:act B & x~:act A) bs &\
 \    Filter (%a. a:ext B)`y = Filter (%a. a:act B)`(bs @@ z) \
 \    --> (? y1 y2.  (mksch A B`(bs @@ z)`x`y) = (y1 @@ (mksch A B`z`x`y2)) & \
 \                   Forall (%x. x:act B & x~:act A) y1 & \
@@ -312,7 +312,7 @@ by (assume_tac 1);
 Addsimps [FilterConc]; 
 by (asm_full_simp_tac (!simpset addsimps [FilterPTakewhileQnil,not_ext_is_int_or_not_act]) 1);
 (* apply IH *)
-by (eres_inst_tac [("x","TL`(Dropwhile (%a.a:int B)`y)")] allE 1);
+by (eres_inst_tac [("x","TL`(Dropwhile (%a. a:int B)`y)")] allE 1);
 by (asm_full_simp_tac (!simpset addsimps [ForallTL,ForallDropwhile])1);
 by (REPEAT (etac exE 1));
 by (REPEAT (etac conjE 1));
@@ -321,7 +321,7 @@ by (Asm_full_simp_tac 1);
 by (rotate_tac ~2 1); 
 by (Asm_full_simp_tac 1); 
 (* instantiate y1a and y2a *)
-by (res_inst_tac [("x","Takewhile (%a.a:int B)`y @@ a>>y1")] exI 1);
+by (res_inst_tac [("x","Takewhile (%a. a:int B)`y @@ a>>y1")] exI 1);
 by (res_inst_tac [("x","y2")] exI 1);
 (* elminate all obligations up to two depending on Conc_assoc *)
 by (asm_full_simp_tac (!simpset addsimps [ForallPTakewhileQ, intA_is_not_actB,
@@ -338,7 +338,7 @@ Delsimps [FilterConc];
 
 
 goal thy " !!as. [| Finite as; is_asig(asig_of A); is_asig(asig_of B);compatible A B|] ==>  \
-\! x.Forall (%x.x:act A) x & Forall (%x. x:act A & x~:act B) as &\
+\! x. Forall (%x. x:act A) x & Forall (%x. x:act A & x~:act B) as &\
 \    Filter (%a. a:ext A)`x = Filter (%a. a:act A)`(as @@ z) \
 \    --> (? x1 x2.  (mksch A B`(as @@ z)`x`y) = (x1 @@ (mksch A B`z`x2`y)) & \
 \                   Forall (%x. x:act A & x~:act B) x1 & \
@@ -367,7 +367,7 @@ by (assume_tac 1);
 Addsimps [FilterConc]; 
 by (asm_full_simp_tac (!simpset addsimps [FilterPTakewhileQnil,not_ext_is_int_or_not_act]) 1);
 (* apply IH *)
-by (eres_inst_tac [("x","TL`(Dropwhile (%a.a:int A)`x)")] allE 1);
+by (eres_inst_tac [("x","TL`(Dropwhile (%a. a:int A)`x)")] allE 1);
 by (asm_full_simp_tac (!simpset addsimps [ForallTL,ForallDropwhile])1);
 by (REPEAT (etac exE 1));
 by (REPEAT (etac conjE 1));
@@ -376,7 +376,7 @@ by (Asm_full_simp_tac 1);
 by (rotate_tac ~2 1); 
 by (Asm_full_simp_tac 1); 
 (* instantiate y1a and y2a *)
-by (res_inst_tac [("x","Takewhile (%a.a:int A)`x @@ a>>x1")] exI 1);
+by (res_inst_tac [("x","Takewhile (%a. a:int A)`x @@ a>>x1")] exI 1);
 by (res_inst_tac [("x","x2")] exI 1);
 (* elminate all obligations up to two depending on Conc_assoc *)
 by (asm_full_simp_tac (!simpset addsimps [ForallPTakewhileQ, intA_is_not_actB,
@@ -434,7 +434,7 @@ by (case_tac "aaa:act B" 2);
 by (rotate_tac ~2 2);
 by (rotate_tac ~2 3);
 by (asm_full_simp_tac (HOL_basic_ss addsimps [mksch_cons3]) 2);
-by (eres_inst_tac [("x","sb@@Takewhile (%a.a: int A)`a @@ Takewhile (%a.a:int B)`b@@(aaa>>nil)")] allE 2);
+by (eres_inst_tac [("x","sb@@Takewhile (%a. a: int A)`a @@ Takewhile (%a. a:int B)`b@@(aaa>>nil)")] allE 2);
 by (eres_inst_tac [("x","sa")] allE 2);
 by (asm_full_simp_tac (!simpset addsimps [Conc_assoc])2);
 
@@ -481,11 +481,11 @@ finiteR_mksch
 goal thy 
 "!! A B. [| compatible A B; compatible B A;\
 \           is_asig(asig_of A); is_asig(asig_of B) |] ==> \
-\ ! schA schB. Forall (%x.x:act A) schA & Forall (%x.x:act B) schB & \
-\ Forall (%x.x:ext (A||B)) tr & \
-\ Filter (%a.a:act A)`tr << Filter (%a.a:ext A)`schA &\
-\ Filter (%a.a:act B)`tr << Filter (%a.a:ext B)`schB  \
-\ --> Filter (%a.a:ext (A||B))`(mksch A B`tr`schA`schB) = tr";
+\ ! schA schB. Forall (%x. x:act A) schA & Forall (%x. x:act B) schB & \
+\ Forall (%x. x:ext (A||B)) tr & \
+\ Filter (%a. a:act A)`tr << Filter (%a. a:ext A)`schA &\
+\ Filter (%a. a:act B)`tr << Filter (%a. a:ext B)`schB  \
+\ --> Filter (%a. a:ext (A||B))`(mksch A B`tr`schA`schB) = tr";
 
 by (Seq_induct_tac "tr" [Forall_def,sforall_def,mksch_def] 1);
 
@@ -557,12 +557,12 @@ With uncomplete take lemma rule should be reused afterwards !!!!!!!!!!!!!!!!!
 
 goal thy "!! A B. [| compatible A B; compatible B A; \
 \ is_asig(asig_of A); is_asig(asig_of B) |] ==> \
-\ Forall (%x.x:ext (A||B)) tr & \
-\ Forall (%x.x:act A) schA & Forall (%x.x:act B) schB & \
-\ Filter (%a.a:ext A)`schA = Filter (%a.a:act A)`tr &\
-\ Filter (%a.a:ext B)`schB = Filter (%a.a:act B)`tr &\
+\ Forall (%x. x:ext (A||B)) tr & \
+\ Forall (%x. x:act A) schA & Forall (%x. x:act B) schB & \
+\ Filter (%a. a:ext A)`schA = Filter (%a. a:act A)`tr &\
+\ Filter (%a. a:ext B)`schB = Filter (%a. a:act B)`tr &\
 \ LastActExtsch A schA & LastActExtsch B schB  \
-\ --> Filter (%a.a:act A)`(mksch A B`tr`schA`schB) = schA";
+\ --> Filter (%a. a:act A)`(mksch A B`tr`schA`schB) = schA";
 
 by (res_inst_tac [("Q","%x. x:act B & x~:act A"),("x","tr")] take_lemma_less_induct 1);
 by (REPEAT (etac conjE 1));
@@ -613,7 +613,7 @@ by (Asm_full_simp_tac  1);
 
 (* eliminate the B-only prefix *)
 
-by (subgoal_tac "(Filter (%a.a :act A)`y1) = nil" 1);
+by (subgoal_tac "(Filter (%a. a :act A)`y1) = nil" 1);
 by (etac ForallQFilterPnil 2);
 by (assume_tac 2);
 by (Fast_tac 2);
@@ -691,12 +691,12 @@ by (Asm_full_simp_tac 1);
 
 goal thy "!! A B. [| compatible A B; compatible B A; \
 \ is_asig(asig_of A); is_asig(asig_of B) |] ==> \
-\ Forall (%x.x:ext (A||B)) tr & \
-\ Forall (%x.x:act A) schA & Forall (%x.x:act B) schB & \
-\ Filter (%a.a:ext A)`schA = Filter (%a.a:act A)`tr &\
-\ Filter (%a.a:ext B)`schB = Filter (%a.a:act B)`tr &\
+\ Forall (%x. x:ext (A||B)) tr & \
+\ Forall (%x. x:act A) schA & Forall (%x. x:act B) schB & \
+\ Filter (%a. a:ext A)`schA = Filter (%a. a:act A)`tr &\
+\ Filter (%a. a:ext B)`schB = Filter (%a. a:act B)`tr &\
 \ LastActExtsch A schA & LastActExtsch B schB  \
-\ --> Filter (%a.a:act A)`(mksch A B`tr`schA`schB) = schA";
+\ --> Filter (%a. a:act A)`(mksch A B`tr`schA`schB) = schA";
 
 by (strip_tac 1);
 by (rtac seq.take_lemma 1);
@@ -730,7 +730,7 @@ by (SELECT_GOAL (auto_tac (!claset addSIs [ForallQFilterPnil,ForallBnAmksch,Fini
 (* second side: schA = nil *)
 by (eres_inst_tac [("A","A")] LastActExtimplnil 1);
 by (Asm_simp_tac 1);
-by (eres_inst_tac [("Q","%x.x:act B & x~:act A")] ForallQFilterPnil 1);
+by (eres_inst_tac [("Q","%x. x:act B & x~:act A")] ForallQFilterPnil 1);
 by (assume_tac 1);
 by (Fast_tac 1);
 
@@ -747,7 +747,7 @@ by (SELECT_GOAL (auto_tac (!claset addSIs [ForallQFilterPUU,
 (* schA = UU *)
 by (eres_inst_tac [("A","A")] LastActExtimplUU 1);
 by (Asm_simp_tac 1);
-by (eres_inst_tac [("Q","%x.x:act B & x~:act A")] ForallQFilterPUU 1);
+by (eres_inst_tac [("Q","%x. x:act B & x~:act A")] ForallQFilterPUU 1);
 by (assume_tac 1);
 by (Fast_tac 1);
 
@@ -771,7 +771,7 @@ by (Asm_full_simp_tac  1);
 
 (* eliminate the B-only prefix *)
 
-by (subgoal_tac "(Filter (%a.a :act A)`y1) = nil" 1);
+by (subgoal_tac "(Filter (%a. a :act A)`y1) = nil" 1);
 by (etac ForallQFilterPnil 2);
 by (assume_tac 2);
 by (Fast_tac 2);
@@ -833,7 +833,7 @@ by (assume_tac 1);
 
 (* assumption Forall schA *)
 by (dres_inst_tac [("s","schA"),
-                   ("P","Forall (%x.x:act A)")] subst 1);
+                   ("P","Forall (%x. x:act A)")] subst 1);
 by (assume_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [ForallPTakewhileQ, int_is_act]) 1);
 
@@ -933,12 +933,12 @@ qed"FilterAmksch_is_schA";
 
 goal thy "!! A B. [| compatible A B; compatible B A; \
 \ is_asig(asig_of A); is_asig(asig_of B) |] ==> \
-\ Forall (%x.x:ext (A||B)) tr & \
-\ Forall (%x.x:act A) schA & Forall (%x.x:act B) schB & \
-\ Filter (%a.a:ext A)`schA = Filter (%a.a:act A)`tr &\
-\ Filter (%a.a:ext B)`schB = Filter (%a.a:act B)`tr &\
+\ Forall (%x. x:ext (A||B)) tr & \
+\ Forall (%x. x:act A) schA & Forall (%x. x:act B) schB & \
+\ Filter (%a. a:ext A)`schA = Filter (%a. a:act A)`tr &\
+\ Filter (%a. a:ext B)`schB = Filter (%a. a:act B)`tr &\
 \ LastActExtsch A schA & LastActExtsch B schB  \
-\ --> Filter (%a.a:act B)`(mksch A B`tr`schA`schB) = schB";
+\ --> Filter (%a. a:act B)`(mksch A B`tr`schA`schB) = schB";
 
 by (strip_tac 1);
 by (rtac seq.take_lemma 1);
@@ -972,7 +972,7 @@ by (SELECT_GOAL (auto_tac (!claset addSIs [ForallQFilterPnil,ForallAnBmksch,Fini
 (* second side: schA = nil *)
 by (eres_inst_tac [("A","B")] LastActExtimplnil 1);
 by (Asm_simp_tac 1);
-by (eres_inst_tac [("Q","%x.x:act A & x~:act B")] ForallQFilterPnil 1);
+by (eres_inst_tac [("Q","%x. x:act A & x~:act B")] ForallQFilterPnil 1);
 by (assume_tac 1);
 by (Fast_tac 1);
 
@@ -989,7 +989,7 @@ by (SELECT_GOAL (auto_tac (!claset addSIs [ForallQFilterPUU,
 (* schA = UU *)
 by (eres_inst_tac [("A","B")] LastActExtimplUU 1);
 by (Asm_simp_tac 1);
-by (eres_inst_tac [("Q","%x.x:act A & x~:act B")] ForallQFilterPUU 1);
+by (eres_inst_tac [("Q","%x. x:act A & x~:act B")] ForallQFilterPUU 1);
 by (assume_tac 1);
 by (Fast_tac 1);
 
@@ -1013,7 +1013,7 @@ by (Asm_full_simp_tac  1);
 
 (* eliminate the A-only prefix *)
 
-by (subgoal_tac "(Filter (%a.a :act B)`x1) = nil" 1);
+by (subgoal_tac "(Filter (%a. a :act B)`x1) = nil" 1);
 by (etac ForallQFilterPnil 2);
 by (assume_tac 2);
 by (Fast_tac 2);
@@ -1075,7 +1075,7 @@ by (assume_tac 1);
 
 (* assumption Forall schB *)
 by (dres_inst_tac [("s","schB"),
-                   ("P","Forall (%x.x:act B)")] subst 1);
+                   ("P","Forall (%x. x:act B)")] subst 1);
 by (assume_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [ForallPTakewhileQ, int_is_act]) 1);
 
@@ -1173,8 +1173,8 @@ goal thy
 "!! A B. [| is_trans_of A; is_trans_of B; compatible A B; compatible B A; \
 \           is_asig(asig_of A); is_asig(asig_of B)|] \
 \       ==>  tr: traces(A||B) = \
-\            (Filter (%a.a:act A)`tr : traces A &\
-\             Filter (%a.a:act B)`tr : traces B &\
+\            (Filter (%a. a:act A)`tr : traces A &\
+\             Filter (%a. a:act B)`tr : traces B &\
 \             Forall (%x. x:ext(A||B)) tr)";
 
 by (simp_tac (!simpset addsimps [traces_def,has_trace_def]) 1);
@@ -1182,12 +1182,12 @@ by (safe_tac set_cs);
  
 (* ==> *) 
 (* There is a schedule of A *)
-by (res_inst_tac [("x","Filter (%a.a:act A)`sch")] bexI 1);
+by (res_inst_tac [("x","Filter (%a. a:act A)`sch")] bexI 1);
 by (asm_full_simp_tac (!simpset addsimps [compositionality_sch]) 2);
 by (asm_full_simp_tac (!simpset addsimps [compatibility_consequence1,
                   externals_of_par,ext1_ext2_is_not_act1]) 1);
 (* There is a schedule of B *)
-by (res_inst_tac [("x","Filter (%a.a:act B)`sch")] bexI 1);
+by (res_inst_tac [("x","Filter (%a. a:act B)`sch")] bexI 1);
 by (asm_full_simp_tac (!simpset addsimps [compositionality_sch]) 2);
 by (asm_full_simp_tac (!simpset addsimps [compatibility_consequence2,
                   externals_of_par,ext1_ext2_is_not_act2]) 1);

@@ -35,7 +35,7 @@ val int_simps = map prover
    "(P .| #True) .= #True", "(#True .| P) .= #True", 
    "(P .| #False) .= P", "(#False .| P) .= P", 
    "(P .| P) .= P", "(P .| .~P) .= #True", "(.~P .| P) .= #True",
-   "(RALL x.P) .= P", "(REX x.P) .= P",
+   "(RALL x. P) .= P", "(REX x. P) .= P",
    "(.~Q .-> .~P) .= (P .-> Q)",
    "(P.|Q .-> R) .= ((P.->R).&(Q.->R))" ];
 

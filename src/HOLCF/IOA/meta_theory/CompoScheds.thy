@@ -67,8 +67,8 @@ par_scheds_def
        let schA = fst SchedsA; sigA = snd SchedsA; 
            schB = fst SchedsB; sigB = snd SchedsB       
        in
-       (    {sch. Filter (%a.a:actions sigA)`sch : schA}
-        Int {sch. Filter (%a.a:actions sigB)`sch : schB}
+       (    {sch. Filter (%a. a:actions sigA)`sch : schA}
+        Int {sch. Filter (%a. a:actions sigB)`sch : schB}
         Int {sch. Forall (%x. x:(actions sigA Un actions sigB)) sch},
         asig_comp sigA sigB)"
 

@@ -41,7 +41,7 @@ qed "lfp_Tarski";
 
 val [lfp,mono,indhyp] = goal Lfp.thy
     "[| a: lfp(f);  mono(f);                            \
-\       !!x. [| x: f(lfp(f) Int {x.P(x)}) |] ==> P(x)   \
+\       !!x. [| x: f(lfp(f) Int {x. P(x)}) |] ==> P(x)   \
 \    |] ==> P(a)";
 by (res_inst_tac [("a","a")] (Int_lower2 RS subsetD RS CollectD) 1);
 by (rtac (lfp RSN (2, lfp_lowerbound RS subsetD)) 1);
@@ -66,7 +66,7 @@ qed "def_lfp_Tarski";
 
 val rew::prems = goal Lfp.thy
     "[| A == lfp(f);  mono(f);   a:A;                   \
-\       !!x. [| x: f(A Int {x.P(x)}) |] ==> P(x)        \
+\       !!x. [| x: f(A Int {x. P(x)}) |] ==> P(x)        \
 \    |] ==> P(a)";
 by (EVERY1 [rtac induct,        (*backtracking to force correct induction*)
             REPEAT1 o (ares_tac (map (rewrite_rule [rew]) prems))]);

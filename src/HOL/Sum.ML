@@ -194,7 +194,7 @@ goalw Sum.thy [Part_def] "!!a. a : Part A h ==> a : A";
 by (etac IntD1 1);
 qed "PartD1";
 
-goal Sum.thy "Part A (%x.x) = A";
+goal Sum.thy "Part A (%x. x) = A";
 by (Blast_tac 1);
 qed "Part_id";
 
@@ -203,6 +203,6 @@ by (Blast_tac 1);
 qed "Part_Int";
 
 (*For inductive definitions*)
-goal Sum.thy "Part (A Int {x.P x}) h = (Part A h) Int {x.P x}";
+goal Sum.thy "Part (A Int {x. P x}) h = (Part A h) Int {x. P x}";
 by (Blast_tac 1);
 qed "Part_Collect";

@@ -47,7 +47,7 @@ goalw IOA.thy [mk_trace_def,filter_oseq_def]
 qed "mk_trace_thm";
 
 goalw IOA.thy [reachable_def] "!!A. s:starts_of(A) ==> reachable A s";
-  by (res_inst_tac [("x","(%i.None,%i.s)")] bexI 1);
+  by (res_inst_tac [("x","(%i. None,%i. s)")] bexI 1);
   by (Simp_tac 1);
   by (asm_simp_tac (!simpset addsimps exec_rws) 1);
 qed "reachable_0";
@@ -56,9 +56,9 @@ goalw IOA.thy (reachable_def::exec_rws)
 "!!A. [| reachable A s; (s,a,t) : trans_of(A) |] ==> reachable A t";
   by (asm_full_simp_tac (!simpset delsimps bex_simps) 1);
   by (safe_tac (!claset));
-  by (res_inst_tac [("x","(%i.if i<n then fst ex i                    \
+  by (res_inst_tac [("x","(%i. if i<n then fst ex i                    \
 \                            else (if i=n then Some a else None),    \
-\                         %i.if i<Suc n then snd ex i else t)")] bexI 1);
+\                         %i. if i<Suc n then snd ex i else t)")] bexI 1);
   by (res_inst_tac [("x","Suc(n)")] exI 1);
   by (Simp_tac 1);
   by (Asm_simp_tac 1);

@@ -42,7 +42,7 @@ by (Fast_tac 1);
 bind_thm("no_acc", result() RS spec RS spec RS mp);
 
 
-val [prem] = goal HOL.thy "? x.P(f(x)) ==> ? y.P(y)";
+val [prem] = goal HOL.thy "? x. P(f(x)) ==> ? y. P(y)";
 by (cut_facts_tac [prem] 1);
 by (Fast_tac 1);
 val ex_special = result();
@@ -108,9 +108,9 @@ by (rtac conjI 1);
  by (Asm_simp_tac 1);
  by (case_tac "acc_prefix A (next A st a) list" 1);
   by (strip_tac 1);
-  by (res_inst_tac [("f","%k.a#k")] ex_special 1);
+  by (res_inst_tac [("f","%k. a#k")] ex_special 1);
   by (Simp_tac 1);
-  by (res_inst_tac [("t","%k.ys=r@a#k"),("s","%k.ys=(r@[a])@k")] subst 1);
+  by (res_inst_tac [("t","%k. ys=r@a#k"),("s","%k. ys=(r@[a])@k")] subst 1);
    by (Simp_tac 1);
   by (Fast_tac 1);
  by (strip_tac 1);
@@ -121,9 +121,9 @@ by (rtac conjI 1);
   by (Fast_tac 1);
  by (Simp_tac 1);
 by (strip_tac 1);
-by (res_inst_tac [("f","%k.a#k")] ex_special 1);
+by (res_inst_tac [("f","%k. a#k")] ex_special 1);
 by (Simp_tac 1);
-by (res_inst_tac [("t","%k.ys=r@a#k"),("s","%k.ys=(r@[a])@k")] subst 1);
+by (res_inst_tac [("t","%k. ys=r@a#k"),("s","%k. ys=(r@[a])@k")] subst 1);
  by (Simp_tac 1);
 by (Fast_tac 1);
 val step2_c = (result() repeat_RS spec) RS mp;
@@ -172,7 +172,7 @@ goal AutoChopper.thy
 "! st erk r p ys yss zs. \
 \  acc xs st erk r p A = (ys#yss, zs) --> \
 \  (if acc_prefix A st xs  \
-\   then ? g.ys=r@g & (!as. as<=xs & g<=as & g~=as --> ~fin A (nexts A st as))\
+\   then ? g. ys=r@g & (!as. as<=xs & g<=as & g~=as --> ~fin A (nexts A st as))\
 \   else (erk~=[] & ys=erk) | (erk=[] & (ys#yss,zs)=p))";
 by (simp_tac (!simpset setloop (split_tac [expand_if])) 1);
 by (list.induct_tac "xs" 1);
@@ -183,10 +183,10 @@ by (strip_tac 1);
 by (case_tac "acc_prefix A (next A st a) list" 1);
  by (rtac conjI 1);
   by (strip_tac 1);
-  by (res_inst_tac [("f","%k.a#k")] ex_special 1);
-  by (res_inst_tac [("t","%k.ys=r@a#k"),("s","%k.ys=(r@[a])@k")] subst 1);
+  by (res_inst_tac [("f","%k. a#k")] ex_special 1);
+  by (res_inst_tac [("t","%k. ys=r@a#k"),("s","%k. ys=(r@[a])@k")] subst 1);
    by (Simp_tac 1);
-  by (res_inst_tac [("P","%k.ys = (r@[a])@k & (!as. as<=list & k<=as & k ~= as --> ~ fin A (nexts A (next A st a) as))")] exE 1);
+  by (res_inst_tac [("P","%k. ys = (r@[a])@k & (!as. as<=list & k<=as & k ~= as --> ~ fin A (nexts A (next A st a) as))")] exE 1);
    by (asm_simp_tac HOL_ss 1);
   by (res_inst_tac [("x","x")] exI 1);
   by (Asm_simp_tac 1);
@@ -194,10 +194,10 @@ by (case_tac "acc_prefix A (next A st a) list" 1);
    by (Simp_tac 1);
   by (asm_simp_tac (!simpset addcongs[conj_cong]) 1);
  by (strip_tac 1);
- by (res_inst_tac [("f","%k.a#k")] ex_special 1);
- by (res_inst_tac [("t","%k.ys=r@a#k"),("s","%k.ys=(r@[a])@k")] subst 1);
+ by (res_inst_tac [("f","%k. a#k")] ex_special 1);
+ by (res_inst_tac [("t","%k. ys=r@a#k"),("s","%k. ys=(r@[a])@k")] subst 1);
   by (Simp_tac 1);
- by (res_inst_tac [("P","%k.ys=(r@[a])@k & (!as. as<=list & k<=as & k~=as --> ~ fin A (nexts A (next A st a) as))")] exE 1);
+ by (res_inst_tac [("P","%k. ys=(r@[a])@k & (!as. as<=list & k<=as & k~=as --> ~ fin A (nexts A (next A st a) as))")] exE 1);
   by (asm_simp_tac HOL_ss 1);
  by (res_inst_tac [("x","x")] exI 1);
  by (Asm_simp_tac 1);

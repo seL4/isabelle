@@ -13,6 +13,6 @@ constdefs
   "option_bind m f == case m of None => None | Some r => f r"
 
 syntax "@option_bind" :: [pttrns,'a option,'b] => 'c ("(_ := _;//_)" 0)
-translations "P := E; F" == "option_bind E (%P.F)"
+translations "P := E; F" == "option_bind E (%P. F)"
 
 end

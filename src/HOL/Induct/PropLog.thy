@@ -33,14 +33,14 @@ defs
   eval_def "tt[p] == eval2 p tt"
 
 primrec eval2 pl
-  "eval2(false) = (%x.False)"
-  "eval2(#v) = (%tt.v:tt)"
-  "eval2(p->q) = (%tt.eval2 p tt-->eval2 q tt)"
+  "eval2(false) = (%x. False)"
+  "eval2(#v) = (%tt. v:tt)"
+  "eval2(p->q) = (%tt. eval2 p tt-->eval2 q tt)"
 
 primrec hyps pl
   "hyps(false) = (%tt.{})"
   "hyps(#v) = (%tt.{if v:tt then #v else #v->false})"
-  "hyps(p->q) = (%tt.hyps p tt Un hyps q tt)"
+  "hyps(p->q) = (%tt. hyps p tt Un hyps q tt)"
 
 end
 

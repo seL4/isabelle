@@ -543,7 +543,7 @@ qed"nil_is_Conc2";
 
 section "Last";
 
-goal thy "!! s.Finite s ==> s~=nil --> Last`s~=UU";
+goal thy "!! s. Finite s ==> s~=nil --> Last`s~=UU";
 by (Seq_Finite_induct_tac  1);
 by (asm_simp_tac (!simpset setloop split_tac [expand_if]) 1);
 qed"Finite_Last1";
@@ -790,11 +790,11 @@ by (Seq_induct_tac "s" [Forall_def,sforall_def] 1);
 by (asm_full_simp_tac (!simpset setloop (split_tac [expand_if])) 1);
 qed"Takewhile_idempotent";
 
-goal thy "Forall P s --> Takewhile (%x.Q x | (~P x))`s = Takewhile Q`s";
+goal thy "Forall P s --> Takewhile (%x. Q x | (~P x))`s = Takewhile Q`s";
 by (Seq_induct_tac "s" [Forall_def,sforall_def] 1);
 qed"ForallPTakewhileQnP";
 
-goal thy "Forall P s --> Dropwhile (%x.Q x | (~P x))`s = Dropwhile Q`s";
+goal thy "Forall P s --> Dropwhile (%x. Q x | (~P x))`s = Dropwhile Q`s";
 by (Seq_induct_tac "s" [Forall_def,sforall_def] 1);
 qed"ForallPDropwhileQnP";
 
@@ -807,7 +807,7 @@ qed"TakewhileConc1";
 
 bind_thm("TakewhileConc",TakewhileConc1 RS mp);
 
-goal thy "!! s.Finite s ==> Forall P s --> Dropwhile P`(s @@ t) = Dropwhile P`t";
+goal thy "!! s. Finite s ==> Forall P s --> Dropwhile P`(s @@ t) = Dropwhile P`t";
 by (Seq_Finite_induct_tac 1);
 qed"DropwhileConc1";
 
@@ -905,7 +905,7 @@ by (Auto_tac());
 qed"take_reduction1";
 
 
-goal thy "!! n.[| x=y; s=t;!! k.k<n ==> seq_take k`y1 = seq_take k`y2|] \
+goal thy "!! n.[| x=y; s=t;!! k. k<n ==> seq_take k`y1 = seq_take k`y2|] \
 \ ==> seq_take n`(x @@ (s>>y1)) =  seq_take n`(y @@ (t>>y2))";
 
 by (auto_tac (!claset addSIs [take_reduction1 RS spec RS mp],!simpset));
@@ -927,7 +927,7 @@ by (Auto_tac());
 qed"take_reduction_less1";
 
 
-goal thy "!! n.[| x=y; s=t;!! k.k<n ==> seq_take k`y1 << seq_take k`y2|] \
+goal thy "!! n.[| x=y; s=t;!! k. k<n ==> seq_take k`y1 << seq_take k`y2|] \
 \ ==> seq_take n`(x @@ (s>>y1)) <<  seq_take n`(y @@ (t>>y2))";
 by (auto_tac (!claset addSIs [take_reduction_less1 RS spec RS mp],!simpset));
 qed"take_reduction_less";
@@ -1168,17 +1168,17 @@ qed"Filter_lemma2";
 
 goal thy "!! s. Finite s ==>  \
 \         Forall (%x. (~P x) | (~ Q x)) s  \
-\         --> Filter (%x.P x & Q x)`s = nil";
+\         --> Filter (%x. P x & Q x)`s = nil";
 by (Seq_Finite_induct_tac 1);
 by (asm_full_simp_tac (!simpset setloop split_tac [expand_if] ) 1);
 qed"Filter_lemma3";
 
 
 goal thy "Filter P`(Filter Q`s) = Filter (%x. P x & Q x)`s";
-by (res_inst_tac [("A1","%x.True") 
+by (res_inst_tac [("A1","%x. True") 
                  ,("Q1","%x.~(P x & Q x)"),("x1","s")]
                  (take_lemma_induct RS mp) 1);
-(* FIX: better support for A = %.True *)
+(* FIX: better support for A = %x. True *)
 by (Fast_tac 3);
 by (asm_full_simp_tac (!simpset addsimps [Filter_lemma1]) 1);
 by (asm_full_simp_tac (!simpset addsimps [Filter_lemma2,Filter_lemma3] 
@@ -1195,7 +1195,7 @@ Addsimps [FilterPQ];
 
 
 goal thy "Map f`(x@@y) = (Map f`x) @@ (Map f`y)";
-by (res_inst_tac [("A1","%x.True"),("x1","x")] (take_lemma_in_eq_out RS mp) 1);
+by (res_inst_tac [("A1","%x. True"),("x1","x")] (take_lemma_in_eq_out RS mp) 1);
 by (Auto_tac());
 qed"MapConc_takelemma";
 

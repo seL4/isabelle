@@ -67,7 +67,7 @@ Addsimps [mk_trace_UU,mk_trace_nil,mk_trace_cons];
 goal thy "is_exec_fragC A = (LAM ex. (%s. case ex of \
 \      nil => TT \
 \    | x##xs => (flift1 \ 
-\            (%p.Def ((s,p):trans_of A) andalso (is_exec_fragC A`xs) (snd p)) \
+\            (%p. Def ((s,p):trans_of A) andalso (is_exec_fragC A`xs) (snd p)) \
 \             `x) \
 \   ))";
 by (rtac trans 1);
@@ -163,7 +163,7 @@ section "signatures and executions, schedules";
 
 goal thy 
   "!! A. is_trans_of A ==> \
-\ ! s. is_exec_frag A (s,xs) --> Forall (%a.a:act A) (filter_act`xs)";
+\ ! s. is_exec_frag A (s,xs) --> Forall (%a. a:act A) (filter_act`xs)";
 
 by (pair_induct_tac "xs" [is_exec_frag_def,Forall_def,sforall_def] 1);
 (* main case *)
@@ -174,7 +174,7 @@ qed"execfrag_in_sig";
 
 goal thy 
   "!! A.[|  is_trans_of A; x:executions A |] ==> \
-\ Forall (%a.a:act A) (filter_act`(snd x))";
+\ Forall (%a. a:act A) (filter_act`(snd x))";
 
 by (asm_full_simp_tac (!simpset addsimps [executions_def]) 1);
 by (pair_tac "x" 1);
@@ -184,7 +184,7 @@ qed"exec_in_sig";
 
 goalw thy [schedules_def,has_schedule_def]
   "!! A.[|  is_trans_of A; x:schedules A |] ==> \
-\   Forall (%a.a:act A) x";
+\   Forall (%a. a:act A) x";
 
 by (fast_tac (!claset addSIs [exec_in_sig]) 1);
 qed"scheds_in_sig";
@@ -208,7 +208,7 @@ bind_thm ("exec_prefixclosed",conjI RS (execfrag_prefixclosed RS spec RS spec RS
 
 (* second prefix notion for Finite x *)
 
-goal thy "! y s.is_exec_frag A (s,x@@y) --> is_exec_frag A (s,x)";
+goal thy "! y s. is_exec_frag A (s,x@@y) --> is_exec_frag A (s,x)";
 by (pair_induct_tac "x" [is_exec_frag_def] 1);
 by (strip_tac 1);
 by (Seq_case_simp_tac "s" 1);

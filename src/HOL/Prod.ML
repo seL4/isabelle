@@ -88,7 +88,7 @@ congrence rules, where is can lead to premises of the form
 !!a b. ... = ?P(a,b)
 which cannot be solved by reflexivity.
    
-val [prem] = goal Prod.thy "(!!x.PROP P x) ==> (!!a b. PROP P(a,b))";
+val [prem] = goal Prod.thy "(!!x. PROP P x) ==> (!!a b. PROP P(a,b))";
 br prem 1;
 val lemma1 = result();
 
@@ -226,7 +226,7 @@ by (res_inst_tac [("p","x")] PairE 1);
 by (asm_simp_tac (!simpset addsimps [prod_fun,o_def]) 1);
 qed "prod_fun_compose";
 
-goal Prod.thy "prod_fun (%x.x) (%y.y) = (%z.z)";
+goal Prod.thy "prod_fun (%x. x) (%y. y) = (%z. z)";
 by (rtac ext 1);
 by (res_inst_tac [("p","z")] PairE 1);
 by (asm_simp_tac (!simpset addsimps [prod_fun]) 1);

@@ -34,7 +34,7 @@ by (Blast_tac 1);
 qed_spec_mp "Var_not_occs";
 
 goal Subst.thy
-    "(t <|r = t <|s) = (! v.v : vars_of(t) --> Var(v) <|r = Var(v) <|s)";
+    "(t <|r = t <|s) = (! v. v : vars_of(t) --> Var(v) <|r = Var(v) <|s)";
 by (induct_tac "t" 1);
 by (ALLGOALS Asm_full_simp_tac);
 by (ALLGOALS Blast_tac);
@@ -54,7 +54,7 @@ qed_spec_mp"Var_in_subst";
 
 (**** Equality between Substitutions ****)
 
-goalw Subst.thy [subst_eq_def] "r =$= s = (! t.t <| r = t <| s)";
+goalw Subst.thy [subst_eq_def] "r =$= s = (! t. t <| r = t <| s)";
 by (Simp_tac 1);
 qed "subst_eq_iff";
 
@@ -150,7 +150,7 @@ qed "sdom_iff";
 
 
 goalw Subst.thy [srange_def]  
-   "v : srange(s) = (? w.w : sdom(s) & v : vars_of(Var(w) <| s))";
+   "v : srange(s) = (? w. w : sdom(s) & v : vars_of(Var(w) <| s))";
 by (Blast_tac 1);
 qed "srange_iff";
 
@@ -186,12 +186,12 @@ by (Auto_tac());
 qed_spec_mp "Var_intro";
 
 goal Subst.thy
-    "v : srange(s) --> (? w.w : sdom(s) & v : vars_of(Var(w) <| s))";
+    "v : srange(s) --> (? w. w : sdom(s) & v : vars_of(Var(w) <| s))";
 by (simp_tac (!simpset addsimps [srange_iff]) 1);
 qed_spec_mp "srangeD";
 
 goal Subst.thy
-   "sdom(s) Int srange(s) = {} = (! t.sdom(s) Int vars_of(t <| s) = {})";
+   "sdom(s) Int srange(s) = {} = (! t. sdom(s) Int vars_of(t <| s) = {})";
 by (simp_tac (!simpset addsimps [empty_iff_all_not]) 1);
 by (fast_tac (!claset addIs [Var_in_srange] addDs [srangeD]) 1);
 qed "dom_range_disjoint";

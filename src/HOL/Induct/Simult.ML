@@ -87,8 +87,8 @@ val prems = goalw Simult.thy [Tcons_def,Fnil_def,Fcons_def]
 \       Q(Fnil);        \
 \       !!t ts. [| P(t);  Q(ts) |] ==> Q(Fcons t ts)    \
 \    |] ==> (! t. P(t)) & (! ts. Q(ts))";
-by (res_inst_tac [("P1","%z.P(Abs_Tree(z))"),
-                  ("Q1","%z.Q(Abs_Forest(z))")] 
+by (res_inst_tac [("P1","%z. P(Abs_Tree(z))"),
+                  ("Q1","%z. Q(Abs_Forest(z))")] 
     (Tree_Forest_induct RS conjE) 1);
 (*Instantiates ?A1 to range(Leaf). *)
 by (fast_tac (!claset addSEs [Rep_Tree_inverse RS subst, 

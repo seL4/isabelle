@@ -25,24 +25,24 @@ mksch_def
       | Def y => 
          (if y:act A then 
              (if y:act B then 
-                   ((Takewhile (%a.a:int A)`schA)
-                      @@ (Takewhile (%a.a:int B)`schB)
+                   ((Takewhile (%a. a:int A)`schA)
+                      @@ (Takewhile (%a. a:int B)`schB)
                            @@ (y>>(h`xs
-                                    `(TL`(Dropwhile (%a.a:int A)`schA))
-                                    `(TL`(Dropwhile (%a.a:int B)`schB))
+                                    `(TL`(Dropwhile (%a. a:int A)`schA))
+                                    `(TL`(Dropwhile (%a. a:int B)`schB))
                     )))
               else
-                 ((Takewhile (%a.a:int A)`schA)
+                 ((Takewhile (%a. a:int A)`schA)
                   @@ (y>>(h`xs
-                           `(TL`(Dropwhile (%a.a:int A)`schA))
+                           `(TL`(Dropwhile (%a. a:int A)`schA))
                            `schB)))
               )
           else 
              (if y:act B then 
-                 ((Takewhile (%a.a:int B)`schB)
+                 ((Takewhile (%a. a:int B)`schB)
                      @@ (y>>(h`xs
                               `schA
-                              `(TL`(Dropwhile (%a.a:int B)`schB))
+                              `(TL`(Dropwhile (%a. a:int B)`schB))
                               )))
              else
                UU
@@ -56,8 +56,8 @@ par_traces_def
        let trA = fst TracesA; sigA = snd TracesA; 
            trB = fst TracesB; sigB = snd TracesB       
        in
-       (    {tr. Filter (%a.a:actions sigA)`tr : trA}
-        Int {tr. Filter (%a.a:actions sigB)`tr : trB}
+       (    {tr. Filter (%a. a:actions sigA)`tr : trA}
+        Int {tr. Filter (%a. a:actions sigB)`tr : trB}
         Int {tr. Forall (%x. x:(externals sigA Un externals sigB)) tr},
         asig_comp sigA sigB)"
 

@@ -25,8 +25,8 @@ fun prove_fun s =
 val not_conjD = prove_fun "~(P&Q) ==> ~P | ~Q";
 val not_disjD = prove_fun "~(P|Q) ==> ~P & ~Q";
 val not_notD = prove_fun "~~P ==> P";
-val not_allD = prove_fun  "~(! x.P(x)) ==> ? x. ~P(x)";
-val not_exD = prove_fun   "~(? x.P(x)) ==> ! x. ~P(x)";
+val not_allD = prove_fun  "~(! x. P(x)) ==> ? x. ~P(x)";
+val not_exD = prove_fun   "~(? x. P(x)) ==> ! x. ~P(x)";
 
 
 (*** Removal of --> and <-> (positive and negative occurrences) ***)
@@ -44,17 +44,17 @@ val not_iffD = prove_fun "~(P=Q) ==> (P | Q) & (~P | ~Q)";
 
 (*** Conjunction ***)
 
-val conj_exD1 = prove_fun "(? x.P(x)) & Q ==> ? x. P(x) & Q";
-val conj_exD2 = prove_fun "P & (? x.Q(x)) ==> ? x. P & Q(x)";
+val conj_exD1 = prove_fun "(? x. P(x)) & Q ==> ? x. P(x) & Q";
+val conj_exD2 = prove_fun "P & (? x. Q(x)) ==> ? x. P & Q(x)";
 
 (*** Disjunction ***)
 
 (*DO NOT USE with forall-Skolemization: makes fewer schematic variables!!
   With ex-Skolemization, makes fewer Skolem constants*)
-val disj_exD = prove_fun "(? x.P(x)) | (? x.Q(x)) ==> ? x. P(x) | Q(x)";
+val disj_exD = prove_fun "(? x. P(x)) | (? x. Q(x)) ==> ? x. P(x) | Q(x)";
 
-val disj_exD1 = prove_fun "(? x.P(x)) | Q ==> ? x. P(x) | Q";
-val disj_exD2 = prove_fun "P | (? x.Q(x)) ==> ? x. P | Q(x)";
+val disj_exD1 = prove_fun "(? x. P(x)) | Q ==> ? x. P(x) | Q";
+val disj_exD2 = prove_fun "P | (? x. Q(x)) ==> ? x. P | Q(x)";
 
 
 (**** Skolemization -- pulling "?" over "!" ****)

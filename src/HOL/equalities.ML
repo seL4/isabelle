@@ -12,7 +12,7 @@ AddSIs [equalityI];
 
 section "{}";
 
-goal Set.thy "{x.False} = {}";
+goal Set.thy "{x. False} = {}";
 by (Blast_tac 1);
 qed "Collect_False_empty";
 Addsimps [Collect_False_empty];
@@ -118,7 +118,7 @@ AddIffs [image_is_empty];
 
 goalw Set.thy [image_def]
 "(%x. if P x then f x else g x) `` S                    \
-\ = (f `` ({x.x:S & P x})) Un (g `` ({x.x:S & ~(P x)}))";
+\ = (f `` ({x. x:S & P x})) Un (g `` ({x. x:S & ~(P x)}))";
 by (split_tac [expand_if] 1);
 by (Blast_tac 1);
 qed "if_image_distrib";
@@ -421,11 +421,11 @@ goal Set.thy "(INT x. insert a (B x)) = insert a (INT x. B x)";
 by (Blast_tac 1);
 qed "INT1_insert_distrib";
 
-goal Set.thy "Union(range(f)) = (UN x.f(x))";
+goal Set.thy "Union(range(f)) = (UN x. f(x))";
 by (Blast_tac 1);
 qed "Union_range_eq";
 
-goal Set.thy "Inter(range(f)) = (INT x.f(x))";
+goal Set.thy "Inter(range(f)) = (INT x. f(x))";
 by (Blast_tac 1);
 qed "Inter_range_eq";
 
@@ -445,12 +445,12 @@ goal Set.thy "!!A. a: A ==> (INT y:A. c) = c";
 by (Blast_tac 1);
 qed "INT_constant";
 
-goal Set.thy "(UN x.B) = B";
+goal Set.thy "(UN x. B) = B";
 by (Blast_tac 1);
 qed "UN1_constant";
 Addsimps[UN1_constant];
 
-goal Set.thy "(INT x.B) = B";
+goal Set.thy "(INT x. B) = B";
 by (Blast_tac 1);
 qed "INT1_constant";
 Addsimps[INT1_constant];
@@ -524,11 +524,11 @@ section"Bounded quantifiers";
 (** These are not added to the default simpset because (a) they duplicate the
     body and (b) there are no similar rules for Int. **)
 
-goal Set.thy "(ALL x:A Un B.P x) = ((ALL x:A.P x) & (ALL x:B.P x))";
+goal Set.thy "(ALL x:A Un B. P x) = ((ALL x:A. P x) & (ALL x:B. P x))";
 by (Blast_tac 1);
 qed "ball_Un";
 
-goal Set.thy "(EX x:A Un B.P x) = ((EX x:A.P x) | (EX x:B.P x))";
+goal Set.thy "(EX x:A Un B. P x) = ((EX x:A. P x) | (EX x:B. P x))";
 by (Blast_tac 1);
 qed "bex_Un";
 
@@ -620,7 +620,7 @@ goal Set.thy "(A = B) = ((A <= (B::'a set)) & (B<=A))";
 by (Blast_tac 1);
 qed "set_eq_subset";
 
-goal Set.thy "A <= B =  (! t.t:A --> t:B)";
+goal Set.thy "A <= B =  (! t. t:A --> t:B)";
 by (Blast_tac 1);
 qed "subset_iff";
 
@@ -647,32 +647,32 @@ local
 in
 val UN1_simps = map prover 
                 ["(UN x. insert a (B x)) = insert a (UN x. B x)",
-                 "(UN x. A x Int B)  = ((UN x.A x) Int B)",
-                 "(UN x. A Int B x)  = (A Int (UN x.B x))",
-                 "(UN x. A x Un B)   = ((UN x.A x) Un B)",
-                 "(UN x. A Un B x)   = (A Un (UN x.B x))",
-                 "(UN x. A x - B)    = ((UN x.A x) - B)",
-                 "(UN x. A - B x)    = (A - (INT x.B x))"];
+                 "(UN x. A x Int B)  = ((UN x. A x) Int B)",
+                 "(UN x. A Int B x)  = (A Int (UN x. B x))",
+                 "(UN x. A x Un B)   = ((UN x. A x) Un B)",
+                 "(UN x. A Un B x)   = (A Un (UN x. B x))",
+                 "(UN x. A x - B)    = ((UN x. A x) - B)",
+                 "(UN x. A - B x)    = (A - (INT x. B x))"];
 
 val INT1_simps = map prover
                 ["(INT x. insert a (B x)) = insert a (INT x. B x)",
-                 "(INT x. A x Int B) = ((INT x.A x) Int B)",
-                 "(INT x. A Int B x) = (A Int (INT x.B x))",
-                 "(INT x. A x Un B)  = ((INT x.A x) Un B)",
-                 "(INT x. A Un B x)  = (A Un (INT x.B x))",
-                 "(INT x. A x - B)   = ((INT x.A x) - B)",
-                 "(INT x. A - B x)   = (A - (UN x.B x))"];
+                 "(INT x. A x Int B) = ((INT x. A x) Int B)",
+                 "(INT x. A Int B x) = (A Int (INT x. B x))",
+                 "(INT x. A x Un B)  = ((INT x. A x) Un B)",
+                 "(INT x. A Un B x)  = (A Un (INT x. B x))",
+                 "(INT x. A x - B)   = ((INT x. A x) - B)",
+                 "(INT x. A - B x)   = (A - (UN x. B x))"];
 
 val UN_simps = map prover 
-                ["(UN x:C. A x Int B)  = ((UN x:C.A x) Int B)",
-                 "(UN x:C. A Int B x)  = (A Int (UN x:C.B x))",
-                 "(UN x:C. A x - B)    = ((UN x:C.A x) - B)",
-                 "(UN x:C. A - B x)    = (A - (INT x:C.B x))"];
+                ["(UN x:C. A x Int B)  = ((UN x:C. A x) Int B)",
+                 "(UN x:C. A Int B x)  = (A Int (UN x:C. B x))",
+                 "(UN x:C. A x - B)    = ((UN x:C. A x) - B)",
+                 "(UN x:C. A - B x)    = (A - (INT x:C. B x))"];
 
 val INT_simps = map prover
                 ["(INT x:C. insert a (B x)) = insert a (INT x:C. B x)",
-                 "(INT x:C. A x Un B)  = ((INT x:C.A x) Un B)",
-                 "(INT x:C. A Un B x)  = (A Un (INT x:C.B x))"];
+                 "(INT x:C. A x Un B)  = ((INT x:C. A x) Un B)",
+                 "(INT x:C. A Un B x)  = (A Un (INT x:C. B x))"];
 
 (*The missing laws for bounded Unions and Intersections are conditional
   on the index set's being non-empty.  Thus they are probably NOT worth 

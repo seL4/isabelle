@@ -22,7 +22,7 @@ qed"cont_flift1_arg";
 (* flift1 is continuous in a variable that occurs only 
    in the Def branch *)
 
-goal thy "!!f. [| !! a.cont (%y. (f y) a) |] ==> \
+goal thy "!!f. [| !! a. cont (%y. (f y) a) |] ==> \
 \          cont (%y. lift_case UU (f y))";
 by (rtac cont2cont_CF1L_rev 1);
 by (strip_tac 1);
@@ -34,7 +34,7 @@ qed"cont_flift1_not_arg";
 (* flift1 is continuous in a variable that occurs either 
    in the Def branch or in the argument *)
 
-goal thy "!!f. [| !! a.cont (%y. (f y) a); cont g|] ==> \
+goal thy "!!f. [| !! a. cont (%y. (f y) a); cont g|] ==> \
 \   cont (%y. lift_case UU (f y) (g y))";
 by (rtac cont2cont_app 1);
 back();

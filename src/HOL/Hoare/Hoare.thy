@@ -34,7 +34,7 @@ constdefs
   "Skip s s' == (s=s')"
 
   Assign        :: [pvar, 'a exp] => 'a com
-  "Assign v e s s' == (s' = (%x.if x=v then e(s) else s(x)))"
+  "Assign v e s s' == (s' = (%x. if x=v then e(s) else s(x)))"
 
   Seq           :: ['a com, 'a com] => 'a com
   "Seq c c' s s' == ? s''. c s s'' & c' s'' s'"

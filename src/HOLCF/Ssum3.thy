@@ -17,11 +17,11 @@ consts
 
 defs
 
-sinl_def        "sinl   == (LAM x.Isinl(x))"
-sinr_def        "sinr   == (LAM x.Isinr(x))"
-sswhen_def      "sswhen   == (LAM f g s.Iwhen(f)(g)(s))"
+sinl_def        "sinl   == (LAM x. Isinl(x))"
+sinr_def        "sinr   == (LAM x. Isinr(x))"
+sswhen_def      "sswhen   == (LAM f g s. Iwhen(f)(g)(s))"
 
 translations
-"case s of sinl`x => t1 | sinr`y => t2" == "sswhen`(LAM x.t1)`(LAM y.t2)`s"
+"case s of sinl`x => t1 | sinr`y => t2" == "sswhen`(LAM x. t1)`(LAM y. t2)`s"
 
 end

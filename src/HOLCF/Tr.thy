@@ -34,9 +34,9 @@ defs
   TT_def      "TT==Def True"
   FF_def      "FF==Def False"
   neg_def     "neg == flift2 Not"
-  ifte_def    "Icifte == (LAM b t e.flift1(%b.if b then t else e)`b)"
-  andalso_def "trand == (LAM x y.If x then y else FF fi)"
-  orelse_def  "tror == (LAM x y.If x then TT else y fi)"
+  ifte_def    "Icifte == (LAM b t e. flift1(%b. if b then t else e)`b)"
+  andalso_def "trand == (LAM x y. If x then y else FF fi)"
+  orelse_def  "tror == (LAM x y. If x then TT else y fi)"
   If2_def     "If2 Q x y == If Q then x else y fi"
 
 end

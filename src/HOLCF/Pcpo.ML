@@ -13,7 +13,7 @@ open Pcpo;
 (* derive the old rule minimal                                              *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "UU_least" thy [ UU_def ] "!z.UU << z"
+qed_goalw "UU_least" thy [ UU_def ] "!z. UU << z"
 (fn prems => [ 
         (rtac (select_eq_Ex RS iffD2) 1),
         (rtac least 1)]);
@@ -83,7 +83,7 @@ qed_goal "lub_mono" thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "lub_equal" thy
-"[| is_chain(C1::(nat=>'a::cpo));is_chain(C2);!k.C1(k)=C2(k)|]\
+"[| is_chain(C1::(nat=>'a::cpo));is_chain(C2);!k. C1(k)=C2(k)|]\
 \       ==> lub(range(C1))=lub(range(C2))"
 (fn prems =>
         [
@@ -206,7 +206,7 @@ qed_goal "not_less2not_eq" thy "~(x::'a::po)<<y ==> ~x=y"
         ]);
 
 qed_goal "chain_UU_I" thy
-        "[|is_chain(Y);lub(range(Y))=UU|] ==> ! i.Y(i)=UU"
+        "[|is_chain(Y);lub(range(Y))=UU|] ==> ! i. Y(i)=UU"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -219,7 +219,7 @@ qed_goal "chain_UU_I" thy
 
 
 qed_goal "chain_UU_I_inverse" thy 
-        "!i.Y(i::nat)=UU ==> lub(range(Y::(nat=>'a::pcpo)))=UU"
+        "!i. Y(i::nat)=UU ==> lub(range(Y::(nat=>'a::pcpo)))=UU"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -257,7 +257,7 @@ qed_goal "notUU_I" thy "[| x<<y; ~x=UU |] ==> ~y=UU"
 
 qed_goal "chain_mono2" thy 
 "[|? j.~Y(j)=UU;is_chain(Y::nat=>'a::pcpo)|]\
-\ ==> ? j.!i.j<i-->~Y(i)=UU"
+\ ==> ? j.!i. j<i-->~Y(i)=UU"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -279,11 +279,11 @@ qed_goal "chain_mono2" thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goalw "flat_imp_chain_finite" thy [max_in_chain_def]
-        "!Y::nat=>'a::flat.is_chain Y-->(? n.max_in_chain n Y)"
+        "!Y::nat=>'a::flat. is_chain Y-->(? n. max_in_chain n Y)"
  (fn _ =>
         [
         (strip_tac 1),
-        (case_tac "!i.Y(i)=UU" 1),
+        (case_tac "!i. Y(i)=UU" 1),
         (res_inst_tac [("x","0")] exI 1),
 	(Asm_simp_tac 1),
  	(Asm_full_simp_tac 1),

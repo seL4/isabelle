@@ -585,14 +585,14 @@ by (rtac refl 1);
 qed "Least_nat_def";
 
 val [prem1,prem2] = goalw thy [Least_nat_def]
-    "[| P(k::nat);  !!x. x<k ==> ~P(x) |] ==> (LEAST x.P(x)) = k";
+    "[| P(k::nat);  !!x. x<k ==> ~P(x) |] ==> (LEAST x. P(x)) = k";
 by (rtac select_equality 1);
 by (blast_tac (!claset addSIs [prem1,prem2]) 1);
 by (cut_facts_tac [less_linear] 1);
 by (blast_tac (!claset addSIs [prem1] addSDs [prem2]) 1);
 qed "Least_equality";
 
-val [prem] = goal thy "P(k::nat) ==> P(LEAST x.P(x))";
+val [prem] = goal thy "P(k::nat) ==> P(LEAST x. P(x))";
 by (rtac (prem RS rev_mp) 1);
 by (res_inst_tac [("n","k")] less_induct 1);
 by (rtac impI 1);
@@ -604,7 +604,7 @@ by (Blast_tac 1);
 qed "LeastI";
 
 (*Proof is almost identical to the one above!*)
-val [prem] = goal thy "P(k::nat) ==> (LEAST x.P(x)) <= k";
+val [prem] = goal thy "P(k::nat) ==> (LEAST x. P(x)) <= k";
 by (rtac (prem RS rev_mp) 1);
 by (res_inst_tac [("n","k")] less_induct 1);
 by (rtac impI 1);
@@ -615,7 +615,7 @@ by (rtac le_refl 2);
 by (blast_tac (!claset addIs [less_imp_le,le_trans]) 1);
 qed "Least_le";
 
-val [prem] = goal thy "k < (LEAST x.P(x)) ==> ~P(k::nat)";
+val [prem] = goal thy "k < (LEAST x. P(x)) ==> ~P(k::nat)";
 by (rtac notI 1);
 by (etac (rewrite_rule [le_def] Least_le RS notE) 1);
 by (rtac prem 1);

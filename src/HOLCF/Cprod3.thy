@@ -26,9 +26,9 @@ translations
 
 defs
 cpair_def       "cpair  == (LAM x y.(x,y))"
-cfst_def        "cfst   == (LAM p.fst(p))"
-csnd_def        "csnd   == (LAM p.snd(p))"      
-csplit_def      "csplit == (LAM f p.f`(cfst`p)`(csnd`p))"
+cfst_def        "cfst   == (LAM p. fst(p))"
+csnd_def        "csnd   == (LAM p. snd(p))"      
+csplit_def      "csplit == (LAM f p. f`(cfst`p)`(csnd`p))"
 
 
 
@@ -43,7 +43,7 @@ csplit_def      "csplit == (LAM f p.f`(cfst`p)`(csnd`p))"
 
 constdefs
   CLet           :: "'a -> ('a -> 'b) -> 'b"
-  "CLet == LAM s f.f`s"
+  "CLet == LAM s f. f`s"
 
 
 (* syntax for Let *)
@@ -59,7 +59,7 @@ syntax
 
 translations
   "_CLet (_Cbinds b bs) e"  == "_CLet b (_CLet bs e)"
-  "Let x = a in e"          == "CLet`a`(LAM x.e)"
+  "Let x = a in e"          == "CLet`a`(LAM x. e)"
 
 
 (* syntax for LAM <x,y,z>.e *)

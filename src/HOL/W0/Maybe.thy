@@ -15,6 +15,6 @@ constdefs
   "m bind f == case m of Ok r => f r | Fail => Fail"
 
 syntax "@bind" :: [patterns,'a maybe,'b] => 'c ("(_ := _;//_)" 0)
-translations "P := E; F" == "E bind (%P.F)"
+translations "P := E; F" == "E bind (%P. F)"
 
 end

@@ -38,7 +38,7 @@ syntax
 translations
   "[x, xs]"     == "x#[xs]"
   "[x]"         == "x#[]"
-  "[x:xs . P]"  == "filter (%x.P) xs"
+  "[x:xs . P]"  == "filter (%x. P) xs"
 
 syntax (symbols)
   "@filter"   :: [idt, 'a list, bool] => 'a list          ("(1[_\\<in>_ ./ _])")

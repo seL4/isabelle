@@ -256,7 +256,7 @@ qed_goal "lub_bin_chain" thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "lub_chain_maxelem" thy
-"[|? i.Y i=c;!i.Y i<<c|] ==> lub(range Y) = c"
+"[|? i. Y i=c;!i. Y i<<c|] ==> lub(range Y) = c"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -274,7 +274,7 @@ qed_goal "lub_chain_maxelem" thy
 (* the lub of a constant chain is the constant                              *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "lub_const" thy "range(%x.c) <<| c"
+qed_goal "lub_const" thy "range(%x. c) <<| c"
  (fn prems =>
         [
         (rtac is_lubI 1),

@@ -35,7 +35,7 @@ qed "set_qsort";
 Addsimps [set_qsort];
 
 goal List.thy
-  "(!x:set[x:xs.P(x)].Q(x)) = (!x:set xs. P(x)-->Q(x))";
+  "(!x:set[x:xs. P(x)].Q(x)) = (!x:set xs. P(x)-->Q(x))";
 by (list.induct_tac "xs" 1);
 by (ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
 qed"Ball_set_filter";

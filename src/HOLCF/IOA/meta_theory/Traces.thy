@@ -67,7 +67,7 @@ is_exec_fragC_def
   "is_exec_fragC A ==(fix`(LAM h ex. (%s. case ex of 
       nil => TT
     | x##xs => (flift1 
-            (%p.Def ((s,p):trans_of A) andalso (h`xs) (snd p)) 
+            (%p. Def ((s,p):trans_of A) andalso (h`xs) (snd p)) 
              `x)
    )))" 
 
@@ -96,7 +96,7 @@ schedules_def
 
 has_trace_def
   "has_trace ioa tr ==                                               
-     (? sch:schedules ioa. tr = Filter (%a.a:ext(ioa))`sch)"
+     (? sch:schedules ioa. tr = Filter (%a. a:ext(ioa))`sch)"
 
 traces_def
   "traces ioa == {tr. has_trace ioa tr}"
@@ -104,7 +104,7 @@ traces_def
 
 mk_trace_def
   "mk_trace ioa == LAM tr. 
-     Filter (%a.a:ext(ioa))`(filter_act`tr)"
+     Filter (%a. a:ext(ioa))`(filter_act`tr)"
 
 
 (*  ------------------- Implementation ------------------------------ *)

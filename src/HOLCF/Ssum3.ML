@@ -156,7 +156,7 @@ qed_goal "contlub_Iwhen2" Ssum3.thy "contlub(Iwhen(f))"
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "ssum_lemma9" Ssum3.thy 
-"[| is_chain(Y); lub(range(Y)) = Isinl(x)|] ==> !i.? x.Y(i)=Isinl(x)"
+"[| is_chain(Y); lub(range(Y)) = Isinl(x)|] ==> !i.? x. Y(i)=Isinl(x)"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -174,7 +174,7 @@ qed_goal "ssum_lemma9" Ssum3.thy
 
 
 qed_goal "ssum_lemma10" Ssum3.thy 
-"[| is_chain(Y); lub(range(Y)) = Isinr(x)|] ==> !i.? x.Y(i)=Isinr(x)"
+"[| is_chain(Y); lub(range(Y)) = Isinr(x)|] ==> !i.? x. Y(i)=Isinr(x)"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -615,7 +615,7 @@ qed_goalw "thelub_ssum2a" Ssum3.thy [sinl_def,sinr_def,sswhen_def]
 
 qed_goalw "thelub_ssum2b" Ssum3.thy [sinl_def,sinr_def,sswhen_def] 
 "[| is_chain(Y); !i.? x. Y(i) = sinr`x |] ==>\ 
-\   lub(range(Y)) = sinr`(lub(range(%i. sswhen`(LAM y. UU)`(LAM x.x)`(Y i))))"
+\   lub(range(Y)) = sinr`(lub(range(%i. sswhen`(LAM y. UU)`(LAM x. x)`(Y i))))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -641,7 +641,7 @@ qed_goalw "thelub_ssum2b" Ssum3.thy [sinl_def,sinr_def,sswhen_def]
         ]);
 
 qed_goalw "thelub_ssum2a_rev" Ssum3.thy [sinl_def,sinr_def] 
-        "[| is_chain(Y); lub(range(Y)) = sinl`x|] ==> !i.? x.Y(i)=sinl`x"
+        "[| is_chain(Y); lub(range(Y)) = sinl`x|] ==> !i.? x. Y(i)=sinl`x"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -655,7 +655,7 @@ qed_goalw "thelub_ssum2a_rev" Ssum3.thy [sinl_def,sinr_def]
         ]);
 
 qed_goalw "thelub_ssum2b_rev" Ssum3.thy [sinl_def,sinr_def] 
-        "[| is_chain(Y); lub(range(Y)) = sinr`x|] ==> !i.? x.Y(i)=sinr`x"
+        "[| is_chain(Y); lub(range(Y)) = sinr`x|] ==> !i.? x. Y(i)=sinr`x"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -670,8 +670,8 @@ qed_goalw "thelub_ssum2b_rev" Ssum3.thy [sinl_def,sinr_def]
 
 qed_goal "thelub_ssum3" Ssum3.thy  
 "is_chain(Y) ==>\ 
-\   lub(range(Y)) = sinl`(lub(range(%i. sswhen`(LAM x. x)`(LAM y.UU)`(Y i))))\
-\ | lub(range(Y)) = sinr`(lub(range(%i. sswhen`(LAM y. UU)`(LAM x.x)`(Y i))))"
+\   lub(range(Y)) = sinl`(lub(range(%i. sswhen`(LAM x. x)`(LAM y. UU)`(Y i))))\
+\ | lub(range(Y)) = sinr`(lub(range(%i. sswhen`(LAM y. UU)`(LAM x. x)`(Y i))))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),

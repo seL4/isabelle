@@ -18,7 +18,7 @@ defs    rep_NP_def "rep_NP x == (case x of abs_NP y => y)"
 
 (* NPAIR (continued) *)
 defs	per_NP_def 
-  "eqv ==(%x y.fst(rep_NP x)*snd(rep_NP y)=fst(rep_NP y)*snd(rep_NP x))"
+  "eqv ==(%x y. fst(rep_NP x)*snd(rep_NP y)=fst(rep_NP y)*snd(rep_NP x))"
 
 (* for proves of this rule see [Slo97diss] *)
 rules

@@ -255,7 +255,7 @@ qed "less_mono_imp_le_mono";
 
 (*non-strict, in 1st argument*)
 goal Arith.thy "!!i j k::nat. i<=j ==> i + k <= j + k";
-by (res_inst_tac [("f", "%j.j+k")] less_mono_imp_le_mono 1);
+by (res_inst_tac [("f", "%j. j+k")] less_mono_imp_le_mono 1);
 by (etac add_less_mono1 1);
 by (assume_tac 1);
 qed "add_le_mono1";

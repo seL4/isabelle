@@ -62,16 +62,16 @@ qed "list_Fun_llist_I";
 (*** LList_corec satisfies the desired recurion equation ***)
 
 (*A continuity result?*)
-goalw LList.thy [CONS_def] "CONS M (UN x.f(x)) = (UN x. CONS M (f x))";
+goalw LList.thy [CONS_def] "CONS M (UN x. f(x)) = (UN x. CONS M (f x))";
 by (simp_tac (!simpset addsimps [In1_UN1, Scons_UN1_y]) 1);
 qed "CONS_UN1";
 
 (*UNUSED; obsolete?
-goal Prod.thy "split p (%x y.UN z.f x y z) = (UN z. split p (%x y.f x y z))";
+goal Prod.thy "split p (%x y. UN z. f x y z) = (UN z. split p (%x y. f x y z))";
 by (simp_tac (!simpset setloop (split_tac [expand_split])) 1);
 qed "split_UN1";
 
-goal Sum.thy "sum_case s f (%y.UN z.g y z) = (UN z.sum_case s f (%y.g y z))";
+goal Sum.thy "sum_case s f (%y. UN z. g y z) = (UN z. sum_case s f (%y. g y z))";
 by (simp_tac (!simpset setloop (split_tac [expand_sum_case])) 1);
 qed "sum_case2_UN1";
 *)
@@ -87,7 +87,7 @@ Addsimps [LList_corec_fun_def RS def_nat_rec_0,
 (** The directions of the equality are proved separately **)
 
 goalw LList.thy [LList_corec_def]
-    "LList_corec a f <= sum_case (%u.NIL) \
+    "LList_corec a f <= sum_case (%u. NIL) \
 \                          (split(%z w. CONS z (LList_corec w f))) (f a)";
 by (rtac UN1_least 1);
 by (res_inst_tac [("n","k")] natE 1);
@@ -96,7 +96,7 @@ by (REPEAT (resolve_tac [allI, impI, subset_refl RS CONS_mono, UN1_upper] 1));
 qed "LList_corec_subset1";
 
 goalw LList.thy [LList_corec_def]
-    "sum_case (%u.NIL) (split(%z w. CONS z (LList_corec w f))) (f a) <= \
+    "sum_case (%u. NIL) (split(%z w. CONS z (LList_corec w f))) (f a) <= \
 \    LList_corec a f";
 by (simp_tac (!simpset addsimps [CONS_UN1]) 1);
 by (safe_tac (!claset));
@@ -114,15 +114,15 @@ qed "LList_corec";
 (*definitional version of same*)
 val [rew] = goal LList.thy
     "[| !!x. h(x) == LList_corec x f |] ==>     \
-\    h(a) = sum_case (%u.NIL) (split(%z w. CONS z (h w))) (f a)";
+\    h(a) = sum_case (%u. NIL) (split(%z w. CONS z (h w))) (f a)";
 by (rewtac rew);
 by (rtac LList_corec 1);
 qed "def_LList_corec";
 
 (*A typical use of co-induction to show membership in the gfp. 
   Bisimulation is  range(%x. LList_corec x f) *)
-goal LList.thy "LList_corec a f : llist({u.True})";
-by (res_inst_tac [("X", "range(%x.LList_corec x ?g)")] llist_coinduct 1);
+goal LList.thy "LList_corec a f : llist({u. True})";
+by (res_inst_tac [("X", "range(%x. LList_corec x ?g)")] llist_coinduct 1);
 by (rtac rangeI 1);
 by (safe_tac (!claset));
 by (stac LList_corec 1);
@@ -132,9 +132,9 @@ qed "LList_corec_type";
 
 (*Lemma for the proof of llist_corec*)
 goal LList.thy
-   "LList_corec a (%z.sum_case Inl (split(%v w.Inr((Leaf(v),w)))) (f z)) : \
+   "LList_corec a (%z. sum_case Inl (split(%v w. Inr((Leaf(v),w)))) (f z)) : \
 \   llist(range Leaf)";
-by (res_inst_tac [("X", "range(%x.LList_corec x ?g)")] llist_coinduct 1);
+by (res_inst_tac [("X", "range(%x. LList_corec x ?g)")] llist_coinduct 1);
 by (rtac rangeI 1);
 by (safe_tac (!claset));
 by (stac LList_corec 1);
@@ -263,12 +263,12 @@ qed "LList_equalityI";
 
 (*abstract proof using a bisimulation*)
 val [prem1,prem2] = goal LList.thy
- "[| !!x. h1(x) = sum_case (%u.NIL) (split(%z w. CONS z (h1 w))) (f x);  \
-\    !!x. h2(x) = sum_case (%u.NIL) (split(%z w. CONS z (h2 w))) (f x) |]\
+ "[| !!x. h1(x) = sum_case (%u. NIL) (split(%z w. CONS z (h1 w))) (f x);  \
+\    !!x. h2(x) = sum_case (%u. NIL) (split(%z w. CONS z (h2 w))) (f x) |]\
 \ ==> h1=h2";
 by (rtac ext 1);
 (*next step avoids an unknown (and flexflex pair) in simplification*)
-by (res_inst_tac [("A", "{u.True}"),
+by (res_inst_tac [("A", "{u. True}"),
                   ("r", "range(%u. (h1(u),h2(u)))")] LList_equalityI 1);
 by (rtac rangeI 1);
 by (safe_tac (!claset));
@@ -280,8 +280,8 @@ by (simp_tac (!simpset addsimps [LListD_Fun_NIL_I,
 qed "LList_corec_unique";
 
 val [prem] = goal LList.thy
- "[| !!x. h(x) = sum_case (%u.NIL) (split(%z w. CONS z (h w))) (f x) |] \
-\ ==> h = (%x.LList_corec x f)";
+ "[| !!x. h(x) = sum_case (%u. NIL) (split(%z w. CONS z (h w))) (f x) |] \
+\ ==> h = (%x. LList_corec x f)";
 by (rtac (LList_corec RS (prem RS LList_corec_unique)) 1);
 qed "equals_LList_corec";
 
@@ -298,8 +298,8 @@ by (simp_tac (!simpset addsimps [ntrunc_Scons,ntrunc_In1]) 1);
 qed "ntrunc_CONS";
 
 val [prem1,prem2] = goal LList.thy
- "[| !!x. h1(x) = sum_case (%u.NIL) (split(%z w. CONS z (h1 w))) (f x);  \
-\    !!x. h2(x) = sum_case (%u.NIL) (split(%z w. CONS z (h2 w))) (f x) |]\
+ "[| !!x. h1(x) = sum_case (%u. NIL) (split(%z w. CONS z (h1 w))) (f x);  \
+\    !!x. h2(x) = sum_case (%u. NIL) (split(%z w. CONS z (h2 w))) (f x) |]\
 \ ==> h1=h2";
 by (rtac (ntrunc_equality RS ext) 1);
 by (rename_tac "x k" 1);
@@ -338,14 +338,14 @@ by (res_inst_tac [("P", "%u. u: ?A")] (Lconst RS ssubst) 1);
 by (REPEAT (ares_tac [list_Fun_CONS_I, singletonI, UnI1] 1));
 qed "Lconst_type";
 
-goal LList.thy "Lconst(M) = LList_corec M (%x.Inr((x,x)))";
+goal LList.thy "Lconst(M) = LList_corec M (%x. Inr((x,x)))";
 by (rtac (equals_LList_corec RS fun_cong) 1);
 by (Simp_tac 1);
 by (rtac Lconst 1);
 qed "Lconst_eq_LList_corec";
 
 (*Thus we could have used gfp in the definition of Lconst*)
-goal LList.thy "gfp(%N. CONS M N) = LList_corec M (%x.Inr((x,x)))";
+goal LList.thy "gfp(%N. CONS M N) = LList_corec M (%x. Inr((x,x)))";
 by (rtac (equals_LList_corec RS fun_cong) 1);
 by (Simp_tac 1);
 by (rtac (Lconst_fun_mono RS gfp_Tarski) 1);
@@ -485,7 +485,7 @@ by (REPEAT (ares_tac [LListD_Fun_NIL_I, imageI, UnI1,
                       rangeI RS LListD_Fun_CONS_I] 1));
 qed "Lmap_compose";
 
-val [prem] = goal LList.thy "M: llist(A) ==> Lmap (%x.x) M = M";
+val [prem] = goal LList.thy "M: llist(A) ==> Lmap (%x. x) M = M";
 by (rtac (prem RS imageI RS LList_equalityI) 1);
 by (safe_tac (!claset));
 by (etac llist.elim 1);
@@ -547,7 +547,7 @@ qed "Lappend_type";
 (*strong co-induction: bisimulation and case analysis on one variable*)
 goal LList.thy
     "!!M N. [| M: llist(A); N: llist(A) |] ==> Lappend M N: llist(A)";
-by (res_inst_tac [("X", "(%u.Lappend u N)``llist(A)")] llist_coinduct 1);
+by (res_inst_tac [("X", "(%u. Lappend u N)``llist(A)")] llist_coinduct 1);
 by (etac imageI 1);
 by (rtac subsetI 1);
 by (etac imageE 1);
@@ -605,7 +605,7 @@ qed "llist_corec";
 (*definitional version of same*)
 val [rew] = goal LList.thy
     "[| !!x. h(x) == llist_corec x f |] ==>     \
-\    h(a) = sum_case (%u.LNil) (split(%z w. LCons z (h w))) (f a)";
+\    h(a) = sum_case (%u. LNil) (split(%z w. LCons z (h w))) (f a)";
 by (rewtac rew);
 by (rtac llist_corec 1);
 qed "def_llist_corec";
@@ -740,7 +740,7 @@ by (res_inst_tac [("l","l")] llist_fun_equalityI 1);
 by (ALLGOALS Simp_tac);
 qed "lmap_compose";
 
-goal LList.thy "lmap (%x.x) l = l";
+goal LList.thy "lmap (%x. x) l = l";
 by (res_inst_tac [("l","l")] llist_fun_equalityI 1);
 by (ALLGOALS Simp_tac);
 qed "lmap_ident";
@@ -793,8 +793,8 @@ val [prem] = goal LList.thy
     "(!!x. h(x) = LCons x (lmap f (h x))) ==> h = iterates(f)";
 by (rtac ext 1);
 by (res_inst_tac [("r", 
-   "UN u. range(%n. (nat_rec (h u) (%m y.lmap f y) n, \
-\                    nat_rec (iterates f u) (%m y.lmap f y) n))")] 
+   "UN u. range(%n. (nat_rec (h u) (%m y. lmap f y) n, \
+\                    nat_rec (iterates f u) (%m y. lmap f y) n))")] 
     llist_equalityI 1);
 by (REPEAT (resolve_tac [UN1_I, range_eqI, Pair_cong, nat_rec_0 RS sym] 1));
 by (safe_tac (!claset));

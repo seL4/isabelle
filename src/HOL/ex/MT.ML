@@ -66,7 +66,7 @@ by (assume_tac 1);
 qed "lfp_elim2";
 
 val prems = goal MT.thy
-  " [| x:lfp(f); mono(f); !!y. y:f(lfp(f) Int {x.P(x)}) ==> P(y) |] ==> \
+  " [| x:lfp(f); mono(f); !!y. y:f(lfp(f) Int {x. P(x)}) ==> P(y) |] ==> \
 \   P(x)";
 by (cut_facts_tac prems 1);
 by (etac induct 1);
@@ -446,7 +446,7 @@ qed "elab_var_elim";
 val prems = goal MT.thy 
   " te |- e ===> t ==> \
 \   ( e = fn x1 => e1 --> \
-\     (? t1 t2.t=t_fun t1 t2 & te + {x1 |=> t1} |- e1 ===> t2) \
+\     (? t1 t2. t=t_fun t1 t2 & te + {x1 |=> t1} |- e1 ===> t2) \
 \   )";
 by (elab_e_elim_tac prems);
 qed "elab_fn_elim_lem";
@@ -538,11 +538,11 @@ qed "hasty_rel_clos_coind";
 (* Elimination rule for hasty_rel *)
 
 val prems = goalw MT.thy [hasty_rel_def]
-  " [| !! c t.c isof t ==> P((v_const(c),t)); \
+  " [| !! c t. c isof t ==> P((v_const(c),t)); \
 \      !! te ev e t ve. \
 \        [| te |- fn ev => e ===> t; \
 \           ve_dom(ve) = te_dom(te); \
-\           !ev1.ev1:ve_dom(ve) --> (ve_app ve ev1,te_app te ev1) : hasty_rel \
+\           !ev1. ev1:ve_dom(ve) --> (ve_app ve ev1,te_app te ev1) : hasty_rel \
 \        |] ==> P((v_clos(<|ev,e,ve|>),t)); \
 \      (v,t) : hasty_rel \
 \   |] ==> P((v,t))";
@@ -558,11 +558,11 @@ qed "hasty_rel_elim0";
 
 val prems = goal MT.thy 
   " [| (v,t) : hasty_rel; \
-\      !! c t.c isof t ==> P (v_const c) t; \
+\      !! c t. c isof t ==> P (v_const c) t; \
 \      !! te ev e t ve. \
 \        [| te |- fn ev => e ===> t; \
 \           ve_dom(ve) = te_dom(te); \
-\           !ev1.ev1:ve_dom(ve) --> (ve_app ve ev1,te_app te ev1) : hasty_rel \
+\           !ev1. ev1:ve_dom(ve) --> (ve_app ve ev1,te_app te ev1) : hasty_rel \
 \        |] ==> P (v_clos <|ev,e,ve|>) t \
 \   |] ==> P v t";
 by (res_inst_tac [("P","P")] infsys_p2 1);
@@ -602,7 +602,7 @@ qed "hasty_elim_const";
 val prems = goalw MT.thy [hasty_env_def,hasty_def] 
   " v hasty t ==> \
 \   ! x e ve. \
-\     v=v_clos(<|x,e,ve|>) --> (? te.te |- fn x => e ===> t & ve hastyenv te)";
+\     v=v_clos(<|x,e,ve|>) --> (? te. te |- fn x => e ===> t & ve hastyenv te)";
 by (cut_facts_tac prems 1);
 by (rtac hasty_rel_elim 1);
 by (ALLGOALS (blast_tac (v_ext_cs HOL_cs)));
@@ -610,7 +610,7 @@ qed "hasty_elim_clos_lem";
 
 goal MT.thy 
   "!!t. v_clos(<|ev,e,ve|>) hasty t ==>  \
-\       ? te.te |- fn ev => e ===> t & ve hastyenv te ";
+\       ? te. te |- fn ev => e ===> t & ve hastyenv te ";
 by (dtac hasty_elim_clos_lem 1);
 by (Blast_tac 1);
 qed "hasty_elim_clos";

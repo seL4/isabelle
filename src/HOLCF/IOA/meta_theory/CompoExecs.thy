@@ -45,7 +45,7 @@ Filter_ex_def
 
 
 Filter_ex2_def
-  "Filter_ex2 sig ==  Filter (%x.fst x:actions sig)"
+  "Filter_ex2 sig ==  Filter (%x. fst x:actions sig)"
 
 stutter_def
   "stutter sig ex == ((stutter2 sig`(snd ex)) (fst ex) ~= FF)"
@@ -70,7 +70,7 @@ par_execs_def
         Int {ex. Filter_ex sigB (ProjB ex) : exB}
         Int {ex. stutter sigA (ProjA ex)}
         Int {ex. stutter sigB (ProjB ex)}
-        Int {ex. Forall (%x.fst x:(actions sigA Un actions sigB)) (snd ex)},
+        Int {ex. Forall (%x. fst x:(actions sigA Un actions sigB)) (snd ex)},
         asig_comp sigA sigB)"
 
 end

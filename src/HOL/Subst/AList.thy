@@ -17,6 +17,6 @@ defs
 
   alist_rec_def "alist_rec al b c == list_rec b (split c) al"
 
-  assoc_def   "assoc v d al == alist_rec al d (%x y xs g.if v=x then y else g)"
+  assoc_def   "assoc v d al == alist_rec al d (%x y xs g. if v=x then y else g)"
 
 end

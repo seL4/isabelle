@@ -9,7 +9,7 @@ quotient constructor for higher order quotients
 
 HQUOT = PER +      
 
-typedef 'a quot = "{s::'a::per set. ? r.!y.y:s=y===r}" (quotNE)
+typedef 'a quot = "{s::'a::per set. ? r.!y. y:s=y===r}" (quotNE)
 
 (* constants for equivalence classes *)
 consts
@@ -21,7 +21,7 @@ syntax          "@ecl"  :: "'a::per => 'a quot" ("<[ _ ]>")
 translations    "<[x]>" == "peclass x"
 
 defs
-        peclass_def     "<[x]> == Abs_quot {y.y===x}"
+        peclass_def     "<[x]> == Abs_quot {y. y===x}"
         any_in_def      "any_in f == @x.<[x]>=f"
 end
 

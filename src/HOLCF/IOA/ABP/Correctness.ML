@@ -6,7 +6,7 @@
 *)
 
 
-goal Abschannel.thy "(? x.x=P & Q(x)) = Q(P)";
+goal Abschannel.thy "(? x. x=P & Q(x)) = Q(P)";
 by (Fast_tac 1);
 qed"exis_elim";
 
@@ -209,7 +209,7 @@ qed"receiver_abstraction";
 (* 3 thms that do not hold generally! The lucky restriction here is 
    the absence of internal actions. *)
 goal Correctness.thy 
-      "is_weak_ref_map (%id.id) sender_ioa sender_ioa";
+      "is_weak_ref_map (%id. id) sender_ioa sender_ioa";
 by (simp_tac (!simpset addsimps [is_weak_ref_map_def]) 1);
 by (TRY(
    (rtac conjI 1) THEN
@@ -225,7 +225,7 @@ qed"sender_unchanged";
 
 (* 2 copies of before *)
 goal Correctness.thy 
-      "is_weak_ref_map (%id.id) receiver_ioa receiver_ioa";
+      "is_weak_ref_map (%id. id) receiver_ioa receiver_ioa";
 by (simp_tac (!simpset addsimps [is_weak_ref_map_def]) 1);
 by (TRY(
    (rtac conjI 1) THEN
@@ -240,7 +240,7 @@ by (ALLGOALS (simp_tac ((!simpset addsimps [externals_def]) setloop (split_tac [
 qed"receiver_unchanged";
 
 goal Correctness.thy 
-      "is_weak_ref_map (%id.id) env_ioa env_ioa";
+      "is_weak_ref_map (%id. id) env_ioa env_ioa";
 by (simp_tac (!simpset addsimps [is_weak_ref_map_def]) 1);
 by (TRY(
    (rtac conjI 1) THEN

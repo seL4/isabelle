@@ -12,7 +12,7 @@ AddIffs [refl_less];
 (* ------------------------------------------------------------------------ *)
 (* minimal fixes least element                                              *)
 (* ------------------------------------------------------------------------ *)
-bind_thm("minimal2UU",allI RS (prove_goal thy "!x::'a::po.uu<<x==>uu=(@u.!y.u<<y)"
+bind_thm("minimal2UU",allI RS (prove_goal thy "!x::'a::po. uu<<x==>uu=(@u.!y. u<<y)"
 (fn prems =>
         [
         (cut_facts_tac prems 1),

@@ -193,7 +193,7 @@ qed"lemma_1_1b";
 (* --------------------------------------------------------------------- *)
 
 goal thy "!s. (is_exec_frag (A||B) (s,xs) \
-\  --> Forall (%x.fst x:act (A||B)) xs)";
+\  --> Forall (%x. fst x:act (A||B)) xs)";
 
 by (pair_induct_tac "xs" [Forall_def,sforall_def,is_exec_frag_def] 1);
 (* main case *)
@@ -212,7 +212,7 @@ goal thy
 \    is_exec_frag B (snd s,Filter_ex2 (asig_of B)`(ProjB2`xs)) &\
 \    stutter (asig_of A) (fst s,(ProjA2`xs)) & \
 \    stutter (asig_of B) (snd s,(ProjB2`xs)) & \
-\    Forall (%x.fst x:act (A||B)) xs \
+\    Forall (%x. fst x:act (A||B)) xs \
 \    --> is_exec_frag (A||B) (s,xs)";
 
 by (pair_induct_tac "xs" [Forall_def,sforall_def,
@@ -242,7 +242,7 @@ goal thy
 \(Filter_ex (asig_of A) (ProjA ex) : executions A &\
 \ Filter_ex (asig_of B) (ProjB ex) : executions B &\
 \ stutter (asig_of A) (ProjA ex) & stutter (asig_of B) (ProjB ex) &\
-\ Forall (%x.fst x:act (A||B)) (snd ex))";
+\ Forall (%x. fst x:act (A||B)) (snd ex))";
 
 by (simp_tac (!simpset addsimps [executions_def,ProjB_def,
                                  Filter_ex_def,ProjA_def,starts_of_par]) 1);

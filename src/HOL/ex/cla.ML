@@ -129,15 +129,15 @@ goal HOL.thy "(! x. P(x) & Q(x)) = ((! x. P(x)) & (! x. Q(x)))";
 by (Blast_tac 1);
 result(); 
 
-goal HOL.thy "(? x. P-->Q(x))  =  (P --> (? x.Q(x)))";
+goal HOL.thy "(? x. P-->Q(x))  =  (P --> (? x. Q(x)))";
 by (Blast_tac 1);
 result(); 
 
-goal HOL.thy "(? x.P(x)-->Q) = ((! x.P(x)) --> Q)";
+goal HOL.thy "(? x. P(x)-->Q) = ((! x. P(x)) --> Q)";
 by (Blast_tac 1);
 result(); 
 
-goal HOL.thy "((! x.P(x)) | Q)  =  (! x. P(x) | Q)";
+goal HOL.thy "((! x. P(x)) | Q)  =  (! x. P(x) | Q)";
 by (Blast_tac 1);
 result(); 
 
@@ -204,7 +204,7 @@ result();
 
 writeln"Problem 24";
 goal HOL.thy "~(? x. S(x)&Q(x)) & (! x. P(x) --> Q(x)|R(x)) &  \
-\    (~(? x.P(x)) --> (? x.Q(x))) & (! x. Q(x)|R(x) --> S(x))  \
+\    (~(? x. P(x)) --> (? x. Q(x))) & (! x. Q(x)|R(x) --> S(x))  \
 \   --> (? x. P(x)&R(x))";
 by (Blast_tac 1); 
 result();
@@ -237,7 +237,7 @@ result();
 writeln"Problem 28.  AMENDED";
 goal HOL.thy "(! x. P(x) --> (! x. Q(x))) &   \
 \       ((! x. Q(x)|R(x)) --> (? x. Q(x)&S(x))) &  \
-\       ((? x.S(x)) --> (! x. L(x) --> M(x)))  \
+\       ((? x. S(x)) --> (! x. L(x) --> M(x)))  \
 \   --> (! x. P(x) & L(x) --> M(x))";
 by (Blast_tac 1);  
 result();
@@ -257,7 +257,7 @@ by (Blast_tac 1);
 result();
 
 writeln"Problem 31";
-goal HOL.thy "~(? x.P(x) & (Q(x) | R(x))) & \
+goal HOL.thy "~(? x. P(x) & (Q(x) | R(x))) & \
 \       (? x. L(x) & P(x)) & \
 \       (! x. ~ R(x) --> M(x))  \
 \   --> (? x. L(x) & M(x))";
@@ -303,7 +303,7 @@ result();
 
 writeln"Problem 37";
 goal HOL.thy "(! z. ? w. ! x. ? y. \
-\          (P x z -->P y w) & P y z & (P y w --> (? u.Q u w))) & \
+\          (P x z -->P y w) & P y z & (P y w --> (? u. Q u w))) & \
 \       (! x z. ~(P x z) --> (? y. Q y z)) & \
 \       ((? x y. Q x y) --> (! x. R x x))  \
 \   --> (! x. ? y. R x y)";
@@ -380,7 +380,7 @@ writeln"Problem 49  NOT PROVED AUTOMATICALLY";
 (*Hard because it involves substitution for Vars;
   the type constraint ensures that x,y,z have the same type as a,b,u. *)
 goal HOL.thy "(? x y::'a. ! z. z=x | z=y) & P(a) & P(b) & (~a=b) \
-\               --> (! u::'a.P(u))";
+\               --> (! u::'a. P(u))";
 by (Classical.safe_tac (!claset));
 by (res_inst_tac [("x","a")] allE 1);
 by (assume_tac 1);
@@ -391,7 +391,7 @@ result();
 
 writeln"Problem 50";  
 (*What has this to do with equality?*)
-goal HOL.thy "(! x. P a x | (! y.P x y)) --> (? x. ! y.P x y)";
+goal HOL.thy "(! x. P a x | (! y. P x y)) --> (? x. ! y. P x y)";
 by (Blast_tac 1);
 result();
 

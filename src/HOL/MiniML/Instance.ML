@@ -211,7 +211,7 @@ AddIffs [le_env_refl];
 
 goalw thy [le_type_scheme_def,is_bound_typ_instance] "sch <= BVar n";
 by (strip_tac 1);
-by (res_inst_tac [("x","%a.t")]exI 1);
+by (res_inst_tac [("x","%a. t")]exI 1);
 by (Simp_tac 1);
 qed "bound_typ_instance_BVar";
 AddIffs [bound_typ_instance_BVar];

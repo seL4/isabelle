@@ -140,7 +140,7 @@ qed_goal "stream_reach2" thy  "(LUB i. stream_take i`s) = s"
 	(rtac refl 1)
 	]);
 
-qed_goal "chain_stream_take" thy "is_chain (%i.stream_take i`s)" (fn _ => [
+qed_goal "chain_stream_take" thy "is_chain (%i. stream_take i`s)" (fn _ => [
 	rtac is_chainI 1,
 	subgoal_tac "!i s. stream_take i`s << stream_take (Suc i)`s" 1,
 	fast_tac HOL_cs 1,
@@ -189,7 +189,7 @@ val stream_take_lemma2 = prove_goal thy
 *)
 
 val stream_take_lemma3 = prove_goal thy 
- "!x xs.x~=UU --> stream_take n`(x && xs) = x && xs --> stream_take n`xs=xs"
+ "!x xs. x~=UU --> stream_take n`(x && xs) = x && xs --> stream_take n`xs=xs"
  (fn prems => [
 	(nat_ind_tac "n" 1),
 	(asm_simp_tac (HOL_ss addsimps stream.take_rews) 1),

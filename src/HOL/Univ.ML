@@ -439,23 +439,23 @@ qed "Case_In1";
 
 (**** UN x. B(x) rules ****)
 
-goalw Univ.thy [ntrunc_def] "ntrunc k (UN x.f(x)) = (UN x. ntrunc k (f x))";
+goalw Univ.thy [ntrunc_def] "ntrunc k (UN x. f(x)) = (UN x. ntrunc k (f x))";
 by (Blast_tac 1);
 qed "ntrunc_UN1";
 
-goalw Univ.thy [Scons_def] "(UN x.f(x)) $ M = (UN x. f(x) $ M)";
+goalw Univ.thy [Scons_def] "(UN x. f(x)) $ M = (UN x. f(x) $ M)";
 by (Blast_tac 1);
 qed "Scons_UN1_x";
 
-goalw Univ.thy [Scons_def] "M $ (UN x.f(x)) = (UN x. M $ f(x))";
+goalw Univ.thy [Scons_def] "M $ (UN x. f(x)) = (UN x. M $ f(x))";
 by (Blast_tac 1);
 qed "Scons_UN1_y";
 
-goalw Univ.thy [In0_def] "In0(UN x.f(x)) = (UN x. In0(f(x)))";
+goalw Univ.thy [In0_def] "In0(UN x. f(x)) = (UN x. In0(f(x)))";
 by (rtac Scons_UN1_y 1);
 qed "In0_UN1";
 
-goalw Univ.thy [In1_def] "In1(UN x.f(x)) = (UN x. In1(f(x)))";
+goalw Univ.thy [In1_def] "In1(UN x. f(x)) = (UN x. In1(f(x)))";
 by (rtac Scons_UN1_y 1);
 qed "In1_UN1";
 

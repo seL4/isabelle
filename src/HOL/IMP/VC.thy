@@ -23,14 +23,14 @@ consts
 
 primrec awp acom
   "awp Askip Q = Q"
-  "awp (Aass x a) Q = (%s.Q(s[a s/x]))"
+  "awp (Aass x a) Q = (%s. Q(s[a s/x]))"
   "awp (Asemi c d) Q = awp c (awp d Q)"
   "awp (Aif b c d) Q = (%s. (b s-->awp c Q s) & (~b s-->awp d Q s))" 
   "awp (Awhile b I c) Q = I"
 
 primrec vc acom
-  "vc Askip Q = (%s.True)"
-  "vc (Aass x a) Q = (%s.True)"
+  "vc Askip Q = (%s. True)"
+  "vc (Aass x a) Q = (%s. True)"
   "vc (Asemi c d) Q = (%s. vc c (awp d Q) s & vc d Q s)"
   "vc (Aif b c d) Q = (%s. vc c Q s & vc d Q s)" 
   "vc (Awhile b I c) Q = (%s. (I s & ~b s --> Q s) &
@@ -45,8 +45,8 @@ primrec astrip acom
 
 (* simultaneous computation of vc and awp: *)
 primrec vcawp acom
-  "vcawp Askip Q = (%s.True, Q)"
-  "vcawp (Aass x a) Q = (%s.True, %s.Q(s[a s/x]))"
+  "vcawp Askip Q = (%s. True, Q)"
+  "vcawp (Aass x a) Q = (%s. True, %s. Q(s[a s/x]))"
   "vcawp (Asemi c d) Q = (let (vcd,wpd) = vcawp d Q;
                               (vcc,wpc) = vcawp c wpd
                           in (%s. vcc s & vcd s, wpc))"

@@ -24,10 +24,10 @@ translations
         "(|x, y|)"      == "spair`x`y"
 
 defs
-spair_def       "spair  == (LAM x y.Ispair x y)"
-sfst_def        "sfst   == (LAM p.Isfst p)"
-ssnd_def        "ssnd   == (LAM p.Issnd p)"     
-ssplit_def      "ssplit == (LAM f. strictify`(LAM p.f`(sfst`p)`(ssnd`p)))"
+spair_def       "spair  == (LAM x y. Ispair x y)"
+sfst_def        "sfst   == (LAM p. Isfst p)"
+ssnd_def        "ssnd   == (LAM p. Issnd p)"     
+ssplit_def      "ssplit == (LAM f. strictify`(LAM p. f`(sfst`p)`(ssnd`p)))"
 
 end
 

@@ -27,7 +27,7 @@ goalw Hoare.thy [wp_def] "wp SKIP Q = Q";
 by (Simp_tac 1);
 qed "wp_SKIP";
 
-goalw Hoare.thy [wp_def] "wp (x:=a) Q = (%s.Q(s[a s/x]))";
+goalw Hoare.thy [wp_def] "wp (x:=a) Q = (%s. Q(s[a s/x]))";
 by (Simp_tac 1);
 qed "wp_Ass";
 
@@ -66,7 +66,7 @@ qed "wp_While_if";
 
 goal thy
   "wp (WHILE b DO c) Q s = \
-\  (s : gfp(%S.{s.if b s then wp c (%s.s:S) s else Q s}))";
+\  (s : gfp(%S.{s. if b s then wp c (%s. s:S) s else Q s}))";
 by (simp_tac (!simpset setloop(split_tac[expand_if])) 1);
 by (rtac iffI 1);
  by (rtac weak_coinduct 1);

@@ -91,12 +91,12 @@ by (assume_tac 1);
 qed "imp_refl";
 
 val [PQimp] = goal HOL.thy
-    "[| !!x. P(x) --> Q(x) |] ==> (EX x.P(x)) --> (EX x.Q(x))";
+    "[| !!x. P(x) --> Q(x) |] ==> (EX x. P(x)) --> (EX x. Q(x))";
 by (blast_tac (!claset addIs [PQimp RS mp]) 1);
 qed "ex_mono";
 
 val [PQimp] = goal HOL.thy
-    "[| !!x. P(x) --> Q(x) |] ==> (ALL x.P(x)) --> (ALL x.Q(x))";
+    "[| !!x. P(x) --> Q(x) |] ==> (ALL x. P(x)) --> (ALL x. Q(x))";
 by (blast_tac (!claset addIs [PQimp RS mp]) 1);
 qed "all_mono";
 

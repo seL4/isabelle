@@ -43,7 +43,7 @@ qed_goal "iterate_Suc2" thy "iterate (Suc n) F x = iterate n F (F`x)"
 (* ------------------------------------------------------------------------ *)
 
 qed_goalw "is_chain_iterate2" thy [is_chain] 
-        " x << F`x ==> is_chain (%i.iterate i F x)"
+        " x << F`x ==> is_chain (%i. iterate i F x)"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -57,7 +57,7 @@ qed_goalw "is_chain_iterate2" thy [is_chain]
 
 
 qed_goal "is_chain_iterate" thy  
-        "is_chain (%i.iterate i F UU)"
+        "is_chain (%i. iterate i F UU)"
  (fn prems =>
         [
         (rtac is_chain_iterate2 1),
@@ -452,16 +452,16 @@ qed_goalw "fix_def2" thy [fix_def]
 (* ------------------------------------------------------------------------ *)
 
 qed_goalw "admI" thy [adm_def]
-        "(!!Y. [| is_chain(Y); !i.P(Y(i)) |] ==> P(lub(range(Y)))) ==> adm(P)"
+        "(!!Y. [| is_chain(Y); !i. P(Y(i)) |] ==> P(lub(range(Y)))) ==> adm(P)"
  (fn prems => [fast_tac (HOL_cs addIs prems) 1]);
 
 qed_goalw "admD" thy [adm_def]
-        "!!P. [| adm(P); is_chain(Y); !i.P(Y(i)) |] ==> P(lub(range(Y)))"
+        "!!P. [| adm(P); is_chain(Y); !i. P(Y(i)) |] ==> P(lub(range(Y)))"
  (fn prems => [fast_tac HOL_cs 1]);
 
 qed_goalw "admw_def2" thy [admw_def]
-        "admw(P) = (!F.(!n.P(iterate n F UU)) -->\
-\                        P (lub(range(%i.iterate i F UU))))"
+        "admw(P) = (!F.(!n. P(iterate n F UU)) -->\
+\                        P (lub(range(%i. iterate i F UU))))"
  (fn prems =>
         [
         (rtac refl 1)
@@ -537,7 +537,7 @@ qed_goal "def_wfix_ind" thy "[| f == fix`F; admw(P); \
 (* ------------------------------------------------------------------------ *)
 
 qed_goalw "adm_max_in_chain"  thy  [adm_def]
-"!Y. is_chain(Y::nat=>'a) --> (? n.max_in_chain n Y) ==> adm(P::'a=>bool)"
+"!Y. is_chain(Y::nat=>'a) --> (? n. max_in_chain n Y) ==> adm(P::'a=>bool)"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -585,7 +585,7 @@ qed_goalw "admI2" thy [adm_def]
 (* ------------------------------------------------------------------------ *)
 
 qed_goalw "adm_less"  thy [adm_def]
-        "[|cont u;cont v|]==> adm(%x.u x << v x)"
+        "[|cont u;cont v|]==> adm(%x. u x << v x)"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -610,7 +610,7 @@ qed_goal "adm_conj"  thy
  (fn prems => [fast_tac (HOL_cs addEs [admD] addIs [admI]) 1]);
 Addsimps [adm_conj];
 
-qed_goalw "adm_not_free"  thy [adm_def] "adm(%x.t)"
+qed_goalw "adm_not_free"  thy [adm_def] "adm(%x. t)"
  (fn prems => [fast_tac HOL_cs 1]);
 Addsimps [adm_not_free];
 
@@ -629,7 +629,7 @@ qed_goalw "adm_not_less"  thy [adm_def]
         ]);
 
 qed_goal "adm_all" thy  
-        "!!P. !y.adm(P y) ==> adm(%x.!y.P y x)"
+        "!!P. !y. adm(P y) ==> adm(%x.!y. P y x)"
  (fn prems => [fast_tac (HOL_cs addIs [admI] addEs [admD]) 1]);
 
 bind_thm ("adm_all2", allI RS adm_all);
@@ -681,7 +681,7 @@ qed_goal "adm_eq"  thy
 local
 
   val adm_disj_lemma1 = prove_goal HOL.thy 
-  "!n.P(Y n)|Q(Y n) ==> (? i.!j.R i j --> Q(Y(j))) | (!i.? j.R i j & P(Y(j)))"
+  "!n. P(Y n)|Q(Y n) ==> (? i.!j. R i j --> Q(Y(j))) | (!i.? j. R i j & P(Y(j)))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -689,7 +689,7 @@ local
         ]);
 
   val adm_disj_lemma2 = prove_goal thy  
-  "!!Q. [| adm(Q); ? X.is_chain(X) & (!n.Q(X(n))) &\
+  "!!Q. [| adm(Q); ? X. is_chain(X) & (!n. Q(X(n))) &\
   \   lub(range(Y))=lub(range(X))|] ==> Q(lub(range(Y)))"
  (fn _ => [fast_tac (!claset addEs [admD] addss !simpset) 1]);
 
@@ -735,7 +735,7 @@ local
         [
         (cut_facts_tac prems 1),
         (etac exE 1),
-        (res_inst_tac [("x","%m.if m<Suc(i) then Y(Suc(i)) else Y m")] exI 1),
+        (res_inst_tac [("x","%m. if m<Suc(i) then Y(Suc(i)) else Y m")] exI 1),
         (rtac conjI 1),
         (rtac adm_disj_lemma3 1),
         (atac 1),
@@ -854,7 +854,7 @@ val adm_lemma11 = prove_goal thy
         ]);
 
 val adm_disj = prove_goal thy  
-        "!!P. [| adm P; adm Q |] ==> adm(%x.P x | Q x)"
+        "!!P. [| adm P; adm Q |] ==> adm(%x. P x | Q x)"
  (fn prems =>
         [
         (rtac admI 1),
@@ -876,10 +876,10 @@ bind_thm("adm_lemma11",adm_lemma11);
 bind_thm("adm_disj",adm_disj);
 
 qed_goal "adm_imp"  thy  
-        "!!P. [| adm(%x.~(P x)); adm Q |] ==> adm(%x.P x --> Q x)"
+        "!!P. [| adm(%x.~(P x)); adm Q |] ==> adm(%x. P x --> Q x)"
  (fn prems =>
         [
-        (subgoal_tac "(%x.P x --> Q x) = (%x. ~P x | Q x)" 1),
+        (subgoal_tac "(%x. P x --> Q x) = (%x. ~P x | Q x)" 1),
          (Asm_simp_tac 1),
          (etac adm_disj 1),
          (atac 1),
@@ -887,9 +887,9 @@ qed_goal "adm_imp"  thy
         (fast_tac HOL_cs 1)
         ]);
 
-goal Fix.thy "!! P. [| adm (%x. P x --> Q x); adm (%x.Q x --> P x) |] \
+goal Fix.thy "!! P. [| adm (%x. P x --> Q x); adm (%x. Q x --> P x) |] \
 \           ==> adm (%x. P x = Q x)";
-by(subgoal_tac "(%x.P x = Q x) = (%x. (P x --> Q x) & (Q x --> P x))" 1);
+by(subgoal_tac "(%x. P x = Q x) = (%x. (P x --> Q x) & (Q x --> P x))" 1);
 by (Asm_simp_tac 1);
 by (rtac ext 1);
 by (fast_tac HOL_cs 1);

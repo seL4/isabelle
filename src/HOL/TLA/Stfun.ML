@@ -8,7 +8,7 @@ Lemmas and tactics for states and state functions.
 
 (* A stronger version of existential elimination (goal needn't be boolean) *)
 qed_goalw "exE_prop" HOL.thy [Ex_def]
-  "[| ? x::'a.P(x); !!x. P(x) ==> PROP R |] ==> PROP R"
+  "[| ? x::'a. P(x); !!x. P(x) ==> PROP R |] ==> PROP R"
   (fn prems => [REPEAT(resolve_tac prems 1)]);
 
 (* Might as well use that version in automated proofs *)

@@ -106,7 +106,7 @@ syntax
 
 translations
   "x ~= y"      == "~ (x = y)"
-  "@ x.b"       == "Eps (%x. b)"
+  "@ x. b"      == "Eps (%x. b)"
   "ALL xs. P"   => "! xs. P"
   "EX xs. P"    => "? xs. P"
   "EX! xs. P"   => "?! xs. P"
@@ -149,18 +149,18 @@ rules
 
   refl          "t = (t::'a)"
   subst         "[| s = t; P(s) |] ==> P(t::'a)"
-  ext           "(!!x::'a. (f(x)::'b) = g(x)) ==> (%x.f(x)) = (%x.g(x))"
-  selectI       "P(x::'a) ==> P(@x.P(x))"
+  ext           "(!!x::'a. (f x ::'b) = g x) ==> (%x. f x) = (%x. g x)"
+  selectI       "P (x::'a) ==> P (@x. P x)"
 
   impI          "(P ==> Q) ==> P-->Q"
   mp            "[| P-->Q;  P |] ==> Q"
 
 defs
 
-  True_def      "True      == ((%x::bool.x)=(%x.x))"
-  All_def       "All(P)    == (P = (%x.True))"
-  Ex_def        "Ex(P)     == P(@x.P(x))"
-  False_def     "False     == (!P.P)"
+  True_def      "True      == ((%x::bool. x) = (%x. x))"
+  All_def       "All(P)    == (P = (%x. True))"
+  Ex_def        "Ex(P)     == P(@x. P(x))"
+  False_def     "False     == (!P. P)"
   not_def       "~ P       == P-->False"
   and_def       "P & Q     == !R. (P-->Q-->R) --> R"
   or_def        "P | Q     == !R. (P-->R) --> (Q-->R) --> R"

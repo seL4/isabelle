@@ -46,7 +46,7 @@ by (etac (major RS injD) 1);
 by (etac arg_cong 1);
 qed "inj_eq";
 
-val [major] = goal Fun.thy "inj(f) ==> (@x.f(x)=f(y)) = y";
+val [major] = goal Fun.thy "inj(f) ==> (@x. f(x)=f(y)) = y";
 by (rtac (major RS injD) 1);
 by (rtac selectI 1);
 by (rtac refl 1);

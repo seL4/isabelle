@@ -18,7 +18,7 @@ consts
 
 defs 
 
-Charfun_def      "Charfun     == (% A.% x.x:A)"
+Charfun_def      "Charfun     == (% A.% x. x:A)"
 monoP_def        "monoP f     == mono(Collect o f o Charfun)"
 mu_def           "mu f        == Charfun(lfp(Collect o f o Charfun))"
 nu_def           "nu f        == Charfun(gfp(Collect o f o Charfun))"

@@ -52,17 +52,17 @@ syntax
   "@Times"      :: "['a set, 'a => 'b set] => ('a * 'b) set"    ("_ Times _" [81, 80] 80)
 
 translations
-  "(x, y, z)"   == "(x, (y, z))"
-  "(x, y)"      == "Pair x y"
+  "(x, y, z)"    == "(x, (y, z))"
+  "(x, y)"       == "Pair x y"
 
-  "%(x,y,zs).b" == "split(%x (y,zs).b)"
-  "%(x,y).b"    == "split(%x y.b)"
+  "%(x,y,zs).b"  == "split(%x (y,zs).b)"
+  "%(x,y).b"     == "split(%x y. b)"
   "_abs (Pair x y) t" => "%(x,y).t"
   (* The last rule accommodates tuples in `case C ... (x,y) ... => ...'
      The (x,y) is parsed as `Pair x y' because it is logic, not pttrn *)
 
-  "SIGMA x:A.B" => "Sigma A (%x.B)"
-  "A Times B"   => "Sigma A (_K B)"
+  "SIGMA x:A. B" => "Sigma A (%x. B)"
+  "A Times B"    => "Sigma A (_K B)"
 
 syntax (symbols)
   "@Sigma"      :: "[pttrn, 'a set, 'b set] => ('a * 'b) set"   ("(3\\<Sigma> _\\<in>_./ _)" 10)

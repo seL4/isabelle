@@ -485,7 +485,7 @@ by (asm_simp_tac (!simpset addsimps [(bound_typ_inst_composed_subst RS sym),new_
 (* case Abs e *)
 by (strip_tac 1);
 by (eresolve_tac has_type_casesE 1);
-by (eres_inst_tac [("x","%x.if x=n then t1 else (S' x)")] allE 1);
+by (eres_inst_tac [("x","%x. if x=n then t1 else (S' x)")] allE 1);
 by (eres_inst_tac [("x","(FVar n)#A")] allE 1);
 by (eres_inst_tac [("x","t2")] allE 1);
 by (eres_inst_tac [("x","Suc n")] allE 1);
@@ -515,9 +515,9 @@ by (fast_tac (HOL_cs addIs [sym RS W_var_geD,new_tv_W RS
         conjunct1,new_scheme_list_le,new_tv_subst_scheme_list]) 1);
 (** LEVEL 35 **)
 by (subgoal_tac
-  "$ (%x.if x=ma then t' else (if x:(free_tv t - free_tv Sa) then R x \
+  "$ (%x. if x=ma then t' else (if x:(free_tv t - free_tv Sa) then R x \
 \        else Ra x)) ($ Sa t) = \
-\  $ (%x.if x=ma then t' else (if x:(free_tv t - free_tv Sa) then R x \
+\  $ (%x. if x=ma then t' else (if x:(free_tv t - free_tv Sa) then R x \
 \        else Ra x)) (ta -> (TVar ma))" 1);
 by (res_inst_tac [("t","$ (%x. if x = ma then t' else \
 \   (if x:(free_tv t - free_tv Sa) then R x else Ra x)) ($ Sa t)"),

@@ -15,7 +15,7 @@ qed "mgu_new";
 
 (* application of id_subst does not change type expression *)
 goalw thy [id_subst_def]
-  "$ id_subst = (%t::typ.t)";
+  "$ id_subst = (%t::typ. t)";
 by (rtac ext 1);
 by (typ.induct_tac "t" 1);
 by (ALLGOALS Asm_simp_tac);
@@ -24,7 +24,7 @@ Addsimps [app_subst_id_te];
 
 (* application of id_subst does not change list of type expressions *)
 goalw thy [app_subst_list]
-  "$ id_subst = (%ts::typ list.ts)";
+  "$ id_subst = (%ts::typ list. ts)";
 by (rtac ext 1); 
 by (list.induct_tac "ts" 1);
 by (ALLGOALS Asm_simp_tac);

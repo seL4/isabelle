@@ -28,10 +28,10 @@ defs
 monofun         "monofun(f) == ! x y. x << y --> f(x) << f(y)"
 
 contlub         "contlub(f) == ! Y. is_chain(Y) --> 
-                                f(lub(range(Y))) = lub(range(% i.f(Y(i))))"
+                                f(lub(range(Y))) = lub(range(% i. f(Y(i))))"
 
 cont            "cont(f)   == ! Y. is_chain(Y) --> 
-                                range(% i.f(Y(i))) <<| f(lub(range(Y)))"
+                                range(% i. f(Y(i))) <<| f(lub(range(Y)))"
 
 (* ------------------------------------------------------------------------ *)
 (* the main purpose of cont.thy is to show:                                 *)

@@ -178,7 +178,7 @@ qed "lfilter_cases";
 
 (*** lfilter: simple facts by coinduction ***)
 
-goal thy "lfilter (%x.True) l = l";
+goal thy "lfilter (%x. True) l = l";
 by (res_inst_tac [("l","l")] llist_fun_equalityI 1);
 by (ALLGOALS Simp_tac);
 by (Blast_tac 1);

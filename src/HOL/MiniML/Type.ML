@@ -16,7 +16,7 @@ by (Asm_full_simp_tac 1);
 by (Fast_tac 1);
 qed_spec_mp "mk_scheme_Fun";
 
-goal thy "!t'.mk_scheme t = mk_scheme t' --> t=t'";
+goal thy "!t'. mk_scheme t = mk_scheme t' --> t=t'";
 by (typ.induct_tac "t" 1);
  by (rtac allI 1);
  by (typ.induct_tac "t'" 1);
@@ -110,14 +110,14 @@ qed "new_tv_id_subst";
 Addsimps[new_tv_id_subst];
 
 goal thy "new_tv n (sch::type_scheme) --> \
-\              $(%k.if k<n then S k else S' k) sch = $S sch";
+\              $(%k. if k<n then S k else S' k) sch = $S sch";
 by (type_scheme.induct_tac "sch" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "new_if_subst_type_scheme";
 Addsimps [new_if_subst_type_scheme];
 
 goal thy "new_tv n (A::type_scheme list) --> \
-\              $(%k.if k<n then S k else S' k) A = $S A";
+\              $(%k. if k<n then S k else S' k) A = $S A";
 by (list.induct_tac "A" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "new_if_subst_type_scheme_list";
@@ -673,7 +673,7 @@ Addsimps [subst_TVar_scheme_list];
 
 (* application of id_subst does not change type expression *)
 goalw thy [id_subst_def]
-  "$ id_subst = (%t::typ.t)";
+  "$ id_subst = (%t::typ. t)";
 by (rtac ext 1);
 by (typ.induct_tac "t" 1);
 by (ALLGOALS Asm_simp_tac);
@@ -681,7 +681,7 @@ qed "app_subst_id_te";
 Addsimps [app_subst_id_te];
 
 goalw thy [id_subst_def]
-  "$ id_subst = (%sch::type_scheme.sch)";
+  "$ id_subst = (%sch::type_scheme. sch)";
 by (rtac ext 1);
 by (type_scheme.induct_tac "t" 1);
 by (ALLGOALS Asm_simp_tac);
@@ -690,7 +690,7 @@ Addsimps [app_subst_id_type_scheme];
 
 (* application of id_subst does not change list of type expressions *)
 goalw thy [app_subst_list]
-  "$ id_subst = (%A::type_scheme list.A)";
+  "$ id_subst = (%A::type_scheme list. A)";
 by (rtac ext 1); 
 by (list.induct_tac "A" 1);
 by (ALLGOALS Asm_simp_tac);

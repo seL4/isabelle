@@ -315,7 +315,7 @@ by (list_ind_tac "xs" 1);
 by (ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
 qed "mem_append2";
 
-goal SList.thy "x mem [x:xs.P(x)] = (x mem xs & P(x))";
+goal SList.thy "x mem [x:xs. P(x)] = (x mem xs & P(x))";
 by (list_ind_tac "xs" 1);
 by (ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
 qed "mem_filter2";
@@ -347,7 +347,7 @@ qed "expand_list_case2";
 
 (** Additional mapping lemmas **)
 
-goal SList.thy "map (%x.x) xs = xs";
+goal SList.thy "map (%x. x) xs = xs";
 by (list_ind_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "map_ident2";

@@ -3,7 +3,7 @@
 (* Loeckx & Sieber S.88                                 *)
 
 val prems = goalw Fix.thy [Ifix_def]
-"Ifix F= lub (range (%i.%G.iterate i G UU)) F";
+"Ifix F= lub (range (%i.%G. iterate i G UU)) F";
 by (stac thelub_fun 1);
 by (rtac ch2ch_fun 1);
 back();
@@ -48,15 +48,15 @@ we cannot use the theorem cont_lubcfun
 
 val prems = goal Fix.thy  "cont(Ifix)";
 by (res_inst_tac 
- [("t","Ifix"),("s","(%f.lub(range(%j.(LAM f. iterate j f UU)`f)))")]
+ [("t","Ifix"),("s","(%f. lub(range(%j.(LAM f. iterate j f UU)`f)))")]
   ssubst 1);
 by (rtac ext 1);
 by (rewtac Ifix_def );
 by (subgoal_tac 
-  "range(% i.iterate i f UU) = range(%j.(LAM f. iterate j f UU)`f)" 1);
+  "range(% i. iterate i f UU) = range(%j.(LAM f. iterate j f UU)`f)" 1);
 by (etac arg_cong 1);
 by (subgoal_tac 
-        "(% i.iterate i f UU) = (%j.(LAM f. iterate j f UU)`f)" 1);
+        "(% i. iterate i f UU) = (%j.(LAM f. iterate j f UU)`f)" 1);
 by (etac arg_cong 1);
 by (rtac ext 1);
 by (stac beta_cfun 1);
@@ -79,7 +79,7 @@ val cont_Ifix2 = result();
 (* the proof in little steps *)
 
 val prems = goal Fix.thy  
-"(% i.iterate i f UU) = (%j.(LAM f. iterate j f UU)`f)";
+"(% i. iterate i f UU) = (%j.(LAM f. iterate j f UU)`f)";
 by (rtac ext 1);
 by (stac beta_cfun 1);
 by (rtac  cont2cont_CF1L 1);
@@ -88,7 +88,7 @@ by (rtac refl 1);
 val fix_lemma1 = result();
 
 val prems = goal Fix.thy  
-" Ifix = (%f.lub(range(%j.(LAM f.iterate j f UU)`f)))";
+" Ifix = (%f. lub(range(%j.(LAM f. iterate j f UU)`f)))";
 by (rtac ext 1);
 by (rewtac Ifix_def ); 
 by (stac fix_lemma1 1);

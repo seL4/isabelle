@@ -10,10 +10,10 @@ open Ssum2;
 
 (* for compatibility with old HOLCF-Version *)
 qed_goal "inst_ssum_po" thy "(op <<)=(%s1 s2.@z.\
-\         (! u x.s1=Isinl u & s2=Isinl x --> z = u << x)\
-\        &(! v y.s1=Isinr v & s2=Isinr y --> z = v << y)\
-\        &(! u y.s1=Isinl u & s2=Isinr y --> z = (u = UU))\
-\        &(! v x.s1=Isinr v & s2=Isinl x --> z = (v = UU)))"
+\         (! u x. s1=Isinl u & s2=Isinl x --> z = u << x)\
+\        &(! v y. s1=Isinr v & s2=Isinr y --> z = v << y)\
+\        &(! u y. s1=Isinl u & s2=Isinr y --> z = (u = UU))\
+\        &(! v x. s1=Isinr v & s2=Isinl x --> z = (v = UU)))"
  (fn prems => 
         [
         (fold_goals_tac [less_ssum_def]),
@@ -67,7 +67,7 @@ qed_goal "minimal_ssum" thy "Isinl UU << s"
 
 bind_thm ("UU_ssum_def",minimal_ssum RS minimal2UU RS sym);
 
-qed_goal "least_ssum" thy "? x::'a++'b.!y.x<<y"
+qed_goal "least_ssum" thy "? x::'a++'b.!y. x<<y"
 (fn prems =>
         [
         (res_inst_tac [("x","Isinl UU")] exI 1),
@@ -174,7 +174,7 @@ qed_goalw "monofun_Iwhen3" thy [monofun] "monofun(Iwhen(f)(g))"
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "ssum_lemma1" thy 
-"[|~(!i.? x.Y(i::nat)=Isinl(x))|] ==> (? i.! x.Y(i)~=Isinl(x))"
+"[|~(!i.? x. Y(i::nat)=Isinl(x))|] ==> (? i.! x. Y(i)~=Isinl(x))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -199,7 +199,7 @@ qed_goal "ssum_lemma2" thy
 
 qed_goal "ssum_lemma3" thy 
 "[|is_chain(Y);(? i x. Y(i)=Isinr(x::'b) & (x::'b)~=UU)|] ==>\
-\ (!i.? y.Y(i)=Isinr(y))"
+\ (!i.? y. Y(i)=Isinr(y))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -231,7 +231,7 @@ qed_goal "ssum_lemma3" thy
         ]);
 
 qed_goal "ssum_lemma4" thy 
-"is_chain(Y) ==> (!i.? x.Y(i)=Isinl(x))|(!i.? y.Y(i)=Isinr(y))"
+"is_chain(Y) ==> (!i.? x. Y(i)=Isinl(x))|(!i.? y. Y(i)=Isinr(y))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -249,7 +249,7 @@ qed_goal "ssum_lemma4" thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "ssum_lemma5" thy 
-"z=Isinl(x)==> Isinl((Iwhen (LAM x.x) (LAM y.UU))(z)) = z"
+"z=Isinl(x)==> Isinl((Iwhen (LAM x. x) (LAM y. UU))(z)) = z"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -264,7 +264,7 @@ qed_goal "ssum_lemma5" thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "ssum_lemma6" thy 
-"z=Isinr(x)==> Isinr((Iwhen (LAM y.UU) (LAM x.x))(z)) = z"
+"z=Isinr(x)==> Isinr((Iwhen (LAM y. UU) (LAM x. x))(z)) = z"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -279,7 +279,7 @@ qed_goal "ssum_lemma6" thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "ssum_lemma7" thy 
-"[|Isinl(x) << z; x~=UU|] ==> ? y.z=Isinl(y) & y~=UU"
+"[|Isinl(x) << z; x~=UU|] ==> ? y. z=Isinl(y) & y~=UU"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -297,7 +297,7 @@ qed_goal "ssum_lemma7" thy
         ]);
 
 qed_goal "ssum_lemma8" thy 
-"[|Isinr(x) << z; x~=UU|] ==> ? y.z=Isinr(y) & y~=UU"
+"[|Isinr(x) << z; x~=UU|] ==> ? y. z=Isinr(y) & y~=UU"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -317,9 +317,9 @@ qed_goal "ssum_lemma8" thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "lub_ssum1a" thy 
-"[|is_chain(Y);(!i.? x.Y(i)=Isinl(x))|] ==>\
+"[|is_chain(Y);(!i.? x. Y(i)=Isinl(x))|] ==>\
 \ range(Y) <<|\
-\ Isinl(lub(range(%i.(Iwhen (LAM x.x) (LAM y.UU))(Y i))))"
+\ Isinl(lub(range(%i.(Iwhen (LAM x. x) (LAM y. UU))(Y i))))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -358,9 +358,9 @@ qed_goal "lub_ssum1a" thy
 
 
 qed_goal "lub_ssum1b" thy 
-"[|is_chain(Y);(!i.? x.Y(i)=Isinr(x))|] ==>\
+"[|is_chain(Y);(!i.? x. Y(i)=Isinr(x))|] ==>\
 \ range(Y) <<|\
-\ Isinr(lub(range(%i.(Iwhen (LAM y.UU) (LAM x.x))(Y i))))"
+\ Isinr(lub(range(%i.(Iwhen (LAM y. UU) (LAM x. x))(Y i))))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -413,7 +413,7 @@ bind_thm ("thelub_ssum1b", lub_ssum1b RS thelubI);
 *)
 
 qed_goal "cpo_ssum" thy 
-        "is_chain(Y::nat=>'a ++'b) ==> ? x.range(Y) <<|x"
+        "is_chain(Y::nat=>'a ++'b) ==> ? x. range(Y) <<|x"
  (fn prems =>
         [
         (cut_facts_tac prems 1),

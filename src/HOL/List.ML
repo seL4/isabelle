@@ -174,7 +174,7 @@ by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 bind_thm("map_ext", impI RS (allI RS (result() RS mp)));
 
-goal thy "map (%x.x) = (%xs.xs)";
+goal thy "map (%x. x) = (%xs. xs)";
 by (rtac ext 1);
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
@@ -235,7 +235,7 @@ by (ALLGOALS (asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
 qed "mem_append";
 Addsimps[mem_append];
 
-goal thy "x mem [x:xs.P(x)] = (x mem xs & P(x))";
+goal thy "x mem [x:xs. P(x)] = (x mem xs & P(x))";
 by (induct_tac "xs" 1);
 by (ALLGOALS (asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
 qed "mem_filter";
@@ -285,7 +285,7 @@ Addsimps [set_map];
 
 section "list_all";
 
-goal thy "list_all (%x.True) xs = True";
+goal thy "list_all (%x. True) xs = True";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "list_all_True";
@@ -599,7 +599,7 @@ bind_thm("takeWhile_append1", conjI RS (result() RS mp));
 Addsimps [takeWhile_append1];
 
 goal thy
-  "(!x:set xs.P(x)) --> takeWhile P (xs @ ys) = xs @ takeWhile P ys";
+  "(!x:set xs. P(x)) --> takeWhile P (xs @ ys) = xs @ takeWhile P ys";
 by (induct_tac "xs" 1);
  by (Simp_tac 1);
 by (asm_full_simp_tac (!simpset setloop (split_tac[expand_if])) 1);
@@ -616,7 +616,7 @@ bind_thm("dropWhile_append1", conjI RS (result() RS mp));
 Addsimps [dropWhile_append1];
 
 goal thy
-  "(!x:set xs.P(x)) --> dropWhile P (xs @ ys) = dropWhile P ys";
+  "(!x:set xs. P(x)) --> dropWhile P (xs @ ys) = dropWhile P ys";
 by (induct_tac "xs" 1);
  by (Simp_tac 1);
 by (asm_full_simp_tac (!simpset setloop (split_tac[expand_if])) 1);

@@ -9,7 +9,7 @@ Proof due to Herbert Ehler
 *)
 
 (*specialized form of induction needed below*)
-val prems = goal Nat.thy "[| P(0); !!n. P(Suc(n)) |] ==> !n.P(n)";
+val prems = goal Nat.thy "[| P(0); !!n. P(Suc(n)) |] ==> !n. P(n)";
 by (EVERY1 [rtac (nat_induct RS allI), resolve_tac prems, resolve_tac prems]);
 qed "nat_exh";
 
@@ -35,7 +35,7 @@ goal Puzzle.thy "f(n) < f(Suc(n))";
 by (deepen_tac (!claset addIs [Puzzle.f_ax, le_less_trans, lemma1]) 0 1);
 qed "lemma2";
 
-val prems = goal Puzzle.thy "(!!n.f(n) <= f(Suc(n))) ==> m<n --> f(m) <= f(n)";
+val prems = goal Puzzle.thy "(!!n. f(n) <= f(Suc(n))) ==> m<n --> f(m) <= f(n)";
 by (res_inst_tac[("n","n")]nat_induct 1);
 by (Simp_tac 1);
 by (simp_tac (!simpset addsimps [less_Suc_eq]) 1);

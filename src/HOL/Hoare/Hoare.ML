@@ -11,20 +11,20 @@ open Hoare;
 (*** Hoare rules ***)
 
 val SkipRule = prove_goalw thy [Spec_def,Skip_def]
-  "(!!s.p(s) ==> q(s)) ==> Spec p Skip q"
+  "(!!s. p(s) ==> q(s)) ==> Spec p Skip q"
   (fn prems => [fast_tac (!claset addIs prems) 1]);
 
 val AssignRule = prove_goalw thy [Spec_def,Assign_def]
-  "(!!s. p s ==> q(%x.if x=v then e s else s x)) ==> Spec p (Assign v e) q"
+  "(!!s. p s ==> q(%x. if x=v then e s else s x)) ==> Spec p (Assign v e) q"
   (fn prems => [fast_tac (!claset addIs prems) 1]);
 
 val SeqRule = prove_goalw thy [Spec_def,Seq_def]
-  "[| Spec p c (%s.q s); Spec (%s.q s) c' r |] ==> Spec p (Seq c c') r"
+  "[| Spec p c (%s. q s); Spec (%s. q s) c' r |] ==> Spec p (Seq c c') r"
   (fn prems => [cut_facts_tac prems 1, Fast_tac 1]);
 
 val IfRule = prove_goalw thy [Spec_def,Cond_def]
   "[| !!s. p s ==> (b s --> q s) & (~b s --> q' s); \
-\     Spec (%s.q s) c r; Spec (%s.q' s) c' r |] \
+\     Spec (%s. q s) c r; Spec (%s. q' s) c' r |] \
 \  ==> Spec p (Cond b c c') r"
   (fn [prem1,prem2,prem3] =>
      [REPEAT (rtac allI 1),
@@ -39,7 +39,7 @@ val strenthen_pre = prove_goalw thy [Spec_def]
                        fast_tac (!claset addIs [prem1]) 1]);
 
 val lemma = prove_goalw thy [Spec_def,While_def]
-  "[| Spec (%s.I s & b s) c I; !!s. [| I s; ~b s |] ==> q s |] \
+  "[| Spec (%s. I s & b s) c I; !!s. [| I s; ~b s |] ==> q s |] \
 \  ==> Spec I (While b I c) q"
   (fn [prem1,prem2] =>
      [REPEAT(rtac allI 1), rtac impI 1, etac exE 1, rtac mp 1, atac 2,
@@ -134,7 +134,7 @@ fun pvars_of_term (name,trm)    =
 (* VarsElimTac: Taktik zum Eliminieren von bestimmten Programmvariablen aus dem Subgoal i
  - v::vl:(term) list  Liste der zu eliminierenden Programmvariablen
  - meta_spec:thm      Theorem, welches zur Entfernung der Variablen benutzt wird
-		      z.B.: "(!!s x.PROP P(s,x)) ==> (!!s.PROP P(s,x(s)))"
+		      z.B.: "(!!s x. PROP P(s,x)) ==> (!!s. PROP P(s,x(s)))"
  - namexAll:string    Name von    ^                                  (hier "x")
  - varx:term          Term zu                                      ^ (hier Var(("x",0),...))
  - varP:term          Term zu                                  ^     (hier Var(("P",0),...))
@@ -144,25 +144,25 @@ fun pvars_of_term (name,trm)    =
       - eliminiere jede pvar durch Anwendung von comp_inst_ren_tac. Dazu:
       - Unbenennung in meta_spec: namexAll wird in den Namen der Prog.-Var. umbenannt
 	z.B.: fuer die Prog.-Var. mit Namen "a" ergibt sich
-	      meta_spec zu "(!! s a.PROP P(s,a)) ==> (!! s.PROP P(s,x(s)))"
+	      meta_spec zu "(!! s a. PROP P(s,a)) ==> (!! s. PROP P(s,x(s)))"
       - Instanziierungen in meta_spec:
-	      varx wird mit "%s:(type_pvar) state.s(pvar)" instanziiert
+	      varx wird mit "%s:(type_pvar) state. s(pvar)" instanziiert
 	      varP wird entsprechend instanziiert. Beispiel fuer Prog.-Var. "a":
-	 - zu Subgoal "!!s.s(Suc(0)) = s(0) ==> s(0) = 1" bestimme Term ohne "!!s.":
+	 - zu Subgoal "!!s. s(Suc(0)) = s(0) ==> s(0) = 1" bestimme Term ohne "!!s.":
 		trm0 = "s(Suc(0)) = s(0) ==> s(0) = 1" (s ist hier freie Variable)
 	 - substituiere alle Vorkommen von s(pvar) durch eine freie Var. xs:
 		trm1 = "s(Suc(0)) = xs ==> xs = 1"
 	 - abstrahiere ueber xs:
-		trm2 = "%xs.s(Suc(0)) = xs ==> xs = 1"
+		trm2 = "%xs. s(Suc(0)) = xs ==> xs = 1"
 	 - abstrahiere ueber restliche Vorkommen von s:
-		trm3 = "%s xs.s(Suc(0)) = xs ==> xs = 1"
+		trm3 = "%s xs. s(Suc(0)) = xs ==> xs = 1"
 	 - instanziiere varP mit trm3
 *)
 
 (* StateElimTac: tactic to eliminate all program variable from subgoal i
-    - applies to subgoals of the form "!!s:('a) state.P(s)",
+    - applies to subgoals of the form "!!s:('a) state. P(s)",
         i.e. the term  Const("all",_) $ Abs ("s",pvar --> 'a,_)
-    -   meta_spec has the form "(!!s x.PROP P(s,x)) ==> (!!s.PROP P(s,x(s)))"
+    -   meta_spec has the form "(!!s x. PROP P(s,x)) ==> (!!s. PROP P(s,x(s)))"
 *)
 
 val StateElimTac = SUBGOAL (fn (Bi,i) =>

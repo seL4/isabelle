@@ -26,7 +26,7 @@ primrec "op <|"   uterm
 
 defs 
 
-  subst_eq_def  "r =$= s == ALL t.t <| r = t <| s"
+  subst_eq_def  "r =$= s == ALL t. t <| r = t <| s"
 
   comp_def    "al <> bl == alist_rec al bl (%x y xs g. (x,y <| bl)#g)"
 

@@ -102,7 +102,7 @@ val simp_thms = map prover
    "(P | False) = P", "(False | P) = P",
    "(P | P) = P", "(P | (P | Q)) = (P | Q)",
    "((~P) = (~Q)) = (P=Q)",
-   "(!x.P) = P", "(? x.P) = P", "? x. x=t", "? x. t=x", 
+   "(!x. P) = P", "(? x. P) = P", "? x. x=t", "? x. t=x", 
    "(? x. x=t & P(x)) = P(t)",
    "(! x. t=x --> P(x)) = P(t)" ];
 
@@ -122,21 +122,21 @@ val imp_cong = impI RSN
 
 (*Miniscoping: pushing in existential quantifiers*)
 val ex_simps = map prover 
-                ["(EX x. P x & Q)   = ((EX x.P x) & Q)",
-                 "(EX x. P & Q x)   = (P & (EX x.Q x))",
-                 "(EX x. P x | Q)   = ((EX x.P x) | Q)",
-                 "(EX x. P | Q x)   = (P | (EX x.Q x))",
-                 "(EX x. P x --> Q) = ((ALL x.P x) --> Q)",
-                 "(EX x. P --> Q x) = (P --> (EX x.Q x))"];
+                ["(EX x. P x & Q)   = ((EX x. P x) & Q)",
+                 "(EX x. P & Q x)   = (P & (EX x. Q x))",
+                 "(EX x. P x | Q)   = ((EX x. P x) | Q)",
+                 "(EX x. P | Q x)   = (P | (EX x. Q x))",
+                 "(EX x. P x --> Q) = ((ALL x. P x) --> Q)",
+                 "(EX x. P --> Q x) = (P --> (EX x. Q x))"];
 
 (*Miniscoping: pushing in universal quantifiers*)
 val all_simps = map prover
-                ["(ALL x. P x & Q)   = ((ALL x.P x) & Q)",
-                 "(ALL x. P & Q x)   = (P & (ALL x.Q x))",
-                 "(ALL x. P x | Q)   = ((ALL x.P x) | Q)",
-                 "(ALL x. P | Q x)   = (P | (ALL x.Q x))",
-                 "(ALL x. P x --> Q) = ((EX x.P x) --> Q)",
-                 "(ALL x. P --> Q x) = (P --> (ALL x.Q x))"];
+                ["(ALL x. P x & Q)   = ((ALL x. P x) & Q)",
+                 "(ALL x. P & Q x)   = (P & (ALL x. Q x))",
+                 "(ALL x. P x | Q)   = ((ALL x. P x) | Q)",
+                 "(ALL x. P | Q x)   = (P | (ALL x. Q x))",
+                 "(ALL x. P x --> Q) = ((EX x. P x) --> Q)",
+                 "(ALL x. P --> Q x) = (P --> (ALL x. Q x))"];
 
 (*** Simplification procedure for turning  ? x. ... & x = t & ...
      into                                  ? x. x = t & ... & ...
@@ -179,7 +179,7 @@ fun rearrange sg _ (F as ex $ Abs(x,T,P)) =
           in Some(prove_eq ceqt) end)
   | rearrange _ _ _ = None;
 
-val pattern = read_cterm (sign_of HOL.thy) ("? x.P(x) & Q(x)",HOLogic.boolT)
+val pattern = read_cterm (sign_of HOL.thy) ("? x. P(x) & Q(x)",HOLogic.boolT)
 
 in
 val defEX_regroup = mk_simproc "defined EX" [pattern] rearrange;
@@ -242,9 +242,9 @@ prove "not_iff" "(P~=Q) = (P = (~Q))";
   cases boil down to the same thing.*) 
 prove "cases_simp" "((P --> Q) & (~P --> Q)) = Q";
 
-prove "not_all" "(~ (! x.P(x))) = (? x.~P(x))";
+prove "not_all" "(~ (! x. P(x))) = (? x.~P(x))";
 prove "imp_all" "((! x. P x) --> Q) = (? x. P x --> Q)";
-prove "not_ex"  "(~ (? x.P(x))) = (! x.~P(x))";
+prove "not_ex"  "(~ (? x. P(x))) = (! x.~P(x))";
 prove "imp_ex" "((? x. P x) --> Q) = (! x. P x --> Q)";
 
 prove "ex_disj_distrib" "(? x. P(x) | Q(x)) = ((? x. P(x)) | (? x. Q(x)))";

@@ -10,7 +10,7 @@ Denotational = HOLCF + Natural +
 
 constdefs
    dlift :: "(('a::term) discr -> 'b::pcpo) => ('a lift -> 'b)"
-  "dlift f == (LAM x.case x of Undef => UU | Def(y) => f`(Discr y))"
+  "dlift f == (LAM x. case x of Undef => UU | Def(y) => f`(Discr y))"
 
 consts D :: "com => state discr -> state lift"
 

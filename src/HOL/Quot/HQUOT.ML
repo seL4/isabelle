@@ -7,7 +7,7 @@
 open HQUOT;
 
 (* first prove some helpful lemmas *)
-goalw thy [quot_def] "{y.y===x}:quot";
+goalw thy [quot_def] "{y. y===x}:quot";
 by (Asm_simp_tac 1);
 by (fast_tac (set_cs addIs [per_sym]) 1);
 qed "per_class_rep_quot";
@@ -20,7 +20,7 @@ by (Asm_simp_tac 1);
 qed "quot_eq";
 
 (* prepare induction and exhaustiveness *)
-val prems = goal thy "!s.s:quot --> P (Abs_quot s) ==> P x";
+val prems = goal thy "!s. s:quot --> P (Abs_quot s) ==> P x";
 by (cut_facts_tac prems 1);
 by (rtac (Abs_quot_inverse RS subst) 1);
 by (rtac Rep_quot 1);
@@ -28,7 +28,7 @@ by (dres_inst_tac [("x","Rep_quot x")] spec 1);
 by (asm_full_simp_tac (HOL_ss addsimps [Rep_quot,Rep_quot_inverse]) 1);
 qed "all_q";
 
-goal thy "? s.s:quot & x=Abs_quot s";
+goal thy "? s. s:quot & x=Abs_quot s";
 by (res_inst_tac [("x","Rep_quot x")] exI 1);
 by (asm_full_simp_tac (HOL_ss addsimps [Rep_quot,Rep_quot_inverse]) 1);
 qed "exh_q";
@@ -113,7 +113,7 @@ by (etac er_class_neqI 1);
 qed "er_class_not";
 
 (* exhaustiveness and induction *)
-goalw thy [peclass_def] "? s.x=<[s]>";
+goalw thy [peclass_def] "? s. x=<[s]>";
 by (rtac all_q 1);
 by (strip_tac 1);
 by (asm_full_simp_tac (HOL_ss addsimps [mem_Collect_eq,quot_def]) 1);
@@ -128,7 +128,7 @@ by (asm_full_simp_tac (HOL_ss addsimps [mem_Collect_eq,quot_def]) 1);
 by (fast_tac set_cs 1);
 qed "per_class_exh";
 
-val prems = goal thy "!x.P<[x]> ==> P s";
+val prems = goal thy "!x. P<[x]> ==> P s";
 by (cut_facts_tac (prems@[
 	read_instantiate[("x","s::'a::per quot")] per_class_exh]) 1);
 by (fast_tac set_cs 1);
@@ -160,7 +160,7 @@ fr (er_any_in_class RS per_class_eqI);
 qed "er_class_any_in";
 
 (* equivalent theorem for per would need !x.x:D *)
-val prems = goal thy "!x::'a::per.x:D==><[any_in (q::'a::per quot)]> = q";
+val prems = goal thy "!x::'a::per. x:D==><[any_in (q::'a::per quot)]> = q";
 by (cut_facts_tac prems 1);
 fr per_class_all;
 fr allI;

@@ -341,7 +341,7 @@ in
       fun t_inducting ((_, name, types, vns, _) :: cs) =
         let
           val h = if null types then " P(" ^ name ^ ")"
-                  else " !!" ^ (space_implode " " vns) ^ "." ^
+                  else " !!" ^ (space_implode " " vns) ^ ". " ^
                     (assumpt (types, vns, false)) ^
                     "P(" ^ C_exp name vns ^ ")";
           val rest = t_inducting cs;

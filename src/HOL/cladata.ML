@@ -68,7 +68,7 @@ claset := HOL_cs;
 
 (*Better then ex1E for classical reasoner: needs no quantifier duplication!*)
 qed_goal "alt_ex1E" thy
-    "[| ?! x.P(x);                                              \
+    "[| ?! x. P(x);                                              \
 \       !!x. [| P(x);  ALL y y'. P(y) & P(y') --> y=y' |] ==> R  \
 \    |] ==> R"
  (fn major::prems =>

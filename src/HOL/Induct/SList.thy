@@ -56,9 +56,9 @@ translations
   "[x]"         == "x#[]"
   "[]"          == "Nil"
 
-  "case xs of Nil => a | y#ys => b" == "list_case a (%y ys.b) xs"
+  "case xs of Nil => a | y#ys => b" == "list_case a (%y ys. b) xs"
 
-  "[x:xs . P]"  == "filter (%x.P) xs"
+  "[x:xs . P]"  == "filter (%x. P) xs"
 
 defs
   (* Defining the Concrete Constructors *)
@@ -82,7 +82,7 @@ defs
   Nil_def       "Nil == Abs_list(NIL)"
   Cons_def      "x#xs == Abs_list(CONS (Leaf x) (Rep_list xs))"
 
-  List_case_def "List_case c d == Case (%x.c) (Split d)"
+  List_case_def "List_case c d == Case (%x. c) (Split d)"
 
   (* list Recursion -- the trancl is Essential; see list.ML *)
 
@@ -99,11 +99,11 @@ defs
   Rep_map_def "Rep_map f xs == list_rec xs NIL (%x l r. CONS (f x) r)"
   Abs_map_def "Abs_map g M == List_rec M Nil (%N L r. g(N)#r)"
 
-  null_def      "null(xs)            == list_rec xs True (%x xs r.False)"
-  hd_def        "hd(xs)              == list_rec xs arbitrary (%x xs r.x)"
-  tl_def        "tl(xs)              == list_rec xs arbitrary (%x xs r.xs)"
+  null_def      "null(xs)            == list_rec xs True (%x xs r. False)"
+  hd_def        "hd(xs)              == list_rec xs arbitrary (%x xs r. x)"
+  tl_def        "tl(xs)              == list_rec xs arbitrary (%x xs r. xs)"
   (* a total version of tl: *)
-  ttl_def       "ttl(xs)             == list_rec xs [] (%x xs r.xs)"
+  ttl_def       "ttl(xs)             == list_rec xs [] (%x xs r. xs)"
 
   set_def       "set xs              == list_rec xs {} (%x l r. insert x r)"
 
@@ -114,6 +114,6 @@ defs
   filter_def    "filter P xs         == 
                   list_rec xs [] (%x xs r. if P(x) then x#r else r)"
 
-  list_case_def  "list_case a f xs == list_rec xs a (%x xs r.f x xs)"
+  list_case_def  "list_case a f xs == list_rec xs a (%x xs r. f x xs)"
 
 end

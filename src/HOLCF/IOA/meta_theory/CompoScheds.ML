@@ -160,7 +160,7 @@ Addsimps composch_simps;
 
 goalw thy [filter_act_def,Filter_ex2_def]
    "filter_act`(Filter_ex2 (asig_of A)`xs)=\
-\   Filter (%a.a:act A)`(filter_act`xs)";
+\   Filter (%a. a:act A)`(filter_act`xs)";
 
 by (simp_tac (!simpset addsimps [MapFilter,o_def]) 1);
 qed"lemma_2_1a";
@@ -187,7 +187,7 @@ qed"lemma_2_1b";
    is the same proposition, but we cannot change this one, when then rather lemma_1_1c  *)
 
 goal thy "!s. is_exec_frag (A||B) (s,xs) \
-\  --> Forall (%x.x:act (A||B)) (filter_act`xs)";
+\  --> Forall (%x. x:act (A||B)) (filter_act`xs)";
 
 by (pair_induct_tac "xs" [is_exec_frag_def,Forall_def,sforall_def] 1);
 (* main case *)
@@ -207,9 +207,9 @@ qed"sch_actions_in_AorB";
   --------------------------------------------------------------------------- *)
 
 goal thy "! exA exB s t. \
-\ Forall (%x.x:act (A||B)) sch  & \
-\ Filter (%a.a:act A)`sch << filter_act`exA &\
-\ Filter (%a.a:act B)`sch << filter_act`exB \
+\ Forall (%x. x:act (A||B)) sch  & \
+\ Filter (%a. a:act A)`sch << filter_act`exA &\
+\ Filter (%a. a:act B)`sch << filter_act`exB \
 \ --> filter_act`(snd (mkex A B sch (s,exA) (t,exB))) = sch";
 
 by (Seq_induct_tac "sch" [Filter_def,Forall_def,sforall_def,mkex_def] 1);
@@ -270,9 +270,9 @@ fun mkex_induct_tac sch exA exB =
 
 
 goal thy "! exA exB s t. \
-\ Forall (%x.x:act (A||B)) sch & \
-\ Filter (%a.a:act A)`sch << filter_act`exA &\
-\ Filter (%a.a:act B)`sch << filter_act`exB \
+\ Forall (%x. x:act (A||B)) sch & \
+\ Filter (%a. a:act A)`sch << filter_act`exA &\
+\ Filter (%a. a:act B)`sch << filter_act`exB \
 \ --> stutter (asig_of A) (s,ProjA2`(snd (mkex A B sch (s,exA) (t,exB))))";
 
 by (mkex_induct_tac "sch" "exA" "exB");
@@ -281,9 +281,9 @@ qed"stutterA_mkex";
 
 
 goal thy "!! sch.[|  \
-\ Forall (%x.x:act (A||B)) sch ; \
-\ Filter (%a.a:act A)`sch << filter_act`(snd exA) ;\
-\ Filter (%a.a:act B)`sch << filter_act`(snd exB) |] \
+\ Forall (%x. x:act (A||B)) sch ; \
+\ Filter (%a. a:act A)`sch << filter_act`(snd exA) ;\
+\ Filter (%a. a:act B)`sch << filter_act`(snd exB) |] \
 \ ==> stutter (asig_of A) (ProjA (mkex A B sch exA exB))";
 
 by (cut_facts_tac [stutterA_mkex] 1);
@@ -301,9 +301,9 @@ qed"stutter_mkex_on_A";
   --------------------------------------------------------------------------- *)
 
 goal thy "! exA exB s t. \
-\ Forall (%x.x:act (A||B)) sch & \
-\ Filter (%a.a:act A)`sch << filter_act`exA &\
-\ Filter (%a.a:act B)`sch << filter_act`exB \
+\ Forall (%x. x:act (A||B)) sch & \
+\ Filter (%a. a:act A)`sch << filter_act`exA &\
+\ Filter (%a. a:act B)`sch << filter_act`exB \
 \ --> stutter (asig_of B) (t,ProjB2`(snd (mkex A B sch (s,exA) (t,exB))))";
 
 by (mkex_induct_tac "sch" "exA" "exB");
@@ -312,9 +312,9 @@ qed"stutterB_mkex";
 
 
 goal thy "!! sch.[|  \
-\ Forall (%x.x:act (A||B)) sch ; \
-\ Filter (%a.a:act A)`sch << filter_act`(snd exA) ;\
-\ Filter (%a.a:act B)`sch << filter_act`(snd exB) |] \
+\ Forall (%x. x:act (A||B)) sch ; \
+\ Filter (%a. a:act A)`sch << filter_act`(snd exA) ;\
+\ Filter (%a. a:act B)`sch << filter_act`(snd exB) |] \
 \ ==> stutter (asig_of B) (ProjB (mkex A B sch exA exB))";
 
 by (cut_facts_tac [stutterB_mkex] 1);
@@ -334,11 +334,11 @@ qed"stutter_mkex_on_B";
   --------------------------------------------------------------------------- *)
 
 goal thy "! exA exB s t. \
-\ Forall (%x.x:act (A||B)) sch & \
-\ Filter (%a.a:act A)`sch << filter_act`exA  &\
-\ Filter (%a.a:act B)`sch << filter_act`exB \
+\ Forall (%x. x:act (A||B)) sch & \
+\ Filter (%a. a:act A)`sch << filter_act`exA  &\
+\ Filter (%a. a:act B)`sch << filter_act`exB \
 \ --> Filter_ex2 (asig_of A)`(ProjA2`(snd (mkex A B sch (s,exA) (t,exB)))) =   \
-\     Zip`(Filter (%a.a:act A)`sch)`(Map snd`exA)";
+\     Zip`(Filter (%a. a:act A)`sch)`(Map snd`exA)";
 
 by (mkex_induct_tac "sch" "exA" "exB");
 
@@ -360,8 +360,8 @@ qed"Zip_Map_fst_snd";
   --------------------------------------------------------------------------- *)
 
 goal thy "!! sch ex. \
-\ Filter (%a.a:act AB)`sch = filter_act`ex  \
-\ ==> ex = Zip`(Filter (%a.a:act AB)`sch)`(Map snd`ex)";
+\ Filter (%a. a:act AB)`sch = filter_act`ex  \
+\ ==> ex = Zip`(Filter (%a. a:act AB)`sch)`(Map snd`ex)";
 by (asm_full_simp_tac (!simpset addsimps [filter_act_def]) 1);
 by (rtac (Zip_Map_fst_snd RS sym) 1);
 qed"trick_against_eq_in_ass";
@@ -373,9 +373,9 @@ qed"trick_against_eq_in_ass";
 
 
 goal thy "!!sch exA exB.\
-\ [| Forall (%a.a:act (A||B)) sch ; \
-\ Filter (%a.a:act A)`sch = filter_act`(snd exA)  ;\
-\ Filter (%a.a:act B)`sch = filter_act`(snd exB) |]\
+\ [| Forall (%a. a:act (A||B)) sch ; \
+\ Filter (%a. a:act A)`sch = filter_act`(snd exA)  ;\
+\ Filter (%a. a:act B)`sch = filter_act`(snd exB) |]\
 \ ==> Filter_ex (asig_of A) (ProjA (mkex A B sch exA exB)) = exA";
 by (asm_full_simp_tac (!simpset addsimps [ProjA_def,Filter_ex_def]) 1);
 by (pair_tac "exA" 1);
@@ -398,11 +398,11 @@ qed"filter_mkex_is_exA";
 
 
 goal thy "! exA exB s t. \
-\ Forall (%x.x:act (A||B)) sch & \
-\ Filter (%a.a:act A)`sch << filter_act`exA  &\
-\ Filter (%a.a:act B)`sch << filter_act`exB \
+\ Forall (%x. x:act (A||B)) sch & \
+\ Filter (%a. a:act A)`sch << filter_act`exA  &\
+\ Filter (%a. a:act B)`sch << filter_act`exB \
 \ --> Filter_ex2 (asig_of B)`(ProjB2`(snd (mkex A B sch (s,exA) (t,exB)))) =   \
-\     Zip`(Filter (%a.a:act B)`sch)`(Map snd`exB)";
+\     Zip`(Filter (%a. a:act B)`sch)`(Map snd`exB)";
 
 (* notice necessary change of arguments exA and exB *)
 by (mkex_induct_tac "sch" "exB" "exA");
@@ -417,9 +417,9 @@ qed"filter_mkex_is_exB_tmp";
 
 
 goal thy "!!sch exA exB.\
-\ [| Forall (%a.a:act (A||B)) sch ; \
-\ Filter (%a.a:act A)`sch = filter_act`(snd exA)  ;\
-\ Filter (%a.a:act B)`sch = filter_act`(snd exB) |]\
+\ [| Forall (%a. a:act (A||B)) sch ; \
+\ Filter (%a. a:act A)`sch = filter_act`(snd exA)  ;\
+\ Filter (%a. a:act B)`sch = filter_act`(snd exB) |]\
 \ ==> Filter_ex (asig_of B) (ProjB (mkex A B sch exA exB)) = exB";
 by (asm_full_simp_tac (!simpset addsimps [ProjB_def,Filter_ex_def]) 1);
 by (pair_tac "exA" 1);
@@ -439,9 +439,9 @@ qed"filter_mkex_is_exB";
 
 goal thy "!s t exA exB. \
 \ Forall (%x. x : act (A || B)) sch &\
-\ Filter (%a.a:act A)`sch << filter_act`exA  &\
-\ Filter (%a.a:act B)`sch << filter_act`exB \
-\  --> Forall (%x.fst x : act (A ||B))   \
+\ Filter (%a. a:act A)`sch << filter_act`exA  &\
+\ Filter (%a. a:act B)`sch << filter_act`exB \
+\  --> Forall (%x. fst x : act (A ||B))   \
 \        (snd (mkex A B sch (s,exA) (t,exB)))";
 
 by (mkex_induct_tac "sch" "exA" "exB");
@@ -456,8 +456,8 @@ qed"mkex_actions_in_AorB";
 
 goal thy  
 "sch : schedules (A||B) = \
-\ (Filter (%a.a:act A)`sch : schedules A &\
-\  Filter (%a.a:act B)`sch : schedules B &\
+\ (Filter (%a. a:act A)`sch : schedules A &\
+\  Filter (%a. a:act B)`sch : schedules B &\
 \  Forall (%x. x:act (A||B)) sch)";
 
 by (simp_tac (!simpset addsimps [schedules_def, has_schedule_def]) 1);

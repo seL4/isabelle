@@ -104,13 +104,13 @@ invariant_def "invariant A P == (!s. reachable A s --> P(s))"
 (* Restrict the trace to those members of the set s *)
 filter_oseq_def
   "filter_oseq p s ==                                                   
-   (%i.case s(i)                                                       
+   (%i. case s(i)                                                       
          of None => None                                               
           | Some(x) => if p x then Some x else None)"
 
 
 mk_trace_def
-  "mk_trace(ioa) == filter_oseq(%a.a:externals(asig_of(ioa)))"
+  "mk_trace(ioa) == filter_oseq(%a. a:externals(asig_of(ioa)))"
 
 
 (* Does an ioa have an execution with the given trace *)

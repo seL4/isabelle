@@ -247,7 +247,7 @@ type t in the type environment te.
      ve_dom(ve) = te_dom(te) & 
      ( ! x. 
          x:ve_dom(ve) --> 
-         (? c.ve_app ve x = v_const(c) & c isof te_app te x) 
+         (? c. ve_app ve x = v_const(c) & c isof te_app te x) 
      ) 
    "
 
@@ -263,7 +263,7 @@ type t in the type environment te.
            p = (v_clos(<|ev,e,ve|>),t) & 
            te |- fn ev => e ===> t & 
            ve_dom(ve) = te_dom(te) & 
-           (! ev1.ev1:ve_dom(ve) --> (ve_app ve ev1,te_app te ev1) : r) 
+           (! ev1. ev1:ve_dom(ve) --> (ve_app ve ev1,te_app te ev1) : r) 
        ) 
      } 
    "

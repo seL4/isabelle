@@ -37,7 +37,7 @@ bind_thm ("term_subset_sexp", ([term_mono, term_sexp] MRS subset_trans));
 (*Induction for the set term(A) *)
 val [major,minor] = goal Term.thy 
     "[| M: term(A);  \
-\       !!x zs. [| x: A;  zs: list(term(A));  zs: list({x.R(x)}) \
+\       !!x zs. [| x: A;  zs: list(term(A));  zs: list({x. R(x)}) \
 \               |] ==> R(x$zs)  \
 \    |] ==> R(M)";
 by (rtac (major RS term.induct) 1);

@@ -7,7 +7,7 @@
 open Cfun3;
 
 (* for compatibility with old HOLCF-Version *)
-qed_goal "inst_cfun_pcpo" thy "UU = fabs(%x.UU)"
+qed_goal "inst_cfun_pcpo" thy "UU = fabs(%x. UU)"
  (fn prems => 
         [
         (simp_tac (HOL_ss addsimps [UU_def,UU_cfun_def]) 1)
@@ -53,7 +53,7 @@ qed_goal "cont_fapp1" thy "cont(fapp)"
 
 qed_goal "contlub_cfun_fun" thy 
 "is_chain(FY) ==>\
-\ lub(range FY)`x = lub(range (%i.FY(i)`x))"
+\ lub(range FY)`x = lub(range (%i. FY(i)`x))"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -67,7 +67,7 @@ qed_goal "contlub_cfun_fun" thy
 
 qed_goal "cont_cfun_fun" thy 
 "is_chain(FY) ==>\
-\ range(%i.FY(i)`x) <<| lub(range FY)`x"
+\ range(%i. FY(i)`x) <<| lub(range FY)`x"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -83,7 +83,7 @@ qed_goal "cont_cfun_fun" thy
 
 qed_goal "contlub_cfun" thy 
 "[|is_chain(FY);is_chain(TY)|] ==>\
-\ (lub(range FY))`(lub(range TY)) = lub(range(%i.FY(i)`(TY i)))"
+\ (lub(range FY))`(lub(range TY)) = lub(range(%i. FY(i)`(TY i)))"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -117,7 +117,7 @@ qed_goal "cont_cfun" thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "cont2cont_fapp" thy 
-        "[|cont(%x.ft x);cont(%x.tt x)|] ==> cont(%x. (ft x)`(tt x))"
+        "[|cont(%x. ft x);cont(%x. tt x)|] ==> cont(%x. (ft x)`(tt x))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -137,7 +137,7 @@ qed_goal "cont2cont_fapp" thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "cont2mono_LAM" thy 
- "[| !!x.cont(c1 x); !!y.monofun(%x.c1 x y)|] ==> monofun(%x. LAM y. c1 x y)"
+ "[| !!x. cont(c1 x); !!y. monofun(%x. c1 x y)|] ==> monofun(%x. LAM y. c1 x y)"
 (fn [p1,p2] =>
         [
         (rtac monofunI 1),
@@ -157,7 +157,7 @@ qed_goal "cont2mono_LAM" thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "cont2cont_LAM" thy 
- "[| !!x.cont(c1 x); !!y.cont(%x.c1 x y) |] ==> cont(%x. LAM y. c1 x y)"
+ "[| !!x. cont(c1 x); !!y. cont(%x. c1 x y) |] ==> cont(%x. LAM y. c1 x y)"
 (fn [p1,p2] =>
         [
         (rtac monocontlub2cont 1),
@@ -393,7 +393,7 @@ qed_goal "chfin_fappR" thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "iso_strict"  thy  
-"!!f g.[|!y.f`(g`y)=(y::'b) ; !x.g`(f`x)=(x::'a) |] \
+"!!f g.[|!y. f`(g`y)=(y::'b) ; !x. g`(f`x)=(x::'a) |] \
 \ ==> f`UU=UU & g`UU=UU"
  (fn prems =>
         [
@@ -410,7 +410,7 @@ qed_goal "iso_strict"  thy
 
 
 qed_goal "isorep_defined" thy 
-        "[|!x.rep`(abs`x)=x;!y.abs`(rep`y)=y; z~=UU|] ==> rep`z ~= UU"
+        "[|!x. rep`(abs`x)=x;!y. abs`(rep`y)=y; z~=UU|] ==> rep`z ~= UU"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -424,7 +424,7 @@ qed_goal "isorep_defined" thy
         ]);
 
 qed_goal "isoabs_defined" thy 
-        "[|!x.rep`(abs`x) = x;!y.abs`(rep`y)=y ; z~=UU|] ==> abs`z ~= UU"
+        "[|!x. rep`(abs`x) = x;!y. abs`(rep`y)=y ; z~=UU|] ==> abs`z ~= UU"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -442,14 +442,14 @@ qed_goal "isoabs_defined" thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "chfin2chfin" thy "!!f g.[|! Y::nat=>'a. is_chain Y --> (? n. max_in_chain n Y); \
-\ !y.f`(g`y)=(y::'b) ; !x.g`(f`x)=(x::'a::chfin) |] \
+\ !y. f`(g`y)=(y::'b) ; !x. g`(f`x)=(x::'a::chfin) |] \
 \ ==> ! Y::nat=>'b. is_chain Y --> (? n. max_in_chain n Y)"
  (fn prems =>
         [
         (rewtac max_in_chain_def),
         (strip_tac 1),
         (rtac exE 1),
-        (res_inst_tac [("P","is_chain(%i.g`(Y i))")] mp 1),
+        (res_inst_tac [("P","is_chain(%i. g`(Y i))")] mp 1),
         (etac spec 1),
         (etac ch2ch_fappR 1),
         (rtac exI 1),
@@ -465,8 +465,8 @@ qed_goal "chfin2chfin" thy "!!f g.[|! Y::nat=>'a. is_chain Y --> (? n. max_in_ch
         ]);
 
 
-qed_goal "flat2flat" thy "!!f g.[|!x y::'a.x<<y --> x=UU | x=y; \
-\ !y.f`(g`y)=(y::'b); !x.g`(f`x)=(x::'a)|] ==> !x y::'b.x<<y --> x=UU | x=y"
+qed_goal "flat2flat" thy "!!f g.[|!x y::'a. x<<y --> x=UU | x=y; \
+\ !y. f`(g`y)=(y::'b); !x. g`(f`x)=(x::'a)|] ==> !x y::'b. x<<y --> x=UU | x=y"
  (fn prems =>
         [
         (strip_tac 1),
@@ -496,7 +496,7 @@ qed_goal "flat2flat" thy "!!f g.[|!x y::'a.x<<y --> x=UU | x=y; \
 (* ------------------------------------------------------------------------- *)
 
 qed_goal "flat_codom" thy 
-"f`(x::'a)=(c::'b::flat) ==> f`(UU::'a)=(UU::'b) | (!z.f`(z::'a)=c)"
+"f`(x::'a)=(c::'b::flat) ==> f`(UU::'a)=(UU::'b) | (!z. f`(z::'a)=c)"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -534,7 +534,7 @@ qed_goalw "ID1" thy [ID_def] "ID`x=x"
         (rtac refl 1)
         ]);
 
-qed_goalw "cfcomp1" thy [oo_def] "(f oo g)=(LAM x.f`(g`x))" (fn _ => [
+qed_goalw "cfcomp1" thy [oo_def] "(f oo g)=(LAM x. f`(g`x))" (fn _ => [
         (stac beta_cfun 1),
         (Simp_tac 1),
         (stac beta_cfun 1),

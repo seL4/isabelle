@@ -6,12 +6,12 @@
 Some general lemmas
 *)
 
-goal Sorting.thy "!x.mset (xs@ys) x = mset xs x + mset ys x";
+goal Sorting.thy "!x. mset (xs@ys) x = mset xs x + mset ys x";
 by (list.induct_tac "xs" 1);
 by (ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
 qed "mset_append";
 
-goal Sorting.thy "!x. mset [x:xs. ~p(x)] x + mset [x:xs.p(x)] x = \
+goal Sorting.thy "!x. mset [x:xs. ~p(x)] x + mset [x:xs. p(x)] x = \
 \                     mset xs x";
 by (list.induct_tac "xs" 1);
 by (ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
@@ -19,7 +19,7 @@ qed "mset_compl_add";
 
 Addsimps [mset_append, mset_compl_add];
 
-goal Sorting.thy "set xs = {x.mset xs x ~= 0}";
+goal Sorting.thy "set xs = {x. mset xs x ~= 0}";
 by (list.induct_tac "xs" 1);
 by (ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
 by (Fast_tac 1);

@@ -11,7 +11,7 @@ Addsimps add_ac;
 Addsimps [add_mult_distrib, add_mult_distrib2];
 
 (*The sum of the first n positive integers equals n(n+1)/2.*)
-goal NatSum.thy "2*sum (%i.i) (Suc n) = n*Suc(n)";
+goal NatSum.thy "2*sum (%i. i) (Suc n) = n*Suc(n)";
 by (Simp_tac 1);
 by (nat_ind_tac "n" 1);
 by (Simp_tac 1);
@@ -19,7 +19,7 @@ by (Asm_simp_tac 1);
 qed "sum_of_naturals";
 
 goal NatSum.thy
-  "Suc(Suc(Suc(Suc 2)))*sum (%i.i*i) (Suc n) = n*Suc(n)*Suc(2*n)";
+  "Suc(Suc(Suc(Suc 2)))*sum (%i. i*i) (Suc n) = n*Suc(n)*Suc(2*n)";
 by (Simp_tac 1);
 by (nat_ind_tac "n" 1);
 by (Simp_tac 1);
@@ -27,7 +27,7 @@ by (Asm_simp_tac 1);
 qed "sum_of_squares";
 
 goal NatSum.thy
-  "Suc(Suc 2)*sum (%i.i*i*i) (Suc n) = n*n*Suc(n)*Suc(n)";
+  "Suc(Suc 2)*sum (%i. i*i*i) (Suc n) = n*n*Suc(n)*Suc(n)";
 by (Simp_tac 1);
 by (nat_ind_tac "n" 1);
 by (Simp_tac 1);
@@ -35,7 +35,7 @@ by (Asm_simp_tac 1);
 qed "sum_of_cubes";
 
 (*The sum of the first n odd numbers equals n squared.*)
-goal NatSum.thy "sum (%i.Suc(i+i)) n = n*n";
+goal NatSum.thy "sum (%i. Suc(i+i)) n = n*n";
 by (nat_ind_tac "n" 1);
 by (Simp_tac 1);
 by (Asm_simp_tac 1);
