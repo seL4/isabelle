@@ -23,7 +23,7 @@ in
   structure Pure =
   struct
     val thy =
-      PureThy.begin_theory "Pure" [ProtoPure.thy]
+      PureThy.begin_theory Sign.PureN [ProtoPure.thy]
       |> Theory.add_syntax Syntax.pure_appl_syntax
       |> Library.apply common_setup
       |> PureThy.end_theory;
@@ -32,7 +32,7 @@ in
   structure CPure =
   struct
     val thy =
-      PureThy.begin_theory "CPure" [ProtoPure.thy]
+      PureThy.begin_theory Sign.CPureN [ProtoPure.thy]
       |> Theory.add_syntax Syntax.pure_applC_syntax
       |> Library.apply common_setup
       |> Theory.copy
