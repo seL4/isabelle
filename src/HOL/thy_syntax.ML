@@ -51,30 +51,34 @@ fun inductive_decl co =
       in
          (";\n\n\
           \structure " ^ stri_name ^ " =\n\
-          \ let open Ind_Syntax in\n\
           \  struct\n\
           \  val _ = writeln \"" ^ co ^
                      "Inductive definition " ^ big_rec_name ^ "\"\n\
-          \  val rec_tms\t= map (readtm (sign_of thy) termTVar) "
+          \  val rec_tms\t= map (readtm (sign_of thy) Ind_Syntax.termTVar) "
                            ^ srec_tms ^ "\n\
           \  and intr_tms\t= map (readtm (sign_of thy) propT)\n"
                            ^ sintrs ^ "\n\
-          \  end\n\
-          \ end;\n\n\
+          \  end;\n\n\
           \val thy = thy |> " ^ co ^ "Ind.add_fp_def_i \n    (" ^
              stri_name ^ ".rec_tms, " ^
              stri_name ^ ".intr_tms)"
          ,
           "structure " ^ big_rec_name ^ " =\n\
-          \  struct\n\
+          \ let\n\
+          \  val _ = writeln \"Proofs for " ^ co ^ 
+                     "Inductive definition " ^ big_rec_name ^ "\"\n\
           \  structure Result = " ^ co ^ "Ind_section_Fun\n\
-          \  (open " ^ stri_name ^ "\n\
-          \   val thy\t\t= thy\n\
-          \   val monos\t\t= " ^ monos ^ "\n\
-          \   val con_defs\t\t= " ^ con_defs ^ ");\n\n\
+          \\t  (open " ^ stri_name ^ "\n\
+          \\t   val thy\t\t= thy\n\
+          \\t   val monos\t\t= " ^ monos ^ "\n\
+          \\t   val con_defs\t\t= " ^ con_defs ^ ");\n\n\
+	  \ in\n\
+          \  struct\n\
           \  val " ^ mk_list (map mk_intr_name ipairs) ^ " = Result.intrs;\n\
           \  open Result\n\
-          \  end\n"
+          \  end\n\
+          \ end;\n\n\
+          \structure " ^ stri_name ^ " = struct end;\n\n"
          )
       end
     val ipairs = "intrs" $$-- repeat1 (ident -- !! string)

@@ -12,11 +12,8 @@ Sums are used only for mutual recursion;
 Products are used only to derive "streamlined" induction rules for relations
 *)
 
-local open Ind_Syntax
-in
-
 fun gen_fp_oper a (X,T,t) = 
-    let val setT = mk_setT T
+    let val setT = Ind_Syntax.mk_setT T
     in Const(a, (setT-->setT)-->setT) $ absfree(X, setT, t)  end;
 
 structure Lfp_items =
@@ -33,19 +30,25 @@ structure Gfp_items =
   val induct	= def_Collect_coinduct
   end;
 
-end;
-
 
 functor Ind_section_Fun (Inductive: sig include INDUCTIVE_ARG INDUCTIVE_I end) 
   : sig include INTR_ELIM INDRULE end =
-struct
-structure Intr_elim = Intr_elim_Fun(structure Inductive=Inductive and 
-				    Fp=Lfp_items);
+let
+  structure Intr_elim = Intr_elim_Fun(structure Inductive=Inductive and 
+					  Fp=Lfp_items);
 
-structure Indrule = Indrule_Fun
-    (structure Inductive=Inductive and Intr_elim=Intr_elim);
-
-open Intr_elim Indrule
+  structure Indrule = Indrule_Fun
+      (structure Inductive=Inductive and Intr_elim=Intr_elim);
+in 
+   struct 
+   val thy	= Intr_elim.thy
+   val defs	= Intr_elim.defs
+   val mono	= Intr_elim.mono
+   val intrs	= Intr_elim.intrs
+   val elim	= Intr_elim.elim
+   val mk_cases	= Intr_elim.mk_cases
+   open Indrule 
+   end
 end;
 
 

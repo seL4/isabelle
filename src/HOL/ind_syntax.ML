@@ -121,4 +121,9 @@ val equals_CollectD =
 val refl_thin = prove_goal HOL.thy "!!P. [| a=a;  P |] ==> P"
      (fn _ => [assume_tac 1]);
 
+(*Includes rules for Suc and Pair since they are common constructions*)
+val elim_rls = [asm_rl, FalseE, Suc_neq_Zero, Zero_neq_Suc,
+		make_elim Suc_inject, 
+		refl_thin, conjE, exE, disjE];
+
 end;
