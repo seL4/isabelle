@@ -1,4 +1,5 @@
 %% $Id$
+
 \newcommand{\rmindex}[1]{{#1}\index{#1}\@}
 \newcommand{\mtt}[1]{\mbox{\tt #1}}
 \newcommand{\ttfct}[1]{\mathop{\mtt{#1}}\nolimits}
@@ -173,7 +174,7 @@ The following main categories are defined:
 
   \item[$logic$] Terms of types in class $logic$. Initially, $logic$ contains
     merely $prop$. As the syntax is extended by new object-logics, more
-    productions for $logic$ are added automatically for (see below).
+    productions for $logic$ are added automatically (see below).
 
   \item[$fun$] Terms potentially of function type.
 
@@ -181,7 +182,7 @@ The following main categories are defined:
 
   \item[$idts$] a list of identifiers, possibly constrained by types. Note
     that \verb|x :: nat y| is parsed as \verb|x :: (nat y)|, i.e.\ {\tt y}
-    would be treated like a type constructor applied to {\tt nat} here.
+    would be treated like a type constructor applied to {\tt nat}.
 \end{description}
 
 
@@ -211,10 +212,10 @@ token lists provided by Isabelle's \rmindex{lexical analyzer} (the
 literals}\indexbold{literal token}\indexbold{token!literal} and {\bf valued
 tokens}\indexbold{valued token}\indexbold{token!valued}.
 
-Literals (or delimiters \index{delimiter}) can be regarded as reserved
-words\index{reserved word} of the syntax and the user can add new ones, when
-extending theories. In Figure~\ref{fig:pure_gram} they appear in typewriter
-type, e.g.\ {\tt PROP}, {\tt ==}, {\tt =?=}, {\tt ;}.
+Literals can be regarded as reserved words\index{reserved word} of the syntax
+and the user can add new ones, when extending theories. In
+Figure~\ref{fig:pure_gram} they appear in typewriter type, e.g.\ {\tt PROP},
+{\tt ==}, {\tt =?=}, {\tt ;}.
 
 Valued tokens on the other hand have a fixed predefined syntax. The lexer
 distinguishes four kinds of them: identifiers\index{identifier},
@@ -241,9 +242,8 @@ A string of $var$ or $tvar$ describes an \rmindex{unknown} which is
 internally a pair of base name and index (\ML\ type \ttindex{indexname}).
 These components are either explicitly separated by a dot as in {\tt ?x.1} or
 {\tt ?x7.3} or directly run together as in {\tt ?x1}. The latter form is
-possible, if the base name does not end with digits. Additionally, if the
-index is 0, it may be dropped altogether, e.g.\ {\tt ?x} abbreviates {\tt
-?x0} or {\tt ?x.0}.
+possible, if the base name does not end with digits. And if the index is 0,
+it may be dropped altogether: {\tt ?x} abbreviates {\tt ?x0} or {\tt ?x.0}.
 
 Note that $id$, $var$, $tfree$, $tvar$ are mutually disjoint, but it is
 perfectly legal that they overlap with the set of literal tokens (e.g.\ {\tt
@@ -272,26 +272,25 @@ applying \index{*syn_of}
 \begin{ttbox}
   syn_of: theory -> Syntax.syntax
 \end{ttbox}
-\ttindex{Syntax.syntax} is an abstract type containing quite a lot of
-material, wherefore there is no toplevel pretty printer set up for displaying
-it automatically. You have to call one of the following functions instead:
-\index{*Syntax.print_syntax} \index{*Syntax.print_gram}
-\index{*Syntax.print_trans}
+\ttindex{Syntax.syntax} is an abstract type. Values of this type can be
+displayed by the following functions: \index{*Syntax.print_syntax}
+\index{*Syntax.print_gram} \index{*Syntax.print_trans}
 \begin{ttbox}
   Syntax.print_syntax: Syntax.syntax -> unit
   Syntax.print_gram: Syntax.syntax -> unit
   Syntax.print_trans: Syntax.syntax -> unit
 \end{ttbox}
-where {\tt Syntax.print_syntax} shows virtually all information contained in
-a syntax, therefore being quite verbose. Its output is divided into labeled
-sections, the syntax proper is represented by {\tt lexicon}, {\tt roots} and
+{\tt Syntax.print_syntax} shows virtually all information contained in a
+syntax, therefore being quite verbose. Its output is divided into labeled
+sections. The syntax proper is represented by {\tt lexicon}, {\tt roots} and
 {\tt prods}. The rest refers to the manifold facilities to apply syntactic
-translations to parse trees (macro expansion etc.). See \S\ref{sec:macros}
-and \S\ref{sec:tr_funs} for more details on translations.
+translations (macro expansion etc.). See \S\ref{sec:macros} and
+\S\ref{sec:tr_funs} for more details on translations.
 
 To simplify coping with the verbosity of {\tt Syntax.print_syntax}, there are
 \ttindex{Syntax.print_gram} to print the syntax proper only and
-\ttindex{Syntax.print_trans} to print the translation related stuff only.
+\ttindex{Syntax.print_trans} to print the translation related information
+only.
 
 Let's have a closer look at part of Pure's syntax:
 \begin{ttbox}
@@ -361,7 +360,7 @@ Syntax.print_syntax (syn_of Pure.thy);
     to chain productions is ignored, only the dummy value $-1$ is displayed.
 
   \item[\ttindex{consts}, \ttindex{parse_rules}, \ttindex{print_rules}]
-    This is macro related stuff (see \S\ref{sec:macros}).
+    This is macro related information (see \S\ref{sec:macros}).
 
   \item[\tt *_translation]
     \index{*parse_ast_translation} \index{*parse_translation}
@@ -371,10 +370,10 @@ Syntax.print_syntax (syn_of Pure.thy);
 \end{description}
 
 Of course you may inspect the syntax of any theory using the above calling
-sequence. But unfortunately, as more and more material accumulates, the
-output becomes even more verbose. Note that when extending syntaxes new {\tt
-roots}, {\tt prods}, {\tt parse_rules} and {\tt print_rules} are appended to
-the end. The other lists are displayed sorted.
+sequence. Beware that, as more and more material accumulates, the output
+becomes even more verbose. When extending syntaxes, new {\tt roots}, {\tt
+prods}, {\tt parse_rules} and {\tt print_rules} are appended to the end. The
+other lists are displayed sorted.
 
 
 
@@ -407,10 +406,10 @@ string          &
 \label{fig:parse_print}
 \end{figure}
 
-The parser takes an input string (well, actually a token list produced by the
-lexer) and produces a \rmindex{parse tree}, which is directly derived from
-the productions involved. By applying some internal transformations the parse
-tree becomes an \bfindex{abstract syntax tree} (\bfindex{ast}), macro
+The parser takes an input string (more precisely the token list produced by
+the lexer) and produces a \rmin«ôx{parse tree}, which is directly derived
+from the productions involved. By applying some internal transformations the
+parse tree becomes an \bfindex{abstract syntax tree} (\bfindex{ast}). Macro
 expansion, further translations and finally type inference yields a
 well-typed term\index{term!well-typed}.
 
@@ -419,7 +418,7 @@ discussed later.
 
 Asts are an intermediate form between the very raw parse trees and the typed
 $\lambda$-terms. An ast is either an atom (constant or variable) or a list of
-{\em at least two} subasts. Internally, they have type \ttindex{Syntax.ast}
+{\em at least two\/} subasts. Internally, they have type \ttindex{Syntax.ast}
 which is defined as: \index{*Constant} \index{*Variable} \index{*Appl}
 \begin{ttbox}
 datatype ast =
@@ -442,11 +441,11 @@ Note that {\tt ()} and {\tt (f)} are both illegal.
 
 The resemblance of LISP's S-expressions is intentional, but notice the two
 kinds of atomic symbols: $\Constant x$ and $\Variable x$. This distinction
-has some more obscure reasons and you can ignore it at about half of the
-time. By now you shouldn't take the names ``{\tt Constant}'' and ``{\tt
-Variable}'' too literally. In the later translation to terms $\Variable x$
-may become a constant, free or bound variable, even a type constructor or
-class name; the actual outcome depends on the context.
+has some more obscure reasons and you can ignore it about half of the time.
+You should not take the names ``{\tt Constant}'' and ``{\tt Variable}'' too
+literally. In the later translation to terms, $\Variable x$ may become a
+constant, free or bound variable, even a type constructor or class name; the
+actual outcome depends on the context.
 
 Similarly, you can think of ${\tt (} f~x@1~\ldots~x@n{\tt )}$ as some sort of
 application of $f$ to the arguments $x@1, \ldots, x@n$. But the actual kind
@@ -458,8 +457,8 @@ higher-order: the {\tt "_abs"} does not yet bind the {\tt x} in any way,
 though later at the term level, {\tt ("_abs" x $t$)} will become an {\tt Abs}
 node and occurrences of {\tt x} in $t$ will be replaced by {\tt Bound}s. Even
 if non constant heads of applications may seem unusual, asts should be
-regarded as first order. Purists may think of ${\tt (} f~x@1~\ldots~x@n{\tt
-)}$ as a first order application of some invisible $(n+1)$-ary constant.
+regarded as first-order. Purists may think of ${\tt (} f~x@1~\ldots~x@n{\tt
+)}$ as a first-order application of some invisible $(n+1)$-ary constant.
 
 
 \subsection{Parse trees to asts}
@@ -567,7 +566,7 @@ Note that {\tt Const}, {\tt Var}, {\tt Free} belong to the datatype {\tt
 term} and \ttindex{dummyT} is bound to some dummy {\tt typ}, which is ignored
 during type-inference.
 
-So far the outcome is still a first order term. {\tt Abs}s and {\tt Bound}s
+So far the outcome is still a first-order term. {\tt Abs}s and {\tt Bound}s
 are introduced by parse translations associated with {\tt "_abs"} and {\tt
 "!!"} (and any other user defined binder).
 
@@ -630,16 +629,16 @@ the production (denoted by ``\dots'' above).
 
 If an application $(\mtt"c\mtt"~ x@1 \ldots x@m)$ has more arguments than the
 corresponding production, it is first split into $((\mtt"c\mtt"~ x@1 \ldots
-x@n)~ (x@{n+1} \ldots x@m))$. Applications with too few arguments or with
+x@n) ~ x@{n+1} \ldots x@m)$. Applications with too few arguments or with
 non-constant head or without a corresponding production are printed as
 $f(x@1, \ldots, x@l)$ or $(\alpha@1, \ldots, \alpha@l) ty$. A single
 $\Variable x$ is simply printed as $x$.
 
-Note that the system does {\em not} insert blanks automatically. They should
-be part of the mixfix declaration (which provide the user interface for
-defining syntax) if they are required to separate tokens. Mixfix declarations
-may also contain pretty printing annotations. See \S\ref{sec:mixfix} for
-details.
+Note that the system does {\em not\/} insert blanks automatically. They
+should be part of the mixfix declaration (which provide the user interface
+for defining syntax) if they are required to separate tokens. Mixfix
+declarations may also contain pretty printing annotations. See
+\S\ref{sec:mixfix} for details.
 
 
 
@@ -654,17 +653,17 @@ unreadable, Isabelle supports syntax definitions in the form of unrestricted
 context-free \index{context-free grammar} \index{precedence grammar}
 precedence grammars using mixfix annotations.
 
-Mixfix annotations describe the {\em concrete} syntax, a standard translation
-into the abstract syntax and a pretty printing scheme, all in one. Isabelle
-syntax definitions are inspired by \OBJ's~\cite{OBJ} {\em mixfix\/} syntax.
-Each mixfix annotation defines a precedence grammar production and optionally
-associates a constant with it.
+Mixfix annotations describe the {\em concrete\/} syntax, a standard
+translation into the abstract syntax and a pretty printing scheme, all in
+one. Isabelle syntax definitions are inspired by \OBJ's~\cite{OBJ} {\em
+mixfix\/} syntax. Each mixfix annotation defines a precedence grammar
+production and optionally associates a constant with it.
 
 There is a general form of mixfix annotation exhibiting the full power of
 extending a theory's syntax, and some shortcuts for common cases like infix
 operators.
 
-The general \bfindex{mixfix declaration} as it may occur within a {\tt
+The general \bfindex{mixfix declaration} as it may occur within the {\tt
 consts} section\index{consts section@{\tt consts} section} of a {\tt .thy}
 file, specifies a constant declaration and a grammar production at the same
 time. It has the form {\tt $c$ ::\ "$\tau$" ("$sy$" $ps$ $p$)} and is
@@ -678,7 +677,7 @@ interpreted as follows:
     \dots \alpha@{n-1} \_ \alpha@n$, where each occurrence of \ttindex{_}
     denotes an argument\index{argument!mixfix} position and the strings
     $\alpha@i$ do not contain (non-escaped) {\tt _}. The $\alpha@i$ may
-    consist of delimiters\index{delimiter}, 
+    consist of delimiters\index{delimiter},
     spaces\index{space (pretty printing)} or \rmindex{pretty printing}
     annotations (see below).
 
@@ -731,7 +730,7 @@ end
 \end{ttbox}
 Note that the {\tt arities} declaration causes {\tt exp} to be added to the
 syntax' roots. If you put the above text into a file {\tt exp.thy} and load
-it via {\tt use_thy "exp"}, you can do some tests:
+it via {\tt use_thy "exp"}, you can run some tests:
 \begin{ttbox}
 val read_exp = Syntax.test_read (syn_of EXP.thy) "exp";
 read_exp "0 * 0 * 0 * 0 + 0 + 0 + 0";
@@ -748,9 +747,9 @@ tokens}) and the raw ast directly derived from the parse tree, ignoring parse
 ast translations. The rest is tracing information provided by the macro
 expander (see \S\ref{sec:macros}).
 
-Issuing {\tt Syntax.print_gram (syn_of EXP.thy)} will reveal the actual
-grammar productions derived from the above mixfix declarations (lots of
-additional stuff deleted):
+Executing {\tt Syntax.print_gram (syn_of EXP.thy)} reveals the actual grammar
+productions derived from the above mixfix declarations (lots of additional
+information deleted):
 \begin{ttbox}
 exp = "0"  => "0" (9)
 exp = exp[0] "+" exp[1]  => "+" (0)
@@ -771,7 +770,7 @@ following character sequences:
   \item[~\ttindex_~] An argument\index{argument!mixfix} position.
 
   \item[~$d$~] A \rmindex{delimiter}, i.e.\ a non-empty sequence of
-    non-special or escaped characters. Escaping a 
+    non-special or escaped characters. Escaping a
     character\index{escape character} means preceding it with a {\tt '}
     (quote). Thus you have to write {\tt ''} if you really want a single
     quote. Delimiters may never contain white space, though.
@@ -796,7 +795,7 @@ following character sequences:
 In terms of parsing, arguments are nonterminals or valued tokens, while
 delimiters are literal tokens. The other directives have only significance
 for printing. The \rmindex{pretty printing} mechanisms of Isabelle is
-essentially that described in \cite{FIXME:ML_for_the_Working_Programmer}.
+essentially the one described in \cite{paulson91}.
 
 
 \subsection{Infixes}
@@ -817,8 +816,8 @@ and {\tt $c$ ::\ "$\tau$" (infixr $p$)} abbreviates:
 
 Thus, prefixing infixes with \ttindex{op} makes them behave like ordinary
 function symbols. Special characters occurring in $c$ have to be escaped as
-in delimiters. Also note that the expanded forms above would be actually
-illegal at the user level because of duplicate declarations of constants.
+in delimiters. Also note that the expanded forms above are illegal at the
+user level because of duplicate declarations of constants.
 
 
 \subsection{Binders}
@@ -869,24 +868,24 @@ internal and external forms.
 
 So far we have pretended that there is a close enough relationship between
 concrete and abstract syntax to allow an automatic translation from one to
-the other using the constant name supplied with non-copy production. In many
-cases this scheme is not powerful enough. Some typical examples involve
+the other using the constant name supplied with each non-copy production. In
+many cases this scheme is not powerful enough. Some typical examples involve
 variable binding constructs (e.g.\ {\tt ALL x:A.P} vs.\ {\tt Ball(A, \%x.P)}
-or convenient notations for enumeration like finite sets, lists etc.\ (e.g.\
+or convenient notations for enumerations like finite sets, lists etc.\ (e.g.\
 {\tt [x, y, z]} vs.\ {\tt Cons(x, Cons(y, Cons(z, Nil)))}).
 
 Isabelle offers such translation facilities at two different levels, namely
 {\bf macros}\indexbold{macro} and {\bf translation functions}.
 
-Macros are specified by first order rewriting systems that operate on asts.
+Macros are specified by first-order rewriting systems that operate on asts.
 They are usually easy to read and in most cases not very difficult to write.
-But some more obscure translations cannot be expressed as macros and you have
-to fall back on the more powerful mechanism of translation functions written
-in \ML. These are quite hard to write and nearly unreadable by the casual
-user (see \S\ref{sec:tr_funs}).
+Unfortunately, some more obscure translations cannot be expressed as macros
+and you have to fall back on the more powerful mechanism of translation
+functions written in \ML. These are quite unreadable and hard to write (see
+\S\ref{sec:tr_funs}).
 
 \medskip
-Let us now getting started with the macro system by a simple example:
+Let us now get started with the macro system by a simple example:
 
 \begin{example}~ \label{ex:set_trans}
 
@@ -922,11 +921,10 @@ P(x)$ as {\tt Ball(A, P)}. Since this is quite awkward, we define additional
 constants with appropriate concrete syntax. These constants are decorated
 with {\tt\at} to stress their pure syntactic purpose; they should never occur
 within the final well-typed terms. Another consequence is that the user
-cannot 'forge' terms containing such names, like {\tt\at Collect(x)}, for
-being syntactically incorrect.
+cannot refer to such names directly, since they are not legal identifiers.
 
-The included translations cause the replacement of external forms by internal
-forms after parsing and vice versa before printing of terms.
+The translations cause the replacement of external forms by internal forms
+after parsing and before printing of terms.
 \end{example}
 
 This is only a very simple but common instance of a more powerful mechanism.
@@ -943,14 +941,17 @@ various programming languages, Isabelle's macros work two way. Therefore a
 syntax contains two lists of rules: one for parsing and one for printing.
 
 The {\tt translations} section\index{translations section@{\tt translations}
-section} consists of a list of rule specifications, whose general form is:
+section} consists of a list of rule specifications of the form:
+
+\begin{center}
 {\tt $[$ ($root$) $]$ $string$ $[$ => $|$ <= $|$ == $]$ $[$ ($root$) $]$
 $string$}.
+\end{center}
 
 This specifies a \rmindex{parse rule} ({\tt =>}) a \rmindex{print rule} ({\tt
 <=}) or both ({\tt ==}). The two $string$s preceded by optional parenthesized
 $root$s denote the left-hand and right-hand side of the rule as 'source
-code'.
+code', i.e.\ in the usual syntax of terms.
 
 Rules are internalized wrt.\ an intermediate signature that is obtained from
 the parent theories' ones by adding all material of all sections preceding
@@ -958,8 +959,8 @@ the parent theories' ones by adding all material of all sections preceding
 {\tt consts} is already effective.
 
 Then part of the process that transforms input strings into terms is applied:
-lexing, parsing and parse ast translations (see \S\ref{sec:asts}). Macros as
-specified in the parents are {\em not} expanded. Also note that the lexer
+lexing, parsing and parse ast translations (see \S\ref{sec:asts}). Macros
+specified in the parents are {\em not\/} expanded. Also note that the lexer
 runs in a different mode that additionally accepts identifiers of the form
 $\_~letter~quasiletter^*$ (like {\tt _idt}, {\tt _K}). The syntactic category
 to parse is specified by $root$, which defaults to {\tt logic}.
@@ -1000,17 +1001,17 @@ the section labeled {\tt consts} in the output of {\tt Syntax.print_syntax}.
 In the course of parsing and printing terms, asts are generated as an
 intermediate form as pictured in Figure~\ref{fig:parse_print}. These asts are
 normalized wrt.\ the given lists of translation rules in a uniform manner. As
-stated earlier, asts are supposed to be sort of first order terms. The
-rewriting systems derived from {\tt translations} sections essentially
-resemble traditional first order term rewriting systems. We'll first examine
-how a single rule is applied.
+stated earlier, asts are supposed to be first-order 'terms'. The rewriting
+systems derived from {\tt translations} sections essentially resemble
+traditional first-order term rewriting systems. We first examine how a single
+rule is applied.
 
 Let $t$ be the ast to be normalized and $(l, r)$ some translation rule. A
-(improper) subast $u$ of $t$ is called {\bf redex}\indexbold{redex (ast)}
-(reducible expression), if it is an instance of $l$. In this case $l$ is said
-to {\bf match}\indexbold{match (ast)} $u$. A redex matched by $l$ may be
-replaced by the corresponding instance of $r$, thus {\bf
-rewriting}\index{rewrite (ast)} the ast $t$.
+subast $u$ of $t$ is called {\bf redex}\indexbold{redex (ast)} (reducible
+expression), if it is an instance of $l$. In this case $l$ is said to {\bf
+match}\indexbold{match (ast)} $u$. A redex matched by $l$ may be replaced by
+the corresponding instance of $r$, thus {\bf rewriting}\index{rewrite (ast)}
+the ast $t$.
 
 Matching requires some notion of {\bf place-holders}\indexbold{place-holder
 (ast)} that may occur in rule patterns but not in ordinary asts, which are
@@ -1033,8 +1034,7 @@ pattern is the second argument): \index{match (ast)@$match$ (ast)}
 
 This means that a {\tt Constant} pattern matches any atomic asts of the same
 name, while a {\tt Variable} matches any ast. If successful, $match$ yields a
-substitution $\sigma$ for all place-holders in $l$, equalling it with the
-redex $u$. Then $\sigma$ is applied to $r$ generating the appropriate
+substitution $\sigma$ that is applied to $r$, generating the appropriate
 instance that replaces $u$.
 
 \medskip
@@ -1052,11 +1052,11 @@ restricted by the following conditions:
 \end{itemize}
 
 \medskip
-Having first order matching in mind, the second case of $match$ may look a
+Having first-order matching in mind, the second case of $match$ may look a
 bit odd. But this is exactly the place, where {\tt Variable}s of non-rule
 asts behave like {\tt Constant}s. The deeper meaning of this is related with
 asts being very 'primitive' in some sense, ignorant of the underlying
-'semantics', only short way from parse trees. At this level it is not yet
+'semantics', not far removed from parse trees. At this level it is not yet
 known, which $id$s will become constants, bounds, frees, types or classes. As
 $ast_of_pt$ (see \S\ref{sec:asts}) shows, former parse tree heads appear in
 asts as {\tt Constant}s, while $id$s, $var$s, $tfree$s and $tvar$s become
@@ -1111,17 +1111,14 @@ Syntax.print_syntax} shows the rules in their internal order.
 
 \medskip
 You can watch the normalization of asts during parsing and printing by
-issuing: \index{*Syntax.trace_norm_ast}
-\begin{ttbox}
-Syntax.trace_norm_ast := true;
-\end{ttbox}
-An alternative is the use of \ttindex{Syntax.test_read}, which is always in
-trace mode. The information displayed when tracing\index{tracing (ast)}
-includes: the ast before normalization ({\tt pre}), redexes with results
-({\tt rewrote}), the normal form finally reached ({\tt post}) and some
-statistics ({\tt normalize}). If tracing is off,
-\ttindex{Syntax.stat_norm_ast} can be set to {\tt true} in order to enable
-printing of the normal form and statistics only.
+setting \ttindex{Syntax.trace_norm_ast} to {\tt true}. An alternative is the
+use of \ttindex{Syntax.test_read}, which is always in trace mode. The
+information displayed when tracing\index{tracing (ast)} includes: the ast
+before normalization ({\tt pre}), redexes with results ({\tt rewrote}), the
+normal form finally reached ({\tt post}) and some statistics ({\tt
+normalize}). If tracing is off, \ttindex{Syntax.stat_norm_ast} can be set to
+{\tt true} in order to enable printing of the normal form and statistics
+only.
 
 
 \subsection{More examples}
@@ -1134,11 +1131,11 @@ functions (as done for binders):
 
 \begin{warn}
 If \ttindex{eta_contract} is set to {\tt true}, terms will be
-$\eta$-contracted {\em before} the ast rewriter sees them. Thus some
+$\eta$-contracted {\em before\/} the ast rewriter sees them. Thus some
 abstraction nodes needed for print rules to match may get lost. E.g.\
 \verb|Ball(A, %x. P(x))| is contracted to {\tt Ball(A, P)}, the print rule is
 no longer applicable and the output will be {\tt Ball(A, P)}. Note that
-$\eta$-expansion via macros is {\em not} possible.
+$\eta$-expansion via macros is {\em not\/} possible.
 \end{warn}
 
 \medskip
@@ -1192,11 +1189,11 @@ Next follows {\tt empty}, which is already equipped with its syntax
 \verb|{}|, and {\tt insert} without concrete syntax. The syntactic constant
 {\tt\at Finset} provides concrete syntax for enumerations of {\tt i} enclosed
 in curly braces. Remember that a pair of parentheses specifies a block of
-indentation for pretty printing. The category {\tt is} can be later reused
+indentation for pretty printing. The category {\tt is} can later be reused
 for other enumerations like lists or tuples.
 
-The translations might look a bit odd at the first glance. But rules can be
-only fully understood in their internal forms, which are:
+The translations may look a bit odd at first sight, but rules can only be
+fully understood in their internal forms, which are:
 \begin{ttbox}
 parse_rules:
   ("{\at}Finset" ("{\at}Enum" x xs))  ->  ("insert" x ("{\at}Finset" xs))
@@ -1229,7 +1226,7 @@ implies that you can never introduce new {\tt Variable}s on the right-hand
 side. Something like \verb|"K(B)" => "%x. B"| is illegal and could cause
 variable capturing, if it were allowed. In such cases you usually have to
 fall back on translation functions. But there is a trick that makes things
-quite readable in some cases: {\em calling print translations by print
+quite readable in some cases: {\em calling parse translations by parse
 rules}. This is demonstrated here.
 \begin{ttbox}
 PROD = FINSET +
@@ -1270,8 +1267,8 @@ dependent_tr'} is exported by the syntax module for public use. See
 
 This section is about the remaining translation mechanism which enables the
 designer of theories to do almost everything with terms or asts during the
-parsing or printing process, by writing some \ML-functions. The logic \LK\ is
-a good example of a quite sophisticated use of this to transform between
+parsing or printing process, by writing \ML-functions. The logic \LK\ is a
+good example of a quite sophisticated use of this to transform between
 internal and external representations of associative sequences. The high
 level macro system described in \S\ref{sec:macros} fails here completely.
 
@@ -1335,7 +1332,7 @@ the same way, as asts and terms differ. Terms, being more complex and more
 specific, allow more sophisticated transformations (typically involving
 abstractions and bound variables).
 
-On the other hand, {\em parse} (ast) translations differ from {\em print}
+On the other hand, {\em parse\/} (ast) translations differ from {\em print\/}
 (ast) translations more fundamentally:
 \begin{description}
   \item[Parse (ast) translations] are applied bottom-up, i.e.\ the arguments
@@ -1413,14 +1410,14 @@ bound variable in the new {\tt Abs} is simply {\tt dummyT}.
 
 \medskip
 The argument $(q, r)$ for {\tt dependent_tr'} is supplied already during the
-installation within a {\tt ML} section. This yields a parse translation that
+installation within an {\tt ML} section. This yields a parse translation that
 transforms something like $c(A, \mtt{Abs}(x, T, B), t@1, \ldots, t@n)$ into
 $q(x', A, B', t@1, \ldots, t@n)$ or $r(A, B, t@1, \ldots, t@n)$. The latter
 form, if $B$ does not actually depend on $x$. This is checked using
-\ttindex{loose_bnos}, yet another undocumented function of {\tt
-Pure/term.ML}. Note that $x'$ is a version of $x$ renamed away from all names
-in $B$, and $B'$ the body $B$ with {\tt Bound}s referring to our {\tt Abs}
-node replaced by $\ttfct{Free} (x', \mtt{dummyT})$.
+\ttindex{loose_bnos}, yet another function of {\tt Pure/term.ML}. Note that
+$x'$ is a version of $x$ renamed away from all names in $B$, and $B'$ the
+body $B$ with {\tt Bound}s referring to our {\tt Abs} node replaced by
+$\ttfct{Free} (x', \mtt{dummyT})$.
 
 We have to be more careful with types here. While types of {\tt Const}s are
 completely ignored, type constraints may be printed for some {\tt Free}s and
@@ -1459,9 +1456,9 @@ The constant {\tt Trueprop} (the name is arbitrary) acts as an invisible
 coercion function. Assuming this definition resides in a file {\tt base.thy},
 you have to load it with the command {\tt use_thy "base"}.
 
-One of the simplest nontrivial logics is {\em minimal logic} of implication.
-Its definition in Isabelle needs no advanced features but illustrates the
-overall mechanism quite nicely:
+One of the simplest nontrivial logics is {\em minimal logic\/} of
+implication. Its definition in Isabelle needs no advanced features but
+illustrates the overall mechanism quite nicely:
 \begin{ttbox}
 Hilbert = Base +
 consts
@@ -1518,9 +1515,9 @@ end
 Note, however, that although the two systems are equivalent, this fact cannot
 be proved within Isabelle: {\tt S} and {\tt K} can be derived in {\tt MinI}
 (exercise!), but {\tt impI} cannot be derived in {\tt Hilbert}. The reason is
-that {\tt impI} is only an {\em admissible} rule in {\tt Hilbert}, something
-that can only be shown by induction over all possible proofs in {\tt
-Hilbert}.
+that {\tt impI} is only an {\em admissible\/} rule in {\tt Hilbert},
+something that can only be shown by induction over all possible proofs in
+{\tt Hilbert}.
 
 It is a very simple matter to extend minimal logic with falsity:
 \begin{ttbox}
