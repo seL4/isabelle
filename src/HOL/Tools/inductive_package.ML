@@ -506,7 +506,7 @@ fun gen_inductive_cases prep_att prep_const prep_prop
             (mk_cases_i true elims (Simplifier.simpset_of thy)) cprops;
         in
           thy |> IsarThy.have_theorems_i
-            (((name, atts), map Thm.no_attributes thms), comment)
+            [(((name, atts), map Thm.no_attributes thms), comment)]
         end)
   end;
 
