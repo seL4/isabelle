@@ -8,8 +8,16 @@ Examples of recdef definitions.  Most, but not all, are handled automatically.
 
 Recdef = WF_Rel + List +
 
-consts map2 :: "('a => 'b => 'c) * 'a list * 'b list => 'c list"
+consts fact :: "nat => nat"
+recdef fact "less_than"
+    "fact x = (if (x = 0) then 1 else x * fact (x - 1))"
 
+consts Fact :: "nat => nat"
+recdef Fact "less_than"
+    "Fact 0 = 1"
+    "Fact (Suc x) = (Fact x * Suc x)"
+
+consts map2 :: "('a => 'b => 'c) * 'a list * 'b list => 'c list"
 recdef map2 "measure(%(f,l1,l2).size l1)"
     "map2(f, [], [])  = []"
     "map2(f, h#t, []) = []"
@@ -42,7 +50,7 @@ recdef gcd "measure (%(x,y).x+y)"
     "gcd (Suc x, Suc y) = (if (y <= x) then gcd(x - y, Suc y)  
                                        else gcd(Suc x, y - x))"
 
-(*Not handled automatically.  In fact, g is the identity function.*)
+(*Not handled automatically.  In fact, g is the zero constant function.*)
 consts g   :: "nat => nat"
 recdef g "less_than"
     "g 0 = 0"
