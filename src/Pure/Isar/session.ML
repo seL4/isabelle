@@ -58,11 +58,18 @@ fun finish () =
 
 val root_file = ThyLoad.ml_path "ROOT";
 
-fun use_dir reset info parent name rpath =
+val rpath = ref (None : Url.T option);
+
+fun use_dir reset info parent name rpath_str =
   (init reset parent name;
-    Present.init info (path ()) name (if rpath = "" then None else Some (Url.unpack rpath));
-    File.symbol_use root_file;
-    finish ()) handle exn => (writeln (Toplevel.exn_message exn); exit 1);
+   if rpath_str = "" then () else
+     if is_some (!rpath) then
+       error "Path for remote theory browsing information may only be set once"
+     else
+       rpath := Some (Url.unpack rpath_str);
+   Present.init info (path ()) name (!rpath);
+   File.symbol_use root_file;
+   finish ()) handle exn => (writeln (Toplevel.exn_message exn); exit 1);
 
 
 end;
