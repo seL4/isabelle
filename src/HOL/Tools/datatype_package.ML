@@ -612,7 +612,10 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
     val simps = flat (distinct @ inject @ case_thms) @ size_thms @ rec_thms;
 
     val thy9 = thy8 |>
+      store_thmss "inject" new_type_names inject |>
+      store_thmss "distinct" new_type_names distinct |>
       Theory.add_path (space_implode "_" new_type_names) |>
+      PureThy.add_thms [(("induct", induction), [])] |>
       PureThy.add_thmss [(("simps", simps), [])] |>
       put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
       Theory.parent_path;
