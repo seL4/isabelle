@@ -325,8 +325,9 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL ex/BT.ML ex/BT.thy ex/Fib.ML ex/Fib.thy \
 HOL-Isar_examples: HOL $(LOG)/HOL-Isar_examples.gz
 
 $(LOG)/HOL-Isar_examples.gz: $(OUT)/HOL Isar_examples/BasicLogic.thy \
-  Isar_examples/Cantor.thy Isar_examples/ExprCompiler.thy \
-  Isar_examples/Peirce.thy Isar_examples/ROOT.ML
+  Isar_examples/Cantor.ML Isar_examples/Cantor.thy \
+  Isar_examples/ExprCompiler.thy Isar_examples/Peirce.thy \
+  Isar_examples/ROOT.ML
 	@$(ISATOOL) usedir $(OUT)/HOL Isar_examples
 
 
