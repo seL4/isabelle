@@ -21,7 +21,7 @@ consts
 inductive "acc(r)"
   intrs
     pred    "pred a r: Pow(acc(r)) ==> a: acc(r)"
-  monos     "[Pow_mono]"
+  monos     Pow_mono
 
 syntax        termi :: "('a * 'a)set => 'a set"
 translations "termi r" == "acc(r^-1)"

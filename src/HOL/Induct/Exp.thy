@@ -27,7 +27,7 @@ inductive eval
     valOf  "[| (c,s) -[eval]-> s0;  (e,s0)  -|-> (n,s1) |] 
             ==> (VALOF c RESULTIS e, s) -|-> (n, s1)"
 
-  monos "[exec_mono]"
+  monos exec_mono
 
 end
 

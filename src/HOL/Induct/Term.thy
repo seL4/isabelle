@@ -28,7 +28,7 @@ consts
 inductive "term(A)"
   intrs
     APP_I "[| M: A;  N : list(term(A)) |] ==> Scons M N : term(A)"
-  monos   "[list_mono]"
+  monos   list_mono
 
 defs
   (*defining abstraction/representation functions for term list...*)

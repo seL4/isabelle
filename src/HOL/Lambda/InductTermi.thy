@@ -17,6 +17,6 @@ intrs
 VarI "rs : lists IT ==> (Var n)$$rs : IT"
 LambdaI "r : IT ==> Abs r : IT"
 BetaI "[| (r[s/0])$$ss : IT; s : IT |] ==> (Abs r $ s)$$ss : IT"
-monos "[lists_mono]"
+monos lists_mono
 
 end

@@ -67,6 +67,6 @@ inductive PRIMREC
     PROJ     "PROJ i : PRIMREC"
     COMP     "[| g: PRIMREC; fs: lists PRIMREC |] ==> COMP g fs : PRIMREC"
     PREC     "[| f: PRIMREC; g: PRIMREC |] ==> PREC f g: PRIMREC"
-  monos      "[lists_mono]"
+  monos      lists_mono
 
 end
