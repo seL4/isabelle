@@ -71,7 +71,7 @@ If we step back and ponder why the above lemma presented a problem in the
 first place, we quickly realize that what we would like is to replace @{term
 p} with some concrete pair @{term"(a,b)"}, in which case both sides of the
 equation would simplify to @{term a} because of the simplification rules
-@{thm Product_Type.split[no_vars]} and @{thm fst_conv[no_vars]}.  This is the
+@{thm split_conv[no_vars]} and @{thm fst_conv[no_vars]}.  This is the
 key problem one faces when reasoning about pattern matching with pairs: how to
 convert some atomic term into a pair.
 
