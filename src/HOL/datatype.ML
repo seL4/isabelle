@@ -429,12 +429,15 @@ in
            |> add_axioms rules, add_primrec, size_eqns)
     end
 
-(*Check if the (induction) variable occurs among the premises, which
-  usually signals a mistake *)
-fun occs_in_prems a i state =
-  let val (_, _, Bi, _) = dest_state(state,i)
-      val prems = Logic.strip_assums_hyp Bi
-  in a  mem  map (#1 o dest_Free) (foldr add_term_frees (prems,[])) end;
+(*Warn if the (induction) variable occurs Free among the premises, which
+  usually signals a mistake.  But calls the tactic either way!*)
+fun occs_in_prems tacf a = 
+  SUBGOAL (fn (Bi,i) =>
+	   (if  exists (fn Free(a',_) => a=a')
+	              (foldr add_term_frees (#2 (strip_context Bi), []))
+	     then warning "Induction variable occurs also among premises!"
+	     else ();
+	    tacf a i));
 
 end;
 
@@ -879,11 +882,7 @@ fun build_record (thy,(ty,cl),itac) =
      fun exhaust_tac a =
            ALLNEWSUBGOALS (res_inst_tac [(exh_var,a)] exhaustion)
                           (rotate_tac ~1);
-     fun induct_tac a i st = st |>
-             (if Datatype.occs_in_prems a i st
-              then warning "Induction variable occurs also among premises!"
-              else ();
-              itac a i)
+     val induct_tac = Datatype.occs_in_prems itac 
  in
   (ty, {constructors = map(fn s => const s handle _ => const("op "^s)) cl,
         case_const = const (ty^"_case"),
