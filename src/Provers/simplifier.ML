@@ -87,8 +87,10 @@ sig
   val put_local_simpset: simpset -> Proof.context -> Proof.context
   val simp_add_global: theory attribute
   val simp_del_global: theory attribute
+  val simp_only_global: theory attribute
   val simp_add_local: Proof.context attribute
   val simp_del_local: Proof.context attribute
+  val simp_only_local: Proof.context attribute
   val simp_modifiers: (Args.T list -> (Proof.context attribute * Args.T list)) list
   val setup: (theory -> theory) list
 end;
@@ -128,7 +130,7 @@ fun make_ss (mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac) =
     finish_tac = finish_tac, unsafe_finish_tac = unsafe_finish_tac};
 
 val empty_ss =
-  let val mss = Thm.set_mk_sym(Thm.empty_mss, Some o symmetric_fun)
+  let val mss = Thm.set_mk_sym (Thm.empty_mss, Some o symmetric_fun)
   in make_ss (mss, K (K no_tac), [], K (K no_tac), K (K no_tac)) end;
 
 fun rep_ss (Simpset args) = args;
@@ -168,11 +170,10 @@ fun (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac})
          warning ("overwriting looper "^fst tac); overwrite(loop_tacs,tac)),
            finish_tac, unsafe_finish_tac);
 
-fun (ss as Simpset {mss,subgoal_tac,loop_tacs,finish_tac,unsafe_finish_tac})
-    delloop name =
-  let val (del,rest) = partition (fn (n,_) => n=name) loop_tacs
-  in if null del then (warning ("No such looper in simpset: " ^ name); ss)
-     else make_ss (mss, subgoal_tac, rest, finish_tac, unsafe_finish_tac)
+fun (ss as Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac}) delloop name =
+  let val (del, rest) = partition (fn (n, _) => n = name) loop_tacs in
+    if null del then (warning ("No such looper in simpset: " ^ name); ss)
+    else make_ss (mss, subgoal_tac, rest, finish_tac, unsafe_finish_tac)
   end;
 
 fun (Simpset {mss, subgoal_tac, loop_tacs, finish_tac = _, unsafe_finish_tac})
@@ -215,23 +216,19 @@ fun (Simpset {mss, subgoal_tac, loop_tacs,  finish_tac, unsafe_finish_tac})
 
 fun (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac})
     addsimps rews =
-  make_ss (Thm.add_simps (mss, rews), subgoal_tac, loop_tacs,
-           finish_tac, unsafe_finish_tac);
+  make_ss (Thm.add_simps (mss, rews), subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac);
 
 fun (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac})
     delsimps rews =
-  make_ss (Thm.del_simps (mss, rews), subgoal_tac, loop_tacs,
-           finish_tac, unsafe_finish_tac);
+  make_ss (Thm.del_simps (mss, rews), subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac);
 
 fun (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac})
     addeqcongs newcongs =
-  make_ss (Thm.add_congs (mss, newcongs), subgoal_tac, loop_tacs,
-    finish_tac, unsafe_finish_tac);
+  make_ss (Thm.add_congs (mss, newcongs), subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac);
 
 fun (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac})
     deleqcongs oldcongs =
-  make_ss (Thm.del_congs (mss, oldcongs), subgoal_tac, loop_tacs,
-    finish_tac, unsafe_finish_tac);
+  make_ss (Thm.del_congs (mss, oldcongs), subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac);
 
 fun (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac})
     addsimprocs simprocs =
@@ -244,6 +241,10 @@ fun (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac})
   make_ss
     (Thm.del_simprocs (mss, map rep_simproc simprocs),
       subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac);
+
+fun onlysimps (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac}, rews) =
+  make_ss (Thm.clear_mss mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac)
+    addsimps rews;
 
 
 (* merge simpsets *)    (*NOTE: ignores tactics of 2nd simpset (except loopers)*)
@@ -328,8 +329,10 @@ fun change_local_ss f (ctxt, th) =
 
 val simp_add_global = change_global_ss (op addsimps);
 val simp_del_global = change_global_ss (op delsimps);
+val simp_only_global = change_global_ss onlysimps;
 val simp_add_local = change_local_ss (op addsimps);
 val simp_del_local = change_local_ss (op delsimps);
+val simp_only_local = change_local_ss onlysimps;
 
 
 
@@ -405,13 +408,16 @@ val asm_full_rewrite = simp_cterm (true, true, false);
 (* add / del *)
 
 val simpN = "simp";
+val asm_simpN = "asm_simp";
 val addN = "add";
 val delN = "del";
+val onlyN = "only";
 val otherN = "other";
 
 fun simp_att change =
   (Args.$$$ addN >> K (op addsimps) ||
     Args.$$$ delN >> K (op delsimps) ||
+    Args.$$$ onlyN >> K onlysimps ||
     Scan.succeed (op addsimps))
   >> change
   |> Scan.lift
@@ -445,32 +451,37 @@ val setup_attrs = Attrib.add_attributes
 val simp_modifiers =
  [Args.$$$ simpN -- Args.$$$ addN >> K simp_add_local,
   Args.$$$ simpN -- Args.$$$ delN >> K simp_del_local,
-  Args.$$$ otherN >> K I];	(* FIXME ?? *)
+  Args.$$$ simpN -- Args.$$$ onlyN >> K simp_only_local,
+  Args.$$$ otherN >> K I];
 
 val simp_modifiers' =
  [Args.$$$ addN >> K simp_add_local,
   Args.$$$ delN >> K simp_del_local,
+  Args.$$$ onlyN >> K simp_only_local,
   Args.$$$ otherN >> K I];
 
 val simp_args = Method.only_sectioned_args simp_modifiers';
 
-fun simp_meth proper tac ctxt = Method.METHOD (fn facts =>
+fun simp_meth thin cut tac ctxt = Method.METHOD (fn facts =>
   FIRSTGOAL
-    ((if proper then REPEAT_DETERM o etac Drule.thin_rl THEN' metacuts_tac facts else K all_tac)
+    ((if thin then REPEAT_DETERM o etac Drule.thin_rl else K all_tac)
+      THEN' (if cut then metacuts_tac facts else K all_tac)
       THEN' tac (get_local_simpset ctxt)));
 
-val simp_method = simp_args oo simp_meth;
+val simp_method = simp_args ooo simp_meth;
 
 
 (* setup_methods *)
 
 val setup_methods = Method.add_methods
- [(simpN,               simp_method true asm_full_simp_tac, "simplification"),
-  ("simp_tac",          simp_method false simp_tac, "simp_tac"),
-  ("asm_simp_tac",      simp_method false asm_simp_tac, "asm_simp_tac"),
-  ("full_simp_tac",     simp_method false full_simp_tac, "full_simp_tac"),
-  ("asm_full_simp_tac", simp_method false asm_full_simp_tac, "asm_full_simp_tac"),
-  ("asm_lr_simp_tac",   simp_method false asm_lr_simp_tac, "asm_lr_simp_tac")];
+ [(simpN,               simp_method true true asm_full_simp_tac, "simplification"),
+  (asm_simpN,           simp_method false true asm_full_simp_tac,
+    "simplification (including assumption)"),
+  ("simp_tac",          simp_method false false simp_tac, "simp_tac"),
+  ("asm_simp_tac",      simp_method false false asm_simp_tac, "asm_simp_tac"),
+  ("full_simp_tac",     simp_method false false full_simp_tac, "full_simp_tac"),
+  ("asm_full_simp_tac", simp_method false false asm_full_simp_tac, "asm_full_simp_tac"),
+  ("asm_lr_simp_tac",   simp_method false false asm_lr_simp_tac, "asm_lr_simp_tac")];
 
 
 
