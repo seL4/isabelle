@@ -145,7 +145,7 @@ That is, @{term"while b c s"} is equivalent to the imperative program
      x := s; while b(x) do x := c(x); return x
 \end{verbatim}
 In general, @{term s} will be a tuple (better still: a record). As an example
-consider the tail recursive variant of function @{term find} above:
+consider the following definition of function @{term find} above:
 *}
 
 constdefs find2 :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"

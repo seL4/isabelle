@@ -154,7 +154,7 @@ That is, \isa{while\ b\ c\ s} is equivalent to the imperative program
      x := s; while b(x) do x := c(x); return x
 \end{verbatim}
 In general, \isa{s} will be a tuple (better still: a record). As an example
-consider the tail recursive variant of function \isa{find} above:%
+consider the following definition of function \isa{find} above:%
 \end{isamarkuptext}%
 \isacommand{constdefs}\ find{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\isanewline
 \ \ {\isachardoublequote}find{\isadigit{2}}\ f\ x\ {\isasymequiv}\isanewline
