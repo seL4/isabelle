@@ -1,0 +1,61 @@
+%% $Id$
+\documentclass[12pt]{report}
+\usepackage{graphicx,a4,latexsym,../pdfsetup}
+
+\makeatletter
+\input{../proof.sty}
+\input{../rail.sty}
+\input{../iman.sty}
+\input{../extra.sty}
+\makeatother
+
+%%% to index derived rls:  ^\([a-zA-Z0-9][a-zA-Z0-9_]*\)        \\tdx{\1}  
+%%% to index rulenames:   ^ *(\([a-zA-Z0-9][a-zA-Z0-9_]*\),     \\tdx{\1}  
+%%% to index constants:   \\tt \([a-zA-Z0-9][a-zA-Z0-9_]*\)     \\cdx{\1}  
+%%% to deverbify:         \\verb|\([^|]*\)|     \\ttindex{\1}  
+
+\title{\includegraphics[scale=0.5]{isabelle_hol.eps} \\[4ex] 
+       Isabelle's Logics: HOL}
+
+\author{{\em Lawrence C. Paulson}\\
+        Computer Laboratory \\ University of Cambridge \\
+        \texttt{lcp@cl.cam.ac.uk}\\[3ex] 
+        With Contributions by Tobias Nipkow and Markus Wenzel%
+        \thanks{Tobias Nipkow developed~\HOL{}.  Markus Wenzel made numerous
+          improvements.  The research has been funded by the EPSRC (grants
+          GR/G53279, GR/H40570, GR/K57381, GR/K77051) and by ESPRIT project
+          6453: Types.}}
+
+\newcommand\subcaption[1]{\par {\centering\normalsize\sc#1\par}\bigskip
+  \hrule\bigskip}
+\newenvironment{constants}{\begin{center}\small\begin{tabular}{rrrr}}{\end{tabular}\end{center}}
+
+\makeindex
+
+\underscoreoff
+
+\setcounter{secnumdepth}{2} \setcounter{tocdepth}{2}  %% {secnumdepth}{2}???
+
+\pagestyle{headings}
+\sloppy
+\binperiod     %%%treat . like a binary operator
+
+\begin{document}
+\maketitle 
+
+\begin{abstract}
+  This manual describes Isabelle's formalization of Higher-Order Logic, a
+  polymorphic version of Church's Simple Theory of Types.  HOL can be best
+  understood as a simply-typed version of classical set theory.  See also
+  \emph{Isabelle/HOL --- The Tutorial} for a gentle introduction on using
+  Isabelle/HOL, and the \emph{Isabelle Reference Manual} for general Isabelle
+  commands.
+\end{abstract}
+
+\pagenumbering{roman} \tableofcontents \clearfirst
+\include{../Logics/syntax}
+\include{HOL}
+\bibliographystyle{plain}
+\bibliography{string,general,atp,theory,funprog,logicprog,isabelle,crossref}
+\input{logics-HOL.ind}
+\end{document}
