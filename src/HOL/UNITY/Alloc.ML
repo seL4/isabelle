@@ -17,6 +17,14 @@ qed "subst_elem";
 
 
 
+Goal "(ALL i: lessThan n. f i <= g i) --> sum f n <= sum g n";
+by (induct_tac "n" 1);
+by Auto_tac;
+by (dres_inst_tac [("x","n")] bspec 1);
+by Auto_tac;
+by (arith_tac 1);
+qed_spec_mp "sum_mono";
+
 
 (*Generalized version allowing different clients*)
 Goal "[| Alloc : alloc_spec;  \
@@ -59,6 +67,7 @@ by (auto_tac (claset() addSWrapper record_split_wrapper,
 	      simpset() addsimps [sysOfAlloc_def]));
 qed "inv_sysOfAlloc_eq";
 
+Addsimps [inv_sysOfAlloc_eq];
 
 (**SHOULD NOT BE NECESSARY: The various injections into the system
    state need to be treated symmetrically or done automatically*)
@@ -202,15 +211,13 @@ by (blast_tac (claset() addIs [Network_Rel RS component_guaranteesD,
 qed "System_Increasing_allocRel";
 
 
-(*NEED TO PROVE something like this (maybe without premise)*)
-Goal "i < Nclients ==> System : (sub i o allocRel) localTo Network";
-
 fun alloc_export th = good_map_sysOfAlloc RS export th;
 
 val extend_Alloc_guar_Increasing =
   alloc_export extend_guar_Increasing
-  |> simplify (simpset() addsimps [inv_sysOfAlloc_eq]);
+  |> simplify (simpset());
 
+(*step 2*)
 Goal "System : Always {s. sum (%i. (tokens o sub i o allocGiv) s) Nclients \
 \                  <= NbT + sum (%i. (tokens o sub i o allocRel) s) Nclients}";
 by (res_inst_tac 
@@ -218,72 +225,30 @@ by (res_inst_tac
     component_guaranteesD 1);
 by (rtac Alloc_component_System 3);
 by (force_tac (claset(), simpset() addsimps [System_Increasing_allocRel]) 2);
-by (rtac project_guarantees 1);
-by (rtac Alloc_Safety 1);
+by (rtac (Alloc_Safety RS project_guarantees) 1);
 by Auto_tac;
-by (rtac project_Increasing_I 1);
+(*1: Increasing precondition*)
+by (stac (alloc_export project_Increasing) 1);
+by (force_tac
+    (claset(),
+     simpset() addsimps [o_def, alloc_export project_Increasing]) 1);
+(*2: Always postcondition*)
+by (dtac (subset_refl RS alloc_export project_Always_D) 1);
+by (asm_full_simp_tac
+     (simpset() addsimps [alloc_export Collect_eq_extend_set RS sym]) 1);
+qed "System_sum_bounded";
 
-by (dtac (alloc_export (project_extend_Join RSN (2, subst_elem RS project_Always_D))) 2 
-     THEN
-     full_simp_tac
-     (simpset() addsimps [inv_sysOfAlloc_eq,
-			  alloc_export Collect_eq_extend_set RS sym]) 2);
+(*step 3*)
+Goal "System : Always {s. sum (%i. (tokens o giv o sub i o client) s) Nclients \
+\                  <= NbT + sum (%i. (tokens o rel o sub i o client) s) Nclients}";
+by (rtac (System_sum_bounded RS Always_weaken) 1);
+by Auto_tac;
+br order_trans 1;
+br sum_mono 1;
+bd order_trans 2;
+br add_le_mono 2;
+br order_refl 2;
+br sum_mono 2;
+ba 3;
 by Auto_tac;
 
-by (dtac bspec 1);
-by (Blast_tac 1);
-
-
-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
-FIRST STEP WAS
-by (res_inst_tac 
-    [("X", "(INT i : lessThan Nclients. (sub i o allocRel) localTo Network \
-\                                       Int Increasing (sub i o allocRel))")] 
-    component_guaranteesD 1);
-
-
-       [| i < Nclients;
-          extend sysOfAlloc Alloc Join G
-          : (sub i o allocRel) localTo Network &
-          extend sysOfAlloc Alloc Join G : Increasing (sub i o allocRel) |]
-       ==> Alloc Join project sysOfAlloc G : Increasing (sub i o allocRel)
-
-
-       [| i < Nclients;
-          H : (sub i o allocRel) localTo Network &
-          H : Increasing (sub i o allocRel) |]
-       ==> project sysOfAlloc H : Increasing (sub i o allocRel)
-
-Open_locale"Extend";
-
-Goal "(H : (func o f) localTo G) ==> (project h H : func localTo (project h G))";
-by (asm_full_simp_tac 
-    (simpset() addsimps [localTo_def, 
-			 project_extend_Join RS sym,
-			 Diff_project_stable,
-			 Collect_eq_extend_set RS sym]) 1);
-by Auto_tac;
-by (rtac Diff_project_stable 1);
-PROBABLY FALSE;
-
-by (Clarify_tac 1);
-by (dres_inst_tac [("x","z")] spec 1);
-
-by (rtac (alloc_export project_Always_D) 2);
-
-by (rtac (alloc_export extend_Always RS iffD2) 2);
-
-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
-
-by (rtac guaranteesI 1);
-
-by (res_inst_tac 
-    [("X", "(INT i : lessThan Nclients. Increasing (sub i o allocRel))")] 
-    component_guaranteesD 1);;
-
-
-by (rtac (Alloc_Safety RS component_guaranteesD) 1);
-
-
-by (rtac (alloc_export guarantees_imp_extend_guarantees RS guarantees_weaken) 1);
-by (rtac Alloc_Safety 1);

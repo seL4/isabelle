@@ -330,29 +330,45 @@ qed "extend_invariant";
 (** Safety and project **)
 
 Goalw [constrains_def]
-     "(project C h F : A co B)  =  \
-\     (F : (C Int extend_set h A) co (extend_set h B) & A <= B)";
-by (auto_tac (claset() addSIs [project_act_I], simpset()));
-by (rewtac project_act_def);
-by (force_tac (claset() addSDs [Id_in_Acts RSN (2,bspec)], simpset()) 1);
+     "(F Join project C h G : A co B)  =  \
+\       (extend h F Join G : (C Int extend_set h A) co (extend_set h B) &  \
+\        F : A co B)";
+by (auto_tac (claset() addSIs [project_act_I], simpset() addsimps [ball_Un]));
+by (force_tac (claset() addIs [extend_act_D], simpset()) 1);
+by (force_tac (claset() addSIs [project_act_I] addSDs [subsetD], simpset()) 1);
 (*the <== direction*)
+by (ball_tac 1);
+by (rewtac project_act_def);
+by Auto_tac;
+by (force_tac (claset() addSDs [Id_in_Acts RSN (2,bspec)], simpset()) 1);
 by (force_tac (claset() addSDs [subsetD], simpset()) 1);
-qed "project_constrains";
+qed "Join_project_constrains";
 
 (*The condition is required to prove the left-to-right direction;
-  could weaken it to F : (C Int extend_set h A) co C*)
+  could weaken it to G : (C Int extend_set h A) co C*)
 Goalw [stable_def]
-     "F : stable C \
-\     ==> (project C h F : stable A)  =  (F : stable (C Int extend_set h A))";
-by (simp_tac (simpset() addsimps [project_constrains]) 1);
+     "extend h F Join G : stable C \
+\     ==> (F Join project C h G : stable A)  =  \
+\         (extend h F Join G : stable (C Int extend_set h A) &  \
+\          F : stable A)";
+by (simp_tac (simpset() addsimps [Join_project_constrains]) 1);
 by (blast_tac (claset() addIs [constrains_weaken] addDs [constrains_Int]) 1);
-qed "project_stable";
+qed "Join_project_stable";
 
-Goal "(project UNIV h F : increasing func)  =  \
-\     (F : increasing (func o f))";
-by (asm_simp_tac (simpset() addsimps [increasing_def, project_stable,
-				      Collect_eq_extend_set RS sym]) 1);
-qed "project_increasing";
+Goal "(F Join project UNIV h G : increasing func)  =  \
+\     (extend h F Join G : increasing (func o f))";
+by (simp_tac (simpset() addsimps [increasing_def, Join_project_stable]) 1);
+by (auto_tac (claset(),
+	      simpset() addsimps [Join_stable, Collect_eq_extend_set RS sym,
+				  extend_stable RS iffD1]));
+
+qed "Join_project_increasing";
+
+Goal "(project C h F : A co B)  =  \
+\     (F : (C Int extend_set h A) co (extend_set h B) & A <= B)";
+by (cut_inst_tac [("F", "SKIP")] Join_project_constrains 1);
+by (asm_full_simp_tac (simpset() addsimps [extend_SKIP]) 1);
+qed "project_constrains";
 
 
 (*** Diff, needed for localTo ***)
@@ -462,40 +478,46 @@ qed "extend_Always";
 
 (** Reachability and project **)
 
-Goal "[| reachable F <= C;  z : reachable F |] \
-\     ==> f z : reachable (project C h F)";
+Goal "[| reachable (extend h F Join G) <= C;  \
+\        z : reachable (extend h F Join G) |] \
+\     ==> f z : reachable (F Join project C h G)";
 by (etac reachable.induct 1);
-by (force_tac (claset() addIs [reachable.Acts, project_act_I],
+by (force_tac (claset() delrules [Id_in_Acts]
+		        addIs [reachable.Acts, project_act_I, extend_act_D],
 	       simpset()) 2);
 by (force_tac (claset() addIs [reachable.Init, project_set_I],
 	       simpset()) 1);
 qed "reachable_imp_reachable_project";
 
 Goalw [Constrains_def]
-     "[| reachable F <= C;  project C h F : A Co B |] \
-\     ==> F : (extend_set h A) Co (extend_set h B)";
-by (full_simp_tac (simpset() addsimps [project_constrains]) 1);
+     "[| reachable (extend h F Join G) <= C;    \
+\        F Join project C h G : A Co B |] \
+\     ==> extend h F Join G : (extend_set h A) Co (extend_set h B)";
+by (full_simp_tac (simpset() addsimps [Join_project_constrains]) 1);
 by (Clarify_tac 1);
-by (etac constrains_weaken_L 1);
+by (etac constrains_weaken 1);
 by (auto_tac (claset() addDs [reachable_imp_reachable_project], simpset()));
 qed "project_Constrains_D";
 
 Goalw [Stable_def]
-     "[| reachable F <= C;  project C h F : Stable A |] \
-\     ==> F : Stable (extend_set h A)";
+     "[| reachable (extend h F Join G) <= C;  \
+\        F Join project C h G : Stable A |]   \
+\     ==> extend h F Join G : Stable (extend_set h A)";
 by (asm_simp_tac (simpset() addsimps [project_Constrains_D]) 1);
 qed "project_Stable_D";
 
 Goalw [Always_def]
-     "[| reachable F <= C;  project C h F : Always A |] \
-\     ==> F : Always (extend_set h A)";
+     "[| reachable (extend h F Join G) <= C;  \
+\        F Join project C h G : Always A |]   \
+\     ==> extend h F Join G : Always (extend_set h A)";
 by (force_tac (claset() addIs [reachable.Init, project_set_I],
 	       simpset() addsimps [project_Stable_D]) 1);
 qed "project_Always_D";
 
 Goalw [Increasing_def]
-     "[| reachable F <= C;  project C h F : Increasing func |] \
-\     ==> F : Increasing (func o f)";
+     "[| reachable (extend h F Join G) <= C;  \
+\        F Join project C h G : Increasing func |] \
+\     ==> extend h F Join G : Increasing (func o f)";
 by Auto_tac;
 by (stac Collect_eq_extend_set 1);
 by (asm_simp_tac (simpset() addsimps [project_Stable_D]) 1); 
@@ -504,71 +526,71 @@ qed "project_Increasing_D";
 
 (** Converse results for weak safety: benefits of the argument C *)
 
-Goal "[| C <= reachable F; x : reachable (project C h F) |] \
-\     ==> EX y. h(x,y) : reachable F";
+Goal "[| C <= reachable(extend h F Join G);   \
+\        x : reachable (F Join project C h G) |] \
+\     ==> EX y. h(x,y) : reachable (extend h F Join G)";
 by (etac reachable.induct 1);
-by (ALLGOALS 
-    (asm_full_simp_tac
-     (simpset() addsimps [project_set_def, project_act_def])));
-by (force_tac (claset() addIs [reachable.Acts],
+by (ALLGOALS Asm_full_simp_tac);
+(*SLOW: 6.7s*)
+by (force_tac (claset() delrules [Id_in_Acts]
+		        addIs [reachable.Acts, extend_act_D],
 	       simpset() addsimps [project_act_def]) 2);
 by (force_tac (claset() addIs [reachable.Init],
 	       simpset() addsimps [project_set_def]) 1);
 qed "reachable_project_imp_reachable";
 
 Goalw [Constrains_def]
-     "[| C <= reachable F;  F : (extend_set h A) Co (extend_set h B) |] \
-\     ==> project C h F : A Co B";
-by (full_simp_tac (simpset() addsimps [project_constrains, 
+     "[| C <= reachable (extend h F Join G);  \
+\        extend h F Join G : (extend_set h A) Co (extend_set h B) |] \
+\     ==> F Join project C h G : A Co B";
+by (full_simp_tac (simpset() addsimps [Join_project_constrains, 
 				       extend_set_Int_distrib]) 1);
 by (rtac conjI 1);
-by (force_tac (claset() addSDs [constrains_imp_subset, 
-				reachable_project_imp_reachable], 
-	       simpset()) 2);
 by (etac constrains_weaken 1);
 by Auto_tac;
+by (asm_full_simp_tac (simpset() addsimps [Join_constrains]) 1);
+(*Some generalization of constrains_weaken_L would be better, but what is it?*)
+by (rewtac constrains_def);
+by Auto_tac;
+by (thin_tac "ALL act : Acts G. ?P act" 1);
+by (force_tac (claset() addSDs [reachable_project_imp_reachable], 
+	       simpset()) 1);
 qed "project_Constrains_I";
 
 Goalw [Stable_def]
-     "[| C <= reachable F;  F : Stable (extend_set h A) |] \
-\     ==> project C h F : Stable A";
+     "[| C <= reachable (extend h F Join G);  \
+\        extend h F Join G : Stable (extend_set h A) |] \
+\     ==> F Join project C h G : Stable A";
 by (asm_simp_tac (simpset() addsimps [project_Constrains_I]) 1);
 qed "project_Stable_I";
 
 Goalw [Increasing_def]
-     "[| C <= reachable F;  F : Increasing (func o f) |] \
-\     ==> project C h F : Increasing func";
+     "[| C <= reachable (extend h F Join G);  \
+\        extend h F Join G : Increasing (func o f) |] \
+\     ==> F Join project C h G : Increasing func";
 by Auto_tac;
 by (asm_simp_tac (simpset() addsimps [Collect_eq_extend_set RS sym,
 				      project_Stable_I]) 1); 
 qed "project_Increasing_I";
 
-Goal "(project (reachable F) h F : A Co B)  =  \
-\     (F : (extend_set h A) Co (extend_set h B))";
+Goal "(F Join project (reachable (extend h F Join G)) h G : A Co B)  =  \
+\     (extend h F Join G : (extend_set h A) Co (extend_set h B))";
 by (blast_tac (claset() addIs [project_Constrains_I, project_Constrains_D]) 1);
 qed "project_Constrains";
 
 Goalw [Stable_def]
-     "(project (reachable F) h F : Stable A)  =  \
-\     (F : Stable (extend_set h A))";
+     "(F Join project (reachable (extend h F Join G)) h G : Stable A)  =  \
+\     (extend h F Join G : Stable (extend_set h A))";
 by (rtac project_Constrains 1);
 qed "project_Stable";
 
-Goal "(project (reachable F) h F : Increasing func)  =  \
-\     (F : Increasing (func o f))";
+Goal
+   "(F Join project (reachable (extend h F Join G)) h G : Increasing func)  = \
+\   (extend h F Join G : Increasing (func o f))";
 by (asm_simp_tac (simpset() addsimps [Increasing_def, project_Stable,
 				      Collect_eq_extend_set RS sym]) 1);
 qed "project_Increasing";
 
-(**
-    (*NOT useful in its own right, but a guarantees rule likes premises
-      in this form*)
-    Goal "F Join project C h G : A Co B    \
-    \     ==> extend h F Join G : (extend_set h A) Co (extend_set h B)";
-    by (asm_simp_tac
-	(simpset() addsimps [project_extend_Join, project_Constrains_D]) 1);
-    qed "extend_Join_Constrains";
-**)
 
 (*** Progress: transient, ensures ***)
 
@@ -714,16 +736,14 @@ qed "project_guarantees";
 Goal "F : UNIV guarantees increasing func \
 \     ==> extend h F : UNIV guarantees increasing (func o f)";
 by (etac project_guarantees 1);
-by (asm_simp_tac (simpset() addsimps [project_increasing RS sym]) 2);
-by (stac (project_set_UNIV RS project_extend_Join) 2);
-by Auto_tac;
+by (ALLGOALS
+    (asm_simp_tac (simpset() addsimps [Join_project_increasing RS sym])));
 qed "extend_guar_increasing";
 
 Goal "F : UNIV guarantees Increasing func \
 \     ==> extend h F : UNIV guarantees Increasing (func o f)";
 by (etac project_guarantees 1);
 by (rtac (subset_UNIV RS project_Increasing_D) 2);
-by (stac (project_set_UNIV RS project_extend_Join) 2);
 by Auto_tac;
 qed "extend_guar_Increasing";
 
@@ -733,9 +753,7 @@ Goal "F : (func localTo G) guarantees increasing func  \
 by (etac project_guarantees 1);
 (*the "increasing" guarantee*)
 by (asm_simp_tac
-    (simpset() addsimps [project_increasing RS sym]) 2);
-by (stac (project_set_UNIV RS project_extend_Join) 2);
-by (assume_tac 2);
+    (simpset() addsimps [Join_project_increasing RS sym]) 2);
 (*the "localTo" requirement*)
 by (stac (project_set_UNIV RS project_extend_Join RS sym) 1);
 by (asm_simp_tac 
@@ -747,9 +765,7 @@ Goal "F : (func localTo G) guarantees Increasing func  \
 \                      guarantees Increasing (func o f)";
 by (etac project_guarantees 1);
 (*the "Increasing" guarantee*)
-by (rtac (subset_UNIV RS project_Increasing_D) 2);
-by (stac (project_set_UNIV RS project_extend_Join) 2);
-by (assume_tac 2);
+by (etac (subset_UNIV RS project_Increasing_D) 2);
 (*the "localTo" requirement*)
 by (stac (project_set_UNIV RS project_extend_Join RS sym) 1);
 by (asm_simp_tac 

@@ -64,10 +64,17 @@ qed "PLam_transient";
 
 Addsimps [PLam_constrains, PLam_stable, PLam_transient];
 
+Goal "[| i : I;  F i : A ensures B |] ==>  \
+\     PLam I F : (lift_set i A) ensures lift_set i B";
+by (auto_tac (claset(), 
+	      simpset() addsimps [ensures_def, lift_prog_transient_eq_disj]));
+qed "PLam_ensures";
+
 Goal "[| i : I;  F i : (A-B) co (A Un B);  F i : transient (A-B) |] ==>  \
 \     PLam I F : (lift_set i A) leadsTo lift_set i B";
-by (rtac (ensuresI RS leadsTo_Basis) 1);
-by (auto_tac (claset(), simpset() addsimps [lift_prog_transient_eq_disj]));
+by (rtac (PLam_ensures RS leadsTo_Basis) 1);
+by (rtac ensuresI 2);
+by (ALLGOALS assume_tac);
 qed "PLam_leadsTo_Basis";
 
 Goal "[| PLam I F : AA co BB;  i: I |] \
