@@ -284,8 +284,8 @@ val simpset_of = simpset_of_sg o sign_of;
 fun SIMPSET tacf state = tacf (simpset_of_sg (sign_of_thm state)) state;
 fun SIMPSET' tacf i state = tacf (simpset_of_sg (sign_of_thm state)) i state;
 
-val simpset = simpset_of o Context.get_context;
-val simpset_ref = simpset_ref_of_sg o sign_of o Context.get_context;
+val simpset = simpset_of o Context.the_context;
+val simpset_ref = simpset_ref_of_sg o sign_of o Context.the_context;
 
 
 (* change global simpset *)
