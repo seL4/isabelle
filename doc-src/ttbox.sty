@@ -1,0 +1,38 @@
+\ProvidesPackage{ttbox}[1997/06/25]
+\RequirePackage{alltt}
+
+%%%Boxed terminal sessions
+
+%Redefines \{ and \} to be in \tt font and \| to make a BACKSLASH
+\def\ttbraces{\chardef\{=`\{\chardef\}=`\}\chardef\|=`\\}
+
+%Restores % as the comment character (especially, to suppress line breaks)
+\newcommand\comments{\catcode`\%=14\relax}
+
+%alltt* environment: like alltt but smaller, and with \{ \} and \| as in ttbox
+\newenvironment{alltt*}{\begin{alltt}\footnotesize\ttbraces}{\end{alltt}}
+
+%Indented alltt* environment with small point size
+%NO LINE BREAKS are allowed unless \pagebreak appears at START of a line
+\newenvironment{ttbox}{\begin{quote}\samepage\begin{alltt*}}%
+                      {\end{alltt*}\end{quote}}
+
+{\obeylines\gdef\ttbreak
+{\allowbreak}}
+
+%%%% more \tt things
+
+\def\ttdescriptionlabel#1{\hspace\labelsep \tt #1}
+\def\ttdescription{\list{}{\labelwidth\z@ \itemindent-\leftmargin
+       \let\makelabel\ttdescriptionlabel}}
+
+\let\endttdescription\endlist
+
+\chardef\ttilde=`\~     % A tilde for \tt font
+\chardef\ttback=`\\     % A backslash for \tt font
+\chardef\ttlbrace=`\{   % A left brace for \tt font
+\chardef\ttrbrace=`\}   % A right brace for \tt font
+
+\newcommand\out{\ \ttfamily\slshape}   %% for output from terminal sessions
+
+\endinput
