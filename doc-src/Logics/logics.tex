@@ -2,9 +2,9 @@
 %% $Id$
 %%%STILL NEEDS MODAL, LCF
 %%%\includeonly{ZF}
-%%% to index derived rls:  ^\([a-zA-Z0-9][a-zA-Z0-9_]*\)        \\idx{\1}  
-%%% to index rulenames:   ^ *(\([a-zA-Z0-9][a-zA-Z0-9_]*\),     \\idx{\1}  
-%%% to index constants:   \\tt \([a-zA-Z0-9][a-zA-Z0-9_]*\)     \\idx{\1}  
+%%% to index derived rls:  ^\([a-zA-Z0-9][a-zA-Z0-9_]*\)        \\tdx{\1}  
+%%% to index rulenames:   ^ *(\([a-zA-Z0-9][a-zA-Z0-9_]*\),     \\tdx{\1}  
+%%% to index constants:   \\tt \([a-zA-Z0-9][a-zA-Z0-9_]*\)     \\cdx{\1}  
 %%% to deverbify:         \\verb|\([^|]*\)|     \\ttindex{\1}  
 %% run    ../sedindex logics    to prepare index file
 \title{Isabelle's Object-Logics}
@@ -16,7 +16,7 @@
     Martin Coen made many contributions to~\ZF{}.  Martin Coen
     developed~\Modal{} with assistance from Rajeev Gor\'e.  The research
     has been funded by the SERC (grants GR/G53279, GR/H40570) and by ESPRIT
-    project 6453: Types}.\\ 
+    project 6453: Types.}\\ 
   Computer Laboratory \\ 
   University of Cambridge \\[2ex] 
   {\small{\em Electronic mail\/}: {\tt lcp@cl.cam.ac.uk}} \\[3cm]
@@ -26,12 +26,9 @@
 
 \newcommand\subcaption[1]{\par {\centering\normalsize\sc#1\par}\bigskip
   \hrule\bigskip}
+\newenvironment{constants}{\begin{center}\small\begin{tabular}{rrrr}}{\end{tabular}\end{center}}
 
 \makeindex
-
-%For indexing names in ttbox; could be local to Chapters, making a subitem...
-\let\idx=\ttindexbold
-%%%%\newcommand\idx[1]{\indexbold{*#1}#1}
 
 %%\newenvironment{example}{\begin{Example}\rm}{\end{Example}}
 %%\newtheorem{Example}{Example}[chapter]
@@ -57,6 +54,6 @@
 %%\include{Cube}
 %%\include{LCF}
 \bibliographystyle{plain}
-\bibliography{atp,theory,funprog,logicprog,isabelle}
+\bibliography{string,atp,theory,funprog,logicprog,isabelle}
 \input{logics.ind}
 \end{document}

@@ -1,23 +1,25 @@
 \documentstyle[a4,12pt,rail,proof,iman,extra]{report}
 %% $Id$
-%%% \includeonly{thm}
+%%\includeonly{}
 %%% to index ids: \[\\tt \([a-zA-Z0-9][a-zA-Z0-9_'.]*\)    [\\ttindexbold{\1}
 %%% to delete old ones:  \\indexbold{\*[^}]*}
 %% run    sedindex ref    to prepare index file
 %%% needs chapter on Provers/typedsimp.ML?
 \title{The Isabelle Reference Manual}
 
-\author{{\em Lawrence C. Paulson}\thanks
-{Tobias Nipkow, of T. U. Munich, wrote Chapter~8 and part of Chapter~6.
- Carsten Clasohm also contributed to Chapter~6.
- Sara Kalvala and Markus Wenzel suggested changes and corrections.
- The research has been funded by the SERC (grants GR/G53279, GR/H40570)
-  and by ESPRIT project 6453: Types.} 
-\\  
-        Computer Laboratory \\ University of Cambridge \\[2ex]
-        {\small{\em Electronic mail\/}: {\tt lcp@cl.cam.ac.uk}} \\[3cm]
-    {\small Copyright \copyright{} \number\year{} by Lawrence C. Paulson}
-}
+\author{{\em Lawrence C. Paulson}%
+\thanks{Tobias Nipkow, of T. U. Munich, wrote most of
+  Chapters~\protect\ref{Defining-Logics} and~\protect\ref{simp-chap}, and part of
+  Chapter~\protect\ref{theories}.  Carsten Clasohm also contributed to
+  Chapter~\protect\ref{theories}.  Markus Wenzel contributed to
+  Chapter~\protect\ref{chap:syntax}.  Sara Kalvala and others suggested changes
+  and corrections.  The research has been funded by the SERC (grants
+  GR/G53279, GR/H40570) and by ESPRIT project 6453: Types.}
+\\
+Computer Laboratory \\ University of Cambridge \\[2ex] 
+\small{\em Electronic mail\/}: {\tt lcp@cl.cam.ac.uk}\\[3cm]
+Copyright \copyright{} \number\year{} by Lawrence C. Paulson}
+
 \date{} 
 \makeindex
 
@@ -54,8 +56,9 @@
 
 \begingroup
   \bibliographystyle{plain} \small\raggedright\frenchspacing
-  \bibliography{atp,funprog,general,logicprog,theory}
+  \bibliography{string,atp,funprog,general,logicprog,isabelle,theory}
 \endgroup
 \include{theory-syntax}
-\addcontentsline{toc}{chapter}{Index}\input{ref.ind}
+
+\input{ref.ind}
 \end{document}

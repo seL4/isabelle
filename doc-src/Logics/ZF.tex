@@ -746,8 +746,8 @@ below presents an example of this, proving the equation ${{\tt Pow}(A)\cap
 \tdx{Pair_inject}     [| <a,b> = <c,d>;  [| a=c; b=d |] ==> P |] ==> P
 \tdx{Pair_neq_0}      <a,b>=0 ==> P
 
-\tdx{fst}             fst(<a,b>) = a
-\tdx{snd}             snd(<a,b>) = b
+\tdx{fst_conv}        fst(<a,b>) = a
+\tdx{snd_conv}        snd(<a,b>) = b
 \tdx{split}           split(\%x y.c(x,y), <a,b>) = c(a,b)
 
 \tdx{SigmaI}          [| a:A;  b:B(a) |] ==> <a,b> : Sigma(A,B)
@@ -1148,7 +1148,7 @@ file {\tt ZF/mono.ML}.
 \begin{constants} 
   \it symbol  & \it meta-type & \it priority & \it description \\ 
   \sdx{O}       & $[i,i]\To i$  &  Right 60     & composition ($\circ$) \\
-  \cdx{id}      & $\To i$       &       & identity function \\
+  \cdx{id}      & $i\To i$      &       & identity function \\
   \cdx{inj}     & $[i,i]\To i$  &       & injective function space\\
   \cdx{surj}    & $[i,i]\To i$  &       & surjective function space\\
   \cdx{bij}     & $[i,i]\To i$  &       & bijective function space
