@@ -36,7 +36,7 @@ $(OUT)/Pure:
 
 ## Inductive definitions: simple examples
 
-INDUCT_FILES =  Perm Comb Mutil SList LList LFilter Acc PropLog Term Simult
+INDUCT_FILES = Perm Comb Mutil SList LList LFilter Acc PropLog Term Simult Com Exp
 
 INDUCT_FILES = Induct/ROOT.ML \
 	    $(INDUCT_NAMES:%=Induct/%.thy) $(INDUCT_NAMES:%=Induct/%.ML)
