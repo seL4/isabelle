@@ -105,6 +105,8 @@ harmonize with FOL, ZF, LK, etc.;
 * HOL/ex/LFilter theory of a corecursive "filter" functional for
 infinite lists;
 
+* HOL/Modelcheck demonstrates invocation of model checker oracle;
+
 * HOL/ex/Ring.thy declares cring_simp, which solves equational
 problems in commutative rings, using axiomatic type classes for + and *;
 
