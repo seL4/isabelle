@@ -11,7 +11,7 @@ open Univ;
 (*NOT SUITABLE FOR REWRITING -- RECURSIVE!*)
 goal Univ.thy "Vfrom(A,i) = A Un (UN j:i. Pow(Vfrom(A,j)))";
 by (rtac (Vfrom_def RS def_transrec RS ssubst) 1);
-by (SIMP_TAC ZF_ss 1);
+by (simp_tac ZF_ss 1);
 val Vfrom = result();
 
 (** Monotonicity **)
@@ -122,9 +122,8 @@ val Vfrom_0 = result();
 
 goal Univ.thy "!!i. Ord(i) ==> Vfrom(A,succ(i)) = A Un Pow(Vfrom(A,i))";
 by (rtac (Vfrom RS trans) 1);
-brs ([refl] RL ZF_congs) 1;
-by (rtac equalityI 1);
-by (rtac (succI1 RS RepFunI RS Union_upper) 2);
+by (rtac (succI1 RS RepFunI RS Union_upper RSN
+	      (2, equalityI RS subst_context)) 1);
 by (rtac UN_least 1);
 by (rtac (subset_refl RS Vfrom_mono RS Pow_mono) 1);
 by (etac member_succD 1);
@@ -473,16 +472,16 @@ val rank_rls = [rank_Inl, rank_Inr, rank_pair1, rank_pair2];
 val rank_trans_rls = rank_rls @ (rank_rls RLN (2, [rank_trans]));
 
 val rank_ss = ZF_ss 
-    addrews [split, case_Inl, case_Inr, Vset_rankI]
-    addrews rank_trans_rls;
+    addsimps [case_Inl, case_Inr, Vset_rankI]
+    addsimps rank_trans_rls;
 
 (** Recursion over Vset levels! **)
 
 (*NOT SUITABLE FOR REWRITING: recursive!*)
 goalw Univ.thy [Vrec_def] "Vrec(a,H) = H(a, lam x:Vset(rank(a)). Vrec(x,H))";
 by (rtac (transrec RS ssubst) 1);
-by (SIMP_TAC (wf_ss addrews [Ord_rank, Ord_succ, Vset_D RS beta, 
-			     VsetI RS beta]) 1);
+by (simp_tac (ZF_ss addsimps [Ord_rank, Ord_succ, Vset_D RS beta, 
+			      VsetI RS beta]) 1);
 val Vrec = result();
 
 (*This form avoids giant explosions in proofs.  NOTE USE OF == *)
@@ -492,13 +491,6 @@ val rew::prems = goal Univ.thy
 by (rewtac rew);
 by (rtac Vrec 1);
 val def_Vrec = result();
-
-val prems = goalw Univ.thy [Vrec_def]
-    "[| a=a';  !!x u. H(x,u)=H'(x,u) |]  ==> Vrec(a,H)=Vrec(a',H')";
-val Vrec_ss = ZF_ss addcongs ([transrec_cong] @ mk_congs Univ.thy ["rank"])
-		      addrews (prems RL [sym]);
-by (SIMP_TAC Vrec_ss 1);
-val Vrec_cong = result();
 
 
 (*** univ(A) ***)

@@ -55,19 +55,19 @@ by (REPEAT (ares_tac prems 1));
 val Fin_induct = result();
 
 (** Simplification for Fin **)
-val Fin_ss = arith_ss addcongs mk_congs Fin.thy ["Fin"] addrews Fin.intrs;
+val Fin_ss = arith_ss addsimps Fin.intrs;
 
 (*The union of two finite sets is fin*)
 val major::prems = goal Fin.thy
     "[| b: Fin(A);  c: Fin(A) |] ==> b Un c : Fin(A)";
 by (rtac (major RS Fin_induct) 1);
-by (ALLGOALS (ASM_SIMP_TAC (Fin_ss addrews (prems@[Un_0, Un_cons]))));
+by (ALLGOALS (asm_simp_tac (Fin_ss addsimps (prems@[Un_0, Un_cons]))));
 val Fin_UnI = result();
 
 (*The union of a set of finite sets is fin*)
 val [major] = goal Fin.thy "C : Fin(Fin(A)) ==> Union(C) : Fin(A)";
 by (rtac (major RS Fin_induct) 1);
-by (ALLGOALS (ASM_SIMP_TAC (Fin_ss addrews [Union_0, Union_cons, Fin_UnI])));
+by (ALLGOALS (asm_simp_tac (Fin_ss addsimps [Union_0, Union_cons, Fin_UnI])));
 val Fin_UnionI = result();
 
 (*Every subset of a finite set is fin*)
@@ -76,10 +76,10 @@ by (EVERY1 [subgoal_tac "(ALL z. z<=b --> z: Fin(A))",
 	    etac (spec RS mp),
 	    rtac subs]);
 by (rtac (fin RS Fin_induct) 1);
-by (SIMP_TAC (Fin_ss addrews [subset_empty_iff]) 1);
+by (simp_tac (Fin_ss addsimps [subset_empty_iff]) 1);
 by (safe_tac (ZF_cs addSDs [subset_cons_iff RS iffD1]));
 by (eres_inst_tac [("b","z")] (cons_Diff RS subst) 2);
-by (ALLGOALS (ASM_SIMP_TAC Fin_ss));
+by (ALLGOALS (asm_simp_tac Fin_ss));
 val Fin_subset = result();
 
 val major::prems = goal Fin.thy 
@@ -89,7 +89,7 @@ val major::prems = goal Fin.thy
 \    |] ==> c<=b --> P(b-c)";
 by (rtac (major RS Fin_induct) 1);
 by (rtac (Diff_cons RS ssubst) 2);
-by (ALLGOALS (ASM_SIMP_TAC (Fin_ss addrews (prems@[Diff_0, cons_subset_iff, 
+by (ALLGOALS (asm_simp_tac (Fin_ss addsimps (prems@[Diff_0, cons_subset_iff, 
 				Diff_subset RS Fin_subset]))));
 val Fin_0_induct_lemma = result();
 

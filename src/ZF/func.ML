@@ -37,7 +37,7 @@ val PiE = result();
 
 val prems = goalw ZF.thy [Pi_def]
     "[| A=A';  !!x. x:A' ==> B(x)=B'(x) |] ==> Pi(A,B) = Pi(A',B')";
-by (prove_cong_tac (prems@[Collect_cong,Sigma_cong,ball_cong]) 1);
+by (simp_tac (FOL_ss addsimps prems addcongs [Sigma_cong]) 1);
 val Pi_cong = result();
 
 (*Weaking one function type to another*)
@@ -84,8 +84,7 @@ by (resolve_tac prems 1);
 by (rtac refl 1);
 val memberPiE = result();
 
-(*Conclusion is flexible -- use res_inst_tac or else RS with a theorem
-  of the form f:A->B *)
+(*Conclusion is flexible -- use res_inst_tac or else apply_funtype below!*)
 goal ZF.thy "!!f. [| f: Pi(A,B);  a:A |] ==> f`a : B(a)"; 
 by (rtac (fun_unique_Pair RS ex1E) 1);
 by (REPEAT (assume_tac 1));
@@ -93,6 +92,11 @@ by (rtac (fun_is_rel RS subsetD RS SigmaE2) 1);
 by (etac (apply_equality RS ssubst) 3);
 by (REPEAT (assume_tac 1));
 val apply_type = result();
+
+(*This version is acceptable to the simplifier*)
+goal ZF.thy "!!f. [| f: A->B;  a:A |] ==> f`a : B"; 
+by (REPEAT (ares_tac [apply_type] 1));
+val apply_funtype = result();
 
 goal ZF.thy "!!f. [| f: Pi(A,B);  a:A |] ==> <a,f`a>: f";
 by (rtac (fun_unique_Pair RS ex1E) 1);
@@ -169,11 +173,8 @@ val beta = result();
 
 (*congruence rule for lambda abstraction*)
 val prems = goalw ZF.thy [lam_def] 
-    "[| A=A';  !!x. x:A' ==> b(x)=b'(x) |] ==>  \
-\    (lam x:A.b(x)) = (lam x:A'.b'(x))";
-by (rtac RepFun_cong 1);
-by (res_inst_tac [("t","Pair")] subst_context2 2);
-by (REPEAT (ares_tac (prems@[refl]) 1));
+    "[| A=A';  !!x. x:A' ==> b(x)=b'(x) |] ==> Lambda(A,b) = Lambda(A',b')";
+by (simp_tac (FOL_ss addsimps prems addcongs [RepFun_cong]) 1);
 val lam_cong = result();
 
 val [major] = goal ZF.thy
@@ -259,7 +260,7 @@ val domain_restrict = result();
 val [prem] = goalw ZF.thy [restrict_def]
     "A<=C ==> restrict(lam x:C. b(x), A) = (lam x:A. b(x))";
 by (rtac (refl RS lam_cong) 1);
-be (prem RS subsetD RS beta) 1;	(*easier than calling SIMP_TAC*)
+be (prem RS subsetD RS beta) 1;	(*easier than calling simp_tac*)
 val restrict_lam_eq = result();
 
 

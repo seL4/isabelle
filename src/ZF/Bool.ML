@@ -53,9 +53,6 @@ by (rtac (cond_1 RS ssubst) 1);
 by (resolve_tac prems 1);
 val cond_type = result();
 
-val [cond_cong] = mk_congs Bool.thy ["cond"];
-val bool_congs = mk_congs Bool.thy ["cond","not","op and","op or","op xor"];
-
 val [rew] = goal Bool.thy "[| !!b. j(b)==cond(b,c,d) |] ==> j(1) = c";
 by (rewtac rew);
 by (rtac cond_1 1);

@@ -74,7 +74,7 @@ val QSigmaD2 = prove_goal QPair.thy "<a;b> : QSigma(A,B) ==> b : B(a)"
 val QSigma_cong = prove_goalw QPair.thy [QSigma_def]
     "[| A=A';  !!x. x:A' ==> B(x)=B'(x) |] ==> \
 \    QSigma(A,B) = QSigma(A',B')"
- (fn prems=> [ (prove_cong_tac (prems@[RepFun_cong]) 1) ]);
+ (fn prems=> [ (simp_tac (ZF_ss addsimps prems) 1) ]);
 
 val QSigma_empty1 = prove_goal QPair.thy "QSigma(0,B) = 0"
  (fn _ => [ (fast_tac (ZF_cs addIs [equalityI] addSEs [QSigmaE]) 1) ]);
@@ -97,12 +97,6 @@ val qsplit_type = prove_goal QPair.thy
   [ (rtac (major RS QSigmaE) 1),
     (etac ssubst 1),
     (REPEAT (ares_tac (prems @ [qsplit RS ssubst]) 1)) ]);
-
-(*This congruence rule uses NO typing information...*)
-val qsplit_cong = prove_goalw QPair.thy [qsplit_def] 
-    "[| p=p';  !!x y.c(x,y) = c'(x,y) |] ==> \
-\    qsplit(%x y.c(x,y), p) = qsplit(%x y.c'(x,y), p')"
- (fn prems=> [ (prove_cong_tac (prems@[the_cong]) 1) ]);
 
 
 val qpair_cs = ZF_cs addSIs [QSigmaI] addSEs [QSigmaE2, QSigmaE, QPair_inject];
@@ -243,7 +237,7 @@ by (fast_tac qsum_cs 1);
 val qsum_subset_iff = result();
 
 goal QPair.thy "A <+> B = C <+> D <-> A=C & B=D";
-by (SIMP_TAC (ZF_ss addrews [extension,qsum_subset_iff]) 1);
+by (simp_tac (ZF_ss addsimps [extension,qsum_subset_iff]) 1);
 by (fast_tac ZF_cs 1);
 val qsum_equal_iff = result();
 
@@ -259,12 +253,6 @@ by (rtac (qsplit RS trans) 1);
 by (rtac cond_1 1);
 val qcase_QInr = result();
 
-val prems = goalw QPair.thy [qcase_def]
-    "[| u=u'; !!x. c(x)=c'(x);  !!y. d(y)=d'(y) |] ==>    \
-\    qcase(c,d,u)=qcase(c',d',u')";
-by (REPEAT (resolve_tac ([refl,qsplit_cong,cond_cong] @ prems) 1));
-val qcase_cong = result();
-
 val major::prems = goal QPair.thy
     "[| u: A <+> B; \
 \       !!x. x: A ==> c(x): C(QInl(x));   \
@@ -272,7 +260,7 @@ val major::prems = goal QPair.thy
 \    |] ==> qcase(c,d,u) : C(u)";
 by (rtac (major RS qsumE) 1);
 by (ALLGOALS (etac ssubst));
-by (ALLGOALS (ASM_SIMP_TAC (ZF_ss addrews
+by (ALLGOALS (asm_simp_tac (ZF_ss addsimps
 			    (prems@[qcase_QInl,qcase_QInr]))));
 val qcase_type = result();
 

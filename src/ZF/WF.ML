@@ -19,10 +19,6 @@ a mess.
 
 open WF;
 
-val [H_cong] = mk_typed_congs WF.thy[("H","[i,i]=>i")];
-
-val wf_ss = ZF_ss addcongs [H_cong];
-
 
 (*** Well-founded relations ***)
 
@@ -138,13 +134,13 @@ val apply_recfun = result();
 (*eresolve_tac transD solves <a,b>:r using transitivity AT MOST ONCE
   spec RS mp  instantiates induction hypotheses*)
 fun indhyp_tac hyps =
-    ares_tac (TrueI::hyps) ORELSE' 
+    resolve_tac (TrueI::refl::hyps) ORELSE' 
     (cut_facts_tac hyps THEN'
        DEPTH_SOLVE_1 o (ares_tac [TrueI, ballI] ORELSE'
 		        eresolve_tac [underD, transD, spec RS mp]));
 
-(*** NOTE! some simplifications need a different auto_tac!! ***)
-val wf_super_ss = wf_ss setauto indhyp_tac;
+(*** NOTE! some simplifications need a different solver!! ***)
+val wf_super_ss = ZF_ss setsolver indhyp_tac;
 
 val prems = goalw WF.thy [is_recfun_def]
     "[| wf(r);  trans(r);  is_recfun(r,a,H,f);  is_recfun(r,b,H,g) |] ==> \
@@ -153,7 +149,7 @@ by (cut_facts_tac prems 1);
 by (wf_ind_tac "x" prems 1);
 by (REPEAT (rtac impI 1 ORELSE etac ssubst 1));
 by (rewtac restrict_def);
-by (ASM_SIMP_TAC (wf_super_ss addrews [vimage_singleton_iff]) 1);
+by (asm_simp_tac (wf_super_ss addsimps [vimage_singleton_iff]) 1);
 val is_recfun_equal_lemma = result();
 val is_recfun_equal = standard (is_recfun_equal_lemma RS mp RS mp);
 
@@ -165,7 +161,7 @@ by (cut_facts_tac prems 1);
 by (rtac (consI1 RS restrict_type RS fun_extension) 1);
 by (etac is_recfun_type 1);
 by (ALLGOALS
-    (ASM_SIMP_TAC (wf_super_ss addrews
+    (asm_simp_tac (wf_super_ss addsimps
 		   [ [wfr,transr,recf,recg] MRS is_recfun_equal ])));
 val is_recfun_cut = result();
 
@@ -195,13 +191,13 @@ by (res_inst_tac [("f", "lam y: r-``{a1}. wftrec(r,y,H)")] is_the_recfun 1);
 by (REPEAT (assume_tac 2));
 by (rewrite_goals_tac [is_recfun_def, wftrec_def]);
 (*Applying the substitution: must keep the quantified assumption!!*)
-by (REPEAT (dtac underD 1 ORELSE resolve_tac [refl, lam_cong, H_cong] 1));
+by (REPEAT (dtac underD 1 ORELSE resolve_tac [refl, lam_cong] 1));
 by (fold_tac [is_recfun_def]);
-by (rtac (consI1 RS restrict_type RSN (2,fun_extension)) 1);
+by (rtac (consI1 RS restrict_type RSN (2,fun_extension) RS subst_context) 1);
 by (rtac is_recfun_type 1);
 by (ALLGOALS
-    (ASM_SIMP_TAC
-     (wf_super_ss addrews [underI RS beta, apply_recfun, is_recfun_cut])));
+    (asm_simp_tac
+     (wf_super_ss addsimps [underI RS beta, apply_recfun, is_recfun_cut])));
 val unfold_the_recfun = result();
 
 
@@ -214,13 +210,12 @@ by (REPEAT (ares_tac (prems @ [is_recfun_cut, unfold_the_recfun]) 1));
 val the_recfun_cut = result();
 
 (*NOT SUITABLE FOR REWRITING since it is recursive!*)
-val prems = goalw WF.thy [wftrec_def]
-    "[| wf(r);  trans(r) |] ==> \
-\    wftrec(r,a,H) = H(a, lam x: r-``{a}. wftrec(r,x,H))";
+goalw WF.thy [wftrec_def]
+    "!!r. [| wf(r);  trans(r) |] ==> \
+\         wftrec(r,a,H) = H(a, lam x: r-``{a}. wftrec(r,x,H))";
 by (rtac (rewrite_rule [is_recfun_def] unfold_the_recfun RS ssubst) 1);
-by (ALLGOALS (ASM_SIMP_TAC
-	      (wf_ss addrews (prems@[vimage_singleton_iff RS iff_sym, 
-				     the_recfun_cut]))));
+by (ALLGOALS (asm_simp_tac
+	(ZF_ss addsimps [vimage_singleton_iff RS iff_sym, the_recfun_cut])));
 val wftrec = result();
 
 (** Removal of the premise trans(r) **)
@@ -230,8 +225,7 @@ val [wfr] = goalw WF.thy [wfrec_def]
     "wf(r) ==> wfrec(r,a,H) = H(a, lam x:r-``{a}. wfrec(r,x,H))";
 by (rtac (wfr RS wf_trancl RS wftrec RS ssubst) 1);
 by (rtac trans_trancl 1);
-by (rtac (refl RS H_cong) 1);
-by (rtac (vimage_pair_mono RS restrict_lam_eq) 1);
+by (rtac (vimage_pair_mono RS restrict_lam_eq RS subst_context) 1);
 by (etac r_into_trancl 1);
 by (rtac subset_refl 1);
 val wfrec = result();
@@ -253,10 +247,3 @@ by (rtac (wfrec RS ssubst) 4);
 by (REPEAT (ares_tac (prems@[lam_type]) 1
      ORELSE eresolve_tac [spec RS mp, underD] 1));
 val wfrec_type = result();
-
-val prems = goalw WF.thy [wfrec_def,wftrec_def,the_recfun_def,is_recfun_def]
-    "[| r=r';  !!x u. H(x,u)=H'(x,u);  a=a' |] \
-\    ==> wfrec(r,a,H)=wfrec(r',a',H')";
-by (EVERY1 (map rtac (prems RL [subst])));
-by (SIMP_TAC (wf_ss addrews (prems RL [sym])) 1);
-val wfrec_cong = result();

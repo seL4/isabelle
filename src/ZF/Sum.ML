@@ -83,7 +83,7 @@ by (fast_tac sum_cs 1);
 val sum_subset_iff = result();
 
 goal Sum.thy "A+B = C+D <-> A=C & B=D";
-by (SIMP_TAC (ZF_ss addrews [extension,sum_subset_iff]) 1);
+by (simp_tac (ZF_ss addsimps [extension,sum_subset_iff]) 1);
 by (fast_tac ZF_cs 1);
 val sum_equal_iff = result();
 
@@ -99,12 +99,6 @@ by (rtac (split RS trans) 1);
 by (rtac cond_1 1);
 val case_Inr = result();
 
-val prems = goalw Sum.thy [case_def]
-    "[| u=u'; !!x. c(x)=c'(x);  !!y. d(y)=d'(y) |] ==>    \
-\    case(c,d,u)=case(c',d',u')";
-by (REPEAT (resolve_tac ([refl,split_cong,cond_cong] @ prems) 1));
-val case_cong = result();
-
 val major::prems = goal Sum.thy
     "[| u: A+B; \
 \       !!x. x: A ==> c(x): C(Inl(x));   \
@@ -112,7 +106,7 @@ val major::prems = goal Sum.thy
 \    |] ==> case(c,d,u) : C(u)";
 by (rtac (major RS sumE) 1);
 by (ALLGOALS (etac ssubst));
-by (ALLGOALS (ASM_SIMP_TAC (ZF_ss addrews
+by (ALLGOALS (asm_simp_tac (ZF_ss addsimps
 			    (prems@[case_Inl,case_Inr]))));
 val case_type = result();
 

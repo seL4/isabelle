@@ -167,10 +167,6 @@ val theI = prove_goal ZF.thy "EX! x. P(x) ==> P(THE x. P(x))"
     (resolve_tac [major RS the_equality2 RS ssubst] 1),
     (REPEAT (assume_tac 1)) ]);
 
-val the_cong = prove_goalw ZF.thy [the_def]
-    "[| !!y. P(y) <-> Q(y) |] ==> (THE x. P(x)) = (THE x. Q(x))"
- (fn prems=> [ (prove_cong_tac (prems@[Replace_cong]) 1) ]);
-
 
 (*** if -- a conditional expression for formulae ***)
 
@@ -182,38 +178,34 @@ goalw ZF.thy [if_def] "if(False,a,b) = b";
 by (fast_tac (lemmas_cs addIs [the_equality]) 1);
 val if_false = result();
 
+(*Never use with case splitting, or if P is known to be true or false*)
 val prems = goalw ZF.thy [if_def]
-    "[| P<->Q;  a=c;  b=d |] ==> if(P,a,b) = if(Q,c,d)";
-by (REPEAT (resolve_tac (prems@[refl,the_cong]@FOL_congs) 1));
+    "[| P<->Q;  Q ==> a=c;  ~Q ==> b=d |] ==> if(P,a,b) = if(Q,c,d)";
+by (simp_tac (FOL_ss addsimps prems addcongs [conj_cong]) 1);
 val if_cong = result();
 
 (*Not needed for rewriting, since P would rewrite to True anyway*)
-val prems = goalw ZF.thy [if_def] "P ==> if(P,a,b) = a";
-by (cut_facts_tac prems 1);
+goalw ZF.thy [if_def] "!!P. P ==> if(P,a,b) = a";
 by (fast_tac (lemmas_cs addSIs [the_equality]) 1);
 val if_P = result();
 
 (*Not needed for rewriting, since P would rewrite to False anyway*)
-val prems = goalw ZF.thy [if_def] "~P ==> if(P,a,b) = b";
-by (cut_facts_tac prems 1);
+goalw ZF.thy [if_def] "!!P. ~P ==> if(P,a,b) = b";
 by (fast_tac (lemmas_cs addSIs [the_equality]) 1);
 val if_not_P = result();
 
-val if_ss =
-    FOL_ss addcongs (if_cong :: mk_typed_congs ZF.thy [("P", "i=>o")]
-			      @ basic_ZF_congs)
-	   addrews  [if_true,if_false];
+val if_ss = FOL_ss addsimps  [if_true,if_false];
 
 val expand_if = prove_goal ZF.thy
     "P(if(Q,x,y)) <-> ((Q --> P(x)) & (~Q --> P(y)))"
  (fn _=> [ (res_inst_tac [("Q","Q")] (excluded_middle RS disjE) 1),
-	   (ASM_SIMP_TAC if_ss 1),
-	   (ASM_SIMP_TAC if_ss 1) ]);
+	   (asm_simp_tac if_ss 1),
+	   (asm_simp_tac if_ss 1) ]);
 
 val prems = goal ZF.thy
     "[| P ==> a: A;  ~P ==> b: A |] ==> if(P,a,b): A";
 by (res_inst_tac [("Q","P")] (excluded_middle RS disjE) 1);
-by (ALLGOALS (ASM_SIMP_TAC (if_ss addrews prems)));
+by (ALLGOALS (asm_simp_tac (if_ss addsimps prems)));
 val if_type = result();
 
 

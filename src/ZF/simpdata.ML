@@ -10,7 +10,7 @@ fun prove_fun s =
     (writeln s;  prove_goal ZF.thy s
        (fn prems => [ (cut_facts_tac prems 1), (fast_tac ZF_cs 1) ]));
 
-val mem_rews = map prove_fun
+val mem_simps = map prove_fun
  [ "a:0 <-> False",
    "a : A Un B <-> a:A | a:B",
    "a : A Int B <-> a:A & a:B",
@@ -45,7 +45,7 @@ val ZF_typechecks = [if_type,lam_type,SigmaI,apply_type,split_type];
   NOT TERRIBLY USEFUL because it does not simplify conjunctions*)
 fun type_auto_tac tyrls hyps = SELECT_GOAL
     (DEPTH_SOLVE (typechk_step_tac (tyrls@hyps)
-           ORELSE ares_tac [TrueI,ballI,allI,conjI,impI] 1));
+           ORELSE ares_tac [TrueI,refl,iff_refl,ballI,allI,conjI,impI] 1));
 
 (** New version of mk_rew_rules **)
 
@@ -80,41 +80,19 @@ fun atomize th =
       | _ $ A => tryrules atomize_pairs A
   end;
 
-fun ZF_mk_rew_rules th = map mk_eq (atomize th);
+fun ZF_mk_rew_rules th = map mk_meta_eq (atomize th);
 
 
-fun auto_tac rls hyps = SELECT_GOAL (DEPTH_SOLVE_1 (ares_tac (rls@hyps) 1));
+val ZF_simps = [empty_subsetI, ball_simp, if_true, if_false, 
+		beta, eta, restrict, fst_conv, snd_conv, split];
 
-structure ZF_SimpData : SIMP_DATA =
-  struct
-  val refl_thms		= FOL_SimpData.refl_thms
-  val trans_thms	= FOL_SimpData.trans_thms
-  val red1		= FOL_SimpData.red1
-  val red2		= FOL_SimpData.red2
-  val mk_rew_rules	= ZF_mk_rew_rules 
-  val norm_thms		= FOL_SimpData.norm_thms
-  val subst_thms	= FOL_SimpData.subst_thms
-  val dest_red		= FOL_SimpData.dest_red
-  end;
+(*Sigma_cong, Pi_cong NOT included by default since they cause
+  flex-flex pairs and the "Check your prover" error -- because most
+  Sigma's and Pi's are abbreviated as * or -> *)
+val ZF_congs =
+   [ball_cong, bex_cong, Replace_cong, RepFun_cong, Collect_cong, lam_cong];
 
-structure ZF_Simp = SimpFun(ZF_SimpData);
-
-open ZF_Simp;
-
-(*Redeclared because the previous FOL_ss belongs to a different instance
-  of type simpset*)
-val FOL_ss = empty_ss addcongs FOL_congs addrews FOL_rews 
-		      setauto auto_tac[TrueI,ballI];
-
-(** Basic congruence and rewrite rules for ZF set theory **)
-
-val ZF_congs = 
-   [ball_cong,bex_cong,Replace_cong,RepFun_cong,Collect_cong,the_cong,
-    if_cong,Sigma_cong,split_cong,Pi_cong,lam_cong] @ basic_ZF_congs;
-
-val ZF_rews = [empty_subsetI, ball_rew, if_true, if_false, 
-	       beta, eta, restrict,
-	       fst_conv, snd_conv, split];
-
-val ZF_ss = FOL_ss addcongs ZF_congs addrews (ZF_rews@mem_rews);
-
+val ZF_ss = FOL_ss 
+      setmksimps ZF_mk_rew_rules
+      addsimps (ZF_simps@mem_simps)
+      addcongs ZF_congs;

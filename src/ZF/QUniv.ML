@@ -205,7 +205,7 @@ val product_Int_quniv_eq = result();
 
 goalw QUniv.thy [QPair_def,sum_def]
     "<a;b> Int quniv(A) = <a;b> Int univ(eclose(A))";
-by (SIMP_TAC (ZF_ss addrews [Int_Un_distrib, product_Int_quniv_eq]) 1);
+by (simp_tac (ZF_ss addsimps [Int_Un_distrib, product_Int_quniv_eq]) 1);
 val QPair_Int_quniv_eq = result();
 
 (**** "Take-lemma" rules for proving c: quniv(A) ****)

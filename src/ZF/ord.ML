@@ -318,7 +318,7 @@ val member_succ_iff = result();
 
 goal Ord.thy
     "!!i j. [| Ord(i);  Ord(j) |] ==> i<=succ(j) <-> i<=j | i=succ(j)";
-by (ASM_SIMP_TAC (ZF_ss addrews [member_succ_iff RS iff_sym, Ord_succ]) 1);
+by (asm_simp_tac (ZF_ss addsimps [member_succ_iff RS iff_sym, Ord_succ]) 1);
 by (fast_tac ZF_cs 1);
 val subset_succ_iff = result();
 
@@ -356,17 +356,17 @@ val Ord_succ_mono = result();
 goal Ord.thy "!!i j k. [| i:k;  j:k;  Ord(k) |] ==> i Un j : k";
 by (res_inst_tac [("i","i"),("j","j")] Ord_subset 1);
 by (REPEAT (eresolve_tac [asm_rl, Ord_in_Ord] 1));
-by (ASM_SIMP_TAC (ZF_ss addrews [subset_Un_iff RS iffD1]) 1);
+by (asm_simp_tac (ZF_ss addsimps [subset_Un_iff RS iffD1]) 1);
 by (rtac (Un_commute RS ssubst) 1);
-by (ASM_SIMP_TAC (ZF_ss addrews [subset_Un_iff RS iffD1]) 1);
+by (asm_simp_tac (ZF_ss addsimps [subset_Un_iff RS iffD1]) 1);
 val Ord_member_UnI = result();
 
 goal Ord.thy "!!i j k. [| i:k;  j:k;  Ord(k) |] ==> i Int j : k";
 by (res_inst_tac [("i","i"),("j","j")] Ord_subset 1);
 by (REPEAT (eresolve_tac [asm_rl, Ord_in_Ord] 1));
-by (ASM_SIMP_TAC (ZF_ss addrews [subset_Int_iff RS iffD1]) 1);
+by (asm_simp_tac (ZF_ss addsimps [subset_Int_iff RS iffD1]) 1);
 by (rtac (Int_commute RS ssubst) 1);
-by (ASM_SIMP_TAC (ZF_ss addrews [subset_Int_iff RS iffD1]) 1);
+by (asm_simp_tac (ZF_ss addsimps [subset_Int_iff RS iffD1]) 1);
 val Ord_member_IntI = result();
 
 

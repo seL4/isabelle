@@ -37,7 +37,6 @@ fun mk_defpair sign (lhs,rhs) =
        flatten_term sign (Logic.mk_equals (lhs,rhs)))
   end;
 
-(*export to Pure/sign?  Used in Provers/simp.ML...*)
 fun lookup_const sign a = Symtab.lookup(#const_tab (Sign.rep_sg sign), a);
 
 (*export to Pure/library?  *)

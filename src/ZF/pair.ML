@@ -15,7 +15,7 @@ val doubleton_iff = prove_goal ZF.thy
 
 val Pair_iff = prove_goalw ZF.thy [Pair_def]
     "<a,b> = <c,d> <-> a=c & b=d"
- (fn _=> [ (SIMP_TAC (FOL_ss addrews [doubleton_iff]) 1),
+ (fn _=> [ (simp_tac (FOL_ss addsimps [doubleton_iff]) 1),
            (fast_tac FOL_cs 1) ]);
 
 val Pair_inject = standard (Pair_iff RS iffD1 RS conjE);
@@ -89,7 +89,7 @@ val SigmaE2 = prove_goal ZF.thy
 val Sigma_cong = prove_goalw ZF.thy [Sigma_def]
     "[| A=A';  !!x. x:A' ==> B(x)=B'(x) |] ==> \
 \    Sigma(A,B) = Sigma(A',B')"
- (fn prems=> [ (prove_cong_tac (prems@[RepFun_cong]) 1) ]);
+ (fn prems=> [ (simp_tac (FOL_ss addsimps prems addcongs [RepFun_cong]) 1) ]);
 
 val Sigma_empty1 = prove_goal ZF.thy "Sigma(0,B) = 0"
  (fn _ => [ (fast_tac (lemmas_cs addIs [equalityI] addSEs [SigmaE]) 1) ]);
@@ -113,13 +113,6 @@ val split_type = prove_goal ZF.thy
   [ (rtac (major RS SigmaE) 1),
     (etac ssubst 1),
     (REPEAT (ares_tac (prems @ [split RS ssubst]) 1)) ]);
-
-(*This congruence rule uses NO typing information...*)
-val split_cong = prove_goalw ZF.thy [split_def] 
-    "[| p=p';  !!x y.c(x,y) = c'(x,y) |] ==> \
-\    split(%x y.c(x,y), p) = split(%x y.c'(x,y), p')"
- (fn prems=> [ (prove_cong_tac (prems@[the_cong]) 1) ]);
-
 
 (*** conversions for fst and snd ***)
 

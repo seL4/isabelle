@@ -62,7 +62,7 @@ val major::prems = goal List.thy
 \       !!x y. [| x: A;  y: list(A) |] ==> h(x,y): C(<x,y>)  \
 \    |] ==> list_case(l,c,h) : C(l)";
 by (rtac (major RS list_induct) 1);
-by (ALLGOALS (ASM_SIMP_TAC (ZF_ss addrews
+by (ALLGOALS (asm_simp_tac (ZF_ss addsimps
 			    ([list_case_0,list_case_Pair]@prems))));
 val list_case_type = result();
 ****)
@@ -71,10 +71,10 @@ val list_case_type = result();
 (** For recursion **)
 
 goalw List.thy List.con_defs "rank(a) : rank(Cons(a,l))";
-by (SIMP_TAC rank_ss 1);
+by (simp_tac rank_ss 1);
 val rank_Cons1 = result();
 
 goalw List.thy List.con_defs "rank(l) : rank(Cons(a,l))";
-by (SIMP_TAC rank_ss 1);
+by (simp_tac rank_ss 1);
 val rank_Cons2 = result();
 

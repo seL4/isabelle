@@ -40,7 +40,6 @@ signature CONSTRUCTOR_RESULT =
   val free_iffs  : thm list		(*freeness rewrite rules*)
   val free_SEs   : thm list		(*freeness destruct rules*)
   val mk_free    : string -> thm	(*makes freeness theorems*)
-  val congs	 : thm list		(*congruence rules for simplifier*)
   end;
 
 
@@ -194,7 +193,6 @@ fun mk_free s =
 val case_eqns = map prove_case_equation 
 		    (flat con_ty_lists ~~ big_case_args ~~ tl con_defs);
 
-val congs = mk_congs con_thy (flat (map #1 (const_decs @ ext_constants ext)));
 end;
 
 

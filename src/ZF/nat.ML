@@ -95,8 +95,8 @@ val prems = goal Nat.thy
 \    |] ==> m <= n --> P(m) --> P(n)";
 by (nat_ind_tac "n" prems 1);
 by (ALLGOALS
-    (ASM_SIMP_TAC
-     (ZF_ss addrews (prems@distrib_rews@[subset_empty_iff, subset_succ_iff, 
+    (asm_simp_tac
+     (ZF_ss addsimps (prems@distrib_rews@[subset_empty_iff, subset_succ_iff, 
 					 Ord_nat RS Ord_in_Ord]))));
 val nat_induct_from_lemma = result();
 
@@ -127,30 +127,23 @@ val diff_induct = result();
 
 (** nat_case **)
 
-goalw Nat.thy [nat_case_def] "nat_case(0,a,b) = a";
+goalw Nat.thy [nat_case_def] "nat_case(a,b,0) = a";
 by (fast_tac (ZF_cs addIs [the_equality]) 1);
 val nat_case_0 = result();
 
-goalw Nat.thy [nat_case_def] "nat_case(succ(m),a,b) = b(m)";
+goalw Nat.thy [nat_case_def] "nat_case(a,b,succ(m)) = b(m)";
 by (fast_tac (ZF_cs addIs [the_equality]) 1);
 val nat_case_succ = result();
 
 val major::prems = goal Nat.thy
     "[| n: nat;  a: C(0);  !!m. m: nat ==> b(m): C(succ(m))  \
-\    |] ==> nat_case(n,a,b) : C(n)";
+\    |] ==> nat_case(a,b,n) : C(n)";
 by (rtac (major RS nat_induct) 1);
 by (REPEAT (resolve_tac [nat_case_0 RS ssubst,
 			 nat_case_succ RS ssubst] 1 
        THEN resolve_tac prems 1));
 by (assume_tac 1);
 val nat_case_type = result();
-
-val prems = goalw Nat.thy [nat_case_def]
-    "[| n=n';  a=a';  !!m z. b(m)=b'(m)  \
-\    |] ==> nat_case(n,a,b)=nat_case(n',a',b')";
-by (REPEAT (resolve_tac [the_cong,disj_cong,ex_cong] 1
-     ORELSE EVERY1 (map rtac ((prems RL [ssubst]) @ [iff_refl]))));
-val nat_case_cong = result();
 
 
 (** nat_rec -- used to define eclose and transrec, then obsolete **)
@@ -165,11 +158,10 @@ val nat_rec_0 = result();
 val [prem] = goal Nat.thy 
     "m: nat ==> nat_rec(succ(m),a,b) = b(m, nat_rec(m,a,b))";
 val nat_rec_ss = ZF_ss 
-      addcongs (mk_typed_congs Nat.thy [("b", "[i,i]=>i")])
-      addrews [prem, nat_case_succ, nat_succI, Memrel_iff, 
-	       vimage_singleton_iff];
+      addsimps [prem, nat_case_succ, nat_succI, Memrel_iff, 
+		vimage_singleton_iff];
 by (rtac nat_rec_trans 1);
-by (SIMP_TAC nat_rec_ss 1);
+by (simp_tac nat_rec_ss 1);
 val nat_rec_succ = result();
 
 (** The union of two natural numbers is a natural number -- their maximum **)

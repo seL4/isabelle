@@ -64,8 +64,8 @@ goalw Epsilon.thy [Transset_def]
     "!!X A n. [| Transset(X);  A<=X;  n: nat |] ==> \
 \             nat_rec(n, A, %m r. Union(r)) <= X";
 by (etac nat_induct 1);
-by (ASM_SIMP_TAC (ZF_ss addrews [nat_rec_0]) 1);
-by (ASM_SIMP_TAC (ZF_ss addrews [nat_rec_succ]) 1);
+by (asm_simp_tac (ZF_ss addsimps [nat_rec_0]) 1);
+by (asm_simp_tac (ZF_ss addsimps [nat_rec_succ]) 1);
 by (fast_tac ZF_cs 1);
 val eclose_least_lemma = result();
 
@@ -126,8 +126,8 @@ val [kmemj,jmemi] = goal Epsilon.thy
 by (rtac (kmemj RS eclose_induct) 1);
 by (rtac wfrec_ssubst 1);
 by (rtac wfrec_ssubst 1);
-by (ASM_SIMP_TAC (wf_ss addrews [under_Memrel_eclose,
-				 jmemi RSN (2,mem_eclose_sing_trans)]) 1);
+by (asm_simp_tac (ZF_ss addsimps [under_Memrel_eclose,
+				  jmemi RSN (2,mem_eclose_sing_trans)]) 1);
 val wfrec_eclose_eq = result();
 
 val [prem] = goal Epsilon.thy
@@ -139,8 +139,8 @@ val wfrec_eclose_eq2 = result();
 goalw Epsilon.thy [transrec_def]
     "transrec(a,H) = H(a, lam x:a. transrec(x,H))";
 by (rtac wfrec_ssubst 1);
-by (SIMP_TAC (wf_ss addrews [wfrec_eclose_eq2,
-			     arg_in_eclose_sing, under_Memrel_eclose]) 1);
+by (simp_tac (ZF_ss addsimps [wfrec_eclose_eq2, arg_in_eclose_sing,
+			      under_Memrel_eclose]) 1);
 val transrec = result();
 
 (*Avoids explosions in proofs; resolve it with a meta-level definition.*)
@@ -173,23 +173,12 @@ by (rtac (Ord_in_Ord RS eclose_sing_Ord RS subsetD RS succE) 1);
 by (DEPTH_SOLVE (ares_tac prems 1 ORELSE eresolve_tac [ssubst,Ord_trans] 1));
 val Ord_transrec_type = result();
 
-(*Congruence*)
-val prems = goalw Epsilon.thy [transrec_def,Memrel_def]
-    "[| a=a';  !!x u. H(x,u)=H'(x,u) |]  ==> transrec(a,H)=transrec(a',H')";
-val transrec_ss = 
-    ZF_ss addcongs ([wfrec_cong] @ mk_congs Epsilon.thy ["eclose"])
-	  addrews (prems RL [sym]);
-by (SIMP_TAC transrec_ss 1);
-val transrec_cong = result();
-
 (*** Rank ***)
-
-val ord_ss = ZF_ss addcongs (mk_congs Ord.thy ["Ord"]);
 
 (*NOT SUITABLE FOR REWRITING -- RECURSIVE!*)
 goal Epsilon.thy "rank(a) = (UN y:a. succ(rank(y)))";
 by (rtac (rank_def RS def_transrec RS ssubst) 1);
-by (SIMP_TAC ZF_ss 1);
+by (simp_tac ZF_ss 1);
 val rank = result();
 
 goal Epsilon.thy "Ord(rank(a))";
@@ -203,7 +192,7 @@ val Ord_rank = result();
 val [major] = goal Epsilon.thy "Ord(i) ==> rank(i) = i";
 by (rtac (major RS trans_induct) 1);
 by (rtac (rank RS ssubst) 1);
-by (ASM_SIMP_TAC (ord_ss addrews [Ord_equality]) 1);
+by (asm_simp_tac (ZF_ss addsimps [Ord_equality]) 1);
 val rank_of_Ord = result();
 
 val [prem] = goal Epsilon.thy "a:b ==> rank(a) : rank(b)";

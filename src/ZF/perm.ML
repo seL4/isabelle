@@ -52,6 +52,7 @@ val bij_is_surj = result();
 (* f: bij(A,B) ==> f: A->B *)
 val bij_is_fun = standard (bij_is_inj RS inj_is_fun);
 
+
 (** Identity function **)
 
 val [prem] = goalw Perm.thy [id_def] "a:A ==> <a,a> : id(A)";  
@@ -76,7 +77,7 @@ val id_mono = result();
 
 goalw Perm.thy [inj_def,id_def] "id(A): inj(A,A)";
 by (REPEAT (ares_tac [CollectI,lam_type] 1));
-by (SIMP_TAC ZF_ss 1);
+by (simp_tac ZF_ss 1);
 val id_inj = result();
 
 goalw Perm.thy [id_def,surj_def] "id(A): surj(A,A)";
@@ -262,7 +263,7 @@ goalw Perm.thy [inj_def]
     "!!f g. [| (f O g): inj(A,C);  g: A->B;  f: B->C |] ==> g: inj(A,B)";
 by (safe_tac comp_cs);
 by (REPEAT (eresolve_tac [asm_rl, bspec RS bspec RS mp] 1));
-by (ASM_SIMP_TAC (ZF_ss addrews [comp_func_apply]) 1);
+by (asm_simp_tac (FOL_ss addsimps [comp_func_apply]) 1);
 val comp_mem_injD1 = result();
 
 goalw Perm.thy [inj_def,surj_def]
@@ -271,9 +272,10 @@ by (safe_tac comp_cs);
 by (res_inst_tac [("x1", "x")] (bspec RS bexE) 1);
 by (eres_inst_tac [("x1", "w")] (bspec RS bexE) 3);
 by (REPEAT (assume_tac 1));
-by (safe_tac (comp_cs addSIs ZF_congs));
+by (safe_tac comp_cs);
+by (res_inst_tac [("t", "op `(g)")] subst_context 1);
 by (REPEAT (eresolve_tac [asm_rl, bspec RS bspec RS mp] 1));
-by (ASM_SIMP_TAC (ZF_ss addrews [comp_func_apply]) 1);
+by (asm_simp_tac (FOL_ss addsimps [comp_func_apply]) 1);
 val comp_mem_injD2 = result();
 
 goalw Perm.thy [surj_def]
@@ -427,7 +429,9 @@ by (rtac CollectI 1);
 by (etac fun_extend 1);
 by (REPEAT (ares_tac [ballI] 1));
 by (REPEAT_FIRST (eresolve_tac [consE,ssubst]));
-(*Assumption ALL w:A. ALL x:A. f`w = f`x --> w=x makes ASM_SIMP_TAC loop!*)
-by (ALLGOALS (SIMP_TAC (ZF_ss addrews [fun_extend_apply2,fun_extend_apply1])));
+(*Assumption ALL w:A. ALL x:A. f`w = f`x --> w=x would make asm_simp_tac loop
+  using ZF_ss!  But FOL_ss ignores the assumption...*)
+by (ALLGOALS (asm_simp_tac 
+	      (FOL_ss addsimps [fun_extend_apply2,fun_extend_apply1])));
 by (ALLGOALS (fast_tac (ZF_cs addIs [apply_type])));
 val inj_extend = result();

@@ -13,9 +13,8 @@ signature ZF_LEMMAS =
   val ballE : thm
   val ballI : thm
   val ball_cong : thm
-  val ball_rew : thm
+  val ball_simp : thm
   val ball_tac : int -> tactic
-  val basic_ZF_congs : thm list
   val bexCI : thm
   val bexE : thm
   val bexI : thm
@@ -45,7 +44,6 @@ signature ZF_LEMMAS =
   val lemmas_cs : claset
   val PowD : thm
   val PowI : thm
-  val prove_cong_tac : thm list -> int -> tactic
   val RepFunE : thm
   val RepFunI : thm
   val RepFun_eqI : thm
@@ -74,14 +72,6 @@ signature ZF_LEMMAS =
 
 structure ZF_Lemmas : ZF_LEMMAS = 
 struct
-
-val basic_ZF_congs = mk_congs ZF.thy 
-    ["op `", "op ``", "op Int", "op Un", "op -", "op <=", "op :", 
-     "Pow", "Union", "Inter", "fst", "snd", "succ", "Pair", "Upair", "cons",
-     "domain", "range", "restrict"];
-
-fun prove_cong_tac prems i =
-    REPEAT (ares_tac (prems@[refl]@FOL_congs@basic_ZF_congs) i);
 
 (*** Bounded universal quantifier ***)
 
@@ -118,14 +108,13 @@ val rev_ballE = prove_goal ZF.thy
 val ball_tac = dtac bspec THEN' assume_tac;
 
 (*Trival rewrite rule;   (ALL x:A.P)<->P holds only if A is nonempty!*)
-val ball_rew = prove_goal ZF.thy "(ALL x:A. True) <-> True"
- (fn prems=> [ (REPEAT (ares_tac [TrueI,ballI,iffI] 1)) ]);
+val ball_simp = prove_goal ZF.thy "(ALL x:A. True) <-> True"
+ (fn _=> [ (REPEAT (ares_tac [TrueI,ballI,iffI] 1)) ]);
 
 (*Congruence rule for rewriting*)
 val ball_cong = prove_goalw ZF.thy [Ball_def]
-    "[| A=A';  !!x. x:A' ==> P(x) <-> P'(x) \
-\    |] ==> (ALL x:A. P(x)) <-> (ALL x:A'. P'(x))"
- (fn prems=> [ (prove_cong_tac prems 1) ]);
+    "[| A=A';  !!x. x:A' ==> P(x) <-> P'(x) |] ==> Ball(A,P) <-> Ball(A',P')"
+ (fn prems=> [ (simp_tac (FOL_ss addsimps prems) 1) ]);
 
 (*** Bounded existential quantifier ***)
 
@@ -151,8 +140,8 @@ val bexE = prove_goalw ZF.thy [Bex_def]
 
 val bex_cong = prove_goalw ZF.thy [Bex_def]
     "[| A=A';  !!x. x:A' ==> P(x) <-> P'(x) \
-\    |] ==> (EX x:A. P(x)) <-> (EX x:A'. P'(x))"
- (fn prems=> [ (prove_cong_tac prems 1) ]);
+\    |] ==> Bex(A,P) <-> Bex(A',P')"
+ (fn prems=> [ (simp_tac (FOL_ss addsimps prems addcongs [conj_cong]) 1) ]);
 
 (*** Rules for subsets ***)
 
@@ -265,7 +254,7 @@ val ReplaceE = prove_goal ZF.thy
 
 val Replace_cong = prove_goal ZF.thy
     "[| A=B;  !!x y. x:B ==> P(x,y) <-> Q(x,y) |] ==> \
-\    {y. x:A, P(x,y)} = {y. x:B, Q(x,y)}"
+\    Replace(A,P) = Replace(B,Q)"
  (fn prems=>
    let val substprems = prems RL [subst, ssubst]
        and iffprems = prems RL [iffD1,iffD2]
@@ -274,7 +263,6 @@ val Replace_cong = prove_goal ZF.thy
 	 ORELSE resolve_tac [subsetI, ReplaceI] 1
 	 ORELSE (resolve_tac iffprems 1 THEN assume_tac 2))) ]
    end);
-
 
 (*** Rules for RepFun ***)
 
@@ -296,9 +284,8 @@ val RepFunE = prove_goalw ZF.thy [RepFun_def]
     (REPEAT (ares_tac prems 1)) ]);
 
 val RepFun_cong = prove_goalw ZF.thy [RepFun_def]
-    "[| A=B;  !!x. x:B ==> f(x)=g(x) |] ==> \
-\    {f(x). x:A} = {g(x). x:B}"
- (fn prems=> [ (prove_cong_tac (prems@[Replace_cong]) 1) ]);
+    "[| A=B;  !!x. x:B ==> f(x)=g(x) |] ==> RepFun(A,f) = RepFun(B,g)"
+ (fn prems=> [ (simp_tac (FOL_ss addcongs [Replace_cong] addsimps prems) 1) ]);
 
 
 (*** Rules for Collect -- forming a subset by separation ***)
@@ -332,9 +319,8 @@ val CollectD2 = prove_goal ZF.thy "a : {x:A. P(x)} ==> P(a)"
     (assume_tac 1) ]);
 
 val Collect_cong = prove_goalw ZF.thy [Collect_def] 
-    "[| A=B;  !!x. x:B ==> P(x) <-> Q(x) |] ==> \
-\    {x:A. P(x)} = {x:B. Q(x)}"
- (fn prems=> [ (prove_cong_tac (prems@[Replace_cong]) 1) ]);
+    "[| A=B;  !!x. x:B ==> P(x) <-> Q(x) |] ==> Collect(A,P) = Collect(B,Q)"
+ (fn prems=> [ (simp_tac (FOL_ss addcongs [Replace_cong] addsimps prems) 1) ]);
 
 (*** Rules for Unions ***)
 
