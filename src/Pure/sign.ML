@@ -281,8 +281,11 @@ fun err_dup_init sg kind =
   error ("Duplicate initialization of " ^ quote kind ^ " data" ^ of_theory sg);
 
 fun err_uninit sg kind =
-  error ("Tried to access uninitialized " ^ quote kind ^ " data" ^ of_theory sg);
+  error ("Tried to access uninitialized " ^ quote kind ^ " data" ^ 
+	 of_theory sg);
 
+(*Trying to access theory data using get / put operations from a different
+  instance of the TheoryDataFun result.  Typical cure: re-load all files*)
 fun err_access sg kind =
   error ("Unauthorized access to " ^ quote kind ^ " data" ^ of_theory sg);
 
