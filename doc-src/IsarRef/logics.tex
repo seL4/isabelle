@@ -97,9 +97,11 @@ declarations internally.
 \begin{rail}
   'typedecl' typespec infix?
   ;
-  'typedef' parname? abstype '=' repset
+  'typedef' altname? abstype '=' repset
   ;
 
+  altname = '(' (name | 'open' name?) ')'
+  ;
   abstype: typespec infix?
   ;
   repset: term ('morphisms' name name)?
@@ -132,6 +134,10 @@ declarations internally.
   $Rep_t_cases/Rep_t_induct$, and $Abs_t_cases/Abs_t_induct$ provide
   alternative views on surjectivity; these are already declared as set or type
   rules for the generic $cases$ and $induct$ methods.
+  
+  An alternative name may be specified in parentheses; the default is to use
+  $t$ as indicated before.  The $open$ declaration suppresses a separate
+  constant definition for the representing set.
 \end{descr}
 
 Note that raw type declarations are rarely used in practice; the main

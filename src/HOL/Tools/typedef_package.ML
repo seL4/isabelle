@@ -22,10 +22,10 @@ sig
     {type_definition: thm, set_def: thm option, Rep: thm, Rep_inverse: thm,
       Abs_inverse: thm, Rep_inject: thm, Abs_inject: thm, Rep_cases: thm, Abs_cases: thm,
       Rep_induct: thm, Abs_induct: thm}
-  val typedef_proof: string * (bstring * string list * mixfix) * string * (string * string) option
-    -> bool -> theory -> ProofHistory.T
-  val typedef_proof_i: string * (bstring * string list * mixfix) * term * (string * string) option
-    -> bool -> theory -> ProofHistory.T
+  val typedef_proof: (bool * string) * (bstring * string list * mixfix) * string
+    * (string * string) option -> bool -> theory -> ProofHistory.T
+  val typedef_proof_i: (bool * string) * (bstring * string list * mixfix) * term
+    * (string * string) option -> bool -> theory -> ProofHistory.T
 end;
 
 structure TypedefPackage: TYPEDEF_PACKAGE =
@@ -238,10 +238,10 @@ val add_typedef_i = sane_typedef cert_term;
 
 (* typedef_proof interface *)
 
-fun gen_typedef_proof prep_term (name, typ, set, opt_morphs) int thy =
+fun gen_typedef_proof prep_term ((def, name), typ, set, opt_morphs) int thy =
   let
     val (_, goal, goal_pat, att_result) =
-      prepare_typedef prep_term true name typ set opt_morphs thy;
+      prepare_typedef prep_term def name typ set opt_morphs thy;
     val att = #1 o att_result;
   in thy |> IsarThy.theorem_i Drule.internalK (("", [att]), (goal, ([goal_pat], []))) int end;
 
@@ -261,12 +261,14 @@ val typedeclP =
 
 
 val typedef_proof_decl =
-  Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") --
+  Scan.optional (P.$$$ "(" |-- P.!!!
+      (((P.$$$ "open" >> K false) -- Scan.option P.name || P.name >> (fn s => (true, Some s)))
+        --| P.$$$ ")")) (true, None) --
     (P.type_args -- P.name) -- P.opt_infix -- (P.$$$ "=" |-- P.term) --
     Scan.option (P.$$$ "morphisms" |-- P.!!! (P.name -- P.name));
 
-fun mk_typedef_proof ((((opt_name, (vs, t)), mx), A), morphs) =
-  typedef_proof (if_none opt_name (Syntax.type_name t mx), (t, vs, mx), A, morphs);
+fun mk_typedef_proof ((((((def, opt_name), (vs, t)), mx), A), morphs)) =
+  typedef_proof ((def, if_none opt_name (Syntax.type_name t mx)), (t, vs, mx), A, morphs);
 
 val typedefP =
   OuterSyntax.command "typedef" "HOL type definition (requires non-emptiness proof)" K.thy_goal
