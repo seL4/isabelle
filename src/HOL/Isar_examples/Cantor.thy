@@ -5,8 +5,11 @@
 
 header {* Cantor's Theorem *};
 
-theory Cantor = Main:;text_raw {* \footnote{This is an Isar version of
- the final example of the Isabelle/HOL manual \cite{isabelle-HOL}.}
+theory Cantor = Main:;
+
+text_raw {*
+ \footnote{This is an Isar version of the final example of the
+ Isabelle/HOL manual \cite{isabelle-HOL}.}
 *};
 
 text {*
