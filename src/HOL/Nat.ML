@@ -240,8 +240,9 @@ val major::prems = goalw Nat.thy [less_def]
     "[| i<k;  k=Suc(i) ==> P;  !!j. [| i<j;  k=Suc(j) |] ==> P \
 \    |] ==> P";
 by (rtac (major RS tranclE) 1);
-by (fast_tac (HOL_cs addSEs (prems@[pred_natE, Pair_inject])) 1);
-by (fast_tac (HOL_cs addSEs (prems@[pred_natE, Pair_inject])) 1);
+by (REPEAT_FIRST (bound_hyp_subst_tac ORELSE'
+		  eresolve_tac (prems@[pred_natE, Pair_inject])));
+by (rtac refl 1);
 qed "lessE";
 
 goal Nat.thy "~ n<0";
