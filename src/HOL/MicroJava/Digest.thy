@@ -249,16 +249,16 @@ text {*
 @{thm [display] lift_top_Err_any [no_vars]}
 \medskip
 
-{\bf lemma} @{text lift_top_Ok_Ok}:\\
-@{thm [display] lift_top_Ok_Ok [no_vars]}
+{\bf lemma} @{text lift_top_OK_OK}:\\
+@{thm [display] lift_top_OK_OK [no_vars]}
 \medskip
 
-{\bf lemma} @{text lift_top_any_Ok}:\\
-@{thm [display] lift_top_any_Ok [no_vars]}
+{\bf lemma} @{text lift_top_any_OK}:\\
+@{thm [display] lift_top_any_OK [no_vars]}
 \medskip
 
-{\bf lemma} @{text lift_top_Ok_any}:\\
-@{thm [display] lift_top_Ok_any [no_vars]}
+{\bf lemma} @{text lift_top_OK_any}:\\
+@{thm [display] lift_top_OK_any [no_vars]}
 \medskip
 
 {\bf lemma} @{text lift_bottom_refl}:\\
@@ -305,12 +305,12 @@ text {*
 @{thm [display] anyConvErr [no_vars]}
 \medskip
 
-{\bf theorem} @{text OkanyConvOk}:\\
-@{thm [display] OkanyConvOk [no_vars]}
+{\bf theorem} @{text OKanyConvOK}:\\
+@{thm [display] OKanyConvOK [no_vars]}
 \medskip
 
-{\bf theorem} @{text sup_ty_opt_Ok}:\\
-@{thm [display] sup_ty_opt_Ok [no_vars]}
+{\bf theorem} @{text sup_ty_opt_OK}:\\
+@{thm [display] sup_ty_opt_OK [no_vars]}
 \medskip
 
 {\bf lemma} @{text widen_PrimT_conv1}:\\
@@ -931,8 +931,8 @@ text {*
 
 subsubsection {* Theory LBVSpec *}
 text {*
-{\bf lemma} @{text wtl_inst_Ok}:\\
-@{thm [display] wtl_inst_Ok [no_vars]}
+{\bf lemma} @{text wtl_inst_OK}:\\
+@{thm [display] wtl_inst_OK [no_vars]}
 \medskip
 
 {\bf lemma} @{text strict_Some}:\\
