@@ -111,71 +111,72 @@ done
 subsection {*Relativization of the Operator @{term DPow'}*}
 
 lemma DPow'_eq: 
-  "DPow'(A) = Replace(list(A) * formula,
-              %ep z. \<exists>env \<in> list(A). \<exists>p \<in> formula. 
-                     ep = <env,p> & z = {x\<in>A. sats(A, p, Cons(x,env))})"
-apply (simp add: DPow'_def, blast) 
-done
+  "DPow'(A) = {z . ep \<in> list(A) * formula, 
+                    \<exists>env \<in> list(A). \<exists>p \<in> formula. 
+                       ep = <env,p> & z = {x\<in>A. sats(A, p, Cons(x,env))}}"
+by (simp add: DPow'_def, blast) 
 
 
+text{*Relativize the use of @{term sats} within @{term DPow'}
+(the comprehension).*}
 constdefs
-  is_DPow_body :: "[i=>o,i,i,i,i] => o"
-   "is_DPow_body(M,A,env,p,x) ==
+  is_DPow_sats :: "[i=>o,i,i,i,i] => o"
+   "is_DPow_sats(M,A,env,p,x) ==
       \<forall>n1[M]. \<forall>e[M]. \<forall>sp[M]. 
              is_satisfies(M,A,p,sp) --> is_Cons(M,x,env,e) --> 
              fun_apply(M, sp, e, n1) --> number1(M, n1)"
 
-lemma (in M_satisfies) DPow_body_abs:
+lemma (in M_satisfies) DPow_sats_abs:
     "[| M(A); env \<in> list(A); p \<in> formula; M(x) |]
-    ==> is_DPow_body(M,A,env,p,x) <-> sats(A, p, Cons(x,env))"
+    ==> is_DPow_sats(M,A,env,p,x) <-> sats(A, p, Cons(x,env))"
 apply (subgoal_tac "M(env)") 
- apply (simp add: is_DPow_body_def satisfies_closed satisfies_abs) 
+ apply (simp add: is_DPow_sats_def satisfies_closed satisfies_abs) 
 apply (blast dest: transM) 
 done
 
-lemma (in M_satisfies) Collect_DPow_body_abs:
+lemma (in M_satisfies) Collect_DPow_sats_abs:
     "[| M(A); env \<in> list(A); p \<in> formula |]
-    ==> Collect(A, is_DPow_body(M,A,env,p)) = 
+    ==> Collect(A, is_DPow_sats(M,A,env,p)) = 
         {x \<in> A. sats(A, p, Cons(x,env))}"
-by (simp add: DPow_body_abs transM [of _ A])
+by (simp add: DPow_sats_abs transM [of _ A])
 
 
-subsubsection{*The Operator @{term is_DPow_body}, Internalized*}
+subsubsection{*The Operator @{term is_DPow_sats}, Internalized*}
 
-(* is_DPow_body(M,A,env,p,x) ==
+(* is_DPow_sats(M,A,env,p,x) ==
       \<forall>n1[M]. \<forall>e[M]. \<forall>sp[M]. 
              is_satisfies(M,A,p,sp) --> is_Cons(M,x,env,e) --> 
              fun_apply(M, sp, e, n1) --> number1(M, n1) *)
 
-constdefs DPow_body_fm :: "[i,i,i,i]=>i"
- "DPow_body_fm(A,env,p,x) ==
+constdefs DPow_sats_fm :: "[i,i,i,i]=>i"
+ "DPow_sats_fm(A,env,p,x) ==
    Forall(Forall(Forall(
      Implies(satisfies_fm(A#+3,p#+3,0), 
        Implies(Cons_fm(x#+3,env#+3,1), 
          Implies(fun_apply_fm(0,1,2), number1_fm(2)))))))"
 
-lemma is_DPow_body_type [TC]:
+lemma is_DPow_sats_type [TC]:
      "[| A \<in> nat; x \<in> nat; y \<in> nat; z \<in> nat |]
-      ==> DPow_body_fm(A,x,y,z) \<in> formula"
-by (simp add: DPow_body_fm_def)
+      ==> DPow_sats_fm(A,x,y,z) \<in> formula"
+by (simp add: DPow_sats_fm_def)
 
-lemma sats_DPow_body_fm [simp]:
+lemma sats_DPow_sats_fm [simp]:
    "[| u \<in> nat; x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, DPow_body_fm(u,x,y,z), env) <->
-        is_DPow_body(**A, nth(u,env), nth(x,env), nth(y,env), nth(z,env))"
-by (simp add: DPow_body_fm_def is_DPow_body_def)
+    ==> sats(A, DPow_sats_fm(u,x,y,z), env) <->
+        is_DPow_sats(**A, nth(u,env), nth(x,env), nth(y,env), nth(z,env))"
+by (simp add: DPow_sats_fm_def is_DPow_sats_def)
 
-lemma DPow_body_iff_sats:
+lemma DPow_sats_iff_sats:
   "[| nth(u,env) = nu; nth(x,env) = nx; nth(y,env) = ny; nth(z,env) = nz;
       u \<in> nat; x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-   ==> is_DPow_body(**A,nu,nx,ny,nz) <->
-       sats(A, DPow_body_fm(u,x,y,z), env)"
+   ==> is_DPow_sats(**A,nu,nx,ny,nz) <->
+       sats(A, DPow_sats_fm(u,x,y,z), env)"
 by simp
 
-theorem DPow_body_reflection:
-     "REFLECTS[\<lambda>x. is_DPow_body(L,f(x),g(x),h(x),g'(x)),
-               \<lambda>i x. is_DPow_body(**Lset(i),f(x),g(x),h(x),g'(x))]"
-apply (unfold is_DPow_body_def) 
+theorem DPow_sats_reflection:
+     "REFLECTS[\<lambda>x. is_DPow_sats(L,f(x),g(x),h(x),g'(x)),
+               \<lambda>i x. is_DPow_sats(**Lset(i),f(x),g(x),h(x),g'(x))]"
+apply (unfold is_DPow_sats_def) 
 apply (intro FOL_reflections function_reflections extra_reflections
              satisfies_reflection)
 done
@@ -186,25 +187,25 @@ subsection{*A Locale for Relativizing the Operator @{term DPow'}*}
 locale M_DPow = M_satisfies +
  assumes sep:
    "[| M(A); env \<in> list(A); p \<in> formula |]
-    ==> separation(M, \<lambda>x. is_DPow_body(M,A,env,p,x))"
+    ==> separation(M, \<lambda>x. is_DPow_sats(M,A,env,p,x))"
  and rep: 
     "M(A)
     ==> strong_replacement (M, 
          \<lambda>ep z. \<exists>env[M]. \<exists>p[M]. mem_formula(M,p) & mem_list(M,A,env) &
                   pair(M,env,p,ep) & 
-                  is_Collect(M, A, \<lambda>x. is_DPow_body(M,A,env,p,x), z))"
+                  is_Collect(M, A, \<lambda>x. is_DPow_sats(M,A,env,p,x), z))"
 
 lemma (in M_DPow) sep':
    "[| M(A); env \<in> list(A); p \<in> formula |]
     ==> separation(M, \<lambda>x. sats(A, p, Cons(x,env)))"
-by (insert sep [of A env p], simp add: DPow_body_abs)
+by (insert sep [of A env p], simp add: DPow_sats_abs)
 
 lemma (in M_DPow) rep':
    "M(A)
     ==> strong_replacement (M, 
          \<lambda>ep z. \<exists>env\<in>list(A). \<exists>p\<in>formula.
                   ep = <env,p> & z = {x \<in> A . sats(A, p, Cons(x, env))})" 
-by (insert rep [of A], simp add: Collect_DPow_body_abs) 
+by (insert rep [of A], simp add: Collect_DPow_sats_abs) 
 
 
 lemma univalent_pair_eq:
@@ -223,14 +224,14 @@ constdefs
        \<forall>X[M]. X \<in> Z <-> 
          subset(M,X,A) & 
            (\<exists>env[M]. \<exists>p[M]. mem_formula(M,p) & mem_list(M,A,env) &
-                    is_Collect(M, A, is_DPow_body(M,A,env,p), X))"
+                    is_Collect(M, A, is_DPow_sats(M,A,env,p), X))"
 
 lemma (in M_DPow) DPow'_abs:
     "[|M(A); M(Z)|] ==> is_DPow'(M,A,Z) <-> Z = DPow'(A)"
 apply (rule iffI)
- prefer 2 apply (simp add: is_DPow'_def DPow'_def Collect_DPow_body_abs) 
+ prefer 2 apply (simp add: is_DPow'_def DPow'_def Collect_DPow_sats_abs) 
 apply (rule M_equalityI) 
-apply (simp add: is_DPow'_def DPow'_def Collect_DPow_body_abs, assumption)
+apply (simp add: is_DPow'_def DPow'_def Collect_DPow_sats_abs, assumption)
 apply (erule DPow'_closed)
 done
 
@@ -241,11 +242,11 @@ subsubsection{*The Instance of Separation*}
 
 lemma DPow_separation:
     "[| L(A); env \<in> list(A); p \<in> formula |]
-     ==> separation(L, \<lambda>x. is_DPow_body(L,A,env,p,x))"
-apply (rule gen_separation_multi [OF DPow_body_reflection, of "{A,env,p}"], 
+     ==> separation(L, \<lambda>x. is_DPow_sats(L,A,env,p,x))"
+apply (rule gen_separation_multi [OF DPow_sats_reflection, of "{A,env,p}"], 
        auto intro: transL)
 apply (rule_tac env="[A,env,p]" in DPow_LsetI)
-apply (rule DPow_body_iff_sats sep_rules | simp)+
+apply (rule DPow_sats_iff_sats sep_rules | simp)+
 done
 
 
@@ -256,15 +257,15 @@ lemma DPow_replacement_Reflects:
  "REFLECTS [\<lambda>x. \<exists>u[L]. u \<in> B &
              (\<exists>env[L]. \<exists>p[L].
                mem_formula(L,p) & mem_list(L,A,env) & pair(L,env,p,u) &
-               is_Collect (L, A, is_DPow_body(L,A,env,p), x)),
+               is_Collect (L, A, is_DPow_sats(L,A,env,p), x)),
     \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B &
              (\<exists>env \<in> Lset(i). \<exists>p \<in> Lset(i).
                mem_formula(**Lset(i),p) & mem_list(**Lset(i),A,env) & 
                pair(**Lset(i),env,p,u) &
-               is_Collect (**Lset(i), A, is_DPow_body(**Lset(i),A,env,p), x))]"
+               is_Collect (**Lset(i), A, is_DPow_sats(**Lset(i),A,env,p), x))]"
 apply (unfold is_Collect_def) 
 apply (intro FOL_reflections function_reflections mem_formula_reflection
-          mem_list_reflection DPow_body_reflection)
+          mem_list_reflection DPow_sats_reflection)
 done
 
 lemma DPow_replacement:
@@ -272,7 +273,7 @@ lemma DPow_replacement:
     ==> strong_replacement (L, 
          \<lambda>ep z. \<exists>env[L]. \<exists>p[L]. mem_formula(L,p) & mem_list(L,A,env) &
                   pair(L,env,p,ep) & 
-                  is_Collect(L, A, \<lambda>x. is_DPow_body(L,A,env,p,x), z))"
+                  is_Collect(L, A, \<lambda>x. is_DPow_sats(L,A,env,p,x), z))"
 apply (rule strong_replacementI)
 apply (rule_tac u="{A,B}" 
          in gen_separation_multi [OF DPow_replacement_Reflects], 
@@ -280,7 +281,7 @@ apply (rule_tac u="{A,B}"
 apply (unfold is_Collect_def) 
 apply (rule_tac env="[A,B]" in DPow_LsetI)
 apply (rule sep_rules mem_formula_iff_sats mem_list_iff_sats 
-            DPow_body_iff_sats | simp)+
+            DPow_sats_iff_sats | simp)+
 done
 
 
@@ -410,7 +411,7 @@ subsubsection{*The Operator @{term is_DPow'}, Internalized*}
        \<forall>X[M]. X \<in> Z <-> 
          subset(M,X,A) & 
            (\<exists>env[M]. \<exists>p[M]. mem_formula(M,p) & mem_list(M,A,env) &
-                    is_Collect(M, A, is_DPow_body(M,A,env,p), X))" *)
+                    is_Collect(M, A, is_DPow_sats(M,A,env,p), X))" *)
 
 constdefs DPow'_fm :: "[i,i]=>i"
     "DPow'_fm(A,Z) == 
@@ -421,7 +422,7 @@ constdefs DPow'_fm :: "[i,i]=>i"
           And(mem_formula_fm(0),
            And(mem_list_fm(A#+3,1),
             Collect_fm(A#+3, 
-                       DPow_body_fm(A#+4, 2, 1, 0), 2))))))))"
+                       DPow_sats_fm(A#+4, 2, 1, 0), 2))))))))"
 
 lemma is_DPow'_type [TC]:
      "[| x \<in> nat; y \<in> nat |] ==> DPow'_fm(x,y) \<in> formula"
@@ -444,7 +445,7 @@ theorem DPow'_reflection:
                \<lambda>i x. is_DPow'(**Lset(i),f(x),g(x))]"
 apply (simp only: is_DPow'_def)
 apply (intro FOL_reflections function_reflections mem_formula_reflection
-             mem_list_reflection Collect_reflection DPow_body_reflection)
+             mem_list_reflection Collect_reflection DPow_sats_reflection)
 done
 
 
@@ -501,9 +502,12 @@ done
 
 
 text{*Relativization of the Operator @{term Lset}*}
-constdefs
 
+constdefs
   is_Lset :: "[i=>o, i, i] => o"
+   --{*We can use the term language below because @{term is_Lset} will
+       not have to be internalized: it isn't used in any instance of
+       separation.*}
    "is_Lset(M,a,z) == is_transrec(M, %x f u. u = (\<Union>y\<in>x. DPow'(f`y)), a, z)"
 
 lemma (in M_Lset) Lset_abs:
