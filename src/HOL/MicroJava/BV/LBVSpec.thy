@@ -14,10 +14,12 @@ types
   class_certificate = "sig \\<Rightarrow> certificate"
   prog_certificate  = "cname \\<Rightarrow> class_certificate"
 
+
 consts
- wtl_LS :: "[load_and_store,state_type,state_type,p_count,p_count] \\<Rightarrow> bool"
+wtl_inst :: "[instr,jvm_prog,ty,state_type,state_type,certificate,p_count,p_count] \\<Rightarrow> bool"
+
 primrec
-"wtl_LS (Load idx) s s' max_pc pc =
+"wtl_inst (Load idx) G rT s s' cert max_pc pc =
  (let (ST,LT) = s
   in
   pc+1 < max_pc \\<and>
@@ -25,7 +27,7 @@ primrec
   (\\<exists>ts. (LT ! idx) = Some ts \\<and>  
    (ts # ST , LT) = s'))"
   
-"wtl_LS (Store idx) s s' max_pc pc =
+"wtl_inst (Store idx) G rT s s' cert max_pc pc =
  (let (ST,LT) = s
   in
   pc+1 < max_pc \\<and>
@@ -33,22 +35,19 @@ primrec
   (\\<exists>ts ST'. ST = ts # ST' \\<and>
    (ST' , LT[idx:=Some ts]) = s'))"
 
-"wtl_LS (Bipush i) s s' max_pc pc =
+"wtl_inst (Bipush i) G rT s s' cert max_pc pc =
 	(let (ST,LT) = s
 	 in
 	 pc+1 < max_pc \\<and>
 	 ((PrimT Integer) # ST , LT) = s')"
 
-"wtl_LS (Aconst_null) s s' max_pc pc =
+"wtl_inst (Aconst_null) G rT s s' cert max_pc pc =
 	(let (ST,LT) = s
 	 in
 	 pc+1 < max_pc \\<and>
 	 (NT # ST , LT) = s')"
 
-consts
- wtl_MO	:: "[manipulate_object,jvm_prog,state_type,state_type,p_count,p_count] \\<Rightarrow> bool" 
-primrec
-"wtl_MO (Getfield F C) G s s' max_pc pc =
+"wtl_inst (Getfield F C) G rT s s' cert max_pc pc =
 	(let (ST,LT) = s
 	 in
 	 pc+1 < max_pc \\<and>
@@ -58,7 +57,7 @@ primrec
 		                  G \\<turnstile> oT \\<preceq> (Class C) \\<and>
 		          (T # ST' , LT) = s'))"
 
-"wtl_MO (Putfield F C) G s s' max_pc pc =
+"wtl_inst (Putfield F C) G rT s s' cert max_pc pc =
 	(let (ST,LT) = s
 	 in
 	 pc+1 < max_pc \\<and>
@@ -70,21 +69,14 @@ primrec
              G \\<turnstile> vT \\<preceq> T  \\<and>
              (ST' , LT) = s'))"
 
-
-consts 
- wtl_CO	:: "[create_object,jvm_prog,state_type,state_type,p_count,p_count] \\<Rightarrow> bool" 
-primrec
-"wtl_CO (New C) G s s' max_pc pc =
+"wtl_inst (New C) G rT s s' cert max_pc pc =
 	(let (ST,LT) = s
 	 in
 	 pc+1 < max_pc \\<and>
 	 is_class G C \\<and>
 	 ((Class C) # ST , LT) = s')"
 
-consts
- wtl_CH	:: "[check_object,jvm_prog,state_type,state_type,p_count,p_count] \\<Rightarrow> bool" 
-primrec
-"wtl_CH (Checkcast C) G s s' max_pc pc = 
+"wtl_inst (Checkcast C) G rT s s' cert max_pc pc =
 	(let (ST,LT) = s 
 	 in
 	 pc+1 < max_pc \\<and>
@@ -92,54 +84,50 @@ primrec
 	 (\\<exists>rt ST'. ST = RefT rt # ST' \\<and>
                    (Class C # ST' , LT) = s'))"
 
-consts 
- wtl_OS	:: "[op_stack,state_type,state_type,p_count,p_count] \\<Rightarrow> bool" 
-primrec
-"wtl_OS Pop s s' max_pc pc =
+"wtl_inst Pop G rT s s' cert max_pc pc =
 	(let (ST,LT) = s
 	 in
 	 \\<exists>ts ST'. pc+1 < max_pc \\<and>
 		ST = ts # ST' \\<and> 	 
 		(ST' , LT) = s')"
 
-"wtl_OS Dup s s' max_pc pc =
+"wtl_inst Dup G rT s s' cert max_pc pc =
 	(let (ST,LT) = s
 	 in
 	 pc+1 < max_pc \\<and>
 	 (\\<exists>ts ST'. ST = ts # ST' \\<and> 	 
 		   (ts # ts # ST' , LT) = s'))"
 
-"wtl_OS Dup_x1 s s' max_pc pc =
+"wtl_inst Dup_x1 G rT s s' cert max_pc pc =
 	(let (ST,LT) = s
 	 in
 	 pc+1 < max_pc \\<and>
 	 (\\<exists>ts1 ts2 ST'. ST = ts1 # ts2 # ST' \\<and> 	 
 		        (ts1 # ts2 # ts1 # ST' , LT) = s'))"
 
-"wtl_OS Dup_x2 s s' max_pc pc =
+"wtl_inst Dup_x2 G rT s s' cert max_pc pc =
 	(let (ST,LT) = s
 	 in
 	 pc+1 < max_pc \\<and>
 	 (\\<exists>ts1 ts2 ts3 ST'. ST = ts1 # ts2 # ts3 # ST' \\<and> 	 
 		            (ts1 # ts2 # ts3 # ts1 # ST' , LT) = s'))"
 
-"wtl_OS Swap s s' max_pc pc =
+"wtl_inst Swap G rT s s' cert max_pc pc =
 	(let (ST,LT) = s
 	 in
 	 pc+1 < max_pc \\<and>
 	 (\\<exists>ts ts' ST'. ST = ts' # ts # ST' \\<and> 	 
 		       (ts # ts' # ST' , LT) = s'))"
 
-"wtl_OS IAdd s s' max_pc pc =
+"wtl_inst IAdd G rT s s' cert max_pc pc =
 	(let (ST,LT) = s
 	 in
 	 pc+1 < max_pc \\<and>
 	 (\\<exists>ST'. ST = (PrimT Integer) # (PrimT Integer) # ST' \\<and> 	 
 		       ((PrimT Integer) # ST' , LT) = s'))"
-consts 
- wtl_BR	:: "[branch,jvm_prog,state_type,state_type,certificate,p_count,p_count] \\<Rightarrow> bool" 
-primrec
-"wtl_BR (Ifcmpeq branch) G s s' cert max_pc pc =
+
+
+"wtl_inst (Ifcmpeq branch) G rT s s' cert max_pc pc =
 	(let (ST,LT) = s
 	 in
 	 pc+1 < max_pc \\<and> (nat(int pc+branch)) < max_pc \\<and> 
@@ -148,19 +136,16 @@ primrec
            (\\<exists>r r'. ts = RefT r \\<and> ts' = RefT r')) \\<and>
 		       ((ST' , LT) = s') \\<and>
             cert ! (nat(int pc+branch)) \\<noteq> None \\<and>
-		       G \\<turnstile> (ST' , LT) <=s the (cert ! (nat(int pc+branch)))))"
+		       G \\<turnstile> (ST' , LT) <=s the (cert ! (nat(int pc+branch)))))" 
   
-"wtl_BR (Goto branch) G s s' cert max_pc pc =
+"wtl_inst (Goto branch) G rT s s' cert max_pc pc =
 	((let (ST,LT) = s
 	 in
 	 (nat(int pc+branch)) < max_pc \\<and> cert ! (nat(int pc+branch)) \\<noteq> None \\<and>
 	 G \\<turnstile> (ST , LT) <=s the (cert ! (nat(int pc+branch)))) \\<and>
    (cert ! (pc+1) = Some s'))"
-  
-consts
- wtl_MI :: "[meth_inv,jvm_prog,state_type,state_type,certificate,p_count,p_count] \\<Rightarrow> bool" 
-primrec
-"wtl_MI (Invoke mn fpTs) G s s' cert max_pc pc =
+
+"wtl_inst (Invoke mn fpTs) G rT s s' cert max_pc pc =
 	(let (ST,LT) = s
 	 in
          pc+1 < max_pc \\<and>
@@ -173,27 +158,11 @@ primrec
           (\\<exists>D rT b. method (G,C) (mn,fpTs) = Some(D,rT,b) \\<and>
           (rT # ST' , LT) = s')))))))"
 
-consts
- wtl_MR	:: "[meth_ret,jvm_prog,ty,state_type,state_type,certificate,p_count,p_count] \\<Rightarrow> bool"
-primrec
-  "wtl_MR Return G rT s s' cert max_pc pc = 
+"wtl_inst Return G rT s s' cert max_pc pc =
 	((let (ST,LT) = s
 	 in
 	 (\\<exists>T ST'. ST = T # ST' \\<and> G \\<turnstile> T \\<preceq> rT)) \\<and>
    (cert ! (pc+1) = Some s'))"
-
-
-consts 
- wtl_inst :: "[instr,jvm_prog,ty,state_type,state_type,certificate,p_count,p_count] \\<Rightarrow> bool"
- primrec
- "wtl_inst (LS ins) G rT s s' cert max_pc pc = wtl_LS ins s s' max_pc pc"
- "wtl_inst (CO ins) G rT s s' cert max_pc pc = wtl_CO ins G s s' max_pc pc"
- "wtl_inst (MO ins) G rT s s' cert max_pc pc = wtl_MO ins G s s' max_pc pc"
- "wtl_inst (CH ins) G rT s s' cert max_pc pc = wtl_CH ins G s s' max_pc pc"
- "wtl_inst (MI ins) G rT s s' cert max_pc pc = wtl_MI ins G s s' cert max_pc pc"
- "wtl_inst (MR ins) G rT s s' cert max_pc pc = wtl_MR ins G rT s s' cert max_pc pc"
- "wtl_inst (OS ins) G rT s s' cert max_pc pc = wtl_OS ins s s' max_pc pc"
- "wtl_inst (BR ins) G rT s s' cert max_pc pc = wtl_BR ins G s s' cert max_pc pc"
 
 
 constdefs
@@ -237,32 +206,16 @@ lemma wtl_inst_unique:
 "wtl_inst i G rT s0 s1 cert max_pc pc \\<longrightarrow>
  wtl_inst i G rT s0 s1' cert max_pc pc \\<longrightarrow> s1 = s1'" (is "?P i")
 proof (induct i)
-case LS
- show "?P (LS load_and_store)" by (induct load_and_store) auto
-case CO
- show "?P (CO create_object)" by (induct create_object) auto
-case MO
- show "?P (MO manipulate_object)" by (induct manipulate_object) auto
-case CH
- show "?P (CH check_object)" by (induct check_object) auto
-case MI
- show "?P (MI meth_inv)" proof (induct meth_inv)
- case Invoke
+case Invoke
   have "\\<exists>x y. s0 = (x,y)" by (simp)
-  thus "wtl_inst (MI (Invoke mname list)) G rT s0 s1 cert max_pc pc \\<longrightarrow>
-        wtl_inst (MI (Invoke mname list)) G rT s0 s1' cert max_pc pc \\<longrightarrow>
+  thus "wtl_inst (Invoke mname list) G rT s0 s1 cert max_pc pc \\<longrightarrow>
+        wtl_inst (Invoke mname list) G rT s0 s1' cert max_pc pc \\<longrightarrow>
         s1 = s1'"
   proof elim
     apply_end(clarsimp_tac, drule rev_eq, assumption+)
   qed auto
- qed
-case MR
- show "?P (MR meth_ret)" by (induct meth_ret) auto
-case OS 
- show "?P (OS op_stack)" by (induct op_stack) auto
-case BR  
- show "?P (BR branch)" by (induct branch) auto
-qed
+qed auto
+
 
 lemma wtl_inst_option_unique:
 "\\<lbrakk>wtl_inst_option i G rT s0 s1 cert max_pc pc; 

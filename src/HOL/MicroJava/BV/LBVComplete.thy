@@ -18,13 +18,13 @@ constdefs
   
   contains_dead :: "[instr list, certificate, method_type, p_count] \\<Rightarrow> bool"
   "contains_dead ins cert phi pc \\<equiv>
-    (((\\<exists> branch. ins!pc = BR (Goto branch)) \\<or> ins!pc = MR Return) \\<or>
-     (\\<exists>mi. ins!pc = MI mi)) \\<longrightarrow> Suc pc < length phi \\<longrightarrow>
+    (((\\<exists> branch. ins!pc = (Goto branch)) \\<or> ins!pc = Return) \\<or>
+     (\\<exists>m l. ins!pc = Invoke m l)) \\<longrightarrow> Suc pc < length phi \\<longrightarrow>
       cert ! (Suc pc) = Some (phi ! Suc pc)"
 
   contains_targets :: "[instr list, certificate, method_type, p_count] \\<Rightarrow> bool"
   "contains_targets ins cert phi pc \\<equiv> 
-    \\<forall> branch. (ins!pc = BR (Goto branch) \\<or> ins!pc = BR (Ifcmpeq branch)) \\<longrightarrow>
+    \\<forall> branch. (ins!pc = (Goto branch) \\<or> ins!pc = (Ifcmpeq branch)) \\<longrightarrow>
         (let pc' = nat (int pc+branch) in pc' < length phi \\<longrightarrow> cert!pc' = Some (phi!pc'))" 
 
   fits :: "[instr list, certificate, method_type] \\<Rightarrow> bool"
@@ -36,14 +36,14 @@ constdefs
   is_target :: "[instr list, p_count] \\<Rightarrow> bool" 
   "is_target ins pc \\<equiv> 
      \\<exists> pc' branch. pc' < length ins \\<and> 
-                   (ins ! pc' = (BR (Ifcmpeq branch)) \\<or> ins ! pc' = (BR (Goto branch))) \\<and> 
+                   (ins ! pc' = (Ifcmpeq branch) \\<or> ins ! pc' = (Goto branch)) \\<and> 
                    pc = (nat(int pc'+branch))"
   
   maybe_dead :: "[instr list, p_count] \\<Rightarrow> bool"
   "maybe_dead ins pc \\<equiv>
-     \\<exists> pc'. pc = pc'+1 \\<and> ((\\<exists> branch. ins!pc' = BR (Goto branch)) \\<or>
-                          ins!pc' = MR Return \\<or>
-                          (\\<exists>mi. ins!pc' = MI mi))"
+     \\<exists> pc'. pc = pc'+1 \\<and> ((\\<exists> branch. ins!pc' = (Goto branch)) \\<or>
+                          ins!pc' = Return \\<or>
+                          (\\<exists>m l. ins!pc' = Invoke m l))"
 
 
   mdot :: "[instr list, p_count] \\<Rightarrow> bool"
@@ -70,10 +70,6 @@ constdefs
       let (sig,rT,maxl,b) = \\<epsilon> (sg,rT,maxl,b). (sg,rT,maxl,b) \\<in> set mdecls \\<and> sg = sig in
         make_cert b (Phi C sig)";
   
-constdefs
-  wfprg :: "jvm_prog \\<Rightarrow> bool"
-  "wfprg G \\<equiv> \\<exists>wf_mb. wf_prog wf_mb G";
-
 
 lemma length_ofn: "\\<forall>n. length (option_filter_n l P n) = length l";
   by (induct l) auto;
@@ -163,7 +159,7 @@ lemma option_filter_contains_targets:
 proof (simp add: contains_targets_def, intro allI impI conjI); 
 
   fix branch;
-  assume 1: "ins ! pc = BR (Goto branch)" 
+  assume 1: "ins ! pc = Goto branch" 
             "nat (int pc + branch) < length phi"
             "pc < length ins";
 
@@ -177,7 +173,7 @@ proof (simp add: contains_targets_def, intro allI impI conjI);
 
 next;
   fix branch;
-  assume 2: "ins ! pc = BR (Ifcmpeq branch)" 
+  assume 2: "ins ! pc = Ifcmpeq branch" 
             "nat (int pc + branch) < length phi"
             "pc < length ins";
 
@@ -295,22 +291,20 @@ proof (induct "a");
 qed;
 
 lemma method_inv_pseudo_mono:
-"\\<lbrakk>fits ins cert phi; i = ins!pc; i = MI meth_inv; pc < length ins; 
+"\\<lbrakk>fits ins cert phi; i = ins!pc; i = Invoke mname list; pc < length ins; 
   wf_prog wf_mb G;   G \\<turnstile> (x, y) <=s s1; wtl_inst (ins!pc) G rT s1 s1' cert mpc pc\\<rbrakk> 
  \\<Longrightarrow> \\<exists>s2'. wtl_inst i G rT (x, y) s2' cert mpc pc \\<and> \
           ((G \\<turnstile> s2' <=s s1') \\<or> (\\<exists> s. cert ! (Suc pc) = Some s \\<and> (G \\<turnstile> s2' <=s s)))";
-proof (cases meth_inv); 
-  case Invoke; 
+proof -
   assume fits: "fits ins cert phi" and
-         i: "i = ins ! pc" "i = MI meth_inv" and
+         i: "i = ins ! pc" "i = Invoke mname list" and
          pc: "pc < length ins" and
          wfp: "wf_prog wf_mb G" and
          "wtl_inst (ins!pc) G rT s1 s1' cert mpc pc" and
          lt: "G \\<turnstile> (x, y) <=s s1";
  
-  with Invoke; 
-  show ?thesis; (* (is "\\<exists>s2'. ?wtl s2' \\<and> (?lt s2' s1' \\<or> ?cert s2')" is "\\<exists>s2'. ?P s2'"); *)
-  proof (clarsimp_tac simp del: split_paired_Ex);
+  thus ?thesis
+  proof (clarsimp_tac simp del: split_paired_Ex)
     fix apTs X  ST' y' s;
 
     assume G: "G \\<turnstile> (x, y) <=s (rev apTs @ X # ST', y')";
@@ -353,7 +347,7 @@ proof (cases meth_inv);
       hence x2: "G \\<turnstile> (a, y) <=s (apTs, y') \\<and> G \\<turnstile> b\\<preceq>X \\<and> G \\<turnstile> (c, y) <=s (ST', y')";
         by (simp add: sup_state_rev_fst sup_state_Cons1);
 
-      show ?thesis;
+      show ?thesis 
       proof (cases "X = NT");
         case True;
         with x2;
@@ -438,14 +432,14 @@ proof (cases meth_inv);
                   thus "\\<exists> apTs X ST'. ?A apTs X ST'"; by blast;
                 qed;
                 thus ?thesis; by blast;
-              qed;
-            qed;  
-          qed;
-        qed;
-      qed;
-    qed;
-  qed;
-qed;
+              qed
+            qed 
+          qed
+        qed
+      qed
+    qed
+  qed
+qed
 
 lemma sup_loc_some:
 "\\<forall> y n. (G \\<turnstile> b <=l y) \\<longrightarrow> n < length y \\<longrightarrow> y!n = Some t \\<longrightarrow> (\\<exists>t. b!n = Some t \\<and> (G \\<turnstile> (b!n) <=o (y!n)))" (is "?P b");
@@ -500,7 +494,7 @@ proof;
   show "xb = PrimT p \\<Longrightarrow> G \\<turnstile> xb \\<preceq> PrimT p"; by blast;
 
   show "G\\<turnstile> xb \\<preceq> PrimT p \\<Longrightarrow> xb = PrimT p";
-  proof (cases xb); print_cases;
+  proof (cases xb);
     fix prim;
     assume "xb = PrimT prim" "G\\<turnstile>xb\\<preceq>PrimT p";
     thus ?thesis; by simp;
@@ -523,151 +517,103 @@ proof (simp only:);
   have 3: "\\<exists> a b. s2 = (a,b)"; by simp;
 
   show ?thesis; 
-  proof (cases "ins ! pc");
+  proof (cases "ins ! pc", insert 1, insert 3);
 
-    case LS;
+    case Load
+    with 1 3 
+    show ?thesis; by (elim, clarsimp_tac) (rule mono_load [elimify], auto simp add: sup_state_length_snd);
+  next
+    case Store;
+    with 1 3; 
+    show ?thesis; by (elim, clarsimp_tac) (rule mono_store [elimify], auto simp add: sup_state_length_snd);
+  next
+    case Getfield;
+    with 1 3;
     show ?thesis;
-    proof (cases "load_and_store");
-      case Load;
-      with LS 1 3;
-      show ?thesis; by (elim, clarsimp_tac) (rule mono_load [elimify], auto simp add: sup_state_length_snd);
-    next;
-      case Store;
-      with LS 1 3; 
-      show ?thesis; by (elim, clarsimp_tac) (rule mono_store [elimify], auto simp add: sup_state_length_snd);
-    next;
-      case Bipush;
-      with LS 1 3;
-      show ?thesis; by (elim, clarsimp_tac simp add: sup_state_Cons1);
-    next;
-      case Aconst_null;
-      with LS 1 3;
-      show ?thesis; by (elim, clarsimp_tac simp add: sup_state_Cons1);
+    proof (elim, clarsimp_tac simp add: sup_state_Cons2);       
+      fix oT x;
+      assume "G \\<turnstile> x \\<preceq> oT" "G \\<turnstile> oT \\<preceq> Class cname"; 
+      show "G \\<turnstile> x \\<preceq> Class cname"; by (rule widen_trans);
     qed;
-
-  next;
-    case CO;
+  next
+    case Putfield;
+    with 1 3;
     show ?thesis;
-    proof (cases create_object);
-      case New;
-      with CO 1 3;
-      show ?thesis; by (elim, clarsimp_tac simp add: sup_state_Cons1);
-    qed;
+    proof (elim, clarsimp_tac simp add: sup_state_Cons2);       
+      fix x xa vT oT T;
+      assume "G \\<turnstile> x \\<preceq> vT" "G \\<turnstile> vT \\<preceq> T";
+      hence * : "G \\<turnstile> x \\<preceq> T"; by (rule widen_trans);
 
-  next;
-    case MO;
-    show ?thesis;
-    proof (cases manipulate_object);
-      case Getfield;
-      with MO 1 3;
-      show ?thesis;
-      proof (elim, clarsimp_tac simp add: sup_state_Cons2);       
-        fix oT x;
-        assume "G \\<turnstile> x \\<preceq> oT" "G \\<turnstile> oT \\<preceq> Class cname"; 
-        show "G \\<turnstile> x \\<preceq> Class cname"; by (rule widen_trans);
-      qed;
-    next;
-      case Putfield;
-      with MO 1 3;
-      show ?thesis;
-      proof (elim, clarsimp_tac simp add: sup_state_Cons2);       
-        fix x xa vT oT T;
-        assume "G \\<turnstile> x \\<preceq> vT" "G \\<turnstile> vT \\<preceq> T";
-        hence * : "G \\<turnstile> x \\<preceq> T"; by (rule widen_trans);
-        
-        assume "G \\<turnstile> xa \\<preceq> oT" "G \\<turnstile> oT \\<preceq> Class cname"; 
-        hence "G \\<turnstile> xa \\<preceq> Class cname"; by (rule widen_trans);
-        
-        with *;
-        show "(G \\<turnstile> xa \\<preceq> Class cname) \\<and> (G \\<turnstile> x \\<preceq> T)"; by blast;
-      qed;
-    qed;
-
-  next;
-    case CH;
-    show ?thesis;
-    proof (cases check_object);
-      case Checkcast;
-      with CH 1 3;
-      show ?thesis; by (elim, clarsimp_tac simp add: sup_state_Cons2) (rule widen_RefT2);
-    qed;
-
-  next;
-    case MI;
+      assume "G \\<turnstile> xa \\<preceq> oT" "G \\<turnstile> oT \\<preceq> Class cname"; 
+      hence "G \\<turnstile> xa \\<preceq> Class cname"; by (rule widen_trans);
+      
+      with *
+      show "(G \\<turnstile> xa \\<preceq> Class cname) \\<and> (G \\<turnstile> x \\<preceq> T)"; by blast;
+    qed
+  next
+    case Checkcast;
+    with 1 3;
+    show ?thesis; by (elim, clarsimp_tac simp add: sup_state_Cons2) (rule widen_RefT2);
+  next
+    case Invoke;
     with 1 2 3;
     show ?thesis; by elim (rule method_inv_pseudo_mono [elimify], simp+); 
-
-  next;
-    case MR;
-    show ?thesis;
-    proof (cases meth_ret);
-      case Return;
-      with MR 1 3;
-      show ?thesis; 
-      proof (elim, clarsimp_tac simp add: sup_state_Cons2 simp del: split_paired_Ex);
-        fix x T;
-        assume "G\\<turnstile>x\\<preceq>T" "G\\<turnstile>T\\<preceq>rT";
-        thus "G\\<turnstile>x\\<preceq>rT"; by (rule widen_trans);
-      qed;
-    qed;
-
-  next;
-    case OS;
+  next    
+    case Return;
     with 1 3;
     show ?thesis; 
-      by - (cases op_stack, (elim, clarsimp_tac simp add: sup_state_Cons2 PrimT_PrimT)+);
-
-  next;
-    case BR;
+    proof (elim, clarsimp_tac simp add: sup_state_Cons2 simp del: split_paired_Ex);
+      fix x T;
+      assume "G\\<turnstile>x\\<preceq>T" "G\\<turnstile>T\\<preceq>rT";
+      thus "G\\<turnstile>x\\<preceq>rT"; by (rule widen_trans);
+    qed 
+  next
+    case Goto;
+    with 1 3;
     show ?thesis;
-    proof (cases branch);
-      case Goto;
-      with BR 1 3;
-      show ?thesis;
-      proof (elim, clarsimp_tac simp del: split_paired_Ex);
-        fix a b x y;
-        assume "G \\<turnstile> (a, b) <=s s1" "G \\<turnstile> s1 <=s (x, y)";
-        thus "G \\<turnstile> (a, b) <=s (x, y)"; by (rule sup_state_trans);
-      qed;
+    proof (elim, clarsimp_tac simp del: split_paired_Ex);
+      fix a b x y;
+      assume "G \\<turnstile> (a, b) <=s s1" "G \\<turnstile> s1 <=s (x, y)";
+      thus "G \\<turnstile> (a, b) <=s (x, y)"; by (rule sup_state_trans);
+    qed
+  next
+    case Ifcmpeq;
+    with 1 3;
+    show ?thesis
+    proof (elim, clarsimp_tac simp add: sup_state_Cons2, intro conjI);
+      fix xt' b ST' y c d;
+      assume "G \\<turnstile> (xt', b) <=s (ST', y)" "G \\<turnstile> (ST', y) <=s (c, d)";
+      thus "G \\<turnstile> (xt', b) <=s (c, d)"; by (rule sup_state_trans);
     next;
-      case Ifcmpeq;
-      with BR 1 3;
-      show ?thesis;
-      proof (elim, clarsimp_tac simp add: sup_state_Cons2, intro conjI);
-        fix xt' b ST' y c d;
-        assume "G \\<turnstile> (xt', b) <=s (ST', y)" "G \\<turnstile> (ST', y) <=s (c, d)";
-        thus "G \\<turnstile> (xt', b) <=s (c, d)"; by (rule sup_state_trans);
-      next;
-        fix ts ts' x xa;
-        assume * :
+      fix ts ts' x xa;
+      assume * :
         "(\\<exists>p. ts = PrimT p \\<and> ts' = PrimT p) \\<or> (\\<exists>r. ts = RefT r) \\<and> (\\<exists>r'. ts' = RefT r')";
-
-        assume x: "G\\<turnstile>x\\<preceq>ts" "G\\<turnstile>xa\\<preceq>ts'";
-
-        show "(\\<exists>p. x = PrimT p \\<and> xa = PrimT p) \\<or> (\\<exists>r. x = RefT r) \\<and> (\\<exists>r'. xa = RefT r')"; 
-        proof (cases x);
+      
+      assume x: "G\\<turnstile>x\\<preceq>ts" "G\\<turnstile>xa\\<preceq>ts'";
+      
+      show "(\\<exists>p. x = PrimT p \\<and> xa = PrimT p) \\<or> (\\<exists>r. x = RefT r) \\<and> (\\<exists>r'. xa = RefT r')"; 
+      proof (cases x);
+        case PrimT;
+        with * x;
+        show ?thesis; by (auto simp add: PrimT_PrimT);
+      next;
+        case RefT;
+        hence 1: "\\<exists>r. x = RefT r"; by blast;
+        
+        have "\\<exists>r'. xa = RefT r'";
+        proof (cases xa); 
           case PrimT;
-          with * x;
-          show ?thesis; by (auto simp add: PrimT_PrimT);
-        next;
-          case RefT;
-          hence 1: "\\<exists>r. x = RefT r"; by blast;
-          
-          have "\\<exists>r'. xa = RefT r'";
-          proof (cases xa); 
-            case PrimT;
-            with RefT * x;
-            have "False"; by auto (rule widen_RefT [elimify], auto); 
-            thus ?thesis; by blast;
-          qed blast;
+          with RefT * x;
+          have "False"; by auto (rule widen_RefT [elimify], auto); 
+          thus ?thesis; by blast;
+        qed blast;
 
-          with 1;
-          show ?thesis; by blast;
-        qed;
-      qed;
-    qed;
-  qed;
-qed;
+        with 1
+        show ?thesis by blast
+      qed
+    qed
+  qed (elim, clarsimp_tac simp add: sup_state_Cons1 sup_state_Cons2 PrimT_PrimT)+
+qed
  
 lemma wtl_inst_last_mono:
 "\\<lbrakk>wtl_inst i G rT s1 s1' cert (Suc pc) pc; G \\<turnstile> s2 <=s s1\\<rbrakk> \\<Longrightarrow> 
@@ -675,48 +621,20 @@ lemma wtl_inst_last_mono:
 proof -;
   assume * : "wtl_inst i G rT s1 s1' cert (Suc pc) pc" "G \\<turnstile> s2 <=s s1";
   
-  show ?thesis;
-  proof (cases i);
-    case LS; with *;
-    show ?thesis; by - (cases load_and_store, simp+);
-  next;
-    case CO; with *;
-    show ?thesis; by - (cases create_object, simp);
-  next;
-    case MO; with *;
-    show ?thesis; by - (cases manipulate_object, simp+);
-  next;
-    case CH; with *;
-    show ?thesis; by - (cases check_object, simp);
-  next;
-    case MI; with *;
-    show ?thesis; by - (cases meth_inv, simp);
-  next;
-    case OS; with *;
-    show ?thesis; by - (cases op_stack, simp+); 
-  next;
-    case MR; 
-    show ?thesis;
-    proof (cases meth_ret);
-      case Return; with MR *;
-      show ?thesis; 
-        by (clarsimp_tac simp del: split_paired_Ex simp add: sup_state_Cons2)
-           (rule widen_trans, blast+);
-    qed;
-  next;
-    case BR;
-    show ?thesis;
-    proof (cases branch);
-      case Ifcmpeq; with BR *;
-      show ?thesis; by simp;
-    next;
-      case Goto; with BR *;
-      show ?thesis;  
+  show ?thesis
+  proof (cases i, insert *)
+    case Return with *
+    show ?thesis 
+      by (clarsimp_tac simp del: split_paired_Ex simp add: sup_state_Cons2)
+        (rule widen_trans, blast+);
+  next
+    case Goto with *
+    show ?thesis
       by (clarsimp_tac simp del: split_paired_Ex simp add: sup_state_Cons2)
          (rule sup_state_trans, blast+);
-    qed;
-  qed;
-qed;
+  qed auto
+qed
+
 
 lemma wtl_option_last_mono:
 "\\<lbrakk>wtl_inst_option i G rT s1 s1' cert mpc pc; mpc = Suc pc; G \\<turnstile> s2 <=s s1\\<rbrakk> \\<Longrightarrow> 
@@ -753,108 +671,82 @@ lemma wt_instr_imp_wtl_inst:
 "\\<lbrakk>wt_instr (ins!pc) G rT phi max_pc pc; fits ins cert phi;
   pc < length ins; length ins = max_pc\\<rbrakk> \\<Longrightarrow> 
   \\<exists> s. wtl_inst (ins!pc) G rT (phi!pc) s cert max_pc pc \\<and> G \\<turnstile> s <=s phi ! Suc pc";
-proof -;
+proof -
   assume * : "wt_instr (ins!pc) G rT phi max_pc pc" "fits ins cert phi"
-             "pc < length ins" "length ins = max_pc";
+             "pc < length ins" "length ins = max_pc"
 
-  have xy: "\\<exists> x y. phi!pc = (x,y)"; by simp;
+  have xy: "\\<exists> x y. phi!pc = (x,y)" by simp
 
-  show ?thesis;
-  proof (cases "ins!pc");
-    case LS; with * xy;
+  show ?thesis
+  proof (cases "ins!pc", insert *, insert xy);
+    case Return with * xy
+    show ?thesis
+      by (elim, clarsimp_tac simp add: fits_def contains_dead_def simp del: split_paired_Ex);
+  next
+    case Goto with * xy
     show ?thesis; 
-      by - (cases load_and_store, (elim, force simp add: wt_instr_def)+); 
-  next;
-    case CO; with * xy;
-    show ?thesis;
-      by - (cases create_object, (elim, force simp add: wt_instr_def)+); 
-  next;
-    case MO; with * xy;
-    show ?thesis;
-      by - (cases manipulate_object, (elim, force simp add: wt_instr_def)+);
-  next; 
-    case CH; with * xy;
-    show ?thesis;
-      by - (cases check_object, (elim, force simp add: wt_instr_def)+);
-  next;
-    case OS; with * xy;
-    show ?thesis;
-      by - (cases op_stack, (elim, force simp add: wt_instr_def)+);
-  next;
-    case MR; with * xy;
-    show ?thesis;
-    by - (cases meth_ret, elim, 
-      clarsimp_tac simp add: wt_instr_def fits_def contains_dead_def simp del: split_paired_Ex);
-  next;
-    case BR; with * xy;
+      by (clarsimp_tac simp add: fits_def contains_dead_def contains_targets_def simp del: split_paired_Ex);
+  next
+    case Ifcmpeq with * xy
     show ?thesis; 
-      by - (cases branch,
-           (clarsimp_tac simp add: wt_instr_def fits_def contains_dead_def contains_targets_def 
-                         simp del: split_paired_Ex)+);
-  next;
-    case MI;
-    show ?thesis;
-    proof (cases meth_inv);
-      case Invoke;
-      with MI * xy;
-      show ?thesis; 
-      proof (elim, clarsimp_tac simp add: wt_instr_def simp del: split_paired_Ex);
-        fix y apTs X ST'; 
-        assume pc : "Suc pc < length ins"; 
-        assume phi : "phi ! pc = (rev apTs @ X # ST', y)" "length apTs = length list";
-        assume ** :
-               "X = NT \\<or> (\\<exists>C. X = Class C \\<and>
-               (\\<forall>x\\<in>set (zip apTs list). x \\<in> widen G) \\<and>
-               (\\<exists>D rT. (\\<exists>b. method (G, C) (mname, list) = Some (D, rT, b)) \\<and> G \\<turnstile> (rT # ST', y) <=s phi ! Suc pc))"
-               (is "?NT \\<or> ?CL"); 
-
+      by (clarsimp_tac simp add: fits_def contains_dead_def contains_targets_def simp del: split_paired_Ex);    
+  next
+    case Invoke with * xy
+    show ?thesis
+    proof (elim, clarsimp_tac simp del: split_paired_Ex)
+      fix y apTs X ST'; 
+      assume pc : "Suc pc < length ins"; 
+      assume phi : "phi ! pc = (rev apTs @ X # ST', y)" "length apTs = length list";
+      assume ** :
+        "X = NT \\<or> (\\<exists>C. X = Class C \\<and>
+        (\\<forall>x\\<in>set (zip apTs list). x \\<in> widen G) \\<and>
+        (\\<exists>D rT. (\\<exists>b. method (G, C) (mname, list) = Some (D, rT, b)) \\<and> G \\<turnstile> (rT # ST', y) <=s phi ! Suc pc))"
+      (is "?NT \\<or> ?CL"); 
         
-        from MI Invoke pc *;
-        have cert: "cert ! Suc pc = Some (phi ! Suc pc)"; by (clarsimp_tac simp add: fits_def contains_dead_def); 
+      from Invoke pc *;
+      have cert: "cert ! Suc pc = Some (phi ! Suc pc)"; by (clarsimp_tac simp add: fits_def contains_dead_def); 
 
-
-        show "\\<exists>s. (\\<exists>apTsa Xa ST'a.
-                 rev apTs @ X # ST' = rev apTsa @ Xa # ST'a \\<and>
-                 length apTsa = length list \\<and>
+      show "\\<exists>s. (\\<exists>apTsa Xa ST'a.
+                rev apTs @ X # ST' = rev apTsa @ Xa # ST'a \\<and>
+                length apTsa = length list \\<and>
                  (\\<exists>s''. cert ! Suc pc = Some s'' \\<and>
                         (s'' = s \\<and> Xa = NT \\<or>
                          G \\<turnstile> s <=s s'' \\<and>
                          (\\<exists>C. Xa = Class C \\<and>
                               (\\<forall>x\\<in>set (zip apTsa list). x \\<in> widen G) \\<and>
                               (\\<exists>D rT. (\\<exists>b. method (G, C) (mname, list) = Some (D, rT, b)) \\<and> (rT # ST'a, y) = s))))) \\<and>
-               G \\<turnstile> s <=s phi ! Suc pc" (is "\\<exists>s. ?P s");  
-        proof (cases "X=NT"); 
-          case True;
-          with cert phi **;
-          have "?P (phi ! Suc pc)"; by (force simp del: split_paired_Ex);
-          thus ?thesis; by blast;
-        next;
-          case False;
-          with **;
+                G \\<turnstile> s <=s phi ! Suc pc" (is "\\<exists>s. ?P s");  
+      proof (cases "X=NT"); 
+        case True
+        with cert phi **
+        have "?P (phi ! Suc pc)" by (force simp del: split_paired_Ex)
+        thus ?thesis by blast
+      next
+        case False
+        with **
 
-          have "?CL"; by simp;
+        have "?CL" by simp
 
-          thus ?thesis; 
-          proof (elim exE conjE);
-            fix C D rT b;
-            assume "X = Class C" "\\<forall>x\\<in>set (zip apTs list). x \\<in> widen G" 
-                   "G \\<turnstile> (rT # ST', y) <=s phi ! Suc pc"
-                   "method (G, C) (mname, list) = Some (D, rT, b)";
-            with cert phi;
-            have "?P (rT #ST', y)"; by (force simp del: split_paired_Ex); 
-            thus ?thesis; by blast;
-          qed;
-        qed;
-      qed;
-    qed;
-  qed;
-qed;
+        thus ?thesis
+        proof (elim exE conjE);
+          fix C D rT b;
+          assume "X = Class C" "\\<forall>x\\<in>set (zip apTs list). x \\<in> widen G" 
+                 "G \\<turnstile> (rT # ST', y) <=s phi ! Suc pc"
+                 "method (G, C) (mname, list) = Some (D, rT, b)";
+          with cert phi;
+          have "?P (rT #ST', y)" by (force simp del: split_paired_Ex)
+          thus ?thesis by blast
+        qed
+      qed
+    qed
+  qed (elim, force)+
+qed
 
   
 lemma wt_instr_imp_wtl_option:
 "\\<lbrakk>fits ins cert phi; pc < length ins; wt_instr (ins!pc) G rT phi max_pc pc;  max_pc = length ins\\<rbrakk> \\<Longrightarrow> 
  \\<exists> s. wtl_inst_option (ins!pc) G rT (phi!pc) s cert max_pc pc \\<and> G \\<turnstile> s <=s phi ! Suc pc";
-proof -;
+proof -
   assume fits : "fits ins cert phi" "pc < length ins" 
          and "wt_instr (ins!pc) G rT phi max_pc pc" 
              "max_pc = length ins";
@@ -880,6 +772,7 @@ proof -;
     show ?thesis; by (simp add: wtl_inst_option_def);
   qed;
 qed;
+
 
 lemma wtl_option_pseudo_mono:
 "\\<lbrakk>wtl_inst_option i G rT s1 s1' cert mpc pc;  fits ins cert phi; pc < length ins; 
@@ -914,7 +807,7 @@ proof -;
     
     with Some G;
     show ?thesis; by (simp add: wtl_inst_option_def);
-  qed;
+  qed
 qed;
 
 

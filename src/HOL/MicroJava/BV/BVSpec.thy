@@ -14,9 +14,10 @@ types
  prog_type	= "cname \\<Rightarrow> class_type"
 
 consts
- wt_LS	:: "[load_and_store,jvm_prog,method_type,p_count,p_count] \\<Rightarrow> bool"
+wt_instr :: "[instr,jvm_prog,ty,method_type,nat,p_count] \\<Rightarrow> bool"
+
 primrec
-"wt_LS (Load idx) G phi max_pc pc =
+"wt_instr (Load idx) G rT phi max_pc pc =
 	(let (ST,LT) = phi ! pc
 	 in
 	 pc+1 < max_pc \\<and>
@@ -24,7 +25,7 @@ primrec
 	 (\\<exists>ts. (LT ! idx) = Some ts \\<and> 
 	       G \\<turnstile> (ts # ST , LT) <=s phi ! (pc+1)))"
 
-"wt_LS (Store idx) G phi max_pc pc =
+"wt_instr (Store idx) G rT phi max_pc pc =
 	(let (ST,LT) = phi ! pc
 	 in
 	 pc+1 < max_pc \\<and>
@@ -32,22 +33,19 @@ primrec
 	 (\\<exists>ts ST'. ST = ts # ST' \\<and>
 		   G \\<turnstile> (ST' , LT[idx:=Some ts]) <=s phi ! (pc+1)))"
 
-"wt_LS (Bipush i) G phi max_pc pc =
+"wt_instr (Bipush i) G rT phi max_pc pc =
 	(let (ST,LT) = phi ! pc
 	 in
 	 pc+1 < max_pc \\<and>
 	 G \\<turnstile> ((PrimT Integer) # ST , LT) <=s phi ! (pc+1))"
 
-"wt_LS (Aconst_null) G phi max_pc pc =
+"wt_instr (Aconst_null) G rT phi max_pc pc =
 	(let (ST,LT) = phi ! pc
 	 in
 	 pc+1 < max_pc \\<and>
 	 G \\<turnstile> (NT # ST , LT) <=s phi ! (pc+1))"
 
-consts
- wt_MO	:: "[manipulate_object,jvm_prog,method_type,p_count,p_count] \\<Rightarrow> bool" 
-primrec
-"wt_MO (Getfield F C) G phi max_pc pc =
+"wt_instr (Getfield F C) G rT phi max_pc pc =
 	(let (ST,LT) = phi ! pc
 	 in
 	 pc+1 < max_pc \\<and>
@@ -57,7 +55,7 @@ primrec
 		       G \\<turnstile> oT \\<preceq> (Class C) \\<and>
 		       G \\<turnstile> (T # ST' , LT) <=s phi ! (pc+1)))"
 
-"wt_MO (Putfield F C) G phi max_pc pc =
+"wt_instr (Putfield F C) G rT phi max_pc pc =
 	(let (ST,LT) = phi ! pc
 	 in
 	 pc+1 < max_pc \\<and>
@@ -69,21 +67,14 @@ primrec
 	     G \\<turnstile> vT \\<preceq> T  \\<and>
              G \\<turnstile> (ST' , LT) <=s phi ! (pc+1)))"
 
-
-consts 
- wt_CO	:: "[create_object,jvm_prog,method_type,p_count,p_count] \\<Rightarrow> bool" 
-primrec
-"wt_CO (New C) G phi max_pc pc =
+"wt_instr (New C) G rT phi max_pc pc =
 	(let (ST,LT) = phi ! pc
 	 in
 	 pc+1 < max_pc \\<and>
 	 is_class G C \\<and>
 	 G \\<turnstile> ((Class C) # ST , LT) <=s phi ! (pc+1))"
 
-consts
- wt_CH	:: "[check_object,jvm_prog,method_type,p_count,p_count] \\<Rightarrow> bool" 
-primrec
-"wt_CH (Checkcast C) G phi max_pc pc = 
+"wt_instr (Checkcast C) G rT phi max_pc pc =
 	(let (ST,LT) = phi ! pc
 	 in
 	 pc+1 < max_pc \\<and>
@@ -91,56 +82,49 @@ primrec
 	 (\\<exists>rt ST'. ST = RefT rt # ST' \\<and>
                    G \\<turnstile> (Class C # ST' , LT) <=s phi ! (pc+1)))"
 
-consts 
- wt_OS	:: "[op_stack,jvm_prog,method_type,p_count,p_count] \\<Rightarrow> bool" 
-primrec
-"wt_OS Pop G phi max_pc pc =
+"wt_instr Pop G rT phi max_pc pc =
 	(let (ST,LT) = phi ! pc
 	 in
 	 \\<exists>ts ST'. pc+1 < max_pc \\<and>
 		ST = ts # ST' \\<and> 	 
 		G \\<turnstile> (ST' , LT) <=s phi ! (pc+1))"
 
-"wt_OS Dup G phi max_pc pc =
+"wt_instr Dup G rT phi max_pc pc =
 	(let (ST,LT) = phi ! pc
 	 in
 	 pc+1 < max_pc \\<and>
 	 (\\<exists>ts ST'. ST = ts # ST' \\<and> 	 
 		   G \\<turnstile> (ts # ts # ST' , LT) <=s phi ! (pc+1)))"
 
-"wt_OS Dup_x1 G phi max_pc pc =
+"wt_instr Dup_x1 G rT phi max_pc pc =
 	(let (ST,LT) = phi ! pc
 	 in
 	 pc+1 < max_pc \\<and>
 	 (\\<exists>ts1 ts2 ST'. ST = ts1 # ts2 # ST' \\<and> 	 
 		   G \\<turnstile> (ts1 # ts2 # ts1 # ST' , LT) <=s phi ! (pc+1)))"
 
-"wt_OS Dup_x2 G phi max_pc pc =
+"wt_instr Dup_x2 G rT phi max_pc pc =
 	(let (ST,LT) = phi ! pc
 	 in
 	 pc+1 < max_pc \\<and>
 	 (\\<exists>ts1 ts2 ts3 ST'. ST = ts1 # ts2 # ts3 # ST' \\<and> 	 
 		   G \\<turnstile> (ts1 # ts2 # ts3 # ts1 # ST' , LT) <=s phi ! (pc+1)))"
 
-"wt_OS Swap G phi max_pc pc =
+"wt_instr Swap G rT phi max_pc pc =
 	(let (ST,LT) = phi ! pc
 	 in
 	 pc+1 < max_pc \\<and>
 	 (\\<exists>ts ts' ST'. ST = ts' # ts # ST' \\<and> 	 
 		       G \\<turnstile> (ts # ts' # ST' , LT) <=s phi ! (pc+1)))"
 
-"wt_OS IAdd G phi max_pc pc =
+"wt_instr IAdd G rT phi max_pc pc =
 	(let (ST,LT) = phi ! pc
 	 in
 	 pc+1 < max_pc \\<and>
 	 (\\<exists>ST'. ST = (PrimT Integer) # (PrimT Integer) # ST' \\<and> 	 
 		       G \\<turnstile> ((PrimT Integer) # ST' , LT) <=s phi ! (pc+1)))"
 
-
-consts 
- wt_BR	:: "[branch,jvm_prog,method_type,p_count,p_count] \\<Rightarrow> bool" 
-primrec
-"wt_BR (Ifcmpeq branch) G phi max_pc pc =
+"wt_instr (Ifcmpeq branch) G rT phi max_pc pc =
 	(let (ST,LT) = phi ! pc
 	 in
 	 pc+1 < max_pc \\<and> (nat(int pc+branch)) < max_pc \\<and> 
@@ -150,16 +134,13 @@ primrec
 		       G \\<turnstile> (ST' , LT) <=s phi ! (pc+1) \\<and>
 		       G \\<turnstile> (ST' , LT) <=s phi ! (nat(int pc+branch))))"
 
-"wt_BR (Goto branch) G phi max_pc pc =
+"wt_instr (Goto branch) G rT phi max_pc pc =
 	(let (ST,LT) = phi ! pc
 	 in
 	 (nat(int pc+branch)) < max_pc \\<and> 
 	 G \\<turnstile> (ST , LT) <=s phi ! (nat(int pc+branch)))"
 
-consts
- wt_MI :: "[meth_inv,jvm_prog,method_type,p_count,p_count] \\<Rightarrow> bool" 
-primrec
-"wt_MI (Invoke mn fpTs) G phi max_pc pc =
+"wt_instr (Invoke mn fpTs) G rT phi max_pc pc =
 	(let (ST,LT) = phi ! pc
 	 in         
          pc+1 < max_pc \\<and>
@@ -170,27 +151,10 @@ primrec
          (\\<exists>D rT b. method (G,C) (mn,fpTs) = Some(D,rT,b) \\<and>
          G \\<turnstile> (rT # ST' , LT) <=s phi ! (pc+1))))))"
 
-consts
- wt_MR	:: "[meth_ret,jvm_prog,ty,method_type,p_count] \\<Rightarrow> bool"
-primrec
-  "wt_MR Return G rT phi pc =
+"wt_instr Return G rT phi max_pc pc =
 	(let (ST,LT) = phi ! pc
 	 in
 	 (\\<exists>T ST'. ST = T # ST' \\<and> G \\<turnstile> T \\<preceq> rT))"
-
-
-constdefs
- wt_instr :: "[instr,jvm_prog,ty,method_type,nat,p_count] \\<Rightarrow> bool"
- "wt_instr instr G rT phi max_pc pc \\<equiv>
-	case instr of
-	  LS ins \\<Rightarrow> wt_LS ins G phi max_pc pc
-	| CO  ins \\<Rightarrow> wt_CO ins G phi max_pc pc
-	| MO  ins \\<Rightarrow> wt_MO ins G phi max_pc pc
-	| CH  ins \\<Rightarrow> wt_CH ins G phi max_pc pc
-	| MI  ins \\<Rightarrow> wt_MI ins G phi max_pc pc
-	| MR  ins \\<Rightarrow> wt_MR ins G rT phi pc
-	| OS  ins \\<Rightarrow> wt_OS ins G phi max_pc pc
-	| BR  ins \\<Rightarrow> wt_BR ins G phi max_pc pc"
 
 
 constdefs

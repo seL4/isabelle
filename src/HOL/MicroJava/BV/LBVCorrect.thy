@@ -271,71 +271,17 @@ proof -;
     by (rule wtl_suc_pc [rulify]); 
 
   show ?thesis;
-  proof (cases "i");
-    case LS;    
-    with wo suc;
-    show ?thesis;
-     by - (cases "load_and_store", 
-        (cases "cert ! (length i1)",
-         clarsimp_tac simp add: c2 wt_instr_def wtl_inst_option_def split_beta,
-         clarsimp_tac simp add: c1 wt_instr_def wtl_inst_option_def)+);      
-  next;
-    case CO;
-    with wo suc;
-    show ?thesis; 
-     by - (cases "create_object" , 
-           cases "cert ! (length i1)",
-           clarsimp_tac simp add: c2 wt_instr_def wtl_inst_option_def split_beta,
-           clarsimp_tac simp add: c1 wt_instr_def wtl_inst_option_def);
-  next;
-    case MO;
-    with wo suc;
-    show ?thesis;
-     by - (cases "manipulate_object" , 
-           (cases "cert ! (length i1)",
-            clarsimp_tac simp add: c2 wt_instr_def wtl_inst_option_def split_beta,
-            clarsimp_tac simp add: c1 wt_instr_def wtl_inst_option_def)+);
-  next;
-    case CH;
-    with wo suc;
-    show ?thesis;
-     by - (cases "check_object" , cases "cert ! (length i1)",
-           clarsimp_tac simp add: c2 wt_instr_def wtl_inst_option_def split_beta,
-           clarsimp_tac simp add: c1 wt_instr_def wtl_inst_option_def);
-  next;
-    case MI; 
-    with wo suc;
-    show ?thesis; 
-     by - (cases "meth_inv", cases "cert ! (length i1)",
-           clarsimp_tac simp add: c2 wt_instr_def wtl_inst_option_def split_beta,
-           intro exI conjI, rule refl, simp, force,
-           clarsimp_tac simp add: c1 wt_instr_def wtl_inst_option_def,
-           intro exI conjI, rule refl, simp, force);
-  next;
-    case MR;
-    with wo suc;
-    show ?thesis;
-      by - (cases "meth_ret" , cases "cert ! (length i1)",
-            clarsimp_tac simp add: c2 wt_instr_def wtl_inst_option_def split_beta,
-            clarsimp_tac simp add: c1 wt_instr_def wtl_inst_option_def);
-  next;
-    case OS;
-    with wo suc;
-    show ?thesis;
-     by - (cases "op_stack" , 
-           (cases "cert ! (length i1)",
-            clarsimp_tac simp add: c2 wt_instr_def wtl_inst_option_def split_beta,
-            clarsimp_tac simp add: c1 wt_instr_def wtl_inst_option_def)+);
-  next;
-    case BR;
-    with wo suc;
-    show ?thesis;
-      by - (cases "branch", 
-            (cases "cert ! (length i1)",
-             clarsimp_tac simp add: c2 c3 wt_instr_def wtl_inst_option_def split_beta,
-             clarsimp_tac simp add: c1 c3 wt_instr_def wtl_inst_option_def)+);
-  qed;
+  proof (cases i, insert suc, insert wo);
+    case Invoke with suc wo
+    show ?thesis
+      by - (cases "cert ! (length i1)",
+            clarsimp_tac simp add: c2 wtl_inst_option_def split_beta,
+            intro exI conjI, blast, simp, force,
+            clarsimp_tac simp add: c1 wtl_inst_option_def,
+            intro exI conjI, blast, simp, force)
+  qed (clarsimp_tac simp add: c1 c2 c3 wtl_inst_option_def split_beta split: option.split_asm)+
 qed;
+
 
 lemma wtl_fits_wt:
 "\\<lbrakk>wtl_inst_list is G rT s0 s3 cert (length is) 0; fits phi is G rT s0 s3 cert\\<rbrakk> 

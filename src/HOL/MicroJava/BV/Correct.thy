@@ -34,7 +34,7 @@ primrec
 	 in
          (\\<exists>rT maxl ins.
          method (G,C) sig = Some(C,rT,(maxl,ins)) \\<and>
-	 (\\<exists>mn pTs k. pc = k+1 \\<and> ins!k = MI(Invoke mn pTs) \\<and>
+	 (\\<exists>mn pTs k. pc = k+1 \\<and> ins!k = (Invoke mn pTs) \\<and>
          (mn,pTs) = sig0 \\<and> 
          (\\<exists>apTs D ST'.
          fst((phi C sig)!k) = (rev apTs) @ (Class D) # ST' \\<and>
