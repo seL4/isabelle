@@ -549,7 +549,7 @@ syntax (HTML output)
   "_from_to_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(3\<Sum>_ = _.._./ _)" [0,0,0,10] 10)
   "_from_upto_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(3\<Sum>_ = _..<_./ _)" [0,0,0,10] 10)
   "_upto_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(3\<Sum>_<_./ _)" [0,0,10] 10)
-syntax (latex output)
+syntax (latex_sum output)
   "_from_to_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
  ("(3\<^raw:$\sum_{>_ = _\<^raw:}^{>_\<^raw:}$> _)" [0,0,0,10] 10)
   "_from_upto_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
@@ -563,15 +563,22 @@ translations
   "\<Sum>i<n. t" == "setsum (\<lambda>i. t) {..<n}"
 
 text{* The above introduces some pretty alternative syntaxes for
-summation over intervals as shown on the left-hand side:
+summation over intervals:
 \begin{center}
 \begin{tabular}{lll}
-Sets & Indexed & TeX\\
-@{term[source]"\<Sum>x\<in>{a..b}. e"} & @{term[source]"\<Sum>x=a..b. e"} & @{term"\<Sum>x=a..b. e"}\\
-@{term[source]"\<Sum>x\<in>{a..<b}. e"} & @{term[source]"\<Sum>x=a..<b. e"} & @{term"\<Sum>x=a..<b. e"}\\
-@{term[source]"\<Sum>x\<in>{..<b}. e"} & @{term[source]"\<Sum>x<b. e"} & @{term"\<Sum>x<b. e"}
+Old & New & \LaTeX\\
+@{term[source]"\<Sum>x\<in>{a..b}. e"} & @{term"\<Sum>x=a..b. e"} & @{term[mode=latex_sum]"\<Sum>x=a..b. e"}\\
+@{term[source]"\<Sum>x\<in>{a..<b}. e"} & @{term"\<Sum>x=a..<b. e"} & @{term[mode=latex_sum]"\<Sum>x=a..<b. e"}\\
+@{term[source]"\<Sum>x\<in>{..<b}. e"} & @{term"\<Sum>x<b. e"} & @{term[mode=latex_sum]"\<Sum>x<b. e"}
 \end{tabular}
 \end{center}
+The left column shows the term before introduction of the new syntax,
+the middle column shows the new (default) syntax, and the right column
+shows a special syntax. The latter is only meaningful for latex output
+and has to be activated explicitly by setting the print mode to
+\texttt{latex\_sum} (e.g.\ via \texttt{mode=latex\_sum} in
+antiquotations). It is not the default \LaTeX\ output because it only
+works well with italic-style formulae, not tt-style.
 
 Note that for uniformity on @{typ nat} it is better to use
 @{term"\<Sum>x::nat=0..<n. e"} rather than @{text"\<Sum>x<n. e"}: @{text setsum} may
