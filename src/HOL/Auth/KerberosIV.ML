@@ -772,7 +772,6 @@ by (etac kerberos.induct 1);
   conclude AuthKey \\<noteq> AuthKeya.*)
 by (Clarify_tac 9);
 by analz_sees_tac;
-by (rotate_tac ~1 11);
 by (ALLGOALS 
     (asm_full_simp_tac 
      (simpset() addsimps [less_SucI, new_keys_not_analzd,
@@ -800,7 +799,6 @@ by (blast_tac (claset() addDs [Says_Kas_message_form, Says_Tgs_message_form]
 by (thin_tac "Says Aa Tgs ?X \\<in> set ?evs" 1);
 by (forward_tac [Says_imp_spies RS parts.Inj RS ServKey_notin_AuthKeysD] 1);
 by (assume_tac 1 THEN Blast_tac 1 THEN assume_tac 1);
-by (rotate_tac ~1 1);
 by (asm_full_simp_tac (simpset() addsimps [analz_insert_freshK2]) 1);
 by (blast_tac (claset() addDs [Says_imp_spies RS parts.Inj, Key_unique_SesKey] 
                         addIs  [less_SucI]) 1);

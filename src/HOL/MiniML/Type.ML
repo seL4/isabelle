@@ -269,7 +269,6 @@ Goalw [dom_def,cod_def,UNION_def,Bex_def]
 by (Simp_tac 1);
 by (safe_tac (empty_cs addSIs [exI,conjI,notI]));
 by (assume_tac 2);
-by (rotate_tac 1 1);
 by (Asm_full_simp_tac 1);
 qed "cod_app_subst";
 Addsimps [cod_app_subst];
@@ -474,7 +473,6 @@ by (rewtac new_tv_def);
 by (simp_tac (simpset() addsimps [free_tv_subst,dom_def,cod_def]) 1);
 by (strip_tac 1);
 by (case_tac "S nat = TVar nat" 1);
-by (rotate_tac 3 1);
 by (Asm_full_simp_tac 1);
 by (dres_inst_tac [("x","m")] spec 1);
 by (Fast_tac 1);

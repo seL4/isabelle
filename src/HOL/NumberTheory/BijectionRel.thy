@@ -191,7 +191,6 @@ lemma aux_bijRER:
    apply clarify
    apply (case_tac "b \<in> F")
     prefer 2
-    apply (rotate_tac -1)
     apply (simp add: subset_insert)
    apply (cut_tac F = F and a = b and A = A and B = B in aux1)
         prefer 6
@@ -205,7 +204,6 @@ lemma aux_bijRER:
   apply clarify
   apply (case_tac "a \<in> F")
    apply (case_tac [!] "b \<in> F")
-     apply (rotate_tac [2-4] -2)
      apply (cut_tac F = F and a = a and b = b and A = A and B = B
        in aux2)
             apply (simp_all add: subset_insert)

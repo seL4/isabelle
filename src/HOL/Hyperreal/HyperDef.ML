@@ -119,12 +119,11 @@ AddIs [FreeUltrafilterNat_Nat_set_refl];
 
 Goal "{n::nat. P} : FreeUltrafilterNat ==> P";
 by (rtac ccontr 1);
-by (rotate_tac 1 1);
 by (Asm_full_simp_tac 1);
 qed "FreeUltrafilterNat_P";
 
 Goal "{n. P(n)} : FreeUltrafilterNat ==> EX n. P(n)";
-by (rtac ccontr 1 THEN rotate_tac 1 1);
+by (rtac ccontr 1);
 by (Asm_full_simp_tac 1);
 qed "FreeUltrafilterNat_Ex_P";
 
@@ -262,7 +261,7 @@ by (REPEAT (rtac hyprel_in_hypreal 1));
 by (dtac eq_equiv_class 1);
 by (rtac equiv_hyprel 1);
 by (Fast_tac 1);
-by (rtac ccontr 1 THEN rotate_tac 1 1);
+by (rtac ccontr 1);
 by Auto_tac;
 qed "inj_hypreal_of_real";
 
@@ -631,7 +630,6 @@ Addsimps [hypreal_inverse_1];
 Goalw [hypreal_one_def,hypreal_zero_def] 
      "x ~= 0 ==> x*inverse(x) = (1::hypreal)";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
-by (rotate_tac 1 1);
 by (asm_full_simp_tac (simpset() addsimps [hypreal_inverse, hypreal_mult]) 1);
 by (dtac FreeUltrafilterNat_Compl_mem 1);
 by (blast_tac (claset() addSIs [real_mult_inv_right,

@@ -116,9 +116,7 @@ apply (rule iffI)
  apply (rule weak_coinduct)
   apply (erule CollectI)
  apply safe
-  apply (rotate_tac -1)
   apply simp
- apply (rotate_tac -1)
  apply simp
 apply (simp add: wp_def Gamma_def)
 apply (intro strip)
@@ -146,8 +144,8 @@ apply (rule hoare_conseq2)
  apply (rule hoare_conseq1)
   prefer 2 apply (fast)
   apply safe
- apply (rotate_tac -1, simp)
-apply (rotate_tac -1, simp)
+ apply simp
+apply simp
 done
 
 lemma hoare_relative_complete: "|= {P}c{Q} ==> |- {P}c{Q}"

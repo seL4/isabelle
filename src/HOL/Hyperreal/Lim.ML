@@ -877,7 +877,6 @@ by (dres_inst_tac [("c","u - hypreal_of_real x"),("b","hypreal_of_real D")]
      approx_mult1 1);
 by (ALLGOALS(dtac (hypreal_not_eq_minus_iff RS iffD1)));
 by (subgoal_tac "(*f* (%z. z - x)) u \\<noteq> (0::hypreal)" 2);
-by (rotate_tac ~1 2);
 by (auto_tac (claset(),
     simpset() addsimps [real_diff_def, hypreal_diff_def, 
 		(approx_minus_iff RS iffD1) RS (mem_infmal_iff RS iffD2),  

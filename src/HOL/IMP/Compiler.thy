@@ -97,10 +97,8 @@ lemma drop_lem: "n \<le> size(p1@p2)
 apply(rule iffI)
  defer apply simp
 apply(subgoal_tac "n \<le> size p1")
- apply(rotate_tac -1)
  apply simp
 apply(rule ccontr)
-apply(rotate_tac -1)
 apply(drule_tac f = length in arg_cong)
 apply simp
 apply arith

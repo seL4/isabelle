@@ -582,7 +582,6 @@ lemma zcong_zless_0:
   apply (unfold zcong_def dvd_def)
   apply auto
   apply (subgoal_tac "0 < m")
-   apply (rotate_tac -1)
    apply (simp add: int_0_le_mult_iff)
    apply (subgoal_tac "m * k < m * 1")
     apply (drule zmult_zless_cancel1 [THEN iffD1])

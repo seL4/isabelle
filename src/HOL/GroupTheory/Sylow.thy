@@ -289,7 +289,7 @@ lemma (in sylow_central) inj_GmodH_M:
 apply (rule bexI)
 apply (rule_tac [2] setrcos_H_funcset_M)
 apply (rule inj_onI)
-apply (rotate_tac -2, simp)
+apply (simp)
 apply (rule trans [OF _ H_elem_map_eq])
 prefer 2 apply assumption
 apply (rule H_elem_map_eq [symmetric, THEN trans], assumption)

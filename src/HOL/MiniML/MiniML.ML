@@ -90,7 +90,6 @@ Goalw [free_tv_subst,cod_def,subset_def]
 by (rtac ballI 1);
 by (etac UN_E 1);
 by (dtac (dom_S' RS subsetD) 1);
-by (rotate_tac 1 1);
 by (Asm_full_simp_tac 1);
 by (fast_tac (claset() addDs [free_tv_of_substitutions_extend_to_scheme_lists] 
                       addIs [free_tv_of_substitutions_extend_to_types RS subsetD]) 1);

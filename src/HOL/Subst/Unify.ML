@@ -215,7 +215,6 @@ by (simp_tac (simpset() addsimps [MGUnifier_Var]) 1);
 (*Comb-Comb case*)
 by (asm_simp_tac (simpset() addsplits [option.split]) 1);
 by (strip_tac 1);
-by (rotate_tac ~2 1);
 by (asm_full_simp_tac 
     (simpset() addsimps [MGUnifier_def, Unifier_def, MoreGeneral_def]) 1);
 by (Safe_tac THEN rename_tac "theta sigma gamma" 1);

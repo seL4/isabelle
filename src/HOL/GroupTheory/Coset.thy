@@ -345,7 +345,6 @@ lemma (in coset) inj_on_f:
 apply (rule inj_onI)
 apply (subgoal_tac "x \<in> carrier G & y \<in> carrier G")
  prefer 2 apply (blast intro: r_coset_subset_G [THEN subsetD])
-apply (rotate_tac -1)
 apply (simp add: subsetD)
 done
 
