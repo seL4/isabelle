@@ -128,7 +128,7 @@ by (blast_tac (claset() addIs [Suc_leI RS le_less_trans, ack_less_mono2]) 1);
 val lemma = result();
 
 Goal "!!i j k. i<j ==> ack(i,k) < ack(j,k)";
-by (etac less_natE 1);
+by (dtac less_eq_Suc_add 1);
 by (blast_tac (claset() addSIs [lemma]) 1);
 qed "ack_less_mono1";
 

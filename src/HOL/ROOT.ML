@@ -59,9 +59,12 @@ use_thy "WF_Rel";
 use_thy "Map";
 use_thy "Update";
 
+use_dir "Integ";
+
 (*TFL: recursive function definitions*)
 cd "$ISABELLE_HOME/src/TFL";
 use "sys.sml";
+cd "$ISABELLE_HOME/src/HOL";
 
 print_depth 8;
 

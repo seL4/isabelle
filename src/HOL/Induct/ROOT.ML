@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1997  University of Cambridge
 
-Exampled of Inductive Definitions
+Examples of Inductive and Coinductive Definitions
 *)
 
 HOL_build_completed;    (*Make examples fail if HOL did*)

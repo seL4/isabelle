@@ -8,7 +8,7 @@
 
 default: HOL
 images: HOL TLA
-test: HOL-Subst HOL-Induct HOL-IMP HOL-Hoare HOL-Lex HOL-Integ \
+test: HOL-Subst HOL-Induct HOL-IMP HOL-Hoare HOL-Lex HOL-Real \
   HOL-Auth HOL-UNITY HOL-Modelcheck HOL-Lambda HOL-W0 HOL-MiniML HOL-IOA \
   HOL-AxClasses HOL-AxClasses-Group HOL-AxClasses-Lattice \
   HOL-AxClasses-Tutorial HOL-Quot HOL-ex TLA-Inc TLA-Buffer TLA-Memory
@@ -39,6 +39,8 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/cancel_sums.ML \
   $(SRC)/TFL/tfl.sml $(SRC)/TFL/thms.sig $(SRC)/TFL/thms.sml \
   $(SRC)/TFL/thry.sig $(SRC)/TFL/thry.sml $(SRC)/TFL/usyntax.sig \
   $(SRC)/TFL/usyntax.sml $(SRC)/TFL/utils.sig $(SRC)/TFL/utils.sml \
+  Integ/Bin.ML Integ/Bin.thy  Integ/Equiv.ML Integ/Equiv.thy \
+  Integ/Integ.ML Integ/Integ.thy Integ/ROOT.ML \
   Arith.ML Arith.thy Divides.ML Divides.thy Finite.ML Finite.thy \
   Fun.ML Fun.thy Gfp.ML Gfp.thy HOL.ML HOL.thy Inductive.ML \
   Inductive.thy Lfp.ML Lfp.thy List.ML List.thy Map.ML Map.thy Nat.ML \
@@ -117,16 +119,16 @@ $(LOG)/HOL-Lex.gz: $(OUT)/HOL \
 	@$(ISATOOL) usedir $(OUT)/HOL Lex
 
 
-## HOL-Integ
+## HOL-Real
 
-HOL-Integ: HOL $(LOG)/HOL-Integ.gz
+HOL-Real: HOL $(LOG)/HOL-Real.gz
 
-$(LOG)/HOL-Integ.gz: $(OUT)/HOL Integ/Bin.ML Integ/Bin.thy \
-  Integ/Equiv.ML Integ/Equiv.thy Integ/Group.ML Integ/Group.thy \
-  Integ/IntRing.ML Integ/IntRing.thy Integ/IntRingDefs.ML \
-  Integ/IntRingDefs.thy Integ/Integ.ML Integ/Integ.thy Integ/Lagrange.ML \
-  Integ/Lagrange.thy Integ/ROOT.ML Integ/Ring.ML Integ/Ring.thy
-	@$(ISATOOL) usedir $(OUT)/HOL Integ
+$(LOG)/HOL-Real.gz: $(OUT)/HOL \
+  Real/Lubs.ML Real/Lubs.thy Real/PNat.ML Real/PNat.thy \
+  Real/PRat.ML Real/PRat.thy Real/PReal.ML Real/PReal.thy \
+  Real/RComplete.ML Real/RComplete.thy Real/Real.ML Real/Real.thy \
+  Real/RealAbs.ML Real/RealAbs.thy Real/ROOT.ML
+	@$(ISATOOL) usedir $(OUT)/HOL Real
 
 
 ## HOL-Auth
@@ -282,7 +284,10 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL ex/BT.ML ex/BT.thy ex/Fib.ML ex/Fib.thy \
   ex/NatSum.thy ex/Primes.ML ex/Primes.thy ex/Primrec.ML ex/Primrec.thy \
   ex/Puzzle.ML ex/Puzzle.thy ex/Qsort.ML ex/Qsort.thy ex/ROOT.ML \
   ex/Recdef.ML ex/Recdef.thy ex/String.ML ex/String.thy ex/cla.ML \
-  ex/meson.ML ex/mesontest.ML ex/set.ML
+  ex/meson.ML ex/mesontest.ML ex/set.ML \
+  ex/Group.ML ex/Group.thy  ex/IntRing.ML ex/IntRing.thy \
+  ex/IntRingDefs.ML ex/IntRingDefs.thy \
+  ex/Lagrange.ML ex/Lagrange.thy ex/Ring.ML ex/Ring.thy
 	@$(ISATOOL) usedir $(OUT)/HOL ex
 
 
@@ -336,8 +341,7 @@ $(LOG)/TLA-Memory.gz: $(OUT)/TLA TLA/Memory/MIParameters.thy \
 clean:
 	@rm -f $(OUT)/HOL $(LOG)/HOL.gz $(LOG)/HOL-Subst.gz \
 	  $(LOG)/HOL-Induct.gz $(LOG)/HOL-IMP.gz $(LOG)/HOL-Hoare.gz \
-	  $(LOG)/HOL-Lex.gz $(LOG)/HOL-Integ.gz \
-	  $(LOG)/HOL-Auth.gz $(LOG)/HOL-UNITY.gz \
+	  $(LOG)/HOL-Lex.gz $(LOG)/HOL-Auth.gz $(LOG)/HOL-UNITY.gz \
 	  $(LOG)/HOL-Modelcheck.gz $(LOG)/HOL-Lambda.gz $(LOG)/HOL-W0.gz \
 	  $(LOG)/HOL-MiniML.gz $(LOG)/HOL-IOA.gz $(LOG)/HOL-AxClasses.gz \
 	  $(LOG)/HOL-AxClasses-Group.gz $(LOG)/HOL-AxClasses-Lattice.gz \

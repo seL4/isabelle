@@ -118,19 +118,16 @@ by (ALLGOALS (asm_simp_tac (simpset() addsimps [diff_Suc]
 qed "add_pred";
 Addsimps [add_pred];
 
+Goal "!!m::nat. m + n = m ==> n = 0";
+by (dtac (add_0_right RS ssubst) 1);
+by (asm_full_simp_tac (simpset() addsimps [add_assoc]
+                                 delsimps [add_0_right]) 1);
+qed "add_eq_self_zero";
+
 
 (**** Additional theorems about "less than" ****)
 
-Goal "i<j --> (EX k. j = Suc(i+k))";
-by (induct_tac "j" 1);
-by (Simp_tac 1);
-by (blast_tac (claset() addSEs [less_SucE] 
-                       addSIs [add_0_right RS sym, add_Suc_right RS sym]) 1);
-val lemma = result();
-
-(* [| i<j;  !!x. j = Suc(i+x) ==> Q |] ==> Q *)
-bind_thm ("less_natE", lemma RS mp RS exE);
-
+(*Deleted less_natE; instead use less_eq_Suc_add RS exE*)
 Goal "!!m. m<n --> (? k. n=Suc(m+k))";
 by (induct_tac "n" 1);
 by (ALLGOALS (simp_tac (simpset() addsimps [less_Suc_eq])));
@@ -442,6 +439,12 @@ by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "less_imp_diff_positive";
 
+Goal "!! (i::nat). i < j  ==> ? k. 0<k & i+k = j";
+by (res_inst_tac [("x","j - i")] exI 1);
+by (fast_tac (claset() addDs [less_trans, less_irrefl] 
+   	               addIs [less_imp_diff_positive, add_diff_inverse]) 1);
+qed "less_imp_add_positive";
+
 Goal "Suc(m)-n = (if m<n then 0 else Suc(m-n))";
 by (simp_tac (simpset() addsimps [less_imp_diff_is_0, not_less_eq, Suc_diff_n]) 1);
 qed "if_Suc_diff_n";
@@ -527,7 +530,7 @@ qed "mult_le_mono";
 
 (*strict, in 1st argument; proof is by induction on k>0*)
 Goal "!!i::nat. [| i<j; 0<k |] ==> k*i < k*j";
-by (eres_inst_tac [("i","0")] less_natE 1);
+by (eres_inst_tac [("m1","0")] (less_eq_Suc_add RS exE) 1);
 by (Asm_simp_tac 1);
 by (induct_tac "x" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [add_less_mono])));

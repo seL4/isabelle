@@ -28,6 +28,8 @@ time_use_thy "InSort";
 time_use_thy "Qsort";
 time_use_thy "Puzzle";
 
+time_use_thy "IntRing";
+
 time_use     "set.ML";
 time_use_thy "MT";
 
