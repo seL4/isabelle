@@ -4,7 +4,24 @@
 # The isabelle-0 encoding table.
 #
 
-161:
+145:
+
+lless
+unlhd
+lhd
+rhd
+tturnstile
+langle
+rangle
+choice
+top
+Or
+ocdot
+iota
+upsilon
+Upsilon
+Xi
+space2
 Gamma
 Delta
 Theta
@@ -41,13 +58,10 @@ or
 forall
 exists
 And
-
-#lceil
-#rceil
-#lfloor
-#rfloor
-
-201:
+lceil
+rceil
+lfloor
+rfloor
 turnstile
 Turnstile
 lbrakk
