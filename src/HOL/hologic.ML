@@ -169,14 +169,14 @@ fun dest_bin c T (tm as Const (c', Type ("fun", [T', _])) $ t $ u) =
 
 (* unit *)
 
-val unitT = Type ("unit", []);
+val unitT = Type ("Product_Type.unit", []);
 
-fun is_unitT (Type ("unit", [])) = true
+fun is_unitT (Type ("Product_Type.unit", [])) = true
   | is_unitT _ = false;
 
-val unit = Const ("()", unitT);
+val unit = Const ("Product_Type.Unity", unitT);
 
-fun is_unit (Const ("()", _)) = true
+fun is_unit (Const ("Product_Type.Unity", _)) = true
   | is_unit _ = false;
 
 
@@ -226,13 +226,13 @@ local  (*currently unused*)
 
 fun mk_tupleT Ts = foldr mk_prodT (Ts, unitT);
 
-fun dest_tupleT (Type ("unit", [])) = []
+fun dest_tupleT (Type ("Product_Type.unit", [])) = []
   | dest_tupleT (Type ("*", [T, U])) = T :: dest_tupleT U
   | dest_tupleT T = raise TYPE ("dest_tupleT", [T], []);
 
 fun mk_tuple ts = foldr mk_prod (ts, unit);
 
-fun dest_tuple (Const ("()", _)) = []
+fun dest_tuple (Const ("Product_Type.Unity", _)) = []
   | dest_tuple (Const ("Pair", _) $ t $ u) = t :: dest_tuple u
   | dest_tuple t = raise TERM ("dest_tuple", [t]);
 
