@@ -41,11 +41,9 @@ qed "weaken_right";
 (*The deduction theorem*)
 goal PropLog.thy "!!H. insert p H |- q  ==>  H |- p->q";
 by (etac thms.induct 1);
-by (fast_tac (set_cs addIs [thms_I, thms.H RS weaken_right]) 1);
-by (fast_tac (set_cs addIs [thms.K RS weaken_right]) 1);
-by (fast_tac (set_cs addIs [thms.S RS weaken_right]) 1);
-by (fast_tac (set_cs addIs [thms.DN RS weaken_right]) 1);
-by (fast_tac (set_cs addIs [thms.S RS thms.MP RS thms.MP]) 1);
+by (ALLGOALS 
+    (fast_tac (set_cs addIs [thms_I, thms.H, thms.K, thms.S, thms.DN, 
+			     thms.S RS thms.MP RS thms.MP, weaken_right])));
 qed "deduction";
 
 
