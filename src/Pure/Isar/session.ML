@@ -10,8 +10,8 @@ signature SESSION =
 sig
   val name: unit -> string
   val welcome: unit -> string
-  val use_dir:
-    string list -> bool -> bool -> string -> string -> string -> string -> string -> int -> unit
+  val use_dir: string list -> bool -> bool -> string -> string
+    -> string -> string -> string -> int -> bool -> unit
   val finish: unit -> unit
 end;
 
@@ -78,12 +78,12 @@ fun get_rpath rpath_str =
        rpath := Some (Url.unpack rpath_str);
    (!rpath, rpath_str <> ""));
 
-fun use_dir modes reset info doc parent name dump rpath_str level =
+fun use_dir modes reset info doc parent name dump rpath_str level verbose =
   Library.setmp print_mode (modes @ ! print_mode)
     (Library.setmp Proofterm.proofs level (fn () =>
       (init reset parent name;
        Present.init info doc (path ()) name
-         (if dump = "" then None else Some (Path.unpack dump)) (get_rpath rpath_str);
+         (if dump = "" then None else Some (Path.unpack dump)) (get_rpath rpath_str) verbose;
        File.symbol_use root_file;
        finish ()))) ()
   handle exn => (writeln (Toplevel.exn_message exn); exit 1);
