@@ -181,6 +181,13 @@ lemma prime_imp_relprime: "p \<in> prime ==> \<not> p dvd n ==> gcd (p, n) = 1"
   apply simp
   done
 
+lemma two_is_prime: "2 \<in> prime"
+  apply (auto simp add: prime_def)
+  apply (case_tac m)
+   apply (auto dest!: dvd_imp_le)
+  apply arith
+  done
+
 text {*
   This theorem leads immediately to a proof of the uniqueness of
   factorization.  If @{term p} divides a product of primes then it is
