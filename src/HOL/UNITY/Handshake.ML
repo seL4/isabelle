@@ -32,13 +32,14 @@ by (auto_tac (claset() addIs [le_anti_sym] addSEs [le_SucE], simpset()));
 by (constrains_tac [prgF_def,cmdF_def] 1);
 qed "invFG";
 
-Goal "LeadsTo (Join prgF prgG) {s. NF s = k & ~ BB s} {s. NF s = k & BB s}";
+Goal "LeadsTo (Join prgF prgG) ({s. NF s = k} - {s. BB s}) \
+\                              ({s. NF s = k} Int {s. BB s})";
 by (rtac (ensures_stable_Join1 RS leadsTo_Basis RS leadsTo_imp_LeadsTo) 1);
 by (ensures_tac [prgG_def,cmdG_def] "cmdG" 2);
 by (constrains_tac [prgF_def,cmdF_def] 1);
 qed "lemma2_1";
 
-Goal "LeadsTo (Join prgF prgG) {s. NF s = k & BB s} {s. k < NF s}";
+Goal "LeadsTo (Join prgF prgG) ({s. NF s = k} Int {s. BB s}) {s. k < NF s}";
 by (rtac (ensures_stable_Join2 RS leadsTo_Basis RS leadsTo_imp_LeadsTo) 1);
 by (constrains_tac [prgG_def,cmdG_def] 2);
 by (ensures_tac [prgF_def,cmdF_def] "cmdF" 1);
@@ -55,6 +56,6 @@ by (rtac LeadsTo_Diff 1);
 by (rtac lemma2_2 2);
 by (rtac LeadsTo_Trans 1);
 by (rtac lemma2_2 2);
-by (rtac (lemma2_1 RS LeadsTo_weaken_L) 1);
+by (rtac (lemma2_1) 1);
 by Auto_tac;
 qed "progress";

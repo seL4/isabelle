@@ -6,6 +6,9 @@
 LeadsTo relation, restricted to the set of reachable states.
 *)
 
+(*Map its type, ['a program, 'a set, 'a set] => bool, to just 'a*)
+Blast.overloaded ("SubstAx.LeadsTo", 
+		  HOLogic.dest_setT o domain_type o range_type);
 
 
 (*** Specialized laws for handling invariants ***)
@@ -42,7 +45,7 @@ val [prem] = Goalw [LeadsTo_def]
 by (Simp_tac 1);
 by (stac Int_Union 1);
 by (blast_tac (claset() addIs [leadsTo_UN,
-			        simplify (simpset()) prem]) 1);
+			       simplify (simpset()) prem]) 1);
 qed "LeadsTo_Union";
 
 
@@ -88,15 +91,36 @@ by (full_simp_tac (simpset() addsimps [LeadsTo_def]) 1);
 by (blast_tac (claset() addIs [leadsTo_weaken_R]) 1);
 qed_spec_mp "LeadsTo_weaken_R";
 
-
 Goal "[| LeadsTo prg A A';  B <= A; id: Acts prg |]  \
 \     ==> LeadsTo prg B A'";
 by (full_simp_tac (simpset() addsimps [LeadsTo_def]) 1);
 by (blast_tac (claset() addIs [leadsTo_weaken_L]) 1);
 qed_spec_mp "LeadsTo_weaken_L";
 
+Goal "[| LeadsTo prg A A'; id: Acts prg;   \
+\        B  <= A;   A' <= B' |] \
+\     ==> LeadsTo prg B B'";
+(*PROOF FAILED unless the Trans rule is last*)
+by (blast_tac (claset() addIs [LeadsTo_weaken_R, LeadsTo_weaken_L,
+			       LeadsTo_Trans]) 1);
+qed "LeadsTo_weaken";
 
-(*Distributes over binary unions*)
+
+(** Two theorems for "proof lattices" **)
+
+Goal "[| id: Acts prg; LeadsTo prg A B |] ==> LeadsTo prg (A Un B) B";
+by (blast_tac (claset() addIs [LeadsTo_Un, subset_imp_LeadsTo]) 1);
+qed "LeadsTo_Un_post";
+
+Goal "[| id: Acts prg;  LeadsTo prg A B;  LeadsTo prg B C |] \
+\     ==> LeadsTo prg (A Un B) C";
+by (blast_tac (claset() addIs [LeadsTo_Un, subset_imp_LeadsTo, 
+			       LeadsTo_weaken_L, LeadsTo_Trans]) 1);
+qed "LeadsTo_Trans_Un";
+
+
+(** Distributive laws **)
+
 Goal "id: Acts prg ==> \
 \       LeadsTo prg (A Un B) C  =  \
 \       (LeadsTo prg A C & LeadsTo prg B C)";
@@ -114,15 +138,6 @@ Goal "id: Acts prg ==> \
 \       (ALL A : S. LeadsTo prg A B)";
 by (blast_tac (claset() addIs [LeadsTo_Union, LeadsTo_weaken_L]) 1);
 qed "LeadsTo_Union_distrib";
-
-
-Goal "[| LeadsTo prg A A'; id: Acts prg;   \
-\        B  <= A;   A' <= B' |] \
-\     ==> LeadsTo prg B B'";
-(*PROOF FAILED*)
-by (blast_tac (claset() addIs [LeadsTo_Trans, LeadsTo_weaken_R,
-			       LeadsTo_weaken_L]) 1);
-qed "LeadsTo_weaken";
 
 
 (** More rules using the premise "Invariant prg" **)
@@ -160,10 +175,16 @@ qed "Invariant_LeadsTo_weaken";
 
 (*Set difference: maybe combine with leadsTo_weaken_L??
   This is the most useful form of the "disjunction" rule*)
-Goal "[| LeadsTo prg (A-B) C; LeadsTo prg B C; id: Acts prg |] \
+Goal "[| LeadsTo prg (A-B) C; LeadsTo prg (A Int B) C; id: Acts prg |] \
 \     ==> LeadsTo prg A C";
-by (blast_tac (claset() addIs [LeadsTo_Un, LeadsTo_weaken]) 1);
+by (stac (Un_Diff_Int RS sym) 1 THEN rtac LeadsTo_Un 1);
+by (REPEAT (assume_tac 1));
+(*One step, but PROOF FAILED...
+  by (blast_tac (claset() addIs [LeadsTo_Un, LeadsTo_weaken]) 1);
+*)
 qed "LeadsTo_Diff";
+
+
 
 
 val prems = 
@@ -405,8 +426,10 @@ fun ensures_tac (main_def::cmd_defs) sact =
 	          ORELSE   (*subgoal may involve LeadsTo, leadsTo or ensures*)
 		  REPEAT (ares_tac [LeadsTo_Basis, ensuresI] 1),
 	      res_inst_tac [("act", sact)] transient_mem 2,
+                 (*simplify the command's domain*)
 	      simp_tac (simpset() addsimps (Domain_partial_func::cmd_defs)) 3,
-	      simp_tac (simpset() addsimps [main_def]) 2,
+	         (*INSIST that the command belongs to the program*)
+	      force_tac (claset(), simpset() addsimps [main_def]) 2,
 	      constrains_tac (main_def::cmd_defs) 1,
 	      rewrite_goals_tac cmd_defs,
 	      ALLGOALS Clarify_tac,

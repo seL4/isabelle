@@ -21,11 +21,12 @@ constdefs
     "ensures acts A B == constrains acts (A-B) (A Un B) & transient acts (A-B)"
 			(*(unless acts A B) would be equivalent*)
 
-consts leadsTo :: "[('a * 'a)set set, 'a set, 'a set] => bool"
-       leadsto :: "[('a * 'a)set set] => ('a set * 'a set) set"
+syntax leadsTo :: "[('a * 'a)set set, 'a set, 'a set] => bool"
+consts leadsto :: "[('a * 'a)set set] => ('a set * 'a set) set"
   
 translations
   "leadsTo acts A B" == "(A,B) : leadsto acts"
+  "~ leadsTo acts A B" <= "(A,B) ~: leadsto acts"
 
 inductive "leadsto acts"
   intrs 

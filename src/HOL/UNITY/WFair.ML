@@ -9,6 +9,14 @@ From Misra, "A Logic for Concurrent Programming", 1994
 *)
 
 
+(*Map its type, [('a * 'a)set set] => ('a set * 'a set) set, to just 'a*)
+Blast.overloaded ("WFair.leadsto", 
+		  #1 o HOLogic.dest_prodT o 
+		  HOLogic.dest_setT o HOLogic.dest_setT o domain_type);
+
+overload_2nd_set "WFair.transient";
+overload_2nd_set "WFair.ensures";
+
 (*** transient ***)
 
 Goalw [stable_def, constrains_def, transient_def]
@@ -52,8 +60,7 @@ qed "ensures_weaken_R";
 
 Goalw [ensures_def, constrains_def, transient_def]
     "acts ~= {} ==> ensures acts A UNIV";
-by (Asm_simp_tac 1);  (*omitting this causes PROOF FAILED, even with Safe_tac*)
-by (Blast_tac 1);
+by Auto_tac;
 qed "ensures_UNIV";
 
 Goalw [ensures_def]
@@ -165,9 +172,9 @@ qed "leadsTo_Union_distrib";
 
 Goal "[| leadsTo acts A A'; id: acts; B<=A; A'<=B' |] \
 \   ==> leadsTo acts B B'";
-(*PROOF FAILED: why?*)
-by (blast_tac (claset() addIs [leadsTo_Trans, leadsTo_weaken_R,
-			       leadsTo_weaken_L]) 1);
+(*PROOF FAILED unless leadsTo_Trans is last*)
+by (blast_tac (claset() addIs [leadsTo_weaken_R, leadsTo_weaken_L,
+			       leadsTo_Trans]) 1);
 qed "leadsTo_weaken";
 
 
@@ -468,7 +475,7 @@ qed "wlt_constrains_wlt";
 (*** Completion: Binary and General Finite versions ***)
 
 Goal "[| leadsTo acts A A';  stable acts A';   \
-\      leadsTo acts B B';  stable acts B';  id: acts |] \
+\        leadsTo acts B B';  stable acts B';  id: acts |] \
 \   ==> leadsTo acts (A Int B) (A' Int B')";
 by (subgoal_tac "stable acts (wlt acts B')" 1);
 by (asm_full_simp_tac (simpset() addsimps [stable_def]) 2);
@@ -483,8 +490,8 @@ by (blast_tac (claset() addIs [wlt_leadsTo, psp_stable2]) 2);
 by (subgoal_tac "leadsTo acts (A Int B) (A Int wlt acts B')" 1);
 by (blast_tac (claset() addIs [leadsTo_subset RS subsetD, 
 			       subset_imp_leadsTo]) 2);
-(*Blast_tac gives PROOF FAILED*)
-by (best_tac (claset() addIs [leadsTo_Trans]) 1);
+(*addIs looks safer, but loops with PROOF FAILED*)
+by (blast_tac (claset() addSIs [leadsTo_Trans]) 1);
 qed "stable_completion";
 
 

@@ -4,6 +4,8 @@
     Copyright   1998  University of Cambridge
 
 The Lift-Control Example
+
+
 *)
 
 Lift = SubstAx +
@@ -17,11 +19,15 @@ record state =
   move  :: bool		(*whether moving takes precedence over opening*)
 
 consts
-  min, max :: nat	(*least and greatest floors*)
+  min, max :: nat       (*least and greatest floors*)
 
 rules
   min_le_max  "min <= max"
   
+  (** Linear arithmetic: justified by a separate call to arith_oracle_tac **)
+  arith1      "m < fl ==> n - Suc fl < fl - m + (n - m)"
+  arith2      "[| Suc fl < n; m < n |] ==> n - Suc fl < fl - m + (n - m)"
+
 
 constdefs
   
@@ -37,7 +43,7 @@ constdefs
     "queueing == above Un below"
 
   goingup :: state set
-    "goingup == above Int ({s. up s} Un Compl below)"
+    "goingup   == above Int  ({s. up s}  Un Compl below)"
 
   goingdown :: state set
     "goingdown == below Int ({s. ~ up s} Un Compl above)"
@@ -52,16 +58,19 @@ constdefs
     "moving ==  {s. ~ stop s & ~ open s}"
 
   stopped :: state set
-    "stopped == {s. stop s  & ~ open s &  move s}"
+    "stopped == {s. stop s  & ~ open s & ~ move s}"
 
   opened :: state set
     "opened ==  {s. stop s  &  open s  &  move s}"
 
-  closed :: state set
+  closed :: state set  (*but this is the same as ready!!*)
     "closed ==  {s. stop s  & ~ open s &  move s}"
 
   atFloor :: nat => state set
     "atFloor n ==  {s. floor s = n}"
+
+  Req :: nat => state set
+    "Req n ==  {s. n : req s}"
 
 
   
@@ -125,7 +134,7 @@ constdefs
     "open_move == {s. open s --> move s}"
   
   stop_floor :: state set
-    "stop_floor == {s. open s & ~ move s --> floor s : req s}"
+    "stop_floor == {s. stop s & ~ move s --> floor s : req s}"
   
   moving_up :: state set
     "moving_up == {s. ~ stop s & up s -->
@@ -135,8 +144,19 @@ constdefs
     "moving_down == {s. ~ stop s & ~ up s -->
                      (EX f. min <= f & f <= floor s & f : req s)}"
   
-  (*intersection of all invariants: NECESSARY??*)
-  valid :: state set
-    "valid == bounded Int open_stop Int open_move"
+  metric :: [nat,state] => nat
+    "metric n s == if up s & floor s < n then n - floor s
+		   else if ~ up s & n < floor s then floor s - n
+		   else if up s & n < floor s then (max - floor s) + (max-n)
+		   else if ~ up s & floor s < n then (floor s - min) + (n-min)
+		   else 0"
+
+locale floor =
+  fixes 
+    n	:: nat
+  assumes
+    min_le_n    "min <= n"
+    n_le_max    "n <= max"
+  defines
 
 end

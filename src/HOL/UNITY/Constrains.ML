@@ -9,6 +9,10 @@ Safety relations: restricted to the set of reachable states.
 
 (*** Constrains ***)
 
+(*Map its type, ('a * 'a)set set, 'a set, 'a set] => bool, to just 'a*)
+Blast.overloaded ("Constrains.Constrains", 
+		  HOLogic.dest_setT o domain_type o range_type);
+
 (*constrains (Acts prg) B B'
   ==> constrains (Acts prg) (reachable prg Int B) (reachable prg Int B')*)
 bind_thm ("constrains_reachable_Int",
@@ -80,7 +84,8 @@ Goalw [Constrains_def]
     "[| ALL i:I. Constrains prg (A i) (A' i) |]   \
 \    ==> Constrains prg (INT i:I. A i) (INT i:I. A' i)";
 by (dtac ball_constrains_INT 1);
-by (blast_tac (claset() addIs [constrains_reachable_Int, constrains_weaken]) 1);
+by (dtac constrains_reachable_Int 1);
+by (blast_tac (claset() addIs [constrains_weaken]) 1);
 qed "ball_Constrains_INT";
 
 Goalw [Constrains_def]

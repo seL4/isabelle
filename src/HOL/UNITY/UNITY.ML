@@ -14,6 +14,14 @@ HOL_quantifiers := false;
 
 (*** constrains ***)
 
+(*Map the type (anything => ('a set => anything) to just 'a*)
+fun overload_2nd_set s =
+    Blast.overloaded (s, HOLogic.dest_setT o domain_type o range_type);
+
+overload_2nd_set "UNITY.constrains";
+overload_2nd_set "UNITY.stable";
+overload_2nd_set "UNITY.unless";
+
 val prems = Goalw [constrains_def]
     "(!!act s s'. [| act: acts;  (s,s') : act;  s: A |] ==> s': A') \
 \    ==> constrains acts A A'";
