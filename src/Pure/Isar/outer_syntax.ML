@@ -237,7 +237,7 @@ fun toplevel_source term do_recover cmd src =
   let
     val no_terminator =
       Scan.unless P.semicolon (Scan.one (T.not_sync andf T.not_eof));
-    val recover = Scan.prompt "recover# " (Scan.repeat no_terminator);
+    val recover = Scan.prompt "recover# " (Scan.repeat no_terminator) >> K [None];
   in
     src
     |> Source.source T.stopper
