@@ -6,7 +6,7 @@
 The datatype of finite lists.
 *)
 
-List = Arith +
+List = Divides +
 
 datatype 'a list = "[]" ("[]") | "#" 'a ('a list) (infixr 65)
 
