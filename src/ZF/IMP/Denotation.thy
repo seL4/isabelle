@@ -35,11 +35,11 @@ rules   (*NOT definitional*)
                                snd(io) = fst(io)(x := A(a,fst(io)))}"
 
   C_comp_def    "C(c0 ; c1) == C(c1) O C(c0)"
-  C_if_def      "C(ifc b then c0 else c1) == {io:C(c0). B(b,fst(io))=1} Un 
-                                             {io:C(c1). B(b,fst(io))=0}"
+  C_if_def      "C(ifc b then c0 else c1) == {io \\<in> C(c0). B(b,fst(io))=1} Un 
+                                             {io \\<in> C(c1). B(b,fst(io))=0}"
 
-  Gamma_def     "Gamma(b,c) == (%phi.{io : (phi O C(c)). B(b,fst(io))=1} Un 
-                                     {io : id(loc->nat). B(b,fst(io))=0})"
+  Gamma_def     "Gamma(b,c) == (%phi.{io \\<in> (phi O C(c)). B(b,fst(io))=1} Un 
+                                     {io \\<in> id(loc->nat). B(b,fst(io))=0})"
 
   C_while_def   "C(while b do c) == lfp((loc->nat)*(loc->nat), Gamma(b,c))"
 

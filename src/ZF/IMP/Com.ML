@@ -12,26 +12,26 @@ val type_cs = claset() addSDs [evala.dom_subset RS subsetD,
 
 val evala_type_intrs = 
  map (fn s => prove_goal Com.thy s (fn _ => [(fast_tac type_cs 1)]))
- ["!!a.<a,sigma> -a-> n ==> a:aexp",
-  "!!a.<a,sigma> -a-> n ==> sigma:loc->nat",
-  "!!a.<a,sigma> -a-> n ==> n:nat"];
+ ["!!a.<a,sigma> -a-> n ==> a \\<in> aexp",
+  "!!a.<a,sigma> -a-> n ==> sigma \\<in> loc->nat",
+  "!!a.<a,sigma> -a-> n ==> n \\<in> nat"];
 
 
 (**********     type_intrs for evalb     **********)
 
 val evalb_type_intrs = 
  map (fn s => prove_goal Com.thy s (fn _ => [(fast_tac type_cs 1)]))
- ["!!b.<b,sigma> -b-> w ==> b:bexp",
-  "!!b.<b,sigma> -b-> w ==> sigma:loc->nat",
-  "!!b.<b,sigma> -b-> w ==> w:bool"];
+ ["!!b.<b,sigma> -b-> w ==> b \\<in> bexp",
+  "!!b.<b,sigma> -b-> w ==> sigma \\<in> loc->nat",
+  "!!b.<b,sigma> -b-> w ==> w \\<in> bool"];
 
 
 (**********     type_intrs for evalb     **********)
 
 val evalc_type_intrs = 
  map (fn s => prove_goal Com.thy s (fn _ => [(fast_tac type_cs 1)]))
- ["!!c.<c,sigma> -c-> sigma' ==> c:com",
-  "!!c.<c,sigma> -c-> sigma' ==> sigma:loc->nat",
+ ["!!c.<c,sigma> -c-> sigma' ==> c \\<in> com",
+  "!!c.<c,sigma> -c-> sigma' ==> sigma \\<in> loc->nat",
   "!!c.<c,sigma> -c-> sigma' ==> sigma':loc->nat"];
 
 

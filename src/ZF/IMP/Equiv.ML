@@ -4,7 +4,7 @@
     Copyright   1994 TUM
 *)
 
-Goal "[| a: aexp; sigma: loc -> nat |] ==> \
+Goal "[| a \\<in> aexp; sigma: loc -> nat |] ==> \
 \        <a,sigma> -a-> n <-> A(a,sigma) = n";
 by (res_inst_tac [("x","n")] spec 1);                       (* quantify n *)
 by (etac aexp.induct 1);
@@ -29,7 +29,7 @@ val bexp_elim_cases =
    ];
 
 
-Goal "[| b: bexp; sigma: loc -> nat |] ==> \
+Goal "[| b \\<in> bexp; sigma: loc -> nat |] ==> \
 \        <b,sigma> -b-> w <-> B(b,sigma) = w";
 by (res_inst_tac [("x","w")] spec 1);
 by (etac bexp.induct 1);
@@ -42,7 +42,7 @@ val bexp1 = bexp_iff RS iffD1;
 val bexp2 = bexp_iff RS iffD2;
 
 
-Goal "<c,sigma> -c-> sigma' ==> <sigma,sigma'> : C(c)";
+Goal "<c,sigma> -c-> sigma' ==> <sigma,sigma'> \\<in> C(c)";
 by (etac evalc.induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [bexp1])));
 (* skip *)
@@ -67,7 +67,7 @@ AddSIs [aexp2,bexp2,B_type,A_type];
 AddIs  evalc.intrs;
 
 
-Goal "c : com ==> ALL x:C(c). <c,fst(x)> -c-> snd(x)";
+Goal "c \\<in> com ==> \\<forall>x \\<in> C(c). <c,fst(x)> -c-> snd(x)";
 by (etac com.induct 1);
 (* comp *)
 by (Force_tac 3); 
@@ -90,7 +90,7 @@ val com2 = result();
 
 (**** Proof of Equivalence ****)
 
-Goal "ALL c:com. C(c) = {io:(loc->nat)*(loc->nat). <c,fst(io)> -c-> snd(io)}";
+Goal "\\<forall>c \\<in> com. C(c) = {io:(loc->nat)*(loc->nat). <c,fst(io)> -c-> snd(io)}";
 by (fast_tac (claset() addIs [C_subset RS subsetD]
 		       addEs [com2 RS bspec]
 		       addDs [com1]

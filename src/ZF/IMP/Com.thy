@@ -15,24 +15,24 @@ consts  loc  :: i
         aexp :: i
 
 datatype <= "univ(loc Un (nat->nat) Un ((nat*nat) -> nat) )"
-  "aexp" = N ("n: nat")
-         | X ("x: loc")
-         | Op1 ("f : nat -> nat", "a : aexp")
-         | Op2 ("f : (nat*nat) -> nat", "a0 : aexp", "a1 : aexp")
+  "aexp" = N ("n \\<in> nat")
+         | X ("x \\<in> loc")
+         | Op1 ("f \\<in> nat -> nat", "a \\<in> aexp")
+         | Op2 ("f \\<in> (nat*nat) -> nat", "a0 \\<in> aexp", "a1 \\<in> aexp")
 
 
 (** Evaluation of arithmetic expressions **)
 consts  evala    :: i
         "-a->"   :: [i,i] => o                  (infixl 50)
 translations
-    "p -a-> n" == "<p,n> : evala"
+    "p -a-> n" == "<p,n> \\<in> evala"
 inductive
   domains "evala" <= "(aexp * (loc -> nat)) * nat"
   intrs 
-    N   "[| n:nat;  sigma:loc->nat |] ==> <N(n),sigma> -a-> n"
-    X   "[| x:loc;  sigma:loc->nat |] ==> <X(x),sigma> -a-> sigma`x"
-    Op1 "[| <e,sigma> -a-> n;  f: nat -> nat |] ==> <Op1(f,e),sigma> -a-> f`n"
-    Op2 "[| <e0,sigma> -a-> n0;  <e1,sigma>  -a-> n1; f: (nat*nat) -> nat |] 
+    N   "[| n \\<in> nat;  sigma \\<in> loc->nat |] ==> <N(n),sigma> -a-> n"
+    X   "[| x \\<in> loc;  sigma \\<in> loc->nat |] ==> <X(x),sigma> -a-> sigma`x"
+    Op1 "[| <e,sigma> -a-> n;  f \\<in> nat -> nat |] ==> <Op1(f,e),sigma> -a-> f`n"
+    Op2 "[| <e0,sigma> -a-> n0;  <e1,sigma>  -a-> n1; f \\<in> (nat*nat) -> nat |] 
            ==> <Op2(f,e0,e1),sigma> -a-> f`<n0,n1>"
 
   type_intrs "aexp.intrs@[apply_funtype]"
@@ -44,10 +44,10 @@ consts  bexp :: i
 datatype <= "univ(aexp Un ((nat*nat)->bool) )"
   "bexp" = true
          | false
-         | ROp  ("f : (nat*nat)->bool", "a0 : aexp", "a1 : aexp")
-         | noti ("b : bexp")
-         | andi ("b0 : bexp", "b1 : bexp")      (infixl 60)
-         | ori  ("b0 : bexp", "b1 : bexp")      (infixl 60)
+         | ROp  ("f \\<in> (nat*nat)->bool", "a0 \\<in> aexp", "a1 \\<in> aexp")
+         | noti ("b \\<in> bexp")
+         | andi ("b0 \\<in> bexp", "b1 \\<in> bexp")      (infixl 60)
+         | ori  ("b0 \\<in> bexp", "b1 \\<in> bexp")      (infixl 60)
 
 
 (** Evaluation of boolean expressions **)
@@ -55,14 +55,14 @@ consts evalb    :: i
        "-b->"   :: [i,i] => o                   (infixl 50)
 
 translations
-    "p -b-> b" == "<p,b> : evalb"
+    "p -b-> b" == "<p,b> \\<in> evalb"
 
 inductive
   domains "evalb" <= "(bexp * (loc -> nat)) * bool"
   intrs (*avoid clash with ML constructors true, false*)
-    tru   "[| sigma:loc -> nat |] ==> <true,sigma> -b-> 1"
-    fls   "[| sigma:loc -> nat |] ==> <false,sigma> -b-> 0"
-    ROp   "[| <a0,sigma> -a-> n0; <a1,sigma> -a-> n1; f: (nat*nat)->bool |] 
+    tru   "[| sigma \\<in> loc -> nat |] ==> <true,sigma> -b-> 1"
+    fls   "[| sigma \\<in> loc -> nat |] ==> <false,sigma> -b-> 0"
+    ROp   "[| <a0,sigma> -a-> n0; <a1,sigma> -a-> n1; f \\<in> (nat*nat)->bool |] 
            ==> <ROp(f,a0,a1),sigma> -b-> f`<n0,n1> "
     noti  "[| <b,sigma> -b-> w |] ==> <noti(b),sigma> -b-> not(w)"
     andi  "[| <b0,sigma> -b-> w0; <b1,sigma> -b-> w1 |] 
@@ -80,45 +80,45 @@ consts  com :: i
 
 datatype 
   "com" = skip
-        | asgt  ("x:loc", "a:aexp")             (infixl 60)
-        | semic ("c0:com", "c1:com")            ("_; _"  [60, 60] 10)
-        | while ("b:bexp", "c:com")             ("while _ do _"  60)
-        | ifc   ("b:bexp", "c0:com", "c1:com")  ("ifc _ then _ else _"  60)
+        | asgt  ("x \\<in> loc", "a \\<in> aexp")             (infixl 60)
+        | semic ("c0 \\<in> com", "c1 \\<in> com")            ("_; _"  [60, 60] 10)
+        | while ("b \\<in> bexp", "c \\<in> com")             ("while _ do _"  60)
+        | ifc   ("b \\<in> bexp", "c0 \\<in> com", "c1 \\<in> com")  ("ifc _ then _ else _"  60)
 
 (*Constructor ";" has low precedence to avoid syntactic ambiguities
-  with [| m: nat; x: loc; ... |] ==> ...  It usually will need parentheses.*)
+  with [| m \\<in> nat; x \\<in> loc; ... |] ==> ...  It usually will need parentheses.*)
 
 (** Execution of commands **)
 consts  evalc    :: i
         "-c->"   :: [i,i] => o                   (infixl 50)
 
 translations
-       "p -c-> s" == "<p,s> : evalc"
+       "p -c-> s" == "<p,s> \\<in> evalc"
 
 
 inductive
   domains "evalc" <= "(com * (loc -> nat)) * (loc -> nat)"
   intrs
-    skip    "[| sigma: loc -> nat |] ==> <skip,sigma> -c-> sigma"
+    skip    "[| sigma \\<in> loc -> nat |] ==> <skip,sigma> -c-> sigma"
 
-    assign  "[| m: nat; x: loc; <a,sigma> -a-> m |] ==> 
+    assign  "[| m \\<in> nat; x \\<in> loc; <a,sigma> -a-> m |] ==> 
             <x asgt a,sigma> -c-> sigma(x:=m)"
 
     semi    "[| <c0,sigma> -c-> sigma2; <c1,sigma2> -c-> sigma1 |] ==> 
             <c0 ; c1, sigma> -c-> sigma1"
 
-    ifc1     "[| b:bexp; c1:com; sigma:loc->nat;   
+    ifc1     "[| b \\<in> bexp; c1 \\<in> com; sigma \\<in> loc->nat;   
                  <b,sigma> -b-> 1; <c0,sigma> -c-> sigma1 |] ==> 
              <ifc b then c0 else c1, sigma> -c-> sigma1"
 
-    ifc0     "[| b:bexp; c0:com; sigma:loc->nat;   
+    ifc0     "[| b \\<in> bexp; c0 \\<in> com; sigma \\<in> loc->nat;   
                  <b,sigma> -b-> 0; <c1,sigma> -c-> sigma1 |] ==> 
              <ifc b then c0 else c1, sigma> -c-> sigma1"
 
-    while0   "[| c: com; <b, sigma> -b-> 0 |] ==> 
+    while0   "[| c \\<in> com; <b, sigma> -b-> 0 |] ==> 
              <while b do c,sigma> -c-> sigma "
 
-    while1   "[| c : com; <b,sigma> -b-> 1; <c,sigma> -c-> sigma2; 
+    while1   "[| c \\<in> com; <b,sigma> -b-> 1; <c,sigma> -c-> sigma2; 
                 <while b do c, sigma2> -c-> sigma1 |] ==> 
              <while b do c, sigma> -c-> sigma1 "
 
