@@ -24,6 +24,7 @@ sig
   val ---> : typ list * typ -> typ
   val is_TVar: typ -> bool
   val domain_type: typ -> typ
+  val range_type: typ -> typ
   val binder_types: typ -> typ list
   val body_type: typ -> typ
   val strip_type: typ -> typ list * typ
