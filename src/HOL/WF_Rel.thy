@@ -17,25 +17,28 @@ instance unit :: finite                  (finite_unit)
 instance "*" :: (finite,finite) finite   (finite_Prod)
 
 
-consts
-  less_than :: "(nat*nat)set"
-  inv_image :: "('b * 'b)set => ('a => 'b) => ('a * 'a)set"
-  measure   :: "('a => nat) => ('a * 'a)set"
-  lex_prod  :: "[('a*'a)set, ('b*'b)set] => (('a*'b)*('a*'b))set"
+constdefs
+ less_than :: "(nat*nat)set"
+"less_than == trancl pred_nat"
+
+ inv_image :: "('b * 'b)set => ('a => 'b) => ('a * 'a)set"
+"inv_image r f == {(x,y). (f(x), f(y)) : r}"
+
+ measure   :: "('a => nat) => ('a * 'a)set"
+"measure == inv_image less_than"
+
+ lex_prod  :: "[('a*'a)set, ('b*'b)set] => (('a*'b)*('a*'b))set"
                (infixr "<*lex*>" 80)
-  finite_psubset  :: "('a set * 'a set) set"
+"ra <*lex*> rb == {((a,b),(a',b')). (a,a') : ra | a=a' & (b,b') : rb}"
 
+ (* finite proper subset*)
+ finite_psubset  :: "('a set * 'a set) set"
+"finite_psubset == {(A,B). A < B & finite B}"
 
-defs
-  less_than_def "less_than == trancl pred_nat"
+(* For rec_defs where the first n parameters stay unchanged in the recursive
+   call. See While for an application.
+*)
+ same_fst :: "('a => bool) => ('a => ('b * 'b)set) => (('a*'b)*('a*'b))set"
+"same_fst P R == {((x',y'),(x,y)) . x'=x & P x & (y',y) : R x}"
 
-  inv_image_def "inv_image r f == {(x,y). (f(x), f(y)) : r}"
-
-  measure_def   "measure == inv_image less_than"
-
-  lex_prod_def  "ra <*lex*> rb == {((a,b),(a',b')) | a a' b b'.
-                                   ((a,a') : ra | a=a' & (b,b') : rb)}"
-
-  (* finite proper subset*)
-  finite_psubset_def "finite_psubset == {(A,B). A < B & finite B}"
 end
