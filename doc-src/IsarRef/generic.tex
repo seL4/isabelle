@@ -583,10 +583,6 @@ val thms  : string -> thm list
 
 \subsection{The Simplifier}\label{sec:simplifier}
 
-\subsubsection{Basic equational reasoning}
-
-FIXME
-
 \subsubsection{Simplification methods}\label{sec:simp}
 
 \indexisarmeth{simp}\indexisarmeth{simp-all}
@@ -620,6 +616,7 @@ FIXME
 \end{rail}
 
 \begin{descr}
+
 \item [$simp$] invokes Isabelle's simplifier, after declaring additional rules
   according to the arguments given.  Note that the \railtterm{only} modifier
   first removes all other rewrite rules, congruences, and looper tactics
@@ -632,25 +629,28 @@ FIXME
   Splitter (see also \cite{isabelle-ref}), the default is to add.  This works
   only if the Simplifier method has been properly setup to include the
   Splitter (all major object logics such HOL, HOLCF, FOL, ZF do this already).
-\item [$simp_all$] is similar to $simp$, but acts on all goals.
+  
+\item [$simp_all$] is similar to $simp$, but acts on all goals (backwards from
+  the last to the first one).
+
 \end{descr}
 
-By default, the Simplifier methods are based on \texttt{asm_full_simp_tac}
-internally \cite[\S10]{isabelle-ref}, which means that assumptions are both
-simplified as well as used in simplifying the conclusion.  In structured
-proofs this is usually quite well behaved in practice: just the local premises
-of the actual goal are involved, additional facts may inserted via explicit
-forward-chaining (using $\THEN$, $\FROMNAME$ etc.).  The full context of
-assumptions is only included if the ``$!$'' (bang) argument is given, which
-should be used with some care, though.
+By default the Simplifier methods take local assumptions fully into account,
+using equational assumptions in the subsequent normalization process, or
+simplifying assumptions themselvess (cf.\ \texttt{asm_full_simp_tac} in
+\cite[\S10]{isabelle-ref}).  In structured proofs this is usually quite well
+behaved in practice: just the local premises of the actual goal are involved,
+additional facts may inserted via explicit forward-chaining (using $\THEN$,
+$\FROMNAME$ etc.).  The full context of assumptions is only included if the
+``$!$'' (bang) argument is given, which should be used with some care, though.
 
-Additional Simplifier options may be specified to tune the behavior even
-further: $(no_asm)$ means assumptions are ignored completely (cf.\
-\texttt{simp_tac}), $(no_asm_simp)$ means assumptions are used in the
-simplification of the conclusion but are not themselves simplified (cf.\
-\texttt{asm_simp_tac}), and $(no_asm_use)$ means assumptions are simplified
-but are not used in the simplification of each other or the conclusion (cf.
-\texttt{full_simp_tac}).
+Additional Simplifier options may be specified to tune the behavior further
+(mostly for unstructured scripts with many accidental local facts): $(no_asm)$
+means assumptions are ignored completely (cf.\ \texttt{simp_tac}),
+$(no_asm_simp)$ means assumptions are used in the simplification of the
+conclusion but are not themselves simplified (cf.\ \texttt{asm_simp_tac}), and
+$(no_asm_use)$ means assumptions are simplified but are not used in the
+simplification of each other or the conclusion (cf.  \texttt{full_simp_tac}).
 
 \medskip
 
@@ -688,15 +688,13 @@ method available for single-step case splitting, see \S\ref{sec:basic-eq}.
 
 \subsubsection{Forward simplification}
 
-FIXME thmargs
-
 \indexisaratt{simplified}
 \begin{matharray}{rcl}
   simplified & : & \isaratt \\
 \end{matharray}
 
 \begin{rail}
-  'simplified' opt?
+  'simplified' opt? thmrefs?
   ;
 
   opt: '(' (noasm | noasmsimp | noasmuse) ')'
@@ -704,27 +702,29 @@ FIXME thmargs
 \end{rail}
 
 \begin{descr}
-\item [$simplified$] causes a theorem to be simplified according to the
-  current Simplifier context (there are no separate arguments for declaring
-  additional rules).  By default the result is fully simplified, including
-  assumptions and conclusion.  The options $no_asm$ etc.\ restrict the
-  Simplifier in the same way as the for the $simp$ method (see
-  \S\ref{sec:simp}).  FIXME args
   
-  The $simplified$ operation should be used only very rarely, usually for
-  experimentation only.
+\item [$simplified~\vec a$] causes a theorem to be simplified, either by
+  exactly the specified rules $\vec a$, or the implicit Simplifier context if
+  no arguments are given.  The result is fully simplified by default,
+  including assumptions and conclusion; the options $no_asm$ etc.\ tune the
+  Simplifier in the same way as the for the $simp$ method (see
+  \S\ref{sec:simp}).
+  
+  Note that forward simplification restricts the simplifier to its most basic
+  operation of term rewriting; solver and looper tactics \cite{isabelle-ref}
+  are \emph{not} involved here.  The $simplified$ attribute should be only
+  rarely required under normal circumstances.
+
 \end{descr}
 
 
-\subsubsection{Basic equational reasoning}\label{sec:basic-eq}
-
-FIXME move?
+\subsubsection{Low-level equational reasoning}\label{sec:basic-eq}
 
 \indexisarmeth{subst}\indexisarmeth{hypsubst}\indexisarmeth{split}
 \begin{matharray}{rcl}
-  subst & : & \isarmeth \\
+  subst^* & : & \isarmeth \\
   hypsubst^* & : & \isarmeth \\
-  split & : & \isarmeth \\
+  split^* & : & \isarmeth \\
 \end{matharray}
 
 \begin{rail}
@@ -734,16 +734,21 @@ FIXME move?
   ;
 \end{rail}
 
-These methods and attributes provide basic facilities for equational reasoning
-that are intended for specialized applications only.  Normally, single step
-reasoning would be performed by calculation (see \S\ref{sec:calculation}),
-while the Simplifier is the canonical tool for automated normalization (see
-\S\ref{sec:simplifier}).
+These methods provide low-level facilities for equational reasoning that are
+intended for specialized applications only.  Normally, single step
+calculations would be performed in a structured text (see also
+\S\ref{sec:calculation}), while the Simplifier methods provide the canonical
+way for automated normalization (see \S\ref{sec:simplifier}).
 
 \begin{descr}
+  
 \item [$subst~thm$] performs a single substitution step using rule $thm$,
   which may be either a meta or object equality.
-\item [$hypsubst$] performs substitution using some assumption.
+  
+\item [$hypsubst$] performs substitution using some assumption.  Note that
+  this only works for equations of the form $x = t$ where $x$ is a free or
+  bound variable!
+  
 \item [$split~thms$] performs single-step case splitting using rules $thms$.
   By default, splitting is performed in the conclusion of a goal; the $asm$
   option indicates to operate on assumptions instead.
