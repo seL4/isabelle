@@ -1,0 +1,218 @@
+(*  Title:      Pure/Isar/isar_thy.ML
+    ID:         $Id$
+    Author:     Markus Wenzel, TU Muenchen
+
+Derived theory operations.
+
+TODO:
+  - add_defs: handle empty name (pure_thy.ML (!?));
+  - add_constdefs (atomic!);
+  - have_theorems, have_lemmas;
+  - load theory;
+  - 'methods' section (proof macros, ML method defs) (!?);
+  - now_block: ProofHistory open / close (!?);
+  - from_facts: attribs, args (!?) (beware of termination!!);
+*)
+
+signature ISAR_THY =
+sig
+  val add_axioms: ((bstring * string) * Args.src list) list -> theory -> theory
+  val add_defs: ((bstring * string) * Args.src list) list -> theory -> theory
+  val fix: (string * string option) list -> ProofHistory.T -> ProofHistory.T
+  val match_bind: (string * string) list -> ProofHistory.T -> ProofHistory.T
+  val theorem: string -> Args.src list -> string -> theory -> ProofHistory.T
+  val lemma: string -> Args.src list -> string -> theory -> ProofHistory.T
+  val assume: string -> Args.src list -> string list -> ProofHistory.T -> ProofHistory.T
+  val show: string -> Args.src list -> string -> ProofHistory.T -> ProofHistory.T
+  val have: string -> Args.src list -> string -> ProofHistory.T -> ProofHistory.T
+  val chain: ProofHistory.T -> ProofHistory.T
+  val from_facts: string list -> ProofHistory.T -> ProofHistory.T
+  val begin_block: ProofHistory.T -> ProofHistory.T
+  val next_block: ProofHistory.T -> ProofHistory.T
+  val end_block: ProofHistory.T -> ProofHistory.T
+  val qed_with: bstring option * Args.src list option -> ProofHistory.T -> theory
+  val qed: ProofHistory.T -> theory
+  val kill_proof: ProofHistory.T -> theory
+  val tac: Method.text -> ProofHistory.T -> ProofHistory.T
+  val etac: Method.text -> ProofHistory.T -> ProofHistory.T
+  val proof: Method.text option -> ProofHistory.T -> ProofHistory.T
+  val terminal_proof: Method.text -> ProofHistory.T -> ProofHistory.T
+  val trivial_proof: ProofHistory.T -> ProofHistory.T
+  val default_proof: ProofHistory.T -> ProofHistory.T
+  val use_mltext: string -> theory option -> theory option
+  val use_mltext_theory: string -> theory -> theory
+  val use_setup: string -> theory -> theory
+  val parse_ast_translation: string -> theory -> theory
+  val parse_translation: string -> theory -> theory
+  val print_translation: string -> theory -> theory
+  val typed_print_translation: string -> theory -> theory
+  val print_ast_translation: string -> theory -> theory
+  val token_translation: string -> theory -> theory
+  val add_oracle: bstring * string -> theory -> theory
+  val the_theory: string -> unit -> theory
+  val begin_theory: string * string list -> unit -> theory
+  val end_theory: theory -> unit
+end;
+
+structure IsarThy: ISAR_THY =
+struct
+
+
+(** derived theory and proof operations **)
+
+(* axioms and defs *)
+
+fun attributize thy (x, srcs) = (x, map (Attrib.global_attribute thy) srcs);
+
+fun add_axioms axms thy = PureThy.add_axioms (map (attributize thy) axms) thy;
+fun add_defs defs thy = PureThy.add_defs (map (attributize thy) defs) thy;
+
+
+(* context *)
+
+val fix = ProofHistory.apply o Proof.fix;
+
+val match_bind = ProofHistory.apply o Proof.match_bind;
+
+
+(* statements *)
+
+fun global_statement f name tags s thy =
+  ProofHistory.init (f name (map (Attrib.global_attribute thy) tags) s thy);
+
+fun local_statement f name tags s = ProofHistory.apply_open (fn state =>
+  f name (map (Attrib.local_attribute (Proof.theory_of state)) tags) s state);
+
+val theorem = global_statement Proof.theorem;
+val lemma = global_statement Proof.lemma;
+val assume = local_statement Proof.assume;
+val show = local_statement Proof.show;
+val have = local_statement Proof.have;
+
+
+(* forward chaining *)
+
+val chain = ProofHistory.apply Proof.chain;
+
+fun from_facts names = ProofHistory.apply (fn state =>
+  state
+  |> Proof.from_facts (ProofContext.get_tthmss (Proof.context_of state) names));
+
+
+(* end proof *)
+
+fun qed_with (alt_name, alt_tags) prf =
+  let
+    val state = ProofHistory.current prf;
+    val thy = Proof.theory_of state;
+    val alt_atts = apsome (map (Attrib.global_attribute thy)) alt_tags;
+    val (thy', (kind, name, tthm)) = Method.qed alt_name alt_atts state;
+
+    val prt_result = Pretty.block
+      [Pretty.str (kind ^ " " ^ name ^ ":"), Pretty.fbrk, Attribute.pretty_tthm tthm];
+  in Pretty.writeln prt_result; thy end;
+
+val qed = qed_with (None, None);
+
+val kill_proof = Proof.theory_of o ProofHistory.current;
+
+
+(* blocks *)
+
+val begin_block = ProofHistory.apply_open Proof.begin_block;
+val next_block = ProofHistory.apply Proof.next_block;
+
+
+(* backward steps *)
+
+val tac = ProofHistory.applys o Method.tac;
+val etac = ProofHistory.applys o Method.etac;
+val proof = ProofHistory.applys o Method.proof;
+val end_block = ProofHistory.applys_close Method.end_block;
+val terminal_proof = ProofHistory.applys_close o Method.terminal_proof;
+val trivial_proof = ProofHistory.applys_close Method.trivial_proof;
+val default_proof = ProofHistory.applys_close Method.default_proof;
+
+
+(* use ML text *)
+
+fun use_mltext txt opt_thy =
+  let
+    val save_context = Context.get_context ();
+    val _ = Context.set_context opt_thy;
+    val opt_exn = (transform_error (use_text false) txt; None) handle exn => Some exn;
+    val opt_thy' = Context.get_context ();
+  in
+    Context.set_context save_context;
+    (case opt_exn of
+      None => opt_thy'
+    | Some exn => raise exn)
+  end;
+
+fun use_mltext_theory txt thy =
+  (case use_mltext txt (Some thy) of
+    Some thy' => thy'
+  | None => error "Missing result ML theory context");
+
+
+fun use_context txt = use_mltext_theory ("Context.>> (" ^ txt ^ ");");
+
+fun use_let name body txt =
+  use_context ("let val " ^ name ^ " = " ^ txt ^ " in\n" ^ body ^ " end");
+
+val use_setup =
+  use_let "setup: (theory -> theory) list" "Theory.apply setup";
+
+
+(* translation functions *)
+
+val parse_ast_translation =
+  use_let "parse_ast_translation: (string * (Syntax.ast list -> Syntax.ast)) list"
+    "Theory.add_trfuns (parse_ast_translation, [], [], [])";
+
+val parse_translation =
+  use_let "parse_translation: (string * (term list -> term)) list"
+    "Theory.add_trfuns ([], parse_translation, [], [])";
+
+val print_translation =
+  use_let "print_translation: (string * (term list -> term)) list"
+    "Theory.add_trfuns ([], [], print_translation, [])";
+
+val print_ast_translation =
+  use_let "print_ast_translation: (string * (Syntax.ast list -> Syntax.ast)) list"
+    "Theory.add_trfuns ([], [], [], print_ast_translation)";
+
+val typed_print_translation =
+  use_let "typed_print_translation: (string * (bool -> typ -> term list -> term)) list"
+    "Theory.add_trfunsT typed_print_translation";
+
+val token_translation =
+  use_let "token_translation: (string * string * (string -> string * int)) list"
+    "Theory.add_tokentrfuns token_translation";
+
+
+(* add_oracle *)
+
+fun add_oracle (name, txt) =
+  use_let
+    "oracle: bstring * (Sign.sg * Object.T -> term)"
+    "Theory.add_oracle oracle"
+    ("(" ^ quote name ^ ", " ^ txt ^ ")");
+
+
+(* theory init and exit *)
+
+fun the_theory name () = ThyInfo.theory name;
+
+fun begin_theory (name, names) () =
+  PureThy.begin_theory name (map ThyInfo.theory names);
+
+
+fun end_theory thy =
+  let val thy' = PureThy.end_theory thy in
+    transform_error ThyInfo.store_theory thy'
+      handle exn => raise PureThy.ROLLBACK (thy', Some exn)     (* FIXME !!?? *)
+  end;
+
+
+end;
