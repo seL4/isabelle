@@ -210,35 +210,36 @@ by (fast_tac (!claset addSEs [fun_type_gen]) 1);
 by (fast_tac (!claset addss (!simpset)) 1);
 qed "DC0_DC_nat";
 
-(* ********************************************************************** *)
-(* DC(omega) ==> DC                                                       *)
-(*                                                                        *)
-(* The scheme of the proof:                                               *)
-(*                                                                        *)
-(* Assume DC(omega). Let R and x satisfy the premise of DC.               *)
-(*                                                                        *)
-(* Define XX and RR as follows:                                           *)
-(*                                                                        *)
-(*      XX = (UN n:nat.                                                   *)
-(*      {f:succ(n)->domain(R). ALL k:n. <f`k, f`succ(k)> : R})            *)
-(*      RR = {<z1,z2>:Fin(XX)*XX. (domain(z2)=succ(UN f:z1. domain(f))  *)
-(*              & (ALL f:z1. restrict(z2, domain(f)) = f)) |      *)
-(*              (~ (EX g:XX. domain(g)=succ(UN f:z1. domain(f))       *)
-(*              & (ALL f:z1. restrict(g, domain(f)) = f)) &           *)
-(*              z2={<0,x>})}                                          *)
-(*                                                                        *)
-(* Then XX and RR satisfy the hypotheses of DC(omega).                    *)
-(* So applying DC:                                                        *)
-(*                                                                        *)
-(*       EX f:nat->XX. ALL n:nat. f``n RR f`n                             *)
-(*                                                                        *)
-(* Thence                                                                 *)
-(*                                                                        *)
-(*       ff = {<n, f`n`n>. n:nat}                                         *)
-(*                                                                        *)
-(* is the desired function.                                               *)
-(*                                                                        *)
-(* ********************************************************************** *)
+(* ************************************************************************
+   DC(omega) ==> DC                                                       
+                                                                          
+   The scheme of the proof:                                               
+                                                                          
+   Assume DC(omega). Let R and x satisfy the premise of DC.               
+                                                                          
+   Define XX and RR as follows:                                           
+                                                                          
+    XX = (UN n:nat. {f:succ(n)->domain(R). ALL k:n. <f`k, f`succ(k)> : R})
+
+    RR = {<z1,z2>:Fin(XX)*XX. 
+           (domain(z2)=succ(UN f:z1. domain(f)) &
+	    (ALL f:z1. restrict(z2, domain(f)) = f)) |      
+	   (~ (EX g:XX. domain(g)=succ(UN f:z1. domain(f)) &
+	                (ALL f:z1. restrict(g, domain(f)) = f)) &           
+	    z2={<0,x>})}                                          
+                                                                          
+   Then XX and RR satisfy the hypotheses of DC(omega).                    
+   So applying DC:                                                        
+                                                                          
+         EX f:nat->XX. ALL n:nat. f``n RR f`n                             
+                                                                          
+   Thence                                                                 
+                                                                          
+         ff = {<n, f`n`n>. n:nat}                                         
+                                                                          
+   is the desired function.                                               
+                                                                          
+************************************************************************* *)
 
 goalw thy [lesspoll_def, Finite_def]
         "!!A. A lesspoll nat ==> Finite(A)";
@@ -304,7 +305,7 @@ by (safe_tac (!claset delrules [domainE]));
 by (swap_res_tac [bexI] 1 THEN etac singleton_in_funs 2);
 by (asm_full_simp_tac (!simpset addsimps [nat_0I  RSN (2, bexI), 
                                      cons_fun_type2, empty_fun]) 1);
-val lemma1 = result();
+val lemma4 = result();
 
 goal thy "!!f. [| f:nat->X; n:nat |] ==>  \
 \       (UN x:f``succ(n). P(x)) =  P(f`n) Un (UN x:f``n. P(x))";
@@ -376,10 +377,11 @@ qed "all_in_image_restrict_eq";
 
 goal thy
 "!!X.[| ALL b<nat. <f``b, f`b> :  \
-\       {<z1,z2>:Fin(XX)*XX. (domain(z2)=succ(UN f:z1. domain(f))  \
-\                & (ALL f:z1. restrict(z2, domain(f)) = f)) |  \
-\                  (~ (EX g:XX. domain(g)=succ(UN f:z1. domain(f))  \
-\                & (ALL f:z1. restrict(g, domain(f)) = f)) & z2={<0,x>})};  \
+\       {<z1,z2>:Fin(XX)*XX. (domain(z2)=succ(UN f:z1. domain(f))  & \
+\                            (ALL f:z1. restrict(z2, domain(f)) = f)) |  \
+\                    (~ (EX g:XX. domain(g)=succ(UN f:z1. domain(f)) & \
+\                                 (ALL f:z1. restrict(g, domain(f)) = f)) & \
+\                            z2={<0,x>})};  \
 \       XX = (UN n:nat.  \
 \       {f:succ(n)->domain(R). ALL k:n. <f`k, f`succ(k)> : R});  \
 \       f: nat -> XX; range(R) <= domain(R); x:domain(R)  \
@@ -392,10 +394,11 @@ by (dtac ltD 1);
 by (etac nat_induct 1);
 by (dresolve_tac [[nat_0I, Ord_nat] MRS ltI RSN (2, ospec)] 1);
 by (fast_tac (FOL_cs addss
-              (!simpset addsimps [image_0, singleton_fun RS domain_of_fun,
+              (!simpset addsimps [singleton_fun RS domain_of_fun,
                                   singleton_0, singleton_in_funs])) 1);
 (*induction step*) (** LEVEL 5 **)
-by (Full_simp_tac 1);
+by (full_simp_tac (*prevent simplification of ~EX to ALL~*)
+		  (FOL_ss addsimps [separation, split]) 1);
 by (dresolve_tac [[nat_succI, Ord_nat] MRS ltI RSN (2, ospec)] 1
         THEN (assume_tac 1));
 by (REPEAT (eresolve_tac [conjE, disjE] 1));
@@ -411,6 +414,7 @@ by (etac domainE 1);
 by (etac domainE 1);
 
 by (forward_tac [f_n_type] 1 THEN REPEAT (assume_tac 1));
+
 by (rtac bexI 1);
 by (etac nat_succI 2);
 by (res_inst_tac [("x","cons(<succ(xa), ya>, f`xa)")] bexI 1);
@@ -451,13 +455,14 @@ by (fast_tac (!claset
 by (fast_tac (FOL_cs addSEs [conjE, f_n_pairs_in_R, trans, subst_context]) 1);
 val lemma2 = result();
 
-goal thy "!!n. [| XX = (UN n:nat.  \
-\       {f:succ(n)->domain(R). ALL k:n. <f`k, f`succ(k)> : R});  \
+goal thy 
+"!!n. [| XX = (UN n:nat.  \
+\                {f:succ(n)->domain(R). ALL k:n. <f`k, f`succ(k)> : R});  \
 \       ALL b<nat. <f``b, f`b> :  \
-\       {<z1,z2>:Fin(XX)*XX. (domain(z2)=succ(UN f:z1. domain(f))  \
+\              {<z1,z2>:Fin(XX)*XX. (domain(z2)=succ(UN f:z1. domain(f))  \
 \       & (UN f:z1. domain(f)) = b  \
 \       & (ALL f:z1. restrict(z2, domain(f)) = f))};  \
-\       f : nat -> XX; n:nat; range(R) <= domain(R); x:domain(R)  \
+\       f : nat -> XX;  n:nat;  range(R) <= domain(R);  x:domain(R)  \
 \       |] ==> f`n`n = f`succ(n)`n";
 by (forward_tac [lemma2 RS conjunct1 RS domain_of_fun] 1
         THEN REPEAT (assume_tac 1));
@@ -472,10 +477,11 @@ by (asm_full_simp_tac (!simpset
         addsimps [[nat_succI, Ord_nat] MRS OrdmemD RSN (2, image_fun)]) 1);
 val lemma3 = result();
 
+
 goalw thy [DC_def, DC0_def] "!!Z. DC(nat) ==> DC0";
 by (REPEAT (resolve_tac [allI, impI] 1));
 by (REPEAT (eresolve_tac [asm_rl, conjE, ex_in_domain RS exE, allE] 1));
-by (eresolve_tac [[refl, refl] MRS lemma1 RSN (2, impE)] 1
+by (eresolve_tac [[refl, refl] MRS lemma4 RSN (2, impE)] 1
         THEN REPEAT (assume_tac 1));
 by (etac bexE 1);
 by (dresolve_tac [refl RSN (2, simplify_recursion)] 1
@@ -499,7 +505,7 @@ goalw thy [lesspoll_def]
         "!!A. [| ~ A lesspoll B; C lesspoll B |] ==> A - C ~= 0";
 by (fast_tac (!claset addSDs [Diff_eq_0_iff RS iffD1 RS subset_imp_lepoll]
         addSIs [eqpollI] addEs [notE] addSEs [eqpollE, lepoll_trans]) 1);
-val lemma1 = result();
+val lesspoll_lemma = result();
 
 val [f_type, Ord_a, not_eq] = goalw thy [inj_def]
         "[| f:a->X; Ord(a); (!!b c. [| b<c; c:a |] ==> f`b~=f`c)  \
@@ -529,7 +535,7 @@ by (eres_inst_tac [("x","{<z1,z2>:Pow(A)*A . z1  \
 \               lesspoll Hartog(A) & z2 ~: z1}")] allE 1);
 by (Asm_full_simp_tac 1);
 by (etac impE 1);
-by (fast_tac (!claset addEs [lemma1 RS not_emptyE]) 1);
+by (fast_tac (!claset addEs [lesspoll_lemma RS not_emptyE]) 1);
 by (etac bexE 1);
 by (resolve_tac [exI RS (lepoll_def RS (def_imp_iff RS iffD2))
         RS (HartogI RS notE)] 1);
