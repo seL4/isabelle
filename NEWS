@@ -86,6 +86,9 @@ addSolver.  added safe_asm_full_simp_tac.
 
 *** HOL ***
 
+* a generic induction tactic `induct_tac' which works for all datatypes and
+also for type `nat'.
+
 * patterns in case expressions allow tuple patterns as arguments to
 constructors, for example `case x of [] => ... | (x,y,z)#ps => ...'
 
