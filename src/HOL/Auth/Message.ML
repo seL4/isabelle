@@ -7,17 +7,6 @@ Datatypes of agents and messages;
 Inductive relations "parts", "analz" and "synth"
 *)
 
-val prems = goal HOL.thy "[| P ==> Q(True); ~P ==> Q(False) |] ==> Q(P)";
-by (case_tac "P" 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps prems)));
-val expand_case = result();
-
-fun expand_case_tac P i =
-    res_inst_tac [("P",P)] expand_case i THEN
-    Simp_tac (i+1) THEN 
-    Simp_tac i;
-
-
 open Message;
 
 AddIffs (msg.inject);

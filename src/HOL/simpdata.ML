@@ -317,6 +317,17 @@ qed_goalw "o_assoc" HOL.thy [o_def] "f o (g o h) = f o g o h"
   (fn _ => [rtac ext 1, rtac refl 1]);
 
 
+val prems = goal HOL.thy "[| P ==> Q(True); ~P ==> Q(False) |] ==> Q(P)";
+by (case_tac "P" 1);
+by (ALLGOALS (asm_simp_tac (HOL_ss addsimps prems)));
+val expand_case = result();
+
+fun expand_case_tac P i =
+    res_inst_tac [("P",P)] expand_case i THEN
+    Simp_tac (i+1) THEN 
+    Simp_tac i;
+
+
 
 
 (*** Install simpsets and datatypes in theory structure ***)
