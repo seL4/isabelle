@@ -544,3 +544,9 @@ by (simp_tac (simpset() addsimps [zabs_def, nat_mult_distrib RS sym,
                           nat_mult_distrib_neg RS sym, zmult_less_0_iff]) 1);
 by (arith_tac 1);
 qed "nat_abs_mult_distrib";
+
+(*Distributive laws for literals*)
+Addsimps (map (inst "k" "number_of ?v")
+	  [add_mult_distrib, add_mult_distrib2,
+	   diff_mult_distrib, diff_mult_distrib2]);
+
