@@ -27,6 +27,8 @@ attributes for 'intros';
 
 *** HOL ***
 
+* HOL: linorder_less_split superseded by linorder_cases;
+
 * HOL: added "The" definite description operator; move Hilbert's "Eps"
 to peripheral theory "Hilbert_Choice";
 
@@ -68,6 +70,8 @@ many laws relating division to addition, multiplication, etc.;
 
 * Classical reasoner: renamed addaltern to addafter, addSaltern to
 addSafter;
+
+* syntax: support non-oriented infixes;
 
 * print modes "type_brackets" and "no_type_brackets" control output of
 nested => (types); the default behavior is "brackets";
