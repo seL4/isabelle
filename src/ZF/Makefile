@@ -26,13 +26,13 @@ FILES = ROOT.ML ZF.thy ZF.ML upair.ML subset.ML pair.ML domrange.ML \
 	WF.thy WF.ML Ord.thy Ord.ML Nat.thy Nat.ML \
 	Epsilon.thy Epsilon.ML Arith.thy Arith.ML Univ.thy Univ.ML \
 	QUniv.thy QUniv.ML constructor.ML Datatype.ML  \
-	fin.ML List.ML ListFn.thy ListFn.ML
+	Fin.ML List.ML ListFn.thy ListFn.ML
 
 EX_FILES = ex/ROOT.ML ex/Acc.ML ex/Bin.ML ex/BinFn.ML ex/BinFn.thy\
 	   ex/BT.ML ex/BT_Fn.ML ex/BT_Fn.thy ex/Comb.ML\
-	   ex/Contract0.ML ex/Contract0.thy ex/counit.ML ex/Data.ML\
+	   ex/Contract0.ML ex/Contract0.thy ex/CoUnit.ML ex/Data.ML\
 	   ex/Enum.ML ex/Equiv.ML ex/Equiv.thy ex/Integ.ML ex/Integ.thy\
-	   ex/ListN.ML ex/llist.ML ex/LList_Eq.ML ex/LListFn.ML ex/LListFn.thy\
+	   ex/ListN.ML ex/LList.ML ex/LList_Eq.ML ex/LListFn.ML ex/LListFn.thy\
 	   ex/misc.ML ex/ParContract.ML ex/Primrec0.ML ex/Primrec0.thy\
 	   ex/Prop.ML ex/PropLog.ML ex/PropLog.thy ex/Ramsey.ML ex/Ramsey.thy\
 	   ex/Rmap.ML ex/Term.ML ex/TermFn.ML ex/TermFn.thy ex/TF.ML\
