@@ -13,31 +13,7 @@ Defining \isa{trev} by \isacommand{recdef} rather than \isacommand{primrec}
 simplifies matters because we are now free to use the recursion equation
 suggested at the end of \S\ref{sec:nested-datatype}:%
 \end{isamarkuptext}%
-\isacommand{recdef}\ trev\ {\isachardoublequote}measure\ size{\isachardoublequote}\isanewline
-\ {\isachardoublequote}trev\ {\isacharparenleft}Var\ x{\isacharparenright}\ \ \ \ {\isacharequal}\ Var\ x{\isachardoublequote}\isanewline
-\ {\isachardoublequote}trev\ {\isacharparenleft}App\ f\ ts{\isacharparenright}\ {\isacharequal}\ App\ f\ {\isacharparenleft}rev{\isacharparenleft}map\ trev\ ts{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
-\begin{isamarkuptext}%
-\noindent
-Remember that function \isa{size} is defined for each \isacommand{datatype}.
-However, the definition does not succeed. Isabelle complains about an
-unproved termination condition
-\begin{isabelle}%
-\ \ \ \ \ t\ {\isasymin}\ set\ ts\ {\isasymlongrightarrow}\ size\ t\ {\isacharless}\ Suc\ {\isacharparenleft}term{\isacharunderscore}list{\isacharunderscore}size\ ts{\isacharparenright}%
-\end{isabelle}
-where \isa{set} returns the set of elements of a list
-and \isa{term{\isacharunderscore}list{\isacharunderscore}size\ {\isacharcolon}{\isacharcolon}\ term\ list\ {\isasymRightarrow}\ nat} is an auxiliary
-function automatically defined by Isabelle
-(while processing the declaration of \isa{term}).  Why does the
-recursive call of \isa{trev} lead to this
-condition?  Because \isacommand{recdef} knows that \isa{map}
-will apply \isa{trev} only to elements of \isa{ts}. Thus the 
-condition expresses that the size of the argument \isa{t\ {\isasymin}\ set\ ts} of any
-recursive call of \isa{trev} is strictly less than \isa{size\ {\isacharparenleft}App\ f\ ts{\isacharparenright}},
-which equals \isa{Suc\ {\isacharparenleft}term{\isacharunderscore}list{\isacharunderscore}size\ ts{\isacharparenright}}.  We will now prove the termination condition and
-continue with our definition.  Below we return to the question of how
-\isacommand{recdef} knows about \isa{map}.%
-\end{isamarkuptext}%
-\end{isabellebody}%
+\isacommand{recdef}\ \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "root"

@@ -64,7 +64,7 @@ which is ideal for specifying underdefined functions on top of it.
 As a simple example we define division on \isa{nat}:%
 \end{isamarkuptext}%
 \isacommand{consts}\ divi\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isasymtimes}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
-\isacommand{recdef}\ divi\ {\isachardoublequote}measure{\isacharparenleft}{\isasymlambda}{\isacharparenleft}m{\isacharcomma}n{\isacharparenright}{\isachardot}\ m{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{recdef}\ {\isacharparenleft}\isakeyword{permissive}{\isacharparenright}\ divi\ {\isachardoublequote}measure{\isacharparenleft}{\isasymlambda}{\isacharparenleft}m{\isacharcomma}n{\isacharparenright}{\isachardot}\ m{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ {\isachardoublequote}divi{\isacharparenleft}m{\isacharcomma}n{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ n\ {\isacharequal}\ {\isadigit{0}}\ then\ arbitrary\ else\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ if\ m\ {\isacharless}\ n\ then\ {\isadigit{0}}\ else\ divi{\isacharparenleft}m{\isacharminus}n{\isacharcomma}n{\isacharparenright}{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%

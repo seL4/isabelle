@@ -17,69 +17,7 @@ Isabelle may fail to prove the termination condition for some
 recursive call.  Let us try the following artificial function:%
 \end{isamarkuptext}%
 \isacommand{consts}\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat{\isasymtimes}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
-\isacommand{recdef}\ f\ {\isachardoublequote}measure{\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharminus}y{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}f{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ x\ {\isasymle}\ y\ then\ x\ else\ f{\isacharparenleft}x{\isacharcomma}y{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
-\begin{isamarkuptext}%
-\noindent
-Isabelle prints a
-\REMARK{error or warning?  change this part?  rename g to f?}
-message showing you what it was unable to prove. You will then
-have to prove it as a separate lemma before you attempt the definition
-of your function once more. In our case the required lemma is the obvious one:%
-\end{isamarkuptext}%
-\isacommand{lemma}\ termi{\isacharunderscore}lem{\isacharcolon}\ {\isachardoublequote}{\isasymnot}\ x\ {\isasymle}\ y\ {\isasymLongrightarrow}\ x\ {\isacharminus}\ Suc\ y\ {\isacharless}\ x\ {\isacharminus}\ y{\isachardoublequote}%
-\begin{isamarkuptxt}%
-\noindent
-It was not proved automatically because of the awkward behaviour of subtraction
-on type \isa{nat}. This requires more arithmetic than is tried by default:%
-\end{isamarkuptxt}%
-\isacommand{apply}{\isacharparenleft}arith{\isacharparenright}\isanewline
-\isacommand{done}%
-\begin{isamarkuptext}%
-\noindent
-Because \isacommand{recdef}'s termination prover involves simplification,
-we include in our second attempt a hint: the \attrdx{recdef_simp} attribute 
-says to use \isa{termi{\isacharunderscore}lem} as
-a simplification rule.%
-\end{isamarkuptext}%
-\isacommand{consts}\ g\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat{\isasymtimes}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
-\isacommand{recdef}\ g\ {\isachardoublequote}measure{\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharminus}y{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}g{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ x\ {\isasymle}\ y\ then\ x\ else\ g{\isacharparenleft}x{\isacharcomma}y{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
-{\isacharparenleft}\isakeyword{hints}\ recdef{\isacharunderscore}simp{\isacharcolon}\ termi{\isacharunderscore}lem{\isacharparenright}%
-\begin{isamarkuptext}%
-\noindent
-This time everything works fine. Now \isa{g{\isachardot}simps} contains precisely
-the stated recursion equation for \isa{g}, which has been stored as a
-simplification rule.  Thus we can automatically prove results such as this one:%
-\end{isamarkuptext}%
-\isacommand{theorem}\ {\isachardoublequote}g{\isacharparenleft}{\isadigit{1}}{\isacharcomma}{\isadigit{0}}{\isacharparenright}\ {\isacharequal}\ g{\isacharparenleft}{\isadigit{1}}{\isacharcomma}{\isadigit{1}}{\isacharparenright}{\isachardoublequote}\isanewline
-\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
-\isacommand{done}%
-\begin{isamarkuptext}%
-\noindent
-More exciting theorems require induction, which is discussed below.
-
-If the termination proof requires a new lemma that is of general use, you can
-turn it permanently into a simplification rule, in which case the above
-\isacommand{hint} is not necessary. But our \isa{termi{\isacharunderscore}lem} is not
-sufficiently general to warrant this distinction.
-
-The attentive reader may wonder why we chose to call our function \isa{g}
-rather than \isa{f} the second time around. The reason is that, despite
-the failed termination proof, the definition of \isa{f} did not
-fail, and thus we could not define it a second time. However, all theorems
-about \isa{f}, for example \isa{f{\isachardot}simps}, carry as a precondition
-the unproved termination condition. Moreover, the theorems
-\isa{f{\isachardot}simps} are not stored as simplification rules. 
-However, this mechanism
-allows a delayed proof of termination: instead of proving
-\isa{termi{\isacharunderscore}lem} up front, we could prove 
-it later on and then use it to remove the preconditions from the theorems
-about \isa{f}. In most cases this is more cumbersome than proving things
-up front.
-\REMARK{FIXME, with one exception: nested recursion.}%
-\end{isamarkuptext}%
-\end{isabellebody}%
+\isacommand{recdef}\ \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "root"

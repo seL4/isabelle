@@ -65,57 +65,7 @@ well-founded by cutting it off at a certain point.  Here is an example
 of a recursive function that calls itself with increasing values up to ten:%
 \end{isamarkuptext}%
 \isacommand{consts}\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
-\isacommand{recdef}\ f\ {\isachardoublequote}{\isacharbraceleft}{\isacharparenleft}i{\isacharcomma}j{\isacharparenright}{\isachardot}\ j{\isacharless}i\ {\isasymand}\ i\ {\isasymle}\ {\isacharparenleft}{\isacharhash}{\isadigit{1}}{\isadigit{0}}{\isacharcolon}{\isacharcolon}nat{\isacharparenright}{\isacharbraceright}{\isachardoublequote}\isanewline
-{\isachardoublequote}f\ i\ {\isacharequal}\ {\isacharparenleft}if\ {\isacharhash}{\isadigit{1}}{\isadigit{0}}\ {\isasymle}\ i\ then\ {\isadigit{0}}\ else\ i\ {\isacharasterisk}\ f{\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
-\begin{isamarkuptext}%
-\noindent
-Since \isacommand{recdef} is not prepared for the relation supplied above,
-Isabelle rejects the definition.  We should first have proved that
-our relation was well-founded:%
-\end{isamarkuptext}%
-\isacommand{lemma}\ wf{\isacharunderscore}greater{\isacharcolon}\ {\isachardoublequote}wf\ {\isacharbraceleft}{\isacharparenleft}i{\isacharcomma}j{\isacharparenright}{\isachardot}\ j{\isacharless}i\ {\isasymand}\ i\ {\isasymle}\ {\isacharparenleft}N{\isacharcolon}{\isacharcolon}nat{\isacharparenright}{\isacharbraceright}{\isachardoublequote}%
-\begin{isamarkuptxt}%
-\noindent
-The proof is by showing that our relation is a subset of another well-founded
-relation: one given by a measure function.\index{*wf_subset (theorem)}%
-\end{isamarkuptxt}%
-\isacommand{apply}\ {\isacharparenleft}rule\ wf{\isacharunderscore}subset\ {\isacharbrackleft}of\ {\isachardoublequote}measure\ {\isacharparenleft}{\isasymlambda}k{\isacharcolon}{\isacharcolon}nat{\isachardot}\ N{\isacharminus}k{\isacharparenright}{\isachardoublequote}{\isacharbrackright}{\isacharcomma}\ blast{\isacharparenright}%
-\begin{isamarkuptxt}%
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isacharbraceleft}{\isacharparenleft}i{\isacharcomma}\ j{\isacharparenright}{\isachardot}\ j\ {\isacharless}\ i\ {\isasymand}\ i\ {\isasymle}\ N{\isacharbraceright}\ {\isasymsubseteq}\ measure\ {\isacharparenleft}op\ {\isacharminus}\ N{\isacharparenright}%
-\end{isabelle}
-
-\noindent
-The inclusion remains to be proved. After unfolding some definitions, 
-we are left with simple arithmetic:%
-\end{isamarkuptxt}%
-\isacommand{apply}\ {\isacharparenleft}clarify{\isacharcomma}\ simp\ add{\isacharcolon}\ measure{\isacharunderscore}def\ inv{\isacharunderscore}image{\isacharunderscore}def{\isacharparenright}%
-\begin{isamarkuptxt}%
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}a\ b{\isachardot}\ {\isasymlbrakk}b\ {\isacharless}\ a{\isacharsemicolon}\ a\ {\isasymle}\ N{\isasymrbrakk}\ {\isasymLongrightarrow}\ N\ {\isacharminus}\ a\ {\isacharless}\ N\ {\isacharminus}\ b%
-\end{isabelle}
-
-\noindent
-And that is dispatched automatically:%
-\end{isamarkuptxt}%
-\isacommand{by}\ arith%
-\begin{isamarkuptext}%
-\noindent
-
-Armed with this lemma, we use the \attrdx{recdef_wf} attribute to attach a
-crucial hint to our definition:%
-\end{isamarkuptext}%
-{\isacharparenleft}\isakeyword{hints}\ recdef{\isacharunderscore}wf{\isacharcolon}\ wf{\isacharunderscore}greater{\isacharparenright}%
-\begin{isamarkuptext}%
-\noindent
-Alternatively, we could have given \isa{measure\ {\isacharparenleft}{\isasymlambda}k{\isacharcolon}{\isacharcolon}nat{\isachardot}\ {\isacharhash}{\isadigit{1}}{\isadigit{0}}{\isacharminus}k{\isacharparenright}} for the
-well-founded relation in our \isacommand{recdef}.  However, the arithmetic
-goal in the lemma above would have arisen instead in the \isacommand{recdef}
-termination proof, where we have less control.  A tailor-made termination
-relation makes even more sense when it can be used in several function
-declarations.%
-\end{isamarkuptext}%
-\end{isabellebody}%
+\isacommand{recdef}\ \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "root"
