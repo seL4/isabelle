@@ -47,7 +47,7 @@ structure Classical_Data =
   val classical = classical
   val sizef     = size_of_thm
   val hyp_subst_tacs=[hyp_subst_tac]
-  val atomize	= thms "atomize"
+  val atomize	= thms "atomize'"
   end;
 
 structure Classical = ClassicalFun(Classical_Data);
