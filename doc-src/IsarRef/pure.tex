@@ -410,8 +410,8 @@ modes of operation:
 \item [$proof(state)$] is like an internal theory mode: the context may be
   augmented by \emph{stating} additional assumptions, intermediate result etc.
 \item [$proof(chain)$] is an intermediate mode between $proof(state)$ and
-  $proof(prove)$: existing facts have been just picked up in order to use them
-  when refining the goal claimed next.
+  $proof(prove)$: existing facts (i.e.\ the contents of $this$) have been just
+  picked up in order to use them when refining the goal claimed next.
 \end{descr}
 
 
@@ -478,7 +478,7 @@ exporting some result $\phi[x]$ simply yields $\phi[t]$.
 
   var: name ('::' type)?
   ;
-  vars: name+ ('::' type)?
+  vars: (name+) ('::' type)?
   ;
   assm: thmdecl? (prop proppat? +)
   ;
@@ -521,7 +521,7 @@ New facts are established either by assumption or proof of local statements.
 Any fact will usually be involved in further proofs, either as explicit
 arguments of proof methods or when forward chaining towards the next goal via
 $\THEN$ (and variants).  Note that the special theorem name
-$facts$.\indexisarthm{facts} refers to the most recently established facts.
+$this$.\indexisarthm{this} refers to the most recently established facts.
 \begin{rail}
   'note' thmdef? thmrefs comment?
   ;
@@ -541,7 +541,7 @@ $facts$.\indexisarthm{facts} refers to the most recently established facts.
   \S\ref{sec:proof-steps}).  For example, method $rule$ (see
   \S\ref{sec:pure-meth}) would do an elimination rather than an introduction.
 \item [$\FROM{\vec b}$] abbreviates $\NOTE{}{\vec b}~\THEN$; thus $\THEN$ is
-  equivalent to $\FROM{facts}$.
+  equivalent to $\FROM{this}$.
 \item [$\WITH{\vec b}$] abbreviates $\FROM{\vec b~facts}$; thus the forward
   chaining is from earlier facts together with the current ones.
 \end{descr}
@@ -549,9 +549,9 @@ $facts$.\indexisarthm{facts} refers to the most recently established facts.
 Basic proof methods (such as $rule$, see \S\ref{sec:pure-meth}) expect
 multiple facts to be given in proper order, corresponding to a prefix of the
 premises of the rule involved.  Note that positions may be easily skipped
-using a form like $\FROM{_~a~b}$, for example.  This involves the rule
-$PROP~\psi \Imp PROP~\psi$, which is bound in Isabelle/Pure as ``_''
-(underscore).\indexisarthm{_@\texttt{_}}
+using a form like $\FROM{\text{\texttt{_}}~a~b}$, for example.  This involves
+the rule $\PROP\psi \Imp \PROP\psi$, which is bound in Isabelle/Pure as
+``\texttt{_}'' (underscore).\indexisarthm{_@\texttt{_}}
 
 
 \subsection{Goal statements}
@@ -593,8 +593,10 @@ pending goal and whether forward chaining is employed.
 \item [$\SHOW{a}{\phi}$] is similar to $\HAVE{a}{\phi}$, but solves some
   pending goal with the result \emph{exported} into the corresponding context.
 \item [$\HENCE{a}{\phi}$] abbreviates $\THEN~\HAVE{a}{\phi}$, i.e.\ claims a
-  local goal to be proven by forward chaining the current facts.
-\item [$\THUS{a}{\phi}$] abbreviates $\THEN~\SHOW{a}{\phi}$.
+  local goal to be proven by forward chaining the current facts.  Note that
+  $\HENCENAME$ is equivalent to $\FROM{this}~\HAVENAME$.
+\item [$\THUS{a}{\phi}$] abbreviates $\THEN~\SHOW{a}{\phi}$.  Note that
+  $\THUSNAME$ is equivalent to $\FROM{this}~\SHOWNAME$.
 \end{descr}
 
 
@@ -639,8 +641,9 @@ automated method, and then applied to some pending goal.
 
 Unless given explicitly by the user, the default initial method is
 ``$default$'', which is usually set up to apply a single standard elimination
-or introduction rule according to the topmost symbol involved.  The default
-terminal method is ``$finish$''; it solves all goals by assumption.
+or introduction rule according to the topmost symbol involved.  There is no
+default terminal method; in any case the final step is to solve all remaining
+goals by assumption.
 
 \begin{rail}
   'proof' interest? meth? comment?
@@ -673,7 +676,8 @@ terminal method is ``$finish$''; it solves all goals by assumption.
   expanding the abbreviation by hand; note that $\PROOF{m@1}$ is usually
   sufficient to see what is going wrong.
 \item [``$\DDOT$''] is a \emph{default proof}; it abbreviates $\BY{default}$.
-\item [``$\DOT$''] is a \emph{trivial proof}; it abbreviates $\BY{-}$.
+\item [``$\DOT$''] is a \emph{trivial proof}; it abbreviates
+  $\BY{assumption}$.
 \item [$\isarkeyword{sorry}$] is a \emph{fake proof}; provided that
   \texttt{quick_and_dirty} is enabled, $\isarkeyword{sorry}$ pretends to solve
   the goal without further ado.  Of course, the result is a fake theorem only,
@@ -734,7 +738,7 @@ etc.) with a list of patterns $\IS{p@1 \dots p@n}$.  In both cases,
 higher-order matching is applied to bind extra-logical text
 variables\index{text variables}, which may be either of the form $\VVar{x}$
 (token class \railtoken{textvar}, see \S\ref{sec:lex-syntax}) or nameless
-dummies ``\verb,_,'' (underscore).\index{dummy variables} Note that in the
+dummies ``\texttt{_}'' (underscore).\index{dummy variables} Note that in the
 $\LETNAME$ form the patterns occur on the left-hand side, while the $\ISNAME$
 patterns are in postfix position.
 
