@@ -25,6 +25,7 @@ text {|
   @{type "'a set"} and the operator @{term range}.
 |}
 
+
 text {|
   We first consider a rather verbose version of the proof, with the
   reasoning expressed quite naively.  We only make use of the pure
@@ -56,6 +57,7 @@ proof;
     qed;
   qed;
 qed;
+
 
 text {|
   The following version essentially does the same reasoning, only that
@@ -103,10 +105,11 @@ theorem "EX S. S ~: range(f :: 'a => 'a set)";
 
 text {|
   While this establishes the same theorem internally, we do not get
-  any idea of how the actually works.  There is currently no way to
-  transform internal system-level representations of proofs back into
-  Isar documents.  Writing Isabelle/Isar proof documents actually
-  \emph{is} an creative process.
+  any idea of how the proof actually works.  There is currently no way
+  to transform internal system-level representations of Isabelle
+  proofs back into Isar documents.  Writing Isabelle/Isar proof
+  documents actually \emph{is} an creative process.
 |}
+
 
 end;
