@@ -329,6 +329,15 @@ Note that explicit goal addressing may be usually avoided by changing the
 order of subgoals with $\isarkeyword{defer}$ or $\isarkeyword{prefer}$ (see
 \S\ref{sec:tactic-commands}).
 
+\medskip Some further (less frequently used) combinations of basic resolution
+tactics may be expressed as follows.
+\begin{matharray}{lll}
+  \texttt{ares_tac}~[a@1, \dots]~1 & & assumption~|~rule~a@1~\dots \\
+  \texttt{eatac}~a~n~1 & & erule~(n)~a \\
+  \texttt{datac}~a~n~1 & & drule~(n)~a \\
+  \texttt{fatac}~a~n~1 & & frule~(n)~a \\
+\end{matharray}
+
 
 \subsubsection{Simplifier tactics}
 
