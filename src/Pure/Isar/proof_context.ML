@@ -17,6 +17,7 @@ sig
   val verbose: bool ref
   val print_binds: context -> unit
   val print_thms: context -> unit
+  val print_cases: context -> unit
   val strings_of_prems: context -> string list
   val strings_of_context: context -> string list
   val print_proof_data: theory -> unit
@@ -71,6 +72,8 @@ sig
   val cert_vars: context * (string list * typ option) -> context * (string list * typ option)
   val fix: (string list * string option) list -> context -> context
   val fix_i: (string list * typ option) list -> context -> context
+  val get_case: context -> string -> RuleCases.T
+  val add_cases: (string * RuleCases.T) list -> context -> context
   val setup: (theory -> theory) list
 end;
 
@@ -100,6 +103,7 @@ datatype context =
       ((string * string) list * string list),                           (*fixes: !!x. _*)
     binds: (term * typ) option Vartab.table,                            (*term bindings*)
     thms: thm list option Symtab.table,                                 (*local thms*)
+    cases: RuleCases.T Symtab.table,                                    (*local contexts*)
     defs:
       typ Vartab.table *                                                (*type constraints*)
       sort Vartab.table *                                               (*default sorts*)
@@ -108,11 +112,12 @@ datatype context =
 exception CONTEXT of string * context;
 
 
-fun make_context (thy, data, asms, binds, thms, defs) =
-  Context {thy = thy, data = data, asms = asms, binds = binds, thms = thms, defs = defs};
+fun make_context (thy, data, asms, binds, thms, cases, defs) =
+  Context {thy = thy, data = data, asms = asms, binds = binds, thms = thms,
+    cases = cases, defs = defs};
 
-fun map_context f (Context {thy, data, asms, binds, thms, defs}) =
-  make_context (f (thy, data, asms, binds, thms, defs));
+fun map_context f (Context {thy, data, asms, binds, thms, cases, defs}) =
+  make_context (f (thy, data, asms, binds, thms, cases, defs));
 
 fun theory_of (Context {thy, ...}) = thy;
 val sign_of = Theory.sign_of o theory_of;
@@ -130,7 +135,7 @@ fun pretty_thm thm =
   else Display.pretty_cterm (#prop (Thm.crep_thm thm));
 
 val verbose = ref false;
-fun verb f x = if ! verbose then f x else [];
+fun verb f x = if ! verbose then f (x ()) else [];
 val verb_string = verb (Library.single o Pretty.string_of);
 
 fun strings_of_items prt name items =
@@ -168,6 +173,28 @@ fun strings_of_thms (Context {thms, ...}) =
 val print_thms = seq writeln o strings_of_thms;
 
 
+(* local contexts *)
+
+fun strings_of_cases (ctxt as Context {cases, ...}) =
+  let
+    val prt_term = Sign.pretty_term (sign_of ctxt);
+
+    fun prt_sect _ _ [] = []
+      | prt_sect s prt xs = [Pretty.block (Pretty.breaks (Pretty.str s :: map prt xs))];
+
+    (* FIXME hilite keywords (using Isar-self syntax) (!?); move to rule_cases.ML (!?) *)
+    fun prt_case (name, (xs, ts)) = Pretty.block (Pretty.breaks
+      (Pretty.str (name ^ ":") ::
+        prt_sect "fix" (prt_term o Free) xs @
+        prt_sect "assume" (Pretty.quote o prt_term) ts));
+  in
+    if Symtab.is_empty cases andalso not (! verbose) then []
+    else [Pretty.string_of (Pretty.big_list "cases:" (map prt_case (Symtab.dest cases)))]
+  end;
+
+val print_cases = seq writeln o strings_of_cases;
+
+
 (* main context *)
 
 fun strings_of_prems ctxt =
@@ -175,7 +202,7 @@ fun strings_of_prems ctxt =
     [] => []
   | prems => [Pretty.string_of (Pretty.big_list "prems:" (map pretty_thm prems))]);
 
-fun strings_of_context (ctxt as Context {asms = (_, (fixes, _)),
+fun strings_of_context (ctxt as Context {asms = (_, (fixes, _)), cases,
     defs = (types, sorts, used), ...}) =
   let
     val sign = sign_of ctxt;
@@ -194,9 +221,7 @@ fun strings_of_context (ctxt as Context {asms = (_, (fixes, _)),
     fun prt_fixes xs = Pretty.block (Pretty.str "fixed variables:" :: Pretty.brk 1 ::
       Pretty.commas (map prt_fix xs));
 
-
-    (* defaults *)
-
+    (*defaults*)
     fun prt_atom prt prtT (x, X) = Pretty.block
       [prt x, Pretty.str " ::", Pretty.brk 1, prtT X];
 
@@ -209,14 +234,15 @@ fun strings_of_context (ctxt as Context {asms = (_, (fixes, _)),
     val prt_defT = prt_atom prt_var prt_typ;
     val prt_defS = prt_atom prt_varT prt_sort;
   in
-    verb_string pretty_thy @
+    verb_string (K pretty_thy) @
     (if null fixes then [] else [Pretty.string_of (prt_fixes (rev fixes))]) @
     strings_of_prems ctxt @
-    verb strings_of_binds ctxt @
-    verb strings_of_thms ctxt @
-    verb_string (Pretty.big_list "type constraints:" (map prt_defT (Vartab.dest types))) @
-    verb_string (Pretty.big_list "default sorts:" (map prt_defS (Vartab.dest sorts))) @
-    verb_string (Pretty.strs ("used type variable names:" :: used))
+    verb strings_of_binds (K ctxt) @
+    verb strings_of_thms (K ctxt) @
+    verb strings_of_cases (K ctxt) @
+    verb_string (fn () => Pretty.big_list "type constraints:" (map prt_defT (Vartab.dest types))) @
+    verb_string (fn () => Pretty.big_list "default sorts:" (map prt_defS (Vartab.dest sorts))) @
+    verb_string (fn () => Pretty.strs ("used type variable names:" :: used))
   end;
 
 
@@ -300,16 +326,16 @@ fun print_data kind ctxt =
   in prt ctxt x end;
 
 fun put_data kind f x ctxt =
-  (lookup_data ctxt kind;
-    ctxt |> map_context (fn (thy, data, asms, binds, thms, defs) =>
-      (thy, Symtab.update ((Object.name_of_kind kind, f x), data), asms, binds, thms, defs)));
+ (lookup_data ctxt kind;
+  ctxt |> map_context (fn (thy, data, asms, binds, thms, cases, defs) =>
+    (thy, Symtab.update ((Object.name_of_kind kind, f x), data), asms, binds, thms, cases, defs)));
 
 
 (* init context *)
 
 fun init thy =
   let val data = Symtab.map (fn (_, (f, _)) => f thy) (ProofDataData.get thy) in
-    make_context (thy, data, (([], []), ([], [])), Vartab.empty, Symtab.empty,
+    make_context (thy, data, (([], []), ([], [])), Vartab.empty, Symtab.empty, Symtab.empty,
       (Vartab.empty, Vartab.empty, []))
   end;
 
@@ -505,8 +531,8 @@ fun ins_skolem def_ty = foldr
       Some T => Vartab.update (((x, ~1), T), types)
     | None => types));
 
-fun map_defaults f = map_context
-  (fn (thy, data, asms, binds, thms, defs) => (thy, data, asms, binds, thms, f defs));
+fun map_defaults f = map_context (fn (thy, data, asms, binds, thms, cases, defs) =>
+  (thy, data, asms, binds, thms, cases, f defs));
 
 fun declare (ctxt as Context {asms = (_, (fixes, _)), ...}, t) =
   ctxt
@@ -541,15 +567,15 @@ fun warn_extra_tfrees (ctxt1 as Context {defs = (_, _, used1), ...})
 
 fun del_bind (ctxt, xi) =
   ctxt
-  |> map_context (fn (thy, data, asms, binds, thms, defs) =>
-      (thy, data, asms, Vartab.update ((xi, None), binds), thms, defs));
+  |> map_context (fn (thy, data, asms, binds, thms, cases, defs) =>
+      (thy, data, asms, Vartab.update ((xi, None), binds), thms, cases, defs));
 
 fun upd_bind (ctxt, (xi, t)) =
   let val T = fastype_of t in
     ctxt
     |> declare_term t
-    |> map_context (fn (thy, data, asms, binds, thms, defs) =>
-        (thy, data, asms, Vartab.update ((xi, Some (t, T)), binds), thms, defs))
+    |> map_context (fn (thy, data, asms, binds, thms, cases, defs) =>
+        (thy, data, asms, Vartab.update ((xi, Some (t, T)), binds), thms, cases, defs))
   end;
 
 fun del_upd_bind (ctxt, (xi, None)) = del_bind (ctxt, xi)
@@ -668,8 +694,8 @@ fun get_thmss ctxt names = flat (map (get_thms ctxt) names);
 
 fun put_thms ("", _) = I
   | put_thms (name, ths) = map_context
-      (fn (thy, data, asms, binds, thms, defs) =>
-        (thy, data, asms, binds, Symtab.update ((name, Some ths), thms), defs));
+      (fn (thy, data, asms, binds, thms, cases, defs) =>
+        (thy, data, asms, binds, Symtab.update ((name, Some ths), thms), cases, defs));
 
 fun put_thm (name, th) = put_thms (name, [th]);
 
@@ -679,8 +705,8 @@ fun put_thmss [] ctxt = ctxt
 
 (* reset_thms *)
 
-fun reset_thms name = map_context (fn (thy, data, asms, binds, thms, defs) =>
-  (thy, data, asms, binds, Symtab.update ((name, None), thms), defs));
+fun reset_thms name = map_context (fn (thy, data, asms, binds, thms, cases, defs) =>
+  (thy, data, asms, binds, Symtab.update ((name, None), thms), cases, defs));
 
 
 (* have_thmss *)
@@ -733,8 +759,9 @@ fun gen_assm prepp tac (ctxt, (name, attrs, raw_prop_pats)) =
 
     val ctxt''' =
       ctxt''
-      |> map_context (fn (thy, data, ((asms_ct, asms_th), fixes), binds, thms, defs) =>
-        (thy, data, ((asms_ct @ cprops_tac, asms_th @ [(name, asms)]), fixes), binds, thms, defs));
+      |> map_context (fn (thy, data, ((asms_ct, asms_th), fixes), binds, thms, cases, defs) =>
+        (thy, data, ((asms_ct @ cprops_tac, asms_th @ [(name, asms)]), fixes),
+          binds, thms, cases, defs));
   in (ctxt''', (name, thms)) end;
 
 fun gen_assms prepp tac args ctxt =
@@ -776,8 +803,8 @@ fun add_vars xs (fixes, names) =
     val names' = xs' @ names;
   in (fixes', names') end;
 
-fun map_vars f = map_context (fn (thy, data, (assumes, vars), binds, thms, defs) =>
-  (thy, data, (assumes, f vars), binds, thms, defs));
+fun map_vars f = map_context (fn (thy, data, (assumes, vars), binds, thms, cases, defs) =>
+  (thy, data, (assumes, f vars), binds, thms, cases, defs));
 
 fun gen_fix prep raw_vars ctxt =
   let
@@ -796,6 +823,18 @@ val fix = gen_fix read_vars;
 val fix_i = gen_fix cert_vars;
 
 end;
+
+
+
+(** cases **)
+
+fun get_case (ctxt as Context {cases, ...}) name =
+  (case Symtab.lookup (cases, name) of
+    None => raise CONTEXT ("Unknown case: " ^ quote name, ctxt)
+  | Some c => c);
+
+fun add_cases xs = map_context (fn (thy, data, asms, binds, thms, cases, defs) =>
+  (thy, data, asms, binds, thms, foldl (Symtab.update o swap) (cases, xs), defs));
 
 
 
