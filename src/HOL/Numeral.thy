@@ -8,6 +8,11 @@ Generic numerals represented as twos-complement bit strings.
 theory Numeral = Datatype
 files "Tools/numeral_syntax.ML":
 
+(* The constructors Pls/Min are hidden in numeral_syntax.ML.
+   Only qualified access bin.Pls/Min is allowed.
+   Should also hide Bit, but that means one cannot use BIT anymore.
+*)
+
 datatype
   bin = Pls
       | Min
@@ -25,8 +30,8 @@ syntax
   Numeral1 :: 'a
 
 translations
-  "Numeral0" == "number_of Pls"
-  "Numeral1" == "number_of (Pls BIT True)"
+  "Numeral0" == "number_of bin.Pls"
+  "Numeral1" == "number_of (bin.Pls BIT True)"
 
 
 setup NumeralSyntax.setup

@@ -116,7 +116,7 @@ lemma finite_insert [simp]: "finite (insert a A) = finite A"
   apply blast
   done
 
-lemma finite_imageI: "finite F ==> finite (h ` F)"
+lemma finite_imageI[simp]: "finite F ==> finite (h ` F)"
   -- {* The image of a finite set is finite. *}
   by (induct set: Finites) simp_all
 
@@ -881,6 +881,87 @@ lemma setsum_cong:
   apply (erule (1) notE impE)
   apply (simp add: Ball_def)
   done
+
+subsubsection{* Min and Max of finite linearly ordered sets *}
+
+text{* Seemed easier to define directly than via fold. *}
+
+lemma ex_Max: fixes S :: "('a::linorder)set"
+  assumes fin: "finite S" shows "S \<noteq> {} \<Longrightarrow> \<exists>m\<in>S. \<forall>s \<in> S. s \<le> m"
+using fin
+proof (induct)
+  case empty thus ?case by simp
+next
+  case (insert S x)
+  show ?case
+  proof (cases)
+    assume "S = {}" thus ?thesis by simp
+  next
+    assume nonempty: "S \<noteq> {}"
+    then obtain m where m: "m\<in>S" "\<forall>s\<in>S. s \<le> m" using insert by blast
+    show ?thesis
+    proof (cases)
+      assume "x \<le> m" thus ?thesis using m by blast
+    next
+      assume "\<not> x \<le> m" thus ?thesis using m
+	by(simp add:linorder_not_le order_less_le)(blast intro: order_trans)
+    qed
+  qed
+qed
+
+lemma ex_Min: fixes S :: "('a::linorder)set"
+  assumes fin: "finite S" shows "S \<noteq> {} \<Longrightarrow> \<exists>m\<in>S. \<forall>s \<in> S. m \<le> s"
+using fin
+proof (induct)
+  case empty thus ?case by simp
+next
+  case (insert S x)
+  show ?case
+  proof (cases)
+    assume "S = {}" thus ?thesis by simp
+  next
+    assume nonempty: "S \<noteq> {}"
+    then obtain m where m: "m\<in>S" "\<forall>s\<in>S. m \<le> s" using insert by blast
+    show ?thesis
+    proof (cases)
+      assume "m \<le> x" thus ?thesis using m by blast
+    next
+      assume "\<not> m \<le> x" thus ?thesis using m
+	by(simp add:linorder_not_le order_less_le)(blast intro: order_trans)
+    qed
+  qed
+qed
+
+constdefs
+ Min :: "('a::linorder)set \<Rightarrow> 'a"
+"Min S  \<equiv>  THE m. m \<in> S \<and> (\<forall>s \<in> S. m \<le> s)"
+
+ Max :: "('a::linorder)set \<Rightarrow> 'a"
+"Max S  \<equiv>  THE m. m \<in> S \<and> (\<forall>s \<in> S. s \<le> m)"
+
+lemma Min[simp]: assumes a: "finite S" "S \<noteq> {}"
+                 shows "Min S \<in> S \<and> (\<forall>s \<in> S. Min S \<le> s)" (is "?P(Min S)")
+proof (unfold Min_def, rule theI')
+  show "\<exists>!m. ?P m"
+  proof (rule ex_ex1I)
+    show "\<exists>m. ?P m" using ex_Min[OF a] by blast
+  next
+    fix m1 m2 assume "?P m1" "?P m2"
+    thus "m1 = m2" by (blast dest:order_antisym)
+  qed
+qed
+
+lemma Max[simp]: assumes a: "finite S" "S \<noteq> {}"
+                 shows "Max S \<in> S \<and> (\<forall>s \<in> S. s \<le> Max S)" (is "?P(Max S)")
+proof (unfold Max_def, rule theI')
+  show "\<exists>!m. ?P m"
+  proof (rule ex_ex1I)
+    show "\<exists>m. ?P m" using ex_Max[OF a] by blast
+  next
+    fix m1 m2 assume "?P m1" "?P m2"
+    thus "m1 = m2" by (blast dest:order_antisym)
+  qed
+qed
 
 
 text {*
