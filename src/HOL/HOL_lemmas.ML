@@ -37,15 +37,17 @@ val arbitrary_def = thm "arbitrary_def";
 (** Equality **)
 section "=";
 
-qed_goal "sym" (the_context ()) "s=t ==> t=s"
- (fn prems => [cut_facts_tac prems 1, etac subst 1, rtac refl 1]);
+Goal "s=t ==> t=s";
+by (etac subst 1);
+by (rtac refl 1);
+qed "sym";
 
 (*calling "standard" reduces maxidx to 0*)
-bind_thm ("ssubst", (sym RS subst));
+bind_thm ("ssubst", sym RS subst);
 
-qed_goal "trans" (the_context ()) "[| r=s; s=t |] ==> r=t"
- (fn prems =>
-        [rtac subst 1, resolve_tac prems 1, resolve_tac prems 1]);
+Goal "[| r=s; s=t |] ==> r=t";
+by (etac subst 1 THEN assume_tac 1);
+qed "trans";
 
 val prems = goal (the_context ()) "(A == B) ==> A = B";
 by (rewrite_goals_tac prems);
@@ -63,58 +65,67 @@ by (rtac sym 1);
 by (REPEAT (assume_tac 1)) ;
 qed "box_equals";
 
-
 (** Congruence rules for meta-application **)
 section "Congruence";
 
 (*similar to AP_THM in Gordon's HOL*)
-qed_goal "fun_cong" (the_context ()) "(f::'a=>'b) = g ==> f(x)=g(x)"
-  (fn [prem] => [rtac (prem RS subst) 1, rtac refl 1]);
+Goal "(f::'a=>'b) = g ==> f(x)=g(x)";
+by (etac subst 1);
+by (rtac refl 1);
+qed "fun_cong";
 
 (*similar to AP_TERM in Gordon's HOL and FOL's subst_context*)
-qed_goal "arg_cong" (the_context ()) "x=y ==> f(x)=f(y)"
- (fn [prem] => [rtac (prem RS subst) 1, rtac refl 1]);
+Goal "x=y ==> f(x)=f(y)";
+by (etac subst 1);
+by (rtac refl 1);
+qed "arg_cong";
 
-qed_goal "cong" (the_context ())
-   "[| f = g; (x::'a) = y |] ==> f(x) = g(y)"
- (fn [prem1,prem2] =>
-   [rtac (prem1 RS subst) 1, rtac (prem2 RS subst) 1, rtac refl 1]);
-
+Goal "[| f = g; (x::'a) = y |] ==> f(x) = g(y)";
+by (etac subst 1);
+by (etac subst 1);
+by (rtac refl 1);
+qed "cong";
 
 (** Equality of booleans -- iff **)
 section "iff";
 
-val prems = Goal
-   "[| P ==> Q;  Q ==> P |] ==> P=Q";
+val prems = Goal "[| P ==> Q;  Q ==> P |] ==> P=Q";
 by (REPEAT (ares_tac (prems@[impI, iff RS mp RS mp]) 1));
 qed "iffI";
 
-qed_goal "iffD2" (the_context ()) "[| P=Q; Q |] ==> P"
- (fn prems =>
-        [rtac ssubst 1, resolve_tac prems 1, resolve_tac prems 1]);
+Goal "[| P=Q; Q |] ==> P";
+by (etac ssubst 1);
+by (assume_tac 1);
+qed "iffD2";
 
-qed_goal "rev_iffD2" (the_context ()) "!!P. [| Q; P=Q |] ==> P"
- (fn _ => [etac iffD2 1, assume_tac 1]);
+Goal "[| Q; P=Q |] ==> P";
+by (etac iffD2 1);
+by (assume_tac 1);
+qed "rev_iffD2";
 
 bind_thm ("iffD1", sym RS iffD2);
 bind_thm ("rev_iffD1", sym RSN (2, rev_iffD2));
 
-qed_goal "iffE" (the_context ())
-    "[| P=Q; [| P --> Q; Q --> P |] ==> R |] ==> R"
- (fn [p1,p2] => [REPEAT(ares_tac([p1 RS iffD2, p1 RS iffD1, p2, impI])1)]);
+val [p1,p2] = Goal "[| P=Q; [| P --> Q; Q --> P |] ==> R |] ==> R";
+by (REPEAT (ares_tac [p1 RS iffD2, p1 RS iffD1, p2, impI] 1));
+qed "iffE";
 
 
 (** True **)
 section "True";
 
-qed_goalw "TrueI" (the_context ()) [True_def] "True"
-  (fn _ => [(rtac refl 1)]);
+Goalw [True_def] "True";
+by (rtac refl 1);
+qed "TrueI";
 
-qed_goal "eqTrueI" (the_context ()) "P ==> P=True" 
- (fn prems => [REPEAT(resolve_tac ([iffI,TrueI]@prems) 1)]);
+Goal "P ==> P=True";
+by (REPEAT (ares_tac [iffI,TrueI] 1));
+qed "eqTrueI";
 
-qed_goal "eqTrueE" (the_context ()) "P=True ==> P" 
- (fn prems => [REPEAT(resolve_tac (prems@[TrueI,iffD2]) 1)]);
+Goal "P=True ==> P";
+by (etac iffD2 1);
+by (rtac TrueI 1);
+qed "eqTrueE";
 
 
 (** Universal quantifier **)
