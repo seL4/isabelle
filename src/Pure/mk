@@ -80,7 +80,7 @@ SECONDS=0
 
 if [ -z "$RAW" ]; then
   ITEM="Pure"
-  echo -n "Building $ITEM ... "
+  echo -n "Building $ITEM ..."
   LOG="$LOGDIR/$ITEM"
 
   $ISABELLE \
@@ -90,7 +90,7 @@ if [ -z "$RAW" ]; then
   RC=$?
 else
   ITEM="RAW"
-  echo -n "Building $ITEM ... "
+  echo -n "Building $ITEM ..."
   LOG="$LOGDIR/$ITEM"
 
   $ISABELLE \
@@ -106,10 +106,11 @@ ELAPSED=$($ISABELLE_HOME/lib/scripts/showtime $SECONDS)
 # exit status
 
 if [ $RC -eq 0 ]; then
-  echo "OK  ($ELAPSED elapsed time)"
+  echo " OK  ($ELAPSED elapsed time)"
   gzip --force "$LOG"
 else
-  echo "FAILED"
+  echo
+  echo "$ITEM FAILED"
   echo "(see also $LOG)"
   echo; tail $LOG; echo
 fi
