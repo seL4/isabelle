@@ -1,6 +1,6 @@
 #! /bin/sh
-#
-#make-all: make all systems afresh
+# $Id$
+#Make all systems afresh
 
 # Creates gzipped log files called makeNNNN.log.gz on each subdirectory and
 # displays the last few lines of these files -- this indicates whether
