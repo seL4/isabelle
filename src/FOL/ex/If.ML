@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
-For ex/if.thy.  First-Order Logic: the 'if' example
+First-Order Logic: the 'if' example
 *)
 
 open If;
@@ -11,13 +11,13 @@ open Cla;    (*in case structure IntPr is open!*)
 
 val prems = goalw If.thy [if_def]
     "[| P ==> Q; ~P ==> R |] ==> if(P,Q,R)";
-by (fast_tac (!claset addIs prems) 1);
+by (blast_tac (!claset addIs prems) 1);
 qed "ifI";
 
 val major::prems = goalw If.thy [if_def]
    "[| if(P,Q,R);  [| P; Q |] ==> S; [| ~P; R |] ==> S |] ==> S";
 by (cut_facts_tac [major] 1);
-by (fast_tac (!claset addIs prems) 1);
+by (blast_tac (!claset addIs prems) 1);
 qed "ifE";
 
 
@@ -32,30 +32,30 @@ by (rtac ifI 1);
 choplev 0;
 AddSIs [ifI];
 AddSEs [ifE];
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "if_commute";
 
 
 goal If.thy "if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,A,B))";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "nested_ifs";
 
 choplev 0;
 by (rewtac if_def);
-by (fast_tac FOL_cs 1);
+by (blast_tac FOL_cs 1);
 result();
 
 
 (*An invalid formula.  High-level rules permit a simpler diagnosis*)
 goal If.thy "if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,B,A))";
-by (Fast_tac 1) handle ERROR => writeln"Failed, as expected";
+by (Blast_tac 1) handle ERROR => writeln"Failed, as expected";
 (*Check that subgoals remain: proof failed.*)
 getgoal 1; 
 by (REPEAT (Step_tac 1));
 
 choplev 0;
 by (rewtac if_def);
-by (fast_tac FOL_cs 1) handle ERROR => writeln"Failed, as expected";
+by (blast_tac FOL_cs 1) handle ERROR => writeln"Failed, as expected";
 (*Check that subgoals remain: proof failed.*)
 getgoal 1; 
 by (REPEAT (step_tac FOL_cs 1));
