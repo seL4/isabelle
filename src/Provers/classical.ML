@@ -26,7 +26,7 @@ signature CLASSICAL_DATA =
   end;
 
 (*Higher precedence than := facilitates use of references*)
-infix 4 addSIs addSEs addSDs addIs addEs addDs 
+infix 4 addSIs addSEs addSDs addIs addEs addDs delrules
         setwrapper compwrapper addbefore addafter;
 
 
@@ -42,6 +42,7 @@ signature CLASSICAL =
   val addSDs		: claset * thm list -> claset
   val addSEs		: claset * thm list -> claset
   val addSIs		: claset * thm list -> claset
+  val delrules		: claset * thm list -> claset
   val setwrapper 	: claset * (tactic->tactic) -> claset
   val compwrapper 	: claset * (tactic->tactic) -> claset
   val addbefore 	: claset * tactic -> claset
@@ -92,7 +93,10 @@ signature CLASSICAL =
   val AddSDs		: thm list -> unit
   val AddSEs		: thm list -> unit
   val AddSIs		: thm list -> unit
+  val Step_tac 		: int -> tactic
   val Fast_tac 		: int -> tactic
+  val Best_tac 		: int -> tactic
+  val Deepen_tac	: int -> int -> tactic
 
   end;
 
@@ -102,7 +106,7 @@ struct
 
 local open Data in
 
-(** Useful tactics for classical reasoning **)
+(*** Useful tactics for classical reasoning ***)
 
 val imp_elim = (*cannot use bind_thm within a structure!*)
   store_thm ("imp_elim", make_elim mp);
@@ -139,7 +143,7 @@ fun dup_elim th = th RSN (2, revcut_rl) |> assumption 2 |> Sequence.hd |>
                   rule_by_tactic (TRYALL (etac revcut_rl));
 
 
-(*** Classical rule sets ***)
+(**** Classical rule sets ****)
 
 type netpair = (int*(bool*thm)) Net.net * (int*(bool*thm)) Net.net;
 
@@ -164,6 +168,7 @@ datatype claset =
 where build = build_netpair(Net.empty,Net.empty), 
       safe0_brls contains all brules that solve the subgoal, and
       safep_brls contains all brules that generate 1 or more new subgoals.
+The theorem lists are largely comments, though they are used in merge_cs.
 Nets must be built incrementally, to save space and time.
 *)
 
@@ -190,10 +195,10 @@ fun rep_claset (CS args) = args;
 fun getwrapper (CS{wrapper,...}) = wrapper;
 
 
-(** Adding (un)safe introduction or elimination rules.
+(*** Adding (un)safe introduction or elimination rules.
 
     In case of overlap, new rules are tried BEFORE old ones!!
-**)
+***)
 
 (*For use with biresolve_tac.  Combines intr rules with swap to handle negated
   assumptions.  Pairs elim rules with true. *)
@@ -208,21 +213,24 @@ fun tag_brls k [] = []
       (1000000*subgoals_of_brl brl + k, brl) :: 
       tag_brls (k+1) brls;
 
-fun insert_tagged_list kbrls np = foldr insert_tagged_brl (kbrls, np);
+fun insert_tagged_list kbrls netpr = foldr insert_tagged_brl (kbrls, netpr);
 
 (*Insert into netpair that already has nI intr rules and nE elim rules.
   Count the intr rules double (to account for swapify).  Negate to give the
   new insertions the lowest priority.*)
 fun insert (nI,nE) = insert_tagged_list o (tag_brls (~(2*nI+nE))) o joinrules;
 
+fun delete_tagged_list brls netpr = foldr delete_tagged_brl (brls, netpr);
 
-(** Safe rules **)
+val delete = delete_tagged_list o joinrules;
+
+(*** Safe rules ***)
 
 fun (CS{safeIs, safeEs, hazIs, hazEs, wrapper, 
 	safe0_netpair, safep_netpair, haz_netpair, dup_netpair}) 
     addSIs  ths  =
   let val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
-          take_prefix (fn rl => nprems_of rl=0) ths
+          partition (fn rl => nprems_of rl=0) ths
       val nI = length safeIs + length ths
       and nE = length safeEs
   in CS{safeIs	= ths@safeIs,
@@ -240,7 +248,7 @@ fun (CS{safeIs, safeEs, hazIs, hazEs, wrapper,
 	safe0_netpair, safep_netpair, haz_netpair, dup_netpair}) 
     addSEs  ths  =
   let val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
-          take_prefix (fn rl => nprems_of rl=1) ths
+          partition (fn rl => nprems_of rl=1) ths
       val nI = length safeIs
       and nE = length safeEs + length ths
   in 
@@ -258,7 +266,7 @@ fun (CS{safeIs, safeEs, hazIs, hazEs, wrapper,
 fun cs addSDs ths = cs addSEs (map make_elim ths);
 
 
-(** Hazardous (unsafe) rules **)
+(*** Hazardous (unsafe) rules ***)
 
 fun (CS{safeIs, safeEs, hazIs, hazEs, wrapper, 
 	safe0_netpair, safep_netpair, haz_netpair, dup_netpair}) 
@@ -297,7 +305,82 @@ fun (CS{safeIs, safeEs, hazIs, hazEs, wrapper,
 fun cs addDs ths = cs addEs (map make_elim ths);
 
 
-(** Setting or modifying the wrapper tactical **)
+(*** Deletion of rules 
+     Working out what to delete, requires repeating much of the code used
+	to insert.
+     Separate functions delSIs, etc., are not exported; instead delrules
+        searches in all the lists and chooses the relevant delXX function.
+***)
+
+fun delSIs (CS{safeIs, safeEs, hazIs, hazEs, wrapper, 
+               safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
+            th) =
+  let val (safe0_rls, safep_rls) = partition (fn rl => nprems_of rl=0) [th]
+  in CS{safeIs	= gen_rem eq_thm (safeIs,th),
+        safe0_netpair = delete (safe0_rls, []) safe0_netpair,
+	safep_netpair = delete (safep_rls, []) safep_netpair,
+	safeEs	= safeEs,
+	hazIs	= hazIs,
+	hazEs	= hazEs,
+	wrapper = wrapper,
+	haz_netpair = haz_netpair,
+	dup_netpair = dup_netpair}
+  end;
+
+fun delSEs (CS{safeIs, safeEs, hazIs, hazEs, wrapper, 
+	       safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
+            th) =
+  let val (safe0_rls, safep_rls) = partition (fn rl => nprems_of rl=1) [th]
+  in CS{safeEs	= gen_rem eq_thm (safeEs,th),
+        safe0_netpair = delete ([], safe0_rls) safe0_netpair,
+	safep_netpair = delete ([], safep_rls) safep_netpair,
+	safeIs	= safeIs,
+	hazIs	= hazIs,
+	hazEs	= hazEs,
+	wrapper = wrapper,
+	haz_netpair = haz_netpair,
+	dup_netpair = dup_netpair}
+  end;
+
+
+fun delIs (CS{safeIs, safeEs, hazIs, hazEs, wrapper, 
+	      safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
+	   th) =
+     CS{hazIs	= gen_rem eq_thm (hazIs,th),
+	haz_netpair = delete ([th], []) haz_netpair,
+	dup_netpair = delete ([dup_intr th], []) dup_netpair,
+	safeIs 	= safeIs, 
+	safeEs	= safeEs,
+	hazEs	= hazEs,
+	wrapper 	= wrapper,
+	safe0_netpair = safe0_netpair,
+	safep_netpair = safep_netpair};
+
+fun delEs (CS{safeIs, safeEs, hazIs, hazEs, wrapper, 
+	      safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
+	   th) =
+     CS{hazEs	= gen_rem eq_thm (hazEs,th),
+	haz_netpair = delete ([], [th]) haz_netpair,
+	dup_netpair = delete ([], [dup_elim th]) dup_netpair,
+	safeIs	= safeIs, 
+	safeEs	= safeEs,
+	hazIs	= hazIs,
+	wrapper	= wrapper,
+	safe0_netpair = safe0_netpair,
+	safep_netpair = safep_netpair};
+
+fun delrule (cs as CS{safeIs, safeEs, hazIs, hazEs, ...}, th) =
+       if gen_mem eq_thm (th, safeIs) then delSIs(cs,th)
+  else if gen_mem eq_thm (th, safeEs) then delSEs(cs,th)
+  else if gen_mem eq_thm (th, hazIs) then delIs(cs,th)
+  else if gen_mem eq_thm (th, hazEs) then delEs(cs,th)
+  else (warning ("rule not in claset\n" ^ (string_of_thm th)); 
+	cs);
+
+val op delrules = foldl delrule;
+
+
+(*** Setting or modifying the wrapper tactical ***)
 
 (*Set a new wrapper*)
 fun (CS{safeIs, safeEs, hazIs, hazEs, 
@@ -345,7 +428,7 @@ fun merge_cs
   end;
 
 
-(*** Simple tactics for theorem proving ***)
+(**** Simple tactics for theorem proving ****)
 
 (*Attack subgoals using safe inferences -- matching, not resolution*)
 fun safe_step_tac (CS{safe0_netpair,safep_netpair,...}) = 
@@ -385,7 +468,7 @@ fun slow_step_tac cs i =
   getwrapper cs 
     (safe_tac cs ORELSE (inst_step_tac cs i APPEND haz_step_tac cs i));
 
-(*** The following tactics all fail unless they solve one goal ***)
+(**** The following tactics all fail unless they solve one goal ****)
 
 (*Dumb but fast*)
 fun fast_tac cs = SELECT_GOAL (DEPTH_SOLVE (step_tac cs 1));
@@ -400,7 +483,7 @@ fun slow_best_tac cs =
   SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, sizef) (slow_step_tac cs 1));
 
 
-(**ASTAR with weight weight_ASTAR, by Norbert Voelker*) 
+(***ASTAR with weight weight_ASTAR, by Norbert Voelker*) 
 val weight_ASTAR = ref 5; 
 
 fun astar_tac cs = 
@@ -413,10 +496,10 @@ fun slow_astar_tac cs =
 	      , fn level =>(fn thm =>size_of_thm thm + !weight_ASTAR *level)) 
 	      (slow_step_tac cs 1));
 
-(*** Complete tactic, loosely based upon LeanTaP.  This tactic is the outcome
+(**** Complete tactic, loosely based upon LeanTaP.  This tactic is the outcome
   of much experimentation!  Changing APPEND to ORELSE below would prove
   easy theorems faster, but loses completeness -- and many of the harder
-  theorems such as 43. ***)
+  theorems such as 43. ****)
 
 (*Non-deterministic!  Could always expand the first unsafe connective.
   That's hard to implement and did not perform better in experiments, due to
@@ -469,7 +552,15 @@ fun AddSEs ts = (claset := !claset addSEs ts);
 
 fun AddSIs ts = (claset := !claset addSIs ts);
 
+(*Cannot have Safe_tac, as it takes no arguments; must delay dereferencing!*)
+
+fun Step_tac i = step_tac (!claset) i; 
+
 fun Fast_tac i = fast_tac (!claset) i; 
+
+fun Best_tac i = best_tac (!claset) i; 
+
+fun Deepen_tac m = deepen_tac (!claset) m; 
 
 end; 
 end;
