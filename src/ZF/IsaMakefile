@@ -43,7 +43,7 @@ $(OUT)/ZF: $(OUT)/FOL AC.thy Arith.thy ArithSimp.ML	\
   Sum.thy Tools/cartprod.ML Tools/datatype_package.ML			\
   Tools/ind_cases.ML Tools/induct_tacs.ML Tools/inductive_package.ML	\
   Tools/numeral_syntax.ML Tools/primrec_package.ML Tools/typechk.ML	\
-  Trancl.ML Trancl.thy Univ.thy Update.ML Update.thy \
+  Trancl.ML Trancl.thy Univ.thy Update.thy \
   WF.thy ZF.ML ZF.thy Zorn.thy arith_data.ML equalities.thy func.thy	\
   ind_syntax.ML mono.ML mono.thy pair.ML pair.thy simpdata.ML		\
   subset.ML subset.thy thy_syntax.ML upair.ML upair.thy
