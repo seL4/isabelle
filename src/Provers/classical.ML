@@ -1148,8 +1148,8 @@ val single = Method.METHOD (FIRSTGOAL o (fn facts => CLASET' (fn cs => single_ta
 
 (* contradiction *)
 
-val contradiction =
-  Method.METHOD (fn facts => FIRSTGOAL (Method.same_tac facts THEN' contr_tac));
+val contradiction = Method.METHOD (fn facts =>
+  FIRSTGOAL (Method.same_tac facts THEN' contr_tac));
 
 
 (* automatic methods *)
@@ -1168,8 +1168,11 @@ val cla_modifiers =
 
 val cla_args = Method.only_sectioned_args cla_modifiers;
 
-fun cla_meth tac ctxt = Method.METHOD0 (tac (get_local_claset ctxt));
-fun cla_meth' tac ctxt = Method.METHOD0 (FIRSTGOAL (tac (get_local_claset ctxt)));
+fun cla_meth tac ctxt = Method.METHOD (fn facts =>
+  ALLGOALS (Method.same_tac facts) THEN tac (get_local_claset ctxt));
+
+fun cla_meth' tac ctxt = Method.METHOD (fn facts =>
+  FIRSTGOAL (Method.same_tac facts THEN' tac (get_local_claset ctxt)));
 
 val cla_method = cla_args o cla_meth;
 val cla_method' = cla_args o cla_meth';
@@ -1182,9 +1185,9 @@ val setup_methods = Method.add_methods
  [("single", Method.no_args single, "apply standard rule (single step)"),
   ("default", Method.no_args single, "apply standard rule (single step)"),
   ("contradiction", Method.no_args contradiction, "proof by contradiction"),
-  ("safe_tac", cla_method safe_tac, "safe_tac"),
-  ("safe_step_tac", cla_method' safe_step_tac, "safe_step_tac"),
-  ("step_tac", cla_method' step_tac, "step_tac"),
+  ("safe_tac", cla_method safe_tac, "safe_tac (improper!)"),
+  ("safe_step_tac", cla_method' safe_step_tac, "safe_step_tac (improper!)"),
+  ("step_tac", cla_method' step_tac, "step_tac (improper!)"),
   ("fast", cla_method' fast_tac, "classical prover (depth-first)"),
   ("best", cla_method' best_tac, "classical prover (best-first)"),
   ("slow", cla_method' slow_tac, "classical prover (depth-first, more backtracking)"),

@@ -477,11 +477,11 @@ val setup_methods = Method.add_methods
  [(simpN,               simp_method true true asm_full_simp_tac, "simplification"),
   (asm_simpN,           simp_method false true asm_full_simp_tac,
     "simplification (including assumption)"),
-  ("simp_tac",          simp_method false false simp_tac, "simp_tac"),
-  ("asm_simp_tac",      simp_method false false asm_simp_tac, "asm_simp_tac"),
-  ("full_simp_tac",     simp_method false false full_simp_tac, "full_simp_tac"),
-  ("asm_full_simp_tac", simp_method false false asm_full_simp_tac, "asm_full_simp_tac"),
-  ("asm_lr_simp_tac",   simp_method false false asm_lr_simp_tac, "asm_lr_simp_tac")];
+  ("simp_tac",          simp_method false false simp_tac, "simp_tac (improper!)"),
+  ("asm_simp_tac",      simp_method false false asm_simp_tac, "asm_simp_tac (improper!)"),
+  ("full_simp_tac",     simp_method false false full_simp_tac, "full_simp_tac (improper!)"),
+  ("asm_full_simp_tac", simp_method false false asm_full_simp_tac, "asm_full_simp_tac (improper!)"),
+  ("asm_lr_simp_tac",   simp_method false false asm_lr_simp_tac, "asm_lr_simp_tac (improper!)")];
 
 
 
