@@ -76,7 +76,7 @@ by (rtac LeadsTo_weaken_R 1);
 by (res_inst_tac [("f","%x. x"), ("l", "n")] GreaterThan_bounded_induct 1);
 by (ALLGOALS Asm_simp_tac);
 by (rtac subset_refl 2);
-by (blast_tac (claset() addDs [PSP_stable2] 
+by (blast_tac (claset() addDs [PSP_Stable2] 
                         addIs [common_stable, LeadsTo_weaken_R]) 1);
 val lemma = result();
 
