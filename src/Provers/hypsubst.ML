@@ -54,7 +54,7 @@ local open Data in
 
 exception EQ_VAR;
 
-fun loose (i,t) = 0 mem add_loose_bnos(t,i,[]);
+fun loose (i,t) = 0 mem_int add_loose_bnos(t,i,[]);
 
 local val odot = ord"."
 in
