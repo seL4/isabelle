@@ -54,7 +54,6 @@ $(OUT)/Pure: General/ROOT.ML General/buffer.ML General/file.ML		\
   pattern.ML proofterm.ML pure.ML pure_thy.ML search.ML sign.ML		\
   sorts.ML tactic.ML tctical.ML term.ML theory.ML theory_data.ML	\
   thm.ML type.ML type_infer.ML unify.ML
-
 	@./mk
 
 
