@@ -56,6 +56,9 @@ sig
   val with_facts: (string * Args.src list) list list -> ProofHistory.T -> ProofHistory.T
   val with_facts_i: (thm * Proof.context attribute list) list list
     -> ProofHistory.T -> ProofHistory.T
+  val using_facts: (string * Args.src list) list list -> ProofHistory.T -> ProofHistory.T
+  val using_facts_i: (thm * Proof.context attribute list) list list
+    -> ProofHistory.T -> ProofHistory.T
   val chain: ProofHistory.T -> ProofHistory.T
   val fix: (string list * string option) list -> ProofHistory.T -> ProofHistory.T
   val fix_i: (string list * typ option) list -> ProofHistory.T -> ProofHistory.T
@@ -314,6 +317,13 @@ val from_facts = chain_thmss (local_thmss Proof.have_thmss);
 val from_facts_i = chain_thmss (local_thmss_i Proof.have_thmss_i);
 val with_facts = chain_thmss (local_thmss Proof.with_thmss);
 val with_facts_i = chain_thmss (local_thmss_i Proof.with_thmss_i);
+
+fun using_facts args = ProofHistory.apply (fn state =>
+  Proof.using_thmss (map (map (apsnd (map
+    (Attrib.local_attribute (Proof.theory_of state))))) args) state);
+
+val using_facts_i = ProofHistory.apply o Proof.using_thmss_i o map (map (apfst single));
+
 val chain = ProofHistory.apply Proof.chain;
 
 
