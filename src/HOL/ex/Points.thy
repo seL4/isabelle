@@ -64,10 +64,45 @@ subsubsection {* Some lemmas about records *}
 
 text {* Basic simplifications *}
 
+lemma "point.make n p = (| x = n, y = p |)"
+  by simp
+
 lemma "x (| x = m, y = n, ... = p |) = m"
   by simp
 
 lemma "(| x = m, y = n, ... = p |) (| x:= 0 |) = (| x = 0, y = n, ... = p |)"
+  by simp
+
+
+text {* Equality of records *}
+
+lemma "n = n' ==> p = p' ==> (| x = n, y = p |) = (| x = n', y = p' |)"
+  -- "introduction of concrete record equality"
+  by simp
+
+lemma "(| x = n, y = p |) = (| x = n', y = p' |) ==> n = n'"
+  -- "elimination of concrete record equality"
+  by simp
+
+lemma "r (| x := n |) (| y := m |) = r (| y := m |) (| x := n |)"
+  -- "introduction of abstract record equality"
+  by simp
+
+lemma "r (| x := n |) = r (| x := n' |) ==> n = n'"
+  -- "elimination of abstract record equality (manual proof)"
+proof -
+  assume "r (| x := n |) = r (| x := n' |)" (is "?lhs = ?rhs")
+  hence "x ?lhs = x ?rhs" by simp
+  thus ?thesis by simp
+qed
+
+
+text {* Surjective pairing *}
+
+lemma "r = (| x = x r, y = y r |)"
+  by simp
+
+lemma "r = (| x = x r, y = y r, ... = more r |)"
   by simp
 
 
@@ -89,11 +124,6 @@ proof record_split
     by simp
 qed
 
-
-text {* Equality of records *}
-
-lemma "(| x = n, y = p |) = (| x = n', y = p' |) ==> n = n'"
-  by simp
 
 
 text {* Concrete records are type instances of record schemes *}
