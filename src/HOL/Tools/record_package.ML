@@ -29,9 +29,9 @@ sig
   val mk_update: term -> string * term -> term
   val print_records: theory -> unit
   val add_record: (string list * bstring) -> string option
-    -> (bstring * string) list -> theory -> theory
+    -> (bstring * string) list -> theory -> theory * {simps: thm list, iffs: thm list}
   val add_record_i: (string list * bstring) -> (typ list * string) option
-    -> (bstring * typ) list -> theory -> theory
+    -> (bstring * typ) list -> theory -> theory * {simps: thm list, iffs: thm list}
   val setup: (theory -> theory) list
 end;
 
@@ -47,14 +47,7 @@ val quiet_mode = ref false;
 fun message s = if ! quiet_mode then () else writeln s;
 
 
-(* attributes etc. *)        (* FIXME move to Provers *)
-
-fun add_iffs_global (thy, th) =
-  let
-    val ss = Simplifier.simpset_ref_of thy;
-    val cs = Classical.claset_ref_of thy;
-    val (cs', ss') = (! cs, ! ss) addIffs [th];
-  in ss := ss'; cs := cs'; (thy, th) end;
+(* wrappers *)
 
 fun add_wrapper wrapper thy =
   let val r = Classical.claset_ref_of thy
@@ -732,6 +725,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
     val update_convs = map (prove (parent_simps @ update_defs @ sel_convs)) update_props;
 
     val simps = field_simps @ sel_convs @ update_convs @ make_defs;
+    val iffs = field_injects;
 
     val thms_thy =
       defs_thy
@@ -743,7 +737,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
           ("update_convs", update_convs)]
       |> PureThy.add_thmss
         [(("simps", simps), [Simplifier.simp_add_global]),
-         (("iffs", field_injects), [add_iffs_global])];
+         (("iffs", iffs), [iff_add_global])];
 
 
     (* 4th stage: final_thy *)
@@ -754,7 +748,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
       |> add_record_splits named_splits
       |> Theory.parent_path;
 
-  in final_thy end;
+  in (final_thy, {simps = simps, iffs = iffs}) end;
 
 
 
@@ -891,7 +885,7 @@ val record_decl =
 
 val recordP =
   OuterSyntax.command "record" "define extensible record"
-    (record_decl >> (fn (x, (y, z)) => Toplevel.theory (add_record x y z)));
+    (record_decl >> (fn (x, (y, z)) => Toplevel.theory (#1 o add_record x y z)));
 
 val _ = OuterSyntax.add_parsers [recordP];
 
