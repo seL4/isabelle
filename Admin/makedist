@@ -35,12 +35,10 @@ function usage()
     * Check that README files are up to date (should have Id: lines).
     * Check Admin/index.html.
     * Make sure that encoding info is consistent (fixencoding)!
-    * Make sure that the repository version of Doc is consistent
-      (watch out for *.bbl, *.rao, *.ind)!
     * Check ML_SYSTEM defaults!
 EOF
   #Wicked! We just won't tell other users ...
-  if [ $LOGNAME = paulson -o $LOGNAME = nipkow -o $LOGNAME = wenzelm ]; then
+  if [ $LOGNAME = paulson -o $LOGNAME = nipkow -o $LOGNAME = wenzelm -o $LOGNAME = berghofe ]; then
     cat <<EOF
     * Tag the current repository version, e.g.:
         cvs -d $CVSROOT rtag Isabelle94-XX isabelle
