@@ -39,13 +39,14 @@ function print_attachment()
     local NAME=${FILE##*/}
 
     cat <<EOF
-$MIME_BOUNDARY
+--$MIME_BOUNDARY
 Content-Type: text/plain
 Content-Transfer-Encoding: 8bit
 Content-Disposition: attachment; filename="$NAME"
 
 EOF
     cat $FILE
+    echo
 }
 
 
@@ -65,16 +66,18 @@ Subject: $SUBJECT
 Mime-Version: 1.0
 Content-Type: multipart/mixed; boundary="$MIME_BOUNDARY"
 
-$MIME_BOUNDARY
+--$MIME_BOUNDARY
 Content-Type: text/plain
 Content-Transfer-Encoding: 8bit
 
 EOF
     cat $BODY
+    echo
 
     for a in $@; do print_attachment $a; done
 
-    echo "$MIME_BOUNDARY"
+    echo "--$MIME_BOUNDARY--"
+    echo 
 }
 
 ## main
