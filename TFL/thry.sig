@@ -6,15 +6,12 @@
 
 signature Thry_sig =
 sig
-  structure USyntax : USyntax_sig
   val match_term : theory -> term -> term 
                     -> (term*term)list * (typ*typ)list
 
   val match_type : theory -> typ -> typ -> (typ*typ)list
 
   val typecheck : theory -> term -> cterm
-
-  val make_definition: theory -> string -> term -> thm * theory
 
   (* Datatype facts of various flavours *)
   val match_info: theory -> string -> {constructors:term list,

@@ -15,22 +15,21 @@ sig
                        -> {functional:term,
                            pats: pattern list}
 
-   val wfrec_definition0 : theory -> string -> term -> term -> thm * theory
+   val wfrec_definition0 : theory -> string -> term -> term -> theory
 
-   val post_definition : theory * (thm * pattern list)
-                              -> {theory : theory,
-                                  rules  : thm, 
-                                    TCs  : term list list,
-                          full_pats_TCs  : (term * term list) list, 
-                               patterns  : pattern list}
+   val post_definition : simpset -> theory * (thm * pattern list)
+				 -> {theory : theory,
+				     rules  : thm, 
+				       TCs  : term list list,
+			     full_pats_TCs  : (term * term list) list, 
+				  patterns  : pattern list}
 
-
+(*CURRENTLY UNUSED
    val wfrec_eqns : theory -> term list
                      -> {WFR : term, 
                          proto_def : term,
                          extracta :(thm * term list) list,
                          pats  : pattern list}
-
 
    val lazyR_def : theory
                    -> term list
@@ -39,11 +38,9 @@ sig
                            R :term,
                        full_pats_TCs :(term * term list) list, 
                        patterns: pattern list}
+---------------------*)
 
-   val mk_induction : theory 
-                       -> term -> term 
-                         -> (term * term list) list
-                           -> thm
+   val mk_induction : theory -> term -> term -> (term * term list) list -> thm
 
    val postprocess: {WFtac:tactic, terminator:tactic, simplifier:cterm -> thm}
                      -> theory 

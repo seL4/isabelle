@@ -49,9 +49,6 @@ fun strip_prod_type (Type("*", [ty1,ty2])) =
  *                              Terms 
  *
  *---------------------------------------------------------------------------*)
-nonfix aconv;
-val aconv = curry (op aconv);
-
 
 (* Free variables, in order of occurrence, from left to right in the 
  * syntax tree. *)
@@ -67,51 +64,16 @@ fun free_vars_lr tm =
 
 
 
-fun free_varsl L = gen_distinct Term.aconv
-                      (Utils.rev_itlist (curry op @ o term_frees) L []);
-
 val type_vars_in_term = map mk_prim_vartype o term_tvars;
 
-fun all_vars tm = 
-  let fun memb x = let fun m[] = false | m(y::rst) = (x=y)orelse m rst in m end
-      fun add (t, A) = case t of
-            Free   _ => if (memb t A) then A else t::A
-          | Abs (s,ty,body) => add(body, add(Free(s,ty),A))
-          | f$t =>  add(t, add(f, A))
-          | _ => A
-  in rev(add(tm,[]))
-  end;
-fun all_varsl L = gen_distinct Term.aconv
-                      (Utils.rev_itlist (curry op @ o all_vars) L []);
 
 
 (* Prelogic *)
 fun dest_tybinding (v,ty) = (#1(dest_vtype v),ty)
 fun inst theta = subst_vars (map dest_tybinding theta,[])
 
-fun beta_conv((t1 as Abs _ ) $ t2) = betapply(t1,t2)
-  | beta_conv _ = raise USYN_ERR{func = "beta_conv", mesg = "Not a beta-redex"};
-
 
 (* Construction routines *)
-
-val string_variant = variant;
-
-local fun var_name(Var((Name,_),_)) = Name
-        | var_name(Free(s,_)) = s
-        | var_name _ = raise USYN_ERR{func = "variant",
-                                 mesg = "list elem. is not a variable"}
-in
-fun variant [] v = v
-  | variant vlist (Var((Name,i),ty)) = 
-       Var((string_variant (map var_name vlist) Name,i),ty)
-  | variant vlist (Free(Name,ty)) =
-       Free(string_variant (map var_name vlist) Name,ty)
-  | variant _ _ = raise USYN_ERR{func = "variant",
-                            mesg = "2nd arg. should be a variable"}
-end;
-
-fun mk_comb{Rator,Rand} = Rator $ Rand;
 
 fun mk_abs{Bvar as Var((s,_),ty),Body}  = Abs(s,ty,abstract_over(Bvar,Body))
   | mk_abs{Bvar as Free(s,ty),Body}  = Abs(s,ty,abstract_over(Bvar,Body))
@@ -166,8 +128,8 @@ fun mk_pabs{varstruct,body} =
        if (is_var varstruct)
        then mk_abs{Bvar = varstruct, Body = body}
        else let val {fst,snd} = dest_pair varstruct
-            in mk_comb{Rator= mk_uncurry(type_of fst,type_of snd,type_of body),
-                       Rand = mpa(fst,mpa(snd,body))}
+            in mk_uncurry(type_of fst,type_of snd,type_of body) $
+	       mpa(fst,mpa(snd,body))
             end
  in mpa(varstruct,body)
  end
@@ -255,16 +217,10 @@ end;
 (* Garbage - ought to be dropped *)
 val lhs   = #lhs o dest_eq
 val rhs   = #rhs o dest_eq
-val rator = #Rator o dest_comb
 val rand  = #Rand o dest_comb
-val bvar  = #Bvar o dest_abs
-val body  = #Body o dest_abs
   
 
 (* Query routines *)
-val is_comb   = can dest_comb
-val is_abs    = can dest_abs
-val is_eq     = can dest_eq
 val is_imp    = can dest_imp
 val is_forall = can dest_forall
 val is_exists = can dest_exists
@@ -281,7 +237,6 @@ fun list_mk_abs(L,tm) = itlist (fn v => fn M => mk_abs{Bvar=v, Body=M}) L tm;
 
 (* These others are almost never used *)
 fun list_mk_imp(A,c) = itlist(fn a => fn tm => mk_imp{ant=a,conseq=tm}) A c;
-fun list_mk_exists(V,t) = itlist(fn v => fn b => mk_exists{Bvar=v, Body=b})V t;
 fun list_mk_forall(V,t) = itlist(fn v => fn b => mk_forall{Bvar=v, Body=b})V t;
 val list_mk_conj = end_itlist(fn c1 => fn tm => mk_conj{conj1=c1, conj2=tm})
 val list_mk_disj = end_itlist(fn d1 => fn tm => mk_disj{disj1=d1, disj2=tm})
@@ -352,34 +307,13 @@ fun mk_vstruct ty V =
 (* Search a term for a sub-term satisfying the predicate p. *)
 fun find_term p =
    let fun find tm =
-      if (p tm)
-      then tm 
-      else if (is_abs tm)
-           then find (#Body(dest_abs tm))
-           else let val {Rator,Rand} = dest_comb tm
-                in find Rator handle _ => find Rand
-                end handle _ => raise USYN_ERR{func = "find_term",mesg = ""}
+      if (p tm) then Some tm 
+      else case tm of
+	  Abs(_,_,body) => find body
+	| (t$u)         => (Some (the (find t)) handle _ => find u)
+	| _             => None
    in find
    end;
-
-(*******************************************************************
- * find_terms: (term -> HOLogic.boolT) -> term -> term list
- * 
- *  Find all subterms in a term that satisfy a given predicate p.
- *
- *******************************************************************)
-fun find_terms p =
-   let fun accum tl tm =
-      let val tl' = if (p tm) then (tm::tl) else tl 
-      in if (is_abs tm)
-         then accum tl' (#Body(dest_abs tm))
-         else let val {Rator,Rand} = dest_comb tm
-              in accum (accum tl' Rator) Rand
-              end handle _ => tl'
-      end
-   in accum []
-   end;
-
 
 fun dest_relation tm =
    if (type_of tm = HOLogic.boolT)
@@ -389,7 +323,8 @@ fun dest_relation tm =
                                   mesg="unexpected term structure"}
    else raise USYN_ERR{func="dest_relation",mesg="not a boolean term"};
 
-fun is_WFR tm = (#Name(dest_const(rator tm)) = "wf") handle _ => false;
+fun is_WFR (Const("wf",_)$_) = true
+  | is_WFR _                 = false;
 
 fun ARB ty = mk_select{Bvar=Free("v",ty),
                        Body=Const("True",HOLogic.boolT)};

@@ -46,17 +46,15 @@ sig
   val DISJ_CASESL : thm -> thm list -> thm
 
   val SUBS : thm list -> thm -> thm
-  val simplify : thm list -> thm -> thm
-  val simpl_conv : thm list -> cterm -> thm
+  val simpl_conv : simpset -> thm list -> cterm -> thm
 
 (* For debugging my isabelle solver in the conditional rewriter *)
   val term_ref : term list ref
   val thm_ref : thm list ref
   val mss_ref : meta_simpset list ref
   val tracing :bool ref
-  val CONTEXT_REWRITE_RULE : term * term
-                             -> {cut_lemma:thm, congs: thm list, th:thm} 
-                             -> thm * term list
+  val CONTEXT_REWRITE_RULE : simpset * term * term * thm * thm list 
+                             -> thm -> thm * term list
   val RIGHT_ASSOC : thm -> thm 
 
   val prove : cterm * tactic -> thm

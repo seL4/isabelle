@@ -7,7 +7,6 @@
 structure Thry : Thry_sig (* LThry_sig *) = 
 struct
 
-structure USyntax  = USyntax;
 structure S = USyntax;
 
 fun THRY_ERR{func,mesg} = Utils.ERR{module = "Thry",func=func,mesg=mesg};
@@ -35,55 +34,6 @@ end;
  *---------------------------------------------------------------------------*)
 
 fun typecheck thry = cterm_of (sign_of thry);
-
-
-
-(*----------------------------------------------------------------------------
- * Making a definition. The argument "tm" looks like "f = WFREC R M". This 
- * entrypoint is specialized for interactive use, since it closes the theory
- * after making the definition. This allows later interactive definitions to
- * refer to previous ones. The name for the new theory is automatically 
- * generated from the name of the argument theory.
- *---------------------------------------------------------------------------*)
-
-
-(*---------------------------------------------------------------------------
- * TFL attempts to make definitions where the lhs is a variable. Isabelle
- * wants it to be a constant, so here we map it to a constant. Moreover, the
- * theory should already have the constant, so we refrain from adding the
- * constant to the theory. We just add the axiom and return the theory.
- *---------------------------------------------------------------------------*)
-local val (imp $ tprop $ (eeq $ _ $ _ )) = #prop(rep_thm(eq_reflection))
-      val Const(eeq_name, ty) = eeq
-      val prop = body_type ty
-in
-fun make_definition parent s tm = 
-   let val {lhs,rhs} = S.dest_eq tm
-       val (_,Ty) = dest_Const lhs
-       val eeq1 = Const(eeq_name, Ty --> Ty --> prop)
-       val dtm = list_comb(eeq1,[lhs,rhs])      (* Rename "=" to "==" *)
-       val (_, tm', _) = Sign.infer_types (sign_of parent)
-                     (K None) (K None) [] true ([dtm],propT)
-       val new_thy = add_defs_i [(s,tm')] parent
-   in 
-   (freezeT((get_axiom new_thy s) RS meta_eq_to_obj_eq), new_thy)
-   end;
-end;
-
-(*---------------------------------------------------------------------------
- * Utility routine. Insert into list ordered by the key (a string). If two 
- * keys are equal, the new element replaces the old. A more efficient option 
- * for the future is needed. In fact, having the list of datatype facts be 
- * ordered is useless, since the lookup should never fail!
- *---------------------------------------------------------------------------*)
-fun insert (el as (x:string, _)) = 
- let fun canfind[] = [el] 
-       | canfind(alist as ((y as (k,_))::rst)) = 
-           if (x<k) then el::alist
-           else if (x=k) then el::rst
-           else y::canfind rst 
- in canfind
- end;
 
 
 (*---------------------------------------------------------------------------

@@ -282,19 +282,6 @@ fun GEN_ALL thm =
   end;
 
 
-local fun string_of(s,_) = s
-in
-fun freeze th =
-  let val fth = freezeT th
-      val {prop,sign,...} = rep_thm fth
-      fun mk_inst (Var(v,T)) = 
-          (cterm_of sign (Var(v,T)),
-           cterm_of sign (Free(string_of v, T)))
-      val insts = map mk_inst (term_vars prop)
-  in  instantiate ([],insts) fth  
-  end
-end;
-
 fun MATCH_MP th1 th2 = 
    if (D.is_forall (D.drop_prop(cconcl th1)))
    then MATCH_MP (th1 RS spec) th2
@@ -326,8 +313,8 @@ in
 fun CHOOSE(fvar,exth) fact =
    let val lam = #2(dest_comb(D.drop_prop(cconcl exth)))
        val redex = capply lam fvar
-       val {sign,t,...} = rep_cterm redex
-       val residue = cterm_of sign (S.beta_conv t)
+       val {sign, t = t$u,...} = rep_cterm redex
+       val residue = cterm_of sign (betapply(t,u))
     in GEN fvar (DISCH residue fact)  RS (exth RS choose_thm)
    end
 end;
@@ -403,12 +390,10 @@ fun IT_EXISTS blist th =
 fun SUBS thl = 
    rewrite_rule (map (fn th => (th RS eq_reflection) handle _ => th) thl);
 
-val simplify = rewrite_rule;
-
 local fun rew_conv mss = rewrite_cterm (true,false) mss (K(K None))
 in
-fun simpl_conv thl ctm = 
- rew_conv (Thm.mss_of (#simps(rep_ss (!simpset))@thl)) ctm
+fun simpl_conv ss thl ctm = 
+ rew_conv (Thm.mss_of (#simps(rep_ss ss)@thl)) ctm
  RS meta_eq_to_obj_eq
 end;
 
@@ -448,13 +433,6 @@ fun dest_equal(Const ("==",_) $
   | dest_equal tm = S.dest_eq tm;
 
 fun get_lhs tm = #lhs(dest_equal (HOLogic.dest_Trueprop tm));
-
-fun variants FV vlist =
-  rev(#1(U.rev_itlist (fn v => fn (V,W) =>
-                        let val v' = S.variant W v
-                        in (v'::V, v'::W) end) 
-                     vlist ([],FV)));
-
 
 fun dest_all(Const("all",_) $ (a as Abs _)) = S.dest_abs a
   | dest_all _ = raise RULES_ERR{func = "dest_all", mesg = "not a !!"};
@@ -501,8 +479,8 @@ fun get ([],_,L) = rev L
             let val eq = Logic.strip_imp_concl body
                 val (f,args) = S.strip_comb (get_lhs eq)
                 val (vstrl,_) = S.strip_abs f
-                val names  = map (#1 o dest_Free)
-                                 (variants (term_frees body) vstrl)
+                val names  = variantlist (map (#1 o dest_Free) vstrl,
+					  add_term_names(body, []))
             in get (rst, n+1, (names,n)::L)
             end handle _ => get (rst, n+1, L);
 
@@ -648,12 +626,13 @@ fun dest_impl tm =
   in (ants,get_lhs eq)
   end;
 
-val pbeta_reduce = simpl_conv [split RS eq_reflection];
-val restricted = U.can(S.find_term
-                       (U.holds(fn c => (#Name(S.dest_const c)="cut"))))
+fun restricted t = is_some (S.find_term
+			    (fn (Const("cut",_)) =>true | _ => false) 
+			    t)
 
-fun CONTEXT_REWRITE_RULE(func,R){cut_lemma, congs, th} =
- let val tc_list = ref[]: term list ref
+fun CONTEXT_REWRITE_RULE (ss, func, R, cut_lemma, congs) th =
+ let val pbeta_reduce = simpl_conv ss [split RS eq_reflection];
+     val tc_list = ref[]: term list ref
      val dummy = term_ref := []
      val dummy = thm_ref  := []
      val dummy = mss_ref  := []
@@ -761,11 +740,9 @@ fun CONTEXT_REWRITE_RULE(func,R){cut_lemma, congs, th} =
                * term "f v1..vn" which is a pattern that any full application
                * of "f" will match.
                *-------------------------------------------------------------*)
-              val func_name = #1(dest_Const func handle _ => dest_Free func)
-              fun is_func tm = (#1(dest_Const tm handle _ => dest_Free tm) 
-				= func_name)
-                               handle _ => false
-              val nested = U.can(S.find_term is_func)
+              val func_name = #1(dest_Const func)
+              fun is_func (Const (name,_)) = (name = func_name)
+		| is_func _                = false
               val rcontext = rev cntxt
               val cncl = HOLogic.dest_Trueprop o #prop o rep_thm
               val antl = case rcontext of [] => [] 
@@ -775,7 +752,7 @@ fun CONTEXT_REWRITE_RULE(func,R){cut_lemma, congs, th} =
               val dummy = print_cterms "TC:\n" 
 		              [cterm_of sign (HOLogic.mk_Trueprop TC)]
               val dummy = tc_list := (TC :: !tc_list)
-              val nestedp = nested TC
+              val nestedp = is_some (S.find_term is_func TC)
               val dummy = if nestedp then say"nested\n" else say"not_nested\n"
               val dummy = term_ref := ([func,TC]@(!term_ref))
               val th' = if nestedp then raise RULES_ERR{func = "solver", 
@@ -803,12 +780,8 @@ fun CONTEXT_REWRITE_RULE(func,R){cut_lemma, congs, th} =
 
 
 
-fun prove (tm,tac) = 
-  let val {t,sign,...} = rep_cterm tm
-      val ptm = cterm_of sign(HOLogic.mk_Trueprop t)
-  in
-  freeze(prove_goalw_cterm [] ptm (fn _ => [tac]))
-  end;
+fun prove (ptm,tac) = 
+    #1 (freeze_thaw (prove_goalw_cterm [] ptm (fn _ => [tac])));
 
 
 end; (* Rules *)

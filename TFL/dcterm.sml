@@ -35,8 +35,6 @@ sig
     val is_let : cterm -> bool
     val is_neg : cterm -> bool
     val is_pair : cterm -> bool
-    val list_mk_abs : cterm list -> cterm -> cterm
-    val list_mk_exists : cterm list * cterm -> cterm
     val list_mk_disj : cterm list -> cterm
     val strip_abs : cterm -> cterm list * cterm
     val strip_comb : cterm -> cterm * cterm list
@@ -56,14 +54,6 @@ fun ERR func mesg = Utils.ERR{module = "Dcterm", func = func, mesg = mesg};
  *---------------------------------------------------------------------------*)
 val can = Utils.can;
 fun swap (x,y) = (y,x);
-
-fun itlist f L base_value =
-   let fun it [] = base_value
-         | it (a::rst) = f a (it rst)
-   in it L 
-   end;
-
-val end_itlist = Utils.end_itlist;
 
 
 (*---------------------------------------------------------------------------
@@ -164,10 +154,7 @@ val is_cons   = can dest_cons
 (*---------------------------------------------------------------------------
  * Iterated creation.
  *---------------------------------------------------------------------------*)
-val list_mk_abs = itlist cabs;
-
-fun list_mk_exists(V,t) = itlist(fn v => fn b => mk_exists(v, b)) V t;
-val list_mk_disj = end_itlist(fn d1 => fn tm => mk_disj(d1, tm))
+val list_mk_disj = Utils.end_itlist(fn d1 => fn tm => mk_disj(d1, tm))
 
 (*---------------------------------------------------------------------------
  * Iterated destruction. (To the "right" in a term.)

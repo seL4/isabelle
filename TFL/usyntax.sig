@@ -25,21 +25,14 @@ sig
   val strip_prod_type : typ -> typ list
 
   (* Terms *)
-  val free_varsl : term list -> term list
   val free_vars_lr : term -> term list
-  val all_vars   : term -> term list
-  val all_varsl  : term list -> term list
-  val variant    : term list -> term -> term
   val type_vars_in_term : term -> typ list
   val dest_term  : term -> lambda
   
   (* Prelogic *)
-  val aconv     : term -> term -> bool
   val inst      : (typ*typ) list -> term -> term
-  val beta_conv : term -> term
 
   (* Construction routines *)
-  val mk_comb   :{Rator : term, Rand : term} -> term
   val mk_abs    :{Bvar  : term, Body : term} -> term
 
   val mk_imp    :{ant : term, conseq :  term} -> term
@@ -66,14 +59,9 @@ sig
 
   val lhs   : term -> term
   val rhs   : term -> term
-  val rator : term -> term
   val rand  : term -> term
-  val bvar  : term -> term
-  val body  : term -> term
-  
 
   (* Query routines *)
-  val is_eq     : term -> bool
   val is_imp    : term -> bool
   val is_forall : term -> bool 
   val is_exists : term -> bool 
@@ -87,7 +75,6 @@ sig
   val list_mk_abs    : (term list * term) -> term
   val list_mk_imp    : (term list * term) -> term
   val list_mk_forall : (term list * term) -> term
-  val list_mk_exists : (term list * term) -> term
   val list_mk_conj   : term list -> term
   val list_mk_disj   : term list -> term
 
@@ -102,8 +89,7 @@ sig
   (* Miscellaneous *)
   val mk_vstruct : typ -> term list -> term
   val gen_all    : term -> term
-  val find_term  : (term -> bool) -> term -> term
-  val find_terms : (term -> bool) -> term -> term list
+  val find_term  : (term -> bool) -> term -> term option
   val dest_relation : term -> term * term * term
   val is_WFR : term -> bool
   val ARB : typ -> term
