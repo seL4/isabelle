@@ -240,13 +240,13 @@ fun union_sort a = foldr (inj a);
    sort lists under the assumption that the two lists have the same length
 *)
 
-fun elementwise_union a (Ss1, Ss2) = map (union_sort a) (Ss1~~Ss2);
+fun elementwise_union a (Ss1, Ss2) = ListPair.map (union_sort a) (Ss1,Ss2);
 
 
 (* 'lew' checks for two sort lists the ordering for all corresponding list
    elements (i.e. sorts) *)
 
-fun lew a (w1, w2) = forall (sortorder a)  (w1~~w2);
+fun lew a (w1, w2) = ListPair.all (sortorder a)  (w1,w2);
 
 
 (* 'is_min' checks if a class C is minimal in a given sort S under the
@@ -840,11 +840,10 @@ fun dom arities t C = case assoc2 (arities, (t, C)) of
    (i.e. a set of range classes ); the union is carried out elementwise
    for the seperate sorts in the domains *)
 
-fun Dom (subclass, arities) (t, S) =
-  let val domlist = map (dom arities t) S;
-  in if null domlist then []
-     else foldl (elementwise_union subclass) (hd domlist, tl domlist)
-  end;
+fun union_dom (subclass, arities) (t, S) =
+    case map (dom arities t) S of
+	[] => []
+      | (d::ds) => foldl (elementwise_union subclass) (d,ds);
 
 
 fun W ((T, S), tsig as TySg{subclass, arities, ...}, tye) =
@@ -856,7 +855,7 @@ fun W ((T, S), tsig as TySg{subclass, arities, ...}, tye) =
                                  else raise TUNIFY
         | Wk(T as Type(f, Ts)) =
            if null S then tye
-           else foldr Wd (Ts~~(Dom (subclass, arities) (f, S)) , tye)
+           else foldr Wd (Ts~~(union_dom (subclass, arities) (f, S)) , tye)
   in Wk(T) end;
 
 
@@ -1071,7 +1070,7 @@ fun infer_types (tsig, const_type, types, sorts, used, freeze, Ts, ts) =
       (*convert all internally generated TVars into TFrees or TVars
         and thaw all initially frozen TVars*)
   in
-    (snd(strip_comb u''), (map fst Ttye) ~~ Us)
+    (#2(strip_comb u''), ListPair.zip(map #1 Ttye, Us))
   end;
 
 end;
