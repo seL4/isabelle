@@ -61,3 +61,21 @@ end;
 
 claset := HOL_cs;
 
+
+(*** Applying BlastFun to create Blast_tac ***)
+structure Blast_Data = 
+  struct
+  type claset	= Classical.claset
+  val notE	= notE
+  val ccontr	= ccontr
+  val contr_tac = Classical.contr_tac
+  val dup_intr	= Classical.dup_intr
+  val vars_gen_hyp_subst_tac = Hypsubst.vars_gen_hyp_subst_tac
+  val claset	= Classical.claset
+  val rep_claset = Classical.rep_claset
+  end;
+
+structure Blast = BlastFun(Blast_Data);
+
+val Blast_tac = Blast.Blast_tac
+and blast_tac = Blast.blast_tac;
