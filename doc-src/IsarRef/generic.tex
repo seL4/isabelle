@@ -1,7 +1,7 @@
 
 \chapter{Generic Tools and Packages}\label{ch:gen-tools}
 
-\section{Theory commands}
+\section{Theory specification commands}
 
 \subsection{Axiomatic type classes}\label{sec:axclass}
 
@@ -57,10 +57,62 @@ Isabelle documentation.
 
 FIXME
 
+\indexouternonterm{contextelem}
 
-\section{Proof commands}
 
-\subsection{Calculational Reasoning}\label{sec:calculation}
+\section{Derived proof schemes}
+
+\subsection{Generalized elimination}\label{sec:obtain}
+
+\indexisarcmd{obtain}
+\begin{matharray}{rcl}
+  \isarcmd{obtain} & : & \isartrans{proof(state)}{proof(prove)} \\
+\end{matharray}
+
+Generalized elimination means that additional elements with certain properties
+may introduced in the current context, by virtue of a locally proven
+``soundness statement''.  Technically speaking, the $\OBTAINNAME$ language
+element is like a declaration of $\FIXNAME$ and $\ASSUMENAME$ (see also see
+\S\ref{sec:proof-context}), together with a soundness proof of its additional
+claim.  According to the nature of existential reasoning, assumptions get
+eliminated from any result exported from the context later, provided that the
+corresponding parameters do \emph{not} occur in the conclusion.
+
+\begin{rail}
+  'obtain' (vars + 'and') comment? \\ 'where' (props comment? + 'and')
+  ;
+\end{rail}
+
+$\OBTAINNAME$ is defined as a derived Isar command as follows, where $\vec b$
+shall refer to (optional) facts indicated for forward chaining.
+\begin{matharray}{l}
+  \langle facts~\vec b\rangle \\
+  \OBTAIN{\vec x}{a}{\vec \phi}~~\langle proof\rangle \equiv {} \\[1ex]
+  \quad \BG \\
+  \qquad \FIX{thesis} \\
+  \qquad \ASSUME{that~[simp, intro]}{\All{\vec x} \vec\phi \Imp thesis} \\
+  \qquad \FROM{\vec b}~\HAVE{}{thesis}~~\langle proof\rangle \\
+  \quad \EN \\
+  \quad \FIX{\vec x}~\ASSUMENAME^\ast~a\colon~\vec\phi \\
+\end{matharray}
+
+Typically, the soundness proof is relatively straight-forward, often just by
+canonical automated tools such as $\BY{simp}$ (see \S\ref{sec:simp}) or
+$\BY{blast}$ (see \S\ref{sec:classical-auto}).  Accordingly, the ``$that$''
+reduction above is declared as simplification and introduction rule.
+
+\medskip
+
+In a sense, $\OBTAINNAME$ represents at the level of Isar proofs what would be
+meta-logical existential quantifiers and conjunctions.  This concept has a
+broad range of useful applications, ranging from plain elimination (or even
+introduction) of object-level existentials and conjunctions, to elimination
+over results of symbolic evaluation of recursive definitions, for example.
+Also note that $\OBTAINNAME$ without parameters acts much like $\HAVENAME$,
+where the result is treated as an assumption.
+
+
+\subsection{Calculational reasoning}\label{sec:calculation}
 
 \indexisarcmd{also}\indexisarcmd{finally}
 \indexisarcmd{moreover}\indexisarcmd{ultimately}
@@ -150,55 +202,7 @@ follows:\footnote{Internal bookkeeping such as proper handling of
 \end{descr}
 
 
-\subsection{Generalized elimination}\label{sec:obtain}
-
-\indexisarcmd{obtain}
-\begin{matharray}{rcl}
-  \isarcmd{obtain} & : & \isartrans{proof(state)}{proof(prove)} \\
-\end{matharray}
-
-Generalized elimination means that additional elements with certain properties
-may introduced in the current context, by virtue of a locally proven
-``soundness statement''.  Technically speaking, the $\OBTAINNAME$ language
-element is like a declaration of $\FIXNAME$ and $\ASSUMENAME$ (see also see
-\S\ref{sec:proof-context}), together with a soundness proof of its additional
-claim.  According to the nature of existential reasoning, assumptions get
-eliminated from any result exported from the context later, provided that the
-corresponding parameters do \emph{not} occur in the conclusion.
-
-\begin{rail}
-  'obtain' (vars + 'and') comment? \\ 'where' (props comment? + 'and')
-  ;
-\end{rail}
-
-$\OBTAINNAME$ is defined as a derived Isar command as follows, where $\vec b$
-shall refer to (optional) facts indicated for forward chaining.
-\begin{matharray}{l}
-  \langle facts~\vec b\rangle \\
-  \OBTAIN{\vec x}{a}{\vec \phi}~~\langle proof\rangle \equiv {} \\[1ex]
-  \quad \BG \\
-  \qquad \FIX{thesis} \\
-  \qquad \ASSUME{that~[simp, intro]}{\All{\vec x} \vec\phi \Imp thesis} \\
-  \qquad \FROM{\vec b}~\HAVE{}{thesis}~~\langle proof\rangle \\
-  \quad \EN \\
-  \quad \FIX{\vec x}~\ASSUMENAME^\ast~a\colon~\vec\phi \\
-\end{matharray}
-
-Typically, the soundness proof is relatively straight-forward, often just by
-canonical automated tools such as $\BY{simp}$ (see \S\ref{sec:simp}) or
-$\BY{blast}$ (see \S\ref{sec:classical-auto}).  Accordingly, the ``$that$''
-reduction above is declared as simplification and introduction rule.
-
-\medskip
-
-In a sense, $\OBTAINNAME$ represents at the level of Isar proofs what would be
-meta-logical existential quantifiers and conjunctions.  This concept has a
-broad range of useful applications, ranging from plain elimination (or even
-introduction) of object-level existentials and conjunctions, to elimination
-over results of symbolic evaluation of recursive definitions, for example.
-Also note that $\OBTAINNAME$ without parameters acts much like $\HAVENAME$,
-where the result is treated as an assumption.
-
+\section{Specific proof tools}
 
 \subsection{Miscellaneous methods and attributes}\label{sec:misc-meth-att}
 
@@ -308,7 +312,7 @@ where the result is treated as an assumption.
 \end{descr}
 
 
-\subsection{Tactic emulations}\label{sec:tactics}
+\subsection{Further tactic emulations}\label{sec:tactics}
 
 The following improper proof methods emulate traditional tactics.  These admit
 direct access to the goal state, which is normally considered harmful!  In
@@ -432,11 +436,13 @@ val thms  : string -> thm list
 \end{descr}
 
 
-\section{The Simplifier}\label{sec:simplifier}
+\subsection{The Simplifier}\label{sec:simplifier}
 
-\subsection{Simplification methods}\label{sec:simp}
+\subsubsection{Basic equational reasoning}
 
-\subsubsection{FIXME}
+FIXME
+
+\subsubsection{Simplification methods}\label{sec:simp}
 
 \indexisarmeth{simp}\indexisarmeth{simp-all}
 \begin{matharray}{rcl}
@@ -509,7 +515,7 @@ $(simp~only\colon~split\colon~\vec a)$.  There is also a separate $split$
 method available for single-step case splitting, see \S\ref{sec:basic-eq}.
 
 
-\subsection{Declaring rules}
+\subsubsection{Declaring rules}
 
 \indexisarcmd{print-simpset}
 \indexisaratt{simp}\indexisaratt{split}\indexisaratt{cong}
@@ -535,7 +541,9 @@ method available for single-step case splitting, see \S\ref{sec:basic-eq}.
 \end{descr}
 
 
-\subsection{Forward simplification}
+\subsubsection{Forward simplification}
+
+FIXME thmargs
 
 \indexisaratt{simplified}
 \begin{matharray}{rcl}
@@ -563,7 +571,9 @@ method available for single-step case splitting, see \S\ref{sec:basic-eq}.
 \end{descr}
 
 
-\section{Basic equational reasoning}\label{sec:basic-eq}
+\subsubsection{Basic equational reasoning}\label{sec:basic-eq}
+
+FIXME move?
 
 \indexisarmeth{subst}\indexisarmeth{hypsubst}\indexisarmeth{split}\indexisaratt{symmetric}
 \begin{matharray}{rcl}
@@ -601,9 +611,9 @@ while the Simplifier is the canonical tool for automated normalization (see
 \end{descr}
 
 
-\section{The Classical Reasoner}\label{sec:classical}
+\subsection{The Classical Reasoner}\label{sec:classical}
 
-\subsection{Basic methods}\label{sec:classical-basic}
+\subsubsection{Basic methods}\label{sec:classical-basic}
 
 \indexisarmeth{rule}\indexisarmeth{intro}
 \indexisarmeth{elim}\indexisarmeth{default}\indexisarmeth{contradiction}
@@ -642,7 +652,7 @@ while the Simplifier is the canonical tool for automated normalization (see
 \end{descr}
 
 
-\subsection{Automated methods}\label{sec:classical-auto}
+\subsubsection{Automated methods}\label{sec:classical-auto}
 
 \indexisarmeth{blast}\indexisarmeth{fast}\indexisarmeth{slow}
 \indexisarmeth{best}\indexisarmeth{safe}\indexisarmeth{clarify}
@@ -686,7 +696,7 @@ This is slightly less hazardous than for the Simplifier (see
 \S\ref{sec:simp}).
 
 
-\subsection{Combined automated methods}\label{sec:clasimp}
+\subsubsection{Combined automated methods}\label{sec:clasimp}
 
 \indexisarmeth{auto}\indexisarmeth{force}\indexisarmeth{clarsimp}
 \indexisarmeth{fastsimp}\indexisarmeth{slowsimp}\indexisarmeth{bestsimp}
@@ -728,7 +738,7 @@ This is slightly less hazardous than for the Simplifier (see
 \end{descr}
 
 
-\subsection{Declaring rules}\label{sec:classical-mod}
+\subsubsection{Declaring rules}\label{sec:classical-mod}
 
 \indexisarcmd{print-claset}
 \indexisaratt{intro}\indexisaratt{elim}\indexisaratt{dest}
@@ -780,9 +790,9 @@ This is slightly less hazardous than for the Simplifier (see
 \end{descr}
 
 
-\section{Proof by cases and induction}\label{sec:cases-induct}
+\subsection{Proof by cases and induction}\label{sec:cases-induct}
 
-\subsection{Rule contexts}\label{sec:rule-cases}
+\subsubsection{Rule contexts}\label{sec:rule-cases}
 
 \indexisarcmd{case}\indexisarcmd{print-cases}
 \indexisaratt{case-names}\indexisaratt{params}\indexisaratt{consumes}
@@ -871,7 +881,7 @@ may be used in advanced case analysis later.
 \end{descr}
 
 
-\subsection{Proof methods}\label{sec:cases-induct-meth}
+\subsubsection{Proof methods}\label{sec:cases-induct-meth}
 
 \indexisarmeth{cases}\indexisarmeth{induct}
 \begin{matharray}{rcl}
@@ -1013,7 +1023,7 @@ instead, one would have to specify this explicitly, e.g.\ by appending
 ``$type: name$'' to the method argument.
 
 
-\subsection{Declaring rules}\label{sec:cases-induct-att}
+\subsubsection{Declaring rules}\label{sec:cases-induct-att}
 
 \indexisarcmd{print-induct-rules}\indexisaratt{cases}\indexisaratt{induct}
 \begin{matharray}{rcl}
@@ -1043,83 +1053,6 @@ adjust names of cases and parameters of a rule.
 The $consumes$ declaration (cf.\ \S\ref{sec:rule-cases}) is taken care of
 automatically (if none had been given already): $consumes~0$ is specified for
 ``type'' rules and $consumes~1$ for ``set'' rules.
-
-
-\section{Object-logic setup}\label{sec:object-logic}
-
-The very starting point for any Isabelle object-logic is a ``truth judgment''
-that links object-level statements to the meta-logic (with its minimal
-language of $prop$ that covers universal quantification $\Forall$ and
-implication $\Imp$).  Common object-logics are sufficiently expressive to
-\emph{internalize} rule statements over $\Forall$ and $\Imp$ within their own
-language.  This is useful in certain situations where a rule needs to be
-viewed as an atomic statement from the meta-level perspective (e.g.\ $\All x x
-\in A \Imp P(x)$ versus $\forall x \in A. P(x)$).
-
-From the following language elements, only the $atomize$ method and
-$rule_format$ attribute are occasionally required by end-users, the rest is
-mainly for those who need to setup their own object-logic.  In the latter case
-existing formulations of Isabelle/FOL or Isabelle/HOL may be taken as
-realistic examples.
-
-Further generic tools may refer to the information provided by object-logic
-declarations internally (such as locales \S\ref{sec:locale}, or the Classical
-Reasoner \S\ref{sec:classical}).
-
-\indexisarcmd{judgment}
-\indexisarmeth{atomize}\indexisaratt{atomize}
-\indexisaratt{rule-format}\indexisaratt{rulify}
-
-\begin{matharray}{rcl}
-  \isarcmd{judgment} & : & \isartrans{theory}{theory} \\
-  atomize & : & \isarmeth \\
-  atomize & : & \isaratt \\
-  rule_format & : & \isaratt \\
-  rulify & : & \isaratt \\
-\end{matharray}
-
-\railalias{ruleformat}{rule\_format}
-\railterm{ruleformat}
-
-\begin{rail}
-  'judgment' constdecl
-  ;
-  ruleformat ('(' noasm ')')?
-  ;
-\end{rail}
-
-\begin{descr}
-  
-\item [$\isarkeyword{judgment}~c::\sigma~~syn$] declares constant $c$ as the
-  truth judgment of the current object-logic.  Its type $\sigma$ should
-  specify a coercion of the category of object-level propositions to $prop$ of
-  the Pure meta-logic; the mixfix annotation $syn$ would typically just link
-  the object language (internally of syntactic category $logic$) with that of
-  $prop$.  Only one $\isarkeyword{judgment}$ declaration may be given in any
-  theory development.
-  
-\item [$atomize$] (as a method) rewrites any non-atomic premises of a
-  sub-goal, using the meta-level equations that have been declared via
-  $atomize$ (as an attribute) beforehand.  As a result, heavily nested goals
-  become amenable to fundamental operations such as resolution (cf.\ the
-  $rule$ method) and proof-by-assumption (cf.\ $assumption$).
-  
-  A typical collection of $atomize$ rules for a particular object-logic would
-  provide an internalization for each of the connectives of $\Forall$, $\Imp$,
-  $\equiv$; meta-level conjunction expressed as $\All{\PROP\,C} (A \Imp B \Imp
-  \PROP\,C) \Imp PROP\,C$ should be covered as well.
-  
-\item [$rule_format$] rewrites a theorem by the equalities declared as
-  $rulify$ rules in the current object-logic.  By default, the result is fully
-  normalized, including assumptions and conclusions at any depth.  The
-  $no_asm$ option restricts the transformation to the conclusion of a rule.
-  
-  In common object logics (HOL, FOL, ZF), the effect of $rule_format$ is to
-  replace (bounded) universal quantification ($\forall$) and implication
-  ($\imp$) by the corresponding rule statements over $\Forall$ and $\Imp$.
-
-\end{descr}
-
 
 %%% Local Variables:
 %%% mode: latex

@@ -14,7 +14,7 @@ include ../Makefile.in
 NAME = isar-ref
 
 FILES = isar-ref.tex intro.tex basics.tex syntax.tex pure.tex \
-	generic.tex hol.tex zf.tex refcard.tex conversion.tex \
+	generic.tex logics.tex refcard.tex conversion.tex \
 	../isar.sty ../rail.sty ../railsetup.sty ../proof.sty \
 	../iman.sty ../extra.sty ../ttbox.sty ../manual.bib
 

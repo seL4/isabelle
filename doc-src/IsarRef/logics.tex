@@ -1,37 +1,87 @@
 
-\chapter{Isabelle/HOL specific elements}\label{ch:hol-tools}
+\chapter{Object-logic specific elements}\label{ch:logics}
 
-\section{Miscellaneous attributes}
+\section{General logic setup}\label{sec:object-logic}
 
-\indexisarattof{HOL}{split-format}
+\indexisarcmd{judgment}
+\indexisarmeth{atomize}\indexisaratt{atomize}
+\indexisaratt{rule-format}\indexisaratt{rulify}
+
 \begin{matharray}{rcl}
-  split_format^* & : & \isaratt \\
+  \isarcmd{judgment} & : & \isartrans{theory}{theory} \\
+  atomize & : & \isarmeth \\
+  atomize & : & \isaratt \\
+  rule_format & : & \isaratt \\
+  rulify & : & \isaratt \\
 \end{matharray}
 
-\railalias{splitformat}{split\_format}
-\railterm{splitformat}
-\railterm{complete}
+The very starting point for any Isabelle object-logic is a ``truth judgment''
+that links object-level statements to the meta-logic (with its minimal
+language of $prop$ that covers universal quantification $\Forall$ and
+implication $\Imp$).  Common object-logics are sufficiently expressive to
+\emph{internalize} rule statements over $\Forall$ and $\Imp$ within their own
+language.  This is useful in certain situations where a rule needs to be
+viewed as an atomic statement from the meta-level perspective (e.g.\ $\All x x
+\in A \Imp P(x)$ versus $\forall x \in A. P(x)$).
+
+From the following language elements, only the $atomize$ method and
+$rule_format$ attribute are occasionally required by end-users, the rest is
+for those who need to setup their own object-logic.  In the latter case
+existing formulations of Isabelle/FOL or Isabelle/HOL may be taken as
+realistic examples.
+
+Generic tools may refer to the information provided by object-logic
+declarations internally (e.g.\ locales \S\ref{sec:locale}, or the Classical
+Reasoner \S\ref{sec:classical}).
+
+\railalias{ruleformat}{rule\_format}
+\railterm{ruleformat}
 
 \begin{rail}
-  splitformat (((name * ) + 'and') | ('(' complete ')'))
+  'judgment' constdecl
+  ;
+  ruleformat ('(' noasm ')')?
   ;
 \end{rail}
 
 \begin{descr}
   
-\item [$split_format~\vec p@1 \dots \vec p@n$] puts tuple objects into
-  canonical form as specified by the arguments given; $\vec p@i$ refers to
-  occurrences in premise $i$ of the rule.  The $split_format~(complete)$ form
-  causes \emph{all} arguments in function applications to be represented
-  canonically according to their tuple type structure.
+\item [$\isarkeyword{judgment}~c::\sigma~~syn$] declares constant $c$ as the
+  truth judgment of the current object-logic.  Its type $\sigma$ should
+  specify a coercion of the category of object-level propositions to $prop$ of
+  the Pure meta-logic; the mixfix annotation $syn$ would typically just link
+  the object language (internally of syntactic category $logic$) with that of
+  $prop$.  Only one $\isarkeyword{judgment}$ declaration may be given in any
+  theory development.
   
-  Note that these operations tend to invent funny names for new local
-  parameters to be introduced.
+\item [$atomize$] (as a method) rewrites any non-atomic premises of a
+  sub-goal, using the meta-level equations declared via $atomize$ (as an
+  attribute) beforehand.  As a result, heavily nested goals become amenable to
+  fundamental operations such as resolution (cf.\ the $rule$ method) and
+  proof-by-assumption (cf.\ $assumption$).
+  
+  A typical collection of $atomize$ rules for a particular object-logic would
+  provide an internalization for each of the connectives of $\Forall$, $\Imp$,
+  and $\equiv$.  Meta-level conjunction expressed in the manner of minimal
+  higher-order logic as $\All{\PROP\,C} (A \Imp B \Imp \PROP\,C) \Imp PROP\,C$
+  should be covered as well (this is particularly important for locales, see
+  \S\ref{sec:locale}).
+  
+\item [$rule_format$] rewrites a theorem by the equalities declared as
+  $rulify$ rules in the current object-logic.  By default, the result is fully
+  normalized, including assumptions and conclusions at any depth.  The
+  $no_asm$ option restricts the transformation to the conclusion of a rule.
+  
+  In common object-logics (HOL, FOL, ZF), the effect of $rule_format$ is to
+  replace (bounded) universal quantification ($\forall$) and implication
+  ($\imp$) by the corresponding rule statements over $\Forall$ and $\Imp$.
 
 \end{descr}
 
 
-\section{Primitive types}\label{sec:typedef}
+\section{HOL}
+
+\subsection{Primitive types}\label{sec:typedef}
 
 \indexisarcmdof{HOL}{typedecl}\indexisarcmdof{HOL}{typedef}
 \begin{matharray}{rcl}
@@ -61,9 +111,42 @@
 \end{descr}
 
 
-\section{Records}\label{sec:hol-record}
+\subsection{Low-level tuples}
+
+\indexisarattof{HOL}{split-format}
+\begin{matharray}{rcl}
+  split_format^* & : & \isaratt \\
+\end{matharray}
+
+\railalias{splitformat}{split\_format}
+\railterm{splitformat}
+\railterm{complete}
+
+\begin{rail}
+  splitformat (((name * ) + 'and') | ('(' complete ')'))
+  ;
+\end{rail}
+
+\begin{descr}
+  
+\item [$split_format~\vec p@1 \dots \vec p@n$] puts expressions of low-level
+  tuple types into canonical form as specified by the arguments given; $\vec
+  p@i$ refers to occurrences in premise $i$ of the rule.  The
+  $split_format~(complete)$ form causes \emph{all} arguments in function
+  applications to be represented canonically according to their tuple type
+  structure.
+  
+  Note that these operations tend to invent funny names for new local
+  parameters to be introduced.
+
+\end{descr}
+
+
+\subsection{Records}\label{sec:hol-record}
 
 FIXME proof tools (simp, cases/induct; no split!?);
+
+FIXME mixfix syntax;
 
 \indexisarcmdof{HOL}{record}
 \begin{matharray}{rcl}
@@ -71,10 +154,7 @@ FIXME proof tools (simp, cases/induct; no split!?);
 \end{matharray}
 
 \begin{rail}
-  'record' typespec '=' (type '+')? (field +)
-  ;
-
-  field: name '::' type comment?
+  'record' typespec '=' (type '+')? (constdecl +)
   ;
 \end{rail}
 
@@ -87,7 +167,7 @@ FIXME proof tools (simp, cases/induct; no split!?);
 \end{descr}
 
 
-\section{Datatypes}\label{sec:hol-datatype}
+\subsection{Datatypes}\label{sec:hol-datatype}
 
 \indexisarcmdof{HOL}{datatype}\indexisarcmdof{HOL}{rep-datatype}
 \begin{matharray}{rcl}
@@ -130,7 +210,7 @@ for case-analysis and induction, there are also emulations of ML tactics
 \S\ref{sec:induct_tac}.
 
 
-\section{Recursive functions}\label{sec:recursion}
+\subsection{Recursive functions}\label{sec:recursion}
 
 \indexisarcmdof{HOL}{primrec}\indexisarcmdof{HOL}{recdef}\indexisarcmdof{HOL}{recdef-tc}
 \begin{matharray}{rcl}
@@ -231,7 +311,7 @@ the following attributes.
 \end{rail}
 
 
-\section{(Co)Inductive sets}\label{sec:hol-inductive}
+\subsection{(Co)Inductive sets}\label{sec:hol-inductive}
 
 \indexisarcmdof{HOL}{inductive}\indexisarcmdof{HOL}{coinductive}\indexisarattof{HOL}{mono}
 \begin{matharray}{rcl}
@@ -268,7 +348,7 @@ See \cite{isabelle-HOL} for further information on inductive definitions in
 HOL.
 
 
-\section{Arithmetic}
+\subsection{Arithmetic proof support}
 
 \indexisarmethof{HOL}{arith}\indexisarattof{HOL}{arith-split}
 \begin{matharray}{rcl}
@@ -291,7 +371,7 @@ Note that a simpler (but faster) version of arithmetic reasoning is already
 performed by the Simplifier.
 
 
-\section{Cases and induction: emulating tactic scripts}\label{sec:induct_tac}
+\subsection{Cases and induction: emulating tactic scripts}\label{sec:induct_tac}
 
 The following important tactical tools of Isabelle/HOL have been ported to
 Isar.  These should be never used in proper proof texts!
@@ -348,6 +428,70 @@ Isar.  These should be never used in proper proof texts!
   elimination rules, $\isarkeyword{inductive_cases}$ provides case split
   theorems at the theory level for later use,
 \end{descr}
+
+
+\section{HOLCF}
+
+\subsection{Mixfix syntax for continuous operations}
+
+\indexisarcmdof{HOLCF}{consts}\indexisarcmdof{HOLCF}{constdefs}
+
+\begin{matharray}{rcl}
+  \isarcmd{consts} & : & \isartrans{theory}{theory} \\
+  \isarcmd{constdefs} & : & \isartrans{theory}{theory} \\
+\end{matharray}
+
+HOLCF provides a separate type for continuous functions $\alpha \rightarrow
+\beta$, with an explicit application operator $f \cdot x$.  Isabelle mixfix
+syntax normally refers directly to the pure meta-level function type $\alpha
+\To \beta$, with application $f\,x$.
+
+The HOLCF variants of $\CONSTS$ and $\CONSTDEFS$ have the same outer syntax as
+the pure versions (cf.\ \S\ref{sec:consts}).  Internally, declarations
+involving continuous function types are treated specifically, transforming the
+syntax template accordingly and generating syntax translation rules for the
+abstract and concrete representation of application.
+
+The behavior for plain meta-level function types is unchanged.  Mixed
+continuous and meta-level application is \emph{not} supported.
+
+\subsection{Recursive domains}
+
+\indexisarcmdof{HOLCF}{domain}
+\begin{matharray}{rcl}
+  \isarcmd{domain} & : & \isartrans{theory}{theory} \\
+\end{matharray}
+
+\begin{rail}
+  'domain' parname? (dmspec + 'and')
+  ;
+
+  dmspec: typespec '=' (cons + '|')
+  ;
+  cons: name (type * ) mixfix? comment?
+  ;
+  dtrules: 'distinct' thmrefs 'inject' thmrefs 'induction' thmrefs
+\end{rail}
+
+Recursive domains in HOLCF are analogous to datatypes in classical HOL (cf.\ 
+\S\ref{sec:hol-datatype}).  Mutual recursive is supported, but no nesting nor
+arbitrary branching.  Domain constructors may be strict (default) or lazy, the
+latter admits to introduce infinitary objects in the typical LCF manner (lazy
+lists etc.).
+
+See also \cite{MuellerNvOS99} for further information HOLCF domains in
+general.
+
+
+\section{ZF}
+
+\subsection{Type checking}
+
+FIXME
+
+\subsection{Inductive sets and datatypes}
+
+FIXME
 
 
 %%% Local Variables: 

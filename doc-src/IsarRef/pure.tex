@@ -5,8 +5,8 @@ Subsequently, we introduce the main part of Pure Isar theory and proof
 commands, together with fundamental proof methods and attributes.
 Chapter~\ref{ch:gen-tools} describes further Isar elements provided by generic
 tools and packages (such as the Simplifier) that are either part of Pure
-Isabelle or pre-installed by most object logics.  Chapter~\ref{ch:hol-tools}
-refers to actual object-logic specific elements of Isabelle/HOL.
+Isabelle or pre-installed by most object logics.  Chapter~\ref{ch:logics}
+refers to object-logic specific elements (mainly for HOL and ZF).
 
 \medskip
 
@@ -16,15 +16,14 @@ are classified as improper as well.  Improper Isar language elements, which
 are subsequently marked by ``$^*$'', are often helpful when developing proof
 documents, while their use is discouraged for the final outcome.  Typical
 examples are diagnostic commands that print terms or theorems according to the
-current context; other commands even emulate old-style tactical theorem
-proving.
+current context; other commands emulate old-style tactical theorem proving.
 
 
-\section{Theory specification commands}
+\section{Theory commands}
 
 \subsection{Defining theories}\label{sec:begin-thy}
 
-\indexisarcmd{header}\indexisarcmd{theory}\indexisarcmd{end}\indexisarcmd{context}
+\indexisarcmd{header}\indexisarcmd{theory}\indexisarcmd{context}\indexisarcmd{end}
 \begin{matharray}{rcl}
   \isarcmd{header} & : & \isarkeep{toplevel} \\
   \isarcmd{theory} & : & \isartrans{toplevel}{theory} \\
@@ -38,14 +37,14 @@ uniformly --- occasionally definitional mechanisms even require some explicit
 proof as well.  In contrast, ``old-style'' Isabelle theories support batch
 processing only, with the proof scripts collected in separate ML files.
 
-The first actual command of any theory has to be $\THEORY$, starting a new
-theory based on the merge of existing ones.  Just preceding $\THEORY$, there
-may be an optional $\isarkeyword{header}$ declaration, which is relevant to
-document preparation only; it acts very much like a special pre-theory markup
-command (cf.\ \S\ref{sec:markup-thy} and \S\ref{sec:markup-thy}).  The theory
-context may be also changed by $\CONTEXT$ without creating a new theory.  In
-both cases, $\END$ concludes the theory development; it has to be the very
-last command of any theory file.
+The first ``real'' command of any theory has to be $\THEORY$, which starts a
+new theory based on the merge of existing ones.  Just preceding $\THEORY$,
+there may be an optional $\isarkeyword{header}$ declaration, which is relevant
+to document preparation only; it acts very much like a special pre-theory
+markup command (cf.\ \S\ref{sec:markup-thy} and \S\ref{sec:markup-thy}).  The
+$\END$ commands concludes a theory development; it has to be the very last
+command of any theory file to loaded in batch-mode.  The theory context may be
+also changed interactively by $\CONTEXT$ without creating a new theory.
 
 \begin{rail}
   'header' text
@@ -54,8 +53,6 @@ last command of any theory file.
   ;
   'context' name
   ;
-  'end'
-  ;;
 
   filespecs: 'files' ((name | parname) +);
 \end{rail}
@@ -67,28 +64,42 @@ last command of any theory file.
   produce chapter or section headings.  See also \S\ref{sec:markup-thy} and
   \S\ref{sec:markup-prf} for further markup commands.
   
-\item [$\THEORY~A = B@1 + \cdots + B@n\colon$] commences a new theory $A$
-  based on existing ones $B@1 + \cdots + B@n$.  Isabelle's theory loader
-  system ensures that any of the base theories are properly loaded (and fully
-  up-to-date when $\THEORY$ is executed interactively).  The optional
-  $\isarkeyword{files}$ specification declares additional dependencies on ML
-  files.  Unless put in parentheses, any file will be loaded immediately via
-  $\isarcmd{use}$ (see also \S\ref{sec:ML}).  The optional ML file
-  \texttt{$A$.ML} that may be associated with any theory should \emph{not} be
-  included in $\isarkeyword{files}$, though.
+\item [$\THEORY~A = B@1 + \cdots + B@n\colon$] starts a new theory $A$ based
+  on the merge of existing theories $B@1, \dots, B@n$.
+  
+  Due to inclusion of several ancestors, the overall theory structure emerging
+  in an Isabelle session forms a directed acyclic graph (DAG).  Isabelle's
+  theory loader ensures that the sources contributing to the development graph
+  are always up-to-date.  Changed files are automatically reloaded when
+  processing theory headers interactively; batch-mode explicitly distinguishes
+  \verb,update_thy, from \verb,use_thy,, see also \cite{isabelle-ref}.
+  
+  The optional $\isarkeyword{files}$ specification declares additional
+  dependencies on ML files.  Files will be loaded immediately, unless the name
+  is put in parentheses, which merely documents the dependency to be resolved
+  later in the text (typically via explicit $\isarcmd{use}$ in the body text,
+  see \S\ref{sec:ML}).  In reminiscence of the old-style theory system of
+  Isabelle, \texttt{$A$.thy} may be also accompanied by an additional file
+  \texttt{$A$.ML} consisting of ML code that is executed in the context of the
+  \emph{finished} theory $A$.  That file should not be included in the
+  $\isarkeyword{files}$ dependency declaration, though.
   
 \item [$\CONTEXT~B$] enters an existing theory context, basically in read-only
   mode, so only a limited set of commands may be performed without destroying
   the theory.  Just as for $\THEORY$, the theory loader ensures that $B$ is
   loaded and up-to-date.
   
+  This command is occasionally useful for quick interactive experiments;
+  normally one should always commence a new context via $\THEORY$.
+  
 \item [$\END$] concludes the current theory definition or context switch.
-Note that this command cannot be undone, but the whole theory definition has
-to be retracted.
+  Note that this command cannot be undone, but the whole theory definition has
+  to be retracted.
+
 \end{descr}
 
 
-\subsection{Theory markup commands}\label{sec:markup-thy}
+\subsection{Markup commands}\label{sec:markup-thy}
 
 \indexisarcmd{chapter}\indexisarcmd{section}\indexisarcmd{subsection}
 \indexisarcmd{subsubsection}\indexisarcmd{text}\indexisarcmd{text-raw}
@@ -144,9 +155,9 @@ preceding the actual theory definition.
 \subsection{Type classes and sorts}\label{sec:classes}
 
 \indexisarcmd{classes}\indexisarcmd{classrel}\indexisarcmd{defaultsort}
-\begin{matharray}{rcl}
+\begin{matharray}{rcll}
   \isarcmd{classes} & : & \isartrans{theory}{theory} \\
-  \isarcmd{classrel} & : & \isartrans{theory}{theory} \\
+  \isarcmd{classrel} & : & \isartrans{theory}{theory} & (axiomatic!) \\
   \isarcmd{defaultsort} & : & \isartrans{theory}{theory} \\
 \end{matharray}
 
@@ -169,18 +180,18 @@ preceding the actual theory definition.
   proven class relations.
 \item [$\isarkeyword{defaultsort}~s$] makes sort $s$ the new default sort for
   any type variables given without sort constraints.  Usually, the default
-  sort would be only changed when defining new object-logics.
+  sort would be only changed when defining a new object-logic.
 \end{descr}
 
 
 \subsection{Primitive types and type abbreviations}\label{sec:types-pure}
 
 \indexisarcmd{typedecl}\indexisarcmd{types}\indexisarcmd{nonterminals}\indexisarcmd{arities}
-\begin{matharray}{rcl}
+\begin{matharray}{rcll}
   \isarcmd{types} & : & \isartrans{theory}{theory} \\
   \isarcmd{typedecl} & : & \isartrans{theory}{theory} \\
   \isarcmd{nonterminals} & : & \isartrans{theory}{theory} \\
-  \isarcmd{arities} & : & \isartrans{theory}{theory} \\
+  \isarcmd{arities} & : & \isartrans{theory}{theory} & (axiomatic!) \\
 \end{matharray}
 
 \begin{rail}
@@ -247,10 +258,9 @@ preceding the actual theory definition.
   Unless this option is given, a warning message would be issued for any
   definitional equation with a more special type than that of the
   corresponding constant declaration.
-
-\item [$\isarkeyword{constdefs}~c::\sigma~eqn$] combines declarations and
-  definitions of constants, using the canonical name $c_def$ for the
-  definitional axiom.
+  
+\item [$\CONSTDEFS~c::\sigma~eqn$] combines declarations and definitions of
+  constants, using the canonical name $c_def$ for the definitional axiom.
 \end{descr}
 
 
@@ -300,8 +310,8 @@ preceding the actual theory definition.
 \subsection{Axioms and theorems}\label{sec:axms-thms}
 
 \indexisarcmd{axioms}\indexisarcmd{lemmas}\indexisarcmd{theorems}
-\begin{matharray}{rcl}
-  \isarcmd{axioms} & : & \isartrans{theory}{theory} \\
+\begin{matharray}{rcll}
+  \isarcmd{axioms} & : & \isartrans{theory}{theory} & (axiomatic!) \\
   \isarcmd{lemmas} & : & \isartrans{theory}{theory} \\
   \isarcmd{theorems} & : & \isartrans{theory}{theory} \\
 \end{matharray}
@@ -366,9 +376,7 @@ following commands provide some way to do so.
   name space (which may be $class$, $type$, or $const$).  Hidden objects
   remain valid within the logic, but are inaccessible from user input.  In
   output, the special qualifier ``$\mathord?\mathord?$'' is prefixed to the
-  full internal name.
-  
-  Unqualified (global) names may not be hidden deliberately.
+  full internal name.  Unqualified (global) names may not be hidden.
 \end{descr}
 
 
@@ -550,9 +558,15 @@ of operation:
   goal claimed next.
 \end{descr}
 
-%FIXME diagram?
+The proof mode indicator may be read as a verb telling the writer what kind of
+operation may be performed next.  The corresponding typings of proof commands
+restricts the shape of well-formed proof texts to particular command
+sequences.  So dynamic arrangements of commands eventually turn out as static
+texts.  Appendix~\ref{ap:refcard} gives a simplified grammar of the overall
+(extensible) language emerging that way.
 
-\subsection{Proof markup commands}\label{sec:markup-prf}
+
+\subsection{Markup commands}\label{sec:markup-prf}
 
 \indexisarcmd{sect}\indexisarcmd{subsect}\indexisarcmd{subsubsect}
 \indexisarcmd{txt}\indexisarcmd{txt-raw}
@@ -576,7 +590,7 @@ mode (see \S\ref{sec:markup-thy}).
 \end{rail}
 
 
-\subsection{Proof context}\label{sec:proof-context}
+\subsection{Context elements}\label{sec:proof-context}
 
 \indexisarcmd{fix}\indexisarcmd{assume}\indexisarcmd{presume}\indexisarcmd{def}
 \begin{matharray}{rcl}
@@ -699,7 +713,7 @@ bound in Isabelle/Pure as ``\texttt{_}''
 
 Forward chaining with an empty list of theorems is the same as not chaining.
 Thus $\FROM{nothing}$ has no effect apart from entering $prove(chain)$ mode,
-since $nothing$\indexisarthm{nothing} is bound to the empty list of facts.
+since $nothing$\indexisarthm{nothing} is bound to the empty list of theorems.
 
 
 \subsection{Goal statements}
@@ -716,11 +730,11 @@ since $nothing$\indexisarthm{nothing} is bound to the empty list of facts.
   \isarcmd{thus} & : & \isartrans{proof(state)}{proof(prove)} \\
 \end{matharray}
 
-From a theory context, proof mode is entered from theory mode by initial goal
-commands $\LEMMANAME$, $\THEOREMNAME$, and $\COROLLARYNAME$.  Within a proof,
-new claims may be introduced locally as well; four variants are available,
-indicating whether the result is meant to solve some pending goal or whether
-forward chaining is indicated.
+From a theory context, proof mode is entered by an initial goal command such
+as $\LEMMANAME$, $\THEOREMNAME$, $\COROLLARYNAME$.  Within a proof, new claims
+may be introduced locally as well; four variants are available here to
+indicate whether forward chaining of facts should be performed initially (via
+$\THEN$), and whether the emerging result is meant to solve some pending goal.
 
 Goals may consist of multiple statements, resulting in a list of facts
 eventually.  A pending multi-goal is internally represented as a meta-level
@@ -731,15 +745,20 @@ $\PROOFNAME$ (\S\ref{sec:proof-steps}) or $\APPLYNAME$
   the $induct$ method covered in \S\ref{sec:cases-induct-meth} acts on
   multiple claims simultaneously.}
 
-%FIXME define locale, context
-
 \begin{rail}
-  ('lemma' | 'theorem' | 'corollary') locale context goal
+  ('lemma' | 'theorem' | 'corollary') goalprefix goal
   ;
   ('have' | 'show' | 'hence' | 'thus') goal
   ;
 
   goal: (props comment? + 'and')
+  ;
+
+  goalprefix: thmdecl? locale? context?
+  ;
+  locale: '(' 'in' name ')'
+  ;
+  context: '(' (contextelem +) ')'
   ;
 \end{rail}
 
@@ -749,8 +768,8 @@ $\PROOFNAME$ (\S\ref{sec:proof-steps}) or $\APPLYNAME$
   theory context, and optionally into the specified locale, cf.\ 
   \S\ref{sec:locale}.  An additional \railnonterm{context} specification may
   build an initial proof context for the subsequent claim; this may include
-  local definitions and syntax as well, see \S\ref{sec:locale} for more
-  information.
+  local definitions and syntax as well, see the definition of $contextelem$ in
+  \S\ref{sec:locale}.
   
 \item [$\THEOREM{a}{\vec\phi}$ and $\COROLLARY{a}{\vec\phi}$] are essentially
   the same as $\LEMMA{a}{\vec\phi}$, but the facts are internally marked as
@@ -832,18 +851,19 @@ Isar framework admits proof methods to be invoked in two places only.
   remaining goals.  No facts are passed to $m@2$.
 \end{enumerate}
 
-The only other proper way to affect pending goals is by $\SHOWNAME$, which
-involves an explicit statement of what is to be solved.
+The only other proper way to affect pending goals in a proof body is by
+$\SHOWNAME$, which involves an explicit statement of what is to be solved
+eventually.  Thus we avoid the fundamental problem of unstructured tactic
+scripts that consist of numerous consecutive goal transformations, with
+invisible effects.
 
 \medskip
 
-Also note that initial proof methods should either solve the goal completely,
-or constitute some well-understood reduction to new sub-goals.  Arbitrary
-automatic proof tools that are prone leave a large number of badly structured
-sub-goals are no help in continuing the proof document in any intelligible
-way.
-
-\medskip
+As a general rule of thumb for good proof style, initial proof methods should
+either solve the goal completely, or constitute some well-understood reduction
+to new sub-goals.  Arbitrary automatic proof tools that are prone leave a
+large number of badly structured sub-goals are no help in continuing the proof
+document in any intelligible way.
 
 Unless given explicitly by the user, the default initial method is ``$rule$'',
 which applies a single standard elimination or introduction rule according to
@@ -903,11 +923,12 @@ Any remaining goals are always solved by assumption in the very last step.
 The following proof methods and attributes refer to basic logical operations
 of Isar.  Further methods and attributes are provided by several generic and
 object-logic specific tools and packages (see chapters \ref{ch:gen-tools} and
-\ref{ch:hol-tools}).
+\ref{ch:logics}).
 
 \indexisarmeth{assumption}\indexisarmeth{this}\indexisarmeth{rule}\indexisarmeth{$-$}
-\indexisaratt{intro}\indexisaratt{elim}\indexisaratt{dest}\indexisaratt{rule}
 \indexisaratt{OF}\indexisaratt{of}
+\indexisarattof{Pure}{intro}\indexisarattof{Pure}{elim}
+\indexisarattof{Pure}{dest}\indexisarattof{Pure}{rule}
 \begin{matharray}{rcl}
   assumption & : & \isarmeth \\
   this & : & \isarmeth \\
@@ -920,6 +941,8 @@ object-logic specific tools and packages (see chapters \ref{ch:gen-tools} and
   dest & : & \isaratt \\
   rule & : & \isaratt \\
 \end{matharray}
+
+%FIXME intro!, intro, intro?
 
 \begin{rail}
   'rule' thmrefs?
@@ -990,8 +1013,8 @@ variables of the form $\Var{x}$, or nameless dummies ``\texttt{_}''
 patterns occur on the left-hand side, while the $\ISNAME$ patterns are in
 postfix position.
 
-Polymorphism of term bindings is handled in Hindley-Milner style, as in ML.
-Type variables referring to local assumptions or open goal statements are
+Polymorphism of term bindings is handled in Hindley-Milner style, similar to
+ML.  Type variables referring to local assumptions or open goal statements are
 \emph{fixed}, while those of finished results or bound by $\LETNAME$ may occur
 in \emph{arbitrary} instances later.  Even though actual polymorphism should
 be rarely used in practice, this mechanism is essential to achieve proper
