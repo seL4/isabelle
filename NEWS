@@ -135,6 +135,17 @@ comma separated list of theorem names rather than an ML expression;
 ALL/EX rather than !/?;
 
 
+*** LK ***
+
+* the notation <<...>> is now available as a notation for sequences of formulas
+
+* the simplifier is now installed
+
+* the axiom system has been generalized (thanks to Soren Heilmann) 
+
+* the classical reasoner now has a default rule database
+
+
 *** ZF ***
 
 * new primrec section allows primitive recursive functions to be given
