@@ -71,9 +71,9 @@ struct
       val svc_output_file = File.tmp_path (Path.basic "SVM_out");
       val _ = (File.write svc_input_file svc_input;
 	       execute (check_valid ^ " -dump-result " ^ 
-			File.sysify_path svc_output_file ^
-			" " ^ File.sysify_path svc_input_file ^ 
-			"> /dev/null 2>&1"))
+			File.quote_sysify_path svc_output_file ^
+			" " ^ File.quote_sysify_path svc_input_file ^ 
+			">/dev/null 2>&1"))
       val svc_output =
         (case Library.try File.read svc_output_file of
           Some out => out

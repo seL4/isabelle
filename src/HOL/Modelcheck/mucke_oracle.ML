@@ -500,7 +500,7 @@ fun callmc s =
       else mucke_home ^ "/mucke";
     val mucke_input_file = File.tmp_path (Path.basic "tmp.mu");
     val _ = File.write mucke_input_file s;
-    val result = execute (mucke ^ " -nb -res " ^ (File.sysify_path mucke_input_file));
+    val result = execute (mucke ^ " -nb -res " ^ (File.quote_sysify_path mucke_input_file));
   in
     if not (!trace_mc) then (File.rm mucke_input_file) else (); 
     result
