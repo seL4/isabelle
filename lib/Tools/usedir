@@ -26,6 +26,8 @@ function usage()
   echo "  Build object-logic or run examples. Also creates browsing"
   echo "  information (HTML etc.) according to settings."
   echo
+  echo "  ISABELLE_USEDIR_OPTIONS=$ISABELLE_USEDIR_OPTIONS"
+  echo
   exit 1
 }
 
