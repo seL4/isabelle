@@ -4,7 +4,6 @@
 %title%
 Isabelle Distribution Area
 
-
 %body%
 <p>
 
@@ -12,12 +11,19 @@ Isabelle Distribution Area
 
 <ul>	
 
-<li> <a href="http://www.cl.cam.ac.uk/Research/HVG/Isabelle/dist/binary.html">Cambridge (UK)</a> <br>&nbsp;</li>
+<li> <a
+href="http://www.cl.cam.ac.uk/Research/HVG/Isabelle/dist/packages.html">Cambridge
+(UK)</a> <br>&nbsp;</li>
 
-<li> <a href="http://isabelle.in.tum.de/dist/binary.html">Munich (Germany)</a> <br>&nbsp;</li>
+<li> <a href="http://isabelle.in.tum.de/dist/packages.html">Munich
+(Germany)</a> <br>&nbsp;</li>
 	
-<li> <a href="http://ftp.research.bell-labs.com/dist/smlnj/isabelle/binary.html">New Jersey (USA)</a> <br>&nbsp;</li>
+<li> <a
+href="http://ftp.research.bell-labs.com/dist/smlnj/isabelle/packages.html">New
+Jersey (USA)</a> <br>&nbsp;</li>
 
-<li> <a href="ftp://rodin.stanford.edu/pub/smlnj/isabelle/binary.html">Stanford (USA)</a> <br>&nbsp;</li>
+<li> <a
+href="ftp://rodin.stanford.edu/pub/smlnj/isabelle/packages.html">Stanford
+(USA)</a> <br>&nbsp;</li>
 
 </ul>

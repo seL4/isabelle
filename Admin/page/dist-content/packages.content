@@ -1,13 +1,13 @@
 %title%
-Isabelle Binary Distribution
+Isabelle Packages
 
 %body%
 
 <p>
 
-The binary distribution of <!-- _GP_ distname --> provides everything
-required for easy installation of the full Isabelle working
-environment on common Unix platforms.
+The following source and binary packages of <!-- _GP_ distname -->
+provide everything required for easy installation of the full Isabelle
+working environment on common Unix platforms.
 
 <p>
 
@@ -41,14 +41,14 @@ installed by default.
 
 <h2>(1) Linux/x86 systems with RPM</h2>
 
-This version of the <!-- _GP_ distname --> binary distribution is for
+This version of the <!-- _GP_ distname --> distribution is for
 Linux/x86 systems with RPM package management, as used by most Linux
 distributions.  Note that <tt>rpm</tt> requires root user access for
 installation.
 
 <p>
 
-<!-- _GP_ setdowncolor("#E0E0E0") -->
+<!-- _GP_ setdowncolor("\"#E0E0E0\"") -->
 <center>
 <table border="0" cellspacing="5" cellpadding="4" width="520">
   <!-- _GP_ download("Poly/ML system", "contrib/polyml.i386.rpm", "../..") -->
@@ -79,14 +79,14 @@ rpm -i --prefix /usr/share xsymbol.rpm
 
 <h2>(2) Generic Linux/x86 or Solaris/Sparc systems</h2>
 
-The following <!-- _GP_ distname --> binary distribution works for any
+The following <!-- _GP_ distname --> distribution works for any
 Linux/x86 or Solaris/Sparc system -- actually only Poly/ML is platform
 dependent.  Installation does not rely on package management; it may
 be performed by non-root users as well.
 
 <p>
 
-<!-- _GP_ setdowncolor("#E0E0E0") -->
+<!-- _GP_ setdowncolor("\"#E0E0E0\"") -->
 <center>
 <table border="0" cellspacing="5" cellpadding="4" width="520">
   <!-- _GP_ download("Poly/ML base system", "contrib/polyml_base.tar.gz", "../..") -->

@@ -7,3 +7,12 @@ for convenience.  These documents are also part of the standard
 Isabelle distribution.
 
 <!-- _GP_ include("$pwd/docu-contents.dist") -->
+
+The following text files of the Isabelle distribution may be of some
+interest:
+<ul>
+<li> <!-- _GP_ href(distname . "/ANNOUNCE", "ANNOUNCE") -->
+<li> <!-- _GP_ href(distname . "/README.html", "README") -->
+<li> <!-- _GP_ href(distname . "/INSTALL", "INSTALL") -->
+<li> <!-- _GP_ href(distname . "/NEWS", "NEWS") -->
+</ul>

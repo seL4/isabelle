@@ -36,37 +36,21 @@ workshops and courses.
 
 <h2>Obtaining Isabelle</h2>
 
-Visit the <a href="dist/">download page</a>.
-<p>
-  Several mirror sites provide the Isabelle <a
-  href="dist/">distribution</a>, which includes <a
-  href="dist/source.html">sources</a>, <a
-  href="dist/binary.html">binary packages</a>, and <a
-  href="dist/docs.html">documentation</a>. 
-  The current version is <strong><!-- _GP_ distname --></strong>.
-
+See the <a href="dist/">download page</a>.
 <p>
 
-You can also browse the main Isabelle logics
-<a href="library/HOL/">HOL</a>, <a href="library/HOLCF/">HOLCF</a>, 
-<a href="library/FOL/">FOL</a> and <a href="library/ZF/">ZF</a> online.
-
-<p>
-&nbsp;
-
-<h2>User interface</h2>
-
-The distribution includes only a very primitive interface based on
-ordinary terminal sessions.
+Several mirror sites provide the Isabelle <a
+href="dist/">distribution</a>, which includes source and binary <a
+href="dist/packages.html">packages</a> and browsable <a
+href="dist/docs.html">documentation</a>.  The current version is
+<strong><!-- _GP_ distname --></strong>.
 
 <p>
 
-<a href="http://zermelo.dcs.ed.ac.uk/~proofgen/">Proof General</a> is
-a generic Emacs interface for proof assistants, including Isabelle
-(both for the classic and Isar version).  Proof General is suitable
-for use by pacifists and Emacs militants alike. Its most prominent
-feature is script management, providing a metaphor of <em>live proof
-script editing</em>.
+You can also browse the Isabelle theory <a href="library">library</a>;
+the main logics are <a href="library/HOL/">HOL</a>, <a
+href="library/HOLCF/">HOLCF</a>, <a href="library/FOL/">FOL</a> and <a
+href="library/ZF/">ZF</a>.
 
 <p>
 &nbsp;
@@ -75,5 +59,5 @@ script editing</em>.
 
 Use the mailing list <a href="mailto:
 isabelle-users@cl.cam.ac.uk">isabelle-users@cl.cam.ac.uk</a> to
-discuss problems and results.  
-(Why not <A HREF="mailto:lcp@cl.cam.ac.uk">subscribe</A>?)
+discuss problems and results.  Why not <A
+HREF="mailto:lcp@cl.cam.ac.uk">subscribe</A>?
