@@ -262,6 +262,7 @@ val folded_local = syntax (local_thmss >> gen_rewrite Tactic.fold_rule);
 
 (* rule cases *)
 
+fun consumes x = syntax (Scan.lift (Scan.optional Args.nat 1) >> RuleCases.consumes) x;
 fun case_names x = syntax (Scan.lift (Scan.repeat1 Args.name) >> RuleCases.case_names) x;
 fun params x = syntax (Args.and_list1 (Scan.lift (Scan.repeat Args.name)) >> RuleCases.params) x;
 
@@ -294,6 +295,7 @@ val pure_attributes =
   ("standard", (standard, standard), "result put into standard form"),
   ("elim_format", (elim_format, elim_format), "destruct rule turned into elimination rule format"),
   ("no_vars", (no_vars, no_vars), "frozen schematic vars"),
+  ("consumes", (consumes, consumes), "number of consumed facts"),
   ("case_names", (case_names, case_names), "named rule cases"),
   ("params", (params, params), "named rule parameters"),
   ("exported", (exported_global, exported_local), "theorem exported from context")];
