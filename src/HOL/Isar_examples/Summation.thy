@@ -22,31 +22,6 @@ text {*
 *}
 
 
-subsection {* A summation operator *}
-
-text {*
-  The binder operator $\idt{sum} :: (\idt{nat} \To \idt{nat}) \To
- \idt{nat} \To \idt{nat}$ formalizes summation of natural numbers
- indexed from $0$ up to $k$ (excluding the bound):
- \[
- \sum\limits_{i < k} f(i) = \idt{sum} \ap (\lam i f \ap i) \ap k
- \]
-*}
-
-consts
-  sum :: "(nat => nat) => nat => nat"
-
-primrec
-  "sum f 0 = 0"
-  "sum f (Suc n) = f n + sum f n"
-
-syntax
-  "_SUM" :: "idt => nat => nat => nat"
-    ("SUM _ < _. _" [0, 0, 10] 10)
-translations
-  "SUM i < k. b" == "sum (\<lambda>i. b) k"
-
-
 subsection {* Summation laws *}
 
 text {*
@@ -56,7 +31,7 @@ text {*
 *}
 
 theorem sum_of_naturals:
-  "2 * (SUM i < n + 1. i) = n * (n + 1)"
+  "2 * (\<Sum>i < n + 1. i) = n * (n + 1)"
   (is "?P n" is "?S n = _")
 proof (induct n)
   show "?P 0" by simp
@@ -111,7 +86,7 @@ text {*
 *}
 
 theorem sum_of_odds:
-  "(SUM i < n. 2 * i + 1) = n^2"
+  "(\<Sum>i < n. 2 * i + 1) = n^2"
   (is "?P n" is "?S n = _")
 proof (induct n)
   show "?P 0" by simp
@@ -131,7 +106,7 @@ text {*
 lemmas distrib = add_mult_distrib add_mult_distrib2
 
 theorem sum_of_squares:
-  "#6 * (SUM i < n + 1. i^2) = n * (n + 1) * (2 * n + 1)"
+  "#6 * (\<Sum>i < n + 1. i^2) = n * (n + 1) * (2 * n + 1)"
   (is "?P n" is "?S n = _")
 proof (induct n)
   show "?P 0" by simp
@@ -144,7 +119,7 @@ next
 qed
 
 theorem sum_of_cubes:
-  "#4 * (SUM i < n + 1. i^#3) = (n * (n + 1))^2"
+  "#4 * (\<Sum>i < n + 1. i^#3) = (n * (n + 1))^2"
   (is "?P n" is "?S n = _")
 proof (induct n)
   show "?P 0" by (simp add: power_eq_if)
