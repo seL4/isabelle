@@ -516,6 +516,11 @@ fun add_typedecls decls thy =
 
 (*** the ProtoPure theory ***)
 
+
+(*It might make sense to restrict the polymorphism of the constant "==" to
+  sort logic, instead of the universal sort, {}.  Unfortunately, this change
+  causes HOL/Import/shuffler.ML to fail.*)
+
 val proto_pure =
   Theory.pre_pure
   |> Library.apply [TheoremsData.init, TheoryManagementData.init, Proofterm.init]
