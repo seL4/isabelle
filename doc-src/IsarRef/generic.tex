@@ -437,7 +437,7 @@ The Isar calculation proof commands may be defined as follows:\footnote{We
 
 \indexisaratt{tagged}\indexisaratt{untagged}
 \indexisaratt{THEN}\indexisaratt{COMP}
-\indexisaratt{where}\indexisaratt{unfolded}\indexisaratt{folded}
+\indexisaratt{unfolded}\indexisaratt{folded}
 \indexisaratt{standard}\indexisarattof{Pure}{elim-format}
 \indexisaratt{no-vars}
 \begin{matharray}{rcl}
@@ -445,7 +445,6 @@ The Isar calculation proof commands may be defined as follows:\footnote{We
   untagged & : & \isaratt \\[0.5ex]
   THEN & : & \isaratt \\
   COMP & : & \isaratt \\[0.5ex]
-  where & : & \isaratt \\[0.5ex]
   unfolded & : & \isaratt \\
   folded & : & \isaratt \\[0.5ex]
   elim_format & : & \isaratt \\
@@ -459,8 +458,6 @@ The Isar calculation proof commands may be defined as follows:\footnote{We
   'untagged' name
   ;
   ('THEN' | 'COMP') ('[' nat ']')? thmref
-  ;
-  'where' (name '=' term * 'and')
   ;
   ('unfolded' | 'folded') thmrefs
   ;
@@ -479,11 +476,6 @@ The Isar calculation proof commands may be defined as follows:\footnote{We
   specified); the $COMP$ version skips the automatic lifting process that is
   normally intended (cf.\ \texttt{RS} and \texttt{COMP} in
   \cite[\S5]{isabelle-ref}).
-
-\item [$where~\vec x = \vec t$] perform named instantiation of schematic
-  variables occurring in a theorem.  Unlike instantiation tactics such as
-  $rule_tac$ (see \S\ref{sec:tactic-commands}), actual schematic variables
-  have to be specified on the left-hand side (e.g.\ $\Var{x@3}$).
 
 \item [$unfolded~\vec a$ and $folded~\vec a$] expand and fold back again the
   given meta-level definitions throughout a rule.
@@ -513,15 +505,23 @@ particular, this may involve both numbered goal addressing (default 1), and
 dynamic instantiation within the scope of some subgoal.
 
 \begin{warn}
-  Dynamic instantiations are read and type-checked according to a subgoal of
-  the current dynamic goal state, rather than the static proof context!  In
-  particular, locally fixed variables and term abbreviations may not be
-  included in the term specifications.  Thus schematic variables are left to
-  be solved by unification with certain parts of the subgoal involved.
+  Dynamic instantiations refer to universally quantified parameters of
+  a subgoal (the dynamic context) rather than fixed variables and term
+  abbreviations of a (static) Isar context.
 \end{warn}
 
+Tactic emulation methods, unlike their ML counterparts, admit
+simultaneous instantiation from both dynamic and static contexts.  If
+names occur in both contexts goal parameters hide locally fixed
+variables.  Likewise, schematic variables refer to term abbreviations,
+if present in the static context.  Otherwise the schematic variable is
+interpreted as a schematic variable and left to be solved by unification
+with certain parts of the subgoal.
+
 Note that the tactic emulation proof methods in Isabelle/Isar are consistently
-named $foo_tac$.
+named $foo_tac$.  Note also that variable names occurring on left hand sides
+of instantiations must be preceded by a question mark if they contain dots.
+This is consistent with the attribute $where$ (see \S\ref{sec:pure-meth-att}).
 
 \indexisarmeth{rule-tac}\indexisarmeth{erule-tac}
 \indexisarmeth{drule-tac}\indexisarmeth{frule-tac}

@@ -963,7 +963,7 @@ object-logic specific tools and packages (see chapters \ref{ch:gen-tools} and
 \indexisarmeth{this}\indexisarmeth{rule}\indexisarmeth{rules}
 \indexisarattof{Pure}{intro}\indexisarattof{Pure}{elim}
 \indexisarattof{Pure}{dest}\indexisarattof{Pure}{rule}
-\indexisaratt{OF}\indexisaratt{of}
+\indexisaratt{OF}\indexisaratt{of}\indexisaratt{where}
 \begin{matharray}{rcl}
   - & : & \isarmeth \\
   assumption & : & \isarmeth \\
@@ -976,6 +976,7 @@ object-logic specific tools and packages (see chapters \ref{ch:gen-tools} and
   rule & : & \isaratt \\[0.5ex]
   OF & : & \isaratt \\
   of & : & \isaratt \\
+  where & : & \isaratt \\
 \end{matharray}
 
 \begin{rail}
@@ -992,6 +993,8 @@ object-logic specific tools and packages (see chapters \ref{ch:gen-tools} and
   'OF' thmrefs
   ;
   'of' insts ('concl' ':' insts)?
+  ;
+  'where' (name '=' term * 'and')
   ;
 \end{rail}
 
@@ -1058,6 +1061,11 @@ object-logic specific tools and packages (see chapters \ref{ch:gen-tools} and
   following a ``$concl\colon$'' specification refer to positions of the
   conclusion of a rule.
   
+\item [$where~\vec x = \vec t$] performs named instantiation of schematic
+  variables occurring in a theorem.  Schematic variables
+  have to be specified on the left-hand side (e.g.\ $?x1\!.\!3$).  The
+  question mark may be omitted if the variable name does not contain a dot.
+
 \end{descr}
 
 
