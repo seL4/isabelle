@@ -27,3 +27,16 @@ $(NAME).dvi: $(FILES) isabelle_zf.eps
 	$(LATEX) $(NAME)
 	$(SEDINDEX) $(NAME)
 	$(LATEX) $(NAME)
+
+pdf: $(NAME).pdf
+
+$(NAME).pdf: $(FILES) isabelle_zf.pdf
+	touch $(NAME).ind
+	$(PDFLATEX) $(NAME)
+	$(RAIL) $(NAME)
+	$(BIBTEX) $(NAME)
+	$(PDFLATEX) $(NAME)
+	$(PDFLATEX) $(NAME)
+	$(SEDINDEX) $(NAME)
+	$(FIXBOOKMARKS) $(NAME).out
+	$(PDFLATEX) $(NAME)

@@ -24,3 +24,12 @@ $(NAME).dvi: $(FILES) isabelle.eps
 	$(LATEX) $(NAME)
 	$(SEDINDEX) $(NAME)
 	$(LATEX) $(NAME)
+
+pdf: $(NAME).pdf
+
+$(NAME).pdf: $(FILES) isabelle.pdf
+	touch $(NAME).ind
+	$(PDFLATEX) $(NAME)
+	$(PDFLATEX) $(NAME)
+	$(SEDINDEX) $(NAME)
+	$(PDFLATEX) $(NAME)

@@ -28,7 +28,6 @@ $(NAME).dvi: $(FILES) isabelle_hol.eps
 	$(SEDINDEX) $(NAME)
 	$(LATEX) $(NAME)
 
-
 pdf: $(NAME).pdf
 
 $(NAME).pdf: $(FILES) isabelle_hol.pdf

@@ -30,7 +30,6 @@ $(NAME).dvi: $(FILES) isabelle.eps
 	$(SEDINDEX) $(NAME)
 	$(LATEX) $(NAME)
 
-
 pdf: $(NAME).pdf
 
 $(NAME).pdf: $(FILES) isabelle.pdf
