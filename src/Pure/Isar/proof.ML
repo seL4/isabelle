@@ -122,6 +122,7 @@ sig
   val begin_block: state -> state
   val end_block: state -> state Seq.seq
   val next_block: state -> state
+  val thisN: string
 end;
 
 structure Proof: PROOF =
