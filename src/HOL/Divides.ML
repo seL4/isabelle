@@ -48,6 +48,7 @@ Goal "m<n ==> m mod n = (m::nat)";
 by (rtac (mod_eq RS wf_less_trans) 1);
 by (Asm_simp_tac 1);
 qed "mod_less";
+Addsimps [mod_less];
 
 Goal "~ m < (n::nat) ==> m mod n = (m-n) mod n";
 by (div_undefined_case_tac "n=0" 1);
@@ -61,18 +62,18 @@ by (asm_simp_tac (simpset() addsimps [mod_geq, not_less_iff_le]) 1);
 qed "le_mod_geq";
 
 Goal "m mod (n::nat) = (if m<n then m else (m-n) mod n)";
-by (asm_simp_tac (simpset() addsimps [mod_less, mod_geq]) 1);
+by (asm_simp_tac (simpset() addsimps [mod_geq]) 1);
 qed "mod_if";
 
 Goal "m mod 1 = 0";
 by (induct_tac "m" 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [mod_less, mod_geq])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [mod_geq])));
 qed "mod_1";
 Addsimps [mod_1];
 
 Goal "n mod n = 0";
 by (div_undefined_case_tac "n=0" 1);
-by (asm_simp_tac (simpset() addsimps [mod_less, mod_geq]) 1);
+by (asm_simp_tac (simpset() addsimps [mod_geq]) 1);
 qed "mod_self";
 
 Goal "(m+n) mod n = m mod (n::nat)";
@@ -105,7 +106,7 @@ by (div_undefined_case_tac "k=0" 1);
 by (res_inst_tac [("n","m")] less_induct 1);
 by (stac mod_if 1);
 by (Asm_simp_tac 1);
-by (asm_simp_tac (simpset() addsimps [mod_less, mod_geq, 
+by (asm_simp_tac (simpset() addsimps [mod_geq, 
 				      diff_less, diff_mult_distrib]) 1);
 qed "mod_mult_distrib";
 
@@ -118,7 +119,7 @@ qed "mod_mult_distrib2";
 Goal "(m*n) mod n = 0";
 by (div_undefined_case_tac "n=0" 1);
 by (induct_tac "m" 1);
-by (asm_simp_tac (simpset() addsimps [mod_less]) 1);
+by (Asm_simp_tac 1);
 by (rename_tac "k" 1);
 by (cut_inst_tac [("m","k*n"),("n","n")] mod_add_self2 1);
 by (asm_full_simp_tac (simpset() addsimps [add_commute]) 1);
@@ -136,6 +137,7 @@ Goal "m<n ==> m div n = 0";
 by (rtac (div_eq RS wf_less_trans) 1);
 by (Asm_simp_tac 1);
 qed "div_less";
+Addsimps [div_less];
 
 Goal "[| 0<n;  ~m<n |] ==> m div n = Suc((m-n) div n)";
 by (rtac (div_eq RS wf_less_trans) 1);
@@ -148,7 +150,7 @@ by (asm_simp_tac (simpset() addsimps [div_geq, not_less_iff_le]) 1);
 qed "le_div_geq";
 
 Goal "0<n ==> m div n = (if m<n then 0 else Suc((m-n) div n))";
-by (asm_simp_tac (simpset() addsimps [div_less, div_geq]) 1);
+by (asm_simp_tac (simpset() addsimps [div_geq]) 1);
 qed "div_if";
 
 
@@ -158,7 +160,7 @@ by (div_undefined_case_tac "n=0" 1);
 by (res_inst_tac [("n","m")] less_induct 1);
 by (stac mod_if 1);
 by (ALLGOALS (asm_simp_tac 
-	      (simpset() addsimps [add_assoc, div_less, div_geq,
+	      (simpset() addsimps [add_assoc, div_geq,
 				   add_diff_inverse, diff_less])));
 qed "mod_div_equality";
 
@@ -171,12 +173,12 @@ qed "mult_div_cancel";
 
 Goal "m div 1 = m";
 by (induct_tac "m" 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [div_less, div_geq])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [div_geq])));
 qed "div_1";
 Addsimps [div_1];
 
 Goal "0<n ==> n div n = 1";
-by (asm_simp_tac (simpset() addsimps [div_less, div_geq]) 1);
+by (asm_simp_tac (simpset() addsimps [div_geq]) 1);
 qed "div_self";
 
 
@@ -205,12 +207,12 @@ Addsimps [div_mult_self1, div_mult_self2];
 
 Goal "0 div m = 0";
 by (div_undefined_case_tac "m=0" 1);
-by (asm_simp_tac (simpset() addsimps [div_less]) 1);
+by (Asm_simp_tac 1);
 qed "div_0"; 
 
 Goal "0 mod m = 0";
 by (div_undefined_case_tac "m=0" 1);
-by (asm_simp_tac (simpset() addsimps [mod_less]) 1);
+by (Asm_simp_tac 1);
 qed "mod_0"; 
 Addsimps [div_0, mod_0];
 
@@ -221,11 +223,11 @@ by (res_inst_tac [("n","n")] less_induct 1);
 by (Clarify_tac 1);
 by (case_tac "n<k" 1);
 (* 1  case n<k *)
-by (asm_simp_tac (simpset() addsimps [div_less]) 1);
+by (Asm_simp_tac 1);
 (* 2  case n >= k *)
 by (case_tac "m<k" 1);
 (* 2.1  case m<k *)
-by (asm_simp_tac (simpset() addsimps [div_less]) 1);
+by (Asm_simp_tac 1);
 (* 2.2  case m>=k *)
 by (asm_simp_tac (simpset() addsimps [div_geq, diff_less, diff_le_mono]) 1);
 qed_spec_mp "div_le_mono";
@@ -237,7 +239,7 @@ by (subgoal_tac "0<n" 1);
 by (res_inst_tac [("n","k")] less_induct 1);
 by (rename_tac "k" 1);
 by (case_tac "k<n" 1);
- by (asm_simp_tac (simpset() addsimps [div_less]) 1);
+ by (Asm_simp_tac 1);
 by (subgoal_tac "~(k<m)" 1);
  by (Asm_simp_tac 2);
 by (asm_simp_tac (simpset() addsimps [div_geq]) 1);
@@ -262,7 +264,7 @@ Goal "1<n ==> (0 < m) --> (m div n < m)";
 by (res_inst_tac [("n","m")] less_induct 1);
 by (rename_tac "m" 1);
 by (case_tac "m<n" 1);
- by (asm_full_simp_tac (simpset() addsimps [div_less]) 1);
+ by (Asm_full_simp_tac 1);
 by (subgoal_tac "0<n" 1);
  by (Asm_simp_tac 2);
 by (asm_full_simp_tac (simpset() addsimps [div_geq]) 1);
@@ -274,7 +276,7 @@ by (case_tac "n<m" 1);
 (* case n=m *)
 by (subgoal_tac "m=n" 1);
  by (Asm_simp_tac 2);
-by (asm_simp_tac (simpset() addsimps [div_less]) 1);
+by (Asm_simp_tac 1);
 qed_spec_mp "div_less_dividend";
 Addsimps [div_less_dividend];
 
@@ -285,12 +287,12 @@ by (res_inst_tac [("n","m")] less_induct 1);
 by (excluded_middle_tac "Suc(na)<n" 1);
 (* case Suc(na) < n *)
 by (forward_tac [lessI RS less_trans] 2);
-by (asm_simp_tac (simpset() addsimps [mod_less, less_not_refl3]) 2);
+by (asm_simp_tac (simpset() addsimps [less_not_refl3]) 2);
 (* case n <= Suc(na) *)
 by (asm_full_simp_tac (simpset() addsimps [not_less_iff_le, le_Suc_eq, 
 					   mod_geq]) 1);
 by (etac disjE 1);
- by (asm_simp_tac (simpset() addsimps [mod_less]) 2);
+ by (Asm_simp_tac 2);
 by (asm_simp_tac (simpset() addsimps [Suc_diff_le, diff_less, 
 				      le_mod_geq]) 1);
 qed "mod_Suc";
@@ -301,7 +303,7 @@ by (case_tac "na<n" 1);
 (*case n le na*)
 by (asm_full_simp_tac (simpset() addsimps [mod_geq, diff_less]) 2);
 (*case na<n*)
-by (asm_simp_tac (simpset() addsimps [mod_less]) 1);
+by (Asm_simp_tac 1);
 qed "mod_less_divisor";
 
 
@@ -334,15 +336,13 @@ Addsimps [mod2_gr_0];
 
 Goal "(m+m) mod 2 = 0";
 by (induct_tac "m" 1);
-by (simp_tac (simpset() addsimps [mod_less]) 1);
-by (Asm_simp_tac 1);
+by Auto_tac;
 qed "mod2_add_self_eq_0";
 Addsimps [mod2_add_self_eq_0];
 
 Goal "((m+m)+n) mod 2 = n mod 2";
 by (induct_tac "m" 1);
-by (simp_tac (simpset() addsimps [mod_less]) 1);
-by (Asm_simp_tac 1);
+by Auto_tac;
 qed "mod2_add_self";
 Addsimps [mod2_add_self];
 
@@ -366,8 +366,7 @@ Goal "0<k ==> (k*m) div (k*n) = m div n";
 by (div_undefined_case_tac "n=0" 1);
 by (res_inst_tac [("n","m")] less_induct 1);
 by (case_tac "na<n" 1);
-by (asm_simp_tac (simpset() addsimps [div_less, zero_less_mult_iff, 
-				      mult_less_mono2]) 1);
+by (asm_simp_tac (simpset() addsimps [zero_less_mult_iff, mult_less_mono2]) 1);
 by (subgoal_tac "~ k*na < k*n" 1);
 by (asm_simp_tac
      (simpset() addsimps [zero_less_mult_iff, div_geq,
