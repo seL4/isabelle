@@ -26,6 +26,8 @@ consts
   dropWhile   :: ('a => bool) => 'a list => 'a list
   tl, butlast :: 'a list => 'a list
   rev         :: 'a list => 'a list
+  zip	      :: "'a list => 'b list => ('a * 'b) list"
+  nodup	      :: "'a list => bool"
   replicate   :: nat => 'a => 'a list
 
 syntax
@@ -112,6 +114,12 @@ primrec takeWhile list
 primrec dropWhile list
   "dropWhile P [] = []"
   "dropWhile P (x#xs) = (if P x then dropWhile P xs else x#xs)"
+primrec zip list
+  "zip xs []     = []"
+  "zip xs (y#ys) = (hd xs,y)#zip (tl xs) ys"
+primrec nodup list
+  "nodup []     = True"
+  "nodup (x#xs) = (x ~: set xs & nodup xs)"
 primrec replicate nat
 replicate_0   "replicate 0 x       = []"
 replicate_Suc "replicate (Suc n) x = x # replicate n x"

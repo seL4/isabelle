@@ -713,6 +713,9 @@ by (induct_tac "xs" 1);
 by (asm_full_simp_tac (simpset() addsplits [expand_if]) 1);
 qed_spec_mp"set_take_whileD";
 
+qed_goal "zip_Nil_Nil"   thy "zip []     []     = []" (K [Simp_tac 1]);
+qed_goal "zip_Cons_Cons" thy "zip (x#xs) (y#ys) = (x,y)#zip xs ys" 
+						      (K [Simp_tac 1]);
 (** replicate **)
 section "replicate";
 
