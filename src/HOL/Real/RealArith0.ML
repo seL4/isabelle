@@ -86,6 +86,11 @@ by (auto_tac (claset(), simpset() addsimps [real_divide_def]));
 qed "real_divide_eq_0_iff";
 Addsimps [real_divide_eq_0_iff];
 
+Goal "h ~= (#0::real) ==> h/h = #1";
+by (asm_simp_tac (simpset() addsimps [real_divide_def, real_mult_inv_left]) 1);
+qed "real_divide_self_eq"; 
+Addsimps [real_divide_self_eq];
+
 
 (**** Factor cancellation theorems for "real" ****)
 
@@ -523,6 +528,25 @@ Goal "[| (#0::real) < d1; #0 < d2 |] ==> EX e. #0 < e & e < d1 & e < d2";
 by (res_inst_tac [("x","(min d1 d2)/#2")] exI 1); 
 by (asm_simp_tac (simpset() addsimps [min_def]) 1); 
 qed "real_lbound_gt_zero";
+
+Goal "(inverse x = inverse y) = (x = (y::real))";
+by (case_tac "x=#0 | y=#0" 1);
+by (auto_tac (claset(), 
+              simpset() addsimps [real_inverse_eq_divide, 
+                                  rename_numerals DIVISION_BY_ZERO])); 
+by (dres_inst_tac [("f","%u. x*y*u")] arg_cong 1); 
+by (Asm_full_simp_tac 1); 
+qed "real_inverse_eq_iff";
+Addsimps [real_inverse_eq_iff];
+
+Goal "(z/x = z/y) = (z = #0 | x = (y::real))";
+by (case_tac "x=#0 | y=#0" 1);
+by (auto_tac (claset(), 
+              simpset() addsimps [rename_numerals DIVISION_BY_ZERO])); 
+by (dres_inst_tac [("f","%u. x*y*u")] arg_cong 1);
+by Auto_tac;   
+qed "real_divide_eq_iff";
+Addsimps [real_divide_eq_iff];
 
 
 (*** General rewrites to improve automation, like those for type "int" ***)

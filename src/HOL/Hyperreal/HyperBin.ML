@@ -172,15 +172,6 @@ Addsimps [hypreal_add_number_of_left, hypreal_mult_number_of_left,
 	  hypreal_add_number_of_diff1, hypreal_add_number_of_diff2]; 
 
 
-(*"neg" is used in rewrite rules for binary comparisons*)
-Goal "hypreal_of_nat (number_of v :: nat) = \
-\        (if neg (number_of v) then #0 \
-\         else (number_of v :: hypreal))";
-by (simp_tac (simpset() addsimps [hypreal_of_nat_real_of_nat]) 1);
-qed "hypreal_of_nat_number_of";
-Addsimps [hypreal_of_nat_number_of];
-
-
 (**** Simprocs for numeric literals ****)
 
 (** Combining of literal coefficients in sums of products **)

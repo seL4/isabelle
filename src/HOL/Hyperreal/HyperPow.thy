@@ -6,6 +6,16 @@
 
 HyperPow = HRealAbs + HyperNat + RealPow +  
 
+(** First: hypnat is linearly ordered **)
+
+instance hypnat :: order (hypnat_le_refl,hypnat_le_trans,hypnat_le_anti_sym,
+                          hypnat_less_le)
+instance hypnat :: linorder (hypnat_le_linear)
+
+instance hypnat :: plus_ac0(hypnat_add_commute,hypnat_add_assoc,
+                            hypnat_add_zero_left)
+
+
 instance hypreal :: {power}
 
 consts hpowr :: "[hypreal,nat] => hypreal"  

@@ -44,11 +44,11 @@ defs
 
   (* an infinite number = [<1,2,3,...>] *)
   omega_def
-  "whr == Abs_hypreal(hyprel^^{%n::nat. real_of_posnat n})"
+  "whr == Abs_hypreal(hyprel^^{%n::nat. real_of_nat (Suc n)})"
     
   (* an infinitesimal number = [<1,1/2,1/3,...>] *)
   epsilon_def
-  "ehr == Abs_hypreal(hyprel^^{%n::nat. inverse (real_of_posnat n)})"
+  "ehr == Abs_hypreal(hyprel^^{%n::nat. inverse (real_of_nat (Suc n))})"
 
   hypreal_minus_def
   "- P == Abs_hypreal(UN X: Rep_hypreal(P). hyprel^^{%n::nat. - (X n)})"
@@ -67,14 +67,6 @@ constdefs
 
   hypreal_of_real  :: real => hypreal                 
   "hypreal_of_real r         == Abs_hypreal(hyprel^^{%n::nat. r})"
-  
-  (* n::nat --> (n+1)::hypreal *)
-  hypreal_of_posnat :: nat => hypreal                
-  "hypreal_of_posnat n  == (hypreal_of_real(real_of_preal
-                            (preal_of_prat(prat_of_pnat(pnat_of_nat n)))))"
-
-  hypreal_of_nat :: nat => hypreal                   
-  "hypreal_of_nat n      == hypreal_of_posnat n + -1hr"
 
 defs 
 

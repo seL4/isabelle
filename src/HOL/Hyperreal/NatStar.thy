@@ -5,7 +5,7 @@
                   sets of reals, and nat=>real, nat=>nat functions
 *) 
 
-NatStar = HyperNat + RealPow + HyperPow + 
+NatStar = RealPow + HyperPow + 
 
 constdefs
 

@@ -195,7 +195,7 @@ Goalw [hypnat_omega_def,hypnat_zero_def,omega_def]
 by (simp_tac (HOL_ss addsimps
              [one_eq_numeral_1 RS sym, hypreal_one_def]) 1); 
 by (auto_tac (claset(),
-              simpset() addsimps [sumhr, hypreal_diff, real_of_nat_def]));
+              simpset() addsimps [sumhr, hypreal_diff, real_of_nat_Suc]));
 qed "sumhr_hypreal_omega_minus_one";
 
 Goalw [hypnat_zero_def, hypnat_omega_def]
@@ -211,8 +211,8 @@ Goalw [hypnat_of_nat_def,hypreal_of_real_def]
 \          ==> sumhr(hypnat_of_nat m,hypnat_of_nat na,f) = \
 \          (hypreal_of_nat (na - m) * hypreal_of_real r)";
 by (auto_tac (claset() addSDs [sumr_interval_const],
-    simpset() addsimps [sumhr,hypreal_of_nat_real_of_nat,
-              hypreal_of_real_def,hypreal_mult]));
+              simpset() addsimps [sumhr,hypreal_of_nat_def,
+                                  hypreal_of_real_def, hypreal_mult]));
 qed "sumhr_interval_const";
 
 Goalw [hypnat_zero_def]

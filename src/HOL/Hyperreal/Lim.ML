@@ -5,7 +5,6 @@
                   differentiation of real=>real functions
 *)
 
-
 fun ARITH_PROVE str = prove_goal thy str 
                       (fn prems => [cut_facts_tac prems 1,arith_tac 1]);
 
@@ -28,12 +27,9 @@ Addsimps [LIM_const];
     LIM_add    
  ---------------*)
 Goalw [LIM_def] 
-     "[| f -- x --> l; g -- x --> m |] \
-\     ==> (%x. f(x) + g(x)) -- x --> (l + m)";
-by (Step_tac 1);
+     "[| f -- x --> l; g -- x --> m |] ==> (%x. f(x) + g(x)) -- x --> (l + m)";
+by (Clarify_tac 1);
 by (REPEAT(dres_inst_tac [("x","r/#2")] spec 1));
-by (dtac (rename_numerals (real_zero_less_two RS real_inverse_gt_zero 
-          RSN (2,real_mult_less_mono2))) 1);
 by (Asm_full_simp_tac 1);
 by (Clarify_tac 1);
 by (res_inst_tac [("R1.0","s"),("R2.0","sa")] 
@@ -189,26 +185,26 @@ qed "LIM_NSLIM";
 Goal "ALL s. #0 < s --> (EX xa.  xa ~= x & \
 \        abs (xa + - x) < s  & r <= abs (f xa + -L)) \
 \     ==> ALL n::nat. EX xa.  xa ~= x & \
-\             abs(xa + -x) < inverse(real_of_posnat n) & r <= abs(f xa + -L)";
-by (Step_tac 1);
+\             abs(xa + -x) < inverse(real_of_nat(Suc n)) & r <= abs(f xa + -L)";
+by (Clarify_tac 1); 
 by (cut_inst_tac [("n1","n")]
-    (real_of_posnat_gt_zero RS real_inverse_gt_zero) 1);
+    (real_of_nat_Suc_gt_zero RS rename_numerals real_inverse_gt_zero) 1);
 by Auto_tac;
 val lemma_LIM = result();
 
 Goal "ALL s. #0 < s --> (EX xa.  xa ~= x & \
 \        abs (xa + - x) < s  & r <= abs (f xa + -L)) \
 \     ==> EX X. ALL n::nat. X n ~= x & \
-\               abs(X n + -x) < inverse(real_of_posnat n) & r <= abs(f (X n) + -L)";
+\               abs(X n + -x) < inverse(real_of_nat(Suc n)) & r <= abs(f (X n) + -L)";
 by (dtac lemma_LIM 1);
 by (dtac choice 1);
 by (Blast_tac 1);
 val lemma_skolemize_LIM2 = result();
 
 Goal "ALL n. X n ~= x & \
-\         abs (X n + - x) < inverse (real_of_posnat  n) & \
+\         abs (X n + - x) < inverse (real_of_nat(Suc n)) & \
 \         r <= abs (f (X n) + - L) ==> \
-\         ALL n. abs (X n + - x) < inverse (real_of_posnat  n)";
+\         ALL n. abs (X n + - x) < inverse (real_of_nat(Suc n))";
 by (Auto_tac );
 val lemma_simp = result();
  
@@ -217,7 +213,7 @@ val lemma_simp = result();
  -------------------*)
 
 Goalw [LIM_def,NSLIM_def,inf_close_def] 
-      "f -- x --NS> L ==> f -- x --> L";
+     "f -- x --NS> L ==> f -- x --> L";
 by (asm_full_simp_tac
     (simpset() addsimps [Infinitesimal_FreeUltrafilterNat_iff]) 1);
 by (EVERY1[Step_tac, rtac ccontr, Asm_full_simp_tac]);
@@ -697,16 +693,17 @@ qed "isUCont_isNSUCont";
 
 Goal "ALL s. #0 < s --> (EX z y. abs (z + - y) < s & r <= abs (f z + -f y)) \
 \     ==> ALL n::nat. EX z y.  \
-\              abs(z + -y) < inverse(real_of_posnat n) & \
+\              abs(z + -y) < inverse(real_of_nat(Suc n)) & \
 \              r <= abs(f z + -f y)";
-by (Step_tac 1);
-by (cut_inst_tac [("n1","n")] (real_of_posnat_gt_zero RS real_inverse_gt_zero) 1);
+by (Clarify_tac 1); 
+by (cut_inst_tac [("n1","n")]
+    (real_of_nat_Suc_gt_zero RS rename_numerals real_inverse_gt_zero) 1);
 by Auto_tac;
 val lemma_LIMu = result();
 
 Goal "ALL s. #0 < s --> (EX z y. abs (z + - y) < s  & r <= abs (f z + -f y)) \
 \     ==> EX X Y. ALL n::nat. \
-\              abs(X n + -(Y n)) < inverse(real_of_posnat n) & \
+\              abs(X n + -(Y n)) < inverse(real_of_nat(Suc n)) & \
 \              r <= abs(f (X n) + -f (Y n))";
 by (dtac lemma_LIMu 1);
 by (dtac choice 1);
@@ -715,9 +712,9 @@ by (dtac choice 1);
 by (Blast_tac 1);
 val lemma_skolemize_LIM2u = result();
 
-Goal "ALL n. abs (X n + -Y n) < inverse (real_of_posnat  n) & \
+Goal "ALL n. abs (X n + -Y n) < inverse (real_of_nat(Suc n)) & \
 \         r <= abs (f (X n) + - f(Y n)) ==> \
-\         ALL n. abs (X n + - Y n) < inverse (real_of_posnat  n)";
+\         ALL n. abs (X n + - Y n) < inverse (real_of_nat(Suc n))";
 by (Auto_tac );
 val lemma_simpu = result();
 
@@ -1301,17 +1298,17 @@ Addsimps [NSDERIV_cmult_Id];
 Goal "DERIV (%x. x ^ n) x :> real_of_nat n * (x ^ (n - 1))";
 by (induct_tac "n" 1);
 by (dtac (DERIV_Id RS DERIV_mult) 2);
-by (auto_tac (claset(),simpset() addsimps 
-    [real_add_mult_distrib]));
+by (auto_tac (claset(), 
+              simpset() addsimps [real_of_nat_Suc, real_add_mult_distrib]));
 by (case_tac "0 < n" 1);
 by (dres_inst_tac [("x","x")] realpow_minus_mult 1);
-by (auto_tac (claset(),simpset() addsimps 
-    [real_mult_assoc,real_add_commute]));
+by (auto_tac (claset(), 
+              simpset() addsimps [real_mult_assoc, real_add_commute]));
 qed "DERIV_pow";
 
 (* NS version *)
 Goal "NSDERIV (%x. x ^ n) x :> real_of_nat n * (x ^ (n - 1))";
-by (simp_tac (simpset() addsimps [NSDERIV_DERIV_iff,DERIV_pow]) 1);
+by (simp_tac (simpset() addsimps [NSDERIV_DERIV_iff, DERIV_pow]) 1);
 qed "NSDERIV_pow";
 
 (*---------------------------------------------------------------

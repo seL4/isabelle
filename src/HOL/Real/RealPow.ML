@@ -146,16 +146,15 @@ qed "realpow_ge_one2";
 Goal "(#1::real) <= #2 ^ n";
 by (res_inst_tac [("y","#1 ^ n")] order_trans 1);
 by (rtac realpow_le 2);
-by (auto_tac (claset() addIs [order_less_imp_le],simpset()));
+by (auto_tac (claset() addIs [order_less_imp_le], simpset()));
 qed "two_realpow_ge_one";
 
 Goal "real_of_nat n < #2 ^ n";
 by (induct_tac "n" 1);
-by Auto_tac;
+by (auto_tac (claset(), simpset() addsimps [real_of_nat_Suc]));
 by (stac real_mult_2 1);
 by (rtac real_add_less_le_mono 1);
-by (auto_tac (claset(),
-	      simpset() addsimps [two_realpow_ge_one]));
+by (auto_tac (claset(), simpset() addsimps [two_realpow_ge_one]));
 qed "two_realpow_gt";
 Addsimps [two_realpow_gt,two_realpow_ge_one];
 

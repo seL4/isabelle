@@ -21,28 +21,11 @@ consts
   "1hn"       :: hypnat               ("1hn")  
   "whn"       :: hypnat               ("whn")  
 
-defs
-
-  hypnat_zero_def      "0 == Abs_hypnat(hypnatrel^^{%n::nat. 0})"
-  hypnat_one_def       "1hn == Abs_hypnat(hypnatrel^^{%n::nat. 1})"
-
-  (* omega is in fact an infinite hypernatural number = [<1,2,3,...>] *)
-  hypnat_omega_def     "whn == Abs_hypnat(hypnatrel^^{%n::nat. n})"
- 
-
 constdefs
 
   (* embedding the naturals in the hypernaturals *)
   hypnat_of_nat   :: nat => hypnat
   "hypnat_of_nat m  == Abs_hypnat(hypnatrel^^{%n::nat. m})"
-
-  (* set of naturals embedded in the hypernaturals*)
-  SHNat         :: "hypnat set"
-  "SHNat        == {n. EX N. n = hypnat_of_nat N}"  
- 
-  (* embedding the naturals in the hyperreals*)
-  SNat         :: "hypreal set"
-  "SNat        == {n. EX N. n = hypreal_of_nat N}"  
 
   (* hypernaturals as members of the hyperreals; the set is defined as  *)
   (* the nonstandard extension of set of naturals embedded in the reals *)
@@ -51,7 +34,7 @@ constdefs
 
   (* the set of infinite hypernatural numbers *)
   HNatInfinite :: "hypnat set"
-  "HNatInfinite == {n. n ~: SHNat}"
+  "HNatInfinite == {n. n ~: SNat}"
 
   (* explicit embedding of the hypernaturals in the hyperreals *)    
   hypreal_of_hypnat :: hypnat => hypreal
@@ -59,6 +42,23 @@ constdefs
                             hyprel^^{%n::nat. real_of_nat (X n)})"
   
 defs
+
+  (** the overloaded constant "SNat" **)
+  
+  (* set of naturals embedded in the hyperreals*)
+  SNat_def             "SNat == {n. EX N. n = hypreal_of_nat N}"  
+
+  (* set of naturals embedded in the hypernaturals*)
+  SHNat_def            "SNat == {n. EX N. n = hypnat_of_nat N}"  
+
+  (** hypernatural arithmetic **)
+  
+  hypnat_zero_def      "0 == Abs_hypnat(hypnatrel^^{%n::nat. 0})"
+  hypnat_one_def       "1hn == Abs_hypnat(hypnatrel^^{%n::nat. 1})"
+
+  (* omega is in fact an infinite hypernatural number = [<1,2,3,...>] *)
+  hypnat_omega_def     "whn == Abs_hypnat(hypnatrel^^{%n::nat. n})"
+ 
   hypnat_add_def  
   "P + Q == Abs_hypnat(UN X:Rep_hypnat(P). UN Y:Rep_hypnat(Q).
                 hypnatrel^^{%n::nat. X n + Y n})"

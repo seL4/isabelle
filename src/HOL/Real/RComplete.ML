@@ -194,51 +194,61 @@ qed "reals_complete";
         Related: Archimedean property of reals
  ----------------------------------------------------------------*)
 
-Goal "#0 < x ==> EX n. inverse (real_of_posnat n) < x";
-by (stac real_of_posnat_inverse_Ex_iff 1);
-by (EVERY1[rtac ccontr, Asm_full_simp_tac]);
-by (fold_tac [real_le_def]);
+Goal "#0 < real_of_nat (Suc n)";
+by (res_inst_tac [("y","real_of_nat n")] order_le_less_trans 1); 
+by (rtac (rename_numerals real_of_nat_ge_zero) 1);
+by (simp_tac (simpset() addsimps [real_of_nat_Suc]) 1); 
+qed "real_of_nat_Suc_gt_zero";
+
+Goal "#0 < x ==> EX n. inverse (real_of_nat(Suc n)) < x";
+by (rtac ccontr 1);
+by (subgoal_tac "ALL n. x * real_of_nat (Suc n) <= #1" 1);
+by (asm_full_simp_tac
+    (simpset() addsimps [linorder_not_less, real_inverse_eq_divide]) 2); 
+by (Clarify_tac 2);
+by (dres_inst_tac [("x","n")] spec 2); 
+by (dres_inst_tac [("z","real_of_nat (Suc n)")] 
+    (rotate_prems 1 real_mult_le_le_mono1) 2); 
+by (rtac real_of_nat_ge_zero 2);
+by (asm_full_simp_tac (simpset()  
+	 addsimps [real_of_nat_Suc_gt_zero RS real_not_refl2 RS not_sym, 
+                   real_mult_commute]) 2); 
 by (subgoal_tac "isUb (UNIV::real set) \
-\   {z. EX n. z = x*(real_of_posnat n)} #1" 1);
-by (subgoal_tac "EX X. X : {z. EX n. z = x*(real_of_posnat n)}" 1);
+\                     {z. EX n. z = x*(real_of_nat (Suc n))} #1" 1);
+by (subgoal_tac "EX X. X : {z. EX n. z = x*(real_of_nat (Suc n))}" 1);
 by (dtac reals_complete 1);
 by (auto_tac (claset() addIs [isUbI,setleI],simpset()));
-by (subgoal_tac "ALL m. x*(real_of_posnat(Suc m)) <= t" 1);
+by (subgoal_tac "ALL m. x*(real_of_nat(Suc m)) <= t" 1);
 by (asm_full_simp_tac (simpset() addsimps 
-   [real_of_posnat_Suc,real_add_mult_distrib2]) 1);
+                       [real_of_nat_Suc, real_add_mult_distrib2]) 1);
 by (blast_tac (claset() addIs [isLubD2]) 2);
 by (asm_full_simp_tac
     (simpset() addsimps [real_le_diff_eq RS sym, real_diff_def]) 1);
 by (subgoal_tac "isUb (UNIV::real set) \
-\   {z. EX n. z = x*(real_of_posnat n)} (t + (-x))" 1);
+\                  {z. EX n. z = x*(real_of_nat (Suc n))} (t + (-x))" 1);
 by (blast_tac (claset() addSIs [isUbI,setleI]) 2);
 by (dres_inst_tac [("y","t+(-x)")] isLub_le_isUb 1);
-by (dres_inst_tac [("x","-t")] real_add_left_le_mono1 2);
-by (auto_tac (claset() addDs [order_le_less_trans,
-			      real_minus_zero_less_iff2 RS iffD2], 
-	      simpset() addsimps [real_add_assoc RS sym]));
+by (auto_tac (claset(), 
+	      simpset() addsimps [real_of_nat_Suc,real_add_mult_distrib2]));
 qed "reals_Archimedean";
 
-Goal "EX n. (x::real) < real_of_posnat n";
+(*There must be other proofs, e.g. Suc of the largest integer in the
+  cut representing x*)
+Goal "EX n. (x::real) < real_of_nat n";
 by (res_inst_tac [("R1.0","x"),("R2.0","#0")] real_linear_less2 1);
 by (res_inst_tac [("x","0")] exI 1);
-by (res_inst_tac [("x","0")] exI 2);
+by (res_inst_tac [("x","1")] exI 2);
 by (auto_tac (claset() addEs [order_less_trans],
-	      simpset() addsimps [real_of_posnat_one,real_zero_less_one]));
+	      simpset() addsimps [real_of_nat_one]));
 by (ftac ((rename_numerals real_inverse_gt_zero) RS reals_Archimedean) 1);
-by (Step_tac 1 THEN res_inst_tac [("x","n")] exI 1);
+by (Step_tac 1 THEN res_inst_tac [("x","Suc n")] exI 1);
 by (forw_inst_tac [("y","inverse x")]
     (rename_numerals real_mult_less_mono1) 1);
-by (auto_tac (claset(),simpset() addsimps [real_not_refl2 RS not_sym]));
-by (dres_inst_tac [("n1","n"),("y","#1")] 
-     (real_of_posnat_gt_zero RS real_mult_less_mono2)  1);
+by Auto_tac;  
+by (dres_inst_tac [("y","#1"),("z","real_of_nat (Suc n)")]
+    (rotate_prems 1 real_mult_less_mono2) 1);
 by (auto_tac (claset(),
-	      simpset() addsimps [rename_numerals real_of_posnat_gt_zero,
+	      simpset() addsimps [real_of_nat_Suc_gt_zero,
 				  real_not_refl2 RS not_sym,
 				  real_mult_assoc RS sym]));
 qed "reals_Archimedean2";
-
-
-
-
-

@@ -451,25 +451,28 @@ by (Fuf_tac 1);
 qed "STAR_starfun_rabs_add_minus";
 
 (*-------------------------------------------------------------------
-   Another charaterization of Infinitesimal and one of @= relation. 
+   Another characterization of Infinitesimal and one of @= relation. 
    In this theory since hypreal_hrabs proved here. (To Check:) Maybe 
    move both if possible? 
  -------------------------------------------------------------------*)
 Goal "(x:Infinitesimal) = \
 \     (EX X:Rep_hypreal(x). \
-\       ALL m. {n. abs(X n) < inverse(real_of_posnat m)}:FreeUltrafilterNat)";
+\       ALL m. {n. abs(X n) < inverse(real_of_nat(Suc m))} \
+\              : FreeUltrafilterNat)";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (auto_tac (claset() addSIs [bexI,lemma_hyprel_refl],
-	simpset() addsimps [Infinitesimal_hypreal_of_posnat_iff,
-	    hypreal_of_real_of_posnat,hypreal_of_real_def,hypreal_inverse,
-	    hypreal_hrabs,hypreal_less])); 
+	simpset() addsimps [Infinitesimal_hypreal_of_nat_iff,
+	    hypreal_of_real_def,hypreal_inverse,
+	    hypreal_hrabs,hypreal_less, hypreal_of_nat_def])); 
+by (asm_full_simp_tac (simpset() addsimps [real_of_nat_Suc_gt_zero, 
+			  real_not_refl2 RS not_sym]) 1) ;
 by (dres_inst_tac [("x","n")] spec 1);
 by (Fuf_tac 1);
 qed  "Infinitesimal_FreeUltrafilterNat_iff2";
 
 Goal "(Abs_hypreal(hyprel^^{X}) @= Abs_hypreal(hyprel^^{Y})) = \
 \     (ALL m. {n. abs (X n + - Y n) < \
-\                 inverse(real_of_posnat m)} : FreeUltrafilterNat)";
+\                 inverse(real_of_nat(Suc m))} : FreeUltrafilterNat)";
 by (rtac (inf_close_minus_iff RS ssubst) 1);
 by (rtac (mem_infmal_iff RS subst) 1);
 by (auto_tac (claset(), 
@@ -485,8 +488,3 @@ by (rtac ext 1 THEN rtac ccontr 1);
 by (dres_inst_tac [("x","Abs_hypreal(hyprel ^^{%n. xa})")] fun_cong 1);
 by (auto_tac (claset(),simpset() addsimps [starfun]));
 qed "inj_starfun";
-
-
-
-
-

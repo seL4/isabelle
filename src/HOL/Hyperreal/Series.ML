@@ -67,8 +67,9 @@ qed_spec_mp "sumr_fun_eq";
 
 Goal "sumr 0 n (%i. r) = real_of_nat n*r";
 by (induct_tac "n" 1);
-by (auto_tac (claset(),simpset() addsimps 
-    [real_add_mult_distrib,real_of_nat_zero]));
+by (auto_tac (claset(),
+              simpset() addsimps [real_add_mult_distrib,real_of_nat_zero,
+                                  real_of_nat_Suc]));
 qed "sumr_const";
 Addsimps [sumr_const];
 
@@ -118,10 +119,9 @@ by (Step_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [le_Suc_eq])  2);
 by (Step_tac 1);
 by (dres_inst_tac [("x","n")] spec 3);
-by (auto_tac (claset() addSDs [le_imp_less_or_eq],
-    simpset()));
-by (asm_simp_tac (simpset() addsimps [real_add_mult_distrib,
-    Suc_diff_n]) 1);
+by (auto_tac (claset() addSDs [le_imp_less_or_eq], simpset()));
+by (asm_simp_tac (simpset() addsimps [real_add_mult_distrib, Suc_diff_n,
+                                      real_of_nat_Suc]) 1);
 qed_spec_mp "sumr_interval_const";
 
 Goal "(ALL n. m <= n --> f n = r) & m <= na \
@@ -133,20 +133,14 @@ by (Step_tac 1);
 by (dres_inst_tac [("x","n")] spec 3);
 by (auto_tac (claset() addSDs [le_imp_less_or_eq],
     simpset()));
-by (asm_simp_tac (simpset() addsimps [Suc_diff_n,
-    real_add_mult_distrib]) 1);
+by (asm_simp_tac (simpset() addsimps [Suc_diff_n, real_add_mult_distrib,
+                                      real_of_nat_Suc]) 1);
 qed_spec_mp "sumr_interval_const2";
 
-Goal "(m <= n)= (m < Suc n)";
-by (Auto_tac);
-qed "le_eq_less_Suc";
-
-Goal "(ALL n. m <= n --> #0 <= f n) & m < na \
-\                --> sumr 0 m f <= sumr 0 na f";
-by (induct_tac "na" 1);
+Goal "(ALL n. m <= n --> #0 <= f n) & m < k --> sumr 0 m f <= sumr 0 k f";
+by (induct_tac "k" 1);
 by (Step_tac 1);
-by (ALLGOALS(asm_full_simp_tac (simpset() addsimps 
-    [le_eq_less_Suc RS sym])));
+by (ALLGOALS(asm_full_simp_tac (simpset() addsimps [less_Suc_eq_le])));
 by (ALLGOALS(dres_inst_tac [("x","n")] spec));
 by (Step_tac 1);
 by (dtac le_imp_less_or_eq 1 THEN Step_tac 1);
@@ -235,14 +229,14 @@ Goal "(ALL p. m <= p & p < m + n --> (f(p) <= K)) \
 \     --> (sumr m (m + n) f <= (real_of_nat n * K))";
 by (induct_tac "n" 1);
 by (auto_tac (claset() addIs [real_add_le_mono],
-    simpset() addsimps [real_add_mult_distrib]));
+              simpset() addsimps [real_add_mult_distrib, real_of_nat_Suc]));
 qed_spec_mp "sumr_bound";
 
 Goal "(ALL p. 0 <= p & p < n --> (f(p) <= K)) \
 \     --> (sumr 0 n f <= (real_of_nat n * K))";
 by (induct_tac "n" 1);
 by (auto_tac (claset() addIs [real_add_le_mono],
-    simpset() addsimps [real_add_mult_distrib]));
+        simpset() addsimps [real_add_mult_distrib, real_of_nat_Suc]));
 qed_spec_mp "sumr_bound2";
 
 Goal "sumr 0 n (%m. sumr (m * k) (m*k + k) f) = sumr 0 (n * k) f";
@@ -543,14 +537,13 @@ qed "summable_rabs";
 (*-------------------------------------------------------------------
                         The ratio test
  -------------------------------------------------------------------*)
+
 Goal "[| c <= #0; abs x <= c * abs y |] ==> x = (#0::real)";
 by (dtac order_le_imp_less_or_eq 1);
-by Auto_tac;
-by (dres_inst_tac [("x1","y")] 
-    (abs_ge_zero RS rename_numerals real_mult_le_zero) 1);
-by (asm_full_simp_tac (simpset() addsimps [real_mult_commute]) 1);
-by (dtac order_trans 1 THEN assume_tac 1);
-by (TRYALL(arith_tac));
+by Auto_tac;  
+by (subgoal_tac "#0 <= c * abs y" 1);
+by (arith_tac 2);
+by (asm_full_simp_tac (simpset() addsimps [real_0_le_mult_iff]) 1); 
 qed "rabs_ratiotest_lemma";
 
 (* lemmas *)
@@ -599,9 +592,9 @@ by (auto_tac (claset() addSIs [sums_mult,geometric_sums],
 qed "ratio_test";
 
 
-(*----------------------------------------------------------------------------*)
-(* Differentiation of finite sum                                              *)
-(*----------------------------------------------------------------------------*)
+(*--------------------------------------------------------------------------*)
+(* Differentiation of finite sum                                            *)
+(*--------------------------------------------------------------------------*)
 
 Goal "(ALL r. m <= r & r < (m + n) --> DERIV (%x. f r x) x :> (f' r x)) \
 \     --> DERIV (%x. sumr m n (%n. f n x)) x :> sumr m n (%r. f' r x)";

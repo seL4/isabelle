@@ -23,9 +23,10 @@ instance
 consts 
   "1r"   :: real               ("1r")  
 
-   (*Overloaded constant: denotes the Real subset of enclosing types such as
-     hypreal and complex*)
-   SReal :: "'a set"
+   (*Overloaded constants denoting the Nat and Real subsets of enclosing
+     types such as hypreal and complex*)
+   SNat, SReal :: "'a set"
+  
 
 defs
 
@@ -80,5 +81,6 @@ defs
 
 syntax (symbols)
   SReal     :: "'a set"                   ("\\<real>")
+  SNat      :: "'a set"                   ("\\<nat>")
 
 end

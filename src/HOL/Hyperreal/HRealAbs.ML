@@ -204,3 +204,52 @@ Goalw [hypreal_of_real_def]
     "abs (hypreal_of_real r) = hypreal_of_real (abs r)";
 by (auto_tac (claset(), simpset() addsimps [hypreal_hrabs]));
 qed "hypreal_of_real_hrabs";
+
+
+(*----------------------------------------------------------------------------
+             Embedding of the naturals in the hyperreals
+ ----------------------------------------------------------------------------*)
+
+Goalw [hypreal_of_nat_def]
+     "hypreal_of_nat n1 + hypreal_of_nat n2 = hypreal_of_nat (n1 + n2)";
+by (simp_tac (simpset() addsimps [hypreal_of_real_add, real_of_nat_add]) 1);
+qed "hypreal_of_nat_add";
+
+Goalw [hypreal_of_nat_def] 
+      "(n < m) = (hypreal_of_nat n < hypreal_of_nat m)";
+by (auto_tac (claset() addIs [hypreal_add_less_mono1], simpset()));
+qed "hypreal_of_nat_less_iff";
+Addsimps [hypreal_of_nat_less_iff RS sym];
+
+(*------------------------------------------------------------*)
+(* naturals embedded in hyperreals                            *)
+(* is a hyperreal c.f. NS extension                           *)
+(*------------------------------------------------------------*)
+
+Goalw [hypreal_of_nat_def, hypreal_of_real_def, real_of_nat_def] 
+     "hypreal_of_nat  m = Abs_hypreal(hyprel^^{%n. real_of_nat m})";
+by Auto_tac;
+qed "hypreal_of_nat_iff";
+
+Goal "inj hypreal_of_nat";
+by (simp_tac (simpset() addsimps [inj_on_def, hypreal_of_nat_def]) 1);
+qed "inj_hypreal_of_nat";
+
+Goalw [hypreal_of_nat_def] 
+     "hypreal_of_nat (Suc n) = hypreal_of_nat n + 1hr";
+by (simp_tac (simpset() addsimps [real_of_nat_Suc]) 1);
+qed "hypreal_of_nat_Suc";
+
+(*"neg" is used in rewrite rules for binary comparisons*)
+Goal "hypreal_of_nat (number_of v :: nat) = \
+\        (if neg (number_of v) then #0 \
+\         else (number_of v :: hypreal))";
+by (simp_tac (simpset() addsimps [hypreal_of_nat_def]) 1);
+qed "hypreal_of_nat_number_of";
+Addsimps [hypreal_of_nat_number_of];
+
+Goal "hypreal_of_nat 0 = #0";
+by (simp_tac (simpset() delsimps [numeral_0_eq_0]
+			addsimps [numeral_0_eq_0 RS sym]) 1);
+qed "hypreal_of_nat_zero";
+Addsimps [hypreal_of_nat_zero];

@@ -3,6 +3,7 @@
     Copyright   : 1998  University of Cambridge
     Description : Natural Powers of hyperreals theory
 
+Exponentials on the hyperreals
 *)
 
 Goal "(#0::hypreal) ^ (Suc n) = 0";
@@ -136,15 +137,13 @@ qed "hrealpow_two_ge_one";
 Goal "(#1::hypreal) <= #2 ^ n";
 by (res_inst_tac [("y","#1 ^ n")] order_trans 1);
 by (rtac hrealpow_le 2);
-by (auto_tac (claset() addIs [order_less_imp_le],
-         simpset() addsimps [hypreal_zero_less_one, hypreal_one_less_two]));
+by Auto_tac;
 qed "two_hrealpow_ge_one";
 
 Goal "hypreal_of_nat n < #2 ^ n";
 by (induct_tac "n" 1);
 by (auto_tac (claset(),
-        simpset() addsimps [hypreal_of_nat_Suc,hypreal_of_nat_zero,
-          hypreal_zero_less_one,hypreal_add_mult_distrib,hypreal_of_nat_one]));
+        simpset() addsimps [hypreal_of_nat_Suc, hypreal_add_mult_distrib]));
 by (cut_inst_tac [("n","n")] two_hrealpow_ge_one 1);
 by (arith_tac 1);
 qed "two_hrealpow_gt";
@@ -189,9 +188,9 @@ qed "hrealpow";
 
 Goal "(x + (y::hypreal)) ^ 2 = \
 \     x ^ 2 + y ^ 2 + (hypreal_of_nat 2)*x*y";
-by (simp_tac (simpset() addsimps [hypreal_add_mult_distrib2,
-               hypreal_add_mult_distrib,hypreal_of_nat_two] 
-                @ hypreal_add_ac @ hypreal_mult_ac) 1);
+by (simp_tac (simpset() addsimps
+              [hypreal_add_mult_distrib2, hypreal_add_mult_distrib, 
+               hypreal_of_nat_zero, hypreal_of_nat_Suc]) 1);
 qed "hrealpow_sum_square_expand";
 
 (*---------------------------------------------------------------
@@ -391,8 +390,7 @@ qed "hyperpow_two_ge_one";
 Goal "(#1::hypreal) <= #2 pow n";
 by (res_inst_tac [("y","#1 pow n")] order_trans 1);
 by (rtac hyperpow_le 2);
-by (auto_tac (claset() addIs [order_less_imp_le],
-          simpset() addsimps [hypreal_zero_less_one, hypreal_one_less_two]));
+by Auto_tac;
 qed "two_hyperpow_ge_one";
 Addsimps [two_hyperpow_ge_one];
 
@@ -455,7 +453,7 @@ by (blast_tac (claset() addSIs [hyperpow_less_le]) 1);
 qed "hyperpow_less_le2";
 
 Goal "[| #0 <= r;  r < (#1::hypreal);  N : HNatInfinite |]  \
-\     ==> ALL n:SHNat. r pow N <= r pow n";
+\     ==> ALL n: SNat. r pow N <= r pow n";
 by (auto_tac (claset() addSIs [hyperpow_less_le],
               simpset() addsimps [HNatInfinite_iff]));
 qed "hyperpow_SHNat_le";
@@ -493,18 +491,16 @@ by (Auto_tac);
 qed "hyperpow_Suc_le_self2";
 
 Goalw [Infinitesimal_def]
-     "[| x : Infinitesimal; 0 < N |] ==> (abs x) pow N <= abs x";
+     "[| x : Infinitesimal; 0 < N |] ==> abs (x pow N) <= abs x";
 by (auto_tac (claset() addSIs [hyperpow_Suc_le_self2],
-    simpset() addsimps [hyperpow_hrabs RS sym,
-                        hypnat_gt_zero_iff2, hrabs_ge_zero,
-                        hypreal_zero_less_one]));
+              simpset() addsimps [hyperpow_hrabs RS sym,
+                                  hypnat_gt_zero_iff2, hrabs_ge_zero]));
 qed "lemma_Infinitesimal_hyperpow";
 
 Goal "[| x : Infinitesimal; 0 < N |] ==> x pow N : Infinitesimal";
 by (rtac hrabs_le_Infinitesimal 1);
-by (dtac Infinitesimal_hrabs 1);
-by (auto_tac (claset() addSIs [lemma_Infinitesimal_hyperpow],
-    simpset() addsimps [hyperpow_hrabs RS sym]));
+by (rtac lemma_Infinitesimal_hyperpow 2); 
+by Auto_tac;  
 qed "Infinitesimal_hyperpow";
 
 Goalw [hypnat_of_nat_def] 

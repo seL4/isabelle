@@ -1227,49 +1227,6 @@ by (asm_full_simp_tac (simpset() addsimps
 qed "hypreal_minus_eq_cancel";
 Addsimps [hypreal_minus_eq_cancel];
 
-Goal "x < x + 1hr";
-by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
-by (auto_tac (claset(),
-              simpset() addsimps [hypreal_add, hypreal_one_def,hypreal_less]));
-qed "hypreal_less_self_add_one";
-Addsimps [hypreal_less_self_add_one];
-
-(*??DELETE MOST OF THE FOLLOWING??*)
-Goal "((x::hypreal) + x = y + y) = (x = y)";
-by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
-by (res_inst_tac [("z","y")] eq_Abs_hypreal 1);
-by (auto_tac (claset(),simpset() addsimps [hypreal_add]));
-by (ALLGOALS(Ultra_tac));
-qed "hypreal_add_self_cancel";
-Addsimps [hypreal_add_self_cancel];
-
-Goal "(y = x + - y + x) = (y = (x::hypreal))";
-by Auto_tac;
-by (dres_inst_tac [("x1","y")] 
-    (hypreal_add_right_cancel RS iffD2) 1);
-by (auto_tac (claset(),simpset() addsimps hypreal_add_ac));
-qed "hypreal_add_self_minus_cancel";
-Addsimps [hypreal_add_self_minus_cancel];
-
-Goal "(y = x + (- y + x)) = (y = (x::hypreal))";
-by (asm_full_simp_tac (simpset() addsimps 
-         [hypreal_add_assoc RS sym])1);
-qed "hypreal_add_self_minus_cancel2";
-Addsimps [hypreal_add_self_minus_cancel2];
-
-(* of course, can prove this by "transfer" as well *)
-Goal "z + -x = y + (y + (-x + -z)) = (y = (z::hypreal))";
-by Auto_tac;
-by (dres_inst_tac [("x1","z")] 
-    (hypreal_add_right_cancel RS iffD2) 1);
-by (asm_full_simp_tac (simpset() addsimps 
-    [hypreal_minus_add_distrib RS sym] @ hypreal_add_ac
-    delsimps [hypreal_minus_add_distrib]) 1);
-by (asm_full_simp_tac (simpset() addsimps 
-     [hypreal_add_assoc RS sym,hypreal_add_right_cancel]) 1);
-qed "hypreal_add_self_minus_cancel3";
-Addsimps [hypreal_add_self_minus_cancel3];
-
 Goalw [hypreal_diff_def] "(x<y) = (x-y < (0::hypreal))";
 by (rtac hypreal_less_minus_iff2 1);
 qed "hypreal_less_eq_diff";

@@ -122,13 +122,13 @@ by (auto_tac (claset(), simpset() addsimps [hypnat_of_nat_def]));
 by (blast_tac (claset() addIs [FreeUltrafilterNat_subset]) 1);
 qed "NatStar_hypreal_of_real_image_subset";
 
-Goal "SHNat <= *sNat* (UNIV:: nat set)";
+Goal "SNat <= *sNat* (UNIV:: nat set)";
 by (simp_tac (simpset() addsimps [SHNat_hypnat_of_nat_iff,
-    NatStar_hypreal_of_real_image_subset]) 1);
+                          NatStar_hypreal_of_real_image_subset]) 1);
 qed "NatStar_SHNat_subset";
 
 Goalw [starsetNat_def] 
-      "*sNat* X Int SHNat = hypnat_of_nat `` X";
+     "*sNat* X Int SNat = hypnat_of_nat `` X";
 by (auto_tac (claset(),
          simpset() addsimps 
            [hypnat_of_nat_def,SHNat_def]));
