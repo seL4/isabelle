@@ -14,6 +14,7 @@ sig
   val boolT: typ
   val false_const: term
   val true_const: term
+  val not_const: term
   val mk_setT: typ -> typ
   val dest_setT: typ -> typ
   val mk_Trueprop: term -> term
@@ -89,8 +90,9 @@ val termT = TypeInfer.anyT termS;
 val boolN = "bool";
 val boolT = Type (boolN, []);
 
-val true_const =  Const ("True", boolT)
-and false_const = Const ("False", boolT);
+val true_const =  Const ("True", boolT);
+val false_const = Const ("False", boolT);
+val not_const = Const ("Not", boolT --> boolT);
 
 fun mk_setT T = Type ("set", [T]);
 
