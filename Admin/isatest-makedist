@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+#
+# $Id$
+# Author: Gerwin Klein, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
+#
+# DESCRIPTION: Build distribution and run isatest-make for lots of platforms.
+
+## global settings
+LOGPREFIX=~
+DISTPREFIX=~/isadist
+MAKEDIST=~/bin/makedist
+
+SUN=sunbroy2
+AT=atbroy37
+
+SSH="ssh -1 -f"
+
+## diagnostics
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG"
+  echo
+  echo "   Build distribution and run isatest-make for lots of platforms."
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+## main
+
+export DISTPREFIX
+
+DATE=$(date "+%d-%b-%Y")
+DISTLOG=$LOGPREFIX/isatest-makedist-$DATE.log
+
+# get newest version of makedist:
+# cvs -d sunbroy2:/usr/proj/isabelle-repository/archive co isabelle/Admin > $COUTLOG
+
+echo ------------------- preparing test release --- `date` --- $HOSTNAME > $DISTLOG 2>&1
+
+echo "### cleaning up old dist directory"  >> $DISTLOG 2>&1
+rm -rf $DISTPREFIX >> $DISTLOG 2>&1
+
+echo "### building distribution"  >> $DISTLOG 2>&1
+$MAKEDIST - >> $DISTLOG 2>&1
+
+if [ $? -ne 0 ]
+then
+    echo ------------------- DIST BUILD FAILED --- `date` --- $HOSTNAME >> $DISTLOG 2>&1
+    # more action here
+    exit 1
+fi
+
+cd $DISTPREFIX >> $DISTLOG 2>&1
+tar xvzf `cat $DISTPREFIX/ISABELLE_DIST` >> $DISTLOG 2>&1
+
+echo ------------------- prepared test successfully --- `date` --- $HOSTNAME >> $DISTLOG 2>&1
+
+## spawn test runs
+
+# run tests in parallel on multiprocessor sun 
+$SSH $SUN sun-poly   
+$SSH $SUN sun-sml
+
+# run tests sequentially on x86
+$SSH $AT at-poly at-sml
+
+## end

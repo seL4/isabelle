@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+#
+# $Id$
+# Author: Gerwin Klein, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
+#
+# DESCRIPTION: Run isatool makeall from specified distribution and settings.
+#              Send email if it fails.
+
+## global settings
+LOGPREFIX=~
+
+## diagnostics
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG distributionpath settings1 [settings2 ...]"
+  echo
+  echo "  Run isatool makeall from specified distribution and settings."
+  echo "  Send email if it fails."
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+## main
+
+# argument checking
+
+[ "$1" = "-?" ] && usage
+[ "$#" -lt "2" ] && usage
+
+DISTPREFIX=$1
+shift
+
+[ -d $DISTPREFIX ] || fail "$DISTPREFIX is not a directory."
+
+for SETTINGS in $@; do
+
+    [ -r $SETTINGS ] || fail "Cannot read $SETTINGS."
+    
+
+    # logfile setup
+
+    DATE=$(date "+%d-%b-%Y")
+    SHORT=${SETTINGS##*/}
+    TESTLOG=$LOGPREFIX/isatest-makeall-$SHORT-$DATE-$HOSTNAME.log
+
+    # the test
+
+    echo ------------------- starting test --- `date` --- $HOSTNAME > $TESTLOG 2>&1
+
+    cp -v $SETTINGS $DISTPREFIX/Isabelle/etc/settings >> $TESTLOG 2>&1 
+    $DISTPREFIX/Isabelle/bin/isatool makeall all >> $TESTLOG 2>&1 
+
+    if [ $? -eq 0 ]
+    then
+        echo ------------------- test successfull --- `date` --- $HOSTNAME >> $TESTLOG 2>&1
+        gzip -f $TESTLOG
+    else
+        echo ------------------- test FAILED --- `date` --- $HOSTNAME >> $TESTLOG 2>&1
+        # more action here
+        exit 1
+    fi
+
+done
+
+# end
