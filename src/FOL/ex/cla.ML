@@ -402,7 +402,7 @@ by (res_inst_tac [("x","a")] allE 1);
 by (assume_tac 1);
 by (res_inst_tac [("x","b")] allE 1);
 by (assume_tac 1);
-by (Blast_tac 1);
+by (Fast_tac 1);    (*Blast_tac's treatment of equality can't do it*)
 result();
 
 writeln"Problem 50";  
@@ -423,7 +423,7 @@ writeln"Problem 52";
 goal FOL.thy
     "(EX z w. ALL x y. P(x,y) <->  (x=z & y=w)) -->  \
 \    (EX w. ALL y. EX z. (ALL x. P(x,y) <-> x=z) <-> y=w)";
-by (Fast_tac 1);	(*nearly 10 times faster than Blast_tac*)
+by (Blast_tac 1);
 result();
 
 writeln"Problem 55";
@@ -571,4 +571,5 @@ writeln"Reached end of file.";
 (*Thu Apr  3 1997: loaded in 44s (on pochard)--using mostly Blast_tac*)
 (*Thu Apr  3 1997: loaded in 96s (on pochard)--addition of two Halting Probs*)
 (*Thu Apr  3 1997: loaded in 98s (on pochard)--using lim-1 for all haz rules*)
+(*Tue Dec  2 1997: loaded in 107s (on pochard)--added 46; new equalSubst*)
 
