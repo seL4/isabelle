@@ -408,13 +408,17 @@ fun meson_meth ctxt =
   Method.SIMPLE_METHOD' HEADGOAL
     (CHANGED_PROP o meson_claset_tac (Classical.get_local_claset ctxt));
 
+val skolemize_meth =
+  Method.SIMPLE_METHOD' HEADGOAL
+    (CHANGED_PROP o skolemize_tac);
+
 in
 
 val meson_setup =
  [Method.add_methods
   [("meson", Method.ctxt_args meson_meth, 
     "The MESON resolution proof procedure"),
-   ("skolemize", Method.no_args (Method.METHOD (fn _ => skolemize_tac 1)), 
+   ("skolemize", Method.no_args skolemize_meth, 
     "Skolemization into existential quantifiers")]];
 
 end;
