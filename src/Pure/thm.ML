@@ -31,10 +31,8 @@ sig
   val typ_of: ctyp -> typ
   val cterm_fun: (term -> term) -> (cterm -> cterm)
   (*end of cterm/ctyp functions*)
-
-  (* FIXME *)
-  local open Sign.Syntax Sign.Syntax.Mixfix in  (* FIXME remove ...Mixfix *)
-    val add_classes: (class list * class * class list) list -> theory -> theory
+  local open Sign.Syntax in
+    val add_classes: (class * class list) list -> theory -> theory
     val add_classrel: (class * class) list -> theory -> theory
     val add_defsort: sort -> theory -> theory
     val add_types: (string * int * mixfix) list -> theory -> theory
@@ -59,6 +57,7 @@ sig
   end
   val cert_axm: Sign.sg -> string * term -> string * term
   val read_axm: Sign.sg -> string * string -> string * term
+  val inferT_axm: Sign.sg -> string * term -> string * term
   val abstract_rule: string -> cterm -> thm -> thm
   val add_congs: meta_simpset * thm list -> meta_simpset
   val add_prems: meta_simpset * thm list -> meta_simpset
@@ -79,13 +78,6 @@ sig
   val eq_assumption: int -> thm -> thm
   val equal_intr: thm -> thm -> thm
   val equal_elim: thm -> thm -> thm
-  val extend_theory: theory -> string
-        -> (class * class list) list * sort
-           * (string list * int)list
-           * (string * string list * string) list
-           * (string list * (sort list * class))list
-           * (string list * string)list * Sign.Syntax.sext option
-        -> (string*string)list -> theory
   val extensional: thm -> thm
   val flexflex_rule: thm -> thm Sequence.seq
   val flexpair_def: thm
@@ -193,26 +185,13 @@ fun dest_cimplies (Cterm{sign, T, maxidx, t=Const("==>", _) $ A $ B}) =
 
 
 
-(** read cterms **)
+(** read cterms **)   (*exception ERROR*)     (* FIXME check *)
 
 (*read term, infer types, certify term*)
-
 fun read_def_cterm (sign, types, sorts) (a, T) =
   let
-    val {tsig, const_tab, syn, ...} = Sign.rep_sg sign;
-    val showtyp = Sign.string_of_typ sign;
-    val showterm = Sign.string_of_term sign;
-
-    fun termerr [] = ""
-      | termerr [t] = "\nInvolving this term:\n" ^ showterm t
-      | termerr ts = "\nInvolving these terms:\n" ^ cat_lines (map showterm ts);
-
-    val T' = Sign.certify_typ sign T
-      handle TYPE (msg, _, _) => error msg;
-    val t = Syntax.read syn T' a;
-    val (t', tye) = Type.infer_types (tsig, const_tab, types, sorts, T', t)
-      handle TYPE (msg, Ts, ts) => error ("Type checking error: " ^ msg ^ "\n"
-        ^ cat_lines (map showtyp Ts) ^ termerr ts);
+    val t = Syntax.read (#syn (Sign.rep_sg sign)) T a;
+    val (t', tye) = Sign.infer_types sign types sorts (t, T);
     val ct = cterm_of sign t' handle TERM (msg, _) => error msg;
   in (ct, tye) end;
 
@@ -375,6 +354,10 @@ fun read_axm sg (name, str) =
   (name, no_vars (term_of (read_cterm sg (str, propT))))
     handle ERROR => err_in_axm name;
 
+fun inferT_axm sg (name, pre_tm) =
+  (name, no_vars (#1 (Sign.infer_types sg (K None) (K None) (pre_tm, propT))))
+    handle ERROR => err_in_axm name;
+
 
 (* extend axioms of a theory *)
 
@@ -388,30 +371,6 @@ fun ext_axms prep_axm axms (thy as Theory {sign, ...}) =
 
 val add_axioms = ext_axms read_axm;
 val add_axioms_i = ext_axms cert_axm;
-
-
-(* extend theory (old) *)   (* FIXME remove *)
-
-(*converts Frees to Vars: axioms can be written without question marks*)
-fun prepare_axiom sign sP =
-  Logic.varify (term_of (read_cterm sign (sP, propT)));
-
-(*read an axiom for a new theory*)
-fun read_ax sign (a, sP) =
-  (a, prepare_axiom sign sP) handle ERROR => err_in_axm a;
-
-(*extension of a theory with given classes, types, constants and syntax;
-  reads the axioms from strings: axpairs have the form (axname, axiom)*)
-fun extend_theory thy thyname ext axpairs =
-  let
-    val Theory {sign, ...} = thy;
-
-    val sign1 = Sign.extend sign thyname ext;
-    val axioms = map (read_ax sign1) axpairs;
-  in
-    writeln "WARNING: called obsolete function \"extend_theory\"";
-    ext_thy thy sign1 axioms
-  end;
 
 
 
