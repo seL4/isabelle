@@ -59,13 +59,13 @@ system.  Beginners should work with \texttt{show_types} (or even
 \index{*"! symbol}\index{*"? symbol}
 \index{*"?"! symbol}\index{*"E"X"! symbol}
   \it symbol &\it name     &\it meta-type & \it description \\
-  \tt\at & \cdx{Eps}  & $(\alpha\To bool)\To\alpha$ & 
+  \sdx{SOME} or \tt\at & \cdx{Eps}  & $(\alpha\To bool)\To\alpha$ & 
         Hilbert description ($\varepsilon$) \\
-  {\tt!~} or \sdx{ALL}  & \cdx{All}  & $(\alpha\To bool)\To bool$ & 
+  \sdx{ALL} or {\tt!~} & \cdx{All}  & $(\alpha\To bool)\To bool$ & 
         universal quantifier ($\forall$) \\
-  {\tt?~} or \sdx{EX}   & \cdx{Ex}   & $(\alpha\To bool)\To bool$ & 
+  \sdx{EX} or {\tt?~}  & \cdx{Ex}   & $(\alpha\To bool)\To bool$ & 
         existential quantifier ($\exists$) \\
-  {\tt?!} or \texttt{EX!}  & \cdx{Ex1}  & $(\alpha\To bool)\To bool$ & 
+  \texttt{EX!} or {\tt?!} & \cdx{Ex1}  & $(\alpha\To bool)\To bool$ & 
         unique existence ($\exists!$)\\
   \texttt{LEAST}  & \cdx{Least}  & $(\alpha::ord \To bool)\To\alpha$ & 
         least element
@@ -99,6 +99,7 @@ system.  Beginners should work with \texttt{show_types} (or even
 \dquotes
 \[\begin{array}{rclcl}
     term & = & \hbox{expression of class~$term$} \\
+         & | & "SOME~" id " . " formula
          & | & "\at~" id " . " formula \\
          & | & 
     \multicolumn{3}{l}{"let"~id~"="~term";"\dots";"~id~"="~term~"in"~term} \\
@@ -114,12 +115,12 @@ system.  Beginners should work with \texttt{show_types} (or even
          & | & formula " \& " formula \\
          & | & formula " | " formula \\
          & | & formula " --> " formula \\
-         & | & "!~~~" id~id^* " . " formula 
-         & | & "ALL~" id~id^* " . " formula \\
-         & | & "?~~~" id~id^* " . " formula 
-         & | & "EX~~" id~id^* " . " formula \\
-         & | & "?!~~" id~id^* " . " formula 
+         & | & "ALL~" id~id^* " . " formula
+         & | & "!~~~" id~id^* " . " formula \\
+         & | & "EX~~" id~id^* " . " formula 
+         & | & "?~~~" id~id^* " . " formula \\
          & | & "EX!~" id~id^* " . " formula
+         & | & "?!~~" id~id^* " . " formula \\
   \end{array}
 \]
 \caption{Full grammar for \HOL} \label{hol-grammar}
@@ -203,7 +204,7 @@ some~$x$ satisfying~$P$, if such exists.  Since all terms in \HOL\
 denote something, a description is always meaningful, but we do not
 know its value unless $P$ defines it uniquely.  We may write
 descriptions as \cdx{Eps}($\lambda x. P[x]$) or use the syntax
-\hbox{\tt \at $x$.\ $P[x]$}.
+\hbox{\tt SOME~$x$.~$P[x]$}.
 
 Existential quantification is defined by
 \[ \exists x. P~x \;\equiv\; P(\varepsilon x. P~x). \]
@@ -213,16 +214,20 @@ quantifications.  For instance, $\exists!x\,y. P\,x\,y$ abbreviates
 $\exists!x. \exists!y. P\,x\,y$; note that this does not mean that there
 exists a unique pair $(x,y)$ satisfying~$P\,x\,y$.
 
-\index{*"! symbol}\index{*"? symbol}\index{HOL system@{\sc hol} system}
-Quantifiers have two notations.  As in Gordon's {\sc hol} system, \HOL\
-uses~{\tt!}\ and~{\tt?}\ to stand for $\forall$ and $\exists$.  The
-existential quantifier must be followed by a space; thus {\tt?x} is an
-unknown, while \verb'? x. f x=y' is a quantification.  Isabelle's usual
-notation for quantifiers, \sdx{ALL} and \sdx{EX}, is also
-available.  Both notations are accepted for input.  The {\ML} reference
-\ttindexbold{HOL_quantifiers} governs the output notation.  If set to {\tt
-true}, then~{\tt!}\ and~{\tt?}\ are displayed; this is the default.  If set
-to \texttt{false}, then~\texttt{ALL} and~\texttt{EX} are displayed.
+\medskip
+
+\index{*"! symbol}\index{*"? symbol}\index{HOL system@{\sc hol} system} The
+basic Isabelle/HOL binders have two notations.  Apart from the usual
+\texttt{ALL} and \texttt{EX} for $\forall$ and $\exists$, Isabelle/HOL also
+supports the original notation of Gordon's {\sc hol} system: \texttt{!}\ 
+and~\texttt{?}.  In the latter case, the existential quantifier \emph{must} be
+followed by a space; thus {\tt?x} is an unknown, while \verb'? x. f x=y' is a
+quantification.  Both notations are accepted for input.  The print mode
+``\ttindexbold{HOL}'' governs the output notation.  If enabled (e.g.\ by
+passing option \texttt{-m HOL} to the \texttt{isabelle} executable),
+then~{\tt!}\ and~{\tt?}\ are displayed.
+
+\medskip
 
 If $\tau$ is a type of class \cldx{ord}, $P$ a formula and $x$ a
 variable of type $\tau$, then the term \cdx{LEAST}~$x. P[x]$ is defined
@@ -517,10 +522,10 @@ The following simple tactics are occasionally useful:
         \rm intersection \\
   \sdx{UN}{\tt\ }  $x$:$A$. $B[x]$      & UNION $A$ $\lambda x. B[x]$ &
         \rm union \\
-  \tt ! $x$:$A$. $P[x]$ or \sdx{ALL} $x$:$A$. $P[x]$ & 
+  \sdx{ALL} $x$:$A$. $P[x]$ or \sdx{!} $x$:$A$. $P[x]$ &
         Ball $A$ $\lambda x. P[x]$ & 
         \rm bounded $\forall$ \\
-  \sdx{?} $x$:$A$. $P[x]$ or \sdx{EX}{\tt\ } $x$:$A$. $P[x]$ & 
+  \sdx{EX}{\tt\ } $x$:$A$. $P[x]$ or \sdx{?} $x$:$A$. $P[x]$ & 
         Bex $A$ $\lambda x. P[x]$ & \rm bounded $\exists$
 \end{tabular}
 \end{center}
@@ -543,10 +548,10 @@ The following simple tactics are occasionally useful:
          & | & term " : " term \\
          & | & term " \ttilde: " term \\
          & | & term " <= " term \\
-         & | & "!~" id ":" term " . " formula 
-         & | & "ALL " id ":" term " . " formula \\
-         & | & "?~" id ":" term " . " formula 
+         & | & "ALL " id ":" term " . " formula
+         & | & "!~" id ":" term " . " formula \\
          & | & "EX~~" id ":" term " . " formula
+         & | & "?~" id ":" term " . " formula \\
   \end{array}
 \]
 \subcaption{Full Grammar}
@@ -612,10 +617,9 @@ accordingly.  Instead of \texttt{Ball $A$ $P$} and \texttt{Bex $A$ $P$} we may
 write\index{*"! symbol}\index{*"? symbol}
 \index{*ALL symbol}\index{*EX symbol} 
 %
-\hbox{\tt !~$x$:$A$.\ $P[x]$} and \hbox{\tt ?~$x$:$A$.\ $P[x]$}.  Isabelle's
-usual quantifier symbols, \sdx{ALL} and \sdx{EX}, are also accepted
-for input.  As with the primitive quantifiers, the {\ML} reference
-\ttindex{HOL_quantifiers} specifies which notation to use for output.
+\hbox{\tt ALL~$x$:$A$.\ $P[x]$} and \hbox{\tt EX~$x$:$A$.\ $P[x]$}.  The
+original notation of Gordon's {\sc hol} system is supported as well: \sdx{!}\ 
+and \sdx{?}.
 
 Unions and intersections over sets, namely $\bigcup@{x\in A}B[x]$ and
 $\bigcap@{x\in A}B[x]$, are written 
