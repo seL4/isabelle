@@ -76,7 +76,7 @@ goal thy
  "!!evs. evs : otway ==> (Key (shrK A) : parts (spies evs)) = (A : bad)";
 by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
-by (Blast_tac 1);
+by (ALLGOALS Blast_tac);
 qed "Spy_see_shrK";
 Addsimps [Spy_see_shrK];
 
@@ -100,10 +100,10 @@ goal thy "!!evs. evs : otway ==>          \
 by (parts_induct_tac 1);
 (*Fake*)
 by (best_tac
-      (!claset addIs [impOfSubs analz_subset_parts]
-               addDs [impOfSubs (analz_subset_parts RS keysFor_mono),
-                      impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
-               addss (!simpset)) 1);
+      (!claset addSDs [impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
+               addIs  [impOfSubs analz_subset_parts]
+               addDs  [impOfSubs (analz_subset_parts RS keysFor_mono)]
+               addss  (!simpset)) 1);
 (*OR3*)
 by (Blast_tac 1);
 qed_spec_mp "new_keys_not_used";
@@ -268,7 +268,7 @@ by analz_spies_tac;
 by (ALLGOALS
     (asm_simp_tac (!simpset addcongs [conj_cong, if_weak_cong] 
                             addsimps [analz_insert_eq, analz_insert_freshK]
-                            addsplits [expand_if])));
+                            addsimps (pushes@expand_ifs))));
 (*Oops*)
 by (blast_tac (!claset addSDs [unique_session_keys]) 4);
 (*OR4*) 

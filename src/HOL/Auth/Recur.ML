@@ -192,10 +192,10 @@ by (best_tac (!claset addDs  [Key_in_keysFor_parts]
 	      addss  (!simpset addsimps [parts_insert_spies])) 2);
 (*Fake*)
 by (best_tac
-      (!claset addIs [impOfSubs analz_subset_parts]
-               addDs [impOfSubs (analz_subset_parts RS keysFor_mono),
-                      impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
-               addss (!simpset)) 1);
+      (!claset addSDs [impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
+               addIs  [impOfSubs analz_subset_parts]
+               addDs  [impOfSubs (analz_subset_parts RS keysFor_mono)]
+               addss  (!simpset)) 1);
 qed_spec_mp "new_keys_not_used";
 
 
@@ -263,7 +263,7 @@ qed_spec_mp "analz_image_freshK";
 *)
 bind_thm ("resp_analz_image_freshK",
           raw_analz_image_freshK RSN
-            (2, resp_analz_image_freshK_lemma) RS spec RS spec);
+            (2, resp_analz_image_freshK_lemma) RS spec RS spec RS mp);
 
 goal thy
  "!!evs. [| evs : recur;  KAB ~: range shrK |] ==>              \
@@ -422,25 +422,26 @@ goal thy
 by (etac respond.induct 1);
 by (forward_tac [respond_imp_responses] 2);
 by (forward_tac [respond_imp_not_used] 2);
-by (ALLGOALS (*12 seconds*)
+by (ALLGOALS (*6 seconds*)
     (asm_simp_tac 
-     (analz_image_freshK_ss addsimps 
-       [shrK_in_analz_respond, resp_analz_image_freshK, parts_insert2])));
+     (analz_image_freshK_ss 
+        addsimps expand_ifs
+	addsimps 
+          [shrK_in_analz_respond, resp_analz_image_freshK, parts_insert2])));
 by (ALLGOALS (simp_tac (!simpset addsimps [ex_disj_distrib])));
 (** LEVEL 5 **)
 by (blast_tac (!claset addIs [impOfSubs analz_subset_parts]) 1);
-by (safe_tac (!claset addSEs [MPair_parts]));
-by (REPEAT (blast_tac (!claset addSDs [respond_certificate]
-		               addDs [resp_analz_insert]
-			       addIs  [impOfSubs analz_subset_parts]) 4));
-by (Blast_tac 3);
-by (blast_tac (!claset addSEs partsEs
-                       addDs [Key_in_parts_respond]) 2);
-(*by unicity, either B=Aa or B=A', a contradiction since B: bad*)
-by (dtac unique_session_keys 1);
-by (etac respond_certificate 1);
-by (assume_tac 1);
-by (Blast_tac 1);
+by (REPEAT_FIRST (resolve_tac [allI, conjI, impI]));
+by (ALLGOALS Clarify_tac);
+by (blast_tac (!claset addSDs  [resp_analz_insert]
+		       addIs  [impOfSubs analz_subset_parts]) 2);
+by (blast_tac (!claset addSDs [respond_certificate]) 1);
+by (Asm_full_simp_tac 1);
+(*by unicity, either B=Aa or B=A', a contradiction if B: bad*)
+by (blast_tac
+    (!claset addSEs [MPair_parts]
+	     addDs [parts.Body,
+		    respond_certificate RSN (2, unique_session_keys)]) 1);
 qed_spec_mp "respond_Spy_not_see_session_key";
 
 
@@ -453,9 +454,9 @@ by (etac recur.induct 1);
 by analz_spies_tac;
 by (ALLGOALS
     (asm_simp_tac
-     (!simpset addsimps [analz_insert_eq, parts_insert_spies, 
-			 analz_insert_freshK] 
-               addsplits [expand_if])));
+     (!simpset addsimps (expand_ifs @
+			 [analz_insert_eq, parts_insert_spies, 
+			  analz_insert_freshK]))));
 (*RA4*)
 by (spy_analz_tac 5);
 (*RA2*)

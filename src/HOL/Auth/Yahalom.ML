@@ -82,7 +82,7 @@ goal thy
  "!!evs. evs : yahalom ==> (Key (shrK A) : parts (spies evs)) = (A : bad)";
 by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
-by (Blast_tac 1);
+by (ALLGOALS Blast_tac);
 qed "Spy_see_shrK";
 Addsimps [Spy_see_shrK];
 
@@ -105,16 +105,14 @@ AddSDs [Spy_see_shrK_D, Spy_analz_shrK_D];
 goal thy "!!evs. evs : yahalom ==>          \
 \         Key K ~: used evs --> K ~: keysFor (parts (spies evs))";
 by (parts_induct_tac 1);
-(*YM4: Key K is not fresh!*)
-by (blast_tac (!claset addSEs spies_partsEs) 3);
-(*YM3*)
-by (Blast_tac 2);
 (*Fake*)
 by (best_tac
-      (!claset addIs [impOfSubs analz_subset_parts]
-               addDs [impOfSubs (analz_subset_parts RS keysFor_mono),
-                      impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
-               addss (!simpset)) 1);
+      (!claset addSDs [impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
+               addIs  [impOfSubs analz_subset_parts]
+               addDs  [impOfSubs (analz_subset_parts RS keysFor_mono)]
+               addss  (!simpset)) 1);
+(*YM2-4: Because Key K is not fresh, etc.*)
+by (REPEAT (blast_tac (!claset addSEs spies_partsEs) 1));
 qed_spec_mp "new_keys_not_used";
 
 bind_thm ("new_keys_not_analzd",
@@ -226,8 +224,8 @@ by (etac yahalom.induct 1);
 by analz_spies_tac;
 by (ALLGOALS
     (asm_simp_tac 
-     (!simpset addsimps [analz_insert_eq, analz_insert_freshK]
-               addsplits [expand_if])));
+     (!simpset addsimps (expand_ifs@pushes)
+	       addsimps [analz_insert_eq, analz_insert_freshK])));
 (*Oops*)
 by (blast_tac (!claset addDs [unique_session_keys]) 3);
 (*YM3*)
@@ -365,7 +363,7 @@ goal thy
  "!!evs. P --> (X : analz (G Un H)) --> (X : analz H)  ==> \
 \        P --> (X : analz (G Un H)) = (X : analz H)";
 by (blast_tac (!claset addIs [impOfSubs analz_mono]) 1);
-val lemma = result();
+val Nonce_secrecy_lemma = result();
 
 goal thy 
  "!!evs. evs : yahalom ==>                                         \
@@ -376,17 +374,18 @@ goal thy
 by (etac yahalom.induct 1);
 by analz_spies_tac;
 by (REPEAT_FIRST (resolve_tac [impI RS allI]));
-by (REPEAT_FIRST (rtac lemma));
+by (REPEAT_FIRST (rtac Nonce_secrecy_lemma));
 (*For Oops, simplification proves NBa~=NB.  By Says_Server_KeyWithNonce,
   we get (~ KeyWithNonce K NB evsa); then simplification can apply the
   induction hypothesis with KK = {K}.*)
-by (ALLGOALS  (*17 seconds*)
+by (ALLGOALS  (*12 seconds*)
     (asm_simp_tac 
-     (analz_image_freshK_ss addsimps
-        [all_conj_distrib, analz_image_freshK,
-	 KeyWithNonce_Says, fresh_not_KeyWithNonce, 
-	 imp_disj_not1,			      (*Moves NBa~=NB to the front*)
-	 Says_Server_KeyWithNonce])));
+     (analz_image_freshK_ss 
+       addsimps expand_ifs
+       addsimps [all_conj_distrib, analz_image_freshK,
+		 KeyWithNonce_Says, fresh_not_KeyWithNonce, 
+		 imp_disj_not1,		     (*Moves NBa~=NB to the front*)
+		 Says_Server_KeyWithNonce])));
 (*Base*)
 by (Blast_tac 1);
 (*Fake*) 
@@ -498,8 +497,8 @@ by (etac yahalom.induct 1);
 by analz_spies_tac;
 by (ALLGOALS
     (asm_simp_tac 
-     (!simpset addsimps [analz_insert_eq, analz_insert_freshK]
-               addsplits [expand_if])));
+     (!simpset addsimps (expand_ifs@pushes)
+	       addsimps [analz_insert_eq, analz_insert_freshK])));
 (*Prove YM3 by showing that no NB can also be an NA*)
 by (blast_tac (!claset addDs [Says_imp_spies RS parts.Inj]
 	               addSEs [MPair_parts]

@@ -81,13 +81,12 @@ goal thy "!!K. Key K ~: used evs ==> K ~: range shrK";
 by (Blast_tac 1);
 qed "Key_not_used";
 
-(*A session key cannot clash with a long-term shared key*)
-goal thy "!!K. K ~: range shrK ==> shrK B ~= K";
+goal thy "!!K. Key K ~: used evs ==> shrK B ~= K";
 by (Blast_tac 1);
 qed "shrK_neq";
 
 Addsimps [Key_not_used, shrK_neq, shrK_neq RS not_sym];
-Delsimps [image_eqI]; (* loops together with shrK_neq *)
+
 
 (*** Fresh nonces ***)
 

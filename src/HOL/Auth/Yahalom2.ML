@@ -111,10 +111,10 @@ by (blast_tac (!claset addSEs spies_partsEs) 3);
 by (blast_tac (!claset addss (!simpset)) 2);
 (*Fake*)
 by (best_tac
-      (!claset addIs [impOfSubs analz_subset_parts]
-               addDs [impOfSubs (analz_subset_parts RS keysFor_mono),
-                      impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
-               addss (!simpset)) 1);
+      (!claset addSDs [impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
+               addIs  [impOfSubs analz_subset_parts]
+               addDs  [impOfSubs (analz_subset_parts RS keysFor_mono)]
+               addss  (!simpset)) 1);
 qed_spec_mp "new_keys_not_used";
 
 bind_thm ("new_keys_not_analzd",
@@ -164,7 +164,7 @@ goal thy
 by (etac yahalom.induct 1);
 by analz_spies_tac;
 by (REPEAT_FIRST (resolve_tac [allI, impI]));
-by (REPEAT_FIRST (rtac analz_image_freshK_lemma ));
+by (REPEAT_FIRST (rtac analz_image_freshK_lemma));
 by (ALLGOALS (asm_simp_tac analz_image_freshK_ss));
 (*Fake*) 
 by (spy_analz_tac 2);
@@ -226,7 +226,8 @@ by (etac yahalom.induct 1);
 by analz_spies_tac;
 by (ALLGOALS
     (asm_simp_tac 
-     (!simpset addsimps [analz_insert_eq, analz_insert_freshK]
+     (!simpset addsimps expand_ifs
+	       addsimps [analz_insert_eq, analz_insert_freshK]
                addsplits [expand_if])));
 (*Oops*)
 by (blast_tac (!claset addDs [unique_session_keys]) 3);

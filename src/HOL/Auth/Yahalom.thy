@@ -49,7 +49,8 @@ inductive "yahalom"
                 # evs3 : yahalom"
 
          (*Alice receives the Server's (?) message, checks her Nonce, and
-           uses the new session key to send Bob his Nonce.*)
+           uses the new session key to send Bob his Nonce.  The premise
+           A ~= Server is needed to prove Says_Server_message_form.*)
     YM4  "[| evs4: yahalom;  A ~= Server;  
              Says S A {|Crypt (shrK A) {|Agent B, Key K, Nonce NA, Nonce NB|},
                         X|}  : set evs4;

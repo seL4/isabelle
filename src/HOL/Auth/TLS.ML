@@ -17,8 +17,13 @@ Protocol goals:
   rollback attacks).
 *)
 
-
 open TLS;
+
+val if_distrib_parts = 
+    read_instantiate_sg (sign_of Message.thy) [("f", "parts")] if_distrib;
+
+val if_distrib_analz = 
+    read_instantiate_sg (sign_of Message.thy) [("f", "analz")] if_distrib;
 
 proof_timing:=true;
 HOL_quantifiers := false;
@@ -198,6 +203,7 @@ fun analz_induct_tac i =
     ClientKeyExch_tac  (i+6)  THEN	(*ClientKeyExch*)
     ALLGOALS (asm_simp_tac 
               (!simpset addcongs [if_weak_cong]
+                        addsimps (expand_ifs@pushes)
                         addsplits [expand_if]))  THEN
     (*Remove instances of pubK B:  the Spy already knows all public keys.
       Combining the two simplifier calls makes them run extremely slowly.*)
@@ -396,7 +402,7 @@ goal thy
  "!!evs. (X : analz (G Un H)) --> (X : analz H)  ==> \
 \        (X : analz (G Un H))  =  (X : analz H)";
 by (blast_tac (!claset addIs [impOfSubs analz_mono]) 1);
-val lemma = result();
+val analz_image_keys_lemma = result();
 
 (** Strangely, the following version doesn't work:
 \    ALL Z. (Nonce N : analz (Key``(sessionK``Z) Un (spies evs))) = \
@@ -411,9 +417,10 @@ goal thy
 by (etac tls.induct 1);
 by (ClientKeyExch_tac 7);
 by (REPEAT_FIRST (resolve_tac [allI, impI]));
-by (REPEAT_FIRST (rtac lemma));
-by (ALLGOALS    (*24 seconds*)
+by (REPEAT_FIRST (rtac analz_image_keys_lemma));
+by (ALLGOALS    (*15 seconds*)
     (asm_simp_tac (analz_image_keys_ss 
+		   addsimps (expand_ifs@pushes)
 		   addsimps [range_sessionkeys_not_priK, 
                              analz_image_priK, certificate_def])));
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [insert_absorb])));

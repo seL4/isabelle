@@ -74,7 +74,7 @@ goal thy
  "!!evs. evs : ns_shared ==> (Key (shrK A) : parts (spies evs)) = (A : bad)";
 by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
-by (Blast_tac 1);
+by (ALLGOALS Blast_tac);
 qed "Spy_see_shrK";
 Addsimps [Spy_see_shrK];
 
@@ -99,10 +99,10 @@ goal thy "!!evs. evs : ns_shared ==>      \
 by (parts_induct_tac 1);
 (*Fake*)
 by (best_tac
-      (!claset addIs [impOfSubs analz_subset_parts]
-               addDs [impOfSubs (analz_subset_parts RS keysFor_mono),
-                      impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
-               addss (!simpset)) 1);
+      (!claset addSDs [impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
+               addIs  [impOfSubs analz_subset_parts]
+               addDs  [impOfSubs (analz_subset_parts RS keysFor_mono)]
+               addss  (!simpset)) 1);
 (*NS2, NS4, NS5*)
 by (ALLGOALS (blast_tac (!claset addSEs spies_partsEs)));
 qed_spec_mp "new_keys_not_used";
@@ -203,8 +203,8 @@ goal thy
 by (etac ns_shared.induct 1);
 by analz_spies_tac;
 by (REPEAT_FIRST (resolve_tac [allI, impI]));
-by (REPEAT_FIRST (rtac analz_image_freshK_lemma ));
-(*Takes 24 secs*)
+by (REPEAT_FIRST (rtac analz_image_freshK_lemma));
+(*Takes 9 secs*)
 by (ALLGOALS (asm_simp_tac analz_image_freshK_ss));
 (*Fake*) 
 by (spy_analz_tac 2);
@@ -255,7 +255,7 @@ qed "unique_session_keys";
 (** Crucial secrecy property: Spy does not see the keys sent in msg NS2 **)
 
 goal thy 
- "!!evs. [| A ~: bad;  B ~: bad;  evs : ns_shared |]            \
+ "!!evs. [| A ~: bad;  B ~: bad;  evs : ns_shared |]                   \
 \        ==> Says Server A                                             \
 \              (Crypt (shrK A) {|NA, Agent B, Key K,                   \
 \                                Crypt (shrK B) {|Key K, Agent A|}|})  \
@@ -266,8 +266,8 @@ by (etac ns_shared.induct 1);
 by analz_spies_tac;
 by (ALLGOALS 
     (asm_simp_tac 
-     (!simpset addsimps ([analz_insert_eq, analz_insert_freshK] @ pushes)
-               addsplits [expand_if])));
+     (!simpset addsimps ([analz_insert_eq, analz_insert_freshK] @ 
+			 pushes @ expand_ifs))));
 (*Oops*)
 by (blast_tac (!claset addDs [unique_session_keys]) 5);
 (*NS3, replay sub-case*) 
