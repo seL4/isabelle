@@ -49,10 +49,10 @@ syntax (input)
   "@INTER_less" :: "nat => nat => 'b set => 'b set"       ("(3\<Inter> _<_./ _)" 10)
 
 syntax (xsymbols)
-  "@UNION_le"   :: "nat \<Rightarrow> nat => 'b set => 'b set"       ("(3\<Union>\<^bsub>_ \<le> _\<^esub>/ _)" 10)
-  "@UNION_less" :: "nat \<Rightarrow> nat => 'b set => 'b set"       ("(3\<Union>\<^bsub>_ < _\<^esub>/ _)" 10)
-  "@INTER_le"   :: "nat \<Rightarrow> nat => 'b set => 'b set"       ("(3\<Inter>\<^bsub>_ \<le> _\<^esub>/ _)" 10)
-  "@INTER_less" :: "nat \<Rightarrow> nat => 'b set => 'b set"       ("(3\<Inter>\<^bsub>_ < _\<^esub>/ _)" 10)
+  "@UNION_le"   :: "nat \<Rightarrow> nat => 'b set => 'b set"       ("(3\<Union>()\<^bsub>_ \<le> _\<^esub>/ _)" 10)
+  "@UNION_less" :: "nat \<Rightarrow> nat => 'b set => 'b set"       ("(3\<Union>()\<^bsub>_ < _\<^esub>/ _)" 10)
+  "@INTER_le"   :: "nat \<Rightarrow> nat => 'b set => 'b set"       ("(3\<Inter>()\<^bsub>_ \<le> _\<^esub>/ _)" 10)
+  "@INTER_less" :: "nat \<Rightarrow> nat => 'b set => 'b set"       ("(3\<Inter>()\<^bsub>_ < _\<^esub>/ _)" 10)
 
 translations
   "UN i<=n. A"  == "UN i:{..n}. A"
