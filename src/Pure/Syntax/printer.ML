@@ -11,6 +11,7 @@ signature PRINTER0 =
   val show_sorts: bool ref
   val show_types: bool ref
   val show_no_free_types: bool ref
+  val print_mode: string list ref
   end;
 
 signature PRINTER =
@@ -18,19 +19,22 @@ signature PRINTER =
   include PRINTER0
   val term_to_ast: (string -> (term list -> term) option) -> term -> Ast.ast
   val typ_to_ast: (string -> (term list -> term) option) -> typ -> Ast.ast
-  type prtab
-  val empty_prtab: prtab
-  val extend_prtab: prtab -> SynExt.xprod list -> prtab
-  val merge_prtabs: prtab -> prtab -> prtab
-  val pretty_term_ast: bool -> prtab -> (string -> (Ast.ast list -> Ast.ast) option)
-    -> Ast.ast -> Pretty.T
-  val pretty_typ_ast: bool -> prtab -> (string -> (Ast.ast list -> Ast.ast) option)
-    -> Ast.ast -> Pretty.T
+  type prtabs
+  val prmodes_of: prtabs -> string list
+  val empty_prtabs: prtabs
+  val extend_prtabs: prtabs -> string -> SynExt.xprod list -> prtabs
+  val merge_prtabs: prtabs -> prtabs -> prtabs
+  val pretty_term_ast: bool -> prtabs
+    -> (string -> (Ast.ast list -> Ast.ast) option) -> Ast.ast -> Pretty.T
+  val pretty_typ_ast: bool -> prtabs
+    -> (string -> (Ast.ast list -> Ast.ast) option) -> Ast.ast -> Pretty.T
   end;
 
 structure Printer : PRINTER =
 struct
+
 open Lexicon Ast SynExt TypeExt SynTrans;
+
 
 (** options for printing **)
 
@@ -38,6 +42,7 @@ val show_types = ref false;
 val show_sorts = ref false;
 val show_brackets = ref false;
 val show_no_free_types = ref false;
+val print_mode = ref ([]:string list);
 
 
 
@@ -105,7 +110,7 @@ fun ast_of_term trf show_types show_sorts tm =
 (* term_to_ast *)
 
 fun term_to_ast trf tm =
-  ast_of_term trf (!show_types orelse !show_sorts) (!show_sorts) tm;
+  ast_of_term trf (! show_types orelse ! show_sorts) (! show_sorts) tm;
 
 
 (* typ_to_ast *)
@@ -115,7 +120,7 @@ fun typ_to_ast trf ty =
 
 
 
-(** type prtab **)
+(** type prtabs **)
 
 datatype symb =
   Arg of int |
@@ -124,7 +129,21 @@ datatype symb =
   Break of int |
   Block of int * symb list;
 
-type prtab = (symb list * int * int) Symtab.table;
+type prtabs = (string * ((symb list * int * int) list) Symtab.table) list;
+
+val prmodes_of = filter_out (equal "") o map fst;
+
+(*find tab for mode*)
+fun get_tab prtabs mode =
+  if_none (assoc (prtabs, mode)) Symtab.null;
+
+(*collect tabs for mode hierarchy (default "")*)
+fun tabs_of prtabs modes =
+  mapfilter (fn mode => assoc (prtabs, mode)) (modes @ [""]);
+
+(*find formats in tab hierarchy*)
+fun get_fmts [] _ = []
+  | get_fmts (tab :: tabs) a = Symtab.lookup_multi (tab, a) @ get_fmts tabs a;
 
 
 (* xprods_to_fmts *)
@@ -169,39 +188,48 @@ fun xprod_to_fmt (XProd (_, _, "", _)) = None
         | _ => sys_error "xprod_to_fmt: unbalanced blocks")
       end;
 
-fun xprods_to_fmts xprods =
-  gen_distinct eq_fst (mapfilter xprod_to_fmt xprods);
+fun xprods_to_fmts xprods = mapfilter xprod_to_fmt xprods;
 
 
 (* empty, extend, merge prtabs *)
 
-fun err_dup_fmts cs =
-  error ("Duplicate formats in printer table for " ^ commas_quote cs);
+val empty_prtabs = [];
 
-val empty_prtab = Symtab.null;
+fun extend_prtabs prtabs mode xprods =
+  let
+    val fmts = xprods_to_fmts xprods;
+    val tab = get_tab prtabs mode;
+    val new_tab = generic_extend (op =) Symtab.dest_multi Symtab.make_multi tab fmts;
+  in overwrite (prtabs, (mode, new_tab)) end;
 
-fun extend_prtab tab xprods =
-  Symtab.extend (op =) (tab, xprods_to_fmts xprods)
-    handle Symtab.DUPS cs => err_dup_fmts cs;
-
-fun merge_prtabs tab1 tab2 =
-  Symtab.merge (op =) (tab1, tab2)
-    handle Symtab.DUPS cs => err_dup_fmts cs;
+fun merge_prtabs prtabs1 prtabs2 =
+  let
+    val modes = distinct (map fst (prtabs1 @ prtabs2));
+    fun merge mode =
+      (mode,
+        generic_merge (op =) Symtab.dest_multi Symtab.make_multi
+          (get_tab prtabs1 mode) (get_tab prtabs2 mode));
+  in
+    map merge modes
+  end;
 
 
 
 (** pretty term or typ asts **)
 
-fun chain [Block (_, pr)] = chain pr
-  | chain [Arg _] = true
-  | chain _  = false;
+fun is_chain [Block (_, pr)] = is_chain pr
+  | is_chain [Arg _] = true
+  | is_chain _  = false;
 
-fun pretty prtab trf type_mode curried ast0 p0 =
+fun pretty tabs trf type_mode curried ast0 p0 =
   let
     val trans = apply_trans "print ast translation";
 
-    val appT = if type_mode then tappl_ast_tr' else
-               if curried then applC_ast_tr' else appl_ast_tr';
+    (*default applications: prefix / postfix*)
+    val appT =
+      if type_mode then tappl_ast_tr'
+      else if curried then applC_ast_tr'
+      else appl_ast_tr';
 
     fun synT ([], args) = ([], args)
       | synT (Arg p :: symbs, t :: args) =
@@ -212,7 +240,7 @@ fun pretty prtab trf type_mode curried ast0 p0 =
             val (Ts, args') = synT (symbs, args);
           in
             if type_mode then (astT (t, p) @ Ts, args')
-            else (pretty prtab trf true curried t p @ Ts, args')
+            else (pretty tabs trf true curried t p @ Ts, args')
           end
       | synT (String s :: symbs, args) =
           let val (Ts, args') = synT (symbs, args);
@@ -229,7 +257,7 @@ fun pretty prtab trf type_mode curried ast0 p0 =
 
     and parT (pr, args, p, p': int) = #1 (synT
           (if p > p' orelse
-            (! show_brackets andalso p' <> max_pri andalso not (chain pr))
+            (! show_brackets andalso p' <> max_pri andalso not (is_chain pr))
             then [Block (1, String "(" :: pr @ [String ")"])]
             else pr, args))
 
@@ -245,12 +273,31 @@ fun pretty prtab trf type_mode curried ast0 p0 =
       let
         val nargs = length args;
 
+        (*find matching table entry, or print as prefix/postfix*)
+        fun prnt [] = prefixT tup
+          | prnt ((pr, n, p') :: prnps) =
+              if nargs = n then parT (pr, args, p, p')
+              else if nargs > n andalso not type_mode then
+                astT (appT (splitT n ([c], args)), p)
+              else prnt prnps;
+      in
+        (*try translation function first*)
+        (case trf a of
+          None => prnt (get_fmts tabs a)
+        | Some f => (astT (trans a f args, p) handle Match => prnt (get_fmts tabs a)))
+      end
+
+(* FIXME old
+    and combT (tup as (c, a, args, p)) =
+      let
+        val nargs = length args;
+
         fun prnt (pr, n, p') =
           if nargs = n then parT (pr, args, p, p')
           else if nargs < n orelse type_mode then prefixT tup
           else astT (appT (splitT n ([c], args)), p);
       in
-        (case (trf a, Symtab.lookup (prtab, a)) of
+        (case (trf a, get_fmt tabs a) of
           (None, None) => prefixT tup
         | (None, Some prnp) => prnt prnp
         | (Some f, None) =>
@@ -258,6 +305,7 @@ fun pretty prtab trf type_mode curried ast0 p0 =
         | (Some f, Some prnp) =>
             (astT (trans a f args, p) handle Match => prnt prnp))
       end
+*)
 
     and astT (c as Constant a, p) = combT (c, a, [], p)
       | astT (Variable x, _) = [Pretty.str x]
@@ -272,15 +320,14 @@ fun pretty prtab trf type_mode curried ast0 p0 =
 
 (* pretty_term_ast *)
 
-fun pretty_term_ast curried prtab trf ast =
-  Pretty.blk (0, pretty prtab trf false curried ast 0);
+fun pretty_term_ast curried prtabs trf ast =
+  Pretty.blk (0, pretty (tabs_of prtabs (! print_mode)) trf false curried ast 0);
 
 
 (* pretty_typ_ast *)
 
-fun pretty_typ_ast _ prtab trf ast =
-  Pretty.blk (0, pretty prtab trf true false ast 0);
+fun pretty_typ_ast _ prtabs trf ast =
+  Pretty.blk (0, pretty (tabs_of prtabs (! print_mode)) trf true false ast 0);
 
 
 end;
-
