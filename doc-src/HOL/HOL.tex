@@ -2782,11 +2782,13 @@ code : name '=' term;
 
 constscode : 'consts_code' (codespec +);
 
-codespec : name ( () | '::' type) '(' mixfix ')';
+codespec : name ( () | '::' type) template;
 
 typescode : 'types_code' (tycodespec +);
 
-tycodespec : name '(' mixfix ')';
+tycodespec : name template;
+
+template: '(' string ')';
 \end{rail}
 \caption{Code generator syntax}
 \label{fig:HOL:codegen}
