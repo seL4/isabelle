@@ -516,7 +516,7 @@ local
 val add_rules =
     simp_thms @ bin_arith_simps @ bin_rel_simps @
     [int_numeral_0_eq_0, int_numeral_1_eq_1,
-     zminus_0, zadd_0, zadd_0_right, zdiff_def,
+     zminus_0, zdiff_def,
      zadd_zminus_inverse, zadd_zminus_inverse2,
      zmult_0, zmult_0_right,
      zmult_1, zmult_1_right,
@@ -528,21 +528,11 @@ val simprocs = [Int_Times_Assoc.conv, Int_Numeral_Simprocs.combine_numerals]@
                Int_Numeral_Simprocs.cancel_numerals @
                Bin_Simprocs.eval_numerals;
 
-val add_mono_thms_int =
-  map (fn s => prove_goal (the_context ()) s
-                 (fn prems => [cut_facts_tac prems 1,
-                      asm_simp_tac (simpset() addsimps [zadd_zle_mono]) 1]))
-    ["(i <= j) & (k <= l) ==> i + k <= j + (l::int)",
-     "(i  = j) & (k <= l) ==> i + k <= j + (l::int)",
-     "(i <= j) & (k  = l) ==> i + k <= j + (l::int)",
-     "(i  = j) & (k  = l) ==> i + k  = j + (l::int)"
-    ];
-
 in
 
 val int_arith_setup =
  [Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset} =>
-   {add_mono_thms = add_mono_thms @ add_mono_thms_int,
+   {add_mono_thms = add_mono_thms,
     mult_mono_thms = mult_mono_thms,
     inj_thms = [zle_int RS iffD2,int_int_eq RS iffD2] @ inj_thms,
     lessD = lessD @ [zless_imp_add1_zle],

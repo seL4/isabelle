@@ -577,9 +577,6 @@ test "a*(b*c)/(y*z) = d*(b::rat)*(x*a)/z";
 
 (****Instantiation of the generic linear arithmetic package****)
 
-val add_zero_left = thm"Ring_and_Field.add_0";
-val add_zero_right = thm"Ring_and_Field.add_0_right";
-
 
 local
 
@@ -591,7 +588,7 @@ val add_rules =
      mult_rat_number_of, eq_rat_number_of, less_rat_number_of,
      le_number_of_eq_not_less, diff_minus,
      minus_add_distrib, minus_minus, mult_assoc, minus_zero,
-     add_zero_left, add_zero_right, left_minus, right_minus,
+     left_minus, right_minus,
      mult_zero_left, mult_zero_right, mult_1, mult_1_right,
      minus_mult_left RS sym, minus_mult_right RS sym];
 
@@ -603,18 +600,14 @@ val simprocs = [Rat_Times_Assoc.conv, Rat_Numeral_Simprocs.combine_numerals,
 val mono_ss = simpset() addsimps
                 [add_mono,add_strict_mono,add_less_le_mono,add_le_less_mono];
 
-val add_mono_thms_rat =
+val add_mono_thms_ordered_field =
   map (fn s => prove_goal (the_context ()) s
                  (fn prems => [cut_facts_tac prems 1, asm_simp_tac mono_ss 1]))
-    ["(i <= j) & (k <= l) ==> i + k <= j + (l::rat)",
-     "(i  = j) & (k <= l) ==> i + k <= j + (l::rat)",
-     "(i <= j) & (k  = l) ==> i + k <= j + (l::rat)",
-     "(i  = j) & (k  = l) ==> i + k  = j + (l::rat)",
-     "(i < j) & (k = l)   ==> i + k < j + (l::rat)",
-     "(i = j) & (k < l)   ==> i + k < j + (l::rat)",
-     "(i < j) & (k <= l)  ==> i + k < j + (l::rat)",
-     "(i <= j) & (k < l)  ==> i + k < j + (l::rat)",
-     "(i < j) & (k < l)   ==> i + k < j + (l::rat)"];
+    ["(i < j) & (k = l)   ==> i + k < j + (l::'a::ordered_field)",
+     "(i = j) & (k < l)   ==> i + k < j + (l::'a::ordered_field)",
+     "(i < j) & (k <= l)  ==> i + k < j + (l::'a::ordered_field)",
+     "(i <= j) & (k < l)  ==> i + k < j + (l::'a::ordered_field)",
+     "(i < j) & (k < l)   ==> i + k < j + (l::'a::ordered_field)"];
 
 fun cvar(th,_ $ (_ $ _ $ var)) = cterm_of (#sign(rep_thm th)) var;
 
@@ -643,7 +636,7 @@ val int_inj_thms = [rat_of_int_le_iff RS iffD2, rat_of_int_less_iff RS iffD2,
 
 val rat_arith_setup =
  [Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset} =>
-   {add_mono_thms = add_mono_thms @ add_mono_thms_rat,
+   {add_mono_thms = add_mono_thms @ add_mono_thms_ordered_field,
     mult_mono_thms = mult_mono_thms @ rat_mult_mono_thms,
     inj_thms = (***int_inj_thms @*???**)  inj_thms,
     lessD = lessD,  (*Can't change LA_Data_Ref.lessD: the rats are dense!*)

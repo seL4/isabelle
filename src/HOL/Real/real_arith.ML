@@ -591,9 +591,6 @@ test "a*(b*c)/(y*z) = d*(b::real)*(x*a)/z";
 
 (****Instantiation of the generic linear arithmetic package****)
 
-val add_zero_left = thm"Ring_and_Field.add_0";
-val add_zero_right = thm"Ring_and_Field.add_0_right";
-
 local
 
 (* reduce contradictory <= to False *)
@@ -604,7 +601,7 @@ val add_rules =
      mult_real_number_of, eq_real_number_of, less_real_number_of,
      le_number_of_eq_not_less, diff_minus,
      minus_add_distrib, minus_minus, mult_assoc, minus_zero,
-     add_zero_left, add_zero_right, left_minus, right_minus,
+     left_minus, right_minus,
      mult_zero_left, mult_zero_right, mult_1, mult_1_right,
      minus_mult_left RS sym, minus_mult_right RS sym];
 
@@ -612,22 +609,6 @@ val simprocs = [Real_Times_Assoc.conv, Real_Numeral_Simprocs.combine_numerals,
                 real_cancel_numeral_factors_divide]@
                Real_Numeral_Simprocs.cancel_numerals @
                Real_Numeral_Simprocs.eval_numerals;
-
-val mono_ss = simpset() addsimps
-                [add_mono,add_strict_mono,add_less_le_mono,add_le_less_mono];
-
-val add_mono_thms_real =
-  map (fn s => prove_goal (the_context ()) s
-                 (fn prems => [cut_facts_tac prems 1, asm_simp_tac mono_ss 1]))
-    ["(i <= j) & (k <= l) ==> i + k <= j + (l::real)",
-     "(i  = j) & (k <= l) ==> i + k <= j + (l::real)",
-     "(i <= j) & (k  = l) ==> i + k <= j + (l::real)",
-     "(i  = j) & (k  = l) ==> i + k  = j + (l::real)",
-     "(i < j) & (k = l)   ==> i + k < j + (l::real)",
-     "(i = j) & (k < l)   ==> i + k < j + (l::real)",
-     "(i < j) & (k <= l)  ==> i + k < j + (l::real)",
-     "(i <= j) & (k < l)  ==> i + k < j + (l::real)",
-     "(i < j) & (k < l)   ==> i + k < j + (l::real)"];
 
 fun cvar(th,_ $ (_ $ _ $ var)) = cterm_of (#sign(rep_thm th)) var;
 
@@ -660,7 +641,7 @@ val fast_real_arith_simproc = Simplifier.simproc (Theory.sign_of (the_context ()
 
 val real_arith_setup =
  [Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset} =>
-   {add_mono_thms = add_mono_thms @ add_mono_thms_real,
+   {add_mono_thms = add_mono_thms,
     mult_mono_thms = mult_mono_thms @ real_mult_mono_thms,
     inj_thms = int_inj_thms @ nat_inj_thms @ inj_thms,
     lessD = lessD,  (*Can't change LA_Data_Ref.lessD: the reals are dense!*)

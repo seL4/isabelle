@@ -379,16 +379,16 @@ val isolateSuc =
    Most of the work is done by the cancel tactics.
 *)
 val add_rules =
- [add_0,add_0_right,Zero_not_Suc,Suc_not_Zero,le_0_eq,
+ [add_zero_left,add_zero_right,Zero_not_Suc,Suc_not_Zero,le_0_eq,
   One_nat_def,isolateSuc];
 
-val add_mono_thms_nat = map (fn s => prove_goal (the_context ()) s
+val add_mono_thms_ordered_semiring = map (fn s => prove_goal (the_context ()) s
  (fn prems => [cut_facts_tac prems 1,
-               blast_tac (claset() addIs [add_le_mono]) 1]))
-["(i <= j) & (k <= l) ==> i + k <= j + (l::nat)",
- "(i  = j) & (k <= l) ==> i + k <= j + (l::nat)",
- "(i <= j) & (k  = l) ==> i + k <= j + (l::nat)",
- "(i  = j) & (k  = l) ==> i + k  = j + (l::nat)"
+               blast_tac (claset() addIs [add_mono]) 1]))
+["(i <= j) & (k <= l) ==> i + k <= j + (l::'a::ordered_semiring)",
+ "(i  = j) & (k <= l) ==> i + k <= j + (l::'a::ordered_semiring)",
+ "(i <= j) & (k  = l) ==> i + k <= j + (l::'a::ordered_semiring)",
+ "(i  = j) & (k  = l) ==> i + k  = j + (l::'a::ordered_semiring)"
 ];
 
 in
@@ -396,7 +396,7 @@ in
 val init_lin_arith_data =
  Fast_Arith.setup @
  [Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset = _} =>
-   {add_mono_thms = add_mono_thms @ add_mono_thms_nat,
+   {add_mono_thms = add_mono_thms @ add_mono_thms_ordered_semiring,
     mult_mono_thms = mult_mono_thms,
     inj_thms = inj_thms,
     lessD = lessD @ [Suc_leI],

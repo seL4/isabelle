@@ -1625,8 +1625,12 @@ val abs_if = thm"abs_if";
 val divide_inverse = thm"divide_inverse";
 val inverse_zero = thm"inverse_zero";
 val divide_zero = thm"divide_zero";
+
 val add_0 = thm"add_0";
 val add_0_right = thm"add_0_right";
+val add_zero_left = thm"add_0";
+val add_zero_right = thm"add_0_right";
+
 val add_left_commute = thm"add_left_commute";
 val left_minus = thm"left_minus";
 val right_minus = thm"right_minus";
