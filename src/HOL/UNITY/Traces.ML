@@ -20,3 +20,12 @@ Goal "acts <= Acts prg ==> stable acts (reachable prg)";
 by (blast_tac (claset() addIs ([stableI, constrainsI] @ reachable.intrs)) 1);
 qed "stable_reachable";
 
+Goal "(act : Acts(|Init=init, Acts=acts|)) = (act:acts)";
+auto();
+qed "Acts_eq";
+
+Goal "(s : Init(|Init=init, Acts=acts|)) = (s:init)";
+auto();
+qed "Init_eq";
+
+AddIffs [Acts_eq, Init_eq];
