@@ -57,7 +57,7 @@ sig
   val proof: text option -> Proof.state -> Proof.state Seq.seq
   val local_qed: text option -> ({kind: string, name: string, thm: thm} -> unit)
     -> Proof.state -> Proof.state Seq.seq
-  val local_terminal_proof: text -> ({kind: string, name: string, thm: thm} -> unit)
+  val local_terminal_proof: text * text option -> ({kind: string, name: string, thm: thm} -> unit)
     -> Proof.state -> Proof.state Seq.seq
   val local_immediate_proof: ({kind: string, name: string, thm: thm} -> unit)
     -> Proof.state -> Proof.state Seq.seq
@@ -65,7 +65,8 @@ sig
     -> Proof.state -> Proof.state Seq.seq
   val global_qed: bstring option -> theory attribute list option -> text option
     -> Proof.state -> theory * {kind: string, name: string, thm: thm}
-  val global_terminal_proof: text -> Proof.state -> theory * {kind: string, name: string, thm: thm}
+  val global_terminal_proof: text * text option
+    -> Proof.state -> theory * {kind: string, name: string, thm: thm}
   val global_immediate_proof: Proof.state -> theory * {kind: string, name: string, thm: thm}
   val global_default_proof: Proof.state -> theory * {kind: string, name: string, thm: thm}
   val setup: (theory -> theory) list
@@ -306,9 +307,9 @@ fun proof opt_text state =
   |> Seq.map Proof.enter_forward;
 
 fun local_qed opt_text = Proof.local_qed (refine (if_none opt_text finish_text));
-fun local_terminal_proof text pr = Seq.THEN (proof (Some text), local_qed None pr);
-val local_immediate_proof = local_terminal_proof (Basic (K same));
-val local_default_proof = local_terminal_proof default_text;
+fun local_terminal_proof (text, opt_text) pr = Seq.THEN (proof (Some text), local_qed opt_text pr);
+val local_immediate_proof = local_terminal_proof (Basic (K same), None);
+val local_default_proof = local_terminal_proof (default_text, None);
 
 
 fun global_qeds alt_name alt_atts opt_text =
@@ -320,16 +321,16 @@ fun global_qed alt_name alt_atts opt_text state =
   |> Proof.check_result "Failed to finish proof" state
   |> Seq.hd;
 
-fun global_terminal_proof text state =
+fun global_terminal_proof (text, opt_text) state =
   state
   |> proof (Some text)
   |> Proof.check_result "Terminal proof method failed" state
-  |> (Seq.flat o Seq.map (global_qeds None None None))
+  |> (Seq.flat o Seq.map (global_qeds None None opt_text))
   |> Proof.check_result "Failed to finish proof (after successful terminal method)" state
   |> Seq.hd;
 
-val global_immediate_proof = global_terminal_proof (Basic (K same));
-val global_default_proof = global_terminal_proof default_text;
+val global_immediate_proof = global_terminal_proof (Basic (K same), None);
+val global_default_proof = global_terminal_proof (default_text, None);
 
 
 
