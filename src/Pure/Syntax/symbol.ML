@@ -183,7 +183,8 @@ fun is_quasi_letter "_" = true
   | is_quasi_letter s = is_letter s;
 
 val is_blank =
-  fn " " => true | "\t" => true | "\n" => true | "\^L" => true | "\\<space2>" => true
+  fn " " => true | "\t" => true | "\n" => true | "\^L" => true
+    | "\160" => true | "\\<space2>" => true
     | _ => false;
 
 val is_letdig = is_quasi_letter orf is_digit;
