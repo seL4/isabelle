@@ -202,6 +202,11 @@ val True_implies_equals = prove_goal (the_context ())
 
 fun prove nm thm  = qed_goal nm (the_context ()) thm (fn _ => [(Blast_tac 1)]);
 
+prove "eq_commute" "(a=b)=(b=a)";
+prove "eq_left_commute" "(P=(Q=R)) = (Q=(P=R))";
+prove "eq_assoc" "((P=Q)=R) = (P=(Q=R))";
+val eq_ac = [eq_commute, eq_left_commute, eq_assoc];
+
 prove "conj_commute" "(P&Q) = (Q&P)";
 prove "conj_left_commute" "(P&(Q&R)) = (Q&(P&R))";
 val conj_comms = [conj_commute, conj_left_commute];
