@@ -68,6 +68,9 @@ fi
 
 ISABELLE_USEDIR_OPTIONS=""
 
+# for overriding proof objects in HOL image
+HOL_PROOF_OBJECTS=""
+
 
 ###
 ### Document preparation
