@@ -3,10 +3,14 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
+header {* An Order on Functions *};
+
 theory FunctionOrder = Subspace + Linearform:;
 
 
-section {* Order on functions *};
+
+subsection {* The graph of a function *}
+
 
 types 'a graph = "('a * real) set";
 
@@ -34,17 +38,20 @@ lemma graphD1 [intro!!]: "(x, y): graph F f ==> x:F";
 lemma graphD2 [intro!!]: "(x, y): graph H h ==> y = h x";
   by (unfold graph_def, elim CollectE exE) force; 
 
-lemma graph_extD1 [intro!!]: "[| graph H h <= graph H' h'; x:H |] ==> h x = h' x";
+lemma graph_extD1 [intro!!]: 
+  "[| graph H h <= graph H' h'; x:H |] ==> h x = h' x";
   by (unfold graph_def, force);
 
 lemma graph_extD2 [intro!!]: "[| graph H h <= graph H' h' |] ==> H <= H'";
   by (unfold graph_def, force);
 
-lemma graph_extI: "[| !! x. x: H ==> h x = h' x; H <= H'|] ==> graph H h <= graph H' h'";
+lemma graph_extI: 
+  "[| !! x. x: H ==> h x = h' x; H <= H'|] ==> graph H h <= graph H' h'";
   by (unfold graph_def, force);
 
 lemma graph_domain_funct: 
-  "(!!x y z. (x, y):g ==> (x, z):g ==> z = y) ==> graph (domain g) (funct g) = g";
+  "(!!x y z. (x, y):g ==> (x, z):g ==> z = y) 
+  ==> graph (domain g) (funct g) = g";
 proof (unfold domain_def, unfold funct_def, unfold graph_def, auto);
   fix a b; assume "(a, b) : g";
   show "(a, SOME y. (a, y) : g) : g"; by (rule selectI2);
@@ -55,6 +62,11 @@ proof (unfold domain_def, unfold funct_def, unfold graph_def, auto);
     fix y; assume "(a, y):g"; show "y = b"; by (rule uniq);
   qed;
 qed;
+
+
+
+subsection {* The set of norm preserving extensions of a function *}
+
 
 constdefs
   norm_pres_extensions :: 
@@ -93,7 +105,6 @@ lemma norm_pres_extensionI [intro]:
              & (ALL x:H. h x <= p x))
    ==> (g: norm_pres_extensions E p F f) ";
  by (unfold norm_pres_extensions_def) force;
-
 
 end;
 

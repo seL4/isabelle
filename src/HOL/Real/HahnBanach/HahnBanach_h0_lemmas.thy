@@ -3,11 +3,14 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
+header {* Lemmas about the extension of a non-maximal function *};
+
 theory HahnBanach_h0_lemmas = FunctionNorm:;
 
-
-lemma ex_xi: "[| is_vectorspace F;  (!! u v. [| u:F; v:F |] ==> a u <= b v )|]
-       ==> EX xi::real. (ALL y:F. (a::'a => real) y <= xi) & (ALL y:F. xi <= b y)"; 
+lemma ex_xi: 
+  "[| is_vectorspace F;  (!! u v. [| u:F; v:F |] ==> a u <= b v )|]
+  ==> EX xi::real. (ALL y:F. (a::'a => real) y <= xi) 
+                 & (ALL y:F. xi <= b y)"; 
 proof -;
   assume vs: "is_vectorspace F";
   assume r: "(!! u v. [| u:F; v:F |] ==> a u <= (b v::real))";
@@ -74,17 +77,19 @@ proof -;
   qed;
 qed;
 
-
 lemma h0_lf: 
-  "[| h0 = (%x. let (y, a) = @ (y, a). (x = y [+] a [*] x0 & y:H) in (h y) + a * xi);
-      H0 = vectorspace_sum H (lin x0); is_subspace H E; is_linearform H h; x0 ~: H; 
-      x0 : E; x0 ~= <0>; is_vectorspace E |]
-    ==> is_linearform H0 h0";
+  "[| h0 = (%x. let (y, a) = @ (y, a). (x = y [+] a [*] x0 & y:H) 
+                in (h y) + a * xi);
+  H0 = vectorspace_sum H (lin x0); is_subspace H E; is_linearform H h; 
+  x0 ~: H; x0 : E; x0 ~= <0>; is_vectorspace E |]
+  ==> is_linearform H0 h0";
 proof -;
-  assume h0_def:  "h0 = (%x. let (y, a) = @ (y, a). (x = y [+] a [*] x0 & y:H) in (h y) + a * xi)"
-    and H0_def: "H0 = vectorspace_sum H (lin x0)"
-    and vs: "is_subspace H E" "is_linearform H h" "x0 ~: H" "x0 ~= <0>" "x0 : E" 
-            "is_vectorspace E";
+  assume h0_def: 
+    "h0 = (%x. let (y, a) = @ (y, a). (x = y [+] a [*] x0 & y:H) 
+               in (h y) + a * xi)"
+  and H0_def: "H0 = vectorspace_sum H (lin x0)"
+  and vs: "is_subspace H E" "is_linearform H h" "x0 ~: H" "x0 ~= <0>" 
+          "x0 : E" "is_vectorspace E";
 
   have h0: "is_vectorspace H0"; 
   proof (simp only: H0_def, rule vs_sum_vs);
@@ -101,7 +106,7 @@ proof -;
       by (simp add: H0_def vectorspace_sum_def lin_def) blast;
     from x2; have ex_x2: "? y2 a2. (x2 = y2 [+] a2 [*] x0 & y2 : H)"; 
       by (simp add: H0_def vectorspace_sum_def lin_def) blast;
-    from x1x2; have ex_x1x2: "? y a. (x1 [+] x2 = y [+] a [*] x0  & y : H)";    
+    from x1x2; have ex_x1x2: "? y a. (x1 [+] x2 = y [+] a [*] x0  & y : H)";
       by (simp add: H0_def vectorspace_sum_def lin_def) force;
     from ex_x1 ex_x2 ex_x1x2;
     show "h0 (x1 [+] x2) = h0 x1 + h0 x2";
@@ -116,9 +121,12 @@ proof -;
         show "y1 [+] y2 [+] (a1 + a2) [*] x0 = y [+] a [*] x0"; 
         proof -;
           have "y [+] a [*] x0 = x1 [+] x2"; by (rule sym);
-          also; from y1 y2; have "... = y1 [+] a1 [*] x0 [+] (y2 [+] a2 [*] x0)"; by simp; 
-          also; from vs y1' y2'; have "... = y1 [+] y2 [+] (a1 [*] x0 [+] a2 [*] x0)"; by simp;
-          also; from vs y1' y2'; have "... = y1 [+] y2 [+] (a1 + a2) [*] x0"; 
+          also; from y1 y2; 
+          have "... = y1 [+] a1 [*] x0 [+] (y2 [+] a2 [*] x0)"; by simp; 
+          also; from vs y1' y2'; 
+          have "... = y1 [+] y2 [+] (a1 [*] x0 [+] a2 [*] x0)"; by simp;
+          also; from vs y1' y2'; 
+          have "... = y1 [+] y2 [+] (a1 + a2) [*] x0"; 
             by (simp add: vs_add_mult_distrib2[of E]);
           finally; show ?thesis; by (rule sym);
         qed;
@@ -145,7 +153,8 @@ proof -;
       by (rule vs_mult_closed, rule h0);
     from x1; have ex_x1: "? y1 a1. (x1 = y1 [+] a1 [*] x0 & y1 : H)";
       by (simp add: H0_def vectorspace_sum_def lin_def, fast);
-    from x1; have ex_x: "!! x. x: H0 ==> ? y a. (x = y [+] a [*] x0 & y : H)"; 
+    from x1; 
+    have ex_x: "!! x. x: H0 ==> ? y a. (x = y [+] a [*] x0 & y : H)"; 
       by (simp add: H0_def vectorspace_sum_def lin_def, fast);
     note ex_ax1 = ex_x [of "c [*] x1", OF ax1];
     from ex_x1 ex_ax1; show "h0 (c [*] x1) = c * (h0 x1)";  
@@ -162,7 +171,8 @@ proof -;
           also; from y1; have "... = c [*] (y1 [+] a1 [*] x0)"; by simp;
           also; from vs y1'; have "... = c [*] y1 [+] c [*] (a1 [*] x0)"; 
             by (simp add: vs_add_mult_distrib1);
-          also; from vs y1'; have "... = c [*] y1 [+] (c * a1) [*] x0"; by simp;
+          also; from vs y1'; have "... = c [*] y1 [+] (c * a1) [*] x0"; 
+            by simp;
           finally; show ?thesis; by (rule sym);
         qed;
         show "c [*] y1: H"; ..;
@@ -184,28 +194,23 @@ proof -;
   qed;
 qed;
 
-
-theorem real_linear_split:
- "[| x < a ==> Q; x = a ==> Q; a < (x::real) ==> Q |] ==> Q";
-  by (rule real_linear [of x a, elimify], elim disjE, force+);
-
-theorem linorder_linear_split: 
-"[| x < a ==> Q; x = a ==> Q; a < (x::'a::linorder) ==> Q |] ==> Q";
-  by (rule linorder_less_linear [of x a, elimify], elim disjE, force+);
-
-
 lemma h0_norm_pres:
-    "[| h0 = (%x. let (y, a) = @ (y, a). (x = y [+] a [*] x0 & y:H) in (h y) + a * xi);
-      H0 = vectorspace_sum H (lin x0); x0 ~: H; x0 : E; x0 ~= <0>; is_vectorspace E; 
-      is_subspace H E; is_quasinorm E p; is_linearform H h; ALL y:H. h y <= p y;
-      (ALL y:H. - p (y [+] x0) - h y <= xi) & (ALL y:H. xi <= p (y [+] x0) - h y)|]
+  "[| h0 = (%x. let (y, a) = @ (y, a). (x = y [+] a [*] x0 & y:H) 
+                in (h y) + a * xi);
+  H0 = vectorspace_sum H (lin x0); x0 ~: H; x0 : E; x0 ~= <0>; 
+  is_vectorspace E; is_subspace H E; is_quasinorm E p; is_linearform H h; 
+  ALL y:H. h y <= p y;
+  (ALL y:H. - p (y [+] x0) - h y <= xi) 
+  & (ALL y:H. xi <= p (y [+] x0) - h y)|]
    ==> ALL x:H0. h0 x <= p x"; 
 proof; 
-  assume h0_def: "h0 = (%x. let (y, a) = @ (y, a). (x = y [+] a [*] x0 & y:H) in (h y) + a * xi)"
-     and H0_def: "H0 = vectorspace_sum H (lin x0)" 
-     and vs:     "x0 ~: H" "x0 : E" "x0 ~= <0>" "is_vectorspace E" 
-                 "is_subspace H E" "is_quasinorm E p" "is_linearform H h" 
-     and a:      " ALL y:H. h y <= p y";
+  assume h0_def: 
+    "h0 = (%x. let (y, a) = @ (y, a). (x = y [+] a [*] x0 & y:H) 
+               in (h y) + a * xi)"
+    and H0_def: "H0 = vectorspace_sum H (lin x0)" 
+    and vs:     "x0 ~: H" "x0 : E" "x0 ~= <0>" "is_vectorspace E" 
+                "is_subspace H E" "is_quasinorm E p" "is_linearform H h" 
+    and a:      " ALL y:H. h y <= p y";
   presume a1: "(ALL y:H. - p (y [+] x0) - h y <= xi)";
   presume a2: "(ALL y:H. xi <= p (y [+] x0) - h y)";
   fix x; assume "x : H0"; 
@@ -227,10 +232,12 @@ proof;
           assume lz: "a < 0r"; hence nz: "a ~= 0r"; by force;
           show ?thesis;
           proof -;
-            from a1; have "- p (rinv a [*] y [+] x0) - h (rinv a [*] y) <= xi";
+            from a1; 
+            have "- p (rinv a [*] y [+] x0) - h (rinv a [*] y) <= xi";
               by (rule bspec, simp!);
             
-            with lz; have "a * xi <= a * (- p (rinv a [*] y [+] x0) - h (rinv a [*] y))";
+            with lz; 
+            have "a * xi <= a * (- p (rinv a [*] y [+] x0) - h (rinv a [*] y))";
               by (rule real_mult_less_le_anti);
             also; have "... = - a * (p (rinv a [*] y [+] x0)) - a * (h (rinv a [*] y))";
               by (rule real_mult_diff_distrib);
@@ -257,12 +264,15 @@ proof;
           assume gz: "0r < a"; hence nz: "a ~= 0r"; by force;
           show ?thesis;
           proof -;
-            from a2; have "xi <= p (rinv a [*] y [+] x0) - h (rinv a [*] y)";
-            by (rule bspec, simp!);
+            from a2; 
+            have "xi <= p (rinv a [*] y [+] x0) - h (rinv a [*] y)";
+              by (rule bspec, simp!);
 
-            with gz; have "a * xi <= a * (p (rinv a [*] y [+] x0) - h (rinv a [*] y))";
+            with gz; 
+            have "a * xi <= a * (p (rinv a [*] y [+] x0) - h (rinv a [*] y))";
               by (rule real_mult_less_le_mono);
-            also; have "... = a * (p (rinv a [*] y [+] x0)) - a * (h (rinv a [*] y))";
+            also; 
+            have "... = a * (p (rinv a [*] y [+] x0)) - a * (h (rinv a [*] y))";
               by (rule real_mult_diff_distrib2); 
             also; from gz vs y; 
             have "a * (p (rinv a [*] y [+] x0)) = p (a [*] (rinv a [*] y [+] x0))";
@@ -286,6 +296,5 @@ proof;
     qed;
   qed; 
 qed blast+;
-
 
 end;

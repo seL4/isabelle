@@ -3,10 +3,12 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
+header {* Bounds *};
+
 theory Bounds = Main + Real:;
 
 
-section {* The sets of lower and upper bounds *};
+subsection {* The sets of lower and upper bounds *};
 
 constdefs
   is_LowerBound :: "('a::order) set => 'a set => 'a => bool"
@@ -22,10 +24,14 @@ constdefs
   "UpperBounds A B == Collect (is_UpperBound A B)";
 
 syntax
-  "_UPPERS" :: "[pttrn, 'a set, 'a => bool] => 'a set"     ("(3UPPER'_BOUNDS _:_./ _)" 10)
-  "_UPPERS_U" :: "[pttrn, 'a => bool] => 'a set"           ("(3UPPER'_BOUNDS _./ _)" 10)
-  "_LOWERS" :: "[pttrn, 'a set, 'a => bool] => 'a set"     ("(3LOWER'_BOUNDS _:_./ _)" 10)
-  "_LOWERS_U" :: "[pttrn, 'a => bool] => 'a set"           ("(3LOWER'_BOUNDS _./ _)" 10);
+  "_UPPERS" :: "[pttrn, 'a set, 'a => bool] => 'a set"     
+    ("(3UPPER'_BOUNDS _:_./ _)" 10)
+  "_UPPERS_U" :: "[pttrn, 'a => bool] => 'a set"           
+    ("(3UPPER'_BOUNDS _./ _)" 10)
+  "_LOWERS" :: "[pttrn, 'a set, 'a => bool] => 'a set"     
+    ("(3LOWER'_BOUNDS _:_./ _)" 10)
+  "_LOWERS_U" :: "[pttrn, 'a => bool] => 'a set"           
+    ("(3LOWER'_BOUNDS _./ _)" 10);
 
 translations
   "UPPER_BOUNDS x:A. P" == "UpperBounds A (Collect (%x. P))"
@@ -34,7 +40,7 @@ translations
   "LOWER_BOUNDS x. P" == "LOWER_BOUNDS x:UNIV. P";
 
 
-section {* Least and greatest elements *};
+subsection {* Least and greatest elements *};
 
 constdefs
   is_Least :: "('a::order) set => 'a => bool"
@@ -50,15 +56,17 @@ constdefs
   "Greatest B == Eps (is_Greatest B)";
 
 syntax
-  "_LEAST"    :: "[pttrn, 'a => bool] => 'a"   ("(3LLEAST _./ _)" 10)
-  "_GREATEST" :: "[pttrn, 'a => bool] => 'a"   ("(3GREATEST _./ _)" 10);
+  "_LEAST"    :: "[pttrn, 'a => bool] => 'a"  
+    ("(3LLEAST _./ _)" 10)
+  "_GREATEST" :: "[pttrn, 'a => bool] => 'a"  
+    ("(3GREATEST _./ _)" 10);
 
 translations
   "LLEAST x. P" == "Least {x. P}"
   "GREATEST x. P" == "Greatest {x. P}";
 
 
-section {* Inf and Sup *};
+subsection {* Infimum and Supremum *};
 
 constdefs
   is_Sup :: "('a::order) set => 'a set => 'a => bool"
@@ -74,17 +82,20 @@ constdefs
   "Inf A B == Eps (is_Inf A B)";
 
 syntax
-  "_SUP" :: "[pttrn, 'a set, 'a => bool] => 'a set"     ("(3SUP _:_./ _)" 10)
-  "_SUP_U" :: "[pttrn, 'a => bool] => 'a set"           ("(3SUP _./ _)" 10)
-  "_INF" :: "[pttrn, 'a set, 'a => bool] => 'a set"     ("(3INF _:_./ _)" 10)
-  "_INF_U" :: "[pttrn, 'a => bool] => 'a set"           ("(3INF _./ _)" 10);
+  "_SUP" :: "[pttrn, 'a set, 'a => bool] => 'a set"     
+    ("(3SUP _:_./ _)" 10)
+  "_SUP_U" :: "[pttrn, 'a => bool] => 'a set"           
+    ("(3SUP _./ _)" 10)
+  "_INF" :: "[pttrn, 'a set, 'a => bool] => 'a set"     
+    ("(3INF _:_./ _)" 10)
+  "_INF_U" :: "[pttrn, 'a => bool] => 'a set"           
+    ("(3INF _./ _)" 10);
 
 translations
   "SUP x:A. P" == "Sup A (Collect (%x. P))"
   "SUP x. P" == "SUP x:UNIV. P"
   "INF x:A. P" == "Inf A (Collect (%x. P))"
   "INF x. P" == "INF x:UNIV. P";
-
 
 lemma sup_le_ub: "isUb A B y ==> is_Sup A B s ==> s <= y";
   by (unfold is_Sup_def, rule isLub_le_isUb);
@@ -100,5 +111,4 @@ proof -;
   finally; show "a <= s"; .;
 qed;
   
-
 end;

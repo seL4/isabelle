@@ -3,10 +3,12 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
+header {* Zorn's Lemma *};
+
 theory Zorn_Lemma = Aux + Zorn:;
 
-
-lemma Zorn's_Lemma: "a:S ==> (!!c. c: chain S ==> EX x. x:c ==> Union c : S) ==>
+lemma Zorn's_Lemma: 
+ "a:S ==> (!!c. c: chain S ==> EX x. x:c ==> Union c : S) ==>
  EX y: S. ALL z: S. y <= z --> y = z";
 proof (rule Zorn_Lemma2);
   assume aS: "a:S";
@@ -32,7 +34,5 @@ proof (rule Zorn_Lemma2);
     qed;
   qed;
 qed;
-
-
 
 end;

@@ -3,13 +3,15 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
+header {* The norm of a function *};
+
 theory FunctionNorm = NormedSpace + FunctionOrder:;
 
 
 constdefs
   is_continous :: "['a set, 'a => real, 'a => real] => bool" 
-  "is_continous V norm f == (is_linearform V f
-                           & (EX c. ALL x:V. rabs (f x) <= c * norm x))";
+  "is_continous V norm f == 
+    (is_linearform V f & (EX c. ALL x:V. rabs (f x) <= c * norm x))";
 
 lemma lipschitz_continousI [intro]: 
   "[| is_linearform V f; !! x. x:V ==> rabs (f x) <= c * norm x |] 
@@ -19,7 +21,8 @@ proof (unfold is_continous_def, intro exI conjI ballI);
   fix x; assume "x:V"; show "rabs (f x) <= c * norm x"; by (rule r);
 qed;
   
-lemma continous_linearform [intro!!]: "is_continous V norm f ==> is_linearform V f";
+lemma continous_linearform [intro!!]: 
+  "is_continous V norm f ==> is_linearform V f";
   by (unfold is_continous_def) force;
 
 lemma continous_bounded [intro!!]:
@@ -28,7 +31,8 @@ lemma continous_bounded [intro!!]:
 
 constdefs
   B:: "[ 'a set, 'a => real, 'a => real ] => real set"
-  "B V norm f == {z. z = 0r | (EX x:V. x ~= <0> & z = rabs (f x) * rinv (norm (x)))}";
+  "B V norm f == 
+    {z. z = 0r | (EX x:V. x ~= <0> & z = rabs (f x) * rinv (norm (x)))}";
 
 constdefs 
   function_norm :: " ['a set, 'a => real, 'a => real] => real"
@@ -46,10 +50,11 @@ lemma B_not_empty: "0r : B V norm f";
 lemma ex_fnorm [intro!!]: 
   "[| is_normed_vectorspace V norm; is_continous V norm f|]
      ==> is_function_norm V norm f (function_norm V norm f)"; 
-proof (unfold function_norm_def is_function_norm_def is_continous_def Sup_def, elim conjE, 
-    rule selectI2EX);
+proof (unfold function_norm_def is_function_norm_def is_continous_def 
+       Sup_def, elim conjE, rule selectI2EX);
   assume "is_normed_vectorspace V norm";
-  assume "is_linearform V f" and e: "EX c. ALL x:V. rabs (f x) <= c * norm x";
+  assume "is_linearform V f" 
+  and e: "EX c. ALL x:V. rabs (f x) <= c * norm x";
   show  "EX a. is_Sup UNIV (B V norm f) a"; 
   proof (unfold is_Sup_def, rule reals_complete);
     show "EX X. X : B V norm f"; 
@@ -76,10 +81,12 @@ proof (unfold function_norm_def is_function_norm_def is_continous_def Sup_def, e
             proof (rule real_rinv_gt_zero);
               show "0r < norm x"; ..;
             qed;
-          qed;
-     (*** or:  by (rule real_less_imp_le, rule real_rinv_gt_zero, rule normed_vs_norm_gt_zero); ***)
+          qed;  (*** or:
+          by (rule real_less_imp_le, rule real_rinv_gt_zero, 
+              rule normed_vs_norm_gt_zero); ***)
         qed;
-        also; have "... = c * (norm x * rinv (norm x))"; by (rule real_mult_assoc);
+        also; have "... = c * (norm x * rinv (norm x))"; 
+          by (rule real_mult_assoc);
         also; have "(norm x * rinv (norm x)) = 1r"; 
         proof (rule real_mult_inv_right);
           show "norm x ~= 0r"; 
@@ -88,8 +95,9 @@ proof (unfold function_norm_def is_function_norm_def is_continous_def Sup_def, e
             proof (rule lt_imp_not_eq);
               show "0r < norm x"; ..;
             qed;
-          qed;
-     (*** or:  by (rule not_sym, rule lt_imp_not_eq, rule normed_vs_norm_gt_zero); ***)
+          qed; (*** or:  
+          by (rule not_sym, rule lt_imp_not_eq, 
+              rule normed_vs_norm_gt_zero); ***)
         qed;
         also; have "c * ... = c"; by (simp!);
         also; have "... <= b"; by (simp! add: le_max1);
@@ -101,7 +109,8 @@ proof (unfold function_norm_def is_function_norm_def is_continous_def Sup_def, e
   qed;
 qed;
 
-lemma fnorm_ge_zero [intro!!]: "[| is_continous V norm f; is_normed_vectorspace V norm|]
+lemma fnorm_ge_zero [intro!!]: 
+  "[| is_continous V norm f; is_normed_vectorspace V norm|]
    ==> 0r <= function_norm V norm f";
 proof -;
   assume c: "is_continous V norm f" and n: "is_normed_vectorspace V norm";
@@ -126,13 +135,13 @@ proof -;
         qed;
       qed;
     qed (simp!);
-    from ex_fnorm [OF n c]; show "is_Sup UNIV (B V norm f) (Sup UNIV (B V norm f))"; 
+    from ex_fnorm [OF n c]; 
+    show "is_Sup UNIV (B V norm f) (Sup UNIV (B V norm f))"; 
       by (simp! add: is_function_norm_def function_norm_def); 
     show "0r : B V norm f"; by (rule B_not_empty);
   qed;
 qed;
   
-
 lemma norm_fx_le_norm_f_norm_x: 
   "[| is_normed_vectorspace V norm; x:V; is_continous V norm f |] 
     ==> rabs (f x) <= (function_norm V norm f) * norm x"; 
@@ -184,9 +193,6 @@ proof -;
   qed;
 qed;
 
-
-
-
 lemma fnorm_le_ub: 
   "[| is_normed_vectorspace V norm; is_continous V norm f;
      ALL x:V. rabs (f x) <= c * norm x; 0r <= c |]
@@ -198,7 +204,8 @@ proof (unfold function_norm_def);
          and "0r <= c";
   show "Sup UNIV (B V norm f) <= c"; 
   proof (rule sup_le_ub);
-    from ex_fnorm [OF _ c]; show "is_Sup UNIV (B V norm f) (Sup UNIV (B V norm f))"; 
+    from ex_fnorm [OF _ c]; 
+    show "is_Sup UNIV (B V norm f) (Sup UNIV (B V norm f))"; 
       by (simp! add: is_function_norm_def function_norm_def); 
     show "isUb UNIV (B V norm f) c";  
     proof (intro isUbI setleI ballI);
@@ -217,7 +224,8 @@ proof (unfold function_norm_def);
             
 	from lt; have "0r < rinv (norm x)";
 	  by (simp! add: real_rinv_gt_zero);
-	then; have inv_leq: "0r <= rinv (norm x)"; by (rule real_less_imp_le);
+	then; have inv_leq: "0r <= rinv (norm x)";
+          by (rule real_less_imp_le);
 
 	from Px; have "y = rabs (f x) * rinv (norm x)"; ..;
 	also; from inv_leq; have "... <= c * norm x * rinv (norm x)";
@@ -235,6 +243,4 @@ proof (unfold function_norm_def);
   qed;
 qed;
 
-
 end;
-
