@@ -154,8 +154,7 @@ fun proof_stage ss theory {f, R, rules, full_pats_TCs, TCs} =
                      if (solved th) then (th::So, Si, St) 
                      else (So, th::Si, St)) nested_tcs ([],[],[])
               val simplified' = map join_assums simplified
-              val rewr = rewrite (solved @ simplified' @
-                #simps (Thm.dest_mss (#mss (rep_ss ss))));
+              val rewr = full_simplify (ss addsimps (solved @ simplified'));
               val induction' = rewr induction
               and rules'     = rewr rules
               val dummy = writeln "Postprocessing done."
