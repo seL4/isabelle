@@ -137,21 +137,19 @@ qed_goal "cont2cont_fapp" thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "cont2mono_LAM" thy 
- "[|!x.cont(c1 x); !y.monofun(%x.c1 x y)|] ==>\
-\                       monofun(%x. LAM y. c1 x y)"
-(fn prems =>
+ "[| !!x.cont(c1 x); !!y.monofun(%x.c1 x y)|] ==> monofun(%x. LAM y. c1 x y)"
+(fn [p1,p2] =>
         [
-        (cut_facts_tac prems 1),
         (rtac monofunI 1),
         (strip_tac 1),
         (stac less_cfun 1),
         (stac less_fun 1),
         (rtac allI 1),
         (stac beta_cfun 1),
-        (etac spec 1),
+	(rtac p1 1),
         (stac beta_cfun 1),
-        (etac spec 1),
-        (etac ((hd (tl prems)) RS spec RS monofunE RS spec RS spec RS mp) 1)
+	(rtac p1 1),
+        (etac (p2 RS monofunE RS spec RS spec RS mp) 1)
         ]);
 
 (* ------------------------------------------------------------------------ *)
@@ -159,49 +157,30 @@ qed_goal "cont2mono_LAM" thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "cont2cont_LAM" thy 
- "[| !x.cont(c1 x); !y.cont(%x.c1 x y) |] ==> cont(%x. LAM y. c1 x y)"
-(fn prems =>
+ "[| !!x.cont(c1 x); !!y.cont(%x.c1 x y) |] ==> cont(%x. LAM y. c1 x y)"
+(fn [p1,p2] =>
         [
-        (cut_facts_tac prems 1),
         (rtac monocontlub2cont 1),
-        (etac cont2mono_LAM 1),
-        (rtac (cont2mono RS allI) 1),
-        (etac spec 1),
+        (rtac (p1 RS cont2mono_LAM) 1),
+        (rtac (p2 RS cont2mono) 1),
         (rtac contlubI 1),
         (strip_tac 1),
         (stac thelub_cfun 1),
-        (rtac (cont2mono_LAM RS ch2ch_monofun) 1),
-        (atac 1),
-        (rtac (cont2mono RS allI) 1),
-        (etac spec 1),
+        (rtac (p1 RS cont2mono_LAM RS ch2ch_monofun) 1),
+        (rtac (p2 RS cont2mono) 1),
         (atac 1),
         (res_inst_tac [("f","fabs")] arg_cong 1),
         (rtac ext 1),
-        (stac (beta_cfun RS ext) 1),
-        (etac spec 1),
-        (rtac (cont2contlub RS contlubE 
-                RS spec RS mp ) 1),
-        (etac spec 1),
-        (atac 1)
+        (stac (p1 RS beta_cfun RS ext) 1),
+        (etac (p2 RS cont2contlub RS contlubE RS spec RS mp) 1)
         ]);
-
-(* ------------------------------------------------------------------------ *)
-(* elimination of quantifier in premisses of cont2cont_LAM yields good    *)
-(* lemma for the cont tactic                                               *)
-(* ------------------------------------------------------------------------ *)
-
-bind_thm ("cont2cont_LAM2", allI RSN (2,(allI RS cont2cont_LAM)));
-(*
-[| !!x. cont (?c1.0 x);
-    !!y. cont (%x. ?c1.0 x y) |] ==> cont (%x. LAM y. ?c1.0 x y)
-*)
 
 (* ------------------------------------------------------------------------ *)
 (* cont2cont tactic                                                       *)
 (* ------------------------------------------------------------------------ *)
 
 val cont_lemmas1 = [cont_const, cont_id, cont_fapp2,
-                    cont2cont_fapp,cont2cont_LAM2];
+                    cont2cont_fapp,cont2cont_LAM];
 
 Addsimps cont_lemmas1;
 
