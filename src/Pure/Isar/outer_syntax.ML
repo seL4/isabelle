@@ -385,11 +385,10 @@ fun run_thy name path =
     val pos = Path.position path;
   in
     Present.init_theory name;
+    Present.verbatim_source name (present_text text);
     if is_old_theory (src, pos) then ThySyn.load_thy name text
-    else
-     (Toplevel.excursion_error (parse_thy (src, pos));
-      Present.token_source name (present_toks text pos));
-    Present.verbatim_source name (present_text text)
+    else (Present.token_source name (present_toks text pos);
+      Toplevel.excursion_error (parse_thy (src, pos)))
   end;
 
 in
