@@ -358,12 +358,9 @@ Goal "[| B ~: bad;  evs : ns_shared |]                              \
 \              (Crypt (shrK A) {|NA, Agent B, Key K,                   \
 \                                Crypt (shrK B) {|Key K, Agent A|}|})  \
 \             : set evs -->                                            \
-\            Says B A (Crypt K (Nonce NB))  : set evs -->              \
 \            Crypt K {|Nonce NB, Nonce NB|} : parts (spies evs) -->    \
 \            Says A B (Crypt K {|Nonce NB, Nonce NB|}) : set evs";
 by (parts_induct_tac 1);
-(*NS4*)
-by (Blast_tac 4);
 (*NS3*)
 by (blast_tac (claset() addSDs [cert_A_form]) 3);
 (*NS2*)
@@ -380,7 +377,6 @@ qed_spec_mp "B_trusts_NS5_lemma";
 
 (*Very strong Oops condition reveals protocol's weakness*)
 Goal "[| Crypt K {|Nonce NB, Nonce NB|} : parts (spies evs);      \
-\           Says B A (Crypt K (Nonce NB))  : set evs;                \
 \           Crypt (shrK B) {|Key K, Agent A|} : parts (spies evs);   \
 \           ALL NA NB. Notes Spy {|NA, NB, Key K|} ~: set evs;       \
 \           A ~: bad;  B ~: bad;  evs : ns_shared |]                 \
