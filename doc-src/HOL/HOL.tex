@@ -143,7 +143,7 @@ $\lnot(a=b)$.
   parentheses.
 \end{warn}
 
-\subsection{Types and classes}
+\subsection{Types and overloading}
 The universal type class of higher-order terms is called~\cldx{term}.
 By default, explicit type variables have class \cldx{term}.  In
 particular the equality symbol and quantifiers are polymorphic over
@@ -156,22 +156,41 @@ function types, is overloaded with arity {\tt(term,\thinspace
   term} if $\sigma$ and~$\tau$ do, allowing quantification over
 functions.
 
-\HOL\ offers various methods for introducing new types.
-See~{\S}\ref{sec:HOL:Types} and~{\S}\ref{sec:HOL:datatype}.
+\HOL\ allows new types to be declared as subsets of existing types;
+see~{\S}\ref{sec:HOL:Types}.  ML-like datatypes can also be declared; see
+~{\S}\ref{sec:HOL:datatype}.
+
+Several syntactic type classes --- \cldx{plus}, \cldx{minus},
+\cldx{times} and
+\cldx{power} --- permit overloading of the operators {\tt+},\index{*"+
+  symbol} {\tt-}\index{*"- symbol}, {\tt*}.\index{*"* symbol} 
+and \verb|^|.\index{^@\verb.^. symbol} 
+%
+They are overloaded to denote the obvious arithmetic operations on types
+\tdx{nat}, \tdx{int} and~\tdx{real}. (With the \verb|^| operator, the
+exponent always has type~\tdx{nat}.)  Non-arithmetic overloadings are also
+done: the operator {\tt-} can denote set difference, while \verb|^| can
+denote exponentiation of relations (iterated composition).  Unary minus is
+also written as~{\tt-} and is overloaded like its 2-place counterpart; it even
+can stand for set complement.
+
+The constant \cdx{0} is also overloaded.  It serves as the zero element of
+several types, of which the most important is \tdx{nat} (the natural
+numbers).  The type class \cldx{plus_ac0} comprises all types for which 0
+and~+ satisfy the laws $x+y=y+x$, $(x+y)+z = x+(y+z)$ and $0+x = x$.  These
+types include the numeric ones \tdx{nat}, \tdx{int} and~\tdx{real} and also
+multisets.  The summation operator \cdx{setsum} is available for all types in
+this class. 
 
 Theory \thydx{Ord} defines the syntactic class \cldx{ord} of order
-signatures; the relations $<$ and $\leq$ are polymorphic over this
+signatures.  The relations $<$ and $\leq$ are polymorphic over this
 class, as are the functions \cdx{mono}, \cdx{min} and \cdx{max}, and
 the \cdx{LEAST} operator. \thydx{Ord} also defines a subclass
-\cldx{order} of \cldx{ord} which axiomatizes partially ordered types
-(w.r.t.\ $\leq$).
-
-Three other syntactic type classes --- \cldx{plus}, \cldx{minus} and
-\cldx{times} --- permit overloading of the operators {\tt+},\index{*"+
-  symbol} {\tt-}\index{*"- symbol} and {\tt*}.\index{*"* symbol} In
-particular, {\tt-} is instantiated for set difference and subtraction
-on natural numbers.
-
+\cldx{order} of \cldx{ord} which axiomatizes the types that are partially
+ordered with respect to~$\leq$.  A further subclass \cldx{linorder} of
+\cldx{order} axiomatizes linear orderings.
+For details, see the file \texttt{Ord.thy}.
+                                          
 If you state a goal containing overloaded functions, you may need to include
 type constraints.  Type inference may otherwise make the goal more
 polymorphic than you intended, with confusing results.  For example, the
@@ -274,14 +293,14 @@ else\dots})$.
 
 \begin{figure}
 \begin{ttbox}\makeatother
-\tdx{refl}           t = (t::'a)
-\tdx{subst}          [| s = t; P s |] ==> P (t::'a)
-\tdx{ext}            (!!x::'a. (f x :: 'b) = g x) ==> (\%x. f x) = (\%x. g x)
-\tdx{impI}           (P ==> Q) ==> P-->Q
-\tdx{mp}             [| P-->Q;  P |] ==> Q
-\tdx{iff}            (P-->Q) --> (Q-->P) --> (P=Q)
-\tdx{selectI}        P(x::'a) ==> P(@x. P x)
-\tdx{True_or_False}  (P=True) | (P=False)
+\tdx{refl}          t = (t::'a)
+\tdx{subst}         [| s = t; P s |] ==> P (t::'a)
+\tdx{ext}           (!!x::'a. (f x :: 'b) = g x) ==> (\%x. f x) = (\%x. g x)
+\tdx{impI}          (P ==> Q) ==> P-->Q
+\tdx{mp}            [| P-->Q;  P |] ==> Q
+\tdx{iff}           (P-->Q) --> (Q-->P) --> (P=Q)
+\tdx{selectI}       P(x::'a) ==> P(@x. P x)
+\tdx{True_or_False} (P=True) | (P=False)
 \end{ttbox}
 \caption{The \texttt{HOL} rules} \label{hol-rules}
 \end{figure}
@@ -407,19 +426,17 @@ type variables explicitly by calling \texttt{res_inst_tac}.
 \tdx{classical}       (~P ==> P) ==> P
 \tdx{excluded_middle} ~P | P
 
-\tdx{disjCI}          (~Q ==> P) ==> P|Q
-\tdx{exCI}            (! x. ~ P x ==> P a) ==> ? x. P x
-\tdx{impCE}           [| P-->Q; ~ P ==> R; Q ==> R |] ==> R
-\tdx{iffCE}           [| P=Q;  [| P;Q |] ==> R;  [| ~P; ~Q |] ==> R |] ==> R
-\tdx{notnotD}         ~~P ==> P
-\tdx{swap}            ~P ==> (~Q ==> P) ==> Q
+\tdx{disjCI}       (~Q ==> P) ==> P|Q
+\tdx{exCI}         (! x. ~ P x ==> P a) ==> ? x. P x
+\tdx{impCE}        [| P-->Q; ~ P ==> R; Q ==> R |] ==> R
+\tdx{iffCE}        [| P=Q;  [| P;Q |] ==> R;  [| ~P; ~Q |] ==> R |] ==> R
+\tdx{notnotD}      ~~P ==> P
+\tdx{swap}         ~P ==> (~Q ==> P) ==> Q
 \subcaption{Classical logic}
 
-%\tdx{if_True}         (if True then x else y) = x
-%\tdx{if_False}        (if False then x else y) = y
-\tdx{if_P}            P ==> (if P then x else y) = x
-\tdx{if_not_P}        ~ P ==> (if P then x else y) = y
-\tdx{split_if}        P(if Q then x else y) = ((Q --> P x) & (~Q --> P y))
+\tdx{if_P}         P ==> (if P then x else y) = x
+\tdx{if_not_P}     ~ P ==> (if P then x else y) = y
+\tdx{split_if}     P(if Q then x else y) = ((Q --> P x) & (~Q --> P y))
 \subcaption{Conditionals}
 \end{ttbox}
 \caption{More derived rules} \label{hol-lemmas2}
@@ -462,8 +479,6 @@ The following simple tactics are occasionally useful:
         & insertion of element \\
   \cdx{Collect} & $(\alpha\To bool)\To\alpha\,set$
         & comprehension \\
-  \cdx{Compl}   & $\alpha\,set\To\alpha\,set$
-        & complement \\
   \cdx{INTER} & $[\alpha\,set,\alpha\To\beta\,set]\To\beta\,set$
         & intersection over a set\\
   \cdx{UNION} & $[\alpha\,set,\alpha\To\beta\,set]\To\beta\,set$
@@ -486,9 +501,9 @@ The following simple tactics are occasionally useful:
 \begin{tabular}{llrrr} 
   \it symbol &\it name     &\it meta-type & \it priority & \it description \\
   \sdx{INT}  & \cdx{INTER1}  & $(\alpha\To\beta\,set)\To\beta\,set$ & 10 & 
-        intersection over a type\\
+        intersection\\
   \sdx{UN}  & \cdx{UNION1}  & $(\alpha\To\beta\,set)\To\beta\,set$ & 10 & 
-        union over a type
+        union 
 \end{tabular}
 \end{center}
 \subcaption{Binders} 
@@ -521,7 +536,7 @@ The following simple tactics are occasionally useful:
 \index{*"! symbol}
 \begin{tabular}{rrr} 
   \it external          & \it internal  & \it description \\ 
-  $a$ \ttilde: $b$      & \ttilde($a$ : $b$)    & \rm non-membership\\
+  $a$ \ttilde: $b$      & \ttilde($a$ : $b$)    & \rm not in\\
   {\ttlbrace}$a@1$, $\ldots${\ttrbrace}  &  insert $a@1$ $\ldots$ {\ttlbrace}{\ttrbrace} & \rm finite set \\
   {\ttlbrace}$x$. $P[x]${\ttrbrace}        &  Collect($\lambda x. P[x]$) &
         \rm comprehension \\
@@ -529,11 +544,11 @@ The following simple tactics are occasionally useful:
         \rm intersection \\
   \sdx{UN}{\tt\ }  $x$:$A$. $B[x]$      & UNION $A$ $\lambda x. B[x]$ &
         \rm union \\
-  \sdx{ALL} $x$:$A$. $P[x]$ or \sdx{!} $x$:$A$. $P[x]$ &
-        Ball $A$ $\lambda x. P[x]$ & 
+  \sdx{ALL} $x$:$A$.\ $P[x]$ or \texttt{!} $x$:$A$.\ $P[x]$ &
+        Ball $A$ $\lambda x.\ P[x]$ & 
         \rm bounded $\forall$ \\
-  \sdx{EX}{\tt\ } $x$:$A$. $P[x]$ or \sdx{?} $x$:$A$. $P[x]$ & 
-        Bex $A$ $\lambda x. P[x]$ & \rm bounded $\exists$
+  \sdx{EX}{\tt\ } $x$:$A$.\ $P[x]$ or \texttt{?} $x$:$A$.\ $P[x]$ & 
+        Bex $A$ $\lambda x.\ P[x]$ & \rm bounded $\exists$
 \end{tabular}
 \end{center}
 \subcaption{Translations}
@@ -625,8 +640,8 @@ write\index{*"! symbol}\index{*"? symbol}
 \index{*ALL symbol}\index{*EX symbol} 
 %
 \hbox{\tt ALL~$x$:$A$.\ $P[x]$} and \hbox{\tt EX~$x$:$A$.\ $P[x]$}.  The
-original notation of Gordon's {\sc hol} system is supported as well: \sdx{!}\ 
-and \sdx{?}.
+original notation of Gordon's {\sc hol} system is supported as well:
+\texttt{!}\ and \texttt{?}.
 
 Unions and intersections over sets, namely $\bigcup@{x\in A}B[x]$ and
 $\bigcap@{x\in A}B[x]$, are written 
@@ -657,7 +672,7 @@ respectively.
 \tdx{Un_def}            A Un B      == {\ttlbrace}x. x:A | x:B{\ttrbrace}
 \tdx{Int_def}           A Int B     == {\ttlbrace}x. x:A & x:B{\ttrbrace}
 \tdx{set_diff_def}      A - B       == {\ttlbrace}x. x:A & x~:B{\ttrbrace}
-\tdx{Compl_def}         Compl A     == {\ttlbrace}x. ~ x:A{\ttrbrace}
+\tdx{Compl_def}         -A          == {\ttlbrace}x. ~ x:A{\ttrbrace}
 \tdx{INTER_def}         INTER A B   == {\ttlbrace}y. ! x:A. y: B x{\ttrbrace}
 \tdx{UNION_def}         UNION A B   == {\ttlbrace}y. ? x:A. y: B x{\ttrbrace}
 \tdx{INTER1_def}        INTER1 B    == INTER {\ttlbrace}x. True{\ttrbrace} B 
@@ -716,8 +731,8 @@ respectively.
 \tdx{insertI2} a : B ==> a : insert b B
 \tdx{insertE}  [| a : insert b A;  a=b ==> P;  a:A ==> P |] ==> P
 
-\tdx{ComplI}   [| c:A ==> False |] ==> c : Compl A
-\tdx{ComplD}   [| c : Compl A |] ==> ~ c:A
+\tdx{ComplI}   [| c:A ==> False |] ==> c : -A
+\tdx{ComplD}   [| c : -A |] ==> ~ c:A
 
 \tdx{UnI1}     c:A ==> c : A Un B
 \tdx{UnI2}     c:B ==> c : A Un B
@@ -833,19 +848,19 @@ and \texttt{range}.
 \tdx{Un_assoc}          (A Un B)  Un C  =  A Un (B Un C)
 \tdx{Un_Int_distrib}    (A Int B) Un C  =  (A Un C) Int (B Un C)
 
-\tdx{Compl_disjoint}    A Int (Compl A) = {\ttlbrace}x. False{\ttrbrace}
-\tdx{Compl_partition}   A Un  (Compl A) = {\ttlbrace}x. True{\ttrbrace}
-\tdx{double_complement} Compl(Compl A) = A
-\tdx{Compl_Un}          Compl(A Un B)  = (Compl A) Int (Compl B)
-\tdx{Compl_Int}         Compl(A Int B) = (Compl A) Un (Compl B)
+\tdx{Compl_disjoint}    A Int (-A) = {\ttlbrace}x. False{\ttrbrace}
+\tdx{Compl_partition}   A Un  (-A) = {\ttlbrace}x. True{\ttrbrace}
+\tdx{double_complement} -(-A) = A
+\tdx{Compl_Un}          -(A Un B)  = (-A) Int (-B)
+\tdx{Compl_Int}         -(A Int B) = (-A) Un (-B)
 
 \tdx{Union_Un_distrib}  Union(A Un B) = (Union A) Un (Union B)
 \tdx{Int_Union}         A Int (Union B) = (UN C:B. A Int C)
-\tdx{Un_Union_image}    (UN x:C.(A x) Un (B x)) = Union(A``C) Un Union(B``C)
+%\tdx{Un_Union_image}    (UN x:C.(A x) Un (B x)) = Union(A``C) Un Union(B``C)
 
 \tdx{Inter_Un_distrib}  Inter(A Un B) = (Inter A) Int (Inter B)
 \tdx{Un_Inter}          A Un (Inter B) = (INT C:B. A Un C)
-\tdx{Int_Inter_image}   (INT x:C.(A x) Int (B x)) = Inter(A``C) Int Inter(B``C)
+%\tdx{Int_Inter_image}   (INT x:C.(A x) Int (B x)) = Inter(A``C) Int Inter(B``C)
 \end{ttbox}
 \caption{Set equalities} \label{hol-equalities}
 \end{figure}
@@ -1169,7 +1184,9 @@ construction, the \texttt{datatype}, is treated separately in
 \tdx{split_split}  R(split c p) = (! x y. p = (x,y) --> R(c x y))
 
 \tdx{SigmaI}    [| a:A;  b:B a |] ==> (a,b) : Sigma A B
-\tdx{SigmaE}    [| c:Sigma A B; !!x y.[| x:A; y:B x; c=(x,y) |] ==> P |] ==> P
+
+\tdx{SigmaE}    [| c:Sigma A B; !!x y.[| x:A; y:B x; c=(x,y) |] ==> P 
+          |] ==> P
 \end{ttbox}
 \caption{Type $\alpha\times\beta$}\label{hol-prod}
 \end{figure} 
@@ -1192,9 +1209,13 @@ as patterns in abstractions:
 {\tt\%($x$,$y$). $t$} \quad stands for\quad \texttt{split(\%$x$\thinspace$y$.\ $t$)} 
 \end{center}
 Nested patterns are also supported.  They are translated stepwise:
-{\tt\%($x$,$y$,$z$). $t$} $\leadsto$ {\tt\%($x$,($y$,$z$)). $t$} $\leadsto$
-{\tt split(\%$x$.\%($y$,$z$). $t$)} $\leadsto$ \texttt{split(\%$x$. split(\%$y$
-  $z$.\ $t$))}.  The reverse translation is performed upon printing.
+\begin{eqnarray*}
+\hbox{\tt\%($x$,$y$,$z$).\ $t$} 
+   & \leadsto & \hbox{\tt\%($x$,($y$,$z$)).\ $t$} \\
+   & \leadsto & \hbox{\tt split(\%$x$.\%($y$,$z$).\ $t$)}\\
+   & \leadsto & \hbox{\tt split(\%$x$.\ split(\%$y$ $z$.\ $t$))}
+\end{eqnarray*}
+The reverse translation is performed upon printing.
 \begin{warn}
   The translation between patterns and \texttt{split} is performed automatically
   by the parser and printer.  Thus the internal and external form of a term
@@ -1275,20 +1296,19 @@ Therefore, the theory \texttt{Datatype} should be used instead of
 \index{*"* symbol}
 \index{*div symbol}
 \index{*mod symbol}
+\index{*dvd symbol}
 \index{*"+ symbol}
 \index{*"- symbol}
 \begin{constants}
   \it symbol    & \it meta-type & \it priority & \it description \\ 
-  \cdx{0}       & $nat$         & & zero \\
+  \cdx{0}       & $\alpha$  & & zero \\
   \cdx{Suc}     & $nat \To nat$ & & successor function\\
-% \cdx{nat_case} & $[\alpha, nat\To\alpha, nat] \To\alpha$ & & conditional\\
-% \cdx{nat_rec} & $[nat, \alpha, [nat, \alpha]\To\alpha] \To \alpha$
-%        & & primitive recursor\\
-  \tt *         & $[nat,nat]\To nat$    &  Left 70      & multiplication \\
-  \tt div       & $[nat,nat]\To nat$    &  Left 70      & division\\
-  \tt mod       & $[nat,nat]\To nat$    &  Left 70      & modulus\\
-  \tt +         & $[nat,nat]\To nat$    &  Left 65      & addition\\
-  \tt -         & $[nat,nat]\To nat$    &  Left 65      & subtraction
+  \tt *    & $[\alpha,\alpha]\To \alpha$    &  Left 70 & multiplication \\
+  \tt div  & $[\alpha,\alpha]\To \alpha$    &  Left 70 & division\\
+  \tt mod  & $[\alpha,\alpha]\To \alpha$    &  Left 70 & modulus\\
+  \tt dvd  & $[\alpha,\alpha]\To bool$     &  Left 70 & ``divides'' relation\\
+  \tt +    & $[\alpha,\alpha]\To \alpha$    &  Left 65 & addition\\
+  \tt -    & $[\alpha,\alpha]\To \alpha$    &  Left 65 & subtraction
 \end{constants}
 \subcaption{Constants and infixes}
 
@@ -1335,11 +1355,11 @@ natural numbers are inductively generated by choosing an arbitrary individual
 for~0 and using the injective operation to take successors.  This is a least
 fixedpoint construction.  For details see the file \texttt{NatDef.thy}.
 
-Type~\tydx{nat} is an instance of class~\cldx{ord}, which makes the
-overloaded functions of this class (esp.\ \cdx{<} and \cdx{<=}, but also
-\cdx{min}, \cdx{max} and \cdx{LEAST}) available on \tydx{nat}.  Theory
-\thydx{Nat} builds on \texttt{NatDef} and shows that {\tt<=} is a partial order,
-so \tydx{nat} is also an instance of class \cldx{order}.
+Type~\tydx{nat} is an instance of class~\cldx{ord}, which makes the overloaded
+functions of this class (especially \cdx{<} and \cdx{<=}, but also \cdx{min},
+\cdx{max} and \cdx{LEAST}) available on \tydx{nat}.  Theory \thydx{Nat} builds
+on \texttt{NatDef} and shows that {\tt<=} is a linear order, so \tydx{nat} is
+also an instance of class \cldx{linorder}.
 
 Theory \thydx{Arith} develops arithmetic on the natural numbers.  It defines
 addition, multiplication and subtraction.  Theory \thydx{Divides} defines
@@ -1385,14 +1405,43 @@ theorem \tdx{less_induct}:
 \end{ttbox}
 
 
+\subsection{Numerical types and numerical reasoning}
+
+The integers (type \tdx{int}) are also available in \HOL, and the reals (type
+\tdx{real}) are available in the logic image \texttt{HOL-Real}.  They support
+the expected operations of addition (\texttt{+}), subtraction (\texttt{-}) and
+multiplication (\texttt{*}), and much else.  Type \tdx{int} provides the
+\texttt{div} and \texttt{mod} operators, while type \tdx{real} provides real
+division and other operations.  Both types belong to class \cldx{linorder}, so
+they inherit the relational operators and all the usual properties of linear
+orderings.  For full details, please survey the theories in subdirectories
+\texttt{Integ} and \texttt{Real}.
+
+All three numeric types admit numerals of the form \texttt{\#$sd\ldots d$},
+where $s$ is an optional minus sign and $d\ldots d$ is a string of digits.
+Numerals are represented internally by a datatype for binary notation, which
+allows numerical calculations to be performed by rewriting.  For example, the
+integer division of \texttt{\#54342339} by \texttt{\#3452} takes about five
+seconds.  By default, the simplifier cancels like terms on the opposite sites
+of relational operators (reducing \texttt{z+x<x+y} to \texttt{z<y}, for
+instance.  The simplifier also collects like terms, replacing
+\texttt{x+y+x*\#3} by \texttt{\#4*x+y}.
+
+Sometimes numerals are not wanted, because for example \texttt{n+\#3} does not
+match a pattern of the form \texttt{Suc $k$}.  You can re-arrange the form of
+an arithmetic expression by proving (via \texttt{subgoal_tac}) a lemma such
+as \texttt{n+\#3 = Suc (Suc (Suc n))}.  As an alternative, you can disable the
+fancier simplifications by using a basic simpset such as \texttt{HOL_ss}
+rather than the default one, \texttt{simpset()}.
+
 Reasoning about arithmetic inequalities can be tedious.  Fortunately HOL
-provides a decision procedure for quantifier-free linear arithmetic (i.e.\ 
-only addition and subtraction). The simplifier invokes a weak version of this
-decision procedure automatically. If this is not sufficent, you can invoke
-the full procedure \ttindex{arith_tac} explicitly.  It copes with arbitrary
+provides a decision procedure for quantifier-free linear arithmetic (that is,
+addition and subtraction). The simplifier invokes a weak version of this
+decision procedure automatically. If this is not sufficent, you can invoke the
+full procedure \ttindex{arith_tac} explicitly.  It copes with arbitrary
 formulae involving {\tt=}, {\tt<}, {\tt<=}, {\tt+}, {\tt-}, {\tt Suc}, {\tt
   min}, {\tt max} and numerical constants; other subterms are treated as
-atomic; subformulae not involving type $nat$ are ignored; quantified
+atomic; subformulae not involving numerical types are ignored; quantified
 subformulae are ignored unless they are positive universal or negative
 existential. Note that the running time is exponential in the number of
 occurrences of {\tt min}, {\tt max}, and {\tt-} because they require case
@@ -1404,8 +1453,11 @@ If \texttt{arith_tac} fails you, try to find relevant arithmetic results in
 the library.  The theory \texttt{NatDef} contains theorems about {\tt<} and
 {\tt<=}, the theory \texttt{Arith} contains theorems about \texttt{+},
 \texttt{-} and \texttt{*}, and theory \texttt{Divides} contains theorems about
-\texttt{div} and \texttt{mod}.  Use the \texttt{find}-functions to locate them
-(see the {\em Reference Manual\/}).
+\texttt{div} and \texttt{mod}.  Use \texttt{thms_containing} or the
+\texttt{find}-functions to locate them (see the {\em Reference Manual\/}).
+
+\index{nat@{\textit{nat}} type|)}
+
 
 \begin{figure}
 \index{#@{\tt[]} symbol}
@@ -1436,11 +1488,11 @@ the library.  The theory \texttt{NatDef} contains theorems about {\tt<} and
   \cdx{length}  & $\alpha\,list \To nat$ & & length \\
   \tt! & $\alpha\,list \To nat \To \alpha$ & Left 100 & indexing \\
   \cdx{take}, \cdx{drop} & $nat \To \alpha\,list \To \alpha\,list$ &&
-    take or drop a prefix \\
+    take/drop a prefix \\
   \cdx{takeWhile},\\
   \cdx{dropWhile} &
     $(\alpha \To bool) \To \alpha\,list \To \alpha\,list$ &&
-    take or drop a prefix
+    take/drop a prefix
 \end{constants}
 \subcaption{Constants and infixes}
 
@@ -1464,26 +1516,18 @@ null [] = True
 null (x#xs) = False
 
 hd (x#xs) = x
+
 tl (x#xs) = xs
 tl [] = []
 
 [] @ ys = ys
 (x#xs) @ ys = x # xs @ ys
 
-map f [] = []
-map f (x#xs) = f x # map f xs
-
-filter P [] = []
-filter P (x#xs) = (if P x then x#filter P xs else filter P xs)
-
 set [] = \ttlbrace\ttrbrace
 set (x#xs) = insert x (set xs)
 
 x mem [] = False
 x mem (y#ys) = (if y=x then True else x mem ys)
-
-foldl f a [] = a
-foldl f a (x#xs) = foldl f (f a x) xs
 
 concat([]) = []
 concat(x#xs) = x @ concat(xs)
@@ -1496,6 +1540,21 @@ length(x#xs) = Suc(length(xs))
 
 xs!0 = hd xs
 xs!(Suc n) = (tl xs)!n
+\end{ttbox}
+\caption{Simple list processing functions}
+\label{fig:HOL:list-simps}
+\end{figure}
+
+\begin{figure}
+\begin{ttbox}\makeatother
+map f [] = []
+map f (x#xs) = f x # map f xs
+
+filter P [] = []
+filter P (x#xs) = (if P x then x#filter P xs else filter P xs)
+
+foldl f a [] = a
+foldl f a (x#xs) = foldl f (f a x) xs
 
 take n [] = []
 take n (x#xs) = (case n of 0 => [] | Suc(m) => x # take m xs)
@@ -1509,10 +1568,9 @@ takeWhile P (x#xs) = (if P x then x#takeWhile P xs else [])
 dropWhile P [] = []
 dropWhile P (x#xs) = (if P x then dropWhile P xs else xs)
 \end{ttbox}
-\caption{Recursions equations for list processing functions}
-\label{fig:HOL:list-simps}
+\caption{Further list processing functions}
+\label{fig:HOL:list-simps2}
 \end{figure}
-\index{nat@{\textit{nat}} type|)}
 
 
 \subsection{The type constructor for lists, \textit{list}}
@@ -1543,7 +1601,7 @@ which can be fed to \ttindex{addsplits} just like
 
 \texttt{List} provides a basic library of list processing functions defined by
 primitive recursion (see~{\S}\ref{sec:HOL:primrec}).  The recursion equations
-are shown in Fig.\ts\ref{fig:HOL:list-simps}.
+are shown in Figs.\ts\ref{fig:HOL:list-simps} and~\ref{fig:HOL:list-simps2}.
 
 \index{list@{\textit{list}} type|)}
 
@@ -1926,23 +1984,24 @@ of a more uniform view on standard theories.
 A general \texttt{datatype} definition is of the following form:
 \[
 \begin{array}{llcl}
-\mathtt{datatype} & (\alpha@1,\ldots,\alpha@h)t@1 & = &
+\mathtt{datatype} & (\vec{\alpha})t@1 & = &
   C^1@1~\tau^1@{1,1}~\ldots~\tau^1@{1,m^1@1} ~\mid~ \ldots ~\mid~
     C^1@{k@1}~\tau^1@{k@1,1}~\ldots~\tau^1@{k@1,m^1@{k@1}} \\
  & & \vdots \\
-\mathtt{and} & (\alpha@1,\ldots,\alpha@h)t@n & = &
+\mathtt{and} & (\vec{\alpha})t@n & = &
   C^n@1~\tau^n@{1,1}~\ldots~\tau^n@{1,m^n@1} ~\mid~ \ldots ~\mid~
     C^n@{k@n}~\tau^n@{k@n,1}~\ldots~\tau^n@{k@n,m^n@{k@n}}
 \end{array}
 \]
-where $\alpha@i$ are type variables, $C^j@i$ are distinct constructor
-names and $\tau^j@{i,i'}$ are {\em admissible} types containing at
-most the type variables $\alpha@1, \ldots, \alpha@h$. A type $\tau$
-occurring in a \texttt{datatype} definition is {\em admissible} iff
+where $\vec{\alpha} = (\alpha@1,\ldots,\alpha@h)$ is a list of type variables,
+$C^j@i$ are distinct constructor names and $\tau^j@{i,i'}$ are {\em
+  admissible} types containing at most the type variables $\alpha@1, \ldots,
+\alpha@h$. A type $\tau$ occurring in a \texttt{datatype} definition is {\em
+  admissible} iff
 \begin{itemize}
 \item $\tau$ is non-recursive, i.e.\ $\tau$ does not contain any of the
 newly defined type constructors $t@1,\ldots,t@n$, or
-\item $\tau = (\alpha@1,\ldots,\alpha@h)t@{j'}$ where $1 \leq j' \leq n$, or
+\item $\tau = (\vec{\alpha})t@{j'}$ where $1 \leq j' \leq n$, or
 \item $\tau = (\tau'@1,\ldots,\tau'@{h'})t'$, where $t'$ is
 the type constructor of an already existing datatype and $\tau'@1,\ldots,\tau'@{h'}$
 are admissible types.
@@ -1950,10 +2009,10 @@ are admissible types.
 type and $\sigma$ is non-recursive (i.e. the occurrences of the newly defined
 types are {\em strictly positive})
 \end{itemize}
-If some $(\alpha@1,\ldots,\alpha@h)t@{j'}$ occurs in a type $\tau^j@{i,i'}$
+If some $(\vec{\alpha})t@{j'}$ occurs in a type $\tau^j@{i,i'}$
 of the form
 \[
-(\ldots,\ldots ~ (\alpha@1,\ldots,\alpha@h)t@{j'} ~ \ldots,\ldots)t'
+(\ldots,\ldots ~ (\vec{\alpha})t@{j'} ~ \ldots,\ldots)t'
 \]
 this is called a {\em nested} (or \emph{indirect}) occurrence. A very simple
 example of a datatype is the type \texttt{list}, which can be defined by
@@ -1987,13 +2046,13 @@ datatype 'a tree = Atom 'a | Branch "nat => 'a tree"
 \medskip
 
 Types in HOL must be non-empty. Each of the new datatypes
-$(\alpha@1,\ldots,\alpha@h)t@j$ with $1 \leq j \leq n$ is non-empty iff it has a
+$(\vec{\alpha})t@j$ with $1 \leq j \leq n$ is non-empty iff it has a
 constructor $C^j@i$ with the following property: for all argument types
-$\tau^j@{i,i'}$ of the form $(\alpha@1,\ldots,\alpha@h)t@{j'}$ the datatype
-$(\alpha@1,\ldots,\alpha@h)t@{j'}$ is non-empty.
+$\tau^j@{i,i'}$ of the form $(\vec{\alpha})t@{j'}$ the datatype
+$(\vec{\alpha})t@{j'}$ is non-empty.
 
 If there are no nested occurrences of the newly defined datatypes, obviously
-at least one of the newly defined datatypes $(\alpha@1,\ldots,\alpha@h)t@j$
+at least one of the newly defined datatypes $(\vec{\alpha})t@j$
 must have a constructor $C^j@i$ without recursive arguments, a \emph{base
   case}, to ensure that the new types are non-empty. If there are nested
 occurrences, a datatype can even be non-empty without having a base case
@@ -2069,15 +2128,15 @@ For datatypes with nested recursion, such as the \texttt{term} example from
 above, things are a bit more complicated.  Conceptually, Isabelle/HOL unfolds
 a definition like
 \begin{ttbox}
-datatype ('a, 'b) term = Var 'a
-                       | App 'b ((('a, 'b) term) list)
+datatype ('a,'b) term = Var 'a
+                      | App 'b ((('a, 'b) term) list)
 \end{ttbox}
 to an equivalent definition without nesting:
 \begin{ttbox}
-datatype ('a, 'b) term      = Var
-                            | App 'b (('a, 'b) term_list)
-and      ('a, 'b) term_list = Nil'
-                            | Cons' (('a,'b) term) (('a,'b) term_list)
+datatype ('a,'b) term      = Var
+                           | App 'b (('a, 'b) term_list)
+and      ('a,'b) term_list = Nil'
+                           | Cons' (('a,'b) term) (('a,'b) term_list)
 \end{ttbox}
 Note however, that the type \texttt{('a,'b) term_list} and the constructors {\tt
   Nil'} and \texttt{Cons'} are not really introduced.  One can directly work with
@@ -2547,9 +2606,9 @@ function \texttt{subst_term} on type \texttt{term}, similar to the functions
 be defined as follows:
 \begin{ttbox}
 consts
-  subst_term :: "['a => ('a, 'b) term, ('a, 'b) term] => ('a, 'b) term"
+  subst_term :: "['a => ('a,'b) term, ('a,'b) term] => ('a,'b) term"
   subst_term_list ::
-    "['a => ('a, 'b) term, ('a, 'b) term list] => ('a, 'b) term list"
+    "['a => ('a,'b) term, ('a,'b) term list] => ('a,'b) term list"
 
 primrec
   "subst_term f (Var a) = f a"
@@ -2713,7 +2772,7 @@ recursion theorems:
 \begin{ttbox}
 gcd.simps;
 {\out ["! m n. n ~= 0 --> m mod n < n}
-{\out   ==> gcd (?m, ?n) = (if ?n = 0 then ?m else gcd (?n, ?m mod ?n))"] }
+{\out   ==> gcd (?m,?n) = (if ?n=0 then ?m else gcd (?n, ?m mod ?n))"] }
 {\out : thm list}
 \end{ttbox}
 The theory \texttt{HOL/ex/Primes} illustrates how to prove termination
