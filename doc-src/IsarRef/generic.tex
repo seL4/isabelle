@@ -118,8 +118,8 @@ follows:\footnote{Internal bookkeeping such as proper handling of
   initializes $calculation$ by $this$. Any subsequent $\ALSO$ on the same
   level of block-structure updates $calculation$ by some transitivity rule
   applied to $calculation$ and $this$ (in that order).  Transitivity rules are
-  picked from the current context plus those given as explicit arguments (the
-  latter have precedence).
+  picked from the current context, unless alternative rules are given as
+  explicit arguments.
 
 \item [$\FINALLY~(\vec a)$] maintaining $calculation$ in the same way as
   $\ALSO$, and concludes the current calculational thread.  The final result
