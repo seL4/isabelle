@@ -6,43 +6,21 @@
 The 'obtain' language element -- generalized existence at the level of
 proof texts.
 
-The common case:
+  <chain_facts>
+  obtain x where "P x" <proof> ==
 
-    <goal_facts>
-    have/show C
-      obtain a in P[a] <proof>          ==
+  {
+    fix thesis
+    assume that: "!!x. P x ==> thesis"
+    <chain_facts> have thesis <proof>
+  }
+  fix x assm(obtained) "P x"
 
-    <goal_facts>
-    have/show C
-    proof succeed
-      def thesis == C
-      presume that: !!a. P a ==> thesis
-      from goal_facts show thesis <proof>
-    next
-      fix a
-      assume P a
-
-The general case:
-
-    <goal_facts>
-    have/show !!x. G x ==> C x
-      obtain a in P[a] <proof>          ==
-
-    <goal_facts>
-    have/show !!x. G x ==> C x
-    proof succeed
-      fix x
-      assume hyps: G x
-      def thesis == C x
-      presume that: !!a. P a ==> thesis
-      from goal_facts show thesis <proof>
-    next
-      fix a
-      assume P a
 *)
 
 signature OBTAIN_DATA =
 sig
+  val atomic_thesis: string -> term
   val that_atts: Proof.context attribute list
 end;
 
@@ -60,22 +38,51 @@ functor ObtainFun(Data: OBTAIN_DATA): OBTAIN =
 struct
 
 
+(** export_obtained **)
+
+fun disch_obtained state parms rule cprops thm =
+  let
+    val {sign, prop, maxidx, ...} = Thm.rep_thm thm;
+    val cparms = map (Thm.cterm_of sign) parms;
+
+    val thm' = thm
+      |> Drule.implies_intr_list cprops
+      |> Drule.forall_intr_list cparms
+      |> Drule.forall_elim_vars (maxidx + 1);
+    val elim_tacs = replicate (length cprops) Proof.hard_asm_tac;
+
+    val concl = Logic.strip_assums_concl prop;
+    val bads = parms inter (Term.term_frees concl);
+  in
+    if not (null bads) then
+      raise Proof.STATE ("Result contains illegal parameters: " ^
+        space_implode " " (map (Sign.string_of_term sign) bads), state)
+    else if not (AutoBind.is_judgment (Logic.strip_assums_concl prop)) then
+      raise Proof.STATE ("Conclusion of result is not an object-logic judgment", state)
+    else (Tactic.rtac thm' THEN' RANGE elim_tacs) 1 rule
+  end;
+
+fun export_obtained state parms rule =
+  (disch_obtained state parms rule, fn _ => fn _ => []);
+
+
+
 (** obtain(_i) **)
 
 val thatN = "that";
-val hypsN = "hyps";
 
 fun gen_obtain prep_vars prep_propp prep_att (raw_vars, raw_asms) state =
   let
-    val _ = Proof.assert_backward state;
+    val _ = Proof.assert_forward_or_chain state;
+    val chain_facts = if Proof.is_chain state then Proof.the_facts state else [];
 
     (*obtain vars*)
     val (vars_ctxt, vars) =
       foldl_map prep_vars (Proof.context_of state, map Comment.ignore raw_vars);
     val xs = flat (map fst vars);
-    val xs_thesis = xs @ [AutoBind.thesisN];
+    val thesisN = Term.variant xs AutoBind.thesisN;
 
-    val bind_skolem = ProofContext.bind_skolem vars_ctxt xs_thesis;
+    val bind_skolem = ProofContext.bind_skolem vars_ctxt (xs @ [thesisN]);
     fun bind_propp (prop, (pats1, pats2)) =
       (bind_skolem prop, (map bind_skolem pats1, map bind_skolem pats2));
 
@@ -91,52 +98,36 @@ fun gen_obtain prep_vars prep_propp prep_att (raw_vars, raw_asms) state =
     val asm_props = flat asm_propss;
     val _ = ProofContext.warn_extra_tfrees vars_ctxt asms_ctxt;
 
-    (*thesis*)
-    val (prop, (goal_facts, _)) = Proof.get_goal state;
-
-    val parms = Logic.strip_params prop;
-    val parm_names = Term.variantlist (map #1 parms, Term.add_term_names (prop, xs_thesis));
-    val parm_types = map #2 parms;
-    val parm_vars = map Library.single parm_names ~~ map Some parm_types;
-
-    val frees = map2 Free (parm_names, parm_types);
-    val rev_frees = rev frees;
-
-    val hyps = map (fn t => Term.subst_bounds (rev_frees, t)) (Logic.strip_assums_hyp prop);
-    val concl = Term.subst_bounds (rev_frees, Logic.strip_assums_concl prop);
-    val (thesis_term, atomic_thesis) = AutoBind.atomic_thesis concl;
-    val bound_thesis = bind_skolem atomic_thesis;
-
     (*that_prop*)
     fun find_free x t =
       (case ProofContext.find_free t x of Some (Free a) => Some a | _ => None);
     fun occs_var x = Library.get_first (find_free x) asm_props;
-    val that_prop =
-      Term.list_all_free (mapfilter occs_var xs, Logic.list_implies (asm_props, bound_thesis));
+    val xs' = mapfilter occs_var xs;
+    val parms = map (bind_skolem o Free) xs';
 
-    fun after_qed st =
-      st
-      |> Proof.next_block
-      |> Proof.fix_i vars
-      |> Proof.assume_i asms
-      |> Seq.single;
+    val bound_thesis = bind_skolem (Data.atomic_thesis thesisN);
+    val that_prop = Term.list_all_free (xs', Logic.list_implies (asm_props, bound_thesis));
+
+    fun after_qed st = st
+      |> Proof.end_block
+      |> Seq.map (fn st' => st'
+        |> Proof.fix_i vars
+        |> Proof.assm_i (export_obtained state parms (Proof.the_fact st')) asms);
   in
     state
-    |> Method.proof (Some (Method.Basic (K Method.succeed)))
-    |> Seq.map (fn st => st
-      |> Proof.fix_i parm_vars
-      |> Proof.assume_i [(hypsN, [], map (rpair ([], [])) hyps)]
-      |> LocalDefs.def_i "" [] ((AutoBind.thesisN, None), (thesis_term, []))
-      |> Proof.presume_i [(thatN, Data.that_atts, [(that_prop, ([], []))])]
-      |> Proof.from_facts goal_facts
-      |> Proof.show_i after_qed "" [] (bound_thesis, ([], [])))
+    |> Proof.enter_forward
+    |> Proof.begin_block
+    |> Proof.fix_i [([thesisN], None)]
+    |> Proof.assume_i [(thatN, Data.that_atts, [(that_prop, ([], []))])]
+    |> Proof.from_facts chain_facts
+    |> Proof.have_i after_qed "" [] (bound_thesis, ([], []))
   end;
 
 
-val obtain = ProofHistory.applys o
+val obtain = ProofHistory.apply o
   (gen_obtain ProofContext.read_vars ProofContext.read_propp Attrib.local_attribute);
 
-val obtain_i = ProofHistory.applys o
+val obtain_i = ProofHistory.apply o
   (gen_obtain ProofContext.cert_vars ProofContext.cert_propp (K I));
 
 
@@ -158,6 +149,5 @@ val _ = OuterSyntax.add_keywords ["where"];
 val _ = OuterSyntax.add_parsers [obtainP];
 
 end;
-
 
 end;
