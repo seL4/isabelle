@@ -19,7 +19,7 @@ AddDs  [Says_imp_knows_Spy RS parts.Inj, parts.Body];
 AddDs  [impOfSubs analz_subset_parts, impOfSubs Fake_parts_insert];
 
 (*A "possibility property": there are traces that reach the end*)
-Goal "B ~= Server   \
+Goal "B \\<noteq> Server   \
 \     ==> \\<exists>K. \\<exists>NA. \\<exists>evs \\<in> otway.          \
 \           Says B A {|Nonce NA, Crypt (shrK A) {|Nonce NA, Key K|}|} \
 \             \\<in> set evs";
@@ -207,9 +207,9 @@ qed "Spy_not_see_encrypted_key";
 (*** Attempting to prove stronger properties ***)
 
 (*Only OR1 can have caused such a part of a message to appear.
-  The premise A ~= B prevents OR2's similar-looking cryptogram from being
+  The premise A \\<noteq> B prevents OR2's similar-looking cryptogram from being
   picked up.  Original Otway-Rees doesn't need it.*)
-Goal "[| A \\<notin> bad;  A ~= B;  evs \\<in> otway |]                \
+Goal "[| A \\<notin> bad;  A \\<noteq> B;  evs \\<in> otway |]                \
 \     ==> Crypt (shrK A) {|NA, Agent A, Agent B|} \\<in> parts (knows Spy evs) --> \
 \         Says A B {|NA, Agent A, Agent B,                  \
 \                    Crypt (shrK A) {|NA, Agent A, Agent B|}|}  \\<in> set evs";
@@ -220,10 +220,10 @@ qed_spec_mp "Crypt_imp_OR1";
 
 (*Crucial property: If the encrypted message appears, and A has used NA
   to start a run, then it originated with the Server!
-  The premise A ~= B allows use of Crypt_imp_OR1*)
+  The premise A \\<noteq> B allows use of Crypt_imp_OR1*)
 (*Only it is FALSE.  Somebody could make a fake message to Server
           substituting some other nonce NA' for NB.*)
-Goal "[| A \\<notin> bad;  A ~= B;  evs \\<in> otway |]                                \
+Goal "[| A \\<notin> bad;  A \\<noteq> B;  evs \\<in> otway |]                                \
 \     ==> Crypt (shrK A) {|NA, Key K|} \\<in> parts (knows Spy evs) -->    \
 \         Says A B {|NA, Agent A, Agent B,                        \
 \                    Crypt (shrK A) {|NA, Agent A, Agent B|}|}    \

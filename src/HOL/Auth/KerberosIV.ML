@@ -185,8 +185,8 @@ by (ALLGOALS (blast_tac (claset() addSEs spies_partsEs)));
 qed_spec_mp "new_keys_not_used";
 Addsimps [new_keys_not_used];
 
-(*Earlier, \\<forall>protocol proofs declared this theorem.  
-  But Yahalom and Kerberos IV are the only ones that need it!*)
+(*Earlier, all protocol proofs declared this theorem.  
+  But few of them actually need it! (Another is Yahalom) *)
 bind_thm ("new_keys_not_analzd",
           [analz_subset_parts RS keysFor_mono,
            new_keys_not_used] MRS contra_subsetD);
@@ -492,7 +492,7 @@ Goalw [KeyCryptKey_def]
 by (blast_tac (claset() addSEs spies_partsEs) 1);
 qed "Serv_fresh_not_KeyCryptKey";
 
-Goalw [KeyCryptKey_def]
+Goal
  "[| Crypt (shrK Tgs) {|Agent A, Agent Tgs, Key AuthKey, tk|}\
 \             \\<in> parts (spies evs);  evs \\<in> kerberos |] \
 \        ==> ~ KeyCryptKey K AuthKey evs";
@@ -501,24 +501,23 @@ by (parts_induct_tac 1);
 (*K4*)
 by (blast_tac (claset() addEs spies_partsEs) 3);
 (*K2: by freshness*)
+by (asm_full_simp_tac (simpset() addsimps [KeyCryptKey_def]) 2); 
 by (blast_tac (claset() addEs spies_partsEs) 2);
 by (Fake_parts_insert_tac 1);
 qed "AuthKey_not_KeyCryptKey";
 
 (*A secure serverkey cannot have been used to encrypt others*)
-Goalw [KeyCryptKey_def]
- "[| Crypt (shrK B) {|Agent A, Agent B, Key ServKey, tt|} \
-\             \\<in> parts (spies evs);                     \
-\           Key ServKey \\<notin> analz (spies evs);             \
-\           B \\<noteq> Tgs;  evs \\<in> kerberos |] \
-\        ==> ~ KeyCryptKey ServKey K evs";
+Goal
+ "[| Crypt (shrK B) {|Agent A, Agent B, Key SK, tt|} \\<in> parts (spies evs); \
+\    Key SK \\<notin> analz (spies evs);             \
+\    B \\<noteq> Tgs;  evs \\<in> kerberos |] \
+\ ==> ~ KeyCryptKey SK K evs";
 by (etac rev_mp 1);
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
 (*K4 splits into distinct subcases*)
-by (Step_tac 1);
-by (ALLGOALS Asm_full_simp_tac);
+by Auto_tac;  
 (*ServKey can't have been enclosed in two certificates*)
 by (blast_tac (claset() addSDs [Says_imp_spies RS parts.Inj]
                        addSEs [MPair_parts]
@@ -526,7 +525,7 @@ by (blast_tac (claset() addSDs [Says_imp_spies RS parts.Inj]
 (*ServKey is fresh and so could not have been used, by new_keys_not_used*)
 by (force_tac (claset() addSDs [Says_imp_spies RS parts.Inj,
 				Crypt_imp_invKey_keysFor],
-	       simpset()) 2); 
+	       simpset() addsimps [KeyCryptKey_def]) 2); 
 (*Others by freshness*)
 by (REPEAT (blast_tac (claset() addSEs spies_partsEs) 1));
 qed "ServKey_not_KeyCryptKey";
@@ -609,11 +608,6 @@ val analz_sees_tac =
     ftac Says_kas_message_form 5, 
     REPEAT_FIRST (eresolve_tac [asm_rl, conjE, disjE, exE]
 		  ORELSE' hyp_subst_tac)];
-
-Goal "[| KK <= -(range shrK); Key K \\<in> analz (spies evs); evs \\<in> kerberos |]   \
-\     ==> Key K \\<in> analz (Key ` KK Un spies evs)";
-by (blast_tac (claset() addDs [impOfSubs analz_mono]) 1);
-qed "analz_mono_KK";
 
 (*For the Oops2 case of the next theorem*)
 Goal "[| evs \\<in> kerberos;  \

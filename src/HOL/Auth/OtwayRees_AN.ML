@@ -17,7 +17,7 @@ AddDs  [impOfSubs analz_subset_parts, impOfSubs Fake_parts_insert];
 
 
 (*A "possibility property": there are traces that reach the end*)
-Goal "B ~= Server   \
+Goal "B \\<noteq> Server   \
 \     ==> \\<exists>K. \\<exists>NA. \\<exists>evs \\<in> otway.                                      \
 \          Says B A (Crypt (shrK A) {|Nonce NA, Agent A, Agent B, Key K|}) \
 \            \\<in> set evs";
@@ -112,8 +112,8 @@ val analz_knows_Spy_tac =
 (****
  The following is to prove theorems of the form
 
-  Key K : analz (insert (Key KAB) (knows Spy evs)) ==>
-  Key K : analz (knows Spy evs)
+  Key K \\<in> analz (insert (Key KAB) (knows Spy evs)) ==>
+  Key K \\<in> analz (knows Spy evs)
 
  A more general formula must be proved inductively.
 ****)
@@ -168,7 +168,7 @@ qed "unique_session_keys";
 (**** Authenticity properties relating to NA ****)
 
 (*If the encrypted message appears then it originated with the Server!*)
-Goal "[| A \\<notin> bad;  A ~= B;  evs \\<in> otway |]                 \
+Goal "[| A \\<notin> bad;  A \\<noteq> B;  evs \\<in> otway |]                 \
 \     ==> Crypt (shrK A) {|NA, Agent A, Agent B, Key K|} \\<in> parts (knows Spy evs) \
 \      --> (\\<exists>NB. Says Server B                                          \
 \                   {|Crypt (shrK A) {|NA, Agent A, Agent B, Key K|},     \
@@ -186,7 +186,7 @@ qed_spec_mp "NA_Crypt_imp_Server_msg";
   Freshness may be inferred from nonce NA.*)
 Goal "[| Gets A (Crypt (shrK A) {|NA, Agent A, Agent B, Key K|})  \
 \         \\<in> set evs;                                                 \
-\        A \\<notin> bad;  A ~= B;  evs \\<in> otway |]                          \
+\        A \\<notin> bad;  A \\<noteq> B;  evs \\<in> otway |]                          \
 \     ==> \\<exists>NB. Says Server B                                       \
 \                 {|Crypt (shrK A) {|NA, Agent A, Agent B, Key K|},  \
 \                   Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|} \
@@ -239,7 +239,7 @@ qed "Spy_not_see_encrypted_key";
 Goal "[| Gets A (Crypt (shrK A) {|NA, Agent A, Agent B, Key K|})  \
 \         \\<in> set evs;                                                 \
 \        ALL NB. Notes Spy {|NA, NB, Key K|} \\<notin> set evs;             \
-\        A \\<notin> bad;  B \\<notin> bad;  A ~= B;  evs \\<in> otway |]               \
+\        A \\<notin> bad;  B \\<notin> bad;  A \\<noteq> B;  evs \\<in> otway |]               \
 \     ==> Key K \\<notin> analz (knows Spy evs)";
 by (blast_tac (claset() addSDs [A_trusts_OR4, Spy_not_see_encrypted_key]) 1);
 qed "A_gets_good_key";
@@ -248,7 +248,7 @@ qed "A_gets_good_key";
 (**** Authenticity properties relating to NB ****)
 
 (*If the encrypted message appears then it originated with the Server!*)
-Goal "[| B \\<notin> bad;  A ~= B;  evs \\<in> otway |]                              \
+Goal "[| B \\<notin> bad;  A \\<noteq> B;  evs \\<in> otway |]                              \
 \ ==> Crypt (shrK B) {|NB, Agent A, Agent B, Key K|} \\<in> parts (knows Spy evs) \
 \     --> (\\<exists>NA. Says Server B                                          \
 \                  {|Crypt (shrK A) {|NA, Agent A, Agent B, Key K|},     \
@@ -266,7 +266,7 @@ qed_spec_mp "NB_Crypt_imp_Server_msg";
   has sent the correct message in round 3.*)
 Goal "[| Gets B {|X, Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|} \
 \          \\<in> set evs;                                                    \
-\        B \\<notin> bad;  A ~= B;  evs \\<in> otway |]                              \
+\        B \\<notin> bad;  A \\<noteq> B;  evs \\<in> otway |]                              \
 \     ==> \\<exists>NA. Says Server B                                           \
 \                  {|Crypt (shrK A) {|NA, Agent A, Agent B, Key K|},     \
 \                    Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|}    \
@@ -279,7 +279,7 @@ qed "B_trusts_OR3";
 Goal "[| Gets B {|X, Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|} \
 \         \\<in> set evs;                                                     \
 \        ALL NA. Notes Spy {|NA, NB, Key K|} \\<notin> set evs;                 \
-\        A \\<notin> bad;  B \\<notin> bad;  A ~= B;  evs \\<in> otway |]                   \
+\        A \\<notin> bad;  B \\<notin> bad;  A \\<noteq> B;  evs \\<in> otway |]                   \
 \     ==> Key K \\<notin> analz (knows Spy evs)";
 by (blast_tac (claset() addDs [B_trusts_OR3, Spy_not_see_encrypted_key]) 1);
 qed "B_gets_good_key";

@@ -107,8 +107,8 @@ by (REPEAT (blast_tac (claset() addSEs knows_Spy_partsEs) 1));
 qed_spec_mp "new_keys_not_used";
 Addsimps [new_keys_not_used];
 
-(*Earlier, \\<forall>protocol proofs declared this theorem.  
-  But Yahalom and Kerberos IV are the only ones that need it!*)
+(*Earlier, all protocol proofs declared this theorem.  
+  But few of them actually need it! (Another is Kerberos IV) *)
 bind_thm ("new_keys_not_analzd",
           [analz_subset_parts RS keysFor_mono,
            new_keys_not_used] MRS contra_subsetD);
