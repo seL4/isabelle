@@ -12,7 +12,7 @@ consts
 
 instance bool :: product;
   by intro_classes;
-defs
+defs (overloaded)
   product_bool_def: "x [*] y == x & y";
 
 end;

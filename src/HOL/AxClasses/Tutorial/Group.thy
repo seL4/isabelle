@@ -94,7 +94,7 @@ qed;
 
 subsection {* Concrete instantiation *};
 
-defs
+defs (overloaded)
   times_bool_def:   "x [*] y == x ~= (y::bool)"
   inverse_bool_def: "inverse x == x::bool"
   unit_bool_def:    "one == False";
@@ -112,7 +112,7 @@ qed;
 
 subsection {* Lifting and Functors *};
 
-defs
+defs (overloaded)
   times_prod_def: "p [*] q == (fst p [*] fst q, snd p [*] snd q)";
 
 instance * :: (semigroup, semigroup) semigroup;
