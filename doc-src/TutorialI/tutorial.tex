@@ -54,15 +54,21 @@ Computer Laboratory}
 
 \cleardoublepage\pagenumbering{arabic}
 
-\input{basics}
+\part{Basic Techniques}  %FIXME rename part to "Basic Concepts" (??)
+\input{basics}  %FIXME mmw: rename section, move it before part I (??)
 \input{fp}
+\input{Documents/documents}
+
+\part{Logic and Sets}
 \input{Rules/rules}
 \input{Sets/sets}\input{CTL/ctl}  %these constitute ONE chapter
 \input{Inductive/inductive}
+
+\part{Advanced Material}
 \input{Types/types}
 \input{Advanced/advanced}
-%\chapter{Theory Presentation} Document preparation / Syntax Matters!
 \input{Protocol/protocol}
+
 %\chapter{Structured Proofs}
 %\label{ch:Isar}
 %\chapter{Case Study: UNIX File-System Security}

@@ -1,0 +1,7 @@
+(*<*)
+theory Documents = Main:
+(*>*)
+
+(*<*)
+end
+(*>*)
