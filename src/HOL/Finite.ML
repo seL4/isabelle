@@ -111,13 +111,21 @@ qed "finite_empty_induct";
 bind_thm ("finite_Diff", Diff_subset RS finite_subset);
 Addsimps [finite_Diff];
 
-Goal "finite(A-{a}) = finite(A)";
-by (case_tac "a:A" 1);
+Goal "finite(A - insert a B) = finite(A-B)";
+by(stac Diff_insert 1);
+by (case_tac "a : A-B" 1);
 by (rtac (finite_insert RS sym RS trans) 1);
 by (stac insert_Diff 1);
-by (ALLGOALS Asm_simp_tac);
-qed "finite_Diff_singleton";
-AddIffs [finite_Diff_singleton];
+by (ALLGOALS Asm_full_simp_tac);
+qed "finite_Diff_insert";
+AddIffs [finite_Diff_insert];
+
+(* lemma merely for classical reasoner *)
+Goal "finite(A-{}) = finite A";
+by (Simp_tac 1);
+val lemma = result();
+AddSIs [lemma RS iffD2];
+AddSDs [lemma RS iffD1];
 
 (*Lemma for proving finite_imageD*)
 Goal "finite B ==> !A. f``A = B --> inj_on f A --> finite A";
@@ -194,6 +202,8 @@ qed "finite_converse";
 AddIffs [finite_converse];
 
 section "Finite cardinality -- 'card'";
+
+(* Ugly proofs for the traditional definition 
 
 Goal "{f i |i. (P i | i=n)} = insert (f n) {f i|i. P i}";
 by (Blast_tac 1);
@@ -313,10 +323,107 @@ by (etac lemma 1);
 by (assume_tac 1);
 qed "card_insert_disjoint";
 Addsimps [card_insert_disjoint];
+*)
+
+val cardR_emptyE = cardR.mk_cases [] "({},n) : cardR";
+AddSEs [cardR_emptyE];
+val cardR_insertE = cardR.mk_cases [] "(insert a A,n) : cardR";
+AddSIs cardR.intrs;
+
+Goal "[| (A,n) : cardR |] ==> a : A --> (? m. n = Suc m)";
+be cardR.induct 1;
+ by(Blast_tac 1);
+by(Blast_tac 1);
+qed "cardR_SucD";
+
+Goal "(A,m): cardR ==> (!n a. m = Suc n --> a:A --> (A-{a},n) : cardR)";
+be cardR.induct 1;
+ by(Auto_tac);
+by(asm_simp_tac (simpset() addsimps [insert_Diff_if]) 1);
+by(Auto_tac);
+by(forward_tac [cardR_SucD] 1);
+by(Blast_tac 1);
+val lemma = result();
+
+Goal "[| (insert a A, Suc m) : cardR; a ~: A |] ==> (A,m) : cardR";
+bd lemma 1;
+by(Asm_full_simp_tac 1);
+val lemma = result();
+
+Goal "(A,m): cardR ==> (!n. (A,n) : cardR --> n=m)";
+be cardR.induct 1;
+ by(safe_tac (claset() addSEs [cardR_insertE]));
+by(rename_tac "B b m" 1);
+by(case_tac "a = b" 1);
+ by(subgoal_tac "A = B" 1);
+  by(blast_tac (claset() addEs [equalityE]) 2);
+ by(Blast_tac 1);
+by(subgoal_tac "? C. A = insert b C & B = insert a C" 1);
+ by(res_inst_tac [("x","A Int B")] exI 2);
+ by(blast_tac (claset() addEs [equalityE]) 2);
+by(forw_inst_tac [("A","B")] cardR_SucD 1);
+by(blast_tac (claset() addDs [lemma]) 1);
+qed_spec_mp "cardR_determ";
+
+Goal "(A,n) : cardR ==> finite(A)";
+by (etac cardR.induct 1);
+by Auto_tac;
+qed "cardR_imp_finite";
+
+Goal "finite(A) ==> EX n. (A, n) : cardR";
+by (etac finite_induct 1);
+by Auto_tac;
+qed "finite_imp_cardR";
+
+Goalw [card_def] "(A,n) : cardR ==> card A = n";
+by (blast_tac (claset() addIs [cardR_determ]) 1);
+qed "card_equality";
+
+Goalw [card_def] "card {} = 0";
+by (Blast_tac 1);
+qed "card_empty";
+Addsimps [card_empty];
+
+Goal "x ~: A ==> \
+\     ((insert x A, n) : cardR) =  \
+\     (EX m. (A, m) : cardR & n = Suc m)";
+by Auto_tac;
+by (res_inst_tac [("A1", "A")] (finite_imp_cardR RS exE) 1);
+by (force_tac (claset() addDs [cardR_imp_finite], simpset()) 1);
+by (blast_tac (claset() addIs [cardR_determ]) 1);
+val lemma = result();
+
+Goalw [card_def]
+     "[| finite A; x ~: A |] ==> card (insert x A) = Suc(card A)";
+by (asm_simp_tac (simpset() addsimps [lemma]) 1);
+by (rtac select_equality 1);
+by (auto_tac (claset() addIs [finite_imp_cardR],
+	      simpset() addcongs [conj_cong]
+		        addsimps [symmetric card_def,
+				  card_equality]));
+qed "card_insert_disjoint";
+Addsimps [card_insert_disjoint];
+
+(* Delete rules to do with cardR relation: obsolete *)
+Delrules [cardR_emptyE];
+Delrules cardR.intrs;
+
+Goal "finite A ==> card(insert x A) = (if x:A then card A else Suc(card(A)))";
+by (asm_simp_tac (simpset() addsimps [insert_absorb]) 1);
+qed "card_insert_if";
+
+Goal "[| finite A; x: A |] ==> Suc(card(A-{x})) = card A";
+by (res_inst_tac [("t", "A")] (insert_Diff RS subst) 1);
+by (assume_tac 1);
+by (Asm_simp_tac 1);
+qed "card_Suc_Diff1";
+
+Goal "finite A ==> card(insert x A) = Suc(card(A-{x}))";
+by (asm_simp_tac (simpset() addsimps [card_insert_if,card_Suc_Diff1]) 1);
+qed "card_insert";
 
 Goal "finite A ==> card A <= card (insert x A)";
-by (case_tac "x: A" 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [insert_absorb])));
+by (asm_simp_tac (simpset() addsimps [card_insert_if]) 1);
 qed "card_insert_le";
 
 Goal  "finite A ==> !B. B <= A --> card(B) <= card(A)";
@@ -357,57 +464,16 @@ by (ALLGOALS
 			  add_diff_inverse, card_mono, finite_subset])));
 qed "card_Diff_subset";
 
-Goal "[| finite A; x: A |] ==> Suc(card(A-{x})) = card A";
-by (res_inst_tac [("t", "A")] (insert_Diff RS subst) 1);
-by (assume_tac 1);
-by (Asm_simp_tac 1);
-qed "card_Suc_Diff";
-
 Goal "[| finite A; x: A |] ==> card(A-{x}) < card A";
 by (rtac Suc_less_SucD 1);
-by (asm_simp_tac (simpset() addsimps [card_Suc_Diff]) 1);
-qed "card_Diff";
+by (asm_simp_tac (simpset() addsimps [card_Suc_Diff1]) 1);
+qed "card_Diff1_less";
 
 Goal "finite A ==> card(A-{x}) <= card A";
 by (case_tac "x: A" 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [card_Diff, less_imp_le])));
-qed "card_Diff_le";
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [card_Diff1_less, less_imp_le])));
+qed "card_Diff1_le";
 
-
-(*** Cardinality of the Powerset ***)
-
-Goal "finite A ==> card(insert x A) = Suc(card(A-{x}))";
-by (case_tac "x:A" 1);
-by (ALLGOALS 
-    (asm_simp_tac (simpset() addsimps [card_Suc_Diff, insert_absorb])));
-qed "card_insert";
-
-Goal "finite(A) ==> inj_on f A --> card (f `` A) = card A";
-by (etac finite_induct 1);
-by (ALLGOALS Asm_simp_tac);
-by Safe_tac;
-by (rewtac inj_on_def);
-by (Blast_tac 1);
-by (stac card_insert_disjoint 1);
-by (etac finite_imageI 1);
-by (Blast_tac 1);
-by (Blast_tac 1);
-qed_spec_mp "card_image";
-
-Goal "finite A ==> card (Pow A) = 2 ^ card A";
-by (etac finite_induct 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [Pow_insert])));
-by (stac card_Un_disjoint 1);
-by (EVERY (map (blast_tac (claset() addIs [finite_imageI])) [3,2,1]));
-by (subgoal_tac "inj_on (insert x) (Pow F)" 1);
-by (asm_simp_tac (simpset() addsimps [card_image, Pow_insert]) 1);
-by (rewtac inj_on_def);
-by (blast_tac (claset() addSEs [equalityE]) 1);
-qed "card_Pow";
-Addsimps [card_Pow];
-
-
-(*Proper subsets*)
 Goalw [psubset_def] "finite B ==> !A. A < B --> card(A) < card(B)";
 by (etac finite_induct 1);
 by (Simp_tac 1);
@@ -425,6 +491,55 @@ by (asm_full_simp_tac (simpset() addsimps [subset_insert_iff]) 1);
 by (case_tac "A=F" 1);
 by (ALLGOALS Asm_simp_tac);
 qed_spec_mp "psubset_card" ;
+
+Goal "[| finite B; A <= B; card A = card B |] ==> A = B";
+by (case_tac "A < B" 1);
+by ((dtac psubset_card 1) THEN (atac 1));
+by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [psubset_eq])));
+qed "card_seteq";
+
+Goal "[| finite B; A <= B; card A < card B |] ==> A < B";
+by (etac psubsetI 1);
+by (Blast_tac 1);
+qed "card_psubset";
+
+(*** Cardinality of image ***)
+
+Goal "finite A ==> card (f `` A) <= card A";
+by (etac finite_induct 1);
+by (Simp_tac 1);
+by (asm_simp_tac (simpset() addsimps [finite_imageI,card_insert_if]) 1);
+qed "card_image_le";
+
+Goal "finite(A) ==> inj_on f A --> card (f `` A) = card A";
+by (etac finite_induct 1);
+by (ALLGOALS Asm_simp_tac);
+by Safe_tac;
+by (rewtac inj_on_def);
+by (Blast_tac 1);
+by (stac card_insert_disjoint 1);
+by (etac finite_imageI 1);
+by (Blast_tac 1);
+by (Blast_tac 1);
+qed_spec_mp "card_image";
+
+Goal "[| finite A; f``A <= A; inj_on f A |] ==> f``A = A";
+by (REPEAT (ares_tac [card_seteq,card_image] 1));
+qed "endo_inj_surj";
+
+(*** Cardinality of the Powerset ***)
+
+Goal "finite A ==> card (Pow A) = 2 ^ card A";
+by (etac finite_induct 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [Pow_insert])));
+by (stac card_Un_disjoint 1);
+by (EVERY (map (blast_tac (claset() addIs [finite_imageI])) [3,2,1]));
+by (subgoal_tac "inj_on (insert x) (Pow F)" 1);
+by (asm_simp_tac (simpset() addsimps [card_image, Pow_insert]) 1);
+by (rewtac inj_on_def);
+by (blast_tac (claset() addSEs [equalityE]) 1);
+qed "card_Pow";
+Addsimps [card_Pow];
 
 
 (*Relates to equivalence classes.   Based on a theorem of F. Kammueller's.
@@ -458,7 +573,7 @@ AddIs foldSet.intrs;
 Goal "[| (A-{x},y) : foldSet f e;  x: A |] ==> (A, f x y) : foldSet f e";
 by (etac (insert_Diff RS subst) 1 THEN resolve_tac foldSet.intrs 1);
 by Auto_tac;
-qed "Diff_foldSet";
+qed "Diff1_foldSet";
 
 Goal "(A, x) : foldSet f e ==> finite(A)";
 by (eresolve_tac [foldSet.induct] 1);
@@ -508,17 +623,17 @@ by (subgoal_tac "Aa = insert xb Ab - {xa}" 1);
 (** LEVEL 20 **)
 by (subgoal_tac "card Aa <= card Ab" 1);
  by (rtac (Suc_le_mono RS subst) 2);
- by (asm_simp_tac (simpset() addsimps [card_Suc_Diff]) 2);
+ by (asm_simp_tac (simpset() addsimps [card_Suc_Diff1]) 2);
 by (res_inst_tac [("A1", "Aa-{xb}"), ("f1","f")] 
     (finite_imp_foldSet RS exE) 1);
 by (blast_tac (claset() addIs [foldSet_imp_finite, finite_Diff]) 1);
-by (forward_tac [Diff_foldSet] 1 THEN assume_tac 1);
+by (forward_tac [Diff1_foldSet] 1 THEN assume_tac 1);
 by (subgoal_tac "ya = f xb x" 1);
  by (Blast_tac 2);
 by (subgoal_tac "(Ab - {xa}, x) : foldSet f e" 1);
  by (Asm_full_simp_tac 2);
 by (subgoal_tac "yb = f xa x" 1);
- by (blast_tac (claset() addDs [Diff_foldSet]) 2);
+ by (blast_tac (claset() addDs [Diff1_foldSet]) 2);
 by (asm_simp_tac (simpset() addsimps [f_lcomm]) 1);
 val lemma = result();
 
@@ -536,6 +651,7 @@ by (Blast_tac 1);
 qed "fold_empty";
 Addsimps [fold_empty];
 
+
 Goal "x ~: A ==> \
 \     ((insert x A, v) : foldSet f e) =  \
 \     (EX y. (A, y) : foldSet f e & v = f x y)";
@@ -544,7 +660,6 @@ by (res_inst_tac [("A1", "A"), ("f1","f")] (finite_imp_foldSet RS exE) 1);
 by (force_tac (claset() addDs [foldSet_imp_finite], simpset()) 1);
 by (blast_tac (claset() addIs [foldSet_determ]) 1);
 val lemma = result();
-
 
 Goalw [fold_def]
      "[| finite A; x ~: A |] ==> fold f e (insert x A) = f x (fold f e A)";
@@ -555,6 +670,11 @@ by (auto_tac (claset() addIs [finite_imp_foldSet],
 		        addsimps [symmetric fold_def,
 				  fold_equality]));
 qed "fold_insert";
+
+(* Delete rules to do with foldSet relation: obsolete *)
+Delsimps [foldSet_imp_finite];
+Delrules [empty_foldSetE];
+Delrules foldSet.intrs;
 
 Close_locale();
 

@@ -18,9 +18,23 @@ inductive "Finites"
 syntax finite :: 'a set => bool
 translations  "finite A"  ==  "A : Finites"
 
+(* This definition, although traditional, is ugly to work with
 constdefs
   card :: 'a set => nat
   "card A == LEAST n. ? f. A = {f i |i. i<n}"
+Therefore we have switched to an inductive one:
+*)
+
+consts cardR :: "('a set * nat) set"
+
+inductive cardR
+intrs
+  EmptyI  "({},0) : cardR"
+  InsertI "[| (A,n) : cardR; a ~: A |] ==> (insert a A, Suc n) : cardR"
+
+constdefs
+  card :: 'a set => nat
+ "card A == @n. (A,n) : cardR"
 
 (*
 A "fold" functional for finite sets.  For n non-negative we have
