@@ -91,6 +91,22 @@ fun simp_case_tac solved ss i =
 end;
 
 
+(* resolution and cases *)
+
+local
+
+fun gen_resolveq_tac tac rules i st =
+  Seq.flat (Seq.map (fn rule => tac rule i st) rules);
+
+in
+
+fun resolveq_cases_tac make tac = gen_resolveq_tac (fn (rule, (cases, facts)) => fn i => fn st =>
+  Seq.map (rpair (make rule cases))
+    ((Method.insert_tac facts THEN' tac THEN' Tactic.rtac rule) i st));
+
+end;
+
+
 
 (** cases method **)
 
@@ -161,7 +177,7 @@ fun cases_tac (ctxt, ((simplified, open_parms), args)) facts =
     fun prep_rule (thm, (cases, n)) = Seq.map (apsnd (rpair (drop (n, facts))) o cond_simp cases)
       (Method.multi_resolves (take (n, facts)) [thm]);
   in
-    Method.resolveq_cases_tac (RuleCases.make open_parms)
+    resolveq_cases_tac (RuleCases.make open_parms) (K all_tac)
       (Seq.flat (Seq.map prep_rule (Seq.of_list rules)))
   end;
 
@@ -277,11 +293,10 @@ fun induct_tac (ctxt, ((stripped, open_parms), args)) facts =
 
     fun prep_rule (thm, (cases, n)) =
       Seq.map (rpair (cases, drop (n, facts))) (Method.multi_resolves (take (n, facts)) [thm]);
-    val tac = Method.resolveq_cases_tac (rulify_cases cert open_parms)
+    val tac = resolveq_cases_tac (rulify_cases cert open_parms) atomize_tac
       (Seq.flat (Seq.map prep_rule (Seq.of_list rules)));
   in
-    (fn i => Seq.THEN (atomize_tac i, tac i)) THEN_ALL_NEW_CASES
-      (rulify_tac THEN' (if stripped then weak_strip_tac else K all_tac))
+    tac THEN_ALL_NEW_CASES (rulify_tac THEN' (if stripped then weak_strip_tac else K all_tac))
   end;
 
 in
