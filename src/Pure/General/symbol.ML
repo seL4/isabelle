@@ -110,7 +110,7 @@ local
 
     val bbb_letters = ["bool","complex","nat","rat","real","int"]
 
-    val control_letters = ["^sub"]
+    val control_letters = ["^isub", "^isup"]
  
     val pre_letters =
 	cal_letters   @

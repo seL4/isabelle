@@ -17,9 +17,10 @@ New in this Isabelle release
   symbols.  Call 'isatool fixgreek' to try to fix parsing errors in
   existing theory and ML files.
 
-* Pure: single letter subscripts (\<^sub>l) are now allowed in identifiers.
-  Similar to greek letters \<^sub> is now considered a normal letter. 
-	For multiple letter subscripts repeat \<^sub> like this: i\<^sub>1\<^sub>2. 
+* Pure: single letter sub/superscripts (\<^isub> and \<^isup>) are now 
+  allowed in identifiers. Similar to greek letters \<^isub> is now considered 
+  a normal (but invisible) letter. For multiple letter subscripts repeat 
+  \<^isub> like this: x\<^isub>1\<^isub>2. 
 
 * Pure: Using the functions Theory.add_finals or Theory.add_finals_i
   or the new Isar command "finalconsts", it is now possible to
