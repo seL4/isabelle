@@ -44,9 +44,10 @@ types pttrns
 syntax
   "@Tuple"      :: "['a, args] => 'a * 'b"      ("(1'(_,/ _'))")
 
-  "@pttrn"      :: [pttrn, pttrns] => pttrn     ("'(_,/_')")
+  "_pttrn"      :: [pttrn, pttrns] => pttrn     ("'(_,/_')")
   ""            :: pttrn => pttrns              ("_")
-  "@pttrns"     :: [pttrn, pttrns] => pttrns    ("_,/_")
+  "_pttrns"     :: [pttrn, pttrns] => pttrns    ("_,/_")
+
   "@Sigma"      :: "[idt, 'a set, 'b set] => ('a * 'b) set"     ("(3SIGMA _:_./ _)" 10)
   "@Times"      :: "['a set, 'a => 'b set] => ('a * 'b) set"    ("_ Times _" [81, 80] 80)
 
@@ -56,6 +57,9 @@ translations
 
   "%(x,y,zs).b" == "split(%x (y,zs).b)"
   "%(x,y).b"    == "split(%x y.b)"
+  "_abs (Pair x y) t" => "%(x,y).t"
+  (* The last rule accommodates tuples in `case C ... (x,y) ... => ...'
+     The (x,y) is parsed as `Pair x y' because it is logic, not pttrn *)
 
   "SIGMA x:A.B" => "Sigma A (%x.B)"
   "A Times B"   => "Sigma A (_K B)"
