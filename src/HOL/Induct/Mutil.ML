@@ -48,7 +48,6 @@ by (assume_tac 2);
 by (subgoal_tac    (*seems the easiest way of turning one to the other*)
     "({i} Times {Suc(n+n)}) Un ({i} Times {n+n}) = \
 \    {(i, n+n), (i, Suc(n+n))}" 1);
-by (Blast_tac 2);
 by (asm_simp_tac (simpset() addsimps [domino.horiz]) 1);
 by Auto_tac;
 qed "dominoes_tile_row";

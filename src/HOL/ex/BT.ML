@@ -10,23 +10,23 @@ Datatype definition of binary trees
 
 Goal "n_leaves(reflect(t)) = n_leaves(t)";
 by (induct_tac "t" 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [add_commute])));
+by Auto_tac;
 qed "n_leaves_reflect";
 
 Goal "n_nodes(reflect(t)) = n_nodes(t)";
 by (induct_tac "t" 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [add_commute])));
+by Auto_tac;
 qed "n_nodes_reflect";
 
 (*The famous relationship between the numbers of leaves and nodes*)
 Goal "n_leaves(t) = Suc(n_nodes(t))";
 by (induct_tac "t" 1);
-by (ALLGOALS Asm_simp_tac);
+by Auto_tac;
 qed "n_leaves_nodes";
 
 Goal "reflect(reflect(t))=t";
 by (induct_tac "t" 1);
-by (ALLGOALS Asm_simp_tac);
+by Auto_tac;
 qed "reflect_reflect_ident";
 
 Goal "bt_map f (reflect t) = reflect (bt_map f t)";

@@ -6,9 +6,10 @@
 Binary trees (based on the ZF version)
 *)
 
-BT = List +
+BT = Main +
 
-datatype 'a bt = Lf  |  Br 'a ('a bt) ('a bt)
+datatype 'a bt = Lf
+               | Br 'a ('a bt) ('a bt)
   
 consts
     n_nodes     :: 'a bt => nat
