@@ -92,6 +92,7 @@ sig
   val fix: (string list * string option) list -> context -> context
   val fix_i: (string list * typ option) list -> context -> context
   val fix_direct: (string list * typ option) list -> context -> context
+  val fix_frees: term list -> context -> context
   val bind_skolem: context -> string list -> term -> term
   val get_case: context -> string -> string option list -> RuleCases.T
   val add_cases: (string * RuleCases.T) list -> context -> context
@@ -834,10 +835,16 @@ fun export_presume _ = export_assume false;
 
 
 fun dest_lhs cprop =
-  let val x = #1 (Logic.dest_equals (Thm.term_of cprop))
-  in Term.dest_Free x; Thm.cterm_of (Thm.sign_of_cterm cprop) x end
-  handle TERM _ => raise TERM ("Malformed definitional assumption encountered:\n" ^
-      quote (Display.string_of_cterm cprop), []);
+  let
+    val lhs = #1 (Logic.dest_equals (Term.strip_all_body (Thm.term_of cprop)));  (*exception TERM*)
+    val (f, xs) = Term.strip_comb lhs;
+    val cf = Thm.cterm_of (Thm.sign_of_cterm cprop) f;
+  in
+    Term.dest_Free f;  (*exception TERM*)
+    if forall Term.is_Bound xs andalso null (duplicates xs) then cf
+    else raise TERM ("", [])
+  end handle TERM _ => raise TERM ("Malformed definitional assumption encountered:\n" ^
+    quote (Display.string_of_cterm cprop), []);
 
 fun export_def _ cprops thm =
   thm
@@ -946,6 +953,10 @@ val fix_i = gen_fix cert_vars add_vars;
 val fix_direct = gen_fix cert_vars add_vars_direct;
 
 end;
+
+fun fix_frees ts =
+  let val frees = foldl (foldl_aterms (fn (vs, Free v) => v ins vs | (vs, _) => vs)) ([], ts)
+  in fix_direct (map (fn (x, T) => ([x], Some T)) frees) end;
 
 
 (*Note: improper use may result in variable capture / dynamic scoping!*)
