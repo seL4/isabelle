@@ -166,6 +166,8 @@ open Data;
        and rt' = cancelled rtms
 
        val rhs = rel$lt'$rt'
+       val _ = if lhs aconv rhs then raise Cancel  (*nothing to do*)
+                                     else ()
        val _ = if !trace then
                  tracing ("RHS = " ^ string_of_cterm (Thm.cterm_of sg rhs))
                else ()
