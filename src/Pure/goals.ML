@@ -40,6 +40,7 @@ signature GOALS =
   val goal		: theory -> string -> thm list
   val goalw		: theory -> thm list -> string -> thm list
   val goalw_cterm	: thm list -> cterm -> thm list
+  val print_current_goals_fn : (int -> int -> thm -> unit) ref
   val pop_proof		: unit -> thm list
   val pr		: unit -> unit
   val prlev		: int -> unit
@@ -62,7 +63,7 @@ signature GOALS =
   val ren		: string -> int -> unit
   val restore_proof	: proof -> thm list
   val result		: unit -> thm  
-  val result_error_ref  : (thm -> string -> thm) ref
+  val result_error_fn   : (thm -> string -> thm) ref
   val rotate_proof	: unit -> thm list
   val uresult		: unit -> thm  
   val save_proof	: unit -> proof
@@ -122,9 +123,9 @@ fun sign_error (sign,sign') =
 fun result_error_default state msg : thm = 
   (writeln ("Bad final proof state:");
    !print_goals_ref (!goals_limit) state;
-   error msg);
+   writeln msg; raise ERROR);
 
-val result_error_ref = ref result_error_default;
+val result_error_fn = ref result_error_default;
 
 (*Common treatment of "goal" and "prove_goal":
   Return assumptions, initial proof state, and function to make result. *)
@@ -144,21 +145,21 @@ fun prepare_proof rths chorn =
             val {hyps,prop,sign=sign',...} = rep_thm th
             val xshyps = extra_shyps th;
         in  if not check then th
-	    else if not (Sign.eq_sg(sign,sign')) then !result_error_ref state
+	    else if not (Sign.eq_sg(sign,sign')) then !result_error_fn state
 		("Signature of proof state has changed!" ^
 		 sign_error (sign,sign'))
-            else if ngoals>0 then !result_error_ref state
+            else if ngoals>0 then !result_error_fn state
 		(string_of_int ngoals ^ " unsolved goals!")
-            else if not (null hyps) then !result_error_ref state
+            else if not (null hyps) then !result_error_fn state
                 ("Additional hypotheses:\n" ^ 
                  cat_lines (map (Sign.string_of_term sign) hyps))
-	    else if not (null xshyps) then !result_error_ref state
+	    else if not (null xshyps) then !result_error_fn state
                 ("Extra sort hypotheses: " ^
                  commas (map Sorts.str_of_sort xshyps))
 	    else if Pattern.matches (#tsig(Sign.rep_sg sign)) 
 			            (term_of chorn, prop)
 		 then  standard th 
-	    else  !result_error_ref state "proved a different theorem"
+	    else  !result_error_fn state "proved a different theorem"
         end
   in
      if Sign.eq_sg(sign, #sign(rep_thm st0))
@@ -232,10 +233,15 @@ fun pop [] = error"Cannot go back past the beginning of the proof!"
   | pop (pair::pairs) = (pair,pairs);
 
 
+(*Print goals of current level*)
+fun print_current_goals_default n max th =
+  (writeln ("Level " ^ string_of_int n); !print_goals_ref max th);
+
+val print_current_goals_fn = ref print_current_goals_default;
+
 (*Print a level of the goal stack.*)
-fun print_top ((th,_), pairs) = 
-   (prs("Level " ^ string_of_int(length pairs) ^ "\n"); 
-    !print_goals_ref (!goals_limit) th);
+fun print_top ((th, _), pairs) =
+  !print_current_goals_fn (length pairs) (!goals_limit) th;
 
 (*Printing can raise exceptions, so the assignment occurs last.
   Can do   setstate[(st,Sequence.null)]  to set st as the state.  *)
@@ -323,9 +329,9 @@ fun by_com tac ((th,ths), pairs) : gstack =
      None      => error"by: tactic failed"
    | Some(th2,ths2) => 
        (if eq_thm(th,th2) 
-	  then warning "same as previous level"
+	  then writeln "Warning: same as previous level"
 	  else if eq_thm_sg(th,th2) then ()
-	  else warning("signature of proof state has changed" ^
+	  else writeln ("Warning: signature of proof state has changed" ^
 		       sign_error (#sign(rep_thm th), #sign(rep_thm th2)));
        ((th2,ths2)::(th,ths)::pairs)));
 
@@ -345,9 +351,9 @@ fun backtrack [] = error"back: no alternatives"
 	  None      => (writeln"Going back a level..."; backtrack pairs)
 	| Some(th2,thstr2) =>  
 	   (if eq_thm(th,th2) 
-	      then warning "same as previous choice at this level"
+	      then writeln "Warning: same as previous choice at this level"
 	      else if eq_thm_sg(th,th2) then ()
-	      else warning "signature of proof state has changed";
+	      else writeln "Warning: signature of proof state has changed";
 	    (th2,thstr2)::pairs));
 
 fun back() = setstate (backtrack (getstate()));
