@@ -56,8 +56,7 @@ Delsimps [split_paired_All];
 3) renname_ss unfolds transitions and the abstract channel *)
 
 
-val ss = (simpset() addcongs [if_weak_cong]
-                   addsimps transitions);     
+val ss = (simpset() addsimps transitions);     
 val rename_ss = (ss addsimps unfold_renaming);
 
 val tac     = asm_simp_tac (ss addcongs [conj_cong] addsplits [split_if]);
