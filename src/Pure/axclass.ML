@@ -66,7 +66,7 @@ val get_axioms = mapfilter o get_ax;
 val is_def = is_equals o #prop o rep_thm;
 
 fun witnesses thy axms thms =
-  get_axioms thy axms @ thms @ filter is_def (map snd (axioms_of thy));
+  map (get_axiom thy) axms @ thms @ filter is_def (map snd (axioms_of thy));
 
 
 
