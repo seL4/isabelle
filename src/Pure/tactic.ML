@@ -112,6 +112,7 @@ sig
   val rewrite: bool -> thm list -> cterm -> thm
   val rewrite_cterm: bool -> thm list -> cterm -> cterm
   val simplify: bool -> thm list -> thm -> thm
+  val conjunction_tac: tactic
   val prove: Sign.sg -> string list -> term list -> term -> (thm list -> tactic) -> thm
   val prove_standard: Sign.sg -> string list -> term list -> term -> (thm list -> tactic) -> thm
 end;
@@ -608,6 +609,17 @@ fun filter_prems_tac p =
             None => no_tac | Some tac => tac n
        end)
   end;
+
+
+(*meta-level conjunction*)
+val conj_tac = SUBGOAL (fn (Const ("all", _) $ Abs (_, _, Const ("==>", _) $
+      (Const ("==>", _) $ _ $ (Const ("==>", _) $ _ $ Bound 0)) $ Bound 0), i) =>
+    (fn st =>
+      compose_tac (false, Drule.incr_indexes_wrt [] [] [] [st] Drule.conj_intr_thm, 2) i st)
+  | _ => no_tac);
+  
+val conjunction_tac = ALLGOALS (REPEAT_ALL_NEW conj_tac);
+
 
 
 (** minimal goal interface for internal use *)
