@@ -22,11 +22,13 @@ open Codegen;
 structure CodegenArgs =
 struct
   val name = "HOL/inductive_codegen";
-  type T = thm list Symtab.table;
-  val empty = Symtab.empty;
+  type T = thm list Symtab.table * unit Graph.T;
+  val empty = (Symtab.empty, Graph.empty);
   val copy = I;
   val prep_ext = I;
-  val merge = Symtab.merge_multi Drule.eq_thm_prop;
+  fun merge ((tab1, graph1), (tab2, graph2)) =
+    (Symtab.merge_multi Drule.eq_thm_prop (tab1, tab2),
+     Graph.merge (K true) (graph1, graph2));
   fun print _ _ = ();
 end;
 
@@ -35,22 +37,37 @@ structure CodegenData = TheoryDataFun(CodegenArgs);
 fun warn thm = warning ("InductiveCodegen: Not a proper clause:\n" ^
   string_of_thm thm);
 
+fun add_node (g, x) = Graph.new_node (x, ()) g handle Graph.DUP _ => g;
+
 fun add (p as (thy, thm)) =
-  let val tab = CodegenData.get thy;
+  let val (tab, graph) = CodegenData.get thy;
   in (case concl_of thm of
       _ $ (Const ("op :", _) $ _ $ t) => (case head_of t of
-        Const (s, _) => (CodegenData.put (Symtab.update ((s,
-          if_none (Symtab.lookup (tab, s)) [] @ [thm]), tab)) thy, thm)
+        Const (s, _) =>
+          let val cs = foldr add_term_consts (prems_of thm, [])
+          in (CodegenData.put
+            (Symtab.update ((s,
+               if_none (Symtab.lookup (tab, s)) [] @ [thm]), tab),
+             foldr (uncurry (Graph.add_edge o pair s))
+               (cs, foldl add_node (graph, s :: cs))) thy, thm)
+          end
       | _ => (warn thm; p))
     | _ => (warn thm; p))
   end;
 
 fun get_clauses thy s =
-  (case Symtab.lookup (CodegenData.get thy, s) of
-     None => (case InductivePackage.get_inductive thy s of
-       None => None
-     | Some ({names, ...}, {intrs, ...}) => Some (names, intrs))
-   | Some thms => Some ([s], thms));
+  let val (tab, graph) = CodegenData.get thy
+  in case Symtab.lookup (tab, s) of
+      None => (case InductivePackage.get_inductive thy s of
+        None => None
+      | Some ({names, ...}, {intrs, ...}) => Some (names, intrs))
+    | Some _ =>
+        let val Some names = find_first
+          (fn xs => s mem xs) (Graph.strong_conn graph)
+        in Some (names,
+          flat (map (fn s => the (Symtab.lookup (tab, s))) names))
+        end
+  end;
 
 
 (**** improper tuples ****)
