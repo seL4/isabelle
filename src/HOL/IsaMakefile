@@ -29,6 +29,7 @@ test: \
   HOL-Isar_examples \
   HOL-Lambda \
   HOL-Lattice \
+  HOL-Matrix \
   HOL-MicroJava \
   HOL-Modelcheck \
   HOL-NanoJava \
@@ -630,6 +631,17 @@ $(LOG)/HOL-SET-Protocol.gz: $(OUT)/HOL SET-Protocol/ROOT.ML \
   SET-Protocol/Purchase.thy\
   SET-Protocol/document/root.tex 
 	@$(ISATOOL) usedir -g true $(OUT)/HOL SET-Protocol
+
+
+## HOL-Matrix
+
+HOL-Matrix: HOL $(LOG)/HOL-Matrix.gz
+
+$(LOG)/HOL-Matrix.gz: $(OUT)/HOL Matrix/ROOT.ML \
+  Matrix/Matrix.thy\
+	Matrix/LinProg.thy\
+	Matrix/MatrixGeneral.thy
+	@$(ISATOOL) usedir $(OUT)/HOL Matrix
 
 
 

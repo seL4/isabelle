@@ -143,7 +143,10 @@ New in Isabelle2004 (April 2004)
 * HOL-Algebra: new locale "ring" for non-commutative rings.
 
 * HOL-ex: InductiveInvariant_examples illustrates advanced recursive function
- defintions, thanks to Sava Krsti\'{c} and John Matthews.
+  definitions, thanks to Sava Krsti\'{c} and John Matthews.
+
+* HOL-Matrix: a first theory for matrices in HOL with an application of 
+  matrix theory to linear programming.
 
 * Unions and Intersections:
   The x-symbol output syntax of UN and INT has been changed
