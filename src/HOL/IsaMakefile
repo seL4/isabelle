@@ -30,7 +30,6 @@ test: \
   HOL-Lattice \
   HOL-Lex \
   HOL-MicroJava \
-  HOL-MiniML \
   HOL-Modelcheck \
   HOL-NanoJava \
   HOL-NumberTheory \
@@ -432,16 +431,6 @@ $(LOG)/HOL-W0.gz: $(OUT)/HOL W0/ROOT.ML W0/W0.thy W0/document/root.tex
 	@$(ISATOOL) usedir $(OUT)/HOL W0
 
 
-## HOL-MiniML
-
-HOL-MiniML: HOL $(LOG)/HOL-MiniML.gz
-
-$(LOG)/HOL-MiniML.gz: $(OUT)/HOL MiniML/Generalize.thy\
-  MiniML/Instance.thy MiniML/Maybe.thy MiniML/MiniML.thy \
-  MiniML/ROOT.ML MiniML/Type.thy MiniML/W.thy
-	@$(ISATOOL) usedir $(OUT)/HOL MiniML
-
-
 ## HOL-MicroJava
 
 HOL-MicroJava: HOL $(LOG)/HOL-MicroJava.gz
@@ -559,7 +548,7 @@ $(LOG)/HOL-Lattice.gz: $(OUT)/HOL Lattice/Bounds.thy \
 
 HOL-ex: HOL $(LOG)/HOL-ex.gz
 
-$(LOG)/HOL-ex.gz: $(OUT)/HOL ex/AVL.thy ex/Antiquote.thy \
+$(LOG)/HOL-ex.gz: $(OUT)/HOL ex/Antiquote.thy \
   ex/BT.thy ex/BinEx.thy ex/Group.ML ex/Group.thy ex/Higher_Order_Logic.thy \
   ex/Hilbert_Classical.thy ex/InSort.thy ex/IntRing.ML \
   ex/InductiveInvariant.thy  ex/InductiveInvariant_examples.thy\
@@ -666,7 +655,6 @@ clean:
 		$(LOG)/HOL-Lex.gz $(LOG)/HOL-Algebra.gz \
 		$(LOG)/HOL-Auth.gz $(LOG)/HOL-UNITY.gz \
 		$(LOG)/HOL-Modelcheck.gz $(LOG)/HOL-Lambda.gz \
-		$(LOG)/HOL-W0.gz $(LOG)/HOL-MiniML.gz \
                 $(LOG)/HOL-Bali.gz $(LOG)/HOL-CTL.gz \
 		$(LOG)/HOL-MicroJava.gz $(LOG)/HOL-NanoJava.gz \
 		$(LOG)/HOL-IOA.gz $(LOG)/HOL-AxClasses \

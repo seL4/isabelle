@@ -25,7 +25,6 @@ time_use_thy "Classical";
 time_use_thy "mesontest2";
 time_use_thy "PresburgerEx";
 time_use_thy "BT";
-time_use_thy "AVL";
 time_use_thy "InSort";
 time_use_thy "Qsort";
 time_use_thy "MergeSort";
