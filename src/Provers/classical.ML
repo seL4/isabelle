@@ -205,8 +205,10 @@ fun swap_res_tac rls =
 (*Duplication of hazardous rules, for complete provers*)
 fun dup_intr th = zero_var_indexes (th RS classical);
 
-fun dup_elim th = th RSN (2, revcut_rl) |> assumption 2 |> Seq.hd |> 
-                  rule_by_tactic (TRYALL (etac revcut_rl));
+fun dup_elim th = 
+    th RSN (2, revcut_rl) |> assumption 2 |> Seq.hd |> 
+    rule_by_tactic (TRYALL (etac revcut_rl))
+    handle _ => error ("Bad format for elimination rule\n" ^ string_of_thm th);
 
 
 (**** Classical rule sets ****)
@@ -219,7 +221,7 @@ datatype claset =
 	 uwrapper	: (int -> tactic) ->
 			  (int -> tactic),	(*for transforming step_tac*)
 	 swrapper	: (int -> tactic) ->
-			  (int -> tactic),	(*for transform. safe_step_tac*)
+			  (int -> tactic),	(*for safe_step_tac*)
 	 safe0_netpair	: netpair,		(*nets for trivial cases*)
 	 safep_netpair	: netpair,		(*nets for >0 subgoals*)
 	 haz_netpair  	: netpair,		(*nets for unsafe rules*)
