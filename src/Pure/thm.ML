@@ -170,6 +170,7 @@ signature BASIC_THM =
   val set_mk_eq_True    : meta_simpset * (thm -> thm option) -> meta_simpset
   val set_termless      : meta_simpset * (term * term -> bool) -> meta_simpset
   val trace_simp        : bool ref
+  val debug_simp        : bool ref
   val rewrite_cterm     : bool * bool * bool -> meta_simpset ->
                           (meta_simpset -> thm -> thm option) -> cterm -> thm
 
@@ -1519,11 +1520,13 @@ fun prthm warn a (thm as Thm{sign_ref, prop, ...}) =
   (prtm warn a (Sign.deref sign_ref) prop);
 
 val trace_simp = ref false;
+val debug_simp = ref false;
 
 fun trace warn a = if !trace_simp then prnt warn a else ();
+fun debug warn a = if !debug_simp then prnt warn a else ();
 
-fun trace_term warn a sign t =
-  if !trace_simp then prtm warn a sign t else ();
+fun trace_term warn a sign t = if !trace_simp then prtm warn a sign t else ();
+fun debug_term warn a sign t = if !debug_simp then prtm warn a sign t else ();
 
 fun trace_thm warn a (thm as Thm{sign_ref, prop, ...}) =
   (trace_term warn a (Sign.deref sign_ref) prop);
@@ -2085,9 +2088,9 @@ fun rewritec (prover,sign_reft,maxt)
     fun proc_rews ([]:simproc list) = None
       | proc_rews ({name, proc, lhs = Cterm {t = plhs, ...}, ...} :: ps) =
           if Pattern.matches tsigt (plhs, t) then
-            (trace_term false ("Trying procedure " ^ quote name ^ " on:") signt eta_t;
+            (debug_term false ("Trying procedure " ^ quote name ^ " on:") signt eta_t;
              case proc signt prems eta_t of
-               None => (trace false "FAILED"; proc_rews ps)
+               None => (debug false "FAILED"; proc_rews ps)
              | Some raw_thm =>
                  (trace_thm false ("Procedure " ^ quote name ^ " produced rewrite rule:") raw_thm;
                   (case rews (mk_procrule raw_thm) of
