@@ -158,6 +158,21 @@ next
   thus "x == y" by (rule eq_reflection)
 qed
 
+lemma atomize_conj [atomize]: "(!!C. (A ==> B ==> PROP C) ==> PROP C) == Trueprop (A & B)"
+proof (rule equal_intr_rule)
+  assume "!!C. (A ==> B ==> PROP C) ==> PROP C"
+  show "A & B" by (rule conjI)
+next
+  fix C
+  assume "A & B"
+  assume "A ==> B ==> PROP C"
+  thus "PROP C"
+  proof this
+    show A by (rule conjunct1)
+    show B by (rule conjunct2)
+  qed
+qed
+
 declare atomize_all [symmetric, rulify]  atomize_imp [symmetric, rulify]
 
 
