@@ -128,7 +128,6 @@ rm -rf Admin Doc
 
 mkdir src
 mv $LOGICS src
-mv index.html src
 
 mv Distribution/* .
 rmdir Distribution
