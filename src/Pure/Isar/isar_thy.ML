@@ -271,35 +271,34 @@ fun global_statement f (name, src, s) int thy =
 fun global_statement_i f (name, atts, t) int thy =
   ProofHistory.init (Toplevel.undo_limit int) (f name atts t thy);
 
-fun local_statement do_open f g (name, src, s) = ProofHistory.apply_cond_open do_open (fn state =>
+fun local_statement f g (name, src, s) = ProofHistory.apply (fn state =>
   f name (map (Attrib.local_attribute (Proof.theory_of state)) src) s (g state));
 
-fun local_statement_i do_open f g (name, atts, t) =
-  ProofHistory.apply_cond_open do_open (f name atts t o g);
+fun local_statement_i f g (name, atts, t) = ProofHistory.apply (f name atts t o g);
 
 val theorem   = global_statement Proof.theorem o Comment.ignore;
 val theorem_i = global_statement_i Proof.theorem_i o Comment.ignore;
 val lemma     = global_statement Proof.lemma o Comment.ignore;
 val lemma_i   = global_statement_i Proof.lemma_i o Comment.ignore;
-val assume    = local_statement false (Proof.assume assume_tac) I o Comment.ignore;
-val assume_i  = local_statement_i false (Proof.assume_i assume_tac) I o Comment.ignore;
-val presume   = local_statement false (Proof.assume (K all_tac)) I o Comment.ignore;
-val presume_i = local_statement_i false (Proof.assume_i (K all_tac)) I o Comment.ignore;
-val show      = local_statement true Proof.show I o Comment.ignore;
-val show_i    = local_statement_i true Proof.show_i I o Comment.ignore;
-val have      = local_statement true Proof.have I o Comment.ignore;
-val have_i    = local_statement_i true Proof.have_i I o Comment.ignore;
-val thus      = local_statement true Proof.show Proof.chain o Comment.ignore;
-val thus_i    = local_statement_i true Proof.show_i Proof.chain o Comment.ignore;
-val hence     = local_statement true Proof.have Proof.chain o Comment.ignore;
-val hence_i   = local_statement_i true Proof.have_i Proof.chain o Comment.ignore;
+val assume    = local_statement (Proof.assume assume_tac) I o Comment.ignore;
+val assume_i  = local_statement_i (Proof.assume_i assume_tac) I o Comment.ignore;
+val presume   = local_statement (Proof.assume (K all_tac)) I o Comment.ignore;
+val presume_i = local_statement_i (Proof.assume_i (K all_tac)) I o Comment.ignore;
+val show      = local_statement Proof.show I o Comment.ignore;
+val show_i    = local_statement_i Proof.show_i I o Comment.ignore;
+val have      = local_statement Proof.have I o Comment.ignore;
+val have_i    = local_statement_i Proof.have_i I o Comment.ignore;
+val thus      = local_statement Proof.show Proof.chain o Comment.ignore;
+val thus_i    = local_statement_i Proof.show_i Proof.chain o Comment.ignore;
+val hence     = local_statement Proof.have Proof.chain o Comment.ignore;
+val hence_i   = local_statement_i Proof.have_i Proof.chain o Comment.ignore;
 
 
 (* blocks *)
 
-val begin_block = ProofHistory.apply_open Proof.begin_block;
+val begin_block = ProofHistory.apply Proof.begin_block;
 val next_block = ProofHistory.apply Proof.next_block;
-val end_block = ProofHistory.apply_close Proof.end_block;
+val end_block = ProofHistory.apply Proof.end_block;
 
 
 (* backward steps *)
@@ -325,14 +324,14 @@ fun proof'' f = Toplevel.proof' (f o cond_print_result);
 (* local endings *)
 
 val local_qed =
-  proof'' o (ProofHistory.applys_close oo Method.local_qed) o apsome Comment.ignore_interest;
+  proof'' o (ProofHistory.applys oo Method.local_qed) o apsome Comment.ignore_interest;
 
 val local_terminal_proof =
-  proof'' o (ProofHistory.applys_close oo Method.local_terminal_proof) o Comment.ignore_interest;
+  proof'' o (ProofHistory.applys oo Method.local_terminal_proof) o Comment.ignore_interest;
 
-val local_immediate_proof = proof'' (ProofHistory.applys_close o Method.local_immediate_proof);
-val local_default_proof = proof'' (ProofHistory.applys_close o Method.local_default_proof);
-val local_skip_proof = proof'' (ProofHistory.applys_close o SkipProof.local_skip_proof);
+val local_immediate_proof = proof'' (ProofHistory.applys o Method.local_immediate_proof);
+val local_default_proof = proof'' (ProofHistory.applys o Method.local_default_proof);
+val local_skip_proof = proof'' (ProofHistory.applys o SkipProof.local_skip_proof);
 
 
 (* global endings *)

@@ -396,18 +396,6 @@ val backP =
   OuterSyntax.improper_command "back" "backtracking of proof command" K.prf_script
     (Scan.succeed (Toplevel.print o Toplevel.proof ProofHistory.back));
 
-val prevP =
-  OuterSyntax.improper_command "prev" "previous proof state" K.control
-    (Scan.succeed (Toplevel.print o Toplevel.proof ProofHistory.prev));
-
-val upP =
-  OuterSyntax.improper_command "up" "upper proof state" K.control
-    (Scan.succeed (Toplevel.print o Toplevel.proof ProofHistory.up));
-
-val topP =
-  OuterSyntax.improper_command "top" "to initial proof state" K.control
-    (Scan.succeed (Toplevel.print o Toplevel.proof ProofHistory.top));
-
 
 (* history *)
 
@@ -565,7 +553,7 @@ val parsers = [
   fixP, letP, thenP, fromP, withP, noteP, beginP, endP, nextP,
   qed_withP, qedP, terminal_proofP, immediate_proofP, default_proofP,
   skip_proofP, applyP, then_applyP, proofP, alsoP, finallyP, backP,
-  prevP, upP, topP, cannot_undoP, clear_undoP, redoP, undos_proofP,
+  cannot_undoP, clear_undoP, redoP, undos_proofP,
   kill_proofP, undoP,
   (*diagnostic commands*)
   print_commandsP, print_theoryP, print_syntaxP, print_attributesP,
