@@ -4,17 +4,17 @@
 #
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
-NAMES = Message Shared NS_Shared OtwayRees OtwayRees_AN Yahalom
+NAMES = Message Shared
 
 FILES = DB-ROOT.ML $(NAMES:%=%.thy) $(NAMES:%=%.ML)
 
 $(BIN)/Auth:   $(BIN)/HOL  $(FILES) 
-	if [ -d $${ISABELLEBIN:?}/Pure ];\
+	@if [ -d $${ISABELLEBIN:?}/Pure ];\
 		then echo Bad value for ISABELLEBIN: \
 			$(BIN) is the Isabelle source directory; \
 			exit 1; \
-		fi;\
-	case "$(COMP)" in \
+	fi
+	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
 	poly*)	echo 'make_database"$(BIN)/Auth"; quit();'  \
 		  | $(COMP) $(BIN)/HOL;\
 		if [ "$${MAKE_HTML}" = "true" ]; \
@@ -35,7 +35,7 @@ $(BIN)/Auth:   $(BIN)/HOL  $(FILES)
 		       | $(BIN)/HOL;\
 		fi;;\
 	*)	echo Bad value for ISABELLECOMP: \
-			$(COMP) is not poly or sml; exit 1;;\
+			\"$(COMP)\" is not poly or sml; exit 1;;\
 	esac
 
 $(BIN)/HOL:
