@@ -48,8 +48,9 @@ sig
   val pretty_goals: int -> thm -> Pretty.T list
   val print_goals: int -> thm -> unit
   val current_goals_markers: (string * string * string) ref
-  val print_current_goals_default: (int -> int -> thm -> unit)
-  val print_current_goals_fn : (int -> int -> thm -> unit) ref
+  val pretty_current_goals: int -> int -> thm -> Pretty.T list
+  val print_current_goals_default: int -> int -> thm -> unit
+  val print_current_goals_fn: (int -> int -> thm -> unit) ref
 end;
 
 structure Display: DISPLAY =
@@ -343,8 +344,7 @@ fun pretty_goals_marker bg n th =
   end;
 
 val pretty_goals = pretty_goals_marker "";
-val print_goals_marker = (Pretty.writeln o Pretty.chunks) ooo pretty_goals_marker;
-val print_goals = print_goals_marker "";
+val print_goals = (Pretty.writeln o Pretty.chunks) oo pretty_goals_marker "";
 
 end;
 
@@ -353,19 +353,22 @@ end;
 
 val current_goals_markers = ref ("", "", "");
 
-fun print_current_goals_default n max th =
+fun pretty_current_goals n m th =
   let
     val ref (begin_state, end_state, begin_goal) = current_goals_markers;
     val ngoals = nprems_of th;
   in
-    if begin_state = "" then () else writeln begin_state;
-    writeln ("Level " ^ string_of_int n ^
+    (if begin_state = "" then [] else [Pretty.str begin_state]) @
+    [Pretty.str ("Level " ^ string_of_int n ^
       (if ngoals > 0 then " (" ^ string_of_int ngoals ^ " subgoal" ^
         (if ngoals <> 1 then "s" else "") ^ ")"
-      else ""));
-    print_goals_marker begin_goal max th;
-    if end_state = "" then () else writeln end_state
+      else ""))] @
+    pretty_goals_marker begin_goal m th @
+    (if end_state = "" then [] else [Pretty.str end_state])
   end;
+
+fun print_current_goals_default n m th =
+  Pretty.writeln (Pretty.chunks (pretty_current_goals n m th));
 
 val print_current_goals_fn = ref print_current_goals_default;
 
