@@ -385,14 +385,14 @@ type variables explicitly by calling \texttt{res_inst_tac}.
 \tdx{iffD1}       [| P=Q; P |] ==> Q
 \tdx{iffD2}       [| P=Q; Q |] ==> P
 \tdx{iffE}        [| P=Q; [| P --> Q; Q --> P |] ==> R |] ==> R
-%
-%\tdx{eqTrueI}     P ==> P=True 
-%\tdx{eqTrueE}     P=True ==> P 
 \subcaption{Logical equivalence}
 
 \end{ttbox}
 \caption{Derived rules for HOL} \label{hol-lemmas1}
 \end{figure}
+%
+%\tdx{eqTrueI}     P ==> P=True 
+%\tdx{eqTrueE}     P=True ==> P 
 
 
 \begin{figure}
@@ -846,15 +846,15 @@ and \texttt{range}.
 
 \tdx{Union_Un_distrib}  Union(A Un B) = (Union A) Un (Union B)
 \tdx{Int_Union}         A Int (Union B) = (UN C:B. A Int C)
-%\tdx{Un_Union_image}    (UN x:C.(A x) Un (B x)) = Union(A``C) Un Union(B``C)
 
 \tdx{Inter_Un_distrib}  Inter(A Un B) = (Inter A) Int (Inter B)
 \tdx{Un_Inter}          A Un (Inter B) = (INT C:B. A Un C)
-%\tdx{Int_Inter_image}   (INT x:C.(A x) Int (B x)) = Inter(A``C) Int Inter(B``C)
+
 \end{ttbox}
 \caption{Set equalities} \label{hol-equalities}
 \end{figure}
-
+%\tdx{Un_Union_image}    (UN x:C.(A x) Un (B x)) = Union(A``C) Un Union(B``C)
+%\tdx{Int_Inter_image}   (INT x:C.(A x) Int (B x)) = Inter(A``C) Int Inter(B``C)
 
 Figures~\ref{hol-set1} and~\ref{hol-set2} present derived rules.  Most are
 obvious and resemble rules of Isabelle's ZF set theory.  Certain rules, such
@@ -1155,10 +1155,10 @@ types in general.  The most important type construction, the
         $[\alpha\,set, \alpha\To\beta\,set]\To(\alpha\times\beta)set$ &
         & general sum of sets
 \end{constants}
-\begin{ttbox}\makeatletter
 %\tdx{fst_def}      fst p     == @a. ? b. p = (a,b)
 %\tdx{snd_def}      snd p     == @b. ? a. p = (a,b)
 %\tdx{split_def}    split c p == c (fst p) (snd p)
+\begin{ttbox}\makeatletter
 \tdx{Sigma_def}    Sigma A B == UN x:A. UN y:B x. {\ttlbrace}(x,y){\ttrbrace}
 
 \tdx{Pair_eq}      ((a,b) = (a',b')) = (a=a' & b=b')
