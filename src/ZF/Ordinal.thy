@@ -11,8 +11,10 @@ consts
   Memrel        :: i=>i
   Transset,Ord  :: i=>o
   "<"           :: [i,i] => o  (infixl 50) (*less than on ordinals*)
-  "le"          :: [i,i] => o  (infixl 50) (*less than or equals*)
   Limit         :: i=>o
+
+syntax
+  "le"          :: [i,i] => o  (infixl 50) (*less than or equals*)
 
 translations
   "x le y"      == "x < succ(y)"

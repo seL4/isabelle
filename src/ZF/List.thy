@@ -13,16 +13,15 @@ although complicating its derivation.
 List = Datatype + 
 
 consts
- (* List Enumeration *)
- "[]"        :: i                                       ("[]")
- "@List"     :: is => i                                 ("[(_)]")
-
   list       :: i=>i
-
   
 datatype
   "list(A)" = Nil | Cons ("a:A", "l: list(A)")
 
+
+syntax
+ "[]"        :: i                                       ("[]")
+ "@List"     :: is => i                                 ("[(_)]")
 
 translations
   "[x, xs]"     == "Cons(x, [xs])"

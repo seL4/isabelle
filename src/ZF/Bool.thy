@@ -10,14 +10,16 @@ Booleans in Zermelo-Fraenkel Set Theory
 
 Bool = upair + 
 consts
-    "1"         :: i             ("1")
-    "2"         :: i             ("2")
     bool        :: i
     cond        :: [i,i,i]=>i
     not         :: i=>i
     "and"       :: [i,i]=>i      (infixl 70)
     or          :: [i,i]=>i      (infixl 65)
     xor         :: [i,i]=>i      (infixl 65)
+
+syntax
+    "1"         :: i             ("1")
+    "2"         :: i             ("2")
 
 translations
    "1"  == "succ(0)"
