@@ -84,6 +84,15 @@ Addsimps[image_insert];
 qed_goal "ball_image" Set.thy "(!y:F``S. P y) = (!x:S. P (F x))"
  (fn _ => [fast_tac set_cs 1]);
 
+goalw Set.thy [image_def]
+"(%x. if P x then f x else g x) `` S			\
+\ = (f `` ({x.x:S & P x})) Un (g `` ({x.x:S & ~(P x)}))";
+by(split_tac [expand_if] 1);
+by(fast_tac eq_cs 1);
+qed "if_image_distrib";
+Addsimps[if_image_distrib];
+
+
 section "range";
 
 qed_goal "ball_range" Set.thy "(!y:range f. P y) = (!x. P (f x))"
