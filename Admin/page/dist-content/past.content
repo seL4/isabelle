@@ -4,9 +4,10 @@ Isabelle Past Releases
 %body%
 <p> 
 
-Past releases of Isabelle are available from the Cambrige ftp archive:
+Past releases of Isabelle are available from the Cambrige archive:
 
 <ul>
+<li><a href="http://www.cl.cam.ac.uk/users/lcp/archive/Isabelle2003.tar.gz">Isabelle2003</a></li>
 <li><a href="http://www.cl.cam.ac.uk/users/lcp/archive/Isabelle2002.tar.gz">Isabelle2002</a></li>
 <li><a href="http://www.cl.cam.ac.uk/users/lcp/archive/Isabelle99-2.tar.gz">Isabelle99-2</a></li>
 <li><a href="http://www.cl.cam.ac.uk/users/lcp/archive/Isabelle99-1.tar.gz">Isabelle99-1</a></li>
