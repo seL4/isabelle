@@ -75,6 +75,7 @@ signature TACTIC =
   val PRIMITIVE		: (thm -> thm) -> tactic  
   val PRIMSEQ		: (thm -> thm Seq.seq) -> tactic  
   val prune_params_tac	: tactic
+  val rename_params_tac	: string list -> int -> tactic
   val rename_tac	: string -> int -> tactic
   val rename_last_tac	: string -> string list -> int -> tactic
   val resolve_from_net_tac	: (int*thm) Net.net -> int -> tactic
@@ -525,15 +526,16 @@ fun fold_goals_tac defs = EVERY (map rewrite_goals_tac (rev_defs defs));
 
 (*Calling this will generate the warning "Same as previous level" since
   it affects nothing but the names of bound variables!*)
-fun rename_tac str i = 
-  let val cs = Symbol.explode str 
-  in  
-  if !Logic.auto_rename 
-  then (warning "Resetting Logic.auto_rename"; 
+fun rename_params_tac xs i =
+  (if !Logic.auto_rename
+    then (warning "Resetting Logic.auto_rename"; 
 	Logic.auto_rename := false)
-  else ();
+   else (); PRIMITIVE (rename_params_rule (xs, i)));
+
+fun rename_tac str i = 
+  let val cs = Symbol.explode str in  
   case #2 (take_prefix (Symbol.is_letdig orf Symbol.is_blank) cs) of
-      [] => PRIMITIVE (rename_params_rule (scanwords Symbol.is_letdig cs, i))
+      [] => rename_params_tac (scanwords Symbol.is_letdig cs) i
     | c::_ => error ("Illegal character: " ^ c)
   end;
 
