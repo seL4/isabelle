@@ -7,7 +7,7 @@ Logical Connectives lifted to predicates.
 
 *)   
 	       
-Pred = Arith +  
+Pred = Main +
 
 default term
 

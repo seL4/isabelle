@@ -7,7 +7,7 @@ Definition of class porder (partial order)
 
 *)
 
-Porder0 = Arith +
+Porder0 = Main +
 
 	(* introduce a (syntactic) class for the constant << *)
 axclass sq_ord<term

@@ -6,7 +6,7 @@
 Action signatures
 *)
 
-Asig = Arith +
+Asig = Main +
 
 types 
 

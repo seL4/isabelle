@@ -214,7 +214,7 @@ hide_def
 (* ------------------------- renaming ------------------------------------------- *)
   
 rename_set_def
-  "rename_set set ren == {b. ? x. Some x = ren b & x : set}" 
+  "rename_set A ren == {b. ? x. Some x = ren b & x : A}" 
 
 rename_def 
 "rename ioa ren ==  

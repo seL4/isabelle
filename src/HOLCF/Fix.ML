@@ -692,7 +692,7 @@ local
   val adm_disj_lemma4 = prove_goal Arith.thy
   "!!Q. !j. i < j --> Q(Y(j))  ==> !n. Q( if n < Suc i then Y(Suc i) else Y n)"
  (fn _ =>
-        [Asm_simp_tac 1]);
+        [asm_simp_tac (simpset_of Arith.thy) 1]);
 
   val adm_disj_lemma5 = prove_goal thy
   "!!Y::nat=>'a::cpo. [| chain(Y); ! j. i < j --> Q(Y(j)) |] ==>\
@@ -881,7 +881,7 @@ qed_goal "adm_not_conj"  thy
         etac adm_disj 1,
         atac 1]);
 
-val adm_lemmas = [adm_imp,adm_disj,adm_eq,adm_not_UU,adm_UU_not_less,
-        adm_all2,adm_not_less,adm_not_conj,adm_iff];
+bind_thms ("adm_lemmas", [adm_imp,adm_disj,adm_eq,adm_not_UU,adm_UU_not_less,
+        adm_all2,adm_not_less,adm_not_conj,adm_iff]);
 
 Addsimps adm_lemmas;

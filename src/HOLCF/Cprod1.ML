@@ -13,7 +13,7 @@ open Cprod1;
 (* less_cprod is a partial order on 'a * 'b                                 *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "Sel_injective_cprod" Prod.thy 
+qed_goal "Sel_injective_cprod" Prod.thy
         "[|fst x = fst y; snd x = snd y|] ==> x = y"
 (fn prems =>
         [
@@ -21,7 +21,7 @@ qed_goal "Sel_injective_cprod" Prod.thy
         (subgoal_tac "(fst x,snd x)=(fst y,snd y)" 1),
         (rotate_tac ~1 1),
         (asm_full_simp_tac(HOL_ss addsimps[surjective_pairing RS sym])1),
-        (Asm_simp_tac 1)
+        (asm_simp_tac (simpset_of Prod.thy) 1)
         ]);
 
 qed_goalw "refl_less_cprod" Cprod1.thy [less_cprod_def] "(p::'a*'b) << p"
