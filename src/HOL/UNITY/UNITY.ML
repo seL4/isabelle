@@ -300,6 +300,11 @@ Goalw [increasing_def]
 by (Blast_tac 1);
 qed "increasingD";
 
+Goalw [increasing_def, stable_def] "F : increasing (%s. c)";
+by Auto_tac; 
+qed "increasing_constant";
+AddIffs [increasing_constant];
+
 Goalw [increasing_def, stable_def, constrains_def]
      "mono g ==> increasing f <= increasing (g o f)";
 by Auto_tac;
