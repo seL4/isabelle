@@ -14,8 +14,11 @@ theory PreList =
 (*belongs to theory Divides*)
 declare dvdI [intro?]  dvdE [elim?]  dvd_trans [trans]
 
+(*belongs to theory Nat*)
+lemmas less_induct = nat_less_induct [rule_format, case_names less]
+
 (*belongs to theory Wellfounded_Recursion*)
-declare wf_induct [induct set: wf]
+lemmas wf_induct_rule = wf_induct [rule_format, case_names less, induct set: wf]
 
 
 (* generic summation indexed over nat *)
