@@ -30,6 +30,7 @@ sig
   val intern: T -> string -> string
   val extern: T -> string -> string
   val long_names: bool ref
+  val short_names: bool ref
   val cond_extern: T -> string -> string
   val cond_extern_table: T -> 'a Symtab.table -> (string * 'a) list
   val dest: T -> (string * string list) list
@@ -151,7 +152,12 @@ fun extern space name =
 (*prune names on output by default*)
 val long_names = ref false;
 
-fun cond_extern space = if ! long_names then I else extern space;
+(*output only base name*)
+val short_names = ref false;
+
+fun cond_extern space =
+  if ! long_names then I
+  else if ! short_names then base else extern space;
 
 fun cond_extern_table space tab =
   Library.sort_wrt #1 (map (apfst (cond_extern space)) (Symtab.dest tab));
