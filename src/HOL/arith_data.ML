@@ -407,8 +407,6 @@ solver all the time rather than add the additional check. *)
 *)
 local
 
-val atomize_tac = Method.atomize_tac (thms "atomize'");
-
 fun raw_arith_tac i st =
   refute_tac (K true) (REPEAT o split_tac (#splits (ArithTheoryData.get_sg (Thm.sign_of_thm st))))
              ((REPEAT_DETERM o etac linorder_neqE) THEN' fast_arith_tac) i st;

@@ -15,6 +15,10 @@ structure Make_Elim = Make_Elim_Fun(val classical = classical);
   compatibliity with strange things done in many existing proofs *)
 val cla_make_elim = Make_Elim.make_elim;
 
+val atomize_rules = thms "atomize'";
+val atomize_tac = Method.atomize_tac atomize_rules;
+val atomize_strip_tac = Method.atomize_strip_tac (atomize_rules, [impI, allI]);
+
 (*** Applying ClassicalFun to create a classical prover ***)
 structure Classical_Data = 
   struct
@@ -24,7 +28,7 @@ structure Classical_Data =
   val classical = classical
   val sizef     = size_of_thm
   val hyp_subst_tacs=[hyp_subst_tac]
-  val atomize	= thms "atomize'"
+  val atomize	= atomize_rules
   end;
 
 structure Cla = ClassicalFun(Classical_Data);
