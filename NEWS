@@ -38,6 +38,8 @@ New in this Isabelle release
 * 'specification' command added, allowing for definition by
 specification.
 
+* SET-Protocol: formalization and verification of the SET protocol suite;
+
 
 New in Isabelle2003 (May 2003)
 --------------------------------

@@ -35,6 +35,7 @@ test: \
   HOL-NanoJava \
   HOL-NumberTheory \
   HOL-Prolog \
+  HOL-SET-Protocol \
   HOL-Subst \
       TLA-Buffer \
       TLA-Inc \
@@ -386,8 +387,7 @@ $(LOG)/HOL-UNITY.gz: $(OUT)/HOL Library/Multiset.thy UNITY/ROOT.ML \
   UNITY/SubstAx.thy UNITY/UNITY.thy UNITY/Union.thy UNITY/WFair.thy \
   UNITY/Simple/Channel.thy UNITY/Simple/Common.thy  \
   UNITY/Simple/Deadlock.thy UNITY/Simple/Lift.thy UNITY/Simple/Mutex.thy  \
-  UNITY/Simple/NSP_Bad.ML UNITY/Simple/NSP_Bad.thy  \
-  UNITY/Simple/Network.thy\
+  UNITY/Simple/NSP_Bad.thy UNITY/Simple/Network.thy\
   UNITY/Simple/Reach.thy UNITY/Simple/Reachability.thy UNITY/Simple/Token.thy\
   UNITY/Comp/Alloc.ML UNITY/Comp/Alloc.thy \
   UNITY/Comp/AllocBase.thy UNITY/Comp/AllocImpl.thy UNITY/Comp/Client.thy \
@@ -615,6 +615,22 @@ $(LOG)/HOL-Isar_examples.gz: $(OUT)/HOL Isar_examples/BasicLogic.thy \
 	@$(ISATOOL) usedir $(OUT)/HOL Isar_examples
 
 
+## HOL-SET-Protocol
+
+HOL-SET-Protocol: HOL $(LOG)/HOL-SET-Protocol.gz
+
+$(LOG)/HOL-SET-Protocol.gz: $(OUT)/HOL SET-Protocol/ROOT.ML \
+  SET-Protocol/MessageSET.thy\
+  SET-Protocol/EventSET.thy\
+  SET-Protocol/PublicSET.thy\
+  SET-Protocol/Cardholder_Registration.thy\
+  SET-Protocol/Merchant_Registration.thy\
+  SET-Protocol/Purchase.thy\
+  SET-Protocol/document/root.tex 
+	@$(ISATOOL) usedir -g true $(OUT)/HOL SET-Protocol
+
+
+
 ## TLA
 
 TLA: HOL $(OUT)/TLA
@@ -679,6 +695,6 @@ clean:
 		$(LOG)/HOL-Lattice \
 		$(LOG)/HOL-Complex.gz \
 		$(LOG)/HOL-Complex-ex.gz \
-		$(LOG)/HOL-Complex-HahnBanach.gz $(LOG)/TLA-Inc.gz \
-		$(LOG)/TLA-Buffer.gz $(LOG)/TLA-Memory.gz \
+		$(LOG)/HOL-Complex-HahnBanach.gz $(LOG)/HOL-SET-Protocol.gz \
+                $(LOG)/TLA-Inc.gz $(LOG)/TLA-Buffer.gz $(LOG)/TLA-Memory.gz \
 		$(LOG)/HOL-Library.gz $(LOG)/HOL-Unix.gz 
