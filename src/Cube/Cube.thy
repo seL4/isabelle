@@ -1,3 +1,3 @@
 
-Cube = Base + L2 + Lomega + LP + LP2 + LOmega + LPomega + CC
+Cube = Base + L2 + Lomega + LP + LP2 + Lomega2 + LPomega + CC
 

@@ -120,25 +120,25 @@ goal L2.thy "A:* B:* |- Pi C:*.(A->B->C)->C : ?T";
 by (DEPTH_SOLVE (ares_tac L2 1));
 uresult();
 
-goal LOmega.thy "|- Lam A:*.Lam B:*.Pi C:*.(A->B->C)->C : ?T";
-by (DEPTH_SOLVE (ares_tac LOmega 1));
+goal Lomega2.thy "|- Lam A:*.Lam B:*.Pi C:*.(A->B->C)->C : ?T";
+by (DEPTH_SOLVE (ares_tac Lomega2 1));
 uresult();
 
-goal LOmega.thy "|- Lam A:*.Lam B:*.Lam x:A. Lam y:B. x : ?T";
-by (DEPTH_SOLVE (ares_tac LOmega 1));
+goal Lomega2.thy "|- Lam A:*.Lam B:*.Lam x:A. Lam y:B. x : ?T";
+by (DEPTH_SOLVE (ares_tac Lomega2 1));
 uresult();
 
-goal LOmega.thy "A:* B:* |- ?p : (A->B) -> ((B->Pi P:*.P)->(A->Pi P:*.P))";
-by (strip_asms_tac LOmega 1);
+goal Lomega2.thy "A:* B:* |- ?p : (A->B) -> ((B->Pi P:*.P)->(A->Pi P:*.P))";
+by (strip_asms_tac Lomega2 1);
 by (rtac lam_ss 1);
-by (DEPTH_SOLVE_1(ares_tac LOmega 1));
-by (DEPTH_SOLVE_1(ares_tac LOmega 2));
+by (DEPTH_SOLVE_1(ares_tac Lomega2 1));
+by (DEPTH_SOLVE_1(ares_tac Lomega2 2));
 by (rtac lam_ss 1);
-by (DEPTH_SOLVE_1(ares_tac LOmega 1));
-by (DEPTH_SOLVE_1(ares_tac LOmega 2));
+by (DEPTH_SOLVE_1(ares_tac Lomega2 1));
+by (DEPTH_SOLVE_1(ares_tac Lomega2 2));
 by (rtac lam_ss 1);
 by (assume_tac 1);
-by (DEPTH_SOLVE_1(ares_tac LOmega 2));
+by (DEPTH_SOLVE_1(ares_tac Lomega2 2));
 by (etac pi_elim 1);
 by (assume_tac 1);
 by (etac pi_elim 1);

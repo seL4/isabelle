@@ -27,7 +27,7 @@ Pure:
 	@cd $(SRC)/Pure; $(ISATOOL) make Pure
 
 $(OUT)/Cube: $(OUT)/Pure Base.ML Base.thy CC.ML CC.thy Cube.thy L2.ML \
-  L2.thy LOmega.ML LOmega.thy LP.ML LP.thy LP2.ML LP2.thy LPomega.ML \
+  L2.thy Lomega2.ML Lomega2.thy LP.ML LP.thy LP2.ML LP2.thy LPomega.ML \
   LPomega.thy Lomega.ML Lomega.thy ROOT.ML
 	@$(ISATOOL) usedir -b $(OUT)/Pure Cube
 
