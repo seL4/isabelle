@@ -257,11 +257,11 @@ qed "mod_Suc";
 
 Goal "0<n ==> m mod n < n";
 by (res_inst_tac [("n","m")] less_induct 1);
-by (excluded_middle_tac "na<n" 1);
-(*case na<n*)
-by (asm_simp_tac (simpset() addsimps [mod_less]) 2);
+by (case_tac "na<n" 1);
 (*case n le na*)
-by (asm_full_simp_tac (simpset() addsimps [mod_geq, diff_less]) 1);
+by (asm_full_simp_tac (simpset() addsimps [mod_geq, diff_less]) 2);
+(*case na<n*)
+by (asm_simp_tac (simpset() addsimps [mod_less]) 1);
 qed "mod_less_divisor";
 
 
@@ -306,8 +306,8 @@ by (Asm_simp_tac 1);
 qed "mod2_add_self";
 Addsimps [mod2_add_self];
 
+(*Restore the default*)
 Delrules [less_SucE];
-
 
 (*** More division laws ***)
 
