@@ -44,8 +44,7 @@ sig
   val declare_term: term -> context -> context
   val declare_terms: term list -> context -> context
   val warn_extra_tfrees: context -> context -> context
-  val generalizeT: context -> context -> typ -> typ
-  val generalize: context -> context -> term -> term
+  val generalize: context -> context -> term list -> term list
   val find_free: term -> string -> term option
   val export: bool -> context -> context -> thm -> thm Seq.seq
   val drop_schematic: indexname * term option -> indexname * term option
@@ -688,23 +687,24 @@ fun warn_extra_tfrees
 
 (* generalize type variables *)
 
-fun gen_tfrees inner outer =
+fun generalize_tfrees inner outer =
   let
     val extra_fixes = fixed_names_of inner \\ fixed_names_of outer;
     fun still_fixed (Free (x, _)) = not (x mem_string extra_fixes)
       | still_fixed _ = false;
-    fun add (gen, (a, xs)) =
-      if is_some (Symtab.lookup (type_occs outer, a)) orelse exists still_fixed xs
+    val occs_inner = type_occs inner;
+    val occs_outer = type_occs outer;
+    fun add (gen, a) =
+      if is_some (Symtab.lookup (occs_outer, a)) orelse
+        exists still_fixed (Symtab.lookup_multi (occs_inner, a))
       then gen else a :: gen;
-  in Symtab.foldl add ([], type_occs inner) end;
+  in fn tfrees => foldl add ([], tfrees) end;
 
-fun generalizeT inner outer =
+fun generalize inner outer ts =
   let
-    val tfrees = gen_tfrees inner outer;
+    val tfrees = generalize_tfrees inner outer (foldr Term.add_term_tfree_names (ts, []));
     fun gen (x, S) = if x mem_string tfrees then TVar ((x, 0), S) else TFree (x, S);
-  in Term.map_type_tfree gen end;
-
-val generalize = Term.map_term_types oo generalizeT;
+  in map (Term.map_term_types (Term.map_type_tfree gen)) ts end;
 
 
 
@@ -717,18 +717,18 @@ fun find_free t x = foldl_aterms (get_free x) (None, t);
 
 fun export is_goal inner outer =
   let
-    val tfrees = gen_tfrees inner outer;
+    val gen = generalize_tfrees inner outer;
     val fixes = fixed_names_of inner \\ fixed_names_of outer;
     val asms = Library.drop (length (assumptions_of outer), assumptions_of inner);
     val exp_asms = map (fn (cprops, exp) => exp is_goal cprops) asms;
-  in fn thm =>
-    thm
+  in fn thm => thm
     |> Tactic.norm_hhf
     |> Seq.EVERY (rev exp_asms)
     |> Seq.map (fn rule =>
       let
         val {sign, prop, ...} = Thm.rep_thm rule;
         val frees = map (Thm.cterm_of sign) (mapfilter (find_free prop) fixes);
+        val tfrees = gen (Term.add_term_tfree_names (prop, []));
       in
         rule
         |> Drule.forall_intr_list frees
@@ -833,7 +833,7 @@ fun gen_binds prep_terms prep_pats gen raw_binds ctxt =
     val (ctxt', binds) =
       apsnd flat (foldl_map (prep_bind prep_pats) (ctxt, map fst raw_binds ~~ ts));
     val binds' =
-      if gen then map (apsnd (generalize ctxt' ctxt)) binds
+      if gen then map #1 binds ~~ generalize ctxt' ctxt (map #2 binds)
       else binds;
     val binds'' = map (apsnd Some) binds';
   in
@@ -878,7 +878,7 @@ fun gen_bind_propp prepp (ctxt, raw_args) =
 
     (*generalize result: context evaluated now, binds added later*)
     val gen = generalize ctxt' ctxt;
-    fun gen_binds c = c |> add_binds_i (map (apsnd (Some o gen)) binds);
+    fun gen_binds c = c |> add_binds_i (map #1 binds ~~ map Some (gen (map #2 binds)));
   in (ctxt' |> add_binds_i (map (apsnd Some) binds), (propss, gen_binds)) end;
 
 in
