@@ -331,6 +331,10 @@ Goal "(A Un B <= C) = (A <= C & B <= C)";
 by (Blast_tac 1);
 qed "Un_subset_iff";
 
+Goal "(A - B) Un (A Int B) = A";
+by (Blast_tac 1);
+qed "Un_Diff_Int";
+
 
 section "Compl";
 
