@@ -243,9 +243,16 @@ http://isabelle.in.tum.de/Bali/);
 * HOL/Algebra: new theory of rings and univariate polynomials, by
 Clemens Ballarin;
 
-* HOL/NumberTheory: Fundamental Theorem of Arithmetic, Chinese
+* HOL/NumberTheory: fundamental Theorem of Arithmetic, Chinese
 Remainder Theorem, Fermat/Euler Theorem, Wilson's Theorem, by Thomas M
 Rasmussen;
+
+* HOL/Lattice: fundamental concepts of lattice theory and order
+structures, including duals, properties of bounds versus algebraic
+laws, lattice operations versus set-theoretic ones, the Knaster-Tarski
+Theorem for complete lattices etc.; may also serve as a demonstration
+for abstract algebraic reasoning using axiomatic type classes, and
+mathematics-style proof in Isabelle/Isar; by Markus Wenzel;
 
 * HOL/Prolog: a (bare-bones) implementation of Lambda-Prolog, by David
 von Oheimb;

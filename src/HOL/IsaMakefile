@@ -9,13 +9,38 @@
 default: HOL
 images: HOL HOL-Real TLA
 
-test: HOL-Isar_examples HOL-Induct HOL-Lambda HOL-AxClasses HOL-ex HOL-Subst HOL-IMP \
-  HOL-IMPP HOL-NumberTheory HOL-Hoare HOL-Lex HOL-Algebra HOL-Auth \
-  HOL-UNITY HOL-Modelcheck HOL-Prolog HOL-W0 HOL-MiniML HOL-BCV \
-  HOL-MicroJava HOL-IOA HOL-Real-ex HOL-Real-HahnBanach \
-  TLA-Inc TLA-Buffer TLA-Memory
-
-all: images test
+#Note: keep targets sorted!
+test: \
+  HOL-Algebra \
+  HOL-Auth \
+  HOL-AxClasses \
+  HOL-BCV \
+      HOL-Real-HahnBanach \
+      HOL-Real-ex \
+  HOL-Hoare \
+  HOL-IMP \
+  HOL-IMPP \
+  HOL-IOA \
+  HOL-Induct \
+  HOL-Isar_examples \
+  HOL-Lambda \
+  HOL-Lattice \
+  HOL-Lex \
+  HOL-MicroJava \
+  HOL-MiniML \
+  HOL-Modelcheck \
+  HOL-NumberTheory \
+  HOL-Prolog \
+  HOL-Subst \
+      TLA-Buffer \
+      TLA-Inc \
+      TLA-Memory \
+  HOL-UNITY \
+  HOL-W0 \
+  HOL-ex
+    # ^ this is the sort position
+  
+all: test images
 
 
 ## global settings
@@ -406,6 +431,16 @@ $(LOG)/HOL-AxClasses.gz: $(OUT)/HOL AxClasses/Group.thy \
 	@$(ISATOOL) usedir $(OUT)/HOL AxClasses
 
 
+## HOL-Lattice
+
+HOL-Lattice: HOL $(LOG)/HOL-Lattice.gz
+
+$(LOG)/HOL-Lattice.gz: $(OUT)/HOL Lattice/Bounds.thy \
+  Lattice/CompleteLattice.thy Lattice/Lattice.thy Lattice/Orders.thy \
+  Lattice/ROOT.ML Lattice/document/root.tex
+	@$(ISATOOL) usedir $(OUT)/HOL Lattice
+
+
 ## HOL-ex
 
 HOL-ex: HOL $(LOG)/HOL-ex.gz
@@ -502,6 +537,6 @@ clean:
 		$(LOG)/HOL-W0.gz $(LOG)/HOL-MiniML.gz \
 		$(LOG)/HOL-BCV.gz $(LOG)/HOL-MicroJava.gz \
 		$(LOG)/HOL-IOA.gz $(LOG)/HOL-AxClasses \
-		$(LOG)/HOL-Real-ex.gz \
+		$(LOG)/HOL-Lattice $(LOG)/HOL-Real-ex.gz \
 		$(LOG)/HOL-Real-HahnBanach.gz $(LOG)/TLA-Inc.gz \
 		$(LOG)/TLA-Buffer.gz $(LOG)/TLA-Memory.gz

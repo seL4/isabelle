@@ -1,0 +1,56 @@
+
+% $Id$
+
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym,pdfsetup}
+\usepackage[only,bigsqcap]{stmaryrd}
+
+\urlstyle{rm}\isabellestyle{it}
+\pagestyle{headings}
+
+\hyphenation{Isabelle}
+\hyphenation{Isar}
+
+
+\begin{document}
+
+\title{Lattices and Orders in Isabelle/HOL}
+\author{Markus Wenzel \\ TU M\"unchen}
+\maketitle
+
+\begin{abstract}
+  We consider abstract structures of orders and lattices.  Many fundamental
+  concepts of lattice theory are developed, including dual structures,
+  properties of bounds versus algebraic laws, lattice operations versus
+  set-theoretic ones etc.  We also give example instantiations of lattices and
+  orders, such as direct products and function spaces.  Well-known properties
+  are demonstrated, like the Knaster-Tarski Theorem for complete lattices.
+  
+  This formal theory development may serve as an example of applying
+  Isabelle/HOL to the domain of mathematical reasoning about ``axiomatic''
+  structures.  Apart from the simply-typed classical set-theory of HOL, we
+  employ Isabelle's system of axiomatic type classes for expressing structures
+  and functors in a light-weight manner.  Proofs are expressed in the Isar
+  language for readable formal proof, while aiming at its ``best-style'' of
+  representing formal reasoning.
+\end{abstract}
+
+\tableofcontents
+
+\newpage
+{
+  \parindent 0pt\parskip 0.7ex
+  \pagestyle{myheadings}
+  \renewcommand{\isamarkupheader}[1]{\markright{THEORY~``\isabellecontext''}\section{#1}}
+  \input{session}
+}
+
+\nocite{Wenzel:1999:TPHOL}
+\nocite{Wenzel:2000:isar-ref}
+\nocite{Wenzel:2000:axclass}
+\nocite{Bauer-Wenzel:2000:HB}
+
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}
