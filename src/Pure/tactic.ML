@@ -252,10 +252,21 @@ in instantiate (map lifttvar Tinsts, map liftpair insts)
                (lift_rule (st,i) rule)
 end;
 
-(*Like lift_inst_rule but takes cterms, not strings.
-  The cterms must be functions of the parameters of the subgoal,
-  i.e. they are assumed to be lifted already!
-  Also: types of Vars must be fully instantiated already *)
+(*
+Like lift_inst_rule but takes terms, not strings, where the terms may contain
+Bounds referring to parameters of the subgoal.
+
+insts: [...,(vj,tj),...]
+
+The tj may contain references to parameters of subgoal i of the state st
+in the form of Bound k, i.e. the tj may be subterms of the subgoal.
+To saturate the lose bound vars, the tj are enclosed in abstractions
+corresponding to the parameters of subgoal i, thus turning them into
+functions. At the same time, the types of the vj are lifted.
+
+NB: the types in insts must be correctly instantiated already,
+    i.e. Tinsts is not applied to insts.
+*)
 fun term_lift_inst_rule (st, i, Tinsts, insts, rule) =
 let val {maxidx,sign,...} = rep_thm st
     val (_, _, Bi, _) = dest_state(st,i)
