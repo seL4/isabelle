@@ -94,7 +94,7 @@ fun add_fp_def_i (rec_tms, domts, intr_tms) thy =
     val _ = assert_all Syntax.is_identifier rec_names
        (fn a => "Name of recursive set not an identifier: " ^ a);
 
-    val _ = assert_all (is_some o lookup_const sign) rec_names
+    val _ = assert_all (is_some o Sign.const_type sign) rec_names
        (fn a => "Recursive set not previously declared as constant: " ^ a);
 
     local (*Checking the introduction rules*)
