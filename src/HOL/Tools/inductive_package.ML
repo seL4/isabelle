@@ -57,7 +57,7 @@ val refl_thin = prove_goal HOL.thy "!!P. [| a=a;  P |] ==> P"
      (fn _ => [assume_tac 1]);
 
 (*For simplifying the elimination rule*)
-val elim_rls = [asm_rl, FalseE, refl_thin, conjE, exE, disjE, Pair_inject];
+val elim_rls = [asm_rl, FalseE, refl_thin, conjE, exE, Pair_inject];
 
 val vimage_name = Sign.intern_const (sign_of Vimage.thy) "op -``";
 val mono_name = Sign.intern_const (sign_of Ord.thy) "mono";
@@ -284,7 +284,6 @@ fun prove_elims cs cTs params intr_ts unfold rec_sets_defs thy =
 (*Applies freeness of the given constructors, which *must* be unfolded by
   the given defs.  Cannot simply use the local con_defs because con_defs=[] 
   for inference systems.
-  FIXME: proper handling of conjunctive / disjunctive side conditions?!
  *)
 fun con_elim_tac simps =
   let val elim_tac = REPEAT o (eresolve_tac elim_rls)
@@ -296,10 +295,10 @@ fun con_elim_tac simps =
   end;
 
 (*String s should have the form t:Si where Si is an inductive set*)
-fun mk_cases elims defs s =
+fun mk_cases elims simps s =
   let val prem = assume (read_cterm (sign_of_thm (hd elims)) (s, propT));
       val elims' = map (try (fn r =>
-        rule_by_tactic (con_elim_tac defs) (prem RS r) |> standard)) elims
+        rule_by_tactic (con_elim_tac simps) (prem RS r) |> standard)) elims
   in case find_first is_some elims' of
        Some (Some r) => r
      | None => error ("mk_cases: string '" ^ s ^ "' not of form 't : S_i'")
