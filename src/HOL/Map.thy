@@ -53,7 +53,7 @@ primrec "t([]  [|->]bs) = t"
         "t(a#as[|->]bs) = t(a|->hd bs)(as[|->]tl bs)"
 
 
-section "empty"
+section {* empty *}
 
 lemma empty_upd_none: "empty(x := None) = empty"
 apply (rule ext)
@@ -69,7 +69,7 @@ done
 declare sum_case_empty_empty [simp]
 
 
-section "map_upd"
+section {* map\_upd *}
 
 lemma map_upd_triv: "t k = Some x ==> t(k|->x) = t"
 apply (rule ext)
@@ -93,7 +93,7 @@ done
 
 
 (* FIXME: what is this sum_case nonsense?? *)
-section "sum_case and empty/map_upd"
+section {* sum\_case and empty/map\_upd *}
 
 lemma sum_case_map_upd_empty: "sum_case (m(k|->y)) empty =  (sum_case m empty)(Inl k|->y)"
 apply (rule ext)
@@ -114,7 +114,7 @@ done
 declare sum_case_map_upd_map_upd [simp]
 
 
-section "map_upds"
+section {* map\_upds *}
 
 lemma map_upds_twist [rule_format (no_asm)]: "a ~: set as --> (!m bs. (m(a|->b)(as[|->]bs)) = (m(as[|->]bs)(a|->b)))"
 apply (induct_tac "as")
@@ -128,7 +128,7 @@ done
 declare map_upds_twist [simp]
 
 
-section "chg_map"
+section {* chg\_map *}
 
 lemma chg_map_new: "m a = None   ==> chg_map f a m = m"
 apply (unfold chg_map_def)
@@ -143,7 +143,7 @@ done
 declare chg_map_new [simp] chg_map_upd [simp]
 
 
-section "map_of"
+section {* map\_of *}
 
 lemma map_of_SomeD [rule_format (no_asm)]: "map_of xs k = Some y --> (k,y):set xs"
 apply (induct_tac "xs")
@@ -184,7 +184,7 @@ apply auto
 done
 
 
-section "option_map related"
+section {* option\_map related *}
 
 lemma option_map_o_empty: "option_map f o empty = empty"
 apply (rule ext)
@@ -199,7 +199,7 @@ done
 declare option_map_o_empty [simp] option_map_o_map_upd [simp]
 
 
-section "++"
+section {* ++ *}
 
 lemma override_empty: "m ++ empty = m"
 apply (unfold override_def)
@@ -261,7 +261,7 @@ done
 declare fun_upd_apply [simp]
 
 
-section "dom"
+section {* dom *}
 
 lemma domI: "m a = Some b ==> a : dom m"
 apply (unfold dom_def)
@@ -305,7 +305,7 @@ apply auto
 done
 declare dom_override [simp]
 
-section "ran"
+section {* ran *}
 
 lemma ran_empty: "ran empty = {}"
 apply (unfold ran_def)
