@@ -6,7 +6,7 @@
 Specification of Chandy and Charpentier's Allocator
 *)
 
-Alloc = Follows + Comp +
+Alloc = Follows + Extend + PPROD +
 
 (*simplifies the expression of some specifications*)
 constdefs
@@ -62,28 +62,34 @@ constdefs
     "system_progress == INT i : lessThan Nclients.
 			INT h. 
 			  {s. h <= (ask o sub i o client)s} LeadsTo
-			  {s. h pfix_le (giv o sub i o client) s}"
+			  {s. h pfixLe (giv o sub i o client) s}"
+
+  system_spec :: systemState program set
+    "system_spec == system_safety Int system_progress"
 
 (** Client specification (required) ***)
 
   (*spec (3)*)
   client_increasing :: clientState program set
     "client_increasing ==
-         UNIV guarantees Increasing ask Int Increasing rel"
+         UNIV guar Increasing ask Int Increasing rel"
 
   (*spec (4)*)
   client_bounded :: clientState program set
     "client_bounded ==
-         UNIV guarantees Always {s. ALL elt : set (ask s). elt <= NbT}"
+         UNIV guar Always {s. ALL elt : set (ask s). elt <= NbT}"
 
   (*spec (5)*)
   client_progress :: clientState program set
     "client_progress ==
 	 Increasing giv
-	 guarantees
-	 (INT h. {s. h <= giv s & h pfix_ge ask s}
+	 guar
+	 (INT h. {s. h <= giv s & h pfixGe ask s}
 		 LeadsTo
 		 {s. tokens h <= (tokens o rel) s})"
+
+  client_spec :: clientState program set
+    "client_spec == client_increasing Int client_bounded Int client_progress"
 
 (** Allocator specification (required) ***)
 
@@ -91,14 +97,14 @@ constdefs
   alloc_increasing :: allocState program set
     "alloc_increasing ==
 	 UNIV
-         guarantees
+         guar
 	 (INT i : lessThan Nclients. Increasing (sub i o allocAsk))"
 
   (*spec (7)*)
   alloc_safety :: allocState program set
     "alloc_safety ==
 	 (INT i : lessThan Nclients. Increasing (sub i o allocRel))
-         guarantees
+         guar
 	 Always {s. sum (%i. (tokens o sub i o allocGiv) s) Nclients
 	         <= NbT + sum (%i. (tokens o sub i o allocRel) s) Nclients}"
 
@@ -113,31 +119,71 @@ constdefs
 		    allocAsk s i ! k <= NbT}
          Int
          (INT i : lessThan Nclients. 
-	  INT h. {s. h <= (sub i o allocGiv)s & h pfix_ge (sub i o allocAsk)s}
+	  INT h. {s. h <= (sub i o allocGiv)s & h pfixGe (sub i o allocAsk)s}
 		  LeadsTo {s. tokens h <= (tokens o sub i o allocRel)s})
-         guarantees
+         guar
 	     (INT i : lessThan Nclients.
 	      INT h. {s. h <= (sub i o allocAsk) s} LeadsTo
-	             {s. h pfix_le (sub i o allocGiv) s})"
+	             {s. h pfixLe (sub i o allocGiv) s})"
+
+  alloc_spec :: allocState program set
+    "alloc_spec == alloc_increasing Int alloc_safety Int alloc_progress"
 
 (** Network specification ***)
 
   (*spec (9.1)*)
   network_ask :: systemState program set
     "network_ask == INT i : lessThan Nclients.
-                    Increasing (ask o sub i o client) guarantees
+                    Increasing (ask o sub i o client)
+                    guar
                     ((sub i o allocAsk) Fols (ask o sub i o client))"
 
   (*spec (9.2)*)
   network_giv :: systemState program set
     "network_giv == INT i : lessThan Nclients.
-                    Increasing (sub i o allocGiv) guarantees
+                    Increasing (sub i o allocGiv)
+                    guar
                     ((giv o sub i o client) Fols (sub i o allocGiv))"
 
   (*spec (9.3)*)
   network_rel :: systemState program set
     "network_rel == INT i : lessThan Nclients.
-                    Increasing (rel o sub i o client) guarantees
+                    Increasing (rel o sub i o client)
+                    guar
                     ((sub i o allocRel) Fols (rel o sub i o client))"
 
+  network_spec :: systemState program set
+    "network_spec == network_ask Int network_giv Int network_rel"
+
+
+(** State mappings **)
+  sysOfAlloc :: "(allocState * (nat => clientState)) => systemState"
+    "sysOfAlloc == %(s,y). (| allocGiv = allocGiv s,
+			      allocAsk = allocAsk s,
+			      allocRel = allocRel s,
+			      client   = y |)"
+
+  sysOfClient :: "((nat => clientState) * allocState ) => systemState"
+    "sysOfClient == %(x,y). sysOfAlloc(y,x)"
+
+
+locale System =
+  fixes 
+    Alloc   :: allocState program
+    Client  :: clientState program
+    Network :: systemState program
+    System  :: systemState program
+  
+  assumes
+    Alloc   "Alloc   : alloc_spec"
+    Client  "Client  : client_spec"
+    Network "Network : network_spec"
+
+  defines
+    System_def
+      "System == (extend sysOfAlloc Alloc)
+                 Join
+                 (extend sysOfClient (PPI x: lessThan Nclients. Client))
+                 Join
+                 Network"
 end
