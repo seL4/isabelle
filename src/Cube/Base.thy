@@ -38,6 +38,14 @@ translations
   "Pi x:A. B"   => "Prod(A, %x. B)"
   "A -> B"      => "Prod(A, _K(B))"
 
+syntax (symbols)
+  Trueprop      :: "[context, typing] => prop"          ("(_/ \\<turnstile> _)")
+  box           :: "term"                               ("\\<box>")
+  Lam           :: "[idt, term, term] => term"          ("(3\\<Lambda>_:_./ _)" [0, 0, 0] 10)
+  Pi            :: "[idt, term, term] => term"          ("(3\\<Pi>_:_./ _)" [0, 0] 10)
+  "op ->"       :: "[term, term] => term"               (infixr "\\<rightarrow>" 10)
+
+
 rules
   s_b           "*: []"
 
