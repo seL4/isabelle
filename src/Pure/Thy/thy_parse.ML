@@ -250,8 +250,7 @@ val type_args =
 val type_decl = type_args -- name -- optional ("=" $$-- !! string >> Some) None
   -- opt_infix >> mk_type_decl;
 
-val type_decls = repeat1 (old_type_decl || type_decl)
-  >> (rpair "" o mk_type_decls o flat);
+val type_decls = repeat1 (old_type_decl || type_decl) >> (mk_type_decls o flat);
 
 
 (* consts *)
@@ -336,7 +335,7 @@ val instance_decl =
   (name --$$ "<" -- name >> (pair "|> AxClass.add_inst_subclass" o mk_pair) ||
     name --$$ "::" -- arity >> (pair "|> AxClass.add_inst_arity" o mk_triple2))
   -- opt_witness
-  >> (fn ((x, y), z) => (cat_lines [x, y, z], ""));
+  >> (fn ((x, y), z) => (cat_lines [x, y, z]));
 
 
 
@@ -403,7 +402,8 @@ fun mk_structure tname ((thy_name, old_thys), opt_txts) =
         \\n"
         ^ mltxt ^ "\n\
         \\n\
-        \val thy = thy\n\n\
+        \val thy = thy\n\
+        \\n\
         \|> add_trfuns\n"
         ^ trfun_args ^ "\n\
         \\n"
@@ -411,21 +411,24 @@ fun mk_structure tname ((thy_name, old_thys), opt_txts) =
         \\n\
         \|> add_thyname " ^ quote thy_name ^ ";\n\
         \\n\
+        \val () = store_theory (thy, " ^ quote thy_name ^ ");\n\
+        \\n\
         \\n"
         ^ postxt ^ "\n\
         \\n\
         \end;\n\
-        \end;\n\n\
-        \store_theory (" ^ thy_name ^ ".thy, " ^ quote thy_name ^ ");\n"
+        \end;\n"
     | None =>
-        "val thy = " ^ old_thys ^ " false;\n\n\
+        "val thy = " ^ old_thys ^ " false;\n\
+        \\n\
         \structure " ^ thy_name ^ " =\n\
         \struct\n\
         \\n\
         \val thy = thy\n\
         \\n\
-        \end;\n\n\
-        \store_theory (" ^ thy_name ^ ".thy, " ^ quote thy_name ^ ");\n");
+        \val () = store_theory (thy, " ^ quote thy_name ^ ");\n\
+        \\n\
+        \end;\n");
 
 fun theory_defn sectab tname =
   header -- optional (extension sectab >> Some) None -- eof
@@ -438,9 +441,10 @@ fun parse_thy (lex, sectab) tname str =
 (* standard sections *)
 
 fun mk_val ax = "val " ^ ax ^ " = get_axiom thy " ^ quote ax ^ ";";
+val mk_vals = cat_lines o map mk_val;
 
-fun mk_axm_sect pretxt (txt, axs) =
-  (pretxt ^ "\n" ^ txt, cat_lines (map mk_val axs));
+fun mk_axm_sect "" (txt, axs) = (txt, mk_vals axs)
+  | mk_axm_sect pretxt (txt, axs) = (pretxt ^ "\n" ^ txt, mk_vals axs);
 
 fun axm_section name pretxt parse =
   (name, parse >> mk_axm_sect pretxt);
@@ -451,22 +455,22 @@ fun section name pretxt parse =
 
 val pure_keywords =
  ["end", "ML", "mixfix", "infixr", "infixl", "binder", "=", "+", ",", "<",
-   "{", "}", "(", ")", "[", "]", "::", "==", "=>", "<="];
+  "{", "}", "(", ")", "[", "]", "::", "==", "=>", "<="];
 
 val pure_sections =
  [section "classes" "|> add_classes" class_decls,
   section "default" "|> add_defsort" sort,
-  ("types", type_decls),
+  section "types" "" type_decls,
   section "arities" "|> add_arities" arity_decls,
   section "consts" "|> add_consts" const_decls,
   section "syntax" "|> add_syntax" const_decls,
   section "translations" "|> add_trrules" trans_decls,
   section "MLtrans" "|> add_trfuns" mltrans,
-  ("MLtext", verbatim >> rpair ""),
+  section "MLtext" "" verbatim,
   axm_section "rules" "|> add_axioms" axiom_decls,
   axm_section "defs" "|> add_defs" axiom_decls,
   axm_section "axclass" "|> AxClass.add_axclass" axclass_decl,
-  ("instance", instance_decl)];
+  section "instance" "" instance_decl];
 
 
 end;
