@@ -204,9 +204,6 @@ apply (rule eq_Abs_REAL [of z])
 apply (simp add: real_add preal_add_ac)
 done
 
-lemma real_add_zero_right: "z + (0::real) = z"
-by (simp add: real_add_zero_left real_add_commute)
-
 instance real :: plus_ac0
   by (intro_classes,
       (assumption | 
@@ -634,9 +631,6 @@ lemma real_add_le_less_mono:
      "!!z z'::real. [| w'\<le>w; z'<z |] ==> w' + z' < w + z"
   by (rule Ring_and_Field.add_le_less_mono)
 
-lemma real_zero_less_one: "0 < (1::real)"
-  by (rule Ring_and_Field.zero_less_one)
-
 lemma real_le_square [simp]: "(0::real) \<le> x*x"
  by (rule Ring_and_Field.zero_le_square)
 
@@ -676,12 +670,12 @@ text{*FIXME: delete or at least combine the next two lemmas*}
 lemma real_sum_squares_cancel: "x * x + y * y = 0 ==> x = (0::real)"
 apply (drule Ring_and_Field.equals_zero_I [THEN sym])
 apply (cut_tac x = y in real_le_square) 
-apply (auto, drule real_le_anti_sym, auto)
+apply (auto, drule order_antisym, auto)
 done
 
 lemma real_sum_squares_cancel2: "x * x + y * y = 0 ==> y = (0::real)"
 apply (rule_tac y = x in real_sum_squares_cancel)
-apply (simp add: real_add_commute)
+apply (simp add: add_commute)
 done
 
 lemma real_add_order: "[| 0 < x; 0 < y |] ==> (0::real) < x + y"
@@ -905,9 +899,6 @@ lemma real_less_half_sum: "x < y ==> x < (x+y) / (2::real)"
 lemma real_gt_half_sum: "x < y ==> (x+y)/(2::real) < y"
   by auto
 
-lemma real_dense: "x < y ==> \<exists>r::real. x < r & r < y"
-  by (rule Ring_and_Field.dense)
-
 
 subsection{*Absolute Value Function for the Reals*}
 
@@ -965,7 +956,6 @@ val real_0_le_diff_iff = thm"real_0_le_diff_iff";
 val real_lbound_gt_zero = thm"real_lbound_gt_zero";
 val real_less_half_sum = thm"real_less_half_sum";
 val real_gt_half_sum = thm"real_gt_half_sum";
-val real_dense = thm"real_dense";
 
 val abs_eqI1 = thm"abs_eqI1";
 val abs_eqI2 = thm"abs_eqI2";

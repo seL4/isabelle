@@ -74,7 +74,7 @@ done
 lemma real_isLub_unique: "[| isLub R S x; isLub R S y |] ==> x = (y::real)"
 apply (frule isLub_isUb)
 apply (frule_tac x = y in isLub_isUb)
-apply (blast intro!: real_le_anti_sym dest!: isLub_le_isUb)
+apply (blast intro!: order_antisym dest!: isLub_le_isUb)
 done
 
 lemma real_order_restrict: "[| (x::real) <=* S'; S <= S' |] ==> x <=* S"
