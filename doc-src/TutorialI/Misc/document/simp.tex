@@ -123,7 +123,17 @@ There are three modifiers that influence the treatment of assumptions:
 Both \isa{{\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}simp{\isacharparenright}} and \isa{{\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}use{\isacharparenright}} run forever on
 the problematic subgoal above.
 Note that only one of the modifiers is allowed, and it must precede all
-other arguments.%
+other arguments.
+
+\begin{warn}
+Assumptions are simplified in a left-to-right fashion. If an
+assumption can help in simplifying one to the left of it, this may get
+overlooked. In such cases you have to rotate the assumptions explicitly:
+\isacommand{apply}\isa{{\isacharparenleft}rotate{\isacharunderscore}tac}~$n$\isa{{\isacharparenright}}\indexbold{*rotate_tac}
+causes a cyclic shift by $n$ positions from right to left, if $n$ is
+positive, and from left to right, if $n$ is negative.
+Beware that such rotations make proofs quite brittle.
+\end{warn}%
 \end{isamarkuptext}%
 %
 \isamarkupsubsubsection{Rewriting with Definitions%

@@ -121,6 +121,16 @@ Both @{text"(no_asm_simp)"} and @{text"(no_asm_use)"} run forever on
 the problematic subgoal above.
 Note that only one of the modifiers is allowed, and it must precede all
 other arguments.
+
+\begin{warn}
+Assumptions are simplified in a left-to-right fashion. If an
+assumption can help in simplifying one to the left of it, this may get
+overlooked. In such cases you have to rotate the assumptions explicitly:
+\isacommand{apply}@{text"(rotate_tac"}~$n$@{text")"}\indexbold{*rotate_tac}
+causes a cyclic shift by $n$ positions from right to left, if $n$ is
+positive, and from left to right, if $n$ is negative.
+Beware that such rotations make proofs quite brittle.
+\end{warn}
 *}
 
 subsubsection{*Rewriting with Definitions*}

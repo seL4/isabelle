@@ -57,8 +57,6 @@ recdef: failed tcs no longer shown!
 
 Advanced recdef: explain recdef_tc?
 
-warning: simp of asms from l to r; may require reordering (rotate_tac)
-
 Adjust FP textbook refs: new Bird, Hudak
 Discrete math textbook: Rosen?
 
