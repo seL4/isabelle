@@ -115,6 +115,10 @@ goal ZF.thy "A-0 = A";
 by (fast_tac eq_cs 1);
 qed "Diff_0";
 
+goal ZF.thy "A-B=0 <-> A<=B";
+by (fast_tac (eq_cs addEs [equalityE]) 1);
+qed "Diff_eq_0_iff";
+
 (*NOT SUITABLE FOR REWRITING since {a} == cons(a,0)*)
 goal ZF.thy "A - cons(a,B) = A - B - {a}";
 by (fast_tac eq_cs 1);
@@ -449,6 +453,11 @@ qed "converse_Int";
 goal ZF.thy "converse(A) - converse(B) = converse(A - B)";
 by (fast_tac eq_cs 1);
 qed "converse_diff";
+
+(*Does the analogue hold for INT?*)
+goal ZF.thy "converse(UN x:A. B(x)) = (UN x:A. converse(B(x)))";
+by (fast_tac eq_cs 1);
+qed "converse_UN";
 
 (** Pow **)
 
