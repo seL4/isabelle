@@ -18,19 +18,19 @@ sig
   datatype env = Envir of {asol: term xolist,
                            iTs: (indexname * typ) list,
                            maxidx: int}
-  val alist_of : env -> (indexname * term) list
-  val alist_of_olist : 'a xolist -> (indexname * 'a) list
-  val empty : int->env
-  val is_empty : env -> bool
-  val minidx : env -> int option
-  val genvar  : string -> env * typ -> env * term
-  val genvars : string -> env * typ list -> env * term list
-  val lookup : env * indexname -> term option
-  val norm_term : env -> term -> term
-  val null_olist : 'a xolist
-  val olist_of_alist: (indexname * 'a) list -> 'a xolist
-  val update : (indexname * term) * env -> env
-  val vupdate : (indexname * term) * env -> env
+  val alist_of		: env -> (indexname * term) list
+  val alist_of_olist	: 'a xolist -> (indexname * 'a) list
+  val empty		: int->env
+  val is_empty		: env -> bool
+  val minidx		: env -> int option
+  val genvar		: string -> env * typ -> env * term
+  val genvars		: string -> env * typ list -> env * term list
+  val lookup		: env * indexname -> term option
+  val norm_term		: env -> term -> term
+  val null_olist	: 'a xolist
+  val olist_of_alist	: (indexname * 'a) list -> 'a xolist
+  val update		: (indexname * term) * env -> env
+  val vupdate		: (indexname * term) * env -> env
 end;
 
 functor EnvirFun () : ENVIR =
@@ -211,7 +211,10 @@ in
 
 (*curried version might be slower in recursive calls*)
 fun norm_term (env as Envir{asol,iTs,...}) t : term =
-        if iTs=[] then norm_term1(asol, t) else norm_term2(asol,iTs, t)
+        if null iTs then norm_term1(asol, t) else norm_term2(asol,iTs, t)
+
+fun norm_ter (env as Envir{asol,iTs,...}) t : term =
+        if null iTs then norm_term1(asol, t) else norm_term2(asol,iTs, t)
 
 end;
 
