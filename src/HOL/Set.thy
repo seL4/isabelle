@@ -260,7 +260,7 @@ lemma bexI [intro]: "P x ==> x:A ==> EX x:A. P x"
     choice of @{prop "x:A"}. *}
   by (unfold Bex_def) blast
 
-lemma rev_bexI: "x:A ==> P x ==> EX x:A. P x"
+lemma rev_bexI [intro?]: "x:A ==> P x ==> EX x:A. P x"
   -- {* The best argument order when there is only one @{prop "x:A"}. *}
   by (unfold Bex_def) blast
 
