@@ -49,6 +49,11 @@ the current theory context;
 * HOL/record: now includes concrete syntax for record terms (still
 lacks important theorems, like surjective pairing and split);
 
+* simplification procedure unit_eq_proc rewrites (?x::unit) = (); this
+is made part of the default simpset of Prod.thy, which COULD MAKE
+EXISTING PROOFS FAIL (consider 'Delsimprocs [unit_eq_proc];' as last
+resort);
+
 * new force_tac (and its derivations Force_tac, force): combines
 rewriting and classical reasoning (and whatever other tools) similarly
 to auto_tac, but is aimed to solve the given subgoal totally;
@@ -123,6 +128,9 @@ the well-founded relation;
 * improved the theory data mechanism to support encapsulation (data
 kind name replaced by private Object.kind, acting as authorization
 key); new type-safe user interface via functor TheoryDataFun;
+
+* module Pure/Syntax now offers quote / antiquote translation
+functions (useful for Hoare logic etc. with implicit dependencies);
 
 
 
