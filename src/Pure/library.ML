@@ -5,7 +5,7 @@
 
 Basic library: functions, options, pairs, booleans, lists, integers,
 strings, lists as sets, association lists, generic tables, balanced trees,
-input / TextIO.output, timing, filenames, misc functions.
+input / output, timing, filenames, misc functions.
 *)
 
 infix |> ~~ \ \\ orelf ins ins_string ins_int orf andf prefix upto downto
