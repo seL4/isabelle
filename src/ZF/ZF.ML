@@ -411,11 +411,14 @@ qed_goal "not_emptyE" ZF.thy "[| A ~= 0;  !!x. x:A ==> R |] ==> R"
     swap_res_tac [minor] 1,
     assume_tac 1 ]);
 
-(*A claset that leaves <= formulae unchanged!*)
+(*A claset that leaves <= formulae unchanged!
+  UN_E appears before UnionE so that it is tried first, to avoid expensive
+  calls to hyp_subst_tac.  Cannot include UN_I as it is unsafe: 
+  would enlarge the search space.*)
 val subset0_cs = FOL_cs
   addSIs [ballI, InterI, CollectI, PowI, empty_subsetI]
   addIs [bexI, UnionI, ReplaceI, RepFunI]
-  addSEs [bexE, make_elim PowD, UnionE, ReplaceE2, RepFunE,
+  addSEs [bexE, make_elim PowD, UN_E, UnionE, ReplaceE2, RepFunE,
 	  CollectE, emptyE]
   addEs [rev_ballE, InterD, make_elim InterD, subsetD];
 
