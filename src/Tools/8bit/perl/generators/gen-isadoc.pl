@@ -230,7 +230,7 @@ $index = 0;
 $found = 0;
 $end_key_map = 0; 
 $pattern = 
-'^\s*MOD\s*(None|Mod1|Mod2|Mod4|Shift|Ctrl)\s*KEY\s*([a-zA-Z]|F\d{1,2})\s*CODE\s*([0-9a-fA-F][0-9a-fA-F](\s*,\s*[0-9a-fA-F][0-9a-fA-F])*)\s*$';
+'^\s*MOD\s*(None|Mod1|Mod2|Mod4|Shift|Ctrl)\s*KEY\s*([a-zA-Z]+|F\d{1,2})\s*CODE\s*([0-9a-fA-F][0-9a-fA-F](\s*,\s*[0-9a-fA-F][0-9a-fA-F])*)\s*$';
 
 #'
 
@@ -666,14 +666,14 @@ printf(OUTFILE "\\hline\n");
 printf(OUTFILE "Shift&%s\\nextline\n",
        join('&',split(/\"/,$fkmat{"Shift"})));
 printf(OUTFILE "\\hline\n");
+printf(OUTFILE "Ctrl&%s\\\\\n",
+       join('&',split(/\"/,$fkmat{"Ctrl"})));
+printf(OUTFILE "\\hline\n");
 printf(OUTFILE "Alt&%s\\nextline\n",
        join('&',split(/\"/,$fkmat{"Mod2"})));
 printf(OUTFILE "\\hline\n");
 printf(OUTFILE "AltGraph&%s\\nextline\n",
        join('&',split(/\"/,$fkmat{"Mod4"})));
-printf(OUTFILE "\\hline\n");
-printf(OUTFILE "Ctrl&%s\\\\\n",
-       join('&',split(/\"/,$fkmat{"Ctrl"})));
 printf(OUTFILE "\\hline\n");
 printf(OUTFILE "Meta&%s\\nextline\n",
        join('&',split(/\"/,$fkmat{"Mod1"})));
