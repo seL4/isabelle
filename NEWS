@@ -41,6 +41,11 @@ New in this Isabelle release
     longer be enclosed in quotes.  Instead, precede variable name with `?'.
     This is consistent with the instantiation attribute "where".
 
+* Attributes "where" and "of":
+  Now take type variables of instantiated theorem into account when reading
+  the instantiation string.  This fixes a bug that caused instantiated
+  theorems to have too special types in some circumstances.
+
 * Locales:
   - Goal statements involving the context element "includes" no longer
     generate theorems with internal delta predicates (those ending on
