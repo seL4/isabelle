@@ -144,10 +144,9 @@ $(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML\
   Real/Lubs.thy Real/rat_arith.ML\
   Real/Rational.thy Real/PReal.thy Real/RComplete.thy \
   Real/ROOT.ML Real/Real.thy Real/real_arith.ML Real/RealDef.thy \
-  Real/RealPow.thy Real/document/root.tex Real/real_arith.ML\
-  Hyperreal/EvenOdd.thy\
-  Hyperreal/Fact.ML Hyperreal/Fact.thy Hyperreal/HLog.thy\
-  Hyperreal/Filter.ML Hyperreal/Filter.thy Hyperreal/HSeries.thy\
+  Real/RealPow.thy Real/document/root.tex\
+  Hyperreal/EvenOdd.thy Hyperreal/Fact.thy Hyperreal/HLog.thy\
+  Hyperreal/Filter.thy Hyperreal/HSeries.thy\
   Hyperreal/HTranscendental.thy Hyperreal/HyperArith.thy\
   Hyperreal/HyperDef.thy Hyperreal/HyperNat.thy\
   Hyperreal/HyperPow.thy Hyperreal/Hyperreal.thy\

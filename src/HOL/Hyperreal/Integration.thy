@@ -83,7 +83,7 @@ apply (drule_tac x = "Suc Na" in spec, simp)
 apply (rotate_tac 2)
 apply (drule_tac x = N in spec, simp)
 apply (drule_tac x = Na in spec)
-apply (drule_tac x = "Suc Na" and P = "%n. Na \<le> n \<longrightarrow> D n = D Na" in spec, auto)
+apply (drule_tac x = "Suc Na" and P = "%n. Na\<le>n \<longrightarrow> D n = D Na" in spec, auto)
 done
 
 lemma partition_rhs: "partition(a,b) D ==> (D(psize D) = b)"
@@ -203,7 +203,7 @@ done
 lemma lemma_psize1:
      "[| partition (a, b) D1; partition (b, c) D2; N < psize D1 |]
       ==> D1(N) < D2 (psize D2)"
-apply (rule_tac y = "D1 (psize D1) " in order_less_le_trans)
+apply (rule_tac y = "D1 (psize D1)" in order_less_le_trans)
 apply (erule partition_gt, assumption)
 apply (auto simp add: partition_rhs partition_le)
 done
@@ -319,7 +319,7 @@ apply (drule_tac g = "%x. if g x < ga x then g x else ga x"
 apply (drule fine_min)
 apply (drule spec)+
 apply auto
-apply (subgoal_tac "abs ((rsum (D,p) f - k2) - (rsum (D,p) f - k1)) < \<bar>k1 - k2\<bar> ")
+apply (subgoal_tac "\<bar>(rsum (D,p) f - k2) - (rsum (D,p) f - k1)\<bar> < \<bar>k1 - k2\<bar>")
 apply arith
 apply (drule add_strict_mono, assumption)
 apply (auto simp only: left_distrib [symmetric] mult_2_right [symmetric] 
@@ -363,7 +363,7 @@ apply (simp add: zero_less_mult_iff divide_inverse)
 apply (rule exI, auto)
 apply (drule spec)+
 apply auto
-apply (rule_tac z1 = "inverse (abs c) " in real_mult_less_iff1 [THEN iffD1])
+apply (rule_tac z1 = "inverse (abs c)" in real_mult_less_iff1 [THEN iffD1])
 apply (auto simp add: divide_inverse [symmetric] right_diff_distrib [symmetric])
 done
 
@@ -385,14 +385,14 @@ lemma choice2: "\<forall>x. (\<exists>y. R(y) & (\<exists>z. Q x y z)) ==>
 
 
 (* new simplifications e.g. (y < x/n) = (y * n < x) are a real nuisance
-   they break the original proofs and make new proofs longer!                 *)
+   they break the original proofs and make new proofs longer!*)
 lemma strad1:
        "\<lbrakk>\<forall>xa::real. xa \<noteq> x \<and> \<bar>xa + - x\<bar> < s \<longrightarrow>
              \<bar>(f xa - f x) / (xa - x) + - f' x\<bar> * 2 < e;
         0 < e; a \<le> x; x \<le> b; 0 < s\<rbrakk>
        \<Longrightarrow> \<forall>z. \<bar>z - x\<bar> < s -->\<bar>f z - f x - f' x * (z - x)\<bar> * 2 \<le> e * \<bar>z - x\<bar>"
 apply auto
-apply (case_tac "0 < \<bar>z - x\<bar> ")
+apply (case_tac "0 < \<bar>z - x\<bar>")
  prefer 2 apply (simp add: zero_less_abs_iff)
 apply (drule_tac x = z in spec)
 apply (rule_tac z1 = "\<bar>inverse (z - x)\<bar>" 
@@ -413,10 +413,12 @@ lemma lemma_straddle:
      "[| \<forall>x. a \<le> x & x \<le> b --> DERIV f x :> f'(x); 0 < e |]
       ==> \<exists>g. gauge(%x. a \<le> x & x \<le> b) g &
                 (\<forall>x u v. a \<le> u & u \<le> x & x \<le> v & v \<le> b & (v - u) < g(x)
-                  --> abs((f(v) - f(u)) - (f'(x) * (v - u))) \<le> e * (v - u))"
+                  --> \<bar>(f(v) - f(u)) - (f'(x) * (v - u))\<bar> \<le> e * (v - u))"
 apply (simp add: gauge_def)
 apply (subgoal_tac "\<forall>x. a \<le> x & x \<le> b --> 
-        (\<exists>d. 0 < d & (\<forall>u v. u \<le> x & x \<le> v & (v - u) < d --> abs ((f (v) - f (u)) - (f' (x) * (v - u))) \<le> e * (v - u)))")
+        (\<exists>d. 0 < d & 
+             (\<forall>u v. u \<le> x & x \<le> v & (v - u) < d --> 
+                \<bar>(f (v) - f (u)) - (f' (x) * (v - u))\<bar> \<le> e * (v - u)))")
 apply (drule choiceP, auto)
 apply (drule spec, auto)
 apply (auto simp add: DERIV_iff2 LIM_def)
@@ -424,13 +426,14 @@ apply (drule_tac x = "e/2" in spec, auto)
 apply (frule strad1, assumption+)
 apply (rule_tac x = s in exI, auto)
 apply (rule_tac x = u and y = v in linorder_cases, auto)
-apply (rule_tac j = "abs ((f (v) - f (x)) - (f' (x) * (v - x))) + abs ((f (x) - f (u)) - (f' (x) * (x - u)))"
+apply (rule_tac j = "\<bar>(f (v) - f (x)) - (f' (x) * (v - x))\<bar> + 
+                     \<bar>(f (x) - f (u)) - (f' (x) * (x - u))\<bar>"
        in real_le_trans)
 apply (rule abs_triangle_ineq [THEN [2] real_le_trans])
 apply (simp add: right_diff_distrib, arith)
-apply (rule_tac t = "e* (v - u) " in real_sum_of_halves [THEN subst])
+apply (rule_tac t = "e* (v - u)" in real_sum_of_halves [THEN subst])
 apply (rule add_mono)
-apply (rule_tac j = " (e / 2) * \<bar>v - x\<bar> " in real_le_trans)
+apply (rule_tac j = " (e / 2) * \<bar>v - x\<bar>" in real_le_trans)
  prefer 2 apply simp apply arith
 apply (erule_tac [!]
        V= "\<forall>xa. xa ~= x & \<bar>xa + - x\<bar> < s --> \<bar>(f xa - f x) / (xa - x) + - f' x\<bar> * 2 < e"
@@ -453,19 +456,19 @@ apply (rotate_tac 3)
 apply (drule_tac x = "e/2" in spec, auto)
 apply (drule spec, auto)
 apply ((drule spec)+, auto)
-apply (drule_tac e = "ea/ (b - a) " in lemma_straddle)
+apply (drule_tac e = "ea/ (b - a)" in lemma_straddle)
 apply (auto simp add: zero_less_divide_iff)
 apply (rule exI)
 apply (auto simp add: tpart_def rsum_def)
-apply (subgoal_tac "sumr 0 (psize D) (%n. f (D (Suc n)) - f (D n)) = f b - f a")
+apply (subgoal_tac "sumr 0 (psize D) (%n. f(D(Suc n)) - f(D n)) = f b - f a")
  prefer 2
- apply (cut_tac D = "%n. f (D n) " and m = "psize D"
+ apply (cut_tac D = "%n. f (D n)" and m = "psize D"
         in sumr_partition_eq_diff_bounds)
  apply (simp add: partition_lhs partition_rhs)
 apply (drule sym, simp)
 apply (simp (no_asm) add: sumr_diff)
 apply (rule sumr_rabs [THEN real_le_trans])
-apply (subgoal_tac "ea = sumr 0 (psize D) (%n. (ea / (b - a)) * (D (Suc n) - (D n))) ")
+apply (subgoal_tac "ea = sumr 0 (psize D) (%n. (ea / (b - a)) * (D (Suc n) - (D n)))")
 apply (simp add: abs_minus_commute)
 apply (rule_tac t = ea in ssubst, assumption)
 apply (rule sumr_le2)
@@ -775,8 +778,8 @@ apply (auto simp add: fine_def gauge_def)
 apply (drule_tac x = "na + n" in spec)
 apply (frule_tac n = n in tpart_partition [THEN better_lemma_psize_right_eq], auto, arith)
 apply (simp add: tpart_def, safe)
-apply (subgoal_tac "D n \<le> p (na + n) ")
-apply (drule_tac y = "p (na + n) " in real_le_imp_less_or_eq)
+apply (subgoal_tac "D n \<le> p (na + n)")
+apply (drule_tac y = "p (na + n)" in real_le_imp_less_or_eq)
 apply safe
 apply (simp split: split_if_asm, simp)
 apply (drule less_le_trans, assumption)
@@ -790,7 +793,7 @@ done
 lemma rsum_add: "rsum (D, p) (%x. f x + g x) =  rsum (D, p) f + rsum(D, p) g"
 by (simp add: rsum_def sumr_add left_distrib)
 
-(* Bartle/Sherbert: Theorem 10.1.5 p. 278 *)
+text{* Bartle/Sherbert: Theorem 10.1.5 p. 278 *}
 lemma Integral_add_fun:
     "[| a \<le> b; Integral(a,b) f k1; Integral(a,b) g k2 |]
      ==> Integral(a,b) (%x. f x + g x) (k1 + k2)"
@@ -798,7 +801,7 @@ apply (simp add: Integral_def, auto)
 apply ((drule_tac x = "e/2" in spec)+)
 apply auto
 apply (drule gauge_min, assumption)
-apply (rule_tac x = " (%x. if ga x < gaa x then ga x else gaa x) " in exI)
+apply (rule_tac x = " (%x. if ga x < gaa x then ga x else gaa x)" in exI)
 apply auto
 apply (drule fine_min)
 apply ((drule spec)+, auto)
@@ -852,7 +855,7 @@ apply (drule fine_min)
 apply (drule_tac x = D in spec, drule_tac x = D in spec)
 apply (drule_tac x = p in spec, drule_tac x = p in spec, auto)
 apply (frule lemma_Integral_rsum_le, assumption)
-apply (subgoal_tac "\<bar>(rsum (D,p) f - k1) - (rsum (D,p) g - k2)\<bar> < \<bar>k1 - k2\<bar> ")
+apply (subgoal_tac "\<bar>(rsum (D,p) f - k1) - (rsum (D,p) g - k2)\<bar> < \<bar>k1 - k2\<bar>")
 apply arith
 apply (drule add_strict_mono, assumption)
 apply (auto simp only: left_distrib [symmetric] mult_2_right [symmetric]
