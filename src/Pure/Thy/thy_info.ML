@@ -245,37 +245,43 @@ fun current_deps ml strict dir name =
               end)
       end);
 
-fun require_thy ml time strict keep_strict initiators prfx s =
+fun require_thy ml time strict keep_strict initiators prfx (visited, str) =
   let
-    val path = Path.expand (Path.unpack s);
+    val path = Path.expand (Path.unpack str);
     val name = Path.pack (Path.base path);
-    val dir = Path.append prfx (Path.dir path);
+  in
+    if name mem_string visited then (visited, (true, name))
+    else
+      let
+        val dir = Path.append prfx (Path.dir path);
+        val req_parent =
+          require_thy ml time (strict andalso keep_strict) keep_strict (name :: initiators) dir;
 
-    val require_parent =
-      #1 o require_thy ml time (strict andalso keep_strict) keep_strict (name :: initiators) dir;
-    val (current, (new_deps, parents)) = current_deps ml strict dir name handle ERROR =>
-      error (loader_msg "The error(s) above occurred while examining theory" [name] ^
-        (if null initiators then "" else "\n" ^ required_by initiators));
-    val parents_current = map require_parent parents;
+        val (current, (new_deps, parents)) = current_deps ml strict dir name handle ERROR =>
+          error (loader_msg "The error(s) above occurred while examining theory" [name] ^
+            (if null initiators then "" else "\n" ^ required_by initiators));
+        val (visited', parent_results) = foldl_map req_parent (name :: visited, parents);
 
-    val result =
-      if current andalso forall I parents_current then true
-      else
-        ((case new_deps of
-          Some deps => change_thys (update_node name parents (untouch_deps deps, None))
-        | None => ());
-          load_thy ml time initiators dir name parents;
-          false);
-  in (result, name) end;
+        val result =
+          if current andalso forall #1 parent_results then true
+          else
+            ((case new_deps of
+              Some deps => change_thys (update_node name parents (untouch_deps deps, None))
+            | None => ());
+              load_thy ml time initiators dir name parents;
+              false);
+      in (visited', (result, name)) end
+  end;
 
-fun gen_use_thy f s =
-  let val (_, name) = f Path.current s in Context.context (get_theory name) end;
+fun gen_use_thy req s =
+  let val (_, (_, name)) = req [] Path.current ([], s)
+  in Context.context (get_theory name) end;
 
-val weak_use_thy = gen_use_thy (require_thy true false false false []);
-val use_thy      = gen_use_thy (require_thy true false true false []);
-val update_thy   = gen_use_thy (require_thy true false true true []);
-val time_use_thy = gen_use_thy (require_thy true true true false []);
-val use_thy_only = gen_use_thy (require_thy false false true false []);
+val weak_use_thy = gen_use_thy (require_thy true false false false);
+val use_thy      = gen_use_thy (require_thy true false true false);
+val update_thy   = gen_use_thy (require_thy true false true true);
+val time_use_thy = gen_use_thy (require_thy true true true false);
+val use_thy_only = gen_use_thy (require_thy false false true false);
 
 
 (* remove_thy *)
@@ -289,7 +295,7 @@ fun remove_thy name =
     end;
 
 
-(* begin / end theory *)                (* FIXME tune *) (* FIXME files vs. paths (!?!?) *)
+(* begin / end theory *)
 
 fun begin_theory name parents paths =
   let
