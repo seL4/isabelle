@@ -834,6 +834,10 @@ subsubsection {* The ``proper subset'' relation *}
 lemma psubsetI [intro!]: "A \<subseteq> B ==> A \<noteq> B ==> A \<subset> B"
   by (unfold psubset_def) blast
 
+lemma psubsetE [elim!]: 
+    "[|A \<subset> B;  [|A \<subseteq> B; ~ (B\<subseteq>A)|] ==> R|] ==> R"
+  by (unfold psubset_def) blast
+
 lemma psubset_insert_iff:
   "(A \<subset> insert x B) = (if x \<in> B then A \<subset> B else if x \<in> A then A - {x} \<subset> B else A \<subseteq> B)"
   by (auto simp add: psubset_def subset_insert_iff)

@@ -1167,14 +1167,7 @@ Goal "[|EX (X::preal). X: P; EX Y. (ALL X:P. X < Y) |] \
 \         ==> (ALL Y. (EX X: P. Y < X) = (Y < psup P))";              
 by (forward_tac [preal_sup RS Abs_preal_inverse] 1);
 by (Fast_tac 1);
-by (auto_tac (claset() addSIs [psubsetI],simpset() addsimps [psup_def,preal_less_def]));
-by (blast_tac (claset() addDs [psubset_def RS meta_eq_to_obj_eq RS iffD1]) 1);
-by (rotate_tac 4 1);
-by (asm_full_simp_tac (simpset() addsimps [psubset_def]) 1);
-by (dtac bspec 1 THEN assume_tac 1);
-by (REPEAT(etac conjE 1));
-by (EVERY1[rtac contrapos_np, assume_tac]);
-by (auto_tac (claset() addSDs [lemma_psubset_mem],simpset()));
+by (auto_tac (claset(), simpset() addsimps [psup_def,preal_less_def]));
 by (cut_inst_tac [("r1.0","Xa"),("r2.0","Ya")] preal_linear 1);
 by (auto_tac (claset() addDs [psubsetD],simpset() addsimps [preal_less_def]));
 qed "preal_complete";

@@ -3,6 +3,8 @@ header {* \section{The Single Mutator Case} *}
 
 theory Gar_Coll = Graph + OG_Syntax:
 
+declare psubsetE [rule del]
+
 text {* Declaration of variables: *}
 
 record gar_coll_state =
