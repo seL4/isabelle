@@ -374,6 +374,9 @@ val is_blank : string -> bool =
 
 val is_letdig = is_quasi_letter orf is_digit;
 
+(*printable chars*)
+fun is_printable c = ord c > ord " " andalso ord c <= ord "~";
+
 
 (*lower all chars of string*)
 val to_lower =
