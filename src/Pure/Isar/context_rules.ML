@@ -13,9 +13,8 @@ sig
   type T
   val netpair_bang: Proof.context -> netpair
   val netpair: Proof.context -> netpair
-  val netpairs: Proof.context -> netpair list
   val orderlist: ((int * int) * 'a) list -> 'a list
-  val orderlist_no_weight: ((int * int) * 'a) list -> 'a list
+  val find_rules: Proof.context -> thm list -> term -> thm list list
   val print_global_rules: theory -> unit
   val print_local_rules: Proof.context -> unit
   val addSWrapper: ((int -> tactic) -> int -> tactic) -> theory -> theory
@@ -42,6 +41,14 @@ sig
   val elim_query_local: int option -> Proof.context attribute
   val dest_query_local: int option -> Proof.context attribute
   val rule_del_local: Proof.context attribute
+  val addXIs_global: theory * thm list -> theory
+  val addXEs_global: theory * thm list -> theory
+  val addXDs_global: theory * thm list -> theory
+  val delrules_global: theory * thm list -> theory
+  val addXIs_local: Proof.context * thm list -> Proof.context
+  val addXEs_local: Proof.context * thm list -> Proof.context
+  val addXDs_local: Proof.context * thm list -> Proof.context
+  val delrules_local: Proof.context * thm list -> Proof.context
   val setup: (theory -> theory) list
 end;
 
@@ -167,6 +174,14 @@ fun untaglist [] = []
 
 fun orderlist brls = untaglist (sort (prod_ord int_ord int_ord o pairself fst) brls);
 fun orderlist_no_weight brls = untaglist (sort (int_ord o pairself (snd o fst)) brls);
+fun may_unify t net = map snd (orderlist_no_weight (Net.unify_term net t));
+
+fun find_erules [] = K []
+  | find_erules (fact :: _) = may_unify (Logic.strip_assums_concl (#prop (Thm.rep_thm fact)));
+fun find_irules goal = may_unify (Logic.strip_assums_concl goal);
+
+fun find_rules ctxt facts goal =
+  map (fn (inet, enet) => find_erules facts enet @ find_irules goal inet) (netpairs ctxt);
 
 
 fun gen_add_wrapper upd w = GlobalRules.map (fn (rs as Rules {next, rules, netpairs, wrappers}) =>
@@ -224,11 +239,27 @@ val rule_del_local     = del LocalRules.map;
 end;
 
 
+(* low-level modifiers *)
+
+fun modifier att (x, ths) =
+  #1 (Thm.applys_attributes ((x, rev ths), [att]));
+
+val addXIs_global = modifier (intro_query_global None);
+val addXEs_global = modifier (elim_query_global None);
+val addXDs_global = modifier (dest_query_global None);
+val delrules_global = modifier rule_del_global;
+
+val addXIs_local = modifier (intro_query_local None);
+val addXEs_local = modifier (elim_query_local None);
+val addXDs_local = modifier (dest_query_local None);
+val delrules_local = modifier rule_del_local;
+
+
 (* concrete syntax *)
 
 fun add_args a b c x = Attrib.syntax
-  (Scan.lift (Scan.option Args.nat --
-    (Args.bang >> K a || Args.query >> K c || Scan.succeed b) >> op |>)) x;
+  (Scan.lift ((Args.bang >> K a || Args.query >> K c || Scan.succeed b) -- (Scan.option Args.nat))
+    >> (fn (f, n) => f n)) x;
 
 fun del_args att = Attrib.syntax (Scan.lift Args.del >> K att);
 
