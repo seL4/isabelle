@@ -116,6 +116,8 @@ val prems = goalw Set.thy [subset_def] "(!!x.x:A ==> x:B) ==> A <= B";
 by (REPEAT (ares_tac (prems @ [ballI]) 1));
 qed "subsetI";
 
+Blast.declConsts (["op <="], [subsetI]);	(*overloading of <=*)
+
 (*Rule in Modus Ponens style*)
 val major::prems = goalw Set.thy [subset_def] "[| A <= B;  c:A |] ==> c:B";
 by (rtac (major RS bspec) 1);
@@ -165,6 +167,7 @@ by (REPEAT (ares_tac (prems RL [subsetD]) 1));
 qed "subset_antisym";
 val equalityI = subset_antisym;
 
+Blast.declConsts (["op ="], [equalityI]);	(*overloading of equality*)
 AddSIs [equalityI];
 
 (* Equality rules from ZF set theory -- are they appropriate here? *)
