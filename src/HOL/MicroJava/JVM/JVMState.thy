@@ -40,10 +40,4 @@ text {* runtime state: *}
 types
   jvm_state = "xcpt option \<times> aheap \<times> frame list"	
 
-
-text {* dynamic method lookup: *}
-constdefs
-  dyn_class	:: "'code prog \<times> sig \<times> cname => cname"
-  "dyn_class == \<lambda>(G,sig,C). fst(the(method(G,C) sig))"
-
 end
