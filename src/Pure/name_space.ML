@@ -21,8 +21,9 @@ sig
   val empty: T
   val extend: string list * T -> T
   val merge: T * T -> T
-  val lookup: T -> string -> string
-  val prune: T -> string -> string
+  val declared: T -> string -> bool
+  val intern: T -> string -> string
+  val extern: T -> string -> string
 end;
 
 structure NameSpace: NAME_SPACE =
@@ -91,17 +92,19 @@ fun extend (entries, space) =
 fun merge (space1, space2) =    (*2nd overrides 1st*)
   make (merge_lists (entries_of space2) (entries_of space1));
 
+fun declared space name = unpack name mem (entries_of space);
 
-(* lookup / prune names *)
 
-fun lookup space name =
+(* intern / extern names *)
+
+fun intern space name =
   if_none (Symtab.lookup (tab_of space, name)) name;
 
-fun prune space name =
+fun extern space name =
   let
     fun try [] = "??" ^ separator ^ name      (*hidden name*)
       | try (nm :: nms) =
-          if lookup space nm = name then nm
+          if intern space nm = name then nm
           else try nms;
   in try (map pack (suffixes1 (unpack name))) end;
 
