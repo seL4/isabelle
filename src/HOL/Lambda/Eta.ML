@@ -154,6 +154,8 @@ by (slow_tac (!claset addIs [r_into_rtrancl,rtrancl_eta_subst,eta_subst]
 by (Blast.depth_tac (!claset addIs [r_into_rtrancl,rtrancl_eta_AppL]) 6 1);
 by (Blast.depth_tac (!claset addIs [r_into_rtrancl,rtrancl_eta_AppR]) 6 1);
 (*23 seconds?*)
+DelIffs dB.distinct;
+Addsimps dB.distinct;
 by (slow_tac (!claset addIs [r_into_rtrancl,rtrancl_eta_Abs,free_beta]
                       addss !simpset) 1);
 qed "square_beta_eta";
