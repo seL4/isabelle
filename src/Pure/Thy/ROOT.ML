@@ -7,13 +7,16 @@ Theory system operations.
 (*theory auto loader database*)
 use "thy_load.ML";
 use "thy_info.ML";
-use "session.ML";
 
 (*theory presentation*)
+(*use "html.ML";*)
+(*use "browser_info.ML";*)	(* FIXME *)
 use "present.ML";
 use "thm_database.ML";
 
-(*theory syntax (old format)*)  (* FIXME rename to OldThy (!?) *)
+use "session.ML";
+
+(*theory syntax (old format)*)
 use "thy_scan.ML";
 use "thy_parse.ML";
 use "thy_syn.ML";
