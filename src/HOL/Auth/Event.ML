@@ -18,10 +18,10 @@ bind_thm ("parts_insert_knows_Spy",
 	  read_instantiate_sg (sign_of thy) [("H", "knows Spy evs")]);
 
 
-Goal "P(event_case sf nf gf ev) = \
+Goal "P(event_case sf gf nf ev) = \
 \      ((ALL A B X. ev = Says A B X --> P(sf A B X)) & \
-\       (ALL A X. ev = Notes A X --> P(nf A X)) & \
-\       (ALL A X. ev = Gets A X --> P(gf A X)))";
+\       (ALL A X. ev = Gets A X --> P(gf A X)) & \
+\       (ALL A X. ev = Notes A X --> P(nf A X)))";
 by (induct_tac "ev" 1);
 by Auto_tac;
 qed "expand_event_case";

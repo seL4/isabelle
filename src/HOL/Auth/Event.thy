@@ -16,10 +16,10 @@ Event = Message + List +
 consts  (*Initial states of agents -- parameter of the construction*)
   initState :: agent => msg set
 
-datatype  (*Messages--could add another constructor for agent knowledge*)
+datatype
   event = Says  agent agent msg
-        | Notes agent       msg
         | Gets  agent       msg
+        | Notes agent       msg
        
 consts 
   bad    :: agent set        (*compromised agents*)
@@ -41,21 +41,22 @@ rules
 
 primrec
   knows_Nil   "knows A []         = initState A"
-  knows_Cons  "knows A (ev # evs) =
-	        (if A = Spy then 
-                  (case ev of
-		    Says A' B X => insert X (knows Spy evs)
-		  | Notes A' X  => 
-                   if A' : bad then insert X (knows Spy evs) else knows Spy evs
-                  | Gets A' X => knows Spy evs)
-                 else
-                  (case ev of
-		    Says A' B X => 
-                      if A'=A then insert X (knows A evs) else knows A evs
-		  | Notes A' X    => 
-                      if A'=A then insert X (knows A evs) else knows A evs
-		  | Gets A' X    => 
-                      if A'=A then insert X (knows A evs) else knows A evs))"
+  knows_Cons
+    "knows A (ev # evs) =
+       (if A = Spy then 
+	(case ev of
+	   Says A' B X => insert X (knows Spy evs)
+	 | Gets A' X => knows Spy evs
+	 | Notes A' X  => 
+	     if A' : bad then insert X (knows Spy evs) else knows Spy evs)
+	else
+	(case ev of
+	   Says A' B X => 
+	     if A'=A then insert X (knows A evs) else knows A evs
+	 | Gets A' X    => 
+	     if A'=A then insert X (knows A evs) else knows A evs
+	 | Notes A' X    => 
+	     if A'=A then insert X (knows A evs) else knows A evs))"
 
 (*
   Case A=Spy on the Gets event
@@ -73,8 +74,8 @@ primrec
   used_Cons  "used (ev # evs) =
 	         (case ev of
 		    Says A B X => parts {X} Un (used evs)
-		  | Notes A X  => parts {X} Un (used evs)
-		  | Gets A X   => used evs)"
+		  | Gets A X   => used evs
+		  | Notes A X  => parts {X} Un (used evs))"
 
 
 
