@@ -1091,7 +1091,7 @@ extend \texttt{Arith} as follows:
 \begin{ttbox}
 NatSum = Arith +
 consts sum     :: [nat=>nat, nat] => nat
-primrec "sum" nat 
+primrec 
   "sum f 0 = 0"
   "sum f (Suc n) = f(n) + sum f n"
 end
