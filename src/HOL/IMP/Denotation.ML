@@ -25,7 +25,7 @@ qed "C_While_If";
 
 (* Operational Semantics implies Denotational Semantics *)
 
-Goal "!!c s t. <c,s> -c-> t ==> (s,t) : C(c)";
+Goal "<c,s> -c-> t ==> (s,t) : C(c)";
 
 (* start with rule induction *)
 by (etac evalc.induct 1);

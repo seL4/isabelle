@@ -17,7 +17,7 @@ val evalc_WHILE_case = evalc.mk_cases com.simps "<WHILE b DO c,s> -c-> t";
 AddSEs evalc_elim_cases;
 
 (* evaluation of com is deterministic *)
-Goal "!!c s t. <c,s> -c-> t ==> (!u. <c,s> -c-> u --> u=t)";
+Goal "<c,s> -c-> t ==> (!u. <c,s> -c-> u --> u=t)";
 by (etac evalc.induct 1);
 by (thin_tac "<?c,s2> -c-> s1" 7);
 (*blast_tac needs Unify.search_bound, trace_bound := 40*)

@@ -9,7 +9,7 @@ wrt denotational semantics
 
 open Hoare;
 
-Goalw [hoare_valid_def] "!!P c Q. |- {P}c{Q} ==> |= {P}c{Q}";
+Goalw [hoare_valid_def] "|- {P}c{Q} ==> |= {P}c{Q}";
 by (etac hoare.induct 1);
     by (ALLGOALS Asm_simp_tac);
   by (Fast_tac 1);
@@ -38,20 +38,19 @@ by (Fast_tac 1);
 qed "wp_Semi";
 
 Goalw [wp_def]
-  "wp (IF b THEN c ELSE d) Q = (%s. (b s --> wp c Q s) & \
-\                                    (~b s --> wp d Q s))";
+ "wp (IF b THEN c ELSE d) Q = (%s. (b s --> wp c Q s) &  (~b s --> wp d Q s))";
 by (Simp_tac 1);
 by (rtac ext 1);
 by (Fast_tac 1);
 qed "wp_If";
 
 Goalw [wp_def]
-  "!!s. b s ==> wp (WHILE b DO c) Q s = wp (c;WHILE b DO c) Q s";
+  "b s ==> wp (WHILE b DO c) Q s = wp (c;WHILE b DO c) Q s";
 by (stac C_While_If 1);
 by (Asm_simp_tac 1);
 qed "wp_While_True";
 
-Goalw [wp_def] "!!s. ~b s ==> wp (WHILE b DO c) Q s = Q s";
+Goalw [wp_def] "~b s ==> wp (WHILE b DO c) Q s = Q s";
 by (stac C_While_If 1);
 by (Asm_simp_tac 1);
 qed "wp_While_False";
@@ -59,8 +58,8 @@ qed "wp_While_False";
 Addsimps [wp_SKIP,wp_Ass,wp_Semi,wp_If,wp_While_True,wp_While_False];
 
 (*Not suitable for rewriting: LOOPS!*)
-Goal "wp (WHILE b DO c) Q s = \
-\                 (if b s then wp (c;WHILE b DO c) Q s else Q s)";
+Goal
+ "wp (WHILE b DO c) Q s = (if b s then wp (c;WHILE b DO c) Q s else Q s)";
 by (Simp_tac 1);
 qed "wp_While_if";
 
@@ -114,7 +113,7 @@ by (rotate_tac ~1 1);
 by (Asm_full_simp_tac 1);
 qed_spec_mp "wp_is_pre";
 
-Goal "!!c. |= {P}c{Q} ==> |- {P}c{Q}";
+Goal "|= {P}c{Q} ==> |- {P}c{Q}";
 by (rtac (wp_is_pre RSN (2,hoare.conseq)) 1);
  by (Fast_tac 2);
 by (rewrite_goals_tac [hoare_valid_def,wp_def]);

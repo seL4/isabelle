@@ -21,23 +21,23 @@ val dB_case_distinction =
 
 (*** Congruence rules for ->> ***)
 
-Goal "!!s. s ->> s' ==> Abs s ->> Abs s'";
+Goal "s ->> s' ==> Abs s ->> Abs s'";
 by (etac rtrancl_induct 1);
 by (ALLGOALS (blast_tac (claset() addIs [rtrancl_into_rtrancl])));
 qed "rtrancl_beta_Abs";
 AddSIs [rtrancl_beta_Abs];
 
-Goal "!!s. s ->> s' ==> s @ t ->> s' @ t";
+Goal "s ->> s' ==> s @ t ->> s' @ t";
 by (etac rtrancl_induct 1);
 by (ALLGOALS (blast_tac (claset() addIs [rtrancl_into_rtrancl])));
 qed "rtrancl_beta_AppL";
 
-Goal "!!s. t ->> t' ==> s @ t ->> s @ t'";
+Goal "t ->> t' ==> s @ t ->> s @ t'";
 by (etac rtrancl_induct 1);
 by (ALLGOALS (blast_tac (claset() addIs [rtrancl_into_rtrancl])));
 qed "rtrancl_beta_AppR";
 
-Goal "!!s. [| s ->> s'; t ->> t' |] ==> s @ t ->> s' @ t'";
+Goal "[| s ->> s'; t ->> t' |] ==> s @ t ->> s' @ t'";
 by (blast_tac (claset() addSIs [rtrancl_beta_AppL, rtrancl_beta_AppR]
                        addIs  [rtrancl_trans]) 1);
 qed "rtrancl_beta_App";
@@ -53,11 +53,11 @@ Goal "(Var k)[u/k] = u";
 by (asm_full_simp_tac(addsplit(simpset())) 1);
 qed "subst_eq";
 
-Goal "!!s. i<j ==> (Var j)[u/i] = Var(j-1)";
+Goal "i<j ==> (Var j)[u/i] = Var(j-1)";
 by (asm_full_simp_tac(addsplit(simpset())) 1);
 qed "subst_gt";
 
-Goal "!!s. j<i ==> (Var j)[u/i] = Var(j)";
+Goal "j<i ==> (Var j)[u/i] = Var(j)";
 by (asm_full_simp_tac (addsplit(simpset()) addsimps
                           [less_not_refl2 RS not_sym,less_SucI]) 1);
 qed "subst_lt";
@@ -72,8 +72,7 @@ by (safe_tac HOL_cs);
 by (ALLGOALS trans_tac);
 qed_spec_mp "lift_lift";
 
-Goal "!i j s. j < Suc i --> \
-\         lift (t[s/j]) i = (lift t (Suc i)) [lift s i / j]";
+Goal "!i j s. j < Suc i --> lift (t[s/j]) i = (lift t (Suc i)) [lift s i / j]";
 by (dB.induct_tac "t" 1);
 by (ALLGOALS(asm_simp_tac (simpset() addsimps [diff_Suc,subst_Var,lift_lift]
                                 addsplits [split_nat_case]
@@ -84,8 +83,7 @@ qed "lift_subst";
 Addsimps [lift_subst];
 
 Goal
-  "!i j s. i < Suc j -->\
-\         lift (t[s/j]) i = (lift t i) [lift s i / Suc j]";
+  "!i j s. i < Suc j --> lift (t[s/j]) i = (lift t i) [lift s i / Suc j]";
 by (dB.induct_tac "t" 1);
 by (ALLGOALS(asm_simp_tac (simpset() addsimps [subst_Var,lift_lift]
                                 addSolver cut_trans_tac)));
@@ -100,8 +98,7 @@ qed "subst_lift";
 Addsimps [subst_lift];
 
 
-Goal "!i j u v. i < Suc j --> \
-\ t[lift v i / Suc j][u[v/j]/i] = t[u/i][v/j]";
+Goal "!i j u v. i < Suc j --> t[lift v i / Suc j][u[v/j]/i] = t[u/i][v/j]";
 by (dB.induct_tac "t" 1);
 by (ALLGOALS(asm_simp_tac
       (simpset() addsimps [diff_Suc,subst_Var,lift_lift RS sym,lift_subst_lt]

@@ -22,7 +22,7 @@ AddSEs evalc1_SEs;
 
 AddIs evalc1.intrs;
 
-Goal "!!s. (SKIP,s) -m-> (SKIP,t) ==> s = t & m = 0";
+Goal "(SKIP,s) -m-> (SKIP,t) ==> s = t & m = 0";
 by (etac rel_pow_E2 1);
 by (Asm_full_simp_tac 1);
 by (Fast_tac 1);
@@ -38,7 +38,7 @@ by (fast_tac  (claset() addIs [rtrancl_into_rtrancl2]addSDs [rel_pow_Suc_D2])1);
 qed_spec_mp "lemma1";
 
 
-Goal "!!c s s1. <c,s> -c-> s1 ==> (c,s) -*-> (SKIP,s1)";
+Goal "<c,s> -c-> s1 ==> (c,s) -*-> (SKIP,s1)";
 by (etac evalc.induct 1);
 
 (* SKIP *)
@@ -120,7 +120,7 @@ qed "evalc1_eq_evalc";
 section "A Proof Without -n->";
 
 Goal
- "!!c1. (c1,s1) -*-> (SKIP,s2) ==> \
+ "(c1,s1) -*-> (SKIP,s2) ==> \
 \ (c2,s2) -*-> cs3 --> (c1;c2,s1) -*-> cs3";
 by (etac converse_rtrancl_induct2 1);
 by (fast_tac (claset() addIs [rtrancl_into_rtrancl2]) 1);
@@ -128,7 +128,7 @@ by (fast_tac (claset() addIs [rtrancl_into_rtrancl2]) 1);
 qed_spec_mp "my_lemma1";
 
 
-Goal "!!c s s1. <c,s> -c-> s1 ==> (c,s) -*-> (SKIP,s1)";
+Goal "<c,s> -c-> s1 ==> (c,s) -*-> (SKIP,s1)";
 by (etac evalc.induct 1);
 
 (* SKIP *)
@@ -186,7 +186,7 @@ of Lemma 1.
 
 (*Delsimps [update_apply];*)
 Goal 
-  "!!c s. ((c,s) -1-> (c',s')) ==> (!t. <c',s'> -c-> t --> <c,s> -c-> t)";
+  "((c,s) -1-> (c',s')) ==> (!t. <c',s'> -c-> t --> <c,s> -c-> t)";
 by (etac evalc1.induct 1);
 by Auto_tac;
 qed_spec_mp "FB_lemma3";
@@ -199,6 +199,6 @@ by (rtac (major RS rtrancl_induct2) 1);
 by (fast_tac (claset() addIs [FB_lemma3]) 1);
 qed_spec_mp "FB_lemma2";
 
-Goal "!!c. (c,s) -*-> (SKIP,t) ==> <c,s> -c-> t";
+Goal "(c,s) -*-> (SKIP,t) ==> <c,s> -c-> t";
 by (fast_tac (claset() addEs [FB_lemma2]) 1);
 qed "evalc1_impl_evalc";

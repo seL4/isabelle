@@ -46,8 +46,8 @@ by (fast_tac (HOL_cs addEs [awp_mono]) 1);
 qed_spec_mp "vc_mono";
 
 Goal
-  "!!P c Q. |- {P}c{Q} ==> \
-\          (? ac. astrip ac = c & (!s. vc ac Q s) & (!s. P s --> awp ac Q s))";
+  "|- {P}c{Q} ==> \
+\  (? ac. astrip ac = c & (!s. vc ac Q s) & (!s. P s --> awp ac Q s))";
 by (etac hoare.induct 1);
      by (res_inst_tac [("x","Askip")] exI 1);
      by (Simp_tac 1);
@@ -61,7 +61,7 @@ by (etac hoare.induct 1);
   by (res_inst_tac [("x","Aif b ac aca")] exI 1);
   by (Asm_simp_tac 1);
  by (SELECT_GOAL(safe_tac HOL_cs)1);
- by (res_inst_tac [("x","Awhile b Pa ac")] exI 1);
+ by (res_inst_tac [("x","Awhile b P ac")] exI 1);
  by (Asm_simp_tac 1);
 by (safe_tac HOL_cs);
 by (res_inst_tac [("x","ac")] exI 1);

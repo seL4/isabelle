@@ -32,8 +32,7 @@ by (Blast_tac 1);
 qed_spec_mp "subst_not_free";
 Addsimps [subst_not_free RS eqTrueI];
 
-Goal "!i k. free (lift t k) i = \
-\                   (i < k & free t i | k < i & free t (i-1))";
+Goal "!i k. free (lift t k) i = (i < k & free t i | k < i & free t (i-1))";
 by (dB.induct_tac "t" 1);
 by (ALLGOALS(asm_full_simp_tac (addsplit (simpset()) addcongs [conj_cong])));
 by (Blast_tac 2);
@@ -56,16 +55,16 @@ by (ALLGOALS trans_tac);
 qed "free_subst";
 Addsimps [free_subst];
 
-Goal "!!s. s -e> t ==> !i. free t i = free s i";
+Goal "s -e> t ==> !i. free t i = free s i";
 by (etac eta.induct 1);
 by (ALLGOALS(asm_simp_tac (simpset() addcongs [conj_cong])));
 qed_spec_mp "free_eta";
 
-Goal "!!s. [| s -e> t; ~free s i |] ==> ~free t i";
+Goal "[| s -e> t; ~free s i |] ==> ~free t i";
 by (asm_simp_tac (simpset() addsimps [free_eta]) 1);
 qed "not_free_eta";
 
-Goal "!!s. s -e> t ==> !u i. s[u/i] -e> t[u/i]";
+Goal "s -e> t ==> !u i. s[u/i] -e> t[u/i]";
 by (etac eta.induct 1);
 by (ALLGOALS(asm_simp_tac (simpset() addsimps [subst_subst RS sym])));
 qed_spec_mp "eta_subst";
@@ -90,34 +89,34 @@ qed "eta_confluent";
 
 section "Congruence rules for -e>>";
 
-Goal "!!s. s -e>> s' ==> Abs s -e>> Abs s'";
+Goal "s -e>> s' ==> Abs s -e>> Abs s'";
 by (etac rtrancl_induct 1);
 by (ALLGOALS(blast_tac (claset() addIs [rtrancl_refl,rtrancl_into_rtrancl])));
 qed "rtrancl_eta_Abs";
 
-Goal "!!s. s -e>> s' ==> s @ t -e>> s' @ t";
+Goal "s -e>> s' ==> s @ t -e>> s' @ t";
 by (etac rtrancl_induct 1);
 by (ALLGOALS(blast_tac (claset() addIs [rtrancl_refl,rtrancl_into_rtrancl])));
 qed "rtrancl_eta_AppL";
 
-Goal "!!s. t -e>> t' ==> s @ t -e>> s @ t'";
+Goal "t -e>> t' ==> s @ t -e>> s @ t'";
 by (etac rtrancl_induct 1);
 by (ALLGOALS(blast_tac (claset() addIs [rtrancl_refl,rtrancl_into_rtrancl])));
 qed "rtrancl_eta_AppR";
 
-Goal "!!s. [| s -e>> s'; t -e>> t' |] ==> s @ t -e>> s' @ t'";
+Goal "[| s -e>> s'; t -e>> t' |] ==> s @ t -e>> s' @ t'";
 by (blast_tac (claset() addSIs [rtrancl_eta_AppL, rtrancl_eta_AppR]
                        addIs [rtrancl_trans]) 1);
 qed "rtrancl_eta_App";
 
 section "Commutation of -> and -e>";
 
-Goal "!!s t. s -> t ==> (!i. free t i --> free s i)";
+Goal "s -> t ==> (!i. free t i --> free s i)";
 by (etac beta.induct 1);
 by (ALLGOALS(Asm_full_simp_tac));
 qed_spec_mp "free_beta";
 
-Goal "!!s t. s -> t ==> !u i. s[u/i] -> t[u/i]";
+Goal "s -> t ==> !u i. s[u/i] -> t[u/i]";
 by (etac beta.induct 1);
 by (ALLGOALS(asm_full_simp_tac (simpset() addsimps [subst_subst RS sym])));
 qed_spec_mp "beta_subst";
@@ -131,7 +130,7 @@ by (ALLGOALS trans_tac);
 qed_spec_mp "subst_Var_Suc";
 Addsimps [subst_Var_Suc];
 
-Goal "!!s t. s -e> t ==> (!i. lift s i -e> lift t i)";
+Goal "s -e> t ==> (!i. lift s i -e> lift t i)";
 by (etac eta.induct 1);
 by (ALLGOALS(asm_simp_tac (addsplit (simpset()))));
 qed_spec_mp "eta_lift";
@@ -216,6 +215,6 @@ by (Blast_tac 1);
 qed_spec_mp "not_free_iff_lifted";
 
 Goal "(!s u. (~free s 0) --> R(Abs(s @ Var 0))(s[u/0])) = \
-\             (!s. R(Abs(lift s 0 @ Var 0))(s))";
+\     (!s. R(Abs(lift s 0 @ Var 0))(s))";
 by (fast_tac (HOL_cs addss (simpset() addsimps [not_free_iff_lifted])) 1);
 qed "explicit_is_implicit";
