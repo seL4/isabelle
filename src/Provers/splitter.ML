@@ -420,7 +420,10 @@ val split_modifiers =
   Args.$$$ splitN -- Args.$$$ "add" -- Args.colon >> K (I, split_add_local),
   Args.$$$ splitN -- Args.$$$ "del" -- Args.colon >> K (I, split_del_local)];
 
-val split_meth = Method.thms_args (Method.SIMPLE_METHOD' HEADGOAL o split_tac);
+val split_args = #2 oo Method.syntax (Args.mode "asm" -- Attrib.local_thms);
+
+fun split_meth (asm, ths) =
+  Method.SIMPLE_METHOD' HEADGOAL (if asm then split_asm_tac ths else split_tac ths);
 
 
 
@@ -428,6 +431,6 @@ val split_meth = Method.thms_args (Method.SIMPLE_METHOD' HEADGOAL o split_tac);
 
 val setup =
  [Attrib.add_attributes [(splitN, split_attr, "declare splitter rule")],
-  Method.add_methods [(splitN, split_meth, "apply splitter rule")]];
+  Method.add_methods [(splitN, split_meth oo split_args, "apply splitter rule")]];
 
 end;
