@@ -15,7 +15,7 @@ time_use_thy "AC_Equiv";
 
 time_use     "WO1_WO6.ML";
 time_use_thy "WO6_WO1";
-time_use     "WO1_WO7.ML";
+time_use_thy "WO1_WO7";
 time_use     "WO1_WO8.ML";
 
 time_use     "AC0_AC1.ML";
