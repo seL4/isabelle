@@ -23,15 +23,14 @@ signature TFL =
    val define   : theory -> string -> string -> string list 
                   -> theory * Prim.pattern list
 
-   val simplify_defn : simpset -> theory * (string * Prim.pattern list)
+   val simplify_defn : simpset * thm list 
+                        -> theory * (string * Prim.pattern list)
                         -> {rules:thm list, induct:thm, tcs:term list}
 
   (*-------------------------------------------------------------------------
        val function : theory -> term -> {theory:theory, eq_ind : thm}
        val lazyR_def: theory -> term -> {theory:theory, eqns : thm}
    *-------------------------------------------------------------------------*)
-
-   val tflcongs : theory -> thm list
 
   end;
 
@@ -77,7 +76,6 @@ fun std_postprocessor ss =
 			  (!claset addSDs [not0_implies_Suc] addss ss) 1),
     simplifier = Rules.simpl_conv ss []};
 
-fun tflcongs thy = Prim.Context.read() @ (#case_congs(Thry.extract_info thy));
 
 
 val concl = #2 o Rules.dest_thm;
@@ -185,14 +183,25 @@ val spec'= read_instantiate [("x","P::?'b=>bool")] spec;
 
 val wf_rel_defs = [lex_prod_def, measure_def, inv_image_def];
 
-fun simplify_defn ss (thy,(id,pats)) =
+(*Convert conclusion from = to ==*)
+val eq_reflect_list = map (fn th => (th RS eq_reflection) handle _ => th);
+
+(*---------------------------------------------------------------------------
+ * Install the basic context notions. Others (for nat and list and prod) 
+ * have already been added in thry.sml
+ *---------------------------------------------------------------------------*)
+val defaultTflCongs = eq_reflect_list [Thms.LET_CONG, if_cong];
+
+fun simplify_defn (ss, tflCongs) (thy,(id,pats)) =
    let val dummy = deny (id  mem  map ! (stamps_of_thy thy))
                         ("Recursive definition " ^ id ^ 
                          " would clash with the theory of the same name!")
        val def =  freezeT(get_def thy id)   RS   meta_eq_to_obj_eq
        val ss' = ss addsimps ((less_Suc_eq RS iffD2) :: wf_rel_defs)
        val {theory,rules,TCs,full_pats_TCs,patterns} = 
-                Prim.post_definition ss' (thy,(def,pats))
+                Prim.post_definition
+		   (ss', defaultTflCongs @ eq_reflect_list tflCongs)
+		   (thy, (def,pats))
        val {lhs=f,rhs} = S.dest_eq(concl def)
        val (_,[R,_]) = S.strip_comb rhs
        val {induction, rules, tcs} = 
@@ -243,14 +252,4 @@ fun lazyR_def theory eqs =
  *
  *
  *---------------------------------------------------------------------------*)
-
-
-
-
-(*---------------------------------------------------------------------------
- * Install the basic context notions. Others (for nat and list and prod) 
- * have already been added in thry.sml
- *---------------------------------------------------------------------------*)
-val () = Prim.Context.write[Thms.LET_CONG, Thms.COND_CONG];
-
 end;

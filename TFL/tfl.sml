@@ -355,16 +355,9 @@ end;
  * This structure keeps track of congruence rules that aren't derived
  * from a datatype definition.
  *---------------------------------------------------------------------------*)
-structure Context =
-struct
-  val non_datatype_context = ref []: thm list ref
-  fun read() = !non_datatype_context
-  fun write L = (non_datatype_context := L)
-end;
-
 fun extraction_thms thy = 
  let val {case_rewrites,case_congs} = Thry.extract_info thy
- in (case_rewrites, case_congs@Context.read())
+ in (case_rewrites, case_congs)
  end;
 
 
@@ -393,7 +386,7 @@ fun givens [] = []
   | givens (GIVEN(tm,_)::pats) = tm :: givens pats
   | givens (OMITTED _::pats)   = givens pats;
 
-fun post_definition ss (theory, (def, pats)) =
+fun post_definition (ss, tflCongs) (theory, (def, pats)) =
  let val tych = Thry.typecheck theory 
      val f = #lhs(S.dest_eq(concl def))
      val corollary = R.MATCH_MP Thms.WFREC_COROLLARY def
@@ -408,7 +401,7 @@ fun post_definition ss (theory, (def, pats)) =
      val extract = R.CONTEXT_REWRITE_RULE 
 	             (ss, f, R,
 		      R.ISPECL (map tych [f,R]) Thms.CUT_LEMMA,
-		      context_congs)
+		      tflCongs@context_congs)
      val (rules, TCs) = ListPair.unzip (map extract corollaries')
      val rules0 = map (rewrite_rule [Thms.CUT_DEF]) rules
      val mk_cond_rule = R.FILTER_DISCH_ALL(not o curry (op aconv) WFR)
@@ -427,7 +420,7 @@ fun post_definition ss (theory, (def, pats)) =
  * extraction commute for the non-nested case. For hol90 users, this 
  * function can be invoked without being in draft mode.
  * CURRENTLY UNUSED
-fun wfrec_eqns ss thy eqns =
+fun wfrec_eqns (ss, tflCongs) thy eqns =
  let val {functional,pats} = mk_functional thy eqns
      val given_pats = givens pats
      val {Bvar = f, Body} = S.dest_abs functional
@@ -448,7 +441,7 @@ fun wfrec_eqns ss thy eqns =
      val extract = R.CONTEXT_REWRITE_RULE 
 	               (ss, f, R1, 
 		        R.ISPECL (map tych [f,R1]) Thms.CUT_LEMMA, 
-			context_congs)
+			tflCongs@context_congs)
  in {proto_def=proto_def, 
      WFR=WFR, 
      pats=pats,

@@ -17,7 +17,7 @@ sig
 
    val wfrec_definition0 : theory -> string -> term -> term -> theory
 
-   val post_definition : simpset -> theory * (thm * pattern list)
+   val post_definition : simpset * thm list -> theory * (thm * pattern list)
 				 -> {theory : theory,
 				     rules  : thm, 
 				       TCs  : term list list,
@@ -25,7 +25,7 @@ sig
 				  patterns  : pattern list}
 
 (*CURRENTLY UNUSED
-   val wfrec_eqns : theory -> term list
+   val wfrec_eqns : simpset * thm list -> theory -> term list
                      -> {WFR : term, 
                          proto_def : term,
                          extracta :(thm * term list) list,
@@ -46,10 +46,4 @@ sig
                      -> theory 
                       -> {rules:thm, induction:thm, TCs:term list list}
                        -> {rules:thm, induction:thm, nested_tcs:thm list}
-
-   structure Context
-     : sig
-         val read : unit -> thm list
-         val write : thm list -> unit
-       end
 end;
