@@ -213,31 +213,29 @@ by (resolve_tac prems 1);
 qed "is_the_recfun";
 
 val prems = goal WF.thy
- "[| wf(r);  trans(r) |] ==> is_recfun r H a (the_recfun r H a)";
-  by (cut_facts_tac prems 1);
-  by (wf_ind_tac "a" prems 1);
-  by (res_inst_tac [("f","cut (%y. H (the_recfun r H y) y) r a1")]
-                   is_the_recfun 1);
-  by (rewtac is_recfun_def);
-  by (stac cuts_eq 1);
-  by (rtac allI 1);
-  by (rtac impI 1);
-  by (res_inst_tac [("f1","H"),("x","y")](arg_cong RS fun_cong) 1);
-  by (subgoal_tac
+ "!!r. [| wf(r);  trans(r) |] ==> is_recfun r H a (the_recfun r H a)";
+by (wf_ind_tac "a" prems 1);
+by (res_inst_tac [("f","cut (%y. H (the_recfun r H y) y) r a1")]
+                 is_the_recfun 1);
+by (rewtac is_recfun_def);
+by (stac cuts_eq 1);
+by (Clarify_tac 1);
+by (rtac (refl RSN (2,H_cong)) 1);
+by (subgoal_tac
          "the_recfun r H y = cut(%x. H(cut(the_recfun r H y) r x) x) r y" 1);
-  by (etac allE 2);
-  by (dtac impE 2);
-  by (atac 2);
+ by (etac allE 2);
+ by (dtac impE 2);
+   by (atac 2);
   by (atac 3);
-  by (atac 2);
-  by (etac ssubst 1);
-  by (simp_tac (HOL_ss addsimps [cuts_eq]) 1);
-  by (rtac allI 1);
-  by (rtac impI 1);
-  by (asm_simp_tac (wf_super_ss addsimps[cut_apply,is_recfun_cut,cuts_eq]) 1);
-  by (res_inst_tac [("f1","H"),("x","ya")](arg_cong RS fun_cong) 1);
-  by (fold_tac [is_recfun_def]);
-  by (asm_simp_tac (wf_super_ss addsimps[cut_apply,is_recfun_cut,cuts_eq]) 1);
+ by (atac 2);
+by (etac ssubst 1);
+by (simp_tac (HOL_ss addsimps [cuts_eq]) 1);
+by (Clarify_tac 1);
+by (stac cut_apply 1);
+ by(fast_tac (claset() addDs [transD]) 1);
+by (rtac (refl RSN (2,H_cong)) 1);
+by (fold_tac [is_recfun_def]);
+by (asm_simp_tac (wf_super_ss addsimps[is_recfun_cut]) 1);
 qed "unfold_the_recfun";
 
 val unwind1_the_recfun = rewrite_rule[is_recfun_def] unfold_the_recfun;

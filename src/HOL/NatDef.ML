@@ -157,7 +157,7 @@ qed "wf_pred_nat";
 
 (* The unrolling rule for nat_rec *)
 goal thy
-   "(%n. nat_rec c d n) = wfrec pred_nat (%f. nat_case ?c (%m. ?d m (f m)))";
+   "nat_rec c d = wfrec pred_nat (%f. nat_case c (%m. d m (f m)))";
   by (simp_tac (HOL_ss addsimps [nat_rec_def]) 1);
 bind_thm("nat_rec_unfold", wf_pred_nat RS 
                             ((result() RS eq_reflection) RS def_wfrec));
