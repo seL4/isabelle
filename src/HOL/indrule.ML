@@ -26,11 +26,10 @@ val sign = sign_of thy;
 val (Const(_,recT),rec_params) = strip_comb (hd rec_tms);
 
 val elem_type = dest_setT (body_type recT);
-val domTs = summands(elem_type);
 val big_rec_name = space_implode "_" rec_names;
 val big_rec_tm = list_comb(Const(big_rec_name,recT), rec_params);
 
-val _ = writeln "  Proving the induction rules...";
+val _ = writeln "  Proving the induction rule...";
 
 (*** Prove the main induction rule ***)
 
@@ -76,29 +75,34 @@ val pred = Free(pred_name, elem_type --> boolT);
 
 val ind_prems = map (induct_prem (map (rpair pred) rec_tms)) intr_tms;
 
+(*Debugging code...
+val _ = writeln "ind_prems = ";
+val _ = seq (writeln o Sign.string_of_term sign) ind_prems;
+*)
+
 val quant_induct = 
     prove_goalw_cterm part_rec_defs 
       (cterm_of sign (list_implies (ind_prems, 
-				    mk_Trueprop (mk_all_imp(big_rec_tm,pred)))))
+				mk_Trueprop (mk_all_imp (big_rec_tm,pred)))))
       (fn prems =>
        [rtac (impI RS allI) 1,
-	etac raw_induct 1,
+	DETERM (etac raw_induct 1),
+	asm_full_simp_tac (HOL_ss addsimps [Part_Collect]) 1,
 	REPEAT (FIRSTGOAL (eresolve_tac [IntE, CollectE, exE, conjE, disjE] 
 			   ORELSE' hyp_subst_tac)),
-	REPEAT (FIRSTGOAL (eresolve_tac [PartE, CollectE])),
 	ind_tac (rev prems) (length prems)])
     handle e => print_sign_exn sign e;
 
 (*** Prove the simultaneous induction rule ***)
 
 (*Make distinct predicates for each inductive set.
-  Splits cartesian products in domT, IF nested to the right! *)
+  Splits cartesian products in elem_type, IF nested to the right! *)
 
-(*Given a recursive set and its domain, return the "split" predicate
+(*Given a recursive set, return the "split" predicate
   and a conclusion for the simultaneous induction rule*)
-fun mk_predpair (rec_tm,domT) = 
+fun mk_predpair rec_tm = 
   let val rec_name = (#1 o dest_Const o head_of) rec_tm
-      val T = factors domT ---> boolT
+      val T = factors elem_type ---> boolT
       val pfree = Free(pred_name ^ "_" ^ rec_name, T)
       val frees = mk_frees "za" (binder_types T)
       val qconcl = 
@@ -109,7 +113,7 @@ fun mk_predpair (rec_tm,domT) =
       qconcl)  
   end;
 
-val (preds,qconcls) = split_list (map mk_predpair (rec_tms~~domTs));
+val (preds,qconcls) = split_list (map mk_predpair rec_tms);
 
 (*Used to form simultaneous induction lemma*)
 fun mk_rec_imp (rec_tm,pred) = 
@@ -135,6 +139,12 @@ val lemma = (*makes the link between the two induction rules*)
 
 (*Mutual induction follows by freeness of Inl/Inr.*)
 
+(*Simplification largely reduces the mutual induction rule to the 
+  standard rule*)
+val mut_ss = set_ss addsimps [Inl_Inr_eq, Inr_Inl_eq, Inl_eq, Inr_eq];
+
+val all_defs = con_defs@part_rec_defs;
+
 (*Removes Collects caused by M-operators in the intro rules*)
 val cmonos = [subset_refl RS Int_Collect_mono] RL monos RLN (2,[rev_subsetD]);
 
@@ -143,20 +153,25 @@ fun mutual_ind_tac [] 0 = all_tac
   | mutual_ind_tac(prem::prems) i = 
       DETERM
        (SELECT_GOAL 
-	  ((*unpackage and use "prem" in the corresponding place*)
-	   REPEAT (FIRSTGOAL
-		   (etac conjE ORELSE' eq_mp_tac ORELSE' 
-		    ares_tac [impI, conjI]))
-	   (*prem is not allowed in the REPEAT, lest it loop!*)
-	   THEN TRYALL (rtac prem)
-	   THEN REPEAT
-		  (FIRSTGOAL (ares_tac [impI] ORELSE' 
-			      eresolve_tac (mp::cmonos)))
-	   (*prove remaining goals by contradiction*)
-	   THEN rewrite_goals_tac (con_defs@part_rec_defs)
-	   THEN DEPTH_SOLVE (eresolve_tac (PartE :: sumprod_free_SEs) 1))
-	  i)
-	THEN mutual_ind_tac prems (i-1);
+	  (
+	   (*Simplify the assumptions and goal by unfolding Part and
+	     using freeness of the Sum constructors; proves all but one
+             conjunct by contradiction*)
+	   rewrite_goals_tac all_defs  THEN
+	   simp_tac (mut_ss addsimps [Part_def]) 1  THEN
+	   IF_UNSOLVED (*simp_tac may have finished it off!*)
+	     ((*simplify assumptions, but don't accept new rewrite rules!*)
+	      asm_full_simp_tac (mut_ss setmksimps K[]) 1  THEN
+	      (*unpackage and use "prem" in the corresponding place*)
+	      REPEAT (rtac impI 1)  THEN
+	      rtac (rewrite_rule all_defs prem) 1  THEN
+	      (*prem must not be REPEATed below: could loop!*)
+	      DEPTH_SOLVE (FIRSTGOAL (ares_tac [impI] ORELSE' 
+				      eresolve_tac (conjE::mp::cmonos))))
+	  ) i)
+       THEN mutual_ind_tac prems (i-1);
+
+val _ = writeln "  Proving the mutual induction rule...";
 
 val mutual_induct_split = 
     prove_goalw_cterm []
