@@ -32,19 +32,17 @@ Addsimps [below_0];
 
 Goalw [below_def]
     "below(Suc n) Times B = ({n} Times B) Un ((below n) Times B)";
-by (simp_tac (simpset() addsimps [less_Suc_eq]) 1);
-by (Blast_tac 1);
+by Auto_tac;
 qed "Sigma_Suc1";
 
 Goalw [below_def]
     "A Times below(Suc n) = (A Times {n}) Un (A Times (below n))";
-by (simp_tac (simpset() addsimps [less_Suc_eq]) 1);
-by (Blast_tac 1);
+by Auto_tac;
 qed "Sigma_Suc2";
 
 Goal "{i} Times below(n+n) : tiling domino";
 by (induct_tac "n" 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [Un_assoc RS sym, Sigma_Suc2])));
+by (ALLGOALS(asm_simp_tac (simpset() addsimps [Un_assoc RS sym, Sigma_Suc2])));
 by (resolve_tac tiling.intrs 1);
 by (assume_tac 2);
 by (subgoal_tac    (*seems the easiest way of turning one to the other*)
@@ -91,8 +89,7 @@ qed "evnodd_empty";
 Goalw [evnodd_def]
     "evnodd (insert (i,j) C) b = \
 \      (if (i+j) mod 2 = b then insert (i,j) (evnodd C b) else evnodd C b)";
-by (Simp_tac 1);
-by (Blast_tac 1);
+by Auto_tac;
 qed "evnodd_insert";
 
 Addsimps [finite_evnodd, evnodd_Un, evnodd_Diff, evnodd_empty, evnodd_insert];
@@ -106,8 +103,7 @@ by (res_inst_tac [("k1", "i+j")] (mod2_cases RS disjE) 2);
 by (res_inst_tac [("k1", "i+j")] (mod2_cases RS disjE) 1);
 by (REPEAT_FIRST assume_tac);
 (*Four similar cases: case (i+j) mod 2 = b, 2#-b, ...*)
-by (REPEAT (asm_full_simp_tac (simpset() addsimps [less_Suc_eq, mod_Suc]) 1
-           THEN Blast_tac 1));
+by(auto_tac (claset(), simpset() addsimps [less_Suc_eq, mod_Suc]));
 qed "domino_singleton";
 
 Goal "d:domino ==> finite d";
@@ -127,10 +123,9 @@ Goal "t: tiling domino ==> card(evnodd t 0) = card(evnodd t 1)";
 by (eresolve_tac [tiling.induct] 1);
 by (simp_tac (simpset() addsimps [evnodd_def]) 1);
 by (res_inst_tac [("b1","0")] (domino_singleton RS exE) 1);
-by (Simp_tac 2 THEN assume_tac 1);
+by Auto_tac;
 by (res_inst_tac [("b1","1")] (domino_singleton RS exE) 1);
-by (Simp_tac 2 THEN assume_tac 1);
-by (Clarify_tac 1);
+by Auto_tac;
 by (subgoal_tac "ALL p b. p : evnodd a b --> p ~: evnodd t b" 1);
 by (asm_simp_tac (simpset() addsimps [tiling_domino_finite]) 1);
 by (blast_tac (claset() addSDs [evnodd_subset RS subsetD] 
