@@ -64,10 +64,10 @@ with the easy one:%
 \noindent
 In contrast to the analogous property for \isa{EF}, and just
 for a change, we do not use fixed point induction but a weaker theorem,
-\isa{lfp{\isacharunderscore}lowerbound}:
-\begin{isabelle}%
-\ \ \ \ \ f\ S\ {\isasymsubseteq}\ S\ {\isasymLongrightarrow}\ lfp\ f\ {\isasymsubseteq}\ S%
-\end{isabelle}
+also known in the literature (after David Park) as \emph{Park-induction}:
+\begin{center}
+\isa{f\ S\ {\isasymsubseteq}\ S\ {\isasymLongrightarrow}\ lfp\ f\ {\isasymsubseteq}\ S} \hfill (\isa{lfp{\isacharunderscore}lowerbound})
+\end{center}
 The instance of the premise \isa{f\ S\ {\isasymsubseteq}\ S} is proved pointwise,
 a decision that clarification takes for us:%
 \end{isamarkuptxt}%

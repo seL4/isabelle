@@ -110,8 +110,10 @@ theorem AF_lemma1:
 txt{*\noindent
 In contrast to the analogous property for @{term EF}, and just
 for a change, we do not use fixed point induction but a weaker theorem,
-@{thm[source]lfp_lowerbound}:
-@{thm[display]lfp_lowerbound[of _ "S",no_vars]}
+also known in the literature (after David Park) as \emph{Park-induction}:
+\begin{center}
+@{thm lfp_lowerbound[of _ "S",no_vars]} \hfill (@{thm[source]lfp_lowerbound})
+\end{center}
 The instance of the premise @{prop"f S \<subseteq> S"} is proved pointwise,
 a decision that clarification takes for us:
 *};
