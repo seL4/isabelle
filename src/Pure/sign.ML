@@ -138,16 +138,16 @@ in read end;
   it is impossible to forge a signature. *)
 
 fun extend (Sg {tsig, const_tab, syn, stamps}) signame
-  (newclasses, newdefault, otypes, newtypes, const_decs, osext) =
+  (classes, default, types, arities, const_decs, osext) =
   let
     (* FIXME abbr *)
-    val tsig' = Type.extend (tsig, newclasses, newdefault, otypes, newtypes);
+    val tsig' = Type.extend (tsig, classes, default, types, arities);
 
     (* FIXME expand_typ, check typ *)
     val read_ty = Syntax.read_typ syn (K (Type.defaultS tsig'));
 
-    val roots = filter (Type.logical_type tsig') (distinct (flat (map #1 newtypes)));
-    val xconsts = map #1 newclasses @ flat (map #1 otypes) @ flat (map #1 const_decs);
+    val roots = filter (Type.logical_type tsig') (distinct (flat (map #1 arities)));
+    val xconsts = map #1 classes @ flat (map #1 types) @ flat (map #1 const_decs);
     val syn' =
       (case osext of
         Some sext => Syntax.extend syn read_ty (roots, xconsts, sext)
@@ -185,8 +185,7 @@ val pure = extend sg0 "Pure"
   (Syntax.syntax_types, 0)],
  [(["fun"],  ([["logic"], ["logic"]], "logic")),
   (["prop"], ([], "logic"))],
- [(["*NORMALIZED*"], "'a::{} => 'a"),
-  ([Syntax.constrainC], "'a::logic => 'a")],  (* MMW FIXME replace logic by {} (?) *)
+ [([Syntax.constrainC], "'a::logic => 'a")],  (* MMW FIXME replace logic by {} (?) *)
  Some Syntax.pure_sext);
 
 
