@@ -1,17 +1,20 @@
 (*  Title:      Pure/type.ML
-    Author:     Tobias Nipkow & Lawrence C Paulson
     ID:         $Id$
+    Author:     Tobias Nipkow & Lawrence C Paulson
 
-Types and Sorts. Type Inference.
+Type classes and sorts. Type signatures. Type unification and inference.
 
 TODO:
-  Maybe type classes should go in a separate module?
-  Maybe type inference part (excl unify) should go in a separate module?
+  move type unification and inference to type_unify.ML (TypeUnify) (?)
+  rename args -> tycons, coreg -> arities (?)
+  clean err msgs
 *)
 
 signature TYPE =
 sig
   structure Symtab: SYMTAB
+  val str_of_sort: sort -> string
+  val str_of_arity: string * sort list * sort -> string
   type type_sig
   val rep_tsig: type_sig ->
     {classes: class list,
@@ -21,16 +24,18 @@ sig
      abbrs: (string * (indexname list * typ)) list,
      coreg: (string * (class * sort list) list) list}
   val defaultS: type_sig -> sort
-  val subsort: type_sig -> sort * sort -> bool
-  val norm_sort: type_sig -> sort -> sort
-  val logical_types: type_sig -> string list
   val tsig0: type_sig
+  val logical_types: type_sig -> string list
   val extend_tsig: type_sig ->
     (class * class list) list * sort * (string list * int) list *
     (string list * (sort list * class)) list -> type_sig
+  val ext_subclass: type_sig -> (class * class) list -> type_sig
   val ext_tsig_abbrs: type_sig -> (string * (indexname list * typ)) list
     -> type_sig
   val merge_tsigs: type_sig * type_sig -> type_sig
+  val subsort: type_sig -> sort * sort -> bool
+  val norm_sort: type_sig -> sort -> sort
+  val rem_sorts: typ -> typ
   val cert_typ: type_sig -> typ -> typ
   val norm_typ: type_sig -> typ -> typ
   val freeze: (indexname -> bool) -> term -> term
@@ -51,31 +56,46 @@ sig
   exception TYPE_MATCH
 end;
 
-functor TypeFun(structure Symtab: SYMTAB and Syntax: SYNTAX) (*: TYPE*) (* FIXME debug *) =
+functor TypeFun(structure Symtab: SYMTAB and Syntax: SYNTAX): TYPE =
 struct
 
 structure Symtab = Symtab;
 
 
-(*** type classes ***)    (* FIXME improve comment *)
+(*** type classes and sorts ***)
+
+(*
+  Classes denote (possibly empty) collections of types (e.g. sets of types)
+  and are partially ordered by 'inclusion'. They are represented by strings.
+
+  Sorts are intersections of finitely many classes. They are represented by
+  lists of classes.
+*)
 
 type domain = sort list;
-type arity = domain * class;
 
-fun str_of_sort S = parents "{" "}" (commas S);
+
+(* print sorts and arities *)
+
+fun str_of_sort [c] = c
+  | str_of_sort cs = parents "{" "}" (commas cs);
+
 fun str_of_dom dom = parents "(" ")" (commas (map str_of_sort dom));
-fun str_of_decl (t, w, C) = t ^ " :: " ^ str_of_dom w ^ " " ^ C;
+
+fun str_of_arity (t, [], S) = t ^ " :: " ^ str_of_sort S
+  | str_of_arity (t, SS, S) =
+      t ^ " :: " ^ str_of_dom SS ^ " " ^ str_of_sort S;
 
 
 
-(** type signature **)
+(*** type signatures ***)
 
 (*
   classes:
     a list of all declared classes;
 
   subclass:
-    association list representation of subclass relationship; (c, cs) is
+    an association list representing the subclass relation; (c, cs) is
     interpreted as "c is a proper subclass of all elemenst of cs"; note that
     c itself is not a memeber of cs;
 
@@ -109,15 +129,29 @@ fun rep_tsig (TySg comps) = comps;
 fun defaultS (TySg {default, ...}) = default;
 
 
+(* error messages *)    (* FIXME move? *)
 
-(* FIXME move *)
-
-fun undcl_class c = "Undeclared class: " ^ quote c;
+fun undcl_class c = "Undeclared class " ^ quote c;
 val err_undcl_class = error o undcl_class;
 
-fun undcl_type c = "Undeclared type constructor: " ^ quote c;
+(* FIXME not yet checked? *)
+fun err_dup_class c =
+  error ("Duplicate declaration of class " ^ quote c);
+
+fun undcl_type c = "Undeclared type constructor " ^ quote c;
 val err_undcl_type = error o undcl_type;
 
+fun err_dup_tycon c =
+  error ("Duplicate declaration of type constructor " ^ quote c);
+
+fun err_neg_args c =
+  error ("Negative number of arguments of type constructor " ^ quote c);
+
+fun err_dup_tyabbr c =
+  error ("Duplicate declaration of type abbreviation " ^ quote c);
+
+fun ty_confl c = "Conflicting type constructor and abbreviation " ^ quote c;
+val err_ty_confl = error o ty_confl;
 
 
 (* 'leq' checks the partial order on classes according to the
@@ -131,20 +165,21 @@ fun less a (C, D) = case assoc (a, C) of
 fun leq a (C, D)  =  C = D orelse less a (C, D);
 
 
+(* logical_types *)
 
+(*return all logical types of tsig, i.e. all types t with some arity t::(ss)c
+  and c <= logic*)
 
-(* 'logical_type' checks if some type declaration t has as range
-   a class which is a subclass of "logic" *)
+fun logical_types tsig =
+  let
+    val TySg {subclass, coreg, args, ...} = tsig;
 
-fun logical_type(tsig as TySg{subclass, coreg, ...}) t =
-  let fun is_log C = leq subclass (C, logicC)
-  in case assoc (coreg, t) of
-      Some(ars) => exists (is_log o #1) ars
-    | None => err_undcl_type(t)
+    fun log_class c = leq subclass (c, logicC);
+    fun log_type t = exists (log_class o #1) (assocs coreg t);
+  in
+    filter log_type (map #1 args)
   end;
 
-fun logical_types (tsig as TySg {args, ...}) =
-  filter (logical_type tsig) (map #1 args);
 
 (* 'sortorder' checks the ordering on sets of classes, i.e. on sorts:
    S1 <= S2 , iff for every class C2 in S2 there exists a class C1 in S1
@@ -323,42 +358,43 @@ fun typ_instance (tsig, T, U) =
 
 (** build type signatures **)
 
-val tsig0 =
-  TySg {
-    classes = [],
-    subclass = [],
-    default = [],
-    args = [],
-    abbrs = [],
-    coreg = []};
+fun make_tsig (classes, subclass, default, args, abbrs, coreg) =
+  TySg {classes = classes, subclass = subclass, default = default,
+    args = args, abbrs = abbrs, coreg = coreg};
+
+val tsig0 = make_tsig ([], [], [], [], [], []);
 
 
 (* sorts *)
 
-fun norm_sort (TySg {subclass, ...}) S =
-  sort_strings (min_sort subclass S);
-
 fun subsort (TySg {subclass, ...}) (S1, S2) =
   sortorder subclass (S1, S2);
 
+fun norm_sort (TySg {subclass, ...}) S =
+  sort_strings (min_sort subclass S);
 
-fun not_ident(s) = error("Must be an identifier: " ^ s);
+fun rem_sorts (Type (a, tys)) = Type (a, map rem_sorts tys)
+  | rem_sorts (TFree (x, _)) = TFree (x, [])
+  | rem_sorts (TVar (xi, _)) = TVar (xi, []);
+
+
 
 fun twice(a) = error("Type constructor " ^a^ " has already been declared.");
 
 fun tyab_conflict(a) = error("Can't declare type "^(quote a)^"!\nAn abbreviation with this name exists already.");
 
 
-(* typ_errors *)   (* FIXME check, improve *)
+(* typ_errors *)
 
-(*check validity of (not necessarily normal) type;
-  accumulates error messages in "errs"*)
+(*check validity of (not necessarily normal) type; accumulate error messages*)
 
-fun typ_errors (TySg {classes, args, abbrs, ...}) ty =
+fun typ_errors tsig (typ, errors) =
   let
-    fun class_err (errs, C) =
-      if C mem classes then errs
-      else undcl_class C :: errs;
+    val TySg {classes, args, abbrs, ...} = tsig;
+
+    fun class_err (errs, c) =
+      if c mem classes then errs
+      else undcl_class c ins errs;
 
     val sort_err = foldl class_err;
 
@@ -367,19 +403,22 @@ fun typ_errors (TySg {classes, args, abbrs, ...}) ty =
             val errs' = foldr typ_errs (Us, errs);
             fun nargs n =
               if n = length Us then errs'
-              else ("Wrong number of arguments: " ^ quote c) :: errs';
+              else ("Wrong number of arguments: " ^ quote c) ins errs';
           in
             (case assoc (args, c) of
               Some n => nargs n
             | None =>
                 (case assoc (abbrs, c) of
                   Some (vs, _) => nargs (length vs)
-                | None => undcl_type c :: errs))
+                | None => undcl_type c ins errs))
           end
     | typ_errs (TFree (_, S), errs) = sort_err (errs, S)
-    | typ_errs (TVar (_, S), errs) = sort_err (errs, S);    (* FIXME index >= 0 (?) *)
+    | typ_errs (TVar ((x, i), S), errs) =
+        if i < 0 then
+          ("Negative index for TVar " ^ quote x) ins sort_err (errs, S)
+        else sort_err (errs, S);
   in
-    typ_errs ty
+    typ_errs (typ, errors)
   end;
 
 
@@ -394,11 +433,13 @@ fun cert_typ tsig ty =
 
 
 
+(** extend type signature **)
+
 (* 'add_class' adds a new class to the list of all existing classes *)
 
 fun add_class (classes, (s, _)) =
   if s mem classes then error("Class " ^ s ^ " declared twice.")
-  else s::classes;
+  else s :: classes;
 
 (* 'add_subclass' adds a tuple consisiting of a new class (the new class
    has already been inserted into the 'classes' list) and its
@@ -410,9 +451,9 @@ fun add_class (classes, (s, _)) =
 
 fun add_subclass classes (subclass, (s, ges)) =
 let fun upd (subclass, s') = if s' mem classes then
-        let val Some(ges') = assoc (subclass, s)
+        let val ges' = the (assoc (subclass, s))
         in case assoc (subclass, s') of
-             Some(sups) => if s mem sups
+             Some sups => if s mem sups
                            then error(" Cycle :" ^ s^" <= "^ s'^" <= "^ s )
                            else overwrite (subclass, (s, sups union ges'))
            | None => subclass
@@ -431,15 +472,30 @@ fun extend_classes (classes, subclass, newclasses) =
   in (classes', subclass') end;
 
 
-(* Corregularity *)
+(* ext_subclass *) (* FIXME check, test *)
+
+(* FIXME disallow (c, c) (?) *)
+
+fun ext_subclass tsig pairs =
+  let
+    val TySg {classes, subclass, default, args, abbrs, coreg} = tsig;
+
+    val subclass' = foldl (add_subclass classes)
+      (subclass, map (fn (c1, c2) => (c1, [c2])) pairs);
+  in
+    make_tsig (classes, subclass', default, args, abbrs, coreg)
+  end;
+
+
+(* Coregularity *)
 
 (* 'is_unique_decl' checks if there exists just one declaration t:(Ss)C *)
 
 fun is_unique_decl coreg (t, (s, w)) = case assoc2 (coreg, (t, s)) of
       Some(w1) => if w = w1 then () else
         error("There are two declarations\n" ^
-              str_of_decl(t, w, s) ^ " and\n" ^
-              str_of_decl(t, w1, s) ^ "\n" ^
+              str_of_arity(t, w, [s]) ^ " and\n" ^
+              str_of_arity(t, w1, [s]) ^ "\n" ^
               "with the same result class.")
     | None => ();
 
@@ -451,14 +507,17 @@ fun subs (classes, subclass) C =
   in foldl sub ([], classes) end;
 
 fun coreg_err(t, (w1, C), (w2, D)) =
-    error("Declarations " ^ str_of_decl(t, w1, C) ^ " and "
-                          ^ str_of_decl(t, w2, D) ^ " are in conflict");
+    error("Declarations " ^ str_of_arity(t, w1, [C]) ^ " and "
+                          ^ str_of_arity(t, w2, [D]) ^ " are in conflict");
 
 fun restr2 classes (subclass, coreg) (t, (s, w)) =
   let fun restr ([], test) = ()
-        | restr (s1::Ss, test) = (case assoc2 (coreg, (t, s1)) of
-              Some (dom) => if lew subclass (test (w, dom)) then restr (Ss, test)
-                            else coreg_err (t, (w, s), (dom, s1))
+        | restr (s1::Ss, test) =
+            (case assoc2 (coreg, (t, s1)) of
+              Some dom =>
+                if lew subclass (test (w, dom))
+                then restr (Ss, test)
+                else coreg_err (t, (w, s), (dom, s1))
             | None => restr (Ss, test))
       fun forward (t, (s, w)) =
         let val s_sups = case assoc (subclass, s) of
@@ -490,7 +549,7 @@ fun coregular (classes, subclass, args) =
                      (is_unique_decl coreg (t, (C, w));
                       (seq o seq) ex w;
                       restr2 classes (subclass, coreg) (t, (C, w));
-                      let val Some(ars) = assoc(coreg, t)
+                      let val ars = the (assoc(coreg, t))
                       in overwrite(coreg, (t, (C, w) ins ars)) end)
           | None => err_undcl_type(t);
 
@@ -521,19 +580,69 @@ fun close (coreg, subclass) =
       fun ext (s, l) = (s, foldl (check (map #1 l)) (l, l));
   in map ext coreg end;
 
-fun add_types(aca, (ts, n)) =
-  let fun add_type((args, coreg, abbrs), t) = case assoc(args, t) of
-          Some _ => twice(t)
-        | None => (case assoc(abbrs, t) of Some _ => tyab_conflict(t)
-                                       | None => ((t, n)::args, (t, [])::coreg, abbrs))
-  in if n<0
-     then error("Type constructor cannot have negative number of arguments")
-     else foldl add_type (aca, ts)
+fun add_types (aca, (ts, n)) =
+  let
+    fun add_type ((args, coreg, abbrs), t) =
+      case assoc(args, t) of              (* FIXME from new *)
+        Some _ => twice(t)
+      | None =>
+          (case assoc(abbrs, t) of
+            Some _ => tyab_conflict(t)
+          | None => ((t, n)::args, (t, [])::coreg, abbrs))
+  in
+    if n < 0 then     (* FIXME err_neg_args *)
+      error ("Type constructor cannot have negative number of arguments")
+    else foldl add_type (aca, ts)
   end;
 
 
+(* add type abbreviations *)    (* FIXME test *)
 
-(* ext_tsig_abbrs *)    (* FIXME clean, check, improve *)
+fun abbr_errors tsig (a, (lhs_vs, rhs)) =
+  let
+    val TySg {args, abbrs, ...} = tsig;
+    val rhs_vs = map #1 (typ_tvars rhs);
+
+
+    val show_idxs = commas_quote o map fst;
+
+    val dup_lhs_vars =
+      (case duplicates lhs_vs of
+        [] => []
+      | vs => ["Duplicate variables on lhs: " ^ show_idxs vs]);
+
+    val extra_rhs_vars =
+      (case gen_rems (op =) (rhs_vs, lhs_vs) of
+        [] => []
+      | vs => ["Extra variables on rhs: " ^ show_idxs vs]);
+
+    val tycon_confl =
+      if is_none (assoc (args, a)) then []
+      else [ty_confl a];
+
+    val dup_abbr =
+      if is_none (assoc (abbrs, a)) then []
+      else ["Duplicate declaration of abbreviation"];
+  in
+    dup_lhs_vars @ extra_rhs_vars @ tycon_confl @ dup_abbr @
+      typ_errors tsig (rhs, [])
+  end;
+
+fun add_abbr (tsig, abbr as (a, _)) =
+  let
+    val TySg {classes, subclass, default, args, coreg, abbrs} = tsig;
+  in
+    (case abbr_errors tsig abbr of
+      [] => make_tsig (classes, subclass, default, args, abbr :: abbrs, coreg)
+    | errs => (seq writeln errs;
+        error ("The error(s) above occurred in type abbreviation " ^ quote a)))
+  end;
+
+fun ext_tsig_abbrs tsig abbrs = foldl add_abbr (tsig, abbrs);
+
+
+(***
+(* FIXME old *)
 
 (* check_abbr *)
 
@@ -543,31 +652,30 @@ fun check_abbr ((a, (lhs_vs, U)), tsig as TySg {args, abbrs, ...}) =
     fun err_abbr a = "Error in type abbreviation " ^ quote a;
   in
     if not (rhs_vs subset lhs_vs)
-    then [err_abbr a, ("Extra variables on rhs")]     (* FIXME improve *)
+    then [err_abbr a, ("Extra variables on rhs")]
     else
       (case duplicates lhs_vs of
         dups as _ :: _ =>
-          [err_abbr a, "Duplicate variables on lhs: " ^ commas (map (quote o #1) dups)]  (* FIXME string_of_vname *)
+          [err_abbr a, "Duplicate variables on lhs: " ^ commas (map (quote o #1) dups)]
       | [] =>
         if is_some (assoc (args, a)) then
           [err_abbr a, ("A type with this name already exists")]
         else if is_some (assoc (abbrs, a)) then
           [err_abbr a, ("An abbreviation with this name already exists")]
-        else  (* FIXME remove (?) or move up! *)
+        else
           (case typ_errors tsig (U, []) of
             [] => []
           | errs => err_abbr a :: errs))
   end;
 
-(* FIXME improve *)
-(* FIXME set all sorts to [] (?) *)
 fun add_abbr (tsig as TySg {classes, default, subclass, args, coreg, abbrs}, newabbr) =
   (case check_abbr (newabbr, tsig) of
     [] => TySg {classes = classes, default = default, subclass = subclass,
       args = args, coreg = coreg, abbrs = newabbr :: abbrs}
-  | errs => error (cat_lines errs));    (* FIXME error!? *)
+  | errs => error (cat_lines errs));
 
 fun ext_tsig_abbrs tsig abbrs = foldl add_abbr (tsig, abbrs);
+***)
 
 
 (* 'extend_tsig' takes the above described check- and extend-functions to
@@ -575,18 +683,29 @@ fun ext_tsig_abbrs tsig abbrs = foldl add_abbr (tsig, abbrs);
 
 fun extend_tsig (TySg{classes, default, subclass, args, coreg, abbrs})
             (newclasses, newdefault, types, arities) =
-let val (classes', subclass') = extend_classes(classes, subclass, newclasses);
+  let
+    val (classes', subclass') = extend_classes(classes, subclass, newclasses);
     val (args', coreg', _) = foldl add_types ((args, coreg, abbrs), types);
     val old_coreg = map #1 coreg;
-    fun is_old(c) = if c mem old_coreg then () else err_undcl_type(c);
-    fun is_new(c) = if c mem old_coreg then twice(c) else ();
-    val coreg'' = foldl (coregular (classes', subclass', args'))
-                        (coreg', min_domain subclass' arities);
+    fun is_old c =
+      if c mem old_coreg then ()
+      else err_undcl_type c;
+    fun is_new c =
+      if c mem old_coreg
+      then twice c else ();
+    val coreg'' =
+      foldl (coregular (classes', subclass', args'))
+        (coreg', min_domain subclass' arities);
     val coreg''' = close (coreg'', subclass');
     val default' = if null newdefault then default else newdefault;
-in TySg{classes=classes', default=default', subclass=subclass', args=args',
-        coreg=coreg''', abbrs=abbrs} end;
+  in
+    TySg {classes = classes', subclass = subclass', default = default',
+      args = args', coreg = coreg''', abbrs = abbrs}
+  end;
 
+
+
+(** merge type signatures **)
 
 (* 'assoc_union' merges two association lists if the contents associated
    the keys are lists *)
@@ -617,9 +736,10 @@ fun merge_coreg classes subclass1 =
         | None => c::coreg1
   in foldl merge_c end;
 
-fun merge_args(args, (t, n)) = case assoc(args, t) of
-      Some(m) => if m=n then args else varying_decls(t)
-    | None => (t, n)::args;
+fun merge_args (args, (t, n)) =
+  (case assoc (args, t) of
+    Some m => if m = n then args else varying_decls t
+  | None => (t, n) :: args);
 
 (* FIXME raise ... *)
 fun merge_abbrs (abbrs1, abbrs2) =
@@ -630,11 +750,12 @@ fun merge_abbrs (abbrs1, abbrs2) =
     (case duplicates names of
       [] => abbrs
     | dups => error ("Duplicate declaration of type abbreviations: " ^
-        commas (map quote dups)))
+        commas_quote dups))
   end;
 
 
-(* 'merge_tsigs' takes the above declared functions to merge two type signatures *)
+(* 'merge_tsigs' takes the above declared functions to merge two type
+  signatures *)
 
 fun merge_tsigs(TySg{classes=classes1, default=default1, subclass=subclass1, args=args1,
            coreg=coreg1, abbrs=abbrs1},
@@ -651,7 +772,8 @@ fun merge_tsigs(TySg{classes=classes1, default=default1, subclass=subclass1, arg
   end;
 
 
-(**** TYPE INFERENCE ****)
+
+(*** type unification and inference ***)
 
 (*
 
