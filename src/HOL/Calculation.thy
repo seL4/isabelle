@@ -153,7 +153,7 @@ text {*
   Note that this list of rules is in reverse order of priorities.
 *}
 
-lemmas trans_rules [trans] =
+lemmas basic_trans_rules [trans] =
   order_less_subst2
   order_less_subst1
   order_le_less_subst2

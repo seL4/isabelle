@@ -54,7 +54,7 @@ constdefs
   equivalence_class :: "'a::equiv => 'a quot"    ("\<lfloor>_\<rfloor>")
   "\<lfloor>a\<rfloor> == Abs_quot {x. a \<sim> x}"
 
-theorem quot_rep: "\<exists>a. A = \<lfloor>a\<rfloor>"
+theorem quot_exhaust: "\<exists>a. A = \<lfloor>a\<rfloor>"
 proof (cases A)
   fix R assume R: "A = Abs_quot R"
   assume "R \<in> quot" hence "\<exists>a. R = {x. a \<sim> x}" by blast
@@ -62,9 +62,8 @@ proof (cases A)
   thus ?thesis by (unfold equivalence_class_def)
 qed
 
-lemma quot_cases [case_names rep, cases type: quot]:
-    "(!!a. A = \<lfloor>a\<rfloor> ==> C) ==> C"
-  by (insert quot_rep) blast
+lemma quot_cases [cases type: quot]: "(!!a. A = \<lfloor>a\<rfloor> ==> C) ==> C"
+  by (insert quot_exhaust) blast
 
 
 subsection {* Equality on quotients *}
