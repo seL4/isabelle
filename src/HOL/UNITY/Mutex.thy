@@ -26,24 +26,24 @@ types state = pvar => nat
 
 constdefs
   cmd0 :: "[pvar,pvar] => (state*state) set"
-    "cmd0 u m == {(s,s'). s' = s[u|->1][m|->1] & s m = 0}"
+    "cmd0 u m == {(s,s'). s' = s[u:=1][m:=1] & s m = 0}"
 
   cmd1u :: "(state*state) set"
-    "cmd1u == {(s,s'). s' = s[PP|-> s VV][MM|->2] & s MM = 1}"
+    "cmd1u == {(s,s'). s' = s[PP:= s VV][MM:=2] & s MM = 1}"
 
   cmd1v :: "(state*state) set"
-    "cmd1v == {(s,s'). s' = s[PP|-> 1 - s UU][NN|->2] & s NN = 1}"
+    "cmd1v == {(s,s'). s' = s[PP:= 1 - s UU][NN:=2] & s NN = 1}"
 
   (*Put pv=0 for u's program and pv=1 for v's program*)
   cmd2 :: "[nat,pvar] => (state*state) set"
-    "cmd2 pv m == {(s,s'). s' = s[m|->3] & s PP = pv & s m = 2}"
+    "cmd2 pv m == {(s,s'). s' = s[m:=3] & s PP = pv & s m = 2}"
 
   cmd3 :: "[pvar,pvar] => (state*state) set"
-    "cmd3 u m == {(s,s'). s' = s[u|->0][m|->4] & s m = 3}"
+    "cmd3 u m == {(s,s'). s' = s[u:=0][m:=4] & s m = 3}"
 
   (*Put pv=1 for u's program and pv=0 for v's program*)
   cmd4 :: "[nat,pvar] => (state*state) set"
-    "cmd4 pv m == {(s,s'). s' = s[PP|->pv][m|->0] & s m = 4}"
+    "cmd4 pv m == {(s,s'). s' = s[PP:=pv][m:=0] & s m = 4}"
 
   mutex :: "(state*state) set set"
     "mutex == {id,

@@ -21,7 +21,7 @@ consts
 constdefs
 
   asgt  :: "[vertex,vertex] => (state*state) set"
-    "asgt u v == {(s,s'). s' = s[v|-> s u | s v]}"
+    "asgt u v == {(s,s'). s' = s[v:= s u | s v]}"
 
   racts :: "(state*state) set set"
     "racts == insert id (UN (u,v): edges. {asgt u v})"

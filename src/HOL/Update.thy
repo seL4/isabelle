@@ -10,13 +10,13 @@ Update = Fun +
 
 consts
   update  :: "('a => 'b) => 'a => 'b => ('a => 'b)"
-           ("_/[_/|->/_]" [900,0,0] 900)
+           ("_/[_/:=/_]" [900,0,0] 900)
 
 syntax (symbols)
   update    :: "('a => 'b) => 'a => 'b => ('a => 'b)"
                ("_/[_/\\<mapsto>/_]" [900,0,0] 900)
 
 defs
-  update_def "f[a|->b] == %x. if x=a then b else f x"
+  update_def "f[a:=b] == %x. if x=a then b else f x"
 
 end

@@ -57,6 +57,7 @@ use_thy "Finite";
 use_thy "Sexp";
 use_thy "WF_Rel";
 use_thy "Map";
+use_thy "Update";
 
 (*TFL: recursive function definitions*)
 cd "$ISABELLE_HOME/src/TFL";

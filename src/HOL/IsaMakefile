@@ -46,7 +46,8 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/cancel_sums.ML \
   Power.ML Power.thy Prod.ML Prod.thy Record.thy ROOT.ML RelPow.ML \
   RelPow.thy Relation.ML Relation.thy Set.ML Set.thy Sexp.ML Sexp.thy \
   Sum.ML Sum.thy Tools/record_package.ML Tools/typedef_package.ML \
-  Trancl.ML Trancl.thy Univ.ML Univ.thy Vimage.ML Vimage.thy WF.ML \
+  Trancl.ML Trancl.thy Univ.ML Univ.thy \
+  Update.ML Update.thy Vimage.ML Vimage.thy WF.ML \
   WF.thy WF_Rel.ML WF_Rel.thy add_ind_def.ML arith_data.ML cladata.ML \
   datatype.ML equalities.ML equalities.thy hologic.ML ind_syntax.ML \
   indrule.ML indrule.thy intr_elim.ML intr_elim.thy mono.ML mono.thy \
@@ -155,7 +156,7 @@ $(LOG)/HOL-UNITY.gz: $(OUT)/HOL UNITY/ROOT.ML\
   UNITY/Network.ML UNITY/Network.thy UNITY/Reach.ML UNITY/Reach.thy\
   UNITY/SubstAx.ML UNITY/SubstAx.thy UNITY/Token.ML UNITY/Token.thy\
   UNITY/Traces.ML UNITY/Traces.thy UNITY/UNITY.ML UNITY/UNITY.thy\
-  UNITY/Update.ML UNITY/Update.thy UNITY/WFair.ML UNITY/WFair.thy
+  UNITY/WFair.ML UNITY/WFair.thy
 	@$(ISATOOL) usedir $(OUT)/HOL UNITY
 
 

@@ -4,6 +4,7 @@
     Copyright   1998  University of Cambridge
 
 Reachability in Directed Graphs.  From Chandy and Misra, section 6.4.
+	[ this example took only four days!]
 *)
 
 open Reach;
@@ -133,19 +134,19 @@ qed "Diff_fixedpoint";
 
 (*** Progress ***)
 
-goalw thy [metric_def] "!!s. ~ s x ==> Suc (metric (s[x|->True])) = metric s";
-by (subgoal_tac "{v. ~ (s[x|->True]) v} = {v. ~ s v} - {x}" 1);
+goalw thy [metric_def] "!!s. ~ s x ==> Suc (metric (s[x:=True])) = metric s";
+by (subgoal_tac "{v. ~ (s[x:=True]) v} = {v. ~ s v} - {x}" 1);
 by Auto_tac;
 by (asm_simp_tac (simpset() addsimps [card_Suc_Diff]) 1);
 qed "Suc_metric";
 
-goal thy "!!s. ~ s x ==> metric (s[x|->True]) < metric s";
+goal thy "!!s. ~ s x ==> metric (s[x:=True]) < metric s";
 by (etac (Suc_metric RS subst) 1);
 by (Blast_tac 1);
 qed "metric_less";
 AddSIs [metric_less];
 
-goal thy "metric (s[y|->s x | s y]) <= metric s";
+goal thy "metric (s[y:=s x | s y]) <= metric s";
 by (case_tac "s x --> s y" 1);
 by (auto_tac (claset() addIs [less_imp_le],
 	      simpset() addsimps [update_idem]));
