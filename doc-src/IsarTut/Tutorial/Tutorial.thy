@@ -5,6 +5,12 @@ theory Tutorial = Main:
 
 chapter {* Introduction *}
 
+chapter {* Technical issues *}
+
+section {* Source texts *}
+
+section {* Interaction and debugging *}
+
 section {* Step-by-step examples *}
 
 subsection {* Summing natural numbers *}
