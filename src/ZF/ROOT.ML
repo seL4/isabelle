@@ -30,16 +30,7 @@ print_depth 1;
 
 (*Add user sections for inductive/datatype definitions*)
 use     "../Pure/section_utils.ML";
-use_thy "Datatype";
-structure ThySyn = ThySynFun
- (val user_keywords = ["inductive", "coinductive", "datatype", "codatatype", 
-		       "and", "|", "<=", "domains", "intrs", "monos", 
-		       "con_defs", "type_intrs", "type_elims"] 
-  and user_sections = [("inductive",  inductive_decl ""),
-		       ("coinductive",  inductive_decl "Co"),
-		       ("datatype",  datatype_decl ""),
-		       ("codatatype",  datatype_decl "Co")]);
-init_thy_reader ();
+use     "thy_syntax.ML";
 
 use_thy "InfDatatype";
 use_thy "List";

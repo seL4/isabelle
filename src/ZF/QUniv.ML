@@ -37,21 +37,21 @@ by (rtac (arg_subset_eclose RS univ_mono RS subset_trans) 1);
 by (rtac univ_eclose_subset_quniv 1);
 qed "univ_subset_quniv";
 
-bind_thm ("univ_into_quniv", (univ_subset_quniv RS subsetD));
+bind_thm ("univ_into_quniv", univ_subset_quniv RS subsetD);
 
 goalw QUniv.thy [quniv_def] "Pow(univ(A)) <= quniv(A)";
 by (rtac (arg_subset_eclose RS univ_mono RS Pow_mono) 1);
 qed "Pow_univ_subset_quniv";
 
-val univ_subset_into_quniv = standard
-	(PowI RS (Pow_univ_subset_quniv RS subsetD));
+bind_thm ("univ_subset_into_quniv", 
+	  PowI RS (Pow_univ_subset_quniv RS subsetD));
 
-bind_thm ("zero_in_quniv", (zero_in_univ RS univ_into_quniv));
-bind_thm ("one_in_quniv", (one_in_univ RS univ_into_quniv));
-bind_thm ("two_in_quniv", (two_in_univ RS univ_into_quniv));
+bind_thm ("zero_in_quniv", zero_in_univ RS univ_into_quniv);
+bind_thm ("one_in_quniv", one_in_univ RS univ_into_quniv);
+bind_thm ("two_in_quniv", two_in_univ RS univ_into_quniv);
 
-val A_subset_quniv = standard
-	([A_subset_univ, univ_subset_quniv] MRS subset_trans);
+bind_thm ("A_subset_quniv",
+	  [A_subset_univ, univ_subset_quniv] MRS subset_trans);
 
 val A_into_quniv = A_subset_quniv RS subsetD;
 
@@ -94,8 +94,8 @@ by (REPEAT (ares_tac [subsetI, QPair_in_quniv] 1
      ORELSE eresolve_tac [QSigmaE, ssubst] 1));
 qed "QSigma_quniv";
 
-val QSigma_subset_quniv = standard
-    (QSigma_mono RS (QSigma_quniv RSN (2,subset_trans)));
+bind_thm ("QSigma_subset_quniv",
+	  [QSigma_mono, QSigma_quniv] MRS subset_trans);
 
 (*The opposite inclusion*)
 goalw QUniv.thy [quniv_def,QPair_def]
@@ -105,7 +105,7 @@ by (etac ([Transset_eclose RS Transset_univ, PowD] MRS
 by (REPEAT (ares_tac [conjI,PowI] 1));
 qed "quniv_QPair_D";
 
-bind_thm ("quniv_QPair_E", (quniv_QPair_D RS conjE));
+bind_thm ("quniv_QPair_E", quniv_QPair_D RS conjE);
 
 goal QUniv.thy "<a;b> : quniv(A) <-> a: quniv(A) & b: quniv(A)";
 by (REPEAT (ares_tac [iffI, QPair_in_quniv, quniv_QPair_D] 1
@@ -128,21 +128,21 @@ by (REPEAT (ares_tac [subsetI, QInl_in_quniv, QInr_in_quniv] 1
      ORELSE eresolve_tac [qsumE, ssubst] 1));
 qed "qsum_quniv";
 
-val qsum_subset_quniv = standard
-    (qsum_mono RS (qsum_quniv RSN (2,subset_trans)));
+bind_thm ("qsum_subset_quniv", [qsum_mono, qsum_quniv] MRS subset_trans);
+
 
 (*** The natural numbers ***)
 
-val nat_subset_quniv = standard
-	([nat_subset_univ, univ_subset_quniv] MRS subset_trans);
+bind_thm ("nat_subset_quniv",
+	  [nat_subset_univ, univ_subset_quniv] MRS subset_trans);
 
 (* n:nat ==> n:quniv(A) *)
 bind_thm ("nat_into_quniv", (nat_subset_quniv RS subsetD));
 
-val bool_subset_quniv = standard
-	([bool_subset_univ, univ_subset_quniv] MRS subset_trans);
+bind_thm ("bool_subset_quniv",
+	  [bool_subset_univ, univ_subset_quniv] MRS subset_trans);
 
-bind_thm ("bool_into_quniv", (bool_subset_quniv RS subsetD));
+bind_thm ("bool_into_quniv", bool_subset_quniv RS subsetD);
 
 
 (**** Properties of Vfrom analogous to the "take-lemma" ****)
@@ -159,7 +159,7 @@ by (fast_tac ZF_cs 1);
 qed "doubleton_in_Vfrom_D";
 
 (*This weaker version says a, b exist at the same level*)
-bind_thm ("Vfrom_doubleton_D", (Transset_Vfrom RS Transset_doubleton_D));
+bind_thm ("Vfrom_doubleton_D", Transset_Vfrom RS Transset_doubleton_D);
 
 (** Using only the weaker theorem would prove <a,b> : Vfrom(X,i)
       implies a, b : Vfrom(X,i), which is useless for induction.
@@ -203,8 +203,8 @@ by (etac (Transset_Vfrom RS Transset_sum_Int_subset) 1);
 qed "QPair_Int_Vfrom_subset";
 
 (*[| a Int Vset(i) <= c; b Int Vset(i) <= d |] ==> <a;b> Int Vset(i) <= <c;d>*)
-val QPair_Int_Vset_subset_trans = standard
-       ([Transset_0 RS QPair_Int_Vfrom_subset, QPair_mono] MRS subset_trans);
+bind_thm ("QPair_Int_Vset_subset_trans", 
+	  [Transset_0 RS QPair_Int_Vfrom_subset, QPair_mono] MRS subset_trans);
 
 goal QUniv.thy 
  "!!i. [| Ord(i) \

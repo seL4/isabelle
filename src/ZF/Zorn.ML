@@ -63,8 +63,8 @@ fun TFin_ind_tac a prems i =
 
 (*** Section 3.  Some Properties of the Transfinite Construction ***)
 
-val increasing_trans = 
-    TFin_is_subset RSN (3, increasingD2 RSN (2,subset_trans)) |> standard;
+bind_thm ("increasing_trans", 
+	  TFin_is_subset RSN (3, increasingD2 RSN (2,subset_trans)));
 
 (*Lemma 1 of section 3.1*)
 val major::prems = goal Zorn.thy

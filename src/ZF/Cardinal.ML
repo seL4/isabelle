@@ -185,8 +185,7 @@ by (rtac exI 1);
 by (etac (ordermap_bij RS bij_converse_bij) 1);
 qed "well_ord_cardinal_eqpoll";
 
-val Ord_cardinal_eqpoll = well_ord_Memrel RS well_ord_cardinal_eqpoll 
-                          |> standard;
+bind_thm ("Ord_cardinal_eqpoll", well_ord_Memrel RS well_ord_cardinal_eqpoll);
 
 goal Cardinal.thy
     "!!X Y. [| well_ord(X,r);  well_ord(Y,s);  |X| = |Y| |] ==> X eqpoll Y";
@@ -341,8 +340,9 @@ by (rtac ballI 1);
 by (eres_inst_tac [("n","n")] natE 1);
 by (asm_simp_tac (ZF_ss addsimps [inj_def, succI1 RS Pi_empty2]) 1);
 by (fast_tac (ZF_cs addSIs [succ_leI] addSDs [inj_succ_succD]) 1);
-qed "nat_lepoll_imp_le_lemma";
-val nat_lepoll_imp_le = nat_lepoll_imp_le_lemma RS bspec RS mp |> standard;
+val nat_lepoll_imp_le_lemma = result();
+
+bind_thm ("nat_lepoll_imp_le", nat_lepoll_imp_le_lemma RS bspec RS mp);
 
 goal Cardinal.thy
     "!!m n. [| m:nat; n: nat |] ==> m eqpoll n <-> m = n";

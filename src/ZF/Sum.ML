@@ -165,8 +165,7 @@ goal Sum.thy "Part(Collect(A,P), h) = Collect(Part(A,h), P)";
 by (fast_tac (sum_cs addSIs [equalityI]) 1);
 qed "Part_Collect";
 
-val Part_CollectE =
-    Part_Collect RS equalityD1 RS subsetD RS CollectE |> standard;
+bind_thm ("Part_CollectE", Part_Collect RS equalityD1 RS subsetD RS CollectE);
 
 goal Sum.thy "Part(A+B,Inl) = {Inl(x). x: A}";
 by (fast_tac (sum_cs addIs [equalityI]) 1);

@@ -85,7 +85,7 @@ by (rtac (Vfrom RS ssubst) 1);
 by (rtac Un_upper1 1);
 qed "A_subset_Vfrom";
 
-val A_into_Vfrom = A_subset_Vfrom RS subsetD |> standard;
+bind_thm ("A_into_Vfrom", A_subset_Vfrom RS subsetD);
 
 goal Univ.thy "!!A a i. a <= Vfrom(A,i) ==> a: Vfrom(A,succ(i))";
 by (rtac (Vfrom RS ssubst) 1);
@@ -244,12 +244,11 @@ by (REPEAT (ares_tac [subsetI,Pair_in_VLimit] 1
      ORELSE eresolve_tac [SigmaE, ssubst] 1));
 qed "product_VLimit";
 
-val Sigma_subset_VLimit = 
-    [Sigma_mono, product_VLimit] MRS subset_trans |> standard;
+bind_thm ("Sigma_subset_VLimit",
+	  [Sigma_mono, product_VLimit] MRS subset_trans);
 
-val nat_subset_VLimit = 
-    [nat_le_Limit RS le_imp_subset, i_subset_Vfrom] MRS subset_trans 
-	|> standard;
+bind_thm ("nat_subset_VLimit", 
+	  [nat_le_Limit RS le_imp_subset, i_subset_Vfrom] MRS subset_trans);
 
 goal Univ.thy "!!i. [| n: nat;  Limit(i) |] ==> n : Vfrom(A,i)";
 by (REPEAT (ares_tac [nat_subset_VLimit RS subsetD] 1));
@@ -257,7 +256,7 @@ qed "nat_into_VLimit";
 
 (** Closure under disjoint union **)
 
-val zero_in_VLimit = Limit_has_0 RS ltD RS zero_in_Vfrom |> standard;
+bind_thm ("zero_in_VLimit", Limit_has_0 RS ltD RS zero_in_Vfrom);
 
 goal Univ.thy "!!i. Limit(i) ==> 1 : Vfrom(A,i)";
 by (REPEAT (ares_tac [nat_into_VLimit, nat_0I, nat_succI] 1));
@@ -277,8 +276,7 @@ goal Univ.thy "!!i. Limit(i) ==> Vfrom(C,i)+Vfrom(C,i) <= Vfrom(C,i)";
 by (fast_tac (sum_cs addSIs [Inl_in_VLimit, Inr_in_VLimit]) 1);
 qed "sum_VLimit";
 
-val sum_subset_VLimit = 
-    [sum_mono, sum_VLimit] MRS subset_trans |> standard;
+bind_thm ("sum_subset_VLimit", [sum_mono, sum_VLimit] MRS subset_trans);
 
 
 
@@ -618,9 +616,92 @@ goalw Univ.thy [univ_def] "univ(C)+univ(C) <= univ(C)";
 by (rtac (Limit_nat RS sum_VLimit) 1);
 qed "sum_univ";
 
-val sum_subset_univ = [sum_mono, sum_univ] MRS subset_trans |> standard;
+bind_thm ("sum_subset_univ", [sum_mono, sum_univ] MRS subset_trans);
 
 
 (** Closure under binary union -- use Un_least **)
 (** Closure under Collect -- use  (Collect_subset RS subset_trans)  **)
 (** Closure under RepFun -- use   RepFun_subset  **)
+
+
+(*** Finite Branching Closure Properties ***)
+
+(** Closure under finite powerset **)
+
+goal Univ.thy
+   "!!i. [| b: Fin(Vfrom(A,i));  Limit(i) |] ==> EX j. b <= Vfrom(A,j) & j<i";
+by (eresolve_tac [Fin_induct] 1);
+by (fast_tac (ZF_cs addSDs [Limit_has_0]) 1);
+by (safe_tac ZF_cs);
+by (eresolve_tac [Limit_VfromE] 1);
+by (assume_tac 1);
+by (res_inst_tac [("x", "xa Un j")] exI 1);
+by (best_tac (ZF_cs addIs [subset_refl RS Vfrom_mono RS subsetD, 
+			   Un_least_lt]) 1);
+val Fin_Vfrom_lemma = result();
+
+goal Univ.thy "!!i. Limit(i) ==> Fin(Vfrom(A,i)) <= Vfrom(A,i)";
+by (rtac subsetI 1);
+by (dresolve_tac [Fin_Vfrom_lemma] 1);
+by (safe_tac ZF_cs);
+by (resolve_tac [Vfrom RS ssubst] 1);
+by (fast_tac (ZF_cs addSDs [ltD]) 1);
+val Fin_VLimit = result();
+
+bind_thm ("Fin_subset_VLimit", [Fin_mono, Fin_VLimit] MRS subset_trans);
+
+goalw Univ.thy [univ_def] "Fin(univ(A)) <= univ(A)";
+by (rtac (Limit_nat RS Fin_VLimit) 1);
+val Fin_univ = result();
+
+(** Closure under finite powers (functions from a fixed natural number) **)
+
+goal Univ.thy
+    "!!i. [| n: nat;  Limit(i) |] ==> n -> Vfrom(A,i) <= Vfrom(A,i)";
+by (eresolve_tac [nat_fun_subset_Fin RS subset_trans] 1);
+by (REPEAT (ares_tac [Fin_subset_VLimit, Sigma_subset_VLimit,
+		      nat_subset_VLimit, subset_refl] 1));
+val nat_fun_VLimit = result();
+
+bind_thm ("nat_fun_subset_VLimit", [Pi_mono, nat_fun_VLimit] MRS subset_trans);
+
+goalw Univ.thy [univ_def] "!!i. n: nat ==> n -> univ(A) <= univ(A)";
+by (etac (Limit_nat RSN (2,nat_fun_VLimit)) 1);
+val nat_fun_univ = result();
+
+
+(** Closure under finite function space **)
+
+(*General but seldom-used version; normally the domain is fixed*)
+goal Univ.thy
+    "!!i. Limit(i) ==> Vfrom(A,i) -||> Vfrom(A,i) <= Vfrom(A,i)";
+by (resolve_tac [FiniteFun.dom_subset RS subset_trans] 1);
+by (REPEAT (ares_tac [Fin_subset_VLimit, Sigma_subset_VLimit, subset_refl] 1));
+val FiniteFun_VLimit1 = result();
+
+goalw Univ.thy [univ_def] "univ(A) -||> univ(A) <= univ(A)";
+by (rtac (Limit_nat RS FiniteFun_VLimit1) 1);
+val FiniteFun_univ1 = result();
+
+(*Version for a fixed domain*)
+goal Univ.thy
+   "!!i.  [| W <= Vfrom(A,i); Limit(i) |] ==> W -||> Vfrom(A,i) <= Vfrom(A,i)";
+by (eresolve_tac [subset_refl RSN (2, FiniteFun_mono) RS subset_trans] 1);
+by (eresolve_tac [FiniteFun_VLimit1] 1);
+val FiniteFun_VLimit = result();
+
+goalw Univ.thy [univ_def]
+    "!!W. W <= univ(A) ==> W -||> univ(A) <= univ(A)";
+by (etac (Limit_nat RSN (2, FiniteFun_VLimit)) 1);
+val FiniteFun_univ = result();
+
+goal Univ.thy
+    "!!W. [| f: W -||> univ(A);  W <= univ(A) |] ==> f : univ(A)";
+by (eresolve_tac [FiniteFun_univ RS subsetD] 1);
+by (assume_tac 1);
+val FiniteFun_in_univ = result();
+
+(*Remove <= from the rule above*)
+val FiniteFun_in_univ' = subsetI RSN (2, FiniteFun_in_univ);
+
+

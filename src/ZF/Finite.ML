@@ -122,7 +122,7 @@ by (simp_tac (Fin_ss addsimps [domain_0]) 1);
 by (asm_simp_tac (Fin_ss addsimps [domain_cons]) 1);
 qed "FiniteFun_domain_Fin";
 
-val FiniteFun_apply_type = FiniteFun_is_fun RS apply_type |> standard;
+bind_thm ("FiniteFun_apply_type", FiniteFun_is_fun RS apply_type);
 
 (*Every subset of a finite function is a finite function.*)
 goal Finite.thy "!!b A. b: A-||>B ==> ALL z. z<=b --> z: A-||>B";

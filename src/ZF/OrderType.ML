@@ -94,10 +94,9 @@ by (etac mem_asym 1);
 by (assume_tac 1);
 qed "converse_ordermap_mono";
 
-val ordermap_surj = 
-    (ordermap_type RS surj_image) |>
-    rewrite_rule [symmetric ordertype_def] |> 
-    standard;
+bind_thm ("ordermap_surj", 
+	  rewrite_rule [symmetric ordertype_def] 
+	      (ordermap_type RS surj_image));
 
 goalw OrderType.thy [well_ord_def, tot_ord_def, bij_def, inj_def]
     "!!r. well_ord(A,r) ==> ordermap(A,r) : bij(A, ordertype(A,r))";
