@@ -18,7 +18,7 @@ constdefs
 
   hyprel :: "((nat=>real)*(nat=>real)) set"
     "hyprel == {p. \<exists>X Y. p = ((X::nat=>real),Y) &
-                   {n::nat. X(n) = Y(n)}: FreeUltrafilterNat}"
+                   {n::nat. X(n) = Y(n)} \<in> FreeUltrafilterNat}"
 
 typedef hypreal = "UNIV//hyprel" 
     by (auto simp add: quotient_def) 
@@ -28,13 +28,13 @@ instance hypreal :: "{ord, zero, one, plus, times, minus, inverse}" ..
 defs (overloaded)
 
   hypreal_zero_def:
-  "0 == Abs_hypreal(hyprel``{%n::nat. (0::real)})"
+  "0 == Abs_hypreal(hyprel``{%n. 0})"
 
   hypreal_one_def:
-  "1 == Abs_hypreal(hyprel``{%n::nat. (1::real)})"
+  "1 == Abs_hypreal(hyprel``{%n. 1})"
 
   hypreal_minus_def:
-  "- P == Abs_hypreal(\<Union>X \<in> Rep_hypreal(P). hyprel``{%n::nat. - (X n)})"
+  "- P == Abs_hypreal(\<Union>X \<in> Rep_hypreal(P). hyprel``{%n. - (X n)})"
 
   hypreal_diff_def:
   "x - y == x + -(y::hypreal)"
@@ -49,13 +49,13 @@ defs (overloaded)
 constdefs
 
   hypreal_of_real  :: "real => hypreal"
-  "hypreal_of_real r         == Abs_hypreal(hyprel``{%n::nat. r})"
+  "hypreal_of_real r         == Abs_hypreal(hyprel``{%n. r})"
 
   omega   :: hypreal   -- {*an infinite number @{text "= [<1,2,3,...>]"} *}
-  "omega == Abs_hypreal(hyprel``{%n::nat. real (Suc n)})"
+  "omega == Abs_hypreal(hyprel``{%n. real (Suc n)})"
 
   epsilon :: hypreal   -- {*an infinitesimal number @{text "= [<1,1/2,1/3,...>]"} *}
-  "epsilon == Abs_hypreal(hyprel``{%n::nat. inverse (real (Suc n))})"
+  "epsilon == Abs_hypreal(hyprel``{%n. inverse (real (Suc n))})"
 
 syntax (xsymbols)
   omega   :: hypreal   ("\<omega>")
@@ -70,16 +70,16 @@ defs (overloaded)
 
   hypreal_add_def:
   "P + Q == Abs_hypreal(\<Union>X \<in> Rep_hypreal(P). \<Union>Y \<in> Rep_hypreal(Q).
-                hyprel``{%n::nat. X n + Y n})"
+                hyprel``{%n. X n + Y n})"
 
   hypreal_mult_def:
   "P * Q == Abs_hypreal(\<Union>X \<in> Rep_hypreal(P). \<Union>Y \<in> Rep_hypreal(Q).
-                hyprel``{%n::nat. X n * Y n})"
+                hyprel``{%n. X n * Y n})"
 
   hypreal_le_def:
   "P \<le> (Q::hypreal) == \<exists>X Y. X \<in> Rep_hypreal(P) &
                                Y \<in> Rep_hypreal(Q) &
-                               {n::nat. X n \<le> Y n} \<in> FreeUltrafilterNat"
+                               {n. X n \<le> Y n} \<in> FreeUltrafilterNat"
 
   hypreal_less_def: "(x < (y::hypreal)) == (x \<le> y & x \<noteq> y)"
 
@@ -112,11 +112,11 @@ subsection{*Existence of Free Ultrafilter over the Naturals*}
 text{*Also, proof of various properties of @{term FreeUltrafilterNat}: 
 an arbitrary free ultrafilter*}
 
-lemma FreeUltrafilterNat_Ex: "\<exists>U. U: FreeUltrafilter (UNIV::nat set)"
+lemma FreeUltrafilterNat_Ex: "\<exists>U. U \<in> FreeUltrafilter (UNIV::nat set)"
 by (rule not_finite_nat [THEN FreeUltrafilter_Ex])
 
 lemma FreeUltrafilterNat_mem [simp]: 
-     "FreeUltrafilterNat: FreeUltrafilter(UNIV:: nat set)"
+     "FreeUltrafilterNat \<in> FreeUltrafilter(UNIV:: nat set)"
 apply (unfold FreeUltrafilterNat_def)
 apply (rule FreeUltrafilterNat_Ex [THEN exE])
 apply (rule someI2, assumption+)
@@ -129,7 +129,7 @@ apply (rule someI2, assumption)
 apply (blast dest: mem_FreeUltrafiltersetD1)
 done
 
-lemma FreeUltrafilterNat_not_finite: "x: FreeUltrafilterNat ==> ~ finite x"
+lemma FreeUltrafilterNat_not_finite: "x \<in> FreeUltrafilterNat ==> ~ finite x"
 by (blast dest: FreeUltrafilterNat_finite)
 
 lemma FreeUltrafilterNat_empty [simp]: "{} \<notin> FreeUltrafilterNat"
@@ -141,24 +141,26 @@ apply (blast dest: FreeUltrafilter_Ultrafilter Ultrafilter_Filter
 done
 
 lemma FreeUltrafilterNat_Int:
-     "[| X: FreeUltrafilterNat;  Y: FreeUltrafilterNat |]   
+     "[| X \<in> FreeUltrafilterNat;  Y \<in> FreeUltrafilterNat |]   
       ==> X Int Y \<in> FreeUltrafilterNat"
-apply (cut_tac FreeUltrafilterNat_mem)
+apply (insert FreeUltrafilterNat_mem)
 apply (blast dest: FreeUltrafilter_Ultrafilter Ultrafilter_Filter mem_FiltersetD1)
 done
 
 lemma FreeUltrafilterNat_subset:
-     "[| X: FreeUltrafilterNat;  X \<subseteq> Y |]  
+     "[| X \<in> FreeUltrafilterNat;  X \<subseteq> Y |]  
       ==> Y \<in> FreeUltrafilterNat"
-apply (cut_tac FreeUltrafilterNat_mem)
+apply (insert FreeUltrafilterNat_mem)
 apply (blast dest: FreeUltrafilter_Ultrafilter Ultrafilter_Filter mem_FiltersetD2)
 done
 
 lemma FreeUltrafilterNat_Compl:
-     "X: FreeUltrafilterNat ==> -X \<notin> FreeUltrafilterNat"
-apply safe
-apply (drule FreeUltrafilterNat_Int, assumption, auto)
-done
+     "X \<in> FreeUltrafilterNat ==> -X \<notin> FreeUltrafilterNat"
+proof
+  assume "X \<in> \<U>" and "- X \<in> \<U>"
+  hence "X Int - X \<in> \<U>" by (rule FreeUltrafilterNat_Int) 
+  thus False by force
+qed
 
 lemma FreeUltrafilterNat_Compl_mem:
      "X\<notin> FreeUltrafilterNat ==> -X \<in> FreeUltrafilterNat"
@@ -168,11 +170,11 @@ apply (auto simp add: UNIV_diff_Compl)
 done
 
 lemma FreeUltrafilterNat_Compl_iff1:
-     "(X \<notin> FreeUltrafilterNat) = (-X: FreeUltrafilterNat)"
+     "(X \<notin> FreeUltrafilterNat) = (-X \<in> FreeUltrafilterNat)"
 by (blast dest: FreeUltrafilterNat_Compl FreeUltrafilterNat_Compl_mem)
 
 lemma FreeUltrafilterNat_Compl_iff2:
-     "(X: FreeUltrafilterNat) = (-X \<notin> FreeUltrafilterNat)"
+     "(X \<in> FreeUltrafilterNat) = (-X \<notin> FreeUltrafilterNat)"
 by (auto simp add: FreeUltrafilterNat_Compl_iff1 [symmetric])
 
 lemma cofinite_mem_FreeUltrafilterNat: "finite (-X) ==> X \<in> FreeUltrafilterNat"
@@ -220,18 +222,16 @@ method_setup ultra = {*
 
 text{*One further property of our free ultrafilter*}
 lemma FreeUltrafilterNat_Un:
-     "X Un Y: FreeUltrafilterNat  
-      ==> X: FreeUltrafilterNat | Y: FreeUltrafilterNat"
-apply auto
-apply ultra
-done
+     "X Un Y \<in> FreeUltrafilterNat  
+      ==> X \<in> FreeUltrafilterNat | Y \<in> FreeUltrafilterNat"
+by (auto, ultra)
 
 
 subsection{*Properties of @{term hyprel}*}
 
 text{*Proving that @{term hyprel} is an equivalence relation*}
 
-lemma hyprel_iff: "((X,Y) \<in> hyprel) = ({n. X n = Y n}: FreeUltrafilterNat)"
+lemma hyprel_iff: "((X,Y) \<in> hyprel) = ({n. X n = Y n} \<in> FreeUltrafilterNat)"
 by (simp add: hyprel_def)
 
 lemma hyprel_refl: "(x,x) \<in> hyprel"
@@ -284,7 +284,7 @@ apply (auto elim!: quotientE equalityCE)
 done
 
 lemma Rep_hypreal_nonempty [simp]: "Rep_hypreal x \<noteq> {}"
-by (cut_tac x = x in Rep_hypreal, auto)
+by (insert Rep_hypreal [of x], auto)
 
 
 subsection{*@{term hypreal_of_real}: 
@@ -311,8 +311,7 @@ subsection{*Hyperreal Addition*}
 
 lemma hypreal_add_congruent2: 
     "congruent2 hyprel hyprel (%X Y. hyprel``{%n. X n + Y n})"
-apply (simp add: congruent2_def, auto, ultra)
-done
+by (simp add: congruent2_def, auto, ultra)
 
 lemma hypreal_add: 
   "Abs_hypreal(hyprel``{%n. X n}) + Abs_hypreal(hyprel``{%n. Y n}) =  
@@ -350,23 +349,17 @@ by (force simp add: congruent_def)
 
 lemma hypreal_minus: 
    "- (Abs_hypreal(hyprel``{%n. X n})) = Abs_hypreal(hyprel `` {%n. -(X n)})"
-apply (simp add: hypreal_minus_def)
-apply (rule_tac f = Abs_hypreal in arg_cong)
-apply (simp add: hyprel_in_hypreal [THEN Abs_hypreal_inverse] 
-               UN_equiv_class [OF equiv_hyprel hypreal_minus_congruent])
-done
+by (simp add: hypreal_minus_def Abs_hypreal_inject 
+              hyprel_in_hypreal [THEN Abs_hypreal_inverse] 
+              UN_equiv_class [OF equiv_hyprel hypreal_minus_congruent])
 
 lemma hypreal_diff:
      "Abs_hypreal(hyprel``{%n. X n}) - Abs_hypreal(hyprel``{%n. Y n}) =  
       Abs_hypreal(hyprel``{%n. X n - Y n})"
-apply (simp add: hypreal_diff_def hypreal_minus hypreal_add)
-done
+by (simp add: hypreal_diff_def hypreal_minus hypreal_add)
 
 lemma hypreal_add_minus [simp]: "z + -z = (0::hypreal)"
-apply (simp add: hypreal_zero_def)
-apply (rule_tac z = z in eq_Abs_hypreal)
-apply (simp add: hypreal_minus hypreal_add)
-done
+by (cases z, simp add: hypreal_zero_def hypreal_minus hypreal_add)
 
 lemma hypreal_add_minus_left: "-z + z = (0::hypreal)"
 by (simp add: hypreal_add_commute hypreal_add_minus)
@@ -385,26 +378,17 @@ by (simp add: hypreal_mult_def
         UN_equiv_class2 [OF equiv_hyprel equiv_hyprel hypreal_mult_congruent2])
 
 lemma hypreal_mult_commute: "(z::hypreal) * w = w * z"
-apply (cases z, cases w)
-apply (simp add: hypreal_mult mult_ac)
-done
+by (cases z, cases w, simp add: hypreal_mult mult_ac)
 
 lemma hypreal_mult_assoc: "((z1::hypreal) * z2) * z3 = z1 * (z2 * z3)"
-apply (cases z1, cases z2, cases z3)
-apply (simp add: hypreal_mult mult_assoc)
-done
+by (cases z1, cases z2, cases z3, simp add: hypreal_mult mult_assoc)
 
 lemma hypreal_mult_1: "(1::hypreal) * z = z"
-apply (simp add: hypreal_one_def)
-apply (rule_tac z = z in eq_Abs_hypreal)
-apply (simp add: hypreal_mult)
-done
+by (cases z, simp add: hypreal_one_def hypreal_mult)
 
 lemma hypreal_add_mult_distrib:
      "((z1::hypreal) + z2) * w = (z1 * w) + (z2 * w)"
-apply (cases z1, cases z2, cases w)
-apply (simp add: hypreal_mult hypreal_add left_distrib)
-done
+by (cases z1, cases z2, cases w, simp add: hypreal_mult hypreal_add left_distrib)
 
 text{*one and zero are distinct*}
 lemma hypreal_zero_not_eq_one: "0 \<noteq> (1::hypreal)"
@@ -415,24 +399,19 @@ subsection{*Multiplicative Inverse on @{typ hypreal} *}
 
 lemma hypreal_inverse_congruent: 
   "congruent hyprel (%X. hyprel``{%n. if X n = 0 then 0 else inverse(X n)})"
-apply (simp add: congruent_def)
-apply (auto, ultra)
-done
+by (auto simp add: congruent_def, ultra)
 
 lemma hypreal_inverse: 
       "inverse (Abs_hypreal(hyprel``{%n. X n})) =  
        Abs_hypreal(hyprel `` {%n. if X n = 0 then 0 else inverse(X n)})"
-apply (simp add: hypreal_inverse_def)
-apply (rule_tac f = Abs_hypreal in arg_cong)
-apply (simp add: hyprel_in_hypreal [THEN Abs_hypreal_inverse] 
-           UN_equiv_class [OF equiv_hyprel hypreal_inverse_congruent])
-done
+by (simp add: hypreal_inverse_def Abs_hypreal_inject 
+              hyprel_in_hypreal [THEN Abs_hypreal_inverse] 
+              UN_equiv_class [OF equiv_hyprel hypreal_inverse_congruent])
 
 lemma hypreal_mult_inverse: 
      "x \<noteq> 0 ==> x*inverse(x) = (1::hypreal)"
-apply (simp add: hypreal_one_def hypreal_zero_def)
 apply (cases x)
-apply (simp add: hypreal_inverse hypreal_mult)
+apply (simp add: hypreal_one_def hypreal_zero_def hypreal_inverse hypreal_mult)
 apply (drule FreeUltrafilterNat_Compl_mem)
 apply (blast intro!: right_inverse FreeUltrafilterNat_subset)
 done
@@ -476,19 +455,13 @@ apply (auto intro!: lemma_hyprel_refl, ultra)
 done
 
 lemma hypreal_le_refl: "w \<le> (w::hypreal)"
-apply (cases w)
-apply (simp add: hypreal_le) 
-done
+by (cases w, simp add: hypreal_le)
 
 lemma hypreal_le_trans: "[| i \<le> j; j \<le> k |] ==> i \<le> (k::hypreal)"
-apply (cases i, cases j, cases k)
-apply (simp add: hypreal_le, ultra)
-done
+by (cases i, cases j, cases k, simp add: hypreal_le, ultra)
 
 lemma hypreal_le_anti_sym: "[| z \<le> w; w \<le> z |] ==> z = (w::hypreal)"
-apply (cases z, cases w)
-apply (simp add: hypreal_le, ultra)
-done
+by (cases z, cases w, simp add: hypreal_le, ultra)
 
 (* Axiom 'order_less_le' of class 'order': *)
 lemma hypreal_less_le: "((w::hypreal) < z) = (w \<le> z & w \<noteq> z)"
@@ -554,15 +527,11 @@ subsection{*The Embedding @{term hypreal_of_real} Preserves Field and
 
 lemma hypreal_of_real_add [simp]: 
      "hypreal_of_real (w + z) = hypreal_of_real w + hypreal_of_real z"
-apply (simp add: hypreal_of_real_def)
-apply (simp add: hypreal_add left_distrib)
-done
+by (simp add: hypreal_of_real_def, simp add: hypreal_add left_distrib)
 
 lemma hypreal_of_real_mult [simp]: 
      "hypreal_of_real (w * z) = hypreal_of_real w * hypreal_of_real z"
-apply (simp add: hypreal_of_real_def)
-apply (simp add: hypreal_mult right_distrib)
-done
+by (simp add: hypreal_of_real_def, simp add: hypreal_mult right_distrib)
 
 lemma hypreal_of_real_one [simp]: "hypreal_of_real 1 = (1::hypreal)"
 by (simp add: hypreal_of_real_def hypreal_one_def)
@@ -627,8 +596,7 @@ subsection{*Misc Others*}
 lemma hypreal_less: 
       "(Abs_hypreal(hyprel``{%n. X n}) < Abs_hypreal(hyprel``{%n. Y n})) =  
        ({n. X n < Y n} \<in> FreeUltrafilterNat)"
-apply (auto simp add: hypreal_le linorder_not_le [symmetric], ultra+)
-done
+by (auto simp add: hypreal_le linorder_not_le [symmetric], ultra+)
 
 lemma hypreal_zero_num: "0 = Abs_hypreal (hyprel `` {%n. 0})"
 by (simp add: hypreal_zero_def [THEN meta_eq_to_obj_eq, symmetric])
@@ -637,9 +605,7 @@ lemma hypreal_one_num: "1 = Abs_hypreal (hyprel `` {%n. 1})"
 by (simp add: hypreal_one_def [THEN meta_eq_to_obj_eq, symmetric])
 
 lemma hypreal_omega_gt_zero [simp]: "0 < omega"
-apply (simp add: omega_def)
-apply (auto simp add: hypreal_less hypreal_zero_num)
-done
+by (auto simp add: omega_def hypreal_less hypreal_zero_num)
 
 lemma hypreal_hrabs:
      "abs (Abs_hypreal (hyprel `` {X})) = 
@@ -685,7 +651,7 @@ apply (auto simp add: real_of_nat_Suc diff_eq_eq [symmetric]
 done
 
 lemma hypreal_of_real_not_eq_omega: "hypreal_of_real x \<noteq> omega"
-by (cut_tac not_ex_hypreal_of_real_eq_omega, auto)
+by (insert not_ex_hypreal_of_real_eq_omega, auto)
 
 text{*Existence of infinitesimal number also not corresponding to any
  real number*}
@@ -698,14 +664,12 @@ by auto
 lemma lemma_finite_epsilon_set: "finite {n. x = inverse(real(Suc n))}"
 by (cut_tac x = x in lemma_epsilon_empty_singleton_disj, auto)
 
-lemma not_ex_hypreal_of_real_eq_epsilon: 
-      "~ (\<exists>x. hypreal_of_real x = epsilon)"
-apply (simp add: epsilon_def hypreal_of_real_def)
-apply (auto simp add: lemma_finite_epsilon_set [THEN FreeUltrafilterNat_finite])
-done
+lemma not_ex_hypreal_of_real_eq_epsilon: "~ (\<exists>x. hypreal_of_real x = epsilon)"
+by (auto simp add: epsilon_def hypreal_of_real_def 
+                   lemma_finite_epsilon_set [THEN FreeUltrafilterNat_finite])
 
 lemma hypreal_of_real_not_eq_epsilon: "hypreal_of_real x \<noteq> epsilon"
-by (cut_tac not_ex_hypreal_of_real_eq_epsilon, auto)
+by (insert not_ex_hypreal_of_real_eq_epsilon, auto)
 
 lemma hypreal_epsilon_not_zero: "epsilon \<noteq> 0"
 by (simp add: epsilon_def hypreal_zero_def)

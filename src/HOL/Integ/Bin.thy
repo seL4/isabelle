@@ -1,9 +1,9 @@
 (*  Title:	HOL/Integ/Bin.thy
     ID:         $Id$
     Authors:	Lawrence C Paulson, Cambridge University Computer Laboratory
-		David Spelt, University of Twente
     Copyright	1994  University of Cambridge
-    Copyright   1996 University of Twente
+
+Ported from ZF to HOL by David Spelt.
 *)
 
 header{*Arithmetic on Binary Integers*}
