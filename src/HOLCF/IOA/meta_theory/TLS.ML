@@ -91,7 +91,7 @@ Goalw [Init_def,Next_def,temp_sat_def,satisfies_def,IMPLIES_def,AND_def]
 \             .--> (Next (Init (%(s,a,t).Q s))))";
 
 by (clarify_tac set_cs 1);
-by (asm_full_simp_tac (simpset() setloop split_tac [expand_if]) 1);
+by (asm_full_simp_tac (simpset() addsplits [split_if]) 1);
 (* TL = UU *)
 by (rtac conjI 1);
 by (pair_tac "ex" 1);

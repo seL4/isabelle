@@ -19,7 +19,7 @@ val new_AddrD = prove_goalw thy [new_Addr_def]
 
 val raise_if_True = prove_goalw thy [raise_if_def] 
 	"raise_if True x y \\<noteq> None"
-(K [split_tac [expand_if] 1,Auto_tac]);
+(K [split_tac [split_if] 1,Auto_tac]);
 
 val raise_if_False = prove_goalw thy [raise_if_def] 
 	"raise_if False x y = y"
@@ -41,20 +41,20 @@ Addsimps [raise_if_True,raise_if_False,raise_if_Some,raise_if_Some2,if_None_eq];
 
 val raise_if_SomeD = prove_goalw thy [raise_if_def] 
 	"raise_if c x y = Some z \\<longrightarrow> c \\<and>  Some z = Some x |  y = Some z" 
-(K [split_tac [expand_if] 1,Auto_tac]) RS mp;
+(K [split_tac [split_if] 1,Auto_tac]) RS mp;
 
 val raise_if_NoneD = prove_goalw thy [raise_if_def] 
 	"raise_if c x y = None \\<longrightarrow> \\<not> c \\<and>  y = None"
-(K [split_tac [expand_if] 1,Auto_tac]) RS mp;
+(K [split_tac [split_if] 1,Auto_tac]) RS mp;
 
 
 val np_NoneD = (prove_goalw thy [np_def, raise_if_def] 
 	"np a' x' = None \\<longrightarrow> x' = None \\<and>  a' \\<noteq> Null" (fn _ => [
-	split_tac [expand_if] 1,
+	split_tac [split_if] 1,
 	Auto_tac ])) RS mp;
 val np_None = (prove_goalw thy [np_def, raise_if_def] 
 	"a' \\<noteq> Null \\<longrightarrow> np a' x' = x'" (fn _ => [
-	split_tac [expand_if] 1,
+	split_tac [split_if] 1,
 	Auto_tac ])) RS mp;
 val np_Some = prove_goalw thy [np_def, raise_if_def] "np a' (Some xc) = Some xc"
 	(fn _ => [Auto_tac ]);

@@ -246,7 +246,7 @@ by( EVERY'[rtac impI, dtac raise_if_NoneD, Clarsimp_tac,
            fast_tac (claset() addEs [Cast_conf])] 8);
 
 (* 7 LAss *)
-by( asm_simp_tac (simpset() addsplits [expand_if]) 1);
+by( asm_simp_tac (simpset() addsplits [split_if]) 1);
 by( EVERY'[eresolve_tac ty_expr_ty_exprs_wt_stmt.elims THEN_ALL_NEW Full_simp_tac] 1);
 by( blast_tac (claset() addIs [conforms_upd_local, conf_widen]) 1);
 

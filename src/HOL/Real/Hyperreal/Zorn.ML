@@ -28,7 +28,7 @@ val thissubset_cs = claset()
 
 (* increasingD2 of ZF/Zorn.ML *) 
 Goalw [succ_def] "x <= succ S x";
-by (rtac (expand_if RS iffD2) 1);
+by (rtac (split_if RS iffD2) 1);
 by (auto_tac (claset(),simpset() addsimps [super_def,
                maxchain_def,psubset_def]));
 by (rtac swap 1 THEN assume_tac 1);
@@ -190,7 +190,7 @@ Goal "c: TFin S ==> (c :: 'a set set): chain S";
 by (etac TFin_induct 1);
 by (asm_simp_tac (simpset() addsimps [succ_def,
     select_super RS (super_subset_chain RS subsetD)]
-                   setloop split_tac [expand_if]) 1);
+                   addsplits [split_if]) 1);
 by (rewtac chain_def);
 by (rtac CollectI 1);
 by Safe_tac;

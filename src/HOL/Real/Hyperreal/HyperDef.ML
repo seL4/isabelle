@@ -346,7 +346,7 @@ Goal "z ~= 0 ==> hrinv (hrinv z) = z";
 by (res_inst_tac [("z","z")] eq_Abs_hypreal 1);
 by (rotate_tac 1 1);
 by (asm_full_simp_tac (simpset() addsimps 
-    [hypreal_hrinv,hypreal_zero_def] setloop (split_tac [expand_if])) 1);
+    [hypreal_hrinv,hypreal_zero_def] addsplits [split_if]) 1);
 by (ultra_tac (claset() addDs (map (rename_numerals thy)
 			       [rinv_not_zero,real_rinv_rinv]),
 	       simpset()) 1);
