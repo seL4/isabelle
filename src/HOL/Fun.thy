@@ -162,8 +162,29 @@ by (unfold inj_on_def, blast)
 lemma inj_singleton: "inj (%s. {s})"
 by (simp add: inj_on_def)
 
+lemma inj_on_empty[iff]: "inj_on f {}"
+by(simp add: inj_on_def)
+
 lemma subset_inj_on: "[| A<=B; inj_on f B |] ==> inj_on f A"
 by (unfold inj_on_def, blast)
+
+lemma inj_on_Un:
+ "inj_on f (A Un B) =
+  (inj_on f A & inj_on f B & f`(A-B) Int f`(B-A) = {})"
+apply(unfold inj_on_def)
+apply (blast intro:sym)
+done
+
+lemma inj_on_insert[iff]:
+  "inj_on f (insert a A) = (inj_on f A & f a ~: f`(A-{a}))"
+apply(unfold inj_on_def)
+apply (blast intro:sym)
+done
+
+lemma inj_on_diff: "inj_on f A ==> inj_on f (A-B)"
+apply(unfold inj_on_def)
+apply (blast)
+done
 
 
 subsection{*The Predicate @{term surj}: Surjectivity*}

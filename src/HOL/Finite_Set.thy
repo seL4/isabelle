@@ -521,14 +521,22 @@ lemma card_image_le: "finite A ==> card (f ` A) <= card A"
   done
 
 lemma card_image: "finite A ==> inj_on f A ==> card (f ` A) = card A"
-  apply (induct set: Finites, simp_all, atomize, safe)
-   apply (unfold inj_on_def, blast)
-  apply (subst card_insert_disjoint)
-    apply (erule finite_imageI, blast, blast)
-  done
+by (induct set: Finites, simp_all)
 
 lemma endo_inj_surj: "finite A ==> f ` A \<subseteq> A ==> inj_on f A ==> f ` A = A"
   by (simp add: card_seteq card_image)
+
+lemma eq_card_imp_inj_on:
+  "[| finite A; card(f ` A) = card A |] ==> inj_on f A"
+apply(induct rule:finite_induct)
+ apply simp
+apply(frule card_image_le[where f = f])
+apply(simp add:card_insert_if split:if_splits)
+done
+
+lemma inj_on_iff_eq_card:
+  "finite A ==> inj_on f A = (card(f ` A) = card A)"
+by(blast intro: card_image eq_card_imp_inj_on)
 
 
 subsubsection {* Cardinality of the Powerset *}
@@ -813,14 +821,7 @@ lemma setsum_insert [simp]:
 
 lemma setsum_reindex [rule_format]:
      "finite B ==> inj_on f B --> setsum h (f ` B) = setsum (h \<circ> f) B"
-apply (rule finite_induct, assumption, force)
-apply (rule impI, auto)
-apply (simp add: inj_on_def)
-apply (subgoal_tac "f x \<notin> f ` F")
-apply (subgoal_tac "finite (f ` F)")
-apply (auto simp add: setsum_insert)
-apply (simp add: inj_on_def)
-done
+by (rule finite_induct, auto)
 
 lemma setsum_reindex_id:
      "finite B ==> inj_on f B ==> setsum f B = setsum id (f ` B)"
@@ -1090,14 +1091,7 @@ lemma setprod_insert [simp]: "[| finite A; a \<notin> A |] ==>
 
 lemma setprod_reindex [rule_format]:
      "finite B ==> inj_on f B --> setprod h (f ` B) = setprod (h \<circ> f) B"
-apply (rule finite_induct, assumption, force)
-apply (rule impI, auto)
-apply (simp add: inj_on_def)
-apply (subgoal_tac "f x \<notin> f ` F")
-apply (subgoal_tac "finite (f ` F)")
-apply (auto simp add: setprod_insert)
-apply (simp add: inj_on_def)
-done
+by (rule finite_induct, auto)
 
 lemma setprod_reindex_id: "finite B ==> inj_on f B ==>
     setprod f B = setprod id (f ` B)"
