@@ -12,7 +12,7 @@ theory Int = EquivClass + ArithSimp:
 constdefs
   intrel :: i
     "intrel == {p : (nat*nat)*(nat*nat).                 
-                EX x1 y1 x2 y2. p=<<x1,y1>,<x2,y2>> & x1#+y2 = x2#+y1}"
+                \<exists>x1 y1 x2 y2. p=<<x1,y1>,<x2,y2>> & x1#+y2 = x2#+y1}"
 
   int :: i
     "int == (nat*nat)//intrel"  
@@ -24,20 +24,19 @@ constdefs
     "intify(m) == if m : int then m else $#0"
 
   raw_zminus :: "i=>i"
-    "raw_zminus(z) == UN <x,y>: z. intrel``{<y,x>}"
+    "raw_zminus(z) == \<Union><x,y>\<in>z. intrel``{<y,x>}"
 
   zminus :: "i=>i"                                 ("$- _" [80] 80)
     "$- z == raw_zminus (intify(z))"
 
   znegative   ::      "i=>o"
-    "znegative(z) == EX x y. x<y & y:nat & <x,y>:z"
+    "znegative(z) == \<exists>x y. x<y & y\<in>nat & <x,y>\<in>z"
 
   iszero      ::      "i=>o"
     "iszero(z) == z = $# 0"
     
   raw_nat_of  :: "i=>i"
-  "raw_nat_of(z) == if znegative(z) then 0
-                    else (THE m. m: nat & z = int_of(m))"
+  "raw_nat_of(z) == natify (\<Union><x,y>\<in>z. x#-y)"
 
   nat_of  :: "i=>i"
   "nat_of(z) == raw_nat_of (intify(z))"
@@ -45,7 +44,7 @@ constdefs
   zmagnitude  ::      "i=>i"
   --{*could be replaced by an absolute value function from int to int?*}
     "zmagnitude(z) ==
-     THE m. m : nat & ((~ znegative(z) & z = $# m) |
+     THE m. m\<in>nat & ((~ znegative(z) & z = $# m) |
 		       (znegative(z) & $- z = $# m))"
 
   raw_zmult   ::      "[i,i]=>i"
@@ -53,7 +52,7 @@ constdefs
       Perhaps a "curried" or even polymorphic congruent predicate would be
       better.*)
      "raw_zmult(z1,z2) == 
-       UN p1:z1. UN p2:z2.  split(%x1 y1. split(%x2 y2.        
+       \<Union>p1\<in>z1. \<Union>p2\<in>z2.  split(%x1 y1. split(%x2 y2.        
                    intrel``{<x1#*x2 #+ y1#*y2, x1#*y2 #+ y1#*x2>}, p2), p1)"
 
   zmult       ::      "[i,i]=>i"      (infixl "$*" 70)
@@ -61,7 +60,7 @@ constdefs
 
   raw_zadd    ::      "[i,i]=>i"
      "raw_zadd (z1, z2) == 
-       UN z1:z1. UN z2:z2. let <x1,y1>=z1; <x2,y2>=z2                 
+       \<Union>z1\<in>z1. \<Union>z2\<in>z2. let <x1,y1>=z1; <x2,y2>=z2                 
                            in intrel``{<x1#+x2, y1#+y2>}"
 
   zadd        ::      "[i,i]=>i"      (infixl "$+" 65)
@@ -93,20 +92,20 @@ subsection{*Proving that @{term intrel} is an equivalence relation*}
 
 lemma intrel_iff [simp]: 
     "<<x1,y1>,<x2,y2>>: intrel <->  
-     x1: nat & y1: nat & x2: nat & y2: nat & x1#+y2 = x2#+y1"
-by (unfold intrel_def, fast)
+     x1\<in>nat & y1\<in>nat & x2\<in>nat & y2\<in>nat & x1#+y2 = x2#+y1"
+by (simp add: intrel_def)
 
 lemma intrelI [intro!]: 
-    "[| x1#+y2 = x2#+y1; x1: nat; y1: nat; x2: nat; y2: nat |]   
+    "[| x1#+y2 = x2#+y1; x1\<in>nat; y1\<in>nat; x2\<in>nat; y2\<in>nat |]   
      ==> <<x1,y1>,<x2,y2>>: intrel"
-by (unfold intrel_def, fast)
+by (simp add: intrel_def)
 
 lemma intrelE [elim!]:
   "[| p: intrel;   
       !!x1 y1 x2 y2. [| p = <<x1,y1>,<x2,y2>>;  x1#+y2 = x2#+y1;  
-                        x1: nat; y1: nat; x2: nat; y2: nat |] ==> Q |]  
+                        x1\<in>nat; y1\<in>nat; x2\<in>nat; y2\<in>nat |] ==> Q |]  
    ==> Q"
-by (unfold intrel_def, blast) 
+by (simp add: intrel_def, blast) 
 
 lemma int_trans_lemma:
      "[| x1 #+ y2 = x2 #+ y1; x2 #+ y3 = x3 #+ y2 |] ==> x1 #+ y3 = x3 #+ y1"
@@ -116,14 +115,12 @@ apply (simp_all (no_asm_simp))
 done
 
 lemma equiv_intrel: "equiv(nat*nat, intrel)"
-apply (unfold equiv_def refl_def sym_def trans_def)
+apply (simp add: equiv_def refl_def sym_def trans_def)
 apply (fast elim!: sym int_trans_lemma)
 done
 
-lemma image_intrel_int: "[| m: nat; n: nat |] ==> intrel `` {<m,n>} : int"
-apply (unfold int_def)
-apply (blast intro: quotientI)
-done
+lemma image_intrel_int: "[| m\<in>nat; n\<in>nat |] ==> intrel `` {<m,n>} : int"
+by (simp add: int_def)
 
 declare equiv_intrel [THEN eq_equiv_class_iff, simp]
 declare conj_cong [cong]
@@ -133,12 +130,12 @@ lemmas eq_intrelD = eq_equiv_class [OF _ equiv_intrel]
 (** int_of: the injection from nat to int **)
 
 lemma int_of_type [simp,TC]: "$#m : int"
-by (unfold int_def quotient_def int_of_def, auto)
+by (simp add: int_def quotient_def int_of_def, auto)
 
 lemma int_of_eq [iff]: "($# m = $# n) <-> natify(m)=natify(n)"
-by (unfold int_of_def, auto)
+by (simp add: int_of_def)
 
-lemma int_of_inject: "[| $#m = $#n;  m: nat;  n: nat |] ==> m=n"
+lemma int_of_inject: "[| $#m = $#n;  m\<in>nat;  n\<in>nat |] ==> m=n"
 by (drule int_of_eq [THEN iffD1], auto)
 
 
@@ -205,29 +202,25 @@ by (simp add: zle_def)
 subsection{*@{term zminus}: unary negation on @{term int}*}
 
 lemma zminus_congruent: "congruent(intrel, %<x,y>. intrel``{<y,x>})"
-apply (unfold congruent_def, safe)
-apply (simp add: add_ac)
-done
+by (auto simp add: congruent_def add_ac)
 
 lemma raw_zminus_type: "z : int ==> raw_zminus(z) : int"
-apply (unfold int_def raw_zminus_def)
+apply (simp add: int_def raw_zminus_def)
 apply (typecheck add: UN_equiv_class_type [OF equiv_intrel zminus_congruent])
 done
 
 lemma zminus_type [TC,iff]: "$-z : int"
-apply (unfold zminus_def)
-apply (simp add: zminus_def raw_zminus_type)
-done
+by (simp add: zminus_def raw_zminus_type)
 
 lemma raw_zminus_inject: 
      "[| raw_zminus(z) = raw_zminus(w);  z: int;  w: int |] ==> z=w"
-apply (unfold int_def raw_zminus_def)
+apply (simp add: int_def raw_zminus_def)
 apply (erule UN_equiv_class_inject [OF equiv_intrel zminus_congruent], safe)
 apply (auto dest: eq_intrelD simp add: add_ac)
 done
 
 lemma zminus_inject_intify [dest!]: "$-z = $-w ==> intify(z) = intify(w)"
-apply (unfold zminus_def)
+apply (simp add: zminus_def)
 apply (blast dest!: raw_zminus_inject)
 done
 
@@ -235,30 +228,23 @@ lemma zminus_inject: "[| $-z = $-w;  z: int;  w: int |] ==> z=w"
 by auto
 
 lemma raw_zminus: 
-    "[| x: nat;  y: nat |] ==> raw_zminus(intrel``{<x,y>}) = intrel `` {<y,x>}"
-apply (unfold raw_zminus_def)
-apply (simp add: UN_equiv_class [OF equiv_intrel zminus_congruent])
+    "[| x\<in>nat;  y\<in>nat |] ==> raw_zminus(intrel``{<x,y>}) = intrel `` {<y,x>}"
+apply (simp add: raw_zminus_def UN_equiv_class [OF equiv_intrel zminus_congruent])
 done
 
 lemma zminus: 
-    "[| x: nat;  y: nat |]  
+    "[| x\<in>nat;  y\<in>nat |]  
      ==> $- (intrel``{<x,y>}) = intrel `` {<y,x>}"
-apply (unfold zminus_def)
-apply (simp (no_asm_simp) add: raw_zminus image_intrel_int)
-done
+by (simp add: zminus_def raw_zminus image_intrel_int)
 
 lemma raw_zminus_zminus: "z : int ==> raw_zminus (raw_zminus(z)) = z"
-apply (unfold int_def)
-apply (auto simp add: raw_zminus)
-done
+by (auto simp add: int_def raw_zminus)
 
 lemma zminus_zminus_intify [simp]: "$- ($- z) = intify(z)"
 by (simp add: zminus_def raw_zminus_type raw_zminus_zminus)
 
 lemma zminus_int0 [simp]: "$- ($#0) = $#0"
-apply (unfold int_of_def)
-apply (simp add: zminus)
-done
+by (simp add: int_of_def zminus)
 
 lemma zminus_zminus: "z : int ==> $- ($- z) = z"
 by simp
@@ -266,56 +252,52 @@ by simp
 
 subsection{*@{term znegative}: the test for negative integers*}
 
+lemma znegative: "[| x\<in>nat; y\<in>nat |] ==> znegative(intrel``{<x,y>}) <-> x<y"
+apply (cases "x<y") 
+apply (auto simp add: znegative_def not_lt_iff_le)
+apply (subgoal_tac "y #+ x2 < x #+ y2", force) 
+apply (rule add_le_lt_mono, auto) 
+done
+
 (*No natural number is negative!*)
 lemma not_znegative_int_of [iff]: "~ znegative($# n)"
-apply (unfold znegative_def int_of_def, safe)
-apply (drule_tac psi = "?lhs=?rhs" in asm_rl)
-apply (drule_tac psi = "?lhs<?rhs" in asm_rl)
-apply (force simp add: add_le_self2 [THEN le_imp_not_lt] natify_succ)
-done
+by (simp add: znegative int_of_def) 
 
 lemma znegative_zminus_int_of [simp]: "znegative($- $# succ(n))"
-apply (unfold znegative_def int_of_def)
-apply (simp (no_asm_simp) add: zminus natify_succ)
-apply (blast intro: nat_0_le)
-done
+by (simp add: znegative int_of_def zminus natify_succ)
 
 lemma not_znegative_imp_zero: "~ znegative($- $# n) ==> natify(n)=0"
-apply (unfold znegative_def int_of_def)
-apply (simp add: zminus image_singleton_iff)
-apply (drule_tac x = 0 in spec)
-apply (auto simp add: nat_into_Ord [THEN Ord_0_lt_iff, THEN iff_sym])
-done
+by (simp add: znegative int_of_def zminus Ord_0_lt_iff [THEN iff_sym])
 
 
 subsection{*@{term nat_of}: Coercion of an Integer to a Natural Number*}
 
 lemma nat_of_intify [simp]: "nat_of(intify(z)) = nat_of(z)"
-by (unfold nat_of_def, auto)
+by (simp add: nat_of_def)
+
+lemma nat_of_congruent: "congruent(intrel, \<lambda>x. (\<lambda>\<langle>x,y\<rangle>. x #- y)(x))"
+by (auto simp add: congruent_def split add: nat_diff_split)
+
+lemma raw_nat_of: 
+    "[| x\<in>nat;  y\<in>nat |] ==> raw_nat_of(intrel``{<x,y>}) = x#-y"
+by (simp add: raw_nat_of_def UN_equiv_class [OF equiv_intrel nat_of_congruent])
+
+lemma raw_nat_of_int_of: "raw_nat_of($# n) = natify(n)"
+by (simp add: int_of_def raw_nat_of)
 
 lemma nat_of_int_of [simp]: "nat_of($# n) = natify(n)"
-apply (unfold nat_of_def raw_nat_of_def)
-apply (auto simp add: int_of_eq)
-done
+by (simp add: raw_nat_of_int_of nat_of_def)
 
-lemma raw_nat_of_type: "raw_nat_of(z) : nat"
-apply (unfold raw_nat_of_def, auto)
-apply (case_tac "EX! m. m: nat & z = int_of (m) ")
-apply (rule theI2)
-apply (simp_all add: the_0) 
-done
+lemma raw_nat_of_type: "raw_nat_of(z) \<in> nat"
+by (simp add: raw_nat_of_def)
 
-lemma nat_of_type [iff,TC]: "nat_of(z) : nat"
-apply (unfold nat_of_def)
-apply (simp add: raw_nat_of_type)
-done
+lemma nat_of_type [iff,TC]: "nat_of(z) \<in> nat"
+by (simp add: nat_of_def raw_nat_of_type)
 
 subsection{*zmagnitude: magnitide of an integer, as a natural number*}
 
 lemma zmagnitude_int_of [simp]: "zmagnitude($# n) = natify(n)"
-apply (unfold zmagnitude_def)
-apply (auto simp add: int_of_eq)
-done
+by (auto simp add: zmagnitude_def int_of_eq)
 
 lemma natify_int_of_eq: "natify(x)=n ==> $#x = $# n"
 apply (drule sym)
@@ -323,27 +305,23 @@ apply (simp (no_asm_simp) add: int_of_eq)
 done
 
 lemma zmagnitude_zminus_int_of [simp]: "zmagnitude($- $# n) = natify(n)"
-apply (unfold zmagnitude_def)
+apply (simp add: zmagnitude_def)
 apply (rule the_equality)
 apply (auto dest!: not_znegative_imp_zero natify_int_of_eq
             iff del: int_of_eq, auto)
 done
 
-lemma zmagnitude_type [iff,TC]: "zmagnitude(z) : nat"
-apply (unfold zmagnitude_def)
+lemma zmagnitude_type [iff,TC]: "zmagnitude(z)\<in>nat"
+apply (simp add: zmagnitude_def)
 apply (rule theI2, auto)
 done
 
 lemma not_zneg_int_of: 
-     "[| z: int; ~ znegative(z) |] ==> EX n:nat. z = $# n"
-apply (unfold int_def znegative_def int_of_def)
-apply (auto simp add: image_singleton_iff)
-apply (rename_tac i j)
-apply (drule_tac x = i in spec)
-apply (drule_tac x = j in spec)
-apply (rule bexI)
-apply (rule add_diff_inverse2 [symmetric], auto)
-apply (simp add: not_lt_iff_le)
+     "[| z: int; ~ znegative(z) |] ==> \<exists>n\<in>nat. z = $# n"
+apply (auto simp add: int_def znegative int_of_def not_lt_iff_le)
+apply (rename_tac x y) 
+apply (rule_tac x="x#-y" in bexI) 
+apply (auto simp add: add_diff_inverse2) 
 done
 
 lemma not_zneg_mag [simp]:
@@ -351,17 +329,14 @@ lemma not_zneg_mag [simp]:
 by (drule not_zneg_int_of, auto)
 
 lemma zneg_int_of: 
-     "[| znegative(z); z: int |] ==> EX n:nat. z = $- ($# succ(n))"
-apply (unfold int_def znegative_def int_of_def)
-apply (auto dest!: less_imp_succ_add simp add: zminus image_singleton_iff)
-done
+     "[| znegative(z); z: int |] ==> \<exists>n\<in>nat. z = $- ($# succ(n))"
+by (auto simp add: int_def znegative zminus int_of_def dest!: less_imp_succ_add)
 
 lemma zneg_mag [simp]:
      "[| znegative(z); z: int |] ==> $# (zmagnitude(z)) = $- z"
-apply (drule zneg_int_of, auto)
-done
+by (drule zneg_int_of, auto)
 
-lemma int_cases: "z : int ==> EX n: nat. z = $# n | z = $- ($# succ(n))"
+lemma int_cases: "z : int ==> \<exists>n\<in>nat. z = $# n | z = $- ($# succ(n))"
 apply (case_tac "znegative (z) ")
 prefer 2 apply (blast dest: not_zneg_mag sym)
 apply (blast dest: zneg_int_of)
@@ -370,8 +345,7 @@ done
 lemma not_zneg_raw_nat_of:
      "[| ~ znegative(z); z: int |] ==> $# (raw_nat_of(z)) = z"
 apply (drule not_zneg_int_of)
-apply (auto simp add: raw_nat_of_type)
-apply (auto simp add: raw_nat_of_def)
+apply (auto simp add: raw_nat_of_type raw_nat_of_int_of)
 done
 
 lemma not_zneg_nat_of_intify:
@@ -383,7 +357,11 @@ apply (simp (no_asm_simp) add: not_zneg_nat_of_intify)
 done
 
 lemma zneg_nat_of [simp]: "znegative(intify(z)) ==> nat_of(z) = 0"
-by (unfold nat_of_def raw_nat_of_def, auto)
+apply (subgoal_tac "intify(z) \<in> int")
+apply (simp add: int_def) 
+apply (auto simp add: znegative nat_of_def raw_nat_of 
+            split add: nat_diff_split) 
+done
 
 
 subsection{*@{term zadd}: addition on int*}
@@ -393,7 +371,7 @@ lemma zadd_congruent2:
     "congruent2(intrel, %z1 z2.                       
           let <x1,y1>=z1; <x2,y2>=z2                  
                             in intrel``{<x1#+x2, y1#+y2>})"
-apply (unfold congruent2_def)
+apply (simp add: congruent2_def)
 (*Proof via congruent2_commuteI seems longer*)
 apply safe
 apply (simp (no_asm_simp) add: add_assoc Let_def)
@@ -405,7 +383,7 @@ apply (simp (no_asm_simp) add: add_assoc [symmetric])
 done
 
 lemma raw_zadd_type: "[| z: int;  w: int |] ==> raw_zadd(z,w) : int"
-apply (unfold int_def raw_zadd_def)
+apply (simp add: int_def raw_zadd_def)
 apply (rule UN_equiv_class_type2 [OF equiv_intrel zadd_congruent2], assumption+)
 apply (simp add: Let_def)
 done
@@ -414,26 +392,21 @@ lemma zadd_type [iff,TC]: "z $+ w : int"
 by (simp add: zadd_def raw_zadd_type)
 
 lemma raw_zadd: 
-  "[| x1: nat; y1: nat;  x2: nat; y2: nat |]               
+  "[| x1\<in>nat; y1\<in>nat;  x2\<in>nat; y2\<in>nat |]               
    ==> raw_zadd (intrel``{<x1,y1>}, intrel``{<x2,y2>}) =   
        intrel `` {<x1#+x2, y1#+y2>}"
-apply (unfold raw_zadd_def)
-apply (simp add: UN_equiv_class2 [OF equiv_intrel zadd_congruent2])
+apply (simp add: raw_zadd_def UN_equiv_class2 [OF equiv_intrel zadd_congruent2])
 apply (simp add: Let_def)
 done
 
 lemma zadd: 
-  "[| x1: nat; y1: nat;  x2: nat; y2: nat |]          
+  "[| x1\<in>nat; y1\<in>nat;  x2\<in>nat; y2\<in>nat |]          
    ==> (intrel``{<x1,y1>}) $+ (intrel``{<x2,y2>}) =   
        intrel `` {<x1#+x2, y1#+y2>}"
-apply (unfold zadd_def)
-apply (simp (no_asm_simp) add: raw_zadd image_intrel_int)
-done
+by (simp add: zadd_def raw_zadd image_intrel_int)
 
 lemma raw_zadd_int0: "z : int ==> raw_zadd ($#0,z) = z"
-apply (unfold int_def int_of_def)
-apply (auto simp add: raw_zadd)
-done
+by (auto simp add: int_def int_of_def raw_zadd)
 
 lemma zadd_int0_intify [simp]: "$#0 $+ z = intify(z)"
 by (simp add: zadd_def raw_zadd_int0)
@@ -443,18 +416,14 @@ by simp
 
 lemma raw_zminus_zadd_distrib: 
      "[| z: int;  w: int |] ==> $- raw_zadd(z,w) = raw_zadd($- z, $- w)"
-apply (unfold int_def)
-apply (auto simp add: zminus raw_zadd)
-done
+by (auto simp add: zminus raw_zadd int_def)
 
 lemma zminus_zadd_distrib [simp]: "$- (z $+ w) = $- z $+ $- w"
 by (simp add: zadd_def raw_zminus_zadd_distrib)
 
 lemma raw_zadd_commute:
      "[| z: int;  w: int |] ==> raw_zadd(z,w) = raw_zadd(w,z)"
-apply (unfold int_def)
-apply (auto simp add: raw_zadd add_ac)
-done
+by (auto simp add: raw_zadd add_ac int_def)
 
 lemma zadd_commute: "z $+ w = w $+ z"
 by (simp add: zadd_def raw_zadd_commute)
@@ -462,9 +431,7 @@ by (simp add: zadd_def raw_zadd_commute)
 lemma raw_zadd_assoc: 
     "[| z1: int;  z2: int;  z3: int |]    
      ==> raw_zadd (raw_zadd(z1,z2),z3) = raw_zadd(z1,raw_zadd(z2,z3))"
-apply (unfold int_def)
-apply (auto simp add: raw_zadd add_assoc)
-done
+by (auto simp add: int_def raw_zadd add_assoc)
 
 lemma zadd_assoc: "(z1 $+ z2) $+ z3 = z1 $+ (z2 $+ z3)"
 by (simp add: zadd_def raw_zadd_type raw_zadd_assoc)
@@ -479,24 +446,20 @@ done
 lemmas zadd_ac = zadd_assoc zadd_commute zadd_left_commute
 
 lemma int_of_add: "$# (m #+ n) = ($#m) $+ ($#n)"
-apply (unfold int_of_def)
-apply (simp add: zadd)
-done
+by (simp add: int_of_def zadd)
 
 lemma int_succ_int_1: "$# succ(m) = $# 1 $+ ($# m)"
 by (simp add: int_of_add [symmetric] natify_succ)
 
 lemma int_of_diff: 
-     "[| m: nat;  n le m |] ==> $# (m #- n) = ($#m) $- ($#n)"
-apply (unfold int_of_def zdiff_def)
+     "[| m\<in>nat;  n le m |] ==> $# (m #- n) = ($#m) $- ($#n)"
+apply (simp add: int_of_def zdiff_def)
 apply (frule lt_nat_in_nat)
 apply (simp_all add: zadd zminus add_diff_inverse2)
 done
 
 lemma raw_zadd_zminus_inverse: "z : int ==> raw_zadd (z, $- z) = $#0"
-apply (unfold int_def int_of_def)
-apply (auto simp add: zminus raw_zadd add_commute)
-done
+by (auto simp add: int_def int_of_def zminus raw_zadd add_commute)
 
 lemma zadd_zminus_inverse [simp]: "z $+ ($- z) = $#0"
 apply (simp add: zadd_def)
@@ -532,7 +495,7 @@ done
 
 
 lemma raw_zmult_type: "[| z: int;  w: int |] ==> raw_zmult(z,w) : int"
-apply (unfold int_def raw_zmult_def)
+apply (simp add: int_def raw_zmult_def)
 apply (rule UN_equiv_class_type2 [OF equiv_intrel zmult_congruent2], assumption+)
 apply (simp add: Let_def)
 done
@@ -541,33 +504,25 @@ lemma zmult_type [iff,TC]: "z $* w : int"
 by (simp add: zmult_def raw_zmult_type)
 
 lemma raw_zmult: 
-     "[| x1: nat; y1: nat;  x2: nat; y2: nat |]     
+     "[| x1\<in>nat; y1\<in>nat;  x2\<in>nat; y2\<in>nat |]     
       ==> raw_zmult(intrel``{<x1,y1>}, intrel``{<x2,y2>}) =      
           intrel `` {<x1#*x2 #+ y1#*y2, x1#*y2 #+ y1#*x2>}"
-apply (unfold raw_zmult_def)
-apply (simp add: UN_equiv_class2 [OF equiv_intrel zmult_congruent2])
-done
+by (simp add: raw_zmult_def UN_equiv_class2 [OF equiv_intrel zmult_congruent2])
 
 lemma zmult: 
-     "[| x1: nat; y1: nat;  x2: nat; y2: nat |]     
+     "[| x1\<in>nat; y1\<in>nat;  x2\<in>nat; y2\<in>nat |]     
       ==> (intrel``{<x1,y1>}) $* (intrel``{<x2,y2>}) =      
           intrel `` {<x1#*x2 #+ y1#*y2, x1#*y2 #+ y1#*x2>}"
-apply (unfold zmult_def)
-apply (simp add: raw_zmult image_intrel_int)
-done
+by (simp add: zmult_def raw_zmult image_intrel_int)
 
 lemma raw_zmult_int0: "z : int ==> raw_zmult ($#0,z) = $#0"
-apply (unfold int_def int_of_def)
-apply (auto simp add: raw_zmult)
-done
+by (auto simp add: int_def int_of_def raw_zmult)
 
 lemma zmult_int0 [simp]: "$#0 $* z = $#0"
 by (simp add: zmult_def raw_zmult_int0)
 
 lemma raw_zmult_int1: "z : int ==> raw_zmult ($#1,z) = z"
-apply (unfold int_def int_of_def)
-apply (auto simp add: raw_zmult)
-done
+by (auto simp add: int_def int_of_def raw_zmult)
 
 lemma zmult_int1_intify [simp]: "$#1 $* z = intify(z)"
 by (simp add: zmult_def raw_zmult_int1)
@@ -577,18 +532,14 @@ by simp
 
 lemma raw_zmult_commute:
      "[| z: int;  w: int |] ==> raw_zmult(z,w) = raw_zmult(w,z)"
-apply (unfold int_def)
-apply (auto simp add: raw_zmult add_ac mult_ac)
-done
+by (auto simp add: int_def raw_zmult add_ac mult_ac)
 
 lemma zmult_commute: "z $* w = w $* z"
 by (simp add: zmult_def raw_zmult_commute)
 
 lemma raw_zmult_zminus: 
      "[| z: int;  w: int |] ==> raw_zmult($- z, w) = $- raw_zmult(z, w)"
-apply (unfold int_def)
-apply (auto simp add: zminus raw_zmult add_ac)
-done
+by (auto simp add: int_def zminus raw_zmult add_ac)
 
 lemma zmult_zminus [simp]: "($- z) $* w = $- (z $* w)"
 apply (simp add: zmult_def raw_zmult_zminus)
@@ -601,9 +552,7 @@ by (simp add: zmult_commute [of w])
 lemma raw_zmult_assoc: 
     "[| z1: int;  z2: int;  z3: int |]    
      ==> raw_zmult (raw_zmult(z1,z2),z3) = raw_zmult(z1,raw_zmult(z2,z3))"
-apply (unfold int_def)
-apply (auto simp add: raw_zmult add_mult_distrib_left add_ac mult_ac)
-done
+by (auto simp add: int_def raw_zmult add_mult_distrib_left add_ac mult_ac)
 
 lemma zmult_assoc: "(z1 $* z2) $* z3 = z1 $* (z2 $* z3)"
 by (simp add: zmult_def raw_zmult_type raw_zmult_assoc)
@@ -621,9 +570,7 @@ lemma raw_zadd_zmult_distrib:
     "[| z1: int;  z2: int;  w: int |]   
      ==> raw_zmult(raw_zadd(z1,z2), w) =  
          raw_zadd (raw_zmult(z1,w), raw_zmult(z2,w))"
-apply (unfold int_def)
-apply (auto simp add: raw_zadd raw_zmult add_mult_distrib_left add_ac mult_ac)
-done
+by (auto simp add: int_def raw_zadd raw_zmult add_mult_distrib_left add_ac mult_ac)
 
 lemma zadd_zmult_distrib: "(z1 $+ z2) $* w = (z1 $* w) $+ (z2 $* w)"
 by (simp add: zmult_def zadd_def raw_zadd_type raw_zmult_type 
@@ -645,7 +592,7 @@ lemma zminus_zdiff_eq [simp]: "$- (z $- y) = y $- z"
 by (simp add: zdiff_def zadd_commute)
 
 lemma zdiff_zmult_distrib: "(z1 $- z2) $* w = (z1 $* w) $- (z2 $* w)"
-apply (unfold zdiff_def)
+apply (simp add: zdiff_def)
 apply (subst zadd_zmult_distrib)
 apply (simp add: zmult_zminus)
 done
@@ -665,7 +612,7 @@ subsection{*The "Less Than" Relation*}
 (*"Less than" is a linear ordering*)
 lemma zless_linear_lemma: 
      "[| z: int; w: int |] ==> z$<w | z=w | w$<z"
-apply (unfold int_def zless_def znegative_def zdiff_def, auto)
+apply (simp add: int_def zless_def znegative_def zdiff_def, auto)
 apply (simp add: zadd zminus image_iff Bex_def)
 apply (rule_tac i = "xb#+ya" and j = "xc #+ y" in Ord_linear_lt)
 apply (force dest!: spec simp add: add_ac)+
@@ -677,8 +624,7 @@ apply auto
 done
 
 lemma zless_not_refl [iff]: "~ (z$<z)"
-apply (auto simp add: zless_def znegative_def int_of_def zdiff_def)
-done
+by (auto simp add: zless_def znegative_def int_of_def zdiff_def)
 
 lemma neq_iff_zless: "[| x: int; y: int |] ==> (x ~= y) <-> (x $< y | y $< x)"
 by (cut_tac z = x and w = y in zless_linear, auto)
@@ -693,15 +639,15 @@ done
 
 (*This lemma allows direct proofs of other <-properties*)
 lemma zless_imp_succ_zadd_lemma: 
-    "[| w $< z; w: int; z: int |] ==> (EX n: nat. z = w $+ $#(succ(n)))"
-apply (unfold zless_def znegative_def zdiff_def int_def)
+    "[| w $< z; w: int; z: int |] ==> (\<exists>n\<in>nat. z = w $+ $#(succ(n)))"
+apply (simp add: zless_def znegative_def zdiff_def int_def)
 apply (auto dest!: less_imp_succ_add simp add: zadd zminus int_of_def)
 apply (rule_tac x = k in bexI)
 apply (erule add_left_cancel, auto)
 done
 
 lemma zless_imp_succ_zadd:
-     "w $< z ==> (EX n: nat. w $+ $#(succ(n)) = intify(z))"
+     "w $< z ==> (\<exists>n\<in>nat. w $+ $#(succ(n)) = intify(z))"
 apply (subgoal_tac "intify (w) $< intify (z) ")
 apply (drule_tac w = "intify (w) " in zless_imp_succ_zadd_lemma)
 apply auto
@@ -709,7 +655,7 @@ done
 
 lemma zless_succ_zadd_lemma: 
     "w : int ==> w $< w $+ $# succ(n)"
-apply (unfold zless_def znegative_def zdiff_def int_def)
+apply (simp add: zless_def znegative_def zdiff_def int_def)
 apply (auto simp add: zadd zminus int_of_def image_iff)
 apply (rule_tac x = 0 in exI, auto)
 done
@@ -718,21 +664,21 @@ lemma zless_succ_zadd: "w $< w $+ $# succ(n)"
 by (cut_tac intify_in_int [THEN zless_succ_zadd_lemma], auto)
 
 lemma zless_iff_succ_zadd:
-     "w $< z <-> (EX n: nat. w $+ $#(succ(n)) = intify(z))"
+     "w $< z <-> (\<exists>n\<in>nat. w $+ $#(succ(n)) = intify(z))"
 apply (rule iffI)
 apply (erule zless_imp_succ_zadd, auto)
 apply (rename_tac "n")
 apply (cut_tac w = w and n = n in zless_succ_zadd, auto)
 done
 
-lemma zless_int_of [simp]: "[| m: nat; n: nat |] ==> ($#m $< $#n) <-> (m<n)"
+lemma zless_int_of [simp]: "[| m\<in>nat; n\<in>nat |] ==> ($#m $< $#n) <-> (m<n)"
 apply (simp add: less_iff_succ_add zless_iff_succ_zadd int_of_add [symmetric])
 apply (blast intro: sym)
 done
 
 lemma zless_trans_lemma: 
     "[| x $< y; y $< z; x: int; y : int; z: int |] ==> x $< z"
-apply (unfold zless_def znegative_def zdiff_def int_def)
+apply (simp add: zless_def znegative_def zdiff_def int_def)
 apply (auto simp add: zadd zminus image_iff)
 apply (rename_tac x1 x2 y1 y2)
 apply (rule_tac x = "x1#+x2" in exI)
@@ -756,9 +702,7 @@ by (blast dest: zless_trans)
 lemmas zless_asym = zless_not_sym [THEN swap, standard]
 
 lemma zless_imp_zle: "z $< w ==> z $<= w"
-apply (unfold zle_def)
-apply (blast elim: zless_asym)
-done
+by (simp add: zle_def)
 
 lemma zle_linear: "z $<= w | w $<= z"
 apply (simp add: zle_def)
@@ -769,13 +713,13 @@ done
 subsection{*Less Than or Equals*}
 
 lemma zle_refl: "z $<= z"
-by (unfold zle_def, auto)
+by (simp add: zle_def)
 
 lemma zle_eq_refl: "x=y ==> x $<= y"
 by (simp add: zle_refl)
 
 lemma zle_anti_sym_intify: "[| x $<= y; y $<= x |] ==> intify(x) = intify(y)"
-apply (unfold zle_def, auto)
+apply (simp add: zle_def, auto)
 apply (blast dest: zless_trans)
 done
 
@@ -784,7 +728,7 @@ by (drule zle_anti_sym_intify, auto)
 
 lemma zle_trans_lemma:
      "[| x: int; y: int; z: int; x $<= y; y $<= z |] ==> x $<= z"
-apply (unfold zle_def, auto)
+apply (simp add: zle_def, auto)
 apply (blast intro: zless_trans)
 done
 
@@ -825,38 +769,27 @@ lemma zdiff_zdiff_eq2: "x $- (y $- z) = (x $+ z) $- y"
 by (simp add: zdiff_def zadd_ac)
 
 lemma zdiff_zless_iff: "(x$-y $< z) <-> (x $< z $+ y)"
-apply (unfold zless_def zdiff_def)
-apply (simp add: zadd_ac)
-done
+by (simp add: zless_def zdiff_def zadd_ac)
 
 lemma zless_zdiff_iff: "(x $< z$-y) <-> (x $+ y $< z)"
-apply (unfold zless_def zdiff_def)
-apply (simp add: zadd_ac)
-done
+by (simp add: zless_def zdiff_def zadd_ac)
 
 lemma zdiff_eq_iff: "[| x: int; z: int |] ==> (x$-y = z) <-> (x = z $+ y)"
-apply (unfold zdiff_def)
-apply (auto simp add: zadd_assoc)
-done
+by (auto simp add: zdiff_def zadd_assoc)
 
 lemma eq_zdiff_iff: "[| x: int; z: int |] ==> (x = z$-y) <-> (x $+ y = z)"
-apply (unfold zdiff_def)
-apply (auto simp add: zadd_assoc)
-done
+by (auto simp add: zdiff_def zadd_assoc)
 
 lemma zdiff_zle_iff_lemma:
      "[| x: int; z: int |] ==> (x$-y $<= z) <-> (x $<= z $+ y)"
-apply (unfold zle_def)
-apply (auto simp add: zdiff_eq_iff zdiff_zless_iff)
-done
+by (auto simp add: zle_def zdiff_eq_iff zdiff_zless_iff)
 
 lemma zdiff_zle_iff: "(x$-y $<= z) <-> (x $<= z $+ y)"
 by (cut_tac zdiff_zle_iff_lemma [OF intify_in_int intify_in_int], simp)
 
 lemma zle_zdiff_iff_lemma:
      "[| x: int; z: int |] ==>(x $<= z$-y) <-> (x $+ y $<= z)"
-apply (unfold zle_def)
-apply (auto simp add: zdiff_eq_iff zless_zdiff_iff)
+apply (auto simp add: zle_def zdiff_eq_iff zless_zdiff_iff)
 apply (auto simp add: zdiff_def zadd_assoc)
 done
 
@@ -903,9 +836,7 @@ apply (rule_tac [2] zadd_right_cancel, auto)
 done
 
 lemma zadd_right_cancel_zless [simp]: "(w' $+ z $< w $+ z) <-> (w' $< w)"
-apply (simp add: zdiff_zless_iff [THEN iff_sym])
-apply (simp add: zdiff_def zadd_assoc)
-done
+by (simp add: zdiff_zless_iff [THEN iff_sym] zdiff_def zadd_assoc)
 
 lemma zadd_left_cancel_zless [simp]: "(z $+ w' $< z $+ w) <-> (w' $< w)"
 by (simp add: zadd_commute [of z] zadd_right_cancel_zless)

@@ -530,12 +530,7 @@ lemma int_of_eq_0_imp_natify_eq_0: "$# n = #0 ==> natify(n) = 0"
 by (rule not_znegative_imp_zero, auto)
 
 lemma nat_of_zminus_int_of: "nat_of($- $# n) = 0"
-apply (unfold nat_of_def raw_nat_of_def)
-apply (auto dest!: not_znegative_imp_zero natify_int_of_eq
-            iff del: int_of_eq)
-apply (rule the_equality, auto)
-apply (blast intro: int_of_eq_0_imp_natify_eq_0 sym)
-done
+by (simp add: nat_of_def int_of_def raw_nat_of zminus image_intrel_int)
 
 lemma int_of_nat_of: "#0 $<= z ==> $# nat_of(z) = intify(z)"
 apply (rule not_zneg_nat_of_intify)
