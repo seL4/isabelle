@@ -40,9 +40,11 @@ fun scan_header get_lex scan (src, pos) =
 
 val headerN = "header";
 val theoryN = "theory";
+val importsN = "imports";
 
 val theory_keyword = P.$$$ theoryN;
 val header_keyword = P.$$$ headerN;
+val imports_keyword = P.$$$ importsN;
 
 
 (* detect new/old headers *)
@@ -57,14 +59,14 @@ fun is_old src_pos =
 (* scan old/new headers *)
 
 val header_lexicon = T.make_lexicon
-  ["(", ")", "+", ":", ";", "=", "begin", "files", headerN, "import", theoryN];
+  ["(", ")", "+", ":", ";", "=", "begin", "files", headerN, importsN, theoryN];
 
 val file_name =
   (P.$$$ "(" |-- P.!!! (P.name --| P.$$$ ")")) >> rpair false || P.name >> rpair true;
 
 val args =
   (P.name -- (P.$$$ "=" |-- P.enum1 "+" P.name ||
-              P.$$$ "import" |-- Scan.repeat1 P.name) --
+              imports_keyword |-- Scan.repeat1 P.name) --
     Scan.optional (P.$$$ "files" |-- P.!!! (Scan.repeat1 file_name)) [] --|
   (P.$$$ ":" || P.$$$ "begin"))
   >> (fn ((A, Bs), files) => (A, Bs, files));

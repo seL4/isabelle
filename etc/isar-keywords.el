@@ -204,7 +204,7 @@
     "fixes"
     "hide_action"
     "hints"
-    "import"
+    "imports"
     "in"
     "includes"
     "induction"

@@ -490,7 +490,7 @@ text {*
   header {\ttlbrace}* Some properties of Foo Bar elements *{\ttrbrace}
 
   theory Foo_Bar
-  import Main
+  imports Main
   begin
 
   subsection {\ttlbrace}* Basic definitions *{\ttrbrace}
@@ -767,7 +767,7 @@ text {*
   \begin{tabular}{l}
   \verb,(,\verb,*,\verb,<,\verb,*,\verb,), \\
   \texttt{theory T} \\
-  \texttt{import Main} \\
+  \texttt{imports Main} \\
   \texttt{begin} \\
   \verb,(,\verb,*,\verb,>,\verb,*,\verb,), \\
   ~~$\vdots$ \\

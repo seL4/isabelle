@@ -193,7 +193,7 @@
     "elimination"
     "files"
     "fixes"
-    "import"
+    "imports"
     "in"
     "includes"
     "induction"

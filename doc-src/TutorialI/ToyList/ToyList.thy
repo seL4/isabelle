@@ -1,5 +1,5 @@
 theory ToyList
-import PreList
+imports PreList
 begin
 
 text{*\noindent
