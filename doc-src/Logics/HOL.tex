@@ -1398,7 +1398,7 @@ lists.  A \sdx{case} construct of the form
 case $e$ of [] => $a$  |  \(x\)\#\(xs\) => b
 \end{center}
 is defined by translation.  For details see~\S\ref{sec:HOL:datatype}. There
-is also a case splitting rule \tdx{expand_list_case}
+is also a case splitting rule \tdx{split_list_case}
 \[
 \begin{array}{l}
 P(\mathtt{case}~e~\mathtt{of}~\texttt{[] =>}~a ~\texttt{|}~
@@ -1631,6 +1631,22 @@ fixed, and nested patterns are not supported (with the exception of tuples).
 Violating this restriction results in strange error messages.
 \end{warn}
 
+To perform case distinction on a goal containing a \texttt{case}-construct,
+the theorem \texttt{split_}$t$\texttt{_case} is provided:
+\[
+\begin{array}{@{}rcl@{}}
+P(t_\mathtt{case}~f@1~\dots~f@m~e) &=&
+((\forall x@1 \dots x@{k@1}. e = C@1~x@1\dots x@{k@1} \to
+                             P(f@1~~x@1\dots x@{k@1})) \\
+&& ~\land~ \dots ~\land \\
+&&~ (\forall x@1 \dots x@{k@m}. e = C@m~x@1\dots x@{k@m} \to
+                             P(f@m~~x@1\dots x@{k@m})))
+\end{array}
+\]
+where $t$\texttt{_case} is the internal name of the \texttt{case}-construct.
+This theorem can be added to a simpset via \ttindex{addsplits}
+(see~\S\ref{subsec:HOL:case:splitting}).
+
 \subsubsection{The function \cdx{size}}\label{sec:HOL:size}
 
 Theory \texttt{Arith} declares an overloaded function \texttt{size} of type
@@ -1698,7 +1714,7 @@ constructors of the datatype suffices:
 \end{ttdescription}
 \begin{warn}
   Induction is only allowed on a free variable that should not occur among
-  the premises of the subgoal.  Exhaustion is works for arbitrary terms.
+  the premises of the subgoal.  Exhaustion works for arbitrary terms.
 \end{warn}
 \bigskip
 
