@@ -17,11 +17,13 @@ dom	:: "('a ~=> 'b) => 'a set"
 ran	:: "('a ~=> 'b) => 'b set"
 map_of	:: "('a * 'b)list => 'a ~=> 'b"
 map_upds:: "('a ~=> 'b) => 'a list => 'b list => 
-	    ('a ~=> 'b)"			 ("_/'(_[|->]_/')" [900,0,0]900)
+	    ('a ~=> 'b)"		 ("_/'(_[|->]_/')" [900,0,0]900)
+map_le  :: "('a ~=> 'b) => ('a ~=> 'b) => bool" (infix "\<subseteq>\<^sub>m" 50)
+
 syntax
 empty	::  "'a ~=> 'b"
 map_upd	:: "('a ~=> 'b) => 'a => 'b => ('a ~=> 'b)"
-					         ("_/'(_/|->_')"   [900,0,0]900)
+					 ("_/'(_/|->_')"   [900,0,0]900)
 
 syntax (xsymbols)
   "~=>"     :: "[type, type] => type"    (infixr "\<leadsto>" 0)
@@ -37,13 +39,14 @@ translations
   "m(a|->b)" == "m(a:=Some b)"
 
 defs
-
 chg_map_def:  "chg_map f a m == case m a of None => m | Some b => m(a|->f b)"
 
 override_def: "m1++m2 == %x. case m2 x of None => m1 x | Some y => Some y"
 
 dom_def: "dom(m) == {a. m a ~= None}"
 ran_def: "ran(m) == {b. ? a. m a = Some b}"
+
+map_le_def: "m1 \<subseteq>\<^sub>m m2  ==  ALL a : dom m1. m1 a = m2 a"
 
 primrec
   "map_of [] = empty"
@@ -55,19 +58,17 @@ primrec "t([]  [|->]bs) = t"
 
 section {* empty *}
 
-lemma empty_upd_none: "empty(x := None) = empty"
+lemma empty_upd_none[simp]: "empty(x := None) = empty"
 apply (rule ext)
 apply (simp (no_asm))
 done
-declare empty_upd_none [simp]
+
 
 (* FIXME: what is this sum_case nonsense?? *)
-lemma sum_case_empty_empty: "sum_case empty empty = empty"
+lemma sum_case_empty_empty[simp]: "sum_case empty empty = empty"
 apply (rule ext)
 apply (simp (no_asm) split add: sum.split)
 done
-declare sum_case_empty_empty [simp]
-
 
 section {* map\_upd *}
 
@@ -76,12 +77,11 @@ apply (rule ext)
 apply (simp (no_asm_simp))
 done
 
-lemma map_upd_nonempty: "t(k|->x) ~= empty"
+lemma map_upd_nonempty[simp]: "t(k|->x) ~= empty"
 apply safe
 apply (drule_tac x = "k" in fun_cong)
 apply (simp (no_asm_use))
 done
-declare map_upd_nonempty [simp]
 
 lemma finite_range_updI: "finite (range f) ==> finite (range (f(a|->b)))"
 apply (unfold image_def)
@@ -95,52 +95,57 @@ done
 (* FIXME: what is this sum_case nonsense?? *)
 section {* sum\_case and empty/map\_upd *}
 
-lemma sum_case_map_upd_empty: "sum_case (m(k|->y)) empty =  (sum_case m empty)(Inl k|->y)"
+lemma sum_case_map_upd_empty[simp]:
+ "sum_case (m(k|->y)) empty =  (sum_case m empty)(Inl k|->y)"
 apply (rule ext)
 apply (simp (no_asm) split add: sum.split)
 done
-declare sum_case_map_upd_empty [simp]
 
-lemma sum_case_empty_map_upd: "sum_case empty (m(k|->y)) =  (sum_case empty m)(Inr k|->y)"
+lemma sum_case_empty_map_upd[simp]:
+ "sum_case empty (m(k|->y)) =  (sum_case empty m)(Inr k|->y)"
 apply (rule ext)
 apply (simp (no_asm) split add: sum.split)
 done
-declare sum_case_empty_map_upd [simp]
 
-lemma sum_case_map_upd_map_upd: "sum_case (m1(k1|->y1)) (m2(k2|->y2)) = (sum_case (m1(k1|->y1)) m2)(Inr k2|->y2)"
+lemma sum_case_map_upd_map_upd[simp]:
+ "sum_case (m1(k1|->y1)) (m2(k2|->y2)) = (sum_case (m1(k1|->y1)) m2)(Inr k2|->y2)"
 apply (rule ext)
 apply (simp (no_asm) split add: sum.split)
 done
-declare sum_case_map_upd_map_upd [simp]
 
 
 section {* map\_upds *}
 
-lemma map_upds_twist [rule_format (no_asm)]: "a ~: set as --> (!m bs. (m(a|->b)(as[|->]bs)) = (m(as[|->]bs)(a|->b)))"
-apply (induct_tac "as")
-apply  (auto simp del: fun_upd_apply)
-apply (drule spec)+
-apply (rotate_tac -1)
-apply (erule subst)
-apply (erule fun_upd_twist [THEN subst])
-apply (rule refl)
+lemma map_upd_upds_conv_if:
+ "!!x y ys f. (f(x|->y))(xs [|->] ys) =
+              (if x : set xs then f(xs [|->] ys) else (f(xs [|->] ys))(x|->y))"
+apply(induct xs)
+ apply simp
+apply(simp split:split_if add:fun_upd_twist eq_sym_conv)
 done
-declare map_upds_twist [simp]
 
+lemma map_upds_twist [simp]:
+ "a ~: set as ==> m(a|->b)(as[|->]bs) = m(as[|->]bs)(a|->b)"
+by (simp add: map_upd_upds_conv_if)
+
+lemma map_upds_apply_nontin[simp]:
+ "!!ys. x ~: set xs ==> (f(xs[|->]ys)) x = f x"
+apply(induct xs)
+ apply simp
+apply(simp add: fun_upd_apply map_upd_upds_conv_if split:split_if)
+done
 
 section {* chg\_map *}
 
-lemma chg_map_new: "m a = None   ==> chg_map f a m = m"
+lemma chg_map_new[simp]: "m a = None   ==> chg_map f a m = m"
 apply (unfold chg_map_def)
 apply auto
 done
 
-lemma chg_map_upd: "m a = Some b ==> chg_map f a m = m(a|->f b)"
+lemma chg_map_upd[simp]: "m a = Some b ==> chg_map f a m = m(a|->f b)"
 apply (unfold chg_map_def)
 apply auto
 done
-
-declare chg_map_new [simp] chg_map_upd [simp]
 
 
 section {* map\_of *}
@@ -186,33 +191,30 @@ done
 
 section {* option\_map related *}
 
-lemma option_map_o_empty: "option_map f o empty = empty"
+lemma option_map_o_empty[simp]: "option_map f o empty = empty"
 apply (rule ext)
 apply (simp (no_asm))
 done
 
-lemma option_map_o_map_upd: "option_map f o m(a|->b) = (option_map f o m)(a|->f b)"
+lemma option_map_o_map_upd[simp]:
+ "option_map f o m(a|->b) = (option_map f o m)(a|->f b)"
 apply (rule ext)
 apply (simp (no_asm))
 done
-
-declare option_map_o_empty [simp] option_map_o_map_upd [simp]
 
 
 section {* ++ *}
 
-lemma override_empty: "m ++ empty = m"
+lemma override_empty[simp]: "m ++ empty = m"
 apply (unfold override_def)
 apply (simp (no_asm))
 done
-declare override_empty [simp]
 
-lemma empty_override: "empty ++ m = m"
+lemma empty_override[simp]: "empty ++ m = m"
 apply (unfold override_def)
 apply (rule ext)
 apply (simp split add: option.split)
 done
-declare empty_override [simp]
 
 lemma override_Some_iff [rule_format (no_asm)]: 
  "((m ++ n) k = Some x) = (n k = Some x | n k = None & m k = Some x)"
@@ -223,26 +225,23 @@ done
 lemmas override_SomeD = override_Some_iff [THEN iffD1, standard]
 declare override_SomeD [dest!]
 
-lemma override_find_right: "!!xx. n k = Some xx ==> (m ++ n) k = Some xx"
+lemma override_find_right[simp]: "!!xx. n k = Some xx ==> (m ++ n) k = Some xx"
 apply (subst override_Some_iff)
 apply fast
 done
-declare override_find_right [simp]
 
-lemma override_None: "((m ++ n) k = None) = (n k = None & m k = None)"
+lemma override_None [iff]: "((m ++ n) k = None) = (n k = None & m k = None)"
 apply (unfold override_def)
 apply (simp (no_asm) split add: option.split)
 done
-declare override_None [iff]
 
-lemma override_upd: "f ++ g(x|->y) = (f ++ g)(x|->y)"
+lemma override_upd[simp]: "f ++ g(x|->y) = (f ++ g)(x|->y)"
 apply (unfold override_def)
 apply (rule ext)
 apply auto
 done
-declare override_upd [simp]
 
-lemma map_of_override: "map_of ys ++ map_of xs = map_of (xs@ys)"
+lemma map_of_override[simp]: "map_of ys ++ map_of xs = map_of (xs@ys)"
 apply (unfold override_def)
 apply (rule sym)
 apply (induct_tac "xs")
@@ -250,7 +249,6 @@ apply (simp (no_asm))
 apply (rule ext)
 apply (simp (no_asm_simp) split add: option.split)
 done
-declare map_of_override [simp]
 
 declare fun_upd_apply [simp del]
 lemma finite_range_map_of_override: "finite (range f) ==> finite (range (f ++ map_of l))"
@@ -273,25 +271,27 @@ apply (unfold dom_def)
 apply auto
 done
 
-lemma domIff: "(a : dom m) = (m a ~= None)"
+lemma domIff[iff]: "(a : dom m) = (m a ~= None)"
 apply (unfold dom_def)
 apply auto
 done
-declare domIff [iff]
 declare domIff [simp del]
 
-lemma dom_empty: "dom empty = {}"
+lemma dom_empty[simp]: "dom empty = {}"
 apply (unfold dom_def)
 apply (simp (no_asm))
 done
-declare dom_empty [simp]
 
-lemma dom_map_upd: "dom(m(a|->b)) = insert a (dom m)"
+lemma dom_fun_upd[simp]:
+ "dom(f(x := y)) = (if y=None then dom f - {x} else insert x (dom f))"
+by (simp add:dom_def) blast
+(*
+lemma dom_map_upd[simp]: "dom(m(a|->b)) = insert a (dom m)"
 apply (unfold dom_def)
 apply (simp (no_asm))
 apply blast
 done
-declare dom_map_upd [simp]
+*)
 
 lemma finite_dom_map_of: "finite (dom (map_of l))"
 apply (unfold dom_def)
@@ -299,32 +299,42 @@ apply (induct_tac "l")
 apply (auto simp add: insert_Collect [symmetric])
 done
 
-lemma dom_override: "dom(m++n) = dom n Un dom m"
+lemma dom_map_upds[simp]: "!!m vs. dom(m(xs[|->]vs)) = set xs Un dom m"
+by(induct xs, simp_all)
+
+lemma dom_override[simp]: "dom(m++n) = dom n Un dom m"
 apply (unfold dom_def)
 apply auto
 done
-declare dom_override [simp]
+
+lemma dom_overwrite[simp]:
+ "dom(f(g|A)) = (dom f  - {a. a : A - dom g}) Un {a. a : A Int dom g}"
+by(auto simp add: dom_def overwrite_def)
 
 section {* ran *}
 
-lemma ran_empty: "ran empty = {}"
+lemma ran_empty[simp]: "ran empty = {}"
 apply (unfold ran_def)
 apply (simp (no_asm))
 done
-declare ran_empty [simp]
 
-lemma ran_empty': "ran (%u. None) = {}"
-apply (unfold ran_def)
-apply auto
-done
-declare ran_empty' [simp]
-
-lemma ran_map_upd: "m a = None ==> ran(m(a|->b)) = insert b (ran m)"
+lemma ran_map_upd[simp]: "m a = None ==> ran(m(a|->b)) = insert b (ran m)"
 apply (unfold ran_def)
 apply auto
 apply (subgoal_tac "~ (aa = a) ")
 apply auto
 done
-declare ran_map_upd [simp]
+
+section{* @{text"\<subseteq>\<^sub>m"} *}
+
+lemma [simp]: "empty \<subseteq>\<^sub>m g"
+by(simp add:map_le_def)
+
+lemma map_le_upd[simp]: "f \<subseteq>\<^sub>m g ==> f(a := b) \<subseteq>\<^sub>m g(a := b)"
+by(fastsimp simp add:map_le_def)
+
+lemma map_le_upds[simp]:
+ "!!f g bs. f \<subseteq>\<^sub>m g ==> f(as [|->] bs) \<subseteq>\<^sub>m g(as [|->] bs)"
+by(induct as, auto)
 
 end

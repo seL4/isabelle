@@ -37,11 +37,15 @@ translations
 *)
 
 constdefs
-  id :: "'a => 'a"
-    "id == %x. x"
+ overwrite :: "('a => 'b) => ('a => 'b) => 'a set => ('a => 'b)"
+              ("_/'(_|/_')"  [900,0,0]900)
+"f(g|A) == %a. if a : A then g a else f a"
 
-  comp :: "['b => 'c, 'a => 'b, 'a] => 'c"   (infixl "o" 55)
-    "f o g == %x. f(g(x))"
+ id :: "'a => 'a"
+"id == %x. x"
+
+ comp :: "['b => 'c, 'a => 'b, 'a] => 'c"   (infixl "o" 55)
+"f o g == %x. f(g(x))"
 
 text{*compatibility*}
 lemmas o_def = comp_def
@@ -334,6 +338,17 @@ by (simp add: expand_fun_eq)
 
 lemma fun_upd_twist: "a ~= c ==> (m(a:=b))(c:=d) = (m(c:=d))(a:=b)"
 by (rule ext, auto)
+
+subsection{* overwrite *}
+
+lemma overwrite_emptyset[simp]: "f(g|{}) = f"
+by(simp add:overwrite_def)
+
+lemma overwrite_apply_notin[simp]: "a ~: A ==> (f(g|A)) a = f a"
+by(simp add:overwrite_def)
+
+lemma overwrite_apply_in[simp]: "a : A ==> (f(g|A)) a = g a"
+by(simp add:overwrite_def)
 
 text{*The ML section includes some compatibility bindings and a simproc
 for function updates, in addition to the usual ML-bindings of theorems.*}
