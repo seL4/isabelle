@@ -42,12 +42,12 @@ br per_trans 1;ba 2;
 be per_sym 1;
 qed "sym2refl2";
 
-val prems = goalw thy [Domain] "x:D ==> x === x";
+val prems = goalw thy [Dom] "x:D ==> x === x";
 by (cut_facts_tac prems 1);
 by (fast_tac set_cs 1);
 qed "DomainD";
 
-val prems = goalw thy [Domain] "x === x ==> x:D";
+val prems = goalw thy [Dom] "x === x ==> x:D";
 by (cut_facts_tac prems 1);
 by (fast_tac set_cs 1);
 qed "DomainI";
@@ -73,14 +73,14 @@ by (cut_facts_tac prems 1);
 be (sym2refl2 RS DomainI) 1;
 qed "DomainI_right"; 
 
-val prems = goalw thy [Domain] "x~:D ==> ~x===y";
+val prems = goalw thy [Dom] "x~:D ==> ~x===y";
 by (cut_facts_tac prems 1);
 by (res_inst_tac [("Q","x===y")] (excluded_middle RS disjE) 1);ba 1;
 bd sym2refl1 1;
 by (fast_tac set_cs 1);
 qed "notDomainE1"; 
 
-val prems = goalw thy [Domain] "x~:D ==> ~y===x";
+val prems = goalw thy [Dom] "x~:D ==> ~y===x";
 by (cut_facts_tac prems 1);
 by (res_inst_tac [("Q","y===x")] (excluded_middle RS disjE) 1);ba 1;
 bd sym2refl2 1;
