@@ -18,19 +18,11 @@ val real_le_def = thm "real_le_def";
 val real_diff_def = thm "real_diff_def";
 val real_divide_def = thm "real_divide_def";
 
-val realrel_iff = thm"realrel_iff";
-val realrel_refl = thm"realrel_refl";
-val equiv_realrel = thm"equiv_realrel";
-val equiv_realrel_iff = thm"equiv_realrel_iff";
 val realrel_in_real = thm"realrel_in_real";
-val eq_realrelD = thm"eq_realrelD";
-val real_minus = thm"real_minus";
-val real_add = thm"real_add";
 val real_add_commute = thm"real_add_commute";
 val real_add_assoc = thm"real_add_assoc";
 val real_add_zero_left = thm"real_add_zero_left";
 
-val real_mult = thm"real_mult";
 val real_mult_commute = thm"real_mult_commute";
 val real_mult_assoc = thm"real_mult_assoc";
 val real_mult_1 = thm"real_mult_1";

@@ -107,21 +107,18 @@ qed
 lemma realrel_iff [simp]: "(((x1,y1),(x2,y2)) \<in> realrel) = (x1 + y2 = x2 + y1)"
 by (simp add: realrel_def)
 
-lemma realrel_refl: "(x,x) \<in> realrel"
-apply (case_tac "x")
-apply (simp add: realrel_def)
-done
-
 lemma equiv_realrel: "equiv UNIV realrel"
 apply (auto simp add: equiv_def refl_def sym_def trans_def realrel_def)
 apply (blast dest: preal_trans_lemma) 
 done
 
-(* (realrel `` {x} = realrel `` {y}) = ((x,y) \<in> realrel) *)
+text{*Reduces equality of equivalence classes to the @{term realrel} relation:
+  @{term "(realrel `` {x} = realrel `` {y}) = ((x,y) \<in> realrel)"} *}
 lemmas equiv_realrel_iff = 
        eq_equiv_class_iff [OF equiv_realrel UNIV_I UNIV_I]
 
 declare equiv_realrel_iff [simp]
+
 
 lemma realrel_in_real [simp]: "realrel``{(x,y)}: Real"
 by (simp add: Real_def realrel_def quotient_def, blast)
@@ -135,8 +132,6 @@ done
 declare inj_on_Abs_Real [THEN inj_on_iff, simp]
 declare Abs_Real_inverse [simp]
 
-
-lemmas eq_realrelD = equiv_realrel [THEN [2] eq_equiv_class]
 
 text{*Case analysis on the representation of a real number as an equivalence
       class of pairs of positive reals.*}
@@ -160,25 +155,25 @@ apply (simp add: preal_add_ac)
 done
 
 lemma real_add:
-     "Abs_Real(realrel``{(x1,y1)}) + Abs_Real(realrel``{(x2,y2)}) =
-      Abs_Real(realrel``{(x1+x2, y1+y2)})"
-apply (simp add: real_add_def UN_UN_split_split_eq)
-apply (subst equiv_realrel [THEN UN_equiv_class2])
-apply (auto simp add: congruent2_def)
-apply (blast intro: real_add_congruent2_lemma) 
-done
+     "Abs_Real (realrel``{(x,y)}) + Abs_Real (realrel``{(u,v)}) =
+      Abs_Real (realrel``{(x+u, y+v)})"
+proof -
+  have "congruent2 realrel
+        (\<lambda>z w. (\<lambda>(x,y). (\<lambda>(u,v). {Abs_Real (realrel `` {(x+u, y+v)})}) w) z)"
+    by (simp add: congruent2_def, blast intro: real_add_congruent2_lemma) 
+  thus ?thesis
+    by (simp add: real_add_def UN_UN_split_split_eq
+                  UN_equiv_class2 [OF equiv_realrel])
+qed
 
 lemma real_add_commute: "(z::real) + w = w + z"
-apply (cases z, cases w, simp add: real_add preal_add_ac)
-done
+by (cases z, cases w, simp add: real_add preal_add_ac)
 
 lemma real_add_assoc: "((z1::real) + z2) + z3 = z1 + (z2 + z3)"
-apply (cases z1, cases z2, cases z3, simp add: real_add preal_add_assoc)
-done
+by (cases z1, cases z2, cases z3, simp add: real_add preal_add_assoc)
 
 lemma real_add_zero_left: "(0::real) + z = z"
-apply (cases z, simp add: real_add real_zero_def preal_add_ac)
-done
+by (cases z, simp add: real_add real_zero_def preal_add_ac)
 
 instance real :: plus_ac0
   by (intro_classes,
@@ -197,8 +192,7 @@ proof -
 qed
 
 lemma real_add_minus_left: "(-z) + z = (0::real)"
-apply (cases z, simp add: real_minus real_add real_zero_def preal_add_commute)
-done
+by (cases z, simp add: real_minus real_add real_zero_def preal_add_commute)
 
 
 subsection{*Congruence property for multiplication*}
@@ -228,8 +222,7 @@ by (simp add: real_mult_def UN_UN_split_split_eq
               UN_equiv_class2 [OF equiv_realrel real_mult_congruent2])
 
 lemma real_mult_commute: "(z::real) * w = w * z"
-apply (cases z, cases w, simp add: real_mult preal_add_ac preal_mult_ac)
-done
+by (cases z, cases w, simp add: real_mult preal_add_ac preal_mult_ac)
 
 lemma real_mult_assoc: "((z1::real) * z2) * z3 = z1 * (z2 * z3)"
 apply (cases z1, cases z2, cases z3)
@@ -260,8 +253,7 @@ qed
 subsection{*existence of inverse*}
 
 lemma real_zero_iff: "Abs_Real (realrel `` {(x, x)}) = 0"
-apply (simp add: real_zero_def preal_add_commute)
-done
+by (simp add: real_zero_def preal_add_commute)
 
 text{*Instead of using an existential quantifier and constructing the inverse
 within the proof, we could define the inverse explicitly.*}
@@ -367,8 +359,7 @@ apply (auto intro: real_le_lemma)
 done
 
 lemma real_le_anti_sym: "[| z \<le> w; w \<le> z |] ==> z = (w::real)"
-apply (cases z, cases w, simp add: real_le order_antisym) 
-done
+by (cases z, cases w, simp add: real_le order_antisym)
 
 lemma real_trans_lemma:
   assumes "x + v \<le> u + y"
