@@ -8,6 +8,7 @@ Co-algebraic data sources.
 signature SOURCE =
 sig
   type ('a, 'b) source
+  val default_prompt: string
   val set_prompt: string -> ('a, 'b) source -> ('a, 'b) source
   val get: ('a, 'b) source -> 'a list * ('a, 'b) source
   val unget: 'a list * ('a, 'b) source -> ('a, 'b) source
@@ -17,7 +18,6 @@ sig
   val filter: ('a -> bool) -> ('a, 'b) source -> ('a, ('a, 'b) source) source
   val of_list: 'a list -> ('a, 'a list) source
   val of_string: string -> (string, string list) source
-  val decorate_prompt_fn: (string -> string) ref
   val of_stream: TextIO.instream -> TextIO.outstream -> (string, unit) source
   val tty: (string, unit) source
   val source': 'a -> 'b * ('b -> bool) -> ('a * 'b list -> 'c list * ('a * 'b list)) ->
@@ -111,10 +111,8 @@ val of_string = of_list o explode;
 
 (* stream source *)
 
-val decorate_prompt_fn = ref (fn s:string => s);
-
 fun drain_stream instream outstream prompt () =
-  (TextIO.output (outstream, ! decorate_prompt_fn prompt);
+  (TextIO.output (outstream, prompt);
     TextIO.flushOut outstream;
     (explode (TextIO.inputLine instream), ()));
 
