@@ -829,7 +829,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
           ("select_convs", sel_convs),
           ("update_convs", update_convs)]
       |> (#1 oo (PureThy.add_thms o map Thm.no_attributes))
-	  [("equality", equality)]
+          [("equality", equality)]
       |> (#1 oo PureThy.add_thmss)
         [(("simps", simps), [Simplifier.simp_add_global]),
          (("iffs", iffs), [iff_add_global])];
