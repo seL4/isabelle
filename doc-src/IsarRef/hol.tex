@@ -10,11 +10,11 @@
 \end{matharray}
 
 \begin{descr}
-
+  
 \item [$rulify$] puts a theorem into object-rule form, replacing implication
   and universal quantification of HOL by the corresponding meta-logical
-  connectives.  This is the same operation as performed by the
-  \texttt{qed_spec_mp} ML function.
+  connectives.  This is the same operation as performed in
+  \texttt{qed_spec_mp} in ML.
   
 \item [$rulify_prems$] is similar to $rulify$, but acts on the premises of a
   rule.
@@ -54,7 +54,6 @@
 
 \section{Records}\label{sec:record}
 
-%FIXME record_split method
 \indexisarcmd{record}
 \begin{matharray}{rcl}
   \isarcmd{record} & : & \isartrans{theory}{theory} \\
@@ -89,13 +88,16 @@
 \railterm{repdatatype}
 
 \begin{rail}
-  'datatype' (parname? typespec infix? \\ '=' (constructor + '|') + 'and')
+  'datatype' (dtspec + 'and')
   ;
-  repdatatype (name * ) \\ 'distinct' thmrefs 'inject' thmrefs 'induction' thmrefs
+  repdatatype (name * ) dtrules
   ;
 
-  constructor: name (type * ) mixfix? comment?
+  dtspec: parname? typespec infix? '=' (cons + '|')
   ;
+  cons: name (type * ) mixfix? comment?
+  ;
+  dtrules: 'distinct' thmrefs 'inject' thmrefs 'induction' thmrefs
 \end{rail}
 
 \begin{descr}
@@ -120,33 +122,59 @@ for case-analysis and induction, there are also emulations of ML tactics
 \section{Recursive functions}
 
 \indexisarcmd{primrec}\indexisarcmd{recdef}
+\indexisaratt{recdef-simp}\indexisaratt{recdef-cong}\indexisaratt{recdef-wf}
 \begin{matharray}{rcl}
   \isarcmd{primrec} & : & \isartrans{theory}{theory} \\
   \isarcmd{recdef} & : & \isartrans{theory}{theory} \\
+  recdef_simp & : & \isaratt \\
+  recdef_cong & : & \isaratt \\
+  recdef_wf & : & \isaratt \\
 %FIXME
 %  \isarcmd{defer_recdef} & : & \isartrans{theory}{theory} \\
 \end{matharray}
 
+\railalias{recdefsimp}{recdef\_simp}
+\railterm{recdefsimp}
+
+\railalias{recdefcong}{recdef\_cong}
+\railterm{recdefcong}
+
+\railalias{recdefwf}{recdef\_wf}
+\railterm{recdefwf}
+
 \begin{rail}
   'primrec' parname? (equation + )
   ;
-  'recdef' name term (equation +) hints
+  'recdef' name term (eqn + ) hints?
+  ;
+  (recdefsimp | recdefcong | recdefwf) (() | 'add' | 'del')
   ;
 
-  equation: thmdecl? prop comment?
+  equation: thmdecl? eqn
   ;
-  hints: ('congs' thmrefs)?
+  eqn: prop comment?
+  ;
+  hints: '(' 'hints' (recdefmod * ) ')'
+  ;
+  recdefmod: (('simp' | 'cong' | 'wf' | 'split' | 'iff') (() | 'add' | 'del') ':' thmrefs) | clamod
   ;
 \end{rail}
 
 \begin{descr}
 \item [$\isarkeyword{primrec}$] defines primitive recursive functions over
-  datatypes.
+  datatypes, see also \cite{isabelle-HOL}.
 \item [$\isarkeyword{recdef}$] defines general well-founded recursive
-  functions (using the TFL package).
+  functions (using the TFL package), see also \cite{isabelle-HOL}.  The
+  $simp$, $cong$, and $wf$ hints refer to auxiliary rules to be used in the
+  internal automated proof process of TFL; the other declarations refer to the
+  Simplifier and Classical reasoner (\S\ref{sec:simplifier},
+  \S\ref{sec:classical}, \S\ref{sec:clasimp}) that are used internally.
+
+\item [$recdef_simps$, $recdef_cong$, and $recdef_wf$] declare global hints
+  for $\isarkeyword{recdef}$.
 \end{descr}
 
-Both definitions accommodate reasoning by induction (cf.\ 
+Both kinds of recursive definitions accommodate reasoning by induction (cf.\ 
 \S\ref{sec:induct-method}): rule $c\mathord{.}induct$ (where $c$ is the name
 of the function definition) refers to a specific induction rule, with
 parameters named according to the user-specified equations.  Case names of
@@ -159,16 +187,13 @@ defined.  Individual equations may be named explicitly as well; note that for
 $\isarkeyword{recdef}$ each specification given by the user may result in
 several theorems.
 
-See \cite{isabelle-HOL} for further information on recursive function
-definitions in HOL.
-
 
 \section{(Co)Inductive sets}
 
 \indexisarcmd{inductive}\indexisarcmd{coinductive}\indexisaratt{mono}
 \begin{matharray}{rcl}
   \isarcmd{inductive} & : & \isartrans{theory}{theory} \\
-  \isarcmd{coinductive}^* & : & \isartrans{theory}{theory} \\
+  \isarcmd{coinductive} & : & \isartrans{theory}{theory} \\
   mono & : & \isaratt \\
 \end{matharray}
 
@@ -176,11 +201,16 @@ definitions in HOL.
 \railterm{condefs}
 
 \begin{rail}
-  ('inductive' | 'coinductive') (term comment? +) \\
-    'intros' attributes? (thmdecl? prop comment? +) \\
-    'monos' thmrefs comment? \\ condefs thmrefs comment?
+  ('inductive' | 'coinductive') sets intros monos?
   ;
   'mono' (() | 'add' | 'del')
+  ;
+
+  sets: (term comment? +)
+  ;
+  intros: 'intros' attributes? (thmdecl? prop comment? +)
+  ;
+  monos: 'monos' thmrefs comment?
   ;
 \end{rail}
 
@@ -214,11 +244,19 @@ via the $\CASENAME$ proof command within the subsequent proof text (cf.\
 about large specifications.
 
 \begin{rail}
-  'cases' ('(' 'simplified' ')')? ('(' 'open' ')')? \\ (insts * 'and') rule?  ;
-
-  'induct' ('(' 'stripped' ')')? ('(' 'open' ')')? \\ (insts * 'and') rule?
+  'cases' simplified? open? args rule?
+  ;
+  'induct' stripped? open? args rule?
   ;
 
+  simplified: '(' 'simplified' ')'
+  ;
+  stripped: '(' 'stripped' ')'
+  ;
+  open: '(' 'open' ')'
+  ;
+  args: (insts * 'and') 
+  ;
   rule: ('type' | 'set') ':' nameref | 'rule' ':' thmref
   ;
 \end{rail}
