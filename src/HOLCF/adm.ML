@@ -1,15 +1,29 @@
-(******************* admissibility tactic ***********************
-  checks whether adm_subst theorem is applicable to the
-  current proof state. "t" is instantiated with a term of chain-
-  finite type, so that adm_chain_finite can be applied.
+(*  Title:      HOLCF/adm.ML
+    ID:         $Id$
+    Author:     Stefan Berghofer, TU Muenchen
 
-  example of usage:
+Admissibility tactic.
 
-  by (adm_tac cont_tacRs 1);
-    
-*****************************************************************)
+Checks whether adm_subst theorem is applicable to the current proof
+state:
 
-local
+  [| cont t; adm P |] ==> adm (%x. P (t x))
+
+"t" is instantiated with a term of chain-finite type, so that
+adm_chain_finite can be applied:
+
+  adm (P::'a::{chfin,pcpo} => bool)
+
+*)
+
+signature ADM =
+sig
+  val adm_tac: (int -> tactic) -> int -> tactic
+end;
+
+structure Adm: ADM =
+struct
+
 
 (*** find_subterms t 0 []
      returns lists of terms with the following properties:
@@ -62,18 +76,14 @@ fun make_term t path paths lev =
 
 (*** check whether all terms in list are equal ***)
 
-fun eq_terms (ts as ((t, _)::_)) = forall (fn (t2, _) => t2 aconv t) ts;
+fun eq_terms [] = true
+  | eq_terms (ts as (t, _) :: _) = forall (fn (t2, _) => t2 aconv t) ts;
 
 
-(*** NOTE: when the following two functions are called, all terms in the list
-     are equal (only their "paths" differ!)
-***)
-
-val HOLCF_sg = sign_of HOLCF.thy;
-val chfinS = Sign.intern_sort HOLCF_sg ["chfin"];
-val pcpoS  = Sign.intern_sort HOLCF_sg ["pcpo"];
+(*figure out internal names*)
+val chfin_pcpoS = Sign.intern_sort (sign_of HOLCF.thy) ["chfin", "pcpo"];
 val cont_name = Sign.intern_const (sign_of HOLCF.thy) "cont";
-val  adm_name = Sign.intern_const (sign_of HOLCF.thy)  "adm";
+val adm_name = Sign.intern_const (sign_of HOLCF.thy) "adm";
 
 
 (*** check whether type of terms in list is chain finite ***)
@@ -81,14 +91,14 @@ val  adm_name = Sign.intern_const (sign_of HOLCF.thy)  "adm";
 fun is_chfin sign T params ((t, _)::_) =
   let val {tsig, ...} = Sign.rep_sg sign;
       val parTs = map snd (rev params)
-  in Type.of_sort tsig (fastype_of1 (T::parTs, t), [hd chfinS, hd pcpoS]) end;
+  in Type.of_sort tsig (fastype_of1 (T::parTs, t), chfin_pcpoS) end;
 
 
 (*** try to prove that terms in list are continuous
      if successful, add continuity theorem to list l ***)
 
 fun prove_cont tac sign s T prems params (l, ts as ((t, _)::_)) =
-  (let val parTs = map snd (rev params);
+  let val parTs = map snd (rev params);
        val contT = (T --> (fastype_of1 (T::parTs, t))) --> HOLogic.boolT;
        fun mk_all [] t = t
          | mk_all ((a,T)::Ts) t = (all T) $ (Abs (a, T, mk_all Ts t));
@@ -96,7 +106,8 @@ fun prove_cont tac sign s T prems params (l, ts as ((t, _)::_)) =
        val t' = mk_all params (Logic.list_implies (prems, t));
        val thm = prove_goalw_cterm [] (cterm_of sign t')
                   (fn ps => [cut_facts_tac ps 1, tac 1])
-   in (ts, thm)::l end) handle _ => l;
+  in (ts, thm)::l end
+  handle _ => l;
 
 
 (*** instantiation of adm_subst theorem (a bit tricky)
@@ -129,7 +140,6 @@ fun inst_adm_subst_thm state i params s T subt t paths =
 
 fun nth_subgoal i thm = nth_elem (i-1, prems_of thm);
 
-in
 
 (*** the admissibility tactic
      NOTE:
@@ -139,34 +149,42 @@ in
        (rtac (cont_thm RS adm_subst) 1) THEN ...
 ***)
 
+fun try_dest_adm (Const _ $ (Const (name, _) $ Abs abs)) =
+      if name = adm_name then Some abs else None
+  | try_dest_adm _ = None;
+
 fun adm_tac tac i state =
   state |>
-    let val goali = nth_subgoal i state
-    in
-      case Logic.strip_assums_concl goali of
-         ((Const _) $ ((Const (name, _)) $ (Abs (s, T, t)))) =>
-           let val {sign, ...} = rep_thm state;
-               val prems = Logic.strip_assums_hyp goali;
-               val params = Logic.strip_params goali;
-               val ts = find_subterms t 0 [];
-               val ts' = filter eq_terms ts;
-               val ts'' = filter (is_chfin sign T params) ts';
-               val thms = foldl (prove_cont tac sign s T prems params) ([], ts'')
-           in if name = adm_name then case thms of
-                 ((ts as ((t', _)::_), cont_thm)::_) =>
-                   let val paths = map snd ts;
-                       val rule = inst_adm_subst_thm state i params s T t' t paths;
-                   in
-                     (compose_tac (false, rule, 2) i) THEN
-                     (rtac cont_thm i) THEN
-                     (REPEAT (assume_tac i)) THEN
-                     (rtac adm_chain_finite i)
-                   end 
-               | [] => no_tac
-	      else no_tac
-           end
-       | _ => no_tac
+  let val goali = nth_subgoal i state in
+    (case try_dest_adm (Logic.strip_assums_concl goali) of
+      None => no_tac
+    | Some (s, T, t) =>
+        let
+          val sign = sign_of_thm state;
+          val prems = Logic.strip_assums_hyp goali;
+          val params = Logic.strip_params goali;
+          val ts = find_subterms t 0 [];
+          val ts' = filter eq_terms ts;
+          val ts'' = filter (is_chfin sign T params) ts';
+          val thms = foldl (prove_cont tac sign s T prems params) ([], ts'');
+        in
+          (case thms of
+            ((ts as ((t', _)::_), cont_thm)::_) =>
+              let
+                val paths = map snd ts;
+                val rule = inst_adm_subst_thm state i params s T t' t paths;
+              in
+                compose_tac (false, rule, 2) i THEN
+                rtac cont_thm i THEN
+                REPEAT (assume_tac i) THEN
+                rtac adm_chain_finite i
+              end 
+          | [] => no_tac)
+        end)
     end;
+
 
 end;
 
+
+open Adm;
