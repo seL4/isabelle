@@ -570,7 +570,7 @@ a question mark and act as
 placeholders for terms.  \emph{Unification} refers to  the process of
 making two terms identical, possibly by replacing their schematic variables by
 terms.  The simplest case is when the two terms  are already the same. Next
-simplest is when the variables in only one of the term
+simplest is when the variables in only one of the terms
  are replaced; this is called pattern-matching.  The
 \isa{rule} method typically  matches the rule's conclusion
 against the current subgoal.  In the most complex case,  variables in both
@@ -655,7 +655,7 @@ cases it can be fooled.) When we apply substitution,  Isabelle replaces every
 resulting subgoal is trivial by assumption, so the \isacommand{by} command
 proves it implicitly. 
 
-We are using the \isa{erule} method it in a novel way. Hitherto, 
+We are using the \isa{erule} method in a novel way. Hitherto, 
 the conclusion of the rule was just a variable such as~\isa{?R}, but it may
 be any term. The conclusion is unified with the subgoal just as 
 it would be with the \isa{rule} method. At the same time \isa{erule} looks 

@@ -47,7 +47,7 @@ definition of @{term"sep"}.
 
 In general, the format of invoking recursion induction is
 \begin{quote}
-\isacommand{apply}@{text"(induct_tac "}$x@1 \dots x@n$ @{text"rule:"} $f$@{text".induct)"}
+\isacommand{apply}@{text"(induct_tac"} $x@1 \dots x@n$ @{text"rule:"} $f$@{text".induct)"}
 \end{quote}\index{*induct_tac}%
 where $x@1~\dots~x@n$ is a list of free variables in the subgoal and $f$ the
 name of a function that takes an $n$-tuple. Usually the subgoal will
