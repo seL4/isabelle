@@ -29,7 +29,7 @@ syntax  "@fapp"   :: "('a -> 'b)=>('a => 'b)" ("_`_" [999,1000] 999)
 translations "f`x" == "fapp f x"
 
 syntax (symbols)
-  "->"		:: [type, type] => type	("(_ \\<rightarrow>/ _)" [6,5]5)
+  "->"		:: [type, type] => type	("(_ \\<rightarrow>/ _)" [1,0]0)
   "LAM "	:: "[idts, 'a => 'b] => ('a -> 'b)"
 					("(3\\<Lambda>_./ _)" [0, 10] 10)
 defs 
