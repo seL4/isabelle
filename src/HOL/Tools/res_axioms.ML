@@ -21,10 +21,9 @@ structure ResElimRule: RES_ELIM_RULE =
 
 struct
 
-
 fun elimRule_tac thm =
     ((rtac impI 1) ORELSE (rtac notI 1)) THEN (etac thm 1) THEN
-    REPEAT(Blast_tac 1);
+    REPEAT(Fast_tac 1);
 
 
 (* This following version fails sometimes, need to investigate, do not use it now. *)
@@ -56,38 +55,56 @@ fun strip_trueprop (Const ("Trueprop", Type("fun",[Type("bool",[]),Type("prop",[
   | strip_trueprop _ = raise TRUEPROP("not a prop!");
 
 
+fun neg P = Const ("Not", Type("fun",[Type("bool",[]),Type("bool",[])])) $ P;
+
+
+fun is_neg (Const("Trueprop",_) $ (Const("Not",_) $ Free(p,_))) (Const("Trueprop",_) $ Free(q,_))= (p = q)
+  | is_neg _ _ = false;
+
 
 exception STRIP_CONCL;
 
 
-fun strip_concl prems bvs (Const ("all", _) $ Abs (x,xtp,body))  = strip_concl prems ((x,xtp)::bvs) body
-  | strip_concl prems bvs (Const ("==>",_) $ P $ Q) =
+fun strip_concl' prems bvs (Const ("==>",_) $ P $ Q) =
     let val P' = strip_trueprop P
 	val prems' = P'::prems
     in
-	strip_concl prems' bvs  Q
+	strip_concl' prems' bvs  Q
     end
-  | strip_concl prems bvs _ = add_EX (make_conjs prems) bvs;
+  | strip_concl' prems bvs P = 
+    let val P' = neg (strip_trueprop P)
+    in
+	add_EX (make_conjs (P'::prems)) bvs
+    end;
+
+
+fun strip_concl prems bvs concl (Const ("all", _) $ Abs (x,xtp,body))  = strip_concl prems ((x,xtp)::bvs) concl body
+  | strip_concl prems bvs concl (Const ("==>",_) $ P $ Q) =
+    if (is_neg P concl) then (strip_concl' prems bvs Q)
+    else
+	(let val P' = strip_trueprop P
+	     val prems' = P'::prems
+	 in
+	     strip_concl prems' bvs  concl Q
+	 end)
+  | strip_concl prems bvs concl _ = add_EX (make_conjs prems) bvs;
  
 
 
-fun trans_elim (main,others) =
-    let val others' = map (strip_concl [] []) others
+fun trans_elim (main,others,concl) =
+    let val others' = map (strip_concl [] [] concl) others
 	val disjs = make_disjs others'
     in
 	make_imp(strip_trueprop main,disjs)
     end;
 
 
-fun neg P = Const ("Not", Type("fun",[Type("bool",[]),Type("bool",[])])) $ P;
-
-
-fun elimR2Fol_aux prems = 
+fun elimR2Fol_aux prems concl = 
     let val nprems = length prems
 	val main = hd prems
     in
 	if (nprems = 1) then neg (strip_trueprop main)
-        else trans_elim (main, tl prems)
+        else trans_elim (main, tl prems, concl)
     end;
 
 
@@ -99,11 +116,10 @@ fun elimR2Fol elimR =
 	val (prems,concl) = (prems_of elimR', concl_of elimR')
     in
 	case concl of Const("Trueprop",_) $ Free(_,Type("bool",[])) 
-		      => trueprop (elimR2Fol_aux prems)
-                    | Free(x,Type("prop",[])) => trueprop(elimR2Fol_aux prems) 
+		      => trueprop (elimR2Fol_aux prems concl)
+                    | Free(x,Type("prop",[])) => trueprop(elimR2Fol_aux prems concl) 
 		    | _ => raise ELIMR2FOL("Not an elimination rule!")
     end;
-
 
 
 
