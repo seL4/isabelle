@@ -74,9 +74,10 @@ by (induct_tac "w" 1);
 by Auto_tac;
 qed "bin_add_Pls_right";
 
-Goal "bin_add (v BIT x) Min = bin_pred (v BIT x)";
-by (Simp_tac 1);
-qed "bin_add_BIT_Min";
+Goal "bin_add w Min = bin_pred w";
+by (induct_tac "w" 1);
+by Auto_tac;
+qed "bin_add_Min_right";
 
 Goal "bin_add (v BIT x) (w BIT y) = \
 \    NCons(bin_add v (if x & y then (bin_succ w) else w)) (x~= y)";
@@ -409,7 +410,7 @@ val bin_arith_extra_simps =
      bin_succ_1, bin_succ_0, 
      bin_pred_1, bin_pred_0, 
      bin_minus_1, bin_minus_0,  
-     bin_add_Pls_right, bin_add_BIT_Min,
+     bin_add_Pls_right, bin_add_Min_right,
      bin_add_BIT_0, bin_add_BIT_10, bin_add_BIT_11,
      diff_number_of_eq, 
      bin_mult_1, bin_mult_0, 
