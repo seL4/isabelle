@@ -247,6 +247,9 @@ fun forw_inst_tac sinsts rule = cut_inst_tac sinsts rule THEN' assume_tac;
 (*dresolve tactic applies a RULE to replace an assumption*)
 fun dres_inst_tac sinsts rule = eres_inst_tac sinsts (make_elim_preserve rule);
 
+(*Deletion of an assumption*)
+fun thin_tac s = eres_inst_tac [("V",s)] thin_rl;
+
 (*** Applications of cut_rl ***)
 
 (*Used by metacut_tac*)
