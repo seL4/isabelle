@@ -182,6 +182,7 @@ sig
   val dummy_patternN: string
   val no_dummy_patterns: term -> term
   val replace_dummy_patterns: int * term -> int * term
+  val is_replaced_dummy_pattern: indexname -> bool
 end;
 
 structure Term: TERM =
@@ -1073,6 +1074,8 @@ fun no_dummy_patterns tm =
 val replace_dummy_patterns = foldl_map_aterms (fn (i, t) =>
   if is_dummy_pattern t then (i + 1, Var (("_dummy_", i), fastype_of t)) else (i, t));
 
+fun is_replaced_dummy_pattern ("_dummy_", _) = true
+  | is_replaced_dummy_pattern _ = false;
 
 end;
 
