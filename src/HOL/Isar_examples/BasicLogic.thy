@@ -8,6 +8,9 @@ Basic propositional and quantifier reasoning.
 theory BasicLogic = Main:;
 
 
+text {* Just a few tiny examples to get an idea of how Isabelle/Isar
+  proof documents may look like. *};
+
 lemma I: "A --> A";
 proof;
   assume A;
@@ -24,7 +27,7 @@ proof;
 qed;
 
 lemma K': "A --> B --> A";
-proof single*;
+proof single+; txt {* better use sufficient-to-show here \dots *};
   assume A;
   show A; .;
 qed;
@@ -47,6 +50,8 @@ proof;
   qed;
 qed;
 
+
+text {* Variations of backward vs.\ forward reasonong \dots *};
 
 lemma "A & B --> B & A";
 proof;
@@ -77,7 +82,9 @@ proof;
 qed;
 
 
-text {* propositional proof (from 'Introduction to Isabelle') *};
+section {* Examples from 'Introduction to Isabelle' *};
+
+text {* 'Propositional proof' *};
 
 lemma "P | P --> P";
 proof;
@@ -97,7 +104,7 @@ proof;
 qed;
 
 
-text {* quantifier proof (from 'Introduction to Isabelle') *};
+text {* 'Quantifier proof' *};
 
 lemma "(EX x. P(f(x))) --> (EX x. P(x))";
 proof;
@@ -123,6 +130,30 @@ qed;
 
 lemma "(EX x. P(f(x))) --> (EX x. P(x))";
   by blast;
+
+
+subsection {* 'Deriving rules in Isabelle' *};
+
+text {* We derive the conjunction elimination rule from the
+ projections.  The proof below follows the basic reasoning of the
+ script given in the Isabelle Intro Manual closely.  Although, the
+ actual underlying operations on rules and proof states are quite
+ different: Isabelle/Isar supports non-atomic goals and assumptions
+ fully transparently, while the original Isabelle classic script
+ depends on the primitive goal command to decompose the rule into
+ premises and conclusion, with the result emerging by discharging the
+ context again later. *};
+
+theorem conjE: "A & B ==> (A ==> B ==> C) ==> C";
+proof same;
+  assume ab: "A & B";
+  assume ab_c: "A ==> B ==> C";
+  show C;
+  proof (rule ab_c);
+    from ab; show A; ..;
+    from ab; show B; ..;
+  qed;
+qed;
 
 
 end;
