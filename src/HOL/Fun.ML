@@ -6,8 +6,6 @@
 Lemmas about functions.
 *)
 
-simpset := HOL_ss;
-
 goal Fun.thy "(f = g) = (!x. f(x)=g(x))";
 by (rtac iffI 1);
 by (Asm_simp_tac 1);
