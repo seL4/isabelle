@@ -208,35 +208,38 @@ local structure P = OuterParse and K = OuterSyntax.Keyword in
 
 val old_undoP =	(* FIXME same name for compatibility with PG/Isabelle99 *)
   OuterSyntax.improper_command "undo" "undo last command (no output)" K.control
-    (Scan.succeed IsarCmd.undo);
+    (Scan.succeed (Toplevel.no_timing o IsarCmd.undo));
 
 val undoP =
   OuterSyntax.improper_command "ProofGeneral.undo" "undo last command (no output)" K.control
-    (Scan.succeed IsarCmd.undo);
+    (Scan.succeed (Toplevel.no_timing o IsarCmd.undo));
 
 val context_thy_onlyP =
   OuterSyntax.improper_command "ProofGeneral.context_thy_only" "(internal)" K.control
-    (P.name >> IsarThy.init_context update_thy_only);
+    (P.name >> (Toplevel.no_timing oo IsarThy.init_context update_thy_only));
 
 val try_context_thy_onlyP =
   OuterSyntax.improper_command "ProofGeneral.try_context_thy_only" "(internal)" K.control
-    (P.name >> (Toplevel.imperative (K ()) oo IsarThy.init_context try_update_thy_only));
+    (P.name >> (Toplevel.no_timing oo
+      (Toplevel.imperative (K ()) oo IsarThy.init_context try_update_thy_only)));
 
 val restartP =
   OuterSyntax.improper_command "ProofGeneral.restart" "(internal)" K.control
-    (P.opt_unit >> K (Toplevel.imperative isar_restart));
+    (P.opt_unit >> (Toplevel.no_timing oo K (Toplevel.imperative isar_restart)));
 
 val kill_proofP =
   OuterSyntax.improper_command "ProofGeneral.kill_proof" "(internal)" K.control
-    (Scan.succeed (IsarCmd.kill_proof_notify tell_clear_goals));
+    (Scan.succeed (Toplevel.no_timing o IsarCmd.kill_proof_notify tell_clear_goals));
 
 val inform_file_processedP =
   OuterSyntax.improper_command "ProofGeneral.inform_file_processed" "(internal)" K.control
-    (P.name >> (fn name => Toplevel.imperative (fn () => inform_file_processed name)));
+    (P.name >> (Toplevel.no_timing oo
+      (fn name => Toplevel.imperative (fn () => inform_file_processed name))));
 
 val inform_file_retractedP =
   OuterSyntax.improper_command "ProofGeneral.inform_file_retracted" "(internal)" K.control
-    (P.name >> (fn name => Toplevel.imperative (fn () => inform_file_retracted name)));
+    (P.name >> (Toplevel.no_timing oo
+      (fn name => Toplevel.imperative (fn () => inform_file_retracted name))));
 
 fun init_outer_syntax () = OuterSyntax.add_parsers
  [old_undoP, undoP, restartP, kill_proofP, context_thy_onlyP, try_context_thy_onlyP,

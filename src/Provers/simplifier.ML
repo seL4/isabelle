@@ -551,8 +551,8 @@ fun easy_setup reflect trivs =
 val print_simpsetP =
   OuterSyntax.improper_command "print_simpset" "print context of Simplifier"
     OuterSyntax.Keyword.diag
-    (Scan.succeed (Toplevel.keep
-      (Toplevel.node_case print_simpset (print_local_simpset o Proof.context_of))));
+    (Scan.succeed (Toplevel.no_timing o (Toplevel.keep
+      (Toplevel.node_case print_simpset (print_local_simpset o Proof.context_of)))));
 
 val _ = OuterSyntax.add_parsers [print_simpsetP];
 

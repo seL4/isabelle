@@ -208,7 +208,7 @@ val hideP =
 
 val useP =
   OuterSyntax.command "use" "eval ML text from file" K.diag
-    (P.name >> IsarCmd.use);
+    (P.name >> (Toplevel.no_timing oo IsarCmd.use));
 
 val mlP =
   OuterSyntax.command "ML" "eval ML text (diagnostic)" K.diag
@@ -451,27 +451,27 @@ val backP =
 
 val cannot_undoP =
   OuterSyntax.improper_command "cannot_undo" "report 'cannot undo' error message" K.control
-    (P.name >> IsarCmd.cannot_undo);
+    (P.name >> (Toplevel.no_timing oo IsarCmd.cannot_undo));
 
 val clear_undosP =
   OuterSyntax.improper_command "clear_undos" "clear theory-level undo information" K.control
-    (P.nat >> IsarCmd.clear_undos_theory);
+    (P.nat >> (Toplevel.no_timing oo IsarCmd.clear_undos_theory));
 
 val redoP =
   OuterSyntax.improper_command "redo" "redo last command" K.control
-    (Scan.succeed (Toplevel.print o IsarCmd.redo));
+    (Scan.succeed (Toplevel.no_timing o Toplevel.print o IsarCmd.redo));
 
 val undos_proofP =
   OuterSyntax.improper_command "undos_proof" "undo last proof commands" K.control
-    (P.nat >> (Toplevel.print oo IsarCmd.undos_proof));
+    (P.nat >> ((Toplevel.no_timing o Toplevel.print) oo IsarCmd.undos_proof));
 
 val undoP =
   OuterSyntax.improper_command "undo" "undo last command" K.control
-    (Scan.succeed (Toplevel.print o IsarCmd.undo));
+    (Scan.succeed ((Toplevel.no_timing o Toplevel.print) o IsarCmd.undo));
 
 val killP =
   OuterSyntax.improper_command "kill" "kill current history node" K.control
-    (Scan.succeed (Toplevel.print o IsarCmd.kill));
+    (Scan.succeed ((Toplevel.no_timing o Toplevel.print) o IsarCmd.kill));
 
 
 
@@ -482,67 +482,67 @@ val opt_modes = Scan.optional (P.$$$ "(" |-- P.!!! (Scan.repeat1 P.xname --| P.$
 
 val pretty_setmarginP =
   OuterSyntax.improper_command "pretty_setmargin" "change default margin for pretty printing"
-    K.diag (P.nat >> IsarCmd.pretty_setmargin);
+    K.diag (P.nat >> (Toplevel.no_timing oo IsarCmd.pretty_setmargin));
 
 val print_commandsP =
   OuterSyntax.improper_command "help" "print outer syntax (global)" K.diag
-    (Scan.succeed OuterSyntax.print_help);
+    (Scan.succeed (Toplevel.no_timing o OuterSyntax.print_help));
 
 val print_contextP =
   OuterSyntax.improper_command "print_context" "print theory context name" K.diag
-    (Scan.succeed IsarCmd.print_context);
+    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_context));
 
 val print_theoryP =
   OuterSyntax.improper_command "print_theory" "print logical theory contents (verbose!)" K.diag
-    (Scan.succeed IsarCmd.print_theory);
+    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_theory));
 
 val print_syntaxP =
   OuterSyntax.improper_command "print_syntax" "print inner syntax of theory (verbose!)" K.diag
-    (Scan.succeed IsarCmd.print_syntax);
+    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_syntax));
 
 val print_theoremsP =
   OuterSyntax.improper_command "print_theorems" "print theorems known in this theory" K.diag
-    (Scan.succeed IsarCmd.print_theorems);
+    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_theorems));
 
 val print_attributesP =
   OuterSyntax.improper_command "print_attributes" "print attributes known in this theory" K.diag
-    (Scan.succeed IsarCmd.print_attributes);
+    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_attributes));
 
 val print_methodsP =
   OuterSyntax.improper_command "print_methods" "print methods known in this theory" K.diag
-    (Scan.succeed IsarCmd.print_methods);
+    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_methods));
 
 val thms_containingP =
   OuterSyntax.improper_command "thms_containing" "print theorems containing all given constants"
-    K.diag (Scan.repeat P.xname >> IsarCmd.print_thms_containing);
+    K.diag (Scan.repeat P.xname >> (Toplevel.no_timing oo IsarCmd.print_thms_containing));
 
 val print_bindsP =
   OuterSyntax.improper_command "print_binds" "print term bindings of proof context" K.diag
-    (Scan.succeed IsarCmd.print_binds);
+    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_binds));
 
 val print_lthmsP =
   OuterSyntax.improper_command "print_facts" "print facts of proof context" K.diag
-    (Scan.succeed IsarCmd.print_lthms);
+    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_lthms));
 
 val print_casesP =
   OuterSyntax.improper_command "print_cases" "print cases of proof context" K.diag
-    (Scan.succeed IsarCmd.print_cases);
+    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_cases));
 
 val print_thmsP =
   OuterSyntax.improper_command "thm" "print theorems" K.diag
-    (opt_modes -- P.xthms1 >> IsarCmd.print_thms);
+    (opt_modes -- P.xthms1 >> (Toplevel.no_timing oo IsarCmd.print_thms));
 
 val print_propP =
   OuterSyntax.improper_command "prop" "read and print proposition" K.diag
-    (opt_modes -- P.term >> IsarCmd.print_prop);
+    (opt_modes -- P.term >> (Toplevel.no_timing oo IsarCmd.print_prop));
 
 val print_termP =
   OuterSyntax.improper_command "term" "read and print term" K.diag
-    (opt_modes -- P.term >> IsarCmd.print_term);
+    (opt_modes -- P.term >> (Toplevel.no_timing oo IsarCmd.print_term));
 
 val print_typeP =
   OuterSyntax.improper_command "typ" "read and print type" K.diag
-    (opt_modes -- P.typ >> IsarCmd.print_type);
+    (opt_modes -- P.typ >> (Toplevel.no_timing oo IsarCmd.print_type));
 
 
 
@@ -550,79 +550,79 @@ val print_typeP =
 
 val cdP =
   OuterSyntax.improper_command "cd" "change current working directory" K.diag
-    (P.name >> IsarCmd.cd);
+    (P.name >> (Toplevel.no_timing oo IsarCmd.cd));
 
 val pwdP =
   OuterSyntax.improper_command "pwd" "print current working directory" K.diag
-    (Scan.succeed IsarCmd.pwd);
+    (Scan.succeed (Toplevel.no_timing o IsarCmd.pwd));
 
 val use_thyP =
   OuterSyntax.improper_command "use_thy" "use theory file" K.diag
-    (P.name >> IsarCmd.use_thy);
+    (P.name >> (Toplevel.no_timing oo IsarCmd.use_thy));
 
 val use_thy_onlyP =
   OuterSyntax.improper_command "use_thy_only" "use theory file only, ignoring associated ML"
-    K.diag (P.name >> IsarCmd.use_thy_only);
+    K.diag (P.name >> (Toplevel.no_timing oo IsarCmd.use_thy_only));
 
 val update_thyP =
   OuterSyntax.improper_command "update_thy" "update theory file" K.diag
-    (P.name >> IsarCmd.update_thy);
+    (P.name >> (Toplevel.no_timing oo IsarCmd.update_thy));
 
 val update_thy_onlyP =
   OuterSyntax.improper_command "update_thy_only" "update theory file, ignoring associated ML"
-    K.diag (P.name >> IsarCmd.update_thy_only);
+    K.diag (P.name >> (Toplevel.no_timing oo IsarCmd.update_thy_only));
 
 val touch_thyP =
   OuterSyntax.improper_command "touch_thy" "outdate theory, including descendants" K.diag
-    (P.name >> IsarCmd.touch_thy);
+    (P.name >> (Toplevel.no_timing oo IsarCmd.touch_thy));
 
 val touch_all_thysP =
   OuterSyntax.improper_command "touch_all_thys" "outdate all non-finished theories" K.diag
-    (Scan.succeed IsarCmd.touch_all_thys);
+    (Scan.succeed (Toplevel.no_timing o IsarCmd.touch_all_thys));
 
 val touch_child_thysP =
   OuterSyntax.improper_command "touch_child_thys" "outdate child theories" K.diag
-    (P.name >> IsarCmd.touch_child_thys);
+    (P.name >> (Toplevel.no_timing oo IsarCmd.touch_child_thys));
 
 val remove_thyP =
   OuterSyntax.improper_command "remove_thy" "remove theory from loader database" K.diag
-    (P.name >> IsarCmd.remove_thy);
+    (P.name >> (Toplevel.no_timing oo IsarCmd.remove_thy));
 
 val kill_thyP =
   OuterSyntax.improper_command "kill_thy" "kill theory -- try to remove from loader database"
-    K.diag (P.name >> IsarCmd.kill_thy);
+    K.diag (P.name >> (Toplevel.no_timing oo IsarCmd.kill_thy));
 
 val prP =
   OuterSyntax.improper_command "pr" "print current proof state (if present)" K.diag
-    (opt_modes -- Scan.option P.nat >> IsarCmd.pr);
+    (opt_modes -- Scan.option P.nat >> (Toplevel.no_timing oo IsarCmd.pr));
 
 val disable_prP =
   OuterSyntax.improper_command "disable_pr" "disable printing of toplevel state" K.diag
-    (Scan.succeed IsarCmd.disable_pr);
+    (Scan.succeed (Toplevel.no_timing o IsarCmd.disable_pr));
 
 val enable_prP =
   OuterSyntax.improper_command "enable_pr" "enable printing of toplevel state" K.diag
-    (Scan.succeed IsarCmd.enable_pr);
+    (Scan.succeed (Toplevel.no_timing o IsarCmd.enable_pr));
 
 val commitP =
   OuterSyntax.improper_command "commit" "commit current session to ML database" K.diag
-    (P.opt_unit >> (K IsarCmd.use_commit));
+    (P.opt_unit >> (Toplevel.no_timing oo K IsarCmd.use_commit));
 
 val quitP =
   OuterSyntax.improper_command "quit" "quit Isabelle" K.control
-    (P.opt_unit >> (K IsarCmd.quit));
+    (P.opt_unit >> (Toplevel.no_timing oo K IsarCmd.quit));
 
 val exitP =
   OuterSyntax.improper_command "exit" "exit Isar loop" K.control
-    (Scan.succeed IsarCmd.exit);
+    (Scan.succeed (Toplevel.no_timing o IsarCmd.exit));
 
 val init_toplevelP =
   OuterSyntax.improper_command "init_toplevel" "restart Isar toplevel loop" K.control
-    (Scan.succeed IsarCmd.init_toplevel);
+    (Scan.succeed (Toplevel.no_timing o IsarCmd.init_toplevel));
 
 val welcomeP =
   OuterSyntax.improper_command "welcome" "print welcome message" K.diag
-    (Scan.succeed IsarCmd.welcome);
+    (Scan.succeed (Toplevel.no_timing o IsarCmd.welcome));
 
 
 
