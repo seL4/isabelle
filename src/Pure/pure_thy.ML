@@ -417,8 +417,8 @@ val proto_pure =
     ("itself", [logicS], logicS)]
   |> Theory.add_nonterminals Syntax.pure_nonterms
   |> Theory.add_syntax Syntax.pure_syntax
-  |> Theory.add_modesyntax ("symbols" , true) Syntax.pure_sym_syntax
-  |> Theory.add_modesyntax ("xsymbols", true) Syntax.pure_xsym_syntax
+  |> Theory.add_modesyntax (Symbol.symbolsN, true) Syntax.pure_sym_syntax
+  |> Theory.add_modesyntax (Symbol.xsymbolsN, true) Syntax.pure_xsym_syntax
   |> Theory.add_trfuns Syntax.pure_trfuns
   |> Theory.add_trfunsT Syntax.pure_trfunsT
   |> Theory.add_syntax

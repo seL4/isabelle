@@ -29,6 +29,9 @@ sig
   val explode: string -> symbol list
   val input: string -> string
   val add_mode: string -> (string -> string * real) -> unit
+  val isabelle_fontN: string
+  val symbolsN: string
+  val xsymbolsN: string
   val output: string -> string
   val output_width: string -> string * real
 end;
@@ -309,7 +312,11 @@ fun isabelle_font_output s =
 
 (* maintain modes *)
 
-val modes = ref (Symtab.make [("isabelle_font", isabelle_font_output)]);
+val isabelle_fontN = "isabelle_font";
+val symbolsN = "symbols";
+val xsymbolsN = "xsymbols";
+
+val modes = ref (Symtab.make [(isabelle_fontN, isabelle_font_output)]);
 
 fun lookup_mode name = Symtab.lookup (! modes, name);
 
