@@ -271,7 +271,7 @@ val simps = [True_implies_equals,
          real_of_nat_zero, real_of_nat_Suc, real_of_nat_add, real_of_nat_mult,
          real_of_int_zero, real_of_one, real_of_int_add RS sym,
          real_of_int_minus RS sym, real_of_int_diff RS sym,
-         real_of_int_mult RS sym];
+         real_of_int_mult RS sym, real_number_of];
 
 val int_inj_thms = [real_of_int_le_iff RS iffD2, real_of_int_less_iff RS iffD2,
                     real_of_int_inject RS iffD2];

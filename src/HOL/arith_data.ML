@@ -283,6 +283,8 @@ fun demult((mC as Const("op *",_)) $ s $ t,m) = ((case s of
       (let val den = HOLogic.dest_binum dent
        in if den = 0 then raise Zero else demult(t,ratmul(m, ratinv(rat_of_int den))) end
        handle TERM _ => (Some atom,m))
+  | demult(Const("0",_),m) = (None, rat_of_int 0)
+  | demult(Const("1",_),m) = (None, m)
   | demult(t as Const("Numeral.number_of",_)$n,m) =
       ((None,ratmul(m,rat_of_int(HOLogic.dest_binum n)))
        handle TERM _ => (Some t,m))
@@ -312,7 +314,7 @@ fun poly(Const("op +",_) $ s $ t, m, pi) = poly(s,m,poly(t,m,pi))
        | (Some u,m') => add_atom(u,m',pi))
   | poly(t as Const("HOL.divide",_) $ _ $ _, m, pi as (p,i)) =
       (case demult inj_consts (t,m) of
-         (None,m') => (p,ratadd(i,m))
+         (None,m') => (p,ratadd(i,m'))
        | (Some u,m') => add_atom(u,m',pi))
   | poly(all as (Const("Numeral.number_of",_)$t,m,(p,i))) =
       ((p,ratadd(i,ratmul(m,rat_of_int(HOLogic.dest_binum t))))
