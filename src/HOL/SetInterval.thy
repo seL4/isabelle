@@ -33,48 +33,6 @@ constdefs
   atLeastAtMost :: "['a::ord, 'a] => 'a set"        ("(1{_.._})")
   "{l..u} == {l..} Int {..u}"
 
-
-subsection {* Setup of transitivity reasoner *}
-
-ML {*
-
-structure Trans_Tac = Trans_Tac_Fun (
-  struct
-    val less_reflE = thm "order_less_irrefl" RS thm "notE";
-    val le_refl = thm "order_refl";
-    val less_imp_le = thm "order_less_imp_le";
-    val not_lessI = thm "linorder_not_less" RS thm "iffD2";
-    val not_leI = thm "linorder_not_less" RS thm "iffD2";
-    val not_lessD = thm "linorder_not_less" RS thm "iffD1";
-    val not_leD = thm "linorder_not_le" RS thm "iffD1";
-    val eqI = thm "order_antisym";
-    val eqD1 = thm "order_eq_refl";
-    val eqD2 = thm "sym" RS thm "order_eq_refl";
-    val less_trans = thm "order_less_trans";
-    val less_le_trans = thm "order_less_le_trans";
-    val le_less_trans = thm "order_le_less_trans";
-    val le_trans = thm "order_trans";
-    fun decomp (Trueprop $ t) =
-      let fun dec (Const ("Not", _) $ t) = (
-              case dec t of
-		None => None
-	      | Some (t1, rel, t2) => Some (t1, "~" ^ rel, t2))
-	    | dec (Const (rel, _) $ t1 $ t2) = 
-                Some (t1, implode (drop (3, explode rel)), t2)
-	    | dec _ = None
-      in dec t end
-      | decomp _ = None
-  end);
-
-val trans_tac = Trans_Tac.trans_tac;
-
-*}
-
-method_setup trans =
-  {* Method.no_args (Method.SIMPLE_METHOD' HEADGOAL (trans_tac)) *}
-  {* simple transitivity reasoner *}
-
-
 subsection {*lessThan*}
 
 lemma lessThan_iff [iff]: "(i: lessThan k) = (i<k)"
@@ -95,8 +53,6 @@ by blast
 lemma Compl_lessThan [simp]: 
     "!!k:: 'a::linorder. -lessThan k = atLeast k"
 apply (auto simp add: lessThan_def atLeast_def)
- apply (blast intro: linorder_not_less [THEN iffD1])
-apply (blast dest: order_le_less_trans)
 done
 
 lemma single_Diff_lessThan [simp]: "!!k:: 'a::order. {k} - lessThan k = {k}"
@@ -123,8 +79,6 @@ by blast
 lemma Compl_greaterThan [simp]: 
     "!!k:: 'a::linorder. -greaterThan k = atMost k"
 apply (simp add: greaterThan_def atMost_def le_def, auto)
-apply (blast intro: linorder_not_less [THEN iffD1])
-apply (blast dest: order_le_less_trans)
 done
 
 lemma Compl_atMost [simp]: "!!k:: 'a::linorder. -atMost k = greaterThan k"
@@ -153,8 +107,6 @@ by blast
 lemma Compl_atLeast [simp]: 
     "!!k:: 'a::linorder. -atLeast k = lessThan k"
 apply (simp add: lessThan_def atLeast_def le_def, auto)
-apply (blast intro: linorder_not_less [THEN iffD1])
-apply (blast dest: order_le_less_trans)
 done
 
 
@@ -189,7 +141,6 @@ lemma greaterThan_subset_iff [iff]:
      "(greaterThan x \<subseteq> greaterThan y) = (y \<le> (x::'a::linorder))" 
 apply (auto simp add: greaterThan_def) 
  apply (subst linorder_not_less [symmetric], blast) 
-apply (blast intro: order_le_less_trans) 
 done
 
 lemma greaterThan_eq_iff [iff]:
@@ -209,7 +160,6 @@ lemma lessThan_subset_iff [iff]:
      "(lessThan x \<subseteq> lessThan y) = (x \<le> (y::'a::linorder))" 
 apply (auto simp add: lessThan_def) 
  apply (subst linorder_not_less [symmetric], blast) 
-apply (blast intro: order_less_le_trans) 
 done
 
 lemma lessThan_eq_iff [iff]:
@@ -270,7 +220,7 @@ lemma ivl_disj_un_singleton:
   "(l::'a::linorder) < u ==> {)l..u(} Un {u} = {)l..u}"
   "(l::'a::linorder) <= u ==> {l} Un {)l..u} = {l..u}"
   "(l::'a::linorder) <= u ==> {l..u(} Un {u} = {l..u}"
-by auto (elim linorder_neqE | trans+)+
+by auto
 
 (* One- and two-sided intervals *)
 
@@ -283,7 +233,7 @@ lemma ivl_disj_un_one:
   "(l::'a::linorder) < u ==> {)l..u(} Un {u..} = {)l..}"
   "(l::'a::linorder) <= u ==> {l..u} Un {)u..} = {l..}"
   "(l::'a::linorder) <= u ==> {l..u(} Un {u..} = {l..}"
-by auto trans+
+by auto
 
 (* Two- and two-sided intervals *)
 
@@ -296,7 +246,7 @@ lemma ivl_disj_un_two:
   "[| (l::'a::linorder) <= m; m <= u |] ==> {)l..m} Un {)m..u} = {)l..u}"
   "[| (l::'a::linorder) <= m; m <= u |] ==> {l..m(} Un {m..u} = {l..u}"
   "[| (l::'a::linorder) <= m; m <= u |] ==> {l..m} Un {)m..u} = {l..u}"
-by auto trans+
+by auto
 
 lemmas ivl_disj_un = ivl_disj_un_singleton ivl_disj_un_one ivl_disj_un_two
 
@@ -324,7 +274,7 @@ lemma ivl_disj_int_one:
   "{)l..u(} Int {u..} = {}"
   "{l..u} Int {)u..} = {}"
   "{l..u(} Int {u..} = {}"
-  by auto trans+
+  by auto
 
 (* Two- and two-sided intervals *)
 
@@ -337,7 +287,7 @@ lemma ivl_disj_int_two:
   "{)l..m} Int {)m..u} = {}"
   "{l..m(} Int {m..u} = {}"
   "{l..m} Int {)m..u} = {}"
-  by auto trans+
+  by auto
 
 lemmas ivl_disj_int = ivl_disj_int_singleton ivl_disj_int_one ivl_disj_int_two
 

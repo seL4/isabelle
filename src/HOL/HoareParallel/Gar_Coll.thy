@@ -496,7 +496,6 @@ apply clarify
 apply (erule disjE)
 apply(simp add:psubsetI)
  apply(force dest:subset_antisym)
-apply force
 done
 
 subsection {* Interference Freedom *}

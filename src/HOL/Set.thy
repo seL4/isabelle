@@ -1963,15 +1963,6 @@ lemma set_rev_mp: "x:A ==> A \<subseteq> B ==> x:B"
 lemma set_mp: "A \<subseteq> B ==> x:A ==> x:B"
   by (rule subsetD)
 
-lemma order_neq_le_trans: "a ~= b ==> (a::'a::order) <= b ==> a < b"
-  by (simp add: order_less_le)
-
-lemma order_le_neq_trans: "(a::'a::order) <= b ==> a ~= b ==> a < b"
-  by (simp add: order_less_le)
-
-lemma order_less_asym': "(a::'a::order) < b ==> b < a ==> P"
-  by (rule order_less_asym)
-
 lemma ord_le_eq_trans: "a <= b ==> b = c ==> a <= c"
   by (rule subst)
 

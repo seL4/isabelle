@@ -1526,6 +1526,7 @@ lemma zero_less_abs_iff [simp]: "(0 < abs a) = (a \<noteq> (0::'a::ordered_ring)
 by (simp add: abs_if linorder_neq_iff)
 
 lemma abs_not_less_zero [simp]: "~ abs a < (0::'a::ordered_ring)"
+apply (simp add: abs_if)
 by (simp add: abs_if  order_less_not_sym [of a 0])
 
 lemma abs_le_zero_iff [simp]: "(abs a \<le> (0::'a::ordered_ring)) = (a = 0)" 
@@ -1620,11 +1621,17 @@ by (blast intro: abs_leI dest: abs_le_D1 abs_le_D2)
 
 lemma abs_less_iff: "(abs a < b) = (a < b & -a < (b::'a::ordered_ring))" 
 apply (simp add: order_less_le abs_le_iff)  
+apply (auto simp add: abs_if minus_le_self_iff eq_minus_self_iff)
+apply (simp add: le_minus_self_iff linorder_neq_iff) 
+done
+(*
+apply (simp add: order_less_le abs_le_iff)  
 apply (auto simp add: abs_if minus_le_self_iff eq_minus_self_iff) 
- apply (simp add:  linorder_not_less [symmetric]) 
+ apply (simp add:  linorder_not_less [symmetric])
 apply (simp add: le_minus_self_iff linorder_neq_iff) 
 apply (simp add:  linorder_not_less [symmetric]) 
 done
+*)
 
 lemma abs_triangle_ineq: "abs (a+b) \<le> abs a + abs (b::'a::ordered_ring)"
 by (force simp add: abs_le_iff abs_ge_self abs_ge_minus_self add_mono)

@@ -237,7 +237,6 @@ apply simp_all
   apply simp
  apply(rule AnnWhile)
   apply simp_all
- apply(fast)
 --{* Await *}
 apply(frule ann_hoare_case_analysis,simp)
 apply clarify

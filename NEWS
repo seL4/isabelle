@@ -6,6 +6,9 @@ New in this Isabelle release
 
 *** General ***
 
+* Provers/order.ML:  new efficient reasoner for partial and linear orders.
+  Replaces linorder.ML.
+
 * Pure: Greek letters (except small lambda, \<lambda>), as well as gothic
   (\<aa>...\<zz>\<AA>...\<ZZ>), caligraphic (\<A>...\<Z>), and euler
   (\<a>...\<z>), are now considered normal letters, and can therefore
@@ -76,6 +79,16 @@ New in this Isabelle release
   (Isar) contexts.
 
 *** HOL ***
+
+* Simplifier:
+  - Much improved handling of linear and partial orders.
+    Reasoners for linear and partial orders are set up for type classes
+    "linorder" and "order" respectively, and are added to the default simpset
+    as solvers.  This means that the simplifier can build transitivity chains
+    to solve goals from the assumptions.
+  - INCOMPATIBILITY: old proofs break occasionally.  Typically, applications
+    of blast or auto after simplification become unnecessary because the goal
+    is solved by simplification already.
 
 * Numerics: new theory Ring_and_Field contains over 250 basic numerical laws, 
     all proved in axiomatic type classes for semirings, rings and fields.

@@ -946,6 +946,93 @@ lemma split_max:
   by (simp add: max_def)
 
 
+subsubsection {* Transitivity rules for calculational reasoning *}
+
+
+lemma order_neq_le_trans: "a ~= b ==> (a::'a::order) <= b ==> a < b"
+  by (simp add: order_less_le)
+
+lemma order_le_neq_trans: "(a::'a::order) <= b ==> a ~= b ==> a < b"
+  by (simp add: order_less_le)
+
+lemma order_less_asym': "(a::'a::order) < b ==> b < a ==> P"
+  by (rule order_less_asym)
+
+
+subsubsection {* Setup of transitivity reasoner *}
+
+lemma less_imp_neq: "[| (x::'a::order) < y |] ==> x ~= y"
+  by (erule contrapos_pn, erule subst, rule order_less_irrefl)
+
+lemma eq_neq_eq_imp_neq: "[| x = a ; a ~= b; b = y |] ==> x ~= y"
+  by (erule subst, erule ssubst, assumption)
+
+ML_setup {*
+
+structure Trans_Tac = Trans_Tac_Fun (
+  struct
+    val less_reflE = thm "order_less_irrefl" RS thm "notE";
+    val le_refl = thm "order_refl";
+    val less_imp_le = thm "order_less_imp_le";
+    val not_lessI = thm "linorder_not_less" RS thm "iffD2";
+    val not_leI = thm "linorder_not_le" RS thm "iffD2";
+    val not_lessD = thm "linorder_not_less" RS thm "iffD1";
+    val not_leD = thm "linorder_not_le" RS thm "iffD1";
+    val eqI = thm "order_antisym";
+    val eqD1 = thm "order_eq_refl";
+    val eqD2 = thm "sym" RS thm "order_eq_refl";
+    val less_trans = thm "order_less_trans";
+    val less_le_trans = thm "order_less_le_trans";
+    val le_less_trans = thm "order_le_less_trans";
+    val le_trans = thm "order_trans";
+    val le_neq_trans = thm "order_le_neq_trans";
+    val neq_le_trans = thm "order_neq_le_trans";
+    val less_imp_neq = thm "less_imp_neq";
+    val eq_neq_eq_imp_neq = thm "eq_neq_eq_imp_neq";
+
+    fun decomp_gen sort sign (Trueprop $ t) =
+      let fun of_sort t = Sign.of_sort sign (type_of t, sort)
+      fun dec (Const ("Not", _) $ t) = (
+              case dec t of
+                None => None
+              | Some (t1, rel, t2) => Some (t1, "~" ^ rel, t2))
+            | dec (Const ("op =",  _) $ t1 $ t2) = 
+                if of_sort t1
+                then Some (t1, "=", t2)
+                else None
+            | dec (Const ("op <=",  _) $ t1 $ t2) = 
+                if of_sort t1
+                then Some (t1, "<=", t2)
+                else None
+            | dec (Const ("op <",  _) $ t1 $ t2) = 
+                if of_sort t1
+                then Some (t1, "<", t2)
+                else None
+            | dec _ = None
+      in dec t end;
+
+    val decomp_part = decomp_gen ["HOL.order"];
+    val decomp_lin = decomp_gen ["HOL.linorder"];
+
+  end);  (* struct *)
+
+Context.>> (fn thy => (simpset_ref_of thy :=
+  simpset_of thy
+    addSolver (mk_solver "Trans_linear" (fn _ => Trans_Tac.linear_tac))
+    addSolver (mk_solver "Trans_partial" (fn _ => Trans_Tac.partial_tac));
+  thy))
+*}
+
+(* Optional methods
+
+method_setup trans_partial =
+  {* Method.no_args (Method.SIMPLE_METHOD' HEADGOAL (trans_tac_partial)) *}
+  {* simple transitivity reasoner *}	    
+method_setup trans_linear =
+  {* Method.no_args (Method.SIMPLE_METHOD' HEADGOAL (trans_tac_linear)) *}
+  {* simple transitivity reasoner *}
+*)
+
 subsubsection "Bounded quantifiers"
 
 syntax

@@ -129,7 +129,7 @@ by (drule rtrancl_mono, simp)
 
 lemma rtrancl_subset: "R \<subseteq> S ==> S \<subseteq> R^* ==> S^* = R^*"
   apply (drule rtrancl_mono)
-  apply (drule rtrancl_mono, simp, blast)
+  apply (drule rtrancl_mono, simp)
   done
 
 lemma rtrancl_Un_rtrancl: "(R^* \<union> S^*)^* = (R \<union> S)^*"

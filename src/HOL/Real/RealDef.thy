@@ -467,7 +467,6 @@ lemma real_le_linear: "(z::real) \<le> w | w \<le> z"
 apply (rule eq_Abs_REAL [of z])
 apply (rule eq_Abs_REAL [of w]) 
 apply (auto simp add: real_le real_zero_def preal_add_ac preal_cancels)
-apply (cut_tac x="x+ya" and y="xa+y" in linorder_linear, auto) 
 done
 
 

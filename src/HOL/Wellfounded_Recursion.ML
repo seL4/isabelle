@@ -322,7 +322,6 @@ by (rtac classical 1);
 by (res_inst_tac [("s","x")] (Least_equality RS ssubst) 1);
 by Auto_tac;
 by (auto_tac (claset(), simpset() addsimps [linorder_not_less RS sym]));  
-by (blast_tac (claset() addIs [order_less_trans]) 1);
 bind_thm("wellorder_LeastI",   result() RS mp RS conjunct1);
 bind_thm("wellorder_Least_le", result() RS mp RS conjunct2);
 

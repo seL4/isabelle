@@ -471,7 +471,6 @@ lemma bin_minus_normal: "w \<in> normal ==> bin_minus w \<in> normal"
   apply (simp add: normal_Pls_eq_0)
   apply (simp only: number_of_minus zminus_0 iszero_def
                     minus_equation_iff [of _ "0"])
-  apply (simp add: eq_commute)
   done
 
 (*The previous command should have finished the proof but the lin-arith

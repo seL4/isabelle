@@ -521,7 +521,6 @@ apply (subst zless_int [symmetric])
 apply (simp add: order_le_less)
 apply (case_tac "w < 0")
  apply (simp add: order_less_imp_le)
- apply (blast intro: order_less_trans)
 apply (simp add: linorder_not_less)
 done
 

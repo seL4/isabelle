@@ -3429,7 +3429,7 @@ proof -
             by (cases s2) (simp add: abrupt_if_def)
           with brkAss_C1 s1_s2 s2_s3
           show ?thesis
-            by simp (blast intro: subset_trans)
+            by simp
         qed
         moreover from True nrmAss_C2 s2_s3
         have "nrm C2 \<subseteq> dom (locals (store s3))"
