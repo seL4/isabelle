@@ -29,7 +29,7 @@ FOL:
 	@cd $(SRC)/FOL; $(ISATOOL) make FOL
 
 $(OUT)/ZF: $(OUT)/FOL AC.thy Arith.thy ArithSimp.ML	\
-  ArithSimp.thy Bool.ML Bool.thy Cardinal.ML Cardinal.thy		\
+  ArithSimp.thy Bool.ML Bool.thy Cardinal.thy		\
   CardinalArith.thy Cardinal_AC.thy \
   Datatype.ML Datatype.thy Epsilon.thy Finite.thy	\
   Fixedpt.thy Inductive.ML Inductive.thy 	\
