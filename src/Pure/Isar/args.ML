@@ -57,8 +57,6 @@ sig
   val attribs: T list -> src list * T list
   val opt_attribs: T list -> src list * T list
   val syntax: string -> ('a * T list -> 'b * ('a * T list)) -> src -> 'a -> 'a * 'b
-  val list: (T list -> 'a * T list) -> T list -> 'a list * T list
-  val list1: (T list -> 'a * T list) -> T list -> 'a list * T list
 end;
 
 structure Args: ARGS =
