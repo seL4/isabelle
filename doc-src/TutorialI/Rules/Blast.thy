@@ -1,3 +1,4 @@
+(* ID:         $Id$ *)
 theory Blast = Main:
 
 lemma "((\<exists>x. \<forall>y. p(x)=p(y)) = ((\<exists>x. q(x))=(\<forall>y. p(y))))   =    

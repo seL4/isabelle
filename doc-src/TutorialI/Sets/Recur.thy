@@ -1,3 +1,4 @@
+(* ID:         $Id$ *)
 theory Recur = Main:
 
 ML "Pretty.setmargin 64"

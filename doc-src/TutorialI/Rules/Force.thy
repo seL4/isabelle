@@ -1,3 +1,4 @@
+(* ID:         $Id$ *)
 theory Force = Main:
 
 

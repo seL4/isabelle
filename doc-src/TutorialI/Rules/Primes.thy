@@ -1,3 +1,4 @@
+(* ID:         $Id$ *)
 (* EXTRACT from HOL/ex/Primes.thy*)
 
 theory Primes = Main:

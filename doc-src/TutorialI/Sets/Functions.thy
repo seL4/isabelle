@@ -1,3 +1,4 @@
+(* ID:         $Id$ *)
 theory Functions = Main:
 
 ML "Pretty.setmargin 64"

@@ -1,3 +1,4 @@
+(* ID:         $Id$ *)
 theory Basic = Main:
 
 lemma conj_rule: "\<lbrakk> P; Q \<rbrakk> \<Longrightarrow> P \<and> (Q \<and> P)"

@@ -1,3 +1,4 @@
+(* ID:         $Id$ *)
 theory Examples = Main:
 
 ML "reset eta_contract"

@@ -1,3 +1,4 @@
+(* ID:         $Id$ *)
 theory Relations = Main:
 
 ML "Pretty.setmargin 64"

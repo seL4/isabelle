@@ -1,3 +1,4 @@
+(* ID:         $Id$ *)
 theory Even = Main:
 
 text{*We begin with a simple example: the set of even numbers.  Obviously this
