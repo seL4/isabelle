@@ -43,17 +43,16 @@ Goal "|- VARS a b c. \
 \ c := 1; \
 \ WHILE b ~= 0 \
 \ INV {A^B = c * a^b} \
-\ DO  WHILE b mod 2 = 0 \
+\ DO  WHILE b mod #2 = 0 \
 \     INV {A^B = c * a^b} \
-\     DO  a := a*a; b := b div 2 OD; \
+\     DO  a := a*a; b := b div #2 OD; \
 \     c := c*a; b := b-1 \
 \ OD \
 \ {c = A^B}";
 by (hoare_tac (Asm_full_simp_tac) 1);
 by (case_tac "b" 1);
-by (hyp_subst_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [mod_less]) 1);
-by (asm_simp_tac (simpset() addsimps [mult_assoc]) 1);
+by (Asm_simp_tac 1);
 qed "power_by_mult";
 
 (** Factorial **)

@@ -11,7 +11,7 @@ by (rtac refl 1);
 qed "inst_NP_per";
 
 
-Goalw [half_def] "half = <[abs_NP(n,2*n)]>";
+Goalw [half_def] "half = <[abs_NP(n,#2*n)]>";
 by (rtac per_class_eqI 1);
 by (simp_tac (simpset() addsimps [inst_NP_per]) 1);
 qed "test";

@@ -19,7 +19,7 @@ qed "not_even_1";
 Addsimps [not_even_1];
 
 Goalw [even_def] "even (Suc (Suc n)) = even n";
-by (subgoal_tac "Suc (Suc n) = n+2" 1);
+by (subgoal_tac "Suc (Suc n) = n+#2" 1);
 by  (Simp_tac 2);
 be ssubst 1;
 br dvd_reduce 1;

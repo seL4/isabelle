@@ -6,7 +6,7 @@
 More arithmetic.  Much of this duplicates ex/Primes.
 *)
 
-Arith2 = Power +
+Arith2 = Main +
 
 constdefs
   cd      :: [nat, nat, nat] => bool
