@@ -58,31 +58,31 @@ CM1: --{*The sender approaches the recipient.  The message is a number.*}
                 Number cleartext, Nonce q, S2TTP|} # evs1 
        \<in> certified_mail"
 
-CM2: --{*The recipient records @{term S2TTP'} while transmitting it and her
+CM2: --{*The recipient records @{term S2TTP} while transmitting it and her
      password to @{term TTP} over an SSL channel.*}
 "[|evs2 \<in> certified_mail;
-   Gets R {|Agent S, Agent TTP, em', Number BothAuth, Number cleartext', 
-            Nonce q', S2TTP'|} \<in> set evs2;
+   Gets R {|Agent S, Agent TTP, em, Number BothAuth, Number cleartext, 
+            Nonce q, S2TTP|} \<in> set evs2;
    TTP \<noteq> R;  
-   hr = Hash {|Number cleartext', Nonce q', response S R q', em'|} |]
+   hr = Hash {|Number cleartext, Nonce q, response S R q, em|} |]
  ==> 
-  Notes TTP {|Agent R, Agent TTP, S2TTP', Key(RPwd R), hr|} # evs2
+  Notes TTP {|Agent R, Agent TTP, S2TTP, Key(RPwd R), hr|} # evs2
      \<in> certified_mail"
 
 CM3: --{*@{term TTP} simultaneously reveals the key to the recipient and gives
          a receipt to the sender.  The SSL channel does not authenticate 
-         the client (@{term R'}), but @{term TTP} accepts the message only 
-         if the given password is that of the claimed sender, @{term R'}.
+         the client (@{term R}), but @{term TTP} accepts the message only 
+         if the given password is that of the claimed sender, @{term R}.
          He replies over the established SSL channel.*}
  "[|evs3 \<in> certified_mail;
-    Notes TTP {|Agent R', Agent TTP, S2TTP'', Key(RPwd R'), hr'|} \<in> set evs3;
-    S2TTP'' = Crypt (pubEK TTP) 
-                     {|Agent S, Number BothAuth, Key k', Agent R', hs'|};
-    TTP \<noteq> R';  hs' = hr';  k' \<in> symKeys|]
+    Notes TTP {|Agent R, Agent TTP, S2TTP, Key(RPwd R), hr|} \<in> set evs3;
+    S2TTP = Crypt (pubEK TTP) 
+                     {|Agent S, Number BothAuth, Key k, Agent R, hs|};
+    TTP \<noteq> R;  hs = hr;  k \<in> symKeys|]
  ==> 
-  Notes R' {|Agent TTP, Agent R', Key k', hr'|} # 
-  Gets S (Crypt (priSK TTP) S2TTP'') # 
-  Says TTP S (Crypt (priSK TTP) S2TTP'') # evs3 \<in> certified_mail"
+  Notes R {|Agent TTP, Agent R, Key k, hr|} # 
+  Gets S (Crypt (priSK TTP) S2TTP) # 
+  Says TTP S (Crypt (priSK TTP) S2TTP) # evs3 \<in> certified_mail"
 
 Reception:
  "[|evsr \<in> certified_mail; Says A B X \<in> set evsr|]
