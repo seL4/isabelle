@@ -1,0 +1,84 @@
+(*  Title       : HyperNat.thy
+    Author      : Jacques D. Fleuriot
+    Copyright   : 1998  University of Cambridge
+    Description : Explicit construction of hypernaturals using 
+                  ultrafilters
+*) 
+
+HyperNat = Star + 
+
+constdefs
+    hypnatrel :: "((nat=>nat)*(nat=>nat)) set"
+    "hypnatrel == {p. ? X Y. p = ((X::nat=>nat),Y) & 
+                   {n::nat. X(n) = Y(n)}: FreeUltrafilterNat}"
+
+typedef hypnat = "{x::nat=>nat. True}//hypnatrel"              (Equiv.quotient_def)
+
+instance
+   hypnat  :: {ord,zero,plus,times,minus}
+
+consts
+  "1hn"       :: hypnat               ("1hn")  
+  "whn"       :: hypnat               ("whn")  
+
+defs
+
+  hypnat_zero_def      "0 == Abs_hypnat(hypnatrel^^{%n::nat. 0})"
+  hypnat_one_def       "1hn == Abs_hypnat(hypnatrel^^{%n::nat. 1})"
+
+  (* omega is in fact an infinite hypernatural number = [<1,2,3,...>] *)
+  hypnat_omega_def     "whn == Abs_hypnat(hypnatrel^^{%n::nat. n})"
+ 
+
+constdefs
+
+  (* embedding the naturals in the hypernaturals *)
+  hypnat_of_nat   :: nat => hypnat		  ("**# _" [80] 80)	 
+  "hypnat_of_nat m  == Abs_hypnat(hypnatrel^^{%n::nat. m})"
+
+  (* set of naturals embedded in the hypernaturals*)
+  SHNat         :: "hypnat set"
+  "SHNat        == {n. EX N. n = hypnat_of_nat N}"  
+ 
+  (* embedding the naturals in the hyperreals*)
+  SNat         :: "hypreal set"
+  "SNat        == {n. EX N. n = hypreal_of_nat N}"  
+
+  (* hypernaturals as members of the hyperreals; the set is defined as  *)
+  (* the nonstandard extension of set of naturals embedded in the reals *)
+  HNat         :: "hypreal set"
+  "HNat         == *s* {n. EX no. n = real_of_nat no}"
+
+  (* the set of infinite hypernatural numbers *)
+  HNatInfinite :: "hypnat set"
+  "HNatInfinite == {n. n ~: SHNat}"
+
+  (* explicit embedding of the hypernaturals in the hyperreals *)    
+  hypreal_of_hypnat :: hypnat => hypreal    ("&H# _" [80] 80)
+  "hypreal_of_hypnat N  == Abs_hypreal(UN X: Rep_hypnat(N). 
+                            hyprel^^{%n::nat. real_of_nat (X n)})"
+  
+defs
+  hypnat_add_def  
+  "P + Q == Abs_hypnat(UN X:Rep_hypnat(P). UN Y:Rep_hypnat(Q).
+                hypnatrel^^{%n::nat. X n + Y n})"
+
+  hypnat_mult_def  
+  "P * Q == Abs_hypnat(UN X:Rep_hypnat(P). UN Y:Rep_hypnat(Q).
+                hypnatrel^^{%n::nat. X n * Y n})"
+
+  hypnat_minus_def  
+  "P - Q == Abs_hypnat(UN X:Rep_hypnat(P). UN Y:Rep_hypnat(Q).
+                hypnatrel^^{%n::nat. X n - Y n})"
+
+  hypnat_less_def
+  "P < (Q::hypnat) == EX X Y. X: Rep_hypnat(P) & 
+                               Y: Rep_hypnat(Q) & 
+                               {n::nat. X n < Y n} : FreeUltrafilterNat"
+  hypnat_le_def
+  "P <= (Q::hypnat) == ~(Q < P)" 
+
+end
+
+
+
