@@ -47,10 +47,10 @@ fun inductive_decl co =
       let val big_rec_name = space_implode "_" (map (scan_to_id o trim) recs)
           and srec_tms = mk_list recs
           and sintrs   = mk_big_list (map snd ipairs)
-          val stri_name = big_rec_name ^ "_Intrnl"
+          val intrnl_name = big_rec_name ^ "_Intrnl"
       in
          (";\n\n\
-          \structure " ^ stri_name ^ " =\n\
+          \structure " ^ intrnl_name ^ " =\n\
           \  struct\n\
           \  val _ = writeln \"" ^ co ^
                      "Inductive definition " ^ big_rec_name ^ "\"\n\
@@ -60,15 +60,15 @@ fun inductive_decl co =
                            ^ sintrs ^ "\n\
           \  end;\n\n\
           \val thy = thy |> " ^ co ^ "Ind.add_fp_def_i \n    (" ^
-             stri_name ^ ".rec_tms, " ^
-             stri_name ^ ".intr_tms)"
+             intrnl_name ^ ".rec_tms, " ^
+             intrnl_name ^ ".intr_tms)"
          ,
           "structure " ^ big_rec_name ^ " =\n\
           \ let\n\
           \  val _ = writeln \"Proofs for " ^ co ^ 
                      "Inductive definition " ^ big_rec_name ^ "\"\n\
           \  structure Result = " ^ co ^ "Ind_section_Fun\n\
-          \\t  (open " ^ stri_name ^ "\n\
+          \\t  (open " ^ intrnl_name ^ "\n\
           \\t   val thy\t\t= thy\n\
           \\t   val monos\t\t= " ^ monos ^ "\n\
           \\t   val con_defs\t\t= " ^ con_defs ^ ");\n\n\
@@ -78,7 +78,7 @@ fun inductive_decl co =
           \  open Result\n\
           \  end\n\
           \ end;\n\n\
-          \structure " ^ stri_name ^ " = struct end;\n\n"
+          \structure " ^ intrnl_name ^ " = struct end;\n\n"
          )
       end
     val ipairs = "intrs" $$-- repeat1 (ident -- !! string)
@@ -114,7 +114,7 @@ local
     end;
 
   fun mk_rules tname cons pre = " map (get_axiom thy) " ^
-    mk_list (map (fn ((s, _), _) => quote (tname ^ pre ^ strip_quotes s)) cons);
+    mk_list (map (fn ((s,_), _) => quote (tname ^ pre ^ strip_quotes s)) cons);
 
   (*generate string for calling add_datatype and build_record*)
   fun mk_params ((ts, tname), cons) =
@@ -225,19 +225,25 @@ val primrec_decl =
 (** rec: interface to Slind's TFL **)
 
 
+(*fname: name of function being defined; rel: well-founded relation*)
 fun mk_rec_decl ((fname, rel), axms) =
   let val fid = trim fname
+      val intrnl_name = fid ^ "_Intrnl"
   in
 	 (";\n\n\
-          \structure " ^ fid ^ " =\n\
-          \  struct\n\
-          \  val _ = writeln \"Recursive function " ^ fid ^ "\"\n\
-          \  val {induct,eqns,thy,tcs} = Tfl.RfuncStringList " ^ 
-	                 rel ^ "\n" ^ mk_big_list axms ^ " thy;\n\
-          \  end;\n\n\
+          \val _ = writeln \"Recursive function " ^ fid ^ "\"\n\
+          \val (thy, pats_" ^ intrnl_name ^ ") = Tfl.define thy " ^ 
+	                 rel ^ "\n" ^ mk_big_list axms ^ ";\n\
           \val thy = thy"
          ,
-	 "")
+          "structure " ^ fid ^ " =\n\
+          \  struct\n\
+          \  val _ = writeln \"Proofs for recursive function " ^ fid ^ "\"\n\
+          \  val {rules, induct, tcs} = \n\
+          \    \t Tfl.simplify_defn(thy, (\"" ^ fid ^ 
+					  "\", pats_" ^ intrnl_name ^ "))\n\
+          \  end;\n\
+          \val pats_" ^ intrnl_name ^ " = ();\n")
   end;
 
 val rec_decl = (name -- string -- repeat1 string >> mk_rec_decl) ;
