@@ -176,7 +176,9 @@ if [ -f $ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM ]; then
 else
   $ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM_BASE
 fi
-
+RC=$?
 
 #Do not even think of 'rm -r'!!
 rmdir $ISABELLE_TMP
+
+exit $RC
