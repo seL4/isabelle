@@ -1,13 +1,11 @@
-(*  Title:      FOL/ex/nat.thy
+(*  Title:      FOL/ex/Nat.thy
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
-Examples for the manual "Introduction to Isabelle"
+Examples for the manuals.
 
 Theory of the natural numbers: Peano's axioms, primitive recursion
-
-INCOMPATIBLE with nat2.thy, Nipkow's example
 *)
 
 Nat = FOL +

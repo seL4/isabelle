@@ -1,13 +1,9 @@
-(*  Title:      FOL/ex/nat.ML
+(*  Title:      FOL/ex/Nat.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
-Examples for the manual "Introduction to Isabelle"
-
-Proofs about the natural numbers
-
-INCOMPATIBLE with nat2.ML, Nipkow's examples
+Proofs about the natural numbers.
 
 To generate similar output to manual, execute these commands:
     Pretty.setmargin 72; print_depth 0;
