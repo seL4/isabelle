@@ -68,7 +68,9 @@ sig
   val spec_opt_name: token list -> ((bstring * string) * Args.src list) * token list
   val xthm: token list -> (xstring * Args.src list) * token list
   val xthms1: token list -> (xstring * Args.src list) list * token list
+  val locale_target: token list -> xstring option * token list
   val locale_expr: token list -> Locale.expr * token list
+  val locale_keyword: token list -> string * token list
   val locale_element: token list -> Args.src Locale.element * token list
   val method: token list -> Method.text * token list
 end;
@@ -309,7 +311,9 @@ and expr0 x = (plus1 expr1 >> (fn [e] => e | es => Locale.Merge es)) x;
 
 in
 
+val locale_target = Scan.option (($$$ "(" -- $$$ "in") |-- !!! (xname --| $$$ ")"));
 val locale_expr = expr0;
+val locale_keyword = loc_keyword;
 
 val locale_element = group "locale element"
   ($$$ "fixes" |-- !!! (and_list1 (name -- Scan.option ($$$ "::" |-- typ) -- loc_mixfix
