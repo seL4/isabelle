@@ -518,8 +518,10 @@ fun rename_last_tac a sufs i =
       else all_tac
   end;
 
-(*Prunes all redundant parameters from the proof state by rewriting*)
-val prune_params_tac = rewrite_tac [triv_forall_equality];
+(*Prunes all redundant parameters from the proof state by rewriting.
+  DOES NOT rewrite main goal, where quantification over an unused bound
+    variable is sometimes done to avoid the need for cut_facts_tac.*)
+val prune_params_tac = rewrite_goals_tac [triv_forall_equality];
 
 (*rotate_tac n i: rotate the assumptions of subgoal i by n positions, from
   right to left if n is positive, and from left to right if n is negative.*)
