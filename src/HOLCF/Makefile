@@ -60,8 +60,10 @@ $(BIN)/HOLCF:	$(BIN)/HOL  $(FILES)
 $(BIN)/HOL:
 	cd ../HOL;  $(MAKE)
 
-EX_THYS =  ex/Fix2.thy ex/Hoare.thy \
-	   ex/Loop.thy	
+EX_THYS = ex/Classlib.thy ex/Witness.thy\
+	  ex/Dnat.thy ex/Dlist.thy ex/Stream.thy\
+	  ex/Dagstuhl.thy ex/Focus_ex.thy ex/Fix2.thy\
+	  ex/Hoare.thy ex/Loop.thy
 
 EX_FILES = ex/ROOT.ML ex/loeckx.ML $(EX_THYS) $(EX_THYS:.thy=.ML)
 
@@ -81,29 +83,29 @@ test:	ex/ROOT.ML  $(BIN)/HOLCF  $(EX_FILES)
 			\"$(COMP)\" is not poly or sml;;\
 	esac
 
-EXPLICIT_DOMAINS_THYS = explicit_domains/Coind.thy explicit_domains/Dlist.thy \
-			explicit_domains/Dnat2.thy explicit_domains/Stream.thy \
-			explicit_domains/Dagstuhl.thy explicit_domains/Dnat.thy\
-			explicit_domains/Focus_ex.thy explicit_domains/Stream2.thy
+#EXPLICIT_DOMAINS_THYS = explicit_domains/Dnat.thy explicit_domains/Dnat2.thy \
+#		explicit_domains/Dlist.thy \
+#		explicit_domains/Stream.thy explicit_domains/Stream2.thy
 
-EXPLICIT_DOMAINS_FILES = explicit_domains/ROOT.ML $(EXPLICIT_DOMAINS_THYS)\
-			 $(EXPLICIT_DOMAINS_THYS:.thy=.ML)
+#EXPLICIT_DOMAINS_FILES = explicit_domains/ROOT.ML $(EXPLICIT_DOMAINS_THYS)\
+#			 $(EXPLICIT_DOMAINS_THYS:.thy=.ML)
 
-test2:	explicit_domains/ROOT.ML  $(BIN)/HOLCF	$(EXPLICIT_DOMAINS_FILES) 
-	@case `basename "$(COMP)"` in \
-	poly*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
-		then echo 'make_html := true; exit_use_dir"explicit_domains";				  quit();' | $(COMP) $(BIN)/HOLCF;\
-		else echo 'exit_use_dir"explicit_domains"; quit();' \
-		       | $(COMP) $(BIN)/HOLCF;\
-		fi;;\
-	sml*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
-		then echo 'make_html := true; exit_use_dir"exlicit_domains";' \
-		       | $(BIN)/HOLCF;\
-		else echo 'exit_use_dir"explicit_domains";' | $(BIN)/HOLCF;\
-		fi;;\
-	*)	echo Bad value for ISABELLECOMP: \
-			\"$(COMP)\" is not poly or sml;;\
-	esac
+#test2:	explicit_domains/ROOT.ML  $(BIN)/HOLCF	$(EXPLICIT_DOMAINS_FILES) 
+#	@case `basename "$(COMP)"` in \
+#	poly*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+#		then echo 'make_html := true; exit_use_dir"explicit_domains";\
+#			  quit();' | $(COMP) $(BIN)/HOLCF;\
+#		else echo 'exit_use_dir"explicit_domains"; quit();' \
+#		       | $(COMP) $(BIN)/HOLCF;\
+#		fi;;\
+#	sml*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+#		then echo 'make_html := true; exit_use_dir"exlicit_domains";' \
+#		       | $(BIN)/HOLCF;\
+#		else echo 'exit_use_dir"explicit_domains";' | $(BIN)/HOLCF;\
+#		fi;;\
+#	*)	echo Bad value for ISABELLECOMP: \
+#			\"$(COMP)\" is not poly or sml;;\
+#	esac
 
 .PRECIOUS:  $(BIN)/HOL	$(BIN)/HOLCF 
 

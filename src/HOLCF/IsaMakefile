@@ -32,8 +32,10 @@ $(OUT)/HOL:
 
 ## Miscellaneous examples
 
-EX_THYS = ex/Fix2.thy ex/Hoare.thy \
-	  ex/Loop.thy
+EX_THYS = ex/Classlib.thy ex/Witness.thy\
+	  ex/Dnat.thy ex/Dlist.thy ex/Stream.thy\
+	  ex/Dagstuhl.thy ex/Focus_ex.thy ex/Fix2.thy\
+	  ex/Hoare.thy ex/Loop.thy
 
 EX_FILES = ex/ROOT.ML ex/loeckx.ML $(EX_THYS) $(EX_THYS:.thy=.ML)
 
@@ -42,17 +44,16 @@ test: ex/ROOT.ML $(OUT)/HOLCF $(EX_FILES)
 
 
 ## Explicit domains
+#
+#EXPLICIT_DOMAINS_THYS = explicit_domains/Dnat.thy explicit_domains/Dnat2.thy\
+#		 explicit_domains/Dlist.thy \
+#		 explicit_domains/Stream.thy explicit_domains/Stream2.thy
 
-EXPLICIT_DOMAINS_THYS = explicit_domains/Coind.thy explicit_domains/Dlist.thy \
-			explicit_domains/Dnat2.thy explicit_domains/Stream.thy \
-			explicit_domains/Dagstuhl.thy explicit_domains/Dnat.thy \
-			explicit_domains/Focus_ex.thy explicit_domains/Stream2.thy
-
-EXPLICIT_DOMAINS_FILES = explicit_domains/ROOT.ML $(EXPLICIT_DOMAINS_THYS) \
-			 $(EXPLICIT_DOMAINS_THYS:.thy=.ML)
-
-test2: explicit_domains/ROOT.ML $(OUT)/HOLCF $(EXPLICIT_DOMAINS_FILES)
-	@$(ISATOOL) testdir $(OUT)/HOLCF explicit_domains
+#EXPLICIT_DOMAINS_FILES = explicit_domains/ROOT.ML $(EXPLICIT_DOMAINS_THYS) \
+#			 $(EXPLICIT_DOMAINS_THYS:.thy=.ML)
+#
+#test2: explicit_domains/ROOT.ML $(OUT)/HOLCF $(EXPLICIT_DOMAINS_FILES)
+#	@$(ISATOOL) testdir $(OUT)/HOLCF explicit_domains
 
 
 .PRECIOUS: $(OUT)/HOL $(OUT)/HOLCF
