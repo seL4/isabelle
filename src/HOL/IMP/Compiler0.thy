@@ -215,7 +215,7 @@ text {*
   Second proof; statement is generalized to cater for prefixes and suffixes;
   needs none of the lifting lemmas, but instantiations of pre/suffix.
   *}
-
+(*
 theorem assumes A: "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c t"
 shows "\<And>a z. a@compile c@z \<turnstile> \<langle>s,size a\<rangle> -*\<rightarrow> \<langle>t,size a + size(compile c)\<rangle>"
       (is "\<And>a z. ?P c s t a z")
@@ -269,7 +269,7 @@ apply(rule converse_rtrancl_into_rtrancl)
  apply(force intro!: JMPB)
 apply(simp)
 done
-
+*)
 text {* Missing: the other direction! I did much of it, and although
 the main lemma is very similar to the one in the new development, the
 lemmas surrounding it seemed much more complicated. In the end I gave
