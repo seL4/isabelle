@@ -245,8 +245,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
         (cert (HOLogic.mk_Trueprop (mk_conj rec_unique_ts))) (K [tac]))
       end;
 
-    val rec_total_thms = map (fn r =>
-      r RS ex1_implies_ex RS (some_eq_ex RS iffD2)) rec_unique_thms;
+    val rec_total_thms = map (fn r => r RS theI') rec_unique_thms;
 
     (* define primrec combinators *)
 
@@ -265,7 +264,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
           (reccomb_names ~~ recTs ~~ rec_result_Ts)) |>
       (PureThy.add_defs_i false o map Thm.no_attributes) (map (fn ((((name, comb), set), T), T') =>
         ((Sign.base_name name) ^ "_def", Logic.mk_equals (comb, absfree ("x", T,
-           Const ("Eps", (T' --> HOLogic.boolT) --> T') $ absfree ("y", T',
+           Const ("The", (T' --> HOLogic.boolT) --> T') $ absfree ("y", T',
              HOLogic.mk_mem (HOLogic.mk_prod (Free ("x", T), Free ("y", T')), set))))))
                (reccomb_names ~~ reccombs ~~ rec_sets ~~ recTs ~~ rec_result_Ts)) |>>
       parent_path flat_names;
@@ -277,7 +276,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
 
     val rec_thms = map (fn t => prove_goalw_cterm reccomb_defs
       (cterm_of (Theory.sign_of thy2) t) (fn _ =>
-        [rtac some1_equality 1,
+        [rtac the1_equality 1,
          resolve_tac rec_unique_thms 1,
          resolve_tac rec_intrs 1,
          rewrite_goals_tac [o_def, fun_rel_comp_def],

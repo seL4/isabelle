@@ -29,12 +29,12 @@ open DatatypeAux;
 
 val (_ $ (_ $ (_ $ (distinct_f $ _) $ _))) = hd (prems_of distinct_lemma);
 
-(* figure out internal names *)
 
-val image_name = Sign.intern_const (Theory.sign_of Set.thy) "image";
-val UNIV_name = Sign.intern_const (Theory.sign_of Set.thy) "UNIV";
-val inj_on_name = Sign.intern_const (Theory.sign_of Fun.thy) "inj_on";
-val inv_name = Sign.intern_const (Theory.sign_of Fun.thy) "inv";
+(** theory context references **)
+
+val f_myinv_f = thm "f_myinv_f";
+val myinv_f_f = thm "myinv_f_f";
+
 
 fun exh_thm_of (dt_info : datatype_info Symtab.table) tname =
   #exhaustion (the (Symtab.lookup (dt_info, tname)));
@@ -287,7 +287,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 	    prove_goalw_cterm [] 
 	      (cterm_of sg
 	       (HOLogic.mk_Trueprop 
-		(Const (inj_on_name, [AbsT, UnivT] ---> HOLogic.boolT) $
+		(Const ("Fun.inj_on", [AbsT, UnivT] ---> HOLogic.boolT) $
 		 Const (Abs_name, AbsT) $ Const (rep_set_name, UnivT))))
               (fn _ => [rtac inj_on_inverseI 1, etac thm1 1]);
 
@@ -297,8 +297,8 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 	    prove_goalw_cterm []
 	      (cterm_of sg
 	       (HOLogic.mk_Trueprop
-		(Const (inj_on_name, [RepT, setT] ---> HOLogic.boolT) $
-		 Const (Rep_name, RepT) $ Const (UNIV_name, setT))))
+		(Const ("Fun.inj_on", [RepT, setT] ---> HOLogic.boolT) $
+		 Const (Rep_name, RepT) $ Const ("UNIV", setT))))
               (fn _ => [rtac inj_inverseI 1, rtac thm2 1])
 
       in (inj_Abs_thm, inj_Rep_thm) end;
@@ -419,8 +419,8 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         HOLogic.mk_mem (mk_Free "x" Univ_elT i, Const (set_name, UnivT)) $
           (if i < length newTs then Const ("True", HOLogic.boolT)
            else HOLogic.mk_mem (mk_Free "x" Univ_elT i,
-             Const (image_name, [isoT, HOLogic.mk_setT T] ---> UnivT) $
-               Const (iso_name, isoT) $ Const (UNIV_name, HOLogic.mk_setT T)))
+             Const ("image", [isoT, HOLogic.mk_setT T] ---> UnivT) $
+               Const (iso_name, isoT) $ Const ("UNIV", HOLogic.mk_setT T)))
       end;
 
     val iso_t = HOLogic.mk_Trueprop (mk_conj (map mk_iso_t
@@ -442,11 +442,6 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
                TRY (hyp_subst_tac 1),
                rtac (sym RS range_eqI) 1,
                resolve_tac iso_char_thms 1])])));
-
-    val Abs_inverse_thms' = (map #1 newT_iso_axms) @ map (fn r => r RS mp RS f_inv_f) iso_thms;
-
-    val Abs_inverse_thms = map (fn r => r RS subst) (Abs_inverse_thms' @
-      map mk_funs_inv Abs_inverse_thms');
 
     (* prove  inj dt_Rep_i  and  dt_Rep_i x : dt_rep_set_i *)
 
@@ -511,6 +506,14 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     val (iso_inj_thms, iso_elem_thms) = foldr prove_iso_thms
       (tl descr, (map snd newT_iso_inj_thms, map #3 newT_iso_axms));
+    val iso_inj_thms_unfolded = drop (length (hd descr), iso_inj_thms);
+
+    val Abs_inverse_thms' =
+      map #1 newT_iso_axms @
+      map2 (fn (r_inj, r) => f_myinv_f OF [r_inj, r RS mp]) (iso_inj_thms_unfolded, iso_thms);
+
+    val Abs_inverse_thms = map (fn r => r RS subst) (Abs_inverse_thms' @
+      map mk_funs_inv Abs_inverse_thms');
 
     (******************* freeness theorems for constructors *******************)
 
@@ -586,8 +589,8 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     val _ = message "Proving induction rule for datatypes ...";
 
     val Rep_inverse_thms = (map (fn (_, iso, _) => iso RS subst) newT_iso_axms) @
-      (map (fn r => r RS inv_f_f RS subst) (drop (length newTs, iso_inj_thms)));
-    val Rep_inverse_thms' = map (fn r => r RS inv_f_f)
+      (map (fn r => r RS myinv_f_f RS subst) (drop (length newTs, iso_inj_thms)));
+    val Rep_inverse_thms' = map (fn r => r RS myinv_f_f)
       (drop (length newTs, iso_inj_thms));
 
     fun mk_indrule_lemma ((prems, concls), ((i, _), T)) =
@@ -598,7 +601,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         val Abs_t = if i < length newTs then
             Const (Sign.intern_const (Theory.sign_of thy6)
               ("Abs_" ^ (nth_elem (i, new_type_names))), Univ_elT --> T)
-          else Const (inv_name, [T --> Univ_elT, Univ_elT] ---> T) $
+          else Const ("Inductive.myinv", [T --> Univ_elT, Univ_elT] ---> T) $
             Const (nth_elem (i, all_rep_names), T --> Univ_elT)
 
       in (prems @ [HOLogic.imp $ HOLogic.mk_mem (Rep_t,
