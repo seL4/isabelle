@@ -7,6 +7,7 @@ Gordon/HOL style type definitions.
 
 signature TYPEDEF_PACKAGE =
 sig
+  val quiet_mode: bool ref
   val add_typedecls: (bstring * string list * mixfix) list -> theory -> theory
   val prove_nonempty: cterm -> thm list -> tactic option -> thm
   val add_typedef: string -> bstring * string list * mixfix ->
@@ -38,6 +39,12 @@ fun add_typedecls decls thy =
 
 
 (** type definitions **)
+
+(* messages *)
+
+val quiet_mode = ref false;
+fun message s = if ! quiet_mode then () else writeln s;
+
 
 (* prove non-emptyness of a set *)   (*exception ERROR*)
 
@@ -123,7 +130,7 @@ fun gen_add_typedef prep_term no_def name (t, vs, mx) raw_set axms thms usr_tac 
     if null errs then ()
     else error (cat_lines errs);
 
-    writeln("Proving nonemptiness of " ^ quote name ^ " ...");
+    message ("Proving nonemptiness of " ^ quote name ^ " ...");
     prove_nonempty cset (map (get_axiom thy) axms @ thms) usr_tac;
 
     thy
