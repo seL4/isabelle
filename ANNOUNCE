@@ -2,12 +2,56 @@
 Subject: Announcing Isabelle99-1
 To: isabelle-users@cl.cam.ac.uk
 
-Isabelle99-1 is now available.
+Isabelle99-1 is now available.  This release continues the line of
+Isabelle99, introducing numerous improvements, both internal and user
+visible.
 
+In particular, great care has been taken to improve robustness and
+ease use and installation of the complete Isabelle working
+environment, including the Proof General user interface support, WWW
+presentation of theories and the Isabelle document preparation system.
 
-The most prominent highlights are:
+The most prominent highlights of Isabelle99-1 are as follows.
 
-  *
+  * Isabelle/Isar improvements (Markus Wenzel)
+      o Support of tactic-emulation scripts for easy porting of legacy ML
+        scripts (see also the HOL/Lambda example).
+      o Better support for scalable verification tasks (manage large
+        contexts in induction, generalized existence reasoning etc.)
+      o Hindley-Milner polymorphism for proof texts.
+      o More robust document preparation, better LaTeX output due to
+        fake math-mode.
+      o Extended "Isabelle/Isar Reference Manual"
+        http://isabelle.in.tum.de/doc/isar-ref.pdf
+
+  * HOL/MicroJava (Gerwin Klein, Tobias Nipkow, David von Oheimb, and
+    Cornelia Pusch)
+    Formalization of a fragment of Java, together with a corresponding
+    virtual machine and a specification of its bytecode verifier and a
+    lightweight bytecode verifier, including proofs of type-safety.
+
+  * HOL/Real (Jacques Fleuriot)
+    More on nonstandard real analysis.
+
+  * HOL/Algebra (Clemens Ballarin)
+    Rings and univariate polynomials.
+
+  * HOL/NumberTheory (Thomas Rasmussen)
+    Fundamental Theorem of Arithmetic, Chinese Remainder Theorem,
+    Fermat/Euler Theorem, Wilson's Theorem.
+
+  * HOL/Lambda (Stefan Berghofer and Tobias Nipkow)
+    More on termination of simply-typed lambda-terms; converted into
+    an Isabelle/Isar tactic emulation script.
+
+  * HOL/Lattice (Markus Wenzel)
+    Lattices and orders in Isabelle/Isar.
+
+  * HOL/Isar_examples (Markus Wenzel)
+    More examples, including a formulation of Hoare Logic in Isabelle/Isar.
+
+  * HOL/Prolog (David von Oheimb)
+    A (bare-bones) implementation of Lambda-Prolog.
 
 See the NEWS file distributed with Isabelle for more details.
 
@@ -16,5 +60,5 @@ You may get Isabelle99-1 from any of the following mirror sites:
 
   Cambridge (UK)    http://www.cl.cam.ac.uk/Research/HVG/Isabelle/dist/
   Munich (Germany)  http://isabelle.in.tum.de/dist/
-  New Jersey (USA)  ftp://ftp.research.bell-labs.com/dist/smlnj/isabelle/source.html
-  Stanford (USA)    ftp://rodin.stanford.edu/pub/smlnj/isabelle/source.html
+  New Jersey (USA)  ftp://ftp.research.bell-labs.com/dist/smlnj/isabelle/index.html
+  Stanford (USA)    ftp://rodin.stanford.edu/pub/smlnj/isabelle/index.html
