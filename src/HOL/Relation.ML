@@ -21,7 +21,7 @@ qed "IdE";
 Goalw [Id_def] "(a,b):Id = (a=b)";
 by (Blast_tac 1);
 qed "pair_in_Id_conv";
-Addsimps [pair_in_Id_conv];
+AddIffs [pair_in_Id_conv];
 
 Goalw [refl_def] "reflexive Id";
 by Auto_tac;

@@ -142,6 +142,17 @@ by (blast_tac (claset() addSIs [rtrancl_subset] addIs [r_into_rtrancl]) 1);
 qed "rtrancl_reflcl";
 Addsimps [rtrancl_reflcl];
 
+Goal "(r - Id)^* = r^*";
+br sym 1;
+br rtrancl_subset 1;
+ by (Blast_tac 1);
+by (Clarify_tac 1);
+by(rename_tac "a b" 1);
+by(case_tac "a=b" 1);
+ by (Blast_tac 1);
+by(blast_tac (claset() addSIs [r_into_rtrancl]) 1);
+qed "rtrancl_r_diff_Id";
+
 Goal "(x,y) : (r^-1)^* ==> (x,y) : (r^*)^-1";
 by (rtac converseI 1);
 by (etac rtrancl_induct 1);
@@ -347,10 +358,7 @@ qed "trancl_subset_Sigma";
 Goal "(r^+)^= = r^*";
 by Safe_tac;
 by  (etac trancl_into_rtrancl 1);
-by (etac rtranclE 1);
-by  (Auto_tac );
-by (etac rtrancl_into_trancl1 1);
-by (assume_tac 1);
+by (blast_tac (claset() addEs [rtranclE] addDs [rtrancl_into_trancl1]) 1);
 qed "reflcl_trancl";
 Addsimps[reflcl_trancl];
 
