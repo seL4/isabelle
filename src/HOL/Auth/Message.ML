@@ -202,6 +202,8 @@ by (fast_tac (!claset addSEs [parts_cut]
                       addIs  [parts_insertI]) 1);
 qed "parts_cut_eq";
 
+Addsimps [parts_cut_eq];
+
 
 (** Rewrite rules for pulling out atomic messages **)
 
