@@ -96,7 +96,7 @@ fun string s len {tx,nl,pos:int} =
 
 (*** Formatting ***)
 
-val margin      = ref 80        (*right margin, or page width*)
+val margin      = ref 76        (*right margin, or page width*)
 and breakgain   = ref 4         (*minimum added space required of a break*)
 and emergencypos = ref 40;      (*position too far to right*)
 
