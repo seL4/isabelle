@@ -35,7 +35,3 @@ forall_elim: Variable ?uu has two distinct types
 'b
 *** The exception above was raised for
 *** (!!uu uua. PROP P (uu, uua)) ==> PROP P xa
-
-- bug in HOL/Set tr':
-term "{x. EX a b c. x = f a b c & P x}"
-prints as: "{f a b c |a b c. P B.0}"
