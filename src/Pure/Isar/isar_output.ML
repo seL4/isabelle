@@ -20,11 +20,13 @@ sig
     (Args.src -> Proof.context -> 'a -> string) -> Args.src -> Toplevel.state -> string
   datatype markup = Markup | MarkupEnv | Verbatim
   val interest_level: int ref
+  val hide_commands: bool ref
+  val add_hidden_commands: string list -> unit
   val modes: string list ref
   val eval_antiquote: Scan.lexicon -> Toplevel.state -> string * Position.T -> string
   val parse_thy: (markup -> OuterLex.token list -> OuterLex.token * OuterLex.token list) ->
     Scan.lexicon -> Toplevel.transition list -> (OuterLex.token, 'a) Source.source ->
-      (Toplevel.transition * (Toplevel.state -> Buffer.T -> Buffer.T)) list * Buffer.T
+      (Toplevel.transition * (Toplevel.state -> Toplevel.state -> Buffer.T -> Buffer.T)) list * Buffer.T
   val output_with: (Proof.context -> 'a -> Pretty.T) -> Args.src ->
     Proof.context -> 'a -> string
 end;
@@ -183,10 +185,30 @@ fun eval_antiquote lex state (str, pos) =
 
 val interest_level = ref 0;
 
-fun present_tokens lex (flag, toks) state =
+val hide_commands = ref false;
+val hidden_commands = ref ([] : string list);
+
+fun add_hidden_commands cmds = (hidden_commands := !hidden_commands @ cmds);
+
+fun is_proof state = (case Toplevel.node_of state of
+  Toplevel.Theory _ => false | _ => true) handle Toplevel.UNDEF => false;
+
+fun is_newline (Latex.Basic tk, _) = T.is_newline tk
+  | is_newline _ = false;
+
+fun is_hidden (Latex.Basic tk, _) =
+      T.is_kind T.Command tk andalso T.val_of tk mem !hidden_commands
+  | is_hidden _ = false;
+
+fun present_tokens lex (flag, toks) state' state =
   Buffer.add (case flag of None => "" | Some b => Latex.flag_markup b) o
-   (toks
-    |> mapfilter (fn (tk, i) => if i > ! interest_level then None else Some tk)
+   ((if !hide_commands andalso exists (is_hidden o fst) toks then[]
+     else mapfilter (fn (tk, i) =>
+       if i > ! interest_level then None
+       else if !hide_commands andalso is_proof state' then
+         if not (is_proof state) andalso is_newline tk then Some tk
+         else None
+       else Some tk) toks)
     |> map (apsnd (eval_antiquote lex state))
     |> Latex.output_tokens
     |> Buffer.add);
