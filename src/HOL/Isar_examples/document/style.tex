@@ -2,10 +2,17 @@
 %% $Id$
 
 \documentclass[11pt,a4paper]{article}
-\usepackage{proof,isabelle,isabellesym,pdfsetup}
-\urlstyle{rm}
+\usepackage{ifthen,proof,isabelle,isabellesym}
+\usepackage{pdfsetup}\urlstyle{rm}
 
 \renewcommand{\isamarkupheader}[1]{\section{#1}}
+
+\renewcommand{\isacommand}[1]
+{\ifthenelse{\equal{sorry}{#1}}{$\;$\dummyproof}
+  {\ifthenelse{\equal{oops}{#1}}{$\vdots$}{\isakeyword{#1}}}}
+
+\newcommand{\DUMMYPROOF}{{\langle\idt{proof}\rangle}}
+\newcommand{\dummyproof}{$\DUMMYPROOF$}
 
 \newcommand{\name}[1]{\textsl{#1}}
 

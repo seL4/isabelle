@@ -10,7 +10,7 @@ header {* Milner's type inference algorithm~W (let-free version) *}
 theory W_correct = Main + Type:
 
 text_raw {*
-  \footnote{Based upon \url{http://isabelle.in.tum.de/library/HOL/W0}
+  \footnote{Based upon \url{http://isabelle.in.tum.de/library/HOL/W0/}
   by Dieter Nazareth and Tobias Nipkow.}
 *}
 
@@ -30,7 +30,7 @@ syntax
   "_has_type" :: "[typ list, expr, typ] => bool"
     ("((_) |-/ (_) :: (_))" [60, 0, 60] 60)
 translations
-  "a |- e :: t" == "(a,e,t) : has_type"
+  "a |- e :: t" == "(a, e, t) : has_type"
 
 inductive has_type
   intros [simp]

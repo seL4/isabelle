@@ -60,9 +60,8 @@ theorem sum_of_naturals:
   (is "?P n" is "?S n = _")
 proof (induct n)
   show "?P 0" by simp
-
-  fix n
-  have "?S (n + 1) = ?S n + 2 * (n + 1)" by simp
+next
+  fix n have "?S (n + 1) = ?S n + 2 * (n + 1)" by simp
   also assume "?S n = n * (n + 1)"
   also have "... + 2 * (n + 1) = (n + 1) * (n + 2)" by simp
   finally show "?P (Suc n)" by simp
@@ -116,9 +115,8 @@ theorem sum_of_odds:
   (is "?P n" is "?S n = _")
 proof (induct n)
   show "?P 0" by simp
-
-  fix n
-  have "?S (n + 1) = ?S n + 2 * n + 1" by simp
+next
+  fix n have "?S (n + 1) = ?S n + 2 * n + 1" by simp
   also assume "?S n = n^2"
   also have "... + 2 * n + 1 = (n + 1)^2" by simp
   finally show "?P (Suc n)" by simp
@@ -137,9 +135,8 @@ theorem sum_of_squares:
   (is "?P n" is "?S n = _")
 proof (induct n)
   show "?P 0" by simp
-
-  fix n
-  have "?S (n + 1) = ?S n + #6 * (n + 1)^2" by (simp add: distrib)
+next
+  fix n have "?S (n + 1) = ?S n + #6 * (n + 1)^2" by (simp add: distrib)
   also assume "?S n = n * (n + 1) * (2 * n + 1)"
   also have "... + #6 * (n + 1)^2 =
     (n + 1) * (n + 2) * (2 * (n + 1) + 1)" by (simp add: distrib)
@@ -151,9 +148,8 @@ theorem sum_of_cubes:
   (is "?P n" is "?S n = _")
 proof (induct n)
   show "?P 0" by (simp add: power_eq_if)
-
-  fix n
-  have "?S (n + 1) = ?S n + #4 * (n + 1)^#3"
+next
+  fix n have "?S (n + 1) = ?S n + #4 * (n + 1)^#3"
     by (simp add: power_eq_if distrib)
   also assume "?S n = (n * (n + 1))^2"
   also have "... + #4 * (n + 1)^#3 = ((n + 1) * ((n + 1) + 1))^2"
