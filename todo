@@ -1,7 +1,0 @@
-finish converting ZF to new-style theories
-add the SET protocol proofs to HOL/Auth
-add Quadratic Reciprocity
-complete the new formalization of Group theory
-
-add Presburger arithmetic (if possible until March)
-stop eta-contraction for binders
