@@ -68,7 +68,7 @@ by (blast_tac (claset() addIs prems) 2);
 by (REPEAT (eresolve_tac ([asm_rl,exE,disjE,conjE]@prems) 1));
 qed "rtranclE";
 
-bind_thm ("rtrancl_into_rtrancl2", r_into_rtrancl RS rtrancl_trans);
+bind_thm ("converse_rtrancl_into_rtrancl", r_into_rtrancl RS rtrancl_trans);
 
 (*** More r^* equations and inclusions ***)
 
@@ -167,7 +167,7 @@ bind_thm ("converse_rtranclE2", split_rule
 
 Goal "r O r^* = r^* O r";
 by (blast_tac (claset() addEs [rtranclE, converse_rtranclE] 
-	               addIs [rtrancl_into_rtrancl, rtrancl_into_rtrancl2]) 1);
+	               addIs [rtrancl_into_rtrancl, converse_rtrancl_into_rtrancl]) 1);
 qed "r_comp_rtrancl_eq";
 
 

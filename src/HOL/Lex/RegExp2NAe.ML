@@ -160,7 +160,7 @@ by (rtac iffI 1);
  by (etac rtrancl_induct 1);
   by (Blast_tac 1);
  by (blast_tac (claset() addIs [rtrancl_into_rtrancl]) 1);
-by (blast_tac (claset() addIs [rtrancl_into_rtrancl2]) 1);
+by (blast_tac (claset() addIs [converse_rtrancl_into_rtrancl]) 1);
 qed "unfold_rtrancl2";
 
 Goal
@@ -351,7 +351,7 @@ by (etac disjE 1);
 by (Clarify_tac 1);
 by (rtac (rtrancl_trans) 1);
 by (etac lemma2a 1);
-by (rtac (rtrancl_into_rtrancl2) 1);
+by (rtac converse_rtrancl_into_rtrancl 1);
 by (etac True_False_eps_concI 1);
 by (etac lemma2b 1);
 qed "True_epsclosure_conc";

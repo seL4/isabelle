@@ -198,8 +198,8 @@ apply (case_tac "(y,x) : r^*")
  apply (blast elim: converse_rtranclE dest: single_valuedD)
 apply (rule exI)
 apply (rule conjI)
- apply (blast intro: rtrancl_into_rtrancl2 dest: single_valuedD)
-apply (blast intro: rtrancl_into_rtrancl rtrancl_into_rtrancl2 
+ apply (blast intro: converse_rtrancl_into_rtrancl dest: single_valuedD)
+apply (blast intro: rtrancl_into_rtrancl converse_rtrancl_into_rtrancl 
              elim: converse_rtranclE dest: single_valuedD)
 done
 
@@ -210,7 +210,7 @@ apply (erule converse_rtrancl_induct)
  apply clarify
  apply (erule converse_rtrancl_induct)
   apply blast
- apply (blast intro: rtrancl_into_rtrancl2)
+ apply (blast intro: converse_rtrancl_into_rtrancl)
 apply (blast intro: extend_lub)
 done
 
@@ -246,7 +246,7 @@ apply(rename_tac x x')
 apply(subgoal_tac "r \<inter> {a. (x,a) \<in> r\<^sup>*} \<times> {b. (b,y) \<in> r\<^sup>*} =
                    insert (x,x') (r \<inter> {a. (x', a) \<in> r\<^sup>*} \<times> {b. (b, y) \<in> r\<^sup>*})")
  apply simp
-apply(blast intro:rtrancl_into_rtrancl2
+apply(blast intro:converse_rtrancl_into_rtrancl
             elim:converse_rtranclE dest:single_valuedD)
 done
 

@@ -178,7 +178,7 @@ apply(erule subcls1_induct)
 apply(  assumption)
 apply( fast)
 apply(auto dest!: wf_cdecl_supD)
-apply(erule (1) rtrancl_into_rtrancl2)
+apply(erule (1) converse_rtrancl_into_rtrancl)
 done
 
 lemma is_type_rTI: "wf_mhead G sig rT ==> is_type G rT"

@@ -97,9 +97,6 @@ lemma Not_Domain_rtrancl:
 
 (* more about converse rtrancl and trancl, should be merged with main body *)
 
-lemma converse_rtrancl_into_rtrancl: "(a,b) \<in> R \<Longrightarrow> (b,c) \<in> R^* \<Longrightarrow> (a,c) \<in> R^*"
-  by (erule rtrancl_induct) (fast intro: rtrancl_into_rtrancl)+
-
 lemma r_r_into_trancl: "(a,b) \<in> R \<Longrightarrow> (b,c) \<in> R \<Longrightarrow> (a,c) \<in> R^+"
   by (fast intro: trancl_trans)
 

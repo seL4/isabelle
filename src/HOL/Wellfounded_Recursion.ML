@@ -133,7 +133,7 @@ by (res_inst_tac [("x","{z. z:Q & (z,y) : r^*}")] allE 1);
  by (assume_tac 1);
 by (thin_tac "ALL Q. (EX x. x : Q) --> ?P Q" 1);	(*essential for speed*)
 (*Blast_tac with new substOccur fails*)
-by (best_tac (claset() addIs [rtrancl_into_rtrancl2]) 1);
+by (best_tac (claset() addIs [converse_rtrancl_into_rtrancl]) 1);
 qed "wf_insert";
 AddIffs [wf_insert];
 

@@ -501,12 +501,12 @@ apply fast
 apply (fast dest: rtrancl_imp_UN_rel_pow intro: semiI)
 
 -- IF 
-apply (fast intro: rtrancl_into_rtrancl2)
-apply (fast intro: rtrancl_into_rtrancl2)
+apply (fast intro: converse_rtrancl_into_rtrancl)
+apply (fast intro: converse_rtrancl_into_rtrancl)
 
 -- WHILE 
 apply fast
-apply (fast dest: rtrancl_imp_UN_rel_pow intro: rtrancl_into_rtrancl2 semiI)
+apply (fast dest: rtrancl_imp_UN_rel_pow intro: converse_rtrancl_into_rtrancl semiI)
 
 done
 
@@ -518,7 +518,7 @@ apply (induct_tac "n")
  apply fastsimp
 -- "induction step"
 apply (fast intro!: le_SucI le_refl dest!: rel_pow_Suc_D2 
-            elim!: rel_pow_imp_rtrancl rtrancl_into_rtrancl2)
+            elim!: rel_pow_imp_rtrancl converse_rtrancl_into_rtrancl)
 done
 
 lemma evalc1_impl_evalc [rule_format (no_asm)]: 
@@ -598,7 +598,7 @@ proof -
      apply fast 
     apply clarify
     apply (case_tac c)
-    apply (auto intro: rtrancl_into_rtrancl2)
+    apply (auto intro: converse_rtrancl_into_rtrancl)
     done
   moreover assume "\<langle>c1,s1\<rangle> \<longrightarrow>\<^sub>1\<^sup>* \<langle>s2\<rangle>" "\<langle>c2,s2\<rangle> \<longrightarrow>\<^sub>1\<^sup>* cs3"
   ultimately show "\<langle>c1;c2,s1\<rangle> \<longrightarrow>\<^sub>1\<^sup>* cs3" by simp
@@ -617,12 +617,12 @@ apply fast
 apply (fast intro: my_lemma1)
 
 -- IF
-apply (fast intro: rtrancl_into_rtrancl2)
-apply (fast intro: rtrancl_into_rtrancl2) 
+apply (fast intro: converse_rtrancl_into_rtrancl)
+apply (fast intro: converse_rtrancl_into_rtrancl) 
 
 -- WHILE 
 apply fast
-apply (fast intro: rtrancl_into_rtrancl2 my_lemma1)
+apply (fast intro: converse_rtrancl_into_rtrancl my_lemma1)
 
 done
 

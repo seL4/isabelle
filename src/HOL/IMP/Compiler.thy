@@ -135,7 +135,7 @@ lemma app1_left:
 subsection "Compiler correctness"
 
 declare rtrancl_into_rtrancl[trans]
-        rtrancl_into_rtrancl2[trans]
+        converse_rtrancl_into_rtrancl[trans]
         rtrancl_trans[trans]
 
 text {*
@@ -232,7 +232,7 @@ apply(erule evalc.induct)
    apply(erule_tac x = "a@[?I]" in allE)
    apply(simp)
    (* execute JMPF: *)
-   apply(rule rtrancl_into_rtrancl2)
+   apply(rule converse_rtrancl_into_rtrancl)
     apply(force intro!: JMPFT)
    (* execute compile c0: *)
    apply(rule rtrancl_trans)
@@ -245,7 +245,7 @@ apply(erule evalc.induct)
   apply(intro strip)
   apply(erule_tac x = "a@[?I]@compile c0@[?J]" in allE)
   apply(simp add:add_assoc)
-  apply(rule rtrancl_into_rtrancl2)
+  apply(rule converse_rtrancl_into_rtrancl)
    apply(force intro!: JMPFF)
   apply(blast)
  apply(force intro: JMPFF)
@@ -253,12 +253,12 @@ apply(intro strip)
 apply(erule_tac x = "a@[?I]" in allE)
 apply(erule_tac x = a in allE)
 apply(simp)
-apply(rule rtrancl_into_rtrancl2)
+apply(rule converse_rtrancl_into_rtrancl)
  apply(force intro!: JMPFT)
 apply(rule rtrancl_trans)
  apply(erule allE)
  apply assumption
-apply(rule rtrancl_into_rtrancl2)
+apply(rule converse_rtrancl_into_rtrancl)
  apply(force intro!: JMPB)
 apply(simp)
 done
