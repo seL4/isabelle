@@ -151,7 +151,7 @@ lemma (in normed_vectorspace) fn_norm_ub [iff?]:
   shows "b \<le> \<parallel>f\<parallel>\<hyphen>V"
 proof -
   have "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
-    by (unfold B_def fn_norm_def) (rule fn_norm_works)
+    by (unfold B_def fn_norm_def) (rule fn_norm_works [OF _ continuous.intro])
   from this and b show ?thesis ..
 qed
 
@@ -161,7 +161,7 @@ lemma (in normed_vectorspace) fn_norm_leastB:
   shows "\<parallel>f\<parallel>\<hyphen>V \<le> y"
 proof -
   have "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
-    by (unfold B_def fn_norm_def) (rule fn_norm_works)
+    by (unfold B_def fn_norm_def) (rule fn_norm_works [OF _ continuous.intro])
   from this and b show ?thesis ..
 qed
 
@@ -175,7 +175,7 @@ proof -
     So it is @{text "\<ge> 0"} if all elements in @{text B} are @{text "\<ge>
     0"}, provided the supremum exists and @{text B} is not empty. *}
   have "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
-    by (unfold B_def fn_norm_def) (rule fn_norm_works)
+    by (unfold B_def fn_norm_def) (rule fn_norm_works [OF _ continuous.intro])
   moreover have "0 \<in> B V f" ..
   ultimately show ?thesis ..
 qed
@@ -198,7 +198,9 @@ proof cases
   also have "\<bar>\<dots>\<bar> = 0" by simp
   also have "\<dots> \<le> \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>"
   proof (rule real_le_mult_order1a)
-    show "0 \<le> \<parallel>f\<parallel>\<hyphen>V" by (unfold B_def fn_norm_def) rule
+    show "0 \<le> \<parallel>f\<parallel>\<hyphen>V"
+      by (unfold B_def fn_norm_def)
+        (rule fn_norm_ge_zero [OF _ continuous.intro])
     show "0 \<le> norm x" ..
   qed
   finally show "\<bar>f x\<bar> \<le> \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>" .
@@ -212,7 +214,7 @@ next
     from x and neq have "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<in> B V f"
       by (auto simp add: B_def real_divide_def)
     then show "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<le> \<parallel>f\<parallel>\<hyphen>V"
-      by (unfold B_def fn_norm_def) (rule fn_norm_ub)
+      by (unfold B_def fn_norm_def) (rule fn_norm_ub [OF _ continuous.intro])
   qed
   finally show ?thesis .
 qed
@@ -254,6 +256,6 @@ proof (rule fn_norm_leastB [folded B_def fn_norm_def])
     qed
     finally show ?thesis .
   qed
-qed
+qed (simp_all! add: continuous_def)
 
 end
