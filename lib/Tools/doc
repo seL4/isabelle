@@ -34,13 +34,15 @@ DOC=""
 
 ## main
 
+DOCS=$(echo $ISABELLE_DOCS | tr : " ")
+
 if [ -z "$DOC" ]; then
-  for DIR in $ISABELLE_DOCS
+  for DIR in $DOCS
   do
     [ -f $DIR/Contents ] && cat $DIR/Contents
   done
 else
-  for DIR in $ISABELLE_DOCS
+  for DIR in $DOCS
   do
     [ -f $DIR/$DOC.dvi ] && { cd $DIR; exec $DVI_VIEWER $DOC.dvi; }
   done
