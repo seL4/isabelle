@@ -330,8 +330,9 @@ about large specifications.
   
   The $stripped$ option causes implications and (bounded) universal
   quantifiers to be removed from each new subgoal emerging from the
-  application of the induction rule.  This accommodates typical
-  ``strengthening of induction'' predicates.
+  application of the induction rule.  This accommodates special applications
+  of ``strengthened induction predicates''.  This option is rarely needed, the
+  $induct$ method already handles proper rules appropriately by default.
   
   The $open$ option has the same effect as for the $cases$ method, see above.
 \end{descr}
@@ -348,6 +349,23 @@ variables.
 
 The $\isarkeyword{print_cases}$ command (\S\ref{sec:cases}) prints all named
 cases present in the current proof state.
+
+\medskip
+
+It is important to note that there is a fundamental difference of the $cases$
+and $induct$ methods in handling of non-atomic goal statements: $cases$ just
+applies a certain rule in backward fashion, splitting the result into new
+goals with the local contexts being augmented in a purely monotonic manner.
+
+In contrast, $induct$ passes the full goal statement through the ``recursive''
+course involved in the induction.  Thus the original statement is basically
+replaced by separate copies, corresponding to the induction hypotheses and
+conclusion; the original goal context is no longer available.  This behavior
+allows \emph{strengthened induction predicates} to be expressed concisely as
+meta-level rule statements, i.e.\ $\All{\vec x} \vec\phi \Imp \psi$ to
+indicate ``variable'' parameters $\vec x$ and ``recursive'' assumptions
+$\vec\phi$.  Also note that local definitions may be expressed as $\All{\vec
+  x} n \equiv t[\vec x] \Imp \phi[n]$, with induction over $n$.
 
 
 \subsection{Declaring rules}
