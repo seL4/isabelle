@@ -19,9 +19,11 @@ use "../Provers/splitter.ML";
 use "../Provers/ind.ML";
 use "../Provers/hypsubst.ML";
 use "../Provers/classical.ML";
+use "../Provers/blast.ML";
 
 use_thy "IFOL";
 
+(** Applying HypsubstFun to generate hyp_subst_tac **)
 structure Hypsubst_Data =
   struct
   structure Simplifier = Simplifier
