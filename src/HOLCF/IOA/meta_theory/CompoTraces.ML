@@ -65,7 +65,7 @@ goal thy "!!x.[|x:act A;x~:act B|]  \
 \         (Takewhile (%a.a:int A)`schA) \
 \         @@ (x>>(mksch A B`tr`(TL`(Dropwhile (%a.a:int A)`schA)) \
 \                             `schB))";
-br trans 1;
+by (rtac trans 1);
 by (stac mksch_unfold 1);
 by (asm_full_simp_tac (!simpset addsimps [Cons_def,If_and_if]) 1);
 by (simp_tac (!simpset addsimps [Cons_def]) 1);
@@ -76,7 +76,7 @@ goal thy "!!x.[|x~:act A;x:act B|] \
 \        (Takewhile (%a.a:int B)`schB)  \
 \         @@ (x>>(mksch A B`tr`schA`(TL`(Dropwhile (%a.a:int B)`schB))  \
 \                            ))";
-br trans 1;
+by (rtac trans 1);
 by (stac mksch_unfold 1);
 by (asm_full_simp_tac (!simpset addsimps [Cons_def,If_and_if]) 1);
 by (simp_tac (!simpset addsimps [Cons_def]) 1);
@@ -89,7 +89,7 @@ goal thy "!!x.[|x:act A;x:act B|] \
 \         @@ (x>>(mksch A B`tr`(TL`(Dropwhile (%a.a:int A)`schA)) \
 \                            `(TL`(Dropwhile (%a.a:int B)`schB))))  \
 \             )";
-br trans 1;
+by (rtac trans 1);
 by (stac mksch_unfold 1);
 by (asm_full_simp_tac (!simpset addsimps [Cons_def,If_and_if]) 1);
 by (simp_tac (!simpset addsimps [Cons_def]) 1);
@@ -136,13 +136,13 @@ qed"compatibility_consequence2";
 (* Lemma for substitution of looping assumption in another specific assumption *) 
 val [p1,p2] = goal thy "[| f << (g x) ; x=(h x) |] ==> f << g (h x)";
 by (cut_facts_tac [p1] 1);
-be (p2 RS subst) 1;
+by (etac (p2 RS subst) 1);
 qed"subst_lemma1";
 
 (* Lemma for substitution of looping assumption in another specific assumption *) 
 val [p1,p2] = goal thy "[| (f x) = y >> g; x=(h x) |] ==> (f (h x)) = y >> g";
 by (cut_facts_tac [p1] 1);
-be (p2 RS subst) 1;
+by (etac (p2 RS subst) 1);
 qed"subst_lemma2";
 
 
@@ -156,21 +156,21 @@ by (case_tac "a:act A" 1);
 by (case_tac "a:act B" 1);
 (* a:A, a:B *)
 by (Asm_full_simp_tac 1);
-br (Forall_Conc_impl RS mp) 1;
+by (rtac (Forall_Conc_impl RS mp) 1);
 by (asm_full_simp_tac (!simpset addsimps [ForallPTakewhileQ,intA_is_not_actB,int_is_act]) 1);
-br (Forall_Conc_impl RS mp) 1;
+by (rtac (Forall_Conc_impl RS mp) 1);
 by (asm_full_simp_tac (!simpset addsimps [ForallPTakewhileQ,intA_is_not_actB,int_is_act]) 1);
 (* a:A,a~:B *)
 by (Asm_full_simp_tac 1);
-br (Forall_Conc_impl RS mp) 1;
+by (rtac (Forall_Conc_impl RS mp) 1);
 by (asm_full_simp_tac (!simpset addsimps [ForallPTakewhileQ,intA_is_not_actB,int_is_act]) 1);
 by (case_tac "a:act B" 1);
 (* a~:A, a:B *)
 by (Asm_full_simp_tac 1);
-br (Forall_Conc_impl RS mp) 1;
+by (rtac (Forall_Conc_impl RS mp) 1);
 by (asm_full_simp_tac (!simpset addsimps [ForallPTakewhileQ,intA_is_not_actB,int_is_act]) 1);
 (* a~:A,a~:B *)
-auto();
+by (Auto_tac());
 qed"ForallAorB_mksch1";
 
 bind_thm ("ForallAorB_mksch",ForallAorB_mksch1 RS spec RS spec RS mp);
@@ -181,7 +181,7 @@ goal thy "!!A B. compatible B A  ==> \
 
 by (Seq_induct_tac "tr" [Forall_def,sforall_def,mksch_def] 1);
 by (safe_tac set_cs);
-br (Forall_Conc_impl RS mp) 1;
+by (rtac (Forall_Conc_impl RS mp) 1);
 by (asm_full_simp_tac (!simpset addsimps [ForallPTakewhileQ,
                             intA_is_not_actB,int_is_act]) 1);
 qed"ForallBnA_mksch";
@@ -196,7 +196,7 @@ goal thy "!!A B. compatible A B ==> \
 by (Seq_induct_tac "tr" [Forall_def,sforall_def,mksch_def] 1);
 by (safe_tac set_cs);
 by (Asm_full_simp_tac 1);
-br (Forall_Conc_impl RS mp) 1;
+by (rtac (Forall_Conc_impl RS mp) 1);
 by (asm_full_simp_tac (!simpset addsimps [ForallPTakewhileQ,
                        intA_is_not_actB,int_is_act]) 1);
 qed"ForallAnB_mksch";
@@ -214,7 +214,7 @@ goal thy "!! tr. [| Finite tr; is_asig(asig_of A); is_asig(asig_of B) |] ==> \
 \          Forall (%x. x:ext (A||B)) tr \
 \          --> Finite (mksch A B`tr`x`y)";
 
-be Seq_Finite_ind  1;
+by (etac Seq_Finite_ind  1);
 by (Asm_full_simp_tac 1);
 (* main case *)
 by (asm_full_simp_tac (!simpset setloop split_tac [expand_if]) 1);
@@ -231,10 +231,10 @@ by (asm_full_simp_tac (!simpset addsimps
 (* now for conclusion IH applicable, but assumptions have to be transformed *)
 by (dres_inst_tac [("x","x"),
                    ("g","Filter (%a. a:act A)`s")] subst_lemma2 1);
-ba 1;
+by (assume_tac 1);
 by (dres_inst_tac [("x","y"),
                    ("g","Filter (%a. a:act B)`s")] subst_lemma2 1);
-ba 1;
+by (assume_tac 1);
 (* IH *)
 by (asm_full_simp_tac (!simpset addsimps [not_ext_is_int_or_not_act,
                    FilterPTakewhileQnil,ForallTL,ForallDropwhile]) 1);
@@ -249,7 +249,7 @@ by (asm_full_simp_tac (!simpset addsimps
 (* now for conclusion IH applicable, but assumptions have to be transformed *)
 by (dres_inst_tac [("x","y"),
                    ("g","Filter (%a. a:act B)`s")] subst_lemma2 1);
-ba 1;
+by (assume_tac 1);
 (* IH *)
 by (asm_full_simp_tac (!simpset addsimps [not_ext_is_int_or_not_act,
                    FilterPTakewhileQnil,ForallTL,ForallDropwhile]) 1);
@@ -264,7 +264,7 @@ by (asm_full_simp_tac (!simpset addsimps
 (* now for conclusion IH applicable, but assumptions have to be transformed *)
 by (dres_inst_tac [("x","x"),
                    ("g","Filter (%a. a:act A)`s")] subst_lemma2 1);
-ba 1;
+by (assume_tac 1);
 (* IH *)
 by (asm_full_simp_tac (!simpset addsimps [not_ext_is_int_or_not_act,
                    FilterPTakewhileQnil,ForallTL,ForallDropwhile]) 1);
@@ -290,7 +290,7 @@ goal thy " !!bs. [| Finite bs; is_asig(asig_of A); is_asig(asig_of B);compatible
 \                   Finite y1 & y = (y1 @@ y2) & \
 \                   Filter (%a. a:ext B)`y1 = bs)";
 by (forw_inst_tac [("A2","A")] (compat_commute RS iffD1) 1);
-be Seq_Finite_ind  1;
+by (etac Seq_Finite_ind  1);
 by (REPEAT (rtac allI 1));
 by (rtac impI 1);
 by (res_inst_tac [("x","nil")] exI 1);
@@ -308,7 +308,7 @@ by (REPEAT (etac conjE 1));
 (* transform assumption f eB y = f B (s@z) *)
 by (dres_inst_tac [("x","y"),
                    ("g","Filter (%a. a:act B)`(s@@z)")] subst_lemma2 1);
-ba 1;
+by (assume_tac 1);
 Addsimps [FilterConc]; 
 by (asm_full_simp_tac (!simpset addsimps [FilterPTakewhileQnil,not_ext_is_int_or_not_act]) 1);
 (* apply IH *)
@@ -345,7 +345,7 @@ goal thy " !!as. [| Finite as; is_asig(asig_of A); is_asig(asig_of B);compatible
 \                   Finite x1 & x = (x1 @@ x2) & \
 \                   Filter (%a. a:ext A)`x1 = as)";
 by (forw_inst_tac [("A2","A")] (compat_commute RS iffD1) 1);
-be Seq_Finite_ind  1;
+by (etac Seq_Finite_ind  1);
 by (REPEAT (rtac allI 1));
 by (rtac impI 1);
 by (res_inst_tac [("x","nil")] exI 1);
@@ -363,7 +363,7 @@ by (REPEAT (etac conjE 1));
 (* transform assumption f eA x = f A (s@z) *)
 by (dres_inst_tac [("x","x"),
                    ("g","Filter (%a. a:act A)`(s@@z)")] subst_lemma2 1);
-ba 1;
+by (assume_tac 1);
 Addsimps [FilterConc]; 
 by (asm_full_simp_tac (!simpset addsimps [FilterPTakewhileQnil,not_ext_is_int_or_not_act]) 1);
 (* apply IH *)
@@ -394,13 +394,13 @@ bind_thm("reduceB_mksch",conjI RSN (6,conjI RSN (5,reduceB_mksch1 RS spec RS mp)
 goal thy "!! y.Finite y ==> ! z tr. Forall (%a.a:ext (A||B)) tr & \
 \                             y = z @@ mksch A B`tr`a`b\
 \                             --> Finite tr";
-be Seq_Finite_ind  1;
-auto();
+by (etac Seq_Finite_ind  1);
+by (Auto_tac());
 by (Seq_case_simp_tac "tr" 1);
 (* tr = UU *)
 by (asm_full_simp_tac (!simpset addsimps [nil_is_Conc]) 1);
 (* tr = nil *)
-auto();
+by (Auto_tac());
 (* tr = Conc *)
 ren "s ss" 1;
 
@@ -419,7 +419,7 @@ by (fast_tac (!claset addSIs [ext_is_act]
 by (Seq_case_simp_tac "tr" 1);
 (* tr = UU *)
 by (asm_full_simp_tac (!simpset addsimps [Conc_Conc_eq]) 1);
-auto();
+by (Auto_tac());
 (* tr = nil ok *)
 (* tr = Conc *)
 by (Seq_case_simp_tac "z" 1);
@@ -452,19 +452,19 @@ by (asm_full_simp_tac (!simpset addsimps [Conc_Conc_eq]) 1);
 
 goal thy "(x>>xs = y @@ z) = ((y=nil & x>>xs=z) | (? ys. y=x>>ys & xs=ys@@z))";
 by (Seq_case_simp_tac "y" 1);
-auto();
+by (Auto_tac());
 qed"Conc_Conc_eq";
 
 goal thy "!! (y::'a Seq).Finite y ==> ~ y= x@@UU";
-be Seq_Finite_ind 1;
+by (etac Seq_Finite_ind 1);
 by (Seq_case_simp_tac "x" 1);
 by (Seq_case_simp_tac "x" 1);
-auto();
+by (Auto_tac());
 qed"FiniteConcUU1";
 
 goal thy "~ Finite ((x::'a Seq)@@UU)";
-br (FiniteConcUU1 COMP rev_contrapos) 1;
-auto();
+by (rtac (FiniteConcUU1 COMP rev_contrapos) 1);
+by (Auto_tac());
 qed"FiniteConcUU";
 
 finiteR_mksch
@@ -505,9 +505,9 @@ by (asm_full_simp_tac (!simpset addsimps
            externals_of_par, intA_is_not_extB,int_is_not_ext]) 1);
 (* conclusion of IH ok, but assumptions of IH have to be transformed *)
 by (dres_inst_tac [("x","schA")] subst_lemma1 1);
-ba 1;
+by (assume_tac 1);
 by (dres_inst_tac [("x","schB")] subst_lemma1 1);
-ba 1;
+by (assume_tac 1);
 (* IH *)
 by (asm_full_simp_tac (!simpset addsimps [not_ext_is_int_or_not_act,
                    FilterPTakewhileQnil,ForallTL,ForallDropwhile]) 1);
@@ -521,7 +521,7 @@ by (asm_full_simp_tac (!simpset addsimps
            externals_of_par, intA_is_not_extB,int_is_not_ext]) 1);
 by (dres_inst_tac [("x","schB")] subst_lemma1 1);
 back();
-ba 1;
+by (assume_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [not_ext_is_int_or_not_act,
                     FilterPTakewhileQnil,ForallTL,ForallDropwhile]) 1);
 (* Case a:A, a~:B *)
@@ -533,7 +533,7 @@ by (asm_full_simp_tac (!simpset addsimps
           [FilterPTakewhileQnil,not_ext_is_int_or_not_act,
            externals_of_par, intA_is_not_extB,int_is_not_ext]) 1);
 by (dres_inst_tac [("x","schA")] subst_lemma1 1);
-ba 1;
+by (assume_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [not_ext_is_int_or_not_act,
                     FilterPTakewhileQnil,ForallTL,ForallDropwhile]) 1);
 (* Case a~:A, a~:B *)
@@ -614,8 +614,8 @@ by (Asm_full_simp_tac  1);
 (* eliminate the B-only prefix *)
 
 by (subgoal_tac "(Filter (%a.a :act A)`y1) = nil" 1);
-be ForallQFilterPnil 2;
-ba 2;
+by (etac ForallQFilterPnil 2);
+by (assume_tac 2);
 by (Fast_tac 2);
 
 (* Now real recursive step follows (in y) *)
@@ -630,8 +630,8 @@ by (subgoal_tac "Filter (%a. a:act A & a:ext B)`y1=nil" 1);
 by (rotate_tac ~1 1);
 by (Asm_full_simp_tac  1);
 (* eliminate introduced subgoal 2 *)
-be ForallQFilterPnil 2;
-ba 2;
+by (etac ForallQFilterPnil 2);
+by (assume_tac 2);
 by (Fast_tac 2);
  
 (* bring in divide Seq for s *)
@@ -643,15 +643,15 @@ by (res_inst_tac [("t","schA")] ssubst 1);
 back();
 back();
 back();
-ba 1;
+by (assume_tac 1);
 
 (* reduce trace_takes from n to strictly smaller k *)
-br take_reduction 1;
+by (rtac take_reduction 1);
 
 (* f A (tw iA) = tw ~eA *)
 by (asm_full_simp_tac (!simpset addsimps [FilterPTakewhileQid,int_is_act,
                               not_ext_is_int_or_not_act]) 1);
-br refl 1;
+by (rtac refl 1);
 
 (* now conclusion fulfills induction hypothesis, but assumptions are not ready *)
 (*
@@ -665,12 +665,12 @@ by (asm_full_simp_tac (!simpset addsimps [ext_and_act]) 1);
 (* assumption schA *)
 by (dres_inst_tac [("x","schA"),
                    ("g","Filter (%a. a:act A)`s2")] subst_lemma2 1);
-ba 1;
+by (assume_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [FilterPTakewhileQnil]) 1);
 (* assumptions concerning LastActExtsch, cannot be rewritten, as LastActExtsmalli are looping  *)
 by (dres_inst_tac [("sch","schA"),("P","%a. a:int A")] LastActExtsmall1 1);
 by (dres_inst_tac [("sch1.0","y1")]  LastActExtsmall2 1);
-ba 1;
+by (assume_tac 1);
 
 FIX: problem: schA and schB are not quantified in the new take lemma version !!!
 
@@ -699,15 +699,15 @@ goal thy "!! A B. [| compatible A B; compatible B A; \
 \ --> Filter (%a.a:act A)`(mksch A B`tr`schA`schB) = schA";
 
 by (strip_tac 1);
-br seq.take_lemma 1;
-br mp 1;
-ba 2;
+by (rtac seq.take_lemma 1);
+by (rtac mp 1);
+by (assume_tac 2);
 back();back();back();back();
 by (res_inst_tac [("x","schA")] spec 1);
 by (res_inst_tac [("x","schB")] spec 1);
 by (res_inst_tac [("x","tr")] spec 1);
 by (thin_tac' 5 1);
-br less_induct 1;
+by (rtac less_induct 1);
 by (REPEAT (rtac allI 1));
 ren "tr schB schA" 1;
 by (strip_tac 1);
@@ -715,7 +715,7 @@ by (REPEAT (etac conjE 1));
 
 by (case_tac "Forall (%x. x:act B & x~:act A) tr" 1);
 
-br (seq_take_lemma RS iffD2 RS spec) 1;
+by (rtac (seq_take_lemma RS iffD2 RS spec) 1);
 by (thin_tac' 5 1);
 
 
@@ -731,7 +731,7 @@ by (SELECT_GOAL (auto_tac (!claset addSIs [ForallQFilterPnil,ForallBnAmksch,Fini
 by (eres_inst_tac [("A","A")] LastActExtimplnil 1);
 by (Asm_simp_tac 1);
 by (eres_inst_tac [("Q","%x.x:act B & x~:act A")] ForallQFilterPnil 1);
-ba 1;
+by (assume_tac 1);
 by (Fast_tac 1);
 
 (* case ~ Finite s *)
@@ -748,12 +748,12 @@ by (SELECT_GOAL (auto_tac (!claset addSIs [ForallQFilterPUU,
 by (eres_inst_tac [("A","A")] LastActExtimplUU 1);
 by (Asm_simp_tac 1);
 by (eres_inst_tac [("Q","%x.x:act B & x~:act A")] ForallQFilterPUU 1);
-ba 1;
+by (assume_tac 1);
 by (Fast_tac 1);
 
 (* case" ~ Forall (%x.x:act B & x~:act A) s" *)
 
-bd divide_Seq3 1;
+by (dtac divide_Seq3 1);
 
 by (REPEAT (etac exE 1));
 by (REPEAT (etac conjE 1));
@@ -772,8 +772,8 @@ by (Asm_full_simp_tac  1);
 (* eliminate the B-only prefix *)
 
 by (subgoal_tac "(Filter (%a.a :act A)`y1) = nil" 1);
-be ForallQFilterPnil 2;
-ba 2;
+by (etac ForallQFilterPnil 2);
+by (assume_tac 2);
 by (Fast_tac 2);
 
 (* Now real recursive step follows (in y) *)
@@ -788,8 +788,8 @@ by (subgoal_tac "Filter (%a. a:act A & a:ext B)`y1=nil" 1);
 by (rotate_tac ~1 1);
 by (Asm_full_simp_tac  1);
 (* eliminate introduced subgoal 2 *)
-be ForallQFilterPnil 2;
-ba 2;
+by (etac ForallQFilterPnil 2);
+by (assume_tac 2);
 by (Fast_tac 2);
  
 (* bring in divide Seq for s *)
@@ -801,15 +801,15 @@ by (res_inst_tac [("t","schA")] ssubst 1);
 back();
 back();
 back();
-ba 1;
+by (assume_tac 1);
 
 (* reduce trace_takes from n to strictly smaller k *)
-br take_reduction 1;
+by (rtac take_reduction 1);
 
 (* f A (tw iA) = tw ~eA *)
 by (asm_full_simp_tac (!simpset addsimps [FilterPTakewhileQid,int_is_act,
                               not_ext_is_int_or_not_act]) 1);
-br refl 1;
+by (rtac refl 1);
 by (asm_full_simp_tac (!simpset addsimps [int_is_act,
                               not_ext_is_int_or_not_act]) 1);
 by (rotate_tac ~11 1);
@@ -824,17 +824,17 @@ by (REPEAT (etac conjE 1));
 (* assumption schA *)
 by (dres_inst_tac [("x","schA"),
                    ("g","Filter (%a. a:act A)`rs")] subst_lemma2 1);
-ba 1;
+by (assume_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [FilterPTakewhileQnil,int_is_not_ext]) 1);
 (* assumptions concerning LastActExtsch, cannot be rewritten, as LastActExtsmalli are looping  *)
 by (dres_inst_tac [("sch","schA"),("P","%a. a:int A")] LastActExtsmall1 1);
 by (forw_inst_tac [("sch1.0","y1")]  LastActExtsmall2 1);
-ba 1;
+by (assume_tac 1);
 
 (* assumption Forall schA *)
 by (dres_inst_tac [("s","schA"),
                    ("P","Forall (%x.x:act A)")] subst 1);
-ba 1;
+by (assume_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [ForallPTakewhileQ, int_is_act]) 1);
 
 (* case x:actions(asig_of A) & x: actions(asig_of B) *)
@@ -847,8 +847,8 @@ by (subgoal_tac "Filter (%a. a:act A & a:ext B)`y1=nil" 1);
 by (rotate_tac ~1 1);
 by (Asm_full_simp_tac  1);
 (* eliminate introduced subgoal 2 *)
-be ForallQFilterPnil 2;
-ba 2;
+by (etac ForallQFilterPnil 2);
+by (assume_tac 2);
 by (Fast_tac 2);
  
 (* bring in divide Seq for s *)
@@ -860,7 +860,7 @@ by (res_inst_tac [("t","schA")] ssubst 1);
 back();
 back();
 back();
-ba 1;
+by (assume_tac 1);
 
 (* f A (tw iA) = tw ~eA *)
 by (asm_full_simp_tac (!simpset addsimps [FilterPTakewhileQid,int_is_act,
@@ -876,7 +876,7 @@ by (REPEAT (etac conjE 1));
 (* assumption schA *)
 by (dres_inst_tac [("x","schA"),
                    ("g","Filter (%a. a:act A)`rs")] subst_lemma2 1);
-ba 1;
+by (assume_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [FilterPTakewhileQnil,int_is_not_ext]) 1);
 
 (* f A (tw iB schB2) = nil *) 
@@ -885,22 +885,22 @@ by (asm_full_simp_tac (!simpset addsimps [int_is_not_ext,not_ext_is_int_or_not_a
 
 
 (* reduce trace_takes from n to strictly smaller k *)
-br take_reduction 1;
-br refl 1;
-br refl 1;
+by (rtac take_reduction 1);
+by (rtac refl 1);
+by (rtac refl 1);
 
 (* now conclusion fulfills induction hypothesis, but assumptions are not all ready *)
 
 (* assumption schB *)
 by (dres_inst_tac [("x","y2"),
                    ("g","Filter (%a. a:act B)`rs")] subst_lemma2 1);
-ba 1;
+by (assume_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [FilterPTakewhileQnil,intA_is_not_actB,int_is_not_ext]) 1);
 
 (* conclusions concerning LastActExtsch, cannot be rewritten, as LastActExtsmalli are looping  *)
 by (dres_inst_tac [("sch","schA"),("P","%a. a:int A")] LastActExtsmall1 1);
 by (forw_inst_tac [("sch1.0","y1")]  LastActExtsmall2 1);
-ba 1;
+by (assume_tac 1);
 by (dres_inst_tac [("sch","y2"),("P","%a. a:int B")] LastActExtsmall1 1);
 
 (* assumption Forall schA, and Forall schA are performed by ForallTL,ForallDropwhile *)
@@ -941,15 +941,15 @@ goal thy "!! A B. [| compatible A B; compatible B A; \
 \ --> Filter (%a.a:act B)`(mksch A B`tr`schA`schB) = schB";
 
 by (strip_tac 1);
-br seq.take_lemma 1;
-br mp 1;
-ba 2;
+by (rtac seq.take_lemma 1);
+by (rtac mp 1);
+by (assume_tac 2);
 back();back();back();back();
 by (res_inst_tac [("x","schA")] spec 1);
 by (res_inst_tac [("x","schB")] spec 1);
 by (res_inst_tac [("x","tr")] spec 1);
 by (thin_tac' 5 1);
-br less_induct 1;
+by (rtac less_induct 1);
 by (REPEAT (rtac allI 1));
 ren "tr schB schA" 1;
 by (strip_tac 1);
@@ -957,7 +957,7 @@ by (REPEAT (etac conjE 1));
 
 by (case_tac "Forall (%x. x:act A & x~:act B) tr" 1);
 
-br (seq_take_lemma RS iffD2 RS spec) 1;
+by (rtac (seq_take_lemma RS iffD2 RS spec) 1);
 by (thin_tac' 5 1);
 
 
@@ -973,7 +973,7 @@ by (SELECT_GOAL (auto_tac (!claset addSIs [ForallQFilterPnil,ForallAnBmksch,Fini
 by (eres_inst_tac [("A","B")] LastActExtimplnil 1);
 by (Asm_simp_tac 1);
 by (eres_inst_tac [("Q","%x.x:act A & x~:act B")] ForallQFilterPnil 1);
-ba 1;
+by (assume_tac 1);
 by (Fast_tac 1);
 
 (* case ~ Finite tr *)
@@ -990,12 +990,12 @@ by (SELECT_GOAL (auto_tac (!claset addSIs [ForallQFilterPUU,
 by (eres_inst_tac [("A","B")] LastActExtimplUU 1);
 by (Asm_simp_tac 1);
 by (eres_inst_tac [("Q","%x.x:act A & x~:act B")] ForallQFilterPUU 1);
-ba 1;
+by (assume_tac 1);
 by (Fast_tac 1);
 
 (* case" ~ Forall (%x.x:act B & x~:act A) s" *)
 
-bd divide_Seq3 1;
+by (dtac divide_Seq3 1);
 
 by (REPEAT (etac exE 1));
 by (REPEAT (etac conjE 1));
@@ -1014,8 +1014,8 @@ by (Asm_full_simp_tac  1);
 (* eliminate the A-only prefix *)
 
 by (subgoal_tac "(Filter (%a.a :act B)`x1) = nil" 1);
-be ForallQFilterPnil 2;
-ba 2;
+by (etac ForallQFilterPnil 2);
+by (assume_tac 2);
 by (Fast_tac 2);
 
 (* Now real recursive step follows (in x) *)
@@ -1030,8 +1030,8 @@ by (subgoal_tac "Filter (%a. a:act B & a:ext A)`x1=nil" 1);
 by (rotate_tac ~1 1);
 by (Asm_full_simp_tac  1);
 (* eliminate introduced subgoal 2 *)
-be ForallQFilterPnil 2;
-ba 2;
+by (etac ForallQFilterPnil 2);
+by (assume_tac 2);
 by (Fast_tac 2);
  
 (* bring in divide Seq for s *)
@@ -1043,15 +1043,15 @@ by (res_inst_tac [("t","schB")] ssubst 1);
 back();
 back();
 back();
-ba 1;
+by (assume_tac 1);
 
 (* reduce trace_takes from n to strictly smaller k *)
-br take_reduction 1;
+by (rtac take_reduction 1);
 
 (* f B (tw iB) = tw ~eB *)
 by (asm_full_simp_tac (!simpset addsimps [FilterPTakewhileQid,int_is_act,
                               not_ext_is_int_or_not_act]) 1);
-br refl 1;
+by (rtac refl 1);
 by (asm_full_simp_tac (!simpset addsimps [int_is_act,
                               not_ext_is_int_or_not_act]) 1);
 by (rotate_tac ~11 1);
@@ -1066,17 +1066,17 @@ by (REPEAT (etac conjE 1));
 (* assumption schB *)
 by (dres_inst_tac [("x","schB"),
                    ("g","Filter (%a. a:act B)`rs")] subst_lemma2 1);
-ba 1;
+by (assume_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [FilterPTakewhileQnil,int_is_not_ext]) 1);
 (* assumptions concerning LastActExtsch, cannot be rewritten, as LastActExtsmalli are looping  *)
 by (dres_inst_tac [("sch","schB"),("P","%a. a:int B")] LastActExtsmall1 1);
 by (forw_inst_tac [("sch1.0","x1")]  LastActExtsmall2 1);
-ba 1;
+by (assume_tac 1);
 
 (* assumption Forall schB *)
 by (dres_inst_tac [("s","schB"),
                    ("P","Forall (%x.x:act B)")] subst 1);
-ba 1;
+by (assume_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [ForallPTakewhileQ, int_is_act]) 1);
 
 (* case x:actions(asig_of A) & x: actions(asig_of B) *)
@@ -1089,8 +1089,8 @@ by (subgoal_tac "Filter (%a. a:act B & a:ext A)`x1=nil" 1);
 by (rotate_tac ~1 1);
 by (Asm_full_simp_tac  1);
 (* eliminate introduced subgoal 2 *)
-be ForallQFilterPnil 2;
-ba 2;
+by (etac ForallQFilterPnil 2);
+by (assume_tac 2);
 by (Fast_tac 2);
  
 (* bring in divide Seq for s *)
@@ -1102,7 +1102,7 @@ by (res_inst_tac [("t","schB")] ssubst 1);
 back();
 back();
 back();
-ba 1;
+by (assume_tac 1);
 
 (* f B (tw iB) = tw ~eB *)
 by (asm_full_simp_tac (!simpset addsimps [FilterPTakewhileQid,int_is_act,
@@ -1118,7 +1118,7 @@ by (REPEAT (etac conjE 1));
 (* assumption schA *)
 by (dres_inst_tac [("x","schB"),
                    ("g","Filter (%a. a:act B)`rs")] subst_lemma2 1);
-ba 1;
+by (assume_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [FilterPTakewhileQnil,int_is_not_ext]) 1);
 
 (* f B (tw iA schA2) = nil *) 
@@ -1127,22 +1127,22 @@ by (asm_full_simp_tac (!simpset addsimps [int_is_not_ext,not_ext_is_int_or_not_a
 
 
 (* reduce trace_takes from n to strictly smaller k *)
-br take_reduction 1;
-br refl 1;
-br refl 1;
+by (rtac take_reduction 1);
+by (rtac refl 1);
+by (rtac refl 1);
 
 (* now conclusion fulfills induction hypothesis, but assumptions are not all ready *)
 
 (* assumption schA *)
 by (dres_inst_tac [("x","x2"),
                    ("g","Filter (%a. a:act A)`rs")] subst_lemma2 1);
-ba 1;
+by (assume_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [FilterPTakewhileQnil,intA_is_not_actB,int_is_not_ext]) 1);
 
 (* conclusions concerning LastActExtsch, cannot be rewritten, as LastActExtsmalli are looping  *)
 by (dres_inst_tac [("sch","schB"),("P","%a. a:int B")] LastActExtsmall1 1);
 by (forw_inst_tac [("sch1.0","x1")]  LastActExtsmall2 1);
-ba 1;
+by (assume_tac 1);
 by (dres_inst_tac [("sch","x2"),("P","%a. a:int A")] LastActExtsmall1 1);
 
 (* assumption Forall schA, and Forall schA are performed by ForallTL,ForallDropwhile *)
@@ -1192,22 +1192,22 @@ by (asm_full_simp_tac (!simpset addsimps [compositionality_sch]) 2);
 by (asm_full_simp_tac (!simpset addsimps [compatibility_consequence2,
                   externals_of_par,ext1_ext2_is_not_act2]) 1);
 (* Traces of A||B have only external actions from A or B *)  
-br ForallPFilterP 1;
+by (rtac ForallPFilterP 1);
 
 (* <== *)
 
 (* replace schA and schB by Cut(schA) and Cut(schB) *)
 by (dtac exists_LastActExtsch 1);
-ba 1;
+by (assume_tac 1);
 by (dtac exists_LastActExtsch 1);
-ba 1;
+by (assume_tac 1);
 by (REPEAT (etac exE 1));
 by (REPEAT (etac conjE 1));
 (* Schedules of A(B) have only actions of A(B) *)
-bd scheds_in_sig 1;
-ba 1;
-bd scheds_in_sig 1;
-ba 1;
+by (dtac scheds_in_sig 1);
+by (assume_tac 1);
+by (dtac scheds_in_sig 1);
+by (assume_tac 1);
 
 ren "h1 h2 schA schB" 1;
 (* mksch is exactly the construction of trA||B out of schA, schB, and the oracle tr,
@@ -1220,9 +1220,9 @@ by (asm_full_simp_tac (!simpset addsimps [FilterA_mksch_is_tr RS spec RS spec RS
 (* mksch is a schedule -- use compositionality on sch-level *)
 by (asm_full_simp_tac (!simpset addsimps [compositionality_sch]) 1);
 by (asm_full_simp_tac (!simpset addsimps [FilterAmksch_is_schA,FilterBmksch_is_schB]) 1);
-be ForallAorB_mksch 1;
-be ForallPForallQ 1;
-be ext_is_act 1;
+by (etac ForallAorB_mksch 1);
+by (etac ForallPForallQ 1);
+by (etac ext_is_act 1);
 qed"compositionality_tr";
 
 

@@ -56,7 +56,7 @@ goal Unifier.thy
 by (simp_tac(!simpset addsimps [MGU_iff, Unifier_def, MoreGeneral_def]
 	              delsimps [subst_Var]) 1);
 by (Step_tac 1);
-br exI 1;
+by (rtac exI 1);
 by (etac subst 1 THEN rtac (Cons_trivial RS subst_sym) 1);
 by (etac ssubst_subst2 1);
 by (asm_simp_tac (!simpset addsimps [Var_not_occs]) 1);

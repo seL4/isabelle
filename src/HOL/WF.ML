@@ -107,23 +107,23 @@ AddSIs [wf_empty];
  *---------------------------------------------------------------------------*)
 
 goal WF.thy "wf(insert (y,x) r) = (wf(r) & (x,y) ~: r^*)";
-br iffI 1;
- by(blast_tac (!claset addEs [wf_trancl RS wf_irrefl] addIs
+by (rtac iffI 1);
+ by (blast_tac (!claset addEs [wf_trancl RS wf_irrefl] addIs
       [rtrancl_into_trancl1,wf_subset,impOfSubs rtrancl_mono]) 1);
-by(asm_full_simp_tac (!simpset addsimps [wf_eq_minimal]) 1);
-by(safe_tac (!claset));
-by(EVERY1[rtac allE, atac, etac impE, Blast_tac]);
-be bexE 1;
-by(rename_tac "a" 1);
-by(case_tac "a = x" 1);
- by(res_inst_tac [("x","a")]bexI 2);
-  ba 3;
- by(Blast_tac 2);
-by(case_tac "y:Q" 1);
- by(Blast_tac 2);
-by(res_inst_tac [("x","{z. z:Q & (z,y) : r^*}")]allE 1);
- ba 1;
-by(fast_tac (!claset addIs [rtrancl_into_rtrancl2]) 1);
+by (asm_full_simp_tac (!simpset addsimps [wf_eq_minimal]) 1);
+by (safe_tac (!claset));
+by (EVERY1[rtac allE, atac, etac impE, Blast_tac]);
+by (etac bexE 1);
+by (rename_tac "a" 1);
+by (case_tac "a = x" 1);
+ by (res_inst_tac [("x","a")]bexI 2);
+  by (assume_tac 3);
+ by (Blast_tac 2);
+by (case_tac "y:Q" 1);
+ by (Blast_tac 2);
+by (res_inst_tac [("x","{z. z:Q & (z,y) : r^*}")]allE 1);
+ by (assume_tac 1);
+by (fast_tac (!claset addIs [rtrancl_into_rtrancl2]) 1);
 qed "wf_insert";
 AddIffs [wf_insert];
 
@@ -131,18 +131,18 @@ AddIffs [wf_insert];
 
 goalw WF.thy [acyclic_def]
  "!!r. wf r ==> acyclic r";
-by(blast_tac (!claset addEs [wf_trancl RS wf_irrefl]) 1);
+by (blast_tac (!claset addEs [wf_trancl RS wf_irrefl]) 1);
 qed "wf_acyclic";
 
 goalw WF.thy [acyclic_def]
   "acyclic(insert (y,x) r) = (acyclic r & (x,y) ~: r^*)";
-by(simp_tac (!simpset addsimps [trancl_insert]) 1);
-by(blast_tac (!claset addEs [make_elim rtrancl_trans]) 1);
+by (simp_tac (!simpset addsimps [trancl_insert]) 1);
+by (blast_tac (!claset addEs [make_elim rtrancl_trans]) 1);
 qed "acyclic_insert";
 AddIffs [acyclic_insert];
 
 goalw WF.thy [acyclic_def] "acyclic(r^-1) = acyclic r";
-by(simp_tac (!simpset addsimps [trancl_inverse]) 1);
+by (simp_tac (!simpset addsimps [trancl_inverse]) 1);
 qed "acyclic_inverse";
 
 (** cut **)

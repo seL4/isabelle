@@ -19,16 +19,16 @@ end;
 
 
 goal Prod.thy "(? x. P x) = (? a b. P(a,b))";
-auto();
+by (Auto_tac());
 by (split_all_tac 1);
-auto();
+by (Auto_tac());
 qed "split_paired_Ex";
 
 
 goalw thy [split_def] "(f::'a*'b=>'c) = (%(x, y). f (x, y))";
-  br ext 1;
+  by (rtac ext 1);
   by (stac (surjective_pairing RS sym) 1);
-  br refl 1;
+  by (rtac refl 1);
 qed "pair_eta_expand";
 
 local

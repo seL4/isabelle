@@ -8,7 +8,7 @@ open Lift;
 
 (* flift1 is continuous in its argument itself*)
 goal thy "cont (lift_case UU f)"; 
-br flatdom_strict2cont 1;
+by (rtac flatdom_strict2cont 1);
 by (Simp_tac 1);
 qed"cont_flift1_arg";
 
@@ -17,7 +17,7 @@ qed"cont_flift1_arg";
 
 goal thy "!!f. [| !! a.cont (%y. (f y) a) |] ==> \
 \          cont (%y. lift_case UU (f y))";
-br cont2cont_CF1L_rev 1;
+by (rtac cont2cont_CF1L_rev 1);
 by (strip_tac 1);
 by (res_inst_tac [("x","y")] Lift_cases 1);
 by (Asm_simp_tac 1);
@@ -29,18 +29,18 @@ qed"cont_flift1_not_arg";
 
 goal thy "!!f. [| !! a.cont (%y. (f y) a); cont g|] ==> \
 \   cont (%y. lift_case UU (f y) (g y))";
-br cont2cont_app 1;
+by (rtac cont2cont_app 1);
 back();
 by (safe_tac set_cs);
-br cont_flift1_not_arg 1;
-auto();
-br cont_flift1_arg 1;
+by (rtac cont_flift1_not_arg 1);
+by (Auto_tac());
+by (rtac cont_flift1_arg 1);
 qed"cont_flift1_arg_and_not_arg";
 
 (* flift2 is continuous in its argument itself *)
 
 goal thy "cont (lift_case UU (%y. Def (f y)))";
-br flatdom_strict2cont 1;
+by (rtac flatdom_strict2cont 1);
 by (Simp_tac 1);
 qed"cont_flift2_arg";
 

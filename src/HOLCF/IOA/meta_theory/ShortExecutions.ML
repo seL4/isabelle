@@ -47,7 +47,7 @@ qed"oraclebuild_nil";
 goal thy "oraclebuild P`s`(x>>t) = \
 \         (Takewhile (%a.~ P a)`s)   \
 \          @@ (x>>(oraclebuild P`(TL`(Dropwhile (%a.~ P a)`s))`t))";     
-br trans 1;
+by (rtac trans 1);
 by (stac oraclebuild_unfold 1);
 by (asm_full_simp_tac (!simpset addsimps [Cons_def]) 1);
 by (simp_tac (!simpset addsimps [Cons_def]) 1);
@@ -65,7 +65,7 @@ goalw thy [Cut_def]
 \           ==> Cut P s =nil";
 by (subgoal_tac "Filter P`s = nil" 1);
 by (asm_simp_tac (!simpset addsimps [oraclebuild_nil]) 1);
-br ForallQFilterPnil 1;
+by (rtac ForallQFilterPnil 1);
 by (REPEAT (atac 1));
 qed"Cut_nil";
 
@@ -74,7 +74,7 @@ goalw thy [Cut_def]
 \           ==> Cut P s =UU";
 by (subgoal_tac "Filter P`s= UU" 1);
 by (asm_simp_tac (!simpset addsimps [oraclebuild_UU]) 1);
-br ForallQFilterPUU 1;
+by (rtac ForallQFilterPUU 1);
 by (REPEAT (atac 1));
 qed"Cut_UU";
 
@@ -106,7 +106,7 @@ by (asm_full_simp_tac (!simpset addsimps [Cut_UU,
              ForallQFilterPUU]) 1);
 (* main case *)
 by (asm_full_simp_tac (!simpset addsimps [Cut_Cons,ForallQFilterPnil]) 1);
-auto();
+by (Auto_tac());
 qed"FilterCut";
 
 
@@ -123,8 +123,8 @@ by (asm_full_simp_tac (!simpset addsimps [Cut_UU,
              ForallQFilterPUU]) 1);
 (* main case *)
 by (asm_full_simp_tac (!simpset addsimps [Cut_Cons,ForallQFilterPnil]) 1);
-br take_reduction 1;
-auto();
+by (rtac take_reduction 1);
+by (Auto_tac());
 qed"Cut_idemp";
 
 
@@ -136,45 +136,45 @@ by (res_inst_tac [("A1","%x.True")
 by (Fast_tac 3);
 by (case_tac "Finite s" 1);
 by (asm_full_simp_tac (!simpset addsimps [Cut_nil]) 1); 
-br (Cut_nil RS sym) 1;
+by (rtac (Cut_nil RS sym) 1);
 by (asm_full_simp_tac (!simpset addsimps [ForallMap,o_def]) 1); 
 by (asm_full_simp_tac (!simpset addsimps [Map2Finite]) 1);
 (* csae ~ Finite s *)
 by (asm_full_simp_tac (!simpset addsimps [Cut_UU]) 1);
-br (Cut_UU RS sym) 1;
+by (rtac (Cut_UU RS sym) 1);
 by (asm_full_simp_tac (!simpset addsimps [ForallMap,o_def]) 1); 
 by (asm_full_simp_tac (!simpset addsimps [Map2Finite]) 1);
 (* main case *)
 by (asm_full_simp_tac (!simpset addsimps [Cut_Cons,MapConc,
           ForallMap,FiniteMap1,o_def]) 1);
-br take_reduction 1;
-auto();
+by (rtac take_reduction 1);
+by (Auto_tac());
 qed"MapCut";
 
 
 goal thy "~Finite s --> Cut P s << s";
 by (strip_tac 1);
-br (take_lemma_less RS iffD1) 1;
+by (rtac (take_lemma_less RS iffD1) 1);
 by (strip_tac 1);
-br mp 1;
-ba 2;
+by (rtac mp 1);
+by (assume_tac 2);
 by (thin_tac' 1 1);
 by (res_inst_tac [("x","s")] spec 1);
-br less_induct 1;
+by (rtac less_induct 1);
 by (strip_tac 1);
 ren "na n s" 1;
 by (case_tac "Forall (%x. ~ P x) s" 1);
-br (take_lemma_less RS iffD2 RS spec) 1;
+by (rtac (take_lemma_less RS iffD2 RS spec) 1);
 by (asm_full_simp_tac (!simpset addsimps [Cut_UU]) 1);
 (* main case *)
-bd divide_Seq3 1;
+by (dtac divide_Seq3 1);
 by (REPEAT (etac exE 1));
 by (REPEAT (etac conjE 1));
 by (hyp_subst_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [Cut_Cons]) 1);
-br take_reduction_less 1;
+by (rtac take_reduction_less 1);
 (* auto makes also reasoning about Finiteness of parts of s ! *)
-auto();
+by (Auto_tac());
 qed_spec_mp"Cut_prefixcl_nFinite";
 
 
@@ -184,24 +184,24 @@ qed_spec_mp"Cut_prefixcl_nFinite";
 goal thy "Finite s --> (? y. s = Cut P s @@ y)";
 by (strip_tac 1);
 by (rtac exI 1);
-br seq.take_lemma 1;
-br mp 1;
-ba 2;
+by (rtac seq.take_lemma 1);
+by (rtac mp 1);
+by (assume_tac 2);
 by (thin_tac' 1 1);
 by (res_inst_tac [("x","s")] spec 1);
-br less_induct 1;
+by (rtac less_induct 1);
 by (strip_tac 1);
 ren "na n s" 1;
 by (case_tac "Forall (%x. ~ P x) s" 1);
-br (seq_take_lemma RS iffD2 RS spec) 1;
+by (rtac (seq_take_lemma RS iffD2 RS spec) 1);
 by (asm_full_simp_tac (!simpset addsimps [Cut_nil]) 1);
 (* main case *)
-bd divide_Seq3 1;
+by (dtac divide_Seq3 1);
 by (REPEAT (etac exE 1));
 by (REPEAT (etac conjE 1));
 by (hyp_subst_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [Cut_Cons,Conc_assoc]) 1);
-br take_reduction 1;
+by (rtac take_reduction 1);
 
 qed_spec_mp"Cut_prefixcl_Finite";
 
@@ -212,13 +212,13 @@ qed_spec_mp"Cut_prefixcl_Finite";
 goal thy "!!ex .is_exec_frag A (s,ex) ==> is_exec_frag A (s,Cut P ex)";
 by (case_tac "Finite ex" 1);
 by (cut_inst_tac [("s","ex"),("P","P")] Cut_prefixcl_Finite 1);
-ba 1;
-be exE 1;
-br exec_prefix2closed 1;
+by (assume_tac 1);
+by (etac exE 1);
+by (rtac exec_prefix2closed 1);
 by (eres_inst_tac [("s","ex"),("t","Cut P ex @@ y")] subst 1);
-ba 1;
-be exec_prefixclosed 1;
-be Cut_prefixcl_nFinite 1;
+by (assume_tac 1);
+by (etac exec_prefixclosed 1);
+by (etac Cut_prefixcl_nFinite 1);
 qed"execThruCut";
 
 
@@ -251,14 +251,14 @@ by (asm_full_simp_tac (!simpset addsimps [execThruCut]) 1);
 
 by (simp_tac (!simpset addsimps [filter_act_def]) 1);
 by (subgoal_tac "Map fst`(Cut (%a.fst a: ext A) y)= Cut (%a.a:ext A) (Map fst`y)" 1);
-br (rewrite_rule [o_def] MapCut) 2;
+by (rtac (rewrite_rule [o_def] MapCut) 2);
 by (asm_full_simp_tac (!simpset addsimps [FilterCut RS sym]) 1);
 
 (* Subgoal 3: Lemma: Cut idempotent  *)
 
 by (simp_tac (!simpset addsimps [LastActExtsch_def,filter_act_def]) 1);
 by (subgoal_tac "Map fst`(Cut (%a.fst a: ext A) y)= Cut (%a.a:ext A) (Map fst`y)" 1);
-br (rewrite_rule [o_def] MapCut) 2;
+by (rtac (rewrite_rule [o_def] MapCut) 2);
 by (asm_full_simp_tac (!simpset addsimps [Cut_idemp]) 1);
 qed"exists_LastActExtsch";
 
@@ -270,19 +270,19 @@ qed"exists_LastActExtsch";
 goalw  thy [LastActExtsch_def]
   "!! A. [| LastActExtsch A sch; Filter (%x.x:ext A)`sch = nil |] \
 \   ==> sch=nil";
-bd FilternPnilForallP 1;
-be conjE 1;
-bd Cut_nil 1;
-ba 1;
+by (dtac FilternPnilForallP 1);
+by (etac conjE 1);
+by (dtac Cut_nil 1);
+by (assume_tac 1);
 by (Asm_full_simp_tac 1);
 qed"LastActExtimplnil";
 
 goalw  thy [LastActExtsch_def]
   "!! A. [| LastActExtsch A sch; Filter (%x.x:ext A)`sch = UU |] \
 \   ==> sch=UU";
-bd FilternPUUForallP 1;
-be conjE 1;
-bd Cut_UU 1;
-ba 1;
+by (dtac FilternPUUForallP 1);
+by (etac conjE 1);
+by (dtac Cut_UU 1);
+by (assume_tac 1);
 by (Asm_full_simp_tac 1);
 qed"LastActExtimplUU";

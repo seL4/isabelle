@@ -28,15 +28,15 @@ by (ALLGOALS (asm_simp_tac (!simpset addsimps [zero_less_mult_iff])));
 qed "zero_less_power";
 
 goalw thy [dvd_def] "!!m::nat. m<=n ==> i^m dvd i^n";
-be (not_less_iff_le RS iffD2 RS add_diff_inverse RS subst) 1;
+by (etac (not_less_iff_le RS iffD2 RS add_diff_inverse RS subst) 1);
 by (asm_simp_tac (!simpset addsimps [power_add]) 1);
 by (Blast_tac 1);
 qed "le_imp_power_dvd";
 
 goal thy "!! i r. [| 0 < i; i^m < i^n |] ==> m<n";
-br ccontr 1;
-bd (leI RS le_imp_power_dvd RS dvd_imp_le RS leD) 1;
-be zero_less_power 1;
+by (rtac ccontr 1);
+by (dtac (leI RS le_imp_power_dvd RS dvd_imp_le RS leD) 1);
+by (etac zero_less_power 1);
 by (contr_tac 1);
 qed "power_less_imp_less";
 

@@ -100,7 +100,7 @@ by (Blast_tac 1);
 qed "image_id";
 
 goal Set.thy "f``(range g) = range (%x. f (g x))";
-by(Blast_tac 1);
+by (Blast_tac 1);
 qed "image_range";
 
 qed_goal "ball_image" Set.thy "(!y:F``S. P y) = (!x:S. P (F x))"
@@ -379,7 +379,7 @@ qed "UN_empty";
 Addsimps[UN_empty];
 
 goal Set.thy "(UN x:A. {}) = {}";
-by(Blast_tac 1);
+by (Blast_tac 1);
 qed "UN_empty2";
 Addsimps[UN_empty2];
 
@@ -635,7 +635,7 @@ Addsimps [Pow_empty];
 
 goal Set.thy "Pow (insert a A) = Pow A Un (insert a `` Pow A)";
 by (Step_tac 1);
-be swap 1;
+by (etac swap 1);
 by (res_inst_tac [("x", "x-{a}")] image_eqI 1);
 by (ALLGOALS Blast_tac);
 qed "Pow_insert";

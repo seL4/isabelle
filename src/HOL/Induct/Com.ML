@@ -52,7 +52,7 @@ by (Asm_simp_tac 1);
 qed "assign_different";
 
 goalw thy [assign_def] "s[s x/x] = s";
-br ext 1;
+by (rtac ext 1);
 by (simp_tac (!simpset setloop split_tac[expand_if]) 1);
 qed "assign_triv";
 

@@ -128,7 +128,7 @@ by (blast_tac (!claset addIs [Suc_leI RS le_less_trans, ack_less_mono2]) 1);
 val lemma = result();
 
 goal thy "!!i j k. i<j ==> ack(i,k) < ack(j,k)";
-be less_natE 1;
+by (etac less_natE 1);
 by (blast_tac (!claset addSIs [lemma]) 1);
 qed "ack_less_mono1";
 
@@ -248,8 +248,8 @@ goal thy
  "!!f g. [| ALL l. f l < ack(kf, list_add l);        \
 \           ALL l. g l < ack(kg, list_add l)         \
 \        |] ==> EX k. ALL l. PREC f g l< ack(k, list_add l)";
-br exI 1;
-br allI 1;
+by (rtac exI 1);
+by (rtac allI 1);
 by (rtac ([le_add1, PREC_case_lemma] MRS le_less_trans) 1);
 by (REPEAT (blast_tac (!claset addIs [ack_add_bound2]) 1));
 qed "PREC_case";

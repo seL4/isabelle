@@ -41,7 +41,7 @@ val major::prems = goal Finite.thy
 \       !!F a. [| finite F; a:A; a ~: F;  P(F) |] ==> P(insert a F) \
 \    |] ==> F <= A --> P(F)";
 by (rtac (major RS finite_induct) 1);
-by(ALLGOALS (blast_tac (!claset addIs prems)));
+by (ALLGOALS (blast_tac (!claset addIs prems)));
 val lemma = result();
 
 val prems = goal Finite.thy 
@@ -49,7 +49,7 @@ val prems = goal Finite.thy
 \       P({}); \
 \       !!F a. [| finite F; a:A; a ~: F;  P(F) |] ==> P(insert a F) \
 \    |] ==> P(F)";
-by(blast_tac (HOL_cs addIs ((lemma RS mp)::prems)) 1);
+by (blast_tac (HOL_cs addIs ((lemma RS mp)::prems)) 1);
 qed "finite_subset_induct";
 
 Addsimps Finites.intrs;
@@ -122,7 +122,7 @@ Addsimps [finite_Diff];
 
 goal Finite.thy "finite(A-{a}) = finite(A)";
 by (case_tac "a:A" 1);
-br (finite_insert RS sym RS trans) 1;
+by (rtac (finite_insert RS sym RS trans) 1);
 by (stac insert_Diff 1);
 by (ALLGOALS Asm_simp_tac);
 qed "finite_Diff_singleton";
@@ -134,21 +134,21 @@ by (etac finite_induct 1);
 by (Step_tac 1);
 by (subgoal_tac "EX y:A. f y = x & F = f``(A-{y})" 1);
  by (Step_tac 1);
- bw inj_onto_def;
+ by (rewtac inj_onto_def);
  by (Blast_tac 1);
 by (thin_tac "ALL A. ?PP(A)" 1);
 by (forward_tac [[equalityD2, insertI1] MRS subsetD] 1);
 by (Step_tac 1);
 by (res_inst_tac [("x","xa")] bexI 1);
 by (ALLGOALS Asm_simp_tac);
-be equalityE 1;
-br equalityI 1;
+by (etac equalityE 1);
+by (rtac equalityI 1);
 by (Blast_tac 2);
 by (Best_tac 1);
 val lemma = result();
 
 goal Finite.thy "!!A. [| finite(f``A);  inj_onto f A |] ==> finite A";
-bd lemma 1;
+by (dtac lemma 1);
 by (Blast_tac 1);
 qed "finite_imageD";
 
@@ -157,15 +157,15 @@ qed "finite_imageD";
 
 goal Finite.thy "!!A. finite(Pow A) ==> finite A";
 by (subgoal_tac "finite ((%x.{x})``A)" 1);
-br finite_subset 2;
-ba 3;
+by (rtac finite_subset 2);
+by (assume_tac 3);
 by (ALLGOALS
     (fast_tac (!claset addSDs [rewrite_rule [inj_onto_def] finite_imageD])));
 val lemma = result();
 
 goal Finite.thy "finite(Pow A) = finite A";
-br iffI 1;
-be lemma 1;
+by (rtac iffI 1);
+by (etac lemma 1);
 (*Opposite inclusion: finite A ==> finite (Pow A) *)
 by (etac finite_induct 1);
 by (ALLGOALS 
@@ -175,19 +175,19 @@ qed "finite_Pow_iff";
 AddIffs [finite_Pow_iff];
 
 goal Finite.thy "finite(r^-1) = finite r";
-by(subgoal_tac "r^-1 = (%(x,y).(y,x))``r" 1);
- by(Asm_simp_tac 1);
- br iffI 1;
-  be (rewrite_rule [inj_onto_def] finite_imageD) 1;
-  by(simp_tac (!simpset setloop (split_tac[expand_split])) 1);
- be finite_imageI 1;
-by(simp_tac (!simpset addsimps [inverse_def,image_def]) 1);
-by(Auto_tac());
- br bexI 1;
- ba 2;
- by(Simp_tac 1);
-by(split_all_tac 1);
-by(Asm_full_simp_tac 1);
+by (subgoal_tac "r^-1 = (%(x,y).(y,x))``r" 1);
+ by (Asm_simp_tac 1);
+ by (rtac iffI 1);
+  by (etac (rewrite_rule [inj_onto_def] finite_imageD) 1);
+  by (simp_tac (!simpset setloop (split_tac[expand_split])) 1);
+ by (etac finite_imageI 1);
+by (simp_tac (!simpset addsimps [inverse_def,image_def]) 1);
+by (Auto_tac());
+ by (rtac bexI 1);
+ by (assume_tac 2);
+ by (Simp_tac 1);
+by (split_all_tac 1);
+by (Asm_full_simp_tac 1);
 qed "finite_inverse";
 AddIffs [finite_inverse];
 
@@ -249,7 +249,7 @@ by (safe_tac (!claset));
    by (Asm_simp_tac 1);
   by (simp_tac (!simpset setloop (split_tac [expand_if])) 1);
   by (Blast_tac 1);
- bd sym 1;
+ by (dtac sym 1);
  by (rotate_tac ~1 1);
  by (Asm_full_simp_tac 1);
  by (res_inst_tac [("x","%i. if f i = f m then a else f i")] exI 1);
@@ -282,21 +282,21 @@ val lemma = result();
 goal Finite.thy "!!A. [| finite A; x ~: A |] ==> \
 \ (LEAST n. ? f. insert x A = {f i|i.i<n}) = Suc(LEAST n. ? f. A={f i|i.i<n})";
 by (rtac Least_equality 1);
- bd finite_has_card 1;
- be exE 1;
+ by (dtac finite_has_card 1);
+ by (etac exE 1);
  by (dres_inst_tac [("P","%n.? f. A={f i|i.i<n}")] LeastI 1);
- be exE 1;
+ by (etac exE 1);
  by (res_inst_tac
    [("x","%i. if i<(LEAST n. ? f. A={f i |i. i < n}) then f i else x")] exI 1);
  by (simp_tac
     (!simpset addsimps [Collect_conv_insert, less_Suc_eq] 
               addcongs [rev_conj_cong]) 1);
- be subst 1;
- br refl 1;
+ by (etac subst 1);
+ by (rtac refl 1);
 by (rtac notI 1);
 by (etac exE 1);
 by (dtac lemma 1);
- ba 1;
+ by (assume_tac 1);
 by (etac exE 1);
 by (etac conjE 1);
 by (dres_inst_tac [("P","%x. ? g. A = {g i |i. i < x}")] Least_le 1);
@@ -339,9 +339,9 @@ qed_spec_mp "card_Un_disjoint";
 goal Finite.thy "!!A. [| finite A; B<=A |] ==> card A - card B = card (A - B)";
 by (subgoal_tac "(A-B) Un B = A" 1);
 by (Blast_tac 2);
-br (add_right_cancel RS iffD1) 1;
-br (card_Un_disjoint RS subst) 1;
-be ssubst 4;
+by (rtac (add_right_cancel RS iffD1) 1);
+by (rtac (card_Un_disjoint RS subst) 1);
+by (etac ssubst 4);
 by (Blast_tac 3);
 by (ALLGOALS 
     (asm_simp_tac
@@ -382,7 +382,7 @@ goal Finite.thy "!!A. finite(A) ==> inj_onto f A --> card (f `` A) = card A";
 by (etac finite_induct 1);
 by (ALLGOALS Asm_simp_tac);
 by (Step_tac 1);
-bw inj_onto_def;
+by (rewtac inj_onto_def);
 by (Blast_tac 1);
 by (stac card_insert_disjoint 1);
 by (etac finite_imageI 1);
@@ -397,7 +397,7 @@ by (stac card_Un_disjoint 1);
 by (EVERY (map (blast_tac (!claset addIs [finite_imageI])) [3,2,1]));
 by (subgoal_tac "inj_onto (insert x) (Pow F)" 1);
 by (asm_simp_tac (!simpset addsimps [card_image, Pow_insert]) 1);
-bw inj_onto_def;
+by (rewtac inj_onto_def);
 by (blast_tac (!claset addSEs [equalityE]) 1);
 qed "card_Pow";
 Addsimps [card_Pow];

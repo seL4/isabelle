@@ -12,11 +12,11 @@ open Arith;
 (*** Basic rewrite rules for the arithmetic operators ***)
 
 goalw Arith.thy [pred_def] "pred 0 = 0";
-by(Simp_tac 1);
+by (Simp_tac 1);
 qed "pred_0";
 
 goalw Arith.thy [pred_def] "pred(Suc n) = n";
-by(Simp_tac 1);
+by (Simp_tac 1);
 qed "pred_Suc";
 
 Addsimps [pred_0,pred_Suc];
@@ -175,8 +175,8 @@ by (blast_tac (!claset addDs [Suc_lessD]) 1);
 qed "add_lessD1";
 
 goal Arith.thy "!!i::nat. ~ (i+j < i)";
-br notI 1;
-be (add_lessD1 RS less_irrefl) 1;
+by (rtac notI 1);
+by (etac (add_lessD1 RS less_irrefl) 1);
 qed "not_add_less1";
 
 goal Arith.thy "!!i::nat. ~ (j+i < i)";
@@ -506,7 +506,7 @@ by (ALLGOALS (asm_simp_tac (!simpset addsimps [add_less_mono])));
 qed "mult_less_mono2";
 
 goal Arith.thy "!!i::nat. [| i<j; 0<k |] ==> i*k < j*k";
-bd mult_less_mono2 1;
+by (dtac mult_less_mono2 1);
 by (ALLGOALS (asm_full_simp_tac (!simpset addsimps [mult_commute])));
 qed "mult_less_mono1";
 
@@ -531,21 +531,21 @@ by (blast_tac (!claset addDs [mult_less_mono1] addEs [less_asym]) 1);
 qed "mult_less_cancel2";
 
 goal Arith.thy "!!k. 0<k ==> (k*m < k*n) = (m<n)";
-bd mult_less_cancel2 1;
+by (dtac mult_less_cancel2 1);
 by (asm_full_simp_tac (!simpset addsimps [mult_commute]) 1);
 qed "mult_less_cancel1";
 Addsimps [mult_less_cancel1, mult_less_cancel2];
 
 goal Arith.thy "!!k. 0<k ==> (m*k = n*k) = (m=n)";
 by (cut_facts_tac [less_linear] 1);
-by(Step_tac 1);
-ba 2;
+by (Step_tac 1);
+by (assume_tac 2);
 by (ALLGOALS (dtac mult_less_mono1 THEN' assume_tac));
 by (ALLGOALS Asm_full_simp_tac);
 qed "mult_cancel2";
 
 goal Arith.thy "!!k. 0<k ==> (k*m = k*n) = (m=n)";
-bd mult_cancel2 1;
+by (dtac mult_cancel2 1);
 by (asm_full_simp_tac (!simpset addsimps [mult_commute]) 1);
 qed "mult_cancel1";
 Addsimps [mult_cancel1, mult_cancel2];
@@ -574,13 +574,13 @@ by (Asm_simp_tac 1);
 qed "diff_less_mono";
 
 goal Arith.thy "!! a b c::nat. a+b < c ==> a < c-b";
-bd diff_less_mono 1;
-br le_add2 1;
+by (dtac diff_less_mono 1);
+by (rtac le_add2 1);
 by (Asm_full_simp_tac 1);
 qed "add_less_imp_less_diff";
 
 goal Arith.thy "!! n. n <= m ==> Suc m - n = Suc (m - n)";
-br Suc_diff_n 1;
+by (rtac Suc_diff_n 1);
 by (asm_full_simp_tac (!simpset addsimps [le_eq_less_Suc]) 1);
 qed "Suc_diff_le";
 
@@ -597,7 +597,7 @@ qed "diff_diff_cancel";
 Addsimps [diff_diff_cancel];
 
 goal Arith.thy "!!k::nat. k <= n ==> m <= n + m - k";
-be rev_mp 1;
+by (etac rev_mp 1);
 by (res_inst_tac [("m", "k"), ("n", "n")] diff_induct 1);
 by (Simp_tac 1);
 by (simp_tac (!simpset addsimps [less_add_Suc2, less_imp_le]) 1);

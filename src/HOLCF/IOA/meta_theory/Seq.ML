@@ -48,10 +48,10 @@ qed"smap_UU";
 
 goal thy 
 "!!x.[|x~=UU|] ==> smap`f`(x##xs)= (f`x)##smap`f`xs"; 
-br trans 1;
+by (rtac trans 1);
 by (stac smap_unfold 1);
 by (Asm_full_simp_tac 1);
-br refl 1;
+by (rtac refl 1);
 qed"smap_cons";
 
 (* ----------------------------------------------------------- *)
@@ -76,10 +76,10 @@ qed"sfilter_UU";
 goal thy 
 "!!x.x~=UU ==> sfilter`P`(x##xs)=   \
 \             (If P`x then x##(sfilter`P`xs) else sfilter`P`xs fi)";
-br trans 1;
+by (rtac trans 1);
 by (stac sfilter_unfold 1);
 by (Asm_full_simp_tac 1);
-br refl 1;
+by (rtac refl 1);
 qed"sfilter_cons";
 
 (* ----------------------------------------------------------- *)
@@ -103,10 +103,10 @@ qed"sforall2_UU";
 
 goal thy 
 "!!x.x~=UU ==> sforall2`P`(x##xs)= ((P`x) andalso sforall2`P`xs)";
-br trans 1;
+by (rtac trans 1);
 by (stac sforall2_unfold 1);
 by (Asm_full_simp_tac 1);
-br refl 1;
+by (rtac refl 1);
 qed"sforall2_cons";
 
 
@@ -133,10 +133,10 @@ qed"stakewhile_UU";
 goal thy 
 "!!x.x~=UU ==> stakewhile`P`(x##xs) =   \
 \             (If P`x then x##(stakewhile`P`xs) else nil fi)";
-br trans 1;
+by (rtac trans 1);
 by (stac stakewhile_unfold 1);
 by (Asm_full_simp_tac 1);
-br refl 1;
+by (rtac refl 1);
 qed"stakewhile_cons";
 
 (* ----------------------------------------------------------- *)
@@ -162,10 +162,10 @@ qed"sdropwhile_UU";
 goal thy 
 "!!x.x~=UU ==> sdropwhile`P`(x##xs) =   \
 \             (If P`x then sdropwhile`P`xs else x##xs fi)";
-br trans 1;
+by (rtac trans 1);
 by (stac sdropwhile_unfold 1);
 by (Asm_full_simp_tac 1);
-br refl 1;
+by (rtac refl 1);
 qed"sdropwhile_cons";
 
 
@@ -192,10 +192,10 @@ qed"slast_UU";
 
 goal thy 
 "!!x.x~=UU ==> slast`(x##xs)= (If is_nil`xs then x else slast`xs fi)";
-br trans 1;
+by (rtac trans 1);
 by (stac slast_unfold 1);
 by (Asm_full_simp_tac 1);
-br refl 1;
+by (rtac refl 1);
 qed"slast_cons";
 
 
@@ -220,7 +220,7 @@ by (Simp_tac 1);
 qed"sconc_UU";
 
 goal thy "(x##xs) @@ y=x##(xs @@ y)";
-br trans 1;
+by (rtac trans 1);
 by (stac sconc_unfold 1);
 by (Asm_full_simp_tac 1);
 by (case_tac "x=UU" 1);
@@ -250,7 +250,7 @@ by (Simp_tac 1);
 qed"sflat_UU";
 
 goal thy "sflat`(x##xs)= x@@(sflat`xs)"; 
-br trans 1;
+by (rtac trans 1);
 by (stac sflat_unfold 1);
 by (Asm_full_simp_tac 1);
 by (case_tac "x=UU" 1);
@@ -289,13 +289,13 @@ by (REPEAT (Asm_full_simp_tac 1));
 qed"szip_UU2";
 
 goal thy "!!x.x~=UU ==> szip`(x##xs)`nil=UU";
-br trans 1;
+by (rtac trans 1);
 by (stac szip_unfold 1);
 by (REPEAT (Asm_full_simp_tac 1));
 qed"szip_cons_nil";
 
 goal thy "!!x.[| x~=UU; y~=UU|] ==> szip`(x##xs)`(y##ys) = <x,y>##szip`xs`ys";
-br trans 1;
+by (rtac trans 1);
 by (stac szip_unfold 1);
 by (REPEAT (Asm_full_simp_tac 1));
 qed"szip_cons";
@@ -320,7 +320,7 @@ goal thy
  "!!x. [|x~=UU;y~=UU|]==> (x##xs=y##ys) = (x=y & xs=ys)";
 by (rtac iffI 1);
 by (etac (hd seq.injects) 1);
-auto();
+by (Auto_tac());
 qed"scons_inject_eq";
 
 goal thy "!!x. nil<<x ==> nil=x";
@@ -399,8 +399,8 @@ section "Finite";
 (* ----------------------------------------------------  *)
 
 goal thy "Finite x --> x~=UU";
-br impI 1;
-be sfinite.induct 1;
+by (rtac impI 1);
+by (etac sfinite.induct 1);
  by (Asm_full_simp_tac 1);
 by (Asm_full_simp_tac 1);
 qed"Finite_UU_a";
@@ -412,7 +412,7 @@ qed"Finite_UU";
 
 goal thy "Finite x --> a~=UU --> x=a##xs --> Finite xs";
 by (strip_tac 1);
-be sfinite.elim 1;
+by (etac sfinite.elim 1);
 by (fast_tac (HOL_cs addss !simpset) 1);
 by (fast_tac (HOL_cs addSDs seq.injects) 1);
 qed"Finite_cons_a";
@@ -454,8 +454,8 @@ goal  thy
 \  !! x s1.[|x~=UU;P(s1)|] ==> P(x##s1)\
 \  |] ==> seq_finite(s) --> P(s)";
 by (rtac seq_finite_ind_lemma 1);
-be seq.finite_ind 1;
- ba 1;
+by (etac seq.finite_ind 1);
+ by (assume_tac 1);
 by (Asm_full_simp_tac 1);
 qed"seq_finite_ind";
 

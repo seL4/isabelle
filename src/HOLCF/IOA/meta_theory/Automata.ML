@@ -32,7 +32,7 @@ qed "trans_in_actions";
 
 goal thy
 "starts_of(A || B) = {p. fst(p):starts_of(A) & snd(p):starts_of(B)}";
-  by(simp_tac (!simpset addsimps (par_def::ioa_projections)) 1);
+  by (simp_tac (!simpset addsimps (par_def::ioa_projections)) 1);
 qed "starts_of_par";
 
 
@@ -43,14 +43,14 @@ section "actions and par";
 
 goal thy 
 "actions(asig_comp a b) = actions(a) Un actions(b)";
-  by(simp_tac (!simpset addsimps
+  by (simp_tac (!simpset addsimps
                ([actions_def,asig_comp_def]@asig_projections)) 1);
   by (fast_tac (set_cs addSIs [equalityI]) 1);
 qed "actions_asig_comp";
 
 
 goal thy "asig_of(A || B) = asig_comp (asig_of A) (asig_of B)";
-  by(simp_tac (!simpset addsimps (par_def::ioa_projections)) 1);
+  by (simp_tac (!simpset addsimps (par_def::ioa_projections)) 1);
 qed "asig_of_par";
 
 
@@ -90,7 +90,7 @@ section "actions and compatibility";
 
 goal thy"compatible A B = compatible B A";
 by (asm_full_simp_tac (!simpset addsimps [compatible_def,Int_commute]) 1);
-auto();
+by (Auto_tac());
 qed"compat_commute";
 
 goalw thy [externals_def,actions_def,compatible_def]
@@ -167,21 +167,21 @@ section "restrict";
 
 goal thy "starts_of(restrict ioa acts) = starts_of(ioa) &     \
 \             trans_of(restrict ioa acts) = trans_of(ioa)";
-by(simp_tac (!simpset addsimps ([restrict_def]@ioa_projections)) 1);
+by (simp_tac (!simpset addsimps ([restrict_def]@ioa_projections)) 1);
 qed "cancel_restrict_a";
 
 goal thy "reachable (restrict ioa acts) s = reachable ioa s";
 by (rtac iffI 1);
-be reachable.induct 1;
-by(asm_full_simp_tac (!simpset addsimps [cancel_restrict_a,reachable_0]) 1);
+by (etac reachable.induct 1);
+by (asm_full_simp_tac (!simpset addsimps [cancel_restrict_a,reachable_0]) 1);
 by (etac reachable_n 1);
-by(asm_full_simp_tac (!simpset addsimps [cancel_restrict_a]) 1);
+by (asm_full_simp_tac (!simpset addsimps [cancel_restrict_a]) 1);
 (* <--  *)
-be reachable.induct 1;
+by (etac reachable.induct 1);
 by (rtac reachable_0 1);
-by(asm_full_simp_tac (!simpset addsimps [cancel_restrict_a]) 1);
+by (asm_full_simp_tac (!simpset addsimps [cancel_restrict_a]) 1);
 by (etac reachable_n 1);
-by(asm_full_simp_tac (!simpset addsimps [cancel_restrict_a]) 1);
+by (asm_full_simp_tac (!simpset addsimps [cancel_restrict_a]) 1);
 qed "cancel_restrict_b";
 
 goal thy "starts_of(restrict ioa acts) = starts_of(ioa) &     \
@@ -202,14 +202,14 @@ qed"trans_rename";
 
 
 goal thy "!!s.[| reachable (rename C g) s |] ==> reachable C s";
-be reachable.induct 1;
-br reachable_0 1;
-by(asm_full_simp_tac (!simpset addsimps [rename_def]@ioa_projections) 1);
-bd trans_rename 1;
-be exE 1;
-be conjE 1;
-be reachable_n 1;
-ba 1;
+by (etac reachable.induct 1);
+by (rtac reachable_0 1);
+by (asm_full_simp_tac (!simpset addsimps [rename_def]@ioa_projections) 1);
+by (dtac trans_rename 1);
+by (etac exE 1);
+by (etac conjE 1);
+by (etac reachable_n 1);
+by (assume_tac 1);
 qed"reachable_rename";
 
 
@@ -282,7 +282,7 @@ goal thy
 \     (snd(snd(snd(s))),a,snd(snd(snd(t)))):trans_of(D)                      \
 \   else snd(snd(snd(t)))=snd(snd(snd(s)))))";
 
-  by(simp_tac (!simpset addsimps ([par_def,actions_asig_comp,Pair_fst_snd_eq,Let_def]@
+  by (simp_tac (!simpset addsimps ([par_def,actions_asig_comp,Pair_fst_snd_eq,Let_def]@
                             ioa_projections)
                   setloop (split_tac [expand_if])) 1);
 qed "trans_of_par4";

@@ -189,7 +189,7 @@ Delrules [less_SucE];
 
 goal thy "!!n. 0<n ==> m*n div n = m";
 by (cut_inst_tac [("m", "m*n")] mod_div_equality 1);
-ba 1;
+by (assume_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [mod_mult_self_is_0]) 1);
 qed "div_mult_self_is_m";
 Addsimps [div_mult_self_is_m];
@@ -264,7 +264,7 @@ by (blast_tac (!claset addIs [diff_mult_distrib2 RS sym]) 1);
 qed "dvd_diff";
 
 goal thy "!!k. [| k dvd (m-n); k dvd n; n<=m |] ==> k dvd m";
-be (not_less_iff_le RS iffD2 RS add_diff_inverse RS subst) 1;
+by (etac (not_less_iff_le RS iffD2 RS add_diff_inverse RS subst) 1);
 by (blast_tac (!claset addIs [dvd_add]) 1);
 qed "dvd_diffD";
 
@@ -316,9 +316,9 @@ qed "dvd_mult_left";
 goalw thy [dvd_def] "!!n. [| k dvd n; 0 < n |] ==> k <= n";
 by (Step_tac 1);
 by (ALLGOALS (full_simp_tac (!simpset addsimps [zero_less_mult_iff])));
-be conjE 1;
-br le_trans 1;
-br (le_refl RS mult_le_mono) 2;
+by (etac conjE 1);
+by (rtac le_trans 1);
+by (rtac (le_refl RS mult_le_mono) 2);
 by (etac Suc_leI 2);
 by (Simp_tac 1);
 qed "dvd_imp_le";

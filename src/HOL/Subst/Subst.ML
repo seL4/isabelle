@@ -25,7 +25,7 @@ qed_spec_mp "subst_mono";
 
 goal Subst.thy  "~ (Var(v) <: t) --> t <| (v,t <| s) # s = t <| s";
 by (case_tac "t = Var(v)" 1);
-be rev_mp 2;
+by (etac rev_mp 2);
 by (res_inst_tac [("P",
     "%x.~x=Var(v) --> ~(Var(v) <: x) --> x <| (v,t<|s)#s=x<|s")]
     uterm.induct 2);
@@ -41,7 +41,7 @@ by (ALLGOALS Blast_tac);
 qed "agreement";
 
 goal Subst.thy   "~ v: vars_of(t) --> t <| (v,u)#s = t <| s";
-by(simp_tac (!simpset addsimps [agreement]
+by (simp_tac (!simpset addsimps [agreement]
                       setloop (split_tac [expand_if])) 1);
 qed_spec_mp"repl_invariance";
 

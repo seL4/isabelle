@@ -69,7 +69,7 @@ qed"mkex2_nil";
 goal thy "!!x.[| x:act A; x~:act B; HD`exA=Def a|] \
 \   ==> (mkex2 A B`(x>>sch)`exA`exB) s t =   \
 \       (x,snd a,t) >> (mkex2 A B`sch`(TL`exA)`exB) (snd a) t";
-br trans 1;
+by (rtac trans 1);
 by (stac mkex2_unfold 1);
 by (asm_full_simp_tac (!simpset addsimps [Cons_def,If_and_if]) 1);
 by (asm_full_simp_tac (!simpset addsimps [Cons_def]) 1);
@@ -78,7 +78,7 @@ qed"mkex2_cons_1";
 goal thy "!!x.[| x~:act A; x:act B; HD`exB=Def b|] \
 \   ==> (mkex2 A B`(x>>sch)`exA`exB) s t = \
 \       (x,s,snd b) >> (mkex2 A B`sch`exA`(TL`exB)) s (snd b)";
-br trans 1;
+by (rtac trans 1);
 by (stac mkex2_unfold 1);
 by (asm_full_simp_tac (!simpset addsimps [Cons_def,If_and_if]) 1);
 by (asm_full_simp_tac (!simpset addsimps [Cons_def]) 1);
@@ -88,7 +88,7 @@ goal thy "!!x.[| x:act A; x:act B; HD`exA=Def a;HD`exB=Def b|] \
 \   ==> (mkex2 A B`(x>>sch)`exA`exB) s t =  \
 \        (x,snd a,snd b) >> \
 \           (mkex2 A B`sch`(TL`exA)`(TL`exB)) (snd a) (snd b)";
-br trans 1;
+by (rtac trans 1);
 by (stac mkex2_unfold 1);
 by (asm_full_simp_tac (!simpset addsimps [Cons_def,If_and_if]) 1);
 by (asm_full_simp_tac (!simpset addsimps [Cons_def]) 1);
@@ -115,7 +115,7 @@ goal thy "!!x.[| x:act A; x~:act B |] \
 by (simp_tac (!simpset addsimps [mkex_def] 
                        setloop (split_tac [expand_if]) ) 1);
 by (cut_inst_tac [("exA","a>>exA")] mkex2_cons_1 1);
-auto();
+by (Auto_tac());
 qed"mkex_cons_1";
 
 goal thy "!!x.[| x~:act A; x:act B |] \
@@ -124,7 +124,7 @@ goal thy "!!x.[| x~:act A; x:act B |] \
 by (simp_tac (!simpset addsimps [mkex_def] 
                        setloop (split_tac [expand_if]) ) 1);
 by (cut_inst_tac [("exB","b>>exB")] mkex2_cons_2 1);
-auto();
+by (Auto_tac());
 qed"mkex_cons_2";
 
 goal thy "!!x.[| x:act A; x:act B |]  \
@@ -133,7 +133,7 @@ goal thy "!!x.[| x:act A; x:act B |]  \
 by (simp_tac (!simpset addsimps [mkex_def] 
                        setloop (split_tac [expand_if]) ) 1);
 by (cut_inst_tac [("exB","b>>exB"),("exA","a>>exA")] mkex2_cons_3 1);
-auto();
+by (Auto_tac());
 qed"mkex_cons_3";
 
 Delsimps [mkex2_UU,mkex2_nil,mkex2_cons_1,mkex2_cons_2,mkex2_cons_3];
@@ -289,8 +289,8 @@ goal thy "!! sch.[|  \
 by (cut_facts_tac [stutterA_mkex] 1);
 by (asm_full_simp_tac (!simpset addsimps [stutter_def,ProjA_def,mkex_def]) 1);
 by (REPEAT (etac allE 1));
-bd mp 1;
-ba 2;
+by (dtac mp 1);
+by (assume_tac 2);
 by (Asm_full_simp_tac 1);
 qed"stutter_mkex_on_A";
 
@@ -320,8 +320,8 @@ goal thy "!! sch.[|  \
 by (cut_facts_tac [stutterB_mkex] 1);
 by (asm_full_simp_tac (!simpset addsimps [stutter_def,ProjB_def,mkex_def]) 1);
 by (REPEAT (etac allE 1));
-bd mp 1;
-ba 2;
+by (dtac mp 1);
+by (assume_tac 2);
 by (Asm_full_simp_tac 1);
 qed"stutter_mkex_on_B";
 
@@ -380,11 +380,11 @@ goal thy "!!sch exA exB.\
 by (asm_full_simp_tac (!simpset addsimps [ProjA_def,Filter_ex_def]) 1);
 by (pair_tac "exA" 1);
 by (pair_tac "exB" 1);
-br conjI 1;
+by (rtac conjI 1);
 by (simp_tac (!simpset addsimps [mkex_def]) 1);
 by (stac trick_against_eq_in_ass 1);
 back();
-ba 1;
+by (assume_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [filter_mkex_is_exA_tmp]) 1);
 qed"filter_mkex_is_exA";
  
@@ -424,11 +424,11 @@ goal thy "!!sch exA exB.\
 by (asm_full_simp_tac (!simpset addsimps [ProjB_def,Filter_ex_def]) 1);
 by (pair_tac "exA" 1);
 by (pair_tac "exB" 1);
-br conjI 1;
+by (rtac conjI 1);
 by (simp_tac (!simpset addsimps [mkex_def]) 1);
 by (stac trick_against_eq_in_ass 1);
 back();
-ba 1;
+by (assume_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [filter_mkex_is_exB_tmp]) 1);
 qed"filter_mkex_is_exB";
 
@@ -473,7 +473,7 @@ by (simp_tac (!simpset addsimps [Filter_ex_def,ProjB_def,
                                  lemma_2_1a,lemma_2_1b]) 1);
 by (asm_full_simp_tac (!simpset addsimps [executions_def]) 1);
 by (pair_tac "ex" 1);
-be conjE 1;
+by (etac conjE 1);
 by (asm_full_simp_tac (!simpset addsimps [sch_actions_in_AorB]) 1);
 
 (* <== *)

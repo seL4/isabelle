@@ -89,8 +89,8 @@ qed "gcd_mult_distrib2";
 goalw thy [prime_def] "!!p. [| p: prime; p dvd (m*n) |] ==> p dvd m | p dvd n";
 by (Step_tac 1);
 by (subgoal_tac "m = gcd(m*p, m*n)" 1);
-be ssubst 1;
-br gcd_greatest 1;
+by (etac ssubst 1);
+by (rtac gcd_greatest 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [gcd_mult_distrib2 RS sym])));
 (*Now deduce  gcd(p,n)=1  to finish the proof*)
 by (cut_inst_tac [("m","p"),("n","n")] gcd_divides_both 1);

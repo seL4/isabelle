@@ -195,16 +195,16 @@ by (REPEAT (eresolve_tac ([asm_rl,exE,disjE,conjE]@prems) 1));
 qed "rtranclE2";
 
 goal Trancl.thy "r O r^* = r^* O r";
-by(Step_tac 1);
- by(blast_tac (!claset addEs [rtranclE2] addIs [rtrancl_into_rtrancl]) 1);
-by(blast_tac (!claset addEs [rtranclE] addIs [rtrancl_into_rtrancl2]) 1);
+by (Step_tac 1);
+ by (blast_tac (!claset addEs [rtranclE2] addIs [rtrancl_into_rtrancl]) 1);
+by (blast_tac (!claset addEs [rtranclE] addIs [rtrancl_into_rtrancl2]) 1);
 qed "r_comp_rtrancl_eq";
 
 
 (**** The relation trancl ****)
 
 goalw Trancl.thy [trancl_def] "!!p.[| p:r^+; r <= s |] ==> p:s^+";
-by(blast_tac (!claset addIs [rtrancl_mono RS subsetD]) 1);
+by (blast_tac (!claset addIs [rtrancl_mono RS subsetD]) 1);
 qed "trancl_mono";
 
 (** Conversions between trancl and rtrancl **)
@@ -279,7 +279,7 @@ bind_thm ("trancl_trans", trans_trancl RS transD);
 
 goalw Trancl.thy [trancl_def]
   "!!r. [| (x,y):r^*; (y,z):r^+ |] ==> (x,z):r^+";
-by(blast_tac (!claset addIs [rtrancl_trans,r_into_rtrancl]) 1);
+by (blast_tac (!claset addIs [rtrancl_trans,r_into_rtrancl]) 1);
 qed "rtrancl_trancl_trancl";
 
 val prems = goal Trancl.thy
@@ -291,22 +291,22 @@ qed "trancl_into_trancl2";
 
 (* primitive recursion for trancl over finite relations: *)
 goal Trancl.thy "(insert (y,x) r)^+ = r^+ Un {(a,b). (a,y):r^* & (x,b):r^*}";
-br equalityI 1;
- br subsetI 1;
- by(split_all_tac 1);
- be trancl_induct 1;
-  by(blast_tac (!claset addIs [r_into_trancl]) 1);
- by(blast_tac (!claset addIs
+by (rtac equalityI 1);
+ by (rtac subsetI 1);
+ by (split_all_tac 1);
+ by (etac trancl_induct 1);
+  by (blast_tac (!claset addIs [r_into_trancl]) 1);
+ by (blast_tac (!claset addIs
      [rtrancl_into_trancl1,trancl_into_rtrancl,r_into_trancl,trancl_trans]) 1);
-br subsetI 1;
-by(blast_tac (!claset addIs
+by (rtac subsetI 1);
+by (blast_tac (!claset addIs
      [rtrancl_into_trancl2, rtrancl_trancl_trancl,
       impOfSubs rtrancl_mono, trancl_mono]) 1);
 qed "trancl_insert";
 
 goalw Trancl.thy [trancl_def] "(r^-1)^+ = (r^+)^-1";
-by(simp_tac (!simpset addsimps [rtrancl_inverse,inverse_comp]) 1);
-by(simp_tac (!simpset addsimps [rtrancl_inverse RS sym,r_comp_rtrancl_eq]) 1);
+by (simp_tac (!simpset addsimps [rtrancl_inverse,inverse_comp]) 1);
+by (simp_tac (!simpset addsimps [rtrancl_inverse RS sym,r_comp_rtrancl_eq]) 1);
 qed "trancl_inverse";
 
 

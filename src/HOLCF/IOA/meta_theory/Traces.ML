@@ -71,9 +71,9 @@ goal thy "is_exec_fragC A = (LAM ex. (%s. case ex of \
 \             `x) \
 \   ))";
 by (rtac trans 1);
-br fix_eq2 1;
-br is_exec_fragC_def 1;
-br beta_cfun 1;
+by (rtac fix_eq2 1);
+by (rtac is_exec_fragC_def 1);
+by (rtac beta_cfun 1);
 by (simp_tac (!simpset addsimps [flift1_def]) 1);
 qed"is_exec_fragC_unfold";
 
@@ -90,7 +90,7 @@ qed"is_exec_fragC_nil";
 goal thy "(is_exec_fragC A`(pr>>xs)) s = \
 \                        (Def ((s,pr):trans_of A) \
 \                andalso (is_exec_fragC A`xs)(snd pr))";
-br trans 1;
+by (rtac trans 1);
 by (stac is_exec_fragC_unfold 1);
 by (asm_full_simp_tac (!simpset addsimps [Cons_def,flift1_def]) 1);
 by (Simp_tac 1);
@@ -178,8 +178,8 @@ goal thy
 
 by (asm_full_simp_tac (!simpset addsimps [executions_def]) 1);
 by (pair_tac "x" 1);
-br (execfrag_in_sig RS spec RS mp) 1;
-auto();
+by (rtac (execfrag_in_sig RS spec RS mp) 1);
+by (Auto_tac());
 qed"exec_in_sig";
 
 goalw thy [schedules_def,has_schedule_def]
@@ -200,7 +200,7 @@ by (pair_induct_tac "y" [is_exec_frag_def] 1);
 by (strip_tac 1);
 by (Seq_case_simp_tac "xa" 1);
 by (pair_tac "a" 1);
-auto();
+by (Auto_tac());
 qed"execfrag_prefixclosed";
 
 bind_thm ("exec_prefixclosed",conjI RS (execfrag_prefixclosed RS spec RS spec RS mp));
@@ -213,6 +213,6 @@ by (pair_induct_tac "x" [is_exec_frag_def] 1);
 by (strip_tac 1);
 by (Seq_case_simp_tac "s" 1);
 by (pair_tac "a" 1);
-auto();
+by (Auto_tac());
 qed_spec_mp"exec_prefix2closed";
 

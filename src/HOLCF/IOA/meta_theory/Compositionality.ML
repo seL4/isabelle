@@ -9,16 +9,16 @@ Compositionality of I/O automata
 
 
 goal thy "!! A. [|eA --> A ; eB & ~eA --> ~A|] ==> (eA | eB) --> A=eA";
-auto();
+by (Auto_tac());
 qed"compatibility_consequence3";
 
 
 goal thy 
 "!! A B. [| compatible A B; Forall (%a. a: ext A | a: ext B) tr |] ==> \
 \           Filter (%a. a: act A)`tr= Filter (%a. a: ext A)`tr";
-br ForallPFilterQR 1;
-ba 2;
-br compatibility_consequence3 1;
+by (rtac ForallPFilterQR 1);
+by (assume_tac 2);
+by (rtac compatibility_consequence3 1);
 by (REPEAT (asm_full_simp_tac (!simpset 
                   addsimps [ext_is_act,ext1_ext2_is_not_act1]) 1));
 qed"Filter_actAisFilter_extA";
@@ -28,15 +28,15 @@ qed"Filter_actAisFilter_extA";
     or even better A||B= B||A, FIX *)
 
 goal thy "!! A. [|eA --> A ; eB & ~eA --> ~A|] ==> (eB | eA) --> A=eA";
-auto();
+by (Auto_tac());
 qed"compatibility_consequence4";
 
 goal thy 
 "!! A B. [| compatible A B; Forall (%a. a: ext B | a: ext A) tr |] ==> \
 \           Filter (%a. a: act A)`tr= Filter (%a. a: ext A)`tr";
-br ForallPFilterQR 1;
-ba 2;
-br compatibility_consequence4 1;
+by (rtac ForallPFilterQR 1);
+by (assume_tac 2);
+by (rtac compatibility_consequence4 1);
 by (REPEAT (asm_full_simp_tac (!simpset 
                   addsimps [ext_is_act,ext1_ext2_is_not_act1]) 1));
 qed"Filter_actAisFilter_extA2";
@@ -73,11 +73,11 @@ by (safe_tac set_cs);
 (* 2 goals, the 3rd has been solved automatically *)
 (* 1: Filter A2 x : traces A2 *)
 by (dres_inst_tac [("A","traces A1")] subsetD 1);
-ba 1;
+by (assume_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [Filter_actAisFilter_extA]) 1);
 (* 2: Filter B2 x : traces B2 *)
 by (dres_inst_tac [("A","traces B1")] subsetD 1);
-ba 1;
+by (assume_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [Filter_actAisFilter_extA2]) 1);
 qed"compositionality";
 

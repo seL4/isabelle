@@ -263,14 +263,14 @@ qed "congruent2_commuteI";
 goal thy "!!A. [| finite A; r <= A Times A |] ==> finite (A/r)";
 by (rtac finite_subset 1);
 by (etac (finite_Pow_iff RS iffD2) 2);
-by (rewrite_goals_tac [quotient_def]);
+by (rewtac quotient_def);
 by (Blast_tac 1);
 qed "finite_quotient";
 
 goalw thy [quotient_def]
     "!!A. [| finite A;  r <= A Times A;  X : A/r |] ==> finite X";
 by (rtac finite_subset 1);
-ba 2;
+by (assume_tac 2);
 by (Blast_tac 1);
 qed "finite_equiv_class";
 

@@ -89,9 +89,9 @@ goal thy "stutter2 A = (LAM ex. (%s. case ex of \
 \             `x) \
 \           ))";
 by (rtac trans 1);
-br fix_eq2 1;
-br stutter2_def 1;
-br beta_cfun 1;
+by (rtac fix_eq2 1);
+by (rtac stutter2_def 1);
+by (rtac beta_cfun 1);
 by (simp_tac (!simpset addsimps [flift1_def]) 1);
 qed"stutter2_unfold";
 
@@ -108,7 +108,7 @@ qed"stutter2_nil";
 goal thy "(stutter2 A`(at>>xs)) s = \
 \              ((if (fst at)~:act A then Def (s=snd at) else TT) \
 \                andalso (stutter2 A`xs) (snd at))"; 
-br trans 1;
+by (rtac trans 1);
 by (stac stutter2_unfold 1);
 by (asm_full_simp_tac (!simpset addsimps [Cons_def,flift1_def,If_and_if]) 1);
 by (Simp_tac 1);

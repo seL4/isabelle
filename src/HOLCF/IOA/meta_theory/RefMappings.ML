@@ -25,8 +25,8 @@ by (simp_tac (!simpset addsimps [laststate_def]) 1);
 by (case_tac "ex=nil" 1);
 by (Asm_simp_tac 1);
 by (Asm_simp_tac 1);
-bd (Finite_Last1 RS mp) 1;
-ba 1;
+by (dtac (Finite_Last1 RS mp) 1);
+by (assume_tac 1);
 by (def_tac 1);
 qed"laststate_cons";
 
@@ -92,7 +92,7 @@ qed"weak_ref_map2ref_map";
 
 
 val prems = goal HOL.thy "(P ==> Q-->R) ==> P&Q --> R";
-  by(fast_tac (!claset addDs prems) 1);
+  by (fast_tac (!claset addDs prems) 1);
 qed "imp_conj_lemma";
 
 goal thy "!!f.[| is_weak_ref_map f C A |]\
@@ -108,7 +108,7 @@ by (simp_tac (!simpset addsimps [rename_def]) 1);
 by (asm_full_simp_tac (!simpset addsimps [externals_def,asig_inputs_def,
 asig_outputs_def,asig_of_def,trans_of_def]) 1);
 by (safe_tac (!claset));
-by (rtac (expand_if RS ssubst) 1);
+by (stac expand_if 1);
  by (rtac conjI 1);
  by (rtac impI 1);
  by (etac disjE 1);

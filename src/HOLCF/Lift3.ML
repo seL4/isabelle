@@ -71,7 +71,7 @@ Addsimps lift.simps;
 (* --------------------------------------------------------*)
 
 goal thy "(x::'a lift) << y = (x=y | x=UU)";
-br (inst_lift_po RS ssubst) 1;
+by (stac inst_lift_po 1);
 by (Simp_tac 1);
 qed"less_lift";
 
@@ -96,13 +96,13 @@ qed"Lift_cases";
 
 goal thy
   "P(lift_case a b x) = ((x=UU --> P a) & (!y. x = Def y --> P(b y)))";
-by(lift.induct_tac "x" 1);
-by(ALLGOALS Asm_simp_tac);
+by (lift.induct_tac "x" 1);
+by (ALLGOALS Asm_simp_tac);
 qed "expand_lift_case";
 
 goal thy "(x~=UU)=(? y.x=Def y)";
-br iffI 1;
-br Lift_cases 1;
+by (rtac iffI 1);
+by (rtac Lift_cases 1);
 by (REPEAT (fast_tac (HOL_cs addSIs lift.distinct) 1));
 qed"not_Undef_is_Def";
 
@@ -126,7 +126,7 @@ by (stac (hd lift.inject RS sym) 1);
 back();
 by (rtac iffI 1);
 by (asm_full_simp_tac (!simpset addsimps [inst_lift_po] ) 1);
-be (antisym_less_inverse RS conjunct1) 1;
+by (etac (antisym_less_inverse RS conjunct1) 1);
 qed"Def_inject_less_eq";
 
 goal thy "Def x << y = (Def x = y)";
@@ -146,15 +146,15 @@ qed"ax_flat_lift";
 (* Two specific lemmas for the combination of LCF and HOL terms *)
 
 goal thy "!!f.[|cont g; cont f|] ==> cont(%x. ((f x)`(g x)) s)";
-br cont2cont_CF1L 1;
+by (rtac cont2cont_CF1L 1);
 by (REPEAT (resolve_tac cont_lemmas1 1));
-auto();
+by (Auto_tac());
 qed"cont_fapp_app";
 
 goal thy "!!f.[|cont g; cont f|] ==> cont(%x. ((f x)`(g x)) s t)";
-br cont2cont_CF1L 1;
-be cont_fapp_app 1;
-ba 1;
+by (rtac cont2cont_CF1L 1);
+by (etac cont_fapp_app 1);
+by (assume_tac 1);
 qed"cont_fapp_app_app";
 
 

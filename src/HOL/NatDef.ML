@@ -135,7 +135,7 @@ qed "n_not_Suc_n";
 bind_thm ("Suc_n_not_n", n_not_Suc_n RS not_sym);
 
 goal thy "!!n. n ~= 0 ==> EX m. n = Suc m";
-br natE 1;
+by (rtac natE 1);
 by (REPEAT (Blast_tac 1));
 qed "not0_implies_Suc";
 
@@ -567,15 +567,15 @@ qed "nat_less_le";
 (** LEAST -- the least number operator **)
 
 goal thy "(! m::nat. P m --> n <= m) = (! m. m < n --> ~ P m)";
-by(blast_tac (!claset addIs [leI] addEs [leE]) 1);
+by (blast_tac (!claset addIs [leI] addEs [leE]) 1);
 val lemma = result();
 
 (* This is an old def of Least for nat, which is derived for compatibility *)
 goalw thy [Least_def]
   "(LEAST n::nat. P n) == (@n. P(n) & (ALL m. m < n --> ~P(m)))";
-by(simp_tac (!simpset addsimps [lemma]) 1);
-br eq_reflection 1;
-br refl 1;
+by (simp_tac (!simpset addsimps [lemma]) 1);
+by (rtac eq_reflection 1);
+by (rtac refl 1);
 qed "Least_nat_def";
 
 val [prem1,prem2] = goalw thy [Least_nat_def]

@@ -24,9 +24,9 @@ goal thy "corresp_exC A f  = (LAM ex. (%s. case ex of \
 \                              @@ ((corresp_exC A f `xs) (snd pr)))   \
 \                        `x) ))";
 by (rtac trans 1);
-br fix_eq2 1;
-br corresp_exC_def 1;
-br beta_cfun 1;
+by (rtac fix_eq2 1);
+by (rtac corresp_exC_def 1);
+by (rtac beta_cfun 1);
 by (simp_tac (!simpset addsimps [flift1_def]) 1);
 qed"corresp_exC_unfold";
 
@@ -43,7 +43,7 @@ qed"corresp_exC_nil";
 goal thy "(corresp_exC A f`(at>>xs)) s = \
 \          (@cex. move A cex (f s) (fst at) (f (snd at)))  \
 \          @@ ((corresp_exC A f`xs) (snd at))";
-br trans 1;
+by (rtac trans 1);
 by (stac corresp_exC_unfold 1);
 by (asm_full_simp_tac (!simpset addsimps [Cons_def,flift1_def]) 1);
 by (Simp_tac 1);
@@ -140,7 +140,7 @@ by (pair_induct_tac "xs" [is_exec_frag_def] 1);
 by (safe_tac set_cs);
 by (asm_full_simp_tac (!simpset addsimps [mk_traceConc]) 1);
 by (forward_tac [reachable.reachable_n] 1);
-ba 1;
+by (assume_tac 1);
 by (eres_inst_tac [("x","y")] allE 1);
 by (Asm_full_simp_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [move_subprop4] 
@@ -165,7 +165,7 @@ goal thy
 \     t = laststate (s,xs) \
 \ --> is_exec_frag A (s,xs @@ ys))";
 
-br impI 1;
+by (rtac impI 1);
 by (Seq_Finite_induct_tac 1);
 (* base_case *)
 by (fast_tac HOL_cs 1);
@@ -193,12 +193,12 @@ by (safe_tac set_cs);
 by (res_inst_tac [("t","f y")]  lemma_2_1 1);
 
 (* Finite *)
-be move_subprop2 1;
+by (etac move_subprop2 1);
 by (REPEAT (atac 1));
 by (rtac conjI 1);
 
 (* is_exec_frag *)
-be  move_subprop1 1;
+by (etac move_subprop1 1);
 by (REPEAT (atac 1));
 by (rtac conjI 1);
 
@@ -207,10 +207,10 @@ by (rtac conjI 1);
 by (eres_inst_tac [("x","y")] allE 1);
 by (Asm_full_simp_tac 1);
 by (forward_tac [reachable.reachable_n] 1);
-ba 1;
+by (assume_tac 1);
 by (Asm_full_simp_tac 1);
 (* laststate *)
-be (move_subprop3 RS sym) 1;
+by (etac (move_subprop3 RS sym) 1);
 by (REPEAT (atac 1));
 qed"lemma_2";
 
