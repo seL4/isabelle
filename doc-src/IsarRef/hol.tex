@@ -279,6 +279,7 @@ HOL.
 
 
 \section{Proof by cases and induction}\label{sec:induct-method}
+%FIXME move to generic.tex
 
 \subsection{Proof methods}\label{sec:induct-method-proper}
 
@@ -430,8 +431,9 @@ instead, one would have to specify this explicitly, e.g.\ by appending
 
 \subsection{Declaring rules}\label{sec:induct-att}
 
-\indexisaratt{cases}\indexisaratt{induct}
+\indexisarcmd{print-induct-rules}\indexisaratt{cases}\indexisaratt{induct}
 \begin{matharray}{rcl}
+  \isarcmd{print_induct_rules}^* & : & \isarkeep{theory~|~proof} \\
   cases & : & \isaratt \\
   induct & : & \isaratt \\
 \end{matharray}
