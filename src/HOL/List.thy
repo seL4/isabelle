@@ -1608,14 +1608,21 @@ parse_ast_translation {*
   in [("_Char", char_ast_tr), ("_String", string_ast_tr)] end;
 *}
 
+ML {*
+fun int_of_nibble h =
+  if "0" <= h andalso h <= "9" then ord h - ord "0"
+  else if "A" <= h andalso h <= "F" then ord h - ord "A" + 10
+  else raise Match;
+
+fun nibble_of_int i =
+  if i <= 9 then chr (ord "0" + i) else chr (ord "A" + i - 10);
+*}
+
 print_ast_translation {*
   let
     fun dest_nib (Syntax.Constant c) =
         (case explode c of
-          ["N", "i", "b", "b", "l", "e", h] =>
-            if "0" <= h andalso h <= "9" then ord h - ord "0"
-            else if "A" <= h andalso h <= "F" then ord h - ord "A" + 10
-            else raise Match
+          ["N", "i", "b", "b", "l", "e", h] => int_of_nibble h
         | _ => raise Match)
       | dest_nib _ = raise Match;
 
@@ -1636,5 +1643,57 @@ print_ast_translation {*
       | list_ast_tr' ts = raise Match;
   in [("Char", char_ast_tr'), ("@list", list_ast_tr')] end;
 *}
+
+subsection {* Code generator setup *}
+
+ML {*
+local
+
+fun list_codegen thy gr dep b t =
+  let val (gr', ps) = foldl_map (Codegen.invoke_codegen thy dep false)
+    (gr, HOLogic.dest_list t)
+  in Some (gr', Pretty.list "[" "]" ps) end handle TERM _ => None;
+
+fun dest_nibble (Const (s, _)) = int_of_nibble (unprefix "List.nibble.Nibble" s)
+  | dest_nibble _ = raise Match;
+
+fun char_codegen thy gr dep b (Const ("List.char.Char", _) $ c1 $ c2) =
+    (let val c = chr (dest_nibble c1 * 16 + dest_nibble c2)
+     in if Symbol.is_printable c then Some (gr, Pretty.quote (Pretty.str c))
+       else None
+     end handle LIST _ => None | Match => None)
+  | char_codegen thy gr dep b _ = None;
+
+in
+
+val list_codegen_setup =
+  [Codegen.add_codegen "list_codegen" list_codegen,
+   Codegen.add_codegen "char_codegen" char_codegen];
+
+end;
+
+val term_of_list = HOLogic.mk_list;
+
+fun gen_list' aG i j = frequency
+  [(i, fn () => aG j :: gen_list' aG (i-1) j), (1, fn () => [])] ()
+and gen_list aG i = gen_list' aG i i;
+
+val nibbleT = Type ("List.nibble", []);
+
+fun term_of_char c =
+  Const ("List.char.Char", nibbleT --> nibbleT --> Type ("List.char", [])) $
+    Const ("List.nibble.Nibble" ^ nibble_of_int (ord c div 16), nibbleT) $
+    Const ("List.nibble.Nibble" ^ nibble_of_int (ord c mod 16), nibbleT);
+
+fun gen_char i = chr (random_range (ord "a") (Int.min (ord "a" + i, ord "z")));
+*}
+
+types_code
+  "list" ("_ list")
+  "char" ("string")
+
+consts_code "Cons" ("(_ ::/ _)")
+
+setup list_codegen_setup
 
 end
