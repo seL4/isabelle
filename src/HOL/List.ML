@@ -20,14 +20,11 @@ by (Asm_simp_tac 1);
 qed "neq_Nil_conv";
 
 (* Induction over the length of a list: *)
-val prems = goal thy
- "(!!xs::'a list. (!ys. length ys < length xs --> P ys) ==> P xs) ==> P xs";
-by (res_inst_tac [("P","P"),("r","measure length::('a list * 'a list)set")]
-     wf_induct 1);
-by (Simp_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [measure_def,inv_image_def]) 1);
-by (eresolve_tac prems 1);
-qed "list_length_induct";
+val [prem] = goal thy
+  "(!!xs. (!ys. length ys < length xs --> P ys) ==> P xs) ==> P(xs)";
+by(rtac measure_induct 1 THEN etac prem 1);
+qed "length_induct";
+
 
 (** "lists": the list-forming operator over sets **)
 
@@ -252,7 +249,7 @@ bind_thm ("snoc_exhaust",
   impI RSN (2,allI RSN (2,allI RSN (2,impI RS (result() RS mp RS mp)))));
 
 val prems = goal thy "[| P []; !!x xs. P xs ==> P(xs@[x]) |] ==> P xs";
-by(res_inst_tac [("xs","xs")] list_length_induct 1);
+by(res_inst_tac [("xs","xs")] length_induct 1);
 by(res_inst_tac [("xs","xs")] snoc_exhaust 1);
  by(Clarify_tac 1);
  brs prems 1;
@@ -561,11 +558,6 @@ Addsimps [nth_mem];
 
 (**  More case analysis and induction **)
 section "More case analysis and induction";
-
-val [prem] = goal thy
-  "(!!xs. (!ys. length ys < length xs --> P ys) ==> P xs) ==> P(xs)";
-by(rtac measure_induct 1 THEN etac prem 1);
-qed "length_induct";
 
 goal thy "xs ~= [] --> (? ys y. xs = ys@[y])";
 by(res_inst_tac [("xs","xs")] length_induct 1);
