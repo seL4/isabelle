@@ -424,7 +424,7 @@
   \item {\tt parse_ast_translation}, 91
   \item {\tt parse_rules}, 86
   \item {\tt parse_translation}, 91
-  \item {\tt pause_tac}, \bold{26}
+  \item {\tt pause_tac}, \bold{25}
   \item Poly/{\ML} compiler, 5
   \item {\tt pop_proof}, \bold{14}
   \item {\tt pr}, \bold{10}
@@ -621,7 +621,6 @@
   \item {\tt stamps_of_thy}, \bold{56}
   \item {\tt standard}, \bold{39}
   \item starting up, \bold{1}
-  \item {\tt STATE}, \bold{25}
   \item {\tt Step_tac}, \bold{128}
   \item {\tt step_tac}, 123, \bold{127}
   \item {\tt store_thm}, \bold{8}
