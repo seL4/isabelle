@@ -66,14 +66,15 @@ fun endTiming (CPUtimer, {gc,sys,usr}) =
 (* ML command execution *)
 
 (*Can one redirect 'use' directly to an instream?*)
-fun use_strings strs =
+fun use_text txt =
   let
     val tmp_name = OS.FileSys.tmpName ();
     val tmp_file = TextIO.openOut tmp_name;
-  in app (fn s => TextIO.output (tmp_file, s)) strs;
-     TextIO.closeOut tmp_file;
-     use tmp_name;
-     OS.FileSys.remove tmp_name
+  in
+    TextIO.output (tmp_file, txt);
+    TextIO.closeOut tmp_file;
+    use tmp_name;
+    OS.FileSys.remove tmp_name
   end;
 
 

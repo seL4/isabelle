@@ -41,22 +41,18 @@ fun make_pp _ pprint (str, blk, brk, en) obj =
 
 (* ML command execution -- 'eval' *)
 
-val use_strings =
+fun use_text txt =
   let
-    fun exec line =
-      let
-        val is_first = ref true;
-
-        fun get_line () =
-          if ! is_first then (is_first := false; line)
-          else raise Io "use_strings: buffer exhausted";
-      in
-        PolyML.compiler (get_line, print) ()
-      end;
-
-    fun execs [] = ()
-      | execs (line :: lines) = (exec line; execs lines);
-  in execs end;
+    val buffer = ref (explode txt);
+    fun get () =
+      (case ! buffer of
+        [] => ""
+      | c :: cs => (buffer := cs; c));
+    fun exec () =
+      (case ! buffer of
+        [] => ()
+      | _ => (PolyML.compiler (get, print) (); exec ()));
+  in exec () end;
 
 
 

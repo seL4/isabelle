@@ -81,8 +81,7 @@ fun install_pp (path, pp) = System.PrettyPrint.install_pp path pp;
 
 (* ML command execution *)
 
-fun use_strings commands =
-  System.Compile.use_stream (open_string (implode commands));
+val use_text = System.Compile.use_stream o open_string;
 
 
 
