@@ -8,7 +8,7 @@ Ordinals in Zermelo-Fraenkel Set Theory
 
 (*** Rules for Transset ***)
 
-(** Two neat characterisations of Transset **)
+(** Three neat characterisations of Transset **)
 
 Goalw [Transset_def] "Transset(A) <-> A<=Pow(A)";
 by (Blast_tac 1);
@@ -17,6 +17,10 @@ qed "Transset_iff_Pow";
 Goalw [Transset_def] "Transset(A) <-> Union(succ(A)) = A";
 by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "Transset_iff_Union_succ";
+
+Goalw [Transset_def] "Transset(A) <-> Union(A) <= A";
+by (Blast_tac 1);
+qed "Transset_iff_Union_subset";
 
 (** Consequences of downwards closure **)
 
