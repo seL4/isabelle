@@ -173,6 +173,8 @@ $(LOG)/HOL-IMPP.gz: $(OUT)/HOL IMPP/ROOT.ML IMPP/Com.thy IMPP/Com.ML \
 HOL-NumberTheory: HOL $(LOG)/HOL-NumberTheory.gz
 
 $(LOG)/HOL-NumberTheory.gz: $(OUT)/HOL \
+  NumberTheory/Fib.ML NumberTheory/Fib.thy NumberTheory/Primes.thy \
+  NumberTheory/Factorization.ML NumberTheory/Factorization.thy \
   NumberTheory/BijectionRel.ML NumberTheory/BijectionRel.thy \
   NumberTheory/Chinese.ML NumberTheory/Chinese.thy \
   NumberTheory/EulerFermat.ML NumberTheory/EulerFermat.thy \
@@ -430,8 +432,6 @@ HOL-ex: HOL $(LOG)/HOL-ex.gz
 
 $(LOG)/HOL-ex.gz: $(OUT)/HOL  ex/AVL.ML ex/AVL.thy ex/BT.ML ex/BT.thy \
   ex/InSort.ML ex/InSort.thy ex/MT.ML ex/MT.thy ex/NatSum.ML ex/NatSum.thy \
-  ex/Fib.ML ex/Fib.thy ex/Primes.thy \
-  ex/Factorization.ML ex/Factorization.thy \
   ex/Primrec.ML ex/Primrec.thy \
   ex/Puzzle.ML ex/Puzzle.thy ex/Qsort.ML ex/Qsort.thy \
   ex/ROOT.ML ex/Recdefs.ML ex/Recdefs.thy ex/cla.ML \

@@ -6,9 +6,6 @@ Miscellaneous examples for Higher-Order Logic.
 
 (*some examples of recursive function definitions: the TFL package*)
 time_use_thy "Recdefs";
-time_use_thy "Primes";
-time_use_thy "Fib";
-with_path "../Induct" time_use_thy "Factorization";
 time_use_thy "Primrec";
 
 time_use_thy "NatSum";
