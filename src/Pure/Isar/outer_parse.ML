@@ -233,7 +233,7 @@ val prop = group "proposition" trm;
 val is_terms = Scan.repeat1 ($$$ "is" |-- term);
 val is_props = Scan.repeat1 ($$$ "is" |-- prop);
 val concl_props = $$$ "concl" |-- !!! is_props;
-val any_props = is_props -- Scan.optional concl_props [] || concl_props >> pair [];
+val any_props = concl_props >> pair [] || is_props -- Scan.optional concl_props [];
 
 val propp = prop -- Scan.optional ($$$ "(" |-- !!! (any_props --| $$$ ")")) ([], []);
 val termp = term -- Scan.optional ($$$ "(" |-- !!! (is_terms --| $$$ ")")) [];
@@ -283,14 +283,13 @@ val xthms1 = Scan.repeat1 xthm;
 (* proof methods *)
 
 fun is_symid_meth s =
-  s <> "|" andalso s <> "?" andalso s <> "*" andalso s <> "+" andalso OuterLex.is_sid s;
+  s <> "|" andalso s <> "?" andalso s <> "+" andalso OuterLex.is_sid s;
 
 fun meth4 x =
  (position (xname >> rpair []) >> (Method.Source o Args.src) ||
   $$$ "(" |-- !!! (meth0 --| $$$ ")")) x
 and meth3 x =
  (meth4 --| $$$ "?" >> Method.Try ||
-  meth4 --| $$$ "*" >> Method.Repeat ||
   meth4 --| $$$ "+" >> Method.Repeat1 ||
   meth4) x
 and meth2 x =
