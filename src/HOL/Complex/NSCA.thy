@@ -9,6 +9,9 @@ theory NSCA = NSComplex:
 
 constdefs
 
+   CInfinitesimal  :: "hcomplex set"
+   "CInfinitesimal == {x. \<forall>r \<in> Reals. 0 < r --> hcmod x < r}"
+
     capprox    :: "[hcomplex,hcomplex] => bool"  (infixl "@c=" 50)  
       --{*the ``infinitely close'' relation*}
       "x @c= y == (x - y) \<in> CInfinitesimal"     
@@ -16,9 +19,6 @@ constdefs
    (* standard complex numbers reagarded as an embedded subset of NS complex *)
    SComplex  :: "hcomplex set"
    "SComplex == {x. \<exists>r. x = hcomplex_of_complex r}"
-
-   CInfinitesimal  :: "hcomplex set"
-   "CInfinitesimal == {x. \<forall>r \<in> Reals. 0 < r --> hcmod x < r}"
 
    CFinite :: "hcomplex set"
    "CFinite == {x. \<exists>r \<in> Reals. hcmod x < r}"

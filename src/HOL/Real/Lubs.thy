@@ -21,11 +21,11 @@ constdefs
   leastP      :: "['a =>bool,'a::ord] => bool"
     "leastP P x == (P x & x <=* Collect P)"
 
-  isLub       :: "['a set, 'a set, 'a::ord] => bool"
-    "isLub R S x  == leastP (isUb R S) x"
-
   isUb        :: "['a set, 'a set, 'a::ord] => bool"
     "isUb R S x   == S *<= x & x: R"
+
+  isLub       :: "['a set, 'a set, 'a::ord] => bool"
+    "isLub R S x  == leastP (isUb R S) x"
 
   ubs         :: "['a set, 'a::ord set] => 'a set"
     "ubs R S      == Collect (isUb R S)"

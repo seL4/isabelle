@@ -19,11 +19,11 @@ constdefs
   chain      :: "i=>i"
    "chain(A)      == {F \<in> Pow(A). \<forall>X\<in>F. \<forall>Y\<in>F. X<=Y | Y<=X}"
 
-  maxchain   :: "i=>i"
-   "maxchain(A)   == {c \<in> chain(A). super(A,c)=0}"
-
   super      :: "[i,i]=>i"
    "super(A,c)    == {d \<in> chain(A). c<=d & c\<noteq>d}"
+
+  maxchain   :: "i=>i"
+   "maxchain(A)   == {c \<in> chain(A). super(A,c)=0}"
 
 
 constdefs

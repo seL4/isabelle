@@ -16,9 +16,6 @@ constdefs
   irrefl   :: "[i,i]=>o"
     "irrefl(A,r) == ALL x: A. <x,x> ~: r"
 
-  equiv    :: "[i,i]=>o"
-    "equiv(A,r) == r <= A*A & refl(A,r) & sym(r) & trans(r)"
-
   sym      :: "i=>o"
     "sym(r) == ALL x y. <x,y>: r --> <y,x>: r"
 
@@ -40,6 +37,10 @@ constdefs
 
   trancl  :: "i=>i"  ("(_^+)" [100] 100)  (*transitive closure*)
     "r^+ == r O r^*"
+
+  equiv    :: "[i,i]=>o"
+    "equiv(A,r) == r <= A*A & refl(A,r) & sym(r) & trans(r)"
+
 
 subsection{*General properties of relations*}
 

@@ -26,8 +26,6 @@ constdefs
     "gmb G cn si \<equiv> snd(snd(the(method (G,cn) si)))"
   gis :: "jvm_method \<Rightarrow> bytecode"
     "gis \<equiv> fst \<circ> snd \<circ> snd"
-  glvs :: "java_mb \<Rightarrow> State.locals \<Rightarrow> locvars"
-    "glvs jmb loc \<equiv> map (the\<circ>loc) (gjmb_plns jmb)"
 
 (* jmb = aus einem JavaMaethodBody *)
   gjmb_pns  :: "java_mb \<Rightarrow> vname list"     "gjmb_pns \<equiv> fst"
@@ -36,6 +34,9 @@ constdefs
   gjmb_res  :: "java_mb \<Rightarrow> expr"           "gjmb_res \<equiv> snd\<circ>snd\<circ>snd"
   gjmb_plns :: "java_mb \<Rightarrow> vname list"
     "gjmb_plns \<equiv> \<lambda>jmb. gjmb_pns jmb @ map fst (gjmb_lvs jmb)"
+
+  glvs :: "java_mb \<Rightarrow> State.locals \<Rightarrow> locvars"
+    "glvs jmb loc \<equiv> map (the\<circ>loc) (gjmb_plns jmb)"
   
 lemmas gdefs = gx_def gh_def gl_def gmb_def gis_def glvs_def
 lemmas gjmbdefs = gjmb_pns_def gjmb_lvs_def gjmb_blk_def gjmb_res_def gjmb_plns_def

@@ -86,15 +86,15 @@ constdefs
   hcis :: "hypreal => hcomplex"
   "hcis a == Abs_hcomplex(UN X:Rep_hypreal(a). hcomplexrel `` {%n. cis (X n)})"
 
-  (* abbreviation for r*(cos a + i sin a) *)
-  hrcis :: "[hypreal, hypreal] => hcomplex"
-  "hrcis r a == hcomplex_of_hypreal r * hcis a"
-
   (*----- injection from hyperreals -----*)
 
   hcomplex_of_hypreal :: "hypreal => hcomplex"
   "hcomplex_of_hypreal r == Abs_hcomplex(UN X:Rep_hypreal(r).
 			       hcomplexrel `` {%n. complex_of_real (X n)})"
+
+  (* abbreviation for r*(cos a + i sin a) *)
+  hrcis :: "[hypreal, hypreal] => hcomplex"
+  "hrcis r a == hcomplex_of_hypreal r * hcis a"
 
   (*------------ e ^ (x + iy) ------------*)
 

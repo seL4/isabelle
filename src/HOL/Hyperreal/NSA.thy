@@ -20,6 +20,10 @@ constdefs
   HInfinite :: "hypreal set"
    "HInfinite == {x. \<forall>r \<in> Reals. r < abs x}"
 
+  (* infinitely close *)
+  approx :: "[hypreal, hypreal] => bool"    (infixl "@=" 50)
+   "x @= y       == (x + -y) \<in> Infinitesimal"
+
   (* standard part map *)
   st        :: "hypreal => hypreal"
    "st           == (%x. @r. x \<in> HFinite & r \<in> Reals & r @= x)"
@@ -29,10 +33,6 @@ constdefs
 
   galaxy    :: "hypreal => hypreal set"
    "galaxy x     == {y. (x + -y) \<in> HFinite}"
-
-  (* infinitely close *)
-  approx :: "[hypreal, hypreal] => bool"    (infixl "@=" 50)
-   "x @= y       == (x + -y) \<in> Infinitesimal"
 
 
 defs (overloaded)

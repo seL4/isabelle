@@ -79,15 +79,13 @@ constdefs
   "Cons"       :: "['a, 'a list] => 'a list"           (infixr "#" 65)
    "x#xs == Abs_List(CONS (Leaf x)(Rep_List xs))"
 
-  list_case :: "['b, ['a, 'a list]=>'b, 'a list] => 'b"
-   "list_case a f xs == list_rec xs a (%x xs r. f x xs)"
-
   (* list Recursion -- the trancl is Essential; see list.ML *)
-
-
   list_rec  :: "['a list, 'b, ['a, 'a list, 'b]=>'b] => 'b"
    "list_rec l c d ==
       List_rec(Rep_List l) c (%x y r. d(inv Leaf x)(Abs_List y) r)"
+
+  list_case :: "['b, ['a, 'a list]=>'b, 'a list] => 'b"
+   "list_case a f xs == list_rec xs a (%x xs r. f x xs)"
 
 (* list Enumeration *)
 consts
@@ -178,13 +176,13 @@ constdefs
   "rev xs   == list_rec xs [] (%x xs xsa. xsa @ [x])"
 
 (* miscellaneous definitions *)
-  zip       :: "'a list * 'b list => ('a*'b) list"
-  "zip      == zipWith  (%s. s)"
-
   zipWith   :: "['a * 'b => 'c, 'a list * 'b list] => 'c list"
   "zipWith f S == (list_rec (fst S)  (%T.[])
                             (%x xs r. %T. if null T then [] 
                                           else f(x,hd T) # r(tl T)))(snd(S))"
+
+  zip       :: "'a list * 'b list => ('a*'b) list"
+  "zip      == zipWith  (%s. s)"
 
   unzip     :: "('a*'b) list => ('a list * 'b list)"
   "unzip    == foldr(% (a,b)(c,d).(a#c,b#d))([],[])"

@@ -18,6 +18,9 @@ typedef (Program)
   by blast
 
 constdefs
+  Acts :: "'a program => ('a * 'a)set set"
+    "Acts F == (%(init, acts, allowed). acts) (Rep_Program F)"
+
   constrains :: "['a set, 'a set] => 'a program set"  (infixl "co"     60)
     "A co B == {F. \<forall>act \<in> Acts F. act``A \<subseteq> B}"
 
@@ -31,9 +34,6 @@ constdefs
 
   Init :: "'a program => 'a set"
     "Init F == (%(init, acts, allowed). init) (Rep_Program F)"
-
-  Acts :: "'a program => ('a * 'a)set set"
-    "Acts F == (%(init, acts, allowed). acts) (Rep_Program F)"
 
   AllowedActs :: "'a program => ('a * 'a)set set"
     "AllowedActs F == (%(init, acts, allowed). allowed) (Rep_Program F)"
