@@ -43,7 +43,7 @@ consts
 
 
 syntax
-  "~="          :: "['a, 'a] => o"              (infixl 50)
+  "_not_equal"  :: "['a, 'a] => o"              (infixl "~=" 50)
 translations
   "x ~= y"      == "~ (x = y)"
 
@@ -54,7 +54,7 @@ syntax (xsymbols)
   "ALL "        :: "[idts, o] => o"             ("(3\<forall>_./ _)" [0, 10] 10)
   "EX "         :: "[idts, o] => o"             ("(3\<exists>_./ _)" [0, 10] 10)
   "EX! "        :: "[idts, o] => o"             ("(3\<exists>!_./ _)" [0, 10] 10)
-  "op ~="       :: "['a, 'a] => o"              (infixl "\<noteq>" 50)
+  "_not_equal"  :: "['a, 'a] => o"              (infixl "\<noteq>" 50)
   "op -->"      :: "[o, o] => o"                (infixr "\<longrightarrow>" 25)
   "op <->"      :: "[o, o] => o"                (infixr "\<longleftrightarrow>" 25)
 

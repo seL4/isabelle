@@ -25,7 +25,7 @@ syntax (Mucke output)
   "op |"	:: [bool, bool] => bool			(infixr "|" 30)
   "op -->"	:: [bool, bool] => bool			(infixr "->" 25)
   "op ="        :: ['a, 'a] => bool                 ("(_ =/ _)" [51, 51] 50)
-  "op ~="       :: ['a, 'a] => bool                 ("(_ !=/ _)" [51, 51] 50)
+  "_not_equal"  :: ['a, 'a] => bool                 ("(_ !=/ _)" [51, 51] 50)
 
   "! " 		:: [idts, bool] => bool			("'((3forall _./ _)')" [0, 10] 10)
   "? "		:: [idts, bool] => bool			("'((3exists _./ _)')" [0, 10] 10)
