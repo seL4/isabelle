@@ -71,7 +71,7 @@ by (ALLGOALS Asm_simp_tac);
 qed "same_prefix_prefix";
 Addsimps [same_prefix_prefix];
 
-AddIffs
+AddIffs   (* (xs@ys <= xs) = (ys <= []) *)
  [simplify (simpset()) (read_instantiate [("zs","[]")] same_prefix_prefix)];
 
 Goalw [prefix_def] "xs <= ys ==> xs <= ys@zs";
@@ -80,13 +80,10 @@ by (Simp_tac 1);
 qed "prefix_prefix";
 Addsimps [prefix_prefix];
 
-(* nicht sehr elegant bewiesen - Induktion eigentlich ueberfluessig *)
 Goalw [prefix_def]
    "(xs <= y#ys) = (xs=[] | (? zs. xs=y#zs & zs <= ys))";
-by (induct_tac "xs" 1);
-by (Simp_tac 1);
-by (Simp_tac 1);
-by (Fast_tac 1);
+by (exhaust_tac "xs" 1);
+by Auto_tac;
 qed "prefix_Cons";
 
 Goal "(xs <= ys@zs) = (xs <= ys | (? us. xs = ys@us & us <= zs))";
@@ -94,7 +91,7 @@ by (res_inst_tac [("xs","zs")] rev_induct 1);
  by (Simp_tac 1);
  by (Blast_tac 1);
 by (asm_full_simp_tac (simpset() delsimps [append_assoc]
-                                addsimps [append_assoc RS sym])1);
+                                 addsimps [append_assoc RS sym])1);
 by (Simp_tac 1);
 by (Blast_tac 1);
 qed "prefix_append";

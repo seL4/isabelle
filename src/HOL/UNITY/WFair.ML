@@ -521,6 +521,7 @@ by (asm_full_simp_tac
 by (subgoal_tac "leadsTo acts (A Int W - C) (A' Int W Un C)" 1);
 by (simp_tac (simpset() addsimps [Int_Diff]) 2);
 by (blast_tac (claset() addIs [wlt_leadsTo, psp RS leadsTo_weaken_R]) 2);
+(** LEVEL 7 **)
 by (subgoal_tac "leadsTo acts (A' Int W Un C) (A' Int B' Un C)" 1);
 by (blast_tac (claset() addIs [wlt_leadsTo, leadsTo_Un_Un, 
                                psp2 RS leadsTo_weaken_R, 
@@ -530,8 +531,8 @@ by (dtac leadsTo_Diff 1);
 by (assume_tac 2);
 by (blast_tac (claset() addIs [subset_imp_leadsTo]) 1);
 by (subgoal_tac "A Int B <= A Int W" 1);
-by (blast_tac (claset() addIs [leadsTo_subset, Int_mono] 
-	                delrules [subsetI]) 2);
+by (blast_tac (claset() addSDs [leadsTo_subset]
+			addSIs [subset_refl RS Int_mono]) 2);
 by (blast_tac (claset() addIs [leadsTo_Trans, subset_imp_leadsTo]) 1);
 bind_thm("completion", refl RS result());
 

@@ -3,10 +3,12 @@
     Author:     Tobias Nipkow
     Copyright   1993 TU Muenchen
 
-For puzzle.thy.  A question from "Bundeswettbewerb Mathematik"
+A question from "Bundeswettbewerb Mathematik"
 
 Proof due to Herbert Ehler
 *)
+
+AddSIs [Puzzle.f_ax];
 
 (*specialized form of induction needed below*)
 val prems = goal Nat.thy "[| P(0); !!n. P(Suc(n)) |] ==> !n. P(n)";
@@ -21,10 +23,9 @@ by (rtac impI 1);
 by (rtac classical 1);
 by (dtac not_leE 1);
 by (subgoal_tac "f(na) <= f(f(na))" 1);
-by (fast_tac (claset() addIs [Puzzle.f_ax]) 2);
+by (Blast_tac 2);
 by (rtac Suc_leI 1);
-by (fast_tac (claset() delrules [order_refl] 
-                      addIs [Puzzle.f_ax, le_less_trans]) 1);
+by (blast_tac (claset() addSDs [spec] addIs [le_less_trans]) 1);
 val lemma = result() RS spec RS mp;
 
 Goal "n <= f(n)";
@@ -32,13 +33,16 @@ by (fast_tac (claset() addIs [lemma]) 1);
 qed "lemma1";
 
 Goal "f(n) < f(Suc(n))";
-by (deepen_tac (claset() addIs [Puzzle.f_ax, le_less_trans, lemma1]) 0 1);
+by (blast_tac (claset() addIs [le_less_trans, lemma1]) 1);
 qed "lemma2";
 
-val prems = goal Puzzle.thy "(!!n. f(n) <= f(Suc(n))) ==> m<n --> f(m) <= f(n)";
+val prems = Goal "(!!n. f(n) <= f(Suc(n))) ==> m<n --> f(m) <= f(n)";
 by (res_inst_tac[("n","n")]nat_induct 1);
 by (Simp_tac 1);
 by (simp_tac (simpset() addsimps [less_Suc_eq]) 1);
+  (*Blast_tac: PROOF FAILED.  Perhaps remove DETERM for unsafe tactics,
+    or stop rotating prems for recursive rules: the le-assumptions
+    have got out of order.*)
 by (best_tac (claset() addIs (le_trans::prems)) 1);
 qed_spec_mp "mono_lemma1";
 
