@@ -168,7 +168,7 @@ by (rtac allI 1);
 by (exhaust_tac "ys" 1);
 by (fast_tac (claset() addIs [less_add_Suc2] 
 		       addss (simpset() delsimps [length_Suc_conv])
-                       addEs [(less_not_refl2 RS not_sym) RSN (2,rev_notE)]) 1);
+                       addEs [(less_not_refl3) RSN (2,rev_notE)]) 1);
 by (Asm_simp_tac 1);
 qed_spec_mp "append_eq_append_conv";
 Addsimps [append_eq_append_conv];

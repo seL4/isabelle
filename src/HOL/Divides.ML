@@ -243,7 +243,7 @@ by (res_inst_tac [("n","m")] less_induct 1);
 by (excluded_middle_tac "Suc(na)<n" 1);
 (* case Suc(na) < n *)
 by (forward_tac [lessI RS less_trans] 2);
-by (asm_simp_tac (simpset() addsimps [mod_less, less_not_refl2 RS not_sym]) 2);
+by (asm_simp_tac (simpset() addsimps [mod_less, less_not_refl3]) 2);
 (* case n <= Suc(na) *)
 by (asm_full_simp_tac (simpset() addsimps [not_less_iff_le, mod_geq]) 1);
 by (etac (le_imp_less_or_eq RS disjE) 1);

@@ -50,10 +50,7 @@ qed "greaterThan_0";
 Addsimps [greaterThan_0];
 
 Goalw [greaterThan_def] "greaterThan (Suc k) = greaterThan k - {Suc k}";
-by Safe_tac;
-by (blast_tac (claset() addIs [less_trans]) 1);
-by (asm_simp_tac (simpset() addsimps [le_Suc_eq, not_le_iff_less RS sym]) 1);
-by (asm_simp_tac (simpset() addsimps [not_le_iff_less]) 1);
+by (auto_tac (claset() addEs [nat_neqE], simpset()));
 qed "greaterThan_Suc";
 
 Goal "(INT m. greaterThan m) = {}";
