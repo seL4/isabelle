@@ -383,6 +383,8 @@ fun exn_message TERMINATE = "Exit."
   | exn_message (ProofContext.CONTEXT (msg, _)) = msg
   | exn_message (Proof.STATE (msg, _)) = msg
   | exn_message (ProofHistory.FAIL msg) = msg
+  | exn_message (MetaSimplifier.SIMPROC_FAIL (name, exn)) =
+      fail_message "simproc" ((name, Position.none), exn)
   | exn_message (Attrib.ATTRIB_FAIL info) = fail_message "attribute" info
   | exn_message (Method.METHOD_FAIL info) = fail_message "method" info
   | exn_message (Antiquote.ANTIQUOTE_FAIL info) = fail_message "antiquotation" info

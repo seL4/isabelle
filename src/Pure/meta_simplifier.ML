@@ -16,6 +16,7 @@ signature META_SIMPLIFIER =
 sig
   include BASIC_META_SIMPLIFIER
   exception SIMPLIFIER of string * thm
+  exception SIMPROC_FAIL of string * exn
   type meta_simpset
   val dest_mss          : meta_simpset ->
     {simps: thm list, congs: thm list, procs: (string * cterm list) list}
@@ -63,6 +64,7 @@ struct
 (** diagnostics **)
 
 exception SIMPLIFIER of string * thm;
+exception SIMPROC_FAIL of string * exn;
 
 val simp_depth = ref 0;
 
@@ -651,13 +653,14 @@ fun rewritec (prover, signt, maxt)
       | proc_rews ({name, proc, lhs, ...} :: ps) =
           if Pattern.matches tsigt (term_of lhs, term_of t) then
             (debug_term false ("Trying procedure " ^ quote name ^ " on:") signt eta_t;
-             case try (fn () => proc signt prems eta_t) () of
-               None => (debug true "EXCEPTION in simproc"; proc_rews ps)
-             | Some None => (debug false "FAILED"; proc_rews ps)
-             | Some (Some raw_thm) =>
+             case transform_failure (curry SIMPROC_FAIL name)
+                 (fn () => proc signt prems eta_t) () of
+               None => (debug false "FAILED"; proc_rews ps)
+             | Some raw_thm =>
                  (trace_thm false ("Procedure " ^ quote name ^ " produced rewrite rule:") raw_thm;
                   (case rews (mk_procrule raw_thm) of
-                    None => (trace_cterm false "IGNORED - does not match" t; proc_rews ps)
+                    None => (trace_cterm true ("IGNORED result of simproc " ^ quote name ^
+                      " -- does not match") t; proc_rews ps)
                   | some => some)))
           else proc_rews ps;
   in case eta_t of
