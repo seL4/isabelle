@@ -13,10 +13,10 @@ consts
   insort :: [['a,'a]=>bool, 'a list] => 'a list
 
 primrec
-  "ins f x [] = [x]"
-  "ins f x (y#ys) = (if f x y then (x#y#ys) else y#(ins f x ys))"
+  "ins le x [] = [x]"
+  "ins le x (y#ys) = (if le x y then (x#y#ys) else y#(ins le x ys))"
 primrec
-  "insort f [] = []"
-  "insort f (x#xs) = ins f x (insort f xs)"
+  "insort le [] = []"
+  "insort le (x#xs) = ins le x (insort le xs)"
 end
 
