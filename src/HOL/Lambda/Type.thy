@@ -19,14 +19,14 @@ subsection {* Types and typing rules *}
 
 datatype type =
     Atom nat
-  | Fun type type    (infixr "\<rightarrow>" 200)
+  | Fun type type    (infixr "\<Rightarrow>" 200)
 
 consts
   typing :: "((nat \<Rightarrow> type) \<times> dB \<times> type) set"
   typings :: "(nat \<Rightarrow> type) \<Rightarrow> dB list \<Rightarrow> type list \<Rightarrow> bool"
 
 syntax
-  "_funs" :: "type list \<Rightarrow> type \<Rightarrow> type"    (infixr "=\<guillemotright>" 200)
+  "_funs" :: "type list \<Rightarrow> type \<Rightarrow> type"    (infixr "=>>" 200)
   "_typing" :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"    ("_ |- _ : _" [50, 50, 50] 50)
   "_typings" :: "(nat \<Rightarrow> type) \<Rightarrow> dB list \<Rightarrow> type list \<Rightarrow> bool"
     ("_ ||- _ : _" [50, 50, 50] 50)
@@ -34,19 +34,20 @@ syntax
 syntax (symbols)
   "_typing" :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"    ("_ \<turnstile> _ : _" [50, 50, 50] 50)
 syntax (latex)
+  "_funs" :: "type list \<Rightarrow> type \<Rightarrow> type"    (infixr "\<Rrightarrow>" 200)
   "_typings" :: "(nat \<Rightarrow> type) \<Rightarrow> dB list \<Rightarrow> type list \<Rightarrow> bool"
     ("_ \<tturnstile> _ : _" [50, 50, 50] 50)
 
 translations
-  "Ts =\<guillemotright> T" \<rightleftharpoons> "foldr Fun Ts T"
+  "Ts \<Rrightarrow> T" \<rightleftharpoons> "foldr Fun Ts T"
   "env \<turnstile> t : T" \<rightleftharpoons> "(env, t, T) \<in> typing"
   "env \<tturnstile> ts : Ts" \<rightleftharpoons> "typings env ts Ts"
 
 inductive typing
   intros
     Var [intro!]: "env x = T \<Longrightarrow> env \<turnstile> Var x : T"
-    Abs [intro!]: "(nat_case T env) \<turnstile> t : U \<Longrightarrow> env \<turnstile> Abs t : (T \<rightarrow> U)"
-    App [intro!]: "env \<turnstile> s : T \<rightarrow> U \<Longrightarrow> env \<turnstile> t : T \<Longrightarrow> env \<turnstile> (s \<^sub>\<degree> t) : U"
+    Abs [intro!]: "nat_case T env \<turnstile> t : U \<Longrightarrow> env \<turnstile> Abs t : (T \<Rightarrow> U)"
+    App [intro!]: "env \<turnstile> s : T \<Rightarrow> U \<Longrightarrow> env \<turnstile> t : T \<Longrightarrow> env \<turnstile> (s \<^sub>\<degree> t) : U"
 
 inductive_cases typing_elims [elim!]:
   "e \<turnstile> Var i : T"
@@ -82,7 +83,7 @@ lemma "e \<turnstile> Abs (Abs (Abs (Var 2 \<^sub>\<degree> Var 0 \<^sub>\<degre
 subsection {* @{text n}-ary function types *}
 
 lemma list_app_typeD [rule_format]:
-    "\<forall>t T. e \<turnstile> t \<^sub>\<degree>\<^sub>\<degree> ts : T \<longrightarrow> (\<exists>Ts. e \<turnstile> t : Ts =\<guillemotright> T \<and> e \<tturnstile> ts : Ts)"
+    "\<forall>t T. e \<turnstile> t \<^sub>\<degree>\<^sub>\<degree> ts : T \<longrightarrow> (\<exists>Ts. e \<turnstile> t : Ts \<Rrightarrow> T \<and> e \<tturnstile> ts : Ts)"
   apply (induct_tac ts)
    apply simp
   apply (intro strip)
@@ -98,11 +99,11 @@ lemma list_app_typeD [rule_format]:
   done
 
 lemma list_app_typeE:
-  "e \<turnstile> t \<^sub>\<degree>\<^sub>\<degree> ts : T \<Longrightarrow> (\<And>Ts. e \<turnstile> t : Ts =\<guillemotright> T \<Longrightarrow> e \<tturnstile> ts : Ts \<Longrightarrow> C) \<Longrightarrow> C"
+  "e \<turnstile> t \<^sub>\<degree>\<^sub>\<degree> ts : T \<Longrightarrow> (\<And>Ts. e \<turnstile> t : Ts \<Rrightarrow> T \<Longrightarrow> e \<tturnstile> ts : Ts \<Longrightarrow> C) \<Longrightarrow> C"
   by (insert list_app_typeD) fast
 
 lemma list_app_typeI [rule_format]:
-    "\<forall>t T Ts. e \<turnstile> t : Ts =\<guillemotright> T \<longrightarrow> e \<tturnstile> ts : Ts \<longrightarrow> e \<turnstile> t \<^sub>\<degree>\<^sub>\<degree> ts : T"
+    "\<forall>t T Ts. e \<turnstile> t : Ts \<Rrightarrow> T \<longrightarrow> e \<tturnstile> ts : Ts \<longrightarrow> e \<turnstile> t \<^sub>\<degree>\<^sub>\<degree> ts : T"
   apply (induct_tac ts)
    apply (intro strip)
    apply simp
@@ -265,7 +266,7 @@ lemma subject_reduction [rule_format]:
   apply (intro strip)
   apply (ind_cases "s \<^sub>\<degree> t -> t'")
     apply hypsubst
-    apply (ind_cases "env \<turnstile> Abs t : T \<rightarrow> U")
+    apply (ind_cases "env \<turnstile> Abs t : T \<Rightarrow> U")
     apply (rule subst_lemma)
       apply assumption
      apply assumption
@@ -335,8 +336,8 @@ lemma app_Var_IT: "t \<in> IT \<Longrightarrow> t \<^sub>\<degree> Var i \<in> I
   done
 
 lemma type_induct [induct type]:
-  "(\<And>T. (\<And>T1 T2. T = T1 \<rightarrow> T2 \<Longrightarrow> P T1) \<Longrightarrow>
-   (\<And>T1 T2. T = T1 \<rightarrow> T2 \<Longrightarrow> P T2) \<Longrightarrow> P T) \<Longrightarrow> P T"
+  "(\<And>T. (\<And>T1 T2. T = T1 \<Rightarrow> T2 \<Longrightarrow> P T1) \<Longrightarrow>
+   (\<And>T1 T2. T = T1 \<Rightarrow> T2 \<Longrightarrow> P T2) \<Longrightarrow> P T) \<Longrightarrow> P T"
 proof -
   case rule_context
   show ?thesis
@@ -358,8 +359,8 @@ lemma subst_type_IT:
   (is "PROP ?P U" is "\<And>t e T u i. _ \<Longrightarrow> PROP ?Q t e T u i U")
 proof (induct U)
   fix T t
-  assume MI1: "\<And>T1 T2. T = T1 \<rightarrow> T2 \<Longrightarrow> PROP ?P T1"
-  assume MI2: "\<And>T1 T2. T = T1 \<rightarrow> T2 \<Longrightarrow> PROP ?P T2"
+  assume MI1: "\<And>T1 T2. T = T1 \<Rightarrow> T2 \<Longrightarrow> PROP ?P T1"
+  assume MI2: "\<And>T1 T2. T = T1 \<Rightarrow> T2 \<Longrightarrow> PROP ?P T2"
   assume "t \<in> IT"
   thus "\<And>e T' u i. PROP ?Q t e T' u i T"
   proof induct
@@ -383,16 +384,16 @@ proof (induct U)
           case (Cons a as)
           with nT have "e\<langle>i:T\<rangle> \<turnstile> Var n \<^sub>\<degree> a \<^sub>\<degree>\<^sub>\<degree> as : T'" by simp
           then obtain Ts
-              where headT: "e\<langle>i:T\<rangle> \<turnstile> Var n \<^sub>\<degree> a : Ts =\<guillemotright> T'"
+              where headT: "e\<langle>i:T\<rangle> \<turnstile> Var n \<^sub>\<degree> a : Ts \<Rrightarrow> T'"
               and argsT: "(e\<langle>i:T\<rangle>) \<tturnstile> as : Ts"
             by (rule list_app_typeE)
           from headT obtain T''
-              where varT: "e\<langle>i:T\<rangle> \<turnstile> Var n : T'' \<rightarrow> Ts =\<guillemotright> T'"
+              where varT: "e\<langle>i:T\<rangle> \<turnstile> Var n : T'' \<Rightarrow> Ts \<Rrightarrow> T'"
               and argT: "e\<langle>i:T\<rangle> \<turnstile> a : T''"
             by cases simp_all
-          from varT True have T: "T = T'' \<rightarrow> Ts =\<guillemotright> T'"
+          from varT True have T: "T = T'' \<Rightarrow> Ts \<Rrightarrow> T'"
             by cases (auto simp add: shift_def)
-          with uT have uT': "e \<turnstile> u : T'' \<rightarrow> Ts =\<guillemotright> T'" by simp
+          with uT have uT': "e \<turnstile> u : T'' \<Rightarrow> Ts \<Rrightarrow> T'" by simp
           from Var have SI: "?R a" by cases (simp_all add: Cons)
           from T have "(Var 0 \<^sub>\<degree>\<^sub>\<degree> map (\<lambda>t. lift t 0)
             (map (\<lambda>t. t[u/i]) as))[(u \<^sub>\<degree> a[u/i])/0] \<in> IT"
@@ -401,9 +402,9 @@ proof (induct U)
             proof (rule MI1)
               have "lift u 0 \<in> IT" by (rule lift_IT)
               thus "lift u 0 \<^sub>\<degree> Var 0 \<in> IT" by (rule app_Var_IT)
-              show "e\<langle>0:T''\<rangle> \<turnstile> lift u 0 \<^sub>\<degree> Var 0 : Ts =\<guillemotright> T'"
+              show "e\<langle>0:T''\<rangle> \<turnstile> lift u 0 \<^sub>\<degree> Var 0 : Ts \<Rrightarrow> T'"
               proof (rule typing.App)
-                show "e\<langle>0:T''\<rangle> \<turnstile> lift u 0 : T'' \<rightarrow> Ts =\<guillemotright> T'"
+                show "e\<langle>0:T''\<rangle> \<turnstile> lift u 0 : T'' \<Rightarrow> Ts \<Rrightarrow> T'"
                   by (rule lift_type') (rule uT')
                 show "e\<langle>0:T''\<rangle> \<turnstile> Var 0 : T''"
                   by (rule typing.Var) (simp add: shift_def)
@@ -436,17 +437,17 @@ proof (induct U)
               thus ?case by simp
             qed
             thus "Var 0 \<^sub>\<degree>\<^sub>\<degree> ?ls as \<in> IT" by (rule IT.Var)
-            have "e\<langle>0:Ts =\<guillemotright> T'\<rangle> \<turnstile> Var 0 : Ts =\<guillemotright> T'"
+            have "e\<langle>0:Ts \<Rrightarrow> T'\<rangle> \<turnstile> Var 0 : Ts \<Rrightarrow> T'"
               by (rule typing.Var) (simp add: shift_def)
             moreover from uT argsT have "e \<tturnstile> map (\<lambda>t. t[u/i]) as : Ts"
               by (rule substs_lemma)
-            hence "(e\<langle>0:Ts =\<guillemotright> T'\<rangle>) \<tturnstile> ?ls as : Ts"
+            hence "(e\<langle>0:Ts \<Rrightarrow> T'\<rangle>) \<tturnstile> ?ls as : Ts"
               by (rule lift_typings)
-            ultimately show "e\<langle>0:Ts =\<guillemotright> T'\<rangle> \<turnstile> Var 0 \<^sub>\<degree>\<^sub>\<degree> ?ls as : T'"
+            ultimately show "e\<langle>0:Ts \<Rrightarrow> T'\<rangle> \<turnstile> Var 0 \<^sub>\<degree>\<^sub>\<degree> ?ls as : T'"
               by (rule list_app_typeI)
             from argT uT have "e \<turnstile> a[u/i] : T''"
               by (rule subst_lemma) (rule refl)
-            with uT' show "e \<turnstile> u \<^sub>\<degree> a[u/i] : Ts =\<guillemotright> T'"
+            with uT' show "e \<turnstile> u \<^sub>\<degree> a[u/i] : Ts \<Rrightarrow> T'"
               by (rule typing.App)
           qed
           with Cons True show ?thesis
@@ -527,11 +528,11 @@ proof -
       hence "Var 0 \<^sub>\<degree>\<^sub>\<degree> [lift t 0] \<in> IT" by (rule IT.Var)
       also have "(Var 0 \<^sub>\<degree>\<^sub>\<degree> [lift t 0]) = (Var 0 \<^sub>\<degree> lift t 0)" by simp
       finally show "\<dots> \<in> IT" .
-      have "e\<langle>0:T \<rightarrow> U\<rangle> \<turnstile> Var 0 : T \<rightarrow> U"
+      have "e\<langle>0:T \<Rightarrow> U\<rangle> \<turnstile> Var 0 : T \<Rightarrow> U"
         by (rule typing.Var) (simp add: shift_def)
-      moreover have "e\<langle>0:T \<rightarrow> U\<rangle> \<turnstile> lift t 0 : T"
+      moreover have "e\<langle>0:T \<Rightarrow> U\<rangle> \<turnstile> lift t 0 : T"
         by (rule lift_type')
-      ultimately show "e\<langle>0:T \<rightarrow> U\<rangle> \<turnstile> Var 0 \<^sub>\<degree> lift t 0 : U"
+      ultimately show "e\<langle>0:T \<Rightarrow> U\<rangle> \<turnstile> Var 0 \<^sub>\<degree> lift t 0 : U"
         by (rule typing.App)
     qed
     thus ?case by simp
