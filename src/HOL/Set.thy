@@ -1657,7 +1657,8 @@ lemma distinct_lemma: "f x \<noteq> f y ==> x \<noteq> y"
   by rules
 
 
-text {* \medskip Miniscoping: pushing in big Unions and Intersections. *}
+text {* \medskip Miniscoping: pushing in quantifiers and big Unions
+           and Intersections. *}
 
 lemma UN_simps [simp]:
   "!!a B C. (UN x:C. insert a (B x)) = (if C={} then {} else insert a (UN x:C. B x))"
@@ -1720,6 +1721,35 @@ lemma ball_conj_distrib:
 lemma bex_disj_distrib:
   "(EX x:A. P x | Q x) = ((EX x:A. P x) | (EX x:A. Q x))"
   by blast
+
+
+text {* \medskip Maxiscoping: pulling out big Unions and Intersections. *}
+
+lemma UN_extend_simps:
+  "!!a B C. insert a (UN x:C. B x) = (if C={} then {a} else (UN x:C. insert a (B x)))"
+  "!!A B C. (UN x:C. A x) Un B    = (if C={} then B else (UN x:C. A x Un B))"
+  "!!A B C. A Un (UN x:C. B x)   = (if C={} then A else (UN x:C. A Un B x))"
+  "!!A B C. ((UN x:C. A x) Int B) = (UN x:C. A x Int B)"
+  "!!A B C. (A Int (UN x:C. B x)) = (UN x:C. A Int B x)"
+  "!!A B C. ((UN x:C. A x) - B) = (UN x:C. A x - B)"
+  "!!A B C. (A - (INT x:C. B x)) = (UN x:C. A - B x)"
+  "!!A B. (UN y:A. UN x:y. B x) = (UN x: Union A. B x)"
+  "!!A B C. (UN  x:A. UN z: B(x). C z) = (UN z: UNION A B. C z)"
+  "!!A B f. (UN a:A. B (f a)) = (UN x:f`A. B x)"
+  by auto
+
+lemma INT_extend_simps:
+  "!!A B C. (INT x:C. A x) Int B = (if C={} then B else (INT x:C. A x Int B))"
+  "!!A B C. A Int (INT x:C. B x) = (if C={} then A else (INT x:C. A Int B x))"
+  "!!A B C. (INT x:C. A x) - B   = (if C={} then UNIV-B else (INT x:C. A x - B))"
+  "!!A B C. A - (UN x:C. B x)   = (if C={} then A else (INT x:C. A - B x))"
+  "!!a B C. insert a (INT x:C. B x) = (INT x:C. insert a (B x))"
+  "!!A B C. ((INT x:C. A x) Un B)  = (INT x:C. A x Un B)"
+  "!!A B C. A Un (INT x:C. B x)  = (INT x:C. A Un B x)"
+  "!!A B. (INT y:A. INT x:y. B x) = (INT x: Union A. B x)"
+  "!!A B C. (INT x:A. INT z: B(x). C z) = (INT z: UNION A B. C z)"
+  "!!A B f. (INT a:A. B (f a))    = (INT x:f`A. B x)"
+  by auto
 
 
 subsubsection {* Monotonicity of various operations *}
