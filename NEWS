@@ -155,9 +155,13 @@ sums;  nat_cancel contains both kinds of procedures;
 
   it be used with the new `split_asm_tac'.
 
-* HOL/Nat: users are strongly encouraged to write "0 < n" rather than
-  "n ~= 0". Theorems and proof tools have been modified towards this
-  `standard'.
+* HOL/Arithmetic:
+  - `pred n' is automatically converted to `n-1'.
+    Users are strongly encouraged not to use `pred' any longer,
+    because it will disappear altogether at some point.
+  - Users are strongly encouraged to write "0 < n" rather than
+    "n ~= 0". Theorems and proof tools have been modified towards this
+    `standard'.
 
 * HOL/Lists: the function "set_of_list" has been renamed "set"
   (and its theorems too);
