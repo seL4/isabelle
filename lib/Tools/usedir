@@ -102,6 +102,7 @@ NAME="$1"; shift
 
 if [ "$INFO" = "true" -a ! -f $ISABELLE_BROWSER_INFO/index.html ]; then
 
+  mkdir -p $ISABELLE_BROWSER_INFO
   cp $ISABELLE_HOME/lib/logo/isabelle.gif $ISABELLE_BROWSER_INFO/isabelle.gif
   cp $ISABELLE_HOME/lib/html/index1.html $ISABELLE_BROWSER_INFO/index.html
 
