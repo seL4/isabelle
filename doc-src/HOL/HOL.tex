@@ -2711,7 +2711,8 @@ well-founded.  Here are those operators, in order of importance:
   is less than $f(y)$ according to~$R$, which must itself be a well-founded
   relation.
 
-\item $R@1\texttt{**}R@2$ is the lexicographic product of two relations.  It
+\item $R@1\texttt{<*lex*>}R@2$ is the lexicographic product of two relations.
+  It 
   is a relation on pairs and satisfies $(x@1,x@2)\prec(y@1,y@2)$ if and only
   if $x@1$ 
   is less than $y@1$ according to~$R@1$ or $x@1=y@1$ and $x@2$
@@ -2950,23 +2951,23 @@ monotonicity theorems may be added:
   monotonicity of inductive definitions whose introduction rules have premises
   involving terms such as $t\in M(R@i)$.
 \item Monotonicity theorems for logical operators, which are of the general form
-  $\List{\cdots \rightarrow \cdots;~\ldots;~\cdots \rightarrow \cdots} \Imp
-    \cdots \rightarrow \cdots$.
-  For example, in the case of the operator $\vee$, the corresponding theorem is
+  $\List{\cdots \to \cdots;~\ldots;~\cdots \to \cdots} \Imp
+    \cdots \to \cdots$.
+  For example, in the case of the operator $\lor$, the corresponding theorem is
   \[
-  \infer{P@1 \vee P@2 \rightarrow Q@1 \vee Q@2}
-    {P@1 \rightarrow Q@1 & P@2 \rightarrow Q@2}
+  \infer{P@1 \lor P@2 \to Q@1 \lor Q@2}
+    {P@1 \to Q@1 & P@2 \to Q@2}
   \]
 \item De Morgan style equations for reasoning about the ``polarity'' of expressions, e.g.
   \[
-  (\neg \neg P) ~=~ P \qquad\qquad
-  (\neg (P \wedge Q)) ~=~ (\neg P \vee \neg Q)
+  (\lnot \lnot P) ~=~ P \qquad\qquad
+  (\lnot (P \land Q)) ~=~ (\lnot P \lor \lnot Q)
   \]
 \item Equations for reducing complex operators to more primitive ones whose
   monotonicity can easily be proved, e.g.
   \[
-  (P \rightarrow Q) ~=~ (\neg P \vee Q) \qquad\qquad
-  \mathtt{Ball}~A~P ~\equiv~ \forall x.~x \in A \rightarrow P~x
+  (P \to Q) ~=~ (\lnot P \lor Q) \qquad\qquad
+  \mathtt{Ball}~A~P ~\equiv~ \forall x.~x \in A \to P~x
   \]
 \end{itemize}
 
