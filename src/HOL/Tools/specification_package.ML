@@ -82,9 +82,13 @@ fun unvarify t fmap =
 
 fun process_spec cos alt_props int thy =
     let
-	fun myfoldr f [] = error "SpecificationPackage.process_spec internal error"
-	  | myfoldr f [x] = x
+	fun zip3 [] [] [] = []
+	  | zip3 (x::xs) (y::ys) (z::zs) = (x,y,z)::zip3 xs ys zs
+	  | zip3 _ _ _ = error "SpecificationPackage.process_spec internal error"
+
+	fun myfoldr f [x] = x
 	  | myfoldr f (x::xs) = f (x,myfoldr f xs)
+	  | myfoldr f [] = error "SpecificationPackage.process_spec internal error"
 
 	val sg = sign_of thy
 	fun typ_equiv t u =
@@ -105,7 +109,7 @@ fun process_spec cos alt_props int thy =
 		val frees = Term.term_frees prop
 		val tsig = Sign.tsig_of (sign_of thy)
 		val _ = assert (forall (fn v => Type.of_sort tsig (type_of v,HOLogic.typeS)) frees)
-			       "Only free variables of sort 'type' allowed in specifications"
+			       "Specificaton: Only free variables of sort 'type' allowed"
 		val prop_closed = foldr (fn ((vname,T),prop) => HOLogic.mk_all (vname,T,prop)) (map dest_Free frees,prop)
 	    in
 		(prop_closed,frees)
@@ -122,7 +126,7 @@ fun process_spec cos alt_props int thy =
 	val (names,sconsts) = Library.split_list altcos
 	val consts = map (term_of o Thm.read_cterm sg o rpair TypeInfer.logicT) sconsts
 	val _ = assert (not (Library.exists (not o Term.is_Const) consts))
-		       "Non-constant found as parameter"
+		       "Specification: Non-constant found as parameter"
 
 	fun proc_const c =
 	    let
@@ -132,9 +136,9 @@ fun process_spec cos alt_props int thy =
 		case filter (fn t => let val (name,typ) = dest_Const t
 				     in name = cname andalso typ_equiv typ ctyp
 				     end) thawed_prop_consts of
-		    [] => error ("Constant \"" ^ (Sign.string_of_term sg c) ^ "\" not found in specification")
+		    [] => error ("Specification: No suitable instances of constant \"" ^ (Sign.string_of_term sg c) ^ "\" found")
 		  | [cf] => unvarify cf vmap
-		  | _ => error ("Several variations of \"" ^ (Sign.string_of_term sg c) ^ "\" found in specification")
+		  | _ => error ("Specification: Several variations of \"" ^ (Sign.string_of_term sg c) ^ "\" found (try applying explicit type constraints)")
 	    end
 	val proc_consts = map proc_const consts
 	fun mk_exist (c,prop) =
@@ -149,9 +153,6 @@ fun process_spec cos alt_props int thy =
 	    end
 	val ex_prop = foldr mk_exist (proc_consts,prop)
 	val cnames = map (fst o dest_Const) proc_consts
-	fun zip3 [] [] [] = []
-	  | zip3 (x::xs) (y::ys) (z::zs) = (x,y,z)::zip3 xs ys zs
-	  | zip3 _ _ _ = error "Internal error: Bad specification syntax"
 	fun post_process (arg as (thy,thm)) =
 	    let
 		fun inst_all sg (thm,v) =
@@ -163,7 +164,7 @@ fun process_spec cos alt_props int thy =
 			thm RS spec'
 		    end
 		fun remove_alls frees thm = foldl (inst_all (sign_of_thm thm)) (thm,frees)
-		fun process_single (name,atts) rew_imp frees args =
+		fun process_single ((name,atts),rew_imp,frees) args =
 		    let
 			fun undo_imps thm =
 			    equal_elim (symmetric rew_imp) thm
@@ -176,30 +177,30 @@ fun process_spec cos alt_props int thy =
 				  PureThy.store_thm((name,thm),[]) thy)
 		    in
 			args |> apsnd (remove_alls frees)
-			     |> apsnd (undo_imps)
+			     |> apsnd undo_imps
 			     |> apsnd standard
 			     |> apply_atts
 			     |> add_final
 		    end
 
-		fun process_all [alt_name] [rew_imp] [frees] args =
-		    process_single alt_name rew_imp frees args
-		  | process_all (alt_name::rest_alt) (rew_imp::rest_imp) (frees::rest_frees) (thy,thm) = 
+		fun process_all [proc_arg] args =
+		    process_single proc_arg args
+		  | process_all (proc_arg::rest) (thy,thm) = 
 		    let
 			val single_th = thm RS conjunct1
 			val rest_th   = thm RS conjunct2
-			val (thy',_)  = process_single alt_name rew_imp frees (thy,single_th)
+			val (thy',_)  = process_single proc_arg (thy,single_th)
 		    in
-			process_all rest_alt rest_imp rest_frees (thy',rest_th)
+			process_all rest (thy',rest_th)
 		    end
-		  | process_all _ _ _ _ = error "SpecificationPackage.process_spec internal error"
+		  | process_all [] _ = error "SpecificationPackage.process_spec internal error"
 		val alt_names = map fst alt_props
 		val _ = if exists (fn(name,_) => not (name = "")) alt_names
 			then writeln "specification"
 			else ()
 	    in
 		arg |> apsnd freezeT
-		    |> process_all alt_names rew_imps frees
+		    |> process_all (zip3 alt_names rew_imps frees)
 	    end
     in
 	IsarThy.theorem_i Drule.internalK
