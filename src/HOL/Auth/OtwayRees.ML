@@ -450,19 +450,10 @@ goal thy
 \             : parts (sees lost Spy evs) -->                       \
 \            Crypt {|NA', NA, Agent A', Agent A|} (shrK A)       \
 \             ~: parts (sees lost Spy evs)";
-by (etac otway.induct 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [parts_insert2])));
-(*It is hard to generate this proof in a reasonable amount of time*)
-by (step_tac (!claset addSEs [MPair_parts, nonce_not_seen_now]
-                      addSDs [Says_imp_sees_Spy RS parts.Inj]) 1);
-by (REPEAT_FIRST (fast_tac (!claset (*40 seconds??*)
-                            addSDs  [impOfSubs analz_subset_parts,
-                                     impOfSubs parts_insert_subset_Un]
-                            addss  (!simpset))));
-by (REPEAT_FIRST (fast_tac (!claset 
-                              addSEs (partsEs@[nonce_not_seen_now])
+by (parts_induct_tac 1);
+by (REPEAT (fast_tac (!claset addSEs (partsEs@[nonce_not_seen_now])
                               addSDs  [impOfSubs parts_insert_subset_Un]
-                              addss (!simpset))));
+                              addss (!simpset)) 1));
 qed_spec_mp"no_nonce_OR1_OR2";
 
 
