@@ -1073,8 +1073,8 @@ fun store_thm (name, thm) =
            | None => ()
       end;
 
-    (*Return version with trivial proof object; store original version *)
-    val thm' = Thm.name_thm (the theory, name, thm) handle OPTION _ => thm
+    (*Label this theorem*)
+    val thm' = Thm.name_thm (name, thm)
   in
     loaded_thys := Symtab.update
      ((thy_name, ThyInfo {path = path, children = children, parents = parents,
@@ -1118,8 +1118,7 @@ fun thmtab_of_name name =
   let val ThyInfo {thms, ...} = the (get_thyinfo name);
   in thms end;
 
-(*Get a stored theorem specified by theory and name.
-  Derivation has the form Theorem(thy,name). *)
+(*Get a stored theorem specified by theory and name. *)
 fun get_thm thy name =
   let fun get [] [] searched =
            raise THEORY ("get_thm: no theorem " ^ quote name, [thy])
@@ -1127,7 +1126,7 @@ fun get_thm thy name =
             get (ng \\ searched) [] searched
         | get (t::ts) ng searched =
             (case Symtab.lookup (thmtab_of_name t, name) of
-                 Some thm => Thm.name_thm(thy,name,thm)
+                 Some thm => thm
                | None => get ts (ng union (parents_of_name t)) (t::searched));
 
       val (tname, _) = thyinfo_of_sign (sign_of thy);
@@ -1303,7 +1302,7 @@ fun print_thms thy =
     Pretty.writeln (Pretty.big_list "stored theorems:" (map prt_thm thms))
   end;
 
-fun print_theory thy = (Drule.print_theory thy; print_thms thy);
+fun print_theory thy = (Display.print_theory thy; print_thms thy);
 
 
 (*** Misc functions ***)
