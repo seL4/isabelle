@@ -129,8 +129,9 @@ Goal "[| inj_on f A;  x:A;  y:A |] ==> (f(x)=f(y)) = (x=y)";
 by (blast_tac (claset() addSDs [inj_onD]) 1);
 qed "inj_on_iff";
 
-Goalw [o_def] "[| inj_on f A;  inj_on g (f`A) |] ==> inj_on (g o f) A";
-by (fast_tac (claset() addIs [inj_onI] addEs [inj_onD]) 1);
+Goalw [o_def, inj_on_def]
+     "[| inj_on f A;  inj_on g (f`A) |] ==> inj_on (g o f) A";
+by (Blast_tac 1);
 qed "comp_inj_on";
 
 Goalw [inj_on_def] "[| inj_on f A;  ~x=y;  x:A;  y:A |] ==> ~ f(x)=f(y)";
@@ -161,6 +162,13 @@ Goalw [surj_def] "surj f ==> EX x. y = f x";
 by (Blast_tac 1);
 qed "surjD";
 
+Goalw [o_def, surj_def] "[| surj f;  surj g |] ==> surj (g o f)";
+by (Clarify_tac 1); 
+by (dres_inst_tac [("x","y")] spec 1); 
+by (Clarify_tac 1); 
+by (dres_inst_tac [("x","x")] spec 1); 
+by (Blast_tac 1); 
+qed "comp_surj";
 
 
 (** Bijections **)
