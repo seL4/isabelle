@@ -363,9 +363,10 @@ qed_goalw "Inter_iff" ZF.thy [Inter_def,Ball_def]
  (fn _=> [ Simp_tac 1, Fast_tac 1 ]);
 
 (* Intersection is well-behaved only if the family is non-empty! *)
-qed_goalw "InterI" ZF.thy [Inter_def]
-    "[| !!x. x: C ==> A: x;  c:C |] ==> A : Inter(C)"
- (fn prems=> [ fast_tac (!claset addIs prems) 1 ]);
+qed_goal "InterI" ZF.thy
+    "[| !!x. x: C ==> A: x;  EX c. c:C |] ==> A : Inter(C)"
+ (fn prems=> [ (simp_tac (!simpset addsimps [Inter_iff]) 1), 
+	       Cla.fast_tac (!claset addIs prems) 1 ]);
 
 (*A "destruct" rule -- every B in C contains A as an element, but
   A:B can hold when B:C does not!  This rule is analogous to "spec". *)
@@ -464,7 +465,7 @@ val cantor_cs = FOL_cs   (*precisely the rules needed for the proof*)
 (*The search is undirected; similar proof attempts may fail.
   b represents ANY map, such as (lam x:A.b(x)): A->Pow(A). *)
 qed_goal "cantor" ZF.thy "EX S: Pow(A). ALL x:A. b(x) ~= S"
- (fn _ => [best_tac cantor_cs 1]);
+ (fn _ => [Cla.best_tac cantor_cs 1]);
 
 (*Lemma for the inductive definition in Zorn.thy*)
 qed_goal "Union_in_Pow" ZF.thy
