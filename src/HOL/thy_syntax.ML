@@ -122,7 +122,9 @@ local
     ^ mk_triple (mk_list ts, quote tname, mk_list (mk_cons cons)) ^ " thy\n\
     \val thy = ("^tname^"_add_primrec "^tname^"_size_eqns thy)"
     ,
-    "structure " ^ tname ^ " =\n\
+    "val _ = deny (" ^ quote tname ^ " mem  map ! (stamps_of_thy thy))\n\
+    \   (\"Datatype \\\""^tname^"\\\" would clash with the theory of the same name!\");\n\
+    \structure " ^ tname ^ " =\n\
     \struct\n\
     \ val inject = map (get_axiom thy) " ^
         mk_list (map (fn ((s, _), _) => quote ("inject_" ^ strip_quotes s))
