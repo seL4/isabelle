@@ -77,6 +77,7 @@ if [ -n "$FAKE_BUILD" ]; then
   touch "heaps/$COMPILER/HOL-Real"
   touch "heaps/$COMPILER/ZF"
 else
+  ./build -b -m Pure-copied Pure
   ./build -b -m HOL-Real HOL
   ./build -b ZF
   rm -f "heaps/$COMPILER/Pure" "heaps/$COMPILER/FOL"
