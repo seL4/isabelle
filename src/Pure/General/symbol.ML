@@ -20,23 +20,89 @@ sig
   val is_letdig: symbol -> bool
   val is_blank: symbol -> bool
   val is_printable: symbol -> bool
+  val length: symbol list -> int
   val beginning: symbol list -> string
   val scan: string list -> symbol * string list
-  val explode: string -> symbol list
-  val length: symbol list -> int
-  val size: string -> int
-  val input: string -> string
-  val output: string -> string
   val source: bool -> (string, 'a) Source.source ->
     (symbol, (string, 'a) Source.source) Source.source
+  val explode: string -> symbol list
+  val input: string -> string
   val use: Path.T -> unit
+  val add_mode: string -> (string -> string * real) -> unit
+  val output: string -> string
+  val output_width: string -> string * real
 end;
 
 structure Symbol: SYMBOL =
 struct
 
 
-(** encoding table (isabelle-0) **)
+(** generalized characters **)
+
+(*symbols, which are considered the smallest entities of any Isabelle
+  string, may be of the following form:
+    (a) ASCII symbols: a
+    (b) printable symbols: \<ident>
+    (c) control symbols: \<^ident>
+
+  input may include non-ASCII characters according to isabelle-0 encoding;
+  output is subject to the print_mode variable (default: verbatim);
+*)
+
+type symbol = string;
+
+val space = " ";
+val eof = "";
+
+
+(* kinds *)
+
+fun is_eof s = s = eof;
+fun not_eof s = s <> eof;
+val stopper = (eof, is_eof);
+
+fun is_ascii s = size s = 1 andalso ord s < 128;
+
+fun is_letter s =
+  size s = 1 andalso
+   (ord "A" <= ord s andalso ord s <= ord "Z" orelse
+    ord "a" <= ord s andalso ord s <= ord "z");
+
+fun is_digit s =
+  size s = 1 andalso ord "0" <= ord s andalso ord s <= ord "9";
+
+fun is_quasi_letter "_" = true
+  | is_quasi_letter "'" = true
+  | is_quasi_letter s = is_letter s;
+
+val is_blank =
+  fn " " => true | "\t" => true | "\n" => true | "\^L" => true
+    | "\160" => true | "\\<spacespace>" => true
+    | _ => false;
+
+val is_letdig = is_quasi_letter orf is_digit;
+
+fun is_printable s =
+  size s = 1 andalso ord space <= ord s andalso ord s <= ord "~" orelse
+  size s > 2 andalso nth_elem (2, explode s) <> "^";
+
+fun sym_length ss = foldl (fn (n, s) => if is_printable s then n + 1 else n) (0, ss);
+
+
+(* beginning *)
+
+val smash_blanks = map (fn s => if is_blank s then space else s);
+
+fun beginning raw_ss =
+  let
+    val (all_ss, _) = take_suffix is_blank raw_ss;
+    val dots = if length all_ss > 10 then " ..." else "";
+    val (ss, _) = take_suffix is_blank (take (10, all_ss));
+  in implode (smash_blanks ss) ^ dots end;
+
+
+
+(** isabelle-0 encoding table **)
 
 val enc_start = 160;
 val enc_end = 255;
@@ -165,57 +231,7 @@ fun symbol' c =
 
 
 
-(** type symbol **)
-
-type symbol = string;
-
-val space = " ";
-val eof = "";
-
-
-(* kinds *)
-
-fun is_eof s = s = eof;
-fun not_eof s = s <> eof;
-val stopper = (eof, is_eof);
-
-fun is_ascii s = size s = 1 andalso ord s < 128;
-
-fun is_letter s =
-  size s = 1 andalso
-   (ord "A" <= ord s andalso ord s <= ord "Z" orelse
-    ord "a" <= ord s andalso ord s <= ord "z");
-
-fun is_digit s =
-  size s = 1 andalso ord "0" <= ord s andalso ord s <= ord "9";
-
-fun is_quasi_letter "_" = true
-  | is_quasi_letter "'" = true
-  | is_quasi_letter s = is_letter s;
-
-val is_blank =
-  fn " " => true | "\t" => true | "\n" => true | "\^L" => true
-    | "\160" => true | "\\<spacespace>" => true
-    | _ => false;
-
-val is_letdig = is_quasi_letter orf is_digit;
-
-fun is_printable s =
-  size s = 1 andalso ord space <= ord s andalso ord s <= ord "~" orelse
-  size s > 2 andalso nth_elem (2, explode s) <> "^";
-
-
-(* beginning *)
-
-val smash_blanks = map (fn s => if is_blank s then space else s);
-
-fun beginning raw_ss =
-  let
-    val (all_ss, _) = take_suffix is_blank raw_ss;
-    val dots = if length all_ss > 10 then " ..." else "";
-    val (ss, _) = take_suffix is_blank (take (10, all_ss));
-  in implode (smash_blanks ss) ^ dots end;
-
+(** symbol input **)
 
 (* scan *)
 
@@ -249,13 +265,7 @@ fun sym_explode str =
   end;
 
 
-(* printable length *)
-
-fun sym_length ss = foldl (fn (n, c) => if is_printable c then n + 1 else n) (0, ss);
-val sym_size = sym_length o sym_explode;
-
-
-(* input / output *)
+(* input *)
 
 fun input str =
   let val chs = explode str in
@@ -263,17 +273,11 @@ fun input str =
     else implode (map symbol' chs)
   end;
 
-fun char' s = if size s > 1 then "\\" ^ s else s;
-fun output s = let val chr = (* if "isabelle_font" mem_string !print_mode *)
-(* FIXME: does not work yet, because of static calls to output in printer.ML *)
-			     (* then *) char (* else char'*)
-		in (implode o map chr o sym_explode) s end;
-
 
 (* version of 'use' with input filtering *)
 
 val use =
-  if not needs_filtered_use then File.use
+  if not needs_filtered_use then File.use	(*ML system (wrongly!) accepts non-ASCII*)
   else
     fn path =>
       let
@@ -290,9 +294,52 @@ val use =
       end;
 
 
+
+(** symbol output **)
+
+(* default_output *)
+
+fun string_size s = (s, real (size s));
+
+fun default_output s =
+  let val cs = explode s in	(*sic!*)
+    if not (exists (equal "\\") cs) then string_size s
+    else string_size (implode (map (fn "\\" => "\\\\" | c => c) cs))
+  end;
+
+
+(* isabelle_font_output *)
+
+fun isabelle_font_output s =
+  let val cs = sym_explode s
+  in (implode (map char cs), real (sym_length cs)) end;
+
+
+(* maintain modes *)
+
+val modes = ref (Symtab.make [("isabelle_font", isabelle_font_output)]);
+
+fun lookup_mode name = Symtab.lookup (! modes, name);
+
+fun add_mode name f =
+ (if is_none (lookup_mode name) then ()
+  else warning ("Duplicate declaration of symbol print mode " ^ quote name);
+  modes := Symtab.update ((name, f), ! modes));
+
+
+(* mode output *)
+
+fun output_width s =
+  (case get_first lookup_mode (! print_mode) of
+    None => default_output s
+  | Some f => f s);
+
+val output = #1 o output_width;
+
+
 (*final declarations of this structure!*)
-val explode = sym_explode;
 val length = sym_length;
-val size = sym_size;
+val explode = sym_explode;
+
 
 end;
