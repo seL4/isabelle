@@ -53,7 +53,7 @@
   \item {\tt AddSIs}, \bold{137}
   \item {\tt addSIs}, \bold{132}
   \item {\tt addSolver}, \bold{111}
-  \item {\tt addsplits}, \bold{112}, 125, 126
+  \item {\tt addsplits}, \bold{112}, 124, 126
   \item {\tt addss}, \bold{133}, 134
   \item {\tt addSSolver}, \bold{111}
   \item {\tt all_tac}, \bold{31}
@@ -168,7 +168,7 @@
   \item {\tt compWrapper}, \bold{133}
   \item {\tt concl_of}, \bold{40}
   \item {\tt COND}, \bold{33}
-  \item congruence rules, 108
+  \item congruence rules, 109
   \item {\tt Const}, \bold{60}, 86, 96
   \item {\tt Constant}, 83, 96
   \item constants, \bold{60}
@@ -413,7 +413,7 @@
   \item meta-rules, \see{meta-rules}{1}, 42--48
   \item {\tt METAHYPS}, 16, \bold{34}
   \item mixfix declarations, 52, 73--78
-  \item {\tt mk_case_split_tac}, \bold{126}
+  \item {\tt mk_case_split_tac}, \bold{125}
   \item {\tt mk_simproc}, \bold{120}
   \item {\tt ML} section, 53, 95, 97
   \item model checkers, 79
@@ -425,7 +425,7 @@
   \indexspace
 
   \item name tokens, \bold{70}
-  \item {\tt nat_cancel}, \bold{121}
+  \item {\tt nat_cancel}, \bold{108}
   \item {\tt net_bimatch_tac}, \bold{25}
   \item {\tt net_biresolve_tac}, \bold{25}
   \item {\tt net_match_tac}, \bold{25}
@@ -636,7 +636,7 @@
   \item simplification, 103--126
     \subitem forward rules, 113
     \subitem from classical reasoner, 133
-    \subitem setting up, 122
+    \subitem setting up, 121
     \subitem tactics, 112
   \item simplification sets, 106
   \item {\tt simplify}, 113
@@ -661,7 +661,7 @@
   \item sort hypotheses, 41
   \item sorts
     \subitem printing of, 4
-  \item {\tt split_tac}, \bold{126}
+  \item {\tt split_tac}, \bold{125}
   \item {\tt ssubst} theorem, \bold{99}
   \item {\tt stac}, \bold{100}
   \item stamps, \bold{51}, 59

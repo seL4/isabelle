@@ -19,10 +19,11 @@ advanced features.
 \label{sec:simp-for-dummies}
 
 Basic use of the simplifier is particularly easy because each theory
-is equipped with an implicit {\em current
-  simpset}\index{simpset!current}.  This provides sensible default
-information in many cases.  A suite of commands refer to the implicit
-simpset of the current theory context.
+is equipped with sensible default information controlling the rewrite
+process --- namely the implicit {\em current
+  simpset}\index{simpset!current}.  A suite of simple commands is
+provided that refer to the implicit simpset of the current theory
+context.
 
 \begin{warn}
   Make sure that you are working within the correct theory context.
@@ -54,9 +55,9 @@ trace_simp        : bool ref \hfill{\bf initially false}
   simplify each other or the actual goal).
   
 \item[\ttindexbold{Asm_full_simp_tac}] is like \verb$Asm_simp_tac$,
-  but also simplifies the assumptions one by one.  Working from
-  \emph{left to right}, it uses each assumption in the simplification
-  of those following.
+  but also simplifies the assumptions one by one.  Strictly working
+  from \emph{left to right}, it uses each assumption in the
+  simplification of those following.
   
 \item[set \ttindexbold{trace_simp};] makes the simplifier output
   internal operations.  This includes rewrite steps, but also
@@ -237,8 +238,9 @@ merge_ss : simpset * simpset -> simpset
 \item[\ttindexbold{merge_ss} ($ss@1$, $ss@2$)] merges simpsets $ss@1$
   and $ss@2$ by building the union of their respective rewrite rules,
   simplification procedures and congruences.  The other components
-  (tactics etc.) cannot be merged, though; they are simply inherited
-  from either simpset.
+  (tactics etc.) cannot be merged, though; they are taken from either
+  simpset\footnote{Actually from $ss@1$, but it would unwise to count
+    on that.}.
 
 \end{ttdescription}
 
@@ -351,7 +353,8 @@ addsimprocs : simpset * simproc list -> simpset
 delsimprocs : simpset * simproc list -> simpset
 \end{ttbox}
 
-Simplification procedures are {\ML} functions that may produce
+Simplification procedures are {\ML} objects of abstract type
+\texttt{simproc}.  Basically they are just functions that may produce
 \emph{proven} rewrite rules on demand.  They are associated with
 certain patterns that conceptually represent left-hand sides of
 equations; these are shown by \texttt{print_ss}.  During its
@@ -370,6 +373,19 @@ powerful mechanism than term rewriting by a fixed set of rules.
   procedures $procs$ from the current simpset.
 
 \end{ttdescription}
+
+For example, simplification procedures \ttindexbold{nat_cancel} of
+\texttt{HOL/Arith} cancel common summands and constant factors out of
+several relations of sums over natural numbers.
+
+Consider the following goal, which after cancelling $a$ on both sides
+contains a factor of $2$.  Simplifying with the simpset of
+\texttt{Arith.thy} will do the cancellation automatically:
+\begin{ttbox}
+{\out 1. x + a + x < y + y + 2 + a + a + a + a + a}
+by (Simp_tac 1);
+{\out 1. x < Suc (a + (a + y))}
+\end{ttbox}
 
 
 \subsection{*Congruence rules}\index{congruence rules}\label{sec:simp-congs}
@@ -683,17 +699,17 @@ full_simplify     : simpset -> thm -> thm
 asm_full_simplify : simpset -> thm -> thm
 \end{ttbox}
 
-These are forward rules, simplifying theorems in a similar way as the
-corresponding simplification tactics do.  The forward rules affect the whole
-
- subgoals of a proof state.  The
-looper~/ solver process as described in \S\ref{sec:simp-looper} and
-\S\ref{sec:simp-solver} does not apply here, though.
+These functions provide \emph{forward} rules for simplification.
+Their effect is analogous to the corresponding tactics described in
+\S\ref{simp-tactics}, but affect the whole theorem instead of just a
+certain subgoal.  Also note that the looper~/ solver process as
+described in \S\ref{sec:simp-looper} and \S\ref{sec:simp-solver} is
+omitted in forward simplification.
 
 \begin{warn}
   Forward simplification should be used rarely in ordinary proof
   scripts.  It as mainly intended to provide an internal interface to
-  the simplifier for ML coded special utilities.
+  the simplifier for special utilities.
 \end{warn}
 
 
@@ -712,7 +728,7 @@ looper~/ solver process as described in \S\ref{sec:simp-looper} and
     \Var{P}(Suc(x))} \Imp \Var{P}(\Var{n})$.
 \end{ttdescription}
 We augment the implicit simpset inherited from \texttt{Nat} with the
-basic rewrite rules for natural numbers:
+basic rewrite rules for addition of natural numbers:
 \begin{ttbox}
 Addsimps [add_0, add_Suc];
 \end{ttbox}
@@ -753,15 +769,16 @@ by (Asm_simp_tac 1);
 
 \subsection{An example of tracing}
 \index{tracing!of simplification|(}\index{*trace_simp}
-Let us prove a similar result involving more complex terms.  The two
-equations together can be used to prove that addition is commutative.
+
+Let us prove a similar result involving more complex terms.  We prove
+that addition is commutative.
 \begin{ttbox}
 goal Nat.thy "m+Suc(n) = Suc(m+n)";
 {\out Level 0}
 {\out m + Suc(n) = Suc(m + n)}
 {\out  1. m + Suc(n) = Suc(m + n)}
 \end{ttbox}
-We again perform induction on~$m$ and get two subgoals:
+Performing induction on~$m$ yields two subgoals:
 \begin{ttbox}
 by (res_inst_tac [("n","m")] induct 1);
 {\out Level 1}
@@ -814,9 +831,11 @@ by (ALLGOALS Asm_simp_tac);
 \end{ttbox}
 \index{tracing!of simplification|)}
 
+
 \subsection{Free variables and simplification}
-Here is a conjecture to be proved for an arbitrary function~$f$ satisfying
-the law $f(Suc(\Var{n})) = Suc(f(\Var{n}))$:
+
+Here is a conjecture to be proved for an arbitrary function~$f$
+satisfying the law $f(Suc(\Var{n})) = Suc(f(\Var{n}))$:
 \begin{ttbox}
 val [prem] = goal Nat.thy
     "(!!n. f(Suc(n)) = Suc(f(n))) ==> f(i+j) = i+f(j)";
@@ -971,8 +990,11 @@ primrec "sum" nat
 end
 \end{ttbox}
 The \texttt{primrec} declaration automatically adds rewrite rules for
-\texttt{sum} to the default simpset.  We now insert the AC-rules for~$+$:
+\texttt{sum} to the default simpset.  We now remove the
+\texttt{nat_cancel} simplification procedures (in order not to spoil
+the example) and insert the AC-rules for~$+$:
 \begin{ttbox}
+Delsimprocs nat_cancel;
 Addsimps add_ac;
 \end{ttbox}
 Our desired theorem now reads ${\tt sum} \, (\lambda i.i) \, (n+1) =
@@ -1028,8 +1050,8 @@ $\sum@{i=1}^n i^3 = n^2\times(n+1)^2/4$.
 
 
 \subsection{Re-orienting equalities}
-Ordered rewriting with the derived rule {\tt symmetry} can reverse equality
-signs:
+Ordered rewriting with the derived rule {\tt symmetry} can reverse
+equations:
 \begin{ttbox}
 val symmetry = prove_goal HOL.thy "(x=y) = (y=x)"
                  (fn _ => [Blast_tac 1]);
@@ -1104,12 +1126,13 @@ procedure \texttt{pair_eta_expand_proc} is defined as follows:
 \begin{ttbox}
 local
   val lhss =
-    [read_cterm (sign_of Prod.thy) ("f::'a*'b=>'c", TVar (("'a", 0), []))];
+    [read_cterm (sign_of Prod.thy) ("f::'a*'b=>'c", TVar (("'z", 0), []))];
   val rew = mk_meta_eq pair_eta_expand; \medskip
   fun proc _ _ (Abs _) = Some rew
     | proc _ _ _ = None;
 in
-  val pair_eta_expand_proc = Simplifier.mk_simproc "pair_eta_expand" lhss proc;
+  val pair_eta_expand_proc =
+    Simplifier.mk_simproc "pair_eta_expand" lhss proc;
 end;
 \end{ttbox}
 This is an example of using \texttt{pair_eta_expand_proc}:
@@ -1125,26 +1148,6 @@ In the above example the simplification procedure just did fine
 grained control over rule application, beyond higher-order pattern
 matching.  Usually, procedures would do some more work, in particular
 prove particular theorems depending on the current redex.
-
-For example, simplification procedures \ttindexbold{nat_cancel} of
-\texttt{HOL/Arith} cancel common summands and constant factors out of
-several relations of sums over natural numbers.
-
-Consider the following goal, which after cancelling $a$ on both sides
-contains a factor of $2$.  Simplifying with the simpset of
-\texttt{Arith.thy} will do the cancellation automatically:
-\begin{ttbox}
-{\out 1. x + a + x < y + y + 2 + a + a + a + a + a}
-by (Simp_tac 1);
-{\out 1. x < Suc (a + (a + y))}
-\end{ttbox}
-
-\medskip
-
-The {\ML} sources for these simplification procedures consist of a
-generic part (files \texttt{cancel_sums.ML} and
-\texttt{cancel_factor.ML} in \texttt{Provers/Arith}), and a
-\texttt{HOL} specific part in \texttt{HOL/arith_data.ML}.
 
 
 \section{*Setting up the simplifier}\label{sec:setting-up-simp}
@@ -1163,10 +1166,10 @@ use "$ISABELLE_HOME/src/Provers/simplifier.ML";
 use "$ISABELLE_HOME/src/Provers/splitter.ML";
 \end{ttbox}
 
-Simplification works by reducing various object-equalities to
-meta-equality.  It requires rules stating that equal terms and equivalent
-formulae are also equal at the meta-level.  The rule declaration part of
-the file {\tt FOL/IFOL.thy} contains the two lines
+Simplification requires reflecting various object-equalities to
+meta-level rewrite rules.  This demands rules stating that equal terms
+and equivalent formulae are also equal at the meta-level.  The rule
+declaration part of the file {\tt FOL/IFOL.thy} contains the two lines
 \begin{ttbox}\index{*eq_reflection theorem}\index{*iff_reflection theorem}
 eq_reflection   "(x=y)   ==> (x==y)"
 iff_reflection  "(P<->Q) ==> (P==Q)"
@@ -1183,10 +1186,11 @@ intensional equality~\cite{nordstrom90}.
 
 
 \subsection{A collection of standard rewrite rules}
-The file begins by proving lots of standard rewrite rules about the logical
-connectives.  These include cancellation and associative laws.  To prove
-them easily, it defines a function that echoes the desired law and then
-supplies it the theorem prover for intuitionistic \FOL:
+
+We first prove lots of standard rewrite rules about the logical
+connectives.  These include cancellation and associative laws.  We
+define a function that echoes the desired law and then supplies it the
+prover for intuitionistic \FOL:
 \begin{ttbox}
 fun int_prove_fun s = 
  (writeln s;  
@@ -1370,10 +1374,11 @@ effect for conjunctions.
 
 
 \subsection{Case splitting}
-To set up case splitting, we must prove the theorem below and pass it to
-\ttindexbold{mk_case_split_tac}.  The tactic \ttindexbold{split_tac} uses
-{\tt mk_meta_eq}, defined above, to convert the splitting rules to
-meta-equalities.
+
+To set up case splitting, we must prove the theorem \texttt{meta_iffD}
+below and pass it to \ttindexbold{mk_case_split_tac}.  The tactic
+\ttindexbold{split_tac} uses {\tt mk_meta_eq}, defined above, to
+convert the splitting rules to meta-equalities.
 \begin{ttbox}
 val meta_iffD = 
     prove_goal FOL.thy "[| P==Q; Q |] ==> P"
