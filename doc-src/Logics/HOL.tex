@@ -1488,7 +1488,7 @@ section.
 \begin{rail}
 typedecl : typevarlist id '=' (cons + '|')
          ;
-cons     : (id | string) ( () | '(' (typ + ',') ')' ) ( () | mixfix )
+cons     : (id | string) (typ *) ( () | mixfix )
          ;
 typ      : typevarlist id
            | tid
