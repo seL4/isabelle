@@ -1,3 +1,4 @@
+
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
@@ -77,6 +78,8 @@ rule (as well as the assumption rule);
 * Pure: 'thm_deps' command visualizes dependencies of theorems and
 lemmas, using the graph browser tool;
 
+* Pure: predict failure of "show" in interactive mode;
+
 * HOL: improved method 'induct' --- now handles non-atomic goals
 (potential INCOMPATIBILITY); tuned error handling;
 
@@ -116,8 +119,8 @@ to "split_conv" (old name still available for compatibility);
 * HOL: improved concrete syntax for strings (e.g. allows translation
 rules with string literals);
 
-* HOL-Hyperreal: a new target, extending HOL-Real with the hyperreals and 
-Fleuriot's mechanization of analysis;
+* HOL-Hyperreal: a new target, extending HOL-Real with the hyperreals
+and Fleuriot's mechanization of analysis;
 
 * HOL-Real, HOL-Hyperreals: improved arithmetic simplification;
 
