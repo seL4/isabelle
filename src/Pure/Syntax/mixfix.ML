@@ -68,7 +68,7 @@ fun strip ("'" :: c :: cs) = c :: strip cs
   | strip (c :: cs) = c :: strip cs
   | strip [] = [];
 
-val strip_esc = implode o strip o explode;
+val strip_esc = implode o strip o Symbol.explode;
 
 fun type_name t (InfixlName _) = t
   | type_name t (InfixrName _) = t
