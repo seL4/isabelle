@@ -309,7 +309,7 @@ fun mark_outdated tname =
     gif_path: relative path to directory containing GIFs
     index_path: relative path to directory containing main theory chart
 *)
-fun mk_charthead file tname title green_arrow gif_path index_path package =
+fun mk_charthead file tname title repeats gif_path index_path package =
   output (file,
    "<HTML><HEAD><TITLE>" ^ title ^ " of " ^ tname ^
    "</TITLE></HEAD>\n<H2>" ^ title ^ " of theory " ^ tname ^
@@ -318,9 +318,8 @@ fun mk_charthead file tname title green_arrow gif_path index_path package =
    \\" ALT = \\/></A> stands for subtheories (child theories)<BR>\n\
    \<IMG SRC = \"" ^ tack_on gif_path "blue_arrow.gif\
    \\" ALT = /\\></A> stands for supertheories (parent theories)\n" ^
-   (if not green_arrow then "" else
-      "<BR><IMG SRC = \"" ^ tack_on gif_path "green_arrow.gif\
-      \\" ALT = &gt;></A> stands for repeated subtrees") ^
+   (if not repeats then "" else
+      "<BR><TT>...</TT> stands for repeated subtrees") ^
    "<P><A HREF = \"" ^ tack_on index_path "index.html\
    \\">Back</A> to the main theory chart of " ^ package ^ ".\n<HR>\n<PRE>");
 
@@ -328,7 +327,12 @@ fun mk_charthead file tname title green_arrow gif_path index_path package =
 fun thyfile2html tpath tname =
   let
     val gif_path = relative_path tpath (!gif_path);
-    val package = hd (rev (space_explode "/" (!index_path)));
+    val package =
+      case rev (space_explode "/" (!index_path)) of
+          x::xs => x
+        | _ => error "index_path is empty. \
+                     \Please use 'init_html()' instead of \
+                     \'make_html := true'";
     val index_path = relative_path tpath (!index_path);
 
     (*Make list of all theories and all theories that own a .thy file*)
@@ -433,6 +437,7 @@ fun thyfile2html tpath tname =
               val path = path_of t;
               val rel_path = if is_pure then index_path
                              else relative_path tpath path;
+              val repeated = t mem (!listed) andalso not (null (parents_of t));
 
               fun mk_offset [] cur =
                     if level < cur then error "Error in mk_offset"
@@ -444,21 +449,18 @@ fun thyfile2html tpath tname =
                  " " ^ mk_offset continued 0 ^
                  "\\__" ^ (if is_pure then t else "<A HREF=\"" ^ 
                              tack_on rel_path t ^ ".html\">" ^ t ^ "</A>") ^
-                 " <A HREF = \"" ^ tack_on rel_path t ^
-                 "_sub.html\"><IMG ALIGN=TOP SRC = \"" ^
+                 (if repeated then "..." else " ") ^
+                 "<A HREF = \"" ^ tack_on rel_path t ^
+                 "_sub.html\"><IMG ALIGN=BOTTOM BORDER=0 SRC = \"" ^
                  tack_on gif_path "red_arrow.gif\" ALT = \\/></A>" ^
                  (if is_pure then ""
                   else "<A HREF = \"" ^ tack_on rel_path t ^
-                       "_sup.html\"><IMG ALIGN=TOP SRC = \"" ^
+                       "_sup.html\"><IMG ALIGN=BOTTOM BORDER=0 SRC = \"" ^
                        tack_on gif_path "blue_arrow.gif\
-                       \\" ALT = /\\></A>"));
-              if t mem (!listed) andalso not (null (parents_of t)) then
-                output (sup_out,
-                  "<A HREF = \"" ^ tack_on rel_path t ^ "_sup.html\">\
-                  \<IMG ALIGN=TOP SRC = \"" ^
-                  tack_on gif_path "green_arrow.gif\" ALT = &gt;></A>\n")
-              else (output (sup_out, "\n");
-                    listed := t :: (!listed);
+                       \\" ALT = /\\></A>") ^
+                 "\n");
+              if repeated then ()
+              else (listed := t :: (!listed);
                     list_ancestors t (level+1) (if null ts then continued
                                                 else continued @ [level]);
                     mk_entry ts)
@@ -476,7 +478,8 @@ fun thyfile2html tpath tname =
      mk_charthead sup_out tname "Ancestors" true gif_path index_path package;
      output(sup_out,
        "<A HREF=\"" ^ tname ^ ".html\">" ^ tname ^ "</A> \
-       \<A HREF = \"" ^ tname ^ "_sub.html\"><IMG ALIGN=TOP SRC = \"" ^
+       \<A HREF = \"" ^ tname ^
+       "_sub.html\"><IMG ALIGN=BOTTOM BORDER=0 SRC = \"" ^
        tack_on gif_path "red_arrow.gif\" ALT = \\/></A>\n");
      list_ancestors tname 0 [];
      output (sup_out, "</PRE><HR></BODY></HTML>");
@@ -486,7 +489,7 @@ fun thyfile2html tpath tname =
      output(sub_out,
        "<A HREF=\"" ^ tname ^ ".html\">" ^ tname ^ "</A> \
        \<A HREF = \"" ^ tname ^ "_sup.html\"><IMG SRC = \"" ^
-       tack_on gif_path "blue_arrow.gif\" ALT = \\/></A>\n");
+       tack_on gif_path "blue_arrow.gif\" BORDER=0 ALT = \\/></A>\n");
      close_out sub_out
   end;
 
@@ -598,11 +601,11 @@ fun use_thy name =
                 " |\n \\__<A HREF=\"" ^ tack_on rel_path tname ^ ".html\">" ^
                 tname ^ "</A> <A HREF = \"" ^
                 tack_on rel_path tname ^
-                "_sub.html\"><IMG ALIGN=TOP SRC = \"" ^
+                "_sub.html\"><IMG ALIGN=BOTTOM BORDER=0 SRC = \"" ^
                 tack_on gif_path "red_arrow.gif\" ALT = \\/></A>\
                 \<A HREF = \"" ^ tack_on rel_path tname ^ "_sup.html\">\
-                \<IMG ALIGN=TOP SRC = \"" ^ tack_on gif_path "blue_arrow.gif\
-                \\" ALT = /\\></A>\n");
+                \<IMG ALIGN=BOTTOM BORDER=0 SRC = \"" ^
+                tack_on gif_path "blue_arrow.gif\" ALT = /\\></A>\n");
               close_out out
            end;
 
