@@ -62,6 +62,9 @@ style files, achieving self-contained LaTeX sources;
 
 * old-style theories now produce (crude) LaTeX output as well;
 
+* browser info session directories are now self-contained (may be put
+on WWW server seperately);
+
 
 *** Isar ***
 
