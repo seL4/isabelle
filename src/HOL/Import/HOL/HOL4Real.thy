@@ -584,9 +584,11 @@ specification (sumc) sumc: "(ALL n f. sumc n 0 f = 0) &
 (ALL n m f. sumc n (Suc m) f = sumc n m f + f (n + m))"
   by (import real sumc)
 
-constdefs
+consts
   sum :: "nat * nat => (nat => real) => real" 
-  "real.sum == split sumc"
+
+defs
+  sum_def: "real.sum == split sumc"
 
 lemma SUM_DEF: "ALL m n f. real.sum (m, n) f = sumc m n f"
   by (import real SUM_DEF)
@@ -1170,9 +1172,11 @@ lemma NET_LE: "ALL g.
 
 ;setup_theory seq
 
-constdefs
+consts
   "-->" :: "(nat => real) => real => bool" ("-->")
-  "--> == %x x0. tends x x0 (mtop mr1, nat_ge)"
+
+defs
+  "-->_def": "--> == %x x0. tends x x0 (mtop mr1, nat_ge)"
 
 lemma tends_num_real: "ALL x x0. --> x x0 = tends x x0 (mtop mr1, nat_ge)"
   by (import seq tends_num_real)
@@ -1396,9 +1400,11 @@ lemma subseq: "(All::((nat => nat) => bool) => bool)
 lemma SUBSEQ_SUC: "ALL f. subseq f = (ALL n. f n < f (Suc n))"
   by (import seq SUBSEQ_SUC)
 
-constdefs
+consts
   mono :: "(nat => real) => bool" 
-  "(op ==::((nat => real) => bool) => ((nat => real) => bool) => prop)
+
+defs
+  mono_def: "(op ==::((nat => real) => bool) => ((nat => real) => bool) => prop)
  (seq.mono::(nat => real) => bool)
  (%f::nat => real.
      (op |::bool => bool => bool)
