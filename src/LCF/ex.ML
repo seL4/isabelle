@@ -1,29 +1,31 @@
-(*  Title: 	LCF/ex.ML
+(*  Title:      LCF/ex.ML
     ID:         $Id$
-    Author: 	Tobias Nipkow
+    Author:     Tobias Nipkow
     Copyright   1991  University of Cambridge
 
 Some examples from Lawrence Paulson's book Logic and Computation.
 *)
 
 
-LCF_build_completed;	(*Cause examples to fail if LCF did*)
+LCF_build_completed;    (*Cause examples to fail if LCF did*)
 
 proof_timing := true;
 
 (***  Section 10.4  ***)
 
-val ex_thy = extend_theory thy "Ex 10.4"
-([], [], [], [], [],
- [(["P"], "'a => tr"),
-  (["G","H"], "'a => 'a"),
-  (["K"], "('a => 'a) => ('a => 'a)")
- ],
- None)
-[ ("P_strict", "P(UU) = UU"),
-  ("K", "K = (%h x. P(x) => x | h(h(G(x))))"),
-  ("H", "H = FIX(K)")
-];
+val ex_thy =
+  thy
+  |> add_consts
+   [("P", "'a => tr", NoSyn),
+    ("G", "'a => 'a", NoSyn),
+    ("H", "'a => 'a", NoSyn),
+    ("K", "('a => 'a) => ('a => 'a)", NoSyn)]
+  |> add_axioms
+   [("P_strict", "P(UU) = UU"),
+    ("K", "K = (%h x. P(x) => x | h(h(G(x))))"),
+    ("H", "H = FIX(K)")]
+  |> add_thyname "Ex 10.4";
+
 val ax = get_axiom ex_thy;
 
 val P_strict = ax"P_strict";
@@ -55,18 +57,20 @@ val H_idemp = rewrite_rule [mk_meta_eq (H RS sym)] H_idemp_lemma;
 
 (***  Example 3.8  ***)
 
-val ex_thy = extend_theory thy "Ex 3.8"
-([], [], [], [], [],
- [(["P"], "'a => tr"),
-  (["F","G"], "'a => 'a"),
-  (["H"], "'a => 'b => 'b"),
-  (["K"], "('a => 'b => 'b) => ('a => 'b => 'b)")
- ],
- None)
-[ ("F_strict", "F(UU) = UU"),
-  ("K", "K = (%h x y. P(x) => y | F(h(G(x),y)))"),
-  ("H", "H = FIX(K)")
-];
+val ex_thy =
+  thy
+  |> add_consts
+   [("P", "'a => tr", NoSyn),
+    ("F", "'a => 'a", NoSyn),
+    ("G", "'a => 'a", NoSyn),
+    ("H", "'a => 'b => 'b", NoSyn),
+    ("K", "('a => 'b => 'b) => ('a => 'b => 'b)", NoSyn)]
+  |> add_axioms
+   [("F_strict", "F(UU) = UU"),
+    ("K", "K = (%h x y. P(x) => y | F(h(G(x),y)))"),
+    ("H", "H = FIX(K)")]
+  |> add_thyname "Ex 3.8";
+
 val ax = get_axiom ex_thy;
 
 val F_strict = ax"F_strict";
@@ -85,15 +89,16 @@ result();
 
 (*** Addition with fixpoint of successor ***)
 
-val ex_thy = extend_theory thy "fix ex"
-([], [], [], [], [],
- [(["s"], "'a => 'a"),
-  (["p"], "'a => 'a => 'a")
- ],
- None)
-[ ("p_strict", "p(UU) = UU"),
-  ("p_s", "p(s(x),y) = s(p(x,y))")
-];
+val ex_thy =
+  thy
+  |> add_consts
+   [("s", "'a => 'a", NoSyn),
+    ("p", "'a => 'a => 'a", NoSyn)]
+  |> add_axioms
+   [("p_strict", "p(UU) = UU"),
+    ("p_s", "p(s(x),y) = s(p(x,y))")]
+  |> add_thyname "fix ex";
+
 val ax = get_axiom ex_thy;
 
 val p_strict = ax"p_strict";
