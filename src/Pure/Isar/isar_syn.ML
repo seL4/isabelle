@@ -181,15 +181,15 @@ val constdefsP =
 
 (* theorems *)
 
-val facts = P.opt_thm_name "=" -- P.xthms1;
+val name_facts = P.and_list1 (P.opt_thm_name "=" -- P.xthms1 -- P.marg_comment);
 
 val theoremsP =
   OuterSyntax.command "theorems" "define theorems" K.thy_decl
-    (facts -- P.marg_comment >> (Toplevel.theory o IsarThy.have_theorems));
+    (name_facts >> (Toplevel.theory o IsarThy.have_theorems));
 
 val lemmasP =
   OuterSyntax.command "lemmas" "define lemmas" K.thy_decl
-    (facts -- P.marg_comment >> (Toplevel.theory o IsarThy.have_lemmas));
+    (name_facts >> (Toplevel.theory o IsarThy.have_lemmas));
 
 
 (* name space entry path *)
@@ -228,6 +228,11 @@ val ml_setupP =
 val setupP =
   OuterSyntax.command "setup" "apply ML theory setup" K.thy_decl
     (P.text >> (Toplevel.theory o Context.use_setup));
+
+val method_setupP =
+  OuterSyntax.command "method_setup" "define proof method in ML" K.thy_decl
+    (((P.name -- P.!!! (P.$$$ "=" |-- P.text -- P.text) >> P.triple2)
+      -- P.marg_comment) >> (Toplevel.theory o IsarThy.method_setup));
 
 
 (* translation functions *)
@@ -298,21 +303,23 @@ val henceP =
 
 (* facts *)
 
+val facts = P.and_list1 (P.xthms1 -- P.marg_comment);
+
 val thenP =
   OuterSyntax.command "then" "forward chaining" K.prf_chain
     (P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.chain)));
 
 val fromP =
   OuterSyntax.command "from" "forward chaining from given facts" K.prf_chain
-    (P.xthms1 -- P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.from_facts)));
+    (facts >> (Toplevel.print oo (Toplevel.proof o IsarThy.from_facts)));
 
 val withP =
   OuterSyntax.command "with" "forward chaining from given and current facts" K.prf_chain
-    (P.xthms1 -- P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.with_facts)));
+    (facts >> (Toplevel.print oo (Toplevel.proof o IsarThy.with_facts)));
 
 val noteP =
   OuterSyntax.command "note" "define facts" K.prf_decl
-    (facts -- P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.have_facts)));
+    (name_facts >> (Toplevel.print oo (Toplevel.proof o IsarThy.have_facts)));
 
 
 (* proof context *)
@@ -649,9 +656,10 @@ val parsers = [
   classesP, classrelP, defaultsortP, typedeclP, typeabbrP, nontermP,
   aritiesP, judgmentP, constsP, syntaxP, translationsP, axiomsP,
   defsP, constdefsP, theoremsP, lemmasP, globalP, localP, hideP, useP,
-  mlP, ml_commandP, ml_setupP, setupP, parse_ast_translationP,
-  parse_translationP, print_translationP, typed_print_translationP,
-  print_ast_translationP, token_translationP, oracleP,
+  mlP, ml_commandP, ml_setupP, setupP, method_setupP,
+  parse_ast_translationP, parse_translationP, print_translationP,
+  typed_print_translationP, print_ast_translationP,
+  token_translationP, oracleP,
   (*proof commands*)
   theoremP, lemmaP, showP, haveP, thusP, henceP, assumeP, presumeP,
   defP, fixP, letP, caseP, thenP, fromP, withP, noteP, beginP, endP,
