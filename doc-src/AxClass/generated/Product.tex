@@ -1,7 +1,7 @@
 \begin{isabelle}%
 %
 \isamarkupheader{Syntactic classes}
-\isacommand{theory}\ Product\ =\ Main:%
+\isacommand{theory}\ Product\ {\isacharequal}\ Main{\isacharcolon}%
 \begin{isamarkuptext}%
 \medskip\noindent There is still a feature of Isabelle's type system
  left that we have not yet discussed.  When declaring polymorphic
@@ -19,7 +19,7 @@
 \isacommand{axclass}\isanewline
 \ \ product\ {\isacharless}\ {\isachardoublequote}term{\isachardoublequote}\isanewline
 \isacommand{consts}\isanewline
-\ \ product\ ::\ {\isachardoublequote}{\isacharprime}a::product\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymOtimes}{\isachardoublequote}\ 70{\isacharparenright}%
+\ \ product\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a{\isacharcolon}{\isacharcolon}product\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymOtimes}{\isachardoublequote}\ \isadigit{7}\isadigit{0}{\isacharparenright}%
 \begin{isamarkuptext}%
 Here class $product$ is defined as subclass of $term$ without any
  additional axioms.  This effects in logical equivalence of $product$
@@ -48,10 +48,10 @@ Here class $product$ is defined as subclass of $term$ without any
 
  This is done for class $product$ and type $bool$ as follows.%
 \end{isamarkuptext}%
-\isacommand{instance}\ bool\ ::\ product\isanewline
+\isacommand{instance}\ bool\ {\isacharcolon}{\isacharcolon}\ product\isanewline
 \ \ \isacommand{by}\ intro{\isacharunderscore}classes\isanewline
 \isacommand{defs}\ {\isacharparenleft}\isakeyword{overloaded}{\isacharparenright}\isanewline
-\ \ product{\isacharunderscore}bool{\isacharunderscore}def:\ {\isachardoublequote}x\ {\isasymOtimes}\ y\ {\isasymequiv}\ x\ {\isasymand}\ y{\isachardoublequote}%
+\ \ product{\isacharunderscore}bool{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequote}x\ {\isasymOtimes}\ y\ {\isasymequiv}\ x\ {\isasymand}\ y{\isachardoublequote}%
 \begin{isamarkuptext}%
 The definition $prod_bool_def$ becomes syntactically well-formed only
  after the arity $bool :: product$ is made known to the type checker.

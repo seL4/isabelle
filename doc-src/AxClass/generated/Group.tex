@@ -1,7 +1,7 @@
 \begin{isabelle}%
 %
 \isamarkupheader{Basic group theory}
-\isacommand{theory}\ Group\ =\ Main:%
+\isacommand{theory}\ Group\ {\isacharequal}\ Main{\isacharcolon}%
 \begin{isamarkuptext}%
 \medskip\noindent The meta-type system of Isabelle supports
  \emph{intersections} and \emph{inclusions} of type classes. These
@@ -19,9 +19,9 @@ First we declare some polymorphic constants required later for the
  signature parts of our structures.%
 \end{isamarkuptext}%
 \isacommand{consts}\isanewline
-\ \ times\ ::\ {\isachardoublequote}{\isacharprime}a\ ={\isachargreater}\ {\isacharprime}a\ ={\isachargreater}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymOtimes}{\isachardoublequote}\ 70{\isacharparenright}\isanewline
-\ \ inverse\ ::\ {\isachardoublequote}{\isacharprime}a\ ={\isachargreater}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ \ \ \ \ {\isacharparenleft}{\isachardoublequote}{\isacharparenleft}{\isacharunderscore}{\isasyminv}{\isacharparenright}{\isachardoublequote}\ {\isacharbrackleft}1000{\isacharbrackright}\ 999{\isacharparenright}\isanewline
-\ \ one\ ::\ {\isacharprime}a\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}{\isachardoublequote}{\isasymunit}{\isachardoublequote}{\isacharparenright}%
+\ \ times\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isacharequal}{\isachargreater}\ {\isacharprime}a\ {\isacharequal}{\isachargreater}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymOtimes}{\isachardoublequote}\ \isadigit{7}\isadigit{0}{\isacharparenright}\isanewline
+\ \ inverse\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isacharequal}{\isachargreater}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ \ \ \ \ {\isacharparenleft}{\isachardoublequote}{\isacharparenleft}{\isacharunderscore}{\isasyminv}{\isacharparenright}{\isachardoublequote}\ {\isacharbrackleft}\isadigit{1}\isadigit{0}\isadigit{0}\isadigit{0}{\isacharbrackright}\ \isadigit{9}\isadigit{9}\isadigit{9}{\isacharparenright}\isanewline
+\ \ one\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}{\isachardoublequote}{\isasymunit}{\isachardoublequote}{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent Next we define class $monoid$ of monoids with operations
  $\TIMES$ and $1$.  Note that multiple class axioms are allowed for
@@ -30,9 +30,9 @@ First we declare some polymorphic constants required later for the
 \end{isamarkuptext}%
 \isacommand{axclass}\isanewline
 \ \ monoid\ {\isacharless}\ {\isachardoublequote}term{\isachardoublequote}\isanewline
-\ \ assoc:\ \ \ \ \ \ {\isachardoublequote}{\isacharparenleft}x\ {\isasymOtimes}\ y{\isacharparenright}\ {\isasymOtimes}\ z\ =\ x\ {\isasymOtimes}\ {\isacharparenleft}y\ {\isasymOtimes}\ z{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ left{\isacharunderscore}unit:\ \ {\isachardoublequote}{\isasymunit}\ {\isasymOtimes}\ x\ =\ x{\isachardoublequote}\isanewline
-\ \ right{\isacharunderscore}unit:\ {\isachardoublequote}x\ {\isasymOtimes}\ {\isasymunit}\ =\ x{\isachardoublequote}%
+\ \ assoc{\isacharcolon}\ \ \ \ \ \ {\isachardoublequote}{\isacharparenleft}x\ {\isasymOtimes}\ y{\isacharparenright}\ {\isasymOtimes}\ z\ {\isacharequal}\ x\ {\isasymOtimes}\ {\isacharparenleft}y\ {\isasymOtimes}\ z{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ left{\isacharunderscore}unit{\isacharcolon}\ \ {\isachardoublequote}{\isasymunit}\ {\isasymOtimes}\ x\ {\isacharequal}\ x{\isachardoublequote}\isanewline
+\ \ right{\isacharunderscore}unit{\isacharcolon}\ {\isachardoublequote}x\ {\isasymOtimes}\ {\isasymunit}\ {\isacharequal}\ x{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent So class $monoid$ contains exactly those types $\tau$ where
  $\TIMES :: \tau \To \tau \To \tau$ and $1 :: \tau$ are specified
@@ -48,16 +48,16 @@ First we declare some polymorphic constants required later for the
 \end{isamarkuptext}%
 \isacommand{axclass}\isanewline
 \ \ semigroup\ {\isacharless}\ {\isachardoublequote}term{\isachardoublequote}\isanewline
-\ \ assoc:\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymOtimes}\ y{\isacharparenright}\ {\isasymOtimes}\ z\ =\ x\ {\isasymOtimes}\ {\isacharparenleft}y\ {\isasymOtimes}\ z{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ assoc{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymOtimes}\ y{\isacharparenright}\ {\isasymOtimes}\ z\ {\isacharequal}\ x\ {\isasymOtimes}\ {\isacharparenleft}y\ {\isasymOtimes}\ z{\isacharparenright}{\isachardoublequote}\isanewline
 \isanewline
 \isacommand{axclass}\isanewline
 \ \ group\ {\isacharless}\ semigroup\isanewline
-\ \ left{\isacharunderscore}unit:\ \ \ \ {\isachardoublequote}{\isasymunit}\ {\isasymOtimes}\ x\ =\ x{\isachardoublequote}\isanewline
-\ \ left{\isacharunderscore}inverse:\ {\isachardoublequote}x{\isasyminv}\ {\isasymOtimes}\ x\ =\ {\isasymunit}{\isachardoublequote}\isanewline
+\ \ left{\isacharunderscore}unit{\isacharcolon}\ \ \ \ {\isachardoublequote}{\isasymunit}\ {\isasymOtimes}\ x\ {\isacharequal}\ x{\isachardoublequote}\isanewline
+\ \ left{\isacharunderscore}inverse{\isacharcolon}\ {\isachardoublequote}x{\isasyminv}\ {\isasymOtimes}\ x\ {\isacharequal}\ {\isasymunit}{\isachardoublequote}\isanewline
 \isanewline
 \isacommand{axclass}\isanewline
 \ \ agroup\ {\isacharless}\ group\isanewline
-\ \ commute:\ {\isachardoublequote}x\ {\isasymOtimes}\ y\ =\ y\ {\isasymOtimes}\ x{\isachardoublequote}%
+\ \ commute{\isacharcolon}\ {\isachardoublequote}x\ {\isasymOtimes}\ y\ {\isacharequal}\ y\ {\isasymOtimes}\ x{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent Class $group$ inherits associativity of $\TIMES$ from
  $semigroup$ and adds two further group axioms. Similarly, $agroup$
@@ -85,42 +85,42 @@ In a sense, axiomatic type classes may be viewed as \emph{abstract
  ``abstract theorems''.  For example, we may now derive the following
  well-known laws of general groups.%
 \end{isamarkuptext}%
-\isacommand{theorem}\ group{\isacharunderscore}right{\isacharunderscore}inverse:\ {\isachardoublequote}x\ {\isasymOtimes}\ x{\isasyminv}\ =\ {\isacharparenleft}{\isasymunit}{\isasymColon}{\isacharprime}a{\isasymColon}group{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{theorem}\ group{\isacharunderscore}right{\isacharunderscore}inverse{\isacharcolon}\ {\isachardoublequote}x\ {\isasymOtimes}\ x{\isasyminv}\ {\isacharequal}\ {\isacharparenleft}{\isasymunit}{\isasymColon}{\isacharprime}a{\isasymColon}group{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{proof}\ {\isacharminus}\isanewline
-\ \ \isacommand{have}\ {\isachardoublequote}x\ {\isasymOtimes}\ x{\isasyminv}\ =\ {\isasymunit}\ {\isasymOtimes}\ {\isacharparenleft}x\ {\isasymOtimes}\ x{\isasyminv}{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ \ \ \isacommand{by}\ {\isacharparenleft}simp\ only:\ group.left{\isacharunderscore}unit{\isacharparenright}\isanewline
-\ \ \isacommand{also}\ \isacommand{have}\ {\isachardoublequote}...\ =\ {\isasymunit}\ {\isasymOtimes}\ x\ {\isasymOtimes}\ x{\isasyminv}{\isachardoublequote}\isanewline
-\ \ \ \ \isacommand{by}\ {\isacharparenleft}simp\ only:\ semigroup.assoc{\isacharparenright}\isanewline
-\ \ \isacommand{also}\ \isacommand{have}\ {\isachardoublequote}...\ =\ {\isacharparenleft}x{\isasyminv}{\isacharparenright}{\isasyminv}\ {\isasymOtimes}\ x{\isasyminv}\ {\isasymOtimes}\ x\ {\isasymOtimes}\ x{\isasyminv}{\isachardoublequote}\isanewline
-\ \ \ \ \isacommand{by}\ {\isacharparenleft}simp\ only:\ group.left{\isacharunderscore}inverse{\isacharparenright}\isanewline
-\ \ \isacommand{also}\ \isacommand{have}\ {\isachardoublequote}...\ =\ {\isacharparenleft}x{\isasyminv}{\isacharparenright}{\isasyminv}\ {\isasymOtimes}\ {\isacharparenleft}x{\isasyminv}\ {\isasymOtimes}\ x{\isacharparenright}\ {\isasymOtimes}\ x{\isasyminv}{\isachardoublequote}\isanewline
-\ \ \ \ \isacommand{by}\ {\isacharparenleft}simp\ only:\ semigroup.assoc{\isacharparenright}\isanewline
-\ \ \isacommand{also}\ \isacommand{have}\ {\isachardoublequote}...\ =\ {\isacharparenleft}x{\isasyminv}{\isacharparenright}{\isasyminv}\ {\isasymOtimes}\ {\isasymunit}\ {\isasymOtimes}\ x{\isasyminv}{\isachardoublequote}\isanewline
-\ \ \ \ \isacommand{by}\ {\isacharparenleft}simp\ only:\ group.left{\isacharunderscore}inverse{\isacharparenright}\isanewline
-\ \ \isacommand{also}\ \isacommand{have}\ {\isachardoublequote}...\ =\ {\isacharparenleft}x{\isasyminv}{\isacharparenright}{\isasyminv}\ {\isasymOtimes}\ {\isacharparenleft}{\isasymunit}\ {\isasymOtimes}\ x{\isasyminv}{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ \ \ \isacommand{by}\ {\isacharparenleft}simp\ only:\ semigroup.assoc{\isacharparenright}\isanewline
-\ \ \isacommand{also}\ \isacommand{have}\ {\isachardoublequote}...\ =\ {\isacharparenleft}x{\isasyminv}{\isacharparenright}{\isasyminv}\ {\isasymOtimes}\ x{\isasyminv}{\isachardoublequote}\isanewline
-\ \ \ \ \isacommand{by}\ {\isacharparenleft}simp\ only:\ group.left{\isacharunderscore}unit{\isacharparenright}\isanewline
-\ \ \isacommand{also}\ \isacommand{have}\ {\isachardoublequote}...\ =\ {\isasymunit}{\isachardoublequote}\isanewline
-\ \ \ \ \isacommand{by}\ {\isacharparenleft}simp\ only:\ group.left{\isacharunderscore}inverse{\isacharparenright}\isanewline
-\ \ \isacommand{finally}\ \isacommand{show}\ ?thesis\ \isacommand{.}\isanewline
+\ \ \isacommand{have}\ {\isachardoublequote}x\ {\isasymOtimes}\ x{\isasyminv}\ {\isacharequal}\ {\isasymunit}\ {\isasymOtimes}\ {\isacharparenleft}x\ {\isasymOtimes}\ x{\isasyminv}{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ \ \ \isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ group{\isachardot}left{\isacharunderscore}unit{\isacharparenright}\isanewline
+\ \ \isacommand{also}\ \isacommand{have}\ {\isachardoublequote}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isasymunit}\ {\isasymOtimes}\ x\ {\isasymOtimes}\ x{\isasyminv}{\isachardoublequote}\isanewline
+\ \ \ \ \isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ semigroup{\isachardot}assoc{\isacharparenright}\isanewline
+\ \ \isacommand{also}\ \isacommand{have}\ {\isachardoublequote}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isacharparenleft}x{\isasyminv}{\isacharparenright}{\isasyminv}\ {\isasymOtimes}\ x{\isasyminv}\ {\isasymOtimes}\ x\ {\isasymOtimes}\ x{\isasyminv}{\isachardoublequote}\isanewline
+\ \ \ \ \isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ group{\isachardot}left{\isacharunderscore}inverse{\isacharparenright}\isanewline
+\ \ \isacommand{also}\ \isacommand{have}\ {\isachardoublequote}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isacharparenleft}x{\isasyminv}{\isacharparenright}{\isasyminv}\ {\isasymOtimes}\ {\isacharparenleft}x{\isasyminv}\ {\isasymOtimes}\ x{\isacharparenright}\ {\isasymOtimes}\ x{\isasyminv}{\isachardoublequote}\isanewline
+\ \ \ \ \isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ semigroup{\isachardot}assoc{\isacharparenright}\isanewline
+\ \ \isacommand{also}\ \isacommand{have}\ {\isachardoublequote}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isacharparenleft}x{\isasyminv}{\isacharparenright}{\isasyminv}\ {\isasymOtimes}\ {\isasymunit}\ {\isasymOtimes}\ x{\isasyminv}{\isachardoublequote}\isanewline
+\ \ \ \ \isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ group{\isachardot}left{\isacharunderscore}inverse{\isacharparenright}\isanewline
+\ \ \isacommand{also}\ \isacommand{have}\ {\isachardoublequote}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isacharparenleft}x{\isasyminv}{\isacharparenright}{\isasyminv}\ {\isasymOtimes}\ {\isacharparenleft}{\isasymunit}\ {\isasymOtimes}\ x{\isasyminv}{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ \ \ \isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ semigroup{\isachardot}assoc{\isacharparenright}\isanewline
+\ \ \isacommand{also}\ \isacommand{have}\ {\isachardoublequote}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isacharparenleft}x{\isasyminv}{\isacharparenright}{\isasyminv}\ {\isasymOtimes}\ x{\isasyminv}{\isachardoublequote}\isanewline
+\ \ \ \ \isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ group{\isachardot}left{\isacharunderscore}unit{\isacharparenright}\isanewline
+\ \ \isacommand{also}\ \isacommand{have}\ {\isachardoublequote}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isasymunit}{\isachardoublequote}\isanewline
+\ \ \ \ \isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ group{\isachardot}left{\isacharunderscore}inverse{\isacharparenright}\isanewline
+\ \ \isacommand{finally}\ \isacommand{show}\ {\isacharquery}thesis\ \isacommand{{\isachardot}}\isanewline
 \isacommand{qed}%
 \begin{isamarkuptext}%
 \noindent With $group_right_inverse$ already available,
  $group_right_unit$\label{thm:group-right-unit} is now established
  much easier.%
 \end{isamarkuptext}%
-\isacommand{theorem}\ group{\isacharunderscore}right{\isacharunderscore}unit:\ {\isachardoublequote}x\ {\isasymOtimes}\ {\isasymunit}\ =\ {\isacharparenleft}x{\isasymColon}{\isacharprime}a{\isasymColon}group{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{theorem}\ group{\isacharunderscore}right{\isacharunderscore}unit{\isacharcolon}\ {\isachardoublequote}x\ {\isasymOtimes}\ {\isasymunit}\ {\isacharequal}\ {\isacharparenleft}x{\isasymColon}{\isacharprime}a{\isasymColon}group{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{proof}\ {\isacharminus}\isanewline
-\ \ \isacommand{have}\ {\isachardoublequote}x\ {\isasymOtimes}\ {\isasymunit}\ =\ x\ {\isasymOtimes}\ {\isacharparenleft}x{\isasyminv}\ {\isasymOtimes}\ x{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ \ \ \isacommand{by}\ {\isacharparenleft}simp\ only:\ group.left{\isacharunderscore}inverse{\isacharparenright}\isanewline
-\ \ \isacommand{also}\ \isacommand{have}\ {\isachardoublequote}...\ =\ x\ {\isasymOtimes}\ x{\isasyminv}\ {\isasymOtimes}\ x{\isachardoublequote}\isanewline
-\ \ \ \ \isacommand{by}\ {\isacharparenleft}simp\ only:\ semigroup.assoc{\isacharparenright}\isanewline
-\ \ \isacommand{also}\ \isacommand{have}\ {\isachardoublequote}...\ =\ {\isasymunit}\ {\isasymOtimes}\ x{\isachardoublequote}\isanewline
-\ \ \ \ \isacommand{by}\ {\isacharparenleft}simp\ only:\ group{\isacharunderscore}right{\isacharunderscore}inverse{\isacharparenright}\isanewline
-\ \ \isacommand{also}\ \isacommand{have}\ {\isachardoublequote}...\ =\ x{\isachardoublequote}\isanewline
-\ \ \ \ \isacommand{by}\ {\isacharparenleft}simp\ only:\ group.left{\isacharunderscore}unit{\isacharparenright}\isanewline
-\ \ \isacommand{finally}\ \isacommand{show}\ ?thesis\ \isacommand{.}\isanewline
+\ \ \isacommand{have}\ {\isachardoublequote}x\ {\isasymOtimes}\ {\isasymunit}\ {\isacharequal}\ x\ {\isasymOtimes}\ {\isacharparenleft}x{\isasyminv}\ {\isasymOtimes}\ x{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ \ \ \isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ group{\isachardot}left{\isacharunderscore}inverse{\isacharparenright}\isanewline
+\ \ \isacommand{also}\ \isacommand{have}\ {\isachardoublequote}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ x\ {\isasymOtimes}\ x{\isasyminv}\ {\isasymOtimes}\ x{\isachardoublequote}\isanewline
+\ \ \ \ \isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ semigroup{\isachardot}assoc{\isacharparenright}\isanewline
+\ \ \isacommand{also}\ \isacommand{have}\ {\isachardoublequote}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isasymunit}\ {\isasymOtimes}\ x{\isachardoublequote}\isanewline
+\ \ \ \ \isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ group{\isacharunderscore}right{\isacharunderscore}inverse{\isacharparenright}\isanewline
+\ \ \isacommand{also}\ \isacommand{have}\ {\isachardoublequote}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ x{\isachardoublequote}\isanewline
+\ \ \ \ \isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ group{\isachardot}left{\isacharunderscore}unit{\isacharparenright}\isanewline
+\ \ \isacommand{finally}\ \isacommand{show}\ {\isacharquery}thesis\ \isacommand{{\isachardot}}\isanewline
 \isacommand{qed}%
 \begin{isamarkuptext}%
 \medskip Abstract theorems may be instantiated to only those types
@@ -171,19 +171,19 @@ From the definition, the $monoid$ and $group$ classes have been
 \end{isamarkuptext}%
 \isacommand{instance}\ monoid\ {\isacharless}\ semigroup\isanewline
 \isacommand{proof}\ intro{\isacharunderscore}classes\isanewline
-\ \ \isacommand{fix}\ x\ y\ z\ ::\ {\isachardoublequote}{\isacharprime}a{\isasymColon}monoid{\isachardoublequote}\isanewline
-\ \ \isacommand{show}\ {\isachardoublequote}x\ {\isasymOtimes}\ y\ {\isasymOtimes}\ z\ =\ x\ {\isasymOtimes}\ {\isacharparenleft}y\ {\isasymOtimes}\ z{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ \ \ \isacommand{by}\ {\isacharparenleft}rule\ monoid.assoc{\isacharparenright}\isanewline
+\ \ \isacommand{fix}\ x\ y\ z\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a{\isasymColon}monoid{\isachardoublequote}\isanewline
+\ \ \isacommand{show}\ {\isachardoublequote}x\ {\isasymOtimes}\ y\ {\isasymOtimes}\ z\ {\isacharequal}\ x\ {\isasymOtimes}\ {\isacharparenleft}y\ {\isasymOtimes}\ z{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ \ \ \isacommand{by}\ {\isacharparenleft}rule\ monoid{\isachardot}assoc{\isacharparenright}\isanewline
 \isacommand{qed}\isanewline
 \isanewline
 \isacommand{instance}\ group\ {\isacharless}\ monoid\isanewline
 \isacommand{proof}\ intro{\isacharunderscore}classes\isanewline
-\ \ \isacommand{fix}\ x\ y\ z\ ::\ {\isachardoublequote}{\isacharprime}a{\isasymColon}group{\isachardoublequote}\isanewline
-\ \ \isacommand{show}\ {\isachardoublequote}x\ {\isasymOtimes}\ y\ {\isasymOtimes}\ z\ =\ x\ {\isasymOtimes}\ {\isacharparenleft}y\ {\isasymOtimes}\ z{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ \ \ \isacommand{by}\ {\isacharparenleft}rule\ semigroup.assoc{\isacharparenright}\isanewline
-\ \ \isacommand{show}\ {\isachardoublequote}{\isasymunit}\ {\isasymOtimes}\ x\ =\ x{\isachardoublequote}\isanewline
-\ \ \ \ \isacommand{by}\ {\isacharparenleft}rule\ group.left{\isacharunderscore}unit{\isacharparenright}\isanewline
-\ \ \isacommand{show}\ {\isachardoublequote}x\ {\isasymOtimes}\ {\isasymunit}\ =\ x{\isachardoublequote}\isanewline
+\ \ \isacommand{fix}\ x\ y\ z\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a{\isasymColon}group{\isachardoublequote}\isanewline
+\ \ \isacommand{show}\ {\isachardoublequote}x\ {\isasymOtimes}\ y\ {\isasymOtimes}\ z\ {\isacharequal}\ x\ {\isasymOtimes}\ {\isacharparenleft}y\ {\isasymOtimes}\ z{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ \ \ \isacommand{by}\ {\isacharparenleft}rule\ semigroup{\isachardot}assoc{\isacharparenright}\isanewline
+\ \ \isacommand{show}\ {\isachardoublequote}{\isasymunit}\ {\isasymOtimes}\ x\ {\isacharequal}\ x{\isachardoublequote}\isanewline
+\ \ \ \ \isacommand{by}\ {\isacharparenleft}rule\ group{\isachardot}left{\isacharunderscore}unit{\isacharparenright}\isanewline
+\ \ \isacommand{show}\ {\isachardoublequote}x\ {\isasymOtimes}\ {\isasymunit}\ {\isacharequal}\ x{\isachardoublequote}\isanewline
 \ \ \ \ \isacommand{by}\ {\isacharparenleft}rule\ group{\isacharunderscore}right{\isacharunderscore}unit{\isacharparenright}\isanewline
 \isacommand{qed}%
 \begin{isamarkuptext}%
@@ -215,9 +215,9 @@ So far we have covered the case of the form
  $False$ as $1$ forms an Abelian group.%
 \end{isamarkuptext}%
 \isacommand{defs}\ {\isacharparenleft}\isakeyword{overloaded}{\isacharparenright}\isanewline
-\ \ times{\isacharunderscore}bool{\isacharunderscore}def:\ \ \ {\isachardoublequote}x\ {\isasymOtimes}\ y\ {\isasymequiv}\ x\ {\isasymnoteq}\ {\isacharparenleft}y{\isasymColon}bool{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ inverse{\isacharunderscore}bool{\isacharunderscore}def:\ {\isachardoublequote}x{\isasyminv}\ {\isasymequiv}\ x{\isasymColon}bool{\isachardoublequote}\isanewline
-\ \ unit{\isacharunderscore}bool{\isacharunderscore}def:\ \ \ \ {\isachardoublequote}{\isasymunit}\ {\isasymequiv}\ False{\isachardoublequote}%
+\ \ times{\isacharunderscore}bool{\isacharunderscore}def{\isacharcolon}\ \ \ {\isachardoublequote}x\ {\isasymOtimes}\ y\ {\isasymequiv}\ x\ {\isasymnoteq}\ {\isacharparenleft}y{\isasymColon}bool{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ inverse{\isacharunderscore}bool{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequote}x{\isasyminv}\ {\isasymequiv}\ x{\isasymColon}bool{\isachardoublequote}\isanewline
+\ \ unit{\isacharunderscore}bool{\isacharunderscore}def{\isacharcolon}\ \ \ \ {\isachardoublequote}{\isasymunit}\ {\isasymequiv}\ False{\isachardoublequote}%
 \begin{isamarkuptext}%
 \medskip It is important to note that above $\DEFS$ are just
  overloaded meta-level constant definitions, where type classes are
@@ -232,14 +232,14 @@ So far we have covered the case of the form
  operations on type $bool$ appropriately, the class membership $bool
  :: agroup$ may be now derived as follows.%
 \end{isamarkuptext}%
-\isacommand{instance}\ bool\ ::\ agroup\isanewline
-\isacommand{proof}\ {\isacharparenleft}intro{\isacharunderscore}classes,\isanewline
+\isacommand{instance}\ bool\ {\isacharcolon}{\isacharcolon}\ agroup\isanewline
+\isacommand{proof}\ {\isacharparenleft}intro{\isacharunderscore}classes{\isacharcomma}\isanewline
 \ \ \ \ unfold\ times{\isacharunderscore}bool{\isacharunderscore}def\ inverse{\isacharunderscore}bool{\isacharunderscore}def\ unit{\isacharunderscore}bool{\isacharunderscore}def{\isacharparenright}\isanewline
 \ \ \isacommand{fix}\ x\ y\ z\isanewline
-\ \ \isacommand{show}\ {\isachardoublequote}{\isacharparenleft}{\isacharparenleft}x\ {\isasymnoteq}\ y{\isacharparenright}\ {\isasymnoteq}\ z{\isacharparenright}\ =\ {\isacharparenleft}x\ {\isasymnoteq}\ {\isacharparenleft}y\ {\isasymnoteq}\ z{\isacharparenright}{\isacharparenright}{\isachardoublequote}\ \isacommand{by}\ blast\isanewline
-\ \ \isacommand{show}\ {\isachardoublequote}{\isacharparenleft}False\ {\isasymnoteq}\ x{\isacharparenright}\ =\ x{\isachardoublequote}\ \isacommand{by}\ blast\isanewline
-\ \ \isacommand{show}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymnoteq}\ x{\isacharparenright}\ =\ False{\isachardoublequote}\ \isacommand{by}\ blast\isanewline
-\ \ \isacommand{show}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymnoteq}\ y{\isacharparenright}\ =\ {\isacharparenleft}y\ {\isasymnoteq}\ x{\isacharparenright}{\isachardoublequote}\ \isacommand{by}\ blast\isanewline
+\ \ \isacommand{show}\ {\isachardoublequote}{\isacharparenleft}{\isacharparenleft}x\ {\isasymnoteq}\ y{\isacharparenright}\ {\isasymnoteq}\ z{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isasymnoteq}\ {\isacharparenleft}y\ {\isasymnoteq}\ z{\isacharparenright}{\isacharparenright}{\isachardoublequote}\ \isacommand{by}\ blast\isanewline
+\ \ \isacommand{show}\ {\isachardoublequote}{\isacharparenleft}False\ {\isasymnoteq}\ x{\isacharparenright}\ {\isacharequal}\ x{\isachardoublequote}\ \isacommand{by}\ blast\isanewline
+\ \ \isacommand{show}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymnoteq}\ x{\isacharparenright}\ {\isacharequal}\ False{\isachardoublequote}\ \isacommand{by}\ blast\isanewline
+\ \ \isacommand{show}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymnoteq}\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}y\ {\isasymnoteq}\ x{\isacharparenright}{\isachardoublequote}\ \isacommand{by}\ blast\isanewline
 \isacommand{qed}%
 \begin{isamarkuptext}%
 The result of an $\isakeyword{instance}$ statement is both expressed
@@ -270,22 +270,22 @@ As already mentioned above, overloading in the simply-typed HOL
  $\TIMES$ component-wise to binary products $\alpha \times \beta$.%
 \end{isamarkuptext}%
 \isacommand{defs}\ {\isacharparenleft}\isakeyword{overloaded}{\isacharparenright}\isanewline
-\ \ times{\isacharunderscore}prod{\isacharunderscore}def:\ {\isachardoublequote}p\ {\isasymOtimes}\ q\ {\isasymequiv}\ {\isacharparenleft}fst\ p\ {\isasymOtimes}\ fst\ q,\ snd\ p\ {\isasymOtimes}\ snd\ q{\isacharparenright}{\isachardoublequote}%
+\ \ times{\isacharunderscore}prod{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequote}p\ {\isasymOtimes}\ q\ {\isasymequiv}\ {\isacharparenleft}fst\ p\ {\isasymOtimes}\ fst\ q{\isacharcomma}\ snd\ p\ {\isasymOtimes}\ snd\ q{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 It is very easy to see that associativity of $\TIMES^\alpha$ and
  $\TIMES^\beta$ transfers to ${\TIMES}^{\alpha \times \beta}$.  Hence
  the binary type constructor $\times$ maps semigroups to semigroups.
  This may be established formally as follows.%
 \end{isamarkuptext}%
-\isacommand{instance}\ {\isacharasterisk}\ ::\ {\isacharparenleft}semigroup,\ semigroup{\isacharparenright}\ semigroup\isanewline
-\isacommand{proof}\ {\isacharparenleft}intro{\isacharunderscore}classes,\ unfold\ times{\isacharunderscore}prod{\isacharunderscore}def{\isacharparenright}\isanewline
-\ \ \isacommand{fix}\ p\ q\ r\ ::\ {\isachardoublequote}{\isacharprime}a{\isasymColon}semigroup\ {\isasymtimes}\ {\isacharprime}b{\isasymColon}semigroup{\isachardoublequote}\isanewline
+\isacommand{instance}\ {\isacharasterisk}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}semigroup{\isacharcomma}\ semigroup{\isacharparenright}\ semigroup\isanewline
+\isacommand{proof}\ {\isacharparenleft}intro{\isacharunderscore}classes{\isacharcomma}\ unfold\ times{\isacharunderscore}prod{\isacharunderscore}def{\isacharparenright}\isanewline
+\ \ \isacommand{fix}\ p\ q\ r\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a{\isasymColon}semigroup\ {\isasymtimes}\ {\isacharprime}b{\isasymColon}semigroup{\isachardoublequote}\isanewline
 \ \ \isacommand{show}\isanewline
-\ \ \ \ {\isachardoublequote}{\isacharparenleft}fst\ {\isacharparenleft}fst\ p\ {\isasymOtimes}\ fst\ q,\ snd\ p\ {\isasymOtimes}\ snd\ q{\isacharparenright}\ {\isasymOtimes}\ fst\ r,\isanewline
-\ \ \ \ \ \ snd\ {\isacharparenleft}fst\ p\ {\isasymOtimes}\ fst\ q,\ snd\ p\ {\isasymOtimes}\ snd\ q{\isacharparenright}\ {\isasymOtimes}\ snd\ r{\isacharparenright}\ =\isanewline
-\ \ \ \ \ \ \ {\isacharparenleft}fst\ p\ {\isasymOtimes}\ fst\ {\isacharparenleft}fst\ q\ {\isasymOtimes}\ fst\ r,\ snd\ q\ {\isasymOtimes}\ snd\ r{\isacharparenright},\isanewline
-\ \ \ \ \ \ \ \ snd\ p\ {\isasymOtimes}\ snd\ {\isacharparenleft}fst\ q\ {\isasymOtimes}\ fst\ r,\ snd\ q\ {\isasymOtimes}\ snd\ r{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ \ \ \isacommand{by}\ {\isacharparenleft}simp\ add:\ semigroup.assoc{\isacharparenright}\isanewline
+\ \ \ \ {\isachardoublequote}{\isacharparenleft}fst\ {\isacharparenleft}fst\ p\ {\isasymOtimes}\ fst\ q{\isacharcomma}\ snd\ p\ {\isasymOtimes}\ snd\ q{\isacharparenright}\ {\isasymOtimes}\ fst\ r{\isacharcomma}\isanewline
+\ \ \ \ \ \ snd\ {\isacharparenleft}fst\ p\ {\isasymOtimes}\ fst\ q{\isacharcomma}\ snd\ p\ {\isasymOtimes}\ snd\ q{\isacharparenright}\ {\isasymOtimes}\ snd\ r{\isacharparenright}\ {\isacharequal}\isanewline
+\ \ \ \ \ \ \ {\isacharparenleft}fst\ p\ {\isasymOtimes}\ fst\ {\isacharparenleft}fst\ q\ {\isasymOtimes}\ fst\ r{\isacharcomma}\ snd\ q\ {\isasymOtimes}\ snd\ r{\isacharparenright}{\isacharcomma}\isanewline
+\ \ \ \ \ \ \ \ snd\ p\ {\isasymOtimes}\ snd\ {\isacharparenleft}fst\ q\ {\isasymOtimes}\ fst\ r{\isacharcomma}\ snd\ q\ {\isasymOtimes}\ snd\ r{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ \ \ \isacommand{by}\ {\isacharparenleft}simp\ add{\isacharcolon}\ semigroup{\isachardot}assoc{\isacharparenright}\isanewline
 \isacommand{qed}%
 \begin{isamarkuptext}%
 Thus, if we view class instances as ``structures'', then overloaded

@@ -1,7 +1,7 @@
 \begin{isabelle}%
 %
 \isamarkupheader{Semigroups}
-\isacommand{theory}\ Semigroups\ =\ Main:%
+\isacommand{theory}\ Semigroups\ {\isacharequal}\ Main{\isacharcolon}%
 \begin{isamarkuptext}%
 \medskip\noindent An axiomatic type class is simply a class of types
  that all meet certain properties, which are also called \emph{class
@@ -15,10 +15,10 @@
  semigroups.%
 \end{isamarkuptext}%
 \isacommand{consts}\isanewline
-\ \ times\ ::\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymOtimes}{\isachardoublequote}\ 70{\isacharparenright}\isanewline
+\ \ times\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymOtimes}{\isachardoublequote}\ \isadigit{7}\isadigit{0}{\isacharparenright}\isanewline
 \isacommand{axclass}\isanewline
 \ \ semigroup\ {\isacharless}\ {\isachardoublequote}term{\isachardoublequote}\isanewline
-\ \ assoc:\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymOtimes}\ y{\isacharparenright}\ {\isasymOtimes}\ z\ =\ x\ {\isasymOtimes}\ {\isacharparenleft}y\ {\isasymOtimes}\ z{\isacharparenright}{\isachardoublequote}%
+\ \ assoc{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymOtimes}\ y{\isacharparenright}\ {\isasymOtimes}\ z\ {\isacharequal}\ x\ {\isasymOtimes}\ {\isacharparenleft}y\ {\isasymOtimes}\ z{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent Above we have first declared a polymorphic constant $\TIMES
  :: \alpha \To \alpha \To \alpha$ and then defined the class
@@ -37,10 +37,10 @@
  to semigroups $(\tau, \TIMES^\tau)$.%
 \end{isamarkuptext}%
 \isacommand{consts}\isanewline
-\ \ plus\ ::\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymOplus}{\isachardoublequote}\ 70{\isacharparenright}\isanewline
+\ \ plus\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymOplus}{\isachardoublequote}\ \isadigit{7}\isadigit{0}{\isacharparenright}\isanewline
 \isacommand{axclass}\isanewline
 \ \ plus{\isacharunderscore}semigroup\ {\isacharless}\ {\isachardoublequote}term{\isachardoublequote}\isanewline
-\ \ assoc:\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymOplus}\ y{\isacharparenright}\ {\isasymOplus}\ z\ =\ x\ {\isasymOplus}\ {\isacharparenleft}y\ {\isasymOplus}\ z{\isacharparenright}{\isachardoublequote}%
+\ \ assoc{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymOplus}\ y{\isacharparenright}\ {\isasymOplus}\ z\ {\isacharequal}\ x\ {\isasymOplus}\ {\isacharparenleft}y\ {\isasymOplus}\ z{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent Even if classes $plus_semigroup$ and $semigroup$ both
  represent semigroups in a sense, they are certainly not quite the

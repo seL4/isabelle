@@ -1,7 +1,7 @@
 \begin{isabelle}%
 %
 \isamarkupheader{Defining natural numbers in FOL \label{sec:ex-natclass}}
-\isacommand{theory}\ NatClass\ =\ FOL:%
+\isacommand{theory}\ NatClass\ {\isacharequal}\ FOL{\isacharcolon}%
 \begin{isamarkuptext}%
 \medskip\noindent Axiomatic type classes abstract over exactly one
  type argument. Thus, any \emph{axiomatic} theory extension where each
@@ -13,21 +13,21 @@
  \url{http://isabelle.in.tum.de/library/FOL/ex/NatClass.html}}%
 \end{isamarkuptext}%
 \isacommand{consts}\isanewline
-\ \ zero\ ::\ {\isacharprime}a\ \ \ \ {\isacharparenleft}{\isachardoublequote}0{\isachardoublequote}{\isacharparenright}\isanewline
-\ \ Suc\ ::\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\isanewline
-\ \ rec\ ::\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\isanewline
+\ \ zero\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ \ \ \ {\isacharparenleft}{\isachardoublequote}\isadigit{0}{\isachardoublequote}{\isacharparenright}\isanewline
+\ \ Suc\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\isanewline
+\ \ rec\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\isanewline
 \isanewline
 \isacommand{axclass}\isanewline
 \ \ nat\ {\isacharless}\ {\isachardoublequote}term{\isachardoublequote}\isanewline
-\ \ induct:\ \ \ \ \ {\isachardoublequote}P{\isacharparenleft}0{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}x.\ P{\isacharparenleft}x{\isacharparenright}\ {\isasymLongrightarrow}\ P{\isacharparenleft}Suc{\isacharparenleft}x{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\ P{\isacharparenleft}n{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ Suc{\isacharunderscore}inject:\ {\isachardoublequote}Suc{\isacharparenleft}m{\isacharparenright}\ =\ Suc{\isacharparenleft}n{\isacharparenright}\ {\isasymLongrightarrow}\ m\ =\ n{\isachardoublequote}\isanewline
-\ \ Suc{\isacharunderscore}neq{\isacharunderscore}0:\ \ {\isachardoublequote}Suc{\isacharparenleft}m{\isacharparenright}\ =\ 0\ {\isasymLongrightarrow}\ R{\isachardoublequote}\isanewline
-\ \ rec{\isacharunderscore}0:\ \ \ \ \ \ {\isachardoublequote}rec{\isacharparenleft}0,\ a,\ f{\isacharparenright}\ =\ a{\isachardoublequote}\isanewline
-\ \ rec{\isacharunderscore}Suc:\ \ \ \ {\isachardoublequote}rec{\isacharparenleft}Suc{\isacharparenleft}m{\isacharparenright},\ a,\ f{\isacharparenright}\ =\ f{\isacharparenleft}m,\ rec{\isacharparenleft}m,\ a,\ f{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ induct{\isacharcolon}\ \ \ \ \ {\isachardoublequote}P{\isacharparenleft}\isadigit{0}{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ P{\isacharparenleft}x{\isacharparenright}\ {\isasymLongrightarrow}\ P{\isacharparenleft}Suc{\isacharparenleft}x{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\ P{\isacharparenleft}n{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ Suc{\isacharunderscore}inject{\isacharcolon}\ {\isachardoublequote}Suc{\isacharparenleft}m{\isacharparenright}\ {\isacharequal}\ Suc{\isacharparenleft}n{\isacharparenright}\ {\isasymLongrightarrow}\ m\ {\isacharequal}\ n{\isachardoublequote}\isanewline
+\ \ Suc{\isacharunderscore}neq{\isacharunderscore}\isadigit{0}{\isacharcolon}\ \ {\isachardoublequote}Suc{\isacharparenleft}m{\isacharparenright}\ {\isacharequal}\ \isadigit{0}\ {\isasymLongrightarrow}\ R{\isachardoublequote}\isanewline
+\ \ rec{\isacharunderscore}\isadigit{0}{\isacharcolon}\ \ \ \ \ \ {\isachardoublequote}rec{\isacharparenleft}\isadigit{0}{\isacharcomma}\ a{\isacharcomma}\ f{\isacharparenright}\ {\isacharequal}\ a{\isachardoublequote}\isanewline
+\ \ rec{\isacharunderscore}Suc{\isacharcolon}\ \ \ \ {\isachardoublequote}rec{\isacharparenleft}Suc{\isacharparenleft}m{\isacharparenright}{\isacharcomma}\ a{\isacharcomma}\ f{\isacharparenright}\ {\isacharequal}\ f{\isacharparenleft}m{\isacharcomma}\ rec{\isacharparenleft}m{\isacharcomma}\ a{\isacharcomma}\ f{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
 \isanewline
 \isacommand{constdefs}\isanewline
-\ \ add\ ::\ {\isachardoublequote}{\isacharprime}a::nat\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}+{\isachardoublequote}\ 60{\isacharparenright}\isanewline
-\ \ {\isachardoublequote}m\ +\ n\ {\isasymequiv}\ rec{\isacharparenleft}m,\ n,\ {\isasymlambda}x\ y.\ Suc{\isacharparenleft}y{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
+\ \ add\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a{\isacharcolon}{\isacharcolon}nat\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isacharplus}{\isachardoublequote}\ \isadigit{6}\isadigit{0}{\isacharparenright}\isanewline
+\ \ {\isachardoublequote}m\ {\isacharplus}\ n\ {\isasymequiv}\ rec{\isacharparenleft}m{\isacharcomma}\ n{\isacharcomma}\ {\isasymlambda}x\ y{\isachardot}\ Suc{\isacharparenleft}y{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 This is an abstract version of the plain $Nat$ theory in
  FOL.\footnote{See
