@@ -51,6 +51,7 @@ sig
   val is_unit: term -> bool
   val mk_prodT: typ * typ -> typ
   val dest_prodT: typ -> typ * typ
+  val pair_const: typ -> typ -> term
   val mk_prod: term * term -> term
   val dest_prod: term -> term * term
   val mk_fst: term -> term
@@ -199,9 +200,11 @@ fun mk_prodT (T1, T2) = Type ("*", [T1, T2]);
 fun dest_prodT (Type ("*", [T1, T2])) = (T1, T2)
   | dest_prodT T = raise TYPE ("dest_prodT", [T], []);
 
+fun pair_const T1 T2 = Const ("Pair", [T1, T2] ---> mk_prodT (T1, T2));
+
 fun mk_prod (t1, t2) =
   let val T1 = fastype_of t1 and T2 = fastype_of t2 in
-    Const ("Pair", [T1, T2] ---> mk_prodT (T1, T2)) $ t1 $ t2
+    pair_const T1 T2 $ t1 $ t2
   end;
 
 fun dest_prod (Const ("Pair", _) $ t1 $ t2) = (t1, t2)
