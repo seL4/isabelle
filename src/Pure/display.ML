@@ -166,7 +166,7 @@ fun print_sign sg =
   in
     Pretty.writeln (Pretty.strs ("stamps:" :: Sign.stamp_names_of sg));
     Pretty.writeln (Pretty.strs ("data:" :: Sign.data_kinds data));
-    Pretty.writeln (Pretty.strs ["name entry path:", NameSpace.pack path]);
+    Pretty.writeln (Pretty.strs ["name prefix:", NameSpace.pack path]);
     Pretty.writeln (Pretty.big_list "name spaces:" (map pretty_name_space spaces'));
     Pretty.writeln (pretty_classes classes);
     Pretty.writeln (Pretty.big_list "class relation:" (map pretty_classrel classrel));
@@ -192,7 +192,7 @@ fun print_thy thy =
   in
     Pretty.writeln (Pretty.big_list "axioms:" (map prt_axm axioms));
     Pretty.writeln (Pretty.strs ("oracles:" :: oras));
-    print_data thy "theorems"
+    print_data thy "Pure/theorems"	(*forward reference!*)
   end;
 
 fun print_theory thy = (print_sign (sign_of thy); print_thy thy);
