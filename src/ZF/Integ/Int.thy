@@ -67,4 +67,9 @@ constdefs
   zle          ::      [i,i]=>o      (infixl "$<=" 50)
      "z1 $<= z2 == z1 $< z2 | intify(z1)=intify(z2)"
   
+
+syntax (symbols)
+  "zmult"     :: [i,i] => i          (infixr "$\\<times>" 70)
+  "zle"       :: [i,i] => o          (infixl "$\\<le>" 50)  (*less than or equals*)
+
 end

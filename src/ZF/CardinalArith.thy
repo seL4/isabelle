@@ -39,4 +39,7 @@ defs
   (*needed because jump_cardinal(K) might not be the successor of K*)
   csucc_def "csucc(K) == LEAST L. Card(L) & K<L"
 
+syntax (symbols)
+  "op |*|"     :: [i,i] => i          (infixr "|\\<times>|" 70)
+
 end

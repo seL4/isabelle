@@ -1,4 +1,4 @@
-(*  Title:      ZF/arith.thy
+(*  Title:      ZF/Arith.thy
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
@@ -55,5 +55,8 @@ constdefs
 
   mod  :: [i,i]=>i                    (infixl "mod" 70)
     "m mod n == raw_mod (natify(m), natify(n))"
+
+syntax (symbols)
+  "mult"      :: [i, i] => i               (infixr "#\\<times>" 70)
 
 end
