@@ -48,8 +48,7 @@ sig
   val local_path: theory -> theory
   val begin_theory: string -> theory list -> theory
   val end_theory: theory -> theory
-  exception ROLLBACK of theory * exn option
-  val transaction: (theory -> theory) -> theory -> theory
+  val backup: theory -> theory
   val add_typedecls: (bstring * string list * mixfix) list -> theory -> theory
   val dummy_patternN: string
 end;
@@ -325,9 +324,9 @@ end;
 structure TheoryManagementDataArgs =
 struct
   val name = "Pure/theory_management";
-  type T = {name: string, generation: int};
+  type T = {name: string, version: int};
 
-  val empty = {name = "", generation = 0};
+  val empty = {name = "", version = 0};
   val copy = I;
   val prep_ext  = I;
   fun merge _ = empty;
@@ -342,7 +341,7 @@ val put_info = TheoryManagementData.put;
 (* get / put name *)
 
 val get_name = #name o get_info;
-fun put_name name = put_info {name = name, generation = 0};
+fun put_name name = put_info {name = name, version = 0};
 
 
 (* control prefixing of theory name *)
@@ -363,22 +362,14 @@ fun begin_theory name thys =
 fun end_theory thy = Theory.add_name (get_name thy) thy;
 
 
-(* atomic transactions *)
+(* make backup copy *)
 
-exception ROLLBACK of theory * exn option;
-
-fun transaction f thy =
-  let
-    val {name, generation} = get_info thy;
-    val copy_thy =
-      thy
-      |> Theory.copy
-      |> Theory.add_name ("#" ^ name ^ ":" ^ string_of_int generation)  (* FIXME !!?? *)
-      |> put_info {name = name, generation = generation + 1};
-    val (thy', opt_exn) = (transform_error f thy, None) handle exn => (thy, Some exn);
-  in
-    if Sign.is_stale (Theory.sign_of thy') then raise ROLLBACK (copy_thy, opt_exn)
-    else (case opt_exn of Some exn => raise exn | _ => thy')
+fun backup thy =
+  let val {name, version} = get_info thy in
+    thy
+    |> Theory.prep_ext
+    |> Theory.add_name ("#" ^ name ^ ":" ^ string_of_int version)
+    |> put_info {name = name, version = version + 1}
   end;
 
 
