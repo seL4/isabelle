@@ -24,6 +24,7 @@ signature IFOL_LEMMAS =
   val eq_cong: thm
   val eq_mp_tac: int -> tactic
   val ex1I: thm
+  val ex_ex1I: thm
   val ex1E: thm
   val ex1_equalsE: thm
   val ex1_cong: thm
@@ -179,6 +180,12 @@ val iff_trans = prove_goal IFOL.thy
 val ex1I = prove_goalw IFOL.thy [ex1_def]
     "[| P(a);  !!x. P(x) ==> x=a |] ==> EX! x. P(x)"
  (fn prems => [ (REPEAT (ares_tac (prems@[exI,conjI,allI,impI]) 1)) ]);
+
+(*Sometimes easier to use: the premises have no shared variables*)
+val ex_ex1I = prove_goal IFOL.thy
+    "[| EX x.P(x);  !!x y. [| P(x); P(y) |] ==> x=y |] ==> EX! x. P(x)"
+ (fn [ex,eq] => [ (rtac (ex RS exE) 1),
+		  (REPEAT (ares_tac [ex1I,eq] 1)) ]);
 
 val ex1E = prove_goalw IFOL.thy [ex1_def]
     "[| EX! x.P(x);  !!x. [| P(x);  ALL y. P(y) --> y=x |] ==> R |] ==> R"
