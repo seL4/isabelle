@@ -296,7 +296,7 @@ fun gen_resolveq_tac tac rules i st =
 val resolveq_tac = gen_resolveq_tac Tactic.rtac;
 
 fun resolveq_cases_tac open_parms = gen_resolveq_tac (fn (rule, cases) => fn i => fn st =>
-  Seq.map (rpair (RuleCases.make open_parms rule cases)) (Tactic.rtac rule i st));
+  Seq.map (rpair (RuleCases.make (not open_parms) rule cases)) (Tactic.rtac rule i st));
 
 
 (* simple rule *)
