@@ -31,8 +31,8 @@ href="http://www.xemacs.org">XEmacs</a> (e.g. version 21.1).
 Below we offer tuned distributions of Proof General and X-Symbol, such
 that <em>no manual configuration</em> is required when used with
 Isabelle.  (In case that the original distributions are used instead,
-refer to their included instructions for installation details.)  Note
-that XEmacs-21 is not included here -- most operating system
+refer to their included instructions for the installation details.)
+Note that XEmacs-21 is not included here -- most operating system
 distributions already provide suitable packages, although not
 installed by default.
 
@@ -52,19 +52,20 @@ installation.
 <center>
 <table border="0" cellspacing="5" cellpadding="4" width="520">
   <!-- _GP_ download("Poly/ML system", "contrib/polyml.i386.rpm", "../..") -->
-  <!-- _GP_ download("Isabelle main system", "isabelle.rpm", "../..") -->
+  <!-- _GP_ download("Isabelle system", "isabelle.rpm", "../..") -->
   <!-- _GP_ download("Isabelle/HOL image", "isabelle-HOL.i386.rpm", "../..") -->
   <!-- _GP_ download("Isabelle/HOL-Real image (optional)", "isabelle-HOL-Real.i386.rpm", "../..") -->
   <!-- _GP_ download("Isabelle/ZF image (optional)", "isabelle-ZF.i386.rpm", "../..") -->
   <!-- _GP_ download("Isabelle pdf documentation (optional)", "isabelle-pdfdocs.rpm", "../..") -->
-  <!-- _GP_ download("Proof General system (recommended)", "contrib/proofgeneral.rpm", "../..") -->
+  <!-- _GP_ download("Proof General (recommended)", "contrib/proofgeneral.rpm", "../..") -->
   <!-- _GP_ download("X-Symbol package (recommended)", "contrib/xsymbol.rpm", "../..") -->
 </table>
 </center>
 
 <p>
 
-Example installation in <tt>/usr/share</tt> (the default location):
+Example installation procedure (the location of <tt>--prefix
+/usr/share</tt> may be changed):
 
 <pre>
 rpm -i --prefix /usr/share polyml.i386.rpm
@@ -86,9 +87,8 @@ rpm -e xsymbol proofgeneral isabelle-HOL isabelle polyml
 <h2>(2) Generic Linux/x86 or Solaris/Sparc systems</h2>
 
 The following <!-- _GP_ distname --> distribution works for any
-Linux/x86 or Solaris/Sparc system -- actually only Poly/ML is platform
-dependent.  Installation does not rely on package management; it may
-be performed by non-root users as well.
+Linux/x86 or Solaris/Sparc system.  Installation does not rely on
+package management.
 
 <p>
 
@@ -98,8 +98,8 @@ be performed by non-root users as well.
   <!-- _GP_ download("Poly/ML base system", "contrib/polyml_base.tar.gz", "../..") -->
   <!-- _GP_ download("Poly/ML module for Linux/x86", "contrib/polyml_x86-linux.tar.gz", "../..") -->
   <!-- _GP_ download("Poly/ML module for Solaris/Sparc", "contrib/polyml_sparc-solaris.tar.gz", "../..") -->
-  <!-- _GP_ download("Isabelle main system", distname . ".tar.gz", "../..") -->
-  <!-- _GP_ download("Isabelle pdf documentation (optional)", distname . "_pdf.tar.gz", "../..") -->  <!-- _GP_ download("Proof General system (recommended)", "contrib/ProofGeneral.tar.gz", "../..") -->
+  <!-- _GP_ download("Isabelle system", distname . ".tar.gz", "../..") -->
+  <!-- _GP_ download("Isabelle pdf documentation (optional)", distname . "_pdf.tar.gz", "../..") -->  <!-- _GP_ download("Proof General (recommended)", "contrib/ProofGeneral.tar.gz", "../..") -->
   <!-- _GP_ download("X-Symbol package (recommended)", "contrib/x-symbol.tar.gz", "../..") -->
 </table>
 </center>
