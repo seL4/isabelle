@@ -11,20 +11,20 @@
 
 \renewcommand{\thesection}{\arabic{section}}
 \renewcommand{\isamarkupheader}[1]{\newpage\markright{Theory~\isabellecontext}\section{#1}}
-
+\newcommand{\mJava}{$\mu$Java}
 
 \begin{document}
 
-\title{$\mu$Java}
+\title{\mJava}
 \author{Gerwin Klein \\ Tobias Nipkow \\ David von Oheimb \\ Cornelia Pusch}
 \maketitle
 
 \begin{abstract}
-  This formal development defines Micro Java, a small fragment of the
-  programming language Java (essentially just classes), together with a
+  This formal development defines \mJava, a small fragment of the
+  programming language Java (with essentially just classes), together with a
   corresponding virtual machine and a specification of its bytecode verifier.
-  It is shown that Micro Java and the given specification of the bytecode
-  verifier are type safe.
+  It is shown that \mJava and the given specification of the bytecode
+  verifier are type-safe.
 \end{abstract}
 
 \tableofcontents
