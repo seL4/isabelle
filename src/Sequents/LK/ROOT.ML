@@ -12,3 +12,4 @@ set proof_timing;
 time_use "prop.ML";
 time_use "quant.ML";
 time_use "hardquant.ML";
+use_thy "Nat";
