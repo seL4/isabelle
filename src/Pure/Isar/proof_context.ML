@@ -90,8 +90,7 @@ sig
   val bind_skolem: context -> string list -> term -> term
   val get_case: context -> string -> RuleCases.T
   val add_cases: (string * RuleCases.T) list -> context -> context
-  val apply_case: context -> RuleCases.T
-    -> (string * typ) list * (indexname * term option) list * term list
+  val apply_case: RuleCases.T -> context -> context * ((indexname * term option) list * term list)
   val show_hyps: bool ref
   val pretty_thm: thm -> Pretty.T
   val verbose: bool ref
@@ -1019,11 +1018,12 @@ val print_thms = Pretty.writeln o Pretty.chunks o pretty_thms;
 
 (* local contexts *)
 
-fun apply_case ctxt ({fixes, assumes, binds}: RuleCases.T) =
+fun apply_case ({fixes, assumes, binds}: RuleCases.T) ctxt =
   let
-    val xs = map (bind_skolem ctxt (map #1 fixes) o Free) fixes;
+    fun bind (c, (x, T)) = (c |> fix_i [([x], Some T)], bind_skolem c [x] (Free (x, T)));
+    val (ctxt', xs) = foldl_map bind (ctxt, fixes);
     fun app t = foldl Term.betapply (t, xs);
-  in (fixes, map (apsnd (apsome app)) binds, map app assumes) end;
+  in (ctxt', (map (apsnd (apsome app)) binds, map app assumes)) end;
 
 fun pretty_cases (ctxt as Context {cases, ...}) =
   let
@@ -1036,9 +1036,9 @@ fun pretty_cases (ctxt as Context {cases, ...}) =
       | prt_sect s sep prt xs = [Pretty.block (Pretty.breaks (Pretty.str s ::
             flat (Library.separate sep (map (Library.single o prt) xs))))];
 
-    fun prt_case (name, (xs, lets, asms)) = Pretty.block (Pretty.fbreaks
+    fun prt_case (name, (fixes, (lets, asms))) = Pretty.block (Pretty.fbreaks
       (Pretty.str (name ^ ":") ::
-        prt_sect "fix" [] (prt_term o Free) xs @
+        prt_sect "fix" [] (prt_term o Free) fixes @
         prt_sect "let" [Pretty.str "and"] prt_let
           (mapfilter (fn (xi, Some t) => Some (xi, t) | _ => None) lets) @
         prt_sect "assume" [] (Pretty.quote o prt_term) asms));
@@ -1046,7 +1046,8 @@ fun pretty_cases (ctxt as Context {cases, ...}) =
     val cases' = rev (Library.gen_distinct Library.eq_fst cases);
   in
     if null cases andalso not (! verbose) then []
-    else [Pretty.big_list "cases:" (map (prt_case o apsnd (apply_case ctxt)) cases')]
+    else [Pretty.big_list "cases:"
+      (map (prt_case o apsnd (fn c => (#fixes c, #2 (apply_case c ctxt)))) cases')]
   end;
 
 val print_cases = Pretty.writeln o Pretty.chunks o pretty_cases;

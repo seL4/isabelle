@@ -79,9 +79,7 @@ fun prep_case open_parms thm name i =
   let
     val (_, _, Bi, _) = Thm.dest_state (thm, i)
       handle THM _ => raise THM ("More cases than premises in rule", 0, [thm]);
-    val xs =
-      (rev (rename_wrt_term Bi (Logic.strip_params Bi)))    (* FIXME avoid rename_wrt_term? *)
-      |> map (if open_parms then I else apfst Syntax.internal);
+    val xs = map (if open_parms then I else apfst Syntax.internal) (Logic.strip_params Bi);
     val asms = map (curry Term.list_abs xs) (Logic.strip_assums_hyp Bi);
     val concl_bind = ((case_conclN, 0),
       Some (Term.list_abs (xs, Logic.strip_assums_concl Bi)));

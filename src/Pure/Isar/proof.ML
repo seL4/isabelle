@@ -130,7 +130,7 @@ datatype kind =
   Theorem of theory attribute list |    (*top-level theorem*)
   Lemma of theory attribute list |      (*top-level lemma*)
   Show of context attribute list |      (*intermediate result, solving subgoal*)
-  Have of context attribute list ;       (*intermediate result*)
+  Have of context attribute list ;      (*intermediate result*)
 
 val kind_name =
   fn Theorem _ => "theorem" | Lemma _ => "lemma" | Show _ => "show" | Have _ => "have";
@@ -548,12 +548,12 @@ end;
 
 fun invoke_case (name, atts) state =
   let
-    val (fixes, lets, asms) = ProofContext.apply_case (context_of state) (get_case state name);
+    val (state', (lets, asms)) =
+      map_context_result (ProofContext.apply_case (get_case state name)) state;
   in
-    state
-    |> fix_i (map (fn (x, T) => ([x], Some T)) fixes)
+    state'
     |> add_binds_i lets
-    |> assume_i [((name, atts), map (fn t => (t, ([], []))) asms)]
+    |> assume_i [((name, atts), map (rpair ([], [])) asms)]
   end;
 
 
