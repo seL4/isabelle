@@ -707,9 +707,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma (in ACe)
-    AC: "(x \<cdot> y) \<cdot> z = x \<cdot> (y \<cdot> z)"  "x \<cdot> y = y \<cdot> x"  "x \<cdot> (y \<cdot> z) = y \<cdot> (x \<cdot> z)"
-  by (rule assoc, rule commute, rule left_commute)  (* FIXME localize "lemmas" (!??) *)
+lemmas (in ACe) AC = assoc commute left_commute
 
 lemma (in ACe) left_ident [simp]: "e \<cdot> x = x"
 proof -
