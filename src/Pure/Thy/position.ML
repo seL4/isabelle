@@ -7,12 +7,12 @@ Input positions.
 
 signature POSITION =
 sig
-  eqtype T
+  type T
   val none: T
   val line: int -> T
   val name: string -> T
   val line_name: int -> string -> T
-  val incr: T -> T
+  val inc: T -> T
   val str_of: T -> string
 end;
 
@@ -31,10 +31,10 @@ fun name s = Pos (None, Some s);
 fun line_name n s = Pos (Some n, Some s);
 
 
-(* incr *)
+(* increment *)
 
-fun incr (pos as Pos (None, _)) = pos
-  | incr (Pos (Some n, opt_s)) = Pos (Some (n + 1), opt_s);
+fun inc (pos as Pos (None, _)) = pos
+  | inc (Pos (Some n, opt_s)) = Pos (Some (n + 1), opt_s);
 
 
 (* str_of *)
