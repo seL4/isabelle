@@ -38,9 +38,15 @@ goal thy "f-``{} = {}";
 by (Blast_tac 1);
 qed "vimage_empty";
 
+goal thy "f-``(Compl A) = Compl (f-``A)";
+by (Blast_tac 1);
+qed "vimage_Compl";
+
 goal thy "f-``(A Un B) = (f-``A) Un (f-``B)";
 by (Blast_tac 1);
 qed "vimage_Un";
+
+Addsimps [vimage_empty, vimage_Compl, vimage_Un];
 
 (*NOT suitable for rewriting because of the recurrence of {a}*)
 goal thy "f-``(insert a B) = (f-``{a}) Un (f-``B)";
@@ -51,12 +57,9 @@ goal thy "f-``(A Int B) <= (f-``A) Int (f-``B)";
 by (Blast_tac 1);
 qed "vimage_Int_subset";
 
-Addsimps [vimage_empty, vimage_Un];
-
 goal thy "f-``UNIV = UNIV";
 by (Blast_tac 1);
 qed "vimage_UNIV";
-
 Addsimps [vimage_UNIV];
 
 goal thy "(UN x:A. f -`` B x) = f -`` (UN x:A. B x)";
