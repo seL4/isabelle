@@ -308,7 +308,7 @@ sources of \ZF{} set theory.
 
 
 
-\section{Basic operations on theories}
+\section{Basic operations on theories}\label{BasicOperationsOnTheories}
 \subsection{Extracting an axiom or theorem from a theory}
 \index{theories!axioms of}\index{axioms!extracting}
 \index{theories!theorems of}\index{theorems!extracting}
@@ -319,12 +319,14 @@ assume_ax : theory -> string -> thm
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{get_axiom} $thy$ $name$]
-returns an axiom with the given $name$ from $thy$, raising exception
-\xdx{THEORY} if none exists.  Merging theories can cause several axioms
-to have the same name; {\tt get_axiom} returns an arbitrary one.
+  returns an axiom with the given $name$ from $thy$, raising exception
+  \xdx{THEORY} if none exists.  Merging theories can cause several axioms
+  to have the same name; {\tt get_axiom} returns an arbitrary one.
 
 \item[\ttindexbold{get_thm} $thy$ $name$]
-  is analogous to {\tt get_axiom}, but looks for a stored theorem.
+  is analogous to {\tt get_axiom}, but looks for a stored theorem. Like
+  {\tt get_axiom} it searches all parents of a theory if the theorem
+  is not associated with $thy$.
 
 \item[\ttindexbold{assume_ax} $thy$ $formula$]
   reads the {\it formula} using the syntax of $thy$, following the same
@@ -427,7 +429,7 @@ shown by {\tt print_syntax}).  The output is quite verbose.
 returns the additional axioms of the most recent extend node of~$thy$.
 
 \item[\ttindexbold{thms_of} $thy$]
-similar to {\tt axioms_of}, but returns the stored theorems.
+returns all theorems that are associated with $thy$.
 
 \item[\ttindexbold{parents_of} $thy$]
 returns the direct ancestors of~$thy$.

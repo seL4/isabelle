@@ -117,34 +117,47 @@ tactics})}.
   the goal in intuitionistic logic and proving it using classical logic.
 \end{itemize}
 
-\subsection{Extracting the proved theorem}
+\subsection{Extracting and storing the proved theorem}
+\label{ExtractingAndStoringTheProvedTheorem}
 \index{theorems!from subgoal module}
 \begin{ttbox} 
-result  : unit -> thm
-uresult : unit -> thm
+result    : unit -> thm
+uresult   : unit -> thm
+bind_thm  : string * thm -> unit
+qed       : string -> unit
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{result}()]\index{assumptions!of main goal}
-returns the final theorem, after converting the free variables to
-schematics.  It discharges the assumptions supplied to the matching 
-{\tt goal} command.  
+  returns the final theorem, after converting the free variables to
+  schematics.  It discharges the assumptions supplied to the matching 
+  {\tt goal} command.  
 
-It raises an exception unless the proof state passes certain checks.  There
-must be no assumptions other than those supplied to {\tt goal}.  There
-must be no subgoals.  The theorem proved must be a (first-order) instance
-of the original goal, as stated in the {\tt goal} command.  This allows
-{\bf answer extraction} --- instantiation of variables --- but no other
-changes to the main goal.  The theorem proved must have the same signature
-as the initial proof state.
+  It raises an exception unless the proof state passes certain checks.  There
+  must be no assumptions other than those supplied to {\tt goal}.  There
+  must be no subgoals.  The theorem proved must be a (first-order) instance
+  of the original goal, as stated in the {\tt goal} command.  This allows
+  {\bf answer extraction} --- instantiation of variables --- but no other
+  changes to the main goal.  The theorem proved must have the same signature
+  as the initial proof state.
 
-These checks are needed because an Isabelle tactic can return any proof
-state at all.
+  These checks are needed because an Isabelle tactic can return any proof
+  state at all.
 
 \item[\ttindexbold{uresult}()] is like {\tt result()} but omits the checks.
   It is needed when the initial goal contains function unknowns, when
   definitions are unfolded in the main goal (by calling
   \ttindex{rewrite_tac}),\index{definitions!unfolding} or when
   \ttindex{assume_ax} has been used.
+
+\item[\ttindexbold{bind_thm}($name$, $thm$)]\index{theorems!storing of}
+  stores {\tt standard($thm$)} (see \S\ref{MiscellaneousForwardRules})
+  in Isabelle's theorem database and in the ML variable $name$. The
+  theorem can be retrieved from Isabelle's database by {\tt get_thm}
+  (see \S\ref{BasicOperationsOnTheories}).
+
+\item[\ttindexbold{qed} $name$]
+  combines {\tt result} and {\tt bind_thm} in that it first uses {\tt
+  result()} to get the theorem and then stores it like {\tt bind_thm}.
 \end{ttdescription}
 
 
@@ -332,8 +345,10 @@ parameters in subgoal~$i$.  (Ignore the message {\footnotesize\tt Warning:\
 \section{Executing batch proofs}
 \index{batch execution}
 \begin{ttbox}
-prove_goal  :  theory->          string->(thm list->tactic list)->thm
-prove_goalw :  theory->thm list->string->(thm list->tactic list)->thm
+prove_goal :         theory->          string->(thm list->tactic list)->thm
+qed_goal   : string->theory->          string->(thm list->tactic list)->unit
+prove_goalw:         theory->thm list->string->(thm list->tactic list)->thm
+qed_goalw  : string->theory->thm list->string->(thm list->tactic list)->unit
 prove_goalw_cterm: thm list->Sign.cterm->(thm list->tactic list)->thm
 \end{ttbox}
 These batch functions create an initial proof state, then apply a tactic to
@@ -366,10 +381,18 @@ proof is unaffected.
 executes a proof of the {\it formula\/} in the given {\it theory}, using
 the given tactic function.
 
+\item[\ttindexbold{qed_goal} $name$ $theory$ $formula$ $tacsf$;]
+acts like {\tt prove_goal} but also stores the resulting theorem in
+Isabelle's theorem database and in the ML variable $name$ (see
+\S\ref{ExtractingAndStoringTheProvedTheorem}).
+
 \item[\ttindexbold{prove_goalw} {\it theory} {\it defs} {\it formula} 
       {\it tacsf};]\index{meta-rewriting}
 is like {\tt prove_goal} but also applies the list of {\it defs\/} as
 meta-rewrite rules to the first subgoal and the premises.
+
+\item[\ttindexbold{qed_goalw} $name$ $theory$ $defs$ $formula$ $tacsf$;]
+is analogous to {\tt qed_goal}.
 
 \item[\ttindexbold{prove_goalw_cterm} {\it theory} {\it defs} {\it ct}
       {\it tacsf};] 

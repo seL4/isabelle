@@ -688,26 +688,10 @@ syntax in two different productions:
 {\out ...}
 \end{ttbox}
 
-On the other hand it's also possible that none of the parse trees can be
-typed correctly although the user did not make a mistake.
-
-%% FIXME remove?
-%By default Isabelle
-%assumes that the type of a syntax translation rule is {\tt logic} but does
-%not look at the type unless parsing the rule produces more than one parse
-%tree. In that case this message is output if the rule's type is different
-%from {\tt logic}:
-%
-%\begin{ttbox}
-%{\out Warning: Ambiguous input "..."}
-%{\out produces the following parse trees:}
-%{\out ...}
-%{\out This occured in syntax translation rule: "..."  ->  "..."}
-%{\out Type checking error: Term does not have expected type}
-%{\out ...}
-%\end{ttbox}
-%
-%To circumvent this the rule's type has to be stated.
+Ambiguities occuring in syntax translation rules cannot be resolved by
+type inference because it is not necessary for these rules to be type
+correct. Therefore Isabelle always generates an error message and the
+ambiguity should be eliminated by changing the grammar or the rule.
 
 
 \section{Example: some minimal logics} \label{sec:min_logics}

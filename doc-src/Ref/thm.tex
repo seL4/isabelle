@@ -166,7 +166,7 @@ as pairs of certified terms, not as strings to be read.
 \end{ttdescription}
 
 
-\subsection{Miscellaneous forward rules}
+\subsection{Miscellaneous forward rules}\label{MiscellaneousForwardRules}
 \index{theorems!standardizing}
 \begin{ttbox} 
 standard         :           thm -> thm
@@ -209,6 +209,7 @@ prems_of      : thm -> term list
 nprems_of     : thm -> int
 tpairs_of     : thm -> (term*term)list
 stamps_of_thy : thm -> string ref list
+theory_of_thm : thm -> theory
 dest_state    : thm*int -> (term*term)list*term list*term*term
 rep_thm       : thm -> \{prop:term, hyps:term list, 
                         maxidx:int, sign:Sign.sg\}
@@ -229,6 +230,9 @@ returns the flex-flex constraints of $thm$.
 
 \item[\ttindexbold{stamps_of_thm} $thm$] 
 returns the \rmindex{stamps} of the signature associated with~$thm$.
+
+\item[\ttindexbold{theory_of_thm} $thm$]
+returns the theory associated with $thm$.
 
 \item[\ttindexbold{dest_state} $(thm,i)$] 
 decomposes $thm$ as a tuple containing a list of flex-flex constraints, a
