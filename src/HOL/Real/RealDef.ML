@@ -461,6 +461,16 @@ Goal "(w::real) * (z1 + z2) = (w * z1) + (w * z2)";
 by (simp_tac (simpset() addsimps [real_mult_commute',real_add_mult_distrib]) 1);
 qed "real_add_mult_distrib2";
 
+Goalw [real_diff_def] "((z1::real) - z2) * w = (z1 * w) - (z2 * w)";
+by (simp_tac (simpset() addsimps [real_add_mult_distrib, 
+				  real_minus_mult_eq1]) 1);
+qed "real_diff_mult_distrib";
+
+Goal "(w::real) * (z1 - z2) = (w * z1) - (w * z2)";
+by (simp_tac (simpset() addsimps [real_mult_commute', 
+				  real_diff_mult_distrib]) 1);
+qed "real_diff_mult_distrib2";
+
 (*** one and zero are distinct ***)
 Goalw [real_zero_def,real_one_def] "0r ~= 1r";
 by (auto_tac (claset(),
