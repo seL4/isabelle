@@ -32,7 +32,8 @@ inductive "reachable F"
 	   ==> s' : reachable F"
 
 consts
-  Co, Unless :: "['a set, 'a set] => 'a program set"       (infixl 60)
+  Constrains :: "['a set, 'a set] => 'a program set"  (infixl "Co"     60)
+  op_Unless  :: "['a set, 'a set] => 'a program set"  (infixl "Unless" 60)
 
 defs
   Constrains_def

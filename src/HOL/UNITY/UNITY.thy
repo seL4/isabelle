@@ -15,7 +15,8 @@ typedef (Program)
   'a program = "{(init:: 'a set, acts :: ('a * 'a)set set). Id:acts}"
 
 consts
-  co, unless :: "['a set, 'a set] => 'a program set"       (infixl 60)
+  constrains :: "['a set, 'a set] => 'a program set"  (infixl "co"     60)
+  op_unless  :: "['a set, 'a set] => 'a program set"  (infixl "unless" 60)
 
 constdefs
     mk_program :: "('a set * ('a * 'a)set set) => 'a program"
