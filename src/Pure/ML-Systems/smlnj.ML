@@ -1,9 +1,15 @@
 (*  Title:      Pure/ML-Systems/smlnj.ML
     ID:         $Id$
     Author:     Carsten Clasohm and Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Compatibility file for Standard ML of New Jersey 110 or later.
 *)
+
+(case #version_id (Compiler.version) of
+  [110, x] => if x >= 35 then use "ML-Systems/smlnj-compiler.ML" else ()
+| _ => ());
+
 
 (** ML system related **)
 
