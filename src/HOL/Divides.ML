@@ -486,7 +486,8 @@ Addsimps [div_less_dividend];
 
 (*** Further facts about mod (mainly for the mutilated chess board ***)
 
-Goal "0<n ==> Suc(m) mod n = (if Suc(m mod n) = n then 0 else Suc(m mod n))";
+Goal "Suc(m) mod n = (if Suc(m mod n) = n then 0 else Suc(m mod n))";
+by (div_undefined_case_tac "n=0" 1);
 by (induct_thm_tac nat_less_induct "m" 1);
 by (case_tac "Suc(na)<n" 1);
 (* case Suc(na) < n *)
