@@ -200,7 +200,7 @@ val is_blank =
 val is_letdig = is_quasi_letter orf is_digit;
 
 fun is_printable s =
-  size s = 1 andalso ord " " <= ord s andalso ord s <= ord "~" orelse
+  size s = 1 andalso ord space <= ord s andalso ord s <= ord "~" orelse
   size s > 2 andalso nth_elem (2, explode s) <> "^";
 
 
