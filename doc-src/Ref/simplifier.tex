@@ -459,8 +459,8 @@ To remind yourself of what is in a simpset, use the function \verb$rep_ss$ to
 return its simplification and congruence rules.
 
 \section{Examples using the simplifier}
-\index{examples!of simplification}
-Assume we are working within {\tt FOL} and that
+\index{examples!of simplification} Assume we are working within {\tt
+  FOL} (cf.\ \texttt{FOL/ex/Nat}) and that
 \begin{ttdescription}
 \item[Nat.thy] 
   is a theory including the constants $0$, $Suc$ and $+$,
@@ -471,14 +471,11 @@ Assume we are working within {\tt FOL} and that
 \item[induct]
   is the induction rule $\List{\Var{P}(0);\; \Forall x. \Var{P}(x)\Imp
     \Var{P}(Suc(x))} \Imp \Var{P}(\Var{n})$.
-\item[FOL_ss]
-  is a basic simpset for {\tt FOL}.%
-\footnote{These examples reside on the file {\tt FOL/ex/Nat.ML}.} 
 \end{ttdescription}
-
-We create a simpset for natural numbers by extending~{\tt FOL_ss}:
+We augment the implicit simpset of {\FOL} with the basic rewrite rules
+for natural numbers:
 \begin{ttbox}
-val add_ss = FOL_ss addsimps [add_0, add_Suc];
+Addsimps [add_0, add_Suc];
 \end{ttbox}
 
 \subsection{A trivial example}
@@ -501,15 +498,15 @@ by (res_inst_tac [("n","m")] induct 1);
 \end{ttbox}
 Simplification solves the first subgoal trivially:
 \begin{ttbox}
-by (simp_tac add_ss 1);
+by (Simp_tac 1);
 {\out Level 2}
 {\out m + 0 = m}
 {\out  1. !!x. x + 0 = x ==> Suc(x) + 0 = Suc(x)}
 \end{ttbox}
-The remaining subgoal requires \ttindex{asm_simp_tac} in order to use the
+The remaining subgoal requires \ttindex{Asm_simp_tac} in order to use the
 induction hypothesis as a rewrite rule:
 \begin{ttbox}
-by (asm_simp_tac add_ss 1);
+by (Asm_simp_tac 1);
 {\out Level 3}
 {\out m + 0 = m}
 {\out No subgoals!}
@@ -537,7 +534,7 @@ by (res_inst_tac [("n","m")] induct 1);
 Simplification solves the first subgoal, this time rewriting two
 occurrences of~0:
 \begin{ttbox}
-by (simp_tac add_ss 1);
+by (Simp_tac 1);
 {\out Level 2}
 {\out m + Suc(n) = Suc(m + n)}
 {\out  1. !!x. x + Suc(n) = Suc(x + n) ==>}
@@ -547,19 +544,22 @@ Switching tracing on illustrates how the simplifier solves the remaining
 subgoal: 
 \begin{ttbox}
 trace_simp := true;
-by (asm_simp_tac add_ss 1);
+by (Asm_simp_tac 1);
+\ttbreak
+{\out Adding rewrite rule:}
+{\out .x + Suc(n) == Suc(.x + n)}
 \ttbreak
 {\out Rewriting:}
-{\out Suc(x) + Suc(n) == Suc(x + Suc(n))}
+{\out Suc(.x) + Suc(n) == Suc(.x + Suc(n))}
 \ttbreak
 {\out Rewriting:}
-{\out x + Suc(n) == Suc(x + n)}
+{\out .x + Suc(n) == Suc(.x + n)}
 \ttbreak
 {\out Rewriting:}
-{\out Suc(x) + n == Suc(x + n)}
+{\out Suc(.x) + n == Suc(.x + n)}
 \ttbreak
 {\out Rewriting:}
-{\out Suc(Suc(x + n)) = Suc(Suc(x + n)) == True}
+{\out Suc(Suc(.x + n)) = Suc(Suc(.x + n)) == True}
 \ttbreak
 {\out Level 3}
 {\out m + Suc(n) = Suc(m + n)}
@@ -568,7 +568,7 @@ by (asm_simp_tac add_ss 1);
 Many variations are possible.  At Level~1 (in either example) we could have
 solved both subgoals at once using the tactical \ttindex{ALLGOALS}:
 \begin{ttbox}
-by (ALLGOALS (asm_simp_tac add_ss));
+by (ALLGOALS Asm_simp_tac);
 {\out Level 2}
 {\out m + Suc(n) = Suc(m + n)}
 {\out No subgoals!}
@@ -599,20 +599,20 @@ by (res_inst_tac [("n","i")] induct 1);
 \end{ttbox}
 We simplify each subgoal in turn.  The first one is trivial:
 \begin{ttbox}
-by (simp_tac add_ss 1);
+by (Simp_tac 1);
 {\out Level 2}
 {\out f(i + j) = i + f(j)}
 {\out  1. !!x. f(x + j) = x + f(j) ==> f(Suc(x) + j) = Suc(x) + f(j)}
 \end{ttbox}
-The remaining subgoal requires rewriting by the premise, so we add it to
-{\tt add_ss}:%
-\footnote{The previous simplifier required congruence rules for function
-  variables like~$f$ in order to simplify their arguments.  It was more
-  general than the current simplifier, but harder to use and slower.  The
-  present simplifier can be given congruence rules to realize non-standard
-  simplification of a function's arguments, but this is seldom necessary.}
+The remaining subgoal requires rewriting by the premise, so we add it
+to the current simpset:\footnote{The previous simplifier required
+  congruence rules for function variables like~$f$ in order to
+  simplify their arguments.  It was more general than the current
+  simplifier, but harder to use and slower.  The present simplifier
+  can be given congruence rules to realize non-standard simplification
+  of a function's arguments, but this is seldom necessary.}
 \begin{ttbox}
-by (asm_simp_tac (add_ss addsimps [prem]) 1);
+by (asm_simp_tac (!simpset addsimps [prem]) 1);
 {\out Level 3}
 {\out f(i + j) = i + f(j)}
 {\out No subgoals!}
@@ -1024,7 +1024,7 @@ Case splits should be allowed only when necessary; they are expensive
 and hard to control.  Here is a typical example of use, where {\tt
   expand_if} is the first rule above:
 \begin{ttbox}
-by (simp_tac (prop_rec_ss setloop (split_tac [expand_if])) 1);
+by (simp_tac (!simpset setloop (split_tac [expand_if])) 1);
 \end{ttbox}
 
 
