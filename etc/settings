@@ -152,6 +152,10 @@ DVI_VIEWER=xdvi
 #DVI_VIEWER="xdvi -geometry 500x704 -expert -s 10"
 #DVI_VIEWER="xdvi -geometry 555x782 -expert -s 9"
 
+#The pdf file viewer
+PDF_VIEWER=acroread
+#PDF_VIEWER=xpdf
+
 #Printer spool command for PS files
 PRINT_COMMAND=lp
 
