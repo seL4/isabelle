@@ -126,11 +126,6 @@ g_add_leftimp_eq: "a+b = a+c \<Longrightarrow> b = c"
 instance g_almost_semiring < matrix_element
   by intro_classes simp
 
-instance semiring < g_semiring
-apply (intro_classes)
-apply (simp_all add: add_ac)
-by (simp_all add: mult_assoc left_distrib right_distrib)
-
 instance matrix :: (g_almost_semiring) g_almost_semiring
 apply (intro_classes)
 by (simp add: plus_matrix_def combine_matrix_def combine_infmatrix_def)
@@ -190,10 +185,6 @@ by (simp_all add: pordered_add pordered_mult_right)
 
 axclass pordered_g_semiring < g_semiring, pordered_matrix_element
 
-instance almost_ordered_semiring < pordered_g_semiring
-apply (intro_classes)
-by (simp_all add: add_right_mono mult_right_mono mult_left_mono)
-
 instance matrix :: (pordered_g_semiring) pordered_g_semiring ..
 
 lemma nrows_mult: "nrows ((A::('a::matrix_element) matrix) * B) <= nrows A"
@@ -202,6 +193,7 @@ by (simp add: times_matrix_def mult_nrows)
 lemma ncols_mult: "ncols ((A::('a::matrix_element) matrix) * B) <= ncols B"
 by (simp add: times_matrix_def mult_ncols)
 
+(*
 constdefs
   one_matrix :: "nat \<Rightarrow> ('a::semiring) matrix"
   "one_matrix n == Abs_matrix (% j i. if j = i & j < n then 1 else 0)"
@@ -253,5 +245,5 @@ apply (insert ncols_mult[of A X], insert nrows_mult[of A X])
 by (simp add: right_inverse_matrix_def)
 
 text {* to be continued \dots *}
-
+*)
 end
