@@ -107,7 +107,7 @@ qed "trans_finite_psubset";
 
 (*---------------------------------------------------------------------------
  * Wellfoundedness of finite acyclic relations
- * Cannot go into WF because it needs Finite
+ * Cannot go into WF because it needs Finite.
  *---------------------------------------------------------------------------*)
 
 Goal "finite r ==> acyclic r --> wf r";
@@ -129,6 +129,7 @@ qed "wf_iff_acyclic_if_finite";
 
 (*---------------------------------------------------------------------------
  * A relation is wellfounded iff it has no infinite descending chain
+ * Cannot go into WF because it needs type nat.
  *---------------------------------------------------------------------------*)
 
 Goalw [wf_eq_minimal RS eq_reflection]

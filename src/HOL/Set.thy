@@ -71,6 +71,8 @@ syntax
   "*Ball"       :: [pttrn, 'a set, bool] => bool      ("(3ALL _:_./ _)" [0, 0, 10] 10)
   "*Bex"        :: [pttrn, 'a set, bool] => bool      ("(3EX _:_./ _)" [0, 0, 10] 10)
 
+  disjoint      :: 'a set => 'a set => bool
+
 translations
   "range f"     == "f``UNIV"
   "x ~: y"      == "~ (x : y)"
@@ -87,6 +89,7 @@ translations
   "? x:A. P"    == "Bex A (%x. P)"
   "ALL x:A. P"  => "Ball A (%x. P)"
   "EX x:A. P"   => "Bex A (%x. P)"
+  "disjoint A B" == "A <= Compl B"
 
 syntax ("" output)
   "_setle"      :: ['a set, 'a set] => bool           ("op <=")
