@@ -21,7 +21,7 @@ David Basin and Matt Kaufmann.
 \bibitem{boyer86}
 Robert Boyer, Ewing Lusk, William McCune, Ross Overbeek, Mark Stickel, and
   Lawrence Wos.
-\newblock Set theory in first-order logic: Clauses for {G\"odel's} axioms.
+\newblock Set theory in first-order logic: Clauses for {G\"{o}del's} axioms.
 \newblock {\em Journal of Automated Reasoning}, 2(3):287--327, 1986.
 
 \bibitem{camilleri92}
@@ -110,7 +110,7 @@ Kenneth Kunen.
 \newblock North-Holland, 1980.
 
 \bibitem{alf}
-Lena Magnusson and Bengt {Nordstr\"om}.
+Lena Magnusson and Bengt {Nordstr\"{o}m}.
 \newblock The {ALF} proof editor and its proof engine.
 \newblock In Henk Barendregt and Tobias Nipkow, editors, {\em Types for Proofs
   and Programs: International Workshop {TYPES '93}}, LNCS 806, pages 213--237.
@@ -209,7 +209,7 @@ David~A. Plaisted.
 
 \bibitem{quaife92}
 Art Quaife.
-\newblock Automated deduction in {von Neumann-Bernays-G\"odel} set theory.
+\newblock Automated deduction in {von Neumann-Bernays-G\"{o}del} set theory.
 \newblock {\em Journal of Automated Reasoning}, 8(1):91--147, 1992.
 
 \bibitem{suppes72}
