@@ -11,6 +11,7 @@ are implicitely considered to be declared outermost.
 
 signature NAME_SPACE =
 sig
+  val separator: string		(*single char!*)
   val unpack: string -> string list
   val pack: string list -> string
   val qualified: string -> bool
