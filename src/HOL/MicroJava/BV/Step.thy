@@ -84,7 +84,7 @@ app_invoke:
 "app (i,G,rT,s)                            = False"
 
 
-text {* \isa{p_count} of successor instructions *}
+text {* \verb,p_count, of successor instructions *}
 
 consts
 succs :: "instr \<Rightarrow> p_count \<Rightarrow> p_count set"
@@ -133,8 +133,8 @@ proof -;
 qed
 
 text {* 
-\mdeskip
-simp rules for \isa{app} without patterns, better suited for proofs
+\medskip
+simp rules for @{term app} without patterns, better suited for proofs
 \medskip
 *}
 

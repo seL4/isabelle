@@ -4,7 +4,7 @@
     Copyright   2000 Technische Universitaet Muenchen
 *)
 
-header {* Monotonicity of \isa{step} and \isa{app} *}
+header {* Monotonicity of \texttt{step} and \texttt{app} *}
 
 theory StepMono = Step :
 
