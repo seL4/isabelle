@@ -41,10 +41,10 @@ HOL, but was unused); should better use HOL's datatype package anyway;
 Lfp, Gfp, WF); this only affects ML packages that refer to const names
 internally;
 
-* Isar: changed syntax of local blocks from {{ }} to { };
+* HOL, ZF: syntax for quotienting wrt an equivalence relation changed from
+  A/r to A//r;
 
-* FOL, ZF: AddIffs now available, giving theorems of the form P<->Q to the
-  simplifier and classical reasoner simultaneously;
+* Isar: changed syntax of local blocks from {{ }} to { };
 
 * Provers: Blast_tac now warns of and ignores "weak elimination rules" e.g.
   [| inj ?f;          ?f ?x = ?f ?y; ?x = ?y ==> ?W |] ==> ?W
@@ -237,6 +237,12 @@ instead of "lfp" internally; affects ML packages only);
 
 * tuned AST representation of nested pairs, avoiding bogus output in
 case of overlap with user translations (e.g. judgements over tuples);
+
+
+*** FOL & ZF ***
+
+* AddIffs now available, giving theorems of the form P<->Q to the
+  simplifier and classical reasoner simultaneously;
 
 
 *** General ***
