@@ -9,6 +9,4 @@ I/O-Automata.
 
 goals_limit := 1;
 
-loadpath:=["."];
-
 use_thy "Correctness";

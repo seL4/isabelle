@@ -9,6 +9,4 @@ performed in the I/O automata formalization by Olaf Mueller.
 
 goals_limit := 1;
 
-loadpath:=["."];
-
 use_thy "Correctness";
