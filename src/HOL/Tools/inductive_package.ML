@@ -476,7 +476,7 @@ fun add_cases_induct no_elim no_ind names elims induct =
 
 fun prove_mono setT fp_fun monos thy =
  (message "  Proving monotonicity ...";
-  Goals.prove_goalw_cterm []      (*NO SkipProof.prove_goalw_cterm here!*)
+  Goals.prove_goalw_cterm []      (*NO quick_and_dirty_prove_goalw_cterm here!*)
     (Thm.cterm_of (Theory.sign_of thy) (HOLogic.mk_Trueprop
       (Const (mono_name, (setT --> setT) --> HOLogic.boolT) $ fp_fun)))
     (fn _ => [rtac monoI 1, REPEAT (ares_tac (flat (map mk_mono monos) @ get_monos thy) 1)]));
@@ -495,7 +495,7 @@ fun prove_intrs coind mono fp_def intr_ts con_defs rec_sets_defs thy =
       | select_disj _ 1 = [rtac disjI1]
       | select_disj n i = (rtac disjI2)::(select_disj (n - 1) (i - 1));
 
-    val intrs = map (fn (i, intr) => SkipProof.prove_goalw_cterm thy rec_sets_defs
+    val intrs = map (fn (i, intr) => quick_and_dirty_prove_goalw_cterm thy rec_sets_defs
       (Thm.cterm_of (Theory.sign_of thy) intr) (fn prems =>
        [(*insert prems and underlying sets*)
        cut_facts_tac prems 1,
@@ -524,7 +524,7 @@ fun prove_elims cs cTs params intr_ts intr_names unfold rec_sets_defs thy =
     val rules2 = [conjE, Inl_neq_Inr, Inr_neq_Inl] @ map make_elim [Inl_inject, Inr_inject];
   in
     mk_elims cs cTs params intr_ts intr_names |> map (fn (t, cases) =>
-      SkipProof.prove_goalw_cterm thy rec_sets_defs
+      quick_and_dirty_prove_goalw_cterm thy rec_sets_defs
         (Thm.cterm_of (Theory.sign_of thy) t) (fn prems =>
           [cut_facts_tac [hd prems] 1,
            dtac (unfold RS subst) 1,
@@ -652,14 +652,14 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
     (* simplification rules for vimage and Collect *)
 
     val vimage_simps = if length cs < 2 then [] else
-      map (fn c => SkipProof.prove_goalw_cterm thy [] (Thm.cterm_of sign
+      map (fn c => quick_and_dirty_prove_goalw_cterm thy [] (Thm.cterm_of sign
         (HOLogic.mk_Trueprop (HOLogic.mk_eq
           (mk_vimage cs sumT (HOLogic.Collect_const sumT $ ind_pred) c,
            HOLogic.Collect_const (HOLogic.dest_setT (fastype_of c)) $
              nth_elem (find_index_eq c cs, preds)))))
         (fn _ => [rtac vimage_Collect 1, rewrite_goals_tac sum_case_rewrites, rtac refl 1])) cs;
 
-    val induct = SkipProof.prove_goalw_cterm thy [inductive_conj_def] (Thm.cterm_of sign
+    val induct = quick_and_dirty_prove_goalw_cterm thy [inductive_conj_def] (Thm.cterm_of sign
       (Logic.list_implies (ind_prems, ind_concl))) (fn prems =>
         [rtac (impI RS allI) 1,
          DETERM (etac (mono RS (fp_def RS def_lfp_induct)) 1),
@@ -674,7 +674,7 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
          EVERY (map (fn prem =>
            DEPTH_SOLVE_1 (ares_tac [prem, conjI, refl] 1)) prems)]);
 
-    val lemma = SkipProof.prove_goalw_cterm thy rec_sets_defs (Thm.cterm_of sign
+    val lemma = quick_and_dirty_prove_goalw_cterm thy rec_sets_defs (Thm.cterm_of sign
       (Logic.mk_implies (ind_concl, mutual_ind_concl))) (fn prems =>
         [cut_facts_tac prems 1,
          REPEAT (EVERY
