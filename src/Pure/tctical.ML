@@ -15,58 +15,60 @@ signature TACTICAL =
   structure Thm : THM
   local open Thm  in
   datatype tactic = Tactic of thm -> thm Sequence.seq
-  val all_tac: tactic
-  val ALLGOALS: (int -> tactic) -> tactic   
-  val APPEND: tactic * tactic -> tactic
-  val APPEND': ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
-  val BEST_FIRST: (thm -> bool) * (thm -> int) -> tactic -> tactic
-  val BREADTH_FIRST: (thm -> bool) -> tactic -> tactic
-  val CHANGED: tactic -> tactic
-  val COND: (thm -> bool) -> tactic -> tactic -> tactic   
-  val DEPTH_FIRST: (thm -> bool) -> tactic -> tactic
-  val DEPTH_SOLVE: tactic -> tactic
-  val DEPTH_SOLVE_1: tactic -> tactic
-  val DETERM: tactic -> tactic
-  val EVERY: tactic list -> tactic   
-  val EVERY': ('a -> tactic) list -> 'a -> tactic
-  val EVERY1: (int -> tactic) list -> tactic
-  val FILTER: (thm -> bool) -> tactic -> tactic
-  val FIRST: tactic list -> tactic   
-  val FIRST': ('a -> tactic) list -> 'a -> tactic
-  val FIRST1: (int -> tactic) list -> tactic
-  val FIRSTGOAL: (int -> tactic) -> tactic
-  val goals_limit: int ref
-  val has_fewer_prems: int -> thm -> bool   
-  val IF_UNSOLVED: tactic -> tactic
-  val INTLEAVE: tactic * tactic -> tactic
-  val INTLEAVE': ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
-  val METAHYPS: (thm list -> tactic) -> int -> tactic
-  val no_tac: tactic
-  val ORELSE: tactic * tactic -> tactic
-  val ORELSE': ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
-  val pause_tac: tactic
-  val print_tac: tactic
-  val REPEAT1: tactic -> tactic
-  val REPEAT: tactic -> tactic
-  val REPEAT_DETERM: tactic -> tactic
-  val REPEAT_FIRST: (int -> tactic) -> tactic
-  val REPEAT_SOME: (int -> tactic) -> tactic
-  val SELECT_GOAL: tactic -> int -> tactic
-  val SOMEGOAL: (int -> tactic) -> tactic   
-  val STATE: (thm -> tactic) -> tactic
-  val strip_context: term -> (string * typ) list * term list * term
-  val SUBGOAL: ((term*int) -> tactic) -> int -> tactic
-  val tapply: tactic * thm -> thm Sequence.seq
-  val THEN: tactic * tactic -> tactic
-  val THEN': ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
-  val THEN_BEST_FIRST: tactic * ((thm->bool) * (thm->int) * tactic) -> tactic
-  val traced_tac: (thm -> (thm * thm Sequence.seq) option) -> tactic
-  val tracify: bool ref -> tactic -> thm -> thm Sequence.seq
-  val trace_BEST_FIRST: bool ref
-  val trace_DEPTH_FIRST: bool ref
-  val trace_REPEAT: bool ref
-  val TRY: tactic -> tactic
-  val TRYALL: (int -> tactic) -> tactic   
+  val all_tac		: tactic
+  val ALLGOALS		: (int -> tactic) -> tactic   
+  val APPEND		: tactic * tactic -> tactic
+  val APPEND'		: ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
+  val BEST_FIRST	: (thm -> bool) * (thm -> int) -> tactic -> tactic
+  val BREADTH_FIRST	: (thm -> bool) -> tactic -> tactic
+  val CHANGED		: tactic -> tactic
+  val COND		: (thm -> bool) -> tactic -> tactic -> tactic   
+  val DEPTH_FIRST	: (thm -> bool) -> tactic -> tactic
+  val DEPTH_SOLVE	: tactic -> tactic
+  val DEPTH_SOLVE_1	: tactic -> tactic
+  val DETERM		: tactic -> tactic
+  val EVERY		: tactic list -> tactic   
+  val EVERY'		: ('a -> tactic) list -> 'a -> tactic
+  val EVERY1		: (int -> tactic) list -> tactic
+  val FILTER		: (thm -> bool) -> tactic -> tactic
+  val FIRST		: tactic list -> tactic   
+  val FIRST'		: ('a -> tactic) list -> 'a -> tactic
+  val FIRST1		: (int -> tactic) list -> tactic
+  val FIRSTGOAL		: (int -> tactic) -> tactic
+  val goals_limit	: int ref
+  val has_fewer_prems	: int -> thm -> bool   
+  val IF_UNSOLVED	: tactic -> tactic
+  val INTLEAVE		: tactic * tactic -> tactic
+  val INTLEAVE'		: ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
+  val METAHYPS		: (thm list -> tactic) -> int -> tactic
+  val no_tac		: tactic
+  val ORELSE		: tactic * tactic -> tactic
+  val ORELSE'		: ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
+  val pause_tac		: tactic
+  val print_tac		: tactic
+  val REPEAT1		: tactic -> tactic
+  val REPEAT		: tactic -> tactic
+  val REPEAT_DETERM	: tactic -> tactic
+  val REPEAT_FIRST	: (int -> tactic) -> tactic
+  val REPEAT_SOME	: (int -> tactic) -> tactic
+  val SELECT_GOAL	: tactic -> int -> tactic
+  val SOMEGOAL		: (int -> tactic) -> tactic   
+  val STATE		: (thm -> tactic) -> tactic
+  val strip_context	: term -> (string * typ) list * term list * term
+  val SUBGOAL		: ((term*int) -> tactic) -> int -> tactic
+  val suppress_tracing	: bool ref
+  val tapply		: tactic * thm -> thm Sequence.seq
+  val THEN		: tactic * tactic -> tactic
+  val THEN'		: ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
+  val THEN_BEST_FIRST	: tactic * ((thm->bool) * (thm->int) * tactic) 
+			  -> tactic
+  val traced_tac	: (thm -> (thm * thm Sequence.seq) option) -> tactic
+  val tracify		: bool ref -> tactic -> thm -> thm Sequence.seq
+  val trace_BEST_FIRST	: bool ref
+  val trace_DEPTH_FIRST	: bool ref
+  val trace_REPEAT	: bool ref
+  val TRY		: tactic -> tactic
+  val TRYALL		: (int -> tactic) -> tactic   
   end
   end;
 
@@ -192,18 +194,26 @@ val pause_tac = Tactic (fn state =>
 exception TRACE_EXIT of thm
 and TRACE_QUIT;
 
+(*Tracing flags*)
+val trace_REPEAT= ref false
+and trace_DEPTH_FIRST = ref false
+and trace_BEST_FIRST = ref false
+and suppress_tracing = ref false;
+
 (*Handle all tracing commands for current state and tactic *)
 fun exec_trace_command flag (tf, state) = 
    case input_line(std_in) of
        "\n" => tf state
      | "f\n" => Sequence.null
-     | "o\n" => (flag:=false; tf state)
+     | "o\n" => (flag:=false;  tf state)
+     | "s\n" => (suppress_tracing:=true;  tf state)
      | "x\n" => (prs"Exiting now\n";  raise (TRACE_EXIT state))
      | "quit\n" => raise TRACE_QUIT
      | _     => (prs
 "Type RETURN to continue or...\n\
 \     f    - to fail here\n\
 \     o    - to switch tracing off\n\
+\     s    - to suppress tracing until next entry to a tactical\n\
 \     x    - to exit at this point\n\
 \     quit - to abort this tracing run\n\
 \** Well? "     ;  exec_trace_command flag (tf, state));
@@ -211,21 +221,18 @@ fun exec_trace_command flag (tf, state) =
 
 (*Extract from a tactic, a thm->thm seq function that handles tracing*)
 fun tracify flag (Tactic tf) state =
-  if !flag then (!print_goals_ref (!goals_limit) state;  
+  if !flag andalso not (!suppress_tracing)
+           then (!print_goals_ref (!goals_limit) state;  
 		 prs"** Press RETURN to continue: ";
 		 exec_trace_command flag (tf,state))
   else tf state;
 
 (*Create a tactic whose outcome is given by seqf, handling TRACE_EXIT*)
 fun traced_tac seqf = Tactic (fn st =>
-    Sequence.seqof (fn()=> seqf st
-		           handle TRACE_EXIT st' => Some(st', Sequence.null)));
+    (suppress_tracing := false;
+     Sequence.seqof (fn()=> seqf st
+		         handle TRACE_EXIT st' => Some(st', Sequence.null))));
 
-
-(*Tracing flags*)
-val trace_REPEAT= ref false
-and trace_DEPTH_FIRST = ref false
-and trace_BEST_FIRST = ref false;
 
 (*Deterministic REPEAT: only retains the first outcome; 
   uses less space than REPEAT; tail recursive*)
