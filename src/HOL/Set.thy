@@ -18,7 +18,7 @@ arities
   set :: (term) term
 
 instance
-  set :: (term) {ord, minus, power}
+  set :: (term) {ord, minus, power} (* only ('a * 'a) set should be in power! *)
 
 syntax
   "op :"        :: ['a, 'a set] => bool             ("op :")
