@@ -528,7 +528,12 @@ fun read_typ (sg, def_sort) str =
 
 (** certify types and terms **)   (*exception TYPE*)
 
+(* certify_typ *)
+
 val certify_typ = Type.cert_typ o tsig_of;
+
+
+(* certify_term *)
 
 (*check for duplicate TVars with distinct sorts*)
 fun nodup_TVars (tvars, T) =
@@ -569,10 +574,43 @@ fun nodup_Vars tm =
           end);
   in nodups [] [] tm; () end;
 
+(*compute and check type of the term*)
+fun type_check sg tm =
+  let
+    val prt =
+      setmp Syntax.show_brackets true
+        (setmp long_names true (pretty_term sg));
+    val prT = setmp long_names true (pretty_typ sg);
 
-fun mapfilt_atoms f (Abs (_, _, t)) = mapfilt_atoms f t
-  | mapfilt_atoms f (t $ u) = mapfilt_atoms f t @ mapfilt_atoms f u
-  | mapfilt_atoms f a = (case f a of Some y => [y] | None => []);
+    fun err_appl why bs t T u U =
+      let
+        val xs = map Free bs;		(*we do not rename here*)
+        val t' = subst_bounds (xs, t);
+        val u' = subst_bounds (xs, u);
+        val text = cat_lines
+         ["Type error in application: " ^ why,
+          "",
+          Pretty.string_of (Pretty.block [Pretty.str "Operator:", Pretty.brk 2, prt t',
+            Pretty.str " :: ", prT T]),
+          Pretty.string_of (Pretty.block [Pretty.str "Operand:", Pretty.brk 3, prt u',
+            Pretty.str " :: ", prT U]), ""];
+      in raise TYPE (text, [T, U], [t', u']) end;
+
+    fun typ_of (_, Const (_, T)) = T
+      | typ_of (_, Free  (_, T)) = T
+      | typ_of (_, Var (_, T)) = T
+      | typ_of (bs, Bound i) = snd (nth_elem (i, bs) handle LIST _ =>
+          raise TYPE ("Loose bound variable: B." ^ string_of_int i, [], [Bound i]))
+      | typ_of (bs, Abs (x, T, body)) = T --> typ_of ((x, T) :: bs, body)
+      | typ_of (bs, t $ u) =
+          let val T = typ_of (bs, t) and U = typ_of (bs, u) in
+            (case T of
+              Type ("fun", [T1, T2]) =>
+                if T1 = U then T2 else err_appl "Incompatible operand type." bs t T u U
+            | _ => err_appl "Operator not of function type." bs t T u U)
+          end;
+
+  in typ_of ([], tm) end;
 
 
 fun certify_term sg tm =
@@ -582,15 +620,15 @@ fun certify_term sg tm =
 
     fun show_const a T = quote a ^ " :: " ^ quote (string_of_typ sg T);
 
-    fun atom_err (Const (a, T)) =
+    fun atom_err (errs, Const (a, T)) =
         (case const_type sg a of
-          None => Some ("Undeclared constant " ^ show_const a T)
+          None => ("Undeclared constant " ^ show_const a T) :: errs
         | Some U =>
-            if Type.typ_instance (tsig, T, U) then None
-            else Some ("Illegal type for constant " ^ show_const a T))
-      | atom_err (Var ((x, i), _)) =
-          if i < 0 then Some ("Negative index for Var " ^ quote x) else None
-      | atom_err _ = None;
+            if Type.typ_instance (tsig, T, U) then errs
+            else ("Illegal type for constant " ^ show_const a T) :: errs)
+      | atom_err (errs, Var ((x, i), _)) =
+          if i < 0 then ("Negative index for Var " ^ quote x) :: errs else errs
+      | atom_err (errs, _) = errs;
 
     val norm_tm =
       (case it_term_types (Type.typ_errors tsig) (tm, []) of
@@ -598,8 +636,8 @@ fun certify_term sg tm =
       | errs => raise TYPE (cat_lines errs, [], [tm]));
     val _ = nodup_Vars norm_tm;
   in
-    (case mapfilt_atoms atom_err norm_tm of
-      [] => (norm_tm, type_of norm_tm, maxidx_of_term norm_tm)
+    (case foldl_aterms atom_err ([], norm_tm) of
+      [] => (norm_tm, type_check sg norm_tm, maxidx_of_term norm_tm)
     | errs => raise TYPE (cat_lines errs, [], [norm_tm]))
   end;
 
