@@ -437,9 +437,9 @@ fun extend syn read_ty (roots, xconsts, sext) =
     val ext1 = ext_of_sext ((distinct roots) \\ roots0) xconsts read_ty sext;
 
     val (syn1 as Syntax (ggr1, tabs1)) = 
-      (case mk_xgram ext1 of
-        xg1 as XGram {prods = [], ...} => 
-          Syntax (ref (ExtGG (ggr0, ext1)), extend_tables tabs0 xg1)
+      (case ext1 of
+        Ext {roots = [], mfix = [], ...} => 
+          Syntax (ref (ExtGG (ggr0, ext1)), extend_tables tabs0 (mk_xgram ext1))
       | _ => mk_syntax (ref (ExtGG (ggr0, ext1))));
 
     val (parse_rules, print_rules) = read_xrules syn1 (xrules_of sext);
