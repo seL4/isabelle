@@ -58,12 +58,12 @@ Addsimps [par_beta_lift];
 goal ParRed.thy
   "!s s' t' n. s => s' --> t => t' --> t[s/n] => t'[s'/n]";
 by (db.induct_tac "t" 1);
-  by(asm_simp_tac (addsplit(!simpset)) 1);
- by(strip_tac 1);
- bes par_beta_cases 1;
-  by(Asm_simp_tac 1);
- by(asm_simp_tac (!simpset addsimps [subst_subst RS sym]) 1);
- by(fast_tac (!claset addSIs [par_beta_lift] addss (!simpset)) 1);
+  by (asm_simp_tac (addsplit(!simpset)) 1);
+ by (strip_tac 1);
+ by (eresolve_tac par_beta_cases 1);
+  by (Asm_simp_tac 1);
+ by (asm_simp_tac (!simpset addsimps [subst_subst RS sym]) 1);
+ by (fast_tac (!claset addSIs [par_beta_lift] addss (!simpset)) 1);
 by (fast_tac (!claset addss (!simpset)) 1);
 qed_spec_mp "par_beta_subst";
 
@@ -80,10 +80,10 @@ qed "diamond_par_beta";
 
 goal ParRed.thy "!t. s => t --> t => cd s";
 by (db.induct_tac "s" 1);
-  by(Simp_tac 1);
- be rev_mp 1;
- by(db.induct_tac "db1" 1);
- by(ALLGOALS(fast_tac (!claset addSIs [par_beta_subst] addss !simpset)));
+  by (Simp_tac 1);
+ by (etac rev_mp 1);
+ by (db.induct_tac "db1" 1);
+ by (ALLGOALS(fast_tac (!claset addSIs [par_beta_subst] addss !simpset)));
 qed_spec_mp "par_beta_cd";
 
 (*** Confluence (via cd) ***)

@@ -89,12 +89,12 @@ qed "diamond_to_confluence";
 goalw Commutation.thy [square_def,commute_def,diamond_def,Church_Rosser_def]
   "Church_Rosser(R) = confluent(R)";
 by (rtac iffI 1);
- by(fast_tac (HOL_cs addIs
+ by (fast_tac (HOL_cs addIs
       [Un_upper2 RS rtrancl_mono RS subsetD RS rtrancl_trans,
        rtrancl_converseI, converseI, Un_upper1 RS rtrancl_mono RS subsetD])1);
 by (safe_tac HOL_cs);
 by (etac rtrancl_induct 1);
- by(Fast_tac 1);
+ by (Fast_tac 1);
 by (slow_best_tac (!claset addIs [r_into_rtrancl]
                     addEs [rtrancl_trans,r_into_rtrancl RS rtrancl_trans]) 1);
 qed "Church_Rosser_confluent";
