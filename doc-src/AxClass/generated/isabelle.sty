@@ -23,8 +23,8 @@
 \newcommand{\isamath}[1]{\emph{$#1$}}
 \newcommand{\isatext}[1]{\emph{#1}}
 \newcommand{\isascriptstyle}{\def\isamath##1{##1}\def\isatext##1{\mbox{\isastylescript##1}}}
-\newcommand{\isactrlsub}[1]{\emph{\isascriptstyle${}_{#1}$}}
-\newcommand{\isactrlsup}[1]{\emph{\isascriptstyle${}^{#1}$}}
+\newcommand{\isactrlsub}[1]{\emph{\isascriptstyle${}\sb{#1}$}}
+\newcommand{\isactrlsup}[1]{\emph{\isascriptstyle${}\sp{#1}$}}
 
 \newdimen\isa@parindent\newdimen\isa@parskip
 
@@ -141,7 +141,7 @@
 \renewcommand{\isacharbraceleft}{\isamath{\{}}%
 \renewcommand{\isacharbar}{\isamath{\mid}}%
 \renewcommand{\isacharbraceright}{\isamath{\}}}%
-\renewcommand{\isachartilde}{\isamath{{}^\sim}}%
+\renewcommand{\isachartilde}{\isamath{{}\sp{\sim}}}%
 }
 
 \newcommand{\isabellestylesl}{%
