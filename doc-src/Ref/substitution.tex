@@ -6,7 +6,7 @@ Replacing equals by equals is a basic form of reasoning.  Isabelle supports
 several kinds of equality reasoning.  {\bf Substitution} means replacing
 free occurrences of~$t$ by~$u$ in a subgoal.  This is easily done, given an
 equality $t=u$, provided the logic possesses the appropriate rule.  The
-tactic {\tt hyp_subst_tac} performs substitution even in the assumptions.
+tactic \texttt{hyp_subst_tac} performs substitution even in the assumptions.
 But it works via object-level implication, and therefore must be specially
 set up for each suitable object-logic.
 
@@ -49,11 +49,11 @@ $$
 \Var{P}(\Var{a}).  \eqno(ssubst)
 $$
 If \tdx{sym} denotes the symmetry rule
-\(\Var{a}=\Var{b}\Imp\Var{b}=\Var{a}\), then {\tt ssubst} is just
+\(\Var{a}=\Var{b}\Imp\Var{b}=\Var{a}\), then \texttt{ssubst} is just
 \hbox{\tt sym RS subst}.  Many logics with equality include the rules {\tt
-subst} and {\tt ssubst}, as well as {\tt refl}, {\tt sym} and {\tt trans}
-(for the usual equality laws).  Examples include {\tt FOL} and {\tt HOL},
-but not {\tt CTT} (Constructive Type Theory).
+subst} and \texttt{ssubst}, as well as \texttt{refl}, \texttt{sym} and \texttt{trans}
+(for the usual equality laws).  Examples include \texttt{FOL} and \texttt{HOL},
+but not \texttt{CTT} (Constructive Type Theory).
 
 Elim-resolution is well-behaved with assumptions of the form $t=u$.
 To replace $u$ by~$t$ or $t$ by~$u$ in subgoal~$i$, use
@@ -65,7 +65,7 @@ Logics \HOL, {\FOL} and {\ZF} define the tactic \ttindexbold{stac} by
 \begin{ttbox} 
 fun stac eqth = CHANGED o rtac (eqth RS ssubst);
 \end{ttbox}
-Now {\tt stac~eqth} is like {\tt resolve_tac [eqth RS ssubst]} but with the
+Now \texttt{stac~eqth} is like \texttt{resolve_tac [eqth RS ssubst]} but with the
 valuable property of failing if the substitution has no effect.
 
 
@@ -74,9 +74,9 @@ valuable property of failing if the substitution has no effect.
 Substitution rules, like other rules of natural deduction, do not affect
 the assumptions.  This can be inconvenient.  Consider proving the subgoal
 \[ \List{c=a; c=b} \Imp a=b. \]
-Calling {\tt eresolve_tac\ts[ssubst]\ts\(i\)} simply discards the
+Calling \texttt{eresolve_tac\ts[ssubst]\ts\(i\)} simply discards the
 assumption~$c=a$, since $c$ does not occur in~$a=b$.  Of course, we can
-work out a solution.  First apply {\tt eresolve_tac\ts[subst]\ts\(i\)},
+work out a solution.  First apply \texttt{eresolve_tac\ts[subst]\ts\(i\)},
 replacing~$a$ by~$c$:
 \[ c=b \Imp c=b \]
 Equality reasoning can be difficult, but this trivial proof requires
@@ -109,38 +109,49 @@ Substitution for free variables is unhelpful if they appear in the
 premises of a rule being derived: the substitution affects object-level
 assumptions, not meta-level assumptions.  For instance, replacing~$a$
 by~$b$ could make the premise~$P(a)$ worthless.  To avoid this problem, use
-{\tt bound_hyp_subst_tac}; alternatively, call \ttindex{cut_facts_tac} to
+\texttt{bound_hyp_subst_tac}; alternatively, call \ttindex{cut_facts_tac} to
 insert the atomic premises as object-level assumptions.
 
 
 \section{Setting up {\tt hyp_subst_tac}} 
-Many Isabelle object-logics, such as {\tt FOL}, {\tt HOL} and their
-descendants, come with {\tt hyp_subst_tac} already defined.  A few others,
-such as {\tt CTT}, do not support this tactic because they lack the
+Many Isabelle object-logics, such as \texttt{FOL}, \texttt{HOL} and their
+descendants, come with \texttt{hyp_subst_tac} already defined.  A few others,
+such as \texttt{CTT}, do not support this tactic because they lack the
 rule~$(subst)$.  When defining a new logic that includes a substitution
-rule and implication, you must set up {\tt hyp_subst_tac} yourself.  It
+rule and implication, you must set up \texttt{hyp_subst_tac} yourself.  It
 is packaged as the \ML{} functor \ttindex{HypsubstFun}, which takes the
-argument signature~{\tt HYPSUBST_DATA}:
+argument signature~\texttt{HYPSUBST_DATA}:
 \begin{ttbox} 
 signature HYPSUBST_DATA =
   sig
   structure Simplifier : SIMPLIFIER
-  val dest_eq          : term -> term*term
+  val dest_Trueprop    : term -> term
+  val dest_eq          : term -> term*term*typ
+  val dest_imp         : term -> term*term
   val eq_reflection    : thm             (* a=b ==> a==b *)
   val imp_intr         : thm             (* (P ==> Q) ==> P-->Q *)
   val rev_mp           : thm             (* [| P;  P-->Q |] ==> Q *)
   val subst            : thm             (* [| a=b;  P(a) |] ==> P(b) *)
   val sym              : thm             (* a=b ==> b=a *)
+  val thin_refl        : thm             (* [|x=x; P|] ==> P *)
   end;
 \end{ttbox}
 Thus, the functor requires the following items:
 \begin{ttdescription}
 \item[Simplifier] should be an instance of the simplifier (see
   Chapter~\ref{chap:simplification}).
-
-\item[\ttindexbold{dest_eq}] should return the pair~$(t,u)$ when
-applied to the \ML{} term that represents~$t=u$.  For other terms, it
-should raise exception~\xdx{Match}.
+  
+\item[\ttindexbold{dest_Trueprop}] should coerce a meta-level formula to the
+  corresponding object-level one.  Typically, it should return $P$ when
+  applied to the term $\texttt{Trueprop}\,P$ (see example below).
+  
+\item[\ttindexbold{dest_eq}] should return the triple~$(t,u,T)$, where $T$ is
+  the type of~$t$ and~$u$, when applied to the \ML{} term that
+  represents~$t=u$.  For other terms, it should raise an exception.
+  
+\item[\ttindexbold{dest_imp}] should return the pair~$(P,Q)$ when applied to
+  the \ML{} term that represents the implication $P\imp Q$.  For other terms,
+  it should raise an exception.
 
 \item[\tdxbold{eq_reflection}] is the theorem discussed
   in~\S\ref{sec:setting-up-simp}. 
@@ -156,28 +167,41 @@ $\List{\Var{a}=\Var{b};\; \Var{P}(\Var{a})} \Imp \Var{P}(\Var{b})$.
 
 \item[\tdxbold{sym}] should be the symmetry rule
 $\Var{a}=\Var{b}\Imp\Var{b}=\Var{a}$.
+
+\item[\tdxbold{thin_refl}] should be the rule
+$\List{\Var{a}=\Var{a};\; \Var{P}} \Imp \Var{P}$, which is used to erase
+trivial equalities.
 \end{ttdescription}
 %
-The functor resides in file {\tt Provers/hypsubst.ML} in the Isabelle
+The functor resides in file \texttt{Provers/hypsubst.ML} in the Isabelle
 distribution directory.  It is not sensitive to the precise formalization
 of the object-logic.  It is not concerned with the names of the equality
-and implication symbols, or the types of formula and terms.  Coding the
-function {\tt dest_eq} requires knowledge of Isabelle's representation of
-terms.  For {\tt FOL} it is defined by
-\begin{ttbox} 
-fun dest_eq (Const("Trueprop",_) $ (Const("op =",_)$t$u)) = (t,u)
-\end{ttbox}
-Here {\tt Trueprop} is the coercion from type~$o$ to type~$prop$, while
-\hbox{\tt op =} is the internal name of the infix operator~{\tt=}.
-Pattern-matching expresses the function concisely, using wildcards~({\tt_})
-for the types.
+and implication symbols, or the types of formula and terms.  
 
-The tactic {\tt hyp_subst_tac} works as follows.  First, it identifies a
-suitable equality assumption, possibly re-orienting it using~{\tt sym}.  Then
-it moves other assumptions into the conclusion of the goal, by repeatedly
-caling {\tt eresolve_tac\ts[rev_mp]}.  Then, it uses {\tt asm_full_simp_tac}
-or {\tt ssubst} to substitute throughout the subgoal.  (If the equality
-involves unknowns then it must use {\tt ssubst}.)  Then, it deletes the
+Coding the functions \texttt{dest_Trueprop}, \texttt{dest_eq} and
+\texttt{dest_imp} requires knowledge of Isabelle's representation of terms.
+For \texttt{FOL}, they are declared by
+\begin{ttbox} 
+fun dest_Trueprop (Const ("Trueprop", _) $ P) = P
+  | dest_Trueprop t = raise TERM ("dest_Trueprop", [t]);
+
+fun dest_eq (Const("op =",T)  $ t $ u) = (t, u, domain_type T)
+
+fun dest_imp (Const("op -->",_) $ A $ B) = (A, B)
+  | dest_imp  t = raise TERM ("dest_imp", [t]);
+\end{ttbox}
+Recall that \texttt{Trueprop} is the coercion from type~$o$ to type~$prop$,
+while \hbox{\tt op =} is the internal name of the infix operator~\texttt{=}.
+Function \ttindexbold{domain_type}, given the function type $S\To T$, returns
+the type~$S$.  Pattern-matching expresses the function concisely, using
+wildcards~({\tt_}) for the types.
+
+The tactic \texttt{hyp_subst_tac} works as follows.  First, it identifies a
+suitable equality assumption, possibly re-orienting it using~\texttt{sym}.
+Then it moves other assumptions into the conclusion of the goal, by repeatedly
+calling \texttt{etac~rev_mp}.  Then, it uses \texttt{asm_full_simp_tac} or
+\texttt{ssubst} to substitute throughout the subgoal.  (If the equality
+involves unknowns then it must use \texttt{ssubst}.)  Then, it deletes the
 equality.  Finally, it moves the assumptions back to their original positions
 by calling \hbox{\tt resolve_tac\ts[imp_intr]}.
 
