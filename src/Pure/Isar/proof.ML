@@ -38,7 +38,7 @@ sig
   val assert_no_chain: state -> state
   val enter_forward: state -> state
   val verbose: bool ref
-  val print_state: int -> state -> unit
+  val pretty_state: int -> state -> Pretty.T list
   val pretty_goals: bool -> state -> Pretty.T list
   val level: state -> int
   type method
@@ -323,7 +323,7 @@ fun close_block (state as State (_, node :: nodes)) = State (node, nodes)
 
 
 
-(** print_state **)
+(** pretty_state **)
 
 val verbose = ProofContext.verbose;
 
@@ -334,7 +334,7 @@ fun pretty_facts _ _ None = []
   | pretty_facts s ctxt (Some ths) =
       [Pretty.big_list (s ^ "this:") (map (ProofContext.pretty_thm ctxt) ths), Pretty.str ""];
 
-fun print_state nr (state as State (Node {context = ctxt, facts, mode, goal = _}, nodes)) =
+fun pretty_state nr (state as State (Node {context = ctxt, facts, mode, goal = _}, nodes)) =
   let
     val ref (_, _, begin_goal) = Display.current_goals_markers;
 
@@ -372,7 +372,7 @@ fun print_state nr (state as State (Node {context = ctxt, facts, mode, goal = _}
        (pretty_facts "" ctxt facts @ prt_goal (find_goal state))
       else if mode = ForwardChain then pretty_facts "picking " ctxt facts
       else prt_goal (find_goal state))
-  in Pretty.writeln (Pretty.chunks prts) end;
+  in prts end;
 
 fun pretty_goals main state =
   let val (ctxt, (_, ((_, (_, thm)), _))) = find_goal state

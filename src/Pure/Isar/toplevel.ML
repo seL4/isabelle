@@ -18,6 +18,7 @@ sig
   val print_state_default: bool -> state -> unit
   val print_state_fn: (bool -> state -> unit) ref
   val print_state: bool -> state -> unit
+  val pretty_state: bool -> state -> Pretty.T list
   exception UNDEF
   val node_history_of: state -> node History.T
   val node_of: state -> node
@@ -85,17 +86,17 @@ datatype node =
 fun str_of_node (Theory _) = "in theory mode"
   | str_of_node (Proof _) = "in proof mode";
 
-fun print_ctxt thy = Pretty.writeln (Pretty.block
+fun pretty_context thy = [Pretty.block
   [Pretty.str "theory", Pretty.brk 1, Pretty.str (PureThy.get_name thy),
-    Pretty.str " =", Pretty.brk 1, Display.pretty_theory thy]);
+    Pretty.str " =", Pretty.brk 1, Display.pretty_theory thy]];
 
-fun print_prf prf = Proof.print_state (ProofHistory.position prf) (ProofHistory.current prf);
+fun pretty_prf prf = Proof.pretty_state (ProofHistory.position prf) (ProofHistory.current prf);
 
-fun print_node_ctxt (Theory thy) = print_ctxt thy
-  | print_node_ctxt (Proof prf) = print_ctxt (Proof.theory_of (ProofHistory.current prf));
+fun pretty_node_context (Theory thy) = pretty_context thy
+  | pretty_node_context (Proof prf) = pretty_context (Proof.theory_of (ProofHistory.current prf));
 
-fun print_node prf_only (Theory thy) = if prf_only then () else print_ctxt thy
-  | print_node _ (Proof prf) = print_prf prf;
+fun pretty_node prf_only (Theory thy) = if prf_only then [] else pretty_context thy
+  | pretty_node _ (Proof prf) = pretty_prf prf;
 
 
 (* datatype state *)
@@ -121,18 +122,21 @@ fun prompt_state state = ! prompt_state_fn state;
 
 (* print state *)
 
-fun print_current_node _ (State None) = ()
-  | print_current_node prt (State (Some (node, _))) = prt (History.current node);
+fun pretty_current_node _ (State None) = []
+  | pretty_current_node prt (State (Some (node, _))) = prt (History.current node);
 
-val print_state_context = print_current_node print_node_ctxt;
+val print_state_context =
+  Pretty.writeln o Pretty.chunks o pretty_current_node pretty_node_context;
 
-fun print_state_default prf_only state =
+fun pretty_state prf_only state =
   let val ref (begin_state, end_state, _) = Display.current_goals_markers in
-    if begin_state = "" then () else writeln begin_state;
-    print_current_node (print_node prf_only) state;
-    if end_state = "" then () else writeln end_state
+    (case pretty_current_node (pretty_node prf_only) state of [] => []
+    | prts =>
+        (if begin_state = "" then [] else [Pretty.str begin_state]) @ prts @
+        (if end_state = "" then [] else [Pretty.str end_state]))
   end;
 
+fun print_state_default prf_only state = Pretty.writelns (pretty_state prf_only state);
 val print_state_fn = ref print_state_default;
 fun print_state state = ! print_state_fn state;
 
