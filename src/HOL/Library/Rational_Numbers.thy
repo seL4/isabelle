@@ -623,10 +623,10 @@ qed
 
 subsection {* Embedding integers *}
 
-constdefs    (* FIXME generalize int to any numeric subtype *)
-  rat :: "int => rat"
+constdefs
+  rat :: "int => rat"    (* FIXME generalize int to any numeric subtype *)
   "rat z == Fract z #1"
-  int_set :: "rat set"    ("\<int>")
+  int_set :: "rat set"    ("\<int>")    (* FIXME generalize rat to any numeric supertype *)
   "\<int> == range rat"
 
 lemma rat_inject: "(rat z = rat w) = (z = w)"
