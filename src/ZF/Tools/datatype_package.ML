@@ -412,13 +412,14 @@ fun add_datatype_i (dom_sum, rec_tms, con_ty_lists,
 fun add_datatype (sdom, srec_tms, scon_ty_lists, 
 		  monos, type_intrs, type_elims) thy =
   let val sign = sign_of thy
-      val rec_tms = map (readtm sign Ind_Syntax.iT) srec_tms
+      val read_i = Sign.simple_read_term sign Ind_Syntax.iT
+      val rec_tms = map read_i srec_tms
       val con_ty_lists = Ind_Syntax.read_constructs sign scon_ty_lists
       val dom_sum = 
           if sdom = "" then
 	      Ind_Syntax.data_domain (#1(dest_Const Fp.oper) <> "Fixedpt.lfp") 
 	                             (rec_tms, con_ty_lists)
-          else readtm sign Ind_Syntax.iT sdom
+          else read_i sdom
   in 
       add_datatype_i (dom_sum, rec_tms, con_ty_lists, 
 		      monos, type_intrs, type_elims) thy

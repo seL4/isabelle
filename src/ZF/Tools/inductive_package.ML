@@ -571,12 +571,14 @@ fun add_inductive_i verbose (rec_tms, dom_sum, intr_tms,
 (*external version, accepting strings*)
 fun add_inductive (srec_tms, sdom_sum, sintrs, monos,
 		     con_defs, type_intrs, type_elims) thy = 
-  let val rec_tms = map (readtm (sign_of thy) Ind_Syntax.iT) srec_tms
-      and dom_sum = readtm (sign_of thy) Ind_Syntax.iT sdom_sum
-      and intr_tms = map (readtm (sign_of thy) propT) sintrs
-  in  
-    add_inductive_i true (rec_tms, dom_sum, intr_tms, 
-			  monos, con_defs, type_intrs, type_elims) thy
-
+  let
+    val read = Sign.simple_read_term (Theory.sign_of thy);
+    val rec_tms = map (read Ind_Syntax.iT) srec_tms
+    and dom_sum = read Ind_Syntax.iT sdom_sum
+    and intr_tms = map (read propT) sintrs
+  in
+    thy
+    |> add_inductive_i true (rec_tms, dom_sum, intr_tms, monos, con_defs, type_intrs, type_elims)
   end
+
 end;

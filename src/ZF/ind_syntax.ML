@@ -78,7 +78,7 @@ fun dest_mem (Const("op :",_) $ x $ A) = (x,A)
 
 (*read a constructor specification*)
 fun read_construct sign (id, sprems, syn) =
-    let val prems = map (readtm sign FOLogic.oT) sprems
+    let val prems = map (Sign.simple_read_term sign FOLogic.oT) sprems
         val args = map (#1 o dest_mem) prems
         val T = (map (#2 o dest_Free) args) ---> iT
                 handle TERM _ => error 

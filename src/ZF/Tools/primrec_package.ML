@@ -191,6 +191,6 @@ fun add_primrec_i recursion_eqns thy =
   end;
 
 fun add_primrec eqns thy =
-  add_primrec_i (map (apsnd (readtm (sign_of thy) propT)) eqns) thy;
+  add_primrec_i (map (apsnd (Sign.simple_read_term (sign_of thy) propT)) eqns) thy;
 
 end;
