@@ -3,6 +3,7 @@
 #Shell script to expand shorthand goal commands
 #  ALSO contracts uses of resolve_tac, dresolve_tac, eresolve_tac,
 #     rewrite_goals_tac on 1-element lists
+#  ALSO expands tabs, since they are now forbidden in strings.
 #
 # Usage:
 #    expandshort FILE1 ... FILEn
@@ -26,6 +27,6 @@ s/dresolve_tac *\[\([a-zA-Z0-9_]*\)\] */dtac \1 /g
 s/eresolve_tac *\[\([a-zA-Z0-9_]*\)\] */etac \1 /g
 s/resolve_tac *\[\([a-zA-Z0-9_]*\)\] */rtac \1 /g
 s/rewrite_goals_tac *\[\([a-zA-Z0-9_]*\)\]\( *\)/rewtac \1\2/g
-' $f~~ > $f
+' $f~~ | expand > $f
 done
 echo Finished.
