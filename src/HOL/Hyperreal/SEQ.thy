@@ -277,6 +277,27 @@ done
 lemma LIMSEQ_unique: "[| X ----> a; X ----> b |] ==> a = b"
 by (simp add: LIMSEQ_NSLIMSEQ_iff NSLIMSEQ_unique)
 
+lemma LIMSEQ_setsum:
+  assumes n: "\<And>n. n \<in> S \<Longrightarrow> X n ----> L n"
+  shows "(\<lambda>m. \<Sum>n\<in>S. X n m) ----> (\<Sum>n\<in>S. L n)"
+proof (cases "finite S")
+  case True
+  thus ?thesis using n
+  proof (induct)
+    case empty
+    show ?case
+      by (simp add: LIMSEQ_const)
+  next
+    case insert
+    thus ?case
+      by (simp add: LIMSEQ_add)
+  qed
+next
+  case False
+  thus ?thesis
+    by (simp add: setsum_def LIMSEQ_const)
+qed
+
 
 subsection{*Nslim and Lim*}
 
