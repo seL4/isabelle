@@ -16,7 +16,7 @@ section "Basics";
 
 text {|
   First we define a type abbreviation for binary operations over some
-  type @type "'val" of values.
+  type @{type "'val"} of values.
 |};
 
 types
@@ -98,7 +98,7 @@ primrec
 
 text {|
   The main result of this developement is the correctness theorem for
-  @term "comp".  We first establish some lemmas.
+  @{term "comp"}.  We first establish some lemmas.
 |};
 
 ML "reset HOL_quantifiers";
