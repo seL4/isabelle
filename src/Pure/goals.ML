@@ -61,6 +61,7 @@ signature GOALS =
   val ren		: string -> int -> unit
   val restore_proof	: proof -> thm list
   val result		: unit -> thm  
+  val result_error_ref  : (thm -> string -> thm) ref
   val rotate_proof	: unit -> thm list
   val uresult		: unit -> thm  
   val save_proof	: unit -> proof
@@ -115,6 +116,15 @@ fun sign_error (sign,sign') =
       | _       => "\nNew theories: " ^ space_implode ", " (map ! stamps)
   end;
 
+(*Default action is to print an error message; could be suppressed for
+  special applications.*)
+fun result_error_default state msg : thm = 
+  (writeln ("Bad final proof state:");
+   !print_goals_ref (!goals_limit) state;
+   error msg);
+
+val result_error_ref = ref result_error_default;
+
 (*Common treatment of "goal" and "prove_goal":
   Return assumptions, initial proof state, and function to make result. *)
 fun prepare_proof rths chorn =
@@ -123,10 +133,6 @@ fun prepare_proof rths chorn =
       val cAs = map (cterm_of sign) As;
       val prems = map (rewrite_rule rths o forall_elim_vars(0) o assume) cAs
       and st0 = (rewrite_goals_rule rths o trivial) (cterm_of sign B)
-      fun result_error state msg = 
-        (writeln ("Bad final proof state:");
- 	 !print_goals_ref (!goals_limit) state;
-	 error msg)
       (*discharges assumptions from state in the order they appear in goal;
 	checks (if requested) that resulting theorem is equivalent to goal. *)
       fun mkresult (check,state) =
@@ -137,21 +143,21 @@ fun prepare_proof rths chorn =
             val {hyps,prop,sign=sign',...} = rep_thm th
             val xshyps = extra_shyps th;
         in  if not check then standard th
-	    else if not (Sign.eq_sg(sign,sign')) then result_error state
+	    else if not (Sign.eq_sg(sign,sign')) then !result_error_ref state
 		("Signature of proof state has changed!" ^
 		 sign_error (sign,sign'))
-            else if ngoals>0 then result_error state
+            else if ngoals>0 then !result_error_ref state
 		(string_of_int ngoals ^ " unsolved goals!")
-            else if not (null hyps) then result_error state
+            else if not (null hyps) then !result_error_ref state
                 ("Additional hypotheses:\n" ^ 
                  cat_lines (map (Sign.string_of_term sign) hyps))
-	    else if not (null xshyps) then result_error state
+	    else if not (null xshyps) then !result_error_ref state
                 ("Extra sort hypotheses: " ^
                  commas (map Type.str_of_sort xshyps))
 	    else if Pattern.matches (#tsig(Sign.rep_sg sign)) 
 			            (term_of chorn, prop)
 		 then  standard th 
-	    else  result_error state "proved a different theorem"
+	    else  !result_error_ref state "proved a different theorem"
         end
   in
      if Sign.eq_sg(sign, #sign(rep_thm st0))
