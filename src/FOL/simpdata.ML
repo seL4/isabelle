@@ -14,38 +14,38 @@ fun int_prove_fun s =
    (fn prems => [ (cut_facts_tac prems 1), 
                   (Int.fast_tac 1) ]));
 
-val conj_rews = map int_prove_fun
+val conj_simps = map int_prove_fun
  ["P & True <-> P",      "True & P <-> P",
   "P & False <-> False", "False & P <-> False",
   "P & P <-> P",
   "P & ~P <-> False",    "~P & P <-> False",
   "(P & Q) & R <-> P & (Q & R)"];
 
-val disj_rews = map int_prove_fun
+val disj_simps = map int_prove_fun
  ["P | True <-> True",  "True | P <-> True",
   "P | False <-> P",    "False | P <-> P",
   "P | P <-> P",
   "(P | Q) | R <-> P | (Q | R)"];
 
-val not_rews = map int_prove_fun
+val not_simps = map int_prove_fun
  ["~(P|Q)  <-> ~P & ~Q",
   "~ False <-> True",   "~ True <-> False"];
 
-val imp_rews = map int_prove_fun
+val imp_simps = map int_prove_fun
  ["(P --> False) <-> ~P",       "(P --> True) <-> True",
   "(False --> P) <-> True",     "(True --> P) <-> P", 
   "(P --> P) <-> True",         "(P --> ~P) <-> ~P"];
 
-val iff_rews = map int_prove_fun
+val iff_simps = map int_prove_fun
  ["(True <-> P) <-> P",         "(P <-> True) <-> P",
   "(P <-> P) <-> True",
   "(False <-> P) <-> ~P",       "(P <-> False) <-> ~P"];
 
-val quant_rews = map int_prove_fun
+val quant_simps = map int_prove_fun
  ["(ALL x.P) <-> P",    "(EX x.P) <-> P"];
 
 (*These are NOT supplied by default!*)
-val distrib_rews  = map int_prove_fun
+val distrib_simps  = map int_prove_fun
  ["P & (Q | R) <-> P&Q | P&R", 
   "(Q | R) & P <-> Q&P | R&P",
   "(P | Q --> R) <-> (P --> R) & (Q --> R)"];
@@ -97,9 +97,9 @@ infix 4 addss;
 fun cs addss ss = cs addbefore asm_full_simp_tac ss 1;
 
 
-val IFOL_rews =
-   [refl RS P_iff_T] @ conj_rews @ disj_rews @ not_rews @ 
-    imp_rews @ iff_rews @ quant_rews;
+val IFOL_simps =
+   [refl RS P_iff_T] @ conj_simps @ disj_simps @ not_simps @ 
+    imp_simps @ iff_simps @ quant_simps;
 
 val notFalseI = int_prove_fun "~False";
 val triv_rls = [TrueI,refl,iff_refl,notFalseI];
@@ -111,7 +111,7 @@ val IFOL_ss =
                           ORELSE' assume_tac
                           ORELSE' etac FalseE)
   setsubgoaler asm_simp_tac
-  addsimps IFOL_rews
+  addsimps IFOL_simps
   addcongs [imp_cong];
 
 (*Classical version...*)
@@ -121,12 +121,42 @@ fun prove_fun s =
    (fn prems => [ (cut_facts_tac prems 1), 
                   (Cla.fast_tac FOL_cs 1) ]));
 
-val cla_rews = map prove_fun
- ["~(P&Q)  <-> ~P | ~Q",
-  "P | ~P",             "~P | P",
-  "~ ~ P <-> P",        "(~P --> P) <-> P"];
+(*Avoids duplication of subgoals after expand_if, when the true and false 
+  cases boil down to the same thing.*) 
+val cases_simp = prove_fun "(P --> Q) & (~P --> Q) <-> Q";
 
-val FOL_ss = IFOL_ss addsimps cla_rews;
+val cla_simps = 
+    cases_simp::
+    map prove_fun
+     ["~(P&Q)  <-> ~P | ~Q",
+      "P | ~P",             "~P | P",
+      "~ ~ P <-> P",        "(~P --> P) <-> P",
+      "(~P <-> ~Q) <-> (P<->Q)"];
+
+(*At present, miniscoping is for classical logic only.  We do NOT include
+  distribution of ALL over &, or dually that of EX over |.*)
+
+(*Miniscoping: pushing in existential quantifiers*)
+val ex_simps = map prove_fun 
+                ["(EX x. P) <-> P",
+                 "(EX x. P(x) & Q) <-> (EX x.P(x)) & Q",
+                 "(EX x. P & Q(x)) <-> P & (EX x.Q(x))",
+                 "(EX x. P(x) | Q) <-> (EX x.P(x)) | Q",
+                 "(EX x. P | Q(x)) <-> P | (EX x.Q(x))",
+                 "(EX x. P(x) --> Q) <-> (ALL x.P(x)) --> Q",
+                 "(EX x. P --> Q(x)) <-> P --> (EX x.Q(x))"];
+
+(*Miniscoping: pushing in universal quantifiers*)
+val all_simps = map prove_fun
+                ["(ALL x. P) <-> P",
+                 "(ALL x. P(x) & Q) <-> (ALL x.P(x)) & Q",
+                 "(ALL x. P & Q(x)) <-> P & (ALL x.Q(x))",
+                 "(ALL x. P(x) | Q) <-> (ALL x.P(x)) | Q",
+                 "(ALL x. P | Q(x)) <-> P | (ALL x.Q(x))",
+                 "(ALL x. P(x) --> Q) <-> (EX x.P(x)) --> Q",
+                 "(ALL x. P --> Q(x)) <-> P --> (ALL x.Q(x))"];
+
+val FOL_ss = IFOL_ss addsimps (cla_simps @ ex_simps @ all_simps);
 
 fun int_prove nm thm  = qed_goal nm IFOL.thy thm
     (fn prems => [ (cut_facts_tac prems 1), 
