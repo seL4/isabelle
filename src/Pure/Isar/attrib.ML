@@ -15,7 +15,7 @@ end;
 signature ATTRIB =
 sig
   include BASIC_ATTRIB
-  val help_attributes: theory -> unit
+  val help_attributes: theory option -> unit
   exception ATTRIB_FAIL of (string * Position.T) * exn
   val global_attribute: theory -> Args.src -> theory attribute
   val local_attribute: theory -> Args.src -> Proof.context attribute
@@ -75,7 +75,9 @@ end;
 
 structure AttributesData = TheoryDataFun(AttributesDataArgs);
 val print_attributes = AttributesData.print;
-val help_attributes = AttributesDataArgs.print_atts false o AttributesData.get;
+
+fun help_attributes None = writeln "attributes: (unkown theory context)"
+  | help_attributes (Some thy) = AttributesDataArgs.print_atts false (AttributesData.get thy);
 
 
 (* get global / local attributes *)

@@ -31,7 +31,7 @@ sig
   val erule: thm list -> Proof.method
   val assumption: Proof.context -> Proof.method
   exception METHOD_FAIL of (string * Position.T) * exn
-  val help_methods: theory -> unit
+  val help_methods: theory option -> unit
   val method: theory -> Args.src -> Proof.context -> Proof.method
   val add_methods: (bstring * (Args.src -> Proof.context -> Proof.method) * string) list
     -> theory -> theory
@@ -212,7 +212,9 @@ end;
 
 structure MethodsData = TheoryDataFun(MethodsDataArgs);
 val print_methods = MethodsData.print;
-val help_methods = MethodsDataArgs.print_meths false o MethodsData.get;
+
+fun help_methods None = writeln "methods: (unkown theory context)"
+  | help_methods (Some thy) = MethodsDataArgs.print_meths false (MethodsData.get thy);
 
 
 (* get methods *)
