@@ -48,7 +48,7 @@ by (blast_tac (!claset addSDs [dvd_mult_left]) 1);
 qed_spec_mp "power_less_dvd";
 
 
-(*** Binomial Coefficients, following Andy Gordon and Florian Kammüller ***)
+(*** Binomial Coefficients, following Andy Gordon and Florian Kammueller ***)
 
 goal thy "(n choose 0) = 1";
 by (exhaust_tac "n" 1);

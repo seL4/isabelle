@@ -366,7 +366,7 @@ by (res_inst_tac [("m","i"),("n","j")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "diff_diff_left";
 
-(*This and the next few suggested by Florian Kammüller*)
+(*This and the next few suggested by Florian Kammueller*)
 goal Arith.thy "!!i::nat. i-j-k = i-k-j";
 by (simp_tac (!simpset addsimps [diff_diff_left, add_commute]) 1);
 qed "diff_commute";
