@@ -17,9 +17,10 @@
 \newdimen\isa@parindent\newdimen\isa@parskip
 
 \newenvironment{isabelle}{%
+\trivlist\item%
 \isa@parindent\parindent\parindent0pt%
 \isa@parskip\parskip\parskip0pt%
-\isastyle}{}
+\isastyle}{\endtrivlist}
 
 \newcommand{\isa}[1]{\emph{\isastyleminor #1}}
 
