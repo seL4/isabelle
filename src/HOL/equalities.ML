@@ -160,7 +160,7 @@ by (Blast_tac 1);
 qed "Int_assoc";
 
 (*Intersection is an AC-operator*)
-val Int_ac = [Int_assoc, Int_left_absorb, Int_commute, Int_left_commute];
+bind_thms ("Int_ac", [Int_assoc, Int_left_absorb, Int_commute, Int_left_commute]);
 
 Goal "B<=A ==> A Int B = B";
 by (Blast_tac 1);
@@ -240,7 +240,7 @@ by (Blast_tac 1);
 qed "Un_assoc";
 
 (*Union is an AC-operator*)
-val Un_ac = [Un_assoc, Un_left_absorb, Un_commute, Un_left_commute];
+bind_thms ("Un_ac", [Un_assoc, Un_left_absorb, Un_commute, Un_left_commute]);
 
 Goal "A<=B ==> A Un B = B";
 by (Blast_tac 1);
@@ -436,7 +436,7 @@ section "UN and INT";
 
 (*Basic identities*)
 
-val not_empty = prove_goal Set.thy "(A ~= {}) = (? x. x:A)" (K [Blast_tac 1]);
+bind_thm ("not_empty", prove_goal Set.thy "(A ~= {}) = (? x. x:A)" (K [Blast_tac 1]));
 
 Goal "(UN x:{}. B x) = {}";
 by (Blast_tac 1);
@@ -895,5 +895,12 @@ val bex_disj_distrib =
     prover "(EX x:A. P x | Q x) = ((EX x:A. P x) | (EX x:A. Q x))";
 
 end;
+
+bind_thms ("UN_simps", UN_simps);
+bind_thms ("INT_simps", INT_simps);
+bind_thms ("ball_simps", ball_simps);
+bind_thms ("bex_simps", bex_simps);
+bind_thm ("ball_conj_distrib", ball_conj_distrib);
+bind_thm ("bex_disj_distrib", bex_disj_distrib);
 
 Addsimps (UN_simps @ INT_simps @ ball_simps @ bex_simps);

@@ -161,7 +161,7 @@ val imp_cong = impI RSN
         (fn _=> [(Blast_tac 1)]) RS mp RS mp);
 
 (*Miniscoping: pushing in existential quantifiers*)
-val ex_simps = map prover 
+val ex_simps = map prover
                 ["(EX x. P x & Q)   = ((EX x. P x) & Q)",
                  "(EX x. P & Q x)   = (P & (EX x. Q x))",
                  "(EX x. P x | Q)   = ((EX x. P x) | Q)",
@@ -191,6 +191,10 @@ val ex_all_equiv =
   in equal_intr lemma1 lemma2 end;
 
 end;
+
+bind_thms ("ex_simps", ex_simps);
+bind_thms ("all_simps", all_simps);
+
 
 (* Elimination of True from asumptions: *)
 
