@@ -56,22 +56,22 @@ goal thy "!!n. 0<n ==> (m+n) mod n = m mod n";
 by (subgoal_tac "(n + m) mod n = (n+m-n) mod n" 1);
 by (stac (mod_geq RS sym) 2);
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [add_commute])));
-qed "mod_add_cancel2";
+qed "mod_add_self2";
 
 goal thy "!!k. 0<n ==> (n+m) mod n = m mod n";
-by (asm_simp_tac (simpset() addsimps [add_commute, mod_add_cancel2]) 1);
-qed "mod_add_cancel1";
+by (asm_simp_tac (simpset() addsimps [add_commute, mod_add_self2]) 1);
+qed "mod_add_self1";
 
 goal thy "!!n. 0<n ==> (m + k*n) mod n = m mod n";
 by (induct_tac "k" 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps (add_ac @ [mod_add_cancel1]))));
-qed "mod_mult_cancel1";
+by (ALLGOALS (asm_simp_tac (simpset() addsimps (add_ac @ [mod_add_self1]))));
+qed "mod_mult_self1";
 
 goal thy "!!m. 0<n ==> (m + n*k) mod n = m mod n";
-by (asm_simp_tac (simpset() addsimps [mult_commute, mod_mult_cancel1]) 1);
-qed "mod_mult_cancel2";
+by (asm_simp_tac (simpset() addsimps [mult_commute, mod_mult_self1]) 1);
+qed "mod_mult_self2";
 
-Addsimps [mod_mult_cancel1, mod_mult_cancel2];
+Addsimps [mod_mult_self1, mod_mult_self2];
 
 goal thy "!!k. [| 0<k; 0<n |] ==> (m mod n)*k = (m*k) mod (n*k)";
 by (res_inst_tac [("n","m")] less_induct 1);
@@ -92,7 +92,7 @@ qed "mod_mult_distrib2";
 goal thy "!!n. 0<n ==> m*n mod n = 0";
 by (induct_tac "m" 1);
 by (asm_simp_tac (simpset() addsimps [mod_less]) 1);
-by (dres_inst_tac [("m","m*n")] mod_add_cancel2 1);
+by (dres_inst_tac [("m","m*n")] mod_add_self2 1);
 by (asm_full_simp_tac (simpset() addsimps [add_commute]) 1);
 qed "mod_mult_self_is_0";
 Addsimps [mod_mult_self_is_0];
@@ -145,6 +145,29 @@ Addsimps [div_1];
 goal thy "!!n. 0<n ==> n div n = 1";
 by (asm_simp_tac (simpset() addsimps [div_less, div_geq]) 1);
 qed "div_self";
+
+
+goal thy "!!n. 0<n ==> (m+n) div n = Suc (m div n)";
+by (subgoal_tac "(n + m) div n = Suc ((n+m-n) div n)" 1);
+by (stac (div_geq RS sym) 2);
+by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [add_commute])));
+qed "div_add_self2";
+
+goal thy "!!k. 0<n ==> (n+m) div n = Suc (m div n)";
+by (asm_simp_tac (simpset() addsimps [add_commute, div_add_self2]) 1);
+qed "div_add_self1";
+
+goal thy "!!n. 0<n ==> (m + k*n) div n = k + m div n";
+by (induct_tac "k" 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps (add_ac @ [div_add_self1]))));
+qed "div_mult_self1";
+
+goal thy "!!m. 0<n ==> (m + n*k) div n = k + m div n";
+by (asm_simp_tac (simpset() addsimps [mult_commute, div_mult_self1]) 1);
+qed "div_mult_self2";
+
+Addsimps [div_mult_self1, div_mult_self2];
+
 
 (* Monotonicity of div in first argument *)
 goal thy "!!n. 0<k ==> ALL m. m <= n --> (m div k) <= (n div k)";
