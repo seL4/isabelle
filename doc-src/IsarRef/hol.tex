@@ -231,9 +231,9 @@ via the $\CASENAME$ proof command within the subsequent proof text (cf.\
 about large specifications.
 
 \begin{rail}
-  'cases' ('(' 'simplified' ')')? term? rule?  ;
+  'cases' ('(simplified)')? ('(opaque)')? \\ term? rule?  ;
 
-  'induct' ('(' 'stripped' ')')? (insts * 'and') rule?
+  'induct' ('(stripped)')? ('(opaque)')? \\ (insts * 'and') rule?
   ;
 
   rule: ('type' | 'set') ':' nameref | 'rule' ':' thmref
@@ -258,6 +258,14 @@ about large specifications.
   The $simplified$ option causes ``obvious cases'' of the rule to be solved
   beforehand, while the others are left unscathed.
   
+  The $opaque$ option causes the parameters of the new local contexts to be
+  turned into ``internal'' names.  This results in quasi-existentially bound
+  elements to be introduced when individual cases are invoked later.  Thus
+  both unwanted hiding of existing local variables and references to
+  implicitly bound variables (stemming from cases) are avoided.  So by using
+  the $opaque$ option, a proof text may become slightly more readable and
+  robust.
+  
 \item [$induct~insts~R$] is analogous to the $cases$ method, but refers to
   induction rules, which are determined as follows:
   \begin{matharray}{llll}
@@ -278,6 +286,9 @@ about large specifications.
   quantifiers to be removed from each new subgoal emerging from the
   application of the induction rule.  This accommodates typical
   ``strengthening of induction'' predicates.
+  
+  The $opaque$ option has the same effect as for the $cases$ method, see
+  above.
 \end{descr}
 
 Above methods produce named local contexts (cf.\ \S\ref{sec:cases}), as
