@@ -85,9 +85,9 @@ in
     val thy' = thy'' |> Domain_Syntax.add_syntax (comp_dnam,eqs');
     val dts  = map (Type o fst) eqs';
     fun strip ss = drop (find_index_eq "'" ss +1, ss);
-    fun typid (Type  (id,_)   ) = hd     (explode (Sign.base_name id))
-      | typid (TFree (id,_)   ) = hd (strip (tl (explode (Sign.base_name id))))
-      | typid (TVar ((id,_),_)) = hd (tl (explode (Sign.base_name id)));
+    fun typid (Type  (id,_)   ) = hd     (Symbol.explode (Sign.base_name id))
+      | typid (TFree (id,_)   ) = hd (strip (tl (Symbol.explode (Sign.base_name id))))
+      | typid (TVar ((id,_),_)) = hd (tl (Symbol.explode (Sign.base_name id)));
     fun cons cons' = (map (fn (con,syn,args) =>
 	((Syntax.const_name con syn),
 	 ListPair.map (fn ((lazy,sel,tp),vn) => ((lazy,

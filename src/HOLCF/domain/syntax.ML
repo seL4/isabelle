@@ -42,7 +42,7 @@ local
 	fun esc (c::cs) = if c mem ["'","_","(",")","/"] then "'"::c::esc cs
 							 else      c::esc cs
 	|   esc []      = []
-	in implode o esc o explode end;
+	in implode o esc o Symbol.explode end;
   fun con (name,s,args) = (name,foldr (op ->>) (map third args,dtype),s);
   fun dis (con ,s,_   ) = (dis_name_ con, dtype->>trT,
 			   Mixfix(escape ("is_" ^ con), [], max_pri));

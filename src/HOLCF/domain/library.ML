@@ -50,9 +50,9 @@ val strip_esc = let fun strip ("'" :: c :: cs) = c :: strip cs
 		    |   strip ["'"] = []
 		    |   strip (c :: cs) = c :: strip cs
 		    |   strip [] = [];
-in implode o strip o explode end;
+in implode o strip o Symbol.explode end;
 
-fun extern_name con = case explode con of 
+fun extern_name con = case Symbol.explode con of 
 		   ("o"::"p"::" "::rest) => implode rest
 		   | _ => con;
 fun dis_name  con = "is_"^ (extern_name con);

@@ -14,7 +14,7 @@ local
 
   fun get      dname name   = "get_thm thy " ^ quote (dname^"."^name);
   fun gen_vals dname name   = "val "^ name ^ " = get_thm" ^ 
-			(if hd (rev (explode name)) = "s" then "s" else "")^
+			(if hd (rev (Symbol.explode name)) = "s" then "s" else "")^
 			" thy " ^ quote (dname^"."^name)^";";
   fun gen_vall       name l = "val "^name^" = "^ mk_list l^";";
   val rews = "iso_rews @ when_rews @\n\
@@ -109,7 +109,7 @@ local
 			|   esc ("[" ::xs) = "{"::esc xs
 			|   esc ("]" ::xs) = "}"::esc xs
 			|   esc (x   ::xs) = x  ::esc xs
-		    in implode (esc (explode s)) end;
+		    in implode (esc (Symbol.explode s)) end;
   val tvar = (type_var' ^^ 
 	      optional ($$ "::" ^^ (sort >> esc_quote)) "") >> quote;
   fun type_args l = (tvar >> (fn x => [x])

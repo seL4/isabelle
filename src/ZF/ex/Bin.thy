@@ -117,7 +117,7 @@ local
   fun mk_bin str =
     let
       val (sign, digs) =
-        (case explode str of
+        (case Symbol.explode str of
           "#" :: "~" :: cs => (~1, cs)
         | "#" :: cs => (1, cs)
         | _ => raise ERROR);
@@ -132,7 +132,7 @@ local
         | term_of [~1] = const "Minus"
         | term_of (b :: bs) = const "Bcons" $ term_of bs $ mk_bit b;
     in
-      term_of (bin_of (sign * (#1 (scan_int digs))))
+      term_of (bin_of (sign * (#1 (read_int digs))))
     end;
 
   fun dest_bin tm =
