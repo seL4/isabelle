@@ -1,0 +1,36 @@
+#
+# $Id$
+#
+
+## targets
+
+default: HOL-datatype
+images:
+test: HOL-datatype
+all: images test
+
+
+## global settings
+
+SRC = $(ISABELLE_HOME)/src
+OUT = $(ISABELLE_OUTPUT)
+LOG = $(OUT)/log
+
+
+## HOL-datatype
+
+HOL:
+	@cd $(SRC)/HOL; $(ISATOOL) make HOL
+
+HOL-datatype: HOL $(LOG)/HOL-datatype.gz
+
+$(LOG)/HOL-datatype.gz: $(OUT)/HOL HOL-datatype/Brackin.thy \
+  HOL-datatype/Instructions.thy HOL-datatype/SML.thy \
+  HOL-datatype/Verilog.thy
+	$(ISATOOL) usedir -s HOL-datatype $(OUT)/HOL HOL-datatype
+
+
+## clean
+
+clean:
+	@rm -f $(LOG)/HOL-datatype.gz
