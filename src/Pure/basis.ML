@@ -167,7 +167,6 @@ local
 in
   fun exnMessage Match = raised_msg "Match" "nonexhaustive match failure"
     | exnMessage Bind = raised_msg "Bind" "nonexhaustive binding failure"
-    | exnMessage Interrupt = "Interrupt"
     | exnMessage (Io msg) = "I/O error: " ^ msg
     | exnMessage Neg = raised "Neg"
     | exnMessage Sum = raised "Sum"
