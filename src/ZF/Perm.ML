@@ -330,6 +330,18 @@ by (REPEAT (ares_tac [comp_fun,apply_equality,compI,
 		      apply_Pair,apply_type] 1));
 qed "comp_fun_apply";
 
+(*Simplifies compositions of lambda-abstractions*)
+val [prem] = goal Perm.thy
+    "[| !!x. x:A ==> b(x): B 	\
+\    |] ==> (lam y:B.c(y)) O (lam x:A. b(x)) = (lam x:A. c(b(x)))";
+by (resolve_tac [fun_extension] 1);
+by (resolve_tac [comp_fun] 1);
+by (resolve_tac [lam_funtype] 2);
+by (typechk_tac (prem::ZF_typechecks));
+by (asm_simp_tac (ZF_ss addsimps [comp_fun_apply]
+             setsolver type_auto_tac [lam_type, lam_funtype, prem]) 1);
+qed "comp_lam";
+
 goal Perm.thy "!!f g. [| g: inj(A,B);  f: inj(B,C) |] ==> (f O g) : inj(A,C)";
 by (res_inst_tac [("d", "%y. converse(g) ` (converse(f) ` y)")]
     f_imp_injective 1);
