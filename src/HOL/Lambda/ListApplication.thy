@@ -6,7 +6,7 @@
 Application of a term to a list of terms
 *)
 
-ListApplication = Lambda + List +
+ListApplication = Lambda +
 
 syntax "$$" :: dB => dB list => dB (infixl 150)
 translations "t $$ ts" == "foldl op$ t ts"

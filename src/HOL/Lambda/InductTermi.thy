@@ -9,7 +9,7 @@ Raamsdonk & Severi. On normalization. CWI TR CS-R9545, 1995.
 Also rediscovered by Matthes and Joachimski.
 *)
 
-InductTermi = Acc + ListBeta +
+InductTermi = ListBeta +
 
 consts IT :: dB set
 inductive IT

@@ -6,7 +6,7 @@
 Eta-reduction and relatives.
 *)
 
-Eta = ParRed + Commutation +
+Eta = ParRed +
 consts free :: dB => nat => bool
        decr :: dB => dB
        eta  :: "(dB * dB) set"

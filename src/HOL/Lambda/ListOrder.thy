@@ -6,7 +6,7 @@
 Lifting an order to lists of elements, relating exactly one element
 *)
 
-ListOrder = List + Acc +
+ListOrder = Acc +
 
 constdefs
  step1 :: "('a * 'a)set => ('a list * 'a list)set"
