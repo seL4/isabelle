@@ -98,7 +98,7 @@ qed "no_nonce_NS1_NS2";
 (*Unicity for NS1: nonce NA identifies agents A and B*)
 goal thy 
  "!!evs. [| Nonce NA ~: analz (spies evs);  evs : ns_public |]      \
-\ ==> EX A' B'. ALL A B.                                               \
+\ ==> EX A' B'. ALL A B.                                            \
 \      Crypt (pubK B) {|Nonce NA, Agent A|} : parts (spies evs) --> \
 \      A=A' & B=B'";
 by (etac rev_mp 1);
@@ -108,7 +108,7 @@ by (ALLGOALS
 (*NS1*)
 by (expand_case_tac "NA = ?y" 2 THEN blast_tac (!claset addSEs partsEs) 2);
 (*Fake*)
-by (step_tac (!claset addSIs [analz_insertI]) 1);
+by (Clarify_tac 1);
 by (ex_strip_tac 1);
 by (Fake_parts_insert_tac 1);
 val lemma = result();
@@ -117,7 +117,7 @@ goal thy
  "!!evs. [| Crypt(pubK B)  {|Nonce NA, Agent A|}  : parts(spies evs); \
 \           Crypt(pubK B') {|Nonce NA, Agent A'|} : parts(spies evs); \
 \           Nonce NA ~: analz (spies evs);                            \
-\           evs : ns_public |]                                           \
+\           evs : ns_public |]                                        \
 \        ==> A=A' & B=B'";
 by (prove_unique_tac lemma 1);
 qed "unique_NA";
@@ -132,7 +132,7 @@ fun analz_induct_tac i =
 
 (*Secrecy: Spy does not see the nonce sent in msg NS1 if A and B are secure*)
 goal thy 
- "!!evs. [| Says A B (Crypt(pubK B) {|Nonce NA, Agent A|}) : set evs;     \
+ "!!evs. [| Says A B (Crypt(pubK B) {|Nonce NA, Agent A|}) : set evs;   \
 \           A ~: bad;  B ~: bad;  evs : ns_public |]                    \
 \        ==>  Nonce NA ~: analz (spies evs)";
 by (etac rev_mp 1);
@@ -157,30 +157,30 @@ qed "Spy_not_see_NA";
 goal thy 
  "!!evs. [| Says A B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set evs;  \
 \           Says B' A (Crypt(pubK A) {|Nonce NA, Nonce NB|}): set evs;  \
-\           A ~: bad;  B ~: bad;  evs : ns_public |]                  \
+\           A ~: bad;  B ~: bad;  evs : ns_public |]                    \
 \        ==> Says B A (Crypt(pubK A) {|Nonce NA, Nonce NB|}): set evs";
 by (etac rev_mp 1);
 (*prepare induction over Crypt (pubK A) {|NA,NB|} : parts H*)
 by (etac (Says_imp_spies RS parts.Inj RS rev_mp) 1);
 by (etac ns_public.induct 1);
 by (ALLGOALS Asm_simp_tac);
+by (ALLGOALS Clarify_tac);
+(*NS2*)
+by (blast_tac (!claset addDs [Says_imp_spies RS parts.Inj,
+			      Spy_not_see_NA, unique_NA]) 3);
 (*NS1*)
 by (blast_tac (!claset addSEs spies_partsEs) 2);
 (*Fake*)
 by (blast_tac (!claset addSDs [impOfSubs Fake_parts_insert]
                        addDs  [Spy_not_see_NA, 
 			       impOfSubs analz_subset_parts]) 1);
-(*NS2; not clear why blast_tac needs to be preceeded by Step_tac*)
-by (Step_tac 1);
-by (blast_tac (!claset addDs [Says_imp_spies RS parts.Inj,
-			      Spy_not_see_NA, unique_NA]) 1);
 qed "A_trusts_NS2";
 
 (*If the encrypted message appears then it originated with Alice in NS1*)
 goal thy 
  "!!evs. [| Crypt (pubK B) {|Nonce NA, Agent A|} : parts (spies evs); \
 \           Nonce NA ~: analz (spies evs);                            \
-\           evs : ns_public |]                                           \
+\           evs : ns_public |]                                        \
 \   ==> Says A B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set evs";
 by (etac rev_mp 1);
 by (etac rev_mp 1);
@@ -196,8 +196,8 @@ qed "B_trusts_NS1";
   [proof closely follows that for unique_NA] *)
 goal thy 
  "!!evs. [| Nonce NB ~: analz (spies evs);  evs : ns_public |]  \
-\ ==> EX A' NA'. ALL A NA.                                         \
-\      Crypt (pubK A) {|Nonce NA, Nonce NB|}                       \
+\ ==> EX A' NA'. ALL A NA.                                      \
+\      Crypt (pubK A) {|Nonce NA, Nonce NB|}                    \
 \        : parts (spies evs)  -->  A=A' & NA=NA'";
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
@@ -206,7 +206,7 @@ by (ALLGOALS
 (*NS2*)
 by (expand_case_tac "NB = ?y" 2 THEN blast_tac (!claset addSEs partsEs) 2);
 (*Fake*)
-by (step_tac (!claset addSIs [analz_insertI]) 1);
+by (Clarify_tac 1);
 by (ex_strip_tac 1);
 by (Fake_parts_insert_tac 1);
 val lemma = result();
@@ -215,7 +215,7 @@ goal thy
  "!!evs. [| Crypt(pubK A) {|Nonce NA, Nonce NB|}  : parts(spies evs); \
 \           Crypt(pubK A'){|Nonce NA', Nonce NB|} : parts(spies evs); \
 \           Nonce NB ~: analz (spies evs);                            \
-\           evs : ns_public |]                                           \
+\           evs : ns_public |]                                        \
 \        ==> A=A' & NA=NA'";
 by (prove_unique_tac lemma 1);
 qed "unique_NB";
@@ -231,7 +231,7 @@ by (etac rev_mp 1);
 by (etac rev_mp 1);
 by (analz_induct_tac 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [all_conj_distrib])));
-by clarify_tac;
+by (ALLGOALS Clarify_tac);
 (*NS3: because NB determines A*)
 by (blast_tac (!claset addDs [Says_imp_spies RS parts.Inj, unique_NB]) 4);
 (*NS2: by freshness and unicity of NB*)
@@ -259,7 +259,7 @@ by (etac rev_mp 1);
 by (etac (Says_imp_spies RS parts.Inj RS rev_mp) 1);
 by (parts_induct_tac 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [ex_disj_distrib])));
-by clarify_tac;
+by (ALLGOALS Clarify_tac);
 (*NS3: because NB determines A*)
 by (blast_tac (!claset addDs [Says_imp_spies RS parts.Inj, 
 			      Spy_not_see_NB, unique_NB]) 3);
@@ -278,7 +278,7 @@ goal thy
 \ ==> Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set evs \
 \     --> Nonce NB ~: analz (spies evs)";
 by (analz_induct_tac 1);
-by clarify_tac;
+by (ALLGOALS Clarify_tac);
 (*NS2: by freshness and unicity of NB*)
 by (blast_tac (!claset addDs [Says_imp_spies RS parts.Inj]
                        addEs [no_nonce_NS1_NS2 RSN (2, rev_notE)]
