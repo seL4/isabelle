@@ -187,19 +187,24 @@ val constdefsP =
 
 (* theorems *)
 
+val in_locale = Scan.option ((P.$$$ "(" -- P.$$$ "in") |-- P.!!! (P.xname --| P.$$$ ")"));
 val name_facts = P.and_list1 (P.opt_thm_name "=" -- P.xthms1 -- P.marg_comment);
+
+fun theorems kind = in_locale -- name_facts
+  >> uncurry (#1 ooo IsarThy.smart_theorems kind);
 
 val theoremsP =
   OuterSyntax.command "theorems" "define theorems" K.thy_decl
-    (name_facts >> (Toplevel.theory o IsarThy.have_theorems Drule.theoremK));
+    (theorems Drule.theoremK >> Toplevel.theory);
 
 val lemmasP =
   OuterSyntax.command "lemmas" "define lemmas" K.thy_decl
-    (name_facts >> (Toplevel.theory o IsarThy.have_theorems Drule.lemmaK));
+    (theorems Drule.lemmaK >> Toplevel.theory);
 
 val declareP =
   OuterSyntax.command "declare" "declare theorems (improper)" K.thy_script
-    (P.xthms1 -- P.marg_comment >> (Toplevel.theory o IsarThy.declare_theorems));
+    (in_locale -- (P.xthms1 -- P.marg_comment)
+    >> (Toplevel.theory o uncurry IsarThy.declare_theorems));
 
 
 (* name space entry path *)
@@ -297,8 +302,7 @@ val localeP =
 
 (* statements *)
 
-val in_locale_elems =
-  Scan.option ((P.$$$ "(" -- P.$$$ "in") |-- P.!!! (P.xname --| P.$$$ ")")) --
+val in_locale_elems = in_locale --
   Scan.optional (P.$$$ "(" |-- Scan.repeat1 P.locale_element --| P.!!! (P.$$$ ")")) [];
 
 val statement = P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 P.propp -- P.marg_comment);
