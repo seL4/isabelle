@@ -665,6 +665,8 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
 
 fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induction thy0 =
   let
+    val _ = Theory.requires thy0 "Inductive" "datatype representations";
+
     fun app_thmss srcs thy = foldl_map (fn (thy, x) => apply_theorems x thy) (thy, srcs);
     fun app_thm src thy = apsnd Library.hd (apply_theorems [src] thy);
 
@@ -773,7 +775,7 @@ val rep_datatype_i = gen_rep_datatype IsarThy.apply_theorems_i;
 
 fun gen_add_datatype prep_typ flat_names new_type_names dts thy =
   let
-    val _ = Theory.requires thy "Datatype" "datatype definitions";
+    val _ = Theory.requires thy "Datatype_Universe" "datatype definitions";
 
     (* this theory is used just for parsing *)
 

@@ -44,7 +44,9 @@ fun exh_thm_of (dt_info : datatype_info Symtab.table) tname =
 fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       new_type_names descr sorts types_syntax constr_syntax case_names_induct thy =
   let
-    val Datatype_thy = theory "Datatype";
+    val Datatype_thy =
+      if PureThy.get_name thy = "Datatype" then thy
+      else theory "Datatype";
     val node_name = "Datatype_Universe.node";
     val In0_name = "Datatype_Universe.In0";
     val In1_name = "Datatype_Universe.In1";
