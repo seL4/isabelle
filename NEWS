@@ -48,7 +48,7 @@ readable proof documents (Isar == Intelligible semi-automated
 reasoning); see isatool doc isar-ref and
 http://isabelle.in.tum.de/Isar/ for more information;
 
-* native support for ProofGeneral, both for classic Isabelle and
+* native support for Proof General, both for classic Isabelle and
 Isabelle/Isar (the latter is slightly better supported and more
 robust);
 
