@@ -370,14 +370,6 @@ lemma real_inverse_less_swap:
      "[| 0 < r; r < x |] ==> inverse x < inverse (r::real)"
   by (rule Ring_and_Field.less_imp_inverse_less)
 
-lemma real_inverse_less_iff:
-     "[| 0 < r; 0 < x|] ==> (inverse x < inverse (r::real)) = (r < x)"
-by (rule Ring_and_Field.inverse_less_iff_less)
-
-lemma real_inverse_le_iff:
-     "[| 0 < r; 0 < x|] ==> (inverse x \<le> inverse r) = (r \<le> (x::real))"
-by (rule Ring_and_Field.inverse_le_iff_le)
-
 (*FIXME: remove the [iff], since the general theorem is already [simp]*)
 lemma real_mult_is_0 [iff]: "(x*y = 0) = (x = 0 | y = (0::real))"
 by (rule Ring_and_Field.mult_eq_0_iff)

@@ -9,8 +9,7 @@ Simprocs: Common factor cancellation & Rational coefficient handling
 
 (** Misc ML bindings **)
 
-val real_inverse_less_iff = thm"real_inverse_less_iff";
-val real_inverse_le_iff = thm"real_inverse_le_iff";
+val inverse_less_iff_less = thm"inverse_less_iff_less";
 
 val pos_real_less_divide_eq = thm"pos_less_divide_eq";
 val pos_real_divide_less_eq = thm"pos_divide_less_eq";
