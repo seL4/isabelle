@@ -118,12 +118,13 @@ constdefs
     "AC17 == \<forall>A. \<forall>g \<in> (Pow(A)-{0} -> A) -> Pow(A)-{0}.   
 		   \<exists>f \<in> Pow(A)-{0} -> A. f`(g`f) \<in> g`f"
 
-  AC18 :: "prop" ("AC18")
-    "AC18 == (!!X A B. A\<noteq>0 & (\<forall>a \<in> A. B(a) \<noteq> 0) -->   
-		((\<Inter>a \<in> A. \<Union>b \<in> B(a). X(a,b)) =   
-		(\<Union>f \<in> \<Pi>a \<in> A. B(a). \<Inter>a \<in> A. X(a, f`a))))"
-  --"AC18 can be expressed only using meta-level quantification"
+locale AC18 =
+  assumes AC18: "A\<noteq>0 & (\<forall>a \<in> A. B(a) \<noteq> 0) -->
+    ((\<Inter>a \<in> A. \<Union>b \<in> B(a). X(a,b)) =   
+      (\<Union>f \<in> \<Pi>a \<in> A. B(a). \<Inter>a \<in> A. X(a, f`a)))"
+  --"AC18 cannot be expressed within the object-logic"
 
+constdefs
   AC19 :: o
     "AC19 == \<forall>A. A\<noteq>0 & 0\<notin>A --> ((\<Inter>a \<in> A. \<Union>b \<in> a. b) =   
 		   (\<Union>f \<in> (\<Pi>B \<in> A. B). \<Inter>a \<in> A. f`a))"

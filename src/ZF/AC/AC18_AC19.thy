@@ -34,8 +34,9 @@ apply (rule UN_I)
 apply (simp, fast elim!: not_emptyE dest: apply_type [OF _ RepFunI])
 done
 
-lemma AC1_AC18: "AC1 ==> AC18"
-apply (unfold AC1_def AC18_def)
+lemma AC1_AC18: "AC1 ==> PROP AC18"
+apply (unfold AC1_def)
+apply (rule AC18.intro [OF AC18_axioms.intro])
 apply (fast elim!: lemma_AC18 apply_type intro!: equalityI INT_I UN_I)
 done
 
@@ -43,16 +44,11 @@ done
 (* AC18 ==> AC19                                                          *)
 (* ********************************************************************** *)
 
-text{*Hard to express because of the need for meta-quantifiers in AC18*}
-lemma "AC18 ==> AC19"
-proof -
-  assume ac18 [unfolded AC18_def, norm_hhf]: AC18
-  show AC19
-    apply (unfold AC18_def AC19_def)
-    apply (intro allI impI) 
-    apply (rule ac18 [of _ "%x. x", THEN mp], blast) 
-    done
-qed
+theorem (in AC18) AC19
+apply (unfold AC19_def)
+apply (intro allI impI)
+apply (rule AC18 [of _ "%x. x", THEN mp], blast)
+done
 
 (* ********************************************************************** *)
 (* AC19 ==> AC1                                                           *)
