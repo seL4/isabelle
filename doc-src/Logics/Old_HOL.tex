@@ -648,10 +648,9 @@ respectively.
 \tdx{subsetCE}        [| A <= B;  ~ (c:A) ==> P;  c:B ==> P |] ==> P
 
 \tdx{subset_refl}     A <= A
-\tdx{subset_antisym}  [| A <= B;  B <= A |] ==> A = B
 \tdx{subset_trans}    [| A<=B;  B<=C |] ==> A<=C
 
-\tdx{set_ext}         [| !!x. (x:A) = (x:B) |] ==> A = B
+\tdx{equalityI}       [| A <= B;  B <= A |] ==> A = B
 \tdx{equalityD1}      A = B ==> A<=B
 \tdx{equalityD2}      A = B ==> B<=A
 \tdx{equalityE}       [| A = B;  [| A<=B; B<=A |] ==> P |]  ==>  P
@@ -1156,35 +1155,35 @@ variable~$n$ in subgoal~$i$.
 
 \begin{figure}
 \begin{ttbox}\makeatother
-\tdx{list_rec_Nil}      list_rec([],c,h) = c  
-\tdx{list_rec_Cons}     list_rec(a \# l, c, h) = h(a, l, list_rec(l,c,h))
+\tdx{list_rec_Nil}    list_rec([],c,h) = c  
+\tdx{list_rec_Cons}   list_rec(a#l, c, h) = h(a, l, list_rec(l,c,h))
 
-\tdx{list_case_Nil}     list_case([],c,h) = c 
-\tdx{list_case_Cons}    list_case(x # xs, c, h) = h(x, xs)
+\tdx{list_case_Nil}   list_case([],c,h) = c 
+\tdx{list_case_Cons}  list_case(x#xs, c, h) = h(x, xs)
 
-\tdx{map_Nil}           map(f,[]) = []
-\tdx{map_Cons}          map(f, x \# xs) = f(x) \# map(f,xs)
+\tdx{map_Nil}         map(f,[]) = []
+\tdx{map_Cons}        map(f, x \# xs) = f(x) \# map(f,xs)
 
-\tdx{null_Nil}          null([]) = True
-\tdx{null_Cons}         null(x # xs) = False
+\tdx{null_Nil}        null([]) = True
+\tdx{null_Cons}       null(x#xs) = False
 
-\tdx{hd_Cons}           hd(x # xs) = x
-\tdx{tl_Cons}           tl(x # xs) = xs
+\tdx{hd_Cons}         hd(x#xs) = x
+\tdx{tl_Cons}         tl(x#xs) = xs
 
-\tdx{ttl_Nil}           ttl([]) = []
-\tdx{ttl_Cons}          ttl(x # xs) = xs
+\tdx{ttl_Nil}         ttl([]) = []
+\tdx{ttl_Cons}        ttl(x#xs) = xs
 
-\tdx{append_Nil}        [] @ ys = ys
-\tdx{append_Cons}       (x # xs) \at ys = x # xs \at ys
+\tdx{append_Nil}      [] @ ys = ys
+\tdx{append_Cons}     (x#xs) \at ys = x # xs \at ys
 
-\tdx{mem_Nil}           x mem [] = False
-\tdx{mem_Cons}          x mem y # ys = if(y = x, True, x mem ys)
+\tdx{mem_Nil}         x mem [] = False
+\tdx{mem_Cons}        x mem (y#ys) = if(y=x, True, x mem ys)
 
-\tdx{filter_Nil}        filter(P, []) = []
-\tdx{filter_Cons}       filter(P,x#xs) = if(P(x),x#filter(P,xs),filter(P,xs))
+\tdx{filter_Nil}      filter(P, []) = []
+\tdx{filter_Cons}     filter(P,x#xs) = if(P(x), x#filter(P,xs), filter(P,xs))
 
-\tdx{list_all_Nil}      list_all(P,[]) = True
-\tdx{list_all_Cons}     list_all(P, x # xs) = (P(x) & list_all(P, xs))
+\tdx{list_all_Nil}    list_all(P,[]) = True
+\tdx{list_all_Cons}   list_all(P, x#xs) = (P(x) & list_all(P, xs))
 \end{ttbox}
 \caption{Rewrite rules for lists} \label{hol-list-simps}
 \end{figure}
