@@ -76,6 +76,7 @@ function check_root () { [ -f "$FILEBASE.tex" ] || fail "Bad file '$FILE'"; }
 function run_latex () { $ISABELLE_LATEX "\\nonstopmode\\input{$FILEBASE.tex}"; }
 function run_pdflatex () { $ISABELLE_PDFLATEX "\\nonstopmode\\input{$FILEBASE.tex}"; }
 function run_bibtex () { $ISABELLE_BIBTEX </dev/null "$FILEBASE"; }
+function run_makeindex () { $ISABELLE_MAKEINDEX </dev/null "$FILEBASE"; }
 function run_dvips () { $ISABELLE_DVIPS -q -o "$FILEBASE.ps" "$FILEBASE.dvi"; }
 function run_thumbpdf () { [ -n "$ISABELLE_THUMBPDF" ] && $ISABELLE_THUMBPDF "$FILEBASE"; }
 function copy_styles () { cp -f "$ISABELLE_HOME/lib/texinputs"/*.sty "$DIR"; }
@@ -113,6 +114,11 @@ case "$OUTFORMAT" in
   bbl)
     check_root && \
     run_bibtex
+    RC="$?"
+    ;;
+  idx)
+    check_root && \
+    run_makeindex
     RC="$?"
     ;;
   png)

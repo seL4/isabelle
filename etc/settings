@@ -85,6 +85,9 @@ ISABELLE_PDFLATEX="pdflatex"
 # bibtex command for isatool latex/document
 ISABELLE_BIBTEX="bibtex"
 
+# makeindex command for isatool latex/document
+ISABELLE_MAKEINDEX="makeindex"
+
 # dvips command for isatool latex/document
 ISABELLE_DVIPS="dvips -D 600"
 
