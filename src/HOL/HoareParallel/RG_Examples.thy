@@ -187,7 +187,7 @@ done
 
 subsubsection {* Parameterized *}
 
-lemma Example2_lemma1: "j<n \<Longrightarrow> (\<Sum>i<n. b i) = (0::nat) \<Longrightarrow> b j = 0 "
+lemma Example2_lemma1: "j<n \<Longrightarrow> (\<Sum>i::nat<n. b i) = (0::nat) \<Longrightarrow> b j = 0 "
 apply(induct n)
  apply simp_all
 apply(force simp add: less_Suc_eq)
@@ -204,13 +204,13 @@ apply(subgoal_tac "n - j = Suc(n- Suc j)")
 apply arith
 done 
 
-lemma Example2_lemma2_aux2: "j\<le> s \<Longrightarrow> (\<Sum>i<j. (b (s:=t)) i) = (\<Sum>i<j. b i)"
+lemma Example2_lemma2_aux2: "j\<le> s \<Longrightarrow> (\<Sum>i::nat<j. (b (s:=t)) i) = (\<Sum>i<j. b i)"
 apply(induct j)
  apply (simp_all cong:setsum_cong)
 done
 
 lemma Example2_lemma2: 
- "!!b. \<lbrakk>j<n; b j=0\<rbrakk> \<Longrightarrow> Suc (\<Sum>i< n. b i)=(\<Sum>i< n. (b (j := Suc 0)) i)"
+ "!!b. \<lbrakk>j<n; b j=0\<rbrakk> \<Longrightarrow> Suc (\<Sum>i::nat< n. b i)=(\<Sum>i< n. (b (j := Suc 0)) i)"
 apply(frule_tac b="(b (j:=(Suc 0)))" in Example2_lemma2_aux)
 apply(erule_tac  t="setsum (b(j := (Suc 0))) {..n(}" in ssubst)
 apply(frule_tac b=b in Example2_lemma2_aux)
@@ -225,10 +225,10 @@ apply(erule ssubst)
 apply simp_all
 done
 
-lemma Example2_lemma2_Suc0: "\<lbrakk>j<n; b j=0\<rbrakk> \<Longrightarrow> Suc (\<Sum>i< n. b i)=(\<Sum>i< n. (b (j:=Suc 0)) i)"
+lemma Example2_lemma2_Suc0: "\<lbrakk>j<n; b j=0\<rbrakk> \<Longrightarrow> Suc (\<Sum>i::nat< n. b i)=(\<Sum>i< n. (b (j:=Suc 0)) i)"
 by(simp add:Example2_lemma2)
 
-lemma Example2_lemma3: "\<forall>i< n. b i = 1 \<Longrightarrow> (\<Sum>i<n. b i)= n"
+lemma Example2_lemma3: "\<forall>i< n. b i = 1 \<Longrightarrow> (\<Sum>i::nat<n. b i)= n"
 apply (induct n)
 apply auto
 done

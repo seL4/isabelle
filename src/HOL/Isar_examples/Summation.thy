@@ -31,7 +31,7 @@ text {*
 *}
 
 theorem sum_of_naturals:
-  "2 * (\<Sum>i < n + 1. i) = n * (n + 1)"
+  "2 * (\<Sum>i::nat < n + 1. i) = n * (n + 1)"
   (is "?P n" is "?S n = _")
 proof (induct n)
   show "?P 0" by simp
@@ -86,7 +86,7 @@ text {*
 *}
 
 theorem sum_of_odds:
-  "(\<Sum>i < n. 2 * i + 1) = n^Suc (Suc 0)"
+  "(\<Sum>i::nat < n. 2 * i + 1) = n^Suc (Suc 0)"
   (is "?P n" is "?S n = _")
 proof (induct n)
   show "?P 0" by simp
@@ -106,7 +106,7 @@ text {*
 lemmas distrib = add_mult_distrib add_mult_distrib2
 
 theorem sum_of_squares:
-  "6 * (\<Sum>i < n + 1. i^Suc (Suc 0)) = n * (n + 1) * (2 * n + 1)"
+  "6 * (\<Sum>i::nat < n + 1. i^Suc (Suc 0)) = n * (n + 1) * (2 * n + 1)"
   (is "?P n" is "?S n = _")
 proof (induct n)
   show "?P 0" by simp
@@ -119,7 +119,7 @@ next
 qed
 
 theorem sum_of_cubes:
-  "4 * (\<Sum>i < n + 1. i^3) = (n * (n + 1))^Suc (Suc 0)"
+  "4 * (\<Sum>i::nat < n + 1. i^3) = (n * (n + 1))^Suc (Suc 0)"
   (is "?P n" is "?S n = _")
 proof (induct n)
   show "?P 0" by (simp add: power_eq_if)
