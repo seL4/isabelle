@@ -1477,7 +1477,7 @@ Datatypes come with a uniform way of defining functions, {\bf primitive
 by asserting their reduction rules as new axioms, e.g.\
 \begin{ttbox}
 Append = MyList +
-consts app :: "['a list,'a list] => 'a list"
+consts app :: ['a list,'a list] => 'a list
 rules 
    app_Nil   "app [] ys = ys"
    app_Cons  "app (x#xs) ys = x#app xs ys"
@@ -1488,7 +1488,7 @@ as in \verb$app [] ys = us$. Therefore primitive recursive functions on
 datatypes can be defined with a special syntax:
 \begin{ttbox}
 Append = MyList +
-consts app :: "'['a list,'a list] => 'a list"
+consts app :: ['a list,'a list] => 'a list
 primrec app MyList.list
    app_Nil   "app [] ys = ys"
    app_Cons  "app (x#xs) ys = x#app xs ys"
@@ -1541,7 +1541,7 @@ a recursion operator on the datatype.
 The primitive recursive function can also use infix or mixfix syntax:
 \begin{ttbox}
 Append = MyList +
-consts "@"  :: "['a list,'a list] => 'a list"  (infixr 60)
+consts "@"  :: ['a list,'a list] => 'a list  (infixr 60)
 primrec "op @" MyList.list
    app_Nil   "[] @ ys = ys"
    app_Cons  "(x#xs) @ ys = x#(xs @ ys)"
@@ -1561,7 +1561,7 @@ by (ALLGOALS(asm_simp_tac append_ss));
 %Note that underdefined primitive recursive functions are allowed:
 %\begin{ttbox}
 %Tl = MyList +
-%consts tl  :: "'a list => 'a list"
+%consts tl  :: 'a list => 'a list
 %primrec tl MyList.list
 %   tl_Cons "tl(x#xs) = xs"
 %end
@@ -1708,7 +1708,7 @@ Two declarations, included in a theory file, define the finite powerset
 operator.  First we declare the constant~{\tt Fin}.  Then we declare it
 inductively, with two introduction rules:
 \begin{ttbox}
-consts Fin :: "'a set => 'a set set"
+consts Fin :: 'a set => 'a set set
 inductive "Fin A"
   intrs
     emptyI  "{} : Fin A"
