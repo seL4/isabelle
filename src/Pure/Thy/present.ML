@@ -355,7 +355,8 @@ fun finish () = with_session () (fn {name, info, html_prefix, doc_format, doc_gr
       else None;
 
     fun doc_common path =
-      ((case opt_graphs of None => () | Some (pdf, eps) =>
+      (copy_files (Path.unpack "~~/lib/texinputs/*.sty") path;
+      (case opt_graphs of None => () | Some (pdf, eps) =>
         (File.write (Path.append path graph_pdf_path) pdf;
           File.write (Path.append path graph_eps_path) eps));
       write_tex (Buffer.add Latex.tex_trailer tex_index) doc_indexN path;
@@ -390,7 +391,6 @@ fun finish () = with_session () (fn {name, info, html_prefix, doc_format, doc_gr
 
     (case doc_prefix2 of None => () | Some path =>
      (File.mkdir path;
-      copy_files (Path.unpack "~~/lib/texinputs/*.sty") path;
       doc_common path;
       conditional verbose (fn () => std_error ("Document sources at " ^ show_path path ^ "\n"))));
 
