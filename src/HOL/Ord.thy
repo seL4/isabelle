@@ -31,7 +31,7 @@ defs
   mono_def      "mono(f) == (!A B. A <= B --> f(A) <= f(B))"
   min_def       "min a b == (if a <= b then a else b)"
   max_def       "max a b == (if a <= b then b else a)"
-  Least_def     "Least P == @x. P(x) & (ALL y. y<x --> ~P(y))"
+  Least_def     "Least P == @x. P(x) & (ALL y. P(y) --> x <= y)"
 
 
 axclass order < ord

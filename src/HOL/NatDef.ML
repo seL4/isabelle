@@ -556,7 +556,19 @@ qed "nat_less_le";
 
 (** LEAST -- the least number operator **)
 
-val [prem1,prem2] = goalw thy [Least_def]
+goal thy "(! m::nat. P m --> n <= m) = (! m. m < n --> ~ P m)";
+by(blast_tac (!claset addIs [leI] addEs [leE]) 1);
+val lemma = result();
+
+(* This is an old def of Least for nat, which is derived for compatibility *)
+goalw thy [Least_def]
+  "(LEAST n::nat. P n) == (@n. P(n) & (ALL m. m < n --> ~P(m)))";
+by(simp_tac (!simpset addsimps [lemma]) 1);
+br eq_reflection 1;
+br refl 1;
+qed "Least_nat_def";
+
+val [prem1,prem2] = goalw thy [Least_nat_def]
     "[| P(k::nat);  !!x. x<k ==> ~P(x) |] ==> (LEAST x.P(x)) = k";
 by (rtac select_equality 1);
 by (blast_tac (!claset addSIs [prem1,prem2]) 1);
@@ -593,11 +605,11 @@ by (etac (rewrite_rule [le_def] Least_le RS notE) 1);
 by (rtac prem 1);
 qed "not_less_Least";
 
-qed_goalw "Least_Suc" thy [Least_def]
+qed_goalw "Least_Suc" thy [Least_nat_def]
  "!!P. [| ? n. P(Suc n); ~ P 0 |] ==> (LEAST n. P n) = Suc (LEAST m. P(Suc m))"
  (fn _ => [
         rtac select_equality 1,
-        fold_goals_tac [Least_def],
+        fold_goals_tac [Least_nat_def],
         safe_tac (!claset addSEs [LeastI]),
         rename_tac "j" 1,
         res_inst_tac [("n","j")] natE 1,
@@ -607,7 +619,7 @@ qed_goalw "Least_Suc" thy [Least_def]
         res_inst_tac [("n","k")] natE 1,
         Blast_tac 1,
         hyp_subst_tac 1,
-        rewtac Least_def,
+        rewtac Least_nat_def,
         rtac (select_equality RS arg_cong RS sym) 1,
         safe_tac (!claset),
         dtac Suc_mono 1,
