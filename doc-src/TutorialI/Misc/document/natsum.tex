@@ -30,13 +30,13 @@ The usual arithmetic operations \ttindexboldpos{+}{$HOL2arithfun},
 \sdx{div}, \sdx{mod}, \cdx{min} and
 \cdx{max} are predefined, as are the relations
 \indexboldpos{\isasymle}{$HOL2arithrel} and
-\ttindexboldpos{<}{$HOL2arithrel}. As usual, \isa{m\ {\isacharminus}\ n\ {\isacharequal}\ {\isadigit{0}}} if
+\ttindexboldpos{<}{$HOL2arithrel}. As usual, \isa{m\ {\isacharminus}\ n\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharparenright}} if
 \isa{m\ {\isacharless}\ n}. There is even a least number operation
-\sdx{LEAST}\@.  For example, \isa{{\isacharparenleft}LEAST\ n{\isachardot}\ {\isadigit{1}}\ {\isacharless}\ n{\isacharparenright}\ {\isacharequal}\ {\isadigit{2}}}. 
+\sdx{LEAST}\@.  For example, \isa{{\isacharparenleft}LEAST\ n{\isachardot}\ {\isacharparenleft}{\isadigit{1}}{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isacharless}\ n{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isadigit{2}}{\isasymColon}{\isacharprime}a{\isacharparenright}}. 
 \REMARK{Isabelle CAN prove it automatically, using \isa{auto intro: Least_equality}.
  The following needs changing with our new system of numbers.}
-Note that \isa{{\isadigit{1}}}
-and \isa{{\isadigit{2}}} are available as abbreviations for the corresponding
+Note that \isa{{\isadigit{1}}{\isasymColon}{\isacharprime}a}
+and \isa{{\isadigit{2}}{\isasymColon}{\isacharprime}a} are available as abbreviations for the corresponding
 \isa{Suc}-expressions. If you need the full set of numerals,
 see~\S\ref{sec:numerals}.
 
@@ -47,10 +47,10 @@ see~\S\ref{sec:numerals}.
   \cdx{max}, \indexboldpos{\isasymle}{$HOL2arithrel} and
   \ttindexboldpos{<}{$HOL2arithrel} are overloaded, i.e.\ they are available
   not just for natural numbers but at other types as well.
-  For example, given the goal \isa{x\ {\isacharplus}\ {\isadigit{0}}\ {\isacharequal}\ x},
+  For example, given the goal \isa{x\ {\isacharplus}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isacharequal}\ x},
   there is nothing to indicate that you are talking about natural numbers.
   Hence Isabelle can only infer that \isa{x} is of some arbitrary type where
-  \isa{{\isadigit{0}}} and \isa{{\isacharplus}} are declared. As a consequence, you will be unable
+  \isa{{\isadigit{0}}{\isasymColon}{\isacharprime}a} and \isa{{\isacharplus}} are declared. As a consequence, you will be unable
   to prove the goal (although it may take you some time to realize what has
   happened if \isa{show{\isacharunderscore}types} is not set).  In this particular example,
   you need to include an explicit type constraint, for example
@@ -67,14 +67,14 @@ Both \isa{auto} and \isa{simp}
 (a method introduced below, \S\ref{sec:Simplification}) prove 
 simple arithmetic goals automatically:%
 \end{isamarkuptext}%
-\isacommand{lemma}\ {\isachardoublequote}{\isasymlbrakk}\ {\isasymnot}\ m\ {\isacharless}\ n{\isacharsemicolon}\ m\ {\isacharless}\ n{\isacharplus}{\isadigit{1}}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ m\ {\isacharequal}\ n{\isachardoublequote}%
+\isacommand{lemma}\ {\isachardoublequote}{\isasymlbrakk}\ {\isasymnot}\ m\ {\isacharless}\ n{\isacharsemicolon}\ m\ {\isacharless}\ n\ {\isacharplus}\ {\isacharparenleft}{\isadigit{1}}{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ m\ {\isacharequal}\ n{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 For efficiency's sake, this built-in prover ignores quantified formulae,
 logical connectives, and all arithmetic operations apart from addition.
 In consequence, \isa{auto} cannot prove this slightly more complex goal:%
 \end{isamarkuptext}%
-\isacommand{lemma}\ {\isachardoublequote}{\isasymnot}\ m\ {\isacharless}\ n\ {\isasymand}\ m\ {\isacharless}\ n{\isacharplus}{\isadigit{1}}\ {\isasymLongrightarrow}\ m\ {\isacharequal}\ n{\isachardoublequote}%
+\isacommand{lemma}\ {\isachardoublequote}{\isasymnot}\ m\ {\isacharless}\ n\ {\isasymand}\ m\ {\isacharless}\ n\ {\isacharplus}\ {\isacharparenleft}{\isadigit{1}}{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ {\isasymLongrightarrow}\ m\ {\isacharequal}\ n{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 The method \methdx{arith} is more general.  It attempts to prove
@@ -105,7 +105,7 @@ on properties of multiplication.
 
   Even for linear arithmetic formulae, \isa{arith} is incomplete. If divisibility plays a
   role, it may fail to prove a valid formula, for example
-  \isa{m\ {\isacharplus}\ m\ {\isasymnoteq}\ n\ {\isacharplus}\ n\ {\isacharplus}\ {\isadigit{1}}}. Fortunately, such examples are rare.
+  \isa{m\ {\isacharplus}\ m\ {\isasymnoteq}\ n\ {\isacharplus}\ n\ {\isacharplus}\ {\isacharparenleft}{\isadigit{1}}{\isasymColon}{\isacharprime}a{\isacharparenright}}. Fortunately, such examples are rare.
 \end{warn}%
 \end{isamarkuptext}%
 \end{isabellebody}%

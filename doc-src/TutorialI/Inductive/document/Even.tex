@@ -28,14 +28,14 @@ specified as \isa{intro!}
 
 Our first lemma states that numbers of the form $2\times k$ are even.%
 \end{isamarkuptext}%
-\isacommand{lemma}\ two{\isacharunderscore}times{\isacharunderscore}even{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isacharhash}{\isadigit{2}}{\isacharasterisk}k\ {\isasymin}\ even{\isachardoublequote}\isanewline
+\isacommand{lemma}\ two{\isacharunderscore}times{\isacharunderscore}even{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isadigit{2}}{\isacharasterisk}k\ {\isasymin}\ even{\isachardoublequote}\isanewline
 \isacommand{apply}\ {\isacharparenleft}induct\ {\isachardoublequote}k{\isachardoublequote}{\isacharparenright}%
 \begin{isamarkuptxt}%
 The first step is induction on the natural number \isa{k}, which leaves
 two subgoals:
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isacharhash}{\isadigit{2}}\ {\isacharasterisk}\ {\isadigit{0}}\ {\isasymin}\ even\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isacharhash}{\isadigit{2}}\ {\isacharasterisk}\ n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isacharhash}{\isadigit{2}}\ {\isacharasterisk}\ Suc\ n\ {\isasymin}\ even%
+\ {\isadigit{1}}{\isachardot}\ {\isadigit{2}}\ {\isacharasterisk}\ {\isadigit{0}}\ {\isasymin}\ even\isanewline
+\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isadigit{2}}\ {\isacharasterisk}\ n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isadigit{2}}\ {\isacharasterisk}\ Suc\ n\ {\isasymin}\ even%
 \end{isabelle}
 Here \isa{auto} simplifies both subgoals so that they match the introduction
 rules, which then are applied automatically.%
@@ -48,29 +48,29 @@ of even (using the divides relation) and our inductive definition.  Half of
 this equivalence is trivial using the lemma just proved, whose \isa{intro!}
 attribute ensures it will be applied automatically.%
 \end{isamarkuptext}%
-\isacommand{lemma}\ dvd{\isacharunderscore}imp{\isacharunderscore}even{\isacharcolon}\ {\isachardoublequote}{\isacharhash}{\isadigit{2}}\ dvd\ n\ {\isasymLongrightarrow}\ n\ {\isasymin}\ even{\isachardoublequote}\isanewline
+\isacommand{lemma}\ dvd{\isacharunderscore}imp{\isacharunderscore}even{\isacharcolon}\ {\isachardoublequote}{\isadigit{2}}\ dvd\ n\ {\isasymLongrightarrow}\ n\ {\isasymin}\ even{\isachardoublequote}\isanewline
 \isacommand{by}\ {\isacharparenleft}auto\ simp\ add{\isacharcolon}\ dvd{\isacharunderscore}def{\isacharparenright}%
 \begin{isamarkuptext}%
 our first rule induction!%
 \end{isamarkuptext}%
-\isacommand{lemma}\ even{\isacharunderscore}imp{\isacharunderscore}dvd{\isacharcolon}\ {\isachardoublequote}n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isacharhash}{\isadigit{2}}\ dvd\ n{\isachardoublequote}\isanewline
+\isacommand{lemma}\ even{\isacharunderscore}imp{\isacharunderscore}dvd{\isacharcolon}\ {\isachardoublequote}n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isadigit{2}}\ dvd\ n{\isachardoublequote}\isanewline
 \isacommand{apply}\ {\isacharparenleft}erule\ even{\isachardot}induct{\isacharparenright}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isacharhash}{\isadigit{2}}\ dvd\ {\isadigit{0}}\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ even{\isacharsemicolon}\ {\isacharhash}{\isadigit{2}}\ dvd\ n{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharhash}{\isadigit{2}}\ dvd\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}%
+\ {\isadigit{1}}{\isachardot}\ {\isadigit{2}}\ dvd\ {\isadigit{0}}\isanewline
+\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ even{\isacharsemicolon}\ {\isadigit{2}}\ dvd\ n{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isadigit{2}}\ dvd\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}%
 \end{isabelle}%
 \end{isamarkuptxt}%
 \isacommand{apply}\ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ dvd{\isacharunderscore}def{\isacharparenright}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ even{\isacharsemicolon}\ {\isasymexists}k{\isachardot}\ n\ {\isacharequal}\ {\isacharhash}{\isadigit{2}}\ {\isacharasterisk}\ k{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isasymexists}k{\isachardot}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ {\isacharhash}{\isadigit{2}}\ {\isacharasterisk}\ k%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ even{\isacharsemicolon}\ {\isasymexists}k{\isachardot}\ n\ {\isacharequal}\ {\isadigit{2}}\ {\isacharasterisk}\ k{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isasymexists}k{\isachardot}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ {\isadigit{2}}\ {\isacharasterisk}\ k%
 \end{isabelle}%
 \end{isamarkuptxt}%
 \isacommand{apply}\ clarify%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}n\ k{\isachardot}\ {\isacharhash}{\isadigit{2}}\ {\isacharasterisk}\ k\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isasymexists}ka{\isachardot}\ Suc\ {\isacharparenleft}Suc\ {\isacharparenleft}{\isacharhash}{\isadigit{2}}\ {\isacharasterisk}\ k{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharhash}{\isadigit{2}}\ {\isacharasterisk}\ ka%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}n\ k{\isachardot}\ {\isadigit{2}}\ {\isacharasterisk}\ k\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isasymexists}ka{\isachardot}\ Suc\ {\isacharparenleft}Suc\ {\isacharparenleft}{\isadigit{2}}\ {\isacharasterisk}\ k{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isadigit{2}}\ {\isacharasterisk}\ ka%
 \end{isabelle}%
 \end{isamarkuptxt}%
 \isacommand{apply}\ {\isacharparenleft}rule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequote}Suc\ k{\isachardoublequote}\ \isakeyword{in}\ exI{\isacharcomma}\ simp{\isacharparenright}\isanewline
@@ -78,7 +78,7 @@ our first rule induction!%
 \begin{isamarkuptext}%
 no iff-attribute because we don't always want to use it%
 \end{isamarkuptext}%
-\isacommand{theorem}\ even{\isacharunderscore}iff{\isacharunderscore}dvd{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}n\ {\isasymin}\ even{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isacharhash}{\isadigit{2}}\ dvd\ n{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{theorem}\ even{\isacharunderscore}iff{\isacharunderscore}dvd{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}n\ {\isasymin}\ even{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isadigit{2}}\ dvd\ n{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{by}\ {\isacharparenleft}blast\ intro{\isacharcolon}\ dvd{\isacharunderscore}imp{\isacharunderscore}even\ even{\isacharunderscore}imp{\isacharunderscore}dvd{\isacharparenright}%
 \begin{isamarkuptext}%
 this result ISN'T inductive...%
@@ -95,12 +95,12 @@ this result ISN'T inductive...%
 \begin{isamarkuptext}%
 ...so we need an inductive lemma...%
 \end{isamarkuptext}%
-\isacommand{lemma}\ even{\isacharunderscore}imp{\isacharunderscore}even{\isacharunderscore}minus{\isacharunderscore}{\isadigit{2}}{\isacharcolon}\ {\isachardoublequote}n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ n{\isacharminus}{\isacharhash}{\isadigit{2}}\ {\isasymin}\ even{\isachardoublequote}\isanewline
+\isacommand{lemma}\ even{\isacharunderscore}imp{\isacharunderscore}even{\isacharunderscore}minus{\isacharunderscore}{\isadigit{2}}{\isacharcolon}\ {\isachardoublequote}n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ n\ {\isacharminus}\ {\isadigit{2}}\ {\isasymin}\ even{\isachardoublequote}\isanewline
 \isacommand{apply}\ {\isacharparenleft}erule\ even{\isachardot}induct{\isacharparenright}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isadigit{0}}\ {\isacharminus}\ {\isacharhash}{\isadigit{2}}\ {\isasymin}\ even\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ even{\isacharsemicolon}\ n\ {\isacharminus}\ {\isacharhash}{\isadigit{2}}\ {\isasymin}\ even{\isasymrbrakk}\ {\isasymLongrightarrow}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharminus}\ {\isacharhash}{\isadigit{2}}\ {\isasymin}\ even%
+\ {\isadigit{1}}{\isachardot}\ {\isadigit{0}}\ {\isacharminus}\ {\isadigit{2}}\ {\isasymin}\ even\isanewline
+\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ even{\isacharsemicolon}\ n\ {\isacharminus}\ {\isadigit{2}}\ {\isasymin}\ even{\isasymrbrakk}\ {\isasymLongrightarrow}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharminus}\ {\isadigit{2}}\ {\isasymin}\ even%
 \end{isabelle}%
 \end{isamarkuptxt}%
 \isacommand{apply}\ auto\isanewline

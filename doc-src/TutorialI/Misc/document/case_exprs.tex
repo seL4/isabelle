@@ -10,9 +10,9 @@
 HOL also features \isa{case}-expressions for analyzing
 elements of a datatype. For example,
 \begin{isabelle}%
-\ \ \ \ \ case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ {\isadigit{1}}\ {\isacharbar}\ y\ {\isacharhash}\ ys\ {\isasymRightarrow}\ y%
+\ \ \ \ \ case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ {\isadigit{1}}{\isasymColon}{\isacharprime}a\ {\isacharbar}\ y\ {\isacharhash}\ ys\ {\isasymRightarrow}\ y%
 \end{isabelle}
-evaluates to \isa{{\isadigit{1}}} if \isa{xs} is \isa{{\isacharbrackleft}{\isacharbrackright}} and to \isa{y} if 
+evaluates to \isa{{\isadigit{1}}{\isasymColon}{\isacharprime}a} if \isa{xs} is \isa{{\isacharbrackleft}{\isacharbrackright}} and to \isa{y} if 
 \isa{xs} is \isa{y\ {\isacharhash}\ ys}. (Since the result in both branches must be of
 the same type, it follows that \isa{y} is of type \isa{nat} and hence
 that \isa{xs} is of type \isa{nat\ list}.)
@@ -41,7 +41,7 @@ of
 \end{isabelle}
 write
 \begin{isabelle}%
-\ \ \ \ \ case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ {\isadigit{1}}\isanewline
+\ \ \ \ \ case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ {\isadigit{1}}{\isasymColon}{\isacharprime}a\isanewline
 \isaindent{\ \ \ \ \ }{\isacharbar}\ x\ {\isacharhash}\ ys\ {\isasymRightarrow}\ case\ ys\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ x\ {\isacharbar}\ y\ {\isacharhash}\ zs\ {\isasymRightarrow}\ y%
 \end{isabelle}
 

@@ -9,40 +9,40 @@
 \begin{isamarkuptext}%
 numeric literals; default simprules; can re-orient%
 \end{isamarkuptext}%
-\isacommand{lemma}\ {\isachardoublequote}{\isacharhash}{\isadigit{2}}\ {\isacharasterisk}\ m\ {\isacharequal}\ m\ {\isacharplus}\ m{\isachardoublequote}%
+\isacommand{lemma}\ {\isachardoublequote}{\isadigit{2}}\ {\isacharasterisk}\ m\ {\isacharequal}\ m\ {\isacharplus}\ m{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isacharparenleft}{\isacharhash}{\isadigit{2}}{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isacharasterisk}\ m\ {\isacharequal}\ m\ {\isacharplus}\ m%
+\ {\isadigit{1}}{\isachardot}\ {\isacharparenleft}{\isadigit{2}}{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isacharasterisk}\ m\ {\isacharequal}\ m\ {\isacharplus}\ m%
 \end{isabelle}%
 \end{isamarkuptxt}%
 \isacommand{oops}\isanewline
 \isanewline
 \isacommand{consts}\ h\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
 \isacommand{recdef}\ h\ {\isachardoublequote}{\isacharbraceleft}{\isacharbraceright}{\isachardoublequote}\isanewline
-{\isachardoublequote}h\ i\ {\isacharequal}\ {\isacharparenleft}if\ i\ {\isacharequal}\ {\isacharhash}{\isadigit{3}}\ then\ {\isacharhash}{\isadigit{2}}\ else\ i{\isacharparenright}{\isachardoublequote}%
+{\isachardoublequote}h\ i\ {\isacharequal}\ {\isacharparenleft}if\ i\ {\isacharequal}\ {\isadigit{3}}\ then\ {\isadigit{2}}\ else\ i{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
-\isa{h\ {\isacharhash}{\isadigit{3}}\ {\isacharequal}\ {\isacharhash}{\isadigit{2}}}
+\isa{h\ {\isadigit{3}}\ {\isacharequal}\ {\isadigit{2}}}
 \isa{h\ i\ {\isacharequal}\ i}%
 \end{isamarkuptext}%
 %
 \begin{isamarkuptext}%
 \begin{isabelle}%
-{\isacharhash}{\isadigit{0}}\ {\isacharequal}\ {\isadigit{0}}%
+Numeral{\isadigit{0}}\ {\isacharequal}\ {\isadigit{0}}%
 \end{isabelle}
 \rulename{numeral_0_eq_0}
 
 \begin{isabelle}%
-{\isacharhash}{\isadigit{1}}\ {\isacharequal}\ {\isadigit{1}}%
+Numeral{\isadigit{1}}\ {\isacharequal}\ {\isadigit{1}}%
 \end{isabelle}
 \rulename{numeral_1_eq_1}
 
 \begin{isabelle}%
-{\isacharhash}{\isadigit{2}}\ {\isacharplus}\ n\ {\isacharequal}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}%
+{\isadigit{2}}\ {\isacharplus}\ n\ {\isacharequal}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}%
 \end{isabelle}
 \rulename{add_2_eq_Suc}
 
 \begin{isabelle}%
-n\ {\isacharplus}\ {\isacharhash}{\isadigit{2}}\ {\isacharequal}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}%
+n\ {\isacharplus}\ {\isadigit{2}}\ {\isacharequal}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}%
 \end{isabelle}
 \rulename{add_2_eq_Suc'}
 
@@ -113,11 +113,11 @@ P\ {\isacharparenleft}a\ {\isacharminus}\ b{\isacharparenright}\ {\isacharequal}
 \end{isabelle}
 \rulename{nat_diff_split}%
 \end{isamarkuptext}%
-\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}n{\isacharminus}{\isacharhash}{\isadigit{2}}{\isacharparenright}{\isacharasterisk}{\isacharparenleft}n{\isacharplus}{\isacharhash}{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ n{\isacharasterisk}n\ {\isacharminus}\ {\isacharparenleft}{\isacharhash}{\isadigit{4}}{\isacharcolon}{\isacharcolon}nat{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}n\ {\isacharminus}\ {\isadigit{2}}{\isacharparenright}\ {\isacharasterisk}\ {\isacharparenleft}n\ {\isacharplus}\ {\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ n\ {\isacharasterisk}\ n\ {\isacharminus}\ {\isacharparenleft}{\isadigit{4}}{\isacharcolon}{\isacharcolon}nat{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{apply}\ {\isacharparenleft}clarsimp\ split{\isacharcolon}\ nat{\isacharunderscore}diff{\isacharunderscore}split{\isacharparenright}\isanewline
 \ %
 \isamarkupcmt{\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}d{\isachardot}\ {\isasymlbrakk}n\ {\isacharless}\ {\isacharhash}{\isadigit{2}}{\isacharsemicolon}\ n\ {\isacharasterisk}\ n\ {\isacharequal}\ {\isacharhash}{\isadigit{4}}\ {\isacharplus}\ d{\isasymrbrakk}\ {\isasymLongrightarrow}\ d\ {\isacharequal}\ {\isadigit{0}}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}d{\isachardot}\ {\isasymlbrakk}n\ {\isacharless}\ {\isadigit{2}}{\isacharsemicolon}\ n\ {\isacharasterisk}\ n\ {\isacharequal}\ {\isadigit{4}}\ {\isacharplus}\ d{\isasymrbrakk}\ {\isasymLongrightarrow}\ d\ {\isacharequal}\ {\isadigit{0}}%
 \end{isabelle}%
 }
 \isanewline
@@ -187,22 +187,22 @@ Division, remainder of negatives
 
 
 \begin{isabelle}%
-{\isacharhash}{\isadigit{0}}\ {\isacharless}\ b\ {\isasymLongrightarrow}\ {\isacharhash}{\isadigit{0}}\ {\isasymle}\ a\ mod\ b%
+Numeral{\isadigit{0}}\ {\isacharless}\ b\ {\isasymLongrightarrow}\ Numeral{\isadigit{0}}\ {\isasymle}\ a\ mod\ b%
 \end{isabelle}
 \rulename{pos_mod_sign}
 
 \begin{isabelle}%
-{\isacharhash}{\isadigit{0}}\ {\isacharless}\ b\ {\isasymLongrightarrow}\ a\ mod\ b\ {\isacharless}\ b%
+Numeral{\isadigit{0}}\ {\isacharless}\ b\ {\isasymLongrightarrow}\ a\ mod\ b\ {\isacharless}\ b%
 \end{isabelle}
 \rulename{pos_mod_bound}
 
 \begin{isabelle}%
-b\ {\isacharless}\ {\isacharhash}{\isadigit{0}}\ {\isasymLongrightarrow}\ a\ mod\ b\ {\isasymle}\ {\isacharhash}{\isadigit{0}}%
+b\ {\isacharless}\ Numeral{\isadigit{0}}\ {\isasymLongrightarrow}\ a\ mod\ b\ {\isasymle}\ Numeral{\isadigit{0}}%
 \end{isabelle}
 \rulename{neg_mod_sign}
 
 \begin{isabelle}%
-b\ {\isacharless}\ {\isacharhash}{\isadigit{0}}\ {\isasymLongrightarrow}\ b\ {\isacharless}\ a\ mod\ b%
+b\ {\isacharless}\ Numeral{\isadigit{0}}\ {\isasymLongrightarrow}\ b\ {\isacharless}\ a\ mod\ b%
 \end{isabelle}
 \rulename{neg_mod_bound}
 
@@ -227,12 +227,12 @@ a\ {\isacharasterisk}\ b\ mod\ c\ {\isacharequal}\ a\ {\isacharasterisk}\ {\isac
 \rulename{zmod_zmult1_eq}
 
 \begin{isabelle}%
-{\isacharhash}{\isadigit{0}}\ {\isacharless}\ c\ {\isasymLongrightarrow}\ a\ div\ {\isacharparenleft}b\ {\isacharasterisk}\ c{\isacharparenright}\ {\isacharequal}\ a\ div\ b\ div\ c%
+Numeral{\isadigit{0}}\ {\isacharless}\ c\ {\isasymLongrightarrow}\ a\ div\ {\isacharparenleft}b\ {\isacharasterisk}\ c{\isacharparenright}\ {\isacharequal}\ a\ div\ b\ div\ c%
 \end{isabelle}
 \rulename{zdiv_zmult2_eq}
 
 \begin{isabelle}%
-{\isacharhash}{\isadigit{0}}\ {\isacharless}\ c\ {\isasymLongrightarrow}\ a\ mod\ {\isacharparenleft}b\ {\isacharasterisk}\ c{\isacharparenright}\ {\isacharequal}\ b\ {\isacharasterisk}\ {\isacharparenleft}a\ div\ b\ mod\ c{\isacharparenright}\ {\isacharplus}\ a\ mod\ b%
+Numeral{\isadigit{0}}\ {\isacharless}\ c\ {\isasymLongrightarrow}\ a\ mod\ {\isacharparenleft}b\ {\isacharasterisk}\ c{\isacharparenright}\ {\isacharequal}\ b\ {\isacharasterisk}\ {\isacharparenleft}a\ div\ b\ mod\ c{\isacharparenright}\ {\isacharplus}\ a\ mod\ b%
 \end{isabelle}
 \rulename{zmod_zmult2_eq}
 
@@ -244,7 +244,7 @@ a\ {\isacharasterisk}\ b\ mod\ c\ {\isacharequal}\ a\ {\isacharasterisk}\ {\isac
 \isacommand{lemma}\ {\isachardoublequote}abs\ {\isacharparenleft}x{\isacharplus}y{\isacharparenright}\ {\isasymle}\ abs\ x\ {\isacharplus}\ abs\ {\isacharparenleft}y\ {\isacharcolon}{\isacharcolon}\ int{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{by}\ arith\isanewline
 \isanewline
-\isacommand{lemma}\ {\isachardoublequote}abs\ {\isacharparenleft}{\isacharhash}{\isadigit{2}}{\isacharasterisk}x{\isacharparenright}\ {\isacharequal}\ {\isacharhash}{\isadigit{2}}\ {\isacharasterisk}\ abs\ {\isacharparenleft}x\ {\isacharcolon}{\isacharcolon}\ int{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{lemma}\ {\isachardoublequote}abs\ {\isacharparenleft}{\isadigit{2}}{\isacharasterisk}x{\isacharparenright}\ {\isacharequal}\ {\isadigit{2}}\ {\isacharasterisk}\ abs\ {\isacharparenleft}x\ {\isacharcolon}{\isacharcolon}\ int{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{by}\ {\isacharparenleft}simp\ add{\isacharcolon}\ zabs{\isacharunderscore}def{\isacharparenright}%
 \begin{isamarkuptext}%
 REALS
@@ -301,38 +301,38 @@ This last NOT a simprule
 \end{isabelle}
 \rulename{real_add_divide_distrib}%
 \end{isamarkuptext}%
-\isacommand{lemma}\ {\isachardoublequote}{\isacharhash}{\isadigit{3}}{\isacharslash}{\isacharhash}{\isadigit{4}}\ {\isacharless}\ {\isacharparenleft}{\isacharhash}{\isadigit{7}}{\isacharslash}{\isacharhash}{\isadigit{8}}\ {\isacharcolon}{\isacharcolon}\ real{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{lemma}\ {\isachardoublequote}{\isadigit{3}}{\isacharslash}{\isadigit{4}}\ {\isacharless}\ {\isacharparenleft}{\isadigit{7}}{\isacharslash}{\isadigit{8}}\ {\isacharcolon}{\isacharcolon}\ real{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{by}\ simp\ \isanewline
 \isanewline
-\isacommand{lemma}\ {\isachardoublequote}P\ {\isacharparenleft}{\isacharparenleft}{\isacharhash}{\isadigit{3}}{\isacharslash}{\isacharhash}{\isadigit{4}}{\isacharparenright}\ {\isacharasterisk}\ {\isacharparenleft}{\isacharhash}{\isadigit{8}}{\isacharslash}{\isacharhash}{\isadigit{1}}{\isadigit{5}}\ {\isacharcolon}{\isacharcolon}\ real{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
+\isacommand{lemma}\ {\isachardoublequote}P\ {\isacharparenleft}{\isacharparenleft}{\isadigit{3}}{\isacharslash}{\isadigit{4}}{\isacharparenright}\ {\isacharasterisk}\ {\isacharparenleft}{\isadigit{8}}{\isacharslash}{\isadigit{1}}{\isadigit{5}}\ {\isacharcolon}{\isacharcolon}\ real{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ P\ {\isacharparenleft}{\isacharhash}{\isadigit{3}}\ {\isacharslash}\ {\isacharhash}{\isadigit{4}}\ {\isacharasterisk}\ {\isacharparenleft}{\isacharhash}{\isadigit{8}}\ {\isacharslash}\ {\isacharhash}{\isadigit{1}}{\isadigit{5}}{\isacharparenright}{\isacharparenright}%
+\ {\isadigit{1}}{\isachardot}\ P\ {\isacharparenleft}{\isadigit{3}}\ {\isacharslash}\ {\isadigit{4}}\ {\isacharasterisk}\ {\isacharparenleft}{\isadigit{8}}\ {\isacharslash}\ {\isadigit{1}}{\isadigit{5}}{\isacharparenright}{\isacharparenright}%
 \end{isabelle}%
 \end{isamarkuptxt}%
 \isacommand{apply}\ simp%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ P\ {\isacharparenleft}{\isacharhash}{\isadigit{2}}\ {\isacharslash}\ {\isacharhash}{\isadigit{5}}{\isacharparenright}%
+\ {\isadigit{1}}{\isachardot}\ P\ {\isacharparenleft}{\isadigit{2}}\ {\isacharslash}\ {\isadigit{5}}{\isacharparenright}%
 \end{isabelle}%
 \end{isamarkuptxt}%
 \isacommand{oops}\isanewline
 \isanewline
-\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}{\isacharhash}{\isadigit{3}}{\isacharslash}{\isacharhash}{\isadigit{4}}{\isacharparenright}\ {\isacharasterisk}\ {\isacharparenleft}{\isacharhash}{\isadigit{8}}{\isacharslash}{\isacharhash}{\isadigit{1}}{\isadigit{5}}{\isacharparenright}\ {\isacharless}\ {\isacharparenleft}x\ {\isacharcolon}{\isacharcolon}\ real{\isacharparenright}{\isachardoublequote}%
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}{\isadigit{3}}{\isacharslash}{\isadigit{4}}{\isacharparenright}\ {\isacharasterisk}\ {\isacharparenleft}{\isadigit{8}}{\isacharslash}{\isadigit{1}}{\isadigit{5}}{\isacharparenright}\ {\isacharless}\ {\isacharparenleft}x\ {\isacharcolon}{\isacharcolon}\ real{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isacharhash}{\isadigit{3}}\ {\isacharslash}\ {\isacharhash}{\isadigit{4}}\ {\isacharasterisk}\ {\isacharparenleft}{\isacharhash}{\isadigit{8}}\ {\isacharslash}\ {\isacharhash}{\isadigit{1}}{\isadigit{5}}{\isacharparenright}\ {\isacharless}\ x%
+\ {\isadigit{1}}{\isachardot}\ {\isadigit{3}}\ {\isacharslash}\ {\isadigit{4}}\ {\isacharasterisk}\ {\isacharparenleft}{\isadigit{8}}\ {\isacharslash}\ {\isadigit{1}}{\isadigit{5}}{\isacharparenright}\ {\isacharless}\ x%
 \end{isabelle}%
 \end{isamarkuptxt}%
 \isacommand{apply}\ simp%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isacharhash}{\isadigit{2}}\ {\isacharless}\ x\ {\isacharasterisk}\ {\isacharhash}{\isadigit{5}}%
+\ {\isadigit{1}}{\isachardot}\ {\isadigit{2}}\ {\isacharless}\ x\ {\isacharasterisk}\ {\isadigit{5}}%
 \end{isabelle}%
 \end{isamarkuptxt}%
 \isacommand{oops}\isanewline
 \isanewline
-\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}{\isacharhash}{\isadigit{3}}{\isacharslash}{\isacharhash}{\isadigit{4}}{\isacharparenright}\ {\isacharasterisk}\ {\isacharparenleft}{\isacharhash}{\isadigit{1}}{\isadigit{0}}{\isacharcircum}{\isacharhash}{\isadigit{1}}{\isadigit{5}}{\isacharparenright}\ {\isacharless}\ {\isacharparenleft}x\ {\isacharcolon}{\isacharcolon}\ real{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}{\isadigit{3}}{\isacharslash}{\isadigit{4}}{\isacharparenright}\ {\isacharasterisk}\ {\isacharparenleft}{\isadigit{1}}{\isadigit{0}}{\isacharcircum}{\isadigit{1}}{\isadigit{5}}{\isacharparenright}\ {\isacharless}\ {\isacharparenleft}x\ {\isacharcolon}{\isacharcolon}\ real{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{apply}\ simp\ \isanewline
 \isacommand{oops}\isanewline
 \isanewline

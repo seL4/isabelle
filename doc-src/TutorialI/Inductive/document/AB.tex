@@ -95,13 +95,13 @@ right increases or decreases the difference by 1, we must have passed through
 1 on our way from 0 to 2. Formally, we appeal to the following discrete
 intermediate value theorem \isa{nat{\isadigit{0}}{\isacharunderscore}intermed{\isacharunderscore}int{\isacharunderscore}val}
 \begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}{\isasymforall}i{\isachardot}\ i\ {\isacharless}\ n\ {\isasymlongrightarrow}\ {\isasymbar}f\ {\isacharparenleft}i\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}\ {\isacharminus}\ f\ i{\isasymbar}\ {\isasymle}\ {\isacharhash}{\isadigit{1}}{\isacharsemicolon}\ f\ {\isadigit{0}}\ {\isasymle}\ k{\isacharsemicolon}\ k\ {\isasymle}\ f\ n{\isasymrbrakk}\isanewline
+\ \ \ \ \ {\isasymlbrakk}{\isasymforall}i{\isachardot}\ i\ {\isacharless}\ n\ {\isasymlongrightarrow}\ {\isasymbar}f\ {\isacharparenleft}i\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}\ {\isacharminus}\ f\ i{\isasymbar}\ {\isasymle}\ Numeral{\isadigit{1}}{\isacharsemicolon}\ f\ {\isadigit{0}}\ {\isasymle}\ k{\isacharsemicolon}\ k\ {\isasymle}\ f\ n{\isasymrbrakk}\isanewline
 \isaindent{\ \ \ \ \ }{\isasymLongrightarrow}\ {\isasymexists}i{\isachardot}\ i\ {\isasymle}\ n\ {\isasymand}\ f\ i\ {\isacharequal}\ k%
 \end{isabelle}
 where \isa{f} is of type \isa{nat\ {\isasymRightarrow}\ int}, \isa{int} are the integers,
 \isa{{\isasymbar}{\isachardot}{\isasymbar}} is the absolute value function\footnote{See
 Table~\ref{tab:ascii} in the Appendix for the correct \textsc{ascii}
-syntax.}, and \isa{{\isacharhash}{\isadigit{1}}} is the integer 1 (see \S\ref{sec:numbers}).
+syntax.}, and \isa{{\isadigit{1}}} is the integer 1 (see \S\ref{sec:numbers}).
 
 First we show that our specific function, the difference between the
 numbers of \isa{a}'s and \isa{b}'s, does indeed only change by 1 in every
@@ -112,7 +112,7 @@ roles of \isa{a}'s and \isa{b}'s interchanged.%
 \end{isamarkuptext}%
 \isacommand{lemma}\ step{\isadigit{1}}{\isacharcolon}\ {\isachardoublequote}{\isasymforall}i\ {\isacharless}\ size\ w{\isachardot}\isanewline
 \ \ {\isasymbar}{\isacharparenleft}int{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}take\ {\isacharparenleft}i{\isacharplus}{\isadigit{1}}{\isacharparenright}\ w{\isachardot}\ P\ x{\isacharbrackright}{\isacharparenright}{\isacharminus}int{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}take\ {\isacharparenleft}i{\isacharplus}{\isadigit{1}}{\isacharparenright}\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharparenright}{\isacharparenright}\isanewline
-\ \ \ {\isacharminus}\ {\isacharparenleft}int{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ P\ x{\isacharbrackright}{\isacharparenright}{\isacharminus}int{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharparenright}{\isacharparenright}{\isasymbar}\ {\isasymle}\ {\isacharhash}{\isadigit{1}}{\isachardoublequote}%
+\ \ \ {\isacharminus}\ {\isacharparenleft}int{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ P\ x{\isacharbrackright}{\isacharparenright}{\isacharminus}int{\isacharparenleft}size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharparenright}{\isacharparenright}{\isasymbar}\ {\isasymle}\ Numeral{\isadigit{1}}{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
 The lemma is a bit hard to read because of the coercion function
@@ -128,7 +128,7 @@ discuss it.%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}induct\ w{\isacharparenright}\isanewline
 \ \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
-\isacommand{by}{\isacharparenleft}force\ simp\ add{\isacharcolon}zabs{\isacharunderscore}def\ take{\isacharunderscore}Cons\ split{\isacharcolon}nat{\isachardot}split\ if{\isacharunderscore}splits{\isacharparenright}%
+\isacommand{by}{\isacharparenleft}force\ simp\ add{\isacharcolon}\ zabs{\isacharunderscore}def\ take{\isacharunderscore}Cons\ split{\isacharcolon}\ nat{\isachardot}split\ if{\isacharunderscore}splits{\isacharparenright}%
 \begin{isamarkuptext}%
 Finally we come to the above-mentioned lemma about cutting in half a word with two more elements of one sort than of the other sort:%
 \end{isamarkuptext}%
@@ -141,7 +141,7 @@ This is proved by \isa{force} with the help of the intermediate value theorem,
 instantiated appropriately and with its first premise disposed of by lemma
 \isa{step{\isadigit{1}}}:%
 \end{isamarkuptxt}%
-\isacommand{apply}{\isacharparenleft}insert\ nat{\isadigit{0}}{\isacharunderscore}intermed{\isacharunderscore}int{\isacharunderscore}val{\isacharbrackleft}OF\ step{\isadigit{1}}{\isacharcomma}\ of\ {\isachardoublequote}P{\isachardoublequote}\ {\isachardoublequote}w{\isachardoublequote}\ {\isachardoublequote}{\isacharhash}{\isadigit{1}}{\isachardoublequote}{\isacharbrackright}{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}insert\ nat{\isadigit{0}}{\isacharunderscore}intermed{\isacharunderscore}int{\isacharunderscore}val{\isacharbrackleft}OF\ step{\isadigit{1}}{\isacharcomma}\ of\ {\isachardoublequote}P{\isachardoublequote}\ {\isachardoublequote}w{\isachardoublequote}\ {\isachardoublequote}Numeral{\isadigit{1}}{\isachardoublequote}{\isacharbrackright}{\isacharparenright}\isanewline
 \isacommand{by}\ force%
 \begin{isamarkuptext}%
 \noindent
