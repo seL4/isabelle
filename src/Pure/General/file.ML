@@ -26,7 +26,6 @@ sig
   val info: Path.T -> info option
   val exists: Path.T -> bool
   val mkdir: Path.T -> unit
-  val copy_all: Path.T -> Path.T -> unit
   val use: Path.T -> unit
 end;
 
@@ -98,11 +97,8 @@ val exists = is_some o info;
 fun system_command cmd =
   if system cmd <> 0 then error ("System command failed: " ^ cmd)
   else ();
-    
-fun mkdir path = system_command ("mkdir -p " ^ quote_sysify_path path);
 
-fun copy_all path1 path2 =  (*dereferences symlinks!*)
-  system_command ("cp -r " ^ quote_sysify_path path1 ^ " " ^ quote_sysify_path path2);
+fun mkdir path = system_command ("mkdir -p " ^ quote_sysify_path path);
 
 
 (* use ML files *)
