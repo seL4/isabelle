@@ -355,6 +355,12 @@ qed "ex1_implies_ex";
 (** Select: Hilbert's Epsilon-operator **)
 section "@";
 
+(*Easier to apply than selectI if witness ?a comes from an EX-formula*)
+Goal "EX a. P a ==> P (SOME x. P x)";
+by (etac exE 1);
+by (etac selectI 1);
+qed "ex_someI";
+
 (*Easier to apply than selectI: conclusion has only one occurrence of P*)
 val prems = Goal
     "[| P a;  !!x. P x ==> Q x |] ==> Q (@x. P x)";
