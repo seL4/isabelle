@@ -65,31 +65,8 @@ by (resolve_tac [Inf_Ord_imp_InfCard_cardinal RSN (2, well_ord_Memrel RS
     THEN REPEAT (assume_tac 1));
 val Un_eqpoll_Inf_Ord = result();
 
-goalw thy [lepoll_def] "!!A. [| A lepoll B; C lepoll D; B Int D = 0 |]  \
-\                       ==> A Un C lepoll B Un D";
-by (REPEAT (etac exE 1));
-by (res_inst_tac [("x","lam a: A Un C. if(a:A, f`a, fa`a)")] exI 1);
-by (res_inst_tac [("d","%z. if(z:B, converse(f)`z, converse(fa)`z)")]
-        lam_injective 1);
-by (split_tac [expand_if] 1);
-by (etac UnE 1);
-by (fast_tac (AC_cs addSEs [inj_is_fun RS apply_type]) 1);
-by (rtac conjI 1);
-by (fast_tac (AC_cs addSEs [inj_is_fun RS apply_type]) 1);
-by (fast_tac (AC_cs addSEs [inj_is_fun RS apply_type] addSIs [UnI2]) 1);
-by (REPEAT (split_tac [expand_if] 1));
-by (rtac conjI 1);
-by (fast_tac (AC_cs addSEs [left_inverse, inj_is_fun RS apply_type]
-        addEs [swap]) 1);
-by (rtac impI 1);
-by (etac UnE 1);
-by (contr_tac 1);
-by (rtac conjI 1);
-by (rtac impI 1);
-by (etac equals0D 1);
-by (fast_tac (AC_cs addSEs [inj_is_fun RS apply_type]) 1);
-by (fast_tac (AC_cs addSEs [left_inverse]) 1);
-val Un_lepoll_Un = result();
+val ss = ZF_ss addsimps [inj_is_fun RS apply_type, left_inverse] 
+               setloop (split_tac [expand_if] ORELSE' etac UnE);
 
 goal ZF.thy "{x, y} - {y} = {x} - {y}";
 by (fast_tac eq_cs 1);

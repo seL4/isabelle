@@ -85,13 +85,14 @@ val infinite_Un = result();
 (*      to {v:Pow(x). v eqpoll n-k}                                       *)
 (* ********************************************************************** *)
 
+(*Proof simplified by LCP*)
 goal thy "!!A. [| ~(EX x:A. f`x=y); f : inj(A, B); y:B |]  \
 \       ==> (lam a:succ(A). if(a=A, y, f`a)) : inj(succ(A), B)";
 by (res_inst_tac [("d","%z. if(z=y, A, converse(f)`z)")] lam_injective 1);
-by (fast_tac (AC_cs addSEs [inj_is_fun RS apply_type]
-                addIs [expand_if RS iffD2]) 1);
-by (REPEAT (split_tac [expand_if] 1));
-by (fast_tac (AC_cs addSEs [left_inverse]) 1);
+by (ALLGOALS
+    (asm_simp_tac 
+     (ZF_ss addsimps [inj_is_fun RS apply_type, left_inverse] 
+      setloop (split_tac [expand_if] ORELSE' step_tac ZF_cs))));
 val succ_not_lepoll_lemma = result();
 
 goalw thy [lepoll_def, eqpoll_def, bij_def, surj_def]
