@@ -33,14 +33,17 @@ struct
 
 datatype elem = Root | Parent | Basic of string | Variable of string;
 
-fun no_meta_chars chs =
-  (case ["/", "\\", "$", "~"] inter_string chs of
-    [] => chs
-  | bads => error ("Illegal character(s) " ^ commas_quote bads ^
-      " in path element specification: " ^ quote (implode chs)));
+fun err_elem msg chs = error (msg ^ " path element specification: " ^ quote (implode chs));
 
-val basic_elem = Basic o implode o no_meta_chars;
-val variable_elem = Variable o implode o no_meta_chars;
+fun check_elem (chs as ["~"]) = err_elem "Illegal" chs
+  | check_elem (chs as ["~", "~"]) = err_elem "Illegal" chs
+  | check_elem chs =
+      (case ["/", "\\", "$", ":"] inter_string chs of
+        [] => chs
+      | bads => err_elem ("Illegal character(s) " ^ commas_quote bads ^ " in") chs);
+
+val basic_elem = Basic o implode o check_elem;
+val variable_elem = Variable o implode o check_elem;
 
 fun is_var (Variable _) = true
   | is_var _ = false;
