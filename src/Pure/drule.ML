@@ -215,7 +215,7 @@ fun forall_intr_list [] th = th
 fun forall_intr_frees th =
     let val {prop,sign,...} = rep_thm th
     in  forall_intr_list
-         (map (cterm_of sign) (sort atless (term_frees prop)))
+         (map (cterm_of sign) (sort (make_ord atless) (term_frees prop)))
          th
     end;
 

@@ -35,7 +35,7 @@ struct
   (handles double negations).  Could instead rewrite by not_def as the first
   step of an intuitionistic proof.
 *)
-val safe_brls = sort lessb 
+val safe_brls = sort (make_ord lessb)
     [ (true,FalseE), (false,TrueI), (false,refl),
       (false,impI), (false,notI), (false,allI),
       (true,conjE), (true,exE),

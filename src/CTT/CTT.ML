@@ -150,7 +150,7 @@ fun add_mp_tac i =
 fun mp_tac i = etac subst_prodE i  THEN  assume_tac i;
 
 (*"safe" when regarded as predicate calculus rules*)
-val safe_brls = sort lessb 
+val safe_brls = sort (make_ord lessb)
     [ (true,FE), (true,asm_rl), 
       (false,ProdI), (true,SumE), (true,PlusE) ];
 

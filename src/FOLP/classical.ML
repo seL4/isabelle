@@ -113,10 +113,10 @@ fun joinrules (intrs,elims) =
 fun make_cs {safeIs,safeEs,hazIs,hazEs} =
   let val (safe0_brls, safep_brls) = (*0 subgoals vs 1 or more*)
           partition (apl(0,op=) o subgoals_of_brl) 
-             (sort lessb (joinrules(safeIs, safeEs)))
+             (sort (make_ord lessb) (joinrules(safeIs, safeEs)))
   in CS{safeIs=safeIs, safeEs=safeEs, hazIs=hazIs, hazEs=hazEs,
         safe0_brls=safe0_brls, safep_brls=safep_brls,
-        haz_brls = sort lessb (joinrules(hazIs, hazEs))}
+        haz_brls = sort (make_ord lessb) (joinrules(hazIs, hazEs))}
   end;
 
 (*** Manipulation of clasets ***)

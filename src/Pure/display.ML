@@ -147,7 +147,7 @@ fun print_sign sg =
       [Pretty.str c, Pretty.str " ::", Pretty.brk 1, prt_typ ty];
 
     val {self = _, tsig, const_tab, syn = _, path, spaces, data} = Sign.rep_sg sg;
-    val spaces' = sort (fn ((k1, _), (k2, _)) => k1 < k2) spaces;
+    val spaces' = sort_wrt fst spaces;
     val {classes, classrel, default, tycons, abbrs, arities} =
       Type.rep_tsig tsig;
     val consts = sort_wrt fst (map (apfst ext_const) (Symtab.dest const_tab));
@@ -219,10 +219,8 @@ local
     | add_varsT (TFree (x, S), env) = ins_entry (S, (x, ~1)) env
     | add_varsT (TVar (xi, S), env) = ins_entry (S, xi) env;
 
-  fun less_idx ((x, i):indexname, (y, j):indexname) =
-    x < y orelse x = y andalso i < j;
-  fun sort_idxs l = map (apsnd (sort less_idx)) l;
-  fun sort_cnsts l = map (apsnd (sort_wrt fst)) l;
+  fun sort_idxs vs = map (apsnd (sort (prod_ord string_ord int_ord))) vs;
+  fun sort_cnsts cs = map (apsnd (sort_wrt fst)) cs;
 
 
   (* prepare atoms *)

@@ -22,10 +22,10 @@ val empty_pack = Pack([],[]);
 infix 4 add_safes add_unsafes;
 
 fun (Pack(safes,unsafes)) add_safes ths   = 
-    Pack(sort less (ths@safes), unsafes);
+    Pack(sort (make_ord less) (ths@safes), unsafes);
 
 fun (Pack(safes,unsafes)) add_unsafes ths = 
-    Pack(safes, sort less (ths@unsafes));
+    Pack(safes, sort (make_ord less) (ths@unsafes));
 
 
 (*Returns the list of all formulas in the sequent*)
