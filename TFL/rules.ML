@@ -57,7 +57,7 @@ sig
                              -> thm -> thm * term list
   val RIGHT_ASSOC : thm -> thm
 
-  val prove : cterm * tactic -> thm
+  val prove : bool -> cterm * tactic -> thm
 end;
 
 structure Rules: RULES =
@@ -813,11 +813,13 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
  end;
 
 
-fun prove (ptm, tac) =
+fun prove strict (ptm, tac) =
   let val result =
-    Library.transform_error (fn () =>
-      Goals.prove_goalw_cterm [] ptm (fn _ => [tac])) ()
-    handle ERROR_MESSAGE msg => (warning msg; raise RULES_ERR "prove" msg)
+    if strict then Goals.prove_goalw_cterm [] ptm (fn _ => [tac])
+    else
+      Library.transform_error (fn () =>
+        Goals.prove_goalw_cterm [] ptm (fn _ => [tac])) ()
+      handle ERROR_MESSAGE msg => (warning msg; raise RULES_ERR "prove" msg);
   in #1 (freeze_thaw result) end;
 
 

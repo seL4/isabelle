@@ -33,9 +33,9 @@ sig
     patterns : pattern list}
   val mk_induction: theory ->
     {fconst: term, R: term, SV: term list, pat_TCs_list: (term * term list) list} -> thm
-  val postprocess: {wf_tac: tactic, terminator: tactic, simplifier: cterm -> thm} -> theory ->
-    {rules: thm, induction: thm, TCs: term list list} ->
-    {rules: thm, induction: thm, nested_tcs: thm list}
+  val postprocess: bool -> {wf_tac: tactic, terminator: tactic, simplifier: cterm -> thm}
+    -> theory -> {rules: thm, induction: thm, TCs: term list list}
+    -> {rules: thm, induction: thm, nested_tcs: thm list}
 end;
 
 structure Prim: PRIM =
@@ -909,14 +909,15 @@ fun elim_tc tcthm (rule,induction) =
    (R.MP rule tcthm, R.PROVE_HYP tcthm induction)
 
 
-fun postprocess{wf_tac, terminator, simplifier} theory {rules,induction,TCs} =
+fun postprocess strict {wf_tac, terminator, simplifier} theory {rules,induction,TCs} =
 let val tych = Thry.typecheck theory
+    val prove = R.prove strict;
 
    (*---------------------------------------------------------------------
     * Attempt to eliminate WF condition. It's the only assumption of rules
     *---------------------------------------------------------------------*)
    val (rules1,induction1)  =
-       let val thm = R.prove(tych(HOLogic.mk_Trueprop
+       let val thm = prove(tych(HOLogic.mk_Trueprop
                                   (hd(#1(R.dest_thm rules)))),
                              wf_tac)
        in (R.PROVE_HYP thm rules,  R.PROVE_HYP thm induction)
@@ -948,7 +949,7 @@ let val tych = Thry.typecheck theory
        elim_tc (R.MATCH_MP Thms.eqT tc_eq) (r,ind)
        handle U.ERR _ =>
         (elim_tc (R.MATCH_MP(R.MATCH_MP Thms.rev_eq_mp tc_eq)
-                  (R.prove(tych(HOLogic.mk_Trueprop(S.rhs(concl tc_eq))),
+                  (prove(tych(HOLogic.mk_Trueprop(S.rhs(concl tc_eq))),
                            terminator)))
                  (r,ind)
          handle U.ERR _ =>
@@ -976,7 +977,7 @@ let val tych = Thry.typecheck theory
        (R.MATCH_MP Thms.eqT tc_eq
         handle U.ERR _ =>
           (R.MATCH_MP(R.MATCH_MP Thms.rev_eq_mp tc_eq)
-                      (R.prove(tych(HOLogic.mk_Trueprop (S.rhs(concl tc_eq))),
+                      (prove(tych(HOLogic.mk_Trueprop (S.rhs(concl tc_eq))),
                                terminator))
             handle U.ERR _ => tc_eq))
       end

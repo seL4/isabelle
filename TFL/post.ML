@@ -13,12 +13,9 @@ sig
   val message: string -> unit
   val tgoalw: theory -> thm list -> thm list -> thm list
   val tgoal: theory -> thm list -> thm list
-  val std_postprocessor: claset -> simpset -> thm list -> theory ->
-    {induction: thm, rules: thm, TCs: term list list} ->
-    {induction: thm, rules: thm, nested_tcs: thm list}
-  val define_i: theory -> claset -> simpset -> thm list -> thm list -> xstring ->
+  val define_i: bool -> theory -> claset -> simpset -> thm list -> thm list -> xstring ->
     term -> term list -> theory * {rules: (thm * int) list, induct: thm, tcs: term list}
-  val define: theory -> claset -> simpset -> thm list -> thm list -> xstring ->
+  val define: bool -> theory -> claset -> simpset -> thm list -> thm list -> xstring ->
     string -> string list -> theory * {rules: (thm * int) list, induct: thm, tcs: term list}
   val defer_i: theory -> thm list -> xstring -> term list -> theory * thm
   val defer: theory -> thm list -> xstring -> string list -> theory * thm
@@ -70,8 +67,8 @@ fun tgoal thy = tgoalw thy [];
  * non-proved termination conditions, and finally attempts to prove the
  * simplified termination conditions.
  *--------------------------------------------------------------------------*)
-fun std_postprocessor cs ss wfs =
-  Prim.postprocess
+fun std_postprocessor strict cs ss wfs =
+  Prim.postprocess strict
    {wf_tac     = REPEAT (ares_tac wfs 1),
     terminator = asm_simp_tac ss 1
                  THEN TRY (fast_tac (cs addSDs [not0_implies_Suc] addss ss) 1),
@@ -123,13 +120,13 @@ fun join_assums th =
   end
   val gen_all = S.gen_all
 in
-fun proof_stage cs ss wfs theory {f, R, rules, full_pats_TCs, TCs} =
+fun proof_stage strict cs ss wfs theory {f, R, rules, full_pats_TCs, TCs} =
   let
     val _ = message "Proving induction theorem ..."
     val ind = Prim.mk_induction theory {fconst=f, R=R, SV=[], pat_TCs_list=full_pats_TCs}
     val _ = message "Postprocessing ...";
     val {rules, induction, nested_tcs} =
-      std_postprocessor cs ss wfs theory {rules=rules, induction=ind, TCs=TCs}
+      std_postprocessor strict cs ss wfs theory {rules=rules, induction=ind, TCs=TCs}
   in
   case nested_tcs
   of [] => {induction=induction, rules=rules,tcs=[]}
@@ -164,13 +161,13 @@ val meta_outer =
 (*Strip off the outer !P*)
 val spec'= read_instantiate [("x","P::?'b=>bool")] spec;
 
-fun simplify_defn thy cs ss congs wfs id pats def0 =
+fun simplify_defn strict thy cs ss congs wfs id pats def0 =
    let val def = freezeT def0 RS meta_eq_to_obj_eq
        val {theory,rules,rows,TCs,full_pats_TCs} = Prim.post_definition congs (thy, (def,pats))
        val {lhs=f,rhs} = S.dest_eq (concl def)
        val (_,[R,_]) = S.strip_comb rhs
        val {induction, rules, tcs} =
-             proof_stage cs ss wfs theory
+             proof_stage strict cs ss wfs theory
                {f = f, R = R, rules = rules,
                 full_pats_TCs = full_pats_TCs,
                 TCs = TCs}
@@ -186,13 +183,13 @@ fun simplify_defn thy cs ss congs wfs id pats def0 =
 (*---------------------------------------------------------------------------
  * Defining a function with an associated termination relation.
  *---------------------------------------------------------------------------*)
-fun define_i thy cs ss congs wfs fid R eqs =
+fun define_i strict thy cs ss congs wfs fid R eqs =
   let val {functional,pats} = Prim.mk_functional thy eqs
       val (thy, def) = Prim.wfrec_definition0 thy (Sign.base_name fid) R functional
-  in (thy, simplify_defn thy cs ss congs wfs fid pats def) end;
+  in (thy, simplify_defn strict thy cs ss congs wfs fid pats def) end;
 
-fun define thy cs ss congs wfs fid R seqs =
-  define_i thy cs ss congs wfs fid (read_term thy R) (map (read_term thy) seqs)
+fun define strict thy cs ss congs wfs fid R seqs =
+  define_i strict thy cs ss congs wfs fid (read_term thy R) (map (read_term thy) seqs)
     handle U.ERR {mesg,...} => error mesg;
 
 
