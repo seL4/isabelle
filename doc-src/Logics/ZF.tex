@@ -19,13 +19,14 @@ admitting recursive definitions of functions over well-founded relations.
 Thus, we may even regard set theory as a computational logic, loosely
 inspired by Martin-L\"of's Type Theory.
 
-Because {\ZF} is an extension of {\FOL}, it provides the same packages, namely
-{\tt hyp_subst_tac}, the simplifier, and the classical reasoner.  The default
-simpset and claset are usually satisfactory.  Named simpsets include
-\ttindexbold{ZF_ss} (basic set theory rules) and \ttindexbold{rank_ss} (for
-proving termination of well-founded recursion).  Named clasets sets include
-\ttindexbold{ZF_cs} (basic set theory) and \ttindexbold{le_cs} (useful for
-reasoning about the relations $<$ and $\le$).
+Because {\ZF} is an extension of {\FOL}, it provides the same
+packages, namely {\tt hyp_subst_tac}, the simplifier, and the
+classical reasoner.  The default simpset and claset are usually
+satisfactory.  Named simpsets include \ttindexbold{ZF_ss} (basic set
+theory rules) and \ttindexbold{rank_ss} (for proving termination of
+well-founded recursion).  Named clasets include \ttindexbold{ZF_cs}
+(basic set theory) and \ttindexbold{le_cs} (useful for reasoning about
+the relations $<$ and $\le$).
 
 {\tt ZF} has a flexible package for handling inductive definitions,
 such as inference systems, and datatype definitions, such as lists and
@@ -110,8 +111,8 @@ $x$ is a set.
   \tt ``        & $[i,i]\To i$  &  Left 90      & image \\
   \tt -``       & $[i,i]\To i$  &  Left 90      & inverse image \\
   \tt `         & $[i,i]\To i$  &  Left 90      & application \\
-  \sdx{Int}     & $[i,i]\To i$  &  Left 70      & intersection ($\inter$) \\
-  \sdx{Un}      & $[i,i]\To i$  &  Left 65      & union ($\union$) \\
+  \sdx{Int}     & $[i,i]\To i$  &  Left 70      & intersection ($\int$) \\
+  \sdx{Un}      & $[i,i]\To i$  &  Left 65      & union ($\un$) \\
   \tt -         & $[i,i]\To i$  &  Left 65      & set difference ($-$) \\[1ex]
   \tt:          & $[i,i]\To o$  &  Left 50      & membership ($\in$) \\
   \tt <=        & $[i,i]\To o$  &  Left 50      & subset ($\subseteq$) 
@@ -146,8 +147,8 @@ Apart from {\tt let}, set theory does not use polymorphism.  All terms in
 {\ZF} have type~\tydx{i}, which is the type of individuals and has class~{\tt
   term}.  The type of first-order formulae, remember, is~{\tt o}.
 
-Infix operators include binary union and intersection ($A\union B$ and
-$A\inter B$), set difference ($A-B$), and the subset and membership
+Infix operators include binary union and intersection ($A\un B$ and
+$A\int B$), set difference ($A-B$), and the subset and membership
 relations.  Note that $a$\verb|~:|$b$ is translated to $\neg(a\in b)$.  The
 union and intersection operators ($\bigcup A$ and $\bigcap A$) form the
 union or intersection of a set of sets; $\bigcup A$ means the same as
@@ -160,9 +161,9 @@ union.  The Isabelle version goes on to define the constant
 \cdx{cons}:
 \begin{eqnarray*}
    A\cup B              & \equiv &       \bigcup({\tt Upair}(A,B)) \\
-   {\tt cons}(a,B)      & \equiv &        {\tt Upair}(a,a) \union B
+   {\tt cons}(a,B)      & \equiv &        {\tt Upair}(a,a) \un B
 \end{eqnarray*}
-The $\{\ldots\}$ notation abbreviates finite sets constructed in the
+The $\{a@1, \ldots\}$ notation abbreviates finite sets constructed in the
 obvious manner using~{\tt cons} and~$\emptyset$ (the empty set):
 \begin{eqnarray*}
  \{a,b,c\} & \equiv & {\tt cons}(a,{\tt cons}(b,{\tt cons}(c,\emptyset)))
@@ -189,7 +190,7 @@ syntax for image is~$f{\tt``}A$ and that for inverse image is~$f{\tt-``}A$.
 \begin{tabular}{rrr} 
   \it external          & \it internal  & \it description \\ 
   $a$ \ttilde: $b$      & \ttilde($a$ : $b$)    & \rm negated membership\\
-  \ttlbrace$a@1$, $\ldots$, $a@n$\ttrbrace  &  cons($a@1$,$\cdots$,cons($a@n$,0)) &
+  \ttlbrace$a@1$, $\ldots$, $a@n$\ttrbrace  &  cons($a@1$,$\ldots$,cons($a@n$,0)) &
         \rm finite set \\
   <$a@1$, $\ldots$, $a@{n-1}$, $a@n$> & 
         Pair($a@1$,\ldots,Pair($a@{n-1}$,$a@n$)\ldots) &
@@ -526,12 +527,12 @@ over the domain~$A$.
 
 \section{From basic lemmas to function spaces}
 Faced with so many definitions, it is essential to prove lemmas.  Even
-trivial theorems like $A\inter B=B\inter A$ would be difficult to prove
-from the definitions alone.  Isabelle's set theory derives many rules using
-a natural deduction style.  Ideally, a natural deduction rule should
-introduce or eliminate just one operator, but this is not always practical.
-For most operators, we may forget its definition and use its derived rules
-instead.
+trivial theorems like $A \int B = B \int A$ would be difficult to
+prove from the definitions alone.  Isabelle's set theory derives many
+rules using a natural deduction style.  Ideally, a natural deduction
+rule should introduce or eliminate just one operator, but this is not
+always practical.  For most operators, we may forget its definition
+and use its derived rules instead.
 
 \subsection{Fundamental lemmas}
 Figure~\ref{zf-lemmas1} presents the derived rules for the most basic
@@ -811,7 +812,7 @@ Nested patterns are translated recursively:
 \begin{warn}
   The translation between patterns and {\tt split} is performed automatically
   by the parser and printer.  Thus the internal and external form of a term
-  may differ, whichs affects proofs.  For example the term {\tt
+  may differ, which affects proofs.  For example the term {\tt
     (\%<x,y>.<y,x>)<a,b>} requires the theorem {\tt split} to rewrite to
   {\tt<b,a>}.
 \end{warn}
@@ -1517,8 +1518,8 @@ shown in Fig.\ts\ref{zf-simpdata}.  See the file
 \begin{figure}
 \begin{eqnarray*}
   a\in \emptyset        & \bimp &  \bot\\
-  a \in A \union B      & \bimp &  a\in A \disj a\in B\\
-  a \in A \inter B      & \bimp &  a\in A \conj a\in B\\
+  a \in A \un B      & \bimp &  a\in A \disj a\in B\\
+  a \in A \int B      & \bimp &  a\in A \conj a\in B\\
   a \in A-B             & \bimp &  a\in A \conj \neg (a\in B)\\
   \pair{a,b}\in {\tt Sigma}(A,B)
                         & \bimp &  a\in A \conj b\in B(a)\\
@@ -1625,7 +1626,7 @@ by (resolve_tac [Int_greatest] 1);
 {\out  2. Pow(A Int B) <= Pow(B)}
 {\out  3. Pow(A) Int Pow(B) <= Pow(A Int B)}
 \end{ttbox}
-Subgoal~1 follows by applying the monotonicity of {\tt Pow} to $A\inter
+Subgoal~1 follows by applying the monotonicity of {\tt Pow} to $A\int
 B\subseteq A$; subgoal~2 follows similarly:
 \index{*Int_lower1 theorem}\index{*Int_lower2 theorem}
 \begin{ttbox}
@@ -1675,7 +1676,7 @@ by (REPEAT (dresolve_tac [PowD] 1));
 {\out  1. !!x. [| x <= A; x <= B |] ==> x <= A Int B}
 \end{ttbox}
 The assumptions are that $x$ is a lower bound of both $A$ and~$B$, but
-$A\inter B$ is the greatest lower bound:\index{*Int_greatest theorem}
+$A\int B$ is the greatest lower bound:\index{*Int_greatest theorem}
 \begin{ttbox}
 by (resolve_tac [Int_greatest] 1);
 {\out Level 9}
@@ -1868,7 +1869,7 @@ by (resolve_tac prems 1);
 {\out (f Un g) ` a = f ` a}
 {\out  1. f Un g : (PROD x:?A. ?B(x))}
 \end{ttbox}
-To construct functions of the form $f\union g$, we apply
+To construct functions of the form $f\un g$, we apply
 \tdx{fun_disjoint_Un}:
 \begin{ttbox}
 by (resolve_tac [fun_disjoint_Un] 1);
