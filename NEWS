@@ -1,4 +1,3 @@
-
 Isabelle NEWS -- history of user-visible changes
 ================================================
 
@@ -28,6 +27,12 @@ warning).
   addWrapper, addSWrapper: claset * (string * wrapper) -> claset
   delWrapper, delSWrapper: claset *  string            -> claset
   getWrapper is renamed to appWrappers, getSWrapper to appSWrappers;
+
+* new toplevel commands `Goal' and `Goalw' that improve upon `goal' and
+`goalw': the theory is no longer needed as an explicit argument - the current
+theory is used; assumptions are no longer returned at the ML-level unless one
+of them starts with ==> or !!. It is recommended to convert to these new
+commands.
 
 * inductive definitions now handle disjunctive premises correctly (HOL
 and ZF);
