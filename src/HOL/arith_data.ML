@@ -435,10 +435,14 @@ solver all the time rather than add the additional check. *)
 local
 
 fun raw_arith_tac ex i st =
+  let fun elim_neq_tac i =
+      COND (K(!ignore_neq)) all_tac (REPEAT_DETERM(etac linorder_neqE i))
+  in
   refute_tac (K true)
    (REPEAT o split_tac (#splits (ArithTheoryData.get_sg (Thm.sign_of_thm st))))
-   ((REPEAT_DETERM o etac linorder_neqE) THEN' fast_ex_arith_tac ex)
-   i st;
+   (elim_neq_tac THEN' fast_ex_arith_tac ex)
+   i st
+  end;
 
 fun presburger_tac i st =
   (case ArithTheoryData.get_sg (sign_of_thm st) of
