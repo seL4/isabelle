@@ -168,7 +168,7 @@ sig
   val cla_modifiers: (Args.T list -> (Proof.context attribute * Args.T list)) list
   val cla_method: (claset -> tactic) -> Args.src -> Proof.context -> Proof.method
   val cla_method': (claset -> int -> tactic) -> Args.src -> Proof.context -> Proof.method
-  val single_tac: claset -> tthm list -> int -> tactic
+  val single_tac: claset -> thm list -> int -> tactic
   val setup: (theory -> theory) list
 end;
 
@@ -851,10 +851,10 @@ val put_local_claset = LocalClaset.put;
 
 fun change_global_cs f (thy, th) =
   let val r = claset_ref_of thy
-  in r := f (! r, [Attribute.thm_of th]); (thy, th) end;
+  in r := f (! r, [th]); (thy, th) end;
 
 fun change_local_cs f (ctxt, th) =
-  let val cs = f (get_local_claset ctxt, [Attribute.thm_of th])
+  let val cs = f (get_local_claset ctxt, [th])
   in (put_local_claset cs ctxt, th) end;
 
 val haz_dest_global = change_global_cs (op addDs);
@@ -954,10 +954,9 @@ fun print_rules rules i =
 
 (* single_tac *)
 
-fun single_tac cs tfacts =
+fun single_tac cs facts =
   let
     val CS {safe0_netpair, safep_netpair, haz_netpair, dup_netpair, ...} = cs;
-    val facts = Attribute.thms_of tfacts;
     val nets = [safe0_netpair, safep_netpair, haz_netpair, dup_netpair];
     val erules = find_erules facts nets;
 

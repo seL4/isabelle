@@ -319,10 +319,10 @@ val put_local_simpset = LocalSimpset.put;
 
 fun change_global_ss f (thy, th) =
   let val r = simpset_ref_of thy
-  in r := f (! r, [Attribute.thm_of th]); (thy, th) end;
+  in r := f (! r, [th]); (thy, th) end;
 
 fun change_local_ss f (ctxt, th) =
-  let val ss = f (get_local_simpset ctxt, [Attribute.thm_of th])
+  let val ss = f (get_local_simpset ctxt, [th])
   in (put_local_simpset ss ctxt, th) end;
 
 val simp_add_global = change_global_ss (op addsimps);
@@ -422,8 +422,8 @@ val simp_attr = (simp_att change_global_ss, simp_att change_local_ss);
 (* conversions *)
 
 fun conv_attr f =
-  (Attrib.no_args (Attribute.rule (f o simpset_of)),
-    Attrib.no_args (Attribute.rule (f o get_local_simpset)));
+  (Attrib.no_args (Drule.rule_attribute (f o simpset_of)),
+    Attrib.no_args (Drule.rule_attribute (f o get_local_simpset)));
 
 
 (* setup_attrs *)
@@ -455,7 +455,7 @@ val simp_args = Method.only_sectioned_args simp_modifiers';
 
 fun simp_meth tac ctxt = Method.METHOD (fn facts =>
   FIRSTGOAL (REPEAT_DETERM o etac Drule.thin_rl THEN'
-    metacuts_tac (Attribute.thms_of facts) THEN'
+    metacuts_tac facts THEN'
     tac (get_local_simpset ctxt)));
 
 val simp_method = simp_args o simp_meth;
