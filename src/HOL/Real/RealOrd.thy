@@ -316,7 +316,7 @@ lemma real_le_add_right_cancel: "!!(A::real). A + C \<le> B + C ==> A \<le> B"
   by (rule Ring_and_Field.add_le_imp_le_right)
 
 lemma real_le_add_left_cancel: "!!(A::real). C + A \<le> C + B ==> A \<le> B"
-  by (rule (*Ring_and_Field.*)add_le_imp_le_left)
+  by (rule Ring_and_Field.add_le_imp_le_left)
 
 lemma real_add_right_cancel_less: "(v+z < w+z) = (v < (w::real))"
   by (rule Ring_and_Field.add_less_cancel_right)

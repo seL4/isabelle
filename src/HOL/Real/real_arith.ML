@@ -11,6 +11,15 @@ Simprocs: Common factor cancellation & Rational coefficient handling
 
 val inverse_less_iff_less = thm"Ring_and_Field.inverse_less_iff_less";
 val add_right_mono = thm"Ring_and_Field.add_right_mono";
+val times_divide_eq_left = thm "times_divide_eq_left";
+val times_divide_eq_right = thm "times_divide_eq_right";
+val inverse_mult_distrib = thm "inverse_mult_distrib";
+val minus_minus = thm "minus_minus";
+val left_inverse = thm "left_inverse";
+val right_inverse = thm "right_inverse";
+val inverse_minus_eq = thm "inverse_minus_eq";
+val minus_mult_left = thm "minus_mult_left";
+val minus_mult_right = thm "minus_mult_right";
 
 val pos_real_less_divide_eq = thm"pos_less_divide_eq";
 val pos_real_divide_less_eq = thm"pos_divide_less_eq";
