@@ -865,7 +865,7 @@ fun decode_types tsig is_const def_type def_sort map_const map_type map_sort tm 
       | decode (t $ u) = decode t $ decode u
       | decode (Free (x, T)) =
           let val c = map_const x in
-            if not (is_free x) andalso (is_const c orelse NameSpace.qualified c) then
+            if not (is_free x) andalso (is_const c orelse NameSpace.is_qualified c) then
               Const (c, certT T)
             else if T = dummyT then Free (x, get_type (x, ~1))
             else constrain (Free (x, certT T)) (get_type (x, ~1))
