@@ -191,40 +191,4 @@ proof -
 qed
 
 
-lemma methd:
-  "[| wf_prog wf_mb G; (C,S,fs,mdecls) \<in> set G; (sig,rT,code) \<in> set mdecls |]
-  ==> method (G,C) sig = Some(C,rT,code) \<and> is_class G C"
-proof -
-  assume wf: "wf_prog wf_mb G" 
-  assume C:  "(C,S,fs,mdecls) \<in> set G"
-
-  assume m: "(sig,rT,code) \<in> set mdecls"
-  moreover
-  from wf
-  have "class G Object = Some (arbitrary, [], [])"
-    by simp 
-  moreover
-  from wf C
-  have c: "class G C = Some (S,fs,mdecls)"
-    by (auto simp add: wf_prog_def intro: map_of_SomeI)
-  ultimately
-  have O: "C \<noteq> Object"
-    by auto
-      
-  from wf C
-  have "unique mdecls"
-    by (unfold wf_prog_def wf_cdecl_def) auto
-
-  hence "unique (map (\<lambda>(s,m). (s,C,m)) mdecls)"
-    by - (induct mdecls, auto)
-
-  with m
-  have "map_of (map (\<lambda>(s,m). (s,C,m)) mdecls) sig = Some (C,rT,code)"
-    by (force intro: map_of_SomeI)
-
-  with wf C m c O
-  show ?thesis
-    by (auto dest: method_rec [of _ _ C])
-qed
-
 end
