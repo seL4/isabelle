@@ -482,6 +482,7 @@ qed "hcomplex_one_num";
 
 (*** Real and imaginary stuff ***)
 
+(*Convert???
 Goalw [hcomplex_number_of_def] 
   "((number_of xa :: hcomplex) + iii * number_of ya = \
 \       number_of xb + iii * number_of yb) = \
@@ -561,6 +562,7 @@ by (auto_tac (claset(), HOL_ss addsimps [hcomplex_eq_cancel_iff3a,
     hcomplex_hypreal_number_of,hcomplex_of_hypreal_zero_iff]));
 qed "hcomplex_number_of_eq_cancel_iff3a";
 Addsimps [hcomplex_number_of_eq_cancel_iff3a];
+*)
 
 Goalw [hcomplex_number_of_def] "hcnj (number_of v :: hcomplex) = number_of v";
 by (rtac (hcomplex_hypreal_number_of RS ssubst) 1);

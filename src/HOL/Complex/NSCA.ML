@@ -943,11 +943,8 @@ Goal "[| Abs_hypreal(hyprel `` {%n. Re(X n)}) : Reals; \
 \     |] ==> Abs_hcomplex(hcomplexrel ``{%n. X n}) : SComplex";
 by (auto_tac (claset(),simpset() addsimps [SComplex_def,
     hcomplex_of_complex_def,SReal_def,hypreal_of_real_def]));
-by (res_inst_tac [("x","complex_of_real r + ii  * complex_of_real ra")] exI 1);
+by (res_inst_tac [("x","Complex r ra")] exI 1);
 by (Ultra_tac 1);
-by (case_tac "X x" 1);
-by (auto_tac (claset(),simpset() addsimps [complex_of_real_def,i_def,
-    complex_add,complex_mult]));
 qed "Reals_Re_Im_SComplex";
 
 Goal "(Abs_hcomplex(hcomplexrel ``{%n. X n}) : SComplex) = \
@@ -987,8 +984,7 @@ by (REPEAT(dtac st_part_Ex 1 THEN Step_tac 1));
 by (res_inst_tac [("z","t")] eq_Abs_hypreal 1);
 by (res_inst_tac [("z","ta")] eq_Abs_hypreal 1);
 by Auto_tac;
-by (res_inst_tac [("x","%n. complex_of_real (xa n) + ii * complex_of_real (xb n)")]
-    exI 1);
+by (res_inst_tac [("x","%n. Complex (xa n) (xb n)")] exI 1);
 by Auto_tac;
 qed "stc_part_Ex";
 

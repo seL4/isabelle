@@ -194,7 +194,7 @@ qed "starfunCR_n_starfunCR";
 
 Goalw [congruent_def] 
       "congruent hcomplexrel (%X. hcomplexrel``{%n. f (X n)})";
-by (safe_tac (claset()));
+by (auto_tac (clasimpset() addIffs [hcomplexrel_iff]));
 by (ALLGOALS(Ultra_tac));
 qed "starfunC_congruent";
 
@@ -203,7 +203,7 @@ Goalw [starfunC_def]
       "( *fc* f) (Abs_hcomplex(hcomplexrel``{%n. X n})) = \
 \      Abs_hcomplex(hcomplexrel `` {%n. f (X n)})";
 by (res_inst_tac [("f","Abs_hcomplex")] arg_cong 1);
-by Auto_tac;
+by (auto_tac (clasimpset() addIffs [hcomplexrel_iff]));
 by (Ultra_tac 1);
 qed "starfunC";
 
@@ -219,7 +219,7 @@ Goalw [starfunCR_def]
       "( *fcR* f) (Abs_hcomplex(hcomplexrel``{%n. X n})) = \
 \      Abs_hypreal(hyprel `` {%n. f (X n)})";
 by (res_inst_tac [("f","Abs_hypreal")] arg_cong 1);
-by Auto_tac;
+by (auto_tac (clasimpset() addIffs [hcomplexrel_iff]));
 by (Ultra_tac 1);
 qed "starfunCR";
 
@@ -523,7 +523,7 @@ Addsimps [starfunRC_divide RS sym];
 
 Goalw [congruent_def] 
       "congruent hcomplexrel (%X. hcomplexrel``{%n. f n (X n)})";
-by (safe_tac (claset()));
+by (auto_tac (clasimpset() addIffs [hcomplexrel_iff]));
 by (ALLGOALS(Fuf_tac));
 qed "starfunC_n_congruent";
 
@@ -531,7 +531,7 @@ Goalw [starfunC_n_def]
      "( *fcn* f) (Abs_hcomplex(hcomplexrel``{%n. X n})) = \
 \     Abs_hcomplex(hcomplexrel `` {%n. f n (X n)})";
 by (res_inst_tac [("f","Abs_hcomplex")] arg_cong 1);
-by Auto_tac;
+by (auto_tac (clasimpset() addIffs [hcomplexrel_iff]));
 by (Ultra_tac 1);
 qed "starfunC_n";
 

@@ -367,9 +367,9 @@ structure ComplexAbstractNumeralsData =
   val prove_conv      = Bin_Simprocs.prove_conv_nohyps_novars
   fun norm_tac simps  = ALLGOALS (simp_tac (HOL_ss addsimps simps))
   val simplify_meta_eq = Bin_Simprocs.simplify_meta_eq
-  end
+  end;
 
-structure ComplexAbstractNumerals = AbstractNumeralsFun (ComplexAbstractNumeralsData)
+structure ComplexAbstractNumerals = AbstractNumeralsFun (ComplexAbstractNumeralsData);
 
 (*For addition, we already have rules for the operand 0.
   Multiplication is omitted because there are already special rules for
@@ -386,7 +386,7 @@ val eval_numerals =
      ComplexAbstractNumerals.proc diff_complex_number_of),
     ("complex_eq_eval_numerals",
      ["(m::complex) = 0", "(m::complex) = 1", "(m::complex) = number_of v"],
-     ComplexAbstractNumerals.proc eq_complex_number_of)]
+     ComplexAbstractNumerals.proc eq_complex_number_of)];
 
 end;
 
@@ -447,44 +447,7 @@ Addsimprocs [Complex_Times_Assoc.conv];
 Addsimps [complex_of_real_zero_iff];
 
 
-(*** Real and imaginary stuff ***)
-
-Goalw [complex_number_of_def] 
-  "((number_of xa :: complex) + ii * number_of ya = \
-\       number_of xb + ii * number_of yb) = \
-\  (((number_of xa :: complex) = number_of xb) & \
-\   ((number_of ya :: complex) = number_of yb))";
-by (auto_tac (claset(), HOL_ss addsimps [complex_eq_cancel_iff]));
-qed "complex_number_of_eq_cancel_iff";
-Addsimps [complex_number_of_eq_cancel_iff];
-
-Goalw [complex_number_of_def] 
-  "((number_of xa :: complex) + number_of ya * ii = \
-\       number_of xb + number_of yb * ii) = \
-\  (((number_of xa :: complex) = number_of xb) & \
-\   ((number_of ya :: complex) = number_of yb))";
-by (auto_tac (claset(), HOL_ss addsimps [complex_eq_cancel_iffA]));
-qed "complex_number_of_eq_cancel_iffA";
-Addsimps [complex_number_of_eq_cancel_iffA];
-
-Goalw [complex_number_of_def] 
-  "((number_of xa :: complex) + number_of ya * ii = \
-\       number_of xb + ii * number_of yb) = \
-\  (((number_of xa :: complex) = number_of xb) & \
-\   ((number_of ya :: complex) = number_of yb))";
-by (auto_tac (claset(), HOL_ss addsimps [complex_eq_cancel_iffB]));
-qed "complex_number_of_eq_cancel_iffB";
-Addsimps [complex_number_of_eq_cancel_iffB];
-
-Goalw [complex_number_of_def] 
-  "((number_of xa :: complex) + ii * number_of ya = \
-\       number_of xb + number_of yb * ii) = \
-\  (((number_of xa :: complex) = number_of xb) & \
-\   ((number_of ya :: complex) = number_of yb))";
-by (auto_tac (claset(), HOL_ss addsimps [complex_eq_cancel_iffC]));
-qed "complex_number_of_eq_cancel_iffC";
-Addsimps [complex_number_of_eq_cancel_iffC];
-
+(*Convert???
 Goalw [complex_number_of_def] 
   "((number_of xa :: complex) + ii * number_of ya = \
 \       number_of xb) = \
@@ -524,6 +487,7 @@ by (auto_tac (claset(), HOL_ss addsimps [complex_eq_cancel_iff3a,
     complex_of_real_zero_iff]));
 qed "complex_number_of_eq_cancel_iff3a";
 Addsimps [complex_number_of_eq_cancel_iff3a];
+*)
 
 Goalw [complex_number_of_def] "cnj (number_of v :: complex) = number_of v";
 by (rtac complex_cnj_complex_of_real 1);

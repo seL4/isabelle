@@ -386,17 +386,18 @@ proof -
   proof (intro exI conjI)
     show "0 < x*y" by (simp add: mult_pos)
     show "x * y \<notin> mult_set A B"
-    proof (auto simp add: mult_set_def)
-      fix u::rat and v::rat
-      assume "u \<in> A" and "v \<in> B" and "x*y = u*v"
-      moreover
-      with prems have "u<x" and "v<y" by (blast dest: not_in_preal_ub)+
-      moreover
-      with prems have "0\<le>v"
-        by (blast intro: preal_imp_pos [OF B]  order_less_imp_le prems)
-      moreover
-      hence "u*v < x*y" by (blast intro: mult_strict_mono prems)
-      ultimately show False by force
+    proof -
+      { fix u::rat and v::rat
+	assume "u \<in> A" and "v \<in> B" and "x*y = u*v"
+	moreover
+	with prems have "u<x" and "v<y" by (blast dest: not_in_preal_ub)+
+	moreover
+	with prems have "0\<le>v"
+	  by (blast intro: preal_imp_pos [OF B]  order_less_imp_le prems)
+	moreover
+	hence "u*v < x*y" by (blast intro: mult_strict_mono prems)
+	ultimately have False by force}
+      thus ?thesis by (auto simp add: mult_set_def)
     qed
   qed
 qed
@@ -646,14 +647,15 @@ proof -
   proof (intro exI conjI)
     show "0 < inverse x" by simp
     show "inverse x \<notin> inverse_set A"
-    proof (auto simp add: inverse_set_def)
-      fix y::rat 
-      assume ygt: "inverse x < y"
-      have [simp]: "0 < y" by (simp add: order_less_trans [OF _ ygt])
-      have iyless: "inverse y < x" 
-        by (simp add: inverse_less_imp_less [of x] ygt)
-      show "inverse y \<in> A"
-        by (simp add: preal_downwards_closed [OF A x] iyless) 
+    proof -
+      { fix y::rat 
+	assume ygt: "inverse x < y"
+	have [simp]: "0 < y" by (simp add: order_less_trans [OF _ ygt])
+	have iyless: "inverse y < x" 
+	  by (simp add: inverse_less_imp_less [of x] ygt)
+	have "inverse y \<in> A"
+	  by (simp add: preal_downwards_closed [OF A x] iyless)}
+     thus ?thesis by (auto simp add: inverse_set_def)
     qed
   qed
 qed

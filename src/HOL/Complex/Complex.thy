@@ -3,11 +3,9 @@
     Copyright:   2001 University of Edinburgh
 *)
 
-header {* Complex numbers *}
+header {* Complex Numbers: Rectangular and Polar Representations *}
 
 theory Complex = HLog:
-
-subsection {* Representation of complex numbers *}
 
 datatype complex = Complex real real
 
@@ -89,7 +87,7 @@ constdefs
 
   (* abbreviation for (cos a + i sin a) *)
   cis :: "real => complex"
-  "cis a == complex_of_real(cos a) + ii * complex_of_real(sin a)"
+  "cis a == Complex (cos a) (sin a)"
 
   (* abbreviation for r*(cos a + i sin a) *)
   rcis :: "[real, real] => complex"
@@ -139,7 +137,7 @@ by (simp add: complex_of_real_def)
 
 subsection{*Unary Minus*}
 
-lemma complex_minus: "- (Complex x y) = Complex (-x) (-y)"
+lemma complex_minus [simp]: "- (Complex x y) = Complex (-x) (-y)"
 by (simp add: complex_minus_def)
 
 lemma complex_Re_minus [simp]: "Re (-z) = - Re z"
@@ -151,7 +149,8 @@ by (simp add: complex_minus_def)
 
 subsection{*Addition*}
 
-lemma complex_add: "Complex x1 y1 + Complex x2 y2 = Complex (x1+x2) (y1+y2)"
+lemma complex_add [simp]:
+     "Complex x1 y1 + Complex x2 y2 = Complex (x1+x2) (y1+y2)"
 by (simp add: complex_add_def)
 
 lemma complex_Re_add [simp]: "Re(x + y) = Re(x) + Re(y)"
@@ -188,7 +187,7 @@ by (simp add: complex_diff_def)
 
 subsection{*Multiplication*}
 
-lemma complex_mult:
+lemma complex_mult [simp]:
      "Complex x1 y1 * Complex x2 y2 = Complex (x1*x2 - y1*y2) (x1*y2 + y1*x2)"
 by (simp add: complex_mult_def)
 
@@ -208,7 +207,7 @@ by (simp add: complex_mult_def complex_one_def)
 
 subsection{*Inverse*}
 
-lemma complex_inverse:
+lemma complex_inverse [simp]:
      "inverse (Complex x y) = Complex (x/(x ^ 2 + y ^ 2)) (-y/(x ^ 2 + y ^ 2))"
 by (simp add: complex_inverse_def)
 
@@ -272,6 +271,28 @@ qed
 
 subsection{*Embedding Properties for @{term complex_of_real} Map*}
 
+lemma Complex_add_complex_of_real [simp]:
+     "Complex x y + complex_of_real r = Complex (x+r) y"
+by (simp add: complex_of_real_def)
+
+lemma complex_of_real_add_Complex [simp]:
+     "complex_of_real r + Complex x y = Complex (r+x) y"
+by (simp add: i_def complex_of_real_def)
+
+lemma Complex_mult_complex_of_real:
+     "Complex x y * complex_of_real r = Complex (x*r) (y*r)"
+by (simp add: complex_of_real_def)
+
+lemma complex_of_real_mult_Complex:
+     "complex_of_real r * Complex x y = Complex (r*x) (r*y)"
+by (simp add: i_def complex_of_real_def)
+
+lemma i_complex_of_real [simp]: "ii * complex_of_real r = Complex 0 r"
+by (simp add: i_def complex_of_real_def)
+
+lemma complex_of_real_i [simp]: "complex_of_real r * ii = Complex 0 r"
+by (simp add: i_def complex_of_real_def)
+
 lemma complex_of_real_one [simp]: "complex_of_real 1 = 1"
 by (simp add: complex_one_def complex_of_real_def)
 
@@ -313,7 +334,7 @@ apply (simp add: complex_of_real_mult [symmetric] complex_of_real_inverse
                  real_divide_def)
 done
 
-lemma complex_mod: "cmod (Complex x y) = sqrt(x ^ 2 + y ^ 2)"
+lemma complex_mod [simp]: "cmod (Complex x y) = sqrt(x ^ 2 + y ^ 2)"
 by (simp add: cmod_def)
 
 lemma complex_mod_zero [simp]: "cmod(0) = 0"
@@ -329,6 +350,46 @@ lemma complex_of_real_abs:
      "complex_of_real (abs x) = complex_of_real(cmod(complex_of_real x))"
 by simp
 
+
+subsection{*The Functions @{term Re} and @{term Im}*}
+
+lemma complex_Re_mult_eq: "Re (w * z) = Re w * Re z - Im w * Im z"
+by (induct z, induct w, simp add: complex_mult)
+
+lemma complex_Im_mult_eq: "Im (w * z) = Re w * Im z + Im w * Re z"
+by (induct z, induct w, simp add: complex_mult)
+
+lemma Re_i_times [simp]: "Re(ii * z) = - Im z"
+by (simp add: complex_Re_mult_eq) 
+
+lemma Re_times_i [simp]: "Re(z * ii) = - Im z"
+by (simp add: complex_Re_mult_eq) 
+
+lemma Im_i_times [simp]: "Im(ii * z) = Re z"
+by (simp add: complex_Im_mult_eq) 
+
+lemma Im_times_i [simp]: "Im(z * ii) = Re z"
+by (simp add: complex_Im_mult_eq) 
+
+lemma complex_Re_mult: "[| Im w = 0; Im z = 0 |] ==> Re(w * z) = Re(w) * Re(z)"
+by (simp add: complex_Re_mult_eq)
+
+lemma complex_Re_mult_complex_of_real [simp]:
+     "Re (z * complex_of_real c) = Re(z) * c"
+by (simp add: complex_Re_mult_eq)
+
+lemma complex_Im_mult_complex_of_real [simp]:
+     "Im (z * complex_of_real c) = Im(z) * c"
+by (simp add: complex_Im_mult_eq)
+
+lemma complex_Re_mult_complex_of_real2 [simp]:
+     "Re (complex_of_real c * z) = c * Re(z)"
+by (simp add: complex_Re_mult_eq)
+
+lemma complex_Im_mult_complex_of_real2 [simp]:
+     "Im (complex_of_real c * z) = c * Im(z)"
+by (simp add: complex_Im_mult_eq)
+ 
 
 subsection{*Conjugation is an Automorphism*}
 
@@ -420,13 +481,19 @@ by (simp add: abs_if linorder_not_less)
 
 lemma complex_mod_mult: "cmod(x*y) = cmod(x) * cmod(y)"
 apply (induct x, induct y)
-apply (auto simp add: complex_mult complex_mod real_sqrt_mult_distrib2[symmetric]
-         simp del: realpow_Suc)
+apply (auto simp add: complex_mult complex_mod real_sqrt_mult_distrib2[symmetric])
 apply (rule_tac n = 1 in power_inject_base)
 apply (auto simp add: power2_eq_square [symmetric] simp del: realpow_Suc)
 apply (auto simp add: real_diff_def power2_eq_square right_distrib left_distrib 
                       add_ac mult_ac)
 done
+
+lemma cmod_unit_one [simp]: "cmod (Complex (cos a) (sin a)) = 1"
+by (simp add: cmod_def) 
+
+lemma cmod_complex_polar [simp]:
+     "cmod (complex_of_real r * Complex (cos a) (sin a)) = abs r"
+by (simp only: cmod_unit_one complex_mod_mult, simp) 
 
 lemma complex_mod_add_squared_eq:
      "cmod(x + y) ^ 2 = cmod(x) ^ 2 + cmod(y) ^ 2 + 2 * Re(x * cnj y)"
@@ -506,10 +573,7 @@ apply (auto simp add: complex_mod_mult [symmetric])
 done
 
 lemma complex_mod_divide: "cmod(x/y) = cmod(x)/(cmod y)"
-by (simp add: complex_divide_def real_divide_def, simp add: complex_mod_mult complex_mod_inverse)
-
-lemma complex_inverse_divide [simp]: "inverse(x/y) = y/(x::complex)"
-by (simp add: complex_divide_def inverse_mult_distrib mult_commute)
+by (simp add: complex_divide_def real_divide_def complex_mod_mult complex_mod_inverse)
 
 
 subsection{*Exponentiation*}
@@ -566,20 +630,7 @@ lemma sgn_minus: "sgn (-z) = - sgn(z)"
 by (simp add: sgn_def)
 
 lemma sgn_eq: "sgn z = z / complex_of_real (cmod z)"
-apply (simp add: sgn_def)
-done
-
-lemma complex_split: "\<exists>x y. z = complex_of_real(x) + ii * complex_of_real(y)"
-apply (induct z)
-apply (auto simp add: complex_of_real_def i_def complex_mult complex_add)
-done
-
-(*????delete????*)
-lemma Re_complex_i [simp]: "Re(complex_of_real(x) + ii * complex_of_real(y)) = x"
-by (auto simp add: complex_of_real_def i_def complex_mult complex_add)
-
-lemma Im_complex_i [simp]: "Im(complex_of_real(x) + ii * complex_of_real(y)) = y"
-by (auto simp add: complex_of_real_def i_def complex_mult complex_add)
+by (simp add: sgn_def)
 
 lemma i_mult_eq: "ii * ii = complex_of_real (-1)"
 by (simp add: i_def complex_of_real_def complex_mult complex_add)
@@ -587,78 +638,22 @@ by (simp add: i_def complex_of_real_def complex_mult complex_add)
 lemma i_mult_eq2 [simp]: "ii * ii = -(1::complex)"
 by (simp add: i_def complex_one_def complex_mult complex_minus)
 
-lemma cmod_i: "cmod (complex_of_real(x) + ii * complex_of_real(y)) =
-      sqrt (x ^ 2 + y ^ 2)"
-by (simp add: complex_mult complex_add i_def complex_of_real_def cmod_def)
-
-lemma complex_eq_Re_eq:
-     "complex_of_real xa + ii * complex_of_real ya =
-      complex_of_real xb + ii * complex_of_real yb
-       ==> xa = xb"
-by (simp add: complex_of_real_def i_def complex_mult complex_add)
-
-lemma complex_eq_Im_eq:
-     "complex_of_real xa + ii * complex_of_real ya =
-      complex_of_real xb + ii * complex_of_real yb
-       ==> ya = yb"
-by (simp add: complex_of_real_def i_def complex_mult complex_add)
-
-(*FIXME: tidy up this mess by fixing a canonical form for complex expressions,
-e.g. x + y*ii*)
-
-lemma complex_eq_cancel_iff [iff]:
-     "(complex_of_real xa + ii * complex_of_real ya =
-       complex_of_real xb + ii * complex_of_real yb) = ((xa = xb) & (ya = yb))"
-by (auto intro: complex_eq_Im_eq complex_eq_Re_eq)
-
-lemma complex_eq_cancel_iffA [iff]:
-     "(complex_of_real xa + complex_of_real ya * ii =
-       complex_of_real xb + complex_of_real yb * ii) = ((xa = xb) & (ya = yb))"
-by (simp add: mult_commute)
-
-lemma complex_eq_cancel_iffB [iff]:
-     "(complex_of_real xa + complex_of_real ya * ii =
-       complex_of_real xb + ii * complex_of_real yb) = ((xa = xb) & (ya = yb))"
-by (auto simp add: mult_commute)
-
-lemma complex_eq_cancel_iffC [iff]:
-     "(complex_of_real xa + ii * complex_of_real ya  =
-       complex_of_real xb + complex_of_real yb * ii) = ((xa = xb) & (ya = yb))"
-by (auto simp add: mult_commute)
-
 lemma complex_eq_cancel_iff2 [simp]:
-     "(complex_of_real x + ii * complex_of_real y =
-      complex_of_real xa) = (x = xa & y = 0)"
-apply (cut_tac xa = x and ya = y and xb = xa and yb = 0 in complex_eq_cancel_iff)
-apply (simp del: complex_eq_cancel_iff)
-done
+     "(Complex x y = complex_of_real xa) = (x = xa & y = 0)"
+by (simp add: complex_of_real_def) 
 
 lemma complex_eq_cancel_iff2a [simp]:
-     "(complex_of_real x + complex_of_real y * ii =
-      complex_of_real xa) = (x = xa & y = 0)"
-by (auto simp add: mult_commute)
+     "(Complex x y = complex_of_real xa) = (x = xa & y = 0)"
+by (simp add: complex_of_real_def)
 
-lemma complex_eq_cancel_iff3 [simp]:
-     "(complex_of_real x + ii * complex_of_real y =
-      ii * complex_of_real ya) = (x = 0 & y = ya)"
-apply (cut_tac xa = x and ya = y and xb = 0 and yb = ya in complex_eq_cancel_iff)
-apply (simp del: complex_eq_cancel_iff)
-done
+lemma Complex_eq_0 [simp]: "(Complex x y = 0) = (x = 0 & y = 0)"
+by (simp add: complex_zero_def)
 
-lemma complex_eq_cancel_iff3a [simp]:
-     "(complex_of_real x + complex_of_real y * ii =
-      ii * complex_of_real ya) = (x = 0 & y = ya)"
-by (auto simp add: mult_commute)
+lemma Complex_eq_1 [simp]: "(Complex x y = 1) = (x = 1 & y = 0)"
+by (simp add: complex_one_def)
 
-lemma complex_split_Re_zero:
-     "complex_of_real x + ii * complex_of_real y = 0
-      ==> x = 0"
-by (simp add: complex_of_real_def i_def complex_zero_def complex_mult complex_add)
-
-lemma complex_split_Im_zero:
-     "complex_of_real x + ii * complex_of_real y = 0
-      ==> y = 0"
-by (simp add: complex_of_real_def i_def complex_zero_def complex_mult complex_add)
+lemma Complex_eq_i [simp]: "(Complex x y = ii) = (x = 0 & y = 1)"
+by (simp add: i_def)
 
 lemma Re_sgn [simp]: "Re(sgn z) = Re(z)/cmod z"
 apply (induct z)
@@ -687,77 +682,53 @@ by (simp add: complex_of_real_def i_def complex_mult complex_add
 lemma complex_of_real_zero_iff [simp]: "(complex_of_real y = 0) = (y = 0)"
 by (auto simp add: complex_zero_def complex_of_real_def)
 
-lemma Re_mult_i_eq [simp]: "Re (ii * complex_of_real y) = 0"
-by (simp add: i_def complex_of_real_def complex_mult)
-
-lemma Im_mult_i_eq [simp]: "Im (ii * complex_of_real y) = y"
-by (simp add: i_def complex_of_real_def complex_mult)
-
-lemma complex_mod_mult_i [simp]: "cmod (ii * complex_of_real y) = abs y"
-by (simp add: i_def complex_of_real_def complex_mult complex_mod power2_eq_square)
-
 lemma cos_arg_i_mult_zero_pos:
-   "0 < y ==> cos (arg(ii * complex_of_real y)) = 0"
+   "0 < y ==> cos (arg(Complex 0 y)) = 0"
 apply (simp add: arg_def abs_if)
 apply (rule_tac a = "pi/2" in someI2, auto)
 apply (rule order_less_trans [of _ 0], auto)
 done
 
 lemma cos_arg_i_mult_zero_neg:
-   "y < 0 ==> cos (arg(ii * complex_of_real y)) = 0"
+   "y < 0 ==> cos (arg(Complex 0 y)) = 0"
 apply (simp add: arg_def abs_if)
 apply (rule_tac a = "- pi/2" in someI2, auto)
 apply (rule order_trans [of _ 0], auto)
 done
 
 lemma cos_arg_i_mult_zero [simp]:
-     "y \<noteq> 0 ==> cos (arg(ii * complex_of_real y)) = 0"
-apply (insert linorder_less_linear [of y 0])
-apply (auto simp add: cos_arg_i_mult_zero_pos cos_arg_i_mult_zero_neg)
-done
+     "y \<noteq> 0 ==> cos (arg(Complex 0 y)) = 0"
+by (auto simp add: linorder_neq_iff cos_arg_i_mult_zero_pos cos_arg_i_mult_zero_neg)
 
 
 subsection{*Finally! Polar Form for Complex Numbers*}
 
 lemma complex_split_polar:
-     "\<exists>r a. z = complex_of_real r *
-      (complex_of_real(cos a) + ii * complex_of_real(sin a))"
-apply (cut_tac z = z in complex_split)
-apply (auto simp add: polar_Ex right_distrib complex_of_real_mult mult_ac)
+     "\<exists>r a. z = complex_of_real r * (Complex (cos a) (sin a))"
+apply (induct z) 
+apply (auto simp add: polar_Ex complex_of_real_mult_Complex)
 done
 
 lemma rcis_Ex: "\<exists>r a. z = rcis r a"
-apply (simp add: rcis_def cis_def)
-apply (rule complex_split_polar)
+apply (induct z) 
+apply (simp add: rcis_def cis_def polar_Ex complex_of_real_mult_Complex)
 done
-
-lemma Re_complex_polar [simp]:
-     "Re(complex_of_real r *
-      (complex_of_real(cos a) + ii * complex_of_real(sin a))) = r * cos a"
-by (auto simp add: right_distrib complex_of_real_mult mult_ac)
 
 lemma Re_rcis [simp]: "Re(rcis r a) = r * cos a"
 by (simp add: rcis_def cis_def)
 
-lemma Im_complex_polar [simp]:
-     "Im(complex_of_real r *
-         (complex_of_real(cos a) + ii * complex_of_real(sin a))) =
-      r * sin a"
-by (auto simp add: right_distrib complex_of_real_mult mult_ac)
-
 lemma Im_rcis [simp]: "Im(rcis r a) = r * sin a"
 by (simp add: rcis_def cis_def)
 
-lemma complex_mod_complex_polar [simp]:
-     "cmod (complex_of_real r *
-            (complex_of_real(cos a) + ii * complex_of_real(sin a))) =
-      abs r"
-by (auto simp add: right_distrib cmod_i complex_of_real_mult
-                      right_distrib [symmetric] power_mult_distrib mult_ac
-         simp del: realpow_Suc)
+lemma sin_cos_squared_add2_mult: "(r * cos a)\<twosuperior> + (r * sin a)\<twosuperior> = r\<twosuperior>"
+proof -
+  have "(r * cos a)\<twosuperior> + (r * sin a)\<twosuperior> = r\<twosuperior> * ((cos a)\<twosuperior> + (sin a)\<twosuperior>)"
+    by (simp only: power_mult_distrib right_distrib) 
+  thus ?thesis by simp
+qed
 
 lemma complex_mod_rcis [simp]: "cmod(rcis r a) = abs r"
-by (simp add: rcis_def cis_def)
+by (simp add: rcis_def cis_def sin_cos_squared_add2_mult)
 
 lemma complex_mod_sqrt_Re_mult_cnj: "cmod z = sqrt (Re (z * cnj z))"
 apply (simp add: cmod_def)
@@ -774,24 +745,6 @@ by (induct z, simp add: complex_cnj)
 lemma complex_In_mult_cnj_zero [simp]: "Im (z * cnj z) = 0"
 by (induct z, simp add: complex_cnj complex_mult)
 
-lemma complex_Re_mult: "[| Im w = 0; Im z = 0 |] ==> Re(w * z) = Re(w) * Re(z)"
-by (induct z, induct w, simp add: complex_mult)
-
-lemma complex_Re_mult_complex_of_real [simp]:
-     "Re (z * complex_of_real c) = Re(z) * c"
-by (induct z, simp add: complex_of_real_def complex_mult)
-
-lemma complex_Im_mult_complex_of_real [simp]:
-     "Im (z * complex_of_real c) = Im(z) * c"
-by (induct z, simp add: complex_of_real_def complex_mult)
-
-lemma complex_Re_mult_complex_of_real2 [simp]:
-     "Re (complex_of_real c * z) = c * Re(z)"
-by (induct z, simp add: complex_of_real_def complex_mult)
-
-lemma complex_Im_mult_complex_of_real2 [simp]:
-     "Im (complex_of_real c * z) = c * Im(z)"
-by (induct z, simp add: complex_of_real_def complex_mult)
 
 (*---------------------------------------------------------------------------*)
 (*  (r1 * cis a) * (r2 * cis b) = r1 * r2 * cis (a + b)                      *)
@@ -801,21 +754,13 @@ lemma cis_rcis_eq: "cis a = rcis 1 a"
 by (simp add: rcis_def)
 
 lemma rcis_mult: "rcis r1 a * rcis r2 b = rcis (r1*r2) (a + b)"
-apply (simp add: rcis_def cis_def cos_add sin_add right_distrib left_distrib
-                 mult_ac add_ac)
-apply (auto simp add: right_distrib [symmetric] complex_mult_assoc [symmetric] complex_of_real_mult complex_of_real_add complex_add_assoc [symmetric] i_mult_eq simp del: i_mult_eq2)
-apply (auto simp add: add_ac)
-apply (auto simp add: complex_add_assoc [symmetric] complex_of_real_add right_distrib real_diff_def mult_ac add_ac)
-done
+by (simp add: rcis_def cis_def complex_of_real_mult_Complex cos_add sin_add right_distrib right_diff_distrib)
 
 lemma cis_mult: "cis a * cis b = cis (a + b)"
 by (simp add: cis_rcis_eq rcis_mult)
 
 lemma cis_zero [simp]: "cis 0 = 1"
-by (simp add: cis_def)
-
-lemma cis_zero2 [simp]: "cis 0 = complex_of_real 1"
-by (simp add: cis_def)
+by (simp add: cis_def complex_one_def)
 
 lemma rcis_zero_mod [simp]: "rcis 0 a = 0"
 by (simp add: rcis_def)
@@ -825,8 +770,7 @@ by (simp add: rcis_def)
 
 lemma complex_of_real_minus_one:
    "complex_of_real (-(1::real)) = -(1::complex)"
-apply (simp add: complex_of_real_def complex_one_def complex_minus)
-done
+by (simp add: complex_of_real_def complex_one_def complex_minus)
 
 lemma complex_i_mult_minus [simp]: "ii * (ii * x) = - x"
 by (simp add: complex_mult_assoc [symmetric])
@@ -834,10 +778,7 @@ by (simp add: complex_mult_assoc [symmetric])
 
 lemma cis_real_of_nat_Suc_mult:
    "cis (real (Suc n) * a) = cis a * cis (real n * a)"
-apply (simp add: cis_def)
-apply (auto simp add: real_of_nat_Suc left_distrib cos_add sin_add left_distrib right_distrib complex_of_real_add complex_of_real_mult mult_ac add_ac)
-apply (auto simp add: right_distrib [symmetric] complex_mult_assoc [symmetric] i_mult_eq complex_of_real_mult complex_of_real_add complex_add_assoc [symmetric] complex_of_real_minus [symmetric] real_diff_def mult_ac simp del: i_mult_eq2)
-done
+by (simp add: cis_def real_of_nat_Suc left_distrib cos_add sin_add right_distrib)
 
 lemma DeMoivre: "(cis a) ^ n = cis (real n * a)"
 apply (induct_tac "n")
@@ -852,12 +793,7 @@ by (simp add: cis_def complex_inverse_complex_split complex_of_real_minus
               complex_diff_def)
 
 lemma rcis_inverse: "inverse(rcis r a) = rcis (1/r) (-a)"
-apply (case_tac "r=0", simp)
-apply (auto simp add: complex_inverse_complex_split right_distrib
-            complex_of_real_mult rcis_def cis_def power2_eq_square mult_ac)
-apply (auto simp add: right_distrib [symmetric] complex_of_real_minus 
-                      complex_diff_def)
-done
+by (simp add: divide_inverse_zero rcis_def complex_of_real_inverse)
 
 lemma cis_divide: "cis a / cis b = cis (a - b)"
 by (simp add: complex_divide_def cis_mult real_diff_def)
@@ -880,34 +816,12 @@ by (auto simp add: DeMoivre)
 lemma sin_n_Im_cis_pow_n: "sin (real n * a) = Im(cis a ^ n)"
 by (auto simp add: DeMoivre)
 
-lemma expi_Im_split:
-    "expi (ii * complex_of_real y) =
-     complex_of_real (cos y) + ii * complex_of_real (sin y)"
-by (simp add: expi_def cis_def)
-
-lemma expi_Im_cis:
-    "expi (ii * complex_of_real y) = cis y"
-by (simp add: expi_def)
-
 lemma expi_add: "expi(a + b) = expi(a) * expi(b)"
 by (simp add: expi_def complex_Re_add exp_add complex_Im_add 
               cis_mult [symmetric] complex_of_real_mult mult_ac)
 
-lemma expi_complex_split:
-     "expi(complex_of_real x + ii * complex_of_real y) =
-      complex_of_real (exp(x)) * cis y"
-by (simp add: expi_def)
-
 lemma expi_zero [simp]: "expi (0::complex) = 1"
 by (simp add: expi_def)
-
-lemma complex_Re_mult_eq: "Re (w * z) = Re w * Re z - Im w * Im z"
-by (induct z, induct w, simp add: complex_mult)
-
-lemma complex_Im_mult_eq:
-     "Im (w * z) = Re w * Im z + Im w * Re z"
-apply (induct z, induct w, simp add: complex_mult)
-done
 
 lemma complex_expi_Ex: "\<exists>a r. z = complex_of_real r * expi a"
 apply (insert rcis_Ex [of z])
@@ -1023,46 +937,22 @@ val complex_mod_complexpow = thm"complex_mod_complexpow";
 val complexpow_minus = thm"complexpow_minus";
 val complex_mod_inverse = thm"complex_mod_inverse";
 val complex_mod_divide = thm"complex_mod_divide";
-val complex_inverse_divide = thm"complex_inverse_divide";
 val complexpow_i_squared = thm"complexpow_i_squared";
 val complex_i_not_zero = thm"complex_i_not_zero";
 val sgn_zero = thm"sgn_zero";
 val sgn_one = thm"sgn_one";
 val sgn_minus = thm"sgn_minus";
 val sgn_eq = thm"sgn_eq";
-val complex_split = thm"complex_split";
-val Re_complex_i = thm"Re_complex_i";
-val Im_complex_i = thm"Im_complex_i";
 val i_mult_eq = thm"i_mult_eq";
 val i_mult_eq2 = thm"i_mult_eq2";
-val cmod_i = thm"cmod_i";
-val complex_eq_Re_eq = thm"complex_eq_Re_eq";
-val complex_eq_Im_eq = thm"complex_eq_Im_eq";
-val complex_eq_cancel_iff = thm"complex_eq_cancel_iff";
-val complex_eq_cancel_iffA = thm"complex_eq_cancel_iffA";
-val complex_eq_cancel_iffB = thm"complex_eq_cancel_iffB";
-val complex_eq_cancel_iffC = thm"complex_eq_cancel_iffC";
-val complex_eq_cancel_iff2 = thm"complex_eq_cancel_iff2";
-val complex_eq_cancel_iff2a = thm"complex_eq_cancel_iff2a";
-val complex_eq_cancel_iff3 = thm"complex_eq_cancel_iff3";
-val complex_eq_cancel_iff3a = thm"complex_eq_cancel_iff3a";
-val complex_split_Re_zero = thm"complex_split_Re_zero";
-val complex_split_Im_zero = thm"complex_split_Im_zero";
 val Re_sgn = thm"Re_sgn";
 val Im_sgn = thm"Im_sgn";
 val complex_inverse_complex_split = thm"complex_inverse_complex_split";
-val Re_mult_i_eq = thm"Re_mult_i_eq";
-val Im_mult_i_eq = thm"Im_mult_i_eq";
-val complex_mod_mult_i = thm"complex_mod_mult_i";
 val cos_arg_i_mult_zero = thm"cos_arg_i_mult_zero";
 val complex_of_real_zero_iff = thm"complex_of_real_zero_iff";
-val complex_split_polar = thm"complex_split_polar";
 val rcis_Ex = thm"rcis_Ex";
-val Re_complex_polar = thm"Re_complex_polar";
 val Re_rcis = thm"Re_rcis";
-val Im_complex_polar = thm"Im_complex_polar";
 val Im_rcis = thm"Im_rcis";
-val complex_mod_complex_polar = thm"complex_mod_complex_polar";
 val complex_mod_rcis = thm"complex_mod_rcis";
 val complex_mod_sqrt_Re_mult_cnj = thm"complex_mod_sqrt_Re_mult_cnj";
 val complex_Re_cnj = thm"complex_Re_cnj";
@@ -1077,7 +967,6 @@ val cis_rcis_eq = thm"cis_rcis_eq";
 val rcis_mult = thm"rcis_mult";
 val cis_mult = thm"cis_mult";
 val cis_zero = thm"cis_zero";
-val cis_zero2 = thm"cis_zero2";
 val rcis_zero_mod = thm"rcis_zero_mod";
 val rcis_zero_arg = thm"rcis_zero_arg";
 val complex_of_real_minus_one = thm"complex_of_real_minus_one";
@@ -1093,10 +982,7 @@ val Re_cis = thm"Re_cis";
 val Im_cis = thm"Im_cis";
 val cos_n_Re_cis_pow_n = thm"cos_n_Re_cis_pow_n";
 val sin_n_Im_cis_pow_n = thm"sin_n_Im_cis_pow_n";
-val expi_Im_split = thm"expi_Im_split";
-val expi_Im_cis = thm"expi_Im_cis";
 val expi_add = thm"expi_add";
-val expi_complex_split = thm"expi_complex_split";
 val expi_zero = thm"expi_zero";
 val complex_Re_mult_eq = thm"complex_Re_mult_eq";
 val complex_Im_mult_eq = thm"complex_Im_mult_eq";

@@ -94,10 +94,10 @@ lemma add_right_cancel [simp]:
   by (simp add: add_commute)
 
 lemma minus_minus [simp]: "- (- (a::'a::ring)) = a"
-  proof (rule add_left_cancel [of "-a", THEN iffD1])
-    show "(-a + -(-a) = -a + a)"
-    by simp
-  qed
+proof (rule add_left_cancel [of "-a", THEN iffD1])
+  show "(-a + -(-a) = -a + a)"
+  by simp
+qed
 
 lemma equals_zero_I: "a+b = 0 ==> -a = (b::'a::ring)"
 apply (rule right_minus_eq [THEN iffD1, symmetric])
@@ -120,15 +120,15 @@ lemma diff_minus_eq_add [simp]: "a - - b = a + (b::'a::ring)"
 by (simp add: diff_minus)
 
 lemma neg_equal_iff_equal [simp]: "(-a = -b) = (a = (b::'a::ring))" 
-  proof 
-    assume "- a = - b"
-    hence "- (- a) = - (- b)"
-      by simp
-    thus "a=b" by simp
-  next
-    assume "a=b"
-    thus "-a = -b" by simp
-  qed
+proof 
+  assume "- a = - b"
+  hence "- (- a) = - (- b)"
+    by simp
+  thus "a=b" by simp
+next
+  assume "a=b"
+  thus "-a = -b" by simp
+qed
 
 lemma neg_equal_0_iff_equal [simp]: "(-a = 0) = (a = (0::'a::ring))"
 by (subst neg_equal_iff_equal [symmetric], simp)
@@ -139,16 +139,16 @@ by (subst neg_equal_iff_equal [symmetric], simp)
 text{*The next two equations can make the simplifier loop!*}
 
 lemma equation_minus_iff: "(a = - b) = (b = - (a::'a::ring))"
-  proof -
+proof -
   have "(- (-a) = - b) = (- a = b)" by (rule neg_equal_iff_equal)
   thus ?thesis by (simp add: eq_commute)
-  qed
+qed
 
 lemma minus_equation_iff: "(- a = b) = (- (b::'a::ring) = a)"
-  proof -
+proof -
   have "(- a = - (-b)) = (a = -b)" by (rule neg_equal_iff_equal)
   thus ?thesis by (simp add: eq_commute)
-  qed
+qed
 
 
 subsection {* Derived rules for multiplication *}
@@ -263,13 +263,13 @@ done
 
 lemma add_less_imp_less_left:
       assumes less: "c + a < c + b"  shows "a < (b::'a::ordered_semiring)"
-  proof (rule ccontr)
-    assume "~ a < b"
-    hence "b \<le> a" by (simp add: linorder_not_less)
-    hence "c+b \<le> c+a" by (rule add_left_mono)
-    with this and less show False 
-      by (simp add: linorder_not_less [symmetric])
-  qed
+proof (rule ccontr)
+  assume "~ a < b"
+  hence "b \<le> a" by (simp add: linorder_not_less)
+  hence "c+b \<le> c+a" by (rule add_left_mono)
+  with this and less show False 
+    by (simp add: linorder_not_less [symmetric])
+qed
 
 lemma add_less_imp_less_right:
       "a + c < b + c ==> a < (b::'a::ordered_semiring)"
@@ -306,7 +306,7 @@ subsection {* Ordering Rules for Unary Minus *}
 
 lemma le_imp_neg_le:
       assumes "a \<le> (b::'a::ordered_ring)" shows "-b \<le> -a"
-  proof -
+proof -
   have "-a+a \<le> -a+b"
     by (rule add_left_mono) 
   hence "0 \<le> -a+b"
@@ -315,18 +315,18 @@ lemma le_imp_neg_le:
     by (rule add_right_mono) 
   thus ?thesis
     by (simp add: add_assoc)
-  qed
+qed
 
 lemma neg_le_iff_le [simp]: "(-b \<le> -a) = (a \<le> (b::'a::ordered_ring))"
-  proof 
-    assume "- b \<le> - a"
-    hence "- (- a) \<le> - (- b)"
-      by (rule le_imp_neg_le)
-    thus "a\<le>b" by simp
-  next
-    assume "a\<le>b"
-    thus "-b \<le> -a" by (rule le_imp_neg_le)
-  qed
+proof 
+  assume "- b \<le> - a"
+  hence "- (- a) \<le> - (- b)"
+    by (rule le_imp_neg_le)
+  thus "a\<le>b" by simp
+next
+  assume "a\<le>b"
+  thus "-b \<le> -a" by (rule le_imp_neg_le)
+qed
 
 lemma neg_le_0_iff_le [simp]: "(-a \<le> 0) = (0 \<le> (a::'a::ordered_ring))"
 by (subst neg_le_iff_le [symmetric], simp)
@@ -346,16 +346,16 @@ by (subst neg_less_iff_less [symmetric], simp)
 text{*The next several equations can make the simplifier loop!*}
 
 lemma less_minus_iff: "(a < - b) = (b < - (a::'a::ordered_ring))"
-  proof -
+proof -
   have "(- (-a) < - b) = (b < - a)" by (rule neg_less_iff_less)
   thus ?thesis by simp
-  qed
+qed
 
 lemma minus_less_iff: "(- a < b) = (- b < (a::'a::ordered_ring))"
-  proof -
+proof -
   have "(- a < - (-b)) = (- b < a)" by (rule neg_less_iff_less)
   thus ?thesis by simp
-  qed
+qed
 
 lemma le_minus_iff: "(a \<le> - b) = (b \<le> - (a::'a::ordered_ring))"
 apply (simp add: linorder_not_less [symmetric])
@@ -645,13 +645,13 @@ by (simp add: mult_commute [of c] mult_le_cancel_right)
 lemma mult_less_imp_less_left:
       assumes less: "c*a < c*b" and nonneg: "0 \<le> c"
       shows "a < (b::'a::ordered_semiring)"
-  proof (rule ccontr)
-    assume "~ a < b"
-    hence "b \<le> a" by (simp add: linorder_not_less)
-    hence "c*b \<le> c*a" by (rule mult_left_mono)
-    with this and less show False 
-      by (simp add: linorder_not_less [symmetric])
-  qed
+proof (rule ccontr)
+  assume "~ a < b"
+  hence "b \<le> a" by (simp add: linorder_not_less)
+  hence "c*b \<le> c*a" by (rule mult_left_mono)
+  with this and less show False 
+    by (simp add: linorder_not_less [symmetric])
+qed
 
 lemma mult_less_imp_less_right:
     "[|a*c < b*c; 0 \<le> c|] ==> a < (b::'a::ordered_semiring)"
@@ -723,52 +723,50 @@ done
 text{*Compared with @{text mult_eq_0_iff}, this version removes the requirement
       of an ordering.*}
 lemma field_mult_eq_0_iff [simp]: "(a*b = (0::'a::field)) = (a = 0 | b = 0)"
-  proof cases
-    assume "a=0" thus ?thesis by simp
-  next
-    assume anz [simp]: "a\<noteq>0"
-    thus ?thesis
-    proof auto
-      assume "a * b = 0"
-      hence "inverse a * (a * b) = 0" by simp
-      thus "b = 0"  by (simp (no_asm_use) add: mult_assoc [symmetric])
-    qed
-  qed
+proof cases
+  assume "a=0" thus ?thesis by simp
+next
+  assume anz [simp]: "a\<noteq>0"
+  { assume "a * b = 0"
+    hence "inverse a * (a * b) = 0" by simp
+    hence "b = 0"  by (simp (no_asm_use) add: mult_assoc [symmetric])}
+  thus ?thesis by force
+qed
 
 text{*Cancellation of equalities with a common factor*}
 lemma field_mult_cancel_right_lemma:
       assumes cnz: "c \<noteq> (0::'a::field)"
 	  and eq:  "a*c = b*c"
 	 shows "a=b"
-  proof -
+proof -
   have "(a * c) * inverse c = (b * c) * inverse c"
     by (simp add: eq)
   thus "a=b"
     by (simp add: mult_assoc cnz)
-  qed
+qed
 
 lemma field_mult_cancel_right [simp]:
      "(a*c = b*c) = (c = (0::'a::field) | a=b)"
-  proof cases
-    assume "c=0" thus ?thesis by simp
-  next
-    assume "c\<noteq>0" 
-    thus ?thesis by (force dest: field_mult_cancel_right_lemma)
-  qed
+proof cases
+  assume "c=0" thus ?thesis by simp
+next
+  assume "c\<noteq>0" 
+  thus ?thesis by (force dest: field_mult_cancel_right_lemma)
+qed
 
 lemma field_mult_cancel_left [simp]:
      "(c*a = c*b) = (c = (0::'a::field) | a=b)"
   by (simp add: mult_commute [of c] field_mult_cancel_right) 
 
 lemma nonzero_imp_inverse_nonzero: "a \<noteq> 0 ==> inverse a \<noteq> (0::'a::field)"
-  proof
+proof
   assume ianz: "inverse a = 0"
   assume "a \<noteq> 0"
   hence "1 = a * inverse a" by simp
   also have "... = 0" by (simp add: ianz)
   finally have "1 = (0::'a::field)" .
   thus False by (simp add: eq_commute)
-  qed
+qed
 
 
 subsection{*Basic Properties of @{term inverse}*}
@@ -790,35 +788,35 @@ by (force dest: inverse_nonzero_imp_nonzero)
 
 lemma nonzero_inverse_minus_eq:
       assumes [simp]: "a\<noteq>0"  shows "inverse(-a) = -inverse(a::'a::field)"
-  proof -
-    have "-a * inverse (- a) = -a * - inverse a"
-      by simp
-    thus ?thesis 
-      by (simp only: field_mult_cancel_left, simp)
-  qed
+proof -
+  have "-a * inverse (- a) = -a * - inverse a"
+    by simp
+  thus ?thesis 
+    by (simp only: field_mult_cancel_left, simp)
+qed
 
 lemma inverse_minus_eq [simp]:
-     "inverse(-a) = -inverse(a::'a::{field,division_by_zero})";
-  proof cases
-    assume "a=0" thus ?thesis by (simp add: inverse_zero)
-  next
-    assume "a\<noteq>0" 
-    thus ?thesis by (simp add: nonzero_inverse_minus_eq)
-  qed
+   "inverse(-a) = -inverse(a::'a::{field,division_by_zero})";
+proof cases
+  assume "a=0" thus ?thesis by (simp add: inverse_zero)
+next
+  assume "a\<noteq>0" 
+  thus ?thesis by (simp add: nonzero_inverse_minus_eq)
+qed
 
 lemma nonzero_inverse_eq_imp_eq:
       assumes inveq: "inverse a = inverse b"
 	  and anz:  "a \<noteq> 0"
 	  and bnz:  "b \<noteq> 0"
 	 shows "a = (b::'a::field)"
-  proof -
+proof -
   have "a * inverse b = a * inverse a"
     by (simp add: inveq)
   hence "(a * inverse b) * b = (a * inverse a) * b"
     by simp
   thus "a = b"
     by (simp add: mult_assoc anz bnz)
-  qed
+qed
 
 lemma inverse_eq_imp_eq:
      "inverse a = inverse b ==> a = (b::'a::{field,division_by_zero})"

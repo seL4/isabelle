@@ -37,14 +37,14 @@ defs (overloaded)
   hcomplex_diff_def:
   "w - z == w + -(z::hcomplex)"
 
+  hcinv_def:
+  "inverse(P) == Abs_hcomplex(UN X: Rep_hcomplex(P).
+                    hcomplexrel `` {%n. inverse(X n)})"
+
 constdefs
 
   hcomplex_of_complex :: "complex => hcomplex"
   "hcomplex_of_complex z == Abs_hcomplex(hcomplexrel `` {%n. z})"
-
-  hcinv  :: "hcomplex => hcomplex"
-  "inverse(P)   == Abs_hcomplex(UN X: Rep_hcomplex(P).
-                    hcomplexrel `` {%n. inverse(X n)})"
 
   (*--- real and Imaginary parts ---*)
 
@@ -97,6 +97,11 @@ constdefs
 
   hexpi :: "hcomplex => hcomplex"
   "hexpi z == hcomplex_of_hypreal(( *f* exp) (hRe z)) * hcis (hIm z)"
+
+
+constdefs
+  HComplex :: "[hypreal,hypreal] => hcomplex"
+   "HComplex x y == hcomplex_of_hypreal x + iii * hcomplex_of_hypreal y"
 
 
 defs (overloaded)
@@ -182,8 +187,7 @@ apply (drule_tac f = Abs_hcomplex in arg_cong)
 apply (force simp add: Rep_hcomplex_inverse hcomplexrel_def)
 done
 
-(*??delete*)
-lemma hcomplexrel_iff [iff]:
+lemma hcomplexrel_iff [simp]:
    "((X,Y): hcomplexrel) = ({n. X n = Y n}: FreeUltrafilterNat)"
 by (simp add: hcomplexrel_def)
 
@@ -195,7 +199,7 @@ lemma hRe:
       Abs_hypreal(hyprel `` {%n. Re(X n)})"
 apply (simp add: hRe_def)
 apply (rule_tac f = Abs_hypreal in arg_cong)
-apply (auto, ultra)
+apply (auto iff: hcomplexrel_iff, ultra)
 done
 
 lemma hIm:
@@ -203,16 +207,19 @@ lemma hIm:
       Abs_hypreal(hyprel `` {%n. Im(X n)})"
 apply (simp add: hIm_def)
 apply (rule_tac f = Abs_hypreal in arg_cong)
-apply (auto, ultra)
+apply (auto iff: hcomplexrel_iff, ultra)
 done
 
 lemma hcomplex_hRe_hIm_cancel_iff:
      "(w=z) = (hRe(w) = hRe(z) & hIm(w) = hIm(z))"
 apply (rule eq_Abs_hcomplex [of z])
 apply (rule eq_Abs_hcomplex [of w])
-apply (auto simp add: hRe hIm complex_Re_Im_cancel_iff)
+apply (auto simp add: hRe hIm complex_Re_Im_cancel_iff iff: hcomplexrel_iff)
 apply (ultra+)
 done
+
+lemma hcomplex_equality [intro?]: "hRe z = hRe w ==> hIm z = hIm w ==> z = w"
+by (simp add: hcomplex_hRe_hIm_cancel_iff) 
 
 lemma hcomplex_hRe_zero [simp]: "hRe 0 = 0"
 by (simp add: hcomplex_zero_def hRe hypreal_zero_num)
@@ -231,14 +238,15 @@ subsection{*Addition for Nonstandard Complex Numbers*}
 
 lemma hcomplex_add_congruent2:
     "congruent2 hcomplexrel (%X Y. hcomplexrel `` {%n. X n + Y n})"
-by (auto simp add: congruent2_def, ultra)
+by (auto simp add: congruent2_def iff: hcomplexrel_iff, ultra) 
 
 lemma hcomplex_add:
-  "Abs_hcomplex(hcomplexrel``{%n. X n}) + Abs_hcomplex(hcomplexrel``{%n. Y n}) =
-   Abs_hcomplex(hcomplexrel``{%n. X n + Y n})"
+  "Abs_hcomplex(hcomplexrel``{%n. X n}) + 
+   Abs_hcomplex(hcomplexrel``{%n. Y n}) =
+     Abs_hcomplex(hcomplexrel``{%n. X n + Y n})"
 apply (simp add: hcomplex_add_def)
 apply (rule_tac f = Abs_hcomplex in arg_cong)
-apply (auto, ultra)
+apply (auto simp add: iff: hcomplexrel_iff, ultra) 
 done
 
 lemma hcomplex_add_commute: "(z::hcomplex) + w = w + z"
@@ -286,7 +294,7 @@ lemma hcomplex_minus:
       Abs_hcomplex(hcomplexrel `` {%n. -(X n)})"
 apply (simp add: hcomplex_minus_def)
 apply (rule_tac f = Abs_hcomplex in arg_cong)
-apply (auto, ultra)
+apply (auto iff: hcomplexrel_iff, ultra)
 done
 
 lemma hcomplex_add_minus_left: "-z + z = (0::hcomplex)"
@@ -303,7 +311,7 @@ lemma hcomplex_mult:
      Abs_hcomplex(hcomplexrel``{%n. X n * Y n})"
 apply (simp add: hcomplex_mult_def)
 apply (rule_tac f = Abs_hcomplex in arg_cong)
-apply (auto, ultra)
+apply (auto iff: hcomplexrel_iff, ultra)
 done
 
 lemma hcomplex_mult_commute: "(w::hcomplex) * z = z * w"
@@ -350,7 +358,7 @@ lemma hcomplex_inverse:
       Abs_hcomplex(hcomplexrel `` {%n. inverse (X n)})"
 apply (simp add: hcinv_def)
 apply (rule_tac f = Abs_hcomplex in arg_cong)
-apply (auto, ultra)
+apply (auto iff: hcomplexrel_iff, ultra)
 done
 
 lemma hcomplex_mult_inv_left:
@@ -428,6 +436,15 @@ apply (drule Ring_and_Field.equals_zero_I)
 apply (simp add: minus_equation_iff [of x y])
 done
 
+lemma hcomplex_i_mult_eq [simp]: "iii * iii = - 1"
+by (simp add: iii_def hcomplex_mult hcomplex_one_def hcomplex_minus)
+
+lemma hcomplex_i_mult_left [simp]: "iii * (iii * z) = -z"
+by (simp add: mult_assoc [symmetric])
+
+lemma hcomplex_i_not_zero [simp]: "iii \<noteq> 0"
+by (simp add: iii_def hcomplex_zero_def)
+
 
 subsection{*More Multiplication Laws*}
 
@@ -469,7 +486,7 @@ lemma hcomplex_of_hypreal:
   "hcomplex_of_hypreal (Abs_hypreal(hyprel `` {%n. X n})) =
       Abs_hcomplex(hcomplexrel `` {%n. complex_of_real (X n)})"
 apply (simp add: hcomplex_of_hypreal_def)
-apply (rule_tac f = Abs_hcomplex in arg_cong, auto, ultra)
+apply (rule_tac f = Abs_hcomplex in arg_cong, auto iff: hcomplexrel_iff, ultra)
 done
 
 lemma hcomplex_of_hypreal_cancel_iff [iff]:
@@ -541,6 +558,34 @@ lemma hcomplex_of_hypreal_epsilon_not_zero [simp]:
 by (auto simp add: hcomplex_of_hypreal epsilon_def hcomplex_zero_def)
 
 
+subsection{*HComplex theorems*}
+
+lemma hRe_HComplex [simp]: "hRe (HComplex x y) = x"
+apply (rule eq_Abs_hypreal [of x])
+apply (rule eq_Abs_hypreal [of y])
+apply (simp add: HComplex_def hRe iii_def hcomplex_add hcomplex_mult hcomplex_of_hypreal)
+done
+
+lemma hIm_HComplex [simp]: "hIm (HComplex x y) = y"
+apply (rule eq_Abs_hypreal [of x])
+apply (rule eq_Abs_hypreal [of y])
+apply (simp add: HComplex_def hIm iii_def hcomplex_add hcomplex_mult hcomplex_of_hypreal)
+done
+
+text{*Relates the two nonstandard constructions*}
+lemma HComplex_eq_Abs_hcomplex_Complex:
+     "HComplex (Abs_hypreal (hyprel `` {X})) (Abs_hypreal (hyprel `` {Y})) =
+      Abs_hcomplex(hcomplexrel `` {%n::nat. Complex (X n) (Y n)})";
+by (simp add: hcomplex_hRe_hIm_cancel_iff hRe hIm) 
+
+lemma hcomplex_surj [simp]: "HComplex (hRe z) (hIm z) = z"
+by (simp add: hcomplex_equality) 
+
+lemma hcomplex_induct [case_names rect, induct type: hcomplex]:
+     "(\<And>x y. P (HComplex x y)) ==> P z"
+by (rule hcomplex_surj [THEN subst], blast)
+
+
 subsection{*Modulus (Absolute Value) of Nonstandard Complex Number*}
 
 lemma hcmod:
@@ -549,12 +594,11 @@ lemma hcmod:
 
 apply (simp add: hcmod_def)
 apply (rule_tac f = Abs_hypreal in arg_cong)
-apply (auto, ultra)
+apply (auto iff: hcomplexrel_iff, ultra)
 done
 
 lemma hcmod_zero [simp]: "hcmod(0) = 0"
-apply (simp add: hcomplex_zero_def hypreal_zero_def hcmod)
-done
+by (simp add: hcomplex_zero_def hypreal_zero_def hcmod)
 
 lemma hcmod_one [simp]: "hcmod(1) = 1"
 by (simp add: hcomplex_one_def hcmod hypreal_one_num)
@@ -569,6 +613,64 @@ lemma hcomplex_of_hypreal_abs:
       hcomplex_of_hypreal(hcmod(hcomplex_of_hypreal x))"
 by simp
 
+lemma HComplex_inject [simp]: "HComplex x y = HComplex x' y' = (x=x' & y=y')"
+apply (rule iffI) 
+ prefer 2 apply simp 
+apply (simp add: HComplex_def iii_def) 
+apply (rule eq_Abs_hypreal [of x])
+apply (rule eq_Abs_hypreal [of y])
+apply (rule eq_Abs_hypreal [of x'])
+apply (rule eq_Abs_hypreal [of y'])
+apply (auto simp add: iii_def hcomplex_mult hcomplex_add hcomplex_of_hypreal)
+apply (ultra+) 
+done
+
+lemma HComplex_add [simp]:
+     "HComplex x1 y1 + HComplex x2 y2 = HComplex (x1+x2) (y1+y2)"
+by (simp add: HComplex_def hcomplex_of_hypreal_add [symmetric] add_ac right_distrib) 
+
+lemma HComplex_minus [simp]: "- HComplex x y = HComplex (-x) (-y)"
+by (simp add: HComplex_def hcomplex_of_hypreal_minus) 
+
+lemma HComplex_diff [simp]:
+     "HComplex x1 y1 - HComplex x2 y2 = HComplex (x1-x2) (y1-y2)"
+by (simp add: diff_minus)
+
+lemma HComplex_mult [simp]:
+  "HComplex x1 y1 * HComplex x2 y2 = HComplex (x1*x2 - y1*y2) (x1*y2 + y1*x2)"
+by (simp add: HComplex_def diff_minus hcomplex_of_hypreal_minus 
+       hcomplex_of_hypreal_add [symmetric] hcomplex_of_hypreal_mult [symmetric]
+       add_ac mult_ac right_distrib)
+
+(*HComplex_inverse is proved below*)
+
+lemma hcomplex_of_hypreal_eq: "hcomplex_of_hypreal r = HComplex r 0"
+by (simp add: HComplex_def)
+
+lemma HComplex_add_hcomplex_of_hypreal [simp]:
+     "HComplex x y + hcomplex_of_hypreal r = HComplex (x+r) y"
+by (simp add: hcomplex_of_hypreal_eq)
+
+lemma hcomplex_of_hypreal_add_HComplex [simp]:
+     "hcomplex_of_hypreal r + HComplex x y = HComplex (r+x) y"
+by (simp add: i_def hcomplex_of_hypreal_eq)
+
+lemma HComplex_mult_hcomplex_of_hypreal:
+     "HComplex x y * hcomplex_of_hypreal r = HComplex (x*r) (y*r)"
+by (simp add: hcomplex_of_hypreal_eq)
+
+lemma hcomplex_of_hypreal_mult_HComplex:
+     "hcomplex_of_hypreal r * HComplex x y = HComplex (r*x) (r*y)"
+by (simp add: i_def hcomplex_of_hypreal_eq)
+
+lemma i_hcomplex_of_hypreal [simp]:
+     "iii * hcomplex_of_hypreal r = HComplex 0 r"
+by (simp add: HComplex_def)
+
+lemma hcomplex_of_hypreal_i [simp]:
+     "hcomplex_of_hypreal r * iii = HComplex 0 r"
+by (simp add: mult_commute) 
+
 
 subsection{*Conjugation*}
 
@@ -577,7 +679,7 @@ lemma hcnj:
    Abs_hcomplex(hcomplexrel `` {%n. cnj(X n)})"
 apply (simp add: hcnj_def)
 apply (rule_tac f = Abs_hcomplex in arg_cong)
-apply (auto, ultra)
+apply (auto iff: hcomplexrel_iff, ultra)
 done
 
 lemma hcomplex_hcnj_cancel_iff [iff]: "(hcnj x = hcnj y) = (x = y)"
@@ -777,7 +879,7 @@ lemma hcpow:
    Abs_hcomplex(hcomplexrel``{%n. X n ^ Y n})"
 apply (simp add: hcpow_def)
 apply (rule_tac f = Abs_hcomplex in arg_cong)
-apply (auto, ultra)
+apply (auto iff: hcomplexrel_iff, ultra)
 done
 
 lemma hcomplex_of_hypreal_hyperpow:
@@ -816,6 +918,9 @@ proof
   show "z^0 = 1" by simp
   show "z^(Suc n) = z * (z^n)" by simp
 qed
+
+lemma hcomplexpow_i_squared [simp]: "iii ^ 2 = - 1"
+by (simp add: power2_eq_square)
 
 
 lemma hcomplex_of_hypreal_pow:
@@ -872,19 +977,11 @@ done
 lemma hcpow_zero_zero: "r hcpow n = (0::hcomplex) ==> r = 0"
 by (blast intro: ccontr dest: hcpow_not_zero)
 
-lemma hcomplex_i_mult_eq [simp]: "iii * iii = - 1"
-by (simp add: iii_def hcomplex_mult hcomplex_one_def hcomplex_minus)
-
-lemma hcomplexpow_i_squared [simp]: "iii ^ 2 = - 1"
-by (simp add: numeral_2_eq_2)
-
-lemma hcomplex_i_not_zero [simp]: "iii \<noteq> 0"
-by (simp add: iii_def hcomplex_zero_def)
-
 lemma hcomplex_divide:
   "Abs_hcomplex(hcomplexrel``{%n. X n}) / Abs_hcomplex(hcomplexrel``{%n. Y n}) =
    Abs_hcomplex(hcomplexrel``{%n. X n / Y n})"
 by (simp add: hcomplex_divide_def complex_divide_def hcomplex_inverse hcomplex_mult)
+
 
 
 
@@ -895,7 +992,7 @@ lemma hsgn:
       Abs_hcomplex(hcomplexrel `` {%n. sgn (X n)})"
 apply (simp add: hsgn_def)
 apply (rule_tac f = Abs_hcomplex in arg_cong)
-apply (auto, ultra)
+apply (auto iff: hcomplexrel_iff, ultra)
 done
 
 lemma hsgn_zero [simp]: "hsgn 0 = 0"
@@ -914,144 +1011,33 @@ apply (rule eq_Abs_hcomplex [of z])
 apply (simp add: hsgn hcomplex_divide hcomplex_of_hypreal hcmod sgn_eq)
 done
 
-lemma lemma_hypreal_P_EX2:
-     "(\<exists>(x::hypreal) y. P x y) =
-      (\<exists>f g. P (Abs_hypreal(hyprel `` {f})) (Abs_hypreal(hyprel `` {g})))"
-apply auto
-apply (rule_tac z = x in eq_Abs_hypreal)
-apply (rule_tac z = y in eq_Abs_hypreal, auto)
-done
 
-lemma complex_split2:
-     "\<forall>(n::nat). \<exists>x y. (z n) = complex_of_real(x) + ii * complex_of_real(y)"
-by (blast intro: complex_split)
-
-(* Interesting proof! *)
-lemma hcomplex_split:
-     "\<exists>x y. z = hcomplex_of_hypreal(x) + iii * hcomplex_of_hypreal(y)"
-apply (rule eq_Abs_hcomplex [of z])
-apply (auto simp add: lemma_hypreal_P_EX2 hcomplex_of_hypreal iii_def hcomplex_add hcomplex_mult)
-apply (cut_tac z = x in complex_split2)
-apply (drule choice, safe)+
-apply (rule_tac x = f in exI)
-apply (rule_tac x = fa in exI, auto)
-done
-
-lemma hRe_hcomplex_i [simp]:
-     "hRe(hcomplex_of_hypreal(x) + iii * hcomplex_of_hypreal(y)) = x"
+lemma hcmod_i: "hcmod (HComplex x y) = ( *f* sqrt) (x ^ 2 + y ^ 2)"
 apply (rule eq_Abs_hypreal [of x])
-apply (rule eq_Abs_hypreal [of y])
-apply (auto simp add: hRe iii_def hcomplex_add hcomplex_mult hcomplex_of_hypreal)
+apply (rule eq_Abs_hypreal [of y]) 
+apply (simp add: HComplex_eq_Abs_hcomplex_Complex starfun 
+                 hypreal_mult hypreal_add hcmod numeral_2_eq_2)
 done
 
-lemma hIm_hcomplex_i [simp]:
-     "hIm(hcomplex_of_hypreal(x) + iii * hcomplex_of_hypreal(y)) = y"
-apply (rule eq_Abs_hypreal [of x])
-apply (rule eq_Abs_hypreal [of y])
-apply (simp add: hIm iii_def hcomplex_add hcomplex_mult hcomplex_of_hypreal)
-done
-
-lemma hcmod_i:
-     "hcmod (hcomplex_of_hypreal(x) + iii * hcomplex_of_hypreal(y)) =
-      ( *f* sqrt) (x ^ 2 + y ^ 2)"
-apply (rule eq_Abs_hypreal [of x])
-apply (rule eq_Abs_hypreal [of y])
-apply (simp add: hcomplex_of_hypreal iii_def hcomplex_add hcomplex_mult starfun hypreal_mult hypreal_add hcmod cmod_i numeral_2_eq_2)
-done
-
-lemma hcomplex_eq_hRe_eq:
-     "hcomplex_of_hypreal xa + iii * hcomplex_of_hypreal ya =
-      hcomplex_of_hypreal xb + iii * hcomplex_of_hypreal yb
-       ==> xa = xb"
-apply (simp add: iii_def)
-apply (rule eq_Abs_hypreal [of xa])
-apply (rule eq_Abs_hypreal [of ya])
-apply (rule eq_Abs_hypreal [of xb])
-apply (rule eq_Abs_hypreal [of yb])
-apply (simp add: hcomplex_mult hcomplex_add hcomplex_of_hypreal, ultra)
-done
-
-lemma hcomplex_eq_hIm_eq:
-     "hcomplex_of_hypreal xa + iii * hcomplex_of_hypreal ya =
-      hcomplex_of_hypreal xb + iii * hcomplex_of_hypreal yb
-       ==> ya = yb"
-apply (simp add: iii_def)
-apply (rule eq_Abs_hypreal [of xa])
-apply (rule eq_Abs_hypreal [of ya])
-apply (rule eq_Abs_hypreal [of xb])
-apply (rule eq_Abs_hypreal [of yb])
-apply (simp add: hcomplex_mult hcomplex_add hcomplex_of_hypreal, ultra)
-done
-
-lemma hcomplex_eq_cancel_iff [simp]:
-     "(hcomplex_of_hypreal xa + iii * hcomplex_of_hypreal ya =
-       hcomplex_of_hypreal xb + iii * hcomplex_of_hypreal yb) =
-      ((xa = xb) & (ya = yb))"
-by (auto intro: hcomplex_eq_hIm_eq hcomplex_eq_hRe_eq)
-
-lemma hcomplex_eq_cancel_iffA [iff]:
-     "(hcomplex_of_hypreal xa + hcomplex_of_hypreal ya * iii =
-       hcomplex_of_hypreal xb + hcomplex_of_hypreal yb * iii) = ((xa = xb) & (ya = yb))"
-apply (simp add: hcomplex_mult_commute)
-done
-
-lemma hcomplex_eq_cancel_iffB [iff]:
-     "(hcomplex_of_hypreal xa + hcomplex_of_hypreal ya * iii =
-       hcomplex_of_hypreal xb + iii * hcomplex_of_hypreal yb) = ((xa = xb) & (ya = yb))"
-apply (simp add: hcomplex_mult_commute)
-done
-
-lemma hcomplex_eq_cancel_iffC [iff]:
-     "(hcomplex_of_hypreal xa + iii * hcomplex_of_hypreal ya  =
-       hcomplex_of_hypreal xb + hcomplex_of_hypreal yb * iii) = ((xa = xb) & (ya = yb))"
-apply (simp add: hcomplex_mult_commute)
-done
+lemma hcomplex_eq_cancel_iff1 [simp]:
+     "(hcomplex_of_hypreal xa = HComplex x y) = (xa = x & y = 0)"
+by (simp add: hcomplex_of_hypreal_eq)
 
 lemma hcomplex_eq_cancel_iff2 [simp]:
-     "(hcomplex_of_hypreal x + iii * hcomplex_of_hypreal y =
-      hcomplex_of_hypreal xa) = (x = xa & y = 0)"
-apply (cut_tac xa = x and ya = y and xb = xa and yb = 0 in hcomplex_eq_cancel_iff)
-apply (simp del: hcomplex_eq_cancel_iff)
-done
+     "(HComplex x y = hcomplex_of_hypreal xa) = (x = xa & y = 0)"
+by (simp add: hcomplex_of_hypreal_eq)
 
-lemma hcomplex_eq_cancel_iff2a [simp]:
-     "(hcomplex_of_hypreal x + hcomplex_of_hypreal y * iii =
-      hcomplex_of_hypreal xa) = (x = xa & y = 0)"
-apply (simp add: hcomplex_mult_commute)
-done
+lemma HComplex_eq_0 [simp]: "(HComplex x y = 0) = (x = 0 & y = 0)"
+by (insert hcomplex_eq_cancel_iff2 [of _ _ 0], simp)
 
-lemma hcomplex_eq_cancel_iff3 [simp]:
-     "(hcomplex_of_hypreal x + iii * hcomplex_of_hypreal y =
-      iii * hcomplex_of_hypreal ya) = (x = 0 & y = ya)"
-apply (cut_tac xa = x and ya = y and xb = 0 and yb = ya in hcomplex_eq_cancel_iff)
-apply (simp del: hcomplex_eq_cancel_iff)
-done
+lemma HComplex_eq_1 [simp]: "(HComplex x y = 1) = (x = 1 & y = 0)"
+by (insert hcomplex_eq_cancel_iff2 [of _ _ 1], simp)
 
-lemma hcomplex_eq_cancel_iff3a [simp]:
-     "(hcomplex_of_hypreal x + hcomplex_of_hypreal y * iii =
-      iii * hcomplex_of_hypreal ya) = (x = 0 & y = ya)"
-apply (simp add: hcomplex_mult_commute)
-done
+lemma i_eq_HComplex_0_1: "iii = HComplex 0 1"
+by (insert hcomplex_of_hypreal_i [of 1], simp)
 
-lemma hcomplex_split_hRe_zero:
-     "hcomplex_of_hypreal x + iii * hcomplex_of_hypreal y = 0
-      ==> x = 0"
-apply (simp add: iii_def)
-apply (rule eq_Abs_hypreal [of x])
-apply (rule eq_Abs_hypreal [of y])
-apply (simp add: hcomplex_of_hypreal hcomplex_add hcomplex_mult hcomplex_zero_def hypreal_zero_num, ultra)
-apply (simp add: complex_split_Re_zero)
-done
-
-lemma hcomplex_split_hIm_zero:
-     "hcomplex_of_hypreal x + iii * hcomplex_of_hypreal y = 0
-      ==> y = 0"
-apply (simp add: iii_def)
-apply (rule eq_Abs_hypreal [of x])
-apply (rule eq_Abs_hypreal [of y])
-apply (simp add: hcomplex_of_hypreal hcomplex_add hcomplex_mult hcomplex_zero_def hypreal_zero_num, ultra)
-apply (simp add: complex_split_Im_zero)
-done
+lemma HComplex_eq_i [simp]: "(HComplex x y = iii) = (x = 0 & y = 1)"
+by (simp add: i_eq_HComplex_0_1) 
 
 lemma hRe_hsgn [simp]: "hRe(hsgn z) = hRe(z)/hcmod z"
 apply (rule eq_Abs_hcomplex [of z])
@@ -1064,8 +1050,7 @@ apply (simp add: hsgn hcmod hIm hypreal_divide)
 done
 
 lemma real_two_squares_add_zero_iff [simp]: "(x*x + y*y = 0) = ((x::real) = 0 & y = 0)"
-apply (auto intro: real_sum_squares_cancel)
-done
+by (auto intro: real_sum_squares_cancel)
 
 lemma hcomplex_inverse_complex_split:
      "inverse(hcomplex_of_hypreal x + iii * hcomplex_of_hypreal y) =
@@ -1074,7 +1059,15 @@ lemma hcomplex_inverse_complex_split:
 apply (rule eq_Abs_hypreal [of x])
 apply (rule eq_Abs_hypreal [of y])
 apply (simp add: hcomplex_of_hypreal hcomplex_mult hcomplex_add iii_def starfun hypreal_mult hypreal_add hcomplex_inverse hypreal_divide hcomplex_diff complex_inverse_complex_split numeral_2_eq_2)
+apply (simp add: diff_minus) 
 done
+
+lemma HComplex_inverse:
+     "inverse (HComplex x y) =
+      HComplex (x/(x ^ 2 + y ^ 2)) (-y/(x ^ 2 + y ^ 2))"
+by (simp only: HComplex_def hcomplex_inverse_complex_split, simp)
+
+
 
 lemma hRe_mult_i_eq[simp]:
     "hRe (iii * hcomplex_of_hypreal y) = 0"
@@ -1096,7 +1089,7 @@ apply (simp add: hcomplex_of_hypreal hcmod hypreal_hrabs iii_def hcomplex_mult)
 done
 
 lemma hcmod_mult_i2 [simp]: "hcmod (hcomplex_of_hypreal y * iii) = abs y"
-by (simp add: hcomplex_mult_commute)
+by (simp only: hcmod_mult_i hcomplex_mult_commute)
 
 (*---------------------------------------------------------------------------*)
 (*  harg                                                                     *)
@@ -1105,31 +1098,29 @@ by (simp add: hcomplex_mult_commute)
 lemma harg:
   "harg (Abs_hcomplex(hcomplexrel `` {%n. X n})) =
       Abs_hypreal(hyprel `` {%n. arg (X n)})"
-
 apply (simp add: harg_def)
 apply (rule_tac f = Abs_hypreal in arg_cong)
-apply (auto, ultra)
+apply (auto iff: hcomplexrel_iff, ultra)
 done
 
 lemma cos_harg_i_mult_zero_pos:
-     "0 < y ==> ( *f* cos) (harg(iii * hcomplex_of_hypreal y)) = 0"
+     "0 < y ==> ( *f* cos) (harg(HComplex 0 y)) = 0"
 apply (rule eq_Abs_hypreal [of y])
-apply (simp add: hcomplex_of_hypreal iii_def hcomplex_mult
-                hypreal_zero_num hypreal_less starfun harg, ultra)
+apply (simp add: HComplex_def hcomplex_of_hypreal iii_def hcomplex_mult
+                hcomplex_add hypreal_zero_num hypreal_less starfun harg, ultra)
 done
 
 lemma cos_harg_i_mult_zero_neg:
-     "y < 0 ==> ( *f* cos) (harg(iii * hcomplex_of_hypreal y)) = 0"
+     "y < 0 ==> ( *f* cos) (harg(HComplex 0 y)) = 0"
 apply (rule eq_Abs_hypreal [of y])
-apply (simp add: hcomplex_of_hypreal iii_def hcomplex_mult
-                      hypreal_zero_num hypreal_less starfun harg, ultra)
+apply (simp add: HComplex_def hcomplex_of_hypreal iii_def hcomplex_mult
+                 hcomplex_add hypreal_zero_num hypreal_less starfun harg, ultra)
 done
 
 lemma cos_harg_i_mult_zero [simp]:
-     "y \<noteq> 0 ==> ( *f* cos) (harg(iii * hcomplex_of_hypreal y)) = 0"
-apply (cut_tac x = y and y = 0 in linorder_less_linear)
-apply (auto simp add: cos_harg_i_mult_zero_pos cos_harg_i_mult_zero_neg)
-done
+     "y \<noteq> 0 ==> ( *f* cos) (harg(HComplex 0 y)) = 0"
+by (auto simp add: linorder_neq_iff
+                   cos_harg_i_mult_zero_pos cos_harg_i_mult_zero_neg)
 
 lemma hcomplex_of_hypreal_zero_iff [simp]:
      "(hcomplex_of_hypreal y = 0) = (y = 0)"
@@ -1141,16 +1132,21 @@ done
 subsection{*Polar Form for Nonstandard Complex Numbers*}
 
 lemma complex_split_polar2:
-     "\<forall>n. \<exists>r a. (z n) = complex_of_real r *
-      (complex_of_real(cos a) + ii * complex_of_real(sin a))"
-apply (blast intro: complex_split_polar)
+     "\<forall>n. \<exists>r a. (z n) =  complex_of_real r * (Complex (cos a) (sin a))"
+by (blast intro: complex_split_polar)
+
+lemma lemma_hypreal_P_EX2:
+     "(\<exists>(x::hypreal) y. P x y) =
+      (\<exists>f g. P (Abs_hypreal(hyprel `` {f})) (Abs_hypreal(hyprel `` {g})))"
+apply auto
+apply (rule_tac z = x in eq_Abs_hypreal)
+apply (rule_tac z = y in eq_Abs_hypreal, auto)
 done
 
 lemma hcomplex_split_polar:
-  "\<exists>r a. z = hcomplex_of_hypreal r *
-   (hcomplex_of_hypreal(( *f* cos) a) + iii * hcomplex_of_hypreal(( *f* sin) a))"
+  "\<exists>r a. z = hcomplex_of_hypreal r * (HComplex(( *f* cos) a)(( *f* sin) a))"
 apply (rule eq_Abs_hcomplex [of z])
-apply (simp add: lemma_hypreal_P_EX2 hcomplex_of_hypreal iii_def starfun hcomplex_add hcomplex_mult)
+apply (simp add: lemma_hypreal_P_EX2 hcomplex_of_hypreal iii_def starfun hcomplex_add hcomplex_mult HComplex_def)
 apply (cut_tac z = x in complex_split_polar2)
 apply (drule choice, safe)+
 apply (rule_tac x = f in exI)
@@ -1161,7 +1157,7 @@ lemma hcis:
   "hcis (Abs_hypreal(hyprel `` {%n. X n})) =
       Abs_hcomplex(hcomplexrel `` {%n. cis (X n)})"
 apply (simp add: hcis_def)
-apply (rule_tac f = Abs_hcomplex in arg_cong, auto, ultra)
+apply (rule_tac f = Abs_hcomplex in arg_cong, auto iff: hcomplexrel_iff, ultra)
 done
 
 lemma hcis_eq:
@@ -1178,35 +1174,38 @@ lemma hrcis:
 by (simp add: hrcis_def hcomplex_of_hypreal hcomplex_mult hcis rcis_def)
 
 lemma hrcis_Ex: "\<exists>r a. z = hrcis r a"
-apply (simp add: hrcis_def hcis_eq)
+apply (simp add: hrcis_def hcis_eq hcomplex_of_hypreal_mult_HComplex [symmetric])
 apply (rule hcomplex_split_polar)
 done
 
 lemma hRe_hcomplex_polar [simp]:
-     "hRe(hcomplex_of_hypreal r *
-      (hcomplex_of_hypreal(( *f* cos) a) +
-       iii * hcomplex_of_hypreal(( *f* sin) a))) = r * ( *f* cos) a"
-by (simp add: right_distrib hcomplex_of_hypreal_mult mult_ac)
+     "hRe (hcomplex_of_hypreal r * HComplex (( *f* cos) a) (( *f* sin) a)) = 
+      r * ( *f* cos) a"
+by (simp add: hcomplex_of_hypreal_mult_HComplex)
 
 lemma hRe_hrcis [simp]: "hRe(hrcis r a) = r * ( *f* cos) a"
 by (simp add: hrcis_def hcis_eq)
 
 lemma hIm_hcomplex_polar [simp]:
-     "hIm(hcomplex_of_hypreal r *
-      (hcomplex_of_hypreal(( *f* cos) a) +
-       iii * hcomplex_of_hypreal(( *f* sin) a))) = r * ( *f* sin) a"
-by (simp add: right_distrib hcomplex_of_hypreal_mult mult_ac)
+     "hIm (hcomplex_of_hypreal r * HComplex (( *f* cos) a) (( *f* sin) a)) = 
+      r * ( *f* sin) a"
+by (simp add: hcomplex_of_hypreal_mult_HComplex)
 
 lemma hIm_hrcis [simp]: "hIm(hrcis r a) = r * ( *f* sin) a"
 by (simp add: hrcis_def hcis_eq)
 
+
+lemma hcmod_unit_one [simp]:
+     "hcmod (HComplex (( *f* cos) a) (( *f* sin) a)) = 1"
+apply (rule eq_Abs_hypreal [of a]) 
+apply (simp add: HComplex_def iii_def starfun hcomplex_of_hypreal 
+                 hcomplex_mult hcmod hcomplex_add hypreal_one_def)
+done
+
 lemma hcmod_complex_polar [simp]:
-     "hcmod (hcomplex_of_hypreal r *
-      (hcomplex_of_hypreal(( *f* cos) a) +
-       iii * hcomplex_of_hypreal(( *f* sin) a))) = abs r"
-apply (rule eq_Abs_hypreal [of r])
-apply (rule eq_Abs_hypreal [of a])
-apply (simp add: iii_def starfun hcomplex_of_hypreal hcomplex_mult hcmod hcomplex_add hypreal_hrabs)
+     "hcmod (hcomplex_of_hypreal r * HComplex (( *f* cos) a) (( *f* sin) a)) =
+      abs r"
+apply (simp only: hcmod_mult hcmod_unit_one, simp)  
 done
 
 lemma hcmod_hrcis [simp]: "hcmod(hrcis r a) = abs r"
@@ -1316,20 +1315,16 @@ apply (simp add: hcis starfun hIm)
 done
 
 lemma cos_n_hRe_hcis_pow_n: "( *f* cos) (hypreal_of_nat n * a) = hRe(hcis a ^ n)"
-apply (simp add: NSDeMoivre)
-done
+by (simp add: NSDeMoivre)
 
 lemma sin_n_hIm_hcis_pow_n: "( *f* sin) (hypreal_of_nat n * a) = hIm(hcis a ^ n)"
-apply (simp add: NSDeMoivre)
-done
+by (simp add: NSDeMoivre)
 
 lemma cos_n_hRe_hcis_hcpow_n: "( *f* cos) (hypreal_of_hypnat n * a) = hRe(hcis a hcpow n)"
-apply (simp add: NSDeMoivre_ext)
-done
+by (simp add: NSDeMoivre_ext)
 
 lemma sin_n_hIm_hcis_hcpow_n: "( *f* sin) (hypreal_of_hypnat n * a) = hIm(hcis a hcpow n)"
-apply (simp add: NSDeMoivre_ext)
-done
+by (simp add: NSDeMoivre_ext)
 
 lemma hexpi_add: "hexpi(a + b) = hexpi(a) * hexpi(b)"
 apply (simp add: hexpi_def)
@@ -1545,27 +1540,11 @@ val hsgn_one = thm"hsgn_one";
 val hsgn_minus = thm"hsgn_minus";
 val hsgn_eq = thm"hsgn_eq";
 val lemma_hypreal_P_EX2 = thm"lemma_hypreal_P_EX2";
-val complex_split2 = thm"complex_split2";
-val hcomplex_split = thm"hcomplex_split";
-val hRe_hcomplex_i = thm"hRe_hcomplex_i";
-val hIm_hcomplex_i = thm"hIm_hcomplex_i";
 val hcmod_i = thm"hcmod_i";
-val hcomplex_eq_hRe_eq = thm"hcomplex_eq_hRe_eq";
-val hcomplex_eq_hIm_eq = thm"hcomplex_eq_hIm_eq";
-val hcomplex_eq_cancel_iff = thm"hcomplex_eq_cancel_iff";
-val hcomplex_eq_cancel_iffA = thm"hcomplex_eq_cancel_iffA";
-val hcomplex_eq_cancel_iffB = thm"hcomplex_eq_cancel_iffB";
-val hcomplex_eq_cancel_iffC = thm"hcomplex_eq_cancel_iffC";
 val hcomplex_eq_cancel_iff2 = thm"hcomplex_eq_cancel_iff2";
-val hcomplex_eq_cancel_iff2a = thm"hcomplex_eq_cancel_iff2a";
-val hcomplex_eq_cancel_iff3 = thm"hcomplex_eq_cancel_iff3";
-val hcomplex_eq_cancel_iff3a = thm"hcomplex_eq_cancel_iff3a";
-val hcomplex_split_hRe_zero = thm"hcomplex_split_hRe_zero";
-val hcomplex_split_hIm_zero = thm"hcomplex_split_hIm_zero";
 val hRe_hsgn = thm"hRe_hsgn";
 val hIm_hsgn = thm"hIm_hsgn";
 val real_two_squares_add_zero_iff = thm"real_two_squares_add_zero_iff";
-val hcomplex_inverse_complex_split = thm"hcomplex_inverse_complex_split";
 val hRe_mult_i_eq = thm"hRe_mult_i_eq";
 val hIm_mult_i_eq = thm"hIm_mult_i_eq";
 val hcmod_mult_i = thm"hcmod_mult_i";
