@@ -33,6 +33,8 @@ instantiated for other types and logics as well.
 
 *** General ***
 
+* Isabelle manuals now also available as PDF;
+
 * improved browser info generation: better HTML markup (including
 colors), graph views in several sizes; isatool usedir now provides a
 proper interface for user theories (via -P option);
