@@ -18,8 +18,8 @@
 
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
-FILES = 	ROOT.ML ctt.thy ctt.ML bool.thy bool.ML \
-		arith.thy arith.ML rew.ML ../Provers/typedsimp.ML
+FILES = 	ROOT.ML CTT.thy CTT.ML Bool.thy Bool.ML \
+		Arith.thy Arith.ML rew.ML ../Provers/typedsimp.ML
 
 EX_FILES = ex/ROOT.ML ex/elim.ML ex/equal.ML ex/synth.ML ex/typechk.ML
 
