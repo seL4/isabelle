@@ -371,7 +371,7 @@ in
 
 val names1 = list1 name;
 
-val split_decls = flat o map (fn (xs, y) => map (rpair y) xs);
+fun split_decls decls = flat (map (fn (xs, y) => map (rpair y) xs) decls);
 
 fun mk_triple2 (x, (y, z)) = mk_triple (x, y, z);
 

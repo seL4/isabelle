@@ -80,7 +80,7 @@ fun ext_typedef prep_term name (t, vs, mx) raw_set axms thms usr_tac thy =
 
     (* errors *)
 
-    val show_names = commas_quote o map fst;
+    fun show_names pairs = commas_quote (map fst pairs);
 
     val illegal_vars =
       if null (term_vars set) andalso null (term_tvars set) then []

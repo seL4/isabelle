@@ -89,8 +89,8 @@ type eq = (string *		(* name      of abstracted type *)
 	   typ list) *		(* arguments of abstracted type *)
 	  cons list;		(* represented type, as a constructor list *)
 
-val rec_of    = snd o first;
-val is_lazy   = fst o first;
+fun rec_of arg  = snd (first arg);
+fun is_lazy arg = fst (first arg);
 val sel_of    =       second;
 val     vname =       third;
 val upd_vname =   upd_third;
