@@ -359,9 +359,11 @@ val ignore =
   Scan.depend (fn 0 => Scan.fail | d => Scan.one T.is_end_ignore >> pair (d - 1)) ||
   Scan.lift (Scan.one (OuterLex.not_eof andf (not o OuterLex.is_end_ignore)));
 
+val opt_newline = Scan.option (Scan.one T.is_newline);
+
 val ignore_stuff =
-  Scan.one T.is_begin_ignore |--
-    P.!!!! (Scan.pass 0 (Scan.repeat ignore) -- Scan.one T.is_end_ignore);
+  opt_newline -- Scan.one T.is_begin_ignore --
+    P.!!!! (Scan.pass 0 (Scan.repeat ignore) -- Scan.one T.is_end_ignore -- opt_newline);
 
 val markup = Scan.one (T.is_kind T.Command andf is_markup o T.val_of) >> T.val_of;
 val verbatim = Scan.one (T.is_kind T.Command andf is_verbatim o T.val_of);
