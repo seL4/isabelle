@@ -221,12 +221,13 @@ fun mk_recdef_decl ((((fname, rel), congs), ss), axms) =
   in
     ";\n\n\
     \local\n\
+    \fun simpset() = Simplifier.simpset_of thy;\n\
     \val (thy, result) = thy |> RecdefPackage.add_recdef " ^ quote fid ^ " " ^ rel ^ "\n" ^
     axms_text ^ "\n(Some (" ^ ss ^ "))\n" ^ congs_text ^ ";\n\
     \in\n\
     \structure " ^ fid ^ " =\n\
     \struct\n\
-    \  val {rules, induct, tcs} = result;\n\
+    \  val {simps, induct, tcs} = result;\n\
     \end;\n\
     \val thy = thy;\n\
     \end;\n\
