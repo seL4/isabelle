@@ -105,6 +105,48 @@ goal Cardinal.thy "X eqpoll Y <-> X lepoll Y & Y lepoll X";
 by (fast_tac (ZF_cs addIs [eqpollI] addSEs [eqpollE]) 1);
 qed "eqpoll_iff";
 
+goalw Cardinal.thy [lepoll_def, inj_def] "!!A. A lepoll 0 ==> A = 0";
+by (fast_tac (eq_cs addDs [apply_type]) 1);
+qed "lepoll_0_is_0";
+
+(*0 lepoll Y*)
+bind_thm ("empty_lepollI", empty_subsetI RS subset_imp_lepoll);
+
+(*A eqpoll 0 ==> A=0*)
+bind_thm ("eqpoll_0_is_0",  eqpoll_imp_lepoll RS lepoll_0_is_0);
+
+
+(*** lesspoll: contributions by Krzysztof Grabczewski ***)
+
+goalw Cardinal.thy [inj_def, surj_def] 
+  "!!f. [| f : inj(A, succ(m)); f ~: surj(A, succ(m)) |] ==> EX f. f:inj(A,m)";
+by (safe_tac lemmas_cs);
+by (swap_res_tac [exI] 1);
+by (res_inst_tac [("a", "lam z:A. if(f`z=m, y, f`z)")] CollectI 1);
+by (fast_tac (ZF_cs addSIs [if_type RS lam_type]
+                    addEs [apply_funtype RS succE]) 1);
+(*Proving it's injective*)
+by (asm_simp_tac (ZF_ss setloop split_tac [expand_if]) 1);
+by (fast_tac ZF_cs 1);
+qed "inj_not_surj_succ";
+
+(** Variations on transitivity **)
+
+goalw Cardinal.thy [lesspoll_def]
+      "!!X. [| X lesspoll Y; Y lesspoll Z |] ==> X lesspoll Z";
+by (fast_tac (ZF_cs addSIs [eqpollI] addSEs [eqpollE] addIs [lepoll_trans]) 1);
+qed "lesspoll_trans";
+
+goalw Cardinal.thy [lesspoll_def]
+      "!!X. [| X lesspoll Y; Y lepoll Z |] ==> X lesspoll Z";
+by (fast_tac (ZF_cs addSIs [eqpollI] addSEs [eqpollE] addIs [lepoll_trans]) 1);
+qed "lesspoll_lepoll_lesspoll";
+
+goalw Cardinal.thy [lesspoll_def] 
+      "!!X. [| X lesspoll Y; Z lepoll X |] ==> Z lesspoll Y";
+by (fast_tac (ZF_cs addSIs [eqpollI] addSEs [eqpollE] addIs [lepoll_trans]) 1);
+qed "lepoll_lesspoll_lesspoll";
+
 
 (** LEAST -- the least number operator [from HOL/Univ.ML] **)
 
@@ -296,50 +338,43 @@ by (asm_simp_tac (ZF_ss addsimps
 qed "Card_le_iff";
 
 
-(** The swap operator [NOT USED] **)
-
-goalw Cardinal.thy [swap_def]
-    "!!A. [| x:A;  y:A |] ==> swap(A,x,y) : A->A";
-by (REPEAT (ares_tac [lam_type,if_type] 1));
-qed "swap_type";
-
-goalw Cardinal.thy [swap_def]
-    "!!A. [| x:A;  y:A;  z:A |] ==> swap(A,x,y)`(swap(A,x,y)`z) = z";
-by (asm_simp_tac (ZF_ss setloop split_tac [expand_if]) 1);
-qed "swap_swap_identity";
-
-goal Cardinal.thy "!!A. [| x:A;  y:A |] ==> swap(A,x,y) : bij(A,A)";
-by (rtac nilpotent_imp_bijective 1);
-by (REPEAT (ares_tac [swap_type, comp_eq_id_iff RS iffD2,
-		      ballI, swap_swap_identity] 1));
-qed "swap_bij";
-
 (*** The finite cardinals ***)
 
-(*Lemma suggested by Mike Fourman*)
-val [prem] = goalw Cardinal.thy [inj_def]
- "f: inj(succ(m), succ(n)) ==> (lam x:m. if(f`x=n, f`m, f`x)) : inj(m,n)";
+goalw Cardinal.thy [lepoll_def, inj_def]
+ "!!A B. [| cons(u,A) lepoll cons(v,B);  u~:A;  v~:B |] ==> A lepoll B";
+by (safe_tac ZF_cs);
+by (res_inst_tac [("x", "lam x:A. if(f`x=v, f`u, f`x)")] exI 1);
 by (rtac CollectI 1);
-(*Proving it's in the function space m->n*)
-by (cut_facts_tac [prem] 1);
+(*Proving it's in the function space A->B*)
 by (rtac (if_type RS lam_type) 1);
-by (fast_tac (ZF_cs addSEs [mem_irrefl] addEs [apply_funtype RS succE]) 1);
-by (fast_tac (ZF_cs addSEs [mem_irrefl] addEs [apply_funtype RS succE]) 1);
+by (fast_tac (ZF_cs addEs [apply_funtype RS consE]) 1);
+by (fast_tac (ZF_cs addSEs [mem_irrefl] addEs [apply_funtype RS consE]) 1);
 (*Proving it's injective*)
 by (asm_simp_tac (ZF_ss setloop split_tac [expand_if]) 1);
-(*Adding  prem  earlier would cause the simplifier to loop*)
-by (cut_facts_tac [prem] 1);
-by (fast_tac (ZF_cs addSEs [mem_irrefl]) 1);
-qed "inj_succ_succD";
+by (fast_tac ZF_cs 1);
+qed "cons_lepoll_consD";
 
-val [prem] = goalw Cardinal.thy [lepoll_def]
+goal Cardinal.thy
+ "!!A B. [| cons(u,A) eqpoll cons(v,B);  u~:A;  v~:B |] ==> A eqpoll B";
+by (asm_full_simp_tac (ZF_ss addsimps [eqpoll_iff]) 1);
+by (fast_tac (ZF_cs addIs [cons_lepoll_consD]) 1);
+qed "cons_eqpoll_consD";
+
+(*Lemma suggested by Mike Fourman*)
+goalw Cardinal.thy [succ_def] "!!m n. succ(m) lepoll succ(n) ==> m lepoll n";
+by (etac cons_lepoll_consD 1);
+by (REPEAT (rtac mem_not_refl 1));
+qed "succ_lepoll_succD";
+
+val [prem] = goal Cardinal.thy
     "m:nat ==> ALL n: nat. m lepoll n --> m le n";
 by (nat_ind_tac "m" [prem] 1);
 by (fast_tac (ZF_cs addSIs [nat_0_le]) 1);
 by (rtac ballI 1);
 by (eres_inst_tac [("n","n")] natE 1);
-by (asm_simp_tac (ZF_ss addsimps [inj_def, succI1 RS Pi_empty2]) 1);
-by (fast_tac (ZF_cs addSIs [succ_leI] addSDs [inj_succ_succD]) 1);
+by (asm_simp_tac (ZF_ss addsimps [lepoll_def, inj_def, 
+				  succI1 RS Pi_empty2]) 1);
+by (fast_tac (ZF_cs addSIs [succ_leI] addSDs [succ_lepoll_succD]) 1);
 val nat_lepoll_imp_le_lemma = result();
 
 bind_thm ("nat_lepoll_imp_le", nat_lepoll_imp_le_lemma RS bspec RS mp);
@@ -365,6 +400,33 @@ goal Cardinal.thy "!!n. [| succ(n) lepoll n;  n:nat |] ==> P";
 by (rtac (nat_lepoll_imp_le RS lt_irrefl) 1);
 by (REPEAT (ares_tac [nat_succI] 1));
 qed "succ_lepoll_natE";
+
+
+(** lepoll, lesspoll and natural numbers **)
+
+goalw Cardinal.thy [lesspoll_def]
+      "!!m. [| A lepoll m; m:nat |] ==> A lesspoll succ(m)";
+by (rtac conjI 1);
+by (fast_tac (ZF_cs addIs [subset_imp_lepoll RSN (2,lepoll_trans)]) 1);
+by (rtac notI 1);
+by (dresolve_tac [eqpoll_sym RS eqpoll_imp_lepoll] 1);
+by (dtac lepoll_trans 1 THEN assume_tac 1);
+by (etac succ_lepoll_natE 1 THEN assume_tac 1);
+qed "lepoll_imp_lesspoll_succ";
+
+goalw Cardinal.thy [lesspoll_def, lepoll_def, eqpoll_def, bij_def]
+      "!!m. [| A lesspoll succ(m); m:nat |] ==> A lepoll m";
+by (step_tac ZF_cs 1);
+by (fast_tac (ZF_cs addSIs [inj_not_surj_succ]) 1);
+qed "lesspoll_succ_imp_lepoll";
+
+goal Cardinal.thy "!!A m. [| A lepoll succ(m);  m:nat |] ==>  \
+\                         A lepoll m | A eqpoll succ(m)";
+by (rtac disjCI 1);
+by (rtac lesspoll_succ_imp_lepoll 1);
+by (assume_tac 2);
+by (asm_simp_tac (ZF_ss addsimps [lesspoll_def]) 1);
+qed "lepoll_succ_disj";
 
 
 (*** The first infinite cardinal: Omega, or nat ***)
@@ -428,6 +490,22 @@ goal Cardinal.thy
 by (asm_full_simp_tac (ZF_ss addsimps [eqpoll_iff, cons_lepoll_cong]) 1);
 qed "cons_eqpoll_cong";
 
+goal Cardinal.thy
+    "!!A B. [| a ~: A;  b ~: B |] ==> \
+\           cons(a,A) lepoll cons(b,B)  <->  A lepoll B";
+by (fast_tac (ZF_cs addIs [cons_lepoll_cong, cons_lepoll_consD]) 1);
+qed "cons_lepoll_cons_iff";
+
+goal Cardinal.thy
+    "!!A B. [| a ~: A;  b ~: B |] ==> \
+\           cons(a,A) eqpoll cons(b,B)  <->  A eqpoll B";
+by (fast_tac (ZF_cs addIs [cons_eqpoll_cong, cons_eqpoll_consD]) 1);
+qed "cons_eqpoll_cons_iff";
+
+goalw Cardinal.thy [succ_def] "{a} eqpoll 1";
+by (fast_tac (ZF_cs addSIs [eqpoll_refl RS cons_eqpoll_cong]) 1);
+qed "singleton_eqpoll_1";
+
 (*Congruence law for  succ  under equipollence*)
 goalw Cardinal.thy [succ_def]
     "!!A B. A eqpoll B ==> succ(A) eqpoll succ(B)";
@@ -475,3 +553,127 @@ by (asm_simp_tac
            setloop split_tac [expand_if]) 1);
 by (fast_tac (ZF_cs addEs [equals0D]) 1);
 qed "inj_disjoint_eqpoll";
+
+
+(*** Lemmas by Krzysztof Grabczewski.  New proofs using cons_lepoll_cons.
+     Could easily generalise from succ to cons. ***)
+
+goalw Cardinal.thy [succ_def]
+      "!!A a n. [| a:A;  A lepoll succ(n) |] ==> A - {a} lepoll n";
+by (rtac cons_lepoll_consD 1);
+by (rtac mem_not_refl 3);
+by (eresolve_tac [cons_Diff RS ssubst] 1);
+by (safe_tac ZF_cs);
+qed "diff_sing_lepoll";
+
+goalw Cardinal.thy [succ_def]
+      "!!A a n. [| a:A; succ(n) lepoll A |] ==> n lepoll A - {a}";
+by (rtac cons_lepoll_consD 1);
+by (rtac mem_not_refl 2);
+by (eresolve_tac [cons_Diff RS ssubst] 1);
+by (safe_tac ZF_cs);
+qed "lepoll_diff_sing";
+
+goal Cardinal.thy "!!A a n. [| a:A; A eqpoll succ(n) |] ==> A - {a} eqpoll n";
+by (fast_tac (ZF_cs addSIs [eqpollI] addSEs [eqpollE] 
+                    addIs [diff_sing_lepoll,lepoll_diff_sing]) 1);
+qed "diff_sing_eqpoll";
+
+goal Cardinal.thy "!!A. [| A lepoll 1; a:A |] ==> A = {a}";
+by (forward_tac [diff_sing_lepoll] 1);
+by (assume_tac 1);
+by (dtac lepoll_0_is_0 1);
+by (fast_tac (eq_cs addEs [equalityE]) 1);
+qed "lepoll_1_is_sing";
+
+
+(*** Finite and infinite sets ***)
+
+goalw Cardinal.thy [Finite_def]
+    "!!A. [| A lepoll n;  n:nat |] ==> Finite(A)";
+by (etac rev_mp 1);
+by (etac nat_induct 1);
+by (fast_tac (ZF_cs addSDs [lepoll_0_is_0] addSIs [eqpoll_refl,nat_0I]) 1);
+by (fast_tac (ZF_cs addSDs [lepoll_succ_disj] addSIs [nat_succI]) 1);
+qed "lepoll_nat_imp_Finite";
+
+goalw Cardinal.thy [Finite_def]
+     "!!X. [| Y lepoll X;  Finite(X) |] ==> Finite(Y)";
+by (fast_tac (ZF_cs addSEs [eqpollE] 
+                    addEs [lepoll_trans RS 
+		     rewrite_rule [Finite_def] lepoll_nat_imp_Finite]) 1);
+qed "lepoll_Finite";
+
+goalw Cardinal.thy [Finite_def] "!!x. Finite(x) ==> Finite(cons(y,x))";
+by (excluded_middle_tac "y:x" 1);
+by (asm_simp_tac (ZF_ss addsimps [cons_absorb]) 2);
+by (etac bexE 1);
+by (rtac bexI 1);
+by (etac nat_succI 2);
+by (asm_simp_tac 
+    (ZF_ss addsimps [succ_def, cons_eqpoll_cong, mem_not_refl]) 1);
+qed "Finite_imp_cons_Finite";
+
+goalw Cardinal.thy [succ_def] "!!x. Finite(x) ==> Finite(succ(x))";
+by (etac Finite_imp_cons_Finite 1);
+qed "Finite_imp_succ_Finite";
+
+goalw Cardinal.thy [Finite_def] 
+      "!!i. [| Ord(i);  ~ Finite(i) |] ==> nat le i";
+by (eresolve_tac [Ord_nat RSN (2,Ord_linear2)] 1);
+by (assume_tac 2);
+by (fast_tac (ZF_cs addSIs [eqpoll_refl] addSEs [ltE]) 1);
+qed "nat_le_infinite_Ord";
+
+
+(*Krzysztof Grabczewski's proof that the converse of a finite, well-ordered
+  set is well-ordered.  Proofs simplified by lcp. *)
+
+goal Nat.thy "!!n. n:nat ==> wf[n](converse(Memrel(n)))";
+by (etac nat_induct 1);
+by (fast_tac (ZF_cs addIs [wf_onI]) 1);
+by (rtac wf_onI 1);
+by (asm_full_simp_tac
+    (ZF_ss addsimps [wf_on_def, wf_def, converse_iff, Memrel_iff]) 1);
+by (excluded_middle_tac "x:Z" 1);
+by (dres_inst_tac [("x", "x")] bspec 2 THEN assume_tac 2);
+by (fast_tac (ZF_cs addSEs [mem_irrefl] addEs [mem_asym]) 2);
+by (dres_inst_tac [("x", "Z")] spec 1);
+by (safe_tac ZF_cs);
+by (dres_inst_tac [("x", "xa")] bspec 1 THEN assume_tac 1);
+by (fast_tac ZF_cs 1);
+qed "nat_wf_on_converse_Memrel";
+
+goal Cardinal.thy "!!n. n:nat ==> well_ord(n,converse(Memrel(n)))";
+by (forward_tac [Ord_nat RS Ord_in_Ord RS well_ord_Memrel] 1);
+by (rewtac well_ord_def);
+by (fast_tac (ZF_cs addSIs [tot_ord_converse, nat_wf_on_converse_Memrel]) 1);
+qed "nat_well_ord_converse_Memrel";
+
+goal Cardinal.thy
+    "!!A. [| well_ord(A,r); 	\
+\            well_ord(ordertype(A,r), converse(Memrel(ordertype(A, r)))) \
+\         |] ==> well_ord(A,converse(r))";
+by (resolve_tac [well_ord_Int_iff RS iffD1] 1);
+by (forward_tac [ordermap_bij RS bij_is_inj RS well_ord_rvimage] 1);
+by (assume_tac 1);
+by (asm_full_simp_tac
+    (ZF_ss addsimps [rvimage_converse, converse_Int, converse_prod, 
+		     ordertype_ord_iso RS ord_iso_rvimage_eq]) 1);
+qed "well_ord_converse";
+
+goal Cardinal.thy
+    "!!A. [| well_ord(A,r);  A eqpoll n;  n:nat |] ==> ordertype(A,r)=n";
+by (rtac (Ord_ordertype RS Ord_nat_eqpoll_iff RS iffD1) 1 THEN 
+    REPEAT (assume_tac 1));
+by (rtac eqpoll_trans 1 THEN assume_tac 2);
+by (rewtac eqpoll_def);
+by (fast_tac (ZF_cs addSIs [ordermap_bij RS bij_converse_bij]) 1);
+qed "ordertype_eq_n";
+
+goalw Cardinal.thy [Finite_def]
+    "!!A. [| Finite(A);  well_ord(A,r) |] ==> well_ord(A,converse(r))";
+by (rtac well_ord_converse 1 THEN assume_tac 1);
+by (fast_tac (ZF_cs addDs [ordertype_eq_n] 
+                    addSIs [nat_well_ord_converse_Memrel]) 1);
+qed "Finite_well_ord_converse";
