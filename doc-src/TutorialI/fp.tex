@@ -1,0 +1,841 @@
+\chapter{Functional Programming in HOL}
+
+Although on the surface this chapter is mainly concerned with how to write
+functional programs in HOL and how to verify them, most of the
+constructs and proof procedures introduced are general purpose and recur in
+any specification or verification task.
+
+The dedicated functional programmer should be warned: HOL offers only {\em
+  total functional programming} --- all functions in HOL must be total; lazy
+data structures are not directly available. On the positive side, functions
+in HOL need not be computable: HOL is a specification language that goes well
+beyond what can be expressed as a program. However, for the time being we
+concentrate on the computable.
+
+\section{An introductory theory}
+\label{sec:intro-theory}
+
+Functional programming needs datatypes and functions. Both of them can be
+defined in a theory with a syntax reminiscent of languages like ML or
+Haskell. As an example consider the theory in figure~\ref{fig:ToyList}.
+We will now examine it line by line.
+
+\begin{figure}[htbp]
+\begin{ttbox}\makeatother
+\input{ToyList2/ToyList1}\end{ttbox}
+\caption{A theory of lists}
+\label{fig:ToyList}
+\end{figure}
+
+{\makeatother\input{ToyList/document/ToyList.tex}}
+
+The complete proof script is shown in figure~\ref{fig:ToyList-proofs}. The
+concatenation of figures \ref{fig:ToyList} and \ref{fig:ToyList-proofs}
+constitutes the complete theory \texttt{ToyList} and should reside in file
+\texttt{ToyList.thy}. It is good practice to present all declarations and
+definitions at the beginning of a theory to facilitate browsing.
+
+\begin{figure}[htbp]
+\begin{ttbox}\makeatother
+\input{ToyList2/ToyList2}\end{ttbox}
+\caption{Proofs about lists}
+\label{fig:ToyList-proofs}
+\end{figure}
+
+\subsubsection*{Review}
+
+This is the end of our toy proof. It should have familiarized you with
+\begin{itemize}
+\item the standard theorem proving procedure:
+state a goal (lemma or theorem); proceed with proof until a separate lemma is
+required; prove that lemma; come back to the original goal.
+\item a specific procedure that works well for functional programs:
+induction followed by all-out simplification via \isa{auto}.
+\item a basic repertoire of proof commands.
+\end{itemize}
+
+
+\section{Some helpful commands}
+\label{sec:commands-and-hints}
+
+This section discusses a few basic commands for manipulating the proof state
+and can be skipped by casual readers.
+
+There are two kinds of commands used during a proof: the actual proof
+commands and auxiliary commands for examining the proof state and controlling
+the display. Simple proof commands are of the form
+\isacommand{apply}\isa{(method)}\indexbold{apply} where \bfindex{method} is a
+synonym for ``theorem proving function''. Typical examples are
+\isa{induct_tac} and \isa{auto}. Further methods are introduced throughout
+the tutorial.  Unless stated otherwise you may assume that a method attacks
+merely the first subgoal. An exception is \isa{auto} which tries to solve all
+subgoals.
+
+The most useful auxiliary commands are:
+\begin{description}
+\item[Undoing:] \isacommand{undo}\indexbold{*undo} undoes the effect of the
+  last command; \isacommand{undo} can be undone by
+  \isacommand{redo}\indexbold{*redo}.  Both are only needed at the shell
+  level and should not occur in the final theory.
+\item[Printing the current state:] \isacommand{pr}\indexbold{*pr} redisplays
+  the current proof state, for example when it has disappeared off the
+  screen.
+\item[Limiting the number of subgoals:] \isacommand{pr}~$n$ tells Isabelle to
+  print only the first $n$ subgoals from now on and redisplays the current
+  proof state. This is helpful when there are many subgoals.
+\item[Modifying the order of subgoals:]
+\isacommand{defer}\indexbold{*defer} moves the first subgoal to the end and
+\isacommand{prefer}\indexbold{*prefer}~$n$ moves subgoal $n$ to the front.
+\item[Printing theorems:]
+  \isacommand{thm}\indexbold{*thm}~\textit{name}$@1$~\dots~\textit{name}$@n$
+  prints the named theorems.
+\item[Displaying types:] We have already mentioned the flag
+  \ttindex{show_types} above. It can also be useful for detecting typos in
+  formulae early on. For example, if \texttt{show_types} is set and the goal
+  \isa{rev(rev xs) = xs} is started, Isabelle prints the additional output
+\par\noindent
+\begin{isabelle}%
+Variables:\isanewline
+~~xs~::~'a~list
+\end{isabelle}%
+\par\noindent
+which tells us that Isabelle has correctly inferred that
+\isa{xs} is a variable of list type. On the other hand, had we
+made a typo as in \isa{rev(re xs) = xs}, the response
+\par\noindent
+\begin{isabelle}%
+Variables:\isanewline
+~~re~::~'a~list~{\isasymRightarrow}~'a~list\isanewline
+~~xs~::~'a~list%
+\end{isabelle}%
+\par\noindent
+would have alerted us because of the unexpected variable \isa{re}.
+\item[Reading terms and types:] \isacommand{term}\indexbold{*term}
+  \textit{string} reads, type-checks and prints the given string as a term in
+  the current context; the inferred type is output as well.
+  \isacommand{typ}\indexbold{*typ} \textit{string} reads and prints the given
+  string as a type in the current context.
+\item[(Re)loading theories:] When you start your interaction you must open a
+  named theory with the line
+  \isacommand{theory}\texttt{~T~=}~\dots~\texttt{:}. Isabelle automatically
+  loads all the required parent theories from their respective files (which
+  may take a moment, unless the theories are already loaded and the files
+  have not been modified). The only time when you need to load a theory by
+  hand is when you simply want to check if it loads successfully without
+  wanting to make use of the theory itself. This you can do by typing
+  \isacommand{use\_thy}\indexbold{*use_thy}~\texttt{"T"}.
+  
+  If you suddenly discover that you need to modify a parent theory of your
+  current theory you must first abandon your current theory (at the shell
+  level type \isacommand{kill}\indexbold{*kill}). After the parent theory has
+  been modified you go back to your original theory. When its first line
+  \isacommand{theory}\texttt{~T~=}~\dots~\texttt{:} is processed, the
+  modified parent is reloaded automatically.
+\end{description}
+Further commands are found in the Isabelle/Isar Reference Manual.
+
+
+\section{Datatypes}
+\label{sec:datatype}
+
+Inductive datatypes are part of almost every non-trivial application of HOL.
+First we take another look at a very important example, the datatype of
+lists, before we turn to datatypes in general. The section closes with a
+case study.
+
+
+\subsection{Lists}
+\indexbold{*list}
+
+Lists are one of the essential datatypes in computing. Readers of this
+tutorial and users of HOL need to be familiar with their basic operations.
+Theory \texttt{ToyList} is only a small fragment of HOL's predefined theory
+\texttt{List}\footnote{\url{http://isabelle.in.tum.de/library/HOL/List.html}}.
+The latter contains many further operations. For example, the functions
+\isaindexbold{hd} (`head') and \isaindexbold{tl} (`tail') return the first
+element and the remainder of a list. (However, pattern-matching is usually
+preferable to \isa{hd} and \isa{tl}.)  Theory \texttt{List} also contains
+more syntactic sugar: \isa{[}$x@1$\isa{,}\dots\isa{,}$x@n$\isa{]} abbreviates
+$x@1$\isa{\#}\dots\isa{\#}$x@n$\isa{\#[]}.  In the rest of the tutorial we
+always use HOL's predefined lists.
+
+
+\subsection{The general format}
+\label{sec:general-datatype}
+
+The general HOL \isacommand{datatype} definition is of the form
+\[
+\isacommand{datatype}~(\alpha@1, \dots, \alpha@n) \, t ~=~
+C@1~\tau@{11}~\dots~\tau@{1k@1} ~\mid~ \dots ~\mid~
+C@m~\tau@{m1}~\dots~\tau@{mk@m}
+\]
+where $\alpha@i$ are type variables (the parameters), $C@i$ are distinct
+constructor names and $\tau@{ij}$ are types; it is customary to capitalize
+the first letter in constructor names. There are a number of
+restrictions (such as that the type should not be empty) detailed
+elsewhere~\cite{isabelle-HOL}. Isabelle notifies you if you violate them.
+
+Laws about datatypes, such as \isa{[] \isasymnoteq~x\#xs} and
+\isa{(x\#xs = y\#ys) = (x=y \isasymand~xs=ys)}, are used automatically
+during proofs by simplification.  The same is true for the equations in
+primitive recursive function definitions.
+
+\subsection{Primitive recursion}
+
+Functions on datatypes are usually defined by recursion. In fact, most of the
+time they are defined by what is called \bfindex{primitive recursion}.
+The keyword \isacommand{primrec}\indexbold{*primrec} is followed by a list of
+equations
+\[ f \, x@1 \, \dots \, (C \, y@1 \, \dots \, y@k)\, \dots \, x@n = r \]
+such that $C$ is a constructor of the datatype $t$ and all recursive calls of
+$f$ in $r$ are of the form $f \, \dots \, y@i \, \dots$ for some $i$. Thus
+Isabelle immediately sees that $f$ terminates because one (fixed!) argument
+becomes smaller with every recursive call. There must be exactly one equation
+for each constructor.  Their order is immaterial.
+A more general method for defining total recursive functions is explained in
+\S\ref{sec:recdef}.
+
+\begin{exercise}
+\input{Misc/document/Tree.tex}%
+\end{exercise}
+
+\subsection{Case expressions}
+\label{sec:case-expressions}
+
+HOL also features \isaindexbold{case}-expressions for analyzing
+elements of a datatype. For example,
+% case xs of [] => 0 | y#ys => y
+\begin{isabellepar}%
+~~~case~xs~of~[]~{\isasymRightarrow}~0~|~y~\#~ys~{\isasymRightarrow}~y
+\end{isabellepar}%
+evaluates to \isa{0} if \isa{xs} is \isa{[]} and to \isa{y} if 
+\isa{xs} is \isa{y\#ys}. (Since the result in both branches must be of
+the same type, it follows that \isa{y::nat} and hence
+\isa{xs::(nat)list}.)
+
+In general, if $e$ is a term of the datatype $t$ defined in
+\S\ref{sec:general-datatype} above, the corresponding
+\isa{case}-expression analyzing $e$ is
+\[
+\begin{array}{rrcl}
+\isa{case}~e~\isa{of} & C@1~x@{11}~\dots~x@{1k@1} & \To & e@1 \\
+                           \vdots \\
+                           \mid & C@m~x@{m1}~\dots~x@{mk@m} & \To & e@m
+\end{array}
+\]
+
+\begin{warn}
+{\em All} constructors must be present, their order is fixed, and nested
+patterns are not supported.  Violating these restrictions results in strange
+error messages.
+\end{warn}
+\noindent
+Nested patterns can be simulated by nested \isa{case}-expressions: instead
+of
+% case xs of [] => 0 | [x] => x | x#(y#zs) => y
+\begin{isabellepar}%
+~~~case~xs~of~[]~{\isasymRightarrow}~0~|~[x]~{\isasymRightarrow}~x~|~x~\#~y~\#~zs~{\isasymRightarrow}~y
+\end{isabellepar}%
+write
+% term(latex xsymbols symbols)"case xs of [] => 0 | x#ys => (case ys of [] => x | y#zs => y)";
+\begin{isabellepar}%
+~~~case~xs~of~[]~{\isasymRightarrow}~0~|~x~\#~ys~{\isasymRightarrow}~(case~ys~of~[]~{\isasymRightarrow}~x~|~y~\#~zs~{\isasymRightarrow}~y)%
+\end{isabellepar}%
+Note that \isa{case}-expressions should be enclosed in parentheses to
+indicate their scope.
+
+\subsection{Structural induction and case distinction}
+\indexbold{structural induction}
+\indexbold{induction!structural}
+\indexbold{case distinction}
+
+Almost all the basic laws about a datatype are applied automatically during
+simplification. Only induction is invoked by hand via \isaindex{induct_tac},
+which works for any datatype. In some cases, induction is overkill and a case
+distinction over all constructors of the datatype suffices. This is performed
+by \isaindexbold{case_tac}. A trivial example:
+
+\input{Misc/document/cases.tex}%
+
+Note that we do not need to give a lemma a name if we do not intend to refer
+to it explicitly in the future.
+
+\begin{warn}
+  Induction is only allowed on free (or \isasymAnd-bound) variables that
+  should not occur among the assumptions of the subgoal.  Case distinction
+  (\isa{case_tac}) works for arbitrary terms, which need to be
+  quoted if they are non-atomic.
+\end{warn}
+
+
+\subsection{Case study: boolean expressions}
+\label{sec:boolex}
+
+The aim of this case study is twofold: it shows how to model boolean
+expressions and some algorithms for manipulating them, and it demonstrates
+the constructs introduced above.
+
+\input{Ifexpr/document/Ifexpr.tex}
+
+How does one come up with the required lemmas? Try to prove the main theorems
+without them and study carefully what \isa{auto} leaves unproved. This has
+to provide the clue.  The necessity of universal quantification
+(\isa{\isasymforall{}t e}) in the two lemmas is explained in
+\S\ref{sec:InductionHeuristics}
+
+\begin{exercise}
+  We strengthen the definition of a \isa{normal} If-expression as follows:
+  the first argument of all \isa{IF}s must be a variable. Adapt the above
+  development to this changed requirement. (Hint: you may need to formulate
+  some of the goals as implications (\isasymimp) rather than equalities
+  (\isa{=}).)
+\end{exercise}
+
+\section{Some basic types}
+
+
+\subsection{Natural numbers}
+\index{arithmetic|(}
+
+\input{Misc/document/fakenat.tex}
+\input{Misc/document/natsum.tex}
+
+The usual arithmetic operations \ttindexboldpos{+}{$HOL2arithfun},
+\ttindexboldpos{-}{$HOL2arithfun}, \ttindexboldpos{*}{$HOL2arithfun},
+\isaindexbold{div}, \isaindexbold{mod}, \isaindexbold{min} and
+\isaindexbold{max} are predefined, as are the relations
+\indexboldpos{\isasymle}{$HOL2arithrel} and
+\ttindexboldpos{<}{$HOL2arithrel}. There is even a least number operation
+\isaindexbold{LEAST}. For example, \isa{(LEAST n.$\,$1 < n) = 2}, although
+Isabelle does not prove this completely automatically. Note that \isa{1} and
+\isa{2} are available as abbreviations for the corresponding
+\isa{Suc}-expressions. If you need the full set of numerals,
+see~\S\ref{nat-numerals}.
+
+\begin{warn}
+  The operations \ttindexboldpos{+}{$HOL2arithfun},
+  \ttindexboldpos{-}{$HOL2arithfun}, \ttindexboldpos{*}{$HOL2arithfun},
+  \isaindexbold{min}, \isaindexbold{max},
+  \indexboldpos{\isasymle}{$HOL2arithrel} and
+  \ttindexboldpos{<}{$HOL2arithrel} are overloaded, i.e.\ they are available
+  not just for natural numbers but at other types as well (see
+  \S\ref{sec:TypeClasses}). For example, given the goal \isa{x+y = y+x},
+  there is nothing to indicate that you are talking about natural numbers.
+  Hence Isabelle can only infer that \isa{x} and \isa{y} are of some
+  arbitrary type where \isa{+} is declared. As a consequence, you will be
+  unable to prove the goal (although it may take you some time to realize
+  what has happened if \texttt{show_types} is not set).  In this particular
+  example, you need to include an explicit type constraint, for example
+  \isa{x+y = y+(x::nat)}.  If there is enough contextual information this may
+  not be necessary: \isa{x+0 = x} automatically implies \isa{x::nat}.
+\end{warn}
+
+Simple arithmetic goals are proved automatically by both \isa{auto}
+and the simplification methods introduced in \S\ref{sec:Simplification}.  For
+example,
+
+\input{Misc/document/arith1.tex}%
+is proved automatically. The main restriction is that only addition is taken
+into account; other arithmetic operations and quantified formulae are ignored.
+
+For more complex goals, there is the special method
+\isaindexbold{arith} (which attacks the first subgoal). It proves
+arithmetic goals involving the usual logical connectives (\isasymnot,
+\isasymand, \isasymor, \isasymimp), the relations \isasymle\ and \isa{<}, and
+the operations \isa{+}, \isa{-}, \isa{min} and \isa{max}. For example,
+
+\input{Misc/document/arith2.tex}%
+succeeds because \isa{k*k} can be treated as atomic.
+In contrast,
+
+\input{Misc/document/arith3.tex}%
+is not even proved by \isa{arith} because the proof relies essentially
+on properties of multiplication.
+
+\begin{warn}
+  The running time of \isa{arith} is exponential in the number of occurrences
+  of \ttindexboldpos{-}{$HOL2arithfun}, \isaindexbold{min} and
+  \isaindexbold{max} because they are first eliminated by case distinctions.
+
+  \isa{arith} is incomplete even for the restricted class of formulae
+  described above (known as ``linear arithmetic''). If divisibility plays a
+  role, it may fail to prove a valid formula, for example $m+m \neq n+n+1$.
+  Fortunately, such examples are rare in practice.
+\end{warn}
+
+\index{arithmetic|)}
+
+
+\subsection{Products}
+
+HOL also has pairs: \isa{($a@1$,$a@2$)} is of type \texttt{$\tau@1$ *
+  $\tau@2$} provided each $a@i$ is of type $\tau@i$. The components of a pair
+are extracted by \isa{fst} and \isa{snd}: \isa{fst($x$,$y$) = $x$} and
+\isa{snd($x$,$y$) = $y$}. Tuples are simulated by pairs nested to the right:
+\isa{($a@1$,$a@2$,$a@3$)} stands for \isa{($a@1$,($a@2$,$a@3$))} and
+\isa{$\tau@1$ * $\tau@2$ * $\tau@3$} for \isa{$\tau@1$ * ($\tau@2$ *
+  $\tau@3$)}. Therefore we have \isa{fst(snd($a@1$,$a@2$,$a@3$)) = $a@2$}.
+
+It is possible to use (nested) tuples as patterns in abstractions, for
+example \isa{\isasymlambda(x,y,z).x+y+z} and
+\isa{\isasymlambda((x,y),z).x+y+z}.
+In addition to explicit $\lambda$-abstractions, tuple patterns can be used in
+most variable binding constructs. Typical examples are
+
+\input{Misc/document/pairs.tex}%
+Further important examples are quantifiers and sets (see~\S\ref{quant-pats}).
+
+%FIXME move stuff below into section on proofs about products?
+\begin{warn}
+  Abstraction over pairs and tuples is merely a convenient shorthand for a
+  more complex internal representation.  Thus the internal and external form
+  of a term may differ, which can affect proofs. If you want to avoid this
+  complication, use \isa{fst} and \isa{snd}, i.e.\ write
+  \isa{\isasymlambda{}p.~fst p + snd p} instead of
+  \isa{\isasymlambda(x,y).~x + y}.  See~\S\ref{proofs-about-products} for
+  theorem proving with tuple patterns.
+\end{warn}
+
+Finally note that products, like natural numbers, are datatypes, which means
+in particular that \isa{induct_tac} and \isa{case_tac} are applicable to
+products (see \S\ref{proofs-about-products}).
+
+\section{Definitions}
+\label{sec:Definitions}
+
+A definition is simply an abbreviation, i.e.\ a new name for an existing
+construction. In particular, definitions cannot be recursive. Isabelle offers
+definitions on the level of types and terms. Those on the type level are
+called type synonyms, those on the term level are called (constant)
+definitions.
+
+
+\subsection{Type synonyms}
+\indexbold{type synonyms}
+
+Type synonyms are similar to those found in ML. Their syntax is fairly self
+explanatory:
+
+\input{Misc/document/types.tex}%
+
+Note that pattern-matching is not allowed, i.e.\ each definition must be of
+the form $f\,x@1\,\dots\,x@n~\isasymequiv~t$.
+
+Section~\S\ref{sec:Simplification} explains how definitions are used
+in proofs.
+
+\begin{warn}%
+A common mistake when writing definitions is to introduce extra free
+variables on the right-hand side as in the following fictitious definition:
+\input{Misc/document/prime_def.tex}%
+\end{warn}
+
+
+\chapter{More Functional Programming}
+
+The purpose of this chapter is to deepen the reader's understanding of the
+concepts encountered so far and to introduce an advanced forms of datatypes
+and recursive functions. The first two sections give a structured
+presentation of theorem proving by simplification
+(\S\ref{sec:Simplification}) and discuss important heuristics for induction
+(\S\ref{sec:InductionHeuristics}). They can be skipped by readers less
+interested in proofs. They are followed by a case study, a compiler for
+expressions (\S\ref{sec:ExprCompiler}). Advanced datatypes, including those
+involving function spaces, are covered in \S\ref{sec:advanced-datatypes},
+which closes with another case study, search trees (``tries'').  Finally we
+introduce a very general form of recursive function definition which goes
+well beyond what \isacommand{primrec} allows (\S\ref{sec:recdef}).
+
+
+\section{Simplification}
+\label{sec:Simplification}
+\index{simplification|(}
+
+So far we have proved our theorems by \isa{auto}, which ``simplifies'' all
+subgoals. In fact, \isa{auto} can do much more than that, except that it
+did not need to so far. However, when you go beyond toy examples, you need to
+understand the ingredients of \isa{auto}.  This section covers the method
+that \isa{auto} always applies first, namely simplification.
+
+Simplification is one of the central theorem proving tools in Isabelle and
+many other systems. The tool itself is called the \bfindex{simplifier}. The
+purpose of this section is twofold: to introduce the many features of the
+simplifier (\S\ref{sec:SimpFeatures}) and to explain a little bit how the
+simplifier works (\S\ref{sec:SimpHow}).  Anybody intending to use HOL should
+read \S\ref{sec:SimpFeatures}, and the serious student should read
+\S\ref{sec:SimpHow} as well in order to understand what happened in case
+things do not simplify as expected.
+
+
+\subsection{Using the simplifier}
+\label{sec:SimpFeatures}
+
+In its most basic form, simplification means repeated application of
+equations from left to right. For example, taking the rules for \isa{\at}
+and applying them to the term \isa{[0,1] \at\ []} results in a sequence of
+simplification steps:
+\begin{ttbox}\makeatother
+(0#1#[]) @ []  \(\leadsto\)  0#((1#[]) @ [])  \(\leadsto\)  0#(1#([] @ []))  \(\leadsto\)  0#1#[]
+\end{ttbox}
+This is also known as \bfindex{term rewriting} and the equations are referred
+to as \bfindex{rewrite rules}. This is more honest than ``simplification''
+because the terms do not necessarily become simpler in the process.
+
+\subsubsection{Simplification rules}
+\indexbold{simplification rules}
+
+To facilitate simplification, theorems can be declared to be simplification
+rules (with the help of the attribute \isa{[simp]}\index{*simp
+  (attribute)}), in which case proofs by simplification make use of these
+rules by default. In addition the constructs \isacommand{datatype} and
+\isacommand{primrec} (and a few others) invisibly declare useful
+simplification rules. Explicit definitions are \emph{not} declared
+simplification rules automatically!
+
+Not merely equations but pretty much any theorem can become a simplification
+rule. The simplifier will try to make sense of it.  For example, a theorem
+\isasymnot$P$ is automatically turned into \isa{$P$ = False}. The details
+are explained in \S\ref{sec:SimpHow}.
+
+The simplification attribute of theorems can be turned on and off as follows:
+\begin{ttbox}
+theorems [simp] = \(list of theorem names\);
+theorems [simp del] = \(list of theorem names\);
+\end{ttbox}
+As a rule of thumb, rules that really simplify (like \isa{rev(rev xs) =
+  xs} and \mbox{\isa{xs \at\ [] = xs}}) should be made simplification
+rules.  Those of a more specific nature (e.g.\ distributivity laws, which
+alter the structure of terms considerably) should only be used selectively,
+i.e.\ they should not be default simplification rules.  Conversely, it may
+also happen that a simplification rule needs to be disabled in certain
+proofs.  Frequent changes in the simplification status of a theorem may
+indicates a badly designed theory.
+\begin{warn}
+  Simplification may not terminate, for example if both $f(x) = g(x)$ and
+  $g(x) = f(x)$ are simplification rules. It is the user's responsibility not
+  to include simplification rules that can lead to nontermination, either on
+  their own or in combination with other simplification rules.
+\end{warn}
+
+\subsubsection{The simplification method}
+\index{*simp (method)|bold}
+
+The general format of the simplification method is
+\begin{ttbox}
+simp \(list of modifiers\)
+\end{ttbox}
+where the list of \emph{modifiers} helps to fine tune the behaviour and may
+be empty. Most if not all of the proofs seen so far could have been performed
+with \isa{simp} instead of \isa{auto}, except that \isa{simp} attacks
+only the first subgoal and may thus need to be repeated.
+Note that \isa{simp} fails if nothing changes.
+
+\subsubsection{Adding and deleting simplification rules}
+
+If a certain theorem is merely needed in a few proofs by simplification,
+we do not need to make it a global simplification rule. Instead we can modify
+the set of simplification rules used in a simplification step by adding rules
+to it and/or deleting rules from it. The two modifiers for this are
+\begin{ttbox}
+add: \(list of theorem names\)
+del: \(list of theorem names\)
+\end{ttbox}
+In case you want to use only a specific list of theorems and ignore all
+others:
+\begin{ttbox}
+only: \(list of theorem names\)
+\end{ttbox}
+
+
+\subsubsection{Assumptions}
+\index{simplification!with/of assumptions}
+
+{\makeatother\input{Misc/document/asm_simp.tex}}
+
+\subsubsection{Rewriting with definitions}
+\index{simplification!with definitions}
+
+\input{Misc/document/def_rewr.tex}
+
+\begin{warn}
+  If you have defined $f\,x\,y~\isasymequiv~t$ then you can only expand
+  occurrences of $f$ with at least two arguments. Thus it is safer to define
+  $f$~\isasymequiv~\isasymlambda$x\,y.\;t$.
+\end{warn}
+
+\subsubsection{Simplifying let-expressions}
+\index{simplification!of let-expressions}
+
+Proving a goal containing \isaindex{let}-expressions almost invariably
+requires the \isa{let}-con\-structs to be expanded at some point. Since
+\isa{let}-\isa{in} is just syntactic sugar for a defined constant (called
+\isa{Let}), expanding \isa{let}-constructs means rewriting with
+\isa{Let_def}:
+
+{\makeatother\input{Misc/document/let_rewr.tex}}
+
+\subsubsection{Conditional equations}
+
+\input{Misc/document/cond_rewr.tex}
+
+
+\subsubsection{Automatic case splits}
+\indexbold{case splits}
+\index{*split|(}
+
+{\makeatother\input{Misc/document/case_splits.tex}}
+
+\index{*split|)}
+
+\begin{warn}
+  The simplifier merely simplifies the condition of an \isa{if} but not the
+  \isa{then} or \isa{else} parts. The latter are simplified only after the
+  condition reduces to \isa{True} or \isa{False}, or after splitting. The
+  same is true for \isaindex{case}-expressions: only the selector is
+  simplified at first, until either the expression reduces to one of the
+  cases or it is split.
+\end{warn}
+
+\subsubsection{Arithmetic}
+\index{arithmetic}
+
+The simplifier routinely solves a small class of linear arithmetic formulae
+(over types \isa{nat} and \isa{int}): it only takes into account
+assumptions and conclusions that are (possibly negated) (in)equalities
+(\isa{=}, \isasymle, \isa{<}) and it only knows about addition. Thus
+
+\input{Misc/document/arith1.tex}%
+is proved by simplification, whereas the only slightly more complex
+
+\input{Misc/document/arith4.tex}%
+is not proved by simplification and requires \isa{arith}.
+
+\subsubsection{Permutative rewrite rules}
+
+A rewrite rule is {\bf permutative} if the left-hand side and right-hand side
+are the same up to renaming of variables.  The most common permutative rule
+is commutativity: $x+y = y+x$.  Another example is $(x-y)-z = (x-z)-y$.  Such
+rules are problematic because once they apply, they can be used forever.
+The simplifier is aware of this danger and treats permutative rules
+separately. For details see~\cite{isabelle-ref}.
+
+\subsubsection{Tracing}
+\indexbold{tracing the simplifier}
+
+{\makeatother\input{Misc/document/trace_simp.tex}}
+
+\subsection{How it works}
+\label{sec:SimpHow}
+
+\subsubsection{Higher-order patterns}
+
+\subsubsection{Local assumptions}
+
+\subsubsection{The preprocessor}
+
+\index{simplification|)}
+
+\section{Induction heuristics}
+\label{sec:InductionHeuristics}
+
+The purpose of this section is to illustrate some simple heuristics for
+inductive proofs. The first one we have already mentioned in our initial
+example:
+\begin{quote}
+{\em 1. Theorems about recursive functions are proved by induction.}
+\end{quote}
+In case the function has more than one argument
+\begin{quote}
+{\em 2. Do induction on argument number $i$ if the function is defined by
+recursion in argument number $i$.}
+\end{quote}
+When we look at the proof of {\makeatother\isa{(xs @ ys) @ zs = xs @ (ys @
+  zs)}} in \S\ref{sec:intro-proof} we find (a) \isa{\at} is recursive in
+the first argument, (b) \isa{xs} occurs only as the first argument of
+\isa{\at}, and (c) both \isa{ys} and \isa{zs} occur at least once as
+the second argument of \isa{\at}. Hence it is natural to perform induction
+on \isa{xs}.
+
+The key heuristic, and the main point of this section, is to
+generalize the goal before induction. The reason is simple: if the goal is
+too specific, the induction hypothesis is too weak to allow the induction
+step to go through. Let us now illustrate the idea with an example.
+
+{\makeatother\input{Misc/document/Itrev.tex}}
+
+A final point worth mentioning is the orientation of the equation we just
+proved: the more complex notion (\isa{itrev}) is on the left-hand
+side, the simpler \isa{rev} on the right-hand side. This constitutes
+another, albeit weak heuristic that is not restricted to induction:
+\begin{quote}
+  {\em 5. The right-hand side of an equation should (in some sense) be
+    simpler than the left-hand side.}
+\end{quote}
+The heuristic is tricky to apply because it is not obvious that
+\isa{rev xs \at\ ys} is simpler than \isa{itrev xs ys}. But see what
+happens if you try to prove the symmetric equation!
+
+
+\section{Case study: compiling expressions}
+\label{sec:ExprCompiler}
+
+{\makeatother\input{CodeGen/document/CodeGen.tex}}
+
+
+\section{Advanced datatypes}
+\label{sec:advanced-datatypes}
+\index{*datatype|(}
+\index{*primrec|(}
+%|)
+
+This section presents advanced forms of \isacommand{datatype}s.
+
+\subsection{Mutual recursion}
+\label{sec:datatype-mut-rec}
+
+\input{Datatype/document/ABexpr.tex}
+
+\subsection{Nested recursion}
+
+\input{Datatype/document/Nested.tex}
+
+
+\subsection{The limits of nested recursion}
+
+How far can we push nested recursion? By the unfolding argument above, we can
+reduce nested to mutual recursion provided the nested recursion only involves
+previously defined datatypes. This does not include functions:
+\begin{ttbox}
+datatype t = C (t => bool)
+\end{ttbox}
+is a real can of worms: in HOL it must be ruled out because it requires a type
+\isa{t} such that \isa{t} and its power set \isa{t \isasymFun\ bool} have the
+same cardinality---an impossibility. For the same reason it is not possible
+to allow recursion involving the type \isa{set}, which is isomorphic to
+\isa{t \isasymFun\ bool}.
+
+Fortunately, a limited form of recursion
+involving function spaces is permitted: the recursive type may occur on the
+right of a function arrow, but never on the left. Hence the above can of worms
+is ruled out but the following example of a potentially infinitely branching tree is
+accepted:
+
+\input{Datatype/document/Fundata.tex}
+\bigskip
+
+If you need nested recursion on the left of a function arrow,
+there are alternatives to pure HOL: LCF~\cite{paulson87} is a logic where types like
+\begin{ttbox}
+datatype lam = C (lam -> lam)
+\end{ttbox}
+do indeed make sense (note the intentionally different arrow \isa{->}!).
+There is even a version of LCF on top of HOL, called
+HOLCF~\cite{MuellerNvOS99}.
+
+\index{*primrec|)}
+\index{*datatype|)}
+
+\subsection{Case study: Tries}
+
+Tries are a classic search tree data structure~\cite{Knuth3-75} for fast
+indexing with strings. Figure~\ref{fig:trie} gives a graphical example of a
+trie containing the words ``all'', ``an'', ``ape'', ``can'', ``car'' and
+``cat''.  When searching a string in a trie, the letters of the string are
+examined sequentially. Each letter determines which subtrie to search next.
+In this case study we model tries as a datatype, define a lookup and an
+update function, and prove that they behave as expected.
+
+\begin{figure}[htbp]
+\begin{center}
+\unitlength1mm
+\begin{picture}(60,30)
+\put( 5, 0){\makebox(0,0)[b]{l}}
+\put(25, 0){\makebox(0,0)[b]{e}}
+\put(35, 0){\makebox(0,0)[b]{n}}
+\put(45, 0){\makebox(0,0)[b]{r}}
+\put(55, 0){\makebox(0,0)[b]{t}}
+%
+\put( 5, 9){\line(0,-1){5}}
+\put(25, 9){\line(0,-1){5}}
+\put(44, 9){\line(-3,-2){9}}
+\put(45, 9){\line(0,-1){5}}
+\put(46, 9){\line(3,-2){9}}
+%
+\put( 5,10){\makebox(0,0)[b]{l}}
+\put(15,10){\makebox(0,0)[b]{n}}
+\put(25,10){\makebox(0,0)[b]{p}}
+\put(45,10){\makebox(0,0)[b]{a}}
+%
+\put(14,19){\line(-3,-2){9}}
+\put(15,19){\line(0,-1){5}}
+\put(16,19){\line(3,-2){9}}
+\put(45,19){\line(0,-1){5}}
+%
+\put(15,20){\makebox(0,0)[b]{a}}
+\put(45,20){\makebox(0,0)[b]{c}}
+%
+\put(30,30){\line(-3,-2){13}}
+\put(30,30){\line(3,-2){13}}
+\end{picture}
+\end{center}
+\caption{A sample trie}
+\label{fig:trie}
+\end{figure}
+
+Proper tries associate some value with each string. Since the
+information is stored only in the final node associated with the string, many
+nodes do not carry any value. This distinction is captured by the
+following predefined datatype (from theory \texttt{Option}, which is a parent
+of \texttt{Main}):
+\input{Trie/document/Option2.tex}
+\indexbold{*option}\indexbold{*None}\indexbold{*Some}
+
+\input{Trie/document/Trie.tex}
+
+\begin{exercise}
+  Write an improved version of \isa{update} that does not suffer from the
+  space leak in the version above. Prove the main theorem for your improved
+  \isa{update}.
+\end{exercise}
+
+\begin{exercise}
+  Write a function to \emph{delete} entries from a trie. An easy solution is
+  a clever modification of \isa{update} which allows both insertion and
+  deletion with a single function.  Prove (a modified version of) the main
+  theorem above. Optimize you function such that it shrinks tries after
+  deletion, if possible.
+\end{exercise}
+
+\section{Total recursive functions}
+\label{sec:recdef}
+\index{*recdef|(}
+
+Although many total functions have a natural primitive recursive definition,
+this is not always the case. Arbitrary total recursive functions can be
+defined by means of \isacommand{recdef}: you can use full pattern-matching,
+recursion need not involve datatypes, and termination is proved by showing
+that the arguments of all recursive calls are smaller in a suitable (user
+supplied) sense.
+
+\subsection{Defining recursive functions}
+
+\input{Recdef/document/examples.tex}
+
+\subsection{Proving termination}
+
+\input{Recdef/document/termination.tex}
+
+\subsection{Simplification with recdef}
+
+\input{Recdef/document/simplification.tex}
+
+
+\subsection{Induction}
+\index{induction!recursion|(}
+\index{recursion induction|(}
+
+\input{Recdef/document/Induction.tex}
+
+\index{induction!recursion|)}
+\index{recursion induction|)}
+\index{*recdef|)}

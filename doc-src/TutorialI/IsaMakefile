@@ -1,0 +1,104 @@
+#
+# IsaMakefile for Tutorial
+#
+
+## targets
+
+default: styles HOL-ToyList HOL-Ifexpr HOL-CodeGen HOL-Trie HOL-Datatype HOL-Recdef HOL-Misc
+
+
+## global settings
+
+SRC = $(ISABELLE_HOME)/src
+OUT = $(ISABELLE_OUTPUT)
+LOG = $(OUT)/log
+
+
+## HOL
+
+HOL:
+	@cd $(SRC)/HOL; $(ISATOOL) make HOL
+
+styles: isabelle.sty isabellesym.sty pdfsetup.sty
+
+isabelle.sty: $(ISABELLE_HOME)/lib/texinputs/isabelle.sty
+	cp $(ISABELLE_HOME)/lib/texinputs/isabelle.sty .
+
+isabellesym.sty: $(ISABELLE_HOME)/lib/texinputs/isabellesym.sty
+	cp $(ISABELLE_HOME)/lib/texinputs/isabellesym.sty .
+
+pdfsetup.sty: $(ISABELLE_HOME)/lib/texinputs/pdfsetup.sty
+	cp $(ISABELLE_HOME)/lib/texinputs/pdfsetup.sty .
+
+
+## HOL-Ifexpr
+
+HOL-Ifexpr: HOL $(LOG)/HOL-Ifexpr.gz
+
+$(LOG)/HOL-Ifexpr.gz: $(OUT)/HOL Ifexpr/Ifexpr.thy Ifexpr/ROOT.ML
+	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Ifexpr
+
+
+## HOL-ToyList
+
+HOL-ToyList: HOL $(LOG)/HOL-ToyList.gz $(LOG)/HOL-ToyList2.gz
+
+ToyList2/ToyList.thy: ToyList2/ToyList1 ToyList2/ToyList2
+	cat ToyList2/ToyList1 ToyList2/ToyList2 > ToyList2/ToyList.thy
+
+$(LOG)/HOL-ToyList2.gz: $(OUT)/HOL ToyList2/ToyList.thy ToyList2/ROOT.ML
+	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL ToyList2
+
+$(LOG)/HOL-ToyList.gz: $(OUT)/HOL ToyList/ToyList.thy ToyList/ROOT.ML
+	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL ToyList
+
+## HOL-CodeGen
+
+HOL-CodeGen: HOL $(LOG)/HOL-CodeGen.gz
+
+$(LOG)/HOL-CodeGen.gz: $(OUT)/HOL CodeGen/CodeGen.thy
+	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL CodeGen
+
+
+## HOL-Datatype
+
+HOL-Datatype: HOL $(LOG)/HOL-Datatype.gz
+
+$(LOG)/HOL-Datatype.gz: $(OUT)/HOL Datatype/ROOT.ML Datatype/ABexpr.thy Datatype/Nested.thy \
+  Datatype/Fundata.thy
+	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Datatype
+
+
+## HOL-Trie
+
+HOL-Trie: HOL $(LOG)/HOL-Trie.gz
+
+$(LOG)/HOL-Trie.gz: $(OUT)/HOL Trie/Option2.thy Trie/Trie.thy
+	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Trie
+
+
+## HOL-Recdef
+
+HOL-Recdef: HOL $(LOG)/HOL-Recdef.gz
+
+$(LOG)/HOL-Recdef.gz: $(OUT)/HOL Recdef/examples.thy Recdef/termination.thy \
+  Recdef/simplification.thy Recdef/Induction.thy
+	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Recdef
+
+
+## HOL-Misc
+
+HOL-Misc: HOL $(LOG)/HOL-Misc.gz
+
+$(LOG)/HOL-Misc.gz: $(OUT)/HOL Misc/ROOT.ML Misc/Tree.thy Misc/cases.thy \
+  Misc/fakenat.thy Misc/natsum.thy Misc/pairs.thy Misc/types.thy Misc/prime_def.thy \
+  Misc/arith1.thy Misc/arith2.thy Misc/arith3.thy Misc/arith4.thy \
+  Misc/def_rewr.thy Misc/let_rewr.thy Misc/cond_rewr.thy Misc/case_splits.thy \
+  Misc/trace_simp.thy Misc/Itrev.thy Misc/asm_simp.thy
+	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Misc
+
+
+## clean
+
+clean:
+	@rm -f $(LOG)/HOL-Ifexpr.gz $(LOG)/HOL-CodeGen.gz $(LOG)/HOL-Misc.gz $(LOG)/HOL-ToyList.gz $(LOG)/HOL-ToyList2.gz $(LOG)/HOL-Trie.gz $(LOG)/HOL-Datatype.gz $(LOG)/HOL-Recdef.gz

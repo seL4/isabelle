@@ -1,0 +1,29 @@
+% extra.sty : Isabelle Manual extra macros for non-Springer version
+%
+\typeout{Document Style extra. Released 17 February 1994}
+
+%%Euro-style date: 20 September 1955
+\def\today{\number\day\space\ifcase\month\or
+January\or February\or March\or April\or May\or June\or
+July\or August\or September\or October\or November\or December\fi
+\space\number\year}
+
+%%Borrowed from alltt.sty, but leaves % as the comment character
+\def\docspecials{\do\ \do\$\do\&%
+  \do\#\do\^\do\^^K\do\_\do\^^A\do\~}
+
+%%%Put first chapter on odd page, with arabic numbering; like \cleardoublepage
+\newcommand\clearfirst{\clearpage\ifodd\c@page\else
+    \hbox{}\newpage\if@twocolumn\hbox{}\newpage\fi\fi
+    \pagenumbering{arabic}}
+
+%%%Ruled chapter headings 
+\def\@rulehead#1{\hrule height1pt \vskip 14pt \Huge \bf 
+   #1 \vskip 14pt\hrule height1pt}
+\def\@makechapterhead#1{ { \parindent 0pt 
+ \ifnum\c@secnumdepth >\m@ne \raggedleft\large\bf\@chapapp{} \thechapter \par 
+ \vskip 20pt \fi \raggedright \@rulehead{#1} \par \nobreak \vskip 40pt } }
+
+\def\@makeschapterhead#1{ { \parindent 0pt \raggedright 
+ \@rulehead{#1} \par \nobreak \vskip 40pt } }
+
