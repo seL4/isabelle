@@ -112,7 +112,8 @@ sig
   val rewrite: bool -> thm list -> cterm -> thm
   val rewrite_cterm: bool -> thm list -> cterm -> cterm
   val simplify: bool -> thm list -> thm -> thm
-  val prove: theory -> string list -> term list -> term -> (thm list -> tactic) -> thm
+  val prove: Sign.sg -> string list -> term list -> term -> (thm list -> tactic) -> thm
+  val prove_standard: Sign.sg -> string list -> term list -> term -> (thm list -> tactic) -> thm
 end;
 
 structure Tactic: TACTIC =
@@ -609,19 +610,21 @@ fun filter_prems_tac p =
   end;
 
 
-(** primitive goal interface for internal use -- avoids "standard" operation *)
+(** minimal goal interface for internal use *)
 
-fun prove thy xs asms prop tac =
+fun prove sign xs asms prop tac =
   let
-    val sg = Theory.sign_of thy;
     val statement = Logic.list_implies (asms, prop);
     val frees = map Term.dest_Free (Term.term_frees statement);
+    val fixed_frees = filter_out (fn (x, _) => x mem_string xs) frees;
+    val fixed_tfrees = foldr Term.add_typ_tfree_names (map #2 fixed_frees, []);
+
     val params = mapfilter (fn x => apsome (pair x) (assoc_string (frees, x))) xs;
 
     fun err msg = error (msg ^ "\nThe error(s) above occurred for the goal statement:\n" ^
-      Sign.string_of_term sg (Term.list_all_free (params, statement)));
+      Sign.string_of_term sign (Term.list_all_free (params, statement)));
 
-    fun cert_safe t = Thm.cterm_of sg t
+    fun cert_safe t = Thm.cterm_of sign t
       handle TERM (msg, _) => err msg | TYPE (msg, _, _) => err msg;
 
     val _ = cert_safe statement;
@@ -640,15 +643,18 @@ fun prove thy xs asms prop tac =
     if ngoals <> 0 then
       err ("Proof failed.\n" ^ Pretty.string_of (Pretty.chunks (Display.pretty_goals ngoals goal'))
         ^ ("\n" ^ string_of_int ngoals ^ " unsolved goal(s)!"))
-    else if not (Pattern.matches (Sign.tsig_of sg) (prop, prop')) then
-      err ("Proved a different theorem: " ^ Sign.string_of_term sg prop')
+    else if not (Pattern.matches (Sign.tsig_of sign) (prop, prop')) then
+      err ("Proved a different theorem: " ^ Sign.string_of_term sign prop')
     else
       raw_result
       |> Drule.implies_intr_list casms
       |> Drule.forall_intr_list (map (cert_safe o Free) params)
       |> norm_hhf
-      |> Thm.varifyT    (* FIXME proper scope for polymorphisms!? *)
+      |> Thm.varifyT' fixed_tfrees
+      |> Drule.zero_var_indexes
   end;
+
+fun prove_standard sign xs asms prop tac = Drule.standard (prove sign xs asms prop tac);
 
 end;
 
