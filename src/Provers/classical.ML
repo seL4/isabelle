@@ -1093,7 +1093,7 @@ fun some_rule_tac cs facts =
       let
         val irules = find_rules (Logic.strip_assums_concl goal) nets;
         val rules = erules @ irules;
-        val ruleq = Method.forward_chain facts rules;
+        val ruleq = Method.multi_resolves facts rules;
       in trace rules i; fn st => Seq.flat (Seq.map (fn rule => Tactic.rtac rule i st) ruleq) end);
   in tac end;
 
@@ -1115,7 +1115,7 @@ fun intro_elim_tac netpair_of res_tac rules cs facts =
       if null rules then FIRST' (map (biresolve_from_nets_tac o netpair_of) (get_nets cs))
       else res_tac rules;
     fun multi_tac st = (single_tac THEN_ALL_NEW (TRY o (fn st => multi_tac st))) st;
-  in Method.same_tac facts THEN' multi_tac end;
+  in Method.insert_tac facts THEN' multi_tac end;
 
 val intro_tac = intro_elim_tac (fn (inet, _) => (inet, Net.empty)) resolve_tac;
 val elim_tac = intro_elim_tac (fn (_, enet) => (Net.empty, enet)) eresolve_tac;
@@ -1128,8 +1128,7 @@ end;
 
 (* contradiction method *)
 
-val contradiction = Method.METHOD (fn facts =>
-  FIRSTGOAL (Method.same_tac facts THEN' contr_tac));
+val contradiction = Method.rule [Data.not_elim, Data.not_elim COMP Drule.swap_prems_rl];
 
 
 (* automatic methods *)
@@ -1149,10 +1148,10 @@ val cla_modifiers =
 val cla_args = Method.only_sectioned_args cla_modifiers;
 
 fun cla_meth tac ctxt = Method.METHOD (fn facts =>
-  ALLGOALS (Method.same_tac facts) THEN tac (get_local_claset ctxt));
+  ALLGOALS (Method.insert_tac facts) THEN tac (get_local_claset ctxt));
 
 fun cla_meth' tac ctxt = Method.METHOD (fn facts =>
-  FIRSTGOAL (Method.same_tac facts THEN' tac (get_local_claset ctxt)));
+  FIRSTGOAL (Method.insert_tac facts THEN' tac (get_local_claset ctxt)));
 
 val cla_method = cla_args o cla_meth;
 val cla_method' = cla_args o cla_meth';
@@ -1162,11 +1161,11 @@ val cla_method' = cla_args o cla_meth';
 (** setup_methods **)
 
 val setup_methods = Method.add_methods
- [("default", Method.thms_args rule, "apply some rule (chain facts)"),
-  ("rule", Method.thms_args rule, "apply some rule (chain facts)"),
-  ("intro", Method.thms_args intro, "apply some introduction rule (cut facts)"),
-  ("elim", Method.thms_args elim, "apply some elimination rule (cut facts)"),
+ [("default", Method.thms_args rule, "apply some rule"),
+  ("rule", Method.thms_args rule, "apply some rule"),
   ("contradiction", Method.no_args contradiction, "proof by contradiction"),
+  ("intro", Method.thms_args intro, "repeatedly apply introduction rules"),
+  ("elim", Method.thms_args elim, "repeatedly apply elimination rules"),
   ("safe_tac", cla_method safe_tac, "safe_tac (improper!)"),
   ("safe_step_tac", cla_method' safe_step_tac, "safe_step_tac (improper!)"),
   ("step_tac", cla_method' step_tac, "step_tac (improper!)"),
