@@ -27,7 +27,7 @@ intros
 ASIN:  "P!n = ASIN x a ==> P |- <s,n> -1-> <s[x::= a s],Suc n>"
 JMPFT: "[| P!n = JMPF b i;  b s |] ==> P |- <s,n> -1-> <s,Suc n>"
 JMPFF: "[| P!n = JMPF b i; ~b s; m=n+i |] ==> P |- <s,n> -1-> <s,m>"
-JMPB:  "[| P!n = JMB i |] ==> P |- <s,n> -1-> <s,n-i>"
+JMPB:  "[| P!n = JMPB i |] ==> P |- <s,n> -1-> <s,n-i>"
 
 consts compile :: "com => instr list"
 primrec
