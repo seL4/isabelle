@@ -593,9 +593,9 @@ fun read_raw_parent sign s =
 
 fun read_typ sign (env, s) =
   let
-    fun def_type (x, ~1) = assoc (env, x)
-      | def_type _ = None;
-    val T = Type.no_tvars (Sign.read_typ (sign, def_type) s) handle TYPE (msg, _, _) => error msg;
+    fun def_sort (x, ~1) = assoc (env, x)
+      | def_sort _ = None;
+    val T = Type.no_tvars (Sign.read_typ (sign, def_sort) s) handle TYPE (msg, _, _) => error msg;
   in (Term.add_typ_tfrees (T, env), T) end;
 
 fun cert_typ sign (env, raw_T) =
