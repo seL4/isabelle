@@ -15,6 +15,7 @@ print_depth 1;
 (*old-style theory syntax*)
 use "~~/src/Pure/section_utils.ML";
 use "thy_syntax.ML";
+
 use "hologic.ML";
 
 use "~~/src/Provers/simplifier.ML";
@@ -34,7 +35,6 @@ use "~~/src/Provers/Arith/combine_coeff.ML";
 
 use_thy "subset";
 use "Tools/typedef_package.ML";
-
 use_thy "Inductive";
 use_thy "NatDef";
 
