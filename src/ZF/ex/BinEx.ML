@@ -6,7 +6,7 @@
 Examples of performing binary arithmetic by simplification
 *)
 
-context Bin.thy;
+context Main.thy;
 
 (*All runtimes below are on a 300MHz Pentium*)
 
@@ -55,7 +55,7 @@ result();
 
 (** Comparisons **)
 
-Goal "(#89) $* #10 ~= #889";  
+Goal "(#89) $* #10 \\<noteq> #889";  
 by (Simp_tac 1); 
 result();
 
@@ -78,3 +78,45 @@ result();
 Goal "(#1234567) $<= #1234567";  
 by (Simp_tac 1); 
 result();
+
+
+(*** Quotient and remainder!! [they could be faster] ***)
+
+Goal "#23 zdiv #3 = #7";
+by (Simp_tac 1); 
+result();
+
+Goal "#23 zmod #3 = #2";
+by (Simp_tac 1); 
+result();
+
+(** negative dividend **)
+
+Goal "#-23 zdiv #3 = #-8";
+by (Simp_tac 1); 
+result();
+
+Goal "#-23 zmod #3 = #1";
+by (Simp_tac 1); 
+result();
+
+(** negative divisor **)
+
+Goal "#23 zdiv #-3 = #-8";
+by (Simp_tac 1); 
+result();
+
+Goal "#23 zmod #-3 = #-1";
+by (Simp_tac 1); 
+result();
+
+(** Negative dividend and divisor **)
+
+Goal "#-23 zdiv #-3 = #7";
+by (Simp_tac 1); 
+result();
+
+Goal "#-23 zmod #-3 = #-2";
+by (Simp_tac 1); 
+result();
+
