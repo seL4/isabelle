@@ -4,6 +4,8 @@
     Copyright   1997  TU Muenchen
 *)
 
+reset global_names;
+
 (*Load theories from ../meta_theory without generating HTML files
   (has already been done by HOL/IMP/ROOT.ML)*)
 val old_make_html = !make_html;
