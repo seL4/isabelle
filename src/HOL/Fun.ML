@@ -189,4 +189,4 @@ val set_cs = HOL_cs
     addEs  [ballE, InterD, InterE, INT_D, INT_E, make_elim INT1_D,
             subsetD, subsetCE];
 
-fun cfast_tac prems = cut_facts_tac prems THEN' fast_tac set_cs;
+fun cfast_tac prems = cut_facts_tac prems THEN' fast_tac (claset_of "Fun");
