@@ -25,6 +25,8 @@ cd "Syntax";
 use "ROOT.ML";
 cd "..";
 
+use "sorts.ML";
+use "type_infer.ML";
 use "type.ML";
 use "sign.ML";
 use "sequence.ML";

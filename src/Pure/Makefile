@@ -25,7 +25,7 @@ FILES =	POLY.ML NJ.ML NJ093.ML NJ1xx.ML ROOT.ML basis.ML library.ML\
 	term.ML symtab.ML type.ML sign.ML\
 	sequence.ML envir.ML pattern.ML unify.ML logic.ML theory.ML thm.ML\
 	net.ML display.ML deriv.ML drule.ML tctical.ML search.ML tactic.ML\
-	goals.ML axclass.ML install_pp.ML\
+	goals.ML axclass.ML install_pp.ML sorts.ML type_infer.ML\
 	NJ093.ML NJ1xx.ML ../Provers/simplifier.ML
 
 SYNTAX_FILES =	Syntax/ROOT.ML	Syntax/ast.ML		Syntax/lexicon.ML\
