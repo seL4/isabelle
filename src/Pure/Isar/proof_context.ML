@@ -351,7 +351,7 @@ fun prep_mixfix (_, _, None) = None
 
 fun prep_mixfix' (_, _, None) = None
   | prep_mixfix' (x, _, Some Syntax.NoSyn) = None
-  | prep_mixfix' (x, opt_T, _) = Some (x, mixfix x opt_T (Syntax.Delimfix x));
+  | prep_mixfix' (x, opt_T, _) = Some (x, mixfix x opt_T (Syntax.literal x));
 
 fun prep_struct (x, _, None) = Some x
   | prep_struct _ = None;
