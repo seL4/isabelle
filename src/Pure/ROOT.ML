@@ -37,6 +37,7 @@ use "theory.ML";
 use "thm.ML";
 use "drule.ML";
 use "tctical.ML";
+use "search.ML";
 use "tactic.ML";
 use "goals.ML";
 use "axclass.ML";
