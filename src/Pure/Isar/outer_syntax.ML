@@ -236,12 +236,6 @@ val check_header_lexicon = Scan.make_lexicon [Symbol.explode theoryN];
 fun is_old_theory src =
   is_none (scan_header (K check_header_lexicon) (Scan.option theory_keyword) src);
 
-fun warn_theory_style path is_old =
-  let
-    val style = if is_old then "old" else "new";
-    val _ = warning ("Assuming " ^ style ^ "-style theory format for " ^ quote (Path.pack path));
-  in is_old end;
-
 
 (* deps_thy --- inspect theory header *)
 
@@ -273,10 +267,9 @@ end;
 fun deps_thy name path =
   let
     val src = File.source path;
-    val is_old = warn_theory_style path (is_old_theory src);
     val (name', parents, files) =
       (*Note: old style headers dynamically depend on the current lexicon :-( *)
-      if is_old then scan_header ThySyn.get_lexicon (Scan.error old_header) src
+      if is_old_theory src then scan_header ThySyn.get_lexicon (Scan.error old_header) src
       else scan_header (K header_lexicon) (Scan.error new_header) src;
 
     val ml_path = ThyLoad.ml_path name;
