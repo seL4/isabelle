@@ -1,12 +1,12 @@
 (*  Title:      HOL/SetInterval.thy
     ID:         $Id$
     Author:     Tobias Nipkow
-    Copyright   1998  TU Muenchen
+    Copyright   2000  TU Muenchen
 
 lessThan, greaterThan, atLeast, atMost
 *)
 
-SetInterval = equalities +
+SetInterval = equalities + Arith + 
 
 constdefs
  lessThan    :: "('a::ord) => 'a set"	("(1{.._'(})")
