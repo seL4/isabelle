@@ -11,6 +11,8 @@ This theory is the work of Martin Coen, Philippe Noel and Lawrence Paulson.
 val banner = "ZF Set Theory (in FOL)";
 writeln banner;
 
+set_loadpath [".", "ex", "../FOL"];
+
 (*For Pure/tactic??  A crude way of adding structure to rules*)
 fun CHECK_SOLVED (Tactic tf) = 
   Tactic (fn state => 
@@ -66,7 +68,7 @@ use     "constructor.ML";
 use     "datatype.ML";
 
 use     "fin.ML";
-use     "list.ML";
+use_thy "List";
 use_thy "listfn";
 
 (*printing functions are inherited from FOL*)

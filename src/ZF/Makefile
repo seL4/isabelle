@@ -32,7 +32,7 @@ FILES = ROOT.ML zf.thy zf.ML upair.ML subset.ML pair.ML domrange.ML \
 $(BIN)/ZF:   $(BIN)/FOL  $(FILES) 
 	case "$(COMP)" in \
 	poly*)	cp $(BIN)/FOL $(BIN)/ZF;\
-		echo 'open PolyML; use"ROOT";' | $(COMP) $(BIN)/ZF ;;\
+		echo 'open PolyML; use"ROOT";' | $(COMP) -h 15000 $(BIN)/ZF ;;\
 	sml*)	echo 'use"ROOT.ML"; xML"$(BIN)/ZF" banner;' | $(BIN)/FOL;;\
 	*)	echo Bad value for ISABELLECOMP;;\
 	esac
@@ -42,7 +42,7 @@ $(BIN)/FOL:
 
 test:   ex/ROOT.ML  $(BIN)/ZF
 	case "$(COMP)" in \
-	poly*)	echo 'use"ex/ROOT.ML"; quit();' | $(COMP) $(BIN)/ZF ;;\
+	poly*)	echo 'use"ex/ROOT.ML"; quit();' | $(COMP) -h 15000 $(BIN)/ZF ;;\
 	sml*)	echo 'use"ex/ROOT.ML";' | $(BIN)/ZF;;\
 	*)	echo Bad value for ISABELLECOMP;;\
 	esac
