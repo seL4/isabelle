@@ -895,6 +895,9 @@ lemma subset_insertI: "B \<subseteq> insert a B"
   apply (erule insertI2)
   done
 
+lemma subset_insertI2: "A \<subseteq> B \<Longrightarrow> A \<subseteq> insert b B"
+by blast
+
 lemma subset_insert: "x \<notin> A ==> (A \<subseteq> insert x B) = (A \<subseteq> B)"
   by blast
 
@@ -960,6 +963,9 @@ text {* \medskip Set difference. *}
 
 lemma Diff_subset: "A - B \<subseteq> A"
   by blast
+
+lemma Diff_subset_conv: "(A - B \<subseteq> C) = (A \<subseteq> B \<union> C)"
+by blast
 
 
 text {* \medskip Monotonicity. *}
@@ -1051,6 +1057,9 @@ lemma insert_Collect: "insert a (Collect P) = {u. u \<noteq> a --> P u}"
 
 lemma UN_insert_distrib: "u \<in> A ==> (\<Union>x\<in>A. insert a (B x)) = insert a (\<Union>x\<in>A. B x)"
   by blast
+
+lemma insert_inter_insert[simp]: "insert a A \<inter> insert a B = insert a (A \<inter> B)"
+by blast
 
 lemma insert_disjoint[simp]:
  "(insert a A \<inter> B = {}) = (a \<notin> B \<and> A \<inter> B = {})"
@@ -1495,6 +1504,9 @@ lemma Diff_eq_empty_iff [simp]: "(A - B = {}) = (A \<subseteq> B)"
 lemma Diff_cancel [simp]: "A - A = {}"
   by blast
 
+lemma Diff_idemp [simp]: "(A - B) - B = A - (B::'a set)"
+by blast
+
 lemma Diff_triv: "A \<inter> B = {} ==> A - B = A"
   by (blast elim: equalityE)
 
@@ -1523,6 +1535,9 @@ lemma insert_Diff_if: "insert x A - B = (if x \<in> B then A - B else insert x (
 
 lemma insert_Diff1 [simp]: "x \<in> B ==> insert x A - B = A - B"
   by blast
+
+lemma insert_Diff_single[simp]: "insert a (A - {a}) = insert a A"
+by blast
 
 lemma insert_Diff: "a \<in> A ==> insert a (A - {a}) = A"
   by blast

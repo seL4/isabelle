@@ -758,6 +758,23 @@ by (induct xs) auto
 lemma butlast_snoc [simp]: "butlast (xs @ [x]) = xs"
 by (induct xs) auto
 
+lemma last_ConsL: "xs = [] \<Longrightarrow> last(x#xs) = x"
+by(simp add:last.simps)
+
+lemma last_ConsR: "xs \<noteq> [] \<Longrightarrow> last(x#xs) = last xs"
+by(simp add:last.simps)
+
+lemma last_append: "last(xs @ ys) = (if ys = [] then last xs else last ys)"
+by (induct xs) (auto)
+
+lemma last_appendL[simp]: "ys = [] \<Longrightarrow> last(xs @ ys) = last xs"
+by(simp add:last_append)
+
+lemma last_appendR[simp]: "ys \<noteq> [] \<Longrightarrow> last(xs @ ys) = last ys"
+by(simp add:last_append)
+
+
+
 lemma length_butlast [simp]: "length (butlast xs) = length xs - 1"
 by (induct xs rule: rev_induct) auto
 
@@ -1111,6 +1128,10 @@ lemma list_all2_nthD [dest?]:
   "\<lbrakk> list_all2 P xs ys; p < size xs \<rbrakk> \<Longrightarrow> P (xs!p) (ys!p)"
   by (simp add: list_all2_conv_all_nth)
 
+lemma list_all2_nthD2:
+  "\<lbrakk>list_all2 P xs ys; p < size ys\<rbrakk> \<Longrightarrow> P (xs!p) (ys!p)"
+  by (frule list_all2_lengthD) (auto intro: list_all2_nthD)
+
 lemma list_all2_map1: 
   "list_all2 P (map f as) bs = list_all2 (\<lambda>x y. P (f x) y) as bs"
   by (simp add: list_all2_conv_all_nth)
@@ -1131,7 +1152,16 @@ lemma list_all2_update_cong2:
   "\<lbrakk>list_all2 P xs ys; P x y; i < length ys\<rbrakk> \<Longrightarrow> list_all2 P (xs[i:=x]) (ys[i:=y])"
   by (simp add: list_all2_lengthD list_all2_update_cong)
 
-lemma list_all2_dropI [intro?]:
+lemma list_all2_takeI [simp,intro?]:
+  "\<And>n ys. list_all2 P xs ys \<Longrightarrow> list_all2 P (take n xs) (take n ys)"
+  apply (induct xs)
+   apply simp
+  apply (clarsimp simp add: list_all2_Cons1)
+  apply (case_tac n)
+  apply auto
+  done
+
+lemma list_all2_dropI [simp,intro?]:
   "\<And>n bs. list_all2 P as bs \<Longrightarrow> list_all2 P (drop n as) (drop n bs)"
   apply (induct as, simp)
   apply (clarsimp simp add: list_all2_Cons1)

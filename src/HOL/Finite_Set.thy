@@ -431,7 +431,9 @@ lemma card_insert_if:
   by (simp add: insert_absorb)
 
 lemma card_Suc_Diff1: "finite A ==> x: A ==> Suc (card (A - {x})) = card A"
-by (rule_tac t = A in insert_Diff [THEN subst], assumption, simp)
+apply(rule_tac t = A in insert_Diff [THEN subst], assumption)
+apply(simp del:insert_Diff_single)
+done
 
 lemma card_Diff_singleton:
     "finite A ==> x: A ==> card (A - {x}) = card A - 1"
@@ -860,7 +862,7 @@ lemma setsum_cong:
   apply (erule ssubst)
   apply (drule spec)
   apply (erule (1) notE impE)
-  apply (simp add: Ball_def)
+  apply (simp add: Ball_def del:insert_Diff_single)
   done
 
 subsubsection{* Min and Max of finite linearly ordered sets *}

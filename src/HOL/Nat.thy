@@ -268,6 +268,12 @@ lemma less_linear: "m < n | m = n | n < (m::nat)"
   apply (blast intro: Suc_mono less_SucI elim: lessE)
   done
 
+text {* "Less than" is antisymmetric, sort of *}
+lemma less_antisym: "\<lbrakk> \<not> n < m; n < Suc m \<rbrakk> \<Longrightarrow> m = n"
+apply(simp only:less_Suc_eq)
+apply blast
+done
+
 lemma nat_neq_iff: "((m::nat) \<noteq> n) = (m < n | n < m)"
   using less_linear by blast
 
