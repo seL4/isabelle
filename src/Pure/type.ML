@@ -46,6 +46,7 @@ sig
   val merge_tsigs: type_sig * type_sig -> type_sig
   val typ_errors: type_sig -> typ * string list -> string list
   val cert_typ: type_sig -> typ -> typ
+  val cert_typ_no_norm: type_sig -> typ -> typ
   val norm_typ: type_sig -> typ -> typ
   val norm_term: type_sig -> term -> term
   val inst_term_tvars: type_sig * (indexname * typ) list -> term -> term
@@ -352,11 +353,12 @@ fun typ_errors tsig (typ, errors) =
 
 (* cert_typ *)           (*exception TYPE*)
 
-(*check and normalize type wrt tsig*)
-fun cert_typ tsig T =
+fun cert_typ_no_norm tsig T =
   (case typ_errors tsig (T, []) of
-    [] => norm_typ tsig T
+    [] => T
   | errs => raise TYPE (cat_lines errs, [T], []));
+
+fun cert_typ tsig T = norm_typ tsig (cert_typ_no_norm tsig T);
 
 
 

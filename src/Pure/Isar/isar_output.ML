@@ -288,7 +288,7 @@ val _ = add_commands
  [("thm", args Attrib.local_thms (string_of oo pretty_thm)),
   ("prop", args Args.local_prop (string_of oo pretty_term)),
   ("term", args Args.local_term (string_of oo pretty_term)),
-  ("typ", args Args.local_typ (string_of oo pretty_typ))];
+  ("typ", args Args.local_typ_no_norm (string_of oo pretty_typ))];
 
 end;
 

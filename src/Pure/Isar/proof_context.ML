@@ -27,7 +27,9 @@ sig
   val assumptions: context -> (cterm list * exporter) list
   val fixed_names: context -> string list
   val read_typ: context -> string -> typ
+  val read_typ_no_norm: context -> string -> typ
   val cert_typ: context -> typ -> typ
+  val cert_typ_no_norm: context -> typ -> typ
   val intern_skolem: context -> term -> term
   val extern_skolem: context -> term -> term
   val read_termTs: context -> (string * typ) list -> term list * (indexname * typ) list
@@ -377,13 +379,24 @@ fun def_type (Context {binds, defs = (types, _, _), ...}) is_pat xi =
 
 (** prepare types **)
 
-fun read_typ ctxt s =
-  transform_error (Sign.read_typ (sign_of ctxt, def_sort ctxt)) s
+local
+
+fun read_typ_aux read ctxt s =
+  transform_error (read (sign_of ctxt, def_sort ctxt)) s
     handle ERROR_MESSAGE msg => raise CONTEXT (msg, ctxt);
 
-fun cert_typ ctxt raw_T =
-  Sign.certify_typ (sign_of ctxt) raw_T
-    handle TYPE (msg, _, _) => raise CONTEXT (msg, ctxt);
+fun cert_typ_aux cert ctxt raw_T = cert (sign_of ctxt) raw_T
+  handle TYPE (msg, _, _) => raise CONTEXT (msg, ctxt);
+
+in
+
+val read_typ         = read_typ_aux Sign.read_typ;
+val read_typ_no_norm = read_typ_aux Sign.read_typ_no_norm;
+val cert_typ         = cert_typ_aux Sign.certify_typ;
+val cert_typ_no_norm = cert_typ_aux Sign.certify_typ_no_norm;
+
+end;
+
 
 
 (* internalize Skolem constants *)

@@ -84,10 +84,12 @@ sig
   val certify_class: sg -> class -> class
   val certify_sort: sg -> sort -> sort
   val certify_typ: sg -> typ -> typ
+  val certify_typ_no_norm: sg -> typ -> typ
   val certify_term: sg -> term -> term * typ * int
   val read_sort: sg -> string -> sort
   val read_raw_typ: sg * (indexname -> sort option) -> string -> typ
   val read_typ: sg * (indexname -> sort option) -> string -> typ
+  val read_typ_no_norm: sg * (indexname -> sort option) -> string -> typ
   val infer_types: sg -> (indexname -> typ option) ->
     (indexname -> sort option) -> string list -> bool
     -> xterm list * typ -> term * (indexname * typ) list
@@ -576,9 +578,14 @@ fun read_raw_typ (sg as Sg (_, {tsig, syn, spaces, ...}), def_sort) str =
   (check_stale sg; rd_raw_typ syn tsig spaces def_sort str);
 
 (*read and certify typ wrt a signature*)
-fun read_typ (sg, def_sort) str =
-  (Type.cert_typ (tsig_of sg) (read_raw_typ (sg, def_sort) str)
-      handle TYPE (msg, _, _) => (error_msg msg; err_in_type str));
+local
+  fun read_typ_aux cert (sg, def_sort) str =
+    (cert (tsig_of sg) (read_raw_typ (sg, def_sort) str)
+        handle TYPE (msg, _, _) => (error_msg msg; err_in_type str));
+in
+  val read_typ = read_typ_aux Type.cert_typ;
+  val read_typ_no_norm = read_typ_aux Type.cert_typ_no_norm;
+end;
 
 
 
@@ -587,6 +594,7 @@ fun read_typ (sg, def_sort) str =
 val certify_class = Type.cert_class o tsig_of;
 val certify_sort = Type.cert_sort o tsig_of;
 val certify_typ = Type.cert_typ o tsig_of;
+val certify_typ_no_norm = Type.cert_typ_no_norm o tsig_of;
 
 
 (* certify_term *)

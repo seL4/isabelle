@@ -30,9 +30,11 @@ sig
   val enum1: string -> ('a * T list -> 'b * ('a * T list)) -> 'a * T list -> 'b list * ('a * T list)
   val and_list: ('a * T list -> 'b * ('a * T list)) -> 'a * T list -> 'b list * ('a * T list)
   val and_list1: ('a * T list -> 'b * ('a * T list)) -> 'a * T list -> 'b list * ('a * T list)
+  val global_typ_no_norm: theory * T list -> typ * (theory * T list)
   val global_typ: theory * T list -> typ * (theory * T list)
   val global_term: theory * T list -> term * (theory * T list)
   val global_prop: theory * T list -> term * (theory * T list)
+  val local_typ_no_norm: Proof.context * T list -> typ * (Proof.context * T list)
   val local_typ: Proof.context * T list -> typ * (Proof.context * T list)
   val local_term: Proof.context * T list -> term * (Proof.context * T list)
   val local_prop: Proof.context * T list -> term * (Proof.context * T list)
@@ -137,10 +139,12 @@ fun and_list scan = enum "and" scan;
 
 fun gen_item read = Scan.depend (fn st => name >> (pair st o read st));
 
+val global_typ_no_norm = gen_item (ProofContext.read_typ_no_norm o ProofContext.init);
 val global_typ = gen_item (ProofContext.read_typ o ProofContext.init);
 val global_term = gen_item (ProofContext.read_term o ProofContext.init);
 val global_prop = gen_item (ProofContext.read_prop o ProofContext.init);
 
+val local_typ_no_norm = gen_item ProofContext.read_typ_no_norm;
 val local_typ = gen_item ProofContext.read_typ;
 val local_term = gen_item ProofContext.read_term;
 val local_prop = gen_item ProofContext.read_prop;
