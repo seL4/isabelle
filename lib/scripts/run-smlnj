@@ -2,7 +2,7 @@
 #
 # $Id$
 #
-# SML/NJ startup script (for 1.09.27 or later).
+# SML/NJ startup script (for 109.27 or later).
 #
 # Global vars: INFILE OUTFILE MLTEXT TERMINATE NOWRITE ISABELLE_TMP,
 # and from settings
@@ -17,21 +17,13 @@ function fail_out()
 }
 
 
-## version specific stuff
+## basic setup
 
-EXIT=""
-COMMIT=""
-SUFFIX=""
-
-case "$ML_SYSTEM" in
-  smlnj-1.09*)
-    EXIT="fun exit 0 : unit = OS.Process.exit OS.Process.success | exit _ = OS.Process.exit OS.Process.failure;"
-    COMMIT="fun commit () = not (SMLofNJ.exportML\"$OUTFILE\");"
-    COMMIT_RO='fun commit () = (TextIO.output (TextIO.stdErr, "Error - Database is not opened for writing.\\n"); false);'
-    eval $($ML_HOME/.arch-n-opsys)
-    SUFFIX=".$ARCH-$OPSYS"
-    ;;
-esac
+EXIT="fun exit 0 : unit = OS.Process.exit OS.Process.success | exit _ = OS.Process.exit OS.Process.failure;"
+COMMIT="fun commit () = not (SMLofNJ.exportML\"$OUTFILE\");"
+COMMIT_RO='fun commit () = (TextIO.output (TextIO.stdErr, "Error - Database is not opened for writing.\n"); false);'
+eval $($ML_HOME/.arch-n-opsys)
+SUFFIX=".$ARCH-$OPSYS"
 
 
 ## prepare databases
