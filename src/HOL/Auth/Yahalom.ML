@@ -8,6 +8,8 @@ Inductive relation "otway" for the Yahalom protocol.
 From page 257 of
   Burrows, Abadi and Needham.  A Logic of Authentication.
   Proc. Royal Soc. 426 (1989)
+
+DEFINE parts_induct_tac AS IN OtwayRees
 *)
 
 open Yahalom;
@@ -209,7 +211,7 @@ goal thy
 \        Key K : parts {X} --> Key K : parts (sees lost Spy evs)";
 by (etac yahalom.induct 1);
 by (dtac (YM4_analz_sees_Spy RS synth.Inj) 6);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps pushes)));
+by (ALLGOALS Asm_simp_tac);
 (*Deals with Faked messages*)
 by (EVERY 
     (map (best_tac (!claset addSEs partsEs
