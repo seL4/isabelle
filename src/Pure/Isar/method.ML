@@ -176,10 +176,16 @@ fun SIMPLE_METHOD' quant tac = METHOD (fn facts => quant (insert_tac facts THEN'
 end;
 
 
-(* unfold / fold definitions *)
+(* unfold/fold definitions *)
 
-fun unfold thms = SIMPLE_METHOD (CHANGED_PROP (rewrite_goals_tac thms));
-fun fold thms = SIMPLE_METHOD (CHANGED_PROP (fold_goals_tac thms));
+fun unfold ths = SIMPLE_METHOD (CHANGED_PROP (rewrite_goals_tac ths));
+fun fold ths = SIMPLE_METHOD (CHANGED_PROP (fold_goals_tac ths));
+
+
+(* unfold intro/elim rules *)
+
+fun intro ths = SIMPLE_METHOD' HEADGOAL (CHANGED_PROP o REPEAT_ALL_NEW (Tactic.match_tac ths));
+fun elim ths = SIMPLE_METHOD' HEADGOAL (CHANGED_PROP o REPEAT_ALL_NEW (Tactic.ematch_tac ths));
 
 
 (* multi_resolve *)
@@ -255,15 +261,6 @@ end;
 
 local
 
-fun may_unify t nets =
-  flat (map (ContextRules.orderlist_no_weight o (fn net => Net.unify_term net t)) nets);
-
-fun find_erules [] = K []
-  | find_erules (fact :: _) = may_unify (Logic.strip_assums_concl (#prop (Thm.rep_thm fact)));
-
-fun find_rules goal = may_unify (Logic.strip_assums_concl goal);
-
-
 fun gen_rule_tac tac rules [] i st = tac rules i st
   | gen_rule_tac tac rules facts i st =
       Seq.flat (Seq.map (fn rule => (tac o single) rule i st) (multi_resolves facts rules));
@@ -273,10 +270,9 @@ fun gen_arule_tac tac j rules facts =
 
 fun gen_some_rule_tac tac arg_rules ctxt facts = SUBGOAL (fn (goal, i) =>
   let
-    val netpairs = ContextRules.netpairs ctxt;
     val rules =
       if not (null arg_rules) then arg_rules
-      else map #2 (find_erules facts (map #2 netpairs) @ find_rules goal (map #1 netpairs));
+      else flat (ContextRules.find_rules ctxt facts goal)
   in trace ctxt rules; tac rules facts i end);
 
 fun meth tac x = METHOD (HEADGOAL o tac x);
@@ -504,13 +500,10 @@ fun modifier name kind kind' att =
     >> (pair (I: Proof.context -> Proof.context) o att);
 
 val rules_modifiers =
- [modifier destN Args.query_colon Args.query ContextRules.dest_query_local,
-  modifier destN Args.bang_colon Args.bang ContextRules.dest_bang_local,
+ [modifier destN Args.bang_colon Args.bang ContextRules.dest_bang_local,
   modifier destN Args.colon (Scan.succeed ()) ContextRules.dest_local,
-  modifier elimN Args.query_colon Args.query ContextRules.elim_query_local,
   modifier elimN Args.bang_colon Args.bang ContextRules.elim_bang_local,
   modifier elimN Args.colon (Scan.succeed ()) ContextRules.elim_local,
-  modifier introN Args.query_colon Args.query ContextRules.intro_query_local,
   modifier introN Args.bang_colon Args.bang ContextRules.intro_bang_local,
   modifier introN Args.colon (Scan.succeed ()) ContextRules.intro_local,
   Args.del -- Args.colon >> K (I, ContextRules.rule_del_local)];
@@ -644,11 +637,13 @@ val pure_methods =
   ("-", no_args insert_facts, "do nothing (insert current facts only)"),
   ("insert", thms_args insert, "insert theorems, ignoring facts (improper)"),
   ("unfold", thms_args unfold, "unfold definitions"),
+  ("intro", thms_args intro, "repeatedly apply introduction rules"),
+  ("elim", thms_args elim, "repeatedly apply elimination rules"),
   ("fold", thms_args fold, "fold definitions"),
   ("atomize", no_args (SIMPLE_METHOD' HEADGOAL (CHANGED_PROP o ObjectLogic.atomize_tac)),
     "present local premises as object-level statements"),
   ("rules", rules_args rules_meth, "apply many rules, including proof search"),
-  ("rule", thms_ctxt_args some_rule, "apply some rule"),
+  ("rule", thms_ctxt_args some_rule, "apply some intro/elim rule"),
   ("erule", nat_thms_args erule, "apply rule in elimination manner (improper)"),
   ("drule", nat_thms_args drule, "apply rule in destruct manner (improper)"),
   ("frule", nat_thms_args frule, "apply rule in forward manner (improper)"),
