@@ -287,6 +287,18 @@ fun cond_display prt =
     (if ! break then Pretty.string_of else Pretty.str_of) prt
     |> enclose "\\isa{" "}";
 
+fun cond_seq_display prts =
+  if ! display then
+    map (Pretty.string_of o Pretty.indent (! indent)) prts
+    |> separate "\\isasep\\isanewline%\n"
+    |> implode
+    |> enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
+  else
+    map (if ! break then Pretty.string_of else Pretty.str_of) prts
+    |> separate "\\isasep\\isanewline%\n"
+    |> implode
+    |> enclose "\\isa{" "}";
+
 fun tweak_line s =
   if ! display then s else Symbol.strip_blanks s;
 
@@ -297,8 +309,7 @@ val pretty_source =
 
 fun pretty_term ctxt = ProofContext.pretty_term ctxt o ProofContext.extern_skolem ctxt;
 
-fun pretty_thms ctxt thms =
-  Pretty.chunks (map (pretty_term ctxt o Thm.prop_of) thms);
+fun pretty_thm ctxt = pretty_term ctxt o Thm.prop_of;
 
 fun pretty_prf full ctxt thms =    (* FIXME context syntax!? *)
   Pretty.chunks (map (ProofSyntax.pretty_proof_of full) thms);
@@ -309,13 +320,19 @@ fun output_with pretty src ctxt x =
     val prt' = if ! source then pretty_source src else prt;
   in cond_display (cond_quote prt') end;
 
+fun output_seq_with pretty src ctxt xs =
+  let
+    val prts = map (pretty ctxt) xs;   (*always pretty in order to catch errors!*)
+    val prts' = if ! source then [pretty_source src] else prts;
+  in cond_seq_display (map cond_quote prts') end;
+
 fun output_goals main_goal src state = args (Scan.succeed ()) (output_with (fn _ => fn _ =>
   Pretty.chunks (Proof.pretty_goals main_goal (Toplevel.proof_of state
       handle Toplevel.UNDEF => error "No proof state")))) src state;
 
 val _ = add_commands
  [("text", args (Scan.lift Args.name) (output_with (K pretty_text))),
-  ("thm", args Attrib.local_thmss (output_with pretty_thms)),
+  ("thm", args Attrib.local_thmss (output_seq_with pretty_thm)),
   ("prf", args Attrib.local_thmss (output_with (pretty_prf false))),
   ("full_prf", args Attrib.local_thmss (output_with (pretty_prf true))),
   ("prop", args Args.local_prop (output_with pretty_term)),
