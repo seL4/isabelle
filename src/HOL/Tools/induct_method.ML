@@ -234,7 +234,7 @@ fun simplified_cases ctxt cases thm =
     val (thm', opt_cases') = foldr simp (1 upto Thm.nprems_of thm ~~ opt_cases, (thm, []));
   in (thm', mapfilter I opt_cases') end;
 
-fun cases_tac (ctxt, ((simplified, opaque), args)) facts =
+fun cases_tac (ctxt, ((simplified, open_parms), args)) facts =
   let
     val sg = ProofContext.sign_of ctxt;
     val cert = Thm.cterm_of sg;
@@ -272,7 +272,7 @@ fun cases_tac (ctxt, ((simplified, opaque), args)) facts =
 
     fun prep_rule (thm, cases) =
       Seq.map (cond_simp cases) (Method.multi_resolves facts [thm]);
-  in Method.resolveq_cases_tac opaque (Seq.flat (Seq.map prep_rule (Seq.of_list rules))) end;
+  in Method.resolveq_cases_tac open_parms (Seq.flat (Seq.map prep_rule (Seq.of_list rules))) end;
 
 in
 
@@ -331,7 +331,7 @@ fun join_rules [(_, thm)] = thm
       end;
 
 
-fun induct_tac (ctxt, ((stripped, opaque), args)) facts =
+fun induct_tac (ctxt, ((stripped, open_parms), args)) facts =
   let
     val sg = ProofContext.sign_of ctxt;
     val cert = Thm.cterm_of sg;
@@ -362,7 +362,8 @@ fun induct_tac (ctxt, ((stripped, opaque), args)) facts =
 
     fun prep_rule (thm, cases) =
       Seq.map (rpair cases) (Method.multi_resolves facts [thm]);
-    val tac = Method.resolveq_cases_tac opaque (Seq.flat (Seq.map prep_rule (Seq.of_list rules)));
+    val tac = Method.resolveq_cases_tac open_parms
+      (Seq.flat (Seq.map prep_rule (Seq.of_list rules)));
   in
     if stripped then tac THEN_ALL_NEW_CASES (REPEAT o Tactic.match_tac [impI, allI, ballI])
     else tac
@@ -383,7 +384,7 @@ val inductN = "induct";
 
 val simplifiedN = "simplified";
 val strippedN = "stripped";
-val opaqN = "opaque";
+val openN = "open";
 
 val typeN = "type";
 val setN = "set";
@@ -441,10 +442,10 @@ val instss = Args.and_list (Scan.repeat1 term_dummy);
 in
 
 val cases_args = Method.syntax
-  (mode simplifiedN -- mode opaqN -- (instss -- Scan.option cases_rule));
+  (mode simplifiedN -- mode openN -- (instss -- Scan.option cases_rule));
 
 val induct_args = Method.syntax
-  (mode strippedN -- mode opaqN -- (instss -- Scan.option induct_rule));
+  (mode strippedN -- mode openN -- (instss -- Scan.option induct_rule));
 
 end;
 
