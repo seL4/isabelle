@@ -5,7 +5,7 @@
 
 theory Peirce = Main:;
 
-text {* Peirce's law: examples of classical proof. *};
+section {* Examples of classical proof --- Peirce's law. *};
 
 theorem "((A --> B) --> A) --> A";
 proof;

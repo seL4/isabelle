@@ -7,7 +7,7 @@ Correctness of a simple expression/stack-machine compiler.
 
 theory ExprCompiler = Main:;
 
-title {* Correctness of a simple expression/stack-machine compiler *};
+chapter {* Correctness of a simple expression/stack-machine compiler *};
 
 
 section {* Basics *};

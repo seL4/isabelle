@@ -5,7 +5,7 @@
 
 theory Group = Main:;
 
-title {* Basic group theory *};
+chapter {* Basic group theory *};
 
 section {* Groups *}; 
 

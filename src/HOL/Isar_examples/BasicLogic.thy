@@ -8,6 +8,8 @@ Basic propositional and quantifier reasoning.
 theory BasicLogic = Main:;
 
 
+subsection {* Some trivialities *};
+
 text {* Just a few toy examples to get an idea of how Isabelle/Isar
   proof documents may look like. *};
 
@@ -103,9 +105,9 @@ proof;
 qed;
 
 
-section {* Examples from 'Introduction to Isabelle' *};
+subsection {* A few examples from ``Introduction to Isabelle'' *};
 
-text {* 'Propositional proof' *};
+subsubsection {* Propositional proof *};
 
 lemma "P | P --> P";
 proof;
@@ -125,7 +127,7 @@ proof;
 qed;
 
 
-text {* 'Quantifier proof' *};
+subsubsection {* Quantifier proof *};
 
 lemma "(EX x. P(f(x))) --> (EX x. P(x))";
 proof;
@@ -153,7 +155,7 @@ lemma "(EX x. P(f(x))) --> (EX x. P(x))";
   by blast;
 
 
-subsection {* 'Deriving rules in Isabelle' *};
+subsubsection {* Deriving rules in Isabelle *};
 
 text {* We derive the conjunction elimination rule from the
  projections.  The proof below follows the basic reasoning of the
