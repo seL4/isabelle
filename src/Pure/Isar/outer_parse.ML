@@ -12,6 +12,9 @@ sig
   val group: string -> (token list -> 'a) -> token list -> 'a
   val !!! : (token list -> 'a) -> token list -> 'a
   val !!!! : (token list -> 'a) -> token list -> 'a
+  val triple1: ('a * 'b) * 'c -> 'a * 'b * 'c
+  val triple2: 'a * ('b * 'c) -> 'a * 'b * 'c
+  val triple_swap: ('a * 'b) * 'c -> ('a * 'c) * 'b
   val $$$ : string -> token list -> string * token list
   val semicolon: token list -> string * token list
   val underscore: token list -> string * token list
@@ -67,10 +70,8 @@ sig
   val spec_opt_name: token list -> ((bstring * string) * Args.src list) * token list
   val xthm: token list -> (xstring * Args.src list) * token list
   val xthms1: token list -> (xstring * Args.src list) list * token list
+  val locale_element: token list -> Args.src Locale.element * token list
   val method: token list -> Method.text * token list
-  val triple1: ('a * 'b) * 'c -> 'a * 'b * 'c
-  val triple2: 'a * ('b * 'c) -> 'a * 'b * 'c
-  val triple_swap: ('a * 'b) * 'c -> ('a * 'c) * 'b
 end;
 
 structure OuterParse: OUTER_PARSE =
@@ -253,6 +254,7 @@ val concl_props = $$$ "concl" |-- !!! is_props;
 val any_props = concl_props >> pair [] || is_props -- Scan.optional concl_props [];
 
 val propp = prop -- Scan.optional ($$$ "(" |-- !!! (any_props --| $$$ ")")) ([], []);
+val propp' = prop -- Scan.optional ($$$ "(" |-- !!! (is_props --| $$$ ")")) [];
 val termp = term -- Scan.optional ($$$ "(" |-- !!! (is_terms --| $$$ ")")) [];
 
 
@@ -297,6 +299,21 @@ val spec_opt_name = opt_thm_name ":" -- prop >> (fn ((x, y), z) => ((x, z), y));
 
 val xthm = xname -- opt_attribs;
 val xthms1 = Scan.repeat1 xthm;
+
+
+(* locale elements *)
+
+val loc_mixfix = $$$ "(" -- $$$ "structure" -- !!! ($$$ ")") >> K None || opt_mixfix >> Some;
+
+val locale_element =
+  $$$ "fixes" |-- !!! (and_list1 (name -- ($$$ "::" |-- typ) -- loc_mixfix >> triple1))
+    >> Locale.Fixes ||
+  $$$ "assumes" |-- !!! (and_list1 (opt_thm_name ":" -- Scan.repeat1 propp))
+    >> Locale.Assumes ||
+  $$$ "defines" |-- !!! (and_list1 (opt_thm_name ":" -- propp'))
+    >> Locale.Defines ||
+  $$$ "notes" |-- !!! (and_list1 (opt_thm_name "=" -- xthms1)) >> Locale.Notes ||
+  $$$ "uses" |-- (!!! ($$$ "FIXME" >> K ())) >> Locale.Uses;
 
 
 (* proof methods *)
