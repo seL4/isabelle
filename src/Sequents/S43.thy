@@ -11,6 +11,7 @@ S43 = Modal0 +
 consts
   S43pi :: "[seq'=>seq', seq'=>seq', seq'=>seq',
              seq'=>seq', seq'=>seq', seq'=>seq'] => prop"
+syntax
   "@S43pi" :: "[seq, seq, seq, seq, seq, seq] => prop"
                          ("S43pi((_);(_);(_);(_);(_);(_))" [] 5)
 

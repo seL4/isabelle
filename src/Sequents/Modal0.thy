@@ -10,9 +10,11 @@ consts
   box           :: "o=>o"       ("[]_" [50] 50)
   dia           :: "o=>o"       ("<>_" [50] 50)
   "--<",">-<"   :: "[o,o]=>o"   (infixr 25)
+  Lstar,Rstar   :: "two_seqi"
+
+syntax
   "@Lstar"      :: "two_seqe"   ("(_)|L>(_)" [6,6] 5)
   "@Rstar"      :: "two_seqe"   ("(_)|R>(_)" [6,6] 5)
-  Lstar,Rstar   :: "two_seqi"
 
 rules
   (* Definitions *)

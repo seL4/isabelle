@@ -22,7 +22,6 @@ default
 consts
 
  Trueprop	:: "two_seqi"
- "@Trueprop"	:: "two_seqe" ("((_)/ |- (_))" [6,6] 5)
 
   True,False   :: o
   "="          :: ['a,'a] => o       (infixl 50)
@@ -35,6 +34,7 @@ consts
   Ex           :: ('a => o) => o     (binder "EX " 10)
 
 syntax
+ "@Trueprop"	:: "two_seqe" ("((_)/ |- (_))" [6,6] 5)
   "_not_equal" :: ['a, 'a] => o                (infixl "~=" 50)
 
 translations

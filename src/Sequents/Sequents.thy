@@ -30,7 +30,7 @@ consts
 
 (* concrete syntax *)
 
-types
+nonterminals
   seq seqobj seqcont
 
 
@@ -59,7 +59,7 @@ types
  sequence_name = seq'=>seq'
 
 
-consts
+syntax
   (*Constant to allow definitions of SEQUENCES of formulas*)
   "@Side"        :: seq=>(seq'=>seq')     ("<<(_)>>")
 

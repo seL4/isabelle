@@ -34,6 +34,8 @@ consts
   split     :: "[i, [i,i]=>i] =>i"
   (*General Product and Function Space*)
   Prod      :: "[t, i=>t]=>t"
+  (*Types*)
+  "+"       :: "[t,t]=>t"           (infixr 40)
   (*Equality type*)
   Eq        :: "[t,i,i]=>t"
   eq        :: "i"
@@ -44,12 +46,7 @@ consts
   Eqelem    :: "[i,i,t]=>prop"      ("(_ =/ _ :/ _)" [10,10,10] 5)
   Reduce    :: "[i,i]=>prop"        ("Reduce[_,_]")
   (*Types*)
-  "@PROD"   :: "[idt,t,t]=>t"       ("(3PROD _:_./ _)" 10)
-  "@SUM"    :: "[idt,t,t]=>t"       ("(3SUM _:_./ _)" 10)
-  "+"       :: "[t,t]=>t"           (infixr 40)
-  (*Invisible infixes!*)
-  "@-->"    :: "[t,t]=>t"           ("(_ -->/ _)" [31,30] 30)
-  "@*"      :: "[t,t]=>t"           ("(_ */ _)" [51,50] 50)
+
   (*Functions*)
   lambda    :: "(i => i) => i"      (binder "lam " 10)
   "`"       :: "[i,i]=>i"           (infixl 60)
@@ -57,6 +54,12 @@ consts
   "0"       :: "i"                  ("0")
   (*Pairing*)
   pair      :: "[i,i]=>i"           ("(1<_,/_>)")
+
+syntax
+  "@PROD"   :: "[idt,t,t]=>t"       ("(3PROD _:_./ _)" 10)
+  "@SUM"    :: "[idt,t,t]=>t"       ("(3SUM _:_./ _)" 10)
+  "@-->"    :: "[t,t]=>t"           ("(_ -->/ _)" [31,30] 30)
+  "@*"      :: "[t,t]=>t"           ("(_ */ _)" [51,50] 50)
 
 translations
   "PROD x:A. B" => "Prod(A, %x. B)"

@@ -8,12 +8,7 @@
 ILL = Sequents +
 
 consts
-
-  
- Trueprop	:: "two_seqi"
- "@Trueprop"	:: "single_seqe" ("((_)/ |- (_))" [6,6] 5)
- 
- 
+  Trueprop       :: "two_seqi"
 
 "><"    ::"[o, o] => o"        (infixr 35)
 "-o"    ::"[o, o] => o"        (infixr 45)
@@ -27,15 +22,18 @@ eye     ::"o"                  ("I")
 aneg    ::"o=>o"               ("~_")
 
 
-  (* syntax for context manipulation *)
+  (* context manipulation *)
 
  Context      :: "two_seqi"
-"@Context"    :: "two_seqe"   ("((_)/ :=: (_))" [6,6] 5)
 
-  (* syntax for promotion rule *)
+  (* promotion rule *)
 
   PromAux :: "three_seqi"
-"@PromAux":: "three_seqe" ("promaux {_||_||_}")
+
+syntax
+  "@Trueprop" :: "single_seqe" ("((_)/ |- (_))" [6,6] 5)
+  "@Context"  :: "two_seqe"   ("((_)/ :=: (_))" [6,6] 5)
+  "@PromAux"  :: "three_seqe" ("promaux {_||_||_}")
 
 defs
 
@@ -47,7 +45,7 @@ aneg_def        "~A == A -o 0"
 
 
 rules
-  
+
 identity        "P |- P"
 
 zerol           "$G, 0, $H |- A"
@@ -58,7 +56,7 @@ derelict   "$F, A, $G |- C ==> $F, !A, $G |- C"
   (* unfortunately, this one removes !A  *)
 
 contract  "$F, !A, !A, $G |- C ==> $F, !A, $G |- C"
-  
+
 weaken     "$F, $G |- C ==> $G, !A, $F |- C"
   (* weak form of weakening, in practice just to clean context *)
   (* weaken and contract not needed (CHECK)  *)
@@ -69,7 +67,7 @@ promote1        "promaux{!A, $G || $H || B}
 promote0        "$G |- A ==> promaux {$G || || A}"
 
 
-  
+
 tensl     "$H, A, B, $G |- C ==> $H, A >< B, $G |- C"
 
 impr      "A, $F |- B ==> $F |- A -o B"
@@ -101,7 +99,7 @@ impl            "[| $G, $F :=: $J, $H ;
                        $G |- A |]
                     ==> $J, A -o B, $H |- C"
 
-    
+
 cut " [| $J1, $H1, $J2, $H3, $J3, $H2, $J4, $H4 :=: $F ;
          $H1, $H2, $H3, $H4 |- A ;
          $J1, $J2, A, $J3, $J4 |- B |]  ==> $F |- B"
@@ -118,7 +116,7 @@ context5     "$F, $G :=: $H ==> $G, $F :=: $H"
 
 
 
- 
+
 end
 
 ML
@@ -131,4 +129,4 @@ val print_translation = [("Trueprop",Sequents.single_tr' "@Trueprop"),
                          ("Context",Sequents.two_seq_tr'"@Context"),
                          ("PromAux", Sequents.three_seq_tr'"@PromAux")];
 
- 
+

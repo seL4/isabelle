@@ -37,6 +37,7 @@ consts
   letrec2    :: "[[i,i,i=>i=>i]=>i,(i=>i=>i)=>i]=>i"
   letrec3    :: "[[i,i,i,i=>i=>i=>i]=>i,(i=>i=>i=>i)=>i]=>i"  
 
+syntax
   "@let"     :: "[idt,i,i]=>i"             ("(3let _ be _/ in _)"
                         [0,0,60] 60)
 
@@ -49,6 +50,7 @@ consts
   "@letrec3" :: "[idt,idt,idt,idt,i,i]=>i" ("(3letrec _ _ _ _ be _/ in _)"
                         [0,0,0,0,0,60] 60)
 
+consts
   napply     :: "[i=>i,i,i]=>i"            ("(_ ^ _ ` _)" [56,56,56] 56)
 
 rules

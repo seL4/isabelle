@@ -27,6 +27,7 @@ consts
 
   SPLIT         :: "[i, [i, i] => i set] => i set"
 
+syntax
   "@Pi"         :: "[idt, i set, i set] => i set"    ("(3PROD _:_./ _)"
                                 [0,0,60] 60)
 

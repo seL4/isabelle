@@ -90,6 +90,7 @@ constdefs
 (* list Enumeration *)
 consts
   "[]"      :: "'a list"                            ("[]")
+syntax
   "@list"   :: "args => 'a list"                    ("[(_)]")
 
 translations
