@@ -480,8 +480,6 @@ goal thy
 by (etac rev_mp 1);
 by (etac rev_mp 1);
 by (analz_induct_tac 1);        (*17 seconds*)
-(*Oops*)
-by (Blast_tac 4);
 (*SpyKeys*)
 by (blast_tac (claset() addDs [Says_imp_spies RS analz.Inj]) 3);
 (*Fake*) 
