@@ -125,12 +125,13 @@ by (Fast_tac 1);
 qed "rtrancl_subset";
 
 goal Trancl.thy "!!R. (R^* Un S^*)^* = (R Un S)^*";
-by (best_tac (set_cs addIs [rtrancl_subset,r_into_rtrancl,
-                           rtrancl_mono RS subsetD]) 1);
+by (best_tac (!claset addSIs [rtrancl_subset]
+                      addIs [r_into_rtrancl, rtrancl_mono RS subsetD]) 1);
 qed "rtrancl_Un_rtrancl";
 
 goal Trancl.thy "(R^=)^* = R^*";
-by (fast_tac (rel_cs addIs [rtrancl_refl,rtrancl_subset,r_into_rtrancl]) 1);
+by (fast_tac (!claset addSIs [rtrancl_refl,rtrancl_subset]
+                      addIs  [r_into_rtrancl]) 1);
 qed "rtrancl_reflcl";
 Addsimps [rtrancl_reflcl];
 
