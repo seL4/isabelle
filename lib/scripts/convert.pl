@@ -76,8 +76,10 @@ sub process_tac {
   s/strip_tac 1/intro strip/g;
   s/split_all_tac 1/simp (no_asm_simp) only: split_tupled_all/g;
 
-  s/rotate_tac ([~\d]+) 1/rotate_tac $1/g;
-  s/rotate_tac ([~\d]+) (\d+)/rotate_tac [$2] $1/g;
+  s/rotate_tac (\d+) 1/rotate_tac $1/g;
+  s/rotate_tac (\d+) (\d+)/rotate_tac [$2] $1/g;
+  s/rotate_tac (~\d+) 1/rotate_tac -$1/g;
+  s/rotate_tac (~\d+) (\d+)/rotate_tac [$2] -$1/g;
   s/rename_tac *(\".*?\") *1/rename_tac $1/g;
   s/rename_tac *(\".*?\") *(\d+)/rename_tac [$2] $1/g;
   s/case_tac *(\".*?\") *1/case_tac $1/g;
@@ -86,56 +88,57 @@ sub process_tac {
   s/induct_tac *(\".*?\") *(\d+)/induct_tac [$2] $1/g;
   s/subgoal_tac *(\".*?\") *1/subgoal_tac $1/g;
   s/subgoal_tac *(\".*?\") *(\d+)/subgoal_tac [$2] $1/g;
-  s/thin_tac *(\".*?\") *1/erule_tac P = $1 thin_rl/g;
-  s/thin_tac *(\".*?\") *(\d+)/erule_tac [$2] P = $1/g;
+  s/thin_tac *(\".*?\") *1/erule_tac V = $1 in thin_rl/g;
+  s/thin_tac *(\".*?\") *(\d+)/erule_tac [$2] V = $1 in thin_rl/g;
 
-  s/stac ([\w\.]+) 1/subst $1/g;
-  s/rtac ([\w\.]+) 1/rule $1/g;
-  s/rtac ([\w\.]+) (\d+)/rule_tac [$2] $1/g;
-  s/res_inst_tac \[\((\".*?\"),(\".*?\")\)\] ([\w\.]+) 1/rule_tac $1 = $2 $3/g;
-  s/dtac ([\w\.]+) 1/drule $1/g;
-  s/dtac ([\w\.]+) (\d+)/drule_tac [$2] $1/g;
-  s/dres_inst_tac \[\((\".*?\"),(\".*?\")\)\] ([\w\.]+) 1/drule_tac $1 = $2 $3/g;
-  s/datac ([\w\.]+) (\d+) 1/"drule ($2) $1"/g;
-  s/etac ([\w\.]+) 1/erule $1/g;
-  s/etac ([\w\.]+) (\d+)/erule_tac [$2] $1/g;
-  s/eres_inst_tac \[\((\".*?\"),(\".*?\")\)\] ([\w\.]+) 1/erule_tac $1 = $2 $3/g;
-  s/eatac ([\w\.]+) (\d+) 1/"erule ($2) $1"/g;
-  s/forward_tac \[([\w\.]+)\] 1/frule $1/g;
-  s/ftac ([\w\.]+) 1/frule $1/g;
-  s/ftac ([\w\.]+) (\d+)/frule_tac [$2] $1/g;
-  s/forw_inst_tac \[\((\".*?\"),(\".*?\")\)\] ([\w\.]+) 1/frule_tac $1 = $2 $3/g;
-  s/fatac ([\w\.]+) (\d+) 1/"frule ($2) $1"/g;
+  s/rewtac ([\w\'\.]+) 1/unfold $1/g;
+  s/stac ([\w\'\.]+) 1/subst $1/g;
+  s/rtac ([\w\'\.]+) 1/rule $1/g;
+  s/rtac ([\w\'\.]+) (\d+)/rule_tac [$2] $1/g;
+  s/res_inst_tac \[\((\".*?\"),(\".*?\")\)\] ([\w\'\.]+) 1/rule_tac $1 = $2 in $3/g;
+  s/dtac ([\w\'\.]+) 1/drule $1/g;
+  s/dtac ([\w\'\.]+) (\d+)/drule_tac [$2] $1/g;
+  s/dres_inst_tac \[\((\".*?\"),(\".*?\")\)\] ([\w\'\.]+) 1/drule_tac $1 = $2 in $3/g;
+  s/datac ([\w\'\.]+) (\d+) 1/drule ($2) $1/g;
+  s/etac ([\w\'\.]+) 1/erule $1/g;
+  s/etac ([\w\'\.]+) (\d+)/erule_tac [$2] $1/g;
+  s/eres_inst_tac \[\((\".*?\"),(\".*?\")\)\] ([\w\'\.]+) 1/erule_tac $1 = $2 in $3/g;
+  s/eatac ([\w\'\.]+) (\d+) 1/erule ($2) $1/g;
+  s/forward_tac \[([\w\'\.]+)\] 1/frule $1/g;
+  s/ftac ([\w\'\.]+) 1/frule $1/g;
+  s/ftac ([\w\'\.]+) (\d+)/frule_tac [$2] $1/g;
+  s/forw_inst_tac \[\((\".*?\"),(\".*?\")\)\] ([\w\'\.]+) 1/frule_tac $1 = $2 in $3/g;
+  s/fatac ([\w\'\.]+) (\d+) 1/frule ($2) $1/g;
 
 
   s/THEN /, /g;
   s/ORELSE/|/g;
-  s/fold_goals_tac *(\[[\w\. ,]*\]|[\w\.]+)/"fold ".thmlist($1)/eg;
-  s/rewrite_goals_tac *(\[[\w\. ,]*\]|[\w\.]+)/"unfold ".thmlist($1)/eg;
-  s/cut_facts_tac *(\[[\w\. ,]*\]|[\w\.]+) 1/"cut_tac ".thmlist($1)/eg;
-  s/resolve_tac *(\[[\w\. ,]*\]|[\w\.]+) 1/"rule ".thmlist($1)/eg;
-  s/EVERY *(\[[\w\. ,]*\]|[\w\.]+)/thmlist($1)/eg;
+  s/fold_goals_tac *(\[[\w\'\. ,]*\]|[\w\'\.]+)/"fold ".thmlist($1)/eg;
+  s/rewrite_goals_tac *(\[[\w\'\. ,]*\]|[\w\'\.]+)/"unfold ".thmlist($1)/eg;
+  s/cut_facts_tac *(\[[\w\'\. ,]*\]|[\w\'\.]+) 1/"cut_tac ".thmlist($1)/eg;
+  s/resolve_tac *(\[[\w\'\. ,]*\]|[\w\'\.]+) 1/"rule ".thmlist($1)/eg;
+  s/EVERY *(\[[\w\'\. ,]*\]|[\w\'\.]+)/thmlist($1)/eg;
 
-  s/addIs *(\[[\w\. ,]*\]|[\w\.]+)/"intro: ".thmlist($1)/eg;
-  s/addSIs *(\[[\w\. ,]*\]|[\w\.]+)/"intro!: ".thmlist($1)/eg;
-  s/addEs *(\[[\w\. ,]*\]|[\w\.]+)/"elim: ".thmlist($1)/eg;
-  s/addSEs *(\[[\w\. ,]*\]|[\w\.]+)/"elim!: ".thmlist($1)/eg;
-  s/addDs *(\[[\w\. ,]*\]|[\w\.]+)/"dest: ".thmlist($1)/eg;
-  s/addSDs *(\[[\w\. ,]*\]|[\w\.]+)/"dest!: ".thmlist($1)/eg;
-  s/delrules *(\[[\w\. ,]*\]|[\w\.]+)/"del: ".thmlist($1)/eg;
-  s/addsimps *(\[[\w\. ,]*\]|[\w\.]+)/"$simpmodmod"."add: ".thmlist($1)/eg;
-  s/delsimps *(\[[\w\. ,]*\]|[\w\.]+)/"$simpmodmod"."del: ".thmlist($1)/eg;
-  s/addcongs *(\[[\w\. ,]*\]|[\w\.]+)/"cong add: ".thmlist($1)/eg;
-  s/delcongs *(\[[\w\. ,]*\]|[\w\.]+)/"cong del: ".thmlist($1)/eg;
-  s/addsplits *(\[[\w\. ,]*\]|[\w\.]+)/"split add: ".thmlist($1)/eg;
-  s/delsplits *(\[[\w\. ,]*\]|[\w\.]+)/"split del: ".thmlist($1)/eg;
+  s/addIs *(\[[\w\'\. ,]*\]|[\w\'\.]+)/"intro: ".thmlist($1)/eg;
+  s/addSIs *(\[[\w\'\. ,]*\]|[\w\'\.]+)/"intro!: ".thmlist($1)/eg;
+  s/addEs *(\[[\w\'\. ,]*\]|[\w\'\.]+)/"elim: ".thmlist($1)/eg;
+  s/addSEs *(\[[\w\'\. ,]*\]|[\w\'\.]+)/"elim!: ".thmlist($1)/eg;
+  s/addDs *(\[[\w\'\. ,]*\]|[\w\'\.]+)/"dest: ".thmlist($1)/eg;
+  s/addSDs *(\[[\w\'\. ,]*\]|[\w\'\.]+)/"dest!: ".thmlist($1)/eg;
+  s/delrules *(\[[\w\'\. ,]*\]|[\w\'\.]+)/"del: ".thmlist($1)/eg;
+  s/addsimps *(\[[\w\'\. ,]*\]|[\w\'\.]+)/"$simpmodmod"."add: ".thmlist($1)/eg;
+  s/delsimps *(\[[\w\'\. ,]*\]|[\w\'\.]+)/"$simpmodmod"."del: ".thmlist($1)/eg;
+  s/addcongs *(\[[\w\'\. ,]*\]|[\w\'\.]+)/"cong add: ".thmlist($1)/eg;
+  s/delcongs *(\[[\w\'\. ,]*\]|[\w\'\.]+)/"cong del: ".thmlist($1)/eg;
+  s/addsplits *(\[[\w\'\. ,]*\]|[\w\'\.]+)/"split add: ".thmlist($1)/eg;
+  s/delsplits *(\[[\w\'\. ,]*\]|[\w\'\.]+)/"split del: ".thmlist($1)/eg;
 
-  s/([\w\.]+) RS ([\w\.]+)/$1 \[THEN $2\]/g;
+  s/([\w\'\.]+) RS ([\w\'\.]+)/$1 \[THEN $2\]/g;
 
   s/ +/ /g;                  # remove multiple whitespace
   s/\( /\(/; s/ \)/\)/g;  # remove leading and trailing space inside parentheses
   s/^ *(.*?) *$/$1/s;        # remove enclosing whitespace
-  s/^\( *([\w\.]+) *\)$/$1/; # remove outermost parentheses if around atoms
+  s/^\( *([\w\'\.]+) *\)$/$1/; # remove outermost parentheses if around atoms
   s/^([a-zA-Z])/ $1/ if (!($lead =~ m/[\s\(]$/)); # add space if required
   $_;
 }
@@ -197,7 +200,7 @@ while (<>) { # main loop
     goto nlc;
   }
   $_=$line;
-  s/^Goalw *(\[[\w\.\s,]*\]|[\w\.]+) *(.+)/
+  s/^Goalw *(\[[\w\'\.\s,]*\]|[\w\'\.]+) *(.+)/
     "lemma ".thmname().": $2$head"."apply (unfold ".thmlist($1).")"/se;
   s/^Goal *(.+)/"lemma ".thmname().": $1"/se;
   s/ goal/"(*".thmname()."*) goal"/se; # ugly old-style goals
@@ -205,6 +208,17 @@ while (<>) { # main loop
   s/^qed *\"(.*?)\"/done($1,"")/se;
   s/^bind_thm *\( *\"(.*?)\" *, *(.*?result *\( *\).*?) *\) *$/done($1,"[?? $2 ??] ")/se;
   s/^by(\s*\(?\s*)(.*?)$/"apply$1".process_tac($1,$2)/se;
+  s/^Addsimps\s*\[\s*([\w\'\. ,]*)\s*\]/"declare ".thmlist($1)." [simp]"/seg;
+  s/^Delsimps\s*\[\s*([\w\'\. ,]*)\s*\]/"declare ".thmlist($1)." [simp del]"/seg;
+  s/^Addsplits\s*\[\s*([\w\'\. ,]*)\s*\]/"declare ".thmlist($1)." [split]"/seg;
+  s/^Delsplits\s*\[\s*([\w\'\. ,]*)\s*\]/"declare ".thmlist($1)." [split del]"/seg;
+  s/^AddIs\s*\[\s*([\w\'\. ,]*)\s*\]/"declare ".thmlist($1)." [intro]"/seg;
+  s/^AddSIs\s*\[\s*([\w\'\. ,]*)\s*\]/"declare ".thmlist($1)." [intro!]"/seg;
+  s/^AddEs\s*\[\s*([\w\'\. ,]*)\s*\]/"declare ".thmlist($1)." [elim]"/seg;
+  s/^AddSEs\s*\[\s*([\w\'\. ,]*)\s*\]/"declare ".thmlist($1)." [elim!]"/seg;
+  s/^AddDs\s*\[\s*([\w\'\. ,]*)\s*\]/"declare ".thmlist($1)." [dest]"/seg;
+  s/^AddSDs\s*\[\s*([\w\'\. ,]*)\s*\]/"declare ".thmlist($1)." [dest!]"/seg;
+  s/^AddIffs\s*\[\s*([\w\'\. ,]*)\s*\]/"declare ".thmlist($1)." [iff]"/seg;
   print "$_$tail";
   if(!$next) { last; } # prevents reading finally from stdin (thru <>)!
 }
