@@ -64,7 +64,7 @@ val output_chr = fn
   "|" => "{\\isacharbar}" |
   "}" => "{\\isacharbraceright}" |
   "~" => "{\\isachartilde}" |
-  c => if Symbol.is_digit c then enclose "{\\isadigit{" "}}" c else c;
+  c => if Symbol.is_ascii_digit c then enclose "{\\isadigit{" "}}" c else c;
 
 val output_chrs = translate_string output_chr;
 

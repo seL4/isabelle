@@ -48,10 +48,11 @@ fun xsym_output "\\" = "\\\\"
   | xsym_output s = if Symbol.is_raw s then Symbol.decode_raw s else s;
 
 fun xsymbols_output s =
-  if xsymbolsN mem_string ! print_mode andalso exists_string (equal "\\") s then
+  if Symbol.chars_only s then Symbol.default_output s
+  else if Output.has_mode xsymbolsN then
     let val syms = Symbol.explode s
     in (implode (map xsym_output syms), real (Symbol.length syms)) end
-  else Symbol.default_output s;
+  else Symbol.symbol_output s;
 
 fun pgml_output (s, len) =
   if pgml () then (XML.text s, len)

@@ -225,8 +225,8 @@ local
 in
 
 fun output_width str =
-  if not (exists_string (equal "<" orf equal ">" orf equal "&") str)
-  then (str, real (size str))
+  if not (exists_string (equal "\\" orf equal "<" orf equal ">" orf equal "&") str)
+  then Symbol.default_output str
   else
     let val (width, syms) = foldl_map add_sym (0.0, map output_sym (Symbol.explode str))
     in (implode (scripts syms), width) end;
