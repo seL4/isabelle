@@ -31,7 +31,7 @@ signature SYNTAX =
   type syntax
   val extend_log_types: syntax -> string list -> syntax
   val extend_type_gram: syntax -> (string * int * mixfix) list -> syntax
-  val extend_const_gram: syntax -> string -> (string * typ * mixfix) list -> syntax
+  val extend_const_gram: syntax -> string * bool -> (string * typ * mixfix) list -> syntax
   val extend_consts: syntax -> string list -> syntax
   val extend_trfuns: syntax ->
     (string * (ast list -> ast)) list *
@@ -57,6 +57,7 @@ signature SYNTAX =
   val simple_string_of_typ: typ -> string
   val simple_pprint_typ: typ -> pprint_args -> unit
   val ambiguity_level: int ref
+  val prtabs_of: syntax -> Printer.prtabs   (* FIXME test only *)
   end;
 
 structure Syntax : SYNTAX =
@@ -124,6 +125,7 @@ fun merge_ruletabs tab1 tab2 =
 
 datatype syntax =
   Syntax of {
+    chartrans: (string * string) list,
     lexicon: lexicon,
     logtypes: string list,
     gram: gram,
@@ -141,6 +143,7 @@ datatype syntax =
 
 val empty_syntax =
   Syntax {
+    chartrans = [],
     lexicon = empty_lexicon,
     logtypes = [],
     gram = empty_gram,
@@ -156,19 +159,21 @@ val empty_syntax =
 
 (* extend_syntax *)
 
-fun extend_syntax prmode (Syntax tabs) syn_ext =
+fun extend_syntax (mode, inout) (Syntax tabs) syn_ext =
   let
-    val {lexicon, logtypes = logtypes1, gram, consts = consts1, parse_ast_trtab,
-      parse_ruletab, parse_trtab, print_trtab, print_ruletab, print_ast_trtab,
-      prtabs} = tabs;
+    val {chartrans = _, lexicon, logtypes = logtypes1, gram, consts = consts1,
+      parse_ast_trtab, parse_ruletab, parse_trtab, print_trtab, print_ruletab,
+      print_ast_trtab, prtabs} = tabs;
     val SynExt {logtypes = logtypes2, xprods, consts = consts2, parse_ast_translation,
       parse_rules, parse_translation, print_translation, print_rules,
       print_ast_translation} = syn_ext;
+    val prtabs' = extend_prtabs prtabs mode xprods;
   in
     Syntax {
-      lexicon = if prmode = "" then extend_lexicon lexicon (delims_of xprods) else lexicon,
+      chartrans = chartrans_of prtabs',
+      lexicon = if inout then extend_lexicon lexicon (delims_of xprods) else lexicon,
       logtypes = extend_list logtypes1 logtypes2,
-      gram = if prmode = "" then extend_gram gram xprods else gram,
+      gram = if inout then extend_gram gram xprods else gram,
       consts = consts2 union consts1,
       parse_ast_trtab =
         extend_trtab parse_ast_trtab parse_ast_translation "parse ast translation",
@@ -178,7 +183,7 @@ fun extend_syntax prmode (Syntax tabs) syn_ext =
       print_ruletab = extend_ruletab print_ruletab print_rules,
       print_ast_trtab =
         extend_trtab print_ast_trtab print_ast_translation "print ast translation",
-      prtabs = extend_prtabs prtabs prmode xprods}
+      prtabs = prtabs'}
   end;
 
 
@@ -186,19 +191,21 @@ fun extend_syntax prmode (Syntax tabs) syn_ext =
 
 fun merge_syntaxes (Syntax tabs1) (Syntax tabs2) =
   let
-    val {lexicon = lexicon1, logtypes = logtypes1, gram = gram1, consts = consts1,
-      parse_ast_trtab = parse_ast_trtab1, parse_ruletab = parse_ruletab1,
+    val {chartrans = _, lexicon = lexicon1, logtypes = logtypes1, gram = gram1,
+      consts = consts1, parse_ast_trtab = parse_ast_trtab1, parse_ruletab = parse_ruletab1,
       parse_trtab = parse_trtab1, print_trtab = print_trtab1,
       print_ruletab = print_ruletab1, print_ast_trtab = print_ast_trtab1,
       prtabs = prtabs1} = tabs1;
 
-    val {lexicon = lexicon2, logtypes = logtypes2, gram = gram2, consts = consts2,
-      parse_ast_trtab = parse_ast_trtab2, parse_ruletab = parse_ruletab2,
+    val {chartrans = _, lexicon = lexicon2, logtypes = logtypes2, gram = gram2,
+      consts = consts2, parse_ast_trtab = parse_ast_trtab2, parse_ruletab = parse_ruletab2,
       parse_trtab = parse_trtab2, print_trtab = print_trtab2,
       print_ruletab = print_ruletab2, print_ast_trtab = print_ast_trtab2,
       prtabs = prtabs2} = tabs2;
+    val prtabs = merge_prtabs prtabs1 prtabs2;
   in
     Syntax {
+      chartrans = chartrans_of prtabs,
       lexicon = merge_lexicons lexicon1 lexicon2,
       logtypes = merge_lists logtypes1 logtypes2,
       gram = merge_grams gram1 gram2,
@@ -211,14 +218,14 @@ fun merge_syntaxes (Syntax tabs1) (Syntax tabs2) =
       print_ruletab = merge_ruletabs print_ruletab1 print_ruletab2,
       print_ast_trtab =
         merge_trtabs print_ast_trtab1 print_ast_trtab2 "print ast translation",
-      prtabs = merge_prtabs prtabs1 prtabs2}
+      prtabs = prtabs}
   end;
 
 
 (* type_syn *)
 
-val type_syn = extend_syntax "" empty_syntax type_ext;
-val pure_syn = extend_syntax "" type_syn pure_ext;
+val type_syn = extend_syntax ("", true) empty_syntax type_ext;
+val pure_syn = extend_syntax ("", true) type_syn pure_ext;
 
 
 (** inspect syntax **)
@@ -231,8 +238,12 @@ fun pretty_strs_qs name strs =
 
 fun print_gram (Syntax tabs) =
   let
-    val {lexicon, logtypes, gram, prtabs, ...} = tabs;
+    val pretty_chartrans =
+      map (fn (c, s) => Pretty.str (c ^ " -> " ^ quote s));
+
+    val {chartrans, lexicon, logtypes, gram, prtabs, ...} = tabs;
   in
+    Pretty.writeln (Pretty.big_list "chartrans:" (pretty_chartrans chartrans));
     Pretty.writeln (pretty_strs_qs "lexicon:" (dest_lexicon lexicon));
     Pretty.writeln (Pretty.strs ("logtypes:" :: logtypes));
     Pretty.writeln (Pretty.big_list "prods:" (pretty_gram gram));
@@ -277,7 +288,8 @@ fun test_read (Syntax tabs) root str =
   let
     val {lexicon, gram, parse_ast_trtab, parse_ruletab, ...} = tabs;
 
-    val toks = tokenize lexicon false str;
+    val chars = SymbolFont.read_charnames (explode str);
+    val toks = tokenize lexicon false chars;
     val _ = writeln ("tokens: " ^ space_implode " " (map display_token toks));
 
     fun show_pt pt =
@@ -300,7 +312,8 @@ fun read_asts (Syntax tabs) xids root str =
   let
     val {lexicon, gram, parse_ast_trtab, logtypes, ...} = tabs;
     val root' = if root mem logtypes then logic else root;
-    val pts = parse gram root' (tokenize lexicon xids str);
+    val chars = SymbolFont.read_charnames (explode str);
+    val pts = parse gram root' (tokenize lexicon xids chars);
 
     fun show_pt pt = writeln (str_of_ast (pt_to_ast (K None) pt));
   in
@@ -419,20 +432,26 @@ fun ext_syntax mk_syn_ext prmode (syn as Syntax {logtypes, ...}) decls =
 
 
 fun extend_log_types syn logtypes =
-  extend_syntax "" syn (syn_ext_logtypes logtypes);
+  extend_syntax ("", true) syn (syn_ext_logtypes logtypes);
 
-val extend_type_gram = ext_syntax syn_ext_types "";
+val extend_type_gram = ext_syntax syn_ext_types ("", true);
 
 fun extend_const_gram syn prmode = ext_syntax syn_ext_consts prmode syn;
 
-val extend_consts = ext_syntax syn_ext_const_names "";
+val extend_consts = ext_syntax syn_ext_const_names ("", true);
 
-val extend_trfuns = ext_syntax syn_ext_trfuns "";
+val extend_trfuns = ext_syntax syn_ext_trfuns ("", true);
 
 fun extend_trrules syn rules =
-  ext_syntax syn_ext_rules "" syn (prep_rules (read_pattern syn) rules);
+  ext_syntax syn_ext_rules ("", true) syn (prep_rules (read_pattern syn) rules);
 
 fun extend_trrules_i syn rules =
-  ext_syntax syn_ext_rules "" syn (prep_rules I rules);
+  ext_syntax syn_ext_rules ("", true) syn (prep_rules I rules);
+
+
+
+(* FIXME test only *)
+
+fun prtabs_of (Syntax {prtabs, ...}) = prtabs;
 
 end;
