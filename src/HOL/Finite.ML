@@ -803,14 +803,9 @@ qed "setsum_cong";
 
 (*** Basic theorem about "choose".  By Florian Kammueller, tidied by LCP ***)
 
-Goal "finite S ==> (card S = 0) = (S = {})"; 
-by (auto_tac (claset() addDs [card_Suc_Diff1],
-	      simpset()));
-qed "card_0_empty_iff";
-
 Goal "finite A ==> card {B. B <= A & card B = 0} = 1";
 by (asm_simp_tac (simpset() addcongs [conj_cong]
-	 	            addsimps [finite_subset RS card_0_empty_iff]) 1);
+	 	            addsimps [finite_subset RS card_0_eq]) 1);
 by (simp_tac (simpset() addcongs [rev_conj_cong]) 1);
 qed "card_s_0_eq_empty";
 
@@ -840,12 +835,12 @@ Goal "[| finite A; finite B; \
 by (auto_tac (claset() addIs [le_anti_sym,card_inj_on_le], simpset()));
 qed "card_bij_eq";
 
-Goal "[| finite M; x ~: M |]  \
-\     ==> card{s. EX t. t <= M & card(t) = k & s = insert x t} = \
-\         card {s. s <= M & card(s) = k}";
+Goal "[| finite A; x ~: A |]  \
+\     ==> card{B. EX C. C <= A & card(C) = k & B = insert x C} = \
+\         card {B. B <= A & card(B) = k}";
 by (res_inst_tac [("f", "%s. s - {x}"), ("g","insert x")] card_bij_eq 1);
-by (res_inst_tac [("B","Pow(insert x M)")] finite_subset 1);
-by (res_inst_tac [("B","Pow(M)")] finite_subset 3);
+by (res_inst_tac [("B","Pow(insert x A)")] finite_subset 1);
+by (res_inst_tac [("B","Pow(A)")] finite_subset 3);
 by (REPEAT(Fast_tac 1));
 (* arity *)
 by (auto_tac (claset() addSEs [equalityE], simpset() addsimps [inj_on_def]));
@@ -854,7 +849,7 @@ by Auto_tac;
 qed "constr_bij";
 
 (* Main theorem: combinatorial theorem about number of subsets of a set *)
-Goal "(ALL A. finite A --> card {s. s <= A & card s = k} = (card A choose k))";
+Goal "(ALL A. finite A --> card {B. B <= A & card B = k} = (card A choose k))";
 by (induct_tac "k" 1);
  by (simp_tac (simpset() addsimps [card_s_0_eq_empty]) 1);
 (* first 0 case finished *)
@@ -864,7 +859,7 @@ by (rtac allI 1 THEN rtac impI 1);
 by (etac finite_induct 1);
 by (ALLGOALS
     (asm_simp_tac (simpset() addcongs [conj_cong] 
-                             addsimps [card_s_0_eq_empty,choose_deconstruct])));
+                     addsimps [card_s_0_eq_empty, choose_deconstruct])));
 by (stac card_Un_disjoint 1);
    by (force_tac (claset(), simpset() addsimps [constr_bij]) 4);
   by (Force_tac 3);
@@ -874,6 +869,6 @@ by (blast_tac (claset() addIs [finite_Pow_iff RS iffD2
 			       RSN (2, finite_subset)]) 1);
 qed "n_sub_lemma";
 
-Goal "finite M ==> card {s. s <= M & card(s) = k} = ((card M) choose k)";
+Goal "finite A ==> card {B. B <= A & card(B) = k} = ((card A) choose k)";
 by (asm_simp_tac (simpset() addsimps [n_sub_lemma]) 1);
 qed "n_subsets";
