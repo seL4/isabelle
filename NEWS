@@ -1,5 +1,6 @@
-Isabelle NEWS -- history of user-visible changes
-================================================
+
+Isabelle NEWS -- history user-relevant changes
+==============================================
 
 New in this Isabelle version
 ----------------------------
@@ -16,6 +17,7 @@ called `inj_on';
 * HOL: removed duplicate thms in Arith:
   less_imp_add_less  should be replaced by  trans_less_add1
   le_imp_add_le      should be replaced by  trans_le_add1
+
 
 *** Proof tools ***
 
@@ -90,6 +92,9 @@ the current theory context, and 'theory' to lookup stored theories;
 
 * the distribution now includes Isabelle icons: see
 lib/logo/isabelle-{small,tiny}.xpm;
+
+* isatool install - install binaries with absolute references to
+ISABELLE_HOME/bin;
 
 
 *** HOL ***
@@ -224,6 +229,7 @@ instead of "inverse";
 * calling (stac rew i) now fails if "rew" has no effect on the goal
   [previously, this check worked only if the rewrite rule was unconditional]
   Now rew can involve either definitions or equalities (either == or =).
+
 
 *** ZF ***
 
