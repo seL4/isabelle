@@ -190,7 +190,7 @@ fun smart_string_of_cterm ct =
 	  | G _ = error ("ProofKernel.smart_string_of_cterm internal error: " ^ (G 2 string_of_cterm ct))
 	fun F sh_br n =
 	    let
-		val str = Library.setmp show_brackets sh_br (G n string_of_cterm) ct
+		val str = Library.setmp show_brackets sh_br (G n (Output.output o string_of_cterm)) ct
 		val cu  = transform_error (read_cterm sign) (str,T)
 	    in
 		if match cu
@@ -208,7 +208,7 @@ fun smart_string_of_cterm ct =
     handle ERROR_MESSAGE mesg =>
 	   (writeln "Exception in smart_string_of_cterm!";
 	    writeln mesg;
-	    quote (string_of_cterm ct))
+	    quote (Output.output (string_of_cterm ct)))
 
 val smart_string_of_thm = smart_string_of_cterm o cprop_of
 
@@ -1898,9 +1898,9 @@ fun new_definition thyname constname rhs thy =
 	val crhs = cterm_of sg (#2 (Logic.dest_equals (prop_of rew)))
 	val thy22 = if (def_name constname) = thmname andalso not redeclared andalso csyn = NoSyn
 		    then
-			add_dump ("constdefs\n  " ^ (quotename constname) ^ " :: \"" ^ (string_of_ctyp (ctyp_of sg ctype)) ^ "\" " ^ (Syntax.string_of_mixfix csyn) ^ "\n  " ^ (smart_string_of_cterm crhs)) thy''
+			add_dump ("constdefs\n  " ^ (quotename constname) ^ " :: \"" ^ Output.output (string_of_ctyp (ctyp_of sg ctype)) ^ "\" " ^ (Syntax.string_of_mixfix csyn) ^ "\n  " ^ (smart_string_of_cterm crhs)) thy''
 		    else
-			add_dump ("consts\n  " ^ (quotename constname) ^ " :: \"" ^ (string_of_ctyp (ctyp_of sg ctype)) ^
+			add_dump ("consts\n  " ^ (quotename constname) ^ " :: \"" ^ Output.output (string_of_ctyp (ctyp_of sg ctype)) ^
 				  "\" " ^ (Syntax.string_of_mixfix csyn) ^ "\n\ndefs\n  " ^ (quotename thmname) ^ ": " ^ (smart_string_of_cterm crhs))
 				 thy''
 
@@ -1964,7 +1964,7 @@ fun new_specification thyname thmname names hth thy =
 							  end) (([],HOLogic.dest_Trueprop (concl_of th)),names)
 			       val sg = sign_of thy
 			       val str = foldl (fn (acc,(c,T,csyn)) =>
-						   acc ^ "\n  " ^ (quotename c) ^ " :: \"" ^ (string_of_ctyp (ctyp_of sg T)) ^ "\" " ^ (Syntax.string_of_mixfix csyn)) ("consts",consts)
+						   acc ^ "\n  " ^ (quotename c) ^ " :: \"" ^ Output.output (string_of_ctyp (ctyp_of sg T)) ^ "\" " ^ (Syntax.string_of_mixfix csyn)) ("consts",consts)
 			       val thy' = add_dump str thy
 			   in
 			       Theory.add_consts_i consts thy'

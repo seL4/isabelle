@@ -30,8 +30,8 @@ struct
 val debug = ref false
 fun message s = if !debug then writeln s else ()
 
-val string_of_thm = Library.setmp print_mode [] string_of_thm
-val string_of_cterm = Library.setmp print_mode [] string_of_cterm
+val string_of_thm = Library.setmp print_mode [] (Output.output o string_of_thm);
+val string_of_cterm = Library.setmp print_mode [] (Output.output o string_of_cterm);
 
 fun import_tac (thyname,thmname) =
     if !SkipProof.quick_and_dirty

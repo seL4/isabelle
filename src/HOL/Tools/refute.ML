@@ -59,6 +59,9 @@ end;
 structure Refute : REFUTE =
 struct
 
+	(* FIXME comptibility -- should avoid std_output altogether *)
+	val std_output = Output.std_output o Output.output;
+
 	open PropLogic;
 
 	(* We use 'REFUTE' only for internal error conditions that should    *)
