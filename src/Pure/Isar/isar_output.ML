@@ -8,13 +8,13 @@ Isar theory output.
 
 signature ISAR_OUTPUT =
 sig
-  val add_commands: (string * (Args.src -> Proof.context -> string)) list -> unit
+  val add_commands: (string * (Args.src -> Toplevel.state -> string)) list -> unit
   val add_options: (string * (string -> (unit -> string) -> unit -> string)) list -> unit
   val print_antiquotations: unit -> unit
   val boolean: string -> bool
   val integer: string -> int
   val args: (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list)) ->
-    (Args.src -> Proof.context -> 'a -> string) -> Args.src -> Proof.context -> string
+    (Args.src -> Proof.context -> 'a -> string) -> Args.src -> Toplevel.state -> string
   datatype markup = Markup | MarkupEnv | Verbatim
   val interest_level: int ref
   val parse_thy: (markup -> OuterLex.token list -> OuterLex.token * OuterLex.token list) ->
@@ -38,7 +38,7 @@ structure P = OuterParse;
 local
 
 val global_commands =
-  ref (Symtab.empty: (Args.src -> Proof.context -> string) Symtab.table);
+  ref (Symtab.empty: (Args.src -> Toplevel.state -> string) Symtab.table);
 
 val global_options =
   ref (Symtab.empty: (string -> (unit -> string) -> unit -> string) Symtab.table);
@@ -102,9 +102,9 @@ fun integer s =
 fun syntax (scan: (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list))) =
   Args.syntax "antiquotation" scan;
 
-fun args scan f src ctxt : string =
-  let val (ctxt', x) = syntax scan src ctxt
-  in f src ctxt' x end;
+fun args scan f src state : string =
+  let val (ctxt, x) = syntax scan src (Toplevel.context_of state)
+  in f src ctxt x end;
 
 
 (* outer syntax *)
@@ -141,8 +141,8 @@ fun eval_antiquote lex state (str, pos) =
     fun expand (Antiquote.Text s) = s
       | expand (Antiquote.Antiq x) =
           let val (opts, src) = antiq_args lex x in
-            Library.setmp print_mode Latex.modes   (*note: lazy lookup of context below!*)
-              (options opts (fn () => command src (Toplevel.context_of state))) () end;
+            Library.setmp print_mode Latex.modes (options opts (fn () => command src state)) ()
+          end;
     val ants = Antiquote.antiquotes_of (str, pos);
   in
     if Toplevel.is_toplevel state andalso exists Antiquote.is_antiq ants then
@@ -258,7 +258,8 @@ val _ = add_options
   ("mode", fn s => fn f => fn () => Library.setmp print_mode (s :: ! print_mode) f ()),
   ("margin", Pretty.setmp_margin o integer),
   ("indent", Library.setmp indent o integer),
-  ("source", Library.setmp source o boolean)];
+  ("source", Library.setmp source o boolean),
+  ("goals_limit", Library.setmp goals_limit o integer)];
 
 
 (* commands *)
@@ -291,6 +292,9 @@ fun pretty_term ctxt t =
 fun pretty_thm ctxt thms =
   Pretty.chunks (map (pretty_term ctxt o #prop o Thm.rep_thm) thms);
 
+fun pretty_goals state _ _ =
+  Pretty.chunks (Proof.pretty_goals (Toplevel.proof_of state));
+
 
 fun output_with pretty src ctxt x =
   let
@@ -305,7 +309,9 @@ val _ = add_commands
   ("thm", args Attrib.local_thms (output_with pretty_thm)),
   ("prop", args Args.local_prop (output_with pretty_term)),
   ("term", args Args.local_term (output_with pretty_term)),
-  ("typ", args Args.local_typ_no_norm (output_with pretty_typ))];
+  ("typ", args Args.local_typ_no_norm (output_with pretty_typ)),
+  ("goals", fn src => fn state =>
+      args (Scan.succeed ()) (output_with (pretty_goals state)) src state)];
 
 end;
 
