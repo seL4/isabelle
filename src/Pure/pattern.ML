@@ -82,6 +82,8 @@ fun ints_of []             = []
       in if i mem_int is then raise Pattern else i::is end
   | ints_of _              = raise Pattern;
 
+fun ints_of' env ts = ints_of (map (Envir.head_norm env) ts);
+
 
 fun app (s,(i::is)) = app (s$Bound(i),is)
   | app (s,[])      = s;
@@ -106,14 +108,6 @@ fun mknewhnf(env,binders,is,F as (a,_),T,js) =
   in Envir.update((F,mkhnf(binders,is,G,js)),env') end;
 
 
-fun devar env t = case strip_comb t of
-        (Var(F,_),ys) =>
-            (case Envir.lookup(env,F) of
-               Some(t) => devar env (red t (ints_of  ys) []) 
-             | None    => t)
-      |  _            => t;
-
-
 (* mk_proj_list(is) = [ |is| - k | 1 <= k <= |is| and is[k] >= 0 ] *)
 fun mk_proj_list is =
     let fun mk(i::is,j) = if i >= 0 then j :: mk(is,j-1) else mk(is,j-1)
@@ -122,7 +116,7 @@ fun mk_proj_list is =
 
 fun proj(s,env,binders,is) =
     let fun trans d i = if i<d then i else (idx is (i-d))+d;
-        fun pr(s,env,d,binders) = (case devar env s of
+        fun pr(s,env,d,binders) = (case Envir.head_norm env s of
               Abs(a,T,t) => let val (t',env') = pr(t,env,d+1,((a,T)::binders))
                             in (Abs(a,T,t'),env') end
             | t => (case strip_comb t of
@@ -139,7 +133,7 @@ fun proj(s,env,binders,is) =
                                  in (list_comb(Bound j,ts'),env') end
                          end
                  | (Var(F as (a,_),Fty),ts) =>
-                      let val js = ints_of ts;
+                      let val js = ints_of' env ts;
                           val js' = map (trans d) js;
                           val ks = mk_proj_list js';
                           val ls = filter (fn i => i >= 0) js'
@@ -193,7 +187,7 @@ fun unify_types(T,U, env as Envir.Envir{asol,iTs,maxidx}) =
        in Envir.Envir{asol=asol,maxidx=maxidx',iTs=iTs'} end
        handle Type.TUNIFY => raise Unif;
 
-fun unif binders (env,(s,t)) = case (devar env s,devar env t) of
+fun unif binders (env,(s,t)) = case (Envir.head_norm env s, Envir.head_norm env t) of
       (Abs(ns,Ts,ts),Abs(nt,Tt,tt)) =>
          let val name = if ns = "" then nt else ns
          in unif ((name,Ts)::binders) (env,(ts,tt)) end
@@ -203,10 +197,10 @@ fun unif binders (env,(s,t)) = case (devar env s,devar env t) of
 
 and cases(binders,env,(s,t)) = case (strip_comb s,strip_comb t) of
        ((Var(F,Fty),ss),(Var(G,Gty),ts)) => 
-         if F = G then flexflex1(env,binders,F,Fty,ints_of ss,ints_of ts)
-                  else flexflex2(env,binders,F,Fty,ints_of ss,G,Gty,ints_of ts)
-      | ((Var(F,_),ss),_)             => flexrigid(env,binders,F,ints_of ss,t)
-      | (_,(Var(F,_),ts))             => flexrigid(env,binders,F,ints_of ts,s)
+         if F = G then flexflex1(env,binders,F,Fty,ints_of' env ss,ints_of' env ts)
+                  else flexflex2(env,binders,F,Fty,ints_of' env ss,G,Gty,ints_of' env ts)
+      | ((Var(F,_),ss),_)             => flexrigid(env,binders,F,ints_of' env ss,t)
+      | (_,(Var(F,_),ts))             => flexrigid(env,binders,F,ints_of' env ts,s)
       | ((Const c,ss),(Const d,ts))   => rigidrigid(env,binders,c,d,ss,ts)
       | ((Free(f),ss),(Free(g),ts))   => rigidrigid(env,binders,f,g,ss,ts)
       | ((Bound(i),ss),(Bound(j),ts)) => rigidrigidB (env,binders,i,j,ss,ts) 
@@ -241,35 +235,6 @@ fun eta_contract (Abs(a,T,body)) =
       | body' => Abs(a,T,body'))
   | eta_contract(f$t) = eta_contract f $ eta_contract t
   | eta_contract t = t;
-
-
-(* sharing:
-local
-
-fun eta(Abs(x,T,t)) =
-     (case eta t of
-        None => (case t of
-                   f $ Bound 0 => if loose_bvar1(f,0)
-                                  then None
-                                  else Some(incr_boundvars ~1 f)
-                 | _ => None)
-      | Some(t') => (case t' of
-                       f $ Bound 0 => if loose_bvar1(f,0)
-                                      then Some(Abs(x,T,t'))
-                                      else Some(incr_boundvars ~1 f)
-                     | _ => Some(Abs(x,T,t'))))
-  | eta(s$t) = (case (eta s,eta t) of
-                  (None,   None)    => None
-                | (None,   Some t') => Some(s  $ t')
-                | (Some s',None)    => Some(s' $ t)
-                | (Some s',Some t') => Some(s' $ t'))
-  | eta _ = None
-
-in
-
-fun eta_contract t = case eta t of None => t | Some(t') => t';
-
-end; *)
 
 (*Eta-contract a term from outside: just enough to reduce it to an atom
 DOESN'T QUITE WORK!
