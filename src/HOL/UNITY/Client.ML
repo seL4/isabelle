@@ -111,11 +111,11 @@ by (rtac AlwaysI 1);
 by (Force_tac 1);
 by (rtac Stable_Int 1);
 by (full_simp_tac (simpset() addsimps [Join_localTo, self_localTo]) 2);
-by (fast_tac (claset() addEs [impOfSubs (rewrite_o localTo_imp_o_localTo)]
+by (fast_tac (claset() addEs [rewrite_o localTo_imp_o_localTo]
 	               addIs [Increasing_localTo_Stable, 
 			      stable_size_rel_le_giv]) 2);
 by (full_simp_tac (simpset() addsimps [Join_localTo]) 1);
-by (fast_tac (claset() addEs [impOfSubs (rewrite_o localTo_imp_o_localTo)]
+by (fast_tac (claset() addEs [rewrite_o localTo_imp_o_localTo]
 	               addIs [stable_localTo_stable2 RS stable_imp_Stable,
 			      stable_size_ask_le_rel]) 1);
 val lemma1 = result();

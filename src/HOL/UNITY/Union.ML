@@ -334,9 +334,8 @@ by (blast_tac (claset() addDs [impOfSubs localTo_anti_mono]) 1);
 qed "localTo_imp_LocalTo";
 
 Goalw [LOCALTO_def, stable_def, constrains_def]
-     "v localTo[C] F <= (f o v) localTo[C] F";
-by (Clarify_tac 1);
-by (force_tac (claset() addSEs [allE, ballE], simpset()) 1);
+     "G : v localTo[C] F ==> G : (f o v) localTo[C] F";
+by (Force_tac 1);
 qed "localTo_imp_o_localTo";
 
 (*NOT USED*)
