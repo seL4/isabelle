@@ -335,7 +335,7 @@ by (rtac comp_fun 1);
 by (rtac lam_funtype 2);
 by (typechk_tac (prem::ZF_typechecks));
 by (asm_simp_tac (!simpset 
-             setsolver type_auto_tac [lam_type, lam_funtype, prem]) 1);
+             setSolver type_auto_tac [lam_type, lam_funtype, prem]) 1);
 qed "comp_lam";
 
 goal Perm.thy "!!f g. [| g: inj(A,B);  f: inj(B,C) |] ==> (f O g) : inj(A,C)";
@@ -343,7 +343,7 @@ by (res_inst_tac [("d", "%y. converse(g) ` (converse(f) ` y)")]
     f_imp_injective 1);
 by (REPEAT (ares_tac [comp_fun, inj_is_fun] 1));
 by (asm_simp_tac (!simpset  addsimps [left_inverse] 
-                        setsolver type_auto_tac [inj_is_fun, apply_type]) 1);
+                        setSolver type_auto_tac [inj_is_fun, apply_type]) 1);
 qed "comp_inj";
 
 goalw Perm.thy [surj_def]
@@ -544,7 +544,7 @@ goalw Perm.thy [inj_def]
     "!!f. [| f: inj(A,B);  a~:A;  b~:B |]  ==> \
 \         cons(<a,b>,f) : inj(cons(a,A), cons(b,B))";
 by (fast_tac (!claset  addIs [apply_type]
-                     addss (!simpset addsimps [fun_extend, fun_extend_apply2,
+              unsafe_addss (!simpset addsimps [fun_extend, fun_extend_apply2,
                                             fun_extend_apply1]) ) 1);
 qed "inj_extend";
 

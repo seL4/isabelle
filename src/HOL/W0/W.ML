@@ -45,7 +45,7 @@ goal thy
         "!a n s t m. W e a n  = Ok (s,t,m) --> n<=m";
 by (expr.induct_tac "e" 1);
 (* case Var(n) *)
-by (fast_tac (HOL_cs addss (!simpset setloop (split_tac [expand_if]))) 1);
+by (fast_tac (HOL_cs unsafe_addss(!simpset setloop (split_tac [expand_if]))) 1);
 (* case Abs e *)
 by (simp_tac (!simpset setloop (split_tac [expand_bind])) 1);
 by (fast_tac (HOL_cs addDs [Suc_leD]) 1);
@@ -91,7 +91,7 @@ goal thy
 \                 new_tv m s & new_tv m t";
 by (expr.induct_tac "e" 1);
 (* case Var n *)
-by (fast_tac (HOL_cs addss (!simpset 
+by (fast_tac (HOL_cs unsafe_addss (!simpset 
         addsimps [id_subst_def,list_all_nth,new_tv_list,new_tv_subst] 
         setloop (split_tac [expand_if]))) 1);
 
@@ -161,7 +161,7 @@ goal thy
 by (expr.induct_tac "e" 1);
 (* case Var n *)
 by (fast_tac (HOL_cs addIs [nth_mem,subsetD,ftv_mem_sub_ftv_list] 
-    addss (!simpset setloop (split_tac [expand_if]))) 1);
+    unsafe_addss (!simpset setloop (split_tac [expand_if]))) 1);
 
 (* case Abs e *)
 by (asm_full_simp_tac (!simpset addsimps

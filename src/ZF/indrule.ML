@@ -82,7 +82,7 @@ val _ = seq (writeln o Sign.string_of_term sign) ind_prems;
   fail.  *)
 val min_ss = empty_ss
       setmksimps (map mk_meta_eq o ZF_atomize o gen_all)
-      setsolver  (fn prems => resolve_tac (triv_rls@prems) 
+      setSolver  (fn prems => resolve_tac (triv_rls@prems) 
                               ORELSE' assume_tac
                               ORELSE' etac FalseE);
 

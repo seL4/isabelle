@@ -157,9 +157,9 @@ fun parts_induct_tac i = SELECT_GOAL
              (*Fake message*)
              TRY (best_tac (!claset addDs [impOfSubs analz_subset_parts,
                                            impOfSubs Fake_parts_insert]
-                                    addss (!simpset)) 2)) THEN
+                            unsafe_addss (!simpset)) 2)) THEN
      (*Base case*)
-     fast_tac (!claset addss (!simpset)) 1 THEN
+     fast_tac (!claset unsafe_addss (!simpset)) 1 THEN
      ALLGOALS Asm_simp_tac) i;
 
 (** Theorems of the form X ~: parts (sees lost Spy evs) imply that NOBODY
@@ -178,7 +178,7 @@ by (fast_tac (!claset addDs [Key_in_parts_respond]
                       addss (!simpset addsimps [parts_insert_sees])) 2);
 (*RA2*)
 by (best_tac (!claset addSEs partsEs addSDs [parts_cut]
-                      addss (!simpset)) 1);
+                      unsafe_addss (!simpset)) 1);
 qed "Spy_see_shrK";
 Addsimps [Spy_see_shrK];
 
@@ -215,13 +215,13 @@ goal thy "!!evs. evs : recur lost ==>          \
 by (parts_induct_tac 1);
 (*RA3*)
 by (best_tac (!claset addDs  [Key_in_keysFor_parts]
-                      addss  (!simpset addsimps [parts_insert_sees])) 2);
+                      unsafe_addss  (!simpset addsimps [parts_insert_sees])) 2);
 (*Fake*)
 by (best_tac
       (!claset addIs [impOfSubs analz_subset_parts]
                addDs [impOfSubs (analz_subset_parts RS keysFor_mono),
                       impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
-               addss (!simpset)) 1);
+               unsafe_addss (!simpset)) 1);
 qed_spec_mp "new_keys_not_used";
 
 
@@ -574,5 +574,5 @@ by (deepen_tac (!claset delrules [impCE]
                       addSIs [disjI2]
                       addSEs [MPair_parts]
                       addDs  [parts.Body]
-                      addss  (!simpset)) 0 1);
+                      unsafe_addss  (!simpset)) 0 1);
 qed "Cert_imp_Server_msg";

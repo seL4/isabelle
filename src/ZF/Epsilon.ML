@@ -313,7 +313,7 @@ qed "THE_eq";
 goal thy "transrec2(succ(i),a,b) = b(i, transrec2(i,a,b))";
 by (rtac (transrec2_def RS def_transrec RS trans) 1);
 by (simp_tac (!simpset addsimps [succ_not_0, THE_eq, if_P]
-                    setsolver K Fast_tac) 1);
+                    setSolver K Fast_tac) 1);
 qed "transrec2_succ";
 
 goal thy "!!i. Limit(i) ==> transrec2(i,a,b) = (UN j<i. transrec2(j,a,b))";

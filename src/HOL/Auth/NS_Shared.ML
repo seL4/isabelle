@@ -113,7 +113,7 @@ by (best_tac
       (!claset addIs [impOfSubs analz_subset_parts]
                addDs [impOfSubs (analz_subset_parts RS keysFor_mono),
                       impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
-               addss (!simpset)) 1);
+               unsafe_addss (!simpset)) 1);
 (*NS2, NS4, NS5*)
 by (REPEAT (fast_tac (!claset addSEs sees_Spy_partsEs addss (!simpset)) 1));
 qed_spec_mp "new_keys_not_used";
@@ -167,7 +167,7 @@ goal thy
 \            | X : analz (sees lost Spy evs)";
 by (case_tac "A : lost" 1);
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]
-                      addss (!simpset)) 1);
+                      unsafe_addss (!simpset)) 1);
 by (forward_tac [Says_imp_sees_Spy RS parts.Inj] 1);
 by (fast_tac (!claset addEs  partsEs
                       addSDs [A_trusts_NS2, Says_Server_message_form]

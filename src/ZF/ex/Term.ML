@@ -172,7 +172,7 @@ val term_typechecks =
 (*map_type2 and term_map_type2 instantiate variables*)
 simpset := !simpset
       addsimps [term_rec, term_map, term_size, reflect, preorder]
-      setsolver type_auto_tac (list_typechecks@term_typechecks);
+      setSolver type_auto_tac (list_typechecks@term_typechecks);
 
 
 (** theorems about term_map **)

@@ -85,10 +85,7 @@ val _ = seq (writeln o Sign.string_of_term sign) ind_prems;
   simplifications.  If the premises get simplified, then the proofs will 
   fail.  This arose with a premise of the form {(F n,G n)|n . True}, which
   expanded to something containing ...&True. *)
-val min_ss = empty_ss
-      setmksimps (mksimps mksimps_pairs)
-      setsolver (fn prems => resolve_tac (TrueI::refl::prems) ORELSE' atac
-                             ORELSE' etac FalseE);
+val min_ss = HOL_basic_ss;
 
 val quant_induct = 
     prove_goalw_cterm part_rec_defs 

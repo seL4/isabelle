@@ -78,7 +78,7 @@ val split_all_tac = REPEAT o SUBGOAL (fn (prem,i) =>
 end;
 
 goal Prod.thy "(!x. P x) = (!a b. P(a,b))";
-by (fast_tac (!claset addbefore split_all_tac 1) 1);
+by (fast_tac (!claset addbefore split_all_tac) 1);
 qed "split_paired_All";
 
 goalw Prod.thy [split_def] "split c (a,b) = c a b";

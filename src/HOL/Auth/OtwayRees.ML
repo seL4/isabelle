@@ -92,9 +92,9 @@ fun parts_induct_tac i = SELECT_GOAL
              (*Fake message*)
              TRY (best_tac (!claset addDs [impOfSubs analz_subset_parts,
                                            impOfSubs Fake_parts_insert]
-                                    addss (!simpset)) 2)) THEN
+                            unsafe_addss (!simpset)) 2)) THEN
      (*Base case*)
-     fast_tac (!claset addss (!simpset)) 1 THEN
+     fast_tac (!claset unsafe_addss (!simpset)) 1 THEN
      ALLGOALS Asm_simp_tac) i;
 
 (** Theorems of the form X ~: parts (sees lost Spy evs) imply that NOBODY
@@ -134,7 +134,7 @@ by (best_tac
       (!claset addIs [impOfSubs analz_subset_parts]
                addDs [impOfSubs (analz_subset_parts RS keysFor_mono),
                       impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
-               addss (!simpset)) 1);
+               unsafe_addss (!simpset)) 1);
 (*OR1-3*)
 by (REPEAT (fast_tac (!claset addss (!simpset)) 1));
 qed_spec_mp "new_keys_not_used";

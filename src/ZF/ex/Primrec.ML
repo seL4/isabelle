@@ -22,7 +22,7 @@ val pr_typechecks =
 
 (** Useful special cases of evaluation ***)
 
-simpset := !simpset setsolver (type_auto_tac pr_typechecks);
+simpset := !simpset setSolver (type_auto_tac pr_typechecks);
 
 goalw Primrec.thy [SC_def]
     "!!x l. [| x:nat;  l: list(nat) |] ==> SC ` (Cons(x,l)) = succ(x)";
@@ -61,7 +61,7 @@ qed "PREC_succ";
 (* c: primrec ==> c: list(nat) -> nat *)
 val primrec_into_fun = primrec.dom_subset RS subsetD;
 
-simpset := !simpset setsolver (type_auto_tac ([primrec_into_fun] @ 
+simpset := !simpset setSolver (type_auto_tac ([primrec_into_fun] @ 
 					      pr_typechecks @ primrec.intrs));
 
 goalw Primrec.thy [ACK_def] "!!i. i:nat ==> ACK(i): primrec";

@@ -83,7 +83,7 @@ by (dB.induct_tac "s" 1);
   by (Simp_tac 1);
  by (etac rev_mp 1);
  by (dB.induct_tac "dB1" 1);
- by (ALLGOALS(fast_tac (!claset addSIs [par_beta_subst] addss !simpset)));
+ by (ALLGOALS(fast_tac (!claset addSIs [par_beta_subst] unsafe_addss (!simpset))));
 qed_spec_mp "par_beta_cd";
 
 (*** Confluence (via cd) ***)

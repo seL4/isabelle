@@ -16,6 +16,8 @@ proof_timing:=true;
 HOL_quantifiers := false;
 Pretty.setdepth 25;
 
+val op addss = op unsafe_addss;
+
 
 (*A "possibility property": there are traces that reach the end*)
 goal thy 

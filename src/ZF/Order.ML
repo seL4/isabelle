@@ -11,6 +11,8 @@ Results from the book "Set Theory: an Introduction to Independence Proofs"
 
 open Order;
 
+val op addss = op unsafe_addss;
+
 (** Basic properties of the definitions **)
 
 (*needed?*)
@@ -237,10 +239,9 @@ qed "ord_iso_converse";
 
 (*Rewriting with bijections and converse (function inverse)*)
 val bij_inverse_ss = 
-    !simpset setsolver (type_auto_tac [ord_iso_is_bij, bij_is_fun, apply_type, 
+    !simpset setSolver (type_auto_tac [ord_iso_is_bij, bij_is_fun, apply_type, 
                                        bij_converse_bij, comp_fun, comp_bij])
           addsimps [right_inverse_bij, left_inverse_bij];
-
 
 (** Symmetry and Transitivity Rules **)
 

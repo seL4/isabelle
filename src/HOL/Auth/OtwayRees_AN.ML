@@ -123,7 +123,7 @@ by (best_tac
       (!claset addIs [impOfSubs analz_subset_parts]
                addDs [impOfSubs (analz_subset_parts RS keysFor_mono),
                       impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
-               addss (!simpset)) 1);
+               unsafe_addss (!simpset)) 1);
 (*OR3*)
 by (fast_tac (!claset addss (!simpset)) 1);
 qed_spec_mp "new_keys_not_used";
@@ -297,7 +297,7 @@ by (fast_tac (!claset delrules [impCE]
                       addIs [impOfSubs analz_subset_parts]
                       addss (!simpset addsimps [parts_insert2])) 2);
 (*Oops*) 
-by (best_tac (!claset addDs [unique_session_keys] addss (!simpset)) 3);
+by (best_tac (!claset addDs [unique_session_keys] unsafe_addss (!simpset)) 3);
 (*OR4, Fake*) 
 by (REPEAT_FIRST spy_analz_tac);
 val lemma = result() RS mp RS mp RSN(2,rev_notE);

@@ -201,7 +201,7 @@ val [major] = goal Transition.thy
   "(c,s) -*-> (c',s') ==> <c',s'> -c-> t --> <c,s> -c-> t";
 by (rtac (major RS rtrancl_induct2) 1);
 by (Fast_tac 1);
-by (fast_tac (!claset addIs [FB_lemma3] addbefore (split_all_tac 1)) 1);
+by (fast_tac (!claset addIs [FB_lemma3] addbefore split_all_tac) 1);
 qed_spec_mp "FB_lemma2";
 
 goal Transition.thy "!!c. (c,s) -*-> (SKIP,t) ==> <c,s> -c-> t";

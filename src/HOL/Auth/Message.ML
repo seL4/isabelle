@@ -825,13 +825,6 @@ val pushCrypts = map (insComm thy "Crypt ?X ?K")
 (*Cannot be added with Addsimps -- we don't always want to re-order messages*)
 val pushes = pushKeys@pushCrypts;
 
-
-(*No premature instantiation of variables during simplification.
-  For proving "possibility" properties.*)
-fun safe_solver prems =
-    match_tac (TrueI::refl::prems) ORELSE' eq_assume_tac
-    ORELSE' etac FalseE;
-
 val Fake_insert_tac = 
     dresolve_tac [impOfSubs Fake_analz_insert,
                   impOfSubs Fake_parts_insert] THEN'

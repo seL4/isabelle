@@ -12,6 +12,8 @@ open NS_Public;
 proof_timing:=true;
 HOL_quantifiers := false;
 
+val op addss = op unsafe_addss;
+
 AddIffs [Spy_in_lost];
 
 (*Replacing the variable by a constant improves search speed by 50%!*)

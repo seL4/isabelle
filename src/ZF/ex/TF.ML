@@ -202,7 +202,7 @@ val TF_typechecks =
     [TconsI, FnilI, FconsI, treeI, forestI,
      list_of_TF_type, TF_map_type, TF_size_type, TF_preorder_type];
 
-simpset := !simpset setsolver type_auto_tac (list_typechecks@TF_typechecks);
+simpset := !simpset setSolver type_auto_tac (list_typechecks@TF_typechecks);
 
 (** theorems about list_of_TF and TF_of_list **)
 

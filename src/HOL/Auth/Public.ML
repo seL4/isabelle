@@ -186,7 +186,7 @@ by (res_inst_tac [("x","Na+Nb")] exI 2);
 by (fast_tac (!claset addSEs [add_leE]) 2);
 (*Nonce case*)
 by (res_inst_tac [("x","N + Suc nat")] exI 1);
-by (fast_tac (!claset addSEs [add_leE] addafter (TRYALL trans_tac)) 1);
+by (fast_tac (!claset addSEs [add_leE] addaltern trans_tac) 1);
 val lemma = result();
 
 goal thy "Nonce (@ N. Nonce N ~: used evs) ~: used evs";
@@ -198,7 +198,7 @@ qed "Nonce_supply";
 (*Tactic for possibility theorems*)
 val possibility_tac =
     REPEAT 
-    (ALLGOALS (simp_tac (!simpset setsolver safe_solver))
+    (ALLGOALS (simp_tac (!simpset setSolver safe_solver))
      THEN
      REPEAT_FIRST (eq_assume_tac ORELSE' 
                    resolve_tac [refl, conjI, Nonce_supply]));

@@ -173,11 +173,11 @@ qed_goal "Image_subset" Relation.thy
     (REPEAT (eresolve_tac [asm_rl, ImageE, subsetD RS SigmaD2] 1)) ]);
 
 goal Relation.thy "R O id = R";
-by (fast_tac (!claset addbefore (split_all_tac 1)) 1);
+by (fast_tac (!claset addbefore split_all_tac) 1);
 qed "R_O_id";
 
 goal Relation.thy "id O R = R";
-by (fast_tac (!claset addbefore (split_all_tac 1)) 1);
+by (fast_tac (!claset addbefore split_all_tac) 1);
 qed "id_O_R";
 
 Addsimps [R_O_id,id_O_R];

@@ -26,10 +26,10 @@ goal thy
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (woolam.Nil RS woolam.WL1 RS woolam.WL2 RS woolam.WL3 RS 
           woolam.WL4 RS woolam.WL5) 2);
-by (ALLGOALS (simp_tac (!simpset setsolver safe_solver)));
+by (ALLGOALS (simp_tac (!simpset setSolver safe_solver)));
 by (REPEAT_FIRST (resolve_tac [refl, conjI]));
 by (REPEAT_FIRST (fast_tac (!claset addSEs [Nonce_supply RS notE]
-                                    addss (!simpset setsolver safe_solver))));
+                                    addss (!simpset setSolver safe_solver))));
 result();
 
 

@@ -66,7 +66,7 @@ goal Lambda.thy
   "!i k. i < Suc k --> lift (lift t i) (Suc k) = lift (lift t k) i";
 by (dB.induct_tac "t" 1);
 by (ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if])
-                                    addsolver (cut_trans_tac))));
+                                    addSolver cut_trans_tac)));
 by (safe_tac HOL_cs);
 by (ALLGOALS trans_tac);
 qed_spec_mp "lift_lift";
@@ -76,7 +76,7 @@ goal Lambda.thy "!i j s. j < Suc i --> \
 by (dB.induct_tac "t" 1);
 by (ALLGOALS(asm_simp_tac (!simpset addsimps [pred_def,subst_Var,lift_lift]
                                 setloop (split_tac [expand_if,expand_nat_case])
-                                addsolver (cut_trans_tac))));
+                                addSolver cut_trans_tac)));
 by (safe_tac HOL_cs);
 by (ALLGOALS trans_tac);
 qed "lift_subst";
@@ -88,7 +88,7 @@ goal Lambda.thy
 by (dB.induct_tac "t" 1);
 by (ALLGOALS(asm_simp_tac (!simpset addsimps [subst_Var,lift_lift]
                                 setloop (split_tac [expand_if])
-                                addsolver (cut_trans_tac))));
+                                addSolver cut_trans_tac)));
 by(safe_tac (HOL_cs addSEs [nat_neqE]));
 by(ALLGOALS trans_tac);
 qed "lift_subst_lt";
@@ -106,7 +106,7 @@ by (dB.induct_tac "t" 1);
 by (ALLGOALS(asm_simp_tac
       (!simpset addsimps [pred_def,subst_Var,lift_lift RS sym,lift_subst_lt]
                 setloop (split_tac [expand_if,expand_nat_case])
-                addsolver (cut_trans_tac))));
+                addSolver cut_trans_tac)));
 by(safe_tac (HOL_cs addSEs [nat_neqE]));
 by(ALLGOALS trans_tac);
 qed_spec_mp "subst_subst";

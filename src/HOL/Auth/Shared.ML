@@ -140,7 +140,7 @@ goal thy "(UN A. parts (sees lost A (Says B C Y # evs))) = \
 by (Step_tac 1);
 by (etac rev_mp 1);     (*split_tac does not work on assumptions*)
 by (ALLGOALS
-    (fast_tac (!claset addss (!simpset addsimps [parts_Un, sees_Cons] 
+    (fast_tac (!claset unsafe_addss (!simpset addsimps [parts_Un, sees_Cons] 
                        setloop split_tac [expand_if]))));
 qed "UN_parts_sees_Says";
 
@@ -157,7 +157,7 @@ goal thy
  "!!evs. [| Says A B (Crypt (shrK C) X) : set_of_list evs;  C : lost |] \
 \        ==> X : analz (sees lost Spy evs)";
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]
-                      addss (!simpset)) 1);
+                      unsafe_addss (!simpset)) 1);
 qed "Says_Crypt_lost";
 
 goal thy  
@@ -165,7 +165,7 @@ goal thy
 \           X ~: analz (sees lost Spy evs) |]                     \
 \        ==> C ~: lost";
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]
-                      addss (!simpset)) 1);
+                      unsafe_addss (!simpset)) 1);
 qed "Says_Crypt_not_lost";
 
 (*NEEDED??*)
@@ -267,7 +267,7 @@ by (res_inst_tac [("x","Na+Nb")] exI 2);
 by (fast_tac (!claset addSEs [add_leE]) 2);
 (*Nonce case*)
 by (res_inst_tac [("x","N + Suc nat")] exI 1);
-by (fast_tac (!claset addSEs [add_leE] addafter (TRYALL trans_tac)) 1);
+by (fast_tac (!claset addSEs [add_leE] addaltern trans_tac) 1);
 val lemma = result();
 
 goal thy "EX N. Nonce N ~: used evs";
@@ -352,7 +352,7 @@ qed "Key_supply";
 val possibility_tac =
     REPEAT (*omit used_Says so that Nonces, Keys start from different traces!*)
     (ALLGOALS (simp_tac 
-               (!simpset delsimps [used_Says] setsolver safe_solver))
+               (!simpset delsimps [used_Says] setSolver safe_solver))
      THEN
      REPEAT_FIRST (eq_assume_tac ORELSE' 
                    resolve_tac [refl, conjI, Nonce_supply, Key_supply]));
@@ -361,7 +361,7 @@ val possibility_tac =
   nonces and keys initially*)
 val basic_possibility_tac =
     REPEAT 
-    (ALLGOALS (asm_simp_tac (!simpset setsolver safe_solver))
+    (ALLGOALS (asm_simp_tac (!simpset setSolver safe_solver))
      THEN
      REPEAT_FIRST (resolve_tac [refl, conjI]));
 

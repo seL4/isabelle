@@ -537,7 +537,7 @@ by (best_tac (!claset addEs [natE] addss (!simpset)) 1);
 qed "zero_lt_mult_iff";
 
 goal Arith.thy "!!k. [| m: nat; n: nat |] ==> m#*n = 1 <-> m=1 & n=1";
-by (best_tac (!claset addEs [natE] addss (!simpset)) 1);
+by (best_tac (!claset addEs [natE] unsafe_addss (!simpset)) 1);
 qed "mult_eq_1_iff";
 
 (*Cancellation law for division*)
@@ -576,7 +576,7 @@ goal Arith.thy "!!m n. [| m = m#*n; m: nat; n: nat |] ==> n=1 | m=0";
 by (rtac disjCI 1);
 by (dtac sym 1);
 by (rtac Ord_linear_lt 1 THEN REPEAT_SOME (ares_tac [nat_into_Ord,nat_1I]));
-by (fast_tac (!claset addss (!simpset)) 1);
+by (fast_tac (!claset unsafe_addss (!simpset)) 1);
 by (fast_tac (le_cs addDs [mono_lemma] 
                     addss (!simpset addsimps [mult_1_right])) 1);
 qed "mult_eq_self_implies_10";

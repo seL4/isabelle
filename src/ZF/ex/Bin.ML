@@ -379,7 +379,7 @@ val bin_comp_ss = simpset_of "Integ"
               bin_mult_Plus, bin_mult_Minus,
               bin_mult_Bcons1, bin_mult_Bcons0] @
              norm_Bcons_simps
-    setsolver (type_auto_tac ([bool_1I, bool_0I] @ bin_typechecks0));
+    setSolver (type_auto_tac ([bool_1I, bool_0I] @ bin_typechecks0));
 
 
 (*** Examples of performing binary arithmetic by simplification ***)
