@@ -255,7 +255,7 @@ val hoare_lemma12 = prove_goal Hoare.thy
 (* -------- results about p for case  (! k. b1`(iterate k g x)=TT) ------- *)
 
 val fernpass_lemma = prove_goal Hoare.thy 
-"(! k. b1`(iterate k g x)=TT) ==> !k.p`(iterate k g x) = UU"
+"(! k. b1`(iterate k g x)=TT) ==> !k. p`(iterate k g x) = UU"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -288,7 +288,7 @@ val hoare_lemma16 = prove_goal Hoare.thy
 (* -------- results about q for case  (! k. b1`(iterate k g x)=TT) ------- *)
 
 val hoare_lemma17 = prove_goal Hoare.thy 
-"(! k. b1`(iterate k g x)=TT) ==> !k.q`(iterate k g x) = UU"
+"(! k. b1`(iterate k g x)=TT) ==> !k. q`(iterate k g x) = UU"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -319,7 +319,7 @@ val hoare_lemma18 = prove_goal Hoare.thy
         ]);
 
 val hoare_lemma19 = prove_goal Hoare.thy 
-"(!k. (b1::'a->tr)`(iterate k g x)=TT) ==> b1`(UU::'a) = UU | (!y.b1`(y::'a)=TT)"
+"(!k. (b1::'a->tr)`(iterate k g x)=TT) ==> b1`(UU::'a) = UU | (!y. b1`(y::'a)=TT)"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -329,7 +329,7 @@ val hoare_lemma19 = prove_goal Hoare.thy
         ]);
 
 val hoare_lemma20 = prove_goal Hoare.thy 
-"(! y. b1`(y::'a)=TT) ==> !k.q`(iterate k g (x::'a)) = UU"
+"(! y. b1`(y::'a)=TT) ==> !k. q`(iterate k g (x::'a)) = UU"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
