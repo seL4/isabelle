@@ -29,7 +29,7 @@ val a_name = implode(tl(explode(Syntax.string_of_vname a_ixname)));
 
 fun add_term_frees tsig =
 let fun add(tm, vars) = case tm of
-	Free(v,T) => if Type.typ_instance(tsig,T,aT) then v ins vars
+	Free(v,T) => if Type.typ_instance tsig (T,aT) then v ins vars
 		     else vars
       | Abs (_,_,body) => add(body,vars)
       | rator$rand => add(rator, add(rand, vars))

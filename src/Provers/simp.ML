@@ -575,7 +575,7 @@ let fun find (thm::thms) =
 	let val (Const(_,cT), va, vb) =	dest_red(hd(prems_of thm));
 	    val [P] = term_vars(concl_of thm) \\ [va,vb]
 	    val eqT::_ = binder_types cT
-        in if Type.typ_instance(tsig,T,eqT) then Some(thm,va,vb,P)
+        in if Type.typ_instance tsig (T,eqT) then Some(thm,va,vb,P)
 	   else find thms
 	end
       | find [] = None
@@ -607,7 +607,7 @@ let val (aTs,rT) = strip_type T;
     val tsig = Sign.tsig_of sg;
     fun find_refl(r::rs) =
 	let val (Const(eq,eqT),_,_) = dest_red(concl_of r)
-	in if Type.typ_instance(tsig, rT, hd(binder_types eqT))
+	in if Type.typ_instance tsig (rT, hd(binder_types eqT))
 	   then Some(r,(eq,body_type eqT)) else find_refl rs
 	end
       | find_refl([]) = None;
