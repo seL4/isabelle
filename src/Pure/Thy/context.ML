@@ -14,7 +14,8 @@ sig
   val Goal: string -> thm list
   val Goalw: thm list -> string -> thm list
   val Open_locale: xstring -> unit
-  val Close_locale: unit -> unit
+  val Close_locale: xstring -> unit
+  val Print_scope: unit -> unit
   val Export: thm -> thm
 end;
 
@@ -89,7 +90,8 @@ fun Goalw thms s = Goals.atomic_goalw (the_context ()) thms s;
 (* scope manipulation *)
 
 fun Open_locale xname = (Locale.open_locale xname (the_context ()); ());
-fun Close_locale () = (Locale.close_locale (the_context ()); ());
+fun Close_locale xname = (Locale.close_locale xname (the_context ()); ());
+fun Print_scope () = (Locale.print_scope (the_context()); ());
 fun Export th = export_thy (the_context ()) th;
 
 end;

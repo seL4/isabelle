@@ -423,7 +423,8 @@ val instance_decl =
 (* locale *)
 
 val locale_decl =
-  (name --$$ "=") --
+  (name --$$ "=") -- 
+    (optional ((ident >> (fn x => parens ("Some" ^ quote x))) --$$ "+") ("None")) --
     ("fixes" $$--
       (repeat (name --$$ "::" -- !! (typ -- opt_mixfix)) 
        >> (mk_big_list o map mk_triple2))) --
@@ -435,7 +436,7 @@ val locale_decl =
      ("defines" $$-- (repeat ((ident >> quote) -- !! string) 
 		      >> (mk_list o map mk_pair)))
      "[]")
-  >> (fn (((nm, cs), asms), defs) => cat_lines [nm, cs, asms, defs]);
+  >> (fn ((((nm, ext), cs), asms), defs) => cat_lines [nm, ext, cs, asms, defs]);
 
 
 

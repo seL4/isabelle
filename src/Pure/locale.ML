@@ -14,7 +14,7 @@ definitions that have local scope.  Typical form is
 	v_def "v x == ...x..."
 
 TODO:
-  - operations on locales: extension, renaming.
+  - operations on locales: renaming.
 *)
 
 signature BASIC_LOCALE =
@@ -30,12 +30,13 @@ sig
   val get_thm: theory -> xstring -> thm
   val get_thms: theory -> xstring -> thm list
   type locale
-  val add_locale: bstring -> (string * string * mixfix) list ->
+  val add_locale: bstring -> (bstring option) -> (string * string * mixfix) list ->
     (string * string) list -> (string * string) list -> theory -> theory
-  val add_locale_i: bstring -> (string * typ * mixfix) list ->
+  val add_locale_i: bstring -> (bstring option) -> (string * typ * mixfix) list ->
     (string * term) list -> (string * term) list -> theory -> theory
   val open_locale: xstring -> theory -> theory
-  val close_locale: theory -> theory
+  val close_locale: xstring -> theory -> theory
+  val print_scope: theory -> unit
   val in_locale: term list -> Sign.sg -> bool
   val is_open_loc_sg: Sign.sg -> bool
   val is_open_loc: theory -> bool
@@ -53,18 +54,19 @@ struct
 (** type locale **)
 
 type locale =
- {consts: (string * typ) list,
+ {ancestor: string option,
+  consts: (string * typ) list,
   nosyn: string list,
   rules: (string * term) list,
   defs: (string * term) list,
   thms: (string * thm) list,
   defaults: (string * sort) list * (string * typ) list * string list};
 
-fun make_locale consts nosyn rules defs thms defaults =
-  {consts = consts, nosyn = nosyn, rules = rules, defs = defs,
-    thms = thms, defaults = defaults}: locale;
+fun make_locale ancestor consts nosyn rules defs thms defaults =
+  {ancestor = ancestor, consts = consts, nosyn = nosyn, rules = rules, 
+   defs = defs, thms = thms, defaults = defaults}: locale;
 
-fun pretty_locale sg (name, {consts, rules, defs, nosyn = _, thms = _, defaults = _}) =
+fun pretty_locale sg (name, {ancestor, consts, rules, defs, nosyn = _, thms = _, defaults = _}) =
   let
     val prt_typ = Pretty.quote o Sign.pretty_typ sg;
     val prt_term = Pretty.quote o Sign.pretty_term sg;
@@ -74,8 +76,12 @@ fun pretty_locale sg (name, {consts, rules, defs, nosyn = _, thms = _, defaults 
 
     fun pretty_axiom (a, t) = Pretty.block
       [Pretty.str (a ^ ":"), Pretty.brk 1, prt_term t];
+
+    val anc = case ancestor of
+                  None => ""
+                | Some(loc) => ((Sign.base_name loc) ^ " +")
   in
-    Pretty.big_list (name ^ " =")
+    Pretty.big_list (name ^ " = " ^ anc)
      [Pretty.big_list "consts:" (map pretty_const consts),
       Pretty.big_list "rules:" (map pretty_axiom rules),
       Pretty.big_list "defs:" (map pretty_axiom defs)]
@@ -168,13 +174,34 @@ fun the_locale thy xname =
   | None => error ("Unknown locale " ^ quote xname));
 
 fun open_locale xname thy =
-  (change_scope (cons (the_locale thy xname)) thy; thy);
+  let val loc = the_locale thy xname;
+      val anc = #ancestor(#2(loc));
+      val cur_sc = get_scope thy;
+      fun opn lc th = (change_scope (cons lc) th; th)
+  in case anc of
+         None => opn loc thy
+       | Some(loc') => 
+           if loc' mem (map fst cur_sc) 
+           then opn loc thy
+           else (Pretty.writeln(Pretty.str 
+                   ("Opening locale " ^ quote loc' ^ ", required by " ^ quote xname));
+                 opn loc (open_locale (Sign.base_name loc') thy))
+  end;
 
 fun pop_locale [] = error "Currently no open locales"
   | pop_locale (_ :: locs) = locs;
 
-fun close_locale thy = (change_scope pop_locale thy; thy);
+fun close_locale name thy = 
+   let val cur_sc = get_scope thy;
+       val lname = if null(cur_sc) then "" else (fst (hd cur_sc));
+       val bname = Sign.base_name lname
+   in if (name = bname) then (change_scope pop_locale thy; thy)
+      else (Pretty.writeln(Pretty.str ("locale " ^ name ^ " is not top of scope"));
+            Pretty.writeln(Pretty.str ("Command has no effect, top is " ^ lname)); thy)
+   end;
 
+fun print_scope thy = 
+Pretty.writeln (Pretty.strs ("current scope:" :: rev(map (Sign.base_name o fst) (get_scope thy))));
 
 (** functions for goals.ML **)
 
@@ -215,6 +242,12 @@ val get_thm = get_thmx I PureThy.get_thm;
 
 val get_thms = get_thmx (fn x => [x]) PureThy.get_thms;
 
+(* get the defaults of a locale, for extension *)
+
+fun get_defaults thy name = 
+  let val (lname, loc) = the_locale thy name;
+  in #defaults(loc)
+  end;
 
 
 (** define locales **)
@@ -334,13 +367,26 @@ fun mk_loc_tr c ts = list_comb (Free (c, dummyT), ts);
 
 (* add_locale *)
 
-fun gen_add_locale prep_typ prep_term bname raw_consts raw_rules raw_defs thy =
+fun gen_add_locale prep_typ prep_term bname bancestor raw_consts raw_rules raw_defs thy =
   let val sign = Theory.sign_of thy;
 
     val name = Sign.full_name sign bname;
 
+    val (envSb, old_loc_consts, _) = 
+                    case bancestor of
+                       Some(loc) => (get_defaults thy loc)
+                     | None      => ([],[],[]);
 
-    (* prepare locale consts *)
+    val old_nosyn = case bancestor of 
+                       Some(loc) => #nosyn(#2(the_locale thy loc))
+                     | None      => [];
+
+    (* Get the full name of the ancestor *)
+    val ancestor = case bancestor of 
+                       Some(loc) => Some(#1(the_locale thy loc))
+                     | None      => None;
+
+     (* prepare locale consts *)
 
     fun prep_const (envS, (raw_c, raw_T, raw_mx)) =
       let
@@ -352,10 +398,11 @@ fun gen_add_locale prep_typ prep_term bname raw_consts raw_rules raw_defs thy =
         val trfun = if mx = Syntax.NoSyn then None else Some (c_syn, mk_loc_tr c);
       in (envS', ((c, T), (c_syn, T, mx), trfun)) end;
 
-    val (envS0, loc_consts_syn) = foldl_map prep_const ([], raw_consts);
+    val (envS0, loc_consts_syn) = foldl_map prep_const (envSb, raw_consts);
     val loc_consts = map #1 loc_consts_syn;
+    val loc_consts = old_loc_consts @ loc_consts;
     val loc_syn = map #2 loc_consts_syn;
-    val nosyn = map (#1 o #1) (filter (fn x => (#3(#2 x)) = NoSyn) loc_consts_syn);
+    val nosyn = old_nosyn @ (map (#1 o #1) (filter (fn x => (#3(#2 x)) = NoSyn) loc_consts_syn));
     val loc_trfuns = mapfilter #3 loc_consts_syn;
 
 
@@ -433,8 +480,8 @@ fun gen_add_locale prep_typ prep_term bname raw_consts raw_rules raw_defs thy =
 
     syntax_thy
     |> put_locale (name, 
-		   make_locale loc_consts nosyn loc_thms_terms loc_defs_terms
-		               loc_thms defaults)
+		   make_locale ancestor loc_consts nosyn loc_thms_terms 
+                                        loc_defs_terms   loc_thms defaults)
   end;
 
 
