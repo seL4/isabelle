@@ -99,7 +99,7 @@ val make_schemeN = "make_scheme";
 
 (* more type class *)
 
-val moreS = ["more"];
+val moreS = ["Record.more"];
 
 
 (* types *)

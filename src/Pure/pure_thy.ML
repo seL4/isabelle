@@ -12,7 +12,6 @@ sig
   val get_thm: theory -> xstring -> thm
   val get_thms: theory -> xstring -> thm list
   val thms_of: theory -> (string * thm) list
-  val global_names: bool ref
   structure ProtoPure:
     sig
       val thy: theory
@@ -313,15 +312,10 @@ fun put_name name = put_info {name = name, generation = 0};
 
 (* control prefixing of theory name *)
 
-(*compatibility flag, likely to disappear someday*)
-val global_names = ref false;
-
-fun global_path thy =
-  if ! global_names then thy else Theory.root_path thy;
+val global_path = Theory.root_path;
 
 fun local_path thy =
-  if ! global_names then thy
-  else thy |> Theory.root_path |> Theory.add_path (get_name thy);
+  thy |> Theory.root_path |> Theory.add_path (get_name thy);
 
 
 (* begin / end theory *)

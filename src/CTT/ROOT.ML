@@ -10,8 +10,6 @@ Should be executed in the subdirectory CTT.
 val banner = "Constructive Type Theory";
 writeln banner;
 
-reset global_names;
-
 print_depth 1;  
 
 use_thy "CTT";

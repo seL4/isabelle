@@ -42,11 +42,7 @@ syntax
 
 (* type class for record extensions *)
 
-global          (*compatibility with global_names flag!*)
-
 axclass more < term
-
-local
 
 instance unit :: more
 instance "*" :: (term, more) more
