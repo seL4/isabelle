@@ -23,7 +23,7 @@ constdefs
   "r^+  ==  r O rtrancl(r)"
 
 syntax
-  reflcl  :: "('a*'a)set => ('a*'a)set"       ("(_^=)" [1000] 999)
+  "_reflcl"  :: "('a*'a)set => ('a*'a)set"       ("(_^=)" [1000] 999)
 
 translations
   "r^=" == "r Un Id"
