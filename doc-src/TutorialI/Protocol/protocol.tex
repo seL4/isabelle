@@ -488,7 +488,9 @@ cannot be used both as $Na$ and as $Nb$ unless
 it is known to the spy.  Intuitively, it holds because honest agents
 always choose fresh values as nonces; only the spy might reuse a value,
 and he doesn't know this particular value.  The proof script is short:
-induction, simplification, \isa{blast}.
+induction, simplification, \isa{blast}.  The first line uses the rule
+\isa{rev_mp} to prepare the induction by moving two assumptions into the 
+induction formula.
 \begin{isabelle}
 \isacommand{lemma}\ no_nonce_NS1_NS2:\isanewline
 \ \ \ \ "\isasymlbrakk Crypt\ (pubK\ C)\ \isasymlbrace NA',\ Nonce\

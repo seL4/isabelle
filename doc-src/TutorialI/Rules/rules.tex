@@ -851,8 +851,8 @@ nor possible.
 
 An alternative to \isa{rule_tac} is to use \isa{rule} with a theorem
 modified using~\isa{of}, described in
-{\S}\ref{sec:forward} below.   An advantage of \isa{rule_tac} is that the
-instantiations may refer to 
+{\S}\ref{sec:forward} below.   But \isa{rule_tac}, unlike \isa{of}, can 
+express instantiations that refer to 
 \isasymAnd-bound variables in the current subgoal.%
 \index{substitution|)}
 
@@ -1260,8 +1260,9 @@ should try to avoid them.  Fortunately, descriptions are seldom required.
 A definite description is traditionally written $\iota x.  P(x)$.  It denotes
 the $x$ such that $P(x)$ is true, provided there exists a unique such~$x$;
 otherwise, it returns an arbitrary value of the expected type.
-Isabelle uses \sdx{THE} for the Greek letter~$\iota$.  (The
-traditional notation could be provided, but it is not legible on screen.)
+Isabelle uses \sdx{THE} for the Greek letter~$\iota$.  
+
+%(The traditional notation could be provided, but it is not legible on screen.)
 
 We reason using this rule, where \isa{a} is the unique solution:
 \begin{isabelle}
@@ -2301,8 +2302,9 @@ operator.
 
 A postfixed question mark~(\isa?)\index{*"? (tactical)} expresses zero or one
 repetitions of a method.  It can also be viewed as the choice between executing a
-method and doing nothing.  It is useless at top level but may be valuable within
-other control structures.%
+method and doing nothing.  It is useless at top level but can be valuable
+within other control structures; for example, 
+\isa{($m$+)?} performs zero or more repetitions of method~$m$.%
 \index{tacticals|)}
 
 
