@@ -3,7 +3,7 @@
     Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
-Lemmas for Up2.thy 
+Class Instance u::(pcpo)po
 *)
 
 (* for compatibility with old HOLCF-Version *)
@@ -46,42 +46,36 @@ qed "less_up2c";
 (* Iup and Ifup are monotone                                               *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "monofun_Iup" thy [monofun] "monofun(Iup)"
- (fn prems =>
-        [
-        (strip_tac 1),
-        (etac (less_up2c RS iffD2) 1)
-        ]);
+val prems = goalw thy [monofun]  "monofun(Iup)";
+by (strip_tac 1);
+by (etac (less_up2c RS iffD2) 1);
+qed "monofun_Iup";
 
-qed_goalw "monofun_Ifup1" thy [monofun] "monofun(Ifup)"
- (fn prems =>
-        [
-        (strip_tac 1),
-        (rtac (less_fun RS iffD2) 1),
-        (strip_tac 1),
-        (res_inst_tac [("p","xa")] upE 1),
-        (asm_simp_tac Up0_ss 1),
-        (asm_simp_tac Up0_ss 1),
-        (etac monofun_cfun_fun 1)
-        ]);
+val prems = goalw thy [monofun]  "monofun(Ifup)";
+by (strip_tac 1);
+by (rtac (less_fun RS iffD2) 1);
+by (strip_tac 1);
+by (res_inst_tac [("p","xa")] upE 1);
+by (asm_simp_tac Up0_ss 1);
+by (asm_simp_tac Up0_ss 1);
+by (etac monofun_cfun_fun 1);
+qed "monofun_Ifup1";
 
-qed_goalw "monofun_Ifup2" thy [monofun] "monofun(Ifup(f))"
- (fn prems =>
-        [
-        (strip_tac 1),
-        (res_inst_tac [("p","x")] upE 1),
-        (asm_simp_tac Up0_ss 1),
-        (asm_simp_tac Up0_ss 1),
-        (res_inst_tac [("p","y")] upE 1),
-        (hyp_subst_tac 1),
-        (rtac notE 1),
-        (rtac less_up2b 1),
-        (atac 1),
-        (asm_simp_tac Up0_ss 1),
-        (rtac monofun_cfun_arg 1),
-        (hyp_subst_tac 1),
-        (etac (less_up2c  RS iffD1) 1)
-        ]);
+val prems = goalw thy [monofun]  "monofun(Ifup(f))";
+by (strip_tac 1);
+by (res_inst_tac [("p","x")] upE 1);
+by (asm_simp_tac Up0_ss 1);
+by (asm_simp_tac Up0_ss 1);
+by (res_inst_tac [("p","y")] upE 1);
+by (hyp_subst_tac 1);
+by (rtac notE 1);
+by (rtac less_up2b 1);
+by (atac 1);
+by (asm_simp_tac Up0_ss 1);
+by (rtac monofun_cfun_arg 1);
+by (hyp_subst_tac 1);
+by (etac (less_up2c  RS iffD1) 1);
+qed "monofun_Ifup2";
 
 (* ------------------------------------------------------------------------ *)
 (* Some kind of surjectivity lemma                                          *)

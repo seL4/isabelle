@@ -2,27 +2,27 @@
     ID:         $Id$
     Author:     Franz Regensburger
     Copyright   1993  Technische Universitaet Muenchen
+
+Lifting
 *)
 
 Goal "Rep_Up (Abs_Up y) = y";
 by (simp_tac (simpset() addsimps [Up_def,Abs_Up_inverse]) 1);
 qed "Abs_Up_inverse2";
 
-qed_goalw "Exh_Up" thy [Iup_def ]
-        "z = Abs_Up(Inl ()) | (? x. z = Iup x)"
- (fn prems =>
-        [
-        (rtac (Rep_Up_inverse RS subst) 1),
-        (res_inst_tac [("s","Rep_Up z")] sumE 1),
-        (rtac disjI1 1),
-        (res_inst_tac [("f","Abs_Up")] arg_cong 1),
-        (rtac (unit_eq RS subst) 1),
-        (atac 1),
-        (rtac disjI2 1),
-        (rtac exI 1),
-        (res_inst_tac [("f","Abs_Up")] arg_cong 1),
-        (atac 1)
-        ]);
+val prems = Goalw [Iup_def ]
+        "z = Abs_Up(Inl ()) | (? x. z = Iup x)";
+by (rtac (Rep_Up_inverse RS subst) 1);
+by (res_inst_tac [("s","Rep_Up z")] sumE 1);
+by (rtac disjI1 1);
+by (res_inst_tac [("f","Abs_Up")] arg_cong 1);
+by (rtac (unit_eq RS subst) 1);
+by (atac 1);
+by (rtac disjI2 1);
+by (rtac exI 1);
+by (res_inst_tac [("f","Abs_Up")] arg_cong 1);
+by (atac 1);
+qed "Exh_Up";
 
 Goal "inj(Abs_Up)";
 by (rtac inj_inverseI 1);
@@ -34,26 +34,22 @@ by (rtac inj_inverseI 1);
 by (rtac Rep_Up_inverse 1);
 qed "inj_Rep_Up";
 
-qed_goalw "inject_Iup" thy [Iup_def] "Iup x=Iup y ==> x=y"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (rtac (inj_Inr RS injD) 1),
-        (rtac (inj_Abs_Up RS injD) 1),
-        (atac 1)
-        ]);
+val prems = goalw thy [Iup_def] "Iup x=Iup y ==> x=y";
+by (cut_facts_tac prems 1);
+by (rtac (inj_Inr RS injD) 1);
+by (rtac (inj_Abs_Up RS injD) 1);
+by (atac 1);
+qed "inject_Iup";
 
 AddSDs [inject_Iup];
 
-qed_goalw "defined_Iup" thy [Iup_def] "Iup x~=Abs_Up(Inl ())"
- (fn prems =>
-        [
-        (rtac notI 1),
-        (rtac notE 1),
-        (rtac Inl_not_Inr 1),
-        (rtac sym 1),
-        (etac (inj_Abs_Up RS  injD) 1)
-        ]);
+val prems = goalw thy [Iup_def] "Iup x~=Abs_Up(Inl ())";
+by (rtac notI 1);
+by (rtac notE 1);
+by (rtac Inl_not_Inr 1);
+by (rtac sym 1);
+by (etac (inj_Abs_Up RS  injD) 1);
+qed "defined_Iup";
 
 
 val prems = Goal "[| p=Abs_Up(Inl ()) ==> Q; !!x. p=Iup(x)==>Q|] ==>Q";
@@ -63,62 +59,52 @@ by (etac exE 1);
 by (eresolve_tac prems 1);
 qed "upE";
 
-qed_goalw "Ifup1"  thy [Ifup_def]
-        "Ifup(f)(Abs_Up(Inl ()))=UU"
- (fn prems =>
-        [
-        (stac Abs_Up_inverse2 1),
-        (stac sum_case_Inl 1),
-        (rtac refl 1)
-        ]);
+val prems = goalw thy [Ifup_def]
+        "Ifup(f)(Abs_Up(Inl ()))=UU";
+by (stac Abs_Up_inverse2 1);
+by (stac sum_case_Inl 1);
+by (rtac refl 1);
+qed "Ifup1";
 
-qed_goalw "Ifup2"  thy [Ifup_def,Iup_def]
-        "Ifup(f)(Iup(x))=f`x"
- (fn prems =>
-        [
-        (stac Abs_Up_inverse2 1),
-        (stac sum_case_Inr 1),
-        (rtac refl 1)
-        ]);
+val prems = goalw thy [Ifup_def,Iup_def]
+        "Ifup(f)(Iup(x))=f`x";
+by (stac Abs_Up_inverse2 1);
+by (stac sum_case_Inr 1);
+by (rtac refl 1);
+qed "Ifup2";
 
 val Up0_ss = (simpset_of Cfun3.thy) delsimps [range_composition] 
 	     addsimps [Ifup1,Ifup2];
 
 Addsimps [Ifup1,Ifup2];
 
-qed_goalw "less_up1a"  thy [less_up_def]
-        "Abs_Up(Inl ())<< z"
- (fn prems =>
-        [
-        (stac Abs_Up_inverse2 1),
-        (stac sum_case_Inl 1),
-        (rtac TrueI 1)
-        ]);
+val prems = goalw thy [less_up_def]
+        "Abs_Up(Inl ())<< z";
+by (stac Abs_Up_inverse2 1);
+by (stac sum_case_Inl 1);
+by (rtac TrueI 1);
+qed "less_up1a";
 
-qed_goalw "less_up1b" thy [Iup_def,less_up_def]
-        "~(Iup x) << (Abs_Up(Inl ()))"
- (fn prems =>
-        [
-        (rtac notI 1),
-        (rtac iffD1 1),
-        (atac 2),
-        (stac Abs_Up_inverse2 1),
-        (stac Abs_Up_inverse2 1),
-        (stac sum_case_Inr 1),
-        (stac sum_case_Inl 1),
-        (rtac refl 1)
-        ]);
+val prems = goalw thy [Iup_def,less_up_def]
+        "~(Iup x) << (Abs_Up(Inl ()))";
+by (rtac notI 1);
+by (rtac iffD1 1);
+by (atac 2);
+by (stac Abs_Up_inverse2 1);
+by (stac Abs_Up_inverse2 1);
+by (stac sum_case_Inr 1);
+by (stac sum_case_Inl 1);
+by (rtac refl 1);
+qed "less_up1b";
 
-qed_goalw "less_up1c"  thy [Iup_def,less_up_def]
-        "(Iup x) << (Iup y)=(x<<y)"
- (fn prems =>
-        [
-        (stac Abs_Up_inverse2 1),
-        (stac Abs_Up_inverse2 1),
-        (stac sum_case_Inr 1),
-        (stac sum_case_Inr 1),
-        (rtac refl 1)
-        ]);
+val prems = goalw thy [Iup_def,less_up_def]
+        "(Iup x) << (Iup y)=(x<<y)";
+by (stac Abs_Up_inverse2 1);
+by (stac Abs_Up_inverse2 1);
+by (stac sum_case_Inr 1);
+by (stac sum_case_Inr 1);
+by (rtac refl 1);
+qed "less_up1c";
 
 AddIffs [less_up1a, less_up1b, less_up1c];
 

@@ -3,25 +3,21 @@
     Author:     Oscar Slotosch
     Copyright   1997 Technische Universitaet Muenchen
 
-    derive the characteristic axioms for the characteristic constants *)
-
-open Porder0;
+    derive the characteristic axioms for the characteristic constants 
+*)
 
 AddIffs [refl_less];
 
 (* ------------------------------------------------------------------------ *)
 (* minimal fixes least element                                              *)
 (* ------------------------------------------------------------------------ *)
-bind_thm("minimal2UU",allI RS (prove_goal thy "!x::'a::po. uu<<x==>uu=(@u.!y. u<<y)"
-(fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (rtac antisym_less 1),
-        (etac spec 1),
-        (res_inst_tac [("a","uu")] selectI2 1),
-	(atac 1),
-	(etac spec 1)
-        ])));
+Goal "!x::'a::po. uu<<x ==> uu=(@u.!y. u<<y)";
+by (rtac antisym_less 1);
+by (etac spec 1);
+by (res_inst_tac [("a","uu")] selectI2 1);
+by (atac 1);
+by (etac spec 1);
+bind_thm ("minimal2UU", allI RS result());
 
 (* ------------------------------------------------------------------------ *)
 (* the reverse law of anti--symmetrie of <<                                 *)

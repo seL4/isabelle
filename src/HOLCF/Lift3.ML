@@ -3,16 +3,14 @@
     Author:     Olaf Mueller
     Copyright   1996 Technische Universitaet Muenchen
 
-Theorems for Lift3.thy
+Class Instance lift::(term)pcpo
 *)
 
 
 (* for compatibility with old HOLCF-Version *)
-qed_goal "inst_lift_pcpo" thy "UU = Undef"
- (fn prems => 
-        [
-        (simp_tac (HOL_ss addsimps [UU_def,UU_lift_def]) 1)
-        ]);
+val prems = goal thy "UU = Undef";
+by (simp_tac (HOL_ss addsimps [UU_def,UU_lift_def]) 1);
+qed "inst_lift_pcpo";
 
 (* ----------------------------------------------------------- *)
 (*           In lift.simps Undef is replaced by UU             *)
@@ -105,10 +103,10 @@ val def_tac = etac (not_Undef_is_Def RS iffD1 RS exE) THEN' Asm_simp_tac;
 
 bind_thm("Undef_eq_UU", inst_lift_pcpo RS sym);
 
-val DefE = prove_goal thy "Def x = UU ==> R" 
-    (fn prems => [
-        cut_facts_tac prems 1,
-        asm_full_simp_tac (HOL_ss addsimps [Def_not_UU]) 1]);
+val prems = goal thy "Def x = UU ==> R";
+by (cut_facts_tac prems 1);
+by (asm_full_simp_tac (HOL_ss addsimps [Def_not_UU]) 1);
+qed "DefE";
 
 val prems = goal thy "[| x = Def s; x = UU |] ==> R";
 by (cut_facts_tac prems 1);

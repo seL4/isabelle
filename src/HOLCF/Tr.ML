@@ -3,21 +3,18 @@
     Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
-Lemmas for Tr.thy
+Introduce infix if_then_else_fi and boolean connectives andalso, orelse
 *)
-
-open Tr;
 
 (* ------------------------------------------------------------------------ *)
 (* Exhaustion and Elimination for type one                                  *)
 (* ------------------------------------------------------------------------ *)
-qed_goalw "Exh_tr" thy [FF_def,TT_def] "t=UU | t = TT | t = FF"
- (fn prems =>
-        [
-	(lift.induct_tac "t" 1),
-	(fast_tac HOL_cs 1),
-	(fast_tac (HOL_cs addss simpset()) 1)
-	]);
+
+Goalw [FF_def,TT_def] "t=UU | t = TT | t = FF";
+by (lift.induct_tac "t" 1);
+by (fast_tac HOL_cs 1);
+by (fast_tac (HOL_cs addss simpset()) 1);
+qed "Exh_tr";
 
 val prems = Goal "[| p=UU ==> Q; p = TT ==>Q; p = FF ==>Q|] ==>Q";
 by (rtac (Exh_tr RS disjE) 1);

@@ -62,19 +62,15 @@ qed "least_ssum";
 (* Isinl, Isinr are monotone                                                *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "monofun_Isinl" thy [monofun] "monofun(Isinl)"
- (fn prems =>
-        [
-        (strip_tac 1),
-        (etac (less_ssum3a RS iffD2) 1)
-        ]);
+val prems = goalw thy [monofun]  "monofun(Isinl)";
+by (strip_tac 1);
+by (etac (less_ssum3a RS iffD2) 1);
+qed "monofun_Isinl";
 
-qed_goalw "monofun_Isinr" thy [monofun] "monofun(Isinr)"
- (fn prems =>
-        [
-        (strip_tac 1),
-        (etac (less_ssum3b RS iffD2) 1)
-        ]);
+val prems = goalw thy [monofun]  "monofun(Isinr)";
+by (strip_tac 1);
+by (etac (less_ssum3b RS iffD2) 1);
+qed "monofun_Isinr";
 
 
 (* ------------------------------------------------------------------------ *)
@@ -82,75 +78,69 @@ qed_goalw "monofun_Isinr" thy [monofun] "monofun(Isinr)"
 (* ------------------------------------------------------------------------ *)
 
 
-qed_goalw "monofun_Iwhen1" thy [monofun] "monofun(Iwhen)"
- (fn prems =>
-        [
-        (strip_tac 1),
-        (rtac (less_fun RS iffD2) 1),
-        (strip_tac 1),
-        (rtac (less_fun RS iffD2) 1),
-        (strip_tac 1),
-        (res_inst_tac [("p","xb")] IssumE 1),
-        (hyp_subst_tac 1),
-        (asm_simp_tac Ssum0_ss 1),
-        (asm_simp_tac Ssum0_ss 1),
-        (etac monofun_cfun_fun 1),
-        (asm_simp_tac Ssum0_ss 1)
-        ]);
+val prems = goalw thy [monofun]  "monofun(Iwhen)";
+by (strip_tac 1);
+by (rtac (less_fun RS iffD2) 1);
+by (strip_tac 1);
+by (rtac (less_fun RS iffD2) 1);
+by (strip_tac 1);
+by (res_inst_tac [("p","xb")] IssumE 1);
+by (hyp_subst_tac 1);
+by (asm_simp_tac Ssum0_ss 1);
+by (asm_simp_tac Ssum0_ss 1);
+by (etac monofun_cfun_fun 1);
+by (asm_simp_tac Ssum0_ss 1);
+qed "monofun_Iwhen1";
 
-qed_goalw "monofun_Iwhen2" thy [monofun] "monofun(Iwhen(f))"
- (fn prems =>
-        [
-        (strip_tac 1),
-        (rtac (less_fun RS iffD2) 1),
-        (strip_tac 1),
-        (res_inst_tac [("p","xa")] IssumE 1),
-        (hyp_subst_tac 1),
-        (asm_simp_tac Ssum0_ss 1),
-        (asm_simp_tac Ssum0_ss 1),
-        (asm_simp_tac Ssum0_ss 1),
-        (etac monofun_cfun_fun 1)
-        ]);
+val prems = goalw thy [monofun]  "monofun(Iwhen(f))";
+by (strip_tac 1);
+by (rtac (less_fun RS iffD2) 1);
+by (strip_tac 1);
+by (res_inst_tac [("p","xa")] IssumE 1);
+by (hyp_subst_tac 1);
+by (asm_simp_tac Ssum0_ss 1);
+by (asm_simp_tac Ssum0_ss 1);
+by (asm_simp_tac Ssum0_ss 1);
+by (etac monofun_cfun_fun 1);
+qed "monofun_Iwhen2";
 
-qed_goalw "monofun_Iwhen3" thy [monofun] "monofun(Iwhen(f)(g))"
- (fn prems =>
-        [
-        (strip_tac 1),
-        (res_inst_tac [("p","x")] IssumE 1),
-        (hyp_subst_tac 1),
-        (asm_simp_tac Ssum0_ss 1),
-        (hyp_subst_tac 1),
-        (res_inst_tac [("p","y")] IssumE 1),
-        (hyp_subst_tac 1),
-        (asm_simp_tac Ssum0_ss 1),
-        (res_inst_tac  [("P","xa=UU")] notE 1),
-        (atac 1),
-        (rtac UU_I 1),
-        (rtac (less_ssum3a  RS iffD1) 1),
-        (atac 1),
-        (hyp_subst_tac 1),
-        (asm_simp_tac Ssum0_ss 1),
-        (rtac monofun_cfun_arg 1),
-        (etac (less_ssum3a  RS iffD1) 1),
-        (hyp_subst_tac 1),
-        (res_inst_tac [("s","UU"),("t","xa")] subst 1),
-        (etac (less_ssum3c  RS iffD1 RS sym) 1),
-        (asm_simp_tac Ssum0_ss 1),
-        (hyp_subst_tac 1),
-        (res_inst_tac [("p","y")] IssumE 1),
-        (hyp_subst_tac 1),
-        (res_inst_tac [("s","UU"),("t","ya")] subst 1),
-        (etac (less_ssum3d  RS iffD1 RS sym) 1),
-        (asm_simp_tac Ssum0_ss 1),
-        (hyp_subst_tac 1),
-        (res_inst_tac [("s","UU"),("t","ya")] subst 1),
-        (etac (less_ssum3d  RS iffD1 RS sym) 1),
-        (asm_simp_tac Ssum0_ss 1),
-        (hyp_subst_tac 1),
-        (asm_simp_tac Ssum0_ss 1),
-        (rtac monofun_cfun_arg 1),
-        (etac (less_ssum3b  RS iffD1) 1)
-        ]);
+val prems = goalw thy [monofun]  "monofun(Iwhen(f)(g))";
+by (strip_tac 1);
+by (res_inst_tac [("p","x")] IssumE 1);
+by (hyp_subst_tac 1);
+by (asm_simp_tac Ssum0_ss 1);
+by (hyp_subst_tac 1);
+by (res_inst_tac [("p","y")] IssumE 1);
+by (hyp_subst_tac 1);
+by (asm_simp_tac Ssum0_ss 1);
+by (res_inst_tac  [("P","xa=UU")] notE 1);
+by (atac 1);
+by (rtac UU_I 1);
+by (rtac (less_ssum3a  RS iffD1) 1);
+by (atac 1);
+by (hyp_subst_tac 1);
+by (asm_simp_tac Ssum0_ss 1);
+by (rtac monofun_cfun_arg 1);
+by (etac (less_ssum3a  RS iffD1) 1);
+by (hyp_subst_tac 1);
+by (res_inst_tac [("s","UU"),("t","xa")] subst 1);
+by (etac (less_ssum3c  RS iffD1 RS sym) 1);
+by (asm_simp_tac Ssum0_ss 1);
+by (hyp_subst_tac 1);
+by (res_inst_tac [("p","y")] IssumE 1);
+by (hyp_subst_tac 1);
+by (res_inst_tac [("s","UU"),("t","ya")] subst 1);
+by (etac (less_ssum3d  RS iffD1 RS sym) 1);
+by (asm_simp_tac Ssum0_ss 1);
+by (hyp_subst_tac 1);
+by (res_inst_tac [("s","UU"),("t","ya")] subst 1);
+by (etac (less_ssum3d  RS iffD1 RS sym) 1);
+by (asm_simp_tac Ssum0_ss 1);
+by (hyp_subst_tac 1);
+by (asm_simp_tac Ssum0_ss 1);
+by (rtac monofun_cfun_arg 1);
+by (etac (less_ssum3b  RS iffD1) 1);
+qed "monofun_Iwhen3";
 
 
 (* ------------------------------------------------------------------------ *)

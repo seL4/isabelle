@@ -132,126 +132,106 @@ qed "cont_Ifup2";
 (* continuous versions of lemmas for ('a)u                                  *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "Exh_Up1" thy [up_def] "z = UU | (? x. z = up`x)"
- (fn prems =>
-        [
-        (simp_tac (Up0_ss addsimps [cont_Iup]) 1),
-        (stac inst_up_pcpo 1),
-        (rtac Exh_Up 1)
-        ]);
+val prems = goalw thy [up_def] "z = UU | (? x. z = up`x)";
+by (simp_tac (Up0_ss addsimps [cont_Iup]) 1);
+by (stac inst_up_pcpo 1);
+by (rtac Exh_Up 1);
+qed "Exh_Up1";
 
-qed_goalw "inject_up" thy [up_def] "up`x=up`y ==> x=y"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (rtac inject_Iup 1),
-        (etac box_equals 1),
-        (simp_tac (Up0_ss addsimps [cont_Iup]) 1),
-        (simp_tac (Up0_ss addsimps [cont_Iup]) 1)
-        ]);
+val prems = goalw thy [up_def] "up`x=up`y ==> x=y";
+by (cut_facts_tac prems 1);
+by (rtac inject_Iup 1);
+by (etac box_equals 1);
+by (simp_tac (Up0_ss addsimps [cont_Iup]) 1);
+by (simp_tac (Up0_ss addsimps [cont_Iup]) 1);
+qed "inject_up";
 
-qed_goalw "defined_up" thy [up_def] " up`x ~= UU"
- (fn prems =>
-        [
-        (simp_tac (Up0_ss addsimps [cont_Iup]) 1),
-        (rtac defined_Iup2 1)
-        ]);
+val prems = goalw thy [up_def] " up`x ~= UU";
+by (simp_tac (Up0_ss addsimps [cont_Iup]) 1);
+by (rtac defined_Iup2 1);
+qed "defined_up";
 
-qed_goalw "upE1" thy [up_def] 
-        "[| p=UU ==> Q; !!x. p=up`x==>Q|] ==>Q"
- (fn prems =>
-        [
-        (rtac upE 1),
-        (resolve_tac prems 1),
-        (etac (inst_up_pcpo RS ssubst) 1),
-        (resolve_tac (tl prems) 1),
-        (asm_simp_tac (Up0_ss addsimps [cont_Iup]) 1)
-        ]);
+val prems = goalw thy [up_def] 
+        "[| p=UU ==> Q; !!x. p=up`x==>Q|] ==>Q";
+by (rtac upE 1);
+by (resolve_tac prems 1);
+by (etac (inst_up_pcpo RS ssubst) 1);
+by (resolve_tac (tl prems) 1);
+by (asm_simp_tac (Up0_ss addsimps [cont_Iup]) 1);
+qed "upE1";
 
 val tac = (simp_tac (simpset() addsimps [cont_Iup,cont_Ifup1,
                 cont_Ifup2,cont2cont_CF1L]) 1);
 
-qed_goalw "fup1" thy [up_def,fup_def] "fup`f`UU=UU"
- (fn prems =>
-        [
-        (stac inst_up_pcpo 1),
-        (stac beta_cfun 1),
-	tac,
-        (stac beta_cfun 1),
-	tac,
-        (simp_tac (Up0_ss addsimps [cont_Iup,cont_Ifup1,cont_Ifup2]) 1)
-        ]);
+val prems = goalw thy [up_def,fup_def] "fup`f`UU=UU";
+by (stac inst_up_pcpo 1);
+by (stac beta_cfun 1);
+by tac;
+by (stac beta_cfun 1);
+by tac;
+by (simp_tac (Up0_ss addsimps [cont_Iup,cont_Ifup1,cont_Ifup2]) 1);
+qed "fup1";
 
-qed_goalw "fup2" thy [up_def,fup_def] "fup`f`(up`x)=f`x"
- (fn prems =>
-        [
-        (stac beta_cfun 1),
-        (rtac cont_Iup 1),
-        (stac beta_cfun 1),
-	tac,
-        (stac beta_cfun 1),
-        (rtac cont_Ifup2 1),
-        (simp_tac (Up0_ss addsimps [cont_Iup,cont_Ifup1,cont_Ifup2]) 1)
-        ]);
+val prems = goalw thy [up_def,fup_def] "fup`f`(up`x)=f`x";
+by (stac beta_cfun 1);
+by (rtac cont_Iup 1);
+by (stac beta_cfun 1);
+by tac;
+by (stac beta_cfun 1);
+by (rtac cont_Ifup2 1);
+by (simp_tac (Up0_ss addsimps [cont_Iup,cont_Ifup1,cont_Ifup2]) 1);
+qed "fup2";
 
-qed_goalw "less_up4b" thy [up_def,fup_def] "~ up`x << UU"
- (fn prems =>
-        [
-        (simp_tac (Up0_ss addsimps [cont_Iup]) 1),
-        (rtac less_up3b 1)
-        ]);
+val prems = goalw thy [up_def,fup_def] "~ up`x << UU";
+by (simp_tac (Up0_ss addsimps [cont_Iup]) 1);
+by (rtac less_up3b 1);
+qed "less_up4b";
 
-qed_goalw "less_up4c" thy [up_def,fup_def]
-         "(up`x << up`y) = (x<<y)"
- (fn prems =>
-        [
-        (simp_tac (Up0_ss addsimps [cont_Iup]) 1),
-        (rtac less_up2c 1)
-        ]);
+val prems = goalw thy [up_def,fup_def]
+         "(up`x << up`y) = (x<<y)";
+by (simp_tac (Up0_ss addsimps [cont_Iup]) 1);
+by (rtac less_up2c 1);
+qed "less_up4c";
 
-qed_goalw "thelub_up2a" thy [up_def,fup_def] 
+val prems = goalw thy [up_def,fup_def] 
 "[| chain(Y); ? i x. Y(i) = up`x |] ==>\
-\      lub(range(Y)) = up`(lub(range(%i. fup`(LAM x. x)`(Y i))))"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (stac beta_cfun 1),
-	tac,
-        (stac beta_cfun 1),
-	tac,
-        (stac (beta_cfun RS ext) 1),
-	tac,
-        (rtac thelub_up1a 1),
-        (atac 1),
-        (etac exE 1),
-        (etac exE 1),
-        (rtac exI 1),
-        (rtac exI 1),
-        (etac box_equals 1),
-        (rtac refl 1),
-        (simp_tac (Up0_ss addsimps [cont_Iup]) 1)
-        ]);
+\      lub(range(Y)) = up`(lub(range(%i. fup`(LAM x. x)`(Y i))))";
+by (cut_facts_tac prems 1);
+by (stac beta_cfun 1);
+by tac;
+by (stac beta_cfun 1);
+by tac;
+by (stac (beta_cfun RS ext) 1);
+by tac;
+by (rtac thelub_up1a 1);
+by (atac 1);
+by (etac exE 1);
+by (etac exE 1);
+by (rtac exI 1);
+by (rtac exI 1);
+by (etac box_equals 1);
+by (rtac refl 1);
+by (simp_tac (Up0_ss addsimps [cont_Iup]) 1);
+qed "thelub_up2a";
 
 
 
-qed_goalw "thelub_up2b" thy [up_def,fup_def] 
-"[| chain(Y); ! i x. Y(i) ~= up`x |] ==> lub(range(Y)) = UU"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (stac inst_up_pcpo 1),
-        (rtac thelub_up1b 1),
-        (atac 1),
-        (strip_tac 1),
-        (dtac spec 1),
-        (dtac spec 1),
-        (rtac swap 1),
-        (atac 1),
-        (dtac notnotD 1),
-        (etac box_equals 1),
-        (rtac refl 1),
-        (simp_tac (Up0_ss addsimps [cont_Iup]) 1)
-        ]);
+val prems = goalw thy [up_def,fup_def] 
+"[| chain(Y); ! i x. Y(i) ~= up`x |] ==> lub(range(Y)) = UU";
+by (cut_facts_tac prems 1);
+by (stac inst_up_pcpo 1);
+by (rtac thelub_up1b 1);
+by (atac 1);
+by (strip_tac 1);
+by (dtac spec 1);
+by (dtac spec 1);
+by (rtac swap 1);
+by (atac 1);
+by (dtac notnotD 1);
+by (etac box_equals 1);
+by (rtac refl 1);
+by (simp_tac (Up0_ss addsimps [cont_Iup]) 1);
+qed "thelub_up2b";
 
 
 Goal "(? x. z = up`x) = (z~=UU)";
@@ -277,7 +257,6 @@ by (atac 1);
 qed "thelub_up2a_rev";
 
 Goal "[| chain(Y); lub(range(Y)) = UU |] ==> ! i x.  Y(i) ~= up`x";
-by (cut_facts_tac prems 1);
 by (rtac allI 1);
 by (rtac (not_ex RS iffD1) 1);
 by (rtac contrapos 1);
@@ -288,7 +267,6 @@ qed "thelub_up2b_rev";
 
 Goal "chain(Y) ==> lub(range(Y)) = UU | \
 \                  lub(range(Y)) = up`(lub(range(%i. fup`(LAM x. x)`(Y i))))";
-by (cut_facts_tac prems 1);
 by (rtac disjE 1);
 by (rtac disjI1 2);
 by (rtac thelub_up2b 2);

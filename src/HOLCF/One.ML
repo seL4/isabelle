@@ -3,31 +3,25 @@
     Author:     Oscar Slotosch
     Copyright   1997 Technische Universitaet Muenchen
 
-Lemmas for One.thy
+The unit domain
 *)
-
-open One;
 
 (* ------------------------------------------------------------------------ *)
 (* Exhaustion and Elimination for type one                                  *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "Exh_one" thy [ONE_def] "t=UU | t = ONE"
- (fn prems =>
-        [
-	(lift.induct_tac "t" 1),
-	(Simp_tac 1),
-	(Simp_tac 1)
-	]);
+val prems = goalw thy [ONE_def] "t=UU | t = ONE";
+by (lift.induct_tac "t" 1);
+by (Simp_tac 1);
+by (Simp_tac 1);
+qed "Exh_one";
 
-qed_goal "oneE" thy
-        "[| p=UU ==> Q; p = ONE ==>Q|] ==>Q"
- (fn prems =>
-        [
-        (rtac (Exh_one RS disjE) 1),
-        (eresolve_tac prems 1),
-        (eresolve_tac prems 1)
-        ]);
+val prems = goal thy
+        "[| p=UU ==> Q; p = ONE ==>Q|] ==>Q";
+by (rtac (Exh_one RS disjE) 1);
+by (eresolve_tac prems 1);
+by (eresolve_tac prems 1);
+qed "oneE";
 
 (* ------------------------------------------------------------------------ *) 
 (* tactic for one-thms                                                      *)

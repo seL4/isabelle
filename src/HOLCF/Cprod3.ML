@@ -1,143 +1,119 @@
-(*  Title:      HOLCF/cprod3.ML
+(*  Title:      HOLCF/Cprod3
     ID:         $Id$
     Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
-Lemmas for Cprod3.thy 
+Class instance of * for class pcpo and cpo.
 *)
 
-open Cprod3;
-
 (* for compatibility with old HOLCF-Version *)
-qed_goal "inst_cprod_pcpo" thy "UU = (UU,UU)"
- (fn prems => 
-        [
-        (simp_tac (HOL_ss addsimps [UU_def,UU_cprod_def]) 1)
-        ]);
+val prems = goal thy "UU = (UU,UU)";
+by (simp_tac (HOL_ss addsimps [UU_def,UU_cprod_def]) 1);
+qed "inst_cprod_pcpo";
 
 (* ------------------------------------------------------------------------ *)
 (* continuity of (_,_) , fst, snd                                           *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "Cprod3_lemma1" Cprod3.thy 
+val prems = goal Cprod3.thy 
 "chain(Y::(nat=>'a::cpo)) ==>\
 \ (lub(range(Y)),(x::'b::cpo)) =\
-\ (lub(range(%i. fst(Y i,x))),lub(range(%i. snd(Y i,x))))"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (res_inst_tac [("f1","Pair")] (arg_cong RS cong) 1),
-        (rtac lub_equal 1),
-        (atac 1),
-        (rtac (monofun_fst RS ch2ch_monofun) 1),
-        (rtac ch2ch_fun 1),
-        (rtac (monofun_pair1 RS ch2ch_monofun) 1),
-        (atac 1),
-        (rtac allI 1),
-        (Simp_tac 1),
-        (rtac sym 1),
-        (Simp_tac 1),
-        (rtac (lub_const RS thelubI) 1)
-        ]);
+\ (lub(range(%i. fst(Y i,x))),lub(range(%i. snd(Y i,x))))";
+by (cut_facts_tac prems 1);
+by (res_inst_tac [("f1","Pair")] (arg_cong RS cong) 1);
+by (rtac lub_equal 1);
+by (atac 1);
+by (rtac (monofun_fst RS ch2ch_monofun) 1);
+by (rtac ch2ch_fun 1);
+by (rtac (monofun_pair1 RS ch2ch_monofun) 1);
+by (atac 1);
+by (rtac allI 1);
+by (Simp_tac 1);
+by (rtac sym 1);
+by (Simp_tac 1);
+by (rtac (lub_const RS thelubI) 1);
+qed "Cprod3_lemma1";
 
-qed_goal "contlub_pair1" Cprod3.thy "contlub(Pair)"
- (fn prems =>
-        [
-        (rtac contlubI 1),
-        (strip_tac 1),
-        (rtac (expand_fun_eq RS iffD2) 1),
-        (strip_tac 1),
-        (stac (lub_fun RS thelubI) 1),
-        (etac (monofun_pair1 RS ch2ch_monofun) 1),
-        (rtac trans 1),
-        (rtac (thelub_cprod RS sym) 2),
-        (rtac ch2ch_fun 2),
-        (etac (monofun_pair1 RS ch2ch_monofun) 2),
-        (etac Cprod3_lemma1 1)
-        ]);
+val prems = goal Cprod3.thy "contlub(Pair)";
+by (rtac contlubI 1);
+by (strip_tac 1);
+by (rtac (expand_fun_eq RS iffD2) 1);
+by (strip_tac 1);
+by (stac (lub_fun RS thelubI) 1);
+by (etac (monofun_pair1 RS ch2ch_monofun) 1);
+by (rtac trans 1);
+by (rtac (thelub_cprod RS sym) 2);
+by (rtac ch2ch_fun 2);
+by (etac (monofun_pair1 RS ch2ch_monofun) 2);
+by (etac Cprod3_lemma1 1);
+qed "contlub_pair1";
 
-qed_goal "Cprod3_lemma2" Cprod3.thy 
+val prems = goal Cprod3.thy 
 "chain(Y::(nat=>'a::cpo)) ==>\
 \ ((x::'b::cpo),lub(range Y)) =\
-\ (lub(range(%i. fst(x,Y i))),lub(range(%i. snd(x, Y i))))"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (res_inst_tac [("f1","Pair")] (arg_cong RS cong) 1),
-        (rtac sym 1),
-        (Simp_tac 1),
-        (rtac (lub_const RS thelubI) 1),
-        (rtac lub_equal 1),
-        (atac 1),
-        (rtac (monofun_snd RS ch2ch_monofun) 1),
-        (rtac (monofun_pair2 RS ch2ch_monofun) 1),
-        (atac 1),
-        (rtac allI 1),
-        (Simp_tac 1)
-        ]);
+\ (lub(range(%i. fst(x,Y i))),lub(range(%i. snd(x, Y i))))";
+by (cut_facts_tac prems 1);
+by (res_inst_tac [("f1","Pair")] (arg_cong RS cong) 1);
+by (rtac sym 1);
+by (Simp_tac 1);
+by (rtac (lub_const RS thelubI) 1);
+by (rtac lub_equal 1);
+by (atac 1);
+by (rtac (monofun_snd RS ch2ch_monofun) 1);
+by (rtac (monofun_pair2 RS ch2ch_monofun) 1);
+by (atac 1);
+by (rtac allI 1);
+by (Simp_tac 1);
+qed "Cprod3_lemma2";
 
-qed_goal "contlub_pair2" Cprod3.thy "contlub(Pair(x))"
- (fn prems =>
-        [
-        (rtac contlubI 1),
-        (strip_tac 1),
-        (rtac trans 1),
-        (rtac (thelub_cprod RS sym) 2),
-        (etac (monofun_pair2 RS ch2ch_monofun) 2),
-        (etac Cprod3_lemma2 1)
-        ]);
+val prems = goal Cprod3.thy "contlub(Pair(x))";
+by (rtac contlubI 1);
+by (strip_tac 1);
+by (rtac trans 1);
+by (rtac (thelub_cprod RS sym) 2);
+by (etac (monofun_pair2 RS ch2ch_monofun) 2);
+by (etac Cprod3_lemma2 1);
+qed "contlub_pair2";
 
-qed_goal "cont_pair1" Cprod3.thy "cont(Pair)"
-(fn prems =>
-        [
-        (rtac monocontlub2cont 1),
-        (rtac monofun_pair1 1),
-        (rtac contlub_pair1 1)
-        ]);
+val prems = goal Cprod3.thy "cont(Pair)";
+by (rtac monocontlub2cont 1);
+by (rtac monofun_pair1 1);
+by (rtac contlub_pair1 1);
+qed "cont_pair1";
 
-qed_goal "cont_pair2" Cprod3.thy "cont(Pair(x))"
-(fn prems =>
-        [
-        (rtac monocontlub2cont 1),
-        (rtac monofun_pair2 1),
-        (rtac contlub_pair2 1)
-        ]);
+val prems = goal Cprod3.thy "cont(Pair(x))";
+by (rtac monocontlub2cont 1);
+by (rtac monofun_pair2 1);
+by (rtac contlub_pair2 1);
+qed "cont_pair2";
 
-qed_goal "contlub_fst" Cprod3.thy "contlub(fst)"
- (fn prems =>
-        [
-        (rtac contlubI 1),
-        (strip_tac 1),
-        (stac (lub_cprod RS thelubI) 1),
-        (atac 1),
-        (Simp_tac 1)
-        ]);
+val prems = goal Cprod3.thy "contlub(fst)";
+by (rtac contlubI 1);
+by (strip_tac 1);
+by (stac (lub_cprod RS thelubI) 1);
+by (atac 1);
+by (Simp_tac 1);
+qed "contlub_fst";
 
-qed_goal "contlub_snd" Cprod3.thy "contlub(snd)"
- (fn prems =>
-        [
-        (rtac contlubI 1),
-        (strip_tac 1),
-        (stac (lub_cprod RS thelubI) 1),
-        (atac 1),
-        (Simp_tac 1)
-        ]);
+val prems = goal Cprod3.thy "contlub(snd)";
+by (rtac contlubI 1);
+by (strip_tac 1);
+by (stac (lub_cprod RS thelubI) 1);
+by (atac 1);
+by (Simp_tac 1);
+qed "contlub_snd";
 
-qed_goal "cont_fst" Cprod3.thy "cont(fst)"
-(fn prems =>
-        [
-        (rtac monocontlub2cont 1),
-        (rtac monofun_fst 1),
-        (rtac contlub_fst 1)
-        ]);
+val prems = goal Cprod3.thy "cont(fst)";
+by (rtac monocontlub2cont 1);
+by (rtac monofun_fst 1);
+by (rtac contlub_fst 1);
+qed "cont_fst";
 
-qed_goal "cont_snd" Cprod3.thy "cont(snd)"
-(fn prems =>
-        [
-        (rtac monocontlub2cont 1),
-        (rtac monofun_snd 1),
-        (rtac contlub_snd 1)
-        ]);
+val prems = goal Cprod3.thy "cont(snd)";
+by (rtac monocontlub2cont 1);
+by (rtac monofun_snd 1);
+by (rtac contlub_snd 1);
+qed "cont_snd";
 
 (* 
  -------------------------------------------------------------------------- 
@@ -150,130 +126,109 @@ qed_goal "cont_snd" Cprod3.thy "cont(snd)"
 (* convert all lemmas to the continuous versions                            *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "beta_cfun_cprod" Cprod3.thy [cpair_def]
-        "(LAM x y.(x,y))`a`b = (a,b)"
- (fn prems =>
-        [
-        (stac beta_cfun 1),
-        (simp_tac (simpset() addsimps [cont_pair1,cont_pair2,cont2cont_CF1L]) 1),
-        (stac beta_cfun 1),
-        (rtac cont_pair2 1),
-        (rtac refl 1)
-        ]);
+val prems = goalw Cprod3.thy [cpair_def]
+        "(LAM x y.(x,y))`a`b = (a,b)";
+by (stac beta_cfun 1);
+by (simp_tac (simpset() addsimps [cont_pair1,cont_pair2,cont2cont_CF1L]) 1);
+by (stac beta_cfun 1);
+by (rtac cont_pair2 1);
+by (rtac refl 1);
+qed "beta_cfun_cprod";
 
-qed_goalw "inject_cpair" Cprod3.thy [cpair_def]
-        " <a,b>=<aa,ba>  ==> a=aa & b=ba"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (dtac (beta_cfun_cprod RS subst) 1),
-        (dtac (beta_cfun_cprod RS subst) 1),
-        (etac Pair_inject 1),
-        (fast_tac HOL_cs 1)
-        ]);
+val prems = goalw Cprod3.thy [cpair_def]
+        " <a,b>=<aa,ba>  ==> a=aa & b=ba";
+by (cut_facts_tac prems 1);
+by (dtac (beta_cfun_cprod RS subst) 1);
+by (dtac (beta_cfun_cprod RS subst) 1);
+by (etac Pair_inject 1);
+by (fast_tac HOL_cs 1);
+qed "inject_cpair";
 
-qed_goalw "inst_cprod_pcpo2" Cprod3.thy [cpair_def] "UU = <UU,UU>"
- (fn prems =>
-        [
-        (rtac sym 1),
-        (rtac trans 1),
-        (rtac beta_cfun_cprod 1),
-        (rtac sym 1),
-        (rtac inst_cprod_pcpo 1)
-        ]);
+val prems = goalw Cprod3.thy [cpair_def] "UU = <UU,UU>";
+by (rtac sym 1);
+by (rtac trans 1);
+by (rtac beta_cfun_cprod 1);
+by (rtac sym 1);
+by (rtac inst_cprod_pcpo 1);
+qed "inst_cprod_pcpo2";
 
-qed_goal "defined_cpair_rev" Cprod3.thy
- "<a,b> = UU ==> a = UU & b = UU"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (dtac (inst_cprod_pcpo2 RS subst) 1),
-        (etac inject_cpair 1)
-        ]);
+val prems = goal Cprod3.thy
+ "<a,b> = UU ==> a = UU & b = UU";
+by (cut_facts_tac prems 1);
+by (dtac (inst_cprod_pcpo2 RS subst) 1);
+by (etac inject_cpair 1);
+qed "defined_cpair_rev";
 
-qed_goalw "Exh_Cprod2" Cprod3.thy [cpair_def]
-        "? a b. z=<a,b>"
- (fn prems =>
-        [
-        (rtac PairE 1),
-        (rtac exI 1),
-        (rtac exI 1),
-        (etac (beta_cfun_cprod RS ssubst) 1)
-        ]);
+val prems = goalw Cprod3.thy [cpair_def]
+        "? a b. z=<a,b>";
+by (rtac PairE 1);
+by (rtac exI 1);
+by (rtac exI 1);
+by (etac (beta_cfun_cprod RS ssubst) 1);
+qed "Exh_Cprod2";
 
-qed_goalw "cprodE" Cprod3.thy [cpair_def]
-"[|!!x y. [|p=<x,y> |] ==> Q|] ==> Q"
- (fn prems =>
-        [
-        (rtac PairE 1),
-        (resolve_tac prems 1),
-        (etac (beta_cfun_cprod RS ssubst) 1)
-        ]);
+val prems = goalw Cprod3.thy [cpair_def]
+"[|!!x y. [|p=<x,y> |] ==> Q|] ==> Q";
+by (rtac PairE 1);
+by (resolve_tac prems 1);
+by (etac (beta_cfun_cprod RS ssubst) 1);
+qed "cprodE";
 
-qed_goalw "cfst2" Cprod3.thy [cfst_def,cpair_def] 
-        "cfst`<x,y>=x"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (stac beta_cfun_cprod 1),
-        (stac beta_cfun 1),
-        (rtac cont_fst 1),
-        (Simp_tac  1)
-        ]);
+val prems = goalw Cprod3.thy [cfst_def,cpair_def] 
+        "cfst`<x,y>=x";
+by (cut_facts_tac prems 1);
+by (stac beta_cfun_cprod 1);
+by (stac beta_cfun 1);
+by (rtac cont_fst 1);
+by (Simp_tac  1);
+qed "cfst2";
 
-qed_goalw "csnd2" Cprod3.thy [csnd_def,cpair_def] 
-        "csnd`<x,y>=y"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (stac beta_cfun_cprod 1),
-        (stac beta_cfun 1),
-        (rtac cont_snd 1),
-        (Simp_tac  1)
-        ]);
+val prems = goalw Cprod3.thy [csnd_def,cpair_def] 
+        "csnd`<x,y>=y";
+by (cut_facts_tac prems 1);
+by (stac beta_cfun_cprod 1);
+by (stac beta_cfun 1);
+by (rtac cont_snd 1);
+by (Simp_tac  1);
+qed "csnd2";
 
-qed_goal "cfst_strict" Cprod3.thy "cfst`UU = UU" (fn _ => [
-             (simp_tac (HOL_ss addsimps [inst_cprod_pcpo2,cfst2]) 1)]);
-qed_goal "csnd_strict" Cprod3.thy "csnd`UU = UU" (fn _ => [
-             (simp_tac (HOL_ss addsimps [inst_cprod_pcpo2,csnd2]) 1)]);
+val _ = goal Cprod3.thy "cfst`UU = UU";
+by (simp_tac (HOL_ss addsimps [inst_cprod_pcpo2,cfst2]) 1);
+qed "cfst_strict";
+val _ = goal Cprod3.thy "csnd`UU = UU";
+by (simp_tac (HOL_ss addsimps [inst_cprod_pcpo2,csnd2]) 1);
+qed "csnd_strict";
 
-qed_goalw "surjective_pairing_Cprod2" Cprod3.thy 
-        [cfst_def,csnd_def,cpair_def] "<cfst`p , csnd`p> = p"
- (fn prems =>
-        [
-        (stac beta_cfun_cprod 1),
-        (stac beta_cfun 1),
-        (rtac cont_snd 1),
-        (stac beta_cfun 1),
-        (rtac cont_fst 1),
-        (rtac (surjective_pairing RS sym) 1)
-        ]);
+val prems = goalw Cprod3.thy [cfst_def,csnd_def,cpair_def] "<cfst`p , csnd`p> = p";
+by (stac beta_cfun_cprod 1);
+by (stac beta_cfun 1);
+by (rtac cont_snd 1);
+by (stac beta_cfun 1);
+by (rtac cont_fst 1);
+by (rtac (surjective_pairing RS sym) 1);
+qed "surjective_pairing_Cprod2";
 
-qed_goalw "less_cprod5c" Cprod3.thy [cfst_def,csnd_def,cpair_def]
- "<xa,ya> << <x,y> ==> xa<<x & ya << y"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (rtac less_cprod4c 1),
-        (dtac (beta_cfun_cprod RS subst) 1),
-        (dtac (beta_cfun_cprod RS subst) 1),
-        (atac 1)
-        ]);
+val prems = goalw Cprod3.thy [cfst_def,csnd_def,cpair_def]
+ "<xa,ya> << <x,y> ==> xa<<x & ya << y";
+by (cut_facts_tac prems 1);
+by (rtac less_cprod4c 1);
+by (dtac (beta_cfun_cprod RS subst) 1);
+by (dtac (beta_cfun_cprod RS subst) 1);
+by (atac 1);
+qed "less_cprod5c";
 
-qed_goalw "lub_cprod2" Cprod3.thy [cfst_def,csnd_def,cpair_def]
+val prems = goalw Cprod3.thy [cfst_def,csnd_def,cpair_def]
 "[|chain(S)|] ==> range(S) <<| \
-\ <(lub(range(%i. cfst`(S i)))) , lub(range(%i. csnd`(S i)))>"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (stac beta_cfun_cprod 1),
-        (stac (beta_cfun RS ext) 1),
-        (rtac cont_snd 1),
-        (stac (beta_cfun RS ext) 1),
-        (rtac cont_fst 1),
-        (rtac lub_cprod 1),
-        (atac 1)
-        ]);
+\ <(lub(range(%i. cfst`(S i)))) , lub(range(%i. csnd`(S i)))>";
+by (cut_facts_tac prems 1);
+by (stac beta_cfun_cprod 1);
+by (stac (beta_cfun RS ext) 1);
+by (rtac cont_snd 1);
+by (stac (beta_cfun RS ext) 1);
+by (rtac cont_fst 1);
+by (rtac lub_cprod 1);
+by (atac 1);
+qed "lub_cprod2";
 
 bind_thm ("thelub_cprod2", lub_cprod2 RS thelubI);
 (*
@@ -281,23 +236,19 @@ chain ?S1 ==>
  lub (range ?S1) =
  <lub (range (%i. cfst`(?S1 i))), lub (range (%i. csnd`(?S1 i)))>" 
 *)
-qed_goalw "csplit2" Cprod3.thy [csplit_def]
-        "csplit`f`<x,y> = f`x`y"
- (fn prems =>
-        [
-        (stac beta_cfun 1),
-        (Simp_tac 1),
-        (simp_tac (simpset() addsimps [cfst2,csnd2]) 1)
-        ]);
+val prems = goalw Cprod3.thy [csplit_def]
+        "csplit`f`<x,y> = f`x`y";
+by (stac beta_cfun 1);
+by (Simp_tac 1);
+by (simp_tac (simpset() addsimps [cfst2,csnd2]) 1);
+qed "csplit2";
 
-qed_goalw "csplit3" Cprod3.thy [csplit_def]
-  "csplit`cpair`z=z"
- (fn prems =>
-        [
-        (stac beta_cfun 1),
-        (Simp_tac 1),
-        (simp_tac (simpset() addsimps [surjective_pairing_Cprod2]) 1)
-        ]);
+val prems = goalw Cprod3.thy [csplit_def]
+  "csplit`cpair`z=z";
+by (stac beta_cfun 1);
+by (Simp_tac 1);
+by (simp_tac (simpset() addsimps [surjective_pairing_Cprod2]) 1);
+qed "csplit3";
 
 (* ------------------------------------------------------------------------ *)
 (* install simplifier for Cprod                                             *)

@@ -4,8 +4,6 @@
     Copyright   1993 Technische Universitaet Muenchen
 *)
 
-open HOLCF;
-
 use"adm.ML";
 
 simpset_ref() := simpset() addSolver
