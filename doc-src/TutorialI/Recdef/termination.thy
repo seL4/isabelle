@@ -6,8 +6,8 @@ text{*
 When a function is defined via \isacommand{recdef}, Isabelle tries to prove
 its termination with the help of the user-supplied measure.  All of the above
 examples are simple enough that Isabelle can prove automatically that the
-measure of the argument goes down in each recursive call. In that case
-$f$.\isa{simps} contains the defining equations (or variants derived from
+measure of the argument goes down in each recursive call. As a result,
+\isa{$f$.simps} will contain the defining equations (or variants derived from
 them) as theorems. For example, look (via \isacommand{thm}) at
 \isa{sep.simps} and \isa{sep1.simps} to see that they define the same
 function. What is more, those equations are automatically declared as
@@ -39,8 +39,8 @@ on \isa{nat}. This requires more arithmetic than is tried by default:
 apply(arith).;
 
 text{*\noindent
-Because \isacommand{recdef}'s the termination prover involves simplification,
-we have declared our lemma a simplification rule. Therefore our second
+Because \isacommand{recdef}'s termination prover involves simplification,
+we have turned our lemma into a simplification rule. Therefore our second
 attempt to define our function will automatically take it into account:
 *}
 

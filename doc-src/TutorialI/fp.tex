@@ -116,14 +116,13 @@ would have alerted us because of the unexpected variable \isa{re}.
   \isacommand{typ}\indexbold{*typ} \textit{string} reads and prints the given
   string as a type in the current context.
 \item[(Re)loading theories:] When you start your interaction you must open a
-  named theory with the line
-  \isacommand{theory}\texttt{~T~=}~\dots~\texttt{:}. Isabelle automatically
-  loads all the required parent theories from their respective files (which
-  may take a moment, unless the theories are already loaded and the files
-  have not been modified). The only time when you need to load a theory by
-  hand is when you simply want to check if it loads successfully without
-  wanting to make use of the theory itself. This you can do by typing
-  \isacommand{use\_thy}\indexbold{*use_thy}~\texttt{"T"}.
+  named theory with the line \isa{\isacommand{theory}~T~=~\dots~:}. Isabelle
+  automatically loads all the required parent theories from their respective
+  files (which may take a moment, unless the theories are already loaded and
+  the files have not been modified). The only time when you need to load a
+  theory by hand is when you simply want to check if it loads successfully
+  without wanting to make use of the theory itself. This you can do by typing
+  \isa{\isacommand{use\_thy}\indexbold{*use_thy}~"T"}.
   
   If you suddenly discover that you need to modify a parent theory of your
   current theory you must first abandon your current theory (at the shell
@@ -133,6 +132,9 @@ would have alerted us because of the unexpected variable \isa{re}.
   modified parent is reloaded automatically.
 \end{description}
 Further commands are found in the Isabelle/Isar Reference Manual.
+
+We now examine Isabelle's functional programming constructs systematically,
+starting with inductive datatypes.
 
 
 \section{Datatypes}
@@ -149,12 +151,12 @@ case study.
 
 Lists are one of the essential datatypes in computing. Readers of this
 tutorial and users of HOL need to be familiar with their basic operations.
-Theory \texttt{ToyList} is only a small fragment of HOL's predefined theory
-\texttt{List}\footnote{\url{http://isabelle.in.tum.de/library/HOL/List.html}}.
+Theory \isa{ToyList} is only a small fragment of HOL's predefined theory
+\isa{List}\footnote{\url{http://isabelle.in.tum.de/library/HOL/List.html}}.
 The latter contains many further operations. For example, the functions
-\isaindexbold{hd} (`head') and \isaindexbold{tl} (`tail') return the first
+\isaindexbold{hd} (``head'') and \isaindexbold{tl} (``tail'') return the first
 element and the remainder of a list. (However, pattern-matching is usually
-preferable to \isa{hd} and \isa{tl}.)  Theory \texttt{List} also contains
+preferable to \isa{hd} and \isa{tl}.)  Theory \isa{List} also contains
 more syntactic sugar: \isa{[}$x@1$\isa{,}\dots\isa{,}$x@n$\isa{]} abbreviates
 $x@1$\isa{\#}\dots\isa{\#}$x@n$\isa{\#[]}.  In the rest of the tutorial we
 always use HOL's predefined lists.
@@ -169,7 +171,7 @@ The general HOL \isacommand{datatype} definition is of the form
 C@1~\tau@{11}~\dots~\tau@{1k@1} ~\mid~ \dots ~\mid~
 C@m~\tau@{m1}~\dots~\tau@{mk@m}
 \]
-where $\alpha@i$ are type variables (the parameters), $C@i$ are distinct
+where $\alpha@i$ are distinct type variables (the parameters), $C@i$ are distinct
 constructor names and $\tau@{ij}$ are types; it is customary to capitalize
 the first letter in constructor names. There are a number of
 restrictions (such as that the type should not be empty) detailed
@@ -192,7 +194,7 @@ $f$ in $r$ are of the form $f \, \dots \, y@i \, \dots$ for some $i$. Thus
 Isabelle immediately sees that $f$ terminates because one (fixed!) argument
 becomes smaller with every recursive call. There must be exactly one equation
 for each constructor.  Their order is immaterial.
-A more general method for defining total recursive functions is explained in
+A more general method for defining total recursive functions is introduced in
 \S\ref{sec:recdef}.
 
 \begin{exercise}
@@ -276,6 +278,7 @@ expressions and some algorithms for manipulating them, and it demonstrates
 the constructs introduced above.
 
 \input{Ifexpr/document/Ifexpr.tex}
+\medskip
 
 How does one come up with the required lemmas? Try to prove the main theorems
 without them and study carefully what \isa{auto} leaves unproved. This has
@@ -368,7 +371,7 @@ on properties of multiplication.
 
 \subsection{Products}
 
-HOL also has pairs: \isa{($a@1$,$a@2$)} is of type \texttt{$\tau@1$ *
+HOL also has pairs: \isa{($a@1$,$a@2$)} is of type \isa{$\tau@1$ *
   $\tau@2$} provided each $a@i$ is of type $\tau@i$. The components of a pair
 are extracted by \isa{fst} and \isa{snd}: \isa{fst($x$,$y$) = $x$} and
 \isa{snd($x$,$y$) = $y$}. Tuples are simulated by pairs nested to the right:
@@ -411,7 +414,7 @@ definitions.
 
 
 \subsection{Type synonyms}
-\indexbold{type synonyms}
+\indexbold{type synonym}
 
 Type synonyms are similar to those found in ML. Their syntax is fairly self
 explanatory:
@@ -420,7 +423,6 @@ explanatory:
 
 Note that pattern-matching is not allowed, i.e.\ each definition must be of
 the form $f\,x@1\,\dots\,x@n~\isasymequiv~t$.
-
 Section~\S\ref{sec:Simplification} explains how definitions are used
 in proofs.
 
@@ -434,17 +436,17 @@ variables on the right-hand side as in the following fictitious definition:
 \chapter{More Functional Programming}
 
 The purpose of this chapter is to deepen the reader's understanding of the
-concepts encountered so far and to introduce an advanced forms of datatypes
-and recursive functions. The first two sections give a structured
-presentation of theorem proving by simplification
-(\S\ref{sec:Simplification}) and discuss important heuristics for induction
-(\S\ref{sec:InductionHeuristics}). They can be skipped by readers less
-interested in proofs. They are followed by a case study, a compiler for
-expressions (\S\ref{sec:ExprCompiler}). Advanced datatypes, including those
-involving function spaces, are covered in \S\ref{sec:advanced-datatypes},
-which closes with another case study, search trees (``tries'').  Finally we
-introduce a very general form of recursive function definition which goes
-well beyond what \isacommand{primrec} allows (\S\ref{sec:recdef}).
+concepts encountered so far and to introduce advanced forms of datatypes and
+recursive functions. The first two sections give a structured presentation of
+theorem proving by simplification (\S\ref{sec:Simplification}) and discuss
+important heuristics for induction (\S\ref{sec:InductionHeuristics}). They can
+be skipped by readers less interested in proofs. They are followed by a case
+study, a compiler for expressions (\S\ref{sec:ExprCompiler}). Advanced
+datatypes, including those involving function spaces, are covered in
+\S\ref{sec:advanced-datatypes}, which closes with another case study, search
+trees (``tries'').  Finally we introduce \isacommand{recdef}, a very general
+form of recursive function definition which goes well beyond what
+\isacommand{primrec} allows (\S\ref{sec:recdef}).
 
 
 \section{Simplification}
@@ -478,7 +480,7 @@ simplification steps:
 (0#1#[]) @ []  \(\leadsto\)  0#((1#[]) @ [])  \(\leadsto\)  0#(1#([] @ []))  \(\leadsto\)  0#1#[]
 \end{ttbox}
 This is also known as \bfindex{term rewriting} and the equations are referred
-to as \bfindex{rewrite rules}. This is more honest than ``simplification''
+to as \bfindex{rewrite rules}. ``Rewriting'' is more honest than ``simplification''
 because the terms do not necessarily become simpler in the process.
 
 \subsubsection{Simplification rules}
@@ -487,7 +489,7 @@ because the terms do not necessarily become simpler in the process.
 To facilitate simplification, theorems can be declared to be simplification
 rules (with the help of the attribute \isa{[simp]}\index{*simp
   (attribute)}), in which case proofs by simplification make use of these
-rules by default. In addition the constructs \isacommand{datatype} and
+rules automatically. In addition the constructs \isacommand{datatype} and
 \isacommand{primrec} (and a few others) invisibly declare useful
 simplification rules. Explicit definitions are \emph{not} declared
 simplification rules automatically!
@@ -502,14 +504,14 @@ The simplification attribute of theorems can be turned on and off as follows:
 theorems [simp] = \(list of theorem names\);
 theorems [simp del] = \(list of theorem names\);
 \end{ttbox}
-As a rule of thumb, rules that really simplify (like \isa{rev(rev xs) =
+As a rule of thumb, equations that really simplify (like \isa{rev(rev xs) =
   xs} and \mbox{\isa{xs \at\ [] = xs}}) should be made simplification
 rules.  Those of a more specific nature (e.g.\ distributivity laws, which
 alter the structure of terms considerably) should only be used selectively,
 i.e.\ they should not be default simplification rules.  Conversely, it may
 also happen that a simplification rule needs to be disabled in certain
 proofs.  Frequent changes in the simplification status of a theorem may
-indicates a badly designed theory.
+indicate a badly designed theory.
 \begin{warn}
   Simplification may not terminate, for example if both $f(x) = g(x)$ and
   $g(x) = f(x)$ are simplification rules. It is the user's responsibility not
@@ -568,7 +570,7 @@ only: \(list of theorem names\)
 
 Proving a goal containing \isaindex{let}-expressions almost invariably
 requires the \isa{let}-con\-structs to be expanded at some point. Since
-\isa{let}-\isa{in} is just syntactic sugar for a defined constant (called
+\isa{let}-\isa{in} is just syntactic sugar for a predefined constant (called
 \isa{Let}), expanding \isa{let}-constructs means rewriting with
 \isa{Let_def}:
 
@@ -600,7 +602,7 @@ requires the \isa{let}-con\-structs to be expanded at some point. Since
 \index{arithmetic}
 
 The simplifier routinely solves a small class of linear arithmetic formulae
-(over types \isa{nat} and \isa{int}): it only takes into account
+(over type \isa{nat} and other numeric types): it only takes into account
 assumptions and conclusions that are (possibly negated) (in)equalities
 (\isa{=}, \isasymle, \isa{<}) and it only knows about addition. Thus
 
@@ -673,7 +675,7 @@ another, albeit weak heuristic that is not restricted to induction:
 \end{quote}
 The heuristic is tricky to apply because it is not obvious that
 \isa{rev xs \at\ ys} is simpler than \isa{itrev xs ys}. But see what
-happens if you try to prove the symmetric equation!
+happens if you try to prove \isa{rev xs \at\ ys = itrev xs ys}!
 
 
 \section{Case study: compiling expressions}
@@ -719,6 +721,7 @@ involving function spaces is permitted: the recursive type may occur on the
 right of a function arrow, but never on the left. Hence the above can of worms
 is ruled out but the following example of a potentially infinitely branching tree is
 accepted:
+\smallskip
 
 \input{Datatype/document/Fundata.tex}
 \bigskip
@@ -728,7 +731,7 @@ there are alternatives to pure HOL: LCF~\cite{paulson87} is a logic where types 
 \begin{ttbox}
 datatype lam = C (lam -> lam)
 \end{ttbox}
-do indeed make sense (note the intentionally different arrow \isa{->}!).
+do indeed make sense (note the intentionally different arrow \isa{->}).
 There is even a version of LCF on top of HOL, called
 HOLCF~\cite{MuellerNvOS99}.
 
@@ -785,11 +788,11 @@ update function, and prove that they behave as expected.
 Proper tries associate some value with each string. Since the
 information is stored only in the final node associated with the string, many
 nodes do not carry any value. This distinction is captured by the
-following predefined datatype (from theory \texttt{Option}, which is a parent
-of \texttt{Main}):
+following predefined datatype (from theory \isa{Option}, which is a parent
+of \isa{Main}):
+\smallskip
 \input{Trie/document/Option2.tex}
-\indexbold{*option}\indexbold{*None}\indexbold{*Some}
-
+\indexbold{*option}\indexbold{*None}\indexbold{*Some}%
 \input{Trie/document/Trie.tex}
 
 \begin{exercise}

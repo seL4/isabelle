@@ -1,7 +1,6 @@
 (*<*)
 theory Trie = Main:;
 (*>*)
-
 text{*
 To minimize running time, each node of a trie should contain an array that maps
 letters to subtries. We have chosen a (sometimes) more space efficient
@@ -53,7 +52,7 @@ distinguishes the two cases whether the search string is empty or not:
 *}
 
 lemma [simp]: "lookup (Trie None []) as = None";
-apply(cases "as", auto).;
+apply(case_tac as, auto).;
 
 text{*
 Things begin to get interesting with the definition of an update function
@@ -107,7 +106,7 @@ if \isa{update} has already been simplified, which can only happen if
 The start of the proof is completely conventional:
 *}
 
-apply(induct_tac "as", auto);
+apply(induct_tac as, auto);
 
 txt{*\noindent
 Unfortunately, this time we are left with three intimidating looking subgoals:
@@ -127,8 +126,8 @@ apply(auto).;
 text{*\noindent
 Both \isaindex{case_tac} and \isaindex{induct_tac}
 take an optional first argument that specifies the range of subgoals they are
-applied to, where \isa{!} means all subgoals, i.e.\ \isa{[1-3]}. Individual
-subgoal number are also allowed.
+applied to, where \isa{!} means all subgoals, i.e.\ \isa{[1-3]} in our case. Individual
+subgoal numbers are also allowed.
 
 This proof may look surprisingly straightforward. However, note that this
 comes at a cost: the proof script is unreadable because the

@@ -23,7 +23,7 @@ lemma "xs \\<noteq> [] \\<Longrightarrow> hd(rev xs) # tl(rev xs) = rev xs";
 apply(simp).
 (*>*)
 text{*\noindent
-is proved by simplification:
+is proved by plain simplification:
 the conditional equation \isa{hd_Cons_tl} above
 can simplify \isa{hd(rev~xs)~\#~tl(rev~xs)} to \isa{rev xs}
 because the corresponding precondition \isa{rev xs \isasymnoteq\ []}

@@ -48,13 +48,13 @@ end
 where \texttt{B}$@1$, \dots, \texttt{B}$@n$ are the names of existing
 theories that \texttt{T} is based on and \texttt{\textit{declarations,
     definitions, and proofs}} represents the newly introduced concepts
-(types, functions etc) and proofs about them. The \texttt{B}$@i$ are the
+(types, functions etc.) and proofs about them. The \texttt{B}$@i$ are the
 direct \textbf{parent theories}\indexbold{parent theory} of \texttt{T}.
 Everything defined in the parent theories (and their parents \dots) is
 automatically visible. To avoid name clashes, identifiers can be
 \textbf{qualified} by theory names as in \texttt{T.f} and
 \texttt{B.f}.\indexbold{identifier!qualified} Each theory \texttt{T} must
-reside in a \indexbold{theory file} named \texttt{T.thy}.
+reside in a \bfindex{theory file} named \texttt{T.thy}.
 
 This tutorial is concerned with introducing you to the different linguistic
 constructs that can fill \textit{\texttt{declarations, definitions, and
@@ -74,59 +74,33 @@ and is recommended browsing.
 \end{warn}
 
 
-\section{Interaction and interfaces}
-
-Interaction with Isabelle can either occur at the shell level or through more
-advanced interfaces. To keep the tutorial independent of the interface we
-have phrased the description of the intraction in a neutral language. For
-example, the phrase ``to cancel a proof'' means to type \texttt{oops} at the
-shell level, which is explained the first time the phrase is used. Other
-interfaces perform the same act by cursor movements and/or mouse clicks.
-Although shell-based interaction is quite feasible for the kind of proof
-scripts currently presented in this tutorial, the recommended interface for
-Isabelle/Isar is the Emacs-based \bfindex{Proof
-  General}~\cite{Aspinall:TACAS:2000,proofgeneral}.
-
-To improve readability some of the interfaces (including the shell level)
-offer special fonts with mathematical symbols. Therefore the usual
-mathematical symbols are used throughout the tutorial. Their
-ASCII-equivalents are shown in figure~\ref{fig:ascii} in the appendix.
-
-Finally, a word about semicolons.\indexbold{$Isar@\texttt{;}} Some interfaces,
-for example Proof General, require each command to be terminated by a
-semicolon, whereas others, for example the shell level, do not. But even at
-the shell level it is advisable to use semicolons to enforce that a command
-is executed immediately; otherwise Isabelle may wait for the next keyword
-before it knows that the command is complete. Note that for readibility
-reasons we often drop the final semicolon in the text.
-
-
 \section{Types, terms and formulae}
 \label{sec:TypesTermsForms}
 \indexbold{type}
 
-Embedded in the declarations of a theory are the types, terms and formulae of
-HOL. HOL is a typed logic whose type system resembles that of functional
-programming languages like ML or Haskell. Thus there are
+Embedded in a theory are the types, terms and formulae of HOL. HOL is a typed
+logic whose type system resembles that of functional programming languages
+like ML or Haskell. Thus there are
 \begin{description}
-\item[base types,] in particular \ttindex{bool}, the type of truth values,
-and \ttindex{nat}, the type of natural numbers.
-\item[type constructors,] in particular \texttt{list}, the type of
-lists, and \texttt{set}, the type of sets. Type constructors are written
-postfix, e.g.\ \texttt{(nat)list} is the type of lists whose elements are
+\item[base types,] in particular \isaindex{bool}, the type of truth values,
+and \isaindex{nat}, the type of natural numbers.
+\item[type constructors,] in particular \isaindex{list}, the type of
+lists, and \isaindex{set}, the type of sets. Type constructors are written
+postfix, e.g.\ \isa{(nat)list} is the type of lists whose elements are
 natural numbers. Parentheses around single arguments can be dropped (as in
-\texttt{nat list}), multiple arguments are separated by commas (as in
-\texttt{(bool,nat)foo}).
+\isa{nat list}), multiple arguments are separated by commas (as in
+\isa{(bool,nat)ty}).
 \item[function types,] denoted by \isasymFun\indexbold{$IsaFun@\isasymFun}.
-  In HOL \isasymFun\ represents {\em total} functions only. As is customary,
-  \texttt{$\tau@1$ \isasymFun~$\tau@2$ \isasymFun~$\tau@3$} means
-  \texttt{$\tau@1$ \isasymFun~($\tau@2$ \isasymFun~$\tau@3$)}. Isabelle also
-  supports the notation \texttt{[$\tau@1,\dots,\tau@n$] \isasymFun~$\tau$}
-  which abbreviates \texttt{$\tau@1$ \isasymFun~$\cdots$ \isasymFun~$\tau@n$
+  In HOL \isasymFun\ represents \emph{total} functions only. As is customary,
+  \isa{$\tau@1$ \isasymFun~$\tau@2$ \isasymFun~$\tau@3$} means
+  \isa{$\tau@1$ \isasymFun~($\tau@2$ \isasymFun~$\tau@3$)}. Isabelle also
+  supports the notation \isa{[$\tau@1,\dots,\tau@n$] \isasymFun~$\tau$}
+  which abbreviates \isa{$\tau@1$ \isasymFun~$\cdots$ \isasymFun~$\tau@n$
     \isasymFun~$\tau$}.
-\item[type variables,] denoted by \texttt{'a}, \texttt{'b} etc, just like in
-ML. They give rise to polymorphic types like \texttt{'a \isasymFun~'a}, the
-type of the identity function.
+\item[type variables,]\indexbold{type variable}\indexbold{variable!type}
+  denoted by \isaindexbold{'a}, \isa{'b} etc., just like in ML. They give rise
+  to polymorphic types like \isa{'a \isasymFun~'a}, the type of the identity
+  function.
 \end{description}
 \begin{warn}
   Types are extremely important because they prevent us from writing
@@ -145,77 +119,71 @@ ML "set show_types"
 
 \noindent
 This can be reversed by \texttt{ML "reset show_types"}. Various other flags
-can be set and reset in the same manner.\bfindex{flag!(re)setting}
+can be set and reset in the same manner.\indexbold{flag!(re)setting}
 \end{warn}
 
 
 \textbf{Terms}\indexbold{term} are formed as in functional programming by
-applying functions to arguments. If \texttt{f} is a function of type
-\texttt{$\tau@1$ \isasymFun~$\tau@2$} and \texttt{t} is a term of type
-$\tau@1$ then \texttt{f~t} is a term of type $\tau@2$. HOL also supports
-infix functions like \texttt{+} and some basic constructs from functional
+applying functions to arguments. If \isa{f} is a function of type
+\isa{$\tau@1$ \isasymFun~$\tau@2$} and \isa{t} is a term of type
+$\tau@1$ then \isa{f~t} is a term of type $\tau@2$. HOL also supports
+infix functions like \isa{+} and some basic constructs from functional
 programming:
 \begin{description}
-\item[\texttt{if $b$ then $t@1$ else $t@2$}]\indexbold{*if}
+\item[\isa{if $b$ then $t@1$ else $t@2$}]\indexbold{*if}
 means what you think it means and requires that
-$b$ is of type \texttt{bool} and $t@1$ and $t@2$ are of the same type.
-\item[\texttt{let $x$ = $t$ in $u$}]\indexbold{*let}
+$b$ is of type \isa{bool} and $t@1$ and $t@2$ are of the same type.
+\item[\isa{let $x$ = $t$ in $u$}]\indexbold{*let}
 is equivalent to $u$ where all occurrences of $x$ have been replaced by
 $t$. For example,
-\texttt{let x = 0 in x+x} means \texttt{0+0}. Multiple bindings are separated
-by semicolons: \texttt{let $x@1$ = $t@1$; \dots; $x@n$ = $t@n$ in $u$}.
-\item[\texttt{case $e$ of $c@1$ \isasymFun~$e@1$ |~\dots~| $c@n$ \isasymFun~$e@n$}]
+\isa{let x = 0 in x+x} is equivalent to \isa{0+0}. Multiple bindings are separated
+by semicolons: \isa{let $x@1$ = $t@1$; \dots; $x@n$ = $t@n$ in $u$}.
+\item[\isa{case $e$ of $c@1$ \isasymFun~$e@1$ |~\dots~| $c@n$ \isasymFun~$e@n$}]
 \indexbold{*case}
-evaluates to $e@i$ if $e$ is of the form
-$c@i$. See~\S\ref{sec:case-expressions} for details.
+evaluates to $e@i$ if $e$ is of the form $c@i$.
 \end{description}
 
 Terms may also contain
 \isasymlambda-abstractions\indexbold{$Isalam@\isasymlambda}. For example,
-\texttt{\isasymlambda{}x.~x+1} is the function that takes an argument
-\texttt{x} and returns \texttt{x+1}. Instead of
-\texttt{\isasymlambda{}x.\isasymlambda{}y.\isasymlambda{}z.}~$t$ we can write
-\texttt{\isasymlambda{}x~y~z.}~$t$.
+\isa{\isasymlambda{}x.~x+1} is the function that takes an argument \isa{x} and
+returns \isa{x+1}. Instead of
+\isa{\isasymlambda{}x.\isasymlambda{}y.\isasymlambda{}z.~$t$} we can write
+\isa{\isasymlambda{}x~y~z.~$t$}.
 
-\textbf{Formulae}\indexbold{formula}
-are terms of type \texttt{bool}. There are the basic
-constants \ttindexbold{True} and \ttindexbold{False} and the usual logical
-connectives (in decreasing order of priority):
-\indexboldpos{\isasymnot}{$HOL0not},
-\indexboldpos{\isasymand}{$HOL0and},
-\indexboldpos{\isasymor}{$HOL0or}, and
-\indexboldpos{\isasymimp}{$HOL0imp},
+\textbf{Formulae}\indexbold{formula} are terms of type \isaindexbold{bool}.
+There are the basic constants \isaindexbold{True} and \isaindexbold{False} and
+the usual logical connectives (in decreasing order of priority):
+\indexboldpos{\isasymnot}{$HOL0not}, \indexboldpos{\isasymand}{$HOL0and},
+\indexboldpos{\isasymor}{$HOL0or}, and \indexboldpos{\isasymimp}{$HOL0imp},
 all of which (except the unary \isasymnot) associate to the right. In
-particular \texttt{A \isasymimp~B \isasymimp~C} means
-\texttt{A \isasymimp~(B \isasymimp~C)} and is thus
-logically equivalent with \texttt{A \isasymand~B \isasymimp~C}
-(which is \texttt{(A \isasymand~B) \isasymimp~C}).
+particular \isa{A \isasymimp~B \isasymimp~C} means \isa{A \isasymimp~(B
+  \isasymimp~C)} and is thus logically equivalent to \isa{A \isasymand~B
+  \isasymimp~C} (which is \isa{(A \isasymand~B) \isasymimp~C}).
 
 Equality is available in the form of the infix function
-\texttt{=}\indexbold{$HOL0eq@\texttt{=}} of type \texttt{'a \isasymFun~'a
-  \isasymFun~bool}. Thus \texttt{$t@1$ = $t@2$} is a formula provided $t@1$
+\isa{=}\indexbold{$HOL0eq@\texttt{=}} of type \isa{'a \isasymFun~'a
+  \isasymFun~bool}. Thus \isa{$t@1$ = $t@2$} is a formula provided $t@1$
 and $t@2$ are terms of the same type. In case $t@1$ and $t@2$ are of type
-\texttt{bool}, \texttt{=} acts as if-and-only-if. The formula
-$t@1$~\isasymnoteq~$t@2$ is merely an abbreviation for
-\texttt{\isasymnot($t@1$ = $t@2$)}.
+\isa{bool}, \isa{=} acts as if-and-only-if. The formula
+\isa{$t@1$~\isasymnoteq~$t@2$} is merely an abbreviation for
+\isa{\isasymnot($t@1$ = $t@2$)}.
 
 The syntax for quantifiers is
-\texttt{\isasymforall{}x.}~$P$\indexbold{$HOL0All@\isasymforall} and
-\texttt{\isasymexists{}x.}~$P$\indexbold{$HOL0Ex@\isasymexists}.  There is
-even \texttt{\isasymuniqex{}x.}~$P$\index{$HOL0ExU@\isasymuniqex|bold}, which
-means that there exists exactly one \texttt{x} that satisfies $P$.
-Nested quantifications can be abbreviated:
-\texttt{\isasymforall{}x~y~z.}~$P$ means
-\texttt{\isasymforall{}x.\isasymforall{}y.\isasymforall{}z.}~$P$.
+\isa{\isasymforall{}x.~$P$}\indexbold{$HOL0All@\isasymforall} and
+\isa{\isasymexists{}x.~$P$}\indexbold{$HOL0Ex@\isasymexists}.  There is
+even \isa{\isasymuniqex{}x.~$P$}\index{$HOL0ExU@\isasymuniqex|bold}, which
+means that there exists exactly one \isa{x} that satisfies \isa{$P$}.  Nested
+quantifications can be abbreviated: \isa{\isasymforall{}x~y~z.~$P$} means
+\isa{\isasymforall{}x.\isasymforall{}y.\isasymforall{}z.~$P$}.
 
 Despite type inference, it is sometimes necessary to attach explicit
-\bfindex{type constraints} to a term.  The syntax is \texttt{$t$::$\tau$} as
-in \texttt{x < (y::nat)}. Note that \ttindexboldpos{::}{$Isalamtc} binds weakly
-and should therefore be enclosed in parentheses: \texttt{x < y::nat} is
-ill-typed because it is interpreted as \texttt{(x < y)::nat}. The main reason
-for type constraints are overloaded functions like \texttt{+}, \texttt{*} and
-\texttt{<}. (See \S\ref{sec:TypeClasses} for a full discussion of
-overloading.)
+\textbf{type constraints}\indexbold{type constraint} to a term.  The syntax is
+\isa{$t$::$\tau$} as in \isa{x < (y::nat)}. Note that
+\ttindexboldpos{::}{$Isalamtc} binds weakly and should therefore be enclosed
+in parentheses: \isa{x < y::nat} is ill-typed because it is interpreted as
+\isa{(x < y)::nat}. The main reason for type constraints are overloaded
+functions like \isa{+}, \isa{*} and \isa{<}. (See \S\ref{sec:TypeClasses} for
+a full discussion of overloading.)
 
 \begin{warn}
 In general, HOL's concrete syntax tries to follow the conventions of
@@ -234,33 +202,35 @@ ML "set show_brackets"; \(\dots\); ML "reset show_brackets";
 
 \begin{itemize}
 \item
-Remember that \texttt{f t u} means \texttt{(f t) u} and not \texttt{f(t u)}!
+Remember that \isa{f t u} means \isa{(f t) u} and not \isa{f(t u)}!
 \item
-Isabelle allows infix functions like \texttt{+}. The prefix form of function
-application binds more strongly than anything else and hence \texttt{f~x + y}
-means \texttt{(f~x)~+~y} and not \texttt{f(x+y)}.
+Isabelle allows infix functions like \isa{+}. The prefix form of function
+application binds more strongly than anything else and hence \isa{f~x + y}
+means \isa{(f~x)~+~y} and not \isa{f(x+y)}.
 \item Remember that in HOL if-and-only-if is expressed using equality.  But
   equality has a high priority, as befitting a relation, while if-and-only-if
-  typically has the lowest priority.  Thus, \texttt{\isasymnot~\isasymnot~P =
-    P} means \texttt{\isasymnot\isasymnot(P = P)} and not
-  \texttt{(\isasymnot\isasymnot P) = P}. When using \texttt{=} to mean
-  logical equivalence, enclose both operands in parentheses, as in \texttt{(A
+  typically has the lowest priority.  Thus, \isa{\isasymnot~\isasymnot~P =
+    P} means \isa{\isasymnot\isasymnot(P = P)} and not
+  \isa{(\isasymnot\isasymnot P) = P}. When using \isa{=} to mean
+  logical equivalence, enclose both operands in parentheses, as in \isa{(A
     \isasymand~B) = (B \isasymand~A)}.
 \item
 Constructs with an opening but without a closing delimiter bind very weakly
 and should therefore be enclosed in parentheses if they appear in subterms, as
-in \texttt{f = (\isasymlambda{}x.~x)}. This includes \ttindex{if},
-\ttindex{let}, \ttindex{case}, \isasymlambda, and quantifiers.
+in \isa{f = (\isasymlambda{}x.~x)}. This includes \isaindex{if},
+\isaindex{let}, \isaindex{case}, \isa{\isasymlambda}, and quantifiers.
 \item
-Never write \texttt{\isasymlambda{}x.x} or \texttt{\isasymforall{}x.x=x}
-because \texttt{x.x} is always read as a single qualified identifier that
-refers to an item \texttt{x} in theory \texttt{x}. Write
-\texttt{\isasymlambda{}x.~x} and \texttt{\isasymforall{}x.~x=x} instead.
-\item Identifiers\indexbold{identifier} may contain \texttt{_} and \texttt{'}.
+Never write \isa{\isasymlambda{}x.x} or \isa{\isasymforall{}x.x=x}
+because \isa{x.x} is always read as a single qualified identifier that
+refers to an item \isa{x} in theory \isa{x}. Write
+\isa{\isasymlambda{}x.~x} and \isa{\isasymforall{}x.~x=x} instead.
+\item Identifiers\indexbold{identifier} may contain \isa{_} and \isa{'}.
 \end{itemize}
 
-Remember that ASCII-equivalents of all mathematical symbols are
-given in figure~\ref{fig:ascii} in the appendix.
+For the sake of readability the usual mathematical symbols are used throughout
+the tutorial. Their ASCII-equivalents are shown in figure~\ref{fig:ascii} in
+the appendix.
+
 
 \section{Variables}
 \label{sec:variables}
@@ -270,9 +240,9 @@ Isabelle distinguishes free and bound variables just as is customary. Bound
 variables are automatically renamed to avoid clashes with free variables. In
 addition, Isabelle has a third kind of variable, called a \bfindex{schematic
   variable}\indexbold{variable!schematic} or \bfindex{unknown}, which starts
-with a \texttt{?}.  Logically, an unknown is a free variable. But it may be
+with a \isa{?}.  Logically, an unknown is a free variable. But it may be
 instantiated by another term during the proof process. For example, the
-mathematical theorem $x = x$ is represented in Isabelle as \texttt{?x = ?x},
+mathematical theorem $x = x$ is represented in Isabelle as \isa{?x = ?x},
 which means that Isabelle can instantiate it arbitrarily. This is in contrast
 to ordinary variables, which remain fixed. The programming language Prolog
 calls unknowns {\em logical\/} variables.
@@ -283,10 +253,36 @@ a theorem, Isabelle will turn your free variables into unknowns: it merely
 indicates that Isabelle will automatically instantiate those unknowns
 suitably when the theorem is used in some other proof.
 \begin{warn}
-  If you use \texttt{?}\index{$HOL0Ex@\texttt{?}} as an existential
-  quantifier, it needs to be followed by a space. Otherwise \texttt{?x} is
+  If you use \isa{?}\index{$HOL0Ex@\texttt{?}} as an existential
+  quantifier, it needs to be followed by a space. Otherwise \isa{?x} is
   interpreted as a schematic variable.
 \end{warn}
+
+\section{Interaction and interfaces}
+
+Interaction with Isabelle can either occur at the shell level or through more
+advanced interfaces. To keep the tutorial independent of the interface we
+have phrased the description of the intraction in a neutral language. For
+example, the phrase ``to abandon a proof'' means to type \isacommand{oops} at the
+shell level, which is explained the first time the phrase is used. Other
+interfaces perform the same act by cursor movements and/or mouse clicks.
+Although shell-based interaction is quite feasible for the kind of proof
+scripts currently presented in this tutorial, the recommended interface for
+Isabelle/Isar is the Emacs-based \bfindex{Proof
+  General}~\cite{Aspinall:TACAS:2000,proofgeneral}.
+
+Some interfaces (including the shell level) offer special fonts with
+mathematical symbols. For those that do not, remember that ASCII-equivalents
+are shown in figure~\ref{fig:ascii} in the appendix.
+
+Finally, a word about semicolons.\indexbold{$Isar@\texttt{;}} Some interfaces,
+for example Proof General, require each command to be terminated by a
+semicolon, whereas others, for example the shell level, do not. But even at
+the shell level it is advisable to use semicolons to enforce that a command
+is executed immediately; otherwise Isabelle may wait for the next keyword
+before it knows that the command is complete. Note that for readibility
+reasons we often drop the final semicolon in the text.
+
 
 \section{Getting started}
 
@@ -299,4 +295,4 @@ basic ASCII interface.  In addition you need to open an editor window to
 create theory files.  While you are developing a theory, we recommend to
 type each command into the file first and then enter it into Isabelle by
 copy-and-paste, thus ensuring that you have a complete record of your theory.
-As mentioned earlier, Proof General offers a much superior interface.
+As mentioned above, Proof General offers a much superior interface.

@@ -44,7 +44,7 @@ trie \isa{Trie~None~[]} always returns \isa{None}. The proof merely
 distinguishes the two cases whether the search string is empty or not:%
 \end{isamarkuptext}%
 \isacommand{lemma}~[simp]:~{"}lookup~(Trie~None~[])~as~=~None{"}\isanewline
-\isacommand{apply}(cases~{"}as{"},~auto)\isacommand{.}%
+\isacommand{apply}(case\_tac~as,~auto)\isacommand{.}%
 \begin{isamarkuptext}%
 Things begin to get interesting with the definition of an update function
 that adds a new (string,value) pair to a trie, overwriting the old value
@@ -93,7 +93,7 @@ if \isa{update} has already been simplified, which can only happen if
 \isa{as} is instantiated.
 The start of the proof is completely conventional:%
 \end{isamarkuptxt}%
-\isacommand{apply}(induct\_tac~{"}as{"},~auto)%
+\isacommand{apply}(induct\_tac~as,~auto)%
 \begin{isamarkuptxt}%
 \noindent
 Unfortunately, this time we are left with three intimidating looking subgoals:
@@ -112,8 +112,8 @@ suffices:%
 \noindent
 Both \isaindex{case_tac} and \isaindex{induct_tac}
 take an optional first argument that specifies the range of subgoals they are
-applied to, where \isa{!} means all subgoals, i.e.\ \isa{[1-3]}. Individual
-subgoal number are also allowed.
+applied to, where \isa{!} means all subgoals, i.e.\ \isa{[1-3]} in our case. Individual
+subgoal numbers are also allowed.
 
 This proof may look surprisingly straightforward. However, note that this
 comes at a cost: the proof script is unreadable because the

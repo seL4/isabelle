@@ -7,7 +7,7 @@ theory "types" = Main:;
 text{*\noindent\indexbold{*types}%
 Internally all synonyms are fully expanded.  As a consequence Isabelle's
 output never contains synonyms.  Their main purpose is to improve the
-readability of theory definitions.  Synonyms can be used just like any other
+readability of theories.  Synonyms can be used just like any other
 type:
 *}
 
@@ -28,7 +28,7 @@ defs nand_def: "nand A B \\<equiv> \\<not>(A \\<and> B)"
 
 text{*\noindent%
 where \isacommand{defs}\indexbold{*defs} is a keyword and \isa{nand_def} and
-\isa{exor_def} are arbitrary user-supplied names.
+\isa{exor_def} are user-supplied names.
 The symbol \indexboldpos{\isasymequiv}{$IsaEq} is a special form of equality
 that should only be used in constant definitions.
 Declarations and definitions can also be merged

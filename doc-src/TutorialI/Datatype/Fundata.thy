@@ -14,7 +14,7 @@ write down such a tree? Using functional notation! For example, the *}
 term "Branch 0 (\\<lambda>i. Branch i (\\<lambda>n. Tip))";
 
 text{*\noindent of type \isa{(nat,nat)bigtree} is the tree whose
-root is labeled with 0 and whose $n$th subtree is labeled with $n$ and
+root is labeled with 0 and whose $i$th subtree is labeled with $i$ and
 has merely \isa{Tip}s as further subtrees.
 
 Function \isa{map_bt} applies a function to all labels in a \isa{bigtree}:
@@ -35,7 +35,7 @@ Isabelle because the termination proof is not as obvious since
 
 The following lemma has a canonical proof  *}
 
-lemma "map_bt g (map_bt f T) = map_bt (g o f) T";
+lemma "map_bt (g o f) T = map_bt g (map_bt f T)";
 apply(induct_tac "T", auto).
 
 text{*\noindent

@@ -6,7 +6,7 @@ apply(simp add: Let_def).;
 
 text{*
 If, in a particular context, there is no danger of a combinatorial explosion
-of nested \texttt{let}s one could even add \texttt{Let_def} permanently:
+of nested \isa{let}s one could even add \isa{Let_def} permanently:
 *}
 theorems [simp] = Let_def;
 (*<*)

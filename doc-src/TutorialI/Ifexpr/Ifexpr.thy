@@ -61,7 +61,7 @@ text{*
 \subsubsection{Transformation into and of If-expressions}
 
 The type \isa{boolex} is close to the customary representation of logical
-formulae, whereas \isa{ifex} is designed for efficiency. Thus we need to
+formulae, whereas \isa{ifex} is designed for efficiency. It is easy to
 translate from \isa{boolex} into \isa{ifex}:
 *}
 
@@ -153,7 +153,8 @@ and prove \isa{normal(norm b)}. Of course, this requires a lemma about
 normality of \isa{normif}:
 *}
 
-lemma [simp]: "\\<forall>t e. normal(normif b t e) = (normal t \\<and> normal e)";(*<*)
+lemma [simp]: "\\<forall>t e. normal(normif b t e) = (normal t \\<and> normal e)";
+(*<*)
 apply(induct_tac b);
 apply(auto).;
 
@@ -161,4 +162,5 @@ theorem "normal(norm b)";
 apply(induct_tac b);
 apply(auto).;
 
-end(*>*)
+end
+(*>*)

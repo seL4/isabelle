@@ -14,7 +14,7 @@ recdef fib "measure(\\<lambda>n. n)"
 
 text{*\noindent
 The definition of \isa{fib} is accompanied by a \bfindex{measure function}
-\isa{\isasymlambda{}n.$\;$n} that maps the argument of \isa{fib} to a
+\isa{\isasymlambda{}n.$\;$n} which maps the argument of \isa{fib} to a
 natural number. The requirement is that in each equation the measure of the
 argument on the left-hand side is strictly greater than the measure of the
 argument of each recursive call. In the case of \isa{fib} this is
@@ -83,7 +83,7 @@ recdef swap12 "{}"
   "swap12 zs       = zs";
 
 text{*\noindent
-In the non-recursive case the termination measure degenerates to the empty
+For non-recursive functions the termination measure degenerates to the empty
 set \isa{\{\}}.
 *}
 

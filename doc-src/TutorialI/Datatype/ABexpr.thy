@@ -33,28 +33,28 @@ expressions can be arithmetic comparisons, conjunctions and negations.
 The semantics is fixed via two evaluation functions
 *}
 
-consts  evala :: "('a \\<Rightarrow> nat) \\<Rightarrow> 'a aexp \\<Rightarrow> nat"
-        evalb :: "('a \\<Rightarrow> nat) \\<Rightarrow> 'a bexp \\<Rightarrow> bool";
+consts  evala :: "'a aexp \\<Rightarrow> ('a \\<Rightarrow> nat) \\<Rightarrow> nat"
+        evalb :: "'a bexp \\<Rightarrow> ('a \\<Rightarrow> nat) \\<Rightarrow> bool";
 
 text{*\noindent
-that take an environment (a mapping from variables \isa{'a} to values
-\isa{nat}) and an expression and return its arithmetic/boolean
+that take an expression and an environment (a mapping from variables \isa{'a} to values
+\isa{nat}) and return its arithmetic/boolean
 value. Since the datatypes are mutually recursive, so are functions that
 operate on them. Hence they need to be defined in a single \isacommand{primrec}
 section:
 *}
 
 primrec
-  "evala env (IF b a1 a2) =
-     (if evalb env b then evala env a1 else evala env a2)"
-  "evala env (Sum a1 a2) = evala env a1 + evala env a2"
-  "evala env (Diff a1 a2) = evala env a1 - evala env a2"
-  "evala env (Var v) = env v"
-  "evala env (Num n) = n"
+  "evala (IF b a1 a2) env =
+     (if evalb b env then evala a1 env else evala a2 env)"
+  "evala (Sum a1 a2) env = evala a1 env + evala a2 env"
+  "evala (Diff a1 a2) env = evala a1 env - evala a2 env"
+  "evala (Var v) env = env v"
+  "evala (Num n) env = n"
 
-  "evalb env (Less a1 a2) = (evala env a1 < evala env a2)"
-  "evalb env (And b1 b2) = (evalb env b1 \\<and> evalb env b2)"
-  "evalb env (Neg b) = (\\<not> evalb env b)"
+  "evalb (Less a1 a2) env = (evala a1 env < evala a2 env)"
+  "evalb (And b1 b2) env = (evalb b1 env \\<and> evalb b2 env)"
+  "evalb (Neg b) env = (\\<not> evalb b env)"
 
 text{*\noindent
 In the same fashion we also define two functions that perform substitution:
@@ -93,8 +93,8 @@ theorem in the induction step. Therefore you need to state and prove both
 theorems simultaneously:
 *}
 
-lemma "evala env (substa s a) = evala (\\<lambda>x. evala env (s x)) a \\<and>
-        evalb env (substb s b) = evalb (\\<lambda>x. evala env (s x)) b";
+lemma "evala (substa s a) env = evala a (\\<lambda>x. evala (s x) env) \\<and>
+        evalb (substb s b) env = evalb b (\\<lambda>x. evala (s x) env)";
 apply(induct_tac a and b);
 
 txt{*\noindent

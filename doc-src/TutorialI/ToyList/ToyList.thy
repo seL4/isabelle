@@ -1,10 +1,10 @@
 theory ToyList = PreList:
 
 text{*\noindent
-HOL already has a predefined theory of lists called \texttt{List} ---
-\texttt{ToyList} is merely a small fragment of it chosen as an example. In
+HOL already has a predefined theory of lists called \isa{List} ---
+\isa{ToyList} is merely a small fragment of it chosen as an example. In
 contrast to what is recommended in \S\ref{sec:Basic:Theories},
-\texttt{ToyList} is not based on \texttt{Main} but on \texttt{PreList}, a
+\isa{ToyList} is not based on \isa{Main} but on \isa{PreList}, a
 theory that contains pretty much everything but lists, thus avoiding
 ambiguities caused by defining lists twice.
 *}
@@ -31,7 +31,7 @@ the right, i.e.\ the term \isa{$x$ \# $y$ \# $z$} is read as \isa{$x$
 
 \begin{warn}
   Syntax annotations are a powerful but completely optional feature. You
-  could drop them from theory \texttt{ToyList} and go back to the identifiers
+  could drop them from theory \isa{ToyList} and go back to the identifiers
   \isa{Nil} and \isa{Cons}. However, lists are such a central datatype
   that their syntax is highly customized. We recommend that novices should
   not use syntax annotations in their own theories.
@@ -67,7 +67,7 @@ The equations for \isa{app} and \isa{rev} hardly need comments:
 \isa{app} appends two lists and \isa{rev} reverses a list.  The keyword
 \isacommand{primrec}\index{*primrec} indicates that the recursion is of a
 particularly primitive kind where each recursive call peels off a datatype
-constructor from one of the arguments (see \S\ref{sec:datatype}).  Thus the
+constructor from one of the arguments.  Thus the
 recursion always terminates, i.e.\ the function is \bfindex{total}.
 
 The termination requirement is absolutely essential in HOL, a logic of total
@@ -103,7 +103,7 @@ consts "end" :: "'a list \\<Rightarrow> 'a"
 
 text{*\noindent
 When Isabelle prints a syntax error message, it refers to the HOL syntax as
-the \bfindex{inner syntax}.
+the \bfindex{inner syntax} and the enclosing theory language as the \bfindex{outer syntax}.
 
 
 \section{An introductory proof}
@@ -122,7 +122,7 @@ list. The input line
 
 theorem rev_rev [simp]: "rev(rev xs) = xs";
 
-txt{*\noindent\index{*theorem|bold}\index{*simp (attribute)|bold}
+txt{*\index{*theorem|bold}\index{*simp (attribute)|bold}
 \begin{itemize}
 \item
 establishes a new theorem to be proved, namely \isa{rev(rev xs) = xs},
@@ -220,8 +220,8 @@ oops
 text{*
 \subsubsection*{First lemma: \texttt{rev(xs \at~ys) = (rev ys) \at~(rev xs)}}
 
-After abandoning the above proof attempt (at the shell level type
-\isa{oops}) we start a new proof:
+After abandoning the above proof attempt\indexbold{abandon proof} (at the shell level type
+\isacommand{oops}) we start a new proof:
 *}
 
 lemma rev_app [simp]: "rev(xs @ ys) = (rev ys) @ (rev xs)";
@@ -232,7 +232,6 @@ the importance we attach to a proposition. In general, we use the words
 \emph{theorem}\index{theorem} and \emph{lemma}\index{lemma} pretty much
 interchangeably.
 
-%FIXME indent!
 There are two variables that we could induct on: \isa{xs} and
 \isa{ys}. Because \isa{\at} is defined by recursion on
 the first argument, \isa{xs} is the correct one:
@@ -251,9 +250,9 @@ txt{*
 ~1.~rev~ys~=~rev~ys~@~[]\isanewline
 ~2. \dots
 \end{isabellepar}%
-We need to cancel this proof attempt and prove another simple lemma first.
-In the future the step of cancelling an incomplete proof before embarking on
-the proof of a lemma often remains implicit.
+Again, we need to abandon this proof attempt and prove another simple lemma first.
+In the future the step of abandoning an incomplete proof before embarking on
+the proof of a lemma usually remains implicit.
 *}
 (*<*)
 oops

@@ -18,18 +18,18 @@ datatype ('a,'v)expr = Cex 'v
                      | Bex "'v binop"  "('a,'v)expr"  "('a,'v)expr";
 
 text{*\noindent
-The three constructors represent constants, variables and the combination of
-two subexpressions with a binary operation.
+The three constructors represent constants, variables and the application of
+a binary operation to two subexpressions.
 
 The value of an expression w.r.t.\ an environment that maps variables to
 values is easily defined:
 *}
 
-consts value :: "('a \\<Rightarrow> 'v) \\<Rightarrow> ('a,'v)expr \\<Rightarrow> 'v";
+consts value :: "('a,'v)expr \\<Rightarrow> ('a \\<Rightarrow> 'v) \\<Rightarrow> 'v";
 primrec
-"value env (Cex v) = v"
-"value env (Vex a) = env a"
-"value env (Bex f e1 e2) = f (value env e1) (value env e2)";
+"value (Cex v) env = v"
+"value (Vex a) env = env a"
+"value (Bex f e1 e2) env = f (value e1 env) (value e2 env)";
 
 text{*
 The stack machine has three instructions: load a constant value onto the
@@ -43,20 +43,21 @@ datatype ('a,'v) instr = Const 'v
                        | Apply "'v binop";
 
 text{*
-The execution of the stack machine is modelled by a function \isa{exec}
-that takes a store (modelled as a function from addresses to values, just
-like the environment for evaluating expressions), a stack (modelled as a
-list) of values, and a list of instructions, and returns the stack at the end
-of the execution---the store remains unchanged:
+The execution of the stack machine is modelled by a function
+\isa{exec} that takes a list of instructions, a store (modelled as a
+function from addresses to values, just like the environment for
+evaluating expressions), and a stack (modelled as a list) of values,
+and returns the stack at the end of the execution---the store remains
+unchanged:
 *}
 
-consts exec :: "('a\\<Rightarrow>'v) \\<Rightarrow> 'v list \\<Rightarrow> ('a,'v)instr list \\<Rightarrow> 'v list";
+consts exec :: "('a,'v)instr list \\<Rightarrow> ('a\\<Rightarrow>'v) \\<Rightarrow> 'v list \\<Rightarrow> 'v list";
 primrec
-"exec s vs [] = vs"
-"exec s vs (i#is) = (case i of
-    Const v  \\<Rightarrow> exec s (v#vs) is
-  | Load a   \\<Rightarrow> exec s ((s a)#vs) is
-  | Apply f  \\<Rightarrow> exec s ( (f (hd vs) (hd(tl vs)))#(tl(tl vs)) ) is)";
+"exec [] s vs = vs"
+"exec (i#is) s vs = (case i of
+    Const v  \\<Rightarrow> exec is s (v#vs)
+  | Load a   \\<Rightarrow> exec is s ((s a)#vs)
+  | Apply f  \\<Rightarrow> exec is s ((f (hd vs) (hd(tl vs)))#(tl(tl vs))))";
 
 text{*\noindent
 Recall that \isa{hd} and \isa{tl}
@@ -81,13 +82,13 @@ text{*
 Now we have to prove the correctness of the compiler, i.e.\ that the
 execution of a compiled expression results in the value of the expression:
 *}
-theorem "exec s [] (comp e) = [value s e]";
+theorem "exec (comp e) s [] = [value e s]";
 (*<*)oops;(*>*)
 text{*\noindent
 This theorem needs to be generalized to
 *}
 
-theorem "\\<forall>vs. exec s vs (comp e) = (value s e) # vs";
+theorem "\\<forall>vs. exec (comp e) s vs = (value e s) # vs";
 
 txt{*\noindent
 which is proved by induction on \isa{e} followed by simplification, once
@@ -96,7 +97,7 @@ instruction sequences:
 *}
 (*<*)oops;(*>*)
 lemma exec_app[simp]:
-  "\\<forall>vs. exec s vs (xs@ys) = exec s (exec s vs xs) ys"; 
+  "\\<forall>vs. exec (xs@ys) s vs = exec ys s (exec xs s vs)"; 
 
 txt{*\noindent
 This requires induction on \isa{xs} and ordinary simplification for the
@@ -113,20 +114,20 @@ rewritten as
 *}
 (*<*)
 lemmas [simp del] = exec_app;
-lemma [simp]: "\\<forall>vs. exec s vs (xs@ys) = exec s (exec s vs xs) ys"; 
+lemma [simp]: "\\<forall>vs. exec (xs@ys) s vs = exec ys s (exec xs s vs)"; 
 (*>*)
 apply(induct_tac xs, auto split: instr.split).;
 
 text{*\noindent
 Although this is more compact, it is less clear for the reader of the proof.
 
-We could now go back and prove \isa{exec s [] (comp e) = [value s e]}
+We could now go back and prove \isa{exec (comp e) s [] = [value e s]}
 merely by simplification with the generalized version we just proved.
 However, this is unnecessary because the generalized version fully subsumes
 its instance.
 *}
 (*<*)
-theorem "\\<forall>vs. exec s vs (comp e) = (value s e) # vs";
+theorem "\\<forall>vs. exec (comp e) s vs = (value e s) # vs";
 apply(induct_tac e, auto).;
 end
 (*>*)

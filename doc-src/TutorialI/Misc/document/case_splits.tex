@@ -41,11 +41,13 @@ by typing%
 In contrast to \isa{if}-expressions, the simplifier does not split
 \isa{case}-expressions by default because this can lead to nontermination
 in case of recursive datatypes. Again, if the \isa{only:} modifier is
-dropped, the above goal is solved, which \isacommand{apply}\isa{(simp)}
-alone will not do:%
+dropped, the above goal is solved,%
 \end{isamarkuptext}%
 \isacommand{apply}(simp~split:~list.split)\isacommand{.}%
 \begin{isamarkuptext}%
+\noindent%
+which \isacommand{apply}\isa{(simp)} alone will not do.
+
 In general, every datatype $t$ comes with a theorem
 \isa{$t$.split} which can be declared to be a \bfindex{split rule} either
 locally as above, or by giving it the \isa{split} attribute globally:%

@@ -48,15 +48,16 @@ text{*\noindent
 In contrast to \isa{if}-expressions, the simplifier does not split
 \isa{case}-expressions by default because this can lead to nontermination
 in case of recursive datatypes. Again, if the \isa{only:} modifier is
-dropped, the above goal is solved, which \isacommand{apply}\isa{(simp)}
-alone will not do:
+dropped, the above goal is solved,
 *}
 (*<*)
 lemma "(case xs of [] \\<Rightarrow> zs | y#ys \\<Rightarrow> y#(ys@zs)) = xs@zs";
 (*>*)
 apply(simp split: list.split).;
 
-text{*
+text{*\noindent%
+which \isacommand{apply}\isa{(simp)} alone will not do.
+
 In general, every datatype $t$ comes with a theorem
 \isa{$t$.split} which can be declared to be a \bfindex{split rule} either
 locally as above, or by giving it the \isa{split} attribute globally:

@@ -12,7 +12,7 @@ write down such a tree? Using functional notation! For example, the%
 \isacommand{term}~{"}Branch~0~({\isasymlambda}i.~Branch~i~({\isasymlambda}n.~Tip)){"}%
 \begin{isamarkuptext}%
 \noindent of type \isa{(nat,nat)bigtree} is the tree whose
-root is labeled with 0 and whose $n$th subtree is labeled with $n$ and
+root is labeled with 0 and whose $i$th subtree is labeled with $i$ and
 has merely \isa{Tip}s as further subtrees.
 
 Function \isa{map_bt} applies a function to all labels in a \isa{bigtree}:%
@@ -32,7 +32,7 @@ Isabelle because the termination proof is not as obvious since
 
 The following lemma has a canonical proof%
 \end{isamarkuptext}%
-\isacommand{lemma}~{"}map\_bt~g~(map\_bt~f~T)~=~map\_bt~(g~o~f)~T{"}\isanewline
+\isacommand{lemma}~{"}map\_bt~(g~o~f)~T~=~map\_bt~g~(map\_bt~f~T){"}\isanewline
 \isacommand{apply}(induct\_tac~{"}T{"},~auto)\isacommand{.}%
 \begin{isamarkuptext}%
 \noindent

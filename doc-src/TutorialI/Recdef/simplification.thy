@@ -49,10 +49,10 @@ where the condition cannot be reduced further, and splitting leads to
 
 text{*\noindent
 Since the recursive call \isa{gcd(n, m mod n)} is no longer protected by
-an \isa{if}, this leads to an infinite chain of simplification steps.
+an \isa{if}, it is unfolded again, which leads to an infinite chain of simplification steps.
 Fortunately, this problem can be avoided in many different ways.
 
-Of course the most radical solution is to disable the offending
+The most radical solution is to disable the offending
 \isa{split_if} as shown in the section on case splits in
 \S\ref{sec:SimpFeatures}.
 However, we do not recommend this because it means you will often have to
