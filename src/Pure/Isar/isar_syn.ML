@@ -540,7 +540,7 @@ val update_thyP =
 
 val update_thy_onlyP =
   OuterSyntax.improper_command "update_thy_only" "update theory file, ignoring associated ML"
-    K.diag (P.name >> IsarCmd.update_thy);
+    K.diag (P.name >> IsarCmd.update_thy_only);
 
 val touch_thyP =
   OuterSyntax.improper_command "touch_thy" "outdate theory, including descendants" K.diag
