@@ -1,8 +1,7 @@
-
 (*$Id$
-  theory Main includes everything*)
+  theory Main includes everything except AC*)
 
-theory Main = Update + InfDatatype + List + EquivClass + IntDiv:
+theory Main = Update + List + EquivClass + IntDiv + CardinalArith:
 
 (* belongs to theory Trancl *)
 lemmas rtrancl_induct = rtrancl_induct [case_names initial step, induct set: rtrancl]

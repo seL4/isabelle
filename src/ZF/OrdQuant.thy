@@ -26,9 +26,9 @@ translations
   "UN x<a. B"   == "OUnion(a, %x. B)"
 
 syntax (xsymbols)
-  "@oall"     :: [idt, i, o] => o        ("(3\\<forall> _<_./ _)" 10)
-  "@oex"      :: [idt, i, o] => o        ("(3\\<exists> _<_./ _)" 10)
-  "@OUNION"   :: [idt, i, i] => i        ("(3\\<Union> _<_./ _)" 10)
+  "@oall"     :: [idt, i, o] => o        ("(3\\<forall>_<_./ _)" 10)
+  "@oex"      :: [idt, i, o] => o        ("(3\\<exists>_<_./ _)" 10)
+  "@OUNION"   :: [idt, i, i] => i        ("(3\\<Union>_<_./ _)" 10)
 
 defs
   

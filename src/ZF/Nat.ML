@@ -234,3 +234,8 @@ Goal "[| i: nat; j: nat |] ==> i Int j: nat";
 by (rtac (Int_greatest_lt RS ltD) 1);
 by (REPEAT (ares_tac [ltI, Ord_nat] 1));
 qed "Int_nat_type";
+
+Goal "nat ~= 0";
+by (Blast_tac 1);
+qed "nat_nonempty";
+Addsimps [nat_nonempty];  (*needed to simplify unions over nat*)

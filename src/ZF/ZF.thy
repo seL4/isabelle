@@ -153,8 +153,10 @@ syntax (xsymbols)
   "@Collect"  :: [pttrn, i, o] => i        ("(1{_ \\<in> _ ./ _})")
   "@Replace"  :: [pttrn, pttrn, i, o] => i ("(1{_ ./ _ \\<in> _, _})")
   "@RepFun"   :: [i, pttrn, i] => i        ("(1{_ ./ _ \\<in> _})" [51,0,51])
-  "@INTER"    :: [pttrn, i, i] => i        ("(3\\<Inter>_\\<in>_./ _)" 10)
   "@UNION"    :: [pttrn, i, i] => i        ("(3\\<Union>_\\<in>_./ _)" 10)
+  "@INTER"    :: [pttrn, i, i] => i        ("(3\\<Inter>_\\<in>_./ _)" 10)
+  Union       :: i =>i                     ("\\<Union>_" [90] 90)
+  Inter       :: i =>i                     ("\\<Inter>_" [90] 90)
   "@PROD"     :: [pttrn, i, i] => i        ("(3\\<Pi>_\\<in>_./ _)" 10)
   "@SUM"      :: [pttrn, i, i] => i        ("(3\\<Sigma>_\\<in>_./ _)" 10)
   "@lam"      :: [pttrn, i, i] => i        ("(3\\<lambda>_\\<in>_./ _)" 10)
@@ -274,4 +276,3 @@ val print_translation =
   [(*("split", split_tr'),*)
    ("Pi",    dependent_tr' ("@PROD", "op ->")),
    ("Sigma", dependent_tr' ("@SUM", "op *"))];
-

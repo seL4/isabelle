@@ -10,7 +10,7 @@ From Misra, "A Logic for Concurrent Programming", 1994
 Theory ported from HOL.
 *)
 
-WFair = UNITY +
+WFair = UNITY + Main_ZFC + 
 constdefs
   
   (* This definition specifies weak fairness.  The rest of the theory

@@ -37,6 +37,7 @@ $(OUT)/ZF: $(OUT)/FOL AC.ML AC.thy Arith.ML Arith.thy ArithSimp.ML	\
   Integ/EquivClass.thy Integ/Int.ML Integ/Int.thy Integ/IntArith.thy	\
   Integ/IntDiv.ML Integ/IntDiv.thy Integ/int_arith.ML			\
   Integ/twos_compl.ML Let.ML Let.thy List.ML List.thy Main.ML Main.thy	\
+  Main_ZFC.ML Main_ZFC.thy	\
   Nat.ML Nat.thy Order.ML Order.thy OrderArith.ML OrderArith.thy	\
   OrderType.ML OrderType.thy Ordinal.ML Ordinal.thy Perm.ML Perm.thy	\
   QPair.ML QPair.thy QUniv.ML QUniv.thy ROOT.ML Rel.ML Rel.thy Sum.ML	\

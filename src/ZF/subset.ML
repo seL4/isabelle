@@ -53,6 +53,10 @@ by (rtac (major RS cons_subsetE) 1);
 by (REPEAT (ares_tac prems 1)) ;
 qed "succ_subsetE";
 
+Goalw [succ_def] "succ(a) <= B <-> (a <= B & a : B)";
+by (Blast_tac 1) ;
+qed "succ_subset_iff";
+
 (*** singletons ***)
 
 Goal "a:C ==> {a} <= C";
