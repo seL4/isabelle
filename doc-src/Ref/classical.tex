@@ -29,20 +29,24 @@ interactive proof assistants provide this much automation.  The tactics can
 be traced, and their components can be called directly; in this manner,
 any proof can be viewed interactively.
 
-The simplest way to apply the classical reasoner (to subgoal~$i$) is as
-follows:
+The simplest way to apply the classical reasoner (to subgoal~$i$) is to type
 \begin{ttbox}
 by (Blast_tac \(i\));
 \end{ttbox}
-If the subgoal is a simple formula of the predicate calculus or set theory,
-then it should be proved quickly.  To attempt to prove \emph{all} subgoals
-using a combination of rewriting and classical reasoning, try
+This command quickly proves most simple formulas of the predicate calculus or
+set theory.  To attempt to prove \emph{all} subgoals using a combination of
+rewriting and classical reasoning, try
 \begin{ttbox}
 by (Auto_tac());
 \end{ttbox}
-To use the classical reasoner effectively, you need to know how it works.  It
-provides many tactics to choose from, including {\tt Fast_tac} and {\tt
-  Best_tac}.
+To do all obvious logical steps, even if they do not prove the
+subgoal, type
+\begin{ttbox}
+by (Clarify_tac \(i\));
+\end{ttbox}
+You need to know how the classical reasoner works in order to use it
+effectively.  There are many tactics to choose from, including {\tt
+  Fast_tac} and {\tt Best_tac}.
 
 We shall first discuss the underlying principles, then present the
 classical reasoner.  Finally, we shall see how to instantiate it for
@@ -297,12 +301,13 @@ tried first (see \S\ref{biresolve_tac}).
 
 
 \subsection{Modifying the search step}
-For a given classical set, the proof strategy is simple.  Perform as many
-safe inferences as possible; or else, apply certain safe rules, allowing
-instantiation of unknowns; or else, apply an unsafe rule.  The tactics may
-also apply {\tt hyp_subst_tac}, if they have been set up to do so (see
-below).  They may perform a form of Modus Ponens: if there are assumptions
-$P\imp Q$ and~$P$, then replace $P\imp Q$ by~$Q$.
+For a given classical set, the proof strategy is simple.  Perform as many safe
+inferences as possible; or else, apply certain safe rules, allowing
+instantiation of unknowns; or else, apply an unsafe rule.  The tactics also
+eliminate assumptions of the form $x=t$ by substitution if they have been set
+up to do so (see {\tt hyp_subst_tacs} in~\S\ref{sec:classical-setup} below).
+They may perform a form of Modus Ponens: if there are assumptions $P\imp Q$
+and~$P$, then replace $P\imp Q$ by~$Q$.
 
 The classical reasoning tactics --- except {\tt blast_tac}! --- allow
 you to modify this basic proof strategy by applying two arbitrary {\bf
@@ -375,9 +380,31 @@ to combine their effects.
 
 
 \section{The classical tactics}
-\index{classical reasoner!tactics}
-If installed, the classical module provides several tactics (and other
-operations) for simulating the classical sequent calculus.
+\index{classical reasoner!tactics} If installed, the classical module provides
+powerful theorem-proving tactics.  Most of them have capitalized analogues
+that use the default claset; see \S\ref{sec:current-claset}.
+
+\subsection{Semi-automatic tactics}
+\begin{ttbox} 
+clarify_tac      : claset -> int -> tactic
+clarify_step_tac : claset -> int -> tactic
+\end{ttbox}
+Use these when the automatic tactics fail.  They perform all the obvious
+logical inferences that do not split the subgoal.  The result is a
+simpler subgoal that can be tackled by other means, such as by
+instantiating quantifiers yourself.
+\begin{ttdescription}
+\item[\ttindexbold{clarify_tac} $cs$ $i$] performs a series of safe steps on
+subgoal~$i$, using \texttt{clarify_step_tac}.
+
+\item[\ttindexbold{clarify_step_tac} $cs$ $i$] performs a safe step on
+  subgoal~$i$.  No splitting step is applied; for example, the subgoal $A\conj
+  B$ is left as a conjunction.  Proof by assumption, Modus Ponens, etc., may be
+  performed provided they do not instantiate unknowns.  Assumptions of the
+  form $x=t$ may be eliminated.  The user-supplied safe wrapper tactical is
+  applied.
+\end{ttdescription}
+
 
 \subsection{The tableau prover}
 The tactic {\tt blast_tac} searches for a proof using a fast tableau prover,
@@ -475,7 +502,7 @@ best-first search, to prove subgoal~$i$.
 \end{ttdescription}
 
 
-\subsection{Depth-limited tactics}
+\subsection{Depth-limited automatic tactics}
 \begin{ttbox} 
 depth_tac  : claset -> int -> int -> tactic
 deepen_tac : claset -> int -> int -> tactic
@@ -509,14 +536,12 @@ The automatic proof procedures call these tactics.  By calling them
 yourself, you can execute these procedures one step at a time.
 \begin{ttdescription}
 \item[\ttindexbold{safe_step_tac} $cs$ $i$] performs a safe step on
-subgoal~$i$.  The safe wrapper tactical is applied to a tactic that may include 
-proof by assumption or Modus Ponens (taking care not to instantiate unknowns), 
-or {\tt hyp_subst_tac}.
+  subgoal~$i$.  The safe wrapper tactical is applied to a tactic that may
+  include proof by assumption or Modus Ponens (taking care not to instantiate
+  unknowns), or substitution.
 
 \item[\ttindexbold{safe_tac} $cs$] repeatedly performs safe steps on all 
-subgoals.  It is deterministic, with at most one outcome.  If the automatic
-tactics fail, try using {\tt safe_tac} to open up your formula; then you
-can replicate certain quantifiers explicitly by applying appropriate rules.
+subgoals.  It is deterministic, with at most one outcome.  
 
 \item[\ttindexbold{inst_step_tac} $cs$ $i$] is like {\tt safe_step_tac},
 but allows unknowns to be instantiated.
@@ -539,16 +564,19 @@ underlying idea is quite similar to that of a current simpset described in
 warnings.  Just like simpsets, clasets can be associated with theories.  The
 tactics
 \begin{ttbox}
-Blast_tac    : int -> tactic
-Auto_tac     : unit -> tactic
-Fast_tac     : int -> tactic
-Best_tac     : int -> tactic
-Deepen_tac   : int -> int -> tactic
-Step_tac     : int -> tactic
+Blast_tac        : int -> tactic
+Auto_tac         : unit -> tactic
+Fast_tac         : int -> tactic
+Best_tac         : int -> tactic
+Deepen_tac       : int -> int -> tactic
+Clarify_tac      : int -> tactic
+Clarify_step_tac : int -> tactic
+Step_tac         : int -> tactic
 \end{ttbox}
 \indexbold{*Blast_tac}\indexbold{*Auto_tac}
 \indexbold{*Best_tac}\indexbold{*Fast_tac}%
-\indexbold{*Deepen_tac}\indexbold{*Step_tac}
+\indexbold{*Deepen_tac}\indexbold{*Clarify_tac}
+\indexbold{*Clarify_step_tac}\indexbold{*Step_tac}
 make use of the current claset.  E.g. {\tt Blast_tac} is defined as follows:
 \begin{ttbox}
 fun Blast_tac i = fast_tac (!claset) i;
@@ -618,7 +646,7 @@ elim-resolution).
 \end{ttdescription}
 
 
-\section{Setting up the classical reasoner}
+\section{Setting up the classical reasoner}\label{sec:classical-setup}
 \index{classical reasoner!setting up}
 Isabelle's classical object-logics, including {\tt FOL} and {\tt HOL}, have
 the classical reasoner already set up.  When defining a new classical logic,
