@@ -5,18 +5,25 @@
 Root of Isabelle's syntax module.
 *)
 
-signature SYNTAX =
+signature BASIC_SYNTAX =
 sig
   include AST0
+  include SEXTENSION0
+  include PRINTER0
+end;
+
+signature SYNTAX =
+sig
+  include AST1
   include LEXICON0
   include SYN_EXT0
   include TYPE_EXT0
   include SEXTENSION1
   include PRINTER0
   type syntax
-  val type_syn: syntax
   val extend: syntax -> (string -> typ) -> string list * string list * sext -> syntax
   val merge: string list -> syntax -> syntax -> syntax
+  val type_syn: syntax
   val print_gram: syntax -> unit
   val print_trans: syntax -> unit
   val print_syntax: syntax -> unit
@@ -28,6 +35,8 @@ sig
   val pretty_typ: syntax -> typ -> Pretty.T
   val string_of_term: syntax -> term -> string
   val string_of_typ: syntax -> typ -> string
+  val simple_string_of_typ: typ -> string
+  val simple_pprint_typ: typ -> pprint_args -> unit
 end;
 
 functor SyntaxFun(structure Symtab: SYMTAB and TypeExt: TYPE_EXT
@@ -60,7 +69,7 @@ fun err_dup_trfun name c =
 val empty_trtab = Symtab.null;
 
 fun extend_trtab tab trfuns name =
-  Symtab.extend eq_snd (tab, map (fn (c, f) => (c, (f, ref ()))) trfuns)
+  Symtab.extend (K false) (tab, map (fn (c, f) => (c, (f, ref ()))) trfuns)
     handle Symtab.DUPLICATE c => err_dup_trfun name c;
 
 fun merge_trtabs tab1 tab2 name =
@@ -191,15 +200,16 @@ fun merge_syntaxes (Syntax tabs1) (Syntax tabs2) =
   end;
 
 
+(* type_syn *)
+
+val type_syn = extend_syntax empty_syntax type_ext;
+
+
 
 (** inspect syntax **)
 
-fun string_of_big_list name prts =
-  Pretty.string_of (Pretty.block (Pretty.fbreaks (Pretty.str name :: prts)));
-
-fun string_of_strings name strs =
-  Pretty.string_of (Pretty.block (Pretty.breaks
-    (map Pretty.str (name :: map quote (sort_strings strs)))));
+fun pretty_strs_qs name strs =
+  Pretty.strs (name :: map quote (sort_strings strs));
 
 
 (* print_gram *)
@@ -208,10 +218,9 @@ fun print_gram (Syntax tabs) =
   let
     val {lexicon, roots, gram, ...} = tabs;
   in
-    writeln (string_of_strings "lexicon:" (dest_lexicon lexicon));
-    writeln (Pretty.string_of (Pretty.block (Pretty.breaks
-      (map Pretty.str ("roots:" :: roots)))));
-    writeln (string_of_big_list "prods:" (pretty_gram gram))
+    Pretty.writeln (pretty_strs_qs "lexicon:" (dest_lexicon lexicon));
+    Pretty.writeln (Pretty.strs ("roots:" :: roots));
+    Pretty.writeln (Pretty.big_list "prods:" (pretty_gram gram))
   end;
 
 
@@ -219,22 +228,22 @@ fun print_gram (Syntax tabs) =
 
 fun print_trans (Syntax tabs) =
   let
-    fun string_of_trtab name tab =
-      string_of_strings name (map fst (dest_trtab tab));
+    fun pretty_trtab name tab =
+      pretty_strs_qs name (map fst (dest_trtab tab));
 
-    fun string_of_ruletab name tab =
-      string_of_big_list name (map pretty_rule (dest_ruletab tab));
+    fun pretty_ruletab name tab =
+      Pretty.big_list name (map pretty_rule (dest_ruletab tab));
 
     val {consts, parse_ast_trtab, parse_ruletab, parse_trtab, print_trtab,
       print_ruletab, print_ast_trtab, ...} = tabs;
   in
-    writeln (string_of_strings "consts:" consts);
-    writeln (string_of_trtab "parse_ast_translation:" parse_ast_trtab);
-    writeln (string_of_ruletab "parse_rules:" parse_ruletab);
-    writeln (string_of_trtab "parse_translation:" parse_trtab);
-    writeln (string_of_trtab "print_translation:" print_trtab);
-    writeln (string_of_ruletab "print_rules:" print_ruletab);
-    writeln (string_of_trtab "print_ast_translation:" print_ast_trtab)
+    Pretty.writeln (pretty_strs_qs "consts:" consts);
+    Pretty.writeln (pretty_trtab "parse_ast_translation:" parse_ast_trtab);
+    Pretty.writeln (pretty_ruletab "parse_rules:" parse_ruletab);
+    Pretty.writeln (pretty_trtab "parse_translation:" parse_trtab);
+    Pretty.writeln (pretty_trtab "print_translation:" print_trtab);
+    Pretty.writeln (pretty_ruletab "print_rules:" print_ruletab);
+    Pretty.writeln (pretty_trtab "print_ast_translation:" print_ast_trtab)
   end;
 
 
@@ -245,17 +254,6 @@ fun print_syntax syn = (print_gram syn; print_trans syn);
 
 
 (** read **)
-
-(* read_ast *)
-
-fun read_ast (Syntax tabs) xids root str =
-  let
-    val {lexicon, gram, parse_ast_trtab, ...} = tabs;
-  in
-    pt_to_ast (lookup_trtab parse_ast_trtab)
-      (parse gram root (tokenize lexicon xids str))
-  end;
-
 
 (* test_read *)
 
@@ -275,6 +273,17 @@ fun test_read (Syntax tabs) root str =
   in () end;
 
 
+(* read_ast *)
+
+fun read_ast (Syntax tabs) xids root str =
+  let
+    val {lexicon, gram, parse_ast_trtab, ...} = tabs;
+  in
+    pt_to_ast (lookup_trtab parse_ast_trtab)
+      (parse gram root (tokenize lexicon xids str))
+  end;
+
+
 (* read *)
 
 fun read (syn as Syntax tabs) ty str =
@@ -291,8 +300,6 @@ fun read (syn as Syntax tabs) ty str =
 
 fun read_typ syn def_sort str =
   typ_of_term def_sort (read syn typeT str);
-
-val type_syn = extend_syntax empty_syntax type_ext;
 
 fun simple_read_typ str = read_typ type_syn (K []) str;
 
@@ -350,12 +357,13 @@ fun pretty_t t_to_ast pretty_t (syn as Syntax tabs) t =
   end;
 
 val pretty_term = pretty_t term_to_ast pretty_term_ast;
-
 val pretty_typ = pretty_t typ_to_ast pretty_typ_ast;
 
 fun string_of_term syn t = Pretty.string_of (pretty_term syn t);
-
 fun string_of_typ syn ty = Pretty.string_of (pretty_typ syn ty);
+
+val simple_string_of_typ = string_of_typ type_syn;
+val simple_pprint_typ = Pretty.pprint o Pretty.quote o (pretty_typ type_syn);
 
 
 
@@ -383,7 +391,7 @@ fun merge all_roots syn1 syn2 =
   in
     (case all_roots \\ roots of
       [] => syn
-    | new_roots => (writeln (string_of_strings "DEBUG new roots:" new_roots); (* FIXME debug *)
+    | new_roots => (writeln ("DEBUG new roots:" ^ commas new_roots); (* FIXME debug *)
         extend_syntax syn (syn_ext_roots new_roots)))
   end;
 
