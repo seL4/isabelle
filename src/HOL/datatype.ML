@@ -174,7 +174,7 @@ fun dest_rec eq =
 
 fun check_and_sort (n,its) = 
   if length its = n 
-    then map snd (Library.sort (make_ord (fn ((i : int,_),(j,_)) => i<j)) its)
+    then map snd (Library.sort (int_ord o pairself #1) its)
   else raise error "Primrec definition error:\n\
    \Please give an equation for every constructor";
 
