@@ -141,9 +141,9 @@ INCOMPATIBILITIES:
     ancestor.
   - The specific <typename>.induct_tac no longer exists - use the
     generic induct_tac instead.
-  - natE has been renamed to nat.exhaustion - use exhaust_tac
+  - natE has been renamed to nat.exhaust - use exhaust_tac
     instead of res_inst_tac ... natE. Note that the variable
-    names in nat.exhaustion differ from the names in natE, this
+    names in nat.exhaust differ from the names in natE, this
     may cause some "fragile" proofs to fail.
   - The theorems split_<typename>_case and split_<typename>_case_asm
     have been renamed to <typename>.split and <typename>.split_asm.
