@@ -13,8 +13,7 @@ proof
   show "i - j = i + (-j)" by simp
   show "(i * j) * k = i * (j * k)" by simp
   show "i * j = j * i" by simp
-  show "Numeral1 * i = i" by simp
-  show "0 = (Numeral0::int)" by simp
+  show "1 * i = i" by simp
   show "(i + j) * k = i * k + j * k" by (simp add: int_distrib)
   show "i \<le> j ==> k + i \<le> k + j" by simp
   show "i < j ==> 0 < k ==> k * i < k * j" by (simp add: zmult_zless_mono2)
