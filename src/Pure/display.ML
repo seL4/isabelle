@@ -178,6 +178,13 @@ fun print_sign sg =
     fun pretty_ty (t, n) = Pretty.block
       [Pretty.str t, Pretty.spc 1, Pretty.str (string_of_int n)];
 
+    fun pretty_log_types ts = Pretty.block
+      (Pretty.breaks (Pretty.str "logical types:" :: map Pretty.str ts));
+
+    fun pretty_witness None = Pretty.str "universal non-emptiness witness: --"
+      | pretty_witness (Some (T, S)) = Pretty.block
+          [Pretty.str "universal non-emptiness witness:", Pretty.brk 1, prt_typ T, Pretty.brk 1, prt_sort S];
+
     fun pretty_abbr (t, (vs, rhs)) = Pretty.block
       [prt_typ (Type (t, map (fn v => TVar ((v, 0), [])) vs)),
         Pretty.str " =", Pretty.brk 1, prt_typ rhs];
@@ -189,7 +196,7 @@ fun print_sign sg =
 
     val {self = _, tsig, const_tab, syn = _, path, spaces, data} = Sign.rep_sg sg;
     val spaces' = Library.sort_wrt fst spaces;
-    val {classes, classrel, default, tycons = type_tab, abbrs, arities} =
+    val {classes, classrel, default, tycons = type_tab, log_types, univ_witness, abbrs, arities} =
       Type.rep_tsig tsig;
     val tycons = Sign.cond_extern_table sg Sign.typeK type_tab;
     val consts = Sign.cond_extern_table sg Sign.constK const_tab;
@@ -201,6 +208,8 @@ fun print_sign sg =
     Pretty.writeln (pretty_classes classes);
     Pretty.writeln (Pretty.big_list "class relation:" (map pretty_classrel (Symtab.dest classrel)));
     Pretty.writeln (pretty_default default);
+    Pretty.writeln (pretty_log_types log_types);
+    Pretty.writeln (pretty_witness univ_witness);
     Pretty.writeln (Pretty.big_list "type constructors:" (map pretty_ty tycons));
     Pretty.writeln (Pretty.big_list "type abbreviations:" (map pretty_abbr (Symtab.dest abbrs)));
     Pretty.writeln (Pretty.big_list "type arities:" (flat (map pretty_arities (Symtab.dest arities))));
