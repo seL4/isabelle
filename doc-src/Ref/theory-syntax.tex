@@ -25,26 +25,32 @@ theoryDef : id '=' (name + '+') ('+' extension | ());
 
 name: id | string;
 
-extension : classes default types arities consts trans rules \\ 'end' ml
-          ;
+extension : (section +) 'end' ml;
 
-classes : ()
-        | 'classes' ( ( id (  ()
+section : classes
+        | default
+        | types
+        | arities
+        | consts
+        | trans
+        | defs
+        | rules
+        ;
+
+classes : 'classes' ( ( id (  ()
                             | '<' (id + ',')
                            ) 
                        ) + )
         ;
 
-default : ()
-        | 'default' sort 
+default : 'default' sort 
         ;
 
 sort :  id
      | '\{' (id * ',') '\}'
      ;
 
-types :  ()
-      | 'types' ( ( typeDecl ( () | '(' infix ')' ) ) + )
+types : 'types' ( ( typeDecl ( () | '(' infix ')' ) ) + )
       ;
 
 typeDecl : ( () | tid | '(' ( tid + ',' ) ')') name ( () | '='  string );
@@ -52,8 +58,7 @@ typeDecl : ( () | tid | '(' ( tid + ',' ) ')') name ( () | '='  string );
 infix : ( 'infixr' | 'infixl' ) nat;
 
 
-arities :  ()
-        | 'arities' ((( name + ',' ) '::' arity ) + )
+arities : 'arities' ((( name + ',' ) '::' arity ) + )
         ;
 
 arity   : ( () 
@@ -62,8 +67,7 @@ arity   : ( ()
         ;
 
 
-consts :  ()
-       | 'consts' ( ( constDecl ( () | ( '(' mixfix ')' ) ) ) + )
+consts : 'consts' ( ( constDecl ( () | ( '(' mixfix ')' ) ) ) + )
        ;
 
 constDecl : ( name + ',') '::' string ;
@@ -73,15 +77,16 @@ mixfix :  string ( () | ( () | ('[' (nat + ',') ']')) nat )
        | infix
        | 'binder' string nat ;
 
-trans : ()
-      | 'translations' ( pat ( '==' | '=>' | '<=' ) pat + )
+trans : 'translations' ( pat ( '==' | '=>' | '<=' ) pat + )
       ;
 
 pat : ( () | ( '(' id ')' ) ) string;
 
-rules :  ()
-      | 'rules' (( id string ) + )
+rules : 'rules' (( id string ) + )
       ;
+
+defs : 'defs' (( id string ) + )
+     ;
 
 ml :  ()
    | 'ML' text
