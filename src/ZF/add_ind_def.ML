@@ -87,7 +87,7 @@ fun add_fp_def_i (rec_tms, dom_sum, intr_tms) thy =
     val rec_names = map (#1 o dest_Const) rec_hds
     and (Const(_,recT),rec_params) = strip_comb (hd rec_tms);
 
-    val rec_base_names = map NameSpace.base rec_names;
+    val rec_base_names = map Sign.base_name rec_names;
     val dummy = assert_all Syntax.is_identifier rec_base_names
       (fn a => "Base name of recursive set not an identifier: " ^ a);
 
