@@ -19,6 +19,7 @@ function usage()
   echo "    -h MODE      highlight mode, may be false, bold (default), color"
   echo "    -p TEXT      pass text (options etc.) to isabelle session"
   echo "    -s BOOL      symbolic font output? (default true)"
+  echo "    -x PRG       executable program (default xterm)"
   echo
   echo "  Starts Isabelle within an xterm window. CMDLINE is passed"
   echo "  directly to the isabelle session."
@@ -41,11 +42,12 @@ MAINGEOM="80x60"
 HILITE=bold
 PASS=""
 SYMBOLS="true"
+XTERM="xterm"
 
 function getoptions()
 {
   OPTIND=1
-  while getopts "g:h:p:s:" OPT
+  while getopts "g:h:p:s:x:" OPT
   do
     case "$OPT" in
       g)
@@ -59,6 +61,9 @@ function getoptions()
         ;;
       s)
         SYMBOLS="$OPTARG"
+        ;;
+      x)
+        XTERM="$OPTARG"
         ;;
       \?)
         usage
@@ -84,10 +89,10 @@ elif [ -n "$HILITE" -a "$HILITE" != false ]; then
 fi
 
 if [ -z "$SYMBOLS" -o "$SYMBOLS" = false ]; then
-  exec xterm -T Isabelle -n Isabelle -geometry "$MAINGEOM" -e $ISABELLE $PASS "$@"
+  exec $XTERM -T Isabelle -n Isabelle -geometry "$MAINGEOM" -e $ISABELLE $PASS "$@"
 else
   $ISATOOL installfonts
-  exec xterm -T Isabelle -n Isabelle -geometry "$MAINGEOM" -fn isabelle14 \
+  exec $XTERM -T Isabelle -n Isabelle -geometry "$MAINGEOM" -fn isabelle14 \
     -xrm "*fontMenu.Label: Isabelle fonts" \
     -xrm "*fontMenu*font1*Label: Large" \
     -xrm "*VT100*font1: isabelle24" \
