@@ -300,6 +300,7 @@ by (simp_tac (simpset() addsimps [fun_upd_def]) 1);
 qed "fun_upd_apply";
 Addsimps [fun_upd_apply];
 
+(*fun_upd_apply supersedes these two*)
 Goal "(f(x:=y)) x = y";
 by (Simp_tac 1);
 qed "fun_upd_same";
@@ -308,8 +309,11 @@ Goal "z~=x ==> (f(x:=y)) z = f z";
 by (Asm_simp_tac 1);
 qed "fun_upd_other";
 
-(*Currently unused?
-  We could try Addsimps [fun_upd_same, fun_upd_other];*)
+Goal "f(x:=y,x:=z) = f(x:=z)";
+by (rtac ext 1);
+by (Simp_tac 1);
+qed "fun_upd_upd";
+Addsimps [fun_upd_upd];
 
 Goal "a ~= c ==> m(a:=b)(c:=d) = m(c:=d)(a:=b)";
 by (rtac ext 1);
