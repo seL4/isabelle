@@ -6,7 +6,7 @@
 
 header {* Lifting an order to lists of elements *}
 
-theory ListOrder = Acc:
+theory ListOrder = Accessible_Part:
 
 text {*
   Lifting an order to lists of elements, relating exactly one

@@ -5,5 +5,5 @@
 *)
 
 time_use_thy "Eta";
-with_path "../Induct" time_use_thy "Acc";
+time_use_thy "Accessible_Part";
 time_use_thy "Type";
