@@ -17,13 +17,8 @@ by (ALLGOALS(asm_simp_tac (HOL_ss addcongs [conj_cong]
               addsimps (aexp_iff::B_simps@evalb_simps))));
 bind_thm("bexp_iff", result() RS spec);
 
-val bexp1 = bexp_iff RS iffD1;
-val bexp2 = bexp_iff RS iffD2;
-
-val BfstI = read_instantiate_sg (sign_of Equiv.thy)
-              [("P","%x.B ?b x")] (fst_conv RS ssubst);
-val BfstD = read_instantiate_sg (sign_of Equiv.thy)
-              [("P","%x.B ?b x")] (fst_conv RS subst);
+val equiv_cs = comp_cs addss
+                 (prod_ss addsimps (aexp_iff::bexp_iff::evalc.intrs));
 
 goal Equiv.thy "!!c. <c,s> -c-> t ==> (s,t) : C(c)";
 
@@ -32,54 +27,39 @@ be (evalc.mutual_induct RS spec RS spec RS spec RSN (2,rev_mp)) 1;
 by (rewrite_tac (Gamma_def::C_simps));
   (* simplification with HOL_ss again too agressive *)
 (* skip *)
-by (fast_tac comp_cs 1);
+by (fast_tac equiv_cs 1);
 (* assign *)
-by (asm_full_simp_tac (prod_ss addsimps [aexp_iff]) 1);
+by (fast_tac equiv_cs 1);
 (* comp *)
-by (fast_tac comp_cs 1);
+by (fast_tac equiv_cs 1);
 (* if *)
-by(fast_tac (set_cs addSIs [BfstI] addSDs [BfstD,bexp1]) 1);
-by(fast_tac (set_cs addSIs [BfstI] addSDs [BfstD,bexp1]) 1);
+by (fast_tac equiv_cs 1);
+by (fast_tac equiv_cs 1);
 (* while *)
 by (rtac (rewrite_rule [Gamma_def] (Gamma_mono RS lfp_Tarski RS ssubst)) 1);
-by (fast_tac (comp_cs addSIs [bexp1,BfstI] addSDs [BfstD,bexp1]) 1);
+by (fast_tac equiv_cs 1);
 by (rtac (rewrite_rule [Gamma_def] (Gamma_mono RS lfp_Tarski RS ssubst)) 1);
-by (fast_tac (comp_cs addSIs [bexp1,BfstI] addSDs [BfstD,bexp1]) 1);
+by (fast_tac equiv_cs 1);
 
 qed "com1";
 
 
-val com_ss = prod_ss addsimps (aexp_iff::bexp_iff::evalc.intrs);
-
-goal Equiv.thy "!io:C(c). <c,fst(io)> -c-> snd(io)";
+goal Equiv.thy "!s t. (s,t):C(c) --> <c,s> -c-> t";
 by (com.induct_tac "c" 1);
 by (rewrite_tac C_simps);
-by (safe_tac comp_cs);
-by (ALLGOALS (asm_full_simp_tac com_ss));
-
-(* comp *)
-by (REPEAT (EVERY [(dtac bspec 1),(atac 1)]));
-by (asm_full_simp_tac com_ss 1);
+by (ALLGOALS (TRY o fast_tac equiv_cs));
 
 (* while *)
+by (strip_tac 1);
 by (etac (Gamma_mono RSN (2,induct)) 1);
 by (rewrite_goals_tac [Gamma_def]);  
-by (safe_tac comp_cs);
-by (EVERY1 [dtac bspec, atac]);
-by (ALLGOALS (asm_full_simp_tac com_ss));
+by (fast_tac equiv_cs 1);
 
-qed "com2";
+bind_thm("com2", result() RS spec RS spec RS mp);
 
 
 (**** Proof of Equivalence ****)
 
-val com_iff_cs = set_cs addEs [com2 RS bspec] addDs [com1];
-
-goal Equiv.thy "C(c) = {io . <c,fst(io)> -c-> snd(io)}";
-by (rtac equalityI 1);
-(* => *)
-by (fast_tac com_iff_cs 1);
-(* <= *)
-by (REPEAT (step_tac com_iff_cs 1));
-by (asm_full_simp_tac (prod_ss addsimps [surjective_pairing RS sym])1);
+goal Equiv.thy "(s,t) : C(c)  =  (<c,s> -c-> t)";
+by (fast_tac (set_cs addEs [com2] addDs [com1]) 1);
 qed "com_equivalence";
