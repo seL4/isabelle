@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 #
 # $Id$
 #
@@ -12,12 +12,12 @@ FAKE_BUILD=""
 DISTBASE=~/tmp/isadist
 ROOT=/usr/share
 BIN=/usr/bin
-RPMRELEASE=2
+RPMRELEASE=1
 
 
 ## diagnostics
 
-PRG=$(basename $0)
+PRG=$(basename "$0")
 
 function usage()
 {
@@ -38,7 +38,7 @@ function fail()
 
 ## process command line
 
-[ $# -gt 1 ] && usage
+[ "$#" -gt 1 ] && usage
 
 ARCHIVE="$1"; shift
 
@@ -48,7 +48,7 @@ ARCHIVE="$1"; shift
 
 [ ! -f "$ARCHIVE" ] && fail "Bad archive file $ARCHIVE"
 ARCHIVE_BASE=$(basename "$ARCHIVE")
-ARCHIVE_DIR=$(cd $(dirname "$ARCHIVE"); echo $PWD)
+ARCHIVE_DIR=$(cd $(dirname "$ARCHIVE"); echo "$PWD")
 ARCHIVE_FULL=$ARCHIVE_DIR/$ARCHIVE_BASE
 
 ISABELLE_NAME=$(basename "$ARCHIVE_BASE" .tar.gz)
@@ -121,7 +121,6 @@ together with documentation.  To make it actually run you still need
 the ML compiler and any of the precompiled Isabelle object-logics
 (e.g. package isabelle-HOL).
 
-
 Isabelle is a popular generic theorem proving environment developed at
 Cambridge University (Larry Paulson) and TU Munich (Tobias Nipkow).
 The system can be viewed from two main perspectives.  On the one hand
@@ -187,7 +186,6 @@ Requires:       isabelle
 %description pdfdocs
 This package contains the Isabelle documentation in PDF.  Note that
 the dvi version is already part of the base package.
-
 
 %prep
 

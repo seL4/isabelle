@@ -85,15 +85,15 @@ DATE=$(date "+%d-%b-%Y")
 DISTDATE=$(date "+%B %Y")
 
 if [ "$VERSION" = "--" ]; then
-  DISTNAME="Isabelle_${DATE}_test"
+  DISTNAME="Isabelle_$DATE"
   DISTVERSION="$DISTNAME"
   EXPORT="$THIS/cvs-copy $THIS/.. $DISTNAME"
-  UNOFFICIAL=""
+  UNOFFICIAL="unofficial test"
 elif [ "$VERSION" = "-" ]; then
   DISTNAME="Isabelle_$DATE"
   DISTVERSION="$DISTNAME"
   EXPORT="cvs -f -q checkout -P -d $DISTNAME isabelle"
-  UNOFFICIAL=true
+  UNOFFICIAL="unofficial"
 else
   DISTNAME="$VERSION"
   DISTVERSION="$DISTNAME: $DISTDATE"
@@ -134,8 +134,8 @@ PDFLATEX=$(type -path pdflatex)
 for DOC in $(cat Contents)
 do
   cd "$DOC"
-  #FIXME make dvi
-  #FIXME [ -n "$PDFLATEX" ] && make clean pdf
+  make dvi
+  [ -n "$PDFLATEX" ] && make clean pdf
   cd ..
 done
 
@@ -148,8 +148,8 @@ echo "###"
 
 cd "$DISTBASE/$DISTNAME"
 
-cp -R Admin/page ../page
-cp Distribution/Doc/Contents ../page/Contents
+cp -R Admin/page ..
+cp Distribution/doc/Contents ../page
 cp Distribution/lib/logo/isabelle.gif ../page/main-content
 cp Distribution/lib/logo/isabelle.gif ../page/dist-content
 echo "$DISTNAME" > ../page/DISTNAME
@@ -176,9 +176,9 @@ if [ -n "$UNOFFICIAL" ]; then
     echo "IMPORTANT NOTE"
     echo "=============="
     echo
-    echo "This is an unofficial release of Isabelle, created by $LOGNAME $DATE."
+    echo "This is an $UNOFFICIAL release of Isabelle, created by $LOGNAME $DATE."
     echo
-  } >UNOFFICIAL
+  } >ANNOUNCE
 fi
 
 perl -pi -e "s/{ISABELLE}/$DISTNAME/g;" lib/html/index.html
@@ -223,7 +223,7 @@ mkdir "$DISTNAME"
 
 mv "${DISTNAME}-old/README.html" "${DISTNAME}-old/INSTALL" "$DISTNAME"
 mkdir "$DISTNAME/doc"
-mv "${DISTNAME}-old/doc/"*.pdf "${DISTNAME}-old/doc/Contents" "$DISTNAME/doc"
+mv "${DISTNAME}-old/doc/"*.pdf "$DISTNAME/doc"
 
 chgrp -R isabelle "$DISTNAME"
 

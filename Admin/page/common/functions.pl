@@ -98,7 +98,7 @@ EOF
       my @s = stat $filename;
       my $size = defined $s[7] ? $s[7]/1024 : 0;
 
-      return sprintf("%.1f", $size);
+      return sprintf("%d", $size);
     }
 
     sub setdowncolor {

@@ -7,8 +7,7 @@ Isabelle Binary Distribution
 
 This is the binary distribution of <!-- _GP_ distname --> for
 Linux/x86 systems.  It requires RPM based package management (as used
-by most Linux distributions), and <em>root</em> user access to
-install.
+by most Linux distributions), and root user access to install.
 
 <p>
 
@@ -28,14 +27,14 @@ install.
 
 <p>
 
-Example installation in <tt>/usr/share</tt> (the default location).
+Example installation in <tt>/usr/share</tt> (the default location):
 
 <pre>
 rpm -i --prefix /usr/share polyml.i386.rpm
 rpm -i --prefix /usr/share isabelle.rpm
 rpm -i --prefix /usr/share isabelle-HOL.i386.rpm
 rpm -i --prefix /usr/share proofgeneral.rpm               #requires XEmacs-21
-rpm -i --prefix /usr/share xsymbol.rpm                    #requires XEmacs-21
+rpm -i --prefix /usr/share xsymbol.rpm
 </pre>
 
 <p>
@@ -53,25 +52,25 @@ be performed by non-root users as well.
 <!-- _GP_ setdowncolor("#E0E0E0") -->
 <center>
 <table border="0" cellspacing="5" cellpadding="4" width="520">
-  <!-- _GP_ download("Poly/ML base system", "contrib/polyml.tar.gz", "../..") -->
+  <!-- _GP_ download("Poly/ML base system", "contrib/polyml_base.tar.gz", "../..") -->
   <!-- _GP_ download("Poly/ML module for Linux/x86", "contrib/polyml_x86-linux.tar.gz", "../..") -->
   <!-- _GP_ download("Poly/ML module for Solaris/Sparc", "contrib/polyml_sparc-solaris.tar.gz", "../..") -->
   <!-- _GP_ download("Isabelle main system", distname . ".tar.gz", "../..") -->
-  <!-- _GP_ download("Isabelle pdf documentation (optional)", distname . "_pdf.tar.gz", "../..") -->  <!-- _GP_ download("Proof General system (recommended)", "contrib/proofgeneral.tar.gz", "../..") -->
-  <!-- _GP_ download("X-Symbol package (recommended)", "contrib/xsymbol.tar.gz", "../..") -->
+  <!-- _GP_ download("Isabelle pdf documentation (optional)", distname . "_pdf.tar.gz", "../..") -->  <!-- _GP_ download("Proof General system (recommended)", "contrib/ProofGeneral.tar.gz", "../..") -->
+  <!-- _GP_ download("X-Symbol package (recommended)", "contrib/x-symbol.tar.gz", "../..") -->
 </table>
 </center>
 
 <p>
 
-Example installation in <tt>/usr/share</tt> for Linux/x86.
+Example installation in <tt>/usr/share</tt> for Linux/x86:
 
 <pre>
-tar -C /usr/share -x -z -f polyml.tar.gz
+tar -C /usr/share -x -z -f polyml_base.tar.gz
 tar -C /usr/share -x -z -f polyml_x86-linux.tar.gz
 tar -C /usr/share -x -z -f <!-- _GP_ distname . ".tar.gz"-->
-tar -C /usr/share -x -z -f proofgeneral.tar.gz            #requires XEmacs-21
-tar -C /usr/share -x -z -f xsymbol.tar.gz                 #requires XEmacs-21
+tar -C /usr/share -x -z -f ProofGeneral.tar.gz            #requires XEmacs-21
+tar -C /usr/share -x -z -f x-symbol.tar.gz
 
 cd <!-- _GP_ "/usr/share/" . distname -->
 ./configure
