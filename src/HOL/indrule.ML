@@ -81,6 +81,15 @@ val _ = writeln "ind_prems = ";
 val _ = seq (writeln o Sign.string_of_term sign) ind_prems;
 *)
 
+(*We use a MINIMAL simpset because others (such as HOL_ss) contain too many
+  simplifications.  If the premises get simplified, then the proofs will 
+  fail.  This arose with a premise of the form {(F n,G n)|n . True}, which
+  expanded to something containing ...&True. *)
+val min_ss = empty_ss
+      setmksimps (mksimps mksimps_pairs)
+      setsolver (fn prems => resolve_tac (TrueI::refl::prems) ORELSE' atac
+                             ORELSE' etac FalseE);
+
 val quant_induct = 
     prove_goalw_cterm part_rec_defs 
       (cterm_of sign 
@@ -90,7 +99,7 @@ val quant_induct =
       (fn prems =>
        [rtac (impI RS allI) 1,
         DETERM (etac Intr_elim.raw_induct 1),
-        asm_full_simp_tac (HOL_ss addsimps [Part_Collect]) 1,
+        full_simp_tac (min_ss addsimps [Part_Collect]) 1,
         REPEAT (FIRSTGOAL (eresolve_tac [IntE, CollectE, exE, conjE, disjE] 
                            ORELSE' hyp_subst_tac)),
         ind_tac (rev prems) (length prems)])
@@ -156,8 +165,7 @@ val lemma = (*makes the link between the two induction rules*)
 
 (*Simplification largely reduces the mutual induction rule to the 
   standard rule*)
-val mut_ss = simpset_of "Fun"
-             addsimps [Inl_Inr_eq, Inr_Inl_eq, Inl_eq, Inr_eq, split];
+val mut_ss = min_ss addsimps [Inl_Inr_eq, Inr_Inl_eq, Inl_eq, Inr_eq, split];
 
 val all_defs = [split RS eq_reflection] @ Inductive.con_defs @ part_rec_defs;
 
