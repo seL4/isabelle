@@ -2,10 +2,6 @@
     ID:         $Id$
     Author:     Tobias Nipkow, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
-
-Blast_tac proofs here can get PROOF FAILED of Ord theorems like order_refl
-and order_less_irrefl.  We do not add the "nat" versions to the basic claset
-because the type will be promoted to type class "order".
 *)
 
 Goal "mono(%X. {Zero_Rep} Un (Suc_Rep``X))";
