@@ -274,8 +274,7 @@ qed "stable_Join_constrains";
 Goal "[| F : stable A;  G : invariant A |] ==> F Join G : Always A";
 by (full_simp_tac (simpset() addsimps [Always_def, invariant_def, 
 				       Stable_eq_stable, Join_stable]) 1);
-by (force_tac(claset() addIs [stable_reachable, stable_Int],
-	      simpset()) 1);
+by (force_tac(claset() addIs [stable_Int], simpset()) 1);
 qed "stable_Join_Always";
 
 Goal "[| F : stable A;  G : A ensures B |] ==> F Join G : A ensures B";

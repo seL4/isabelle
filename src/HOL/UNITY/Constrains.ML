@@ -24,11 +24,13 @@ Goal "Acts G <= Acts F ==> G : stable (reachable F)";
 by (blast_tac (claset() addIs [stableI, constrainsI] @ reachable.intrs) 1);
 qed "stable_reachable";
 
+AddSIs [stable_reachable];
+Addsimps [stable_reachable];
 
 (*The set of all reachable states is an invariant...*)
 Goal "F : invariant (reachable F)";
 by (simp_tac (simpset() addsimps [invariant_def]) 1);
-by (blast_tac (claset() addIs (stable_reachable::reachable.intrs)) 1);
+by (blast_tac (claset() addIs reachable.intrs) 1);
 qed "invariant_reachable";
 
 (*...in fact the strongest invariant!*)
@@ -194,7 +196,7 @@ by (etac ball_Constrains_INT 1);
 qed "ball_Stable_INT";
 
 Goal "F : Stable (reachable F)";
-by (simp_tac (simpset() addsimps [Stable_eq_stable, stable_reachable]) 1);
+by (simp_tac (simpset() addsimps [Stable_eq_stable]) 1);
 qed "Stable_reachable";
 
 
@@ -291,7 +293,6 @@ Addsimps [Always_UNIV_eq];
 Goal "Always A = (UN I: Pow A. invariant I)";
 by (simp_tac (simpset() addsimps [Always_eq_includes_reachable]) 1);
 by (blast_tac (claset() addIs [invariantI, impOfSubs Init_subset_reachable, 
-                               stable_reachable,
 			       impOfSubs invariant_includes_reachable]) 1);
 qed "Always_eq_UN_invariant";
 

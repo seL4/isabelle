@@ -26,7 +26,7 @@ by Auto_tac;
 qed "givenBy_eq_Collect";
 
 val prems =
-Goal "(!!x y. [|  x:A;  v x = v y |] ==> y: A) ==> A: givenBy v";
+Goal "(!!x y. [| x:A;  v x = v y |] ==> y: A) ==> A: givenBy v";
 by (stac givenBy_eq_all 1);
 by (blast_tac (claset() addIs prems) 1);
 qed "givenByI";
@@ -62,6 +62,11 @@ by (force_tac (claset(),
 	       simpset() addsimps [impOfSubs preserves_subset_stable, 
 				   givenBy_eq_Collect]) 1);
 qed "preserves_givenBy_imp_stable";
+
+Goal "givenBy (w o v) <= givenBy v";
+by (simp_tac (simpset() addsimps [givenBy_eq_Collect]) 1);
+by (Deepen_tac 0 1);
+qed "givenBy_o_subset";
 
 
 (** Standard leadsTo rules **)
@@ -380,7 +385,7 @@ qed "LeadsETo_subset_LeadsTo";
 (*Postcondition can be strengthened to (reachable F Int B) *)
 Goal "F : A ensures B ==> F : (reachable F Int A) ensures B";
 by (rtac (stable_ensures_Int RS ensures_weaken_R) 1);
-by (auto_tac (claset(), simpset() addsimps [stable_reachable]));
+by Auto_tac;
 qed "reachable_ensures";
 
 Goal "F : A leadsTo B ==> F : (reachable F Int A) leadsTo[Pow(reachable F)] B";
@@ -388,8 +393,7 @@ by (etac leadsTo_induct 1);
 by (stac Int_Union 3);
 by (blast_tac (claset() addIs [leadsETo_UN]) 3);
 by (blast_tac (claset() addDs [e_psp_stable2] 
-                        addIs [leadsETo_Trans, stable_reachable, 
-			       leadsETo_weaken_L]) 2);
+                        addIs [leadsETo_Trans, leadsETo_weaken_L]) 2);
 by (blast_tac (claset() addIs [reachable_ensures, leadsETo_Basis]) 1);
 val lemma = result();
 
@@ -406,11 +410,15 @@ qed "LeadsETo_UNIV_eq_LeadsTo";
 
 Open_locale "Extend";
 
-(*Here h and f are locale constants*)
-Goal "extend_set h `` (givenBy v) <= (givenBy (v o f))";
-by (simp_tac (simpset() addsimps [givenBy_eq_all]) 1);
-by (Blast_tac 1);
-qed "extend_set_givenBy_subset";
+Goal "givenBy (v o f) = extend_set h `` (givenBy v)";
+by (simp_tac (simpset() addsimps [givenBy_eq_Collect]) 1);
+by (Deepen_tac 0 1);
+qed "givenBy_o_eq_extend_set";
+
+Goal "givenBy f = range (extend_set h)";
+by (simp_tac (simpset() addsimps [givenBy_eq_Collect]) 1);
+by (Deepen_tac 0 1);
+qed "givenBy_eq_extend_set";
 
 Goal "D : givenBy v ==> extend_set h D : givenBy (v o f)";
 by (full_simp_tac (simpset() addsimps [givenBy_eq_all]) 1);
@@ -428,20 +436,19 @@ by (asm_simp_tac (simpset() addsimps [leadsETo_Basis, extend_ensures,
 				      extend_set_Diff_distrib RS sym]) 1);
 qed "leadsETo_imp_extend_leadsETo";
 
-(*NEEDED?? THEN MOVE TO EXTEND.ML??*)
+(*MOVE to Extend.ML?*)
 Goal "A Int extend_set h ((project_set h A) Int B) = A Int extend_set h B";
-by (auto_tac (claset() addIs [project_set_I], 
-	      simpset()));
+by (auto_tac (claset(), simpset() addsimps [split_extended_all]));
 qed "Int_extend_set_lemma";
 
-(*NEEDED?? THEN MOVE TO EXTEND.ML??*)
+(*MOVE to extend.ML??*)
 Goal "G : C co B ==> project h C G : project_set h C co project_set h B";
 by (full_simp_tac (simpset() addsimps [constrains_def, project_def, 
-				       project_act_def, project_set_def]) 1);
+				       project_act_def]) 1);
 by (Blast_tac 1);
 qed "project_constrains_project_set";
 
-(*NEEDED?? THEN MOVE TO EXTEND.ML??*)
+(*MOVE to extend.ML??*)
 Goal "G : stable C ==> project h C G : stable (project_set h C)";
 by (asm_full_simp_tac (simpset() addsimps [stable_def, 
 					   project_constrains_project_set]) 1);
@@ -518,18 +525,19 @@ Goal "[| extend h F Join G : stable C;  \
 \     ==> extend h F Join G : (C Int extend_set h A) \
 \           leadsTo[(%D. C Int extend_set h D)``givenBy v] (extend_set h B)";
 by (rtac (lemma RS leadsETo_weaken) 1);
-by (auto_tac (claset() addIs [project_set_I], simpset()));
-qed "project_leadsETo_lemma";
+by (auto_tac (claset(), 
+	      simpset() addsimps [split_extended_all]));
+qed "project_leadsETo_D_lemma";
 
 Goal "[| F Join project h UNIV G : A leadsTo[givenBy v] B;  \
 \        G : preserves (v o f) |]  \
 \     ==> extend h F Join G : (extend_set h A) \
 \           leadsTo[givenBy (v o f)] (extend_set h B)";
-by (rtac (make_elim project_leadsETo_lemma) 1);
+by (rtac (make_elim project_leadsETo_D_lemma) 1);
 by (stac stable_UNIV 1);
 by Auto_tac;
 by (etac leadsETo_givenBy 1);
-by (rtac extend_set_givenBy_subset 1);
+by (rtac (givenBy_o_eq_extend_set RS equalityD2) 1);
 qed "project_leadsETo_D";
 
 Goal "[| F Join project h (reachable (extend h F Join G)) G \
@@ -538,7 +546,7 @@ Goal "[| F Join project h (reachable (extend h F Join G)) G \
 \     ==> extend h F Join G : \
 \           (extend_set h A) LeadsTo[givenBy (v o f)] (extend_set h B)";
 by (rtac (make_elim (subset_refl RS stable_reachable RS 
-		     project_leadsETo_lemma)) 1);
+		     project_leadsETo_D_lemma)) 1);
 by (auto_tac (claset(), 
 	      simpset() addsimps [LeadsETo_def]));
 by (asm_full_simp_tac 
@@ -562,6 +570,133 @@ Goalw [extending_def]
 by (blast_tac (claset() addIs [project_LeadsETo_D]) 1);
 qed "extending_LeadsETo";
 
+
+(*** leadsETo in the precondition ***)
+
+Goalw [transient_def]
+     "[| G : transient (C Int extend_set h A);  G : stable C |]  \
+\     ==> project h C G : transient (project_set h C Int A)";
+by (auto_tac (claset(), simpset() addsimps [Domain_project_act]));
+by (subgoal_tac "act ^^ (C Int extend_set h A) <= - extend_set h A" 1);
+by (asm_full_simp_tac 
+    (simpset() addsimps [stable_def, constrains_def]) 2);
+by (Blast_tac 2);
+(*back to main goal*)
+by (thin_tac "?AA <= -C Un ?BB" 1);
+by (ball_tac 1);
+by (asm_full_simp_tac 
+    (simpset() addsimps [extend_set_def, project_act_def]) 1);
+by (Blast_tac 1);
+qed "transient_extend_set_imp_project_transient";
+
+(*converse might hold too?*)
+Goalw [transient_def]
+     "project h C (extend h F) : transient (project_set h C Int D) \
+\     ==> F : transient (project_set h C Int D)";
+by (auto_tac (claset(), simpset() addsimps [Domain_project_act]));
+by (rtac bexI 1);
+by (assume_tac 2);
+by Auto_tac;
+by (rewtac extend_act_def);
+by (Blast_tac 1);
+qed "project_extend_transient_D";
+
+
+Goal "[| extend h F : stable C;  G : stable C;  \
+\        extend h F Join G : A ensures B;  A-B = C Int extend_set h D |]  \
+\     ==> F Join project h C G  \
+\           : (project_set h C Int project_set h A) ensures (project_set h B)";
+by (asm_full_simp_tac
+    (simpset() addsimps [ensures_def, Join_constrains, project_constrains, 
+			 Join_transient, extend_transient]) 1);
+by (Clarify_tac 1);
+by (REPEAT_FIRST (rtac conjI));
+(*first subgoal*)
+by (blast_tac (claset() addIs [extend_stable_project_set RS stableD RS 
+			       constrains_Int RS constrains_weaken]
+	                addSDs [extend_constrains_project_set]
+			addSEs [equalityE]) 1);
+(*2nd subgoal*)
+by (etac (stableD RS constrains_Int RS constrains_weaken) 1);
+by (assume_tac 1);
+by (Blast_tac 3);
+by (full_simp_tac (simpset() addsimps [extend_set_Int_distrib,
+				       extend_set_Un_distrib]) 2);
+by (blast_tac (claset() addSIs [impOfSubs extend_set_project_set]) 2);
+by (full_simp_tac (simpset() addsimps [extend_set_def]) 1);
+by (blast_tac (claset() addSEs [equalityE]) 1);
+(*The transient part*)
+by Auto_tac;
+by (force_tac (claset() addSEs [equalityE]
+	                addIs [transient_extend_set_imp_project_transient RS
+			       transient_strengthen], 
+              simpset()) 2);
+by (full_simp_tac (simpset() addsimps [Int_Diff]) 1);
+by (force_tac (claset() addSEs [equalityE]
+	                addIs [transient_extend_set_imp_project_transient RS 
+			 project_extend_transient_D RS transient_strengthen], 
+              simpset()) 1);
+qed "ensures_extend_set_imp_project_ensures";
+
+
+(*Lemma for the Trans case*)
+Goal "[| extend h F Join G : stable C;    \
+\        F Join project h C G    \
+\          : project_set h C Int project_set h A leadsTo project_set h B |] \
+\     ==> F Join project h C G    \
+\           : project_set h C Int project_set h A leadsTo    \
+\             project_set h C Int project_set h B";
+by (rtac (psp_stable2 RS leadsTo_weaken_L) 1);
+by (auto_tac (claset(),
+	      simpset() addsimps [project_stable_project_set, Join_stable, 
+				  extend_stable_project_set]));
+val lemma = result();
+
+Goal "[| extend h F Join G : stable C;  \
+\        extend h F Join G : \
+\          (C Int A) leadsTo[(%D. C Int D)``givenBy f]  B |]  \
+\ ==> F Join project h C G  \
+\   : (project_set h C Int project_set h (C Int A)) leadsTo (project_set h B)";
+by (etac leadsETo_induct 1);
+by (asm_simp_tac (HOL_ss addsimps [Int_UN_distrib, project_set_Union]) 3);
+by (blast_tac (claset() addIs [leadsTo_UN]) 3);
+by (blast_tac (claset() addIs [leadsTo_Trans, lemma]) 2);
+by (asm_full_simp_tac 
+    (simpset() addsimps [givenBy_eq_extend_set, Join_stable]) 1);
+by (rtac leadsTo_Basis 1);
+by (blast_tac (claset() addIs [leadsTo_Basis,
+			       ensures_extend_set_imp_project_ensures]) 1);
+
+qed "project_leadsETo_I_lemma";
+
+Goal "extend h F Join G : (extend_set h A) leadsTo[givenBy f] (extend_set h B)\
+\     ==> F Join project h UNIV G : A leadsTo B";
+by (rtac (project_leadsETo_I_lemma RS leadsTo_weaken) 1);
+by Auto_tac;
+qed "project_leadsETo_I";
+
+Goal "extend h F Join G : (extend_set h A) LeadsTo[givenBy f] (extend_set h B)\
+\     ==> F Join project h (reachable (extend h F Join G)) G  \
+\          : A LeadsTo B";
+by (full_simp_tac (simpset() addsimps [LeadsTo_def, LeadsETo_def]) 1);
+by (rtac (project_leadsETo_I_lemma RS leadsTo_weaken) 1);
+by (auto_tac (claset(), 
+	      simpset() addsimps [project_set_reachable_extend_eq RS sym]));
+qed "project_LeadsETo_I";
+
+Goalw [projecting_def]
+     "projecting (%G. UNIV) h F \
+\                (extend_set h A leadsTo[givenBy f] extend_set h B) \
+\                (A leadsTo B)";
+by (force_tac (claset() addDs [project_leadsETo_I], simpset()) 1);
+qed "projecting_leadsTo";
+
+Goalw [projecting_def]
+     "projecting (%G. reachable (extend h F Join G)) h F \
+\                (extend_set h A LeadsTo[givenBy f] extend_set h B) \
+\                (A LeadsTo B)";
+by (force_tac (claset() addDs [project_LeadsETo_I], simpset()) 1);
+qed "projecting_LeadsTo";
 
 Close_locale "Extend";
 

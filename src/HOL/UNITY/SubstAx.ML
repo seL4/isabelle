@@ -12,8 +12,7 @@ overload_1st_set "SubstAx.op LeadsTo";
 (*Resembles the previous definition of LeadsTo*)
 Goalw [LeadsTo_def]
      "A LeadsTo B = {F. F : (reachable F Int A) leadsTo (reachable F Int B)}";
-by (blast_tac (claset() addDs [psp_stable2] 
-                        addIs [leadsTo_weaken, stable_reachable]) 1);
+by (blast_tac (claset() addDs [psp_stable2] addIs [leadsTo_weaken]) 1);
 qed "LeadsTo_eq_leadsTo";
 
 

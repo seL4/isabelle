@@ -28,8 +28,8 @@ fun list_of_Int th = (list_of_Int (th RS IntD1) @ list_of_Int (th RS IntD2))
                      handle THM _ => (list_of_Int (th RS INT_D))
                      handle THM _ => [th];
 
+(*useful??*)
 val lessThanBspec = lessThan_iff RS iffD2 RSN (2, bspec);
-
 fun normalize th = 
      normalize (th RS spec
 		handle THM _ => th RS lessThanBspec
@@ -223,8 +223,7 @@ val Alloc_Spec =
 		  alloc_progress_def, alloc_preserves_def] Alloc;
 
 val [Alloc_Increasing, Alloc_Safety, 
-     Alloc_Progress, Alloc_preserves] = 
-    map normalize (list_of_Int Alloc_Spec);
+     Alloc_Progress, Alloc_preserves] = list_of_Int Alloc_Spec;
 
 
 fun alloc_export th = good_map_sysOfAlloc RS export th |> simplify (simpset());
@@ -283,13 +282,20 @@ bind_thm ("extend_sysOfClient_preserves_o_client",
 AddIffs [extend_sysOfClient_preserves_o_client];
 
 
-(*NEED AUTOMATIC PROPAGATION of Alloc_Increasing*)
+(*NEED AUTOMATIC PROPAGATION of Alloc_Increasing
+  (the form changes slightly, though, removing the INT) *)
 Goal "i < Nclients \
 \     ==> extend sysOfAlloc Alloc : \
 \           UNIV guarantees[allocGiv] Increasing (sub i o allocGiv)";
-by (dtac (Alloc_Increasing RS alloc_export extend_guar_Increasing) 1);
-by (auto_tac (claset(), simpset() addsimps [o_def]));
+(* Alternative is something like
+by (dtac (Alloc_Increasing RS (guarantees_INT_right_iff RS iffD1)
+          RS lessThanBspec RS alloc_export extend_guar_Increasing) 1);
+*)
+by (cut_facts_tac [Alloc_Increasing] 1);
+by (auto_tac (claset() addSDs [alloc_export extend_guar_Increasing], 
+	      simpset() addsimps [guarantees_INT_right_iff, o_def]));
 qed "extend_Alloc_Increasing_allocGiv";
+
 
 Goalw [System_def]
      "i < Nclients ==> System : Increasing (sub i o allocGiv)";
@@ -393,25 +399,31 @@ Goal "i < Nclients ==> System : Increasing (sub i o allocRel)";
 by (etac (System_Follows_rel RS Follows_Increasing1) 1);
 qed "System_Increasing_allocRel";
 
-(*safety (1), step 3*)
-Goal "System : Always {s. sum (%i. (tokens o sub i o allocGiv) s) Nclients \
-\                  <= NbT + sum (%i. (tokens o sub i o allocRel) s) Nclients}";
-by (res_inst_tac 
-    [("X", "(INT i : lessThan Nclients. Increasing (sub i o allocRel))")] 
-    component_guaranteesD 1);
-by (rtac Alloc_component_System 3);
-by (force_tac (claset(), simpset() addsimps [System_Increasing_allocRel]) 2);
+(*NEED AUTOMATIC PROPAGATION of Alloc_Safety.  The text is identical.*)
+Goal "extend sysOfAlloc Alloc :  \
+\  (INT i : lessThan Nclients. Increasing (sub i o allocRel))  \
+\  guarantees[allocGiv]  \
+\    Always {s. sum (%i. (tokens o sub i o allocGiv) s) Nclients  \
+\               <= NbT + sum (%i. (tokens o sub i o allocRel) s) Nclients}";
 by (rtac (Alloc_Safety RS alloc_export project_guarantees) 1);
+(*2: Always postcondition*)
+by (rtac ((alloc_export extending_Always RS extending_weaken)) 2);
 (*1: Increasing precondition*)
 by (rtac (alloc_export projecting_Increasing RS projecting_weaken RS 
 	  projecting_INT) 1);
-by Auto_tac;
-by (asm_full_simp_tac (simpset() addsimps [o_def]) 1);
-(*2: Always postcondition*)
-by (rtac ((alloc_export extending_Always RS extending_weaken)) 1);
 by (auto_tac (claset(),
 	      simpset() addsimps [alloc_export Collect_eq_extend_set RS sym,
 				  o_def]));
+qed "extend_Alloc_Safety";
+
+(*safety (1), step 3*)
+Goal "System : Always {s. sum (%i. (tokens o sub i o allocGiv) s) Nclients \
+\                  <= NbT + sum (%i. (tokens o sub i o allocRel) s) Nclients}";
+by (rtac (extend_Alloc_Safety RS component_guaranteesD) 1);
+by (rtac Alloc_component_System 2);
+(*preserves*)
+by (asm_full_simp_tac (simpset() addsimps [o_def]) 2);
+by (force_tac (claset(), simpset() addsimps [System_Increasing_allocRel]) 1);
 qed "System_sum_bounded";
 
 (** Follows reasoning **)
@@ -545,7 +557,8 @@ by (asm_full_simp_tac
 by (rtac (client_export extending_LeadsETo RS extending_weaken RS 
 	  extending_INT) 1);
 by (auto_tac (claset(), 
-  simpset() addsimps [o_apply, client_export Collect_eq_extend_set RS sym]));
+	      simpset() addsimps [o_apply, 
+				client_export Collect_eq_extend_set RS sym]));
 qed "System_Client_Progress";
 
 val lemma =
@@ -586,6 +599,57 @@ by (rtac LeadsTo_Trans 1);
 by (rtac (impOfSubs LeadsETo_subset_LeadsTo) 2);
 by (cut_facts_tac [System_Client_Progress] 2);
 by (Force_tac 2);
-by (simp_tac (simpset() addsimps [Collect_conj_eq]) 1); 
 by (etac lemma3 1);
 qed "System_Alloc_Progress";
+
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
+
+(*NEED AUTOMATIC PROPAGATION of Alloc_Progress.  The text is identical.*)
+Goal "extend sysOfAlloc Alloc :  \
+\  (INT i : lessThan Nclients. Increasing (sub i o allocAsk) Int   \
+\                              Increasing (sub i o allocRel))   \
+\  Int   \
+\  Always {s. ALL i : lessThan Nclients.   \
+\             ALL k : lessThan (length (allocAsk s i)).   \
+\             allocAsk s i ! k <= NbT}   \
+\  Int   \
+\  (INT i : lessThan Nclients.    \
+\   INT h. {s. h <= (sub i o allocGiv)s & h pfixGe (sub i o allocAsk)s}   \
+\           LeadsTo {s. tokens h <= (tokens o sub i o allocRel)s})   \
+\  guarantees[allocGiv]   \
+\      (INT i : lessThan Nclients.   \
+\       INT h. {s. h <= (sub i o allocAsk) s}    \
+ \             LeadsTo[givenBy allocGiv]   \
+\              {s. h pfixLe (sub i o allocGiv) s})";
+by (rtac (Alloc_Progress RS alloc_export project_guarantees) 1);
+(*preserves*)
+by (simp_tac (simpset() addsimps [o_def]) 3);
+(*2: LeadsTo postcondition*)
+by (rtac (extending_INT RS extending_INT) 2);
+by (rtac ((alloc_export extending_LeadsETo RS extending_weaken)) 2);
+by (rtac subset_refl 3);
+by (simp_tac (simpset() addsimps [o_def]) 3);
+by (simp_tac (simpset() addsimps [alloc_export Collect_eq_extend_set RS sym,
+				  o_def]) 2);
+(*1: Increasing precondition*)
+by (rtac (alloc_export projecting_Increasing RS projecting_weaken RS 
+	  projecting_INT) 1);
+by (auto_tac (claset(),
+	      simpset() addsimps [alloc_export Collect_eq_extend_set RS sym,
+				  o_def]));
+qed "extend_Alloc_Progress";
+
+
+(*progress (2), step 9*)
+Goal
+ "System : (INT i : lessThan Nclients. \
+\           INT h. {s. h <= (sub i o allocAsk) s}  \
+\                  LeadsTo {s. h pfixLe (sub i o allocGiv) s})";
+by (res_inst_tac 
+    [("X", "(INT i : lessThan Nclients. Increasing (sub i o allocRel))")] 
+    component_guaranteesD 1);
+by (rtac Alloc_component_System 3);
+by (force_tac (claset(), simpset() addsimps [System_Increasing_allocRel]) 2);
+by (rtac (Alloc_Safety RS alloc_export project_guarantees) 1);
+

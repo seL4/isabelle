@@ -269,7 +269,7 @@ qed "ball_stable_UN";
 (** Intersection **)
 
 Goalw [stable_def]
-    "[| F : stable A; F : stable A' |] ==> F : stable (A Int A')";
+    "[| F : stable A;  F : stable A' |] ==> F : stable (A Int A')";
 by (blast_tac (claset() addIs [constrains_Int]) 1);
 qed "stable_Int";
 
@@ -284,11 +284,11 @@ by (Blast_tac 1);
 qed "stable_constrains_Un";
 
 Goalw [stable_def, constrains_def]
-  "[| F : stable C; F :  (C Int A) co  A' |] ==> F : (C Int A) co (C Int A')";
+  "[| F : stable C; F :  (C Int A) co A' |] ==> F : (C Int A) co (C Int A')";
 by (Blast_tac 1);
 qed "stable_constrains_Int";
 
-(*[| F : stable C; F :  co (C Int A) A |] ==> F : stable (C Int A)*)
+(*[| F : stable C; F :  (C Int A) co A |] ==> F : stable (C Int A) *)
 bind_thm ("stable_constrains_stable", stable_constrains_Int RS stableI);
 
 

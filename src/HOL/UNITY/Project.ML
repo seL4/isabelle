@@ -101,14 +101,6 @@ by (simp_tac (simpset() addsimps [Join_project_constrains]) 1);
 by (blast_tac (claset() addIs [constrains_weaken] addDs [constrains_Int]) 1);
 qed "Join_project_stable";
 
-Goal "(F Join project h UNIV G : increasing func)  =  \
-\     (extend h F Join G : increasing (func o f))";
-by (simp_tac (simpset() addsimps [increasing_def, Join_project_stable]) 1);
-by (auto_tac (claset(),
-	      simpset() addsimps [Join_stable, Collect_eq_extend_set RS sym,
-				  extend_stable RS iffD1]));
-qed "Join_project_increasing";
-
 (*For using project_guarantees in particular cases*)
 Goal "extend h F Join G : extend_set h A co extend_set h B \
 \     ==> F Join project h C G : A co B";
@@ -119,6 +111,24 @@ by (blast_tac (claset() addIs [constrains_weaken]
 			addDs [constrains_imp_subset]) 1);
 qed "project_constrains_I";
 
+Goalw [increasing_def, stable_def]
+     "extend h F Join G : increasing (func o f) \
+\     ==> F Join project h C G : increasing func";
+by (asm_full_simp_tac (simpset() addsimps [project_constrains_I, 
+					   Collect_eq_extend_set RS sym]) 1);
+qed "project_increasing_I";
+
+Goal "(F Join project h UNIV G : increasing func)  =  \
+\     (extend h F Join G : increasing (func o f))";
+by (rtac iffI 1);
+by (etac project_increasing_I 2);
+by (asm_full_simp_tac 
+    (simpset() addsimps [increasing_def, Join_project_stable]) 1);
+by (auto_tac (claset(),
+	      simpset() addsimps [Join_stable, Collect_eq_extend_set RS sym,
+				  extend_stable RS iffD1]));
+qed "Join_project_increasing";
+
 (*The UNIV argument is essential*)
 Goal "F Join project h UNIV G : A co B \
 \     ==> extend h F Join G : extend_set h A co extend_set h B";
@@ -127,7 +137,7 @@ by (asm_full_simp_tac
 			 extend_constrains]) 1);
 qed "project_constrains_D";
 
-(** "projecting" and union/intersection **)
+(** "projecting" and union/intersection (no converses) **)
 
 Goalw [projecting_def]
      "[| projecting C h F XA' XA;  projecting C h F XB' XB |] \
@@ -183,7 +193,9 @@ by (blast_tac (claset() addDs [prem RS spec RS mp]) 1);
 qed "extending_UN";
 
 Goalw [extending_def]
-     "[| extending v C h F Y' Y;  Y'<=V';  V<=Y |] ==> extending v C h F V' V";
+     "[| extending v C h F Y' Y;  Y'<=V';  V<=Y; \
+\        preserves w <= preserves v |] \
+\     ==> extending w C h F V' V";
 by Auto_tac;
 qed "extending_weaken";
 
@@ -202,8 +214,8 @@ by (rtac projecting_constrains 1);
 qed "projecting_stable";
 
 Goalw [projecting_def]
-     "projecting (%G. UNIV) h F (increasing (func o f)) (increasing func)";
-by (simp_tac (simpset() addsimps [Join_project_increasing]) 1);
+     "projecting C h F (increasing (func o f)) (increasing func)";
+by (blast_tac (claset() addIs [project_increasing_I]) 1);
 qed "projecting_increasing";
 
 Goal "extending v C h F UNIV Y";
@@ -225,19 +237,6 @@ Goalw [extending_def]
 by (simp_tac (simpset() addsimps [Join_project_increasing]) 1);
 qed "extending_increasing";
 
-(*UNUSED*)
-Goalw [project_set_def, project_act_def]
-     "Restrict (project_set h C) (project_act h (Restrict C act)) = \
-\     project_act h (Restrict C act)";
-by (Blast_tac 1);
-qed "Restrict_project_act";
-
-(*UNUSED*)
-Goalw [project_set_def, project_act_def]
-     "project_act h (Restrict C Id) = Restrict (project_set h C) Id";
-by (Blast_tac 1);
-qed "project_act_Restrict_Id";
-
 
 (** Reachability and project **)
 
@@ -245,8 +244,8 @@ Goal "[| reachable (extend h F Join G) <= C;  \
 \        z : reachable (extend h F Join G) |] \
 \     ==> f z : reachable (F Join project h C G)";
 by (etac reachable.induct 1);
-by (force_tac (claset() addIs [reachable.Init, project_set_I],
-	       simpset()) 1);
+by (force_tac (claset() addSIs [reachable.Init],
+	       simpset() addsimps [split_extended_all]) 1);
 by Auto_tac;
 by (force_tac (claset() addIs [project_act_I RSN (3,reachable.Acts)],
 	       simpset()) 2);
@@ -279,8 +278,8 @@ Goalw [Always_def]
      "[| reachable (extend h F Join G) <= C;  \
 \        F Join project h C G : Always A |]   \
 \     ==> extend h F Join G : Always (extend_set h A)";
-by (force_tac (claset() addIs [reachable.Init, project_set_I],
-               simpset() addsimps [project_Stable_D]) 1);
+by (force_tac (claset() addIs [reachable.Init],
+               simpset() addsimps [project_Stable_D, split_extended_all]) 1);
 qed "project_Always_D";
 
 Goalw [Increasing_def]
@@ -305,14 +304,14 @@ by (force_tac (claset() delrules [Id_in_Acts]
 		        addIs [reachable.Acts, extend_act_D],
 	       simpset() addsimps [project_act_def]) 2);
 by (force_tac (claset() addIs [reachable.Init],
-	       simpset() addsimps [project_set_def]) 1);
+	       simpset()) 1);
 qed "reachable_project_imp_reachable";
 
 Goal "project_set h (reachable (extend h F Join G)) = \
 \     reachable (F Join project h (reachable (extend h F Join G)) G)";
 by (auto_tac (claset() addDs [subset_refl RS reachable_imp_reachable_project,
 			      subset_refl RS reachable_project_imp_reachable], 
-	      simpset() addsimps [project_set_def]));
+	      simpset()));
 qed "project_set_reachable_extend_eq";
 
 Goal "reachable (extend h F Join G) <= C  \
@@ -353,7 +352,7 @@ Goalw [Always_def]
 \        extend h F Join G : Always (extend_set h A) |]   \
 \     ==> F Join project h C G : Always A";
 by (auto_tac (claset(), simpset() addsimps [project_Stable_I]));
-by (rewrite_goals_tac [project_set_def, extend_set_def]);
+by (rewtac extend_set_def);
 by (Blast_tac 1);
 qed "project_Always_I";
 
@@ -454,8 +453,7 @@ by (auto_tac (claset() delrules [ballE],
               simpset() addsimps [Domain_project_act, Int_absorb1]));
 by (REPEAT (ball_tac 1));
 by (auto_tac (claset(),
-              simpset() addsimps [extend_set_def, project_set_def, 
-				  project_act_def]));
+              simpset() addsimps [extend_set_def, project_act_def]));
 by (ALLGOALS Blast_tac);
 qed "transient_extend_set_imp_project_transient";
 
@@ -510,7 +508,7 @@ Goal "[| ALL D. project h C G : transient D --> D={};  \
 \        F Join project h C G : (project_set h C Int A) leadsTo B |] \
 \     ==> extend h F Join G : (C Int extend_set h A) leadsTo (extend_set h B)";
 by (rtac (lemma RS leadsTo_weaken) 1);
-by (auto_tac (claset() addIs [project_set_I], simpset()));
+by (auto_tac (claset(), simpset() addsimps [split_extended_all]));
 qed "project_leadsTo_lemma";
 
 Goal "[| C = (reachable (extend h F Join G)); \
@@ -518,10 +516,9 @@ Goal "[| C = (reachable (extend h F Join G)); \
 \        F Join project h C G : A LeadsTo B |] \
 \     ==> extend h F Join G : (extend_set h A) LeadsTo (extend_set h B)";
 by (asm_full_simp_tac 
-    (simpset() addsimps [LeadsTo_def, project_leadsTo_lemma, stable_reachable, 
+    (simpset() addsimps [LeadsTo_def, project_leadsTo_lemma, 
 			 project_set_reachable_extend_eq]) 1);
 qed "Join_project_LeadsTo";
-
 
 
 (*** GUARANTEES and EXTEND ***)
@@ -647,7 +644,8 @@ by (blast_tac (claset() addIs [project_preserves_id_I,
 qed "preserves_project_transient_empty";
 
 
-(** Guarantees with a leadsTo postcondition **)
+(** Guarantees with a leadsTo postcondition 
+    THESE ARE ALL TOO WEAK because G can't affect F's variables at all**)
 
 Goal "[| F Join project h UNIV G : A leadsTo B;    \
 \        G : preserves f |]  \

@@ -131,7 +131,8 @@ constdefs
 		  LeadsTo {s. tokens h <= (tokens o sub i o allocRel)s})
          guarantees[allocGiv]
 	     (INT i : lessThan Nclients.
-	      INT h. {s. h <= (sub i o allocAsk) s} LeadsTo
+	      INT h. {s. h <= (sub i o allocAsk) s}
+	             LeadsTo[givenBy allocGiv]
 	             {s. h pfixLe (sub i o allocGiv) s})"
 
   (*spec: preserves part*)

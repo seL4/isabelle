@@ -94,6 +94,12 @@ val split_extended_all = Thm.equal_intr lemma4 lemma3;
 
 (*** extend_set: basic properties ***)
 
+Goal "(x : project_set h C) = (EX y. h(x,y) : C)";
+by (simp_tac (simpset() addsimps [project_set_def]) 1);
+qed "project_set_iff";
+
+AddIffs [project_set_iff];
+
 Goalw [extend_set_def] "A<=B ==> extend_set h A <= extend_set h B";
 by (Blast_tac 1);
 qed "extend_set_mono";
@@ -101,10 +107,10 @@ qed "extend_set_mono";
 Goalw [extend_set_def] "z : extend_set h A = (f z : A)";
 by (force_tac (claset() addIs  [h_f_g_eq RS sym], simpset()) 1);
 qed "mem_extend_set_iff";
-AddIffs [mem_extend_set_iff]; 
 
-Goalw [extend_set_def]
-    "(extend_set h A <= extend_set h B) = (A <= B)";
+AddIffs [mem_extend_set_iff];
+
+Goalw [extend_set_def] "(extend_set h A <= extend_set h B) = (A <= B)";
 by (Force_tac 1);
 qed "extend_set_strict_mono";
 AddIffs [extend_set_strict_mono];
@@ -117,13 +123,13 @@ Goal "extend_set h {x} = {s. f s = x}";
 by Auto_tac;
 qed "extend_set_sing";
 
-Goalw [extend_set_def, project_set_def]
+Goalw [extend_set_def]
      "project_set h (extend_set h C) = C";
 by Auto_tac;
 qed "extend_set_inverse";
 Addsimps [extend_set_inverse];
 
-Goalw [extend_set_def, project_set_def]
+Goalw [extend_set_def]
      "C <= extend_set h (project_set h C)";
 by (auto_tac (claset(), 
 	      simpset() addsimps [split_extended_all]));
@@ -144,13 +150,13 @@ Addsimps [standard extend_set_UNIV_eq];
 (*** project_set: basic properties ***)
 
 (*project_set is simply image!*)
-Goalw [project_set_def] "project_set h C = f `` C";
+Goal "project_set h C = f `` C";
 by (auto_tac (claset() addIs [f_h_eq RS sym], 
 	      simpset() addsimps [split_extended_all]));
 qed "project_set_eq";
 
 (*Converse appears to fail*)
-Goalw [project_set_def] "!!z. z : C ==> f z : project_set h C";
+Goal "!!z. z : C ==> f z : project_set h C";
 by (auto_tac (claset(), 
 	      simpset() addsimps [split_extended_all]));
 qed "project_set_I";
@@ -162,13 +168,11 @@ qed "project_set_I";
    cannot generalize to 
       project_set h (A Int B) = project_set h A Int project_set h B
 *)
-Goalw [project_set_def]
-     "project_set h ((extend_set h A) Int B) = A Int (project_set h B)";
+Goal "project_set h ((extend_set h A) Int B) = A Int (project_set h B)";
 by Auto_tac;
 qed "project_set_extend_set_Int";
 
-Goalw [project_set_def]
-     "project_set h (A Int B) <= (project_set h A) Int (project_set h B)";
+Goal "project_set h (A Int B) <= (project_set h A) Int (project_set h B)";
 by Auto_tac;
 qed "project_set_Int_subset";
 
@@ -211,24 +215,17 @@ Goalw [extend_act_def]
 by Auto_tac;
 qed "extend_act_D";
 
-Goalw [extend_act_def, project_act_def, project_set_def]
+Goalw [extend_act_def, project_act_def]
      "project_act h (extend_act h act) = act";
 by (Blast_tac 1);
 qed "project_act_extend_act";
 
-Goalw [extend_act_def, project_act_def, project_set_def]
+Goalw [extend_act_def, project_act_def]
      "project_act h (Restrict C (extend_act h act)) = \
 \     Restrict (project_set h C) act";
 by (Blast_tac 1);
 qed "project_act_extend_act_restrict";
 Addsimps [project_act_extend_act_restrict];
-
-Goalw [extend_act_def, project_act_def, project_set_def]
-     "(Restrict C (extend_act h act) = Restrict C (extend_act h act')) \
-\     = (Restrict (project_set h C) act = Restrict (project_set h C) act')";
-by Auto_tac;
-by (ALLGOALS (blast_tac (claset() addSEs [equalityE])));
-qed "Restrict_extend_act_eq_Restrict_project_act";
 
 (*Premise is still undesirably strong, since Domain act can include
   non-reachable states, but it seems necessary for this result.*)
@@ -245,7 +242,7 @@ qed "subset_extend_act_D";
 Goal "inj (extend_act h)";
 by (rtac inj_on_inverseI 1);
 by (rtac extend_act_inverse 1);
-by (force_tac (claset(), simpset() addsimps [project_set_def]) 1);
+by (Force_tac 1);
 qed "inj_extend_act";
 
 Goalw [extend_set_def, extend_act_def]
@@ -277,12 +274,12 @@ by (force_tac (claset(),
               simpset() addsimps [split_extended_all]) 1);
 qed "project_act_I";
 
-Goalw [project_set_def, project_act_def]
+Goalw [project_act_def]
     "UNIV <= project_set h C ==> project_act h (Restrict C Id) = Id";
 by (Force_tac 1);
 qed "project_act_Id";
 
-Goalw [project_set_def, project_act_def]
+Goalw [project_act_def]
   "Domain (project_act h act) = project_set h (Domain act)";
 by (force_tac (claset(), 
               simpset() addsimps [split_extended_all]) 1);
@@ -331,10 +328,15 @@ by (rtac program_equalityI 1);
 by Auto_tac;
 qed "extend_SKIP";
 
-Goalw [project_set_def] "project_set h UNIV = UNIV";
+Goal "project_set h UNIV = UNIV";
 by Auto_tac;
 qed "project_set_UNIV";
 Addsimps [project_set_UNIV];
+
+Goal "project_set h (Union A) = (UN X:A. project_set h X)";
+by (Blast_tac 1);
+qed "project_set_Union";
+
 
 Goal "project h C (extend h F) = \
 \     mk_program (Init F, Restrict (project_set h C) `` Acts F)";
@@ -355,7 +357,7 @@ Addsimps [extend_inverse];
 Goal "inj (extend h)";
 by (rtac inj_on_inverseI 1);
 by (rtac extend_inverse 1);
-by (force_tac (claset(), simpset() addsimps [project_set_def]) 1);
+by (Force_tac 1);
 qed "inj_extend";
 
 Goal "extend h (F Join G) = extend h F Join extend h G";
@@ -381,8 +383,7 @@ by Auto_tac;
 qed "extend_mono";
 
 Goal "F <= G ==> project h C F <= project h C G";
-by (full_simp_tac
-    (simpset() addsimps [component_eq_subset, project_set_def]) 1);
+by (full_simp_tac (simpset() addsimps [component_eq_subset]) 1);
 by Auto_tac;
 qed "project_mono";
 
@@ -404,8 +405,7 @@ qed "extend_invariant";
 
 (*Converse fails: A and B may differ in their extra variables*)
 Goal "extend h F : A co B ==> F : (project_set h A) co (project_set h B)";
-by (auto_tac (claset(), 
-	      simpset() addsimps [constrains_def, project_set_def]));
+by (auto_tac (claset(), simpset() addsimps [constrains_def]));
 by (Force_tac 1);
 qed "extend_constrains_project_set";
 
@@ -490,7 +490,7 @@ Goalw [slice_def] "slice (extend_set h A) y = A";
 by Auto_tac;
 qed "slice_extend_set";
 
-Goalw [slice_def, project_set_def] "project_set h A = (UN y. slice A y)";
+Goalw [slice_def] "project_set h A = (UN y. slice A y)";
 by Auto_tac;
 qed "project_set_is_UN_slice";
 
