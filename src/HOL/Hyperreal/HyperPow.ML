@@ -283,7 +283,7 @@ Goal "abs r pow n = abs (r pow n)";
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (res_inst_tac [("z","r")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),
-              simpset() addsimps [hypreal_hrabs, hyperpow,realpow_abs]));
+              simpset() addsimps [hypreal_hrabs, hyperpow,realpow_abs RS sym]));
 qed "hyperpow_hrabs";
 
 Goal "r pow (n + m) = (r pow n) * (r pow m)";

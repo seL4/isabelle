@@ -1222,7 +1222,7 @@ Goalw [Bseq_def] "[| 0 <= x; x < 1 |] ==> Bseq (%n. x ^ n)";
 by (res_inst_tac [("x","1")] exI 1);
 by (auto_tac (claset() addDs [conjI RS realpow_le] 
                        addIs [order_less_imp_le], 
-              simpset() addsimps [abs_eqI1, realpow_abs RS sym] ));
+              simpset() addsimps [abs_eqI1, realpow_abs] ));
 qed "Bseq_realpow";
 
 Goal "[| 0 <= x; x < 1 |] ==> monoseq (%n. x ^ n)";
@@ -1287,7 +1287,7 @@ qed "NSLIMSEQ_rabs_realpow_zero";
 Goal "abs(c) < 1 ==> (%n. c ^ n) ----> 0";
 by (rtac (LIMSEQ_rabs_zero RS iffD1) 1);
 by (auto_tac (claset() addIs [LIMSEQ_rabs_realpow_zero],
-              simpset() addsimps [realpow_abs RS sym]));
+              simpset() addsimps [realpow_abs]));
 qed "LIMSEQ_rabs_realpow_zero2";
 
 Goal "abs(c) < 1 ==> (%n. c ^ n) ----NS> 0";

@@ -29,7 +29,7 @@ by (induct_tac "n" 1);
 by (auto_tac (claset(), simpset() addsimps [real_inverse_distrib]));
 qed "realpow_inverse";
 
-Goal "abs (r::real) ^ n = abs (r ^ n)";
+Goal "abs(r ^ n) = abs(r::real) ^ n";
 by (induct_tac "n" 1);
 by (auto_tac (claset(), simpset() addsimps [abs_mult]));
 qed "realpow_abs";
@@ -101,7 +101,7 @@ qed "abs_realpow_two";
 Addsimps [abs_realpow_two];
 
 Goal "abs(x::real)^Suc (Suc 0) = x^Suc (Suc 0)";
-by (simp_tac (simpset() addsimps [realpow_abs,abs_eqI1]
+by (simp_tac (simpset() addsimps [realpow_abs RS sym,abs_eqI1]
                         delsimps [realpow_Suc]) 1);
 qed "realpow_two_abs";
 Addsimps [realpow_two_abs];

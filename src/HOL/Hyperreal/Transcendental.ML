@@ -315,7 +315,7 @@ by (res_inst_tac [("g","(%n. inverse (real (fact n)) * abs(x) ^ n)")]
     summable_comparison_test 1);
 by (rtac summable_exp 2);
 by (res_inst_tac [("x","0")] exI 1);
-by (auto_tac (claset(), simpset() addsimps [realpow_abs,
+by (auto_tac (claset(), simpset() addsimps [realpow_abs RS sym,
     abs_ge_zero,abs_mult,real_0_le_mult_iff]));
 by (auto_tac (claset() addIs [real_mult_le_le_mono2],
     simpset() addsimps [real_inverse_gt_0,abs_eqI2,abs_ge_zero]));
@@ -329,7 +329,7 @@ by (res_inst_tac [("g","(%n. inverse (real (fact n)) * abs(x) ^ n)")]
     summable_comparison_test 1);
 by (rtac summable_exp 2);
 by (res_inst_tac [("x","0")] exI 1);
-by (auto_tac (claset(), simpset() addsimps [realpow_abs,abs_ge_zero,abs_mult,
+by (auto_tac (claset(), simpset() addsimps [realpow_abs RS sym,abs_ge_zero,abs_mult,
     real_0_le_mult_iff]));
 by (auto_tac (claset() addSIs [real_mult_le_le_mono2],
     simpset() addsimps [real_inverse_gt_0,abs_eqI2,abs_ge_zero]));
@@ -453,27 +453,27 @@ by (subgoal_tac "0 < abs (x ^ n)" 1);
 by (res_inst_tac [("z","abs (x ^ n)")] (CLAIM_SIMP 
     "[| (0::real) <z; x*z<=y*z |] ==> x<=y" [real_mult_le_cancel1]) 1);
 by (auto_tac (claset(),
-    simpset() addsimps [real_mult_assoc,realpow_abs RS sym]));
+    simpset() addsimps [real_mult_assoc,realpow_abs]));
 by (dres_inst_tac [("x","0")] spec 2 THEN Force_tac 2); 
 by (auto_tac (claset(),simpset() addsimps [abs_ge_zero,
-    abs_mult,realpow_abs RS sym] @ real_mult_ac));
+    abs_mult,realpow_abs] @ real_mult_ac));
 by (res_inst_tac [("x2","z ^ n")] (abs_ge_zero RS real_le_imp_less_or_eq
     RS disjE) 1 THEN dtac sym 2);
 by (auto_tac (claset() addSIs [real_mult_le_le_mono2],
     simpset() addsimps [real_mult_assoc RS sym,
-    realpow_abs RS sym,summable_def]));
+    realpow_abs,summable_def]));
 by (res_inst_tac [("x","K * inverse(1 - (abs(z) * inverse(abs x)))")] exI 1);
 by (auto_tac (claset() addSIs [sums_mult],simpset() addsimps [real_mult_assoc]));
 by (subgoal_tac 
     "abs(z ^ n) * inverse(abs x ^ n) = (abs(z) * inverse(abs x)) ^ n" 1);
-by (auto_tac (claset(),simpset() addsimps [realpow_abs]));
+by (auto_tac (claset(),simpset() addsimps [realpow_abs RS sym]));
 by (subgoal_tac "x ~= 0" 1);
 by (subgoal_tac "x ~= 0" 3);
 by (auto_tac (claset(),simpset() addsimps 
     [abs_inverse RS sym,realpow_not_zero,abs_mult 
      RS sym,realpow_inverse,realpow_mult RS sym]));
 by (auto_tac (claset() addSIs [geometric_sums],simpset() addsimps
-    [realpow_abs RS sym,real_divide_eq_inverse RS sym]));
+    [realpow_abs,real_divide_eq_inverse RS sym]));
 by (res_inst_tac [("z","abs(x)")] (CLAIM_SIMP 
     "[|(0::real)<z; x*z<y*z |] ==> x<y" [real_mult_less_cancel1]) 1);
 by (auto_tac (claset(),simpset() addsimps [abs_ge_zero,
@@ -484,7 +484,7 @@ Goal "[| summable (%n. f(n) * (x ^ n)); abs(z) < abs(x) |] \
 \     ==> summable (%n. f(n) * (z ^ n))";
 by (dres_inst_tac [("z","abs z")] powser_insidea 1);
 by (auto_tac (claset() addIs [summable_rabs_cancel],
-    simpset() addsimps [realpow_abs,abs_mult RS sym]));
+    simpset() addsimps [realpow_abs RS sym,abs_mult RS sym]));
 qed "powser_inside";
 
 (* ------------------------------------------------------------------------ *)
@@ -597,7 +597,7 @@ by (auto_tac (claset(),simpset() addsimps [realpow_add,real_add_assoc RS sym,
 by (auto_tac (claset() addSIs [real_mult_le_mono],simpset() addsimps 
     [abs_ge_zero] delsimps [sumr_Suc])); 
 by (auto_tac (claset() addSIs [realpow_le2],simpset() addsimps 
-    [realpow_abs RS sym,abs_ge_zero] delsimps [sumr_Suc] ));
+    [realpow_abs,abs_ge_zero] delsimps [sumr_Suc] ));
 by (res_inst_tac [("j","real (Suc d) * (K ^ d)")] real_le_trans 1);
 by (subgoal_tac "0 <= K" 2);
 by (arith_tac 3);
@@ -609,7 +609,7 @@ by (rtac sumr_bound2 1 THEN auto_tac (claset() addSDs [less_add_one]
     addSIs [real_mult_le_mono],simpset() addsimps [abs_mult,
     realpow_add,abs_ge_zero]));
 by (auto_tac (claset() addSIs [realpow_le2,realpow_ge_zero],simpset() addsimps 
-    [realpow_abs RS sym,abs_ge_zero]));
+    [realpow_abs,abs_ge_zero]));
 by (ALLGOALS(arith_tac));
 qed "lemma_termdiff3";
 

@@ -492,7 +492,8 @@ by (asm_full_simp_tac (simpset() addsimps [numeral_2_eq_2,real_divide_def]) 1);
 by (dtac lemma_odd_mod_4_div_2 1);
 by (asm_full_simp_tac (simpset() addsimps [numeral_2_eq_2, real_divide_def]) 1);
 by (auto_tac (claset() addSIs [real_mult_le_lemma,real_mult_le_le_mono2],
-      simpset() addsimps [real_divide_def,abs_mult,abs_inverse,realpow_abs]));
+      simpset() addsimps [real_divide_def,abs_mult,abs_inverse,realpow_abs RS
+sym]));
 qed "Maclaurin_sin_bound";
 
 Goal "0 < n --> Suc (Suc (2 * n - 2)) = 2*n";
