@@ -81,10 +81,9 @@ fun datatype_decl co =
 	    val big_rec_name = space_implode "_" rec_names
 	    and srec_tms = mk_list (map fst rec_pairs)
             and scons    = mk_scons rec_pairs
-            and sdom	 = (*default domain?*)
-		if dom = ""  then co ^ "data_domain rec_tms"
-		else "replicate " ^ string_of_int (length rec_names) ^  
-		     " (readtm (sign_of thy) iT " ^ dom ^ ")"
+            and sdom_sum = 
+		if dom = ""  then co ^ "data_domain rec_tms" (*default*)
+		else "readtm (sign_of thy) iT " ^ dom
             val stri_name = big_rec_name ^ "_Intrnl"
             val con_names = flat (map (map (trim o #1 o #1) o snd) rec_pairs)
         in
@@ -92,8 +91,10 @@ fun datatype_decl co =
             \structure " ^ stri_name ^ " =\n\
             \ let open Ind_Syntax in\n\
             \  struct\n\
+            \  val _ = writeln \"" ^ co ^ 
+	               "Datatype definition " ^ big_rec_name ^ "\"\n\
             \  val rec_tms\t= map (readtm (sign_of thy) iT) " ^ srec_tms ^ "\n\
-            \  val domts\t= " ^ sdom ^ "\n\
+            \  val dom_sum\t= " ^ sdom_sum ^ "\n\
             \  and con_ty_lists\t= read_constructs (sign_of thy)\n" 
 	           ^ scons ^ "\n\
             \  val intr_tms\t= mk_all_intr_tms (rec_tms, con_ty_lists)\n\
@@ -104,12 +105,12 @@ fun datatype_decl co =
                  stri_name ^ ".con_ty_lists) \n\
             \              |> " ^ co ^ "Ind.add_fp_def_i \n    (" ^ 
 	       stri_name ^ ".rec_tms, " ^
-               stri_name ^ ".domts, " ^
+               stri_name ^ ".dom_sum, " ^
                stri_name ^ ".intr_tms)"
            ,
 	    "structure " ^ big_rec_name ^ " =\n\
             \  struct\n\
-            \  val _ = writeln \"" ^ co ^ 
+            \  val _ = writeln \"Proofs for " ^ co ^ 
 	               "Datatype definition " ^ big_rec_name ^ "\"\n\
             \  structure Result = " ^ co ^ "Data_section_Fun\n\
             \  (open " ^ stri_name ^ "\n\
