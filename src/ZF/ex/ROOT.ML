@@ -9,7 +9,7 @@ Executes miscellaneous examples for Zermelo-Fraenkel Set Theory
 ZF_build_completed;     (*Make examples fail if ZF did*)
 
 writeln"Root file for ZF Set Theory examples";
-proof_timing := true;
+set proof_timing;
 
 time_use     "misc.ML";
 time_use_thy "Primes";          (*GCD theory*)

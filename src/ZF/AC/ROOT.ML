@@ -9,7 +9,7 @@ Executes the proofs of the AC-equivalences, due to Krzysztof Grabczewski
 ZF_build_completed;     (*Make examples fail if ZF did*)
 
 writeln"Root file for ZF/AC";
-proof_timing := true;
+set proof_timing;
 
 time_use_thy "AC_Equiv";
 

@@ -16,6 +16,6 @@ Written up as
 ZF_build_completed;     (*Make examples fail if ZF did*)
 
 writeln"Root file for ZF/Coind";
-proof_timing := true;
+set proof_timing;
 
 time_use_thy "MT";

@@ -6,7 +6,7 @@
 
 Sequents_build_completed;    (*Cause examples to fail if Sequents did*)
 
-proof_timing := true;
+set proof_timing;
 
 writeln "\nTheorems of T\n";
 fun try s = (writeln s; prove_goal T.thy s (fn _=> [T_Prover.solve_tac 2]));
@@ -24,6 +24,3 @@ fun try s = (writeln s;
 time_use "Modal/Tthms.ML";
 time_use "Modal/S4thms.ML";
 time_use "Modal/S43thms.ML";
-
-cd "..";
-maketest"END: Root file for Modal examples";

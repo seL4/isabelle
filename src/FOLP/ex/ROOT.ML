@@ -10,7 +10,7 @@ writeln"Root file for FOLP examples";
 
 FOLP_build_completed;   (*Cause examples to fail if FOLP did*)
 
-proof_timing := true;
+set proof_timing;
 
 time_use     "intro.ML";
 time_use_thy "Nat";
@@ -30,6 +30,3 @@ time_use_thy "If";
 val thy = FOLP.thy  and  tac = Cla.fast_tac FOLP_cs 1;
 time_use     "prop.ML";
 time_use     "quant.ML";
-
-OS.FileSys.chDir "..";
-maketest"END: Root file for FOLP examples";

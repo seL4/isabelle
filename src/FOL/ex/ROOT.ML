@@ -10,7 +10,7 @@ writeln"Root file for FOL examples";
 
 FOL_build_completed;    (*Cause examples to fail if FOL did*)
 
-proof_timing := true;
+set proof_timing;
 
 time_use     "intro.ML";
 time_use_thy "Nat";
@@ -39,7 +39,3 @@ time_use_thy "List";
 
 writeln"\n** How to declare an oracle **\n";
 time_use_thy "IffOracle";
-
-
-OS.FileSys.chDir "..";
-maketest"END: Root file for FOL examples";

@@ -10,9 +10,7 @@ Sequents_build_completed;    (*Cause examples to fail if Sequents did*)
 
 writeln"Root file for LK examples";
 
-proof_timing := true;
+set proof_timing;
 time_use "LK/prop.ML";
 time_use "LK/quant.ML";
 time_use "LK/hardquant.ML";
-
-maketest"END: Root file for LK examples";

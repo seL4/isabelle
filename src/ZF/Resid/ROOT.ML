@@ -15,7 +15,7 @@ J. Functional Programming 4(3) 1994, 371-394.
 ZF_build_completed;     (*Make examples fail if ZF did*)
 
 writeln"Root file for ZF/Resid";
-proof_timing := true;
+set proof_timing;
 
 time_use_thy "Conversion";
 

@@ -384,7 +384,7 @@ val bin_comp_ss = simpset_of Integ.thy
 
 (*** Examples of performing binary arithmetic by simplification ***)
 
-proof_timing := true;
+set proof_timing;
 (*All runtimes below are on a SPARCserver 10*)
 
 goal Bin.thy "#13  $+  #19 = #32";

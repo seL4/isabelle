@@ -11,11 +11,9 @@ writeln"Root file for CTT examples";
 CTT_build_completed;    (*Cause examples to fail if CTT did*)
 
 print_depth 2;  
-proof_timing := true;
+set proof_timing;
+
 time_use "typechk.ML";
 time_use "elim.ML";
 time_use "equal.ML";
 time_use "synth.ML";
-
-cd "..";
-maketest"END: Root file for CTT examples";
