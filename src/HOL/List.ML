@@ -326,8 +326,6 @@ by (induct_tac "ys" 1);
 by Auto_tac;
 bind_thm("map_cong", impI RSN (2,allI RSN (2, result() RS mp)));
 
-Add_recdef_congs [map_cong];
-
 Goal "(map f xs = []) = (xs = [])";
 by (case_tac "xs" 1);
 by Auto_tac;
