@@ -60,7 +60,9 @@ location;
     rule statements (uses the new concept of simultaneous goals, see
     below);
   - removed obsolete "(simplified)" and "(stripped)" options of methods;
-  - added 'print_induct_rules' (covered by help item in Proof General > 3.3);
+  - undeclared rule case names default to numbers 1, 2, 3, ...;
+  - added 'print_induct_rules' (covered by help item in recent Proof
+    General versions);
   - moved induct/cases attributes to Pure, methods to Provers;
   - generic method setup instantiated for FOL and HOL;
 
