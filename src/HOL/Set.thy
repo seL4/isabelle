@@ -65,10 +65,10 @@ syntax
 
   (* Bounded Quantifiers *)
 
-  "@Ball"       :: [pttrn, 'a set, bool] => bool      ("(3! _:_./ _)" 10)
-  "@Bex"        :: [pttrn, 'a set, bool] => bool      ("(3? _:_./ _)" 10)
-  "*Ball"       :: [pttrn, 'a set, bool] => bool      ("(3ALL _:_./ _)" 10)
-  "*Bex"        :: [pttrn, 'a set, bool] => bool      ("(3EX _:_./ _)" 10)
+  "@Ball"       :: [pttrn, 'a set, bool] => bool      ("(3! _:_./ _)" [0, 0, 10] 10)
+  "@Bex"        :: [pttrn, 'a set, bool] => bool      ("(3? _:_./ _)" [0, 0, 10] 10)
+  "*Ball"       :: [pttrn, 'a set, bool] => bool      ("(3ALL _:_./ _)" [0, 0, 10] 10)
+  "*Bex"        :: [pttrn, 'a set, bool] => bool      ("(3EX _:_./ _)" [0, 0, 10] 10)
 
 translations
   "UNIV"        == "Compl {}"
@@ -98,10 +98,10 @@ syntax (symbols)
   "@INTER"      :: [pttrn, 'a set, 'b set] => 'b set  ("(3\\<Inter> _\\<in>_./ _)" 10)
   Union         :: (('a set) set) => 'a set           ("\\<Union> _" [90] 90)
   Inter         :: (('a set) set) => 'a set           ("\\<Inter> _" [90] 90)
-  "@Ball"       :: [pttrn, 'a set, bool] => bool      ("(3\\<forall> _\\<in>_./ _)" 10)
-  "@Bex"        :: [pttrn, 'a set, bool] => bool      ("(3\\<exists> _\\<in>_./ _)" 10)
-  "*Ball"       :: [pttrn, 'a set, bool] => bool      ("(3\\<forall> _\\<in>_./ _)" 10)
-  "*Bex"        :: [pttrn, 'a set, bool] => bool      ("(3\\<exists> _\\<in>_./ _)" 10)
+  "@Ball"       :: [pttrn, 'a set, bool] => bool      ("(3\\<forall> _\\<in>_./ _)" [0, 0, 10] 10)
+  "@Bex"        :: [pttrn, 'a set, bool] => bool      ("(3\\<exists> _\\<in>_./ _)" [0, 0, 10] 10)
+  "*Ball"       :: [pttrn, 'a set, bool] => bool      ("(3\\<forall> _\\<in>_./ _)" [0, 0, 10] 10)
+  "*Bex"        :: [pttrn, 'a set, bool] => bool      ("(3\\<exists> _\\<in>_./ _)" [0, 0, 10] 10)
 
 
 

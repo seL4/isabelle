@@ -80,13 +80,13 @@ syntax
 
   "~="          :: ['a, 'a] => bool                 (infixl 50)
 
-  "@Eps"        :: [pttrn, bool] => 'a              ("(3@ _./ _)" 10)
+  "@Eps"        :: [pttrn, bool] => 'a              ("(3@ _./ _)" [0, 10] 10)
 
   (* Alternative Quantifiers *)
 
-  "*All"        :: [idts, bool] => bool             ("(3ALL _./ _)" 10)
-  "*Ex"         :: [idts, bool] => bool             ("(3EX _./ _)" 10)
-  "*Ex1"        :: [idts, bool] => bool             ("(3EX! _./ _)" 10)
+  "*All"        :: [idts, bool] => bool             ("(3ALL _./ _)" [0, 10] 10)
+  "*Ex"         :: [idts, bool] => bool             ("(3EX _./ _)" [0, 10] 10)
+  "*Ex1"        :: [idts, bool] => bool             ("(3EX! _./ _)" [0, 10] 10)
 
   (* Let expressions *)
 
@@ -119,13 +119,13 @@ syntax (symbols)
   "op -->"      :: [bool, bool] => bool             (infixr "\\<midarrow>\\<rightarrow>" 25)
   "op o"        :: ['b => 'c, 'a => 'b, 'a] => 'c   (infixl "\\<circ>" 55)
   "op ~="       :: ['a, 'a] => bool                 (infixl "\\<noteq>" 50)
-  "@Eps"        :: [pttrn, bool] => 'a              ("(3\\<epsilon>_./ _)" 10)
-  "! "          :: [idts, bool] => bool             ("(3\\<forall>_./ _)" 10)
-  "? "          :: [idts, bool] => bool             ("(3\\<exists>_./ _)" 10)
-  "?! "         :: [idts, bool] => bool             ("(3\\<exists>!_./ _)" 10)
-  "*All"        :: [idts, bool] => bool             ("(3\\<forall>_./ _)" 10)
-  "*Ex"         :: [idts, bool] => bool             ("(3\\<exists>_./ _)" 10)
-  "*Ex1"        :: [idts, bool] => bool             ("(3\\<exists>!_./ _)" 10)
+  "@Eps"        :: [pttrn, bool] => 'a              ("(3\\<epsilon>_./ _)" [0, 10] 10)
+  "! "          :: [idts, bool] => bool             ("(3\\<forall>_./ _)" [0, 10] 10)
+  "? "          :: [idts, bool] => bool             ("(3\\<exists>_./ _)" [0, 10] 10)
+  "?! "         :: [idts, bool] => bool             ("(3\\<exists>!_./ _)" [0, 10] 10)
+  "*All"        :: [idts, bool] => bool             ("(3\\<forall>_./ _)" [0, 10] 10)
+  "*Ex"         :: [idts, bool] => bool             ("(3\\<exists>_./ _)" [0, 10] 10)
+  "*Ex1"        :: [idts, bool] => bool             ("(3\\<exists>!_./ _)" [0, 10] 10)
   "@case1"      :: ['a, 'b] => case_syn             ("(2_ \\<mapsto>/ _)" 10)
 
 
