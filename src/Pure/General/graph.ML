@@ -124,10 +124,11 @@ fun find_paths G (x, y) =
   let
     val (_, X) = reachable (imm_succs G) [x];
     fun paths ps p =
-      if eq_key (p, x) then [p :: ps]
-      else flat (map (paths (p :: ps))
-        (filter (fn pp => pp mem_keys X andalso not (pp mem_key ps)) (imm_preds G p)));
-  in get_entry G y; if y mem_keys X then (paths [] y) else [] end;
+      if not (null ps) andalso eq_key (p, x) then [p :: ps]
+      else if p mem_keys X andalso not (p mem_key ps)
+      then flat (map (paths (p :: ps)) (imm_preds G p))
+      else [];
+  in paths [] y end;
 
 
 (* nodes *)
