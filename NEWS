@@ -142,8 +142,9 @@ many laws relating division to addition, multiplication, etc.;
 * kernel: meta-level proof terms (by Stefan Berghofer), see also ref
 manual;
 
-* classical reasoner: renamed addaltern to addafter, addSaltern to
-addSafter;
+* classical: renamed addaltern to addafter, addSaltern to addSafter;
+
+* clasimp: ``iff'' declarations now handle conditional rules as well;
 
 * syntax: new token syntax "num" for plain numerals (without "#" of
 "xnum"); potential INCOMPATIBILITY, since -0, -1 etc. are now separate
