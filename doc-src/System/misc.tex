@@ -46,7 +46,7 @@ are replaced with the corresponding full commands.  The old versions
 of the files are renamed to have the suffix~\verb'~~'.
 
 
-\section{Get logic images --- \texttt{isatool findlogics}}
+\section{Getting logic images --- \texttt{isatool findlogics}}
 
 The \tooldx{findlogics} utility traverses all directories specified in
 \texttt{ISABELLE_PATH}, looking for Isabelle logic images. Its usage
@@ -111,6 +111,35 @@ ISABELLE_PATH=\$ISABELLE_HOME_USER/heaps:\$ISABELLE_HOME/heaps
 Note how the \texttt{ML_SYSTEM} value got appended automatically to
 each path component. This is a special feature of
 \texttt{ISABELLE_PATH} (and also of \texttt{ISABELLE_OUTPUT}).
+
+
+\section{Installing Isabelle binaries with absolute references -- \texttt{isatool install}}
+\label{sec:tool-install}
+
+Usually, the Isabelle binaries (\texttt{isabelle}, \texttt{isatool}
+etc.) are just run from their location within the distribution
+directory, probably indirectly by the shell through its \texttt{PATH}.
+In some cases, though, another more traditional installation scheme
+might be preferably where executables are put into some global system
+directory (like \texttt{/usr/local/bin}).
+
+Doing a plain copy of the Isabelle executables just would not work,
+though.  One should use the \tooldx{install} utility instead:
+\begin{ttbox}
+Usage: install DIR
+
+  Install binaries in directory DIR with absolute references to
+  \$ISABELLE_HOME/bin (non-movable).
+\end{ttbox}
+
+The generated executables contain absolute references to
+\texttt{ISABELLE_HOME}, as figured out by the \texttt{isatool}
+invocation.  While the scripts themselves may be relocated afterwards,
+they would cease working if the referenced Isabelle distribution is
+moved.  This is an example use of \texttt{install}:
+\begin{ttbox}
+  isatool install /usr/local/bin
+\end{ttbox}
 
 
 \section{Isabelle's version of make --- \texttt{isatool make}}
@@ -225,3 +254,8 @@ Refer to the \texttt{IsaMakefile}s of the Isabelle distribution's
 object-logics as a model for your own developements.  For example, see
 \texttt{src/FOL/IsaMakefile}.
 
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "system"
+%%% End: 
