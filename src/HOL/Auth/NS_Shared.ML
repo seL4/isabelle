@@ -99,8 +99,7 @@ AddSEs [Enemy_see_shrK_E, Enemy_analz_shrK_E];
 goal thy  
  "!!evs. evs : ns_shared ==>                              \
 \        (Key (shrK A) : analz (sees Enemy evs)) = (A : bad)";
-by (best_tac (!claset addDs [impOfSubs analz_subset_parts]
-		      addIs [impOfSubs (subset_insertI RS analz_mono)]
+by (best_tac (!claset addIs [impOfSubs (subset_insertI RS analz_mono)]
 	              addss (!simpset)) 1);
 qed "shrK_mem_analz";
 
@@ -162,7 +161,7 @@ map (by o fast_tac (!claset addDs [Suc_leD] addss (!simpset))) [3,2];
 (*Fake and NS3*)
 map (by o best_tac
      (!claset addDs [impOfSubs (analz_subset_parts RS keysFor_mono),
-		     impOfSubs (parts_insert_subset_Un RS keysFor_mono),
+                     impOfSubs (parts_insert_subset_Un RS keysFor_mono),
 		     Suc_leD]
 	      addEs [new_keys_not_seen RS not_parts_not_analz RSN (2,rev_notE)]
 	      addss (!simpset)))
@@ -270,8 +269,7 @@ bd NS3_msg_in_parts_sees_Enemy 5;
 by (ALLGOALS (asm_simp_tac (!simpset addsimps pushes)));
 (*Deals with Faked messages*)
 by (best_tac (!claset addSEs partsEs
-		      addDs [impOfSubs analz_subset_parts,
-                             impOfSubs parts_insert_subset_Un]
+		      addDs [impOfSubs parts_insert_subset_Un]
                       addss (!simpset)) 2);
 (*Base, NS4 and NS5*)
 by (ALLGOALS (fast_tac (!claset addss (!simpset))));
@@ -361,30 +359,20 @@ by (ALLGOALS
     (asm_simp_tac (!simpset addsimps [all_conj_distrib, ex_disj_distrib,
 				      imp_conj_distrib, parts_insert_sees])));
 by (REPEAT_FIRST (eresolve_tac [exE,disjE]));
-(*Base case*) (** LEVEL 5 **)
-by (fast_tac (!claset addIs [image_eqI] addss (!simpset)) 1);
-(*NS3: Fake (compromised) case*)
-by (ex_strip_tac 4);
-bd synth.Inj 4;
-by (best_tac (!claset addDs [impOfSubs analz_subset_parts,
-			     impOfSubs Fake_parts_insert]
-	              addss (!simpset)) 4);
-(*NS3: Good case, no relevant messages*)
-by (fast_tac (!claset addSEs [exI] addss (!simpset)) 3);
-(*NS2: Case split propagates some context to other subgoal...*) 
-(** LEVEL 10 **)
-by (excluded_middle_tac "K = newK evsa" 2);
-by (Asm_simp_tac 2);
-be exI 2;
+(*NS2: Cextraction of K = newK evsa to global context...*) 
+(** LEVEL 5 **)
+by (excluded_middle_tac "K = newK evsa" 3);
+by (Asm_simp_tac 3);
+be exI 3;
 (*...we assume X is a very new message, and handle this case by contradiction*)
 by (fast_tac (!claset addSEs partsEs
 		      addEs [Says_imp_old_keys RS less_irrefl]
-	              addss (!simpset)) 2);
-(*Fake*) (** LEVEL 15 **)
-by (ex_strip_tac 1);
-by (best_tac (!claset addDs [impOfSubs analz_subset_parts,
-			     impOfSubs Fake_parts_insert]
-	              addss (!simpset)) 1);
+	              addss (!simpset)) 3);
+(*Base, Fake, NS3*) (** LEVEL 9 **)
+by (REPEAT_FIRST ex_strip_tac);
+bd synth.Inj 4;
+by (REPEAT_FIRST (best_tac (!claset addDs [impOfSubs Fake_parts_insert]
+			            addss (!simpset))));
 val lemma = result();
 
 (*In messages of this form, the session key uniquely identifies the rest*)
