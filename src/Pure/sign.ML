@@ -25,7 +25,7 @@ sig
     val classes: sg -> class list
     val subsort: sg -> sort * sort -> bool
     val norm_sort: sg -> sort -> sort
-    val nonempty_sort: sg -> (string * sort) list -> sort -> bool
+    val nonempty_sort: sg -> sort list -> sort -> bool
     val print_sg: sg -> unit
     val pretty_sg: sg -> Pretty.T
     val pprint_sg: sg -> pprint_args -> unit
@@ -193,7 +193,7 @@ fun pretty_term (Sg {syn, stamps, ...}) =
 
 fun pretty_typ (Sg {syn, ...}) = Syntax.pretty_typ syn;
 
-fun string_of_term (Sg {syn, stamps, ...}) = 
+fun string_of_term (Sg {syn, stamps, ...}) =
   let val curried = "CPure" mem (map ! stamps);
   in Syntax.string_of_term curried syn end;
 
@@ -266,7 +266,7 @@ fun infer_types sg types sorts used freeze (ts, T) =
 
     fun term_err [] = ""
       | term_err [t] = "\nInvolving this term:\n" ^ show_term t
-      | term_err ts = 
+      | term_err ts =
           "\nInvolving these terms:\n" ^ cat_lines (map show_term ts);
 
     fun exn_type_msg (msg, Ts, ts) =

@@ -38,7 +38,7 @@ sig
   val subsort: type_sig -> sort * sort -> bool
   val norm_sort: type_sig -> sort -> sort
   val rem_sorts: typ -> typ
-  val nonempty_sort: type_sig -> (string * sort) list -> sort -> bool
+  val nonempty_sort: type_sig -> sort list -> sort -> bool
   val cert_typ: type_sig -> typ -> typ
   val norm_typ: type_sig -> typ -> typ
   val freeze: term -> term
@@ -406,7 +406,7 @@ fun rem_sorts (Type (a, tys)) = Type (a, map rem_sorts tys)
 fun nonempty_sort _ _ [] = true
   | nonempty_sort (tsig as TySg {arities, ...}) hyps S =
       exists (exists (fn (c, ss) => [c] = S andalso null ss) o snd) arities
-        orelse exists (fn (_, S') => subsort tsig (S', S)) hyps;
+        orelse exists (fn S' => subsort tsig (S', S)) hyps;
 
 
 
