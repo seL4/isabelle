@@ -42,7 +42,7 @@ Tfl.tgoalw Unify.thy [] unify.rules;
 (* Wellfoundedness of unifyRel *)
 by (simp_tac (!simpset addsimps [unifyRel_def,
 				 wf_inv_image, wf_lex_prod, wf_finite_psubset,
-				 wf_rel_prod, wf_measure]) 1);
+				 wf_measure]) 1);
 (* TC *)
 by (Step_tac 1);
 by (simp_tac (!simpset addsimps [finite_psubset_def, finite_vars_of,
@@ -124,22 +124,6 @@ by (ALLGOALS
 qed "var_elimR";
 
 
-val Some{nchotomy = subst_nchotomy,...} = assoc(!datatypes,"subst");
-
-(*---------------------------------------------------------------------------
- * Do a case analysis on something of type 'a subst. 
- *---------------------------------------------------------------------------*)
-
-fun subst_case_tac t =
-(cut_inst_tac [("x",t)] (subst_nchotomy RS spec) 1 
-  THEN etac disjE 1 
-  THEN rotate_tac ~1 1 
-  THEN Asm_full_simp_tac 1 
-  THEN etac exE 1
-  THEN rotate_tac ~1 1 
-  THEN Asm_full_simp_tac 1);
-
-
 (*---------------------------------------------------------------------------
  * Eliminate tc0 from the recursion equations and the induction theorem.
  *---------------------------------------------------------------------------*)
@@ -160,13 +144,13 @@ goalw_cterm [] (cterm_of (sign_of Unify.thy) (HOLogic.mk_Trueprop tc3));
  * first step is to restrict the scopes of N1 and N2.
  *---------------------------------------------------------------------------*)
 by (subgoal_tac "!M1 M2 theta.  \
- \   unify(M1, M2) = Subst theta --> \
+ \   unify(M1, M2) = Some theta --> \
  \   (!N1 N2. ((N1<|theta, N2<|theta), Comb M1 N1, Comb M2 N2) : unifyRel)" 1);
 by (Blast_tac 1);
 by (rtac allI 1); 
 by (rtac allI 1);
 (* Apply induction *)
-by (res_inst_tac [("v","M1"),("v1.0","M2")] unifyInduct0 1);
+by (res_inst_tac [("u","M1"),("v","M2")] unifyInduct0 1);
 by (ALLGOALS 
     (asm_simp_tac (!simpset addsimps (var_elimR::unifyRules0)
 			    setloop (split_tac [expand_if]))));
@@ -176,9 +160,9 @@ by (simp_tac
 			inv_image_def, less_eq]) 1);
 (** LEVEL 7 **)
 (*Comb-Comb case*)
-by (subst_case_tac "unify(M1a, M2a)");
+by (option_case_tac "unify(M1a, M2a)" 1);
 by (rename_tac "theta" 1);
-by (subst_case_tac "unify(N1 <| theta, N2 <| theta)");
+by (option_case_tac "unify(N1 <| theta, N2 <| theta)" 1);
 by (rename_tac "sigma" 1);
 by (REPEAT (rtac allI 1));
 by (rename_tac "P Q" 1); 
@@ -201,12 +185,12 @@ qed_spec_mp "unify_TC";
 goal Unify.thy 
   "unify(Comb M1 N1, Comb M2 N2) =      \
 \      (case unify(M1,M2)               \
-\        of Fail => Fail                \
-\         | Subst theta => (case unify(N1 <| theta, N2 <| theta)        \
-\                            of Fail => Fail    \
-\                             | Subst sigma => Subst (theta <> sigma)))";
+\        of None => None                \
+\         | Some theta => (case unify(N1 <| theta, N2 <| theta)        \
+\                            of None => None    \
+\                             | Some sigma => Some (theta <> sigma)))";
 by (asm_simp_tac (!simpset addsimps unifyRules0) 1);
-by (subst_case_tac "unify(M1, M2)");
+by (option_case_tac "unify(M1, M2)" 1);
 by (asm_simp_tac (!simpset addsimps [unify_TC]) 1);
 qed "unifyCombComb";
 
@@ -228,8 +212,8 @@ bind_thm ("unifyInduct",
  * approach of M&W, who used idempotence and MGU-ness in the termination proof.
  *---------------------------------------------------------------------------*)
 
-goal Unify.thy "!theta. unify(M,N) = Subst theta --> MGUnifier theta M N";
-by (res_inst_tac [("v","M"),("v1.0","N")] unifyInduct 1);
+goal Unify.thy "!theta. unify(M,N) = Some theta --> MGUnifier theta M N";
+by (res_inst_tac [("u","M"),("v","N")] unifyInduct 1);
 by (ALLGOALS (asm_simp_tac (!simpset setloop split_tac [expand_if])));
 (*Const-Const case*)
 by (simp_tac (!simpset addsimps [MGUnifier_def,Unifier_def]) 1);
@@ -243,8 +227,8 @@ by (stac mgu_sym 1);
 by (simp_tac (!simpset addsimps [MGUnifier_Var]) 1);
 (*Comb-Comb case*)
 by (safe_tac (!claset));
-by (subst_case_tac "unify(M1, M2)");
-by (subst_case_tac "unify(N1<|list, N2<|list)");
+by (option_case_tac "unify(M1, M2)" 1);
+by (option_case_tac "unify(N1 <| a, N2 <| a)" 1);
 by (hyp_subst_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [MGUnifier_def, Unifier_def])1);
 (** LEVEL 13 **)
@@ -269,14 +253,14 @@ qed_spec_mp "unify_gives_MGU";
 (*---------------------------------------------------------------------------
  * Unify returns idempotent substitutions, when it succeeds.
  *---------------------------------------------------------------------------*)
-goal Unify.thy "!theta. unify(M,N) = Subst theta --> Idem theta";
-by (res_inst_tac [("v","M"),("v1.0","N")] unifyInduct 1);
+goal Unify.thy "!theta. unify(M,N) = Some theta --> Idem theta";
+by (res_inst_tac [("u","M"),("v","N")] unifyInduct 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [Var_Idem] 
 			             setloop split_tac[expand_if])));
 (*Comb-Comb case*)
 by (safe_tac (!claset));
-by (subst_case_tac "unify(M1, M2)");
-by (subst_case_tac "unify(N1 <| list, N2 <| list)");
+by (option_case_tac "unify(M1, M2)" 1);
+by (option_case_tac "unify(N1 <| a, N2 <| a)" 1);
 by (safe_tac (!claset addSDs [rewrite_rule [MGUnifier_def] unify_gives_MGU]));
 by (rtac Idem_comp 1);
 by (atac 1);
