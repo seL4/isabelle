@@ -151,6 +151,23 @@ by (asm_simp_tac (ZF_ss addsimps [case_Inr]) 1);
 by (fast_tac sum_cs 1);
 qed "expand_case";
 
+val major::prems = goal Sum.thy
+  "[| z: A+B; 	\
+\     !!x. x:A ==> c(x)=c'(x); 	\
+\     !!y. y:B ==> d(y)=d'(y) 	\
+\  |] ==> case(c,d,z) = case(c',d',z)";
+by (resolve_tac [major RS sumE] 1);
+by (ALLGOALS (asm_simp_tac (ZF_ss addsimps ([case_Inl, case_Inr] @ prems))));
+qed "case_cong";
+
+val [major] = goal Sum.thy
+  "z: A+B ==> 	\
+\  case(c, d, case(%x. Inl(c'(x)), %y. Inr(d'(y)), z)) = \
+\  case(%x. c(c'(x)), %y. d(d'(y)), z)";
+by (resolve_tac [major RS sumE] 1);
+by (ALLGOALS (asm_simp_tac (ZF_ss addsimps [case_Inl, case_Inr])));
+qed "case_case";
+
 val sum_ss = ZF_ss addsimps [InlI, InrI, Inl_iff, Inr_iff, 
 			     Inl_Inr_iff, Inr_Inl_iff,
 			     case_Inl, case_Inr];
