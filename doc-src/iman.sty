@@ -1,0 +1,159 @@
+\typeout{Isabelle Manual Page Layout}
+
+% iman.sty 
+%
+\typeout{Document Style iman. Released 15 September 1992}
+
+\hyphenation{Isa-belle}
+
+%%%INDEXING  use sedindex to process the index
+%index, putting page numbers of definitions in boldface
+\newcommand\bold[1]{{\bf#1}}
+\newcommand\indexbold[1]{\index{#1|bold}}
+
+%for cross-references: 2nd argument (page number) is ignored
+\newcommand\see[2]{{\it see \/}{#1}}
+\newcommand\seealso[2]{{\it see also \/}{#1}}
+
+%set argument in \tt font; at the sime time, index using * prefix
+\newcommand\ttindex[1]{{\tt#1}\index{*#1}\@}
+\newcommand\ttindexbold[1]{{\tt#1}\index{*#1|bold}\@}
+
+%set argument in \bf font and index in ROMAN font (for definitions in text!)
+\newcommand\bfindex[1]{{\bf#1}\index{#1|bold}\@}
+
+
+%%Euro-style date: 20 September 1955
+\def\today{\number\day\space\ifcase\month\or
+January\or February\or March\or April\or May\or June\or
+July\or August\or September\or October\or November\or December\fi
+\space\number\year}
+
+%%% underscores as ordinary characters, not for subscripting
+%%  use @ or \sb for subscripting; use \at for @
+%%  only works in \tt font
+%%  must not make _ an active char; would make \ttindex fail!
+\gdef\underscoreoff{\catcode`\@=8\catcode`\_=\other}
+\gdef\underscoreon{\catcode`\_=8\makeatother}
+\chardef\other=12
+\chardef\at=`\@
+
+% alternative underscore
+\def\_{\leavevmode\kern.06em\vbox{\hrule height.2ex width.3em}\hskip0.1em}
+
+%%% \dquotes permits usage of "..." for \hbox{...} -- also taken from under.sty
+{\catcode`\"=\active
+\gdef\dquotes{\catcode`\"=\active  \let"=\@mathText}%
+\gdef\@mathText#1"{\hbox{\mathTextFont #1\/}}}
+\def\mathTextFont{\frenchspacing\tt}
+
+%%%% meta-logical connectives
+
+\let\Forall=\bigwedge
+\let\Imp=\Longrightarrow
+\let\To=\Rightarrow
+\newcommand\Var[1]{{?\!#1}}
+
+%%%% ``WARNING'' environment
+\def\dbend{\vtop to 0pt{\vss\hbox{\Huge\bf!}\vss}}
+\newenvironment{warn}{\medskip\medbreak\begingroup \clubpenalty=10000 
+  	 \baselineskip=0.9\baselineskip
+	 \noindent \hangindent\parindent \hangafter=-2 
+  	 \hbox to0pt{\hskip-\hangindent\dbend\hfill}\ignorespaces}%
+	{\par\endgroup\medbreak}
+
+
+%%%% Standard logical symbols
+\let\turn=\vdash
+\let\conj=\wedge
+\let\disj=\vee
+\let\imp=\rightarrow
+\let\bimp=\leftrightarrow
+\newcommand\all[1]{\forall#1.}	%quantification
+\newcommand\ex[1]{\exists#1.}
+\newcommand{\pair}[1]{\langle#1\rangle}
+
+\newenvironment{example}{\begin{Example}\rm}{\end{Example}}
+\newtheorem{Example}{Example}[chapter]
+
+\newcommand\lbrakk{\mathopen{[\![}}
+\newcommand\rbrakk{\mathclose{]\!]}}
+\newcommand\List[1]{\lbrakk#1\rbrakk}  %was \obj
+\newcommand\vpile[1]{\begin{array}{c}#1\end{array}}
+
+\let\int=\cap
+\let\un=\cup
+\let\inter=\bigcap
+\let\union=\bigcup
+
+\newcommand{\rew}{\mathop{\longrightarrow}}
+\newcommand{\rewer}{\mathop{\longleftrightarrow}}
+
+\def\ML{{\sc ml}}
+\def\OBJ{{\sc obj}}
+
+\def\LCF{{\tt LCF}\@}
+\def\FOL{{\tt FOL}\@}
+\def\HOL{{\tt HOL}\@}
+\def\LK{{\tt LK}\@}
+\def\ZF{{\tt ZF}\@}
+\def\CTT{{\tt CTT}\@}
+\def\Cube{{\tt Cube}}
+\def\Modal{{\tt Modal}}
+
+%macros to change the treatment of symbols
+\def\relsemicolon{\mathcode`\;="303B}   %treat ; like a relation
+\def\binperiod{\mathcode`\.="213A}   %treat . like a binary operator
+\def\binvert{\mathcode`\|="226A}     %treat | like a binary operator
+
+%redefinition of \sloppy and \fussy to use \emergencystretch
+\def\sloppy{\tolerance2000 \hfuzz.5pt \vfuzz.5pt \emergencystretch=15pt}
+\def\fussy{\tolerance200 \hfuzz.1pt \vfuzz.1pt \emergencystretch=0pt}
+
+\chardef\ttilde=`\~  	% A tilde for \tt font
+\chardef\ttback=`\\  	% A backslash for \tt font
+\chardef\ttlbrace=`\{ 	% A left brace for \tt font
+\chardef\ttrbrace=`\} 	% A right brace for \tt font
+
+\newfont{\sltt}{cmsltt10}     %% for output from terminal sessions
+\newcommand\out{\ \sltt}
+
+%Indented, boxed alltt environment; uses \small\tt font
+%\leftmargini is LaTeX's first-level indentation for items (2.5em)
+%@endparenv is LaTeX's trick for preventing indentation of next paragraph
+\newenvironment{ttbox}{\par\nobreak\vskip-2pt
+	   \vbox\bgroup \small\begin{alltt} \leftskip\leftmargini}%
+	{\end{alltt}\egroup\vskip-7pt\@endparenv}
+\newcommand\ttbreak{\end{ttbox}\vskip-10pt\begin{ttbox}}
+
+
+%%%Put first chapter on odd page, with arabic numbering; like \cleardoublepage
+\newcommand\clearfirst{\clearpage\ifodd\c@page\else
+    \hbox{}\newpage\if@twocolumn\hbox{}\newpage\fi\fi
+    \pagenumbering{arabic}}
+
+%%%Ruled chapter headings 
+\def\@rulehead#1{\hrule height1pt \vskip 14pt \Huge \bf 
+   #1 \vskip 14pt\hrule height1pt}
+\def\@makechapterhead#1{ { \parindent 0pt 
+ \ifnum\c@secnumdepth >\m@ne \raggedleft\large\bf\@chapapp{} \thechapter \par 
+ \vskip 20pt \fi \raggedright \@rulehead{#1} \par \nobreak \vskip 40pt } }
+
+\def\@makeschapterhead#1{ { \parindent 0pt \raggedright 
+ \@rulehead{#1} \par \nobreak \vskip 40pt } }
+
+%
+% MATHCODES
+%
+% The mathcodes for the letters A, ..., Z, a, ..., z are changed to
+% generate text italic font rather than math italic by default. This makes
+% multi-letter identifiers look better. The mathcode for character c
+% is set to "7000 (variable family) + "400 (text italic) + c.
+% See the TeXBook, page 154.
+
+\def\@setmcodes#1#2#3{{\count0=#1 \count1=#3
+	\loop \global\mathcode\count0=\count1 \ifnum \count0<#2
+	\advance\count0 by1 \advance\count1 by1 \repeat}}
+
+\@setmcodes{`A}{`Z}{"7441}
+\@setmcodes{`a}{`z}{"7461}
