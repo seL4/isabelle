@@ -36,7 +36,7 @@ The rest of this section is devoted to proving that it is equivalent to
 the standard definition. We start with a simple lemma:
 *}
 
-lemma [intro]: "(x,y) : r \<Longrightarrow> (x,y) \<in> r*"
+lemma [intro]: "(x,y) \<in> r \<Longrightarrow> (x,y) \<in> r*"
 by(blast intro: rtc_step);
 
 text{*\noindent

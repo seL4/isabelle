@@ -200,7 +200,7 @@ best phrased as a case distinction theorem: if you want to prove @{prop"P x"}
 @{prop"P B"} and @{prop"P C"}. First we prove the analogous proposition for the
 representation: *}
 
-lemma cases_lemma: "\<lbrakk> Q 0; Q 1; Q 2; n : three \<rbrakk> \<Longrightarrow>  Q n";
+lemma cases_lemma: "\<lbrakk> Q 0; Q 1; Q 2; n \<in> three \<rbrakk> \<Longrightarrow>  Q n";
 
 txt{*\noindent
 Expanding @{thm[source]three_def} yields the premise @{prop"n\<le>2"}. Repeated

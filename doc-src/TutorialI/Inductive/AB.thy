@@ -102,8 +102,9 @@ right increases or decreases the difference by 1, we must have passed through
 intermediate value theorem @{thm[source]nat0_intermed_int_val}
 @{thm[display]nat0_intermed_int_val[no_vars]}
 where @{term f} is of type @{typ"nat \<Rightarrow> int"}, @{typ int} are the integers,
-@{text"\<bar>.\<bar>"} is the absolute value function, and @{term"#1::int"} is the
-integer 1 (see \S\ref{sec:numbers}).
+@{text"\<bar>.\<bar>"} is the absolute value function\footnote{See
+Table~\ref{tab:ascii} in the Appendix for the correct \textsc{ascii}
+syntax.}, and @{term"#1::int"} is the integer 1 (see \S\ref{sec:numbers}).
 
 First we show that our specific function, the difference between the
 numbers of @{term a}'s and @{term b}'s, does indeed only change by 1 in every

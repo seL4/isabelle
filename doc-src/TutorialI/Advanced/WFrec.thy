@@ -37,7 +37,7 @@ constructions of well-founded relations (see \S\ref{sec:Well-founded}). For
 example, @{term"measure f"} is always well-founded, and the lexicographic
 product of two well-founded relations is again well-founded, which we relied
 on when defining Ackermann's function above.
-Of course the lexicographic product can also be interated:
+Of course the lexicographic product can also be iterated:
 *}
 
 consts contrived :: "nat \<times> nat \<times> nat \<Rightarrow> nat"
