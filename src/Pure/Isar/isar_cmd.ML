@@ -11,6 +11,10 @@ sig
   val exit: Toplevel.transition -> Toplevel.transition
   val restart: Toplevel.transition -> Toplevel.transition
   val quit: Toplevel.transition -> Toplevel.transition
+  val clear_undo: Toplevel.transition -> Toplevel.transition
+  val undo: Toplevel.transition -> Toplevel.transition
+  val redo: Toplevel.transition -> Toplevel.transition
+  val undos: int -> Toplevel.transition -> Toplevel.transition
   val use: string -> Toplevel.transition -> Toplevel.transition
   val use_mltext_theory: string -> Toplevel.transition -> Toplevel.transition
   val use_mltext: string -> Toplevel.transition -> Toplevel.transition
@@ -47,6 +51,23 @@ val exit = Toplevel.keep (fn state =>
 
 val restart = Toplevel.imperative (fn () => raise Toplevel.RESTART);
 val quit = Toplevel.imperative quit;
+
+
+(* history commands *)
+
+val clear_undo = Toplevel.history History.clear o Toplevel.proof ProofHistory.clear;
+val redo = Toplevel.history History.redo o Toplevel.proof ProofHistory.redo;
+
+fun undo_proof prf =
+  if ProofHistory.is_initial prf then raise Toplevel.UNDEF else ProofHistory.undo prf;
+
+fun undo_node hist =
+  if History.is_initial hist then raise Toplevel.UNDEF else History.undo hist;
+
+val undo = Toplevel.kill o Toplevel.history undo_node o Toplevel.proof undo_proof;
+
+(* FIXME fix *)
+fun undos n = Toplevel.history (funpow n History.undo) o Toplevel.proof (funpow n undo_proof);
 
 
 (* use ML text *)
