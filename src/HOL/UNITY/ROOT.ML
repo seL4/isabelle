@@ -25,7 +25,6 @@ time_use_thy "Reachability";
 time_use_thy "PPROD";
 time_use_thy "TimerArray";
 
-add_path "../Induct";
 time_use_thy "Alloc";
 time_use_thy "AllocImpl";
 time_use_thy "Client";

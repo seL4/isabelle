@@ -1,12 +1,9 @@
-(*  Title:      HOL/UNITY/AllocBase
+(*  Title:      HOL/UNITY/AllocBase.thy
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
 Common declarations for Chandy and Charpentier's Allocator
-
-add_path "../Induct";
-time_use_thy "AllocBase";
 *)
 
 AllocBase = Rename + Follows + 

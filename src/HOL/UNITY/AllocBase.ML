@@ -1,12 +1,9 @@
-(*  Title:      HOL/UNITY/AllocBase
+(*  Title:      HOL/UNITY/AllocBase.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
 Basis declarations for Chandy and Charpentier's Allocator
-
-add_path "../Induct";
-time_use_thy "AllocBase";
 *)
 
 Goal "!!f :: nat=>nat. \
@@ -42,9 +39,9 @@ by (rtac monoI 1);
 by (rewtac prefix_def);
 by (etac genPrefix.induct 1);
 by Auto_tac;
-by (asm_full_simp_tac (simpset() addsimps [union_le_mono]) 1); 
+by (asm_full_simp_tac (simpset() addsimps [thm "union_le_mono"]) 1); 
 by (etac order_trans 1); 
-by (rtac union_upper1 1); 
+by (rtac (thm "union_upper1") 1); 
 qed "mono_bag_of";
 
 (** setsum **)

@@ -180,7 +180,7 @@ by Auto_tac;
 by (dres_inst_tac [("x","f xa")] spec 1);
 by (dres_inst_tac [("x","g xa")] spec 1);
 by (ball_tac 1);
-by (blast_tac (claset() addIs [union_le_mono, order_trans]) 1); 
+by (blast_tac (claset() addIs [thm "union_le_mono", order_trans]) 1); 
 qed "increasing_union";
 
 Goalw [Increasing_def, Stable_def, Constrains_def, stable_def, constrains_def]
@@ -190,13 +190,13 @@ by Auto_tac;
 by (dres_inst_tac [("x","f xa")] spec 1);
 by (dres_inst_tac [("x","g xa")] spec 1);
 by (ball_tac 1);
-by (blast_tac (claset()  addIs [union_le_mono, order_trans]) 1);
+by (blast_tac (claset()  addIs [thm "union_le_mono", order_trans]) 1);
 qed "Increasing_union";
 
 Goal "[| F : Always {s. f' s <= f s}; F : Always {s. g' s <= g s} |] \
 \     ==> F : Always {s. f' s + g' s <= f s + (g s :: ('a::order) multiset)}";
 by (asm_full_simp_tac (simpset() addsimps [Always_eq_includes_reachable]) 1);
-by (blast_tac (claset()  addIs [union_le_mono]) 1);
+by (blast_tac (claset()  addIs [thm "union_le_mono"]) 1);
 qed "Always_union";
 
 (*Except the last line, IDENTICAL to the proof script for Follows_Un_lemma*)
@@ -214,7 +214,7 @@ by (eres_inst_tac [("x", "f s")] spec 1);
 by (etac Stable_Int 1);
 by (assume_tac 1);
 by (Blast_tac 1);
-by (blast_tac (claset() addIs [union_le_mono, order_trans]) 1); 
+by (blast_tac (claset() addIs [thm "union_le_mono", order_trans]) 1); 
 qed "Follows_union_lemma";
 
 (*The !! is there to influence to effect of permutative rewriting at the end*)
@@ -227,7 +227,7 @@ by Auto_tac;
 by (rtac LeadsTo_Trans 1);
 by (blast_tac (claset() addIs [Follows_union_lemma]) 1);
 (*now exchange union's arguments*)
-by (simp_tac (simpset() addsimps [union_commute]) 1); 
+by (simp_tac (simpset() addsimps [thm "union_commute"]) 1); 
 by (blast_tac (claset() addIs [Follows_union_lemma]) 1);
 qed "Follows_union";
 
