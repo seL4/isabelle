@@ -43,4 +43,6 @@ use_thy "EquivClass";
 (*printing functions are inherited from FOL*)
 print_depth 8;
 
+Goal "True";  (*leave subgoal package empty*)
+
 val ZF_build_completed = ();    (*indicate successful build*)
