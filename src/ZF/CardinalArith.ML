@@ -439,8 +439,9 @@ by (asm_simp_tac (ZF_ss addsimps [rvimage_iff, rmult_iff, Memrel_iff,
 by (safe_tac (ZF_cs addSEs [mem_irrefl] 
                     addSIs [Un_upper1_le, Un_upper2_le]));
 by (ALLGOALS (asm_simp_tac (ZF_ss addsimps [lt_def, succI2, Ord_succ])));
-qed "csquareD_lemma";
-val csquareD = csquareD_lemma RS mp |> standard;
+val csquareD_lemma = result();
+
+bind_thm ("csquareD", csquareD_lemma RS mp);
 
 goalw CardinalArith.thy [pred_def]
  "!!K. z<K ==> pred(K*K, <z,z>, csquare_rel(K)) <= succ(z)*succ(z)";
@@ -709,9 +710,9 @@ by (REPEAT (ares_tac [conjI, Card_jump_cardinal, K_lt_jump_cardinal,
 		      Ord_jump_cardinal] 1));
 qed "csucc_basic";
 
-val Card_csucc = csucc_basic RS conjunct1 |> standard;
+bind_thm ("Card_csucc", csucc_basic RS conjunct1);
 
-val lt_csucc = csucc_basic RS conjunct2 |> standard;
+bind_thm ("lt_csucc", csucc_basic RS conjunct2);
 
 goal CardinalArith.thy "!!K. Ord(K) ==> 0 < csucc(K)";
 by (resolve_tac [[Ord_0_le, lt_csucc] MRS lt_trans1] 1);
@@ -750,4 +751,3 @@ by (asm_simp_tac (ZF_ss addsimps [Card_csucc, Card_is_Ord,
 				  lt_csucc RS leI RSN (2,le_trans)]) 1);
 qed "InfCard_csucc";
 
-val Limit_csucc = InfCard_csucc RS InfCard_is_Limit |> standard;
