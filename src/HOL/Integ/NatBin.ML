@@ -16,15 +16,15 @@ Addsimps [nat_number_of];
 (*These rewrites should one day be re-oriented...*)
 
 Goal "#0 = (0::nat)";
-by (simp_tac (simpset_of Int.thy addsimps [nat_0, nat_number_of_def]) 1);
+by (simp_tac (HOL_basic_ss addsimps [nat_0, nat_number_of_def]) 1);
 qed "numeral_0_eq_0";
 
 Goal "#1 = (1::nat)";
-by (simp_tac (simpset_of Int.thy addsimps [nat_1, nat_number_of_def]) 1);
+by (simp_tac (HOL_basic_ss addsimps [nat_1, nat_number_of_def]) 1);
 qed "numeral_1_eq_1";
 
 Goal "#2 = (2::nat)";
-by (simp_tac (simpset_of Int.thy addsimps [nat_2, nat_number_of_def]) 1);
+by (simp_tac (HOL_basic_ss addsimps [nat_2, nat_number_of_def]) 1);
 qed "numeral_2_eq_2";
 
 bind_thm ("zero_eq_numeral_0", numeral_0_eq_0 RS sym);
@@ -229,7 +229,7 @@ by (simp_tac
 				  eq_nat_nat_iff, eq_number_of_eq, nat_0]) 1);
 by (simp_tac (simpset_of Int.thy addsimps [nat_eq_iff, nat_eq_iff2, 
 					   iszero_def]) 1);
-by (simp_tac (simpset_of Int.thy addsimps [not_neg_eq_ge_0 RS sym]) 1);
+by (simp_tac (simpset () addsimps [not_neg_eq_ge_0 RS sym]) 1);
 qed "eq_nat_number_of";
 
 Addsimps [eq_nat_number_of];
@@ -262,10 +262,6 @@ Addsimps [le_nat_number_of_eq_not_less];
 
 (*** New versions of existing theorems involving 0, 1, 2 ***)
 
-fun change_theory thy th = 
-    [th, read_instantiate_sg (sign_of thy) [("t","dummyVar")] refl] 
-    MRS (conjI RS conjunct1) |> standard;
-
 (*Maps n to #n for n = 0, 1, 2*)
 val numeral_sym_ss = 
     HOL_ss addsimps [numeral_0_eq_0 RS sym, 
@@ -273,7 +269,7 @@ val numeral_sym_ss =
 		     numeral_2_eq_2 RS sym,
 		     Suc_numeral_1_eq_2, Suc_numeral_0_eq_1];
 
-fun rename_numerals thy th = simplify numeral_sym_ss (change_theory thy th);
+fun rename_numerals th = simplify numeral_sym_ss (Thm.transfer (the_context ()) th);
 
 (*Maps #n to n for n = 0, 1, 2*)
 val numeral_ss = 
@@ -291,10 +287,9 @@ bind_thm ("expand_Suc", inst "n" "number_of ?v" Suc_pred');
 
 (** NatDef & Nat **)
 
-Addsimps (map (rename_numerals thy) 
-	  [min_0L, min_0R, max_0L, max_0R]);
+Addsimps (map rename_numerals [min_0L, min_0R, max_0L, max_0R]);
 
-AddIffs (map (rename_numerals thy) 
+AddIffs (map rename_numerals
 	 [Suc_not_Zero, Zero_not_Suc, zero_less_Suc, not_less0, less_one, 
 	  le0, le_0_eq, 
 	  neq0_conv, zero_neq_conv, not_gr0]);
@@ -303,19 +298,19 @@ AddIffs (map (rename_numerals thy)
 
 (*Identity laws for + - * *)	 
 val basic_renamed_arith_simps =
-    map (rename_numerals thy) 
+    map rename_numerals
         [diff_0, diff_0_eq_0, add_0, add_0_right, 
 	 mult_0, mult_0_right, mult_1, mult_1_right];
 	 
 (*Non-trivial simplifications*)	 
 val other_renamed_arith_simps =
-    map (rename_numerals thy) 
+    map rename_numerals
 	[add_pred, diff_is_0_eq, zero_is_diff_eq, zero_less_diff,
 	 mult_is_0, zero_is_mult, zero_less_mult_iff, mult_eq_1_iff];
 
 Addsimps (basic_renamed_arith_simps @ other_renamed_arith_simps);
 
-AddIffs (map (rename_numerals thy) [add_is_0, zero_is_add, add_gr_0]);
+AddIffs (map rename_numerals [add_is_0, zero_is_add, add_gr_0]);
 
 Goal "Suc n = n + #1";
 by (asm_simp_tac numeral_ss 1);
@@ -345,26 +340,24 @@ qed "diff_less'";
 Addsimps [inst "n" "number_of ?v" diff_less'];
 
 (*various theorems that aren't in the default simpset*)
-bind_thm ("add_is_one'", rename_numerals thy add_is_1);
-bind_thm ("one_is_add'", rename_numerals thy one_is_add);
-bind_thm ("zero_induct'", rename_numerals thy zero_induct);
-bind_thm ("diff_self_eq_0'", rename_numerals thy diff_self_eq_0);
-bind_thm ("mult_eq_self_implies_10'", rename_numerals thy mult_eq_self_implies_10);
-bind_thm ("le_pred_eq'", rename_numerals thy le_pred_eq);
-bind_thm ("less_pred_eq'", rename_numerals thy less_pred_eq);
+bind_thm ("add_is_one'", rename_numerals add_is_1);
+bind_thm ("one_is_add'", rename_numerals one_is_add);
+bind_thm ("zero_induct'", rename_numerals zero_induct);
+bind_thm ("diff_self_eq_0'", rename_numerals diff_self_eq_0);
+bind_thm ("mult_eq_self_implies_10'", rename_numerals mult_eq_self_implies_10);
+bind_thm ("le_pred_eq'", rename_numerals le_pred_eq);
+bind_thm ("less_pred_eq'", rename_numerals less_pred_eq);
 
 (** Divides **)
 
-Addsimps (map (rename_numerals thy) [mod_1, mod_0, div_1, div_0]);
-
-AddIffs (map (rename_numerals thy) 
-	  [dvd_1_left, dvd_0_right]);
+Addsimps (map rename_numerals [mod_1, mod_0, div_1, div_0]);
+AddIffs (map rename_numerals [dvd_1_left, dvd_0_right]);
 
 (*useful?*)
-bind_thm ("mod_self'", rename_numerals thy mod_self);
-bind_thm ("div_self'", rename_numerals thy div_self);
-bind_thm ("div_less'", rename_numerals thy div_less);
-bind_thm ("mod_mult_self_is_zero'", rename_numerals thy mod_mult_self_is_0);
+bind_thm ("mod_self'", rename_numerals mod_self);
+bind_thm ("div_self'", rename_numerals div_self);
+bind_thm ("div_less'", rename_numerals div_less);
+bind_thm ("mod_mult_self_is_zero'", rename_numerals mod_mult_self_is_0);
 
 (** Power **)
 
@@ -386,15 +379,14 @@ by (asm_simp_tac numeral_ss 1);
 qed "zero_less_power'";
 Addsimps [zero_less_power'];
 
-bind_thm ("binomial_zero", rename_numerals thy binomial_0);
-bind_thm ("binomial_Suc'", rename_numerals thy binomial_Suc);
-bind_thm ("binomial_n_n'", rename_numerals thy binomial_n_n);
+bind_thm ("binomial_zero", rename_numerals binomial_0);
+bind_thm ("binomial_Suc'", rename_numerals binomial_Suc);
+bind_thm ("binomial_n_n'", rename_numerals binomial_n_n);
 
 (*binomial_0_Suc doesn't work well on numerals*)
-Addsimps (map (rename_numerals thy) 
-	  [binomial_n_0, binomial_zero, binomial_1]);
+Addsimps (map rename_numerals [binomial_n_0, binomial_zero, binomial_1]);
 
-Addsimps [rename_numerals thy card_Pow];
+Addsimps [rename_numerals card_Pow];
 
 (*** Comparisons involving (0::nat) ***)
 
@@ -466,7 +458,7 @@ Goal "(number_of v <= Suc n) = \
 \       (let pv = number_of (bin_pred v) in \
 \        if neg pv then True else nat pv <= n)";
 by (simp_tac
-    (simpset_of Int.thy addsimps
+    (simpset () addsimps
       [Let_def, less_Suc_number_of, linorder_not_less RS sym]) 1);
 qed "le_number_of_Suc";
 
@@ -474,7 +466,7 @@ Goal "(Suc n <= number_of v) = \
 \       (let pv = number_of (bin_pred v) in \
 \        if neg pv then False else n <= nat pv)";
 by (simp_tac
-    (simpset_of Int.thy addsimps
+    (simpset () addsimps
       [Let_def, less_number_of_Suc, linorder_not_less RS sym]) 1);
 qed "le_Suc_number_of";
 
