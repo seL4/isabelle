@@ -128,7 +128,7 @@ goal thy "!!t::typ. new_tv n t ==> {x. ? y. x = n + y} Int free_tv t = {}";
 by (step_tac (!claset) 1);
 by (cut_facts_tac [aux_plus] 1);
 by (dtac new_tv_le 1);
-ba 1;
+by (assume_tac 1);
 by (rotate_tac 1 1);
 by (dtac new_tv_not_free_tv 1);
 by (Fast_tac 1);
@@ -138,7 +138,7 @@ goal thy "!!sch::type_scheme. new_tv n sch ==> {x. ? y. x = n + y} Int free_tv s
 by (step_tac (!claset) 1);
 by (cut_facts_tac [aux_plus] 1);
 by (dtac new_tv_le 1);
-ba 1;
+by (assume_tac 1);
 by (rotate_tac 1 1);
 by (dtac new_tv_not_free_tv 1);
 by (Fast_tac 1);
@@ -164,7 +164,7 @@ by (case_tac "nat : free_tv A" 1);
 by (Asm_simp_tac 1);
 by (subgoal_tac "n <= n + nat" 1);
 by (dtac new_tv_le 1);
-ba 1;
+by (assume_tac 1);
 by (dtac new_tv_not_free_tv 1);
 by (dtac new_tv_not_free_tv 1);
 by (asm_simp_tac (!simpset addsimps [diff_add_inverse ]) 1);
@@ -175,12 +175,12 @@ qed_spec_mp "gen_t_le_gen_alpha_t";
 AddSIs has_type.intrs;
 
 goal thy "!!e. A |- e::t ==> !B. A <= B -->  B |- e::t";
-by(etac has_type.induct 1);
-   by(simp_tac (!simpset addsimps [le_env_def]) 1);
-   by(fast_tac (!claset addEs [bound_typ_instance_trans] addss !simpset) 1);
-  by(Asm_full_simp_tac 1);
- by(Fast_tac 1);
-by(slow_tac (!claset addEs [le_env_free_tv RS free_tv_subset_gen_le]) 1);
+by (etac has_type.induct 1);
+   by (simp_tac (!simpset addsimps [le_env_def]) 1);
+   by (fast_tac (!claset addEs [bound_typ_instance_trans] addss !simpset) 1);
+  by (Asm_full_simp_tac 1);
+ by (Fast_tac 1);
+by (slow_tac (!claset addEs [le_env_free_tv RS free_tv_subset_gen_le]) 1);
 qed_spec_mp "has_type_le_env";
 
 (* has_type is closed w.r.t. substitution *)
@@ -220,7 +220,7 @@ by (res_inst_tac [("t1.0","$((%x. if x : free_tv A Un free_tv t then S x else TV
  val o_apply = prove_goalw HOL.thy [o_def] "(f o g) x = f (g x)"
  (fn _ => [rtac refl 1]);
  by (stac (S'_A_eq_S'_alpha_A) 1);
- ba 1;
+ by (assume_tac 1);
 by (stac S_o_alpha_typ 1);
 by (stac gen_subst_commutes 1);
  by (rtac subset_antisym 1);
@@ -242,7 +242,7 @@ by (stac gen_subst_commutes 1);
 by (rtac has_type_le_env 1);
  by (dtac spec 1);
  by (dtac spec 1);
- ba 1;
+ by (assume_tac 1);
 by (rtac (app_subst_Cons RS subst) 1);
 by (rtac S_compatible_le_scheme_lists 1);
 by (Asm_simp_tac 1);

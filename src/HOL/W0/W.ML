@@ -19,7 +19,7 @@ by (asm_simp_tac (!simpset setloop (split_tac [expand_if])) 1);
 by (asm_full_simp_tac (!simpset addsimps [app_subst_list]
                         setloop (split_tac [expand_bind])) 1);
 by (strip_tac 1);
-bd sym 1;
+by (dtac sym 1);
 by (fast_tac (HOL_cs addss !simpset) 1);
 (* case App e1 e2 *)
 by (simp_tac (!simpset setloop (split_tac [expand_bind])) 1);

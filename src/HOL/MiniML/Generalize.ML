@@ -87,31 +87,31 @@ by (Best_tac 1);
 qed_spec_mp "gen_subst_commutes";
 
 goal Generalize.thy "free_tv(t::typ) <= free_tv(A) --> bound_typ_inst S (gen A t) = t";
-by(typ.induct_tac "t" 1);
-by(ALLGOALS Asm_simp_tac);
-by(Fast_tac 1);
+by (typ.induct_tac "t" 1);
+by (ALLGOALS Asm_simp_tac);
+by (Fast_tac 1);
 qed_spec_mp "bound_typ_inst_gen";
 Addsimps [bound_typ_inst_gen];
 
 goalw Generalize.thy [le_type_scheme_def,is_bound_typ_instance]
   "gen ($ S A) ($ S t) <= $ S (gen A t)";
-by(safe_tac (!claset));
-by(rename_tac "R" 1);
-by(res_inst_tac [("x", "(%a. bound_typ_inst R (gen ($S A) (S a)))")] exI 1);
-by(typ.induct_tac "t" 1);
- by(simp_tac (!simpset setloop (split_tac[expand_if])) 1);
-by(Asm_simp_tac 1);
+by (safe_tac (!claset));
+by (rename_tac "R" 1);
+by (res_inst_tac [("x", "(%a. bound_typ_inst R (gen ($S A) (S a)))")] exI 1);
+by (typ.induct_tac "t" 1);
+ by (simp_tac (!simpset setloop (split_tac[expand_if])) 1);
+by (Asm_simp_tac 1);
 qed "gen_bound_typ_instance";
 
 goalw Generalize.thy [le_type_scheme_def,is_bound_typ_instance]
   "!!A B. free_tv B <= free_tv A ==> gen A t <= gen B t";
-by(safe_tac (!claset));
-by(rename_tac "S" 1);
-by(res_inst_tac [("x","%b. if b:free_tv A then TVar b else S b")] exI 1);
+by (safe_tac (!claset));
+by (rename_tac "S" 1);
+by (res_inst_tac [("x","%b. if b:free_tv A then TVar b else S b")] exI 1);
 by (typ.induct_tac "t" 1);
- by(asm_simp_tac (!simpset setloop (split_tac[expand_if])) 1);
- by(Fast_tac 1);
-by(Asm_simp_tac 1);
+ by (asm_simp_tac (!simpset setloop (split_tac[expand_if])) 1);
+ by (Fast_tac 1);
+by (Asm_simp_tac 1);
 qed "free_tv_subset_gen_le";
 
 goalw thy [le_type_scheme_def,is_bound_typ_instance] 
@@ -127,7 +127,7 @@ by (asm_simp_tac (!simpset setloop (split_tac [expand_if])) 1);
 by (asm_simp_tac (!simpset setloop (split_tac [expand_if])) 1);
 by (subgoal_tac "n <= n + nat" 1);
 by (forw_inst_tac [("t","A")] new_tv_le 1);
-ba 1;
+by (assume_tac 1);
 by (dtac new_tv_not_free_tv 1);
 by (dtac new_tv_not_free_tv 1);
 by (asm_simp_tac (!simpset addsimps [diff_add_inverse]) 1);

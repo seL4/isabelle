@@ -18,15 +18,15 @@ qed_spec_mp "mk_scheme_Fun";
 
 goal thy "!t'.mk_scheme t = mk_scheme t' --> t=t'";
 by (typ.induct_tac "t" 1);
- br allI 1;
+ by (rtac allI 1);
  by (typ.induct_tac "t'" 1);
-  by(Simp_tac 1);
- by(Asm_full_simp_tac 1);
-br allI 1;
+  by (Simp_tac 1);
+ by (Asm_full_simp_tac 1);
+by (rtac allI 1);
 by (typ.induct_tac "t'" 1);
- by(Simp_tac 1);
-by(Asm_full_simp_tac 1);
-by(Fast_tac 1);
+ by (Simp_tac 1);
+by (Asm_full_simp_tac 1);
+by (Fast_tac 1);
 qed_spec_mp "mk_scheme_injective";
 
 goal thy "!!t. free_tv (mk_scheme t) = free_tv t";
@@ -105,21 +105,21 @@ Addsimps [new_tv_TVar,new_tv_FVar,new_tv_BVar,new_tv_Fun,new_tv_Fun2,new_tv_Nil,
 
 goalw thy [id_subst_def,new_tv_def,free_tv_subst,dom_def,cod_def]
   "new_tv n id_subst";
-by(Simp_tac 1);
+by (Simp_tac 1);
 qed "new_tv_id_subst";
 Addsimps[new_tv_id_subst];
 
 goal thy "new_tv n (sch::type_scheme) --> \
 \              $(%k.if k<n then S k else S' k) sch = $S sch";
 by (type_scheme.induct_tac "sch" 1);
-by(ALLGOALS Asm_simp_tac);
+by (ALLGOALS Asm_simp_tac);
 qed "new_if_subst_type_scheme";
 Addsimps [new_if_subst_type_scheme];
 
 goal thy "new_tv n (A::type_scheme list) --> \
 \              $(%k.if k<n then S k else S' k) A = $S A";
 by (list.induct_tac "A" 1);
-by(ALLGOALS Asm_simp_tac);
+by (ALLGOALS Asm_simp_tac);
 qed "new_if_subst_type_scheme_list";
 Addsimps [new_if_subst_type_scheme_list];
 
@@ -253,17 +253,17 @@ qed_spec_mp "eq_subst_scheme_list_eq_free";
 
 goalw thy [free_tv_subst] 
       "!!v. v : cod S ==> v : free_tv S";
-by( fast_tac set_cs 1);
+by ( fast_tac set_cs 1);
 qed "codD";
  
 goalw thy [free_tv_subst,dom_def] 
       "!! x. x ~: free_tv S ==> S x = TVar x";
-by( fast_tac set_cs 1);
+by ( fast_tac set_cs 1);
 qed "not_free_impl_id";
 
 goalw thy [new_tv_def] 
       "!! n. [| new_tv n t; m:free_tv t |] ==> m<n";
-by( fast_tac HOL_cs 1 );
+by ( fast_tac HOL_cs 1 );
 qed "free_tv_le_new_tv";
 
 goalw thy [dom_def,cod_def,UNION_def,Bex_def]
@@ -278,26 +278,26 @@ Addsimps [cod_app_subst];
 
 goal thy 
      "free_tv (S (v::nat)) <= cod S Un {v}";
-by( cut_inst_tac [("P","v:dom S")] excluded_middle 1);
-by( safe_tac (HOL_cs addSIs [subsetI]) );
+by ( cut_inst_tac [("P","v:dom S")] excluded_middle 1);
+by ( safe_tac (HOL_cs addSIs [subsetI]) );
 by (fast_tac (set_cs addss (!simpset addsimps [dom_def])) 1);
 by (fast_tac (set_cs addss (!simpset addsimps [cod_def])) 1);
 qed "free_tv_subst_var";
 
 goal thy 
      "free_tv ($ S (t::typ)) <= cod S Un free_tv t";
-by( typ.induct_tac "t" 1);
+by ( typ.induct_tac "t" 1);
 (* case TVar n *)
-by( simp_tac (!simpset addsimps [free_tv_subst_var]) 1);
+by ( simp_tac (!simpset addsimps [free_tv_subst_var]) 1);
 (* case Fun t1 t2 *)
-by( fast_tac (set_cs addss !simpset) 1);
+by ( fast_tac (set_cs addss !simpset) 1);
 qed "free_tv_app_subst_te";     
 
 goal thy 
      "free_tv ($ S (sch::type_scheme)) <= cod S Un free_tv sch";
-by( type_scheme.induct_tac "sch" 1);
+by ( type_scheme.induct_tac "sch" 1);
 (* case FVar n *)
-by( simp_tac (!simpset addsimps [free_tv_subst_var]) 1);
+by ( simp_tac (!simpset addsimps [free_tv_subst_var]) 1);
 (* case BVar n *)
 by (Simp_tac 1);
 (* case Fun t1 t2 *)
@@ -306,12 +306,12 @@ qed "free_tv_app_subst_type_scheme";
 
 goal thy 
      "free_tv ($ S (A::type_scheme list)) <= cod S Un free_tv A";
-by( list.induct_tac "A" 1);
+by ( list.induct_tac "A" 1);
 (* case [] *)
 by (Simp_tac 1);
 (* case a#al *)
-by( cut_facts_tac [free_tv_app_subst_type_scheme] 1);
-by( fast_tac (set_cs addss !simpset) 1);
+by ( cut_facts_tac [free_tv_app_subst_type_scheme] 1);
+by ( fast_tac (set_cs addss !simpset) 1);
 qed "free_tv_app_subst_scheme_list";
 
 goalw thy [free_tv_subst,dom_def]
@@ -396,29 +396,29 @@ Addsimps [bound_tv_subst_scheme_list];
 goalw thy [new_tv_def]
   "new_tv n S = ((!m. n <= m --> (S m = TVar m)) & \
 \                (! l. l < n --> new_tv n (S l) ))";
-by( safe_tac HOL_cs );
+by ( safe_tac HOL_cs );
 (* ==> *)
-by( fast_tac (HOL_cs addDs [leD] addss (!simpset addsimps [free_tv_subst,dom_def])) 1);
-by( subgoal_tac "m:cod S | S l = TVar l" 1);
-by( safe_tac HOL_cs );
-by(fast_tac (HOL_cs addDs [UnI2] addss (!simpset addsimps [free_tv_subst])) 1);
-by(dres_inst_tac [("P","%x. m:free_tv x")] subst 1 THEN atac 1);
-by(Asm_full_simp_tac 1);
-by(fast_tac (set_cs addss (!simpset addsimps [free_tv_subst,cod_def,dom_def])) 1);
+by ( fast_tac (HOL_cs addDs [leD] addss (!simpset addsimps [free_tv_subst,dom_def])) 1);
+by ( subgoal_tac "m:cod S | S l = TVar l" 1);
+by ( safe_tac HOL_cs );
+by (fast_tac (HOL_cs addDs [UnI2] addss (!simpset addsimps [free_tv_subst])) 1);
+by (dres_inst_tac [("P","%x. m:free_tv x")] subst 1 THEN atac 1);
+by (Asm_full_simp_tac 1);
+by (fast_tac (set_cs addss (!simpset addsimps [free_tv_subst,cod_def,dom_def])) 1);
 (* <== *)
-by( rewrite_goals_tac [free_tv_subst,cod_def,dom_def] );
-by( safe_tac set_cs );
-by( cut_inst_tac [("m","m"),("n","n")] less_linear 1);
-by( fast_tac (HOL_cs addSIs [less_or_eq_imp_le]) 1);
-by( cut_inst_tac [("m","ma"),("n","n")] less_linear 1);
-by( fast_tac (HOL_cs addSIs [less_or_eq_imp_le]) 1);
+by ( rewrite_goals_tac [free_tv_subst,cod_def,dom_def] );
+by ( safe_tac set_cs );
+by ( cut_inst_tac [("m","m"),("n","n")] less_linear 1);
+by ( fast_tac (HOL_cs addSIs [less_or_eq_imp_le]) 1);
+by ( cut_inst_tac [("m","ma"),("n","n")] less_linear 1);
+by ( fast_tac (HOL_cs addSIs [less_or_eq_imp_le]) 1);
 qed "new_tv_subst";
 
 goal thy 
   "new_tv n  = list_all (new_tv n)";
 by (rtac ext 1);
-by(list.induct_tac "x" 1);
-by(ALLGOALS Asm_simp_tac);
+by (list.induct_tac "x" 1);
+by (ALLGOALS Asm_simp_tac);
 qed "new_tv_list";
 
 (* substitution affects only variables occurring freely *)
@@ -501,7 +501,7 @@ Addsimps [new_tv_subst_scheme_list];
 
 goal thy
   "new_tv n A --> new_tv (Suc n) ((TVar n)#A)";
-by( simp_tac (!simpset addsimps [new_tv_list]) 1);
+by ( simp_tac (!simpset addsimps [new_tv_list]) 1);
 by (list.induct_tac "A" 1);
 by (ALLGOALS Asm_full_simp_tac);
 qed "new_tv_Suc_list";
@@ -627,13 +627,13 @@ goal thy "!!(A::type_scheme list) (A'::type_scheme list) (t::typ) (t'::typ). \
 by (cut_inst_tac [("t","t")] fresh_variable_types 1);
 by (cut_inst_tac [("t","t'")] fresh_variable_types 1);
 by (dtac make_one_new_out_of_two 1);
-ba 1;
+by (assume_tac 1);
 by (thin_tac "? n. new_tv n t'" 1);
 by (cut_inst_tac [("A","A")] fresh_variable_type_scheme_lists 1);
 by (cut_inst_tac [("A","A'")] fresh_variable_type_scheme_lists 1);
 by (rotate_tac 1 1);
 by (dtac make_one_new_out_of_two 1);
-ba 1;
+by (assume_tac 1);
 by (thin_tac "? n. new_tv n A'" 1);
 by (REPEAT (etac exE 1));
 by (rename_tac "n2 n1" 1);
@@ -646,14 +646,14 @@ qed "ex_fresh_variable";
 goalw thy [new_tv_def] 
       "!! n. [|mgu t1 t2 = Some u; new_tv n t1; new_tv n t2|] ==> \
 \            new_tv n u";
-by( fast_tac (set_cs addDs [mgu_free]) 1);
+by ( fast_tac (set_cs addDs [mgu_free]) 1);
 qed "mgu_new";
 
 
 (* lemmata for substitutions *)
 
 goalw Type.thy [app_subst_list] "length ($ S A) = length A";
-by(Simp_tac 1);
+by (Simp_tac 1);
 qed "length_app_subst_list";
 Addsimps [length_app_subst_list];
 
@@ -714,8 +714,8 @@ Addsimps [id_subst_A];
 
 (* composition of substitutions *)
 goalw Type.thy [id_subst_def,o_def] "$S o id_subst = S";
-br ext 1;
-by(Simp_tac 1);
+by (rtac ext 1);
+by (Simp_tac 1);
 qed "o_id_subst";
 Addsimps[o_id_subst];
 
@@ -747,7 +747,7 @@ qed "subst_id_on_type_scheme_list'";
 
 goal thy "!!A::type_scheme list. !x : free_tv A. S x = (TVar x) ==> $ S A = A";
 by (stac subst_id_on_type_scheme_list' 1);
-ba 1;
+by (assume_tac 1);
 by (Simp_tac 1);
 qed "subst_id_on_type_scheme_list";
 

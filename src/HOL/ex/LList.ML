@@ -649,7 +649,7 @@ qed "prod_fun_range_eq_diag";
 goalw thy [llistD_Fun_def, prod_fun_def]
     "!!A B. A<=B ==> llistD_Fun A <= llistD_Fun B";
 by (Auto_tac());
-br image_eqI 1;
+by (rtac image_eqI 1);
 by (fast_tac (!claset addss (!simpset)) 1);
 by (blast_tac (!claset addIs [impOfSubs LListD_Fun_mono]) 1);
 qed "llistD_Fun_mono";

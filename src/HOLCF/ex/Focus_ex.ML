@@ -75,7 +75,7 @@ by (rtac conjI 1);
 by (strip_tac 1);
 by (rtac fix_least 1);
 by (Simp_tac 1);
-by(etac exE 1);
+by (etac exE 1);
 by (dtac sym 1);
 back();
 by (asm_simp_tac HOLCF_ss 1);
@@ -84,7 +84,7 @@ val lemma3 = result();
 (* direction is_g(g) --> def_g(g) *)
 val prems = goal Focus_ex.thy "is_g(g) --> def_g(g)";
 by (simp_tac (HOL_ss delsimps (ex_simps @ all_simps)
-		     addsimps [lemma1,lemma2,def_g]) 1);
+                     addsimps [lemma1,lemma2,def_g]) 1);
 by (rtac impI 1);
 by (etac exE 1);
 by (res_inst_tac [("x","f")] exI 1);
