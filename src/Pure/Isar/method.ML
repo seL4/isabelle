@@ -41,6 +41,7 @@ sig
   val fold: thm list -> Proof.method
   val atomize_tac: thm list -> int -> tactic
   val atomize_goal: thm list -> int -> thm -> thm
+  val atomize_strip_tac: thm list * thm list -> int -> tactic
   val multi_resolve: thm list -> thm -> thm Seq.seq
   val multi_resolves: thm list -> thm list -> thm Seq.seq
   val rule_tac: thm list -> thm list -> int -> tactic
@@ -273,12 +274,15 @@ fun fold thms = SIMPLE_METHOD (CHANGED_PROP (fold_goals_tac thms));
 
 (* atomize meta-connectives *)
 
-fun atomize_tac rews =
+fun atomize_strip_tac (rews, strip) =
   let val rew_tac = rewrite_goal_tac rews in
     fn i => fn thm =>
-      if Logic.has_meta_prems (#prop (Thm.rep_thm thm)) i then rew_tac i thm
+      if Logic.has_meta_prems (#prop (Thm.rep_thm thm)) i then
+        (rew_tac i THEN REPEAT (match_tac strip i)) thm
       else all_tac thm
   end;
+
+fun atomize_tac rews = atomize_strip_tac (rews, []);
 
 fun atomize_goal rews =
   let val tac = atomize_tac rews
