@@ -14,9 +14,9 @@ by (REPEAT (ares_tac [subset_refl, Un_mono, comp_mono] 2));
 by (Blast_tac 1);
 qed "rtrancl_bnd_mono";
 
-val [prem] = goalw Trancl.thy [rtrancl_def] "r<=s ==> r^* <= s^*";
+Goalw [rtrancl_def] "r<=s ==> r^* <= s^*";
 by (rtac lfp_mono 1);
-by (REPEAT (resolve_tac [rtrancl_bnd_mono, prem, subset_refl, id_mono,
+by (REPEAT (ares_tac [rtrancl_bnd_mono, subset_refl, id_mono,
                          comp_mono, Un_mono, field_mono, Sigma_mono] 1));
 qed "rtrancl_mono";
 
@@ -28,29 +28,27 @@ val rtrancl_unfold = rtrancl_bnd_mono RS (rtrancl_def RS def_lfp_Tarski);
 bind_thm ("rtrancl_type", (rtrancl_def RS def_lfp_subset));
 
 (*Reflexivity of rtrancl*)
-val [prem] = goal Trancl.thy "[| a: field(r) |] ==> <a,a> : r^*";
+Goal "[| a: field(r) |] ==> <a,a> : r^*";
 by (resolve_tac [rtrancl_unfold RS ssubst] 1);
-by (rtac (prem RS idI RS UnI1) 1);
+by (etac (idI RS UnI1) 1);
 qed "rtrancl_refl";
 
 (*Closure under composition with r  *)
-val prems = goal Trancl.thy
-    "[| <a,b> : r^*;  <b,c> : r |] ==> <a,c> : r^*";
+Goal "[| <a,b> : r^*;  <b,c> : r |] ==> <a,c> : r^*";
 by (resolve_tac [rtrancl_unfold RS ssubst] 1);
 by (rtac (compI RS UnI2) 1);
-by (resolve_tac prems 1);
-by (resolve_tac prems 1);
+by (assume_tac 1);
+by (assume_tac 1);
 qed "rtrancl_into_rtrancl";
 
 (*rtrancl of r contains all pairs in r  *)
-val prems = goal Trancl.thy "<a,b> : r ==> <a,b> : r^*";
+Goal "<a,b> : r ==> <a,b> : r^*";
 by (resolve_tac [rtrancl_refl RS rtrancl_into_rtrancl] 1);
-by (REPEAT (resolve_tac (prems@[fieldI1]) 1));
+by (REPEAT (ares_tac [fieldI1] 1));
 qed "r_into_rtrancl";
 
 (*The premise ensures that r consists entirely of pairs*)
-val prems = goal Trancl.thy "r <= Sigma(A,B) ==> r <= r^*";
-by (cut_facts_tac prems 1);
+Goal "r <= Sigma(A,B) ==> r <= r^*";
 by (blast_tac (claset() addIs [r_into_rtrancl]) 1);
 qed "r_subset_rtrancl";
 
@@ -62,7 +60,7 @@ qed "rtrancl_field";
 
 (** standard induction rule **)
 
-val major::prems = goal Trancl.thy
+val major::prems = Goal
   "[| <a,b> : r^*; \
 \     !!x. x: field(r) ==> P(<x,x>); \
 \     !!x y z.[| P(<x,y>); <x,y>: r^*; <y,z>: r |]  ==>  P(<x,z>) |] \
@@ -74,7 +72,7 @@ qed "rtrancl_full_induct";
 (*nice induction rule.
   Tried adding the typing hypotheses y,z:field(r), but these
   caused expensive case splits!*)
-val major::prems = goal Trancl.thy
+val major::prems = Goal
   "[| <a,b> : r^*;                                              \
 \     P(a);                                                     \
 \     !!y z.[| <a,y> : r^*;  <y,z> : r;  P(y) |] ==> P(z)       \
@@ -96,7 +94,7 @@ by (DEPTH_SOLVE (eresolve_tac [asm_rl, rtrancl_into_rtrancl] 1));
 qed "trans_rtrancl";
 
 (*elimination of rtrancl -- by induction on a special formula*)
-val major::prems = goal Trancl.thy
+val major::prems = Goal
     "[| <a,b> : r^*;  (a=b) ==> P;                       \
 \       !!y.[| <a,y> : r^*;   <y,b> : r |] ==> P |]      \
 \    ==> P";
@@ -147,7 +145,7 @@ by (etac r_into_trancl 1);
 qed "rtrancl_into_trancl2";
 
 (*Nice induction rule for trancl*)
-val major::prems = goal Trancl.thy
+val major::prems = Goal
   "[| <a,b> : r^+;                                      \
 \     !!y.  [| <a,y> : r |] ==> P(y);                   \
 \     !!y z.[| <a,y> : r^+;  <y,z> : r;  P(y) |] ==> P(z)       \
@@ -162,7 +160,7 @@ by (ALLGOALS (fast_tac (claset() addIs (rtrancl_into_trancl1::prems))));
 qed "trancl_induct";
 
 (*elimination of r^+ -- NOT an induction rule*)
-val major::prems = goal Trancl.thy
+val major::prems = Goal
     "[| <a,b> : r^+;  \
 \       <a,b> : r ==> P; \
 \       !!y.[| <a,y> : r^+; <y,b> : r |] ==> P  \
@@ -178,7 +176,7 @@ Goalw [trancl_def] "r^+ <= field(r)*field(r)";
 by (blast_tac (claset() addEs [rtrancl_type RS subsetD RS SigmaE2]) 1);
 qed "trancl_type";
 
-val [prem] = goalw Trancl.thy [trancl_def] "r<=s ==> r^+ <= s^+";
-by (REPEAT (resolve_tac [prem, comp_mono, rtrancl_mono] 1));
+Goalw [trancl_def] "r<=s ==> r^+ <= s^+";
+by (REPEAT (ares_tac [comp_mono, rtrancl_mono] 1));
 qed "trancl_mono";
 

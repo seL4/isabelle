@@ -13,11 +13,11 @@ open Zorn;
 
 (*** Section 1.  Mathematical Preamble ***)
 
-goal ZF.thy "!!A B C. (ALL x:C. x<=A | B<=x) ==> Union(C)<=A | B<=Union(C)";
+Goal "!!A B C. (ALL x:C. x<=A | B<=x) ==> Union(C)<=A | B<=Union(C)";
 by (Blast_tac 1);
 qed "Union_lemma0";
 
-goal ZF.thy
+Goal
     "!!A B C. [| c:C; ALL x:C. A<=x | x<=B |] ==> A<=Inter(C) | Inter(C)<=B";
 by (Blast_tac 1);
 qed "Inter_lemma0";
@@ -45,7 +45,7 @@ val TFin_is_subset = TFin.dom_subset RS subsetD RS PowD;
 
 (** Structural induction on TFin(S,next) **)
 
-val major::prems = goal Zorn.thy
+val major::prems = Goal
   "[| n: TFin(S,next);  \
 \     !!x. [| x : TFin(S,next);  P(x);  next: increasing(S) |] ==> P(next`x); \
 \     !!Y. [| Y <= TFin(S,next);  ALL y:Y. P(y) |] ==> P(Union(Y)) \
@@ -67,12 +67,10 @@ bind_thm ("increasing_trans",
           TFin_is_subset RSN (3, increasingD2 RSN (2,subset_trans)));
 
 (*Lemma 1 of section 3.1*)
-val major::prems = goal Zorn.thy
-    "[| n: TFin(S,next);  m: TFin(S,next);  \
-\       ALL x: TFin(S,next) . x<=m --> x=m | next`x<=m \
-\    |] ==> n<=m | next`m<=n";
-by (cut_facts_tac prems 1);
-by (rtac (major RS TFin_induct) 1);
+Goal "[| n: TFin(S,next);  m: TFin(S,next);  \
+\        ALL x: TFin(S,next) . x<=m --> x=m | next`x<=m \
+\     |] ==> n<=m | next`m<=n";
+by (etac TFin_induct 1);
 by (etac Union_lemma0 2);               (*or just Blast_tac*)
 by (blast_tac (subset_cs addIs [increasing_trans]) 1);
 qed "TFin_linear_lemma1";
@@ -123,10 +121,8 @@ qed "TFin_subset_linear";
 
 
 (*Lemma 3 of section 3.3*)
-val major::prems = goal Zorn.thy
-    "[| n: TFin(S,next);  m: TFin(S,next);  m = next`m |] ==> n<=m";
-by (cut_facts_tac prems 1);
-by (rtac (major RS TFin_induct) 1);
+Goal "[| n: TFin(S,next);  m: TFin(S,next);  m = next`m |] ==> n<=m";
+by (etac TFin_induct 1);
 by (dtac TFin_subsetD 1);
 by (REPEAT (assume_tac 1));
 by (fast_tac (claset() addEs [ssubst]) 1);
@@ -276,11 +272,10 @@ qed "Zorn";
 (*** Section 6.  Zermelo's Theorem: every set can be well-ordered ***)
 
 (*Lemma 5*)
-val major::prems = goal Zorn.thy
+Goal
     "[| n: TFin(S,next);  Z <= TFin(S,next);  z:Z;  ~ Inter(Z) : Z      \
 \    |] ==> ALL m:Z. n<=m";
-by (cut_facts_tac prems 1);
-by (rtac (major RS TFin_induct) 1);
+by (etac TFin_induct 1);
 by (Blast_tac 2);                  (*second induction step is easy*)
 by (rtac ballI 1);
 by (rtac (bspec RS TFin_subsetD RS disjE) 1);
@@ -323,13 +318,6 @@ by (Blast_tac 1);
 qed "well_ord_TFin";
 
 (** Defining the "next" operation for Zermelo's Theorem **)
-
-goal AC.thy
-    "!!S. [| ch : (PROD X:Pow(S) - {0}. X);  X<=S;  X~=S        \
-\         |] ==> ch ` (S-X) : S-X";
-by (etac apply_type 1);
-by (blast_tac (claset() addSEs [equalityE]) 1);
-qed "choice_Diff";
 
 (*This justifies Definition 6.1*)
 Goal "ch: (PROD X: Pow(S)-{0}. X) ==>               \

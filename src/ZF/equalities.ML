@@ -10,23 +10,23 @@ Set Theory examples: Union, Intersection, Inclusion, etc.
 (** Finite Sets **)
 
 (* cons_def refers to Upair; reversing the equality LOOPS in rewriting!*)
-goal ZF.thy "{a} Un B = cons(a,B)";
+Goal "{a} Un B = cons(a,B)";
 by (Blast_tac 1);
 qed "cons_eq";
 
-goal ZF.thy "cons(a, cons(b, C)) = cons(b, cons(a, C))";
+Goal "cons(a, cons(b, C)) = cons(b, cons(a, C))";
 by (Blast_tac 1);
 qed "cons_commute";
 
-goal ZF.thy "!!B. a: B ==> cons(a,B) = B";
+Goal "a: B ==> cons(a,B) = B";
 by (Blast_tac 1);
 qed "cons_absorb";
 
-goal ZF.thy "!!B. a: B ==> cons(a, B-{a}) = B";
+Goal "a: B ==> cons(a, B-{a}) = B";
 by (Blast_tac 1);
 qed "cons_Diff";
 
-goal ZF.thy "!!C. [| a: C;  ALL y:C. y=b |] ==> C = {b}";
+Goal "[| a: C;  ALL y:C. y=b |] ==> C = {b}";
 by (Blast_tac 1);
 qed "equal_singleton_lemma";
 val equal_singleton = ballI RSN (2,equal_singleton_lemma);
@@ -35,150 +35,150 @@ val equal_singleton = ballI RSN (2,equal_singleton_lemma);
 (** Binary Intersection **)
 
 (*NOT an equality, but it seems to belong here...*)
-goal ZF.thy "cons(a,B) Int C <= cons(a, B Int C)";
+Goal "cons(a,B) Int C <= cons(a, B Int C)";
 by (Blast_tac 1);
 qed "Int_cons";
 
-goal ZF.thy "A Int A = A";
+Goal "A Int A = A";
 by (Blast_tac 1);
 qed "Int_absorb";
 
-goal ZF.thy "A Int B = B Int A";
+Goal "A Int B = B Int A";
 by (Blast_tac 1);
 qed "Int_commute";
 
-goal ZF.thy "(A Int B) Int C  =  A Int (B Int C)";
+Goal "(A Int B) Int C  =  A Int (B Int C)";
 by (Blast_tac 1);
 qed "Int_assoc";
 
-goal ZF.thy "(A Un B) Int C  =  (A Int C) Un (B Int C)";
+Goal "(A Un B) Int C  =  (A Int C) Un (B Int C)";
 by (Blast_tac 1);
 qed "Int_Un_distrib";
 
-goal ZF.thy "A<=B <-> A Int B = A";
+Goal "A<=B <-> A Int B = A";
 by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "subset_Int_iff";
 
-goal ZF.thy "A<=B <-> B Int A = A";
+Goal "A<=B <-> B Int A = A";
 by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "subset_Int_iff2";
 
-goal ZF.thy "!!A B C. C<=A ==> (A-B) Int C = C-B";
+Goal "C<=A ==> (A-B) Int C = C-B";
 by (Blast_tac 1);
 qed "Int_Diff_eq";
 
 (** Binary Union **)
 
-goal ZF.thy "cons(a,B) Un C = cons(a, B Un C)";
+Goal "cons(a,B) Un C = cons(a, B Un C)";
 by (Blast_tac 1);
 qed "Un_cons";
 
-goal ZF.thy "A Un A = A";
+Goal "A Un A = A";
 by (Blast_tac 1);
 qed "Un_absorb";
 
-goal ZF.thy "A Un B = B Un A";
+Goal "A Un B = B Un A";
 by (Blast_tac 1);
 qed "Un_commute";
 
-goal ZF.thy "(A Un B) Un C  =  A Un (B Un C)";
+Goal "(A Un B) Un C  =  A Un (B Un C)";
 by (Blast_tac 1);
 qed "Un_assoc";
 
-goal ZF.thy "(A Int B) Un C  =  (A Un C) Int (B Un C)";
+Goal "(A Int B) Un C  =  (A Un C) Int (B Un C)";
 by (Blast_tac 1);
 qed "Un_Int_distrib";
 
-goal ZF.thy "A<=B <-> A Un B = B";
+Goal "A<=B <-> A Un B = B";
 by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "subset_Un_iff";
 
-goal ZF.thy "A<=B <-> B Un A = B";
+Goal "A<=B <-> B Un A = B";
 by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "subset_Un_iff2";
 
 (** Simple properties of Diff -- set difference **)
 
-goal ZF.thy "A-A = 0";
+Goal "A-A = 0";
 by (Blast_tac 1);
 qed "Diff_cancel";
 
-goal ZF.thy "0-A = 0";
+Goal "0-A = 0";
 by (Blast_tac 1);
 qed "empty_Diff";
 
-goal ZF.thy "A-0 = A";
+Goal "A-0 = A";
 by (Blast_tac 1);
 qed "Diff_0";
 
-goal ZF.thy "A-B=0 <-> A<=B";
+Goal "A-B=0 <-> A<=B";
 by (blast_tac (claset() addEs [equalityE]) 1);
 qed "Diff_eq_0_iff";
 
 (*NOT SUITABLE FOR REWRITING since {a} == cons(a,0)*)
-goal ZF.thy "A - cons(a,B) = A - B - {a}";
+Goal "A - cons(a,B) = A - B - {a}";
 by (Blast_tac 1);
 qed "Diff_cons";
 
 (*NOT SUITABLE FOR REWRITING since {a} == cons(a,0)*)
-goal ZF.thy "A - cons(a,B) = A - {a} - B";
+Goal "A - cons(a,B) = A - {a} - B";
 by (Blast_tac 1);
 qed "Diff_cons2";
 
-goal ZF.thy "A Int (B-A) = 0";
+Goal "A Int (B-A) = 0";
 by (Blast_tac 1);
 qed "Diff_disjoint";
 
-goal ZF.thy "!!A B. A<=B ==> A Un (B-A) = B";
+Goal "A<=B ==> A Un (B-A) = B";
 by (Blast_tac 1);
 qed "Diff_partition";
 
-goal ZF.thy "A <= B Un (A - B)";
+Goal "A <= B Un (A - B)";
 by (Blast_tac 1);
 qed "subset_Un_Diff";
 
-goal ZF.thy "!!A B. [| A<=B; B<=C |] ==> B-(C-A) = A";
+Goal "[| A<=B; B<=C |] ==> B-(C-A) = A";
 by (Blast_tac 1);
 qed "double_complement";
 
-goal ZF.thy "(A Un B) - (B-A) = A";
+Goal "(A Un B) - (B-A) = A";
 by (Blast_tac 1);
 qed "double_complement_Un";
 
-goal ZF.thy
+Goal
  "(A Int B) Un (B Int C) Un (C Int A) = (A Un B) Int (B Un C) Int (C Un A)";
 by (Blast_tac 1);
 qed "Un_Int_crazy";
 
-goal ZF.thy "A - (B Un C) = (A-B) Int (A-C)";
+Goal "A - (B Un C) = (A-B) Int (A-C)";
 by (Blast_tac 1);
 qed "Diff_Un";
 
-goal ZF.thy "A - (B Int C) = (A-B) Un (A-C)";
+Goal "A - (B Int C) = (A-B) Un (A-C)";
 by (Blast_tac 1);
 qed "Diff_Int";
 
 (*Halmos, Naive Set Theory, page 16.*)
-goal ZF.thy "(A Int B) Un C = A Int (B Un C)  <->  C<=A";
+Goal "(A Int B) Un C = A Int (B Un C)  <->  C<=A";
 by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "Un_Int_assoc_iff";
 
 
 (** Big Union and Intersection **)
 
-goal ZF.thy "Union(cons(a,B)) = a Un Union(B)";
+Goal "Union(cons(a,B)) = a Un Union(B)";
 by (Blast_tac 1);
 qed "Union_cons";
 
-goal ZF.thy "Union(A Un B) = Union(A) Un Union(B)";
+Goal "Union(A Un B) = Union(A) Un Union(B)";
 by (Blast_tac 1);
 qed "Union_Un_distrib";
 
-goal ZF.thy "Union(A Int B) <= Union(A) Int Union(B)";
+Goal "Union(A Int B) <= Union(A) Int Union(B)";
 by (Blast_tac 1);
 qed "Union_Int_subset";
 
-goal ZF.thy "Union(C) Int A = 0 <-> (ALL B:C. B Int A = 0)";
+Goal "Union(C) Int A = 0 <-> (ALL B:C. B Int A = 0)";
 by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "Union_disjoint";
 
@@ -186,26 +186,26 @@ goalw ZF.thy [Inter_def] "Inter(0) = 0";
 by (Blast_tac 1);
 qed "Inter_0";
 
-goal ZF.thy "!!A B. [| z:A; z:B |] ==> Inter(A) Un Inter(B) <= Inter(A Int B)";
+Goal "[| z:A; z:B |] ==> Inter(A) Un Inter(B) <= Inter(A Int B)";
 by (Blast_tac 1);
 qed "Inter_Un_subset";
 
 (* A good challenge: Inter is ill-behaved on the empty set *)
-goal ZF.thy "!!A B. [| a:A;  b:B |] ==> Inter(A Un B) = Inter(A) Int Inter(B)";
+Goal "[| a:A;  b:B |] ==> Inter(A Un B) = Inter(A) Int Inter(B)";
 by (Blast_tac 1);
 qed "Inter_Un_distrib";
 
-goal ZF.thy "Union({b}) = b";
+Goal "Union({b}) = b";
 by (Blast_tac 1);
 qed "Union_singleton";
 
-goal ZF.thy "Inter({b}) = b";
+Goal "Inter({b}) = b";
 by (Blast_tac 1);
 qed "Inter_singleton";
 
 (** Unions and Intersections of Families **)
 
-goal ZF.thy "Union(A) = (UN x:A. x)";
+Goal "Union(A) = (UN x:A. x)";
 by (Blast_tac 1);
 qed "Union_eq_UN";
 
@@ -213,43 +213,41 @@ goalw ZF.thy [Inter_def] "Inter(A) = (INT x:A. x)";
 by (Blast_tac 1);
 qed "Inter_eq_INT";
 
-goal ZF.thy "(UN i:0. A(i)) = 0";
+Goal "(UN i:0. A(i)) = 0";
 by (Blast_tac 1);
 qed "UN_0";
 
 (*Halmos, Naive Set Theory, page 35.*)
-goal ZF.thy "B Int (UN i:I. A(i)) = (UN i:I. B Int A(i))";
+Goal "B Int (UN i:I. A(i)) = (UN i:I. B Int A(i))";
 by (Blast_tac 1);
 qed "Int_UN_distrib";
 
-goal ZF.thy "!!A B. i:I ==> B Un (INT i:I. A(i)) = (INT i:I. B Un A(i))";
+Goal "i:I ==> B Un (INT i:I. A(i)) = (INT i:I. B Un A(i))";
 by (Blast_tac 1);
 qed "Un_INT_distrib";
 
-goal ZF.thy
-    "(UN i:I. A(i)) Int (UN j:J. B(j)) = (UN i:I. UN j:J. A(i) Int B(j))";
+Goal "(UN i:I. A(i)) Int (UN j:J. B(j)) = (UN i:I. UN j:J. A(i) Int B(j))";
 by (Blast_tac 1);
 qed "Int_UN_distrib2";
 
-goal ZF.thy
-    "!!I J. [| i:I;  j:J |] ==> \
-\    (INT i:I. A(i)) Un (INT j:J. B(j)) = (INT i:I. INT j:J. A(i) Un B(j))";
+Goal "[| i:I;  j:J |] ==> \
+\     (INT i:I. A(i)) Un (INT j:J. B(j)) = (INT i:I. INT j:J. A(i) Un B(j))";
 by (Blast_tac 1);
 qed "Un_INT_distrib2";
 
-goal ZF.thy "!!A. a: A ==> (UN y:A. c) = c";
+Goal "a: A ==> (UN y:A. c) = c";
 by (Blast_tac 1);
 qed "UN_constant";
 
-goal ZF.thy "!!A. a: A ==> (INT y:A. c) = c";
+Goal "a: A ==> (INT y:A. c) = c";
 by (Blast_tac 1);
 qed "INT_constant";
 
-goal ZF.thy "(UN y: RepFun(A,f). B(y)) = (UN x:A. B(f(x)))";
+Goal "(UN y: RepFun(A,f). B(y)) = (UN x:A. B(f(x)))";
 by (Blast_tac 1);
 qed "UN_RepFun";
 
-goal ZF.thy "!!x. x:A ==> (INT y: RepFun(A,f). B(y)) = (INT x:A. B(f(x)))";
+Goal "x:A ==> (INT y: RepFun(A,f). B(y)) = (INT x:A. B(f(x)))";
 by (Blast_tac 1);
 qed "INT_RepFun";
 
@@ -259,94 +257,92 @@ Addsimps [UN_RepFun, INT_RepFun];
 (** Devlin, Fundamentals of Contemporary Set Theory, page 12, exercise 5: 
     Union of a family of unions **)
 
-goal ZF.thy "(UN i:I. A(i) Un B(i)) = (UN i:I. A(i))  Un  (UN i:I. B(i))";
+Goal "(UN i:I. A(i) Un B(i)) = (UN i:I. A(i))  Un  (UN i:I. B(i))";
 by (Blast_tac 1);
 qed "UN_Un_distrib";
 
-goal ZF.thy
-    "!!A B. i:I ==> \
-\           (INT i:I. A(i)  Int  B(i)) = (INT i:I. A(i)) Int (INT i:I. B(i))";
+Goal "i:I ==> (INT i:I. A(i) Int B(i)) = (INT i:I. A(i)) Int (INT i:I. B(i))";
 by (Blast_tac 1);
 qed "INT_Int_distrib";
 
-goal ZF.thy "(UN z:I Int J. A(z)) <= (UN z:I. A(z)) Int (UN z:J. A(z))";
+Goal "(UN z:I Int J. A(z)) <= (UN z:I. A(z)) Int (UN z:J. A(z))";
 by (Blast_tac 1);
 qed "UN_Int_subset";
 
 (** Devlin, page 12, exercise 5: Complements **)
 
-goal ZF.thy "!!A B. i:I ==> B - (UN i:I. A(i)) = (INT i:I. B - A(i))";
+Goal "i:I ==> B - (UN i:I. A(i)) = (INT i:I. B - A(i))";
 by (Blast_tac 1);
 qed "Diff_UN";
 
-goal ZF.thy "!!A B. i:I ==> B - (INT i:I. A(i)) = (UN i:I. B - A(i))";
+Goal "i:I ==> B - (INT i:I. A(i)) = (UN i:I. B - A(i))";
 by (Blast_tac 1);
 qed "Diff_INT";
 
 (** Unions and Intersections with General Sum **)
 
 (*Not suitable for rewriting: LOOPS!*)
-goal ZF.thy "Sigma(cons(a,B), C) = ({a}*C(a)) Un Sigma(B,C)";
+Goal "Sigma(cons(a,B), C) = ({a}*C(a)) Un Sigma(B,C)";
 by (Blast_tac 1);
 qed "Sigma_cons1";
 
 (*Not suitable for rewriting: LOOPS!*)
-goal ZF.thy "A * cons(b,B) = A*{b} Un A*B";
+Goal "A * cons(b,B) = A*{b} Un A*B";
 by (Blast_tac 1);
 qed "Sigma_cons2";
 
-goal ZF.thy "Sigma(succ(A), B) = ({A}*B(A)) Un Sigma(A,B)";
+Goal "Sigma(succ(A), B) = ({A}*B(A)) Un Sigma(A,B)";
 by (Blast_tac 1);
 qed "Sigma_succ1";
 
-goal ZF.thy "A * succ(B) = A*{B} Un A*B";
+Goal "A * succ(B) = A*{B} Un A*B";
 by (Blast_tac 1);
 qed "Sigma_succ2";
 
-goal ZF.thy "(SUM x:(UN y:A. C(y)). B(x)) = (UN y:A. SUM x:C(y). B(x))";
+Goal "(SUM x:(UN y:A. C(y)). B(x)) = (UN y:A. SUM x:C(y). B(x))";
 by (Blast_tac 1);
 qed "SUM_UN_distrib1";
 
-goal ZF.thy "(SUM i:I. UN j:J. C(i,j)) = (UN j:J. SUM i:I. C(i,j))";
+Goal "(SUM i:I. UN j:J. C(i,j)) = (UN j:J. SUM i:I. C(i,j))";
 by (Blast_tac 1);
 qed "SUM_UN_distrib2";
 
-goal ZF.thy "(SUM i:I Un J. C(i)) = (SUM i:I. C(i)) Un (SUM j:J. C(j))";
+Goal "(SUM i:I Un J. C(i)) = (SUM i:I. C(i)) Un (SUM j:J. C(j))";
 by (Blast_tac 1);
 qed "SUM_Un_distrib1";
 
-goal ZF.thy "(SUM i:I. A(i) Un B(i)) = (SUM i:I. A(i)) Un (SUM i:I. B(i))";
+Goal "(SUM i:I. A(i) Un B(i)) = (SUM i:I. A(i)) Un (SUM i:I. B(i))";
 by (Blast_tac 1);
 qed "SUM_Un_distrib2";
 
 (*First-order version of the above, for rewriting*)
-goal ZF.thy "I * (A Un B) = I*A Un I*B";
+Goal "I * (A Un B) = I*A Un I*B";
 by (rtac SUM_Un_distrib2 1);
 qed "prod_Un_distrib2";
 
-goal ZF.thy "(SUM i:I Int J. C(i)) = (SUM i:I. C(i)) Int (SUM j:J. C(j))";
+Goal "(SUM i:I Int J. C(i)) = (SUM i:I. C(i)) Int (SUM j:J. C(j))";
 by (Blast_tac 1);
 qed "SUM_Int_distrib1";
 
-goal ZF.thy
-    "(SUM i:I. A(i) Int B(i)) = (SUM i:I. A(i)) Int (SUM i:I. B(i))";
+Goal "(SUM i:I. A(i) Int B(i)) = (SUM i:I. A(i)) Int (SUM i:I. B(i))";
 by (Blast_tac 1);
 qed "SUM_Int_distrib2";
 
 (*First-order version of the above, for rewriting*)
-goal ZF.thy "I * (A Int B) = I*A Int I*B";
+Goal "I * (A Int B) = I*A Int I*B";
 by (rtac SUM_Int_distrib2 1);
 qed "prod_Int_distrib2";
 
 (*Cf Aczel, Non-Well-Founded Sets, page 115*)
-goal ZF.thy "(SUM i:I. A(i)) = (UN i:I. {i} * A(i))";
+Goal "(SUM i:I. A(i)) = (UN i:I. {i} * A(i))";
 by (Blast_tac 1);
 qed "SUM_eq_UN";
 
 (** Domain **)
 
-qed_goal "domain_of_prod" ZF.thy "!!A B. b:B ==> domain(A*B) = A"
- (fn _ => [ Blast_tac 1 ]);
+Goal "b:B ==> domain(A*B) = A";
+by (Blast_tac 1);
+qed "domain_of_prod";
 
 qed_goal "domain_0" ZF.thy "domain(0) = 0"
  (fn _ => [ Blast_tac 1 ]);
@@ -355,19 +351,19 @@ qed_goal "domain_cons" ZF.thy
     "domain(cons(<a,b>,r)) = cons(a, domain(r))"
  (fn _ => [ Blast_tac 1 ]);
 
-goal ZF.thy "domain(A Un B) = domain(A) Un domain(B)";
+Goal "domain(A Un B) = domain(A) Un domain(B)";
 by (Blast_tac 1);
 qed "domain_Un_eq";
 
-goal ZF.thy "domain(A Int B) <= domain(A) Int domain(B)";
+Goal "domain(A Int B) <= domain(A) Int domain(B)";
 by (Blast_tac 1);
 qed "domain_Int_subset";
 
-goal ZF.thy "domain(A) - domain(B) <= domain(A - B)";
+Goal "domain(A) - domain(B) <= domain(A - B)";
 by (Blast_tac 1);
 qed "domain_Diff_subset";
 
-goal ZF.thy "domain(converse(r)) = range(r)";
+Goal "domain(converse(r)) = range(r)";
 by (Blast_tac 1);
 qed "domain_converse";
 
@@ -376,9 +372,9 @@ Addsimps [domain_0, domain_cons, domain_Un_eq, domain_converse];
 
 (** Range **)
 
-qed_goal "range_of_prod" ZF.thy
-    "!!a A B. a:A ==> range(A*B) = B"
- (fn _ => [ Blast_tac 1 ]);
+Goal "a:A ==> range(A*B) = B";
+by (Blast_tac 1);
+qed "range_of_prod";
 
 qed_goal "range_0" ZF.thy "range(0) = 0"
  (fn _ => [ Blast_tac 1 ]); 
@@ -387,19 +383,19 @@ qed_goal "range_cons" ZF.thy
     "range(cons(<a,b>,r)) = cons(b, range(r))"
  (fn _ => [ Blast_tac 1 ]);
 
-goal ZF.thy "range(A Un B) = range(A) Un range(B)";
+Goal "range(A Un B) = range(A) Un range(B)";
 by (Blast_tac 1);
 qed "range_Un_eq";
 
-goal ZF.thy "range(A Int B) <= range(A) Int range(B)";
+Goal "range(A Int B) <= range(A) Int range(B)";
 by (Blast_tac 1);
 qed "range_Int_subset";
 
-goal ZF.thy "range(A) - range(B) <= range(A - B)";
+Goal "range(A) - range(B) <= range(A - B)";
 by (Blast_tac 1);
 qed "range_Diff_subset";
 
-goal ZF.thy "range(converse(r)) = domain(r)";
+Goal "range(converse(r)) = domain(r)";
 by (Blast_tac 1);
 qed "range_converse";
 
@@ -418,19 +414,19 @@ qed_goal "field_cons" ZF.thy
     "field(cons(<a,b>,r)) = cons(a, cons(b, field(r)))"
  (fn _ => [ rtac equalityI 1, ALLGOALS (Blast_tac) ]);
 
-goal ZF.thy "field(A Un B) = field(A) Un field(B)";
+Goal "field(A Un B) = field(A) Un field(B)";
 by (Blast_tac 1);
 qed "field_Un_eq";
 
-goal ZF.thy "field(A Int B) <= field(A) Int field(B)";
+Goal "field(A Int B) <= field(A) Int field(B)";
 by (Blast_tac 1);
 qed "field_Int_subset";
 
-goal ZF.thy "field(A) - field(B) <= field(A - B)";
+Goal "field(A) - field(B) <= field(A - B)";
 by (Blast_tac 1);
 qed "field_Diff_subset";
 
-goal ZF.thy "field(converse(r)) = field(r)";
+Goal "field(converse(r)) = field(r)";
 by (Blast_tac 1);
 qed "field_converse";
 
@@ -439,72 +435,74 @@ Addsimps [field_0, field_cons, field_Un_eq, field_converse];
 
 (** Image **)
 
-goal ZF.thy "r``0 = 0";
+Goal "r``0 = 0";
 by (Blast_tac 1);
 qed "image_0";
 
-goal ZF.thy "r``(A Un B) = (r``A) Un (r``B)";
+Goal "r``(A Un B) = (r``A) Un (r``B)";
 by (Blast_tac 1);
 qed "image_Un";
 
-goal ZF.thy "r``(A Int B) <= (r``A) Int (r``B)";
+Goal "r``(A Int B) <= (r``A) Int (r``B)";
 by (Blast_tac 1);
 qed "image_Int_subset";
 
-goal ZF.thy "(r Int A*A)``B <= (r``B) Int A";
+Goal "(r Int A*A)``B <= (r``B) Int A";
 by (Blast_tac 1);
 qed "image_Int_square_subset";
 
-goal ZF.thy "!!r. B<=A ==> (r Int A*A)``B = (r``B) Int A";
+Goal "B<=A ==> (r Int A*A)``B = (r``B) Int A";
 by (Blast_tac 1);
 qed "image_Int_square";
 
 Addsimps [image_0, image_Un];
 
 (*Image laws for special relations*)
-goal ZF.thy "0``A = 0";
+Goal "0``A = 0";
 by (Blast_tac 1);
 qed "image_0_left";
 Addsimps [image_0_left];
 
-goal ZF.thy "(r Un s)``A = (r``A) Un (s``A)";
+Goal "(r Un s)``A = (r``A) Un (s``A)";
 by (Blast_tac 1);
 qed "image_Un_left";
 
-goal ZF.thy "(r Int s)``A <= (r``A) Int (s``A)";
+Goal "(r Int s)``A <= (r``A) Int (s``A)";
 by (Blast_tac 1);
 qed "image_Int_subset_left";
 
 
 (** Inverse Image **)
 
-goal ZF.thy "r-``0 = 0";
+Goal "r-``0 = 0";
 by (Blast_tac 1);
 qed "vimage_0";
 
-goal ZF.thy "r-``(A Un B) = (r-``A) Un (r-``B)";
+Goal "r-``(A Un B) = (r-``A) Un (r-``B)";
 by (Blast_tac 1);
 qed "vimage_Un";
 
-goal ZF.thy "r-``(A Int B) <= (r-``A) Int (r-``B)";
+Goal "r-``(A Int B) <= (r-``A) Int (r-``B)";
 by (Blast_tac 1);
 qed "vimage_Int_subset";
 
-Goalw [function_def]
-    "function(f) ==> f-``(A Int B) = (f-``A)  Int  (f-``B)";
+Goalw [function_def] "function(f) ==> f-``(A Int B) = (f-``A)  Int  (f-``B)";
 by (Blast_tac 1);
 qed "function_vimage_Int";
 
-Goalw [function_def]
-    "function(f) ==> f-``(A-B) = (f-``A) - (f-``B)";
+Goalw [function_def] "function(f) ==> f-``(A-B) = (f-``A) - (f-``B)";
 by (Blast_tac 1);
 qed "function_vimage_Diff";
 
-goal ZF.thy "(r Int A*A)-``B <= (r-``B) Int A";
+Goalw [function_def] "function(f) ==> f `` (f-`` A) <= A";
+by (Blast_tac 1);
+qed "function_image_vimage";
+
+Goal "(r Int A*A)-``B <= (r-``B) Int A";
 by (Blast_tac 1);
 qed "vimage_Int_square_subset";
 
-goal ZF.thy "!!r. B<=A ==> (r Int A*A)-``B = (r-``B) Int A";
+Goal "B<=A ==> (r Int A*A)-``B = (r-``B) Int A";
 by (Blast_tac 1);
 qed "vimage_Int_square";
 
@@ -512,35 +510,35 @@ Addsimps [vimage_0, vimage_Un];
 
 
 (*Invese image laws for special relations*)
-goal ZF.thy "0-``A = 0";
+Goal "0-``A = 0";
 by (Blast_tac 1);
 qed "vimage_0_left";
 Addsimps [vimage_0_left];
 
-goal ZF.thy "(r Un s)-``A = (r-``A) Un (s-``A)";
+Goal "(r Un s)-``A = (r-``A) Un (s-``A)";
 by (Blast_tac 1);
 qed "vimage_Un_left";
 
-goal ZF.thy "(r Int s)-``A <= (r-``A) Int (s-``A)";
+Goal "(r Int s)-``A <= (r-``A) Int (s-``A)";
 by (Blast_tac 1);
 qed "vimage_Int_subset_left";
 
 
 (** Converse **)
 
-goal ZF.thy "converse(A Un B) = converse(A) Un converse(B)";
+Goal "converse(A Un B) = converse(A) Un converse(B)";
 by (Blast_tac 1);
 qed "converse_Un";
 
-goal ZF.thy "converse(A Int B) = converse(A) Int converse(B)";
+Goal "converse(A Int B) = converse(A) Int converse(B)";
 by (Blast_tac 1);
 qed "converse_Int";
 
-goal ZF.thy "converse(A - B) = converse(A) - converse(B)";
+Goal "converse(A - B) = converse(A) - converse(B)";
 by (Blast_tac 1);
 qed "converse_Diff";
 
-goal ZF.thy "converse(UN x:A. B(x)) = (UN x:A. converse(B(x)))";
+Goal "converse(UN x:A. B(x)) = (UN x:A. converse(B(x)))";
 by (Blast_tac 1);
 qed "converse_UN";
 
@@ -553,27 +551,27 @@ Addsimps [converse_Un, converse_Int, converse_Diff, converse_UN, converse_INT];
 
 (** Pow **)
 
-goal ZF.thy "Pow(A) Un Pow(B) <= Pow(A Un B)";
+Goal "Pow(A) Un Pow(B) <= Pow(A Un B)";
 by (Blast_tac 1);
 qed "Un_Pow_subset";
 
-goal ZF.thy "(UN x:A. Pow(B(x))) <= Pow(UN x:A. B(x))";
+Goal "(UN x:A. Pow(B(x))) <= Pow(UN x:A. B(x))";
 by (Blast_tac 1);
 qed "UN_Pow_subset";
 
-goal ZF.thy "A <= Pow(Union(A))";
+Goal "A <= Pow(Union(A))";
 by (Blast_tac 1);
 qed "subset_Pow_Union";
 
-goal ZF.thy "Union(Pow(A)) = A";
+Goal "Union(Pow(A)) = A";
 by (Blast_tac 1);
 qed "Union_Pow_eq";
 
-goal ZF.thy "Pow(A Int B) = Pow(A) Int Pow(B)";
+Goal "Pow(A Int B) = Pow(A) Int Pow(B)";
 by (Blast_tac 1);
 qed "Int_Pow_eq";
 
-goal ZF.thy "!!x A. x:A ==> (INT x:A. Pow(B(x))) = Pow(INT x:A. B(x))";
+Goal "x:A ==> (INT x:A. Pow(B(x))) = Pow(INT x:A. B(x))";
 by (Blast_tac 1);
 qed "INT_Pow_subset";
 
@@ -581,26 +579,26 @@ Addsimps [Union_Pow_eq, Int_Pow_eq];
 
 (** RepFun **)
 
-goal ZF.thy "{f(x).x:A}=0 <-> A=0";
+Goal "{f(x).x:A}=0 <-> A=0";
 	(*blast_tac takes too long to find a good depth*)
 by (Blast.depth_tac (claset() addSEs [equalityE]) 10 1);
 qed "RepFun_eq_0_iff";
 
 (** Collect **)
 
-goal ZF.thy "Collect(A Un B, P) = Collect(A,P) Un Collect(B,P)";
+Goal "Collect(A Un B, P) = Collect(A,P) Un Collect(B,P)";
 by (Blast_tac 1);
 qed "Collect_Un";
 
-goal ZF.thy "Collect(A Int B, P) = Collect(A,P) Int Collect(B,P)";
+Goal "Collect(A Int B, P) = Collect(A,P) Int Collect(B,P)";
 by (Blast_tac 1);
 qed "Collect_Int";
 
-goal ZF.thy "Collect(A - B, P) = Collect(A,P) - Collect(B,P)";
+Goal "Collect(A - B, P) = Collect(A,P) - Collect(B,P)";
 by (Blast_tac 1);
 qed "Collect_Diff";
 
-goal ZF.thy "{x:cons(a,B). P(x)} = if(P(a), cons(a, {x:B. P(x)}), {x:B. P(x)})";
+Goal "{x:cons(a,B). P(x)} = if(P(a), cons(a, {x:B. P(x)}), {x:B. P(x)})";
 by (simp_tac (simpset() addsplits [split_if]) 1);
 by (Blast_tac 1);
 qed "Collect_cons";

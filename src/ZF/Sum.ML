@@ -22,7 +22,7 @@ qed "Part_eqI";
 
 val PartI = refl RSN (2,Part_eqI);
 
-val major::prems = goalw Sum.thy [Part_def]
+val major::prems = Goalw [Part_def]
     "[| a : Part(A,h);  !!z. [| a : A;  a=h(z) |] ==> P  \
 \    |] ==> P";
 by (rtac (major RS CollectE) 1);
@@ -58,7 +58,7 @@ qed "InrI";
 
 (** Elimination rules **)
 
-val major::prems = goalw Sum.thy sum_defs
+val major::prems = Goalw sum_defs
     "[| u: A+B;  \
 \       !!x. [| x:A;  u=Inl(x) |] ==> P; \
 \       !!y. [| y:B;  u=Inr(y) |] ==> P \
@@ -141,7 +141,7 @@ qed "case_Inr";
 
 Addsimps [case_Inl, case_Inr];
 
-val major::prems = goal Sum.thy
+val major::prems = Goal
     "[| u: A+B; \
 \       !!x. x: A ==> c(x): C(Inl(x));   \
 \       !!y. y: B ==> d(y): C(Inr(y)) \
@@ -158,7 +158,7 @@ Goal "u: A+B ==>   \
 by Auto_tac;
 qed "expand_case";
 
-val major::prems = goal Sum.thy
+val major::prems = Goal
   "[| z: A+B;   \
 \     !!x. x:A ==> c(x)=c'(x);  \
 \     !!y. y:B ==> d(y)=d'(y)   \

@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
-For fixedpt.thy.  Least and greatest fixed points; the Knaster-Tarski Theorem
+Least and greatest fixed points; the Knaster-Tarski Theorem
 
 Proved in the lattice of subsets of D, namely Pow(D), with Inter as glb
 *)
@@ -12,7 +12,7 @@ open Fixedpt;
 
 (*** Monotone operators ***)
 
-val prems = goalw Fixedpt.thy [bnd_mono_def]
+val prems = Goalw [bnd_mono_def]
     "[| h(D)<=D;  \
 \       !!W X. [| W<=D;  X<=D;  W<=X |] ==> h(W) <= h(X)  \
 \    |] ==> bnd_mono(D,h)";  
@@ -20,14 +20,12 @@ by (REPEAT (ares_tac (prems@[conjI,allI,impI]) 1
      ORELSE etac subset_trans 1));
 qed "bnd_monoI";
 
-val [major] = goalw Fixedpt.thy [bnd_mono_def] "bnd_mono(D,h) ==> h(D) <= D";
-by (rtac (major RS conjunct1) 1);
+Goalw [bnd_mono_def] "bnd_mono(D,h) ==> h(D) <= D";
+by (etac conjunct1 1);
 qed "bnd_monoD1";
 
-val major::prems = goalw Fixedpt.thy [bnd_mono_def]
-    "[| bnd_mono(D,h);  W<=X;  X<=D |] ==> h(W) <= h(X)";
-by (rtac (major RS conjunct2 RS spec RS spec RS mp RS mp) 1);
-by (REPEAT (resolve_tac prems 1));
+Goalw [bnd_mono_def] "[| bnd_mono(D,h);  W<=X;  X<=D |] ==> h(W) <= h(X)";
+by (Blast_tac 1);
 qed "bnd_monoD2";
 
 val [major,minor] = goal Fixedpt.thy
@@ -71,7 +69,7 @@ by (rewtac rew);
 by (rtac lfp_subset 1);
 qed "def_lfp_subset";
 
-val prems = goalw Fixedpt.thy [lfp_def]
+val prems = Goalw [lfp_def]
     "[| h(D) <= D;  !!X. [| h(X) <= X;  X<=D |] ==> A<=X |] ==> \
 \    A <= lfp(D,h)";
 by (rtac (Pow_top RS CollectI RS Inter_greatest) 1);
@@ -85,11 +83,10 @@ by (rtac lfp_lowerbound 1);
 by (REPEAT (resolve_tac prems 1));
 qed "lfp_lemma1";
 
-val [hmono] = goal Fixedpt.thy
-    "bnd_mono(D,h) ==> h(lfp(D,h)) <= lfp(D,h)";
+Goal "bnd_mono(D,h) ==> h(lfp(D,h)) <= lfp(D,h)";
 by (rtac (bnd_monoD1 RS lfp_greatest) 1);
 by (rtac lfp_lemma1 2);
-by (REPEAT (ares_tac [hmono] 1));
+by (REPEAT (assume_tac 1));
 qed "lfp_lemma2";
 
 val [hmono] = goal Fixedpt.thy
@@ -101,9 +98,8 @@ by (rtac (hmono RS bnd_mono_subset) 2);
 by (REPEAT (rtac lfp_subset 1));
 qed "lfp_lemma3";
 
-val prems = goal Fixedpt.thy
-    "bnd_mono(D,h) ==> lfp(D,h) = h(lfp(D,h))";
-by (REPEAT (resolve_tac (prems@[equalityI,lfp_lemma2,lfp_lemma3]) 1));
+Goal "bnd_mono(D,h) ==> lfp(D,h) = h(lfp(D,h))";
+by (REPEAT (ares_tac [equalityI,lfp_lemma2,lfp_lemma3] 1));
 qed "lfp_Tarski";
 
 (*Definition form, to control unfolding*)
@@ -115,7 +111,7 @@ qed "def_lfp_Tarski";
 
 (*** General induction rule for least fixedpoints ***)
 
-val [hmono,indstep] = goal Fixedpt.thy
+val [hmono,indstep] = Goal
     "[| bnd_mono(D,h);  !!x. x : h(Collect(lfp(D,h),P)) ==> P(x) \
 \    |] ==> h(Collect(lfp(D,h),P)) <= Collect(lfp(D,h),P)";
 by (rtac subsetI 1);
@@ -128,7 +124,7 @@ qed "Collect_is_pre_fixedpt";
 
 (*This rule yields an induction hypothesis in which the components of a
   data structure may be assumed to be elements of lfp(D,h)*)
-val prems = goal Fixedpt.thy
+val prems = Goal
     "[| bnd_mono(D,h);  a : lfp(D,h);                   \
 \       !!x. x : h(Collect(lfp(D,h),P)) ==> P(x)        \
 \    |] ==> P(a)";
@@ -138,7 +134,7 @@ by (REPEAT (ares_tac prems 1));
 qed "induct";
 
 (*Definition form, to control unfolding*)
-val rew::prems = goal Fixedpt.thy
+val rew::prems = Goal
     "[| A == lfp(D,h);  bnd_mono(D,h);  a:A;   \
 \       !!x. x : h(Collect(A,P)) ==> P(x) \
 \    |] ==> P(a)";
@@ -157,7 +153,7 @@ qed "lfp_Int_lowerbound";
 
 (*Monotonicity of lfp, where h precedes i under a domain-like partial order
   monotonicity of h is not strictly necessary; h must be bounded by D*)
-val [hmono,imono,subhi] = goal Fixedpt.thy
+val [hmono,imono,subhi] = Goal
     "[| bnd_mono(D,h);  bnd_mono(E,i);          \
 \       !!X. X<=D ==> h(X) <= i(X)  |] ==> lfp(D,h) <= lfp(E,i)";
 by (rtac (bnd_monoD1 RS lfp_greatest) 1);
@@ -170,7 +166,7 @@ qed "lfp_mono";
 
 (*This (unused) version illustrates that monotonicity is not really needed,
   but both lfp's must be over the SAME set D;  Inter is anti-monotonic!*)
-val [isubD,subhi] = goal Fixedpt.thy
+val [isubD,subhi] = Goal
     "[| i(D) <= D;  !!X. X<=D ==> h(X) <= i(X)  |] ==> lfp(D,h) <= lfp(D,i)";
 by (rtac lfp_greatest 1);
 by (rtac isubD 1);
@@ -183,10 +179,9 @@ qed "lfp_mono2";
 (**** Proof of Knaster-Tarski Theorem for the gfp ****)
 
 (*gfp contains each post-fixedpoint that is contained in D*)
-val prems = goalw Fixedpt.thy [gfp_def]
-    "[| A <= h(A);  A<=D |] ==> A <= gfp(D,h)";
+Goalw [gfp_def] "[| A <= h(A);  A<=D |] ==> A <= gfp(D,h)";
 by (rtac (PowI RS CollectI RS Union_upper) 1);
-by (REPEAT (resolve_tac prems 1));
+by (REPEAT (assume_tac 1));
 qed "gfp_upperbound";
 
 Goalw [gfp_def] "gfp(D,h) <= D";
@@ -199,7 +194,7 @@ by (rewtac rew);
 by (rtac gfp_subset 1);
 qed "def_gfp_subset";
 
-val hmono::prems = goalw Fixedpt.thy [gfp_def]
+val hmono::prems = Goalw [gfp_def]
     "[| bnd_mono(D,h);  !!X. [| X <= h(X);  X<=D |] ==> X<=A |] ==> \
 \    gfp(D,h) <= A";
 by (fast_tac (subset_cs addIs ((hmono RS bnd_monoD1)::prems)) 1);
@@ -213,11 +208,10 @@ by (rtac gfp_upperbound 2);
 by (REPEAT (resolve_tac prems 1));
 qed "gfp_lemma1";
 
-val [hmono] = goal Fixedpt.thy
-    "bnd_mono(D,h) ==> gfp(D,h) <= h(gfp(D,h))";
+Goal "bnd_mono(D,h) ==> gfp(D,h) <= h(gfp(D,h))";
 by (rtac gfp_least 1);
 by (rtac gfp_lemma1 2);
-by (REPEAT (ares_tac [hmono] 1));
+by (REPEAT (assume_tac 1));
 qed "gfp_lemma2";
 
 val [hmono] = goal Fixedpt.thy
@@ -228,9 +222,8 @@ by (rtac (hmono RS gfp_lemma2) 1);
 by (REPEAT (rtac ([hmono, gfp_subset] MRS bnd_mono_subset) 1));
 qed "gfp_lemma3";
 
-val prems = goal Fixedpt.thy
-    "bnd_mono(D,h) ==> gfp(D,h) = h(gfp(D,h))";
-by (REPEAT (resolve_tac (prems@[equalityI,gfp_lemma2,gfp_lemma3]) 1));
+Goal "bnd_mono(D,h) ==> gfp(D,h) = h(gfp(D,h))";
+by (REPEAT (ares_tac [equalityI,gfp_lemma2,gfp_lemma3] 1));
 qed "gfp_Tarski";
 
 (*Definition form, to control unfolding*)
@@ -275,7 +268,7 @@ by (REPEAT (ares_tac (map (rewrite_rule [rew]) prems) 1));
 qed "def_coinduct";
 
 (*Lemma used immediately below!*)
-val [subsA,XimpP] = goal ZF.thy
+val [subsA,XimpP] = Goal
     "[| X <= A;  !!z. z:X ==> P(z) |] ==> X <= Collect(A,P)";
 by (rtac (subsA RS subsetD RS CollectI RS subsetI) 1);
 by (assume_tac 1);
@@ -283,7 +276,7 @@ by (etac XimpP 1);
 qed "subset_Collect";
 
 (*The version used in the induction/coinduction package*)
-val prems = goal Fixedpt.thy
+val prems = Goal
     "[| A == gfp(D, %w. Collect(D,P(w)));  bnd_mono(D, %w. Collect(D,P(w)));  \
 \       a: X;  X <= D;  !!z. z: X ==> P(X Un A, z) |] ==> \
 \    a : A";
@@ -292,7 +285,7 @@ by (REPEAT (ares_tac (subset_Collect::prems) 1));
 qed "def_Collect_coinduct";
 
 (*Monotonicity of gfp!*)
-val [hmono,subde,subhi] = goal Fixedpt.thy
+val [hmono,subde,subhi] = Goal
     "[| bnd_mono(D,h);  D <= E;                 \
 \       !!X. X<=D ==> h(X) <= i(X)  |] ==> gfp(D,h) <= gfp(E,i)";
 by (rtac gfp_upperbound 1);

@@ -48,7 +48,7 @@ qed "wf_on_subset_r";
 (** Introduction rules for wf_on **)
 
 (*If every non-empty subset of A has an r-minimal element then wf[A](r).*)
-val [prem] = goalw WF.thy [wf_on_def, wf_def]
+val [prem] = Goalw [wf_on_def, wf_def]
     "[| !!Z u. [| Z<=A;  u:Z;  ALL x:Z. EX y:Z. <y,x>:r |] ==> False |] \
 \    ==>  wf[A](r)";
 by (rtac (equals0I RS disjCI RS allI) 1);
@@ -59,7 +59,7 @@ qed "wf_onI";
 (*If r allows well-founded induction over A then wf[A](r)
   Premise is equivalent to 
   !!B. ALL x:A. (ALL y. <y,x>: r --> y:B) --> x:B ==> A<=B  *)
-val [prem] = goal WF.thy
+val [prem] = Goal
     "[| !!y B. [| ALL x:A. (ALL y:A. <y,x>:r --> y:B) --> x:B;   y:A  \
 \              |] ==> y:B |] \
 \    ==>  wf[A](r)";
@@ -74,7 +74,7 @@ qed "wf_onI2";
 (** Well-founded Induction **)
 
 (*Consider the least z in domain(r) Un {a} such that P(z) does not hold...*)
-val [major,minor] = goalw WF.thy [wf_def]
+val [major,minor] = Goalw [wf_def]
     "[| wf(r);          \
 \       !!x.[| ALL y. <y,x>: r --> P(y) |] ==> P(x) \
 \    |]  ==>  P(a)";
@@ -92,7 +92,7 @@ fun wf_ind_tac a prems i =
            ares_tac prems i];
 
 (*The form of this rule is designed to match wfI*)
-val wfr::amem::prems = goal WF.thy
+val wfr::amem::prems = Goal
     "[| wf(r);  a:A;  field(r)<=A;  \
 \       !!x.[| x: A;  ALL y. <y,x>: r --> P(y) |] ==> P(x) \
 \    |]  ==>  P(a)";
@@ -103,11 +103,11 @@ by (eresolve_tac prems 1);
 by (blast_tac (claset() addIs (prems RL [subsetD])) 1);
 qed "wf_induct2";
 
-goal domrange.thy "!!r A. field(r Int A*A) <= A";
+Goal "!!r A. field(r Int A*A) <= A";
 by (Blast_tac 1);
 qed "field_Int_square";
 
-val wfr::amem::prems = goalw WF.thy [wf_on_def]
+val wfr::amem::prems = Goalw [wf_on_def]
     "[| wf[A](r);  a:A;                                         \
 \       !!x.[| x: A;  ALL y:A. <y,x>: r --> P(y) |] ==> P(x)    \
 \    |]  ==>  P(a)";
@@ -122,7 +122,7 @@ fun wf_on_ind_tac a prems i =
            REPEAT (ares_tac prems i)];
 
 (*If r allows well-founded induction then wf(r)*)
-val [subs,indhyp] = goal WF.thy
+val [subs,indhyp] = Goal
     "[| field(r)<=A;  \
 \       !!y B. [| ALL x:A. (ALL y:A. <y,x>:r --> y:B) --> x:B;   y:A  \
 \              |] ==> y:B |] \
@@ -197,9 +197,8 @@ bind_thm ("underD", (vimage_singleton_iff RS iffD1));
 
 (** is_recfun **)
 
-val [major] = goalw WF.thy [is_recfun_def]
-    "is_recfun(r,a,H,f) ==> f: r-``{a} -> range(f)";
-by (stac major 1);
+Goalw [is_recfun_def] "is_recfun(r,a,H,f) ==> f: r-``{a} -> range(f)";
+by (etac ssubst 1);
 by (rtac (lamI RS rangeI RS lam_type) 1);
 by (assume_tac 1);
 qed "is_recfun_type";
@@ -245,26 +244,22 @@ qed "is_recfun_cut";
 
 (*** Main Existence Lemma ***)
 
-val prems = goal WF.thy
-    "[| wf(r); trans(r); is_recfun(r,a,H,f); is_recfun(r,a,H,g) |]  ==>  f=g";
-by (cut_facts_tac prems 1);
+Goal "[| wf(r); trans(r); is_recfun(r,a,H,f); is_recfun(r,a,H,g) |]  ==>  f=g";
 by (rtac fun_extension 1);
 by (REPEAT (ares_tac [is_recfun_equal] 1
      ORELSE eresolve_tac [is_recfun_type,underD] 1));
 qed "is_recfun_functional";
 
 (*If some f satisfies is_recfun(r,a,H,-) then so does the_recfun(r,a,H) *)
-val prems = goalw WF.thy [the_recfun_def]
+Goalw [the_recfun_def]
     "[| is_recfun(r,a,H,f);  wf(r);  trans(r) |]  \
 \    ==> is_recfun(r, a, H, the_recfun(r,a,H))";
 by (rtac (ex1I RS theI) 1);
-by (REPEAT (ares_tac (prems@[is_recfun_functional]) 1));
+by (REPEAT (ares_tac [is_recfun_functional] 1));
 qed "is_the_recfun";
 
-val prems = goal WF.thy
-    "[| wf(r);  trans(r) |] ==> is_recfun(r, a, H, the_recfun(r,a,H))";
-by (cut_facts_tac prems 1);
-by (wf_ind_tac "a" prems 1);
+Goal "[| wf(r);  trans(r) |] ==> is_recfun(r, a, H, the_recfun(r,a,H))";
+by (wf_ind_tac "a" [] 1);
 by (res_inst_tac [("f", "lam y: r-``{a1}. wftrec(r,y,H)")] is_the_recfun 1);
 by (REPEAT (assume_tac 2));
 by (rewrite_goals_tac [is_recfun_def, wftrec_def]);
@@ -309,14 +304,14 @@ by (rtac subset_refl 1);
 qed "wfrec";
 
 (*This form avoids giant explosions in proofs.  NOTE USE OF == *)
-val rew::prems = goal WF.thy
+val rew::prems = Goal
     "[| !!x. h(x)==wfrec(r,x,H);  wf(r) |] ==> \
 \    h(a) = H(a, lam x: r-``{a}. h(x))";
 by (rewtac rew);
 by (REPEAT (resolve_tac (prems@[wfrec]) 1));
 qed "def_wfrec";
 
-val prems = goal WF.thy
+val prems = Goal
     "[| wf(r);  a:A;  field(r)<=A;  \
 \       !!x u. [| x: A;  u: Pi(r-``{x}, B) |] ==> H(x,u) : B(x)   \
 \    |] ==> wfrec(r,a,H) : B(a)";

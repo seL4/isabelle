@@ -33,7 +33,7 @@ val prems = goalw Perm.thy [surj_def]
 by (blast_tac (claset() addIs prems) 1);
 qed "f_imp_surjective";
 
-val prems = goal Perm.thy
+val prems = Goal
     "[| !!x. x:A ==> c(x): B;           \
 \       !!y. y:B ==> d(y): A;           \
 \       !!y. y:B ==> c(d(y)) = y        \
@@ -74,7 +74,7 @@ by (asm_simp_tac (simpset() addsimps [inj_def]) 1);
 by (deepen_tac (claset() addEs [subst_context RS box_equals]) 0 1);
 bind_thm ("f_imp_injective", ballI RSN (2,result()));
 
-val prems = goal Perm.thy
+val prems = Goal
     "[| !!x. x:A ==> c(x): B;           \
 \       !!x. x:A ==> d(c(x)) = x        \
 \    |] ==> (lam x:A. c(x)) : inj(A,B)";
@@ -185,10 +185,9 @@ qed "left_inverse";
 
 val left_inverse_bij = bij_is_inj RS left_inverse;
 
-val prems = goal Perm.thy
-    "[| f: A->B;  converse(f): C->A;  b: C |] ==> f`(converse(f)`b) = b";
+Goal "[| f: A->B;  converse(f): C->A;  b: C |] ==> f`(converse(f)`b) = b";
 by (rtac (apply_Pair RS (converseD RS apply_equality)) 1);
-by (REPEAT (resolve_tac prems 1));
+by (REPEAT (assume_tac 1));
 qed "right_inverse_lemma";
 
 (*Should the premises be f:surj(A,B), b:B for symmetry with left_inverse?
@@ -337,7 +336,7 @@ qed "comp_fun_apply";
 Addsimps [comp_fun_apply];
 
 (*Simplifies compositions of lambda-abstractions*)
-val [prem] = goal Perm.thy
+val [prem] = Goal
     "[| !!x. x:A ==> b(x): B    \
 \    |] ==> (lam y:B. c(y)) O (lam x:A. b(x)) = (lam x:A. c(b(x)))";
 by (rtac fun_extension 1);
@@ -513,11 +512,10 @@ by (REPEAT (eresolve_tac [asm_rl, bspec RS bspec RS mp, subsetD,
                           box_equals, restrict] 1));
 qed "restrict_inj";
 
-val prems = goal Perm.thy 
-    "[| f: Pi(A,B);  C<=A |] ==> restrict(f,C): surj(C, f``C)";
+Goal "[| f: Pi(A,B);  C<=A |] ==> restrict(f,C): surj(C, f``C)";
 by (rtac (restrict_image RS subst) 1);
 by (rtac (restrict_type2 RS surj_image) 3);
-by (REPEAT (resolve_tac prems 1));
+by (REPEAT (assume_tac 1));
 qed "restrict_surj";
 
 Goalw [inj_def,bij_def]

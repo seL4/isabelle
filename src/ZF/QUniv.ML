@@ -160,42 +160,6 @@ bind_thm ("bool_subset_quniv",
 bind_thm ("bool_into_quniv", bool_subset_quniv RS subsetD);
 
 
-(**** Properties of Vfrom analogous to the "take-lemma" ****)
-
-(*** Intersecting a*b with Vfrom... ***)
-
-(*This version says a, b exist one level down, in the smaller set Vfrom(X,i)*)
-goal Univ.thy
-    "!!X. [| {a,b} : Vfrom(X,succ(i));  Transset(X) |] ==> \
-\         a: Vfrom(X,i)  &  b: Vfrom(X,i)";
-by (dtac (Transset_Vfrom_succ RS equalityD1 RS subsetD RS PowD) 1);
-by (assume_tac 1);
-by (Fast_tac 1);
-qed "doubleton_in_Vfrom_D";
-
-(*This weaker version says a, b exist at the same level*)
-bind_thm ("Vfrom_doubleton_D", Transset_Vfrom RS Transset_doubleton_D);
-
-(** Using only the weaker theorem would prove <a,b> : Vfrom(X,i)
-      implies a, b : Vfrom(X,i), which is useless for induction.
-    Using only the stronger theorem would prove <a,b> : Vfrom(X,succ(succ(i)))
-      implies a, b : Vfrom(X,i), leaving the succ(i) case untreated.
-    The combination gives a reduction by precisely one level, which is
-      most convenient for proofs.
-**)
-
-goalw Univ.thy [Pair_def]
-    "!!X. [| <a,b> : Vfrom(X,succ(i));  Transset(X) |] ==> \
-\         a: Vfrom(X,i)  &  b: Vfrom(X,i)";
-by (blast_tac (claset() addSDs [doubleton_in_Vfrom_D, Vfrom_doubleton_D]) 1);
-qed "Pair_in_Vfrom_D";
-
-goal Univ.thy
- "!!X. Transset(X) ==>          \
-\      (a*b) Int Vfrom(X, succ(i)) <= (a Int Vfrom(X,i)) * (b Int Vfrom(X,i))";
-by (blast_tac (claset() addSDs [Pair_in_Vfrom_D]) 1);
-qed "product_Int_Vfrom_subset";
-
 (*** Intersecting <a;b> with Vfrom... ***)
 
 Goalw [QPair_def,sum_def]

@@ -55,7 +55,7 @@ Goal "[| l: list(A);  A <= univ(B) |] ==> l: univ(B)";
 by (REPEAT (ares_tac [list_subset_univ RS subsetD] 1));
 qed "list_into_univ";
 
-val major::prems = goal List.thy
+val major::prems = Goal
     "[| l: list(A);    \
 \       c: C(Nil);       \
 \       !!x y. [| x: A;  y: list(A) |] ==> h(x,y): C(Cons(x,y))  \
@@ -142,7 +142,7 @@ Addsimps [list_rec_Nil, list_rec_Cons];
 
 
 (*Type checking -- proved by induction, as usual*)
-val prems = goal List.thy
+val prems = Goal
     "[| l: list(A);    \
 \       c: C(Nil);       \
 \       !!x y r. [| x:A;  y: list(A);  r: C(y) |] ==> h(x,y,r): C(Cons(x,y))  \
@@ -153,14 +153,12 @@ qed "list_rec_type";
 
 (** Versions for use with definitions **)
 
-val [rew] = goal List.thy
-    "[| !!l. j(l)==list_rec(l, c, h) |] ==> j(Nil) = c";
+val [rew] = Goal "[| !!l. j(l)==list_rec(l, c, h) |] ==> j(Nil) = c";
 by (rewtac rew);
 by (rtac list_rec_Nil 1);
 qed "def_list_rec_Nil";
 
-val [rew] = goal List.thy
-    "[| !!l. j(l)==list_rec(l, c, h) |] ==> j(Cons(a,l)) = h(a,l,j(l))";
+val [rew] = Goal "[| !!l. j(l)==list_rec(l, c, h) |] ==> j(Cons(a,l)) = h(a,l,j(l))";
 by (rewtac rew);
 by (rtac list_rec_Cons 1);
 qed "def_list_rec_Cons";
@@ -173,13 +171,13 @@ fun list_recs def = map standard
 val [map_Nil,map_Cons] = list_recs map_def;
 Addsimps [map_Nil, map_Cons];
 
-val prems = goalw List.thy [map_def] 
+val prems = Goalw [map_def] 
     "[| l: list(A);  !!x. x: A ==> h(x): B |] ==> map(h,l) : list(B)";
 by (REPEAT (ares_tac (prems @ list.intrs @ [list_rec_type]) 1));
 qed "map_type";
 
-val [major] = goal List.thy "l: list(A) ==> map(h,l) : list({h(u). u:A})";
-by (rtac (major RS map_type) 1);
+Goal "l: list(A) ==> map(h,l) : list({h(u). u:A})";
+by (etac map_type 1);
 by (etac RepFunI 1);
 qed "map_type2";
 
@@ -263,35 +261,30 @@ simpset_ref() := simpset() setSolver (type_auto_tac list_typechecks);
 
 (*** theorems about map ***)
 
-val prems = goal List.thy
-    "l: list(A) ==> map(%u. u, l) = l";
-by (list_ind_tac "l" prems 1);
+Goal "l: list(A) ==> map(%u. u, l) = l";
+by (list_ind_tac "l" [] 1);
 by (ALLGOALS Asm_simp_tac);
 qed "map_ident";
 
-val prems = goal List.thy
-    "l: list(A) ==> map(h, map(j,l)) = map(%u. h(j(u)), l)";
-by (list_ind_tac "l" prems 1);
+Goal "l: list(A) ==> map(h, map(j,l)) = map(%u. h(j(u)), l)";
+by (list_ind_tac "l" [] 1);
 by (ALLGOALS Asm_simp_tac);
 qed "map_compose";
 
-val prems = goal List.thy
-    "xs: list(A) ==> map(h, xs@ys) = map(h,xs) @ map(h,ys)";
-by (list_ind_tac "xs" prems 1);
+Goal "xs: list(A) ==> map(h, xs@ys) = map(h,xs) @ map(h,ys)";
+by (list_ind_tac "xs" [] 1);
 by (ALLGOALS Asm_simp_tac);
 qed "map_app_distrib";
 
-val prems = goal List.thy
-    "ls: list(list(A)) ==> map(h, flat(ls)) = flat(map(map(h),ls))";
-by (list_ind_tac "ls" prems 1);
+Goal "ls: list(list(A)) ==> map(h, flat(ls)) = flat(map(map(h),ls))";
+by (list_ind_tac "ls" [] 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [map_app_distrib])));
 qed "map_flat";
 
-val prems = goal List.thy
-    "l: list(A) ==> \
+Goal "l: list(A) ==> \
 \    list_rec(map(h,l), c, d) = \
 \    list_rec(l, c, %x xs r. d(h(x), map(h,xs), r))";
-by (list_ind_tac "l" prems 1);
+by (list_ind_tac "l" [] 1);
 by (ALLGOALS Asm_simp_tac);
 qed "list_rec_map";
 
@@ -300,23 +293,20 @@ qed "list_rec_map";
 (* c : list(Collect(B,P)) ==> c : list(B) *)
 bind_thm ("list_CollectD", (Collect_subset RS list_mono RS subsetD));
 
-val prems = goal List.thy
-    "l: list({x:A. h(x)=j(x)}) ==> map(h,l) = map(j,l)";
-by (list_ind_tac "l" prems 1);
+Goal "l: list({x:A. h(x)=j(x)}) ==> map(h,l) = map(j,l)";
+by (list_ind_tac "l" [] 1);
 by (ALLGOALS Asm_simp_tac);
 qed "map_list_Collect";
 
 (*** theorems about length ***)
 
-val prems = goal List.thy
-    "xs: list(A) ==> length(map(h,xs)) = length(xs)";
-by (list_ind_tac "xs" prems 1);
+Goal "xs: list(A) ==> length(map(h,xs)) = length(xs)";
+by (list_ind_tac "xs" [] 1);
 by (ALLGOALS Asm_simp_tac);
 qed "length_map";
 
-val prems = goal List.thy
-    "xs: list(A) ==> length(xs@ys) = length(xs) #+ length(ys)";
-by (list_ind_tac "xs" prems 1);
+Goal "xs: list(A) ==> length(xs@ys) = length(xs) #+ length(ys)";
+by (list_ind_tac "xs" [] 1);
 by (ALLGOALS Asm_simp_tac);
 qed "length_app";
 
@@ -324,15 +314,13 @@ qed "length_app";
    Used for rewriting below*)
 val add_commute_succ = nat_succI RSN (2,add_commute);
 
-val prems = goal List.thy
-    "xs: list(A) ==> length(rev(xs)) = length(xs)";
-by (list_ind_tac "xs" prems 1);
+Goal "xs: list(A) ==> length(rev(xs)) = length(xs)";
+by (list_ind_tac "xs" [] 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [length_app, add_commute_succ])));
 qed "length_rev";
 
-val prems = goal List.thy
-    "ls: list(list(A)) ==> length(flat(ls)) = list_add(map(length,ls))";
-by (list_ind_tac "ls" prems 1);
+Goal "ls: list(list(A)) ==> length(flat(ls)) = list_add(map(length,ls))";
+by (list_ind_tac "ls" [] 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [length_app])));
 qed "length_flat";
 
@@ -364,26 +352,25 @@ bind_thm ("drop_length", (drop_length_lemma RS bspec));
 
 (*** theorems about app ***)
 
-val [major] = goal List.thy "xs: list(A) ==> xs@Nil=xs";
-by (rtac (major RS list.induct) 1);
+Goal "xs: list(A) ==> xs@Nil=xs";
+by (etac list.induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "app_right_Nil";
 
-val prems = goal List.thy "xs: list(A) ==> (xs@ys)@zs = xs@(ys@zs)";
-by (list_ind_tac "xs" prems 1);
+Goal "xs: list(A) ==> (xs@ys)@zs = xs@(ys@zs)";
+by (list_ind_tac "xs" [] 1);
 by (ALLGOALS Asm_simp_tac);
 qed "app_assoc";
 
-val prems = goal List.thy
-    "ls: list(list(A)) ==> flat(ls@ms) = flat(ls)@flat(ms)";
-by (list_ind_tac "ls" prems 1);
+Goal "ls: list(list(A)) ==> flat(ls@ms) = flat(ls)@flat(ms)";
+by (list_ind_tac "ls" [] 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [app_assoc])));
 qed "flat_app_distrib";
 
 (*** theorems about rev ***)
 
-val prems = goal List.thy "l: list(A) ==> rev(map(h,l)) = map(h,rev(l))";
-by (list_ind_tac "l" prems 1);
+Goal "l: list(A) ==> rev(map(h,l)) = map(h,rev(l))";
+by (list_ind_tac "l" [] 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [map_app_distrib])));
 qed "rev_map_distrib";
 
@@ -396,14 +383,13 @@ by (etac list.induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [app_right_Nil,app_assoc])));
 qed "rev_app_distrib";
 
-val prems = goal List.thy "l: list(A) ==> rev(rev(l))=l";
-by (list_ind_tac "l" prems 1);
+Goal "l: list(A) ==> rev(rev(l))=l";
+by (list_ind_tac "l" [] 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [rev_app_distrib])));
 qed "rev_rev_ident";
 
-val prems = goal List.thy
-    "ls: list(list(A)) ==> rev(flat(ls)) = flat(map(rev,rev(ls)))";
-by (list_ind_tac "ls" prems 1);
+Goal "ls: list(list(A)) ==> rev(flat(ls)) = flat(map(rev,rev(ls)))";
+by (list_ind_tac "ls" [] 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps 
        [map_app_distrib, flat_app_distrib, rev_app_distrib, app_right_Nil])));
 qed "rev_flat";
@@ -411,34 +397,30 @@ qed "rev_flat";
 
 (*** theorems about list_add ***)
 
-val prems = goal List.thy
-    "[| xs: list(nat);  ys: list(nat) |] ==> \
+Goal "[| xs: list(nat);  ys: list(nat) |] ==> \
 \    list_add(xs@ys) = list_add(ys) #+ list_add(xs)";
-by (cut_facts_tac prems 1);
-by (list_ind_tac "xs" prems 1);
+by (list_ind_tac "xs" [] 1);
 by (ALLGOALS 
     (asm_simp_tac (simpset() addsimps [add_0_right, add_assoc RS sym])));
 by (rtac (add_commute RS subst_context) 1);
 by (REPEAT (ares_tac [refl, list_add_type] 1));
 qed "list_add_app";
 
-val prems = goal List.thy
-    "l: list(nat) ==> list_add(rev(l)) = list_add(l)";
-by (list_ind_tac "l" prems 1);
+Goal "l: list(nat) ==> list_add(rev(l)) = list_add(l)";
+by (list_ind_tac "l" [] 1);
 by (ALLGOALS
     (asm_simp_tac (simpset() addsimps [list_add_app, add_0_right])));
 qed "list_add_rev";
 
-val prems = goal List.thy
-    "ls: list(list(nat)) ==> list_add(flat(ls)) = list_add(map(list_add,ls))";
-by (list_ind_tac "ls" prems 1);
+Goal "ls: list(list(nat)) ==> list_add(flat(ls)) = list_add(map(list_add,ls))";
+by (list_ind_tac "ls" [] 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [list_add_app])));
 by (REPEAT (ares_tac [refl, list_add_type, map_type, add_commute] 1));
 qed "list_add_flat";
 
 (** New induction rule **)
 
-val major::prems = goal List.thy
+val major::prems = Goal
     "[| l: list(A);  \
 \       P(Nil);        \
 \       !!x y. [| x: A;  y: list(A);  P(y) |] ==> P(y @ [x]) \

@@ -61,3 +61,9 @@ by (rtac AC_Pi 1);
 by (REPEAT (ares_tac [non_empty_family] 1));
 qed "AC_Pi0";
 
+(*Used in Zorn.ML*)
+Goal "[| ch : (PROD X:Pow(S) - {0}. X);  X<=S;  X~=S |] ==> ch ` (S-X) : S-X";
+by (etac apply_type 1);
+by (blast_tac (claset() addSEs [equalityE]) 1);
+qed "choice_Diff";
+

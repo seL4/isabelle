@@ -107,11 +107,10 @@ Goalw [Pair_def]
 by (REPEAT (ares_tac [doubleton_in_Vfrom] 1));
 qed "Pair_in_Vfrom";
 
-val [prem] = goal Univ.thy
-    "a<=Vfrom(A,i) ==> succ(a) : Vfrom(A,succ(succ(i)))";
+Goal "a<=Vfrom(A,i) ==> succ(a) : Vfrom(A,succ(succ(i)))";
 by (REPEAT (resolve_tac [subset_mem_Vfrom, succ_subsetI] 1));
 by (rtac (Vfrom_mono RSN (2,subset_trans)) 2);
-by (REPEAT (resolve_tac [prem, subset_refl, subset_succI] 1));
+by (REPEAT (ares_tac [subset_refl, subset_succI] 1));
 qed "succ_in_Vfrom";
 
 (*** 0, successor and limit equations fof Vfrom ***)
@@ -140,12 +139,32 @@ qed "Vfrom_succ";
 
 (*The premise distinguishes this from Vfrom(A,0);  allowing X=0 forces
   the conclusion to be Vfrom(A,Union(X)) = A Un (UN y:X. Vfrom(A,y)) *)
+Goal "y:X ==> Vfrom(A,Union(X)) = (UN y:X. Vfrom(A,y))";
+by (stac Vfrom 1);
+by (rtac equalityI 1);
+(*first inclusion*)
+by (rtac Un_least 1);
+by (rtac (A_subset_Vfrom RS subset_trans) 1);
+by (rtac UN_upper 1);
+by (assume_tac 1);
+by (rtac UN_least 1);
+by (etac UnionE 1);
+by (rtac subset_trans 1);
+by (etac UN_upper 2 THEN stac Vfrom 1 THEN 
+    etac ([UN_upper, Un_upper2] MRS subset_trans) 1);
+(*opposite inclusion*)
+by (rtac UN_least 1);
+by (stac Vfrom 1);
+by (Blast_tac 1);
+qed "Vfrom_Union";
+
 val [prem] = goal Univ.thy "y:X ==> Vfrom(A,Union(X)) = (UN y:X. Vfrom(A,y))";
 by (stac Vfrom 1);
 by (rtac equalityI 1);
 (*first inclusion*)
 by (rtac Un_least 1);
 by (rtac (A_subset_Vfrom RS subset_trans) 1);
+
 by (rtac (prem RS UN_upper) 1);
 by (rtac UN_least 1);
 by (etac UnionE 1);
@@ -175,7 +194,7 @@ by (rtac (Limit_Vfrom_eq RS equalityD2 RS subsetD) 1);
 by (REPEAT (ares_tac [ltD RS UN_I] 1));
 qed "Limit_VfromI";
 
-val prems = goal Univ.thy
+val prems = Goal
     "[| a: Vfrom(A,i);  Limit(i);               \
 \       !!x. [| x<i;  a: Vfrom(A,x) |] ==> R    \
 \    |] ==> R";
@@ -278,8 +297,7 @@ by (rtac (A_subset_Vfrom RS subset_trans) 1);
 by (etac (Transset_Vfrom RS (Transset_iff_Pow RS iffD1)) 1);
 qed "Transset_Vfrom_succ";
 
-goalw Ordinal.thy [Pair_def,Transset_def]
-    "!!C. [| <a,b> <= C; Transset(C) |] ==> a: C & b: C";
+Goalw [Pair_def,Transset_def] "[| <a,b> <= C; Transset(C) |] ==> a: C & b: C";
 by (Blast_tac 1);
 qed "Transset_Pair_subset";
 
@@ -297,7 +315,7 @@ qed "Transset_Pair_subset_VLimit";
 ***)
 
 (*General theorem for membership in Vfrom(A,i) when i is a limit ordinal*)
-val [aprem,bprem,limiti,step] = goal Univ.thy
+val [aprem,bprem,limiti,step] = Goal
   "[| a: Vfrom(A,i);  b: Vfrom(A,i);  Limit(i);                 \
 \     !!x y j. [| j<i; 1:j; x: Vfrom(A,j); y: Vfrom(A,j) \
 \              |] ==> EX k. h(x,y): Vfrom(A,k) & k<i |] ==>     \
@@ -377,8 +395,7 @@ by (REPEAT (ares_tac [exI, conjI, fun_in_Vfrom, transset,
 qed "fun_in_VLimit";
 
 Goalw [Pi_def]
-    "[| a: Vfrom(A,j);  Transset(A) |] ==> \
-\         Pow(a) : Vfrom(A, succ(succ(j)))";
+    "[| a: Vfrom(A,j);  Transset(A) |] ==> Pow(a) : Vfrom(A, succ(succ(j)))";
 by (dtac Transset_Vfrom 1);
 by (rtac subset_mem_Vfrom 1);
 by (rewtac Transset_def);
@@ -406,8 +423,8 @@ val Transset_Vset = Transset_0 RS Transset_Vfrom;
 
 (** Characterisation of the elements of Vset(i) **)
 
-val [ordi] = goal Univ.thy "Ord(i) ==> ALL b. b : Vset(i) --> rank(b) < i";
-by (rtac (ordi RS trans_induct) 1);
+Goal "Ord(i) ==> ALL b. b : Vset(i) --> rank(b) < i";
+by (etac trans_induct 1);
 by (stac Vset 1);
 by Safe_tac;
 by (stac rank 1);
@@ -416,8 +433,8 @@ by (Blast_tac 2);
 by (REPEAT (ares_tac [ltI] 1));
 qed_spec_mp "VsetD";
 
-val [ordi] = goal Univ.thy "Ord(i) ==> ALL b. rank(b) : i --> b : Vset(i)";
-by (rtac (ordi RS trans_induct) 1);
+Goal "Ord(i) ==> ALL b. rank(b) : i --> b : Vset(i)";
+by (etac trans_induct 1);
 by (rtac allI 1);
 by (stac Vset 1);
 by (blast_tac (claset() addSIs [rank_lt RS ltD]) 1);
@@ -458,7 +475,7 @@ by (rtac subsetI 1);
 by (etac (rank_lt RS VsetI) 1);
 qed "arg_subset_Vset_rank";
 
-val [iprem] = goal Univ.thy
+val [iprem] = Goal
     "[| !!i. Ord(i) ==> a Int Vset(i) <= b |] ==> a <= b";
 by (rtac ([subset_refl, arg_subset_Vset_rank] MRS 
           Int_greatest RS subset_trans) 1);
@@ -490,7 +507,7 @@ by (simp_tac (simpset() addsimps [Ord_rank, Ord_succ, VsetD RS ltD RS beta,
 qed "Vrec";
 
 (*This form avoids giant explosions in proofs.  NOTE USE OF == *)
-val rew::prems = goal Univ.thy
+val rew::prems = Goal
     "[| !!x. h(x)==Vrec(x,H) |] ==> \
 \    h(a) = H(a, lam x: Vset(rank(a)). h(x))";
 by (rewtac rew);
@@ -520,7 +537,7 @@ by (rtac (subset_UN_iff_eq RS iffD1) 1);
 by (etac (univ_eq_UN RS subst) 1);
 qed "subset_univ_eq_Int";
 
-val [aprem, iprem] = goal Univ.thy
+val [aprem, iprem] = Goal
     "[| a <= univ(X);                           \
 \       !!i. i:nat ==> a Int Vfrom(X,i) <= b    \
 \    |] ==> a <= b";
@@ -529,7 +546,7 @@ by (rtac UN_least 1);
 by (etac iprem 1);
 qed "univ_Int_Vfrom_subset";
 
-val prems = goal Univ.thy
+val prems = Goal
     "[| a <= univ(X);   b <= univ(X);   \
 \       !!i. i:nat ==> a Int Vfrom(X,i) = b Int Vfrom(X,i) \
 \    |] ==> a = b";
@@ -695,4 +712,38 @@ val FiniteFun_in_univ = result();
 (*Remove <= from the rule above*)
 val FiniteFun_in_univ' = subsetI RSN (2, FiniteFun_in_univ);
 
+
+(**** For QUniv.  Properties of Vfrom analogous to the "take-lemma" ****)
+
+(*** Intersecting a*b with Vfrom... ***)
+
+(*This version says a, b exist one level down, in the smaller set Vfrom(X,i)*)
+Goal "[| {a,b} : Vfrom(X,succ(i));  Transset(X) |]  \
+\     ==> a: Vfrom(X,i)  &  b: Vfrom(X,i)";
+by (dtac (Transset_Vfrom_succ RS equalityD1 RS subsetD RS PowD) 1);
+by (assume_tac 1);
+by (Fast_tac 1);
+qed "doubleton_in_Vfrom_D";
+
+(*This weaker version says a, b exist at the same level*)
+bind_thm ("Vfrom_doubleton_D", Transset_Vfrom RS Transset_doubleton_D);
+
+(** Using only the weaker theorem would prove <a,b> : Vfrom(X,i)
+      implies a, b : Vfrom(X,i), which is useless for induction.
+    Using only the stronger theorem would prove <a,b> : Vfrom(X,succ(succ(i)))
+      implies a, b : Vfrom(X,i), leaving the succ(i) case untreated.
+    The combination gives a reduction by precisely one level, which is
+      most convenient for proofs.
+**)
+
+Goalw [Pair_def]
+    "[| <a,b> : Vfrom(X,succ(i));  Transset(X) |]  \
+\    ==> a: Vfrom(X,i)  &  b: Vfrom(X,i)";
+by (blast_tac (claset() addSDs [doubleton_in_Vfrom_D, Vfrom_doubleton_D]) 1);
+qed "Pair_in_Vfrom_D";
+
+Goal "Transset(X) ==>          \
+\      (a*b) Int Vfrom(X, succ(i)) <= (a Int Vfrom(X,i)) * (b Int Vfrom(X,i))";
+by (blast_tac (claset() addSDs [Pair_in_Vfrom_D]) 1);
+qed "product_Int_Vfrom_subset";
 

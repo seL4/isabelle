@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-For Ordinal.thy.  Ordinals in Zermelo-Fraenkel Set Theory 
+Ordinals in Zermelo-Fraenkel Set Theory 
 *)
 
 open Ordinal;
@@ -73,12 +73,12 @@ Goalw [Transset_def] "Transset(A) ==> Transset(Union(A))";
 by (Blast_tac 1);
 qed "Transset_Union";
 
-val [Transprem] = goalw Ordinal.thy [Transset_def]
+val [Transprem] = Goalw [Transset_def]
     "[| !!i. i:A ==> Transset(i) |] ==> Transset(Union(A))";
 by (blast_tac (claset() addDs [Transprem RS bspec RS subsetD]) 1);
 qed "Transset_Union_family";
 
-val [prem,Transprem] = goalw Ordinal.thy [Transset_def]
+val [prem,Transprem] = Goalw [Transset_def]
     "[| j:A;  !!i. i:A ==> Transset(i) |] ==> Transset(Inter(A))";
 by (cut_facts_tac [prem] 1);
 by (blast_tac (claset() addDs [Transprem RS bspec RS subsetD]) 1);
@@ -86,19 +86,18 @@ qed "Transset_Inter_family";
 
 (*** Natural Deduction rules for Ord ***)
 
-val prems = goalw Ordinal.thy [Ord_def]
+val prems = Goalw [Ord_def]
     "[| Transset(i);  !!x. x:i ==> Transset(x) |]  ==>  Ord(i)";
 by (REPEAT (ares_tac (prems@[ballI,conjI]) 1));
 qed "OrdI";
 
-val [major] = goalw Ordinal.thy [Ord_def]
-    "Ord(i) ==> Transset(i)";
-by (rtac (major RS conjunct1) 1);
+Goalw [Ord_def] "Ord(i) ==> Transset(i)";
+by (Blast_tac 1);
 qed "Ord_is_Transset";
 
-val [major,minor] = goalw Ordinal.thy [Ord_def]
+Goalw [Ord_def]
     "[| Ord(i);  j:i |] ==> Transset(j) ";
-by (rtac (minor RS (major RS conjunct2 RS bspec)) 1);
+by (Blast_tac 1);
 qed "Ord_contains_Transset";
 
 (*** Lemmas for ordinals ***)
@@ -159,7 +158,7 @@ Goalw [Ord_def] "[| Ord(i); Ord(j) |] ==> Ord(i Int j)";
 by (blast_tac (claset() addSIs [Transset_Int]) 1);
 qed "Ord_Int";
 
-val nonempty::prems = goal Ordinal.thy
+val nonempty::prems = Goal
     "[| j:A;  !!i. i:A ==> Ord(i) |] ==> Ord(Inter(A))";
 by (rtac (nonempty RS Transset_Inter_family RS OrdI) 1);
 by (rtac Ord_is_Transset 1);
@@ -167,7 +166,7 @@ by (REPEAT (ares_tac ([Ord_contains_Transset,nonempty]@prems) 1
      ORELSE etac InterD 1));
 qed "Ord_Inter";
 
-val jmemA::prems = goal Ordinal.thy
+val jmemA::prems = Goal
     "[| j:A;  !!x. x:A ==> Ord(B(x)) |] ==> Ord(INT x:A. B(x))";
 by (rtac (jmemA RS RepFunI RS Ord_Inter) 1);
 by (etac RepFunE 1);
@@ -194,7 +193,7 @@ Goalw [lt_def] "[| i:j;  Ord(j) |] ==> i<j";
 by (REPEAT (ares_tac [conjI] 1));
 qed "ltI";
 
-val major::prems = goalw Ordinal.thy [lt_def]
+val major::prems = Goalw [lt_def]
     "[| i<j;  [| i:j;  Ord(i);  Ord(j) |] ==> P |] ==> P";
 by (rtac (major RS conjE) 1);
 by (REPEAT (ares_tac (prems@[Ord_in_Ord]) 1));
@@ -258,12 +257,12 @@ qed "le_eqI";
 
 val le_refl = refl RS le_eqI;
 
-val [prem] = goal Ordinal.thy "(~ (i=j & Ord(j)) ==> i<j) ==> i le j";
+val [prem] = Goal "(~ (i=j & Ord(j)) ==> i<j) ==> i le j";
 by (rtac (disjCI RS (le_iff RS iffD2)) 1);
 by (etac prem 1);
 qed "leCI";
 
-val major::prems = goal Ordinal.thy
+val major::prems = Goal
     "[| i le j;  i<j ==> P;  [| i=j;  Ord(j) |] ==> P |] ==> P";
 by (rtac (major RS (le_iff RS iffD1 RS disjE)) 1);
 by (DEPTH_SOLVE (ares_tac prems 1 ORELSE etac conjE 1));
@@ -298,7 +297,7 @@ Goal "[| a: b;  a: A;  b: A |] ==> <a,b> : Memrel(A)";
 by (REPEAT (ares_tac [conjI, Memrel_iff RS iffD2] 1));
 qed "MemrelI";
 
-val [major,minor] = goal Ordinal.thy
+val [major,minor] = Goal
     "[| <a,b> : Memrel(A);  \
 \       [| a: A;  b: A;  a:b |]  ==> P \
 \    |]  ==> P";
@@ -357,7 +356,7 @@ qed "Transset_Memrel_iff";
 (*** Transfinite induction ***)
 
 (*Epsilon induction over a transitive set*)
-val major::prems = goalw Ordinal.thy [Transset_def]
+val major::prems = Goalw [Transset_def]
     "[| i: k;  Transset(k);                          \
 \       !!x.[| x: k;  ALL y:x. P(y) |] ==> P(x) \
 \    |]  ==>  P(i)";
@@ -373,7 +372,7 @@ qed "Transset_induct";
 val Ord_induct = Ord_is_Transset RSN (2, Transset_induct);
 
 (*Induction over the class of ordinals -- a useful corollary of Ord_induct*)
-val [major,indhyp] = goal Ordinal.thy
+val [major,indhyp] = Goal
     "[| Ord(i); \
 \       !!x.[| Ord(x);  ALL y:x. P(y) |] ==> P(x) \
 \    |]  ==>  P(i)";
@@ -397,29 +396,28 @@ val Ord_trans_tac = EVERY' [etac notE, etac Ord_trans, REPEAT o atac];
 
 (** Proving that < is a linear ordering on the ordinals **)
 
-val prems = goal Ordinal.thy
-    "Ord(i) ==> (ALL j. Ord(j) --> i:j | i=j | j:i)";
-by (trans_ind_tac "i" prems 1);
+Goal "Ord(i) ==> (ALL j. Ord(j) --> i:j | i=j | j:i)";
+by (etac trans_induct 1);
 by (rtac (impI RS allI) 1);
 by (trans_ind_tac "j" [] 1);
 by (DEPTH_SOLVE (Step_tac 1 ORELSE Ord_trans_tac 1));
 qed_spec_mp "Ord_linear";
 
 (*The trichotomy law for ordinals!*)
-val ordi::ordj::prems = goalw Ordinal.thy [lt_def]
+val ordi::ordj::prems = Goalw [lt_def]
     "[| Ord(i);  Ord(j);  i<j ==> P;  i=j ==> P;  j<i ==> P |] ==> P";
 by (rtac ([ordi,ordj] MRS Ord_linear RS disjE) 1);
 by (etac disjE 2);
 by (DEPTH_SOLVE (ares_tac ([ordi,ordj,conjI] @ prems) 1));
 qed "Ord_linear_lt";
 
-val prems = goal Ordinal.thy
+val prems = Goal
     "[| Ord(i);  Ord(j);  i<j ==> P;  j le i ==> P |]  ==> P";
 by (res_inst_tac [("i","i"),("j","j")] Ord_linear_lt 1);
 by (DEPTH_SOLVE (ares_tac ([leI, sym RS le_eqI] @ prems) 1));
 qed "Ord_linear2";
 
-val prems = goal Ordinal.thy
+val prems = Goal
     "[| Ord(i);  Ord(j);  i le j ==> P;  j le i ==> P |]  ==> P";
 by (res_inst_tac [("i","i"),("j","j")] Ord_linear_lt 1);
 by (DEPTH_SOLVE (ares_tac ([leI,le_eqI] @ prems) 1));
@@ -489,7 +487,7 @@ by (blast_tac (claset() addIs [Ord_succ] addDs [Ord_succD]) 1);
 qed "le_succ_iff";
 
 (*Just a variant of subset_imp_le*)
-val [ordi,ordj,minor] = goal Ordinal.thy
+val [ordi,ordj,minor] = Goal
     "[| Ord(i);  Ord(j);  !!x. x<j ==> x<i |] ==> j le i";
 by (REPEAT_FIRST (ares_tac [notI RS not_lt_imp_le, ordi, ordj]));
 by (etac (minor RS lt_irrefl) 1);
@@ -581,12 +579,12 @@ qed "Int_greatest_lt";
 
 (*** Results about limits ***)
 
-val prems = goal Ordinal.thy "[| !!i. i:A ==> Ord(i) |] ==> Ord(Union(A))";
+val prems = Goal "[| !!i. i:A ==> Ord(i) |] ==> Ord(Union(A))";
 by (rtac (Ord_is_Transset RS Transset_Union_family RS OrdI) 1);
 by (REPEAT (etac UnionE 1 ORELSE ares_tac ([Ord_contains_Transset]@prems) 1));
 qed "Ord_Union";
 
-val prems = goal Ordinal.thy
+val prems = Goal
     "[| !!x. x:A ==> Ord(B(x)) |] ==> Ord(UN x:A. B(x))";
 by (rtac Ord_Union 1);
 by (etac RepFunE 1);
@@ -595,27 +593,27 @@ by (eresolve_tac prems 1);
 qed "Ord_UN";
 
 (* No < version; consider (UN i:nat.i)=nat *)
-val [ordi,limit] = goal Ordinal.thy
+val [ordi,limit] = Goal
     "[| Ord(i);  !!x. x:A ==> b(x) le i |] ==> (UN x:A. b(x)) le i";
 by (rtac (le_imp_subset RS UN_least RS subset_imp_le) 1);
 by (REPEAT (ares_tac [ordi, Ord_UN, limit] 1 ORELSE etac (limit RS ltE) 1));
 qed "UN_least_le";
 
-val [jlti,limit] = goal Ordinal.thy
+val [jlti,limit] = Goal
     "[| j<i;  !!x. x:A ==> b(x)<j |] ==> (UN x:A. succ(b(x))) < i";
 by (rtac (jlti RS ltE) 1);
 by (rtac (UN_least_le RS lt_trans2) 1);
 by (REPEAT (ares_tac [jlti, succ_leI, limit] 1));
 qed "UN_succ_least_lt";
 
-val prems = goal Ordinal.thy
+val prems = Goal
     "[| a: A;  i le b(a);  !!x. x:A ==> Ord(b(x)) |] ==> i le (UN x:A. b(x))";
 by (resolve_tac (prems RL [ltE]) 1);
 by (rtac (le_imp_subset RS subset_trans RS subset_imp_le) 1);
 by (REPEAT (ares_tac (prems @ [UN_upper, Ord_UN]) 1));
 qed "UN_upper_le";
 
-val [leprem] = goal Ordinal.thy
+val [leprem] = Goal
     "[| !!x. x:A ==> c(x) le d(x) |] ==> (UN x:A. c(x)) le (UN x:A. d(x))";
 by (rtac UN_least_le 1);
 by (rtac UN_upper_le 2);
@@ -679,7 +677,7 @@ by (blast_tac (claset() addSIs [non_succ_LimitI, Ord_0_lt]
                       addSDs [Ord_succD]) 1);
 qed "Ord_cases_disj";
 
-val major::prems = goal Ordinal.thy
+val major::prems = Goal
     "[| Ord(i);                 \
 \       i=0                          ==> P;     \
 \       !!j. [| Ord(j); i=succ(j) |] ==> P;     \
@@ -689,7 +687,7 @@ by (cut_facts_tac [major RS Ord_cases_disj] 1);
 by (REPEAT (eresolve_tac (prems@[asm_rl, disjE, exE, conjE]) 1));
 qed "Ord_cases";
 
-val major::prems = goal Ordinal.thy
+val major::prems = Goal
      "[| Ord(i);                \
 \        P(0);                  \
 \        !!x. [| Ord(x);  P(x) |] ==> P(succ(x));       \
