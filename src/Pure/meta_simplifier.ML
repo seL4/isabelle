@@ -909,8 +909,6 @@ fun bottomc ((simprem,useprem,mutsimp), prover, sign, maxidx) =
     prover: how to solve premises in conditional rewrites and congruences
 *)
 
-(* FIXME: check that #bounds(mss) does not "occur" in ct already *)
-
 fun rewrite_cterm mode prover mss ct =
   let val {sign, t, maxidx, ...} = rep_cterm ct
       val Mss{depth, ...} = mss
