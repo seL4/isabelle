@@ -680,6 +680,8 @@ val pure_methods =
   ("insert", thms_args insert, "insert theorems, ignoring facts (improper)"),
   ("unfold", thms_args unfold, "unfold definitions"),
   ("fold", thms_args fold, "fold definitions"),
+  ("atomize", no_args (SIMPLE_METHOD' HEADGOAL ObjectLogic.atomize_tac),
+    "present local premises as object-level statements"),
   ("rule", thms_ctxt_args some_rule, "apply some rule"),
   ("erule", nat_thms_args erule, "apply rule in elimination manner (improper)"),
   ("drule", nat_thms_args drule, "apply rule in destruct manner (improper)"),
