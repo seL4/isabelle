@@ -46,7 +46,7 @@ val datatypesK = "datatypes";
 exception DatatypeInfo of datatype_info Symtab.table;
 
 local
-  val empty = DatatypeInfo Symtab.null;
+  val empty = DatatypeInfo Symtab.empty;
 
   fun prep_ext (x as DatatypeInfo _) = x;
 
@@ -86,7 +86,7 @@ exception Records of record_info Symtab.table;
 (* methods *)
 
 local
-  val empty = Records Symtab.null;
+  val empty = Records Symtab.empty;
 
   fun prep_ext (x as Records _) = x;
 
