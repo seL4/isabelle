@@ -50,6 +50,80 @@ apply(simp only:mult_ac)
 done
 
 lemma split_div:
+ "P(n div k :: nat) =
+ ((k = 0 \<longrightarrow> P 0) \<and> (k \<noteq> 0 \<longrightarrow> (!i. !j<k. n = k*i + j \<longrightarrow> P i)))"
+ (is "?P = ?Q" is "_ = (_ \<and> (_ \<longrightarrow> ?R))")
+proof
+  assume P: ?P
+  show ?Q
+  proof (cases)
+    assume "k = 0"
+    with P show ?Q by(simp add:DIVISION_BY_ZERO_DIV)
+  next
+    assume not0: "k \<noteq> 0"
+    thus ?Q
+    proof (simp, intro allI impI)
+      fix i j
+      assume n: "n = k*i + j" and j: "j < k"
+      show "P i"
+      proof (cases)
+	assume "i = 0"
+	with n j P show "P i" by simp
+      next
+	assume "i \<noteq> 0"
+	with not0 n j P show "P i" by(simp add:add_ac)
+      qed
+    qed
+  qed
+next
+  assume Q: ?Q
+  show ?P
+  proof (cases)
+    assume "k = 0"
+    with Q show ?P by(simp add:DIVISION_BY_ZERO_DIV)
+  next
+    assume not0: "k \<noteq> 0"
+    with Q have R: ?R by simp
+    from not0 R[THEN spec,of "n div k",THEN spec, of "n mod k"]
+    show ?P by(simp add:mod_div_equality2)
+  qed
+qed
+
+lemma split_mod:
+ "P(n mod k :: nat) =
+ ((k = 0 \<longrightarrow> P n) \<and> (k \<noteq> 0 \<longrightarrow> (!i. !j<k. n = k*i + j \<longrightarrow> P j)))"
+ (is "?P = ?Q" is "_ = (_ \<and> (_ \<longrightarrow> ?R))")
+proof
+  assume P: ?P
+  show ?Q
+  proof (cases)
+    assume "k = 0"
+    with P show ?Q by(simp add:DIVISION_BY_ZERO_MOD)
+  next
+    assume not0: "k \<noteq> 0"
+    thus ?Q
+    proof (simp, intro allI impI)
+      fix i j
+      assume "n = k*i + j" "j < k"
+      thus "P j" using not0 P by(simp add:add_ac mult_ac)
+    qed
+  qed
+next
+  assume Q: ?Q
+  show ?P
+  proof (cases)
+    assume "k = 0"
+    with Q show ?P by(simp add:DIVISION_BY_ZERO_MOD)
+  next
+    assume not0: "k \<noteq> 0"
+    with Q have R: ?R by simp
+    from not0 R[THEN spec,of "n div k",THEN spec, of "n mod k"]
+    show ?P by(simp add:mod_div_equality2)
+  qed
+qed
+
+(*
+lemma split_div:
 assumes m: "m \<noteq> 0"
 shows "P(n div m :: nat) = (!i. !j<m. n = m*i + j \<longrightarrow> P i)"
        (is "?P = ?Q")
@@ -91,5 +165,5 @@ next
   from m Q[THEN spec,of "n div m",THEN spec, of "n mod m"]
   show ?P by(simp add:mod_div_equality2)
 qed
-
+*)
 end

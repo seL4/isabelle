@@ -22,9 +22,9 @@ defs (overloaded)
 use "nat_bin.ML"
 setup nat_bin_arith_setup
 
-(* Enable arith to deal with div 2 and mod 2: *)
-declare split_div[of 2, simplified,arith_split]
-declare split_mod[of 2, simplified,arith_split]
+(* Enable arith to deal with div/mod k where k is a numeral: *)
+declare split_div[of _ _ "number_of k", standard, arith_split]
+declare split_mod[of _ _ "number_of k", standard, arith_split]
 
 lemma nat_number_of_Pls: "number_of Pls = (0::nat)"
   by (simp add: number_of_Pls nat_number_of_def)
