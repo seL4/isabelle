@@ -117,7 +117,8 @@ result();
 
 
 (*** Problems from of Sahlin, Franzen and Haridi, 
-     An Intuitionistic Predicate Logic Theorem Prover
+     An Intuitionistic Predicate Logic Theorem Prover.
+     J. Logic and Comp. 2 (5), October 1992, 619-656.
 ***)
 
 (*Problem 1.1*)
