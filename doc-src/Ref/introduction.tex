@@ -71,8 +71,8 @@ by running
 isabelle Foo  
 \end{ttbox}
 
-More details about the \texttt{isabelle} command may be found in the
-\emph{System Manual}.
+More details about the \texttt{isabelle} command may be found in \emph{The
+  Isabelle System Manual}.
 
 \medskip Saving the state is not enough.  Record, on a file, the
 top-level commands that generate your theories and proofs.  Such a
@@ -135,11 +135,12 @@ of Isabelle commands is the usual way of replaying a proof.
 performs {\tt use~"$file$"} and prints the total execution time.
 \end{ttdescription}
 
-The $dir$ and $file$ specifications of the \texttt{cd} and
-\texttt{use} commands may contain path variables that are expanded
-appropriately, e.g.\ \texttt{\$ISABELLE_HOME} or \texttt{\~\relax}
-(which abbreviates \texttt{\$HOME}).  Section~\ref{LoadingTheories}
-describes commands for loading theory files.
+The $dir$ and $file$ specifications of the \texttt{cd} and \texttt{use}
+commands may contain path variables (e.g.\ \texttt{\$ISABELLE_HOME}) that are
+expanded appropriately.  Note that \texttt{\~\relax} abbreviates
+\texttt{\$HOME}, and \texttt{\~\relax\~\relax} abbreviates
+\texttt{\$ISABELLE_HOME}.  Section~\ref{LoadingTheories} describes commands
+for loading theory files.
 
 
 \section{Setting flags}
@@ -189,6 +190,7 @@ which limits the number of subgoals printed
 \index{types!printing of}\index{sorts!printing of}
 \begin{ttbox} 
 show_hyps     : bool ref \hfill{\bf initially true}
+show_tags     : bool ref \hfill{\bf initially false}
 show_brackets : bool ref \hfill{\bf initially false}
 show_types    : bool ref \hfill{\bf initially false}
 show_sorts    : bool ref \hfill{\bf initially false}
@@ -208,6 +210,9 @@ does not apply as expected.
 
 \item[reset \ttindexbold{show_hyps};] makes Isabelle show each
   meta-level hypothesis as a dot.
+  
+\item[set \ttindexbold{show_tags};] makes Isabelle show tags of theorems
+  (which are basically just comments that may be attached by some tools).
   
 \item[set \ttindexbold{show_brackets};] makes Isabelle show full
   bracketing.  In particular, this reveals the grouping of infix

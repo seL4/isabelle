@@ -712,13 +712,12 @@ coming in two variants.  Each such function is associated with a name,
 which triggers calls to it.  Such names can be constants (logical or
 syntactic) or type constructors.
 
-{\tt print_syntax} displays the sets of names associated with the translation
-functions of a theory under \texttt{parse_ast_translation}, etc.  You can add
-new ones via the {\tt ML} section\index{*ML section} of a theory definition
-file.  There may never be more than one function of the same kind per name.
-Even though the {\tt ML} section is the very last part of the file, newly
-installed translation functions are already effective when processing all of
-the preceding sections.
+Function {\tt print_syntax} displays the sets of names associated with the
+translation functions of a theory under \texttt{parse_ast_translation}, etc.
+You can add new ones via the {\tt ML} section\index{*ML section} of a theory
+definition file.  Even though the {\tt ML} section is the very last part of
+the file, newly installed translation functions are already effective when
+processing all of the preceding sections.
 
 The {\tt ML} section's contents are simply copied verbatim near the
 beginning of the \ML\ file generated from a theory definition file.
@@ -757,16 +756,18 @@ Regardless of whether they act on terms or \AST{}s, translation
 functions called during the parsing process differ from those for
 printing more fundamentally in their overall behaviour:
 \begin{description}
-\item[Parse translations] are applied bottom-up.  The arguments are already
-  in translated form.  The translations must not fail; exceptions trigger
-  an error message.
-
+\item[Parse translations] are applied bottom-up.  The arguments are already in
+  translated form.  The translations must not fail; exceptions trigger an
+  error message.  There may never be more than one function associated with
+  any syntactic name.
+  
 \item[Print translations] are applied top-down.  They are supplied with
   arguments that are partly still in internal form.  The result again
-  undergoes translation; therefore a print translation should not introduce
-  as head the very constant that invoked it.  The function may raise
-  exception \xdx{Match} to indicate failure; in this event it has no
-  effect.
+  undergoes translation; therefore a print translation should not introduce as
+  head the very constant that invoked it.  The function may raise exception
+  \xdx{Match} to indicate failure; in this event it has no effect.  Multiple
+  functions associated with some syntactic name are tried in an unspecified
+  order.
 \end{description}
 
 Only constant atoms --- constructor \ttindex{Constant} for \AST{}s and
@@ -883,22 +884,21 @@ represent bound variables have to be marked appropriately (cf.\ the
 example at the end of \S\ref{sec:tr_funs}).
 
 \medskip Token translations may be installed by declaring the
-\ttindex{token_translation} value within the \texttt{ML} section of a
-theory definition file:
+\ttindex{token_translation} value within the \texttt{ML} section of a theory
+definition file:
 \begin{ttbox}
-val token_translation: (string * string * (string -> string * int)) list
+val token_translation: (string * string * (string -> string * real)) list
 \end{ttbox}\index{token_translation}
-The elements of this list are of the form $(m, c, f)$, where $m$ is a
-print mode identifier, $c$ a token class, and $f\colon string \to
-string \times int$ the actual translation function.  Assuming that $x$
-is of identifier class $c$, and print mode $m$ is the first one of all
-currently active modes that provide some translation for $c$, then $x$
-is output according to $f(x) = (x', len)$.  Thereby $x'$ is the
-modified identifier name and $len$ its visual length approximated in
-terms of whole characters.  Thus $x'$ may include non-printing parts
-like control sequences or markup information for typesetting systems.
+The elements of this list are of the form $(m, c, f)$, where $m$ is a print
+mode identifier, $c$ a token class, and $f\colon string \to string \times
+real$ the actual translation function.  Assuming that $x$ is of identifier
+class $c$, and print mode $m$ is the first (active) mode providing some
+translation for $c$, then $x$ is output according to $f(x) = (x', len)$.
+Thereby $x'$ is the modified identifier name and $len$ its visual length in
+terms of characters (e.g.\ length 1.0 would correspond to $1/2$\,em in
+\LaTeX).  Thus $x'$ may include non-printing parts like control sequences or
+markup information for typesetting systems.
 
-%FIXME example (?)
 
 \index{token translations|)}
 

@@ -280,7 +280,7 @@
     \subitem of simplification, 117
     \subitem of translations, 98
   \item exceptions
-    \subitem printing of, 5
+    \subitem printing of, 6
   \item {\tt exit}, \bold{2}
   \item {\tt extensional}, \bold{48}
 
@@ -409,7 +409,7 @@
   \item {\tt logic} nonterminal, \bold{72}
   \item {\tt Logic.auto_rename}, \bold{25}
   \item {\tt Logic.set_rename_prefix}, \bold{24}
-  \item {\tt long_names}, \bold{4}
+  \item {\tt long_names}, \bold{5}
   \item {\tt loose_bnos}, \bold{63}, 99
 
   \indexspace
@@ -476,7 +476,7 @@
   \item {\tt parse_rules}, 92
   \item pattern, higher-order, \bold{110}
   \item {\tt pause_tac}, \bold{29}
-  \item Poly/{\ML} compiler, 5
+  \item Poly/{\ML} compiler, 6
   \item {\tt pop_proof}, \bold{16}
   \item {\tt pr}, \bold{12}
   \item {\tt premises}, \bold{8}, 16
@@ -637,9 +637,10 @@
     \subitem for \texttt{by} commands, 13
     \subitem for tactics, 22
   \item {\tt show_brackets}, \bold{4}
-  \item {\tt show_consts}, \bold{4}
+  \item {\tt show_consts}, \bold{5}
   \item {\tt show_hyps}, \bold{4}
   \item {\tt show_sorts}, \bold{4}, 89, 97
+  \item {\tt show_tags}, \bold{4}
   \item {\tt show_types}, \bold{4}, 89, 92, 99
   \item {\tt Sign.certify_term}, \bold{65}
   \item {\tt Sign.certify_typ}, \bold{66}

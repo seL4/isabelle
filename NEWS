@@ -22,61 +22,56 @@ uses the default simpset instead of a supplied list of theorems.
 
 *** Proof tools ***
 
-* Provers/Arith/fast_lin_arith.ML contains a functor for creating a decision
-procedure for linear arithmetic. Currently it is used for types `nat' and
-`int' in HOL (see below) but can, should and will be instantiated for other
-types and logics as well.
+* Provers/Arith/fast_lin_arith.ML contains a functor for creating a
+decision procedure for linear arithmetic. Currently it is used for
+types `nat' and `int' in HOL (see below) but can, should and will be
+instantiated for other types and logics as well.
 
 
 *** General ***
 
-* in locales, the "assumes" and "defines" parts may be omitted if empty;
+* in locales, the "assumes" and "defines" parts may be omitted if
+empty;
 
 * new print_mode "xsymbols" for extended symbol support (e.g. genuine
 long arrows);
 
+* new print_mode "HTML";
+
 * path element specification '~~' refers to '$ISABELLE_HOME';
+
+* new flag show_tags controls display of tags of theorems (which are
+basically just comments that may be attached by some tools);
 
 
 *** HOL ***
 
-* There are now decision procedures for linear arithmetic over nat and int:
+* There are now decision procedures for linear arithmetic over nat and
+int:
 
-1. arith_tac copes with arbitrary formulae involving `=', `<', `<=', `+',
-`-', `Suc', `min', `max' and numerical constants; other subterms are treated
-as atomic; subformulae not involving type `nat' or `int' are ignored;
-quantified subformulae are ignored unless they are positive universal or
-negative existential. The tactic has to be invoked by hand and can be a
-little bit slow. In particular, the running time is exponential in the number
-of occurrences of `min' and `max', and `-' on `nat'.
+1. arith_tac copes with arbitrary formulae involving `=', `<', `<=',
+`+', `-', `Suc', `min', `max' and numerical constants; other subterms
+are treated as atomic; subformulae not involving type `nat' or `int'
+are ignored; quantified subformulae are ignored unless they are
+positive universal or negative existential. The tactic has to be
+invoked by hand and can be a little bit slow. In particular, the
+running time is exponential in the number of occurrences of `min' and
+`max', and `-' on `nat'.
 
-2. fast_arith_tac is a cut-down version of arith_tac: it only takes (negated)
-(in)equalities among the premises and the conclusion into account (i.e. no
-compound formulae) and does not know about `min' and `max', and `-' on
-`nat'. It is fast and is used automatically by the simplifier.
+2. fast_arith_tac is a cut-down version of arith_tac: it only takes
+(negated) (in)equalities among the premises and the conclusion into
+account (i.e. no compound formulae) and does not know about `min' and
+`max', and `-' on `nat'. It is fast and is used automatically by the
+simplifier.
 
-NB: At the moment, these decision procedures do not cope with mixed nat/int
-formulae where the two parts interact, such as `m < n ==> int(m) < int(n)'.
+NB: At the moment, these decision procedures do not cope with mixed
+nat/int formulae where the two parts interact, such as `m < n ==>
+int(m) < int(n)'.
 
 * HOL/TLA (Lamport's Temporal Logic of Actions): major reorganization
 -- avoids syntactic ambiguities and treats state, transition, and
 temporal levels more uniformly; introduces INCOMPATIBILITIES due to
 changed syntax and (many) tactics;
-
-
-*** Internal programming interfaces ***
-
-* tuned current_goals_markers semantics: begin / end goal avoids
-printing empty lines;
-
-* removed prs and prs_fn hook, which was broken because it did not
-include \n in its semantics, forcing writeln to add one
-uncoditionally; replaced prs_fn by writeln_fn; consider std_output:
-string -> unit if you really want to output text without newline;
-
-* Symbol.output subject to print mode; INCOMPATIBILITY: defaults to
-plain output, interface builders may have to enable 'isabelle_font'
-mode to get Isabelle font glyphs as before;
 
 
 *** ZF ***
@@ -100,6 +95,24 @@ to the claset;
 
 * the syntax "if P then x else y" is now available in addition to
 if(P,x,y);
+
+
+*** Internal programming interfaces ***
+
+* tuned current_goals_markers semantics: begin / end goal avoids
+printing empty lines;
+
+* removed prs and prs_fn hook, which was broken because it did not
+include \n in its semantics, forcing writeln to add one
+uncoditionally; replaced prs_fn by writeln_fn; consider std_output:
+string -> unit if you really want to output text without newline;
+
+* Symbol.output subject to print mode; INCOMPATIBILITY: defaults to
+plain output, interface builders may have to enable 'isabelle_font'
+mode to get Isabelle font glyphs as before;
+
+* refined token_translation interface; INCOMPATIBILITY: output length
+now of type real instead of int;
 
 
 
