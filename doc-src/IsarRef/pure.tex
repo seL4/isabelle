@@ -1028,8 +1028,8 @@ val thms  : string -> thm list
   indicates any current facts for forward-chaining, and
   \texttt{thm}~/~\texttt{thms} retrieve named facts (including global
   theorems) from the context.
-\item [$insert~\vec a$] inserts theorems as facts into the proof state; the
-  current facts indicated for forward chaining are ignored!
+\item [$insert~\vec a$] inserts theorems as facts into all goals of the proof
+  state; the current facts indicated for forward chaining are ignored!
 \item [$res_inst_tac$ etc.] do resolution of rules with explicit
   instantiation.  This works the same way as the corresponding ML tactics, see
   \cite[\S3]{isabelle-ref}.
