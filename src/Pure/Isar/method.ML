@@ -705,7 +705,8 @@ val pure_methods =
 
 val setup =
  [GlobalRules.init, LocalRules.init, Attrib.add_attributes rule_atts,
-  MethodsData.init, add_methods pure_methods];
+  MethodsData.init, add_methods pure_methods,
+  (#1 o PureThy.add_thms [(("", Drule.equal_intr_rule), [intro_global])])];
 
 
 end;
