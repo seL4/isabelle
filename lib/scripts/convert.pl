@@ -18,21 +18,19 @@ sub thmlist {
 }
 
 sub subst_RS {
-  s/\(([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+)\)/$1 \[THEN $2, THEN $3, THEN $4, THEN $5\]/g;
-  s/([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+)/$1 \[THEN $2, THEN $3, THEN $4, THEN $5\]/g;
-  s/\(([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+)\)/$1 \[THEN $2, THEN $3, THEN $4\]/g;
-  s/([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+)/$1 \[THEN $2, THEN $3, THEN $4\]/g;
-  s/\(([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+)\)/$1 \[THEN $2, THEN $3\]/g;
-  s/([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+)/$1 \[THEN $2, THEN $3\]/g;
-  s/\(([\w\'\.]+) RS ([\w\'\.]+)\)/$1 \[THEN $2\]/g;
-  s/([\w\'\.]+) RS ([\w\'\.]+)/$1 \[THEN $2\]/g;
-  s/THEN sym\b/symmetric$1/g;
+  s/ RS ([\w\'\.]+)/ [THEN $1]/g;
+  s/ RS \((.+?)\)/ [THEN $1]/g;
+  s/\] \[THEN /, /g;
+  s/THEN sym\b/symmetric/g;
 }
 
-sub subst_RS_fun {
+sub subst_RS_standard {
   my $s = shift;
   $_ = $s;
+  s/\s+/ /sg;             # remove multiple whitespace
+  s/\s/ /sg;              # substitute all remaining tabs and newlines by space
   subst_RS();
+  s/\]\s*$/, standard]/g;
   $_;
 }
 
@@ -257,7 +255,7 @@ while (<>) { # main loop
   s/^val *(\w+) *= *result *\( *\) *$/done($1,"")/se;
   s/^bind_thm *\( *\"(.*?)\" *, *(result *\( *\) *?) *\) *$/done($1,"")/se;
   s/^bind_thm *\( *\"(.*?)\" *, *(.*?result *\( *\).*?) *\) *$/done($1,"[?? $2 ??] ")/se;
-  s/^bind_thm *\( *\"(.*?)\" *, *(.*?) *\) *$/"lemmas $1 = ".subst_RS_fun($2)/se;
+  s/^bind_thm *\( *\"(.*?)\" *, *(.*?) *\) *$/"lemmas $1 = ".subst_RS_standard($2)/se;
   s/^by(\s*\(?\s*)(.*?)\s*(\)?)\s*$/process_tac($1,$2).$3/se;
   s/^(apply +)\( *([\w\'\.]+)\s*\)\s*$/$1$2/;
                              # remove outermost parentheses if around atoms
