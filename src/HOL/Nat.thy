@@ -8,9 +8,6 @@ Type "nat" is a linear order, and a datatype
 
 Nat = NatDef + Inductive +
 
-setup
-  DatatypePackage.setup
-
 rep_datatype nat
   distinct Suc_not_Zero, Zero_not_Suc
   inject   Suc_Suc_eq
