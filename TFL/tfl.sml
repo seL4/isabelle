@@ -121,8 +121,8 @@ fun pattern_map f (tm,x) = (f tm, x);
 fun pattern_subst theta = pattern_map (subst_free theta);
 
 val pat_of = fst;
-val row_of_pat = fst o snd;
-val given = snd o snd;
+fun row_of_pat x = fst (snd x);
+fun given x = snd (snd x);
 
 (*---------------------------------------------------------------------------
  * Produce an instance of a constructor, plus genvars for its arguments.
