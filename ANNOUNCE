@@ -8,7 +8,7 @@ visible.
 
 In particular, great care has been taken to improve robustness and
 ease use and installation of the complete Isabelle working
-environment, including the Proof General user interface support, WWW
+environment.  This includes Proof General user interface support, WWW
 presentation of theories and the Isabelle document preparation system.
 
 The most prominent highlights of Isabelle99-1 are as follows.
@@ -22,7 +22,6 @@ The most prominent highlights of Isabelle99-1 are as follows.
       o More robust document preparation, better LaTeX output due to
         fake math-mode.
       o Extended "Isabelle/Isar Reference Manual"
-        http://isabelle.in.tum.de/doc/isar-ref.pdf
 
   * HOL/MicroJava (Gerwin Klein, Tobias Nipkow, David von Oheimb, and
     Cornelia Pusch)
