@@ -3,18 +3,15 @@
     Author:     Markus Wenzel, TU Munich
 *)
 
-header {* Set-theory lemmas and HOL type definitions *}
+header {* HOL type definitions *}
 
 theory Typedef = Set
-files "subset.ML" "equalities.ML" "mono.ML" ("Tools/typedef_package.ML"):
+files ("Tools/typedef_package.ML"):
 
-(*belongs to theory Set*)
-declare atomize_ball [symmetric, rulify]
-
-(* Courtesy of Stephan Merz *)
 lemma Least_mono: 
   "mono (f::'a::order => 'b::order) ==> EX x:S. ALL y:S. x <= y
     ==> (LEAST y. y : f ` S) = f (LEAST x. x : S)"
+    -- {* Courtesy of Stephan Merz *}
   apply clarify
   apply (erule_tac P = "%x. x : S" in LeastI2)
    apply fast
