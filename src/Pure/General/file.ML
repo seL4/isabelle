@@ -23,7 +23,7 @@ sig
   val info: Path.T -> info option
   val exists: Path.T -> bool
   val mkdir: Path.T -> unit
-  val source: Path.T -> (string, string list) Source.source * Position.T
+  val copy_all: Path.T -> Path.T -> unit
   val plain_use: Path.T -> unit
   val symbol_use: Path.T -> unit
 end;
@@ -70,7 +70,8 @@ fun output txt stream = TextIO.output (stream, txt);
 
 fun read path = fail_safe TextIO.inputAll TextIO.closeIn (TextIO.openIn (sysify_path path));
 fun write path txt = fail_safe (output txt) TextIO.closeOut (TextIO.openOut (sysify_path path));
-fun append path txt = fail_safe (output txt) TextIO.closeOut (TextIO.openAppend (sysify_path path));
+fun append path txt =
+  fail_safe (output txt) TextIO.closeOut (TextIO.openAppend (sysify_path path));
 
 fun copy inpath outpath = write outpath (read inpath);
 
@@ -89,16 +90,14 @@ fun info path =
 val exists = is_some o info;
 
 
-(* mkdir *)
+(* directories *)
 
-fun mkdir path = (execute ("mkdir -p " ^ enclose "'" "'" (sysify_path path)); ());
+val quote_sysify = enclose "'" "'" o sysify_path;
 
+fun mkdir path = (execute ("mkdir -p " ^ quote_sysify path); ());
 
-(* source *)
-
-fun source raw_path =
-  let val path = Path.expand raw_path
-  in (Source.of_string (read path), Position.line_name 1 (quote (Path.pack path))) end;
+fun copy_all path1 path2 =
+  (execute ("cp -R " ^ quote_sysify path1 ^ " " ^ quote_sysify path2); ());
 
 
 (* symbol_use *)
