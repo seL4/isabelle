@@ -1,0 +1,50 @@
+#
+# IsaMakefile to build the examples for the FOL and ZF manual
+#
+
+## targets
+
+default: ZF-examples styles
+images:
+test:
+all: default
+
+
+## global settings
+
+SRC = $(ISABELLE_HOME)/src
+OUT = $(ISABELLE_OUTPUT)
+LOG = $(OUT)/log
+OPTIONS = -m brackets -i true -d "" -D document
+USEDIR = @$(ISATOOL) usedir $(OPTIONS) $(OUT)/ZF
+
+
+## ZF
+
+ZF:
+	@cd $(SRC)/ZF; $(ISATOOL) make ZF
+
+styles:
+	@rm -f isabelle.sty
+	@rm -f isabellesym.sty
+	@rm -f pdfsetup.sty
+	@$(ISATOOL) latex -o sty >/dev/null
+	@rm -f pdfsetup.sty
+	@rm -f document/isabelle.sty
+	@rm -f document/isabellesym.sty
+	@rm -f document/pdfsetup.sty
+	@rm -f document/session.tex
+
+
+## ZF-examples
+
+ZF-examples: ZF $(LOG)/ZF-examples.gz
+
+$(LOG)/ZF-examples.gz: $(OUT)/ZF \
+	FOL_examples.thy  IFOL_examples.thy ZF_examples.thy If.thy ROOT.ML 
+	@$(USEDIR) .
+
+## clean
+
+clean:
+	@rm -f $(LOG)/ZF-examples.gz document/*.tex 
