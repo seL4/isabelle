@@ -149,7 +149,7 @@ fun add_fp_def_i (rec_tms, dom_sum, intr_tms) thy =
       If no mutual recursion then it equals the one recursive set.
       If mutual recursion then it differs from all the recursive sets. *)
     val big_rec_base_name = space_implode "_" rec_base_names;
-    val big_rec_name = Sign.full_name sign big_rec_base_name;
+    val big_rec_name = Sign.intern_const sign big_rec_base_name;
 
     (*Big_rec... is the union of the mutually recursive sets*)
     val big_rec_tm = list_comb(Const(big_rec_name,recT), rec_params);
