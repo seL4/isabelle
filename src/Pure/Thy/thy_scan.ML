@@ -3,9 +3,6 @@
     Author:	Markus Wenzel, TU Muenchen
 
 Lexer for the outer Isabelle syntax.
-
-TODO:
-  - old vs. new: interpreted strings, no 'ML', var!?;
 *)
 
 signature THY_SCAN =

@@ -238,8 +238,6 @@ val opt_mixfix = opt_syn (mixfix || infxl || infxr || binder);
 
 (* types *)
 
-(* FIXME clean!! *)
-
 (*Parse an identifier, but only if it is not followed by "::", "=" or ",";
   the exclusion of a postfix comma can be controlled to allow expressions
   like "(id, id)" but disallow ones like "'a => id id,id :: ..."*)
