@@ -22,10 +22,8 @@ use "../Provers/classical.ML";
 
 
 use_thy "HOL";
-
 use_thy "Ord";
 use_thy "subset";
-use     "hologic.ML";
 use     "typedef.ML";
 use_thy "Sum";
 use_thy "Gfp";
