@@ -11,11 +11,13 @@ sig
   val quiet_mode: bool ref
   val add_typedecls: (bstring * string list * mixfix) list -> theory -> theory
   val add_typedef: string -> bstring * string list * mixfix ->
+    string -> string list -> thm list -> tactic option -> theory -> theory * thm
+  val add_typedef_no_result: string -> bstring * string list * mixfix ->
     string -> string list -> thm list -> tactic option -> theory -> theory
   val add_typedef_i: string -> bstring * string list * mixfix ->
-    term -> string list -> thm list -> tactic option -> theory -> theory
+    term -> string list -> thm list -> tactic option -> theory -> theory * thm
   val add_typedef_i_no_def: string -> bstring * string list * mixfix ->
-    term -> string list -> thm list -> tactic option -> theory -> theory
+    term -> string list -> thm list -> tactic option -> theory -> theory * thm
   val typedef_proof:
     (string * (bstring * string list * mixfix) * string * (string * string) option) * Comment.text
     -> bool -> theory -> ProofHistory.T
@@ -208,11 +210,12 @@ fun gen_add_typedef prep_term no_def name typ set names thms tac thy =
   let
     val (cset, goal, _, typedef_att) = prepare_typedef prep_term no_def name typ set None thy;
     val result = prove_nonempty thy cset goal (names, thms, tac);
-  in (thy, result) |> typedef_att |> #1 end;
+  in (thy, result) |> typedef_att end;
 
 val add_typedef = gen_add_typedef read_term false;
 val add_typedef_i = gen_add_typedef cert_term false;
 val add_typedef_i_no_def = gen_add_typedef cert_term true;
+fun add_typedef_no_result x y z = #1 oooo add_typedef x y z;
 
 
 (* typedef_proof interface *)
