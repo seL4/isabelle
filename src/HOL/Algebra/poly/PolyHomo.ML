@@ -112,15 +112,15 @@ qed "EVAL_smult";
 (* Examples *)
 
 Goal
-  "EVAL (x::'a::domain) (a*X^# 2 + b*X^1 + c*X^0) = a * x ^ # 2 + b * x ^ 1 + c";
+  "EVAL (x::'a::domain) (a*X^2 + b*X^1 + c*X^0) = a * x ^ 2 + b * x ^ 1 + c";
 by (asm_simp_tac (simpset() delsimps [power_Suc]
     addsimps [EVAL_homo, EVAL_monom, EVAL_smult]) 1);
 result();
 
 Goal
   "EVAL (y::'a::domain) \
-\    (EVAL (const x) (monom 1 + const (a*X^# 2 + b*X^1 + c*X^0))) = \
-\  x ^ 1 + (a * y ^ # 2 + b * y ^ 1 + c)";
+\    (EVAL (const x) (monom 1 + const (a*X^2 + b*X^1 + c*X^0))) = \
+\  x ^ 1 + (a * y ^ 2 + b * y ^ 1 + c)";
 by (asm_simp_tac (simpset() delsimps [power_Suc]
     addsimps [EVAL_homo, EVAL_monom, EVAL_smult, EVAL_const]) 1);
 result();

@@ -25,7 +25,7 @@ Goal "Numeral1 = (1::nat)";
 by (simp_tac (HOL_basic_ss addsimps [nat_1, nat_number_of_def, One_nat_def]) 1);
 qed "numeral_1_eq_1";
 
-Goal "# 2 = Suc 1";
+Goal "2 = Suc 1";
 by (simp_tac (HOL_basic_ss addsimps [nat_2, nat_number_of_def, One_nat_def]) 1);
 qed "numeral_2_eq_2";
 
@@ -77,7 +77,7 @@ Goal "Suc Numeral0 = Numeral1";
 by (Simp_tac 1);
 qed "Suc_numeral_0_eq_1";
 
-Goal "Suc Numeral1 = # 2";
+Goal "Suc Numeral1 = 2";
 by (Simp_tac 1);
 qed "Suc_numeral_1_eq_2";
 
@@ -384,7 +384,7 @@ by (simp_tac numeral_ss 1);
 qed "power_one";
 Addsimps [power_zero, power_one];
 
-Goal "(p::nat) ^ # 2 = p*p";
+Goal "(p::nat) ^ 2 = p*p";
 by (simp_tac numeral_ss 1);
 qed "power_two";
 
@@ -497,7 +497,7 @@ val lemma1 = result();
 
 Goal "m+m ~= int (Suc 0) + n + n";
 by Auto_tac;
-by (dres_inst_tac [("f", "%x. x mod # 2")] arg_cong 1);
+by (dres_inst_tac [("f", "%x. x mod 2")] arg_cong 1);
 by (full_simp_tac (simpset() addsimps [zmod_zadd1_eq]) 1); 
 val lemma2 = result();
 
@@ -514,7 +514,7 @@ by (simp_tac (simpset_of Int.thy addsimps
 by (res_inst_tac [("x", "number_of v")] spec 1);
 by Safe_tac;
 by (ALLGOALS Full_simp_tac);
-by (dres_inst_tac [("f", "%x. x mod # 2")] arg_cong 1);
+by (dres_inst_tac [("f", "%x. x mod 2")] arg_cong 1);
 by (full_simp_tac (simpset() addsimps [zmod_zadd1_eq]) 1); 
 qed "eq_number_of_BIT_Pls"; 
 
@@ -524,7 +524,7 @@ by (simp_tac (simpset_of Int.thy addsimps
 	       [number_of_BIT, number_of_Min, eq_commute]) 1); 
 by (res_inst_tac [("x", "number_of v")] spec 1);
 by Auto_tac;
-by (dres_inst_tac [("f", "%x. x mod # 2")] arg_cong 1);
+by (dres_inst_tac [("f", "%x. x mod 2")] arg_cong 1);
 by Auto_tac;
 qed "eq_number_of_BIT_Min"; 
 

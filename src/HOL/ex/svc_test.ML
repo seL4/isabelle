@@ -231,9 +231,9 @@ qed "";
 
 (** Linear arithmetic **)
 
-Goal "x ~= # 14 & x ~= # 13 & x ~= # 12 & x ~= # 11 & x ~= # 10 & x ~= # 9 & \
-\     x ~= # 8 & x ~= # 7 & x ~= # 6 & x ~= # 5 & x ~= # 4 & x ~= # 3 & \
-\     x ~= # 2 & x ~= Numeral1 & Numeral0 < x & x < # 16 --> # 15 = (x::int)";
+Goal "x ~= 14 & x ~= 13 & x ~= 12 & x ~= 11 & x ~= 10 & x ~= 9 & \
+\     x ~= 8 & x ~= 7 & x ~= 6 & x ~= 5 & x ~= 4 & x ~= 3 & \
+\     x ~= 2 & x ~= Numeral1 & Numeral0 < x & x < 16 --> 15 = (x::int)";
 by (svc_tac 1);
 qed "";
 
@@ -244,11 +244,11 @@ qed "";
 
 (** Natural number examples requiring implicit "non-negative" assumptions*)
 
-Goal "(# 3::nat)*a <= # 2 + # 4*b + # 6*c  & # 11 <= # 2*a + b + # 2*c & \
-\     a + # 3*b <= # 5 + # 2*c  --> # 2 + # 3*b <= # 2*a + # 6*c";
+Goal "(3::nat)*a <= 2 + 4*b + 6*c  & 11 <= 2*a + b + 2*c & \
+\     a + 3*b <= 5 + 2*c  --> 2 + 3*b <= 2*a + 6*c";
 by (svc_tac 1);
 qed "";
 
-Goal "(n::nat) < # 2 ==> (n = Numeral0) | (n = Numeral1)";
+Goal "(n::nat) < 2 ==> (n = Numeral0) | (n = Numeral1)";
 by (svc_tac 1);
 qed "";

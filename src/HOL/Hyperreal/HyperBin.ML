@@ -57,18 +57,18 @@ by (simp_tac
 qed "mult_hypreal_number_of";
 Addsimps [mult_hypreal_number_of];
 
-Goal "(# 2::hypreal) = Numeral1 + Numeral1";
+Goal "(2::hypreal) = Numeral1 + Numeral1";
 by (Simp_tac 1);
 val lemma = result();
 
 (*For specialist use: NOT as default simprules*)
-Goal "# 2 * z = (z+z::hypreal)";
+Goal "2 * z = (z+z::hypreal)";
 by (simp_tac (simpset ()
 	      addsimps [lemma, hypreal_add_mult_distrib,
 			one_eq_numeral_1 RS sym]) 1);
 qed "hypreal_mult_2";
 
-Goal "z * # 2 = (z+z::hypreal)";
+Goal "z * 2 = (z+z::hypreal)";
 by (stac hypreal_mult_commute 1 THEN rtac hypreal_mult_2 1);
 qed "hypreal_mult_2_right";
 
@@ -107,11 +107,11 @@ Addsimps [le_hypreal_number_of_eq_not_less];
 
 (*** New versions of existing theorems involving 0, 1hr ***)
 
-Goal "- Numeral1 = (# -1::hypreal)";
+Goal "- Numeral1 = (-1::hypreal)";
 by (Simp_tac 1);
 qed "minus_numeral_one";
 
-(*Maps 0 to Numeral0 and 1hr to Numeral1 and -1hr to # -1*)
+(*Maps 0 to Numeral0 and 1hr to Numeral1 and -1hr to -1*)
 val hypreal_numeral_ss = 
     real_numeral_ss addsimps [zero_eq_numeral_0, one_eq_numeral_1, 
 		              minus_numeral_one];
@@ -242,14 +242,14 @@ by (asm_simp_tac
                         hypreal_add_ac@rel_iff_rel_0_rls) 1);
 qed "hypreal_le_add_iff2";
 
-Goal "(z::hypreal) * # -1 = -z";
+Goal "(z::hypreal) * -1 = -z";
 by (stac (minus_numeral_one RS sym) 1);
 by (stac (hypreal_minus_mult_eq2 RS sym) 1); 
 by Auto_tac;  
 qed "hypreal_mult_minus_1_right";
 Addsimps [hypreal_mult_minus_1_right];
 
-Goal "# -1 * (z::hypreal) = -z";
+Goal "-1 * (z::hypreal) = -z";
 by (simp_tac (simpset() addsimps [hypreal_mult_commute]) 1); 
 qed "hypreal_mult_minus_1";
 Addsimps [hypreal_mult_minus_1];
@@ -471,7 +471,7 @@ val cancel_numerals =
 structure CombineNumeralsData =
   struct
   val add		= op + : int*int -> int 
-  val mk_sum    	= long_mk_sum    (*to work for e.g. # 2*x + # 3*x *)
+  val mk_sum    	= long_mk_sum    (*to work for e.g. 2*x + 3*x *)
   val dest_sum		= dest_sum
   val mk_coeff		= mk_coeff
   val dest_coeff	= dest_coeff 1
@@ -530,34 +530,34 @@ set timing;
 set trace_simp;
 fun test s = (Goal s, by (Simp_tac 1)); 
 
-test "l + # 2 + # 2 + # 2 + (l + # 2) + (oo + # 2) = (uu::hypreal)";
-test "# 2*u = (u::hypreal)";
-test "(i + j + # 12 + (k::hypreal)) - # 15 = y";
-test "(i + j + # 12 + (k::hypreal)) - # 5 = y";
+test "l + 2 + 2 + 2 + (l + 2) + (oo + 2) = (uu::hypreal)";
+test "2*u = (u::hypreal)";
+test "(i + j + 12 + (k::hypreal)) - 15 = y";
+test "(i + j + 12 + (k::hypreal)) - 5 = y";
 
 test "y - b < (b::hypreal)";
-test "y - (# 3*b + c) < (b::hypreal) - # 2*c";
+test "y - (3*b + c) < (b::hypreal) - 2*c";
 
-test "(# 2*x - (u*v) + y) - v*# 3*u = (w::hypreal)";
-test "(# 2*x*u*v + (u*v)*# 4 + y) - v*u*# 4 = (w::hypreal)";
-test "(# 2*x*u*v + (u*v)*# 4 + y) - v*u = (w::hypreal)";
-test "u*v - (x*u*v + (u*v)*# 4 + y) = (w::hypreal)";
+test "(2*x - (u*v) + y) - v*3*u = (w::hypreal)";
+test "(2*x*u*v + (u*v)*4 + y) - v*u*4 = (w::hypreal)";
+test "(2*x*u*v + (u*v)*4 + y) - v*u = (w::hypreal)";
+test "u*v - (x*u*v + (u*v)*4 + y) = (w::hypreal)";
 
-test "(i + j + # 12 + (k::hypreal)) = u + # 15 + y";
-test "(i + j*# 2 + # 12 + (k::hypreal)) = j + # 5 + y";
+test "(i + j + 12 + (k::hypreal)) = u + 15 + y";
+test "(i + j*2 + 12 + (k::hypreal)) = j + 5 + y";
 
-test "# 2*y + # 3*z + # 6*w + # 2*y + # 3*z + # 2*u = # 2*y' + # 3*z' + # 6*w' + # 2*y' + # 3*z' + u + (vv::hypreal)";
+test "2*y + 3*z + 6*w + 2*y + 3*z + 2*u = 2*y' + 3*z' + 6*w' + 2*y' + 3*z' + u + (vv::hypreal)";
 
 test "a + -(b+c) + b = (d::hypreal)";
 test "a + -(b+c) - b = (d::hypreal)";
 
 (*negative numerals*)
-test "(i + j + # -2 + (k::hypreal)) - (u + # 5 + y) = zz";
-test "(i + j + # -3 + (k::hypreal)) < u + # 5 + y";
-test "(i + j + # 3 + (k::hypreal)) < u + # -6 + y";
-test "(i + j + # -12 + (k::hypreal)) - # 15 = y";
-test "(i + j + # 12 + (k::hypreal)) - # -15 = y";
-test "(i + j + # -12 + (k::hypreal)) - # -15 = y";
+test "(i + j + -2 + (k::hypreal)) - (u + 5 + y) = zz";
+test "(i + j + -3 + (k::hypreal)) < u + 5 + y";
+test "(i + j + 3 + (k::hypreal)) < u + -6 + y";
+test "(i + j + -12 + (k::hypreal)) - 15 = y";
+test "(i + j + 12 + (k::hypreal)) - -15 = y";
+test "(i + j + -12 + (k::hypreal)) - -15 = y";
 *)
 
 

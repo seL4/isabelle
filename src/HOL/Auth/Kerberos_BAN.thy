@@ -30,7 +30,7 @@ consts
 
 rules
     (*The ticket should remain fresh for two journeys on the network at least*)
-    SesKeyLife_LB "# 2 <= SesKeyLife"
+    SesKeyLife_LB "2 <= SesKeyLife"
 
     (*The authenticator only for one journey*)
     AutLife_LB    "Suc 0 <= AutLife"

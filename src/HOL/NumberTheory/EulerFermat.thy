@@ -55,7 +55,7 @@ constdefs
   zcongm :: "int => int => int => bool"
   "zcongm m == \<lambda>a b. zcong a b m"
 
-lemma abs_eq_1_iff [iff]: "(abs z = (Numeral1::int)) = (z = Numeral1 \<or> z = # -1)"
+lemma abs_eq_1_iff [iff]: "(abs z = (Numeral1::int)) = (z = Numeral1 \<or> z = -1)"
   -- {* LCP: not sure why this lemma is needed now *}
   apply (auto simp add: zabs_def)
   done

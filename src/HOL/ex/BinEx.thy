@@ -12,75 +12,75 @@ subsection {* The Integers *}
 
 text {* Addition *}
 
-lemma "(# 13::int) + # 19 = # 32"
+lemma "(13::int) + 19 = 32"
   by simp
 
-lemma "(# 1234::int) + # 5678 = # 6912"
+lemma "(1234::int) + 5678 = 6912"
   by simp
 
-lemma "(# 1359::int) + # -2468 = # -1109"
+lemma "(1359::int) + -2468 = -1109"
   by simp
 
-lemma "(# 93746::int) + # -46375 = # 47371"
+lemma "(93746::int) + -46375 = 47371"
   by simp
 
 
 text {* \medskip Negation *}
 
-lemma "- (# 65745::int) = # -65745"
+lemma "- (65745::int) = -65745"
   by simp
 
-lemma "- (# -54321::int) = # 54321"
+lemma "- (-54321::int) = 54321"
   by simp
 
 
 text {* \medskip Multiplication *}
 
-lemma "(# 13::int) * # 19 = # 247"
+lemma "(13::int) * 19 = 247"
   by simp
 
-lemma "(# -84::int) * # 51 = # -4284"
+lemma "(-84::int) * 51 = -4284"
   by simp
 
-lemma "(# 255::int) * # 255 = # 65025"
+lemma "(255::int) * 255 = 65025"
   by simp
 
-lemma "(# 1359::int) * # -2468 = # -3354012"
+lemma "(1359::int) * -2468 = -3354012"
   by simp
 
-lemma "(# 89::int) * # 10 \<noteq> # 889"
+lemma "(89::int) * 10 \<noteq> 889"
   by simp
 
-lemma "(# 13::int) < # 18 - # 4"
+lemma "(13::int) < 18 - 4"
   by simp
 
-lemma "(# -345::int) < # -242 + # -100"
+lemma "(-345::int) < -242 + -100"
   by simp
 
-lemma "(# 13557456::int) < # 18678654"
+lemma "(13557456::int) < 18678654"
   by simp
 
-lemma "(# 999999::int) \<le> (# 1000001 + Numeral1) - # 2"
+lemma "(999999::int) \<le> (1000001 + Numeral1) - 2"
   by simp
 
-lemma "(# 1234567::int) \<le> # 1234567"
+lemma "(1234567::int) \<le> 1234567"
   by simp
 
 
 text {* \medskip Quotient and Remainder *}
 
-lemma "(# 10::int) div # 3 = # 3"
+lemma "(10::int) div 3 = 3"
   by simp
 
-lemma "(# 10::int) mod # 3 = Numeral1"
+lemma "(10::int) mod 3 = Numeral1"
   by simp
 
 text {* A negative divisor *}
 
-lemma "(# 10::int) div # -3 = # -4"
+lemma "(10::int) div -3 = -4"
   by simp
 
-lemma "(# 10::int) mod # -3 = # -2"
+lemma "(10::int) mod -3 = -2"
   by simp
 
 text {*
@@ -88,50 +88,50 @@ text {*
   convention but not with the hardware of most computers}
 *}
 
-lemma "(# -10::int) div # 3 = # -4"
+lemma "(-10::int) div 3 = -4"
   by simp
 
-lemma "(# -10::int) mod # 3 = # 2"
+lemma "(-10::int) mod 3 = 2"
   by simp
 
 text {* A negative dividend \emph{and} divisor *}
 
-lemma "(# -10::int) div # -3 = # 3"
+lemma "(-10::int) div -3 = 3"
   by simp
 
-lemma "(# -10::int) mod # -3 = # -1"
+lemma "(-10::int) mod -3 = -1"
   by simp
 
 text {* A few bigger examples *}
 
-lemma "(# 8452::int) mod # 3 = Numeral1"
+lemma "(8452::int) mod 3 = Numeral1"
   by simp
 
-lemma "(# 59485::int) div # 434 = # 137"
+lemma "(59485::int) div 434 = 137"
   by simp
 
-lemma "(# 1000006::int) mod # 10 = # 6"
+lemma "(1000006::int) mod 10 = 6"
   by simp
 
 
 text {* \medskip Division by shifting *}
 
-lemma "# 10000000 div # 2 = (# 5000000::int)"
+lemma "10000000 div 2 = (5000000::int)"
   by simp
 
-lemma "# 10000001 mod # 2 = (Numeral1::int)"
+lemma "10000001 mod 2 = (Numeral1::int)"
   by simp
 
-lemma "# 10000055 div # 32 = (# 312501::int)"
+lemma "10000055 div 32 = (312501::int)"
   by simp
 
-lemma "# 10000055 mod # 32 = (# 23::int)"
+lemma "10000055 mod 32 = (23::int)"
   by simp
 
-lemma "# 100094 div # 144 = (# 695::int)"
+lemma "100094 div 144 = (695::int)"
   by simp
 
-lemma "# 100094 mod # 144 = (# 14::int)"
+lemma "100094 mod 144 = (14::int)"
   by simp
 
 
@@ -139,65 +139,65 @@ subsection {* The Natural Numbers *}
 
 text {* Successor *}
 
-lemma "Suc # 99999 = # 100000"
+lemma "Suc 99999 = 100000"
   by (simp add: Suc_nat_number_of)
     -- {* not a default rewrite since sometimes we want to have @{text "Suc #nnn"} *}
 
 
 text {* \medskip Addition *}
 
-lemma "(# 13::nat) + # 19 = # 32"
+lemma "(13::nat) + 19 = 32"
   by simp
 
-lemma "(# 1234::nat) + # 5678 = # 6912"
+lemma "(1234::nat) + 5678 = 6912"
   by simp
 
-lemma "(# 973646::nat) + # 6475 = # 980121"
+lemma "(973646::nat) + 6475 = 980121"
   by simp
 
 
 text {* \medskip Subtraction *}
 
-lemma "(# 32::nat) - # 14 = # 18"
+lemma "(32::nat) - 14 = 18"
   by simp
 
-lemma "(# 14::nat) - # 15 = Numeral0"
+lemma "(14::nat) - 15 = Numeral0"
   by simp
 
-lemma "(# 14::nat) - # 1576644 = Numeral0"
+lemma "(14::nat) - 1576644 = Numeral0"
   by simp
 
-lemma "(# 48273776::nat) - # 3873737 = # 44400039"
+lemma "(48273776::nat) - 3873737 = 44400039"
   by simp
 
 
 text {* \medskip Multiplication *}
 
-lemma "(# 12::nat) * # 11 = # 132"
+lemma "(12::nat) * 11 = 132"
   by simp
 
-lemma "(# 647::nat) * # 3643 = # 2357021"
+lemma "(647::nat) * 3643 = 2357021"
   by simp
 
 
 text {* \medskip Quotient and Remainder *}
 
-lemma "(# 10::nat) div # 3 = # 3"
+lemma "(10::nat) div 3 = 3"
   by simp
 
-lemma "(# 10::nat) mod # 3 = Numeral1"
+lemma "(10::nat) mod 3 = Numeral1"
   by simp
 
-lemma "(# 10000::nat) div # 9 = # 1111"
+lemma "(10000::nat) div 9 = 1111"
   by simp
 
-lemma "(# 10000::nat) mod # 9 = Numeral1"
+lemma "(10000::nat) mod 9 = Numeral1"
   by simp
 
-lemma "(# 10000::nat) div # 16 = # 625"
+lemma "(10000::nat) div 16 = 625"
   by simp
 
-lemma "(# 10000::nat) mod # 16 = Numeral0"
+lemma "(10000::nat) mod 16 = Numeral0"
   by simp
 
 

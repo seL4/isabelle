@@ -101,7 +101,7 @@ by (induct_tac "n" 1);
 by (Auto_tac);
 qed "sumr_shift_bounds";
 
-Goal "sumr 0 (# 2*n) (%i. (# -1) ^ Suc i) = Numeral0";
+Goal "sumr 0 (2*n) (%i. (-1) ^ Suc i) = Numeral0";
 by (induct_tac "n" 1);
 by (Auto_tac);
 qed "sumr_minus_one_realpow_zero";

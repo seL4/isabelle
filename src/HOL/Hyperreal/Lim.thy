@@ -71,8 +71,8 @@ primrec
   "Bolzano_bisect P a b 0 = (a,b)"
   "Bolzano_bisect P a b (Suc n) =
       (let (x,y) = Bolzano_bisect P a b n
-       in if P(x, (x+y)/# 2) then ((x+y)/# 2, y)
-                            else (x, (x+y)/# 2) )"
+       in if P(x, (x+y)/2) then ((x+y)/2, y)
+                            else (x, (x+y)/2) )"
   
 
 end

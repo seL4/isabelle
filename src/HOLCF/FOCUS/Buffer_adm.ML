@@ -110,7 +110,7 @@ qed "BufAC_Asm_antiton";
 Goal "f:BufEq ==> ? l. !i x s. s:BufAC_Asm --> x << s --> Fin (l i) < #x --> \
 		\    (x,f\\<cdot>x):down_iterate BufAC_Cmt_F i --> \
 		\    (s,f\\<cdot>s):down_iterate BufAC_Cmt_F i";
-by (res_inst_tac [("x","%i. # 2*i")] exI 1);
+by (res_inst_tac [("x","%i. 2*i")] exI 1);
 by (rtac allI 1);
 by (nat_ind_tac "i" 1);
 by ( Simp_tac 1);
@@ -129,10 +129,10 @@ by (safe_tac (claset() addSDs [slen_fscons_eq RS iffD1] addSss simpset()));
        \\<lbrakk>f \\<in> BufEq;
           \\<forall>x s. s \\<in> BufAC_Asm \\<longrightarrow>
                 x \\<sqsubseteq> s \\<longrightarrow>
-                Fin (# 2 * i) < #x \\<longrightarrow>
+                Fin (2 * i) < #x \\<longrightarrow>
                 (x, f\\<cdot>x) \\<in> down_iterate BufAC_Cmt_F i \\<longrightarrow>
                 (s, f\\<cdot>s) \\<in> down_iterate BufAC_Cmt_F i;
-          Md d\\<leadsto>\\<bullet>\\<leadsto>xa \\<in> BufAC_Asm; Fin (# 2 * i) < #ya; f\\<cdot>(Md d\\<leadsto>\\<bullet>\\<leadsto>ya) = d\\<leadsto>t;
+          Md d\\<leadsto>\\<bullet>\\<leadsto>xa \\<in> BufAC_Asm; Fin (2 * i) < #ya; f\\<cdot>(Md d\\<leadsto>\\<bullet>\\<leadsto>ya) = d\\<leadsto>t;
           (ya, t) \\<in> down_iterate BufAC_Cmt_F i; ya \\<sqsubseteq> xa\\<rbrakk>
        \\<Longrightarrow> (xa, rt\\<cdot>(f\\<cdot>(Md d\\<leadsto>\\<bullet>\\<leadsto>xa))) \\<in> down_iterate BufAC_Cmt_F i
 *)
@@ -147,11 +147,11 @@ by (		Asm_full_simp_tac 1);
 by (hyp_subst_tac 1);
 (*
  1. \\<And>i d xa ya t ff ffa.
-       \\<lbrakk>f\\<cdot>(Md d\\<leadsto>\\<bullet>\\<leadsto>ya) = d\\<leadsto>ffa\\<cdot>ya; Fin (# 2 * i) < #ya;
+       \\<lbrakk>f\\<cdot>(Md d\\<leadsto>\\<bullet>\\<leadsto>ya) = d\\<leadsto>ffa\\<cdot>ya; Fin (2 * i) < #ya;
           (ya, ffa\\<cdot>ya) \\<in> down_iterate BufAC_Cmt_F i; ya \\<sqsubseteq> xa; f \\<in> BufEq;
           \\<forall>x s. s \\<in> BufAC_Asm \\<longrightarrow>
                 x \\<sqsubseteq> s \\<longrightarrow>
-                Fin (# 2 * i) < #x \\<longrightarrow>
+                Fin (2 * i) < #x \\<longrightarrow>
                 (x, f\\<cdot>x) \\<in> down_iterate BufAC_Cmt_F i \\<longrightarrow>
                 (s, f\\<cdot>s) \\<in> down_iterate BufAC_Cmt_F i;
           xa \\<in> BufAC_Asm; ff \\<in> BufEq; ffa \\<in> BufEq\\<rbrakk>

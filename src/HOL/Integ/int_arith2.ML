@@ -75,7 +75,7 @@ Goal "nat Numeral1 = Suc 0";
 by (simp_tac (simpset() addsimps [nat_eq_iff]) 1);
 qed "nat_1";
 
-Goal "nat # 2 = Suc (Suc 0)";
+Goal "nat 2 = Suc (Suc 0)";
 by (simp_tac (simpset() addsimps [nat_eq_iff]) 1);
 qed "nat_2";
 

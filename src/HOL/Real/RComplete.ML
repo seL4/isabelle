@@ -8,7 +8,7 @@ Completeness theorems for positive reals and reals.
 
 claset_ref() := claset() delWrapper "bspec";
 
-Goal "x/# 2 + x/# 2 = (x::real)";
+Goal "x/2 + x/2 = (x::real)";
 by (Simp_tac 1);
 qed "real_sum_of_halves";
 

@@ -276,34 +276,34 @@ set timing;
 set trace_simp;
 fun test s = (Goal s; by (Simp_tac 1)); 
 
-test "Numeral0 <= (y::real) * # -2";
-test "# 9*x = # 12 * (y::real)";
-test "(# 9*x) / (# 12 * (y::real)) = z";
-test "# 9*x < # 12 * (y::real)";
-test "# 9*x <= # 12 * (y::real)";
+test "Numeral0 <= (y::real) * -2";
+test "9*x = 12 * (y::real)";
+test "(9*x) / (12 * (y::real)) = z";
+test "9*x < 12 * (y::real)";
+test "9*x <= 12 * (y::real)";
 
-test "# -99*x = # 132 * (y::real)";
-test "(# -99*x) / (# 132 * (y::real)) = z";
-test "# -99*x < # 132 * (y::real)";
-test "# -99*x <= # 132 * (y::real)";
+test "-99*x = 132 * (y::real)";
+test "(-99*x) / (132 * (y::real)) = z";
+test "-99*x < 132 * (y::real)";
+test "-99*x <= 132 * (y::real)";
 
-test "# 999*x = # -396 * (y::real)";
-test "(# 999*x) / (# -396 * (y::real)) = z";
-test "# 999*x < # -396 * (y::real)";
-test "# 999*x <= # -396 * (y::real)";
+test "999*x = -396 * (y::real)";
+test "(999*x) / (-396 * (y::real)) = z";
+test "999*x < -396 * (y::real)";
+test "999*x <= -396 * (y::real)";
 
-test "# -99*x = # -81 * (y::real)";
-test "(# -99*x) / (# -81 * (y::real)) = z";
-test "# -99*x <= # -81 * (y::real)";
-test "# -99*x < # -81 * (y::real)";
+test "-99*x = -81 * (y::real)";
+test "(-99*x) / (-81 * (y::real)) = z";
+test "-99*x <= -81 * (y::real)";
+test "-99*x < -81 * (y::real)";
 
-test "# -2 * x = # -1 * (y::real)";
-test "# -2 * x = -(y::real)";
-test "(# -2 * x) / (# -1 * (y::real)) = z";
-test "# -2 * x < -(y::real)";
-test "# -2 * x <= # -1 * (y::real)";
-test "-x < # -23 * (y::real)";
-test "-x <= # -23 * (y::real)";
+test "-2 * x = -1 * (y::real)";
+test "-2 * x = -(y::real)";
+test "(-2 * x) / (-1 * (y::real)) = z";
+test "-2 * x < -(y::real)";
+test "-2 * x <= -1 * (y::real)";
+test "-x < -23 * (y::real)";
+test "-x <= -23 * (y::real)";
 *)
 
 
@@ -505,18 +505,18 @@ by (simp_tac (simpset() addsimps [real_divide_def]) 1);
 qed "real_divide_1";
 Addsimps [real_divide_1];
 
-Goal "x/# -1 = -(x::real)";
+Goal "x/-1 = -(x::real)";
 by (Simp_tac 1); 
 qed "real_divide_minus1";
 Addsimps [real_divide_minus1];
 
-Goal "# -1/(x::real) = - (Numeral1/x)";
+Goal "-1/(x::real) = - (Numeral1/x)";
 by (simp_tac (simpset() addsimps [real_divide_def, real_minus_inverse]) 1); 
 qed "real_minus1_divide";
 Addsimps [real_minus1_divide];
 
 Goal "[| (Numeral0::real) < d1; Numeral0 < d2 |] ==> EX e. Numeral0 < e & e < d1 & e < d2";
-by (res_inst_tac [("x","(min d1 d2)/# 2")] exI 1); 
+by (res_inst_tac [("x","(min d1 d2)/2")] exI 1); 
 by (asm_simp_tac (simpset() addsimps [min_def]) 1); 
 qed "real_lbound_gt_zero";
 
@@ -647,11 +647,11 @@ Addsimps [real_minus_diff_eq];
 
 (*** Density of the Reals ***)
 
-Goal "x < y ==> x < (x+y) / (# 2::real)";
+Goal "x < y ==> x < (x+y) / (2::real)";
 by Auto_tac;
 qed "real_less_half_sum";
 
-Goal "x < y ==> (x+y)/(# 2::real) < y";
+Goal "x < y ==> (x+y)/(2::real) < y";
 by Auto_tac;
 qed "real_gt_half_sum";
 

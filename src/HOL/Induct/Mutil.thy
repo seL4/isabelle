@@ -29,7 +29,7 @@ inductive domino
 
 constdefs
   coloured :: "nat => (nat \<times> nat) set"
-   "coloured b == {(i, j). (i + j) mod # 2 = b}"
+   "coloured b == {(i, j). (i + j) mod 2 = b}"
 
 
 text {* \medskip The union of two disjoint tilings is a tiling *}
@@ -61,14 +61,14 @@ lemma sing_Times_lemma: "({i} \<times> {n}) \<union> ({i} \<times> {m}) = {(i, m
   apply auto
   done
 
-lemma dominoes_tile_row [intro!]: "{i} \<times> lessThan (# 2 * n) \<in> tiling domino"
+lemma dominoes_tile_row [intro!]: "{i} \<times> lessThan (2 * n) \<in> tiling domino"
   apply (induct n)
    apply (simp_all add: Un_assoc [symmetric])
   apply (rule tiling.Un)
     apply (auto simp add: sing_Times_lemma)
   done
 
-lemma dominoes_tile_matrix: "(lessThan m) \<times> lessThan (# 2 * n) \<in> tiling domino"
+lemma dominoes_tile_matrix: "(lessThan m) \<times> lessThan (2 * n) \<in> tiling domino"
   apply (induct m)
    apply auto
   done
@@ -78,7 +78,7 @@ text {* \medskip @{term coloured} and Dominoes *}
 
 lemma coloured_insert [simp]:
   "coloured b \<inter> (insert (i, j) t) =
-   (if (i + j) mod # 2 = b then insert (i, j) (coloured b \<inter> t)
+   (if (i + j) mod 2 = b then insert (i, j) (coloured b \<inter> t)
     else coloured b \<inter> t)"
   apply (unfold coloured_def)
   apply auto
@@ -125,7 +125,7 @@ text {* \medskip Final argument is surprisingly complex *}
 
 theorem gen_mutil_not_tiling:
   "t \<in> tiling domino ==>
-    (i + j) mod # 2 = 0 ==> (m + n) mod # 2 = 0 ==>
+    (i + j) mod 2 = 0 ==> (m + n) mod 2 = 0 ==>
     {(i, j), (m, n)} \<subseteq> t
   ==> (t - {(i, j)} - {(m, n)}) \<notin> tiling domino"
   apply (rule notI)
@@ -140,8 +140,8 @@ theorem gen_mutil_not_tiling:
 text {* Apply the general theorem to the well-known case *}
 
 theorem mutil_not_tiling:
-  "t = lessThan (# 2 * Suc m) \<times> lessThan (# 2 * Suc n)
-    ==> t - {(0, 0)} - {(Suc (# 2 * m), Suc (# 2 * n))} \<notin> tiling domino"
+  "t = lessThan (2 * Suc m) \<times> lessThan (2 * Suc n)
+    ==> t - {(0, 0)} - {(Suc (2 * m), Suc (2 * n))} \<notin> tiling domino"
   apply (rule gen_mutil_not_tiling)
      apply (blast intro!: dominoes_tile_matrix)
     apply auto

@@ -59,11 +59,11 @@ declare IT.intros [intro!]
 
 subsection {* Some examples *}
 
-lemma "e |- Abs (Abs (Abs (Var 1 $ (Var # 2 $ Var 1 $ Var 0)))) : ?T"
+lemma "e |- Abs (Abs (Abs (Var 1 $ (Var 2 $ Var 1 $ Var 0)))) : ?T"
   apply force
   done
 
-lemma "e |- Abs (Abs (Abs (Var # 2 $ Var 0 $ (Var 1 $ Var 0)))) : ?T"
+lemma "e |- Abs (Abs (Abs (Var 2 $ Var 0 $ (Var 1 $ Var 0)))) : ?T"
   apply force
   done
 

@@ -92,40 +92,40 @@ qed "diff_Suc_eq_diff_pred";
 
 (** Evens and Odds, for Mutilated Chess Board **)
 
-(*Case analysis on b<# 2*)
-Goal "(n::nat) < # 2 ==> n = Numeral0 | n = Numeral1";
+(*Case analysis on b<2*)
+Goal "(n::nat) < 2 ==> n = Numeral0 | n = Numeral1";
 by (arith_tac 1);
 qed "less_2_cases";
 
-Goal "Suc(Suc(m)) mod # 2 = m mod # 2";
-by (subgoal_tac "m mod # 2 < # 2" 1);
+Goal "Suc(Suc(m)) mod 2 = m mod 2";
+by (subgoal_tac "m mod 2 < 2" 1);
 by (Asm_simp_tac 2);
 be (less_2_cases RS disjE) 1;
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [mod_Suc])));
 qed "mod2_Suc_Suc";
 Addsimps [mod2_Suc_Suc];
 
-Goal "!!m::nat. (0 < m mod # 2) = (m mod # 2 = Numeral1)";
-by (subgoal_tac "m mod # 2 < # 2" 1);
+Goal "!!m::nat. (0 < m mod 2) = (m mod 2 = Numeral1)";
+by (subgoal_tac "m mod 2 < 2" 1);
 by (Asm_simp_tac 2);
 by (auto_tac (claset(), simpset() delsimps [mod_less_divisor]));
 qed "mod2_gr_0";
 Addsimps [mod2_gr_0, rename_numerals mod2_gr_0];
 
-(** Removal of small numerals: Numeral0, Numeral1 and (in additive positions) # 2 **)
+(** Removal of small numerals: Numeral0, Numeral1 and (in additive positions) 2 **)
 
-Goal "# 2 + n = Suc (Suc n)";
+Goal "2 + n = Suc (Suc n)";
 by (Simp_tac 1);
 qed "add_2_eq_Suc";
 
-Goal "n + # 2 = Suc (Suc n)";
+Goal "n + 2 = Suc (Suc n)";
 by (Simp_tac 1);
 qed "add_2_eq_Suc'";
 
 Addsimps [numeral_0_eq_0, numeral_1_eq_1, add_2_eq_Suc, add_2_eq_Suc'];
 
 (*Can be used to eliminate long strings of Sucs, but not by default*)
-Goal "Suc (Suc (Suc n)) = # 3 + n";
+Goal "Suc (Suc (Suc n)) = 3 + n";
 by (Simp_tac 1);
 qed "Suc3_eq_add_3";
 
@@ -136,21 +136,21 @@ qed "Suc3_eq_add_3";
     We already have some rules to simplify operands smaller than 3.
 **)
 
-Goal "m div (Suc (Suc (Suc n))) = m div (# 3+n)";
+Goal "m div (Suc (Suc (Suc n))) = m div (3+n)";
 by (simp_tac (simpset() addsimps [Suc3_eq_add_3]) 1);
 qed "div_Suc_eq_div_add3";
 
-Goal "m mod (Suc (Suc (Suc n))) = m mod (# 3+n)";
+Goal "m mod (Suc (Suc (Suc n))) = m mod (3+n)";
 by (simp_tac (simpset() addsimps [Suc3_eq_add_3]) 1);
 qed "mod_Suc_eq_mod_add3";
 
 Addsimps [div_Suc_eq_div_add3, mod_Suc_eq_mod_add3];
 
-Goal "(Suc (Suc (Suc m))) div n = (# 3+m) div n";
+Goal "(Suc (Suc (Suc m))) div n = (3+m) div n";
 by (simp_tac (simpset() addsimps [Suc3_eq_add_3]) 1);
 qed "Suc_div_eq_add3_div";
 
-Goal "(Suc (Suc (Suc m))) mod n = (# 3+m) mod n";
+Goal "(Suc (Suc (Suc m))) mod n = (3+m) mod n";
 by (simp_tac (simpset() addsimps [Suc3_eq_add_3]) 1);
 qed "Suc_mod_eq_add3_mod";
 

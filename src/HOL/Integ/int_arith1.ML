@@ -279,7 +279,7 @@ val cancel_numerals =
 structure CombineNumeralsData =
   struct
   val add		= op + : int*int -> int 
-  val mk_sum    	= long_mk_sum    (*to work for e.g. # 2*x + # 3*x *)
+  val mk_sum    	= long_mk_sum    (*to work for e.g. 2*x + 3*x *)
   val dest_sum		= dest_sum
   val mk_coeff		= mk_coeff
   val dest_coeff	= dest_coeff 1
@@ -318,35 +318,35 @@ set timing;
 set trace_simp;
 fun test s = (Goal s; by (Simp_tac 1)); 
 
-test "l + # 2 + # 2 + # 2 + (l + # 2) + (oo + # 2) = (uu::int)";
+test "l + 2 + 2 + 2 + (l + 2) + (oo + 2) = (uu::int)";
 
-test "# 2*u = (u::int)";
-test "(i + j + # 12 + (k::int)) - # 15 = y";
-test "(i + j + # 12 + (k::int)) - # 5 = y";
+test "2*u = (u::int)";
+test "(i + j + 12 + (k::int)) - 15 = y";
+test "(i + j + 12 + (k::int)) - 5 = y";
 
 test "y - b < (b::int)";
-test "y - (# 3*b + c) < (b::int) - # 2*c";
+test "y - (3*b + c) < (b::int) - 2*c";
 
-test "(# 2*x - (u*v) + y) - v*# 3*u = (w::int)";
-test "(# 2*x*u*v + (u*v)*# 4 + y) - v*u*# 4 = (w::int)";
-test "(# 2*x*u*v + (u*v)*# 4 + y) - v*u = (w::int)";
-test "u*v - (x*u*v + (u*v)*# 4 + y) = (w::int)";
+test "(2*x - (u*v) + y) - v*3*u = (w::int)";
+test "(2*x*u*v + (u*v)*4 + y) - v*u*4 = (w::int)";
+test "(2*x*u*v + (u*v)*4 + y) - v*u = (w::int)";
+test "u*v - (x*u*v + (u*v)*4 + y) = (w::int)";
 
-test "(i + j + # 12 + (k::int)) = u + # 15 + y";
-test "(i + j*# 2 + # 12 + (k::int)) = j + # 5 + y";
+test "(i + j + 12 + (k::int)) = u + 15 + y";
+test "(i + j*2 + 12 + (k::int)) = j + 5 + y";
 
-test "# 2*y + # 3*z + # 6*w + # 2*y + # 3*z + # 2*u = # 2*y' + # 3*z' + # 6*w' + # 2*y' + # 3*z' + u + (vv::int)";
+test "2*y + 3*z + 6*w + 2*y + 3*z + 2*u = 2*y' + 3*z' + 6*w' + 2*y' + 3*z' + u + (vv::int)";
 
 test "a + -(b+c) + b = (d::int)";
 test "a + -(b+c) - b = (d::int)";
 
 (*negative numerals*)
-test "(i + j + # -2 + (k::int)) - (u + # 5 + y) = zz";
-test "(i + j + # -3 + (k::int)) < u + # 5 + y";
-test "(i + j + # 3 + (k::int)) < u + # -6 + y";
-test "(i + j + # -12 + (k::int)) - # 15 = y";
-test "(i + j + # 12 + (k::int)) - # -15 = y";
-test "(i + j + # -12 + (k::int)) - # -15 = y";
+test "(i + j + -2 + (k::int)) - (u + 5 + y) = zz";
+test "(i + j + -3 + (k::int)) < u + 5 + y";
+test "(i + j + 3 + (k::int)) < u + -6 + y";
+test "(i + j + -12 + (k::int)) - 15 = y";
+test "(i + j + 12 + (k::int)) - -15 = y";
+test "(i + j + -12 + (k::int)) - -15 = y";
 *)
 
 
@@ -455,7 +455,7 @@ end;
 (* Some test data
 Goal "!!a::int. [| a <= b; c <= d; x+y<z |] ==> a+c <= b+d";
 by (fast_arith_tac 1);
-Goal "!!a::int. [| a < b; c < d |] ==> a-d+ # 2 <= b+(-c)";
+Goal "!!a::int. [| a < b; c < d |] ==> a-d+ 2 <= b+(-c)";
 by (fast_arith_tac 1);
 Goal "!!a::int. [| a < b; c < d |] ==> a+c+ Numeral1 < b+d";
 by (fast_arith_tac 1);
@@ -465,7 +465,7 @@ Goal "!!a::int. [| a+b <= i+j; a<=b; i<=j |] \
 \     ==> a+a <= j+j";
 by (fast_arith_tac 1);
 Goal "!!a::int. [| a+b < i+j; a<b; i<j |] \
-\     ==> a+a - - # -1 < j+j - # 3";
+\     ==> a+a - - -1 < j+j - 3";
 by (fast_arith_tac 1);
 Goal "!!a::int. a+b+c <= i+j+k & a<=b & b<=c & i<=j & j<=k --> a+a+a <= k+k+k";
 by (arith_tac 1);
@@ -482,6 +482,6 @@ Goal "!!a::int. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
 \     ==> a+a+a+a+a+a <= l+l+l+l+i+l";
 by (fast_arith_tac 1);
 Goal "!!a::int. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
-\     ==> # 6*a <= # 5*l+i";
+\     ==> 6*a <= 5*l+i";
 by (fast_arith_tac 1);
 *)

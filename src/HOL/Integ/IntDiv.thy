@@ -15,8 +15,8 @@ constdefs
                       (if Numeral0 < b then Numeral0<=r & r<b else b<r & r <= Numeral0)"
 
   adjust :: "[int, int, int*int] => int*int"
-    "adjust a b == %(q,r). if Numeral0 <= r-b then (# 2*q + Numeral1, r-b)
-                           else (# 2*q, r)"
+    "adjust a b == %(q,r). if Numeral0 <= r-b then (2*q + Numeral1, r-b)
+                           else (2*q, r)"
 
 (** the division algorithm **)
 
@@ -25,14 +25,14 @@ consts posDivAlg :: "int*int => int*int"
 recdef posDivAlg "inv_image less_than (%(a,b). nat(a - b + Numeral1))"
     "posDivAlg (a,b) =
        (if (a<b | b<=Numeral0) then (Numeral0,a)
-        else adjust a b (posDivAlg(a, # 2*b)))"
+        else adjust a b (posDivAlg(a, 2*b)))"
 
 (*for the case a<0, b>0*)
 consts negDivAlg :: "int*int => int*int"
 recdef negDivAlg "inv_image less_than (%(a,b). nat(- a - b))"
     "negDivAlg (a,b) =
-       (if (Numeral0<=a+b | b<=Numeral0) then (# -1,a+b)
-        else adjust a b (negDivAlg(a, # 2*b)))"
+       (if (Numeral0<=a+b | b<=Numeral0) then (-1,a+b)
+        else adjust a b (negDivAlg(a, 2*b)))"
 
 (*for the general case b~=0*)
 

@@ -15,52 +15,52 @@ text {*
 
 text {* \medskip Addition *}
 
-lemma "(# 1359::real) + # -2468 = # -1109"
+lemma "(1359::real) + -2468 = -1109"
   by simp
 
-lemma "(# 93746::real) + # -46375 = # 47371"
+lemma "(93746::real) + -46375 = 47371"
   by simp
 
 
 text {* \medskip Negation *}
 
-lemma "- (# 65745::real) = # -65745"
+lemma "- (65745::real) = -65745"
   by simp
 
-lemma "- (# -54321::real) = # 54321"
+lemma "- (-54321::real) = 54321"
   by simp
 
 
 text {* \medskip Multiplication *}
 
-lemma "(# -84::real) * # 51 = # -4284"
+lemma "(-84::real) * 51 = -4284"
   by simp
 
-lemma "(# 255::real) * # 255 = # 65025"
+lemma "(255::real) * 255 = 65025"
   by simp
 
-lemma "(# 1359::real) * # -2468 = # -3354012"
+lemma "(1359::real) * -2468 = -3354012"
   by simp
 
 
 text {* \medskip Inequalities *}
 
-lemma "(# 89::real) * # 10 \<noteq> # 889"
+lemma "(89::real) * 10 \<noteq> 889"
   by simp
 
-lemma "(# 13::real) < # 18 - # 4"
+lemma "(13::real) < 18 - 4"
   by simp
 
-lemma "(# -345::real) < # -242 + # -100"
+lemma "(-345::real) < -242 + -100"
   by simp
 
-lemma "(# 13557456::real) < # 18678654"
+lemma "(13557456::real) < 18678654"
   by simp
 
-lemma "(# 999999::real) \<le> (# 1000001 + Numeral1)-# 2"
+lemma "(999999::real) \<le> (1000001 + Numeral1) - 2"
   by simp
 
-lemma "(# 1234567::real) \<le> # 1234567"
+lemma "(1234567::real) \<le> 1234567"
   by simp
 
 

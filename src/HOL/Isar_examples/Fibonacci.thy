@@ -39,7 +39,7 @@ lemma [simp]: "0 < fib (Suc n)"
 text {* Alternative induction rule. *}
 
 theorem fib_induct:
-    "P 0 ==> P 1 ==> (!!n. P (n + 1) ==> P n ==> P (n + # 2)) ==> P (n::nat)"
+    "P 0 ==> P 1 ==> (!!n. P (n + 1) ==> P n ==> P (n + 2)) ==> P (n::nat)"
   by (induct rule: fib.induct, simp+)
 
 
@@ -56,7 +56,7 @@ proof (induct ?P n rule: fib_induct)
   show "?P 0" by simp
   show "?P 1" by simp
   fix n
-  have "fib (n + # 2 + k + 1)
+  have "fib (n + 2 + k + 1)
     = fib (n + k + 1) + fib (n + 1 + k + 1)" by simp
   also assume "fib (n + k + 1)
     = fib (k + 1) * fib (n + 1) + fib k * fib n"
@@ -65,9 +65,9 @@ proof (induct ?P n rule: fib_induct)
     = fib (k + 1) * fib (n + 1 + 1) + fib k * fib (n + 1)"
       (is " _ = ?R2")
   also have "?R1 + ?R2
-    = fib (k + 1) * fib (n + # 2 + 1) + fib k * fib (n + # 2)"
+    = fib (k + 1) * fib (n + 2 + 1) + fib k * fib (n + 2)"
     by (simp add: add_mult_distrib2)
-  finally show "?P (n + # 2)" .
+  finally show "?P (n + 2)" .
 qed
 
 lemma gcd_fib_Suc_eq_1: "gcd (fib n, fib (n + 1)) = 1" (is "?P n")
@@ -75,14 +75,14 @@ proof (induct ?P n rule: fib_induct)
   show "?P 0" by simp
   show "?P 1" by simp
   fix n
-  have "fib (n + # 2 + 1) = fib (n + 1) + fib (n + # 2)"
+  have "fib (n + 2 + 1) = fib (n + 1) + fib (n + 2)"
     by simp
-  also have "gcd (fib (n + # 2), ...) = gcd (fib (n + # 2), fib (n + 1))"
+  also have "gcd (fib (n + 2), ...) = gcd (fib (n + 2), fib (n + 1))"
     by (simp only: gcd_add2')
   also have "... = gcd (fib (n + 1), fib (n + 1 + 1))"
     by (simp add: gcd_commute)
   also assume "... = 1"
-  finally show "?P (n + # 2)" .
+  finally show "?P (n + 2)" .
 qed
 
 lemma gcd_mult_add: "0 < n ==> gcd (n * k + m, n) = gcd (m, n)"

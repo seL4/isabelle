@@ -86,7 +86,7 @@ lemma negate_eq2:
   by (unfold is_vectorspace_def) simp
 
 lemma negate_eq2a:
-  "is_vectorspace V \<Longrightarrow> x \<in> V \<Longrightarrow> # -1 \<cdot> x = - x"
+  "is_vectorspace V \<Longrightarrow> x \<in> V \<Longrightarrow> -1 \<cdot> x = - x"
   by (unfold is_vectorspace_def) simp
 
 lemma diff_eq2:

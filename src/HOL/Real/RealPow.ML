@@ -76,7 +76,7 @@ by Auto_tac;
 qed "realpow_eq_one";
 Addsimps [realpow_eq_one];
 
-Goal "abs((# -1) ^ n) = (Numeral1::real)";
+Goal "abs((-1) ^ n) = (Numeral1::real)";
 by (induct_tac "n" 1);
 by (auto_tac (claset(), simpset() addsimps [abs_mult]));
 qed "abs_realpow_minus_one";
@@ -127,13 +127,13 @@ by (dtac order_le_imp_less_or_eq 1);
 by (auto_tac (claset() addDs [realpow_ge_one], simpset()));
 qed "realpow_ge_one2";
 
-Goal "(Numeral1::real) <= # 2 ^ n";
+Goal "(Numeral1::real) <= 2 ^ n";
 by (res_inst_tac [("y","Numeral1 ^ n")] order_trans 1);
 by (rtac realpow_le 2);
 by (auto_tac (claset() addIs [order_less_imp_le], simpset()));
 qed "two_realpow_ge_one";
 
-Goal "real (n::nat) < # 2 ^ n";
+Goal "real (n::nat) < 2 ^ n";
 by (induct_tac "n" 1);
 by (auto_tac (claset(), simpset() addsimps [real_of_nat_Suc]));
 by (stac real_mult_2 1);
@@ -142,18 +142,18 @@ by (auto_tac (claset(), simpset() addsimps [two_realpow_ge_one]));
 qed "two_realpow_gt";
 Addsimps [two_realpow_gt,two_realpow_ge_one];
 
-Goal "(# -1) ^ (# 2*n) = (Numeral1::real)";
+Goal "(-1) ^ (2*n) = (Numeral1::real)";
 by (induct_tac "n" 1);
 by Auto_tac;
 qed "realpow_minus_one";
 Addsimps [realpow_minus_one];
 
-Goal "(# -1) ^ Suc (# 2*n) = -(Numeral1::real)";
+Goal "(-1) ^ Suc (2*n) = -(Numeral1::real)";
 by Auto_tac;
 qed "realpow_minus_one_odd";
 Addsimps [realpow_minus_one_odd];
 
-Goal "(# -1) ^ Suc (Suc (# 2*n)) = (Numeral1::real)";
+Goal "(-1) ^ Suc (Suc (2*n)) = (Numeral1::real)";
 by Auto_tac;
 qed "realpow_minus_one_even";
 Addsimps [realpow_minus_one_even];

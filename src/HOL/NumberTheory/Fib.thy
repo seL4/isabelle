@@ -67,14 +67,14 @@ text {*
 *}
 
 lemma fib_Cassini: "int (fib (Suc (Suc n)) * fib n) =
-  (if n mod # 2 = 0 then int (fib (Suc n) * fib (Suc n)) - Numeral1
+  (if n mod 2 = 0 then int (fib (Suc n) * fib (Suc n)) - Numeral1
    else int (fib (Suc n) * fib (Suc n)) + Numeral1)"
   apply (induct n rule: fib.induct)
     apply (simp add: fib.Suc_Suc)
    apply (simp add: fib.Suc_Suc mod_Suc)
   apply (simp add: fib.Suc_Suc
     add_mult_distrib add_mult_distrib2 mod_Suc zmult_int [symmetric] zmult_ac)
-  apply (subgoal_tac "x mod # 2 < # 2", arith)
+  apply (subgoal_tac "x mod 2 < 2", arith)
   apply simp
   done
 

@@ -260,11 +260,11 @@ by (simp_tac (simpset() addsimps [hrabs_zero]) 1);
 qed "Infinitesimal_zero";
 AddIffs [Infinitesimal_zero];
 
-Goal "x/(# 2::hypreal) + x/(# 2::hypreal) = x";
+Goal "x/(2::hypreal) + x/(2::hypreal) = x";
 by Auto_tac;  
 qed "hypreal_sum_of_halves";
 
-Goal "Numeral0 < r ==> Numeral0 < r/(# 2::hypreal)";
+Goal "Numeral0 < r ==> Numeral0 < r/(2::hypreal)";
 by Auto_tac;  
 qed "hypreal_half_gt_zero";
 

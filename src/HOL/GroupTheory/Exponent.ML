@@ -205,13 +205,13 @@ Goal "Suc 0 < p ==> Suc n <= p^n";
 by (induct_tac "n" 1);
 by (Asm_simp_tac 1); 
 by (Asm_full_simp_tac 1); 
-by (subgoal_tac "# 2 * n + # 2 <= p * p^n" 1);
+by (subgoal_tac "2 * n + 2 <= p * p^n" 1);
 by (Asm_full_simp_tac 1); 
-by (subgoal_tac "# 2 * p^n <= p * p^n" 1);
+by (subgoal_tac "2 * p^n <= p * p^n" 1);
 (*?arith_tac should handle all of this!*)
 by (rtac order_trans 1); 
 by (assume_tac 2); 
-by (dres_inst_tac [("k","# 2")] mult_le_mono2 1); 
+by (dres_inst_tac [("k","2")] mult_le_mono2 1); 
 by (Asm_full_simp_tac 1); 
 by (rtac mult_le_mono1 1); 
 by (Asm_full_simp_tac 1); 

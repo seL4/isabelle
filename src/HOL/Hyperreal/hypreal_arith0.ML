@@ -115,7 +115,7 @@ by (fast_arith_tac 1);
 qed "";
 
 Goal "!!a::hypreal. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
-\     ==> # 6*a <= # 5*l+i";
+\     ==> 6*a <= 5*l+i";
 by (fast_arith_tac 1);
 qed "";
 *)

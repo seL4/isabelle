@@ -50,9 +50,9 @@ val distribs =
 Goal "|- VARS a b x y. \
 \ {0<A & 0<B & a=A & b=B & x=B & y=A} \
 \ WHILE  a ~= b  \
-\ INV {0<a & 0<b & gcd A B = gcd a b & # 2*A*B = a*x + b*y} \
+\ INV {0<a & 0<b & gcd A B = gcd a b & 2*A*B = a*x + b*y} \
 \ DO IF a<b THEN (b := b-a; x := x+y) ELSE (a := a-b; y := y+x) FI OD \
-\ {a = gcd A B & # 2*A*B = a*(x+y)}";
+\ {a = gcd A B & 2*A*B = a*(x+y)}";
 by (hoare_tac (K all_tac) 1);
 by(Asm_simp_tac 1);
 by(asm_simp_tac (simpset() addsimps
@@ -68,9 +68,9 @@ Goal "|- VARS a b c. \
 \ c := (1::nat); \
 \ WHILE b ~= 0 \
 \ INV {A^B = c * a^b} \
-\ DO  WHILE b mod # 2 = 0 \
+\ DO  WHILE b mod 2 = 0 \
 \     INV {A^B = c * a^b} \
-\     DO  a := a*a; b := b div # 2 OD; \
+\     DO  a := a*a; b := b div 2 OD; \
 \     c := c*a; b := b - 1 \
 \ OD \
 \ {c = A^B}";
@@ -114,7 +114,7 @@ Goal "|- VARS u w r x. \
 \ x := X; u := 1; w := 1; r := (0::nat); \
 \ WHILE w <= x \
 \ INV {u = r+r+1 & w = (r+1)*(r+1) & r*r <= x & x=X} \
-\ DO r := r + 1; w := w + u + # 2; u := u + # 2 OD \
+\ DO r := r + 1; w := w + u + 2; u := u + 2 OD \
 \ {r*r <= X & X < (r+1)*(r+1)}";
 by (hoare_tac (SELECT_GOAL Auto_tac) 1);
 qed "sqrt_without_multiplication";

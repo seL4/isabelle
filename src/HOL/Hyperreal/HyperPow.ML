@@ -75,7 +75,7 @@ by Auto_tac;
 qed "hrabs_minus_hrealpow_one";
 Addsimps [hrabs_minus_hrealpow_one];
 
-Goal "abs(# -1 ^ n) = (Numeral1::hypreal)";
+Goal "abs(-1 ^ n) = (Numeral1::hypreal)";
 by (induct_tac "n" 1);
 by Auto_tac;  
 qed "hrabs_hrealpow_minus_one";
@@ -134,13 +134,13 @@ by (etac (hrealpow_two_gt_one RS order_less_imp_le) 1);
 by Auto_tac;  
 qed "hrealpow_two_ge_one";
 
-Goal "(Numeral1::hypreal) <= # 2 ^ n";
+Goal "(Numeral1::hypreal) <= 2 ^ n";
 by (res_inst_tac [("y","Numeral1 ^ n")] order_trans 1);
 by (rtac hrealpow_le 2);
 by Auto_tac;
 qed "two_hrealpow_ge_one";
 
-Goal "hypreal_of_nat n < # 2 ^ n";
+Goal "hypreal_of_nat n < 2 ^ n";
 by (induct_tac "n" 1);
 by (auto_tac (claset(),
         simpset() addsimps [hypreal_of_nat_Suc, hypreal_add_mult_distrib]));
@@ -149,17 +149,17 @@ by (arith_tac 1);
 qed "two_hrealpow_gt";
 Addsimps [two_hrealpow_gt,two_hrealpow_ge_one];
 
-Goal "# -1 ^ (# 2*n) = (Numeral1::hypreal)";
+Goal "-1 ^ (2*n) = (Numeral1::hypreal)";
 by (induct_tac "n" 1);
 by (Auto_tac);
 qed "hrealpow_minus_one";
 
-Goal "n+n = (# 2*n::nat)";
+Goal "n+n = (2*n::nat)";
 by Auto_tac; 
 qed "double_lemma";
 
 (*ugh: need to get rid fo the n+n*)
-Goal "# -1 ^ (n + n) = (Numeral1::hypreal)";
+Goal "-1 ^ (n + n) = (Numeral1::hypreal)";
 by (auto_tac (claset(), 
               simpset() addsimps [double_lemma, hrealpow_minus_one]));
 qed "hrealpow_minus_one2";
@@ -340,7 +340,7 @@ by (auto_tac (claset(), simpset() addsimps [hyperpow,hypreal_hrabs]));
 qed "hrabs_minus_hyperpow_one";
 Addsimps [hrabs_minus_hyperpow_one];
 
-Goal "abs(# -1 pow n) = (Numeral1::hypreal)";
+Goal "abs(-1 pow n) = (Numeral1::hypreal)";
 by (subgoal_tac "abs((- 1hr) pow n) = 1hr" 1);
 by (Asm_full_simp_tac 1); 
 by (simp_tac (HOL_ss addsimps [hypreal_one_def]) 1);
@@ -388,7 +388,7 @@ by (auto_tac (claset() addSDs [order_le_imp_less_or_eq]
               simpset()));
 qed "hyperpow_two_ge_one";
 
-Goal "(Numeral1::hypreal) <= # 2 pow n";
+Goal "(Numeral1::hypreal) <= 2 pow n";
 by (res_inst_tac [("y","Numeral1 pow n")] order_trans 1);
 by (rtac hyperpow_le 2);
 by Auto_tac;
@@ -397,7 +397,7 @@ Addsimps [two_hyperpow_ge_one];
 
 Addsimps [simplify (simpset()) realpow_minus_one];
 
-Goal "# -1 pow ((1hn + 1hn)*n) = (Numeral1::hypreal)";
+Goal "-1 pow ((1hn + 1hn)*n) = (Numeral1::hypreal)";
 by (subgoal_tac "(-(1hr)) pow ((1hn + 1hn)*n) = 1hr" 1);
 by (Asm_full_simp_tac 1); 
 by (simp_tac (HOL_ss addsimps [hypreal_one_def]) 1);

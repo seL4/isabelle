@@ -168,7 +168,7 @@ by (dtac (int_0_less_mult_iff RS iffD1) 1);
 by Auto_tac;  
 qed "pos_zmult_eq_1_iff";
 
-Goal "(m*n = (Numeral1::int)) = ((m = Numeral1 & n = Numeral1) | (m = # -1 & n = # -1))";
+Goal "(m*n = (Numeral1::int)) = ((m = Numeral1 & n = Numeral1) | (m = -1 & n = -1))";
 by (case_tac "Numeral0<m" 1);
 by (asm_simp_tac (simpset() addsimps [pos_zmult_eq_1_iff]) 1);
 by (case_tac "m=Numeral0" 1);

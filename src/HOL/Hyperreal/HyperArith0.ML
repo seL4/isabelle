@@ -288,34 +288,34 @@ set timing;
 set trace_simp;
 fun test s = (Goal s; by (Simp_tac 1)); 
 
-test "Numeral0 <= (y::hypreal) * # -2";
-test "# 9*x = # 12 * (y::hypreal)";
-test "(# 9*x) / (# 12 * (y::hypreal)) = z";
-test "# 9*x < # 12 * (y::hypreal)";
-test "# 9*x <= # 12 * (y::hypreal)";
+test "Numeral0 <= (y::hypreal) * -2";
+test "9*x = 12 * (y::hypreal)";
+test "(9*x) / (12 * (y::hypreal)) = z";
+test "9*x < 12 * (y::hypreal)";
+test "9*x <= 12 * (y::hypreal)";
 
-test "# -99*x = # 123 * (y::hypreal)";
-test "(# -99*x) / (# 123 * (y::hypreal)) = z";
-test "# -99*x < # 123 * (y::hypreal)";
-test "# -99*x <= # 123 * (y::hypreal)";
+test "-99*x = 123 * (y::hypreal)";
+test "(-99*x) / (123 * (y::hypreal)) = z";
+test "-99*x < 123 * (y::hypreal)";
+test "-99*x <= 123 * (y::hypreal)";
 
-test "# 999*x = # -396 * (y::hypreal)";
-test "(# 999*x) / (# -396 * (y::hypreal)) = z";
-test "# 999*x < # -396 * (y::hypreal)";
-test "# 999*x <= # -396 * (y::hypreal)";
+test "999*x = -396 * (y::hypreal)";
+test "(999*x) / (-396 * (y::hypreal)) = z";
+test "999*x < -396 * (y::hypreal)";
+test "999*x <= -396 * (y::hypreal)";
 
-test "# -99*x = # -81 * (y::hypreal)";
-test "(# -99*x) / (# -81 * (y::hypreal)) = z";
-test "# -99*x <= # -81 * (y::hypreal)";
-test "# -99*x < # -81 * (y::hypreal)";
+test "-99*x = -81 * (y::hypreal)";
+test "(-99*x) / (-81 * (y::hypreal)) = z";
+test "-99*x <= -81 * (y::hypreal)";
+test "-99*x < -81 * (y::hypreal)";
 
-test "# -2 * x = # -1 * (y::hypreal)";
-test "# -2 * x = -(y::hypreal)";
-test "(# -2 * x) / (# -1 * (y::hypreal)) = z";
-test "# -2 * x < -(y::hypreal)";
-test "# -2 * x <= # -1 * (y::hypreal)";
-test "-x < # -23 * (y::hypreal)";
-test "-x <= # -23 * (y::hypreal)";
+test "-2 * x = -1 * (y::hypreal)";
+test "-2 * x = -(y::hypreal)";
+test "(-2 * x) / (-1 * (y::hypreal)) = z";
+test "-2 * x < -(y::hypreal)";
+test "-2 * x <= -1 * (y::hypreal)";
+test "-x < -23 * (y::hypreal)";
+test "-x <= -23 * (y::hypreal)";
 *)
 
 
@@ -516,18 +516,18 @@ by (simp_tac (simpset() addsimps [hypreal_divide_def]) 1);
 qed "hypreal_divide_1";
 Addsimps [hypreal_divide_1];
 
-Goal "x/# -1 = -(x::hypreal)";
+Goal "x/-1 = -(x::hypreal)";
 by (Simp_tac 1); 
 qed "hypreal_divide_minus1";
 Addsimps [hypreal_divide_minus1];
 
-Goal "# -1/(x::hypreal) = - (Numeral1/x)";
+Goal "-1/(x::hypreal) = - (Numeral1/x)";
 by (simp_tac (simpset() addsimps [hypreal_divide_def, hypreal_minus_inverse]) 1); 
 qed "hypreal_minus1_divide";
 Addsimps [hypreal_minus1_divide];
 
 Goal "[| (Numeral0::hypreal) < d1; Numeral0 < d2 |] ==> EX e. Numeral0 < e & e < d1 & e < d2";
-by (res_inst_tac [("x","(min d1 d2)/# 2")] exI 1); 
+by (res_inst_tac [("x","(min d1 d2)/2")] exI 1); 
 by (asm_simp_tac (simpset() addsimps [min_def]) 1); 
 qed "hypreal_lbound_gt_zero";
 
@@ -644,11 +644,11 @@ Addsimps [hypreal_minus_diff_eq];
 
 (*** Density of the Hyperreals ***)
 
-Goal "x < y ==> x < (x+y) / (# 2::hypreal)";
+Goal "x < y ==> x < (x+y) / (2::hypreal)";
 by Auto_tac;
 qed "hypreal_less_half_sum";
 
-Goal "x < y ==> (x+y)/(# 2::hypreal) < y";
+Goal "x < y ==> (x+y)/(2::hypreal) < y";
 by Auto_tac;
 qed "hypreal_gt_half_sum";
 

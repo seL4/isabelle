@@ -29,7 +29,7 @@ Addsimps [LIM_const];
 Goalw [LIM_def] 
      "[| f -- x --> l; g -- x --> m |] ==> (%x. f(x) + g(x)) -- x --> (l + m)";
 by (Clarify_tac 1);
-by (REPEAT(dres_inst_tac [("x","r/# 2")] spec 1));
+by (REPEAT(dres_inst_tac [("x","r/2")] spec 1));
 by (Asm_full_simp_tac 1);
 by (Clarify_tac 1);
 by (res_inst_tac [("R1.0","s"),("R2.0","sa")] 
@@ -1544,15 +1544,15 @@ by (auto_tac (claset(),
               simpset() addsimps [Bolzano_bisect_le, Let_def, split_def]));  
 qed "Bolzano_bisect_Suc_le_snd";
 
-Goal "((x::real) = y / (# 2 * z)) = (# 2 * x = y/z)";
+Goal "((x::real) = y / (2 * z)) = (2 * x = y/z)";
 by Auto_tac;  
-by (dres_inst_tac [("f","%u. (Numeral1/# 2)*u")] arg_cong 1); 
+by (dres_inst_tac [("f","%u. (Numeral1/2)*u")] arg_cong 1); 
 by Auto_tac;  
 qed "eq_divide_2_times_iff";
 
 Goal "a \\<le> b ==> \
 \     snd(Bolzano_bisect P a b n) - fst(Bolzano_bisect P a b n) = \
-\     (b-a) / (# 2 ^ n)";
+\     (b-a) / (2 ^ n)";
 by (induct_tac "n" 1);
 by (auto_tac (claset(), 
       simpset() addsimps [eq_divide_2_times_iff, real_add_divide_distrib, 
@@ -1604,8 +1604,8 @@ by (REPEAT (assume_tac 1));
 by (rename_tac "l" 1);
 by (dres_inst_tac [("x","l")] spec 1 THEN Clarify_tac 1);
 by (rewtac LIMSEQ_def);
-by (dres_inst_tac [("P", "%r. Numeral0<r --> ?Q r"), ("x","d/# 2")] spec 1);
-by (dres_inst_tac [("P", "%r. Numeral0<r --> ?Q r"), ("x","d/# 2")] spec 1);
+by (dres_inst_tac [("P", "%r. Numeral0<r --> ?Q r"), ("x","d/2")] spec 1);
+by (dres_inst_tac [("P", "%r. Numeral0<r --> ?Q r"), ("x","d/2")] spec 1);
 by (dtac real_less_half_sum 1);
 by Safe_tac;
 (*linear arithmetic bug if we just use Asm_simp_tac*)
@@ -2148,12 +2148,12 @@ by (auto_tac (claset() addSDs [DERIV_const_ratio_const],
               simpset() addsimps [real_mult_assoc]));
 qed "DERIV_const_ratio_const2";
 
-Goal "((a + b) /# 2 - a) = (b - a)/(# 2::real)";
+Goal "((a + b) /2 - a) = (b - a)/(2::real)";
 by Auto_tac;  
 qed "real_average_minus_first";
 Addsimps [real_average_minus_first];
 
-Goal "((b + a)/# 2 - a) = (b - a)/(# 2::real)";
+Goal "((b + a)/2 - a) = (b - a)/(2::real)";
 by Auto_tac;  
 qed "real_average_minus_second";
 Addsimps [real_average_minus_second];
@@ -2161,7 +2161,7 @@ Addsimps [real_average_minus_second];
 
 (* Gallileo's "trick": average velocity = av. of end velocities *)
 Goal "[|a \\<noteq> (b::real); \\<forall>x. DERIV v x :> k|] \
-\     ==> v((a + b)/# 2) = (v a + v b)/# 2";
+\     ==> v((a + b)/2) = (v a + v b)/2";
 by (res_inst_tac [("R1.0","a"),("R2.0","b")] real_linear_less2 1);
 by Auto_tac;
 by (ftac DERIV_const_ratio_const2 1 THEN assume_tac 1);

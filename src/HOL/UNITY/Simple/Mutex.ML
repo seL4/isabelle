@@ -25,7 +25,7 @@ by (always_tac 1);
 qed "IV";
 
 (*The safety property: mutual exclusion*)
-Goal "Mutex : Always {s. ~ (m s = # 3 & n s = # 3)}";
+Goal "Mutex : Always {s. ~ (m s = 3 & n s = 3)}";
 by (rtac ([IU, IV] MRS Always_Int_I RS Always_weaken) 1);
 by Auto_tac;
 qed "mutual_exclusion";
@@ -42,33 +42,33 @@ by Auto_tac;
 getgoal 1;  
 
 
-Goal "((Numeral1::int) <= i & i <= # 3) = (i = Numeral1 | i = # 2 | i = # 3)";
+Goal "((Numeral1::int) <= i & i <= 3) = (i = Numeral1 | i = 2 | i = 3)";
 by (arith_tac 1);
 qed "eq_123";
 
 
 (*** Progress for U ***)
 
-Goalw [Unless_def] "Mutex : {s. m s=# 2} Unless {s. m s=# 3}";
+Goalw [Unless_def] "Mutex : {s. m s=2} Unless {s. m s=3}";
 by (constrains_tac 1);
 qed "U_F0";
 
-Goal "Mutex : {s. m s=Numeral1} LeadsTo {s. p s = v s & m s = # 2}";
+Goal "Mutex : {s. m s=Numeral1} LeadsTo {s. p s = v s & m s = 2}";
 by (ensures_tac "U1" 1);
 qed "U_F1";
 
-Goal "Mutex : {s. ~ p s & m s = # 2} LeadsTo {s. m s = # 3}";
+Goal "Mutex : {s. ~ p s & m s = 2} LeadsTo {s. m s = 3}";
 by (cut_facts_tac [IU] 1);
 by (ensures_tac "U2" 1);
 qed "U_F2";
 
-Goal "Mutex : {s. m s = # 3} LeadsTo {s. p s}";
-by (res_inst_tac [("B", "{s. m s = # 4}")] LeadsTo_Trans 1);
+Goal "Mutex : {s. m s = 3} LeadsTo {s. p s}";
+by (res_inst_tac [("B", "{s. m s = 4}")] LeadsTo_Trans 1);
 by (ensures_tac "U4" 2);
 by (ensures_tac "U3" 1);
 qed "U_F3";
 
-Goal "Mutex : {s. m s = # 2} LeadsTo {s. p s}";
+Goal "Mutex : {s. m s = 2} LeadsTo {s. p s}";
 by (rtac ([LeadsTo_weaken_L, Int_lower2 RS subset_imp_LeadsTo] 
 	  MRS LeadsTo_Diff) 1);
 by (rtac ([U_F2, U_F3] MRS LeadsTo_Trans) 1);
@@ -80,7 +80,7 @@ by (rtac ([U_F1 RS LeadsTo_weaken_R, U_lemma2] MRS LeadsTo_Trans) 1);
 by (Blast_tac 1);
 val U_lemma1 = result();
 
-Goal "Mutex : {s. Numeral1 <= m s & m s <= # 3} LeadsTo {s. p s}";
+Goal "Mutex : {s. Numeral1 <= m s & m s <= 3} LeadsTo {s. p s}";
 by (simp_tac (simpset() addsimps [eq_123, Collect_disj_eq, LeadsTo_Un_distrib,
 				  U_lemma1, U_lemma2, U_F3] ) 1);
 val U_lemma123 = result();
@@ -95,26 +95,26 @@ qed "u_Leadsto_p";
 (*** Progress for V ***)
 
 
-Goalw [Unless_def] "Mutex : {s. n s=# 2} Unless {s. n s=# 3}";
+Goalw [Unless_def] "Mutex : {s. n s=2} Unless {s. n s=3}";
 by (constrains_tac 1);
 qed "V_F0";
 
-Goal "Mutex : {s. n s=Numeral1} LeadsTo {s. p s = (~ u s) & n s = # 2}";
+Goal "Mutex : {s. n s=Numeral1} LeadsTo {s. p s = (~ u s) & n s = 2}";
 by (ensures_tac "V1" 1);
 qed "V_F1";
 
-Goal "Mutex : {s. p s & n s = # 2} LeadsTo {s. n s = # 3}";
+Goal "Mutex : {s. p s & n s = 2} LeadsTo {s. n s = 3}";
 by (cut_facts_tac [IV] 1);
 by (ensures_tac "V2" 1);
 qed "V_F2";
 
-Goal "Mutex : {s. n s = # 3} LeadsTo {s. ~ p s}";
-by (res_inst_tac [("B", "{s. n s = # 4}")] LeadsTo_Trans 1);
+Goal "Mutex : {s. n s = 3} LeadsTo {s. ~ p s}";
+by (res_inst_tac [("B", "{s. n s = 4}")] LeadsTo_Trans 1);
 by (ensures_tac "V4" 2);
 by (ensures_tac "V3" 1);
 qed "V_F3";
 
-Goal "Mutex : {s. n s = # 2} LeadsTo {s. ~ p s}";
+Goal "Mutex : {s. n s = 2} LeadsTo {s. ~ p s}";
 by (rtac ([LeadsTo_weaken_L, Int_lower2 RS subset_imp_LeadsTo] 
 	  MRS LeadsTo_Diff) 1);
 by (rtac ([V_F2, V_F3] MRS LeadsTo_Trans) 1);
@@ -126,7 +126,7 @@ by (rtac ([V_F1 RS LeadsTo_weaken_R, V_lemma2] MRS LeadsTo_Trans) 1);
 by (Blast_tac 1);
 val V_lemma1 = result();
 
-Goal "Mutex : {s. Numeral1 <= n s & n s <= # 3} LeadsTo {s. ~ p s}";
+Goal "Mutex : {s. Numeral1 <= n s & n s <= 3} LeadsTo {s. ~ p s}";
 by (simp_tac (simpset() addsimps [eq_123, Collect_disj_eq, LeadsTo_Un_distrib,
 				  V_lemma1, V_lemma2, V_F3] ) 1);
 val V_lemma123 = result();
@@ -142,7 +142,7 @@ qed "v_Leadsto_not_p";
 (** Absence of starvation **)
 
 (*Misra's F6*)
-Goal "Mutex : {s. m s = Numeral1} LeadsTo {s. m s = # 3}";
+Goal "Mutex : {s. m s = Numeral1} LeadsTo {s. m s = 3}";
 by (rtac (LeadsTo_cancel2 RS LeadsTo_Un_duplicate) 1);
 by (rtac U_F2 2);
 by (simp_tac (simpset() addsimps [Collect_conj_eq] ) 1);
@@ -154,7 +154,7 @@ by Auto_tac;
 qed "m1_Leadsto_3";
 
 (*The same for V*)
-Goal "Mutex : {s. n s = Numeral1} LeadsTo {s. n s = # 3}";
+Goal "Mutex : {s. n s = Numeral1} LeadsTo {s. n s = 3}";
 by (rtac (LeadsTo_cancel2 RS LeadsTo_Un_duplicate) 1);
 by (rtac V_F2 2);
 by (simp_tac (simpset() addsimps [Collect_conj_eq] ) 1);

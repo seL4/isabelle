@@ -160,7 +160,7 @@ qed "number_of_mult";
 
 (*The correctness of shifting.  But it doesn't seem to give a measurable
   speed-up.*)
-Goal "(# 2::int) * number_of w = number_of (w BIT False)";
+Goal "(2::int) * number_of w = number_of (w BIT False)";
 by (induct_tac "w" 1);
 by (ALLGOALS (asm_simp_tac
     (simpset() addsimps bin_mult_simps @ [zadd_zmult_distrib] @ zadd_ac)));
@@ -250,11 +250,11 @@ Goal "z * Numeral1 = (z::int)";
 by (Simp_tac 1);
 qed "zmult_1_right";
 
-Goal "# -1 * z = -(z::int)";
+Goal "-1 * z = -(z::int)";
 by (simp_tac (simpset() addsimps zcompare_rls@[zmult_zminus]) 1);
 qed "zmult_minus1";
 
-Goal "z * # -1 = -(z::int)";
+Goal "z * -1 = -(z::int)";
 by (simp_tac (simpset() addsimps zcompare_rls@[zmult_zminus_right]) 1);
 qed "zmult_minus1_right";
 

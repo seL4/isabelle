@@ -114,33 +114,33 @@ set timing;
 set trace_simp;
 fun test s = (Goal s; by (Simp_tac 1)); 
 
-test "# 9*x = # 12 * (y::int)";
-test "(# 9*x) div (# 12 * (y::int)) = z";
-test "# 9*x < # 12 * (y::int)";
-test "# 9*x <= # 12 * (y::int)";
+test "9*x = 12 * (y::int)";
+test "(9*x) div (12 * (y::int)) = z";
+test "9*x < 12 * (y::int)";
+test "9*x <= 12 * (y::int)";
 
-test "# -99*x = # 132 * (y::int)";
-test "(# -99*x) div (# 132 * (y::int)) = z";
-test "# -99*x < # 132 * (y::int)";
-test "# -99*x <= # 132 * (y::int)";
+test "-99*x = 132 * (y::int)";
+test "(-99*x) div (132 * (y::int)) = z";
+test "-99*x < 132 * (y::int)";
+test "-99*x <= 132 * (y::int)";
 
-test "# 999*x = # -396 * (y::int)";
-test "(# 999*x) div (# -396 * (y::int)) = z";
-test "# 999*x < # -396 * (y::int)";
-test "# 999*x <= # -396 * (y::int)";
+test "999*x = -396 * (y::int)";
+test "(999*x) div (-396 * (y::int)) = z";
+test "999*x < -396 * (y::int)";
+test "999*x <= -396 * (y::int)";
 
-test "# -99*x = # -81 * (y::int)";
-test "(# -99*x) div (# -81 * (y::int)) = z";
-test "# -99*x <= # -81 * (y::int)";
-test "# -99*x < # -81 * (y::int)";
+test "-99*x = -81 * (y::int)";
+test "(-99*x) div (-81 * (y::int)) = z";
+test "-99*x <= -81 * (y::int)";
+test "-99*x < -81 * (y::int)";
 
-test "# -2 * x = # -1 * (y::int)";
-test "# -2 * x = -(y::int)";
-test "(# -2 * x) div (# -1 * (y::int)) = z";
-test "# -2 * x < -(y::int)";
-test "# -2 * x <= # -1 * (y::int)";
-test "-x < # -23 * (y::int)";
-test "-x <= # -23 * (y::int)";
+test "-2 * x = -1 * (y::int)";
+test "-2 * x = -(y::int)";
+test "(-2 * x) div (-1 * (y::int)) = z";
+test "-2 * x < -(y::int)";
+test "-2 * x <= -1 * (y::int)";
+test "-x < -23 * (y::int)";
+test "-x <= -23 * (y::int)";
 *)
 
 

@@ -133,15 +133,15 @@ lemma aux2: "Numeral1 < x ==> Numeral0 < (x::int)"
   apply auto
   done
 
-lemma aux3: "x \<le> p - # 2 ==> x < (p::int)"
+lemma aux3: "x \<le> p - 2 ==> x < (p::int)"
   apply auto
   done
 
-lemma aux4: "x \<le> p - # 2 ==> x < (p::int)-Numeral1"
+lemma aux4: "x \<le> p - 2 ==> x < (p::int)-Numeral1"
   apply auto
   done
 
-lemma inv_inj: "p \<in> zprime ==> inj_on (inv p) (d22set (p - # 2))"
+lemma inv_inj: "p \<in> zprime ==> inj_on (inv p) (d22set (p - 2))"
   apply (unfold inj_on_def)
   apply auto
   apply (rule zcong_zless_imp_eq)
@@ -160,7 +160,7 @@ lemma inv_inj: "p \<in> zprime ==> inj_on (inv p) (d22set (p - # 2))"
   done
 
 lemma inv_d22set_d22set:
-    "p \<in> zprime ==> inv p ` d22set (p - # 2) = d22set (p - # 2)"
+    "p \<in> zprime ==> inv p ` d22set (p - 2) = d22set (p - 2)"
   apply (rule endo_inj_surj)
     apply (rule d22set_fin)
    apply (erule_tac [2] inv_inj)
@@ -173,9 +173,9 @@ lemma inv_d22set_d22set:
   done
 
 lemma d22set_d22set_bij:
-    "p \<in> zprime ==> (d22set (p - # 2), d22set (p - # 2)) \<in> bijR (reciR p)"
+    "p \<in> zprime ==> (d22set (p - 2), d22set (p - 2)) \<in> bijR (reciR p)"
   apply (unfold reciR_def)
-  apply (rule_tac s = "(d22set (p - # 2), inv p ` d22set (p - # 2))" in subst)
+  apply (rule_tac s = "(d22set (p - 2), inv p ` d22set (p - 2))" in subst)
    apply (simp add: inv_d22set_d22set)
   apply (rule inj_func_bijR)
     apply (rule_tac [3] d22set_fin)
@@ -187,7 +187,7 @@ lemma d22set_d22set_bij:
          apply (auto intro: d22set_g_1 d22set_le aux2 aux3 aux4)
   done
 
-lemma reciP_bijP: "p \<in> zprime ==> bijP (reciR p) (d22set (p - # 2))"
+lemma reciP_bijP: "p \<in> zprime ==> bijP (reciR p) (d22set (p - 2))"
   apply (unfold reciR_def bijP_def)
   apply auto
   apply (rule d22set_mem)
@@ -217,7 +217,7 @@ lemma reciP_sym: "p \<in> zprime ==> symP (reciR p)"
   apply auto
   done
 
-lemma bijER_d22set: "p \<in> zprime ==> d22set (p - # 2) \<in> bijER (reciR p)"
+lemma bijER_d22set: "p \<in> zprime ==> d22set (p - 2) \<in> bijER (reciR p)"
   apply (rule bijR_bijER)
      apply (erule d22set_d22set_bij)
     apply (erule reciP_bijP)
@@ -245,12 +245,12 @@ lemma bijER_zcong_prod_1:
    apply auto
   done
 
-theorem Wilson_Bij: "p \<in> zprime ==> [zfact (p - Numeral1) = # -1] (mod p)"
-  apply (subgoal_tac "zcong ((p - Numeral1) * zfact (p - # 2)) (# -1 * Numeral1) p")
+theorem Wilson_Bij: "p \<in> zprime ==> [zfact (p - Numeral1) = -1] (mod p)"
+  apply (subgoal_tac "zcong ((p - Numeral1) * zfact (p - 2)) (-1 * Numeral1) p")
    apply (rule_tac [2] zcong_zmult)
     apply (simp add: zprime_def)
     apply (subst zfact.simps)
-    apply (rule_tac t = "p - Numeral1 - Numeral1" and s = "p - # 2" in subst)
+    apply (rule_tac t = "p - Numeral1 - Numeral1" and s = "p - 2" in subst)
      apply auto
    apply (simp add: zcong_def)
   apply (subst d22set_prod_zfact [symmetric])

@@ -65,8 +65,8 @@ consts
     RespLife   :: nat 
 
 rules
-     AuthLife_LB    "# 2 <= AuthLife"
-     ServLife_LB    "# 2 <= ServLife"
+     AuthLife_LB    "2 <= AuthLife"
+     ServLife_LB    "2 <= ServLife"
      AutcLife_LB    "Suc 0 <= AutcLife" 
      RespLife_LB    "Suc 0 <= RespLife"
 

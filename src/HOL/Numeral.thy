@@ -24,7 +24,7 @@ nonterminals
 
 syntax
   "_constify" :: "num => numeral"    ("_")
-  "_Numeral" :: "numeral => 'a"    ("#_")
+  "_Numeral" :: "numeral => 'a"    ("_")
   Numeral0 :: 'a
   Numeral1 :: 'a
 
