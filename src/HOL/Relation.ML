@@ -131,9 +131,9 @@ Addsimps [converse_Id];
 
 (** Domain **)
 
-qed_goalw "Domain_iff" thy [Domain_def]
-    "a: Domain(r) = (EX y. (a,y): r)"
- (fn _=> [ (Blast_tac 1) ]);
+Goalw [Domain_def] "a: Domain(r) = (EX y. (a,y): r)";
+by (Blast_tac 1);
+qed "Domain_iff";
 
 qed_goal "DomainI" thy "!!a b r. (a,b): r ==> a: Domain(r)"
  (fn _ => [ (etac (exI RS (Domain_iff RS iffD2)) 1) ]);
@@ -152,7 +152,24 @@ by (Blast_tac 1);
 qed "Domain_Id";
 Addsimps [Domain_Id];
 
+Goal "Domain(A Un B) = Domain(A) Un Domain(B)";
+by (Blast_tac 1);
+qed "Domain_Un_eq";
+
+Goal "Domain(A Int B) <= Domain(A) Int Domain(B)";
+by (Blast_tac 1);
+qed "Domain_Int_subset";
+
+Goal "Domain(A) - Domain(B) <= Domain(A - B)";
+by (Blast_tac 1);
+qed "Domain_Diff_subset";
+
+
 (** Range **)
+
+Goalw [Domain_def, Range_def] "a: Range(r) = (EX y. (y,a): r)";
+by (Blast_tac 1);
+qed "Range_iff";
 
 qed_goalw "RangeI" thy [Range_def] "!!a b r.(a,b): r ==> b : Range(r)"
  (fn _ => [ (etac (converseI RS DomainI) 1) ]);
@@ -171,6 +188,19 @@ Goal "Range Id = UNIV";
 by (Blast_tac 1);
 qed "Range_Id";
 Addsimps [Range_Id];
+
+Goal "Range(A Un B) = Range(A) Un Range(B)";
+by (Blast_tac 1);
+qed "Range_Un_eq";
+
+Goal "Range(A Int B) <= Range(A) Int Range(B)";
+by (Blast_tac 1);
+qed "Range_Int_subset";
+
+Goal "Range(A) - Range(B) <= Range(A - B)";
+by (Blast_tac 1);
+qed "Range_Diff_subset";
+
 
 (*** Image of a set under a relation ***)
 
