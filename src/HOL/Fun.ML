@@ -142,13 +142,17 @@ qed "subset_inj_on";
 
 (** surj **)
 
-val [major] = Goalw [surj_def] "(!! x. g(f x) = x) ==> surj g";
-by (blast_tac (claset() addIs [major RS sym]) 1);
+val [prem] = Goalw [surj_def] "(!! x. g(f x) = x) ==> surj g";
+by (blast_tac (claset() addIs [prem RS sym]) 1);
 qed "surjI";
 
 Goalw [surj_def] "surj f ==> range f = UNIV";
 by Auto_tac;
 qed "surj_range";
+
+Goalw [surj_def] "surj f ==> EX x. y = f x";
+by (Blast_tac 1);
+qed "surjD";
 
 
 (*** Lemmas about injective functions and inv ***)
