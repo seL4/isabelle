@@ -1,11 +1,10 @@
-(* syntax.ML
-   Author:  David von Oheimb
-   Created: 31-May-95
-   Updated: 16-Aug-95 case translation
-   Updated: 28-Aug-95 corrections for case translation, simultaneous domain equations
-   Copyright 1995 TU Muenchen
-*)
+(*  Title:      HOLCF/domain/syntaxd.ML
+    ID:         $Id$
+    Author : David von Oheimb
+    Copyright 1995, 1996 TU Muenchen
 
+syntax generator for domain section
+*)
 
 structure Domain_Syntax = struct 
 
@@ -103,8 +102,8 @@ in (* local *)
 fun add_syntax (comp_dname,eqs': ((string * typ list) *
 		(string * ThyOps.cmixfix * (bool*string*typ) list) list) list) thy'' =
 let
-  fun thy_type  (dname,typevars)  = (dname, length typevars, NoSyn);
-  fun thy_arity (dname,typevars)  = (dname, map (K ["pcpo"]) typevars, ["pcpo"]); 
+  fun thy_type  (dname,tvars)  = (dname, length tvars, NoSyn);
+  fun thy_arity (dname,tvars)  = (dname, map (snd o rep_TFree) tvars, ["pcpo"]);
   val thy_types   = map (thy_type  o fst) eqs';
   val thy_arities = map (thy_arity o fst) eqs';
   val dtypes      = map (Type      o fst) eqs';

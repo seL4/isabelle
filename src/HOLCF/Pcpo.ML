@@ -187,7 +187,7 @@ qed_goal "not_less2not_eq" Pcpo.thy "~x<<y ==> ~x=y"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac classical3 1),
+        (rtac classical2 1),
         (atac 1),
         (hyp_subst_tac 1),
         (rtac refl_less 1)

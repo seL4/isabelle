@@ -1,7 +1,9 @@
 (*  Title:      HOLCF/domain/theorems.ML
-    ID:         $ $
+    ID:         $Id$
     Author : David von Oheimb
     Copyright 1995, 1996 TU Muenchen
+
+proof generator for domain section
 *)
 
 structure Domain_Theorems = struct
@@ -42,30 +44,16 @@ val chain_tac = REPEAT_DETERM o resolve_tac
 
 (* ----- general proofs ----------------------------------------------------- *)
 
-val quant_ss = HOL_ss addsimps (map (fn s => prove_goal HOL.thy s (fn _ =>[
-                fast_tac HOL_cs 1]))["(!x. P x & Q)=((!x. P x) & Q)",
-                                     "(!x. P & Q x) = (P & (!x. Q x))"]);
-
 val all2E = prove_goal HOL.thy "[| !x y . P x y; P x y ==> R |] ==> R"
  (fn prems =>[
                                 resolve_tac prems 1,
                                 cut_facts_tac prems 1,
                                 fast_tac HOL_cs 1]);
 
-val swap3 = prove_goal HOL.thy "[| Q ==> P; ~P |] ==> ~Q" (fn prems => [
-                                cut_facts_tac prems 1,
-                                etac swap 1,
-                                dtac notnotD 1,
-                                etac (hd prems) 1]);
-
 val dist_eqI = prove_goal Porder.thy "~ x << y ==> x ~= y" (fn prems => [
-                                rtac swap3 1,
+                                rtac rev_contrapos 1,
                                 etac (antisym_less_inverse RS conjunct1) 1,
                                 resolve_tac prems 1]);
-val cfst_strict  = prove_goal Cprod3.thy "cfst`UU = UU" (fn _ => [
-                        (simp_tac (HOLCF_ss addsimps [inst_cprod_pcpo2]) 1)]);
-val csnd_strict  = prove_goal Cprod3.thy "csnd`UU = UU" (fn _ => [
-                        (simp_tac (HOLCF_ss addsimps [inst_cprod_pcpo2]) 1)]);
 
 in
 
@@ -221,7 +209,7 @@ val con_stricts = flat(map (fn (con,args) => map (fn vn =>
 val con_defins = map (fn (con,args) => pg []
                         (lift_defined % (nonlazy args,
                                 mk_trp(defined(con_app con args)))) ([
-                          rtac swap3 1, 
+                          rtac rev_contrapos 1, 
                           eres_inst_tac [("f",dis_name con)] cfun_arg_cong 1,
                           asm_simp_tac (HOLCF_ss addsimps dis_rews) 1] )) cons;
 val con_rews = con_stricts @ con_defins;
@@ -257,7 +245,7 @@ val distincts_le = let
     fun dist (con1, args1) (con2, args2) = pg []
               (lift_defined % ((nonlazy args1),
                         (mk_trp (con_app con1 args1 ~<< con_app con2 args2))))([
-                        rtac swap3 1,
+                        rtac rev_contrapos 1,
                         eres_inst_tac[("fo",dis_name con1)] monofun_cfun_arg 1]
                       @map(case_UU_tac (con_stricts @ dis_rews)1)(nonlazy args2)
                       @[asm_simp_tac (HOLCF_ss addsimps dis_rews) 1]);
@@ -371,7 +359,7 @@ local
   val copy_con_rews  = copy_rews @ con_rews;
   val copy_take_defs =(if n_eqs = 1 then [] else [ax_copy2_def]) @ axs_take_def;
   val take_stricts=pg copy_take_defs(mk_trp(foldr' mk_conj(map(fn((dn,args),_)=>
-            (dc_take dn $ %"n")`UU === mk_constrain(Type(dn,args),UU)) eqs)))([
+            strict(dc_take dn $ %"n")) eqs)))([
                         nat_ind_tac "n" 1,
                         simp_tac iterate_Cprod_ss 1,
                         asm_simp_tac (iterate_Cprod_ss addsimps copy_rews)1]);
@@ -442,7 +430,7 @@ in (* local *)
 val finite_ind = pg'' thy [] (ind_term (fn n => fn dn => %(P_name n)$
                              (dc_take dn $ %"n" `%(x_name n)))) (fn prems => [
                                 quant_tac 1,
-                                simp_tac quant_ss 1,
+                                simp_tac HOL_ss 1,
                                 nat_ind_tac "n" 1,
                                 simp_tac (take_ss addsimps prems) 1,
                                 TRY(safe_tac HOL_cs)]
@@ -512,7 +500,7 @@ val (finites,ind) = if is_finite then
                                       asm_simp_tac take_ss 1])
                                     (nonlazy_rec args)))
                                   cons))
-                                1 (conss~~casess))) handle ERROR => raise ERROR;
+                                1 (conss~~casess)));
     val finites = map (fn (dn,l1b) => pg axs_finite_def (mk_trp(
                                                 %%(dn^"_finite") $ %"x"))[
                                 case_UU_tac take_rews 1 "x",

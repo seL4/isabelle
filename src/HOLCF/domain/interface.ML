@@ -1,13 +1,9 @@
-(* interface.ML
-   Author:  David von Oheimb
-   Created: 17-May-95
-   Updated: 24-May-95
-   Updated: 03-Jun-95 incremental change of ThySyn
-   Updated: 11-Jul-95 use of ThyOps for cinfixes
-   Updated: 21-Jul-95 gen_by-section
-   Updated: 29-Aug-95 simultaneous domain equations
-   Updated: 25-Aug-95 better syntax for simultaneous domain equations
-   Copyright 1995 TU Muenchen
+(*  Title:      HOLCF/domain/interface.ML
+    ID:         $Id$
+    Author : David von Oheimb
+    Copyright 1995, 1996 TU Muenchen
+
+parser for domain section
 *)
 
 structure ThySynData: THY_SYN_DATA = (* overwrites old version of ThySynData !!!!!! *)
@@ -49,7 +45,7 @@ local
     end;
 
   fun mk_domain (eqs'') = let
-    val dtnvs  = map (type_name_vars o fst) eqs'';
+    val dtnvs  = map (rep_Type o fst) eqs'';
     val dnames = map fst dtnvs;
     val num = length dnames;
     val comp_dname = implode (separate "_" dnames);
@@ -67,9 +63,9 @@ local
 (* ----- string for calling add_domain -------------------------------------- *)
 
     val thy_ext_string = let
-      fun mk_tnv (n,v) = mk_pair(quote n,mk_list(map mk_typ v))
-      and mk_typ (TFree(name,sort))= "TFree"^mk_pair(quote name,
-						     mk_list(map quote sort))
+      fun mk_tnv (n,v) = mk_pair (quote n, mk_list (map mk_typ v))
+      and mk_typ (TFree(name,sort))= "TFree" ^ 
+			 mk_pair (quote name, mk_list (map quote sort))
       |   mk_typ (Type (name,args))= "Type" ^mk_tnv(name,args)
       |   mk_typ _                 = Imposs "interface:mk_typ";
       fun mk_conslist cons' = 
@@ -132,33 +128,34 @@ local
 
 (* ----- parser for domain declaration equation ----------------------------------- *)
 
-(**
-  val sort = name >> (fn s => [strip_quotes s])
-	  || "{" $$-- !! (list (name >> strip_quotes) --$$ "}");
-  val tvar = (type_var -- (optional ("::" $$-- !! sort) ["pcpo"])) >> TFree
-**)
-  val tvar = type_var >> (fn tv => TFree(strip_quotes tv,["pcpo"]));
-
-  val type_args = "(" $$-- !! (list1 tvar --$$ ")")
-	       || tvar  >> (fn x => [x])
-	       || empty >> K [];
-  val con_typ     = type_args -- ident >> (fn (x,y) => Type(y,x));
-  val typ         = con_typ 
-		 || tvar;
+  val name' = name >> strip_quotes;
+  val type_var' = type_var >> strip_quotes;
+  val sort = name' >> (fn s => [s])
+	  || "{" $$-- !! (list name' --$$ "}");
+  val tvar = (type_var' --(optional("::" $$-- !! sort)["_default"])) >>TFree;
+(*val tvar = type_var >> (fn tv => TFree(strip_quotes tv,["pcpo"]));*)
+  fun type_args l = ("(" $$-- !! (list1 typ --$$ ")")
+	         || tvar  >> (fn x => [x])
+	         || empty >> K []) l
+  and con_typ l   = (type_args -- name' >> (fn (x,y) => Type(y,x))) l
+			(* here ident may be used instead of name' 
+			   to avoid ambiguity with standard mixfix option *)
+  and typ l       = (con_typ 
+		   || tvar) l;
   val domain_arg  = "(" $$-- (optional ($$ "lazy" >> K true) false)
-			  -- (optional ((ident >> Some) --$$ "::") None)
+			  -- (optional ((name' >> Some) --$$ "::") None)
 			  -- typ --$$ ")" >> (fn ((lazy,sel),tp) => (lazy,sel,tp))
-		 || ident >> (fn x => (false,None,Type(x,[])))
+		 || name' >> (fn x => (false,None,Type(x,[]))) 
 		 || tvar  >> (fn x => (false,None,x));
-  val domain_cons = (name >> strip_quotes) -- !! (repeat domain_arg) 
+  val domain_cons = name' -- !! (repeat domain_arg) 
 		    -- ThyOps.opt_cmixfix
 		    >> (fn ((con,args),syn) => (con,syn,args));
 in
   val domain_decl = (enum1 "," (con_typ --$$ "="  -- !! 
 			       (enum1 "|" domain_cons))) 	    >> mk_domain;
   val gen_by_decl = (optional ($$ "finite" >> K true) false) -- 
-		    (enum1 "," (ident   --$$ "by" -- !!
-			       (enum1 "|" (name >> strip_quotes)))) >> mk_gen_by;
+		    (enum1 "," (name'   --$$ "by" -- !!
+			       (enum1 "|" name'))) >> mk_gen_by;
 end; (* local *)
 
 val user_keywords = "lazy"::"by"::"finite"::

@@ -16,7 +16,7 @@ val dist_less_tr = [
 prove_goalw Tr1.thy [TT_def] "~TT << UU"
  (fn prems =>
         [
-        (rtac classical3 1),
+        (rtac classical2 1),
         (rtac defined_sinl 1),
         (rtac not_less2not_eq 1),
         (resolve_tac dist_less_one 1),
@@ -29,7 +29,7 @@ prove_goalw Tr1.thy [TT_def] "~TT << UU"
 prove_goalw Tr1.thy [FF_def] "~FF << UU"
  (fn prems =>
         [
-        (rtac classical3 1),
+        (rtac classical2 1),
         (rtac defined_sinr 1),
         (rtac not_less2not_eq 1),
         (resolve_tac dist_less_one 1),
@@ -42,7 +42,7 @@ prove_goalw Tr1.thy [FF_def] "~FF << UU"
 prove_goalw Tr1.thy [FF_def,TT_def] "~TT << FF"
  (fn prems =>
         [
-        (rtac classical3 1),
+        (rtac classical2 1),
         (rtac (less_ssum4c RS iffD1) 2),
         (rtac not_less2not_eq 1),
         (resolve_tac dist_less_one 1),
@@ -53,7 +53,7 @@ prove_goalw Tr1.thy [FF_def,TT_def] "~TT << FF"
 prove_goalw Tr1.thy [FF_def,TT_def] "~FF << TT"
  (fn prems =>
         [
-        (rtac classical3 1),
+        (rtac classical2 1),
         (rtac (less_ssum4d RS iffD1) 2),
         (rtac not_less2not_eq 1),
         (resolve_tac dist_less_one 1),

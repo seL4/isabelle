@@ -234,7 +234,7 @@ val loop_inv2 = prove_goal Loop.thy
         (rtac loop_lemma8 1),
         (resolve_tac prems 1),
         (resolve_tac prems 1),
-        (rtac classical3 1),
+        (rtac classical2 1),
         (resolve_tac prems 1),
         (etac box_equals 1),
         (rtac (loop_lemma4 RS spec RS mp RS sym) 1),

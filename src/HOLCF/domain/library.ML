@@ -1,7 +1,9 @@
 (*  Title:      HOLCF/domain/library.ML
-    ID:         $ $
+    ID:         $Id$
     Author : David von Oheimb
     Copyright 1995, 1996 TU Muenchen
+
+library for domain section
 *)
 
 (* ----- general support ---------------------------------------------------- *)
@@ -73,8 +75,11 @@ fun mk_var_names types : string list = let
       | index_vnames([],occupied) = [];
 in index_vnames(map (nonreserved o typid) types,[("O",0),("o",0)]) end;
 
-fun type_name_vars (Type(name,typevars)) = (name,typevars)
-|   type_name_vars _                     = Imposs "library:type_name_vars";
+fun rep_Type  (Type  x) = x | rep_Type  _ = Imposs "library:rep_Type";
+fun rep_TFree (TFree x) = x | rep_TFree _ = Imposs "library:rep_TFree";
+val tsig_of = #tsig o Sign.rep_sg o sign_of;
+fun pcpo_type thy t = Type.typ_instance(tsig_of thy,t,TVar(("'a",0),["pcpo"]));
+fun string_of_typ thy = Sign.string_of_typ (sign_of thy);
 
 (* ----- constructor list handling ----- *)
 
@@ -119,9 +124,14 @@ fun mk_imp  (S,T) = imp  $ S $ T;
 fun mk_lam  (x,T) = Abs(x,dummyT,T);
 fun mk_all  (x,P) = HOLogic.mk_all (x,dummyT,P);
 local 
+		    fun sg [s]     = %s
+		    |   sg (s::ss) = %%"_classes" $ %s $ sg ss
+	 	    |   sg _       = Imposs "library:sg";
+		    fun sf [] = %%"_emptysort"
+		    |   sf s  = %%"_sort" $ sg s
 		    fun tf (Type (s,args)) = foldl (op $) (%s,map tf args)
-		    |   tf (TFree(s,_   )) = %s
-		    |   tf _              = Imposs "mk_constrainall";
+		    |   tf (TFree(s,sort)) = %%"_ofsort" $ %s $ sf sort
+		    |   tf _               = Imposs "library:tf";
 in
 fun mk_constrain      (typ,T) = %%"_constrain" $ T $ tf typ;
 fun mk_constrainall (x,typ,P) = %%"All" $ (%%"_constrainAbs" $ mk_lam(x,P) $ tf typ);

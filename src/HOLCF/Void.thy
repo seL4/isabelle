@@ -9,7 +9,7 @@ all types in class 'po'
 Type void  is defined as a set Void over type bool.
 *)
 
-Void = Holcfb +
+Void = Nat +
 
 types void 0
 
