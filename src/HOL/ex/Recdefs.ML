@@ -7,14 +7,6 @@ A few proofs to demonstrate the functions defined in Recdefs.thy
 Lemma statements from Konrad Slind's Web site
 *)
 
-Addsimps qsort.rules;
-
-Goal "(x: set (qsort (ord,l))) = (x: set l)";
-by (res_inst_tac [("u","ord"),("v","l")] qsort.induct 1);
-by Auto_tac;
-qed "qsort_mem_stable";
-
-
 (** The silly g function: example of nested recursion **)
 
 Addsimps g.rules;

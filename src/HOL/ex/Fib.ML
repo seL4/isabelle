@@ -29,11 +29,10 @@ Goal "fib (Suc (n + k)) = fib(Suc k) * fib(Suc n) + fib k * fib n";
 by (res_inst_tac [("u","n")] fib.induct 1);
 (*Simplify the LHS just enough to apply the induction hypotheses*)
 by (asm_full_simp_tac
-    (simpset() addsimps [read_instantiate[("x","Suc(?m+?n)")] fib_Suc_Suc]) 3);
+    (simpset() addsimps [inst "x" "Suc(?m+?n)" fib_Suc_Suc]) 3);
 by (ALLGOALS 
     (asm_simp_tac (simpset() addsimps 
-		   ([] @ add_ac @ mult_ac @
-		    [fib_Suc_Suc, add_mult_distrib, add_mult_distrib2]))));
+		   ([fib_Suc_Suc, add_mult_distrib, add_mult_distrib2]))));
 qed "fib_add";
 
 

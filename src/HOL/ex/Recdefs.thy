@@ -29,14 +29,6 @@ recdef finiteRchain "measure (%(R,l).size l)"
     "finiteRchain(R, [x]) = True"
     "finiteRchain(R, x#y#rst) = (R x y & finiteRchain(R, y#rst))"
 
-consts qsort   ::"('a => 'a => bool) * 'a list => 'a list"
-recdef qsort "measure (size o snd)"
-    simpset "simpset() addsimps [less_Suc_eq_le, length_filter]"
-    "qsort(ord, [])    = []"
-    "qsort(ord, x#rst) = qsort(ord, filter(Not o ord x) rst)  
-                         @ [x] @   
-                         qsort(ord, filter(ord x) rst)"
-
 (*Not handled automatically: too complicated.*)
 consts variant :: "nat * nat list => nat"
 recdef variant "measure(%(n::nat, ns). size(filter(%y. n <= y) ns))"
