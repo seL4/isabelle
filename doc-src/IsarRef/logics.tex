@@ -40,12 +40,14 @@ Reasoner \S\ref{sec:classical}).
 \begin{rail}
   'judgment' constdecl
   ;
-  ruleformat ('(' noasm ')')?
+  atomize ('(' 'full' ')')?
+  ;
+  ruleformat ('(' 'noasm' ')')?
   ;
 \end{rail}
 
 \begin{descr}
-  
+
 \item [$\isarkeyword{judgment}~c::\sigma~~syn$] declares constant $c$ as the
   truth judgment of the current object-logic.  Its type $\sigma$ should
   specify a coercion of the category of object-level propositions to $prop$ of
@@ -53,25 +55,27 @@ Reasoner \S\ref{sec:classical}).
   the object language (internally of syntactic category $logic$) with that of
   $prop$.  Only one $\isarkeyword{judgment}$ declaration may be given in any
   theory development.
-  
+
 \item [$atomize$] (as a method) rewrites any non-atomic premises of a
   sub-goal, using the meta-level equations declared via $atomize$ (as an
   attribute) beforehand.  As a result, heavily nested goals become amenable to
   fundamental operations such as resolution (cf.\ the $rule$ method) and
-  proof-by-assumption (cf.\ $assumption$).
-  
+  proof-by-assumption (cf.\ $assumption$).  Giving the ``$(full)$'' option
+  here means to turn the subgoal into an object-statement (if possible),
+  including the outermost parameters and assumptions as well.
+
   A typical collection of $atomize$ rules for a particular object-logic would
   provide an internalization for each of the connectives of $\Forall$, $\Imp$,
   and $\equiv$.  Meta-level conjunction expressed in the manner of minimal
   higher-order logic as $\All{\PROP\,C} (A \Imp B \Imp \PROP\,C) \Imp PROP\,C$
   should be covered as well (this is particularly important for locales, see
   \S\ref{sec:locale}).
-  
+
 \item [$rule_format$] rewrites a theorem by the equalities declared as
   $rulify$ rules in the current object-logic.  By default, the result is fully
   normalized, including assumptions and conclusions at any depth.  The
   $no_asm$ option restricts the transformation to the conclusion of a rule.
-  
+
   In common object-logics (HOL, FOL, ZF), the effect of $rule_format$ is to
   replace (bounded) universal quantification ($\forall$) and implication
   ($\imp$) by the corresponding rule statements over $\Forall$ and $\Imp$.
@@ -97,21 +101,36 @@ Reasoner \S\ref{sec:classical}).
 \end{rail}
 
 \begin{descr}
+  
 \item [$\isarkeyword{typedecl}~(\vec\alpha)t$] is similar to the original
   $\isarkeyword{typedecl}$ of Isabelle/Pure (see \S\ref{sec:types-pure}), but
   also declares type arity $t :: (term, \dots, term) term$, making $t$ an
   actual HOL type constructor.
+  
 \item [$\isarkeyword{typedef}~(\vec\alpha)t = A$] sets up a goal stating
   non-emptiness of the set $A$.  After finishing the proof, the theory will be
-  augmented by a Gordon/HOL-style type definition.  See \cite{isabelle-HOL}
-  for more information.  Note that user-level theories usually do not directly
-  refer to the HOL $\isarkeyword{typedef}$ primitive, but use more advanced
-  packages such as $\isarkeyword{record}$ (see \S\ref{sec:hol-record}) and
-  $\isarkeyword{datatype}$ (see \S\ref{sec:hol-datatype}).
+  augmented by a Gordon/HOL-style type definition, which establishes a
+  bijection between the representing set $A$ and the new type $t$.
+  
+  Technically, $\isarkeyword{typedef}$ defines both a type $t$ and a set (term
+  constant) of the same name.  The injection from type to set is called
+  $Rep_t$, its inverse $Abs_t$.  Theorems $Rep_t$, $Rep_inverse$, and
+  $Abs_inverse$ provide the most basic characterization as a corresponding
+  injection/surjection pair (in both directions).  Rules $Rep_t_inject$ and
+  $Abs_t_inject$ provide a slightly more comfortable view on the injectivity
+  part; likewise do $Rep_t_cases$, $Rep_t_induct$, and $Abs_t_cases$,
+  $Abs_t_induct$ for surjectivity.  The latter rules are already declare as
+  type or set rules for the generic $cases$ and $induct$ methods.
 \end{descr}
 
+Raw type declarations are rarely useful in practice.  The main application is
+with experimental (or even axiomatic!) theory fragments.  Instead of primitive
+HOL type definitions, user-level theories usually refer to higher-level
+packages such as $\isarkeyword{record}$ (see \S\ref{sec:hol-record}) or
+$\isarkeyword{datatype}$ (see \S\ref{sec:hol-datatype}).
 
-\subsection{Low-level tuples}
+
+\subsection{Adhoc tuples}
 
 \indexisarattof{HOL}{split-format}
 \begin{matharray}{rcl}
@@ -128,25 +147,89 @@ Reasoner \S\ref{sec:classical}).
 \end{rail}
 
 \begin{descr}
-  
+
 \item [$split_format~\vec p@1 \dots \vec p@n$] puts expressions of low-level
   tuple types into canonical form as specified by the arguments given; $\vec
   p@i$ refers to occurrences in premise $i$ of the rule.  The
   $split_format~(complete)$ form causes \emph{all} arguments in function
   applications to be represented canonically according to their tuple type
   structure.
-  
+
   Note that these operations tend to invent funny names for new local
   parameters to be introduced.
 
 \end{descr}
 
 
-\subsection{Records}\label{sec:hol-record}
+\section{Records}\label{sec:hol-record}
 
-FIXME proof tools (simp, cases/induct; no split!?);
+In principle, records merely generalize the concept of tuples where components
+may be addressed by labels instead of just position.  The logical
+infrastructure of records in Isabelle/HOL is slightly more advanced, though,
+supporting truly extensible record schemes.  This admits operations that are
+polymorphic with respect to record extension, yielding ``object-oriented''
+effects like (single) inheritance.  See also \cite{NaraschewskiW-TPHOLs98} for
+more details on object-oriented verification and record subtyping in HOL.
 
-FIXME mixfix syntax;
+
+\subsection{Basic concepts}
+
+Isabelle/HOL supports both \emph{fixed} and \emph{schematic} records at the
+level of terms and types.  The notation is as follows:
+
+\begin{center}
+\begin{tabular}{l|l|l}
+  & record terms & record types \\ \hline
+  fixed & $\record{x = a\fs y = b}$ & $\record{x \ty A\fs y \ty B}$ \\
+  schematic & $\record{x = a\fs y = b\fs \more = m}$ &
+    $\record{x \ty A\fs y \ty B\fs \more \ty M}$ \\
+\end{tabular}
+\end{center}
+
+\noindent The ASCII representation of $\record{x = a}$ is \texttt{(| x = a |)}.
+
+A fixed record $\record{x = a\fs y = b}$ has field $x$ of value $a$ and field
+$y$ of value $b$.  The corresponding type is $\record{x \ty A\fs y \ty B}$,
+assuming that $a \ty A$ and $b \ty B$.
+
+A record scheme like $\record{x = a\fs y = b\fs \more = m}$ contains fields
+$x$ and $y$ as before, but also possibly further fields as indicated by the
+``$\more$'' notation (which is actually part of the syntax).  The improper
+field ``$\more$'' of a record scheme is called the \emph{more part}.
+Logically it is just a free variable, which is occasionally referred to as
+\emph{row variable} in the literature.  The more part of a record scheme may
+be instantiated by zero or more further components.  For example, the above
+scheme may get instantiated to $\record{x = a\fs y = b\fs z = c\fs \more =
+  m'}$, where $m'$ refers to a different more part.  Fixed records are special
+instances of record schemes, where ``$\more$'' is properly terminated by the
+$() :: unit$ element.  Actually, $\record{x = a\fs y = b}$ is just an
+abbreviation for $\record{x = a\fs y = b\fs \more = ()}$.
+
+\medskip
+
+Two key observations make extensible records in a simply typed language like
+HOL feasible:
+\begin{enumerate}
+\item the more part is internalized, as a free term or type variable,
+\item field names are externalized, they cannot be accessed within the logic
+  as first-class values.
+\end{enumerate}
+
+\medskip
+
+In Isabelle/HOL record types have to be defined explicitly, fixing their field
+names and types, and their (optional) parent record (see
+{\S}\ref{sec:hol-record-def}).  Afterwards, records may be formed using above
+syntax, while obeying the canonical order of fields as given by their
+declaration.  The record package provides several standard operations like
+selectors and updates (see {\S}\ref{sec:hol-record-ops}).  The common setup
+for various generic proof tools enable succinct reasoning patterns (see
+{\S}\ref{sec:hol-record-thms}).  See also the Isabelle/HOL tutorial
+\cite{isabelle-hol-book} for further instructions on using records in
+practice.
+
+
+\subsection{Record specifications}\label{sec:hol-record-def}
 
 \indexisarcmdof{HOL}{record}
 \begin{matharray}{rcl}
@@ -162,9 +245,134 @@ FIXME mixfix syntax;
 \item [$\isarkeyword{record}~(\vec\alpha)t = \tau + \vec c :: \vec\sigma$]
   defines extensible record type $(\vec\alpha)t$, derived from the optional
   parent record $\tau$ by adding new field components $\vec c :: \vec\sigma$.
-  See \cite{isabelle-HOL,NaraschewskiW-TPHOLs98} for more information on
-  simply-typed extensible records.
+
+  The type variables of $\tau$ and $\vec\sigma$ need to be covered by the
+  (distinct) parameters $\vec\alpha$.  Type constructor $t$ has to be new,
+  while $\tau$ needs to specify an instance of an existing record type.  At
+  least one new field $\vec c$ has to be specified.  Basically, field names
+  need to belong to a unique record.  This is not a real restriction in
+  practice, since fields are qualified by the record name internally.
+
+  The parent record specification $\tau$ is optional; if omitted $t$ becomes a
+  root record.  The hierarchy of all records declared within a theory context
+  forms a forest structure, i.e.\ a set of trees starting with a root record
+  each.  There is no way to merge multiple parent records!
+
+  For convenience, $(\vec\alpha) \, t$ is made a type abbreviation for the
+  fixed record type $\record{\vec c \ty \vec\sigma}$, likewise is
+  $(\vec\alpha, \zeta) \, t_scheme$ made an abbreviation for $\record{\vec c
+    \ty \vec\sigma\fs \more \ty \zeta}$.
+
 \end{descr}
+
+\subsection{Record operations}\label{sec:hol-record-ops}
+
+Any record definition of the form presented above produces certain standard
+operations.  Selectors and updates are provided for any field, including the
+improper one ``$more$''.  There are also cumulative record constructor
+functions.  To simplify the presentation below, we assume for now that
+$(\vec\alpha) \, t$ is a root record with fields $\vec c \ty \vec\sigma$.
+
+\medskip \textbf{Selectors} and \textbf{updates} are available for any field
+(including ``$more$''):
+\begin{matharray}{lll}
+  c@i & \ty & \record{\vec c \ty \vec \sigma, \more \ty \zeta} \To \sigma@i \\
+  c@i_update & \ty & \sigma@i \To \record{\vec c \ty \vec\sigma, \more \ty \zeta} \To
+    \record{\vec c \ty \vec\sigma, \more \ty \zeta}
+\end{matharray}
+
+There is special syntax for application of updates: $r \, \record{x \asn a}$
+abbreviates term $x_update \, a \, r$.  Further notation for repeated updates
+is also available: $r \, \record{x \asn a} \, \record{y \asn b} \, \record{z
+  \asn c}$ may be written $r \, \record{x \asn a\fs y \asn b\fs z \asn c}$.
+Note that because of postfix notation the order of fields shown here is
+reverse than in the actual term.  Since repeated updates are just function
+applications, fields may be freely permuted in $\record{x \asn a\fs y \asn
+  b\fs z \asn c}$, as far as logical equality is concerned.  Thus
+commutativity of updates can be proven within the logic for any two fields,
+but not as a general theorem: fields are not first-class values.
+
+\medskip The \textbf{make} operation provides a cumulative record constructor
+functions:
+\begin{matharray}{lll}
+  t{\dtt}make & \ty & \vec\sigma \To \record{\vec c \ty \vec \sigma} \\
+\end{matharray}
+
+\medskip We now reconsider the case of non-root records, which are derived of
+some parent.  In general, the latter may depend on another parent as well,
+resulting in a list of \emph{ancestor records}.  Appending the lists of fields
+of all ancestors results in a certain field prefix.  The record package
+automatically takes care of this by lifting operations over this context of
+ancestor fields.  Assuming that $(\vec\alpha) \, t$ has ancestor fields $\vec
+b \ty \vec\rho$, the above record operations will get the following types:
+\begin{matharray}{lll}
+  c@i & \ty & \record{\vec b \ty \vec\rho, \vec c \ty \vec\sigma, \more \ty
+    \zeta} \To \sigma@i \\
+  c@i_update & \ty & \sigma@i \To
+    \record{\vec b \ty \vec\rho, \vec c \ty \vec\sigma, \more \ty \zeta} \To
+    \record{\vec b \ty \vec\rho, \vec c \ty \vec\sigma, \more \ty \zeta} \\
+  t{\dtt}make & \ty & \vec\rho \To \vec\sigma \To
+    \record{\vec b \ty \vec\rho, \vec c \ty \vec \sigma} \\
+\end{matharray}
+\noindent
+
+\medskip Some further operations address the extension aspect of a derived
+record scheme specifically: $fields$ produces a record fragment consisting of
+exactly the new fields introduced here (the result may serve as a more part
+elsewhere); $extend$ takes a fixed record and adds a given more part;
+$truncate$ restricts a record scheme to a fixed record.
+
+\begin{matharray}{lll}
+  t{\dtt}fields & \ty & \vec\sigma \To \record{\vec c \ty \vec \sigma} \\
+  t{\dtt}extend & \ty & \record{\vec d \ty \vec \rho, \vec c \ty \vec\sigma} \To
+    \zeta \To \record{\vec d \ty \vec \rho, \vec c \ty \vec\sigma, \more \ty \zeta} \\
+  t{\dtt}truncate & \ty & \record{\vec d \ty \vec \rho, \vec c \ty \vec\sigma, \more \ty \zeta} \To
+    \record{\vec d \ty \vec \rho, \vec c \ty \vec\sigma} \\
+\end{matharray}
+
+\noindent Note that $t{\dtt}make$ and $t{\dtt}fields$ are actually coincide for root records.
+
+
+\subsection{Derived rules and proof tools}\label{sec:hol-record-thms}
+
+The record package proves several results internally, declaring these facts to
+appropriate proof tools.  This enables users to reason about record structures
+quite comfortably.  Assume that $t$ is a record type as specified above.
+
+\begin{enumerate}
+
+\item Standard conversions for selectors or updates applied to record
+  constructor terms are made part of the default Simplifier context; thus
+  proofs by reduction of basic operations merely require the $simp$ method
+  without further arguments.  These rules are available as $t{\dtt}simps$.
+
+\item Selectors applied to updated records are automatically reduced by an
+  internal simplification procedure, which is also part of the default
+  Simplifier context.
+
+\item Inject equations of a form analogous to $((x, y) = (x', y')) \equiv x=x'
+  \conj y=y'$ are declared to the Simplifier and Classical Reasoner as $iff$
+  rules.  These rules are available as $t{\dtt}iffs$.
+
+\item The introduction rule for record equality analogous to $x~r = x~r' \Imp
+  y~r = y~r' \Imp \dots \Imp r = r'$ is declared to the Simplifier, and as the
+  basic rule context as ``$intro?$''.  The rule is called $t{\dtt}equality$.
+
+\item Representations of arbitrary record expressions as canonical constructor
+  terms are provided both in $cases$ and $induct$ format (cf.\ the generic
+  proof methods of the same name, \S\ref{sec:cases-induct}).  Several
+  variations are available, for fixed records, record schemes, more parts etc.
+
+  The generic proof methods are sufficiently smart to pick the most sensible
+  rule according to the type of the indicated record expression: users just
+  need to apply something like ``$(cases r)$'' to a certain proof problem.
+
+\item The derived record operations $t{\dtt}make$, $t{\dtt}fields$,
+  $t{\dtt}extend$, $t{\dtt}truncate$ are \emph{not} treated automatically, but
+  usually need to be expanded by hand, using the collective fact
+  $t{\dtt}defs$.
+
+\end{enumerate}
 
 
 \subsection{Datatypes}\label{sec:hol-datatype}
@@ -202,12 +410,12 @@ The induction and exhaustion theorems generated provide case names according
 to the constructors involved, while parameters are named after the types (see
 also \S\ref{sec:cases-induct}).
 
-See \cite{isabelle-HOL} for more details on datatypes.  Note that the theory
-syntax above has been slightly simplified over the old version, usually
-requiring more quotes and less parentheses.  Apart from proper proof methods
-for case-analysis and induction, there are also emulations of ML tactics
+See \cite{isabelle-HOL} for more details on datatypes, but beware of the
+old-style theory syntax being used there!  Apart from proper proof methods for
+case-analysis and induction, there are also emulations of ML tactics
 \texttt{case_tac} and \texttt{induct_tac} available, see
-\S\ref{sec:induct_tac}.
+\S\ref{sec:induct_tac}; these admit to refer directly to the internal
+structure of subgoals (including internally bound parameters).
 
 
 \subsection{Recursive functions}\label{sec:recursion}
@@ -253,25 +461,25 @@ for case-analysis and induction, there are also emulations of ML tactics
 
 \begin{descr}
 \item [$\isarkeyword{primrec}$] defines primitive recursive functions over
-  datatypes, see also \cite{isabelle-HOL}.
+  datatypes, see also \cite{isabelle-HOL} FIXME.
 \item [$\isarkeyword{recdef}$] defines general well-founded recursive
-  functions (using the TFL package), see also \cite{isabelle-HOL}.  The
+  functions (using the TFL package), see also \cite{isabelle-HOL} FIXME.  The
   $(permissive)$ option tells TFL to recover from failed proof attempts,
   returning unfinished results.  The $recdef_simp$, $recdef_cong$, and
   $recdef_wf$ hints refer to auxiliary rules to be used in the internal
-  automated proof process of TFL.  Additional $clasimpmod$ declarations (cf.\ 
+  automated proof process of TFL.  Additional $clasimpmod$ declarations (cf.\
   \S\ref{sec:clasimp}) may be given to tune the context of the Simplifier
-  (cf.\ \S\ref{sec:simplifier}) and Classical reasoner (cf.\ 
+  (cf.\ \S\ref{sec:simplifier}) and Classical reasoner (cf.\
   \S\ref{sec:classical}).
 \item [$\isarkeyword{recdef_tc}~c~(i)$] recommences the proof for leftover
   termination condition number $i$ (default $1$) as generated by a
   $\isarkeyword{recdef}$ definition of constant $c$.
-  
+
   Note that in most cases, $\isarkeyword{recdef}$ is able to finish its
   internal proofs without manual intervention.
 \end{descr}
 
-Both kinds of recursive definitions accommodate reasoning by induction (cf.\ 
+Both kinds of recursive definitions accommodate reasoning by induction (cf.\
 \S\ref{sec:cases-induct}): rule $c\mathord{.}induct$ (where $c$ is the name of
 the function definition) refers to a specific induction rule, with parameters
 named according to the user-specified equations.  Case names of
@@ -342,8 +550,8 @@ the following attributes.
   automated monotonicity proof of $\isarkeyword{inductive}$.
 \end{descr}
 
-See \cite{isabelle-HOL} for further information on inductive definitions in
-HOL.
+See \cite{isabelle-HOL} FIXME for further information on inductive definitions
+in HOL.
 
 
 \subsection{Arithmetic proof support}
@@ -402,7 +610,7 @@ Isar.  These should be never used in proper proof texts!
   ;
   indcases (prop +)
   ;
-  inductivecases thmdecl? (prop +)
+  inductivecases (thmdecl? (prop +) + 'and')
   ;
 
   rule: ('rule' ':' thmref)
@@ -417,11 +625,11 @@ Isar.  These should be never used in proper proof texts!
   both goal addressing and dynamic instantiation.  Note that named rule cases
   are \emph{not} provided as would be by the proper $induct$ and $cases$ proof
   methods (see \S\ref{sec:cases-induct}).
-  
+
 \item [$ind_cases$ and $\isarkeyword{inductive_cases}$] provide an interface
   to the \texttt{mk_cases} operation.  Rules are simplified in an unrestricted
   forward manner.
-  
+
   While $ind_cases$ is a proof method to apply the result immediately as
   elimination rules, $\isarkeyword{inductive_cases}$ provides case split
   theorems at the theory level for later use,
@@ -471,14 +679,12 @@ continuous and meta-level application is \emph{not} supported.
   dtrules: 'distinct' thmrefs 'inject' thmrefs 'induction' thmrefs
 \end{rail}
 
-Recursive domains in HOLCF are analogous to datatypes in classical HOL (cf.\ 
+Recursive domains in HOLCF are analogous to datatypes in classical HOL (cf.\
 \S\ref{sec:hol-datatype}).  Mutual recursive is supported, but no nesting nor
 arbitrary branching.  Domain constructors may be strict (default) or lazy, the
-latter admits to introduce infinitary objects in the typical LCF manner (lazy
-lists etc.).
-
-See also \cite{MuellerNvOS99} for further information HOLCF domains in
-general.
+latter admits to introduce infinitary objects in the typical LCF manner (e.g.\
+lazy lists).  See also \cite{MuellerNvOS99} for a general discussion of HOLCF
+domains.
 
 
 \section{ZF}
@@ -492,7 +698,7 @@ FIXME
 FIXME
 
 
-%%% Local Variables: 
+%%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "isar-ref"
-%%% End: 
+%%% End:
