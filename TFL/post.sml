@@ -95,11 +95,10 @@ val concl = #2 o Rules.dest_thm;
 fun define_i thy fid R eqs = 
   let val dummy = Theory.requires thy "WF_Rel" "recursive function definitions"
       val {functional,pats} = Prim.mk_functional thy eqs
-  in (Prim.wfrec_definition0 thy fid R functional, pats)
+  in (Prim.wfrec_definition0 thy (Sign.base_name fid) R functional, pats)
   end;
 
-(*lcp's version: takes strings; doesn't return "thm" 
-        (whose signature is a draft and therefore useless) *)
+(*lcp's version: takes strings; doesn't return "thm"*)
 fun define thy fid R eqs = 
   let fun read thy = readtm (Theory.sign_of thy) (TVar(("DUMMY",0),[])) 
   in  define_i thy fid (read thy R) (map (read thy) eqs)  end
