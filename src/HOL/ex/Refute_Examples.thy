@@ -8,7 +8,9 @@
 
 header {* Examples for the 'refute' command *}
 
-theory Refute_Examples = Main:
+theory Refute_Examples imports Main
+
+begin
 
 lemma "P x"
   refute
