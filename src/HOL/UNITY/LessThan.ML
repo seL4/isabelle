@@ -28,6 +28,12 @@ Goalw [lessThan_def, atMost_def] "lessThan (Suc k) = atMost k";
 by (simp_tac (simpset() addsimps [less_Suc_eq_le]) 1);
 qed "lessThan_Suc_atMost";
 
+Goal "finite (lessThan k)";
+by (induct_tac "k" 1);
+by (simp_tac (simpset() addsimps [lessThan_Suc]) 2);
+by Auto_tac;
+qed "finite_lessThan";
+
 Goal "(UN m. lessThan m) = UNIV";
 by (Blast_tac 1);
 qed "UN_lessThan_UNIV";
@@ -123,6 +129,12 @@ Goalw [atMost_def] "atMost (Suc k) = insert (Suc k) (atMost k)";
 by (simp_tac (simpset() addsimps [less_Suc_eq, order_le_less]) 1);
 by (Blast_tac 1);
 qed "atMost_Suc";
+
+Goal "finite (atMost k)";
+by (induct_tac "k" 1);
+by (simp_tac (simpset() addsimps [atMost_Suc]) 2);
+by Auto_tac;
+qed "finite_atMost";
 
 Goal "(UN m. atMost m) = UNIV";
 by (Blast_tac 1);
