@@ -12,7 +12,7 @@ Goalw [subcls1_def] "\\<lbrakk>class G C = Some (D,rest); C \\<noteq> Object\\<r
 by Auto_tac;
 qed "subcls1I";
 
-Goalw [subcls1_def]  
+Goalw [subcls1_def, is_class_def]  
 "subcls1 G = (\\<Sigma>C\\<in>{C. is_class G C} . {D. C\\<noteq>Object \\<and> fst (the (class G C))=D})";
 by Auto_tac;
 qed "subcls1_def2";
@@ -25,12 +25,12 @@ by  Auto_tac;
 qed "finite_subcls1";
 
 
-Goal "(C,D) \\<in> (subcls1 G)^+ ==> is_class G C";
+Goalw [is_class_def] "(C,D) \\<in> (subcls1 G)^+ ==> is_class G C";
 by(etac trancl_trans_induct 1);
 by (auto_tac (HOL_cs addSDs [subcls1D],simpset()));
 qed "subcls_is_class";
 
-Goal "G\\<turnstile>C\\<preceq>C D \\<Longrightarrow> is_class G D \\<longrightarrow> is_class G C";
+Goalw [is_class_def] "G\\<turnstile>C\\<preceq>C D \\<Longrightarrow> is_class G D \\<longrightarrow> is_class G C";
 by (etac rtrancl_induct 1);
 by  (dtac subcls1D 2);
 by  Auto_tac;

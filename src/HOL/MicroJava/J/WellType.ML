@@ -19,9 +19,11 @@ Goal
 by( datac widen_methd 2 1);
 by( Clarify_tac 1);
 by( ftac subcls_is_class2 1);
+by (rewtac is_class_def);
 by (Asm_simp_tac 1);
 by( dtac method_wf_mdecl 1);
 by( rewtac wf_mdecl_def);
+by( rewtac is_class_def);
 by Auto_tac;
 qed "Call_lemma";
 

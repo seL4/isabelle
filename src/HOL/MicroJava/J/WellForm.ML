@@ -4,19 +4,19 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-Goalw [wf_prog_def]
+Goalw [wf_prog_def, class_def]
  "[|class G C = Some c; wf_prog wf_mb G|] ==> wf_cdecl wf_mb G (C,c)";
 by (Asm_full_simp_tac 1);
 by (fast_tac (set_cs addDs [map_of_SomeD]) 1);
 qed "class_wf";
 
-Goalw [wf_prog_def, ObjectC_def]
+Goalw [wf_prog_def, ObjectC_def, class_def]
 	"wf_prog wf_mb G ==> class G Object = Some (arbitrary, [], [])";
 by (auto_tac (claset() addIs [map_of_SomeI], simpset()));
 qed "class_Object";
 Addsimps [class_Object];
 
-Goal "wf_prog wf_mb G ==> is_class G Object";
+Goalw [is_class_def] "wf_prog wf_mb G ==> is_class G Object";
 by (Asm_simp_tac 1);
 qed "is_class_Object";
 Addsimps [is_class_Object];
@@ -68,7 +68,7 @@ by(resolve_tac prems 1);
 by(Auto_tac);
 qed "subcls_induct";
 
-val prems = goal thy "[|is_class G C; wf_prog wf_mb G; P Object; \
+val prems = goalw thy [is_class_def] "[|is_class G C; wf_prog wf_mb G; P Object; \
 \!!C D fs ms. [|C \\<noteq> Object; is_class G C; class G C = Some (D,fs,ms) \\<and> \
 \   wf_cdecl wf_mb G (C,D,fs,ms) \\<and> G\\<turnstile>C\\<prec>C1D \\<and> is_class G D \\<and> P D|] ==> P C\
 \ |] ==> P C";
@@ -83,14 +83,15 @@ by( rtac impI 1);
 by( case_tac "C = Object" 1);
 by(  Fast_tac 1);
 by Safe_tac;
-by( forward_tac [class_wf] 1);
+by( ftac class_wf 1);
 by(  atac 1);
-by( forward_tac [wf_cdecl_supD] 1);
+by( ftac wf_cdecl_supD 1);
 by(  atac 1);
 
 by( subgoal_tac "G\\<turnstile>C\\<prec>C1a" 1);
 by( etac subcls1I 2);
 by( rtac (hd (tl (tl (tl prems)))) 1);
+by (rewtac is_class_def);
 by Auto_tac;
 qed "subcls1_induct";
 

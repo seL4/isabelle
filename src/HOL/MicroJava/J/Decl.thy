@@ -46,15 +46,12 @@ translations
   "cdecl c" <= (type) "cname \\<times> (c class)"
   "prog  c" <= (type) "(c cdecl) list"
 
-consts
+constdefs
 
   class		:: "'c prog => (cname \\<leadsto> 'c class)"
+  "class        \\<equiv> map_of"
   is_class	:: "'c prog => cname => bool"
-
-translations
-
-  "class"        => "map_of"
-  "is_class G C" == "class G C \\<noteq> None"
+ "is_class G C  \\<equiv> class G C \\<noteq> None"
 
 consts
 

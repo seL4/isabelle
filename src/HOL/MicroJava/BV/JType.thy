@@ -21,7 +21,7 @@ constdefs
                                     | ClassT D => OK (Class (some_lub ((subcls1 G)^* ) C D)))))"
 
   subtype :: "'c prog => ty => ty => bool"
-  "subtype G T1 T2 == G \<turnstile> T1 \<preceq> T2"
+  "subtype G T1 T2 == G \\<turnstile> T1 \\<preceq> T2"
 
   is_ty :: "'c prog => ty => bool"
   "is_ty G T == case T of PrimT P => True | RefT R =>
@@ -34,10 +34,10 @@ constdefs
   esl :: "'c prog => ty esl"
   "esl G == (types G, subtype G, sup G)"
 
-lemma PrimT_PrimT: "(G \<turnstile> xb \<preceq> PrimT p) = (xb = PrimT p)"
+lemma PrimT_PrimT: "(G \\<turnstile> xb \\<preceq> PrimT p) = (xb = PrimT p)"
   by (auto elim: widen.elims)
 
-lemma PrimT_PrimT2: "(G \<turnstile> PrimT p \<preceq> xb) = (xb = PrimT p)"
+lemma PrimT_PrimT2: "(G \\<turnstile> PrimT p \\<preceq> xb) = (xb = PrimT p)"
   by (auto elim: widen.elims)
 
 lemma is_tyI:
@@ -62,11 +62,11 @@ next
   next
     fix R assume R: "T = RefT R"
     with wf
-    have "R = ClassT Object \<Longrightarrow> ?thesis" by simp
+    have "R = ClassT Object \\<Longrightarrow> ?thesis" by simp
     moreover    
     from R wf ty
-    have "R \<noteq> ClassT Object \<Longrightarrow> ?thesis"
-      by (auto simp add: is_ty_def subcls1_def 
+    have "R \\<noteq> ClassT Object \\<Longrightarrow> ?thesis"
+      by (auto simp add: is_ty_def subcls1_def is_class_def
                elim: converse_rtranclE
                split: ref_ty.splits)    
     ultimately    
@@ -163,7 +163,7 @@ lemma closed_err_types:
 lemma sup_subtype_greater:
   "[| wf_prog wf_mb G; single_valued (subcls1 G); acyclic (subcls1 G);
       is_type G t1; is_type G t2; sup G t1 t2 = OK s |] 
-  ==> subtype G t1 s \<and> subtype G t2 s"
+  ==> subtype G t1 s \\<and> subtype G t2 s"
 proof -
   assume wf_prog:       "wf_prog wf_mb G"
   assume single_valued: "single_valued (subcls1 G)" 
@@ -173,16 +173,16 @@ proof -
     assume is_class: "is_class G c1" "is_class G c2"
     with wf_prog 
     obtain 
-      "G \<turnstile> c1 \<preceq>C Object"
-      "G \<turnstile> c2 \<preceq>C Object"
+      "G \\<turnstile> c1 \\<preceq>C Object"
+      "G \\<turnstile> c2 \\<preceq>C Object"
       by (blast intro: subcls_C_Object)
     with wf_prog single_valued
     obtain u where
       "is_lub ((subcls1 G)^* ) c1 c2 u"      
       by (blast dest: single_valued_has_lubs)
     with acyclic
-    have "G \<turnstile> c1 \<preceq>C some_lub ((subcls1 G)^* ) c1 c2 \<and>
-          G \<turnstile> c2 \<preceq>C some_lub ((subcls1 G)^* ) c1 c2"
+    have "G \\<turnstile> c1 \\<preceq>C some_lub ((subcls1 G)^* ) c1 c2 \\<and>
+          G \\<turnstile> c2 \\<preceq>C some_lub ((subcls1 G)^* ) c1 c2"
       by (simp add: some_lub_conv) (blast dest: is_lubD is_ubD)
   } note this [simp]
       
@@ -206,11 +206,11 @@ proof -
 
   { fix c1 c2 D
     assume is_class: "is_class G c1" "is_class G c2"
-    assume le: "G \<turnstile> c1 \<preceq>C D" "G \<turnstile> c2 \<preceq>C D"
+    assume le: "G \\<turnstile> c1 \\<preceq>C D" "G \\<turnstile> c2 \\<preceq>C D"
     from wf_prog is_class
     obtain 
-      "G \<turnstile> c1 \<preceq>C Object"
-      "G \<turnstile> c2 \<preceq>C Object"
+      "G \\<turnstile> c1 \\<preceq>C Object"
+      "G \\<turnstile> c2 \\<preceq>C Object"
       by (blast intro: subcls_C_Object)
     with wf_prog single_valued
     obtain u where
@@ -221,15 +221,15 @@ proof -
       by (rule some_lub_conv)
     moreover
     from lub le
-    have "G \<turnstile> u \<preceq>C D" 
+    have "G \\<turnstile> u \\<preceq>C D" 
       by (simp add: is_lub_def is_ub_def)
     ultimately     
-    have "G \<turnstile> some_lub ((subcls1 G)\<^sup>*) c1 c2 \<preceq>C D"
+    have "G \\<turnstile> some_lub ((subcls1 G)\<^sup>*) c1 c2 \\<preceq>C D"
       by blast
   } note this [intro]
 
   have [dest!]:
-    "!!C T. G \<turnstile> Class C \<preceq> T ==> \<exists>D. T=Class D \<and> G \<turnstile> C \<preceq>C D"
+    "!!C T. G \\<turnstile> Class C \\<preceq> T ==> \\<exists>D. T=Class D \\<and> G \\<turnstile> C \\<preceq>C D"
     by (frule widen_Class, auto)
 
   assume "is_type G a" "is_type G b" "is_type G c"
@@ -262,16 +262,16 @@ proof -
 
   from wf_prog single_valued acyclic 
   have
-    "(\<forall>x\<in>err (types G). \<forall>y\<in>err (types G). x <=_(le (subtype G)) x +_(lift2 (sup G)) y) \<and> 
-     (\<forall>x\<in>err (types G). \<forall>y\<in>err (types G). y <=_(le (subtype G)) x +_(lift2 (sup G)) y)"
+    "(\\<forall>x\\<in>err (types G). \\<forall>y\\<in>err (types G). x <=_(le (subtype G)) x +_(lift2 (sup G)) y) \\<and> 
+     (\\<forall>x\\<in>err (types G). \\<forall>y\\<in>err (types G). y <=_(le (subtype G)) x +_(lift2 (sup G)) y)"
     by (auto simp add: lesub_def plussub_def le_def lift2_def sup_subtype_greater split: err.split)
 
   moreover    
 
   from wf_prog single_valued acyclic 
   have
-    "\<forall>x\<in>err (types G). \<forall>y\<in>err (types G). \<forall>z\<in>err (types G). 
-    x <=_(le (subtype G)) z \<and> y <=_(le (subtype G)) z \<longrightarrow> x +_(lift2 (sup G)) y <=_(le (subtype G)) z"
+    "\\<forall>x\\<in>err (types G). \\<forall>y\\<in>err (types G). \\<forall>z\\<in>err (types G). 
+    x <=_(le (subtype G)) z \\<and> y <=_(le (subtype G)) z \\<longrightarrow> x +_(lift2 (sup G)) y <=_(le (subtype G)) z"
     by (unfold lift2_def plussub_def lesub_def le_def)
        (auto intro: sup_subtype_smallest sup_exists split: err.split)
 

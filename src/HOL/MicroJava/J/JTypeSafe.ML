@@ -61,7 +61,7 @@ by(   atac 1);
 by(  SELECT_GOAL Auto_tac 1);
 by( Clarify_tac 1);
 by( Full_simp_tac 1);
-by( EVERY [forward_tac [hext_objD] 1, atac 1]);
+by( EVERY [ftac hext_objD 1, atac 1]);
 by( etac exE 1);
 by( Asm_full_simp_tac 1);
 by( Clarify_tac 1);
@@ -102,12 +102,6 @@ by(  atac 1);
 by( (etac conf_list_gext_widen THEN_ALL_NEW atac) 1);
 qed "Call_lemma2";
 
-Goal "G\\<turnstile>C\\<preceq>C D \\<Longrightarrow> is_class G D \\<longrightarrow> is_class G C";
-by (etac rtrancl_induct 1);
-by  (dtac subcls1D 2);
-by  Auto_tac;
-qed_spec_mp "subcls_is_class2"; 
-
 Goalw [wf_java_prog_def]
  "[| wf_java_prog G; a' \\<noteq> Null; (h, l)::\\<preceq>(G, lT); class G C = Some y; \
 \    max_spec G C (mn,pTsa) = {((mda,rTa),pTs')}; xc\\<le>|xh; xh\\<le>|h; \
@@ -125,7 +119,7 @@ by( Clarify_tac 1);
 by( datac non_np_objD' 2 1);
 by(  Clarsimp_tac 1);
 by( Clarsimp_tac 1);
-by( EVERY'[forward_tac [hext_objD], atac] 1);
+by( EVERY'[ftac hext_objD, atac] 1);
 by( Clarsimp_tac 1);
 by( datac Call_lemma 3 1);
 by( clarsimp_tac (claset(),simpset() addsimps [wf_java_mdecl_def])1);
@@ -276,7 +270,7 @@ by( dtac eval_no_xcpt 1);
 by( SELECT_GOAL (etac FAss_type_sound 1 THEN rtac refl 1 THEN ALLGOALS atac) 1);
 
 by prune_params_tac;
-(* Level 50 *)
+(* Level 52 *)
 
 (* 1 Call *)
 by( case_tac "x" 1);
@@ -297,6 +291,8 @@ by(  dtac eval_xcpt 1);
 by(  Asm_full_simp_tac 1);
 by(  fast_tac (HOL_cs addEs [hext_trans]) 1);
 by( datac ty_expr_is_type 1 1);
+by(Clarsimp_tac 1);
+by(rewtac is_class_def);
 by(Clarsimp_tac 1);
 by( (rtac (rewrite_rule [wf_java_prog_def] Call_type_sound) 
     THEN_ALL_NEW Asm_simp_tac) 1);

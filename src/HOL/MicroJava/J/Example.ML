@@ -13,17 +13,19 @@ qed "map_of_Cons2";
 Delsimps[map_of_Cons]; (* sic! *)
 Addsimps[map_of_Cons1, map_of_Cons2];
 
-Goalw [ObjectC_def] "class tprg Object = Some (arbitrary, [], [])";
+Goalw [ObjectC_def,class_def] "class tprg Object = Some (arbitrary, [], [])";
 by (Simp_tac 1);
 qed "class_tprg_Object";
 
-Goalw [ObjectC_def, BaseC_def, ExtC_def] "class tprg Base = Some (Object, \
+Goalw [ObjectC_def, BaseC_def, ExtC_def, class_def] 
+"class tprg Base = Some (Object, \
 	\ [(vee, PrimT Boolean)], \
         \ [((foo, [Class Base]), Class Base, foo_Base)])";
 by (Simp_tac 1);
 qed "class_tprg_Base";
 
-Goalw [ObjectC_def, BaseC_def, ExtC_def] "class tprg Ext = Some (Base, \
+Goalw [ObjectC_def, BaseC_def, ExtC_def, class_def] 
+"class tprg Ext = Some (Base, \
 	\ [(vee, PrimT Integer)], \
         \ [((foo, [Class Base]), Class Ext, foo_Ext)])";
 by (Simp_tac 1);
@@ -49,7 +51,8 @@ by (auto_tac (claset() addSDs [tranclD,subcls1D],simpset()));
 qed "not_Base_subcls_Ext";
 AddSEs [not_Base_subcls_Ext];
 
-Goalw [ObjectC_def, BaseC_def, ExtC_def] "class tprg C = Some z ==> C=Object \\<or> C=Base \\<or> C=Ext";
+Goalw [ObjectC_def, BaseC_def, ExtC_def, class_def] 
+"class tprg C = Some z ==> C=Object \\<or> C=Base \\<or> C=Ext";
 by (auto_tac (claset(),simpset()addsplits[split_if_asm]addsimps[map_of_Cons]));
 qed "class_tprgD";
 
@@ -98,6 +101,8 @@ by (stac fields_rec_ 1);
 by   Auto_tac;
 qed "fields_Object";
 Addsimps [fields_Object];
+
+Addsimps [is_class_def];
 
 Goal "fields (tprg,Base) = [((vee, Base), PrimT Boolean)]";
 by (stac fields_rec_ 1);

@@ -41,22 +41,15 @@ text {*
 @{thm [display] Store_correct [no_vars]}
 \medskip
 
-{\bf lemma} @{text conf_Intg_Integer}:\\
-@{thm [display] conf_Intg_Integer [no_vars]}
-\medskip
-
-{\bf lemma} @{text Bipush_correct}:\\
-@{thm [display] Bipush_correct [no_vars]}
-\medskip
+%removed {\bf lemma} {text conf_Intg_Integer}:\\
+%removed {\bf lemma} {text Bipush_correct}:\\
 
 {\bf lemma} @{text NT_subtype_conv}:\\
 @{thm [display] NT_subtype_conv [no_vars]}
 \medskip
 
-{\bf lemma} @{text Aconst_null_correct}:\\
-@{thm [display] Aconst_null_correct [no_vars]}
-\medskip
-
+%removed {\bf lemma} {text Aconst_null_correct}:\\
+  
 {\bf lemma} @{text Cast_conf2}:\\
 @{thm [display] Cast_conf2 [no_vars]}
 \medskip
@@ -153,17 +146,11 @@ text {*
 
 subsubsection {* Theory Conform *}
 text {*
-{\bf theorem} @{text conf_VoidI}:\\
-@{thm [display] conf_VoidI [no_vars]}
-\medskip
+%removed {\bf theorem} {text conf_VoidI}:\\
+  
+%removed {\bf theorem} {text conf_BooleanI}:\\
 
-{\bf theorem} @{text conf_BooleanI}:\\
-@{thm [display] conf_BooleanI [no_vars]}
-\medskip
-
-{\bf theorem} @{text conf_IntegerI}:\\
-@{thm [display] conf_IntegerI [no_vars]}
-\medskip
+%removed {\bf theorem} {text conf_IntegerI}:\\
 
 {\bf theorem} @{text defval_conf}:\\
 @{thm [display] defval_conf [no_vars]}
@@ -237,54 +224,30 @@ text {*
 @{thm [display] not_Some_eq [no_vars]}
 \medskip
 
-{\bf lemma} @{text lift_top_refl}:\\
-@{thm [display] lift_top_refl [no_vars]}
-\medskip
+%removed {\bf lemma} @{text lift_top_refl}:\\
 
-{\bf lemma} @{text lift_top_trans}:\\
-@{thm [display] lift_top_trans [no_vars]}
-\medskip
+%removed {\bf lemma} @{text lift_top_trans}:\\
 
-{\bf lemma} @{text lift_top_Err_any}:\\
-@{thm [display] lift_top_Err_any [no_vars]}
-\medskip
+%removed {\bf lemma} @{text lift_top_Err_any}:\\
 
-{\bf lemma} @{text lift_top_OK_OK}:\\
-@{thm [display] lift_top_OK_OK [no_vars]}
-\medskip
+%removed {\bf lemma} @{text lift_top_OK_OK}:\\
+  
+%removed {\bf lemma} @{text lift_top_any_OK}:\\
+  
+%removed {\bf lemma} @{text lift_top_OK_any}:\\
 
-{\bf lemma} @{text lift_top_any_OK}:\\
-@{thm [display] lift_top_any_OK [no_vars]}
-\medskip
+%removed {\bf lemma} @{text lift_bottom_refl}:\\
 
-{\bf lemma} @{text lift_top_OK_any}:\\
-@{thm [display] lift_top_OK_any [no_vars]}
-\medskip
+%removed {\bf lemma} @{text lift_bottom_trans}:\\
 
-{\bf lemma} @{text lift_bottom_refl}:\\
-@{thm [display] lift_bottom_refl [no_vars]}
-\medskip
+%removed {\bf lemma} @{text lift_bottom_any_None}:\\
 
-{\bf lemma} @{text lift_bottom_trans}:\\
-@{thm [display] lift_bottom_trans [no_vars]}
-\medskip
+%removed {\bf lemma} @{text lift_bottom_Some_Some}:\\
 
-{\bf lemma} @{text lift_bottom_any_None}:\\
-@{thm [display] lift_bottom_any_None [no_vars]}
-\medskip
+%removed {\bf lemma} @{text lift_bottom_any_Some}:\\
 
-{\bf lemma} @{text lift_bottom_Some_Some}:\\
-@{thm [display] lift_bottom_Some_Some [no_vars]}
-\medskip
-
-{\bf lemma} @{text lift_bottom_any_Some}:\\
-@{thm [display] lift_bottom_any_Some [no_vars]}
-\medskip
-
-{\bf lemma} @{text lift_bottom_Some_any}:\\
-@{thm [display] lift_bottom_Some_any [no_vars]}
-\medskip
-
+%removed {\bf lemma} @{text lift_bottom_Some_any}:\\
+  
 {\bf theorem} @{text sup_ty_opt_refl}:\\
 @{thm [display] sup_ty_opt_refl [no_vars]}
 \medskip
@@ -683,14 +646,10 @@ text {*
 
 subsubsection {* Theory JBasis *}
 text {*
-{\bf theorem} @{text image_rev}:\\
-@{thm [display] image_rev [no_vars]}
-\medskip
-
-{\bf theorem} @{text some_subset_the}:\\
-@{thm [display] some_subset_the [no_vars]}
-\medskip
-
+%removed {\bf theorem} {text image_rev}:\\
+  
+%removed {\bf theorem} {text some_subset_the}:\\
+  
 {\bf theorem} @{text fst_in_set_lemma}:\\
 @{thm [display] fst_in_set_lemma [no_vars]}
 \medskip
@@ -711,18 +670,14 @@ text {*
 @{thm [display] unique_map_inj [no_vars]}
 \medskip
 
-{\bf theorem} @{text unique_map_Pair}:\\
-@{thm [display] unique_map_Pair [no_vars]}
-\medskip
-
+%removed {\bf theorem} {text unique_map_Pair}:\\
+  
 {\bf theorem} @{text image_cong}:\\
 @{thm [display] image_cong [no_vars]}
 \medskip
 
-{\bf theorem} @{text unique_map_of_Some_conv}:\\
-@{thm [display] unique_map_of_Some_conv [no_vars]}
-\medskip
-
+%removed {\bf theorem} {text unique_map_of_Some_conv}:\\
+  
 {\bf theorem} @{text Ball_set_table}:\\
 @{thm [display] Ball_set_table [no_vars]}
 \medskip
@@ -859,15 +814,10 @@ text {*
 @{thm [display] wtl_method_complete [no_vars]}
 \medskip
 
-{\bf lemma} @{text unique_set}:\\
-@{thm [display] unique_set [no_vars]}
-\medskip
+%removed {\bf lemma} {text unique_set}:\\
 
-{\bf lemma} @{text unique_epsilon}:\\
-@{thm [display] unique_epsilon [no_vars]}
-\medskip
+%removed {\bf lemma} {text unique_epsilon}:\\
 
-{\bf theorem} @{text wtl_complete}:\\
 @{thm [display] wtl_complete [no_vars]}
 \medskip
 
@@ -913,14 +863,6 @@ text {*
 
 {\bf lemma} @{text wtl_method_correct}:\\
 @{thm [display] wtl_method_correct [no_vars]}
-\medskip
-
-{\bf lemma} @{text unique_set}:\\
-@{thm [display] unique_set [no_vars]}
-\medskip
-
-{\bf lemma} @{text unique_epsilon}:\\
-@{thm [display] unique_epsilon [no_vars]}
 \medskip
 
 {\bf theorem} @{text wtl_correct}:\\
@@ -995,13 +937,9 @@ text {*
 @{thm [display] appStore [no_vars]}
 \medskip
 
-{\bf lemma} @{text appBipush}:\\
-@{thm [display] appBipush [no_vars]}
-\medskip
+%removed {\bf lemma} {text appBipush}:\\
 
-{\bf lemma} @{text appAconst}:\\
-@{thm [display] appAconst [no_vars]}
-\medskip
+%removed {\bf lemma} {text appAconst}:\\
 
 {\bf lemma} @{text appGetField}:\\
 @{thm [display] appGetField [no_vars]}
@@ -1107,10 +1045,7 @@ text {*
 
 subsubsection {* Theory Store *}
 text {*
-{\bf theorem} @{text newref_None}:\\
-@{thm [display] newref_None [no_vars]}
-\medskip
-
+%removed {\bf theorem} {text newref_None}:\\
 *}
 
 subsubsection {* Theory Term *}
@@ -1230,9 +1165,7 @@ text {*
 @{thm [display] unique_fields [no_vars]}
 \medskip
 
-{\bf theorem} @{text widen_fields_mono}:\\
-@{thm [display] widen_fields_mono [no_vars]}
-\medskip
+%removed {\bf theorem} {text widen_fields_mono}:\\
 
 {\bf theorem} @{text widen_cfs_fields}:\\
 @{thm [display] widen_cfs_fields [no_vars]}
@@ -1254,9 +1187,7 @@ text {*
 @{thm [display] method_in_md [no_vars]}
 \medskip
 
-{\bf theorem} @{text is_type_fields}:\\
-@{thm [display] is_type_fields [no_vars]}
-\medskip
+%removed {\bf theorem} {text is_type_fields}:\\
 
 *}
 
