@@ -18,6 +18,8 @@ constdefs
   Pair_Rep      :: ['a, 'b] => ['a, 'b] => bool
   "Pair_Rep == (%a b. %x y. x=a & y=b)"
 
+global
+
 typedef (Prod)
   ('a, 'b) "*"          (infixr 20)
     = "{f. ? a b. f = Pair_Rep (a::'a) (b::'b)}"
@@ -71,6 +73,8 @@ syntax (symbols)
 
 (* definitions *)
 
+local
+
 defs
   Pair_def      "Pair a b == Abs_Prod(Pair_Rep a b)"
   fst_def       "fst p == @a. ? b. p = (a, b)"
@@ -83,10 +87,14 @@ defs
 
 (** unit **)
 
+global
+
 typedef  unit = "{True}"
 
 consts
   "()"          :: unit                           ("'(')")
+
+local
 
 defs
   Unity_def     "() == Abs_unit True"

@@ -11,6 +11,8 @@ HOL = CPure +
 
 (** Core syntax **)
 
+global
+
 classes
   term < logic
 
@@ -33,6 +35,7 @@ consts
   Not           :: bool => bool                     ("~ _" [40] 40)
   True, False   :: bool
   If            :: [bool, 'a, 'a] => 'a   ("(if (_)/ then (_)/ else (_))" 10)
+  arbitrary     :: 'a
 
   (* Binders *)
 
@@ -141,6 +144,8 @@ syntax (symbols output)
 
 (** Rules and definitions **)
 
+local
+
 rules
 
   eq_reflection "(x=y) ==> (x==y)"
@@ -178,9 +183,6 @@ defs
   Let_def       "Let s f == f(s)"
   o_def         "(f::'b=>'c) o g == (%(x::'a). f(g(x)))"
   if_def        "If P x y == @z::'a. (P=True --> z=x) & (P=False --> z=y)"
-
-consts
-  arbitrary :: 'a
 
 
 end

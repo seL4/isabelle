@@ -12,6 +12,8 @@ NatDef = WF +
 
 (** type ind **)
 
+global
+
 types
   ind
 
@@ -58,6 +60,8 @@ translations
    "2"  == "Suc 1"
   "case p of 0 => a | Suc y => b" == "nat_case a (%y. b) p"
 
+
+local
 
 defs
   Zero_def      "0 == Abs_Nat(Zero_Rep)"

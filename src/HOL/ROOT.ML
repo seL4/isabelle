@@ -7,8 +7,10 @@ Adds Classical Higher-order Logic to a database containing Pure Isabelle.
 Should be executed in the subdirectory HOL.
 *)
 
-val banner = "Higher-Order Logic with curried functions";
+val banner = "Higher-Order Logic";
 writeln banner;
+
+reset global_names;
 
 print_depth 1;
 

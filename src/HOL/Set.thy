@@ -9,6 +9,8 @@ Set = Ord +
 
 (** Core syntax **)
 
+global
+
 types
   'a set
 
@@ -120,6 +122,8 @@ translations
 
 
 (** Rules and definitions **)
+
+local
 
 rules
 

@@ -11,6 +11,8 @@ Ord = HOL +
 axclass
   ord < term
 
+global
+
 syntax
   "op <"        :: ['a::ord, 'a] => bool             ("op <")
   "op <="       :: ['a::ord, 'a] => bool             ("op <=")
@@ -27,6 +29,8 @@ syntax (symbols)
   "op <="       :: ['a::ord, 'a] => bool             ("op \\<le>")
   "op <="       :: ['a::ord, 'a] => bool             ("(_/ \\<le> _)"  [50, 51] 50)
 
+
+local
 
 defs
   mono_def      "mono(f) == (!A B. A <= B --> f(A) <= f(B))"

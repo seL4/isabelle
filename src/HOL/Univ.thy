@@ -13,6 +13,8 @@ Univ = Arith + Sum +
 
 (** lists, trees will be sets of nodes **)
 
+global
+
 typedef (Node)
   'a node = "{p. EX f x k. p = (f::nat=>nat, x::'a+nat) & f(k)=0}"
 
@@ -45,6 +47,9 @@ consts
            => ('a item * 'a item)set" (infixr 80)
   "<++>" :: "[('a item * 'a item)set, ('a item * 'a item)set] 
            => ('a item * 'a item)set" (infixr 70)
+
+
+local
 
 defs
 

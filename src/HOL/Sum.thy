@@ -17,6 +17,8 @@ constdefs
   Inr_Rep       :: ['b, 'a, 'b, bool] => bool
   "Inr_Rep == (%b. %x y p. y=b & ~p)"
 
+global
+
 typedef (Sum)
   ('a, 'b) "+"          (infixr 10)
     = "{f. (? a. f = Inl_Rep(a::'a)) | (? b. f = Inr_Rep(b::'b))}"
@@ -35,6 +37,8 @@ consts
 
 translations
   "case p of Inl x => a | Inr y => b" == "sum_case (%x. a) (%y. b) p"
+
+local
 
 defs
   Inl_def       "Inl == (%a. Abs_Sum(Inl_Rep(a)))"

@@ -8,6 +8,8 @@ Well-founded Recursion
 
 WF = Trancl +
 
+global
+
 constdefs
   wf         :: "('a * 'a)set => bool"
   "wf(r) == (!P. (!x. (!y. (y,x):r --> P(y)) --> P(x)) --> (!x. P(x)))"
@@ -27,5 +29,7 @@ constdefs
   wfrec      :: "('a * 'a)set => (('a=>'b) => ('a=>'b)) => 'a => 'b"
   "wfrec r H == (%x. H (cut (the_recfun (trancl r) (%f v. H (cut f r v) v) x)
                             r x)  x)"
+
+local
 
 end
