@@ -19,6 +19,7 @@ signature TACTICAL =
   val APPEND            : tactic * tactic -> tactic
   val APPEND'           : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
   val CHANGED           : tactic -> tactic
+  val CHANGED_PROP      : tactic -> tactic
   val CHANGED_GOAL	: (int -> tactic) -> int -> tactic
   val COND              : (thm -> bool) -> tactic -> tactic -> tactic   
   val DETERM            : tactic -> tactic
@@ -297,6 +298,12 @@ fun FILTER pred tac st = Seq.filter pred (tac st);
 (*Returns all changed states*)
 fun CHANGED tac st = 
     let fun diff st' = not (eq_thm(st,st'))
+    in  Seq.filter diff (tac st)  end;
+
+fun CHANGED_PROP tac st = 
+    let
+      val prop = #prop (Thm.rep_thm st);
+      fun diff st' = not (prop aconv #prop (Thm.rep_thm st'));
     in  Seq.filter diff (tac st)  end;
 
 

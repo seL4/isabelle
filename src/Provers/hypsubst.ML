@@ -257,7 +257,8 @@ fun stac th =
 (* proof methods *)
 
 val subst_meth = Method.thm_args (Method.SIMPLE_METHOD' HEADGOAL o stac);
-val hyp_subst_meth = Method.no_args (Method.SIMPLE_METHOD' HEADGOAL hyp_subst_tac);
+val hyp_subst_meth =
+  Method.no_args (Method.SIMPLE_METHOD' HEADGOAL (CHANGED_PROP o hyp_subst_tac));
 
 
 (* attributes *)

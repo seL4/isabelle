@@ -383,7 +383,8 @@ val meson_tac = CLASET' meson_claset_tac;
 local
 
 fun meson_meth ctxt =
-  Method.SIMPLE_METHOD' HEADGOAL (CHANGED o meson_claset_tac (Classical.get_local_claset ctxt));
+  Method.SIMPLE_METHOD' HEADGOAL
+    (CHANGED_PROP o meson_claset_tac (Classical.get_local_claset ctxt));
 
 in
 

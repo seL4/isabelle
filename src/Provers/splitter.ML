@@ -427,7 +427,7 @@ val split_modifiers =
 
 val split_args = #2 oo Method.syntax Attrib.local_thms;
 
-fun split_meth ths = Method.SIMPLE_METHOD' HEADGOAL (gen_split_tac ths);
+fun split_meth ths = Method.SIMPLE_METHOD' HEADGOAL (CHANGED_PROP o gen_split_tac ths);
 
 
 

@@ -315,8 +315,8 @@ val clasimp_method' = Method.bang_sectioned_args clasimp_modifiers o clasimp_met
 fun auto_args m =
   Method.bang_sectioned_args' clasimp_modifiers (Scan.lift (Scan.option (Args.nat -- Args.nat))) m;
 
-fun auto_meth None = clasimp_meth (CHANGED o auto_tac)
-  | auto_meth (Some (m, n)) = clasimp_meth (CHANGED o (fn css => mk_auto_tac css m n));
+fun auto_meth None = clasimp_meth (CHANGED_PROP o auto_tac)
+  | auto_meth (Some (m, n)) = clasimp_meth (CHANGED_PROP o (fn css => mk_auto_tac css m n));
 
 
 (* theory setup *)
@@ -330,6 +330,6 @@ val setup =
     ("bestsimp", clasimp_method' best_simp_tac, "combined best and simp"),
     ("force", clasimp_method' force_tac, "force"),
     ("auto", auto_args auto_meth, "auto"),
-    ("clarsimp", clasimp_method' (CHANGED oo clarsimp_tac), "clarify simplified goal")]];
+    ("clarsimp", clasimp_method' (CHANGED_PROP oo clarsimp_tac), "clarify simplified goal")]];
 
 end;

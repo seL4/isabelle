@@ -542,10 +542,11 @@ fun simp_args more_mods =
 
 fun simp_method (prems, tac) ctxt = Method.METHOD (fn facts =>
   ALLGOALS (Method.insert_tac (prems @ facts)) THEN
-    (CHANGED o ALLGOALS o tac) (get_local_simpset ctxt));
+    (CHANGED_PROP o ALLGOALS o tac) (get_local_simpset ctxt));
 
 fun simp_method' (prems, tac) ctxt = Method.METHOD (fn facts =>
-  HEADGOAL (Method.insert_tac (prems @ facts) THEN' (CHANGED oo tac) (get_local_simpset ctxt)));
+  HEADGOAL (Method.insert_tac (prems @ facts) THEN'
+      (CHANGED_PROP oo tac) (get_local_simpset ctxt)));
 
 
 (* setup_methods *)

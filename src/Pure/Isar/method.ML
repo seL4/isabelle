@@ -267,8 +267,8 @@ fun SIMPLE_METHOD' quant tac = METHOD (fn facts => quant (insert_tac facts THEN'
 
 (* unfold / fold definitions *)
 
-fun unfold thms = SIMPLE_METHOD (CHANGED (rewrite_goals_tac thms));
-fun fold thms = SIMPLE_METHOD (CHANGED (fold_goals_tac thms));
+fun unfold thms = SIMPLE_METHOD (CHANGED_PROP (rewrite_goals_tac thms));
+fun fold thms = SIMPLE_METHOD (CHANGED_PROP (fold_goals_tac thms));
 
 
 (* atomize meta-connectives *)
