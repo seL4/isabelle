@@ -23,3 +23,6 @@ fun endTiming (CPUtimer, {gc,sys,usr}) =
       handle Time => ""
   end;
 
+fun checkTimer timer =
+  let val {sys, usr, gc} = Timer.checkCPUTimer timer
+  in (sys, usr, gc) end;

@@ -21,3 +21,8 @@ fun endTiming (CPUtimer, {sys,usr}) =
       handle Time => ""
   end;
 
+fun checkTimer timer =
+  let
+    val {sys, usr} = Timer.checkCPUTimer timer;
+    val gc = Timer.checkGCTime timer;    (* FIXME already included in usr? *)
+  in (sys, usr, gc) end;
