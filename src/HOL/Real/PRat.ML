@@ -786,22 +786,22 @@ by (res_inst_tac [("x","prat_of_pnat (Abs_pnat 1)")] exI 1);
 by (auto_tac (claset(),simpset() addsimps [prat_less_not_refl]));
 qed "lemma_prat_less_1_not_memEx";
 
-Goal "{x::prat. x < prat_of_pnat (Abs_pnat 1)} ~= {q::prat. True}";
+Goal "{x::prat. x < prat_of_pnat (Abs_pnat 1)} ~= UNIV";
 by (rtac notI 1);
 by (cut_facts_tac [lemma_prat_less_1_not_memEx] 1);
 by (Asm_full_simp_tac 1);
 qed "lemma_prat_less_1_set_not_rat_set";
 
 Goalw [psubset_def,subset_def] 
-      "{x::prat. x < prat_of_pnat (Abs_pnat 1)} < {q::prat. True}";
-by (asm_full_simp_tac (simpset() addsimps 
-      [lemma_prat_less_1_set_not_rat_set,
-       lemma_prat_less_1_not_memEx]) 1);
+      "{x::prat. x < prat_of_pnat (Abs_pnat 1)} < UNIV";
+by (asm_full_simp_tac
+    (simpset() addsimps [lemma_prat_less_1_set_not_rat_set,
+			 lemma_prat_less_1_not_memEx]) 1);
 qed "lemma_prat_less_1_set_psubset_rat_set";
 
 (*** prove non_emptiness of type ***)
 Goal "{x::prat. x < prat_of_pnat (Abs_pnat 1)} : {A. {} < A & \
-\               A < {q::prat. True} & \
+\               A < UNIV & \
 \               (!y: A. ((!z. z < y --> z: A) & \
 \               (? u: A. y < u)))}";
 by (auto_tac (claset() addDs [prat_less_trans],

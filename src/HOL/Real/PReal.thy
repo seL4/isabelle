@@ -9,7 +9,7 @@
 
 PReal = PRat +
 
-typedef preal = "{A::prat set. {} < A & A < {q::prat. True} &
+typedef preal = "{A::prat set. {} < A & A < UNIV &
                                (!y: A. ((!z. z < y --> z: A) &
                                         (? u: A. y < u)))}"      (preal_1)
 instance

@@ -1848,7 +1848,7 @@ qed "hypreal_of_nat_iff";
 Goal "inj hypreal_of_nat";
 by (rtac injI 1);
 by (auto_tac (claset() addSDs [FreeUltrafilterNat_P],
-        simpset() addsimps [hypreal_of_nat_iff,
+        simpset() addsimps [split_if_mem1, hypreal_of_nat_iff,
         real_add_right_cancel,inj_real_of_nat RS injD]));
 qed "inj_hypreal_of_nat";
 

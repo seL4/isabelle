@@ -108,7 +108,7 @@ qed "def_LList_corec";
 
 (*A typical use of co-induction to show membership in the gfp. 
   Bisimulation is  range(%x. LList_corec x f) *)
-Goal "LList_corec a f : llist({u. True})";
+Goal "LList_corec a f : llist UNIV";
 by (res_inst_tac [("X", "range(%x. LList_corec x ?g)")] llist_coinduct 1);
 by (rtac rangeI 1);
 by Safe_tac;
@@ -247,14 +247,14 @@ Goal
 \ ==> h1=h2";
 by (rtac ext 1);
 (*next step avoids an unknown (and flexflex pair) in simplification*)
-by (res_inst_tac [("A", "{u. True}"),
+by (res_inst_tac [("A", "UNIV"),
                   ("r", "range(%u. (h1(u),h2(u)))")] LList_equalityI 1);
 by (rtac rangeI 1);
 by Safe_tac;
 by (stac prem1 1);
 by (stac prem2 1);
 by (simp_tac (simpset() addsimps [LListD_Fun_NIL_I,
-				  CollectI RS LListD_Fun_CONS_I]) 1);
+				  UNIV_I RS LListD_Fun_CONS_I]) 1);
 qed "LList_corec_unique";
 
 val [prem] = 
