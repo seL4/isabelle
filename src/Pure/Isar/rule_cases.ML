@@ -113,7 +113,7 @@ fun prep_case open_params split sg prop name i =
     val Bi = hhf_nth_subgoal sg (i,prop);
     val all_xs = Logic.strip_params Bi
     val n = length all_xs - (if_none open_params 0)
-    val ind_xs = take(n,all_xs) and goal_xs = drop(n,all_xs)
+    val (ind_xs, goal_xs) = splitAt(n,all_xs)
     val rename = if is_none open_params then I else apfst Syntax.internal
     val xs = map rename ind_xs @ goal_xs
     val asms = map (curry Term.list_abs xs) (Logic.strip_assums_hyp Bi);
@@ -121,7 +121,8 @@ fun prep_case open_params split sg prop name i =
       (case split of None => [("", asms)]
       | Some t =>
           let val h = length (Logic.strip_assums_hyp(nth_subgoal(i,t)))
-          in [(hypsN, Library.take (h, asms)), (premsN, Library.drop (h, asms))] end);
+              val (ps,qs) = splitAt(h, asms)
+          in [(hypsN, ps), (premsN, qs)] end);
     val concl = Term.list_abs (xs, Logic.strip_assums_concl Bi);
     val bind = ((case_conclN, 0), Some (ObjectLogic.drop_judgment sg concl));
   in (name, {fixes = xs, assumes = named_asms, binds = [bind]}) end;

@@ -405,11 +405,11 @@ fun activate_elem _ ((ctxt, axs), Fixes fixes) = ((ctxt |> ProofContext.add_fixe
   | activate_elem _ ((ctxt, axs), Assumes asms) =
       let
         val ts = flat (map (map #1 o #2) asms);
-        val n = length ts;
+        val (ps,qs) = splitAt (length ts, axs)
         val (ctxt', _) =
           ctxt |> ProofContext.fix_frees ts
-          |> ProofContext.assume_i (export_axioms (Library.take (n, axs))) asms;
-      in ((ctxt', Library.drop (n, axs)), []) end
+          |> ProofContext.assume_i (export_axioms ps) asms;
+      in ((ctxt', qs), []) end
   | activate_elem _ ((ctxt, axs), Defines defs) =
       let val (ctxt', _) =
         ctxt |> ProofContext.assume_i ProofContext.export_def
@@ -627,9 +627,7 @@ fun prep_elemss prep_fixes prepp do_close context fixed_params raw_elemss raw_co
 
     val all_propp' = map2 (op ~~)
       (#1 (#2 (ProofContext.bind_propp_schematic_i (ctxt, all_propp))), map (map snd) all_propp);
-    val n = length raw_concl;
-    val concl = Library.take (n, all_propp');
-    val propp = Library.drop (n, all_propp');
+    val (concl, propp) = splitAt(length raw_concl, all_propp');
     val propps = unflat raw_propps propp;
     val proppss = map (uncurry unflat) (raw_proppss ~~ propps);
 
@@ -695,11 +693,11 @@ fun prep_context_statement prep_expr prep_elemss prep_facts
     val ((parms, all_elemss, concl), (spec, (_, _, defs))) = prep_elemss do_close
       context fixed_params (raw_import_elemss @ raw_elemss) raw_concl;
 
-    val n = length raw_import_elemss;
+    val (ps,qs) = splitAt(length raw_import_elemss, all_elemss)
     val ((import_ctxt, axioms'), (import_elemss, _)) =
-      activate_facts prep_facts ((context, axioms), Library.take (n, all_elemss));
+      activate_facts prep_facts ((context, axioms), ps);
     val ((ctxt, _), (elemss, _)) =
-      activate_facts prep_facts ((import_ctxt, axioms'), Library.drop (n, all_elemss));
+      activate_facts prep_facts ((import_ctxt, axioms'), qs);
   in
     ((((import_ctxt, import_elemss), (ctxt, elemss)), (parms, spec, defs)), concl)
   end;
@@ -899,8 +897,8 @@ fun def_pred bname parms defs ts norm_ts thy =
 
 fun change_elem _ (axms, Assumes asms) =
       apsnd Notes ((axms, asms) |> foldl_map (fn (axs, (a, spec)) =>
-        let val n = length spec
-        in (Library.drop (n, axs), (a, [(Library.take (n, axs), [])])) end))
+        let val (ps,qs) = splitAt(length spec, axs)
+        in (qs, (a, [(ps, [])])) end))
   | change_elem f (axms, Notes facts) = (axms, Notes (map (apsnd (map (apfst (map f)))) facts))
   | change_elem _ e = e;
 

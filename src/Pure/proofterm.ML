@@ -864,8 +864,7 @@ and shrink' ls lev ts prfs (prf as prf1 %% prf2) =
         val prop = (case prf of PThm (_, _, prop, _) => prop | PAxm (_, prop, _) => prop
           | Oracle (_, prop, _) => prop | _ => error "shrink: proof not in normal form");
         val vs = vars_of prop;
-        val ts' = take (length vs, ts)
-        val ts'' = drop (length vs, ts)
+        val (ts', ts'') = splitAt (length vs, ts)
         val insts = take (length ts', map (fst o dest_Var) vs) ~~ ts';
         val nvs = foldl (fn (ixns', (ixn, ixns)) =>
           ixn ins (case assoc (insts, ixn) of

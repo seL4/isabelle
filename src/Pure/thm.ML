@@ -1122,11 +1122,9 @@ fun rotate_rule k i state =
       val m      = if k<0 then n+k else k
       val Bi'    = if 0=m orelse m=n then Bi
 		   else if 0<m andalso m<n 
-		   then list_all 
-			   (params, 
-			    Logic.list_implies(List.drop(asms, m) @ 
-					       List.take(asms, m),
-					       concl))
+		   then let val (ps,qs) = splitAt(m,asms)
+                        in list_all(params, Logic.list_implies(qs @ ps, concl))
+			end
 		   else raise THM("rotate_rule", k, [state])
   in  (*no fix_shyps*)
       Thm{sign_ref = sign_ref, 
@@ -1152,10 +1150,8 @@ fun permute_prems j k rl =
       val m = if k<0 then n_j + k else k
       val prop'  = if 0 = m orelse m = n_j then prop
 		   else if 0<m andalso m<n_j 
-		   then Logic.list_implies(fixed_prems @
-					   List.drop(moved_prems, m) @ 
-					   List.take(moved_prems, m),
-					   concl)
+		   then let val (ps,qs) = splitAt(m,moved_prems)
+			in Logic.list_implies(fixed_prems @ qs @ ps, concl) end
 		   else raise THM("permute_prems:k", k, [rl])
   in  (*no fix_shyps*)
       Thm{sign_ref = sign_ref, 

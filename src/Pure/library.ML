@@ -90,6 +90,7 @@ sig
   val length: 'a list -> int
   val take: int * 'a list -> 'a list
   val drop: int * 'a list -> 'a list
+  val splitAt: int * 'a list -> 'a list * 'a list
   val dropwhile: ('a -> bool) -> 'a list -> 'a list
   val nth_elem: int * 'a list -> 'a
   val map_nth_elem: int -> ('a -> 'a) -> 'a list -> 'a list
@@ -507,6 +508,11 @@ fun drop (n, []) = []
   | drop (n, x :: xs) =
       if n > 0 then drop (n - 1, xs) else x :: xs;
 
+fun splitAt(n,[]) = ([],[])
+  | splitAt(n,xs as x::ys) =
+      if n>0 then let val (ps,qs) = splitAt(n-1,ys) in (x::ps,qs) end
+      else ([],xs)
+
 fun dropwhile P [] = []
   | dropwhile P (ys as x::xs) = if P x then dropwhile P xs else ys;
 
@@ -532,15 +538,10 @@ fun split_last [] = raise LIST "split_last"
   | split_last (x :: xs) = apfst (cons x) (split_last xs);
 
 (*update nth element*)
-fun nth_update x (n, xs) =
-  let
-    val prfx = take (n, xs);
-    val sffx = drop (n, xs);
-  in
-    (case sffx of
-      [] => raise LIST "nth_update"
-    | _ :: sffx' => prfx @ (x :: sffx'))
-  end;
+fun nth_update x n_xs =
+    (case splitAt n_xs of
+      (_,[]) => raise LIST "nth_update"
+    | (prfx, _ :: sffx') => prfx @ (x :: sffx'))
 
 (*find the position of an element in a list*)
 fun find_index pred =
@@ -566,7 +567,8 @@ fun get_first _ [] = None
 fun flat (ls: 'c list list) : 'c list = foldr (op @) (ls, []);
 
 fun unflat (xs :: xss) ys =
-      let val n = length xs in take (n, ys) :: unflat xss (drop (n, ys)) end
+      let val (ps,qs) = splitAt(length xs,ys)
+      in ps :: unflat xss qs end
   | unflat [] [] = []
   | unflat _ _ = raise LIST "unflat";
 
@@ -1032,10 +1034,8 @@ exception Balance;      (*indicates non-positive argument to balancing fun*)
 fun fold_bal f [x] = x
   | fold_bal f [] = raise Balance
   | fold_bal f xs =
-      let val k = length xs div 2
-      in  f (fold_bal f (take(k, xs)),
-             fold_bal f (drop(k, xs)))
-      end;
+      let val (ps,qs) = splitAt(length xs div 2, xs)
+      in  f (fold_bal f ps, fold_bal f qs)  end;
 
 (*construct something of the form f(...g(...(x)...)) for balanced access*)
 fun access_bal (f, g, x) n i =

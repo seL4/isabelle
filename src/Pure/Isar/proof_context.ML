@@ -889,8 +889,7 @@ fun prep_propp schematic prep_props prep_pats (context, args) =
           let
             val ctxt' = declare_term prop ctxt;
             val pats = prep_pats ctxt' (raw_pats1 @ raw_pats2);    (*simultaneous type inference!*)
-            val len1 = length raw_pats1;
-          in ((ctxt', props), (prop, (take (len1, pats), drop (len1, pats)))) end
+          in ((ctxt', props), (prop, splitAt(length raw_pats1, pats))) end
       | prep _ = sys_error "prep_propp";
     val ((context', _), propp) = foldl_map (foldl_map prep)
         ((context, prep_props schematic context (flat (map (map fst) args))), args);

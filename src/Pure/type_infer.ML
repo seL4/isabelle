@@ -331,9 +331,8 @@ fun infer prt prT classrel arities =
     fun prep_output bs ts Ts =
       let
         val (Ts_bTs', ts') = typs_terms_of [] PTFree "??" (Ts @ map snd bs, ts);
-        val len = length Ts;
-        val Ts' = take (len, Ts_bTs');
-        val xs = map Free (map fst bs ~~ drop (len, Ts_bTs'));
+        val (Ts',Ts'') = Library.splitAt(length Ts, Ts_bTs');
+        val xs = map Free (map fst bs ~~ Ts'');
         val ts'' = map (fn t => subst_bounds (xs, t)) ts';
       in (ts'', Ts') end;
 
