@@ -138,9 +138,10 @@ local
 
   (*parsers*)
   val tvars = type_args >> map (cat "dtVar");
-  val complex_typ =
-    tvars -- (ident>>quote) >> (cat "dtTyp" o mk_pair o apfst mk_list) ||
-    type_var >> cat "dtVar";
+  fun complex_typ toks =
+    (("(" $$-- complex_typ  --$$ ")" >> (fn x => [x]) || tvars)
+     -- (ident>>quote) >> (cat "dtTyp" o mk_pair o apfst mk_list)
+     || type_var >> cat "dtVar") toks;
   val simple_typ = ident>>(cat "dtTyp" o curry mk_pair "[]" o quote) ||
     type_var >> cat "dtVar";
   val opt_typs = repeat (simple_typ || ("(" $$-- complex_typ --$$ ")"));
