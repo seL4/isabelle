@@ -23,7 +23,7 @@ val LCons_iff      = llist.mk_free "LCons(a,l)=LCons(a',l') <-> a=a' & l=l'";
 val LNil_LCons_iff = llist.mk_free "~ LNil=LCons(a,l)";
 
 Goal "llist(A) = {0} <+> (A <*> llist(A))";
-let open llist;  val rew = rewrite_rule con_defs in  
+let open llist  val rew = rewrite_rule con_defs in  
 by (fast_tac (claset() addSIs (subsetI ::map rew intrs) addEs [rew elim]) 1)
 end;
 qed "llist_unfold";
@@ -191,6 +191,5 @@ by (fast_tac (claset() addSIs [flip_type]) 1);
 by (etac RepFunE 1);
 by (etac llist.elim 1);
 by (Asm_simp_tac 1);
-by (asm_simp_tac (simpset() addsimps [flip_type, not_not]) 1);
-by (fast_tac (claset() addSIs [not_type]) 1);
+by (asm_full_simp_tac (simpset() addsimps [flip_type, not_not]) 1);
 qed "flip_flip";

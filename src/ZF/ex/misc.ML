@@ -105,7 +105,7 @@ fun forw_typechk tyrls [] = []
 fun forw_iterate tyrls rls facts 0 = facts
   | forw_iterate tyrls rls facts n =
       let val facts' = 
-          gen_union eq_thm (forw_typechk (tyrls@facts) (facts RL rls), facts);
+          gen_union eq_thm (forw_typechk (tyrls@facts) (facts RL rls), facts)
       in  forw_iterate tyrls rls facts' (n-1)  end;
 
 val pastre_rls =
@@ -171,7 +171,8 @@ goal Perm.thy
 by (res_inst_tac [("d", "%<X,Y>.{Inl(x).x:X} Un {Inr(y).y:Y}")] 
     lam_bijective 1);
 (*Auto_tac no longer proves it*)
-by (REPEAT (fast_tac (claset() addss (simpset())) 1));
+by Auto_tac;
+by (ALLGOALS Blast_tac);  
 qed "Pow_sum_bij";
 
 (*As a special case, we have  bij(Pow(A*B), A -> Pow B)  *)

@@ -117,4 +117,59 @@ simpset_ref() := simpset() setmksimps (map mk_eq o ZF_atomize o gen_all)
 		           addsplits [split_if]
                            setSolver (mk_solver "types" Type_solver_tac);
 
+(** One-point rule for bounded quantifiers: see HOL/Set.ML **)
+
+Goal "(EX x:A. x=a) <-> (a:A)";
+by (Blast_tac 1);
+qed "bex_triv_one_point1";
+
+Goal "(EX x:A. a=x) <-> (a:A)";
+by (Blast_tac 1);
+qed "bex_triv_one_point2";
+
+Goal "(EX x:A. x=a & P(x)) <-> (a:A & P(a))";
+by (Blast_tac 1);
+qed "bex_one_point1";
+
+Goal "(EX x:A. a=x & P(x)) <-> (a:A & P(a))";
+by(Blast_tac 1);
+qed "bex_one_point2";
+
+Goal "(ALL x:A. x=a --> P(x)) <-> (a:A --> P(a))";
+by (Blast_tac 1);
+qed "ball_one_point1";
+
+Goal "(ALL x:A. a=x --> P(x)) <-> (a:A --> P(a))";
+by (Blast_tac 1);
+qed "ball_one_point2";
+
+Addsimps [bex_triv_one_point1,bex_triv_one_point2,
+          bex_one_point1,bex_one_point2,
+          ball_one_point1,ball_one_point2];
+
+let
+val ex_pattern = Thm.read_cterm (Theory.sign_of (the_context ()))
+    ("EX x:A. P(x) & Q(x)",FOLogic.oT)
+
+val prove_bex_tac = rewrite_goals_tac [Bex_def] THEN
+                    Quantifier1.prove_one_point_ex_tac;
+
+val rearrange_bex = Quantifier1.rearrange_bex prove_bex_tac;
+
+val all_pattern = Thm.read_cterm (Theory.sign_of (the_context ()))
+    ("ALL x:A. P(x) --> Q(x)",FOLogic.oT)
+
+val prove_ball_tac = rewrite_goals_tac [Ball_def] THEN 
+                     Quantifier1.prove_one_point_all_tac;
+
+val rearrange_ball = Quantifier1.rearrange_ball prove_ball_tac;
+
+val defBEX_regroup = mk_simproc "defined BEX" [ex_pattern] rearrange_bex;
+val defBALL_regroup = mk_simproc "defined BALL" [all_pattern] rearrange_ball;
+in
+
+Addsimprocs [defBALL_regroup,defBEX_regroup]
+
+end;
+
 val ZF_ss = simpset();

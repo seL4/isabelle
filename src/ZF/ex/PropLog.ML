@@ -190,9 +190,7 @@ qed "cons_Diff_subset2";
  could probably prove the stronger hyps(p,t) : Fin(hyps(p,0) Un hyps(p,nat))*)
 Goal "p: prop ==> hyps(p,t) : Fin(UN v:nat. {#v, #v=>Fls})";
 by (induct_tac "p" 1);
-by (asm_simp_tac (simpset() addsimps [UN_I]) 2);
-by (ALLGOALS Asm_simp_tac);
-by (blast_tac (claset() addIs Fin.intrs) 1);
+by Auto_tac;  
 qed "hyps_finite";
 
 val Diff_weaken_left = subset_refl RSN (2, Diff_mono) RS weaken_left;
