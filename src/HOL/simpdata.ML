@@ -364,17 +364,20 @@ add_thy_reader_file "thy_data.ML";
 
 (* rot_eq_tac rotates the first equality premise of subgoal i to the front,
    fails if there is no equaliy or if an equality is already at the front *)
-fun rot_eq_tac i = let
-  fun is_eq (Const ("Trueprop", _) $ (Const("op =",_) $ _ $ _)) = true
-  |   is_eq _ = false;
-  fun find_eq n [] = None
-  |   find_eq n (t :: ts) = if (is_eq t) then Some n else find_eq (n + 1) ts;
-  fun rot_eq state = let val (_, _, Bi, _) = dest_state (state, i) in
-	    (case find_eq 0 (Logic.strip_assums_hyp Bi) of
-	      None   => no_tac
-	    | Some 0 => no_tac
-	    | Some n => rotate_tac n i) end;
-in STATE rot_eq end;
+fun rot_eq_tac i = 
+  let fun is_eq (Const ("Trueprop", _) $ (Const("op =",_) $ _ $ _)) = true
+	| is_eq _ = false;
+      fun find_eq n [] = None
+	| find_eq n (t :: ts) = if (is_eq t) then Some n 
+				else find_eq (n + 1) ts;
+      fun rot_eq state = 
+	  let val (_, _, Bi, _) = dest_state (state, i) 
+	  in  case find_eq 0 (Logic.strip_assums_hyp Bi) of
+		  None   => no_tac
+		| Some 0 => no_tac
+		| Some n => rotate_tac n i
+	  end;
+  in STATE rot_eq end;
 
 (*an unsatisfactory fix for the incomplete asm_full_simp_tac!
   better: asm_really_full_simp_tac, a yet to be implemented version of
@@ -423,10 +426,12 @@ fun op delsimps2 arg = pair_upd2 (op delsimps) arg;
 fun op addcongs2 arg = pair_upd2 (op addcongs) arg;
 fun op delcongs2 arg = pair_upd2 (op delcongs) arg;
 
-fun auto_tac (cs,ss) = let val cs' = cs addss ss in
-EVERY [	TRY (safe_tac cs'),
-	REPEAT (FIRSTGOAL (fast_tac cs')),
-	prune_params_tac] end;
+fun auto_tac (cs,ss) = 
+    let val cs' = cs addss ss 
+    in  EVERY [TRY (safe_tac cs'),
+	       REPEAT (FIRSTGOAL (fast_tac cs')),
+	       prune_params_tac] 
+    end;
 
 fun Auto_tac () = auto_tac (!claset, !simpset);
 
