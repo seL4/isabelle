@@ -191,7 +191,7 @@ struct
 			  " would clash with the theory of the same name!")	(* FIXME !? *)
 	val def = freezeT(get_def thy id)   RS   meta_eq_to_obj_eq
 	val {theory,rules,rows,TCs,full_pats_TCs} = 
-		 Prim.post_definition (Prim.congs tflCongs)
+		 Prim.post_definition (Prim.congs thy tflCongs)
 		    (thy, (def,pats))
 	val {lhs=f,rhs} = S.dest_eq(concl def)
 	val (_,[R,_]) = S.strip_comb rhs

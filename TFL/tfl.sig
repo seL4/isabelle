@@ -13,7 +13,11 @@ sig
 
    val default_simps : thm list      (*simprules used for deriving rules...*)
 
-   val congs : thm list -> thm list  (*fn to make congruent rules*)
+   val Add_recdef_congs: thm list -> unit
+   val Del_recdef_congs: thm list -> unit
+   val init: theory -> theory
+   val print_recdef_congs: theory -> unit
+   val congs : theory -> thm list -> thm list  (*fn to make congruence rules*)
 
    type pattern
 

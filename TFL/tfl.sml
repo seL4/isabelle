@@ -38,15 +38,72 @@ fun front_last [] = raise TFL_ERR {func="front_last", mesg="empty list"}
 
 
 (*---------------------------------------------------------------------------
-          handling of user-supplied congruence rules: lcp*)
+          handling of user-supplied congruence rules: tnn *)
 
 (*Convert conclusion from = to ==*)
 val eq_reflect_list = map (fn th => (th RS eq_reflection) handle _ => th);
 
-(*default congruence rules include those for LET and IF*)
-val default_congs = eq_reflect_list [Thms.LET_CONG, if_cong];
+val cong_hd = fst o dest_Const o head_of o fst o Logic.dest_equals o concl_of;
 
-fun congs ths = default_congs @ eq_reflect_list ths;
+fun add_cong(congs,thm) =
+  let val c = cong_hd thm
+  in case assoc(congs,c) of None => (c,thm)::congs
+     | _ => (warning ("Overwriting congruence rule for " ^ quote c);
+             overwrite (congs, (c,thm)))
+  end
+
+fun del_cong(congs,thm) =
+  let val c = cong_hd thm
+      val (del, rest) = partition (fn (n, _) => n = c) congs
+  in if null del
+     then (warning ("No congruence rule for " ^ quote c ^ " present"); congs)
+     else rest
+  end;
+
+fun add_congs(congs,thms) = foldl add_cong (congs, eq_reflect_list thms);
+fun del_congs(congs,thms) = foldl del_cong (congs, eq_reflect_list thms);
+
+(** recdef data **)
+
+(* theory data kind 'Provers/simpset' *)
+
+structure RecdefCongsArgs =
+struct
+  val name = "HOL/recdef-congs";
+  type T = (string * thm) list ref;
+
+  val empty = ref(add_congs([], [Thms.LET_CONG, if_cong]));
+  fun copy (ref congs) = (ref congs): T;            (*create new reference!*)
+  val prep_ext = copy;
+  fun merge (ref congs1, ref congs2) = ref (merge_alists congs1 congs2);
+  fun print _ (ref congs) = print_thms(map snd congs);
+end;
+
+structure RecdefCongs = TheoryDataFun(RecdefCongsArgs);
+val print_recdef_congs = RecdefCongs.print;
+val recdef_congs_ref_of_sg = RecdefCongs.get_sg;
+val recdef_congs_ref_of = RecdefCongs.get;
+val init = RecdefCongs.init;
+
+
+(* access global recdef_congs *)
+val recdef_congs_of_sg = ! o recdef_congs_ref_of_sg;
+val recdef_congs_of = recdef_congs_of_sg o Theory.sign_of;
+
+(* change global recdef_congs *)
+
+fun change_recdef_congs_of f x thy =
+  let val r = recdef_congs_ref_of thy
+  in r := f (! r, x); thy end;
+
+fun change_recdef_congs f x =
+ (change_recdef_congs_of f x (Context.the_context ()); ());
+
+val Add_recdef_congs = change_recdef_congs add_congs;
+val Del_recdef_congs = change_recdef_congs del_congs;
+
+
+fun congs thy ths = map snd (recdef_congs_of thy) @ eq_reflect_list ths;
 
 val default_simps =
     [less_Suc_eq RS iffD2, lex_prod_def, measure_def, inv_image_def];
@@ -512,7 +569,7 @@ fun wfrec_eqns thy fid tflCongs eqns =
 
 fun lazyR_def thy fid tflCongs eqns =
  let val {proto_def,WFR,pats,extracta,SV} =
-           wfrec_eqns thy fid (congs tflCongs) eqns
+           wfrec_eqns thy fid (congs thy tflCongs) eqns
      val R1 = S.rand WFR
      val f = #lhs(S.dest_eq proto_def)
      val (extractants,TCl) = ListPair.unzip extracta

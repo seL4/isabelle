@@ -137,7 +137,7 @@ val defer_recdef_i = gen_defer_recdef Tfl.defer_i IsarThy.apply_theorems_i;
 
 (* setup theory *)
 
-val setup = [RecdefData.init];
+val setup = [Prim.init,RecdefData.init];
 
 
 (* outer syntax *)
