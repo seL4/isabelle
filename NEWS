@@ -148,6 +148,10 @@ method scripts' have to be in depth-first order;
 
 * tuned 'let' syntax: replaced 'as' keyword by 'and';
 
+* removed 'help' command, which hasn't been too helpful anyway; should
+instead use individual commands for printing items (print_commands,
+print_methods etc.);
+
 
 *** HOL ***
 
