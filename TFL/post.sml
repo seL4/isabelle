@@ -175,8 +175,9 @@ fun curry_rule rl = split_rule_var
 (*lcp: put a theorem into Isabelle form, using meta-level connectives*)
 val meta_outer = 
     curry_rule o standard o 
-    rule_by_tactic (REPEAT_FIRST (resolve_tac [allI, impI, conjI]
-				  ORELSE' etac conjE));
+    rule_by_tactic (REPEAT 
+		    (FIRSTGOAL (resolve_tac [allI, impI, conjI]
+				ORELSE' etac conjE)));
 
 (*Strip off the outer !P*)
 val spec'= read_instantiate [("x","P::?'b=>bool")] spec;
