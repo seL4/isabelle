@@ -46,8 +46,8 @@ qed "fib_Suc_neq_0";
 Addsimps [fib_Suc_neq_0, [neq0_conv, fib_Suc_neq_0] MRS iffD1];
 
 goal thy "!!n. 0<n ==> 0 < fib n";
-br (not0_implies_Suc RS exE) 1;
-auto();
+by (rtac (not0_implies_Suc RS exE) 1);
+by Auto_tac;
 qed "fib_gr_0";
 
 
@@ -94,7 +94,7 @@ by (asm_simp_tac (simpset() addsimps [gcd_fib_Suc_eq_1, gcd_mult_cancel]) 1);
 qed "gcd_fib_add";
 
 goal thy "!!m. m <= n ==> gcd(fib m, fib (n-m)) = gcd(fib m, fib n)";
-br (gcd_fib_add RS sym RS trans) 1;
+by (rtac (gcd_fib_add RS sym RS trans) 1);
 by (Asm_simp_tac 1);
 qed "gcd_fib_diff";
 
@@ -108,8 +108,7 @@ qed "gcd_fib_mod";
 
 (*Law 6.111*)
 goal thy "fib(gcd(m,n)) = gcd(fib m, fib n)";
-by (res_inst_tac [("u","m"),("v","n")] gcd_induct 1);
-by (case_tac "n=0" 1);
+by (res_inst_tac [("m","m"),("n","n")] gcd_induct 1);
 by (Asm_simp_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [gcd_non_0]) 1);
 by (asm_full_simp_tac (simpset() addsimps [gcd_commute, gcd_fib_mod]) 1);

@@ -27,7 +27,18 @@ by (simp_tac (simpset() addsimps [mod_less_divisor]) 1);
 val tc = result();
 
 val gcd_eq = tc RS hd gcd.rules;
-val gcd_induct = tc RS gcd.induct;
+
+val prems = goal thy
+     "[| !!m. P m 0;     \
+\        !!m n. [| 0<n;  P n (m mod n) |] ==> P m n  \
+\     |] ==> P m n";
+by (res_inst_tac [("u","m"),("v","n")] (tc RS gcd.induct) 1);
+by (case_tac "n=0" 1);
+by (asm_simp_tac (simpset() addsimps prems) 1);
+by Safe_tac;
+by (asm_simp_tac (simpset() addsimps prems) 1);
+qed "gcd_induct";
+
 
 goal thy "gcd(m,0) = m";
 by (rtac (gcd_eq RS trans) 1);
@@ -48,8 +59,7 @@ Addsimps [gcd_1];
 
 (*gcd(m,n) divides m and n.  The conjunctions don't seem provable separately*)
 goal thy "(gcd(m,n) dvd m) & (gcd(m,n) dvd n)";
-by (res_inst_tac [("u","m"),("v","n")] gcd_induct 1);
-by (case_tac "n=0" 1);
+by (res_inst_tac [("m","m"),("n","n")] gcd_induct 1);
 by (ALLGOALS 
     (asm_full_simp_tac (simpset() addsimps [gcd_non_0, mod_less_divisor])));
 by (blast_tac (claset() addDs [dvd_mod_imp_dvd]) 1);
@@ -62,8 +72,7 @@ bind_thm ("gcd_dvd2", gcd_dvd_both RS conjunct2);
 (*Maximality: for all m,n,f naturals, 
                 if f divides m and f divides n then f divides gcd(m,n)*)
 goal thy "!!k. (f dvd m) --> (f dvd n) --> f dvd gcd(m,n)";
-by (res_inst_tac [("u","m"),("v","n")] gcd_induct 1);
-by (case_tac "n=0" 1);
+by (res_inst_tac [("m","m"),("n","n")] gcd_induct 1);
 by (ALLGOALS
     (asm_full_simp_tac (simpset() addsimps[gcd_non_0, dvd_mod,
 					   mod_less_divisor])));
@@ -92,15 +101,15 @@ by (Blast_tac 1);
 qed "is_gcd_commute";
 
 goal thy "gcd(m,n) = gcd(n,m)";
-br is_gcd_unique 1;
-br is_gcd 2;
+by (rtac is_gcd_unique 1);
+by (rtac is_gcd 2);
 by (asm_simp_tac (simpset() addsimps [is_gcd, is_gcd_commute]) 1);
 qed "gcd_commute";
 
 goal thy "gcd(gcd(k,m),n) = gcd(k,gcd(m,n))";
-br is_gcd_unique 1;
-br is_gcd 2;
-bw is_gcd_def;
+by (rtac is_gcd_unique 1);
+by (rtac is_gcd 2);
+by (rewtac is_gcd_def);
 by (blast_tac (claset() addSIs [gcd_dvd1, gcd_dvd2]
    	                addIs  [gcd_greatest, dvd_trans]) 1);
 qed "gcd_assoc";
@@ -121,11 +130,10 @@ Addsimps [gcd_0_left, gcd_1_left];
 
 (*Davenport, page 27*)
 goal thy "k * gcd(m,n) = gcd(k*m, k*n)";
-by (res_inst_tac [("u","m"),("v","n")] gcd_induct 1);
+by (res_inst_tac [("m","m"),("n","n")] gcd_induct 1);
+by (Asm_full_simp_tac 1);
 by (case_tac "k=0" 1);
- by(Asm_full_simp_tac 1);
-by (case_tac "n=0" 1);
- by(Asm_full_simp_tac 1);
+ by (Asm_full_simp_tac 1);
 by (asm_full_simp_tac
     (simpset() addsimps [mod_geq, gcd_non_0, mod_mult_distrib2]) 1);
 qed "gcd_mult_distrib2";
@@ -165,8 +173,8 @@ qed "prime_dvd_mult";
 goal thy "gcd(m, m+n) = gcd(m,n)";
 by (res_inst_tac [("n1", "m+n")] (gcd_commute RS ssubst) 1);
 by (rtac (gcd_eq RS trans) 1);
-auto();
-by (asm_simp_tac (simpset() addsimps [mod_add_cancel1]) 1);
+by Auto_tac;
+by (asm_simp_tac (simpset() addsimps [mod_add_self1]) 1);
 by (stac gcd_commute 1);
 by (stac gcd_non_0 1);
 by Safe_tac;
@@ -185,11 +193,11 @@ by (blast_tac (claset() addIs [gcd_greatest, dvd_trans,
 qed "gcd_dvd_gcd_mult";
 
 goal thy "!!n. gcd(k,n) = 1 ==> gcd(k*m, n) = gcd(m,n)";
-br dvd_anti_sym 1;
-br gcd_dvd_gcd_mult 2;
-br ([relprime_dvd_mult, gcd_dvd2] MRS gcd_greatest) 1;
+by (rtac dvd_anti_sym 1);
+by (rtac gcd_dvd_gcd_mult 2);
+by (rtac ([relprime_dvd_mult, gcd_dvd2] MRS gcd_greatest) 1);
 by (stac mult_commute 2);
-br gcd_dvd1 2;
+by (rtac gcd_dvd1 2);
 by (stac gcd_commute 1);
 by (asm_simp_tac (simpset() addsimps [gcd_assoc RS sym]) 1);
 qed "gcd_mult_cancel";
