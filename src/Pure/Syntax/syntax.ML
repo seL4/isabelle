@@ -308,7 +308,7 @@ fun read_asts (Syntax tabs) xids root str =
     fun show_pt pt = writeln (str_of_ast (pt_to_ast (K None) pt));
   in
     if length pts > ! ambiguity_level then
-      (writeln ("Warning: Ambiguous input " ^ quote str);
+      (warning ("Ambiguous input " ^ quote str);
        writeln "produces the following parse trees:";
        seq show_pt pts)
     else ();

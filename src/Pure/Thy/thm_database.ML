@@ -86,7 +86,7 @@ fun store_thm_db (named_thm as (name, thm)) =
             end;
 
       val const_idx' = update_db false consts const_idx;
-  in if consts = [] then writeln ("Warning: Theorem " ^ name ^
+  in if consts = [] then warning ("Theorem " ^ name ^
                                   " cannot be stored in ThmDB\n\t because it \
                                   \contains no or only ignored constants.")
      else if is_some const_idx' then

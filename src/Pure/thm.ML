@@ -1353,11 +1353,17 @@ exception SIMPLIFIER of string * thm;
 
 fun prtm a sign t = (writeln a; writeln(Sign.string_of_term sign t));
 
+fun prtm_warning a sign t = warning (a ^ "\n" ^ (Sign.string_of_term sign t));
+
 val trace_simp = ref false;
 
 fun trace_term a sign t = if !trace_simp then prtm a sign t else ();
 
 fun trace_thm a (Thm{sign,prop,...}) = trace_term a sign prop;
+
+fun trace_term_warning a sign t = if !trace_simp then prtm_warning a sign t else ();
+
+fun trace_thm_warning a (Thm{sign,prop,...}) = trace_term_warning a sign prop;
 
 fun vperm(Var _, Var _) = true
   | vperm(Abs(_,_,s), Abs(_,_,t)) = vperm(s,t)
@@ -1395,7 +1401,7 @@ fun mk_rrule raw_thm =
                                      andalso not(is_Var(elhs))
   in
      if not perm andalso loops sign prems (elhs,erhs) then
-       (prtm "Warning: ignoring looping rewrite rule" sign prop; None)
+       (prtm_warning "ignoring looping rewrite rule" sign prop; None)
      else Some{thm=thm,lhs=lhs,perm=perm}
   end;
 
@@ -1412,7 +1418,7 @@ fun add_simp(mss as Mss{net,congs,bounds,prems,mk_rews},
       (trace_thm "Adding rewrite rule:" thm;
        Mss{net = (Net.insert_term((lhs,rrule),net,eq)
                  handle Net.INSERT =>
-                  (prtm "Warning: ignoring duplicate rewrite rule" sign prop;
+                  (prtm_warning "ignoring duplicate rewrite rule" sign prop;
                    net)),
            congs=congs, bounds=bounds, prems=prems,mk_rews=mk_rews});
 
@@ -1423,7 +1429,7 @@ fun del_simp(mss as Mss{net,congs,bounds,prems,mk_rews},
   | Some(rrule as {lhs,...}) =>
       Mss{net = (Net.delete_term((lhs,rrule),net,eq)
                 handle Net.INSERT =>
-                 (prtm "Warning: rewrite rule not in simpset" sign prop;
+                 (prtm_warning "rewrite rule not in simpset" sign prop;
                   net)),
              congs=congs, bounds=bounds, prems=prems,mk_rews=mk_rews}
 
@@ -1543,7 +1549,7 @@ fun rewritec (prover,signt) (mss as Mss{net,...})
   let val etat = Pattern.eta_contract t;
       fun rew {thm as Thm{sign,der,maxidx,shyps,hyps,prop,...}, lhs, perm} =
         let val unit = if Sign.subsig(sign,signt) then ()
-                  else (trace_thm"Warning: rewrite rule from different theory"
+                  else (trace_thm_warning "rewrite rule from different theory"
                           thm;
                         raise Pattern.MATCH)
             val rprop = if maxidxt = ~1 then prop

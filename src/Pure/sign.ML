@@ -315,7 +315,7 @@ fun infer_types sg types sorts used freeze (ts, T) =
     fun warn() =
       if length ts > 1 andalso length ts <= !Syntax.ambiguity_level
       then (*no warning shown yet*)
-           writeln "Warning: Currently parsed input \
+           warning "Currently parsed input \
                    \produces more than one parse tree.\n\
                    \For more information lower Syntax.ambiguity_level."
       else ();

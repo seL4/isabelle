@@ -752,7 +752,7 @@ fun processS used [] (Si, Sii) = (Si, Sii)
             val dummy =
               if not (!warned) andalso
                  length (new_states @ States) > (!branching_level) then
-                (writeln "Warning: Currently parsed expression could be \
+                (warning "Currently parsed expression could be \
                          \extremely ambiguous.";
                  warned := true)
               else ();

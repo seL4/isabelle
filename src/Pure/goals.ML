@@ -311,9 +311,9 @@ fun by_com tac ((th,ths), pairs) : gstack =
      None      => error"by: tactic failed"
    | Some(th2,ths2) => 
        (if eq_thm(th,th2) 
-	  then writeln"Warning: same as previous level"
+	  then warning "same as previous level"
 	  else if eq_thm_sg(th,th2) then ()
-	  else writeln("Warning: signature of proof state has changed" ^
+	  else warning("signature of proof state has changed" ^
 		       sign_error (#sign(rep_thm th), #sign(rep_thm th2)));
        ((th2,ths2)::(th,ths)::pairs)));
 
@@ -333,9 +333,9 @@ fun backtrack [] = error"back: no alternatives"
 	  None      => (writeln"Going back a level..."; backtrack pairs)
 	| Some(th2,thstr2) =>  
 	   (if eq_thm(th,th2) 
-	      then writeln"Warning: same as previous choice at this level"
+	      then warning "same as previous choice at this level"
 	      else if eq_thm_sg(th,th2) then ()
-	      else writeln"Warning: signature of proof state has changed";
+	      else warning "signature of proof state has changed";
 	    (th2,thstr2)::pairs));
 
 fun back() = setstate (backtrack (getstate()));

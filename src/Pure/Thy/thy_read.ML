@@ -299,7 +299,7 @@ fun get_filenames path name =
                                      else (find_file abs_path (name ^ ".thy"),
                                            find_file abs_path (name ^ ".ML"))
        in if thy_file = "" andalso ml_file = "" then
-            (writeln ("Warning: File \"" ^ (tack_on path name)
+            (warning ("File \"" ^ (tack_on path name)
                       ^ ".thy\"\ncontaining theory \"" ^ name
                       ^ "\" no longer exists.");
              new_filename ()
@@ -543,7 +543,7 @@ fun thyfile2html tpath tname =
       in mk_entry relatives end;
   in if is_some (!cur_htmlfile) then
        (close_out (the (!cur_htmlfile));
-        writeln "Warning: Last theory's HTML file has not been closed.")
+        warning "Last theory's HTML file has not been closed.")
      else ();
      cur_htmlfile := Some (open_out (tack_on tpath ("." ^ tname ^ ".html")));
      cur_has_title := false;
@@ -668,7 +668,7 @@ fun use_thy name =
                 val fname = tack_on path ("." ^ t ^ "_sub.html");
                 val out = if file_exists fname then
                             open_append fname  handle Io s =>
-                              (writeln ("Warning: Unable to write to file ." ^
+                              (warning ("Unable to write to file ." ^
                                         fname); raise Io s)
                           else raise MK_HTML;
             in output (out,
@@ -1039,7 +1039,7 @@ fun store_thm (name, thm) =
     val (thms', duplicate) = (Symtab.update_new ((name, thm), thms), false)
       handle Symtab.DUPLICATE s => 
         (if eq_thm (the (Symtab.lookup (thms, name)), thm) then 
-           (writeln ("Warning: Theory database already contains copy of\
+           (warning ("Theory database already contains copy of\
                      \ theorem " ^ quote name);
             (thms, true))
          else error ("Duplicate theorem name " ^ quote s
@@ -1166,7 +1166,7 @@ fun init_html () =
      cd cwd;
 
      if cwd subdir_of (!base_path) then ()
-     else writeln "Warning: The current working directory seems to be no \
+     else warning "The current working directory seems to be no \
                   \subdirectory of\nIsabelle's main directory. \
                   \Please ensure that base_path's value is correct.\n";
 

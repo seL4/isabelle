@@ -703,14 +703,22 @@ fun accesses_bal (f, g, x) n =
 
 (** input / output **)
 
-fun prs s = output (std_out, s);
+val prs_fn = ref(fn s => output (std_out, s));
+
+fun prs s = !prs_fn s;
 fun writeln s = prs (s ^ "\n");
 
+(*print warning*)
+val warning_fn = ref(fn s => output (std_out, s ^ "\n"));
+fun warning s = !warning_fn ("Warning: " ^ s);
 
 (*print error message and abort to top level*)
+
+val error_fn = ref(fn s => output (std_out, s ^ "\n"));
+
 exception ERROR;
-fun error msg = (writeln msg; raise ERROR);
-fun sys_error msg = (writeln "*** SYSTEM ERROR ***"; error msg);
+fun error msg = (!error_fn msg; raise ERROR);
+fun sys_error msg = (!error_fn "*** SYSTEM ERROR ***"; error msg);
 
 fun assert p msg = if p then () else error msg;
 fun deny p msg = if p then error msg else ();
