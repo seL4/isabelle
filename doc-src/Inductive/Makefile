@@ -5,6 +5,9 @@
 #									#
 #########################################################################
 
+dvi: dist
+
+pdf:
 
 FILES =  ind-defs.tex ../proof.sty ../iman.sty ../extra.sty
 

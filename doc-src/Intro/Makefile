@@ -5,7 +5,6 @@
 ## targets
 
 default: dvi
-dist: dvi
 
 
 ## dependencies
