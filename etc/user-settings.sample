@@ -1,0 +1,31 @@
+#
+# $Id$
+#
+# Isabelle user settings sample -- to be copied to ~/isabelle/etc/settings.
+#
+
+###
+### Heap files
+###
+
+# Note: ML system and platform info is appended automatically!
+#ISABELLE_PATH=other-places-where-heaps-reside:$ISABELLE_PATH
+
+#DEFAULT_LOGIC=ZF
+#DEFAULT_LOGIC=HOL
+#DEFAULT_LOGIC=HOLCF
+
+
+###
+### Interfaces
+###
+
+# Xterm with symbol font.
+#ISABELLE_INTERFACE=xterm
+#ISABELLE_INTERFACE_OPTIONS="-geometry 80x52"
+#ISABELLE_SYMBOLS=true
+
+# GNU Emacs running Isamode.
+#ISABELLE_INTERFACE=emacs
+#ISABELLE_INTERFACE_OPTIONS=""
+#ISABELLE_SYMBOLS=true
