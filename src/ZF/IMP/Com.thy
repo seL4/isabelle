@@ -8,7 +8,7 @@ Arithmetic expressions, Boolean expressions, Commands
 And their Operational semantics
 *)
 
-Com = Univ + "Datatype" +
+Com = Datatype +
 
 (** Arithmetic expressions **)
 consts  loc  :: "i"

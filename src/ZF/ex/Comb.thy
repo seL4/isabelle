@@ -13,7 +13,7 @@ Example taken from
 *)
 
 
-Comb = Univ + "Datatype" +
+Comb = Datatype +
 
 (** Datatype definition of combinators S and K, with infixed application **)
 consts comb :: "i"
