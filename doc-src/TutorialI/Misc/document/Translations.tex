@@ -1,0 +1,35 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Translations}%
+%
+\isamarkupsubsection{Syntax Translations%
+}
+%
+\begin{isamarkuptext}%
+\label{sec:def-translations}
+Isabelle offers an additional definition-like facility,
+\textbf{syntax translations}\indexbold{syntax translation}.
+They resemble makros: upon parsing, the defined concept is immediately
+replaced by its definition, and this is reversed upon printing. For example,
+the symbol \isa{{\isasymnoteq}} is defined via a syntax translation:%
+\end{isamarkuptext}%
+\isacommand{translations}\ {\isachardoublequote}x\ {\isasymnoteq}\ y{\isachardoublequote}\ {\isasymrightleftharpoons}\ {\isachardoublequote}{\isasymnot}{\isacharparenleft}x\ {\isacharequal}\ y{\isacharparenright}{\isachardoublequote}%
+\begin{isamarkuptext}%
+\indexbold{*translations}\indexbold{$IsaEqTrans@\isasymrightleftharpoons}
+\noindent
+Internally, \isa{{\isasymnoteq}} never appears.
+
+In addition to \isa{{\isasymrightleftharpoons}} there are
+\isa{{\isasymrightharpoonup}}\indexbold{$IsaEqTrans1@\isasymrightharpoonup}
+and \isa{{\isasymleftharpoondown}}\indexbold{$IsaEqTrans2@\isasymleftharpoondown}
+for uni-directional translations (only upon
+parsing respectively printing).  We do not want to cover the details of
+translations at this point.  We haved mentioned the concept merely because it
+crops up occasionally since a number of HOL's built-in constructs are defined
+via translations.%
+\end{isamarkuptext}%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
