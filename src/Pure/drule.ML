@@ -21,6 +21,7 @@ signature DRULE =
   val cut_rl		: thm
   val equal_abs_elim	: cterm  -> thm -> thm
   val equal_abs_elim_list: cterm list -> thm -> thm
+  val equal_intr_rule   : thm
   val eq_thm		: thm * thm -> bool
   val same_thm		: thm * thm -> bool
   val eq_thm_sg		: thm * thm -> bool
@@ -656,6 +657,19 @@ val swap_prems_rl =
   in standard
        (implies_intr cmajor (implies_intr cminor2 (implies_intr cminor1
          (implies_elim (implies_elim major minor1) minor2))))
+  end;
+
+(* [| PROP ?phi ==> PROP ?psi; PROP ?psi ==> PROP ?phi |]
+   ==> PROP ?phi == PROP ?psi
+   Introduction rule for == using ==> not meta-hyps.
+*)
+val equal_intr_rule =
+  let val PQ = read_cterm Sign.proto_pure ("PROP phi ==> PROP psi", propT)
+      and QP = read_cterm Sign.proto_pure ("PROP psi ==> PROP phi", propT)
+  in  equal_intr (assume PQ) (assume QP)
+      |> implies_intr QP
+      |> implies_intr PQ
+      |> standard
   end;
 
 end;
