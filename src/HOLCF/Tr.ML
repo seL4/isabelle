@@ -182,6 +182,3 @@ qed"If_and_if";
 
 Addsimps [plift2blift,If_and_if,blift_not_UU,
 	blift_and_bool,blift_and_bool2,blift_and_bool3];
-
-simpset := !simpset addsolver (K (DEPTH_SOLVE_1 o cont_tac));
-

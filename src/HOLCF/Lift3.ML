@@ -242,4 +242,5 @@ fun cont_tac  i = resolve_tac cont_lemmas2 i;
 fun cont_tacR i = simp_tac (!simpset addsimps [flift1_def,flift2_def]) i THEN
 		  REPEAT (cont_tac i);
 
-simpset := !simpset addsolver (K (DEPTH_SOLVE_1 o cont_tac));
+simpset := !simpset addSolver (K (DEPTH_SOLVE_1 o cont_tac));
+
