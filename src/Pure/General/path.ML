@@ -22,11 +22,10 @@ sig
   val unpack: string -> T
   val base: T -> T
   val ext: string -> T -> T
-(* FIXME  val evaluate: (string -> T) -> T -> T	*)
   val expand: T -> T
 end;
 
-structure Path(* FIXME : PATH *) =
+structure Path: PATH =
 struct
 
 
