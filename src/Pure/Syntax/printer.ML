@@ -32,13 +32,13 @@ sig
 end;
 
 functor PrinterFun(structure Symtab: SYMTAB and TypeExt: TYPE_EXT
-  and SExtension: SEXTENSION sharing TypeExt.SynExt = SExtension.Parser.SynExt)
+  and SynTrans: SYN_TRANS sharing TypeExt.SynExt = SynTrans.Parser.SynExt)
   : PRINTER =
 struct
 
 structure Symtab = Symtab;
 structure SynExt = TypeExt.SynExt;
-open SExtension.Parser.Lexicon SynExt.Ast SynExt TypeExt SExtension;
+open SynTrans.Parser.Lexicon SynExt.Ast SynExt TypeExt SynTrans;
 
 
 (** options for printing **)
@@ -61,11 +61,11 @@ fun ast_of_term trf show_types show_sorts tm =
     fun prune_typs (t_seen as (Const _, _)) = t_seen
       | prune_typs (t as Free (x, ty), seen) =
           if ty = dummyT then (t, seen)
-          else if t mem seen then (Free (x, dummyT), seen)
+          else if t mem seen then (free x, seen)
           else (t, t :: seen)
       | prune_typs (t as Var (xi, ty), seen) =
           if ty = dummyT then (t, seen)
-          else if t mem seen then (Var (xi, dummyT), seen)
+          else if t mem seen then (var xi, seen)
           else (t, t :: seen)
       | prune_typs (t_seen as (Bound _, _)) = t_seen
       | prune_typs (Abs (x, ty, t), seen) =
@@ -81,8 +81,8 @@ fun ast_of_term trf show_types show_sorts tm =
 
 
     fun ast_of (Const (a, _)) = trans a []
-      | ast_of (Free (x, ty)) = constrain x (Free (x, dummyT)) ty
-      | ast_of (Var (xi, ty)) = constrain (string_of_vname xi) (Var (xi, dummyT)) ty
+      | ast_of (Free (x, ty)) = constrain x (free x) ty
+      | ast_of (Var (xi, ty)) = constrain (string_of_vname xi) (var xi) ty
       | ast_of (Bound i) = Variable ("B." ^ string_of_int i)
       | ast_of (t as Abs _) = ast_of (abs_tr' t)
       | ast_of (t as _ $ _) =
@@ -98,7 +98,7 @@ fun ast_of_term trf show_types show_sorts tm =
 
     and constrain x t ty =
       if show_types andalso ty <> dummyT then
-        ast_of (Const (constrainC, dummyT) $ t $ term_of_typ show_sorts ty)
+        ast_of (const constrainC $ t $ term_of_typ show_sorts ty)
       else Variable x;
   in
     if show_types then
@@ -197,8 +197,8 @@ fun merge_prtabs tab1 tab2 =
 
 (** pretty term or typ asts **)
 
-fun chain[Block(_,pr)] = chain(pr)
-  | chain[Arg _] = true
+fun chain [Block (_, pr)] = chain pr
+  | chain [Arg _] = true
   | chain _  = false;
 
 fun pretty prtab trf type_mode ast0 p0 =
@@ -231,13 +231,11 @@ fun pretty prtab trf type_mode ast0 p0 =
           in ((if i < 0 then Pretty.fbrk else Pretty.brk i) :: Ts, args') end
       | synT (_ :: _, []) = sys_error "synT"
 
-    and parT (pr, args, p, p': int) =
-          #1 (synT(if p > p' orelse
-                      (!show_brackets andalso p' <> max_pri andalso
-                       not(chain pr))
-                   then [Block (1, String "(" :: pr @ [String ")"])]
-                   else pr,
-                   args))
+    and parT (pr, args, p, p': int) = #1 (synT
+          (if p > p' orelse
+            (! show_brackets andalso p' <> max_pri andalso not (chain pr))
+            then [Block (1, String "(" :: pr @ [String ")"])]
+            else pr, args))
 
     and prefixT (_, a, [], _) = [Pretty.str a]
       | prefixT (c, _, args, p) = astT (appT (c, args), p)
