@@ -39,7 +39,6 @@ by (safe_tac ZF_cs);
 by (fast_tac (ZF_cs addSIs [converseI] addIs [compI]) 3);
 by (ALLGOALS (fast_tac 
 	      (ZF_cs addSIs [converseI] addIs [compI] addSEs [compE])));
-by flexflex_tac;
 qed "comp_equivI";
 
 (** Equivalence classes **)
