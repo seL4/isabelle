@@ -3,11 +3,12 @@
     Author:     Tobias Nipkow
     Copyright   1994 TU Muenchen
 
-Summing natural numbers, squares and cubes. Could be continued...
+Summing natural numbers, squares and cubes.  Could be continued...
+Demonstrates permutative rewriting.
 *)
 
-Addsimps ([NatSum.sum_0,NatSum.sum_Suc] @ add_ac);
-Addsimps [add_mult_distrib,add_mult_distrib2];
+Addsimps add_ac;
+Addsimps [add_mult_distrib, add_mult_distrib2];
 
 (*The sum of the first n positive integers equals n(n+1)/2.*)
 goal NatSum.thy "2*sum (%i.i) (Suc n) = n*Suc(n)";
