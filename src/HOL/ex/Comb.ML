@@ -26,8 +26,8 @@ val [_, spec_mp] = [spec] RL [mp];
 
 (*Strip lemma.  The induction hyp is all but the last diamond of the strip.*)
 goalw Comb.thy [diamond_def]
-    "!!x y r. [| diamond(r);  (x,y):r^* |] ==> \
-\    ALL y'. (x,y'):r --> (EX z. (y',z): r^* & (y,z): r)";
+    "!!r. [| diamond(r);  (x,y):r^* |] ==> \ 
+\         ALL y'. (x,y'):r --> (EX z. (y',z): r^* & (y,z): r)";
 by (etac rtrancl_induct 1);
 by (fast_tac (HOL_cs addIs [rtrancl_refl]) 1);
 by (slow_best_tac (set_cs addIs [r_into_rtrancl RSN (2, rtrancl_trans)]
