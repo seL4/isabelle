@@ -138,9 +138,16 @@ val scan_blank =
 val sym_chars = explode "!#$%&*+-/:<=>?@^_`|~";
 fun is_sym_char s = s mem sym_chars;
 
-val scan_symid = Scan.any1 is_sym_char >> implode;
+val scan_symid =
+  Scan.any1 is_sym_char >> implode ||
+  Scan.one Symbol.is_symbolic;
 
-fun is_symid s = s <> "" andalso forall is_sym_char (Symbol.explode s);
+fun is_symid str =
+  (case try Symbol.explode str of
+    Some [s] => Symbol.is_symbolic s orelse is_sym_char s
+  | Some ss => forall is_sym_char ss
+  | _ => false);
+
 val is_sid = is_symid orf Syntax.is_identifier;
 
 
