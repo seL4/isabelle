@@ -15,9 +15,7 @@ function usage()
   echo "Usage: $PRG [FILES|DIRS...]"
   echo
   echo "  Recursively find .ML files, fixing references to"
-  echo "  implicit claset and simpset:"
-  echo
-  echo "  FIXME"
+  echo "  implicit claset and simpset."
   echo
   echo "  Renames old versions of FILES by appending \"~~\"."
   echo
