@@ -304,7 +304,7 @@ fun pretty_gram (Gram (prods, _)) =
       Pretty.block (Pretty.breaks (pretty_name name @
         map pretty_symb symbs @ pretty_const const @ pretty_pri pri));
   in
-    map pretty_prod prods
+    map pretty_prod (sort (op <= o pairself #1) prods)
   end;
 
 
