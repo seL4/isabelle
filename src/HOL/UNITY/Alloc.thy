@@ -64,7 +64,7 @@ constdefs
 
 (** Client specification (required) ***)
 
-  (*spec (3)*)
+  (*spec (3) PROBABLY REQUIRES A LOCALTO PRECONDITION*)
   client_increasing :: clientState program set
     "client_increasing ==
          UNIV guar Increasing ask Int Increasing rel"
@@ -88,7 +88,7 @@ constdefs
 
 (** Allocator specification (required) ***)
 
-  (*spec (6)*)
+  (*spec (6)  PROBABLY REQUIRES A LOCALTO PRECONDITION*)
   alloc_increasing :: allocState program set
     "alloc_increasing ==
 	 UNIV
