@@ -307,7 +307,7 @@ result();
 
 writeln"Problem 24";  (*The first goal clause is useless*)
 goal HOL.thy "~(? x. S x & Q x) & (! x. P x --> Q x | R x) &  \
-\    ~(? x.P x) --> (? x.Q x) & (! x. Q x | R x --> S x)  \
+\    (~(? x.P x) --> (? x.Q x)) & (! x. Q x | R x --> S x)  \
 \   --> (? x. P x & R x)";
 by (safe_meson_tac 1); 
 result();
