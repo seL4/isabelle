@@ -508,12 +508,10 @@ qed "mod_Suc";
 Goalw [dvd_def] "n = m * k ==> m dvd n";
 by (Blast_tac 1); 
 qed "dvdI";
-AddXIs [dvdI];
 
 Goalw [dvd_def] "!!P. [|m dvd n;  !!k. n = m*k ==> P|] ==> P";
 by (Blast_tac 1); 
 qed "dvdE";
-AddXEs [dvdE];
 
 Goalw [dvd_def] "m dvd (0::nat)";
 by (blast_tac (claset() addIs [mult_0_right RS sym]) 1);

@@ -12,7 +12,7 @@ theory PreList =
   Relation_Power + SVC_Oracle:
 
 (*belongs to theory Divides*)
-declare dvd_trans [trans]
+declare dvdI [intro?]  dvdE [elim?]  dvd_trans [trans]
 
 (*belongs to theory Wellfounded_Recursion*)
 declare wf_induct [induct set: wf]
