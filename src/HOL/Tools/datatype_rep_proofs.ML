@@ -233,9 +233,9 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
           (Const (rep_name, T --> Univ_elT) $ lhs, rhs));
         val thy' = thy |>
           Theory.add_consts_i [(cname', constrT, mx)] |>
-          Theory.add_defs_i [(def_name, def)];
+          (PureThy.add_defs_i o map Thm.no_attributes) [(def_name, def)];
 
-      in (thy', defs @ [get_axiom thy' def_name], eqns @ [eqn], i + 1)
+      in (thy', defs @ [get_thm thy' def_name], eqns @ [eqn], i + 1)
       end;
 
     (* constructor definitions for datatype *)
@@ -267,9 +267,9 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     (* get axioms from theory *)
 
     val newT_iso_axms = map (fn s =>
-      (get_axiom thy4 ("Abs_" ^ s ^ "_inverse"),
-       get_axiom thy4 ("Rep_" ^ s ^ "_inverse"),
-       get_axiom thy4 ("Rep_" ^ s))) new_type_names;
+      (get_thm thy4 ("Abs_" ^ s ^ "_inverse"),
+       get_thm thy4 ("Rep_" ^ s ^ "_inverse"),
+       get_thm thy4 ("Rep_" ^ s))) new_type_names;
 
     (*------------------------------------------------*)
     (* prove additional theorems:                     *)
@@ -382,8 +382,8 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         val defs = map (fn (rec_name, (T, iso_name)) => ((Sign.base_name iso_name) ^ "_def",
           equals (T --> Univ_elT) $ Const (iso_name, T --> Univ_elT) $
             list_comb (Const (rec_name, fTs @ [T] ---> Univ_elT), fs))) (rec_names ~~ isos);
-        val thy' = Theory.add_defs_i defs thy;
-        val def_thms = map (get_axiom thy') (map fst defs);
+        val thy' = (PureThy.add_defs_i o map Thm.no_attributes) defs thy;
+        val def_thms = map (get_thm thy') (map fst defs);
 
         (* prove characteristic equations *)
 

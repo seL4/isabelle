@@ -308,7 +308,7 @@ fun add_and_get_axioms label tnames ts thy =
       val thy'' = thy' |>
         Theory.add_path tname |>
         PureThy.add_axioms_i [((label, t), [])];
-      val ax = get_axiom thy'' label
+      val ax = PureThy.get_thm thy'' label
     in (Theory.parent_path thy'', ax::axs)
     end) (tnames ~~ ts, (thy, []));
 
@@ -434,7 +434,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
       Theory.parent_path |>
       add_and_get_axiomss "inject" new_type_names
         (DatatypeProp.make_injs descr sorts);
-    val induct = get_axiom thy3 "induct";
+    val induct = get_thm thy3 "induct";
     val rec_thms = get_thms thy3 "recs";
     val size_thms = if no_size then [] else get_thms thy3 "size";
     val (thy4, distinct) = add_and_get_axiomss "distinct" new_type_names

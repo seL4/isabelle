@@ -241,10 +241,10 @@ fun add_primrec_i alt_name eqns_atts thy =
     val thy' = thy |>
       Theory.add_path (if alt_name = "" then (space_implode "_"
         (map (Sign.base_name o #1) defs)) else alt_name) |>
-      (if eq_set (names1, names2) then Theory.add_defs_i defs'
+      (if eq_set (names1, names2) then (PureThy.add_defs_i o map Thm.no_attributes) defs'
        else primrec_err ("functions " ^ commas_quote names2 ^
          "\nare not mutually recursive"));
-    val rewrites = o_def :: (map mk_meta_eq rec_rewrites) @ (map (get_axiom thy' o fst) defs');
+    val rewrites = o_def :: (map mk_meta_eq rec_rewrites) @ (map (get_thm thy' o fst) defs');
     val _ = message ("Proving equations for primrec function(s) " ^ commas_quote names1 ^ " ...");
     val char_thms = map (fn (_, t) => prove_goalw_cterm rewrites (cterm_of (Theory.sign_of thy') t)
         (fn _ => [rtac refl 1])) eqns;
