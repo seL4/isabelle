@@ -10,7 +10,6 @@
   \indexspace
 
   \item {\tt findlogics} tool, 9
-  \item {\tt finish_html}, \bold{16}
 
   \indexspace
 
@@ -18,16 +17,16 @@
 
   \indexspace
 
-  \item HTML, 11, \bold{15}
+  \item HTML, 11
 
   \indexspace
 
-  \item {\tt init_html}, \bold{16}
   \item {\tt INSTALL}, 1
   \item {\tt installfonts} tool, 12
   \item {\tt ISABELLE} setting, 3
   \item {\tt Isabelle}, 1, 6
   \item {\tt isabelle}, 1, 4
+  \item {\tt ISABELLE_BROWSER_INFO} setting, 15
   \item {\tt ISABELLE_DOCS} setting, 4
   \item {\tt ISABELLE_HOME} setting, 2, 3
   \item {\tt ISABELLE_HOME_USER} setting, 3
@@ -38,7 +37,7 @@
   \item {\tt ISABELLE_OUTPUT} setting, 3, 4
   \item {\tt ISABELLE_PATH} setting, 3
   \item {\tt ISABELLE_TOOLS} setting, 4
-  \item {\tt ISABELLE_USEDIR_OPTIONS} setting, 4, 11
+  \item {\tt ISABELLE_USEDIR_OPTIONS} setting, 4, 11, 15
   \item {\tt IsaMakefile}, 10, 11
   \item {\tt ISATOOL} setting, 3
   \item {\tt isatool}, 1, 6
@@ -46,7 +45,6 @@
   \indexspace
 
   \item {\tt make} tool, 10
-  \item {\tt make_html}, \bold{16}
   \item {\tt ML_HOME} setting, 3
   \item {\tt ML_OPTIONS} setting, 3
   \item {\tt ML_SYSTEM} setting, 3
@@ -59,7 +57,12 @@
 
   \indexspace
 
-  \item {\tt use_dir}, 11, 16, 17
+  \item theory browsing information, \bold{15}
+  \item theory graph browser, \bold{16}
+
+  \indexspace
+
+  \item {\tt use_dir}, 11, 16
   \item {\tt usedir} tool, 10
 
 \end{theindex}
