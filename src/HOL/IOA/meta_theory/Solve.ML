@@ -223,7 +223,6 @@ goal Solve.thy "!!f.[| is_weak_pmap f C A |]\
 by (asm_full_simp_tac (!simpset addsimps [is_weak_pmap_def]) 1);
 by (rtac conjI 1);
 by (asm_full_simp_tac (!simpset addsimps [rename_def,starts_of_def]) 1);
-by (fast_tac set_cs 1);
 by (REPEAT (rtac allI 1));
 by (rtac imp_conj_lemma 1);
 by (simp_tac (!simpset addsimps [rename_def]) 1);
@@ -265,6 +264,3 @@ by (eres_inst_tac [("x","x")] allE 1);
 by (eres_inst_tac [("x","x")] allE 1);
 by (Asm_full_simp_tac 1);
 qed"rename_through_pmap";
-
-
-
