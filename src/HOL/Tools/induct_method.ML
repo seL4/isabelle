@@ -158,8 +158,8 @@ fun cases_tac (ctxt, ((simplified, open_parms), args)) facts =
 
     val cond_simp = if simplified then simplified_cases ctxt else rpair;
 
-    fun prep_rule (thm, cases) =
-      Seq.map (cond_simp cases) (Method.multi_resolves facts [thm]);
+    fun prep_rule (thm, (cases, n)) = Seq.map (apsnd (rpair (drop (n, facts))) o cond_simp cases)
+      (Method.multi_resolves (take (n, facts)) [thm]);
   in
     Method.resolveq_cases_tac (RuleCases.make open_parms)
       (Seq.flat (Seq.map prep_rule (Seq.of_list rules)))
@@ -275,8 +275,8 @@ fun induct_tac (ctxt, ((stripped, open_parms), args)) facts =
       | (([], Some thm), _) => [RuleCases.add thm]
       | ((insts, Some thm), _) => [(inst_rule insts thm, RuleCases.get thm)]);
 
-    fun prep_rule (thm, cases) =
-      Seq.map (rpair cases) (Method.multi_resolves facts [thm]);
+    fun prep_rule (thm, (cases, n)) =
+      Seq.map (rpair (cases, drop (n, facts))) (Method.multi_resolves (take (n, facts)) [thm]);
     val tac = Method.resolveq_cases_tac (rulify_cases cert open_parms)
       (Seq.flat (Seq.map prep_rule (Seq.of_list rules)));
   in
