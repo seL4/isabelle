@@ -75,9 +75,9 @@ fun op delsimps2 arg = pair_upd2 Simplifier.delsimps arg;
 
 (*Add a simpset to a classical set!*)
 (*Caution: only one simpset added can be added by each of addSss and addss*)
-fun cs addSss ss = op Classical.addSaltern (cs, ("safe_asm_full_simp_tac",
+fun cs addSss ss = Classical.addSaltern (cs, ("safe_asm_full_simp_tac",
 			    CHANGED o Simplifier.safe_asm_full_simp_tac ss));
-fun cs addss  ss = op Classical.addbefore  (cs, ("asm_full_simp_tac", 
+fun cs addss  ss = Classical.addbefore  (cs, ("asm_full_simp_tac", 
 			    CHANGED o Simplifier.asm_full_simp_tac ss));
 
 (* tacticals *)
