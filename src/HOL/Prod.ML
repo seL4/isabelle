@@ -80,9 +80,8 @@ val split_all_tac = REPEAT o SUBGOAL (fn (prem,i) =>
 
 end;
 
-(* Could be nice, but breaks too many proofs:
-claset_ref() := claset() addbefore split_all_tac;
-*)
+(* consider addSbefore ?? *)
+claset_ref() := claset() addbefore ("split_all_tac",split_all_tac);
 
 (*** lemmas for splitting paired `!!'
 Does not work with simplifier because it also affects premises in
@@ -120,13 +119,13 @@ Addsimps [split_paired_all];
 ***)
 
 goal Prod.thy "(!x. P x) = (!a b. P(a,b))";
-by (fast_tac (claset() addbefore split_all_tac) 1);
+by (Fast_tac 1);
 qed "split_paired_All";
 Addsimps [split_paired_All];
 (* AddIffs is not a good idea because it makes Blast_tac loop *)
 
 goal Prod.thy "(? x. P x) = (? a b. P(a,b))";
-by (fast_tac (claset() addbefore split_all_tac) 1);
+by (Fast_tac 1);
 qed "split_paired_Ex";
 Addsimps [split_paired_Ex];
 
