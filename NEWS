@@ -189,6 +189,10 @@ INCOMPATIBILITY, users should refer to the version of HOL/Datatype;
 * HOL/Univ.thy: infix syntax <*>, <+>, <**>, <+> eliminated and made
 thus available for user theories;
 
+* HOLCF/IOA/Sequents: renamed 'Cons' to 'Consq' to avoid clash with
+HOL/List; hardly an INCOMPATIBILITY since '>>' syntax is used all the
+time;
+
 
 *** LK ***
 
