@@ -64,6 +64,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML \
   $(SRC)/Provers/Arith/cancel_sums.ML \
   $(SRC)/Provers/Arith/combine_numerals.ML \
   $(SRC)/Provers/Arith/cancel_numeral_factor.ML \
+  $(SRC)/Provers/Arith/extract_common_term.ML \
   $(SRC)/Provers/Arith/fast_lin_arith.ML $(SRC)/Provers/blast.ML \
   $(SRC)/Provers/clasimp.ML $(SRC)/Provers/classical.ML \
   $(SRC)/Provers/hypsubst.ML $(SRC)/Provers/make_elim.ML \
