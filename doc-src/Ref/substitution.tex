@@ -78,7 +78,7 @@ Calling {\tt eresolve_tac\ts[ssubst]\ts\(i\)} simply discards the
 assumption~$c=a$, since $c$ does not occur in~$a=b$.  Of course, we can
 work out a solution.  First apply {\tt eresolve_tac\ts[subst]\ts\(i\)},
 replacing~$a$ by~$c$:
-\[ \List{c=b} \Imp c=b \]
+\[ c=b \Imp c=b \]
 Equality reasoning can be difficult, but this trivial proof requires
 nothing more sophisticated than substitution in the assumptions.
 Object-logics that include the rule~$(subst)$ provide tactics for this
