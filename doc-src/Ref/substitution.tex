@@ -143,7 +143,7 @@ terms.  For {\tt FOL} it is defined by
 \begin{ttbox} 
 fun dest_eq (Const("Trueprop",_) $ (Const("op =",_)$t$u)) = (t,u);
 \end{ttbox}
-Here {\tt Trueprop} is the coercion from type'~$o$ to type~$prop$, while
+Here {\tt Trueprop} is the coercion from type~$o$ to type~$prop$, while
 \hbox{\tt op =} is the internal name of the infix operator~{\tt=}.
 Pattern-matching expresses the function concisely, using wildcards~({\tt_})
 to hide the types.
