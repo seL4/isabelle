@@ -16,7 +16,7 @@ syntax
   TTP :: agent
 
 translations
-  "TTP" == "Server "
+  "TTP" == " Server "
 
 syntax
   f_sub :: nat
@@ -25,10 +25,10 @@ syntax
   f_con :: nat
 
 translations
-  "f_sub" == "5"
-  "f_nro" == "2"
-  "f_nrr" == "3"
-  "f_con" == "4"
+  "f_sub" == " 5 "
+  "f_nro" == " 2 "
+  "f_nrr" == " 3 "
+  "f_con" == " 4 "
 
 
 constdefs
@@ -172,16 +172,16 @@ lemma Spy_analz_priK [simp]:
 by auto 
 
 
-subsection{*About NRO*}
+subsection{*About NRO: Validity for @{term B}*}
 
 text{*Below we prove that if @{term NRO} exists then @{term A} definitely
-sent it, provided @{term A} is not broken.  *}
+sent it, provided @{term A} is not broken.*}
 
 text{*Strong conclusion for a good agent*}
 lemma NRO_authenticity_good:
-     "[| NRO \<in> parts (spies evs);
-         NRO = Crypt (priK A) {|Number f_nro, Agent B, Nonce L, C|};
-         A \<notin> bad;  evs \<in> zg |]
+     "[|NRO = Crypt (priK A) {|Number f_nro, Agent B, Nonce L, C|};
+        NRO \<in> parts (spies evs);
+        A \<notin> bad;  evs \<in> zg |]
      ==> Says A B {|Number f_nro, Agent B, Nonce L, C, NRO|} \<in> set evs"
 apply clarify
 apply (erule rev_mp)
@@ -189,85 +189,62 @@ apply (erule zg.induct)
 apply (frule_tac [5] ZG2_msg_in_parts_spies, auto)  
 done
 
-text{*A compromised agent: we can't be sure whether A or the Spy sends the
-message or of the precise form of the message*}
-lemma NRO_authenticity_bad:
-     "[| NRO \<in> parts (spies evs);
-         NRO = Crypt (priK A) {|Number f_nro, Agent B, Nonce L, C|};
-         A \<in> bad;  evs \<in> zg |]
-     ==> \<exists>A' \<in> {A,Spy}. \<exists>C Y. Says A' C Y \<in> set evs & NRO \<in> parts {Y}"
-apply clarify
-apply (erule rev_mp)
-apply (erule zg.induct)
-apply (frule_tac [5] ZG2_msg_in_parts_spies, simp_all)
-txt{*ZG3*}
-   prefer 4 apply blast
-txt{*ZG2*}
-   prefer 3 apply blast
-txt{*Fake*}
-apply (simp add: parts_insert_knows_A, blast) 
-txt{*ZG1*}
-apply (force intro!: exI)
-txt{*ZG4*}
-apply (auto ); 
+lemma NRO_sender:
+     "[|Says A' B {|n, b, l, C, Crypt (priK A) X|} \<in> set evs; evs \<in> zg|]
+    ==> A' \<in> {A,Spy}"
+apply (erule rev_mp)  
+apply (erule zg.induct, simp_all)
 done
 
+text{*Holds also for @{term "A = Spy"}!*}
 theorem NRO_authenticity:
-     "[| NRO \<in> used evs;
-         NRO = Crypt (priK A) {|Number f_nro, Agent B, Nonce L, C|};
-         A \<notin> broken; evs \<in> zg |]
-     ==> \<exists>C Y. Says A C Y \<in> set evs & NRO \<in> parts {Y}"
-apply auto
- apply (force dest!: Crypt_used_imp_spies NRO_authenticity_good)
-apply (force dest!: Crypt_used_imp_spies NRO_authenticity_bad)
+     "[|Says A' B {|Number f_nro, Agent B, Nonce L, C, NRO|} \<in> set evs;
+        NRO = Crypt (priK A) {|Number f_nro, Agent B, Nonce L, C|};
+        A \<notin> broken;  evs \<in> zg |]
+     ==> Says A B {|Number f_nro, Agent B, Nonce L, C, NRO|} \<in> set evs"
+apply clarify 
+apply (frule NRO_sender, auto)
+txt{*We are left with the case where @{term "A' = Spy"} and  @{term "A' \<noteq> A"},
+  i.e. @{term "A \<notin> bad"}, when we can apply @{text NRO_authenticity_good}.*}
+ apply (blast dest: NRO_authenticity_good [OF refl])
 done
 
 
-subsection{*About NRR*}
+subsection{*About NRR: Validity for @{term A}*}
 
 text{*Below we prove that if @{term NRR} exists then @{term B} definitely
 sent it, provided @{term B} is not broken.*}
 
 text{*Strong conclusion for a good agent*}
 lemma NRR_authenticity_good:
-     "[| NRR \<in> parts (spies evs);
-         NRR = Crypt (priK B) {|Number f_nrr, Agent A, Nonce L, C|};
-         B \<notin> bad;  evs \<in> zg |]
+     "[|NRR = Crypt (priK B) {|Number f_nrr, Agent A, Nonce L, C|};
+        NRR \<in> parts (spies evs);
+        B \<notin> bad;  evs \<in> zg |]
      ==> Says B A {|Number f_nrr, Agent A, Nonce L, NRR|} \<in> set evs"
 apply clarify
 apply (erule rev_mp)
-apply (erule zg.induct)
+apply (erule zg.induct) 
 apply (frule_tac [5] ZG2_msg_in_parts_spies, auto)  
 done
 
-lemma NRR_authenticity_bad:
-     "[| NRR \<in> parts (spies evs);
-         NRR = Crypt (priK B) {|Number f_nrr, Agent A, Nonce L, C|};
-         B \<in> bad;  evs \<in> zg |]
-     ==> \<exists>B' \<in> {B,Spy}. \<exists>C Y. Says B' C Y \<in> set evs & NRR \<in> parts {Y}"
-apply clarify
-apply (erule rev_mp)
-apply (erule zg.induct)
-apply (frule_tac [5] ZG2_msg_in_parts_spies)
-apply (simp_all del: bex_simps)
-txt{*ZG3*}
-   prefer 4 apply blast
-txt{*Fake*}
-apply (simp add: parts_insert_knows_A, blast)
-txt{*ZG1*}
-apply (auto simp del: bex_simps)
-txt{*ZG2*}
-apply (force intro!: exI)
+lemma NRR_sender:
+     "[|Says B' A {|n, a, l, Crypt (priK B) X|} \<in> set evs; evs \<in> zg|]
+    ==> B' \<in> {B,Spy}"
+apply (erule rev_mp)  
+apply (erule zg.induct, simp_all)
 done
 
+text{*Holds also for @{term "B = Spy"}!*}
 theorem NRR_authenticity:
-     "[| NRR \<in> used evs;
-         NRR = Crypt (priK B) {|Number f_nrr, Agent A, Nonce L, C|};
-         B \<notin> broken;  evs \<in> zg |]
-     ==> \<exists>C Y. Says B C Y \<in> set evs & NRR \<in> parts {Y}"
-apply auto
- apply (force dest!: Crypt_used_imp_spies NRR_authenticity_good)
-apply (force dest!: Crypt_used_imp_spies NRR_authenticity_bad)
+     "[|Says B' A {|Number f_nrr, Agent A, Nonce L, NRR|} \<in> set evs;
+        NRR = Crypt (priK B) {|Number f_nrr, Agent A, Nonce L, C|};
+        B \<notin> broken; evs \<in> zg|]
+    ==> Says B A {|Number f_nrr, Agent A, Nonce L, NRR|} \<in> set evs"
+apply clarify 
+apply (frule NRR_sender, auto)
+txt{*We are left with the case where @{term "B' = Spy"} and  @{term "B' \<noteq> B"},
+  i.e. @{term "B \<notin> bad"}, when we can apply @{text NRR_authenticity_good}.*}
+ apply (blast dest: NRR_authenticity_good [OF refl])
 done
 
 
@@ -278,10 +255,11 @@ sent it, provided @{term A} is not broken.  *}
 
 text{*Strong conclusion for a good agent*}
 lemma sub_K_authenticity_good:
-     "[| sub_K \<in> parts (spies evs);
-         sub_K = Crypt (priK A) {|Number f_sub, Agent B, Nonce L, Key K|};
-         A \<notin> bad;  evs \<in> zg |]
+     "[|sub_K = Crypt (priK A) {|Number f_sub, Agent B, Nonce L, Key K|};
+        sub_K \<in> parts (spies evs);
+        A \<notin> bad;  evs \<in> zg |]
      ==> Says A TTP {|Number f_sub, Agent B, Nonce L, Key K, sub_K|} \<in> set evs"
+apply clarify
 apply (erule rev_mp)
 apply (erule zg.induct)
 apply (frule_tac [5] ZG2_msg_in_parts_spies, simp_all)
@@ -289,35 +267,26 @@ txt{*Fake*}
 apply (blast dest!: Fake_parts_sing_imp_Un)
 done
 
-text{*A compromised agent: we can't be sure whether A or the Spy sends the
-message or of the precise form of the message*}
-lemma sub_K_authenticity_bad:
-     "[| sub_K \<in> parts (spies evs);
-         sub_K = Crypt (priK A) {|Number f_sub, Agent B, Nonce L, Key K|};
-         A \<in> bad;  evs \<in> zg |]
-     ==> \<exists>A' \<in> {A,Spy}. \<exists>C Y. Says A' C Y \<in> set evs & sub_K \<in> parts {Y}"
-apply clarify
-apply (erule rev_mp)
-apply (erule zg.induct)
-apply (frule_tac [5] ZG2_msg_in_parts_spies)
-apply (simp_all del: bex_simps)
-txt{*Fake*}
-apply (simp add: parts_insert_knows_A, blast)
-txt{*ZG1*}
-apply (auto simp del: bex_simps)
-txt{*ZG3*}
-apply (force intro!: exI)
+lemma sub_K_sender:
+     "[|Says A' TTP {|n, b, l, k, Crypt (priK A) X|} \<in> set evs;  evs \<in> zg|]
+    ==> A' \<in> {A,Spy}"
+apply (erule rev_mp)  
+apply (erule zg.induct, simp_all)
 done
 
+text{*Holds also for @{term "A = Spy"}!*}
 theorem sub_K_authenticity:
-     "[| sub_K \<in> used evs;
-         sub_K = Crypt (priK A) {|Number f_sub, Agent B, Nonce L, Key K|};
-         A \<notin> broken;  evs \<in> zg |]
-     ==> \<exists>C Y. Says A C Y \<in> set evs & sub_K \<in> parts {Y}"
-apply auto
- apply (force dest!: Crypt_used_imp_spies sub_K_authenticity_good)
-apply (force dest!: Crypt_used_imp_spies sub_K_authenticity_bad)
+     "[|Says A' TTP {|Number f_sub, Agent B, Nonce L, Key K, sub_K|} \<in> set evs;
+        sub_K = Crypt (priK A) {|Number f_sub, Agent B, Nonce L, Key K|};
+        A \<notin> broken;  evs \<in> zg |]
+     ==> Says A TTP {|Number f_sub, Agent B, Nonce L, Key K, sub_K|} \<in> set evs"
+apply clarify 
+apply (frule sub_K_sender, auto)
+txt{*We are left with the case where @{term "A' = Spy"} and  @{term "A' \<noteq> A"},
+  i.e. @{term "A \<notin> bad"}, when we can apply @{text sub_K_authenticity_good}.*}
+ apply (blast dest: sub_K_authenticity_good [OF refl])
 done
+
 
 
 subsection{*Proofs About @{term con_K}*}
@@ -339,7 +308,7 @@ apply (erule zg.induct)
 apply (frule_tac [5] ZG2_msg_in_parts_spies, simp_all)
 txt{*Fake*}
 apply (blast dest!: Fake_parts_sing_imp_Un)
-txt{*ZG2*}
+txt{*ZG2*} 
 apply (blast dest: parts_cut)
 done
 
@@ -351,8 +320,15 @@ lemma Notes_TTP_imp_Says_A:
            \<in> set evs;
         sub_K = Crypt (priK A) {|Number f_sub, Agent B, Nonce L, Key K|};
         A \<notin> broken; evs \<in> zg|]
-    ==> \<exists>C Y. Says A C Y \<in> set evs & sub_K \<in> parts {Y}"
-by (blast dest!: Notes_TTP_imp_Gets [THEN Gets_imp_knows_Spy, THEN parts.Inj] intro: sub_K_authenticity)
+     ==> Says A TTP {|Number f_sub, Agent B, Nonce L, Key K, sub_K|} \<in> set evs"
+apply clarify
+apply (erule rev_mp)
+apply (erule zg.induct)
+apply (frule_tac [5] ZG2_msg_in_parts_spies, simp_all)
+txt{*ZG4*}
+apply (clarify dest!: Gets_imp_Says) 
+apply (rule sub_K_authenticity, auto) 
+done
 
 text{*If @{term con_K} exists, then @{term A} sent @{term sub_K}.  We again
    assume that @{term A} is not broken. *}
@@ -361,8 +337,8 @@ theorem B_sub_K_authenticity:
         con_K = Crypt (priK TTP) {|Number f_con, Agent A, Agent B,
                                    Nonce L, Key K|};
         sub_K = Crypt (priK A) {|Number f_sub, Agent B, Nonce L, Key K|};
-        A \<notin> broken; B \<noteq> TTP; evs \<in> zg|]
-    ==> \<exists>C Y. Says A C Y \<in> set evs & sub_K \<in> parts {Y}"
+        A \<notin> broken; evs \<in> zg|]
+     ==> Says A TTP {|Number f_sub, Agent B, Nonce L, Key K, sub_K|} \<in> set evs"
 by (blast dest: con_K_authenticity Notes_TTP_imp_Says_A)
 
 
@@ -393,11 +369,11 @@ done
 text{*Fairness lemma: if @{term sub_K} exists, then @{term A} holds 
 NRR.  Relies on unicity of labels.*}
 lemma sub_K_implies_NRR:
-     "[| sub_K \<in> parts (spies evs);
+     "[| NRO = Crypt (priK A) {|Number f_nro, Agent B, Nonce L, Crypt K M|};
+         NRR = Crypt (priK B) {|Number f_nrr, Agent A, Nonce L, Crypt K M|};
+         sub_K \<in> parts (spies evs);
          NRO \<in> parts (spies evs);
          sub_K = Crypt (priK A) {|Number f_sub, Agent B, Nonce L, Key K|};
-         NRO = Crypt (priK A) {|Number f_nro, Agent B, Nonce L, Crypt K M|};
-         NRR = Crypt (priK B) {|Number f_nrr, Agent A, Nonce L, Crypt K M|};
          A \<notin> bad;  evs \<in> zg |]
      ==> Gets A {|Number f_nrr, Agent A, Nonce L, NRR|} \<in> set evs"
 apply clarify
@@ -409,7 +385,7 @@ txt{*Fake*}
 apply blast 
 txt{*ZG1: freshness*}
 apply (blast dest: parts.Body) 
-txt{*ZG3*}
+txt{*ZG3*} 
 apply (blast dest: A_unicity [OF refl]) 
 done
 
@@ -450,8 +426,8 @@ apply (frule_tac [5] ZG2_msg_in_parts_spies, simp_all)
   apply (blast dest: Crypt_used_imp_L_used) 
  txt{*ZG2*}
  apply (blast dest: parts_cut)
-txt{*ZG4*}
-apply (blast intro: sub_K_implies_NRR [OF _ _ refl] 
+txt{*ZG4*} 
+apply (blast intro: sub_K_implies_NRR [OF refl] 
              dest: Gets_imp_knows_Spy [THEN parts.Inj])
 done
 
