@@ -60,14 +60,14 @@ val text_rawP = OuterSyntax.markup_command IsarOutput.Verbatim "text_raw"
   (P.comment >> (Toplevel.theory o IsarThy.add_text_raw));
 
 
-val sectP = OuterSyntax.markup_command IsarOutput.Markup "sect" "formal comment (proof)" K.prf_decl
-  (P.comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_sect)));
+val sectP = OuterSyntax.markup_command IsarOutput.Markup "sect" "formal comment (proof)"
+  K.prf_heading (P.comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_sect)));
 
 val subsectP = OuterSyntax.markup_command IsarOutput.Markup "subsect" "formal comment (proof)"
-  K.prf_decl (P.comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_subsect)));
+  K.prf_heading (P.comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_subsect)));
 
 val subsubsectP = OuterSyntax.markup_command IsarOutput.Markup "subsubsect"
-  "formal comment (proof)" K.prf_decl
+  "formal comment (proof)" K.prf_heading
   (P.comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_subsubsect)));
 
 val txtP = OuterSyntax.markup_command IsarOutput.MarkupEnv "txt" "formal comment (proof)"

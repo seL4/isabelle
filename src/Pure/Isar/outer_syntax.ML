@@ -30,6 +30,7 @@ sig
       val qed: string
       val qed_block: string
       val qed_global: string
+      val prf_heading: string
       val prf_goal: string
       val prf_block: string
       val prf_open: string
@@ -84,6 +85,7 @@ struct
   val qed = "qed";
   val qed_block = "qed-block";
   val qed_global = "qed-global";
+  val prf_heading = "proof-heading";
   val prf_goal = "proof-goal";
   val prf_block = "proof-block";
   val prf_open = "proof-open";
@@ -95,8 +97,8 @@ struct
   val prf_script = "proof-script";
 
   val kinds = [control, diag, thy_begin, thy_switch, thy_end, thy_heading, thy_decl, thy_goal,
-    qed, qed_block, qed_global, prf_goal, prf_block, prf_open, prf_close, prf_chain, prf_decl,
-    prf_asm, prf_asm_goal, prf_script];
+    qed, qed_block, qed_global, prf_heading, prf_goal, prf_block, prf_open, prf_close, prf_chain,
+    prf_decl, prf_asm, prf_asm_goal, prf_script];
 end;
 
 
