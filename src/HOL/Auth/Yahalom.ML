@@ -227,7 +227,7 @@ by analz_spies_tac;
 by (ALLGOALS
     (asm_simp_tac 
      (!simpset addsimps [analz_insert_eq, analz_insert_freshK]
-               setloop split_tac [expand_if])));
+               addsplits [expand_if])));
 (*Oops*)
 by (blast_tac (!claset addDs [unique_session_keys]) 3);
 (*YM3*)
@@ -499,7 +499,7 @@ by analz_spies_tac;
 by (ALLGOALS
     (asm_simp_tac 
      (!simpset addsimps [analz_insert_eq, analz_insert_freshK]
-               setloop split_tac [expand_if])));
+               addsplits [expand_if])));
 (*Prove YM3 by showing that no NB can also be an NA*)
 by (blast_tac (!claset addDs [Says_imp_spies RS parts.Inj]
 	               addSEs [MPair_parts]

@@ -222,7 +222,7 @@ AddSEs [less_SucE];
 goal thy "!!k b. b<2 ==> k mod 2 = b | k mod 2 = (if b=1 then 0 else 1)";
 by (subgoal_tac "k mod 2 < 2" 1);
 by (asm_simp_tac (!simpset addsimps [mod_less_divisor]) 2);
-by (asm_simp_tac (!simpset setloop split_tac [expand_if]) 1);
+by (asm_simp_tac (!simpset addsplits [expand_if]) 1);
 by (Blast_tac 1);
 qed "mod2_cases";
 

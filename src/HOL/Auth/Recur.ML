@@ -455,7 +455,7 @@ by (ALLGOALS
     (asm_simp_tac
      (!simpset addsimps [analz_insert_eq, parts_insert_spies, 
 			 analz_insert_freshK] 
-               setloop split_tac [expand_if])));
+               addsplits [expand_if])));
 (*RA4*)
 by (spy_analz_tac 5);
 (*RA2*)

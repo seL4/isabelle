@@ -157,7 +157,7 @@ qed "new_tv_list";
 goal thy
   "new_tv n (t::typ) --> $(%x. if x=n then t' else s x) t = $s t";
 by (typ.induct_tac "t" 1);
-by (ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
+by (ALLGOALS(asm_simp_tac (!simpset addsplits [expand_if])));
 qed "subst_te_new_tv";
 Addsimps [subst_te_new_tv];
 
@@ -259,7 +259,7 @@ by (list.induct_tac "ts" 1);
 (* case [] *)
 by (Simp_tac 1);
 (* case x#xl *)
-by (fast_tac (set_cs addss(!simpset setloop (split_tac [expand_if]))) 1);
+by (fast_tac (set_cs addss(!simpset addsplits [expand_if])) 1);
 qed_spec_mp "ftv_mem_sub_ftv_list";
 Addsimps [ftv_mem_sub_ftv_list];
 

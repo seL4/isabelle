@@ -239,13 +239,13 @@ Addsimps[Un_insert_right];
 
 goal Set.thy "(insert a B) Int C = (if a:C then insert a (B Int C) \
 \                                          else        B Int C)";
-by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
+by (simp_tac (!simpset addsplits [expand_if]) 1);
 by (Blast_tac 1);
 qed "Int_insert_left";
 
 goal Set.thy "A Int (insert a B) = (if a:A then insert a (A Int B) \
 \                                          else        A Int B)";
-by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
+by (simp_tac (!simpset addsplits [expand_if]) 1);
 by (Blast_tac 1);
 qed "Int_insert_right";
 
@@ -568,7 +568,7 @@ by (Blast_tac 1);
 qed "Diff_insert2";
 
 goal Set.thy "insert x A - B = (if x:B then A-B else insert x (A-B))";
-by (simp_tac (!simpset setloop split_tac[expand_if]) 1);
+by (simp_tac (!simpset addsplits [expand_if]) 1);
 by (Blast_tac 1);
 qed "insert_Diff_if";
 

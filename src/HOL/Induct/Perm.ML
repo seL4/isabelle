@@ -41,7 +41,7 @@ qed "perm_sym";
 goal Perm.thy "!!xs. [| xs <~~> ys |] ==> x mem xs --> x mem ys";
 by (etac perm.induct 1);
 by (Fast_tac 4);
-by (ALLGOALS (asm_simp_tac (!simpset setloop split_tac [expand_if])));
+by (ALLGOALS (asm_simp_tac (!simpset addsplits [expand_if])));
 val perm_mem_lemma = result();
 
 bind_thm ("perm_mem", perm_mem_lemma RS mp);

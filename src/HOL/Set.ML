@@ -646,7 +646,7 @@ AddSEs [rangeE];
 
 
 (** Rewrite rules for boolean case-splitting: faster than 
-	setloop split_tac[expand_if]
+	addsplits[expand_if]
 **)
 
 bind_thm ("expand_if_eq1", read_instantiate [("P", "%x. x = ?b")] expand_if);
@@ -669,7 +669,7 @@ val mem_simps = [insert_iff, empty_iff, Un_iff, Int_iff, Compl_iff, Diff_iff,
 
 (*Not for Addsimps -- it can cause goals to blow up!*)
 goal Set.thy "(a : (if Q then x else y)) = ((Q --> a:x) & (~Q --> a : y))";
-by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
+by (simp_tac (!simpset addsplits [expand_if]) 1);
 qed "mem_if";
 
 val mksimps_pairs = ("Ball",[bspec]) :: mksimps_pairs;

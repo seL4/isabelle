@@ -25,7 +25,7 @@ qed "expand_option_bind";
 
 goal thy
   "((option_bind m f) = None) = ((m=None) | (? p. m = Some p & f p = None))";
-by(simp_tac (!simpset setloop (split_tac [expand_option_bind])) 1);
+by(simp_tac (!simpset addsplits [expand_option_bind]) 1);
 qed "option_bind_eq_None";
 
 Addsimps [option_bind_eq_None];

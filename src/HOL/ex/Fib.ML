@@ -53,7 +53,7 @@ by (stac (read_instantiate [("x", "Suc ?n")] fib_Suc_Suc) 3);
 by (ALLGOALS  (*using fib.rules here results in a longer proof!*)
     (asm_simp_tac (!simpset addsimps [add_mult_distrib, add_mult_distrib2, 
 				      mod_less, mod_Suc]
-                            setloop split_tac[expand_if])));
+                            addsplits [expand_if])));
 by (safe_tac (!claset addSDs [mod2_neq_0]));
 by (ALLGOALS
     (asm_full_simp_tac

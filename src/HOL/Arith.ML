@@ -35,7 +35,7 @@ qed "pred_le";
 AddIffs [pred_le];
 
 goalw Arith.thy [pred_def] "m<=n --> pred(m) <= pred(n)";
-by(simp_tac (!simpset setloop (split_tac[expand_nat_case])) 1);
+by(simp_tac (!simpset addsplits [expand_nat_case]) 1);
 qed_spec_mp "pred_le_mono";
 
 goal Arith.thy "!!n. n ~= 0 ==> pred n < n";
@@ -434,7 +434,7 @@ qed "less_imp_diff_positive";
 
 goal Arith.thy "Suc(m)-n = (if m<n then 0 else Suc(m-n))";
 by (simp_tac (!simpset addsimps [less_imp_diff_is_0, not_less_eq, Suc_diff_n]
-                    setloop (split_tac [expand_if])) 1);
+                       addsplits [expand_if]) 1);
 qed "if_Suc_diff_n";
 
 goal Arith.thy "P(k) --> (!n. P(Suc(n))--> P(n)) --> P(k-i)";

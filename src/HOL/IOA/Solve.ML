@@ -78,7 +78,7 @@ by (res_inst_tac [("x",
 by (asm_full_simp_tac
       (!simpset addsimps [executions_def,is_execution_fragment_def,
                           par_def,starts_of_def,trans_of_def,filter_oseq_def]
-                setloop (split_tac[expand_if,expand_option_case])) 1);
+                addsplits [expand_if,expand_option_case]) 1);
 qed"comp1_reachable";
 
 
@@ -98,7 +98,7 @@ by (res_inst_tac [("x",
 by (asm_full_simp_tac
       (!simpset addsimps [executions_def,is_execution_fragment_def,
                           par_def,starts_of_def,trans_of_def,filter_oseq_def]
-                setloop (split_tac[expand_if,expand_option_case])) 1);
+                addsplits [expand_if,expand_option_case]) 1);
 qed"comp2_reachable";
 
 
@@ -141,7 +141,7 @@ by (subgoal_tac "a~:externals(asig_of(A1)) & a~:externals(asig_of(A2))" 1);
 by (Asm_full_simp_tac 2);
 by (Fast_tac 2);
 by (simp_tac (!simpset addsimps [conj_disj_distribR] addcongs [conj_cong]
-                 setloop (split_tac [expand_if])) 1);
+                 addsplits [expand_if]) 1);
 by(REPEAT((resolve_tac [conjI,impI] 1 ORELSE etac conjE 1) THEN
         asm_full_simp_tac(!simpset addsimps[comp1_reachable,
                                       comp2_reachable])1));
@@ -160,7 +160,7 @@ by (Simp_tac 1);
 by (asm_full_simp_tac
       (!simpset addsimps [executions_def,is_execution_fragment_def,
                           par_def,starts_of_def,trans_of_def,rename_def]
-                setloop (split_tac[expand_option_case])) 1);
+                addsplits [expand_option_case]) 1);
 by (best_tac (!claset addSDs [spec] addDs [sym] addss (!simpset)) 1);
 qed"reachable_rename_ioa";
 

@@ -83,7 +83,7 @@ qed "Idem_iff";
 goal Unifier.thy "~ (Var(v) <: t) --> Idem([(v,t)])";
 by (simp_tac (!simpset addsimps [vars_iff_occseq, Idem_iff, srange_iff, 
 				 empty_iff_all_not]
-                       setloop (split_tac [expand_if])) 1);
+                       addsplits [expand_if]) 1);
 by (Blast_tac 1);
 qed_spec_mp "Var_Idem";
 

@@ -352,7 +352,7 @@ Addsimps [free_tv_of_substitutions_extend_to_scheme_lists];
 
 goal thy "!!sch::type_scheme. (n : free_tv sch) = (n mem free_tv_ML sch)";
 by (type_scheme.induct_tac "sch" 1);
-by (ALLGOALS (asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
+by (ALLGOALS (asm_simp_tac (!simpset addsplits [expand_if])));
 by (strip_tac 1);
 by (Fast_tac 1);
 qed "free_tv_ML_scheme";
@@ -423,14 +423,14 @@ qed "new_tv_list";
 goal thy
   "new_tv n (t::typ) --> $(%x. if x=n then t' else S x) t = $S t";
 by (typ.induct_tac "t" 1);
-by (ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
+by (ALLGOALS(asm_simp_tac (!simpset addsplits [expand_if])));
 qed "subst_te_new_tv";
 Addsimps [subst_te_new_tv];
 
 goal thy
   "new_tv n (sch::type_scheme) --> $(%x. if x=n then sch' else S x) sch = $S sch";
 by (type_scheme.induct_tac "sch" 1);
-by (ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
+by (ALLGOALS(asm_simp_tac (!simpset addsplits [expand_if])));
 qed_spec_mp "subst_te_new_type_scheme";
 Addsimps [subst_te_new_type_scheme];
 
@@ -546,13 +546,13 @@ qed "new_tv_not_free_tv";
 Addsimps [new_tv_not_free_tv];
 
 goalw thy [max_def] "!!n::nat. m < n ==> m < max n n'";
-by (simp_tac (!simpset setloop (split_tac [expand_if])) 1);
+by (simp_tac (!simpset addsplits [expand_if]) 1);
 by (safe_tac (!claset));
 by (trans_tac 1);
 qed "less_maxL";
 
 goalw thy [max_def] "!!n::nat. m < n' ==> m < max n n'";
-by (simp_tac (!simpset setloop (split_tac [expand_if])) 1);
+by (simp_tac (!simpset addsplits [expand_if]) 1);
 by (fast_tac (!claset addDs [not_leE] addIs [less_trans]) 1);
 val less_maxR = result();
 
@@ -585,11 +585,11 @@ qed "fresh_variable_type_schemes";
 Addsimps [fresh_variable_type_schemes];
 
 goalw thy [max_def] "!!n::nat. n <= (max n n')";
-by (simp_tac (!simpset setloop (split_tac [expand_if])) 1);
+by (simp_tac (!simpset addsplits [expand_if]) 1);
 val le_maxL = result();
 
 goalw thy [max_def] "!!n'::nat. n' <= (max n n')";
-by (simp_tac (!simpset setloop (split_tac [expand_if])) 1);
+by (simp_tac (!simpset addsplits [expand_if]) 1);
 by (fast_tac (!claset addDs [not_leE] addIs [less_or_eq_imp_le]) 1);
 val le_maxR = result();
 

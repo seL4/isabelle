@@ -58,7 +58,7 @@ goal thy "Key (pubK A) : spies evs";
 by (induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac
 	      (!simpset addsimps [imageI, spies_Cons]
-	                setloop split_tac [expand_event_case, expand_if])));
+	                addsplits [expand_event_case, expand_if])));
 qed_spec_mp "spies_pubK";
 
 (*Spy sees private keys of bad agents!*)
@@ -66,7 +66,7 @@ goal thy "!!A. A: bad ==> Key (priK A) : spies evs";
 by (induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac
 	      (!simpset addsimps [imageI, spies_Cons]
-	                setloop split_tac [expand_event_case, expand_if])));
+	                addsplits [expand_event_case, expand_if])));
 qed "Spy_spies_bad";
 
 AddIffs [spies_pubK, spies_pubK RS analz.Inj];
@@ -114,7 +114,7 @@ by (induct_tac "evs" 1);
 by (res_inst_tac [("x","0")] exI 1);
 by (ALLGOALS (asm_simp_tac
 	      (!simpset addsimps [used_Cons]
-			setloop split_tac [expand_event_case, expand_if])));
+			addsplits [expand_event_case, expand_if])));
 by Safe_tac;
 by (ALLGOALS (rtac (msg_Nonce_supply RS exE)));
 by (ALLGOALS (blast_tac (!claset addSEs [add_leE])));
@@ -160,5 +160,5 @@ val analz_image_keys_ss =
 			rangeI, 
 			insert_Key_singleton, 
 			insert_Key_image, Un_assoc RS sym]
-              setloop split_tac [expand_if];
+              addsplits [expand_if];
 

@@ -100,7 +100,7 @@ qed_goal "bin_mult_Bcons0" Bin.thy
 
 (**** The carry/borrow functions, bin_succ and bin_pred ****)
 
-val if_ss = !simpset setloop (split_tac [expand_if]) ;
+val if_ss = !simpset addsplits [expand_if];
 
 
 (**** integ_of_bin ****)

@@ -26,7 +26,7 @@ qed "expand_bind";
 
 goal Maybe.thy
   "((m bind f) = Fail) = ((m=Fail) | (? p. m = Ok p & f p = Fail))";
-by (simp_tac (!simpset setloop (split_tac [expand_bind])) 1);
+by (simp_tac (!simpset addsplits [expand_bind]) 1);
 qed "bind_eq_Fail";
 
 Addsimps [bind_eq_Fail];

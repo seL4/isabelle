@@ -77,7 +77,7 @@ qed "disj_lemma";
 
 goalw Lfp.thy [image_def]
     "range(%z. if z:X then f(z) else g(z)) = f``X Un g``Compl(X)";
-by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
+by (simp_tac (!simpset addsplits [expand_if]) 1);
 by (Blast_tac 1);
 qed "range_if_then_else";
 

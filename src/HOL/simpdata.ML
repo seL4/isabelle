@@ -328,6 +328,9 @@ in
 fun split_inside_tac splits = mktac (map mk_meta_eq splits)
 end;
 
+infix 4 addsplits;
+fun ss addsplits splits = ss addloop (split_tac splits);
+
 
 qed_goal "if_cancel" HOL.thy "(if c then x else x) = x"
   (fn _ => [split_tac [expand_if] 1, blast_tac HOL_cs 1]);

@@ -124,7 +124,7 @@ qed "unique_NA";
 fun analz_induct_tac i = 
     etac ns_public.induct i   THEN
     ALLGOALS (asm_simp_tac 
-              (!simpset setloop split_tac [expand_if]));
+              (!simpset addsplits [expand_if]));
 
 
 (*Secrecy: Spy does not see the nonce sent in msg NS1 if A and B are secure*)

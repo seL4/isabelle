@@ -176,7 +176,7 @@ by (subgoal_tac "r^-1 = (%(x,y).(y,x))``r" 1);
  by (Asm_simp_tac 1);
  by (rtac iffI 1);
   by (etac (rewrite_rule [inj_onto_def] finite_imageD) 1);
-  by (simp_tac (!simpset setloop (split_tac[expand_split])) 1);
+  by (simp_tac (!simpset addsplits [expand_split]) 1);
  by (etac finite_imageI 1);
 by (simp_tac (!simpset addsimps [inverse_def,image_def]) 1);
 by (Auto_tac());
@@ -244,7 +244,7 @@ by (safe_tac (!claset));
    by (SELECT_GOAL(safe_tac (!claset))1);
    by (res_inst_tac [("x","k")] exI 1);
    by (Asm_simp_tac 1);
-  by (simp_tac (!simpset setloop (split_tac [expand_if])) 1);
+  by (simp_tac (!simpset addsplits [expand_if]) 1);
   by (Blast_tac 1);
  by (dtac sym 1);
  by (rotate_tac ~1 1);
@@ -258,7 +258,7 @@ by (safe_tac (!claset));
   by (SELECT_GOAL(safe_tac (!claset))1);
   by (res_inst_tac [("x","k")] exI 1);
   by (Asm_simp_tac 1);
- by (simp_tac (!simpset setloop (split_tac [expand_if])) 1);
+ by (simp_tac (!simpset addsplits [expand_if]) 1);
  by (Blast_tac 1);
 by (res_inst_tac [("x","%j. if f j = f i then f m else f j")] exI 1);
 by (SELECT_GOAL(safe_tac (!claset))1);
@@ -272,7 +272,7 @@ by (SELECT_GOAL(safe_tac (!claset))1);
  by (SELECT_GOAL(safe_tac (!claset))1);
  by (res_inst_tac [("x","k")] exI 1);
  by (Asm_simp_tac 1);
-by (simp_tac (!simpset setloop (split_tac [expand_if])) 1);
+by (simp_tac (!simpset addsplits [expand_if]) 1);
 by (Blast_tac 1);
 val lemma = result();
 
@@ -330,7 +330,7 @@ goal Finite.thy "!!A B. [| finite A; finite B |]\
 by (etac finite_induct 1);
 by (ALLGOALS 
     (asm_simp_tac (!simpset addsimps [Int_insert_left]
-	                    setloop split_tac [expand_if])));
+	                    addsplits [expand_if])));
 qed_spec_mp "card_Un_disjoint";
 
 goal Finite.thy "!!A. [| finite A; B<=A |] ==> card A - card B = card (A - B)";

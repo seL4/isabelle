@@ -10,7 +10,7 @@ open LList;
 
 (** Simplification **)
 
-simpset := !simpset setloop split_tac [expand_split, expand_sum_case];
+simpset := !simpset addsplits [expand_split, expand_sum_case];
 
 (*For adding _eqI rules to a simpset; we must remove Pair_eq because
   it may turn an instance of reflexivity into a conjunction!*)
@@ -68,11 +68,11 @@ qed "CONS_UN1";
 
 (*UNUSED; obsolete?
 goal Prod.thy "split p (%x y. UN z. f x y z) = (UN z. split p (%x y. f x y z))";
-by (simp_tac (!simpset setloop (split_tac [expand_split])) 1);
+by (simp_tac (!simpset addsplits [expand_split]) 1);
 qed "split_UN1";
 
 goal Sum.thy "sum_case s f (%y. UN z. g y z) = (UN z. sum_case s f (%y. g y z))";
-by (simp_tac (!simpset setloop (split_tac [expand_sum_case])) 1);
+by (simp_tac (!simpset addsplits [expand_sum_case]) 1);
 qed "sum_case2_UN1";
 *)
 
@@ -310,7 +310,7 @@ by (rtac allI 1);
 by (rename_tac "y" 1);
 by (stac prem1 1);
 by (stac prem2 1);
-by (simp_tac (!simpset setloop (split_tac [expand_sum_case])) 1);
+by (simp_tac (!simpset addsplits [expand_sum_case]) 1);
 by (strip_tac 1);
 by (res_inst_tac [("n", "n")] natE 1);
 by (rename_tac "m" 2);

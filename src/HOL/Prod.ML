@@ -168,7 +168,7 @@ by (Blast_tac 1);
 qed "expand_split";
 
 (* could be done after split_tac has been speeded up significantly:
-simpset := (!simpset setloop split_tac[expand_split]);
+simpset := (!simpset addsplits [expand_split]);
    precompute the constants involved and don't do anything unless
    the current goal contains one of those constants
 *)

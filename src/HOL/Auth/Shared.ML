@@ -36,7 +36,7 @@ goal thy "!!A. A: bad ==> Key (shrK A) : spies evs";
 by (induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac
 	      (!simpset addsimps [imageI, spies_Cons]
-	                setloop split_tac [expand_event_case, expand_if])));
+	                addsplits [expand_event_case, expand_if])));
 qed "Spy_spies_bad";
 
 AddSIs [Spy_spies_bad];
@@ -111,7 +111,7 @@ by (induct_tac "evs" 1);
 by (res_inst_tac [("x","0")] exI 1);
 by (ALLGOALS (asm_simp_tac
 	      (!simpset addsimps [used_Cons]
-			setloop split_tac [expand_event_case, expand_if])));
+			addsplits [expand_event_case, expand_if])));
 by Safe_tac;
 by (ALLGOALS (rtac (msg_Nonce_supply RS exE)));
 by (ALLGOALS (blast_tac (!claset addSEs [add_leE])));
@@ -238,7 +238,7 @@ val analz_image_freshK_ss =
                          insert_Key_singleton, subset_Compl_range,
                          Key_not_used, insert_Key_image, Un_assoc RS sym]
                         @disj_comms)
-              setloop split_tac [expand_if];
+              addsplits [expand_if];
 
 (*Lemma for the trivial direction of the if-and-only-if*)
 goal thy  
