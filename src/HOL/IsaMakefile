@@ -7,7 +7,7 @@
 ## targets
 
 default: HOL
-images: HOL HOL-Algebra HOL-Complex TLA
+images: HOL HOL-Algebra HOL-Complex TLA HOL4
 
 #Note: keep targets sorted (except for HOL-Library)
 test: \
@@ -264,7 +264,7 @@ $(LOG)/HOL-Complex-Generate-HOL.gz: $(OUT)/HOL-Complex $(IMPORTER_FILES)  \
 
 ## HOL-Import-HOL
 
-HOL-Import-HOL: HOL-Complex $(LOG)/HOL-Import-HOL.gz
+HOL4: HOL-Complex $(LOG)/HOL4.gz
 
 HOL_IMPORT_FILES = arithmetic.imp bits.imp boolean_sequence.imp bool.imp \
   bword_arith.imp bword_bitop.imp bword_num.imp combin.imp divides.imp \
@@ -276,11 +276,11 @@ HOL_IMPORT_FILES = arithmetic.imp bits.imp boolean_sequence.imp bool.imp \
   seq.imp state_transformer.imp sum.imp topology.imp transc.imp word32.imp \
   word_base.imp word_bitop.imp word_num.imp
 
-$(LOG)/HOL-Import-HOL.gz: $(OUT)/HOL-Complex $(IMPORTER_FILES) \
+$(LOG)/HOL4.gz: $(OUT)/HOL-Complex $(IMPORTER_FILES) \
   $(HOL_IMPORT_FILES:%=Import/HOL/%) Import/HOL/HOL4Base.thy \
   Import/HOL/HOL4Prob.thy Import/HOL/HOL4Real.thy Import/HOL/HOL4Vec.thy \
   Import/HOL/HOL4Word32.thy Import/HOL/HOL4.thy Import/HOL/ROOT.ML
-	@cd Import/HOL; $(ISATOOL) usedir -b $(OUT)/HOL-Complex HOL-Import-HOL
+	@cd Import/HOL; $(ISATOOL) usedir -b $(OUT)/HOL-Complex HOL4
 
 
 ## HOL-NumberTheory
