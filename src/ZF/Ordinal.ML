@@ -691,9 +691,15 @@ by (rtac Limit_has_succ 1);
 by (assume_tac 1);
 by (etac (Limit_is_Ord RS Ord_succD RS le_refl) 1);
 qed "succ_LimitE";
+AddSEs [succ_LimitE];
+
+Goal "~ Limit(succ(i))";
+by (Blast_tac 1);
+qed "not_succ_Limit";
+Addsimps [not_succ_Limit];
 
 Goal "[| Limit(i);  i le succ(j) |] ==> i le j";
-by (safe_tac (claset() addSEs [succ_LimitE, leE]));
+by (blast_tac (claset() addSEs [leE]) 1);
 qed "Limit_le_succD";
 
 (** Traditional 3-way case analysis on ordinals **)
