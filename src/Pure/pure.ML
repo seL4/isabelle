@@ -28,7 +28,7 @@ in
       PureThy.begin_theory "CPure" [ProtoPure.thy]
       |> Theory.add_syntax Syntax.pure_applC_syntax
       |> Theory.apply common_setup
-      |> Theory.prep_ext                  (*copy shared data!*)
+      |> Theory.copy
       |> PureThy.end_theory;
   end;
 end;
