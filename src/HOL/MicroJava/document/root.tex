@@ -2,21 +2,23 @@
 \documentclass[11pt,a4paper]{article}
 \usepackage{isabelle,isabellesym,pdfsetup}
 
-\setlength{\parindent}{0cm}
-\setlength{\parskip}{0,5ex}
-
 \addtolength{\hoffset}{-1,5cm}
 \addtolength{\textwidth}{4cm}
 \addtolength{\voffset}{-2cm}
 \addtolength{\textheight}{4cm}
 
-\renewcommand{\thesubsection}{\arabic{subsection}}
-\renewcommand{\isamarkupheader}[1]{\newpage\subsection{#1}}
+\renewcommand{\thesection}{\arabic{section}}
+\renewcommand{\isamarkupheader}[1]{\newpage\section{#1}}
 
 \pagestyle{headings}
 
+
 \begin{document}
+
 \tableofcontents
+\parindent 0pt \parskip 0.5ex
 \newpage
+
 \input{session}
+
 \end{document}
