@@ -58,7 +58,7 @@ sig
   val next_block: state -> state
   val end_block: state -> state
   val at_bottom: state -> bool
-  val local_qed: (state -> state Seq.seq) -> state -> state Seq.seq
+  val local_qed: (state -> state Seq.seq) -> bool -> state -> state Seq.seq
   val global_qed: (state -> state Seq.seq) -> bstring option
     -> theory attribute list option -> state -> theory * {kind: string, name: string, thm: thm}
 end;
@@ -624,7 +624,7 @@ fun finish_local state =
     |> opt_solve
   end;
 
-fun local_qed finalize state =
+fun local_qed finalize int state =	(* FIXME handle int *)
   state
   |> finish_proof false finalize
   |> (Seq.flat o Seq.map finish_local);

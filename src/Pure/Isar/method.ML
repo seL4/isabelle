@@ -55,10 +55,10 @@ sig
   val tac: text -> Proof.state -> Proof.state Seq.seq
   val then_tac: text -> Proof.state -> Proof.state Seq.seq
   val proof: text option -> Proof.state -> Proof.state Seq.seq
-  val local_qed: text option -> Proof.state -> Proof.state Seq.seq
-  val local_terminal_proof: text -> Proof.state -> Proof.state Seq.seq
-  val local_immediate_proof: Proof.state -> Proof.state Seq.seq
-  val local_default_proof: Proof.state -> Proof.state Seq.seq
+  val local_qed: text option -> bool -> Proof.state -> Proof.state Seq.seq
+  val local_terminal_proof: text -> bool -> Proof.state -> Proof.state Seq.seq
+  val local_immediate_proof: bool -> Proof.state -> Proof.state Seq.seq
+  val local_default_proof: bool -> Proof.state -> Proof.state Seq.seq
   val global_qed: bstring option -> theory attribute list option -> text option
     -> Proof.state -> theory * {kind: string, name: string, thm: thm}
   val global_terminal_proof: text -> Proof.state -> theory * {kind: string, name: string, thm: thm}
@@ -301,7 +301,7 @@ fun proof opt_text state =
   |> Seq.map Proof.enter_forward;
 
 fun local_qed opt_text = Proof.local_qed (refine (if_none opt_text finish_text));
-fun local_terminal_proof text = Seq.THEN (proof (Some text), local_qed None);
+fun local_terminal_proof text int = Seq.THEN (proof (Some text), local_qed None int);
 val local_immediate_proof = local_terminal_proof (Basic (K same));
 val local_default_proof = local_terminal_proof default_text;
 
