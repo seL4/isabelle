@@ -50,17 +50,17 @@ struct
 
 (*
   classrel:
-    association list representing the proper subclass relation;
-    pairs (c, cs) represent the superclasses cs of c;
+    table representing the proper subclass relation; entries (c, cs)
+    represent the superclasses cs of c;
 
   arities:
-    two-fold association list of all type arities; (t, ars) means
+    table of association lists of all type arities; (t, ars) means
     that type constructor t has the arities ars; an element (c, Ss) of
-    ars represents the arity t::(Ss)c.
+    ars represents the arity t::(Ss)c;
 *)
 
-type classrel = (class * class list) list;
-type arities = (string * (class * sort list) list) list;
+type classrel = (class list) Symtab.table;
+type arities = ((class * sort list) list) Symtab.table;
 
 
 (* print sorts and arities *)
@@ -82,7 +82,7 @@ fun str_of_arity (t, [], S) = t ^ " :: " ^ str_of_sort S
 fun class_eq _ (c1, c2:class) = c1 = c2;
 
 fun class_less classrel (c1, c2) =
-  (case assoc (classrel, c1) of
+  (case Symtab.lookup (classrel, c1) of
      Some cs => c2 mem_string cs
    | None => false);
 
@@ -137,9 +137,11 @@ fun inter_sort classrel = foldr (inter_class classrel);
 (* mg_domain *)                 (*exception TYPE*)
 
 fun mg_dom arities a c =
-  (case assoc2 (arities, (a, c)) of
-    None => raise TYPE ("No way to get " ^ a ^ "::" ^ c ^ ".", [], [])
-  | Some Ss => Ss);
+  let fun err () = raise TYPE ("No way to get " ^ a ^ "::" ^ c ^ ".", [], []) in
+    (case Symtab.lookup (arities, a) of
+      None => err ()
+    | Some ars => (case assoc (ars, c) of None => err () | Some Ss => Ss))
+  end;
 
 fun mg_domain _ _ _ [] = sys_error "mg_domain"  (*don't know number of args!*)
   | mg_domain classrel arities a S =
@@ -168,7 +170,7 @@ fun of_sort classrel arities =
 (* FIXME improve: proper sorts; non-base, non-ground types (vars from hyps) *)
 fun nonempty_sort classrel _ _ [] = true
   | nonempty_sort classrel arities hyps S =
-      exists (exists (fn (c, Ss) => [c] = S andalso null Ss) o snd) arities
+      Symtab.exists (exists (fn (c, Ss) => [c] = S andalso null Ss) o snd) arities
         orelse exists (fn S' => sort_le classrel (S', S)) hyps;
 
 end;

@@ -176,7 +176,7 @@ fun print_sign sg =
       [Pretty.str "default:", Pretty.brk 1, prt_sort S];
 
     fun pretty_ty (t, n) = Pretty.block
-      [Pretty.str (Sign.cond_extern sg Sign.typeK t), Pretty.spc 1, Pretty.str (string_of_int n)];
+      [Pretty.str t, Pretty.spc 1, Pretty.str (string_of_int n)];
 
     fun pretty_abbr (t, (vs, rhs)) = Pretty.block
       [prt_typ (Type (t, map (fn v => TVar ((v, 0), [])) vs)),
@@ -189,8 +189,9 @@ fun print_sign sg =
 
     val {self = _, tsig, const_tab, syn = _, path, spaces, data} = Sign.rep_sg sg;
     val spaces' = Library.sort_wrt fst spaces;
-    val {classes, classrel, default, tycons, abbrs, arities} =
+    val {classes, classrel, default, tycons = type_tab, abbrs, arities} =
       Type.rep_tsig tsig;
+    val tycons = Sign.cond_extern_table sg Sign.typeK type_tab;
     val consts = Sign.cond_extern_table sg Sign.constK const_tab;
   in
     Pretty.writeln (Pretty.strs ("stamps:" :: Sign.stamp_names_of sg));
@@ -198,11 +199,11 @@ fun print_sign sg =
     Pretty.writeln (Pretty.strs ["name prefix:", NameSpace.pack path]);
     Pretty.writeln (Pretty.big_list "name spaces:" (map pretty_name_space spaces'));
     Pretty.writeln (pretty_classes classes);
-    Pretty.writeln (Pretty.big_list "class relation:" (map pretty_classrel classrel));
+    Pretty.writeln (Pretty.big_list "class relation:" (map pretty_classrel (Symtab.dest classrel)));
     Pretty.writeln (pretty_default default);
     Pretty.writeln (Pretty.big_list "type constructors:" (map pretty_ty tycons));
-    Pretty.writeln (Pretty.big_list "type abbreviations:" (map pretty_abbr abbrs));
-    Pretty.writeln (Pretty.big_list "type arities:" (flat (map pretty_arities arities)));
+    Pretty.writeln (Pretty.big_list "type abbreviations:" (map pretty_abbr (Symtab.dest abbrs)));
+    Pretty.writeln (Pretty.big_list "type arities:" (flat (map pretty_arities (Symtab.dest arities))));
     Pretty.writeln (Pretty.big_list "consts:" (map pretty_const consts))
   end;
 
