@@ -59,7 +59,7 @@ local val (imp $ tprop $ (eeq $ _ $ _ )) = #prop(rep_thm(eq_reflection))
 in
 fun make_definition parent s tm = 
    let val {lhs,rhs} = S.dest_eq tm
-       val (Name,Ty) = dest_Free lhs
+       val (Name,Ty) = dest_Const lhs
        val lhs1 = S.mk_const{Name = Name, Ty = Ty}
        val eeq1 = S.mk_const{Name = eeq_name, Ty = Ty --> Ty --> prop}
        val dtm = list_comb(eeq1,[lhs1,rhs])      (* Rename "=" to "==" *)

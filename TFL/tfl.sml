@@ -361,14 +361,6 @@ fun wfrec_definition0 thy fid R functional =
 					     quote fid ^ " but found one of " ^
 				      quote Name}
 		    else Name ^ "_def"
-(****************????????????????
-     val (_,ty_theta) = Thry.match_term thy f (S.mk_var{Name=fname,Ty=Ty})
-     val wfrec' = S.inst ty_theta wfrec
-     val wfrec_R_M' = list_comb(wfrec',[R,functional])
-     val def_term = HOLogic.mk_eq(Bvar, wfrec_R_M')
-
-?? (map_term_types (incr_tvar 1) functional) ?? 
-****************)
      val wfrec_R_M = map_term_types poly_tvars
 	               (wfrec $ R $ (map_term_types poly_tvars functional))
      val (_, def_term, _) = 
