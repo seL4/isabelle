@@ -3,7 +3,7 @@
     Author : David von Oheimb
     Copyright 1995, 1996 TU Muenchen
 
-theory extender for domain section
+Theory extender for domain section.
 *)
 
 
@@ -87,9 +87,11 @@ in
     val thy' = thy'' |> Domain_Syntax.add_syntax (comp_dnam,eqs');
     val dts  = map (Type o fst) eqs';
     fun strip ss = drop (find_index_eq "'" ss +1, ss);
-    fun typid (Type  (id,_)   ) = hd     (Symbol.explode (Sign.base_name id))
-      | typid (TFree (id,_)   ) = hd (strip (tl (Symbol.explode (Sign.base_name id))))
-      | typid (TVar ((id,_),_)) = hd (tl (Symbol.explode (Sign.base_name id)));
+    fun typid (Type  (id,_)) =
+          let val c = hd (Symbol.explode (Sign.base_name id))
+          in if Symbol.is_letter c then c else "t" end
+      | typid (TFree (id,_)   ) = hd (strip (tl (Symbol.explode id)))
+      | typid (TVar ((id,_),_)) = hd (tl (Symbol.explode id));
     fun cons cons' = (map (fn (con,syn,args) =>
 	((Syntax.const_name con syn),
 	 ListPair.map (fn ((lazy,sel,tp),vn) => ((lazy,
