@@ -73,23 +73,23 @@ primrec
                             if start_pc <= pc \<and> pc < end_pc then catch_type#es' else es')"
 
 consts
-  match :: "jvm_prog \<Rightarrow> cname \<Rightarrow> p_count \<Rightarrow> exception_table \<Rightarrow> cname list"
+  match :: "jvm_prog \<Rightarrow> xcpt \<Rightarrow> p_count \<Rightarrow> exception_table \<Rightarrow> cname list"
 primrec
   "match G X pc [] = []"
   "match G X pc (e#es) = 
-  (if match_exception_entry G X pc e then [X] else match G X pc es)"
+  (if match_exception_entry G (Xcpt X) pc e then [Xcpt X] else match G X pc es)"
 
 lemma match_some_entry:
-  "match G X pc et = (if \<exists>e \<in> set et. match_exception_entry G X pc e then [X] else [])"
+  "match G X pc et = (if \<exists>e \<in> set et. match_exception_entry G (Xcpt X) pc e then [Xcpt X] else [])"
   by (induct et) auto
 
 consts
   xcpt_names :: "instr \<times> jvm_prog \<times> p_count \<times> exception_table \<Rightarrow> cname list" 
 recdef xcpt_names "{}"
-  "xcpt_names (Getfield F C, G, pc, et) = match G (Xcpt NullPointer) pc et" 
-  "xcpt_names (Putfield F C, G, pc, et) = match G (Xcpt NullPointer) pc et" 
-  "xcpt_names (New C, G, pc, et)        = match G (Xcpt OutOfMemory) pc et"
-  "xcpt_names (Checkcast C, G, pc, et)  = match G (Xcpt ClassCast) pc et"
+  "xcpt_names (Getfield F C, G, pc, et) = match G NullPointer pc et" 
+  "xcpt_names (Putfield F C, G, pc, et) = match G NullPointer pc et" 
+  "xcpt_names (New C, G, pc, et)        = match G OutOfMemory pc et"
+  "xcpt_names (Checkcast C, G, pc, et)  = match G ClassCast pc et"
   "xcpt_names (Throw, G, pc, et)        = match_any G pc et"
   "xcpt_names (Invoke C m p, G, pc, et) = match_any G pc et" 
   "xcpt_names (i, G, pc, et)            = []" 
@@ -257,26 +257,26 @@ lemma appLitPush[simp]:
 lemma appGetField[simp]:
 "(app (Getfield F C) G maxs rT pc et (Some s)) = 
  (\<exists> oT vT ST LT. s = (oT#ST, LT) \<and> is_class G C \<and>  
-  field (G,C) F = Some (C,vT) \<and> G \<turnstile> oT \<preceq> (Class C) \<and> (\<forall>x \<in> set (match G (Xcpt NullPointer) pc et). is_class G x))"
+  field (G,C) F = Some (C,vT) \<and> G \<turnstile> oT \<preceq> (Class C) \<and> (\<forall>x \<in> set (match G NullPointer pc et). is_class G x))"
   by (cases s, cases "2 <length (fst s)", auto dest!: 1 2)
 
 lemma appPutField[simp]:
 "(app (Putfield F C) G maxs rT pc et (Some s)) = 
  (\<exists> vT vT' oT ST LT. s = (vT#oT#ST, LT) \<and> is_class G C \<and> 
   field (G,C) F = Some (C, vT') \<and> G \<turnstile> oT \<preceq> (Class C) \<and> G \<turnstile> vT \<preceq> vT' \<and>
-  (\<forall>x \<in> set (match G (Xcpt NullPointer) pc et). is_class G x))"
+  (\<forall>x \<in> set (match G NullPointer pc et). is_class G x))"
   by (cases s, cases "2 <length (fst s)", auto dest!: 1 2)
 
 lemma appNew[simp]:
   "(app (New C) G maxs rT pc et (Some s)) = 
   (\<exists>ST LT. s=(ST,LT) \<and> is_class G C \<and> length ST < maxs \<and>
-  (\<forall>x \<in> set (match G (Xcpt OutOfMemory) pc et). is_class G x))"
+  (\<forall>x \<in> set (match G OutOfMemory pc et). is_class G x))"
   by (cases s, simp)
 
 lemma appCheckcast[simp]: 
   "(app (Checkcast C) G maxs rT pc et (Some s)) =  
   (\<exists>rT ST LT. s = (RefT rT#ST,LT) \<and> is_class G C \<and>
-  (\<forall>x \<in> set (match G (Xcpt ClassCast) pc et). is_class G x))"
+  (\<forall>x \<in> set (match G ClassCast pc et). is_class G x))"
   by (cases s, cases "fst s", simp add: app_def) (cases "hd (fst s)", auto)
 
 lemma appPop[simp]: 

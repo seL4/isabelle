@@ -115,8 +115,8 @@ proof (induct et)
 qed
 
 lemma match_et_imp_match:
-  "match_exception_table G X pc et = Some handler
-  \<Longrightarrow> match G X pc et = [X]"
+  "match_exception_table G (Xcpt X) pc et = Some handler
+  \<Longrightarrow> match G X pc et = [Xcpt X]"
   apply (simp add: match_some_entry)
   apply (induct et)
   apply (auto split: split_if_asm)
