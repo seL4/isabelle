@@ -149,15 +149,20 @@ by (rtac basic 2);
 by (rtac thinR 1 THEN rtac prem 1);
 qed "backwards_impR";
 
- 
-qed_goal "conjunct1" thy "|-P&Q ==> |-P"
-    (fn [major] => [lemma_tac major 1,  Fast_tac 1]);
+Goal "|-P&Q ==> |-P";
+by (etac (thinR RS cut) 1);
+by (Fast_tac 1);		
+qed "conjunct1";
 
-qed_goal "conjunct2" thy "|-P&Q ==> |-Q"
-    (fn [major] => [lemma_tac major 1,  Fast_tac 1]);
+Goal "|-P&Q ==> |-Q";
+by (etac (thinR RS cut) 1);
+by (Fast_tac 1);		
+qed "conjunct2";
 
-qed_goal "spec" thy "|- (ALL x. P(x)) ==> |- P(x)"
-    (fn [major] => [lemma_tac major 1,  Fast_tac 1]);
+Goal "|- (ALL x. P(x)) ==> |- P(x)";
+by (etac (thinR RS cut) 1);
+by (Fast_tac 1);		
+qed "spec";
 
 (** Equality **)
 

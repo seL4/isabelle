@@ -104,12 +104,18 @@ fun atomize r =
  | _ => [r];
 
 
-qed_goal "P_iff_F" LK.thy "|- ~P ==> |- (P <-> False)"
-    (fn prems => [lemma_tac (hd prems) 1, fast_tac LK_pack 1]);
+Goal "|- ~P ==> |- (P <-> False)";
+by (etac (thinR RS cut) 1);
+by (Fast_tac 1);		
+qed "P_iff_F";
+
 val iff_reflection_F = P_iff_F RS iff_reflection;
 
-qed_goal "P_iff_T" LK.thy "|- P ==> |- (P <-> True)"
-    (fn prems => [lemma_tac (hd prems) 1, fast_tac LK_pack 1]);
+Goal "|- P ==> |- (P <-> True)";
+by (etac (thinR RS cut) 1);
+by (Fast_tac 1);		
+qed "P_iff_T";
+
 val iff_reflection_T = P_iff_T RS iff_reflection;
 
 (*Make meta-equalities.*)
