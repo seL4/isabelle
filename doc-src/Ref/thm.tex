@@ -186,6 +186,7 @@ standard         :           thm -> thm
 zero_var_indexes :           thm -> thm
 make_elim        :           thm -> thm
 rule_by_tactic   : tactic -> thm -> thm
+rotate_prems     :    int -> thm -> thm
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{standard} $thm$] puts $thm$ into the standard form
@@ -211,6 +212,13 @@ is the basis for destruct-resolution: {\tt dresolve_tac}, etc.
   with contradictory assumptions (because of the instantiation).  The
   tactic proves those subgoals and does whatever else it can, and returns
   whatever is left.
+  
+\item[\ttindexbold{rotate_prems} $k$ $thm$] rotates the premises of $thm$ to
+  the left by~$k$ positions.  It requires $0\leq k\leq n$, where $n$ is the
+  number of premises; the rotation has no effect if $k$ is at either extreme.
+  Used with \texttt{eresolve_tac}\index{*eresolve_tac!on other than first
+    premise}, it gives the effect of applying the tactic to some other premise
+  of $thm$ than the first.
 \end{ttdescription}
 
 

@@ -45,9 +45,10 @@ higher-order resolution may yield multiple resolvents.
 \item[\ttindexbold{eresolve_tac} {\it thms} {\it i}] 
   \index{elim-resolution}
   performs elim-resolution with the rules, which should normally be
-  elimination rules.  It resolves with a rule, solves its first premise by
-  assumption, and finally {\em deletes\/} that assumption from any new
-  subgoals.
+  elimination rules.  It resolves with a rule, proves its first premise by
+  assumption, and finally \emph{deletes} that assumption from any new
+  subgoals.  (To rotate a rule's premises,
+  see \texttt{rotate_prems} in~\S\ref{MiscellaneousForwardRules}.)
 
 \item[\ttindexbold{dresolve_tac} {\it thms} {\it i}] 
   \index{forward proof}\index{destruct-resolution}
@@ -73,7 +74,7 @@ attempts to solve subgoal~$i$ by assumption.
 
 \item[\ttindexbold{eq_assume_tac}] 
 is like {\tt assume_tac} but does not use unification.  It succeeds (with a
-{\em unique\/} next state) if one of the assumptions is identical to the
+\emph{unique} next state) if one of the assumptions is identical to the
 subgoal's conclusion.  Since it does not instantiate variables, it cannot
 make other subgoals unprovable.  It is intended to be called from proof
 strategies, not interactively.
@@ -116,7 +117,7 @@ These tactics are designed for applying rules such as substitution and
 induction, which cause difficulties for higher-order unification.  The
 tactics accept explicit instantiations for unknowns in the rule ---
 typically, in the rule's conclusion.  Each instantiation is a pair
-{\tt($v$,$e$)}, where $v$ is an unknown {\em without\/} its leading
+{\tt($v$,$e$)}, where $v$ is an unknown \emph{without} its leading
 question mark!
 \begin{itemize}
 \item If $v$ is the type unknown {\tt'a}, then
