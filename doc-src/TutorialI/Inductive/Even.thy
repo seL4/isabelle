@@ -20,7 +20,7 @@ Attributes can be given to the introduction rules.  Here both rules are
 specified as \isa{intro!}
 
 Our first lemma states that numbers of the form $2\times k$ are even. *}
-lemma two_times_even[intro!]: "#2*k \<in> even"
+lemma two_times_even[intro!]: "2*k \<in> even"
 apply (induct "k")
 txt{*
 The first step is induction on the natural number \isa{k}, which leaves
@@ -36,11 +36,11 @@ of even (using the divides relation) and our inductive definition.  Half of
 this equivalence is trivial using the lemma just proved, whose \isa{intro!}
 attribute ensures it will be applied automatically.  *}
 
-lemma dvd_imp_even: "#2 dvd n \<Longrightarrow> n \<in> even"
+lemma dvd_imp_even: "2 dvd n \<Longrightarrow> n \<in> even"
 by (auto simp add: dvd_def)
 
 text{*our first rule induction!*}
-lemma even_imp_dvd: "n \<in> even \<Longrightarrow> #2 dvd n"
+lemma even_imp_dvd: "n \<in> even \<Longrightarrow> 2 dvd n"
 apply (erule even.induct)
 txt{*
 @{subgoals[display,indent=0,margin=65]}
@@ -58,7 +58,7 @@ done
 
 
 text{*no iff-attribute because we don't always want to use it*}
-theorem even_iff_dvd: "(n \<in> even) = (#2 dvd n)"
+theorem even_iff_dvd: "(n \<in> even) = (2 dvd n)"
 by (blast intro: dvd_imp_even even_imp_dvd)
 
 text{*this result ISN'T inductive...*}
@@ -70,7 +70,7 @@ txt{*
 oops
 
 text{*...so we need an inductive lemma...*}
-lemma even_imp_even_minus_2: "n \<in> even \<Longrightarrow> n-#2 \<in> even"
+lemma even_imp_even_minus_2: "n \<in> even \<Longrightarrow> n - 2 \<in> even"
 apply (erule even.induct)
 txt{*
 @{subgoals[display,indent=0,margin=65]}

@@ -67,8 +67,8 @@ of a recursive function that calls itself with increasing values up to ten:
 *}
 
 consts f :: "nat \<Rightarrow> nat"
-recdef (*<*)(permissive)(*>*)f "{(i,j). j<i \<and> i \<le> (#10::nat)}"
-"f i = (if #10 \<le> i then 0 else i * f(Suc i))"
+recdef (*<*)(permissive)(*>*)f "{(i,j). j<i \<and> i \<le> (10::nat)}"
+"f i = (if 10 \<le> i then 0 else i * f(Suc i))"
 
 text{*\noindent
 Since \isacommand{recdef} is not prepared for the relation supplied above,
@@ -111,13 +111,13 @@ crucial hint to our definition:
 *}
 (*<*)
 consts g :: "nat \<Rightarrow> nat"
-recdef g "{(i,j). j<i \<and> i \<le> (#10::nat)}"
-"g i = (if #10 \<le> i then 0 else i * g(Suc i))"
+recdef g "{(i,j). j<i \<and> i \<le> (10::nat)}"
+"g i = (if 10 \<le> i then 0 else i * g(Suc i))"
 (*>*)
 (hints recdef_wf: wf_greater)
 
 text{*\noindent
-Alternatively, we could have given @{text "measure (\<lambda>k::nat. #10-k)"} for the
+Alternatively, we could have given @{text "measure (\<lambda>k::nat. 10-k)"} for the
 well-founded relation in our \isacommand{recdef}.  However, the arithmetic
 goal in the lemma above would have arisen instead in the \isacommand{recdef}
 termination proof, where we have less control.  A tailor-made termination

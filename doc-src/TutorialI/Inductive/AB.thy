@@ -23,13 +23,13 @@ We start by fixing the alphabet, which consists only of @{term a}'s
 and~@{term b}'s:
 *}
 
-datatype alfa = a | b;
+datatype alfa = a | b
 
 text{*\noindent
 For convenience we include the following easy lemmas as simplification rules:
 *}
 
-lemma [simp]: "(x \<noteq> a) = (x = b) \<and> (x \<noteq> b) = (x = a)";
+lemma [simp]: "(x \<noteq> a) = (x = b) \<and> (x \<noteq> b) = (x = a)"
 by (case_tac x, auto)
 
 text{*\noindent
@@ -39,7 +39,7 @@ the three nonterminals are declared as sets of such words:
 
 consts S :: "alfa list set"
        A :: "alfa list set"
-       B :: "alfa list set";
+       B :: "alfa list set"
 
 text{*\noindent
 The productions above are recast as a \emph{mutual} inductive
@@ -57,7 +57,7 @@ intros
   "\<lbrakk> v\<in>A; w\<in>A \<rbrakk> \<Longrightarrow> b#v@w \<in> A"
 
   "w \<in> S            \<Longrightarrow> b#w   \<in> B"
-  "\<lbrakk> v \<in> B; w \<in> B \<rbrakk> \<Longrightarrow> a#v@w \<in> B";
+  "\<lbrakk> v \<in> B; w \<in> B \<rbrakk> \<Longrightarrow> a#v@w \<in> B"
 
 text{*\noindent
 First we show that all words in @{term S} contain the same number of @{term
@@ -105,7 +105,7 @@ intermediate value theorem @{thm[source]nat0_intermed_int_val}
 where @{term f} is of type @{typ"nat \<Rightarrow> int"}, @{typ int} are the integers,
 @{text"\<bar>.\<bar>"} is the absolute value function\footnote{See
 Table~\ref{tab:ascii} in the Appendix for the correct \textsc{ascii}
-syntax.}, and @{term"#1::int"} is the integer 1 (see \S\ref{sec:numbers}).
+syntax.}, and @{term"1::int"} is the integer 1 (see \S\ref{sec:numbers}).
 
 First we show that our specific function, the difference between the
 numbers of @{term a}'s and @{term b}'s, does indeed only change by 1 in every
@@ -117,7 +117,7 @@ roles of @{term a}'s and @{term b}'s interchanged.
 
 lemma step1: "\<forall>i < size w.
   \<bar>(int(size[x\<in>take (i+1) w. P x])-int(size[x\<in>take (i+1) w. \<not>P x]))
-   - (int(size[x\<in>take i w. P x])-int(size[x\<in>take i w. \<not>P x]))\<bar> \<le> #1"
+   - (int(size[x\<in>take i w. P x])-int(size[x\<in>take i w. \<not>P x]))\<bar> \<le> Numeral1"
 
 txt{*\noindent
 The lemma is a bit hard to read because of the coercion function
@@ -132,9 +132,9 @@ so trivial induction step. Since it is essentially just arithmetic, we do not
 discuss it.
 *}
 
-apply(induct w);
- apply(simp);
-by(force simp add:zabs_def take_Cons split:nat.split if_splits); 
+apply(induct w)
+ apply(simp)
+by(force simp add: zabs_def take_Cons split: nat.split if_splits)
 
 text{*
 Finally we come to the above-mentioned lemma about cutting in half a word with two more elements of one sort than of the other sort:
@@ -142,7 +142,7 @@ Finally we come to the above-mentioned lemma about cutting in half a word with t
 
 lemma part1:
  "size[x\<in>w. P x] = size[x\<in>w. \<not>P x]+2 \<Longrightarrow>
-  \<exists>i\<le>size w. size[x\<in>take i w. P x] = size[x\<in>take i w. \<not>P x]+1";
+  \<exists>i\<le>size w. size[x\<in>take i w. P x] = size[x\<in>take i w. \<not>P x]+1"
 
 txt{*\noindent
 This is proved by @{text force} with the help of the intermediate value theorem,
@@ -150,8 +150,8 @@ instantiated appropriately and with its first premise disposed of by lemma
 @{thm[source]step1}:
 *}
 
-apply(insert nat0_intermed_int_val[OF step1, of "P" "w" "#1"]);
-by force;
+apply(insert nat0_intermed_int_val[OF step1, of "P" "w" "Numeral1"])
+by force
 
 text{*\noindent
 
@@ -164,8 +164,8 @@ lemma part2:
   "\<lbrakk>size[x\<in>take i w @ drop i w. P x] =
     size[x\<in>take i w @ drop i w. \<not>P x]+2;
     size[x\<in>take i w. P x] = size[x\<in>take i w. \<not>P x]+1\<rbrakk>
-   \<Longrightarrow> size[x\<in>drop i w. P x] = size[x\<in>drop i w. \<not>P x]+1";
-by(simp del:append_take_drop_id);
+   \<Longrightarrow> size[x\<in>drop i w. P x] = size[x\<in>drop i w. \<not>P x]+1"
+by(simp del:append_take_drop_id)
 
 text{*\noindent
 In the proof we have disabled the normally useful lemma
@@ -180,7 +180,7 @@ To dispose of trivial cases automatically, the rules of the inductive
 definition are declared simplification rules:
 *}
 
-declare S_A_B.intros[simp];
+declare S_A_B.intros[simp]
 
 text{*\noindent
 This could have been done earlier but was not necessary so far.
@@ -193,7 +193,7 @@ for @{term A} and @{term B}:
 theorem completeness:
   "(size[x\<in>w. x=a] = size[x\<in>w. x=b]     \<longrightarrow> w \<in> S) \<and>
    (size[x\<in>w. x=a] = size[x\<in>w. x=b] + 1 \<longrightarrow> w \<in> A) \<and>
-   (size[x\<in>w. x=b] = size[x\<in>w. x=a] + 1 \<longrightarrow> w \<in> B)";
+   (size[x\<in>w. x=b] = size[x\<in>w. x=a] + 1 \<longrightarrow> w \<in> B)"
 
 txt{*\noindent
 The proof is by induction on @{term w}. Structural induction would fail here
@@ -202,7 +202,7 @@ merely appending a single letter at the front. Hence we induct on the length
 of @{term w}, using the induction rule @{thm[source]length_induct}:
 *}
 
-apply(induct_tac w rule: length_induct);
+apply(induct_tac w rule: length_induct)
 (*<*)apply(rename_tac w)(*>*)
 
 txt{*\noindent
@@ -215,8 +215,8 @@ The proof continues with a case distinction on @{term w},
 on whether @{term w} is empty or not.
 *}
 
-apply(case_tac w);
- apply(simp_all);
+apply(case_tac w)
+ apply(simp_all)
 (*<*)apply(rename_tac x v)(*>*)
 
 txt{*\noindent
