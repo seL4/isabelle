@@ -240,7 +240,7 @@
     \subitem of simplification, 106
     \subitem of translations, 92
   \item exceptions
-    \subitem printing of, 4
+    \subitem printing of, 5
   \item {\tt exit}, \bold{2}
   \item {\tt extensional}, \bold{44}
 
@@ -428,7 +428,7 @@
   \item {\tt prems_of_ss}, 105
   \item pretty printing, 70, 72--73, 89
   \item {\tt Pretty.setdepth}, \bold{3}
-  \item {\tt Pretty.setmargin}, \bold{3}
+  \item {\tt Pretty.setmargin}, \bold{4}
   \item {\tt PRIMITIVE}, \bold{25}
   \item {\tt primrec}, 100
   \item {\tt prin}, 5, \bold{14}
