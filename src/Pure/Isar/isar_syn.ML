@@ -612,7 +612,7 @@ val init_toplevelP =
     (Scan.succeed IsarCmd.init_toplevel);
 
 val welcomeP =
-  OuterSyntax.improper_command "welcome" "print welcome message" K.control
+  OuterSyntax.improper_command "welcome" "print welcome message" K.diag
     (Scan.succeed IsarCmd.welcome);
 
 
