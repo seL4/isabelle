@@ -310,9 +310,12 @@ lemma eta_contract_eq: "(%s. f s) = f" ..
 
 lemma simp_thms:
   (not_not: "(~ ~ P) = P" and
+    "(P ~= Q) = (P = (~Q))"
+    "(P | ~P) = True"    "(~P | P) = True"
+    "((~P) = (~Q)) = (P=Q)"
     "(x = x) = True"
     "(~True) = False"  "(~False) = True"
-    "(~P) ~= P"  "P ~= (~P)"  "(P ~= Q) = (P = (~Q))"
+    "(~P) ~= P"  "P ~= (~P)"
     "(True=P) = P"  "(P=True) = P"  "(False=P) = (~P)"  "(P=False) = (~P)"
     "(True --> P) = P"  "(False --> P) = True"
     "(P --> True) = True"  "(P --> P) = True"
@@ -323,9 +326,7 @@ lemma simp_thms:
     "(P & ~P) = False"    "(~P & P) = False"
     "(P | True) = True"  "(True | P) = True"
     "(P | False) = P"  "(False | P) = P"
-    "(P | P) = P"  "(P | (P | Q)) = (P | Q)"
-    "(P | ~P) = True"    "(~P | P) = True"
-    "((~P) = (~Q)) = (P=Q)" and
+    "(P | P) = P"  "(P | (P | Q)) = (P | Q)" and
     "(ALL x. P) = P"  "(EX x. P) = P"  "EX x. x=t"  "EX x. t=x"
     -- {* needed for the one-point-rule quantifier simplification procs *}
     -- {* essential for termination!! *} and
@@ -333,8 +334,8 @@ lemma simp_thms:
     "!!P. (EX x. t=x & P(x)) = P(t)"
     "!!P. (ALL x. x=t --> P(x)) = P(t)"
     "!!P. (ALL x. t=x --> P(x)) = P(t)")
-  by blast+
-
+  by (blast, blast, blast, blast, blast, rules+)
+ 
 lemma imp_cong: "(P = P') ==> (P' ==> (Q = Q')) ==> ((P --> Q) = (P' --> Q'))"
   by rules
 
@@ -346,7 +347,7 @@ lemma ex_simps:
   "!!P Q. (EX x. P x --> Q) = ((ALL x. P x) --> Q)"
   "!!P Q. (EX x. P --> Q x) = (P --> (EX x. Q x))"
   -- {* Miniscoping: pushing in existential quantifiers. *}
-  by blast+
+  by (rules | blast)+
 
 lemma all_simps:
   "!!P Q. (ALL x. P x & Q)   = ((ALL x. P x) & Q)"
@@ -356,33 +357,33 @@ lemma all_simps:
   "!!P Q. (ALL x. P x --> Q) = ((EX x. P x) --> Q)"
   "!!P Q. (ALL x. P --> Q x) = (P --> (ALL x. Q x))"
   -- {* Miniscoping: pushing in universal quantifiers. *}
-  by blast+
+  by (rules | blast)+
 
 lemma eq_ac:
  (eq_commute: "(a=b) = (b=a)" and
   eq_left_commute: "(P=(Q=R)) = (Q=(P=R))" and
-  eq_assoc: "((P=Q)=R) = (P=(Q=R))") by blast+
-lemma neq_commute: "(a~=b) = (b~=a)" by blast
+  eq_assoc: "((P=Q)=R) = (P=(Q=R))") by (rules, blast+)
+lemma neq_commute: "(a~=b) = (b~=a)" by rules
 
 lemma conj_comms:
  (conj_commute: "(P&Q) = (Q&P)" and
-  conj_left_commute: "(P&(Q&R)) = (Q&(P&R))") by blast+
-lemma conj_assoc: "((P&Q)&R) = (P&(Q&R))" by blast
+  conj_left_commute: "(P&(Q&R)) = (Q&(P&R))") by rules+
+lemma conj_assoc: "((P&Q)&R) = (P&(Q&R))" by rules
 
 lemma disj_comms:
  (disj_commute: "(P|Q) = (Q|P)" and
-  disj_left_commute: "(P|(Q|R)) = (Q|(P|R))") by blast+
-lemma disj_assoc: "((P|Q)|R) = (P|(Q|R))" by blast
+  disj_left_commute: "(P|(Q|R)) = (Q|(P|R))") by rules+
+lemma disj_assoc: "((P|Q)|R) = (P|(Q|R))" by rules
 
-lemma conj_disj_distribL: "(P&(Q|R)) = (P&Q | P&R)" by blast
-lemma conj_disj_distribR: "((P|Q)&R) = (P&R | Q&R)" by blast
+lemma conj_disj_distribL: "(P&(Q|R)) = (P&Q | P&R)" by rules
+lemma conj_disj_distribR: "((P|Q)&R) = (P&R | Q&R)" by rules
 
-lemma disj_conj_distribL: "(P|(Q&R)) = ((P|Q) & (P|R))" by blast
-lemma disj_conj_distribR: "((P&Q)|R) = ((P|R) & (Q|R))" by blast
+lemma disj_conj_distribL: "(P|(Q&R)) = ((P|Q) & (P|R))" by rules
+lemma disj_conj_distribR: "((P&Q)|R) = ((P|R) & (Q|R))" by rules
 
-lemma imp_conjR: "(P --> (Q&R)) = ((P-->Q) & (P-->R))" by blast
-lemma imp_conjL: "((P&Q) -->R)  = (P --> (Q --> R))" by blast
-lemma imp_disjL: "((P|Q) --> R) = ((P-->R)&(Q-->R))" by blast
+lemma imp_conjR: "(P --> (Q&R)) = ((P-->Q) & (P-->R))" by rules
+lemma imp_conjL: "((P&Q) -->R)  = (P --> (Q --> R))" by rules
+lemma imp_disjL: "((P|Q) --> R) = ((P-->R)&(Q-->R))" by rules
 
 text {* These two are specialized, but @{text imp_disj_not1} is useful in @{text "Auth/Yahalom"}. *}
 lemma imp_disj_not1: "(P --> Q | R) = (~Q --> P --> R)" by blast
@@ -391,7 +392,7 @@ lemma imp_disj_not2: "(P --> Q | R) = (~R --> P --> Q)" by blast
 lemma imp_disj1: "((P-->Q)|R) = (P--> Q|R)" by blast
 lemma imp_disj2: "(Q|(P-->R)) = (P--> Q|R)" by blast
 
-lemma de_Morgan_disj: "(~(P | Q)) = (~P & ~Q)" by blast
+lemma de_Morgan_disj: "(~(P | Q)) = (~P & ~Q)" by rules
 lemma de_Morgan_conj: "(~(P & Q)) = (~P | ~Q)" by blast
 lemma not_imp: "(~(P --> Q)) = (P & ~Q)" by blast
 lemma not_iff: "(P~=Q) = (P = (~Q))" by blast
@@ -400,7 +401,7 @@ lemma disj_not2: "(P | ~Q) = (Q --> P)"  -- {* changes orientation :-( *}
   by blast
 lemma imp_conv_disj: "(P --> Q) = ((~P) | Q)" by blast
 
-lemma iff_conv_conj_imp: "(P = Q) = ((P --> Q) & (Q --> P))" by blast
+lemma iff_conv_conj_imp: "(P = Q) = ((P --> Q) & (Q --> P))" by rules
 
 
 lemma cases_simp: "((P --> Q) & (~P --> Q)) = Q"
@@ -410,11 +411,11 @@ lemma cases_simp: "((P --> Q) & (~P --> Q)) = Q"
 
 lemma not_all: "(~ (! x. P(x))) = (? x.~P(x))" by blast
 lemma imp_all: "((! x. P x) --> Q) = (? x. P x --> Q)" by blast
-lemma not_ex: "(~ (? x. P(x))) = (! x.~P(x))" by blast
-lemma imp_ex: "((? x. P x) --> Q) = (! x. P x --> Q)" by blast
+lemma not_ex: "(~ (? x. P(x))) = (! x.~P(x))" by rules
+lemma imp_ex: "((? x. P x) --> Q) = (! x. P x --> Q)" by rules
 
-lemma ex_disj_distrib: "(? x. P(x) | Q(x)) = ((? x. P(x)) | (? x. Q(x)))" by blast
-lemma all_conj_distrib: "(!x. P(x) & Q(x)) = ((! x. P(x)) & (! x. Q(x)))" by blast
+lemma ex_disj_distrib: "(? x. P(x) | Q(x)) = ((? x. P(x)) | (? x. Q(x)))" by rules
+lemma all_conj_distrib: "(!x. P(x) & Q(x)) = ((! x. P(x)) & (! x. Q(x)))" by rules
 
 text {*
   \medskip The @{text "&"} congruence rule: not included by default!
@@ -489,8 +490,8 @@ lemma if_bool_eq_disj: "(if P then Q else R) = ((P&Q) | (~P&R))"
   apply blast
   done
 
-lemma Eq_TrueI: "P ==> P == True" by (unfold atomize_eq) blast
-lemma Eq_FalseI: "~P ==> P == False" by (unfold atomize_eq) blast
+lemma Eq_TrueI: "P ==> P == True" by (unfold atomize_eq) rules
+lemma Eq_FalseI: "~P ==> P == False" by (unfold atomize_eq) rules
 
 use "simpdata.ML"
 setup Simplifier.setup
