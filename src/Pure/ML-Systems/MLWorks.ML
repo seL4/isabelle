@@ -108,7 +108,8 @@ fun execute command =
   end;
 
 
-(*Don't know what the boolean is for*)
+(*"false" writes an image file that is executed via the MLWorks "mlimage" 
+  script, while "true" would yield a larger, self-contained executable.*)
 fun xML filename = Shell.saveImage (filename, false);
 
 
