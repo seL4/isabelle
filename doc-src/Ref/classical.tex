@@ -1,12 +1,13 @@
 %% $Id$
 \chapter{The Classical Reasoner}
 \index{classical reasoner|(}
-\newcommand\ainfer[2]{\begin{array}{r@{}l}#2\\ \hline#1\end{array}}
+\newcommand\ainfer[2]{\begin{array}{r@{\,}l}#2\\ \hline#1\end{array}}
+
 Although Isabelle is generic, many users will be working in some extension
-of classical first-order logic (FOL).  Isabelle's set theory is built upon
-FOL, while higher-order logic contains FOL as a fragment.  Theorem-proving
-in FOL is of course undecidable, but many researchers have developed
-strategies to assist in this task.
+of classical first-order logic.  Isabelle's set theory~{\tt ZF} is built
+upon theory~{\tt FOL}, while higher-order logic contains first-order logic
+as a fragment.  Theorem-proving in predicate logic is undecidable, but many
+researchers have developed strategies to assist in this task.
 
 Isabelle's classical reasoner is an \ML{} functor that accepts certain
 information about a logic and delivers a suite of automatic tactics.  Each
@@ -20,15 +21,16 @@ seconds:
 \[ (\forall z. \exists y. \forall x. F(x,y) \bimp F(x,z) \conj \neg F(x,x))
    \imp \neg (\exists z. \forall x. F(x,z))  
 \]
-The tactics are generic.  They are not restricted to~FOL, and have been
-heavily used in the development of Isabelle's set theory.  Few interactive
-proof assistants provide this much automation.  Isabelle does not record
-proofs, but the tactics can be traced, and their components can be called
-directly.  In this manner, any proof can be viewed interactively.
+%
+The tactics are generic.  They are not restricted to first-order logic, and
+have been heavily used in the development of Isabelle's set theory.  Few
+interactive proof assistants provide this much automation.  The tactics can
+be traced, and their components can be called directly; in this manner,
+any proof can be viewed interactively.
 
-The logics FOL, HOL and ZF have the classical reasoner already installed.  We
-shall first consider how to use it, then see how to instantiate it for new
-logics. 
+The logics {\tt FOL}, {\tt HOL} and {\tt ZF} have the classical reasoner
+already installed.  We shall first consider how to use it, then see how to
+instantiate it for new logics.
 
 
 \section{The sequent calculus}
@@ -40,8 +42,9 @@ logic, it can not be called natural.  The {\bf sequent calculus}, a
 generalization of natural deduction, is easier to automate.
 
 A {\bf sequent} has the form $\Gamma\turn\Delta$, where $\Gamma$
-and~$\Delta$ are sets of formulae.\footnote{For FOL, sequents can
-equivalently be made from lists or multisets of formulae.}  The sequent
+and~$\Delta$ are sets of formulae.%
+\footnote{For first-order logic, sequents can equivalently be made from
+  lists or multisets of formulae.} The sequent
 \[ P@1,\ldots,P@m\turn Q@1,\ldots,Q@n \]
 is {\bf valid} if $P@1\conj\ldots\conj P@m$ implies $Q@1\disj\ldots\disj
 Q@n$.  Thus $P@1,\ldots,P@m$ represent assumptions, each of which is true,
@@ -52,8 +55,12 @@ Q,R$; basic sequents are trivially valid.
 Sequent rules are classified as {\bf right} or {\bf left}, indicating which
 side of the $\turn$~symbol they operate on.  Rules that operate on the
 right side are analogous to natural deduction's introduction rules, and
-left rules are analogous to elimination rules.  The sequent calculus
-analogue of~$({\imp}I)$ is the rule
+left rules are analogous to elimination rules.  
+Recall the natural deduction rules for
+  first-order logic, 
+\iflabelundefined{fol-fig}{from {\it Introduction to Isabelle}}%
+                          {Fig.\ts\ref{fol-fig}}.
+The sequent calculus analogue of~$({\imp}I)$ is the rule
 $$ \ainfer{\Gamma &\turn \Delta, P\imp Q}{P,\Gamma &\turn \Delta,Q}
    \eqno({\imp}R) $$
 This breaks down some implication on the right side of a sequent; $\Gamma$
@@ -82,7 +89,7 @@ discussion.
 
 
 \section{Simulating sequents by natural deduction}
-Isabelle can represent sequents directly, as in the object-logic~{\sc lk}.
+Isabelle can represent sequents directly, as in the object-logic~{\tt LK}\@.
 But natural deduction is easier to work with, and most object-logics employ
 it.  Fortunately, we can simulate the sequent $P@1,\ldots,P@m\turn
 Q@1,\ldots,Q@n$ by the Isabelle formula
@@ -91,16 +98,17 @@ where the order of the assumptions and the choice of~$Q@1$ are arbitrary.
 Elim-resolution plays a key role in simulating sequent proofs.
 
 We can easily handle reasoning on the left.
-As discussed in the {\em Introduction to Isabelle},
+As discussed in
+\iflabelundefined{destruct}{{\it Introduction to Isabelle}}{\S\ref{destruct}}, 
 elim-resolution with the rules $(\disj E)$, $(\bot E)$ and $(\exists E)$
 achieves a similar effect as the corresponding sequent rules.  For the
 other connectives, we use sequent-style elimination rules instead of
-destruction rules.  But note that the rule $(\neg L)$ has no effect
-under our representation of sequents!
+destruction rules such as $({\conj}E1,2)$ and $(\forall E)$.  But note that
+the rule $(\neg L)$ has no effect under our representation of sequents!
 $$ \ainfer{\neg P,\Gamma &\turn \Delta}{\Gamma &\turn \Delta,P}
    \eqno({\neg}L) $$
 What about reasoning on the right?  Introduction rules can only affect the
-formula in the conclusion, namely~$Q@1$.  The other right-side formula are
+formula in the conclusion, namely~$Q@1$.  The other right-side formulae are
 represented as negated assumptions, $\neg Q@2$, \ldots,~$\neg Q@n$.  In
 order to operate on one of these, it must first be exchanged with~$Q@1$.
 Elim-resolution with the {\bf swap} rule has this effect:
@@ -129,8 +137,8 @@ simulates $({\disj}R)$:
 The destruction rule $({\imp}E)$ is replaced by
 \[ \List{P\imp Q;\; \neg P\imp R;\; Q\imp R} \Imp R. \]
 Quantifier replication also requires special rules.  In classical logic,
-$\exists x{.}P$ is equivalent to $\forall x{.}P$, and the rules $(\exists R)$
-and $(\forall L)$ are dual:
+$\exists x{.}P$ is equivalent to $\neg\forall x{.}\neg P$; the rules
+$(\exists R)$ and $(\forall L)$ are dual:
 \[ \ainfer{\Gamma &\turn \Delta, \exists x{.}P}
           {\Gamma &\turn \Delta, \exists x{.}P, P[t/x]} \; (\exists R)
    \qquad
@@ -139,9 +147,9 @@ and $(\forall L)$ are dual:
 \]
 Thus both kinds of quantifier may be replicated.  Theorems requiring
 multiple uses of a universal formula are easy to invent; consider 
-$(\forall x.P(x)\imp P(f(x))) \conj P(a) \imp P(f^n(x))$, for any~$n>1$.
-Natural examples of the multiple use of an existential formula are rare; a
-standard one is $\exists x.\forall y. P(x)\imp P(y)$.
+\[ (\forall x.P(x)\imp P(f(x))) \conj P(a) \imp P(f^n(a)), \]
+for any~$n>1$.  Natural examples of the multiple use of an existential
+formula are rare; a standard one is $\exists x.\forall y. P(x)\imp P(y)$.
 
 Forgoing quantifier replication loses completeness, but gains decidability,
 since the search space becomes finite.  Many useful theorems can be proved
@@ -169,22 +177,21 @@ expensive to prove any but the simplest theorems.
 
 \section{Classical rule sets}
 \index{classical sets|bold}
-Each automatic tactic takes a {\bf classical rule set} -- a collection of
+Each automatic tactic takes a {\bf classical rule set} --- a collection of
 rules, classified as introduction or elimination and as {\bf safe} or {\bf
 unsafe}.  In general, safe rules can be attempted blindly, while unsafe
 rules must be used with care.  A safe rule must never reduce a provable
-goal to an unprovable set of subgoals.  The rule~$({\disj}I1)$ is obviously
-unsafe, since it reduces $P\disj Q$ to~$P$; fortunately, we do not require
-this rule.
+goal to an unprovable set of subgoals.  
 
-In general, any rule is unsafe whose premises contain new unknowns.  The
-elimination rule~$(\forall E@2)$ is unsafe, since it is applied via
-elim-resolution, which discards the assumption $\forall x{.}P(x)$ and
-replaces it by the weaker assumption~$P(\Var{t})$.  The rule $({\exists}I)$
-is unsafe for similar reasons.  The rule~$(\forall E@3)$ is unsafe in a
-different sense: since it keeps the assumption $\forall x{.}P(x)$, it is
-prone to looping.  In classical first-order logic, all rules are safe
-except those mentioned above.
+The rule~$({\disj}I1)$ is unsafe because it reduces $P\disj Q$ to~$P$.  Any
+rule is unsafe whose premises contain new unknowns.  The elimination
+rule~$(\forall E@2)$ is unsafe, since it is applied via elim-resolution,
+which discards the assumption $\forall x{.}P(x)$ and replaces it by the
+weaker assumption~$P(\Var{t})$.  The rule $({\exists}I)$ is unsafe for
+similar reasons.  The rule~$(\forall E@3)$ is unsafe in a different sense:
+since it keeps the assumption $\forall x{.}P(x)$, it is prone to looping.
+In classical first-order logic, all rules are safe except those mentioned
+above.
 
 The safe/unsafe distinction is vague, and may be regarded merely as a way
 of giving some rules priority over others.  One could argue that
@@ -211,29 +218,30 @@ print_cs : claset -> unit
 \end{ttbox}
 There are no operations for deletion from a classical set.  The add
 operations do not check for repetitions.
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{empty_cs}] is the empty classical set.
 
-\item[\tt $cs$ addSIs $rules$] \indexbold{*addSIs}
-adds some safe introduction~$rules$ to the classical set~$cs$.
+\item[$cs$ addSIs $rules$] \indexbold{*addSIs}
+adds safe introduction~$rules$ to~$cs$.
 
-\item[\tt $cs$ addSEs $rules$] \indexbold{*addSEs}
-adds some safe elimination~$rules$ to the classical set~$cs$.
+\item[$cs$ addSEs $rules$] \indexbold{*addSEs}
+adds safe elimination~$rules$ to~$cs$.
 
-\item[\tt $cs$ addSDs $rules$] \indexbold{*addSDs}
-adds some safe destruction~$rules$ to the classical set~$cs$.
+\item[$cs$ addSDs $rules$] \indexbold{*addSDs}
+adds safe destruction~$rules$ to~$cs$.
 
-\item[\tt $cs$ addIs $rules$] \indexbold{*addIs}
-adds some unsafe introduction~$rules$ to the classical set~$cs$.
+\item[$cs$ addIs $rules$] \indexbold{*addIs}
+adds unsafe introduction~$rules$ to~$cs$.
 
-\item[\tt $cs$ addEs $rules$] \indexbold{*addEs}
-adds some unsafe elimination~$rules$ to the classical set~$cs$.
+\item[$cs$ addEs $rules$] \indexbold{*addEs}
+adds unsafe elimination~$rules$ to~$cs$.
 
-\item[\tt $cs$ addDs $rules$] \indexbold{*addDs}
-adds some unsafe destruction~$rules$ to the classical set~$cs$.
+\item[$cs$ addDs $rules$] \indexbold{*addDs}
+adds unsafe destruction~$rules$ to~$cs$.
 
-\item[\ttindexbold{print_cs} $cs$] prints the rules of the classical set~$cs$.
-\end{description}
+\item[\ttindexbold{print_cs} $cs$] prints the rules of~$cs$.
+\end{ttdescription}
+
 Introduction rules are those that can be applied using ordinary resolution.
 The classical set automatically generates their swapped forms, which will
 be applied using elim-resolution.  Elimination rules are applied using
@@ -265,7 +273,7 @@ slow_step_tac : claset -> int -> tactic
 \end{ttbox}
 The automatic proof procedures call these tactics.  By calling them
 yourself, you can execute these procedures one step at a time.
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{safe_step_tac} $cs$ $i$] performs a safe step on
 subgoal~$i$.  This may include proof by assumption or Modus Ponens, taking
 care not to instantiate unknowns, or \ttindex{hyp_subst_tac}.
@@ -288,7 +296,7 @@ This is the basic step of the proof procedure.
   The resulting search space is too large for use in the standard proof
   procedures, but {\tt slow_step_tac} is worth considering in special
   situations.
-\end{description}
+\end{ttdescription}
 
 
 \subsection{The automatic tactics}
@@ -299,7 +307,7 @@ best_tac : claset -> int -> tactic
 Both of these tactics work by applying {\tt step_tac} repeatedly.  Their
 effect is restricted (by {\tt SELECT_GOAL}) to one subgoal; they either
 solve this subgoal or fail.
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{fast_tac} $cs$ $i$] applies {\tt step_tac} using
 depth-first search, to solve subgoal~$i$.
 
@@ -307,7 +315,7 @@ depth-first search, to solve subgoal~$i$.
 best-first search, to solve subgoal~$i$.  A heuristic function ---
 typically, the total size of the proof state --- guides the search.  This
 function is supplied when the classical reasoner is set up.
-\end{description}
+\end{ttdescription}
 
 
 \subsection{Other useful tactics}
@@ -320,7 +328,7 @@ eq_mp_tac    :             int -> tactic
 swap_res_tac : thm list -> int -> tactic
 \end{ttbox}
 These can be used in the body of a specialized search.
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{contr_tac} {\it i}] solves subgoal~$i$ by detecting a
 contradiction among two assumptions of the form $P$ and~$\neg P$, or fail.
 It may instantiate unknowns.  The tactic can produce multiple outcomes,
@@ -341,23 +349,23 @@ the proof state using {\it thms}, which should be a list of introduction
 rules.  First, it attempts to solve the goal using \ttindex{assume_tac} or
 {\tt contr_tac}.  It then attempts to apply each rule in turn, attempting
 resolution and also elim-resolution with the swapped form.
-\end{description}
+\end{ttdescription}
 
 \subsection{Creating swapped rules}
 \begin{ttbox} 
 swapify   : thm list -> thm list
 joinrules : thm list * thm list -> (bool * thm) list
 \end{ttbox}
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{swapify} {\it thms}] returns a list consisting of the
 swapped versions of~{\it thms}, regarded as introduction rules.
 
-\item[\ttindexbold{joinrules} \tt({\it intrs}, {\it elims})]
+\item[\ttindexbold{joinrules} ({\it intrs}, {\it elims})]
 joins introduction rules, their swapped versions, and elimination rules for
 use with \ttindex{biresolve_tac}.  Each rule is paired with~{\tt false}
 (indicating ordinary resolution) or~{\tt true} (indicating
 elim-resolution).
-\end{description}
+\end{ttdescription}
 
 
 \section{Setting up the classical reasoner}
@@ -378,7 +386,7 @@ signature CLASSICAL_DATA =
   end;
 \end{ttbox}
 Thus, the functor requires the following items:
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{mp}] should be the Modus Ponens rule
 $\List{\Var{P}\imp\Var{Q};\; \Var{P}} \Imp \Var{Q}$.
 
@@ -399,7 +407,7 @@ count the subgoals.
 the hypotheses, typically created by \ttindex{HypsubstFun} (see
 Chapter~\ref{substitution}).  This list can, of course, be empty.  The
 tactics are assumed to be safe!
-\end{description}
+\end{ttdescription}
 The functor is not at all sensitive to the formalization of the
 object-logic.  It does not even examine the rules, but merely applies them
 according to its fixed strategy.  The functor resides in {\tt
