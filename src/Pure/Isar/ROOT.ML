@@ -43,6 +43,7 @@ use "outer_syntax.ML";
 
 (*theory and proof operations*)
 use "isar_thy.ML";
+use "constdefs.ML";
 use "isar_cmd.ML";
 use "isar_syn.ML";
 
@@ -73,6 +74,7 @@ struct
   structure ThyHeader = ThyHeader;
   structure OuterSyntax = OuterSyntax;
   structure IsarThy = IsarThy;
+  structure Constdefs = Constdefs;
   structure IsarCmd = IsarCmd;
   structure IsarSyn = IsarSyn;
   structure Isar = Isar;
