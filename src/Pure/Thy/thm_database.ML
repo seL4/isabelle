@@ -74,9 +74,10 @@ fun thms_containing constants =
                                           else (result desc_inter new_thms))
             end;
 
-      val ignored = constants inter ignore;
-  in if null ignored then () else
-       error ("The following constant(s) must not be used for searching the \
-              \theorem database:\n  " ^ commas (map quote ignored));
-     collect constants true [] end;
+      val look_for = constants \\ ignore;
+  in if null look_for then
+       error ("Only ignored constants specified for theorem database search:\n"
+              ^ commas (map quote ignored))
+     else ();
+     collect look_for true [] end;
 end;
