@@ -36,6 +36,8 @@ wt_jvm_prog :: "[jvm_prog,prog_type] \\<Rightarrow> bool"
    wf_prog (\\<lambda>G C (sig,rT,maxl,b).
               wt_method G C (snd sig) rT maxl b (phi C sig)) G"
 
+
+
 lemma wt_jvm_progD:
 "wt_jvm_prog G phi \\<Longrightarrow> (\\<exists>wt. wf_prog wt G)"
 by (unfold wt_jvm_prog_def, blast)

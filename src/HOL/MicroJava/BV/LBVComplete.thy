@@ -6,11 +6,7 @@
 
 header {* Completeness of the LBV *}
 
-theory LBVComplete = BVSpec + LBVSpec:
-
-
-ML_setup {* bind_thm ("widen_RefT", widen_RefT) *}
-ML_setup {* bind_thm ("widen_RefT2", widen_RefT2) *}
+theory LBVComplete = BVSpec + LBVSpec + StepMono:
 
 
 constdefs
@@ -66,51 +62,59 @@ constdefs
         make_cert b (Phi C sig)"
   
 
-lemma length_ofn: "\\<forall>n. length (option_filter_n l P n) = length l"
+lemmas [simp del] = split_paired_Ex
+
+lemma length_ofn [rulify]: "\\<forall>n. length (option_filter_n l P n) = length l"
   by (induct l) auto
 
-lemma is_approx_option_filter_n:
-"\\<forall>n. is_approx (option_filter_n a P n) a" (is "?P a")
-proof (induct a)
-  show "?P []" by (auto simp add: is_approx_def)
-
-  fix l ls
-  assume Cons: "?P ls"
-
-  show "?P (l#ls)"
-  proof (unfold is_approx_def, intro allI conjI impI)
-    fix n
-    show "length (option_filter_n (l # ls) P n) = length (l # ls)" 
-      by (simp only: length_ofn)
-    
-    fix m
-    assume "m < length (option_filter_n (l # ls) P n)"
-    hence m: "m < Suc (length ls)" by (simp only: length_ofn) simp
- 
-    show "option_filter_n (l # ls) P n ! m = None \\<or>
-          option_filter_n (l # ls) P n ! m = Some ((l # ls) ! m)" 
-    proof (cases "m")
-      assume "m = 0"
-      with m show ?thesis by simp
-    next
-      fix m' assume Suc: "m = Suc m'"
-      from Cons
-      show ?thesis
-      proof (unfold is_approx_def, elim allE impE conjE)
-        from m Suc
-        show "m' < length (option_filter_n ls P (Suc n))" by (simp add: length_ofn)
-
-        assume "option_filter_n ls P (Suc n) ! m' = None \\<or> 
-                option_filter_n ls P (Suc n) ! m' = Some (ls ! m')"
-        with m Suc
-        show ?thesis by auto
-      qed
-    qed
-  qed
-qed
 
 lemma is_approx_option_filter: "is_approx (option_filter l P) l" 
-  by (simp add: option_filter_def is_approx_option_filter_n)
+proof -
+  {
+    fix a n
+    have "\\<forall>n. is_approx (option_filter_n a P n) a" (is "?P a")
+    proof (induct a)
+      show "?P []" by (auto simp add: is_approx_def)
+    
+      fix l ls
+      assume Cons: "?P ls"
+    
+      show "?P (l#ls)"
+      proof (unfold is_approx_def, intro allI conjI impI)
+        fix n
+        show "length (option_filter_n (l # ls) P n) = length (l # ls)" 
+          by (simp only: length_ofn)
+      
+        fix m
+        assume "m < length (option_filter_n (l # ls) P n)"
+        hence m: "m < Suc (length ls)" by (simp only: length_ofn) simp
+      
+        show "option_filter_n (l # ls) P n ! m = None \\<or>
+              option_filter_n (l # ls) P n ! m = Some ((l # ls) ! m)" 
+        proof (cases "m")
+          assume "m = 0"
+          with m show ?thesis by simp
+        next
+          fix m' assume Suc: "m = Suc m'"
+          from Cons
+          show ?thesis
+          proof (unfold is_approx_def, elim allE impE conjE)
+            from m Suc
+            show "m' < length (option_filter_n ls P (Suc n))" by (simp add: length_ofn)
+          
+            assume "option_filter_n ls P (Suc n) ! m' = None \\<or> 
+                    option_filter_n ls P (Suc n) ! m' = Some (ls ! m')"
+            with m Suc
+            show ?thesis by auto
+          qed
+        qed
+      qed
+    qed
+  }
+  
+  thus ?thesis    
+    by (auto simp add: option_filter_def)
+qed
 
 lemma option_filter_Some:
 "\\<lbrakk>n < length l; P n\\<rbrakk> \\<Longrightarrow> option_filter l P ! n = Some (l!n)"
@@ -200,11 +204,8 @@ lemma fitsD2:
 by (clarsimp simp add: fits_def contains_dead_def contains_targets_def)
 
 
-
-lemmas [trans] = sup_state_trans
-
 lemma wtl_inst_mono:
-"\\<lbrakk>wtl_inst i G rT s1 s1' cert mpc pc; fits ins cert phi; pc < length ins; wf_prog wf_mb G; 
+"\\<lbrakk>wtl_inst i G rT s1 s1' cert mpc pc; fits ins cert phi; pc < length ins; 
   G \\<turnstile> s2 <=s s1; i = ins!pc\\<rbrakk> \\<Longrightarrow> 
  \\<exists> s2'. wtl_inst (ins!pc) G rT s2 s2' cert mpc pc \\<and> (G \\<turnstile> s2' <=s s1')";
 proof -
@@ -270,6 +271,42 @@ proof -
   with pc show ?thesis by simp
 qed
     
+
+lemma wtl_option_mono:
+"\\<lbrakk>wtl_inst_option i G rT s1 s1' cert mpc pc; fits ins cert phi; 
+  pc < length ins; G \\<turnstile> s2 <=s s1; i = ins!pc\\<rbrakk> \\<Longrightarrow> 
+ \\<exists> s2'. wtl_inst_option (ins!pc) G rT s2 s2' cert mpc pc \\<and> (G \\<turnstile> s2' <=s s1')"
+proof -
+  assume wtl:  "wtl_inst_option i G rT s1 s1' cert mpc pc" and
+         fits: "fits ins cert phi" "pc < length ins"
+               "G \\<turnstile> s2 <=s s1" "i = ins!pc"
+
+  show ?thesis
+  proof (cases "cert!pc")
+    case None
+    with wtl fits;
+    show ?thesis; 
+      by - (rule wtl_inst_mono [elimify], (simp add: wtl_inst_option_def)+);
+  next
+    case Some
+    with wtl fits;
+
+    have G: "G \\<turnstile> s2 <=s a"
+     by - (rule sup_state_trans, (simp add: wtl_inst_option_def)+)
+
+    from Some wtl
+    have "wtl_inst i G rT a s1' cert mpc pc"; by (simp add: wtl_inst_option_def)
+
+    with G fits
+    have "\\<exists> s2'. wtl_inst (ins!pc) G rT a s2' cert mpc pc \\<and> (G \\<turnstile> s2' <=s s1')"
+      by - (rule wtl_inst_mono, (simp add: wtl_inst_option_def)+);
+    
+    with Some G;
+    show ?thesis; by (simp add: wtl_inst_option_def);
+  qed
+qed
+
+
     
 lemma wt_instr_imp_wtl_inst:
 "\\<lbrakk>wt_instr (ins!pc) G rT phi max_pc pc; fits ins cert phi;
@@ -296,7 +333,7 @@ proof -
   from wt fits pc
   have cert: "!!pc'. \\<lbrakk>pc' \\<in> succs (ins!pc) pc; pc' < max_pc; pc' \\<noteq> pc+1\\<rbrakk> 
     \\<Longrightarrow> cert!pc' \\<noteq> None \\<and> G \\<turnstile> ?s' <=s the (cert!pc')"
-    by (auto dest: fitsD simp add: wt_instr_def simp del: split_paired_Ex)
+    by (auto dest: fitsD simp add: wt_instr_def)
 
   show ?thesis
   proof (cases "pc+1 \\<in> succs (ins!pc) pc")
@@ -358,143 +395,87 @@ proof -
 qed
 
 
-lemma wtl_option_mono:
-"\\<lbrakk>wtl_inst_option i G rT s1 s1' cert mpc pc;  fits ins cert phi; pc < length ins; 
-  wf_prog wf_mb G; G \\<turnstile> s2 <=s s1; i = ins!pc\\<rbrakk> \\<Longrightarrow> 
- \\<exists> s2'. wtl_inst_option (ins!pc) G rT s2 s2' cert mpc pc \\<and> (G \\<turnstile> s2' <=s s1')"
-proof -
-  assume wtl:  "wtl_inst_option i G rT s1 s1' cert mpc pc" and
-         fits: "fits ins cert phi" "pc < length ins"
-               "wf_prog wf_mb G" "G \\<turnstile> s2 <=s s1" "i = ins!pc"
+text {*
+  \medskip
+  Main induction over the instruction list.
+*}
 
-  show ?thesis
-  proof (cases "cert!pc")
-    case None
-    with wtl fits;
-    show ?thesis; 
-      by - (rule wtl_inst_mono [elimify], (simp add: wtl_inst_option_def)+);
-  next
-    case Some
-    with wtl fits;
-
-    have G: "G \\<turnstile> s2 <=s a"
-     by - (rule sup_state_trans, (simp add: wtl_inst_option_def)+)
-
-    from Some wtl
-    have "wtl_inst i G rT a s1' cert mpc pc"; by (simp add: wtl_inst_option_def)
-
-    with G fits
-    have "\\<exists> s2'. wtl_inst (ins!pc) G rT a s2' cert mpc pc \\<and> (G \\<turnstile> s2' <=s s1')"
-      by - (rule wtl_inst_mono, (simp add: wtl_inst_option_def)+);
-    
-    with Some G;
-    show ?thesis; by (simp add: wtl_inst_option_def);
-  qed
-qed
-
-
-(* main induction over instruction list *)
 theorem wt_imp_wtl_inst_list:
-"\\<forall> pc. (\\<forall>pc'. pc' < length ins \\<longrightarrow> wt_instr (ins ! pc') G rT phi (pc+length ins) (pc+pc')) \\<longrightarrow>   
-       wf_prog wf_mb G \\<longrightarrow> 
-       fits all_ins cert phi \\<longrightarrow> (\\<exists> l. pc = length l \\<and> all_ins=l@ins) \\<longrightarrow> pc < length all_ins \\<longrightarrow>
+"\\<forall> pc. (\\<forall>pc'. pc' < length all_ins \\<longrightarrow> wt_instr (all_ins ! pc') G rT phi (length all_ins) pc') \\<longrightarrow>   
+       fits all_ins cert phi \\<longrightarrow> 
+       (\\<exists>l. pc = length l \\<and> all_ins = l@ins) \\<longrightarrow>  
+       pc < length all_ins \\<longrightarrow>      
        (\\<forall> s. (G \\<turnstile> s <=s (phi!pc)) \\<longrightarrow> 
-       (\\<exists>s'. wtl_inst_list ins G rT s s' cert (pc+length ins) pc))" 
-(is "\\<forall>pc. ?C pc ins" is "?P ins");
-proof (induct "?P" "ins");
-  case Nil;
-  show "?P []"; by simp;
-next;
-  case Cons;
+             (\\<exists>s'. wtl_inst_list ins G rT s s' cert (length all_ins) pc))" 
+(is "\\<forall>pc. ?wt \\<longrightarrow> ?fits \\<longrightarrow> ?l pc ins \\<longrightarrow> ?len pc \\<longrightarrow> ?wtl pc ins" is "\\<forall>pc. ?C pc ins" is "?P ins") 
+proof (induct "?P" "ins")
+  case Nil
+  show "?P []" by simp
+next
+  fix i ins'
+  assume Cons: "?P ins'"
 
-  show "?P (a#list)";
-  proof (intro allI impI, elim exE conjE);
-    fix pc s l;
-    assume 1: "wf_prog wf_mb G" "fits all_ins cert phi";
-    assume 2: "pc < length all_ins" "G \\<turnstile> s <=s phi ! pc"
-              "all_ins = l @ a # list" "pc = length l";
+  show "?P (i#ins')" 
+  proof (intro allI impI, elim exE conjE)
+    fix pc s l
+    assume wt  : "\\<forall>pc'. pc' < length all_ins \\<longrightarrow> 
+                        wt_instr (all_ins ! pc') G rT phi (length all_ins) pc'"
+    assume fits: "fits all_ins cert phi"
+    assume G   : "G \\<turnstile> s <=s phi ! pc"
+    assume l   : "pc < length all_ins"
 
-    from Cons;
-    have IH: "?C (Suc pc) list"; by blast;
+    assume pc  : "all_ins = l@i#ins'" "pc = length l"
+    hence  i   : "all_ins ! pc = i"
+      by (simp add: nth_append)
 
-    assume 3: "\\<forall>pc'. pc' < length (a # list) \\<longrightarrow>
-               wt_instr ((a # list) ! pc') G rT phi (pc + length (a # list)) (pc + pc')";
-    hence 4: "\\<forall>pc'. pc' < length list \\<longrightarrow>
-              wt_instr (list ! pc') G rT phi (Suc pc + length list) (Suc pc + pc')"; by auto;    
+    from l wt
+    have "wt_instr (all_ins!pc) G rT phi (length all_ins) pc" by blast
 
-    from 2; 
-    have 5: "a = all_ins ! pc"; by (simp add: nth_append);
+    with fits l 
+    obtain s1 where
+          "wtl_inst_option (all_ins!pc) G rT (phi!pc) s1 cert (length all_ins) pc" and
+      s1: "G \\<turnstile> s1 <=s phi ! (Suc pc)"
+      by - (drule wt_instr_imp_wtl_option, assumption+, simp, elim exE conjE, simp) 
+    
+    with fits l
+    obtain s2 where
+      o:  "wtl_inst_option (all_ins!pc) G rT s s2 cert (length all_ins) pc" 
+      and "G \\<turnstile> s2 <=s s1"
+      by - (drule wtl_option_mono, assumption+, simp, elim exE conjE, rule that) 
 
+    with s1
+    have G': "G \\<turnstile> s2 <=s phi ! (Suc pc)"
+      by - (rule sup_state_trans, auto)
 
-    show "\\<exists>s'. wtl_inst_list (a # list) G rT s s' cert (pc + length (a # list)) pc"; 
-    proof (cases list);
-      case Nil;
+    from Cons
+    have "?C (Suc pc) ins'" by blast
+    with wt fits pc
+    have IH: "?len (Suc pc) \\<longrightarrow> ?wtl (Suc pc) ins'" by auto
 
-      with 1 2 3 5; 
-      have "\\<exists>s'. wtl_inst_option a G rT (phi ! pc) s' cert (Suc (length l)) pc";
-        by - (rule wt_instr_imp_wtl_option [elimify], force+);
-
-      with Nil 1 2 5;
-      have "\\<exists>s'. wtl_inst_option a G rT s s' cert (Suc (length l)) pc";
-        by elim (rule wtl_option_mono [elimify], force+); 
-
-      with Nil 2;
-      show ?thesis; by auto;
-    next;
-      fix i' ins'; 
-      assume Cons2: "list = i' # ins'";
-
-      with IH 1 2 3;
-      have * : "\\<forall> s. (G \\<turnstile> s <=s (phi!(Suc pc))) \\<longrightarrow> 
-                     (\\<exists>s'. wtl_inst_list list G rT s s' cert ((Suc pc)+length list) (Suc pc))";
-        by (elim impE) force+;
-
-      from 3;
-      have "wt_instr a G rT phi (pc + length (a # list)) pc"; by auto;
-      
-      with 1 2 5;
-      have "\\<exists>s1'. wtl_inst_option a G rT (phi!pc) s1' cert (Suc (pc + length list)) pc \\<and> G \\<turnstile> s1' <=s phi ! Suc pc";
-        by - (rule wt_instr_imp_wtl_option [elimify], assumption+, simp+);
-
-      hence "\\<exists>s1. wtl_inst_option a G rT s s1 cert (Suc (pc + length list)) pc \\<and>
-                  (G \\<turnstile> s1 <=s (phi ! (Suc pc)))" (* \\<or> (\\<exists>s. cert ! Suc pc = Some s \\<and> G \\<turnstile> s1 <=s s))"; *)
-      proof elim; 
-        fix s1';
-        assume "wtl_inst_option a G rT (phi!pc) s1' cert (Suc (pc + length list)) pc" and
-            a :"G \\<turnstile> s1' <=s phi ! Suc pc";
-        with 1 2 5;
-        have "\\<exists>s1. wtl_inst_option a G rT s s1 cert (Suc (pc + length list)) pc \\<and>
-                   ((G \\<turnstile> s1 <=s s1'))" (* \\<or> (\\<exists>s. cert ! Suc pc = Some s \\<and> G \\<turnstile> s1 <=s s))"; *)
-          by - (rule wtl_option_mono [elimify], simp+);
-
-        with a;
-        show ?thesis;
-        proof (elim, intro);
-          fix s1;
-          assume "G \\<turnstile> s1 <=s s1'" "G \\<turnstile> s1' <=s phi ! Suc pc";
-          show "G \\<turnstile> s1 <=s phi ! Suc pc"; by (rule sup_state_trans);
-        qed auto;
-      qed
-
-      thus ?thesis
-      proof (elim exE conjE); 
-        fix s1;
-        assume wto: "wtl_inst_option a G rT s s1 cert (Suc (pc + length list)) pc"; 
-        assume Gs1: "G \\<turnstile> s1 <=s phi ! Suc pc" (* \\<or> (\\<exists>s. cert ! Suc pc = Some s \\<and> G \\<turnstile> s1 <=s s)"; *)
-        
-        with *
-        have "\\<exists>s'. wtl_inst_list list G rT s1 s' cert ((Suc pc)+length list) (Suc pc)";  by blast
-
-        with wto;
-        show ?thesis; by (auto simp del: split_paired_Ex);
-      qed
+    show "\\<exists>s'. wtl_inst_list (i#ins') G rT s s' cert (length all_ins) pc"
+    proof (cases "?len (Suc pc)")
+      case False
+      with pc
+      have "ins' = []" by simp
+      with i o 
+      show ?thesis by auto
+    next
+      case True
+      with IH
+      have "?wtl (Suc pc) ins'" by blast
+      with G'
+      obtain s' where
+        "wtl_inst_list ins' G rT s2 s' cert (length all_ins) (Suc pc)"
+        by - (elim allE impE, auto)        
+      with i o
+      show ?thesis by auto
     qed
   qed
 qed
-
+  
 
 lemma fits_imp_wtl_method_complete:
-"\\<lbrakk>wt_method G C pTs rT mxl ins phi; fits ins cert phi; wf_prog wf_mb G\\<rbrakk> \\<Longrightarrow> wtl_method G C pTs rT mxl ins cert";
+"\\<lbrakk>wt_method G C pTs rT mxl ins phi; fits ins cert phi; wf_prog wf_mb G\\<rbrakk> \\<Longrightarrow> wtl_method G C pTs rT mxl ins cert"
 by (simp add: wt_method_def wtl_method_def del: split_paired_Ex)
    (rule wt_imp_wtl_inst_list [rulify, elimify], auto simp add: wt_start_def simp del: split_paired_Ex); 
 
@@ -560,5 +541,6 @@ proof (simp only: wt_jvm_prog_def);
   qed;
 qed
 
+lemmas [simp] = split_paired_Ex
 
 end
