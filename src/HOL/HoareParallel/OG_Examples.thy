@@ -461,9 +461,10 @@ subsection {* Parameterized Examples *}
 
 subsubsection {* Set Elements of an Array to Zero *}
 
-record scheme1_vars =
+record Example1 =
   a :: "nat \<Rightarrow> nat"
-lemma scheme1: 
+
+lemma Example1: 
  "\<parallel>- .{True}.
    COBEGIN SCHEME [0\<le>i<n] .{True}. \<acute>a:=\<acute>a (i:=0) .{\<acute>a i=0}. COEND 
   .{\<forall>i < n. \<acute>a i = 0}."
@@ -472,14 +473,14 @@ apply simp_all
 done
 
 text {* Same example with lists as auxiliary variables. *}
-record scheme1_list_vars =
-  a :: "nat list"
-lemma scheme1_list: 
- "\<parallel>- .{n < length \<acute>a}. 
+record Example1_list =
+  A :: "nat list"
+lemma Example1_list: 
+ "\<parallel>- .{n < length \<acute>A}. 
    COBEGIN 
-     SCHEME [0\<le>i<n] .{n < length \<acute>a}. \<acute>a:=\<acute>a[i:=0] .{\<acute>a!i=0}. 
+     SCHEME [0\<le>i<n] .{n < length \<acute>A}. \<acute>A:=\<acute>A[i:=0] .{\<acute>A!i=0}. 
    COEND 
-    .{\<forall>i < n. \<acute>a!i = 0}."
+    .{\<forall>i < n. \<acute>A!i = 0}."
 apply oghoare
 apply simp_all
   apply force+
@@ -492,13 +493,13 @@ subsubsection {* Increment a Variable in Parallel *}
 text {* First some lemmas about summation properties. Summation is
 defined in PreList. *}
 
-lemma scheme2_lemma1: "!!b. j<n \<Longrightarrow> (\<Sum>i<n. b i) = (0::nat) \<Longrightarrow> b j = 0 "
+lemma Example2_lemma1: "!!b. j<n \<Longrightarrow> (\<Sum>i<n. b i) = (0::nat) \<Longrightarrow> b j = 0 "
 apply(induct n)
  apply simp_all
 apply(force simp add: less_Suc_eq)
 done
 
-lemma scheme2_lemma2_aux: "!!b. j<n \<Longrightarrow> 
+lemma Example2_lemma2_aux: "!!b. j<n \<Longrightarrow> 
  (\<Sum>i<n. (b i::nat)) = (\<Sum>i<j. b i) + b j + (\<Sum>i<n-(Suc j) . b (Suc j + i))"
 apply(induct n)
  apply simp_all
@@ -509,36 +510,38 @@ apply(subgoal_tac "n - j = Suc(n- Suc j)")
 apply arith
 done 
 
-lemma scheme2_lemma2_aux2: "!!b. j\<le> s \<Longrightarrow> (\<Sum>i<j. (b (s:=t)) i) = (\<Sum>i<j. b i)"
+lemma Example2_lemma2_aux2: 
+  "!!b. j\<le> s \<Longrightarrow> (\<Sum>i<j. (b (s:=t)) i) = (\<Sum>i<j. b i)"
 apply(induct j)
  apply simp_all
 done
 
-lemma scheme2_lemma2 [rule_format]: 
+lemma Example2_lemma2: 
  "!!b. \<lbrakk>j<n; b j=0\<rbrakk> \<Longrightarrow> Suc (\<Sum>i< n. b i)=(\<Sum>i< n. (b (j := Suc 0)) i)"
-apply(frule_tac b="(b (j:=(Suc 0)))" in scheme2_lemma2_aux)
+apply(frule_tac b="(b (j:=(Suc 0)))" in Example2_lemma2_aux)
 apply(erule_tac  t="Summation (b(j := (Suc 0))) n" in ssubst)
-apply(frule_tac b=b in scheme2_lemma2_aux)
+apply(frule_tac b=b in Example2_lemma2_aux)
 apply(erule_tac  t="Summation b n" in ssubst)
 apply(subgoal_tac "Suc (Summation b j + b j + (\<Sum>i<n - Suc j. b (Suc j + i)))=(Summation b j + Suc (b j) + (\<Sum>i<n - Suc j. b (Suc j + i)))")
 apply(rotate_tac -1)
 apply(erule ssubst)
 apply(subgoal_tac "j\<le>j")
- apply(drule_tac b="b" and t="(Suc 0)" in scheme2_lemma2_aux2)
+ apply(drule_tac b="b" and t="(Suc 0)" in Example2_lemma2_aux2)
 apply(rotate_tac -1)
 apply(erule ssubst)
 apply simp_all
 done
 
-lemma scheme2_lemma3: "!!b. \<forall>i< n. b i = (Suc 0) \<Longrightarrow> (\<Sum>i<n. b i)= n"
+lemma Example2_lemma3: "!!b. \<forall>i< n. b i = (Suc 0) \<Longrightarrow> (\<Sum>i<n. b i)= n"
 apply (induct n)
 apply auto
 done
 
-record scheme2_vars = 
+record Example2 = 
  c :: "nat \<Rightarrow> nat" 
  x :: nat
-lemma scheme_2: "0<n \<Longrightarrow> 
+
+lemma Example_2: "0<n \<Longrightarrow> 
  \<parallel>- .{\<acute>x=0 \<and> (\<Sum>i< n. \<acute>c i)=0}.  
  COBEGIN 
    SCHEME [0\<le>i<n] 
@@ -551,14 +554,14 @@ apply oghoare
 apply simp_all
 apply (tactic {* ALLGOALS Clarify_tac *})
 apply simp_all
-    apply(force elim:scheme2_lemma1)
-   apply(erule scheme2_lemma2)
+    apply(force elim:Example2_lemma1)
+   apply(erule Example2_lemma2)
    apply simp
-  apply(erule scheme2_lemma2)
+  apply(erule Example2_lemma2)
   apply simp
- apply(erule scheme2_lemma2)
+ apply(erule Example2_lemma2)
  apply simp
-apply(force intro: scheme2_lemma3)
+apply(force intro: Example2_lemma3)
 done
 
 end

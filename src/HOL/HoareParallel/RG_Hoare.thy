@@ -34,7 +34,8 @@ intros
           \<Longrightarrow> \<turnstile> While b P sat [pre, rely, guar, post]"
 
   Await: "\<lbrakk> stable pre rely; stable post rely; 
-            \<forall>V. \<turnstile> P sat [pre \<inter> b \<inter> {V}, {(s, t). s = t}, UNIV, {s. (V, s) \<in> guar} \<inter> post] \<rbrakk>
+            \<forall>V. \<turnstile> P sat [pre \<inter> b \<inter> {V}, {(s, t). s = t}, 
+                UNIV, {s. (V, s) \<in> guar} \<inter> post] \<rbrakk>
            \<Longrightarrow> \<turnstile> Await b P sat [pre, rely, guar, post]"
   
   Conseq: "\<lbrakk> pre \<subseteq> pre'; rely \<subseteq> rely'; guar' \<subseteq> guar; post' \<subseteq> post;
@@ -59,8 +60,7 @@ types 'a par_rgformula = "('a rgformula) list \<times> 'a set \<times> ('a \<tim
 
 consts par_rghoare :: "('a par_rgformula) set" 
 syntax 
-  "_par_rghoare" :: "('a rgformula) list \<Rightarrow> 'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> 'a set
-                  \<Rightarrow> bool"    ("\<turnstile> _ SAT [_, _, _, _]" [60,0,0,0,0] 45)
+  "_par_rghoare" :: "('a rgformula) list \<Rightarrow> 'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> 'a set \<Rightarrow> bool"    ("\<turnstile> _ SAT [_, _, _, _]" [60,0,0,0,0] 45)
 translations 
   "\<turnstile> Ps SAT [pre, rely, guar, post]" \<rightleftharpoons> "(Ps, pre, rely, guar, post) \<in> par_rghoare"
 
@@ -177,7 +177,8 @@ done
 
 lemma etran_or_ctran [rule_format]: 
   "\<forall>m i. x\<in>cptn \<longrightarrow> m \<le> length x 
-  \<longrightarrow> (\<forall>i. Suc i < m \<longrightarrow> \<not> x!i -c\<rightarrow> x!Suc i) \<longrightarrow> Suc i < m \<longrightarrow> x!i -e\<rightarrow> x!Suc i"
+   \<longrightarrow> (\<forall>i. Suc i < m \<longrightarrow> \<not> x!i -c\<rightarrow> x!Suc i) \<longrightarrow> Suc i < m 
+   \<longrightarrow> x!i -e\<rightarrow> x!Suc i"
 apply(induct x,simp)
 apply clarify
 apply(erule cptn.elims,simp)
@@ -233,7 +234,8 @@ done
  
 lemma stability [rule_format]: 
   "\<forall>j k. x \<in> cptn \<longrightarrow> stable p rely \<longrightarrow> j\<le>k \<longrightarrow> k<length x \<longrightarrow> snd(x!j)\<in>p  \<longrightarrow>
-  (\<forall>i. (Suc i)<length x \<longrightarrow> (x!i -e\<rightarrow> x!(Suc i)) \<longrightarrow> (snd(x!i), snd(x!(Suc i))) \<in> rely) \<longrightarrow> 
+  (\<forall>i. (Suc i)<length x \<longrightarrow> 
+          (x!i -e\<rightarrow> x!(Suc i)) \<longrightarrow> (snd(x!i), snd(x!(Suc i))) \<in> rely) \<longrightarrow> 
   (\<forall>i. j\<le>i \<and> i<k \<longrightarrow> x!i -e\<rightarrow> x!Suc i) \<longrightarrow> snd(x!k)\<in>p \<and> fst(x!j)=fst(x!k)"
 apply(induct x)
  apply clarify
@@ -286,7 +288,8 @@ subsubsection {* Soundness of the Basic rule *}
 
 lemma unique_ctran_Basic [rule_format]: 
   "\<forall>s i. x \<in> cptn \<longrightarrow> x ! 0 = (Some (Basic f), s) \<longrightarrow> 
-  Suc i<length x \<longrightarrow> x!i -c\<rightarrow> x!Suc i \<longrightarrow> (\<forall>j. Suc j<length x \<longrightarrow> i\<noteq>j \<longrightarrow> x!j -e\<rightarrow> x!Suc j)"
+  Suc i<length x \<longrightarrow> x!i -c\<rightarrow> x!Suc i \<longrightarrow> 
+  (\<forall>j. Suc j<length x \<longrightarrow> i\<noteq>j \<longrightarrow> x!j -e\<rightarrow> x!Suc j)"
 apply(induct x,simp)
 apply simp
 apply clarify
@@ -383,7 +386,8 @@ subsubsection{* Soundness of the Await rule *}
 
 lemma unique_ctran_Await [rule_format]: 
   "\<forall>s i. x \<in> cptn \<longrightarrow> x ! 0 = (Some (Await b c), s) \<longrightarrow> 
-  Suc i<length x \<longrightarrow> x!i -c\<rightarrow> x!Suc i \<longrightarrow> (\<forall>j. Suc j<length x \<longrightarrow> i\<noteq>j \<longrightarrow> x!j -e\<rightarrow> x!Suc j)"
+  Suc i<length x \<longrightarrow> x!i -c\<rightarrow> x!Suc i \<longrightarrow> 
+  (\<forall>j. Suc j<length x \<longrightarrow> i\<noteq>j \<longrightarrow> x!j -e\<rightarrow> x!Suc j)"
 apply(induct x,simp+)
 apply clarify
 apply(erule cptn.elims,simp)
@@ -445,8 +449,10 @@ done
  
 lemma Await_sound: 
   "\<lbrakk>stable pre rely; stable post rely;
-  \<forall>V. \<turnstile> P sat [pre \<inter> b \<inter> {s. s = V}, {(s, t). s = t}, UNIV, {s. (V, s) \<in> guar} \<inter> post] \<and>
-  \<Turnstile> P sat [pre \<inter> b \<inter> {s. s = V}, {(s, t). s = t}, UNIV, {s. (V, s) \<in> guar} \<inter> post] \<rbrakk>
+  \<forall>V. \<turnstile> P sat [pre \<inter> b \<inter> {s. s = V}, {(s, t). s = t}, 
+                 UNIV, {s. (V, s) \<in> guar} \<inter> post] \<and>
+  \<Turnstile> P sat [pre \<inter> b \<inter> {s. s = V}, {(s, t). s = t}, 
+                 UNIV, {s. (V, s) \<in> guar} \<inter> post] \<rbrakk>
   \<Longrightarrow> \<Turnstile> Await b P sat [pre, rely, guar, post]"
 apply(unfold com_validity_def)
 apply clarify
@@ -683,9 +689,11 @@ apply simp
 done
 
 lemma Seq_sound2 [rule_format]: 
-  "x \<in> cptn \<Longrightarrow> \<forall>s P i. x!0=(Some (Seq P Q), s) \<longrightarrow> i<length x \<longrightarrow> fst(x!i)=Some Q \<longrightarrow>
+  "x \<in> cptn \<Longrightarrow> \<forall>s P i. x!0=(Some (Seq P Q), s) \<longrightarrow> i<length x 
+  \<longrightarrow> fst(x!i)=Some Q \<longrightarrow>
   (\<forall>j<i. fst(x!j)\<noteq>(Some Q)) \<longrightarrow>
-  (\<exists>xs ys. xs \<in> cp (Some P) s \<and> length xs=Suc i \<and> ys \<in> cp (Some Q) (snd(xs !i)) \<and> x=(map (lift Q) xs)@tl ys)"
+  (\<exists>xs ys. xs \<in> cp (Some P) s \<and> length xs=Suc i 
+   \<and> ys \<in> cp (Some Q) (snd(xs !i)) \<and> x=(map (lift Q) xs)@tl ys)"
 apply(erule cptn.induct)
 apply(unfold cp_def)
 apply safe
@@ -910,9 +918,11 @@ subsubsection{* Soundness of the While rule *}
 
 lemma assum_after_body: 
   "\<lbrakk> \<Turnstile> P sat [pre \<inter> b, rely, guar, pre]; 
-  (Some P, s) # xs \<in> cptn_mod; fst (((Some P, s) # xs)!length xs) = None; s \<in> b;
-  (Some (While b P), s) # (Some (Seq P (While b P)), s) # map (lift (While b P)) xs @ ys \<in> assum (pre, rely)\<rbrakk>
-  \<Longrightarrow> (Some (While b P), snd (((Some P, s) # xs)!length xs)) # ys \<in> assum (pre, rely)"
+  (Some P, s) # xs \<in> cptn_mod; fst (((Some P, s) # xs)!length xs) = None; 
+   s \<in> b;  (Some (While b P), s) # (Some (Seq P (While b P)), s) # 
+            map (lift (While b P)) xs @ ys \<in> assum (pre, rely)\<rbrakk>
+  \<Longrightarrow> (Some (While b P), snd (((Some P, s) # xs)!length xs)) # ys 
+      \<in> assum (pre, rely)"
 apply(simp add:assum_def com_validity_def cp_def cptn_iff_cptn_mod)
 apply clarify
 apply(erule_tac x=s in allE)
@@ -948,8 +958,8 @@ done
 lemma assum_after_body: 
   "\<lbrakk> \<Turnstile> P sat [pre \<inter> b, rely, guar, pre]; 
   (Some P, s) # xs \<in> cptn_mod; fst (last ((Some P, s) # xs)) = None; s \<in> b;
-  (Some (While b P), s) # (Some (Seq P (While b P)), s) # map (lift (While b P)) xs @ ys 
-   \<in> assum (pre, rely)\<rbrakk>
+  (Some (While b P), s) # (Some (Seq P (While b P)), s) # 
+   map (lift (While b P)) xs @ ys \<in> assum (pre, rely)\<rbrakk>
   \<Longrightarrow> (Some (While b P), snd (last ((Some P, s) # xs))) # ys \<in> assum (pre, rely)"
 apply(simp add:assum_def com_validity_def cp_def cptn_iff_cptn_mod)
 apply clarify
@@ -1214,10 +1224,12 @@ constdefs
   "ParallelCom Ps \<equiv> map (Some \<circ> fst) Ps" 
 
 lemma two: 
-  "\<lbrakk> \<forall>i<length xs. rely \<union> (\<Union>j\<in>{j. j < length xs \<and> j \<noteq> i}. Guar (xs ! j)) \<subseteq> Rely (xs ! i);
-  pre \<subseteq> (\<Inter>i\<in>{i. i < length xs}. Pre (xs ! i));
-  \<forall>i<length xs. \<Turnstile> Com (xs ! i) sat [Pre (xs ! i), Rely (xs ! i), Guar (xs ! i), Post (xs ! i)];
-  length xs=length clist; x \<in> par_cp (ParallelCom xs) s; x\<in>par_assum(pre, rely);
+  "\<lbrakk> \<forall>i<length xs. rely \<union> (\<Union>j\<in>{j. j < length xs \<and> j \<noteq> i}. Guar (xs ! j)) 
+     \<subseteq> Rely (xs ! i);
+   pre \<subseteq> (\<Inter>i\<in>{i. i < length xs}. Pre (xs ! i));
+   \<forall>i<length xs. 
+   \<Turnstile> Com (xs ! i) sat [Pre (xs ! i), Rely (xs ! i), Guar (xs ! i), Post (xs ! i)];
+   length xs=length clist; x \<in> par_cp (ParallelCom xs) s; x\<in>par_assum(pre, rely);
   \<forall>i<length clist. clist!i\<in>cp (Some(Com(xs!i))) s; x \<propto> clist \<rbrakk>
   \<Longrightarrow> \<forall>j i. i<length clist \<and> Suc j<length x \<longrightarrow> (clist!i!j) -c\<rightarrow> (clist!i!Suc j) 
   \<longrightarrow> (snd(clist!i!j), snd(clist!i!Suc j)) \<in> Guar(xs!i)"
@@ -1291,10 +1303,12 @@ apply (force simp add:par_assum_def same_state_def)
 done
 
 lemma three [rule_format]: 
-  "\<lbrakk> xs\<noteq>[]; \<forall>i<length xs. rely \<union> (\<Union>j\<in>{j. j < length xs \<and> j \<noteq> i}. Guar (xs ! j)) \<subseteq> Rely (xs ! i);
-  pre \<subseteq> (\<Inter>i\<in>{i. i < length xs}. Pre (xs ! i));
-  \<forall>i<length xs. \<Turnstile> Com (xs ! i) sat [Pre (xs ! i), Rely (xs ! i), Guar (xs ! i), Post (xs ! i)];
-  length xs=length clist; x \<in> par_cp (ParallelCom xs) s; x\<in>par_assum(pre, rely);
+  "\<lbrakk> xs\<noteq>[]; \<forall>i<length xs. rely \<union> (\<Union>j\<in>{j. j < length xs \<and> j \<noteq> i}. Guar (xs ! j)) 
+   \<subseteq> Rely (xs ! i);
+   pre \<subseteq> (\<Inter>i\<in>{i. i < length xs}. Pre (xs ! i));
+   \<forall>i<length xs. 
+    \<Turnstile> Com (xs ! i) sat [Pre (xs ! i), Rely (xs ! i), Guar (xs ! i), Post (xs ! i)];
+   length xs=length clist; x \<in> par_cp (ParallelCom xs) s; x \<in> par_assum(pre, rely);
   \<forall>i<length clist. clist!i\<in>cp (Some(Com(xs!i))) s; x \<propto> clist \<rbrakk>
   \<Longrightarrow> \<forall>j i. i<length clist \<and> Suc j<length x \<longrightarrow> (clist!i!j) -e\<rightarrow> (clist!i!Suc j) 
   \<longrightarrow> (snd(clist!i!j), snd(clist!i!Suc j)) \<in> rely \<union> (\<Union>j\<in>{j. j < length xs \<and> j \<noteq> i}. Guar (xs ! j))"
@@ -1325,10 +1339,14 @@ apply simp
 done
 
 lemma four: 
-  "\<lbrakk>xs\<noteq>[]; \<forall>i < length xs. rely \<union> (\<Union>j\<in>{j. j < length xs \<and> j \<noteq> i}. Guar (xs ! j)) \<subseteq> Rely (xs ! i);
-  (\<Union>j\<in>{j. j < length xs}. Guar (xs ! j)) \<subseteq> guar; pre \<subseteq> (\<Inter>i\<in>{i. i < length xs}. Pre (xs ! i));
-  \<forall>i < length xs. \<Turnstile> Com (xs ! i) sat [Pre (xs ! i), Rely (xs ! i), Guar (xs ! i), Post (xs ! i)];
-  x \<in> par_cp (ParallelCom xs) s; x \<in> par_assum (pre, rely); Suc i < length x; x ! i -pc\<rightarrow> x ! Suc i\<rbrakk>
+  "\<lbrakk>xs\<noteq>[]; \<forall>i < length xs. rely \<union> (\<Union>j\<in>{j. j < length xs \<and> j \<noteq> i}. Guar (xs ! j)) 
+    \<subseteq> Rely (xs ! i);
+   (\<Union>j\<in>{j. j < length xs}. Guar (xs ! j)) \<subseteq> guar; 
+   pre \<subseteq> (\<Inter>i\<in>{i. i < length xs}. Pre (xs ! i));
+   \<forall>i < length xs.
+    \<Turnstile> Com (xs ! i) sat [Pre (xs ! i), Rely (xs ! i), Guar (xs ! i), Post (xs ! i)];
+   x \<in> par_cp (ParallelCom xs) s; x \<in> par_assum (pre, rely); Suc i < length x; 
+   x ! i -pc\<rightarrow> x ! Suc i\<rbrakk>
   \<Longrightarrow> (snd (x ! i), snd (x ! Suc i)) \<in> guar"
 apply(simp add: ParallelCom_def)
 apply(subgoal_tac "(map (Some \<circ> fst) xs)\<noteq>[]")
@@ -1372,11 +1390,14 @@ apply(force elim:par_cptn.elims)
 done
 
 lemma five: 
-  "\<lbrakk>xs\<noteq>[]; \<forall>i<length xs. rely \<union> (\<Union>j\<in>{j. j < length xs \<and> j \<noteq> i}. Guar (xs ! j)) \<subseteq> Rely (xs ! i);
-  pre \<subseteq> (\<Inter>i\<in>{i. i < length xs}. Pre (xs ! i)); (\<Inter>i\<in>{i. i < length xs}. Post (xs ! i)) \<subseteq> post;
-  \<forall>i < length xs. \<Turnstile> Com (xs ! i) sat [Pre (xs ! i), Rely (xs ! i), Guar (xs ! i), Post (xs ! i)];
-  x \<in> par_cp (ParallelCom xs) s; x \<in> par_assum (pre, rely); All_None (fst (last x)) \<rbrakk>
-  \<Longrightarrow> snd (last x) \<in> post"
+  "\<lbrakk>xs\<noteq>[]; \<forall>i<length xs. rely \<union> (\<Union>j\<in>{j. j < length xs \<and> j \<noteq> i}. Guar (xs ! j))
+   \<subseteq> Rely (xs ! i);
+   pre \<subseteq> (\<Inter>i\<in>{i. i < length xs}. Pre (xs ! i)); 
+   (\<Inter>i\<in>{i. i < length xs}. Post (xs ! i)) \<subseteq> post;
+   \<forall>i < length xs.
+    \<Turnstile> Com (xs ! i) sat [Pre (xs ! i), Rely (xs ! i), Guar (xs ! i), Post (xs ! i)];
+    x \<in> par_cp (ParallelCom xs) s; x \<in> par_assum (pre, rely); 
+   All_None (fst (last x)) \<rbrakk> \<Longrightarrow> snd (last x) \<in> post"
 apply(simp add: ParallelCom_def)
 apply(subgoal_tac "(map (Some \<circ> fst) xs)\<noteq>[]")
  prefer 2
@@ -1459,7 +1480,8 @@ apply simp
 done
 
 theorem par_rgsound: 
-  "\<turnstile> c SAT [pre, rely, guar, post] \<Longrightarrow> \<Turnstile> (ParallelCom c) SAT [pre, rely, guar, post]"
+  "\<turnstile> c SAT [pre, rely, guar, post] \<Longrightarrow> 
+   \<Turnstile> (ParallelCom c) SAT [pre, rely, guar, post]"
 apply(erule par_rghoare.induct)
 apply(case_tac xs,simp)
  apply(simp add:par_com_validity_def par_comm_def)

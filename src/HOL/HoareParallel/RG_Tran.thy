@@ -407,8 +407,8 @@ constdefs
         c!i -pc\<rightarrow> c!Suc i \<longrightarrow> (snd(c!i), snd(c!Suc i)) \<in> guar) \<and> 
          (All_None (fst (last c)) \<longrightarrow> snd( last c) \<in> post)}"
 
-  par_com_validity :: "'a  par_com \<Rightarrow> 'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> 'a set
-                  \<Rightarrow> bool"  ("\<Turnstile> _ SAT [_, _, _, _]" [60,0,0,0,0] 45)
+  par_com_validity :: "'a  par_com \<Rightarrow> 'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set 
+\<Rightarrow> 'a set \<Rightarrow> bool"  ("\<Turnstile> _ SAT [_, _, _, _]" [60,0,0,0,0] 45)
   "\<Turnstile> Ps SAT [pre, rely, guar, post] \<equiv> 
    \<forall>s. par_cp Ps s \<inter> par_assum(pre, rely) \<subseteq> par_comm(guar, post)"
 
@@ -429,7 +429,7 @@ constdefs
   compat_label :: "'a par_confs \<Rightarrow> ('a confs) list \<Rightarrow> bool"
   "compat_label c clist \<equiv> (\<forall>j. Suc j<length c \<longrightarrow> 
          (c!j -pc\<rightarrow> c!Suc j \<and> (\<exists>i<length clist. (clist!i)!j -c\<rightarrow> (clist!i)! Suc j \<and> 
-                              (\<forall>l<length clist. l\<noteq>i \<longrightarrow> (clist!l)!j -e\<rightarrow> (clist!l)! Suc j))) \<or> 
+                       (\<forall>l<length clist. l\<noteq>i \<longrightarrow> (clist!l)!j -e\<rightarrow> (clist!l)! Suc j))) \<or> 
          (c!j -pe\<rightarrow> c!Suc j \<and> (\<forall>i<length clist. (clist!i)!j -e\<rightarrow> (clist!i)! Suc j)))"
 
   conjoin :: "'a par_confs \<Rightarrow> ('a confs) list \<Rightarrow> bool"  ("_ \<propto> _" [65,65] 64)
@@ -437,7 +437,8 @@ constdefs
 
 subsubsection {* Some previous lemmas *}
 
-lemma list_eq_if [rule_format]: "\<forall>ys. xs=ys \<longrightarrow> (length xs = length ys) \<longrightarrow> (\<forall>i<length xs. xs!i=ys!i)"
+lemma list_eq_if [rule_format]: 
+  "\<forall>ys. xs=ys \<longrightarrow> (length xs = length ys) \<longrightarrow> (\<forall>i<length xs. xs!i=ys!i)"
 apply (induct xs)
  apply simp
 apply clarify
@@ -523,7 +524,8 @@ lemma tl_in_cptn: "\<lbrakk> a#xs \<in>cptn; xs\<noteq>[] \<rbrakk> \<Longrighta
 apply(force elim:cptn.elims)
 done
 
-lemma tl_zero[rule_format]: "P (ys!Suc j) \<longrightarrow> Suc j<length ys \<longrightarrow> ys\<noteq>[] \<longrightarrow> P (tl(ys)!j)"
+lemma tl_zero[rule_format]: 
+  "P (ys!Suc j) \<longrightarrow> Suc j<length ys \<longrightarrow> ys\<noteq>[] \<longrightarrow> P (tl(ys)!j)"
 apply(induct ys)
  apply simp_all
 done

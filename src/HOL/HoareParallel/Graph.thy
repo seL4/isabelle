@@ -42,7 +42,7 @@ subsection {* Proofs about Graphs *}
 lemmas Graph_defs= Blacks_def Proper_Roots_def Proper_Edges_def BtoW_def
 declare Graph_defs [simp]
 
-subsubsection{* Graph 1. *}
+subsubsection{* Graph 1 *}
 
 lemma Graph1_aux [rule_format]: 
   "\<lbrakk> Roots\<subseteq>Blacks M; \<forall>i<length E. \<not>BtoW(E!i,M)\<rbrakk>
@@ -89,7 +89,7 @@ apply(erule disjE)
 apply auto
 done
 
-subsubsection{* Graph 2. *}
+subsubsection{* Graph 2 *}
 
 lemma Ex_first_occurrence [rule_format]: 
   "P (n::nat) \<longrightarrow> (\<exists>m. P m \<and> (\<forall>i. i<m \<longrightarrow> \<not> P i))";
@@ -196,7 +196,7 @@ apply arith
 done
 
 
-subsubsection{* Graph 3. *}
+subsubsection{* Graph 3 *}
 
 lemma Graph3: 
   "\<lbrakk> T\<in>Reach E; R<length E \<rbrakk> \<Longrightarrow> Reach(E[R:=(fst(E!R),T)]) \<subseteq> Reach E"
@@ -281,7 +281,7 @@ apply(case_tac "R=j")
 apply(force simp add: nth_list_update)
 done
 
-subsubsection{* Graph 4. *}
+subsubsection{* Graph 4 *}
 
 lemma Graph4: 
   "\<lbrakk>T \<in> Reach E; Roots\<subseteq>Blacks M; I\<le>length E; T<length M; R<length E; 
@@ -322,7 +322,7 @@ apply(case_tac "length path")
 apply force
 done
 
-subsubsection {* Graph 5. *}
+subsubsection {* Graph 5 *}
 
 lemma Graph5: 
   "\<lbrakk> T \<in> Reach E ; Roots \<subseteq> Blacks M; \<forall>i<R. \<not>BtoW(E!i,M); T<length M; 
@@ -366,7 +366,7 @@ apply(case_tac "length path")
 apply force
 done
 
-subsubsection {* Graph 6, 7, 8. *}
+subsubsection {* Other lemmas about graphs *}
 
 lemma Graph6: 
  "\<lbrakk>Proper_Edges(M,E); R<length E ; T<length M\<rbrakk> \<Longrightarrow> Proper_Edges(M,E[R:=(fst(E!R),T)])"

@@ -1,7 +1,5 @@
 
-header {* \section{Concrete Syntax} *}
-
-theory RG_Syntax = Quote_Antiquote + RG_Hoare:
+theory RG_Syntax = RG_Hoare + Quote_Antiquote:
 
 syntax
   "_Assign"    :: "idt \<Rightarrow> 'b \<Rightarrow> 'a com"                     ("(\<acute>_ :=/ _)" [70, 65] 61)

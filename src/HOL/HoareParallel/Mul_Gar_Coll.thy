@@ -294,7 +294,7 @@ apply clarify
 apply(erule less_SucE)
  apply force
 apply (simp add:BtoW_def)
---{* 1 subgoals left *}
+--{* 1 subgoal left *}
 apply clarify
 apply simp
 apply(disjE_tac)
@@ -388,7 +388,7 @@ apply(rotate_tac -1)
 apply (force simp add:Blacks_def)
 --{* 2 subgoals left *}
 apply force
---{* 1 subgoals left *}
+--{* 1 subgoal left *}
 apply clarify
 apply(drule le_imp_less_or_eq)
 apply(disjE_tac)
@@ -777,7 +777,7 @@ apply(disjE_tac)
  apply(rule disjI1, erule less_le_trans)
  apply(force simp add:Queue_def less_Suc_eq_le le_length_filter_update)
 apply force
---{* 1 subgoals left *} 
+--{* 1 subgoal left *} 
 apply clarify
 apply(disjE_tac)
   apply(simp_all add:Graph6)
@@ -908,7 +908,7 @@ apply(case_tac "M x!(T (Muts x!j))=Black")
 apply(rule conjI)
  apply(rule disjI2,rule disjI1, erule subset_psubset_trans,simp add:Graph11) 
 apply (force simp add:nth_list_update)
---{* 1 subgoals left *}
+--{* 1 subgoal left *}
 apply clarify
 apply (simp add:mul_collector_defs Mul_PBInv_def Graph7 Graph8 Graph12)
 apply(case_tac "M x!(T (Muts x!j))=Black")
@@ -1023,7 +1023,7 @@ apply disjE_tac
   apply(rule impI,rule disjI2,rule disjI2,rule disjI1,erule le_trans,force simp add:Queue_def less_Suc_eq_le le_length_filter_update)
  apply(rule impI,rule disjI2,rule disjI2,rule disjI1,erule le_trans,force simp add:Queue_def less_Suc_eq_le le_length_filter_update)
 apply(simp add:Graph6)
---{* 1 subgoals left *}
+--{* 1 subgoal left *}
 apply(simp add:mul_mutator_defs nth_list_update)
 done
 
@@ -1114,7 +1114,7 @@ apply (simp add: Graph7 Graph8 Graph12)
 apply(rule conjI)
  apply((rule disjI2)+,erule psubset_subset_trans, simp add: Graph9)
 apply (simp add: nth_list_update)
---{* 1 subgoals left *}
+--{* 1 subgoal left *}
 apply clarify
 apply disjE_tac
   apply (simp add: Graph7 Graph8 Graph12)

@@ -654,7 +654,7 @@ apply(erule Graph4)
  apply force
 apply (simp add:BtoW_def)
 apply force
---{* 1 subgoals left *}
+--{* 1 subgoal left *}
 apply(simp add:abbrev)
 done
 
@@ -757,7 +757,7 @@ apply(clarify, simp add:abbrev Graph7 Graph8 Graph12)
 apply(rule conjI)
  apply(erule disjE, erule disjI1, rule disjI2,erule subset_trans, erule Graph9) 
 apply(simp add:nth_list_update)
---{* 1 subgoals left *}
+--{* 1 subgoal left *}
 apply(clarify, simp add:abbrev Graph7 Graph8 Graph12,
       erule disjE, erule disjI1, rule disjI2,erule subset_trans, erule Graph9)
 done

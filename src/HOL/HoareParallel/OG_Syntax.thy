@@ -1,7 +1,5 @@
 
-header {* \section{Concrete Syntax} *}
-
-theory OG_Syntax = Quote_Antiquote + OG_Tactics:
+theory OG_Syntax = OG_Tactics + Quote_Antiquote:
 
 text{* Syntax for commands and for assertions and boolean expressions in 
  commands @{text com} and annotated commands @{text ann_com}. *}
