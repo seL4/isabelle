@@ -51,6 +51,8 @@ local
  (*Are any of the constants in "bs" present in the term?*)
  fun has_consts bs =
    let fun has (Const(a,_)) = a mem bs
+	 | has (Const ("Hilbert_Choice.Eps",_) $ _) = false
+                      (*ignore constants within @-terms*)
          | has (f$u) = has f orelse has u
          | has (Abs(_,_,t)) = has t
          | has _ = false
@@ -94,8 +96,10 @@ local
  (*Conjunctive normal form, detecting tautologies early.
    Strips universal quantifiers and breaks up conjunctions. *)
  fun cnf_aux seen (th,ths) =
-   if taut_lits (literals(prop_of th) @ seen)  then ths
-   else if not (has_consts ["All","op &"] (prop_of th))  then th::ths
+   if taut_lits (literals(prop_of th) @ seen)  
+   then ths     (*tautology ignored*)
+   else if not (has_consts ["All","op &"] (prop_of th))  
+   then th::ths (*no work to do, terminate*)
    else (*conjunction?*)
          cnf_aux seen (th RS conjunct1,
                        cnf_aux seen (th RS conjunct2, ths))
