@@ -454,6 +454,7 @@ val proto_pure =
   |> (#1 oo (add_defs o map Thm.no_attributes))
    [("flexpair_def", "(t =?= u) == (t == u::'a::{})"),
     ("Goal_def", "GOAL (PROP A) == PROP A")]
+  |> (#1 o add_thmss [(("nothing", []), [])])
   |> end_theory;
 
 structure ProtoPure =

@@ -662,6 +662,10 @@ involves the trivial rule $\PROP\psi \Imp \PROP\psi$, which happens to be
 bound in Isabelle/Pure as ``\texttt{_}''
 (underscore).\indexisarthm{_@\texttt{_}}
 
+Forward chaining with an empty list of theorems is the same as not chaining.
+Thus $\FROM{nothing}$ has no effect apart from entering $prove(chain)$ mode,
+since $nothing$\indexisarthm{nothing} is bound to the empty list of facts.
+
 
 \subsection{Goal statements}
 
