@@ -1,11 +1,9 @@
 
-
-
 Isabelle NEWS -- history of user-visible changes
 ================================================
 
-New in Isabelle98? (???)
------------------------
+New in Isabelle??? (FIXME)
+--------------------------
 
 * changed wrapper mechanism for the classical reasoner now allows for selected
   deletion of wrappers, by introduction of names for wrapper functionals.
@@ -16,6 +14,7 @@ New in Isabelle98? (???)
   addWrapper, addSWrapper: claset * wrapper -> claset
   delWrapper, delSWrapper: claset *  string -> claset
   getWrapper is renamed to appWrappers, getSWrapper to appSWrappers;
+
 
 
 New in Isabelle98 (January 1998)
