@@ -105,7 +105,7 @@ by (REPEAT (rtac intrel_in_integ 1));
 by (dtac eq_equiv_class 1);
 by (rtac equiv_intrel 1);
 by (Fast_tac 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (Asm_full_simp_tac 1);
 qed "inj_znat";
 
@@ -114,7 +114,7 @@ qed "inj_znat";
 
 goalw Integ.thy [congruent_def]
   "congruent intrel (%p. split (%x y. intrel^^{(y,x)}) p)";
-by (safe_tac (claset()));
+by Safe_tac;
 by (asm_simp_tac (simpset() addsimps add_ac) 1);
 qed "zminus_congruent";
 
@@ -169,7 +169,7 @@ qed "not_znegative_znat_lemma";
 goalw Integ.thy [znegative_def, znat_def]
     "~ znegative($# n)";
 by (Simp_tac 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (rtac ccontr 1);
 by (etac notE 1);
 by (Asm_full_simp_tac 1);
@@ -201,7 +201,7 @@ qed "diff_Suc_add_inverse";
 
 goalw Integ.thy [congruent_def]
     "congruent intrel (split (%x y. intrel^^{((y-x) + (x-(y::nat)),0)}))";
-by (safe_tac (claset()));
+by Safe_tac;
 by (Asm_simp_tac 1);
 by (etac rev_mp 1);
 by (res_inst_tac [("m","x1"),("n","y1")] diff_induct 1);
@@ -246,7 +246,7 @@ goalw Integ.thy [congruent2_def]
     "congruent2 intrel (%p1 p2.                  \
 \         split (%x1 y1. split (%x2 y2. intrel^^{(x1+x2, y1+y2)}) p2) p1)";
 (*Proof via congruent2_commuteI seems longer*)
-by (safe_tac (claset()));
+by Safe_tac;
 by (asm_simp_tac (simpset() addsimps [add_assoc]) 1);
 (*The rest should be trivial, but rearranging terms is hard*)
 by (res_inst_tac [("x1","x1a")] (add_left_commute RS ssubst) 1);
@@ -343,7 +343,7 @@ goal Integ.thy
 \               split (%x1 y1. split (%x2 y2.   \
 \                   intrel^^{(x1*x2 + y1*y2, x1*y2 + y1*x2)}) p2) p1)";
 by (rtac (equiv_intrel RS congruent2_commuteI) 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (rewtac split_def);
 by (simp_tac (simpset() addsimps add_ac@mult_ac) 1);
 by (asm_simp_tac (simpset() delsimps [equiv_intrel_iff]
@@ -477,31 +477,31 @@ by (simp_tac (simpset() addsimps [zadd_assoc]) 1);
 qed "zsuc_zpred";
 
 goal Integ.thy "(zpred(z)=w) = (z=zsuc(w))";
-by (safe_tac (claset()));
+by Safe_tac;
 by (rtac (zsuc_zpred RS sym) 1);
 by (rtac zpred_zsuc 1);
 qed "zpred_to_zsuc";
 
 goal Integ.thy "(zsuc(z)=w)=(z=zpred(w))";
-by (safe_tac (claset()));
+by Safe_tac;
 by (rtac (zpred_zsuc RS sym) 1);
 by (rtac zsuc_zpred 1);
 qed "zsuc_to_zpred";
 
 goal Integ.thy "($~ z = w) = (z = $~ w)";
-by (safe_tac (claset()));
+by Safe_tac;
 by (rtac (zminus_zminus RS sym) 1);
 by (rtac zminus_zminus 1);
 qed "zminus_exchange";
 
 goal Integ.thy"(zsuc(z)=zsuc(w)) = (z=w)";
-by (safe_tac (claset()));
+by Safe_tac;
 by (dres_inst_tac [("f","zpred")] arg_cong 1);
 by (asm_full_simp_tac (simpset() addsimps [zpred_zsuc]) 1);
 qed "bijective_zsuc";
 
 goal Integ.thy"(zpred(z)=zpred(w)) = (z=w)";
-by (safe_tac (claset()));
+by Safe_tac;
 by (dres_inst_tac [("f","zsuc")] arg_cong 1);
 by (asm_full_simp_tac (simpset() addsimps [zsuc_zpred]) 1);
 qed "bijective_zpred";
@@ -560,7 +560,7 @@ qed "n_not_zsuc_n";
 val zsuc_n_not_n = n_not_zsuc_n RS not_sym;
 
 goal Integ.thy "w ~= zpred(w)";
-by (safe_tac (claset()));
+by Safe_tac;
 by (dres_inst_tac [("x","w"),("f","zsuc")] arg_cong 1);
 by (asm_full_simp_tac (simpset() addsimps [zsuc_zpred,zsuc_n_not_n]) 1);
 qed "n_not_zpred_n";
@@ -574,7 +574,7 @@ goalw Integ.thy [zless_def, znegative_def, zdiff_def, znat_def]
     "!!w. w<z ==> ? n. z = w + $#(Suc(n))";
 by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
 by (res_inst_tac [("z","w")] eq_Abs_Integ 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (asm_full_simp_tac (simpset() addsimps [zadd, zminus]) 1);
 by (safe_tac (claset() addSDs [less_eq_Suc_add]));
 by (rename_tac "k" 1);
@@ -589,7 +589,7 @@ qed "zless_eq_zadd_Suc";
 goalw Integ.thy [zless_def, znegative_def, zdiff_def, znat_def] 
     "z < z + $#(Suc(n))";
 by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (simp_tac (simpset() addsimps [zadd, zminus]) 1);
 by (REPEAT_SOME (ares_tac [refl, exI, singletonI, ImageI, conjI, intrelI]));
 by (rtac le_less_trans 1);
@@ -612,7 +612,7 @@ val zless_zsucI = zlessI RSN (2,zless_trans);
 goal Integ.thy "!!z w::int. z<w ==> ~w<z";
 by (safe_tac (claset() addSDs [zless_eq_zadd_Suc]));
 by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (asm_full_simp_tac (simpset() addsimps ([znat_def, zadd])) 1);
 by (asm_full_simp_tac
  (simpset() delsimps [add_Suc_right] addsimps [add_left_cancel, add_assoc, add_Suc_right RS sym]) 1);
@@ -642,7 +642,7 @@ goalw Integ.thy [zless_def, znegative_def, zdiff_def]
     "z<w | z=w | w<(z::int)";
 by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
 by (res_inst_tac [("z","w")] eq_Abs_Integ 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (asm_full_simp_tac
     (simpset() addsimps [zadd, zminus, Image_iff, Bex_def]) 1);
 by (res_inst_tac [("m1", "x+ya"), ("n1", "xa+y")] (less_linear RS disjE) 1);

@@ -37,7 +37,7 @@ goal Eta.thy "!i k. free (lift t k) i = \
 by (dB.induct_tac "t" 1);
 by (ALLGOALS(asm_full_simp_tac (addsplit (simpset()) addcongs [conj_cong])));
 by (Blast_tac 2);
-by(simp_tac (simpset() addsimps [pred_def] addsplits [expand_nat_case]) 1);
+by (simp_tac (simpset() addsimps [pred_def] addsplits [expand_nat_case]) 1);
 by (safe_tac HOL_cs);
 by (ALLGOALS trans_tac);
 qed "free_lift";
@@ -49,7 +49,7 @@ by (dB.induct_tac "s" 1);
 by (Asm_simp_tac 2);
 by (Blast_tac 2);
 by (asm_full_simp_tac (addsplit (simpset())) 2);
-by(simp_tac (simpset() addsimps [pred_def,subst_Var]
+by (simp_tac (simpset() addsimps [pred_def,subst_Var]
                       addsplits [expand_if,expand_nat_case]) 1);
 by (safe_tac (HOL_cs addSEs [nat_neqE]));
 by (ALLGOALS trans_tac);
@@ -79,7 +79,7 @@ by (Simp_tac 1);
 by (etac eta.induct 1);
 by (slow_tac (claset() addIs [subst_not_free,eta_subst]
                       addIs [free_eta RS iffD1] addss simpset()) 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (blast_tac (claset() addSIs [eta_subst] addIs [free_eta RS iffD1]) 5);
 by (ALLGOALS Blast_tac);
 qed "square_eta";
@@ -126,8 +126,8 @@ AddIs [beta_subst];
 goal Eta.thy "!i. t[Var i/i] = t[Var(i)/Suc i]";
 by (dB.induct_tac "t" 1);
 by (ALLGOALS (asm_simp_tac (addsplit (simpset()))));
-by(safe_tac (HOL_cs addSEs [nat_neqE]));
-by(ALLGOALS trans_tac);
+by (safe_tac (HOL_cs addSEs [nat_neqE]));
+by (ALLGOALS trans_tac);
 qed_spec_mp "subst_Var_Suc";
 Addsimps [subst_Var_Suc];
 
@@ -170,7 +170,7 @@ goal Eta.thy "!i. (~free s i) = (? t. s = lift t i)";
 by (dB.induct_tac "s" 1);
   by (simp_tac (simpset() addsplits [expand_if]) 1);
   by (SELECT_GOAL(safe_tac HOL_cs)1);
-   by(etac nat_neqE 1);
+   by (etac nat_neqE 1);
     by (res_inst_tac [("x","Var nat")] exI 1);
     by (Asm_simp_tac 1);
    by (res_inst_tac [("x","Var(pred nat)")] exI 1);
