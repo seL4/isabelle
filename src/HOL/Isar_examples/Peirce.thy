@@ -30,11 +30,9 @@ proof;
   assume ABA: "(A --> B) --> A";
   show A;
   proof (rule classical);
-
-    assume AB: "A --> B";
+    presume AB: "A --> B";
     from ABA AB; show A; ..;
-
-    next;
+  next;
     assume notA: "~ A";
     show "A --> B";
     proof;

@@ -35,10 +35,10 @@ text {* Emulate Isabelle proof script: *};
 
 theorem "2 * sum (%i. i) (Suc n) = n * Suc n";
 proof same;
-  refine simp_tac;
-  refine (induct n);
-  refine simp_tac;
-  refine asm_simp_tac;
+  apply simp_tac;
+  apply (induct n);
+  apply simp_tac;
+  apply asm_simp_tac;
 qed_with sum_of_naturals;
 
 
