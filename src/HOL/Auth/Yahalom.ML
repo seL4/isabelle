@@ -118,9 +118,8 @@ AddSDs [Spy_see_shrK_D, Spy_analz_shrK_D];
 (*** Future keys can't be seen or used! ***)
 
 (*Nobody can have SEEN keys that will be generated in the future. *)
-goal thy "!!evs. evs : yahalom lost ==> \
-\                length evs <= length evs' --> \
-\                Key (newK evs') ~: parts (sees lost Spy evs)";
+goal thy "!!i. evs : yahalom lost ==>        \
+\              length evs <= i --> Key(newK i) ~: parts (sees lost Spy evs)";
 by (parts_induct_tac 1);
 by (REPEAT_FIRST (best_tac (!claset addEs [leD RS notE]
 				    addDs [impOfSubs analz_subset_parts,
@@ -132,10 +131,10 @@ Addsimps [new_keys_not_seen];
 
 (*Variant: old messages must contain old keys!*)
 goal thy 
- "!!evs. [| Says A B X : set_of_list evs;  \
-\           Key (newK evt) : parts {X};    \
-\           evs : yahalom lost                 \
-\        |] ==> length evt < length evs";
+ "!!evs. [| Says A B X : set_of_list evs;          \
+\           Key (newK i) : parts {X};    \
+\           evs : yahalom lost                     \
+\        |] ==> i < length evs";
 by (rtac ccontr 1);
 by (dtac leI 1);
 by (fast_tac (!claset addSDs [new_keys_not_seen, Says_imp_sees_Spy]
@@ -144,7 +143,7 @@ qed "Says_imp_old_keys";
 
 
 (*Ready-made for the classical reasoner*)
-goal thy "!!evs. [| Says A B {|Crypt K {|b, Key (newK evs), na, nb|}, X|}  \
+goal thy "!!evs. [| Says A B {|Crypt K {|b,Key(newK(length evs)),na,nb|}, X|}\
 \                   : set_of_list evs;  evs : yahalom lost |]              \
 \                ==> R";
 by (fast_tac (!claset addEs [Says_imp_old_keys RS less_irrefl]
@@ -155,9 +154,8 @@ AddSEs [Says_too_new_key];
 
 (*Nobody can have USED keys that will be generated in the future.
   ...very like new_keys_not_seen*)
-goal thy "!!evs. evs : yahalom lost ==> \
-\                length evs <= length evs' --> \
-\                newK evs' ~: keysFor (parts (sees lost Spy evs))";
+goal thy "!!i. evs : yahalom lost ==>        \
+\             length evs <= i --> newK i ~: keysFor(parts(sees lost Spy evs))";
 by (parts_induct_tac 1);
 (*YM1, YM2 and YM3*)
 by (EVERY (map (fast_tac (!claset addDs [Suc_leD] addss (!simpset))) [4,3,2]));
@@ -187,10 +185,10 @@ Addsimps [new_keys_not_used, new_keys_not_analzd];
 (*Describes the form of K when the Server sends this message.  Useful for
   Oops as well as main secrecy property.*)
 goal thy 
- "!!evs. [| Says Server A                                           \
+ "!!evs. [| Says Server A                                                    \
 \            {|Crypt (shrK A) {|Agent B, K, NA, NB|}, X|} : set_of_list evs; \
-\           evs : yahalom lost |]                                   \
-\        ==> (EX evt: yahalom lost. K = Key(newK evt))";
+\           evs : yahalom lost |]                                            \
+\        ==> EX i. K = Key(newK i)";
 by (etac rev_mp 1);
 by (etac yahalom.induct 1);
 by (ALLGOALS (fast_tac (!claset addss (!simpset))));
@@ -202,14 +200,14 @@ val analz_Fake_tac =
     forw_inst_tac [("lost","lost")] YM4_analz_sees_Spy 6 THEN
     forw_inst_tac [("lost","lost")] Says_Server_message_form 7 THEN
     assume_tac 7 THEN Full_simp_tac 7 THEN
-    REPEAT ((etac bexE ORELSE' hyp_subst_tac) 7);
+    REPEAT ((etac exE ORELSE' hyp_subst_tac) 7);
 
 
 (****
  The following is to prove theorems of the form
 
-          Key K : analz (insert (Key (newK evt)) (sees lost Spy evs)) ==>
-          Key K : analz (sees lost Spy evs)
+  Key K : analz (insert (Key (newK i)) (sees lost Spy evs)) ==>
+  Key K : analz (sees lost Spy evs)
 
  A more general formula must be proved inductively.
 
@@ -221,7 +219,7 @@ val analz_Fake_tac =
   We require that agents should behave like this subsequently also.*)
 goal thy 
  "!!evs. evs : yahalom lost ==> \
-\        (Crypt (newK evt) X) : parts (sees lost Spy evs) & \
+\        (Crypt (newK i) X) : parts (sees lost Spy evs) & \
 \        Key K : parts {X} --> Key K : parts (sees lost Spy evs)";
 by (etac yahalom.induct 1);
 by parts_Fake_tac;
@@ -244,12 +242,11 @@ goal thy
 by (etac yahalom.induct 1);
 by analz_Fake_tac;
 by (REPEAT_FIRST (resolve_tac [allI, analz_image_newK_lemma]));
-by (ALLGOALS
+by (ALLGOALS (*Takes 11 secs*)
     (asm_simp_tac 
-     (!simpset addsimps ([insert_Key_singleton, insert_Key_image, pushKey_newK]
-                         @ pushes)
+     (!simpset addsimps [Un_assoc RS sym, 
+			 insert_Key_singleton, insert_Key_image, pushKey_newK]
                setloop split_tac [expand_if])));
-(** LEVEL 5 **)
 (*YM4, Fake*) 
 by (EVERY (map spy_analz_tac [4, 2]));
 (*Oops, YM3, Base*)
@@ -258,8 +255,8 @@ qed_spec_mp "analz_image_newK";
 
 goal thy
  "!!evs. evs : yahalom lost ==>                               \
-\        Key K : analz (insert (Key (newK evt)) (sees lost Spy evs)) = \
-\        (K = newK evt | Key K : analz (sees lost Spy evs))";
+\        Key K : analz (insert (Key(newK i)) (sees lost Spy evs)) = \
+\        (K = newK i | Key K : analz (sees lost Spy evs))";
 by (asm_simp_tac (HOL_ss addsimps [analz_image_newK, 
                                    insert_Key_singleton]) 1);
 by (Fast_tac 1);
@@ -295,11 +292,7 @@ goal thy
 \           : set_of_list evs;                                      \
 \          evs : yahalom lost |]                                    \
 \       ==> A=A' & B=B' & NA=NA' & NB=NB'";
-by (dtac lemma 1);
-by (REPEAT (etac exE 1));
-(*Duplicate the assumption*)
-by (forw_inst_tac [("psi", "ALL C.?P(C)")] asm_rl 1);
-by (fast_tac (!claset addSDs [spec]) 1);
+by (prove_unique_tac lemma 1);
 qed "unique_session_keys";
 
 
@@ -331,14 +324,13 @@ by (etac yahalom.induct 1);
 by analz_Fake_tac;
 by (ALLGOALS
     (asm_simp_tac 
-     (!simpset addsimps ([not_parts_not_analz,
-                          analz_insert_Key_newK] @ pushes)
+     (!simpset addsimps [not_parts_not_analz, analz_insert_Key_newK]
                setloop split_tac [expand_if])));
 (*YM3*)
 by (Fast_tac 2);  (*uses Says_too_new_key*)
 (*OR4, Fake*) 
 by (REPEAT_FIRST spy_analz_tac);
-(*Oops*) (** LEVEL 6 **)
+(*Oops*)
 by (fast_tac (!claset delrules [disjE] 
                       addDs [unique_session_keys]
                       addss (!simpset)) 1);
@@ -381,8 +373,8 @@ goal thy
  "!!evs. [| Crypt (shrK B) {|Agent A, Key K|} : parts (sees lost Spy evs); \
 \           B ~: lost;  evs : yahalom lost |]                           \
 \        ==> EX NA NB. Says Server A                                    \
-\                        {|Crypt (shrK A) {|Agent B, Key K,                      \
-\                                  Nonce NA, Nonce NB|},       \
+\                        {|Crypt (shrK A) {|Agent B, Key K,             \
+\                                  Nonce NA, Nonce NB|},                \
 \                          Crypt (shrK B) {|Agent A, Key K|}|}          \
 \                       : set_of_list evs";
 by (etac rev_mp 1);
@@ -394,9 +386,9 @@ qed "B_trusts_YM4_shrK";
 
 (*** General properties of nonces ***)
 
-goal thy "!!evs. evs : yahalom lost ==> \
-\                length evs <= length evt --> \
-\                Nonce (newN evt) ~: parts (sees lost Spy evs)";
+goal thy "!!evs. evs : yahalom lost ==>       \
+\                length evs <= i --> \
+\                Nonce (newN i) ~: parts (sees lost Spy evs)";
 by (parts_induct_tac 1);
 by (REPEAT_FIRST (fast_tac (!claset 
                               addSEs partsEs
@@ -411,10 +403,10 @@ Addsimps [new_nonces_not_seen];
 
 (*Variant: old messages must contain old nonces!*)
 goal thy 
- "!!evs. [| Says A B X : set_of_list evs;      \
-\           Nonce (newN evt) : parts {X};      \
-\           evs : yahalom lost                 \
-\        |] ==> length evt < length evs";
+ "!!evs. [| Says A B X : set_of_list evs;              \
+\           Nonce (newN i) : parts {X};      \
+\           evs : yahalom lost                         \
+\        |] ==> i < length evs";
 by (rtac ccontr 1);
 by (dtac leI 1);
 by (fast_tac (!claset addSDs [new_nonces_not_seen, Says_imp_sees_Spy]
@@ -427,11 +419,19 @@ qed "Says_imp_old_nonces";
 val nonce_not_seen_now = le_refl RSN (2, new_nonces_not_seen) RSN (2,rev_notE);
 
 goal thy 
- "!!evs. evs : yahalom lost ==> EX NA' A' B'. ALL NA A B. \
+ "!!evs. evs : yahalom lost ==> \
+\   EX NA' A' B'. ALL NA A B. \
 \      Crypt (shrK B) {|Agent A, Nonce NA, NB|} : parts(sees lost Spy evs) \
 \      --> B ~: lost --> NA = NA' & A = A' & B = B'";
-by (parts_induct_tac 1);  (*100 seconds??*)
-by (simp_tac (!simpset addsimps [all_conj_distrib]) 1); 
+by (etac yahalom.induct 1 THEN parts_Fake_tac);
+(*Fake: the tactic in parts_induct_tac works, but takes 4 times longer*)
+by (REPEAT (etac exE 2) THEN 
+    best_tac (!claset addSIs [exI]
+		      addDs [impOfSubs Fake_parts_insert]
+      	              addss (!simpset)) 2);
+(*Base case*)
+by (fast_tac (!claset addss (!simpset)) 1);
+by (ALLGOALS (asm_simp_tac (!simpset addsimps [all_conj_distrib]))); 
 (*YM2: creation of new Nonce.  Move assertion into global context*)
 by (expand_case_tac "NB = ?y" 1);
 by (fast_tac (!claset addSEs (nonce_not_seen_now::partsEs)) 1);
@@ -444,11 +444,7 @@ goal thy
 \                  : parts (sees lost Spy evs);         \
 \          evs : yahalom lost;  B ~: lost;  B' ~: lost |]  \
 \        ==> NA' = NA & A' = A & B' = B";
-by (dtac lemma 1);
-by (REPEAT (etac exE 1));
-(*Duplicate the assumption*)
-by (forw_inst_tac [("psi", "ALL C.?P(C)")] asm_rl 1);
-by (fast_tac (!claset addSDs [spec]) 1);
+by (prove_unique_tac lemma 1);
 qed "unique_NB";
 
 (*OLD VERSION
@@ -627,7 +623,7 @@ goal thy
 \            : set_of_list evs)  |  Nonce NB : analz (sees lost Spy evs)";
 by (etac yahalom.induct 1);
 by analz_Fake_tac;
-by (ALLGOALS  (*28 seconds*)
+by (ALLGOALS  (*22 seconds*)
     (asm_simp_tac 
      (!simpset addsimps ([not_parts_not_analz,
                           analz_image_newK,
@@ -638,11 +634,10 @@ by (ALLGOALS  (*28 seconds*)
 by (fast_tac (!claset addss (!simpset)) 1);
 (*Fake*) (** LEVEL 4 **)
 by (spy_analz_tac 1);
-(*YM1-YM3*) (*29 seconds*)
+(*YM1-YM3*) (*24 seconds*)
 by (EVERY (map grind_tac [3,2,1]));
 (*Oops*)
 by (Full_simp_tac 2);
-by (REPEAT ((etac bexE ORELSE' hyp_subst_tac) 2));
 by (simp_tac (!simpset addsimps [insert_Key_image]) 2);
 by (grind_tac 2);
 by (fast_tac (!claset delrules [bexI] 
@@ -672,11 +667,11 @@ val Nonce_secrecy = result() RS spec RSN (2, rev_mp) |> standard;
   was distributed with that key.  The more general form above is required
   for the induction to carry through.*)
 goal thy 
- "!!evs. [| Says Server A                                                     \
-\            {|Crypt (shrK A) {|Agent B, Key (newK evt), na, Nonce NB'|}, X|} \
-\           : set_of_list evs;                                                \
-\           Nonce NB : analz (insert (Key (newK evt)) (sees lost Spy evs));   \
-\           evs : yahalom lost |]                                             \
+ "!!evs. [| Says Server A                                                   \
+\            {|Crypt (shrK A) {|Agent B, Key (newK i), na, Nonce NB'|}, X|} \
+\           : set_of_list evs;                                              \
+\           Nonce NB : analz (insert (Key (newK i)) (sees lost Spy evs));   \
+\           evs : yahalom lost |]                                           \
 \ ==> Nonce NB : analz (sees lost Spy evs) | NB = NB'";
 by (asm_full_simp_tac (HOL_ss addsimps [insert_Key_singleton]) 1);
 by (dtac Nonce_secrecy 1 THEN assume_tac 1);

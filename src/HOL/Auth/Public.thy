@@ -50,17 +50,16 @@ primrec sees list
   sees_Cons "sees lost A (ev#evs) = sees1 A ev Un sees lost A evs"
 
 
-(*Agents generate "random" nonces.  These are uniquely determined by
-  the length of their argument, a trace.*)
+(*Agents generate "random" nonces, uniquely determined by their argument.*)
 consts
-  newN :: "event list => nat"
+  newN  :: nat => nat
 
 rules
 
   (*Public keys are disjoint, and never clash with private keys*)
-  inj_pubK      "inj pubK"
-  priK_neq_pubK "priK A ~= pubK B"
+  inj_pubK        "inj pubK"
+  priK_neq_pubK   "priK A ~= pubK B"
 
-  newN_length   "(newN evs = newN evt) ==> (length evs = length evt)"
+  inj_newN        "inj newN"
 
 end

@@ -111,8 +111,7 @@ AddSDs [Spy_see_shrK_D, Spy_analz_shrK_D];
 
 (*Nobody can have SEEN keys that will be generated in the future. *)
 goal thy "!!evs. evs : ns_shared lost ==>      \
-\                length evs <= length evs' --> \
-\                Key (newK evs') ~: parts (sees lost Spy evs)";
+\               length evs <= i --> Key (newK i) ~: parts (sees lost Spy evs)";
 by (parts_induct_tac 1);
 by (ALLGOALS (fast_tac (!claset addEs [leD RS notE]
 				addDs [impOfSubs analz_subset_parts,
@@ -124,10 +123,10 @@ Addsimps [new_keys_not_seen];
 
 (*Variant: old messages must contain old keys!*)
 goal thy 
- "!!evs. [| Says A B X : set_of_list evs;  \
-\           Key (newK evt) : parts {X};    \
-\           evs : ns_shared lost           \
-\        |] ==> length evt < length evs";
+ "!!evs. [| Says A B X : set_of_list evs;          \
+\           Key (newK i) : parts {X};              \
+\           evs : ns_shared lost                   \
+\        |] ==> i < length evs";
 by (rtac ccontr 1);
 by (dtac leI 1);
 by (fast_tac (!claset addSDs [new_keys_not_seen, Says_imp_sees_Spy]
@@ -139,8 +138,7 @@ qed "Says_imp_old_keys";
 (*** Future nonces can't be seen or used! ***)
 
 goal thy "!!evs. evs : ns_shared lost ==>     \
-\                length evs <= length evt --> \
-\                Nonce (newN evt) ~: parts (sees lost Spy evs)";
+\             length evs <= i --> Nonce (newN i) ~: parts (sees lost Spy evs)";
 by (parts_induct_tac 1);
 by (REPEAT_FIRST
     (fast_tac (!claset addSEs partsEs
@@ -156,8 +154,8 @@ Addsimps [new_nonces_not_seen];
 (*Nobody can have USED keys that will be generated in the future.
   ...very like new_keys_not_seen*)
 goal thy "!!evs. evs : ns_shared lost ==>      \
-\                length evs <= length evs' --> \
-\                newK evs' ~: keysFor (parts (sees lost Spy evs))";
+\                length evs <= i -->           \
+\                newK i ~: keysFor (parts (sees lost Spy evs))";
 by (parts_induct_tac 1);
 (*NS1 and NS2*)
 by (EVERY (map (fast_tac (!claset addDs [Suc_leD] addss (!simpset))) [3,2]));
@@ -189,11 +187,10 @@ Addsimps [new_keys_not_used, new_keys_not_analzd];
 (*Describes the form of K, X and K' when the Server sends this message.*)
 goal thy 
  "!!evs. [| Says Server A (Crypt K' {|N, Agent B, K, X|}) : set_of_list evs; \
-\           evs : ns_shared lost |]    \
-\        ==> (EX evt: ns_shared lost. \
-\                  K = Key(newK evt) & \
-\                  X = (Crypt (shrK B) {|K, Agent A|}) & \
-\                  K' = shrK A)";
+\           evs : ns_shared lost |]                       \
+\        ==> (EX i. K = Key(newK i) &                     \
+\                   X = (Crypt (shrK B) {|K, Agent A|}) & \
+\                   K' = shrK A)";
 by (etac rev_mp 1);
 by (etac ns_shared.induct 1);
 by (ALLGOALS (fast_tac (!claset addss (!simpset))));
@@ -222,9 +219,8 @@ qed "A_trusts_NS2";
 goal thy 
  "!!evs. [| Says S A (Crypt (shrK A) {|Nonce NA, Agent B, Key K, X|})      \
 \            : set_of_list evs;  evs : ns_shared lost |]                   \
-\        ==> (EX evt: ns_shared lost. K = newK evt &                       \
-\                               length evt < length evs &                  \
-\                               X = (Crypt (shrK B) {|Key K, Agent A|}))   \
+\        ==> (EX i. K = newK i & i < length evs &                  \
+\                   X = (Crypt (shrK B) {|Key K, Agent A|}))       \
 \          | X : analz (sees lost Spy evs)";
 by (case_tac "A : lost" 1);
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]
@@ -242,14 +238,14 @@ val analz_Fake_tac =
     forw_inst_tac [("lost","lost")] Says_Server_message_form 8 THEN
     forw_inst_tac [("lost","lost")] Says_S_message_form 5 THEN 
     Full_simp_tac 7 THEN
-    REPEAT_FIRST (eresolve_tac [asm_rl, bexE, disjE] ORELSE' hyp_subst_tac);
+    REPEAT_FIRST (eresolve_tac [asm_rl, exE, disjE] ORELSE' hyp_subst_tac);
 
 
 (****
  The following is to prove theorems of the form
 
-          Key K : analz (insert (Key (newK evt)) (sees lost Spy evs)) ==>
-          Key K : analz (sees lost Spy evs)
+  Key K : analz (insert (Key (newK i)) (sees lost Spy evs)) ==>
+  Key K : analz (sees lost Spy evs)
 
  A more general formula must be proved inductively.
 
@@ -261,7 +257,7 @@ val analz_Fake_tac =
   We require that agents should behave like this subsequently also.*)
 goal thy 
  "!!evs. evs : ns_shared lost ==> \
-\        (Crypt (newK evt) X) : parts (sees lost Spy evs) & \
+\        (Crypt (newK i) X) : parts (sees lost Spy evs) & \
 \        Key K : parts {X} --> Key K : parts (sees lost Spy evs)";
 by (etac ns_shared.induct 1);
 by parts_Fake_tac;
@@ -285,23 +281,22 @@ goal thy
 by (etac ns_shared.induct 1);
 by analz_Fake_tac;
 by (REPEAT_FIRST (resolve_tac [allI, analz_image_newK_lemma]));
-by (ALLGOALS 
+by (ALLGOALS (*Takes 18 secs*)
     (asm_simp_tac 
-     (!simpset addsimps ([insert_Key_singleton, insert_Key_image, pushKey_newK]
-                         @ pushes)
+     (!simpset addsimps [Un_assoc RS sym, 
+			 insert_Key_singleton, insert_Key_image, pushKey_newK]
                setloop split_tac [expand_if])));
-(*NS3, Fake*) 
+(*NS4, Fake*) 
 by (EVERY (map spy_analz_tac [5,2]));
-by (REPEAT (fast_tac (!claset addIs [image_eqI] addss (!simpset)) 1));
 (*NS3, NS2, Base*)
-by (REPEAT (Fast_tac 3));
+by (REPEAT (fast_tac (!claset addIs [image_eqI] addss (!simpset)) 1));
 qed_spec_mp "analz_image_newK";
 
 
 goal thy
  "!!evs. evs : ns_shared lost ==>                               \
-\        Key K : analz (insert (Key (newK evt)) (sees lost Spy evs)) = \
-\        (K = newK evt | Key K : analz (sees lost Spy evs))";
+\        Key K : analz (insert (Key(newK i)) (sees lost Spy evs)) = \
+\        (K = newK i | Key K : analz (sees lost Spy evs))";
 by (asm_simp_tac (HOL_ss addsimps [pushKey_newK, analz_image_newK, 
                                    insert_Key_singleton]) 1);
 by (Fast_tac 1);
@@ -312,8 +307,8 @@ qed "analz_insert_Key_newK";
     with a secure key **)
 
 goal thy 
- "!!evs. evs : ns_shared lost ==>                                            \
-\      EX A' NA' B' X'. ALL A NA B X.                                        \
+ "!!evs. evs : ns_shared lost ==>                                        \
+\      EX A' NA' B' X'. ALL A NA B X.                                    \
 \       Says Server A (Crypt (shrK A) {|NA, Agent B, Key K, X|})         \
 \       : set_of_list evs --> A=A' & NA=NA' & B=B' & X=X'";
 by (etac ns_shared.induct 1);
@@ -339,12 +334,7 @@ goal thy
 \             (Crypt (shrK A') {|NA', Agent B', Key K, X'|}) \
 \                  : set_of_list evs;                        \
 \           evs : ns_shared lost |] ==> A=A' & NA=NA' & B=B' & X = X'";
-by (dtac lemma 1);
-by (REPEAT (etac exE 1));
-(*Duplicate the assumption*)
-by (forw_inst_tac [("psi", "ALL A.?P(A)")] asm_rl 1);
-by (fast_tac (!claset addSDs [ spec] 
-                      delrules [conjI] addss (!simpset)) 1);
+by (prove_unique_tac lemma 1);
 qed "unique_session_keys";
 
 
@@ -369,14 +359,14 @@ by (ALLGOALS
 by (fast_tac (!claset addIs [parts_insertI]
                       addEs [Says_imp_old_keys RS less_irrefl]
                       addss (!simpset)) 2);
-(*OR4, OR2, Fake*) 
-by (REPEAT_FIRST spy_analz_tac);
-(*NS3 and Oops subcases*) (**LEVEL 7 **)
+(*NS4, Fake*) 
+by (EVERY (map spy_analz_tac [3,1]));
+(*NS3 and Oops subcases*) (**LEVEL 5 **)
 by (step_tac (!claset delrules [impCE]) 1);
 by (full_simp_tac (!simpset addsimps [all_conj_distrib]) 2);
 by (etac conjE 2);
 by (mp_tac 2);
-(**LEVEL 11 **)
+(**LEVEL 9 **)
 by (forward_tac [Says_imp_sees_Spy RS parts.Inj RS A_trusts_NS2] 2);
 by (assume_tac 3);
 by (fast_tac (!claset addSEs [Says_Crypt_not_lost]) 2);
@@ -460,7 +450,7 @@ by (fast_tac (!claset addSDs [Crypt_Fake_parts_insert]
 by (Fast_tac 2);
 by (REPEAT_FIRST (rtac impI ORELSE' etac conjE ORELSE' hyp_subst_tac));
 (*Contradiction from the assumption   
-   Crypt (newK evsa) (Nonce NB) : parts (sees lost Spy evsa) *)
+   Crypt (newK(length evsa)) (Nonce NB) : parts (sees lost Spy evsa) *)
 by (dtac Crypt_imp_invKey_keysFor 1);
 (**LEVEL 10**)
 by (Asm_full_simp_tac 1);

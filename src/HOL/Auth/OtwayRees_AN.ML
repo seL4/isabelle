@@ -120,9 +120,8 @@ AddSDs [Spy_see_shrK_D, Spy_analz_shrK_D];
 (*** Future keys can't be seen or used! ***)
 
 (*Nobody can have SEEN keys that will be generated in the future. *)
-goal thy "!!evs. evs : otway lost ==>             \
-\                length evs <= length evs' -->    \
-\                Key (newK evs') ~: parts (sees lost Spy evs)";
+goal thy "!!i. evs : otway lost ==>             \
+\              length evs <= i --> Key(newK i) ~: parts (sees lost Spy evs)";
 by (parts_induct_tac 1);
 by (REPEAT_FIRST (best_tac (!claset addEs [leD RS notE]
 				    addDs [impOfSubs analz_subset_parts,
@@ -134,10 +133,10 @@ Addsimps [new_keys_not_seen];
 
 (*Variant: old messages must contain old keys!*)
 goal thy 
- "!!evs. [| Says A B X : set_of_list evs;  \
-\           Key (newK evt) : parts {X};    \
-\           evs : otway lost               \
-\        |] ==> length evt < length evs";
+ "!!evs. [| Says A B X : set_of_list evs;          \
+\           Key (newK i) : parts {X};              \
+\           evs : otway lost                       \
+\        |] ==> i < length evs";
 by (rtac ccontr 1);
 by (dtac leI 1);
 by (fast_tac (!claset addSDs [new_keys_not_seen, Says_imp_sees_Spy]
@@ -147,9 +146,8 @@ qed "Says_imp_old_keys";
 
 (*Nobody can have USED keys that will be generated in the future.
   ...very like new_keys_not_seen*)
-goal thy "!!evs. evs : otway lost ==>          \
-\                length evs <= length evs' --> \
-\                newK evs' ~: keysFor (parts (sees lost Spy evs))";
+goal thy "!!i. evs : otway lost ==>          \
+\           length evs <= i --> newK i ~: keysFor (parts (sees lost Spy evs))";
 by (parts_induct_tac 1);
 (*Fake, OR4: these messages send unknown (X) components*)
 by (EVERY
@@ -180,9 +178,8 @@ goal thy
 \           {|Crypt (shrK A) {|NA, Agent A, Agent B, K|},                     \
 \             Crypt (shrK B) {|NB, Agent A, Agent B, K|}|} : set_of_list evs; \
 \           evs : otway lost |]                                               \
-\        ==> (EX evt: otway lost. K = Key(newK evt)) & \
-\            (EX i. NA = Nonce i) &                    \
-\            (EX j. NB = Nonce j)";
+\        ==> (EX n. K = Key(newK n)) &                                        \
+\            (EX i. NA = Nonce i) & (EX j. NB = Nonce j)";
 by (etac rev_mp 1);
 by (etac otway.induct 1);
 by (ALLGOALS (fast_tac (!claset addss (!simpset))));
@@ -194,14 +191,14 @@ val analz_Fake_tac =
     dres_inst_tac [("lost","lost")] OR4_analz_sees_Spy 6 THEN
     forw_inst_tac [("lost","lost")] Says_Server_message_form 7 THEN
     assume_tac 7 THEN Full_simp_tac 7 THEN
-    REPEAT ((eresolve_tac [bexE, exE, conjE] ORELSE' hyp_subst_tac) 7);
+    REPEAT ((eresolve_tac [exE, conjE] ORELSE' hyp_subst_tac) 7);
 
 
 (****
  The following is to prove theorems of the form
 
-          Key K : analz (insert (Key (newK evt)) (sees lost Spy evs)) ==>
-          Key K : analz (sees lost Spy evs)
+  Key K : analz (insert (Key (newK i)) (sees lost Spy evs)) ==>
+  Key K : analz (sees lost Spy evs)
 
  A more general formula must be proved inductively.
 
@@ -218,12 +215,11 @@ goal thy
 by (etac otway.induct 1);
 by analz_Fake_tac;
 by (REPEAT_FIRST (ares_tac [allI, analz_image_newK_lemma]));
-by (ALLGOALS (*Takes 28 secs*)
+by (ALLGOALS (*Takes 18 secs*)
     (asm_simp_tac 
-     (!simpset addsimps ([insert_Key_singleton, insert_Key_image, pushKey_newK]
-                         @ pushes)
+     (!simpset addsimps [Un_assoc RS sym, 
+			 insert_Key_singleton, insert_Key_image, pushKey_newK]
                setloop split_tac [expand_if])));
-(** LEVEL 5 **)
 (*OR4, Fake*) 
 by (EVERY (map spy_analz_tac [4,2]));
 (*Oops, OR3, Base*)
@@ -233,8 +229,8 @@ qed_spec_mp "analz_image_newK";
 
 goal thy
  "!!evs. evs : otway lost ==>                                          \
-\        Key K : analz (insert (Key (newK evt)) (sees lost Spy evs)) = \
-\        (K = newK evt | Key K : analz (sees lost Spy evs))";
+\        Key K : analz (insert (Key(newK i)) (sees lost Spy evs)) = \
+\        (K = newK i | Key K : analz (sees lost Spy evs))";
 by (asm_simp_tac (HOL_ss addsimps [pushKey_newK, analz_image_newK, 
                                    insert_Key_singleton]) 1);
 by (Fast_tac 1);
@@ -333,8 +329,8 @@ goal thy
 by (etac otway.induct 1);
 by analz_Fake_tac;
 by (ALLGOALS
-    (asm_simp_tac (!simpset addsimps ([not_parts_not_analz,
-				       analz_insert_Key_newK] @ pushes)
+    (asm_simp_tac (!simpset addsimps [not_parts_not_analz,
+				      analz_insert_Key_newK]
 		            setloop split_tac [expand_if])));
 (*OR3*)
 by (fast_tac (!claset addEs [Says_imp_old_keys RS less_irrefl]

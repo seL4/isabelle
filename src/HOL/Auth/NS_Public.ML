@@ -84,9 +84,9 @@ AddSDs [Spy_see_priK_D, Spy_analz_priK_D];
 
 (*** Future nonces can't be seen or used! ***)
 
-goal thy "!!evs. evs : ns_public ==> \
-\                length evs <= length evt --> \
-\                Nonce (newN evt) ~: parts (sees lost Spy evs)";
+goal thy "!!evs. evs : ns_public ==>          \
+\                length evs <= i --> \
+\                Nonce (newN i) ~: parts (sees lost Spy evs)";
 by (parts_induct_tac 1);
 by (REPEAT_FIRST (fast_tac (!claset 
                               addSEs partsEs
@@ -104,8 +104,8 @@ val nonce_not_seen_now = le_refl RSN (2, new_nonces_not_seen) RSN (2,rev_notE);
 fun analz_induct_tac i = 
     etac ns_public.induct i	THEN
     ALLGOALS (asm_simp_tac 
-	      (!simpset addsimps ([not_parts_not_analz] @ pushes)
-               setloop split_tac [expand_if]));
+	      (!simpset addsimps [not_parts_not_analz]
+                        setloop split_tac [expand_if]));
 
 (**** Authenticity properties obtained from NS2 ****)
 

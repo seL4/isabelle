@@ -29,9 +29,9 @@ inductive "otway lost"
 
          (*Alice initiates a protocol run*)
     OR1  "[| evs: otway lost;  A ~= B;  B ~= Server |]
-          ==> Says A B {|Nonce (newN evs), Agent A, Agent B, 
+          ==> Says A B {|Nonce (newN(length evs)), Agent A, Agent B, 
                          Crypt (shrK A)
-                               {|Nonce (newN evs), Agent A, Agent B|} |} 
+                           {|Nonce (newN(length evs)), Agent A, Agent B|} |} 
                  # evs : otway lost"
 
          (*Bob's response to Alice's message.  Bob doesn't know who 
@@ -41,8 +41,8 @@ inductive "otway lost"
              Says A' B {|Nonce NA, Agent A, Agent B, X|} : set_of_list evs |]
           ==> Says B Server 
                   {|Nonce NA, Agent A, Agent B, X, 
-                    Crypt 
-                          (shrK B){|Nonce NA, Nonce (newN evs), Agent A, Agent B|}|}
+                    Crypt (shrK B)
+                      {|Nonce NA, Nonce(newN(length evs)), Agent A, Agent B|}|}
                  # evs : otway lost"
 
          (*The Server receives Bob's message and checks that the three NAs
@@ -56,8 +56,8 @@ inductive "otway lost"
                : set_of_list evs |]
           ==> Says Server B 
                   {|Nonce NA, 
-                    Crypt (shrK A) {|Nonce NA, Key (newK evs)|},
-                    Crypt (shrK B) {|Nonce NB, Key (newK evs)|}|}
+                    Crypt (shrK A) {|Nonce NA, Key (newK(length evs))|},
+                    Crypt (shrK B) {|Nonce NB, Key (newK(length evs))|}|}
                  # evs : otway lost"
 
          (*Bob receives the Server's (?) message and compares the Nonces with

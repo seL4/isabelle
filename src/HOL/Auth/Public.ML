@@ -27,15 +27,14 @@ Addsimps [o_def];
 (*** Basic properties of pubK ***)
 
 (*Injectiveness and freshness of new keys and nonces*)
-AddIffs [inj_pubK RS inj_eq];
-AddSDs  [newN_length];
+AddIffs [inj_pubK RS inj_eq, inj_newN RS inj_eq];
 
 (** Rewrites should not refer to  initState(Friend i) 
     -- not in normal form! **)
 
 Addsimps [priK_neq_pubK, priK_neq_pubK RS not_sym];
 
-goal thy "Nonce (newN evs) ~: parts (initState lost B)";
+goal thy "Nonce (newN i) ~: parts (initState lost B)";
 by (agent.induct_tac "B" 1);
 by (Auto_tac ());
 qed "newN_notin_initState";

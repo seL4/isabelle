@@ -77,7 +77,7 @@ inductive "recur lost"
 
          (*Alice initiates a protocol run.
            "Agent Server" is just a placeholder, to terminate the nesting.*)
-    NA1  "[| evs: recur lost;  A ~= B;  A ~= Server;
+    RA1  "[| evs: recur lost;  A ~= B;  A ~= Server;
              MA = {|Agent A, Agent B, Nonce(newN(length evs)), Agent Server|}|]
           ==> Says A B {|Hash{|Key(shrK A),MA|}, MA|} # evs : recur lost"
 
@@ -85,7 +85,7 @@ inductive "recur lost"
            XA should be the Hash of the remaining components with KA, but
 		Bob cannot check that.
            P is the previous recur message from Alice's caller.*)
-    NA2  "[| evs: recur lost;  B ~= C;  B ~= Server;
+    RA2  "[| evs: recur lost;  B ~= C;  B ~= Server;
              Says A' B PA : set_of_list evs;  
              PA = {|XA, Agent A, Agent B, Nonce NA, P|};
              MB = {|Agent B, Agent C, Nonce (newN(length evs)), PA|} |]
@@ -93,14 +93,14 @@ inductive "recur lost"
 
          (*The Server receives and decodes Bob's message.  Then he generates
            a new session key and a response.*)
-    NA3  "[| evs: recur lost;  B ~= Server;
+    RA3  "[| evs: recur lost;  B ~= Server;
              Says B' Server PB : set_of_list evs;
              (0,PB,RB) : respond (length evs) |]
           ==> Says Server B RB # evs : recur lost"
 
          (*Bob receives the returned message and compares the Nonces with
 	   those in the message he previously sent the Server.*)
-    NA4  "[| evs: recur lost;  A ~= B;  
+    RA4  "[| evs: recur lost;  A ~= B;  
              Says C' B {|Agent B, 
                          Crypt (shrK B) {|Key KAB, Agent A, Nonce NB|}, 
                          Agent B, 

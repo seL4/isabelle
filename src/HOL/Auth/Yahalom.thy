@@ -27,7 +27,8 @@ inductive "yahalom lost"
 
          (*Alice initiates a protocol run*)
     YM1  "[| evs: yahalom lost;  A ~= B |]
-          ==> Says A B {|Agent A, Nonce (newN evs)|} # evs : yahalom lost"
+          ==> Says A B {|Agent A, Nonce (newN(length evs))|} # evs
+                : yahalom lost"
 
          (*Bob's response to Alice's message.  Bob doesn't know who 
 	   the sender is, hence the A' in the sender field.*)
@@ -35,7 +36,8 @@ inductive "yahalom lost"
              Says A' B {|Agent A, Nonce NA|} : set_of_list evs |]
           ==> Says B Server 
                   {|Agent B, 
-                    Crypt (shrK B) {|Agent A, Nonce NA, Nonce (newN evs)|}|}
+                    Crypt (shrK B)
+                      {|Agent A, Nonce NA, Nonce (newN(length evs))|}|}
                  # evs : yahalom lost"
 
          (*The Server receives Bob's message.  He responds by sending a
@@ -45,9 +47,9 @@ inductive "yahalom lost"
                   {|Agent B, Crypt (shrK B) {|Agent A, Nonce NA, Nonce NB|}|}
                : set_of_list evs |]
           ==> Says Server A
-                  {|Crypt (shrK A) {|Agent B, Key (newK evs), 
+                  {|Crypt (shrK A) {|Agent B, Key (newK(length evs)), 
                             Nonce NA, Nonce NB|},
-                    Crypt (shrK B) {|Agent A, Key (newK evs)|}|}
+                    Crypt (shrK B) {|Agent A, Key (newK(length evs))|}|}
                  # evs : yahalom lost"
 
          (*Alice receives the Server's (?) message, checks her Nonce, and

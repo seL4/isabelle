@@ -29,15 +29,15 @@ inductive ns_public
 
          (*Alice initiates a protocol run, sending a nonce to Bob*)
     NS1  "[| evs: ns_public;  A ~= B |]
-          ==> Says A B (Crypt (pubK B) {|Nonce (newN evs), Agent A|}) # evs
-                : ns_public"
+          ==> Says A B (Crypt (pubK B) {|Nonce (newN(length evs)), Agent A|})
+                # evs  :  ns_public"
 
          (*Bob responds to Alice's message with a further nonce*)
     NS2  "[| evs: ns_public;  A ~= B;
              Says A' B (Crypt (pubK B) {|Nonce NA, Agent A|})
                : set_of_list evs |]
-          ==> Says B A (Crypt (pubK A) {|Nonce NA, Nonce (newN evs)|}) # evs
-                : ns_public"
+          ==> Says B A (Crypt (pubK A) {|Nonce NA, Nonce (newN(length evs))|})
+                # evs  :  ns_public"
 
          (*Alice proves her existence by sending NB back to Bob.*)
     NS3  "[| evs: ns_public;  A ~= B;

@@ -37,7 +37,7 @@ inductive woolam
          (*Bob responds to Alice's message with a challenge.*)
     WL2  "[| evs: woolam;  A ~= B;
              Says A' B (Agent A) : set_of_list evs |]
-          ==> Says B A (Nonce (newN evs)) # evs : woolam"
+          ==> Says B A (Nonce (newN(length evs))) # evs : woolam"
 
          (*Alice responds to Bob's challenge by encrypting NB with her key.
            B is *not* properly determined -- Alice essentially broadcasts

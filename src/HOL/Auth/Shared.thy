@@ -44,24 +44,25 @@ primrec sees list
   sees_Cons "sees lost A (ev#evs) = sees1 A ev Un sees lost A evs"
 
 
-(*Agents generate "random" numbers for use as symmetric keys, as well as
-  nonces.*)
+(*Agents generate random (symmetric) keys and nonces.
+  The numeric argument is typically the length of the current trace.
+  An injective pairing function allows multiple keys/nonces to be generated
+	in one protocol round.  A typical candidate for npair(i,j) is
+	2^j(2i+1)
+*)
 
 consts
-  random :: "nat*nat => nat"
-
-constdefs
-  newN   :: event list => nat
-  "newN evs == random (length evs, 0)"
-
-  newK   :: event list => nat
-  "newK evs == random (length evs, 1)"
+  nPair :: "nat*nat => nat"
+  newN  :: "nat => nat"
+  newK  :: "nat => key"
 
 rules
   inj_shrK        "inj shrK"
-  inj_random      "inj random"
+  inj_nPair       "inj nPair"
+  inj_newN        "inj newN"
+  inj_newK        "inj newK"
 
-  random_neq_shrK "random ij ~= shrK A" 
-  isSym_random    "isSymKey (random ij)"
+  newK_neq_shrK   "newK i ~= shrK A" 
+  isSym_newK      "isSymKey (newK i)"
 
 end

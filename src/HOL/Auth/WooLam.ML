@@ -96,9 +96,8 @@ AddSDs [Spy_see_shrK_D, Spy_analz_shrK_D];
 
 (*** Future nonces can't be seen or used! ***)
 
-goal thy "!!evs. evs : woolam ==> \
-\                length evs <= length evt --> \
-\                Nonce (newN evt) ~: parts (sees lost Spy evs)";
+goal thy "!!i. evs : woolam ==>             \
+\             length evs <= i --> Nonce(newN(i)) ~: parts (sees lost Spy evs)";
 by (parts_induct_tac 1);
 by (REPEAT_FIRST (fast_tac (!claset 
                               addSEs partsEs

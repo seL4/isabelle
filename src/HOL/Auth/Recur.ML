@@ -27,8 +27,8 @@ goal thy
 \                       Agent Server|}      \
 \         : set_of_list evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
-by (rtac (recur.Nil RS recur.NA1 RS 
-	  (respond.One RSN (4,recur.NA3))) 2);
+by (rtac (recur.Nil RS recur.RA1 RS 
+	  (respond.One RSN (4,recur.RA3))) 2);
 by (ALLGOALS (simp_tac (!simpset setsolver safe_solver)));
 by (REPEAT_FIRST (eq_assume_tac ORELSE' resolve_tac [refl, conjI]));
 result();
@@ -42,9 +42,9 @@ goal thy
 \                       Agent Server|}                          \
 \         : set_of_list evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
-by (rtac (recur.Nil RS recur.NA1 RS recur.NA2 RS 
-	  (respond.One RS respond.Cons RSN (4,recur.NA3)) RS
-	  recur.NA4) 2);
+by (rtac (recur.Nil RS recur.RA1 RS recur.RA2 RS 
+	  (respond.One RS respond.Cons RSN (4,recur.RA3)) RS
+	  recur.RA4) 2);
 by (REPEAT
     (REPEAT_FIRST (eq_assume_tac ORELSE' resolve_tac [refl, conjI])
      THEN
@@ -60,9 +60,9 @@ goal thy
 \                       Agent Server|}                          \
 \         : set_of_list evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
-by (rtac (recur.Nil RS recur.NA1 RS recur.NA2 RS recur.NA2 RS 
+by (rtac (recur.Nil RS recur.RA1 RS recur.RA2 RS recur.RA2 RS 
 	  (respond.One RS respond.Cons RS respond.Cons RSN
-	   (4,recur.NA3)) RS recur.NA4 RS recur.NA4) 2);
+	   (4,recur.RA3)) RS recur.RA4 RS recur.RA4) 2);
 by (REPEAT	(*SLOW: 37 seconds*)
     (REPEAT_FIRST (eq_assume_tac ORELSE' resolve_tac [refl, conjI])
      THEN
@@ -104,30 +104,30 @@ qed "respond_imp_responses";
 
 (** For reasoning about the encrypted portion of messages **)
 
-val NA2_analz_sees_Spy = Says_imp_sees_Spy RS analz.Inj |> standard;
+val RA2_analz_sees_Spy = Says_imp_sees_Spy RS analz.Inj |> standard;
 
 goal thy "!!evs. Says C' B {|Agent B, X, Agent B, X', RA|} : set_of_list evs \
 \                ==> RA : analz (sees lost Spy evs)";
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]) 1);
-qed "NA4_analz_sees_Spy";
+qed "RA4_analz_sees_Spy";
 
-(*NA2_analz... and NA4_analz... let us treat those cases using the same 
+(*RA2_analz... and RA4_analz... let us treat those cases using the same 
   argument as for the Fake case.  This is possible for most, but not all,
-  proofs: Fake does not invent new nonces (as in NA2), and of course Fake
+  proofs: Fake does not invent new nonces (as in RA2), and of course Fake
   messages originate from the Spy. *)
 
-bind_thm ("NA2_parts_sees_Spy",
-          NA2_analz_sees_Spy RS (impOfSubs analz_subset_parts));
-bind_thm ("NA4_parts_sees_Spy",
-          NA4_analz_sees_Spy RS (impOfSubs analz_subset_parts));
+bind_thm ("RA2_parts_sees_Spy",
+          RA2_analz_sees_Spy RS (impOfSubs analz_subset_parts));
+bind_thm ("RA4_parts_sees_Spy",
+          RA4_analz_sees_Spy RS (impOfSubs analz_subset_parts));
 
 (*We instantiate the variable to "lost".  Leaving it as a Var makes proofs
   harder to complete, since simplification does less for us.*)
 val parts_Fake_tac = 
     let val tac = forw_inst_tac [("lost","lost")] 
-    in  tac NA2_parts_sees_Spy 4              THEN
+    in  tac RA2_parts_sees_Spy 4              THEN
 	forward_tac [respond_imp_responses] 5 THEN
-	tac NA4_parts_sees_Spy 6
+	tac RA4_parts_sees_Spy 6
     end;
 
 (*For proving the easier theorems about X ~: parts (sees lost Spy evs) *)
@@ -159,10 +159,10 @@ goal thy
  "!!evs. evs : recur lost \
 \        ==> (Key (shrK A) : parts (sees lost Spy evs)) = (A : lost)";
 by (parts_induct_tac 1);
-(*NA2*)
+(*RA2*)
 by (best_tac (!claset addSEs partsEs addSDs [parts_cut]
                       addss (!simpset)) 1);
-(*NA3*)
+(*RA3*)
 by (fast_tac (!claset addDs [Key_in_parts_respond]
                       addss (!simpset addsimps [parts_insert_sees])) 1);
 qed "Spy_see_shrK";
@@ -191,7 +191,7 @@ goal thy "!!evs. evs : recur lost ==> \
 \                length evs <= i -->   \
 \                Key (newK2(i,j)) ~: parts (sees lost Spy evs)";
 by (parts_induct_tac 1);
-(*NA2*)
+(*RA2*)
 by (best_tac (!claset addSEs partsEs 
 	              addSDs [parts_cut]
                       addDs  [Suc_leD]
@@ -201,9 +201,9 @@ by (best_tac (!claset addDs [impOfSubs analz_subset_parts,
 			     impOfSubs parts_insert_subset_Un,
 			     Suc_leD]
 		      addss (!simpset)) 1);
-(*For NA3*)
+(*For RA3*)
 by (asm_simp_tac (!simpset addsimps [parts_insert_sees]) 2);
-(*NA1-NA4*)
+(*RA1-RA4*)
 by (REPEAT (best_tac (!claset addDs [Key_in_parts_respond, Suc_leD]
 		              addss (!simpset)) 1));
 qed_spec_mp "new_keys_not_seen";
@@ -235,7 +235,7 @@ qed_spec_mp "Nonce_in_parts_respond";
 goal thy "!!i. evs : recur lost ==> \
 \              length evs <= i --> Nonce(newN i) ~: parts (sees lost Spy evs)";
 by (parts_induct_tac 1);
-(*For NA3*)
+(*For RA3*)
 by (asm_simp_tac (!simpset addsimps [parts_insert_sees]) 4);
 by (deepen_tac (!claset addSDs [Says_imp_sees_Spy RS parts.Inj]
                         addDs  [Nonce_in_parts_respond, parts_cut, Suc_leD]
@@ -245,7 +245,7 @@ by (fast_tac (!claset addDs  [impOfSubs analz_subset_parts,
 			      impOfSubs parts_insert_subset_Un,
 			      Suc_leD]
 		      addss (!simpset)) 1);
-(*NA1, NA2, NA4*)
+(*RA1, RA2, RA4*)
 by (REPEAT_FIRST  (fast_tac (!claset 
                               addSEs partsEs
                               addEs [leD RS notE]
@@ -279,13 +279,13 @@ qed_spec_mp "Key_in_keysFor_parts_respond";
 goal thy "!!i. evs : recur lost ==>          \
 \       length evs <= i --> newK2(i,j) ~: keysFor (parts (sees lost Spy evs))";
 by (parts_induct_tac 1);
-(*NA3*)
+(*RA3*)
 by (fast_tac (!claset addDs  [Key_in_keysFor_parts_respond, Suc_leD]
 		      addss  (!simpset addsimps [parts_insert_sees])) 4);
-(*NA2*)
+(*RA2*)
 by (fast_tac (!claset addSEs partsEs 
 	              addDs  [Suc_leD] addss (!simpset)) 3);
-(*Fake, NA1, NA4*)
+(*Fake, RA1, RA4*)
 by (REPEAT 
     (best_tac
       (!claset addDs [impOfSubs (analz_subset_parts RS keysFor_mono),
@@ -308,14 +308,14 @@ Addsimps [new_keys_not_used, new_keys_not_analzd];
 
 (*For proofs involving analz.  We again instantiate the variable to "lost".*)
 val analz_Fake_tac = 
-    dres_inst_tac [("lost","lost")] NA2_analz_sees_Spy 4 THEN 
+    dres_inst_tac [("lost","lost")] RA2_analz_sees_Spy 4 THEN 
     forward_tac [respond_imp_responses] 5                THEN
-    dres_inst_tac [("lost","lost")] NA4_analz_sees_Spy 6;
+    dres_inst_tac [("lost","lost")] RA4_analz_sees_Spy 6;
 
 
 (** Session keys are not used to encrypt other session keys **)
 
-(*Version for "responses" relation.  Handles case NA3 in the theorem below.  
+(*Version for "responses" relation.  Handles case RA3 in the theorem below.  
   Note that it holds for *any* set H (not just "sees lost Spy evs")
   satisfying the inductive hypothesis.*)
 goal thy  
@@ -340,12 +340,12 @@ goal thy
 \           (K : newK``I | Key K : analz (sees lost Spy evs))";
 by (etac recur.induct 1);
 by analz_Fake_tac;
-be ssubst 4;	(*NA2: DELETE needless definition of PA!*)
+be ssubst 4;	(*RA2: DELETE needless definition of PA!*)
 by (REPEAT_FIRST (ares_tac [allI, analz_image_newK_lemma]));
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [resp_analz_image_newK_lemma])));
 (*Base*)
 by (fast_tac (!claset addIs [image_eqI] addss (!simpset)) 1);
-(*NA4, NA2, Fake*) 
+(*RA4, RA2, Fake*) 
 by (REPEAT (spy_analz_tac 1));
 val raw_analz_image_newK = result();
 qed_spec_mp "analz_image_newK";
@@ -381,12 +381,12 @@ goal thy "!!i. evs : recur lost ==>              \
 \                (Nonce (newN i) : parts {X} --> \
 \                 Hash X ~: parts (sees lost Spy evs))";
 be recur.induct 1;
-be ssubst 4;	(*NA2: DELETE needless definition of PA!*)
+be ssubst 4;	(*RA2: DELETE needless definition of PA!*)
 by parts_Fake_tac;
-(*NA3 requires a further induction*)
+(*RA3 requires a further induction*)
 be responses.induct 5;
 by (ALLGOALS Asm_simp_tac);
-(*NA2*)
+(*RA2*)
 by (best_tac (!claset addDs  [Suc_leD, parts_cut]
                       addEs  [leD RS notE,
 			      new_nonces_not_seen RSN(2,rev_notE)]
@@ -405,7 +405,7 @@ bind_thm ("Hash_new_nonces_not_seen",
 
 
 (** The Nonce NA uniquely identifies A's message. 
-    This theorem applies to rounds NA1 and NA2!
+    This theorem applies to rounds RA1 and RA2!
 **)
 
 goal thy 
@@ -414,15 +414,15 @@ goal thy
 \        Hash {|Key(shrK A), Agent A, Agent B, Nonce NA, P|} \
 \          : parts (sees lost Spy evs)  -->  B=B' & P=P'";
 be recur.induct 1;
-be ssubst 4;	(*NA2: DELETE needless definition of PA!*)
-(*For better simplification of NA2*)
+be ssubst 4;	(*RA2: DELETE needless definition of PA!*)
+(*For better simplification of RA2*)
 by (res_inst_tac [("x1","XA")] (insert_commute RS ssubst) 4);
 by parts_Fake_tac;
-(*NA3 requires a further induction*)
+(*RA3 requires a further induction*)
 be responses.induct 5;
 by (ALLGOALS Asm_simp_tac);
 by (step_tac (!claset addSEs partsEs) 1);
-(*NA3: inductive case*)
+(*RA3: inductive case*)
 by (best_tac (!claset addss  (!simpset)) 5);
 (*Fake*)
 by (best_tac (!claset addSIs [exI]
@@ -433,13 +433,13 @@ by (best_tac (!claset addSIs [exI]
 by (fast_tac (!claset addss (!simpset)) 1);
 
 by (ALLGOALS (simp_tac (!simpset addsimps [all_conj_distrib]))); 
-(*NA1: creation of new Nonce.  Move assertion into global context*)
+(*RA1: creation of new Nonce.  Move assertion into global context*)
 by (expand_case_tac "NA = ?y" 1);
 by (best_tac (!claset addSIs [exI]
                       addEs  [Hash_new_nonces_not_seen]
 		      addss (!simpset)) 1);
 by (best_tac (!claset addss  (!simpset)) 1);
-(*NA2: creation of new Nonce*)
+(*RA2: creation of new Nonce*)
 by (expand_case_tac "NA = ?y" 1);
 by (best_tac (!claset addSIs [exI]
                       addDs  [parts_cut]
@@ -510,7 +510,7 @@ bind_thm ("resp_analz_insert",
 
 
 (*The Server does not send such messages.  This theorem lets us avoid
-  assuming B~=Server in NA4.*)
+  assuming B~=Server in RA4.*)
 goal thy 
  "!!evs. evs : recur lost       \
 \ ==> ALL C X Y P. Says Server C {|X, Agent Server, Agent C, Y, P|} \
@@ -557,7 +557,7 @@ by (prove_unique_tac lemma 1);	(*33 seconds, due to the disjunctions*)
 qed "unique_session_keys";
 
 
-(** Crucial secrecy property: Spy does not see the keys sent in msg NA3
+(** Crucial secrecy property: Spy does not see the keys sent in msg RA3
     Does not in itself guarantee security: an attack could violate 
     the premises, e.g. by having A=Spy **)
 
@@ -614,24 +614,24 @@ goal thy
 \            Key K ~: analz (sees lost Spy evs)";
 by (etac recur.induct 1);
 by analz_Fake_tac;
-be ssubst 4;	(*NA2: DELETE needless definition of PA!*)
+be ssubst 4;	(*RA2: DELETE needless definition of PA!*)
 by (ALLGOALS
     (asm_simp_tac
      (!simpset addsimps [not_parts_not_analz, analz_insert_Key_newK] 
                setloop split_tac [expand_if])));
-(*NA4*)
+(*RA4*)
 by (spy_analz_tac 4);
 (*Fake*)
 by (spy_analz_tac 1);
 by (step_tac (!claset delrules [impCE]) 1);
-(*NA2*)
+(*RA2*)
 by (spy_analz_tac 1);
-(*NA3, case 2: K is an old key*)
+(*RA3, case 2: K is an old key*)
 by (fast_tac (!claset addSDs [resp_analz_insert]
 		      addSEs partsEs
                       addDs [Key_in_parts_respond]
 	              addEs [Says_imp_old_keys RS less_irrefl]) 2);
-(*NA3, case 1: use lemma previously proved by induction*)
+(*RA3, case 1: use lemma previously proved by induction*)
 by (fast_tac (!claset addSEs [respond_Spy_not_see_encrypted_key RSN
 			      (2,rev_notE)]) 1);
 bind_thm ("Spy_not_see_encrypted_key", result() RS mp RSN (2, rev_mp));
@@ -652,7 +652,7 @@ qed "Agent_not_see_encrypted_key";
 
 (**** Authenticity properties for Agents ****)
 
-(*Only NA1 or NA2 can have caused such a part of a message to appear.*)
+(*Only RA1 or RA2 can have caused such a part of a message to appear.*)
 goal thy 
  "!!evs. [| Hash {|Key(shrK A), Agent A, Agent B, NA, P|}         \
 \             : parts (sees lost Spy evs);                        \
@@ -662,9 +662,9 @@ goal thy
 \             : set_of_list evs";
 be rev_mp 1;
 by (parts_induct_tac 1);
-(*NA3*)
+(*RA3*)
 by (fast_tac (!claset addSDs [Hash_in_parts_respond]) 2);
-(*NA2*)
+(*RA2*)
 by ((REPEAT o CHANGED)     (*Push in XA*)
     (res_inst_tac [("x1","XA")] (insert_commute RS ssubst) 1));
 by (best_tac (!claset addSEs partsEs 
@@ -692,22 +692,22 @@ val nonce_not_seen_now = le_refl RSN (2, new_nonces_not_seen) RSN (2,rev_notE);
   in a run, then it originated with the Server!*)
 goal thy 
  "!!evs. [| A ~: lost;  A ~= Spy;  evs : recur lost |]                 \
-\    ==> Crypt (shrK A) {|Key K, Agent B, NA|} : parts (sees lost Spy evs) \
+\    ==> Crypt (shrK A) {|Key K, Agent A', NA|} : parts (sees lost Spy evs) \
 \        --> Says A B {|Hash{|Key(shrK A), Agent A, Agent B, NA, P|},  \
 \                       Agent A, Agent B, NA, P|}      \
 \             : set_of_list evs                                    \
 \         --> (EX C RC. Says Server C RC : set_of_list evs &  \
-\                       Crypt (shrK A) {|Key K, Agent B, NA|} : parts {RC})";
+\                       Crypt (shrK A) {|Key K, Agent A', NA|} : parts {RC})";
 by (parts_induct_tac 1);
-(*NA4*)
+(*RA4*)
 by (best_tac (!claset addSEs [MPair_parts]
 	              addSDs [Hash_auth_sender]
 		      addSIs [disjI2]) 4);
-(*NA1: it cannot be a new Nonce, contradiction.*)
+(*RA1: it cannot be a new Nonce, contradiction.*)
 by (fast_tac (!claset delrules [impCE]
 	              addSEs [nonce_not_seen_now, MPair_parts]
                       addDs  [parts.Body]) 1);
-(*NA2: it cannot be a new Nonce, contradiction.*)
+(*RA2: it cannot be a new Nonce, contradiction.*)
 by ((REPEAT o CHANGED)     (*Push in XA*)
     (res_inst_tac [("x1","XA")] (insert_commute RS ssubst) 1));
 by (deepen_tac (!claset delrules [impCE]
@@ -715,7 +715,7 @@ by (deepen_tac (!claset delrules [impCE]
 	              addSEs [MPair_parts]
                       addDs  [parts_cut, parts.Body]
                       addss  (!simpset)) 0 1);
-(*NA3*)  (** LEVEL 5 **)
+(*RA3*)  (** LEVEL 5 **)
 by (REPEAT (safe_step_tac (!claset addSEs [responses_no_Hash_Server]
 	                           delrules [impCE]) 1));
 by (full_simp_tac (!simpset addsimps [parts_insert_sees]) 1);
@@ -727,13 +727,13 @@ qed_spec_mp "Crypt_imp_Server_msg";
   then the key really did come from the Server!*)
 goal thy 
  "!!evs. [| Says B' A RA : set_of_list evs;                        \
-\           Crypt (shrK A) {|Key K, Agent B, NA|} : parts {RA};    \
+\           Crypt (shrK A) {|Key K, Agent A', NA|} : parts {RA};    \
 \           Says A B {|Hash{|Key(shrK A), Agent A, Agent B, NA, P|},  \
 \                       Agent A, Agent B, NA, P|}   \
 \            : set_of_list evs;                                    \
 \           A ~: lost;  A ~= Spy;  evs : recur lost |]             \
 \        ==> EX C RC. Says Server C RC : set_of_list evs &  \
-\                       Crypt (shrK A) {|Key K, Agent B, NA|} : parts {RC}";
+\                       Crypt (shrK A) {|Key K, Agent A', NA|} : parts {RC}";
 by (best_tac (!claset addSIs [Crypt_imp_Server_msg]
                       addDs  [Says_imp_sees_Spy RS parts.Inj RSN (2,parts_cut)]
                       addss  (!simpset)) 1);
@@ -744,12 +744,12 @@ qed "Agent_trust";
   then the only other agent who knows the key is B.*)
 goal thy 
  "!!evs. [| Says B' A RA : set_of_list evs;                           \
-\           Crypt (shrK A) {|Key K, Agent B, NA|} : parts {RA};       \
+\           Crypt (shrK A) {|Key K, Agent A', NA|} : parts {RA};      \
 \           Says A B {|Hash{|Key(shrK A), Agent A, Agent B, NA, P|},  \
 \                      Agent A, Agent B, NA, P|}                      \
 \            : set_of_list evs;                                       \
-\           C ~: {A,B,Server};                                        \
-\           A ~: lost;  B ~: lost;  A ~= Spy;  evs : recur lost |]   \
+\           C ~: {A,A',Server};                                       \
+\           A ~: lost;  A' ~: lost;  A ~= Spy;  evs : recur lost |]   \
 \        ==> Key K ~: analz (sees lost C evs)";
 by (dtac Agent_trust 1 THEN REPEAT_FIRST assume_tac);
 by (fast_tac (!claset addSEs [Agent_not_see_encrypted_key RSN(2,rev_notE)]) 1);
