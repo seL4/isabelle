@@ -3,9 +3,17 @@
     Author:     Gerwin Klein
 *)
 
-header {* Example Welltypings *}
+header {* \isaheader{Example Welltypings}\label{sec:BVExample} *}
 
 theory BVExample = JVMListExample + Correct:
+
+text {*
+  This theory shows type correctness of the example program in section 
+  \ref{sec:JVMListExample} (p. \pageref{sec:JVMListExample}) by
+  explicitly providing a welltyping. It also shows that the start
+  state of the program conforms to the welltyping; hence type safe
+  execution is guaranteed.
+*}
 
 section "Setup"
 text {*
