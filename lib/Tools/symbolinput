@@ -1,0 +1,17 @@
+#!/bin/bash -norc
+#
+# $Id$
+#
+# DESCRIPTION: translate symbols into \<...> sequences
+#
+# NOTE: If perl is unavailable we simply fall back on cat!
+
+
+PERL=$(type -path perl)
+
+if [ -z "$PERL" ]
+then
+  exec cat "$@"
+else
+  exec $PERL $ISABELLE_HOME/lib/scripts/symbolinput.pl "$@"
+fi
