@@ -1,3 +1,5 @@
+header{*Relativized Well-Founded Recursion*}
+
 theory WFrec = Wellorderings:
 
 

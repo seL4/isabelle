@@ -1,4 +1,4 @@
-header {* The class L satisfies the axioms of ZF*}
+header {*The Class L Satisfies the ZF Axioms*}
 
 theory L_axioms = Formula + Relative + Reflection:
 
@@ -166,7 +166,7 @@ declare cons_closed [intro,simp]
 declare successor_abs [simp] 
 declare succ_in_M_iff [iff]
 declare separation_closed [intro,simp]
-declare strong_replacementI [rule_format]
+declare strong_replacementI
 declare strong_replacement_closed [intro,simp]
 declare RepFun_closed [intro,simp]
 declare lam_closed [intro,simp]
@@ -290,6 +290,28 @@ by blast
 
 subsection{*Internalized formulas for some relativized ones*}
 
+lemmas setclass_simps = rall_setclass_is_ball rex_setclass_is_bex
+
+subsubsection{*Some numbers to help write de Bruijn indices*}
+
+syntax
+    "3" :: i   ("3")
+    "4" :: i   ("4")
+    "5" :: i   ("5")
+    "6" :: i   ("6")
+    "7" :: i   ("7")
+    "8" :: i   ("8")
+    "9" :: i   ("9")
+
+translations
+   "3"  == "succ(2)"
+   "4"  == "succ(3)"
+   "5"  == "succ(4)"
+   "6"  == "succ(5)"
+   "7"  == "succ(6)"
+   "8"  == "succ(7)"
+   "9"  == "succ(8)"
+
 subsubsection{*Unordered pairs*}
 
 constdefs upair_fm :: "[i,i,i]=>i"
@@ -330,6 +352,12 @@ apply (simp add: upair_fm_def Transset_def, auto)
 apply (blast intro: nth_type) 
 done
 
+text{*The @{text simplified} attribute tidies up the reflecting class.*}
+theorem upair_reflection [simplified,intro]:
+     "L_Reflects(?Cl, \<lambda>x. upair(L,f(x),g(x),h(x)), 
+                    \<lambda>i x. upair(**Lset(i),f(x),g(x),h(x)))" 
+by (simp add: upair_def, fast) 
+
 subsubsection{*Ordered pairs*}
 
 constdefs pair_fm :: "[i,i,i]=>i"
@@ -359,327 +387,417 @@ lemma pair_iff_sats:
        ==> pair(**A, x, y, z) <-> sats(A, pair_fm(i,j,k), env)"
 by (simp add: sats_pair_fm)
 
-
-
-subsection{*Proving instances of Separation using Reflection!*}
-
-text{*Helps us solve for de Bruijn indices!*}
-lemma nth_ConsI: "[|nth(n,l) = x; n \<in> nat|] ==> nth(succ(n), Cons(a,l)) = x"
-by simp
-
-
-lemma Collect_conj_in_DPow:
-     "[| {x\<in>A. P(x)} \<in> DPow(A);  {x\<in>A. Q(x)} \<in> DPow(A) |] 
-      ==> {x\<in>A. P(x) & Q(x)} \<in> DPow(A)"
-by (simp add: Int_in_DPow Collect_Int_Collect_eq [symmetric]) 
-
-lemma Collect_conj_in_DPow_Lset:
-     "[|z \<in> Lset(j); {x \<in> Lset(j). P(x)} \<in> DPow(Lset(j))|]
-      ==> {x \<in> Lset(j). x \<in> z & P(x)} \<in> DPow(Lset(j))"
-apply (frule mem_Lset_imp_subset_Lset)
-apply (simp add: Collect_conj_in_DPow Collect_mem_eq 
-                 subset_Int_iff2 elem_subset_in_DPow)
-done
-
-lemma separation_CollectI:
-     "(\<And>z. L(z) ==> L({x \<in> z . P(x)})) ==> separation(L, \<lambda>x. P(x))"
-apply (unfold separation_def, clarify) 
-apply (rule_tac x="{x\<in>z. P(x)}" in rexI) 
-apply simp_all
-done
-
-text{*Reduces the original comprehension to the reflected one*}
-lemma reflection_imp_L_separation:
-      "[| \<forall>x\<in>Lset(j). P(x) <-> Q(x);
-          {x \<in> Lset(j) . Q(x)} \<in> DPow(Lset(j)); 
-          Ord(j);  z \<in> Lset(j)|] ==> L({x \<in> z . P(x)})"
-apply (rule_tac i = "succ(j)" in L_I)
- prefer 2 apply simp
-apply (subgoal_tac "{x \<in> z. P(x)} = {x \<in> Lset(j). x \<in> z & (Q(x))}")
- prefer 2
- apply (blast dest: mem_Lset_imp_subset_Lset) 
-apply (simp add: Lset_succ Collect_conj_in_DPow_Lset)
-done
-
-
-subsubsection{*Separation for Intersection*}
-
-lemma Inter_Reflects:
-     "L_Reflects(?Cl, \<lambda>x. \<forall>y[L]. y\<in>A --> x \<in> y, 
-               \<lambda>i x. \<forall>y\<in>Lset(i). y\<in>A --> x \<in> y)"
-by fast
-
-lemma Inter_separation:
-     "L(A) ==> separation(L, \<lambda>x. \<forall>y[L]. y\<in>A --> x\<in>y)"
-apply (rule separation_CollectI) 
-apply (rule_tac A="{A,z}" in subset_LsetE, blast ) 
-apply (rule ReflectsE [OF Inter_Reflects], assumption)
-apply (drule subset_Lset_ltD, assumption) 
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2, clarify)
-apply (rule DPowI2) 
-apply (rule ball_iff_sats) 
-apply (rule imp_iff_sats)
-apply (rule_tac [2] i=1 and j=0 and env="[y,x,A]" in mem_iff_sats)
-apply (rule_tac i=0 and j=2 in mem_iff_sats)
-apply (simp_all add: succ_Un_distrib [symmetric])
-done
-
-subsubsection{*Separation for Cartesian Product*}
-
-text{*The @{text simplified} attribute tidies up the reflecting class.*}
-theorem upair_reflection [simplified,intro]:
-     "L_Reflects(?Cl, \<lambda>x. upair(L,f(x),g(x),h(x)), 
-                    \<lambda>i x. upair(**Lset(i),f(x),g(x),h(x)))" 
-by (simp add: upair_def, fast) 
-
 theorem pair_reflection [simplified,intro]:
      "L_Reflects(?Cl, \<lambda>x. pair(L,f(x),g(x),h(x)), 
                     \<lambda>i x. pair(**Lset(i),f(x),g(x),h(x)))"
-by (simp only: pair_def rex_setclass_is_bex, fast) 
-
-lemma cartprod_Reflects [simplified]:
-     "L_Reflects(?Cl, \<lambda>z. \<exists>x[L]. x\<in>A & (\<exists>y[L]. y\<in>B & pair(L,x,y,z)),
-                \<lambda>i z. \<exists>x\<in>Lset(i). x\<in>A & (\<exists>y\<in>Lset(i). y\<in>B & 
-                               pair(**Lset(i),x,y,z)))"
-by fast
-
-lemma cartprod_separation:
-     "[| L(A); L(B) |] 
-      ==> separation(L, \<lambda>z. \<exists>x[L]. x\<in>A & (\<exists>y[L]. y\<in>B & pair(L,x,y,z)))"
-apply (rule separation_CollectI) 
-apply (rule_tac A="{A,B,z}" in subset_LsetE, blast ) 
-apply (rule ReflectsE [OF cartprod_Reflects], assumption)
-apply (drule subset_Lset_ltD, assumption) 
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2, clarify) 
-apply (rule DPowI2)
-apply (rename_tac u)  
-apply (rule bex_iff_sats) 
-apply (rule conj_iff_sats)
-apply (rule_tac i=0 and j=2 and env="[x,u,A,B]" in mem_iff_sats, simp_all)
-apply (rule bex_iff_sats) 
-apply (rule conj_iff_sats)
-apply (rule mem_iff_sats)
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI, simp_all)
-apply (rule_tac i=1 and j=0 and k=2 in pair_iff_sats)
-apply (simp_all add: succ_Un_distrib [symmetric])
-done
-
-subsubsection{*Separation for Image*}
-
-text{*No @{text simplified} here: it simplifies the occurrence of 
-      the predicate @{term pair}!*}
-lemma image_Reflects:
-     "L_Reflects(?Cl, \<lambda>y. \<exists>p[L]. p\<in>r & (\<exists>x[L]. x\<in>A & pair(L,x,y,p)),
-           \<lambda>i y. \<exists>p\<in>Lset(i). p\<in>r & (\<exists>x\<in>Lset(i). x\<in>A & pair(**Lset(i),x,y,p)))"
-by fast
+by (simp only: pair_def setclass_simps, fast) 
 
 
-lemma image_separation:
-     "[| L(A); L(r) |] 
-      ==> separation(L, \<lambda>y. \<exists>p[L]. p\<in>r & (\<exists>x[L]. x\<in>A & pair(L,x,y,p)))"
-apply (rule separation_CollectI) 
-apply (rule_tac A="{A,r,z}" in subset_LsetE, blast ) 
-apply (rule ReflectsE [OF image_Reflects], assumption)
-apply (drule subset_Lset_ltD, assumption) 
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2, clarify)
-apply (rule DPowI2)
-apply (rule bex_iff_sats) 
-apply (rule conj_iff_sats)
-apply (rule_tac env="[p,y,A,r]" in mem_iff_sats)
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI, simp_all)
-apply (rule bex_iff_sats) 
-apply (rule conj_iff_sats)
-apply (rule mem_iff_sats)
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI, simp_all)
-apply (rule pair_iff_sats)
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI)
-apply (simp_all add: succ_Un_distrib [symmetric])
-done
+subsubsection{*Binary Unions*}
+
+constdefs union_fm :: "[i,i,i]=>i"
+    "union_fm(x,y,z) == 
+       Forall(Iff(Member(0,succ(z)),
+                  Or(Member(0,succ(x)),Member(0,succ(y)))))"
+
+lemma union_type [TC]:
+     "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> union_fm(x,y,z) \<in> formula"
+by (simp add: union_fm_def) 
+
+lemma arity_union_fm [simp]:
+     "[| x \<in> nat; y \<in> nat; z \<in> nat |] 
+      ==> arity(union_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
+by (simp add: union_fm_def succ_Un_distrib [symmetric] Un_ac) 
+
+lemma sats_union_fm [simp]:
+   "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
+    ==> sats(A, union_fm(x,y,z), env) <-> 
+        union(**A, nth(x,env), nth(y,env), nth(z,env))"
+by (simp add: union_fm_def union_def)
+
+lemma union_iff_sats:
+      "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
+          i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
+       ==> union(**A, x, y, z) <-> sats(A, union_fm(i,j,k), env)"
+by (simp add: sats_union_fm)
+
+theorem union_reflection [simplified,intro]:
+     "L_Reflects(?Cl, \<lambda>x. union(L,f(x),g(x),h(x)), 
+                    \<lambda>i x. union(**Lset(i),f(x),g(x),h(x)))" 
+by (simp add: union_def, fast) 
 
 
-subsubsection{*Separation for Converse*}
+subsubsection{*`Cons' for sets*}
 
-lemma converse_Reflects:
-     "L_Reflects(?Cl, 
-        \<lambda>z. \<exists>p[L]. p\<in>r & (\<exists>x[L]. \<exists>y[L]. pair(L,x,y,p) & pair(L,y,x,z)),
-     \<lambda>i z. \<exists>p\<in>Lset(i). p\<in>r & (\<exists>x\<in>Lset(i). \<exists>y\<in>Lset(i). 
-                     pair(**Lset(i),x,y,p) & pair(**Lset(i),y,x,z)))"
-by fast
-
-lemma converse_separation:
-     "L(r) ==> separation(L, 
-         \<lambda>z. \<exists>p[L]. p\<in>r & (\<exists>x[L]. \<exists>y[L]. pair(L,x,y,p) & pair(L,y,x,z)))"
-apply (rule separation_CollectI) 
-apply (rule_tac A="{r,z}" in subset_LsetE, blast ) 
-apply (rule ReflectsE [OF converse_Reflects], assumption)
-apply (drule subset_Lset_ltD, assumption) 
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2, clarify)
-apply (rule DPowI2)
-apply (rename_tac u) 
-apply (rule bex_iff_sats) 
-apply (rule conj_iff_sats)
-apply (rule_tac i=0 and j="2" and env="[p,u,r]" in mem_iff_sats, simp_all)
-apply (rule bex_iff_sats) 
-apply (rule bex_iff_sats) 
-apply (rule conj_iff_sats)
-apply (rule_tac i=1 and j=0 and k=2 in pair_iff_sats, simp_all)
-apply (rule pair_iff_sats)
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI)
-apply (simp_all add: succ_Un_distrib [symmetric])
-done
+constdefs cons_fm :: "[i,i,i]=>i"
+    "cons_fm(x,y,z) == 
+       Exists(And(upair_fm(succ(x),succ(x),0),
+                  union_fm(0,succ(y),succ(z))))"
 
 
-subsubsection{*Separation for Restriction*}
+lemma cons_type [TC]:
+     "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> cons_fm(x,y,z) \<in> formula"
+by (simp add: cons_fm_def) 
 
-lemma restrict_Reflects:
-     "L_Reflects(?Cl, \<lambda>z. \<exists>x[L]. x\<in>A & (\<exists>y[L]. pair(L,x,y,z)),
-        \<lambda>i z. \<exists>x\<in>Lset(i). x\<in>A & (\<exists>y\<in>Lset(i). pair(**Lset(i),x,y,z)))"
-by fast
+lemma arity_cons_fm [simp]:
+     "[| x \<in> nat; y \<in> nat; z \<in> nat |] 
+      ==> arity(cons_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
+by (simp add: cons_fm_def succ_Un_distrib [symmetric] Un_ac) 
 
-lemma restrict_separation:
-   "L(A) ==> separation(L, \<lambda>z. \<exists>x[L]. x\<in>A & (\<exists>y[L]. pair(L,x,y,z)))"
-apply (rule separation_CollectI) 
-apply (rule_tac A="{A,z}" in subset_LsetE, blast ) 
-apply (rule ReflectsE [OF restrict_Reflects], assumption)
-apply (drule subset_Lset_ltD, assumption) 
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2, clarify)
-apply (rule DPowI2)
-apply (rename_tac u) 
-apply (rule bex_iff_sats) 
-apply (rule conj_iff_sats)
-apply (rule_tac i=0 and j="2" and env="[x,u,A]" in mem_iff_sats, simp_all)
-apply (rule bex_iff_sats) 
-apply (rule_tac i=1 and j=0 and k=2 in pair_iff_sats)
-apply (simp_all add: succ_Un_distrib [symmetric])
-done
+lemma sats_cons_fm [simp]:
+   "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
+    ==> sats(A, cons_fm(x,y,z), env) <-> 
+        is_cons(**A, nth(x,env), nth(y,env), nth(z,env))"
+by (simp add: cons_fm_def is_cons_def)
 
+lemma cons_iff_sats:
+      "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
+          i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
+       ==> is_cons(**A, x, y, z) <-> sats(A, cons_fm(i,j,k), env)"
+by simp
 
-subsubsection{*Separation for Composition*}
-
-lemma comp_Reflects:
-     "L_Reflects(?Cl, \<lambda>xz. \<exists>x[L]. \<exists>y[L]. \<exists>z[L]. \<exists>xy[L]. \<exists>yz[L]. 
-		  pair(L,x,z,xz) & pair(L,x,y,xy) & pair(L,y,z,yz) & 
-                  xy\<in>s & yz\<in>r,
-        \<lambda>i xz. \<exists>x\<in>Lset(i). \<exists>y\<in>Lset(i). \<exists>z\<in>Lset(i). \<exists>xy\<in>Lset(i). \<exists>yz\<in>Lset(i). 
-		  pair(**Lset(i),x,z,xz) & pair(**Lset(i),x,y,xy) & 
-                  pair(**Lset(i),y,z,yz) & xy\<in>s & yz\<in>r)"
-by fast
-
-lemma comp_separation:
-     "[| L(r); L(s) |]
-      ==> separation(L, \<lambda>xz. \<exists>x[L]. \<exists>y[L]. \<exists>z[L]. \<exists>xy[L]. \<exists>yz[L]. 
-		  pair(L,x,z,xz) & pair(L,x,y,xy) & pair(L,y,z,yz) & 
-                  xy\<in>s & yz\<in>r)"
-apply (rule separation_CollectI) 
-apply (rule_tac A="{r,s,z}" in subset_LsetE, blast ) 
-apply (rule ReflectsE [OF comp_Reflects], assumption)
-apply (drule subset_Lset_ltD, assumption) 
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2, clarify)
-apply (rule DPowI2)
-apply (rename_tac u) 
-apply (rule bex_iff_sats)+
-apply (rename_tac x y z)  
-apply (rule conj_iff_sats)
-apply (rule_tac env="[z,y,x,u,r,s]" in pair_iff_sats)
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI, simp_all)
-apply (rule bex_iff_sats) 
-apply (rule conj_iff_sats)
-apply (rule pair_iff_sats)
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI, simp_all)
-apply (rule bex_iff_sats) 
-apply (rule conj_iff_sats)
-apply (rule pair_iff_sats)
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI, simp_all) 
-apply (rule conj_iff_sats)
-apply (rule mem_iff_sats) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI, simp) 
-apply (rule mem_iff_sats) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI)
-apply (simp_all add: succ_Un_distrib [symmetric])
-done
-
-subsubsection{*Separation for Predecessors in an Order*}
-
-lemma pred_Reflects:
-     "L_Reflects(?Cl, \<lambda>y. \<exists>p[L]. p\<in>r & pair(L,y,x,p),
-                    \<lambda>i y. \<exists>p \<in> Lset(i). p\<in>r & pair(**Lset(i),y,x,p))"
-by fast
-
-lemma pred_separation:
-     "[| L(r); L(x) |] ==> separation(L, \<lambda>y. \<exists>p[L]. p\<in>r & pair(L,y,x,p))"
-apply (rule separation_CollectI) 
-apply (rule_tac A="{r,x,z}" in subset_LsetE, blast ) 
-apply (rule ReflectsE [OF pred_Reflects], assumption)
-apply (drule subset_Lset_ltD, assumption) 
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2, clarify)
-apply (rule DPowI2)
-apply (rename_tac u) 
-apply (rule bex_iff_sats)
-apply (rule conj_iff_sats)
-apply (rule_tac env = "[p,u,r,x]" in mem_iff_sats) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI, simp) 
-apply (rule pair_iff_sats)
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI, simp_all)
-apply (simp_all add: succ_Un_distrib [symmetric])
-done
+theorem cons_reflection [simplified,intro]:
+     "L_Reflects(?Cl, \<lambda>x. is_cons(L,f(x),g(x),h(x)), 
+                    \<lambda>i x. is_cons(**Lset(i),f(x),g(x),h(x)))"
+by (simp only: is_cons_def setclass_simps, fast)
 
 
-subsubsection{*Separation for the Membership Relation*}
+subsubsection{*Function Applications*}
 
-lemma Memrel_Reflects:
-     "L_Reflects(?Cl, \<lambda>z. \<exists>x[L]. \<exists>y[L]. pair(L,x,y,z) & x \<in> y,
-            \<lambda>i z. \<exists>x \<in> Lset(i). \<exists>y \<in> Lset(i). pair(**Lset(i),x,y,z) & x \<in> y)"
-by fast
+constdefs fun_apply_fm :: "[i,i,i]=>i"
+    "fun_apply_fm(f,x,y) == 
+       Forall(Iff(Exists(And(Member(0,succ(succ(f))),
+                             pair_fm(succ(succ(x)), 1, 0))),
+                  Equal(succ(y),0)))"
 
-lemma Memrel_separation:
-     "separation(L, \<lambda>z. \<exists>x[L]. \<exists>y[L]. pair(L,x,y,z) & x \<in> y)"
-apply (rule separation_CollectI) 
-apply (rule_tac A="{z}" in subset_LsetE, blast ) 
-apply (rule ReflectsE [OF Memrel_Reflects], assumption)
-apply (drule subset_Lset_ltD, assumption) 
-apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2)
-apply (rule DPowI2)
-apply (rename_tac u) 
-apply (rule bex_iff_sats)+
-apply (rule conj_iff_sats)
-apply (rule_tac env = "[y,x,u]" in pair_iff_sats) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI, simp_all) 
-apply (rule mem_iff_sats)
-apply (blast intro: nth_0 nth_ConsI) 
-apply (blast intro: nth_0 nth_ConsI)
-apply (simp_all add: succ_Un_distrib [symmetric])
-done
+lemma fun_apply_type [TC]:
+     "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> fun_apply_fm(x,y,z) \<in> formula"
+by (simp add: fun_apply_fm_def) 
+
+lemma arity_fun_apply_fm [simp]:
+     "[| x \<in> nat; y \<in> nat; z \<in> nat |] 
+      ==> arity(fun_apply_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
+by (simp add: fun_apply_fm_def succ_Un_distrib [symmetric] Un_ac) 
+
+lemma sats_fun_apply_fm [simp]:
+   "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
+    ==> sats(A, fun_apply_fm(x,y,z), env) <-> 
+        fun_apply(**A, nth(x,env), nth(y,env), nth(z,env))"
+by (simp add: fun_apply_fm_def fun_apply_def)
+
+lemma fun_apply_iff_sats:
+      "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
+          i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
+       ==> fun_apply(**A, x, y, z) <-> sats(A, fun_apply_fm(i,j,k), env)"
+by simp
+
+theorem fun_apply_reflection [simplified,intro]:
+     "L_Reflects(?Cl, \<lambda>x. fun_apply(L,f(x),g(x),h(x)), 
+                    \<lambda>i x. fun_apply(**Lset(i),f(x),g(x),h(x)))" 
+by (simp only: fun_apply_def setclass_simps, fast)
+
+
+subsubsection{*Variants of Satisfaction Definitions for Ordinals, etc.*}
+
+text{*Differs from the one in Formula by using "ordinal" rather than "Ord"*}
+
+
+lemma sats_subset_fm':
+   "[|x \<in> nat; y \<in> nat; env \<in> list(A)|]
+    ==> sats(A, subset_fm(x,y), env) <-> subset(**A, nth(x,env), nth(y,env))" 
+by (simp add: subset_fm_def subset_def) 
+
+theorem subset_reflection [simplified,intro]:
+     "L_Reflects(?Cl, \<lambda>x. subset(L,f(x),g(x)), 
+                    \<lambda>i x. subset(**Lset(i),f(x),g(x)))" 
+by (simp add: subset_def, fast) 
+
+lemma sats_transset_fm':
+   "[|x \<in> nat; env \<in> list(A)|]
+    ==> sats(A, transset_fm(x), env) <-> transitive_set(**A, nth(x,env))"
+by (simp add: sats_subset_fm' transset_fm_def transitive_set_def) 
+
+theorem transitive_set_reflection [simplified,intro]:
+     "L_Reflects(?Cl, \<lambda>x. transitive_set(L,f(x)),
+                    \<lambda>i x. transitive_set(**Lset(i),f(x)))"
+by (simp only: transitive_set_def setclass_simps, fast)
+
+lemma sats_ordinal_fm':
+   "[|x \<in> nat; env \<in> list(A)|]
+    ==> sats(A, ordinal_fm(x), env) <-> ordinal(**A,nth(x,env))"
+by (simp add: sats_transset_fm' ordinal_fm_def ordinal_def)
+
+lemma ordinal_iff_sats:
+      "[| nth(i,env) = x;  i \<in> nat; env \<in> list(A)|]
+       ==> ordinal(**A, x) <-> sats(A, ordinal_fm(i), env)"
+by (simp add: sats_ordinal_fm')
+
+theorem ordinal_reflection [simplified,intro]:
+     "L_Reflects(?Cl, \<lambda>x. ordinal(L,f(x)),
+                    \<lambda>i x. ordinal(**Lset(i),f(x)))"
+by (simp only: ordinal_def setclass_simps, fast)
+
+
+subsubsection{*Membership Relation*}
+
+constdefs Memrel_fm :: "[i,i]=>i"
+    "Memrel_fm(A,r) == 
+       Forall(Iff(Member(0,succ(r)),
+                  Exists(And(Member(0,succ(succ(A))),
+                             Exists(And(Member(0,succ(succ(succ(A)))),
+                                        And(Member(1,0),
+                                            pair_fm(1,0,2))))))))"
+
+lemma Memrel_type [TC]:
+     "[| x \<in> nat; y \<in> nat |] ==> Memrel_fm(x,y) \<in> formula"
+by (simp add: Memrel_fm_def) 
+
+lemma arity_Memrel_fm [simp]:
+     "[| x \<in> nat; y \<in> nat |] 
+      ==> arity(Memrel_fm(x,y)) = succ(x) \<union> succ(y)"
+by (simp add: Memrel_fm_def succ_Un_distrib [symmetric] Un_ac) 
+
+lemma sats_Memrel_fm [simp]:
+   "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
+    ==> sats(A, Memrel_fm(x,y), env) <-> 
+        membership(**A, nth(x,env), nth(y,env))"
+by (simp add: Memrel_fm_def membership_def)
+
+lemma Memrel_iff_sats:
+      "[| nth(i,env) = x; nth(j,env) = y; 
+          i \<in> nat; j \<in> nat; env \<in> list(A)|]
+       ==> membership(**A, x, y) <-> sats(A, Memrel_fm(i,j), env)"
+by simp
+
+theorem membership_reflection [simplified,intro]:
+     "L_Reflects(?Cl, \<lambda>x. membership(L,f(x),g(x)), 
+                    \<lambda>i x. membership(**Lset(i),f(x),g(x)))"
+by (simp only: membership_def setclass_simps, fast)
+
+
+subsubsection{*Predecessor Set*}
+
+constdefs pred_set_fm :: "[i,i,i,i]=>i"
+    "pred_set_fm(A,x,r,B) == 
+       Forall(Iff(Member(0,succ(B)),
+                  Exists(And(Member(0,succ(succ(r))),
+                             And(Member(1,succ(succ(A))),
+                                 pair_fm(1,succ(succ(x)),0))))))"
+
+
+lemma pred_set_type [TC]:
+     "[| A \<in> nat; x \<in> nat; r \<in> nat; B \<in> nat |] 
+      ==> pred_set_fm(A,x,r,B) \<in> formula"
+by (simp add: pred_set_fm_def) 
+
+lemma arity_pred_set_fm [simp]:
+   "[| A \<in> nat; x \<in> nat; r \<in> nat; B \<in> nat |] 
+    ==> arity(pred_set_fm(A,x,r,B)) = succ(A) \<union> succ(x) \<union> succ(r) \<union> succ(B)"
+by (simp add: pred_set_fm_def succ_Un_distrib [symmetric] Un_ac) 
+
+lemma sats_pred_set_fm [simp]:
+   "[| U \<in> nat; x \<in> nat; r \<in> nat; B \<in> nat; env \<in> list(A)|]
+    ==> sats(A, pred_set_fm(U,x,r,B), env) <-> 
+        pred_set(**A, nth(U,env), nth(x,env), nth(r,env), nth(B,env))"
+by (simp add: pred_set_fm_def pred_set_def)
+
+lemma pred_set_iff_sats:
+      "[| nth(i,env) = U; nth(j,env) = x; nth(k,env) = r; nth(l,env) = B; 
+          i \<in> nat; j \<in> nat; k \<in> nat; l \<in> nat; env \<in> list(A)|]
+       ==> pred_set(**A,U,x,r,B) <-> sats(A, pred_set_fm(i,j,k,l), env)"
+by (simp add: sats_pred_set_fm)
+
+theorem pred_set_reflection [simplified,intro]:
+     "L_Reflects(?Cl, \<lambda>x. pred_set(L,f(x),g(x),h(x),b(x)), 
+                    \<lambda>i x. pred_set(**Lset(i),f(x),g(x),h(x),b(x)))" 
+by (simp only: pred_set_def setclass_simps, fast) 
 
 
 
+subsubsection{*Domain*}
+
+(* "is_domain(M,r,z) == 
+	\<forall>x[M]. (x \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>y[M]. pair(M,x,y,w))))" *)
+constdefs domain_fm :: "[i,i]=>i"
+    "domain_fm(r,z) == 
+       Forall(Iff(Member(0,succ(z)),
+                  Exists(And(Member(0,succ(succ(r))),
+                             Exists(pair_fm(2,0,1))))))"
+
+lemma domain_type [TC]:
+     "[| x \<in> nat; y \<in> nat |] ==> domain_fm(x,y) \<in> formula"
+by (simp add: domain_fm_def) 
+
+lemma arity_domain_fm [simp]:
+     "[| x \<in> nat; y \<in> nat |] 
+      ==> arity(domain_fm(x,y)) = succ(x) \<union> succ(y)"
+by (simp add: domain_fm_def succ_Un_distrib [symmetric] Un_ac) 
+
+lemma sats_domain_fm [simp]:
+   "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
+    ==> sats(A, domain_fm(x,y), env) <-> 
+        is_domain(**A, nth(x,env), nth(y,env))"
+by (simp add: domain_fm_def is_domain_def)
+
+lemma domain_iff_sats:
+      "[| nth(i,env) = x; nth(j,env) = y; 
+          i \<in> nat; j \<in> nat; env \<in> list(A)|]
+       ==> is_domain(**A, x, y) <-> sats(A, domain_fm(i,j), env)"
+by simp
+
+theorem domain_reflection [simplified,intro]:
+     "L_Reflects(?Cl, \<lambda>x. is_domain(L,f(x),g(x)), 
+                    \<lambda>i x. is_domain(**Lset(i),f(x),g(x)))"
+by (simp only: is_domain_def setclass_simps, fast)
+
+
+subsubsection{*Range*}
+
+(* "is_range(M,r,z) == 
+	\<forall>y[M]. (y \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>x[M]. pair(M,x,y,w))))" *)
+constdefs range_fm :: "[i,i]=>i"
+    "range_fm(r,z) == 
+       Forall(Iff(Member(0,succ(z)),
+                  Exists(And(Member(0,succ(succ(r))),
+                             Exists(pair_fm(0,2,1))))))"
+
+lemma range_type [TC]:
+     "[| x \<in> nat; y \<in> nat |] ==> range_fm(x,y) \<in> formula"
+by (simp add: range_fm_def) 
+
+lemma arity_range_fm [simp]:
+     "[| x \<in> nat; y \<in> nat |] 
+      ==> arity(range_fm(x,y)) = succ(x) \<union> succ(y)"
+by (simp add: range_fm_def succ_Un_distrib [symmetric] Un_ac) 
+
+lemma sats_range_fm [simp]:
+   "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
+    ==> sats(A, range_fm(x,y), env) <-> 
+        is_range(**A, nth(x,env), nth(y,env))"
+by (simp add: range_fm_def is_range_def)
+
+lemma range_iff_sats:
+      "[| nth(i,env) = x; nth(j,env) = y; 
+          i \<in> nat; j \<in> nat; env \<in> list(A)|]
+       ==> is_range(**A, x, y) <-> sats(A, range_fm(i,j), env)"
+by simp
+
+theorem range_reflection [simplified,intro]:
+     "L_Reflects(?Cl, \<lambda>x. is_range(L,f(x),g(x)), 
+                    \<lambda>i x. is_range(**Lset(i),f(x),g(x)))"
+by (simp only: is_range_def setclass_simps, fast)
+
+
+
+ 
+
+subsubsection{*Image*}
+
+(* "image(M,r,A,z) == 
+        \<forall>y[M]. (y \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>x[M]. x\<in>A & pair(M,x,y,w))))" *)
+constdefs image_fm :: "[i,i,i]=>i"
+    "image_fm(r,A,z) == 
+       Forall(Iff(Member(0,succ(z)),
+                  Exists(And(Member(0,succ(succ(r))),
+                             Exists(And(Member(0,succ(succ(succ(A)))),
+	 			        pair_fm(0,2,1)))))))"
+
+lemma image_type [TC]:
+     "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> image_fm(x,y,z) \<in> formula"
+by (simp add: image_fm_def) 
+
+lemma arity_image_fm [simp]:
+     "[| x \<in> nat; y \<in> nat; z \<in> nat |] 
+      ==> arity(image_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
+by (simp add: image_fm_def succ_Un_distrib [symmetric] Un_ac) 
+
+lemma sats_image_fm [simp]:
+   "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
+    ==> sats(A, image_fm(x,y,z), env) <-> 
+        image(**A, nth(x,env), nth(y,env), nth(z,env))"
+by (simp add: image_fm_def image_def)
+
+lemma image_iff_sats:
+      "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
+          i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
+       ==> image(**A, x, y, z) <-> sats(A, image_fm(i,j,k), env)"
+by (simp add: sats_image_fm)
+
+theorem image_reflection [simplified,intro]:
+     "L_Reflects(?Cl, \<lambda>x. image(L,f(x),g(x),h(x)), 
+                    \<lambda>i x. image(**Lset(i),f(x),g(x),h(x)))" 
+by (simp only: image_def setclass_simps, fast)
+
+
+subsubsection{*The Concept of Relation*}
+
+(* "is_relation(M,r) == 
+        (\<forall>z[M]. z\<in>r --> (\<exists>x[M]. \<exists>y[M]. pair(M,x,y,z)))" *)
+constdefs relation_fm :: "i=>i"
+    "relation_fm(r) == 
+       Forall(Implies(Member(0,succ(r)), Exists(Exists(pair_fm(1,0,2)))))"
+
+lemma relation_type [TC]:
+     "[| x \<in> nat |] ==> relation_fm(x) \<in> formula"
+by (simp add: relation_fm_def) 
+
+lemma arity_relation_fm [simp]:
+     "x \<in> nat ==> arity(relation_fm(x)) = succ(x)"
+by (simp add: relation_fm_def succ_Un_distrib [symmetric] Un_ac) 
+
+lemma sats_relation_fm [simp]:
+   "[| x \<in> nat; env \<in> list(A)|]
+    ==> sats(A, relation_fm(x), env) <-> is_relation(**A, nth(x,env))"
+by (simp add: relation_fm_def is_relation_def)
+
+lemma relation_iff_sats:
+      "[| nth(i,env) = x; nth(j,env) = y; 
+          i \<in> nat; env \<in> list(A)|]
+       ==> is_relation(**A, x) <-> sats(A, relation_fm(i), env)"
+by simp
+
+theorem is_relation_reflection [simplified,intro]:
+     "L_Reflects(?Cl, \<lambda>x. is_relation(L,f(x)), 
+                    \<lambda>i x. is_relation(**Lset(i),f(x)))"
+by (simp only: is_relation_def setclass_simps, fast)
+
+
+subsubsection{*The Concept of Function*}
+
+(* "is_function(M,r) == 
+	\<forall>x[M]. \<forall>y[M]. \<forall>y'[M]. \<forall>p[M]. \<forall>p'[M]. 
+           pair(M,x,y,p) --> pair(M,x,y',p') --> p\<in>r --> p'\<in>r --> y=y'" *)
+constdefs function_fm :: "i=>i"
+    "function_fm(r) == 
+       Forall(Forall(Forall(Forall(Forall(
+         Implies(pair_fm(4,3,1),
+                 Implies(pair_fm(4,2,0),
+                         Implies(Member(1,r#+5),
+                                 Implies(Member(0,r#+5), Equal(3,2))))))))))"
+
+lemma function_type [TC]:
+     "[| x \<in> nat |] ==> function_fm(x) \<in> formula"
+by (simp add: function_fm_def) 
+
+lemma arity_function_fm [simp]:
+     "x \<in> nat ==> arity(function_fm(x)) = succ(x)"
+by (simp add: function_fm_def succ_Un_distrib [symmetric] Un_ac) 
+
+lemma sats_function_fm [simp]:
+   "[| x \<in> nat; env \<in> list(A)|]
+    ==> sats(A, function_fm(x), env) <-> is_function(**A, nth(x,env))"
+by (simp add: function_fm_def is_function_def)
+
+lemma function_iff_sats:
+      "[| nth(i,env) = x; nth(j,env) = y; 
+          i \<in> nat; env \<in> list(A)|]
+       ==> is_function(**A, x) <-> sats(A, function_fm(i), env)"
+by simp
+
+theorem is_function_reflection [simplified,intro]:
+     "L_Reflects(?Cl, \<lambda>x. is_function(L,f(x)), 
+                    \<lambda>i x. is_function(**Lset(i),f(x)))"
+by (simp only: is_function_def setclass_simps, fast)
 
 
 end

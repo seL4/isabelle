@@ -1,3 +1,5 @@
+header {*Absoluteness Properties for Recursive Datatypes*}
+
 theory Datatype_absolute = Formula + WF_absolute:
 
 

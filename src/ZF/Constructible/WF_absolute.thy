@@ -1,3 +1,5 @@
+header {*Absoluteness for Well-Founded Relations and Well-Founded Recursion*}
+
 theory WF_absolute = WFrec:
 
 subsection{*Every well-founded relation is a subset of some inverse image of

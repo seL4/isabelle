@@ -570,7 +570,7 @@ lemma arity_ordinal_fm [simp]:
      "x \<in> nat ==> arity(ordinal_fm(x)) = succ(x)"
 by (simp add: ordinal_fm_def succ_Un_distrib [symmetric]) 
 
-lemma sats_ordinal_fm [simp]:
+lemma sats_ordinal_fm:
    "[|x < length(env); env \<in> list(A); Transset(A)|]
     ==> sats(A, ordinal_fm(x), env) <-> Ord(nth(x,env))"
 apply (frule lt_nat_in_nat, erule length_type) 

@@ -347,9 +347,9 @@ constdefs
    "obase(M,A,r,z) == 
 	\<forall>a[M]. 
          a \<in> z <-> 
-          (a\<in>A & (\<exists>x g mx par. M(x) & M(g) & M(mx) & M(par) & ordinal(M,x) & 
-                               membership(M,x,mx) & pred_set(M,A,a,r,par) &  
-                               order_isomorphism(M,par,r,x,mx,g)))"
+          (a\<in>A & (\<exists>x[M]. \<exists>g[M]. \<exists>mx[M]. \<exists>par[M]. 
+                   ordinal(M,x) & membership(M,x,mx) & pred_set(M,A,a,r,par) &
+                   order_isomorphism(M,par,r,x,mx,g)))"
 
 
   omap :: "[i=>o,i,i,i] => o"  
@@ -358,10 +358,9 @@ constdefs
 	\<forall>z[M].
          z \<in> f <-> 
           (\<exists>a[M]. a\<in>A & 
-           (\<exists>x g mx par. M(x) & M(g) & M(mx) & M(par) & ordinal(M,x) & 
-                         pair(M,a,x,z) & membership(M,x,mx) & 
-                         pred_set(M,A,a,r,par) &  
-                         order_isomorphism(M,par,r,x,mx,g)))"
+           (\<exists>x[M]. \<exists>g[M]. \<exists>mx[M]. \<exists>par[M]. 
+                ordinal(M,x) & pair(M,a,x,z) & membership(M,x,mx) & 
+                pred_set(M,A,a,r,par) & order_isomorphism(M,par,r,x,mx,g)))"
 
 
   otype :: "[i=>o,i,i,i] => o"  --{*the order types themselves*}
@@ -372,7 +371,7 @@ constdefs
 lemma (in M_axioms) obase_iff:
      "[| M(A); M(r); M(z) |] 
       ==> obase(M,A,r,z) <-> 
-          z = {a\<in>A. \<exists>x g. M(x) & M(g) & Ord(x) & 
+          z = {a\<in>A. \<exists>x[M]. \<exists>g[M]. Ord(x) & 
                           g \<in> ord_iso(Order.pred(A,a,r),r,x,Memrel(x))}"
 apply (simp add: obase_def Memrel_closed pred_closed)
 apply (rule iffI) 
@@ -387,8 +386,8 @@ text{*Can also be proved with the premise @{term "M(z)"} instead of
 lemma (in M_axioms) omap_iff:
      "[| omap(M,A,r,f); M(A); M(r); M(f) |] 
       ==> z \<in> f <->
-      (\<exists>a\<in>A. \<exists>x g. M(x) & M(g) & z = <a,x> & Ord(x) & 
-                   g \<in> ord_iso(Order.pred(A,a,r),r,x,Memrel(x)))"
+      (\<exists>a\<in>A. \<exists>x[M]. \<exists>g[M]. z = <a,x> & Ord(x) & 
+                        g \<in> ord_iso(Order.pred(A,a,r),r,x,Memrel(x)))"
 apply (rotate_tac 1) 
 apply (simp add: omap_def Memrel_closed pred_closed) 
 apply (rule iffI)
@@ -411,19 +410,18 @@ done
 lemma (in M_axioms) otype_iff:
      "[| otype(M,A,r,i); M(A); M(r); M(i) |] 
       ==> x \<in> i <-> 
-          (\<exists>a\<in>A. \<exists>g. M(x) & M(g) & Ord(x) & 
-                     g \<in> ord_iso(Order.pred(A,a,r),r,x,Memrel(x)))"
-apply (simp add: otype_def, auto)
-  apply (blast dest: transM)
- apply (blast dest!: omap_iff intro: transM)
-apply (rename_tac a g) 
-apply (rule_tac a=a in rangeI) 
+          (M(x) & Ord(x) & 
+           (\<exists>a\<in>A. \<exists>g[M]. g \<in> ord_iso(Order.pred(A,a,r),r,x,Memrel(x))))"
+apply (auto simp add: omap_iff otype_def)
+ apply (blast intro: transM) 
+apply (rule rangeI) 
 apply (frule transM, assumption)
 apply (simp add: omap_iff, blast)
 done
 
 lemma (in M_axioms) otype_eq_range:
-     "[| omap(M,A,r,f); otype(M,A,r,i); M(A); M(r); M(f); M(i) |] ==> i = range(f)"
+     "[| omap(M,A,r,f); otype(M,A,r,i); M(A); M(r); M(f); M(i) |] 
+      ==> i = range(f)"
 apply (auto simp add: otype_def omap_iff)
 apply (blast dest: omap_unique) 
 done
@@ -439,18 +437,15 @@ prefer 2
     apply (frule pair_components_in_M, assumption) 
     apply blast 
 apply (auto simp add: Transset_def otype_iff) 
- apply (blast intro: transM)
+  apply (blast intro: transM)
+ apply (blast intro: Ord_in_Ord) 
 apply (rename_tac y a g)
 apply (frule ord_iso_sym [THEN ord_iso_is_bij, THEN bij_is_fun, 
 			  THEN apply_funtype],  assumption)  
 apply (rule_tac x="converse(g)`y" in bexI)
  apply (frule_tac a="converse(g) ` y" in ord_iso_restrict_pred, assumption) 
 apply (safe elim!: predE) 
-apply (intro conjI exI) 
-prefer 3
-  apply (blast intro: restrict_ord_iso ord_iso_sym ltI)
- apply (blast intro: transM)
- apply (blast intro: Ord_in_Ord)
+apply (blast intro: restrict_ord_iso ord_iso_sym ltI dest: transM)
 done
 
 lemma (in M_axioms) domain_omap:
@@ -559,14 +554,12 @@ apply (rule equalityI, force simp add: obase_iff, clarify)
 apply (subst obase_iff [of A r B, THEN iffD1], assumption+, simp) 
 apply (frule wellordered_is_wellfounded_on, assumption)
 apply (erule wellfounded_on_induct, assumption+)
- apply (insert obase_equals_separation)
- apply (simp add: rex_def, clarify) 
+ apply (frule obase_equals_separation [of A r], assumption) 
+ apply (simp, clarify) 
 apply (rename_tac b) 
 apply (subgoal_tac "Order.pred(A,b,r) <= B") 
- prefer 2 apply (force simp add: pred_iff obase_iff)  
-apply (intro conjI exI) 
-    prefer 4 apply (blast intro: restrict_omap_ord_iso) 
-apply (blast intro: Ord_omap_image_pred)+
+ apply (blast intro!: restrict_omap_ord_iso Ord_omap_image_pred)
+apply (force simp add: pred_iff obase_iff)  
 done
 
 

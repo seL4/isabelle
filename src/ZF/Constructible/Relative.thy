@@ -18,11 +18,15 @@ constdefs
     "pair(M,a,b,z) == \<exists>x[M]. upair(M,a,a,x) & 
                           (\<exists>y[M]. upair(M,a,b,y) & upair(M,x,y,z))"
 
+
   union :: "[i=>o,i,i,i] => o"
     "union(M,a,b,z) == \<forall>x[M]. x \<in> z <-> x \<in> a | x \<in> b"
 
+  is_cons :: "[i=>o,i,i,i] => o"
+    "is_cons(M,a,b,z) == \<exists>x[M]. upair(M,a,a,x) & union(M,x,b,z)"
+
   successor :: "[i=>o,i,i] => o"
-    "successor(M,a,z) == \<exists>x[M]. upair(M,a,a,x) & union(M,x,a,z)"
+    "successor(M,a,z) == is_cons(M,a,a,z)"
 
   powerset :: "[i=>o,i,i] => o"
     "powerset(M,A,z) == \<forall>x[M]. x \<in> z <-> subset(M,x,A)"
@@ -91,7 +95,7 @@ constdefs
   typed_function :: "[i=>o,i,i,i] => o"
     "typed_function(M,A,B,r) == 
         is_function(M,r) & is_relation(M,r) & is_domain(M,r,A) &
-        (\<forall>u[M]. u\<in>r --> (\<forall>x y. M(x) & M(y) & pair(M,x,y,u) --> y\<in>B))"
+        (\<forall>u[M]. u\<in>r --> (\<forall>x[M]. \<forall>y[M]. pair(M,x,y,u) --> y\<in>B))"
 
   is_funspace :: "[i=>o,i,i,i] => o"
     "is_funspace(M,A,B,F) == 
@@ -99,17 +103,15 @@ constdefs
 
   composition :: "[i=>o,i,i,i] => o"
     "composition(M,r,s,t) == 
-        \<forall>p[M]. (p \<in> t <-> 
-                      (\<exists>x[M]. (\<exists>y[M]. (\<exists>z[M]. 
-                           p = \<langle>x,z\<rangle> & \<langle>x,y\<rangle> \<in> s & \<langle>y,z\<rangle> \<in> r))))"
+        \<forall>p[M]. p \<in> t <-> 
+               (\<exists>x[M]. \<exists>y[M]. \<exists>z[M]. pair(M,x,z,p) & \<langle>x,y\<rangle> \<in> s & \<langle>y,z\<rangle> \<in> r)"
 
 
   injection :: "[i=>o,i,i,i] => o"
     "injection(M,A,B,f) == 
 	typed_function(M,A,B,f) &
-        (\<forall>x x' y p p'. M(x) --> M(x') --> M(y) --> M(p) --> M(p') --> 
-                      pair(M,x,y,p) --> pair(M,x',y,p') --> p\<in>f --> p'\<in>f --> 
-                      x=x')"
+        (\<forall>x[M]. \<forall>x'[M]. \<forall>y[M]. \<forall>p[M]. \<forall>p'[M]. 
+          pair(M,x,y,p) --> pair(M,x',y,p') --> p\<in>f --> p'\<in>f --> x=x')"
 
   surjection :: "[i=>o,i,i,i] => o"
     "surjection(M,A,B,f) == 
@@ -121,9 +123,7 @@ constdefs
 
   restriction :: "[i=>o,i,i,i] => o"
     "restriction(M,r,A,z) == 
-	\<forall>x[M]. 
-            (x \<in> z <-> 
-             (x \<in> r & (\<exists>u[M]. u\<in>A & (\<exists>v[M]. pair(M,u,v,x)))))"
+	\<forall>x[M]. x \<in> z <-> (x \<in> r & (\<exists>u[M]. u\<in>A & (\<exists>v[M]. pair(M,u,v,x))))"
 
   transitive_set :: "[i=>o,i] => o"
     "transitive_set(M,a) == \<forall>x[M]. x\<in>a --> subset(M,x,a)"
@@ -363,11 +363,10 @@ constdefs
   order_isomorphism :: "[i=>o,i,i,i,i,i] => o"
     "order_isomorphism(M,A,r,B,s,f) == 
         bijection(M,A,B,f) & 
-        (\<forall>x\<in>A. \<forall>y\<in>A. \<forall>p fx fy q. 
-            M(x) --> M(y) --> M(p) --> M(fx) --> M(fy) --> M(q) --> 
+        (\<forall>x[M]. x\<in>A --> (\<forall>y[M]. y\<in>A -->
+          (\<forall>p[M]. \<forall>fx[M]. \<forall>fy[M]. \<forall>q[M].
             pair(M,x,y,p) --> fun_apply(M,f,x,fx) --> fun_apply(M,f,y,fy) --> 
-            pair(M,fx,fy,q) --> (p\<in>r <-> q\<in>s))"
-
+            pair(M,fx,fy,q) --> (p\<in>r <-> q\<in>s))))"
 
   pred_set :: "[i=>o,i,i,i,i] => o"
     "pred_set(M,A,x,r,B) == 
@@ -375,7 +374,7 @@ constdefs
 
   membership :: "[i=>o,i,i] => o" --{*membership relation*}
     "membership(M,A,r) == 
-	\<forall>p[M]. p \<in> r <-> (\<exists>x\<in>A. \<exists>y\<in>A. M(x) & M(y) & x\<in>y & pair(M,x,y,p))"
+	\<forall>p[M]. p \<in> r <-> (\<exists>x[M]. x\<in>A & (\<exists>y[M]. y\<in>A & x\<in>y & pair(M,x,y,p)))"
 
 
 subsection{*Absoluteness for a transitive class model*}
@@ -507,8 +506,12 @@ lemma (in M_triv_axioms) cons_closed [intro,simp]:
      "[| M(a); M(A) |] ==> M(cons(a,A))"
 by (subst cons_eq [symmetric], blast) 
 
+lemma (in M_triv_axioms) cons_abs [simp]: 
+     "[| M(b); M(z) |] ==> is_cons(M,a,b,z) <-> z = cons(a,b)"
+by (simp add: is_cons_def, blast intro: transM)  
+
 lemma (in M_triv_axioms) successor_abs [simp]: 
-     "[| M(a); M(z) |] ==> successor(M,a,z) <-> z=succ(a)"
+     "[| M(a); M(z) |] ==> successor(M,a,z) <-> z = succ(a)"
 by (simp add: successor_def, blast)  
 
 lemma (in M_triv_axioms) succ_in_M_iff [iff]:
@@ -526,8 +529,8 @@ apply (blast dest: transM)
 done
 
 text{*Probably the premise and conclusion are equivalent*}
-lemma (in M_triv_axioms) strong_replacementI [rule_format]:
-    "[| \<forall>A[M]. separation(M, %u. \<exists>x\<in>A. P(x,u)) |]
+lemma (in M_triv_axioms) strong_replacementI [OF rallI]:
+    "[| \<forall>A[M]. separation(M, %u. \<exists>x[M]. x\<in>A & P(x,u)) |]
      ==> strong_replacement(M,P)"
 apply (simp add: strong_replacement_def, clarify) 
 apply (frule replacementD [OF replacement], assumption, clarify) 
@@ -733,37 +736,38 @@ assumes Inter_separation:
      "[| M(r); M(x) |] ==> separation(M, \<lambda>y. \<exists>p[M]. p\<in>r & pair(M,y,x,p))"
   and Memrel_separation:
      "separation(M, \<lambda>z. \<exists>x[M]. \<exists>y[M]. pair(M,x,y,z) & x \<in> y)"
-  and obase_separation:
-     --{*part of the order type formalization*}
-     "[| M(A); M(r) |] 
-      ==> separation(M, \<lambda>a. \<exists>x g mx par. M(x) & M(g) & M(mx) & M(par) & 
-	     ordinal(M,x) & membership(M,x,mx) & pred_set(M,A,a,r,par) &
-	     order_isomorphism(M,par,r,x,mx,g))"
   and funspace_succ_replacement:
      "M(n) ==> 
-      strong_replacement(M, \<lambda>p z. \<exists>f[M]. \<exists>b[M]. \<exists>nb[M]. 
-                pair(M,f,b,p) & pair(M,n,b,nb) & z = {cons(nb,f)})"
+      strong_replacement(M, \<lambda>p z. \<exists>f[M]. \<exists>b[M]. \<exists>nb[M]. \<exists>cnbf[M]. 
+                pair(M,f,b,p) & pair(M,n,b,nb) & is_cons(M,nb,f,cnbf) &
+                upair(M,cnbf,cnbf,z))"
   and well_ord_iso_separation:
      "[| M(A); M(f); M(r) |] 
       ==> separation (M, \<lambda>x. x\<in>A --> (\<exists>y[M]. (\<exists>p[M]. 
 		     fun_apply(M,f,x,y) & pair(M,y,x,p) & p \<in> r)))"
+  and obase_separation:
+     --{*part of the order type formalization*}
+     "[| M(A); M(r) |] 
+      ==> separation(M, \<lambda>a. \<exists>x[M]. \<exists>g[M]. \<exists>mx[M]. \<exists>par[M]. 
+	     ordinal(M,x) & membership(M,x,mx) & pred_set(M,A,a,r,par) &
+	     order_isomorphism(M,par,r,x,mx,g))"
   and obase_equals_separation:
      "[| M(A); M(r) |] 
       ==> separation
-      (M, \<lambda>x. x\<in>A --> ~(\<exists>y[M]. (\<exists>g. M(g) &
-	      ordinal(M,y) & (\<exists>my pxr. M(my) & M(pxr) &
+      (M, \<lambda>x. x\<in>A --> ~(\<exists>y[M]. \<exists>g[M]. 
+	      ordinal(M,y) & (\<exists>my[M]. \<exists>pxr[M]. 
 	      membership(M,y,my) & pred_set(M,A,x,r,pxr) &
-	      order_isomorphism(M,pxr,r,y,my,g)))))"
+	      order_isomorphism(M,pxr,r,y,my,g))))"
+  and omap_replacement:
+     "[| M(A); M(r) |] 
+      ==> strong_replacement(M,
+             \<lambda>a z. \<exists>x[M]. \<exists>g[M]. \<exists>mx[M]. \<exists>par[M]. 
+	     ordinal(M,x) & pair(M,a,x,z) & membership(M,x,mx) & 
+	     pred_set(M,A,a,r,par) & order_isomorphism(M,par,r,x,mx,g))"
   and is_recfun_separation:
      --{*for well-founded recursion.  NEEDS RELATIVIZATION*}
      "[| M(A); M(f); M(g); M(a); M(b) |] 
      ==> separation(M, \<lambda>x. \<langle>x,a\<rangle> \<in> r & \<langle>x,b\<rangle> \<in> r & f`x \<noteq> g`x)"
-  and omap_replacement:
-     "[| M(A); M(r) |] 
-      ==> strong_replacement(M,
-             \<lambda>a z. \<exists>x g mx par. M(x) & M(g) & M(mx) & M(par) &
-	     ordinal(M,x) & pair(M,a,x,z) & membership(M,x,mx) & 
-	     pred_set(M,A,a,r,par) & order_isomorphism(M,par,r,x,mx,g))"
 
 lemma (in M_axioms) cartprod_iff_lemma:
      "[| M(C);  \<forall>u[M]. u \<in> C <-> (\<exists>x\<in>A. \<exists>y\<in>B. u = {{x}, {x,y}}); 
@@ -1074,7 +1078,7 @@ done
 
 lemma (in M_axioms) funspace_succ:
      "[|M(n); M(B); M(n->B) |] ==> M(succ(n) -> B)"
-apply (insert funspace_succ_replacement [of n]) 
+apply (insert funspace_succ_replacement [of n], simp) 
 apply (force simp add: succ_fun_eq2 univalent_def) 
 done
 
