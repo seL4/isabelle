@@ -35,21 +35,14 @@ goal thy
 \ {a = gcd A B}";
 
 by (hoare_tac 1);
-
+(*Now prove the verification conditions*)
 by (safe_tac (!claset));
-
 by (etac less_imp_diff_positive 1);
-by (etac gcd_diff_r 1);
-
-by (cut_facts_tac [less_linear] 1);
-by (cut_facts_tac [less_linear] 2);
-by (rtac less_imp_diff_positive 1);
-by (rtac gcd_diff_l 2);
-
-by (dtac gcd_nnn 3);
-
-by (ALLGOALS (Fast_tac));
-
+by (asm_simp_tac (!simpset addsimps [less_imp_le, gcd_diff_r]) 1);
+by (asm_full_simp_tac (!simpset addsimps [not_less_iff_le, gcd_diff_l]) 2);
+by (etac gcd_nnn 2);
+by (full_simp_tac (!simpset addsimps [not_less_iff_le, le_eq_less_or_eq]) 1);
+by (blast_tac (!claset addIs [less_imp_diff_positive]) 1);
 qed "Euclid_GCD";
 
 
