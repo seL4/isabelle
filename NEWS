@@ -261,6 +261,9 @@ renamed "Product_Type.unit";
 
 * HOL: renamed rtrancl_into_rtrancl2 to converse_rtrancl_into_rtrancl
 
+* HOL: removed obsolete theorem "optionE" (use "option.exhaust", or
+the "cases" method);
+
 * HOL/GroupTheory: group theory examples including Sylow's theorem (by
 Florian Kammüller);
 
