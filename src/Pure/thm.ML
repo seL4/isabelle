@@ -20,6 +20,7 @@ signature THM =
   type cterm
   exception CTERM of string
   val rep_cterm         : cterm -> {sign: Sign.sg, t: term, T: typ, maxidx: int}
+  val crep_cterm        : cterm -> {sign: Sign.sg, t: term, T: ctyp, maxidx: int}
   val term_of           : cterm -> term
   val cterm_of          : Sign.sg -> term -> cterm
   val ctyp_of_term      : cterm -> ctyp
@@ -202,6 +203,10 @@ datatype cterm = Cterm of {sign_ref: Sign.sg_ref, t: term, T: typ, maxidx: int};
 
 fun rep_cterm (Cterm {sign_ref, t, T, maxidx}) =
   {sign = Sign.deref sign_ref, t = t, T = T, maxidx = maxidx};
+
+fun crep_cterm (Cterm {sign_ref, t, T, maxidx}) =
+  {sign = Sign.deref sign_ref, t = t, T = Ctyp {sign_ref = sign_ref, T = T},
+    maxidx = maxidx};
 
 fun term_of (Cterm {t, ...}) = t;
 
