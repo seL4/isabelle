@@ -293,7 +293,8 @@ fun pretty_thm ctxt thms =
   Pretty.chunks (map (pretty_term ctxt o #prop o Thm.rep_thm) thms);
 
 fun pretty_goals state _ _ =
-  Pretty.chunks (Proof.pretty_goals (Toplevel.proof_of state));
+  Pretty.chunks (Proof.pretty_goals (Toplevel.proof_of state handle Toplevel.UNDEF =>
+    error "No proof state"));
 
 
 fun output_with pretty src ctxt x =
