@@ -19,13 +19,13 @@ rules
 
 constdefs
   evn :: com
- "evn == IF (%s. s<Arg>=0)
+ "evn == IF (%s. s<Arg> = 0)
          THEN Loc Res:==(%s. 0)
          ELSE(Loc Res:=CALL Odd(%s. s<Arg> - 1);;
               Loc Arg:=CALL Odd(%s. s<Arg> - 1);;
               Loc Res:==(%s. s<Res> * s<Arg>))"
   odd :: com
- "odd == IF (%s. s<Arg>=0)
+ "odd == IF (%s. s<Arg> = 0)
          THEN Loc Res:==(%s. 1)
          ELSE(Loc Res:=CALL Even (%s. s<Arg> - 1))"
 
@@ -37,6 +37,6 @@ consts
  "even_Z=(Res=0)" ::        nat assn ("Res'_ok")
 defs
   Z_eq_Arg_plus_def "Z=Arg+n == %Z s.      Z =  s<Arg>+n"
-  Res_ok_def       "Res_ok   == %Z s. even Z = (s<Res>=0)"
+  Res_ok_def       "Res_ok   == %Z s. even Z = (s<Res> = 0)"
 
 end

@@ -77,7 +77,7 @@ by   (clarsimp_tac Arg_Res_css 1);
 by  (force_tac Arg_Res_css 1);
 by (rtac export_s 1);
 by (res_inst_tac [("I1","%Z l. even Z = (l Res = 0)"),
-		  ("Q1","%Z s. even Z = (s<Arg>=0)")]
+		  ("Q1","%Z s. even Z = (s<Arg> = 0)")]
 		 (Call_invariant RS conseq12) 1);
 by (rtac (single_asm RS conseq2) 1);
 by  (clarsimp_tac Arg_Res_css 1);

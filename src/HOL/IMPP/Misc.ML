@@ -82,8 +82,8 @@ by (etac spec 1);
 *)
 qed "classic_Local";
 
-Goal "[| Y~=Y'; G|-{P}. c .{%Z s. s<Y'>=d} |] ==> \
-\ G|-{%Z s. P Z (s[Loc Y::=a s])}. LOCAL Y:=a IN c .{%Z s. s<Y'>=d}";
+Goal "[| Y~=Y'; G|-{P}. c .{%Z s. s<Y'> = d} |] ==> \
+\ G|-{%Z s. P Z (s[Loc Y::=a s])}. LOCAL Y:=a IN c .{%Z s. s<Y'> = d}";
 by (rtac classic_Local 1);
 by (ALLGOALS Clarsimp_tac);
 by (etac conseq12 1);
@@ -92,15 +92,15 @@ by (dtac sym 1);
 by (Asm_full_simp_tac 1);
 qed "classic_Local_indep";
 
-Goal "[| Y~=Y'; G|-{P}. c .{%Z s. s<Y'>=d} |] ==> \
-\ G|-{%Z s. P Z (s[Loc Y::=a s])}. LOCAL Y:=a IN c .{%Z s. s<Y'>=d}";
+Goal "[| Y~=Y'; G|-{P}. c .{%Z s. s<Y'> = d} |] ==> \
+\ G|-{%Z s. P Z (s[Loc Y::=a s])}. LOCAL Y:=a IN c .{%Z s. s<Y'> = d}";
 by (rtac export_s 1);
 by (rtac hoare_derivs.Local 1);
 by (Clarsimp_tac 1);
 qed "Local_indep";
 
-Goal "[| Y'~=Y; G|-{P}. c .{%Z s. s<Y'>=d} |] ==> \
-\ G|-{%Z s. P Z (s[Loc Y::=a s])}. LOCAL Y:=a IN c .{%Z s. s<Y'>=d}";
+Goal "[| Y'~=Y; G|-{P}. c .{%Z s. s<Y'> = d} |] ==> \
+\ G|-{%Z s. P Z (s[Loc Y::=a s])}. LOCAL Y:=a IN c .{%Z s. s<Y'> = d}";
 by (rtac weak_Local 1);
 by (ALLGOALS Clarsimp_tac);
 qed "weak_Local_indep";

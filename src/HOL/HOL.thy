@@ -343,10 +343,10 @@ lemma eta_contract_eq: "(%s. f s) = f" ..
 
 lemma simp_thms:
   shows not_not: "(~ ~ P) = P"
+  and Not_eq_iff: "((~P) = (~Q)) = (P = Q)"
   and
     "(P ~= Q) = (P = (~Q))"
     "(P | ~P) = True"    "(~P | P) = True"
-    "((~P) = (~Q)) = (P=Q)"
     "(x = x) = True"
     "(~True) = False"  "(~False) = True"
     "(~P) ~= P"  "P ~= (~P)"
@@ -660,9 +660,21 @@ syntax (HTML output)
   "op <="       :: "['a::ord, 'a] => bool"             ("op \<le>")
   "op <="       :: "['a::ord, 'a] => bool"             ("(_/ \<le> _)"  [50, 51] 50)
 
+text{* Syntactic sugar: *}
 
-lemma Not_eq_iff: "((~P) = (~Q)) = (P = Q)"
-by blast
+consts
+  "_gt" :: "'a::ord => 'a => bool"             (infixl ">" 50)
+  "_ge" :: "'a::ord => 'a => bool"             (infixl ">=" 50)
+translations
+  "x > y"  => "y < x"
+  "x >= y" => "y <= x"
+
+syntax (xsymbols)
+  "_ge"       :: "'a::ord => 'a => bool"             (infixl "\<ge>" 50)
+
+syntax (HTML output)
+  "_ge"       :: "['a::ord, 'a] => bool"             (infixl "\<ge>" 50)
+
 
 subsubsection {* Monotonicity *}
 
