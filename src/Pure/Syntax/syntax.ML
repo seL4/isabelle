@@ -28,19 +28,19 @@ sig
     PrintRule of 'a * 'a |
     ParsePrintRule of 'a * 'a
   type syntax
-  val extend_log_types: syntax -> string list -> syntax
-  val extend_type_gram: syntax -> (string * int * mixfix) list -> syntax
-  val extend_const_gram: syntax -> string * bool -> (string * typ * mixfix) list -> syntax
-  val extend_consts: syntax -> string list -> syntax
-  val extend_trfuns: syntax ->
+  val extend_log_types: string list -> syntax -> syntax
+  val extend_type_gram: (string * int * mixfix) list -> syntax -> syntax
+  val extend_const_gram: string * bool -> (string * typ * mixfix) list -> syntax -> syntax
+  val extend_consts: string list -> syntax -> syntax
+  val extend_trfuns:
     (string * (ast list -> ast)) list *
     (string * (term list -> term)) list *
     (string * (term list -> term)) list *
-    (string * (ast list -> ast)) list -> syntax
-  val extend_trfunsT: syntax -> (string * (bool -> typ -> term list -> term)) list -> syntax
-  val extend_tokentrfuns: syntax -> (string * string * (string -> string * real)) list -> syntax
-  val extend_trrules: syntax -> (string * string) trrule list -> syntax
-  val extend_trrules_i: syntax -> ast trrule list -> syntax
+    (string * (ast list -> ast)) list -> syntax -> syntax
+  val extend_trfunsT: (string * (bool -> typ -> term list -> term)) list -> syntax -> syntax
+  val extend_tokentrfuns: (string * string * (string -> string * real)) list -> syntax -> syntax
+  val extend_trrules: (string * string) trrule list -> syntax -> syntax
+  val extend_trrules_i: ast trrule list -> syntax -> syntax
   val map_trrule: ('a -> 'b) -> 'a trrule -> 'b trrule
   val merge_syntaxes: syntax -> syntax -> syntax
   val type_syn: syntax
@@ -474,16 +474,16 @@ val simple_pprint_typ = Pretty.pprint o Pretty.quote o (pretty_typ type_syn);
 
 (** extend syntax (external interfaces) **)
 
-fun ext_syntax mk_syn_ext prmode (syn as Syntax {logtypes, ...}) decls =
+fun ext_syntax mk_syn_ext prmode decls (syn as Syntax {logtypes, ...}) =
   extend_syntax prmode syn (mk_syn_ext logtypes decls);
 
 
-fun extend_log_types syn logtypes =
+fun extend_log_types logtypes syn =
   extend_syntax ("", true) syn (SynExt.syn_ext_logtypes logtypes);
 
 val extend_type_gram = ext_syntax Mixfix.syn_ext_types ("", true);
 
-fun extend_const_gram syn prmode = ext_syntax Mixfix.syn_ext_consts prmode syn;
+fun extend_const_gram prmode = ext_syntax Mixfix.syn_ext_consts prmode;
 
 val extend_consts = ext_syntax SynExt.syn_ext_const_names ("", true);
 
@@ -493,11 +493,10 @@ val extend_trfunsT = ext_syntax SynExt.syn_ext_trfunsT ("", true);
 
 val extend_tokentrfuns = ext_syntax SynExt.syn_ext_tokentrfuns ("", true);
 
-fun extend_trrules syn rules =
-  ext_syntax SynExt.syn_ext_rules ("", true) syn (prep_rules (read_pattern syn) rules);
+fun extend_trrules rules syn =
+  ext_syntax SynExt.syn_ext_rules ("", true) (prep_rules (read_pattern syn) rules) syn;
 
-fun extend_trrules_i syn rules =
-  ext_syntax SynExt.syn_ext_rules ("", true) syn (prep_rules I rules);
+fun extend_trrules_i rules = ext_syntax SynExt.syn_ext_rules ("", true) (prep_rules I rules);
 
 
 
