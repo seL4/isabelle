@@ -23,3 +23,6 @@ should be addsimps
 Ref/tactic: documented subgoals_tac
 
 Logics/ZF: renamed mem_anti_sym and mem_anti_refl
+
+Ref/defining: type constraints ("::") now have a very low priority of 4.
+              As in ML, they must be enclosed in paretheses most of the time.
