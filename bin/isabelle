@@ -25,7 +25,7 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -I           startup Isar interaction mode"
-  echo "    -P           startup ProofGeneral interaction mode"
+  echo "    -P           startup Proof General interaction mode"
   echo "    -c           tell ML system to compress output image"
   echo "    -e MLTEXT    pass MLTEXT to the ML session"
   echo "    -m MODE      add print mode for output"
