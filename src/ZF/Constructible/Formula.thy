@@ -246,12 +246,12 @@ done
 subsection{*Renaming Some de Bruijn Variables*}
 
 constdefs incr_var :: "[i,i]=>i"
-    "incr_var(x,lev) == if x<lev then x else succ(x)"
+    "incr_var(x,nq) == if x<nq then x else succ(x)"
 
-lemma incr_var_lt: "x<lev ==> incr_var(x,lev) = x"
+lemma incr_var_lt: "x<nq ==> incr_var(x,nq) = x"
 by (simp add: incr_var_def)
 
-lemma incr_var_le: "lev\<le>x ==> incr_var(x,lev) = succ(x)"
+lemma incr_var_le: "nq\<le>x ==> incr_var(x,nq) = succ(x)"
 apply (simp add: incr_var_def) 
 apply (blast dest: lt_trans1) 
 done
@@ -259,19 +259,19 @@ done
 consts   incr_bv :: "i=>i"
 primrec
   "incr_bv(Member(x,y)) = 
-      (\<lambda>lev \<in> nat. Member (incr_var(x,lev), incr_var(y,lev)))"
+      (\<lambda>nq \<in> nat. Member (incr_var(x,nq), incr_var(y,nq)))"
 
   "incr_bv(Equal(x,y)) = 
-      (\<lambda>lev \<in> nat. Equal (incr_var(x,lev), incr_var(y,lev)))"
+      (\<lambda>nq \<in> nat. Equal (incr_var(x,nq), incr_var(y,nq)))"
 
   "incr_bv(Nand(p,q)) =
-      (\<lambda>lev \<in> nat. Nand (incr_bv(p)`lev, incr_bv(q)`lev))"
+      (\<lambda>nq \<in> nat. Nand (incr_bv(p)`nq, incr_bv(q)`nq))"
 
   "incr_bv(Forall(p)) = 
-      (\<lambda>lev \<in> nat. Forall (incr_bv(p) ` succ(lev)))"
+      (\<lambda>nq \<in> nat. Forall (incr_bv(p) ` succ(nq)))"
 
 
-lemma [TC]: "x \<in> nat ==> incr_var(x,lev) \<in> nat"
+lemma [TC]: "x \<in> nat ==> incr_var(x,nq) \<in> nat"
 by (simp add: incr_var_def) 
 
 lemma incr_bv_type [TC]: "p \<in> formula ==> incr_bv(p) \<in> nat -> formula"
@@ -294,8 +294,8 @@ done
 
 (*the following two lemmas prevent huge case splits in arity_incr_bv_lemma*)
 lemma incr_var_lemma:
-     "[| x \<in> nat; y \<in> nat; lev \<le> x |]
-      ==> succ(x) \<union> incr_var(y,lev) = succ(x \<union> y)"
+     "[| x \<in> nat; y \<in> nat; nq \<le> x |]
+      ==> succ(x) \<union> incr_var(y,nq) = succ(x \<union> y)"
 apply (simp add: incr_var_def Ord_Un_if, auto)
   apply (blast intro: leI)
  apply (simp add: not_lt_iff_le)  
@@ -757,7 +757,7 @@ by (simp add: L_def, blast intro: Ord_in_Lset)
 subsubsection{* Unions *}
 
 lemma Union_in_Lset:
-     "X \<in> Lset(j) ==> Union(X) \<in> Lset(succ(j))"
+     "X \<in> Lset(i) ==> Union(X) \<in> Lset(succ(i))"
 apply (insert Transset_Lset)
 apply (rule LsetI [OF succI1])
 apply (simp add: Transset_def DPow_def) 
@@ -769,17 +769,8 @@ apply (rule_tac x="Cons(X,Nil)" in bexI)
 apply (simp add: succ_Un_distrib [symmetric], blast) 
 done
 
-lemma Union_in_LLimit:
-     "[| X: Lset(i);  Limit(i) |] ==> Union(X) : Lset(i)"
-apply (rule Limit_LsetE, assumption+)
-apply (blast intro: Limit_has_succ lt_LsetI Union_in_Lset)
-done
-
 theorem Union_in_L: "L(X) ==> L(Union(X))"
-apply (simp add: L_def, clarify) 
-apply (drule Ord_imp_greater_Limit) 
-apply (blast intro: lt_LsetI Union_in_LLimit Limit_is_Ord) 
-done
+by (simp add: L_def, blast dest: Union_in_Lset) 
 
 subsubsection{* Finite sets and ordered pairs *}
 

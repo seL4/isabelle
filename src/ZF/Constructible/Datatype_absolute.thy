@@ -120,15 +120,15 @@ constdefs
         is_nat_case(M, v, \<lambda>m u. \<exists>gm[M]. fun_apply(M,g,m,gm) & isF(gm,u),
                     n, z)"
 
-  iterates_replacement :: "[i=>o, [i,i]=>o, i] => o"
-   "iterates_replacement(M,isF,v) ==
-      \<forall>n[M]. n\<in>nat --> 
-         wfrec_replacement(M, iterates_MH(M,isF,v), Memrel(succ(n)))"
-
   is_iterates :: "[i=>o, [i,i]=>o, i, i, i] => o"
     "is_iterates(M,isF,v,n,Z) == 
       \<exists>sn[M]. \<exists>msn[M]. successor(M,n,sn) & membership(M,sn,msn) &
                        is_wfrec(M, iterates_MH(M,isF,v), msn, n, Z)"
+
+  iterates_replacement :: "[i=>o, [i,i]=>o, i] => o"
+   "iterates_replacement(M,isF,v) ==
+      \<forall>n[M]. n\<in>nat --> 
+         wfrec_replacement(M, iterates_MH(M,isF,v), Memrel(succ(n)))"
 
 lemma (in M_basic) iterates_MH_abs:
   "[| relation1(M,isF,F); M(n); M(g); M(z) |] 

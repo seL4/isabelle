@@ -10,7 +10,8 @@ theory Rank_Separation = Rank + Rec_Separation:
 
 
 text{*This theory proves all instances needed for locales
-       @{text "M_ordertype"} and  @{text "M_wfrank"}*}
+ @{text "M_ordertype"} and  @{text "M_wfrank"}.  But the material is not
+ needed for proving the relative consistency of AC.*}
 
 subsection{*The Locale @{text "M_ordertype"}*}
 
@@ -27,11 +28,9 @@ lemma well_ord_iso_separation:
      "[| L(A); L(f); L(r) |]
       ==> separation (L, \<lambda>x. x\<in>A --> (\<exists>y[L]. (\<exists>p[L].
                      fun_apply(L,f,x,y) & pair(L,y,x,p) & p \<in> r)))"
-apply (rule gen_separation [OF well_ord_iso_Reflects, of "{A,f,r}"], simp)
-apply (drule mem_Lset_imp_subset_Lset, clarsimp)
-apply (rule DPow_LsetI)
-apply (rule imp_iff_sats)
-apply (rule_tac env = "[x,A,f,r]" in mem_iff_sats)
+apply (rule gen_separation_multi [OF well_ord_iso_Reflects, of "{A,f,r}"], 
+       auto)
+apply (rule_tac env="[A,f,r]" in DPow_LsetI)
 apply (rule sep_rules | simp)+
 done
 
@@ -53,12 +52,9 @@ lemma obase_separation:
       ==> separation(L, \<lambda>a. \<exists>x[L]. \<exists>g[L]. \<exists>mx[L]. \<exists>par[L].
              ordinal(L,x) & membership(L,x,mx) & pred_set(L,A,a,r,par) &
              order_isomorphism(L,par,r,x,mx,g))"
-apply (rule gen_separation [OF obase_reflects, of "{A,r}"], simp)
-apply (drule mem_Lset_imp_subset_Lset, clarsimp)
-apply (rule DPow_LsetI)
-apply (rule bex_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[x,a,A,r]" in ordinal_iff_sats)
-apply (rule sep_rules | simp)+
+apply (rule gen_separation_multi [OF obase_reflects, of "{A,r}"], auto)
+apply (rule_tac env="[A,r]" in DPow_LsetI)
+apply (rule ordinal_iff_sats sep_rules | simp)+
 done
 
 
@@ -81,11 +77,8 @@ lemma obase_equals_separation:
                               ordinal(L,y) & (\<exists>my[L]. \<exists>pxr[L].
                               membership(L,y,my) & pred_set(L,A,x,r,pxr) &
                               order_isomorphism(L,pxr,r,y,my,g))))"
-apply (rule gen_separation [OF obase_equals_reflects, of "{A,r}"], simp)
-apply (drule mem_Lset_imp_subset_Lset, clarsimp)
-apply (rule DPow_LsetI)
-apply (rule imp_iff_sats ball_iff_sats disj_iff_sats not_iff_sats)+
-apply (rule_tac env = "[x,A,r]" in mem_iff_sats)
+apply (rule gen_separation_multi [OF obase_equals_reflects, of "{A,r}"], auto)
+apply (rule_tac env="[A,r]" in DPow_LsetI)
 apply (rule sep_rules | simp)+
 done
 
@@ -110,12 +103,8 @@ lemma omap_replacement:
              ordinal(L,x) & pair(L,a,x,z) & membership(L,x,mx) &
              pred_set(L,A,a,r,par) & order_isomorphism(L,par,r,x,mx,g))"
 apply (rule strong_replacementI)
-apply (rename_tac B)
-apply (rule_tac u="{A,r,B}" in gen_separation [OF omap_reflects], simp)
-apply (drule mem_Lset_imp_subset_Lset, clarsimp)
-apply (rule DPow_LsetI)
-apply (rule bex_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[a,z,A,B,r]" in mem_iff_sats)
+apply (rule_tac u="{A,r,B}" in gen_separation_multi [OF omap_reflects], auto)
+apply (rule_tac env="[A,B,r]" in DPow_LsetI)
 apply (rule sep_rules | simp)+
 done
 
@@ -157,10 +146,8 @@ lemma wfrank_separation:
       separation (L, \<lambda>x. \<forall>rplus[L]. tran_closure(L,r,rplus) -->
          ~ (\<exists>f[L]. M_is_recfun(L, %x f y. is_range(L,f,y), rplus, x, f)))"
 apply (rule gen_separation [OF wfrank_Reflects], simp)
-apply (rule DPow_LsetI)
-apply (rule ball_iff_sats imp_iff_sats)+
-apply (rule_tac env="[rplus,x,r]" in tran_closure_iff_sats)
-apply (rule sep_rules is_recfun_iff_sats | simp)+
+apply (rule_tac env="[r]" in DPow_LsetI)
+apply (rule sep_rules tran_closure_iff_sats is_recfun_iff_sats | simp)+
 done
 
 
@@ -188,14 +175,11 @@ lemma wfrank_strong_replacement:
                         M_is_recfun(L, %x f y. is_range(L,f,y), rplus, x, f) &
                         is_range(L,f,y)))"
 apply (rule strong_replacementI)
-apply (rule_tac u="{r,A}" in gen_separation [OF wfrank_replacement_Reflects], 
-       simp)
-apply (drule mem_Lset_imp_subset_Lset, clarsimp)
-apply (rule DPow_LsetI)
-apply (rule bex_iff_sats ball_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[x,z,A,r]" in mem_iff_sats)
-apply (rule sep_rules list.intros app_type tran_closure_iff_sats 
-            is_recfun_iff_sats | simp)+
+apply (rule_tac u="{r,B}" 
+         in gen_separation_multi [OF wfrank_replacement_Reflects], 
+       auto)
+apply (rule_tac env="[r,B]" in DPow_LsetI)
+apply (rule sep_rules tran_closure_iff_sats is_recfun_iff_sats | simp)+
 done
 
 
@@ -225,10 +209,8 @@ lemma  Ord_wfrank_separation:
              M_is_recfun(L, \<lambda>x f y. is_range(L,f,y), rplus, x, f) -->
              ordinal(L,rangef)))"
 apply (rule gen_separation [OF Ord_wfrank_Reflects], simp)
-apply (rule DPow_LsetI)
-apply (rule ball_iff_sats imp_iff_sats)+
-apply (rule_tac env="[rplus,x,r]" in tran_closure_iff_sats)
-apply (rule sep_rules is_recfun_iff_sats | simp)+
+apply (rule_tac env="[r]" in DPow_LsetI)
+apply (rule sep_rules tran_closure_iff_sats is_recfun_iff_sats | simp)+
 done
 
 

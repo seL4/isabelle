@@ -8,6 +8,7 @@ header {*Absoluteness for the Satisfies Relation on Formulas*}
 theory Satisfies_absolute = Datatype_absolute + Rec_Separation: 
 
 
+subsection {*More Internalization*}
 
 subsubsection{*The Formula @{term is_depth}, Internalized*}
 
@@ -823,14 +824,10 @@ lemma Member_replacement:
               is_bool_of_o(L, nx \<in> ny, bo) &
               pair(L, env, bo, z))"
 apply (rule strong_replacementI)
-apply (rename_tac B)
 apply (rule_tac u="{list(A),B,x,y}" 
-         in gen_separation [OF Member_Reflects], 
-       simp add: nat_into_M list_closed)
-apply (drule mem_Lset_imp_subset_Lset, clarsimp)
-apply (rule DPow_LsetI)
-apply (rule bex_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[v,u,list(A),B,x,y]" in mem_iff_sats) 
+         in gen_separation_multi [OF Member_Reflects], 
+       auto simp add: nat_into_M list_closed)
+apply (rule_tac env="[list(A),B,x,y]" in DPow_LsetI)
 apply (rule sep_rules nth_iff_sats is_bool_of_o_iff_sats | simp)+
 done
 
@@ -857,14 +854,10 @@ lemma Equal_replacement:
               is_bool_of_o(L, nx = ny, bo) &
               pair(L, env, bo, z))"
 apply (rule strong_replacementI)
-apply (rename_tac B)
 apply (rule_tac u="{list(A),B,x,y}" 
-         in gen_separation [OF Equal_Reflects], 
-       simp add: nat_into_M list_closed)
-apply (drule mem_Lset_imp_subset_Lset, clarsimp)
-apply (rule DPow_LsetI)
-apply (rule bex_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[v,u,list(A),B,x,y]" in mem_iff_sats) 
+         in gen_separation_multi [OF Equal_Reflects], 
+       auto simp add: nat_into_M list_closed)
+apply (rule_tac env="[list(A),B,x,y]" in DPow_LsetI)
 apply (rule sep_rules nth_iff_sats is_bool_of_o_iff_sats | simp)+
 done
 
@@ -893,13 +886,10 @@ lemma Nand_replacement:
                is_and(L,rpe,rqe,andpq) & is_not(L,andpq,notpq) & 
                env \<in> list(A) & pair(L, env, notpq, z))"
 apply (rule strong_replacementI)
-apply (rename_tac B)
-apply (rule_tac u="{list(A),B,rp,rq}" in gen_separation [OF Nand_Reflects],
-       simp add: list_closed)
-apply (drule mem_Lset_imp_subset_Lset, clarsimp)
-apply (rule DPow_LsetI)
-apply (rule bex_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[u,x,list(A),B,rp,rq]" in mem_iff_sats) 
+apply (rule_tac u="{list(A),B,rp,rq}" 
+         in gen_separation_multi [OF Nand_Reflects],
+       auto simp add: list_closed)
+apply (rule_tac env="[list(A),B,rp,rq]" in DPow_LsetI)
 apply (rule sep_rules is_and_iff_sats is_not_iff_sats | simp)+
 done
 
@@ -935,13 +925,10 @@ lemma Forall_replacement:
                             bo) &
 	      pair(L,env,bo,z))"
 apply (rule strong_replacementI)
-apply (rename_tac B)
-apply (rule_tac u="{A,list(A),B,rp}" in gen_separation [OF Forall_Reflects],
-       simp add: list_closed)
-apply (drule mem_Lset_imp_subset_Lset, clarsimp)
-apply (rule DPow_LsetI)
-apply (rule bex_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[u,x,A,list(A),B,rp]" in mem_iff_sats)
+apply (rule_tac u="{A,list(A),B,rp}" 
+         in gen_separation_multi [OF Forall_Reflects],
+       auto simp add: list_closed)
+apply (rule_tac env="[A,list(A),B,rp]" in DPow_LsetI)
 apply (rule sep_rules is_bool_of_o_iff_sats Cons_iff_sats | simp)+
 done
 
@@ -960,14 +947,10 @@ lemma formula_rec_replacement:
    "[|n \<in> nat; L(A)|] ==> transrec_replacement(L, satisfies_MH(L,A), n)"
 apply (rule transrec_replacementI, simp add: nat_into_M) 
 apply (rule strong_replacementI)
-apply (rename_tac B)
 apply (rule_tac u="{B,A,n,Memrel(eclose({n}))}"
-         in gen_separation [OF formula_rec_replacement_Reflects],
-       simp add: nat_into_M)
-apply (drule mem_Lset_imp_subset_Lset, clarsimp)
-apply (rule DPow_LsetI)
-apply (rule bex_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[u,x,A,n,B,Memrel(eclose({n}))]" in mem_iff_sats)
+         in gen_separation_multi [OF formula_rec_replacement_Reflects],
+       auto simp add: nat_into_M)
+apply (rule_tac env="[B,A,n,Memrel(eclose({n}))]" in DPow_LsetI)
 apply (rule sep_rules satisfies_MH_iff_sats is_wfrec_iff_sats | simp)+
 done
 
@@ -1006,13 +989,10 @@ lemma formula_rec_lambda_replacement:
                                   satisfies_is_d(L,A,g), x, c) &
              pair(L, x, c, y)))" 
 apply (rule strong_replacementI)
-apply (rename_tac B)
 apply (rule_tac u="{B,A,g}"
-         in gen_separation [OF formula_rec_lambda_replacement_Reflects], simp)
-apply (drule mem_Lset_imp_subset_Lset, clarsimp)
-apply (rule DPow_LsetI)
-apply (rule bex_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[u,x,A,g,B]" in mem_iff_sats)
+         in gen_separation_multi [OF formula_rec_lambda_replacement_Reflects], 
+       auto)
+apply (rule_tac env="[A,g,B]" in DPow_LsetI)
 apply (rule sep_rules mem_formula_iff_sats
           formula_case_iff_sats satisfies_is_a_iff_sats
           satisfies_is_b_iff_sats satisfies_is_c_iff_sats

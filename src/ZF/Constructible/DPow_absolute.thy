@@ -181,7 +181,7 @@ apply (intro FOL_reflections function_reflections extra_reflections
 done
 
 
-subsection{*Additional Constraints on the Class Model @{term M}*}
+subsection{*A Locale for Relativizing the Operator @{term DPow'}*}
 
 locale M_DPow = M_satisfies +
  assumes sep:
@@ -242,12 +242,10 @@ subsubsection{*The Instance of Separation*}
 lemma DPow_separation:
     "[| L(A); env \<in> list(A); p \<in> formula |]
      ==> separation(L, \<lambda>x. is_DPow_body(L,A,env,p,x))"
-apply (rule gen_separation [OF DPow_body_reflection, of "{A,env,p}"], 
-       blast intro: transL)
-apply (drule mem_Lset_imp_subset_Lset, clarsimp)
-apply (rule DPow_LsetI)
-apply (rule_tac env = "[x,A,env,p]" in DPow_body_iff_sats)
-apply (rule sep_rules | simp)+
+apply (rule gen_separation_multi [OF DPow_body_reflection, of "{A,env,p}"], 
+       auto intro: transL)
+apply (rule_tac env="[A,env,p]" in DPow_LsetI)
+apply (rule DPow_body_iff_sats sep_rules | simp)+
 done
 
 
@@ -276,14 +274,11 @@ lemma DPow_replacement:
                   pair(L,env,p,ep) & 
                   is_Collect(L, A, \<lambda>x. is_DPow_body(L,A,env,p,x), z))"
 apply (rule strong_replacementI)
-apply (rename_tac B)
-apply (rule_tac u="{A,B}" in gen_separation [OF DPow_replacement_Reflects], 
-       simp)
-apply (drule mem_Lset_imp_subset_Lset, clarsimp)
+apply (rule_tac u="{A,B}" 
+         in gen_separation_multi [OF DPow_replacement_Reflects], 
+       auto)
 apply (unfold is_Collect_def) 
-apply (rule DPow_LsetI)
-apply (rule bex_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[u,x,A,B]" in mem_iff_sats)
+apply (rule_tac env="[A,B]" in DPow_LsetI)
 apply (rule sep_rules mem_formula_iff_sats mem_list_iff_sats 
             DPow_body_iff_sats | simp)+
 done
@@ -452,13 +447,8 @@ apply (intro FOL_reflections function_reflections mem_formula_reflection
              mem_list_reflection Collect_reflection DPow_body_reflection)
 done
 
-(*????????????????move up*)
 
-
-
-
-
-subsection{*Additional Constraints on the Class Model @{term M}*}
+subsection{*A Locale for Relativizing the Operator @{term Lset}*}
 
 constdefs
   transrec_body :: "[i=>o,i,i,i,i] => o"
@@ -510,7 +500,7 @@ apply (simp add: RepFun_DPow_apply_closed RepFun_DPow_abs
 done
 
 
-
+text{*Relativization of the Operator @{term Lset}*}
 constdefs
 
   is_Lset :: "[i=>o, i, i] => o"
@@ -534,7 +524,6 @@ done
 
 subsection{*Instantiating the Locale @{text M_Lset}*}
 
-
 subsubsection{*The First Instance of Replacement*}
 
 lemma strong_rep_Reflects:
@@ -548,12 +537,9 @@ lemma strong_rep:
    "[|L(x); L(g)|] ==> strong_replacement(L, \<lambda>y z. transrec_body(L,g,x,y,z))"
 apply (unfold transrec_body_def)  
 apply (rule strong_replacementI) 
-apply (rename_tac B)  
-apply (rule_tac u="{x,g,B}" in gen_separation [OF strong_rep_Reflects], simp)
-apply (drule mem_Lset_imp_subset_Lset, clarsimp)
-apply (rule DPow_LsetI)
-apply (rule bex_iff_sats conj_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[v,u,x,g,B]" in mem_iff_sats) 
+apply (rule_tac u="{x,g,B}" 
+         in gen_separation_multi [OF strong_rep_Reflects], auto)
+apply (rule_tac env="[x,g,B]" in DPow_LsetI)
 apply (rule sep_rules DPow'_iff_sats | simp)+
 done
 
@@ -590,13 +576,9 @@ lemma transrec_rep:
 apply (rule transrec_replacementI, assumption)
 apply (unfold transrec_body_def)  
 apply (rule strong_replacementI)
-apply (rename_tac B)
 apply (rule_tac u="{j,B,Memrel(eclose({j}))}" 
-         in gen_separation [OF transrec_rep_Reflects], simp)
-apply (drule mem_Lset_imp_subset_Lset, clarsimp)
-apply (rule DPow_LsetI)
-apply (rule bex_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[v,x,j,B,Memrel(eclose({j}))]" in mem_iff_sats)
+         in gen_separation_multi [OF transrec_rep_Reflects], auto)
+apply (rule_tac env="[j,B,Memrel(eclose({j}))]" in DPow_LsetI)
 apply (rule sep_rules is_wfrec_iff_sats Replace_iff_sats DPow'_iff_sats | 
        simp)+
 done
