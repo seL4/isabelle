@@ -94,7 +94,7 @@ Addsimps [adjust_eq];
 (*Proving posDivAlg's termination condition*)
 val [tc] = posDivAlg.tcs;
 goalw_cterm [] (cterm_of (sign_of thy) (HOLogic.mk_Trueprop tc));
-by (auto_tac (claset(), simpset() addsimps [zmult_2]));
+by Auto_tac;
 val lemma = result();
 
 (* removing the termination condition from the generated theorems *)
@@ -135,7 +135,7 @@ qed_spec_mp "posDivAlg_correct";
 (*Proving negDivAlg's termination condition*)
 val [tc] = negDivAlg.tcs;
 goalw_cterm [] (cterm_of (sign_of thy) (HOLogic.mk_Trueprop tc));
-by (auto_tac (claset(), simpset() addsimps [zmult_2]));
+by Auto_tac;
 val lemma = result();
 
 (* removing the termination condition from the generated theorems *)
@@ -814,7 +814,7 @@ by (asm_simp_tac (simpset() addsimps [zdiv_zmult_zmult2, zmod_zmult_zmult2,
 				      div_pos_pos_trivial]) 1);
 by (stac div_pos_pos_trivial 1);
 by (asm_simp_tac (simpset() 
-           addsimps zadd_ac@ [zmult_2_right, mod_pos_pos_trivial,
+           addsimps zadd_ac@ [mod_pos_pos_trivial,
                     pos_mod_sign RS zadd_zle_mono1 RSN (2,order_trans)]) 1);
 by (auto_tac (claset(),
 	      simpset() addsimps [mod_pos_pos_trivial]));
@@ -851,7 +851,7 @@ by (simp_tac (simpset_of Int.thy
 			 addsimps [zadd_assoc, number_of_BIT]) 1);
 by (asm_simp_tac (simpset()
                   delsimps bin_arith_extra_simps@bin_rel_simps
-		  addsimps [zmult_2 RS sym, zdiv_zmult_zmult1,
+		  addsimps [zdiv_zmult_zmult1,
 			    pos_zdiv_times_2, lemma, neg_zdiv_times_2]) 1);
 qed "zdiv_number_of_BIT";
 
@@ -876,7 +876,7 @@ by (asm_simp_tac (simpset() addsimps [zmod_zmult_zmult2,
 				      mod_pos_pos_trivial]) 1);
 by (rtac mod_pos_pos_trivial 1);
 by (asm_simp_tac (simpset() 
-                  addsimps zadd_ac@ [zmult_2_right, mod_pos_pos_trivial,
+                  addsimps zadd_ac@ [mod_pos_pos_trivial,
                     pos_mod_sign RS zadd_zle_mono1 RSN (2,order_trans)]) 1);
 by (auto_tac (claset(),
 	      simpset() addsimps [mod_pos_pos_trivial]));
@@ -912,7 +912,7 @@ by (simp_tac (simpset_of Int.thy
 			 addsimps [zadd_assoc, number_of_BIT]) 1);
 by (asm_simp_tac (simpset()
 		  delsimps bin_arith_extra_simps@bin_rel_simps
-		  addsimps [zmult_2 RS sym, zmod_zmult_zmult1,
+		  addsimps [zmod_zmult_zmult1,
 			    pos_zmod_times_2, lemma, neg_zmod_times_2]) 1);
 qed "zmod_number_of_BIT";
 

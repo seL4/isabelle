@@ -256,15 +256,6 @@ Addsimps [zmult_0, zmult_0_right,
 	  zmult_1, zmult_1_right,
 	  zmult_minus1, zmult_minus1_right];
 
-(*For specialist use: NOT as default simprules*)
-Goal "#2 * z = (z+z::int)";
-by (simp_tac (simpset() addsimps [zadd_zmult_distrib]) 1);
-qed "zmult_2";
-
-Goal "z * #2 = (z+z::int)";
-by (simp_tac (simpset() addsimps [zadd_zmult_distrib2]) 1);
-qed "zmult_2_right";
-
 (*Negation of a coefficient*)
 Goal "- (number_of w) * z = number_of(bin_minus w) * (z::int)";
 by (simp_tac (simpset_of Int.thy addsimps [number_of_minus, zmult_zminus]) 1);
@@ -406,7 +397,12 @@ Delsimps [bin_succ_BIT, bin_pred_BIT, bin_minus_BIT,
 (*Hide the binary representation of integer constants*)
 Delsimps [number_of_Pls, number_of_Min, number_of_BIT];
 
-(*simplification of arithmetic operations on integer constants*)
+(*Simplification of arithmetic operations on integer constants.
+  Note that bin_pred_Pls, etc. were added to the simpset by primrec.*)
+
+val NCons_simps = [NCons_Pls_0, NCons_Pls_1, NCons_Min_0, NCons_Min_1, 
+		   NCons_BIT];
+
 val bin_arith_extra_simps =
     [number_of_add RS sym,
      number_of_minus RS sym,
@@ -417,9 +413,7 @@ val bin_arith_extra_simps =
      bin_add_Pls_right, bin_add_Min_right,
      bin_add_BIT_0, bin_add_BIT_10, bin_add_BIT_11,
      diff_number_of_eq, 
-     bin_mult_1, bin_mult_0, 
-     NCons_Pls_0, NCons_Pls_1, 
-     NCons_Min_0, NCons_Min_1, NCons_BIT];
+     bin_mult_1, bin_mult_0] @ NCons_simps;
 
 (*For making a minimal simpset, one must include these default simprules
   of thy.  Also include simp_thms, or at least (~False)=True*)

@@ -267,9 +267,7 @@ structure CombineNumerals = CombineNumeralsFun(CombineNumeralsData);
   
 val combine_numerals = 
     prep_simproc ("nat_combine_numerals",
-		  prep_pats ["(i::nat) + (j+k)", "(i::nat) + (j*k)", 
-			     "(j+k) + (i::nat)", "(j*k) + (i::nat)", 
-			     "Suc (i + j)"],
+		  prep_pats ["(i::nat) + j", "Suc (i + j)"],
 		  CombineNumerals.proc);
 
 end;
@@ -285,6 +283,7 @@ set trace_simp;
 fun test s = (Goal s; by (Simp_tac 1)); 
 
 (*cancel_numerals*)
+test "l +( #2) + (#2) + #2 + (l + #2) + (oo  + #2) = (uu::nat)";
 test "(#2*length xs < #2*length xs + j)";
 test "(#2*length xs < length xs * #2 + j)";
 test "#2*u = (u::nat)";

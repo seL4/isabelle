@@ -169,6 +169,12 @@ val mult_1s = [zmult_1, zmult_1_right, zmult_minus1, zmult_minus1_right];
 val bin_simps = [number_of_add RS sym, add_number_of_left] @ 
                 bin_arith_simps @ bin_rel_simps;
 
+(*To evaluate binary negations of coefficients*)
+val zminus_simps = NCons_simps @
+                   [number_of_minus RS sym, 
+		    bin_minus_1, bin_minus_0, bin_minus_Pls, bin_minus_Min,
+		    bin_pred_1, bin_pred_0, bin_pred_Pls, bin_pred_Min];
+
 (*To let us treat subtraction as addition*)
 val diff_simps = [zdiff_def, zminus_zadd_distrib, zminus_zminus];
 
@@ -204,7 +210,7 @@ structure CancelNumeralsCommon =
   val find_first_coeff	= find_first_coeff []
   val subst_tac         = subst_tac
   val norm_tac = ALLGOALS (simp_tac (HOL_ss addsimps add_0s@mult_1s@diff_simps@
-                                                     zadd_ac))
+                                                     zminus_simps@zadd_ac))
                  THEN ALLGOALS
                     (simp_tac (HOL_ss addsimps [zmult_zminus_right RS sym]@
                                                bin_simps@zadd_ac@zmult_ac))
@@ -239,16 +245,6 @@ structure LeCancelNumerals = CancelNumeralsFun
   val bal_add2 = le_add_iff2 RS trans
 );
 
-structure DiffCancelNumerals = CancelNumeralsFun
- (open CancelNumeralsCommon
-  val prove_conv = prove_conv "intdiff_cancel_numerals"
-  val mk_bal   = HOLogic.mk_binop "op -"
-  val dest_bal = HOLogic.dest_bin "op -" HOLogic.intT
-  val bal_add1 = diff_add_eq1 RS trans
-  val bal_add2 = diff_add_eq2 RS trans
-);
-
-
 val cancel_numerals = 
   map prep_simproc
    [("inteq_cancel_numerals",
@@ -265,12 +261,7 @@ val cancel_numerals =
      prep_pats ["(l::int) + m <= n", "(l::int) <= m + n", 
 		"(l::int) - m <= n", "(l::int) <= m - n", 
 		"(l::int) * m <= n", "(l::int) <= m * n"], 
-     LeCancelNumerals.proc),
-    ("intdiff_cancel_numerals", 
-     prep_pats ["((l::int) + m) - n", "(l::int) - (m + n)", 
-		"((l::int) - m) - n", "(l::int) - (m - n)", 
-		"(l::int) * m - n", "(l::int) - m * n"], 
-     DiffCancelNumerals.proc)];
+     LeCancelNumerals.proc)];
 
 
 structure CombineNumeralsData =
@@ -284,7 +275,7 @@ structure CombineNumeralsData =
   val subst_tac          = subst_tac
   val norm_tac = ALLGOALS
                    (simp_tac (HOL_ss addsimps add_0s@mult_1s@diff_simps@
-                                              zadd_ac))
+                                              zminus_simps@zadd_ac))
                  THEN ALLGOALS
                     (simp_tac (HOL_ss addsimps [zmult_zminus_right RS sym]@
                                                bin_simps@zadd_ac@zmult_ac))
@@ -296,8 +287,7 @@ structure CombineNumerals = CombineNumeralsFun(CombineNumeralsData);
   
 val combine_numerals = 
     prep_simproc ("int_combine_numerals",
-		  prep_pats ["(i::int) + (j+k)", "(i::int) + (j*k)", 
-			     "(j+k) + (i::int)", "(j*k) + (i::int)"],
+		  prep_pats ["(i::int) + j", "(i::int) - j"],
 		  CombineNumerals.proc);
 
 end;
