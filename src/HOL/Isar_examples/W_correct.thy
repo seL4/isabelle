@@ -82,9 +82,7 @@ ML_setup {* Addsplits [split_bind]; *};
 theorem W_correct: "W e a n = Ok (s, t, m) ==> $ s a |- e :: t";
 proof -;
   assume W_ok: "W e a n = Ok (s, t, m)";
-  let ?P = "%e. ALL a s t m n . Ok (s, t, m) = W e a n --> $ s a |- e :: t";
-    (* FIXME (is ...) fails!? *)
-  have "?P e";
+  have "ALL a s t m n . Ok (s, t, m) = W e a n --> $ s a |- e :: t" (is "?P e");
   proof (induct e);
     fix n; show "?P (Var n)"; by simp;
   next;
