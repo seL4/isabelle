@@ -19,9 +19,9 @@ val implode = String.concat;
 (* MLWorks parameters *)
 
 val _ =
- (MLWorks.Internal.Runtime.Event.stack_overflow_handler
-    (fn () => MLWorks.Internal.Runtime.Memory.max_stack_blocks :=
-      ! MLWorks.Internal.Runtime.Memory.max_stack_blocks + 20);
+ (MLWorks.Internal.Runtime.Event.stack_overflow_handler (fn () =>
+    let val max_stack = MLWorks.Internal.Runtime.Memory.max_stack_blocks
+    in max_stack := (! max_stack * 3) div 2 + 5 end);
   MLWorks.Internal.Runtime.Memory.gc_message_level := 10;
   (*Is this of any use at all?*)
   Shell.Options.set (Shell.Options.ValuePrinter.showExnDetails, true));
