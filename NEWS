@@ -89,13 +89,20 @@ New in this Isabelle release
   specification.  There is also an 'ax_specification' command that
   introduces the new constants axiomatically.
 
-
 * arith(_tac) is now able to generate counterexamples for reals as well.
 
 * SET-Protocol: formalization and verification of the SET protocol suite;
 
 * HOL-ex: InductiveInvariant_examples illustrates advanced recursive function
  defintions, thanks to Sava Krsti\'{c} and John Matthews.
+
+* Unions and Intersections:
+  The x-symbol output syntax of UN and INT has been changed
+  from "\<Union>x \<in> A. B" to "\<Union\<^bsub>x \<in> A\<^esub> B"
+  i.e. the index formulae has become a subscript, like in normal math.
+  Similarly for "\<Union>x. B", and for \<Inter> instead of \<Union>.
+  The subscript version is also accepted as input syntax.
+
 
 New in Isabelle2003 (May 2003)
 --------------------------------
