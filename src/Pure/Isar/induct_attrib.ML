@@ -202,12 +202,14 @@ val setN = "set";
 
 local
 
-fun spec k = (Args.$$$ k -- Args.colon) |-- Args.!!! Args.name;
+fun spec k cert =
+  (Args.$$$ k -- Args.colon) |-- Args.!!! (Args.name >> cert) ||
+  Args.$$$ k >> K "";
 
 fun attrib sign_of add_type add_set = Scan.depend (fn x =>
   let val sg = sign_of x in
-    spec typeN >> (add_type o Sign.certify_tyname sg o Sign.intern_tycon sg) ||
-    spec setN  >> (add_set o Sign.certify_const sg o Sign.intern_const sg)
+    spec typeN (Sign.certify_tyname sg o Sign.intern_tycon sg) >> add_type ||
+    spec setN (Sign.certify_const sg o Sign.intern_const sg) >> add_set
   end >> pair x);
 
 in
