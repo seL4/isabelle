@@ -670,7 +670,7 @@ by (subgoal_tac "st_set(C)&st_set(W)&st_set(W-C)&st_set(A')&st_set(A)\
 by (Asm_simp_tac 2);
 by (blast_tac (claset() addSDs [leadsToD2]) 2);
 by (subgoal_tac "F : (W-C) co (W Un B' Un C)" 1);
-by (blast_tac (claset() addIs [[asm_rl, wlt_constrains_wlt] 
+by (blast_tac (claset() addSIs [[asm_rl, wlt_constrains_wlt] 
                                MRS constrains_Un RS constrains_weaken]) 2);
 by (subgoal_tac "F : (W-C) co W" 1);
 by (asm_full_simp_tac (simpset() addsimps  [wlt_increasing RS 

@@ -6,7 +6,7 @@
 Common declarations for Chandy and Charpentier's Allocator
 *)
 
-AllocBase = Follows + MultisetSum + Guar + New +
+AllocBase = Follows + MultisetSum + Guar +
 
 consts
   tokbag   :: i  (* tokbags could be multisets...or any ordered type?*)

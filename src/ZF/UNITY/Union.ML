@@ -566,11 +566,12 @@ qed "safety_prop_Acts_iff";
 
 Goal "safety_prop(X) ==> \
 \ (UN G:X. Acts(G)) <= AllowedActs(F) <-> (X <= Allowed(programify(F)))";
-by (auto_tac (claset(), 
-      simpset() addsimps [Allowed_def, 
-              safety_prop_Acts_iff RS iff_sym]));  
+by (asm_full_simp_tac (simpset() addsimps [Allowed_def, 
+              safety_prop_Acts_iff RS iff_sym]) 1);
+by Safe_tac;
+by (REPEAT (Blast_tac 2)); 
 by (rewtac safety_prop_def);
-by Auto_tac;
+by (Blast_tac 1); 
 qed "safety_prop_AllowedActs_iff_Allowed";
 
 
@@ -614,7 +615,8 @@ qed "safety_prop_stableI";
 
 Goal "[| safety_prop(X) ; safety_prop(Y) |] ==> safety_prop(X Int Y)";
 by (asm_full_simp_tac (simpset() addsimps [safety_prop_def]) 1);
-by Auto_tac; 
+by Safe_tac;
+by (Blast_tac 1); 
 by (dres_inst_tac [("B", "Union(RepFun(X Int Y, Acts))"),
                    ("C", "Union(RepFun(Y, Acts))")] subset_trans 2);
 by (dres_inst_tac [("B", "Union(RepFun(X Int Y, Acts))"),

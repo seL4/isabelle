@@ -290,6 +290,8 @@ apply (auto simp add: Ord_mem_iff_lt)
 apply (blast intro: lt_trans) 
 done
 
+lemma Le_iff [iff]: "<x,y> : Le <-> x le y & x : nat & y : nat"
+by (force simp add: Le_def)
 
 ML
 {*
