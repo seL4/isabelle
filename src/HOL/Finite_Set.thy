@@ -1973,7 +1973,7 @@ proof (induct rule:finite_ne_induct)
   case singleton thus ?case by simp
 next
   case (insert x F)
-  from insert(4) have "a = x \<or> a \<in> F" by simp
+  from insert(5) have "a = x \<or> a \<in> F" by simp
   thus ?case
   proof
     assume "a = x" thus ?thesis using insert by(simp add:below_def ACI)
@@ -2083,7 +2083,7 @@ proof (induct rule: finite_ne_induct)
 next
   case (insert y A)
   have fin: "finite {x \<squnion> a |a. a \<in> A}"
-    by(fast intro: finite_surj[where f = "%a. x \<squnion> a", OF insert(0)])
+    by(fast intro: finite_surj[where f = "%a. x \<squnion> a", OF insert(1)])
   have "x \<squnion> \<Sqinter> (insert y A) = x \<squnion> (y \<sqinter> \<Sqinter> A)"
     using insert by(simp add:ACf.fold1_insert_def[OF ACf_inf Inf_def])
   also have "\<dots> = (x \<squnion> y) \<sqinter> (x \<squnion> \<Sqinter> A)" by(rule sup_inf_distrib1)
@@ -2105,12 +2105,12 @@ proof (induct rule: finite_ne_induct)
 next
   case (insert x A)
   have finB: "finite {x \<squnion> b |b. b \<in> B}"
-    by(fast intro: finite_surj[where f = "%b. x \<squnion> b", OF B(0)])
+    by(fast intro: finite_surj[where f = "%b. x \<squnion> b", OF B(1)])
   have finAB: "finite {a \<squnion> b |a b. a \<in> A \<and> b \<in> B}"
   proof -
     have "{a \<squnion> b |a b. a \<in> A \<and> b \<in> B} = (UN a:A. UN b:B. {a \<squnion> b})"
       by blast
-    thus ?thesis by(simp add: insert(0) B(0))
+    thus ?thesis by(simp add: insert(1) B(1))
   qed
   have ne: "{a \<squnion> b |a b. a \<in> A \<and> b \<in> B} \<noteq> {}" using insert B by blast
   have "\<Sqinter>(insert x A) \<squnion> \<Sqinter>B = (x \<sqinter> \<Sqinter>A) \<squnion> \<Sqinter>B"
