@@ -337,8 +337,6 @@ by blast
 
 subsection{*Internalized Formulas for some Set-Theoretic Concepts*}
 
-lemmas setclass_simps = rall_setclass_is_ball rex_setclass_is_bex
-
 subsubsection{*Some numbers to help write de Bruijn indices*}
 
 syntax
@@ -383,7 +381,7 @@ by simp
 theorem empty_reflection:
      "REFLECTS[\<lambda>x. empty(L,f(x)),
                \<lambda>i x. empty(**Lset(i),f(x))]"
-apply (simp only: empty_def setclass_simps)
+apply (simp only: empty_def)
 apply (intro FOL_reflections)
 done
 
@@ -467,7 +465,7 @@ by (simp add: sats_pair_fm)
 theorem pair_reflection:
      "REFLECTS[\<lambda>x. pair(L,f(x),g(x),h(x)),
                \<lambda>i x. pair(**Lset(i),f(x),g(x),h(x))]"
-apply (simp only: pair_def setclass_simps)
+apply (simp only: pair_def)
 apply (intro FOL_reflections upair_reflection)
 done
 
@@ -498,7 +496,7 @@ by (simp add: sats_union_fm)
 theorem union_reflection:
      "REFLECTS[\<lambda>x. union(L,f(x),g(x),h(x)),
                \<lambda>i x. union(**Lset(i),f(x),g(x),h(x))]"
-apply (simp only: union_def setclass_simps)
+apply (simp only: union_def)
 apply (intro FOL_reflections)
 done
 
@@ -530,7 +528,7 @@ by simp
 theorem cons_reflection:
      "REFLECTS[\<lambda>x. is_cons(L,f(x),g(x),h(x)),
                \<lambda>i x. is_cons(**Lset(i),f(x),g(x),h(x))]"
-apply (simp only: is_cons_def setclass_simps)
+apply (simp only: is_cons_def)
 apply (intro FOL_reflections upair_reflection union_reflection)
 done
 
@@ -559,7 +557,7 @@ by simp
 theorem successor_reflection:
      "REFLECTS[\<lambda>x. successor(L,f(x),g(x)),
                \<lambda>i x. successor(**Lset(i),f(x),g(x))]"
-apply (simp only: successor_def setclass_simps)
+apply (simp only: successor_def)
 apply (intro cons_reflection)
 done
 
@@ -588,7 +586,7 @@ by simp
 theorem number1_reflection:
      "REFLECTS[\<lambda>x. number1(L,f(x)),
                \<lambda>i x. number1(**Lset(i),f(x))]"
-apply (simp only: number1_def setclass_simps)
+apply (simp only: number1_def)
 apply (intro FOL_reflections empty_reflection successor_reflection)
 done
 
@@ -620,7 +618,7 @@ by simp
 theorem big_union_reflection:
      "REFLECTS[\<lambda>x. big_union(L,f(x),g(x)),
                \<lambda>i x. big_union(**Lset(i),f(x),g(x))]"
-apply (simp only: big_union_def setclass_simps)
+apply (simp only: big_union_def)
 apply (intro FOL_reflections)
 done
 
@@ -641,7 +639,7 @@ by (simp add: subset_fm_def Relative.subset_def)
 theorem subset_reflection:
      "REFLECTS[\<lambda>x. subset(L,f(x),g(x)),
                \<lambda>i x. subset(**Lset(i),f(x),g(x))]"
-apply (simp only: Relative.subset_def setclass_simps)
+apply (simp only: Relative.subset_def)
 apply (intro FOL_reflections)
 done
 
@@ -653,7 +651,7 @@ by (simp add: sats_subset_fm' transset_fm_def transitive_set_def)
 theorem transitive_set_reflection:
      "REFLECTS[\<lambda>x. transitive_set(L,f(x)),
                \<lambda>i x. transitive_set(**Lset(i),f(x))]"
-apply (simp only: transitive_set_def setclass_simps)
+apply (simp only: transitive_set_def)
 apply (intro FOL_reflections subset_reflection)
 done
 
@@ -669,7 +667,7 @@ by (simp add: sats_ordinal_fm')
 
 theorem ordinal_reflection:
      "REFLECTS[\<lambda>x. ordinal(L,f(x)), \<lambda>i x. ordinal(**Lset(i),f(x))]"
-apply (simp only: ordinal_def setclass_simps)
+apply (simp only: ordinal_def)
 apply (intro FOL_reflections transitive_set_reflection)
 done
 
@@ -703,7 +701,7 @@ by simp
 theorem membership_reflection:
      "REFLECTS[\<lambda>x. membership(L,f(x),g(x)),
                \<lambda>i x. membership(**Lset(i),f(x),g(x))]"
-apply (simp only: membership_def setclass_simps)
+apply (simp only: membership_def)
 apply (intro FOL_reflections pair_reflection)
 done
 
@@ -737,7 +735,7 @@ by (simp add: sats_pred_set_fm)
 theorem pred_set_reflection:
      "REFLECTS[\<lambda>x. pred_set(L,f(x),g(x),h(x),b(x)),
                \<lambda>i x. pred_set(**Lset(i),f(x),g(x),h(x),b(x))]"
-apply (simp only: pred_set_def setclass_simps)
+apply (simp only: pred_set_def)
 apply (intro FOL_reflections pair_reflection)
 done
 
@@ -772,7 +770,7 @@ by simp
 theorem domain_reflection:
      "REFLECTS[\<lambda>x. is_domain(L,f(x),g(x)),
                \<lambda>i x. is_domain(**Lset(i),f(x),g(x))]"
-apply (simp only: is_domain_def setclass_simps)
+apply (simp only: is_domain_def)
 apply (intro FOL_reflections pair_reflection)
 done
 
@@ -806,7 +804,7 @@ by simp
 theorem range_reflection:
      "REFLECTS[\<lambda>x. is_range(L,f(x),g(x)),
                \<lambda>i x. is_range(**Lset(i),f(x),g(x))]"
-apply (simp only: is_range_def setclass_simps)
+apply (simp only: is_range_def)
 apply (intro FOL_reflections pair_reflection)
 done
 
@@ -841,7 +839,7 @@ by simp
 theorem field_reflection:
      "REFLECTS[\<lambda>x. is_field(L,f(x),g(x)),
                \<lambda>i x. is_field(**Lset(i),f(x),g(x))]"
-apply (simp only: is_field_def setclass_simps)
+apply (simp only: is_field_def)
 apply (intro FOL_reflections domain_reflection range_reflection
              union_reflection)
 done
@@ -877,7 +875,7 @@ by (simp add: sats_image_fm)
 theorem image_reflection:
      "REFLECTS[\<lambda>x. image(L,f(x),g(x),h(x)),
                \<lambda>i x. image(**Lset(i),f(x),g(x),h(x))]"
-apply (simp only: Relative.image_def setclass_simps)
+apply (simp only: Relative.image_def)
 apply (intro FOL_reflections pair_reflection)
 done
 
@@ -912,7 +910,7 @@ by (simp add: sats_pre_image_fm)
 theorem pre_image_reflection:
      "REFLECTS[\<lambda>x. pre_image(L,f(x),g(x),h(x)),
                \<lambda>i x. pre_image(**Lset(i),f(x),g(x),h(x))]"
-apply (simp only: Relative.pre_image_def setclass_simps)
+apply (simp only: Relative.pre_image_def)
 apply (intro FOL_reflections pair_reflection)
 done
 
@@ -947,7 +945,7 @@ by simp
 theorem fun_apply_reflection:
      "REFLECTS[\<lambda>x. fun_apply(L,f(x),g(x),h(x)),
                \<lambda>i x. fun_apply(**Lset(i),f(x),g(x),h(x))]"
-apply (simp only: fun_apply_def setclass_simps)
+apply (simp only: fun_apply_def)
 apply (intro FOL_reflections upair_reflection image_reflection
              big_union_reflection)
 done
@@ -979,7 +977,7 @@ by simp
 theorem is_relation_reflection:
      "REFLECTS[\<lambda>x. is_relation(L,f(x)),
                \<lambda>i x. is_relation(**Lset(i),f(x))]"
-apply (simp only: is_relation_def setclass_simps)
+apply (simp only: is_relation_def)
 apply (intro FOL_reflections pair_reflection)
 done
 
@@ -1015,7 +1013,7 @@ by simp
 theorem is_function_reflection:
      "REFLECTS[\<lambda>x. is_function(L,f(x)),
                \<lambda>i x. is_function(**Lset(i),f(x))]"
-apply (simp only: is_function_def setclass_simps)
+apply (simp only: is_function_def)
 apply (intro FOL_reflections pair_reflection)
 done
 
@@ -1073,7 +1071,7 @@ lemmas function_iff_sats =
 theorem typed_function_reflection:
      "REFLECTS[\<lambda>x. typed_function(L,f(x),g(x),h(x)),
                \<lambda>i x. typed_function(**Lset(i),f(x),g(x),h(x))]"
-apply (simp only: typed_function_def setclass_simps)
+apply (simp only: typed_function_def)
 apply (intro FOL_reflections function_reflections)
 done
 
@@ -1113,7 +1111,7 @@ by simp
 theorem composition_reflection:
      "REFLECTS[\<lambda>x. composition(L,f(x),g(x),h(x)),
                \<lambda>i x. composition(**Lset(i),f(x),g(x),h(x))]"
-apply (simp only: composition_def setclass_simps)
+apply (simp only: composition_def)
 apply (intro FOL_reflections pair_reflection)
 done
 
@@ -1153,7 +1151,7 @@ by simp
 theorem injection_reflection:
      "REFLECTS[\<lambda>x. injection(L,f(x),g(x),h(x)),
                \<lambda>i x. injection(**Lset(i),f(x),g(x),h(x))]"
-apply (simp only: injection_def setclass_simps)
+apply (simp only: injection_def)
 apply (intro FOL_reflections function_reflections typed_function_reflection)
 done
 
@@ -1190,7 +1188,7 @@ by simp
 theorem surjection_reflection:
      "REFLECTS[\<lambda>x. surjection(L,f(x),g(x),h(x)),
                \<lambda>i x. surjection(**Lset(i),f(x),g(x),h(x))]"
-apply (simp only: surjection_def setclass_simps)
+apply (simp only: surjection_def)
 apply (intro FOL_reflections function_reflections typed_function_reflection)
 done
 
@@ -1222,7 +1220,7 @@ by simp
 theorem bijection_reflection:
      "REFLECTS[\<lambda>x. bijection(L,f(x),g(x),h(x)),
                \<lambda>i x. bijection(**Lset(i),f(x),g(x),h(x))]"
-apply (simp only: bijection_def setclass_simps)
+apply (simp only: bijection_def)
 apply (intro And_reflection injection_reflection surjection_reflection)
 done
 
@@ -1258,7 +1256,7 @@ by simp
 theorem restriction_reflection:
      "REFLECTS[\<lambda>x. restriction(L,f(x),g(x),h(x)),
                \<lambda>i x. restriction(**Lset(i),f(x),g(x),h(x))]"
-apply (simp only: restriction_def setclass_simps)
+apply (simp only: restriction_def)
 apply (intro FOL_reflections pair_reflection)
 done
 
@@ -1308,7 +1306,7 @@ by simp
 theorem order_isomorphism_reflection:
      "REFLECTS[\<lambda>x. order_isomorphism(L,f(x),g(x),h(x),g'(x),h'(x)),
                \<lambda>i x. order_isomorphism(**Lset(i),f(x),g(x),h(x),g'(x),h'(x))]"
-apply (simp only: order_isomorphism_def setclass_simps)
+apply (simp only: order_isomorphism_def)
 apply (intro FOL_reflections function_reflections bijection_reflection)
 done
 
@@ -1346,7 +1344,7 @@ by simp
 theorem limit_ordinal_reflection:
      "REFLECTS[\<lambda>x. limit_ordinal(L,f(x)),
                \<lambda>i x. limit_ordinal(**Lset(i),f(x))]"
-apply (simp only: limit_ordinal_def setclass_simps)
+apply (simp only: limit_ordinal_def)
 apply (intro FOL_reflections ordinal_reflection
              empty_reflection successor_reflection)
 done
@@ -1381,7 +1379,7 @@ by simp
 theorem finite_ordinal_reflection:
      "REFLECTS[\<lambda>x. finite_ordinal(L,f(x)),
                \<lambda>i x. finite_ordinal(**Lset(i),f(x))]"
-apply (simp only: finite_ordinal_def setclass_simps)
+apply (simp only: finite_ordinal_def)
 apply (intro FOL_reflections ordinal_reflection limit_ordinal_reflection)
 done
 
@@ -1413,7 +1411,7 @@ by simp
 theorem omega_reflection:
      "REFLECTS[\<lambda>x. omega(L,f(x)),
                \<lambda>i x. omega(**Lset(i),f(x))]"
-apply (simp only: omega_def setclass_simps)
+apply (simp only: omega_def)
 apply (intro FOL_reflections limit_ordinal_reflection)
 done
 

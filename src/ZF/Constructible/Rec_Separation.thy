@@ -68,7 +68,7 @@ by (simp add: sats_rtran_closure_mem_fm)
 lemma rtran_closure_mem_reflection:
      "REFLECTS[\<lambda>x. rtran_closure_mem(L,f(x),g(x),h(x)),
                \<lambda>i x. rtran_closure_mem(**Lset(i),f(x),g(x),h(x))]"
-apply (simp only: rtran_closure_mem_def setclass_simps)
+apply (simp only: rtran_closure_mem_def)
 apply (intro FOL_reflections function_reflections fun_plus_reflections)
 done
 
@@ -113,7 +113,7 @@ by simp
 theorem rtran_closure_reflection:
      "REFLECTS[\<lambda>x. rtran_closure(L,f(x),g(x)),
                \<lambda>i x. rtran_closure(**Lset(i),f(x),g(x))]"
-apply (simp only: rtran_closure_def setclass_simps)
+apply (simp only: rtran_closure_def)
 apply (intro FOL_reflections function_reflections rtran_closure_mem_reflection)
 done
 
@@ -145,7 +145,7 @@ by simp
 theorem tran_closure_reflection:
      "REFLECTS[\<lambda>x. tran_closure(L,f(x),g(x)),
                \<lambda>i x. tran_closure(**Lset(i),f(x),g(x))]"
-apply (simp only: tran_closure_def setclass_simps)
+apply (simp only: tran_closure_def)
 apply (intro FOL_reflections function_reflections
              rtran_closure_reflection composition_reflection)
 done
@@ -229,26 +229,16 @@ done
 
 lemma list_replacement2_Reflects:
  "REFLECTS
-   [\<lambda>x. \<exists>u[L]. u \<in> B \<and> u \<in> nat \<and>
-         (\<exists>sn[L]. \<exists>msn[L]. successor(L, u, sn) \<and> membership(L, sn, msn) \<and>
-           is_wfrec (L, iterates_MH (L, is_list_functor(L, A), 0),
-                              msn, u, x)),
-    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B \<and> u \<in> nat \<and>
-         (\<exists>sn \<in> Lset(i). \<exists>msn \<in> Lset(i).
-          successor(**Lset(i), u, sn) \<and> membership(**Lset(i), sn, msn) \<and>
-           is_wfrec (**Lset(i),
-                 iterates_MH (**Lset(i), is_list_functor(**Lset(i), A), 0),
-                     msn, u, x))]"
-by (intro FOL_reflections function_reflections is_wfrec_reflection
-          iterates_MH_reflection list_functor_reflection)
-
+   [\<lambda>x. \<exists>u[L]. u \<in> B & u \<in> nat &
+                is_iterates(L, is_list_functor(L, A), 0, u, x),
+    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B & u \<in> nat &
+               is_iterates(**Lset(i), is_list_functor(**Lset(i), A), 0, u, x)]"
+by (intro FOL_reflections 
+          is_iterates_reflection list_functor_reflection)
 
 lemma list_replacement2:
    "L(A) ==> strong_replacement(L,
-         \<lambda>n y. n\<in>nat &
-               (\<exists>sn[L]. \<exists>msn[L]. successor(L,n,sn) & membership(L,sn,msn) &
-               is_wfrec(L, iterates_MH(L,is_list_functor(L,A), 0),
-                        msn, n, y)))"
+         \<lambda>n y. n\<in>nat & is_iterates(L, is_list_functor(L,A), 0, n, y))"
 apply (rule strong_replacementI)
 apply (rename_tac B)
 apply (rule_tac u="{A,B,0,nat}" 
@@ -258,8 +248,7 @@ apply (drule mem_Lset_imp_subset_Lset, clarsimp)
 apply (rule DPow_LsetI)
 apply (rule bex_iff_sats conj_iff_sats)+
 apply (rule_tac env = "[u,x,A,B,0,nat]" in mem_iff_sats)
-apply (rule sep_rules is_nat_case_iff_sats list_functor_iff_sats
-            is_wfrec_iff_sats iterates_MH_iff_sats quasinat_iff_sats | simp)+
+apply (rule sep_rules list_functor_iff_sats is_iterates_iff_sats | simp)+
 done
 
 
@@ -267,11 +256,13 @@ subsection{*@{term L} is Closed Under the Operator @{term formula}*}
 
 subsubsection{*Instances of Replacement for Formulas*}
 
+(*FIXME: could prove a lemma iterates_replacementI to eliminate the 
+need to expand iterates_replacement and wfrec_replacement*)
 lemma formula_replacement1_Reflects:
  "REFLECTS
-   [\<lambda>x. \<exists>u[L]. u \<in> B \<and> (\<exists>y[L]. pair(L,u,y,x) \<and>
+   [\<lambda>x. \<exists>u[L]. u \<in> B & (\<exists>y[L]. pair(L,u,y,x) &
          is_wfrec(L, iterates_MH(L, is_formula_functor(L), 0), memsn, u, y)),
-    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B \<and> (\<exists>y \<in> Lset(i). pair(**Lset(i), u, y, x) \<and>
+    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B & (\<exists>y \<in> Lset(i). pair(**Lset(i), u, y, x) &
          is_wfrec(**Lset(i),
                   iterates_MH(**Lset(i),
                           is_formula_functor(**Lset(i)), 0), memsn, u, y))]"
@@ -296,26 +287,16 @@ done
 
 lemma formula_replacement2_Reflects:
  "REFLECTS
-   [\<lambda>x. \<exists>u[L]. u \<in> B \<and> u \<in> nat \<and>
-         (\<exists>sn[L]. \<exists>msn[L]. successor(L, u, sn) \<and> membership(L, sn, msn) \<and>
-           is_wfrec (L, iterates_MH (L, is_formula_functor(L), 0),
-                              msn, u, x)),
-    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B \<and> u \<in> nat \<and>
-         (\<exists>sn \<in> Lset(i). \<exists>msn \<in> Lset(i).
-          successor(**Lset(i), u, sn) \<and> membership(**Lset(i), sn, msn) \<and>
-           is_wfrec (**Lset(i),
-                 iterates_MH (**Lset(i), is_formula_functor(**Lset(i)), 0),
-                     msn, u, x))]"
-by (intro FOL_reflections function_reflections is_wfrec_reflection
-          iterates_MH_reflection formula_functor_reflection)
-
+   [\<lambda>x. \<exists>u[L]. u \<in> B & u \<in> nat &
+                is_iterates(L, is_formula_functor(L), 0, u, x),
+    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B & u \<in> nat &
+               is_iterates(**Lset(i), is_formula_functor(**Lset(i)), 0, u, x)]"
+by (intro FOL_reflections 
+          is_iterates_reflection formula_functor_reflection)
 
 lemma formula_replacement2:
    "strong_replacement(L,
-         \<lambda>n y. n\<in>nat &
-               (\<exists>sn[L]. \<exists>msn[L]. successor(L,n,sn) & membership(L,sn,msn) &
-               is_wfrec(L, iterates_MH(L,is_formula_functor(L), 0),
-                        msn, n, y)))"
+         \<lambda>n y. n\<in>nat & is_iterates(L, is_formula_functor(L), 0, n, y))"
 apply (rule strong_replacementI)
 apply (rename_tac B)
 apply (rule_tac u="{B,0,nat}" 
@@ -325,8 +306,7 @@ apply (drule mem_Lset_imp_subset_Lset, clarsimp)
 apply (rule DPow_LsetI)
 apply (rule bex_iff_sats conj_iff_sats)+
 apply (rule_tac env = "[u,x,B,0,nat]" in mem_iff_sats)
-apply (rule sep_rules is_nat_case_iff_sats formula_functor_iff_sats
-            is_wfrec_iff_sats iterates_MH_iff_sats quasinat_iff_sats | simp)+
+apply (rule sep_rules formula_functor_iff_sats is_iterates_iff_sats | simp)+
 done
 
 text{*NB The proofs for type @{term formula} are virtually identical to those
@@ -335,18 +315,12 @@ for @{term "list(A)"}.  It was a cut-and-paste job! *}
 
 subsubsection{*The Formula @{term is_nth}, Internalized*}
 
-(* "is_nth(M,n,l,Z) == 
-      \<exists>X[M]. \<exists>sn[M]. \<exists>msn[M]. 
-       2       1       0
-       successor(M,n,sn) & membership(M,sn,msn) &
-       is_wfrec(M, iterates_MH(M, is_tl(M), l), msn, n, X) &
-       is_hd(M,X,Z)" *)
+(* "is_nth(M,n,l,Z) ==
+      \<exists>X[M]. is_iterates(M, is_tl(M), l, n, X) & is_hd(M,X,Z)" *)
 constdefs nth_fm :: "[i,i,i]=>i"
     "nth_fm(n,l,Z) == 
-       Exists(Exists(Exists(
-         And(succ_fm(n#+3,1),
-          And(Memrel_fm(1,0),
-           And(is_wfrec_fm(iterates_MH_fm(tl_fm(1,0),l#+8,2,1,0), 0, n#+3, 2), hd_fm(2,Z#+3)))))))"
+       Exists(And(is_iterates_fm(tl_fm(1,0), succ(l), succ(n), 0), 
+              hd_fm(0,succ(Z))))"
 
 lemma nth_fm_type [TC]:
  "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> nth_fm(x,y,z) \<in> formula"
@@ -357,7 +331,7 @@ lemma sats_nth_fm [simp]:
     ==> sats(A, nth_fm(x,y,z), env) <->
         is_nth(**A, nth(x,env), nth(y,env), nth(z,env))"
 apply (frule lt_length_in_nat, assumption)  
-apply (simp add: nth_fm_def is_nth_def sats_is_wfrec_fm sats_iterates_MH_fm) 
+apply (simp add: nth_fm_def is_nth_def sats_is_iterates_fm) 
 done
 
 lemma nth_iff_sats:
@@ -369,27 +343,29 @@ by (simp add: sats_nth_fm)
 theorem nth_reflection:
      "REFLECTS[\<lambda>x. is_nth(L, f(x), g(x), h(x)),  
                \<lambda>i x. is_nth(**Lset(i), f(x), g(x), h(x))]"
-apply (simp only: is_nth_def setclass_simps)
-apply (intro FOL_reflections function_reflections is_wfrec_reflection 
-             iterates_MH_reflection hd_reflection tl_reflection) 
+apply (simp only: is_nth_def)
+apply (intro FOL_reflections is_iterates_reflection
+             hd_reflection tl_reflection) 
 done
 
 
 subsubsection{*An Instance of Replacement for @{term nth}*}
 
+(*FIXME: could prove a lemma iterates_replacementI to eliminate the 
+need to expand iterates_replacement and wfrec_replacement*)
 lemma nth_replacement_Reflects:
  "REFLECTS
-   [\<lambda>x. \<exists>u[L]. u \<in> B \<and> (\<exists>y[L]. pair(L,u,y,x) \<and>
+   [\<lambda>x. \<exists>u[L]. u \<in> B & (\<exists>y[L]. pair(L,u,y,x) &
          is_wfrec(L, iterates_MH(L, is_tl(L), z), memsn, u, y)),
-    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B \<and> (\<exists>y \<in> Lset(i). pair(**Lset(i), u, y, x) \<and>
+    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B & (\<exists>y \<in> Lset(i). pair(**Lset(i), u, y, x) &
          is_wfrec(**Lset(i),
                   iterates_MH(**Lset(i),
                           is_tl(**Lset(i)), z), memsn, u, y))]"
 by (intro FOL_reflections function_reflections is_wfrec_reflection
-          iterates_MH_reflection list_functor_reflection tl_reflection)
+          iterates_MH_reflection tl_reflection)
 
 lemma nth_replacement:
-   "L(w) ==> iterates_replacement(L, %l t. is_tl(L,l,t), w)"
+   "L(w) ==> iterates_replacement(L, is_tl(L), w)"
 apply (unfold iterates_replacement_def wfrec_replacement_def, clarify)
 apply (rule strong_replacementI)
 apply (rule_tac u="{A,n,w,Memrel(succ(n))}" 
@@ -439,9 +415,9 @@ subsubsection{*Instances of Replacement for @{term eclose}*}
 
 lemma eclose_replacement1_Reflects:
  "REFLECTS
-   [\<lambda>x. \<exists>u[L]. u \<in> B \<and> (\<exists>y[L]. pair(L,u,y,x) \<and>
+   [\<lambda>x. \<exists>u[L]. u \<in> B & (\<exists>y[L]. pair(L,u,y,x) &
          is_wfrec(L, iterates_MH(L, big_union(L), A), memsn, u, y)),
-    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B \<and> (\<exists>y \<in> Lset(i). pair(**Lset(i), u, y, x) \<and>
+    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B & (\<exists>y \<in> Lset(i). pair(**Lset(i), u, y, x) &
          is_wfrec(**Lset(i),
                   iterates_MH(**Lset(i), big_union(**Lset(i)), A),
                   memsn, u, y))]"
@@ -466,26 +442,15 @@ done
 
 lemma eclose_replacement2_Reflects:
  "REFLECTS
-   [\<lambda>x. \<exists>u[L]. u \<in> B \<and> u \<in> nat \<and>
-         (\<exists>sn[L]. \<exists>msn[L]. successor(L, u, sn) \<and> membership(L, sn, msn) \<and>
-           is_wfrec (L, iterates_MH (L, big_union(L), A),
-                              msn, u, x)),
-    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B \<and> u \<in> nat \<and>
-         (\<exists>sn \<in> Lset(i). \<exists>msn \<in> Lset(i).
-          successor(**Lset(i), u, sn) \<and> membership(**Lset(i), sn, msn) \<and>
-           is_wfrec (**Lset(i),
-                 iterates_MH (**Lset(i), big_union(**Lset(i)), A),
-                     msn, u, x))]"
-by (intro FOL_reflections function_reflections is_wfrec_reflection
-          iterates_MH_reflection)
-
+   [\<lambda>x. \<exists>u[L]. u \<in> B & u \<in> nat &
+                is_iterates(L, big_union(L), A, u, x),
+    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B & u \<in> nat &
+               is_iterates(**Lset(i), big_union(**Lset(i)), A, u, x)]"
+by (intro FOL_reflections function_reflections is_iterates_reflection)
 
 lemma eclose_replacement2:
    "L(A) ==> strong_replacement(L,
-         \<lambda>n y. n\<in>nat &
-               (\<exists>sn[L]. \<exists>msn[L]. successor(L,n,sn) & membership(L,sn,msn) &
-               is_wfrec(L, iterates_MH(L,big_union(L), A),
-                        msn, n, y)))"
+         \<lambda>n y. n\<in>nat & is_iterates(L, big_union(L), A, n, y))"
 apply (rule strong_replacementI)
 apply (rename_tac B)
 apply (rule_tac u="{A,B,nat}" 
@@ -494,8 +459,7 @@ apply (drule mem_Lset_imp_subset_Lset, clarsimp)
 apply (rule DPow_LsetI)
 apply (rule bex_iff_sats conj_iff_sats)+
 apply (rule_tac env = "[u,x,A,B,nat]" in mem_iff_sats)
-apply (rule sep_rules is_nat_case_iff_sats iterates_MH_iff_sats
-              is_wfrec_iff_sats big_union_iff_sats quasinat_iff_sats | simp)+
+apply (rule sep_rules is_iterates_iff_sats big_union_iff_sats | simp)+
 done
 
 

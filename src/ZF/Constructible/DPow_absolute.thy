@@ -71,7 +71,7 @@ theorem formula_rec_reflection:
                      \<lambda>i x. MH(**Lset(i), f'(x), f(x), g(x), h(x))]"
   shows "REFLECTS[\<lambda>x. is_formula_rec(L, MH(L,x), f(x), h(x)), 
                \<lambda>i x. is_formula_rec(**Lset(i), MH(**Lset(i),x), f(x), h(x))]"
-apply (simp (no_asm_use) only: is_formula_rec_def setclass_simps)
+apply (simp (no_asm_use) only: is_formula_rec_def)
 apply (intro FOL_reflections function_reflections fun_plus_reflections
              depth_reflection is_transrec_reflection MH_reflection)
 done
@@ -103,7 +103,7 @@ by (simp add: sats_satisfies_fm)
 theorem satisfies_reflection:
      "REFLECTS[\<lambda>x. is_satisfies(L,f(x),g(x),h(x)),
                \<lambda>i x. is_satisfies(**Lset(i),f(x),g(x),h(x))]"
-apply (simp only: is_satisfies_def setclass_simps)
+apply (simp only: is_satisfies_def)
 apply (intro formula_rec_reflection satisfies_MH_reflection)
 done
 
@@ -351,7 +351,7 @@ theorem Collect_reflection:
                      \<lambda>i x. is_P(**Lset(i), f(x), g(x))]"
   shows "REFLECTS[\<lambda>x. is_Collect(L, f(x), is_P(L,x), g(x)),
                \<lambda>i x. is_Collect(**Lset(i), f(x), is_P(**Lset(i), x), g(x))]"
-apply (simp (no_asm_use) only: is_Collect_def setclass_simps)
+apply (simp (no_asm_use) only: is_Collect_def)
 apply (intro FOL_reflections is_P_reflection)
 done
 
@@ -403,7 +403,7 @@ theorem Replace_reflection:
                      \<lambda>i x. is_P(**Lset(i), f(x), g(x), h(x))]"
   shows "REFLECTS[\<lambda>x. is_Replace(L, f(x), is_P(L,x), g(x)),
                \<lambda>i x. is_Replace(**Lset(i), f(x), is_P(**Lset(i), x), g(x))]"
-apply (simp (no_asm_use) only: is_Replace_def setclass_simps)
+apply (simp (no_asm_use) only: is_Replace_def)
 apply (intro FOL_reflections is_P_reflection)
 done
 
@@ -447,7 +447,7 @@ by (simp add: sats_DPow'_fm)
 theorem DPow'_reflection:
      "REFLECTS[\<lambda>x. is_DPow'(L,f(x),g(x)),
                \<lambda>i x. is_DPow'(**Lset(i),f(x),g(x))]"
-apply (simp only: is_DPow'_def setclass_simps)
+apply (simp only: is_DPow'_def)
 apply (intro FOL_reflections function_reflections mem_formula_reflection
              mem_list_reflection Collect_reflection DPow_body_reflection)
 done
@@ -574,7 +574,7 @@ lemma transrec_rep_Reflects:
                      \<exists>gy \<in> Lset(i). y \<in> x & fun_apply(**Lset(i),f,y,gy) & 
                       is_DPow'(**Lset(i),gy,z), r) & 
                       big_union(**Lset(i),r,u), mr, v, y))]" 
-apply (simp only: setclass_simps [symmetric])
+apply (simp only: rex_setclass_is_bex [symmetric])
   --{*Convert @{text "\<exists>y\<in>Lset(i)"} to @{text "\<exists>y[**Lset(i)]"} within the body
        of the @{term is_wfrec} application. *}
 apply (intro FOL_reflections function_reflections 

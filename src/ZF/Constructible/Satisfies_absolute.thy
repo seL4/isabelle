@@ -45,7 +45,7 @@ by (simp add: sats_depth_fm)
 theorem depth_reflection:
      "REFLECTS[\<lambda>x. is_depth(L, f(x), g(x)),  
                \<lambda>i x. is_depth(**Lset(i), f(x), g(x))]"
-apply (simp only: is_depth_def setclass_simps)
+apply (simp only: is_depth_def)
 apply (intro FOL_reflections function_reflections formula_N_reflection) 
 done
 
@@ -161,7 +161,7 @@ theorem is_formula_case_reflection:
                      \<lambda>i x. is_d(**Lset(i), h(x), f(x), g(x))]"
   shows "REFLECTS[\<lambda>x. is_formula_case(L, is_a(L,x), is_b(L,x), is_c(L,x), is_d(L,x), g(x), h(x)),
                \<lambda>i x. is_formula_case(**Lset(i), is_a(**Lset(i), x), is_b(**Lset(i), x), is_c(**Lset(i), x), is_d(**Lset(i), x), g(x), h(x))]"
-apply (simp (no_asm_use) only: is_formula_case_def setclass_simps)
+apply (simp (no_asm_use) only: is_formula_case_def)
 apply (intro FOL_reflections function_reflections finite_ordinal_reflection
          mem_formula_reflection
          Member_reflection Equal_reflection Nand_reflection Forall_reflection
@@ -530,7 +530,7 @@ by simp
 lemma depth_apply_reflection:
      "REFLECTS[\<lambda>x. is_depth_apply(L,f(x),g(x),h(x)),
                \<lambda>i x. is_depth_apply(**Lset(i),f(x),g(x),h(x))]"
-apply (simp only: is_depth_apply_def setclass_simps)
+apply (simp only: is_depth_apply_def)
 apply (intro FOL_reflections function_reflections depth_reflection 
              finite_ordinal_reflection)
 done
