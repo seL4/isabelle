@@ -1,4 +1,4 @@
 # $Id$
 
 all:
-	javac -depend GraphBrowser/GraphBrowser.java
+	javac GraphBrowser/GraphBrowser.java
