@@ -32,12 +32,7 @@ open Hypsubst;
 
 
 (*** Applying Make_Elim_Fun to create a classical "make_elim" rule ***)
-structure Make_Elim_Data =
-struct
-  val classical = classical
-end;
-
-structure Make_Elim = Make_Elim_Fun (Make_Elim_Data);
+structure Make_Elim = Make_Elim_Fun (val classical = classical);
 
 (*we don't redeclare the original make_elim (Tactic.make_elim) for 
   compatibliity with strange things done in many existing proofs *)
