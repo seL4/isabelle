@@ -14,7 +14,7 @@ consts
   bnd_mono    :: [i,i=>i]=>o
   lfp, gfp    :: [i,i=>i]=>i
 
-path Fixedpt
+local
 
 defs
   (*monotone operator from Pow(D) to itself*)

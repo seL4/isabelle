@@ -17,7 +17,7 @@ consts
     case        :: [i=>i, i=>i, i]=>i
     Part        :: [i,i=>i] => i
 
-path Sum
+local
 
 defs
     sum_def     "A+B == {0}*A Un {1}*B"

@@ -167,7 +167,7 @@ defs
   succ_def      "succ(i) == cons(i, i)"
 
 
-path ZF
+local
 
 rules
 

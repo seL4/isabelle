@@ -34,7 +34,7 @@ translations
   "QSUM x:A. B"  => "QSigma(A, %x. B)"
   "A <*> B"      => "QSigma(A, _K(B))"
 
-path QPair
+local
 
 defs
   QPair_def       "<a;b> == a+b"

@@ -13,7 +13,7 @@ global
 consts
     quniv        :: i=>i
 
-path QUniv
+local
 
 defs
     quniv_def    "quniv(A) == Pow(univ(eclose(A)))"

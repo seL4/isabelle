@@ -24,7 +24,7 @@ consts
 translations
     "Vset(x)"   ==      "Vfrom(0,x)"
 
-path Univ
+local
 
 defs
     Vfrom_def   "Vfrom(A,i) == transrec(i, %x f. A Un (UN y:x. Pow(f`y)))"
