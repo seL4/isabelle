@@ -9,8 +9,8 @@ Tactics.
 signature TACTIC =
   sig
   val ares_tac          : thm list -> int -> tactic
-  val asm_rewrite_goal_tac:
-    bool*bool*bool -> (meta_simpset -> tactic) -> meta_simpset -> int -> tactic
+  val asm_rewrite_goal_tac: bool*bool*bool ->
+    (MetaSimplifier.meta_simpset -> tactic) -> MetaSimplifier.meta_simpset -> int -> tactic
   val assume_tac        : int -> tactic
   val atac      : int ->tactic
   val bimatch_from_nets_tac:
@@ -83,6 +83,7 @@ signature TACTIC =
   val resolve_from_net_tac      : (int*thm) Net.net -> int -> tactic
   val resolve_tac       : thm list -> int -> tactic
   val res_inst_tac      : (string*string)list -> thm -> int -> tactic
+  val full_rewrite_cterm : thm list -> cterm -> cterm
   val rewrite_goal_tac  : thm list -> int -> tactic
   val rewrite_goals_rule: thm list -> thm -> thm
   val rewrite_rule      : thm list -> thm -> thm
@@ -483,17 +484,17 @@ fun result1 tacf mss thm =
   apsome fst (Seq.pull (tacf mss thm));
 
 val simple_prover =
-  result1 (fn mss => ALLGOALS (resolve_tac (prems_of_mss mss)));
+  result1 (fn mss => ALLGOALS (resolve_tac (MetaSimplifier.prems_of_mss mss)));
 
+val full_rewrite_cterm = MetaSimplifier.full_rewrite_cterm_aux simple_prover;
 val rewrite_rule = MetaSimplifier.rewrite_rule_aux simple_prover;
 val rewrite_goals_rule = MetaSimplifier.rewrite_goals_rule_aux simple_prover;
 
 
 (*Rewrite subgoal i only.  SELECT_GOAL avoids inefficiencies in goals_conv.*)
 fun asm_rewrite_goal_tac mode prover_tac mss =
-      SELECT_GOAL
-        (PRIMITIVE
-           (rewrite_goal_rule mode (result1 prover_tac) mss 1));
+  SELECT_GOAL
+    (PRIMITIVE (MetaSimplifier.rewrite_goal_rule mode (result1 prover_tac) mss 1));
 
 fun rewrite_goal_tac rews =
   asm_rewrite_goal_tac (true, false, false) (K no_tac) (MetaSimplifier.mss_of rews);
