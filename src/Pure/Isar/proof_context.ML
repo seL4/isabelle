@@ -1037,7 +1037,7 @@ fun pretty_cases (ctxt as Context {cases, ...}) =
 
     fun prt_case (name, (fixes, (lets, asms))) = Pretty.block (Pretty.fbreaks
       (Pretty.str (name ^ ":") ::
-        prt_sect "fix" [] (prt_term o Free) fixes @
+        prt_sect "fix" [] (Pretty.str o fst) fixes @
         prt_sect "let" [Pretty.str "and"] prt_let
           (mapfilter (fn (xi, Some t) => Some (xi, t) | _ => None) lets) @
         prt_sect "assume" [] (Pretty.quote o prt_term) asms));
@@ -1083,7 +1083,7 @@ fun pretty_context (ctxt as Context {asms = (_, (fixes, _)), cases,
 
     (*fixes*)
     fun prt_fix (x, x') = Pretty.block
-      [prt_term (Syntax.free x), Pretty.str " =", Pretty.brk 1, prt_term (Syntax.free x')];
+      [Pretty.str x, Pretty.str " =", Pretty.brk 1, prt_term (Syntax.free x')];
 
     fun prt_fixes [] = []
       | prt_fixes xs = [Pretty.block (Pretty.str "fixed variables:" :: Pretty.brk 1 ::
