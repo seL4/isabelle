@@ -86,6 +86,7 @@ sig
   val foldl: ('a * 'b -> 'a) -> 'a * 'b list -> 'a
   val foldr: ('a * 'b -> 'b) -> 'a list * 'b -> 'b
   val foldr1: ('a * 'a -> 'a) -> 'a list -> 'a
+  val fold: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val foldl_map: ('a * 'b -> 'a * 'c) -> 'a * 'b list -> 'a * 'c list
   val foldln: ('a * int -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val length: 'a list -> int
@@ -108,6 +109,7 @@ sig
   val separate: 'a -> 'a list -> 'a list
   val replicate: int -> 'a -> 'a list
   val multiply: 'a list * 'a list list -> 'a list list
+  val product: 'a list -> 'b list -> ('a * 'b) list
   val filter: ('a -> bool) -> 'a list -> 'a list
   val filter_out: ('a -> bool) -> 'a list -> 'a list
   val mapfilter: ('a -> 'b option) -> 'a list -> 'b list
@@ -287,7 +289,6 @@ sig
   val partition: ('a -> bool) -> 'a list -> 'a list * 'a list
   val partition_eq: ('a * 'a -> bool) -> 'a list -> 'a list list
   val partition_list: (int -> 'a -> bool) -> int -> int -> 'a list -> 'a list list
-  val transitive_closure: (string * string list) list -> (string * string list) list
   val gensym: string -> string
   val scanwords: (string -> bool) -> string list -> string list
   datatype 'a mtree = Join of 'a * 'a mtree list
@@ -493,6 +494,8 @@ fun foldr1 f l =
         | itr (x::l) = f(x, itr l)
   in  itr l  end;
 
+fun fold f xs y = foldl (fn (y', x) => f x y') (y, xs);
+
 fun foldl_map _ (x, []) = (x, [])
   | foldl_map f (x, y :: ys) =
       let
@@ -606,6 +609,11 @@ fun replicate n (x: 'a) : 'a list =
 (*multiply [a, b, c, ...] * [xs, ys, zs, ...]*)
 fun multiply ([], _) = []
   | multiply (x :: xs, yss) = map (cons x) yss @ multiply (xs, yss);
+
+(*direct product*)
+fun product _ [] = []
+  | product [] _ = []
+  | product (x :: xs) ys = map (pair x) ys @ product xs ys;
 
 
 (* filter *)
@@ -1359,17 +1367,6 @@ fun partition_list p i j =
             let val (ns, rest) = partition (p k) xs;
             in  ns :: part(k+1)rest  end
   in  part i end;
-
-
-(* transitive closure (not Warshall's algorithm) *)
-
-fun transitive_closure [] = []
-  | transitive_closure ((x, ys)::ps) =
-      let val qs = transitive_closure ps
-          val zs = foldl (fn (zs, y) => assocs qs y union_string zs) (ys, ys)
-          fun step(u, us) = (u, if x mem_string us then zs union_string us
-                                else us)
-      in (x, zs) :: map step qs end;
 
 
 (* generating identifiers *)
