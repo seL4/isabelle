@@ -457,73 +457,56 @@ fun extension sectab = "+" $$-- !!
   (opt_begin -- (repeat (sect sectab) --$$ "end") --
     optional ("ML" $$-- verbatim) "") >> mk_extension;
 
+fun opt_extension sectab = optional (extension sectab) (None, "", "", "");
+
 
 (* theory definition *)
 
-fun mk_structure tname ((thy_name, old_thys), opt_ext) =
+fun mk_structure tname ((thy_name, old_thys), (begin, extxt, postxt, mltxt)) =
   if thy_name <> tname then
     error ("Filename \"" ^ tname ^ ".thy\" and theory name "
       ^ quote thy_name ^ " are different")
   else
-    (case opt_ext of
-      Some (begin, extxt, postxt, mltxt) =>
-        "val thy = " ^ old_thys ^ " true;\n\n\
-        \structure " ^ thy_name ^ " =\n\
-        \struct\n\
-        \\n\
-        \local\n"
-        ^ trfun_defs ^ "\n\
-        \in\n\
-        \\n"
-        ^ mltxt ^ "\n\
-        \\n\
-        \val thy = thy\n\
-        \\n\
-        \|> Theory.add_path \"/\"\n" ^
-        (case begin of
-          None => (warning ("Flat name space for theory " ^ tname ^ "?  \
-            \Consider begin ..."); "")
-        | Some "" => "|> Theory.add_path " ^ quote tname ^ "\n"
-        | Some path => "|> Theory.add_path " ^ path ^ "\n") ^
-        "\n\
-        \|> Theory.add_trfuns\n"
-        ^ trfun_args ^ "\n\
-        \|> Theory.add_trfunsT typed_print_translation \n\
-        \|> Theory.add_tokentrfuns token_translation \n\
-        \\n"
-        ^ extxt ^ "\n\
-        \\n\
-        \|> Theory.add_name " ^ quote thy_name ^ ";\n\
-        \\n\
-        \val _ = store_theory (thy, " ^ quote thy_name ^ ");\n\
-        \\n\
-        \\n"
-        ^ postxt ^ "\n\
-        \\n\
-        \end;\n\
-        \end;\n\
-        \\n\
-        \open " ^ thy_name ^ ";\n\
-        \\n"
-    | None =>
-        "val thy = " ^ old_thys ^ " false;\n\
-        \\n\
-        \structure " ^ thy_name ^ " =\n\
-        \struct\n\
-        \\n\
-        \val thy = thy\n\
-        \\n\
-        \val _ = store_theory (thy, " ^ quote thy_name ^ ");\n\
-        \\n\
-        \end;\n\
-        \\n\
-        \open " ^ thy_name ^ ";\n\
-        \\n");
-
+    "val thy = " ^ old_thys ^ ";\n\n\
+    \structure " ^ thy_name ^ " =\n\
+    \struct\n\
+    \\n\
+    \local\n"
+    ^ trfun_defs ^ "\n\
+    \in\n\
+    \\n"
+    ^ mltxt ^ "\n\
+    \\n\
+    \val thy = thy\n\
+    \\n\
+    \|> Theory.add_path \"/\"\n" ^
+    (case begin of
+      None => (warning ("Flat name space for theory " ^ tname ^ "?  Consider begin ..."); "")
+    | Some "" => "|> Theory.add_path " ^ quote tname ^ "\n"
+    | Some path => "|> Theory.add_path " ^ path ^ "\n") ^
+    "\n\
+    \|> Theory.add_trfuns\n"
+    ^ trfun_args ^ "\n\
+    \|> Theory.add_trfunsT typed_print_translation \n\
+    \|> Theory.add_tokentrfuns token_translation \n\
+    \\n"
+    ^ extxt ^ "\n\
+    \\n\
+    \|> Theory.add_name " ^ quote thy_name ^ ";\n\
+    \\n\
+    \val _ = store_theory (thy, " ^ quote thy_name ^ ");\n\
+    \\n\
+    \\n"
+    ^ postxt ^ "\n\
+    \\n\
+    \end;\n\
+    \end;\n\
+    \\n\
+    \open " ^ thy_name ^ ";\n\
+    \\n";
 
 fun theory_defn sectab tname =
-  header -- optional (extension sectab >> Some) None -- eof
-  >> (mk_structure tname o #1);
+  header -- opt_extension sectab -- eof >> (mk_structure tname o #1);
 
 fun parse_thy (lex, sectab) tname str =
   #1 (!! (theory_defn sectab tname) (tokenize lex str));
