@@ -208,6 +208,11 @@ other components to streamline proofs in more sophisticated manners.
 \subsection{Inspecting simpsets}
 \begin{ttbox}
 print_ss : simpset -> unit
+rep_ss   : simpset -> {mss        : meta_simpset, 
+                       subgoal_tac: simpset  -> int -> tactic,
+                       loop_tac   :             int -> tactic,
+                       finish_tac : thm list -> int -> tactic,
+                unsafe_finish_tac : thm list -> int -> tactic}
 \end{ttbox}
 \begin{ttdescription}
   
@@ -217,6 +222,10 @@ print_ss : simpset -> unit
   simplification procedures and the patterns they are invoked on are
   also shown.  The other parts, functions and tactics, are
   non-printable.
+
+\item[\ttindexbold{rep_ss} $ss$;] decomposes $ss$ as a record of its internal 
+  components, namely the meta_simpset, the subgoaler, the loop, and the safe
+  and unsafe solvers.
 
 \end{ttdescription}
 
