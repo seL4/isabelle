@@ -52,7 +52,7 @@ Goal "i : I ==>  \
 \     (PLam I F : (lift_set i A) co (lift_set i B))  =  \
 \     (F i : A co B)";
 by (asm_simp_tac (simpset() addsimps [PLam_def, constrains_JN]) 1);
-by (blast_tac (claset() addIs [lift_prog_constrains_eq RS iffD1, 
+by (blast_tac (claset() addIs [lift_prog_constrains RS iffD1, 
 			       constrains_imp_lift_prog_constrains]) 1);
 qed "PLam_constrains";
 
@@ -263,15 +263,20 @@ qed "const_PLam_Increasing";
 (*** guarantees properties ***)
 
 Goalw [PLam_def]
+     "[| i : I;  lift_prog i (F i): X guar Y |] ==> (PLam I F) : X guar Y";
+by (asm_simp_tac (simpset() addsimps [guarantees_JN_I]) 1);
+qed "guarantees_PLam_I";
+
+Goalw [PLam_def]
     "[| ALL i:I. F i : X guar Y |] \
 \    ==> (PLam I F) : (INT i: I. lift_prog i `` X) \
 \                 guar (INT i: I. lift_prog i `` Y)";
 by (blast_tac (claset() addIs [guarantees_JN_INT, lift_prog_guarantees]) 1);
-qed "guarantees_PLam_INT";
+bind_thm ("guarantees_PLam_INT", ballI RS result());
 
 Goalw [PLam_def]
     "[| ALL i:I. F i : X guar Y |] \
 \    ==> (PLam I F) : (UN i: I. lift_prog i `` X) \
 \                 guar (UN i: I. lift_prog i `` Y)";
 by (blast_tac (claset() addIs [guarantees_JN_UN, lift_prog_guarantees]) 1);
-qed "guarantees_PLam_UN";
+bind_thm ("guarantees_PLam_UN", ballI RS result());
