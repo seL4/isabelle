@@ -789,6 +789,9 @@ done
 
 lemmas subset_Finite = subset_imp_lepoll [THEN lepoll_Finite, standard]
 
+lemma Finite_Int: "Finite(A) | Finite(B) ==> Finite(A Int B)"
+by (blast intro: subset_Finite) 
+
 lemmas Finite_Diff = Diff_subset [THEN subset_Finite, standard]
 
 lemma Finite_cons: "Finite(x) ==> Finite(cons(y,x))"
@@ -890,6 +893,10 @@ by (blast intro!: Fin_into_Finite Fin_UnI
           intro: Un_upper1 [THEN Fin_mono, THEN subsetD] 
                  Un_upper2 [THEN Fin_mono, THEN subsetD])
 
+lemma Finite_Un_iff [simp]: "Finite(A Un B) <-> (Finite(A) & Finite(B))"
+by (blast intro: subset_Finite Finite_Un) 
+
+text{*The converse must hold too.*}
 lemma Finite_Union: "[| ALL y:X. Finite(y);  Finite(X) |] ==> Finite(Union(X))"
 apply (simp add: Finite_Fin_iff)
 apply (rule Fin_UnionI)

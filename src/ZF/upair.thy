@@ -147,7 +147,7 @@ by (rule consI1)
 lemmas singletonE = singleton_iff [THEN iffD1, elim_format, standard, elim!]
 
 
-subsection{*Rules for Descriptions*}
+subsection{*Descriptions*}
 
 lemma the_equality [intro]:
     "[| P(a);  !!x. P(x) ==> x=a |] ==> (THE x. P(x)) = a"

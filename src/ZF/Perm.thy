@@ -221,12 +221,15 @@ by (blast intro: apply_Pair apply_equality converseI)
 lemma left_inverse [simp]: "[| f: inj(A,B);  a: A |] ==> converse(f)`(f`a) = a"
 by (blast intro: left_inverse_lemma inj_converse_fun inj_is_fun)
 
+lemma left_inverse_eq:
+     "[|f \<in> inj(A,B); f ` x = y; x \<in> A|] ==> converse(f) ` y = x"
+by auto
+
 lemmas left_inverse_bij = bij_is_inj [THEN left_inverse, standard]
 
 lemma right_inverse_lemma:
      "[| f: A->B;  converse(f): C->A;  b: C |] ==> f`(converse(f)`b) = b"
-apply (rule apply_Pair [THEN converseD [THEN apply_equality]], auto) 
-done
+by (rule apply_Pair [THEN converseD [THEN apply_equality]], auto) 
 
 (*Should the premises be f:surj(A,B), b:B for symmetry with left_inverse?
   No: they would not imply that converse(f) was a function! *)

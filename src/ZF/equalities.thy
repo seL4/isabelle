@@ -763,6 +763,13 @@ by blast
 lemma image_Un [simp]: "r``(A Un B) = (r``A) Un (r``B)"
 by blast
 
+lemma image_UN: "r `` (\<Union>x\<in>A. B(x)) = (\<Union>x\<in>A. r `` B(x))"
+by blast
+
+lemma Collect_image_eq:
+     "{z \<in> Sigma(A,B). P(z)} `` C = (\<Union>x \<in> A. {y \<in> B(x). x \<in> C & P(<x,y>)})"
+by blast
+
 lemma image_Int_subset: "r``(A Int B) \<subseteq> (r``A) Int (r``B)"
 by blast
 

@@ -26,14 +26,15 @@ constdefs
 		  lam <x,y>:K*K. <x Un y, x, y>, 
 		  rmult(K,Memrel(K), K*K, rmult(K,Memrel(K), K,Memrel(K))))"
 
-  (*This def is more complex than Kunen's but it more easily proved to
-    be a cardinal*)
   jump_cardinal :: "i=>i"
+    --{*This def is more complex than Kunen's but it more easily proved to
+        be a cardinal*}
     "jump_cardinal(K) ==   
          \<Union>X\<in>Pow(K). {z. r: Pow(K*K), well_ord(X,r) & z = ordertype(X,r)}"
   
-  (*needed because jump_cardinal(K) might not be the successor of K*)
   csucc         :: "i=>i"
+    --{*needed because @{term "jump_cardinal(K)"} might not be the successor
+        of @{term K}*}
     "csucc(K) == LEAST L. Card(L) & K<L"
 
 syntax (xsymbols)
@@ -57,8 +58,7 @@ apply (subgoal_tac "B \<lesssim> \<Union>A")
 apply (blast intro: subset_imp_lepoll) 
 done
 
-lemma Card_UN:
-     "(!!x. x:A ==> Card(K(x))) ==> Card(\<Union>x\<in>A. K(x))" 
+lemma Card_UN: "(!!x. x:A ==> Card(K(x))) ==> Card(\<Union>x\<in>A. K(x))" 
 by (blast intro: Card_Union) 
 
 lemma Card_OUN [simp,intro,TC]:
@@ -82,8 +82,7 @@ apply (simp add: Card_iff_initial)
 apply (fast intro!: le_imp_lepoll ltI leI)
 done
 
-lemma lesspoll_lemma: 
-        "[| ~ A \<prec> B; C \<prec> B |] ==> A - C \<noteq> 0"
+lemma lesspoll_lemma: "[| ~ A \<prec> B; C \<prec> B |] ==> A - C \<noteq> 0"
 apply (unfold lesspoll_def)
 apply (fast dest!: Diff_eq_0_iff [THEN iffD1, THEN subset_imp_lepoll]
             intro!: eqpollI elim: notE 
@@ -98,7 +97,7 @@ multiplication.  On finite cardinals these operations coincide with
 addition and multiplication of natural numbers; on infinite cardinals they
 coincide with union (maximum).  Either way we get most laws for free.*}
 
-(** Cardinal addition is commutative **)
+subsubsection{*Cardinal addition is commutative*}
 
 lemma sum_commute_eqpoll: "A+B \<approx> B+A"
 apply (unfold eqpoll_def)
@@ -112,7 +111,7 @@ apply (unfold cadd_def)
 apply (rule sum_commute_eqpoll [THEN cardinal_cong])
 done
 
-(** Cardinal addition is associative **)
+subsubsection{*Cardinal addition is associative*}
 
 lemma sum_assoc_eqpoll: "(A+B)+C \<approx> A+(B+C)"
 apply (unfold eqpoll_def)
@@ -135,7 +134,7 @@ apply (rule sum_eqpoll_cong [OF eqpoll_refl well_ord_cardinal_eqpoll])
 apply (blast intro: well_ord_radd ) 
 done
 
-(** 0 is the identity for addition **)
+subsubsection{*0 is the identity for addition*}
 
 lemma sum_0_eqpoll: "0+A \<approx> A"
 apply (unfold eqpoll_def)
@@ -148,7 +147,7 @@ apply (unfold cadd_def)
 apply (simp add: sum_0_eqpoll [THEN cardinal_cong] Card_cardinal_eq)
 done
 
-(** Addition by another cardinal **)
+subsubsection{*Addition by another cardinal*}
 
 lemma sum_lepoll_self: "A \<lesssim> A+B"
 apply (unfold lepoll_def inj_def)
@@ -167,7 +166,7 @@ apply (rule_tac [2] sum_lepoll_self)
 apply (blast intro: well_ord_radd well_ord_Memrel Card_is_Ord)
 done
 
-(** Monotonicity of addition **)
+subsubsection{*Monotonicity of addition*}
 
 lemma sum_lepoll_mono: 
      "[| A \<lesssim> C;  B \<lesssim> D |] ==> A + B \<lesssim> C + D"
@@ -188,7 +187,7 @@ apply (blast intro: well_ord_radd well_ord_Memrel)
 apply (blast intro: sum_lepoll_mono subset_imp_lepoll)
 done
 
-(** Addition of finite cardinals is "ordinary" addition **)
+subsubsection{*Addition of finite cardinals is "ordinary" addition*}
 
 lemma sum_succ_eqpoll: "succ(A)+B \<approx> succ(A+B)"
 apply (unfold eqpoll_def)
@@ -219,7 +218,7 @@ done
 
 subsection{*Cardinal multiplication*}
 
-(** Cardinal multiplication is commutative **)
+subsubsection{*Cardinal multiplication is commutative*}
 
 (*Easier to prove the two directions separately*)
 lemma prod_commute_eqpoll: "A*B \<approx> B*A"
@@ -234,7 +233,7 @@ apply (unfold cmult_def)
 apply (rule prod_commute_eqpoll [THEN cardinal_cong])
 done
 
-(** Cardinal multiplication is associative **)
+subsubsection{*Cardinal multiplication is associative*}
 
 lemma prod_assoc_eqpoll: "(A*B)*C \<approx> A*(B*C)"
 apply (unfold eqpoll_def)
@@ -257,7 +256,7 @@ apply (rule prod_eqpoll_cong [OF eqpoll_refl well_ord_cardinal_eqpoll])
 apply (blast intro: well_ord_rmult)
 done
 
-(** Cardinal multiplication distributes over addition **)
+subsubsection{*Cardinal multiplication distributes over addition*}
 
 lemma sum_prod_distrib_eqpoll: "(A+B)*C \<approx> (A*C)+(B*C)"
 apply (unfold eqpoll_def)
@@ -280,7 +279,7 @@ apply (rule sum_eqpoll_cong [OF well_ord_cardinal_eqpoll
 apply (blast intro: well_ord_rmult)+
 done
 
-(** Multiplication by 0 yields 0 **)
+subsubsection{*Multiplication by 0 yields 0*}
 
 lemma prod_0_eqpoll: "0*A \<approx> 0"
 apply (unfold eqpoll_def)
@@ -291,7 +290,7 @@ done
 lemma cmult_0 [simp]: "0 |*| i = 0"
 by (simp add: cmult_def prod_0_eqpoll [THEN cardinal_cong])
 
-(** 1 is the identity for multiplication **)
+subsubsection{*1 is the identity for multiplication*}
 
 lemma prod_singleton_eqpoll: "{x}*A \<approx> A"
 apply (unfold eqpoll_def)
@@ -321,7 +320,7 @@ apply (simp add: le_refl Card_is_Ord Card_cardinal_eq)
 apply (blast intro: well_ord_rmult well_ord_Memrel Card_is_Ord)
 done
 
-(** Multiplication by a non-zero cardinal **)
+subsubsection{*Multiplication by a non-zero cardinal*}
 
 lemma prod_lepoll_self: "b: B ==> A \<lesssim> A*B"
 apply (unfold lepoll_def inj_def)
@@ -338,7 +337,7 @@ apply (rule le_trans [OF Card_cardinal_le well_ord_lepoll_imp_Card_le])
 apply (blast intro: prod_lepoll_self ltD)
 done
 
-(** Monotonicity of multiplication **)
+subsubsection{*Monotonicity of multiplication*}
 
 lemma prod_lepoll_mono:
      "[| A \<lesssim> C;  B \<lesssim> D |] ==> A * B  \<lesssim>  C * D"
@@ -480,7 +479,7 @@ apply (erule ordermap_bij [THEN bij_is_inj, THEN restrict_bij,
 apply (rule pred_subset)
 done
 
-(** Establishing the well-ordering **)
+subsubsection{*Establishing the well-ordering*}
 
 lemma csquare_lam_inj:
      "Ord(K) ==> (lam <x,y>:K*K. <x Un y, x, y>) : inj(K*K, K*K*K)"
@@ -494,7 +493,7 @@ apply (rule csquare_lam_inj [THEN well_ord_rvimage], assumption)
 apply (blast intro: well_ord_rmult well_ord_Memrel)
 done
 
-(** Characterising initial segments of the well-ordering **)
+subsubsection{*Characterising initial segments of the well-ordering*}
 
 lemma csquareD:
  "[| <<x,y>, <z,z>> : csquare_rel(K);  x<K;  y<K;  z<K |] ==> x le z & y le z"
@@ -536,7 +535,7 @@ apply (simp_all add: subset_Un_iff [THEN iff_sym]
                      subset_Un_iff2 [THEN iff_sym] OrdmemD)
 done
 
-(** The cardinality of initial segments **)
+subsubsection{*The cardinality of initial segments*}
 
 lemma ordermap_z_lt:
       "[| Limit(K);  x<K;  y<K;  z=succ(x Un y) |] ==>
@@ -635,7 +634,7 @@ done
 lemma Inf_Card_is_InfCard: "[| ~Finite(i); Card(i) |] ==> InfCard(i)"
 by (simp add: InfCard_def Card_is_Ord [THEN nat_le_infinite_Ord])
 
-(** Toward's Kunen's Corollary 10.13 (1) **)
+subsubsection{*Toward's Kunen's Corollary 10.13 (1)*}
 
 lemma InfCard_le_cmult_eq: "[| InfCard(K);  L le K;  0<L |] ==> K |*| L = K"
 apply (rule le_anti_sym)
@@ -784,7 +783,7 @@ by (simp add: InfCard_def Card_csucc Card_is_Ord
               lt_csucc [THEN leI, THEN [2] le_trans])
 
 
-(** Removing elements from a finite set decreases its cardinality **)
+subsubsection{*Removing elements from a finite set decreases its cardinality*}
 
 lemma Fin_imp_not_cons_lepoll: "A: Fin(U) ==> x~:A --> ~ cons(x,A) \<lesssim> A"
 apply (erule Fin_induct)
@@ -794,7 +793,7 @@ apply simp
 apply (blast dest!: cons_lepoll_consD, blast)
 done
 
-lemma Finite_imp_cardinal_cons:
+lemma Finite_imp_cardinal_cons [simp]:
      "[| Finite(A);  a~:A |] ==> |cons(a,A)| = succ(|A|)"
 apply (unfold cardinal_def)
 apply (rule Least_equality)
@@ -825,8 +824,35 @@ apply (rule succ_leE)
 apply (simp add: Finite_imp_succ_cardinal_Diff)
 done
 
+lemma Finite_cardinal_in_nat [simp]: "Finite(A) ==> |A| : nat"
+apply (erule Finite_induct)
+apply (auto simp add: cardinal_0 Finite_imp_cardinal_cons)
+done
 
-(** Theorems by Krzysztof Grabczewski, proofs by lcp **)
+lemma card_Un_Int:
+     "[|Finite(A); Finite(B)|] ==> |A| #+ |B| = |A Un B| #+ |A Int B|"
+apply (erule Finite_induct, simp) 
+apply (simp add: Finite_Int cons_absorb Un_cons Int_cons_left)
+done
+
+lemma card_Un_disjoint: 
+     "[|Finite(A); Finite(B); A Int B = 0|] ==> |A Un B| = |A| #+ |B|" 
+by (simp add: Finite_Un card_Un_Int)
+
+lemma card_partition [rule_format]:
+     "Finite(C) ==>  
+        Finite (\<Union> C) -->  
+        (\<forall>c\<in>C. |c| = k) -->   
+        (\<forall>c1 \<in> C. \<forall>c2 \<in> C. c1 \<noteq> c2 --> c1 \<inter> c2 = 0) -->  
+        k #* |C| = |\<Union> C|"
+apply (erule Finite_induct, auto)
+apply (subgoal_tac " x \<inter> \<Union>B = 0")  
+apply (auto simp add: card_Un_disjoint Finite_Union
+       subset_Finite [of _ "\<Union> (cons(x,F))"])
+done
+
+
+subsubsection{*Theorems by Krzysztof Grabczewski, proofs by lcp*}
 
 lemmas nat_implies_well_ord = nat_into_Ord [THEN well_ord_Memrel, standard]
 
@@ -845,11 +871,6 @@ done
 lemma Ord_nat_subset_into_Card: "[| Ord(i); i <= nat |] ==> Card(i)"
 by (blast dest: Ord_subset_natD intro: Card_nat nat_into_Card)
 
-lemma Finite_cardinal_in_nat [simp]: "Finite(A) ==> |A| : nat"
-apply (erule Finite_induct)
-apply (auto simp add: cardinal_0 Finite_imp_cardinal_cons)
-done
-
 lemma Finite_Diff_sing_eq_diff_1: "[| Finite(A); x:A |] ==> |A-{x}| = |A| #- 1"
 apply (rule succ_inject)
 apply (rule_tac b = "|A|" in trans)
@@ -867,7 +888,6 @@ done
 lemma cardinal_lt_imp_Diff_not_0 [rule_format]:
      "Finite(B) ==> ALL A. |B|<|A| --> A - B ~= 0"
 apply (erule Finite_induct, auto)
-apply (simp_all add: Finite_imp_cardinal_cons)
 apply (case_tac "Finite (A)")
  apply (subgoal_tac [2] "Finite (cons (x, B))")
   apply (drule_tac [2] B = "cons (x, B) " in Diff_Finite)

@@ -3,8 +3,6 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
-prove X:Fin(A) ==> |X| < nat
-
 prove:  b: Fin(A) ==> inj(b,b) <= surj(b,b)
 *)
 
@@ -198,6 +196,17 @@ apply (erule FiniteFun_domain_Fin)
 apply (rule_tac B = "range (f) " in fun_weaken_type)
  apply (blast dest: FiniteFun_is_fun range_of_fun range_type apply_equality)+
 done
+
+
+subsection{*The Contents of a Singleton Set*}
+
+constdefs
+  contents :: "i=>i"
+   "contents(X) == THE x. X = {x}"
+
+lemma contents_eq [simp]: "contents ({x}) = x"
+by (simp add: contents_def)
+
 
 ML
 {*

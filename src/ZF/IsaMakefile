@@ -146,9 +146,9 @@ $(LOG)/ZF-Induct.gz: $(OUT)/ZF  Induct/ROOT.ML Induct/Acc.thy \
 ZF-ex: ZF $(LOG)/ZF-ex.gz
 
 $(LOG)/ZF-ex.gz: $(OUT)/ZF ex/ROOT.ML \
-  ex/BinEx.thy ex/CoUnit.thy ex/Commutation.thy \
+  ex/BinEx.thy ex/CoUnit.thy ex/Commutation.thy ex/Group.thy\
   ex/Limit.thy ex/LList.thy ex/Primes.thy \
-  ex/NatSum.thy ex/Ramsey.thy ex/misc.thy
+  ex/NatSum.thy ex/Ramsey.thy ex/Ring.thy ex/misc.thy
 	@$(ISATOOL) usedir $(OUT)/ZF ex
 
 

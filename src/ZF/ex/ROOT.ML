@@ -7,6 +7,7 @@ Executes miscellaneous examples for Zermelo-Fraenkel Set Theory.
 *)
 
 time_use_thy "misc";
+time_use_thy "Ring";		(*abstract algebra*)
 time_use_thy "Commutation";     (*abstract Church-Rosser theory*)
 time_use_thy "Primes";          (*GCD theory*)
 time_use_thy "NatSum";          (*Summing integers, squares, cubes, etc.*)

@@ -271,6 +271,10 @@ apply (simp add: Pi_iff)
 apply (blast intro: image_function) 
 done
 
+lemma image_eq_UN: 
+  assumes f: "f \<in> Pi(A,B)" "C \<subseteq> A" shows "f``C = (\<Union>x\<in>C. {f ` x})"
+by (auto simp add: image_fun [OF f]) 
+
 lemma Pi_image_cons:
      "[| f: Pi(A,B);  x: A |] ==> f `` cons(x,y) = cons(f`x, f``y)"
 by (blast dest: apply_equality apply_Pair)

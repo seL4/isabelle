@@ -36,8 +36,7 @@ consts
   RepFun      :: "[i, i => i] => i"
   Collect     :: "[i, i => o] => i"
 
-
-text {*Descriptions *}
+text{*Definite descriptions -- via Replace over the set "1"*}
 consts
   The         :: "(i => o) => i"      (binder "THE " 10)
   If          :: "[o, i, i] => i"     ("(if (_)/ then (_)/ else (_))" [10] 10)
@@ -47,7 +46,6 @@ syntax
 
 translations
   "if(P,a,b)" => "If(P,a,b)"
-
 
 
 text {*Finite Sets *}
@@ -227,6 +225,7 @@ axioms
   replacement:   "(\<forall>x\<in>A. \<forall>y z. P(x,y) & P(x,z) --> y=z) ==>
                          b \<in> PrimReplace(A,P) <-> (\<exists>x\<in>A. P(x,b))"
 
+
 defs
 
   (* Derived form of replacement, restricting P to its functional part.
@@ -258,8 +257,7 @@ defs
   Un_def:        "A Un  B  == Union(Upair(A,B))"
   Int_def:      "A Int B  == Inter(Upair(A,B))"
 
-  (* Definite descriptions -- via Replace over the set "1" *)
-
+  (* definite descriptions *)
   the_def:      "The(P)    == Union({y . x \<in> {0}, P(y)})"
   if_def:       "if(P,a,b) == THE z. P & z=a | ~P & z=b"
 
