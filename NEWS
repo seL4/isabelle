@@ -104,6 +104,9 @@ constructors, for example `case x of [] => ... | (x,y,z)#ps => ...';
 
 * primrec now also works with type nat;
 
+* recdef: a new declaration form, allows general recursive functions to be
+defined in theory files.  See HOL/ex/Fib, HOL/ex/Primes, HOL/Subst/Unify.
+
 * the constant for negation has been renamed from "not" to "Not" to
 harmonize with FOL, ZF, LK, etc.;
 
