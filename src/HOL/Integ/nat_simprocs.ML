@@ -113,8 +113,8 @@ fun mk_numeral n = HOLogic.number_of_const HOLogic.natT $ HOLogic.mk_bin n;
 fun dest_numeral (Const ("0", _)) = 0
   | dest_numeral (Const ("Suc", _) $ t) = 1 + dest_numeral t
   | dest_numeral (Const("Numeral.number_of", _) $ w) =
-      (BasisLibrary.Int.max (0, NumeralSyntax.dest_bin w)
-       handle Match => raise TERM("Nat_Numeral_Simprocs.dest_numeral:1", [w]))
+      (BasisLibrary.Int.max (0, HOLogic.dest_binum w)
+       handle TERM _ => raise TERM("Nat_Numeral_Simprocs.dest_numeral:1", [w]))
   | dest_numeral t = raise TERM("Nat_Numeral_Simprocs.dest_numeral:2", [t]);
 
 fun find_first_numeral past (t::terms) =

@@ -83,8 +83,8 @@ fun mk_numeral n = HOLogic.number_of_const HOLogic.intT $ HOLogic.mk_bin n;
 
 (*Decodes a binary INTEGER*)
 fun dest_numeral (Const("Numeral.number_of", _) $ w) = 
-     (NumeralSyntax.dest_bin w
-      handle Match => raise TERM("Int_Numeral_Simprocs.dest_numeral:1", [w]))
+     (HOLogic.dest_binum w
+      handle TERM _ => raise TERM("Int_Numeral_Simprocs.dest_numeral:1", [w]))
   | dest_numeral t = raise TERM("Int_Numeral_Simprocs.dest_numeral:2", [t]);
 
 fun find_first_numeral past (t::terms) =

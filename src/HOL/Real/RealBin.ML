@@ -281,8 +281,8 @@ fun mk_numeral n = HOLogic.number_of_const HOLogic.realT $ HOLogic.mk_bin n;
 
 (*Decodes a binary real constant*)
 fun dest_numeral (Const("Numeral.number_of", _) $ w) = 
-     (NumeralSyntax.dest_bin w
-      handle Match => raise TERM("Real_Numeral_Simprocs.dest_numeral:1", [w]))
+     (HOLogic.dest_binum w
+      handle TERM _ => raise TERM("Real_Numeral_Simprocs.dest_numeral:1", [w]))
   | dest_numeral t = raise TERM("Real_Numeral_Simprocs.dest_numeral:2", [t]);
 
 fun find_first_numeral past (t::terms) =
