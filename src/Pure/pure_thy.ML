@@ -106,13 +106,13 @@ fun all_local_thms [] _ = None
 
 fun get_thms thy name =
   (case all_local_thms (thy :: Theory.ancestors_of thy) name of
-    None => raise THEORY ("Theorems " ^ quote name ^ " not stored in theory", [thy])
+    None => raise THEORY ("Unknown theorem(s) " ^ quote name, [thy])
   | Some thms => thms);
 
 fun get_thm thy name =
   (case get_thms thy name of
     [thm] => thm
-  | _ => raise THEORY ("Singleton list of theorems expected " ^ quote name, [thy]));
+  | _ => raise THEORY ("Single theorem expected " ^ quote name, [thy]));
 
 
 (* thms_of *)
