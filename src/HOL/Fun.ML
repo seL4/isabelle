@@ -144,7 +144,7 @@ qed "inj_o";
 (*** inj_on f A: f is one-to-one over A ***)
 
 val prems = Goalw [inj_on_def]
-    "(!! x y. [| f(x) = f(y);  x:A;  y:A |] ==> x=y) ==> inj_on f A";
+    "(!! x y. [|  x:A;  y:A;  f(x) = f(y) |] ==> x=y) ==> inj_on f A";
 by (blast_tac (claset() addIs prems) 1);
 qed "inj_onI";
 bind_thm ("injI", inj_onI);                  (*for compatibility*)
@@ -577,17 +577,10 @@ val prems = Goalw [restrict_def, Pi_def]
 by (asm_simp_tac (simpset() addsimps prems) 1);
 qed "restrictI";
 
-Goal "x: A ==> (lam y: A. f y) x = f x";
+Goal "(lam y: A. f y) x = (if x : A then f x else (@ y. True))";
 by (asm_simp_tac (simpset() addsimps [restrict_def]) 1);
-qed "restrict_apply1";
-
-Goal "[| x: A; f : A funcset B |] ==> (lam y: A. f y) x : B";
-by (asm_full_simp_tac (simpset() addsimps [restrict_apply1,Pi_def]) 1);
-qed "restrict_apply1_mem";
-
-Goal "x ~: A ==> (lam y: A. f y) x =  (@ y. True)";
-by (asm_simp_tac (simpset() addsimps [restrict_def]) 1);
-qed "restrict_apply2";
+qed "restrict_apply";
+Addsimps [restrict_apply];
 
 val prems = Goal
     "(!!x. x: A ==> f x = g x) ==> (lam x: A. f x) = (lam x: A. g x)";
@@ -612,18 +605,17 @@ Goalw [Inv_def] "[| f ` A = B; f : A funcset B |] \
 by (fast_tac (claset() addIs [restrict_in_funcset, someI2]) 1);
 qed "Inv_funcset";
 
-
-Goal "[| f: A funcset B;  inj_on f A;  f ` A = B;  x: A |] \
-\     ==> (lam y: B. (Inv A f) y) (f x) = x";
-by (asm_simp_tac (simpset() addsimps [restrict_apply1, funcset_mem]) 1);
+Goal "[| inj_on f A;  f: A funcset (f`A);  x : A |] \
+\     ==> Inv A f (f x) = x";
 by (asm_full_simp_tac (simpset() addsimps [Inv_def, inj_on_def]) 1);
 by (rtac someI2 1);
 by Auto_tac;
 qed "Inv_f_f";
 
+(*a strange theorem, but so is f_inv_f*)
 Goal "[| f: A funcset B;  f ` A = B;  x: B |] \
 \     ==> f ((lam y: B. (Inv A f y)) x) = x";
-by (asm_simp_tac (simpset() addsimps [Inv_def, restrict_apply1]) 1);
+by (asm_simp_tac (simpset() addsimps [Inv_def]) 1);
 by (fast_tac (claset() addIs [someI2]) 1);
 qed "f_Inv_f";
 
@@ -633,7 +625,8 @@ by (rtac Pi_extensionality 1);
 by (blast_tac (claset() addIs [funcset_compose, Inv_funcset]) 1);
 by (blast_tac (claset() addIs [restrict_in_funcset]) 1);
 by (asm_simp_tac
-    (simpset() addsimps [restrict_apply1, compose_def, Inv_f_f]) 1);
+    (simpset() addsimps [compose_def, Inv_f_f]) 1);
+by Auto_tac;
 qed "compose_Inv_id";
 
 
