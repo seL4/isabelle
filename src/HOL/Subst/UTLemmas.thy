@@ -9,8 +9,8 @@ UTLemmas = UTerm + Setplus +
 
 consts
 
-  vars_of       ::   "'a uterm=>'a set"
-  "<:"          ::   "['a uterm,'a uterm]=>bool"   (infixl 54) 
+  vars_of       ::   'a uterm=>'a set
+  "<:"          ::   ['a uterm,'a uterm]=>bool   (infixl 54) 
 
 rules  (*Definitions*)
 

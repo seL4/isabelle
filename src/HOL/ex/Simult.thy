@@ -31,12 +31,12 @@ consts
   Tcons       :: ['a, 'a forest] => 'a tree
   Fcons       :: ['a tree, 'a forest] => 'a forest
   Fnil        :: 'a forest
-  TF_rec      :: "['a item, ['a item , 'a item, 'b]=>'b,     
-                 'b, ['a item , 'a item, 'b, 'b]=>'b] => 'b"
-  tree_rec    :: "['a tree, ['a, 'a forest, 'b]=>'b,          
-                 'b, ['a tree, 'a forest, 'b, 'b]=>'b] => 'b"
-  forest_rec  :: "['a forest, ['a, 'a forest, 'b]=>'b,        
-                  'b, ['a tree, 'a forest, 'b, 'b]=>'b] => 'b"
+  TF_rec      :: ['a item, ['a item , 'a item, 'b]=>'b,     
+                 'b, ['a item , 'a item, 'b, 'b]=>'b] => 'b
+  tree_rec    :: ['a tree, ['a, 'a forest, 'b]=>'b,          
+                 'b, ['a tree, 'a forest, 'b, 'b]=>'b] => 'b
+  forest_rec  :: ['a forest, ['a, 'a forest, 'b]=>'b,        
+                  'b, ['a tree, 'a forest, 'b, 'b]=>'b] => 'b
 
 defs
      (*the concrete constants*)

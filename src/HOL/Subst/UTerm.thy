@@ -23,10 +23,10 @@ consts
   Var       :: 'a => 'a uterm
   Const     :: 'a => 'a uterm
   Comb      :: ['a uterm, 'a uterm] => 'a uterm
-  UTerm_rec :: "['a item, 'a item => 'b, 'a item => 'b, 
-                ['a item , 'a item, 'b, 'b]=>'b] => 'b"
-  uterm_rec :: "['a uterm, 'a => 'b, 'a => 'b, 
-                ['a uterm, 'a uterm,'b,'b]=>'b] => 'b"
+  UTerm_rec :: ['a item, 'a item => 'b, 'a item => 'b, 
+                ['a item , 'a item, 'b, 'b]=>'b] => 'b
+  uterm_rec :: ['a uterm, 'a => 'b, 'a => 'b, 
+                ['a uterm, 'a uterm,'b,'b]=>'b] => 'b
 
 defs
      (*defining the concrete constructors*)
