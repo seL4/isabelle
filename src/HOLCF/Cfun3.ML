@@ -410,13 +410,13 @@ qed_goal "iso_strict"  thy
 
 
 qed_goal "isorep_defined" thy 
-        "[|!x. rep`(abs`x)=x;!y. abs`(rep`y)=y; z~=UU|] ==> rep`z ~= UU"
+        "[|!x. rep`(ab`x)=x;!y. ab`(rep`y)=y; z~=UU|] ==> rep`z ~= UU"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
         (etac swap 1),
         (dtac notnotD 1),
-        (dres_inst_tac [("f","abs")] cfun_arg_cong 1),
+        (dres_inst_tac [("f","ab")] cfun_arg_cong 1),
         (etac box_equals 1),
         (fast_tac HOL_cs 1),
         (etac (iso_strict RS conjunct1) 1),
@@ -424,7 +424,7 @@ qed_goal "isorep_defined" thy
         ]);
 
 qed_goal "isoabs_defined" thy 
-        "[|!x. rep`(abs`x) = x;!y. abs`(rep`y)=y ; z~=UU|] ==> abs`z ~= UU"
+        "[|!x. rep`(ab`x) = x;!y. ab`(rep`y)=y ; z~=UU|] ==> ab`z ~= UU"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
