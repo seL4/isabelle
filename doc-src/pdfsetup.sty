@@ -1,6 +1,8 @@
-
-\@ifundefined{pdfoutput}{\usepackage{../url}}
-{\usepackage[pdftex,a4paper,colorlinks=true]{hyperref}
+\message{pdfsetup.sty v0.1 11/7/2001}
+\@ifundefined{pdfoutput}{\message{No PDF output}\usepackage{../url}}
+{\message{Generating PDF output}%
+  \usepackage[pdftex,a4paper,colorlinks=true]{hyperref}
+  \gdef\fnote#1{\hyperpage{#1}n}
   \gdef\bold#1{\textbf{\hyperpage{#1}}}}
 
 \urlstyle{rm}
