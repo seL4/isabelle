@@ -31,6 +31,7 @@ result();
 
 (**** Inductive proofs about ns_shared ****)
 
+(*Monotonicity*)
 goal thy "!!evs. lost' <= lost ==> ns_shared lost' <= ns_shared lost";
 by (rtac subsetI 1);
 by (etac ns_shared.induct 1);
@@ -81,7 +82,7 @@ fun parts_induct_tac i = SELECT_GOAL
 (** Theorems of the form X ~: parts (sees lost Spy evs) imply that NOBODY
     sends messages containing X! **)
 
-(*Spy never sees lost another agent's shared key!*)
+(*Spy never sees another agent's shared key!*)
 goal thy 
  "!!evs. [| evs : ns_shared lost; A ~: lost |]    \
 \        ==> Key (shrK A) ~: parts (sees lost Spy evs)";
@@ -190,18 +191,6 @@ by (fast_tac (!claset addDs [lemma]) 1);
 qed "new_nonces_not_seen";
 Addsimps [new_nonces_not_seen];
 
-(*Another variant: old messages must contain old nonces!*)
-goal thy 
- "!!evs. [| Says A B X : set_of_list evs;  \
-\           Nonce (newN evt) : parts {X};    \
-\           evs : ns_shared lost                 \
-\        |] ==> length evt < length evs";
-by (rtac ccontr 1);
-by (dtac leI 1);
-by (fast_tac (!claset addSDs [new_nonces_not_seen, Says_imp_sees_Spy]
-                      addIs  [impOfSubs parts_mono]) 1);
-qed "Says_imp_old_nonces";
-
 
 (*Nobody can have USED keys that will be generated in the future.
   ...very like new_keys_not_seen*)
@@ -287,9 +276,9 @@ goal thy
 \                               length evt < length evs &                  \
 \                               X = (Crypt {|Key K, Agent A|} (shrK B)))   \
 \          | X : analz (sees lost Spy evs)";
-by (excluded_middle_tac "A : lost" 1);
+by (case_tac "A : lost" 1);
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]
-                      addss (!simpset)) 2);
+                      addss (!simpset)) 1);
 by (forward_tac [Says_imp_sees_Spy RS parts.Inj] 1);
 by (fast_tac (!claset addEs  partsEs
                       addSDs [A_trust_NS2, Says_Server_message_form]
@@ -352,9 +341,9 @@ goal thy
 \           evs : ns_shared lost |]                      \
 \        ==> (EX evt: ns_shared lost. K = newK evt)          \
 \          | Key K : analz (sees lost Spy evs)";
-by (excluded_middle_tac "A : lost" 1);
+by (case_tac "A : lost" 1);
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]
-                      addss (!simpset)) 2);
+                      addss (!simpset)) 1);
 by (forward_tac [lemma] 1);
 by (fast_tac (!claset addEs  partsEs
                       addSDs [Says_imp_sees_Spy RS parts.Inj]) 1);
@@ -535,45 +524,45 @@ qed "B_trust_NS3";
 
 
 goal thy
- "!!evs. [| Crypt (Nonce NB) K : parts (sees lost Spy evs);            \
-\           A ~: lost;  B ~: lost;  evs : ns_shared lost |]            \
-\        ==> Says Server A                                             \
-\              (Crypt {|NA, Agent B, Key K, X|} (shrK A))  \
-\             : set_of_list evs \
-\            --> (ALL NB. Says A Spy {|NA, NB, Key K|} ~: set_of_list evs) \
-\                 --> Says B A (Crypt (Nonce NB) K) : set_of_list evs";
-by (etac rev_mp 1);
+ "!!evs. [| B ~: lost;  evs : ns_shared lost |]            \
+\        ==> Key K ~: analz (sees lost Spy evs) -->             \
+\            Says Server A (Crypt {|NA, Agent B, Key K, X|} (shrK A))  \
+\            : set_of_list evs --> \
+\            Crypt (Nonce NB) K : parts (sees lost Spy evs) -->            \
+\            Says B A (Crypt (Nonce NB) K) : set_of_list evs";
 by (etac ns_shared.induct 1);
 by (forward_tac [Says_S_message_form] 5 THEN assume_tac 5);     
 by parts_Fake_tac;
-by (ALLGOALS
-    (asm_simp_tac (!simpset addsimps [de_Morgan_disj, all_conj_distrib])));
-(**LEVEL 5**)
-by (REPEAT_FIRST (rtac impI));
-by (subgoal_tac "Key K ~: analz (sees lost Spy evsa)" 1);
-by (fast_tac (!claset addSEs [Spy_not_see_encrypted_key RSN (2, rev_notE)]) 2);
-by (best_tac (!claset addSDs [Crypt_Fake_parts_insert]
-                      addSIs  [disjI2,
-			       impOfSubs (sees_subset_sees_Says RS analz_mono)]
-                      addss  (!simpset)) 1);
-by (fast_tac (!claset addSIs  [impOfSubs (sees_subset_sees_Says RS analz_mono)]
-                      addss  (!simpset)) 2);
-(**LEVEL 10**)
+by (TRYALL (rtac impI));
+by (REPEAT_FIRST
+    (dtac (sees_subset_sees_Says RS analz_mono RS contra_subsetD)));
+by (ALLGOALS (asm_simp_tac (!simpset addsimps [all_conj_distrib])));
+(**LEVEL 6**)
+by (fast_tac (!claset addSDs [Crypt_Fake_parts_insert]
+                      addDs [impOfSubs analz_subset_parts]) 1);
+by (Fast_tac 2);
+by (REPEAT_FIRST (rtac impI ORELSE' etac conjE ORELSE' hyp_subst_tac));
 (*Contradiction from the assumption   
    Crypt (Nonce NB) (newK evsa) : parts (sees lost Spy evsa) *)
 bd Crypt_imp_invKey_keysFor 1;
+(**LEVEL 10**)
 by (Asm_full_simp_tac 1);
-
-fr disjI1;
-by (REPEAT_FIRST (eresolve_tac [asm_rl, conjE] ORELSE' hyp_subst_tac));
+br disjI1 1;
 by (thin_tac "?PP-->?QQ" 1);
-by (subgoal_tac "Key K ~: analz (sees lost Spy evsa)" 1);
-by (fast_tac (!claset addSEs [Spy_not_see_encrypted_key RSN (2, rev_notE)]) 2);
 by (case_tac "Ba : lost" 1);
 by (dtac Says_Crypt_lost 1 THEN assume_tac 1 THEN Fast_tac 1);
 by (dtac (Says_imp_sees_Spy RS parts.Inj RS B_trust_NS3) 1 THEN 
     REPEAT (assume_tac 1));
-be exE 1;
-by (dtac unique_session_keys 1 THEN REPEAT (assume_tac 1));
-by (Fast_tac 1);
+by (fast_tac (!claset addDs [unique_session_keys]) 1);
+val lemma = result();
+
+goal thy
+ "!!evs. [| Crypt (Nonce NB) K : parts (sees lost Spy evs);            \
+\           Says Server A (Crypt {|NA, Agent B, Key K, X|} (shrK A))  \
+\           : set_of_list evs;            \
+\           ALL NB. Says A Spy {|NA, NB, Key K|} ~: set_of_list evs;  \
+\           A ~: lost;  B ~: lost;  evs : ns_shared lost |]            \
+\        ==> Says B A (Crypt (Nonce NB) K) : set_of_list evs";
+by (fast_tac (!claset addSIs [lemma RS mp RS mp RS mp]
+		      addSEs [Spy_not_see_encrypted_key RSN (2, rev_notE)]) 1);
 qed "A_trust_NS4";
