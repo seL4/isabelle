@@ -88,15 +88,14 @@ qed "abs_ge_minus_self";
 
 Goalw [abs_real_def] "abs (x * y) = abs x * abs (y::real)";
 by (auto_tac (claset() addSDs [order_antisym],
-	      simpset() addsimps [real_0_le_times_iff]));
+	      simpset() addsimps [real_0_le_mult_iff]));
 qed "abs_mult";
 
 Goalw [abs_real_def] "x~= (#0::real) ==> abs(rinv(x)) = rinv(abs(x))";
 by (auto_tac (claset(), 
               simpset() addsimps [real_le_less] @ 
-    (map (full_rename_numerals thy) [real_minus_rinv, real_rinv_gt_zero])));
-by (etac (full_rename_numerals thy (real_rinv_less_zero 
-    RSN (2,real_less_asym))) 1);
+	    (map (rename_numerals thy) [real_minus_rinv, real_rinv_gt_zero])));
+by (etac (rename_numerals thy (real_rinv_less_zero RSN (2,real_less_asym))) 1);
 by (arith_tac 1);
 qed "abs_rinv";
 
@@ -139,8 +138,8 @@ by (Simp_tac 1);
 qed "real_mult_0_less";
 
 Goal "[| (#0::real)<y; x<r; y*r<t*s |] ==> y*x<t*s";
-by (blast_tac (claset() addSIs [full_rename_numerals thy 
-    real_mult_less_mono2] addIs  [real_less_trans]) 1);
+by (blast_tac (claset() addSIs [rename_numerals thy real_mult_less_mono2] 
+                        addIs  [real_less_trans]) 1);
 qed "real_mult_less_trans";
 
 Goal "[| (#0::real)<=y; x<r; y*r<t*s; #0<t*s|] ==> y*x<t*s";
@@ -154,7 +153,7 @@ by (simp_tac (simpset() addsimps [abs_mult]) 1);
 by (rtac real_mult_le_less_trans 1);
 by (rtac abs_ge_zero 1);
 by (assume_tac 1);
-by (rtac (full_rename_numerals thy real_mult_order) 2);
+by (rtac (rename_numerals thy real_mult_order) 2);
 by (auto_tac (claset() addSIs [real_mult_less_mono1,
     abs_ge_zero] addIs [real_le_less_trans],simpset()));
 qed "abs_mult_less";
@@ -168,8 +167,8 @@ Goal "(#1::real) < abs x ==> abs y <= abs(x*y)";
 by (cut_inst_tac [("x1","y")] (abs_ge_zero RS real_le_imp_less_or_eq) 1);
 by (EVERY1[etac disjE,rtac real_less_imp_le]);
 by (dres_inst_tac [("W","#1")]  real_less_sum_gt_zero 1);
-by (forw_inst_tac [("y","abs x + (-#1)")] (full_rename_numerals thy
-    real_mult_order) 1);
+by (forw_inst_tac [("y","abs x + (-#1)")] 
+    (rename_numerals thy real_mult_order) 1);
 by (rtac real_sum_gt_zero_less 2);
 by (asm_full_simp_tac (simpset() 
     addsimps [real_add_mult_distrib2,

@@ -17,16 +17,16 @@ claset_ref() := claset() delWrapper "bspec";
 Goal "ALL x:P. #0 < x ==> \ 
 \       ((EX x:P. y < x) = (EX X. real_of_preal X : P & \
 \                          y < real_of_preal X))";
-by (blast_tac (claset() addSDs [bspec,rename_numerals thy
-				real_gt_zero_preal_Ex RS iffD1]) 1);
+by (blast_tac (claset() addSDs [bspec, 
+		    rename_numerals thy real_gt_zero_preal_Ex RS iffD1]) 1);
 qed "real_sup_lemma1";
 
 Goal "[| ALL x:P. #0 < x; EX x. x: P; EX y. ALL x: P. x < y |] \
 \         ==> (EX X. X: {w. real_of_preal w : P}) & \
 \             (EX Y. ALL X: {w. real_of_preal w : P}. X < Y)";
 by (rtac conjI 1);
-by (blast_tac (claset() addDs [bspec, rename_numerals thy 
-    real_gt_zero_preal_Ex RS iffD1]) 1);
+by (blast_tac (claset() addDs [bspec, 
+                rename_numerals thy real_gt_zero_preal_Ex RS iffD1]) 1);
 by Auto_tac;
 by (dtac bspec 1 THEN assume_tac 1);
 by (ftac bspec 1  THEN assume_tac 1);
@@ -57,7 +57,7 @@ by Auto_tac;
 by (ftac real_sup_lemma2 1 THEN Auto_tac);
 by (case_tac "#0 < ya" 1);
 by (dtac ((rename_numerals thy real_gt_zero_preal_Ex) RS iffD1) 1);
-by (dtac (full_rename_numerals thy real_less_all_real2) 2);
+by (dtac (rename_numerals thy real_less_all_real2) 2);
 by Auto_tac;
 by (rtac (preal_complete RS spec RS iffD1) 1);
 by Auto_tac;
@@ -66,9 +66,10 @@ by Auto_tac;
 (* second part *)
 by (rtac (real_sup_lemma1 RS iffD2) 1 THEN assume_tac 1);
 by (case_tac "#0 < ya" 1);
-by (auto_tac (claset() addSDs (map (full_rename_numerals 
-    thy) [real_less_all_real2,real_gt_zero_preal_Ex RS iffD1]),
-    simpset()));
+by (auto_tac (claset() addSDs (map (rename_numerals thy) 
+			       [real_less_all_real2,
+				real_gt_zero_preal_Ex RS iffD1]),
+	      simpset()));
 by (ftac real_sup_lemma2 2 THEN Auto_tac);
 by (ftac real_sup_lemma2 1 THEN Auto_tac);
 by (rtac (preal_complete RS spec RS iffD2 RS bexE) 1);
@@ -104,8 +105,8 @@ by (res_inst_tac
 by (auto_tac (claset(), simpset() addsimps 
     [isLub_def,leastP_def,isUb_def]));
 by (auto_tac (claset() addSIs [setleI,setgeI] 
-     addSDs [(rename_numerals thy real_gt_zero_preal_Ex)
-     RS iffD1],simpset()));
+	         addSDs [(rename_numerals thy real_gt_zero_preal_Ex) RS iffD1],
+	      simpset()));
 by (forw_inst_tac [("x","y")] bspec 1 THEN assume_tac 1);
 by (dtac ((rename_numerals thy real_gt_zero_preal_Ex) RS iffD1) 1);
 by (auto_tac (claset(), simpset() addsimps [real_of_preal_le_iff]));
@@ -232,17 +233,15 @@ by (res_inst_tac [("x","0")] exI 1);
 by (res_inst_tac [("x","0")] exI 2);
 by (auto_tac (claset() addEs [real_less_trans],
 	      simpset() addsimps [real_of_posnat_one,real_zero_less_one]));
-by (forward_tac [((full_rename_numerals thy real_rinv_gt_zero)
-     RS reals_Archimedean)] 1);
+by (ftac ((rename_numerals thy real_rinv_gt_zero) RS reals_Archimedean) 1);
 by (Step_tac 1 THEN res_inst_tac [("x","n")] exI 1);
-by (forw_inst_tac [("y","rinv x")] 
-    (full_rename_numerals thy real_mult_less_mono1) 1);
+by (forw_inst_tac [("y","rinv x")]
+    (rename_numerals thy real_mult_less_mono1) 1);
 by (auto_tac (claset(),simpset() addsimps [real_not_refl2 RS not_sym]));
 by (dres_inst_tac [("n1","n"),("y","#1")] 
      (real_of_posnat_less_zero RS real_mult_less_mono2)  1);
 by (auto_tac (claset(),
-	      simpset() addsimps [rename_numerals thy 
-                                  real_of_posnat_less_zero,
+	      simpset() addsimps [rename_numerals thy real_of_posnat_less_zero,
 				  real_not_refl2 RS not_sym,
 				  real_mult_assoc RS sym]));
 qed "reals_Archimedean2";
