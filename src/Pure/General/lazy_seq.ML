@@ -397,8 +397,8 @@ fun op APPEND (f, g) x =
 	make (fn () => copy (f x))
     end
 
-fun EVERY fs = Library.foldr THEN (fs, succeed)
-fun FIRST fs = Library.foldr ORELSE (fs, fail)
+fun EVERY fs = foldr THEN succeed fs
+fun FIRST fs = foldr ORELSE fail fs
 
 fun TRY f x =
     make (fn () =>

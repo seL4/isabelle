@@ -78,7 +78,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     val branchT = if null branchTs then HOLogic.unitT
       else fold_bal (fn (T, U) => Type ("+", [T, U])) branchTs;
     val arities = get_arities descr' \ 0;
-    val unneeded_vars = hd tyvars \\ Library.foldr add_typ_tfree_names (leafTs' @ branchTs, []);
+    val unneeded_vars = hd tyvars \\ foldr add_typ_tfree_names [] (leafTs' @ branchTs);
     val leafTs = leafTs' @ (map (fn n => TFree (n, valOf (assoc (sorts, n)))) unneeded_vars);
     val recTs = get_rec_types descr' sorts;
     val newTs = Library.take (length (hd descr), recTs);
@@ -134,7 +134,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       in mk_inj branchT (length branchTs) (1 + find_index_eq T' branchTs)
       end;
 
-    val mk_lim = Library.foldr (fn (T, t) => Lim $ mk_fun_inj T (Abs ("x", T, t)));
+    val mk_lim = foldr (fn (T, t) => Lim $ mk_fun_inj T (Abs ("x", T, t)));
 
     (************** generate introduction rules for representing set **********)
 
@@ -153,14 +153,14 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
               in (j + 1, list_all (map (pair "x") Ts,
                   HOLogic.mk_Trueprop (HOLogic.mk_mem (free_t,
                     Const (List.nth (rep_set_names, k), UnivT)))) :: prems,
-                mk_lim (Ts, free_t) :: ts)
+                mk_lim free_t Ts :: ts)
               end
           | _ =>
               let val T = typ_of_dtyp descr' sorts dt
               in (j + 1, prems, (Leaf $ mk_inj T (mk_Free "x" T j))::ts)
               end);
 
-        val (_, prems, ts) = Library.foldr mk_prem (cargs, (1, [], []));
+        val (_, prems, ts) = foldr mk_prem (1, [], []) cargs;
         val concl = HOLogic.mk_Trueprop (HOLogic.mk_mem
           (mk_univ_inj ts n i, Const (s, UnivT)))
       in Logic.list_implies (prems, concl)
@@ -210,13 +210,13 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
           let val T = typ_of_dtyp descr' sorts dt;
               val free_t = mk_Free "x" T j
           in (case (strip_dtyp dt, strip_type T) of
-              ((_, DtRec m), (Us, U)) => (j + 1, free_t :: l_args, mk_lim (Us,
-                Const (List.nth (all_rep_names, m), U --> Univ_elT) $
-                  app_bnds free_t (length Us)) :: r_args)
+              ((_, DtRec m), (Us, U)) => (j + 1, free_t :: l_args, mk_lim
+                (Const (List.nth (all_rep_names, m), U --> Univ_elT) $
+                   app_bnds free_t (length Us)) Us :: r_args)
             | _ => (j + 1, free_t::l_args, (Leaf $ mk_inj T free_t)::r_args))
           end;
 
-        val (_, l_args, r_args) = Library.foldr constr_arg (cargs, (1, [], []));
+        val (_, l_args, r_args) = foldr constr_arg (1, [], []) cargs;
         val constrT = (map (typ_of_dtyp descr' sorts) cargs) ---> T;
         val abs_name = Sign.intern_const (Theory.sign_of thy) ("Abs_" ^ tname);
         val rep_name = Sign.intern_const (Theory.sign_of thy) ("Rep_" ^ tname);
@@ -329,13 +329,13 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
             val (Us, U) = strip_type T'
           in (case strip_dtyp dt of
               (_, DtRec j) => if j mem ks' then
-                  (i2 + 1, i2' + 1, ts @ [mk_lim (Us, app_bnds
-                     (mk_Free "y" (Us ---> Univ_elT) i2') (length Us))],
+                  (i2 + 1, i2' + 1, ts @ [mk_lim (app_bnds
+                     (mk_Free "y" (Us ---> Univ_elT) i2') (length Us)) Us],
                    Ts @ [Us ---> Univ_elT])
                 else
-                  (i2 + 1, i2', ts @ [mk_lim (Us,
-                     Const (List.nth (all_rep_names, j), U --> Univ_elT) $
-                       app_bnds (mk_Free "x" T' i2) (length Us))], Ts)
+                  (i2 + 1, i2', ts @ [mk_lim
+                     (Const (List.nth (all_rep_names, j), U --> Univ_elT) $
+                        app_bnds (mk_Free "x" T' i2) (length Us)) Us], Ts)
             | _ => (i2 + 1, i2', ts @ [Leaf $ mk_inj T' (mk_Free "x" T' i2)], Ts))
           end;
 
@@ -380,8 +380,8 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
       in (thy', char_thms' @ char_thms) end;
 
-    val (thy5, iso_char_thms) = Library.foldr make_iso_defs
-      (tl descr, (add_path flat_names big_name thy4, []));
+    val (thy5, iso_char_thms) = foldr make_iso_defs
+      (add_path flat_names big_name thy4, []) (tl descr);
 
     (* prove isomorphism properties *)
 
@@ -469,8 +469,8 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       in (inj_thms'' @ inj_thms, elem_thms @ (split_conj_thm elem_thm))
       end;
 
-    val (iso_inj_thms_unfolded, iso_elem_thms) = Library.foldr prove_iso_thms
-      (tl descr, ([], map #3 newT_iso_axms));
+    val (iso_inj_thms_unfolded, iso_elem_thms) = foldr prove_iso_thms
+      ([], map #3 newT_iso_axms) (tl descr);
     val iso_inj_thms = map snd newT_iso_inj_thms @ iso_inj_thms_unfolded;
 
     (* prove  x : dt_rep_set_i --> x : range dt_Rep_i *)

@@ -18,8 +18,8 @@ fun foldr'' f (l,f2) = let fun itr []  = raise Fail "foldr''"
 			     | itr (a::l) = f(a, itr l)
 in  itr l  end;
 fun foldr' f l = foldr'' f (l,Id);
-fun map_cumulr f start xs = Library.foldr (fn (x,(ys,res))=>case f(x,res) of (y,res2) =>
-						  (y::ys,res2)) (xs,([],start));
+fun map_cumulr f start xs = foldr (fn (x,(ys,res))=>case f(x,res) of (y,res2) =>
+						  (y::ys,res2)) ([],start) xs;
 
 
 fun first  (x,_,_) = x; fun second (_,x,_) = x; fun third  (_,_,x) = x;

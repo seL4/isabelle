@@ -287,7 +287,7 @@ fun merge eq tabs = join (fn (y, x) => if eq (y, x) then SOME y else NONE) tabs;
 fun lookup_multi tab_key = getOpt (lookup tab_key,[]);
 fun update_multi ((key, x), tab) = update ((key, x :: lookup_multi (tab, key)), tab);
 
-fun make_multi pairs = Library.foldr update_multi (pairs, empty);
+fun make_multi pairs = foldr update_multi empty pairs;
 fun dest_multi tab = List.concat (map (fn (key, xs) => map (Library.pair key) xs) (dest tab));
 fun merge_multi eq tabs = join (fn (xs, xs') => SOME (gen_merge_lists eq xs xs')) tabs;
 fun merge_multi' eq tabs = join (fn (xs, xs') => SOME (gen_merge_lists' eq xs xs')) tabs;

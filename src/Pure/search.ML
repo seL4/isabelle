@@ -215,8 +215,8 @@ fun THEN_BEST_FIRST tac0 (satp, sizef) tac1 =
       fun pairsize th = (sizef th, th);
       fun bfs (news,nprf_heap) =
 	   (case  List.partition satp news  of
-		([],nonsats) => next(Library.foldr ThmHeap.insert
-					(map pairsize nonsats, nprf_heap)) 
+		([],nonsats) => next(foldr ThmHeap.insert
+					nprf_heap (map pairsize nonsats))
 	      | (sats,_)  => some_of_list sats)
       and next nprf_heap =
             if ThmHeap.is_empty nprf_heap then NONE
@@ -277,7 +277,7 @@ fun THEN_ASTAR tac0 (satp, costf) tac1 =
       let fun cost thm = (level, costf level thm, thm)
       in (case  List.partition satp news  of
             ([],nonsats) 
-		 => next (Library.foldr insert_with_level (map cost nonsats, nprfs))
+		 => next (foldr insert_with_level nprfs (map cost nonsats))
           | (sats,_)  => some_of_list sats)
       end and    
       next []  = NONE

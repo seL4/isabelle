@@ -442,7 +442,7 @@ fun dvd_op (d, t) =
    val ts = coeffs_of t
    in case ts of
      [] => raise DVD_UNKNOWN
-    |_  => Library.foldr (fn(k,r) => r andalso (k mod dn = 0)) (ts,true)
+    |_  => foldr (fn(k,r) => r andalso (k mod dn = 0)) true ts
    end;
 
 
@@ -736,7 +736,7 @@ fun set_w d b st vars x p = let
              in (rw,HOLogic.mk_disj(F',rf)) 
 	     end)
     val f = if b then linear_add else linear_sub
-    val p_elements = Library.foldr (fn (i,l) => l union (map (fn e => f [] e (mk_numeral i)) st)) (1 upto d,[])
+    val p_elements = foldr (fn (i,l) => l union (map (fn e => f [] e (mk_numeral i)) st)) [] (1 upto d)
     in h p_elements
     end;
 

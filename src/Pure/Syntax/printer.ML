@@ -246,7 +246,7 @@ fun extend_prtabs prtabs mode xprods =
   let
     val fmts = List.mapPartial xprod_to_fmt xprods;
     val tab = get_tab prtabs mode;
-    val new_tab = Library.foldr Symtab.update_multi (rev fmts, tab);
+    val new_tab = foldr Symtab.update_multi tab (rev fmts);
   in overwrite (prtabs, (mode, new_tab)) end;
 
 fun merge_prtabs prtabs1 prtabs2 =

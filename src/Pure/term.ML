@@ -773,11 +773,11 @@ fun invent_names _ _ 0 = []
 
 (** Consts etc. **)
 
-fun add_typ_classes (Type (_, Ts), cs) = Library.foldr add_typ_classes (Ts, cs)
+fun add_typ_classes (Type (_, Ts), cs) = foldr add_typ_classes cs Ts
   | add_typ_classes (TFree (_, S), cs) = S union cs
   | add_typ_classes (TVar (_, S), cs) = S union cs;
 
-fun add_typ_tycons (Type (c, Ts), cs) = Library.foldr add_typ_tycons (Ts, c ins cs)
+fun add_typ_tycons (Type (c, Ts), cs) = foldr add_typ_tycons (c ins cs) Ts
   | add_typ_tycons (_, cs) = cs;
 
 val add_term_classes = it_term_types add_typ_classes;
@@ -840,20 +840,20 @@ fun add_term_names (Const(a,_), bs) = NameSpace.base a ins_string bs
   | add_term_names (_, bs) = bs;
 
 (*Accumulates the TVars in a type, suppressing duplicates. *)
-fun add_typ_tvars(Type(_,Ts),vs) = Library.foldr add_typ_tvars (Ts,vs)
+fun add_typ_tvars(Type(_,Ts),vs) = foldr add_typ_tvars vs Ts
   | add_typ_tvars(TFree(_),vs) = vs
   | add_typ_tvars(TVar(v),vs) = v ins vs;
 
 (*Accumulates the TFrees in a type, suppressing duplicates. *)
-fun add_typ_tfree_names(Type(_,Ts),fs) = Library.foldr add_typ_tfree_names (Ts,fs)
+fun add_typ_tfree_names(Type(_,Ts),fs) = foldr add_typ_tfree_names fs Ts
   | add_typ_tfree_names(TFree(f,_),fs) = f ins_string fs
   | add_typ_tfree_names(TVar(_),fs) = fs;
 
-fun add_typ_tfrees(Type(_,Ts),fs) = Library.foldr add_typ_tfrees (Ts,fs)
+fun add_typ_tfrees(Type(_,Ts),fs) = foldr add_typ_tfrees fs Ts
   | add_typ_tfrees(TFree(f),fs) = f ins fs
   | add_typ_tfrees(TVar(_),fs) = fs;
 
-fun add_typ_varnames(Type(_,Ts),nms) = Library.foldr add_typ_varnames (Ts,nms)
+fun add_typ_varnames(Type(_,Ts),nms) = foldr add_typ_varnames nms Ts
   | add_typ_varnames(TFree(nm,_),nms) = nm ins_string nms
   | add_typ_varnames(TVar((nm,_),_),nms) = nm ins_string nms;
 

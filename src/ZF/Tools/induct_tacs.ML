@@ -178,7 +178,7 @@ fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
               (Symtab.update
                ((big_rec_name, dt_info), DatatypesData.get thy))
           |> ConstructorsData.put
-               (Library.foldr Symtab.update (con_pairs, ConstructorsData.get thy))
+               (foldr Symtab.update (ConstructorsData.get thy) con_pairs)
           |> Theory.parent_path
   end;
 

@@ -133,8 +133,8 @@ fun DISCH_ALL thm = U.itlist DISCH (#hyps (Thm.crep_thm thm)) thm;
 
 fun FILTER_DISCH_ALL P thm =
  let fun check tm = P (#t (Thm.rep_cterm tm))
- in  Library.foldr (fn (tm,th) => if check tm then DISCH tm th else th)
-              (chyps thm, thm)
+ in  foldr (fn (tm,th) => if check tm then DISCH tm th else th)
+              thm (chyps thm)
  end;
 
 (* freezeT expensive! *)

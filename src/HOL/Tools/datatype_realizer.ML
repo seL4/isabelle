@@ -144,8 +144,8 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
       tname_of (body_type T) mem ["set", "bool"]) ivs);
     val ivs2 = map (fn (ixn, _) => Var (ixn, valOf (assoc (rvs, ixn)))) ivs;
 
-    val prf = Library.foldr forall_intr_prf (ivs2,
-      Library.foldr (fn ((f, p), prf) =>
+    val prf = foldr forall_intr_prf
+     (foldr (fn ((f, p), prf) =>
         (case head_of (strip_abs_body f) of
            Free (s, T) =>
              let val T' = Type.varifyT T
@@ -153,12 +153,12 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
                (Var ((s, 0), T')) (AbsP ("H", SOME p, prf)))
              end
          | _ => AbsP ("H", SOME p, prf)))
-           (rec_fns ~~ prems_of thm, Proofterm.proof_combP
-             (prf_of thm', map PBound (length prems - 1 downto 0))));
+           (Proofterm.proof_combP
+             (prf_of thm', map PBound (length prems - 1 downto 0))) (rec_fns ~~ prems_of thm)) ivs2;
 
-    val r' = if null is then r else Logic.varify (Library.foldr (uncurry lambda)
-      (map Logic.unvarify ivs1 @ filter_out is_unit
-        (map (head_of o strip_abs_body) rec_fns), r));
+    val r' = if null is then r else Logic.varify (foldr (uncurry lambda)
+      r (map Logic.unvarify ivs1 @ filter_out is_unit
+          (map (head_of o strip_abs_body) rec_fns)));
 
   in Extraction.add_realizers_i [(ind_name, (vs, r', prf))] thy' end;
 
@@ -209,10 +209,10 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaustion, .
 
     val P = Var (("P", 0), rT' --> HOLogic.boolT);
     val prf = forall_intr_prf (y, forall_intr_prf (P,
-      Library.foldr (fn ((p, r), prf) =>
+      foldr (fn ((p, r), prf) =>
         forall_intr_prf (Logic.varify r, AbsP ("H", SOME (Logic.varify p),
-          prf))) (prems ~~ rs, Proofterm.proof_combP (prf_of thm',
-            map PBound (length prems - 1 downto 0)))));
+          prf))) (Proofterm.proof_combP (prf_of thm',
+            map PBound (length prems - 1 downto 0))) (prems ~~ rs)));
     val r' = Logic.varify (Abs ("y", Type.varifyT T,
       list_abs (map dest_Free rs, list_comb (r,
         map Bound ((length rs - 1 downto 0) @ [length rs])))));

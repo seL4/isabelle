@@ -161,7 +161,7 @@ fun add_hidden_vars ccs =
                      in case f of
                             Const(c,T) => 
                                 if c mem ccs
-                                then Library.foldr add_hvars (args,hvars)
+                                then foldr add_hvars hvars args
                                 else add_term_vars(tm,hvars)
                           | _ => add_term_vars(tm,hvars)
                      end
@@ -173,7 +173,7 @@ fun add_new_asm_vars new_asms =
                 if at then vars else add_term_vars(tm,vars)
         fun add_list(tm,al,vars) = let val (_,tml) = strip_comb tm
                 in if length(tml)=length(al)
-                   then Library.foldr itf (tml~~al,vars)
+                   then foldr itf vars (tml~~al)
                    else vars
                 end
         fun add_vars (tm,vars) = case tm of
@@ -194,12 +194,12 @@ let val thm' = mk_trans2 thm;
     val lhs = rhs_of_eq 1 thm'
     val rhs = lhs_of_eq nops thm'
     val asms = tl(rev(tl(prems_of thm')))
-    val hvars = Library.foldr (add_hidden_vars ccs) (lhs::rhs::asms,[])
+    val hvars = foldr (add_hidden_vars ccs) [] (lhs::rhs::asms)
     val hvars = add_new_asm_vars new_asms (rhs,hvars)
     fun it_asms (asm,hvars) =
         if atomic asm then add_new_asm_vars new_asms (asm,hvars)
         else add_term_frees(asm,hvars)
-    val hvars = Library.foldr it_asms (asms,hvars)
+    val hvars = foldr it_asms hvars asms
     val hvs = map (#1 o dest_Var) hvars
     val refl1_tac = refl_tac 1
     fun norm_step_tac st = st |>
@@ -252,12 +252,12 @@ fun insert_thm_warn (th,net) =
     (writeln"\nDuplicate rewrite or congruence rule:"; print_thm th;
      net);
 
-val insert_thms = Library.foldr insert_thm_warn;
+val insert_thms = foldr insert_thm_warn;
 
 fun addrew(SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}, thm) =
 let val thms = mk_simps thm
 in SS{auto_tac=auto_tac,congs=congs, cong_net=cong_net, mk_simps=mk_simps,
-      simps = (thm,thms)::simps, simp_net = insert_thms(thms,simp_net)}
+      simps = (thm,thms)::simps, simp_net = insert_thms simp_net thms}
 end;
 
 val op addrews = Library.foldl addrew;
@@ -265,7 +265,7 @@ val op addrews = Library.foldl addrew;
 fun op addcongs(SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}, thms) =
 let val congs' = thms @ congs;
 in SS{auto_tac=auto_tac, congs= congs',
-      cong_net= insert_thms (map mk_trans thms,cong_net),
+      cong_net= insert_thms cong_net (map mk_trans thms),
       mk_simps= normed_rews congs', simps=simps, simp_net=simp_net}
 end;
 
@@ -278,12 +278,12 @@ fun delete_thm_warn (th,net) =
     (writeln"\nNo such rewrite or congruence rule:";  print_thm th;
      net);
 
-val delete_thms = Library.foldr delete_thm_warn;
+val delete_thms = foldr delete_thm_warn;
 
 fun op delcongs(SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}, thms) =
 let val congs' = Library.foldl (gen_rem Drule.eq_thm_prop) (congs,thms)
 in SS{auto_tac=auto_tac, congs= congs',
-      cong_net= delete_thms(map mk_trans thms,cong_net),
+      cong_net= delete_thms cong_net (map mk_trans thms),
       mk_simps= normed_rews congs', simps=simps, simp_net=simp_net}
 end;
 
@@ -295,7 +295,7 @@ let fun find((p as (th,ths))::ps',ps) =
                            ([],simps'))
     val (thms,simps') = find(simps,[])
 in SS{auto_tac=auto_tac, congs=congs, cong_net=cong_net, mk_simps=mk_simps,
-      simps = simps', simp_net = delete_thms(thms,simp_net)}
+      simps = simps', simp_net = delete_thms simp_net thms}
 end;
 
 val op delrews = Library.foldl delrew;
@@ -439,7 +439,7 @@ fun add_asms(ss,thm,a,anet,ats,cs) =
         val thms = map (trivial o cterm_of(#sign(rep_thm(thm))))As;
         val new_rws = List.concat(map mk_rew_rules thms);
         val rwrls = map mk_trans (List.concat(map mk_rew_rules thms));
-        val anet' = Library.foldr lhs_insert_thm (rwrls,anet)
+        val anet' = foldr lhs_insert_thm anet rwrls
     in  if !tracing andalso not(null new_rws)
         then (writeln"Adding rewrites:";  prths new_rws;  ())
         else ();

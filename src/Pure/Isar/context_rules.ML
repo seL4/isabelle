@@ -203,7 +203,7 @@ val addWrapper = gen_add_wrapper Library.apsnd;
 
 fun gen_wrap which ctxt =
   let val Rules {wrappers, ...} = LocalRules.get ctxt
-  in fn tac => Library.foldr (fn ((w, _), t) => w t) (which wrappers, tac) end;
+  in fn tac => foldr (fn ((w, _), t) => w t) tac (which wrappers) end;
 
 val Swrap = gen_wrap #1;
 val wrap = gen_wrap #2;

@@ -34,6 +34,6 @@ SPECS="$@"; shift "$#"
 ## main
 
 #set by configure
-AUTO_PERL=perl
+AUTO_PERL=/usr/bin/perl
 
 find $SPECS -name \*.ML -print | xargs "$AUTO_PERL" -w "$ISABELLE_HOME/lib/scripts/fixgoal.pl"

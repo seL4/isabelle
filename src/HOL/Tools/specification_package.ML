@@ -141,7 +141,7 @@ fun process_spec axiomatic cos alt_props int thy =
 		val tsig = Sign.tsig_of (sign_of thy)
 		val _ = assert (forall (fn v => Type.of_sort tsig (type_of v,HOLogic.typeS)) frees)
 			       "Specificaton: Only free variables of sort 'type' allowed"
-		val prop_closed = Library.foldr (fn ((vname,T),prop) => HOLogic.mk_all (vname,T,prop)) (map dest_Free frees,prop)
+		val prop_closed = foldr (fn ((vname,T),prop) => HOLogic.mk_all (vname,T,prop)) prop (map dest_Free frees)
 	    in
 		(prop_closed,frees)
 	    end
@@ -182,7 +182,7 @@ fun process_spec axiomatic cos alt_props int thy =
 	    in
 		HOLogic.exists_const T $ Abs(vname,T,Term.abstract_over (c,prop))
 	    end
-	val ex_prop = Library.foldr mk_exist (proc_consts,prop)
+	val ex_prop = foldr mk_exist prop proc_consts
 	val cnames = map (fst o dest_Const) proc_consts
 	fun post_process (arg as (thy,thm)) =
 	    let

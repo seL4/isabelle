@@ -217,7 +217,7 @@ fun strip_thm prf = (case strip_combt (fst (strip_combP prf)) of
       (PThm (_, prf', _, _), _) => prf'
     | _ => prf);
 
-val mk_Abst = Library.foldr (fn ((s, T:typ), prf) => Abst (s, NONE, prf));
+val mk_Abst = foldr (fn ((s, T:typ), prf) => Abst (s, NONE, prf));
 fun mk_AbsP (i, prf) = funpow i (fn prf => AbsP ("H", NONE, prf)) prf;
 
 fun apsome' f NONE = raise SAME
@@ -254,8 +254,8 @@ fun fold_proof_terms f g (a, Abst (_, SOME T, prf)) = fold_proof_terms f g (g (T
   | fold_proof_terms f g (a, prf % NONE) = fold_proof_terms f g (a, prf)
   | fold_proof_terms f g (a, prf1 %% prf2) = fold_proof_terms f g
       (fold_proof_terms f g (a, prf1), prf2)
-  | fold_proof_terms _ g (a, PThm (_, _, _, SOME Ts)) = Library.foldr g (Ts, a)
-  | fold_proof_terms _ g (a, PAxm (_, prop, SOME Ts)) = Library.foldr g (Ts, a)
+  | fold_proof_terms _ g (a, PThm (_, _, _, SOME Ts)) = foldr g a Ts
+  | fold_proof_terms _ g (a, PAxm (_, prop, SOME Ts)) = foldr g a Ts
   | fold_proof_terms _ _ (a, _) = a;
 
 val add_prf_names = fold_proof_terms add_term_names ((uncurry K) o swap);
@@ -557,7 +557,7 @@ fun freezeT t prf =
   let
     val used = it_term_types add_typ_tfree_names (t, [])
     and tvars = map #1 (it_term_types add_typ_tvars (t, []));
-    val (alist, _) = Library.foldr new_name (tvars, ([], used));
+    val (alist, _) = foldr new_name ([], used) tvars;
   in
     (case alist of
       [] => prf (*nothing to do!*)
@@ -579,9 +579,9 @@ fun rotate_proof Bs Bi m prf =
     val j = length Bs;
   in
     mk_AbsP (j+1, proof_combP (prf, map PBound
-      (j downto 1) @ [mk_Abst (params, mk_AbsP (i,
+      (j downto 1) @ [mk_Abst (mk_AbsP (i,
         proof_combP (proof_combt (PBound i, map Bound ((length params - 1) downto 0)),
-          map PBound (((i-m-1) downto 0) @ ((i-1) downto (i-m))))))]))
+          map PBound (((i-m-1) downto 0) @ ((i-1) downto (i-m)))))) params]))
   end;
 
 
@@ -637,7 +637,7 @@ fun lift_proof Bi inc prop prf =
       | lift Us bs i j (Const ("all", _) $ Abs (a, T, t)) = 
 	    Abst (a, NONE (*T*), lift (T::Us) (false::bs) i (j+1) t)
       | lift Us bs i j _ = proof_combP (lifth' (rev Us) [] prf,
-            map (fn k => (#3 (Library.foldr mk_app (bs, (i-1, j-1, PBound k)))))
+            map (fn k => (#3 (foldr mk_app (i-1, j-1, PBound k) bs)))
               (i + k - 1 downto i));
   in
     mk_AbsP (k, lift [] [] 0 0 Bi)
@@ -1127,7 +1127,7 @@ fun thm_proof sign (name, tags) hyps prop prf =
       map SOME (sort (make_ord atless) (term_frees prop));
     val opt_prf = if ! proofs = 2 then
         #4 (shrink [] 0 (rewrite_prf fst (ProofData.get_sg sign)
-          (Library.foldr (uncurry implies_intr_proof) (hyps, prf))))
+          (foldr (uncurry implies_intr_proof) prf hyps)))
       else MinProof (mk_min_proof ([], prf));
     val head = (case strip_combt (fst (strip_combP prf)) of
         (PThm ((old_name, _), prf', prop', NONE), args') =>

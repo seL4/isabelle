@@ -183,8 +183,8 @@ fun unify_consts sign cs intr_ts =
     fun varify (t, (i, ts)) =
       let val t' = map_term_types (incr_tvar (i + 1)) (#1 (Type.varify (t, [])))
       in (maxidx_of_term t', t'::ts) end;
-    val (i, cs') = Library.foldr varify (cs, (~1, []));
-    val (i', intr_ts') = Library.foldr varify (intr_ts, (i, []));
+    val (i, cs') = foldr varify (~1, []) cs;
+    val (i', intr_ts') = foldr varify (i, []) intr_ts;
     val rec_consts = Library.foldl add_term_consts_2 ([], cs');
     val intr_consts = Library.foldl add_term_consts_2 ([], intr_ts');
     fun unify (env, (cname, cT)) =
@@ -271,12 +271,12 @@ fun split_rule_var' ((t as Var (v, Type ("fun", [T1, T2])), ps), rl) =
 
 val remove_split = rewrite_rule [split_conv RS eq_reflection];
 
-fun split_rule_vars vs rl = standard (remove_split (Library.foldr split_rule_var'
-  (mg_prod_factors vs ([], Thm.prop_of rl), rl)));
+fun split_rule_vars vs rl = standard (remove_split (foldr split_rule_var'
+  rl (mg_prod_factors vs ([], Thm.prop_of rl))));
 
-fun split_rule vs rl = standard (remove_split (Library.foldr split_rule_var'
-  (List.mapPartial (fn (t as Var ((a, _), _)) =>
-    Option.map (pair t) (assoc (vs, a))) (term_vars (Thm.prop_of rl)), rl)));
+fun split_rule vs rl = standard (remove_split (foldr split_rule_var'
+  rl (List.mapPartial (fn (t as Var ((a, _), _)) =>
+      Option.map (pair t) (assoc (vs, a))) (term_vars (Thm.prop_of rl)))));
 
 
 (** process rules **)
@@ -337,7 +337,7 @@ end;
 
 fun mk_elims cs cTs params intr_ts intr_names =
   let
-    val used = Library.foldr add_term_names (intr_ts, []);
+    val used = foldr add_term_names [] intr_ts;
     val [aname, pname] = variantlist (["a", "P"], used);
     val P = HOLogic.mk_Trueprop (Free (pname, HOLogic.boolT));
 
@@ -353,7 +353,7 @@ fun mk_elims cs cTs params intr_ts intr_names =
         val a = Free (aname, T);
 
         fun mk_elim_prem (_, t, ts) =
-          list_all_free (map dest_Free ((Library.foldr add_term_frees (t::ts, [])) \\ params),
+          list_all_free (map dest_Free ((foldr add_term_frees [] (t::ts)) \\ params),
             Logic.list_implies (HOLogic.mk_Trueprop (HOLogic.mk_eq (a, t)) :: ts, P));
         val c_intrs = (List.filter (equal c o #1 o #1) intrs);
       in
@@ -369,7 +369,7 @@ fun mk_elims cs cTs params intr_ts intr_names =
 
 fun mk_indrule cs cTs params intr_ts =
   let
-    val used = Library.foldr add_term_names (intr_ts, []);
+    val used = foldr add_term_names [] intr_ts;
 
     (* predicates for induction rule *)
 
@@ -407,8 +407,8 @@ fun mk_indrule cs cTs params intr_ts =
           HOLogic.dest_Trueprop (Logic.strip_imp_concl r)
 
       in list_all_free (frees,
-           Logic.list_implies (map HOLogic.mk_Trueprop (Library.foldr mk_prem
-             (map HOLogic.dest_Trueprop (Logic.strip_imp_prems r), [])),
+           Logic.list_implies (map HOLogic.mk_Trueprop (foldr mk_prem
+             [] (map HOLogic.dest_Trueprop (Logic.strip_imp_prems r))),
                HOLogic.mk_Trueprop (valOf (pred_of u) $ t)))
       end;
 
@@ -422,15 +422,15 @@ fun mk_indrule cs cTs params intr_ts =
       let val T = HOLogic.dest_setT (fastype_of c);
           val ps = getOpt (assoc (factors, P), []);
           val Ts = prodT_factors [] ps T;
-          val (frees, x') = Library.foldr (fn (T', (fs, s)) =>
-            ((Free (s, T'))::fs, Symbol.bump_string s)) (Ts, ([], x));
+          val (frees, x') = foldr (fn (T', (fs, s)) =>
+            ((Free (s, T'))::fs, Symbol.bump_string s)) ([], x) Ts;
           val tuple = mk_tuple [] ps T frees;
       in ((HOLogic.mk_binop "op -->"
         (HOLogic.mk_mem (tuple, c), P $ tuple))::ts, x')
       end;
 
     val mutual_ind_concl = HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj
-        (fst (Library.foldr mk_ind_concl (cs ~~ preds, ([], "xa")))))
+        (fst (foldr mk_ind_concl ([], "xa") (cs ~~ preds))))
 
   in (preds, ind_prems, mutual_ind_concl,
     map (apfst (fst o dest_Free)) factors)
@@ -707,7 +707,7 @@ fun mk_ind_def declare_consts alt_name coind cs intr_ts monos thy
 
     val fp_name = if coind then gfp_name else lfp_name;
 
-    val used = Library.foldr add_term_names (intr_ts, []);
+    val used = foldr add_term_names [] intr_ts;
     val [sname, xname] = variantlist (["S", "x"], used);
 
     (* transform an introduction rule into a conjunction  *)
@@ -723,11 +723,11 @@ fun mk_ind_def declare_consts alt_name coind cs intr_ts monos thy
         val Const ("op :", _) $ t $ u =
           HOLogic.dest_Trueprop (Logic.strip_imp_concl r)
 
-      in Library.foldr (fn ((x, T), P) => HOLogic.mk_exists (x, T, P))
-        (frees, foldr1 HOLogic.mk_conj
+      in foldr (fn ((x, T), P) => HOLogic.mk_exists (x, T, P))
+        (foldr1 HOLogic.mk_conj
           (((HOLogic.eq_const sumT) $ Free (xname, sumT) $ (mk_inj cs sumT u t))::
             (map (subst o HOLogic.dest_Trueprop)
-              (Logic.strip_imp_prems r))))
+              (Logic.strip_imp_prems r)))) frees
       end
 
     (* make a disjunction of all introduction rules *)

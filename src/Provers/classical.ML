@@ -214,7 +214,7 @@ fun swap_res_tac rls =
     let fun addrl (rl,brls) = (false, rl) :: (true, rl RSN (2,swap)) :: brls
     in  assume_tac      ORELSE'
         contr_tac       ORELSE'
-        biresolve_tac (Library.foldr addrl (rls,[]))
+        biresolve_tac (foldr addrl [] rls)
     end;
 
 (*Duplication of hazardous rules, for complete provers*)
@@ -286,7 +286,7 @@ fun print_cs (CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, ...}) =
 fun rep_cs (CS args) = args;
 
 local
-  fun wrap l tac = Library.foldr (fn ((name,tacf),w) => tacf w) (l, tac);
+  fun wrap l tac = foldr (fn ((name,tacf),w) => tacf w) tac l;
 in
   fun appSWrappers (CS{swrappers,...}) = wrap swrappers;
   fun appWrappers  (CS{uwrappers,...}) = wrap uwrappers;
@@ -316,7 +316,7 @@ fun tag_brls k [] = []
 fun tag_brls' _ _ [] = []
   | tag_brls' w k (brl::brls) = ((w, k), brl) :: tag_brls' w (k + 1) brls;
 
-fun insert_tagged_list kbrls netpr = Library.foldr Tactic.insert_tagged_brl (kbrls, netpr);
+fun insert_tagged_list kbrls netpr = foldr Tactic.insert_tagged_brl netpr kbrls;
 
 (*Insert into netpair that already has nI intr rules and nE elim rules.
   Count the intr rules double (to account for swapify).  Negate to give the
@@ -324,7 +324,7 @@ fun insert_tagged_list kbrls netpr = Library.foldr Tactic.insert_tagged_brl (kbr
 fun insert (nI, nE) = insert_tagged_list o (tag_brls (~(2*nI+nE))) o joinrules;
 fun insert' w (nI, nE) = insert_tagged_list o tag_brls' w (~(nI + nE)) o joinrules';
 
-fun delete_tagged_list brls netpr = Library.foldr Tactic.delete_tagged_brl (brls, netpr);
+fun delete_tagged_list brls netpr = foldr Tactic.delete_tagged_brl netpr brls;
 fun delete x = delete_tagged_list (joinrules x);
 fun delete' x = delete_tagged_list (joinrules' x);
 

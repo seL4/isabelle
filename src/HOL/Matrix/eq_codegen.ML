@@ -377,8 +377,8 @@ fun mk_funs_code sg case_tab fs fs' =
       | SOME thms => SOME (unsuffix "_case" (Sign.base_name s) ^ ".cases",
           map (fn i => Sign.base_name s ^ "_" ^ string_of_int i)
             (1 upto length thms) ~~ thms)))
-      (Library.foldr add_term_consts (map (prop_of o snd)
-        (List.concat (map (#3 o snd) fs')), []));
+      (foldr add_term_consts [] (map (prop_of o snd)
+        (List.concat (map (#3 o snd) fs'))));
     val case_vals = map (fn (s, cs) => mk_vall (map fst cs)
       [Pretty.str "map my_mk_meta_eq", Pretty.brk 1,
        Pretty.str ("(thms \"" ^ s ^ "\")")]) case_thms;
@@ -460,10 +460,10 @@ fun mk_simprocs_code sg eqns =
     fun mk_edges (s, _, ths) = map (pair s) (distinct
       (List.mapPartial (fn t => Option.map #1 (lookup sg eqns' t))
         (List.concat (map (term_consts' o prop_of o snd) ths))));
-    val gr = Library.foldr (uncurry Graph.add_edge)
-      (map (pair "" o #1) eqns @ List.concat (map mk_edges eqns),
-       Library.foldr (uncurry Graph.new_node)
-         (("", Bound 0) :: map mk_node eqns, Graph.empty));
+    val gr = foldr (uncurry Graph.add_edge)
+      (Library.foldr (uncurry Graph.new_node)
+         (("", Bound 0) :: map mk_node eqns, Graph.empty))
+      (map (pair "" o #1) eqns @ List.concat (map mk_edges eqns));
     val keys = rev (Graph.all_succs gr [""] \ "");
     fun gr_ord (x :: _, y :: _) =
       int_ord (find_index (equal x) keys, find_index (equal y) keys);

@@ -22,15 +22,14 @@ local
 			    else foldr' mk_sprodT (map opt_lazy args);
   fun freetvar s = let val tvar = mk_TFree s in
 		   if tvar mem typevars then freetvar ("t"^s) else tvar end;
-  fun when_type (_   ,_,args) = Library.foldr (op ->>) (map third args,freetvar "t");
+  fun when_type (_   ,_,args) = foldr (op ->>) (freetvar "t") (map third args);
 in
   val dtype  = Type(dname,typevars);
   val dtype2 = foldr' mk_ssumT (map prod cons');
   val dnam = Sign.base_name dname;
   val const_rep  = (dnam^"_rep" ,              dtype  ->> dtype2, NoSyn);
   val const_abs  = (dnam^"_abs" ,              dtype2 ->> dtype , NoSyn);
-  val const_when = (dnam^"_when",Library.foldr (op ->>) ((map when_type cons'),
-					        dtype ->> freetvar "t"), NoSyn);
+  val const_when = (dnam^"_when",foldr (op ->>) (dtype ->> freetvar "t") (map when_type cons'), NoSyn);
   val const_copy = (dnam^"_copy", dtypeprod ->> dtype  ->> dtype , NoSyn);
 end;
 
@@ -42,7 +41,7 @@ local
 							 else      c::esc cs
 	|   esc []      = []
 	in implode o esc o Symbol.explode end;
-  fun con (name,s,args) = (name,Library.foldr (op ->>) (map third args,dtype),s);
+  fun con (name,s,args) = (name,foldr (op ->>) dtype (map third args),s);
   fun dis (con ,s,_   ) = (dis_name_ con, dtype->>trT,
 			   Mixfix(escape ("is_" ^ con), [], Syntax.max_pri));
 			(* stricly speaking, these constants have one argument,

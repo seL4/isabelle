@@ -128,9 +128,9 @@ fun add_rec_funs thy gr dep eqs =
                    (List.concat (map (get_equations thy) cs));
                  val (gr3, fundef') = mk_fundef "" "fun "
                    (Graph.add_edge (dname, dep)
-                     (Library.foldr (uncurry Graph.new_node) (map (fn k =>
-                       (k, (SOME (EQN ("", dummyT, dname)), ""))) xs,
-                         Graph.del_nodes xs gr2))) eqs''
+                     (foldr (uncurry Graph.new_node) (Graph.del_nodes xs gr2)
+                       (map (fn k =>
+                         (k, (SOME (EQN ("", dummyT, dname)), ""))) xs))) eqs''
                in put_code fundef' gr3 end
              else gr2)
          end

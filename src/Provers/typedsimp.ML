@@ -70,7 +70,7 @@ fun add_rule (rl, (simp_rls, other_rls)) =
     handle THM _ => (simp_rls, rl :: other_rls);
 
 (*Given the list rls, return the pair (simp_rls, other_rls).*)
-fun process_rules rls = Library.foldr add_rule (rls, ([],[]));
+fun process_rules rls = foldr add_rule ([],[]) rls;
 
 (*Given list of rewrite rules, return list of both forms, reject others*)
 fun process_rewrites rls = 

@@ -155,8 +155,8 @@ fun exh_tac exh_thm_of i state =
     val prem' = hd (prems_of exhaustion);
     val _ $ (_ $ lhs $ _) = hd (rev (Logic.strip_assums_hyp prem'));
     val exhaustion' = cterm_instantiate [(cterm_of sg (head_of lhs),
-      cterm_of sg (Library.foldr (fn ((_, T), t) => Abs ("z", T, t))
-        (params, Bound 0)))] exhaustion
+      cterm_of sg (foldr (fn ((_, T), t) => Abs ("z", T, t))
+        (Bound 0) params))] exhaustion
   in compose_tac (false, exhaustion', nprems_of exhaustion) i state
   end;
 
@@ -265,8 +265,8 @@ fun get_rec_types descr sorts = map (fn (_ , (s, ds, _)) =>
 
 fun get_branching_types descr sorts =
   map (typ_of_dtyp descr sorts) (Library.foldl (fn (Ts, (_, (_, _, constrs))) =>
-    Library.foldl (fn (Ts', (_, cargs)) => Library.foldr op union (map (fst o strip_dtyp)
-      cargs, Ts')) (Ts, constrs)) ([], descr));
+    Library.foldl (fn (Ts', (_, cargs)) => foldr op union Ts' (map (fst o strip_dtyp)
+      cargs)) (Ts, constrs)) ([], descr));
 
 fun get_arities descr = Library.foldl (fn (is, (_, (_, _, constrs))) =>
   Library.foldl (fn (is', (_, cargs)) => map (length o fst o strip_dtyp)

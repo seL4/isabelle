@@ -103,14 +103,14 @@ val split_rule_var = Drule.standard o remove_internal_split o split_rule_var';
 
 (*curries ALL function variables occurring in a rule's conclusion*)
 fun split_rule rl =
-  Library.foldr split_rule_var' (Term.term_vars (concl_of rl), rl)
+  foldr split_rule_var' rl (Term.term_vars (concl_of rl))
   |> remove_internal_split
   |> Drule.standard;
 
 fun complete_split_rule rl =
-  fst (Library.foldr complete_split_rule_var
-    (collect_vars ([], concl_of rl),
-      (rl, map (fst o fst o dest_Var) (Term.term_vars (#prop (Thm.rep_thm rl))))))
+  fst (foldr complete_split_rule_var
+    (rl, map (fst o fst o dest_Var) (Term.term_vars (#prop (Thm.rep_thm rl))))
+    (collect_vars ([], concl_of rl)))
   |> remove_internal_split
   |> Drule.standard
   |> RuleCases.save rl;

@@ -126,11 +126,11 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   (*Treatment of a list of constructors, for one part
     Result adds a list of terms, each a function variable with arguments*)
   fun add_case_list (con_ty_list, (opno, case_lists)) =
-    let val (opno', case_list) = Library.foldr add_case (con_ty_list, (opno, []))
+    let val (opno', case_list) = foldr add_case (opno, []) con_ty_list
     in (opno', case_list :: case_lists) end;
 
   (*Treatment of all parts*)
-  val (_, case_lists) = Library.foldr add_case_list (con_ty_lists, (1,[]));
+  val (_, case_lists) = foldr add_case_list (1,[]) con_ty_lists;
 
   (*extract the types of all the variables*)
   val case_typ = List.concat (map (map (#2 o #1)) con_ty_lists) ---> (iT-->iT);
@@ -170,9 +170,9 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
           val rec_args = map (make_rec_call (rev case_args,0))
                          (List.drop(recursor_args, ncase_args))
       in
-          Library.foldr add_abs
-            (case_args, list_comb (recursor_var,
-                                   bound_args @ rec_args))
+          foldr add_abs
+            (list_comb (recursor_var,
+                        bound_args @ rec_args)) case_args
       end
 
   (*Find each recursive argument and add a recursive call for it*)
@@ -202,7 +202,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val rec_ty_lists = (map (map rec_ty_elem) con_ty_lists);
 
   (*Treatment of all parts*)
-  val (_, recursor_lists) = Library.foldr add_case_list (rec_ty_lists, (1,[]));
+  val (_, recursor_lists) = foldr add_case_list (1,[]) rec_ty_lists;
 
   (*extract the types of all the variables*)
   val recursor_typ = List.concat (map (map (#2 o #1)) rec_ty_lists)
@@ -384,7 +384,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
           (("free_iffs", free_iffs), []),
           (("free_elims", free_SEs), [])])
         |> DatatypesData.map (fn tab => Symtab.update ((big_rec_name, dt_info), tab))
-        |> ConstructorsData.map (fn tab => Library.foldr Symtab.update (con_pairs, tab))
+        |> ConstructorsData.map (fn tab => foldr Symtab.update tab con_pairs)
         |> Theory.parent_path,
    ind_result,
    {con_defs = con_defs,

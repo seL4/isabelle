@@ -282,7 +282,7 @@ fun add_vars (Free (x, T), env) = ins_entry (T, (x, ~1)) env
   | add_vars (t $ u, env) = add_vars (u, add_vars (t, env))
   | add_vars (_, env) = env;
 
-fun add_varsT (Type (_, Ts), env) = Library.foldr add_varsT (Ts, env)
+fun add_varsT (Type (_, Ts), env) = foldr add_varsT env Ts
   | add_varsT (TFree (x, S), env) = ins_entry (S, (x, ~1)) env
   | add_varsT (TVar (xi, S), env) = ins_entry (S, xi) env;
 

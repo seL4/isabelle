@@ -309,7 +309,7 @@ val this = METHOD (EVERY o map (HEADGOAL o Tactic.rtac));
 (* assumption *)
 
 fun asm_tac ths =
-  Library.foldr (op APPEND') (map (fn th => Tactic.rtac th THEN_ALL_NEW assume_tac) ths, K no_tac);
+  foldr (op APPEND') (K no_tac) (map (fn th => Tactic.rtac th THEN_ALL_NEW assume_tac) ths);
 
 fun assm_tac ctxt =
   assume_tac APPEND'

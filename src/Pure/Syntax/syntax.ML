@@ -101,7 +101,7 @@ fun merge_trtabs tab1 tab2 name =
 (* print (ast) translations *)
 
 fun lookup_tr' tab c = map fst (Symtab.lookup_multi (tab, c));
-fun extend_tr'tab tab trfuns = Library.foldr Symtab.update_multi (map mk_trfun trfuns, tab);
+fun extend_tr'tab tab trfuns = foldr Symtab.update_multi tab (map mk_trfun trfuns);
 fun merge_tr'tabs tab1 tab2 = Symtab.merge_multi' eq_trfuns (tab1, tab2);
 
 
@@ -154,7 +154,7 @@ fun lookup_ruletab tab a = Symtab.lookup_multi (tab, a);
 (* empty, extend, merge ruletabs *)
 
 fun extend_ruletab tab rules =
-  Library.foldr Symtab.update_multi (map (fn r => (Ast.head_of_rule r, r)) rules, tab);
+  foldr Symtab.update_multi tab (map (fn r => (Ast.head_of_rule r, r)) rules);
 
 fun merge_ruletabs tab1 tab2 = Symtab.merge_multi' (op =) (tab1, tab2);
 

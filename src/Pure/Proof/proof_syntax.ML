@@ -97,10 +97,10 @@ fun disambiguate_names thy prf =
 
     val tab = Symtab.foldl (fn (tab, (key, ps)) =>
       let val prop = getOpt (assoc (thms', key), Bound 0)
-      in fst (Library.foldr (fn ((prop', prf), x as (tab, i)) =>
+      in fst (foldr (fn ((prop', prf), x as (tab, i)) =>
         if prop <> prop' then
           (Symtab.update ((key ^ "_" ^ string_of_int i, prf), tab), i+1)
-        else x) (ps, (tab, 1)))
+        else x) (tab, 1) ps)
       end) (Symtab.empty, thms);
 
     fun rename (Abst (s, T, prf)) = Abst (s, T, rename prf)

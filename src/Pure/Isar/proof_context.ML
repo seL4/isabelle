@@ -697,7 +697,7 @@ val ins_used = foldl_term_types (fn t => foldl_atyps
 val ins_occs = foldl_term_types (fn t => foldl_atyps
   (fn (tab, TFree (x, _)) => Symtab.update_multi ((x, t), tab) | (tab, _) => tab));
 
-fun ins_skolem def_ty = Library.foldr
+fun ins_skolem def_ty = foldr
   (fn ((x, x'), types) =>
     (case def_ty x' of
       SOME T => Vartab.update (((x, ~1), T), types)
@@ -716,7 +716,7 @@ fun declare_occ (ctxt as Context {asms = (_, fixes), ...}, t) =
   declare_syn (ctxt, t)
   |> map_defaults (fn (types, sorts, used, occ) => (types, sorts, used, ins_occs (occ, t)))
   |> map_defaults (fn (types, sorts, used, occ) =>
-      (ins_skolem (fn x => Vartab.lookup (types, (x, ~1))) (fixes, types), sorts, used, occ));
+      (ins_skolem (fn x => Vartab.lookup (types, (x, ~1))) types fixes, sorts, used, occ));
 
 in
 
@@ -773,7 +773,7 @@ fun generalize_tfrees inner outer =
 
 fun generalize inner outer ts =
   let
-    val tfrees = generalize_tfrees inner outer (Library.foldr Term.add_term_tfree_names (ts, []));
+    val tfrees = generalize_tfrees inner outer (foldr Term.add_term_tfree_names [] ts);
     fun gen (x, S) = if x mem_string tfrees then TVar ((x, 0), S) else TFree (x, S);
   in map (Term.map_term_types (Term.map_type_tfree gen)) ts end;
 
@@ -1267,8 +1267,8 @@ fun prep_case ctxt name xs {fixes, assumes, binds} =
       | replace [] ys = ys
       | replace (_ :: _) [] = raise CONTEXT ("Too many parameters for case " ^ quote name, ctxt);
   in
-    if null (Library.foldr Term.add_typ_tvars (map snd fixes, [])) andalso
-      null (Library.foldr Term.add_term_vars (List.concat (map snd assumes), [])) then
+    if null (foldr Term.add_typ_tvars [] (map snd fixes)) andalso
+      null (foldr Term.add_term_vars [] (List.concat (map snd assumes))) then
         {fixes = replace xs fixes, assumes = assumes, binds = map drop_schematic binds}
     else raise CONTEXT ("Illegal schematic variable(s) in case " ^ quote name, ctxt)
   end;

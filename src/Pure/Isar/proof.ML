@@ -758,8 +758,8 @@ fun setup_goal opt_block prepp autofix kind after_qed pr names raw_propp state =
     val cprop = Thm.cterm_of sign' (Logic.mk_conjunction_list props);
     val goal = Drule.mk_triv_goal cprop;
 
-    val tvars = Library.foldr Term.add_term_tvars (props, []);
-    val vars = Library.foldr Term.add_term_vars (props, []);
+    val tvars = foldr Term.add_term_tvars [] props;
+    val vars = foldr Term.add_term_vars [] props;
   in
     if null tvars then ()
     else raise STATE ("Goal statement contains illegal schematic type variable(s): " ^

@@ -977,8 +977,8 @@ in
   No longer normalizes the new theorem! *)
 fun instantiate ([], []) th = th
   | instantiate (vcTs,ctpairs) (th as Thm{sign_ref,der,maxidx,hyps,shyps,tpairs=dpairs,prop}) =
-  let val (newsign_ref,tpairs) = Library.foldr add_ctpair (ctpairs, (sign_ref,[]));
-      val (newsign_ref,vTs) = Library.foldr add_ctyp (vcTs, (newsign_ref,[]));
+  let val (newsign_ref,tpairs) = foldr add_ctpair (sign_ref,[]) ctpairs;
+      val (newsign_ref,vTs) = foldr add_ctyp (newsign_ref,[]) vcTs;
       fun subst t =
         subst_atomic tpairs (Sign.inst_term_tvars (Sign.deref newsign_ref) vTs t);
       val newprop = subst prop;
@@ -1041,7 +1041,7 @@ fun class_triv sign c =
 (* Replace all TFrees not fixed or in the hyps by new TVars *)
 fun varifyT' fixed (Thm{sign_ref,der,maxidx,shyps,hyps,tpairs,prop}) =
   let
-    val tfrees = Library.foldr add_term_tfree_names (hyps, fixed);
+    val tfrees = foldr add_term_tfree_names fixed hyps;
     val prop1 = attach_tpairs tpairs prop;
     val (prop2, al) = Type.varify (prop1, tfrees);
     val (ts, prop3) = Logic.strip_prems (length tpairs, [], prop2)
@@ -1282,8 +1282,8 @@ fun strip_apply f =
   Preserves unknowns in tpairs and on lhs of dpairs. *)
 fun rename_bvs([],_,_,_) = I
   | rename_bvs(al,dpairs,tpairs,B) =
-    let val vars = Library.foldr add_term_vars
-                        (map fst dpairs @ map fst tpairs @ map snd tpairs, [])
+    let val vars = foldr add_term_vars []
+                        (map fst dpairs @ map fst tpairs @ map snd tpairs)
         (*unknowns appearing elsewhere be preserved!*)
         val vids = map (#1 o #1 o dest_Var) vars;
         fun rename(t as Var((x,i),T)) =
@@ -1300,7 +1300,7 @@ fun rename_bvs([],_,_,_) = I
 
 (*Function to rename bounds/unknowns in the argument, lifted over B*)
 fun rename_bvars(dpairs, tpairs, B) =
-        rename_bvs(Library.foldr Term.match_bvars (dpairs,[]), dpairs, tpairs, B);
+        rename_bvs(foldr Term.match_bvars [] dpairs, dpairs, tpairs, B);
 
 
 (*** RESOLUTION ***)

@@ -80,7 +80,7 @@ echo "referring to distribution at $DISTDIR"
 # standalone binaries
 
 #set by configure
-AUTO_BASH=bash
+AUTO_BASH=/bin/bash
 
 case "$AUTO_BASH" in
   /*)

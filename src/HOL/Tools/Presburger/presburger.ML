@@ -162,10 +162,10 @@ fun getfuncs fm = case strip_comb fm of
 
 
 fun abstract_pres sg fm = 
-  Library.foldr (fn (t, u) =>
+  foldr (fn (t, u) =>
       let val T = fastype_of t
       in all T $ Abs ("x", T, abstract_over (t, u)) end)
-         (getfuncs fm, fm);
+         fm (getfuncs fm);
 
 
 
@@ -219,11 +219,11 @@ fun prepare_for_presburger sg q fm =
     fun mk_all2 (v, t) = HOLogic.all_const (fastype_of v) $ lambda v t;
     val (rhs,irhs) = List.partition (relevant (rev ps)) hs
     val np = length ps
-    val (fm',np) =  Library.foldr (fn ((x, T), (fm,n)) => mk_all ((x, T), (fm,n)))
-      (ps,(Library.foldr HOLogic.mk_imp (rhs, c), np))
+    val (fm',np) =  foldr (fn ((x, T), (fm,n)) => mk_all ((x, T), (fm,n)))
+      (foldr HOLogic.mk_imp c rhs, np) ps
     val (vs, _) = List.partition (fn t => q orelse (type_of t) = nT)
       (term_frees fm' @ term_vars fm');
-    val fm2 = Library.foldr mk_all2 (vs, fm')
+    val fm2 = foldr mk_all2 fm' vs
   in (fm2, np + length vs, length rhs) end;
 
 (*Object quantifier to meta --*)

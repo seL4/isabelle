@@ -49,12 +49,12 @@ fun add (p as (thy, thm)) =
   in (case concl_of thm of
       _ $ (Const ("op :", _) $ _ $ t) => (case head_of t of
         Const (s, _) =>
-          let val cs = Library.foldr add_term_consts (prems_of thm, [])
+          let val cs = foldr add_term_consts [] (prems_of thm)
           in (CodegenData.put
             {intros = Symtab.update ((s,
                getOpt (Symtab.lookup (intros, s), []) @ [thm]), intros),
-             graph = Library.foldr (uncurry (Graph.add_edge o pair s))
-               (cs, Library.foldl add_node (graph, s :: cs)),
+             graph = foldr (uncurry (Graph.add_edge o pair s))
+               (Library.foldl add_node (graph, s :: cs)) cs,
              eqns = eqns} thy, thm)
           end
       | _ => (warn thm; p))
@@ -190,7 +190,7 @@ fun subsets i j = if i <= j then
 fun cprod ([], ys) = []
   | cprod (x :: xs, ys) = map (pair x) ys @ cprod (xs, ys);
 
-fun cprods xss = Library.foldr (map op :: o cprod) (xss, [[]]);
+fun cprods xss = foldr (map op :: o cprod) [[]] xss;
 
 datatype mode = Mode of (int list option list * int list) * mode option list;
 
@@ -526,7 +526,7 @@ fun mk_extra_defs thy gr dep names ts =
         NONE => gr
       | SOME (names, intrs) =>
           mk_ind_def thy gr dep names [] [] (prep_intrs intrs)))
-            (gr, Library.foldr add_term_consts (ts, []))
+            (gr, foldr add_term_consts [] ts)
 
 and mk_ind_def thy gr dep names modecs factorcs intrs =
   let val ids = map (mk_const_id (sign_of thy)) names

@@ -307,8 +307,8 @@ fun in_locale hyps sg =
     let val cur_sc = get_scope_sg sg;
         val rule_lists = map (#rules o snd) cur_sc;
         val def_lists = map (#defs o snd) cur_sc;
-        val rules = map snd (Library.foldr (op union) (rule_lists, []));
-        val defs = map snd (Library.foldr (op union) (def_lists, []));
+        val rules = map snd (foldr (op union) [] rule_lists);
+        val defs = map snd (foldr (op union) [] def_lists);
         val defnrules = rules @ defs;
     in
         hyps subset defnrules

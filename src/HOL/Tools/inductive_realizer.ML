@@ -41,11 +41,11 @@ fun strip_all t =
       | strip _ t = t;
   in strip (add_term_free_names (t, [])) t end;
 
-fun relevant_vars prop = Library.foldr (fn
+fun relevant_vars prop = foldr (fn
       (Var ((a, i), T), vs) => (case strip_type T of
         (_, Type (s, _)) => if s mem ["bool", "set"] then (a, T) :: vs else vs
       | _ => vs)
-    | (_, vs) => vs) (term_vars prop, []);
+    | (_, vs) => vs) [] (term_vars prop);
 
 fun params_of intr = map (fst o fst o dest_Var) (term_vars
   (snd (HOLogic.dest_mem (HOLogic.dest_Trueprop
@@ -265,9 +265,9 @@ fun mk_realizer thy vs params ((rule, rrule), rt) =
 
   in (Thm.name_of_thm rule, (vs,
     if rt = Extraction.nullt then rt else
-      Library.foldr (uncurry lambda) (vs1, rt),
-    Library.foldr forall_intr_prf (vs2, mk_prf rs prems (Proofterm.proof_combP
-      (prf_of rrule, map PBound (length prems - 1 downto 0))))))
+      foldr (uncurry lambda) rt vs1,
+    foldr forall_intr_prf (mk_prf rs prems (Proofterm.proof_combP
+      (prf_of rrule, map PBound (length prems - 1 downto 0)))) vs2))
   end;
 
 fun add_rule (rss, r) =

@@ -268,8 +268,8 @@ fun rename [[SOME(Free(x,Type(T,_)))]] thm =
   | rename _ thm = thm;
 
 fun find_inductT ctxt insts =
-  Library.foldr multiply (insts |> List.mapPartial (fn [] => NONE | ts => List.last ts)
-    |> map (InductAttrib.find_inductT ctxt o fastype_of), [[]])
+  foldr multiply [[]] (insts |> List.mapPartial (fn [] => NONE | ts => List.last ts)
+    |> map (InductAttrib.find_inductT ctxt o fastype_of))
   |> map join_rules |> List.concat |> map (rename insts);
 
 fun find_inductS ctxt (fact :: _) = InductAttrib.find_inductS ctxt fact

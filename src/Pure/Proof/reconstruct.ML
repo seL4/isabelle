@@ -30,15 +30,15 @@ fun forall_intr (t, prop) =
   let val (a, T) = (case t of Var ((a, _), T) => (a, T) | Free p => p)
   in all T $ Abs (a, T, abstract_over (t, prop)) end;
 
-fun forall_intr_vfs prop = Library.foldr forall_intr
-  (vars_of prop @ sort (make_ord atless) (term_frees prop), prop);
+fun forall_intr_vfs prop = foldr forall_intr prop
+  (vars_of prop @ sort (make_ord atless) (term_frees prop));
 
 fun forall_intr_prf (t, prf) =
   let val (a, T) = (case t of Var ((a, _), T) => (a, T) | Free p => p)
   in Abst (a, SOME T, prf_abstract_over t prf) end;
 
-fun forall_intr_vfs_prf prop prf = Library.foldr forall_intr_prf
-  (vars_of prop @ sort (make_ord atless) (term_frees prop), prf);
+fun forall_intr_vfs_prf prop prf = foldr forall_intr_prf prf
+  (vars_of prop @ sort (make_ord atless) (term_frees prop));
 
 fun merge_envs (Envir.Envir {asol=asol1, iTs=iTs1, maxidx=maxidx1})
   (Envir.Envir {asol=asol2, iTs=iTs2, maxidx=maxidx2}) =

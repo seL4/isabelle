@@ -191,8 +191,8 @@ fun clause_suc_preproc thy ths =
   let val dest = fst o HOLogic.dest_mem o HOLogic.dest_Trueprop
   in
     if forall (can (dest o concl_of)) ths andalso
-      exists (fn th => "Suc" mem Library.foldr add_term_consts
-        (List.mapPartial (try dest) (concl_of th :: prems_of th), [])) ths
+      exists (fn th => "Suc" mem foldr add_term_consts
+        [] (List.mapPartial (try dest) (concl_of th :: prems_of th))) ths
     then remove_suc_clause thy ths else ths
   end;
 

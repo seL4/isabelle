@@ -201,8 +201,8 @@ fun pretty_case thy gr dep brack constrs (c as Const (_, T)) ts =
       let
         val ts1 = Library.take (i, ts);
         val t :: ts2 = Library.drop (i, ts);
-        val names = Library.foldr add_term_names (ts1,
-          map (fst o fst o dest_Var) (Library.foldr add_term_vars (ts1, [])));
+        val names = foldr add_term_names
+          (map (fst o fst o dest_Var) (foldr add_term_vars [] ts1)) ts1;
         val (Ts, dT) = split_last (Library.take (i+1, fst (strip_type T)));
 
         fun pcase gr [] [] [] = ([], gr)

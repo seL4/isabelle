@@ -165,9 +165,9 @@ fun lookup (Leaf(xs), []) = xs
 (*Skipping a term in a net.  Recursively skip 2 levels if a combination*)
 fun net_skip (Leaf _, nets) = nets
   | net_skip (Net{comb,var,alist}, nets) =
-    Library.foldr net_skip
-          (net_skip (comb,[]),
-           Library.foldr (fn ((_,net), nets) => net::nets) (alist, var::nets));
+    foldr net_skip
+          (foldr (fn ((_,net), nets) => net::nets) (var::nets) alist)
+          (net_skip (comb,[]))
 
 (** Matching and Unification**)
 
@@ -185,7 +185,7 @@ fun matching unif t (net,nets) =
   let fun rands _ (Leaf _, nets) = nets
         | rands t (Net{comb,alist,...}, nets) =
             case t of
-                f$t => Library.foldr (matching unif t) (rands f (comb,[]), nets)
+                f$t => foldr (matching unif t) nets (rands f (comb,[]))
               | Const(c,_) => look1 (alist, c) nets
               | Free(c,_)  => look1 (alist, c) nets
               | Bound i    => look1 (alist, string_of_bound i) nets

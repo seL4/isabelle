@@ -102,7 +102,7 @@ fun extend_aux (name, tab) =
     error ("Attempt to declare hidden name " ^ quote name)
   else Library.foldl (fn (tb, xname) => change add xname (name, tb)) (tab, accesses name);
 
-fun extend (NameSpace tab, names) = NameSpace (Library.foldr extend_aux (names, tab));
+fun extend (NameSpace tab, names) = NameSpace (foldr extend_aux tab names);
 
 
 (* merge *)             (*1st preferred over 2nd*)
@@ -126,7 +126,7 @@ fun hide_aux fully (name, tab) =
     Library.foldl (fn (tb, xname) => change del xname (name, tb))
       (tab, if fully then accesses name else [base name])));
 
-fun hide fully (NameSpace tab, names) = NameSpace (Library.foldr (hide_aux fully) (names, tab));
+fun hide fully (NameSpace tab, names) = NameSpace (foldr (hide_aux fully) tab names);
 
 
 (* intern / extern names *)

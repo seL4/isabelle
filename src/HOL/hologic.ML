@@ -148,7 +148,7 @@ fun dest_eq (Const ("op =", _) $ lhs $ rhs) = (lhs, rhs)
 
 fun all_const T = Const ("All", [T --> boolT] ---> boolT);
 fun mk_all (x, T, P) = all_const T $ absfree (x, T, P);
-val list_all = Library.foldr (fn ((x, T), P) => all_const T $ Abs (x, T, P));
+fun list_all (vs,x) = foldr (fn ((x, T), P) => all_const T $ Abs (x, T, P)) x vs;
 
 fun exists_const T = Const ("Ex", [T --> boolT] ---> boolT);
 fun mk_exists (x, T, P) = exists_const T $ absfree (x, T, P);
@@ -246,13 +246,13 @@ fun mk_tuple (Type ("*", [T1, T2])) tms =
 
 local  (*currently unused*)
 
-fun mk_tupleT Ts = Library.foldr mk_prodT (Ts, unitT);
+fun mk_tupleT Ts = foldr mk_prodT unitT Ts;
 
 fun dest_tupleT (Type ("Product_Type.unit", [])) = []
   | dest_tupleT (Type ("*", [T, U])) = T :: dest_tupleT U
   | dest_tupleT T = raise TYPE ("dest_tupleT", [T], []);
 
-fun mk_tuple ts = Library.foldr mk_prod (ts, unit);
+fun mk_tuple ts = foldr mk_prod unit ts;
 
 fun dest_tuple (Const ("Product_Type.Unity", _)) = []
   | dest_tuple (Const ("Pair", _) $ t $ u) = t :: dest_tuple u

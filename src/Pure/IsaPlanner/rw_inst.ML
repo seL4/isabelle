@@ -124,7 +124,7 @@ variables *)
 fun mk_renamings tgt rule_inst = 
     let
       val rule_conds = Thm.prems_of rule_inst
-      val names = Library.foldr Term.add_term_names (tgt :: rule_conds, []);
+      val names = foldr Term.add_term_names [] (tgt :: rule_conds);
       val (conds_tyvs,cond_vs) = 
           Library.foldl (fn ((tyvs, vs), t) => 
                     (Library.union
@@ -135,11 +135,11 @@ fun mk_renamings tgt rule_inst =
       val termvars = map Term.dest_Var (Term.term_vars tgt); 
       val vars_to_fix = Library.union (termvars, cond_vs);
       val (renamings, names2) = 
-          Library.foldr (fn (((n,i),ty), (vs, names')) => 
+          foldr (fn (((n,i),ty), (vs, names')) => 
                     let val n' = Term.variant names' n in
                       ((((n,i),ty), Free (n', ty)) :: vs, n'::names')
                     end)
-                (vars_to_fix, ([], names));
+                ([], names) vars_to_fix;
     in renamings end;
 
 (* make a new fresh typefree instantiation for the given tvar *)
@@ -152,12 +152,12 @@ fun new_tfree (tv as (ix,sort), (pairs,used)) =
    already instantiated (in ignore_ixs) from the list of terms. *)
 fun mk_fixtvar_tyinsts ignore_ixs ts = 
     let val (tvars, tfreenames) = 
-            Library.foldr (fn (t, (varixs, tfreenames)) => 
+            foldr (fn (t, (varixs, tfreenames)) => 
                       (Term.add_term_tvars (t,varixs),
                        Term.add_term_tfree_names (t,tfreenames)))
-                  (ts, ([],[]));
+                  ([],[]) ts;
         val unfixed_tvars = List.filter (fn (ix,s) => not (ix mem ignore_ixs)) tvars;
-        val (fixtyinsts, _) = Library.foldr new_tfree (unfixed_tvars, ([], tfreenames))
+        val (fixtyinsts, _) = foldr new_tfree ([], tfreenames) unfixed_tvars
     in (fixtyinsts, tfreenames) end;
 
 
@@ -222,10 +222,10 @@ fun rw ((nonfixed_typinsts, unprepinsts), Ts, outerterm) rule target_thm =
           Term.subst_vars (typinsts,[]) outerterm;
 
       (* type-instantiate the var instantiations *)
-      val insts_tyinst = Library.foldr (fn ((ix,t),insts_tyinst) => 
+      val insts_tyinst = foldr (fn ((ix,t),insts_tyinst) => 
                             (ix, Term.subst_vars (typinsts,[]) t)
                             :: insts_tyinst)
-                        (unprepinsts,[]);
+                        [] unprepinsts;
 
       (* cross-instantiate *)
       val insts_tyinst_inst = cross_inst insts_tyinst;

@@ -751,8 +751,8 @@ fun equalSubst sign (G, {pairs, lits, vars, lim}) =
             end
       (*substitute throughout "stack frame"; extract affected formulae*)
       fun subFrame ((Gs,Hs), (changed, frames)) =
-	    let val (changed', Gs') = Library.foldr subForm (Gs, (changed, []))
-                val (changed'', Hs') = Library.foldr subForm (Hs, (changed', []))
+	    let val (changed', Gs') = foldr subForm (changed, []) Gs
+                val (changed'', Hs') = foldr subForm (changed', []) Hs
             in  (changed'', (Gs',Hs')::frames)  end
       (*substitute throughout literals; extract affected ones*)
       fun subLit (lit, (changed, nlits)) =
@@ -760,8 +760,8 @@ fun equalSubst sign (G, {pairs, lits, vars, lim}) =
 	    in  if nlit aconv lit then (changed, nlit::nlits)
 		                  else ((nlit,true)::changed, nlits)
             end
-      val (changed, lits') = Library.foldr subLit (lits, ([], []))
-      val (changed', pairs') = Library.foldr subFrame (pairs, (changed, []))
+      val (changed, lits') = foldr subLit ([], []) lits
+      val (changed', pairs') = foldr subFrame (changed, []) pairs
   in  if !trace then writeln ("Substituting " ^ traceTerm sign u ^
 			      " for " ^ traceTerm sign t ^ " in branch" )
       else ();
@@ -974,7 +974,7 @@ fun prove (sign, start, cs, brs, cont) =
 				    then lim - (1+log(length rules))
 				    else lim   (*discourage branching updates*)
 			 val vars  = vars_in_vars vars
-			 val vars' = Library.foldr add_terms_vars (prems, vars)
+			 val vars' = foldr add_terms_vars vars prems
 			 val choices' = (ntrl, nbrs, PRV) :: choices
 			 val tacs' = (tac(updated,false,true)) 
                                      :: tacs  (*no duplication; rotate*)
@@ -1101,7 +1101,7 @@ fun prove (sign, start, cs, brs, cont) =
 		    then
 		     let val updated = ntrl < !ntrail (*branch updated*)
 			 val vars  = vars_in_vars vars
-			 val vars' = Library.foldr add_terms_vars (prems, vars)
+			 val vars' = foldr add_terms_vars vars prems
 			    (*duplicate H if md permits*)
 			 val dup = md (*earlier had "andalso vars' <> vars":
                                   duplicate only if the subgoal has new vars*)

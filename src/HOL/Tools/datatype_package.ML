@@ -169,7 +169,7 @@ fun infer_tname state i aterm =
 fun occs_in_prems tacf vars =
   SUBGOAL (fn (Bi, i) =>
            (if  exists (fn Free (a, _) => a mem vars)
-                      (Library.foldr add_term_frees (#2 (strip_context Bi), []))
+                      (foldr add_term_frees [] (#2 (strip_context Bi)))
              then warning "Induction variable occurs also among premises!"
              else ();
             tacf i));
@@ -431,7 +431,7 @@ fun case_tr sg [t, u] =
                  if length dt <> length vs then
                     case_error ("Wrong number of arguments for constructor " ^ s)
                       (SOME tname) vs
-                 else (cases \ c, Library.foldr abstr (vs, t)))
+                 else (cases \ c, foldr abstr t vs))
           val (cases'', fs) = foldl_map find_case (cases', constrs)
         in case (cases'', length constrs = length cases', default) of
             ([], true, SOME _) =>
@@ -542,32 +542,32 @@ fun make_dt_info descr induct reccomb_names rec_thms
 (********************* axiomatic introduction of datatypes ********************)
 
 fun add_and_get_axioms_atts label tnames attss ts thy =
-  Library.foldr (fn (((tname, atts), t), (thy', axs)) =>
+  foldr (fn (((tname, atts), t), (thy', axs)) =>
     let
       val (thy'', [ax]) = thy' |>
         Theory.add_path tname |>
         PureThy.add_axioms_i [((label, t), atts)];
     in (Theory.parent_path thy'', ax::axs)
-    end) (tnames ~~ attss ~~ ts, (thy, []));
+    end) (thy, []) (tnames ~~ attss ~~ ts);
 
 fun add_and_get_axioms label tnames =
   add_and_get_axioms_atts label tnames (replicate (length tnames) []);
 
 fun add_and_get_axiomss label tnames tss thy =
-  Library.foldr (fn ((tname, ts), (thy', axss)) =>
+  foldr (fn ((tname, ts), (thy', axss)) =>
     let
       val (thy'', [axs]) = thy' |>
         Theory.add_path tname |>
         PureThy.add_axiomss_i [((label, ts), [])];
     in (Theory.parent_path thy'', axs::axss)
-    end) (tnames ~~ tss, (thy, []));
+    end) (thy, []) (tnames ~~ tss);
 
 fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_syntax dt_info
     case_names_induct case_names_exhausts thy =
   let
     val descr' = List.concat descr;
     val recTs = get_rec_types descr' sorts;
-    val used = Library.foldr add_typ_tfree_names (recTs, []);
+    val used = foldr add_typ_tfree_names [] recTs;
     val newTs = Library.take (length (hd descr), recTs);
 
     val no_size = exists (fn (_, (_, _, constrs)) => exists (fn (_, cargs) => exists
@@ -694,7 +694,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
       Theory.add_path (space_implode "_" new_type_names) |>
       add_rules simps case_thms size_thms rec_thms inject distinct
                 weak_case_congs Simplifier.cong_add_global |> 
-      put_datatypes (Library.foldr Symtab.update (dt_infos, dt_info)) |>
+      put_datatypes (foldr Symtab.update dt_info dt_infos) |>
       add_cases_induct dt_infos induct |>
       Theory.parent_path |>
       (#1 o store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)) |>
@@ -752,7 +752,7 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
       Theory.add_path (space_implode "_" new_type_names) |>
       add_rules simps case_thms size_thms rec_thms inject distinct
                 weak_case_congs (Simplifier.change_global_ss (op addcongs)) |> 
-      put_datatypes (Library.foldr Symtab.update (dt_infos, dt_info)) |>
+      put_datatypes (foldr Symtab.update dt_info dt_infos) |>
       add_cases_induct dt_infos induct |>
       Theory.parent_path |>
       (#1 o store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)) |>
@@ -860,7 +860,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
       Theory.add_advanced_trfuns ([], [], make_case_tr' case_names descr, []) |>
       add_rules simps case_thms size_thms rec_thms inject distinct
                 weak_case_congs (Simplifier.change_global_ss (op addcongs)) |> 
-      put_datatypes (Library.foldr Symtab.update (dt_infos, dt_info)) |>
+      put_datatypes (foldr Symtab.update dt_info dt_infos) |>
       add_cases_induct dt_infos induction' |>
       Theory.parent_path |>
       (#1 o store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)) |>
@@ -916,7 +916,7 @@ fun gen_add_datatype prep_typ err flat_names new_type_names dts thy =
         fun prep_constr ((constrs, constr_syntax', sorts'), (cname, cargs, mx')) =
           let
             val (cargs', sorts'') = Library.foldl (prep_typ sign) (([], sorts'), cargs);
-            val _ = (case Library.foldr add_typ_tfree_names (cargs', []) \\ tvs of
+            val _ = (case foldr add_typ_tfree_names [] cargs' \\ tvs of
                 [] => ()
               | vs => error ("Extra type variables on rhs: " ^ commas vs))
           in (constrs @ [((if flat_names then Sign.full_name sign else

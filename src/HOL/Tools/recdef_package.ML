@@ -91,7 +91,7 @@ fun del_cong raw_thm congs =
     val (del, rest) = Library.partition (Library.equal c o fst) congs;
   in if null del then (warning ("No recdef congruence rule for " ^ quote c); congs) else rest end;
 
-val add_congs = curry (Library.foldr (uncurry add_cong));
+val add_congs = foldr (uncurry add_cong);
 
 end;
 
@@ -272,7 +272,7 @@ fun add_recdef_i x y z w = gen_add_recdef Tfl.define_i (K I) prepare_hints_i x y
 
 fun prepare_hints_old thy (ss, thms) =
   let val {simps, congs, wfs} = get_global_hints thy
-  in (Classical.claset_of thy, ss addsimps simps, map #2 (add_congs thms congs), wfs) end;
+  in (Classical.claset_of thy, ss addsimps simps, map #2 (add_congs congs thms), wfs) end;
 
 val add_recdef_old = gen_add_recdef Tfl.define Attrib.global_attribute prepare_hints_old false;
 

@@ -253,7 +253,7 @@ fun freeze_thaw t =
       fun newName (Var(ix,_), (pairs,used)) = 
           let val v = variant used (string_of_indexname ix)
           in  ((ix,v)::pairs, v::used)  end;
-      val (alist, _) = Library.foldr newName (vars, ([], used));
+      val (alist, _) = foldr newName ([], used) vars;
       fun mk_inst (Var(v,T)) = 
           (Var(v,T),
            Free(valOf (assoc(alist,v)), T));

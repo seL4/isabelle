@@ -31,8 +31,8 @@ let
  val rep_iso_ax = ("rep_iso" ,mk_trp(dc_abs`(dc_rep`%x_name')=== %:x_name'));
 
   val when_def = ("when_def",%%:(dname^"_when") == 
-     Library.foldr (uncurry /\ ) (when_funs cons, /\x_name'((when_body cons (fn (x,y) =>
-				Bound(1+length cons+x-y)))`(dc_rep`Bound 0))));
+     foldr (uncurry /\ ) (/\x_name'((when_body cons (fn (x,y) =>
+				Bound(1+length cons+x-y)))`(dc_rep`Bound 0))) (when_funs cons));
 
   fun con_def outer recu m n (_,args) = let
      fun idxs z x arg = (if is_lazy arg then fn t => %%:"up"`t else Id)
@@ -43,7 +43,7 @@ let
      fun inj y 1 _ = y
      |   inj y _ 0 = %%:"sinl"`y
      |   inj y i j = %%:"sinr"`(inj y (i-1) (j-1));
-  in Library.foldr /\# (args, outer (inj (parms args) m n)) end;
+  in foldr /\# (outer (inj (parms args) m n)) args end;
 
   val copy_def = ("copy_def", %%:(dname^"_copy") == /\"f" (dc_abs oo 
 	Library.foldl (op `) (%%:(dname^"_when") , 
@@ -57,15 +57,15 @@ let
   val dis_defs = let
 	fun ddef (con,_) = (dis_name con ^"_def",%%:(dis_name con) == 
 		 mk_cRep_CFun(%%:(dname^"_when"),map 
-			(fn (con',args) => (Library.foldr /\#
-			   (args,if con'=con then %%:"TT" else %%:"FF"))) cons))
+			(fn (con',args) => (foldr /\#
+			   (if con'=con then %%:"TT" else %%:"FF") args)) cons))
 	in map ddef cons end;
 
   val sel_defs = let
 	fun sdef con n arg = (sel_of arg^"_def",%%:(sel_of arg) == 
 		 mk_cRep_CFun(%%:(dname^"_when"),map 
 			(fn (con',args) => if con'<>con then %%:"UU" else
-			 Library.foldr /\# (args,Bound (length args - n))) cons));
+			 foldr /\# (Bound (length args - n)) args) cons));
 	in List.concat(map (fn (con,args) => mapn (sdef con) 1 args) cons) end;
 
 
@@ -114,11 +114,12 @@ fun add_axioms (comp_dnam, eqs : eq list) thy' = let
 					 (allargs~~((allargs_cnt-1) downto 0)));
 	fun rel_app i ra = proj (Bound(allargs_cnt+2)) eqs (rec_of ra) $ 
 			   Bound (2*recs_cnt-i) $ Bound (recs_cnt-i);
-	val capps = Library.foldr mk_conj (mapn rel_app 1 rec_args, mk_conj(
+	val capps = foldr mk_conj (mk_conj(
 	   Bound(allargs_cnt+1)===mk_cRep_CFun(%%:con,map (bound_arg allvns) vns1),
-	   Bound(allargs_cnt+0)===mk_cRep_CFun(%%:con,map (bound_arg allvns) vns2)));
-        in Library.foldr mk_ex (allvns, Library.foldr mk_conj 
-			      (map (defined o Bound) nonlazy_idxs,capps)) end;
+	   Bound(allargs_cnt+0)===mk_cRep_CFun(%%:con,map (bound_arg allvns) vns2)))
+           (mapn rel_app 1 rec_args);
+        in foldr mk_ex (Library.foldr mk_conj 
+			      (map (defined o Bound) nonlazy_idxs,capps)) allvns end;
       fun one_comp n (_,cons) =mk_all(x_name(n+1),mk_all(x_name(n+1)^"'",mk_imp(
 	 		proj (Bound 2) eqs n $ Bound 1 $ Bound 0,
          		foldr' mk_disj (mk_conj(Bound 1 === UU,Bound 0 === UU)

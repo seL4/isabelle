@@ -243,7 +243,7 @@ struct
 
       val body_e = mt pos body  (*evaluate now to assign into !nat_vars*)
   in 
-     Library.foldr add_nat_var (!nat_vars, body_e) 
+     foldr add_nat_var body_e (!nat_vars) 
   end;
 
 

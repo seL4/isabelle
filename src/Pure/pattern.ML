@@ -476,7 +476,7 @@ fun rewrite_term tsig rules procs tm =
     val skel0 = Bound 0;
 
     val rhs_names =
-      Library.foldr (fn ((_, rhs), names) => add_term_free_names (rhs, names)) (rules, []);
+      foldr (fn ((_, rhs), names) => add_term_free_names (rhs, names)) [] rules;
 
     fun variant_absfree (x, T, t) =
       let

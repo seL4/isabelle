@@ -120,8 +120,8 @@ fun prep_case is_open split sg prop name i =
 
 fun make is_open split (sg, prop) names =
   let val nprems = Logic.count_prems (prop, 0) in
-    Library.foldr (fn (name, (cases, i)) => (prep_case is_open split sg prop name i :: cases, i - 1))
-      (Library.drop (length names - nprems, names), ([], length names)) |> #1
+    foldr (fn (name, (cases, i)) => (prep_case is_open split sg prop name i :: cases, i - 1))
+      ([], length names) (Library.drop (length names - nprems, names)) |> #1
   end;
 
 

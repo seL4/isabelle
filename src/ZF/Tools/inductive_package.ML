@@ -102,7 +102,7 @@ let
                Sign.string_of_term sign t);
 
   (*** Construct the fixedpoint definition ***)
-  val mk_variant = variant (Library.foldr add_term_names (intr_tms, []));
+  val mk_variant = variant (foldr add_term_names [] intr_tms);
 
   val z' = mk_variant"z" and X' = mk_variant"X" and w' = mk_variant"w";
 
@@ -116,8 +116,8 @@ let
         val dummy = List.app (fn rec_hd => List.app (chk_prem rec_hd) prems) rec_hds
         val exfrees = term_frees intr \\ rec_params
         val zeq = FOLogic.mk_eq (Free(z',iT), #1 (rule_concl intr))
-    in Library.foldr FOLogic.mk_exists
-             (exfrees, fold_bal FOLogic.mk_conj (zeq::prems))
+    in foldr FOLogic.mk_exists
+             (fold_bal FOLogic.mk_conj (zeq::prems)) exfrees
     end;
 
   (*The Part(A,h) terms -- compose injections to make h*)
@@ -311,8 +311,8 @@ let
      (*Make a premise of the induction rule.*)
      fun induct_prem ind_alist intr =
        let val quantfrees = map dest_Free (term_frees intr \\ rec_params)
-           val iprems = Library.foldr (add_induct_prem ind_alist)
-                              (Logic.strip_imp_prems intr,[])
+           val iprems = foldr (add_induct_prem ind_alist) []
+                              (Logic.strip_imp_prems intr)
            val (t,X) = Ind_Syntax.rule_concl intr
            val (SOME pred) = gen_assoc (op aconv) (ind_alist, X)
            val concl = FOLogic.mk_Trueprop (pred $ t)
@@ -390,11 +390,10 @@ let
            val pfree = Free(pred_name ^ "_" ^ Sign.base_name rec_name,
                             elem_factors ---> FOLogic.oT)
            val qconcl =
-             Library.foldr FOLogic.mk_all
-               (elem_frees,
-                FOLogic.imp $
+             foldr FOLogic.mk_all
+               (FOLogic.imp $
                 (Ind_Syntax.mem_const $ elem_tuple $ rec_tm)
-                      $ (list_comb (pfree, elem_frees)))
+                      $ (list_comb (pfree, elem_frees))) elem_frees
        in  (CP.ap_split elem_type FOLogic.oT pfree,
             qconcl)
        end;

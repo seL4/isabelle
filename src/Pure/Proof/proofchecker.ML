@@ -19,8 +19,8 @@ open Proofterm;
 (***** construct a theorem out of a proof term *****)
 
 fun lookup_thm thy =
-  let val tab = Library.foldr Symtab.update
-    (List.concat (map thms_of (thy :: Theory.ancestors_of thy)), Symtab.empty)
+  let val tab = foldr Symtab.update Symtab.empty
+    (List.concat (map thms_of (thy :: Theory.ancestors_of thy)))
   in
     (fn s => case Symtab.lookup (tab, s) of
        NONE => error ("Unknown theorem " ^ quote s)

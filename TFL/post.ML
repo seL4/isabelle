@@ -46,7 +46,7 @@ val read_term = Thm.term_of oo (HOLogic.read_cterm o Theory.sign_of);
  *--------------------------------------------------------------------------*)
 fun termination_goals rules =
     map (#1 o Type.freeze_thaw o HOLogic.dest_Trueprop)
-      (Library.foldr (fn (th,A) => union_term (prems_of th, A)) (rules, []));
+      (foldr (fn (th,A) => union_term (prems_of th, A)) [] rules);
 
 (*---------------------------------------------------------------------------
  * Finds the termination conditions in (highly massaged) definition and

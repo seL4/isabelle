@@ -788,14 +788,14 @@ struct
 								else
 									acc)
 							(* collect argument types *)
-							val acc_args = Library.foldr collect_types (Ts, acc')
+							val acc_args = foldr collect_types acc' Ts
 							(* collect constructor types *)
-							val acc_constrs = Library.foldr collect_types (List.concat (map (fn (_, ds) => map (typ_of_dtyp descr typ_assoc) ds) constrs), acc_args)
+							val acc_constrs = foldr collect_types acc_args (List.concat (map (fn (_, ds) => map (typ_of_dtyp descr typ_assoc) ds) constrs))
 						in
 							acc_constrs
 						end
 					| NONE =>  (* not an inductive datatype, e.g. defined via "typedef" or "typedecl" *)
-						T ins (Library.foldr collect_types (Ts, acc)))
+						T ins (foldr collect_types acc Ts))
 				| TFree _                => T ins acc
 				| TVar _                 => T ins acc)
 	in
@@ -1297,8 +1297,8 @@ struct
 	let
 		val Ts = binder_types (fastype_of t)
 	in
-		Library.foldr (fn (T, t) => Abs ("<eta_expand>", T, t))
-			(Library.take (i, Ts), list_comb (t, map Bound (i-1 downto 0)))
+		foldr (fn (T, t) => Abs ("<eta_expand>", T, t))
+			(list_comb (t, map Bound (i-1 downto 0))) (Library.take (i, Ts))
 	end;
 
 (* ------------------------------------------------------------------------- *)
@@ -2234,7 +2234,7 @@ struct
 					val HOLogic_empty_set = Const ("{}", HOLogic_setT)
 					val HOLogic_insert    = Const ("insert", HOLogic_prodT --> HOLogic_setT --> HOLogic_setT)
 				in
-					SOME (Library.foldr (fn (pair, acc) => HOLogic_insert $ pair $ acc) (pairs, HOLogic_empty_set))
+					SOME (foldr (fn (pair, acc) => HOLogic_insert $ pair $ acc) HOLogic_empty_set pairs)
 				end
 			| Type ("prop", [])      =>
 				(case index_from_interpretation intr of

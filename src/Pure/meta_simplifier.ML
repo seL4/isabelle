@@ -1059,9 +1059,9 @@ fun bottomc ((simprem, useprem, mutsimp), prover, sign, maxidx) =
                 find_index_eq p tprems) (#hyps (rep_thm eqn)));
               val (rrs', asm') = rules_of_prem ss prem'
             in mut_impc prems concl rrss asms (prem' :: prems')
-              (rrs' :: rrss') (asm' :: asms') (SOME (Library.foldr (disch true)
-                (Library.take (i, prems), Drule.imp_cong' eqn (reflexive (Drule.list_implies
-                  (Library.drop (i, prems), concl))))) :: eqns) ss (length prems') ~1
+              (rrs' :: rrss') (asm' :: asms') (SOME (foldr (disch true)
+                (Drule.imp_cong' eqn (reflexive (Drule.list_implies
+                  (Library.drop (i, prems), concl)))) (Library.take (i, prems))) :: eqns) ss (length prems') ~1
             end
 
      (*legacy code - only for backwards compatibility*)

@@ -430,7 +430,7 @@ fun get_extT_fields sg T =
 
     val tsig = Sign.tsig_of sg;
     fun unify (t,env) = Type.unify tsig env t;
-    val (subst,_) = Library.foldr unify (but_last args ~~ but_last Ts,(Vartab.empty,0));
+    val (subst,_) = foldr unify (Vartab.empty,0) (but_last args ~~ but_last Ts);
     val flds' = map (apsnd ((Envir.norm_type subst) o varifyT)) flds;
   in (flds',(more,moreT)) end;
 
@@ -504,7 +504,7 @@ fun gen_fields_tr sep mark sfx (tm as Const (c, _) $ t $ u) =
 
 
 fun record_update_tr [t, u] =
-      Library.foldr (op $) (rev (gen_fields_tr "_updates" "_update" updateN u), t)
+      foldr (op $) t (rev (gen_fields_tr "_updates" "_update" updateN u))
   | record_update_tr ts = raise TERM ("record_update_tr", ts);
 
 fun update_name_tr (Free (x, T) :: ts) = Free (suffix updateN x, T) $$ ts
@@ -584,7 +584,7 @@ fun gen_ext_type_tr sep mark sfx more sg t =
                        val (args,rest) = splitargs (map fst flds') fargs;
                        val vartypes = map Type.varifyT types;
                        val argtypes = map to_type args;
-                       val (subst,_) = Library.foldr unify (vartypes ~~ argtypes,(Vartab.empty,0));
+                       val (subst,_) = foldr unify (Vartab.empty,0) (vartypes ~~ argtypes);
                        val alphas' = map ((Syntax.term_of_typ (! Syntax.show_sorts)) o 
                                           (Envir.norm_type subst) o Type.varifyT) 
                                          (but_last alphas);
@@ -777,7 +777,7 @@ fun record_type_tr' sep mark record record_scheme sg t =
                                             ::map (apfst NameSpace.base) fs; 
                                 val (args',more) = split_last args; 
                                 val alphavars = map Type.varifyT (but_last alphas); 
-                                val (subst,_)= Library.foldr unify (alphavars~~args',(Vartab.empty,0));
+                                val (subst,_)= foldr unify (Vartab.empty,0) (alphavars~~args');
                                 val flds'' =map (apsnd ((Envir.norm_type subst)o(Type.varifyT)))
                                                 flds';
                               in flds''@field_lst more end
@@ -1332,8 +1332,8 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
     val ext_decl = (mk_extC (name,extT) fields_moreTs);
     (*     
     val ext_spec = Const ext_decl :== 
-         (Library.foldr (uncurry lambda) 
-            (vars@[more],(mk_Abs name repT extT $ (foldr1 HOLogic.mk_prod (vars@[more]))))) 
+         (foldr (uncurry lambda) 
+            (mk_Abs name repT extT $ (foldr1 HOLogic.mk_prod (vars@[more]))) (vars@[more])) 
     *) 
     val ext_spec = list_comb (Const ext_decl,vars@[more]) :== 
          (mk_Abs name repT extT $ (foldr1 HOLogic.mk_prod (vars@[more])));
@@ -1551,7 +1551,7 @@ fun subst_last s []      = error "subst_last: list should not be empty"
  * of parent extensions, starting with the root of the record hierarchy 
 *) 
 fun mk_recordT extT parent_exts = 
-    Library.foldr (fn ((parent,Ts),T) => Type (parent, subst_last T Ts)) (parent_exts,extT);
+    foldr (fn ((parent,Ts),T) => Type (parent, subst_last T Ts)) extT parent_exts;
 
 
 
@@ -1605,7 +1605,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val names = map fst fields;
     val extN = full bname;
     val types = map snd fields;
-    val alphas_fields = Library.foldr add_typ_tfree_names (types,[]);
+    val alphas_fields = foldr add_typ_tfree_names [] types;
     val alphas_ext = alphas inter alphas_fields; 
     val len = length fields;
     val variants = variantlist (map fst bfields, moreN::rN::rN ^ "'"::wN::parent_variants);
@@ -1663,7 +1663,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
       let val (args',more) = chop_last args;
 	  fun mk_ext' (((name,T),args),more) = mk_ext (name,T) (args@[more]);
           fun build Ts = 
-           Library.foldr mk_ext' (prune n (extension_names ~~ Ts ~~ (chunks parent_chunks args')),more) 
+           foldr mk_ext' more (prune n (extension_names ~~ Ts ~~ (chunks parent_chunks args')))
       in 
         if more = HOLogic.unit 
         then build (map recT (0 upto parent_len)) 
@@ -1822,13 +1822,13 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
       end; 
 
     val split_object_prop =
-      let fun ALL vs t = Library.foldr (fn ((v,T),t) => HOLogic.mk_all (v,T,t)) (vs,t)
+      let fun ALL vs t = foldr (fn ((v,T),t) => HOLogic.mk_all (v,T,t)) t vs
       in (ALL [dest_Free r0] (P $ r0)) === (ALL (map dest_Free all_vars_more) (P $ r_rec0))
       end;
 
 
     val split_ex_prop =
-      let fun EX vs t = Library.foldr (fn ((v,T),t) => HOLogic.mk_exists (v,T,t)) (vs,t)
+      let fun EX vs t = foldr (fn ((v,T),t) => HOLogic.mk_exists (v,T,t)) t vs
       in (EX [dest_Free r0] (P $ r0)) === (EX (map dest_Free all_vars_more) (P $ r_rec0))
       end;
 
@@ -2048,7 +2048,7 @@ fun gen_add_record prep_typ prep_raw_parent (params, bname) raw_parent raw_field
     val init_env =
       (case parent of
         NONE => []
-      | SOME (types, _) => Library.foldr Term.add_typ_tfrees (types, []));
+      | SOME (types, _) => foldr Term.add_typ_tfrees [] types);
 
 
     (* fields *)

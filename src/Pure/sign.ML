@@ -832,7 +832,7 @@ fun infer_types_simult pp sg def_type def_sort used freeze args =
   let
     val tsig = tsig_of sg;
 
-    val termss = Library.foldr multiply (map fst args, [[]]);
+    val termss = foldr multiply [[]] (map fst args);
     val typs =
       map (fn (_, T) => certify_typ sg T handle TYPE (msg, _, _) => error msg) args;
 

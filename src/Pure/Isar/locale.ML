@@ -276,7 +276,7 @@ fun inst_thm _ [] th = th
         val cert = Thm.cterm_of sign;
         val certT = Thm.ctyp_of sign;
         val {hyps, prop, maxidx, ...} = Thm.rep_thm th;
-        val tfrees = Library.foldr Term.add_term_tfree_names (prop :: hyps, []);
+        val tfrees = foldr Term.add_term_tfree_names [] (prop :: hyps);
         val env' = List.filter (fn ((a, _), _) => a mem_string tfrees) env;
       in
         if null env' then th
@@ -395,7 +395,7 @@ fun unify_parms ctxt fixed_parms raw_parmss =
     val unifier' = Vartab.extend (unifier, frozen_tvars ctxt (map #2 parms'));
 
     fun inst_parms (i, ps) =
-      Library.foldr Term.add_typ_tfrees (List.mapPartial snd ps, [])
+      foldr Term.add_typ_tfrees [] (List.mapPartial snd ps)
       |> List.mapPartial (fn (a, S) =>
           let val T = Envir.norm_type unifier' (TVar ((a, i), S))
           in if T = TFree (a, S) then NONE else SOME ((a, S), T) end)
@@ -1049,7 +1049,7 @@ fun instantiate loc_name (prfx, attribs) raw_inst ctxt =
           handle UnequalLengths => error "Number of parameters does not \
             \match number of arguments of chained fact";
     (* get their sorts *)
-    val tfrees = Library.foldr Term.add_typ_tfrees (param_types, []);
+    val tfrees = foldr Term.add_typ_tfrees [] param_types
     val Tenv' = map
           (fn ((a, i), T) => ((a, valOf (assoc_string (tfrees, a))), T))
           (Vartab.dest Tenv);
@@ -1076,7 +1076,7 @@ fun instantiate loc_name (prfx, attribs) raw_inst ctxt =
 	    val cert = Thm.cterm_of sign;
 	    val certT = Thm.ctyp_of sign;
 	    val {hyps, prop, maxidx, ...} = Thm.rep_thm th;
-	    val tfrees = Library.foldr Term.add_term_tfree_names (prop :: hyps, []);
+	    val tfrees = foldr Term.add_term_tfree_names [] (prop :: hyps);
 	    val Tenv' = List.filter (fn ((a, _), _) => a mem_string tfrees) Tenv;
 	  in
 	    if null Tenv' then th
@@ -1278,7 +1278,7 @@ val axiomsN = "axioms";
 
 fun atomize_spec sign ts =
   let
-    val t = Library.foldr1 Logic.mk_conjunction ts;
+    val t = foldr1 Logic.mk_conjunction ts;
     val body = ObjectLogic.atomize_term sign t;
     val bodyT = Term.fastype_of body;
   in
@@ -1308,7 +1308,7 @@ fun def_pred bname parms defs ts norm_ts thy =
     val env = Term.add_term_free_names (body, []);
     val xs = List.filter (fn (x, _) => x mem_string env) parms;
     val Ts = map #2 xs;
-    val extraTs = (Term.term_tfrees body \\ Library.foldr Term.add_typ_tfrees (Ts, []))
+    val extraTs = (Term.term_tfrees body \\ foldr Term.add_typ_tfrees [] Ts)
       |> Library.sort_wrt #1 |> map TFree;
     val predT = map Term.itselfT extraTs ---> Ts ---> bodyT;
 

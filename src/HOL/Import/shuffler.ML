@@ -553,13 +553,13 @@ fun match_consts ignore t (* th *) =
     end
     
 val collect_ignored =
-    Library.foldr (fn (thm,cs) =>
+    foldr (fn (thm,cs) =>
 	      let
 		  val (lhs,rhs) = Logic.dest_equals (prop_of thm)
 		  val ignore_lhs = term_consts lhs \\ term_consts rhs
 		  val ignore_rhs = term_consts rhs \\ term_consts lhs
 	      in
-		  Library.foldr (op ins_string) (ignore_lhs @ ignore_rhs,cs)
+		  foldr (op ins_string) cs (ignore_lhs @ ignore_rhs)
 	      end)
 
 (* set_prop t thms tries to make a theorem with the proposition t from
@@ -570,8 +570,8 @@ fun set_prop thy t =
     let
 	val sg = sign_of thy
 	val vars = add_term_frees (t,add_term_vars (t,[]))
-	val closed_t = Library.foldr (fn (v,body) => let val vT = type_of v
-					     in all vT $ (Abs("x",vT,abstract_over(v,body))) end) (vars,t)
+	val closed_t = foldr (fn (v,body) => let val vT = type_of v
+					     in all vT $ (Abs("x",vT,abstract_over(v,body))) end) t vars
 	val rew_th = norm_term thy closed_t
 	val rhs = snd (dest_equals (cprop_of rew_th))
 
@@ -610,7 +610,7 @@ fun set_prop thy t =
 fun find_potential thy t =
     let
 	val shuffles = ShuffleData.get thy
-	val ignored = collect_ignored(shuffles,[])
+	val ignored = collect_ignored [] shuffles
 	val rel_consts = term_consts t \\ ignored
 	val pot_thms = PureThy.thms_containing_consts thy rel_consts
     in

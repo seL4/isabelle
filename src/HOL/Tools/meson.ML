@@ -188,7 +188,7 @@ local
      let fun name1 (th, (k,ths)) =
            (k-1, Thm.name_thm (label ^ string_of_int k, th) :: ths)
 
-     in  fn ths => #2 (Library.foldr name1 (ths, (length ths, [])))  end;
+     in  fn ths => #2 (foldr name1 (length ths, []) ths)  end;
 
  (*Find an all-negative support clause*)
  fun is_negative th = forall (not o #1) (literals (prop_of th));
@@ -239,7 +239,7 @@ in
 (*Sums the sizes of the subgoals, ignoring hypotheses (ancestors)*)
 local fun addconcl(prem,sz) = size_of_term(Logic.strip_assums_concl prem) + sz
 in
-fun size_of_subgoals st = Library.foldr addconcl (prems_of st, 0)
+fun size_of_subgoals st = foldr addconcl 0 (prems_of st)
 end;
 
 (*Negation Normal Form*)
@@ -265,12 +265,12 @@ fun skolemize th =
 (*Make clauses from a list of theorems, previously Skolemized and put into nnf.
   The resulting clauses are HOL disjunctions.*)
 fun make_clauses ths =
-    sort_clauses (map (generalize o nodups) (Library.foldr cnf (ths,[])));
+    sort_clauses (map (generalize o nodups) (foldr cnf [] ths));
 
 (*Convert a list of clauses to (contrapositive) Horn clauses*)
 fun make_horns ths =
     name_thms "Horn#"
-      (gen_distinct Drule.eq_thm_prop (Library.foldr (add_contras clause_rules) (ths,[])));
+      (gen_distinct Drule.eq_thm_prop (foldr (add_contras clause_rules) [] ths));
 
 (*Could simply use nprems_of, which would count remaining subgoals -- no
   discrimination as to their size!  With BEST_FIRST, fails for problem 41.*)

@@ -252,14 +252,14 @@ fun freeze_thaw_type T =
   let
     val used = add_typ_tfree_names (T, [])
     and tvars = map #1 (add_typ_tvars (T, []));
-    val (alist, _) = Library.foldr new_name (tvars, ([], used));
+    val (alist, _) = foldr new_name ([], used) tvars;
   in (map_type_tvar (freeze_one alist) T, map_type_tfree (thaw_one (map swap alist))) end;
 
 fun freeze_thaw t =
   let
     val used = it_term_types add_typ_tfree_names (t, [])
     and tvars = map #1 (it_term_types add_typ_tvars (t, []));
-    val (alist, _) = Library.foldr new_name (tvars, ([], used));
+    val (alist, _) = foldr new_name ([], used) tvars;
   in
     (case alist of
       [] => (t, fn x => x) (*nothing to do!*)
@@ -378,7 +378,7 @@ fun unify (tsig as TSig {classes, arities, ...}) (tyenv, maxidx) TU =
           else meet ((T, S), Vartab.update_new ((v, T), tye))
       | (Type (a, Ts), Type (b, Us)) =>
           if a <> b then raise TUNIFY
-          else Library.foldr unif (Ts ~~ Us, tye)
+          else foldr unif tye (Ts ~~ Us)
       | (T, U) => if T = U then tye else raise TUNIFY);
   in (unif (TU, tyenv), ! tyvar_count) end;
 

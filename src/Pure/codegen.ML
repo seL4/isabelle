@@ -225,8 +225,8 @@ fun add_attribute name att thy =
 fun mk_parser (a, p) = (if a = "" then Scan.succeed "" else Args.$$$ a) |-- p;
 
 val code_attr =
-  Attrib.syntax (Scan.depend (fn thy => Library.foldr op || (map mk_parser
-    (#attrs (CodegenData.get thy)), Scan.fail) >> pair thy));
+  Attrib.syntax (Scan.depend (fn thy => foldr op || Scan.fail (map mk_parser
+    (#attrs (CodegenData.get thy))) >> pair thy));
 
 
 (**** preprocessors ****)
@@ -344,8 +344,8 @@ fun mk_type_id sg s =
 
 fun rename_terms ts =
   let
-    val names = Library.foldr add_term_names
-      (ts, map (fst o fst) (Drule.vars_of_terms ts));
+    val names = foldr add_term_names
+      (map (fst o fst) (Drule.vars_of_terms ts)) ts;
     val reserved = names inter ThmDatabase.ml_reserved;
     val (illegal, alt_names) = split_list (List.mapPartial (fn s =>
       let val s' = mk_id s in if s = s' then NONE else SOME (s, s') end) names)
@@ -443,8 +443,8 @@ fun eta_expand t ts i =
     val (Ts, _) = strip_type (fastype_of t);
     val j = i - length ts
   in
-    Library.foldr (fn (T, t) => Abs ("x", T, t))
-      (Library.take (j, Ts), list_comb (t, ts @ map Bound (j-1 downto 0)))
+    foldr (fn (T, t) => Abs ("x", T, t))
+      (list_comb (t, ts @ map Bound (j-1 downto 0))) (Library.take (j, Ts))
   end;
 
 fun mk_app _ p [] = p

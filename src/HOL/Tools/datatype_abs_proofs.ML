@@ -97,7 +97,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
 
     val descr' = List.concat descr;
     val recTs = get_rec_types descr' sorts;
-    val used = Library.foldr add_typ_tfree_names (recTs, []);
+    val used = foldr add_typ_tfree_names [] recTs;
     val newTs = Library.take (length (hd descr), recTs);
 
     val induct_Ps = map head_of (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of induct)));
@@ -139,7 +139,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
           end;
 
         val Ts = map (typ_of_dtyp descr' sorts) cargs;
-        val (_, _, prems, t1s, t2s) = Library.foldr mk_prem (cargs ~~ Ts, (1, 1, [], [], []))
+        val (_, _, prems, t1s, t2s) = foldr mk_prem (1, 1, [], [], []) (cargs ~~ Ts)
 
       in (rec_intr_ts @ [Logic.list_implies (prems, HOLogic.mk_Trueprop (HOLogic.mk_mem
         (HOLogic.mk_prod (list_comb (Const (cname, Ts ---> T), t1s),
@@ -269,7 +269,7 @@ fun prove_case_thms flat_names new_type_names descr sorts reccomb_names primrec_
 
     val descr' = List.concat descr;
     val recTs = get_rec_types descr' sorts;
-    val used = Library.foldr add_typ_tfree_names (recTs, []);
+    val used = foldr add_typ_tfree_names [] recTs;
     val newTs = Library.take (length (hd descr), recTs);
     val T' = TFree (variant used "'t", HOLogic.typeS);
 
@@ -401,7 +401,7 @@ fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_
         val t = if k = 0 then HOLogic.zero else
           foldl1 plus (map Bound (k - 1 downto 0) @ [HOLogic.mk_nat 1])
       in
-        Library.foldr (fn (T, t') => Abs ("x", T, t')) (Ts @ replicate k HOLogic.natT, t)
+        foldr (fn (T, t') => Abs ("x", T, t')) t (Ts @ replicate k HOLogic.natT)
       end;
 
     val fs = List.concat (map (fn (_, (_, _, constrs)) => map make_sizefun constrs) descr');

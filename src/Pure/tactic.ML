@@ -426,7 +426,7 @@ fun insert_tagged_brl (kbrl as (k, (eres, th)), (inet, enet)) =
 
 (*build a pair of nets for biresolution*)
 fun build_netpair netpair brls =
-    Library.foldr insert_tagged_brl (taglist 1 brls, netpair);
+    foldr insert_tagged_brl netpair (taglist 1 brls);
 
 (*delete one kbrl from the pair of nets*)
 local
@@ -473,7 +473,7 @@ fun insert_krl (krl as (k,th), net) =
 
 (*build a net of rules for resolution*)
 fun build_net rls =
-    Library.foldr insert_krl (taglist 1 rls, Net.empty);
+    foldr insert_krl Net.empty (taglist 1 rls);
 
 (*resolution using a net rather than rules; pred supports filt_resolve_tac*)
 fun filt_resolution_from_net_tac match pred net =
@@ -644,7 +644,7 @@ fun prove sign xs asms prop tac =
     val statement = Logic.list_implies (asms, prop);
     val frees = map Term.dest_Free (Term.term_frees statement);
     val fixed_frees = filter_out (fn (x, _) => x mem_string xs) frees;
-    val fixed_tfrees = Library.foldr Term.add_typ_tfree_names (map #2 fixed_frees, []);
+    val fixed_tfrees = foldr Term.add_typ_tfree_names [] (map #2 fixed_frees);
     val params = List.mapPartial (fn x => Option.map (pair x) (assoc_string (frees, x))) xs;
 
     fun err msg = raise ERROR_MESSAGE

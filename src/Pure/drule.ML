@@ -343,10 +343,10 @@ fun gen_all thm =
   in Library.foldl elim (thm, Term.variantlist (map #1 vs, []) ~~ map #2 vs) end;
 
 (*Specialization over a list of cterms*)
-fun forall_elim_list cts th = Library.foldr (uncurry forall_elim) (rev cts, th);
+fun forall_elim_list cts th = foldr (uncurry forall_elim) th (rev cts);
 
 (* maps A1,...,An |- B   to   [| A1;...;An |] ==> B  *)
-fun implies_intr_list cAs th = Library.foldr (uncurry implies_intr) (cAs,th);
+fun implies_intr_list cAs th = foldr (uncurry implies_intr) th cAs;
 
 (* maps [| A1;...;An |] ==> B and [A1,...,An]   to   B *)
 fun implies_elim_list impth ths = Library.foldl (uncurry implies_elim) (impth,ths);
@@ -364,12 +364,12 @@ fun satisfy_hyps ths th =
 fun zero_var_indexes th =
     let val {prop,sign,tpairs,...} = rep_thm th;
         val (tpair_l, tpair_r) = Library.split_list tpairs;
-        val vars = Library.foldr add_term_vars 
-                         (tpair_r, Library.foldr add_term_vars (tpair_l, (term_vars prop)));
+        val vars = foldr add_term_vars 
+                         (foldr add_term_vars (term_vars prop) tpair_l) tpair_r;
         val bs = Library.foldl add_new_id ([], map (fn Var((a,_),_)=>a) vars)
         val inrs = 
-            Library.foldr add_term_tvars 
-                  (tpair_r, Library.foldr add_term_tvars (tpair_l, (term_tvars prop)));
+            foldr add_term_tvars 
+                  (foldr add_term_tvars (term_tvars prop) tpair_l) tpair_r;
         val nms' = rev(Library.foldl add_new_id ([], map (#1 o #1) inrs));
         val tye = ListPair.map (fn ((v,rs),a) => (v, TVar((a,0),rs)))
                      (inrs, nms')
@@ -423,13 +423,13 @@ fun freeze_thaw_robust th =
  let val fth = freezeT th
      val {prop, tpairs, sign, ...} = rep_thm fth
  in
-   case Library.foldr add_term_vars (prop :: Thm.terms_of_tpairs tpairs, []) of
+   case foldr add_term_vars [] (prop :: Thm.terms_of_tpairs tpairs) of
        [] => (fth, fn i => fn x => x)   (*No vars: nothing to do!*)
      | vars =>
          let fun newName (Var(ix,_), pairs) =
                    let val v = gensym (string_of_indexname ix)
                    in  ((ix,v)::pairs)  end;
-             val alist = Library.foldr newName (vars,[])
+             val alist = foldr newName [] vars
              fun mk_inst (Var(v,T)) =
                  (cterm_of sign (Var(v,T)),
                   cterm_of sign (Free(valOf (assoc(alist,v)), T)))
@@ -446,14 +446,14 @@ fun freeze_thaw th =
  let val fth = freezeT th
      val {prop, tpairs, sign, ...} = rep_thm fth
  in
-   case Library.foldr add_term_vars (prop :: Thm.terms_of_tpairs tpairs, []) of
+   case foldr add_term_vars [] (prop :: Thm.terms_of_tpairs tpairs) of
        [] => (fth, fn x => x)
      | vars =>
          let fun newName (Var(ix,_), (pairs,used)) =
                    let val v = variant used (string_of_indexname ix)
                    in  ((ix,v)::pairs, v::used)  end;
-             val (alist, _) = Library.foldr newName (vars, ([], Library.foldr add_term_names
-               (prop :: Thm.terms_of_tpairs tpairs, [])))
+             val (alist, _) = foldr newName ([], Library.foldr add_term_names
+               (prop :: Thm.terms_of_tpairs tpairs, [])) vars
              fun mk_inst (Var(v,T)) =
                  (cterm_of sign (Var(v,T)),
                   cterm_of sign (Free(valOf (assoc(alist,v)), T)))
@@ -641,9 +641,9 @@ val imp_cong' = combination o combination (reflexive implies)
 fun abs_def thm =
   let
     val (_, cvs) = strip_comb (fst (dest_equals (cprop_of thm)));
-    val thm' = Library.foldr (fn (ct, thm) => Thm.abstract_rule
+    val thm' = foldr (fn (ct, thm) => Thm.abstract_rule
       (case term_of ct of Var ((a, _), _) => a | Free (a, _) => a | _ => "x")
-        ct thm) (cvs, thm)
+        ct thm) thm cvs
   in transitive
     (symmetric (eta_conversion (fst (dest_equals (cprop_of thm'))))) thm'
   end;
@@ -835,7 +835,7 @@ local
     in  (sign', tye', maxi')  end;
 in
 fun cterm_instantiate ctpairs0 th =
-  let val (sign,tye,_) = Library.foldr add_types (ctpairs0, (Thm.sign_of_thm th, Vartab.empty, 0))
+  let val (sign,tye,_) = foldr add_types (Thm.sign_of_thm th, Vartab.empty, 0) ctpairs0
       fun instT(ct,cu) = 
         let val inst = cterm_of sign o subst_TVars_Vartab tye o term_of
         in (inst ct, inst cu) end
@@ -862,7 +862,7 @@ fun equal_abs_elim ca eqth =
   handle THM _ => raise THM("equal_abs_elim", 0, [eqth]);
 
 (*Calling equal_abs_elim with multiple terms*)
-fun equal_abs_elim_list cts th = Library.foldr (uncurry equal_abs_elim) (rev cts, th);
+fun equal_abs_elim_list cts th = foldr (uncurry equal_abs_elim) th (rev cts);
 
 
 (*** Goal (PROP A) <==> PROP A ***)
@@ -991,7 +991,7 @@ fun unvarify raw_thm =
 
 fun tfrees_of thm =
   let val {hyps, prop, ...} = Thm.rep_thm thm
-  in Library.foldr Term.add_term_tfree_names (prop :: hyps, []) end;
+  in foldr Term.add_term_tfree_names [] (prop :: hyps) end;
 
 fun tvars_intr_list tfrees thm =
   Thm.varifyT' (tfrees_of thm \\ tfrees) thm;
