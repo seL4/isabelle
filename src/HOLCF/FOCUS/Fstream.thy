@@ -3,11 +3,12 @@
     Author: 	David von Oheimb, TU Muenchen
 
 FOCUS streams (with lifted elements)
+###TODO: integrate Fstreams.thy
 *)
 
 (* FOCUS flat streams *)
 
-Fstream = Streams + 
+Fstream = Stream + 
 
 default type
 

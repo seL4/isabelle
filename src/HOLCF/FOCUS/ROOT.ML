@@ -9,5 +9,6 @@ See README.html for further information.
 val banner = "HOLCF/FOCUS";
 writeln banner;
 
+use_thy "Fstreams";
 use_thy "FOCUS";
 use_thy "Buffer_adm";

@@ -30,12 +30,12 @@ by (rtac lemma3 1);
 val lemma5=result();
 
 val prems = goal Dagstuhl.thy "YS = YYS";
-by (resolve_tac stream.take_lemmas 1);
+by (resolve_tac (thms "stream.take_lemmas") 1);
 by (induct_tac "n" 1);
-by (simp_tac (simpset() addsimps stream.rews) 1);
+by (simp_tac (simpset() addsimps (thms "stream.rews")) 1);
 by (stac YS_def2 1);
 by (stac YYS_def2 1);
-by (asm_simp_tac (simpset() addsimps stream.rews) 1);
+by (asm_simp_tac (simpset() addsimps (thms "stream.rews")) 1);
 by (rtac (lemma5 RS sym RS subst) 1);
 by (rtac refl 1);
 val wir_moel=result();

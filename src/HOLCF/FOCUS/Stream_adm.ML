@@ -24,12 +24,12 @@ by ( rtac allI 1);
 by ( dtac spec 1);
 by ( Safe_tac);
 by ( rtac exI 1);
-by ( rtac slen_strict_mono 1);
+by ( rtac (thm "slen_strict_mono") 1);
 by (   etac spec 1);
 by (  atac 1);
 by ( atac 1);
 by (dtac (not_ex RS iffD1) 1);
-by (stac slen_infinite 1);
+by (stac (thm "slen_infinite") 1);
 by (etac thin_rl 1);
 by (dtac spec 1);
 by (fold_goals_tac [thm "ile_def"]);
@@ -67,16 +67,16 @@ by (etac allE 1 THEN etac all_dupE 1 THEN dtac mp 1 THEN etac ile_lemma 1);
 by (dres_inst_tac [("P","%x. x")] subst 1 THEN atac 1);
 by (etac allE 1 THEN dtac mp 1 THEN rtac ile_lemma 1);
 by ( etac (thm "ile_trans") 1);
-by ( etac slen_mono 1);
+by ( etac (thm "slen_mono") 1);
 by (etac ssubst 1);
 by (safe_tac HOL_cs);
-by ( eatac (ile_lemma RS slen_take_lemma3 RS subst) 2 1);
+by ( eatac (ile_lemma RS thm "slen_take_lemma3" RS subst) 2 1);
 by (etac allE 1);
 by (etac allE 1);
 by (dtac mp 1);
-by ( etac slen_rt_mult 1);
+by ( etac (thm "slen_rt_mult") 1);
 by (dtac mp 1);
-by (etac monofun_rt_mult 1);
+by (etac (thm "monofun_rt_mult") 1);
 by (mp_tac 1); 
 by (atac 1);
 qed "stream_monoP2I";
@@ -123,9 +123,9 @@ qed_goalw "stream_antiP2I" thy [stream_antiP_def]
         etac allE 1 THEN mp_tac 1,
 	dres_inst_tac [("P","%x. x")] subst 1 THEN atac 1,
 	etac conjE 1 THEN rtac conjI 1,
-	 etac (slen_take_lemma3 RS ssubst) 1 THEN atac 1,
+	 etac (thm "slen_take_lemma3" RS ssubst) 1 THEN atac 1,
 	 atac 1,
-	etac allE 1 THEN etac allE 1 THEN dtac mp 1 THEN etac monofun_rt_mult 1,
+	etac allE 1 THEN etac allE 1 THEN dtac mp 1 THEN etac (thm "monofun_rt_mult") 1,
 	mp_tac 1,
 	atac 1]);
 

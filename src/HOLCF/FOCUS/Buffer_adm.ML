@@ -30,7 +30,7 @@ val BufAC_Cmt_F_def3 = prove_goalw thy [BufAC_Cmt_F_def]
 	subgoal_tac "!d x. (s = Md d\\<leadsto>\\<bullet>\\<leadsto>x --> (? y. t = d\\<leadsto>y & (x,y):C)) = \
 		   \ (s = Md d\\<leadsto>\\<bullet>\\<leadsto>x --> ft\\<cdot>t = Def d & (x,rt\\<cdot>t):C)"  1,
 	Asm_simp_tac 1,
-	auto_tac (claset() addIs [surjectiv_scons RS sym], simpset())]);
+	auto_tac (claset() addIs [thm "surjectiv_scons" RS sym], simpset())]);
 
 val cont_BufAC_Cmt_F = prove_goal thy "down_cont BufAC_Cmt_F" (K [
 	auto_tac (claset(),simpset() addsimps [down_cont_def,BufAC_Cmt_F_def3])]);
@@ -56,7 +56,7 @@ b y res_inst_tac [("x","{x. (? d. x = Md d\\<leadsto>\\<bullet>\\<leadsto><>)}")
 b y res_inst_tac [("x","Suc (Suc 0)")] exI 1;
 b y rtac conjI 1;
 b y  strip_tac 2;
-b y  dtac slen_mono 2;
+b y  dtac (thm "slen_mono") 2;
 b y  datac (thm "ile_trans") 1 2;
 b y ALLGOALS Force_tac;
 qed "BufAC_Asm_F_stream_antiP";

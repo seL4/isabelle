@@ -39,7 +39,7 @@ $(OUT)/HOLCF: $(OUT)/HOL Cfun1.ML Cfun1.thy Cfun2.ML Cfun2.thy \
   Up1.thy Up2.ML Up2.thy Up3.ML Up3.thy adm.ML cont_consts.ML \
   domain/axioms.ML domain/extender.ML domain/interface.ML \
   domain/library.ML domain/syntax.ML domain/theorems.ML holcf_logic.ML \
-  ex/Stream.thy ex/Stream.ML Streams.thy
+  ex/Stream.thy
 	@$(ISATOOL) usedir -b -r $(OUT)/HOL HOLCF
 
 
@@ -68,7 +68,8 @@ $(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF ex/Dagstuhl.ML ex/Dagstuhl.thy \
 
 HOLCF-FOCUS: HOLCF $(LOG)/HOLCF-FOCUS.gz
 
-$(LOG)/HOLCF-FOCUS.gz: $(OUT)/HOLCF FOCUS/Fstream.thy FOCUS/Fstream.ML \
+$(LOG)/HOLCF-FOCUS.gz: $(OUT)/HOLCF FOCUS/Fstreams.thy \
+  FOCUS/Fstream.thy FOCUS/Fstream.ML \
   FOCUS/FOCUS.thy FOCUS/FOCUS.ML \
   FOCUS/Stream_adm.thy FOCUS/Stream_adm.ML  ../HOL/Library/Continuity.thy \
   FOCUS/Buffer.thy FOCUS/Buffer.ML FOCUS/Buffer_adm.thy FOCUS/Buffer_adm.ML

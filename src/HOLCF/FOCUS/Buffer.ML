@@ -175,7 +175,7 @@ by (Simp_tac 1);
 by (Fast_tac 1);
 qed_spec_mp "BufAC_Asm_cong_lemma";
 Goal "\\<lbrakk>f \\<in> BufEq; ff \\<in> BufEq; s \\<in> BufAC_Asm\\<rbrakk> \\<Longrightarrow> f\\<cdot>s = ff\\<cdot>s";
-by (resolve_tac stream.take_lemmas 1);
+by (resolve_tac (thms "stream.take_lemmas") 1);
 by (eatac BufAC_Asm_cong_lemma 2 1);
 qed "BufAC_Asm_cong";
 
