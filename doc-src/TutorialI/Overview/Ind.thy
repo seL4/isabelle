@@ -93,7 +93,7 @@ intros
 lemma "wf{(x,y). (x,y) \<in> r \<and> y \<in> acc r}"
 thm wfI
 apply(rule_tac A = "acc r" in wfI)
- apply (blast elim:acc.elims)
+ apply (blast elim: acc.elims)
 apply(simp(no_asm_use))
 thm acc.induct
 apply(erule acc.induct)

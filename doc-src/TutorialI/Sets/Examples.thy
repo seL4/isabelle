@@ -90,7 +90,7 @@ by blast
 text{*A type constraint lets it work*}
 
 text{*An issue here: how do we discuss the distinction between ASCII and
-X-symbol notation?  Here the latter disambiguates.*}
+symbol notation?  Here the latter disambiguates.*}
 
 
 text{*

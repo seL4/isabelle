@@ -165,7 +165,7 @@ recursive functions.  Here is a simple example of recursion induction:%
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}wf{\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}\ {\isasymlongrightarrow}\ f{\isacharparenleft}find{\isacharparenleft}f{\isacharcomma}x{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ find{\isacharparenleft}f{\isacharcomma}x{\isacharparenright}{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ f\ x\ rule{\isacharcolon}find{\isachardot}induct{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ f\ x\ rule{\isacharcolon}\ find{\isachardot}induct{\isacharparenright}\isanewline
 \isamarkupfalse%
 \isacommand{apply}\ simp\isanewline
 \isamarkupfalse%
@@ -236,7 +236,7 @@ by \isa{auto} but falls to \isa{simp}:%
 \isamarkupfalse%
 \isacommand{apply}\ auto\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}inv{\isacharunderscore}image{\isacharunderscore}def\ step{\isadigit{1}}{\isacharunderscore}def{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}\ inv{\isacharunderscore}image{\isacharunderscore}def\ step{\isadigit{1}}{\isacharunderscore}def{\isacharparenright}\isanewline
 \isamarkupfalse%
 \isacommand{done}\isamarkupfalse%
 %
@@ -248,7 +248,7 @@ The theorem itself is a simple consequence of this lemma:%
 \isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}drule{\isacharunderscore}tac\ x\ {\isacharequal}\ x\ \isakeyword{in}\ lem{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}auto\ simp\ add{\isacharcolon}find{\isadigit{2}}{\isacharunderscore}def{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}auto\ simp\ add{\isacharcolon}\ find{\isadigit{2}}{\isacharunderscore}def{\isacharparenright}\isanewline
 \isamarkupfalse%
 \isacommand{done}\isamarkupfalse%
 %

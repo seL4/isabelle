@@ -55,7 +55,7 @@ The most obvious approach is the brute force expansion of @{term split}:
 *}
 
 lemma "(\<lambda>(x,y).x) p = fst p"
-by(simp add:split_def)
+by(simp add: split_def)
 
 text{* This works well if rewriting with @{thm[source]split_def} finishes the
 proof, as it does above.  But if it does not, you end up with exactly what
@@ -102,7 +102,7 @@ A paired @{text let} reduces to a paired $\lambda$-abstraction, which
 can be split as above. The same is true for paired set comprehension:
 *}
 
-(*<*)by(simp split:split_split)(*>*)
+(*<*)by(simp split: split_split)(*>*)
 lemma "p \<in> {(x,y). x=y} \<longrightarrow> fst p = snd p"
 apply simp
 
@@ -114,7 +114,7 @@ as above. If you are worried about the strange form of the premise:
 The same proof procedure works for
 *}
 
-(*<*)by(simp split:split_split)(*>*)
+(*<*)by(simp split: split_split)(*>*)
 lemma "p \<in> {(x,y). x=y} \<Longrightarrow> fst p = snd p"
 
 txt{*\noindent
@@ -125,7 +125,7 @@ However, splitting @{term split} is not always a solution, as no @{term split}
 may be present in the goal. Consider the following function:
 *}
 
-(*<*)by(simp split:split_split_asm)(*>*)
+(*<*)by(simp split: split_split_asm)(*>*)
 consts swap :: "'a \<times> 'b \<Rightarrow> 'b \<times> 'a"
 primrec
   "swap (x,y) = (y,x)"
@@ -184,7 +184,7 @@ where two separate \isa{simp} applications succeed.
 (*<*)
 lemma "\<And>p q. swap(swap p) = q \<longrightarrow> p = q"
 (*>*)
-apply(simp add:split_paired_all)
+apply(simp add: split_paired_all)
 (*<*)done(*>*)
 text{*\noindent
 Finally, the simplifier automatically splits all @{text"\<forall>"} and

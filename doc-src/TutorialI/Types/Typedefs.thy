@@ -195,7 +195,7 @@ lemma three_cases: "\<lbrakk> P A; P B; P C \<rbrakk> \<Longrightarrow> P x"
 
 txt{*\noindent Again this follows easily from a pre-proved general theorem:*}
 
-apply(rule_tac x = x in Abs_three_induct)
+apply(induct_tac x rule: Abs_three_induct)
 
 txt{*
 @{subgoals[display,indent=0]}

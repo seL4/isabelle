@@ -47,7 +47,7 @@ apply(erule Avoid.induct);
  apply(blast);
 apply(clarify);
 apply(drule_tac x = "\<lambda>i. case i of 0 \<Rightarrow> t | Suc i \<Rightarrow> f i" in bspec);
-apply(simp_all add:Paths_def split:nat.split);
+apply(simp_all add: Paths_def split: nat.split);
 done
 
 text{*\noindent
@@ -106,7 +106,7 @@ Hence, by the induction hypothesis, all successors of @{term t} are indeed in
 
  apply(subst lfp_unfold[OF mono_af]);
  apply(simp (no_asm) add: af_def);
- apply(blast intro:Avoid.intros);
+ apply(blast intro: Avoid.intros);
 
 txt{*
 Having proved the main goal, we return to the proof obligation that the 
@@ -120,10 +120,10 @@ From lemma @{thm[source]ex_infinite_path} the existence of an infinite
 *}
 
 apply(erule contrapos_pp);
-apply(simp add:wf_iff_no_infinite_down_chain);
+apply(simp add: wf_iff_no_infinite_down_chain);
 apply(erule exE);
 apply(rule ex_infinite_path);
-apply(auto simp add:Paths_def);
+apply(auto simp add: Paths_def);
 done
 
 text{*
@@ -140,7 +140,7 @@ by the first @{term Avoid}-rule. Isabelle confirms this:%
 \index{CTL|)}*}
 
 theorem AF_lemma2:  "{s. \<forall>p \<in> Paths s. \<exists> i. p i \<in> A} \<subseteq> lfp(af A)";
-by(auto elim:Avoid_in_lfp intro:Avoid.intros);
+by(auto elim: Avoid_in_lfp intro: Avoid.intros);
 
 
 (*<*)end(*>*)

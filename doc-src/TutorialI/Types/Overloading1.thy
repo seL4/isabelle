@@ -5,7 +5,7 @@ subsubsection{*Controlled Overloading with Type Classes*}
 text{*
 We now start with the theory of ordering relations, which we shall phrase
 in terms of the two binary symbols @{text"<<"} and @{text"<<="}
-to avoid clashes with @{text"<"} and @{text"\<le>"} in theory @{text
+to avoid clashes with @{text"<"} and @{text"<="} in theory @{text
 Main}. To restrict the application of @{text"<<"} and @{text"<<="} we
 introduce the class @{text ordrel}:
 *}

@@ -49,7 +49,7 @@ We do not show the proof script.
 (*<*)
   apply simp
  apply simp
-apply(simp add:dvd_def)
+apply(simp add: dvd_def)
 apply(clarify)
 apply(rule_tac x = "Suc k" in exI)
 apply simp

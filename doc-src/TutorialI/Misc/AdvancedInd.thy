@@ -80,8 +80,7 @@ as
 \forall y@1 \dots y@n.~ x = t \longrightarrow C.
 \end{equation}
 where $y@1 \dots y@n$ are the free variables in $t$ and $x$ is a new variable.
-Now you can perform
-perform induction on~$x$. An example appears in
+Now you can perform induction on~$x$. An example appears in
 \S\ref{sec:complete-ind} below.
 
 The very same problem may occur in connection with rule induction. Remember
@@ -264,7 +263,7 @@ hypothesis and case @{prop"m = n"} follows from the assumption, again using
 the induction hypothesis:
 *};
  apply(blast);
-by(blast elim:less_SucE)
+by(blast elim: less_SucE)
 
 text{*\noindent
 The elimination rule @{thm[source]less_SucE} expresses the case distinction:

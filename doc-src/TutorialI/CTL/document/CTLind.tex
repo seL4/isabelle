@@ -58,7 +58,7 @@ the \isa{rule{\isacharunderscore}format} directive undoes the reformulation afte
 \isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}drule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequote}{\isasymlambda}i{\isachardot}\ case\ i\ of\ {\isadigit{0}}\ {\isasymRightarrow}\ t\ {\isacharbar}\ Suc\ i\ {\isasymRightarrow}\ f\ i{\isachardoublequote}\ \isakeyword{in}\ bspec{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}Paths{\isacharunderscore}def\ split{\isacharcolon}nat{\isachardot}split{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ Paths{\isacharunderscore}def\ split{\isacharcolon}\ nat{\isachardot}split{\isacharparenright}\isanewline
 \isamarkupfalse%
 \isacommand{done}\isamarkupfalse%
 %
@@ -133,7 +133,7 @@ Hence, by the induction hypothesis, all successors of \isa{t} are indeed in
 \ \isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}simp\ {\isacharparenleft}no{\isacharunderscore}asm{\isacharparenright}\ add{\isacharcolon}\ af{\isacharunderscore}def{\isacharparenright}\isanewline
 \ \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}Avoid{\isachardot}intros{\isacharparenright}\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ Avoid{\isachardot}intros{\isacharparenright}\isamarkupfalse%
 %
 \begin{isamarkuptxt}%
 Having proved the main goal, we return to the proof obligation that the 
@@ -149,13 +149,13 @@ From lemma \isa{ex{\isacharunderscore}infinite{\isacharunderscore}path} the exis
 \isamarkuptrue%
 \isacommand{apply}{\isacharparenleft}erule\ contrapos{\isacharunderscore}pp{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}wf{\isacharunderscore}iff{\isacharunderscore}no{\isacharunderscore}infinite{\isacharunderscore}down{\isacharunderscore}chain{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}\ wf{\isacharunderscore}iff{\isacharunderscore}no{\isacharunderscore}infinite{\isacharunderscore}down{\isacharunderscore}chain{\isacharparenright}\isanewline
 \isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}erule\ exE{\isacharparenright}\isanewline
 \isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}rule\ ex{\isacharunderscore}infinite{\isacharunderscore}path{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}auto\ simp\ add{\isacharcolon}Paths{\isacharunderscore}def{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}auto\ simp\ add{\isacharcolon}\ Paths{\isacharunderscore}def{\isacharparenright}\isanewline
 \isamarkupfalse%
 \isacommand{done}\isamarkupfalse%
 %
@@ -177,7 +177,7 @@ by the first \isa{Avoid}-rule. Isabelle confirms this:%
 \isamarkuptrue%
 \isacommand{theorem}\ AF{\isacharunderscore}lemma{\isadigit{2}}{\isacharcolon}\ \ {\isachardoublequote}{\isacharbraceleft}s{\isachardot}\ {\isasymforall}p\ {\isasymin}\ Paths\ s{\isachardot}\ {\isasymexists}\ i{\isachardot}\ p\ i\ {\isasymin}\ A{\isacharbraceright}\ {\isasymsubseteq}\ lfp{\isacharparenleft}af\ A{\isacharparenright}{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{by}{\isacharparenleft}auto\ elim{\isacharcolon}Avoid{\isacharunderscore}in{\isacharunderscore}lfp\ intro{\isacharcolon}Avoid{\isachardot}intros{\isacharparenright}\isanewline
+\isacommand{by}{\isacharparenleft}auto\ elim{\isacharcolon}\ Avoid{\isacharunderscore}in{\isacharunderscore}lfp\ intro{\isacharcolon}\ Avoid{\isachardot}intros{\isacharparenright}\isanewline
 \isanewline
 \isamarkupfalse%
 \isamarkupfalse%

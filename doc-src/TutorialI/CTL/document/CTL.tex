@@ -34,7 +34,8 @@ in HOL: it is simply a function from \isa{nat} to \isa{state}.%
 This definition allows a succinct statement of the semantics of \isa{AF}:
 \footnote{Do not be misled: neither datatypes nor recursive functions can be
 extended by new constructors or equations. This is just a trick of the
-presentation. In reality one has to define a new datatype and a new function.}%
+presentation (see \S\ref{sec:doc-prep-suppress}). In reality one has to define
+a new datatype and a new function.}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isamarkupfalse%
@@ -178,7 +179,7 @@ is proved by a variant of contraposition:%
 \isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}subst\ lfp{\isacharunderscore}unfold{\isacharbrackleft}OF\ mono{\isacharunderscore}af{\isacharbrackright}{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}af{\isacharunderscore}def{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}\ af{\isacharunderscore}def{\isacharparenright}\isanewline
 \isamarkupfalse%
 \isacommand{done}\isamarkupfalse%
 %
@@ -229,7 +230,7 @@ both the path property and the fact that \isa{Q} holds:%
 From this proposition the original goal follows easily:%
 \end{isamarkuptxt}%
 \ \isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}Paths{\isacharunderscore}def{\isacharcomma}\ blast{\isacharparenright}\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}\ Paths{\isacharunderscore}def{\isacharcomma}\ blast{\isacharparenright}\isamarkupfalse%
 %
 \begin{isamarkuptxt}%
 \noindent
@@ -275,7 +276,7 @@ two subgoals: \isa{{\isasymexists}a{\isachardot}\ {\isacharparenleft}s{\isacharc
 \isa{fast} can prove the base case quickly:%
 \end{isamarkuptxt}%
 \ \isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}fast\ intro{\isacharcolon}someI{\isadigit{2}}{\isacharunderscore}ex{\isacharparenright}\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}fast\ intro{\isacharcolon}\ someI{\isadigit{2}}{\isacharunderscore}ex{\isacharparenright}\isamarkupfalse%
 %
 \begin{isamarkuptxt}%
 \noindent
@@ -375,7 +376,7 @@ premise of \isa{infinity{\isacharunderscore}lemma} and the original subgoal:%
 Both are solved automatically:%
 \end{isamarkuptxt}%
 \ \isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}auto\ dest{\isacharcolon}not{\isacharunderscore}in{\isacharunderscore}lfp{\isacharunderscore}afD{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}auto\ dest{\isacharcolon}\ not{\isacharunderscore}in{\isacharunderscore}lfp{\isacharunderscore}afD{\isacharparenright}\isanewline
 \isamarkupfalse%
 \isacommand{done}\isamarkupfalse%
 %

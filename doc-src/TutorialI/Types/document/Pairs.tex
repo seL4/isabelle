@@ -67,7 +67,7 @@ The most obvious approach is the brute force expansion of \isa{split}:%
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}x{\isacharparenright}\ p\ {\isacharequal}\ fst\ p{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{by}{\isacharparenleft}simp\ add{\isacharcolon}split{\isacharunderscore}def{\isacharparenright}\isamarkupfalse%
+\isacommand{by}{\isacharparenleft}simp\ add{\isacharcolon}\ split{\isacharunderscore}def{\isacharparenright}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 This works well if rewriting with \isa{split{\isacharunderscore}def} finishes the
@@ -218,7 +218,7 @@ where two separate \isa{simp} applications succeed.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}split{\isacharunderscore}paired{\isacharunderscore}all{\isacharparenright}\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}\ split{\isacharunderscore}paired{\isacharunderscore}all{\isacharparenright}\isamarkupfalse%
 \isamarkupfalse%
 %
 \begin{isamarkuptext}%

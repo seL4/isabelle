@@ -182,7 +182,7 @@ An easy lemma deals with the suffix \isa{drop\ i\ w}:%
 \ \ \ \ size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}take\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharplus}{\isadigit{1}}{\isasymrbrakk}\isanewline
 \ \ \ {\isasymLongrightarrow}\ size{\isacharbrackleft}x{\isasymin}drop\ i\ w{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}drop\ i\ w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharplus}{\isadigit{1}}{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{by}{\isacharparenleft}simp\ del{\isacharcolon}append{\isacharunderscore}take{\isacharunderscore}drop{\isacharunderscore}id{\isacharparenright}\isamarkupfalse%
+\isacommand{by}{\isacharparenleft}simp\ del{\isacharcolon}\ append{\isacharunderscore}take{\isacharunderscore}drop{\isacharunderscore}id{\isacharparenright}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -325,9 +325,9 @@ The case \isa{w\ {\isacharequal}\ b\ {\isacharhash}\ v} is proved analogously:%
 \isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}rule\ S{\isacharunderscore}A{\isacharunderscore}B{\isachardot}intros{\isacharparenright}\isanewline
 \ \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}force\ simp\ add{\isacharcolon}min{\isacharunderscore}less{\isacharunderscore}iff{\isacharunderscore}disj{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}force\ simp\ add{\isacharcolon}\ min{\isacharunderscore}less{\isacharunderscore}iff{\isacharunderscore}disj{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{by}{\isacharparenleft}force\ simp\ add{\isacharcolon}min{\isacharunderscore}less{\isacharunderscore}iff{\isacharunderscore}disj\ split\ add{\isacharcolon}\ nat{\isacharunderscore}diff{\isacharunderscore}split{\isacharparenright}\isamarkupfalse%
+\isacommand{by}{\isacharparenleft}force\ simp\ add{\isacharcolon}\ min{\isacharunderscore}less{\isacharunderscore}iff{\isacharunderscore}disj\ split\ add{\isacharcolon}\ nat{\isacharunderscore}diff{\isacharunderscore}split{\isacharparenright}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 We conclude this section with a comparison of our proof with 

@@ -165,7 +165,7 @@ lemma part2:
     size[x\<in>take i w @ drop i w. \<not>P x]+2;
     size[x\<in>take i w. P x] = size[x\<in>take i w. \<not>P x]+1\<rbrakk>
    \<Longrightarrow> size[x\<in>drop i w. P x] = size[x\<in>drop i w. \<not>P x]+1"
-by(simp del:append_take_drop_id)
+by(simp del: append_take_drop_id)
 
 text{*\noindent
 In the proof we have disabled the normally useful lemma
@@ -280,8 +280,8 @@ apply(drule part2[of "\<lambda>x. x=b", simplified])
  apply(assumption)
 apply(rule_tac n1=i and t=v in subst[OF append_take_drop_id])
 apply(rule S_A_B.intros)
- apply(force simp add:min_less_iff_disj)
-by(force simp add:min_less_iff_disj split add: nat_diff_split)
+ apply(force simp add: min_less_iff_disj)
+by(force simp add: min_less_iff_disj split add: nat_diff_split)
 
 text{*
 We conclude this section with a comparison of our proof with 

@@ -167,7 +167,7 @@ in exercise~\ref{ex:converse-rtc-step}.
 lemma rtc_step2[rule_format]: "(x,y) : r* \<Longrightarrow> (y,z) : r --> (x,z) : r*"
 apply(erule rtc.induct);
  apply blast;
-apply(blast intro:rtc_step)
+apply(blast intro: rtc_step)
 done
 
 end

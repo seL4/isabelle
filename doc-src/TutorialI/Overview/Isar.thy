@@ -9,7 +9,7 @@ lemma "lfp(\<lambda>T. A \<union> M\<inverse> `` T) = {s. \<exists>t. (s,t) \<in
       (is "lfp ?F = ?toA")
 proof
   show "lfp ?F \<subseteq> ?toA"
-  by (blast intro!: lfp_lowerbound intro:rtrancl_trans)
+  by (blast intro!: lfp_lowerbound intro: rtrancl_trans)
 
   show "?toA \<subseteq> lfp ?F"
   proof

@@ -19,13 +19,13 @@ induction schema for type @{text"term"} and can use the simpler one arising from
 *}
 
 lemma "trev(trev t) = t"
-apply(induct_tac t rule:trev.induct)
+apply(induct_tac t rule: trev.induct)
 txt{*
 @{subgoals[display,indent=0]}
 Both the base case and the induction step fall to simplification:
 *}
 
-by(simp_all add:rev_map sym[OF map_compose] cong:map_cong)
+by(simp_all add: rev_map sym[OF map_compose] cong: map_cong)
 
 text{*\noindent
 If the proof of the induction step mystifies you, we recommend that you go through

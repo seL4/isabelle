@@ -138,7 +138,7 @@ recursive functions.  Here is a simple example of recursion induction:
 *}
 
 lemma "wf(step1 f) \<longrightarrow> f(find(f,x)) = find(f,x)"
-apply(induct_tac f x rule:find.induct);
+apply(induct_tac f x rule: find.induct);
 apply simp
 done
 
@@ -193,7 +193,7 @@ lemma lem: "wf(step1 f) \<Longrightarrow>
 apply(rule_tac P = "\<lambda>(x,x'). x' = f x" and
                r = "inv_image (step1 f) fst" in while_rule);
 apply auto
-apply(simp add:inv_image_def step1_def)
+apply(simp add: inv_image_def step1_def)
 done
 
 text{*
@@ -202,7 +202,7 @@ The theorem itself is a simple consequence of this lemma:
 
 theorem "wf(step1 f) \<Longrightarrow> f(find2 f x) = find2 f x"
 apply(drule_tac x = x in lem)
-apply(auto simp add:find2_def)
+apply(auto simp add: find2_def)
 done
 
 text{* Let us conclude this section on partial functions by a

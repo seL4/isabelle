@@ -20,7 +20,7 @@ induction schema for type \isa{term} and can use the simpler one arising from
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}trev{\isacharparenleft}trev\ t{\isacharparenright}\ {\isacharequal}\ t{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ t\ rule{\isacharcolon}trev{\isachardot}induct{\isacharparenright}\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ t\ rule{\isacharcolon}\ trev{\isachardot}induct{\isacharparenright}\isamarkupfalse%
 %
 \begin{isamarkuptxt}%
 \begin{isabelle}%
@@ -32,7 +32,7 @@ induction schema for type \isa{term} and can use the simpler one arising from
 Both the base case and the induction step fall to simplification:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
-\isacommand{by}{\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}rev{\isacharunderscore}map\ sym{\isacharbrackleft}OF\ map{\isacharunderscore}compose{\isacharbrackright}\ cong{\isacharcolon}map{\isacharunderscore}cong{\isacharparenright}\isamarkupfalse%
+\isacommand{by}{\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ rev{\isacharunderscore}map\ sym{\isacharbrackleft}OF\ map{\isacharunderscore}compose{\isacharbrackright}\ cong{\isacharcolon}\ map{\isacharunderscore}cong{\isacharparenright}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent

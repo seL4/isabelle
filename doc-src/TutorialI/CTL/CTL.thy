@@ -31,7 +31,8 @@ text{*\noindent
 This definition allows a succinct statement of the semantics of @{term AF}:
 \footnote{Do not be misled: neither datatypes nor recursive functions can be
 extended by new constructors or equations. This is just a trick of the
-presentation. In reality one has to define a new datatype and a new function.}
+presentation (see \S\ref{sec:doc-prep-suppress}). In reality one has to define
+a new datatype and a new function.}
 *};
 (*<*)
 consts valid :: "state \<Rightarrow> formula \<Rightarrow> bool" ("(_ \<Turnstile> _)" [80,80] 80);
@@ -165,7 +166,7 @@ lemma not_in_lfp_afD:
  "s \<notin> lfp(af A) \<Longrightarrow> s \<notin> A \<and> (\<exists> t. (s,t) \<in> M \<and> t \<notin> lfp(af A))";
 apply(erule contrapos_np);
 apply(subst lfp_unfold[OF mono_af]);
-apply(simp add:af_def);
+apply(simp add: af_def);
 done;
 
 text{*\noindent
@@ -210,7 +211,7 @@ txt{*\noindent
 From this proposition the original goal follows easily:
 *};
 
- apply(simp add:Paths_def, blast);
+ apply(simp add: Paths_def, blast);
 
 txt{*\noindent
 The new subgoal is proved by providing the witness @{term "path s Q"} for @{term p}:
@@ -242,7 +243,7 @@ two subgoals: @{prop"EX a. (s, a) : M & Q a"}, which follows from the assumption
 @{text fast} can prove the base case quickly:
 *};
 
- apply(fast intro:someI2_ex);
+ apply(fast intro: someI2_ex);
 
 txt{*\noindent
 What is worth noting here is that we have used \methdx{fast} rather than
@@ -285,14 +286,14 @@ lemma infinity_lemma:
  \<exists> p\<in>Paths s. \<forall> i. Q(p i)";
 apply(subgoal_tac
  "\<exists> p. s = p 0 \<and> (\<forall> i. (p i,p(Suc i))\<in>M \<and> Q(p i))");
- apply(simp add:Paths_def);
+ apply(simp add: Paths_def);
  apply(blast);
 apply(rule_tac x = "nat_rec s (\<lambda>n t. SOME u. (t,u)\<in>M \<and> Q u)" in exI);
 apply(simp);
 apply(intro strip);
 apply(induct_tac i);
  apply(simp);
- apply(fast intro:someI2_ex);
+ apply(fast intro: someI2_ex);
 apply(simp);
 apply(rule someI2_ex);
  apply(blast);
@@ -328,7 +329,7 @@ txt{*
 Both are solved automatically:
 *};
 
- apply(auto dest:not_in_lfp_afD);
+ apply(auto dest: not_in_lfp_afD);
 done;
 
 text{*
@@ -388,7 +389,7 @@ constdefs
 
 lemma "lfp(eufix A B) \<subseteq> eusem A B"
 apply(rule lfp_lowerbound)
-apply(clarsimp simp add:eusem_def eufix_def);
+apply(clarsimp simp add: eusem_def eufix_def);
 apply(erule disjE);
  apply(rule_tac x = "[]" in exI);
  apply simp
@@ -403,15 +404,15 @@ apply blast;
 done
 
 lemma "eusem A B \<subseteq> lfp(eufix A B)";
-apply(clarsimp simp add:eusem_def);
+apply(clarsimp simp add: eusem_def);
 apply(erule rev_mp);
 apply(rule_tac x = x in spec);
 apply(induct_tac p);
  apply(subst lfp_unfold[OF mono_eufix])
- apply(simp add:eufix_def);
+ apply(simp add: eufix_def);
 apply(clarsimp);
 apply(subst lfp_unfold[OF mono_eufix])
-apply(simp add:eufix_def);
+apply(simp add: eufix_def);
 apply blast;
 done
 
@@ -429,7 +430,7 @@ primrec
 "apath s (Suc i) = (SOME t. (apath s i,t) \<in> M)"
 
 lemma [iff]: "apath s \<in> Paths s";
-apply(simp add:Paths_def);
+apply(simp add: Paths_def);
 apply(blast intro: M_total[THEN someI_ex])
 done
 
@@ -438,11 +439,11 @@ constdefs
 "pcons s p == \<lambda>i. case i of 0 \<Rightarrow> s | Suc j \<Rightarrow> p j"
 
 lemma pcons_PathI: "[| (s,t) : M; p \<in> Paths t |] ==> pcons s p \<in> Paths s";
-by(simp add:Paths_def pcons_def split:nat.split);
+by(simp add: Paths_def pcons_def split: nat.split);
 
 lemma "lfp(eufix A B) \<subseteq> eusem A B"
 apply(rule lfp_lowerbound)
-apply(clarsimp simp add:eusem_def eufix_def);
+apply(clarsimp simp add: eusem_def eufix_def);
 apply(erule disjE);
  apply(rule_tac x = "apath x" in bexI);
   apply(rule_tac x = 0 in exI);
@@ -451,8 +452,8 @@ apply(erule disjE);
 apply(clarify);
 apply(rule_tac x = "pcons xb p" in bexI);
  apply(rule_tac x = "j+1" in exI);
- apply (simp add:pcons_def split:nat.split);
-apply (simp add:pcons_PathI)
+ apply (simp add: pcons_def split: nat.split);
+apply (simp add: pcons_PathI)
 done
 *)
 (*>*)

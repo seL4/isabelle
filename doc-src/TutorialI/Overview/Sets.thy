@@ -102,7 +102,7 @@ done
 
 theorem "mc f = {s. s \<Turnstile> f}";
 apply(induct_tac f);
-apply(auto simp add:EF_lemma);
+apply(auto simp add: EF_lemma);
 done;
 
 text{*

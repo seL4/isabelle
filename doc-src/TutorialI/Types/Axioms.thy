@@ -54,7 +54,7 @@ The type constraint is necessary because otherwise Isabelle would only assume
 when the proposition is not a theorem.  The proof is easy:
 *}
 
-by(simp add:less_le antisym);
+by(simp add: less_le antisym);
 
 text{* We could now continue in this vein and develop a whole theory of
 results about partial orders. Eventually we will want to apply these results
@@ -147,7 +147,7 @@ Assuming @{text"'a :: parord"}, the three axioms of class @{text strord}
 are easily proved:
 *}
 
-  apply(simp_all (no_asm_use) add:less_le);
+  apply(simp_all (no_asm_use) add: less_le);
  apply(blast intro: trans antisym);
 apply(blast intro: refl);
 done
@@ -161,7 +161,7 @@ complain if you also prove the relationship @{text"strord < parord"}.
 (*
 instance strord < parord
 apply intro_classes;
-apply(simp_all (no_asm_use) add:le_less);
+apply(simp_all (no_asm_use) add: le_less);
 apply(blast intro: less_trans);
 apply(erule disjE);
 apply(erule disjE);
@@ -193,7 +193,7 @@ Figure~\ref{fig:subclass}.
 \begin{figure}[htbp]
 \[
 \begin{array}{r@ {}r@ {}c@ {}l@ {}l}
-& & \isa{term}\\
+& & \isa{type}\\
 & & |\\
 & & \isa{ordrel}\\
 & & |\\

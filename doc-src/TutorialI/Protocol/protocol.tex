@@ -324,6 +324,7 @@ The function
 \isa{priK} maps agents to their private keys.  It is defined in terms of
 \isa{invKey} and \isa{pubK} by a translation; therefore \isa{priK} is
 not a proper constant, so we declare it using \isacommand{syntax}
+(cf.\ \S\ref{sec:syntax-translations}).
 \begin{isabelle}
 \isacommand{consts}\ \,pubK\ \ \ \ ::\ "agent\ =>\ key"\isanewline
 \isacommand{syntax}\ priK\ \ \ \ ::\ "agent\ =>\ key"\isanewline

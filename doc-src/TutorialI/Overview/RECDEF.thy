@@ -73,7 +73,7 @@ recdef mirror "measure size"
 
 lemma "mirror(mirror t) = t"
 apply(induct_tac t rule: mirror.induct)
-apply(simp add:rev_map sym[OF map_compose] cong:map_cong)
+apply(simp add: rev_map sym[OF map_compose] cong: map_cong)
 done
 
 text{*
