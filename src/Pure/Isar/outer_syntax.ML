@@ -126,7 +126,7 @@ fun command_body cmd (name, _) =
   | None => sys_error ("no parser for outer syntax command " ^ quote name));
 
 fun terminator false = Scan.succeed ()
-  | terminator true = P.group "terminator" (Scan.option P.sync -- P.$$$ ";" >> K ());
+  | terminator true = P.group "end of input" (Scan.option P.sync -- P.$$$ ";" >> K ());
 
 in
 
