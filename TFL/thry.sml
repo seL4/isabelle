@@ -37,55 +37,27 @@ fun typecheck thry = cterm_of (sign_of thry);
 
 
 (*---------------------------------------------------------------------------
- *     A collection of facts about datatypes
- *---------------------------------------------------------------------------*)
-val nat_record = Dtype.build_record (Nat.thy, ("nat",["0","Suc"]), nat_ind_tac)
-val prod_record =
-    let val prod_case_thms = Dtype.case_thms (sign_of Prod.thy) [split] 
-                                 (fn s => res_inst_tac [("p",s)] PairE_lemma)
-         fun const s = Const(s, the(Sign.const_type (sign_of Prod.thy) s))
-     in ("*", 
-         {constructors = [const "Pair"],
-            case_const = const "split",
-         case_rewrites = [split RS eq_reflection],
-             case_cong = #case_cong prod_case_thms,
-              nchotomy = #nchotomy prod_case_thms}) 
-     end;
-
-(*---------------------------------------------------------------------------
- * Hacks to make interactive mode work.
+ * Get information about datatypes
  *---------------------------------------------------------------------------*)
 
-fun get_info thy ty = Symtab.lookup (ThyData.get_datatypes thy, ty);
+fun get_info thy ty = Symtab.lookup (DatatypePackage.get_datatypes thy, ty);
 
-val match_info = fn thy =>
-    fn "*" => Some({case_const = #case_const (#2 prod_record),
-                     constructors = #constructors (#2 prod_record)})
-     | "nat" => Some({case_const = #case_const (#2 nat_record),
-                       constructors = #constructors (#2 nat_record)})
-     | ty => case get_info thy ty
-               of None => None
-                | Some{case_const,constructors, ...} =>
-                   Some{case_const=case_const, constructors=constructors}
+fun match_info thy tname =
+  case (DatatypePackage.case_const_of thy tname, DatatypePackage.constrs_of thy tname) of
+      (Some case_const, Some constructors) =>
+        Some {case_const = case_const, constructors = constructors}
+    | _ => None;
 
-val induct_info = fn thy =>
-    fn "*" => Some({nchotomy = #nchotomy (#2 prod_record),
-                     constructors = #constructors (#2 prod_record)})
-     | "nat" => Some({nchotomy = #nchotomy (#2 nat_record),
-                       constructors = #constructors (#2 nat_record)})
-     | ty => case get_info thy ty
-               of None => None
-                | Some{nchotomy,constructors, ...} =>
-                  Some{nchotomy=nchotomy, constructors=constructors}
+fun induct_info thy tname = case get_info thy tname of
+        None => None
+      | Some {nchotomy, ...} =>
+          Some {nchotomy = nchotomy,
+                constructors = the (DatatypePackage.constrs_of thy tname)};
 
-val extract_info = fn thy => 
- let val infos = map snd (Symtab.dest (ThyData.get_datatypes thy));
-     val case_congs = map #case_cong infos;
-     val case_rewrites = flat (map #case_rewrites infos);
- in {case_congs = #case_cong (#2 prod_record)::
-                  #case_cong (#2 nat_record)::case_congs,
-     case_rewrites = #case_rewrites(#2 prod_record)@
-                     #case_rewrites(#2 nat_record)@case_rewrites}
+fun extract_info thy =
+ let val infos = map snd (Symtab.dest (DatatypePackage.get_datatypes thy))
+ in {case_congs = map (mk_meta_eq o #case_cong) infos,
+     case_rewrites = flat (map (map mk_meta_eq o #case_rewrites) infos)}
  end;
 
 end; (* Thry *)
