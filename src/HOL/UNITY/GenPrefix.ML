@@ -226,6 +226,12 @@ Goalw [strict_prefix_def] "!!xs::'a list. (xs < zs) = (xs <= zs & xs ~= zs)";
 by Auto_tac;
 qed "prefix_less_le";
 
+(*Monotonicity of "set" operator WRT prefix*)
+Goalw [prefix_def] "xs <= ys ==> set xs <= set ys";
+by (etac genPrefix.induct 1);
+by Auto_tac;
+qed "set_mono";
+
 
 (** recursion equations **)
 
