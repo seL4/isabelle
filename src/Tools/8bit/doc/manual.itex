@@ -323,8 +323,8 @@ to generate a better output than in the example conversion given in subsection
 
 \subsection{Preparations}
 
-To use the 8bit package, you have to set respectively extend the content of the 
-following environment variables:
+To use the 8bit package, you have to set (respectively extend) the content of
+the following environment variables and export them:
 
 \begin{itemize}
 \item \bt{ISABELLE8BIT}: set the directory of the Isabelle 8bit package,\\

@@ -10,7 +10,7 @@
 # operate silently
 MAKEFLAGS='s'
 
-LATEX=latex
+LATEX=latex2e
 ISA2LATEX=isa2latex
 
 CHECKOUT=co

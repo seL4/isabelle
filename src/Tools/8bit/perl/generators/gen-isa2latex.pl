@@ -22,6 +22,7 @@ require "pwd.pl";
 &initpwd;
 
 $initial_dir = $ENV{'PWD'};
+$GMAKE= "gmake";
 
 ########################
 # comand line processing
@@ -547,15 +548,15 @@ if ($status) { die "can't copy tmp.txt to $filename: $!\n";}
 # execute  Makefile
 # 
 print "\nexecuting Makefile\n" if $do_debug;
-$status = system("gmake") ;
-if ($status) { die "\"gmake\" executed abnormally: $!\n";}
+$status = system($GMAKE) ;
+if ($status) { die "\"".$GMAKE."\" executed abnormally: $!\n";}
 
 #$status = system("cp $conv_temp_dir/$conv_sub_dir/isa2latex $conv_source_dir");
 #    if ($status) { die "can't copy binary file to CONV_SOURCE_DIR: $!\n";}
 
 #print "\nexecuting Makefile, cleaning up\n" if $do_debug;
-#$status = system("gmake clean");
-#if ($status) { die "\"gmake clean\" executed abnormally: $!\n";}
+#$status = system($GMAKE." clean");
+#if ($status) { die "\"".$GMAKE." clean\" executed abnormally: $!\n";}
 
 #######################################################################
 # process -s option

@@ -38,7 +38,6 @@ PERL=/usr/local/dist/DIR/perl4/bin/perl
 # use LaTeX2e instead of LaTeX 2.09
 # this flag is currently only sensible for perl script gen-isadoc
 # set to empty string for LaTeX 2.09
-#USE2E='-2e'
 USE2E='-2e'
 
 # name of GNU make utility: `make' on linux box; `gmake' on solaris
@@ -53,7 +52,7 @@ SUPER_L=26
 #HYPER_R=113
 HYPER_R=20
 
-CONFIGFIlES = config/Makefile config/key-table.inp config/conv-tables.inp
+CONFIGFILES = config/Makefile config/key-table.inp config/conv-tables.inp
 
 #path stem to isabelle source, used by patcher
 STEM = /usr/stud/oheimb/isabelle/
@@ -106,7 +105,7 @@ XEMACS_INIT=.emacs_xemacs_isa
 
 # ----------------------------------------------------
 
-all:  $(CONFIGFIlES)\
+all:  $(CONFIGFILES)\
 	bin/gen-isa2latex bin/gen-isaterm bin/gen-isavim bin/gen-isaaxe\
 	bin/gen-isa_gnu_emacs bin/gen-isa_xemacs bin/gen-isadoc\
 	configuration a2isa bin/isa2latex bin/a2isa\
@@ -133,11 +132,12 @@ clean:
 
 ####### configuration files and the Makefile
 
-$(CONFIGFIlES): Makefile
+$(CONFIGFILES): Makefile
 	@echo "configuring the configuration files"
 	@cd config;\
 	$(PERL) -pi \
 		-e "s#^USE2E\s*=.*#USE2E= $(USE2E)#g;" \
+		-e "s#^GMAKE\s*=.*#GMAKE= $(GMAKE)#g;" \
 		Makefile
 	@cd config;\
 	$(PERL) -pi \
@@ -156,6 +156,7 @@ bin/gen-isa2latex: Makefile #perl/generators/gen-isa2latex.pl
 	@echo "configuring gen-isa2latex"
 	@cd perl/generators;\
 	$(PERL) -pi \
+		-e "s#GMAKE\s*=.*#GMAKE= \"$(GMAKE)\";#g;" \
 		-e "s&^#!.*&#!$(PERL)&g;" \
 		gen-isa2latex.pl
 	@rm -f bin/gen-isa2latex;\

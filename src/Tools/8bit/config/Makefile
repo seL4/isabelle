@@ -17,6 +17,7 @@
 MAKEFLAGS='s'
 
 USE2E= '-2e'
+GMAKE= gmake
 
 FONTDOCFILES = ../doc/fontindex.dvi ../doc/keyindex.dvi ../doc/fkmatrix.dvi
 # the dependent files
@@ -33,7 +34,7 @@ precious: $(FILES)
 
 isa2latex: 
 		@cd ../c-sources/isa2latex;\
-		gmake
+		$(GMAKE)
 
 ../term/isaterm: key-table.inp
 		@echo "generating isaterm"
