@@ -114,9 +114,6 @@ val cprems_of = strip_imp_prems o skip_flexpairs o cprop_of;
 
 (** reading of instantiations **)
 
-fun indexname cs = case Syntax.scan_varname cs of (v,[]) => v
-        | _ => error("Lexical error in variable name " ^ quote (implode cs));
-
 fun absent ixn =
   error("No such variable in term: " ^ Syntax.string_of_vname ixn);
 
@@ -126,9 +123,9 @@ fun inst_failure ixn =
 fun read_insts sign (rtypes,rsorts) (types,sorts) used insts =
 let val {tsig,...} = Sign.rep_sg sign
     fun split([],tvs,vs) = (tvs,vs)
-      | split((sv,st)::l,tvs,vs) = (case explode sv of
-                  "'"::cs => split(l,(indexname cs,st)::tvs,vs)
-                | cs => split(l,tvs,(indexname cs,st)::vs));
+      | split((sv,st)::l,tvs,vs) = (case Symbol.explode sv of
+                  "'"::cs => split(l,(Syntax.indexname cs,st)::tvs,vs)
+                | cs => split(l,tvs,(Syntax.indexname cs,st)::vs));
     val (tvs,vs) = split(insts,[],[]);
     fun readT((a,i),st) =
         let val ixn = ("'" ^ a,i);
