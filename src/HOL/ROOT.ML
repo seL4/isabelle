@@ -86,4 +86,4 @@ use_thy "List";
 init_pps ();
 print_depth 8;
 
-val CHOL_build_completed = ();   (*indicate successful build*)
+val HOL_build_completed = ();   (*indicate successful build*)

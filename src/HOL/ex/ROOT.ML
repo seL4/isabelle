@@ -1,4 +1,4 @@
-(*  Title:  	CHOL/ex/ROOT
+(*  Title:  	HOL/ex/ROOT
     ID:         $Id$
     Author: 	Tobias Nipkow, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
@@ -6,9 +6,9 @@
 Executes miscellaneous examples for Higher-Order Logic. 
 *)
 
-CHOL_build_completed;    (*Cause examples to fail if CHOL did*)
+HOL_build_completed;    (*Cause examples to fail if HOL did*)
 
-writeln "Root file for CHOL examples";
+writeln "Root file for HOL examples";
 proof_timing := true;
 loadpath := ["ex"];
 time_use     "ex/cla.ML";
@@ -28,4 +28,4 @@ time_use_thy "PropLog";
 time_use_thy "Term";
 time_use_thy "Simult";
 time_use_thy "MT";
-writeln "END: Root file for CHOL examples";
+writeln "END: Root file for HOL examples";

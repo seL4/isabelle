@@ -1,4 +1,4 @@
-(*  Title: 	CHOL/IMP/ROOT.ML
+(*  Title: 	HOL/IMP/ROOT.ML
     ID:         $Id$
     Author: 	Heiko Loetzbeyer, Robert Sandner, Tobias Nipkow
     Copyright   1995 TUM
@@ -14,9 +14,9 @@ MIT Press, 1993.
 
 *)
 
-CHOL_build_completed;	(*Make examples fail if CHOL did*)
+HOL_build_completed;	(*Make examples fail if HOL did*)
 
-writeln"Root file for CHOL/IMP";
+writeln"Root file for HOL/IMP";
 proof_timing := true;
 loadpath := [".","IMP"];
 time_use_thy "Properties";

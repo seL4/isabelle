@@ -1,4 +1,4 @@
-(*  Title: 	CHOL/IMP/ROOT.ML
+(*  Title: 	HOL/IMP/ROOT.ML
     ID:         $Id$
     Author: 	Tobias Nipkow
     Copyright   1995 TUM
@@ -12,8 +12,8 @@ journal=IC,year=1995,volume=118,pages="120--127"}
 
 *)
 
-CHOL_build_completed;	(*Make examples fail if CHOL did*)
+HOL_build_completed;	(*Make examples fail if HOL did*)
 
-writeln"Root file for CHOL/Lambda";
+writeln"Root file for HOL/Lambda";
 loadpath := [".","Lambda"];
 time_use_thy "ParRed";

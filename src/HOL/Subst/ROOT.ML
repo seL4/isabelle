@@ -1,4 +1,4 @@
-(*  Title: 	CHOL/Subst
+(*  Title: 	HOL/Subst
     Author: 	Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
@@ -22,7 +22,7 @@ unifier      -  specification of unification and conditions for
 To load, go to the parent directory and type use"Subst/ROOT.ML";
 *)
 
-CHOL_build_completed;    (*Cause examples to fail if CHOL did*)
+HOL_build_completed;    (*Cause examples to fail if HOL did*)
 
 writeln"Root file for Substitutions and Unification";
 loadpath := ["Subst"];
