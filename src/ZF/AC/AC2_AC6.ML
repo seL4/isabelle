@@ -16,7 +16,7 @@ AC1 <-> AC6
 
 goal thy "!!B. [| B:A; f:(PROD X:A. X); 0~:A |]  \
 \               ==> {f`B} <= B Int {f`C. C:A}";
-by (fast_tac (AC_cs addSEs [singletonE, apply_type, RepFunI]) 1);
+by (fast_tac (ZF_cs addSEs [apply_type]) 1);
 val lemma1 = result();
 
 goalw thy [pairwise_disjoint_def]
@@ -143,7 +143,7 @@ by (rtac ballI 1);
 by (rtac apply_equality 1 THEN (assume_tac 2));
 by (etac domainE 1);
 by (forward_tac [range_type] 1 THEN (assume_tac 1));
-by (fast_tac (ZF_cs addSEs [singletonE, converseD] addDs [apply_equality]) 1);
+by (fast_tac (ZF_cs addDs [apply_equality]) 1);
 qed "AC4_AC5";
 
 
@@ -157,9 +157,9 @@ val lemma1 = result();
 
 goalw thy [range_def] "!!A. R <= A*B ==> range(lam x:R. fst(x)) = domain(R)";
 by (rtac equalityI 1);
-by (fast_tac (AC_cs addSEs [lamE, Pair_inject]
+by (fast_tac (AC_cs addSEs [lamE]
                 addEs [subst_elem]
-                addSDs [converseD, Pair_fst_snd_eq]) 1);
+                addSDs [Pair_fst_snd_eq]) 1);
 by (rtac subsetI 1);
 by (etac domainE 1);
 by (rtac domainI 1);

@@ -24,7 +24,7 @@ by (etac impE 1);
 by (fast_tac (AC_cs addSEs [lam_sing_bij RS bij_is_inj RS
                         well_ord_rvimage]) 2);
 by (res_inst_tac [("x","lam a:{{x}. x:A}. THE x. a={x}")] exI 1);
-by (fast_tac (ZF_cs addSEs [RepFunE, singleton_eq_iff RS iffD1 RS sym]
+by (fast_tac (ZF_cs addSEs [singleton_eq_iff RS iffD1 RS sym]
                 addSIs [lam_type]
                 addIs [the_equality RS ssubst]) 1);
 qed "WO8_WO1";

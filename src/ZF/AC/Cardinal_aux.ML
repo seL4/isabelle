@@ -76,7 +76,7 @@ goal ZF.thy "if({y,z}-{z}=0, z, THE w. {y,z}-{z}={w}) = y";
 by (split_tac [expand_if] 1);
 by (asm_full_simp_tac (ZF_ss addsimps [double_Diff_sing, Diff_eq_0_iff]) 1);
 by (fast_tac (ZF_cs addSIs [the_equality, equalityI, equals0I]
-                addEs [equalityE] addSEs [singletonE]) 1);
+                addEs [equalityE]) 1);
 val paired_bij_lemma = result();
 
 goal thy "(lam y:{{y,z}. y:x}. if(y-{z}=0, z, THE w. y-{z}={w}))  \
@@ -131,7 +131,7 @@ goalw thy [lepoll_def] "!!a. Ord(a) ==> (UN x:a. {P(x)}) lepoll a";
 by (res_inst_tac [("x","lam z:(UN x:a. {P(x)}). (LEAST i. P(i)=z)")] exI 1);
 by (res_inst_tac [("d","%z. P(z)")] lam_injective 1);
 by (fast_tac (AC_cs addSIs [Least_in_Ord]) 1);
-by (fast_tac (AC_cs addIs [LeastI] addSEs [singletonE, Ord_in_Ord]) 1);
+by (fast_tac (AC_cs addIs [LeastI] addSEs [Ord_in_Ord]) 1);
 val UN_sing_lepoll = result();
 
 goal thy "!!a T. [| well_ord(T, R); ~Finite(a); Ord(a); n:nat |] ==>  \

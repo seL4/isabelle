@@ -190,7 +190,7 @@ by (res_inst_tac [("x","lam x:A. {f`x}")] exI 1);
 by (asm_full_simp_tac (AC_ss addsimps
                 [singleton_eqpoll_1 RS eqpoll_imp_lepoll,
                 singletonI RS not_emptyI]) 1);
-by (fast_tac (AC_cs addSEs [singletonE, apply_type]) 1);
+by (fast_tac (AC_cs addSEs [apply_type]) 1);
 qed "AC1_AC13";
 
 (* ********************************************************************** *)

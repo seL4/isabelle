@@ -380,7 +380,7 @@ by (forward_tac [lepoll_Diff_sing] 1);
 by (REPEAT (eresolve_tac [allE, impE] 1));
 by (rtac conjI 1);
 by (fast_tac AC_cs 2);
-by (fast_tac (eq_cs addSEs [singletonE]) 1);
+by (fast_tac ZF_cs 1);
 by (etac Diffs_eq_imp_eq 1
         THEN REPEAT (assume_tac 1));
 val subset_imp_eq_lemma = result();

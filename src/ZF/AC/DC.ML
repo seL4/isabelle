@@ -302,8 +302,7 @@ goal thy
 \       |] ==> RR <= Pow(XX)*XX &  \
 \       (ALL Y:Pow(XX). Y lesspoll nat --> (EX x:XX. <Y,x>:RR))";
 by (rtac conjI 1);
-by (fast_tac (FOL_cs addSEs [FinD RS PowI, SigmaE, CollectE]
-        addSIs [subsetI, SigmaI]) 1);
+by (deepen_tac (ZF_cs addSEs [FinD RS PowI]) 0 1);
 by (rtac ballI 1);
 by (rtac impI 1);
 by (dresolve_tac [[lesspoll_nat_is_Finite, PowD] MRS Finite_Fin] 1

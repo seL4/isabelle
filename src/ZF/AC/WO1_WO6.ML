@@ -33,11 +33,11 @@ qed "WO1_WO2";
 (* ********************************************************************** *)
 
 goal thy "!!f. f: A->B ==> (lam x:A. {f`x}): A -> {{b}. b:B}";
-by (fast_tac (ZF_cs addSIs [lam_type, RepFunI, apply_type]) 1);
+by (fast_tac (ZF_cs addSIs [lam_type, apply_type]) 1);
 val lam_sets = result();
 
 goalw thy [surj_def] "!!f. f:surj(A,B) ==> (UN a:A. {f`a}) = B";
-by (fast_tac (ZF_cs addSIs [equalityI] addSEs [singletonE, apply_type]) 1);
+by (fast_tac (ZF_cs addSIs [equalityI] addSEs [apply_type]) 1);
 val surj_imp_eq_ = result();
 
 goal thy "!!f. [| f:surj(A,B); Ord(A) |] ==> (UN a<A. {f`a}) = B";

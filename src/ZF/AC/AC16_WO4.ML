@@ -24,7 +24,7 @@ by (rewrite_goals_tac [bij_def, surj_def]);
 by (fast_tac (AC_cs addSIs [ltI, nat_into_Ord, lam_funtype RS domain_of_fun,
         equalityI, singleton_eqpoll_1 RS eqpoll_imp_lepoll RS lepoll_trans,
         nat_1_lepoll_iff RS iffD2]
-        addSEs [singletonE, apply_type, ltE]) 1);
+        addSEs [apply_type, ltE]) 1);
 val lemma1 = result();
 
 (* ********************************************************************** *)
