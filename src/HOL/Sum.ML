@@ -202,3 +202,11 @@ goal Sum.thy "Part A (%x.x) = A";
 by (fast_tac (set_cs addIs [PartI,equalityI] addSEs [PartE]) 1);
 qed "Part_id";
 
+goal Sum.thy "Part (A Int B) h = (Part A h) Int (Part B h)";
+by (fast_tac (set_cs addIs [PartI,equalityI] addSEs [PartE]) 1);
+qed "Part_Int";
+
+(*For inductive definitions*)
+goal Sum.thy "Part (A Int {x.P x}) h = (Part A h) Int {x.P x}";
+by (fast_tac (set_cs addIs [PartI,equalityI] addSEs [PartE]) 1);
+qed "Part_Collect";
