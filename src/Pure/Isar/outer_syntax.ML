@@ -50,6 +50,8 @@ sig
   val print_help: Toplevel.transition -> Toplevel.transition
   val add_keywords: string list -> unit
   val add_parsers: parser list -> unit
+  val token_source: (string, 'a) Source.source * Position.T -> (OuterLex.token,
+    Position.T * (Symbol.symbol, (string, 'a) Source.source) Source.source) Source.source
   val theory_header: token list -> (string * string list * (string * bool) list) * token list
   val deps_thy: string -> Path.T -> string list * Path.T list
   val load_thy: string -> bool -> bool -> Path.T -> unit
@@ -212,7 +214,7 @@ val theoryN = "theory";
 val theory_keyword = OuterParse.$$$ theoryN;
 
 
-(* source *)
+(* sources *)
 
 local
 
@@ -232,6 +234,15 @@ fun source term do_recover cmd src =
 
 end;
 
+fun token_source (src, pos) =
+  src
+  |> Symbol.source false
+  |> OuterLex.source false (K (get_lexicons ())) pos;
+
+fun filter_proper src =
+  src
+  |> Source.filter OuterLex.is_proper;
+
 
 (* detect header *)
 
@@ -239,6 +250,7 @@ fun scan_header get_lex scan (src, pos) =
   src
   |> Symbol.source false
   |> OuterLex.source false (fn () => (get_lex (), Scan.empty_lexicon)) pos
+  |> filter_proper
   |> Source.source OuterLex.stopper (Scan.single scan) None
   |> (fst o the o Source.get_single);
 
@@ -304,12 +316,9 @@ fun try_ml_file name ml time =
     else Toplevel.excursion_error [Toplevel.empty |> Toplevel.name tr_name |> tr]
   end;
 
-fun parse_thy (src, pos) =
+fun parse_thy src_pos =
   let
-    val lex_src =
-      src
-      |> Symbol.source false
-      |> OuterLex.source false (K (get_lexicons ())) pos;
+    val lex_src = filter_proper (token_source src_pos);
     val only_head =
       lex_src
       |> Source.source OuterLex.stopper (Scan.single (Scan.option only_header)) None
@@ -326,9 +335,12 @@ fun parse_thy (src, pos) =
   end;
 
 fun run_thy name path =
-  let val (src, pos) = File.source path in
-    Present.theory_source name src;
-    if is_old_theory (src, pos) then ThySyn.load_thy name (Source.exhaust src)
+  let
+    val (src, pos) = File.source path;
+    val is_old = is_old_theory (src, pos);
+  in
+    Present.theory_source is_old name (src, pos);
+    if is_old then ThySyn.load_thy name (Source.exhaust src)
     else Toplevel.excursion_error (parse_thy (src, pos))
   end;
 
@@ -350,6 +362,7 @@ fun isar term no_pos =
   |> Symbol.source true
   |> OuterLex.source true get_lexicons
     (if no_pos then Position.none else Position.line_name 1 "stdin")
+  |> filter_proper
   |> source term true get_parser;
 
 
