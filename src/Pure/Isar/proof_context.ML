@@ -552,28 +552,29 @@ fun reject_dummies ctxt t = Term.no_dummy_patterns t
 
 local
 
-fun gen_read read app is_pat schematic (ctxt as Context {defs = (_, _, used, _), ...}) s =
+fun gen_read read app is_pat dummies schematic (ctxt as Context {defs = (_, _, used, _), ...}) s =
   (transform_error (read (syn_of ctxt)
       (sign_of ctxt) (def_type ctxt is_pat, def_sort ctxt, used)) s
     handle TERM (msg, _) => raise CONTEXT (msg, ctxt)
     | ERROR_MESSAGE msg => raise CONTEXT (msg, ctxt))
   |> app (intern_skolem ctxt)
   |> app (if is_pat then I else norm_term ctxt schematic)
-  |> app (if is_pat then prepare_dummies else (reject_dummies ctxt));
+  |> app (if is_pat then prepare_dummies else if dummies then I else reject_dummies ctxt);
 
 in
 
-val read_termTs = gen_read (read_def_termTs false) (apfst o map) false false;
-val read_termT_pats = #1 oo gen_read (read_def_termTs false) (apfst o map) true false;
+val read_termTs = gen_read (read_def_termTs false) (apfst o map) false false false;
+val read_termT_pats = #1 oo gen_read (read_def_termTs false) (apfst o map) true false false;
 
 fun read_term_pats T ctxt pats = read_termT_pats ctxt (map (rpair T) pats);
 val read_prop_pats = read_term_pats propT;
 
-val read_term = gen_read (read_term_sg true) I false false;
-val read_prop = gen_read (read_prop_sg true) I false false;
-val read_prop_schematic = gen_read (read_prop_sg true) I false true;
-val read_terms = gen_read (read_terms_sg true) map false false;
-val read_props = gen_read (read_props_sg true) map false;
+val read_term = gen_read (read_term_sg true) I false false false;
+val read_term_dummies = gen_read (read_term_sg true) I false true false;
+val read_prop = gen_read (read_prop_sg true) I false false false;
+val read_prop_schematic = gen_read (read_prop_sg true) I false false true;
+val read_terms = gen_read (read_terms_sg true) map false false false;
+val read_props = gen_read (read_props_sg true) map false false;
 
 end;
 
@@ -1409,7 +1410,7 @@ fun print_thms_containing ctxt opt_limit ss =
           map (Pretty.quote o prt_term o Syntax.free) xs))];
 
     val (cs, xs) = foldl (FactIndex.index_term (is_known ctxt))
-      (([], []), map (read_term ctxt) ss);
+      (([], []), map (read_term_dummies ctxt) ss);
     val empty_idx = Library.null cs andalso Library.null xs;
 
     val header =

@@ -29,7 +29,7 @@ fun add_frees pred (Free (x, _), xs) = if pred x then x ins_string xs else xs
   | add_frees _ (_, xs) = xs;
 
 fun index_term pred ((cs, xs), t) =
-  (Term.add_term_consts (t, cs), add_frees pred (t, xs));
+  (Term.add_term_consts (t, cs) \ Term.dummy_patternN, add_frees pred (t, xs));
 
 fun index_thm pred (idx, th) =
   let val {hyps, prop, ...} = Thm.rep_thm th
