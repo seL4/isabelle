@@ -201,5 +201,5 @@ fun when_body cons funarg = let
 			) end;
 in (if length cons = 1 andalso length(snd(hd cons)) <= 1
     then fn t => %%"strictify"`t else Id)
-     (foldr' (fn (x,y)=> %%"sswhen"`x`y) (mapn one_fun 1 cons)) end;
+     (foldr' (fn (x,y)=> %%"sscase"`x`y) (mapn one_fun 1 cons)) end;
 end; (* struct *)

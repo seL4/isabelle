@@ -491,8 +491,8 @@ qed_goalw "ssumE2" Ssum3.thy [sinl_def,sinr_def]
         (atac 1)
         ]);
 
-qed_goalw "sswhen1" Ssum3.thy [sswhen_def,sinl_def,sinr_def] 
-        "sswhen`f`g`UU = UU" (fn _ => let
+qed_goalw "sscase1" Ssum3.thy [sscase_def,sinl_def,sinr_def] 
+        "sscase`f`g`UU = UU" (fn _ => let
 val tac = (REPEAT (resolve_tac (cont_lemmas1 @ [cont_Iwhen1,cont_Iwhen2,
                 cont_Iwhen3,cont2cont_CF1L]) 1)) in
 	[
@@ -510,8 +510,8 @@ val tac = (REPEAT (resolve_tac (cont_lemmas1 @ [cont_Iwhen1,cont_Iwhen2,
 val tac = (REPEAT (resolve_tac (cont_lemmas1 @ [cont_Iwhen1,cont_Iwhen2,
                 cont_Iwhen3,cont_Isinl,cont_Isinr,cont2cont_CF1L]) 1));
 
-qed_goalw "sswhen2" Ssum3.thy [sswhen_def,sinl_def,sinr_def] 
-        "x~=UU==> sswhen`f`g`(sinl`x) = f`x" (fn prems => [
+qed_goalw "sscase2" Ssum3.thy [sscase_def,sinl_def,sinr_def] 
+        "x~=UU==> sscase`f`g`(sinl`x) = f`x" (fn prems => [
         (cut_facts_tac prems 1),
         (stac beta_cfun 1),
         tac,
@@ -524,8 +524,8 @@ qed_goalw "sswhen2" Ssum3.thy [sswhen_def,sinl_def,sinr_def]
         (asm_simp_tac Ssum0_ss  1)
         ]);
 
-qed_goalw "sswhen3" Ssum3.thy [sswhen_def,sinl_def,sinr_def] 
-        "x~=UU==> sswhen`f`g`(sinr`x) = g`x" (fn prems => [
+qed_goalw "sscase3" Ssum3.thy [sscase_def,sinl_def,sinr_def] 
+        "x~=UU==> sscase`f`g`(sinr`x) = g`x" (fn prems => [
         (cut_facts_tac prems 1),
         (stac beta_cfun 1),
         tac,
@@ -588,9 +588,9 @@ qed_goalw "ssum_chainE" Ssum3.thy [sinl_def,sinr_def]
         ]);
 
 
-qed_goalw "thelub_ssum2a" Ssum3.thy [sinl_def,sinr_def,sswhen_def] 
+qed_goalw "thelub_ssum2a" Ssum3.thy [sinl_def,sinr_def,sscase_def] 
 "[| chain(Y); !i.? x. Y(i) = sinl`x |] ==>\ 
-\   lub(range(Y)) = sinl`(lub(range(%i. sswhen`(LAM x. x)`(LAM y. UU)`(Y i))))"
+\   lub(range(Y)) = sinl`(lub(range(%i. sscase`(LAM x. x)`(LAM y. UU)`(Y i))))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -613,9 +613,9 @@ qed_goalw "thelub_ssum2a" Ssum3.thy [sinl_def,sinr_def,sswhen_def]
         (asm_simp_tac (Ssum0_ss addsimps [cont_Isinl]) 1)
         ]);
 
-qed_goalw "thelub_ssum2b" Ssum3.thy [sinl_def,sinr_def,sswhen_def] 
+qed_goalw "thelub_ssum2b" Ssum3.thy [sinl_def,sinr_def,sscase_def] 
 "[| chain(Y); !i.? x. Y(i) = sinr`x |] ==>\ 
-\   lub(range(Y)) = sinr`(lub(range(%i. sswhen`(LAM y. UU)`(LAM x. x)`(Y i))))"
+\   lub(range(Y)) = sinr`(lub(range(%i. sscase`(LAM y. UU)`(LAM x. x)`(Y i))))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -670,8 +670,8 @@ qed_goalw "thelub_ssum2b_rev" Ssum3.thy [sinl_def,sinr_def]
 
 qed_goal "thelub_ssum3" Ssum3.thy  
 "chain(Y) ==>\ 
-\   lub(range(Y)) = sinl`(lub(range(%i. sswhen`(LAM x. x)`(LAM y. UU)`(Y i))))\
-\ | lub(range(Y)) = sinr`(lub(range(%i. sswhen`(LAM y. UU)`(LAM x. x)`(Y i))))"
+\   lub(range(Y)) = sinl`(lub(range(%i. sscase`(LAM x. x)`(LAM y. UU)`(Y i))))\
+\ | lub(range(Y)) = sinr`(lub(range(%i. sscase`(LAM y. UU)`(LAM x. x)`(Y i))))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -686,14 +686,14 @@ qed_goal "thelub_ssum3" Ssum3.thy
         ]);
 
 
-qed_goal "sswhen4" Ssum3.thy  
-        "sswhen`sinl`sinr`z=z"
+qed_goal "sscase4" Ssum3.thy  
+        "sscase`sinl`sinr`z=z"
  (fn prems =>
         [
         (res_inst_tac [("p","z")] ssumE 1),
-        (asm_simp_tac ((simpset_of Cfun3.thy) addsimps [sswhen1,sswhen2,sswhen3]) 1),
-        (asm_simp_tac ((simpset_of Cfun3.thy) addsimps [sswhen1,sswhen2,sswhen3]) 1),
-        (asm_simp_tac ((simpset_of Cfun3.thy) addsimps [sswhen1,sswhen2,sswhen3]) 1)
+        (asm_simp_tac ((simpset_of Cfun3.thy) addsimps [sscase1,sscase2,sscase3]) 1),
+        (asm_simp_tac ((simpset_of Cfun3.thy) addsimps [sscase1,sscase2,sscase3]) 1),
+        (asm_simp_tac ((simpset_of Cfun3.thy) addsimps [sscase1,sscase2,sscase3]) 1)
         ]);
 
 
@@ -702,7 +702,7 @@ qed_goal "sswhen4" Ssum3.thy
 (* ------------------------------------------------------------------------ *)
 
 val Ssum_rews = [strict_sinl,strict_sinr,defined_sinl,defined_sinr,
-                sswhen1,sswhen2,sswhen3];
+                sscase1,sscase2,sscase3];
 
 Addsimps [strict_sinl,strict_sinr,defined_sinl,defined_sinr,
-                sswhen1,sswhen2,sswhen3];
+                sscase1,sscase2,sscase3];
