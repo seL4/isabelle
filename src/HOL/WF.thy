@@ -17,7 +17,7 @@ consts
 defs
   wf_def  "wf(r) == (!P. (!x. (!y. <y,x>:r --> P(y)) --> P(x)) --> (!x.P(x)))"
   
-  cut_def 	 "cut f r x == (%y. if (<y,x>:r) (f y) (@z.True))"
+  cut_def 	 "cut f r x == (%y. if <y,x>:r then f y else @z.True)"
 
   is_recfun_def  "is_recfun r a H f == (f = cut (%x.(H x (cut f r x))) r a)"
 

@@ -241,7 +241,7 @@ by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (ALLGOALS(asm_simp_tac arith_ss));
 qed "Suc_diff_n";
 
-goal Arith.thy "Suc(m)-n = if (m<n) 0 (Suc m-n)";
+goal Arith.thy "Suc(m)-n = (if m<n then 0 else Suc m-n)";
 by(simp_tac (nat_ss addsimps [less_imp_diff_is_0, not_less_eq, Suc_diff_n]
                     setloop (split_tac [expand_if])) 1);
 qed "if_Suc_diff_n";

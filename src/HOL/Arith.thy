@@ -20,8 +20,8 @@ defs
   add_def   "m+n == nat_rec m n (%u v. Suc(v))"
   diff_def  "m-n == nat_rec n m (%u v. pred(v))"
   mult_def  "m*n == nat_rec m 0 (%u v. n + v)"
-  mod_def   "m mod n == wfrec (trancl pred_nat) m (%j f.(if (j<n) j (f (j-n))))"
-  div_def   "m div n == wfrec (trancl pred_nat) m (%j f.(if (j<n) 0 (Suc (f (j-n)))))"
+  mod_def   "m mod n == wfrec (trancl pred_nat) m (%j f.if j<n then j else f (j-n))"
+  div_def   "m div n == wfrec (trancl pred_nat) m (%j f.if j<n then 0 else Suc (f (j-n)))"
 end
 
 (*"Difference" is subtraction of natural numbers.

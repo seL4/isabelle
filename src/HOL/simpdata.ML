@@ -71,27 +71,28 @@ val eq_sym_conv = prover "(x=y) = (y=x)";
 
 val conj_assoc = prover "((P&Q)&R) = (P&(Q&R))";
 
-val if_True = prove_goalw HOL.thy [if_def] "if True x y = x"
+val if_True = prove_goalw HOL.thy [if_def] "(if True then x else y) = x"
  (fn _=>[fast_tac (HOL_cs addIs [select_equality]) 1]);
 
-val if_False = prove_goalw HOL.thy [if_def] "if False x y = y"
+val if_False = prove_goalw HOL.thy [if_def] "(if False then x else y) = y"
  (fn _=>[fast_tac (HOL_cs addIs [select_equality]) 1]);
 
-val if_P = prove_goal HOL.thy "P ==> if P x y = x"
+val if_P = prove_goal HOL.thy "P ==> (if P then x else y) = x"
  (fn [prem] => [ stac (prem RS eqTrueI) 1, rtac if_True 1 ]);
 
-val if_not_P = prove_goal HOL.thy "~P ==> if P x y = y"
+val if_not_P = prove_goal HOL.thy "~P ==> (if P then x else y) = y"
  (fn [prem] => [ stac (prem RS not_P_imp_P_iff_F) 1, rtac if_False 1 ]);
 
 val expand_if = prove_goal HOL.thy
-    "P(if Q x y) = ((Q --> P(x)) & (~Q --> P(y)))"
+    "P(if Q then x else y) = ((Q --> P(x)) & (~Q --> P(y)))"
  (fn _=> [ (res_inst_tac [("Q","Q")] (excluded_middle RS disjE) 1),
 	 rtac (if_P RS ssubst) 2,
 	 rtac (if_not_P RS ssubst) 1,
 	 REPEAT(fast_tac HOL_cs 1) ]);
 
-val if_bool_eq = prove_goal HOL.thy "if P Q R = ((P-->Q) & (~P-->R))"
-  (fn _ => [rtac expand_if 1]);
+val if_bool_eq = prove_goal HOL.thy
+                   "(if P then Q else R) = ((P-->Q) & (~P-->R))"
+                   (fn _ => [rtac expand_if 1]);
 
 infix addcongs;
 fun ss addcongs congs = ss addeqcongs (congs RL [eq_reflection]);
@@ -99,7 +100,7 @@ fun ss addcongs congs = ss addeqcongs (congs RL [eq_reflection]);
 val mksimps_pairs =
   [("op -->", [mp]), ("op &", [conjunct1,conjunct2]),
    ("All", [spec]), ("True", []), ("False", []),
-   ("if", [if_bool_eq RS iffD1])];
+   ("If", [if_bool_eq RS iffD1])];
 
 fun mksimps pairs = map mk_meta_eq o atomize pairs o gen_all;
 
@@ -139,14 +140,15 @@ val conj_cong = impI RSN
 
 (*Simplifies x assuming c and y assuming ~c*)
 val if_cong = prove_goal HOL.thy
-  "[| b=c; c ==> x=u; ~c ==> y=v |] ==> if b x y = if c u v"
+  "[| b=c; c ==> x=u; ~c ==> y=v |] ==>\
+\  (if b then x else y) = (if c then u else v)"
   (fn rew::prems =>
    [stac rew 1, stac expand_if 1, stac expand_if 1,
     fast_tac (HOL_cs addDs prems) 1]);
 
 (*Prevents simplification of x and y: much faster*)
 val if_weak_cong = prove_goal HOL.thy
-  "b=c ==> if b x y = if c x y"
+  "b=c ==> (if b then x else y) = (if c then x else y)"
   (fn [prem] => [rtac (prem RS arg_cong) 1]);
 
 (*Prevents simplification of t: much faster*)

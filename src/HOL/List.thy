@@ -56,7 +56,7 @@ primrec ttl list
   ttl_Cons "ttl(x#xs) = xs"
 primrec "op mem" list
   mem_Nil  "x mem [] = False"
-  mem_Cons "x mem (y#ys) = if (y=x) True (x mem ys)"
+  mem_Cons "x mem (y#ys) = (if y=x then True else x mem ys)"
 primrec list_all list
   list_all_Nil  "list_all P [] = True"
   list_all_Cons "list_all P (x#xs) = (P(x) & list_all P xs)"
@@ -68,7 +68,7 @@ primrec "op @" list
   append_Cons "(x#xs)@ys = x#(xs@ys)"
 primrec filter list
   filter_Nil  "filter P [] = []"
-  filter_Cons "filter P (x#xs) = if (P x) (x#filter P xs) (filter P xs)"
+  filter_Cons "filter P (x#xs) = (if P x then x#filter P xs else filter P xs)"
 primrec foldl list
   foldl_Nil  "foldl f a [] = a"
   foldl_Cons "foldl f a (x#xs) = foldl f (f a x) xs"

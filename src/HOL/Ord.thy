@@ -18,8 +18,8 @@ consts
 
 defs
   mono_def      "mono(f) == (!A B. A <= B --> f(A) <= f(B))"
-  min_def       "min a b == if (a <= b) a b"
-  max_def       "max a b == if (a <= b) b a"
+  min_def       "min a b == (if a <= b then a else b)"
+  max_def       "max a b == (if a <= b then b else a)"
 
 end
 

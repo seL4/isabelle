@@ -86,7 +86,7 @@ translations
        "<ce,sig> -c-> s" == "<ce,sig,s> : evalc"
 
 rules 
-	assign_def	"s[m/x] == (%y. if (y=x) m (s y))"
+	assign_def	"s[m/x] == (%y. if y=x then m else s y)"
 
 inductive "evalc"
   intrs

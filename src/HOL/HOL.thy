@@ -38,7 +38,7 @@ consts
   Trueprop      :: "bool => prop"                     ("(_)" 5)
   not           :: "bool => bool"                     ("~ _" [40] 40)
   True, False   :: "bool"
-  if            :: "[bool, 'a, 'a] => 'a"
+  If            :: "[bool, 'a, 'a] => 'a"   ("(if (_)/ then (_)/ else (_))" 10)
   Inv           :: "('a => 'b) => ('b => 'a)"
 
   (* Binders *)
@@ -139,7 +139,7 @@ defs
   Let_def       "Let s f == f(s)"
   Inv_def       "Inv(f::'a=>'b)  == (% y. @x. f(x)=y)"
   o_def         "(f::'b=>'c) o g == (%(x::'a). f(g(x)))"
-  if_def        "if P x y == @z::'a. (P=True --> z=x) & (P=False --> z=y)"
+  if_def   "if P then x else y == @z::'a. (P=True --> z=x) & (P=False --> z=y)"
 
 end
 
