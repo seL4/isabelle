@@ -77,6 +77,19 @@ New in this Isabelle release
 
 *** HOL ***
 
+* Numerics: new theory Ring_and_Field contains over 250 basic numerical laws, 
+    all proved in axiomatic type classes for semirings, rings and fields.
+
+* Numerics:
+  - Numeric types (nat, int, and in HOL-Complex rat, real, complex, etc.) are
+    now formalized using the Ring_and_Field theory mentioned above. 
+  - INCOMPATIBILITY: simplification and arithmetic behaves somewhat differently
+    than before, because now they are set up once in a generic manner.
+  - INCOMPATIBILITY: many type-specific instances of laws proved in 
+    Ring_and_Field are no longer available.
+
+* Type "rat" of the rational numbers is now availabe in HOL-Complex.
+
 * Records:
   - Record types are now by default printed with their type abbreviation
     instead of the list of all field types. This can be configured via
