@@ -28,13 +28,6 @@ constdefs
   isSymKey :: key=>bool
   "isSymKey K == (invKey K = K)"
 
-  (*We do not assume  Crypt (invKey K) (Crypt K X) = X
-    because Crypt a is constructor!  We assume that encryption is injective,
-    which is not true in the real world.  The alternative is to take
-    Crypt an as uninterpreted function symbol satisfying the equation
-    above.  This seems to require moving to ZF and regarding msg as an
-    inductive definition instead of a datatype.*) 
-
 datatype  (*We allow any number of friendly agents*)
   agent = Server | Friend nat | Spy
 
@@ -42,6 +35,7 @@ datatype  (*Messages are agent names, nonces, keys, pairs and encryptions*)
   msg = Agent agent
       | Nonce nat
       | Key   key
+      | Hash  msg
       | MPair msg msg
       | Crypt key msg
 
@@ -63,9 +57,9 @@ constdefs  (*Keys useful to decrypt elements of a message set*)
 consts  parts   :: msg set => msg set
 inductive "parts H"
   intrs 
-    Inj     "X: H ==> X: parts H"
-    Fst     "{|X,Y|} : parts H ==> X : parts H"
-    Snd     "{|X,Y|} : parts H ==> Y : parts H"
+    Inj     "X: H  ==>  X: parts H"
+    Fst     "{|X,Y|}   : parts H ==> X : parts H"
+    Snd     "{|X,Y|}   : parts H ==> Y : parts H"
     Body    "Crypt K X : parts H ==> X : parts H"
 
 
@@ -91,7 +85,8 @@ inductive "synth H"
   intrs 
     Inj     "X: H ==> X: synth H"
     Agent   "Agent agt : synth H"
+    Hash    "X: synth H ==> Hash X : synth H"
     MPair   "[| X: synth H;  Y: synth H |] ==> {|X,Y|} : synth H"
-    Crypt   "[| X: synth H; Key(K): H |] ==> Crypt K X : synth H"
+    Crypt   "[| X: synth H;  Key(K) : H |] ==> Crypt K X : synth H"
 
 end

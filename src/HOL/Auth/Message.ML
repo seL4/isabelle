@@ -30,6 +30,7 @@ val subset_range_iff = result();
 
 open Message;
 
+AddIffs (msg.inject);
 
 (** Inverse of keys **)
 
@@ -74,6 +75,10 @@ goalw thy [keysFor_def] "keysFor (insert (Key K) H) = keysFor H";
 by (fast_tac (!claset addss (!simpset)) 1);
 qed "keysFor_insert_Key";
 
+goalw thy [keysFor_def] "keysFor (insert (Hash X) H) = keysFor H";
+by (fast_tac (!claset addss (!simpset)) 1);
+qed "keysFor_insert_Hash";
+
 goalw thy [keysFor_def] "keysFor (insert {|X,Y|} H) = keysFor H";
 by (fast_tac (!claset addss (!simpset)) 1);
 qed "keysFor_insert_MPair";
@@ -84,9 +89,8 @@ by (Auto_tac());
 qed "keysFor_insert_Crypt";
 
 Addsimps [keysFor_empty, keysFor_Un, keysFor_UN, 
-          keysFor_insert_Agent, keysFor_insert_Nonce,
-          keysFor_insert_Key, keysFor_insert_MPair,
-          keysFor_insert_Crypt];
+          keysFor_insert_Agent, keysFor_insert_Nonce, keysFor_insert_Key, 
+	  keysFor_insert_Hash, keysFor_insert_MPair, keysFor_insert_Crypt];
 
 goalw thy [keysFor_def] "!!H. Crypt K X : H ==> invKey K : keysFor H";
 by (Fast_tac 1);
@@ -122,6 +126,8 @@ goalw thy parts.defs "!!G H. G<=H ==> parts(G) <= parts(H)";
 by (rtac lfp_mono 1);
 by (REPEAT (ares_tac basic_monos 1));
 qed "parts_mono";
+
+val parts_insertI = impOfSubs (subset_insertI RS parts_mono);
 
 goal thy "parts{} = {}";
 by (Step_tac 1);
@@ -214,16 +220,16 @@ by (Fast_tac 1);
 qed "parts_trans";
 
 (*Cut*)
-goal thy "!!H. [| Y: parts (insert X H);  X: parts H |] ==> Y: parts H";
+goal thy "!!H. [| Y: parts (insert X G);  X: parts H |] \
+\              ==> Y: parts (G Un H)";
 by (etac parts_trans 1);
-by (Fast_tac 1);
+by (Auto_tac());
 qed "parts_cut";
 
-val parts_insertI = impOfSubs (subset_insertI RS parts_mono);
-
 goal thy "!!H. X: parts H ==> parts (insert X H) = parts H";
-by (fast_tac (!claset addSEs [parts_cut]
-                      addIs  [parts_insertI]) 1);
+by (fast_tac (!claset addSDs [parts_cut]
+                      addIs  [parts_insertI] 
+                      addss (!simpset)) 1);
 qed "parts_cut_eq";
 
 Addsimps [parts_cut_eq];
@@ -231,28 +237,26 @@ Addsimps [parts_cut_eq];
 
 (** Rewrite rules for pulling out atomic messages **)
 
+fun parts_tac i =
+  EVERY [rtac ([subsetI, parts_insert_subset] MRS equalityI) i,
+	 etac parts.induct i,
+	 REPEAT (fast_tac (!claset addss (!simpset)) i)];
+
 goal thy "parts (insert (Agent agt) H) = insert (Agent agt) (parts H)";
-by (rtac (parts_insert_subset RSN (2, equalityI)) 1);
-by (rtac subsetI 1);
-by (etac parts.induct 1);
-(*Simplification breaks up equalities between messages;
-  how to make it work for fast_tac??*)
-by (ALLGOALS (fast_tac (!claset addss (!simpset))));
+by (parts_tac 1);
 qed "parts_insert_Agent";
 
 goal thy "parts (insert (Nonce N) H) = insert (Nonce N) (parts H)";
-by (rtac (parts_insert_subset RSN (2, equalityI)) 1);
-by (rtac subsetI 1);
-by (etac parts.induct 1);
-by (ALLGOALS (fast_tac (!claset addss (!simpset))));
+by (parts_tac 1);
 qed "parts_insert_Nonce";
 
 goal thy "parts (insert (Key K) H) = insert (Key K) (parts H)";
-by (rtac (parts_insert_subset RSN (2, equalityI)) 1);
-by (rtac subsetI 1);
-by (etac parts.induct 1);
-by (ALLGOALS (fast_tac (!claset addss (!simpset))));
+by (parts_tac 1);
 qed "parts_insert_Key";
+
+goal thy "parts (insert (Hash X) H) = insert (Hash X) (parts H)";
+by (parts_tac 1);
+qed "parts_insert_Hash";
 
 goal thy "parts (insert (Crypt K X) H) = \
 \         insert (Crypt K X) (parts (insert X H))";
@@ -274,8 +278,8 @@ by (etac parts.induct 1);
 by (ALLGOALS (best_tac (!claset addIs [parts.Fst, parts.Snd])));
 qed "parts_insert_MPair";
 
-Addsimps [parts_insert_Agent, parts_insert_Nonce, 
-          parts_insert_Key, parts_insert_Crypt, parts_insert_MPair];
+Addsimps [parts_insert_Agent, parts_insert_Nonce, parts_insert_Key, 
+          parts_insert_Hash, parts_insert_Crypt, parts_insert_MPair];
 
 
 goal thy "parts (Key``N) = Key``N";
@@ -338,6 +342,8 @@ by (rtac lfp_mono 1);
 by (REPEAT (ares_tac basic_monos 1));
 qed "analz_mono";
 
+val analz_insertI = impOfSubs (subset_insertI RS analz_mono);
+
 (** General equational properties **)
 
 goal thy "analz{} = {}";
@@ -359,30 +365,28 @@ qed "analz_insert";
 
 (** Rewrite rules for pulling out atomic messages **)
 
+fun analz_tac i =
+  EVERY [rtac ([subsetI, analz_insert] MRS equalityI) i,
+	 etac analz.induct i,
+	 REPEAT (fast_tac (!claset addss (!simpset)) i)];
+
 goal thy "analz (insert (Agent agt) H) = insert (Agent agt) (analz H)";
-by (rtac (analz_insert RSN (2, equalityI)) 1);
-by (rtac subsetI 1);
-by (etac analz.induct 1);
-(*Simplification breaks up equalities between messages;
-  how to make it work for fast_tac??*)
-by (ALLGOALS (fast_tac (!claset addss (!simpset))));
+by (analz_tac 1);
 qed "analz_insert_Agent";
 
 goal thy "analz (insert (Nonce N) H) = insert (Nonce N) (analz H)";
-by (rtac (analz_insert RSN (2, equalityI)) 1);
-by (rtac subsetI 1);
-by (etac analz.induct 1);
-by (ALLGOALS (fast_tac (!claset addss (!simpset))));
+by (analz_tac 1);
 qed "analz_insert_Nonce";
+
+goal thy "analz (insert (Hash X) H) = insert (Hash X) (analz H)";
+by (analz_tac 1);
+qed "analz_insert_Hash";
 
 (*Can only pull out Keys if they are not needed to decrypt the rest*)
 goalw thy [keysFor_def]
     "!!K. K ~: keysFor (analz H) ==>  \
 \         analz (insert (Key K) H) = insert (Key K) (analz H)";
-by (rtac (analz_insert RSN (2, equalityI)) 1);
-by (rtac subsetI 1);
-by (etac analz.induct 1);
-by (ALLGOALS (fast_tac (!claset addss (!simpset))));
+by (analz_tac 1);
 qed "analz_insert_Key";
 
 goal thy "analz (insert {|X,Y|} H) = \
@@ -400,10 +404,7 @@ qed "analz_insert_MPair";
 goal thy "!!H. Key (invKey K) ~: analz H ==>  \
 \              analz (insert (Crypt K X) H) = \
 \              insert (Crypt K X) (analz H)";
-by (rtac (analz_insert RSN (2, equalityI)) 1);
-by (rtac subsetI 1);
-by (etac analz.induct 1);
-by (ALLGOALS (fast_tac (!claset addss (!simpset))));
+by (analz_tac 1);
 qed "analz_insert_Crypt";
 
 goal thy "!!H. Key (invKey K) : analz H ==>  \
@@ -443,9 +444,8 @@ by (ALLGOALS (asm_simp_tac (!simpset addsimps [analz_insert_Crypt,
                                                analz_insert_Decrypt])));
 qed "analz_Crypt_if";
 
-Addsimps [analz_insert_Agent, analz_insert_Nonce, 
-          analz_insert_Key, analz_insert_MPair, 
-          analz_Crypt_if];
+Addsimps [analz_insert_Agent, analz_insert_Nonce, analz_insert_Key, 
+	  analz_insert_Hash, analz_insert_MPair, analz_Crypt_if];
 
 (*This rule supposes "for the sake of argument" that we have the key.*)
 goal thy  "analz (insert (Crypt K X) H) <=  \
@@ -547,10 +547,11 @@ val mk_cases = synth.mk_cases msg.simps;
 (*NO Agent_synth, as any Agent name can be synthd*)
 val Nonce_synth = mk_cases "Nonce n : synth H";
 val Key_synth   = mk_cases "Key K : synth H";
+val Hash_synth  = mk_cases "Hash X : synth H";
 val MPair_synth = mk_cases "{|X,Y|} : synth H";
 val Crypt_synth = mk_cases "Crypt K X : synth H";
 
-AddSEs [Nonce_synth, Key_synth, MPair_synth, Crypt_synth];
+AddSEs [Nonce_synth, Key_synth, Hash_synth, MPair_synth, Crypt_synth];
 
 goal thy "H <= synth(H)";
 by (Fast_tac 1);
@@ -609,7 +610,7 @@ goal thy "(Key K : synth H) = (Key K : H)";
 by (Fast_tac 1);
 qed "Key_synth_eq";
 
-goal thy "!!K. Key K ~: H ==> (Crypt K X : synth H) = (Crypt K X: H)";
+goal thy "!!K. Key K ~: H ==> (Crypt K X : synth H) = (Crypt K X : H)";
 by (Fast_tac 1);
 qed "Crypt_synth_eq";
 
@@ -635,16 +636,25 @@ by (ALLGOALS
 qed "parts_synth";
 Addsimps [parts_synth];
 
-goal thy "analz (synth H) = analz H Un synth H";
+goal thy "analz (analz G Un H) = analz (G Un H)";
+by (REPEAT_FIRST (resolve_tac [equalityI, analz_subset_cong]));
+by (ALLGOALS Simp_tac);
+qed "analz_analz_Un";
+
+goal thy "analz (synth G Un H) = analz (G Un H) Un synth G";
 by (rtac equalityI 1);
 by (rtac subsetI 1);
 by (etac analz.induct 1);
-by (best_tac
-    (!claset addIs [synth_increasing RS analz_mono RS subsetD]) 5);
+by (deepen_tac (!claset addIs [impOfSubs analz_mono]) 0 5);
 (*Strange that best_tac just can't hack this one...*)
 by (ALLGOALS (deepen_tac (!claset addIs analz.intrs) 0));
+qed "analz_synth_Un";
+
+goal thy "analz (synth H) = analz H Un synth H";
+by (cut_inst_tac [("H","{}")] analz_synth_Un 1);
+by (Full_simp_tac 1);
 qed "analz_synth";
-Addsimps [analz_synth];
+Addsimps [analz_analz_Un, analz_synth_Un, analz_synth];
 
 (*Hard to prove; still needed now that there's only one Spy?*)
 goal thy "analz (UN i. synth (H i)) = \
@@ -689,6 +699,17 @@ by (fast_tac (!claset addDs [impOfSubs analz_subset_parts]
                       addss (!simpset)) 1);
 qed "Crypt_Fake_parts_insert";
 
+goal thy "!!H. X: synth (analz G) ==> \
+\              analz (insert X H) <= synth (analz G) Un analz (G Un H)";
+by (rtac subsetI 1);
+by (subgoal_tac "x : analz (synth (analz G) Un H)" 1);
+by (best_tac (!claset addIs [impOfSubs (analz_mono RS synth_mono)]
+                      addSEs [impOfSubs analz_mono]) 2);
+by (Full_simp_tac 1);
+by (Fast_tac 1);
+qed "Fake_analz_insert";
+
+(*Needed????????????????*)
 goal thy "!!H. [| X: synth (analz G); G <= H |] ==> \
 \              analz (insert X H) <= synth (analz H) Un analz H";
 by (rtac subsetI 1);
@@ -697,7 +718,7 @@ by (best_tac (!claset addIs [impOfSubs (analz_mono RS synth_mono)]
                       addSEs [impOfSubs analz_mono]) 2);
 by (Full_simp_tac 1);
 by (Fast_tac 1);
-qed "Fake_analz_insert";
+qed "Fake_analz_insert_old";
 
 goal thy "(X: analz H & X: parts H) = (X: analz H)";
 by (fast_tac (!claset addDs [impOfSubs analz_subset_parts]) 1);
@@ -724,6 +745,13 @@ by (Fast_tac 1);
 qed "Crypt_synth_analz";
 
 
+goal thy "!!K. Key K ~: analz H \
+\   ==> (Hash{|Key K,X|} : synth (analz H)) = (Hash{|Key K,X|} : analz H)";
+by (Fast_tac 1);
+qed "Hash_synth_analz";
+Addsimps [Hash_synth_analz];
+
+
 (*We do NOT want Crypt... messages broken up in protocols!!*)
 Delrules partsEs;
 
@@ -735,10 +763,11 @@ fun insComm thy x y = read_instantiate_sg (sign_of thy) [("x",x), ("y",y)]
                           insert_commute;
 
 val pushKeys = map (insComm thy "Key ?K") 
-                  ["Agent ?C", "Nonce ?N", "MPair ?X ?Y", "Crypt ?X ?K'"];
+                   ["Agent ?C", "Nonce ?N", "Hash ?X", 
+		    "MPair ?X ?Y", "Crypt ?X ?K'"];
 
 val pushCrypts = map (insComm thy "Crypt ?X ?K") 
-                    ["Agent ?C", "Nonce ?N", "MPair ?X' ?Y"];
+                     ["Agent ?C", "Nonce ?N", "Hash ?X'", "MPair ?X' ?Y"];
 
 (*Cannot be added with Addsimps -- we don't always want to re-order messages*)
 val pushes = pushKeys@pushCrypts;
@@ -749,26 +778,38 @@ fun safe_solver prems =
     match_tac (TrueI::refl::prems) ORELSE' eq_assume_tac
     ORELSE' etac FalseE;
 
-(*Analysis of Fake cases and of messages that forward unknown parts
+val Fake_insert_tac = 
+    dresolve_tac [impOfSubs Fake_analz_insert,
+		  impOfSubs Fake_parts_insert] THEN'
+    eresolve_tac [asm_rl, synth.Inj];
+
+(*Analysis of Fake cases and of messages that forward unknown parts.
   Abstraction over i is ESSENTIAL: it delays the dereferencing of claset
   DEPENDS UPON "X" REFERRING TO THE FRADULENT MESSAGE *)
 fun spy_analz_tac i =
-  SELECT_GOAL 
-   (EVERY [  (*push in occurrences of X...*)
-           (REPEAT o CHANGED)
-             (res_inst_tac [("x1","X")] (insert_commute RS ssubst) 1),
-             (*...allowing further simplifications*)
-           simp_tac (!simpset setloop split_tac [expand_if]) 1,
-           REPEAT (resolve_tac [allI,impI,notI] 1),
-           dtac (impOfSubs Fake_analz_insert) 1,
-           eresolve_tac [asm_rl, synth.Inj] 1,
-           Fast_tac 1,
-           Asm_full_simp_tac 1,
-           IF_UNSOLVED (depth_tac (!claset addIs [impOfSubs analz_mono]) 2 1)
-           ]) i;
-
+  DETERM
+   (SELECT_GOAL
+     (EVERY 
+      [  (*push in occurrences of X...*)
+       (REPEAT o CHANGED)
+           (res_inst_tac [("x1","X")] (insert_commute RS ssubst) 1),
+       (*...allowing further simplifications*)
+       simp_tac (!simpset setloop split_tac [expand_if]) 1,
+       REPEAT (FIRSTGOAL (resolve_tac [allI,impI,notI,conjI])),
+       DEPTH_SOLVE 
+         (REPEAT (Fake_insert_tac 1) THEN Asm_full_simp_tac 1
+	  THEN
+	  IF_UNSOLVED (depth_tac (!claset addIs [impOfSubs analz_mono,
+						 impOfSubs analz_subset_parts]) 2 1))
+       ]) i);
 
 (*Useful in many uniqueness proofs*)
 fun ex_strip_tac i = REPEAT (swap_res_tac [exI, conjI] i) THEN 
                      assume_tac (i+1);
 
+
+(*Needed occasionally with spy_analz_tac, e.g. in analz_insert_Key_newK*)
+goal Set.thy "A Un (B Un A) = B Un A";
+by (Fast_tac 1);
+val Un_absorb3 = result();
+Addsimps [Un_absorb3];
