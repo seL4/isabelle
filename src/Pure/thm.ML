@@ -1201,14 +1201,14 @@ fun rotate_rule k i state =
   The names in cs, if distinct, are used for the innermost parameters;
    preceding parameters may be renamed to make all params distinct.*)
 fun rename_params_rule (cs, i) state =
-  let val Thm{sign,der,maxidx,hyps,prop,...} = state
+  let val Thm{sign,der,maxidx,hyps,...} = state
       val (tpairs, Bs, Bi, C) = dest_state(state,i)
       val iparams = map #1 (Logic.strip_params Bi)
       val short = length iparams - length cs
       val newnames =
             if short<0 then error"More names than abstractions!"
             else variantlist(take (short,iparams), cs) @ cs
-      val freenames = map (#1 o dest_Free) (term_frees prop)
+      val freenames = map (#1 o dest_Free) (term_frees Bi)
       val newBi = Logic.list_rename_params (newnames, Bi)
   in
   case findrep cs of
