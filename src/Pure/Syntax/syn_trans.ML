@@ -44,42 +44,40 @@ end;
 structure SynTrans: SYN_TRANS =
 struct
 
-open TypeExt Lexicon Ast SynExt Parser;
-
 
 (** parse (ast) translations **)
 
 (* application *)
 
-fun appl_ast_tr [f, args] = Appl (f :: unfold_ast "_args" args)
-  | appl_ast_tr asts = raise AST ("appl_ast_tr", asts);
+fun appl_ast_tr [f, args] = Ast.Appl (f :: Ast.unfold_ast "_args" args)
+  | appl_ast_tr asts = raise Ast.AST ("appl_ast_tr", asts);
 
-fun applC_ast_tr [f, args] = Appl (f :: unfold_ast "_cargs" args)
-  | applC_ast_tr asts = raise AST ("applC_ast_tr", asts);
+fun applC_ast_tr [f, args] = Ast.Appl (f :: Ast.unfold_ast "_cargs" args)
+  | applC_ast_tr asts = raise Ast.AST ("applC_ast_tr", asts);
 
 
 (* abstraction *)
 
-fun idtyp_ast_tr (*"_idtyp"*) [x, ty] = Appl [Constant constrainC, x, ty]
-  | idtyp_ast_tr (*"_idtyp"*) asts = raise AST ("idtyp_ast_tr", asts);
+fun idtyp_ast_tr (*"_idtyp"*) [x, ty] = Ast.Appl [Ast.Constant SynExt.constrainC, x, ty]
+  | idtyp_ast_tr (*"_idtyp"*) asts = raise Ast.AST ("idtyp_ast_tr", asts);
 
 fun lambda_ast_tr (*"_lambda"*) [pats, body] =
-      fold_ast_p "_abs" (unfold_ast "_pttrns" pats, body)
-  | lambda_ast_tr (*"_lambda"*) asts = raise AST ("lambda_ast_tr", asts);
+      Ast.fold_ast_p "_abs" (Ast.unfold_ast "_pttrns" pats, body)
+  | lambda_ast_tr (*"_lambda"*) asts = raise Ast.AST ("lambda_ast_tr", asts);
 
 val constrainAbsC = "_constrainAbs";
 
-fun abs_tr (*"_abs"*) [Free (x, T), body] = absfree (x, T, body)
+fun abs_tr (*"_abs"*) [Free (x, T), body] = Term.absfree (x, T, body)
   | abs_tr (*"_abs"*) (ts as [Const (c, _) $ Free (x, T) $ tT, body]) =
-      if c = constrainC
-        then const constrainAbsC $ absfree (x, T, body) $ tT
+      if c = SynExt.constrainC
+        then Lexicon.const constrainAbsC $ Term.absfree (x, T, body) $ tT
       else raise TERM ("abs_tr", ts)
   | abs_tr (*"_abs"*) ts = raise TERM ("abs_tr", ts);
 
 
 (* nondependent abstraction *)
 
-fun k_tr (*"_K"*) [t] = Abs ("uu", dummyT, incr_boundvars 1 t)
+fun k_tr (*"_K"*) [t] = Abs ("uu", dummyT, Term.incr_boundvars 1 t)
   | k_tr (*"_K"*) ts = raise TERM ("k_tr", ts);
 
 
@@ -87,11 +85,11 @@ fun k_tr (*"_K"*) [t] = Abs ("uu", dummyT, incr_boundvars 1 t)
 
 fun mk_binder_tr (sy, name) =
   let
-    fun tr (Free (x, T), t) = const name $ absfree (x, T, t)
+    fun tr (Free (x, T), t) = Lexicon.const name $ Term.absfree (x, T, t)
       | tr (Const ("_idts", _) $ idt $ idts, t) = tr (idt, tr (idts, t))
       | tr (t1 as Const (c, _) $ Free (x, T) $ tT, t) =
-          if c = constrainC then
-            const name $ (const constrainAbsC $ absfree (x, T, t) $ tT)
+          if c = SynExt.constrainC then
+            Lexicon.const name $ (Lexicon.const constrainAbsC $ Term.absfree (x, T, t) $ tT)
           else raise TERM ("binder_tr", [t1, t])
       | tr (t1, t2) = raise TERM ("binder_tr", [t1, t2]);
 
@@ -104,32 +102,34 @@ fun mk_binder_tr (sy, name) =
 
 (* meta propositions *)
 
-fun aprop_tr (*"_aprop"*) [t] = const constrainC $ t $ const "prop"
+fun aprop_tr (*"_aprop"*) [t] = Lexicon.const SynExt.constrainC $ t $ Lexicon.const "prop"
   | aprop_tr (*"_aprop"*) ts = raise TERM ("aprop_tr", ts);
 
 fun ofclass_tr (*"_ofclass"*) [ty, cls] =
-      cls $ (const constrainC $ const "TYPE" $ (const "itself" $ ty))
+      cls $ (Lexicon.const SynExt.constrainC $ Lexicon.const "TYPE" $
+        (Lexicon.const "itself" $ ty))
   | ofclass_tr (*"_ofclass"*) ts = raise TERM ("ofclass_tr", ts);
 
 
 (* meta implication *)
 
 fun bigimpl_ast_tr (*"_bigimpl"*) [asms, concl] =
-      fold_ast_p "==>" (unfold_ast "_asms" asms, concl)
-  | bigimpl_ast_tr (*"_bigimpl"*) asts = raise AST ("bigimpl_ast_tr", asts);
+      Ast.fold_ast_p "==>" (Ast.unfold_ast "_asms" asms, concl)
+  | bigimpl_ast_tr (*"_bigimpl"*) asts = raise Ast.AST ("bigimpl_ast_tr", asts);
 
 
 (* type reflection *)
 
 fun type_tr (*"_TYPE"*) [ty] =
-      const constrainC $ const "TYPE" $ (const "itself" $ ty)
+      Lexicon.const SynExt.constrainC $ Lexicon.const "TYPE" $ (Lexicon.const "itself" $ ty)
   | type_tr (*"_TYPE"*) ts = raise TERM ("type_tr", ts);
 
 
 (* binds *)
 
-fun bind_ast_tr (*"_BIND"*) [Variable x] = Variable (string_of_vname (binding x, 0))
-  | bind_ast_tr (*"_BIND"*) asts = raise AST ("bind_ast_tr", asts);
+fun bind_ast_tr (*"_BIND"*) [Ast.Variable x] =
+      Ast.Variable (Lexicon.string_of_vname (Lexicon.binding x, 0))
+  | bind_ast_tr (*"_BIND"*) asts = raise Ast.AST ("bind_ast_tr", asts);
 
 
 (* quote / antiquote *)
@@ -143,7 +143,8 @@ fun quote_antiquote_tr quoteN antiquoteN name =
       | antiquote_tr i (Abs (x, T, t)) = Abs (x, T, antiquote_tr (i + 1) t)
       | antiquote_tr _ a = a;
 
-    fun quote_tr [t] = const name $ Abs ("uu", dummyT, antiquote_tr 0 (incr_boundvars 1 t))
+    fun quote_tr [t] = Lexicon.const name $
+          Abs ("uu", dummyT, antiquote_tr 0 (Term.incr_boundvars 1 t))
       | quote_tr ts = raise TERM ("quote_tr", ts);
   in (quoteN, quote_tr) end;
 
@@ -153,17 +154,16 @@ fun quote_antiquote_tr quoteN antiquoteN name =
 
 (* application *)
 
-fun appl_ast_tr' (f, []) = raise AST ("appl_ast_tr'", [f])
-  | appl_ast_tr' (f, args) = Appl [Constant "_appl", f, fold_ast "_args" args];
+fun appl_ast_tr' (f, []) = raise Ast.AST ("appl_ast_tr'", [f])
+  | appl_ast_tr' (f, args) = Ast.Appl [Ast.Constant "_appl", f, Ast.fold_ast "_args" args];
 
-fun applC_ast_tr' (f, []) = raise AST ("applC_ast_tr'", [f])
-  | applC_ast_tr' (f, args) =
-      Appl [Constant "_applC", f, fold_ast "_cargs" args];
+fun applC_ast_tr' (f, []) = raise Ast.AST ("applC_ast_tr'", [f])
+  | applC_ast_tr' (f, args) = Ast.Appl [Ast.Constant "_applC", f, Ast.fold_ast "_cargs" args];
 
 
 (* abstraction *)
 
-fun mark_boundT x_T = const "_bound" $ Free x_T;
+fun mark_boundT x_T = Lexicon.const "_bound" $ Free x_T;
 fun mark_bound x = mark_boundT (x, dummyT);
 
 fun strip_abss vars_of body_of tm =
@@ -202,14 +202,14 @@ fun eta_contr tm =
 
 
 fun abs_tr' tm =
-  foldr (fn (x, t) => const "_abs" $ x $ t)
+  foldr (fn (x, t) => Lexicon.const "_abs" $ x $ t)
     (strip_abss strip_abs_vars strip_abs_body (eta_contr tm));
 
 
 fun abs_ast_tr' (*"_abs"*) asts =
-  (case unfold_ast_p "_abs" (Appl (Constant "_abs" :: asts)) of
-    ([], _) => raise AST ("abs_ast_tr'", asts)
-  | (xs, body) => Appl [Constant "_lambda", fold_ast "_pttrns" xs, body]);
+  (case Ast.unfold_ast_p "_abs" (Ast.Appl (Ast.Constant "_abs" :: asts)) of
+    ([], _) => raise Ast.AST ("abs_ast_tr'", asts)
+  | (xs, body) => Ast.Appl [Ast.Constant "_lambda", Ast.fold_ast "_pttrns" xs, body]);
 
 
 (* binder *)
@@ -218,17 +218,14 @@ fun mk_binder_tr' (name, sy) =
   let
     fun mk_idts [] = raise Match    (*abort translation*)
       | mk_idts [idt] = idt
-      | mk_idts (idt :: idts) = const "_idts" $ idt $ mk_idts idts;
+      | mk_idts (idt :: idts) = Lexicon.const "_idts" $ idt $ mk_idts idts;
 
     fun tr' t =
       let
         val (xs, bd) = strip_abss (strip_qnt_vars name) (strip_qnt_body name) t;
-      in
-        const sy $ mk_idts xs $ bd
-      end;
+      in Lexicon.const sy $ mk_idts xs $ bd end;
 
-    fun binder_tr' (*name*) (t :: ts) =
-          list_comb (tr' (const name $ t), ts)
+    fun binder_tr' (*name*) (t :: ts) = Term.list_comb (tr' (Lexicon.const name $ t), ts)
       | binder_tr' (*name*) [] = raise Match;
   in
     (name, binder_tr')
@@ -237,9 +234,9 @@ fun mk_binder_tr' (name, sy) =
 
 (* idtyp constraints *)
 
-fun idtyp_ast_tr' a [Appl [Constant c, x, ty], xs] =
-      if c = constrainC then
-        Appl [Constant a, Appl [Constant "_idtyp", x, ty], xs]
+fun idtyp_ast_tr' a [Ast.Appl [Ast.Constant c, x, ty], xs] =
+      if c = SynExt.constrainC then
+        Ast.Appl [ Ast.Constant a,  Ast.Appl [Ast.Constant "_idtyp", x, ty], xs]
       else raise Match
   | idtyp_ast_tr' _ _ = raise Match;
 
@@ -248,16 +245,16 @@ fun idtyp_ast_tr' a [Appl [Constant c, x, ty], xs] =
 
 fun prop_tr' tm =
   let
-    fun aprop t = const "_aprop" $ t;
+    fun aprop t = Lexicon.const "_aprop" $ t;
 
     fun is_prop Ts t =
       fastype_of1 (Ts, t) = propT handle TERM _ => false;
 
     fun tr' _ (t as Const _) = t
       | tr' _ (t as Free (x, T)) =
-          if T = propT then aprop (free x) else t
+          if T = propT then aprop (Lexicon.free x) else t
       | tr' _ (t as Var (xi, T)) =
-          if T = propT then aprop (var xi) else t
+          if T = propT then aprop (Lexicon.var xi) else t
       | tr' Ts (t as Bound _) =
           if is_prop Ts t then aprop t else t
       | tr' Ts (Abs (x, T, t)) = Abs (x, T, tr' (T :: Ts) t)
@@ -265,30 +262,30 @@ fun prop_tr' tm =
           if is_prop Ts t then Const ("_mk_ofclass", T) $ tr' Ts t1
           else tr' Ts t1 $ tr' Ts t2
       | tr' Ts (t as t1 $ t2) =
-          (if is_Const (head_of t) orelse not (is_prop Ts t)
+          (if is_Const (Term.head_of t) orelse not (is_prop Ts t)
             then I else aprop) (tr' Ts t1 $ tr' Ts t2);
   in
     tr' [] tm
   end;
 
 fun mk_ofclass_tr' show_sorts (*"_mk_ofclass"*) T [t] =
-      const "_ofclass" $ term_of_typ show_sorts T $ t
+      Lexicon.const "_ofclass" $ TypeExt.term_of_typ show_sorts T $ t
   | mk_ofclass_tr' _ (*"_mk_ofclass"*) T ts = raise TYPE ("mk_ofclass_tr'", [T], ts);
 
 
 (* meta implication *)
 
 fun impl_ast_tr' (*"==>"*) asts =
-  (case unfold_ast_p "==>" (Appl (Constant "==>" :: asts)) of
+  (case Ast.unfold_ast_p "==>" (Ast.Appl (Ast.Constant "==>" :: asts)) of
     (asms as _ :: _ :: _, concl)
-      => Appl [Constant "_bigimpl", fold_ast "_asms" asms, concl]
+      => Ast.Appl [Ast.Constant "_bigimpl", Ast.fold_ast "_asms" asms, concl]
   | _ => raise Match);
 
 
 (* type reflection *)
 
 fun type_tr' show_sorts (*"TYPE"*) (Type ("itself", [T])) ts =
-      list_comb (const "_TYPE" $ term_of_typ show_sorts T, ts)
+      Term.list_comb (Lexicon.const "_TYPE" $ TypeExt.term_of_typ show_sorts T, ts)
   | type_tr' _ _ _ = raise Match;
 
 
@@ -302,8 +299,8 @@ fun variant_abs' (x, T, B) =
 fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
       if Term.loose_bvar1 (B, 0) then
         let val (x', B') = variant_abs' (x, dummyT, B);
-        in list_comb (const q $ mark_boundT (x', T) $ A $ B', ts) end
-      else list_comb (const r $ A $ B, ts)
+        in Term.list_comb (Lexicon.const q $ mark_boundT (x', T) $ A $ B', ts) end
+      else Term.list_comb (Lexicon.const r $ A $ B, ts)
   | dependent_tr' _ _ = raise Match;
 
 
@@ -315,13 +312,13 @@ fun no_loose_bvar i t =
 fun quote_antiquote_tr' quoteN antiquoteN name =
   let
     fun antiquote_tr' i (t $ u) =
-          if u = Bound i then const antiquoteN $ no_loose_bvar i t
+          if u = Bound i then Lexicon.const antiquoteN $ no_loose_bvar i t
           else antiquote_tr' i t $ antiquote_tr' i u
       | antiquote_tr' i (Abs (x, T, t)) = Abs (x, T, antiquote_tr' (i + 1) t)
       | antiquote_tr' i a = no_loose_bvar i a;
 
     fun quote_tr' (Abs (x, T, t) :: ts) =
-          Term.list_comb (const quoteN $ incr_boundvars ~1 (antiquote_tr' 0 t), ts)
+          Term.list_comb ( Lexicon.const quoteN $ Term.incr_boundvars ~1 (antiquote_tr' 0 t), ts)
       | quote_tr' _ = raise Match;
   in (name, quote_tr') end;
 
@@ -350,14 +347,14 @@ fun pt_to_ast trf pt =
   let
     fun trans a args =
       (case trf a of
-        None => mk_appl (Constant a) args
+        None => Ast.mk_appl (Ast.Constant a) args
       | Some f => f args handle exn
           => (writeln ("Error in parse ast translation for " ^ quote a);
               raise exn));
 
     (*translate pt bottom-up*)
-    fun ast_of (Node (a, pts)) = trans a (map ast_of pts)
-      | ast_of (Tip tok) = Variable (str_of_token tok);
+    fun ast_of (Parser.Node (a, pts)) = trans a (map ast_of pts)
+      | ast_of (Parser.Tip tok) = Ast.Variable (Lexicon.str_of_token tok);
   in
     ast_of pt
   end;
@@ -370,18 +367,18 @@ fun ast_to_term trf ast =
   let
     fun trans a args =
       (case trf a of
-        None => list_comb (const a, args)
+        None => Term.list_comb (Lexicon.const a, args)
       | Some f => f args handle exn
           => (writeln ("Error in parse translation for " ^ quote a);
               raise exn));
 
-    fun term_of (Constant a) = trans a []
-      | term_of (Variable x) = read_var x
-      | term_of (Appl (Constant a :: (asts as _ :: _))) =
+    fun term_of (Ast.Constant a) = trans a []
+      | term_of (Ast.Variable x) = Lexicon.read_var x
+      | term_of (Ast.Appl (Ast.Constant a :: (asts as _ :: _))) =
           trans a (map term_of asts)
-      | term_of (Appl (ast :: (asts as _ :: _))) =
-          list_comb (term_of ast, map term_of asts)
-      | term_of (ast as Appl _) = raise AST ("ast_to_term: malformed ast", [ast]);
+      | term_of (Ast.Appl (ast :: (asts as _ :: _))) =
+          Term.list_comb (term_of ast, map term_of asts)
+      | term_of (ast as Ast.Appl _) = raise Ast.AST ("ast_to_term: malformed ast", [ast]);
   in
     term_of ast
   end;

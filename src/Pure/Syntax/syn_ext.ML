@@ -9,6 +9,7 @@ signature SYN_EXT0 =
 sig
   val typeT: typ
   val constrainC: string
+  val max_pri: int
 end;
 
 signature SYN_EXT =
@@ -26,7 +27,6 @@ sig
     Space of string |
     Bg of int | Brk of int | En
   datatype xprod = XProd of string * xsymb list * string * int
-  val max_pri: int
   val chain_pri: int
   val delims_of: xprod list -> string list list
   datatype mfix = Mfix of string * typ * string * int list * int
@@ -72,8 +72,6 @@ end;
 
 structure SynExt : SYN_EXT =
 struct
-
-open Lexicon Ast;
 
 
 (** misc definitions **)
@@ -239,7 +237,7 @@ fun mfix_to_xprod convert logtypes (Mfix (sy, typ, const, pris, pri)) =
       | is_arg _ = false;
 
     fun is_term (Delim _) = true
-      | is_term (Argument (s, _)) = is_terminal s
+      | is_term (Argument (s, _)) = Lexicon.is_terminal s
       | is_term _ = false;
 
     fun rem_pri (Argument (s, _)) = Argument (s, chain_pri)
@@ -272,7 +270,7 @@ fun mfix_to_xprod convert logtypes (Mfix (sy, typ, const, pris, pri)) =
     check_pri pri;
     check_blocks symbs';
 
-    if is_terminal lhs' then err ("Illegal lhs: " ^ lhs')
+    if Lexicon.is_terminal lhs' then err ("Illegal lhs: " ^ lhs')
     else if const <> "" then xprod
     else if length (filter is_arg symbs') <> 1 then
       err "Copy production must have exactly one argument"
@@ -313,7 +311,7 @@ fun mk_syn_ext convert logtypes mfixes consts trfuns tokentrfuns rules =
     SynExt {
       logtypes = logtypes',
       xprods = xprods,
-      consts = filter is_xid (consts union mfix_consts),
+      consts = filter Lexicon.is_xid (consts union mfix_consts),
       prmodes = distinct (map (fn (m, _, _) => m) tokentrfuns),
       parse_ast_translation = parse_ast_translation,
       parse_rules = parse_rules,

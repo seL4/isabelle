@@ -24,8 +24,6 @@ end;
 structure TypeExt : TYPE_EXT =
 struct
 
-open Lexicon SynExt Ast;
-
 
 (** input utils **)
 
@@ -60,7 +58,7 @@ fun raw_term_sorts tm =
 fun typ_of_term get_sort t =
   let
     fun typ_of (Free (x, _)) =
-          if is_tid x then TFree (x, get_sort (x, ~1))
+          if Lexicon.is_tid x then TFree (x, get_sort (x, ~1))
           else Type (x, [])
       | typ_of (Var (xi, _)) = TVar (xi, get_sort xi)
       | typ_of (Const ("_ofsort", _) $ Free (x, _) $ _) =
@@ -90,16 +88,16 @@ fun typ_of_term get_sort t =
 
 fun term_of_sort S =
   let
-    fun class c = const "_class" $ free c;
+    fun class c = Lexicon.const "_class" $ Lexicon.free c;
 
     fun classes [] = sys_error "term_of_sort"
       | classes [c] = class c
-      | classes (c :: cs) = const "_classes" $ class c $ classes cs;
+      | classes (c :: cs) = Lexicon.const "_classes" $ class c $ classes cs;
   in
     (case S of
-      [] => const "_topsort"
+      [] => Lexicon.const "_topsort"
     | [c] => class c
-    | cs => const "_sort" $ classes cs)
+    | cs => Lexicon.const "_sort" $ classes cs)
   end;
 
 
@@ -108,12 +106,12 @@ fun term_of_sort S =
 fun term_of_typ show_sorts ty =
   let
     fun of_sort t S =
-      if show_sorts then const "_ofsort" $ t $ term_of_sort S
+      if show_sorts then Lexicon.const "_ofsort" $ t $ term_of_sort S
       else t;
 
-    fun term_of (Type (a, Ts)) = list_comb (const a, map term_of Ts)
-      | term_of (TFree (x, S)) = of_sort (const "_tfree" $ free x) S
-      | term_of (TVar (xi, S)) = of_sort (const "_tvar" $ var xi) S;
+    fun term_of (Type (a, Ts)) = list_comb (Lexicon.const a, map term_of Ts)
+      | term_of (TFree (x, S)) = of_sort (Lexicon.const "_tfree" $ Lexicon.free x) S
+      | term_of (TVar (xi, S)) = of_sort (Lexicon.const "_tvar" $ Lexicon.var xi) S;
   in
     term_of ty
   end;
@@ -124,29 +122,29 @@ fun term_of_typ show_sorts ty =
 
 (* parse ast translations *)
 
-fun tapp_ast_tr (*"_tapp"*) [ty, f] = Appl [f, ty]
-  | tapp_ast_tr (*"_tapp"*) asts = raise AST ("tapp_ast_tr", asts);
+fun tapp_ast_tr (*"_tapp"*) [ty, f] = Ast.Appl [f, ty]
+  | tapp_ast_tr (*"_tapp"*) asts = raise Ast.AST ("tapp_ast_tr", asts);
 
 fun tappl_ast_tr (*"_tappl"*) [ty, tys, f] =
-      Appl (f :: ty :: unfold_ast "_types" tys)
-  | tappl_ast_tr (*"_tappl"*) asts = raise AST ("tappl_ast_tr", asts);
+      Ast.Appl (f :: ty :: Ast.unfold_ast "_types" tys)
+  | tappl_ast_tr (*"_tappl"*) asts = raise Ast.AST ("tappl_ast_tr", asts);
 
 fun bracket_ast_tr (*"_bracket"*) [dom, cod] =
-      fold_ast_p "fun" (unfold_ast "_types" dom, cod)
-  | bracket_ast_tr (*"_bracket"*) asts = raise AST ("bracket_ast_tr", asts);
+      Ast.fold_ast_p "fun" (Ast.unfold_ast "_types" dom, cod)
+  | bracket_ast_tr (*"_bracket"*) asts = raise Ast.AST ("bracket_ast_tr", asts);
 
 
 (* print ast translations *)
 
-fun tappl_ast_tr' (f, []) = raise AST ("tappl_ast_tr'", [f])
-  | tappl_ast_tr' (f, [ty]) = Appl [Constant "_tapp", ty, f]
+fun tappl_ast_tr' (f, []) = raise Ast.AST ("tappl_ast_tr'", [f])
+  | tappl_ast_tr' (f, [ty]) = Ast.Appl [Ast.Constant "_tapp", ty, f]
   | tappl_ast_tr' (f, ty :: tys) =
-      Appl [Constant "_tappl", ty, fold_ast "_types" tys, f];
+      Ast.Appl [Ast.Constant "_tappl", ty, Ast.fold_ast "_types" tys, f];
 
 fun fun_ast_tr' (*"fun"*) asts =
-  (case unfold_ast_p "fun" (Appl (Constant "fun" :: asts)) of
+  (case Ast.unfold_ast_p "fun" (Ast.Appl (Ast.Constant "fun" :: asts)) of
     (dom as _ :: _ :: _, cod)
-      => Appl [Constant "_bracket", fold_ast "_types" dom, cod]
+      => Ast.Appl [Ast.Constant "_bracket", Ast.fold_ast "_types" dom, cod]
   | _ => raise Match);
 
 
@@ -155,6 +153,8 @@ fun fun_ast_tr' (*"fun"*) asts =
 val sortT = Type ("sort", []);
 val classesT = Type ("classes", []);
 val typesT = Type ("types", []);
+
+local open Lexicon SynExt in
 
 val type_ext = mk_syn_ext false []
   [Mfix ("_",           tidT --> typeT,                "", [], max_pri),
@@ -188,5 +188,8 @@ val type_ext = mk_syn_ext false []
    [("fun", fun_ast_tr')])
   TokenTrans.token_translation
   ([], []);
+
+end;
+
 
 end;
