@@ -525,7 +525,11 @@ val remove_thyP =
 
 val prP =
   OuterSyntax.improper_command "pr" "print current toplevel state" K.diag
-    (Scan.succeed (Toplevel.print o Toplevel.imperative (K ())));
+    (Scan.succeed (Toplevel.print o Toplevel.imperative (fn () => Toplevel.quiet := false)));
+
+val no_prP =
+  OuterSyntax.improper_command "no_pr" "disable printing of toplevel state" K.diag
+    (Scan.succeed (Toplevel.imperative (fn () => Toplevel.quiet := true)));
 
 
 val opt_unit = Scan.optional (P.$$$ "(" -- P.$$$ ")" >> (K ())) ();
@@ -584,8 +588,8 @@ val parsers = [
   print_lthmsP, print_thmsP, print_propP, print_termP, print_typeP,
   (*system commands*)
   cdP, pwdP, use_thyP, use_thy_onlyP, update_thyP, update_thy_onlyP,
-  touch_thyP, touch_all_thysP, remove_thyP, prP, commitP, quitP,
-  exitP, init_toplevelP];
+  touch_thyP, touch_all_thysP, remove_thyP, prP, no_prP, commitP,
+  quitP, exitP, init_toplevelP];
 
 
 end;
