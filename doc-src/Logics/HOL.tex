@@ -1539,6 +1539,42 @@ in your theory file to tell Isabelle that $ty$ is in class \texttt{term}, the
 class of all \HOL\ types.
 \end{warn}
 
+
+\section{Record types}
+
+At a first approximation, records are just a minor generalization of tuples,
+where components may be addressed by labels instead of just position.  The
+version of records offered by Isabelle/HOL is slightly more advanced, though,
+supporting \emph{extensible record schemes}.  This admits polymorphic
+operations wrt.\ record extensions, yielding ``object-oriented'' effects like
+(single) inheritance.  See also \cite{Naraschewski-Wenzel:1998:TPHOL} for more
+details on object-oriented verification and record subtyping in HOL.
+
+\subsection{Defining records}
+
+\begin{figure}[htbp]
+\begin{rail}
+record  : 'record' typevarlist name '=' parent (field +);
+parent  : ( () | type '+');
+field   : name '::' type;
+\end{rail}
+\caption{Syntax of record type definitions}
+\label{fig:HOL:record}
+\end{figure}
+
+Records have to be defined explicitely, fixing their field names and types,
+and (optional) parent record scheme.  The theory syntax for record type
+definitions is shown in Fig.~\ref{fig:HOL:record}.  For the definition of
+`typevarlist' and `type' see \iflabelundefined{chap:classical}
+{the appendix of the {\em Reference Manual\/}}%
+{Appendix~\ref{app:TheorySyntax}}.
+
+
+\subsection{Record operations and syntax}
+
+\subsection{Proof tools}
+
+
 \section{Datatype declarations}
 \label{sec:HOL:datatype}
 \index{*datatype|(}
@@ -2538,3 +2574,8 @@ theory \texttt{Set}, for example by executing
 \ttindex{set_current_thy}~{\tt"Set"}.  Otherwise the default claset may not
 contain the rules for set theory.
 \index{higher-order logic|)}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "logics"
+%%% End: 

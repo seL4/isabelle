@@ -36,8 +36,34 @@
 \rail@endbar
 \rail@end
 }
-\rail@i {2}{ typedecl : typevarlist id '=' (cons + '|') ; cons : name (typ *) ( () | mixfix ) ; typ : id | tid | ('(' typevarlist id ')') ; }
+\rail@i {2}{ record : 'record' typevarlist name '=' parent (field +); parent : ( () | type '+'); field : name '::' type; }
 \rail@o {2}{
+\rail@begin{2}{record}
+\rail@term{record}[]
+\rail@nont{typevarlist}[]
+\rail@nont{name}[]
+\rail@term{=}[]
+\rail@nont{parent}[]
+\rail@plus
+\rail@nont{field}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@end
+\rail@begin{2}{parent}
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{type}[]
+\rail@term{+}[]
+\rail@endbar
+\rail@end
+\rail@begin{1}{field}
+\rail@nont{name}[]
+\rail@term{::}[]
+\rail@nont{type}[]
+\rail@end
+}
+\rail@i {3}{ typedecl : typevarlist id '=' (cons + '|') ; cons : name (typ *) ( () | mixfix ) ; typ : id | tid | ('(' typevarlist id ')') ; }
+\rail@o {3}{
 \rail@begin{2}{typedecl}
 \rail@nont{typevarlist}[]
 \rail@nont{id}[]
