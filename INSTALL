@@ -60,7 +60,7 @@ Please do *not* copy (or link) the Isabelle scripts anywhere else, or
 they just won't work!  If you really feel the urge to install
 independent Isabelle binaries anywhere else do it like this:
 
-  [ISABELLE_HOME]/bin/isatool install /usr/local/bin
+  [ISABELLE_HOME]/bin/isatool install -p /usr/local/bin
 
 
 
