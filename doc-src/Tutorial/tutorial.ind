@@ -23,14 +23,14 @@
 
   \indexspace
 
-  \item {\tt addsimps}, \bold{21}
-  \item {\tt Addsplits}, \bold{23}
-  \item {\tt addsplits}, \bold{23}
-  \item {\tt and}, \bold{28}
-  \item {\tt Asm_full_simp_tac}, \bold{20}
-  \item {\tt asm_full_simp_tac}, \bold{21}
-  \item {\tt Asm_simp_tac}, \bold{20}
-  \item {\tt asm_simp_tac}, \bold{21}
+  \item {\tt addsimps}, \bold{22}
+  \item {\tt Addsplits}, \bold{24}
+  \item {\tt addsplits}, \bold{24}
+  \item {\tt and}, \bold{29}
+  \item {\tt Asm_full_simp_tac}, \bold{21}
+  \item {\tt asm_full_simp_tac}, \bold{22}
+  \item {\tt Asm_simp_tac}, \bold{21}
+  \item {\tt asm_simp_tac}, \bold{22}
 
   \indexspace
 
@@ -38,7 +38,7 @@
 
   \indexspace
 
-  \item {\tt case}, \bold{3}, 4, \bold{13}, 23
+  \item {\tt case}, \bold{3}, 4, \bold{13}, 24
   \item {\tt constdefs}, \bold{18}
   \item {\tt consts}, \bold{7}
   \item {\tt context}, \bold{11}
@@ -46,11 +46,11 @@
 
   \indexspace
 
-  \item {\tt datatype}, \bold{7}, 28--32
+  \item {\tt datatype}, \bold{7}, 29--33
   \item {\tt defs}, \bold{18}
-  \item {\tt delsimps}, \bold{21}
-  \item {\tt Delsplits}, \bold{23}
-  \item {\tt delsplits}, \bold{23}
+  \item {\tt delsimps}, \bold{22}
+  \item {\tt Delsplits}, \bold{24}
+  \item {\tt delsplits}, \bold{24}
   \item {\tt div}, \bold{17}
 
   \indexspace
@@ -61,8 +61,8 @@
 
   \item {\tt False}, \bold{3}
   \item formula, \bold{3}
-  \item {\tt Full_simp_tac}, \bold{20}
-  \item {\tt full_simp_tac}, \bold{21}
+  \item {\tt Full_simp_tac}, \bold{21}
+  \item {\tt full_simp_tac}, \bold{22}
 
   \indexspace
 
@@ -70,14 +70,14 @@
 
   \indexspace
 
-  \item {\tt if}, \bold{3}, 4, 23
+  \item {\tt if}, \bold{3}, 4, 24
   \item {\tt infixr}, \bold{7}
   \item inner syntax, \bold{8}
 
   \indexspace
 
   \item {\tt LEAST}, \bold{17}
-  \item {\tt let}, \bold{3}, 4, 22
+  \item {\tt let}, \bold{3}, 4, 23
   \item {\tt list}, 2
   \item loading theories, 12
 
@@ -86,27 +86,27 @@
   \item {\tt Main}, \bold{2}
   \item measure function, \bold{35}
   \item {\tt mod}, \bold{17}
-  \item {\tt mutual_induct_tac}, \bold{29}
+  \item {\tt mutual_induct_tac}, \bold{30}
 
   \indexspace
 
-  \item {\tt nat}, 2, \bold{16}
-  \item {\tt None}, \bold{32}
+  \item {\tt nat}, 2, \bold{17}
+  \item {\tt None}, \bold{33}
 
   \indexspace
 
-  \item {\tt option}, \bold{32}
+  \item {\tt option}, \bold{33}
 
   \indexspace
 
   \item parent theory, \bold{1}
   \item primitive recursion, \bold{13}
-  \item {\tt primrec}, 7, \bold{13}, 28--32
+  \item {\tt primrec}, 7, \bold{13}, 29--33
   \item proof scripts, \bold{2}
 
   \indexspace
 
-  \item {\tt recdef}, 34--37
+  \item {\tt recdef}, 35--38
   \item reloading theories, 12
 
   \indexspace
@@ -115,11 +115,11 @@
   \item {\tt set}, 2
   \item {\tt show_brackets}, \bold{4}
   \item {\tt show_types}, \bold{3}, 11
-  \item {\tt Simp_tac}, \bold{20}
-  \item {\tt simp_tac}, \bold{21}
-  \item simplifier, \bold{19}
-  \item simpset, \bold{20}
-  \item {\tt Some}, \bold{32}
+  \item {\tt Simp_tac}, \bold{21}
+  \item {\tt simp_tac}, \bold{22}
+  \item simplifier, \bold{20}
+  \item simpset, \bold{21}
+  \item {\tt Some}, \bold{33}
 
   \indexspace
 
@@ -128,7 +128,7 @@
   \item theory, \bold{1}
   \item {\tt tl}, \bold{12}
   \item total, \bold{7}
-  \item tracing the simplifier, \bold{24}
+  \item tracing the simplifier, \bold{25}
   \item {\tt True}, \bold{3}
   \item type constraints, \bold{3}
   \item type inference, \bold{3}
