@@ -40,6 +40,7 @@ sig
     val certify_term: sg -> term -> term * typ * int
     val read_typ: sg * (indexname -> sort option) -> string -> typ
     val add_classes: (class list * class * class list) list -> sg -> sg
+    val add_classrel: (class * class) list -> sg -> sg
     val add_defsort: sort -> sg -> sg
     val add_types: (string * int * mixfix) list -> sg -> sg
     val add_tyabbrs: (string * string list * string * mixfix) list -> sg -> sg
@@ -78,7 +79,7 @@ structure Syntax = Syntax;
 structure BasicSyntax: BASIC_SYNTAX = Syntax;
 structure Pretty = Syntax.Pretty;
 structure Type = Type;
-open BasicSyntax Type;
+open BasicSyntax (* FIXME *) Type;
 open Syntax.Mixfix;   (* FIXME *)
 
 
@@ -266,9 +267,6 @@ fun ext_tsig_classes tsig classes =
   else
     extend_tsig tsig (map (fn (_, c, cs) => (c, cs)) classes, [], [], []);
 
-fun ext_tsig_defsort tsig defsort =
-  extend_tsig tsig ([], defsort, [], []);
-
 fun ext_tsig_types tsig types =
   extend_tsig tsig ([], [], map (fn (t, n) => ([t], n)) types, []);
 
@@ -414,6 +412,12 @@ fun ext_classes (syn, tsig, ctab) classes =
   end;
 
 
+(* add to subclass relation *)
+
+fun ext_classrel (syn, tsig, ctab) pairs =
+  (syn, ext_tsig_subclass tsig pairs, ctab);
+
+
 (* add syntactic translations *)
 
 fun ext_trfuns (syn, tsig, ctab) trfuns =
@@ -445,6 +449,7 @@ fun extend_sign extfun name decls (Sg {tsig, const_tab, syn, stamps}) =
 (* the external interfaces *)
 
 val add_classes   = extend_sign ext_classes "#";
+val add_classrel  = extend_sign ext_classrel "#";
 val add_defsort   = extend_sign ext_defsort "#";
 val add_types     = extend_sign ext_types "#";
 val add_tyabbrs   = extend_sign ext_tyabbrs "#";

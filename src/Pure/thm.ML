@@ -35,6 +35,7 @@ sig
   (* FIXME *)
   local open Sign.Syntax Sign.Syntax.Mixfix in  (* FIXME remove ...Mixfix *)
     val add_classes: (class list * class * class list) list -> theory -> theory
+    val add_classrel: (class * class) list -> theory -> theory
     val add_defsort: sort -> theory -> theory
     val add_types: (string * int * mixfix) list -> theory -> theory
     val add_tyabbrs: (string * string list * string * mixfix) list
@@ -117,7 +118,7 @@ sig
          bool*bool -> meta_simpset -> (meta_simpset -> thm -> thm option)
            -> cterm -> thm
   val set_mk_rews: meta_simpset * (thm -> thm list) -> meta_simpset
-  val rep_theory: theory -> {sign: Sign.sg, new_axioms: term Sign.Symtab.table, 
+  val rep_theory: theory -> {sign: Sign.sg, new_axioms: term Sign.Symtab.table,
     parents: theory list}
   val subthy: theory * theory -> bool
   val eq_thy: theory * theory -> bool
@@ -336,6 +337,7 @@ fun ext_sg extfun decls (thy as Theory {sign, ...}) =
   ext_thy thy (extfun decls sign) [];
 
 val add_classes   = ext_sg Sign.add_classes;
+val add_classrel  = ext_sg Sign.add_classrel;
 val add_defsort   = ext_sg Sign.add_defsort;
 val add_types     = ext_sg Sign.add_types;
 val add_tyabbrs   = ext_sg Sign.add_tyabbrs;
