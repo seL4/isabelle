@@ -40,7 +40,7 @@ signature LESS_ARITH =
 sig
   val less_reflE: thm  (* x < x ==> P *)
   val le_refl: thm  (* x <= x *)
-  val less_imp_le: thm (* x <= y ==> x < y *)
+  val less_imp_le: thm (* x < y ==> x <= y *)
   val not_lessI: thm (* y <= x  ==> ~(x < y) *)
   val not_leI: thm (* y < x  ==> ~(x <= y) *)
   val not_lessD: thm (* ~(x < y) ==> y <= x *)
