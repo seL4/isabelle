@@ -35,8 +35,8 @@ struct
 
 (*Unification options*)
 
-val trace_bound = ref 10	(*tracing starts above this depth, 0 for full*)
-and search_bound = ref 20	(*unification quits above this depth*)
+val trace_bound = ref 25	(*tracing starts above this depth, 0 for full*)
+and search_bound = ref 30	(*unification quits above this depth*)
 and trace_simp = ref false	(*print dpairs before calling SIMPL*)
 and trace_types = ref false	(*announce potential incompleteness
 				  of type unification*)
