@@ -199,14 +199,15 @@ by (force_tac (claset() addIs  [h_f_g_eq RS sym], simpset()) 1);
 qed "extend_act_Id";
 
 Goalw [project_act_def]
-     "[| (z, z') : act;  f z = f z' | z: C |] \
+     "[| (z, z') : act;  z: C |] \
 \     ==> (f z, f z') : project_act C h act";
 by (auto_tac (claset() addSIs [exI] addIs [h_f_g_eq RS ssubst], 
 	      simpset()));
 qed "project_act_I";
 
 Goalw [project_set_def, project_act_def]
-    "project_act C h Id = Id";
+    "UNIV <= project_set h C \
+\     ==> project_act C h Id = Id";
 by (Force_tac 1);
 qed "project_act_Id";
 
@@ -244,8 +245,8 @@ by (auto_tac (claset() addSIs [extend_act_Id RS sym],
 	      simpset() addsimps [extend_def, image_iff]));
 qed "Acts_extend";
 
-Goal "Acts (project C h F) = (project_act C h `` Acts F)";
-by (auto_tac (claset() addSIs [project_act_Id RS sym], 
+Goal "Acts (project C h F) = insert Id (project_act C h `` Acts F)";
+by (auto_tac (claset(), 
 	      simpset() addsimps [project_def, image_iff]));
 qed "Acts_project";
 
@@ -255,12 +256,6 @@ Goalw [SKIP_def] "extend h SKIP = SKIP";
 by (rtac program_equalityI 1);
 by Auto_tac;
 qed "extend_SKIP";
-
-Goalw [SKIP_def] "project C h SKIP = SKIP";
-by (rtac program_equalityI 1);
-by (auto_tac (claset() addIs  [h_f_g_eq RS sym], 
-	      simpset() addsimps [project_set_def]));
-qed "project_SKIP";
 
 Goalw [project_set_def] "UNIV <= project_set h UNIV";
 by Auto_tac;
@@ -336,11 +331,10 @@ Goalw [constrains_def]
 by (auto_tac (claset() addSIs [project_act_I], simpset() addsimps [ball_Un]));
 by (force_tac (claset() addIs [extend_act_D], simpset()) 1);
 by (force_tac (claset() addSIs [project_act_I] addSDs [subsetD], simpset()) 1);
+by (force_tac (claset() addSDs [Id_in_Acts RSN (2,bspec)], simpset()) 1);
 (*the <== direction*)
 by (ball_tac 1);
 by (rewtac project_act_def);
-by Auto_tac;
-by (force_tac (claset() addSDs [Id_in_Acts RSN (2,bspec)], simpset()) 1);
 by (force_tac (claset() addSDs [subsetD], simpset()) 1);
 qed "Join_project_constrains";
 
@@ -361,7 +355,6 @@ by (simp_tac (simpset() addsimps [increasing_def, Join_project_stable]) 1);
 by (auto_tac (claset(),
 	      simpset() addsimps [Join_stable, Collect_eq_extend_set RS sym,
 				  extend_stable RS iffD1]));
-
 qed "Join_project_increasing";
 
 Goal "(project C h F : A co B)  =  \
@@ -482,11 +475,14 @@ Goal "[| reachable (extend h F Join G) <= C;  \
 \        z : reachable (extend h F Join G) |] \
 \     ==> f z : reachable (F Join project C h G)";
 by (etac reachable.induct 1);
-by (force_tac (claset() delrules [Id_in_Acts]
-		        addIs [reachable.Acts, project_act_I, extend_act_D],
-	       simpset()) 2);
 by (force_tac (claset() addIs [reachable.Init, project_set_I],
 	       simpset()) 1);
+by Auto_tac;
+by (force_tac (claset() addIs [project_act_I RSN (3,reachable.Acts)],
+	       simpset()) 2);
+by (res_inst_tac [("act","x")] reachable.Acts 1);
+by Auto_tac;
+by (etac extend_act_D 1);
 qed "reachable_imp_reachable_project";
 
 Goalw [Constrains_def]
@@ -717,12 +713,11 @@ by (blast_tac (claset() addIs [guarantees_imp_extend_guarantees,
 qed "extend_guarantees_eq";
 
 (*Weak precondition and postcondition; this is the good one!
-  Not clear that it has a converse [or that we want one!] 
-  Can generalize project (C G) to the function variable "proj"*)
+  Not clear that it has a converse [or that we want one!]*)
 val [xguary,project,extend] =
 Goal "[| F : X guarantees Y;  \
-\        !!G. extend h F Join G : X' ==> F Join project (C G) h G : X;  \
-\        !!G. F Join project (C G) h G : Y ==> extend h F Join G : Y' |] \
+\        !!G. extend h F Join G : X' ==> F Join proj G h G : X;  \
+\        !!G. F Join proj G h G : Y ==> extend h F Join G : Y' |] \
 \     ==> extend h F : X' guarantees Y'";
 by (rtac (xguary RS guaranteesD RS extend RS guaranteesI) 1);
 by (etac project 1);
