@@ -13,7 +13,7 @@ classes term < logic
 default term
 
 types
- o sequence seqobj seqcont sequ sobj
+ o sequence seqobj seqcont sobj
 
 arities
  o :: logic
