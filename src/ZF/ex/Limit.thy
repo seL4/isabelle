@@ -1066,7 +1066,7 @@ apply (rule rel_iprodI, simp)
 (*looks like something should be inserted into the assumptions!*)
 apply (rule_tac P = "%t. rel (DD`na,t,lub (DD`na,\<lambda>x \<in> nat. X`x`na))"
             and b1 = "%n. X`n`na" in beta [THEN subst])
-apply (simp del: beta
+apply (simp del: beta_if
 	    add: chain_iprod [THEN cpo_lub, THEN islub_ub] iprodE
                 chain_in)+
 apply (blast intro: iprodI lam_type chain_iprod [THEN cpo_lub, THEN islub_in])
@@ -2167,7 +2167,8 @@ lemma commute_lam_lemma:
            ((\<lambda>n \<in> nat. f(n) O Rp(DD ` n, E, r(n))) ` na))  =
           (\<lambda>na \<in> nat. (f(na) O Rp(DD ` na, E, r(na))) O r(n))"
 apply (rule fun_extension)
-apply (auto intro: lam_type)
+(*something wrong here*) 
+apply (auto simp del: beta_if simp add: beta intro: lam_type)
 done
 
 lemma chain_lemma:

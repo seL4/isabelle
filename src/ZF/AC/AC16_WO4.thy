@@ -22,8 +22,8 @@ apply (erule bexE)
 apply (drule eqpoll_sym [THEN eqpoll_def [THEN def_imp_iff, THEN iffD1]])
 apply (erule exE)
 apply (rule_tac x = "n" in exI)
-apply (rule_tac x = "\<lambda>i \<in> n. {f`i}" in exI, simp)
-apply (unfold bij_def surj_def)
+apply (rule_tac x = "\<lambda>i \<in> n. {f`i}" in exI)
+apply (simp add: ltD bij_def surj_def)
 apply (fast intro!: ltI nat_into_Ord lam_funtype [THEN domain_of_fun] 
                singleton_eqpoll_1 [THEN eqpoll_imp_lepoll, THEN lepoll_trans] 
                     nat_1_lepoll_iff [THEN iffD2]
@@ -548,7 +548,7 @@ apply (rename_tac S)
 apply (rule_tac x = "ordertype (LL,S)" in exI)
 apply (rule_tac x = "\<lambda>b \<in> ordertype(LL,S). 
                       GG ` (converse (ordermap (LL,S)) ` b)"  in exI)
-apply simp
+apply (simp add: ltD)
 apply (blast intro: lam_funtype [THEN domain_of_fun] 
                     Ord_ordertype  OUN_eq_x  all_in_lepoll_m [THEN ospec])
 done

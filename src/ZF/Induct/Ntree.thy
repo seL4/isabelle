@@ -114,21 +114,21 @@ text {*
   \medskip @{text ntree} recursion.
 *}
 
-lemma ntree_rec_Branch: "ntree_rec(b, Branch(x,h))
-    = b(x, h, \<lambda>i \<in> domain(h). ntree_rec(b, h`i))"
+lemma ntree_rec_Branch:
+    "function(h) ==>
+     ntree_rec(b, Branch(x,h)) = b(x, h, \<lambda>i \<in> domain(h). ntree_rec(b, h`i))"
   apply (rule ntree_rec_def [THEN def_Vrecursor, THEN trans])
   apply (simp add: ntree.con_defs rank_pair2 [THEN [2] lt_trans] rank_apply)
   done
 
 lemma ntree_copy_Branch [simp]:
-    "ntree_copy (Branch(x, h)) = Branch(x, \<lambda>i \<in> domain(h). ntree_copy (h`i))"
-  apply (unfold ntree_copy_def)
-  apply (rule ntree_rec_Branch)
-  done
+    "function(h) ==>
+     ntree_copy (Branch(x, h)) = Branch(x, \<lambda>i \<in> domain(h). ntree_copy (h`i))"
+  by (simp add: ntree_copy_def ntree_rec_Branch)
 
 lemma ntree_copy_is_ident: "z \<in> ntree(A) ==> ntree_copy(z) = z"
   apply (induct_tac z)
-  apply (auto simp add: domain_of_fun Pi_Collect_iff)
+  apply (auto simp add: domain_of_fun Pi_Collect_iff fun_is_function)
   done
 
 

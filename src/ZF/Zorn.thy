@@ -222,10 +222,10 @@ lemma Hausdorff_next_exists:
      "ch: (PROD X: Pow(chain(S))-{0}. X) ==>         
       EX next: increasing(S). ALL X: Pow(S).        
                    next`X = if(X: chain(S)-maxchain(S), ch`super(S,X), X)"
-apply (rule bexI)
-apply (rule ballI)
-apply (rule beta)
-apply assumption
+apply (rule_tac x="\<lambda>X\<in>Pow(S). 
+                   if X \<in> chain(S) - maxchain(S) then ch ` super(S, X) else X" 
+       in bexI)
+apply (force ); 
 apply (unfold increasing_def)
 apply (rule CollectI)
 apply (rule lam_type)
@@ -236,7 +236,7 @@ apply (simp (no_asm_simp) add: Pow_iff subset_refl)
 apply safe
 apply (drule choice_super)
 apply (assumption+)
-apply (unfold super_def)
+apply (simp add: super_def)
 apply blast
 done
 
@@ -366,11 +366,10 @@ done
 lemma Zermelo_next_exists:
      "ch: (PROD X: Pow(S)-{0}. X) ==>                
            EX next: increasing(S). ALL X: Pow(S).        
-                      next`X = if(X=S, S, cons(ch`(S-X), X))"
-apply (rule bexI)
-apply (rule ballI)
-apply (rule beta)
-apply assumption
+                      next`X = (if X=S then S else cons(ch`(S-X), X))"
+apply (rule_tac x="\<lambda>X\<in>Pow(S). if X=S then S else cons(ch`(S-X), X)"
+       in bexI)
+apply (force );  
 apply (unfold increasing_def)
 apply (rule CollectI)
 apply (rule lam_type)

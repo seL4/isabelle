@@ -182,8 +182,6 @@ lemma OUN_cong [cong]:
     "[| i=j;  !!x. x<j ==> C(x)=D(x) |] ==> (UN x<i. C(x)) = (UN x<j. D(x))"
 by (simp add: OUnion_def lt_def OUN_iff)
 
-declare ltD [THEN beta, simp]
-
 lemma lt_induct: 
     "[| i<k;  !!x.[| x<k;  ALL y<x. P(y) |] ==> P(x) |]  ==>  P(i)"
 apply (simp add: lt_def oall_def)

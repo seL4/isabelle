@@ -145,11 +145,11 @@ translations
 
 syntax (xsymbols)
   "op *"      :: "[i, i] => i"               (infixr "\\<times>" 80)
-  "op Int"    :: "[i, i] => i"    	   (infixl "\\<inter>" 70)
-  "op Un"     :: "[i, i] => i"    	   (infixl "\\<union>" 65)
+  "op Int"    :: "[i, i] => i"    	     (infixl "\\<inter>" 70)
+  "op Un"     :: "[i, i] => i"    	     (infixl "\\<union>" 65)
   "op ->"     :: "[i, i] => i"               (infixr "\\<rightarrow>" 60)
-  "op <="     :: "[i, i] => o"    	   (infixl "\\<subseteq>" 50)
-  "op :"      :: "[i, i] => o"    	   (infixl "\\<in>" 50)
+  "op <="     :: "[i, i] => o"    	     (infixl "\\<subseteq>" 50)
+  "op :"      :: "[i, i] => o"    	     (infixl "\\<in>" 50)
   "op ~:"     :: "[i, i] => o"               (infixl "\\<notin>" 50)
   "@Collect"  :: "[pttrn, i, o] => i"        ("(1{_ \\<in> _ ./ _})")
   "@Replace"  :: "[pttrn, pttrn, i, o] => i" ("(1{_ ./ _ \\<in> _, _})")
@@ -261,7 +261,7 @@ defs
   (* Abstraction, application and Cartesian product of a family of sets *)
 
   lam_def       "Lambda(A,b) == {<x,b(x)> . x:A}"
-  apply_def     "f`a == THE y. <a,y> : f"
+  apply_def     "f`a == Union(f``{a})"
   Pi_def        "Pi(A,B)  == {f: Pow(Sigma(A,B)). A<=domain(f) & function(f)}"
 
   (* Restrict the relation r to the domain A *)

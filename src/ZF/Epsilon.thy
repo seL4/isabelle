@@ -278,14 +278,14 @@ lemma the_equality_if:
      "P(a) ==> (THE x. P(x)) = (if (EX!x. P(x)) then a else 0)"
 by (simp add: the_0 the_equality2)
 
-(*The premise is needed not just to fix i but to ensure f~=0*)
-lemma rank_apply: "i : domain(f) ==> rank(f`i) < rank(f)"
-apply (unfold apply_def, clarify)
-apply (subgoal_tac "rank (y) < rank (f) ")
-prefer 2 apply (blast intro: lt_trans rank_lt rank_pair2)
-apply (subgoal_tac "0 < rank (f) ")
-apply (erule_tac [2] Ord_rank [THEN Ord_0_le, THEN lt_trans1])
-apply (simp add: the_equality_if)
+(*The first premise not only fixs i but ensures f~=0.
+  The second premise is now essential.  Consider otherwise the relation 
+  r = {<0,0>,<0,1>,<0,2>,...}.  Then f`0 = Union(f``{0}) = Union(nat) = nat,
+  whose rank equals that of r.*)
+lemma rank_apply: "[|i : domain(f); function(f)|] ==> rank(f`i) < rank(f)"
+apply (clarify );  
+apply (simp add: function_apply_equality); 
+apply (blast intro: lt_trans rank_lt rank_pair2)
 done
 
 
@@ -323,8 +323,8 @@ done
 
 lemma transrec2_Limit:
      "Limit(i) ==> transrec2(i,a,b) = (UN j<i. transrec2(j,a,b))"
-apply (rule transrec2_def [THEN def_transrec, THEN trans], simp)
-apply (blast dest!: Limit_has_0 elim!: succ_LimitE)
+apply (rule transrec2_def [THEN def_transrec, THEN trans])
+apply (auto simp add: OUnion_def); 
 done
 
 

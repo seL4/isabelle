@@ -58,7 +58,7 @@ done
 (*Applying a function outside its domain yields 0*)
 lemma apply_0: "a ~: domain(f) ==> f`a = 0"
 apply (unfold apply_def)
-apply (rule the_0, blast)
+apply (blast intro: elim:); 
 done
 
 lemma Pi_memberD: "[| f: Pi(A,B);  c: f |] ==> EX x:A.  c = <x,f`x>"
@@ -67,8 +67,12 @@ apply (blast dest: apply_equality)
 done
 
 lemma function_apply_Pair: "[| function(f);  a : domain(f)|] ==> <a,f`a>: f"
-apply (simp add: function_def apply_def)
-apply (rule theI2, auto)
+apply (simp add: function_def)
+apply (clarify ); 
+apply (subgoal_tac "f`a = y") 
+apply (blast intro: elim:); 
+apply (simp add: apply_def); 
+apply (blast intro: elim:); 
 done
 
 lemma apply_Pair: "[| f: Pi(A,B);  a:A |] ==> <a,f`a>: f"
@@ -145,8 +149,15 @@ by (simp add: function_def lam_def)
 lemma relation_lam: "relation (lam x:A. b(x))"  
 by (simp add: relation_def lam_def) 
 
-lemma beta [simp]: "a : A ==> (lam x:A. b(x)) ` a = b(a)"
-by (blast intro: apply_equality lam_funtype lamI)
+lemma beta_if [simp]: "(lam x:A. b(x)) ` a = (if a : A then b(a) else 0)"
+apply (simp add: apply_def lam_def) 
+apply (blast intro: elim:); 
+done
+
+lemma beta: "a : A ==> (lam x:A. b(x)) ` a = b(a)"
+apply (simp add: apply_def lam_def) 
+apply (blast intro: elim:); 
+done
 
 lemma lam_empty [simp]: "(lam x:0. b(x)) = 0"
 by (simp add: lam_def)
@@ -161,9 +172,8 @@ by (simp only: lam_def cong add: RepFun_cong)
 
 lemma lam_theI:
     "(!!x. x:A ==> EX! y. Q(x,y)) ==> EX f. ALL x:A. Q(x, f`x)"
-apply (rule_tac x = "lam x: A. THE y. Q (x,y) " in exI)
-apply (rule ballI)
-apply (subst beta, assumption)
+apply (rule_tac x = "lam x: A. THE y. Q (x,y)" in exI)
+apply (simp add: ); 
 apply (blast intro: theI)
 done
 
@@ -263,7 +273,9 @@ lemma restrict_type2: "[| f: Pi(C,B);  A<=C |] ==> restrict(f,A) : Pi(A,B)"
 by (simp add: Pi_iff function_def restrict_def, blast)
 
 lemma restrict: "a : A ==> restrict(f,A) ` a = f`a"
-by (simp add: apply_def restrict_def)
+apply (simp add: apply_def restrict_def)
+apply (blast intro: elim:); 
+done
 
 lemma restrict_empty [simp]: "restrict(f,0) = 0"
 apply (unfold restrict_def)

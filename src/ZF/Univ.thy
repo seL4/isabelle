@@ -488,7 +488,7 @@ lemma Vrec: "Vrec(a,H) = H(a, lam x:Vset(rank(a)). Vrec(x,H))"
 apply (unfold Vrec_def)
 apply (subst transrec)
 apply simp
-apply (rule refl [THEN lam_cong, THEN subst_context], simp)
+apply (rule refl [THEN lam_cong, THEN subst_context], simp add: lt_def)
 done
 
 text{*This form avoids giant explosions in proofs.  NOTE USE OF == *}
@@ -504,7 +504,7 @@ lemma Vrecursor:
      "Vrecursor(H,a) = H(lam x:Vset(rank(a)). Vrecursor(H,x),  a)"
 apply (unfold Vrecursor_def)
 apply (subst transrec, simp)
-apply (rule refl [THEN lam_cong, THEN subst_context], simp)
+apply (rule refl [THEN lam_cong, THEN subst_context], simp add: lt_def)
 done
 
 text{*This form avoids giant explosions in proofs.  NOTE USE OF == *}

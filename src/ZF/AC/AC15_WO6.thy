@@ -174,12 +174,12 @@ apply (erule_tac x = "Pow (A) -{0}" in allE)
 apply (erule impE, fast)
 apply (elim bexE conjE exE)
 apply (rule bexI)
-apply (rule conjI, assumption)
-apply (rule_tac x = "LEAST i. HH (f,A,i) ={A}" in exI)
-apply (rule_tac x = "\<lambda>j \<in> (LEAST i. HH (f,A,i) ={A}) . HH (f,A,j) " in exI)
-apply simp
+ apply (rule conjI, assumption)
+ apply (rule_tac x = "LEAST i. HH (f,A,i) ={A}" in exI)
+ apply (rule_tac x = "\<lambda>j \<in> (LEAST i. HH (f,A,i) ={A}) . HH (f,A,j) " in exI)
+ apply (simp_all add: ltD)
 apply (fast intro!: Ord_Least lam_type [THEN domain_of_fun]
-            elim!: less_Least_subset_x lemma1 lemma2, assumption) 
+            elim!: less_Least_subset_x lemma1 lemma2) 
 done
 
 

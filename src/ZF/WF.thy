@@ -213,8 +213,9 @@ done
 lemma apply_recfun:
     "[| is_recfun(r,a,H,f); <x,a>:r |] ==> f`x = H(x, restrict(f,r-``{x}))"
 apply (unfold is_recfun_def) 
-apply (erule_tac P = "%x.?t (x) = (?u::i) " in ssubst)
-apply (erule underI [THEN beta])
+  txt{*replace f only on the left-hand side*}
+apply (erule_tac P = "%x.?t(x) = ?u" in ssubst)
+apply (simp add: underI); 
 done
 
 lemma is_recfun_equal [rule_format]:
@@ -280,7 +281,7 @@ apply (rule fun_extension)
 apply (frule spec [THEN mp], assumption)
 apply (subgoal_tac "<xa,a1> : r")
  apply (drule_tac x1 = "xa" in spec [THEN mp], assumption)
-apply (simp add: vimage_singleton_iff  underI [THEN beta] 
+apply (simp add: vimage_singleton_iff 
                  apply_recfun is_recfun_cut)
 apply (blast dest: transD)
 done

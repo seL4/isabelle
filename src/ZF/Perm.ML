@@ -146,7 +146,7 @@ qed "id_subset_inj";
 bind_thm ("id_inj", subset_refl RS id_subset_inj);
 
 Goalw [id_def,surj_def] "id(A): surj(A,A)";
-by (blast_tac (claset() addIs [lam_type, beta]) 1);
+by (Asm_simp_tac 1);
 qed "id_surj";
 
 Goalw [bij_def] "id(A): bij(A,A)";
@@ -342,7 +342,7 @@ by (rtac fun_extension 1);
 by (rtac comp_fun 1);
 by (rtac lam_funtype 2);
 by (typecheck_tac (tcset() addTCs [prem]));
-by (asm_simp_tac (simpset() 
+by (asm_simp_tac (simpset() addsimps [prem]
                    setSolver (mk_solver ""
                    (type_solver_tac (tcset() addTCs [prem, lam_funtype])))) 1);
 qed "comp_lam";

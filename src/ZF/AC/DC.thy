@@ -30,7 +30,7 @@ done
 lemma range_subset_domain: 
       "[| R \<subseteq> X*X;   !!g. g \<in> X ==> \<exists>u. <g,u> \<in> R |] 
        ==> range(R) \<subseteq> domain(R)"
-by (blast ); 
+by blast 
 
 lemma cons_fun_type: "g \<in> n->X ==> cons(<n,x>, g) \<in> succ(n) -> cons(x, X)"
 apply (unfold succ_def)
@@ -247,7 +247,8 @@ apply (frule DC0_imp.lemma2, assumption)
 (** LEVEL 11: last subgoal **)
 apply (subst DC0_imp.lemma3, assumption+) 
   apply (fast elim!: fun_weaken_type)
- apply (erule ltD, force) 
+ apply (erule ltD) 
+apply (force simp add: lt_def) 
 done
 
 
@@ -486,7 +487,7 @@ apply (atomize, blast dest: not_sym)
 done
 
 lemma value_in_image: "[| f \<in> X->Y; A \<subseteq> X; a \<in> A |] ==> f`a \<in> f``A"
-by (fast elim!: image_fun [THEN ssubst]);
+by (fast elim!: image_fun [THEN ssubst])
 
 theorem DC_WO3: "(\<forall>K. Card(K) --> DC(K)) ==> WO3"
 apply (unfold DC_def WO3_def)

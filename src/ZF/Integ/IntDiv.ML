@@ -369,7 +369,7 @@ qed "adjust_eq";
 Addsimps [adjust_eq];
 
 
-Goal "[| #0 $< b; \\<not> a $< b |]   \
+Goal "[| #0 $< b; ~ a $< b |]   \
 \     ==> nat_of(a $- #2 $\\<times> b $+ #1) < nat_of(a $- b $+ #1)";
 by (simp_tac (simpset() addsimps [zless_nat_conj]) 1);
 by (asm_full_simp_tac (simpset() addsimps [not_zless_iff_zle,
@@ -382,8 +382,8 @@ Goal "[| #0 $< b; a \\<in> int; b \\<in> int |] ==> \
 \     posDivAlg(<a,b>) =      \
 \      (if a$<b then <#0,a> else adjust(b, posDivAlg (<a, #2$*b>)))";
 by (rtac (posDivAlg_unfold RS trans) 1);
-by (asm_simp_tac (simpset() addsimps [not_zless_iff_zle RS iff_sym]) 1);
-by (asm_simp_tac (simpset() addsimps [vimage_iff, posDivAlg_termination]) 1); 
+by (asm_simp_tac (simpset() addsimps [vimage_iff, not_zless_iff_zle RS iff_sym]) 1);
+by (blast_tac (claset() addIs [posDivAlg_termination]) 1); 
 qed "posDivAlg_eqn";
 
 val [prem] =
@@ -529,8 +529,7 @@ qed_spec_mp "posDivAlg_correct";
 
 (*** Correctness of negDivAlg, the division algorithm for a<0 and b>0 ***)
 
-Goal "[| #0 $< b; \\<not> #0 $<= a $+ b |]   \
-\     ==> nat_of($- a $- #2 $\\<times> b) < nat_of($- a $- b)";
+Goal "[| #0 $< b; a $+ b $< #0 |] ==> nat_of($- a $- #2 $* b) < nat_of($- a $- b)";
 by (simp_tac (simpset() addsimps [zless_nat_conj]) 1);
 by (asm_full_simp_tac (simpset() addsimps zcompare_rls @ 
            [not_zle_iff_zless, zless_zdiff_iff RS iff_sym, zless_zminus]) 1); 
@@ -538,14 +537,13 @@ qed "negDivAlg_termination";
 
 val negDivAlg_unfold = wf_measure RS (negDivAlg_def RS def_wfrec);
 
-Goal "[| #0 $< b; a \\<in> int; b \\<in> int |] ==> \
+Goal "[| #0 $< b; a : int; b : int |] ==> \
 \     negDivAlg(<a,b>) =      \
 \      (if #0 $<= a$+b then <#-1,a$+b> \
 \                      else adjust(b, negDivAlg (<a, #2$*b>)))";
 by (rtac (negDivAlg_unfold RS trans) 1);
-by (asm_simp_tac (simpset() addsimps [not_zless_iff_zle RS iff_sym]) 1);
-by (asm_simp_tac (simpset() addsimps [not_zle_iff_zless, vimage_iff, 
-                                      negDivAlg_termination]) 1); 
+by (asm_simp_tac (simpset() addsimps [vimage_iff, not_zless_iff_zle RS iff_sym]) 1);
+by (blast_tac (claset() addIs [negDivAlg_termination]) 1);
 qed "negDivAlg_eqn";
 
 val [prem] =
@@ -640,15 +638,17 @@ by (simp_tac (simpset() addsimps [not_zle_iff_zless]) 1);
 qed "posDivAlg_0";
 Addsimps [posDivAlg_0];
 
-Goal "negDivAlg (<#-1,b>) = <#-1, b$-#1>";
-by (stac negDivAlg_unfold 1);
-by Auto_tac;
-(*ALL the rest is linear arithmetic: to notice the contradiction*)
+(*Needed below.  Actually it's an equivalence.*)
+Goal "~ (#0 $<= #-1 $+ b) ==> (b $<= #0)";
 by (asm_full_simp_tac (simpset() addsimps [not_zle_iff_zless]) 1); 
 by (dtac (zminus_zless_zminus RS iffD2) 1);
 by (asm_full_simp_tac (simpset() addsimps [zadd_commute, zless_add1_iff_zle, 
                                            zle_zminus]) 1);
-by (asm_full_simp_tac (simpset() addsimps [not_zle_iff_zless RS iff_sym]) 1); 
+qed "linear_arith_lemma";
+
+Goal "negDivAlg (<#-1,b>) = <#-1, b$-#1>";
+by (stac negDivAlg_unfold 1); 
+by (asm_full_simp_tac (simpset() addsimps [linear_arith_lemma, integ_of_type, vimage_iff]) 1);
 qed "negDivAlg_minus1";
 Addsimps [negDivAlg_minus1];
 

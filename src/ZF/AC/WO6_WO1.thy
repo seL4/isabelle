@@ -92,7 +92,8 @@ apply (intro exI conjI)
 apply (erule Ord_ordertype)
 apply (erule ordermap_bij [THEN bij_converse_bij, THEN bij_is_fun, THEN lam_sets, THEN domain_of_fun])
 apply (simp_all add: singleton_eqpoll_1 eqpoll_imp_lepoll Ord_ordertype
-     ordermap_bij [THEN bij_converse_bij, THEN bij_is_surj, THEN surj_imp_eq])
+       ordermap_bij [THEN bij_converse_bij, THEN bij_is_surj, THEN surj_imp_eq]
+       ltD)
 done
 
 (* ********************************************************************** *)
@@ -218,14 +219,14 @@ lemma gg1_lepoll_m:
                           domain(uu(f,b,g,d)) \<lesssim> m);             
          \<forall>b<a. f`b \<lesssim> succ(m);  b<a++a |] 
       ==> gg1(f,a,m)`b \<lesssim> m"
-apply (unfold gg1_def, simp)
+apply (simp add: gg1_def empty_lepollI)
 apply (safe dest!: lt_oadd_odiff_disj)
 (*Case b<a   \<in> show vv1(f,m,b) \<lesssim> m *)
-apply (simp add: vv1_def Let_def)
-apply (fast intro: nested_Least_instance [THEN conjunct2]
-             elim!: lt_Ord intro!: empty_lepollI)
+ apply (simp add: vv1_def Let_def empty_lepollI)
+ apply (fast intro: nested_Least_instance [THEN conjunct2]
+             elim!: lt_Ord)
 (*Case a\<le>b \<in> show ww1(f,m,b--a) \<lesssim> m *)
-apply (simp add: ww1_def)
+apply (simp add: ww1_def empty_lepollI)
 apply (case_tac "f` (b--a) = 0", simp add: empty_lepollI)
 apply (rule Diff_lepoll, blast)
 apply (rule vv1_subset)
@@ -321,8 +322,8 @@ lemma UN_gg2_eq:
          (\<Union>b<a. f`b)=y;  Ord(a);  m \<in> nat;  s \<in> f`b;  b<a |] 
       ==> (\<Union>g<a++a. gg2(f,a,b,s) ` g) = y"
 apply (unfold gg2_def)
-apply (drule sym)
-apply (simp add: UN_oadd lt_oadd1 oadd_le_self [THEN le_imp_not_lt] 
+apply (drule sym) 
+apply (simp add: ltD UN_oadd  oadd_le_self [THEN le_imp_not_lt] 
                  lt_Ord odiff_oadd_inverse ww2_def 
                  vv2_subset [THEN Diff_partition])
 done
@@ -361,7 +362,7 @@ lemma gg2_lepoll_m:
          \<forall>b<a. f`b \<lesssim> succ(m);  y*y \<subseteq> y;                     
          (\<Union>b<a. f`b)=y;  b<a;  s \<in> f`b;  m \<in> nat;  m\<noteq> 0;  g<a++a |] 
       ==> gg2(f,a,b,s) ` g \<lesssim> m"
-apply (unfold gg2_def, simp)
+apply (simp add: gg2_def empty_lepollI)
 apply (safe elim!: lt_Ord2 dest!: lt_oadd_odiff_disj)
  apply (simp add: vv2_lepoll)
 apply (simp add: ww2_lepoll vv2_subset)

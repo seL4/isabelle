@@ -284,22 +284,18 @@ by (rewrite_goals_tac [mdiff_def, normalize_def]);
 by (auto_tac (claset(), simpset() 
          addsimps [multiset_fun_iff, mset_of_def, funrestrict_def]));
 qed "mdiff_0";
-Addsimps [mdiff_0];
+Addsimps [mdiff_0]; 
 
-Goalw [multiset_def] "multiset(M) ==> M +# {#a#} -# {#a#} = M";
-by (rewrite_goals_tac [munion_def, mdiff_def, 
+Goal "multiset(M) ==> M +# {#a#} -# {#a#} = M";
+by (rewrite_goals_tac [multiset_def, munion_def, mdiff_def, 
                        msingle_def, normalize_def, mset_of_def]);
-by (auto_tac (claset(), simpset() addsimps [multiset_fun_iff]));
+by (auto_tac (claset(), 
+       simpset() addcongs [if_cong]
+		 addsimps [ltD, multiset_fun_iff,
+                           funrestrict_def, subset_Un_iff2 RS iffD1])); 
+by (subgoal_tac "{x \\<in> A \\<union> {a} . x \\<noteq> a \\<and> x \\<in> A} = A" 2);
 by (rtac fun_extension 1);
-by Auto_tac;
-by (res_inst_tac [("P", "%x. ?u : Pi(x, ?v)")] subst 1);
-by (rtac funrestrict_type 2);
-by (rtac equalityI 1);
-by (ALLGOALS(Clarify_tac));
-by Auto_tac;
-by (res_inst_tac [("Pa", "~(1<?u)")] swap 1);
-by (case_tac "x=a" 3);
-by (ALLGOALS(Asm_full_simp_tac));
+by Auto_tac; 
 qed "mdiff_union_inverse2";
 Addsimps [mdiff_union_inverse2];
 

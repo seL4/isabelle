@@ -8,6 +8,8 @@ Datatype definition of Lists
 
 (*** Aspects of the datatype definition ***)
 
+Addsimps list.intrs;
+
 (*An elimination rule, for type-checking*)
 bind_thm ("ConsE", list.mk_cases "Cons(a,l) : list(A)");
 

@@ -7,6 +7,7 @@ Arithmetic on binary integers.
 *)
 
 
+Addsimps bin.intrs;
 AddTCs bin.intrs;
 
 Goal "NCons(Pls,0) = Pls";
