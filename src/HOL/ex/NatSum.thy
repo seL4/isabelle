@@ -36,10 +36,10 @@ text {*
 *}
 
 lemma sum_of_odd_squares:
-  "#3 * setsum (\<lambda>i. Suc (i + i) * Suc (i + i)) (lessThan n) =
-    n * (#4 * n * n - #1)"
+  "# 3 * setsum (\<lambda>i. Suc (i + i) * Suc (i + i)) (lessThan n) =
+    n * (# 4 * n * n - Numeral1)"
   apply (induct n)
-  txt {* This removes the @{term "-#1"} from the inductive step *}
+  txt {* This removes the @{term "-Numeral1"} from the inductive step *}
    apply (case_tac [2] n)
     apply auto
   done
@@ -51,9 +51,9 @@ text {*
 
 lemma sum_of_odd_cubes:
   "setsum (\<lambda>i. Suc (i + i) * Suc (i + i) * Suc (i + i)) (lessThan n) =
-    n * n * (#2 * n * n - #1)"
+    n * n * (# 2 * n * n - Numeral1)"
   apply (induct "n")
-  txt {* This removes the @{term "-#1"} from the inductive step *}
+  txt {* This removes the @{term "-Numeral1"} from the inductive step *}
    apply (case_tac [2] "n")
     apply auto
   done
@@ -63,19 +63,19 @@ text {*
   @{text "n (n + 1) / 2"}.*}
 
 lemma sum_of_naturals:
-    "#2 * setsum id (atMost n) = n * Suc n"
+    "# 2 * setsum id (atMost n) = n * Suc n"
   apply (induct n)
    apply auto
   done
 
 lemma sum_of_squares:
-    "#6 * setsum (\<lambda>i. i * i) (atMost n) = n * Suc n * Suc (#2 * n)"
+    "# 6 * setsum (\<lambda>i. i * i) (atMost n) = n * Suc n * Suc (# 2 * n)"
   apply (induct n)
    apply auto
   done
 
 lemma sum_of_cubes:
-    "#4 * setsum (\<lambda>i. i * i * i) (atMost n) = n * n * Suc n * Suc n"
+    "# 4 * setsum (\<lambda>i. i * i * i) (atMost n) = n * n * Suc n * Suc n"
   apply (induct n)
    apply auto
   done
@@ -86,8 +86,8 @@ text {*
 *}
 
 lemma sum_of_fourth_powers:
-  "#30 * setsum (\<lambda>i. i * i * i * i) (atMost n) =
-    n * Suc n * Suc (#2 * n) * (#3 * n * n + #3 * n - #1)"
+  "# 30 * setsum (\<lambda>i. i * i * i * i) (atMost n) =
+    n * Suc n * Suc (# 2 * n) * (# 3 * n * n + # 3 * n - Numeral1)"
   apply (induct n)
    apply auto
   txt {* Eliminates the subtraction *}
@@ -107,9 +107,9 @@ declare
   zdiff_zmult_distrib2 [simp]
 
 lemma int_sum_of_fourth_powers:
-  "#30 * int (setsum (\<lambda>i. i * i * i * i) (lessThan m)) =
-    int m * (int m - #1) * (int (#2 * m) - #1) *
-    (int (#3 * m * m) - int (#3 * m) - #1)"
+  "# 30 * int (setsum (\<lambda>i. i * i * i * i) (lessThan m)) =
+    int m * (int m - Numeral1) * (int (# 2 * m) - Numeral1) *
+    (int (# 3 * m * m) - int (# 3 * m) - Numeral1)"
   apply (induct m)
    apply simp_all
   done
@@ -118,17 +118,17 @@ lemma int_sum_of_fourth_powers:
 text {*
   \medskip Sums of geometric series: 2, 3 and the general case *}
 
-lemma sum_of_2_powers: "setsum (\<lambda>i. #2^i) (lessThan n) = #2^n - 1"
+lemma sum_of_2_powers: "setsum (\<lambda>i. # 2^i) (lessThan n) = # 2^n - (1::nat)"
   apply (induct n)
    apply (auto split: nat_diff_split) 
   done
 
-lemma sum_of_3_powers: "#2 * setsum (\<lambda>i. #3^i) (lessThan n) = #3^n - 1"
+lemma sum_of_3_powers: "# 2 * setsum (\<lambda>i. # 3^i) (lessThan n) = # 3^n - (1::nat)"
   apply (induct n)
    apply auto
   done
 
-lemma sum_of_powers: "0 < k ==> (k - 1) * setsum (\<lambda>i. k^i) (lessThan n) = k^n - 1"
+lemma sum_of_powers: "0 < k ==> (k - 1) * setsum (\<lambda>i. k^i) (lessThan n) = k^n - (1::nat)"
   apply (induct n)
    apply auto
   done

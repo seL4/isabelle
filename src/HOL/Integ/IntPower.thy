@@ -12,7 +12,7 @@ instance
   int :: {power}
 
 primrec
-  power_0   "p ^ 0 = #1"
+  power_0   "p ^ 0 = Numeral1"
   power_Suc "p ^ (Suc n) = (p::int) * (p ^ n)"
 
 end

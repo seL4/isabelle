@@ -31,14 +31,14 @@ syntax (xsymbols)
   Infty :: inat    ("\<infinity>")
 
 defs
-  iZero_def: "0 == Fin 0"
+  Zero_inat_def: "0 == Fin 0"
   iSuc_def: "iSuc i == case i of Fin n  => Fin (Suc n) | \<infinity> => \<infinity>"
   iless_def: "m < n ==
     case m of Fin m1 => (case n of Fin n1 => m1 < n1 | \<infinity> => True)
     | \<infinity>  => False"
   ile_def: "(m::inat) \<le> n == \<not> (n < m)"
 
-lemmas inat_defs = iZero_def iSuc_def iless_def ile_def
+lemmas inat_defs = Zero_inat_def iSuc_def iless_def ile_def
 lemmas inat_splits = inat.split inat.split_asm
 
 text {*

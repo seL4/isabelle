@@ -87,7 +87,7 @@ proof -
     show "0 \<in> U" ..
     show "\<forall>x \<in> U. \<forall>a. a \<cdot> x \<in> U" by (simp!)
     show "\<forall>x \<in> U. \<forall>y \<in> U. x + y \<in> U" by (simp!)
-    show "\<forall>x \<in> U. - x = -#1 \<cdot> x" by (simp! add: negate_eq1)
+    show "\<forall>x \<in> U. - x = -Numeral1 \<cdot> x" by (simp! add: negate_eq1)
     show "\<forall>x \<in> U. \<forall>y \<in> U. x - y =  x + - y"
       by (simp! add: diff_eq1)
   qed (simp! add: vs_add_mult_distrib1 vs_add_mult_distrib2)+
@@ -154,7 +154,7 @@ text {* Every vector is contained in its linear closure. *}
 lemma x_lin_x: "is_vectorspace V \<Longrightarrow> x \<in> V \<Longrightarrow> x \<in> lin x"
 proof (unfold lin_def, intro CollectI exI conjI)
   assume "is_vectorspace V"  "x \<in> V"
-  show "x = #1 \<cdot> x" by (simp!)
+  show "x = Numeral1 \<cdot> x" by (simp!)
 qed simp
 
 text {* Any linear closure is a subspace. *}
@@ -165,7 +165,7 @@ proof
   assume "is_vectorspace V"  "x \<in> V"
   show "0 \<in> lin x"
   proof (unfold lin_def, intro CollectI exI conjI)
-    show "0 = (#0::real) \<cdot> x" by (simp!)
+    show "0 = (Numeral0::real) \<cdot> x" by (simp!)
   qed simp
 
   show "lin x \<subseteq> V"
@@ -383,9 +383,9 @@ proof
           fix a assume "x = a \<cdot> x'"
           show ?thesis
           proof cases
-            assume "a = (#0::real)" show ?thesis by (simp!)
+            assume "a = (Numeral0::real)" show ?thesis by (simp!)
           next
-            assume "a \<noteq> (#0::real)"
+            assume "a \<noteq> (Numeral0::real)"
             from h have "inverse a \<cdot> a \<cdot> x' \<in> H"
               by (rule subspace_mult_closed) (simp!)
             also have "inverse a \<cdot> a \<cdot> x' = x'" by (simp!)
@@ -425,15 +425,15 @@ text {*
 lemma decomp_H'_H:
   "is_vectorspace E \<Longrightarrow> is_subspace H E \<Longrightarrow> t \<in> H \<Longrightarrow> x' \<notin> H \<Longrightarrow> x' \<in> E
   \<Longrightarrow> x' \<noteq> 0
-  \<Longrightarrow> (SOME (y, a). t = y + a \<cdot> x' \<and> y \<in> H) = (t, (#0::real))"
+  \<Longrightarrow> (SOME (y, a). t = y + a \<cdot> x' \<and> y \<in> H) = (t, (Numeral0::real))"
 proof (rule, unfold split_tupled_all)
   assume "is_vectorspace E"  "is_subspace H E"  "t \<in> H"  "x' \<notin> H"  "x' \<in> E"
     "x' \<noteq> 0"
   have h: "is_vectorspace H" ..
   fix y a presume t1: "t = y + a \<cdot> x'" and "y \<in> H"
-  have "y = t \<and> a = (#0::real)"
+  have "y = t \<and> a = (Numeral0::real)"
     by (rule decomp_H') (auto!)
-  thus "(y, a) = (t, (#0::real))" by (simp!)
+  thus "(y, a) = (t, (Numeral0::real))" by (simp!)
 qed (simp_all!)
 
 text {*

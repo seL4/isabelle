@@ -96,17 +96,17 @@ qed "diffs0_imp_equal";
 
 (** Lemmas for ex/Factorization **)
 
-Goal "!!m::nat. [| 1' < n; 1' < m |] ==> 1' < m*n";
+Goal "!!m::nat. [| Suc 0 < n; Suc 0 < m |] ==> Suc 0 < m*n";
 by (case_tac "m" 1);
 by Auto_tac;
 qed "one_less_mult"; 
 
-Goal "!!m::nat. [| 1' < n; 1' < m |] ==> n<m*n";
+Goal "!!m::nat. [| Suc 0 < n; Suc 0 < m |] ==> n<m*n";
 by (case_tac "m" 1);
 by Auto_tac;
 qed "n_less_m_mult_n"; 
 
-Goal "!!m::nat. [| 1' < n; 1' < m |] ==> n<n*m";
+Goal "!!m::nat. [| Suc 0 < n; Suc 0 < m |] ==> n<n*m";
 by (case_tac "m" 1);
 by Auto_tac;
 qed "n_less_n_mult_m"; 

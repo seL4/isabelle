@@ -490,7 +490,7 @@ qed "endo_inj_surj";
 
 (*** Cardinality of the Powerset ***)
 
-Goal "finite A ==> card (Pow A) = 2 ^ card A";
+Goal "finite A ==> card (Pow A) = Suc (Suc 0) ^ card A";  (* FIXME numeral 2 (!?) *)
 by (etac finite_induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [Pow_insert])));
 by (stac card_Un_disjoint 1);

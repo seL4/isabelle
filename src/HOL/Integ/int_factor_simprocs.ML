@@ -10,27 +10,27 @@ This file can't be combined with int_arith1,2 because it requires IntDiv.thy.
 
 (** Factor cancellation theorems for "int" **)
 
-Goal "!!k::int. (k*m <= k*n) = ((#0 < k --> m<=n) & (k < #0 --> n<=m))";
+Goal "!!k::int. (k*m <= k*n) = ((Numeral0 < k --> m<=n) & (k < Numeral0 --> n<=m))";
 by (stac zmult_zle_cancel1 1);
 by Auto_tac;  
 qed "int_mult_le_cancel1";
 
-Goal "!!k::int. (k*m < k*n) = ((#0 < k & m<n) | (k < #0 & n<m))";
+Goal "!!k::int. (k*m < k*n) = ((Numeral0 < k & m<n) | (k < Numeral0 & n<m))";
 by (stac zmult_zless_cancel1 1);
 by Auto_tac;  
 qed "int_mult_less_cancel1";
 
-Goal "!!k::int. (k*m = k*n) = (k = #0 | m=n)";
+Goal "!!k::int. (k*m = k*n) = (k = Numeral0 | m=n)";
 by Auto_tac;  
 qed "int_mult_eq_cancel1";
 
-Goal "!!k::int. k~=#0 ==> (k*m) div (k*n) = (m div n)";
+Goal "!!k::int. k~=Numeral0 ==> (k*m) div (k*n) = (m div n)";
 by (stac zdiv_zmult_zmult1 1); 
 by Auto_tac;  
 qed "int_mult_div_cancel1";
 
 (*For ExtractCommonTermFun, cancelling common factors*)
-Goal "(k*m) div (k*n) = (if k = (#0::int) then #0 else m div n)";
+Goal "(k*m) div (k*n) = (if k = (Numeral0::int) then Numeral0 else m div n)";
 by (simp_tac (simpset() addsimps [int_mult_div_cancel1]) 1); 
 qed "int_mult_div_cancel_disj";
 
@@ -114,33 +114,33 @@ set timing;
 set trace_simp;
 fun test s = (Goal s; by (Simp_tac 1)); 
 
-test "#9*x = #12 * (y::int)";
-test "(#9*x) div (#12 * (y::int)) = z";
-test "#9*x < #12 * (y::int)";
-test "#9*x <= #12 * (y::int)";
+test "# 9*x = # 12 * (y::int)";
+test "(# 9*x) div (# 12 * (y::int)) = z";
+test "# 9*x < # 12 * (y::int)";
+test "# 9*x <= # 12 * (y::int)";
 
-test "#-99*x = #132 * (y::int)";
-test "(#-99*x) div (#132 * (y::int)) = z";
-test "#-99*x < #132 * (y::int)";
-test "#-99*x <= #132 * (y::int)";
+test "# -99*x = # 132 * (y::int)";
+test "(# -99*x) div (# 132 * (y::int)) = z";
+test "# -99*x < # 132 * (y::int)";
+test "# -99*x <= # 132 * (y::int)";
 
-test "#999*x = #-396 * (y::int)";
-test "(#999*x) div (#-396 * (y::int)) = z";
-test "#999*x < #-396 * (y::int)";
-test "#999*x <= #-396 * (y::int)";
+test "# 999*x = # -396 * (y::int)";
+test "(# 999*x) div (# -396 * (y::int)) = z";
+test "# 999*x < # -396 * (y::int)";
+test "# 999*x <= # -396 * (y::int)";
 
-test "#-99*x = #-81 * (y::int)";
-test "(#-99*x) div (#-81 * (y::int)) = z";
-test "#-99*x <= #-81 * (y::int)";
-test "#-99*x < #-81 * (y::int)";
+test "# -99*x = # -81 * (y::int)";
+test "(# -99*x) div (# -81 * (y::int)) = z";
+test "# -99*x <= # -81 * (y::int)";
+test "# -99*x < # -81 * (y::int)";
 
-test "#-2 * x = #-1 * (y::int)";
-test "#-2 * x = -(y::int)";
-test "(#-2 * x) div (#-1 * (y::int)) = z";
-test "#-2 * x < -(y::int)";
-test "#-2 * x <= #-1 * (y::int)";
-test "-x < #-23 * (y::int)";
-test "-x <= #-23 * (y::int)";
+test "# -2 * x = # -1 * (y::int)";
+test "# -2 * x = -(y::int)";
+test "(# -2 * x) div (# -1 * (y::int)) = z";
+test "# -2 * x < -(y::int)";
+test "# -2 * x <= # -1 * (y::int)";
+test "-x < # -23 * (y::int)";
+test "-x <= # -23 * (y::int)";
 *)
 
 

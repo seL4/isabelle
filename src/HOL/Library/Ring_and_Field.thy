@@ -18,11 +18,11 @@ axclass ring \<subseteq> zero, plus, minus, times, number
   left_zero [simp]: "0 + a = a"
   left_minus [simp]: "- a + a = 0"
   diff_minus: "a - b = a + (-b)"
-  zero_number: "0 = #0"
+  zero_number: "0 = Numeral0"
 
   mult_assoc: "(a * b) * c = a * (b * c)"
   mult_commute: "a * b = b * a"
-  left_one [simp]: "#1 * a = a"
+  left_one [simp]: "Numeral1 * a = a"
 
   left_distrib: "(a + b) * c = a * c + b * c"
 
@@ -32,7 +32,7 @@ axclass ordered_ring \<subseteq> ring, linorder
   abs_if: "\<bar>a\<bar> = (if a < 0 then -a else a)"
 
 axclass field \<subseteq> ring, inverse
-  left_inverse [simp]: "a \<noteq> 0 ==> inverse a * a = #1"
+  left_inverse [simp]: "a \<noteq> 0 ==> inverse a * a = Numeral1"
   divide_inverse: "b \<noteq> 0 ==> a / b = a * inverse b"
 
 axclass ordered_field \<subseteq> ordered_ring, field
@@ -86,10 +86,10 @@ lemma diff_self [simp]: "a - (a::'a::ring) = 0"
 
 subsubsection {* Derived rules for multiplication *}
 
-lemma right_one [simp]: "a = a * (#1::'a::field)"
+lemma right_one [simp]: "a = a * (Numeral1::'a::field)"
 proof -
-  have "a = #1 * a" by simp
-  also have "... = a * #1" by (simp add: mult_commute)
+  have "a = Numeral1 * a" by simp
+  also have "... = a * Numeral1" by (simp add: mult_commute)
   finally show ?thesis .
 qed
 
@@ -102,28 +102,28 @@ qed
 
 theorems ring_mult_ac = mult_assoc mult_commute mult_left_commute
 
-lemma right_inverse [simp]: "a \<noteq> 0 ==>  a * inverse (a::'a::field) = #1" 
+lemma right_inverse [simp]: "a \<noteq> 0 ==>  a * inverse (a::'a::field) = Numeral1" 
 proof -
   have "a * inverse a = inverse a * a" by (simp add: ring_mult_ac)
   also assume "a \<noteq> 0"
-  hence "inverse a * a = #1" by simp
+  hence "inverse a * a = Numeral1" by simp
   finally show ?thesis .
 qed
 
-lemma right_inverse_eq: "b \<noteq> 0 ==> (a / b = #1) = (a = (b::'a::field))"
+lemma right_inverse_eq: "b \<noteq> 0 ==> (a / b = Numeral1) = (a = (b::'a::field))"
 proof 
   assume neq: "b \<noteq> 0"
   {
     hence "a = (a / b) * b" by (simp add: divide_inverse ring_mult_ac)
-    also assume "a / b = #1"
+    also assume "a / b = Numeral1"
     finally show "a = b" by simp
   next
     assume "a = b"
-    with neq show "a / b = #1" by (simp add: divide_inverse)
+    with neq show "a / b = Numeral1" by (simp add: divide_inverse)
   }
 qed
 
-lemma divide_self [simp]: "a \<noteq> 0 ==> a / (a::'a::field) = #1"
+lemma divide_self [simp]: "a \<noteq> 0 ==> a / (a::'a::field) = Numeral1"
   by (simp add: divide_inverse)
 
 

@@ -28,7 +28,7 @@ constdefs
   "{#} == Abs_multiset (\<lambda>a. 0)"
 
   single :: "'a => 'a multiset"    ("{#_#}")
-  "{#a#} == Abs_multiset (\<lambda>b. if b = a then 1' else 0)"
+  "{#a#} == Abs_multiset (\<lambda>b. if b = a then 1 else 0)"
 
   count :: "'a multiset => 'a => nat"
   "count == Rep_multiset"
@@ -54,7 +54,7 @@ instance multiset :: ("term") zero ..
 defs (overloaded)
   union_def: "M + N == Abs_multiset (\<lambda>a. Rep_multiset M a + Rep_multiset N a)"
   diff_def: "M - N == Abs_multiset (\<lambda>a. Rep_multiset M a - Rep_multiset N a)"
-  Zero_def [simp]: "0 == {#}"
+  Zero_multiset_def [simp]: "0 == {#}"
   size_def: "size M == setsum (count M) (set_of M)"
 
 
@@ -66,7 +66,7 @@ lemma const0_in_multiset [simp]: "(\<lambda>a. 0) \<in> multiset"
   apply (simp add: multiset_def)
   done
 
-lemma only1_in_multiset [simp]: "(\<lambda>b. if b = a then 1' else 0) \<in> multiset"
+lemma only1_in_multiset [simp]: "(\<lambda>b. if b = a then 1 else 0) \<in> multiset"
   apply (simp add: multiset_def)
   done
 
@@ -139,7 +139,7 @@ theorem count_empty [simp]: "count {#} a = 0"
   apply (simp add: count_def Mempty_def)
   done
 
-theorem count_single [simp]: "count {#b#} a = (if b = a then 1' else 0)"
+theorem count_single [simp]: "count {#b#} a = (if b = a then 1 else 0)"
   apply (simp add: count_def single_def)
   done
 
@@ -319,8 +319,8 @@ Better: use wf_finite_psubset in WF_Rel
 subsection {* Induction over multisets *}
 
 lemma setsum_decr:
-  "finite F ==> 0 < f a ==>
-    setsum (f (a := f a - 1')) F = (if a \<in> F then setsum f F - 1 else setsum f F)"
+  "finite F ==> (0::nat) < f a ==>
+    setsum (f (a := f a - 1)) F = (if a \<in> F then setsum f F - 1 else setsum f F)"
   apply (erule finite_induct)
    apply auto
   apply (drule_tac a = a in mk_disjoint_insert)
@@ -328,7 +328,7 @@ lemma setsum_decr:
   done
 
 lemma rep_multiset_induct_aux:
-  "P (\<lambda>a. 0) ==> (!!f b. f \<in> multiset ==> P f ==> P (f (b := f b + 1')))
+  "P (\<lambda>a. (0::nat)) ==> (!!f b. f \<in> multiset ==> P f ==> P (f (b := f b + 1)))
     ==> \<forall>f. f \<in> multiset --> setsum f {x. 0 < f x} = n --> P f"
 proof -
   case rule_context
@@ -347,14 +347,14 @@ proof -
     apply (frule setsum_SucD)
     apply clarify
     apply (rename_tac a)
-    apply (subgoal_tac "finite {x. 0 < (f (a := f a - 1')) x}")
+    apply (subgoal_tac "finite {x. 0 < (f (a := f a - 1)) x}")
      prefer 2
      apply (rule finite_subset)
       prefer 2
       apply assumption
      apply simp
      apply blast
-    apply (subgoal_tac "f = (f (a := f a - 1'))(a := (f (a := f a - 1')) a + 1')")
+    apply (subgoal_tac "f = (f (a := f a - 1))(a := (f (a := f a - 1)) a + 1)")
      prefer 2
      apply (rule ext)
      apply (simp (no_asm_simp))
@@ -362,7 +362,7 @@ proof -
      apply blast
     apply (erule allE, erule impE, erule_tac [2] mp)
      apply blast
-    apply (simp (no_asm_simp) add: setsum_decr del: fun_upd_apply)
+    apply (simp (no_asm_simp) add: setsum_decr del: fun_upd_apply One_nat_def)
     apply (subgoal_tac "{x. x \<noteq> a --> 0 < f x} = {x. 0 < f x}")
      prefer 2
      apply blast
@@ -375,7 +375,7 @@ qed
 
 theorem rep_multiset_induct:
   "f \<in> multiset ==> P (\<lambda>a. 0) ==>
-    (!!f b. f \<in> multiset ==> P f ==> P (f (b := f b + 1'))) ==> P f"
+    (!!f b. f \<in> multiset ==> P f ==> P (f (b := f b + 1))) ==> P f"
   apply (insert rep_multiset_induct_aux)
   apply blast
   done
@@ -390,7 +390,7 @@ proof -
     apply (rule Rep_multiset_inverse [THEN subst])
     apply (rule Rep_multiset [THEN rep_multiset_induct])
      apply (rule prem1)
-    apply (subgoal_tac "f (b := f b + 1') = (\<lambda>a. f a + (if a = b then 1' else 0))")
+    apply (subgoal_tac "f (b := f b + 1) = (\<lambda>a. f a + (if a = b then 1 else 0))")
      prefer 2
      apply (simp add: expand_fun_eq)
     apply (erule ssubst)

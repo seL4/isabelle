@@ -50,7 +50,7 @@ struct
   val eq_diff_eq	= eq_zdiff_eq
   val eqI_rules		= [zless_eqI, zeq_eqI, zle_eqI]
   fun dest_eqI th = 
-      #1 (HOLogic.dest_bin "op =" HOLogic.boolT 
+      #1 (HOLogic.dest_bin "op =" HOLogic.boolT
 	      (HOLogic.dest_Trueprop (concl_of th)))
 
   val diff_def		= zdiff_def

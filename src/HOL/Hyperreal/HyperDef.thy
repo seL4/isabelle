@@ -35,10 +35,10 @@ consts
 defs
 
   hypreal_zero_def
-  "0 == Abs_hypreal(hyprel``{%n::nat. (#0::real)})"
+  "0 == Abs_hypreal(hyprel``{%n::nat. (Numeral0::real)})"
 
   hypreal_one_def
-  "1hr == Abs_hypreal(hyprel``{%n::nat. (#1::real)})"
+  "1hr == Abs_hypreal(hyprel``{%n::nat. (Numeral1::real)})"
 
   hypreal_minus_def
   "- P == Abs_hypreal(UN X: Rep_hypreal(P). hyprel``{%n::nat. - (X n)})"
@@ -48,7 +48,7 @@ defs
 
   hypreal_inverse_def
   "inverse P == Abs_hypreal(UN X: Rep_hypreal(P). 
-                    hyprel``{%n. if X n = #0 then #0 else inverse (X n)})"
+                    hyprel``{%n. if X n = Numeral0 then Numeral0 else inverse (X n)})"
 
   hypreal_divide_def
   "P / Q::hypreal == P * inverse Q"

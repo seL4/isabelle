@@ -87,25 +87,25 @@ constdefs
   req_up :: "(state*state) set"
     "req_up ==
          {(s,s'). s' = s (|stop  :=False,
-			   floor := floor s + #1,
+			   floor := floor s + Numeral1,
 			   up    := True|)
 		       & s : (ready Int goingup)}"
 
   req_down :: "(state*state) set"
     "req_down ==
          {(s,s'). s' = s (|stop  :=False,
-			   floor := floor s - #1,
+			   floor := floor s - Numeral1,
 			   up    := False|)
 		       & s : (ready Int goingdown)}"
 
   move_up :: "(state*state) set"
     "move_up ==
-         {(s,s'). s' = s (|floor := floor s + #1|)
+         {(s,s'). s' = s (|floor := floor s + Numeral1|)
 		       & ~ stop s & up s & floor s ~: req s}"
 
   move_down :: "(state*state) set"
     "move_down ==
-         {(s,s'). s' = s (|floor := floor s - #1|)
+         {(s,s'). s' = s (|floor := floor s - Numeral1|)
 		       & ~ stop s & ~ up s & floor s ~: req s}"
 
   (*This action is omitted from prior treatments, which therefore are
@@ -156,7 +156,7 @@ constdefs
              else
              if n < floor s then (if up s then (Max - floor s) + (Max-n)
 		                  else floor s - n)
-             else #0"
+             else Numeral0"
 
 locale floor =
   fixes 

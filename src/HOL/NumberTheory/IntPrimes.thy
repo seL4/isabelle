@@ -29,7 +29,7 @@ recdef xzgcda
   "measure ((\<lambda>(m, n, r', r, s', s, t', t). nat r)
     :: int * int * int * int *int * int * int * int => nat)"
   "xzgcda (m, n, r', r, s', s, t', t) =
-    (if r \<le> #0 then (r', s', t')
+    (if r \<le> Numeral0 then (r', s', t')
      else xzgcda (m, n, r, r' mod r, s, s' - (r' div r) * s, t, t' - (r' div r) * t))"
   (hints simp: pos_mod_bound)
 
@@ -38,13 +38,13 @@ constdefs
   "zgcd == \<lambda>(x,y). int (gcd (nat (abs x), nat (abs y)))"
 
 defs
-  xzgcd_def: "xzgcd m n == xzgcda (m, n, m, n, #1, #0, #0, #1)"
-  zprime_def: "zprime == {p. #1 < p \<and> (\<forall>m. m dvd p --> m = #1 \<or> m = p)}"
+  xzgcd_def: "xzgcd m n == xzgcda (m, n, m, n, Numeral1, Numeral0, Numeral0, Numeral1)"
+  zprime_def: "zprime == {p. Numeral1 < p \<and> (\<forall>m. m dvd p --> m = Numeral1 \<or> m = p)}"
   zcong_def: "[a = b] (mod m) == m dvd (a - b)"
 
 
 lemma zabs_eq_iff:
-    "(abs (z::int) = w) = (z = w \<and> #0 <= z \<or> z = -w \<and> z < #0)"
+    "(abs (z::int) = w) = (z = w \<and> Numeral0 <= z \<or> z = -w \<and> z < Numeral0)"
   apply (auto simp add: zabs_def)
   done
 
@@ -64,17 +64,17 @@ lemma gcd_diff2: "m \<le> n ==> gcd (n, n - m) = gcd (n, m)"
 
 subsection {* Divides relation *}
 
-lemma zdvd_0_right [iff]: "(m::int) dvd #0"
+lemma zdvd_0_right [iff]: "(m::int) dvd Numeral0"
   apply (unfold dvd_def)
   apply (blast intro: zmult_0_right [symmetric])
   done
 
-lemma zdvd_0_left [iff]: "(#0 dvd (m::int)) = (m = #0)"
+lemma zdvd_0_left [iff]: "(Numeral0 dvd (m::int)) = (m = Numeral0)"
   apply (unfold dvd_def)
   apply auto
   done
 
-lemma zdvd_1_left [iff]: "#1 dvd (m::int)"
+lemma zdvd_1_left [iff]: "Numeral1 dvd (m::int)"
   apply (unfold dvd_def)
   apply simp
   done
@@ -104,7 +104,7 @@ lemma zdvd_zminus2_iff: "(-m dvd n) = (m dvd (n::int))"
   done
 
 lemma zdvd_anti_sym:
-    "#0 < m ==> #0 < n ==> m dvd n ==> n dvd m ==> m = (n::int)"
+    "Numeral0 < m ==> Numeral0 < n ==> m dvd n ==> n dvd m ==> m = (n::int)"
   apply (unfold dvd_def)
   apply auto
   apply (simp add: zmult_assoc zmult_eq_self_iff int_0_less_mult_iff zmult_eq_1_iff)
@@ -186,19 +186,19 @@ lemma zdvd_zmod_imp_zdvd: "k dvd m mod n ==> k dvd n ==> k dvd (m::int)"
   apply (simp add: zdvd_zadd zdvd_zmult2)
   done
 
-lemma zdvd_iff_zmod_eq_0: "(k dvd n) = (n mod (k::int) = #0)"
+lemma zdvd_iff_zmod_eq_0: "(k dvd n) = (n mod (k::int) = Numeral0)"
   apply (unfold dvd_def)
   apply auto
   done
 
-lemma zdvd_not_zless: "#0 < m ==> m < n ==> \<not> n dvd (m::int)"
+lemma zdvd_not_zless: "Numeral0 < m ==> m < n ==> \<not> n dvd (m::int)"
   apply (unfold dvd_def)
   apply auto
-  apply (subgoal_tac "#0 < n")
+  apply (subgoal_tac "Numeral0 < n")
    prefer 2
    apply (blast intro: zless_trans)
   apply (simp add: int_0_less_mult_iff)
-  apply (subgoal_tac "n * k < n * #1")
+  apply (subgoal_tac "n * k < n * Numeral1")
    apply (drule zmult_zless_cancel1 [THEN iffD1])
    apply auto
   done
@@ -221,7 +221,7 @@ lemma dvd_int_iff: "(z dvd int m) = (nat (abs z) dvd m)"
       nat_mult_distrib [symmetric] nat_eq_iff2)
   done
 
-lemma nat_dvd_iff: "(nat z dvd m) = (if #0 \<le> z then (z dvd int m) else m = 0)"
+lemma nat_dvd_iff: "(nat z dvd m) = (if Numeral0 \<le> z then (z dvd int m) else m = 0)"
   apply (auto simp add: dvd_def zmult_int [symmetric])
   apply (rule_tac x = "nat k" in exI)
   apply (cut_tac k = m in int_less_0_conv)
@@ -245,11 +245,11 @@ lemma dvd_zminus_iff [iff]: "(z dvd -w) = (z dvd (w::int))"
 
 subsection {* Euclid's Algorithm and GCD *}
 
-lemma zgcd_0 [simp]: "zgcd (m, #0) = abs m"
+lemma zgcd_0 [simp]: "zgcd (m, Numeral0) = abs m"
   apply (simp add: zgcd_def zabs_def)
   done
 
-lemma zgcd_0_left [simp]: "zgcd (#0, m) = abs m"
+lemma zgcd_0_left [simp]: "zgcd (Numeral0, m) = abs m"
   apply (simp add: zgcd_def zabs_def)
   done
 
@@ -261,7 +261,7 @@ lemma zgcd_zminus2 [simp]: "zgcd (m, -n) = zgcd (m, n)"
   apply (simp add: zgcd_def)
   done
 
-lemma zgcd_non_0: "#0 < n ==> zgcd (m, n) = zgcd (n, m mod n)"
+lemma zgcd_non_0: "Numeral0 < n ==> zgcd (m, n) = zgcd (n, m mod n)"
   apply (frule_tac b = n and a = m in pos_mod_sign)
   apply (simp add: zgcd_def zabs_def nat_mod_distrib)
   apply (cut_tac a = "-m" and b = n in zmod_zminus1_eq_if)
@@ -273,17 +273,17 @@ lemma zgcd_non_0: "#0 < n ==> zgcd (m, n) = zgcd (n, m mod n)"
   done
 
 lemma zgcd_eq: "zgcd (m, n) = zgcd (n, m mod n)"
-  apply (tactic {* zdiv_undefined_case_tac "n = #0" 1 *})
+  apply (tactic {* zdiv_undefined_case_tac "n = Numeral0" 1 *})
   apply (auto simp add: linorder_neq_iff zgcd_non_0)
   apply (cut_tac m = "-m" and n = "-n" in zgcd_non_0)
    apply auto
   done
 
-lemma zgcd_1 [simp]: "zgcd (m, #1) = #1"
+lemma zgcd_1 [simp]: "zgcd (m, Numeral1) = Numeral1"
   apply (simp add: zgcd_def zabs_def)
   done
 
-lemma zgcd_0_1_iff [simp]: "(zgcd (#0, m) = #1) = (abs m = #1)"
+lemma zgcd_0_1_iff [simp]: "(zgcd (Numeral0, m) = Numeral1) = (abs m = Numeral1)"
   apply (simp add: zgcd_def zabs_def)
   done
 
@@ -303,7 +303,7 @@ lemma zgcd_commute: "zgcd (m, n) = zgcd (n, m)"
   apply (simp add: zgcd_def gcd_commute)
   done
 
-lemma zgcd_1_left [simp]: "zgcd (#1, m) = #1"
+lemma zgcd_1_left [simp]: "zgcd (Numeral1, m) = Numeral1"
   apply (simp add: zgcd_def gcd_1_left)
   done
 
@@ -320,7 +320,7 @@ lemma zgcd_left_commute: "zgcd (k, zgcd (m, n)) = zgcd (m, zgcd (k, n))"
 lemmas zgcd_ac = zgcd_assoc zgcd_commute zgcd_left_commute
   -- {* addition is an AC-operator *}
 
-lemma zgcd_zmult_distrib2: "#0 \<le> k ==> k * zgcd (m, n) = zgcd (k * m, k * n)"
+lemma zgcd_zmult_distrib2: "Numeral0 \<le> k ==> k * zgcd (m, n) = zgcd (k * m, k * n)"
   apply (simp del: zmult_zminus_right
     add: zmult_zminus_right [symmetric] nat_mult_distrib zgcd_def zabs_def
     zmult_less_0_iff gcd_mult_distrib2 [symmetric] zmult_int [symmetric])
@@ -330,29 +330,29 @@ lemma zgcd_zmult_distrib2_abs: "zgcd (k * m, k * n) = abs k * zgcd (m, n)"
   apply (simp add: zabs_def zgcd_zmult_distrib2)
   done
 
-lemma zgcd_self [simp]: "#0 \<le> m ==> zgcd (m, m) = m"
-  apply (cut_tac k = m and m = "#1" and n = "#1" in zgcd_zmult_distrib2)
+lemma zgcd_self [simp]: "Numeral0 \<le> m ==> zgcd (m, m) = m"
+  apply (cut_tac k = m and m = "Numeral1" and n = "Numeral1" in zgcd_zmult_distrib2)
    apply simp_all
   done
 
-lemma zgcd_zmult_eq_self [simp]: "#0 \<le> k ==> zgcd (k, k * n) = k"
-  apply (cut_tac k = k and m = "#1" and n = n in zgcd_zmult_distrib2)
+lemma zgcd_zmult_eq_self [simp]: "Numeral0 \<le> k ==> zgcd (k, k * n) = k"
+  apply (cut_tac k = k and m = "Numeral1" and n = n in zgcd_zmult_distrib2)
    apply simp_all
   done
 
-lemma zgcd_zmult_eq_self2 [simp]: "#0 \<le> k ==> zgcd (k * n, k) = k"
-  apply (cut_tac k = k and m = n and n = "#1" in zgcd_zmult_distrib2)
+lemma zgcd_zmult_eq_self2 [simp]: "Numeral0 \<le> k ==> zgcd (k * n, k) = k"
+  apply (cut_tac k = k and m = n and n = "Numeral1" in zgcd_zmult_distrib2)
    apply simp_all
   done
 
-lemma aux: "zgcd (n, k) = #1 ==> k dvd m * n ==> #0 \<le> m ==> k dvd m"
+lemma aux: "zgcd (n, k) = Numeral1 ==> k dvd m * n ==> Numeral0 \<le> m ==> k dvd m"
   apply (subgoal_tac "m = zgcd (m * n, m * k)")
    apply (erule ssubst, rule zgcd_greatest_iff [THEN iffD2])
    apply (simp_all add: zgcd_zmult_distrib2 [symmetric] int_0_le_mult_iff)
   done
 
-lemma zrelprime_zdvd_zmult: "zgcd (n, k) = #1 ==> k dvd m * n ==> k dvd m"
-  apply (case_tac "#0 \<le> m")
+lemma zrelprime_zdvd_zmult: "zgcd (n, k) = Numeral1 ==> k dvd m * n ==> k dvd m"
+  apply (case_tac "Numeral0 \<le> m")
    apply (blast intro: aux)
   apply (subgoal_tac "k dvd -m")
    apply (rule_tac [2] aux)
@@ -360,20 +360,20 @@ lemma zrelprime_zdvd_zmult: "zgcd (n, k) = #1 ==> k dvd m * n ==> k dvd m"
   done
 
 lemma zprime_imp_zrelprime:
-    "p \<in> zprime ==> \<not> p dvd n ==> zgcd (n, p) = #1"
+    "p \<in> zprime ==> \<not> p dvd n ==> zgcd (n, p) = Numeral1"
   apply (unfold zprime_def)
   apply auto
   done
 
 lemma zless_zprime_imp_zrelprime:
-    "p \<in> zprime ==> #0 < n ==> n < p ==> zgcd (n, p) = #1"
+    "p \<in> zprime ==> Numeral0 < n ==> n < p ==> zgcd (n, p) = Numeral1"
   apply (erule zprime_imp_zrelprime)
   apply (erule zdvd_not_zless)
   apply assumption
   done
 
 lemma zprime_zdvd_zmult:
-    "#0 \<le> (m::int) ==> p \<in> zprime ==> p dvd m * n ==> p dvd m \<or> p dvd n"
+    "Numeral0 \<le> (m::int) ==> p \<in> zprime ==> p dvd m * n ==> p dvd m \<or> p dvd n"
   apply safe
   apply (rule zrelprime_zdvd_zmult)
    apply (rule zprime_imp_zrelprime)
@@ -392,7 +392,7 @@ lemma zgcd_zdvd_zgcd_zmult: "zgcd (m, n) dvd zgcd (k * m, n)"
   done
 
 lemma zgcd_zmult_zdvd_zgcd:
-    "zgcd (k, n) = #1 ==> zgcd (k * m, n) dvd zgcd (m, n)"
+    "zgcd (k, n) = Numeral1 ==> zgcd (k * m, n) dvd zgcd (m, n)"
   apply (simp add: zgcd_greatest_iff)
   apply (rule_tac n = k in zrelprime_zdvd_zmult)
    prefer 2
@@ -402,16 +402,16 @@ lemma zgcd_zmult_zdvd_zgcd:
   apply (simp (no_asm) add: zgcd_ac)
   done
 
-lemma zgcd_zmult_cancel: "zgcd (k, n) = #1 ==> zgcd (k * m, n) = zgcd (m, n)"
+lemma zgcd_zmult_cancel: "zgcd (k, n) = Numeral1 ==> zgcd (k * m, n) = zgcd (m, n)"
   apply (simp add: zgcd_def nat_abs_mult_distrib gcd_mult_cancel)
   done
 
 lemma zgcd_zgcd_zmult:
-    "zgcd (k, m) = #1 ==> zgcd (n, m) = #1 ==> zgcd (k * n, m) = #1"
+    "zgcd (k, m) = Numeral1 ==> zgcd (n, m) = Numeral1 ==> zgcd (k * n, m) = Numeral1"
   apply (simp (no_asm_simp) add: zgcd_zmult_cancel)
   done
 
-lemma zdvd_iff_zgcd: "#0 < m ==> (m dvd n) = (zgcd (n, m) = m)"
+lemma zdvd_iff_zgcd: "Numeral0 < m ==> (m dvd n) = (zgcd (n, m) = m)"
   apply safe
    apply (rule_tac [2] n = "zgcd (n, m)" in zdvd_trans)
     apply (rule_tac [3] zgcd_zdvd1)
@@ -423,7 +423,7 @@ lemma zdvd_iff_zgcd: "#0 < m ==> (m dvd n) = (zgcd (n, m) = m)"
 
 subsection {* Congruences *}
 
-lemma zcong_1 [simp]: "[a = b] (mod #1)"
+lemma zcong_1 [simp]: "[a = b] (mod Numeral1)"
   apply (unfold zcong_def)
   apply auto
   done
@@ -494,19 +494,19 @@ lemma zcong_zmult_self: "[a * m = b * m] (mod m)"
   done
 
 lemma zcong_square:
-  "p \<in> zprime ==> #0 < a ==> [a * a = #1] (mod p)
-    ==> [a = #1] (mod p) \<or> [a = p - #1] (mod p)"
+  "p \<in> zprime ==> Numeral0 < a ==> [a * a = Numeral1] (mod p)
+    ==> [a = Numeral1] (mod p) \<or> [a = p - Numeral1] (mod p)"
   apply (unfold zcong_def)
   apply (rule zprime_zdvd_zmult)
-    apply (rule_tac [3] s = "a * a - #1 + p * (#1 - a)" in subst)
+    apply (rule_tac [3] s = "a * a - Numeral1 + p * (Numeral1 - a)" in subst)
      prefer 4
      apply (simp add: zdvd_reduce)
     apply (simp_all add: zdiff_zmult_distrib zmult_commute zdiff_zmult_distrib2)
   done
 
 lemma zcong_cancel:
-  "#0 \<le> m ==>
-    zgcd (k, m) = #1 ==> [a * k = b * k] (mod m) = [a = b] (mod m)"
+  "Numeral0 \<le> m ==>
+    zgcd (k, m) = Numeral1 ==> [a * k = b * k] (mod m) = [a = b] (mod m)"
   apply safe
    prefer 2
    apply (blast intro: zcong_scalar)
@@ -523,19 +523,19 @@ lemma zcong_cancel:
   done
 
 lemma zcong_cancel2:
-  "#0 \<le> m ==>
-    zgcd (k, m) = #1 ==> [k * a = k * b] (mod m) = [a = b] (mod m)"
+  "Numeral0 \<le> m ==>
+    zgcd (k, m) = Numeral1 ==> [k * a = k * b] (mod m) = [a = b] (mod m)"
   apply (simp add: zmult_commute zcong_cancel)
   done
 
 lemma zcong_zgcd_zmult_zmod:
-  "[a = b] (mod m) ==> [a = b] (mod n) ==> zgcd (m, n) = #1
+  "[a = b] (mod m) ==> [a = b] (mod n) ==> zgcd (m, n) = Numeral1
     ==> [a = b] (mod m * n)"
   apply (unfold zcong_def dvd_def)
   apply auto
   apply (subgoal_tac "m dvd n * ka")
    apply (subgoal_tac "m dvd ka")
-    apply (case_tac [2] "#0 \<le> ka")
+    apply (case_tac [2] "Numeral0 \<le> ka")
      prefer 3
      apply (subst zdvd_zminus_iff [symmetric])
      apply (rule_tac n = n in zrelprime_zdvd_zmult)
@@ -550,8 +550,8 @@ lemma zcong_zgcd_zmult_zmod:
   done
 
 lemma zcong_zless_imp_eq:
-  "#0 \<le> a ==>
-    a < m ==> #0 \<le> b ==> b < m ==> [a = b] (mod m) ==> a = b"
+  "Numeral0 \<le> a ==>
+    a < m ==> Numeral0 \<le> b ==> b < m ==> [a = b] (mod m) ==> a = b"
   apply (unfold zcong_def dvd_def)
   apply auto
   apply (drule_tac f = "\<lambda>z. z mod m" in arg_cong)
@@ -566,38 +566,38 @@ lemma zcong_zless_imp_eq:
   done
 
 lemma zcong_square_zless:
-  "p \<in> zprime ==> #0 < a ==> a < p ==>
-    [a * a = #1] (mod p) ==> a = #1 \<or> a = p - #1"
+  "p \<in> zprime ==> Numeral0 < a ==> a < p ==>
+    [a * a = Numeral1] (mod p) ==> a = Numeral1 \<or> a = p - Numeral1"
   apply (cut_tac p = p and a = a in zcong_square)
      apply (simp add: zprime_def)
     apply (auto intro: zcong_zless_imp_eq)
   done
 
 lemma zcong_not:
-    "#0 < a ==> a < m ==> #0 < b ==> b < a ==> \<not> [a = b] (mod m)"
+    "Numeral0 < a ==> a < m ==> Numeral0 < b ==> b < a ==> \<not> [a = b] (mod m)"
   apply (unfold zcong_def)
   apply (rule zdvd_not_zless)
    apply auto
   done
 
 lemma zcong_zless_0:
-    "#0 \<le> a ==> a < m ==> [a = #0] (mod m) ==> a = #0"
+    "Numeral0 \<le> a ==> a < m ==> [a = Numeral0] (mod m) ==> a = Numeral0"
   apply (unfold zcong_def dvd_def)
   apply auto
-  apply (subgoal_tac "#0 < m")
+  apply (subgoal_tac "Numeral0 < m")
    apply (rotate_tac -1)
    apply (simp add: int_0_le_mult_iff)
-   apply (subgoal_tac "m * k < m * #1")
+   apply (subgoal_tac "m * k < m * Numeral1")
     apply (drule zmult_zless_cancel1 [THEN iffD1])
     apply (auto simp add: linorder_neq_iff)
   done
 
 lemma zcong_zless_unique:
-    "#0 < m ==> (\<exists>!b. #0 \<le> b \<and> b < m \<and> [a = b] (mod m))"
+    "Numeral0 < m ==> (\<exists>!b. Numeral0 \<le> b \<and> b < m \<and> [a = b] (mod m))"
   apply auto
    apply (subgoal_tac [2] "[b = y] (mod m)")
-    apply (case_tac [2] "b = #0")
-     apply (case_tac [3] "y = #0")
+    apply (case_tac [2] "b = Numeral0")
+     apply (case_tac [3] "y = Numeral0")
       apply (auto intro: zcong_trans zcong_zless_0 zcong_zless_imp_eq order_less_le
         simp add: zcong_sym)
   apply (unfold zcong_def dvd_def)
@@ -616,8 +616,8 @@ lemma zcong_iff_lin: "([a = b] (mod m)) = (\<exists>k. b = a + m * k)"
   done
 
 lemma zgcd_zcong_zgcd:
-  "#0 < m ==>
-    zgcd (a, m) = #1 ==> [a = b] (mod m) ==> zgcd (b, m) = #1"
+  "Numeral0 < m ==>
+    zgcd (a, m) = Numeral1 ==> [a = b] (mod m) ==> zgcd (b, m) = Numeral1"
   apply (auto simp add: zcong_iff_lin)
   done
 
@@ -643,7 +643,7 @@ lemma zcong_zmod: "[a = b] (mod m) = [a mod m = b mod m] (mod m)"
   apply (simp add: zadd_commute)
   done
 
-lemma zcong_zmod_eq: "#0 < m ==> [a = b] (mod m) = (a mod m = b mod m)"
+lemma zcong_zmod_eq: "Numeral0 < m ==> [a = b] (mod m) = (a mod m = b mod m)"
   apply auto
    apply (rule_tac m = m in zcong_zless_imp_eq)
        prefer 5
@@ -659,13 +659,13 @@ lemma zcong_zminus [iff]: "[a = b] (mod -m) = [a = b] (mod m)"
   apply (auto simp add: zcong_def)
   done
 
-lemma zcong_zero [iff]: "[a = b] (mod #0) = (a = b)"
+lemma zcong_zero [iff]: "[a = b] (mod Numeral0) = (a = b)"
   apply (auto simp add: zcong_def)
   done
 
 lemma "[a = b] (mod m) = (a mod m = b mod m)"
-  apply (tactic {* zdiv_undefined_case_tac "m = #0" 1 *})
-  apply (case_tac "#0 < m")
+  apply (tactic {* zdiv_undefined_case_tac "m = Numeral0" 1 *})
+  apply (case_tac "Numeral0 < m")
    apply (simp add: zcong_zmod_eq)
   apply (rule_tac t = m in zminus_zminus [THEN subst])
   apply (subst zcong_zminus)
@@ -677,7 +677,7 @@ lemma "[a = b] (mod m) = (a mod m = b mod m)"
 subsection {* Modulo *}
 
 lemma zmod_zdvd_zmod:
-    "#0 < (m::int) ==> m dvd b ==> (a mod b mod m) = (a mod m)"
+    "Numeral0 < (m::int) ==> m dvd b ==> (a mod b mod m) = (a mod m)"
   apply (unfold dvd_def)
   apply auto
   apply (subst zcong_zmod_eq [symmetric])
@@ -696,14 +696,14 @@ subsection {* Extended GCD *}
 declare xzgcda.simps [simp del]
 
 lemma aux1:
-  "zgcd (r', r) = k --> #0 < r -->
+  "zgcd (r', r) = k --> Numeral0 < r -->
     (\<exists>sn tn. xzgcda (m, n, r', r, s', s, t', t) = (k, sn, tn))"
   apply (rule_tac u = m and v = n and w = r' and x = r and y = s' and
     z = s and aa = t' and ab = t in xzgcda.induct)
   apply (subst zgcd_eq)
   apply (subst xzgcda.simps)
   apply auto
-  apply (case_tac "r' mod r = #0")
+  apply (case_tac "r' mod r = Numeral0")
    prefer 2
    apply (frule_tac a = "r'" in pos_mod_sign)
    apply auto
@@ -716,14 +716,14 @@ lemma aux1:
   done
 
 lemma aux2:
-  "(\<exists>sn tn. xzgcda (m, n, r', r, s', s, t', t) = (k, sn, tn)) --> #0 < r -->
+  "(\<exists>sn tn. xzgcda (m, n, r', r, s', s, t', t) = (k, sn, tn)) --> Numeral0 < r -->
     zgcd (r', r) = k"
   apply (rule_tac u = m and v = n and w = r' and x = r and y = s' and
     z = s and aa = t' and ab = t in xzgcda.induct)
   apply (subst zgcd_eq)
   apply (subst xzgcda.simps)
   apply (auto simp add: linorder_not_le)
-  apply (case_tac "r' mod r = #0")
+  apply (case_tac "r' mod r = Numeral0")
    prefer 2
    apply (frule_tac a = "r'" in pos_mod_sign)
    apply auto
@@ -735,7 +735,7 @@ lemma aux2:
   done
 
 lemma xzgcd_correct:
-    "#0 < n ==> (zgcd (m, n) = k) = (\<exists>s t. xzgcd m n = (k, s, t))"
+    "Numeral0 < n ==> (zgcd (m, n) = k) = (\<exists>s t. xzgcd m n = (k, s, t))"
   apply (unfold xzgcd_def)
   apply (rule iffI)
    apply (rule_tac [2] aux2 [THEN mp, THEN mp])
@@ -768,17 +768,17 @@ lemma order_le_neq_implies_less: "(x::'a::order) \<le> y ==> x \<noteq> y ==> x 
   by (rule iffD2 [OF order_less_le conjI])
 
 lemma xzgcda_linear [rule_format]:
-  "#0 < r --> xzgcda (m, n, r', r, s', s, t', t) = (rn, sn, tn) -->
+  "Numeral0 < r --> xzgcda (m, n, r', r, s', s, t', t) = (rn, sn, tn) -->
     r' = s' * m + t' * n -->  r = s * m + t * n --> rn = sn * m + tn * n"
   apply (rule_tac u = m and v = n and w = r' and x = r and y = s' and
     z = s and aa = t' and ab = t in xzgcda.induct)
   apply (subst xzgcda.simps)
   apply (simp (no_asm))
   apply (rule impI)+
-  apply (case_tac "r' mod r = #0")
+  apply (case_tac "r' mod r = Numeral0")
    apply (simp add: xzgcda.simps)
    apply clarify
-  apply (subgoal_tac "#0 < r' mod r")
+  apply (subgoal_tac "Numeral0 < r' mod r")
    apply (rule_tac [2] order_le_neq_implies_less)
    apply (rule_tac [2] pos_mod_sign)
     apply (cut_tac m = m and n = n and r' = r' and r = r and s' = s' and
@@ -787,7 +787,7 @@ lemma xzgcda_linear [rule_format]:
   done
 
 lemma xzgcd_linear:
-    "#0 < n ==> xzgcd m n = (r, s, t) ==> r = s * m + t * n"
+    "Numeral0 < n ==> xzgcd m n = (r, s, t) ==> r = s * m + t * n"
   apply (unfold xzgcd_def)
   apply (erule xzgcda_linear)
     apply assumption
@@ -795,7 +795,7 @@ lemma xzgcd_linear:
   done
 
 lemma zgcd_ex_linear:
-    "#0 < n ==> zgcd (m, n) = k ==> (\<exists>s t. k = s * m + t * n)"
+    "Numeral0 < n ==> zgcd (m, n) = k ==> (\<exists>s t. k = s * m + t * n)"
   apply (simp add: xzgcd_correct)
   apply safe
   apply (rule exI)+
@@ -804,8 +804,8 @@ lemma zgcd_ex_linear:
   done
 
 lemma zcong_lineq_ex:
-    "#0 < n ==> zgcd (a, n) = #1 ==> \<exists>x. [a * x = #1] (mod n)"
-  apply (cut_tac m = a and n = n and k = "#1" in zgcd_ex_linear)
+    "Numeral0 < n ==> zgcd (a, n) = Numeral1 ==> \<exists>x. [a * x = Numeral1] (mod n)"
+  apply (cut_tac m = a and n = n and k = "Numeral1" in zgcd_ex_linear)
     apply safe
   apply (rule_tac x = s in exI)
   apply (rule_tac b = "s * a + t * n" in zcong_trans)
@@ -816,8 +816,8 @@ lemma zcong_lineq_ex:
   done
 
 lemma zcong_lineq_unique:
-  "#0 < n ==>
-    zgcd (a, n) = #1 ==> \<exists>!x. #0 \<le> x \<and> x < n \<and> [a * x = b] (mod n)"
+  "Numeral0 < n ==>
+    zgcd (a, n) = Numeral1 ==> \<exists>!x. Numeral0 \<le> x \<and> x < n \<and> [a * x = b] (mod n)"
   apply auto
    apply (rule_tac [2] zcong_zless_imp_eq)
        apply (tactic {* stac (thm "zcong_cancel2" RS sym) 6 *})
@@ -833,7 +833,7 @@ lemma zcong_lineq_unique:
   apply (subst zcong_zmod)
   apply (subst zmod_zmult1_eq [symmetric])
   apply (subst zcong_zmod [symmetric])
-  apply (subgoal_tac "[a * x * b = #1 * b] (mod n)")
+  apply (subgoal_tac "[a * x * b = Numeral1 * b] (mod n)")
    apply (rule_tac [2] zcong_zmult)
     apply (simp_all add: zmult_assoc)
   done

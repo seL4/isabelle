@@ -341,9 +341,9 @@ by (rtac (wf_less_than RS LeadsTo_wf_induct) 1);
 by (auto_tac (claset() addIs prems, simpset()));
 qed "LessThan_induct";
 
-(*Integer version.  Could generalize from #0 to any lower bound*)
+(*Integer version.  Could generalize from Numeral0 to any lower bound*)
 val [reach, prem] =
-Goal "[| F : Always {s. (#0::int) <= f s};  \
+Goal "[| F : Always {s. (Numeral0::int) <= f s};  \
 \        !! z. F : (A Int {s. f s = z}) LeadsTo                     \
 \                           ((A Int {s. f s < z}) Un B) |] \
 \     ==> F : A LeadsTo B";

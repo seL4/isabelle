@@ -9,15 +9,15 @@ Simprocs and decision procedure for linear arithmetic.
 
 (** Combining of literal coefficients in sums of products **)
 
-Goal "(x < y) = (x-y < (#0::int))";
+Goal "(x < y) = (x-y < (Numeral0::int))";
 by (simp_tac (simpset() addsimps zcompare_rls) 1);
 qed "zless_iff_zdiff_zless_0";
 
-Goal "(x = y) = (x-y = (#0::int))";
+Goal "(x = y) = (x-y = (Numeral0::int))";
 by (simp_tac (simpset() addsimps zcompare_rls) 1);
 qed "eq_iff_zdiff_eq_0";
 
-Goal "(x <= y) = (x-y <= (#0::int))";
+Goal "(x <= y) = (x-y <= (Numeral0::int))";
 by (simp_tac (simpset() addsimps zcompare_rls) 1);
 qed "zle_iff_zdiff_zle_0";
 
@@ -97,7 +97,7 @@ val mk_plus = HOLogic.mk_binop "op +";
 
 val uminus_const = Const ("uminus", HOLogic.intT --> HOLogic.intT);
 
-(*Thus mk_sum[t] yields t+#0; longer sums don't have a trailing zero*)
+(*Thus mk_sum[t] yields t+Numeral0; longer sums don't have a trailing zero*)
 fun mk_sum []        = zero
   | mk_sum [t,u]     = mk_plus (t, u)
   | mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
@@ -157,7 +157,7 @@ fun find_first_coeff past u [] = raise TERM("find_first_coeff", [])
 	handle TERM _ => find_first_coeff (t::past) u terms;
 
 
-(*Simplify #1*n and n*#1 to n*)
+(*Simplify Numeral1*n and n*Numeral1 to n*)
 val add_0s = [zadd_0, zadd_0_right];
 val mult_1s = [zmult_1, zmult_1_right, zmult_minus1, zmult_minus1_right];
 
@@ -279,7 +279,7 @@ val cancel_numerals =
 structure CombineNumeralsData =
   struct
   val add		= op + : int*int -> int 
-  val mk_sum    	= long_mk_sum    (*to work for e.g. #2*x + #3*x *)
+  val mk_sum    	= long_mk_sum    (*to work for e.g. # 2*x + # 3*x *)
   val dest_sum		= dest_sum
   val mk_coeff		= mk_coeff
   val dest_coeff	= dest_coeff 1
@@ -318,35 +318,35 @@ set timing;
 set trace_simp;
 fun test s = (Goal s; by (Simp_tac 1)); 
 
-test "l + #2 + #2 + #2 + (l + #2) + (oo + #2) = (uu::int)";
+test "l + # 2 + # 2 + # 2 + (l + # 2) + (oo + # 2) = (uu::int)";
 
-test "#2*u = (u::int)";
-test "(i + j + #12 + (k::int)) - #15 = y";
-test "(i + j + #12 + (k::int)) - #5 = y";
+test "# 2*u = (u::int)";
+test "(i + j + # 12 + (k::int)) - # 15 = y";
+test "(i + j + # 12 + (k::int)) - # 5 = y";
 
 test "y - b < (b::int)";
-test "y - (#3*b + c) < (b::int) - #2*c";
+test "y - (# 3*b + c) < (b::int) - # 2*c";
 
-test "(#2*x - (u*v) + y) - v*#3*u = (w::int)";
-test "(#2*x*u*v + (u*v)*#4 + y) - v*u*#4 = (w::int)";
-test "(#2*x*u*v + (u*v)*#4 + y) - v*u = (w::int)";
-test "u*v - (x*u*v + (u*v)*#4 + y) = (w::int)";
+test "(# 2*x - (u*v) + y) - v*# 3*u = (w::int)";
+test "(# 2*x*u*v + (u*v)*# 4 + y) - v*u*# 4 = (w::int)";
+test "(# 2*x*u*v + (u*v)*# 4 + y) - v*u = (w::int)";
+test "u*v - (x*u*v + (u*v)*# 4 + y) = (w::int)";
 
-test "(i + j + #12 + (k::int)) = u + #15 + y";
-test "(i + j*#2 + #12 + (k::int)) = j + #5 + y";
+test "(i + j + # 12 + (k::int)) = u + # 15 + y";
+test "(i + j*# 2 + # 12 + (k::int)) = j + # 5 + y";
 
-test "#2*y + #3*z + #6*w + #2*y + #3*z + #2*u = #2*y' + #3*z' + #6*w' + #2*y' + #3*z' + u + (vv::int)";
+test "# 2*y + # 3*z + # 6*w + # 2*y + # 3*z + # 2*u = # 2*y' + # 3*z' + # 6*w' + # 2*y' + # 3*z' + u + (vv::int)";
 
 test "a + -(b+c) + b = (d::int)";
 test "a + -(b+c) - b = (d::int)";
 
 (*negative numerals*)
-test "(i + j + #-2 + (k::int)) - (u + #5 + y) = zz";
-test "(i + j + #-3 + (k::int)) < u + #5 + y";
-test "(i + j + #3 + (k::int)) < u + #-6 + y";
-test "(i + j + #-12 + (k::int)) - #15 = y";
-test "(i + j + #12 + (k::int)) - #-15 = y";
-test "(i + j + #-12 + (k::int)) - #-15 = y";
+test "(i + j + # -2 + (k::int)) - (u + # 5 + y) = zz";
+test "(i + j + # -3 + (k::int)) < u + # 5 + y";
+test "(i + j + # 3 + (k::int)) < u + # -6 + y";
+test "(i + j + # -12 + (k::int)) - # 15 = y";
+test "(i + j + # 12 + (k::int)) - # -15 = y";
+test "(i + j + # -12 + (k::int)) - # -15 = y";
 *)
 
 
@@ -410,7 +410,7 @@ val add_rules = simp_thms @ bin_arith_simps @ bin_rel_simps @
 		 zmult_1, zmult_1_right, 
 		 zmult_minus1, zmult_minus1_right,
 		 zminus_zadd_distrib, zminus_zminus, zmult_assoc,
-                 IntDef.Zero_def, int_0, zadd_int RS sym, int_Suc];
+                 Zero_int_def, int_0, zadd_int RS sym, int_Suc];
 
 val simprocs = [Int_Times_Assoc.conv, Int_Numeral_Simprocs.combine_numerals]@
                Int_Numeral_Simprocs.cancel_numerals;
@@ -455,9 +455,9 @@ end;
 (* Some test data
 Goal "!!a::int. [| a <= b; c <= d; x+y<z |] ==> a+c <= b+d";
 by (fast_arith_tac 1);
-Goal "!!a::int. [| a < b; c < d |] ==> a-d+ #2 <= b+(-c)";
+Goal "!!a::int. [| a < b; c < d |] ==> a-d+ # 2 <= b+(-c)";
 by (fast_arith_tac 1);
-Goal "!!a::int. [| a < b; c < d |] ==> a+c+ #1 < b+d";
+Goal "!!a::int. [| a < b; c < d |] ==> a+c+ Numeral1 < b+d";
 by (fast_arith_tac 1);
 Goal "!!a::int. [| a <= b; b+b <= c |] ==> a+a <= c";
 by (fast_arith_tac 1);
@@ -465,7 +465,7 @@ Goal "!!a::int. [| a+b <= i+j; a<=b; i<=j |] \
 \     ==> a+a <= j+j";
 by (fast_arith_tac 1);
 Goal "!!a::int. [| a+b < i+j; a<b; i<j |] \
-\     ==> a+a - - #-1 < j+j - #3";
+\     ==> a+a - - # -1 < j+j - # 3";
 by (fast_arith_tac 1);
 Goal "!!a::int. a+b+c <= i+j+k & a<=b & b<=c & i<=j & j<=k --> a+a+a <= k+k+k";
 by (arith_tac 1);
@@ -482,6 +482,6 @@ Goal "!!a::int. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
 \     ==> a+a+a+a+a+a <= l+l+l+l+i+l";
 by (fast_arith_tac 1);
 Goal "!!a::int. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
-\     ==> #6*a <= #5*l+i";
+\     ==> # 6*a <= # 5*l+i";
 by (fast_arith_tac 1);
 *)

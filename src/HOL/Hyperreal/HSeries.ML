@@ -35,7 +35,7 @@ qed "sumhr_iff2";
 
 (* Theorem corresponding to base case in def of sumr *)
 Goalw [hypnat_zero_def]
-     "sumhr (m,0,f) = #0";
+     "sumhr (m,0,f) = Numeral0";
 by (res_inst_tac [("z","m")] eq_Abs_hypnat 1);
 by (auto_tac (claset(), 
               simpset() addsimps [sumhr, symmetric hypreal_zero_def]));
@@ -44,7 +44,7 @@ Addsimps [sumhr_zero];
 
 (* Theorem corresponding to recursive case in def of sumr *)
 Goalw [hypnat_one_def]
-     "sumhr(m,n+1hn,f) = (if n + 1hn <= m then #0 \
+     "sumhr(m,n+1hn,f) = (if n + 1hn <= m then Numeral0 \
 \                         else sumhr(m,n,f) + (*fNat* f) n)";
 by (simp_tac (HOL_ss addsimps
              [zero_eq_numeral_0 RS sym, hypreal_zero_def]) 1); 
@@ -55,7 +55,7 @@ by (auto_tac (claset(),
 by (ALLGOALS(Ultra_tac));
 qed "sumhr_if";
 
-Goalw [hypnat_one_def] "sumhr (n + 1hn, n, f) = #0";
+Goalw [hypnat_one_def] "sumhr (n + 1hn, n, f) = Numeral0";
 by (simp_tac (HOL_ss addsimps
              [zero_eq_numeral_0 RS sym, hypreal_zero_def]) 1); 
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
@@ -64,7 +64,7 @@ by (auto_tac (claset(),
 qed "sumhr_Suc_zero";
 Addsimps [sumhr_Suc_zero];
 
-Goal "sumhr (n,n,f) = #0";
+Goal "sumhr (n,n,f) = Numeral0";
 by (simp_tac (HOL_ss addsimps
              [zero_eq_numeral_0 RS sym, hypreal_zero_def]) 1); 
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
@@ -80,7 +80,7 @@ by (auto_tac (claset(),
 qed "sumhr_Suc";
 Addsimps [sumhr_Suc];
 
-Goal "sumhr(m+k,k,f) = #0";
+Goal "sumhr(m+k,k,f) = Numeral0";
 by (simp_tac (HOL_ss addsimps
              [zero_eq_numeral_0 RS sym, hypreal_zero_def]) 1); 
 by (res_inst_tac [("z","m")] eq_Abs_hypnat 1);
@@ -156,7 +156,7 @@ by (asm_simp_tac (simpset() addsimps [sumhr,
 		    hypreal_minus,sumr_add RS sym]) 1);
 qed "sumhr_add_mult_const";
 
-Goal "n < m ==> sumhr (m,n,f) = #0";
+Goal "n < m ==> sumhr (m,n,f) = Numeral0";
 by (simp_tac (HOL_ss addsimps
              [zero_eq_numeral_0 RS sym, hypreal_zero_def]) 1); 
 by (res_inst_tac [("z","m")] eq_Abs_hypnat 1);
@@ -185,13 +185,13 @@ qed "sumhr_shift_bounds";
       by summing to some infinite hypernatural (such as whn)
  -----------------------------------------------------------------*)
 Goalw [hypnat_omega_def,hypnat_zero_def] 
-      "sumhr(0,whn,%i. #1) = hypreal_of_hypnat whn";
+      "sumhr(0,whn,%i. Numeral1) = hypreal_of_hypnat whn";
 by (auto_tac (claset(),
               simpset() addsimps [sumhr, hypreal_of_hypnat]));
 qed "sumhr_hypreal_of_hypnat_omega";
 
 Goalw [hypnat_omega_def,hypnat_zero_def,omega_def]  
-     "sumhr(0, whn, %i. #1) = omega - #1";
+     "sumhr(0, whn, %i. Numeral1) = omega - Numeral1";
 by (simp_tac (HOL_ss addsimps
              [one_eq_numeral_1 RS sym, hypreal_one_def]) 1); 
 by (auto_tac (claset(),
@@ -199,7 +199,7 @@ by (auto_tac (claset(),
 qed "sumhr_hypreal_omega_minus_one";
 
 Goalw [hypnat_zero_def, hypnat_omega_def]
-     "sumhr(0, whn + whn, %i. (-#1) ^ (i+1)) = #0";
+     "sumhr(0, whn + whn, %i. (-Numeral1) ^ (i+1)) = Numeral0";
 by (simp_tac (HOL_ss addsimps
              [zero_eq_numeral_0 RS sym, hypreal_zero_def]) 1); 
 by (simp_tac (simpset() addsimps [sumhr,hypnat_add,double_lemma] 
@@ -223,7 +223,7 @@ by (asm_full_simp_tac (simpset() addsimps [starfunNat,sumhr]) 1);
 qed "starfunNat_sumr";
 
 Goal "sumhr (0, M, f) @= sumhr (0, N, f) \
-\     ==> abs (sumhr (M, N, f)) @= #0";
+\     ==> abs (sumhr (M, N, f)) @= Numeral0";
 by (cut_inst_tac [("x","M"),("y","N")] hypnat_linear 1);
 by (auto_tac (claset(), simpset() addsimps [approx_refl]));
 by (dtac (approx_sym RS (approx_minus_iff RS iffD1)) 1);
@@ -265,12 +265,12 @@ by (asm_full_simp_tac
                          sums_unique]) 1);
 qed "NSsums_unique";
 
-Goal "ALL m. n <= Suc m --> f(m) = #0 ==> f NSsums (sumr 0 n f)";
+Goal "ALL m. n <= Suc m --> f(m) = Numeral0 ==> f NSsums (sumr 0 n f)";
 by (asm_simp_tac (simpset() addsimps [sums_NSsums_iff RS sym, series_zero]) 1);
 qed "NSseries_zero";
 
 Goal "NSsummable f = \
-\     (ALL M: HNatInfinite. ALL N: HNatInfinite. abs (sumhr(M,N,f)) @= #0)";
+\     (ALL M: HNatInfinite. ALL N: HNatInfinite. abs (sumhr(M,N,f)) @= Numeral0)";
 by (auto_tac (claset(),
               simpset() addsimps [summable_NSsummable_iff RS sym,
                  summable_convergent_sumr_iff, convergent_NSconvergent_iff,
@@ -287,7 +287,7 @@ qed "NSsummable_NSCauchy";
 (*-------------------------------------------------------------------
          Terms of a convergent series tend to zero
  -------------------------------------------------------------------*)
-Goalw [NSLIMSEQ_def] "NSsummable f ==> f ----NS> #0";
+Goalw [NSLIMSEQ_def] "NSsummable f ==> f ----NS> Numeral0";
 by (auto_tac (claset(), simpset() addsimps [NSsummable_NSCauchy]));
 by (dtac bspec 1 THEN Auto_tac);
 by (dres_inst_tac [("x","N + 1hn")] bspec 1);
@@ -297,7 +297,7 @@ by (auto_tac (claset() addIs [HNatInfinite_add_one,
 qed "NSsummable_NSLIMSEQ_zero";
 
 (* Easy to prove stsandard case now *)
-Goal "summable f ==> f ----> #0";
+Goal "summable f ==> f ----> Numeral0";
 by (auto_tac (claset(),
         simpset() addsimps [summable_NSsummable_iff,
                             LIMSEQ_NSLIMSEQ_iff, NSsummable_NSLIMSEQ_zero]));

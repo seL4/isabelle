@@ -8,11 +8,11 @@
 
 val prime_def = thm "prime_def";
 
-Goalw [prime_def] "p\\<in>prime ==> 1' < p";
+Goalw [prime_def] "p\\<in>prime ==> Suc 0 < p";
 by (force_tac (claset(), simpset() addsimps []) 1); 
 qed "prime_imp_one_less";
 
-Goal "(p\\<in>prime) = (1'<p & (\\<forall>a b. p dvd a*b --> (p dvd a) | (p dvd b)))";
+Goal "(p\\<in>prime) = (Suc 0 < p & (\\<forall>a b. p dvd a*b --> (p dvd a) | (p dvd b)))";
 by (auto_tac (claset(), simpset() addsimps [prime_imp_one_less]));  
 by (blast_tac (claset() addSDs [thm "prime_dvd_mult"]) 1);
 by (auto_tac (claset(), simpset() addsimps [prime_def]));  
@@ -201,24 +201,24 @@ by Auto_tac;
 qed "div_combine";
 
 (*Lemma for power_dvd_bound*)
-Goal "1' < p ==> Suc n <= p^n";
+Goal "Suc 0 < p ==> Suc n <= p^n";
 by (induct_tac "n" 1);
 by (Asm_simp_tac 1); 
 by (Asm_full_simp_tac 1); 
-by (subgoal_tac "2*n + #2 <= p * p^n" 1);
+by (subgoal_tac "# 2 * n + # 2 <= p * p^n" 1);
 by (Asm_full_simp_tac 1); 
-by (subgoal_tac "#2 * p^n <= p * p^n" 1);
+by (subgoal_tac "# 2 * p^n <= p * p^n" 1);
 (*?arith_tac should handle all of this!*)
 by (rtac order_trans 1); 
 by (assume_tac 2); 
-by (dres_inst_tac [("k","#2")] mult_le_mono2 1); 
+by (dres_inst_tac [("k","# 2")] mult_le_mono2 1); 
 by (Asm_full_simp_tac 1); 
 by (rtac mult_le_mono1 1); 
 by (Asm_full_simp_tac 1); 
 qed "Suc_le_power";
 
 (*An upper bound for the n such that p^n dvd a: needed for GREATEST to exist*)
-Goal "[|p^n dvd a;  1' < p;  0 < a|] ==> n < a";
+Goal "[|p^n dvd a;  Suc 0 < p;  0 < a|] ==> n < a";
 by (dtac dvd_imp_le 1); 
 by (dres_inst_tac [("n","n")] Suc_le_power 2); 
 by Auto_tac;  
@@ -267,7 +267,7 @@ qed "exponent_eq_0";
 Addsimps [exponent_eq_0];
 
 
-(* exponent_mult_add, easy inclusion.  Could weaken p\\<in>prime to 1'<p *)
+(* exponent_mult_add, easy inclusion.  Could weaken p\\<in>prime to Suc 0 < p *)
 Goal "[| 0 < a; 0 < b |]  \
 \     ==> (exponent p a) + (exponent p b) <= exponent p (a * b)";
 by (case_tac "p \\<in> prime" 1);
@@ -312,7 +312,7 @@ by (cut_inst_tac [("s","n"),("p","p")] power_exponent_dvd 1);
 by (auto_tac (claset() addDs [dvd_mult_left], simpset()));  
 qed "not_divides_exponent_0";
 
-Goal "exponent p 1' = 0";
+Goal "exponent p (Suc 0) = 0";
 by (case_tac "p \\<in> prime" 1);
 by (auto_tac (claset(), 
               simpset() addsimps [prime_iff, not_divides_exponent_0]));
@@ -357,7 +357,7 @@ qed "p_fac_forw";
 
 
 Goal "[| 0 < (k::nat); k < p^a; 0 < p; (p^r) dvd (p^a) - k |] ==> r <= a";
-by (res_inst_tac [("m","1'")] p_fac_forw_lemma 1);
+by (res_inst_tac [("m","Suc 0")] p_fac_forw_lemma 1);
 by Auto_tac;
 qed "r_le_a_forw";
 
@@ -422,7 +422,7 @@ by (asm_full_simp_tac (simpset() addsimps [Suc_diff_le]) 1);
 qed "p_not_div_choose";
 
 
-Goal "0 < m ==> exponent p ((p^a * m - 1') choose (p^a - 1')) = 0";
+Goal "0 < m ==> exponent p ((p^a * m - Suc 0) choose (p^a - Suc 0)) = 0";
 by (case_tac "p \\<in> prime" 1);
 by (Asm_simp_tac 2);
 by (forw_inst_tac [("a","a")] zero_less_prime_power 1);

@@ -114,26 +114,26 @@ primrec
 "succs (Invoke C mn fpTs) pc = [pc+1]"
 
 
-lemma 1: "2 < length a ==> (\<exists>l l' l'' ls. a = l#l'#l''#ls)"
+lemma 1: "Suc (Suc 0) < length a ==> (\<exists>l l' l'' ls. a = l#l'#l''#ls)"
 proof (cases a)
-  fix x xs assume "a = x#xs" "2 < length a"
+  fix x xs assume "a = x#xs" "Suc (Suc 0) < length a"
   thus ?thesis by - (cases xs, simp, cases "tl xs", auto)
 qed auto
 
-lemma 2: "\<not>(2 < length a) ==> a = [] \<or> (\<exists> l. a = [l]) \<or> (\<exists> l l'. a = [l,l'])"
+lemma 2: "\<not>(Suc (Suc 0) < length a) ==> a = [] \<or> (\<exists> l. a = [l]) \<or> (\<exists> l l'. a = [l,l'])"
 proof -;
-  assume "\<not>(2 < length a)"
-  hence "length a < (Suc 2)" by simp
-  hence * : "length a = 0 \<or> length a = 1' \<or> length a = 2" 
+  assume "\<not>(Suc (Suc 0) < length a)"
+  hence "length a < Suc (Suc (Suc 0))" by simp
+  hence * : "length a = 0 \<or> length a = Suc 0 \<or> length a = Suc (Suc 0)" 
     by (auto simp add: less_Suc_eq)
 
   { 
     fix x 
-    assume "length x = 1'"
+    assume "length x = Suc 0"
     hence "\<exists> l. x = [l]"  by - (cases x, auto)
   } note 0 = this
 
-  have "length a = 2 ==> \<exists>l l'. a = [l,l']" by (cases a, auto dest: 0)
+  have "length a = Suc (Suc 0) ==> \<exists>l l'. a = [l,l']" by (cases a, auto dest: 0)
   with * show ?thesis by (auto dest: 0)
 qed
 
@@ -152,7 +152,7 @@ lemma appLoad[simp]:
 
 lemma appStore[simp]:
 "(app (Store idx) G maxs rT (Some s)) = (\<exists> ts ST LT. s = (ts#ST,LT) \<and> idx < length LT)"
-  by (cases s, cases "2 < length (fst s)", auto dest: 1 2 simp add: app_def)
+  by (cases s, cases "Suc (Suc 0) < length (fst s)", auto dest: 1 2 simp add: app_def)
 
 lemma appLitPush[simp]:
 "(app (LitPush v) G maxs rT (Some s)) = (maxs < length (fst s) \<and> typeof (\<lambda>v. None) v \<noteq> None)"
@@ -162,13 +162,13 @@ lemma appGetField[simp]:
 "(app (Getfield F C) G maxs rT (Some s)) = 
  (\<exists> oT vT ST LT. s = (oT#ST, LT) \<and> is_class G C \<and>  
   field (G,C) F = Some (C,vT) \<and> G \<turnstile> oT \<preceq> (Class C))"
-  by (cases s, cases "2 < length (fst s)", auto dest!: 1 2 simp add: app_def)
+  by (cases s, cases "Suc (Suc 0) < length (fst s)", auto dest!: 1 2 simp add: app_def)
 
 lemma appPutField[simp]:
 "(app (Putfield F C) G maxs rT (Some s)) = 
  (\<exists> vT vT' oT ST LT. s = (vT#oT#ST, LT) \<and> is_class G C \<and> 
   field (G,C) F = Some (C, vT') \<and> G \<turnstile> oT \<preceq> (Class C) \<and> G \<turnstile> vT \<preceq> vT')"
-  by (cases s, cases "2 < length (fst s)", auto dest!: 1 2 simp add: app_def)
+  by (cases s, cases "Suc (Suc 0) < length (fst s)", auto dest!: 1 2 simp add: app_def)
 
 lemma appNew[simp]:
 "(app (New C) G maxs rT (Some s)) = (is_class G C \<and> maxs < length (fst s))"
@@ -181,27 +181,27 @@ lemma appCheckcast[simp]:
 
 lemma appPop[simp]:
 "(app Pop G maxs rT (Some s)) = (\<exists>ts ST LT. s = (ts#ST,LT))" 
-  by (cases s, cases "2 < length (fst s)", auto dest: 1 2 simp add: app_def)
+  by (cases s, cases "Suc (Suc 0) < length (fst s)", auto dest: 1 2 simp add: app_def)
 
 
 lemma appDup[simp]:
 "(app Dup G maxs rT (Some s)) = (\<exists>ts ST LT. s = (ts#ST,LT) \<and> maxs < Suc (length ST))" 
-  by (cases s, cases "2 < length (fst s)", auto dest: 1 2 simp add: app_def)
+  by (cases s, cases "Suc (Suc 0) < length (fst s)", auto dest: 1 2 simp add: app_def)
 
 
 lemma appDup_x1[simp]:
 "(app Dup_x1 G maxs rT (Some s)) = (\<exists>ts1 ts2 ST LT. s = (ts1#ts2#ST,LT) \<and> maxs < Suc (Suc (length ST)))" 
-  by (cases s, cases "2 < length (fst s)", auto dest: 1 2 simp add: app_def)
+  by (cases s, cases "Suc (Suc 0) < length (fst s)", auto dest: 1 2 simp add: app_def)
 
 
 lemma appDup_x2[simp]:
 "(app Dup_x2 G maxs rT (Some s)) = (\<exists>ts1 ts2 ts3 ST LT. s = (ts1#ts2#ts3#ST,LT) \<and> maxs < Suc (Suc (Suc (length ST))))"
-  by (cases s, cases "2 < length (fst s)", auto dest: 1 2 simp add: app_def)
+  by (cases s, cases "Suc (Suc 0) < length (fst s)", auto dest: 1 2 simp add: app_def)
 
 
 lemma appSwap[simp]:
 "app Swap G maxs rT (Some s) = (\<exists>ts1 ts2 ST LT. s = (ts1#ts2#ST,LT))" 
-  by (cases s, cases "2 < length (fst s)", auto dest: 1 2 simp add: app_def)
+  by (cases s, cases "Suc (Suc 0) < length (fst s)", auto dest: 1 2 simp add: app_def)
 
 
 lemma appIAdd[simp]:
@@ -238,12 +238,12 @@ qed
 lemma appIfcmpeq[simp]:
 "app (Ifcmpeq b) G maxs rT (Some s) = (\<exists>ts1 ts2 ST LT. s = (ts1#ts2#ST,LT) \<and> 
  ((\<exists> p. ts1 = PrimT p \<and> ts2 = PrimT p) \<or> (\<exists>r r'. ts1 = RefT r \<and> ts2 = RefT r')))" 
-  by (cases s, cases "2 < length (fst s)", auto dest: 1 2 simp add: app_def)
+  by (cases s, cases "Suc (Suc 0) < length (fst s)", auto dest: 1 2 simp add: app_def)
 
 
 lemma appReturn[simp]:
 "app Return G maxs rT (Some s) = (\<exists>T ST LT. s = (T#ST,LT) \<and> (G \<turnstile> T \<preceq> rT))" 
-  by (cases s, cases "2 < length (fst s)", auto dest: 1 2 simp add: app_def)
+  by (cases s, cases "Suc (Suc 0) < length (fst s)", auto dest: 1 2 simp add: app_def)
 
 lemma appGoto[simp]:
 "app (Goto branch) G maxs rT (Some s) = True"

@@ -407,7 +407,7 @@ qed "slen_scons";
 
 Addsimps [slen_empty, slen_scons];
 
-Goal "(#x < Fin 1') = (x = UU)";
+Goal "(#x < Fin (Suc 0)) = (x = UU)";
 by (stream_case_tac "x" 1);
 by (auto_tac (claset(), simpset() delsimps [thm "iSuc_Fin"] addsimps
  [thm "Fin_0", thm "iSuc_Fin" RS sym, thm "i0_iless_iSuc", thm "iSuc_mono"]));

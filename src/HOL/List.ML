@@ -1323,7 +1323,7 @@ by Auto_tac;
 qed_spec_mp "hd_replicate";
 Addsimps [hd_replicate];
 
-Goal "n ~= 0 --> tl(replicate n x) = replicate (n-1) x";
+Goal "n ~= 0 --> tl(replicate n x) = replicate (n - 1) x";
 by (induct_tac "n" 1);
 by Auto_tac;
 qed_spec_mp "tl_replicate";
@@ -1506,19 +1506,19 @@ Addsimps [sublist_upt_eq_take];
 AddIffs (map rename_numerals
 	  [length_0_conv, length_greater_0_conv, sum_eq_0_conv]);
 
-Goal "take n (x#xs) = (if n = #0 then [] else x # take (n-#1) xs)";
+Goal "take n (x#xs) = (if n = Numeral0 then [] else x # take (n - Numeral1) xs)";
 by (case_tac "n" 1);
 by (ALLGOALS 
     (asm_simp_tac (simpset() addsimps [numeral_0_eq_0, numeral_1_eq_1])));
 qed "take_Cons'";
 
-Goal "drop n (x#xs) = (if n = #0 then x#xs else drop (n-#1) xs)";
+Goal "drop n (x#xs) = (if n = Numeral0 then x#xs else drop (n - Numeral1) xs)";
 by (case_tac "n" 1);
 by (ALLGOALS
     (asm_simp_tac (simpset() addsimps [numeral_0_eq_0, numeral_1_eq_1])));
 qed "drop_Cons'";
 
-Goal "(x#xs)!n = (if n = #0 then x else xs!(n-#1))";
+Goal "(x#xs)!n = (if n = Numeral0 then x else xs!(n - Numeral1))";
 by (case_tac "n" 1);
 by (ALLGOALS
     (asm_simp_tac (simpset() addsimps [numeral_0_eq_0, numeral_1_eq_1])));

@@ -40,20 +40,20 @@ qed
 
 text {* \medskip Some lemmas for the reals. *}
 
-lemma real_add_minus_eq: "x - y = (#0::real) \<Longrightarrow> x = y"
+lemma real_add_minus_eq: "x - y = (Numeral0::real) \<Longrightarrow> x = y"
   by simp
 
-lemma abs_minus_one: "abs (- (#1::real)) = #1"
+lemma abs_minus_one: "abs (- (Numeral1::real)) = Numeral1"
   by simp
 
 lemma real_mult_le_le_mono1a:
-  "(#0::real) \<le> z \<Longrightarrow> x \<le> y \<Longrightarrow> z * x  \<le> z * y"
+  "(Numeral0::real) \<le> z \<Longrightarrow> x \<le> y \<Longrightarrow> z * x  \<le> z * y"
   by (simp add: real_mult_le_mono2)
 
 lemma real_mult_le_le_mono2:
-  "(#0::real) \<le> z \<Longrightarrow> x \<le> y \<Longrightarrow> x * z \<le> y * z"
+  "(Numeral0::real) \<le> z \<Longrightarrow> x \<le> y \<Longrightarrow> x * z \<le> y * z"
 proof -
-  assume "(#0::real) \<le> z"  "x \<le> y"
+  assume "(Numeral0::real) \<le> z"  "x \<le> y"
   hence "x < y \<or> x = y" by (auto simp add: order_le_less)
   thus ?thesis
   proof
@@ -66,11 +66,11 @@ proof -
 qed
 
 lemma real_mult_less_le_anti:
-  "z < (#0::real) \<Longrightarrow> x \<le> y \<Longrightarrow> z * y \<le> z * x"
+  "z < (Numeral0::real) \<Longrightarrow> x \<le> y \<Longrightarrow> z * y \<le> z * x"
 proof -
-  assume "z < #0"  "x \<le> y"
-  hence "#0 < - z" by simp
-  hence "#0 \<le> - z" by (rule order_less_imp_le)
+  assume "z < Numeral0"  "x \<le> y"
+  hence "Numeral0 < - z" by simp
+  hence "Numeral0 \<le> - z" by (rule order_less_imp_le)
   hence "x * (- z) \<le> y * (- z)"
     by (rule real_mult_le_le_mono2)
   hence  "- (x * z) \<le> - (y * z)"
@@ -79,31 +79,31 @@ proof -
 qed
 
 lemma real_mult_less_le_mono:
-  "(#0::real) < z \<Longrightarrow> x \<le> y \<Longrightarrow> z * x \<le> z * y"
+  "(Numeral0::real) < z \<Longrightarrow> x \<le> y \<Longrightarrow> z * x \<le> z * y"
 proof -
-  assume "#0 < z"  "x \<le> y"
-  have "#0 \<le> z" by (rule order_less_imp_le)
+  assume "Numeral0 < z"  "x \<le> y"
+  have "Numeral0 \<le> z" by (rule order_less_imp_le)
   hence "x * z \<le> y * z"
     by (rule real_mult_le_le_mono2)
   thus ?thesis by (simp only: real_mult_commute)
 qed
 
-lemma real_inverse_gt_zero1: "#0 < (x::real) \<Longrightarrow> #0 < inverse x"
+lemma real_inverse_gt_zero1: "Numeral0 < (x::real) \<Longrightarrow> Numeral0 < inverse x"
 proof -
-  assume "#0 < x"
+  assume "Numeral0 < x"
   have "0 < x" by simp
   hence "0 < inverse x" by (rule real_inverse_gt_zero)
   thus ?thesis by simp
 qed
 
-lemma real_mult_inv_right1: "(x::real) \<noteq> #0 \<Longrightarrow> x * inverse x = #1"
+lemma real_mult_inv_right1: "(x::real) \<noteq> Numeral0 \<Longrightarrow> x * inverse x = Numeral1"
   by simp
 
-lemma real_mult_inv_left1: "(x::real) \<noteq> #0 \<Longrightarrow> inverse x * x = #1"
+lemma real_mult_inv_left1: "(x::real) \<noteq> Numeral0 \<Longrightarrow> inverse x * x = Numeral1"
   by simp
 
 lemma real_le_mult_order1a:
-  "(#0::real) \<le> x \<Longrightarrow> #0 \<le> y \<Longrightarrow> #0 \<le> x * y"
+  "(Numeral0::real) \<le> x \<Longrightarrow> Numeral0 \<le> y \<Longrightarrow> Numeral0 \<le> x * y"
   by (simp add: real_0_le_mult_iff)
 
 lemma real_mult_diff_distrib:

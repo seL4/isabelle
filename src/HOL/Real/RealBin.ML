@@ -13,11 +13,11 @@ by (simp_tac (simpset() addsimps [real_number_of_def]) 1);
 qed "real_number_of";
 Addsimps [real_number_of];
 
-Goalw [real_number_of_def] "(0::real) = #0";
+Goalw [real_number_of_def] "(0::real) = Numeral0";
 by (simp_tac (simpset() addsimps [real_of_int_zero RS sym]) 1);
 qed "zero_eq_numeral_0";
 
-Goalw [real_number_of_def] "1r = #1";
+Goalw [real_number_of_def] "1r = Numeral1";
 by (simp_tac (simpset() addsimps [real_of_int_one RS sym]) 1);
 qed "one_eq_numeral_1";
 
@@ -58,18 +58,18 @@ qed "mult_real_number_of";
 
 Addsimps [mult_real_number_of];
 
-Goal "(#2::real) = #1 + #1";
+Goal "(# 2::real) = Numeral1 + Numeral1";
 by (Simp_tac 1);
 val lemma = result();
 
 (*For specialist use: NOT as default simprules*)
-Goal "#2 * z = (z+z::real)";
+Goal "# 2 * z = (z+z::real)";
 by (simp_tac (simpset ()
 	      addsimps [lemma, real_add_mult_distrib,
 			one_eq_numeral_1 RS sym]) 1);
 qed "real_mult_2";
 
-Goal "z * #2 = (z+z::real)";
+Goal "z * # 2 = (z+z::real)";
 by (stac real_mult_commute 1 THEN rtac real_mult_2 1);
 qed "real_mult_2_right";
 
@@ -111,12 +111,12 @@ Addsimps [le_real_number_of_eq_not_less];
 
 (*** New versions of existing theorems involving 0, 1r ***)
 
-Goal "- #1 = (#-1::real)";
+Goal "- Numeral1 = (# -1::real)";
 by (Simp_tac 1);
 qed "minus_numeral_one";
 
 
-(*Maps 0 to #0 and 1r to #1 and -1r to #-1*)
+(*Maps 0 to Numeral0 and 1r to Numeral1 and -1r to # -1*)
 val real_numeral_ss = 
     HOL_ss addsimps [zero_eq_numeral_0, one_eq_numeral_1, 
 		     minus_numeral_one];
@@ -158,13 +158,13 @@ Addsimps [zero_eq_numeral_0,one_eq_numeral_1];
 
 (** real from type "nat" **)
 
-Goal "(#0 < real (n::nat)) = (0<n)";
+Goal "(Numeral0 < real (n::nat)) = (0<n)";
 by (simp_tac (HOL_ss addsimps [real_of_nat_less_iff, 
                          rename_numerals real_of_nat_zero RS sym]) 1);
 qed "zero_less_real_of_nat_iff";
 AddIffs [zero_less_real_of_nat_iff];
 
-Goal "(#0 <= real (n::nat)) = (0<=n)";
+Goal "(Numeral0 <= real (n::nat)) = (0<=n)";
 by (simp_tac (HOL_ss addsimps [real_of_nat_le_iff, 
                          rename_numerals real_of_nat_zero RS sym]) 1);
 qed "zero_le_real_of_nat_iff";
@@ -198,7 +198,7 @@ Addsimps [real_add_number_of_left, real_mult_number_of_left,
 
 (*"neg" is used in rewrite rules for binary comparisons*)
 Goal "real (number_of v :: nat) = \
-\        (if neg (number_of v) then #0 \
+\        (if neg (number_of v) then Numeral0 \
 \         else (number_of v :: real))";
 by (simp_tac
     (HOL_ss addsimps [nat_number_of_def, real_of_nat_real_of_int,
@@ -212,15 +212,15 @@ Addsimps [real_of_nat_number_of];
 
 (** Combining of literal coefficients in sums of products **)
 
-Goal "(x < y) = (x-y < (#0::real))";
+Goal "(x < y) = (x-y < (Numeral0::real))";
 by (simp_tac (simpset() addsimps [real_diff_less_eq]) 1);   
 qed "real_less_iff_diff_less_0";
 
-Goal "(x = y) = (x-y = (#0::real))";
+Goal "(x = y) = (x-y = (Numeral0::real))";
 by (simp_tac (simpset() addsimps [real_diff_eq_eq]) 1);   
 qed "real_eq_iff_diff_eq_0";
 
-Goal "(x <= y) = (x-y <= (#0::real))";
+Goal "(x <= y) = (x-y <= (Numeral0::real))";
 by (simp_tac (simpset() addsimps [real_diff_le_eq]) 1);   
 qed "real_le_iff_diff_le_0";
 
@@ -295,7 +295,7 @@ val mk_plus = HOLogic.mk_binop "op +";
 
 val uminus_const = Const ("uminus", HOLogic.realT --> HOLogic.realT);
 
-(*Thus mk_sum[t] yields t+#0; longer sums don't have a trailing zero*)
+(*Thus mk_sum[t] yields t+Numeral0; longer sums don't have a trailing zero*)
 fun mk_sum []        = zero
   | mk_sum [t,u]     = mk_plus (t, u)
   | mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
@@ -355,7 +355,7 @@ fun find_first_coeff past u [] = raise TERM("find_first_coeff", [])
 	handle TERM _ => find_first_coeff (t::past) u terms;
 
 
-(*Simplify #1*n and n*#1 to n*)
+(*Simplify Numeral1*n and n*Numeral1 to n*)
 val add_0s = map rename_numerals
                  [real_add_zero_left, real_add_zero_right];
 val mult_plus_1s = map rename_numerals
@@ -488,7 +488,7 @@ val cancel_numerals =
 structure CombineNumeralsData =
   struct
   val add		= op + : int*int -> int 
-  val mk_sum    	= long_mk_sum    (*to work for e.g. #2*x + #3*x *)
+  val mk_sum    	= long_mk_sum    (*to work for e.g. # 2*x + # 3*x *)
   val dest_sum		= dest_sum
   val mk_coeff		= mk_coeff
   val dest_coeff	= dest_coeff 1
@@ -548,35 +548,35 @@ set timing;
 set trace_simp;
 fun test s = (Goal s; by (Simp_tac 1)); 
 
-test "l + #2 + #2 + #2 + (l + #2) + (oo + #2) = (uu::real)";
+test "l + # 2 + # 2 + # 2 + (l + # 2) + (oo + # 2) = (uu::real)";
 
-test "#2*u = (u::real)";
-test "(i + j + #12 + (k::real)) - #15 = y";
-test "(i + j + #12 + (k::real)) - #5 = y";
+test "# 2*u = (u::real)";
+test "(i + j + # 12 + (k::real)) - # 15 = y";
+test "(i + j + # 12 + (k::real)) - # 5 = y";
 
 test "y - b < (b::real)";
-test "y - (#3*b + c) < (b::real) - #2*c";
+test "y - (# 3*b + c) < (b::real) - # 2*c";
 
-test "(#2*x - (u*v) + y) - v*#3*u = (w::real)";
-test "(#2*x*u*v + (u*v)*#4 + y) - v*u*#4 = (w::real)";
-test "(#2*x*u*v + (u*v)*#4 + y) - v*u = (w::real)";
-test "u*v - (x*u*v + (u*v)*#4 + y) = (w::real)";
+test "(# 2*x - (u*v) + y) - v*# 3*u = (w::real)";
+test "(# 2*x*u*v + (u*v)*# 4 + y) - v*u*# 4 = (w::real)";
+test "(# 2*x*u*v + (u*v)*# 4 + y) - v*u = (w::real)";
+test "u*v - (x*u*v + (u*v)*# 4 + y) = (w::real)";
 
-test "(i + j + #12 + (k::real)) = u + #15 + y";
-test "(i + j*#2 + #12 + (k::real)) = j + #5 + y";
+test "(i + j + # 12 + (k::real)) = u + # 15 + y";
+test "(i + j*# 2 + # 12 + (k::real)) = j + # 5 + y";
 
-test "#2*y + #3*z + #6*w + #2*y + #3*z + #2*u = #2*y' + #3*z' + #6*w' + #2*y' + #3*z' + u + (vv::real)";
+test "# 2*y + # 3*z + # 6*w + # 2*y + # 3*z + # 2*u = # 2*y' + # 3*z' + # 6*w' + # 2*y' + # 3*z' + u + (vv::real)";
 
 test "a + -(b+c) + b = (d::real)";
 test "a + -(b+c) - b = (d::real)";
 
 (*negative numerals*)
-test "(i + j + #-2 + (k::real)) - (u + #5 + y) = zz";
-test "(i + j + #-3 + (k::real)) < u + #5 + y";
-test "(i + j + #3 + (k::real)) < u + #-6 + y";
-test "(i + j + #-12 + (k::real)) - #15 = y";
-test "(i + j + #12 + (k::real)) - #-15 = y";
-test "(i + j + #-12 + (k::real)) - #-15 = y";
+test "(i + j + # -2 + (k::real)) - (u + # 5 + y) = zz";
+test "(i + j + # -3 + (k::real)) < u + # 5 + y";
+test "(i + j + # 3 + (k::real)) < u + # -6 + y";
+test "(i + j + # -12 + (k::real)) - # 15 = y";
+test "(i + j + # 12 + (k::real)) - # -15 = y";
+test "(i + j + # -12 + (k::real)) - # -15 = y";
 *)
 
 

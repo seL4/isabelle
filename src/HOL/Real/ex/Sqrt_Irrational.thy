@@ -15,7 +15,7 @@ syntax (HTML output)
 syntax (output)
   "_square" :: "'a => 'a"  ("(_^2)" [1000] 999)
 translations
-  "x\<twosuperior>" == "x^2"
+  "x\<twosuperior>" == "x^Suc (Suc 0)"
 
 
 subsection {* The set of rational numbers *}
@@ -114,15 +114,15 @@ text {*
   this formally :-).
 *}
 
-theorem "x\<twosuperior> = real 2 ==> x \<notin> \<rat>"
+theorem "x\<twosuperior> = real (# 2::nat) ==> x \<notin> \<rat>"
 proof (rule sqrt_prime_irrational)
   {
-    fix m assume dvd: "m dvd 2"
-    hence "m \<le> 2" by (simp add: dvd_imp_le)
+    fix m :: nat assume dvd: "m dvd # 2"
+    hence "m \<le> # 2" by (simp add: dvd_imp_le)
     moreover from dvd have "m \<noteq> 0" by (auto dest: dvd_0_left iff del: neq0_conv)
-    ultimately have "m = 1 \<or> m = 2" by arith
+    ultimately have "m = 1 \<or> m = # 2" by arith
   }
-  thus "2 \<in> prime" by (simp add: prime_def)
+  thus "# 2 \<in> prime" by (simp add: prime_def)
 qed
 
 text {*

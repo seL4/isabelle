@@ -65,7 +65,7 @@ Goal "m mod (n::nat) = (if m<n then m else (m-n) mod n)";
 by (asm_simp_tac (simpset() addsimps [mod_geq]) 1);
 qed "mod_if";
 
-Goal "m mod 1' = 0";
+Goal "m mod Suc 0 = 0";
 by (induct_tac "m" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [mod_geq])));
 qed "mod_1";
@@ -387,7 +387,7 @@ qed "mod_mult_mult2";
 
 (*** Further facts about div and mod ***)
 
-Goal "m div 1' = m";
+Goal "m div Suc 0 = m";
 by (induct_tac "m" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [div_geq])));
 qed "div_1";
@@ -529,12 +529,12 @@ by (blast_tac (claset() addIs [dvd_0_left]) 1);
 qed "dvd_0_left_iff";
 AddIffs [dvd_0_left_iff];
 
-Goalw [dvd_def] "1' dvd k";
+Goalw [dvd_def] "Suc 0 dvd k";
 by (Simp_tac 1);
 qed "dvd_1_left";
 AddIffs [dvd_1_left];
 
-Goal "(m dvd 1') = (m = 1')";
+Goal "(m dvd Suc 0) = (m = Suc 0)";
 by (simp_tac (simpset() addsimps [dvd_def]) 1); 
 qed "dvd_1_iff_1";
 Addsimps [dvd_1_iff_1];
@@ -615,14 +615,14 @@ by (etac exE 1);
 by (asm_full_simp_tac (simpset() addsimps mult_ac) 1);
 qed "dvd_mult_cancel";
 
-Goal "0<m ==> (m*n dvd m) = (n=1)";
+Goal "0<m ==> (m*n dvd m) = (n = (1::nat))";
 by Auto_tac;  
 by (subgoal_tac "m*n dvd m*1" 1);
 by (dtac dvd_mult_cancel 1); 
 by Auto_tac;  
 qed "dvd_mult_cancel1";
 
-Goal "0<m ==> (n*m dvd m) = (n=1)";
+Goal "0<m ==> (n*m dvd m) = (n = (1::nat))";
 by (stac mult_commute 1); 
 by (etac dvd_mult_cancel1 1); 
 qed "dvd_mult_cancel2";

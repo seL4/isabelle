@@ -35,7 +35,7 @@ constdefs
   
 defs (*of overloaded constants*)
   
-  Zero_def      "0 == int 0"
+  Zero_int_def      "0 == int 0"
 
   zadd_def
    "z + w == 

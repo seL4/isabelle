@@ -15,8 +15,8 @@ constdefs
   LIM :: [real=>real,real,real] => bool
 				("((_)/ -- (_)/ --> (_))" [60, 0, 60] 60)
   "f -- a --> L ==
-     ALL r. #0 < r --> 
-	     (EX s. #0 < s & (ALL x. (x ~= a & (abs(x + -a) < s)
+     ALL r. Numeral0 < r --> 
+	     (EX s. Numeral0 < s & (ALL x. (x ~= a & (abs(x + -a) < s)
 			  --> abs(f x + -L) < r)))"
 
   NSLIM :: [real=>real,real,real] => bool
@@ -36,7 +36,7 @@ constdefs
   (* differentiation: D is derivative of function f at x *)
   deriv:: [real=>real,real,real] => bool
 			    ("(DERIV (_)/ (_)/ :> (_))" [60, 0, 60] 60)
-  "DERIV f x :> D == ((%h. (f(x + h) + -f(x))/h) -- #0 --> D)"
+  "DERIV f x :> D == ((%h. (f(x + h) + -f(x))/h) -- Numeral0 --> D)"
 
   nsderiv :: [real=>real,real,real] => bool
 			    ("(NSDERIV (_)/ (_)/ :> (_))" [60, 0, 60] 60)
@@ -55,8 +55,8 @@ constdefs
 		       inc = (*f* f)(hypreal_of_real x + h) + -hypreal_of_real (f x))"
 
   isUCont :: (real=>real) => bool
-  "isUCont f ==  (ALL r. #0 < r --> 
-		      (EX s. #0 < s & (ALL x y. abs(x + -y) < s
+  "isUCont f ==  (ALL r. Numeral0 < r --> 
+		      (EX s. Numeral0 < s & (ALL x y. abs(x + -y) < s
 			    --> abs(f x + -f y) < r)))"
 
   isNSUCont :: (real=>real) => bool
@@ -71,8 +71,8 @@ primrec
   "Bolzano_bisect P a b 0 = (a,b)"
   "Bolzano_bisect P a b (Suc n) =
       (let (x,y) = Bolzano_bisect P a b n
-       in if P(x, (x+y)/#2) then ((x+y)/#2, y)
-                            else (x, (x+y)/#2) )"
+       in if P(x, (x+y)/# 2) then ((x+y)/# 2, y)
+                            else (x, (x+y)/# 2) )"
   
 
 end

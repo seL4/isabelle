@@ -13,7 +13,7 @@ constdefs
   insert_map :: "[nat, 'b, nat=>'b] => (nat=>'b)"
     "insert_map i z f k == if k<i then f k
                            else if k=i then z
-                           else f(k-1)"
+                           else f(k - 1)"
 
   delete_map :: "[nat, nat=>'b] => (nat=>'b)"
     "delete_map i g k == if k<i then g k else g (Suc k)"

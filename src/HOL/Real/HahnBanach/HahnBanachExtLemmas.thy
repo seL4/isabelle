@@ -279,14 +279,14 @@ proof
     also have "... \<le> p (y + a \<cdot> x0)"
     proof (rule linorder_cases)
 
-      assume z: "a = #0"
+      assume z: "a = Numeral0"
       with vs y a show ?thesis by simp
 
     txt {* In the case @{text "a < 0"}, we use @{text "a\<^sub>1"}
     with @{text ya} taken as @{text "y / a"}: *}
 
     next
-      assume lz: "a < #0" hence nz: "a \<noteq> #0" by simp
+      assume lz: "a < Numeral0" hence nz: "a \<noteq> Numeral0" by simp
       from a1
       have "- p (inverse a \<cdot> y + x0) - h (inverse a \<cdot> y) \<le> xi"
         by (rule bspec) (simp!)
@@ -315,7 +315,7 @@ proof
         with @{text ya} taken as @{text "y / a"}: *}
 
     next
-      assume gz: "#0 < a" hence nz: "a \<noteq> #0" by simp
+      assume gz: "Numeral0 < a" hence nz: "a \<noteq> Numeral0" by simp
       from a2 have "xi \<le> p (inverse a \<cdot> y + x0) - h (inverse a \<cdot> y)"
         by (rule bspec) (simp!)
 

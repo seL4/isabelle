@@ -69,7 +69,7 @@ constdefs
 defs
 
   (*overloaded*)
-  real_of_nat_def   "real n == real_of_posnat n + (-1r)"
+  real_of_nat_def   "real n == real_of_posnat n + (- 1r)"
 
   real_add_def  
   "P+Q == Abs_REAL(UN p1:Rep_REAL(P). UN p2:Rep_REAL(Q).

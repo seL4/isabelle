@@ -6,7 +6,7 @@
 AVL trees: at the moment only insertion.
 This version works exclusively with nat.
 Balance check could be simplified by working with int:
-"isbal (MKT n l r) = (abs(int(height l) - int(height r)) <= #1 &
+"isbal (MKT n l r) = (abs(int(height l) - int(height r)) <= Numeral1 &
                       isbal l & isbal r)"
 *)
 

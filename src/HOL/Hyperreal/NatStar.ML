@@ -404,7 +404,7 @@ qed "starfunNat_real_of_nat";
 Goal "N : HNatInfinite \
 \  ==> (*fNat* (%x::nat. inverse(real x))) N = inverse(hypreal_of_hypnat N)";
 by (res_inst_tac [("f1","inverse")]  (starfun_stafunNat_o2 RS subst) 1);
-by (subgoal_tac "hypreal_of_hypnat N ~= #0" 1);
+by (subgoal_tac "hypreal_of_hypnat N ~= Numeral0" 1);
 by (auto_tac (claset(), 
        simpset() addsimps [starfunNat_real_of_nat, starfun_inverse_inverse]));
 qed "starfunNat_inverse_real_of_nat_eq";

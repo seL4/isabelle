@@ -68,7 +68,7 @@ by (case_tac "m" 1);
 by Auto_tac;
 qed "less_Suc_eq_0_disj";
 
-val prems = Goal "[| P 0; P(1'); !!k. P k ==> P (Suc (Suc k)) |] ==> P n";
+val prems = Goal "[| P 0; P(Suc 0); !!k. P k ==> P (Suc (Suc k)) |] ==> P n";
 by (rtac nat_less_induct 1);
 by (case_tac "n" 1);
 by (case_tac "nat" 2);
@@ -157,7 +157,7 @@ Addsimps [diff_0_eq_0, diff_Suc_Suc];
 (* Could be (and is, below) generalized in various ways;
    However, none of the generalizations are currently in the simpset,
    and I dread to think what happens if I put them in *)
-Goal "0 < n ==> Suc(n-1') = n";
+Goal "0 < n ==> Suc(n - Suc 0) = n";
 by (asm_simp_tac (simpset() addsplits [nat.split]) 1);
 qed "Suc_pred";
 Addsimps [Suc_pred];
@@ -238,12 +238,12 @@ by (Auto_tac);
 qed "add_is_0";
 AddIffs [add_is_0];
 
-Goal "(m+n=1') = (m=1' & n=0 | m=0 & n=1')";
+Goal "(m+n= Suc 0) = (m= Suc 0 & n=0 | m=0 & n= Suc 0)";
 by (case_tac "m" 1);
 by (Auto_tac);
 qed "add_is_1";
 
-Goal "(1' = m+n) = (m=1' & n=0 | m=0 & n=1')";
+Goal "(Suc 0 = m+n) = (m=Suc 0 & n=0 | m=0 & n= Suc 0)";
 by (case_tac "m" 1);
 by (Auto_tac);
 qed "one_is_add";
@@ -396,11 +396,11 @@ qed "mult_Suc_right";
 
 Addsimps [mult_0_right, mult_Suc_right];
 
-Goal "1 * n = n";
+Goal "(1::nat) * n = n";
 by (Asm_simp_tac 1);
 qed "mult_1";
 
-Goal "n * 1 = n";
+Goal "n * (1::nat) = n";
 by (Asm_simp_tac 1);
 qed "mult_1_right";
 
@@ -638,14 +638,14 @@ by (ALLGOALS Asm_simp_tac);
 qed "zero_less_mult_iff";
 Addsimps [zero_less_mult_iff];
 
-Goal "(1' <= m*n) = (1<=m & 1<=n)";
+Goal "(Suc 0 <= m*n) = (1<=m & 1<=n)";
 by (induct_tac "m" 1);
 by (case_tac "n" 2);
 by (ALLGOALS Asm_simp_tac);
 qed "one_le_mult_iff";
 Addsimps [one_le_mult_iff];
 
-Goal "(m*n = 1') = (m=1 & n=1)";
+Goal "(m*n = Suc 0) = (m=1 & n=1)";
 by (induct_tac "m" 1);
 by (Simp_tac 1);
 by (induct_tac "n" 1);
@@ -654,7 +654,7 @@ by (fast_tac (claset() addss simpset()) 1);
 qed "mult_eq_1_iff";
 Addsimps [mult_eq_1_iff];
 
-Goal "(1' = m*n) = (m=1 & n=1)";
+Goal "(Suc 0 = m*n) = (m=1 & n=1)";
 by(rtac (mult_eq_1_iff RSN (2,trans)) 1);
 by (fast_tac (claset() addss simpset()) 1);
 qed "one_eq_mult_iff";

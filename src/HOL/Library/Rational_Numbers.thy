@@ -17,7 +17,7 @@ subsubsection {* The type of fractions *}
 
 typedef fraction = "{(a, b) :: int \<times> int | a b. b \<noteq> 0}"
 proof
-  show "(0, #1) \<in> ?fraction" by simp
+  show "(0, Numeral1) \<in> ?fraction" by simp
 qed
 
 constdefs
@@ -140,7 +140,7 @@ instance fraction :: inverse ..
 instance fraction :: ord ..
 
 defs (overloaded)
-  zero_fraction_def: "0 == fract 0 #1"
+  zero_fraction_def: "0 == fract 0 Numeral1"
   add_fraction_def: "Q + R ==
     fract (num Q * den R + num R * den Q) (den Q * den R)"
   minus_fraction_def: "-Q == fract (-(num Q)) (den Q)"
@@ -386,9 +386,9 @@ defs (overloaded)
   le_rat_def: "q \<le> r == fraction_of q \<le> fraction_of r"
   less_rat_def: "q < r == q \<le> r \<and> q \<noteq> (r::rat)"
   abs_rat_def: "\<bar>q\<bar> == if q < 0 then -q else (q::rat)"
-  number_of_rat_def: "number_of b == Fract (number_of b) #1"
+  number_of_rat_def: "number_of b == Fract (number_of b) Numeral1"
 
-theorem zero_rat: "0 = Fract 0 #1"
+theorem zero_rat: "0 = Fract 0 Numeral1"
   by (simp add: zero_rat_def zero_fraction_def rat_of_def Fract_def)
 
 theorem add_rat: "b \<noteq> 0 ==> d \<noteq> 0 ==>
@@ -497,17 +497,17 @@ proof
     by (induct q) (simp add: zero_rat minus_rat add_rat eq_rat)
   show "q - r = q + (-r)"
     by (induct q, induct r) (simp add: add_rat minus_rat diff_rat)
-  show "(0::rat) = #0"
+  show "(0::rat) = Numeral0"
     by (simp add: zero_rat number_of_rat_def)
   show "(q * r) * s = q * (r * s)"
     by (induct q, induct r, induct s) (simp add: mult_rat zmult_ac)
   show "q * r = r * q"
     by (induct q, induct r) (simp add: mult_rat zmult_ac)
-  show "#1 * q = q"
+  show "Numeral1 * q = q"
     by (induct q) (simp add: number_of_rat_def mult_rat)
   show "(q + r) * s = q * s + r * s"
     by (induct q, induct r, induct s) (simp add: add_rat mult_rat eq_rat int_distrib)
-  show "q \<noteq> 0 ==> inverse q * q = #1"
+  show "q \<noteq> 0 ==> inverse q * q = Numeral1"
     by (induct q) (simp add: inverse_rat mult_rat number_of_rat_def zero_rat eq_rat)
   show "r \<noteq> 0 ==> q / r = q * inverse r"
     by (induct q, induct r) (simp add: mult_rat divide_rat inverse_rat zero_rat eq_rat)
@@ -630,15 +630,15 @@ subsection {* Embedding integers *}
 
 constdefs
   rat :: "int => rat"    (* FIXME generalize int to any numeric subtype *)
-  "rat z == Fract z #1"
+  "rat z == Fract z Numeral1"
   int_set :: "rat set"    ("\<int>")    (* FIXME generalize rat to any numeric supertype *)
   "\<int> == range rat"
 
 lemma rat_inject: "(rat z = rat w) = (z = w)"
 proof
   assume "rat z = rat w"
-  hence "Fract z #1 = Fract w #1" by (unfold rat_def)
-  hence "\<lfloor>fract z #1\<rfloor> = \<lfloor>fract w #1\<rfloor>" ..
+  hence "Fract z Numeral1 = Fract w Numeral1" by (unfold rat_def)
+  hence "\<lfloor>fract z Numeral1\<rfloor> = \<lfloor>fract w Numeral1\<rfloor>" ..
   thus "z = w" by auto
 next
   assume "z = w"

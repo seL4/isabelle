@@ -20,25 +20,25 @@ consts
   wset :: "int * int => int set"
 
 defs
-  inv_def: "inv p a == (a^(nat (p - #2))) mod p"
+  inv_def: "inv p a == (a^(nat (p - # 2))) mod p"
 
 recdef wset
   "measure ((\<lambda>(a, p). nat a) :: int * int => nat)"
   "wset (a, p) =
-    (if #1 < a then
-      let ws = wset (a - #1, p)
+    (if Numeral1 < a then
+      let ws = wset (a - Numeral1, p)
       in (if a \<in> ws then ws else insert a (insert (inv p a) ws)) else {})"
 
 
 text {* \medskip @{term [source] inv} *}
 
-lemma aux: "#1 < m ==> Suc (nat (m - #2)) = nat (m - #1)"
+lemma aux: "Numeral1 < m ==> Suc (nat (m - # 2)) = nat (m - Numeral1)"
   apply (subst int_int_eq [symmetric])
   apply auto
   done
 
 lemma inv_is_inv:
-    "p \<in> zprime \<Longrightarrow> #0 < a \<Longrightarrow> a < p ==> [a * inv p a = #1] (mod p)"
+    "p \<in> zprime \<Longrightarrow> Numeral0 < a \<Longrightarrow> a < p ==> [a * inv p a = Numeral1] (mod p)"
   apply (unfold inv_def)
   apply (subst zcong_zmod)
   apply (subst zmod_zmult1_eq [symmetric])
@@ -52,71 +52,71 @@ lemma inv_is_inv:
   done
 
 lemma inv_distinct:
-    "p \<in> zprime \<Longrightarrow> #1 < a \<Longrightarrow> a < p - #1 ==> a \<noteq> inv p a"
+    "p \<in> zprime \<Longrightarrow> Numeral1 < a \<Longrightarrow> a < p - Numeral1 ==> a \<noteq> inv p a"
   apply safe
   apply (cut_tac a = a and p = p in zcong_square)
      apply (cut_tac [3] a = a and p = p in inv_is_inv)
         apply auto
-   apply (subgoal_tac "a = #1")
+   apply (subgoal_tac "a = Numeral1")
     apply (rule_tac [2] m = p in zcong_zless_imp_eq)
-        apply (subgoal_tac [7] "a = p - #1")
+        apply (subgoal_tac [7] "a = p - Numeral1")
          apply (rule_tac [8] m = p in zcong_zless_imp_eq)
              apply auto
   done
 
 lemma inv_not_0:
-    "p \<in> zprime \<Longrightarrow> #1 < a \<Longrightarrow> a < p - #1 ==> inv p a \<noteq> #0"
+    "p \<in> zprime \<Longrightarrow> Numeral1 < a \<Longrightarrow> a < p - Numeral1 ==> inv p a \<noteq> Numeral0"
   apply safe
   apply (cut_tac a = a and p = p in inv_is_inv)
      apply (unfold zcong_def)
      apply auto
-  apply (subgoal_tac "\<not> p dvd #1")
+  apply (subgoal_tac "\<not> p dvd Numeral1")
    apply (rule_tac [2] zdvd_not_zless)
-    apply (subgoal_tac "p dvd #1")
+    apply (subgoal_tac "p dvd Numeral1")
      prefer 2
      apply (subst zdvd_zminus_iff [symmetric])
      apply auto
   done
 
 lemma inv_not_1:
-    "p \<in> zprime \<Longrightarrow> #1 < a \<Longrightarrow> a < p - #1 ==> inv p a \<noteq> #1"
+    "p \<in> zprime \<Longrightarrow> Numeral1 < a \<Longrightarrow> a < p - Numeral1 ==> inv p a \<noteq> Numeral1"
   apply safe
   apply (cut_tac a = a and p = p in inv_is_inv)
      prefer 4
      apply simp
-     apply (subgoal_tac "a = #1")
+     apply (subgoal_tac "a = Numeral1")
       apply (rule_tac [2] zcong_zless_imp_eq)
           apply auto
   done
 
-lemma aux: "[a * (p - #1) = #1] (mod p) = [a = p - #1] (mod p)"
+lemma aux: "[a * (p - Numeral1) = Numeral1] (mod p) = [a = p - Numeral1] (mod p)"
   apply (unfold zcong_def)
   apply (simp add: zdiff_zdiff_eq zdiff_zdiff_eq2 zdiff_zmult_distrib2)
-  apply (rule_tac s = "p dvd -((a + #1) + (p * -a))" in trans)
+  apply (rule_tac s = "p dvd -((a + Numeral1) + (p * -a))" in trans)
    apply (simp add: zmult_commute zminus_zdiff_eq)
   apply (subst zdvd_zminus_iff)
   apply (subst zdvd_reduce)
-  apply (rule_tac s = "p dvd (a + #1) + (p * -#1)" in trans)
+  apply (rule_tac s = "p dvd (a + Numeral1) + (p * -Numeral1)" in trans)
    apply (subst zdvd_reduce)
    apply auto
   done
 
 lemma inv_not_p_minus_1:
-    "p \<in> zprime \<Longrightarrow> #1 < a \<Longrightarrow> a < p - #1 ==> inv p a \<noteq> p - #1"
+    "p \<in> zprime \<Longrightarrow> Numeral1 < a \<Longrightarrow> a < p - Numeral1 ==> inv p a \<noteq> p - Numeral1"
   apply safe
   apply (cut_tac a = a and p = p in inv_is_inv)
      apply auto
   apply (simp add: aux)
-  apply (subgoal_tac "a = p - #1")
+  apply (subgoal_tac "a = p - Numeral1")
    apply (rule_tac [2] zcong_zless_imp_eq)
        apply auto
   done
 
 lemma inv_g_1:
-    "p \<in> zprime \<Longrightarrow> #1 < a \<Longrightarrow> a < p - #1 ==> #1 < inv p a"
-  apply (case_tac "#0\<le> inv p a")
-   apply (subgoal_tac "inv p a \<noteq> #1")
-    apply (subgoal_tac "inv p a \<noteq> #0")
+    "p \<in> zprime \<Longrightarrow> Numeral1 < a \<Longrightarrow> a < p - Numeral1 ==> Numeral1 < inv p a"
+  apply (case_tac "Numeral0\<le> inv p a")
+   apply (subgoal_tac "inv p a \<noteq> Numeral1")
+    apply (subgoal_tac "inv p a \<noteq> Numeral0")
      apply (subst order_less_le)
      apply (subst zle_add1_eq_le [symmetric])
      apply (subst order_less_le)
@@ -128,7 +128,7 @@ lemma inv_g_1:
   done
 
 lemma inv_less_p_minus_1:
-    "p \<in> zprime \<Longrightarrow> #1 < a \<Longrightarrow> a < p - #1 ==> inv p a < p - #1"
+    "p \<in> zprime \<Longrightarrow> Numeral1 < a \<Longrightarrow> a < p - Numeral1 ==> inv p a < p - Numeral1"
   apply (case_tac "inv p a < p")
    apply (subst order_less_le)
    apply (simp add: inv_not_p_minus_1)
@@ -137,24 +137,24 @@ lemma inv_less_p_minus_1:
   apply (simp add: pos_mod_bound)
   done
 
-lemma aux: "#5 \<le> p ==>
-    nat (p - #2) * nat (p - #2) = Suc (nat (p - #1) * nat (p - #3))"
+lemma aux: "# 5 \<le> p ==>
+    nat (p - # 2) * nat (p - # 2) = Suc (nat (p - Numeral1) * nat (p - # 3))"
   apply (subst int_int_eq [symmetric])
   apply (simp add: zmult_int [symmetric])
   apply (simp add: zdiff_zmult_distrib zdiff_zmult_distrib2)
   done
 
 lemma zcong_zpower_zmult:
-    "[x^y = #1] (mod p) \<Longrightarrow> [x^(y * z) = #1] (mod p)"
+    "[x^y = Numeral1] (mod p) \<Longrightarrow> [x^(y * z) = Numeral1] (mod p)"
   apply (induct z)
    apply (auto simp add: zpower_zadd_distrib)
-  apply (subgoal_tac "zcong (x^y * x^(y * n)) (#1 * #1) p")
+  apply (subgoal_tac "zcong (x^y * x^(y * n)) (Numeral1 * Numeral1) p")
    apply (rule_tac [2] zcong_zmult)
     apply simp_all
   done
 
 lemma inv_inv: "p \<in> zprime \<Longrightarrow>
-    #5 \<le> p \<Longrightarrow> #0 < a \<Longrightarrow> a < p ==> inv p (inv p a) = a"
+    # 5 \<le> p \<Longrightarrow> Numeral0 < a \<Longrightarrow> a < p ==> inv p (inv p a) = a"
   apply (unfold inv_def)
   apply (subst zpower_zmod)
   apply (subst zpower_zpower)
@@ -165,7 +165,7 @@ lemma inv_inv: "p \<in> zprime \<Longrightarrow>
       apply (subst zcong_zmod [symmetric])
       apply (subst aux)
        apply (subgoal_tac [2]
-	 "zcong (a * a^(nat (p - #1) * nat (p - #3))) (a * #1) p")
+	 "zcong (a * a^(nat (p - Numeral1) * nat (p - # 3))) (a * Numeral1) p")
         apply (rule_tac [3] zcong_zmult)
          apply (rule_tac [4] zcong_zpower_zmult)
          apply (erule_tac [4] Little_Fermat)
@@ -180,7 +180,7 @@ declare wset.simps [simp del]
 
 lemma wset_induct:
   "(!!a p. P {} a p) \<Longrightarrow>
-    (!!a p. #1 < (a::int) \<Longrightarrow> P (wset (a - #1, p)) (a - #1) p
+    (!!a p. Numeral1 < (a::int) \<Longrightarrow> P (wset (a - Numeral1, p)) (a - Numeral1) p
       ==> P (wset (a, p)) a p)
     ==> P (wset (u, v)) u v"
 proof -
@@ -188,7 +188,7 @@ proof -
   show ?thesis
     apply (rule wset.induct)
     apply safe
-     apply (case_tac [2] "#1 < a")
+     apply (case_tac [2] "Numeral1 < a")
       apply (rule_tac [2] rule_context)
         apply simp_all
       apply (simp_all add: wset.simps rule_context)
@@ -196,27 +196,27 @@ proof -
 qed
 
 lemma wset_mem_imp_or [rule_format]:
-  "#1 < a \<Longrightarrow> b \<notin> wset (a - #1, p)
+  "Numeral1 < a \<Longrightarrow> b \<notin> wset (a - Numeral1, p)
     ==> b \<in> wset (a, p) --> b = a \<or> b = inv p a"
   apply (subst wset.simps)
   apply (unfold Let_def)
   apply simp
   done
 
-lemma wset_mem_mem [simp]: "#1 < a ==> a \<in> wset (a, p)"
+lemma wset_mem_mem [simp]: "Numeral1 < a ==> a \<in> wset (a, p)"
   apply (subst wset.simps)
   apply (unfold Let_def)
   apply simp
   done
 
-lemma wset_subset: "#1 < a \<Longrightarrow> b \<in> wset (a - #1, p) ==> b \<in> wset (a, p)"
+lemma wset_subset: "Numeral1 < a \<Longrightarrow> b \<in> wset (a - Numeral1, p) ==> b \<in> wset (a, p)"
   apply (subst wset.simps)
   apply (unfold Let_def)
   apply auto
   done
 
 lemma wset_g_1 [rule_format]:
-    "p \<in> zprime --> a < p - #1 --> b \<in> wset (a, p) --> #1 < b"
+    "p \<in> zprime --> a < p - Numeral1 --> b \<in> wset (a, p) --> Numeral1 < b"
   apply (induct a p rule: wset_induct)
    apply auto
   apply (case_tac "b = a")
@@ -230,7 +230,7 @@ lemma wset_g_1 [rule_format]:
   done
 
 lemma wset_less [rule_format]:
-    "p \<in> zprime --> a < p - #1 --> b \<in> wset (a, p) --> b < p - #1"
+    "p \<in> zprime --> a < p - Numeral1 --> b \<in> wset (a, p) --> b < p - Numeral1"
   apply (induct a p rule: wset_induct)
    apply auto
   apply (case_tac "b = a")
@@ -245,7 +245,7 @@ lemma wset_less [rule_format]:
 
 lemma wset_mem [rule_format]:
   "p \<in> zprime -->
-    a < p - #1 --> #1 < b --> b \<le> a --> b \<in> wset (a, p)"
+    a < p - Numeral1 --> Numeral1 < b --> b \<le> a --> b \<in> wset (a, p)"
   apply (induct a p rule: wset.induct)
   apply auto
    apply (subgoal_tac "b = a")
@@ -256,7 +256,7 @@ lemma wset_mem [rule_format]:
   done
 
 lemma wset_mem_inv_mem [rule_format]:
-  "p \<in> zprime --> #5 \<le> p --> a < p - #1 --> b \<in> wset (a, p)
+  "p \<in> zprime --> # 5 \<le> p --> a < p - Numeral1 --> b \<in> wset (a, p)
     --> inv p b \<in> wset (a, p)"
   apply (induct a p rule: wset_induct)
    apply auto
@@ -274,7 +274,7 @@ lemma wset_mem_inv_mem [rule_format]:
   done
 
 lemma wset_inv_mem_mem:
-  "p \<in> zprime \<Longrightarrow> #5 \<le> p \<Longrightarrow> a < p - #1 \<Longrightarrow> #1 < b \<Longrightarrow> b < p - #1
+  "p \<in> zprime \<Longrightarrow> # 5 \<le> p \<Longrightarrow> a < p - Numeral1 \<Longrightarrow> Numeral1 < b \<Longrightarrow> b < p - Numeral1
     \<Longrightarrow> inv p b \<in> wset (a, p) \<Longrightarrow> b \<in> wset (a, p)"
   apply (rule_tac s = "inv p (inv p b)" and t = b in subst)
    apply (rule_tac [2] wset_mem_inv_mem)
@@ -292,7 +292,7 @@ lemma wset_fin: "finite (wset (a, p))"
 
 lemma wset_zcong_prod_1 [rule_format]:
   "p \<in> zprime -->
-    #5 \<le> p --> a < p - #1 --> [setprod (wset (a, p)) = #1] (mod p)"
+    # 5 \<le> p --> a < p - Numeral1 --> [setprod (wset (a, p)) = Numeral1] (mod p)"
   apply (induct a p rule: wset_induct)
    prefer 2
    apply (subst wset.simps)
@@ -301,20 +301,20 @@ lemma wset_zcong_prod_1 [rule_format]:
   apply (subst setprod_insert)
     apply (tactic {* stac (thm "setprod_insert") 3 *})
       apply (subgoal_tac [5]
-	"zcong (a * inv p a * setprod (wset (a - #1, p))) (#1 * #1) p")
+	"zcong (a * inv p a * setprod (wset (a - Numeral1, p))) (Numeral1 * Numeral1) p")
        prefer 5
        apply (simp add: zmult_assoc)
       apply (rule_tac [5] zcong_zmult)
        apply (rule_tac [5] inv_is_inv)
          apply (tactic "Clarify_tac 4")
-         apply (subgoal_tac [4] "a \<in> wset (a - #1, p)")
+         apply (subgoal_tac [4] "a \<in> wset (a - Numeral1, p)")
           apply (rule_tac [5] wset_inv_mem_mem)
                apply (simp_all add: wset_fin)
   apply (rule inv_distinct)
     apply auto
   done
 
-lemma d22set_eq_wset: "p \<in> zprime ==> d22set (p - #2) = wset (p - #2, p)"
+lemma d22set_eq_wset: "p \<in> zprime ==> d22set (p - # 2) = wset (p - # 2, p)"
   apply safe
    apply (erule wset_mem)
      apply (rule_tac [2] d22set_g_1)
@@ -323,7 +323,7 @@ lemma d22set_eq_wset: "p \<in> zprime ==> d22set (p - #2) = wset (p - #2, p)"
       apply (erule_tac [4] wset_g_1)
        prefer 6
        apply (subst zle_add1_eq_le [symmetric])
-       apply (subgoal_tac "p - #2 + #1 = p - #1")
+       apply (subgoal_tac "p - # 2 + Numeral1 = p - Numeral1")
         apply (simp (no_asm_simp))
         apply (erule wset_less)
          apply auto
@@ -332,36 +332,36 @@ lemma d22set_eq_wset: "p \<in> zprime ==> d22set (p - #2) = wset (p - #2, p)"
 
 subsection {* Wilson *}
 
-lemma prime_g_5: "p \<in> zprime \<Longrightarrow> p \<noteq> #2 \<Longrightarrow> p \<noteq> #3 ==> #5 \<le> p"
+lemma prime_g_5: "p \<in> zprime \<Longrightarrow> p \<noteq> # 2 \<Longrightarrow> p \<noteq> # 3 ==> # 5 \<le> p"
   apply (unfold zprime_def dvd_def)
-  apply (case_tac "p = #4")
+  apply (case_tac "p = # 4")
    apply auto
    apply (rule notE)
     prefer 2
     apply assumption
    apply (simp (no_asm))
-   apply (rule_tac x = "#2" in exI)
+   apply (rule_tac x = "# 2" in exI)
    apply safe
-     apply (rule_tac x = "#2" in exI)
+     apply (rule_tac x = "# 2" in exI)
      apply auto
   apply arith
   done
 
 theorem Wilson_Russ:
-    "p \<in> zprime ==> [zfact (p - #1) = #-1] (mod p)"
-  apply (subgoal_tac "[(p - #1) * zfact (p - #2) = #-1 * #1] (mod p)")
+    "p \<in> zprime ==> [zfact (p - Numeral1) = # -1] (mod p)"
+  apply (subgoal_tac "[(p - Numeral1) * zfact (p - # 2) = # -1 * Numeral1] (mod p)")
    apply (rule_tac [2] zcong_zmult)
     apply (simp only: zprime_def)
     apply (subst zfact.simps)
-    apply (rule_tac t = "p - #1 - #1" and s = "p - #2" in subst)
+    apply (rule_tac t = "p - Numeral1 - Numeral1" and s = "p - # 2" in subst)
      apply auto
    apply (simp only: zcong_def)
    apply (simp (no_asm_simp))
-  apply (case_tac "p = #2")
+  apply (case_tac "p = # 2")
    apply (simp add: zfact.simps)
-  apply (case_tac "p = #3")
+  apply (case_tac "p = # 3")
    apply (simp add: zfact.simps)
-  apply (subgoal_tac "#5 \<le> p")
+  apply (subgoal_tac "# 5 \<le> p")
    apply (erule_tac [2] prime_g_5)
     apply (subst d22set_prod_zfact [symmetric])
     apply (subst d22set_eq_wset)

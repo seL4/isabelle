@@ -352,7 +352,7 @@ qed "ok_commute";
 
 bind_thm ("ok_sym", ok_commute RS iffD1);
 
-Goal "OK {(#0::int,F),(#1,G),(#2,H)} snd = (F ok G & (F Join G) ok H)";
+Goal "OK {(Numeral0::int,F),(Numeral1,G),(# 2,H)} snd = (F ok G & (F Join G) ok H)";
 by (asm_full_simp_tac
     (simpset() addsimps [Ball_def, conj_disj_distribR, ok_def, Join_def, 
                    OK_def, insert_absorb, all_conj_distrib, eq_commute]) 1); 

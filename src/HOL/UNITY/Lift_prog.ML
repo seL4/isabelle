@@ -309,7 +309,7 @@ qed "insert_map_upd_same";
 Goal "(insert_map j t f)(i := s) = \
 \     (if i=j then insert_map i s f \
 \      else if i<j then insert_map j t (f(i:=s)) \
-\      else insert_map j t (f(i-1' := s)))";
+\      else insert_map j t (f(i - Suc 0 := s)))";
 by (rtac ext 1);
 by (auto_tac (claset(), simpset() addsplits [nat_diff_split]));
 by (ALLGOALS arith_tac);

@@ -66,19 +66,19 @@ qed "nat_le_add_iff2";
 
 (** For cancel_numeral_factors **)
 
-Goal "(#0::nat) < k ==> (k*m <= k*n) = (m<=n)";
+Goal "(Numeral0::nat) < k ==> (k*m <= k*n) = (m<=n)";
 by Auto_tac;  
 qed "nat_mult_le_cancel1";
 
-Goal "(#0::nat) < k ==> (k*m < k*n) = (m<n)";
+Goal "(Numeral0::nat) < k ==> (k*m < k*n) = (m<n)";
 by Auto_tac;  
 qed "nat_mult_less_cancel1";
 
-Goal "(#0::nat) < k ==> (k*m = k*n) = (m=n)";
+Goal "(Numeral0::nat) < k ==> (k*m = k*n) = (m=n)";
 by Auto_tac;  
 qed "nat_mult_eq_cancel1";
 
-Goal "(#0::nat) < k ==> (k*m) div (k*n) = (m div n)";
+Goal "(Numeral0::nat) < k ==> (k*m) div (k*n) = (m div n)";
 by Auto_tac;  
 qed "nat_mult_div_cancel1";
 
@@ -125,7 +125,7 @@ fun find_first_numeral past (t::terms) =
 val zero = mk_numeral 0;
 val mk_plus = HOLogic.mk_binop "op +";
 
-(*Thus mk_sum[t] yields t+#0; longer sums don't have a trailing zero*)
+(*Thus mk_sum[t] yields t+Numeral0; longer sums don't have a trailing zero*)
 fun mk_sum []        = zero
   | mk_sum [t,u]     = mk_plus (t, u)
   | mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
@@ -158,7 +158,7 @@ val prove_conv = Int_Numeral_Simprocs.prove_conv;
 val bin_simps = [add_nat_number_of, nat_number_of_add_left,
                  diff_nat_number_of, le_nat_number_of_eq_not_less,
                  less_nat_number_of, mult_nat_number_of, 
-                 Let_number_of, nat_number_of] @
+                 thm "Let_number_of", nat_number_of] @
                 bin_arith_simps @ bin_rel_simps;
 
 fun prep_simproc (name, pats, proc) = Simplifier.mk_simproc name pats proc;
@@ -204,11 +204,11 @@ fun find_first_coeff past u [] = raise TERM("find_first_coeff", [])
         handle TERM _ => find_first_coeff (t::past) u terms;
 
 
-(*Simplify #1*n and n*#1 to n*)
+(*Simplify Numeral1*n and n*Numeral1 to n*)
 val add_0s = map rename_numerals [add_0, add_0_right];
 val mult_1s = map rename_numerals [mult_1, mult_1_right];
 
-(*Final simplification: cancel + and *; replace #0 by 0 and #1 by 1*)
+(*Final simplification: cancel + and *; replace Numeral0 by 0 and Numeral1 by 1*)
 val simplify_meta_eq =
     Int_Numeral_Simprocs.simplify_meta_eq
          [numeral_0_eq_0, numeral_1_eq_1, add_0, add_0_right,
@@ -319,7 +319,7 @@ val cancel_numerals =
 structure CombineNumeralsData =
   struct
   val add		= op + : int*int -> int 
-  val mk_sum            = long_mk_sum    (*to work for e.g. #2*x + #3*x *)
+  val mk_sum            = long_mk_sum    (*to work for e.g. # 2*x + # 3*x *)
   val dest_sum          = restricted_dest_Sucs_sum
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff
@@ -504,62 +504,62 @@ set trace_simp;
 fun test s = (Goal s; by (Simp_tac 1));
 
 (*cancel_numerals*)
-test "l +( #2) + (#2) + #2 + (l + #2) + (oo  + #2) = (uu::nat)";
-test "(#2*length xs < #2*length xs + j)";
-test "(#2*length xs < length xs * #2 + j)";
-test "#2*u = (u::nat)";
-test "#2*u = Suc (u)";
-test "(i + j + #12 + (k::nat)) - #15 = y";
-test "(i + j + #12 + (k::nat)) - #5 = y";
-test "Suc u - #2 = y";
-test "Suc (Suc (Suc u)) - #2 = y";
-test "(i + j + #2 + (k::nat)) - 1 = y";
-test "(i + j + #1 + (k::nat)) - 2 = y";
+test "l +( # 2) + (# 2) + # 2 + (l + # 2) + (oo  + # 2) = (uu::nat)";
+test "(# 2*length xs < # 2*length xs + j)";
+test "(# 2*length xs < length xs * # 2 + j)";
+test "# 2*u = (u::nat)";
+test "# 2*u = Suc (u)";
+test "(i + j + # 12 + (k::nat)) - # 15 = y";
+test "(i + j + # 12 + (k::nat)) - # 5 = y";
+test "Suc u - # 2 = y";
+test "Suc (Suc (Suc u)) - # 2 = y";
+test "(i + j + # 2 + (k::nat)) - 1 = y";
+test "(i + j + Numeral1 + (k::nat)) - 2 = y";
 
-test "(#2*x + (u*v) + y) - v*#3*u = (w::nat)";
-test "(#2*x*u*v + #5 + (u*v)*#4 + y) - v*u*#4 = (w::nat)";
-test "(#2*x*u*v + (u*v)*#4 + y) - v*u = (w::nat)";
-test "Suc (Suc (#2*x*u*v + u*#4 + y)) - u = w";
-test "Suc ((u*v)*#4) - v*#3*u = w";
-test "Suc (Suc ((u*v)*#3)) - v*#3*u = w";
+test "(# 2*x + (u*v) + y) - v*# 3*u = (w::nat)";
+test "(# 2*x*u*v + # 5 + (u*v)*# 4 + y) - v*u*# 4 = (w::nat)";
+test "(# 2*x*u*v + (u*v)*# 4 + y) - v*u = (w::nat)";
+test "Suc (Suc (# 2*x*u*v + u*# 4 + y)) - u = w";
+test "Suc ((u*v)*# 4) - v*# 3*u = w";
+test "Suc (Suc ((u*v)*# 3)) - v*# 3*u = w";
 
-test "(i + j + #12 + (k::nat)) = u + #15 + y";
-test "(i + j + #32 + (k::nat)) - (u + #15 + y) = zz";
-test "(i + j + #12 + (k::nat)) = u + #5 + y";
+test "(i + j + # 12 + (k::nat)) = u + # 15 + y";
+test "(i + j + # 32 + (k::nat)) - (u + # 15 + y) = zz";
+test "(i + j + # 12 + (k::nat)) = u + # 5 + y";
 (*Suc*)
-test "(i + j + #12 + k) = Suc (u + y)";
-test "Suc (Suc (Suc (Suc (Suc (u + y))))) <= ((i + j) + #41 + k)";
-test "(i + j + #5 + k) < Suc (Suc (Suc (Suc (Suc (u + y)))))";
-test "Suc (Suc (Suc (Suc (Suc (u + y))))) - #5 = v";
-test "(i + j + #5 + k) = Suc (Suc (Suc (Suc (Suc (Suc (Suc (u + y)))))))";
-test "#2*y + #3*z + #2*u = Suc (u)";
-test "#2*y + #3*z + #6*w + #2*y + #3*z + #2*u = Suc (u)";
-test "#2*y + #3*z + #6*w + #2*y + #3*z + #2*u = #2*y' + #3*z' + #6*w' + #2*y' + #3*z' + u + (vv::nat)";
-test "#6 + #2*y + #3*z + #4*u = Suc (vv + #2*u + z)";
-test "(#2*n*m) < (#3*(m*n)) + (u::nat)";
+test "(i + j + # 12 + k) = Suc (u + y)";
+test "Suc (Suc (Suc (Suc (Suc (u + y))))) <= ((i + j) + # 41 + k)";
+test "(i + j + # 5 + k) < Suc (Suc (Suc (Suc (Suc (u + y)))))";
+test "Suc (Suc (Suc (Suc (Suc (u + y))))) - # 5 = v";
+test "(i + j + # 5 + k) = Suc (Suc (Suc (Suc (Suc (Suc (Suc (u + y)))))))";
+test "# 2*y + # 3*z + # 2*u = Suc (u)";
+test "# 2*y + # 3*z + # 6*w + # 2*y + # 3*z + # 2*u = Suc (u)";
+test "# 2*y + # 3*z + # 6*w + # 2*y + # 3*z + # 2*u = # 2*y' + # 3*z' + # 6*w' + # 2*y' + # 3*z' + u + (vv::nat)";
+test "# 6 + # 2*y + # 3*z + # 4*u = Suc (vv + # 2*u + z)";
+test "(# 2*n*m) < (# 3*(m*n)) + (u::nat)";
 
 (*negative numerals: FAIL*)
-test "(i + j + #-23 + (k::nat)) < u + #15 + y";
-test "(i + j + #3 + (k::nat)) < u + #-15 + y";
-test "(i + j + #-12 + (k::nat)) - #15 = y";
-test "(i + j + #12 + (k::nat)) - #-15 = y";
-test "(i + j + #-12 + (k::nat)) - #-15 = y";
+test "(i + j + # -23 + (k::nat)) < u + # 15 + y";
+test "(i + j + # 3 + (k::nat)) < u + # -15 + y";
+test "(i + j + # -12 + (k::nat)) - # 15 = y";
+test "(i + j + # 12 + (k::nat)) - # -15 = y";
+test "(i + j + # -12 + (k::nat)) - # -15 = y";
 
 (*combine_numerals*)
-test "k + #3*k = (u::nat)";
-test "Suc (i + #3) = u";
-test "Suc (i + j + #3 + k) = u";
-test "k + j + #3*k + j = (u::nat)";
-test "Suc (j*i + i + k + #5 + #3*k + i*j*#4) = (u::nat)";
-test "(#2*n*m) + (#3*(m*n)) = (u::nat)";
+test "k + # 3*k = (u::nat)";
+test "Suc (i + # 3) = u";
+test "Suc (i + j + # 3 + k) = u";
+test "k + j + # 3*k + j = (u::nat)";
+test "Suc (j*i + i + k + # 5 + # 3*k + i*j*# 4) = (u::nat)";
+test "(# 2*n*m) + (# 3*(m*n)) = (u::nat)";
 (*negative numerals: FAIL*)
-test "Suc (i + j + #-3 + k) = u";
+test "Suc (i + j + # -3 + k) = u";
 
 (*cancel_numeral_factors*)
-test "#9*x = #12 * (y::nat)";
-test "(#9*x) div (#12 * (y::nat)) = z";
-test "#9*x < #12 * (y::nat)";
-test "#9*x <= #12 * (y::nat)";
+test "# 9*x = # 12 * (y::nat)";
+test "(# 9*x) div (# 12 * (y::nat)) = z";
+test "# 9*x < # 12 * (y::nat)";
+test "# 9*x <= # 12 * (y::nat)";
 
 (*cancel_factor*)
 test "x*k = k*(y::nat)";
@@ -597,7 +597,7 @@ val add_rules =
    Suc_eq_number_of,eq_number_of_Suc,
    mult_0, mult_0_right, mult_Suc, mult_Suc_right,
    eq_number_of_0, eq_0_number_of, less_0_number_of,
-   nat_number_of, Let_number_of, if_True, if_False];
+   nat_number_of, thm "Let_number_of", if_True, if_False];
 
 val simprocs = [Nat_Times_Assoc.conv,
                 Nat_Numeral_Simprocs.combine_numerals]@

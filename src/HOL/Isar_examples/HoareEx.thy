@@ -39,7 +39,7 @@ text {*
 *}
 
 lemma
-  "|- .{\<acute>(N_update (2 * \<acute>N)) : .{\<acute>N = #10}.}. \<acute>N := 2 * \<acute>N .{\<acute>N = #10}."
+  "|- .{\<acute>(N_update (# 2 * \<acute>N)) : .{\<acute>N = # 10}.}. \<acute>N := # 2 * \<acute>N .{\<acute>N = # 10}."
   by (rule assign)
 
 text {*
@@ -49,13 +49,13 @@ text {*
  ``obvious'' consequences as well.
 *}
 
-lemma "|- .{True}. \<acute>N := #10 .{\<acute>N = #10}."
+lemma "|- .{True}. \<acute>N := # 10 .{\<acute>N = # 10}."
   by hoare
 
-lemma "|- .{2 * \<acute>N = #10}. \<acute>N := 2 * \<acute>N .{\<acute>N = #10}."
+lemma "|- .{# 2 * \<acute>N = # 10}. \<acute>N := # 2 * \<acute>N .{\<acute>N = # 10}."
   by hoare
 
-lemma "|- .{\<acute>N = #5}. \<acute>N := 2 * \<acute>N .{\<acute>N = #10}."
+lemma "|- .{\<acute>N = # 5}. \<acute>N := # 2 * \<acute>N .{\<acute>N = # 10}."
   by hoare simp
 
 lemma "|- .{\<acute>N + 1 = a + 1}. \<acute>N := \<acute>N + 1 .{\<acute>N = a + 1}."
@@ -112,7 +112,7 @@ qed
 
 lemma "|- .{\<acute>M = \<acute>N}. \<acute>M := \<acute>M + 1 .{\<acute>M ~= \<acute>N}."
 proof -
-  have "!!m n. m = n --> m + 1 ~= n"
+  have "!!m n::nat. m = n --> m + 1 ~= n"
       -- {* inclusion of assertions expressed in ``pure'' logic, *}
       -- {* without mentioning the state space *}
     by simp

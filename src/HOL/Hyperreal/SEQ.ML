@@ -26,7 +26,7 @@ qed "SEQ_Infinitesimal";
 
 Goalw [LIMSEQ_def] 
       "(X ----> L) = \
-\      (ALL r. #0 <r --> (EX no. ALL n. no <= n --> abs(X n + -L) < r))";
+\      (ALL r. Numeral0 <r --> (EX no. ALL n. no <= n --> abs(X n + -L) < r))";
 by (Simp_tac 1);
 qed "LIMSEQ_iff";
 
@@ -120,7 +120,7 @@ Goal "{n. abs (X (f n) + - L) < r} Int {n. r <= abs (X (f n) + - (L::real))} \
 by Auto_tac;  
 val lemmaLIM2 = result();
 
-Goal "[| #0 < r; ALL n. r <= abs (X (f n) + - L); \
+Goal "[| Numeral0 < r; ALL n. r <= abs (X (f n) + - L); \
 \          (*fNat* X) (Abs_hypnat (hypnatrel `` {f})) + \
 \          - hypreal_of_real  L @= 0 |] ==> False";
 by (auto_tac (claset(),simpset() addsimps [starfunNat,
@@ -234,7 +234,7 @@ qed "NSLIMSEQ_diff";
     Proof is like that of NSLIM_inverse.
  --------------------------------------------------------------*)
 Goalw [NSLIMSEQ_def] 
-     "[| X ----NS> a;  a ~= #0 |] ==> (%n. inverse(X n)) ----NS> inverse(a)";
+     "[| X ----NS> a;  a ~= Numeral0 |] ==> (%n. inverse(X n)) ----NS> inverse(a)";
 by (Clarify_tac 1);
 by (dtac bspec 1);
 by (auto_tac (claset(), 
@@ -244,18 +244,18 @@ qed "NSLIMSEQ_inverse";
 
 
 (*------ Standard version of theorem -------*)
-Goal "[| X ----> a; a ~= #0 |] ==> (%n. inverse(X n)) ----> inverse(a)";
+Goal "[| X ----> a; a ~= Numeral0 |] ==> (%n. inverse(X n)) ----> inverse(a)";
 by (asm_full_simp_tac (simpset() addsimps [NSLIMSEQ_inverse,
     LIMSEQ_NSLIMSEQ_iff]) 1);
 qed "LIMSEQ_inverse";
 
-Goal "[| X ----NS> a;  Y ----NS> b;  b ~= #0 |] \
+Goal "[| X ----NS> a;  Y ----NS> b;  b ~= Numeral0 |] \
 \     ==> (%n. X n / Y n) ----NS> a/b";
 by (asm_full_simp_tac (simpset() addsimps [NSLIMSEQ_mult, NSLIMSEQ_inverse, 
                                            real_divide_def]) 1);
 qed "NSLIMSEQ_mult_inverse";
 
-Goal "[| X ----> a;  Y ----> b;  b ~= #0 |] ==> (%n. X n / Y n) ----> a/b";
+Goal "[| X ----> a;  Y ----> b;  b ~= Numeral0 |] ==> (%n. X n / Y n) ----> a/b";
 by (asm_full_simp_tac (simpset() addsimps [LIMSEQ_mult, LIMSEQ_inverse, 
                                            real_divide_def]) 1);
 qed "LIMSEQ_divide";
@@ -376,16 +376,16 @@ qed "mono_SucI2";
                   Bounded Sequence
  ------------------------------------------------------------------*)
 Goalw [Bseq_def] 
-      "Bseq X ==> EX K. #0 < K & (ALL n. abs(X n) <= K)";
+      "Bseq X ==> EX K. Numeral0 < K & (ALL n. abs(X n) <= K)";
 by (assume_tac 1);
 qed "BseqD";
 
 Goalw [Bseq_def]
-      "[| #0 < K; ALL n. abs(X n) <= K |] ==> Bseq X";
+      "[| Numeral0 < K; ALL n. abs(X n) <= K |] ==> Bseq X";
 by (Blast_tac 1);
 qed "BseqI";
 
-Goal "(EX K. #0 < K & (ALL n. abs(X n) <= K)) = \
+Goal "(EX K. Numeral0 < K & (ALL n. abs(X n) <= K)) = \
 \     (EX N. ALL n. abs(X n) <= real(Suc N))";
 by Auto_tac;
 by (cut_inst_tac [("x","K")] reals_Archimedean2 1);
@@ -401,7 +401,7 @@ Goalw [Bseq_def] "Bseq X = (EX N. ALL n. abs(X n) <= real(Suc N))";
 by (simp_tac (simpset() addsimps [lemma_NBseq_def]) 1);
 qed "Bseq_iff";
 
-Goal "(EX K. #0 < K & (ALL n. abs(X n) <= K)) = \
+Goal "(EX K. Numeral0 < K & (ALL n. abs(X n) <= K)) = \
 \     (EX N. ALL n. abs(X n) < real(Suc N))";
 by (stac lemma_NBseq_def 1); 
 by Auto_tac;
@@ -444,7 +444,7 @@ by (auto_tac (claset(),
                                   HNatInfinite_FreeUltrafilterNat_iff]));
 by (EVERY[rtac bexI 1, rtac lemma_hyprel_refl 2]);
 by (dres_inst_tac [("f","Xa")] lemma_Bseq 1); 
-by (res_inst_tac [("x","K+#1")] exI 1);
+by (res_inst_tac [("x","K+Numeral1")] exI 1);
 by (rotate_tac 2 1 THEN dtac FreeUltrafilterNat_all 1);
 by (Ultra_tac 1);
 qed "Bseq_NSBseq";
@@ -461,14 +461,14 @@ qed "Bseq_NSBseq";
    is not what we want (read useless!)
  -------------------------------------------------------------------*)
  
-Goal "ALL K. #0 < K --> (EX n. K < abs (X n)) \
+Goal "ALL K. Numeral0 < K --> (EX n. K < abs (X n)) \
 \          ==> ALL N. EX n. real(Suc N) < abs (X n)";
 by (Step_tac 1);
 by (cut_inst_tac [("n","N")] real_of_nat_Suc_gt_zero 1);
 by (Blast_tac 1);
 val lemmaNSBseq = result();
 
-Goal "ALL K. #0 < K --> (EX n. K < abs (X n)) \
+Goal "ALL K. Numeral0 < K --> (EX n. K < abs (X n)) \
 \         ==> EX f. ALL N. real(Suc N) < abs (X (f N))";
 by (dtac lemmaNSBseq 1);
 by (dtac choice 1);
@@ -652,7 +652,7 @@ val lemma_converg3 = result();
 Goal "!!(X::nat=> real). \
 \              [| ALL m. X m ~= U; \
 \                 isLub UNIV {x. EX n. X n = x} U; \
-\                 #0 < T; \
+\                 Numeral0 < T; \
 \                 U + - T < U \
 \              |] ==> EX m. U + -T < X m & X m < U";
 by (dtac lemma_converg2 1 THEN assume_tac 1);
@@ -722,7 +722,7 @@ qed "Bseq_monoseq_convergent";
  
 (***--- alternative formulation for boundedness---***)
 Goalw [Bseq_def] 
-   "Bseq X = (EX k x. #0 < k & (ALL n. abs(X(n) + -x) <= k))";
+   "Bseq X = (EX k x. Numeral0 < k & (ALL n. abs(X(n) + -x) <= k))";
 by (Step_tac 1);
 by (res_inst_tac [("x","k + abs(x)")] exI 2);
 by (res_inst_tac [("x","K")] exI 1);
@@ -733,7 +733,7 @@ by (ALLGOALS arith_tac);
 qed "Bseq_iff2";
 
 (***--- alternative formulation for boundedness ---***)
-Goal "Bseq X = (EX k N. #0 < k & (ALL n. abs(X(n) + -X(N)) <= k))";
+Goal "Bseq X = (EX k N. Numeral0 < k & (ALL n. abs(X(n) + -X(N)) <= k))";
 by (Step_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [Bseq_def]) 1);
 by (Step_tac 1);
@@ -748,7 +748,7 @@ by (auto_tac (claset(), simpset() addsimps [Bseq_iff2]));
 qed "Bseq_iff3";
 
 Goalw [Bseq_def] "(ALL n. k <= f n & f n <= K) ==> Bseq f";
-by (res_inst_tac [("x","(abs(k) + abs(K)) + #1")] exI 1);
+by (res_inst_tac [("x","(abs(k) + abs(K)) + Numeral1")] exI 1);
 by (Auto_tac);
 by (dres_inst_tac [("x","n")] spec 2);
 by (ALLGOALS arith_tac);
@@ -841,8 +841,8 @@ qed "NSCauchy_Cauchy_iff";
  -------------------------------------------------------*)
 
 (***-------------  VARIOUS LEMMAS --------------***)
-Goal "ALL n. M <= n --> abs (X M + - X n) < (#1::real) \
-\         ==>  ALL n. M <= n --> abs(X n) < #1 + abs(X M)";
+Goal "ALL n. M <= n --> abs (X M + - X n) < (Numeral1::real) \
+\         ==>  ALL n. M <= n --> abs(X n) < Numeral1 + abs(X M)";
 by (Step_tac 1);
 by (dtac spec 1 THEN Auto_tac);
 by (arith_tac 1);
@@ -911,7 +911,7 @@ val lemma_trans4 = result();
    outlines sketched by various authors would suggest
  ---------------------------------------------------------*)
 Goalw [Cauchy_def,Bseq_def] "Cauchy X ==> Bseq X";
-by (dres_inst_tac [("x","#1")] spec 1);
+by (dres_inst_tac [("x","Numeral1")] spec 1);
 by (etac (rename_numerals real_zero_less_one RSN (2,impE)) 1);
 by (Step_tac 1);
 by (dres_inst_tac [("x","M")] spec 1);
@@ -920,7 +920,7 @@ by (dtac lemmaCauchy 1);
 by (cut_inst_tac [("M","M"),("X","X")] SUP_rabs_subseq 1);
 by (Step_tac 1);
 by (cut_inst_tac [("R1.0","abs(X m)"),
-     ("R2.0","#1 + abs(X M)")] real_linear 1);
+     ("R2.0","Numeral1 + abs(X M)")] real_linear 1);
 by (Step_tac 1);
 by (dtac lemma_trans1 1 THEN assume_tac 1);
 by (dtac lemma_trans2 3 THEN assume_tac 3);
@@ -928,8 +928,8 @@ by (dtac lemma_trans3 2 THEN assume_tac 2);
 by (dtac (abs_add_one_gt_zero RS order_less_trans) 3);
 by (dtac lemma_trans4 1);
 by (dtac lemma_trans4 2);
-by (res_inst_tac [("x","#1 + abs(X M)")] exI 1);
-by (res_inst_tac [("x","#1 + abs(X M)")] exI 2);
+by (res_inst_tac [("x","Numeral1 + abs(X M)")] exI 1);
+by (res_inst_tac [("x","Numeral1 + abs(X M)")] exI 2);
 by (res_inst_tac [("x","abs(X m)")] exI 3);
 by (auto_tac (claset() addSEs [lemma_Nat_covered],
               simpset()));
@@ -1082,7 +1082,7 @@ qed "NSLIMSEQ_Suc_iff";
  ----------------------------------------------------*)
 (* we can prove this directly since proof is trivial *)
 Goalw [LIMSEQ_def] 
-      "((%n. abs(f n)) ----> #0) = (f ----> #0)";
+      "((%n. abs(f n)) ----> Numeral0) = (f ----> Numeral0)";
 by (simp_tac (simpset() addsimps [abs_idempotent]) 1);
 qed "LIMSEQ_rabs_zero";
 
@@ -1092,7 +1092,7 @@ qed "LIMSEQ_rabs_zero";
 (* than the direct standard one above!                 *)
 (*-----------------------------------------------------*)
 
-Goal "((%n. abs(f n)) ----NS> #0) = (f ----NS> #0)";
+Goal "((%n. abs(f n)) ----NS> Numeral0) = (f ----NS> Numeral0)";
 by (simp_tac (simpset() addsimps [LIMSEQ_NSLIMSEQ_iff RS sym,
              LIMSEQ_rabs_zero]) 1);
 qed "NSLIMSEQ_rabs_zero";
@@ -1119,7 +1119,7 @@ qed "LIMSEQ_imp_rabs";
 (* standard proof seems easier *)
 Goalw [LIMSEQ_def] 
       "ALL y. EX N. ALL n. N <= n --> y < f(n) \
-\      ==> (%n. inverse(f n)) ----> #0";
+\      ==> (%n. inverse(f n)) ----> Numeral0";
 by (Step_tac 1 THEN Asm_full_simp_tac 1);
 by (dres_inst_tac [("x","inverse r")] spec 1 THEN Step_tac 1);
 by (res_inst_tac [("x","N")] exI 1 THEN Step_tac 1);
@@ -1134,7 +1134,7 @@ by (auto_tac (claset() addIs [real_inverse_less_iff RS iffD2],
 qed "LIMSEQ_inverse_zero";
 
 Goal "ALL y. EX N. ALL n. N <= n --> y < f(n) \
-\     ==> (%n. inverse(f n)) ----NS> #0";
+\     ==> (%n. inverse(f n)) ----NS> Numeral0";
 by (asm_simp_tac (simpset() addsimps [LIMSEQ_NSLIMSEQ_iff RS sym,
                   LIMSEQ_inverse_zero]) 1);
 qed "NSLIMSEQ_inverse_zero";
@@ -1143,7 +1143,7 @@ qed "NSLIMSEQ_inverse_zero";
              Sequence  1/n --> 0 as n --> infinity 
  -------------------------------------------------------------*)
 
-Goal "(%n. inverse(real(Suc n))) ----> #0";
+Goal "(%n. inverse(real(Suc n))) ----> Numeral0";
 by (rtac LIMSEQ_inverse_zero 1 THEN Step_tac 1);
 by (cut_inst_tac [("x","y")] reals_Archimedean2 1);
 by (Step_tac 1 THEN res_inst_tac [("x","n")] exI 1);
@@ -1153,7 +1153,7 @@ by (Asm_simp_tac 1);
 by (blast_tac (claset() addIs [order_less_le_trans]) 1);  
 qed "LIMSEQ_inverse_real_of_nat";
 
-Goal "(%n. inverse(real(Suc n))) ----NS> #0";
+Goal "(%n. inverse(real(Suc n))) ----NS> Numeral0";
 by (simp_tac (simpset() addsimps [LIMSEQ_NSLIMSEQ_iff RS sym,
     LIMSEQ_inverse_real_of_nat]) 1);
 qed "NSLIMSEQ_inverse_real_of_nat";
@@ -1188,13 +1188,13 @@ by (simp_tac (simpset() addsimps [LIMSEQ_NSLIMSEQ_iff RS sym,
     LIMSEQ_inverse_real_of_posnat_add_minus]) 1);
 qed "NSLIMSEQ_inverse_real_of_posnat_add_minus";
 
-Goal "(%n. r*( #1 + -inverse(real(Suc n)))) ----> r";
-by (cut_inst_tac [("b","#1")] ([LIMSEQ_const,
+Goal "(%n. r*( Numeral1 + -inverse(real(Suc n)))) ----> r";
+by (cut_inst_tac [("b","Numeral1")] ([LIMSEQ_const,
     LIMSEQ_inverse_real_of_posnat_add_minus] MRS LIMSEQ_mult) 1);
 by (Auto_tac);
 qed "LIMSEQ_inverse_real_of_posnat_add_minus_mult";
 
-Goal "(%n. r*( #1 + -inverse(real(Suc n)))) ----NS> r";
+Goal "(%n. r*( Numeral1 + -inverse(real(Suc n)))) ----NS> r";
 by (simp_tac (simpset() addsimps [LIMSEQ_NSLIMSEQ_iff RS sym,
     LIMSEQ_inverse_real_of_posnat_add_minus_mult]) 1);
 qed "NSLIMSEQ_inverse_real_of_posnat_add_minus_mult";
@@ -1214,22 +1214,22 @@ by (asm_full_simp_tac (simpset() addsimps [LIMSEQ_NSLIMSEQ_iff,
 qed "LIMSEQ_pow";
 
 (*----------------------------------------------------------------
-               0 <= x < #1 ==> (x ^ n ----> 0)
+               0 <= x < Numeral1 ==> (x ^ n ----> 0)
   Proof will use (NS) Cauchy equivalence for convergence and
   also fact that bounded and monotonic sequence converges.  
  ---------------------------------------------------------------*)
-Goalw [Bseq_def] "[| #0 <= x; x < #1 |] ==> Bseq (%n. x ^ n)";
-by (res_inst_tac [("x","#1")] exI 1);
+Goalw [Bseq_def] "[| Numeral0 <= x; x < Numeral1 |] ==> Bseq (%n. x ^ n)";
+by (res_inst_tac [("x","Numeral1")] exI 1);
 by (auto_tac (claset() addDs [conjI RS realpow_le] 
                        addIs [order_less_imp_le], 
               simpset() addsimps [abs_eqI1, realpow_abs RS sym] ));
 qed "Bseq_realpow";
 
-Goal "[| #0 <= x; x < #1 |] ==> monoseq (%n. x ^ n)";
+Goal "[| Numeral0 <= x; x < Numeral1 |] ==> monoseq (%n. x ^ n)";
 by (blast_tac (claset() addSIs [mono_SucI2,realpow_Suc_le3]) 1);
 qed "monoseq_realpow";
 
-Goal "[| #0 <= x; x < #1 |] ==> convergent (%n. x ^ n)";
+Goal "[| Numeral0 <= x; x < Numeral1 |] ==> convergent (%n. x ^ n)";
 by (blast_tac (claset() addSIs [Bseq_monoseq_convergent,
                                 Bseq_realpow,monoseq_realpow]) 1);
 qed "convergent_realpow";
@@ -1238,7 +1238,7 @@ qed "convergent_realpow";
 
 
 Goalw [NSLIMSEQ_def]
-     "[| #0 <= x; x < #1 |] ==> (%n. x ^ n) ----NS> #0";
+     "[| Numeral0 <= x; x < Numeral1 |] ==> (%n. x ^ n) ----NS> Numeral0";
 by (auto_tac (claset() addSDs [convergent_realpow],
               simpset() addsimps [convergent_NSconvergent_iff]));
 by (forward_tac [NSconvergentD] 1);
@@ -1258,12 +1258,12 @@ by (auto_tac (claset(),
 qed "NSLIMSEQ_realpow_zero";
 
 (*---------------  standard version ---------------*)
-Goal "[| #0 <= x; x < #1 |] ==> (%n. x ^ n) ----> #0";
+Goal "[| Numeral0 <= x; x < Numeral1 |] ==> (%n. x ^ n) ----> Numeral0";
 by (asm_simp_tac (simpset() addsimps [NSLIMSEQ_realpow_zero,
                                       LIMSEQ_NSLIMSEQ_iff]) 1);
 qed "LIMSEQ_realpow_zero";
 
-Goal "#1 < x ==> (%n. a / (x ^ n)) ----> #0";
+Goal "Numeral1 < x ==> (%n. a / (x ^ n)) ----> Numeral0";
 by (cut_inst_tac [("a","a"),("x1","inverse x")] 
     ([LIMSEQ_const, LIMSEQ_realpow_zero] MRS LIMSEQ_mult) 1);
 by (auto_tac (claset(), 
@@ -1275,22 +1275,22 @@ qed "LIMSEQ_divide_realpow_zero";
 (*----------------------------------------------------------------
                Limit of c^n for |c| < 1  
  ---------------------------------------------------------------*)
-Goal "abs(c) < #1 ==> (%n. abs(c) ^ n) ----> #0";
+Goal "abs(c) < Numeral1 ==> (%n. abs(c) ^ n) ----> Numeral0";
 by (blast_tac (claset() addSIs [LIMSEQ_realpow_zero,abs_ge_zero]) 1);
 qed "LIMSEQ_rabs_realpow_zero";
 
-Goal "abs(c) < #1 ==> (%n. abs(c) ^ n) ----NS> #0";
+Goal "abs(c) < Numeral1 ==> (%n. abs(c) ^ n) ----NS> Numeral0";
 by (asm_full_simp_tac (simpset() addsimps [LIMSEQ_rabs_realpow_zero,
     LIMSEQ_NSLIMSEQ_iff RS sym]) 1);
 qed "NSLIMSEQ_rabs_realpow_zero";
 
-Goal "abs(c) < #1 ==> (%n. c ^ n) ----> #0";
+Goal "abs(c) < Numeral1 ==> (%n. c ^ n) ----> Numeral0";
 by (rtac (LIMSEQ_rabs_zero RS iffD1) 1);
 by (auto_tac (claset() addIs [LIMSEQ_rabs_realpow_zero],
               simpset() addsimps [realpow_abs RS sym]));
 qed "LIMSEQ_rabs_realpow_zero2";
 
-Goal "abs(c) < #1 ==> (%n. c ^ n) ----NS> #0";
+Goal "abs(c) < Numeral1 ==> (%n. c ^ n) ----NS> Numeral0";
 by (asm_full_simp_tac (simpset() addsimps [LIMSEQ_rabs_realpow_zero2,
     LIMSEQ_NSLIMSEQ_iff RS sym]) 1);
 qed "NSLIMSEQ_rabs_realpow_zero2";
@@ -1308,7 +1308,7 @@ qed "NSBseq_HFinite_hypreal";
 
 (*** A sequence converging to zero defines an infinitesimal ***)
 Goalw [NSLIMSEQ_def] 
-      "X ----NS> #0 ==> Abs_hypreal(hyprel``{X}) : Infinitesimal";
+      "X ----NS> Numeral0 ==> Abs_hypreal(hyprel``{X}) : Infinitesimal";
 by (dres_inst_tac [("x","whn")] bspec 1);
 by (simp_tac (simpset() addsimps [HNatInfinite_whn]) 1);
 by (auto_tac (claset(),

@@ -364,7 +364,7 @@ local
 (* reduce contradictory <= to False.
    Most of the work is done by the cancel tactics.
 *)
-val add_rules = [add_0,add_0_right,Zero_not_Suc,Suc_not_Zero,le_0_eq,One_def];
+val add_rules = [add_0,add_0_right,Zero_not_Suc,Suc_not_Zero,le_0_eq,One_nat_def];
 
 val add_mono_thms_nat = map (fn s => prove_goal (the_context ()) s
  (fn prems => [cut_facts_tac prems 1,
@@ -438,7 +438,7 @@ val arith_setup =
   [Simplifier.change_simpset_of (op addSolver)
    (mk_solver "lin. arith." Fast_Arith.cut_lin_arith_tac),
   Simplifier.change_simpset_of (op addsimprocs) [fast_nat_arith_simproc],
-  Method.add_methods [("arith", (arith_method o #2) oo Method.syntax Args.bang_facts,
+  Method.add_methods [("arith", (arith_method o # 2) oo Method.syntax Args.bang_facts,
     "decide linear arithmethic")],
   Attrib.add_attributes [("arith_split",
     (Attrib.no_args arith_split_add, Attrib.no_args Attrib.undef_local_attribute),

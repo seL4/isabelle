@@ -6,13 +6,13 @@
 The positive naturals -- proofs mainly as in theory Nat.
 *)
 
-Goal "mono(%X. {1'} Un Suc`X)";
+Goal "mono(%X. {Suc 0} Un Suc`X)";
 by (REPEAT (ares_tac [monoI, subset_refl, image_mono, Un_mono] 1));
 qed "pnat_fun_mono";
 
 bind_thm ("pnat_unfold", pnat_fun_mono RS (pnat_def RS def_lfp_unfold));
 
-Goal "1' : pnat";
+Goal "Suc 0 : pnat";
 by (stac pnat_unfold 1);
 by (rtac (singletonI RS UnI1) 1);
 qed "one_RepI";
@@ -24,14 +24,14 @@ by (stac pnat_unfold 1);
 by (etac (imageI RS UnI2) 1);
 qed "pnat_Suc_RepI";
 
-Goal "2 : pnat";
+Goal "Suc (Suc 0) : pnat";
 by (rtac (one_RepI RS pnat_Suc_RepI) 1);
 qed "two_RepI";
 
 (*** Induction ***)
 
 val major::prems = Goal
-    "[| i: pnat;  P(1');   \
+    "[| i: pnat;  P(Suc 0);   \
 \       !!j. [| j: pnat; P(j) |] ==> P(Suc(j)) |]  ==> P(i)";
 by (rtac ([pnat_def, pnat_fun_mono, major] MRS def_lfp_induct) 1);
 by (blast_tac (claset() addIs prems) 1);
@@ -250,7 +250,7 @@ qed "Rep_pnat_not_less0";
 (*** Rep_pnat < 0 ==> P ***)
 bind_thm ("Rep_pnat_less_zeroE",Rep_pnat_not_less0 RS notE);
 
-Goal "~ Rep_pnat y < 1'";
+Goal "~ Rep_pnat y < Suc 0";
 by (auto_tac (claset(),simpset() addsimps [less_Suc_eq,
                   Rep_pnat_gt_zero,less_not_refl2]));
 qed "Rep_pnat_not_less_one";
@@ -259,7 +259,7 @@ qed "Rep_pnat_not_less_one";
 bind_thm ("Rep_pnat_less_oneE",Rep_pnat_not_less_one RS notE);
 
 Goalw [pnat_less_def] 
-     "x < (y::pnat) ==> Rep_pnat y ~= 1'";
+     "x < (y::pnat) ==> Rep_pnat y ~= Suc 0";
 by (auto_tac (claset(),simpset() 
     addsimps [Rep_pnat_not_less_one] delsimps [less_one]));
 qed "Rep_pnat_gt_implies_not0";
@@ -270,7 +270,7 @@ by (cut_facts_tac [less_linear] 1);
 by (fast_tac (claset() addIs [inj_Rep_pnat RS injD]) 1);
 qed "pnat_less_linear";
 
-Goalw [le_def] "1' <= Rep_pnat x";
+Goalw [le_def] "Suc 0 <= Rep_pnat x";
 by (rtac Rep_pnat_not_less_one 1);
 qed "Rep_pnat_le_one";
 
@@ -416,12 +416,12 @@ by (simp_tac (simpset() addsimps [mult_Rep_pnat RS
           Abs_pnat_inverse,mult_left_commute]) 1);
 qed "pnat_mult_left_commute";
 
-Goalw [pnat_mult_def] "x * (Abs_pnat 1') = x";
+Goalw [pnat_mult_def] "x * (Abs_pnat (Suc 0)) = x";
 by (full_simp_tac (simpset() addsimps [one_RepI RS Abs_pnat_inverse,
                    Rep_pnat_inverse]) 1);
 qed "pnat_mult_1";
 
-Goal "Abs_pnat 1' * x = x";
+Goal "Abs_pnat (Suc 0) * x = x";
 by (full_simp_tac (simpset() addsimps [pnat_mult_1,
                    pnat_mult_commute]) 1);
 qed "pnat_mult_1_left";
@@ -503,11 +503,11 @@ by (dtac (inj_on_Abs_pnat RS inj_onD) 1);
 by (auto_tac (claset() addSIs [gt_0_mem_pnat],simpset()));
 qed "inj_pnat_of_nat";
 
-Goal "0 < n + 1";
+Goal "0 < n + (1::nat)";
 by Auto_tac;
 qed "nat_add_one_less";
 
-Goal "0 < n1 + n2 + 1";
+Goal "0 < n1 + n2 + (1::nat)";
 by Auto_tac;
 qed "nat_add_one_less1";
 

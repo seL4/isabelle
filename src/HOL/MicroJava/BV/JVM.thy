@@ -22,7 +22,7 @@ constdefs
   "wt_kil G C pTs rT mxs mxl ins ==
    bounded (\<lambda>n. succs (ins!n) n) (size ins) \<and> 0 < size ins \<and> 
    (let first  = Some ([],(OK (Class C))#((map OK pTs))@(replicate mxl Err));
-        start  = OK first#(replicate (size ins-1) (OK None));
+        start  = OK first#(replicate (size ins - 1) (OK None));
         result = kiljvm G mxs (1+size pTs+mxl) rT ins start
     in \<forall>n < size ins. result!n \<noteq> Err)"
 
@@ -149,7 +149,7 @@ theorem wt_kil_correct:
   ==> \<exists>phi. wt_method G C pTs rT maxs mxl bs phi"
 proof -
   let ?start = "OK (Some ([],(OK (Class C))#((map OK pTs))@(replicate mxl Err)))
-                #(replicate (size bs-1) (OK None))"
+                #(replicate (size bs - 1) (OK None))"
 
   assume wf:      "wf_prog wf_mb G"
   assume isclass: "is_class G C"
@@ -318,7 +318,7 @@ proof -
     by (rule is_bcv_kiljvm)
 
   let ?start = "OK (Some ([],(OK (Class C))#((map OK pTs))@(replicate mxl Err)))
-                #(replicate (size bs-1) (OK None))"
+                #(replicate (size bs - 1) (OK None))"
 
   { fix l x
     have "set (replicate l x) \<subseteq> {x}"

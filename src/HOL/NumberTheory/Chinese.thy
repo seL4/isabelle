@@ -45,26 +45,26 @@ consts
 defs
   m_cond_def:
     "m_cond n mf ==
-      (\<forall>i. i \<le> n --> #0 < mf i) \<and>
-      (\<forall>i j. i \<le> n \<and> j \<le> n \<and> i \<noteq> j --> zgcd (mf i, mf j) = #1)"
+      (\<forall>i. i \<le> n --> Numeral0 < mf i) \<and>
+      (\<forall>i j. i \<le> n \<and> j \<le> n \<and> i \<noteq> j --> zgcd (mf i, mf j) = Numeral1)"
 
   km_cond_def:
-    "km_cond n kf mf == \<forall>i. i \<le> n --> zgcd (kf i, mf i) = #1"
+    "km_cond n kf mf == \<forall>i. i \<le> n --> zgcd (kf i, mf i) = Numeral1"
 
   lincong_sol_def:
     "lincong_sol n kf bf mf x == \<forall>i. i \<le> n --> zcong (kf i * x) (bf i) (mf i)"
 
   mhf_def:
     "mhf mf n i ==
-      if i = 0 then funprod mf 1' (n - 1')
-      else if i = n then funprod mf 0 (n - 1')
-      else funprod mf 0 (i - 1') * funprod mf (Suc i) (n - 1' - i)"
+      if i = 0 then funprod mf (Suc 0) (n - Suc 0)
+      else if i = n then funprod mf 0 (n - Suc 0)
+      else funprod mf 0 (i - Suc 0) * funprod mf (Suc i) (n - Suc 0 - i)"
 
   xilin_sol_def:
     "xilin_sol i n kf bf mf ==
       if 0 < n \<and> i \<le> n \<and> m_cond n mf \<and> km_cond n kf mf then
-        (SOME x. #0 \<le> x \<and> x < mf i \<and> zcong (kf i * mhf mf n i * x) (bf i) (mf i))
-      else #0"
+        (SOME x. Numeral0 \<le> x \<and> x < mf i \<and> zcong (kf i * mhf mf n i * x) (bf i) (mf i))
+      else Numeral0"
 
   x_sol_def:
     "x_sol n kf bf mf == funsum (\<lambda>i. xilin_sol i n kf bf mf * mhf mf n i) 0 n"
@@ -72,15 +72,15 @@ defs
 
 text {* \medskip @{term funprod} and @{term funsum} *}
 
-lemma funprod_pos: "(\<forall>i. i \<le> n --> #0 < mf i) ==> #0 < funprod mf 0 n"
+lemma funprod_pos: "(\<forall>i. i \<le> n --> Numeral0 < mf i) ==> Numeral0 < funprod mf 0 n"
   apply (induct n)
    apply auto
   apply (simp add: int_0_less_mult_iff)
   done
 
 lemma funprod_zgcd [rule_format (no_asm)]:
-  "(\<forall>i. k \<le> i \<and> i \<le> k + l --> zgcd (mf i, mf m) = #1) -->
-    zgcd (funprod mf k l, mf m) = #1"
+  "(\<forall>i. k \<le> i \<and> i \<le> k + l --> zgcd (mf i, mf m) = Numeral1) -->
+    zgcd (funprod mf k l, mf m) = Numeral1"
   apply (induct l)
    apply simp_all
   apply (rule impI)+
@@ -110,14 +110,14 @@ lemma funsum_mod:
   done
 
 lemma funsum_zero [rule_format (no_asm)]:
-    "(\<forall>i. k \<le> i \<and> i \<le> k + l --> f i = #0) --> (funsum f k l) = #0"
+    "(\<forall>i. k \<le> i \<and> i \<le> k + l --> f i = Numeral0) --> (funsum f k l) = Numeral0"
   apply (induct l)
    apply auto
   done
 
 lemma funsum_oneelem [rule_format (no_asm)]:
   "k \<le> j --> j \<le> k + l -->
-    (\<forall>i. k \<le> i \<and> i \<le> k + l \<and> i \<noteq> j --> f i = #0) -->
+    (\<forall>i. k \<le> i \<and> i \<le> k + l \<and> i \<noteq> j --> f i = Numeral0) -->
     funsum f k l = f j"
   apply (induct l)
    prefer 2
@@ -127,9 +127,9 @@ lemma funsum_oneelem [rule_format (no_asm)]:
    apply (subgoal_tac "k = j")
     apply (simp_all (no_asm_simp))
   apply (case_tac "Suc (k + n) = j")
-   apply (subgoal_tac "funsum f k n = #0")
+   apply (subgoal_tac "funsum f k n = Numeral0")
     apply (rule_tac [2] funsum_zero)
-    apply (subgoal_tac [3] "f (Suc (k + n)) = #0")
+    apply (subgoal_tac [3] "f (Suc (k + n)) = Numeral0")
      apply (subgoal_tac [3] "j \<le> k + n")
       prefer 4
       apply arith
@@ -175,7 +175,7 @@ subsection {* Chinese: existence *}
 
 lemma unique_xi_sol:
   "0 < n ==> i \<le> n ==> m_cond n mf ==> km_cond n kf mf
-    ==> \<exists>!x. #0 \<le> x \<and> x < mf i \<and> [kf i * mhf mf n i * x = bf i] (mod mf i)"
+    ==> \<exists>!x. Numeral0 \<le> x \<and> x < mf i \<and> [kf i * mhf mf n i * x = bf i] (mod mf i)"
   apply (rule zcong_lineq_unique)
    apply (tactic {* stac (thm "zgcd_zmult_cancel") 2 *})
     apply (unfold m_cond_def km_cond_def mhf_def)
@@ -227,7 +227,7 @@ subsection {* Chinese *}
 
 lemma chinese_remainder:
   "0 < n ==> m_cond n mf ==> km_cond n kf mf
-    ==> \<exists>!x. #0 \<le> x \<and> x < funprod mf 0 n \<and> lincong_sol n kf bf mf x"
+    ==> \<exists>!x. Numeral0 \<le> x \<and> x < funprod mf 0 n \<and> lincong_sol n kf bf mf x"
   apply safe
    apply (rule_tac [2] m = "funprod mf 0 n" in zcong_zless_imp_eq)
        apply (rule_tac [6] zcong_funprod)
@@ -242,7 +242,7 @@ lemma chinese_remainder:
         apply (tactic {* stac (thm "zmod_zmult_distrib" RS sym) 7 *})
         apply (tactic {* stac (thm "zcong_zmod" RS sym) 7 *})
         apply (subgoal_tac [7]
-          "#0 \<le> xilin_sol i n kf bf mf \<and> xilin_sol i n kf bf mf < mf i
+          "Numeral0 \<le> xilin_sol i n kf bf mf \<and> xilin_sol i n kf bf mf < mf i
           \<and> [kf i * mhf mf n i * xilin_sol i n kf bf mf = bf i] (mod mf i)")
          prefer 7
          apply (simp add: zmult_ac)

@@ -35,7 +35,7 @@ val set_lemmas =
 
 (* Arithmetic *)
 
-goal NatArith.thy "!!x. 0<x ==> (x-1 = y) = (x = Suc(y))";
+goal NatArith.thy "!!x. 0<x ==> (x - 1 = y) = (x = Suc(y))";
 by (asm_simp_tac (simpset() addsimps [diff_Suc] addsplits [nat.split]) 1);
 qed "pred_suc";
 

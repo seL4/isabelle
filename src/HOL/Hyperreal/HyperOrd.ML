@@ -47,7 +47,7 @@ struct
   val eq_diff_eq	= hypreal_eq_diff_eq
   val eqI_rules		= [hypreal_less_eqI, hypreal_eq_eqI, hypreal_le_eqI]
   fun dest_eqI th = 
-      #1 (HOLogic.dest_bin "op =" HOLogic.boolT 
+      #1 (HOLogic.dest_bin "op =" HOLogic.boolT
 	      (HOLogic.dest_Trueprop (concl_of th)))
 
   val diff_def		= hypreal_diff_def
@@ -150,8 +150,8 @@ by (Asm_full_simp_tac 1);
 qed "hypreal_mult_less_zero";
 
 Goalw [hypreal_one_def,hypreal_zero_def,hypreal_less_def] "0 < 1hr";
-by (res_inst_tac [("x","%n. #0")] exI 1);
-by (res_inst_tac [("x","%n. #1")] exI 1);
+by (res_inst_tac [("x","%n. Numeral0")] exI 1);
+by (res_inst_tac [("x","%n. Numeral1")] exI 1);
 by (auto_tac (claset(),
         simpset() addsimps [real_zero_less_one, FreeUltrafilterNat_Nat_set]));
 qed "hypreal_zero_less_one";

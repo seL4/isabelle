@@ -182,7 +182,7 @@ text {*
 
 constdefs
   foo10 :: nat
-  "foo10 == getX (| x = 2, y = 0, colour = Blue |)"
+  "foo10 == getX (| x = # 2, y = 0, colour = Blue |)"
 
 
 subsubsection {* Non-coercive structural subtyping *}
@@ -194,7 +194,7 @@ text {*
 
 constdefs
   foo11 :: cpoint
-  "foo11 == setX (| x = 2, y = 0, colour = Blue |) 0"
+  "foo11 == setX (| x = # 2, y = 0, colour = Blue |) 0"
 
 
 subsection {* Other features *}
@@ -207,7 +207,7 @@ record point' =
 
 text {*
  \noindent May not apply @{term getX} to 
- @{term [source] "(| x' = 2, y' = 0 |)"}.
+ @{term [source] "(| x' = # 2, y' = 0 |)"}.
 *}
 
 text {* \medskip Polymorphic records. *}

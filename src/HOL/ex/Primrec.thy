@@ -159,16 +159,16 @@ lemma less_ack1 [iff]: "i < ack (i, j)"
 
 text {* PROPERTY A 8 *}
 
-lemma ack_1 [simp]: "ack (1', j) = j + #2"
+lemma ack_1 [simp]: "ack (Suc 0, j) = j + # 2"
   apply (induct j)
    apply simp_all
   done
 
 
-text {* PROPERTY A 9.  The unary @{term 1} and @{term 2} in @{term
+text {* PROPERTY A 9.  The unary @{text 1} and @{text 2} in @{term
   ack} is essential for the rewriting. *}
 
-lemma ack_2 [simp]: "ack (2, j) = #2 * j + #3"
+lemma ack_2 [simp]: "ack (Suc (Suc 0), j) = # 2 * j + # 3"
   apply (induct j)
    apply simp_all
   done
@@ -203,7 +203,7 @@ lemma ack_le_mono1: "i \<le> j ==> ack (i, k) \<le> ack (j, k)"
 
 text {* PROPERTY A 10 *}
 
-lemma ack_nest_bound: "ack(i1, ack (i2, j)) < ack (#2 + (i1 + i2), j)"
+lemma ack_nest_bound: "ack(i1, ack (i2, j)) < ack (# 2 + (i1 + i2), j)"
   apply (simp add: numerals)
   apply (rule ack2_le_ack1 [THEN [2] less_le_trans])
   apply simp
@@ -215,8 +215,8 @@ lemma ack_nest_bound: "ack(i1, ack (i2, j)) < ack (#2 + (i1 + i2), j)"
 
 text {* PROPERTY A 11 *}
 
-lemma ack_add_bound: "ack (i1, j) + ack (i2, j) < ack (#4 + (i1 + i2), j)"
-  apply (rule_tac j = "ack (2, ack (i1 + i2, j))" in less_trans)
+lemma ack_add_bound: "ack (i1, j) + ack (i2, j) < ack (# 4 + (i1 + i2), j)"
+  apply (rule_tac j = "ack (Suc (Suc 0), ack (i1 + i2, j))" in less_trans)
    prefer 2
    apply (rule ack_nest_bound [THEN less_le_trans])
    apply (simp add: Suc3_eq_add_3)
@@ -231,7 +231,7 @@ text {* PROPERTY A 12.  Article uses existential quantifier but the ALF proof
   used @{text "k + 4"}.  Quantified version must be nested @{text
   "\<exists>k'. \<forall>i j. ..."} *}
 
-lemma ack_add_bound2: "i < ack (k, j) ==> i + j < ack (#4 + k, j)"
+lemma ack_add_bound2: "i < ack (k, j) ==> i + j < ack (# 4 + k, j)"
   apply (rule_tac j = "ack (k, j) + ack (0, j)" in less_trans)
    prefer 2
    apply (rule ack_add_bound [THEN less_le_trans])

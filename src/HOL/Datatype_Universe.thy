@@ -63,7 +63,7 @@ defs
 
   (*S-expression constructors*)
   Atom_def   "Atom == (%x. {Abs_Node((%k. Inr 0, x))})"
-  Scons_def  "Scons M N == (Push_Node (Inr 1) ` M) Un (Push_Node (Inr 2) ` N)"
+  Scons_def  "Scons M N == (Push_Node (Inr 1) ` M) Un (Push_Node (Inr (Suc 1)) ` N)"
 
   (*Leaf nodes, with arbitrary or nat labels*)
   Leaf_def   "Leaf == Atom o Inl"

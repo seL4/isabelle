@@ -73,7 +73,7 @@ text {*
 constdefs
   B :: "'a set \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> ('a::{plus, minus, zero} \<Rightarrow> real) \<Rightarrow> real set"
   "B V norm f \<equiv>
-  {#0} \<union> {\<bar>f x\<bar> * inverse (norm x) | x. x \<noteq> 0 \<and> x \<in> V}"
+  {Numeral0} \<union> {\<bar>f x\<bar> * inverse (norm x) | x. x \<noteq> 0 \<and> x \<in> V}"
 
 text {*
   @{text n} is the function norm of @{text f}, iff @{text n} is the
@@ -97,7 +97,7 @@ constdefs
 syntax
   function_norm :: "('a \<Rightarrow> real) \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> real"  ("\<parallel>_\<parallel>_,_")
 
-lemma B_not_empty: "#0 \<in> B V norm f"
+lemma B_not_empty: "Numeral0 \<in> B V norm f"
   by (unfold B_def) blast
 
 text {*
@@ -125,7 +125,7 @@ proof (unfold function_norm_def is_function_norm_def
 
     show "\<exists>X. X \<in> B V norm f"
     proof
-      show "#0 \<in> (B V norm f)" by (unfold B_def) blast
+      show "Numeral0 \<in> (B V norm f)" by (unfold B_def) blast
     qed
 
     txt {* Then we have to show that @{text B} is bounded: *}
@@ -136,7 +136,7 @@ proof (unfold function_norm_def is_function_norm_def
       txt {* We know that @{text f} is bounded by some value @{text c}. *}
 
       fix c assume a: "\<forall>x \<in> V. \<bar>f x\<bar> \<le> c * norm x"
-      def b \<equiv> "max c #0"
+      def b \<equiv> "max c Numeral0"
 
       show "?thesis"
       proof (intro exI isUbI setleI ballI, unfold B_def,
@@ -148,7 +148,7 @@ proof (unfold function_norm_def is_function_norm_def
         two cases for @{text "y \<in> B"}.  If @{text "y = 0"} then
         @{text "y \<le> max c 0"}: *}
 
-        fix y assume "y = (#0::real)"
+        fix y assume "y = (Numeral0::real)"
         show "y \<le> b" by (simp! add: le_maxI2)
 
         txt {* The second case is @{text "y = \<bar>f x\<bar> / \<parallel>x\<parallel>"} for some
@@ -164,16 +164,16 @@ proof (unfold function_norm_def is_function_norm_def
         assume "y = \<bar>f x\<bar> * inverse (norm x)"
         also have "... \<le> c * norm x * inverse (norm x)"
         proof (rule real_mult_le_le_mono2)
-          show "#0 \<le> inverse (norm x)"
+          show "Numeral0 \<le> inverse (norm x)"
             by (rule order_less_imp_le, rule real_inverse_gt_zero1,
                 rule normed_vs_norm_gt_zero)
           from a show "\<bar>f x\<bar> \<le> c * norm x" ..
         qed
         also have "... = c * (norm x * inverse (norm x))"
           by (rule real_mult_assoc)
-        also have "(norm x * inverse (norm x)) = (#1::real)"
+        also have "(norm x * inverse (norm x)) = (Numeral1::real)"
         proof (rule real_mult_inv_right1)
-          show nz: "norm x \<noteq> #0"
+          show nz: "norm x \<noteq> Numeral0"
             by (rule not_sym, rule lt_imp_not_eq,
               rule normed_vs_norm_gt_zero)
         qed
@@ -188,7 +188,7 @@ text {* The norm of a continuous function is always @{text "\<ge> 0"}. *}
 
 lemma fnorm_ge_zero [intro?]:
   "is_continuous V norm f \<Longrightarrow> is_normed_vectorspace V norm
-   \<Longrightarrow> #0 \<le> \<parallel>f\<parallel>V,norm"
+   \<Longrightarrow> Numeral0 \<le> \<parallel>f\<parallel>V,norm"
 proof -
   assume c: "is_continuous V norm f"
      and n: "is_normed_vectorspace V norm"
@@ -200,23 +200,23 @@ proof -
 
   show ?thesis
   proof (unfold function_norm_def, rule sup_ub1)
-    show "\<forall>x \<in> (B V norm f). #0 \<le> x"
+    show "\<forall>x \<in> (B V norm f). Numeral0 \<le> x"
     proof (intro ballI, unfold B_def,
            elim UnE singletonE CollectE exE conjE)
       fix x r
       assume "x \<in> V"  "x \<noteq> 0"
         and r: "r = \<bar>f x\<bar> * inverse (norm x)"
 
-      have ge: "#0 \<le> \<bar>f x\<bar>" by (simp! only: abs_ge_zero)
-      have "#0 \<le> inverse (norm x)"
+      have ge: "Numeral0 \<le> \<bar>f x\<bar>" by (simp! only: abs_ge_zero)
+      have "Numeral0 \<le> inverse (norm x)"
         by (rule order_less_imp_le, rule real_inverse_gt_zero1, rule)(***
         proof (rule order_less_imp_le);
-          show "#0 < inverse (norm x)";
+          show "Numeral0 < inverse (norm x)";
           proof (rule real_inverse_gt_zero);
-            show "#0 < norm x"; ..;
+            show "Numeral0 < norm x"; ..;
           qed;
         qed; ***)
-      with ge show "#0 \<le> r"
+      with ge show "Numeral0 \<le> r"
        by (simp only: r, rule real_le_mult_order1a)
     qed (simp!)
 
@@ -228,7 +228,7 @@ proof -
 
     txt {* @{text B} is non-empty by construction: *}
 
-    show "#0 \<in> B V norm f" by (rule B_not_empty)
+    show "Numeral0 \<in> B V norm f" by (rule B_not_empty)
   qed
 qed
 
@@ -258,20 +258,20 @@ proof -
 
     assume "x = 0"
     have "\<bar>f x\<bar> = \<bar>f 0\<bar>" by (simp!)
-    also from v continuous_linearform have "f 0 = #0" ..
+    also from v continuous_linearform have "f 0 = Numeral0" ..
     also note abs_zero
-    also have "#0 \<le> \<parallel>f\<parallel>V,norm * norm x"
+    also have "Numeral0 \<le> \<parallel>f\<parallel>V,norm * norm x"
     proof (rule real_le_mult_order1a)
-      show "#0 \<le> \<parallel>f\<parallel>V,norm" ..
-      show "#0 \<le> norm x" ..
+      show "Numeral0 \<le> \<parallel>f\<parallel>V,norm" ..
+      show "Numeral0 \<le> norm x" ..
     qed
     finally
     show "\<bar>f x\<bar> \<le> \<parallel>f\<parallel>V,norm * norm x" .
 
   next
     assume "x \<noteq> 0"
-    have n: "#0 < norm x" ..
-    hence nz: "norm x \<noteq> #0"
+    have n: "Numeral0 < norm x" ..
+    hence nz: "norm x \<noteq> Numeral0"
       by (simp only: lt_imp_not_eq)
 
     txt {* For the case @{text "x \<noteq> 0"} we derive the following fact
@@ -289,8 +289,8 @@ proof -
 
     txt {* The thesis now follows by a short calculation: *}
 
-    have "\<bar>f x\<bar> = \<bar>f x\<bar> * #1" by (simp!)
-    also from nz have "#1 = inverse (norm x) * norm x"
+    have "\<bar>f x\<bar> = \<bar>f x\<bar> * Numeral1" by (simp!)
+    also from nz have "Numeral1 = inverse (norm x) * norm x"
       by (simp add: real_mult_inv_left1)
     also have "\<bar>f x\<bar> * ... = \<bar>f x\<bar> * inverse (norm x) * norm x"
       by (simp! add: real_mult_assoc)
@@ -310,13 +310,13 @@ text {*
 
 lemma fnorm_le_ub:
   "is_continuous V norm f \<Longrightarrow> is_normed_vectorspace V norm \<Longrightarrow>
-     \<forall>x \<in> V. \<bar>f x\<bar> \<le> c * norm x \<Longrightarrow> #0 \<le> c
+     \<forall>x \<in> V. \<bar>f x\<bar> \<le> c * norm x \<Longrightarrow> Numeral0 \<le> c
   \<Longrightarrow> \<parallel>f\<parallel>V,norm \<le> c"
 proof (unfold function_norm_def)
   assume "is_normed_vectorspace V norm"
   assume c: "is_continuous V norm f"
   assume fb: "\<forall>x \<in> V. \<bar>f x\<bar> \<le> c * norm x"
-    and "#0 \<le> c"
+    and "Numeral0 \<le> c"
 
   txt {* Suppose the inequation holds for some @{text "c \<ge> 0"}.  If
   @{text c} is an upper bound of @{text B}, then @{text c} is greater
@@ -340,7 +340,7 @@ proof (unfold function_norm_def)
 
        txt {* The first case for @{text "y \<in> B"} is @{text "y = 0"}. *}
 
-        assume "y = #0"
+        assume "y = Numeral0"
         show "y \<le> c" by (blast!)
 
         txt{* The second case is @{text "y = \<bar>f x\<bar> / \<parallel>x\<parallel>"} for some
@@ -350,18 +350,18 @@ proof (unfold function_norm_def)
         fix x
         assume "x \<in> V"  "x \<noteq> 0"
 
-        have lz: "#0 < norm x"
+        have lz: "Numeral0 < norm x"
           by (simp! add: normed_vs_norm_gt_zero)
 
-        have nz: "norm x \<noteq> #0"
+        have nz: "norm x \<noteq> Numeral0"
         proof (rule not_sym)
-          from lz show "#0 \<noteq> norm x"
+          from lz show "Numeral0 \<noteq> norm x"
             by (simp! add: order_less_imp_not_eq)
         qed
 
-        from lz have "#0 < inverse (norm x)"
+        from lz have "Numeral0 < inverse (norm x)"
           by (simp! add: real_inverse_gt_zero1)
-        hence inverse_gez: "#0 \<le> inverse (norm x)"
+        hence inverse_gez: "Numeral0 \<le> inverse (norm x)"
           by (rule order_less_imp_le)
 
         assume "y = \<bar>f x\<bar> * inverse (norm x)"

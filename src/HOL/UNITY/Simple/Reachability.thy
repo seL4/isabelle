@@ -60,7 +60,7 @@ rules
 
     MA4  "[|(v,w) : E|] ==> F : Always (-(reachable v) Un (nmsg_gt 0 (v,w)) Un (reachable w))"
 
-    MA5  "[|v:V;w:V|] ==> F : Always (nmsg_gte 0 (v,w) Int nmsg_lte 1' (v,w))"
+    MA5  "[|v:V;w:V|] ==> F : Always (nmsg_gte 0 (v,w) Int nmsg_lte (Suc 0) (v,w))"
 
     MA6  "[|v:V|] ==> F : Stable (reachable v)"
 

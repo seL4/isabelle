@@ -80,11 +80,12 @@ text {*
 *}
 
 consts k :: "nat => nat"
+
 recdef (permissive) k  less_than
   "k 0 = 0"
   "k (Suc n) =
    (let x = k 1
-    in if 0 = 1 then k (Suc 1) else n)"
+    in if False then k (Suc 1) else n)"
 
 consts part :: "('a => bool) * 'a list * 'a list * 'a list => 'a list * 'a list"
 recdef part  "measure (\<lambda>(P, l, l1, l2). size l)"

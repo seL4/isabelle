@@ -9,7 +9,7 @@ Example of mutually recursive procedures verified with Hoare logic
 EvenOdd = Misc +
 
 constdefs even :: nat => bool
-  "even n == #2 dvd n"
+  "even n == # 2 dvd n"
 
 consts
   Even, Odd :: pname
@@ -27,7 +27,7 @@ constdefs
   odd :: com
  "odd == IF (%s. s<Arg>=0)
          THEN Loc Res:==(%s. 1)
-         ELSE(Loc Res:=CALL Even (%s. s<Arg> -1))"
+         ELSE(Loc Res:=CALL Even (%s. s<Arg> - 1))"
 
 defs
   bodies_def "bodies == [(Even,evn),(Odd,odd)]"

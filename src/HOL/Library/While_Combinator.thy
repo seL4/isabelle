@@ -22,9 +22,9 @@ consts while_aux :: "('a => bool) \<times> ('a => 'a) \<times> 'a => 'a"
 recdef (permissive) while_aux
   "same_fst (\<lambda>b. True) (\<lambda>b. same_fst (\<lambda>c. True) (\<lambda>c.
       {(t, s).  b s \<and> c s = t \<and>
-        \<not> (\<exists>f. f 0 = s \<and> (\<forall>i. b (f i) \<and> c (f i) = f (i + 1)))}))"
+        \<not> (\<exists>f. f (0::nat) = s \<and> (\<forall>i. b (f i) \<and> c (f i) = f (i + 1)))}))"
   "while_aux (b, c, s) =
-    (if (\<exists>f. f 0 = s \<and> (\<forall>i. b (f i) \<and> c (f i) = f (i + 1)))
+    (if (\<exists>f. f (0::nat) = s \<and> (\<forall>i. b (f i) \<and> c (f i) = f (i + 1)))
       then arbitrary
       else if b s then while_aux (b, c, c s)
       else s)"
@@ -42,11 +42,10 @@ constdefs
 
 lemma while_aux_unfold:
   "while_aux (b, c, s) =
-    (if \<exists>f. f 0 = s \<and> (\<forall>i. b (f i) \<and> c (f i) = f (i + 1))
+    (if \<exists>f. f (0::nat) = s \<and> (\<forall>i. b (f i) \<and> c (f i) = f (i + 1))
       then arbitrary
       else if b s then while_aux (b, c, c s)
       else s)"
-thm while_aux.simps
   apply (rule while_aux_tc [THEN while_aux.simps [THEN trans]])
   apply (rule refl)
   done
@@ -136,14 +135,14 @@ text {*
  theory.}
 *}
 
-theorem "P (lfp (\<lambda>N::int set. {#0} \<union> {(n + #2) mod #6 | n. n \<in> N})) =
-    P {#0, #4, #2}"
+theorem "P (lfp (\<lambda>N::int set. {Numeral0} \<union> {(n + # 2) mod # 6 | n. n \<in> N})) =
+    P {Numeral0, # 4, # 2}"
 proof -
   have aux: "!!f A B. {f n | n. A n \<or> B n} = {f n | n. A n} \<union> {f n | n. B n}"
     apply blast
     done
   show ?thesis
-    apply (subst lfp_conv_while [where ?U = "{#0, #1, #2, #3, #4, #5}"])
+    apply (subst lfp_conv_while [where ?U = "{Numeral0, Numeral1, # 2, # 3, # 4, # 5}"])
        apply (rule monoI)
       apply blast
      apply simp

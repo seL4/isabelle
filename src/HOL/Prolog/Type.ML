@@ -6,7 +6,7 @@ pgoal "typeof (abs(%n. abs(%m. abs(%p. p and (n eq m))))) ?T";
 
 pgoal "typeof (fix (%x. x)) ?T";
 
-pgoal "typeof (fix (%fact. abs(%n. (app fact (n-0))))) ?T";
+pgoal "typeof (fix (%fact. abs(%n. (app fact (n - 0))))) ?T";
 
 pgoal "typeof (fix (%fact. abs(%n. cond (n eq 0) (S 0) \
 				\(n * (app fact (n - (S 0))))))) ?T";

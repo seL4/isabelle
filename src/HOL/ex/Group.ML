@@ -10,21 +10,21 @@
    based on the unary inverse 0-x.
 *)
 
-Goal "!!x::'a::add_group. (0-x)+(x+y) = y";
+Goal "!!x::'a::add_group. (0 - x) + (x + y) = y";
 by (rtac trans 1);
 by (rtac (plus_assoc RS sym) 1);
 by (stac left_inv 1);
 by (rtac zeroL 1);
 qed "left_inv2";
 
-Goal "!!x::'a::add_group. (0-(0-x)) = x";
+Goal "!!x::'a::add_group. (0 - (0 - x)) = x";
 by (rtac trans 1);
-by (res_inst_tac [("x","0-x")] left_inv2 2);
+by (res_inst_tac [("x","0 - x")] left_inv2 2);
 by (stac left_inv 1);
 by (rtac (zeroR RS sym) 1);
 qed "inv_inv";
 
-Goal "0-0 = (0::'a::add_group)";
+Goal "0 - 0 = (0::'a::add_group)";
 by (rtac trans 1);
 by (rtac (zeroR RS sym) 1);
 by (rtac trans 1);
@@ -32,23 +32,23 @@ by (res_inst_tac [("x","0")] left_inv2 2);
 by (simp_tac (simpset() addsimps [zeroR]) 1);
 qed "inv_zero";
 
-Goal "!!x::'a::add_group. x+(0-x) = 0";
+Goal "!!x::'a::add_group. x + (0 - x) = 0";
 by (rtac trans 1);
 by (res_inst_tac [("x","0-x")] left_inv 2);
 by (stac inv_inv 1);
 by (rtac refl 1);
 qed "right_inv";
 
-Goal "!!x::'a::add_group. x+((0-x)+y) = y";
+Goal "!!x::'a::add_group. x + ((0 - x) + y) = y";
 by (rtac trans 1);
-by (res_inst_tac [("x","0-x")] left_inv2 2);
+by (res_inst_tac [("x","0 - x")] left_inv2 2);
 by (stac inv_inv 1);
 by (rtac refl 1);
 qed "right_inv2";
 
 val plus_cong = read_instantiate [("f1","op +")] (arg_cong RS cong);
 
-Goal "!!x::'a::add_group. 0-(x+y) = (0-y)+(0-x)";
+Goal "!!x::'a::add_group. 0 - (x + y) = (0 - y) + (0 - x)";
 by (rtac trans 1);
  by (rtac zeroR 2);
 by (rtac trans 1);
@@ -65,7 +65,7 @@ by (rtac trans 1);
 by (rtac (zeroL RS sym) 1);
 qed "inv_plus";
 
-(*** convergent TRS for groups with unary inverse 0-x ***)
+(*** convergent TRS for groups with unary inverse 0 - x ***)
 val group1_simps =
   [zeroL,zeroR,plus_assoc,left_inv,left_inv2,right_inv,right_inv2,inv_inv,
    inv_zero,inv_plus];
@@ -75,10 +75,10 @@ val group1_tac =
   in simp_tac ss end;
 
 (* I believe there is no convergent TRS for groups with binary `-',
-   unless you have an extra unary `-' and simply define x-y = x+(-y).
-   This does not work with only a binary `-' because x-y = x+(0-y) does
+   unless you have an extra unary `-' and simply define x - y = x + (-y).
+   This does not work with only a binary `-' because x - y = x + (0 - y) does
    not terminate. Hence we have a special tactic for converting all
-   occurrences of x-y into x+(0-y):
+   occurrences of x - y into x + (0 - y):
 *)
 
 local
@@ -102,12 +102,12 @@ end;
 (* The following two equations are not used in any of the decision procedures,
    but are still very useful. They also demonstrate mk_group1_tac.
 *)
-Goal "x-x = (0::'a::add_group)";
+Goal "x - x = (0::'a::add_group)";
 by (mk_group1_tac 1);
 by (group1_tac 1);
 qed "minus_self_zero";
 
-Goal "x-0 = (x::'a::add_group)";
+Goal "x - 0 = (x::'a::add_group)";
 by (mk_group1_tac 1);
 by (group1_tac 1);
 qed "minus_zero";
@@ -122,7 +122,7 @@ by (rtac plus_assoc 1);
 by (simp_tac (simpset() addsimps [plus_commute]) 1);
 qed "plus_commuteL";
 
-(* Convergent TRS for Abelian groups with unary inverse 0-x.
+(* Convergent TRS for Abelian groups with unary inverse 0 - x.
    Requires ordered rewriting
 *)
 

@@ -4,13 +4,13 @@
     Copyright   1991  University of Cambridge
 *)
 
-Addsimps [One_def];
+Addsimps [One_nat_def];
 
 val rew = rewrite_rule [symmetric Nat_def];
 
 (*** Induction ***)
 
-val prems = Goalw [Zero_def,Suc_def]
+val prems = Goalw [Zero_nat_def,Suc_def]
     "[| P(0);   \
 \       !!n. P(n) ==> P(Suc(n)) |]  ==> P(n)";
 by (rtac (Rep_Nat_inverse RS subst) 1);   (*types force good instantiation*)
@@ -53,7 +53,7 @@ qed "inj_on_Abs_Nat";
 
 (*** Distinctness of constructors ***)
 
-Goalw [Zero_def,Suc_def] "Suc(m) ~= 0";
+Goalw [Zero_nat_def,Suc_def] "Suc(m) ~= 0";
 by (rtac (inj_on_Abs_Nat RS inj_on_contraD) 1);
 by (rtac Suc_Rep_not_Zero_Rep 1);
 by (REPEAT (resolve_tac [Rep_Nat, rew Nat'.Suc_RepI, rew Nat'.Zero_RepI] 1));
@@ -191,7 +191,7 @@ Goal "(m < Suc(n)) = (m < n | m = n)";
 by (blast_tac (claset() addSEs [less_SucE] addIs [less_trans]) 1);
 qed "less_Suc_eq";
 
-Goal "(n<1) = (n=0)";
+Goal "(n < (1::nat)) = (n = 0)";
 by (simp_tac (simpset() addsimps [less_Suc_eq]) 1);
 qed "less_one";
 AddIffs [less_one];
@@ -462,12 +462,13 @@ by Auto_tac;
 qed "zero_reorient";
 Addsimps [zero_reorient];
 
+(*Polymorphic, not just for "nat"*)
 Goal "True ==> (1 = x) = (x = 1)";
 by Auto_tac;  
 qed "one_reorient";
 Addsimps [one_reorient];
 
-Goal "True ==> (2 = x) = (x = 2)";
-by Auto_tac;  
+Goal "True ==> (Suc (Suc 0) = x) = (x = Suc (Suc 0))";  (* FIXME !? *)
+by Auto_tac;
 qed "two_reorient";
 Addsimps [two_reorient];

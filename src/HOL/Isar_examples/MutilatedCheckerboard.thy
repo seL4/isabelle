@@ -76,7 +76,7 @@ lemma Sigma_Suc1:
   by (simp add: below_def less_Suc_eq) blast
 
 lemma Sigma_Suc2:
-    "m = n + 2 ==> A <*> below m =
+    "m = n + # 2 ==> A <*> below m =
       (A <*> {n}) Un (A <*> {n + 1}) Un (A <*> below n)"
   by (auto simp add: below_def) arith
 
@@ -87,10 +87,10 @@ subsection {* Basic properties of ``evnodd'' *}
 
 constdefs
   evnodd :: "(nat * nat) set => nat => (nat * nat) set"
-  "evnodd A b == A Int {(i, j). (i + j) mod #2 = b}"
+  "evnodd A b == A Int {(i, j). (i + j) mod # 2 = b}"
 
 lemma evnodd_iff:
-    "(i, j): evnodd A b = ((i, j): A  & (i + j) mod #2 = b)"
+    "(i, j): evnodd A b = ((i, j): A  & (i + j) mod # 2 = b)"
   by (simp add: evnodd_def)
 
 lemma evnodd_subset: "evnodd A b <= A"
@@ -112,7 +112,7 @@ lemma evnodd_empty: "evnodd {} b = {}"
   by (simp add: evnodd_def)
 
 lemma evnodd_insert: "evnodd (insert (i, j) C) b =
-    (if (i + j) mod #2 = b
+    (if (i + j) mod # 2 = b
       then insert (i, j) (evnodd C b) else evnodd C b)"
   by (simp add: evnodd_def) blast
 
@@ -128,21 +128,21 @@ inductive domino
     vertl: "{(i, j), (i + 1, j)} : domino"
 
 lemma dominoes_tile_row:
-  "{i} <*> below (2 * n) : tiling domino"
+  "{i} <*> below (# 2 * n) : tiling domino"
   (is "?P n" is "?B n : ?T")
 proof (induct n)
   show "?P 0" by (simp add: below_0 tiling.empty)
 
   fix n assume hyp: "?P n"
-  let ?a = "{i} <*> {2 * n + 1} Un {i} <*> {2 * n}"
+  let ?a = "{i} <*> {# 2 * n + 1} Un {i} <*> {# 2 * n}"
 
   have "?B (Suc n) = ?a Un ?B n"
     by (auto simp add: Sigma_Suc Un_assoc)
   also have "... : ?T"
   proof (rule tiling.Un)
-    have "{(i, 2 * n), (i, 2 * n + 1)} : domino"
+    have "{(i, # 2 * n), (i, # 2 * n + 1)} : domino"
       by (rule domino.horiz)
-    also have "{(i, 2 * n), (i, 2 * n + 1)} = ?a" by blast
+    also have "{(i, # 2 * n), (i, # 2 * n + 1)} = ?a" by blast
     finally show "... : domino" .
     from hyp show "?B n : ?T" .
     show "?a <= - ?B n" by blast
@@ -151,13 +151,13 @@ proof (induct n)
 qed
 
 lemma dominoes_tile_matrix:
-  "below m <*> below (2 * n) : tiling domino"
+  "below m <*> below (# 2 * n) : tiling domino"
   (is "?P m" is "?B m : ?T")
 proof (induct m)
   show "?P 0" by (simp add: below_0 tiling.empty)
 
   fix m assume hyp: "?P m"
-  let ?t = "{m} <*> below (2 * n)"
+  let ?t = "{m} <*> below (# 2 * n)"
 
   have "?B (Suc m) = ?t Un ?B m" by (simp add: Sigma_Suc)
   also have "... : ?T"
@@ -170,9 +170,9 @@ proof (induct m)
 qed
 
 lemma domino_singleton:
-  "d : domino ==> b < 2 ==> EX i j. evnodd d b = {(i, j)}"
+  "d : domino ==> b < # 2 ==> EX i j. evnodd d b = {(i, j)}"
 proof -
-  assume b: "b < 2"
+  assume b: "b < # 2"
   assume "d : domino"
   thus ?thesis (is "?P d")
   proof induct
@@ -227,9 +227,9 @@ proof -
       and at: "a <= - t"
 
     have card_suc:
-      "!!b. b < 2 ==> card (?e (a Un t) b) = Suc (card (?e t b))"
+      "!!b. b < # 2 ==> card (?e (a Un t) b) = Suc (card (?e t b))"
     proof -
-      fix b assume "b < 2"
+      fix b :: nat assume "b < # 2"
       have "?e (a Un t) b = ?e a b Un ?e t b" by (rule evnodd_Un)
       also obtain i j where e: "?e a b = {(i, j)}"
       proof -
@@ -260,15 +260,15 @@ subsection {* Main theorem *}
 constdefs
   mutilated_board :: "nat => nat => (nat * nat) set"
   "mutilated_board m n ==
-    below (2 * (m + 1)) <*> below (2 * (n + 1))
-      - {(0, 0)} - {(2 * m + 1, 2 * n + 1)}"
+    below (# 2 * (m + 1)) <*> below (# 2 * (n + 1))
+      - {(0, 0)} - {(# 2 * m + 1, # 2 * n + 1)}"
 
 theorem mutil_not_tiling: "mutilated_board m n ~: tiling domino"
 proof (unfold mutilated_board_def)
   let ?T = "tiling domino"
-  let ?t = "below (2 * (m + 1)) <*> below (2 * (n + 1))"
+  let ?t = "below (# 2 * (m + 1)) <*> below (# 2 * (n + 1))"
   let ?t' = "?t - {(0, 0)}"
-  let ?t'' = "?t' - {(2 * m + 1, 2 * n + 1)}"
+  let ?t'' = "?t' - {(# 2 * m + 1, # 2 * n + 1)}"
 
   show "?t'' ~: ?T"
   proof
@@ -282,12 +282,12 @@ proof (unfold mutilated_board_def)
     note [simp] = evnodd_iff evnodd_empty evnodd_insert evnodd_Diff
     have "card (?e ?t'' 0) < card (?e ?t' 0)"
     proof -
-      have "card (?e ?t' 0 - {(2 * m + 1, 2 * n + 1)})
+      have "card (?e ?t' 0 - {(# 2 * m + 1, # 2 * n + 1)})
         < card (?e ?t' 0)"
       proof (rule card_Diff1_less)
         from _ fin show "finite (?e ?t' 0)"
           by (rule finite_subset) auto
-        show "(2 * m + 1, 2 * n + 1) : ?e ?t' 0" by simp
+        show "(# 2 * m + 1, # 2 * n + 1) : ?e ?t' 0" by simp
       qed
       thus ?thesis by simp
     qed

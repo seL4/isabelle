@@ -130,7 +130,7 @@ by (dres_inst_tac [("f","uminus")] arg_cong 1);
 by (asm_full_simp_tac (simpset() addsimps [real_minus_minus]) 1);
 qed "inj_real_minus";
 
-Goalw [real_zero_def] "-0 = (0::real)";
+Goalw [real_zero_def] "- 0 = (0::real)";
 by (simp_tac (simpset() addsimps [real_minus]) 1);
 qed "real_minus_zero";
 

@@ -80,7 +80,7 @@ qed "Node_Push_I";
 
 (** Scons vs Atom **)
 
-Goalw [Atom_def,Scons_def,Push_Node_def,One_def]
+Goalw [Atom_def,Scons_def,Push_Node_def,One_nat_def]
  "Scons M N ~= Atom(a)";
 by (rtac notI 1);
 by (etac (equalityD2 RS subsetD RS UnE) 1);
@@ -141,11 +141,11 @@ qed "Push_Node_inject";
 
 (** Injectiveness of Scons **)
 
-Goalw [Scons_def,One_def] "Scons M N <= Scons M' N' ==> M<=M'";
+Goalw [Scons_def,One_nat_def] "Scons M N <= Scons M' N' ==> M<=M'";
 by (blast_tac (claset() addSDs [Push_Node_inject]) 1);
 qed "Scons_inject_lemma1";
 
-Goalw [Scons_def,One_def] "Scons M N <= Scons M' N' ==> N<=N'";
+Goalw [Scons_def,One_nat_def] "Scons M N <= Scons M' N' ==> N<=N'";
 by (blast_tac (claset() addSDs [Push_Node_inject]) 1);
 qed "Scons_inject_lemma2";
 
@@ -252,7 +252,7 @@ Goalw [Numb_def,o_def] "ntrunc (Suc k) (Numb i) = Numb(i)";
 by (rtac ntrunc_Atom 1);
 qed "ntrunc_Numb";
 
-Goalw [Scons_def,ntrunc_def,One_def]
+Goalw [Scons_def,ntrunc_def,One_nat_def]
     "ntrunc (Suc k) (Scons M N) = Scons (ntrunc k M) (ntrunc k N)";
 by (safe_tac (claset() addSIs [imageI]));
 by (REPEAT (stac ndepth_Push_Node 3 THEN etac Suc_mono 3));
@@ -266,7 +266,7 @@ Addsimps [ntrunc_0, ntrunc_Atom, ntrunc_Leaf, ntrunc_Numb, ntrunc_Scons];
 
 (** Injection nodes **)
 
-Goalw [In0_def] "ntrunc 1' (In0 M) = {}";
+Goalw [In0_def] "ntrunc (Suc 0) (In0 M) = {}";
 by (Simp_tac 1);
 by (rewtac Scons_def);
 by (Blast_tac 1);
@@ -277,7 +277,7 @@ Goalw [In0_def]
 by (Simp_tac 1);
 qed "ntrunc_In0";
 
-Goalw [In1_def] "ntrunc 1' (In1 M) = {}";
+Goalw [In1_def] "ntrunc (Suc 0) (In1 M) = {}";
 by (Simp_tac 1);
 by (rewtac Scons_def);
 by (Blast_tac 1);
@@ -339,7 +339,7 @@ qed "usumE";
 
 (** Injection **)
 
-Goalw [In0_def,In1_def,One_def] "In0(M) ~= In1(N)";
+Goalw [In0_def,In1_def,One_nat_def] "In0(M) ~= In1(N)";
 by (rtac notI 1);
 by (etac (Scons_inject1 RS Numb_inject RS Zero_neq_Suc) 1);
 qed "In0_not_In1";

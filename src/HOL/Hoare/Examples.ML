@@ -13,7 +13,7 @@ Goal "|- VARS m s a b. \
 \  m := 0; s := 0; \
 \  WHILE m~=a \
 \  INV {s=m*b & a=A & b=B} \  
-\  DO s := s+b; m := m+1 OD \
+\  DO s := s+b; m := m+(1::nat) OD \
 \  {s = A*B}"; 
 by (hoare_tac (Asm_full_simp_tac) 1);
 qed "multiply_by_add";
@@ -50,9 +50,9 @@ val distribs =
 Goal "|- VARS a b x y. \
 \ {0<A & 0<B & a=A & b=B & x=B & y=A} \
 \ WHILE  a ~= b  \
-\ INV {0<a & 0<b & gcd A B = gcd a b & #2*A*B = a*x + b*y} \
+\ INV {0<a & 0<b & gcd A B = gcd a b & # 2*A*B = a*x + b*y} \
 \ DO IF a<b THEN (b := b-a; x := x+y) ELSE (a := a-b; y := y+x) FI OD \
-\ {a = gcd A B & #2*A*B = a*(x+y)}";
+\ {a = gcd A B & # 2*A*B = a*(x+y)}";
 by (hoare_tac (K all_tac) 1);
 by(Asm_simp_tac 1);
 by(asm_simp_tac (simpset() addsimps
@@ -65,13 +65,13 @@ qed "gcd_scm";
 
 Goal "|- VARS a b c. \
 \ {a=A & b=B} \
-\ c := 1; \
+\ c := (1::nat); \
 \ WHILE b ~= 0 \
 \ INV {A^B = c * a^b} \
-\ DO  WHILE b mod #2 = 0 \
+\ DO  WHILE b mod # 2 = 0 \
 \     INV {A^B = c * a^b} \
-\     DO  a := a*a; b := b div #2 OD; \
-\     c := c*a; b := b-1 \
+\     DO  a := a*a; b := b div # 2 OD; \
+\     c := c*a; b := b - 1 \
 \ OD \
 \ {c = A^B}";
 by (hoare_tac (Asm_full_simp_tac) 1);
@@ -87,7 +87,7 @@ Goal "|- VARS a b. \
 \ b := 1; \
 \ WHILE a ~= 0 \
 \ INV {fac A = b * fac a} \
-\ DO b := b*a; a := a-1 OD \
+\ DO b := b*a; a := a - 1 OD \
 \ {b = fac A}";
 by (hoare_tac (asm_full_simp_tac (simpset() addsplits [nat_diff_split])) 1);
 by Auto_tac;  
@@ -99,7 +99,7 @@ qed "factorial";
 
 Goal "|- VARS r x. \
 \ {True} \
-\ x := X; r := 0; \
+\ x := X; r := (0::nat); \
 \ WHILE (r+1)*(r+1) <= x \
 \ INV {r*r <= x & x=X} \
 \ DO r := r+1 OD \
@@ -111,10 +111,10 @@ qed "sqrt";
 
 Goal "|- VARS u w r x. \
 \ {True} \
-\ x := X; u := 1; w := 1; r := 0; \
+\ x := X; u := 1; w := 1; r := (0::nat); \
 \ WHILE w <= x \
 \ INV {u = r+r+1 & w = (r+1)*(r+1) & r*r <= x & x=X} \
-\ DO r := r+1; w := w+u+2; u := u+2 OD \
+\ DO r := r + 1; w := w + u + # 2; u := u + # 2 OD \
 \ {r*r <= X & X < (r+1)*(r+1)}";
 by (hoare_tac (SELECT_GOAL Auto_tac) 1);
 qed "sqrt_without_multiplication";
@@ -175,7 +175,7 @@ that the elements between u and l are equal to pivot.
 Ambiguity warnings of parser are due to := being used
 both for assignment and list update.
 *)
-Goal "m - 1' < n ==> m < Suc n";
+Goal "m - Suc 0 < n ==> m < Suc n";
 by (arith_tac 1);
 qed "lemma";
 
@@ -184,7 +184,7 @@ Goal
 \   geq == %A i. !k. i<k & k<length A --> pivot <= A!k |] ==> \
 \ |- VARS A u l.\
 \ {0 < length(A::('a::order)list)} \
-\ l := 0; u := length A - 1'; \
+\ l := 0; u := length A - Suc 0; \
 \ WHILE l <= u \
 \  INV {leq A l & geq A u & u<length A & l<=length A} \
 \  DO WHILE l < length A & A!l <= pivot \
@@ -192,7 +192,7 @@ Goal
 \      DO l := l+1 OD; \
 \     WHILE 0 < u & pivot <= A!u \
 \      INV {leq A l & geq A u  & u<length A & l<=length A} \
-\      DO u := u-1 OD; \
+\      DO u := u - 1 OD; \
 \     IF l <= u THEN A := A[l := A!u, u := A!l] ELSE SKIP FI \
 \  OD \
 \ {leq A u & (!k. u<k & k<l --> A!k = pivot) & geq A l}";

@@ -50,8 +50,12 @@ fun dest_bin_str tm =
       (case rev rev_digs of
         ~1 :: bs => ("-", prefix_len (equal 1) bs)
       | bs => ("", prefix_len (equal 0) bs));
-    val num = string_of_int (abs (HOLogic.int_of rev_digs));
-  in "#" ^ sign ^ implode (replicate zs "0") ^ num end;
+    val i = HOLogic.int_of rev_digs;
+    val num = string_of_int (abs i);
+  in
+    if i = 0 orelse i = 1 then raise Match
+    else sign ^ implode (replicate zs "0") ^ num
+  end;
 
 
 (* translation of integer numeral tokens to and from bitstrings *)

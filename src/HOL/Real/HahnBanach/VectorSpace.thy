@@ -31,7 +31,7 @@ text {*
   associative and commutative; @{text "- x"} is the inverse of @{text
   x} w.~r.~t.~addition and @{text 0} is the neutral element of
   addition.  Addition and multiplication are distributive; scalar
-  multiplication is associative and the real number @{text "#1"} is
+  multiplication is associative and the real number @{text "Numeral1"} is
   the neutral element of scalar multiplication.
 *}
 
@@ -48,8 +48,8 @@ constdefs
       \<and> a \<cdot> (x + y) = a \<cdot> x + a \<cdot> y
       \<and> (a + b) \<cdot> x = a \<cdot> x + b \<cdot> x
       \<and> (a * b) \<cdot> x = a \<cdot> b \<cdot> x
-      \<and> #1 \<cdot> x = x
-      \<and> - x = (- #1) \<cdot> x
+      \<and> Numeral1 \<cdot> x = x
+      \<and> - x = (- Numeral1) \<cdot> x
       \<and> x - y = x + - y)"
 
 
@@ -66,15 +66,15 @@ lemma vsI [intro]:
   \<forall>x \<in> V. \<forall>y \<in> V. \<forall>a. a \<cdot> (x + y) = a \<cdot> x + a \<cdot> y \<Longrightarrow>
   \<forall>x \<in> V. \<forall>a b. (a + b) \<cdot> x = a \<cdot> x + b \<cdot> x \<Longrightarrow>
   \<forall>x \<in> V. \<forall>a b. (a * b) \<cdot> x = a \<cdot> b \<cdot> x \<Longrightarrow>
-  \<forall>x \<in> V. #1 \<cdot> x = x \<Longrightarrow>
-  \<forall>x \<in> V. - x = (- #1) \<cdot> x \<Longrightarrow>
+  \<forall>x \<in> V. Numeral1 \<cdot> x = x \<Longrightarrow>
+  \<forall>x \<in> V. - x = (- Numeral1) \<cdot> x \<Longrightarrow>
   \<forall>x \<in> V. \<forall>y \<in> V. x - y = x + - y \<Longrightarrow> is_vectorspace V"
   by (unfold is_vectorspace_def) auto
 
 text {* \medskip The corresponding destruction rules are: *}
 
 lemma negate_eq1:
-  "is_vectorspace V \<Longrightarrow> x \<in> V \<Longrightarrow> - x = (- #1) \<cdot> x"
+  "is_vectorspace V \<Longrightarrow> x \<in> V \<Longrightarrow> - x = (- Numeral1) \<cdot> x"
   by (unfold is_vectorspace_def) simp
 
 lemma diff_eq1:
@@ -82,11 +82,11 @@ lemma diff_eq1:
   by (unfold is_vectorspace_def) simp
 
 lemma negate_eq2:
-  "is_vectorspace V \<Longrightarrow> x \<in> V \<Longrightarrow> (- #1) \<cdot> x = - x"
+  "is_vectorspace V \<Longrightarrow> x \<in> V \<Longrightarrow> (- Numeral1) \<cdot> x = - x"
   by (unfold is_vectorspace_def) simp
 
 lemma negate_eq2a:
-  "is_vectorspace V \<Longrightarrow> x \<in> V \<Longrightarrow> #-1 \<cdot> x = - x"
+  "is_vectorspace V \<Longrightarrow> x \<in> V \<Longrightarrow> # -1 \<cdot> x = - x"
   by (unfold is_vectorspace_def) simp
 
 lemma diff_eq2:
@@ -184,7 +184,7 @@ lemma vs_mult_assoc2 [simp]:
   by (simp only: vs_mult_assoc)
 
 lemma vs_mult_1 [simp]:
-  "is_vectorspace V \<Longrightarrow> x \<in> V \<Longrightarrow> #1 \<cdot> x = x"
+  "is_vectorspace V \<Longrightarrow> x \<in> V \<Longrightarrow> Numeral1 \<cdot> x = x"
   by (unfold is_vectorspace_def) simp
 
 lemma vs_diff_mult_distrib1:
@@ -212,14 +212,14 @@ qed
 text {* \medskip Further derived laws: *}
 
 lemma vs_mult_zero_left [simp]:
-  "is_vectorspace V \<Longrightarrow> x \<in> V \<Longrightarrow> #0 \<cdot> x = 0"
+  "is_vectorspace V \<Longrightarrow> x \<in> V \<Longrightarrow> Numeral0 \<cdot> x = 0"
 proof -
   assume "is_vectorspace V"  "x \<in> V"
-  have  "#0 \<cdot> x = (#1 - #1) \<cdot> x" by simp
-  also have "... = (#1 + - #1) \<cdot> x" by simp
-  also have "... =  #1 \<cdot> x + (- #1) \<cdot> x"
+  have  "Numeral0 \<cdot> x = (Numeral1 - Numeral1) \<cdot> x" by simp
+  also have "... = (Numeral1 + - Numeral1) \<cdot> x" by simp
+  also have "... =  Numeral1 \<cdot> x + (- Numeral1) \<cdot> x"
     by (rule vs_add_mult_distrib2)
-  also have "... = x + (- #1) \<cdot> x" by (simp!)
+  also have "... = x + (- Numeral1) \<cdot> x" by (simp!)
   also have "... = x + - x" by (simp! add: negate_eq2a)
   also have "... = x - x" by (simp! add: diff_eq2)
   also have "... = 0" by (simp!)
@@ -349,12 +349,12 @@ proof (rule classical)
 qed
 
 lemma vs_mult_left_cancel:
-  "is_vectorspace V \<Longrightarrow> x \<in> V \<Longrightarrow> y \<in> V \<Longrightarrow> a \<noteq> #0 \<Longrightarrow>
+  "is_vectorspace V \<Longrightarrow> x \<in> V \<Longrightarrow> y \<in> V \<Longrightarrow> a \<noteq> Numeral0 \<Longrightarrow>
   (a \<cdot> x = a \<cdot> y) = (x = y)"
   (concl is "?L = ?R")
 proof
-  assume "is_vectorspace V"  "x \<in> V"  "y \<in> V"  "a \<noteq> #0"
-  have "x = #1 \<cdot> x" by (simp!)
+  assume "is_vectorspace V"  "x \<in> V"  "y \<in> V"  "a \<noteq> Numeral0"
+  have "x = Numeral1 \<cdot> x" by (simp!)
   also have "... = (inverse a * a) \<cdot> x" by (simp!)
   also have "... = inverse a \<cdot> (a \<cdot> x)"
     by (simp! only: vs_mult_assoc)

@@ -128,7 +128,7 @@ by (asm_full_simp_tac (simpset() addsimps [qinv_qinv]) 1);
 qed "inj_qinv";
 
 Goalw [prat_of_pnat_def] 
-      "qinv(prat_of_pnat  (Abs_pnat 1')) = prat_of_pnat (Abs_pnat 1')";
+      "qinv(prat_of_pnat  (Abs_pnat (Suc 0))) = prat_of_pnat (Abs_pnat (Suc 0))";
 by (simp_tac (simpset() addsimps [qinv]) 1);
 qed "qinv_1";
 
@@ -232,13 +232,13 @@ bind_thms ("prat_mult_ac", [prat_mult_assoc,
                     prat_mult_commute,prat_mult_left_commute]);
 
 Goalw [prat_of_pnat_def] 
-      "(prat_of_pnat (Abs_pnat 1')) * z = z";
+      "(prat_of_pnat (Abs_pnat (Suc 0))) * z = z";
 by (res_inst_tac [("z","z")] eq_Abs_prat 1);
 by (asm_full_simp_tac (simpset() addsimps [prat_mult] @ pnat_mult_ac) 1);
 qed "prat_mult_1";
 
 Goalw [prat_of_pnat_def] 
-      "z * (prat_of_pnat (Abs_pnat 1')) = z";
+      "z * (prat_of_pnat (Abs_pnat (Suc 0))) = z";
 by (res_inst_tac [("z","z")] eq_Abs_prat 1);
 by (asm_full_simp_tac (simpset() addsimps [prat_mult] @ pnat_mult_ac) 1);
 qed "prat_mult_1_right";
@@ -259,22 +259,22 @@ qed "prat_of_pnat_mult";
 (*** prat_mult and qinv ***)
 
 Goalw [prat_def,prat_of_pnat_def] 
-      "qinv (q) * q = prat_of_pnat (Abs_pnat 1')";
+      "qinv (q) * q = prat_of_pnat (Abs_pnat (Suc 0))";
 by (res_inst_tac [("z","q")] eq_Abs_prat 1);
 by (asm_full_simp_tac (simpset() addsimps [qinv,
         prat_mult,pnat_mult_1,pnat_mult_1_left, pnat_mult_commute]) 1);
 qed "prat_mult_qinv";
 
-Goal "q * qinv (q) = prat_of_pnat (Abs_pnat 1')";
+Goal "q * qinv (q) = prat_of_pnat (Abs_pnat (Suc 0))";
 by (rtac (prat_mult_commute RS subst) 1);
 by (simp_tac (simpset() addsimps [prat_mult_qinv]) 1);
 qed "prat_mult_qinv_right";
 
-Goal "EX y. (x::prat) * y = prat_of_pnat (Abs_pnat 1')";
+Goal "EX y. (x::prat) * y = prat_of_pnat (Abs_pnat (Suc 0))";
 by (fast_tac (claset() addIs [prat_mult_qinv_right]) 1);
 qed "prat_qinv_ex";
 
-Goal "EX! y. (x::prat) * y = prat_of_pnat (Abs_pnat 1')";
+Goal "EX! y. (x::prat) * y = prat_of_pnat (Abs_pnat (Suc 0))";
 by (auto_tac (claset() addIs [prat_mult_qinv_right],simpset()));
 by (dres_inst_tac [("f","%x. ya*x")] arg_cong 1);
 by (asm_full_simp_tac (simpset() addsimps [prat_mult_assoc RS sym]) 1);
@@ -282,7 +282,7 @@ by (asm_full_simp_tac (simpset() addsimps [prat_mult_commute,
     prat_mult_1,prat_mult_1_right]) 1);
 qed "prat_qinv_ex1";
 
-Goal "EX! y. y * (x::prat) = prat_of_pnat (Abs_pnat 1')";
+Goal "EX! y. y * (x::prat) = prat_of_pnat (Abs_pnat (Suc 0))";
 by (auto_tac (claset() addIs [prat_mult_qinv],simpset()));
 by (dres_inst_tac [("f","%x. x*ya")] arg_cong 1);
 by (asm_full_simp_tac (simpset() addsimps [prat_mult_assoc]) 1);
@@ -290,7 +290,7 @@ by (asm_full_simp_tac (simpset() addsimps [prat_mult_commute,
     prat_mult_1,prat_mult_1_right]) 1);
 qed "prat_qinv_left_ex1";
 
-Goal "x * y = prat_of_pnat (Abs_pnat 1') ==> x = qinv y";
+Goal "x * y = prat_of_pnat (Abs_pnat (Suc 0)) ==> x = qinv y";
 by (cut_inst_tac [("q","y")] prat_mult_qinv 1);
 by (res_inst_tac [("x1","y")] (prat_qinv_left_ex1 RS ex1E) 1);
 by (Blast_tac 1);
@@ -506,7 +506,7 @@ by (assume_tac 1);
 by (cut_inst_tac [("x","q1"),("q1.0","qinv (q1)"), ("q2.0","qinv (q2)")] 
     prat_mult_left_less2_mono1 1);
 by Auto_tac;
-by (dres_inst_tac [("q2.0","prat_of_pnat (Abs_pnat 1')")] prat_less_trans 1);
+by (dres_inst_tac [("q2.0","prat_of_pnat (Abs_pnat (Suc 0))")] prat_less_trans 1);
 by (auto_tac (claset(),simpset() addsimps 
     [prat_less_not_refl]));
 qed "lemma2_qinv_prat_less";
@@ -517,8 +517,8 @@ by (auto_tac (claset() addEs [lemma1_qinv_prat_less,
                  lemma2_qinv_prat_less],simpset()));
 qed "qinv_prat_less";
 
-Goal "q1 < prat_of_pnat (Abs_pnat 1') \
-\     ==> prat_of_pnat (Abs_pnat 1') < qinv(q1)";
+Goal "q1 < prat_of_pnat (Abs_pnat (Suc 0)) \
+\     ==> prat_of_pnat (Abs_pnat (Suc 0)) < qinv(q1)";
 by (dtac qinv_prat_less 1);
 by (full_simp_tac (simpset() addsimps [qinv_1]) 1);
 qed "prat_qinv_gt_1";
@@ -529,18 +529,18 @@ by (etac prat_qinv_gt_1 1);
 qed "prat_qinv_is_gt_1";
 
 Goalw [prat_less_def] 
-      "prat_of_pnat (Abs_pnat 1') < prat_of_pnat (Abs_pnat 1') \
-\                   + prat_of_pnat (Abs_pnat 1')";
+      "prat_of_pnat (Abs_pnat (Suc 0)) < prat_of_pnat (Abs_pnat (Suc 0)) \
+\                   + prat_of_pnat (Abs_pnat (Suc 0))";
 by (Fast_tac 1); 
 qed "prat_less_1_2";
 
-Goal "qinv(prat_of_pnat (Abs_pnat 1') + \
-\     prat_of_pnat (Abs_pnat 1')) < prat_of_pnat (Abs_pnat 1')";
+Goal "qinv(prat_of_pnat (Abs_pnat (Suc 0)) + \
+\     prat_of_pnat (Abs_pnat (Suc 0))) < prat_of_pnat (Abs_pnat (Suc 0))";
 by (cut_facts_tac [prat_less_1_2 RS qinv_prat_less] 1);
 by (asm_full_simp_tac (simpset() addsimps [qinv_1]) 1);
 qed "prat_less_qinv_2_1";
 
-Goal "!!(x::prat). x < y ==> x*qinv(y) < prat_of_pnat (Abs_pnat 1')";
+Goal "!!(x::prat). x < y ==> x*qinv(y) < prat_of_pnat (Abs_pnat (Suc 0))";
 by (dres_inst_tac [("x","qinv(y)")] prat_mult_less2_mono1 1);
 by (Asm_full_simp_tac 1);
 qed "prat_mult_qinv_less_1";
@@ -701,19 +701,19 @@ by (auto_tac (claset(),simpset() addsimps [prat_mult,qinv,pnat_mult_1_left,
     pnat_mult_1]));
 qed "Abs_prat_mult_qinv";
 
-Goal "Abs_prat(ratrel``{(x,y)}) <= Abs_prat(ratrel``{(x,Abs_pnat 1')})";
+Goal "Abs_prat(ratrel``{(x,y)}) <= Abs_prat(ratrel``{(x,Abs_pnat (Suc 0))})";
 by (simp_tac (simpset() addsimps [Abs_prat_mult_qinv]) 1);
 by (rtac prat_mult_left_le2_mono1 1);
 by (rtac qinv_prat_le 1);
 by (pnat_ind_tac "y" 1);
-by (dres_inst_tac [("x","prat_of_pnat (Abs_pnat 1')")] prat_add_le2_mono1 2);
+by (dres_inst_tac [("x","prat_of_pnat (Abs_pnat (Suc 0))")] prat_add_le2_mono1 2);
 by (cut_facts_tac [prat_less_1_2 RS prat_less_imp_le] 2);
 by (auto_tac (claset() addIs [prat_le_trans],
     simpset() addsimps [prat_le_refl,
     pSuc_is_plus_one,pnat_one_def,prat_of_pnat_add]));
 qed "lemma_Abs_prat_le1";
 
-Goal "Abs_prat(ratrel``{(x,Abs_pnat 1')}) <= Abs_prat(ratrel``{(x*y,Abs_pnat 1')})";
+Goal "Abs_prat(ratrel``{(x,Abs_pnat (Suc 0))}) <= Abs_prat(ratrel``{(x*y,Abs_pnat (Suc 0))})";
 by (simp_tac (simpset() addsimps [Abs_prat_mult_qinv]) 1);
 by (rtac prat_mult_le2_mono1 1);
 by (pnat_ind_tac "y" 1);
@@ -726,19 +726,19 @@ by (auto_tac (claset() addIs [prat_le_trans],
 			prat_of_pnat_add,prat_of_pnat_mult]));
 qed "lemma_Abs_prat_le2";
 
-Goal "Abs_prat(ratrel``{(x,z)}) <= Abs_prat(ratrel``{(x*y,Abs_pnat 1')})";
+Goal "Abs_prat(ratrel``{(x,z)}) <= Abs_prat(ratrel``{(x*y,Abs_pnat (Suc 0))})";
 by (fast_tac (claset() addIs [prat_le_trans,
 			      lemma_Abs_prat_le1,lemma_Abs_prat_le2]) 1);
 qed "lemma_Abs_prat_le3";
 
-Goal "Abs_prat(ratrel``{(x*y,Abs_pnat 1')}) * Abs_prat(ratrel``{(w,x)}) = \
-\         Abs_prat(ratrel``{(w*y,Abs_pnat 1')})";
+Goal "Abs_prat(ratrel``{(x*y,Abs_pnat (Suc 0))}) * Abs_prat(ratrel``{(w,x)}) = \
+\         Abs_prat(ratrel``{(w*y,Abs_pnat (Suc 0))})";
 by (full_simp_tac (simpset() addsimps [prat_mult,
     pnat_mult_1,pnat_mult_1_left] @ pnat_mult_ac) 1);
 qed "pre_lemma_gleason9_34";
 
-Goal "Abs_prat(ratrel``{(y*x,Abs_pnat 1'*y)}) = \
-\         Abs_prat(ratrel``{(x,Abs_pnat 1')})";
+Goal "Abs_prat(ratrel``{(y*x,Abs_pnat (Suc 0)*y)}) = \
+\         Abs_prat(ratrel``{(x,Abs_pnat (Suc 0))})";
 by (auto_tac (claset(),
 	      simpset() addsimps [pnat_mult_1,pnat_mult_1_left] @ pnat_mult_ac));
 qed "pre_lemma_gleason9_34b";
@@ -760,42 +760,42 @@ Addsimps [prat_of_pnat_less_iff];
 (*** of preal type as defined using Dedekind Sections in PReal  ***)
 (*** Show that exists positive real `one' ***)
 
-Goal "EX q. q: {x::prat. x < prat_of_pnat (Abs_pnat 1')}";
+Goal "EX q. q: {x::prat. x < prat_of_pnat (Abs_pnat (Suc 0))}";
 by (fast_tac (claset() addIs [prat_less_qinv_2_1]) 1);
 qed "lemma_prat_less_1_memEx";
 
-Goal "{x::prat. x < prat_of_pnat (Abs_pnat 1')} ~= {}";
+Goal "{x::prat. x < prat_of_pnat (Abs_pnat (Suc 0))} ~= {}";
 by (rtac notI 1);
 by (cut_facts_tac [lemma_prat_less_1_memEx] 1);
 by (Asm_full_simp_tac 1);
 qed "lemma_prat_less_1_set_non_empty";
 
-Goalw [psubset_def] "{} < {x::prat. x < prat_of_pnat (Abs_pnat 1')}";
+Goalw [psubset_def] "{} < {x::prat. x < prat_of_pnat (Abs_pnat (Suc 0))}";
 by (asm_full_simp_tac (simpset() addsimps 
          [lemma_prat_less_1_set_non_empty RS not_sym]) 1);
 qed "empty_set_psubset_lemma_prat_less_1_set";
 
 (*** exists rational not in set --- prat_of_pnat (Abs_pnat 1) itself ***)
-Goal "EX q. q ~: {x::prat. x < prat_of_pnat (Abs_pnat 1')}";
-by (res_inst_tac [("x","prat_of_pnat (Abs_pnat 1')")] exI 1);
+Goal "EX q. q ~: {x::prat. x < prat_of_pnat (Abs_pnat (Suc 0))}";
+by (res_inst_tac [("x","prat_of_pnat (Abs_pnat (Suc 0))")] exI 1);
 by (auto_tac (claset(),simpset() addsimps [prat_less_not_refl]));
 qed "lemma_prat_less_1_not_memEx";
 
-Goal "{x::prat. x < prat_of_pnat (Abs_pnat 1')} ~= UNIV";
+Goal "{x::prat. x < prat_of_pnat (Abs_pnat (Suc 0))} ~= UNIV";
 by (rtac notI 1);
 by (cut_facts_tac [lemma_prat_less_1_not_memEx] 1);
 by (Asm_full_simp_tac 1);
 qed "lemma_prat_less_1_set_not_rat_set";
 
 Goalw [psubset_def,subset_def] 
-      "{x::prat. x < prat_of_pnat (Abs_pnat 1')} < UNIV";
+      "{x::prat. x < prat_of_pnat (Abs_pnat (Suc 0))} < UNIV";
 by (asm_full_simp_tac
     (simpset() addsimps [lemma_prat_less_1_set_not_rat_set,
 			 lemma_prat_less_1_not_memEx]) 1);
 qed "lemma_prat_less_1_set_psubset_rat_set";
 
 (*** prove non_emptiness of type ***)
-Goal "{x::prat. x < prat_of_pnat (Abs_pnat 1')} : {A. {} < A & \
+Goal "{x::prat. x < prat_of_pnat (Abs_pnat (Suc 0))} : {A. {} < A & \
 \               A < UNIV & \
 \               (!y: A. ((!z. z < y --> z: A) & \
 \               (EX u: A. y < u)))}";

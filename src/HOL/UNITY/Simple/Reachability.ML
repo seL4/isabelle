@@ -162,7 +162,7 @@ qed "Stable_reachable_EQ_R";
 
 
 Goalw [nmsg_gte_def, nmsg_lte_def,nmsg_gt_def, nmsg_eq_def]
-     "((nmsg_gte 0 (v,w) Int nmsg_lte 1' (v,w)) Int (- nmsg_gt 0 (v,w) Un A)) \
+     "((nmsg_gte 0 (v,w) Int nmsg_lte (Suc 0) (v,w)) Int (- nmsg_gt 0 (v,w) Un A)) \
 \     <= A Un nmsg_eq 0 (v,w)";
 by Auto_tac;
 qed "lemma4";
@@ -170,7 +170,7 @@ qed "lemma4";
 
 Goalw [nmsg_gte_def,nmsg_lte_def,nmsg_gt_def, nmsg_eq_def]
      "reachable v Int nmsg_eq 0 (v,w) = \
-\     ((nmsg_gte 0 (v,w) Int nmsg_lte 1' (v,w)) Int \
+\     ((nmsg_gte 0 (v,w) Int nmsg_lte (Suc 0) (v,w)) Int \
 \      (reachable v Int nmsg_lte 0 (v,w)))";
 by Auto_tac;
 qed "lemma5";

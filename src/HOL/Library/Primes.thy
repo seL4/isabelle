@@ -54,7 +54,7 @@ lemma gcd_non_0: "0 < n ==> gcd (m, n) = gcd (n, m mod n)"
 
 declare gcd.simps [simp del]
 
-lemma gcd_1 [simp]: "gcd (m, 1') = 1"
+lemma gcd_1 [simp]: "gcd (m, Suc 0) = 1"
   apply (simp add: gcd_non_0)
   done
 
@@ -140,8 +140,8 @@ lemma gcd_0_left [simp]: "gcd (0, m) = m"
   apply (simp add: gcd_commute [of 0])
   done
 
-lemma gcd_1_left [simp]: "gcd (1', m) = 1"
-  apply (simp add: gcd_commute [of "1'"])
+lemma gcd_1_left [simp]: "gcd (Suc 0, m) = 1"
+  apply (simp add: gcd_commute [of "Suc 0"])
   done
 
 
@@ -194,7 +194,7 @@ lemma prime_dvd_mult: "p \<in> prime ==> p dvd m * n ==> p dvd m \<or> p dvd n"
   apply (blast intro: relprime_dvd_mult prime_imp_relprime)
   done
 
-lemma prime_dvd_square: "p \<in> prime ==> p dvd m^2 ==> p dvd m"
+lemma prime_dvd_square: "p \<in> prime ==> p dvd m^Suc (Suc 0) ==> p dvd m"
   apply (auto dest: prime_dvd_mult)
   done
 

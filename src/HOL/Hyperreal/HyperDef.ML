@@ -304,7 +304,7 @@ by (dres_inst_tac [("f","uminus")] arg_cong 1);
 by (asm_full_simp_tac (simpset() addsimps [hypreal_minus_minus]) 1);
 qed "inj_hypreal_minus";
 
-Goalw [hypreal_zero_def] "-0 = (0::hypreal)";
+Goalw [hypreal_zero_def] "- 0 = (0::hypreal)";
 by (simp_tac (simpset() addsimps [hypreal_minus]) 1);
 qed "hypreal_minus_zero";
 Addsimps [hypreal_minus_zero];
@@ -622,13 +622,13 @@ qed "hypreal_zero_not_eq_one";
 (**** multiplicative inverse on hypreal ****)
 
 Goalw [congruent_def]
-  "congruent hyprel (%X. hyprel``{%n. if X n = #0 then #0 else inverse(X n)})";
+  "congruent hyprel (%X. hyprel``{%n. if X n = Numeral0 then Numeral0 else inverse(X n)})";
 by (Auto_tac THEN Ultra_tac 1);
 qed "hypreal_inverse_congruent";
 
 Goalw [hypreal_inverse_def]
       "inverse (Abs_hypreal(hyprel``{%n. X n})) = \
-\      Abs_hypreal(hyprel `` {%n. if X n = #0 then #0 else inverse(X n)})";
+\      Abs_hypreal(hyprel `` {%n. if X n = Numeral0 then Numeral0 else inverse(X n)})";
 by (res_inst_tac [("f","Abs_hypreal")] arg_cong 1);
 by (simp_tac (simpset() addsimps 
    [hyprel_in_hypreal RS Abs_hypreal_inverse,
@@ -840,8 +840,8 @@ qed "hypreal_mult_order";
                          Trichotomy of the hyperreals
   --------------------------------------------------------------------------------*)
 
-Goalw [hyprel_def] "EX x. x: hyprel `` {%n. #0}";
-by (res_inst_tac [("x","%n. #0")] exI 1);
+Goalw [hyprel_def] "EX x. x: hyprel `` {%n. Numeral0}";
+by (res_inst_tac [("x","%n. Numeral0")] exI 1);
 by (Step_tac 1);
 by (auto_tac (claset() addSIs [FreeUltrafilterNat_Nat_set], simpset()));
 qed "lemma_hyprel_0r_mem";
@@ -1101,22 +1101,22 @@ Addsimps [hypreal_of_real_minus];
 (*DON'T insert this or the next one as default simprules.
   They are used in both orientations and anyway aren't the ones we finally
   need, which would use binary literals.*)
-Goalw [hypreal_of_real_def,hypreal_one_def] "hypreal_of_real  #1 = 1hr";
+Goalw [hypreal_of_real_def,hypreal_one_def] "hypreal_of_real  Numeral1 = 1hr";
 by (Step_tac 1);
 qed "hypreal_of_real_one";
 
-Goalw [hypreal_of_real_def,hypreal_zero_def] "hypreal_of_real #0 = 0";
+Goalw [hypreal_of_real_def,hypreal_zero_def] "hypreal_of_real Numeral0 = 0";
 by (Step_tac 1);
 qed "hypreal_of_real_zero";
 
-Goal "(hypreal_of_real r = 0) = (r = #0)";
+Goal "(hypreal_of_real r = 0) = (r = Numeral0)";
 by (auto_tac (claset() addIs [FreeUltrafilterNat_P],
     simpset() addsimps [hypreal_of_real_def,
                         hypreal_zero_def,FreeUltrafilterNat_Nat_set]));
 qed "hypreal_of_real_zero_iff";
 
 Goal "hypreal_of_real (inverse r) = inverse (hypreal_of_real r)";
-by (case_tac "r=#0" 1);
+by (case_tac "r=Numeral0" 1);
 by (asm_simp_tac (simpset() addsimps [REAL_DIVIDE_ZERO, INVERSE_ZERO, 
                               HYPREAL_INVERSE_ZERO, hypreal_of_real_zero]) 1);
 by (res_inst_tac [("c1","hypreal_of_real r")] 

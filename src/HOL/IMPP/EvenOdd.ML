@@ -11,13 +11,13 @@ by (Simp_tac 1);
 qed "even_0";
 Addsimps [even_0];
 
-Goalw [even_def] "even 1' = False";
+Goalw [even_def] "even (Suc 0) = False";
 by (Simp_tac 1);
 qed "not_even_1";
 Addsimps [not_even_1];
 
 Goalw [even_def] "even (Suc (Suc n)) = even n";
-by (subgoal_tac "Suc (Suc n) = n+#2" 1);
+by (subgoal_tac "Suc (Suc n) = n+# 2" 1);
 by  (Simp_tac 2);
 by (etac ssubst 1);
 by (rtac dvd_reduce 1);
@@ -50,13 +50,13 @@ Addsimps[body_Odd, body_Even];
 
 section "verification";
 
-Goalw [odd_def] "{{Z=Arg+0}. BODY Even .{Res_ok}}|-{Z=Arg+1'}. odd .{Res_ok}";
+Goalw [odd_def] "{{Z=Arg+0}. BODY Even .{Res_ok}}|-{Z=Arg+Suc 0}. odd .{Res_ok}";
 by (rtac hoare_derivs.If 1);
 by (rtac (hoare_derivs.Ass RS conseq1) 1);
 by  (clarsimp_tac Arg_Res_css 1);
 by (rtac export_s 1);
 by (rtac (hoare_derivs.Call RS conseq1) 1);
-by  (res_inst_tac [("P","Z=Arg+2")] conseq12 1);
+by  (res_inst_tac [("P","Z=Arg+Suc (Suc 0)")] conseq12 1);
 by (rtac single_asm 1);
 by (auto_tac Arg_Res_css);
 qed "Odd_lemma";

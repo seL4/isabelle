@@ -160,7 +160,7 @@ qed "number_of_mult";
 
 (*The correctness of shifting.  But it doesn't seem to give a measurable
   speed-up.*)
-Goal "(#2::int) * number_of w = number_of (w BIT False)";
+Goal "(# 2::int) * number_of w = number_of (w BIT False)";
 by (induct_tac "w" 1);
 by (ALLGOALS (asm_simp_tac
     (simpset() addsimps bin_mult_simps @ [zadd_zmult_distrib] @ zadd_ac)));
@@ -169,11 +169,11 @@ qed "double_number_of_BIT";
 
 (** Simplification rules with integer constants **)
 
-Goal "#0 + z = (z::int)";
+Goal "Numeral0 + z = (z::int)";
 by (Simp_tac 1);
 qed "zadd_0";
 
-Goal "z + #0 = (z::int)";
+Goal "z + Numeral0 = (z::int)";
 by (Simp_tac 1);
 qed "zadd_0_right";
 
@@ -182,29 +182,29 @@ Addsimps [zadd_0, zadd_0_right];
 
 (** Converting simple cases of (int n) to numerals **)
 
-(*int 0 = #0 *)
+(*int 0 = Numeral0 *)
 bind_thm ("int_0", number_of_Pls RS sym);
 
-Goal "int (Suc n) = #1 + int n";
+Goal "int (Suc n) = Numeral1 + int n";
 by (simp_tac (simpset() addsimps [zadd_int]) 1);
 qed "int_Suc";
 
-Goal "- (#0) = (#0::int)";
+Goal "- (Numeral0) = (Numeral0::int)";
 by (Simp_tac 1);
 qed "zminus_0";
 
 Addsimps [zminus_0];
 
 
-Goal "(#0::int) - x = -x";
+Goal "(Numeral0::int) - x = -x";
 by (simp_tac (simpset() addsimps [zdiff_def]) 1);
 qed "zdiff0";
 
-Goal "x - (#0::int) = x";
+Goal "x - (Numeral0::int) = x";
 by (simp_tac (simpset() addsimps [zdiff_def]) 1);
 qed "zdiff0_right";
 
-Goal "x - x = (#0::int)";
+Goal "x - x = (Numeral0::int)";
 by (simp_tac (simpset() addsimps [zdiff_def]) 1);
 qed "zdiff_self";
 
@@ -234,27 +234,27 @@ Addsimps (map (inst "k" "number_of ?v")
 
 (** Special-case simplification for small constants **)
 
-Goal "#0 * z = (#0::int)";
+Goal "Numeral0 * z = (Numeral0::int)";
 by (Simp_tac 1);
 qed "zmult_0";
 
-Goal "z * #0 = (#0::int)";
+Goal "z * Numeral0 = (Numeral0::int)";
 by (Simp_tac 1);
 qed "zmult_0_right";
 
-Goal "#1 * z = (z::int)";
+Goal "Numeral1 * z = (z::int)";
 by (Simp_tac 1);
 qed "zmult_1";
 
-Goal "z * #1 = (z::int)";
+Goal "z * Numeral1 = (z::int)";
 by (Simp_tac 1);
 qed "zmult_1_right";
 
-Goal "#-1 * z = -(z::int)";
+Goal "# -1 * z = -(z::int)";
 by (simp_tac (simpset() addsimps zcompare_rls@[zmult_zminus]) 1);
 qed "zmult_minus1";
 
-Goal "z * #-1 = -(z::int)";
+Goal "z * # -1 = -(z::int)";
 by (simp_tac (simpset() addsimps zcompare_rls@[zmult_zminus_right]) 1);
 qed "zmult_minus1_right";
 
@@ -272,61 +272,61 @@ Addsimps [zminus_number_of_zmult];
 
 (** Inequality reasoning **)
 
-Goal "(m*n = (#0::int)) = (m = #0 | n = #0)";
+Goal "(m*n = (Numeral0::int)) = (m = Numeral0 | n = Numeral0)";
 by (stac (int_0 RS sym) 1 THEN rtac zmult_eq_int0_iff 1);
 qed "zmult_eq_0_iff";
 AddIffs [zmult_eq_0_iff];
 
-Goal "(w < z + (#1::int)) = (w<z | w=z)";
+Goal "(w < z + (Numeral1::int)) = (w<z | w=z)";
 by (simp_tac (simpset() addsimps [zless_add_int_Suc_eq]) 1);
 qed "zless_add1_eq";
 
-Goal "(w + (#1::int) <= z) = (w<z)";
+Goal "(w + (Numeral1::int) <= z) = (w<z)";
 by (simp_tac (simpset() addsimps [add_int_Suc_zle_eq]) 1);
 qed "add1_zle_eq";
 
-Goal "((#1::int) + w <= z) = (w<z)";
+Goal "((Numeral1::int) + w <= z) = (w<z)";
 by (stac zadd_commute 1);
 by (rtac add1_zle_eq 1);
 qed "add1_left_zle_eq";
 
-Goal "neg x = (x < #0)";
+Goal "neg x = (x < Numeral0)";
 by (simp_tac (simpset() addsimps [neg_eq_less_int0]) 1); 
 qed "neg_eq_less_0"; 
 
-Goal "(~neg x) = (#0 <= x)";
+Goal "(~neg x) = (Numeral0 <= x)";
 by (simp_tac (simpset() addsimps [not_neg_eq_ge_int0]) 1); 
 qed "not_neg_eq_ge_0"; 
 
-Goal "#0 <= int m";
+Goal "Numeral0 <= int m";
 by (Simp_tac 1);
 qed "zero_zle_int";
 AddIffs [zero_zle_int];
 
 
-(** Needed because (int 0) rewrites to #0.
+(** Needed because (int 0) rewrites to Numeral0.   (* FIXME !? *)
     Can these be generalized without evaluating large numbers?**)
 
-Goal "~ (int k < #0)";
+Goal "~ (int k < Numeral0)";
 by (Simp_tac 1);
 qed "int_less_0_conv";
 
-Goal "(int k <= #0) = (k=0)";
+Goal "(int k <= Numeral0) = (k=0)";
 by (Simp_tac 1);
 qed "int_le_0_conv";
 
-Goal "(int k = #0) = (k=0)";
+Goal "(int k = Numeral0) = (k=0)";
 by (Simp_tac 1);
 qed "int_eq_0_conv";
 
-Goal "(#0 < int k) = (0<k)";
+Goal "(Numeral0 < int k) = (0<k)";
 by (Simp_tac 1);
 qed "zero_less_int_conv";
 
 Addsimps [int_less_0_conv, int_le_0_conv, int_eq_0_conv, zero_less_int_conv];
 
-Goal "(0 < nat z) = (#0 < z)";
-by (cut_inst_tac [("w","#0")] zless_nat_conj 1);
+Goal "(0 < nat z) = (Numeral0 < z)";
+by (cut_inst_tac [("w","Numeral0")] zless_nat_conj 1);
 by Auto_tac;  
 qed "zero_less_nat_eq";
 Addsimps [zero_less_nat_eq];
@@ -339,7 +339,7 @@ Addsimps [zero_less_nat_eq];
 Goalw [iszero_def]
   "((number_of x::int) = number_of y) = \
 \  iszero (number_of (bin_add x (bin_minus y)))"; 
-by (simp_tac (simpset() delsimps [number_of_reorient] 
+by (simp_tac (simpset() delsimps [thm "number_of_reorient"] 
                  addsimps zcompare_rls @ [number_of_add, number_of_minus]) 1); 
 qed "eq_number_of_eq"; 
 

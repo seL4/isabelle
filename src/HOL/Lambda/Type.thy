@@ -59,11 +59,11 @@ declare IT.intros [intro!]
 
 subsection {* Some examples *}
 
-lemma "e |- Abs (Abs (Abs (Var 1 $ (Var 2 $ Var 1 $ Var 0)))) : ?T"
+lemma "e |- Abs (Abs (Abs (Var 1 $ (Var # 2 $ Var 1 $ Var 0)))) : ?T"
   apply force
   done
 
-lemma "e |- Abs (Abs (Abs (Var 2 $ Var 0 $ (Var 1 $ Var 0)))) : ?T"
+lemma "e |- Abs (Abs (Abs (Var # 2 $ Var 0 $ (Var 1 $ Var 0)))) : ?T"
   apply force
   done
 
@@ -219,7 +219,7 @@ lemma subst_lemma [rule_format]:
   "e |- t : T ==> \<forall>e' i U u.
     e = (\<lambda>j. if j < i then e' j
               else if j = i then U
-              else e' (j-1)) -->
+              else e' (j - 1)) -->
     e' |- u : U --> e' |- t[u/i] : T"
   apply (erule typing.induct)
     apply (intro strip)

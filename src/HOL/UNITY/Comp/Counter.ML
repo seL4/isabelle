@@ -100,7 +100,7 @@ qed "p2_p3";
 
 (* Compositional Proof *)
 
-Goal "(ALL i. i < I --> s (c i) = #0) --> sum I s = #0";
+Goal "(ALL i. i < I --> s (c i) = Numeral0) --> sum I s = Numeral0";
 by (induct_tac "I" 1);
 by Auto_tac;
 qed "sum_0'";

@@ -221,7 +221,7 @@ val leadsTo_weaken_L' = rotate_prems 1 leadsTo_weaken_L;
 
 Goal "system: Acyclic leadsTo Highest i";
 by (res_inst_tac [("f", "%s. above i s")] finite_psubset_induct 1);
-by (asm_simp_tac (simpset() delsimps [Highest_def, above_def] 
+by (asm_simp_tac (simpset() delsimps [Highest_def, thm "above_def"]
                             addsimps [Highest_iff_above0,
                                       vimage_def, finite_psubset_def]) 1); 
 by (Clarify_tac 1);
