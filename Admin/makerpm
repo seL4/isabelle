@@ -66,6 +66,9 @@ cd "$TMP/BUILD$ROOT"
 tar -xpzf "$ARCHIVE_FULL"
 [ -n "$PDF_ARCHIVE_FULL" ] && tar -xpzf "$PDF_ARCHIVE_FULL"
 
+rm -f Isabelle
+ln -s "$ISABELLE_NAME" Isabelle
+
 
 # build
 
@@ -235,7 +238,7 @@ done
 
 cat >>$TMP/SPECS/isabelle.spec <<EOF
 %files
-%$ROOT/Isabelle
+$ROOT/Isabelle
 %dir $ISABELLE_HOME
 %dir $ISABELLE_HOME/doc
 %dir $ISABELLE_HOME/heaps
@@ -257,13 +260,12 @@ chown -R root:root "$TMP" || chgrp -R isabelle "$TMP"
 
 rpm -bb "$TMP/SPECS/isabelle.spec"
 
-mkdir -p "$DISTBASE/rpm"
 cd /usr/src/packages/RPMS/i386
-mv "isabelle-$RPMVERSION-${RPMRELEASE}.i386.rpm" "$DISTBASE/rpm/isabelle.rpm"
-mv "isabelle-HOL-$RPMVERSION-${RPMRELEASE}.i386.rpm" "$DISTBASE/rpm/isabelle-HOL.i386.rpm"
-mv "isabelle-HOL-Real-$RPMVERSION-${RPMRELEASE}.i386.rpm" "$DISTBASE/rpm/isabelle-HOL-Real.i386.rpm"
-mv "isabelle-ZF-$RPMVERSION-${RPMRELEASE}.i386.rpm" "$DISTBASE/rpm/isabelle-ZF.i386.rpm"
-mv "isabelle-pdfdocs-$RPMVERSION-${RPMRELEASE}.i386.rpm" "$DISTBASE/rpm/isabelle-pdfdocs.rpm"
+mv "isabelle-$RPMVERSION-${RPMRELEASE}.i386.rpm" "$DISTBASE/isabelle.rpm"
+mv "isabelle-HOL-$RPMVERSION-${RPMRELEASE}.i386.rpm" "$DISTBASE/isabelle-HOL.i386.rpm"
+mv "isabelle-HOL-Real-$RPMVERSION-${RPMRELEASE}.i386.rpm" "$DISTBASE/isabelle-HOL-Real.i386.rpm"
+mv "isabelle-ZF-$RPMVERSION-${RPMRELEASE}.i386.rpm" "$DISTBASE/isabelle-ZF.i386.rpm"
+mv "isabelle-pdfdocs-$RPMVERSION-${RPMRELEASE}.i386.rpm" "$DISTBASE/isabelle-pdfdocs.rpm"
 
 # clean up
 cd /
