@@ -26,4 +26,11 @@ primrec
   mult_0   "0 * n = 0"
   mult_Suc "Suc m * n = n + (m * n)"
 
+(*We overload the constant for all + types, but unfortunately there's no
+  overloaded 0...*)
+consts sum_below :: [nat=>'a, nat] => ('a::plus) 
+primrec 
+  sum_below_0    "sum_below f 0 = 0"
+  sum_below_Suc  "sum_below f (Suc n) = f(n) + sum_below f n"
+
 end
