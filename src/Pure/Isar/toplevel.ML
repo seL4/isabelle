@@ -80,7 +80,7 @@ fun str_of_node (Theory _) = "in theory mode"
   | str_of_node (Proof _) = "in proof mode";
 
 fun print_ctxt thy = Pretty.writeln (Pretty.block
-  [Pretty.str "Theory:", Pretty.brk 1, Pretty.str (PureThy.get_name thy),
+  [Pretty.str "theory", Pretty.brk 1, Pretty.str (PureThy.get_name thy),
     Pretty.str " =", Pretty.brk 1, Display.pretty_theory thy]);
 
 fun print_node_ctxt (Theory thy) = print_ctxt thy
