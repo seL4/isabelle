@@ -3,10 +3,7 @@
     Author:     Tobias Nipkow
     Copyright   1994 TU Muenchen
 
-Definition of type 'a list as a datatype. This allows primrec to work.
-
-TODO: delete list_all from this theory and from ex/Sorting, etc.
-      use set_of_list instead
+The datatype of finite lists.
 *)
 
 List = Arith +
@@ -35,18 +32,15 @@ syntax
   (* list Enumeration *)
   "@list"     :: args => 'a list                          ("[(_)]")
 
-  (* Special syntax for list_all and filter *)
-  "@Alls"     :: [idt, 'a list, bool] => bool             ("(2Alls _:_./ _)" 10)
+  (* Special syntax for filter *)
   "@filter"   :: [idt, 'a list, bool] => 'a list          ("(1[_:_ ./ _])")
 
 translations
   "[x, xs]"     == "x#[xs]"
   "[x]"         == "x#[]"
   "[x:xs . P]"  == "filter (%x.P) xs"
-  "Alls x:xs.P" == "list_all (%x.P) xs"
 
 syntax (symbols)
-  "op #"      :: ['a, 'a list] => 'a list                 (infixr "\\<bullet>" 65)
   "@filter"   :: [idt, 'a list, bool] => 'a list          ("(1[_\\<in>_ ./ _])")
 
 

@@ -455,6 +455,18 @@ goal Set.thy
 by (Fast_tac 1);
 qed "Un_INT_distrib2";
 
+
+section"Bounded quantifiers";
+
+goal Set.thy "(!x:insert a A.P x) = (P a & (!x:A.P x))";
+by (Fast_tac 1);
+qed "Ball_insert";
+
+goal Set.thy "(!x:A Un B.P x) = ((!x:A.P x) & (!x:B.P x))";
+by (Fast_tac 1);
+qed "Ball_Un";
+
+
 section "-";
 
 goal Set.thy "A-A = {}";
