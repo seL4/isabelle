@@ -110,6 +110,7 @@ val fstN = "_val";
 val sndN = "_more";
 val updateN = "_update";
 val makeN = "make";
+val fieldsN = "fields";
 val extendN = "extend";
 val truncateN = "truncate";
 
@@ -694,9 +695,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
     val parent_more = funpow parent_len mk_snd;
     val idxs = 0 upto (len - 1);
 
-    val parentT = if null parent_fields then [] else [mk_recordT (parent_fields, HOLogic.unitT)];
-    val r_parent = if null parent_fields then [] else [Free (rN, hd parentT)];
-
+    val fieldsT = mk_recordT (fields, HOLogic.unitT);
     fun rec_schemeT n = mk_recordT (prune n all_fields, moreT);
     fun rec_scheme n = mk_record (prune n all_named_vars, more);
     fun recT n = mk_recordT (prune n all_fields, HOLogic.unitT);
@@ -717,7 +716,8 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
       [mk_moreC (rec_schemeT 0) (moreN, moreT)];
     val update_decls = map (mk_updateC (rec_schemeT 0)) bfields @
       [mk_more_updateC (rec_schemeT 0) (moreN, moreT)];
-    val make_decl = (makeN, parentT ---> types ---> recT 0);
+    val make_decl = (makeN, all_types ---> recT 0);
+    val fields_decl = (fieldsN, types ---> fieldsT);
     val extend_decl = (extendN, recT 0 --> moreT --> rec_schemeT 0);
     val truncate_decl = (truncateN, rec_schemeT 0 --> recT 0);
 
@@ -746,8 +746,10 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
         [more_part_update (r_scheme 0) more :== mk_record (all_sels, more)];
 
     (*derived operations*)
-    val make_spec = Const (full makeN, parentT ---> types ---> recT 0) $$ r_parent $$ vars :==
-      mk_record (flat (map (mk_named_sels parent_names) r_parent) @ named_vars, HOLogic.unit);
+    val make_spec = Const (full makeN, all_types ---> recT 0) $$ all_vars :==
+      mk_record (all_named_vars, HOLogic.unit);
+    val fields_spec = Const (full fieldsN, types ---> fieldsT) $$ vars :==
+      mk_record (named_vars, HOLogic.unit);
     val extend_spec = Const (full extendN, recT 0 --> moreT --> rec_schemeT 0) $ r 0 $ more :==
       mk_record (mk_named_sels all_names (r 0), more);
     val truncate_spec = Const (full truncateN, rec_schemeT 0 --> recT 0) $ r_scheme 0 :==
@@ -826,11 +828,11 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
       |> Theory.add_path bname
       |> Theory.add_trfuns ([], [], field_tr's, [])
       |> (Theory.add_consts_i o map Syntax.no_syn)
-        (sel_decls @ update_decls @ [make_decl, extend_decl, truncate_decl])
+        (sel_decls @ update_decls @ [make_decl, fields_decl, extend_decl, truncate_decl])
       |> (PureThy.add_defs_i false o map Thm.no_attributes) sel_specs
       |>>> (PureThy.add_defs_i false o map Thm.no_attributes) update_specs
       |>>> (PureThy.add_defs_i false o map Thm.no_attributes)
-        [make_spec, extend_spec, truncate_spec];
+        [make_spec, fields_spec, extend_spec, truncate_spec];
 
 
     (* 3rd stage: thms_thy *)
@@ -869,7 +871,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
         ("update_convs", update_convs),
         ("select_defs", sel_defs),
         ("update_defs", update_defs),
-        ("derived_defs", derived_defs)]
+        ("defs", derived_defs)]
       |>>> PureThy.add_thms
        [(("induct_scheme", induct_scheme0), induct_type_global (suffix schemeN name)),
         (("cases_scheme", cases_scheme0), cases_type_global (suffix schemeN name))]
