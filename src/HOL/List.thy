@@ -40,7 +40,7 @@ syntax
   "@list"     :: args => 'a list                          ("[(_)]")
 
   (* Special syntax for filter *)
-  "@filter"   :: [idt, 'a list, bool] => 'a list          ("(1[_:_ ./ _])")
+  "@filter"   :: [pttrn, 'a list, bool] => 'a list        ("(1[_:_ ./ _])")
 
   (* list update *)
   "_lupdbind"      :: ['a, 'a] => lupdbind            ("(2_ :=/ _)")
@@ -57,7 +57,7 @@ translations
   "xs[i:=x]"                       == "list_update xs i x"
 
 syntax (symbols)
-  "@filter"   :: [idt, 'a list, bool] => 'a list          ("(1[_\\<in>_ ./ _])")
+  "@filter"   :: [pttrn, 'a list, bool] => 'a list        ("(1[_\\<in>_ ./ _])")
 
 
 consts
