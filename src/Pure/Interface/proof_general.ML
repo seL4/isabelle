@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Configuration for ProofGeneral of LFCS Edinburgh.
+Configuration for Proof General of LFCS Edinburgh.
 *)
 
 signature PROOF_GENERAL =
@@ -136,8 +136,14 @@ local
 fun tell_pg msg name = writeln ("Proof General, " ^ msg ^ " " ^ quote name);
 
 fun isa_action action name =
-  let val files = map (File.sysify_path o #1) (ThyInfo.loaded_files name) in
-    if action = ThyInfo.Update then seq (tell_pg "this file is loaded:") files
+  let
+    val update = (action = ThyInfo.Update);
+    fun loaded ((path, _), really) =
+      if update andalso not really then None
+      else Some (File.sysify_path path);
+    val files = mapfilter loaded (ThyInfo.loaded_files name);
+  in
+    if update then seq (tell_pg "this file is loaded:") files
     else seq (tell_pg "you can unlock the file") files
   end;
 
@@ -156,7 +162,7 @@ val help = writeln o Session.welcome;
 val show_context = Context.the_context;
 
 fun kill_goal () =
-  (Goals.reset_goals (); writeln ("Proof General, please clear the goals buffer."));
+  (Goals.reset_goals (); writeln "Proof General, please clear the goals buffer.");
 
 fun repeat_undo 0 = ()
   | repeat_undo n = (undo(); repeat_undo (n - 1));
@@ -165,7 +171,7 @@ fun isa_restart () =
  (ml_prompts ("> " ^ oct_char "372") ("- " ^ oct_char "373");
   ThyInfo.touch_all_thys ();
   kill_goal ();
-  writeln ("Proof General, please clear the response buffer.");
+  writeln "Proof General, please clear the response buffer.";
   writeln "Isabelle Proof General: Isabelle process ready!");
 
 
