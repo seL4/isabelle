@@ -791,10 +791,6 @@ Goal "!!m. m < Suc n ==> ~ Suc n <= m";
 by (blast_tac (claset() addDs [less_le_trans] addIs [less_asym]) 1);
 qed "lemma_not_leI";
 
-Goalw [le_def] "!!m. ~ Suc n <= m ==> ~ Suc (Suc n) <= m";
-by Auto_tac;
-qed "lemma_not_leI2";
-
 (*------- lemmas -------*)
 context Arith.thy;
 
