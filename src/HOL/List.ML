@@ -112,6 +112,16 @@ by (induct_tac "ys" 1);
 qed_spec_mp "append1_eq_conv";
 AddIffs [append1_eq_conv];
 
+goal thy "!ys zs. (ys @ xs = zs @ xs) = (ys=zs)";
+by (induct_tac "xs" 1);
+by (Simp_tac 1);
+by (strip_tac 1);
+by (subgoal_tac "((ys @ [a]) @ list = (zs @ [a]) @ list) = (ys=zs)" 1);
+by (Asm_full_simp_tac 1);
+by (Blast_tac 1);
+qed_spec_mp "append_same_eq";
+AddIffs [append_same_eq];
+
 goal thy "xs ~= [] --> hd xs # tl xs = xs";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
@@ -123,9 +133,21 @@ by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "hd_append";
 
+goal thy "!!xs. xs ~= [] ==> hd(xs @ ys) = hd xs";
+by (asm_simp_tac (!simpset addsimps [hd_append]
+                           setloop (split_tac [expand_list_case])) 1);
+qed "hd_append2";
+Addsimps [hd_append2];
+
 goal thy "tl(xs@ys) = (case xs of [] => tl(ys) | z#zs => zs@ys)";
 by (simp_tac (!simpset setloop(split_tac[expand_list_case])) 1);
 qed "tl_append";
+
+goal thy "!!xs. xs ~= [] ==> tl(xs @ ys) = (tl xs) @ ys";
+by (asm_simp_tac (!simpset addsimps [tl_append]
+                           setloop (split_tac [expand_list_case])) 1);
+qed "tl_append2";
+Addsimps [tl_append2];
 
 (** map **)
 
