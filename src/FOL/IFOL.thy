@@ -29,7 +29,6 @@ consts
   (* Connectives *)
 
   "="           :: "['a, 'a] => o"              (infixl 50)
-  "~="          :: "['a, 'a] => o"              ("(_ ~=/ _)" [50, 51] 50)
 
   Not           :: "o => o"                     ("~ _" [40] 40)
   "&"           :: "[o, o] => o"                (infixr 35)
@@ -43,6 +42,9 @@ consts
   Ex            :: "('a => o) => o"             (binder "EX " 10)
   Ex1           :: "('a => o) => o"             (binder "EX! " 10)
 
+
+syntax
+  "~="          :: "['a, 'a] => o"              (infixl 50)
 
 translations
   "x ~= y"      == "~ (x = y)"
