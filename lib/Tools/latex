@@ -60,10 +60,10 @@ FILE=""
 ## main
 
 DIR=$(dirname "$FILE")
-if [ "$DIR" = "." ]; then
+if [ "$DIR" = . ]; then
   FILEBASE=$(basename "$FILE" .tex)
 else
-  FILEBASE=$(dirname "$FILE")/$(basename "$FILE" .tex)
+  FILEBASE=$DIR/$(basename "$FILE" .tex)
 fi
 
 case "$OUTFORMAT" in
