@@ -92,7 +92,7 @@ fun trivial_tac [] = K all_tac
 val trivial = METHOD (ALLGOALS o trivial_tac);
 val assumption = METHOD (fn facts => FIRSTGOAL (trivial_tac facts THEN' assume_tac));
 
-val asm_finish = METHOD (K (TRYALL assume_tac));
+val asm_finish = METHOD (K (FILTER (equal 0 o Thm.nprems_of) (ALLGOALS assume_tac)));
 
 
 (* rule *)
