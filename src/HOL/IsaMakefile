@@ -21,6 +21,7 @@ test: \
       HOL-Real-HahnBanach \
       HOL-Real-ex \
   HOL-Hoare \
+  HOL-HoareParallel \
   HOL-IMP \
   HOL-IMPP \
   HOL-IOA \
@@ -284,6 +285,22 @@ $(LOG)/HOL-Hoare.gz: $(OUT)/HOL Hoare/Arith2.ML Hoare/Arith2.thy \
   Hoare/Examples.ML Hoare/Examples.thy Hoare/Hoare.ML Hoare/Hoare.thy \
   Hoare/ROOT.ML
 	@$(ISATOOL) usedir $(OUT)/HOL Hoare
+
+
+## HOL-HoareParallel
+
+HOL-HoareParallel: HOL $(LOG)/HOL-HoareParallel.gz
+
+$(LOG)/HOL-HoareParallel.gz: $(OUT)/HOL HoareParallel/Gar_Coll.thy \
+  HoareParallel/Graph.thy HoareParallel/Mul_Gar_Coll.thy	   \
+  HoareParallel/OG_Com.thy HoareParallel/OG_Examples.thy	   \
+  HoareParallel/OG_Hoare.thy HoareParallel/OG_Syntax.thy	   \
+  HoareParallel/OG_Tactics.thy HoareParallel/OG_Tran.thy	   \
+  HoareParallel/RG_Com.thy HoareParallel/RG_Examples.thy	   \
+  HoareParallel/RG_Hoare.thy HoareParallel/RG_Syntax.thy	   \
+  HoareParallel/RG_Tran.thy HoareParallel/ROOT.ML		   \
+  HoareParallel/document/root.tex
+	@$(ISATOOL) usedir $(OUT)/HOL HoareParallel
 
 
 ## HOL-Lex
@@ -625,6 +642,7 @@ clean:
 		$(LOG)/HOL-Isar_examples.gz $(LOG)/HOL-Induct.gz \
 		$(LOG)/HOL-ex.gz $(LOG)/HOL-Subst.gz $(LOG)/HOL-IMP.gz \
 		$(LOG)/HOL-IMPP.gz $(LOG)/HOL-Hoare.gz \
+		$(LOG)/HOL-HoareParallel.gz \
 		$(LOG)/HOL-Lex.gz $(LOG)/HOL-Algebra.gz \
 		$(LOG)/HOL-Auth.gz $(LOG)/HOL-UNITY.gz \
 		$(LOG)/HOL-Modelcheck.gz $(LOG)/HOL-Lambda.gz \
