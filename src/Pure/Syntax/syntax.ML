@@ -50,9 +50,9 @@ sig
   val print_syntax: syntax -> unit
   val test_read: syntax -> string -> string -> unit
   val read: syntax -> typ -> string -> term list
-  val read_typ: syntax -> ((indexname * sort) list -> indexname -> sort) -> string -> typ
+  val read_typ: syntax -> ((indexname * sort) list -> indexname -> sort) -> (sort -> sort) ->
+    string -> typ
   val read_sort: syntax -> string -> sort
-  val simple_read_typ: string -> typ
   val pretty_term: syntax -> bool -> term -> Pretty.T
   val pretty_typ: syntax -> typ -> Pretty.T
   val pretty_sort: syntax -> sort -> Pretty.T
@@ -371,15 +371,10 @@ fun read (syn as Syntax tabs) ty str =
 
 (* read types *)
 
-fun read_typ syn get_sort str =
+fun read_typ syn get_sort map_sort str =
   (case read syn SynExt.typeT str of
-    [t] => TypeExt.typ_of_term (get_sort (TypeExt.raw_term_sorts t)) t
+    [t] => TypeExt.typ_of_term (get_sort (TypeExt.raw_term_sorts t)) map_sort t
   | _ => error "read_typ: ambiguous syntax");
-
-fun simple_read_typ str =
-  let fun get_sort env xi = if_none (assoc (env, xi)) [] in
-    read_typ type_syn get_sort str
-  end;
 
 
 (* read sorts *)
