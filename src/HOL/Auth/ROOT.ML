@@ -18,6 +18,7 @@ use_thy "OtwayRees";
 use_thy "OtwayRees_AN";
 use_thy "OtwayRees_Bad";
 use_thy "WooLam";
+use_thy "Recur";
 use_thy "Yahalom";
 use_thy "Yahalom2";
 
