@@ -7,7 +7,6 @@ Session management -- maintain state of logic images.
 
 signature SESSION =
 sig
-  val path: unit -> string list
   val welcome: unit -> string
   val use_dir: bool -> bool -> string -> string -> unit
   val finish: unit -> unit
@@ -56,7 +55,11 @@ fun finish () = (ThyInfo.finalize_all (); session_finished := true);
 val root_file = ThyLoad.ml_path "ROOT";
 
 fun use_dir reset info parent name =
-  (init reset parent name; Symbol.use root_file; finish ()) handle _ => exit 1;
+  (init reset parent name;
+    Present.init info (! session) (path ()) parent name;
+    Symbol.use root_file;
+    finish ())
+  handle _ => exit 1;
 
 
 end;
