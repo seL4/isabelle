@@ -71,8 +71,8 @@ sig
     -> ProofHistory.T -> ProofHistory.T
   val chain: Comment.text -> ProofHistory.T -> ProofHistory.T
   val export_chain: Comment.text -> ProofHistory.T -> ProofHistory.T
-  val fix: (string * string option) list * Comment.text -> ProofHistory.T -> ProofHistory.T
-  val fix_i: (string * typ) list * Comment.text -> ProofHistory.T -> ProofHistory.T
+  val fix: ((string list * string option) * Comment.text) list -> ProofHistory.T -> ProofHistory.T
+  val fix_i: ((string list * typ) * Comment.text) list -> ProofHistory.T -> ProofHistory.T
   val match_bind: ((string list * string) * Comment.text) list -> ProofHistory.T -> ProofHistory.T
   val match_bind_i: ((term list * term) * Comment.text) list -> ProofHistory.T -> ProofHistory.T
   val theorem: (bstring * Args.src list * (string * (string list * string list)))
@@ -265,8 +265,8 @@ fun export_chain comment_ignore = ProofHistory.applys Proof.export_chain;
 
 (* context *)
 
-val fix = ProofHistory.apply o Proof.fix o Comment.ignore;
-val fix_i = ProofHistory.apply o Proof.fix_i o Comment.ignore;
+val fix = ProofHistory.apply o Proof.fix o map Comment.ignore;
+val fix_i = ProofHistory.apply o Proof.fix_i o map Comment.ignore;
 val match_bind = ProofHistory.apply o Proof.match_bind o map Comment.ignore;
 val match_bind_i = ProofHistory.apply o Proof.match_bind_i o map Comment.ignore;
 
@@ -396,8 +396,8 @@ fun skip_proof comment = local_skip_proof o global_skip_proof;
 
 local
 
-fun cond_print_calc int thm =
-  if int then Pretty.writeln (Pretty.big_list "calculation:" [Proof.pretty_thm thm])
+fun cond_print_calc int thms =
+  if int then Pretty.writeln (Pretty.big_list "calculation:" (map Proof.pretty_thm thms))
   else ();
 
 fun proof''' f = Toplevel.proof' (f o cond_print_calc);
