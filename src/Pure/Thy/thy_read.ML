@@ -55,10 +55,10 @@ fun out_name tname = "." ^ tname ^ ".thy.ML";
 (*Read a file specified by thy_file containing theory tname*)
 fun read_thy tname thy_file =
   let
-    val intext = read_file thy_file;
+    val intext = File.read thy_file;
     val outext = ThySyn.parse tname intext;
   in
-    write_file (out_name tname) outext
+    File.write (out_name tname) outext
   end;
 
 
@@ -100,14 +100,14 @@ fun get_descendants [] = []
   specified.*)
 fun find_file "" name =
       let fun find_it (cur :: paths) =
-                if file_exists (tack_on cur name) then
+                if File.exists (tack_on cur name) then
                   (if cur = "." then name else tack_on cur name)
                 else
                   find_it paths
            | find_it [] = ""
       in find_it (!tmp_loadpath @ !loadpath) end
   | find_file path name =
-      if file_exists (tack_on path name) then tack_on path name
+      if File.exists (tack_on path name) then tack_on path name
                                          else "";
 
 
@@ -120,7 +120,7 @@ fun get_filenames path name =
             val (thy_path, _) = split_filename thy_file;
             val found = find_file path (name ^ ".ML");
             val ml_file = if thy_file = "" then absolute_path found
-                          else if file_exists (tack_on thy_path (name ^ ".ML"))
+                          else if File.exists (tack_on thy_path (name ^ ".ML"))
                           then tack_on thy_path (name ^ ".ML")
                           else "";
             val searched_dirs = if path = "" then (!tmp_loadpath @ !loadpath)
@@ -251,7 +251,7 @@ fun use_thy1 tmp_loadpath_valid name =
 
           init_thyinfo ();
           read_thy tname thy_file;
-          SymbolInput.use (out_name tname);
+          Use.use (out_name tname);
 
           if not (!delete_tmpfiles) then ()
           else OS.FileSys.remove (out_name tname);
@@ -264,7 +264,7 @@ fun use_thy1 tmp_loadpath_valid name =
 
        if ml_file = "" then ()
        else (writeln ("Reading \"" ^ name ^ ".ML\"");
-             SymbolInput.use ml_file);
+             Use.use ml_file);
 
        (*Store theory again because it could have been redefined*)
        use_strings
@@ -459,8 +459,8 @@ local
 
 in
 
-  val use_dir = gen_use_dir use;
-  val exit_use_dir = gen_use_dir exit_use;
+  val use_dir = gen_use_dir Use.use;
+  val exit_use_dir = gen_use_dir Use.exit_use;
 
 end
 
