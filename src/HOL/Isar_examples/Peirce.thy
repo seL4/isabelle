@@ -3,9 +3,9 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-theory Peirce = Main:;
+header {* Examples of classical proof: Peirce's Law *};
 
-section {* Examples of classical proof --- Peirce's law. *};
+theory Peirce = Main:;
 
 theorem "((A --> B) --> A) --> A";
 proof;
@@ -21,7 +21,6 @@ proof;
     with aba; show A; ..;
   qed;
 qed;
-
 
 theorem "((A --> B) --> A) --> A";
 proof;
@@ -39,6 +38,5 @@ proof;
     qed;
   qed;
 qed;
-
 
 end;

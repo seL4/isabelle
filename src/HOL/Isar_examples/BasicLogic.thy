@@ -5,8 +5,9 @@
 Basic propositional and quantifier reasoning.
 *)
 
-theory BasicLogic = Main:;
+header {* Basic reasoning *};
 
+theory BasicLogic = Main:;
 
 subsection {* Some trivialities *};
 
@@ -18,7 +19,6 @@ proof;
   assume A;
   show A; .;
 qed;
-
 
 lemma K: "A --> B --> A";
 proof;
@@ -44,7 +44,6 @@ qed;
 lemma K''': "A --> B --> A";
   by intro;
 
-
 lemma S: "(A --> B --> C) --> (A --> B) --> A --> C";
 proof;
   assume "A --> B --> C";
@@ -62,7 +61,6 @@ proof;
     qed;
   qed;
 qed;
-
 
 text {* Variations of backward vs.\ forward reasoning \dots *};
 
@@ -177,6 +175,5 @@ proof -;
     from ab; show B; ..;
   qed;
 qed;
-
 
 end;

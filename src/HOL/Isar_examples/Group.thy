@@ -3,15 +3,15 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
+header {* Basic group theory *};
+
 theory Group = Main:;
 
-chapter {* Basic group theory *};
-
-section {* Groups *}; 
+subsection {* Groups *}; 
 
 text {*
  We define an axiomatic type class of general groups over signature
- (op *, one, inv).
+ $({\times}, \idt{one}, \idt{inv})$.
 *};
 
 consts
@@ -53,8 +53,8 @@ proof -;
 qed;
 
 text {*
- With group_right_inverse already at our disposal, group_right_unit is
- now obtained much easier as follows.
+ With \name{group-right-inverse} already at our disposal,
+ \name{group-right-unit} is now obtained much easier as follows.
 *};
 
 theorem group_right_unit: "x * one = (x::'a::group)";
@@ -72,16 +72,17 @@ qed;
 
 text {*
  There are only two Isar language elements for calculational proofs:
- 'also' for initial or intermediate calculational steps, and 'finally'
- for building the result of a calculation.  These constructs are not
- hardwired into Isabelle/Isar, but defined on top of the basic Isar/VM
- interpreter.  Expanding the 'also' or 'finally' derived language
- elements, calculations may be simulated as demonstrated below.
+ \isakeyword{also} for initial or intermediate calculational steps,
+ and \isakeyword{finally} for building the result of a calculation.
+ These constructs are not hardwired into Isabelle/Isar, but defined on
+ top of the basic Isar/VM interpreter.  Expanding the
+ \isakeyword{also} and \isakeyword{finally} derived language elements,
+ calculations may be simulated as demonstrated below.
 
- Note that "..." is just a special term binding that happens to be
- bound automatically to the argument of the last fact established by
- assume or any local goal.  In contrast to ?thesis, "..." is bound
- after the proof is finished.
+ Note that ``$\dots$'' is just a special term binding that happens to
+ be bound automatically to the argument of the last fact established
+ by assume or any local goal.  In contrast to $\var{thesis}$, the
+ ``$\dots$'' variable is bound \emph{after} the proof is finished.
 *};
 
 theorem "x * one = (x::'a::group)";
@@ -116,7 +117,7 @@ proof -;
 qed;
 
 
-section {* Groups and monoids *};
+subsection {* Groups and monoids *};
 
 text {*
   Monoids are usually defined like this.
@@ -128,12 +129,12 @@ axclass monoid < times
   monoid_right_unit:  "x * one = x";
 
 text {*
- Groups are *not* yet monoids directly from the definition.  For
- monoids, right_unit had to be included as an axiom, but for groups
- both right_unit and right_inverse are derivable from the other
- axioms.  With group_right_unit derived as a theorem of group theory
- (see above), we may still instantiate group < monoid properly as
- follows.
+ Groups are \emph{not} yet monoids directly from the definition.  For
+ monoids, \name{right-unit} had to be included as an axiom, but for
+ groups both \name{right-unit} and \name{right-inverse} are
+ derivable from the other axioms.  With \name{group-right-unit}
+ derived as a theorem of group theory (see above), we may still
+ instantiate $\idt{group} \subset \idt{monoid}$ properly as follows.
 *};
 
 instance group < monoid;
@@ -141,6 +142,5 @@ instance group < monoid;
        rule group_assoc,
        rule group_left_unit,
        rule group_right_unit);
-
 
 end;

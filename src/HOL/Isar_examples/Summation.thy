@@ -7,13 +7,11 @@ original scripts).  Demonstrates mathematical induction together with
 calculational proof.
 *)
 
+header {* Summing natural numbers *};
 
 theory Summation = Main:;
 
-
-section {* Summing natural numbers *};
-
-text {* A summation operator: sum f (n+1) is the sum of all f(i), i=0...n. *};
+subsection {* A summation operator *};
 
 consts
   sum   :: "[nat => nat, nat] => nat";
@@ -30,9 +28,7 @@ translations
 
 subsection {* Summation laws *};
 
-(* FIXME binary arithmetic does not yet work here *)
-
-syntax
+syntax				(* FIXME binary arithmetic does not yet work here *)
   "3" :: nat  ("3")
   "4" :: nat  ("4")
   "6" :: nat  ("6");
@@ -92,6 +88,5 @@ proof (induct n);
   also; have "... + 4 * (n + 1)^3 = ((n + 1) * ((n + 1) + 1))^2"; by simp;
   finally; show "?P (Suc n)"; by simp;
 qed;
-
 
 end;
