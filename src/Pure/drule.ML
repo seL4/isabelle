@@ -384,13 +384,13 @@ fun close_derivation thm =
 fun standard' th =
   let val {maxidx,...} = rep_thm th in
     th
-    |> flexflex_unique |> implies_intr_hyps 
+    |> implies_intr_hyps
     |> forall_intr_frees |> forall_elim_vars (maxidx + 1)
     |> strip_shyps_warning
     |> zero_var_indexes |> Thm.varifyT |> Thm.compress
   end;
 
-val standard = close_derivation o standard';
+val standard = close_derivation o standard' o flexflex_unique;
 
 fun local_standard th =
   th |> strip_shyps |> zero_var_indexes
