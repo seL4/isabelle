@@ -10,11 +10,11 @@ Hoare = Arith +
 
 types
   'a prog			(* program syntax *)
-  pvar = "nat"			(* encoding of program variables ( < 26! ) *)
-  'a state = "pvar => 'a"	(* program state *)
-  'a exp ="'a state => 'a"	(* denotation of expressions *)
-  'a bexp = "'a state => bool"  (* denotation of boolean expressions *)
-  'a com = "'a state => 'a state => bool" (* denotation of programs *)
+  pvar = nat			(* encoding of program variables ( < 26! ) *)
+  'a state = pvar => 'a		(* program state *)
+  'a exp = 'a state => 'a	(* denotation of expressions *)
+  'a bexp = 'a state => bool	(* denotation of boolean expressions *)
+  'a com = 'a state => 'a state => bool (* denotation of programs *)
 
 syntax
   "@Skip"       :: 'a prog				("SKIP")

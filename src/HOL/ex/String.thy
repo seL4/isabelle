@@ -14,7 +14,7 @@ datatype
   char = Char nibble nibble
 
 types
-  string = "char list"
+  string = char list
 
 syntax
   "_Char"       :: xstr => char       ("CHR _")

@@ -18,7 +18,7 @@ datatype
 
 (* type variable substitution *)
 types
-	subst = "nat => type_expr"
+	subst = nat => type_expr
 
 arities
 	type_expr::type_struct

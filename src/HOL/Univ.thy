@@ -19,7 +19,7 @@ subtype (Node)
   'a node = "{p. EX f x k. p = (f::nat=>nat, x::'a+nat) & f(k)=0}"
 
 types
-  'a item = "'a node set"
+  'a item = 'a node set
 
 consts
   Least     :: (nat=>bool) => nat    (binder "LEAST " 10)
