@@ -60,6 +60,7 @@
   \item {\tt and_def} theorem, 10
   \item {\tt arg_cong} theorem, 11
   \item {\tt Arith} theory, 26, 82
+  \item {\tt arith_tac}, 27
   \item assumptions
     \subitem in {\CTT}, 71, 81
 
@@ -116,6 +117,7 @@
   \item {\tt conL} theorem, 62
   \item {\tt conR} theorem, 62
   \item Constructive Type Theory, 71--93
+  \item {\tt context}, 57
   \item {\tt contr} constant, 72
   \item {\tt could_res}, \bold{64}
   \item {\tt could_resolve_seq}, \bold{64}
@@ -499,7 +501,6 @@
   \item {\tt Set} theory, 13, 16
   \item {\tt set} constant, 28
   \item {\tt set} type, 13
-  \item {\tt set_current_thy}, 57
   \item {\tt set_diff_def} theorem, 17
   \item {\tt show_sorts}, 8
   \item {\tt show_types}, 8
@@ -595,7 +596,6 @@
   \item {\tt trans} theorem, 11, 61
   \item {\tt trans_elem} theorem, 75
   \item {\tt trans_red} theorem, 75
-  \item {\tt trans_tac}, 27
   \item {\tt trans_type} theorem, 75
   \item {\tt True} constant, 6, 59
   \item {\tt True_def} theorem, 10, 61
