@@ -195,9 +195,7 @@ by (simp_tac (simpset() addsimps [converse_def,image_def]) 1);
 by Auto_tac;
  by (rtac bexI 1);
  by (assume_tac 2);
- by (Simp_tac 1);
-by (split_all_tac 1);
-by (Asm_full_simp_tac 1);
+by (Simp_tac 1);
 qed "finite_converse";
 AddIffs [finite_converse];
 
