@@ -27,6 +27,9 @@ sig
   val is_ascii_digit: symbol -> bool
   val is_ascii_quasi: symbol -> bool
   val is_ascii_blank: symbol -> bool
+  val is_raw: symbol -> bool
+  val decode_raw: symbol -> string
+  val encode_raw: string -> symbol list
   datatype kind = Letter | Digit | Quasi | Blank | Other
   val kind: symbol -> kind
   val is_letter: symbol -> bool
@@ -46,14 +49,12 @@ sig
   val bump_init: string -> string
   val bump_string: string -> string
   val length: symbol list -> int
+  val plain_output: string -> string
+  val default_output: string -> string * real
   val default_indent: string * int -> string
-  val add_mode: string -> (string -> string * real) * (string * int -> string) -> unit
+  val default_raw: string -> string
   val symbolsN: string
   val xsymbolsN: string
-  val plain_output: string -> string
-  val output: string -> string
-  val output_width: string -> string * real
-  val indent: string * int -> string
 end;
 
 structure Symbol: SYMBOL =
@@ -64,20 +65,19 @@ struct
 (*Symbols, which are considered the smallest entities of any Isabelle
   string, may be of the following form:
 
-    (a) ASCII symbols: a
-    (b) printable symbols: \<ident>
-    (c) control symbols: \<^ident>
-    (d) raw control symbols: \<^raw:...>, where "..." may be any printable
-        character excluding ">"
+    (1) ASCII symbols: a
+    (2) printable symbols: \<ident>
+    (3) control symbols: \<^ident>
+    (4) raw control symbols: \<^raw:...>, where "..." may be any printable
+        character excluding ">", or \<^rawNNN> where NNN are digits
 
   Output is subject to the print_mode variable (default: verbatim),
   actual interpretation in display is up to front-end tools.
 
-  Symbols (b),(c) and (d) may optionally start with "\\" instead of
-  just "\" for compatibility with ML string literals (e.g. used in
-  old-style theory files and ML proof scripts).  To be on the safe
-  side, the default output of these symbols will also start with the
-  double "\\".
+  Proper symbols may optionally start with "\\" instead of just "\"
+  for compatibility with ML string literals (e.g. used in old-style
+  theory files and ML proof scripts).  To be on the safe side, the
+  default output of these symbols will start with the double "\\".
 *)
 
 type symbol = string;
@@ -128,6 +128,42 @@ fun is_ascii_quasi "_" = true
 val is_ascii_blank =
   fn " " => true | "\t" => true | "\r" => true | "\n" => true | "\^L" => true
     | _ => false;
+
+
+(* raw symbols *)
+
+fun is_raw s =
+  String.isPrefix "\\<^raw" s andalso String.substring (s, size s - 1, 1) = ">";
+
+fun decode_raw s =
+  if not (is_raw s) then "*** BAD RAW OUTPUT " ^ s ^ " ***"
+  else if String.isPrefix "\\<^raw:" s then String.substring (s, 7, size s - 8)
+  else chr (#1 (Library.read_int (explode (String.substring (s, 6, size s - 7)))));
+
+local
+
+fun raw_chr c = ord space <= ord c andalso ord c <= ord "~" andalso c <> ">";
+
+val raw1 = enclose "\\<^raw:" ">" o implode;
+val raw2 = enclose "\\<^raw" ">" o string_of_int o ord;
+
+fun encode cs = enc (take_prefix raw_chr cs)
+and enc ([], []) = []
+  | enc (cs, []) = [raw1 cs]
+  | enc ([], d :: ds) = raw2 d :: encode ds
+  | enc (cs, d :: ds) = raw1 cs :: raw2 d :: encode ds;
+
+in
+
+val scan_raw =
+ (Scan.this (explode "raw:") -- Scan.any raw_chr ||
+  Scan.this (explode "raw") -- Scan.any1 is_ascii_digit) >> (implode o op @);
+
+fun encode_raw s =
+  if exists_string (not o raw_chr) s then encode (explode s)
+  else [enclose "\\<^raw:" ">" s];
+
+end;
 
 
 (* standard symbol kinds *)
@@ -327,10 +363,7 @@ local
 val scan_encoded_newline =
   $$ "\r" -- $$ "\n" >> K "\n" ||
   $$ "\r" >> K "\n" ||
-  Scan.optional ($$ "\\") "" -- Scan.list (explode "\\<^newline>") >> K "\n";
-
-fun raw_body c = ord space <= ord c andalso ord c <= ord "~" andalso c <> ">";
-val scan_raw = Scan.list (explode "raw:") -- Scan.any raw_body >> (implode o op @);
+  Scan.optional ($$ "\\") "" -- Scan.this (explode "\\<^newline>") >> K "\n";
 
 in
 
@@ -415,43 +448,35 @@ fun sym_length ss = foldl (fn (n, s) => sym_len s + n) (0, ss);
 
 (* default output *)
 
+local
+
 fun string_size s = (s, real (size s));
 
-fun sym_escape s = if is_char s then s else "\\" ^ s;
+fun sym_output s =
+  if is_char s then s
+  else if is_raw s then decode_raw s
+  else "\\" ^ s;
+
+in
 
 fun default_output s =
   if not (exists_string (equal "\\") s) then string_size s
-  else string_size (implode (map sym_escape (sym_explode s)));
+  else string_size (implode (map sym_output (sym_explode s)));
+
+end;
+
+val plain_output = #1 o default_output;
 
 fun default_indent (_: string, k) = spaces k;
+val default_raw = implode o encode_raw;
+
+val _ = Output.add_mode "" (default_output, default_indent, default_raw);
 
 
 (* print modes *)
 
 val symbolsN = "symbols";
 val xsymbolsN = "xsymbols";
-
-val modes =
-  ref (Symtab.empty: ((string -> string * real) * (string * int -> string)) Symtab.table);
-
-fun lookup_mode name = Symtab.lookup (! modes, name);
-
-fun add_mode name m =
- (if is_none (lookup_mode name) then ()
-  else warning ("Redeclaration of symbol print mode " ^ quote name);
-  modes := Symtab.update ((name, m), ! modes));
-
-fun get_mode () =
-  if_none (get_first lookup_mode (! print_mode)) (default_output, default_indent);
-
-
-(* mode output *)
-
-fun output_width x = #1 (get_mode ()) x;
-val output = #1 o output_width;
-val plain_output = #1 o default_output;
-
-fun indent x = #2 (get_mode ()) x;
 
 
 (*final declarations of this structure!*)
