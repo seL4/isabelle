@@ -143,6 +143,8 @@ if [ -n "$UNOFFICIAL" ]; then
   } >UNOFFICIAL
 fi
 
+lynx -dump README.html >README
+
 
 # create archive
 
