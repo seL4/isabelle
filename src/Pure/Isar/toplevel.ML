@@ -98,7 +98,7 @@ fun str_of_node (Theory _) = "in theory mode"
 
 fun pretty_context thy = [Pretty.block
   [Pretty.str "theory", Pretty.brk 1, Pretty.str (PureThy.get_name thy),
-    Pretty.str " =", Pretty.brk 1, Display.pretty_theory thy]];
+    Pretty.str " =", Pretty.brk 1, ThyInfo.pretty_theory thy]];
 
 fun pretty_prf prf = Proof.pretty_state (ProofHistory.position prf) (ProofHistory.current prf);
 

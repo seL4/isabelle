@@ -47,6 +47,8 @@ sig
   val end_theory: theory -> theory
   val finish: unit -> unit
   val register_theory: theory -> unit
+  val pretty_theory: theory -> Pretty.T
+  val pprint_theory: theory -> pprint_args -> unit
 end;
 
 structure ThyInfo: THY_INFO =
@@ -163,6 +165,19 @@ fun loaded_files name =
 fun get_preds name =
   (thy_graph Graph.imm_preds name) handle Graph.UNDEF _ =>
     error (loader_msg "nothing known about theory" [name]);
+
+
+(* pretty printing a theory: omit finished theories *)
+
+fun unfinished_names stamps =
+    List.last (List.filter is_finished stamps) :: List.filter (not o is_finished) stamps;
+
+fun pretty_sg sg = 
+      Pretty.str_list "{" "}" 
+        (unfinished_names (List.filter known_thy (Sign.stamp_names_of sg)));
+
+val pretty_theory = pretty_sg o Theory.sign_of;
+val pprint_theory = Pretty.pprint o pretty_theory;
 
 
 (* access theory *)
