@@ -34,7 +34,7 @@ struct
   val ss		= HOL_ss
   val eq_reflection	= eq_reflection
 
-  val thy	= IntDef.thy
+  val sg_ref 		= Sign.self_ref (Theory.sign_of (the_context ()))
   val T		= HOLogic.intT
   val zero	= Const ("IntDef.int", HOLogic.natT --> T) $ HOLogic.zero
   val restrict_to_left  = restrict_to_left

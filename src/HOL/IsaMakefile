@@ -8,10 +8,11 @@
 
 default: HOL
 images: HOL HOL-Real TLA
-test: HOL-Subst HOL-Induct HOL-IMP HOL-IMPP HOL-Hoare HOL-Lex HOL-Algebra \
-  HOL-Auth HOL-UNITY HOL-Modelcheck HOL-Lambda HOL-Prolog HOL-W0 HOL-MiniML \
-  HOL-BCV HOL-MicroJava HOL-IOA HOL-AxClasses-Group HOL-AxClasses-Lattice \
-  HOL-AxClasses-Tutorial HOL-Quot HOL-ex HOL-Isar_examples HOL-Real-ex \
+test: HOL-Isar_examples HOL-Induct HOL-ex HOL-Subst HOL-IMP HOL-IMPP \
+  HOL-Hoare HOL-Lex HOL-Algebra HOL-Auth HOL-UNITY HOL-Modelcheck \
+  HOL-Lambda HOL-Prolog HOL-W0 HOL-MiniML HOL-BCV HOL-MicroJava \
+  HOL-IOA HOL-AxClasses-Group HOL-AxClasses-Lattice \
+  HOL-AxClasses-Tutorial HOL-Quot HOL-Real-ex \
   HOL-Real-HahnBanach TLA-Inc TLA-Buffer TLA-Memory
 
 all: images test
@@ -31,44 +32,43 @@ HOL: Pure $(OUT)/HOL
 Pure:
 	@cd $(SRC)/Pure; $(ISATOOL) make Pure
 
-$(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML \
-  $(SRC)/Provers/Arith/cancel_sums.ML		\
-  $(SRC)/Provers/Arith/assoc_fold.ML		\
-  $(SRC)/Provers/Arith/combine_numerals.ML	\
-  $(SRC)/Provers/Arith/cancel_numerals.ML	\
-  $(SRC)/Provers/Arith/fast_lin_arith.ML \
-  $(SRC)/Provers/blast.ML $(SRC)/Provers/make_elim.ML \
-  $(SRC)/Provers/clasimp.ML $(SRC)/Provers/classical.ML \
-  $(SRC)/Provers/hypsubst.ML $(SRC)/Provers/simplifier.ML \
-  $(SRC)/Provers/split_paired_all.ML $(SRC)/Provers/splitter.ML \
-  $(SRC)/TFL/dcterm.sml $(SRC)/TFL/post.sml $(SRC)/TFL/rules.sml \
-  $(SRC)/TFL/rules.sig $(SRC)/TFL/tfl.sig $(SRC)/TFL/tfl.sml \
-  $(SRC)/TFL/thms.sig $(SRC)/TFL/thms.sml $(SRC)/TFL/thry.sig \
-  $(SRC)/TFL/thry.sml $(SRC)/TFL/usyntax.sig $(SRC)/TFL/usyntax.sml \
-  $(SRC)/TFL/utils.sig $(SRC)/TFL/utils.sml Arith.ML Arith.thy \
-  Calculation.thy Datatype.thy Divides.ML Divides.thy Finite.ML \
-  Finite.thy Fun.ML Fun.thy Gfp.ML Gfp.thy HOL.ML HOL.thy \
-  HOL_lemmas.ML Inductive.thy Integ/Bin.ML Integ/Bin.thy \
-  Integ/Equiv.ML Integ/Equiv.thy Integ/IntArith.ML Integ/IntArith.thy \
-  Integ/IntDef.ML Integ/IntDef.thy Integ/Int.ML Integ/Int.thy \
-  Integ/IntDiv.ML Integ/IntDiv.thy Integ/NatBin.ML Integ/NatBin.thy \
-  Integ/NatSimprocs.thy Integ/NatSimprocs.ML \
-  Lfp.ML Lfp.thy List.ML List.thy Main.thy Map.ML \
-  Map.thy Nat.ML Nat.thy NatDef.ML NatDef.thy Numeral.thy Option.ML \
-  Option.thy Ord.ML Ord.thy Power.ML Power.thy PreList.thy Prod.ML \
-  Prod.thy ROOT.ML Recdef.thy Record.thy RelPow.ML RelPow.thy \
-  Relation.ML Relation.thy Set.ML Set.thy SetInterval.ML SetInterval.thy \
-  String.thy SVC_Oracle.ML \
-  SVC_Oracle.thy Sum.ML Sum.thy Tools/datatype_aux.ML \
-  Tools/datatype_abs_proofs.ML Tools/datatype_package.ML \
-  Tools/datatype_prop.ML Tools/datatype_rep_proofs.ML \
-  Tools/induct_method.ML Tools/inductive_package.ML \
-  Tools/numeral_syntax.ML Tools/primrec_package.ML \
-  Tools/recdef_package.ML Tools/record_package.ML Tools/svc_funcs.ML \
-  Tools/typedef_package.ML Trancl.ML Trancl.thy Univ.ML Univ.thy \
-  Vimage.ML Vimage.thy WF.ML WF.thy WF_Rel.ML WF_Rel.thy blastdata.ML \
-  cladata.ML equalities.ML equalities.thy hologic.ML mono.ML mono.thy \
-  simpdata.ML subset.ML subset.thy thy_syntax.ML
+$(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML		\
+  $(SRC)/Provers/Arith/cancel_sums.ML					\
+  $(SRC)/Provers/Arith/assoc_fold.ML					\
+  $(SRC)/Provers/Arith/combine_numerals.ML				\
+  $(SRC)/Provers/Arith/cancel_numerals.ML				\
+  $(SRC)/Provers/Arith/fast_lin_arith.ML $(SRC)/Provers/blast.ML	\
+  $(SRC)/Provers/make_elim.ML $(SRC)/Provers/clasimp.ML			\
+  $(SRC)/Provers/classical.ML $(SRC)/Provers/hypsubst.ML		\
+  $(SRC)/Provers/simplifier.ML $(SRC)/Provers/split_paired_all.ML	\
+  $(SRC)/Provers/splitter.ML $(SRC)/TFL/dcterm.sml $(SRC)/TFL/post.sml	\
+  $(SRC)/TFL/rules.sml $(SRC)/TFL/rules.sig $(SRC)/TFL/tfl.sig		\
+  $(SRC)/TFL/tfl.sml $(SRC)/TFL/thms.sig $(SRC)/TFL/thms.sml		\
+  $(SRC)/TFL/thry.sig $(SRC)/TFL/thry.sml $(SRC)/TFL/usyntax.sig	\
+  $(SRC)/TFL/usyntax.sml $(SRC)/TFL/utils.sig $(SRC)/TFL/utils.sml	\
+  Arith.ML Arith.thy Calculation.thy Datatype.thy Divides.ML		\
+  Divides.thy Finite.ML Finite.thy Fun.ML Fun.thy Gfp.ML Gfp.thy	\
+  HOL.ML HOL.thy HOL_lemmas.ML Inductive.thy Integ/Bin.ML		\
+  Integ/Bin.thy Integ/Equiv.ML Integ/Equiv.thy Integ/IntArith.ML	\
+  Integ/IntArith.thy Integ/IntDef.ML Integ/IntDef.thy Integ/Int.ML	\
+  Integ/Int.thy Integ/IntDiv.ML Integ/IntDiv.thy Integ/NatBin.ML	\
+  Integ/NatBin.thy Integ/NatSimprocs.thy Integ/NatSimprocs.ML		\
+  Integ/int_arith1.ML Integ/int_arith2.ML Integ/nat_simprocs.ML         \
+  Lfp.ML Lfp.thy List.ML List.thy Main.thy Map.ML Map.thy Nat.ML        \
+  Nat.thy NatDef.ML NatDef.thy Numeral.thy Option.ML Option.thy Ord.ML  \
+  Ord.thy Power.ML Power.thy PreList.thy Prod.ML Prod.thy ROOT.ML       \
+  Recdef.thy Record.thy RelPow.ML RelPow.thy Relation.ML Relation.thy   \
+  Set.ML Set.thy SetInterval.ML	SetInterval.thy String.thy              \
+  SVC_Oracle.ML SVC_Oracle.thy Sum.ML Sum.thy Tools/datatype_aux.ML     \
+  Tools/datatype_abs_proofs.ML Tools/datatype_package.ML Tools/datatype_prop.ML	\
+  Tools/datatype_rep_proofs.ML Tools/induct_method.ML			\
+  Tools/inductive_package.ML Tools/numeral_syntax.ML			\
+  Tools/primrec_package.ML Tools/recdef_package.ML			\
+  Tools/record_package.ML Tools/svc_funcs.ML Tools/typedef_package.ML	\
+  Trancl.ML Trancl.thy Univ.ML Univ.thy Vimage.ML Vimage.thy WF.ML	\
+  WF.thy WF_Rel.ML WF_Rel.thy arith_data.ML blastdata.ML cladata.ML	\
+  equalities.ML equalities.thy hologic.ML mono.ML mono.thy simpdata.ML	\
+  subset.ML subset.thy thy_syntax.ML
 	@$(ISATOOL) usedir -b $(OUT)/Pure HOL
 
 
@@ -76,16 +76,17 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML \
 
 HOL-Real: HOL $(OUT)/HOL-Real
 
-$(OUT)/HOL-Real: $(OUT)/HOL Real/Lubs.ML Real/Lubs.thy Real/PNat.ML \
-  Real/PNat.thy Real/PRat.ML Real/PRat.thy Real/PReal.ML \
-  Real/PReal.thy Real/RComplete.ML Real/RComplete.thy Real/Real.thy \
-  Real/RealDef.ML Real/RealDef.thy Real/RealOrd.ML Real/RealOrd.thy \
-  Real/RealAbs.ML Real/RealAbs.thy Real/ROOT.ML \
-  Real/RealBin.ML Real/RealBin.thy Real/RealInt.ML Real/RealInt.thy \
-  Real/RealPow.ML Real/RealPow.thy Real/Hyperreal/Filter.ML \
-  Real/Hyperreal/Filter.thy Real/Hyperreal/fuf.ML \
-  Real/Hyperreal/HyperDef.ML Real/Hyperreal/HyperDef.thy \
-  Real/Hyperreal/Zorn.ML Real/Hyperreal/Zorn.thy
+$(OUT)/HOL-Real: $(OUT)/HOL Real/Hyperreal/Filter.ML			\
+  Real/Hyperreal/Filter.thy Real/Hyperreal/HyperDef.ML			\
+  Real/Hyperreal/HyperDef.thy Real/Hyperreal/Zorn.ML			\
+  Real/Hyperreal/Zorn.thy Real/Hyperreal/fuf.ML Real/Lubs.ML		\
+  Real/Lubs.thy Real/PNat.ML Real/PNat.thy Real/PRat.ML Real/PRat.thy	\
+  Real/PReal.ML Real/PReal.thy Real/RComplete.ML Real/RComplete.thy	\
+  Real/ROOT.ML Real/Real.thy Real/RealAbs.ML Real/RealAbs.thy		\
+  Real/RealArith.ML Real/RealArith.thy Real/RealBin.ML			\
+  Real/RealBin.thy Real/RealDef.ML Real/RealDef.thy Real/RealInt.ML	\
+  Real/RealInt.thy Real/RealOrd.ML Real/RealOrd.thy Real/RealPow.ML	\
+  Real/RealPow.thy Real/real_arith.ML
 	@cd Real; $(ISATOOL) usedir -b $(OUT)/HOL HOL-Real
 
 

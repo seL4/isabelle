@@ -1,29 +1,21 @@
 (*  Title:      HOL/Arith.thy
     ID:         $Id$
-    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1993  University of Cambridge
 
-Arithmetic operators + - and * (for div, mod and dvd, see Divides)
+Setup arithmetic proof procedures.
 *)
 
-Arith = Nat +
+theory Arith = Nat
+files "arith_data.ML":
 
-instance
-  nat :: {plus, minus, times, power}
+setup arith_setup
 
-(* size of a datatype value; overloaded *)
-consts size :: 'a => nat
+(*elimination of `-' on nat*)
+lemma nat_diff_split:
+    "P(a - b::nat) = (ALL d. (a<b --> P 0) & (a = b + d --> P d))"
+  by (cases "a < b" rule: case_split) (auto simp add: diff_is_0_eq [RS iffD2])
 
-primrec
-  add_0    "0 + n = n"
-  add_Suc  "Suc m + n = Suc(m + n)"
+ML {* val nat_diff_split = thm "nat_diff_split" *}
 
-primrec
-  diff_0   "m - 0 = m"
-  diff_Suc "m - Suc n = (case m - n of 0 => 0 | Suc k => k)"
-
-primrec
-  mult_0   "0 * n = 0"
-  mult_Suc "Suc m * n = n + (m * n)"
+lemmas [arith_split] = nat_diff_split split_min split_max
 
 end

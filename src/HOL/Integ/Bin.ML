@@ -258,7 +258,7 @@ Addsimps [zmult_0, zmult_0_right,
 
 (*Negation of a coefficient*)
 Goal "- (number_of w) * z = number_of(bin_minus w) * (z::int)";
-by (simp_tac (simpset_of Int.thy addsimps [number_of_minus, zmult_zminus]) 1);
+by (simp_tac (simpset() addsimps [number_of_minus, zmult_zminus]) 1);
 qed "zminus_number_of_zmult";
 
 Addsimps [zminus_number_of_zmult];
