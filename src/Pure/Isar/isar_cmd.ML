@@ -66,6 +66,18 @@ sig
   val print_prop: (string list * string) -> Toplevel.transition -> Toplevel.transition
   val print_term: (string list * string) -> Toplevel.transition -> Toplevel.transition
   val print_type: (string list * string) -> Toplevel.transition -> Toplevel.transition
+  val add_header: string * Position.T -> Toplevel.transition -> Toplevel.transition
+  val add_chapter: string * Position.T -> Toplevel.transition -> Toplevel.transition
+  val add_section: string * Position.T -> Toplevel.transition -> Toplevel.transition
+  val add_subsection: string * Position.T -> Toplevel.transition -> Toplevel.transition
+  val add_subsubsection: string * Position.T -> Toplevel.transition -> Toplevel.transition
+  val add_text: string * Position.T -> Toplevel.transition -> Toplevel.transition
+  val add_text_raw: string * Position.T -> Toplevel.transition -> Toplevel.transition
+  val add_sect: string * Position.T -> Toplevel.transition -> Toplevel.transition
+  val add_subsect: string * Position.T -> Toplevel.transition -> Toplevel.transition
+  val add_subsubsect: string * Position.T -> Toplevel.transition -> Toplevel.transition
+  val add_txt: string * Position.T -> Toplevel.transition -> Toplevel.transition
+  val add_txt_raw: string * Position.T -> Toplevel.transition -> Toplevel.transition
 end;
 
 structure IsarCmd: ISAR_CMD =
@@ -288,5 +300,29 @@ fun print_prfs full = print_item (string_of_prfs full);
 val print_prop = print_item string_of_prop;
 val print_term = print_item string_of_term;
 val print_type = print_item string_of_type;
+
+
+(* markup commands *)
+
+fun add_header s = Toplevel.keep' (fn int => fn state =>
+  (if Toplevel.is_toplevel state then () else raise Toplevel.UNDEF;
+    OuterSyntax.check_text s int state));
+
+fun present_text assert_proof present (s, pos) = Toplevel.keep' (fn int => fn state =>
+  (if can Toplevel.proof_of state = assert_proof then () else raise Toplevel.UNDEF;
+    OuterSyntax.check_text (s, pos) int state;
+    Context.setmp (Some (Toplevel.theory_of state)) present s));
+
+val add_chapter = present_text false Present.section;
+val add_section = present_text false Present.section;
+val add_subsection = present_text false Present.subsection;
+val add_subsubsection = present_text false Present.subsubsection;
+val add_text = present_text false (K ());
+val add_text_raw = add_text;
+val add_txt = present_text true (K ());
+val add_txt_raw = add_txt;
+val add_sect = add_txt;
+val add_subsect = add_txt;
+val add_subsubsect = add_txt;
 
 end;
