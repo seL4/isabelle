@@ -229,7 +229,7 @@ abbreviates \hbox{\tt rewrite_goals_tac [{\it def}]}, unfolding a definition.
 cut_facts_tac : thm list -> int -> tactic
 cut_inst_tac  : (string*string)list -> thm -> int -> tactic
 subgoal_tac   : string -> int -> tactic
-subgoal_tacs  : string list -> int -> tactic
+subgoals_tac  : string list -> int -> tactic
 \end{ttbox}
 These tactics add assumptions to a subgoal.
 \begin{ttdescription}
