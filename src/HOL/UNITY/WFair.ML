@@ -35,8 +35,7 @@ qed "transient_mem";
 (*** ensures ***)
 
 Goalw [ensures_def]
-    "[| F : (A-B) co (A Un B); F : transient (A-B) |] \
-\    ==> F : A ensures B";
+    "[| F : (A-B) co (A Un B); F : transient (A-B) |] ==> F : A ensures B";
 by (Blast_tac 1);
 qed "ensuresI";
 
@@ -109,8 +108,7 @@ by (blast_tac (claset() addIs [leads.Union] addDs prems) 1);
 qed "leadsTo_Union";
 
 val prems = Goalw [leadsTo_def]
-    "(!!A. A : S ==> F : (A Int C) leadsTo B) \
-\    ==> F : (Union S Int C) leadsTo B";
+ "(!!A. A : S ==> F : (A Int C) leadsTo B) ==> F : (Union S Int C) leadsTo B";
 by (simp_tac (HOL_ss addsimps [Int_Union_Union]) 1);
 by (blast_tac (claset() addIs [leads.Union] addDs prems) 1);
 qed "leadsTo_Union_Int";
@@ -286,8 +284,8 @@ by (asm_full_simp_tac
 by (blast_tac (claset() addIs [transient_strengthen, constrains_Int]) 1);
 qed "psp_stable";
 
-Goal "[| F : A leadsTo A'; F : stable B |] \
-\   ==> F : (B Int A) leadsTo (B Int A')";
+Goal
+   "[| F : A leadsTo A'; F : stable B |] ==> F : (B Int A) leadsTo (B Int A')";
 by (asm_simp_tac (simpset() addsimps psp_stable::Int_ac) 1);
 qed "psp_stable2";
 
@@ -333,7 +331,7 @@ qed "psp_unless";
 
 Goal "[| wf r;     \
 \        ALL m. F : (A Int f-``{m}) leadsTo                     \
-\                            ((A Int f-``(r^-1 ^^ {m})) Un B) |] \
+\                   ((A Int f-``(r^-1 ^^ {m})) Un B) |] \
 \     ==> F : (A Int f-``{m}) leadsTo B";
 by (eres_inst_tac [("a","m")] wf_induct 1);
 by (subgoal_tac "F : (A Int (f -`` (r^-1 ^^ {x}))) leadsTo B" 1);
@@ -347,7 +345,7 @@ val lemma = result();
 (** Meta or object quantifier ????? **)
 Goal "[| wf r;     \
 \        ALL m. F : (A Int f-``{m}) leadsTo                     \
-\                            ((A Int f-``(r^-1 ^^ {m})) Un B) |] \
+\                   ((A Int f-``(r^-1 ^^ {m})) Un B) |] \
 \     ==> F : A leadsTo B";
 by (res_inst_tac [("t", "A")] subst 1);
 by (rtac leadsTo_UN 2);
@@ -359,7 +357,7 @@ qed "leadsTo_wf_induct";
 
 Goal "[| wf r;     \
 \        ALL m:I. F : (A Int f-``{m}) leadsTo                   \
-\                              ((A Int f-``(r^-1 ^^ {m})) Un B) |] \
+\                     ((A Int f-``(r^-1 ^^ {m})) Un B) |] \
 \     ==> F : A leadsTo ((A - (f-``I)) Un B)";
 by (etac leadsTo_wf_induct 1);
 by Safe_tac;
@@ -371,14 +369,14 @@ qed "bounded_induct";
 
 (*Alternative proof is via the lemma F : (A Int f-``(lessThan m)) leadsTo B*)
 Goal "[| ALL m. F : (A Int f-``{m}) leadsTo                     \
-\                            ((A Int f-``(lessThan m)) Un B) |] \
+\                   ((A Int f-``(lessThan m)) Un B) |] \
 \     ==> F : A leadsTo B";
 by (rtac (wf_less_than RS leadsTo_wf_induct) 1);
 by (Asm_simp_tac 1);
 qed "lessThan_induct";
 
-Goal "[| ALL m:(greaterThan l). F : (A Int f-``{m}) leadsTo   \
-\                                  ((A Int f-``(lessThan m)) Un B) |] \
+Goal "[| ALL m:(greaterThan l).    \
+\           F : (A Int f-``{m}) leadsTo ((A Int f-``(lessThan m)) Un B) |] \
 \     ==> F : A leadsTo ((A Int (f-``(atMost l))) Un B)";
 by (simp_tac (HOL_ss addsimps [Diff_eq RS sym, vimage_Compl, 
 			       Compl_greaterThan RS sym]) 1);
@@ -386,8 +384,8 @@ by (rtac (wf_less_than RS bounded_induct) 1);
 by (Asm_simp_tac 1);
 qed "lessThan_bounded_induct";
 
-Goal "[| ALL m:(lessThan l). F : (A Int f-``{m}) leadsTo   \
-\                              ((A Int f-``(greaterThan m)) Un B) |] \
+Goal "[| ALL m:(lessThan l).    \
+\           F : (A Int f-``{m}) leadsTo ((A Int f-``(greaterThan m)) Un B) |] \
 \     ==> F : A leadsTo ((A Int (f-``(atLeast l))) Un B)";
 by (res_inst_tac [("f","f"),("f1", "%k. l - k")]
     (wf_less_than RS wf_inv_image RS leadsTo_wf_induct) 1);
@@ -397,7 +395,6 @@ by (case_tac "m<l" 1);
 by (blast_tac (claset() addIs [not_leE, subset_imp_leadsTo]) 2);
 by (blast_tac (claset() addIs [leadsTo_weaken_R, diff_less_mono2]) 1);
 qed "greaterThan_bounded_induct";
-
 
 
 (*** wlt ****)
