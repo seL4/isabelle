@@ -38,7 +38,9 @@ sub fixdots {
 
     if ($text ne $result) {
 	print STDERR "fixing $file\n";
-	rename $file, "$file~~" || die $!;
+        if (! -f "$file~~") {
+	    rename $file, "$file~~" || die $!;
+        }
 	open (FILE, "> $file") || die $!;
 	print FILE $result;
 	close FILE || die $!;
