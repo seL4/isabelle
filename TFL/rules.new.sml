@@ -504,7 +504,7 @@ fun get ([],_,L) = rev L
             let val eq = Logic.strip_imp_concl body
                 val (f,args) = S.strip_comb (get_lhs eq)
                 val (vstrl,_) = S.strip_abs f
-                val names  = map (#Name o S.dest_var)
+                val names  = map (#1 o dest_Free)
                                  (variants (S.free_vars body) vstrl)
             in get (rst, n+1, (names,n)::L)
             end handle _ => get (rst, n+1, L);
@@ -594,7 +594,7 @@ local fun dest_pair M = let val {fst,snd} = S.dest_pair M in (fst,snd) end
 in
 fun XFILL tych x vstruct = 
   let fun traverse p xocc L =
-        if (S.is_var p)
+        if (is_Free p)
         then tych xocc::L
         else let val (p1,p2) = dest_pair p
              in traverse p1 (mk_fst xocc) (traverse p2  (mk_snd xocc) L)
@@ -626,7 +626,7 @@ fun PGEN tych a vstr th =
       val vstr1 = tych vstr
   in
   forall_intr a1 
-     (if (S.is_var vstr) 
+     (if (is_Free vstr) 
       then cterm_instantiate [(vstr1,a1)] th
       else VSTRUCT_ELIM tych a vstr th)
   end;
@@ -766,10 +766,9 @@ fun CONTEXT_REWRITE_RULE(func,R){thms=[cut_lemma],congs,th} =
                * term "f v1..vn" which is a pattern that any full application
                * of "f" will match.
                *-------------------------------------------------------------*)
-              val func_name = #Name(S.dest_const func handle _ => 
-                                    S.dest_var func)
-              fun is_func tm = (#Name(S.dest_const tm handle _ =>
-                                      S.dest_var tm) = func_name)
+              val func_name = #1(dest_Const func handle _ => dest_Free func)
+              fun is_func tm = (#1(dest_Const tm handle _ => dest_Free tm) 
+				= func_name)
                                handle _ => false
               val nested = U.can(S.find_term is_func)
               val rcontext = rev cntxt
