@@ -7,7 +7,12 @@
 
 header {* Orders and Lattices *}
 
-theory Lattice = Group:
+theory Lattice = Main:
+
+text {* Object with a carrier set. *}
+
+record 'a partial_object =
+  carrier :: "'a set"
 
 subsection {* Partial Orders *}
 
@@ -844,94 +849,7 @@ next
   then show "EX i. greatest ?L i (Lower ?L B)" ..
 qed
 
-subsubsection {* Lattice of subgroups of a group *}
-
-theorem (in group) subgroups_partial_order:
-  "partial_order (| carrier = {H. subgroup H G}, le = op \<subseteq> |)"
-  by (rule partial_order.intro) simp_all
-
-lemma (in group) subgroup_self:
-  "subgroup (carrier G) G"
-  by (rule subgroupI) auto
-
-lemma (in group) subgroup_imp_group:
-  "subgroup H G ==> group (G(| carrier := H |))"
-  using subgroup.groupI [OF _ group.intro] .
-
-lemma (in group) is_monoid [intro, simp]:
-  "monoid G"
-  by (rule monoid.intro)
-
-lemma (in group) subgroup_inv_equality:
-  "[| subgroup H G; x \<in> H |] ==> m_inv (G (| carrier := H |)) x = inv x"
-apply (rule_tac inv_equality [THEN sym])
-  apply (rule group.l_inv [OF subgroup_imp_group, simplified])
-   apply assumption+
- apply (rule subsetD [OF subgroup.subset])
-  apply assumption+
-apply (rule subsetD [OF subgroup.subset])
- apply assumption
-apply (rule_tac group.inv_closed [OF subgroup_imp_group, simplified])
-  apply assumption+
-done
-
-theorem (in group) subgroups_Inter:
-  assumes subgr: "(!!H. H \<in> A ==> subgroup H G)"
-    and not_empty: "A ~= {}"
-  shows "subgroup (\<Inter>A) G"
-proof (rule subgroupI)
-  from subgr [THEN subgroup.subset] and not_empty
-  show "\<Inter>A \<subseteq> carrier G" by blast
-next
-  from subgr [THEN subgroup.one_closed]
-  show "\<Inter>A ~= {}" by blast
-next
-  fix x assume "x \<in> \<Inter>A"
-  with subgr [THEN subgroup.m_inv_closed]
-  show "inv x \<in> \<Inter>A" by blast
-next
-  fix x y assume "x \<in> \<Inter>A"  "y \<in> \<Inter>A"
-  with subgr [THEN subgroup.m_closed]
-  show "x \<otimes> y \<in> \<Inter>A" by blast
-qed
-
-theorem (in group) subgroups_complete_lattice:
-  "complete_lattice (| carrier = {H. subgroup H G}, le = op \<subseteq> |)"
-    (is "complete_lattice ?L")
-proof (rule partial_order.complete_lattice_criterion1)
-  show "partial_order ?L" by (rule subgroups_partial_order)
-next
-  have "greatest ?L (carrier G) (carrier ?L)"
-    by (unfold greatest_def) (simp add: subgroup.subset subgroup_self)
-  then show "EX G. greatest ?L G (carrier ?L)" ..
-next
-  fix A
-  assume L: "A \<subseteq> carrier ?L" and non_empty: "A ~= {}"
-  then have Int_subgroup: "subgroup (\<Inter>A) G"
-    by (fastsimp intro: subgroups_Inter)
-  have "greatest ?L (\<Inter>A) (Lower ?L A)"
-    (is "greatest ?L ?Int _")
-  proof (rule greatest_LowerI)
-    fix H
-    assume H: "H \<in> A"
-    with L have subgroupH: "subgroup H G" by auto
-    from subgroupH have submagmaH: "submagma H G" by (rule subgroup.axioms)
-    from subgroupH have groupH: "group (G (| carrier := H |))" (is "group ?H")
-      by (rule subgroup_imp_group)
-    from groupH have monoidH: "monoid ?H"
-      by (rule group.is_monoid)
-    from H have Int_subset: "?Int \<subseteq> H" by fastsimp
-    then show "le ?L ?Int H" by simp
-  next
-    fix H
-    assume H: "H \<in> Lower ?L A"
-    with L Int_subgroup show "le ?L H ?Int" by (fastsimp intro: Inter_greatest)
-  next
-    show "A \<subseteq> carrier ?L" by (rule L)
-  next
-    show "?Int \<in> carrier ?L" by simp (rule Int_subgroup)
-  qed
-  then show "EX I. greatest ?L I (Lower ?L A)" ..
-qed
+text {* An other example, that of the lattice of subgroups of a group,
+  can be found in Group theory (Section~\ref{sec:subgroup-lattice}). *}
 
 end

@@ -16,7 +16,6 @@ no_document use_thy "Primes";
 use_thy "FiniteProduct";	(* Product operator for commutative groups *)
 use_thy "Sylow";		(* Sylow's theorem *)
 use_thy "Bij";			(* Automorphism Groups *)
-use_thy "Lattice";              (* Lattices, and the complete lattice of subgroups *)
 
 (* Rings *)
 
