@@ -113,12 +113,17 @@ val trans_attr =
 
 (** proof commands **)
 
+fun dest_arg tm =
+  (case ObjectLogic.dest_main_statement tm of
+    _ $ t => t
+  | _ => raise TERM ("dest_arg", [tm]));
+
 val calculationN = "calculation";
 
-fun calculate final prt state =
+fun calculate final print state =
   let
     val fact = Proof.the_fact state;
-    val dddot = ObjectLogic.dest_main_statement (#prop (Thm.rep_thm fact)) handle TERM _ =>
+    val dddot = dest_arg (#prop (Thm.rep_thm fact)) handle TERM _ =>
       raise Proof.STATE ("Unable to bind '...' pattern from current fact", state);
 
     val name = if final then "" else calculationN;
@@ -130,9 +135,8 @@ fun calculate final prt state =
         None => Seq.single fact
       | Some thm => Seq.flat (Seq.map (Method.multi_resolve [thm, fact]) rules));
   in
-    calculations
-    |> Seq.map (fn calc =>
-      (prt calc;
+    calculations |> Seq.map (fn calc =>
+      (print calc;
         state
         |> Proof.bind_i [(Syntax.dddot_indexname, dddot)]
         |> put_calculation calc
@@ -140,8 +144,8 @@ fun calculate final prt state =
         |> (if final then Proof.chain else Proof.reset_facts)))
   end;
 
-fun also prt = calculate false prt;
-fun finally prt = calculate true prt;
+fun also print = calculate false print;
+fun finally print = calculate true print;
 
 
 
