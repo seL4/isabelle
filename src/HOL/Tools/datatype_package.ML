@@ -192,8 +192,8 @@ fun gen_induct_tac (varss, opt_rule) i state =
           let val tn = find_tname (hd (mapfilter I (flat varss))) Bi
           in (#induction (datatype_info_sg_err sign tn), "Induction rule for type " ^ tn) end);
 
-    val concls = HOLogic.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of rule));
-    val insts = flat (map2 prep_inst (concls, varss)) handle LIST _ =>
+    val concls = InductMethod.concls_of rule;
+    val insts = flat (map prep_inst (concls ~~ varss)) handle LIST _ =>
       error (rule_name ^ " has different numbers of variables");
   in occs_in_prems (Tactic.res_inst_tac insts rule) (map #2 insts) i state end;
 
