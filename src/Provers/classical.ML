@@ -255,8 +255,8 @@ fun print_cs (CS {safeIs, safeEs, hazIs, hazEs, ...}) =
   let val pretty_thms = map Display.pretty_thm in
     Pretty.writeln (Pretty.big_list "safe introduction rules:" (pretty_thms safeIs));
     Pretty.writeln (Pretty.big_list "unsafe introduction rules:" (pretty_thms hazIs));
-    Pretty.writeln (Pretty.big_list "safe elimination rules:" (pretty_thms safeEs))
-    Pretty.writeln (Pretty.big_list "unsafe elimination rules:" (pretty_thms hazEs));
+    Pretty.writeln (Pretty.big_list "safe elimination rules:" (pretty_thms safeEs));
+    Pretty.writeln (Pretty.big_list "unsafe elimination rules:" (pretty_thms hazEs))
   end;
 
 fun rep_claset (CS args) = args;
