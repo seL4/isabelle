@@ -3,62 +3,88 @@
     Author:     Markus Wenzel, TU Muenchen
 
 File system operations.
+
+TODO:
+  - close in case of error (!?);
 *)
 
 signature FILE =
 sig
-  val tmp_name: string -> string
-  val exists: string -> bool
-  val info: string -> string
-  val read: string -> string
-  val write: string -> string -> unit
-  val append: string -> string -> unit
-  val copy: string -> string -> unit
+  val sys_path_fn: (Path.T -> string) ref
+  val tmp_path: Path.T -> Path.T
+  eqtype info
+  val info: Path.T -> info option
+  val exists: Path.T -> bool
+  val read: Path.T -> string
+  val write: Path.T -> string -> unit
+  val append: Path.T -> string -> unit
+  val copy: Path.T -> Path.T -> unit
+  val use: Path.T -> unit
+  val cd: Path.T -> unit
+  val rm: Path.T -> unit
 end;
 
 structure File: FILE =
 struct
 
 
-(* tmp_name *)
+(* sys_path (default for Unix) *)
 
-fun tmp_name name =
-  Path.pack (Path.evaluate (Path.unpack o getenv)
-    (Path.append (Path.variable "ISABELLE_TMP") (Path.unpack name)));
+val sys_path_fn = ref Path.pack;
+fun sysify path = ! sys_path_fn (Path.expand path);
 
 
-(* exists / info *)
+(* tmp_path *)
 
-fun exists name = (file_info name <> "");
-val info = file_info;
+fun tmp_path path =
+  Path.append (Path.variable "ISABELLE_TMP") (Path.base path);
+
+
+(* info / exists *)
+
+datatype info = Info of string;
+
+fun info path =
+  let val name = sysify path in
+    (case file_info name of
+      "" => None
+    | s => Some (Info (name ^ ": " ^ s)))	(* FIXME include full path (!?) *)
+  end;
+
+val exists = is_some o info;
 
 
 (* read / write files *)
 
-fun read name =
+fun read path =
   let
-    val instream  = TextIO.openIn name;
+    val instream  = TextIO.openIn (sysify path);
     val intext = TextIO.inputAll instream;
   in
     TextIO.closeIn instream;
     intext
   end;
 
-fun write name txt =
-  let val outstream = TextIO.openOut name in
+fun write path txt =
+  let val outstream = TextIO.openOut (sysify path) in
     TextIO.output (outstream, txt);
     TextIO.closeOut outstream
   end;
 
-fun append name txt =
-  let val outstream = TextIO.openAppend name in
+fun append path txt =
+  let val outstream = TextIO.openAppend (sysify path) in
     TextIO.output (outstream, txt);
     TextIO.closeOut outstream
   end;
 
-fun copy infile outfile =
-  if not (exists infile) then error ("File not found: " ^ quote infile)
-  else write outfile (read infile);
+fun copy inpath outpath = write outpath (read inpath);
+
+
+(* misc operations *)
+
+val use = use o sysify;
+val cd = Library.cd o sysify;
+val rm = OS.FileSys.remove o sysify;
 
 
 end;
