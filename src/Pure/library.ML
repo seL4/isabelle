@@ -5,15 +5,241 @@
 
 Basic library: functions, options, pairs, booleans, lists, integers,
 strings, lists as sets, association lists, generic tables, balanced
-trees, orders, diagnostics, timing, misc functions.
+trees, orders, I/O and diagnostics, timing, misc.
 *)
 
 infix |> ~~ \ \\ ins ins_string ins_int orf andf prefix upto downto
   mem mem_int mem_string union union_int union_string inter inter_int
   inter_string subset subset_int subset_string;
 
+signature LIBRARY =
+sig
+  (*functions*)
+  val curry: ('a * 'b -> 'c) -> 'a -> 'b -> 'c
+  val uncurry: ('a -> 'b -> 'c) -> 'a * 'b -> 'c
+  val I: 'a -> 'a
+  val K: 'a -> 'b -> 'a
+  val |> : 'a * ('a -> 'b) -> 'b
+  val apl: 'a * ('a * 'b -> 'c) -> 'b -> 'c
+  val apr: ('a * 'b -> 'c) * 'b -> 'a -> 'c
+  val funpow: int -> ('a -> 'a) -> 'a -> 'a
 
-structure Library =
+  (*stamps*)
+  type stamp
+  val stamp: unit -> stamp
+
+  (*options*)
+  datatype 'a option = None | Some of 'a
+  exception OPTION
+  val the: 'a option -> 'a
+  val if_none: 'a option -> 'a -> 'a
+  val is_some: 'a option -> bool
+  val is_none: 'a option -> bool
+  val apsome: ('a -> 'b) -> 'a option -> 'b option
+  val can: ('a -> 'b) -> 'a -> bool
+  val try: ('a -> 'b) -> 'a -> 'b option
+
+  (*pairs*)
+  val pair: 'a -> 'b -> 'a * 'b
+  val rpair: 'a -> 'b -> 'b * 'a
+  val fst: 'a * 'b -> 'a
+  val snd: 'a * 'b -> 'b
+  val eq_fst: (''a * 'b) * (''a * 'c) -> bool
+  val eq_snd: ('a * ''b) * ('c * ''b) -> bool
+  val swap: 'a * 'b -> 'b * 'a
+  val apfst: ('a -> 'b) -> 'a * 'c -> 'b * 'c
+  val apsnd: ('a -> 'b) -> 'c * 'a -> 'c * 'b
+  val pairself: ('a -> 'b) -> 'a * 'a -> 'b * 'b
+
+  (*booleans*)
+  val equal: ''a -> ''a -> bool
+  val not_equal: ''a -> ''a -> bool
+  val orf: ('a -> bool) * ('a -> bool) -> 'a -> bool
+  val andf: ('a -> bool) * ('a -> bool) -> 'a -> bool
+  val exists: ('a -> bool) -> 'a list -> bool
+  val forall: ('a -> bool) -> 'a list -> bool
+  val set: bool ref -> bool
+  val reset: bool ref -> bool
+  val toggle: bool ref -> bool
+  val setmp: 'a ref -> 'a -> ('b -> 'c) -> 'b -> 'c
+
+  (*lists*)
+  exception LIST of string
+  val null: 'a list -> bool
+  val hd: 'a list -> 'a
+  val tl: 'a list -> 'a list
+  val cons: 'a -> 'a list -> 'a list
+  val foldl: ('a * 'b -> 'a) -> 'a * 'b list -> 'a
+  val foldr: ('a * 'b -> 'b) -> 'a list * 'b -> 'b
+  val foldr1: ('a * 'a -> 'a) -> 'a list -> 'a
+  val length: 'a list -> int
+  val take: int * 'a list -> 'a list
+  val drop: int * 'a list -> 'a list
+  val nth_elem: int * 'a list -> 'a
+  val last_elem: 'a list -> 'a
+  val split_last: 'a list -> 'a list * 'a
+  val find_index: ('a -> bool) -> 'a list -> int
+  val find_index_eq: ''a -> ''a list -> int
+  val find_first: ('a -> bool) -> 'a list -> 'a option
+  val flat: 'a list list -> 'a list
+  val seq: ('a -> unit) -> 'a list -> unit
+  val separate: 'a -> 'a list -> 'a list
+  val replicate: int -> 'a -> 'a list
+  val multiply: 'a list * 'a list list -> 'a list list
+  val filter: ('a -> bool) -> 'a list -> 'a list
+  val filter_out: ('a -> bool) -> 'a list -> 'a list
+  val mapfilter: ('a -> 'b option) -> 'a list -> 'b list
+  val map2: ('a * 'b -> 'c) -> 'a list * 'b list -> 'c list
+  val exists2: ('a * 'b -> bool) -> 'a list * 'b list -> bool
+  val forall2: ('a * 'b -> bool) -> 'a list * 'b list -> bool
+  val ~~ : 'a list * 'b list -> ('a * 'b) list
+  val split_list: ('a * 'b) list -> 'a list * 'b list
+  val prefix: ''a list * ''a list -> bool
+  val take_prefix: ('a -> bool) -> 'a list -> 'a list * 'a list
+  val take_suffix: ('a -> bool) -> 'a list -> 'a list * 'a list
+
+  (*integers*)
+  val inc: int ref -> int
+  val dec: int ref -> int
+  val upto: int * int -> int list
+  val downto: int * int -> int list
+  val downto0: int list * int -> bool
+  val radixpand: int * int -> int list
+  val radixstring: int * string * int -> string
+  val string_of_int: int -> string
+  val string_of_indexname: string * int -> string
+
+  (*strings*)
+  val is_letter: string -> bool
+  val is_digit: string -> bool
+  val is_quasi_letter: string -> bool
+  val is_blank: string -> bool
+  val is_letdig: string -> bool
+  val is_printable: string -> bool
+  val to_lower: string -> string
+  val enclose: string -> string -> string -> string
+  val quote: string -> string
+  val space_implode: string -> string list -> string
+  val commas: string list -> string
+  val commas_quote: string list -> string
+  val cat_lines: string list -> string
+  val space_explode: string -> string -> string list
+  val split_lines: string -> string list
+
+  (*lists as sets*)
+  val mem: ''a * ''a list -> bool
+  val mem_int: int * int list -> bool
+  val mem_string: string * string list -> bool
+  val gen_mem: ('a * 'b -> bool) -> 'a * 'b list -> bool
+  val ins: ''a * ''a list -> ''a list
+  val ins_int: int * int list -> int list
+  val ins_string: string * string list -> string list
+  val gen_ins: ('a * 'a -> bool) -> 'a * 'a list -> 'a list
+  val union: ''a list * ''a list -> ''a list
+  val union_int: int list * int list -> int list
+  val union_string: string list * string list -> string list
+  val gen_union: ('a * 'a -> bool) -> 'a list * 'a list -> 'a list
+  val inter: ''a list * ''a list -> ''a list
+  val inter_int: int list * int list -> int list
+  val inter_string: string list * string list -> string list
+  val subset: ''a list * ''a list -> bool
+  val subset_int: int list * int list -> bool
+  val subset_string: string list * string list -> bool
+  val eq_set: ''a list * ''a list -> bool
+  val eq_set_string: string list * string list -> bool
+  val gen_subset: ('a * 'b -> bool) -> 'a list * 'b list -> bool
+  val \ : ''a list * ''a -> ''a list
+  val \\ : ''a list * ''a list -> ''a list
+  val gen_rem: ('a * 'b -> bool) -> 'a list * 'b -> 'a list
+  val gen_rems: ('a * 'b -> bool) -> 'a list * 'b list -> 'a list
+  val gen_distinct: ('a * 'a -> bool) -> 'a list -> 'a list
+  val distinct: ''a list -> ''a list
+  val findrep: ''a list -> ''a list
+  val gen_duplicates: ('a * 'a -> bool) -> 'a list -> 'a list
+  val duplicates: ''a list -> ''a list
+
+  (*association lists*)
+  val assoc: (''a * 'b) list * ''a -> 'b option
+  val assoc_int: (int * 'a) list * int -> 'a option
+  val assoc_string: (string * 'a) list * string -> 'a option
+  val assoc_string_int: ((string * int) * 'a) list * (string * int) -> 'a option
+  val assocs: (''a * 'b list) list -> ''a -> 'b list
+  val assoc2: (''a * (''b * 'c) list) list * (''a * ''b) -> 'c option
+  val gen_assoc: ('a * 'b -> bool) -> ('b * 'c) list * 'a -> 'c option
+  val overwrite: (''a * 'b) list * (''a * 'b) -> (''a * 'b) list
+  val gen_overwrite: ('a * 'a -> bool) -> ('a * 'b) list * ('a * 'b) -> ('a * 'b) list
+
+  (*generic tables*)
+  val generic_extend: ('a * 'a -> bool)
+    -> ('b -> 'a list) -> ('a list -> 'b) -> 'b -> 'a list -> 'b
+  val generic_merge: ('a * 'a -> bool) -> ('b -> 'a list) -> ('a list -> 'b) -> 'b -> 'b -> 'b
+  val extend_list: ''a list -> ''a list -> ''a list
+  val merge_lists: ''a list -> ''a list -> ''a list
+  val merge_rev_lists: ''a list -> ''a list -> ''a list
+
+  (*balanced trees*)
+  exception Balance
+  val fold_bal: ('a * 'a -> 'a) -> 'a list -> 'a
+  val access_bal: ('a -> 'a) * ('a -> 'a) * 'a -> int -> int -> 'a
+  val accesses_bal: ('a -> 'a) * ('a -> 'a) * 'a -> int -> 'a list
+
+  (*orders*)
+  datatype order = EQUAL | GREATER | LESS
+  val rev_order: order -> order
+  val make_ord: ('a * 'a -> bool) -> 'a * 'a -> order
+  val int_ord: int * int -> order
+  val string_ord: string * string -> order
+  val prod_ord: ('a * 'b -> order) -> ('c * 'd -> order) -> ('a * 'c) * ('b * 'd) -> order
+  val dict_ord: ('a * 'b -> order) -> 'a list * 'b list -> order
+  val list_ord: ('a * 'b -> order) -> 'a list * 'b list -> order
+  val sort: ('a * 'a -> order) -> 'a list -> 'a list
+  val sort_strings: string list -> string list
+  val sort_wrt: ('a -> string) -> 'a list -> 'a list
+
+  (*I/O and diagnostics*)
+  val cd: string -> unit
+  val pwd: unit -> string
+  val prs_fn: (string -> unit) ref
+  val warning_fn: (string -> unit) ref
+  val error_fn: (string -> unit) ref
+  val prs: string -> unit
+  val writeln: string -> unit
+  val warning: string -> unit
+  exception ERROR
+  val error_msg: string -> unit
+  val error: string -> 'a
+  val sys_error: string -> 'a
+  val assert: bool -> string -> unit
+  val deny: bool -> string -> unit
+  val assert_all: ('a -> bool) -> 'a list -> ('a -> string) -> unit
+  datatype 'a error = Error of string | OK of 'a
+  val get_error: 'a error -> string option
+  val get_ok: 'a error -> 'a option
+  val handle_error: ('a -> 'b) -> 'a -> 'b error
+
+  (*timing*)
+  val cond_timeit: bool -> (unit -> 'a) -> 'a
+  val timeit: (unit -> 'a) -> 'a
+  val timeap: ('a -> 'b) -> 'a -> 'b
+
+  (*misc*)
+  val make_keylist: ('a -> 'b) -> 'a list -> ('a * 'b) list
+  val keyfilter: ('a * ''b) list -> ''b -> 'a list
+  val partition: ('a -> bool) -> 'a list -> 'a list * 'a list
+  val partition_eq: ('a * 'a -> bool) -> 'a list -> 'a list list
+  val partition_list: (int -> 'a -> bool) -> int -> int -> 'a list -> 'a list list
+  val transitive_closure: (string * string list) list -> (string * string list) list
+  val init_gensym: unit -> unit
+  val gensym: string -> string
+  val bump_int_list: string list -> string list
+  val bump_list: string list * string -> string list
+  val bump_string: string -> string
+  val scanwords: (string -> bool) -> string list -> string list
+  datatype 'a mtree = Join of 'a * 'a mtree list
+  type object
+end;
+
+structure Library: LIBRARY =
 struct
 
 (** functions **)
@@ -748,6 +974,31 @@ fun list_ord elem_ord (xs, ys) =
   prod_ord int_ord (dict_ord elem_ord) ((length xs, xs), (length ys, ys));
 
 
+(* sorting *)
+
+(*quicksort (stable, i.e. does not reorder equal elements)*)
+fun sort ord =
+  let
+    fun qsort xs =
+      let val len = length xs in
+        if len <= 1 then xs
+        else
+          let val (lts, eqs, gts) = part (nth_elem (len div 2, xs)) xs in
+            qsort lts @ eqs @ qsort gts
+          end
+      end
+    and part _ [] = ([], [], [])
+      | part pivot (x :: xs) = add (ord (x, pivot)) x (part pivot xs)
+    and add LESS x (lts, eqs, gts) = (x :: lts, eqs, gts)
+      | add EQUAL x (lts, eqs, gts) = (lts, x :: eqs, gts)
+      | add GREATER x (lts, eqs, gts) = (lts, eqs, x :: gts);
+  in qsort end;
+
+(*sort strings*)
+val sort_strings = sort string_ord;
+fun sort_wrt sel xs = sort (string_ord o pairself sel) xs;
+
+
 
 (** input / output and diagnostics **)
 
@@ -837,7 +1088,7 @@ fun timeap f x = timeit (fn () => f x);
 
 
 
-(** misc functions **)
+(** misc **)
 
 (*use the keyfun to make a list of (x, key) pairs*)
 fun make_keylist (keyfun: 'a->'b) : 'a list -> ('a * 'b) list =
@@ -880,31 +1131,6 @@ fun partition_list p i j =
             let val (ns, rest) = partition (p k) xs;
             in  ns :: part(k+1)rest  end
   in  part i end;
-
-
-(* sorting *)
-
-(*quicksort (stable, i.e. does not reorder equal elements)*)
-fun sort ord =
-  let
-    fun qsort xs =
-      let val len = length xs in
-        if len <= 1 then xs
-        else
-          let val (lts, eqs, gts) = part (nth_elem (len div 2, xs)) xs in
-            qsort lts @ eqs @ qsort gts
-          end
-      end
-    and part _ [] = ([], [], [])
-      | part pivot (x :: xs) = add (ord (x, pivot)) x (part pivot xs)
-    and add LESS x (lts, eqs, gts) = (x :: lts, eqs, gts)
-      | add EQUAL x (lts, eqs, gts) = (lts, x :: eqs, gts)
-      | add GREATER x (lts, eqs, gts) = (lts, eqs, x :: gts);
-  in qsort end;
-
-(*sort strings*)
-val sort_strings = sort string_ord;
-fun sort_wrt sel xs = sort (string_ord o pairself sel) xs;
 
 
 (* transitive closure (not Warshall's algorithm) *)
