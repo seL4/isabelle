@@ -1,4 +1,4 @@
-(*  Title:      HOL/Lambda/ParRed.thy
+(*  Title:      HOL/Lambda/ParRed.ML
     ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1995 TU Muenchen
@@ -63,8 +63,7 @@ by(db.induct_tac "t" 1);
  by(strip_tac 1);
  bes par_beta_cases 1;
   by(Asm_simp_tac 1);
- by(Asm_simp_tac 1);
- br (zero_less_Suc RS subst_subst RS subst) 1;
+ by(asm_simp_tac (!simpset addsimps [subst_subst RS sym]) 1);
  by(fast_tac (parred_cs addSIs [par_beta_lift] addss (!simpset)) 1);
 by(fast_tac (parred_cs addss (!simpset)) 1);
 bind_thm("par_beta_subst",
@@ -73,9 +72,7 @@ bind_thm("par_beta_subst",
 (*** Confluence (directly) ***)
 
 goalw ParRed.thy [diamond_def,commute_def,square_def] "diamond(par_beta)";
-by(REPEAT(rtac allI 1));
-br impI 1;
-be (par_beta.mutual_induct RS spec RS spec RSN (2,rev_mp)) 1;
+br par_beta.mutual_induct 1;
 by(ALLGOALS(fast_tac (parred_cs addSIs [par_beta_subst])));
 qed "diamond_par_beta";
 

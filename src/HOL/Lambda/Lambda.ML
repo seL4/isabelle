@@ -105,7 +105,7 @@ by(strip_tac 1);
 by (excluded_middle_tac "nat < i" 1);
 by ((forward_tac [lt_trans2] 2) THEN (assume_tac 2));
 by (ALLGOALS(asm_full_simp_tac (addsplit(!simpset) addsimps [less_SucI])));
-qed"lift_lift";
+bind_thm("lift_lift", result() RS spec RS spec RS mp);
 
 goal Lambda.thy "!i j s. j < Suc i --> \
 \         lift (t[s/j]) i = (lift t (Suc i)) [lift s i / j]";
@@ -155,8 +155,7 @@ Addsimps [subst_lift];
 goal Lambda.thy "!i j u v. i < Suc j --> \
 \ t[lift v i / Suc j][u[v/j]/i] = t[u/i][v/j]";
 by(db.induct_tac "t" 1);
-by (ALLGOALS(asm_simp_tac (!simpset addsimps
-                   [lift_lift RS spec RS spec RS mp RS sym,lift_subst_lt])));
+by(ALLGOALS(asm_simp_tac(!simpset addsimps [lift_lift RS sym,lift_subst_lt])));
 by(strip_tac 1);
 by (excluded_middle_tac "nat < Suc(Suc j)" 1);
 by(Asm_full_simp_tac 1);
