@@ -13,11 +13,13 @@ For theory XXX, the  input file is called XXX.thy
 signature READTHY =
 sig
   type thy_info
+  datatype BaseType = Thy  of string
+                    | File of string
 
   val use_thy        : string -> unit
   val update         : unit -> unit
   val time_use_thy   : string -> unit
-  val base_on        : string list -> string -> Thm.theory
+  val base_on        : BaseType list -> string -> Thm.theory
   val store_theory   : string -> Thm.theory -> unit
   val list_loaded    : unit -> thy_info list
   val set_loaded     : thy_info list -> unit
@@ -29,11 +31,14 @@ end;
 functor ReadthyFUN (structure ThySyn: THYSYN) : READTHY =
 struct
 
-datatype thy_info = ThyInfo of {name: string, childs: string list, 
+datatype thy_info = ThyInfo of {name: string, children: string list, 
                                 thy_info: string, ml_info: string, 
                                 theory: Thm.theory};
 
-val loaded_thys = ref [ThyInfo {name = "pure", childs = [], thy_info = "",
+datatype BaseType = Thy  of string
+                  | File of string;
+
+val loaded_thys = ref [ThyInfo {name = "pure", children = [], thy_info = "",
                        ml_info = "", theory = Thm.pure_thy}];
 
 val loadpath = ref ["."];
@@ -71,10 +76,6 @@ fun find_file "" name =
       if file_exists (tack_on path name) then tack_on path name
                                          else raise FILE_NOT_FOUND;
 
-(*Use the file if it exists *)
-fun try_use file = 
-      if file_exists file then use file else ();
-
 (*Check if a theory was already loaded *)
 fun already_loaded thy =
   let fun do_search ((ThyInfo {name, ...}) :: loaded) =
@@ -92,10 +93,10 @@ fun get_thyinfo thy =
   in do_search (!loaded_thys) end;
 
 (*Check if a theory file has changed since its last use.
-  Return a pair of boolean values for .thy and for .ML. *)
+  Return a pair of boolean values for .thy and for .ML *)
 fun thy_unchanged thy thy_file ml_file = 
       if already_loaded thy then 
-        let val ThyInfo {thy_info, ml_info, ...} = get_thyinfo thy;
+        let val ThyInfo {thy_info, ml_info, ...} = get_thyinfo thy
         in ((file_info (thy_file) = thy_info), (file_info (ml_file) = ml_info))
         end
       else (false, false);
@@ -109,7 +110,7 @@ fun get_theory name =
   they were last read;
   loaded_thys is a thy_info list ref containing all theories that have 
   completly been read by this and preceeding use_thy calls.
-  If a theory changed since its last use its childs are marked as changed *)
+  If a theory changed since its last use its children are marked as changed *)
 fun use_thy name =
     let val (path, thy_name) = split_filename name;
         val thy = to_lower thy_name;
@@ -129,10 +130,10 @@ fun use_thy name =
         (*Remove theory from all child lists in loaded_thys.
           Afterwards add_child should be called for the (new) base theories *)
         fun remove_child thy =
-          let fun do_remove (ThyInfo {name, childs, thy_info, ml_info, theory}
+          let fun do_remove (ThyInfo {name, children, thy_info, ml_info, theory}
                             :: loaded) result =
                     do_remove loaded 
-                      (ThyInfo {name = name, childs = childs \ thy, 
+                      (ThyInfo {name = name, children = children \ thy, 
                                 thy_info = thy_info, ml_info = ml_info,
                                 theory = theory} :: result)
                 | do_remove [] result = result;
@@ -144,9 +145,9 @@ fun use_thy name =
            a new item with empty child list *)
          fun set_info thy_new ml_new thy =
                let fun make_change (t :: loaded) =
-                         let val ThyInfo {name, childs, theory, ...} = t
+                         let val ThyInfo {name, children, theory, ...} = t
                          in if name = thy then            
-                              ThyInfo {name = name, childs = childs,
+                              ThyInfo {name = name, children = children,
                                        thy_info = thy_new, ml_info = ml_new,
                                        theory = theory} :: loaded
                             else
@@ -156,20 +157,24 @@ fun use_thy name =
                in loaded_thys := make_change (!loaded_thys) end;
 
          (*Mark all direct and indirect descendants of a theory as changed *)
-         fun mark_childs thy =
-           let val ThyInfo {childs, ...} = get_thyinfo thy
-           in writeln ("Marking childs of modified theory " ^ thy ^ " (" ^
-                       (space_implode "," childs) ^ ")");
-              seq (set_info "" "") childs
-              handle THY_NOT_FOUND => ()
+         fun mark_children thy =
+           let val ThyInfo {children, ...} = get_thyinfo thy
+           in if children <> [] then
+                  (writeln ("The following children of theory " ^ (quote thy)
+                            ^ " are now out-of-date: \""
+                            ^ (space_implode "\",\"" children) ^ "\"");
+                   seq (set_info "" "") children
+                   handle THY_NOT_FOUND => ()
                         (*If this theory was automatically loaded by a child 
                           then the child cannot be found in loaded_thys *)
+                  )
+              else ()
            end
 
     in if thy_uptodate andalso ml_uptodate then ()
        else
        (
-         writeln ("Loading theory " ^ name);
+         writeln ("Loading theory " ^ (quote name));
          if thy_uptodate orelse (thy_file = "") then ()
          else
          (
@@ -194,7 +199,8 @@ fun use_thy name =
                  use ".tmp.ML";
                  delete_file ".tmp.ML"
              )
-         else try_use ml_file;
+         else if ml_file <> "" then use ml_file
+         else ();
 
          (*Now set the correct info.*)
          (set_info (file_info thy_file) (file_info ml_file) thy
@@ -202,7 +208,7 @@ fun use_thy name =
                                          ^ "\" (wrong filename?)"));
 
          (*Mark theories that have to be reloaded.*)
-         mark_childs thy;
+         mark_children thy;
 
          delete_file (out_name thy)
        )
@@ -221,13 +227,13 @@ fun update () =
       fun load_order [] result = result
         | load_order thys result =
             let fun next_level (t :: ts) =
-                      let val ThyInfo {childs, ...} = get_thyinfo t
-                      in childs union (next_level ts)
+                      let val ThyInfo {children, ...} = get_thyinfo t
+                      in children union (next_level ts)
                       end
                   | next_level [] = [];
                   
-                val childs = next_level thys
-            in load_order childs ((result \\ childs) @ childs) end;
+                val children = next_level thys
+            in load_order children ((result \\ children) @ children) end;
 
       fun reload_changed (t :: ts) =
             let val curr = get_thyinfo t;
@@ -254,91 +260,98 @@ fun update () =
 
 (*Merge theories to build a base for a new theory.
   Base members are only loaded if they are missing. *)
-fun base_on (t :: ts) child =
+fun base_on bases child =
       let val childl = to_lower child;
 
-          fun load_base base =
-              let val basel = to_lower base;
+          (*List all descendants of a theory list *)
+          fun list_descendants (t :: ts) =
+                if already_loaded t then
+                  let val ThyInfo {children, ...} = get_thyinfo t
+                  in children union 
+                     (list_descendants (ts union children))
+                  end
+                else []
+            | list_descendants [] = [];
 
-                  (*List all descendants of a theory list *)
-                  fun list_descendants (t :: ts) =
-                        if already_loaded t then
-                          let val ThyInfo {childs, ...} = get_thyinfo t
-                          in childs union (list_descendants (ts union childs))
-                          end
-                        else []
-                    | list_descendants [] = [];
- 
-                  (*Show the cycle that would be created by add_child *)
-                  fun show_cycle () =
-                    let fun find_it result curr =
-                          if basel = curr then 
-                              error ("Cyclic dependency of theories: "
-                                     ^ childl ^ "->" ^ basel ^ result)
-                          else if already_loaded curr then
-                            let val ThyInfo {childs, ...} = get_thyinfo curr
-                            in seq (find_it ("->" ^ curr ^ result)) childs
-                            end
-                          else ()
-                    in find_it "" childl end;
-
-                  (*Check if a cycle will be created by add_child *)
-                  fun find_cycle () =
-                    if basel mem (list_descendants [childl]) then show_cycle ()
-                    else ();
+          (*Show the cycle that would be created by add_child *)
+          fun show_cycle base =
+            let fun find_it result curr =
+                  if base = curr then 
+                      error ("Cyclic dependency of theories: "
+                             ^ childl ^ "->" ^ base ^ result)
+                  else if already_loaded curr then
+                    let val ThyInfo {children, ...} = get_thyinfo curr
+                    in seq (find_it ("->" ^ curr ^ result)) children
+                    end
+                  else ()
+            in find_it "" childl end;
+        
+          (*Check if a cycle will be created by add_child *)
+          fun find_cycle base =
+            if base mem (list_descendants [childl]) then show_cycle base
+            else ();
                    
-                  (*Add child to child list of base *)
-                  fun add_child (t :: loaded) =
-                        let val ThyInfo {name, childs, thy_info, ml_info, 
-                                         theory} = t
-                        in if name = basel then
-                             ThyInfo {name = name, childs = childl ins childs,
-                                      thy_info = thy_info, ml_info = ml_info,
-                                      theory = theory} :: loaded
-                           else
-                             t :: (add_child loaded)
-                        end
-                   | add_child [] =
-                       [ThyInfo {name = basel, childs = [childl], 
-                                 thy_info = "", ml_info = "",
-                                 theory = Thm.pure_thy}];
-                                         (*Thm.pure_thy is used as a dummy *)
+          (*Add child to child list of base *)
+          fun add_child (t :: loaded) base =
+                let val ThyInfo {name, children, thy_info, ml_info, theory} = t
+                in if name = base then
+                     ThyInfo {name = name, 
+                              children = childl ins children,
+                              thy_info = thy_info, ml_info = ml_info,
+                              theory = theory} :: loaded
+                   else
+                     t :: (add_child loaded base)
+                end
+           | add_child [] base =
+               [ThyInfo {name = base, children = [childl], 
+                         thy_info = "", ml_info = "",
+                         theory = Thm.pure_thy}];
+                                            (*Thm.pure_thy is used as a dummy *)
 
-                  val thy_there = already_loaded basel
+          fun do_load thy =
+              let val basel = to_lower thy;
+
+                  val thy_present = already_loaded basel
                                             (*test this before child is added *)
               in
                 if childl = basel then
                     error ("Cyclic dependency of theories: " ^ child
                            ^ "->" ^ child)
-                else find_cycle ();
-                loaded_thys := add_child (!loaded_thys);
-                if thy_there then ()
-                else (writeln ("Autoloading theory " ^ base
-                               ^ " (used by " ^ child ^ ")");
-                      use_thy base
-                     )
-              end;
+                else 
+                  (find_cycle thy;
+                   loaded_thys := add_child (!loaded_thys) basel;
+                   if thy_present then ()
+                   else (writeln ("Autoloading theory " ^ (quote thy)
+                                  ^ " (used by " ^ (quote child) ^ ")");
+                         use_thy thy)
+                  )
+              end; 
+
+          fun load_base (Thy b :: bs) =
+               (do_load b;
+                (to_lower b) :: (load_base bs))
+            | load_base (File b :: bs) =
+               (do_load b;
+                load_base bs)     (*don't add it to merge_theories' parameter *)
+            | load_base [] = [];
               
-          val (tl :: tls) = map to_lower (t :: ts)
-     in seq load_base (t :: ts);
-        foldl Thm.merge_theories (get_theory tl, map get_theory tls)
-     end
-  | base_on [] _ = raise Match;
+          val (t :: ts) = load_base bases
+     in foldl Thm.merge_theories (get_theory t, map get_theory ts) end;
 
 (*Change theory object for an existent item of loaded_thys 
   or create a new item *)
 fun store_theory thy_name thy =
   let fun make_change (t :: loaded) =
-            let val ThyInfo {name, childs, thy_info, ml_info, ...} = t
+            let val ThyInfo {name, children, thy_info, ml_info, ...} = t
             in if name = (to_lower thy_name) then            
-                    ThyInfo {name = name, childs = childs,
+                    ThyInfo {name = name, children = children,
                              thy_info = thy_info, ml_info = ml_info,
                              theory = thy} :: loaded
                else
                     t :: (make_change loaded)
             end
         | make_change [] =
-            [ThyInfo {name = (to_lower thy_name), childs = [], thy_info = "", 
+            [ThyInfo {name = (to_lower thy_name), children = [], thy_info = "", 
                       ml_info = "", theory = thy}]
   in loaded_thys := make_change (!loaded_thys) end;
 
@@ -347,7 +360,7 @@ fun list_loaded () = (!loaded_thys);
 
 (*Change the list of loaded theories *)
 fun set_loaded [] =
-      loaded_thys := [ThyInfo {name = "pure", childs = [], thy_info = "",
+      loaded_thys := [ThyInfo {name = "pure", children = [], thy_info = "",
                       ml_info = "", theory = Thm.pure_thy}]
   | set_loaded ts =
       loaded_thys := ts;
@@ -358,10 +371,10 @@ fun set_loadpath new_path =
 
 (*This function is for debugging purposes only *)
 fun relations thy =
-  let val ThyInfo {childs, ...} = get_thyinfo thy
+  let val ThyInfo {children, ...} = get_thyinfo thy
   in
-     writeln (thy ^ ": " ^ (space_implode ", " childs));
-     seq relations childs
+     writeln (thy ^ ": " ^ (space_implode ", " children));
+     seq relations children
   end
 
 end;

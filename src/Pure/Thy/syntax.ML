@@ -7,6 +7,9 @@ Definition of theory syntax together with translation to ML code.
 
 signature THYSYN =
  sig
+  datatype BaseType = Thy  of string
+                    | File of string
+
    val read: string list -> string
  end;
 
@@ -161,8 +164,16 @@ fun mk_structure ((name, base), Some (ext, tinfix, mfix, trans, ml)) =
   | mk_structure ((name, base), None) =
       mk_struct (name, "\nval thy = " ^ base ^ (quote name));
 
+datatype BaseType = Thy  of string
+                  | File of string;
+
 fun merge thys =
-  "base_on " ^ (bracket (quote (space_implode "\",\"" thys))) ^ " ";
+  let fun make_list (Thy t :: ts) =
+            ("Thy \"" ^ t ^ "\"") :: make_list ts
+        | make_list (File t :: ts) =
+            ("File \"" ^ t ^ "\"") :: make_list ts
+        | make_list [] = []
+  in "base_on " ^ (bracket (space_implode "," (make_list thys))) ^ " " end;
 
 
 
@@ -321,6 +332,17 @@ val rules  = "rules" $$-- !! (repeat1 (id -- !! stg) >> mk_rules)
 
 (* "[(id, stg), ...]" *)
 
+(*----------------------- BASE PARSER -------------------------*)
+
+
+fun base toks =
+  let fun make_thy (b, toks) = (Thy b, toks);
+
+      fun make_file (b, toks) = (File b, toks);
+
+      val (b, toks) = make_thy (id toks)
+                      handle _ => make_file (stg toks)
+  in (b, toks) end;
 
 
 (*----------------------- ML_TEXT -------------------------*)
@@ -336,7 +358,7 @@ val extension = "+" $$-- !! (classes -- default -- types -- arities
               || empty >> K None;
 
 
-val bases = id -- repeat("+" $$-- id) >> op:: ;
+val bases = base -- repeat("+" $$-- base) >> op:: ;
 
 val theoryDef = !!(id --$$ "=" -- (bases >> merge) -- extension)
                 >> mk_structure;
