@@ -11,8 +11,8 @@ theory JTypeSafe = Eval + Conform:
 declare split_beta [simp]
 
 lemma NewC_conforms: 
-"[|h a = None; (h, l)::\<preceq>(G, lT); wf_prog wf_mb G; is_class G C|] ==>  
-  (h(a\<mapsto>(C,(init_vars (fields (G,C))))), l)::\<preceq>(G, lT)"
+"[|h a = None; (x,(h, l))::\<preceq>(G, lT); wf_prog wf_mb G; is_class G C|] ==>  
+  (x,(h(a\<mapsto>(C,(init_vars (fields (G,C))))), l))::\<preceq>(G, lT)"
 apply( erule conforms_upd_obj)
 apply(  unfold oconf_def)
 apply(  auto dest!: fields_is_type)
@@ -30,8 +30,10 @@ apply( drule (1) non_npD)
 apply( auto intro!: conf_AddrI simp add: obj_ty_def)
 done
 
+
+
 lemma FAcc_type_sound: 
-"[| wf_prog wf_mb G; field (G,C) fn = Some (fd, ft); (h,l)::\<preceq>(G,lT);  
+"[| wf_prog wf_mb G; field (G,C) fn = Some (fd, ft); (x,(h,l))::\<preceq>(G,lT);  
   x' = None --> G,h\<turnstile>a'::\<preceq> Class C; np a' x' = None |] ==>  
   G,h\<turnstile>the (snd (the (h (the_Addr a'))) (fn, fd))::\<preceq>ft"
 apply( drule np_NoneD)
@@ -52,9 +54,9 @@ lemma FAss_type_sound:
     (G, lT)\<turnstile>aa::Class C;  
     field (G,C) fn = Some (fd, ft); h''\<le>|h';  
     x' = None --> G,h'\<turnstile>a'::\<preceq> Class C; h'\<le>|h;  
-    (h, l)::\<preceq>(G, lT); G,h\<turnstile>x::\<preceq>T'; np a' x' = None|] ==>  
+    Norm (h, l)::\<preceq>(G, lT); G,h\<turnstile>x::\<preceq>T'; np a' x' = None|] ==>  
   h''\<le>|h(a\<mapsto>(c,(fs((fn,fd)\<mapsto>x)))) \<and>   
-  (h(a\<mapsto>(c,(fs((fn,fd)\<mapsto>x)))), l)::\<preceq>(G, lT) \<and>   
+  Norm(h(a\<mapsto>(c,(fs((fn,fd)\<mapsto>x)))), l)::\<preceq>(G, lT) \<and>   
   G,h(a\<mapsto>(c,(fs((fn,fd)\<mapsto>x))))\<turnstile>x::\<preceq>T'"
 apply( drule np_NoneD)
 apply( erule conjE)
@@ -90,6 +92,8 @@ apply(  fast intro: conf_widen)
 apply( fast dest: conforms_heapD [THEN hconfD] oconf_objD)
 done
 
+
+
 lemma Call_lemma2: "[| wf_prog wf_mb G; list_all2 (conf G h) pvs pTs;  
    list_all2 (\<lambda>T T'. G\<turnstile>T\<preceq>T') pTs pTs'; wf_mhead G (mn,pTs') rT;  
   length pTs' = length pns; distinct pns;  
@@ -106,17 +110,18 @@ apply( erule (2) conf_list_gext_widen)
 done
 
 lemma Call_type_sound: 
- "[| wf_java_prog G; a' \<noteq> Null; (h, l)::\<preceq>(G, lT); class G C = Some y;  
+ "[| wf_java_prog G; a' \<noteq> Null; Norm (h, l)::\<preceq>(G, lT); class G C = Some y;  
      max_spec G C (mn,pTsa) = {((mda,rTa),pTs')}; xc\<le>|xh; xh\<le>|h;  
      list_all2 (conf G h) pvs pTsa; 
      (md, rT, pns, lvars, blk, res) =  
                the (method (G,fst (the (h (the_Addr a')))) (mn, pTs')); 
-  \<forall>lT. (h, init_vars lvars(pns[\<mapsto>]pvs)(This\<mapsto>a'))::\<preceq>(G, lT) -->  
-  (G, lT)\<turnstile>blk\<surd> -->  h\<le>|xi \<and>  (xi, xl)::\<preceq>(G, lT);  
-  \<forall>lT. (xi, xl)::\<preceq>(G, lT) --> (\<forall>T. (G, lT)\<turnstile>res::T -->  
-          xi\<le>|h' \<and> (h', xj)::\<preceq>(G, lT) \<and> (x' = None --> G,h'\<turnstile>v::\<preceq>T));  
-  G,xh\<turnstile>a'::\<preceq> Class C |] ==>  
-  xc\<le>|h' \<and> (h', l)::\<preceq>(G, lT) \<and>  (x' = None --> G,h'\<turnstile>v::\<preceq>rTa)"
+  \<forall>lT. (np a' None, h, init_vars lvars(pns[\<mapsto>]pvs)(This\<mapsto>a'))::\<preceq>(G, lT) -->  
+  (G, lT)\<turnstile>blk\<surd> -->  h\<le>|xi \<and>  (xcptb, xi, xl)::\<preceq>(G, lT);  
+  \<forall>lT. (xcptb,xi, xl)::\<preceq>(G, lT) --> (\<forall>T. (G, lT)\<turnstile>res::T -->  
+          xi\<le>|h' \<and> (x',h', xj)::\<preceq>(G, lT) \<and> (x' = None --> G,h'\<turnstile>v::\<preceq>T));  
+  G,xh\<turnstile>a'::\<preceq> Class C
+  |] ==>  
+  xc\<le>|h' \<and> (x',(h', l))::\<preceq>(G, lT) \<and>  (x' = None --> G,h'\<turnstile>v::\<preceq>rTa)"
 apply( drule max_spec2mheads)
 apply( clarify)
 apply( drule (2) non_np_objD')
@@ -126,14 +131,15 @@ apply( clarsimp)
 apply( drule (3) Call_lemma)
 apply( clarsimp simp add: wf_java_mdecl_def)
 apply( erule_tac V = "method ?sig ?x = ?y" in thin_rl)
-apply( drule spec, erule impE)
-apply(  erule_tac [2] notE impE, tactic "assume_tac 2")
+apply( drule spec, erule impE,  erule_tac [2] notE impE, tactic "assume_tac 2")
 apply(  rule conformsI)
 apply(   erule conforms_heapD)
 apply(  rule lconf_ext)
 apply(   force elim!: Call_lemma2)
 apply(  erule conf_hext, erule (1) conf_obj_AddrI)
-apply( erule_tac V = "?E\<turnstile>?blk\<surd>" in thin_rl)
+apply( erule_tac V = "?E\<turnstile>?blk\<surd>" in thin_rl) 
+apply (simp add: conforms_def)
+
 apply( erule conjE)
 apply( drule spec, erule (1) impE)
 apply( drule spec, erule (1) impE)
@@ -149,10 +155,15 @@ apply(    tactic "assume_tac 4")
 apply(   tactic "assume_tac 2")
 prefer 2
 apply(  fast elim!: widen_trans)
-apply( erule conforms_hext)
+apply (rule conforms_xcpt_change)
+apply( rule conforms_hext) apply assumption
+(* apply( erule conforms_hext)*)
 apply(  erule (1) hext_trans)
 apply( erule conforms_heapD)
+apply (simp add: conforms_def)
 done
+
+
 
 declare split_if [split del]
 declare fun_upd_apply [simp del]
@@ -165,17 +176,19 @@ ML{*
 Unify.search_bound := 40;
 Unify.trace_bound  := 40
 *}
+
+
 theorem eval_evals_exec_type_sound: 
 "wf_java_prog G ==>  
   (G\<turnstile>(x,(h,l)) -e  \<succ>v  -> (x', (h',l')) -->  
-      (\<forall>lT.   (h ,l )::\<preceq>(G,lT) --> (\<forall>T . (G,lT)\<turnstile>e  :: T -->  
-      h\<le>|h' \<and> (h',l')::\<preceq>(G,lT) \<and> (x'=None --> G,h'\<turnstile>v  ::\<preceq> T )))) \<and>  
+      (\<forall>lT.   (x,(h ,l ))::\<preceq>(G,lT) --> (\<forall>T . (G,lT)\<turnstile>e  :: T -->  
+      h\<le>|h' \<and> (x',(h',l'))::\<preceq>(G,lT) \<and> (x'=None --> G,h'\<turnstile>v  ::\<preceq> T )))) \<and>  
   (G\<turnstile>(x,(h,l)) -es[\<succ>]vs-> (x', (h',l')) -->  
-      (\<forall>lT.   (h ,l )::\<preceq>(G,lT) --> (\<forall>Ts. (G,lT)\<turnstile>es[::]Ts -->  
-      h\<le>|h' \<and> (h',l')::\<preceq>(G,lT) \<and> (x'=None --> list_all2 (\<lambda>v T. G,h'\<turnstile>v::\<preceq>T) vs Ts)))) \<and>  
+      (\<forall>lT.   (x,(h ,l ))::\<preceq>(G,lT) --> (\<forall>Ts. (G,lT)\<turnstile>es[::]Ts -->  
+      h\<le>|h' \<and> (x',(h',l'))::\<preceq>(G,lT) \<and> (x'=None --> list_all2 (\<lambda>v T. G,h'\<turnstile>v::\<preceq>T) vs Ts)))) \<and>  
   (G\<turnstile>(x,(h,l)) -c       -> (x', (h',l')) -->  
-      (\<forall>lT.   (h ,l )::\<preceq>(G,lT) -->       (G,lT)\<turnstile>c  \<surd> -->  
-      h\<le>|h' \<and> (h',l')::\<preceq>(G,lT)))"
+      (\<forall>lT.   (x,(h ,l ))::\<preceq>(G,lT) -->       (G,lT)\<turnstile>c  \<surd> -->  
+      h\<le>|h' \<and> (x',(h',l'))::\<preceq>(G,lT)))"
 apply( rule eval_evals_exec_induct)
 apply( unfold c_hupd_def)
 
@@ -187,12 +200,14 @@ apply( tactic {* ALLGOALS (eresolve_tac (thms "ty_expr_ty_exprs_wt_stmt.elims")
 apply(tactic "ALLGOALS (EVERY' [REPEAT o (etac conjE), REPEAT o hyp_subst_tac])")
 
 -- "Level 7"
-
 -- "15 NewC"
+apply (drule sym)
 apply( drule new_AddrD)
 apply( erule disjE)
 prefer 2
 apply(  simp (no_asm_simp))
+apply (rule conforms_xcpt_change, assumption) 
+apply (simp (no_asm_simp) add: xconf_def)
 apply( clarsimp)
 apply( rule conjI)
 apply(  force elim!: NewC_conforms)
@@ -216,6 +231,7 @@ apply( drule eval_no_xcpt)
 apply( simp split add: binop.split)
 
 -- "12 LAcc"
+apply simp
 apply( fast elim: conforms_localD [THEN lconfD])
 
 -- "for FAss"
@@ -234,7 +250,7 @@ prefer 8
 apply(  fast intro: hext_trans)
 
 -- "10 Expr"
-prefer 6
+prefer 7
 apply( fast)
 
 -- "9 ???"
@@ -242,18 +258,28 @@ apply( simp_all)
 
 -- "8 Cast"
 prefer 8
-apply (rule impI)
-apply (drule raise_if_NoneD)
-apply (clarsimp)
-apply (fast elim: Cast_conf)
+apply (rule conjI)
+  apply (fast intro: conforms_xcpt_change xconf_raise_if)
+
+  apply clarify
+  apply (drule raise_if_NoneD)
+  apply (clarsimp)
+  apply (rule Cast_conf)
+  apply assumption+
 
 -- "7 LAss"
 apply (fold fun_upd_def)
 apply( tactic {* (eresolve_tac (thms "ty_expr_ty_exprs_wt_stmt.elims") 
                  THEN_ALL_NEW Full_simp_tac) 1 *})
+apply (intro strip)
+apply (case_tac E)
+apply (simp)
 apply( blast intro: conforms_upd_local conf_widen)
 
 -- "6 FAcc"
+apply (rule conjI) 
+  apply (simp add: np_def)
+  apply (fast intro: conforms_xcpt_change xconf_raise_if)
 apply( fast elim!: FAcc_type_sound)
 
 -- "5 While"
@@ -264,22 +290,34 @@ apply(force elim: hext_trans)
 
 apply (tactic "forward_hyp_tac")
 
--- "4 Cons"
-prefer 3
+-- "4 Cond"
+prefer 4
+apply (case_tac "the_Bool v")
+apply simp
+apply( fast dest: evals_no_xcpt intro: conf_hext hext_trans)
+apply simp
 apply( fast dest: evals_no_xcpt intro: conf_hext hext_trans)
 
 -- "3 ;;"
 prefer 3
-apply( fast intro: hext_trans)
+apply( fast dest: evals_no_xcpt intro: conf_hext hext_trans)
+
 
 -- "2 FAss"
-apply( case_tac "x2 = None")
-prefer 2
-apply(  simp (no_asm_simp))
-apply(  fast intro: hext_trans)
-apply( simp)
-apply( drule eval_no_xcpt)
-apply( erule FAss_type_sound, rule HOL.refl, assumption+)
+apply (subgoal_tac "(np a' x1, ab, ba) ::\<preceq> (G, lT)")
+  prefer 2
+  apply (simp add: np_def)
+  apply (fast intro: conforms_xcpt_change xconf_raise_if)
+apply( case_tac "x2")
+  -- "x2 = None"
+  apply (simp)
+  apply (tactic forward_hyp_tac, clarify)
+  apply( drule eval_no_xcpt)
+  apply( erule FAss_type_sound, rule HOL.refl, assumption+)
+  -- "x2 = Some a"
+  apply (  simp (no_asm_simp))
+  apply(  fast intro: hext_trans)
+
 
 apply( tactic prune_params_tac)
 -- "Level 52"
@@ -302,15 +340,21 @@ apply(  drule exec_xcpt)
 apply(  simp)
 apply(  drule eval_xcpt)
 apply(  simp)
-apply(  fast elim: hext_trans)
-apply( drule (1) ty_expr_is_type)
+apply (rule conjI)
+  apply(  fast elim: hext_trans)
+  apply (rule conforms_xcpt_change, assumption) apply (simp (no_asm_simp) add: xconf_def)
+apply(clarsimp)
+
+apply( drule ty_expr_is_type, simp)
 apply(clarsimp)
 apply(unfold is_class_def)
 apply(clarsimp)
+
 apply(rule Call_type_sound);
 prefer 11
 apply blast
 apply (simp (no_asm_simp))+ 
+
 done
 ML{*
 Unify.search_bound := 20;
@@ -318,8 +362,8 @@ Unify.trace_bound  := 20
 *}
 
 lemma eval_type_sound: "!!E s s'.  
-  [| G=prg E; wf_java_prog G; G\<turnstile>(x,s) -e\<succ>v -> (x',s'); s::\<preceq>E; E\<turnstile>e::T |]  
-  ==> s'::\<preceq>E \<and> (x'=None --> G,heap s'\<turnstile>v::\<preceq>T)"
+  [| G=prg E; wf_java_prog G; G\<turnstile>(x,s) -e\<succ>v -> (x',s'); (x,s)::\<preceq>E; E\<turnstile>e::T |]  
+  ==> (x',s')::\<preceq>E \<and> (x'=None --> G,heap s'\<turnstile>v::\<preceq>T)"
 apply( simp (no_asm_simp) only: split_tupled_all)
 apply (drule eval_evals_exec_type_sound 
              [THEN conjunct1, THEN mp, THEN spec, THEN mp])
@@ -327,8 +371,8 @@ apply auto
 done
 
 lemma exec_type_sound: "!!E s s'.  
-  [| G=prg E; wf_java_prog G; G\<turnstile>(x,s) -s0-> (x',s'); s::\<preceq>E; E\<turnstile>s0\<surd> |]  
-  ==> s'::\<preceq>E"
+  [| G=prg E; wf_java_prog G; G\<turnstile>(x,s) -s0-> (x',s'); (x,s)::\<preceq>E; E\<turnstile>s0\<surd> |]  
+  ==> (x',s')::\<preceq>E"
 apply( simp (no_asm_simp) only: split_tupled_all)
 apply (drule eval_evals_exec_type_sound 
              [THEN conjunct2, THEN conjunct2, THEN mp, THEN spec, THEN mp])
@@ -337,7 +381,7 @@ done
 
 theorem all_methods_understood: 
 "[|G=prg E; wf_java_prog G; G\<turnstile>(x,s) -e\<succ>a'-> Norm s'; a' \<noteq> Null; 
-          s::\<preceq>E; E\<turnstile>e::Class C; method (G,C) sig \<noteq> None|] ==>  
+          (x,s)::\<preceq>E; E\<turnstile>e::Class C; method (G,C) sig \<noteq> None|] ==>  
   method (G,fst (the (heap s' (the_Addr a')))) sig \<noteq> None"
 apply( drule (4) eval_type_sound)
 apply(clarsimp)

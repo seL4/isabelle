@@ -242,7 +242,7 @@ proof (induct frs)
   qed
 qed
 
-
+declare raise_if_def [simp]
 text {*
   The requirement of lemma @{text uncaught_xcpt_correct} (that
   the exception is a valid reference on the heap) is always met

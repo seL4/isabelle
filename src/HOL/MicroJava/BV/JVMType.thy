@@ -212,6 +212,11 @@ theorem sup_loc_Cons2:
   "(G \<turnstile> YT <=l (X#XT)) = (\<exists>Y YT'. YT=Y#YT' \<and> (G \<turnstile> Y <=o X) \<and> (G \<turnstile> YT' <=l XT))"
   by (simp add: sup_loc_def Listn.le_def lesub_def list_all2_Cons2)
 
+lemma sup_state_Cons:
+  "(G \<turnstile> (x#xt, a) <=s (y#yt, b)) = 
+   ((G \<turnstile> x \<preceq> y) \<and> (G \<turnstile> (xt,a) <=s (yt,b)))"
+  by (auto simp add: sup_state_def stk_convert lesub_def Product.le_def)
+
 
 theorem sup_loc_length:
   "G \<turnstile> a <=l b \<Longrightarrow> length a = length b"

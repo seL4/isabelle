@@ -487,6 +487,16 @@ $(LOG)/HOL-MiniML.gz: $(OUT)/HOL MiniML/Generalize.ML \
 HOL-MicroJava: HOL $(LOG)/HOL-MicroJava.gz
 
 $(LOG)/HOL-MicroJava.gz: $(OUT)/HOL MicroJava/ROOT.ML \
+  MicroJava/Comp/AuxLemmas.thy \
+  MicroJava/Comp/CorrComp.thy \
+  MicroJava/Comp/CorrCompTp.thy \
+  MicroJava/Comp/DefsComp.thy \
+  MicroJava/Comp/Index.thy \
+  MicroJava/Comp/LemmasComp.thy \
+  MicroJava/Comp/NatCanonify.thy \
+  MicroJava/Comp/TranslComp.thy \
+  MicroJava/Comp/TranslCompTp.thy \
+  MicroJava/Comp/TypeInf.thy \
   MicroJava/J/Conform.thy MicroJava/J/Eval.thy MicroJava/J/JBasis.thy \
   MicroJava/J/JTypeSafe.thy MicroJava/J/Decl.thy MicroJava/J/State.thy \
   MicroJava/J/Term.thy MicroJava/J/Type.thy MicroJava/J/TypeRel.thy \

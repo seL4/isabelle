@@ -6,7 +6,7 @@
 
 header {* \isaheader{Conformity Relations for Type Soundness Proof} *}
 
-theory Conform = State + WellType:
+theory Conform = State + WellType + Exceptions:
 
 types 'c env_ = "'c prog \<times> (vname \<leadsto> ty)"  -- "same as @{text env} of @{text WellType.thy}"
 
@@ -28,9 +28,14 @@ constdefs
 
   hconf :: "'c prog => aheap => bool" ("_ |-h _ [ok]" [51,51] 50)
  "G|-h h [ok]    == \<forall>a obj. h a = Some obj --> G,h|-obj [ok]"
+ 
+  xconf :: "aheap \<Rightarrow> val option \<Rightarrow> bool"
+  "xconf hp vo  == preallocated hp \<and> (\<forall> v. (vo = Some v) \<longrightarrow> (\<exists> xc. v = (Addr (XcptRef xc))))"
 
-  conforms :: "state => java_mb env_ => bool" ("_ ::<= _" [51,51] 50)
- "s::<=E == prg E|-h heap s [ok] \<and> prg E,heap s|-locals s[::<=]localT E"
+  conforms :: "xstate => java_mb env_ => bool" ("_ ::<= _" [51,51] 50)
+ "s::<=E == prg E|-h heap (store s) [ok] \<and> 
+            prg E,heap (store s)|-locals (store s)[::<=]localT E \<and> 
+            xconf (heap (store s)) (abrupt s)"
 
 
 syntax (xsymbols)
@@ -247,6 +252,12 @@ apply( frule list_all2_lengthD)
 apply( auto simp add: length_Suc_conv)
 done
 
+lemma lconf_restr: "\<lbrakk>lT vn = None; G, h \<turnstile> l [::\<preceq>] lT(vn\<mapsto>T)\<rbrakk> \<Longrightarrow> G, h \<turnstile> l [::\<preceq>] lT"
+apply (unfold lconf_def)
+apply (intro strip)
+apply (case_tac "n = vn")
+apply auto
+done
 
 section "oconf"
 
@@ -277,29 +288,56 @@ apply (fast)
 done
 
 
+section "xconf"
+
+lemma xconf_raise_if: "xconf h x \<Longrightarrow> xconf h (raise_if b xcn x)"
+by (simp add: xconf_def raise_if_def)
+
+
+
 section "conforms"
 
-lemma conforms_heapD: "(h, l)::\<preceq>(G, lT) ==> G\<turnstile>h h\<surd>"
+lemma conforms_heapD: "(x, (h, l))::\<preceq>(G, lT) ==> G\<turnstile>h h\<surd>"
 apply (unfold conforms_def)
 apply (simp)
 done
 
-lemma conforms_localD: "(h, l)::\<preceq>(G, lT) ==> G,h\<turnstile>l[::\<preceq>]lT"
+lemma conforms_localD: "(x, (h, l))::\<preceq>(G, lT) ==> G,h\<turnstile>l[::\<preceq>]lT"
 apply (unfold conforms_def)
 apply (simp)
 done
 
-lemma conformsI: "[|G\<turnstile>h h\<surd>; G,h\<turnstile>l[::\<preceq>]lT|] ==> (h, l)::\<preceq>(G, lT)"
+lemma conforms_xcptD: "(x, (h, l))::\<preceq>(G, lT) ==> xconf h x"
+apply (unfold conforms_def)
+apply (simp)
+done
+
+lemma conformsI: "[|G\<turnstile>h h\<surd>; G,h\<turnstile>l[::\<preceq>]lT; xconf h x|] ==> (x, (h, l))::\<preceq>(G, lT)"
 apply (unfold conforms_def)
 apply auto
 done
 
-lemma conforms_hext: "[|(h,l)::\<preceq>(G,lT); h\<le>|h'; G\<turnstile>h h'\<surd> |] ==> (h',l)::\<preceq>(G,lT)"
-apply( fast dest: conforms_localD elim!: conformsI lconf_hext)
-done
+lemma conforms_restr: "\<lbrakk>lT vn = None; s ::\<preceq> (G, lT(vn\<mapsto>T)) \<rbrakk> \<Longrightarrow> s ::\<preceq> (G, lT)"
+by (simp add: conforms_def, fast intro: lconf_restr)
+
+lemma conforms_xcpt_change: "\<lbrakk> (x, (h,l))::\<preceq> (G, lT); xconf h x \<longrightarrow> xconf h x' \<rbrakk> \<Longrightarrow> (x', (h,l))::\<preceq> (G, lT)"
+by (simp add: conforms_def)
+
+
+lemma preallocated_hext: "\<lbrakk> preallocated h; h\<le>|h'\<rbrakk> \<Longrightarrow> preallocated h'"
+by (simp add: preallocated_def hext_def)
+
+lemma xconf_hext: "\<lbrakk> xconf h vo; h\<le>|h'\<rbrakk> \<Longrightarrow> xconf h' vo"
+by (simp add: xconf_def preallocated_def hext_def)
+
+lemma conforms_hext: "[|(x,(h,l))::\<preceq>(G,lT); h\<le>|h'; G\<turnstile>h h'\<surd> |] 
+  ==> (x,(h',l))::\<preceq>(G,lT)"
+by( fast dest: conforms_localD conforms_xcptD elim!: conformsI xconf_hext)
+
 
 lemma conforms_upd_obj: 
-  "[|(h,l)::\<preceq>(G, lT); G,h(a\<mapsto>obj)\<turnstile>obj\<surd>; h\<le>|h(a\<mapsto>obj)|] ==> (h(a\<mapsto>obj),l)::\<preceq>(G, lT)"
+  "[|(x,(h,l))::\<preceq>(G, lT); G,h(a\<mapsto>obj)\<turnstile>obj\<surd>; h\<le>|h(a\<mapsto>obj)|] 
+  ==> (x,(h(a\<mapsto>obj),l))::\<preceq>(G, lT)"
 apply(rule conforms_hext)
 apply  auto
 apply(rule hconfI)
@@ -309,7 +347,8 @@ apply(tactic {* auto_tac (HOL_cs addEs [thm "oconf_hext"]
 done
 
 lemma conforms_upd_local: 
-"[|(h, l)::\<preceq>(G, lT); G,h\<turnstile>v::\<preceq>T; lT va = Some T|] ==> (h, l(va\<mapsto>v))::\<preceq>(G, lT)"
+"[|(x,(h, l))::\<preceq>(G, lT); G,h\<turnstile>v::\<preceq>T; lT va = Some T|] 
+  ==> (x,(h, l(va\<mapsto>v)))::\<preceq>(G, lT)"
 apply (unfold conforms_def)
 apply( auto elim: lconf_upd)
 done

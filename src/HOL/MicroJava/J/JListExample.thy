@@ -62,10 +62,10 @@ types_code
   cname ("string")
   vnam ("string")
   mname ("string")
-  loc ("int")
+  loc_ ("int")
 
 consts_code
-  "new_Addr" ("new'_addr {* %x. case x of None => True | Some y => False *}/ {* None *}")
+  "new_Addr" ("new'_addr {* %x. case x of None => True | Some y => False *}/ {* None *} {* Loc *}")
 
   "arbitrary" ("(raise ERROR)")
   "arbitrary" :: "val" ("{* Unit *}")
@@ -83,8 +83,8 @@ consts_code
   "l4_nam" ("\"l4\"")
 
 ML {*
-fun new_addr p none hp =
-  let fun nr i = if p (hp i) then (i, none) else nr (i+1);
+fun new_addr p none loc hp =
+  let fun nr i = if p (hp (loc i)) then (loc i, none) else nr (i+1);
   in nr 0 end;
 *}
 
@@ -114,14 +114,14 @@ locs l1_name;
 locs l2_name;
 locs l3_name;
 locs l4_name;
-snd (the (heap 0)) (val_name, "list");
-snd (the (heap 0)) (next_name, "list");
-snd (the (heap 1)) (val_name, "list");
-snd (the (heap 1)) (next_name, "list");
-snd (the (heap 2)) (val_name, "list");
-snd (the (heap 2)) (next_name, "list");
-snd (the (heap 3)) (val_name, "list");
-snd (the (heap 3)) (next_name, "list");
+snd (the (heap (Loc 0))) (val_name, "list");
+snd (the (heap (Loc 0))) (next_name, "list");
+snd (the (heap (Loc 1))) (val_name, "list");
+snd (the (heap (Loc 1))) (next_name, "list");
+snd (the (heap (Loc 2))) (val_name, "list");
+snd (the (heap (Loc 2))) (next_name, "list");
+snd (the (heap (Loc 3))) (val_name, "list");
+snd (the (heap (Loc 3))) (next_name, "list");
 
 *}
 

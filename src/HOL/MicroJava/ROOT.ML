@@ -3,6 +3,7 @@ goals_limit := 1;
 add_path "J";
 add_path "JVM";
 add_path "BV";
+add_path "Comp";
 
 no_document use_thy "While_Combinator";
 
@@ -14,3 +15,6 @@ use_thy "JVMDefensive";
 use_thy "LBVJVM";
 use_thy "BVNoTypeError";
 use_thy "BVExample";
+
+use_thy "CorrComp";
+use_thy "CorrCompTp";

@@ -170,12 +170,37 @@ lemmas method_rec = wf_subcls1 [THEN [2] method_rec_lemma];
 
 lemmas fields_rec = wf_subcls1 [THEN [2] fields_rec_lemma];
 
+lemma field_rec: "\<lbrakk>class G C = Some (D, fs, ms); wf_prog wf_mb G\<rbrakk>
+\<Longrightarrow> field (G, C) =
+   (if C = Object then empty else field (G, D)) ++
+   map_of (map (\<lambda>(s, f). (s, C, f)) fs)"
+apply (simp only: field_def)
+apply (frule fields_rec, assumption)
+apply (rule HOL.trans)
+apply (simp add: o_def)
+apply (simp (no_asm_use) 
+  add: split_beta split_def o_def map_compose [THEN sym] del: map_compose)
+done
+
 lemma method_Object [simp]:
   "method (G, Object) sig = Some (D, mh, code) \<Longrightarrow> wf_prog wf_mb G \<Longrightarrow> D = Object"  
   apply (frule class_Object, clarify)
   apply (drule method_rec, assumption)
   apply (auto dest: map_of_SomeD)
   done
+
+
+lemma fields_Object [simp]: "\<lbrakk> ((vn, C), T) \<in> set (fields (G, Object)); wf_prog wf_mb G \<rbrakk>
+  \<Longrightarrow> C = Object"
+apply (frule class_Object)
+apply clarify
+apply (subgoal_tac "fields (G, Object) = map (\<lambda>(fn,ft). ((fn,Object),ft)) fs")
+apply (simp add: image_iff split_beta)
+apply auto
+apply (rule trans)
+apply (rule fields_rec, assumption+)
+apply simp
+done
 
 lemma subcls_C_Object: "[|is_class G C; wf_prog wf_mb G|] ==> G\<turnstile>C\<preceq>C Object"
 apply(erule subcls1_induct)
@@ -312,6 +337,19 @@ apply( rule r_into_rtrancl)
 apply( fast intro: subcls1I)
 done
 
+
+lemma wf_prog_wf_mhead: "\<lbrakk> wf_prog wf_mb G; (C, D, fds, mths) \<in> set G;
+  ((mn, pTs), rT, jmb) \<in> set mths \<rbrakk>
+  \<Longrightarrow> wf_mhead G (mn, pTs) rT"
+apply (simp add: wf_prog_def wf_cdecl_def)
+apply (erule conjE)+
+apply (drule bspec, assumption)
+apply simp
+apply (erule conjE)+
+apply (drule bspec, assumption)
+apply (simp add: wf_mdecl_def)
+done
+
 lemma subcls_widen_methd [rule_format (no_asm)]: 
   "[|G\<turnstile>T\<preceq>C T'; wf_prog wf_mb G|] ==>  
    \<forall>D rT b. method (G,T') sig = Some (D,rT ,b) --> 
@@ -377,11 +415,69 @@ apply (clarsimp)
  apply (simp add: override_def map_of_map split add: option.split)
 done
 
+
+lemma fields_in_fd [rule_format (no_asm)]: "\<lbrakk> wf_prog wf_mb G; is_class G C\<rbrakk>
+  \<Longrightarrow> \<forall> vn D T. (((vn,D),T) \<in> set (fields (G,C))
+  \<longrightarrow> (is_class G D \<and> ((vn,D),T) \<in> set (fields (G,D))))"
+apply (erule (1) subcls1_induct)
+
+apply clarify
+apply (frule fields_Object, assumption+)
+apply (simp only: is_class_Object) apply simp
+
+apply clarify
+apply (frule fields_rec)
+apply assumption
+
+apply (case_tac "Da=C")
+apply blast			(* case Da=C *)
+
+apply (subgoal_tac "((vn, Da), T) \<in> set (fields (G, D))") apply blast
+apply (erule thin_rl)
+apply (rotate_tac 1)
+apply (erule thin_rl, erule thin_rl, erule thin_rl, 
+      erule thin_rl, erule thin_rl, erule thin_rl)
+apply auto
+done
+
+lemma field_in_fd [rule_format (no_asm)]: "\<lbrakk> wf_prog wf_mb G; is_class G C\<rbrakk>
+  \<Longrightarrow> \<forall> vn D T. (field (G,C) vn = Some(D,T) 
+  \<longrightarrow> is_class G D \<and> field (G,D) vn = Some(D,T))"
+apply (erule (1) subcls1_induct)
+
+apply clarify
+apply (frule field_fields)
+apply (drule map_of_SomeD)
+apply (drule fields_Object, assumption+)
+apply simp
+
+apply clarify
+apply (subgoal_tac "((field (G, D)) ++ map_of (map (\<lambda>(s, f). (s, C, f)) fs)) vn = Some (Da, T)")
+apply (simp (no_asm_use) only:  override_Some_iff)
+apply (erule disjE)
+apply (simp (no_asm_use) add: map_of_map) apply blast
+apply blast
+apply (rule trans [THEN sym], rule sym, assumption)
+apply (rule_tac x=vn in fun_cong)
+apply (rule trans, rule field_rec, assumption+)
+apply (simp (no_asm_use)) apply blast
+done
+
+
 lemma widen_methd: 
 "[| method (G,C) sig = Some (md,rT,b); wf_prog wf_mb G; G\<turnstile>T''\<preceq>C C|] 
   ==> \<exists>md' rT' b'. method (G,T'') sig = Some (md',rT',b') \<and> G\<turnstile>rT'\<preceq>rT"
 apply( drule subcls_widen_methd)
 apply   auto
+done
+
+lemma widen_field: "\<lbrakk> (field (G,C) fn) = Some (fd, fT); wf_prog wf_mb G; is_class G C \<rbrakk>
+  \<Longrightarrow> G\<turnstile>C\<preceq>C fd"
+apply (rule widen_fields_defpl)
+apply (simp add: field_def)
+apply (rule map_of_SomeD)
+apply (rule table_of_remap_SomeD) 
+apply assumption+
 done
 
 lemma Call_lemma: 

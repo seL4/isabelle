@@ -8,6 +8,30 @@ header {* \isaheader{Operational Evaluation (big step) Semantics} *}
 
 theory Eval = State + WellType:
 
+
+  -- "Auxiliary notions"
+
+constdefs
+  fits    :: "java_mb prog \<Rightarrow> state \<Rightarrow> val \<Rightarrow> ty \<Rightarrow> bool" ("_,_\<turnstile>_ fits _"[61,61,61,61]60)
+ "G,s\<turnstile>a' fits T  \<equiv> case T of PrimT T' \<Rightarrow> False | RefT T' \<Rightarrow> a'=Null \<or> G\<turnstile>obj_ty(lookup_obj s a')\<preceq>T"
+
+constdefs
+  catch ::"java_mb prog \<Rightarrow> xstate \<Rightarrow> cname \<Rightarrow> bool" ("_,_\<turnstile>catch _"[61,61,61]60)
+ "G,s\<turnstile>catch C\<equiv>  case abrupt s of None \<Rightarrow> False | Some a \<Rightarrow> G,store s\<turnstile> a fits Class C"
+
+
+
+constdefs
+  lupd       :: "vname \<Rightarrow> val \<Rightarrow> state \<Rightarrow> state"        ("lupd'(_\<mapsto>_')"[10,10]1000)
+ "lupd vn v   \<equiv> \<lambda> (hp,loc). (hp, (loc(vn\<mapsto>v)))"
+
+constdefs
+  new_xcpt_var :: "vname \<Rightarrow> xstate \<Rightarrow> xstate"
+ "new_xcpt_var vn \<equiv>  \<lambda>(x,s). Norm (lupd(vn\<mapsto>the x) s)"
+
+
+  -- "Evaluation relations"
+
 consts
   eval  :: "java_mb prog => (xstate \<times> expr      \<times> val      \<times> xstate) set"
   evals :: "java_mb prog => (xstate \<times> expr list \<times> val list \<times> xstate) set"

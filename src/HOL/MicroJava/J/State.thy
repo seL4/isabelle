@@ -25,26 +25,33 @@ types aheap  = "loc \<leadsto> obj"    -- {* "@{text heap}" used in a translatio
       locals = "vname \<leadsto> val"  -- "simple state, i.e. variable contents"
 
       state  = "aheap \<times> locals"      -- "heap, local parameter including This"
-      xstate = "xcpt option \<times> state" -- "state including exception information"
+      xstate = "val option \<times> state" -- "state including exception information"
 
 syntax
   heap    :: "state => aheap"
   locals  :: "state => locals"
   Norm    :: "state => xstate"
+  abrupt  :: "xstate \<Rightarrow> val option"
+  store   :: "xstate \<Rightarrow> state"
+  lookup_obj   :: "state \<Rightarrow> val \<Rightarrow> obj"
 
 translations
   "heap"   => "fst"
   "locals" => "snd"
   "Norm s" == "(None,s)"
+  "abrupt"     => "fst"
+  "store"      => "snd"
+ "lookup_obj s a'"  == "the (heap s (the_Addr a'))"
+
 
 constdefs
-  new_Addr  :: "aheap => loc \<times> xcpt option"
- "new_Addr h == SOME (a,x). (h a = None \<and>  x = None) |  x = Some OutOfMemory"
+  raise_if :: "bool \<Rightarrow> xcpt \<Rightarrow> val option \<Rightarrow> val option"
+  "raise_if b x xo \<equiv> if b \<and>  (xo = None) then Some (Addr (XcptRef x)) else xo"
 
-  raise_if  :: "bool => xcpt => xcpt option => xcpt option"
- "raise_if c x xo == if c \<and>  (xo = None) then Some x else xo"
+  new_Addr  :: "aheap => loc \<times> val option"
+  "new_Addr h \<equiv> SOME (a,x). (h a = None \<and>  x = None) |  x = Some (Addr (XcptRef OutOfMemory))"
 
-  np    :: "val => xcpt option => xcpt option"
+  np    :: "val => val option => val option"
  "np v == raise_if (v = Null) NullPointer"
 
   c_hupd  :: "aheap => xstate => xstate"
@@ -58,16 +65,17 @@ apply (unfold obj_ty_def)
 apply (simp (no_asm))
 done
 
-lemma new_AddrD: 
-"(a,x) = new_Addr h ==> h a = None \<and> x = None | x = Some OutOfMemory"
+
+lemma new_AddrD: "new_Addr hp = (ref, xcp) \<Longrightarrow>
+  hp ref = None \<and> xcp = None \<or> xcp = Some (Addr (XcptRef OutOfMemory))"
+apply (drule sym)
 apply (unfold new_Addr_def)
 apply(simp add: Pair_fst_snd_eq Eps_split)
 apply(rule someI)
 apply(rule disjI2)
-apply(rule_tac "r" = "snd (?a,Some OutOfMemory)" in trans)
+apply(rule_tac "r" = "snd (?a,Some (Addr (XcptRef OutOfMemory)))" in trans)
 apply auto
 done
-
 
 lemma raise_if_True [simp]: "raise_if True x y \<noteq> None"
 apply (unfold raise_if_def)
@@ -92,7 +100,7 @@ apply auto
 done
 
 lemma raise_if_SomeD [rule_format (no_asm)]: 
-  "raise_if c x y = Some z \<longrightarrow> c \<and>  Some z = Some x |  y = Some z"
+  "raise_if c x y = Some z \<longrightarrow> c \<and>  Some z = Some (Addr (XcptRef x)) |  y = Some z"
 apply (unfold raise_if_def)
 apply auto
 done
@@ -119,7 +127,7 @@ apply (unfold np_def raise_if_def)
 apply auto
 done
 
-lemma np_Null [simp]: "np Null None = Some NullPointer"
+lemma np_Null [simp]: "np Null None = Some (Addr (XcptRef NullPointer))"
 apply (unfold np_def raise_if_def)
 apply auto
 done
@@ -130,7 +138,7 @@ apply auto
 done
 
 lemma np_raise_if [simp]: "(np Null (raise_if c xc None)) =  
-  Some (if c then xc else NullPointer)"
+  Some (Addr (XcptRef (if c then  xc else NullPointer)))"
 apply (unfold raise_if_def)
 apply (simp (no_asm))
 done
