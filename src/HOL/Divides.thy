@@ -8,13 +8,13 @@ The division operators div, mod and the divides relation "dvd"
 
 Divides = Arith +
 
-(*We use the same sort for div and mod;
+(*We use the same class for div and mod;
   moreover, dvd is defined whenever multiplication is*)
 axclass
   div < term
 
 instance
-  nat :: {div}
+  nat :: div
 
 consts
   div  :: ['a::div, 'a]  => 'a          (infixl 70)

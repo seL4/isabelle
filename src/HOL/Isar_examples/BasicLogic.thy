@@ -228,12 +228,12 @@ text {*
 
 lemma "A & B --> B & A";
 proof -;
-  {{;
+  {;
     assume ab: "A & B";
     from ab; have a: A; ..;
     from ab; have b: B; ..;
     from b a; have "B & A"; ..;
-  }};
+  };
   thus ?thesis; ..         -- {* rule \name{impI} *};
 qed;
 

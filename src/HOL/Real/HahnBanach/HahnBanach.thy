@@ -48,7 +48,7 @@ txt {* Let $E$ be a vector space, $F$ a subspace of $E$, $p$ a seminorm on $E$ a
 txt {* Define $M$ as the set of all norm-preserving extensions of $F$.  *};
 
   def M == "norm_pres_extensions E p F f";
-  {{;
+  {;
     fix c; assume "c : chain M" "EX x. x:c";
 
 txt {* Show that every non-empty chain $c$ in $M$ has an upper bound in $M$: $\Union c$ is greater that every element of the chain $c$, so $\Union c$ is an upper bound of $c$ that lies in $M$. *};
@@ -82,7 +82,7 @@ txt {* Show that every non-empty chain $c$ in $M$ has an upper bound in $M$: $\U
           by (rule sup_norm_pres [OF _ _ a]) (simp!)+;
       qed;
     qed;
-  }};
+  };
   
 txt {* With Zorn's Lemma we can conclude that there is a maximal element $g$ in $M$. *};
 
@@ -340,7 +340,7 @@ proof -;
   It is even the least upper bound, because every upper bound of $M$
   is also an upper bound for $\Union c$, as $\Union c\in M$) *};
 
-  {{;
+  {;
     fix c; assume "c:chain M" "EX x. x:c";
     have "Union c : M";
 
@@ -372,7 +372,7 @@ proof -;
           by (rule sup_norm_pres, rule a) (simp!)+;
       qed;
     qed;
-  }};
+  };
  
   txt {* According to Zorn's Lemma there is
   a maximal norm-preserving extension $g\in M$. *};

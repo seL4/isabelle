@@ -53,7 +53,7 @@ constdefs
                   else         negateSnd (posDivAlg (-a,-b))"
 
 instance
-  int :: {div}
+  int :: "Divides.div"        (*avoid clash with 'div' token*)
 
 defs
   div_def   "a div b == fst (divAlg (a,b))"

@@ -23,7 +23,7 @@ lemma gen_less_induct:
   (is "(!!x. ?H x ==> ?C x) ==> _");
 proof -;
   assume asm: "!!x. ?H x ==> ?C x";
-  {{;
+  {;
     fix k;
     have "ALL x. k = f x --> ?C x" (is "?Q k");
     proof (rule less_induct);
@@ -38,7 +38,7 @@ proof -;
 	qed;
       qed;
     qed;
-  }};
+  };
   thus "?C x"; by simp;
 qed;
 

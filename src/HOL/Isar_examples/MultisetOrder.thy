@@ -67,7 +67,7 @@ lemma all_accessible: "wf r ==> ALL M. M : acc (mult1 r)";
 proof;
   let ?R = "mult1 r";
   let ?W = "acc ?R";
-  {{;
+  {;
     fix M M0 a;
     assume M0: "M0 : ?W"
       and wf_hyp: "ALL b. (b, a) : r --> (ALL M:?W. M + {#b#} : ?W)"
@@ -110,7 +110,7 @@ proof;
 	thus "N : ?W"; by (simp only: N);
       qed;
     qed;
-  }}; note tedious_reasoning = this;
+  }; note tedious_reasoning = this;
 
   assume wf: "wf r";
   fix M;
