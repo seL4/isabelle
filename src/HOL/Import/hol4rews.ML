@@ -81,7 +81,7 @@ type T = string Symtab.table
 val empty = Symtab.empty
 val copy = I
 val prep_ext = I
-val merge = Symtab.merge (K true)
+val merge : T * T -> T = Symtab.merge (K true)
 fun print sg tab =
     Pretty.writeln (Pretty.big_list "HOL4 moves:"
 	(Symtab.foldl (fn (xl,(bef,aft)) => (Pretty.str (bef ^ " --> " ^ aft)::xl)) ([],tab)))
@@ -96,7 +96,7 @@ type T = string Symtab.table
 val empty = Symtab.empty
 val copy = I
 val prep_ext = I
-val merge = Symtab.merge (K true)
+val merge : T * T -> T = Symtab.merge (K true)
 fun print sg tab =
     Pretty.writeln (Pretty.big_list "HOL4 imports:"
 	(Symtab.foldl (fn (xl,(thyname,segname)) => (Pretty.str (thyname ^ " imported from segment " ^ segname)::xl)) ([],tab)))
@@ -126,7 +126,7 @@ type T = string Symtab.table
 val empty = Symtab.empty
 val copy = I
 val prep_ext = I
-val merge = Symtab.merge (K true)
+val merge : T * T -> T = Symtab.merge (K true)
 fun print sg tab =
     Pretty.writeln (Pretty.big_list "HOL4 constant moves:"
 	(Symtab.foldl (fn (xl,(bef,aft)) => (Pretty.str (bef ^ " --> " ^ aft)::xl)) ([],tab)))
@@ -141,7 +141,7 @@ type T = (string option) StringPair.table
 val empty = StringPair.empty
 val copy = I
 val prep_ext = I
-val merge = StringPair.merge (K true)
+val merge : T * T -> T = StringPair.merge (K true)
 fun print sg tab =
     Pretty.writeln (Pretty.big_list "HOL4 mappings:"
 	(StringPair.foldl (fn (xl,((bthy,bthm),isathm)) => (Pretty.str (bthy ^ "." ^ bthm ^ (case isathm of Some th => " --> " ^ th | None => "IGNORED"))::xl)) ([],tab)))
@@ -156,7 +156,7 @@ type T = holthm StringPair.table
 val empty = StringPair.empty
 val copy = I
 val prep_ext = I
-val merge = StringPair.merge (K true)
+val merge : T * T -> T = StringPair.merge (K true)
 fun print sg tab =
     Pretty.writeln (Pretty.big_list "HOL4 mappings:"
 	(StringPair.foldl (fn (xl,((bthy,bthm),(_,thm))) => (Pretty.str (bthy ^ "." ^ bthm ^ ":")::(Display.pretty_thm thm)::xl)) ([],tab)))
@@ -171,7 +171,7 @@ type T = (bool * string * typ option) StringPair.table
 val empty = StringPair.empty
 val copy = I
 val prep_ext = I
-val merge = StringPair.merge (K true)
+val merge : T * T -> T = StringPair.merge (K true)
 fun print sg tab =
     Pretty.writeln (Pretty.big_list "HOL4 constant mappings:"
 	(StringPair.foldl (fn (xl,((bthy,bconst),(internal,isaconst,_))) => (Pretty.str (bthy ^ "." ^ bconst ^ " --> " ^ isaconst ^ (if internal then " (*)" else ""))::xl)) ([],tab)))
@@ -186,7 +186,7 @@ type T = string StringPair.table
 val empty = StringPair.empty
 val copy = I
 val prep_ext = I
-val merge = StringPair.merge (K true)
+val merge : T * T -> T = StringPair.merge (K true)
 fun print sg tab =
     Pretty.writeln (Pretty.big_list "HOL4 constant renamings:"
 	(StringPair.foldl (fn (xl,((bthy,bconst),newname)) => (Pretty.str (bthy ^ "." ^ bconst ^ " --> " ^ newname)::xl)) ([],tab)))
@@ -201,7 +201,7 @@ type T = string StringPair.table
 val empty = StringPair.empty
 val copy = I
 val prep_ext = I
-val merge = StringPair.merge (K true)
+val merge : T * T -> T = StringPair.merge (K true)
 fun print sg tab =
     Pretty.writeln (Pretty.big_list "HOL4 constant definitions:"
 	(StringPair.foldl (fn (xl,((bthy,bconst),newname)) => (Pretty.str (bthy ^ "." ^ bconst ^ ": " ^ newname)::xl)) ([],tab)))
@@ -216,7 +216,7 @@ type T = (bool * string) StringPair.table
 val empty = StringPair.empty
 val copy = I
 val prep_ext = I
-val merge = StringPair.merge (K true)
+val merge : T * T -> T = StringPair.merge (K true)
 fun print sg tab =
     Pretty.writeln (Pretty.big_list "HOL4 type mappings:"
 	(StringPair.foldl (fn (xl,((bthy,bconst),(internal,isaconst))) => (Pretty.str (bthy ^ "." ^ bconst ^ " --> " ^ isaconst ^ (if internal then " (*)" else ""))::xl)) ([],tab)))
@@ -231,7 +231,7 @@ type T = ((term * term) list * thm) StringPair.table
 val empty = StringPair.empty
 val copy = I
 val prep_ext = I
-val merge = StringPair.merge (K true)
+val merge : T * T -> T = StringPair.merge (K true)
 fun print sg tab =
     Pretty.writeln (Pretty.big_list "HOL4 pending theorems:"
 	(StringPair.foldl (fn (xl,((bthy,bthm),(_,th))) => (Pretty.chunks [Pretty.str (bthy ^ "." ^ bthm ^ ":"),Display.pretty_thm th]::xl)) ([],tab)))
@@ -736,6 +736,7 @@ local
       | handle_meta [x as Appl[Appl[Constant "_constrain", Constant "all", _],_]] = x
       | handle_meta [x as Appl[Appl[Constant "_constrain", Constant "==>", _],_,_]] = x
       | handle_meta [x] = Appl[Constant "Trueprop",x]
+      | handle_meta _ = error "hol4rews error: Trueprop not applied to single argument"
 in
 val smarter_trueprop_parsing = [("Trueprop",handle_meta)]
 end

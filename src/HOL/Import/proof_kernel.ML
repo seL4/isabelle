@@ -276,7 +276,7 @@ end
 
 fun get_segment thyname l = (Lib.assoc "s" l
 			     handle PK _ => thyname)
-val get_name    = Lib.assoc "n"
+val get_name : (string * string) list -> string = Lib.assoc "n"
 
 local
     open LazyScan
@@ -340,7 +340,11 @@ val scan_attribute = scan_id -- $$ #"=" |-- scan_string
 val scan_start_of_tag = $$ #"<" |-- scan_id --
 			   repeat ($$ #" " |-- scan_attribute)
 
-val scan_end_of_tag = $$ #"/" |-- $$ #">" |-- succeed []
+(* The evaluation delay introduced through the 'toks' argument is needed
+for the sake of the SML/NJ (110.9.1) compiler.  Either that or an explicit
+type :-( *)
+fun scan_end_of_tag toks = ($$ #"/" |-- $$ #">" |-- succeed []) toks
+
 val scan_end_tag = $$ #"<" |-- $$ #"/" |-- scan_id --| $$ #">"
 
 fun scan_children id = $$ #">" |-- repeat scan_tag -- scan_end_tag >>
@@ -1633,7 +1637,7 @@ fun CHOOSE v hth1 hth2 thy =
 	val cv = cterm_of sg v'
 	val th2 = norm_hyps th2
 	val cvty = ctyp_of_term cv
-	val _$c = concl_of th2
+	val c = HOLogic.dest_Trueprop (concl_of th2)
 	val cc = cterm_of sg c
 	val a = case concl_of th1 of
 		    _ $ (Const("Ex",_) $ a) => a

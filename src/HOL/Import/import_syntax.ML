@@ -37,24 +37,25 @@ val import_theory = P.name >> (fn thyname =>
 				      |> Theory.add_path thyname
 				      |> add_dump (";setup_theory " ^ thyname))
 
-val end_import = Scan.succeed
-		     (fn thy =>
-			 let
-			     val thyname = get_generating_thy thy
-			     val segname = get_import_segment thy
-			     val (int_thms,facts) = Replay.setup_int_thms thyname thy
-			     val thmnames = filter (not o should_ignore thyname thy) facts
-			 in
-			     thy |> clear_import_thy
-				 |> set_segment thyname segname
-				 |> set_used_names facts
-				 |> Replay.import_thms thyname int_thms thmnames
-				 |> clear_used_names
-				 |> export_hol4_pending
-				 |> Theory.parent_path
-				 |> dump_import_thy thyname
-				 |> add_dump ";end_setup"
-			 end)
+fun end_import toks =
+    Scan.succeed
+	(fn thy =>
+	    let
+		val thyname = get_generating_thy thy
+		val segname = get_import_segment thy
+		val (int_thms,facts) = Replay.setup_int_thms thyname thy
+		val thmnames = filter (not o should_ignore thyname thy) facts
+	    in
+		thy |> clear_import_thy
+		    |> set_segment thyname segname
+		    |> set_used_names facts
+		    |> Replay.import_thms thyname int_thms thmnames
+		    |> clear_used_names
+		    |> export_hol4_pending
+		    |> Theory.parent_path
+		    |> dump_import_thy thyname
+		    |> add_dump ";end_setup"
+	    end) toks
 
 val ignore_thms = Scan.repeat1 P.name
 			       >> (fn ignored =>
@@ -158,18 +159,20 @@ val setup_theory = P.name
 			     | Generating _ => error "Currently generating a theory!"
 			     | Replaying _ => thy |> clear_import_thy |> import_thy thyname)
 
-val end_setup = Scan.succeed (fn thy =>
-				 let
-				     val thyname = get_import_thy thy
-				     val segname = get_import_segment thy
-				 in
-				     thy |> set_segment thyname segname
-					 |> clear_import_thy
-					 |> Theory.parent_path
-				 end)
+fun end_setup toks =
+    Scan.succeed
+	(fn thy =>
+	    let
+		val thyname = get_import_thy thy
+		val segname = get_import_segment thy
+	    in
+		thy |> set_segment thyname segname
+		    |> clear_import_thy
+		    |> Theory.parent_path
+	    end) toks
 
 val set_dump  = P.string -- P.string   >> setup_dump
-val fl_dump   = Scan.succeed flush_dump
+fun fl_dump toks  = Scan.succeed flush_dump toks
 val append_dump = (P.verbatim || P.string) >> add_dump
 
 val parsers = 

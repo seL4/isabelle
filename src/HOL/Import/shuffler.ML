@@ -263,7 +263,8 @@ fun freeze_thaw_term t =
 		  (([],tfree_names),tvars)
 	val t' = subst_TVars type_inst t
     in
-	(t',map (fn (w,TFree(v,S)) => (v,TVar(w,S))) type_inst)
+	(t',map (fn (w,TFree(v,S)) => (v,TVar(w,S))
+		  | _ => error "Internal error in Shuffler.freeze_thaw") type_inst)
     end
 
 fun inst_tfrees sg [] thm = thm
