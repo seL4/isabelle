@@ -22,9 +22,7 @@ defs (overloaded)
 less_discr_def: "((op <<)::('a::type)discr=>'a discr=>bool)  ==  op ="
 
 lemma discr_less_eq [iff]: "((x::('a::type)discr) << y) = (x = y)"
-apply (unfold less_discr_def)
-apply (rule refl)
-done
+by (unfold less_discr_def) (rule refl)
 
 instance discr :: (type) po
 proof
@@ -46,17 +44,13 @@ apply (rule sym)
 apply fast
 done
 
-lemma discr_chain_range0: 
+lemma discr_chain_range0 [simp]: 
  "!!S::nat=>('a::type)discr. chain(S) ==> range(S) = {S 0}"
-apply (fast elim: discr_chain0)
-done
-declare discr_chain_range0 [simp]
+by (fast elim: discr_chain0)
 
 lemma discr_cpo: 
  "!!S. chain S ==> ? x::('a::type)discr. range(S) <<| x"
-apply (unfold is_lub_def is_ub_def)
-apply (simp (no_asm_simp))
-done
+by (unfold is_lub_def is_ub_def) simp
 
 instance discr :: (type) cpo
 by intro_classes (rule discr_cpo)
