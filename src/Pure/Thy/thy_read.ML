@@ -1013,7 +1013,7 @@ fun store_thm (name, thm) =
   let
     val (thy_name, ThyInfo {path, children, parents, thy_time, ml_time,
                             theory, thms, methods, data}) =
-      thyinfo_of_sign (#sign (rep_thm thm));
+      thyinfo_of_sign (#sign (rep_thm thm))
 
     val (thms', duplicate) = (Symtab.update_new ((name, thm), thms), false)
       handle Symtab.DUPLICATE s => 
@@ -1044,6 +1044,9 @@ fun store_thm (name, thm) =
                )
            | None => ()
       end;
+
+    (*Return version with trivial proof object; store original version *)
+    val thm' = Thm.name_thm (the theory, name, thm) handle OPTION _ => thm
   in
     loaded_thys := Symtab.update
      ((thy_name, ThyInfo {path = path, children = children, parents = parents,
@@ -1052,7 +1055,7 @@ fun store_thm (name, thm) =
                           methods = methods, data = data}),
       !loaded_thys);
     thm_to_html ();
-    if duplicate then thm else store_thm_db (name, thm)
+    if duplicate then thm' else store_thm_db (name, thm')
   end;
 
 (*Store result of proof in loaded_thys and as ML value*)
@@ -1060,23 +1063,19 @@ fun store_thm (name, thm) =
 val qed_thm = ref flexpair_def(*dummy*);
 
 fun bind_thm (name, thm) =
- (qed_thm := standard thm;
-  store_thm (name, !qed_thm);
+ (qed_thm := store_thm (name, (standard thm));
   use_string ["val " ^ name ^ " = !qed_thm;"]);
 
 fun qed name =
- (qed_thm := result ();
-  store_thm (name, !qed_thm);
+ (qed_thm := store_thm (name, result ());
   use_string ["val " ^ name ^ " = !qed_thm;"]);
 
 fun qed_goal name thy agoal tacsf =
- (qed_thm := prove_goal thy agoal tacsf;
-  store_thm (name, !qed_thm);
+ (qed_thm := store_thm (name, prove_goal thy agoal tacsf);
   use_string ["val " ^ name ^ " = !qed_thm;"]);
 
 fun qed_goalw name thy rths agoal tacsf =
- (qed_thm := prove_goalw thy rths agoal tacsf;
-  store_thm (name, !qed_thm);
+ (qed_thm := store_thm (name, prove_goalw thy rths agoal tacsf);
   use_string ["val " ^ name ^ " = !qed_thm;"]);
 
 
@@ -1091,7 +1090,8 @@ fun thmtab_of_name name =
   let val ThyInfo {thms, ...} = the (get_thyinfo name);
   in thms end;
 
-(*Get a stored theorem specified by theory and name*)
+(*Get a stored theorem specified by theory and name.
+  Derivation has the form Theorem(thy,name). *)
 fun get_thm thy name =
   let fun get [] [] searched =
            raise THEORY ("get_thm: no theorem " ^ quote name, [thy])
@@ -1099,13 +1099,13 @@ fun get_thm thy name =
             get (ng \\ searched) [] searched
         | get (t::ts) ng searched =
             (case Symtab.lookup (thmtab_of_name t, name) of
-                 Some thm => thm
+                 Some thm => Thm.name_thm(thy,name,thm)
                | None => get ts (ng union (parents_of_name t)) (t::searched));
 
       val (tname, _) = thyinfo_of_sign (sign_of thy);
   in get [tname] [] [] end;
 
-(*Get stored theorems of a theory*)
+(*Get stored theorems of a theory (original derivations) *)
 val thms_of = Symtab.dest o thmtab_of_thy;
 
 
