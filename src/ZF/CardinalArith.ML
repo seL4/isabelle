@@ -476,18 +476,17 @@ qed "csquare_or_eqI";
 
 goal CardinalArith.thy
     "!!K. [| Limit(K);  x<K;  y<K;  z=succ(x Un y) |] ==> \
-\         ordermap(K*K, csquare_rel(K)) ` <x,y> lepoll 		\
+\         ordermap(K*K, csquare_rel(K)) ` <x,y> < 		\
 \         ordermap(K*K, csquare_rel(K)) ` <z,z>";
 by (subgoals_tac ["z<K", "well_ord(K*K, csquare_rel(K))"] 1);
 by (etac (Limit_is_Ord RS well_ord_csquare) 2);
 by (fast_tac (ZF_cs addSIs [Un_least_lt, Limit_has_succ]) 2);
-by (rtac (OrdmemD RS subset_imp_lepoll) 1);
-by (res_inst_tac [("z1","z")] (csquare_ltI RS ordermap_mono) 1);
+by (rtac (csquare_ltI RS ordermap_mono RS ltI) 1);
 by (etac well_ord_is_wf 4);
 by (ALLGOALS 
     (fast_tac (ZF_cs addSIs [Un_upper1_le, Un_upper2_le, Ord_ordermap] 
                      addSEs [ltE])));
-qed "ordermap_z_lepoll";
+qed "ordermap_z_lt";
 
 (*Kunen: "each <x,y>: K*K has no more than z*z predecessors..." (page 29) *)
 goalw CardinalArith.thy [cmult_def]
@@ -497,7 +496,8 @@ by (rtac (well_ord_rmult RS well_ord_lepoll_imp_Card_le) 1);
 by (REPEAT (ares_tac [Ord_cardinal, well_ord_Memrel] 1));
 by (subgoals_tac ["z<K"] 1);
 by (fast_tac (ZF_cs addSIs [Un_least_lt, Limit_has_succ]) 2);
-by (rtac (ordermap_z_lepoll RS lepoll_trans) 1);
+by (rtac (ordermap_z_lt RS leI RS le_imp_subset RS subset_imp_lepoll RS
+	  lepoll_trans) 1);
 by (REPEAT_SOME assume_tac);
 by (rtac (ordermap_eqpoll_pred RS eqpoll_imp_lepoll RS lepoll_trans) 1);
 by (etac (Limit_is_Ord RS well_ord_csquare) 1);
