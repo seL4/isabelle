@@ -129,7 +129,7 @@ by (stac split_if 1);
 by (fast_tac (claset() addEs  [inj_onD, f_eq_gE]) 1);
 qed "bij_if_then_else";
 
-Goal "!!f:: 'a=>'b.  ? X. X = - (g``(- f``X))";
+Goal "? X. X = - (g``(- (f``X)))";
 by (rtac exI 1);
 by (rtac lfp_Tarski 1);
 by (REPEAT (ares_tac [monoI, image_mono, Compl_anti_mono] 1));
