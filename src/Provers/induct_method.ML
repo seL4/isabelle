@@ -146,7 +146,10 @@ end;
 
 local
 
-val atomize_cterm = Thm.cterm_fun AutoBind.drop_judgment o full_rewrite_cterm Data.atomize;
+fun atomize_cterm ct =
+  Thm.cterm_fun
+    (ObjectLogic.drop_judgment (#sign (Thm.rep_cterm ct))) (full_rewrite_cterm Data.atomize ct);
+
 val atomize_tac = Tactic.rewrite_goal_tac Data.atomize;
 val rulify_cterm = full_rewrite_cterm Data.rulify2 o full_rewrite_cterm Data.rulify1;
 
@@ -155,12 +158,12 @@ val rulify_tac =
   Tactic.rewrite_goal_tac Data.rulify2 THEN'
   Tactic.norm_hhf_tac;
 
-fun rulify_cases cert =
+fun rulify_cases sg cert =
   let
     val ruly = Thm.term_of o rulify_cterm o cert;
     fun ruly_case {fixes, assumes, binds} =
       {fixes = fixes, assumes = map ruly assumes,
-        binds = map (apsnd (apsome (AutoBind.drop_judgment o ruly))) binds};
+        binds = map (apsnd (apsome (ObjectLogic.drop_judgment sg o ruly))) binds};
   in map (apsnd ruly_case) ooo RuleCases.make_raw end;
 
 
@@ -216,7 +219,7 @@ fun induct_tac (ctxt, (open_parms, (insts, opt_rule))) facts =
 
     fun prep_rule (th, (cases, n)) =
       Seq.map (rpair (cases, drop (n, facts))) (Method.multi_resolves (take (n, facts)) [th]);
-    val tac = resolveq_cases_tac (rulify_cases cert open_parms) atomize_tac
+    val tac = resolveq_cases_tac (rulify_cases sg cert open_parms) atomize_tac
       (Seq.flat (Seq.map prep_rule ruleq));
   in tac THEN_ALL_NEW_CASES rulify_tac end;
 
