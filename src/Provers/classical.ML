@@ -1021,8 +1021,11 @@ val destN = "dest";
 val delN = "del";
 val delruleN = "delrule";
 
+val colon = Args.$$$ ":";
 val query = Args.$$$ "?";
 val qquery = Args.$$$ "??";
+val query_colon = Args.$$$ "?:";
+val qquery_colon = Args.$$$ "??:";
 
 fun cla_att change xtra haz safe = Attrib.syntax
   (Scan.lift ((qquery >> K xtra || query >> K haz || Scan.succeed safe) >> change));
@@ -1133,16 +1136,16 @@ val contradiction = Method.rule [Data.not_elim, Data.not_elim COMP Drule.swap_pr
 (* automatic methods *)
 
 val cla_modifiers =
- [Args.$$$ destN -- qquery >> K ((I, xtra_dest_local):Method.modifier),
-  Args.$$$ destN -- query >> K (I, haz_dest_local),
-  Args.$$$ destN >> K (I, safe_dest_local),
-  Args.$$$ elimN -- qquery >> K (I, xtra_elim_local),
-  Args.$$$ elimN -- query >> K (I, haz_elim_local),
-  Args.$$$ elimN >> K (I, safe_elim_local),
-  Args.$$$ introN -- qquery >> K (I, xtra_intro_local),
-  Args.$$$ introN -- query >> K (I, haz_intro_local),
-  Args.$$$ introN >> K (I, safe_intro_local),
-  Args.$$$ delN >> K (I, delrule_local)];
+ [Args.$$$ destN -- qquery_colon >> K ((I, xtra_dest_local):Method.modifier),
+  Args.$$$ destN -- query_colon >> K (I, haz_dest_local),
+  Args.$$$ destN -- colon >> K (I, safe_dest_local),
+  Args.$$$ elimN -- qquery_colon >> K (I, xtra_elim_local),
+  Args.$$$ elimN -- query_colon >> K (I, haz_elim_local),
+  Args.$$$ elimN -- colon >> K (I, safe_elim_local),
+  Args.$$$ introN -- qquery_colon >> K (I, xtra_intro_local),
+  Args.$$$ introN -- query_colon >> K (I, haz_intro_local),
+  Args.$$$ introN -- colon >> K (I, safe_intro_local),
+  Args.$$$ delN -- colon >> K (I, delrule_local)];
 
 fun cla_meth tac prems ctxt = Method.METHOD (fn facts =>
   ALLGOALS (Method.insert_tac (prems @ facts)) THEN tac (get_local_claset ctxt));
