@@ -326,8 +326,8 @@ fun assumption ctxt = METHOD (HEADGOAL o assumption_tac ctxt);
 
 (* res_inst_tac etc. *)
 
-(* Reimplemented to support both static (Isar) and dynamic (proof state)
-   context.  By Clemens Ballarin. *)
+(*Reimplemented to support both static (Isar) and dynamic (proof state)
+  context.  By Clemens Ballarin.*)
 
 fun bires_inst_tac bires_flag ctxt insts thm =
   let
@@ -347,7 +347,7 @@ fun bires_inst_tac bires_flag ctxt insts thm =
         val (types, sorts) = types_sorts st;
     (* Process type insts: Tinsts_env *)
     fun absent xi = error
-	  ("No such variable in theorem: " ^ Syntax.string_of_vname xi);
+          ("No such variable in theorem: " ^ Syntax.string_of_vname xi);
     val (rtypes, rsorts) = types_sorts thm;
     fun readT (xi, s) =
         let val S = case rsorts xi of Some S => S | None => absent xi;
@@ -364,52 +364,52 @@ fun bires_inst_tac bires_flag ctxt insts thm =
          | None => absent xi);
     val (xis, ss) = Library.split_list tinsts;
     val Ts = map get_typ xis;
-	val (_, _, Bi, _) = dest_state(st,i)
-	val params = Logic.strip_params Bi
-			     (* params of subgoal i as string typ pairs *)
-	val params = rev(Term.rename_wrt_term Bi params)
-			   (* as they are printed: bound variables with *)
+        val (_, _, Bi, _) = dest_state(st,i)
+        val params = Logic.strip_params Bi
+                             (* params of subgoal i as string typ pairs *)
+        val params = rev(Term.rename_wrt_term Bi params)
+                           (* as they are printed: bound variables with *)
                            (* the same name are renamed during printing *)
         fun types' (a, ~1) = (case assoc (params, a) of
                 None => types (a, ~1)
               | some => some)
           | types' xi = types xi;
-        val used = add_term_tvarnames
-                  (prop_of st $ prop_of thm,[])
-	val (ts, envT) =
-	  ProofContext.read_termTs_env (types', sorts, used) ctxt (ss ~~ Ts);
-	val cenvT = map (apsnd (Thm.ctyp_of sign)) (envT @ Tinsts_env);
-	val cenv =
-	  map
-	    (fn (xi, t) =>
-	      pairself (Thm.cterm_of sign) (Var (xi, fastype_of t), t))
-	    (gen_distinct
-	      (fn ((x1, t1), (x2, t2)) => x1 = x2 andalso t1 aconv t2)
-	      (xis ~~ ts));
-	(* Lift and instantiate rule *)
-	val {maxidx, ...} = rep_thm st;
-	val paramTs = map #2 params
-	and inc = maxidx+1
-	fun liftvar (Var ((a,j), T)) =
-	      Var((a, j+inc), paramTs ---> incr_tvar inc T)
-	  | liftvar t = raise TERM("Variable expected", [t]);
-	fun liftterm t = list_abs_free
-	      (params, Logic.incr_indexes(paramTs,inc) t)
-	fun liftpair (cv,ct) =
-	      (cterm_fun liftvar cv, cterm_fun liftterm ct)
-	fun lifttvar((a,i),ctyp) =
-	    let val {T,sign} = rep_ctyp ctyp
-	    in  ((a,i+inc), ctyp_of sign (incr_tvar inc T)) end
-	val rule = Drule.instantiate
-	      (map lifttvar cenvT, map liftpair cenv)
-	      (lift_rule (st, i) thm)
+        fun internal x = is_some (types' (x, ~1));
+        val used = Term.add_term_tvarnames (Thm.prop_of st $ Thm.prop_of thm, []);
+        val (ts, envT) =
+          ProofContext.read_termTs_schematic ctxt internal types' sorts used (ss ~~ Ts);
+        val cenvT = map (apsnd (Thm.ctyp_of sign)) (envT @ Tinsts_env);
+        val cenv =
+          map
+            (fn (xi, t) =>
+              pairself (Thm.cterm_of sign) (Var (xi, fastype_of t), t))
+            (gen_distinct
+              (fn ((x1, t1), (x2, t2)) => x1 = x2 andalso t1 aconv t2)
+              (xis ~~ ts));
+        (* Lift and instantiate rule *)
+        val {maxidx, ...} = rep_thm st;
+        val paramTs = map #2 params
+        and inc = maxidx+1
+        fun liftvar (Var ((a,j), T)) =
+              Var((a, j+inc), paramTs ---> incr_tvar inc T)
+          | liftvar t = raise TERM("Variable expected", [t]);
+        fun liftterm t = list_abs_free
+              (params, Logic.incr_indexes(paramTs,inc) t)
+        fun liftpair (cv,ct) =
+              (cterm_fun liftvar cv, cterm_fun liftterm ct)
+        fun lifttvar((a,i),ctyp) =
+            let val {T,sign} = rep_ctyp ctyp
+            in  ((a,i+inc), ctyp_of sign (incr_tvar inc T)) end
+        val rule = Drule.instantiate
+              (map lifttvar cenvT, map liftpair cenv)
+              (lift_rule (st, i) thm)
       in
-	if i > nprems_of st then no_tac st
-	else st |>
-	  compose_tac (bires_flag, rule, nprems_of thm) i
+        if i > nprems_of st then no_tac st
+        else st |>
+          compose_tac (bires_flag, rule, nprems_of thm) i
       end
-	   handle TERM (msg,_)   => (warning msg; no_tac st)
-		| THM  (msg,_,_) => (warning msg; no_tac st);
+           handle TERM (msg,_)   => (warning msg; no_tac st)
+                | THM  (msg,_,_) => (warning msg; no_tac st);
   in
     tac
   end;
@@ -420,7 +420,7 @@ fun gen_inst _ tac _ (quant, ([], thms)) =
       METHOD (fn facts =>
         quant (insert_tac facts THEN' inst_tac ctxt insts thm))
   | gen_inst _ _ _ _ = error "Cannot have instantiations with multiple rules";
-      
+
 val res_inst_meth = gen_inst (bires_inst_tac false) Tactic.resolve_tac;
 
 val eres_inst_meth = gen_inst (bires_inst_tac true) Tactic.eresolve_tac;
@@ -470,6 +470,7 @@ fun subgoals_tac ctxt sprops = EVERY' (map (subgoal_tac ctxt) sprops);
 
 fun thin_tac ctxt s =
   bires_inst_tac true ctxt [(("V", 0), s)] thin_rl;
+
 
 (* simple Prolog interpreter *)
 
@@ -684,6 +685,7 @@ fun goal_args_ctxt' args tac src ctxt =
   (fn (quant, s) => SIMPLE_METHOD' quant (tac ctxt s))) src ctxt);
 
 fun goal_args_ctxt args tac = goal_args_ctxt' (Scan.lift args) tac;
+
 
 (** method text **)
 

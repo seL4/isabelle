@@ -195,8 +195,9 @@ val OF_global = syntax (global_thmss >> apply);
 val OF_local = syntax (local_thmss >> apply);
 
 
-(* where: named instantiations *)
-(*        permits instantiation of type and term variables *)
+(* where *)
+
+(*named instantiations; permits instantiation of type and term variables*)
 
 fun read_instantiate _ [] _ thm = thm
   | read_instantiate context_of insts x thm =
@@ -209,7 +210,7 @@ fun read_instantiate _ [] _ thm = thm
         fun has_type_var ((x, _), _) = (case Symbol.explode x of
              "'"::cs => true | cs => false);
         val (Tinst, tinsts) = take_prefix has_type_var insts;
-	val _ = if exists has_type_var tinsts
+        val _ = if exists has_type_var tinsts
               then error
                 "Type instantiations must occur before term instantiations."
               else ();
@@ -218,20 +219,20 @@ fun read_instantiate _ [] _ thm = thm
         val tinsts = filter_out has_type_var insts;
 
         (* Type instantiations first *)
-	(* Process type insts: Tinsts_env *)
-	fun absent xi = error
-	      ("No such type variable in theorem: " ^
+        (* Process type insts: Tinsts_env *)
+        fun absent xi = error
+              ("No such type variable in theorem: " ^
                Syntax.string_of_vname xi);
-	val (rtypes, rsorts) = types_sorts thm;
-	fun readT (xi, s) =
-	    let val S = case rsorts xi of Some S => S | None => absent xi;
-		val T = ProofContext.read_typ ctxt s;
-	    in if Sign.typ_instance sign (T, TVar (xi, S)) then (xi, T)
-	       else error
-		 ("Instantiation of " ^ Syntax.string_of_vname xi ^ " fails")
-	    end;
-	val Tinsts_env = map readT Tinsts;
-	val cenvT = map (apsnd (Thm.ctyp_of sign)) (Tinsts_env);
+        val (rtypes, rsorts) = types_sorts thm;
+        fun readT (xi, s) =
+            let val S = case rsorts xi of Some S => S | None => absent xi;
+                val T = ProofContext.read_typ ctxt s;
+            in if Sign.typ_instance sign (T, TVar (xi, S)) then (xi, T)
+               else error
+                 ("Instantiation of " ^ Syntax.string_of_vname xi ^ " fails")
+            end;
+        val Tinsts_env = map readT Tinsts;
+        val cenvT = map (apsnd (Thm.ctyp_of sign)) (Tinsts_env);
         val thm' = Thm.instantiate (cenvT, []) thm;
            (* Instantiate, but don't normalise: *)
            (* this happens after term insts anyway. *)
@@ -247,11 +248,13 @@ fun read_instantiate _ [] _ thm = thm
         val Ts = map get_typ xs;
 
         val used = add_term_tvarnames (prop_of thm',[])
-        (* Names of TVars occuring in thm'.  read_termTs ensures
+        (* Names of TVars occuring in thm'.  read_def_termTs ensures
            that new TVars introduced when reading the instantiation string
            are distinct from those occuring in the theorem. *)
 
-        val (ts, envT) = ProofContext.read_termTs used ctxt (ss ~~ Ts);
+        val (ts, envT) =
+          ProofContext.read_termTs ctxt (K false) (K None) (K None) used (ss ~~ Ts);
+
         val cenvT = map (apsnd (Thm.ctyp_of sign)) envT;
         val cenv =
           map (fn (xi, t) => pairself (Thm.cterm_of sign) (Var (xi, fastype_of t), t))
