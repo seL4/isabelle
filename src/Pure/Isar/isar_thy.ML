@@ -8,18 +8,6 @@ Pure/Isar derived theory operations.
 
 signature ISAR_THY =
 sig
-  val add_header: string -> Toplevel.transition -> Toplevel.transition
-  val add_chapter: string -> theory -> theory
-  val add_section: string -> theory -> theory
-  val add_subsection: string -> theory -> theory
-  val add_subsubsection: string -> theory -> theory
-  val add_text: string -> theory -> theory
-  val add_text_raw: string -> theory -> theory
-  val add_sect: string -> ProofHistory.T -> ProofHistory.T
-  val add_subsect: string -> ProofHistory.T -> ProofHistory.T
-  val add_subsubsect: string -> ProofHistory.T -> ProofHistory.T
-  val add_txt: string -> ProofHistory.T -> ProofHistory.T
-  val add_txt_raw: string -> ProofHistory.T -> ProofHistory.T
   val hide_space: string * xstring list -> theory -> theory
   val hide_space_i: string * string list -> theory -> theory
   val add_axioms: ((bstring * string) * Args.src list) list -> theory -> theory
@@ -173,28 +161,6 @@ struct
 
 
 (** derived theory and proof operations **)
-
-(* markup commands *)
-
-fun add_header x =
-  Toplevel.keep (fn state => if Toplevel.is_toplevel state then () else raise Toplevel.UNDEF);
-
-fun add_text _ x = x;
-fun add_text_raw _ x = x;
-
-fun add_heading add present txt thy = (Context.setmp (Some thy) present txt; add txt thy);
-
-val add_chapter = add_heading add_text Present.section;
-val add_section = add_heading add_text Present.section;
-val add_subsection = add_heading add_text Present.subsection;
-val add_subsubsection = add_heading add_text Present.subsubsection;
-
-fun add_txt (_: string) = ProofHistory.apply I;
-val add_txt_raw = add_txt;
-val add_sect = add_txt;
-val add_subsect = add_txt;
-val add_subsubsect = add_txt;
-
 
 (* name spaces *)
 
