@@ -27,33 +27,35 @@ fun print_depth n =
   System.Control.Print.printLength := n);
 
 
+
 (* timing *)
 
+(*Note start point for timing*)
+fun startTiming() = System.Timer.start_timer();
+
+(*Finish timing and return string*)
 local
   (*print microseconds, suppressing trailing zeroes*)
   fun umakestring 0 = ""
     | umakestring n =
         chr (ord "0" + n div 100000) ^ umakestring (10 * (n mod 100000));
+
+  fun string_of_time (System.Timer.TIME {sec, usec}) =
+      makestring sec ^ "." ^ (if usec=0 then "0" else umakestring usec)
+
 in
-  (*a conditional timing function: applies f to () and, if the flag is true,
-    prints its runtime*)
-  fun cond_timeit flag f =
-    if flag then
-      let fun string_of_time (System.Timer.TIME {sec, usec}) =
-              makestring sec ^ "." ^ (if usec=0 then "0" else umakestring usec)
-          open System.Timer;
-          val start = start_timer()
-          val result = f();
-          val nongc = check_timer(start)
-          and gc = check_timer_gc(start);
-          val both = add_time(nongc, gc)
-      in  print("Non GC " ^ string_of_time nongc ^
-                 "   GC " ^ string_of_time gc ^
-                 "  both "^ string_of_time both ^ " secs\n");
-          result
-      end
-    else f();
+
+fun endTiming start =
+  let val nongc = System.Timer.check_timer(start)
+      and gc    = System.Timer.check_timer_gc(start);
+      val both  = System.Timer.add_time(nongc, gc)
+  in  "Non GC " ^ string_of_time nongc ^
+      "   GC " ^ string_of_time gc ^
+      "  both "^ string_of_time both ^ " secs\n"
+  end
 end;
+
+
 
 
 (* toplevel pretty printing (see also Pure/install_pp.ML) *)
