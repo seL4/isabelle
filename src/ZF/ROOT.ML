@@ -32,6 +32,7 @@ print_depth 1;
 use     "../Pure/section_utils.ML";
 use     "thy_syntax.ML";
 
+use_thy "Let";
 use_thy "InfDatatype";
 use_thy "List";
 use_thy "EquivClass";
