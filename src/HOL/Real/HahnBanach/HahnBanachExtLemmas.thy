@@ -5,7 +5,7 @@
 
 header {* Extending non-maximal functions *}
 
-theory HahnBanachExtLemmas = FunctionNorm + RealLemmas:
+theory HahnBanachExtLemmas = FunctionNorm:
 
 text {*
   In this section the following context is presumed.  Let @{text E} be
@@ -227,7 +227,7 @@ proof
 
       also have "\<dots> =
           - a * (p (inverse a \<cdot> y + x0)) - a * (h (inverse a \<cdot> y))"
-	by (rule real_mult_diff_distrib) 
+	by (simp add: right_diff_distrib)
       also from lz x0 y' have "- a * (p (inverse a \<cdot> y + x0)) =
           p (a \<cdot> (inverse a \<cdot> y + x0))"
         by (simp add: abs_homogenous abs_minus_eqI2)
@@ -247,7 +247,7 @@ proof
           a * (p (inverse a \<cdot> y + x0) - h (inverse a \<cdot> y))"
         by simp
       also have "... = a * p (inverse a \<cdot> y + x0) - a * h (inverse a \<cdot> y)"
-	by (rule real_mult_diff_distrib2) 
+	by (simp add: right_diff_distrib)
       also from gz x0 y'
       have "a * p (inverse a \<cdot> y + x0) = p (a \<cdot> (inverse a \<cdot> y + x0))"
         by (simp add: abs_homogenous abs_eqI2)
