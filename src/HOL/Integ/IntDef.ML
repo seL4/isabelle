@@ -319,6 +319,9 @@ Goal "(w::int) * (z1 - z2) = (w * z1) - (w * z2)";
 by (simp_tac (simpset() addsimps [zmult_commute',zdiff_zmult_distrib]) 1);
 qed "zdiff_zmult_distrib2";
 
+bind_thms ("int_distrib",
+  [zadd_zmult_distrib, zadd_zmult_distrib2, zdiff_zmult_distrib, zdiff_zmult_distrib2]);
+
 Goalw [int_def] "(int m) * (int n) = int (m * n)";
 by (simp_tac (simpset() addsimps [zmult]) 1);
 qed "zmult_int";
