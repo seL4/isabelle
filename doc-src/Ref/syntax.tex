@@ -113,9 +113,9 @@ by stripping out delimiters and copy productions.  More precisely, the
 mapping $\astofpt{-}$ is derived from the productions as follows:
 \begin{itemize}
 \item Name tokens: $\astofpt{t} = \Variable s$, where $t$ is an \ndx{id},
-  \ndx{var}, \ndx{tid}, \ndx{tvar}, \ndx{xnum} or \ndx{xstr} token, and $s$
-  its associated string.  Note that for {\tt xstr} this does not include the
-  quotes.
+  \ndx{var}, \ndx{tid}, \ndx{tvar}, \ndx{num}, \ndx{xnum} or \ndx{xstr} token,
+  and $s$ its associated string.  Note that for {\tt xstr} this does not
+  include the quotes.
 
 \item Copy productions:\index{productions!copy}
   $\astofpt{\ldots P \ldots} = \astofpt{P}$.  Here $\ldots$ stands for
@@ -529,7 +529,7 @@ far removed from parse trees; at this level it is not yet known which
 identifiers will become constants, bounds, frees, types or classes.  As
 \S\ref{sec:asts} describes, former parse tree heads appear in \AST{}s as
 {\tt Constant}s, while the name tokens \ndx{id}, \ndx{var}, \ndx{tid},
-\ndx{tvar}, \ndx{xnum} and \ndx{xstr} become {\tt Variable}s.  On the other
+\ndx{tvar}, \ndx{num}, \ndx{xnum} and \ndx{xstr} become {\tt Variable}s.  On the other
 hand, when \AST{}s generated from terms for printing, all constants and type
 constructors become {\tt Constant}s; see \S\ref{sec:asts}.  Thus \AST{}s may
 contain a messy mixture of {\tt Variable}s and {\tt Constant}s.  This is
