@@ -22,9 +22,11 @@ sig
   val inter_class: classrel -> class * sort -> sort
   val inter_sort: classrel -> sort * sort -> sort
   val norm_sort: classrel -> sort -> sort
-  val of_sort: classrel -> arities -> typ * sort -> bool
-  val mg_domain: classrel -> arities -> string -> sort -> sort list
-  val nonempty_sort: classrel -> arities -> sort list -> sort -> bool
+  val of_sort: classrel * arities -> typ * sort -> bool
+  exception DOMAIN of string * class
+  val mg_domain: classrel * arities -> string -> sort -> sort list
+  val witness_sorts: classrel * arities * string list
+    -> sort list -> sort list -> (typ * sort) list
 end;
 
 structure Sorts: SORTS =
@@ -117,7 +119,7 @@ fun norm_sort classrel S =
 
 (** intersection **)
 
-(*intersect class with sort (preserves minimality)*)    (* FIXME tune? *)
+(*intersect class with sort (preserves minimality)*)
 fun inter_class classrel (c, S) =
   let
     fun intr [] = [c]
@@ -134,17 +136,17 @@ fun inter_sort classrel = foldr (inter_class classrel);
 
 (** sorts of types **)
 
-(* mg_domain *)                 (*exception TYPE*)
+(* mg_domain *)
+
+exception DOMAIN of string * class;
 
 fun mg_dom arities a c =
-  let fun err () = raise TYPE ("No way to get " ^ a ^ "::" ^ c ^ ".", [], []) in
-    (case Symtab.lookup (arities, a) of
-      None => err ()
-    | Some ars => (case assoc (ars, c) of None => err () | Some Ss => Ss))
-  end;
+  (case Symtab.lookup (arities, a) of
+    None => raise DOMAIN (a, c)
+  | Some ars => (case assoc (ars, c) of None => raise DOMAIN (a, c) | Some Ss => Ss));
 
-fun mg_domain _ _ _ [] = sys_error "mg_domain"  (*don't know number of args!*)
-  | mg_domain classrel arities a S =
+fun mg_domain _ _ [] = sys_error "mg_domain"  (*don't know number of args!*)
+  | mg_domain (classrel, arities) a S =
       let val doms = map (mg_dom arities a) S in
         foldl (ListPair.map (inter_sort classrel)) (hd doms, tl doms)
       end;
@@ -152,25 +154,68 @@ fun mg_domain _ _ _ [] = sys_error "mg_domain"  (*don't know number of args!*)
 
 (* of_sort *)
 
-fun of_sort classrel arities =
+fun of_sort (classrel, arities) =
   let
     fun ofS (_, []) = true
       | ofS (TFree (_, S), S') = sort_le classrel (S, S')
       | ofS (TVar (_, S), S') = sort_le classrel (S, S')
       | ofS (Type (a, Ts), S) =
-          let val Ss = mg_domain classrel arities a S in
+          let val Ss = mg_domain (classrel, arities) a S in
             ListPair.all ofS (Ts, Ss)
-          end handle TYPE _ => false;
+          end handle DOMAIN _ => false;
   in ofS end;
 
 
 
-(** nonempty_sort **)
+(** witness_sorts **)
 
-(* FIXME improve: proper sorts; non-base, non-ground types (vars from hyps) *)
-fun nonempty_sort classrel _ _ [] = true
-  | nonempty_sort classrel arities hyps S =
-      Symtab.exists (exists (fn (c, Ss) => [c] = S andalso null Ss) o snd) arities
-        orelse exists (fn S' => sort_le classrel (S', S)) hyps;
+fun witness_sorts_aux (classrel, arities, log_types) hyps sorts =
+  let
+    val top_witn = (propT, []);
+    fun le S1 S2 = sort_le classrel (S1, S2);
+    fun get_solved S2 (T, S1) = if le S1 S2 then Some (T, S2) else None;
+    fun get_hyp S2 S1 = if le S1 S2 then Some (TFree ("'hyp", S1), S2) else None;
+    fun mg_dom t S = Some (mg_domain (classrel, arities) t S) handle DOMAIN _ => None;
+
+    fun witn_sort _ (solved_failed, []) = (solved_failed, Some top_witn)
+      | witn_sort path ((solved, failed), S) =
+          if exists (le S) failed then ((solved, failed), None)
+          else
+            (case get_first (get_solved S) solved of
+              Some w => ((solved, failed), Some w)
+            | None =>
+                (case get_first (get_hyp S) hyps of
+                  Some w => ((w :: solved, failed), Some w)
+                | None => witn_types path log_types ((solved, failed), S)))
+
+    and witn_sorts path x = foldl_map (witn_sort path) x
+
+    and witn_types _ [] ((solved, failed), S) = ((solved, S :: failed), None)
+      | witn_types path (t :: ts) (solved_failed, S) =
+          (case mg_dom t S of
+            Some SS =>
+              (*do not descend into stronger args (achieving termination)*)
+              if exists (fn D => le D S orelse exists (le D) path) SS then
+                witn_types path ts (solved_failed, S)
+              else
+                let val ((solved', failed'), ws) = witn_sorts (S :: path) (solved_failed, SS) in
+                  if forall is_some ws then
+                    let val w = (Type (t, map (#1 o the) ws), S)
+                    in ((w :: solved', failed'), Some w) end
+                  else witn_types path ts ((solved', failed'), S)
+                end
+          | None => witn_types path ts (solved_failed, S));
+
+  in witn_sorts [] (([], []), sorts) end;
+
+
+fun witness_sorts (classrel, arities, log_types) hyps sorts =
+  let
+    fun check_result None = None
+      | check_result (Some (T, S)) =
+          if of_sort (classrel, arities) (T, S) then Some (T, S)
+          else (warning ("witness_sorts: rejected bad witness for " ^ str_of_sort S); None);
+  in mapfilter check_result (#2 (witness_sorts_aux (classrel, arities, log_types) hyps sorts)) end;
+
 
 end;
