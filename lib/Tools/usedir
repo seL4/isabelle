@@ -34,7 +34,7 @@ BUILD=""
 COPYDB=""
 SESSION=""
 
-while getopts "bc" OPT
+while getopts "bcs:" OPT
 do
   case "$OPT" in
     b)
