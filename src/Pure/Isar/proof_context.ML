@@ -56,8 +56,8 @@ sig
   val assume_i: ((int -> tactic) * (int -> tactic))
     -> (string * context attribute list * (term * (term list * term list)) list) list
     -> context -> context * ((string * thm list) list * thm list)
-  val fix: (string * string option) list -> context -> context
-  val fix_i: (string * typ) list -> context -> context
+  val fix: (string list * string option) list -> context -> context
+  val fix_i: (string list * typ) list -> context -> context
   val transfer_used_names: context -> context -> context
   val setup: (theory -> theory) list
 end;
@@ -714,7 +714,8 @@ fun gen_fix prep check (ctxt, (x, raw_T)) =
         (thy, data, (assumes, ((x, Syntax.skolem x') :: fixes, x' :: names)), binds, thms, defs)
       end);
 
-fun gen_fixs prep check xs ctxt = foldl (gen_fix prep check) (ctxt, xs);
+fun gen_fixs prep check vars ctxt =
+  foldl (gen_fix prep check) (ctxt, flat (map (fn (xs, T) => map (rpair T) xs) vars));
 
 
 val fix = gen_fixs read_skolemT true;
