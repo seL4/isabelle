@@ -31,8 +31,8 @@ datatype stmt
   | Comp       stmt stmt   ("_;; _"             [91,90   ] 90)
   | Cond expr  stmt stmt   ("If '(_') _ Else _" [99,91,91] 91)
   | Loop vname stmt        ("While '(_') _"     [99,91   ] 91)
-  | LAss vname expr        ("_ :== _"           [99,   95] 94) --{* local ass.*}
-  | FAss expr  fname expr  ("_.._:==_"          [95,99,95] 94) --{* field ass.*}
+  | LAss vname expr        ("_ :== _"           [99,   95] 94) --{* local assignment *}
+  | FAss expr  fname expr  ("_.._:==_"          [95,99,95] 94) --{* field assignment *}
   | Meth "cname \<times> mname"   --{* virtual method *}
   | Impl "cname \<times> mname"   --{* method implementation *}
 and expr

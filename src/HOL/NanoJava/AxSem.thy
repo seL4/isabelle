@@ -4,7 +4,7 @@
     Copyright   2001 Technische Universitaet Muenchen
 *)
 
-header "Axiomatic Semantics (Hoare Logic)"
+header "Axiomatic Semantics"
 
 theory AxSem = State:
 
@@ -41,6 +41,8 @@ translations "A |\<turnstile> C"        \<rightleftharpoons> "(A,C) \<in> hoare"
              "A |\<turnstile>\<^sub>e (P,e,Q)" \<rightleftharpoons> "(A,P,e,Q) \<in> ehoare" (* shouldn't be necessary *)
              "A  \<turnstile>\<^sub>e {P}e{Q}" \<rightleftharpoons> "A |\<turnstile>\<^sub>e (P,e,Q)"
 
+
+subsection "Hoare Logic Rules"
 
 inductive hoare ehoare
 intros
@@ -86,7 +88,7 @@ intros
                   Impl (D,m) {Q} ==>
              A |- {P} Meth (C,m) {Q}"
 
-  --{* @{text "\<Union>z"} instead of @{text "\<forall>z"} in the conclusion and
+  --{* @{text "\<Union>z"} instead of @{text "\<forall>z"} in the conclusion and\\
        z restricted to type state due to limitations of the inductive package *}
   Impl: "\<forall>z::state. A\<union> (\<Union>z. (\<lambda>Cm. (P z Cm, Impl Cm, Q z Cm))`Ms) ||- 
                             (\<lambda>Cm. (P z Cm, body Cm, Q z Cm))`Ms ==>
