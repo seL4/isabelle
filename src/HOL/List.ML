@@ -181,10 +181,7 @@ Goal "(ys @ xs = zs @ xs) = (ys=zs)";
 by (Simp_tac 1);
 qed "append_same_eq";
 
-AddSIs
- [same_append_eq RS iffD2, append1_eq_conv RS iffD2, append_same_eq RS iffD2];
-AddSDs
- [same_append_eq RS iffD1, append1_eq_conv RS iffD1, append_same_eq RS iffD1];
+AddIffs [same_append_eq, append1_eq_conv, append_same_eq];
 
 Goal "(xs @ ys = ys) = (xs=[])";
 by (cut_inst_tac [("zs","[]")] append_same_eq 1);
@@ -1188,6 +1185,12 @@ by (rtac refl 2);
 by (Asm_simp_tac 1);
 qed "upt_conv_Cons";
 
+(*LOOPS as a simprule, since j<=j*)
+Goal "i<=j ==> [i..j+k(] = [i..j(]@[j..j+k(]";
+by (induct_tac "k" 1);
+by Auto_tac;
+qed "upt_add_eq_append";
+
 Goal "length [i..j(] = j-i";
 by (induct_tac "j" 1);
  by (Simp_tac 1);
@@ -1217,30 +1220,15 @@ by (asm_simp_tac (simpset() delsimps (thms"upt.simps")) 1);
 qed_spec_mp "take_upt";
 Addsimps [take_upt];
 
-Goal "!m i. i < n-m --> (map f [m..n(]) ! i = f(m+i)";
+Goal "map Suc [m..n(] = [Suc m..n]";
 by (induct_tac "n" 1);
- by (Simp_tac 1);
-by (Clarify_tac 1);
-by (subgoal_tac "m < Suc n" 1);
- by (arith_tac 2);
-by (stac upt_rec 1);
-by (asm_simp_tac (simpset() delsplits [split_if]) 1);
-by (split_tac [split_if] 1);
-by (rtac conjI 1);
- by (simp_tac (simpset() addsimps [nth_Cons] addsplits [nat.split]) 1);
- by (simp_tac (simpset() addsimps [nth_append] addsplits [nat.split]) 1);
- by (Clarify_tac 1);
- by (rtac conjI 1);
-  by (Clarify_tac 1);
-  by (subgoal_tac "Suc(m+nat) < n" 1);
-   by (arith_tac 2);
-  by (Asm_simp_tac 1);
- by (Clarify_tac 1);
- by (subgoal_tac "n = Suc(m+nat)" 1);
-  by (arith_tac 2);
- by (Asm_simp_tac 1);
-by (simp_tac (simpset() addsimps [nth_Cons] addsplits [nat.split]) 1);
-by (arith_tac 1);
+by Auto_tac;
+qed "map_Suc_upt";
+
+Goal "ALL i. i < n-m --> (map f [m..n(]) ! i = f(m+i)";
+by (res_inst_tac [("m","n"),("n","m")] diff_induct 1);
+by (stac (map_Suc_upt RS sym) 3);
+by (auto_tac (claset(), simpset() addsimps [less_diff_conv, nth_upt]));
 qed_spec_mp "nth_map_upt";
 
 Goal "ALL xs ys. k <= length xs --> k <= length ys -->  \
