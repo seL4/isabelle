@@ -126,9 +126,11 @@ section"Hoare logic"
 
 subsection"List reversal"
 
-lemma "|- VARS tl p q r. 
+text{* A tactic script: *}
+
+lemma "|- VARS tl p q r.
   {list tl p As \<and> list tl q Bs \<and> set As \<inter> set Bs = {}}
-  WHILE p ~= None
+  WHILE p \<noteq> None
   INV {\<exists>As' Bs'. list tl p As' \<and> list tl q Bs' \<and> set As' \<inter> set Bs' = {} \<and>
                  rev As' @ Bs' = rev As @ Bs}
   DO r := p; p := p^:tl; r^.tl := q; q := r OD
@@ -138,9 +140,6 @@ apply vcg_simp
 apply(rule_tac x = As in exI)
 apply simp
 
-prefer 2
-apply clarsimp
-
 apply clarify
 apply(rename_tac As' b Bs')
 apply clarsimp
@@ -149,7 +148,40 @@ apply(rule_tac x = As'' in exI)
 apply simp
 apply(rule_tac x = "b#Bs'" in exI)
 apply simp
+
+apply clarsimp
 done
+
+text{*A readable(?) proof: *}
+
+lemma "|- VARS tl p q r.
+  {list tl p As \<and> list tl q Bs \<and> set As \<inter> set Bs = {}}
+  WHILE p \<noteq> None
+  INV {\<exists>As' Bs'. list tl p As' \<and> list tl q Bs' \<and> set As' \<inter> set Bs' = {} \<and>
+                 rev As' @ Bs' = rev As @ Bs}
+  DO r := p; p := p^:tl; r^.tl := q; q := r OD
+  {list tl q (rev As @ Bs)}"
+ (is "Valid {(tl,p,q,r).?P tl p q r}
+            (While _ {(tl,p,q,r). \<exists>As' Bs'. ?I tl p q r As' Bs'} _)
+            {(tl,p,q,r).?Q tl p q r}")
+proof vcg
+  fix tl p q r
+  assume "?P tl p q r"
+  hence "?I tl p q r As Bs" by simp
+  thus "\<exists>As' Bs'. ?I tl p q r As' Bs'" by rules
+next
+  fix tl p q r
+  assume "(\<exists>As' Bs'. ?I tl p q r As' Bs') \<and> p \<noteq> None"
+  then obtain As' Bs' a where I: "?I tl p q r As' Bs'" "p = Some a" by fast
+  then obtain As'' where "As' = a # As''" by fastsimp
+  hence "?I (tl(the p := q)) (p^:tl) p p As'' (a#Bs')" using I by fastsimp
+  thus "\<exists>As' Bs'. ?I (tl(the p := q)) (p^:tl) p p As' Bs'" by rules
+next
+  fix tl p q r
+  assume "(\<exists>As' Bs'. ?I tl p q r As' Bs') \<and> \<not> p \<noteq> None"
+  thus "?Q tl p q r" by clarsimp
+qed
+
 
 subsection{*Searching in a list*}
 
@@ -262,7 +294,7 @@ declare imp_disjL[simp del] imp_disjCL[simp]
 lemma "|- VARS hd tl p q r s.
  {list tl p Ps \<and> list tl q Qs \<and> set Ps \<inter> set Qs = {} \<and>
   (p \<noteq> None \<or> q \<noteq> None)}
- IF q = None \<or> p \<noteq> None \<and> p^:hd \<le> q^:hd
+ IF if q = None then True else p \<noteq> None \<and> p^:hd \<le> q^:hd
  THEN r := p; p := p^:tl ELSE r := q; q := q^:tl FI;
  s := r;
  WHILE p \<noteq> None \<or> q \<noteq> None
@@ -271,86 +303,59 @@ lemma "|- VARS hd tl p q r s.
       merge(Ps,Qs,\<lambda>x y. hd x \<le> hd y) =
       rs @ a # merge(ps,qs,\<lambda>x y. hd x \<le> hd y) \<and>
       (tl a = p \<or> tl a = q)}
- DO IF q = None \<or> p \<noteq> None \<and> p^:hd \<le> q^:hd
+ DO IF if q = None then True else p \<noteq> None \<and> p^:hd \<le> q^:hd
     THEN s^.tl := p; p := p^:tl ELSE s^.tl := q; q := q^:tl FI;
     s := s^:tl
  OD
  {list tl r (merge(Ps,Qs,\<lambda>x y. hd x \<le> hd y))}"
 apply vcg_simp
 
-apply clarsimp
-apply(rule conjI)
-apply clarsimp
-apply(rule exI, rule conjI, rule disjI1, rule refl)
-apply (fastsimp)
-apply(rule conjI)
-apply clarsimp
-apply(rule exI, rule conjI, rule disjI1, rule refl)
-apply clarsimp
-apply(rule exI)
-apply(rule conjI)
-apply assumption
-apply(rule exI)
-apply(rule conjI)
-apply(rule exI)
-apply(rule conjI)
-apply(rule refl)
-apply assumption
-apply (fastsimp)
-apply(case_tac p)
-apply clarsimp
-apply(rule exI, rule conjI, rule disjI1, rule refl)
-apply (fastsimp)
-apply clarsimp
-apply(rule exI, rule conjI, rule disjI1, rule refl)
-apply(rule exI)
-apply(rule conjI)
-apply(rule exI)
-apply(rule conjI)
-apply(rule refl)
-apply assumption
 apply (fastsimp)
 
 apply clarsimp
 apply(rule conjI)
 apply clarsimp
+apply(simp add:eq_sym_conv)
 apply(rule_tac x = "rs @ [a]" in exI)
 apply simp
 apply(rule_tac x = "bs" in exI)
 apply (fastsimp simp:eq_sym_conv)
 
+apply clarsimp
 apply(rule conjI)
 apply clarsimp
 apply(rule_tac x = "rs @ [a]" in exI)
 apply simp
-apply(rule_tac x = "bs" in exI)
+apply(rule_tac x = "bsa" in exI)
 apply(rule conjI)
 apply (simp add:eq_sym_conv)
-apply(rule exI)
-apply(rule conjI)
-apply(rule_tac x = bsa in exI)
-apply(rule conjI)
-apply(rule refl)
-apply (simp add:eq_sym_conv)
-apply (fastsimp simp:eq_sym_conv)
-apply(case_tac p)
-apply clarsimp
-apply(rule_tac x = "rs @ [a]" in exI)
-apply simp
-apply(rule_tac x = "bs" in exI)
-apply (fastsimp simp:eq_sym_conv)
-
-apply clarsimp
-apply(rule_tac x = "rs @ [a]" in exI)
-apply simp
 apply(rule exI)
 apply(rule conjI)
 apply(rule_tac x = bs in exI)
 apply(rule conjI)
 apply(rule refl)
 apply (simp add:eq_sym_conv)
+apply (simp add:eq_sym_conv)
+apply (fast)
+
+apply(rule conjI)
+apply clarsimp
+apply(rule_tac x = "rs @ [a]" in exI)
+apply simp
+apply(rule_tac x = bs in exI)
+apply (simp add:eq_sym_conv)
+apply clarsimp
+apply(rule_tac x = "rs @ [a]" in exI)
+apply (simp add:eq_sym_conv)
+apply(rule exI)
+apply(rule conjI)
 apply(rule_tac x = bsa in exI)
-apply (fastsimp simp:eq_sym_conv)
+apply(rule conjI)
+apply(rule refl)
+apply (simp add:eq_sym_conv)
+apply(rule_tac x = bs in exI)
+apply (simp add:eq_sym_conv)
+apply fast
 
 apply(clarsimp simp add:list_app)
 done
