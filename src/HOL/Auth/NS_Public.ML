@@ -90,32 +90,34 @@ fun analz_induct_tac i =
 (*It is impossible to re-use a nonce in both NS1 and NS2, provided the nonce
   is secret.  (Honest users generate fresh nonces.)*)
 goal thy 
- "!!evs. evs : ns_public                       \
-\ ==> Nonce NA ~: analz (sees lost Spy evs) -->           \
-\     Crypt (pubK B) {|Nonce NA, Agent A|} : parts (sees lost Spy evs) --> \
-\     Crypt (pubK C) {|NA', Nonce NA, Agent D|} ~: parts (sees lost Spy evs)";
+ "!!evs. [| Nonce NA ~: analz (sees lost Spy evs);  \
+\           Crypt (pubK B) {|Nonce NA, Agent A|} : parts (sees lost Spy evs); \
+\           evs : ns_public |]                      \
+\ ==> Crypt (pubK C) {|NA', Nonce NA, Agent D|} ~: parts (sees lost Spy evs)";
+by (etac rev_mp 1);
+by (etac rev_mp 1);
 by (analz_induct_tac 1);
 (*NS3*)
 by (fast_tac (!claset addSEs partsEs) 4);
 (*NS2*)
 by (fast_tac (!claset addSEs partsEs) 3);
 (*Fake*)
-by (best_tac (!claset addIs [analz_insertI]
-                      addDs [impOfSubs analz_subset_parts,
-                             impOfSubs Fake_parts_insert]
-                      addss (!simpset)) 2);
+by (deepen_tac (!claset addSIs [analz_insertI]
+                        addDs [impOfSubs analz_subset_parts,
+			       impOfSubs Fake_parts_insert]
+			addss (!simpset)) 0 2);
 (*Base*)
 by (fast_tac (!claset addss (!simpset)) 1);
-bind_thm ("no_nonce_NS1_NS2", result() RSN (2, rev_mp) RSN (2, rev_mp));
+qed "no_nonce_NS1_NS2";
 
 
 (*Unicity for NS1: nonce NA identifies agents A and B*)
 goal thy 
- "!!evs. evs : ns_public                                                    \
-\ ==> Nonce NA ~: analz (sees lost Spy evs) -->                             \
-\     (EX A' B'. ALL A B.                                                   \
+ "!!evs. [| Nonce NA ~: analz (sees lost Spy evs);  evs : ns_public |]      \
+\ ==> EX A' B'. ALL A B.                                                    \
 \      Crypt (pubK B) {|Nonce NA, Agent A|} : parts (sees lost Spy evs) --> \
-\      A=A' & B=B')";
+\      A=A' & B=B'";
+by (etac rev_mp 1);
 by (analz_induct_tac 1);
 (*NS1*)
 by (simp_tac (!simpset addsimps [all_conj_distrib]) 3);
@@ -145,43 +147,42 @@ qed "unique_NA";
 
 (*Secrecy: Spy does not see the nonce sent in msg NS1 if A and B are secure*)
 goal thy 
- "!!evs. [| A ~: lost;  B ~: lost;  evs : ns_public |]   \
-\ ==> Says A B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set_of_list evs \
-\     --> Nonce NA ~: analz (sees lost Spy evs)";
+ "!!evs. [| Says A B (Crypt(pubK B) {|Nonce NA, Agent A|}) : set_of_list evs; \
+\           A ~: lost;  B ~: lost;  evs : ns_public |]                        \
+\        ==>  Nonce NA ~: analz (sees lost Spy evs)";
+by (etac rev_mp 1);
 by (analz_induct_tac 1);
 (*NS3*)
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy' RS parts.Inj]
                       addEs  [no_nonce_NS1_NS2 RSN (2, rev_notE)]) 4);
+(*NS2*)
+by (deepen_tac (!claset addSDs [Says_imp_sees_Spy' RS parts.Inj]
+                        addSEs [MPair_parts]
+			addDs  [parts.Body, unique_NA]) 0 3);
 (*NS1*)
-by (fast_tac (!claset addSEs partsEs
-                      addSDs [Says_imp_sees_Spy' RS parts.Inj]
+by (fast_tac (!claset addSEs sees_Spy_partsEs
                       addIs  [impOfSubs analz_subset_parts]) 2);
 (*Fake*)
 by (spy_analz_tac 1);
-(*NS2*)
-by (Step_tac 1);
-by (fast_tac (!claset addSEs partsEs
-                      addSDs [Says_imp_sees_Spy' RS parts.Inj]) 2);
-(*14 seconds.  Much slower still if one tries to prove all NS2 in one step.*)
-by (best_tac (!claset addSDs [Says_imp_sees_Spy' RS parts.Inj]
-                      addDs  [unique_NA]) 1);
-bind_thm ("Spy_not_see_NA", result() RSN (2, rev_mp));
+qed "Spy_not_see_NA";
 
 
 (*Authentication for A: if she receives message 2 and has used NA
   to start a run, then B has sent message 2.*)
 goal thy 
- "!!evs. [| A ~: lost;  B ~: lost;  evs : ns_public |]       \
-\ ==> Crypt (pubK A) {|Nonce NA, Nonce NB, Agent B|}         \
-\                                : parts (sees lost Spy evs) \
-\     --> Says A B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set_of_list evs \
-\     --> Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB, Agent B|})         \
-\           : set_of_list evs";
+ "!!evs. [| Says A B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set_of_list evs;\
+\           Says B' A (Crypt(pubK A) {|Nonce NA, Nonce NB, Agent B|}) \
+\             : set_of_list evs;\
+\           A ~: lost;  B ~: lost;  evs : ns_public |]  \
+\        ==> Says B A (Crypt(pubK A) {|Nonce NA, Nonce NB, Agent B|}) \
+\              : set_of_list evs";
+by (etac rev_mp 1);
+(*prepare induction over Crypt (pubK A) {|NA,NB,B|} : parts H*)
+by (etac (Says_imp_sees_Spy' RS parts.Inj RS rev_mp) 1);
 by (etac ns_public.induct 1);
 by (ALLGOALS Asm_simp_tac);
 (*NS1*)
-by (fast_tac (!claset addSEs partsEs
-                      addSDs [Says_imp_sees_Spy' RS parts.Inj]) 2);
+by (fast_tac (!claset addSEs sees_Spy_partsEs) 2);
 (*Fake*)
 by (REPEAT_FIRST (resolve_tac [impI, conjI]));
 by (fast_tac (!claset addss (!simpset)) 1);
@@ -190,28 +191,16 @@ by (best_tac (!claset addSIs [disjI2]
                       addSDs [impOfSubs Fake_parts_insert]
                       addDs  [impOfSubs analz_subset_parts]
                       addss (!simpset)) 1);
-qed_spec_mp "NA_decrypt_imp_B_msg";
-
-(*Corollary: if A receives B's message NS2 and the nonce NA agrees
-  then that message really originated with B.*)
-goal thy 
- "!!evs. [| Says B' A (Crypt(pubK A) {|Nonce NA, Nonce NB, Agent B|}) \
-\             : set_of_list evs;\
-\           Says A B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set_of_list evs;\
-\           A ~: lost;  B ~: lost;  evs : ns_public |]  \
-\        ==> Says B A (Crypt(pubK A) {|Nonce NA, Nonce NB, Agent B|}) \
-\              : set_of_list evs";
-by (fast_tac (!claset addSIs [NA_decrypt_imp_B_msg]
-                      addEs  partsEs
-                      addDs  [Says_imp_sees_Spy' RS parts.Inj]) 1);
 qed "A_trusts_NS2";
 
 (*If the encrypted message appears then it originated with Alice in NS1*)
 goal thy 
- "!!evs. evs : ns_public                   \
-\    ==> Nonce NA ~: analz (sees lost Spy evs) --> \
-\        Crypt (pubK B) {|Nonce NA, Agent A|} : parts (sees lost Spy evs) --> \
-\        Says A B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set_of_list evs";
+ "!!evs. [| Crypt (pubK B) {|Nonce NA, Agent A|} : parts (sees lost Spy evs); \
+\           Nonce NA ~: analz (sees lost Spy evs);                 \
+\           evs : ns_public |]                                     \
+\   ==> Says A B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set_of_list evs";
+by (etac rev_mp 1);
+by (etac rev_mp 1);
 by (analz_induct_tac 1);
 (*Fake*)
 by (best_tac (!claset addSIs [disjI2]
@@ -221,7 +210,7 @@ by (best_tac (!claset addSIs [disjI2]
                       addss (!simpset)) 2);
 (*Base*)
 by (fast_tac (!claset addss (!simpset)) 1);
-qed_spec_mp "B_trusts_NS1";
+qed "B_trusts_NS1";
 
 
 
@@ -231,11 +220,11 @@ qed_spec_mp "B_trusts_NS1";
   [unicity of B makes Lowe's fix work]
   [proof closely follows that for unique_NA] *)
 goal thy 
- "!!evs. evs : ns_public                                                    \
-\ ==> Nonce NB ~: analz (sees lost Spy evs) -->                             \
-\     (EX A' NA' B'. ALL A NA B.                                            \
-\      Crypt (pubK A) {|Nonce NA, Nonce NB, Agent B|}   \
-\        : parts (sees lost Spy evs)  -->  A=A' & NA=NA' & B=B')";
+ "!!evs. [| Nonce NB ~: analz (sees lost Spy evs);  evs : ns_public |]      \
+\ ==> EX A' NA' B'. ALL A NA B.                                             \
+\      Crypt (pubK A) {|Nonce NA, Nonce NB, Agent B|}                       \
+\        : parts (sees lost Spy evs)  -->  A=A' & NA=NA' & B=B'";
+by (etac rev_mp 1);
 by (analz_induct_tac 1);
 (*NS2*)
 by (simp_tac (!simpset addsimps [all_conj_distrib]) 3);
@@ -267,27 +256,26 @@ qed "unique_NB";
 
 (*Secrecy: Spy does not see the nonce sent in msg NS2 if A and B are secure*)
 goal thy 
- "!!evs. [| A ~: lost;  B ~: lost;  evs : ns_public |]   \
-\ ==> Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB, Agent B|}) \
-\       : set_of_list evs \
-\     --> Nonce NB ~: analz (sees lost Spy evs)";
+ "!!evs. [| Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB, Agent B|}) \
+\             : set_of_list evs;                                      \
+\           A ~: lost;  B ~: lost;  evs : ns_public |]                \
+\ ==> Nonce NB ~: analz (sees lost Spy evs)";
+by (etac rev_mp 1);
 by (analz_induct_tac 1);
 (*NS3*)
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy' RS parts.Inj]
                       addDs  [unique_NB]) 4);
 (*NS1*)
-by (fast_tac (!claset addSEs partsEs
-                      addSDs [Says_imp_sees_Spy' RS parts.Inj]) 2);
+by (fast_tac (!claset addSEs sees_Spy_partsEs) 2);
 (*Fake*)
 by (spy_analz_tac 1);
 (*NS2*)
 by (Step_tac 1);
-by (fast_tac (!claset addSEs partsEs
-                      addSDs [Says_imp_sees_Spy' RS parts.Inj]) 3);
+by (fast_tac (!claset addSEs sees_Spy_partsEs) 3);
 by (best_tac (!claset addSDs [Says_imp_sees_Spy' RS parts.Inj]
                       addEs  [no_nonce_NS1_NS2 RSN (2, rev_notE)]) 2);
 by (fast_tac (!claset addIs  [impOfSubs analz_subset_parts]) 1);
-bind_thm ("Spy_not_see_NB", result() RSN (2, rev_mp));
+qed "Spy_not_see_NB";
 
 
 (*Matches only NS2, not NS1 (or NS3)*)
@@ -298,16 +286,18 @@ val Says_imp_sees_Spy'' =
 (*Authentication for B: if he receives message 3 and has used NB
   in message 2, then A has sent message 3.*)
 goal thy 
- "!!evs. [| A ~: lost;  B ~: lost;  evs : ns_public |]       \
-\ ==> Crypt (pubK B) (Nonce NB) : parts (sees lost Spy evs) \
-\     --> Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB, Agent B|}) \
-\       : set_of_list evs \
-\     --> Says A B (Crypt (pubK B) (Nonce NB)) : set_of_list evs";
+ "!!evs. [| Says B A  (Crypt (pubK A) {|Nonce NA, Nonce NB, Agent B|}) \
+\             : set_of_list evs;                                       \
+\           Says A' B (Crypt (pubK B) (Nonce NB)): set_of_list evs;    \
+\           A ~: lost;  B ~: lost;  evs : ns_public |]                 \
+\        ==> Says A B (Crypt (pubK B) (Nonce NB)) : set_of_list evs";
+by (etac rev_mp 1);
+(*prepare induction over Crypt (pubK B) NB : parts H*)
+by (etac (Says_imp_sees_Spy' RS parts.Inj RS rev_mp) 1);
 by (etac ns_public.induct 1);
 by (ALLGOALS Asm_simp_tac);
 (*NS1*)
-by (fast_tac (!claset addSEs partsEs
-                      addSDs [Says_imp_sees_Spy' RS parts.Inj]) 2);
+by (fast_tac (!claset addSEs sees_Spy_partsEs) 2);
 (*Fake*)
 by (REPEAT_FIRST (resolve_tac [impI, conjI]));
 by (fast_tac (!claset addss (!simpset)) 1);
@@ -321,39 +311,27 @@ by (Step_tac 1);
 by (forward_tac [Spy_not_see_NB] 1 THEN REPEAT (assume_tac 1));
 by (best_tac (!claset addSDs [Says_imp_sees_Spy'' RS parts.Inj]
                       addDs  [unique_NB]) 1);
-qed_spec_mp "NB_decrypt_imp_A_msg";
-
-(*Corollary: if B receives message NS3 and the nonce NB agrees,
-  then that message really originated with A.*)
-goal thy 
- "!!evs. [| Says A' B (Crypt (pubK B) (Nonce NB)): set_of_list evs;    \
-\           Says B A  (Crypt (pubK A) {|Nonce NA, Nonce NB, Agent B|}) \
-\             : set_of_list evs;                                       \
-\           A ~: lost;  B ~: lost;  evs : ns_public |]                 \
-\        ==> Says A B (Crypt (pubK B) (Nonce NB)) : set_of_list evs";
-by (fast_tac (!claset addSIs [NB_decrypt_imp_A_msg]
-                      addEs  partsEs
-                      addDs  [Says_imp_sees_Spy' RS parts.Inj]) 1);
 qed "B_trusts_NS3";
 
 
 (**** Overall guarantee for B*)
 
 (*If B receives NS3 and the nonce NB agrees with the nonce he joined with
-  NA, then A initiated the run using NA.
-  SAME PROOF AS NB_decrypt_imp_A_msg*)
+  NA, then A initiated the run using NA.  SAME proof as B_trusts_NS3!*)
 goal thy 
- "!!evs. [| A ~: lost;  B ~: lost;  evs : ns_public |]       \
-\ ==> Crypt (pubK B) (Nonce NB) : parts (sees lost Spy evs) \
-\     --> Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB, Agent B|}) \
-\       : set_of_list evs \
-\     --> Says A B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set_of_list evs";
+ "!!evs. [| Says B A  (Crypt (pubK A) {|Nonce NA, Nonce NB, Agent B|}) \
+\             : set_of_list evs;                                       \
+\           Says A' B (Crypt (pubK B) (Nonce NB)): set_of_list evs;    \
+\           A ~: lost;  B ~: lost;  evs : ns_public |]                 \
+\    ==> Says A B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set_of_list evs";
+by (etac rev_mp 1);
+(*prepare induction over Crypt (pubK B) {|NB|} : parts H*)
+by (etac (Says_imp_sees_Spy' RS parts.Inj RS rev_mp) 1);
 by (etac ns_public.induct 1);
 by (ALLGOALS Asm_simp_tac);
 (*Fake, NS2, NS3*)
 (*NS1*)
-by (fast_tac (!claset addSEs partsEs
-                      addSDs [Says_imp_sees_Spy' RS parts.Inj]) 2);
+by (fast_tac (!claset addSEs sees_Spy_partsEs) 2);
 (*Fake*)
 by (REPEAT_FIRST (resolve_tac [impI, conjI]));
 by (fast_tac (!claset addss (!simpset)) 1);
@@ -367,16 +345,5 @@ by (Step_tac 1);
 by (forward_tac [Spy_not_see_NB] 1 THEN REPEAT (assume_tac 1));
 by (best_tac (!claset addSDs [Says_imp_sees_Spy'' RS parts.Inj]
                       addDs  [unique_NB]) 1);
-val lemma = result() RSN (2, rev_mp) RSN (2, rev_mp);
-
-goal thy 
- "!!evs. [| Says A' B (Crypt (pubK B) (Nonce NB)): set_of_list evs;    \
-\           Says B A  (Crypt (pubK A) {|Nonce NA, Nonce NB, Agent B|}) \
-\             : set_of_list evs;                                       \
-\           A ~: lost;  B ~: lost;  evs : ns_public |]                 \
-\    ==> Says A B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set_of_list evs";
-by (fast_tac (!claset addSIs [lemma]
-                      addEs  partsEs
-                      addDs  [Says_imp_sees_Spy' RS parts.Inj]) 1);
-qed_spec_mp "B_trusts_protocol";
+qed "B_trusts_protocol";
 
