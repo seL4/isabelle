@@ -7,7 +7,6 @@ User interfaces for axiomatic type classes.
 
 signature AX_CLASS =
 sig
-  val add_thms_as_axms: (string * thm) list -> theory -> theory
   val add_classrel_thms: thm list -> theory -> theory
   val add_arity_thms: thm list -> theory -> theory
   val add_axclass: bclass * xclass list -> (string * string) list
@@ -125,10 +124,6 @@ fun prep_thm_axm thy thm =
       err "theorem may not contain hypotheses"
     else prop
   end;
-
-(*general theorems*)
-fun add_thms_as_axms thms thy =
-  Theory.add_axioms_i (map (apsnd (prep_thm_axm thy)) thms) thy;
 
 (*theorems expressing class relations*)
 fun add_classrel_thms thms thy =
