@@ -1,9 +1,9 @@
-(*  Title: 	FOL/fol.ML
+(*  Title: 	FOLP/FOLP.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author: 	Martin D Coen, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
-Tactics and lemmas for fol.thy (classical First-Order Logic)
+Tactics and lemmas for FOLP (Classical First-Order Logic with Proofs)
 *)
 
 open FOLP;

@@ -1,9 +1,9 @@
-(*  Title: 	FOLP/ifol.ML
+(*  Title: 	FOLP/IFOLP.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author: 	Martin D Coen, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
-Tactics and lemmas for ifol.thy (intuitionistic first-order logic)
+Tactics and lemmas for IFOLP (Intuitionistic First-Order Logic with Proofs)
 *)
 
 open IFOLP;
