@@ -54,10 +54,12 @@ qed "schroeder_bernstein";
 
 (** Equipollence is an equivalence relation **)
 
-goalw Cardinal.thy [eqpoll_def] "X eqpoll X";
-by (rtac exI 1);
-by (rtac id_bij 1);
-qed "eqpoll_refl";
+goalw Cardinal.thy [eqpoll_def] "!!f A B. f: bij(A,B) ==> A eqpoll B";
+by (etac exI 1);
+qed "bij_imp_eqpoll";
+
+(*A eqpoll A*)
+bind_thm ("eqpoll_refl", id_bij RS bij_imp_eqpoll);
 
 goalw Cardinal.thy [eqpoll_def] "!!X Y. X eqpoll Y ==> Y eqpoll X";
 by (fast_tac (ZF_cs addIs [bij_converse_bij]) 1);
@@ -186,6 +188,14 @@ by (rtac (Least_le RSN (2,lt_trans2) RS lt_irrefl) 1);
 by (REPEAT (eresolve_tac [asm_rl, ltE] 1));
 qed "less_LeastE";
 
+(*Easier to apply than LeastI2: conclusion has only one occurrence of P*)
+qed_goal "LeastI2" Cardinal.thy
+    "[| P(i);  Ord(i);  !!j. P(j) ==> Q(j) |] ==> Q(LEAST j. P(j))"
+ (fn prems => [ resolve_tac prems 1, 
+	        rtac LeastI 1, 
+		resolve_tac prems 1, 
+		resolve_tac prems 1 ]);
+
 (*If there is no such P then LEAST is vacuously 0*)
 goalw Cardinal.thy [Least_def]
     "!!P. [| ~ (EX i. Ord(i) & P(i)) |] ==> (LEAST x.P(x)) = 0";
@@ -219,12 +229,11 @@ by (fast_tac (ZF_cs addEs [comp_bij,bij_converse_bij]) 1);
 qed "cardinal_cong";
 
 (*Under AC, the premise becomes trivial; one consequence is ||A|| = |A|*)
-goalw Cardinal.thy [eqpoll_def, cardinal_def]
+goalw Cardinal.thy [cardinal_def]
     "!!A. well_ord(A,r) ==> |A| eqpoll A";
 by (rtac LeastI 1);
 by (etac Ord_ordertype 2);
-by (rtac exI 1);
-by (etac (ordermap_bij RS bij_converse_bij) 1);
+by (etac (ordermap_bij RS bij_converse_bij RS bij_imp_eqpoll) 1);
 qed "well_ord_cardinal_eqpoll";
 
 bind_thm ("Ord_cardinal_eqpoll", well_ord_Memrel RS well_ord_cardinal_eqpoll);
@@ -247,6 +256,7 @@ goalw Cardinal.thy [Card_def] "!!K. Card(K) ==> |K| = K";
 by (etac sym 1);
 qed "Card_cardinal_eq";
 
+(* Could replace the  ~(j eqpoll i)  by  ~(i lepoll j) *)
 val prems = goalw Cardinal.thy [Card_def,cardinal_def]
     "[| Ord(i);  !!j. j<i ==> ~(j eqpoll i) |] ==> Card(i)";
 by (rtac (Least_equality RS ssubst) 1);
@@ -265,6 +275,16 @@ qed "Card_cardinal_le";
 goalw Cardinal.thy [cardinal_def] "Ord(|A|)";
 by (rtac Ord_Least 1);
 qed "Ord_cardinal";
+
+(*The cardinals are the initial ordinals*)
+goal Cardinal.thy "Card(K) <-> Ord(K) & (ALL j. j<K --> ~ j eqpoll K)";
+by (safe_tac (ZF_cs addSIs [CardI, Card_is_Ord]));
+by (fast_tac ZF_cs 2);
+by (rewrite_goals_tac [Card_def, cardinal_def]);
+by (resolve_tac [less_LeastE] 1);
+by (eresolve_tac [subst] 2);
+by (ALLGOALS assume_tac);
+qed "Card_iff_initial";
 
 goal Cardinal.thy "Card(0)";
 by (rtac (Ord_0 RS CardI) 1);
@@ -468,10 +488,6 @@ qed "nat_le_cardinal";
 (*** Towards Cardinal Arithmetic ***)
 (** Congruence laws for successor, cardinal addition and multiplication **)
 
-val case_ss = 
-    bij_inverse_ss addsimps [Inl_iff, Inl_Inr_iff, Inr_iff, Inr_Inl_iff,
-			     case_Inl, case_Inr, InlI, InrI];
-
 (*Congruence law for  cons  under equipollence*)
 goalw Cardinal.thy [lepoll_def]
     "!!A B. [| A lepoll B;  b ~: B |] ==> cons(a,A) lepoll cons(b,B)";
@@ -515,25 +531,13 @@ qed "succ_eqpoll_cong";
 (*Congruence law for + under equipollence*)
 goalw Cardinal.thy [eqpoll_def]
     "!!A B C D. [| A eqpoll C;  B eqpoll D |] ==> A+B eqpoll C+D";
-by (safe_tac ZF_cs);
-by (rtac exI 1);
-by (res_inst_tac [("c", "case(%x. Inl(f`x), %y. Inr(fa`y))"),
-	 ("d", "case(%x. Inl(converse(f)`x), %y. Inr(converse(fa)`y))")] 
-    lam_bijective 1);
-by (safe_tac (ZF_cs addSEs [sumE]));
-by (ALLGOALS (asm_simp_tac case_ss));
+by (fast_tac (ZF_cs addSIs [sum_bij]) 1);
 qed "sum_eqpoll_cong";
 
 (*Congruence law for * under equipollence*)
 goalw Cardinal.thy [eqpoll_def]
     "!!A B C D. [| A eqpoll C;  B eqpoll D |] ==> A*B eqpoll C*D";
-by (safe_tac ZF_cs);
-by (rtac exI 1);
-by (res_inst_tac [("c", "split(%x y. <f`x, fa`y>)"),
-		  ("d", "split(%x y. <converse(f)`x, converse(fa)`y>)")] 
-    lam_bijective 1);
-by (safe_tac ZF_cs);
-by (ALLGOALS (asm_simp_tac case_ss));
+by (fast_tac (ZF_cs addSIs [prod_bij]) 1);
 qed "prod_eqpoll_cong";
 
 goalw Cardinal.thy [eqpoll_def]
