@@ -1,10 +1,13 @@
 (*  Title:      Pure/Thy/thy_read.ML
     ID:         $Id$
-    Author:     Sonia Mahjoub / Tobias Nipkow / L C Paulson / Carsten Clasohm
-    Copyright   1994  TU Muenchen
+    Author:     Carsten Clasohm and Markus Wenzel and Sonia Mahjoub and
+                Tobias Nipkow and L C Paulson
+    Copyright   1994 TU Muenchen
 
+(* FIXME !? *)
 Reading and writing the theory definition files.
 
+(* FIXME !? *)
 For theory XXX, the  input file is called XXX.thy
                 the output file is called .XXX.thy.ML
                 and it then tries to read XXX.ML
@@ -14,7 +17,7 @@ datatype thy_info = ThyInfo of {path: string,
                                 children: string list,
                                 thy_time: string option,
                                 ml_time: string option,
-                                theory: Thm.theory option,
+                                theory: theory option,
                                 thms: thm Symtab.table};
 
 signature READTHY =
@@ -33,24 +36,25 @@ sig
   val base_on        : basetype list -> string -> bool -> theory
   val store_theory   : theory * string -> unit
 
-  val store_thm      : thm * string -> thm
-  val qed            : string -> unit
-  val get_thm        : theory -> string -> thm
-  val get_thms       : theory -> (string * thm) list
+  val theory_of_sign: Sign.sg -> theory
+  val theory_of_thm: thm -> theory
+  val store_thm: string * thm -> thm
+  val qed: string -> unit
+  val get_thm: theory -> string -> thm
+  val thms_of: theory -> (string * thm) list
 end;
 
 
 functor ReadthyFUN(structure ThySyn: THY_SYN): READTHY =
 struct
-open Symtab;
 
 datatype basetype = Thy  of string
                   | File of string;
 
-val loaded_thys = ref (make [("Pure", ThyInfo {path = "", children = [], 
-                                       thy_time = Some "", ml_time = Some "", 
+val loaded_thys = ref (Symtab.make [("Pure", ThyInfo {path = "", children = [],
+                                       thy_time = Some "", ml_time = Some "",
                                        theory = Some pure_thy,
-                                       thms = null})]);
+                                       thms = Symtab.null})]);
 
 val loadpath = ref ["."];           (*default search path for theory files *)
 
@@ -61,10 +65,10 @@ fun out_name tname = "." ^ tname ^ ".thy.ML";
 
 (*Read a file specified by thy_file containing theory thy *)
 fun read_thy tname thy_file =
-  let 
+  let
     val instream  = open_in thy_file;
     val outstream = open_out (out_name tname);
-  in  
+  in
     output (outstream, ThySyn.parse tname (input (instream, 999999)));
     close_out outstream;
     close_in instream
@@ -75,28 +79,28 @@ fun file_exists file =
     handle Io _ => false;
 
 (*Get thy_info for a loaded theory *)
-fun get_thyinfo tname = lookup (!loaded_thys, tname);
+fun get_thyinfo tname = Symtab.lookup (!loaded_thys, tname);
 
 (*Check if a theory was already loaded *)
 fun already_loaded thy =
   let val t = get_thyinfo thy
   in if is_none t then false
      else let val ThyInfo {thy_time, ml_time, ...} = the t
-          in if is_none thy_time orelse is_none ml_time then false 
-             else true 
+          in if is_none thy_time orelse is_none ml_time then false
+             else true
           end
   end;
 
 (*Check if a theory file has changed since its last use.
   Return a pair of boolean values for .thy and for .ML *)
-fun thy_unchanged thy thy_file ml_file = 
+fun thy_unchanged thy thy_file ml_file =
   let val t = get_thyinfo thy
   in if is_some t then
        let val ThyInfo {thy_time, ml_time, ...} = the t
            val tn = is_none thy_time;
            val mn = is_none ml_time
        in if not tn andalso not mn then
-              ((file_info thy_file = the thy_time), 
+              ((file_info thy_file = the thy_time),
                (file_info ml_file = the ml_time))
           else if not tn andalso mn then (true, false)
           else (false, false)
@@ -112,7 +116,7 @@ fun find_file "" name =
       let fun find_it (curr :: paths) =
                 if file_exists (tack_on curr name) then
                     tack_on curr name
-                else 
+                else
                     find_it paths
            | find_it [] = ""
       in find_it (!loadpath) end
@@ -123,7 +127,7 @@ fun find_file "" name =
 (*Get absolute pathnames for a new or already loaded theory *)
 fun get_filenames path name =
   let fun make_absolute file =
-        if file = "" then "" else 
+        if file = "" then "" else
             if hd (explode file) = "/" then file else tack_on (pwd ()) file;
 
       fun new_filename () =
@@ -143,7 +147,7 @@ fun get_filenames path name =
                     ^ "in the following directories: \"" ^
                     (space_implode "\", \"" searched_dirs) ^ "\"")
            else ();
-           (thy_file, ml_file) 
+           (thy_file, ml_file)
         end;
 
       val tinfo = get_thyinfo name;
@@ -166,33 +170,33 @@ fun get_filenames path name =
 (*Remove theory from all child lists in loaded_thys *)
 fun unlink_thy tname =
   let fun remove (ThyInfo {path, children, thy_time, ml_time, theory, thms}) =
-        ThyInfo {path = path, children = children \ tname, 
+        ThyInfo {path = path, children = children \ tname,
                  thy_time = thy_time, ml_time = ml_time,
                  theory = theory, thms = thms}
-  in loaded_thys := mapst remove (!loaded_thys) end;
+  in loaded_thys := Symtab.map remove (!loaded_thys) end;
 
 (*Remove a theory from loaded_thys *)
 fun remove_thy tname =
-  loaded_thys := make (filter_out (fn (id, _) => id = tname)
-                 (alist_of (!loaded_thys)));
+  loaded_thys := Symtab.make (filter_out (fn (id, _) => id = tname)
+                 (Symtab.dest (!loaded_thys)));
 
 (*Change thy_time and ml_time for an existent item *)
 fun set_info thy_time ml_time tname =
-  let val ThyInfo {path, children, theory, thms, ...} = 
-        the (lookup (!loaded_thys, tname));
-  in loaded_thys := update ((tname, 
+  let val ThyInfo {path, children, theory, thms, ...} =
+        the (Symtab.lookup (!loaded_thys, tname));
+  in loaded_thys := Symtab.update ((tname,
        ThyInfo {path = path, children = children,
                 thy_time = Some thy_time, ml_time = Some ml_time,
                 theory = theory, thms = thms}), !loaded_thys)
   end;
 
 (*Mark theory as changed since last read if it has been completly read *)
-fun mark_outdated tname = 
+fun mark_outdated tname =
   if already_loaded tname then set_info "" "" tname else ();
 
-(*Read .thy and .ML files that haven't been read yet or have changed since 
+(*Read .thy and .ML files that haven't been read yet or have changed since
   they were last read;
-  loaded_thys is a thy_info list ref containing all theories that have 
+  loaded_thys is a thy_info list ref containing all theories that have
   completly been read by this and preceeding use_thy calls.
   If a theory changed since its last use its children are marked as changed *)
 fun use_thy name =
@@ -200,14 +204,14 @@ fun use_thy name =
         val (thy_file, ml_file) = get_filenames path tname;
         val (abs_path, _) = if thy_file = "" then split_filename ml_file
                             else split_filename thy_file;
-        val (thy_uptodate, ml_uptodate) = thy_unchanged tname 
+        val (thy_uptodate, ml_uptodate) = thy_unchanged tname
                                                         thy_file ml_file;
 
          (*Set absolute path for loaded theory *)
          fun set_path () =
-           let val ThyInfo {children, thy_time, ml_time, theory, thms, ...} = 
-                 the (lookup (!loaded_thys, tname));
-           in loaded_thys := update ((tname, 
+           let val ThyInfo {children, thy_time, ml_time, theory, thms, ...} =
+                 the (Symtab.lookup (!loaded_thys, tname));
+           in loaded_thys := Symtab.update ((tname,
                                ThyInfo {path = abs_path, children = children,
                                         thy_time = thy_time, ml_time = ml_time,
                                         theory = theory, thms = thms}),
@@ -229,15 +233,15 @@ fun use_thy name =
 
         (*Remove all theorems associated with a theory*)
         fun delete_thms () =
-          let val tinfo = case lookup (!loaded_thys, tname) of 
+          let val tinfo = case Symtab.lookup (!loaded_thys, tname) of
              Some (ThyInfo {path, children, thy_time, ml_time, theory, ...}) =>
                  ThyInfo {path = path, children = children,
                           thy_time = thy_time, ml_time = ml_time,
-                          theory = theory, thms = null}
+                          theory = theory, thms = Symtab.null}
            | None => ThyInfo {path = "", children = [],
                               thy_time = None, ml_time = None,
-                              theory = None, thms = null};
-         in loaded_thys := update ((tname, tinfo), !loaded_thys) end;
+                              theory = None, thms = Symtab.null};
+         in loaded_thys := Symtab.update ((tname, tinfo), !loaded_thys) end;
     in if thy_uptodate andalso ml_uptodate then ()
        else
        (
@@ -249,7 +253,7 @@ fun use_thy name =
                use (out_name tname)
               );
 
-         if ml_file = "" then () 
+         if ml_file = "" then ()
          else (writeln ("Reading \"" ^ name ^ ".ML\"");
                use ml_file);
 
@@ -263,14 +267,14 @@ fun use_thy name =
          mark_children tname;
 
          (*Remove temporary files*)
-         if not (!delete_tmpfiles) orelse (thy_file = "") orelse thy_uptodate 
+         if not (!delete_tmpfiles) orelse (thy_file = "") orelse thy_uptodate
            then ()
          else delete_file (out_name tname)
         )
     end;
 
 fun time_use_thy tname = timeit(fn()=>
-   (writeln("\n**** Starting Theory " ^ tname ^ " ****");  
+   (writeln("\n**** Starting Theory " ^ tname ^ " ****");
     use_thy tname;
     writeln("\n**** Finished Theory " ^ tname ^ " ****"))
    );
@@ -289,7 +293,7 @@ fun update () =
                          else next_level ts
                       end
                   | next_level [] = [];
-                  
+
                 val children = next_level thys;
             in load_order children ((result \\ children) @ children) end;
 
@@ -316,13 +320,13 @@ fun update () =
      fun collect_garbage not_garbage =
        let fun collect ((tname, ThyInfo {children, ...}) :: ts) =
                  if tname mem not_garbage then collect ts
-                 else (writeln ("Theory \"" ^ tname 
+                 else (writeln ("Theory \"" ^ tname
                          ^ "\" is no longer linked with Pure - removing it.");
                        remove_thy tname;
                        seq mark_outdated children)
              | collect [] = ()
 
-       in collect (alist_of (!loaded_thys)) end;
+       in collect (Symtab.dest (!loaded_thys)) end;
   in collect_garbage ("Pure" :: (load_order ["Pure"] []));
      reload_changed (load_order ["Pure"] [])
   end;
@@ -345,7 +349,7 @@ fun base_on bases child mk_draft =
           fun show_cycle base =
             let fun find_it result curr =
                   let val tinfo = get_thyinfo curr
-                  in if base = curr then 
+                  in if base = curr then
                        error ("Cyclic dependency of theories: "
                               ^ child ^ "->" ^ base ^ result)
                      else if is_some tinfo then
@@ -355,24 +359,24 @@ fun base_on bases child mk_draft =
                      else ()
                   end
             in find_it "" child end;
-        
+
           (*Check if a cycle would be created by add_child *)
           fun find_cycle base =
             if base mem (list_descendants [child]) then show_cycle base
             else ();
-                   
+
           (*Add child to child list of base *)
           fun add_child base =
             let val tinfo =
-                  case lookup (!loaded_thys, base) of
-                      Some (ThyInfo {path, children, thy_time, ml_time, 
+                  case Symtab.lookup (!loaded_thys, base) of
+                      Some (ThyInfo {path, children, thy_time, ml_time,
                                      theory, thms}) =>
                         ThyInfo {path = path, children = child ins children,
                                  thy_time = thy_time, ml_time = ml_time,
                                  theory = theory, thms = thms}
                     | None => ThyInfo {path = "", children = [child],
-                                       thy_time = None, ml_time = None, 
-                                       theory = None, thms = null};
+                                       thy_time = None, ml_time = None,
+                                       theory = None, thms = Symtab.null};
             in loaded_thys := Symtab.update ((base, tinfo), !loaded_thys) end;
 
           (*Load a base theory if not already done
@@ -384,7 +388,7 @@ fun base_on bases child mk_draft =
                 if child = base then
                     error ("Cyclic dependency of theories: " ^ child
                            ^ "->" ^ child)
-                else 
+                else
                   (find_cycle base;
                    add_child base;
                    if thy_present then ()
@@ -392,7 +396,7 @@ fun base_on bases child mk_draft =
                                   ^ " (used by " ^ (quote child) ^ ")");
                          use_thy base)
                   )
-              end; 
+              end;
 
           (*Load all needed files and make a list of all real theories *)
           fun load_base (Thy b :: bs) =
@@ -413,62 +417,91 @@ fun base_on bases child mk_draft =
      in writeln ("Loading theory " ^ (quote child));
         merge_thy_list mk_draft (map get_theory mergelist) end;
 
-(*Change theory object for an existent item of loaded_thys 
+(*Change theory object for an existent item of loaded_thys
   or create a new item *)
 fun store_theory (thy, tname) =
-  let val tinfo = case lookup (!loaded_thys, tname) of 
+  let val tinfo = case Symtab.lookup (!loaded_thys, tname) of
                Some (ThyInfo {path, children, thy_time, ml_time, thms, ...}) =>
                  ThyInfo {path = path, children = children,
                           thy_time = thy_time, ml_time = ml_time,
                           theory = Some thy, thms = thms}
              | None => ThyInfo {path = "", children = [],
                                 thy_time = Some "", ml_time = Some "",
-                                theory = Some thy, thms = null};
+                                theory = Some thy, thms = Symtab.null};
   in loaded_thys := Symtab.update ((tname, tinfo), !loaded_thys) end;
 
-(*Store a theorem in the ThyInfo of the theory it is associated with*)
-fun store_thm (thm, tname) =
-  let val thy_name = !(hd (stamps_of_thm thm));
 
-      val ThyInfo {path, children, thy_time, ml_time, theory, thms} =
-        case get_thyinfo thy_name of
-            Some tinfo => tinfo
-          | None => error ("store_thm: Theory \"" ^ thy_name 
-                           ^ "\" is not stored in loaded_thys");
-  in loaded_thys := 
-       Symtab.update ((thy_name, ThyInfo {path = path, children = children,
-                                   thy_time = thy_time, ml_time = ml_time,
-                                   theory = theory, 
-                                   thms = Symtab.update ((tname, thm), thms)}),
-                      !loaded_thys);
-     thm
+
+(** store and retrieve theorems **)
+
+(* thyinfo_of_sign *)
+
+fun thyinfo_of_sign sg =
+  let
+    val ref xname = hd (#stamps (Sign.rep_sg sg));
+    val opt_info = get_thyinfo xname;
+
+    fun eq_sg (ThyInfo {theory = None, ...}) = false
+      | eq_sg (ThyInfo {theory = Some thy, ...}) = Sign.eq_sg (sg, sign_of thy);
+
+    val show_sg = Pretty.str_of o Sign.pretty_sg;
+  in
+    if is_some opt_info andalso eq_sg (the opt_info) then
+      (xname, the opt_info)
+    else
+      (case Symtab.find_first (eq_sg o snd) (! loaded_thys) of
+        Some name_info => name_info
+      | None => error ("Theory " ^ show_sg sg ^ " not stored by loader"))
   end;
 
-(*Store theorem in loaded_thys and a ML variable*)
-fun qed name = use_string ["val " ^ name ^ " = store_thm (result(), "
-                           ^ quote name ^ ");"];
 
-fun name_of_thy thy = !(hd (stamps_of_thy thy));
+(* theory_of_sign, theory_of_thm *)
 
-(*Retrieve a theorem specified by theory and name*)
-fun get_thm thy tname =
-  let val thy_name = name_of_thy thy;
+fun theory_of_sign sg =
+  (case thyinfo_of_sign sg of
+    (_, ThyInfo {theory = Some thy, ...}) => thy
+  | _ => sys_error "theory_of_sign");
 
-      val ThyInfo {thms, ...} = 
-        case get_thyinfo thy_name of
-            Some tinfo => tinfo
-          | None => error ("get_thm: Theory \"" ^ thy_name
-                           ^ "\" is not stored in loaded_thys");
-  in the (lookup (thms, tname)) end;
+val theory_of_thm = theory_of_sign o #sign o rep_thm;
 
-(*Retrieve all theorems belonging to the specified theory*)
-fun get_thms thy =
-  let val thy_name = name_of_thy thy;
 
-      val ThyInfo {thms, ...} = 
-        case get_thyinfo thy_name of
-            Some tinfo => tinfo
-          | None => error ("get_thms: Theory \"" ^ thy_name
-                           ^ "\" is not stored in loaded_thys");
-  in alist_of thms end;
+(* store theorems *)
+
+(*store a theorem in the thy_info of its theory*)
+fun store_thm (name, thm) =
+  let
+    val (thy_name, ThyInfo {path, children, thy_time, ml_time, theory, thms}) =
+      thyinfo_of_sign (#sign (rep_thm thm));
+    val thms' = Symtab.update_new ((name, thm), thms)
+      handle Symtab.DUPLICATE s => error ("Duplicate theorem name " ^ quote s);
+  in
+    loaded_thys := Symtab.update
+      ((thy_name, ThyInfo {path = path, children = children,
+        thy_time = thy_time, ml_time = ml_time, theory = theory, thms = thms'}),
+        ! loaded_thys);
+    thm
+  end;
+
+(*store result of proof in loaded_thys and as ML value*)
+fun qed name =
+  use_string ["val " ^ name ^ " = store_thm (" ^ quote name ^ ", result ());"];
+
+
+(* retrieve theorems *)
+
+fun thmtab thy =
+  let val (_, ThyInfo {thms, ...}) = thyinfo_of_sign (sign_of thy)
+  in thms end;
+
+(*get a stored theorem specified by theory and name*)
+fun get_thm thy name =
+  (case Symtab.lookup (thmtab thy, name) of
+    Some thm => thm
+  | None => raise THEORY ("get_thm: no theorem " ^ quote name, [thy]));
+
+(*get stored theorems of a theory*)
+val thms_of = Symtab.dest o thmtab;
+
+
 end;
+
