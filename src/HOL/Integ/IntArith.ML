@@ -159,9 +159,15 @@ val bin_simps = [number_of_add RS sym, add_number_of_left] @
 (*To let us treat subtraction as addition*)
 val diff_simps = [zdiff_def, zminus_zadd_distrib, zminus_zminus];
 
+val def_trans = def_imp_eq RS trans;
+
+(*Apply the given rewrite (if present) just once*)
+fun subst_tac None      = all_tac
+  | subst_tac (Some th) = ALLGOALS (rtac (th RS def_trans));
+
 val mk_eqv = HOLogic.mk_Trueprop o HOLogic.mk_eq;
 
-fun prove_conv tacs sg (t, u) =
+fun prove_conv name tacs sg (t, u) =
   if t aconv u then None
   else
   Some
@@ -169,7 +175,8 @@ fun prove_conv tacs sg (t, u) =
 	(K tacs))
       handle ERROR => error 
 	  ("The error(s) above occurred while trying to prove " ^
-	   (string_of_cterm (cterm_of sg (mk_eqv (t, u))))));
+	   string_of_cterm (cterm_of sg (mk_eqv (t, u))) ^ 
+	   "\nInternal failure of simproc " ^ name));
 
 fun prep_simproc (name, pats, proc) = Simplifier.mk_simproc name pats proc;
 fun prep_pat s = Thm.read_cterm (Theory.sign_of Int.thy) (s, HOLogic.termT);
@@ -182,48 +189,50 @@ structure CancelNumeralsCommon =
   val mk_coeff		= mk_coeff
   val dest_coeff	= dest_coeff 1
   val find_first_coeff	= find_first_coeff []
-  val prove_conv	= prove_conv
-  val norm_tac = ALLGOALS (simp_tac (HOL_ss addsimps add_0s@mult_1s@diff_simps@zadd_ac))
+  val subst_tac         = subst_tac
+  val norm_tac = ALLGOALS (simp_tac (HOL_ss addsimps add_0s@mult_1s@diff_simps@
+                                                     zadd_ac))
                  THEN ALLGOALS
-                    (simp_tac (HOL_ss addsimps [zmult_zminus_right RS sym]@bin_simps@zmult_ac))
+                    (simp_tac (HOL_ss addsimps [zmult_zminus_right RS sym]@
+                                               bin_simps@zadd_ac@zmult_ac))
   val numeral_simp_tac	= ALLGOALS (simp_tac (HOL_ss addsimps add_0s@bin_simps))
   end;
 
 
-(* int eq *)
 structure EqCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
+  val prove_conv = prove_conv "inteq_cancel_numerals"
   val mk_bal   = HOLogic.mk_eq
   val dest_bal = HOLogic.dest_bin "op =" HOLogic.intT
-  val bal_add1	= eq_add_iff1 RS trans
-  val bal_add2	= eq_add_iff2 RS trans
+  val bal_add1 = eq_add_iff1 RS trans
+  val bal_add2 = eq_add_iff2 RS trans
 );
 
-(* int less *)
 structure LessCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
+  val prove_conv = prove_conv "intless_cancel_numerals"
   val mk_bal   = HOLogic.mk_binrel "op <"
   val dest_bal = HOLogic.dest_bin "op <" HOLogic.intT
-  val bal_add1	= less_add_iff1 RS trans
-  val bal_add2	= less_add_iff2 RS trans
+  val bal_add1 = less_add_iff1 RS trans
+  val bal_add2 = less_add_iff2 RS trans
 );
 
-(* int le *)
 structure LeCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
+  val prove_conv = prove_conv "intle_cancel_numerals"
   val mk_bal   = HOLogic.mk_binrel "op <="
   val dest_bal = HOLogic.dest_bin "op <=" HOLogic.intT
-  val bal_add1	= le_add_iff1 RS trans
-  val bal_add2	= le_add_iff2 RS trans
+  val bal_add1 = le_add_iff1 RS trans
+  val bal_add2 = le_add_iff2 RS trans
 );
 
-(* int diff *)
 structure DiffCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
+  val prove_conv = prove_conv "intdiff_cancel_numerals"
   val mk_bal   = HOLogic.mk_binop "op -"
   val dest_bal = HOLogic.dest_bin "op -" HOLogic.intT
-  val bal_add1	= diff_add_eq1 RS trans
-  val bal_add2	= diff_add_eq2 RS trans
+  val bal_add1 = diff_add_eq1 RS trans
+  val bal_add2 = diff_add_eq2 RS trans
 );
 
 
@@ -285,42 +294,6 @@ test "(i + j + #-12 + (k::int)) - #15 = y";
 test "(i + j + #12 + (k::int)) - #-15 = y";
 test "(i + j + #-12 + (k::int)) - #-15 = y";
 *)
-
-
-
-(****************************************************************************************************************************************************************************************************************************************************************
-
-
-structure Int_CC_Data : COMBINE_COEFF_DATA =
-struct
-  val ss		= HOL_ss
-  val eq_reflection	= eq_reflection
-  val thy		= Bin.thy
-  val T			= HOLogic.intT
-
-  val trans		= trans
-  val add_ac		= zadd_ac
-  val diff_def		= zdiff_def
-  val minus_add_distrib	= zminus_zadd_distrib
-  val minus_minus	= zminus_zminus
-  val mult_commute	= zmult_commute
-  val mult_1_right	= zmult_1_right
-  val add_mult_distrib = zadd_zmult_distrib2
-  val diff_mult_distrib = zdiff_zmult_distrib2
-  val mult_minus_right = zmult_zminus_right
-
-  val rel_iff_rel_0_rls = [zless_iff_zdiff_zless_0, eq_iff_zdiff_eq_0, 
-			   zle_iff_zdiff_zle_0]
-  fun dest_eqI th = 
-      #1 (HOLogic.dest_bin "op =" HOLogic.boolT 
-	      (HOLogic.dest_Trueprop (concl_of th)))
-
-end;
-
-structure Int_CC = Combine_Coeff (Int_CC_Data);
-
-Addsimprocs [Int_CC.sum_conv, Int_CC.rel_conv];
-****************************************************************)
 
 
 (** Constant folding for integer plus and times **)

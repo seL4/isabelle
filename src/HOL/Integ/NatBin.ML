@@ -303,12 +303,19 @@ AddIffs (map (rename_numerals thy)
 
 (** Arith **)
 
-Addsimps (map (rename_numerals thy) 
-	  [diff_0, diff_0_eq_0, add_0, add_0_right, add_pred, 
-	   diff_is_0_eq, zero_is_diff_eq, zero_less_diff,
-	   mult_0, mult_0_right, mult_1, mult_1_right, 
-	   mult_is_0, zero_is_mult, zero_less_mult_iff,
-	   mult_eq_1_iff]);
+(*Identity laws for + - * *)	 
+val basic_renamed_arith_simps =
+    map (rename_numerals thy) 
+        [diff_0, diff_0_eq_0, add_0, add_0_right, 
+	 mult_0, mult_0_right, mult_1, mult_1_right];
+	 
+(*Non-trivial simplifications*)	 
+val other_renamed_arith_simps =
+    map (rename_numerals thy) 
+	[add_pred, diff_is_0_eq, zero_is_diff_eq, zero_less_diff,
+	 mult_is_0, zero_is_mult, zero_less_mult_iff, mult_eq_1_iff];
+
+Addsimps (basic_renamed_arith_simps @ other_renamed_arith_simps);
 
 AddIffs (map (rename_numerals thy) [add_is_0, zero_is_add, add_gr_0]);
 
@@ -350,9 +357,7 @@ val less_pred_eq' = rename_numerals thy less_pred_eq;
 
 (** Divides **)
 
-Addsimps (map (rename_numerals thy) 
-	  [mod_1, mod_0, div_1, div_0, mod2_gr_0, mod2_add_self_eq_0,
-	   mod2_add_self]);
+Addsimps (map (rename_numerals thy) [mod_1, mod_0, div_1, div_0]);
 
 AddIffs (map (rename_numerals thy) 
 	  [dvd_1_left, dvd_0_right]);
@@ -465,4 +470,3 @@ Addsimps [eq_number_of_Suc, Suc_eq_number_of,
 
 (* Push int(.) inwards: *)
 Addsimps [int_Suc,zadd_int RS sym];
-

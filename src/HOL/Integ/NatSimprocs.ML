@@ -14,6 +14,13 @@ by (Simp_tac 1);
 qed "nat_number_of_add_left";
 
 
+(** For combine_numerals **)
+
+Goal "i*u + (j*u + k) = (i+j)*u + (k::nat)";
+by (asm_simp_tac (simpset() addsimps [add_mult_distrib]) 1);
+qed "left_add_mult_distrib";
+
+
 (** For cancel_numerals **)
 
 Goal "j <= (i::nat) ==> ((i*u + m) - (j*u + n)) = (((i-j)*u + m) - n)";
@@ -56,6 +63,7 @@ by (auto_tac (claset(), simpset() addsplits [nat_diff_split']
                                   addsimps [add_mult_distrib]));
 qed "nat_le_add_iff2";
 
+
 structure Nat_Numeral_Simprocs =
 struct
 
@@ -68,8 +76,9 @@ fun mk_numeral n = HOLogic.number_of_const HOLogic.natT $
 fun dest_numeral (Const ("0", _)) = 0
   | dest_numeral (Const ("Suc", _) $ t) = 1 + dest_numeral t
   | dest_numeral (Const("Numeral.number_of", _) $ w) = 
-        BasisLibrary.Int.max (0, NumeralSyntax.dest_bin w)
-  | dest_numeral t = raise TERM("dest_numeral", [t]);
+        (BasisLibrary.Int.max (0, NumeralSyntax.dest_bin w)
+	 handle Match => raise TERM("dest_numeral:1", [w]))
+  | dest_numeral t = raise TERM("dest_numeral:2", [t]);
 
 fun find_first_numeral past (t::terms) =
 	((dest_numeral t, t, rev past @ terms)
@@ -83,6 +92,10 @@ val mk_plus = HOLogic.mk_binop "op +";
 fun mk_sum []        = zero
   | mk_sum [t,u]     = mk_plus (t, u)
   | mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
+
+(*this version ALWAYS includes a trailing zero*)
+fun long_mk_sum []        = zero
+  | long_mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
 
 val dest_plus = HOLogic.dest_bin "op +" HOLogic.natT;
 
@@ -98,60 +111,21 @@ fun dest_sum t =
 
 fun dest_Sucs_sum t = dest_sum (dest_Sucs (0,t));
 
-val mk_diff = HOLogic.mk_binop "op -";
-val dest_diff = HOLogic.dest_bin "op -" HOLogic.natT;
+val subst_tac = Int_Numeral_Simprocs.subst_tac;
 
-val mk_eqv = HOLogic.mk_Trueprop o HOLogic.mk_eq;
-
-fun prove_conv tacs sg (t, u) =
-  if t aconv u then None
-  else
-  Some
-     (mk_meta_eq (prove_goalw_cterm [] (cterm_of sg (mk_eqv (t, u)))
-	(K tacs))
-      handle ERROR => error 
-	  ("The error(s) above occurred while trying to prove " ^
-	   (string_of_cterm (cterm_of sg (mk_eqv (t, u))))));
+val prove_conv = Int_Numeral_Simprocs.prove_conv;
 
 val bin_simps = [add_nat_number_of, nat_number_of_add_left,
 		 diff_nat_number_of, le_nat_number_of_eq_not_less, 
 		 less_nat_number_of, Let_number_of, nat_number_of] @ 
                 bin_arith_simps @ bin_rel_simps;
 
-val add_norm_tac = ALLGOALS (simp_tac (HOL_ss addsimps add_ac));
-
-
-(****combine_coeffs will make this obsolete****)
-structure FoldSucData =
-  struct
-  val mk_numeral	= mk_numeral
-  val dest_numeral	= dest_numeral
-  val find_first_numeral = find_first_numeral []
-  val mk_sum		= mk_sum
-  val dest_sum		= dest_Sucs_sum
-  val mk_diff    	= HOLogic.mk_binop "op -"
-  val dest_diff		= HOLogic.dest_bin "op -" HOLogic.natT
-  val dest_Suc		= HOLogic.dest_Suc
-  val double_diff_eq	= diff_add_assoc_diff
-  val move_diff_eq	= diff_add_assoc2
-  val prove_conv	= prove_conv
-  val numeral_simp_tac	= ALLGOALS
-                (simp_tac (HOL_ss addsimps [numeral_0_eq_0 RS sym]@bin_simps))
-  val add_norm_tac	= ALLGOALS (simp_tac (simpset() addsimps Suc_eq_add_numeral_1::add_ac))
-  end;
-
-structure FoldSuc = FoldSucFun (FoldSucData);
-
 fun prep_simproc (name, pats, proc) = Simplifier.mk_simproc name pats proc;
 fun prep_pat s = Thm.read_cterm (Theory.sign_of Arith.thy) (s, HOLogic.termT);
 val prep_pats = map prep_pat;
 
-val fold_Suc = 
-    prep_simproc ("fold_Suc", 
-		  [prep_pat "Suc (i + j)"], 
-		  FoldSuc.proc);
 
-(*** Now for CancelNumerals ***)
+(*** CancelNumerals simprocs ***)
 
 val one = mk_numeral 1;
 val mk_times = HOLogic.mk_binop "op *";
@@ -199,50 +173,50 @@ structure CancelNumeralsCommon =
   val mk_coeff		= mk_coeff
   val dest_coeff	= dest_coeff
   val find_first_coeff	= find_first_coeff []
-  val prove_conv	= prove_conv
+  val subst_tac          = subst_tac
   val norm_tac = ALLGOALS
                    (simp_tac (HOL_ss addsimps add_0s@mult_1s@bin_simps@
-                                              [Suc_eq_add_numeral_1]@add_ac))
-                 THEN ALLGOALS (simp_tac (HOL_ss addsimps mult_ac))
+                                       [add_0, Suc_eq_add_numeral_1]@add_ac))
+                 THEN ALLGOALS (simp_tac (HOL_ss addsimps mult_ac@add_ac))
   val numeral_simp_tac	= ALLGOALS
                 (simp_tac (HOL_ss addsimps [numeral_0_eq_0 RS sym]@add_0s@bin_simps))
   end;
 
 
-(* nat eq *)
 structure EqCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
+  val prove_conv = prove_conv "nateq_cancel_numerals"
   val mk_bal   = HOLogic.mk_eq
   val dest_bal = HOLogic.dest_bin "op =" HOLogic.natT
-  val bal_add1	= nat_eq_add_iff1 RS trans
-  val bal_add2	= nat_eq_add_iff2 RS trans
+  val bal_add1 = nat_eq_add_iff1 RS trans
+  val bal_add2 = nat_eq_add_iff2 RS trans
 );
 
-(* nat less *)
 structure LessCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
+  val prove_conv = prove_conv "natless_cancel_numerals"
   val mk_bal   = HOLogic.mk_binrel "op <"
   val dest_bal = HOLogic.dest_bin "op <" HOLogic.natT
-  val bal_add1	= nat_less_add_iff1 RS trans
-  val bal_add2	= nat_less_add_iff2 RS trans
+  val bal_add1 = nat_less_add_iff1 RS trans
+  val bal_add2 = nat_less_add_iff2 RS trans
 );
 
-(* nat le *)
 structure LeCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
+  val prove_conv = prove_conv "natle_cancel_numerals"
   val mk_bal   = HOLogic.mk_binrel "op <="
   val dest_bal = HOLogic.dest_bin "op <=" HOLogic.natT
-  val bal_add1	= nat_le_add_iff1 RS trans
-  val bal_add2	= nat_le_add_iff2 RS trans
+  val bal_add1 = nat_le_add_iff1 RS trans
+  val bal_add2 = nat_le_add_iff2 RS trans
 );
 
-(* nat diff *)
 structure DiffCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
+  val prove_conv = prove_conv "natdiff_cancel_numerals"
   val mk_bal   = HOLogic.mk_binop "op -"
   val dest_bal = HOLogic.dest_bin "op -" HOLogic.natT
-  val bal_add1	= nat_diff_add_eq1 RS trans
-  val bal_add2	= nat_diff_add_eq2 RS trans
+  val bal_add1 = nat_diff_add_eq1 RS trans
+  val bal_add2 = nat_diff_add_eq2 RS trans
 );
 
 
@@ -270,11 +244,37 @@ val cancel_numerals =
      DiffCancelNumerals.proc)];
 
 
+structure CombineNumeralsData =
+  struct
+  val mk_sum    	= long_mk_sum    (*to work for e.g. #2*x + #3*x *)
+  val dest_sum		= dest_Sucs_sum
+  val mk_coeff		= mk_coeff
+  val dest_coeff	= dest_coeff
+  val left_distrib	= left_add_mult_distrib RS trans
+  val prove_conv	= prove_conv "nat_combine_numerals"
+  val subst_tac          = subst_tac
+  val norm_tac = ALLGOALS
+                   (simp_tac (HOL_ss addsimps add_0s@mult_1s@bin_simps@
+                                       [add_0, Suc_eq_add_numeral_1]@add_ac))
+                 THEN ALLGOALS (simp_tac (HOL_ss addsimps mult_ac@add_ac))
+  val numeral_simp_tac	= ALLGOALS
+                (simp_tac (HOL_ss addsimps [numeral_0_eq_0 RS sym]@add_0s@bin_simps))
+  end;
+
+structure CombineNumerals = CombineNumeralsFun(CombineNumeralsData);
+  
+val combine_numerals = 
+    prep_simproc ("nat_combine_numerals",
+		  prep_pats ["(i::nat) + (j+k)", "(i::nat) + (j*k)", 
+			     "(j+k) + (i::nat)", "(j*k) + (i::nat)", 
+			     "Suc (i + j)"],
+		  CombineNumerals.proc);
+
 end;
 
 
-(**Addsimprocs [Nat_Numeral_Simprocs.fold_Suc];**)
 Addsimprocs Nat_Numeral_Simprocs.cancel_numerals;
+Addsimprocs [Nat_Numeral_Simprocs.combine_numerals];
 
 (*examples:
 print_depth 22;
@@ -315,6 +315,7 @@ test "#2*y + #3*z + #2*u = Suc (u)";
 test "#2*y + #3*z + #6*w + #2*y + #3*z + #2*u = Suc (u)";
 test "#2*y + #3*z + #6*w + #2*y + #3*z + #2*u = #2*y' + #3*z' + #6*w' + #2*y' + #3*z' + u + (vv::nat)";
 test "#6 + #2*y + #3*z + #4*u = Suc (vv + #2*u + z)";
+test "(#2*n*m) < (#3*(m*n)) + (u::nat)";
 
 (*negative numerals: FAIL*)
 test "(i + j + #-23 + (k::nat)) < u + #15 + y";
@@ -323,9 +324,14 @@ test "(i + j + #-12 + (k::nat)) - #15 = y";
 test "(i + j + #12 + (k::nat)) - #-15 = y";
 test "(i + j + #-12 + (k::nat)) - #-15 = y";
 
-(*fold_Suc*)
+(*combine_numerals*)
+test "k + #3*k = (u::nat)";
+test "Suc (i + #3) = u";
 test "Suc (i + j + #3 + k) = u";
-(*negative numerals*)
+test "k + j + #3*k + j = (u::nat)";
+test "Suc (j*i + i + k + #5 + #3*k + i*j*#4) = (u::nat)";
+test "(#2*n*m) + (#3*(m*n)) = (u::nat)";
+(*negative numerals: FAIL*)
 test "Suc (i + j + #-3 + k) = u";
 *)
 
@@ -344,12 +350,17 @@ val add_rules =
    eq_number_of_0, eq_0_number_of, less_0_number_of,
    nat_number_of, Let_number_of, if_True, if_False];
 
-val simprocs = [Nat_Plus_Assoc.conv,Nat_Times_Assoc.conv];
+val simprocs = [Nat_Times_Assoc.conv,
+		Nat_Numeral_Simprocs.combine_numerals]@ 
+		Nat_Numeral_Simprocs.cancel_numerals;
 
 in
-LA_Data_Ref.ss_ref := !LA_Data_Ref.ss_ref addsimps add_rules
-                      addsimprocs simprocs
+LA_Data_Ref.ss_ref := !LA_Data_Ref.ss_ref addsimps add_rules 
+                                          addsimps basic_renamed_arith_simps
+                                          addsimprocs simprocs
 end;
+
+Delsimprocs [Nat_Plus_Assoc.conv];  (*combine_numerals makes it redundant*)
 
 
 
@@ -390,3 +401,27 @@ by (simp_tac (numeral_ss addsplits [nat_diff_split']) 1);
 qed "diff_Suc_eq_diff_pred";
 
 Addsimps [inst "m" "number_of ?v" diff_Suc_eq_diff_pred];
+
+
+(** Evens and Odds, for Mutilated Chess Board **)
+
+(*Case analysis on b<#2*)
+Goal "(n::nat) < #2 ==> n = #0 | n = #1";
+by (arith_tac 1);
+qed "less_2_cases";
+
+Goal "Suc(Suc(m)) mod #2 = m mod #2";
+by (subgoal_tac "m mod #2 < #2" 1);
+by (Asm_simp_tac 2);
+be (less_2_cases RS disjE) 1;
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [mod_Suc])));
+qed "mod2_Suc_Suc";
+Addsimps [mod2_Suc_Suc];
+
+Goal "(0 < m mod #2) = (m mod #2 = #1)";
+by (subgoal_tac "m mod #2 < #2" 1);
+by (Asm_simp_tac 2);
+by (auto_tac (claset(), simpset() delsimps [mod_less_divisor]));
+qed "mod2_gr_0";
+Addsimps [mod2_gr_0, rename_numerals thy mod2_gr_0];
+
