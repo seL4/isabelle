@@ -4,6 +4,9 @@
     Copyright   1994 TU Muenchen
 
 
+FIXME FIXME FIXME FIXME FIXME Warning: not quite up-to-date!
+
+
 Conventions for theory- and filenames:
 
 - Files for theory T are named T.thy and T.ML where only one of these two
