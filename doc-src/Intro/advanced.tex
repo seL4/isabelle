@@ -339,6 +339,7 @@ types        {\it type declarations and synonyms}
 arities      {\it arity declarations}
 consts       {\it constant declarations}
 translations {\it translation declarations}
+defs         {\it constant definitions}
 rules        {\it rule declarations}
 end
 ML           {\it ML code}
@@ -355,10 +356,11 @@ transformations.  The main declaration forms are discussed below.
 The full syntax can be found in \iflabelundefined{app:TheorySyntax}{the
   appendix of the {\it Reference Manual}}{App.\ts\ref{app:TheorySyntax}}.
 
-All the declaration parts can be omitted.  In the simplest case, $T$ is
-just the union of $S@1$,~\ldots,~$S@n$.  New theories always extend one
-or more other theories, inheriting their types, constants, syntax, etc.
-The theory \thydx{Pure} contains nothing but Isabelle's meta-logic.
+All the declaration parts can be omitted or repeated and may appear in any
+order, except that the {\ML} section must be last.  In the simplest case, $T$
+is just the union of $S@1$,~\ldots,~$S@n$.  New theories always extend one or
+more other theories, inheriting their types, constants, syntax, etc.  The
+theory \thydx{Pure} contains nothing but Isabelle's meta-logic.
 
 Each theory definition must reside in a separate file, whose name is the
 theory's with {\tt.thy} appended.  For example, theory {\tt ListFn} resides
@@ -387,11 +389,11 @@ See
 for more details.
 
 
-\subsection{Declaring constants and rules}
+\subsection{Declaring constants, definitions and rules}
 \indexbold{constants!declaring}\index{rules!declaring}
 
-Most theories simply declare constants and rules.  The {\bf constant
-declaration part} has the form
+Most theories simply declare constants, definitions and rules.  The {\bf
+  constant declaration part} has the form
 \begin{ttbox}
 consts  \(c@1\) :: "\(\tau@1\)"
         \vdots
@@ -415,21 +417,22 @@ where $id@1$, \ldots, $id@n$ are \ML{} identifiers and $rule@1$, \ldots,
 $rule@n$ are expressions of type~$prop$.  Each rule {\em must\/} be
 enclosed in quotation marks.
 
-\indexbold{definitions}
-{\bf Definitions} are rules of the form $t\equiv u$.  Normally definitions
-should be conservative, serving only as abbreviations.  As of this writing,
-Isabelle does not provide a separate declaration part for definitions; it
-is your responsibility to ensure that your definitions are conservative.
-However, Isabelle's rewriting primitives will reject $t\equiv u$ unless all
-variables free in~$u$ are also free in~$t$.
+\indexbold{definitions} The {\bf definition part} is similar, but with the
+keyword {\tt defs} instead of {\tt rules}.  {\bf Definitions} are rules of the
+form $t\equiv u$, and should serve only as abbreviations.  Isabelle checks for
+common errors in definitions, such as extra variables on the right-hard side.
+Determined users can write non-conservative `definitions' by using mutual
+recursion, for example; the consequences of such actions are their
+responsibility.
 
-\index{examples!of theories}
-This theory extends first-order logic with two constants {\em nand} and
-{\em xor}, and declares rules to define them:
+
+\index{examples!of theories} 
+This theory extends first-order logic by declaring and defining two constants,
+{\em nand} and {\em xor}:
 \begin{ttbox}
 Gate = FOL +
 consts  nand,xor :: "[o,o] => o"
-rules   nand_def "nand(P,Q) == ~(P & Q)"
+defs    nand_def "nand(P,Q) == ~(P & Q)"
         xor_def  "xor(P,Q)  == P & ~Q | ~P & Q"
 end
 \end{ttbox}
@@ -555,7 +558,7 @@ following theory:
 Gate2 = FOL +
 consts  "~&"     :: "[o,o] => o"         (infixl 35)
         "#"      :: "[o,o] => o"         (infixl 30)
-rules   nand_def "P ~& Q == ~(P & Q)"    
+defs    nand_def "P ~& Q == ~(P & Q)"    
         xor_def  "P # Q  == P & ~Q | ~P & Q"
 end
 \end{ttbox}
@@ -614,7 +617,7 @@ because expressions in parentheses have maximal priority.
 Binary type constructors, like products and sums, may also be declared as
 infixes.  The type declaration below introduces a type constructor~$*$ with
 infix notation $\alpha*\beta$, together with the mixfix notation
-${<}\_,\_{>}$ for pairs.  
+${<}\_,\_{>}$ for pairs.  We also see a rule declaration part.
 \index{examples!of theories}\index{mixfix declarations}
 \begin{ttbox}
 Prod = FOL +
