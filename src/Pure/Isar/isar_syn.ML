@@ -562,6 +562,10 @@ val remove_thyP =
   OuterSyntax.improper_command "remove_thy" "remove theory from loader database" K.diag
     (P.name >> IsarCmd.remove_thy);
 
+val kill_thyP =
+  OuterSyntax.improper_command "kill_thy" "kill theory -- try to remove from loader database"
+    K.diag (P.name >> IsarCmd.kill_thy);
+
 val prP =
   OuterSyntax.improper_command "pr" "print current toplevel state" K.diag
     (Scan.succeed (Toplevel.print o Toplevel.imperative (fn () => Toplevel.quiet := false)));
@@ -574,16 +578,13 @@ val enable_prP =
   OuterSyntax.improper_command "enable_pr" "enable printing of toplevel state" K.diag
     (Scan.succeed (Toplevel.imperative (fn () => Toplevel.quiet := false)));
 
-
-val opt_unit = Scan.optional (P.$$$ "(" -- P.$$$ ")" >> (K ())) ();
-
 val commitP =
   OuterSyntax.improper_command "commit" "commit current session to ML database" K.diag
-    (opt_unit >> (K IsarCmd.use_commit));
+    (P.opt_unit >> (K IsarCmd.use_commit));
 
 val quitP =
   OuterSyntax.improper_command "quit" "quit Isabelle" K.control
-    (opt_unit >> (K IsarCmd.quit));
+    (P.opt_unit >> (K IsarCmd.quit));
 
 val exitP =
   OuterSyntax.improper_command "exit" "exit Isar loop" K.control
@@ -636,9 +637,9 @@ val parsers = [
   print_propP, print_termP, print_typeP,
   (*system commands*)
   cdP, pwdP, use_thyP, use_thy_onlyP, update_thyP, update_thy_onlyP,
-  touch_thyP, touch_all_thysP, touch_child_thysP, remove_thyP, prP,
-  disable_prP, enable_prP, commitP, quitP, exitP, init_toplevelP,
-  welcomeP];
+  touch_thyP, touch_all_thysP, touch_child_thysP, remove_thyP,
+  kill_thyP, prP, disable_prP, enable_prP, commitP, quitP, exitP,
+  init_toplevelP, welcomeP];
 
 
 end;
