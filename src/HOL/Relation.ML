@@ -171,6 +171,22 @@ qed_goalw "ImageE" Relation.thy [Image_def]
 AddIs  [ImageI];
 AddSEs [ImageE];
 
+
+qed_goal "Image_empty" Relation.thy
+    "R^^{} = {}"
+ (fn _ => [ Blast_tac 1 ]);
+
+Addsimps [Image_empty];
+
+qed_goal "Image_Int_subset" Relation.thy
+    "R ^^ (A Int B) <= R ^^ A Int R ^^ B"
+ (fn _ => [ Blast_tac 1 ]);
+
+qed_goal "Image_Un" Relation.thy
+    "R ^^ (A Un B) = R ^^ A Un R ^^ B"
+ (fn _ => [ Blast_tac 1 ]);
+
+
 qed_goal "Image_subset" Relation.thy
     "!!A B r. r <= A Times B ==> r^^C <= B"
  (fn _ =>
