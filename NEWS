@@ -109,7 +109,9 @@ logics (again);
         (!y1 ... ymn. x = Cn y1 ... ymn --> P(f1 y1 ... ymn))
      )
 
-  which can be added to a simpset via `addsplits'.
+  which can be added to a simpset via `addsplits'. The existing theorems
+  expand_list_case and expand_option_case have been renamed to
+  split_list_case and split_option_case.
 
 * HOL/Lists: the function "set_of_list" has been renamed "set"
   (and its theorems too);
