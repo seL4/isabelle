@@ -46,6 +46,9 @@ New in this Isabelle release
   the instantiation string.  This fixes a bug that caused instantiated
   theorems to have too special types in some circumstances.
 
+* Calculation commands "moreover" and "also":
+  Do not reset facts ("this") any more.
+
 * Locales:
   - Goal statements involving the context element "includes" no longer
     generate theorems with internal delta predicates (those ending on
