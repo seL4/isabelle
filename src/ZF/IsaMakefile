@@ -115,15 +115,14 @@ $(LOG)/ZF-Resid.gz: $(OUT)/ZF Resid/ROOT.ML \
 ZF-UNITY: ZF $(LOG)/ZF-UNITY.gz
 
 $(LOG)/ZF-UNITY.gz: $(OUT)/ZF UNITY/ROOT.ML \
-  UNITY/Comp.ML UNITY/Comp.thy UNITY/Constrains.ML UNITY/Constrains.thy \
-  UNITY/FP.thy UNITY/Guar.ML UNITY/Guar.thy \
+  UNITY/Comp.thy UNITY/Constrains.ML UNITY/Constrains.thy \
+  UNITY/FP.thy UNITY/Guar.thy \
   UNITY/Mutex.ML UNITY/Mutex.thy UNITY/State.thy \
   UNITY/SubstAx.ML UNITY/SubstAx.thy UNITY/UNITY.thy UNITY/Union.thy \
   UNITY/AllocBase.thy UNITY/AllocImpl.thy\
   UNITY/ClientImpl.thy UNITY/Distributor.thy\
-  UNITY/Follows.ML UNITY/Follows.thy\
-  UNITY/Increasing.ML UNITY/Increasing.thy UNITY/Merge.thy\
-  UNITY/Monotonicity.ML UNITY/Monotonicity.thy\
+  UNITY/Follows.thy UNITY/Increasing.thy UNITY/Merge.thy\
+  UNITY/Monotonicity.thy\
   UNITY/MultisetSum.ML UNITY/MultisetSum.thy\
   UNITY/WFair.ML UNITY/WFair.thy
 	@$(ISATOOL) usedir $(OUT)/ZF UNITY

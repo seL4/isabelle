@@ -460,6 +460,17 @@ lemma OK_imp_ok: "[| OK(I,F); i \<in> I; j \<in> I; i\<noteq>j|] ==> F(i) ok F(j
 by (auto simp add: OK_iff_ok)
 
 
+lemma OK_0 [iff]: "OK(0,F)"
+by (simp add: OK_def)
+
+lemma OK_cons_iff:
+     "OK(cons(i, I), F) <->  
+      (i \<in> I & OK(I, F)) | (i\<notin>I & OK(I, F) & F(i) ok JOIN(I,F))"
+apply (simp add: OK_iff_ok)
+apply (blast intro: ok_sym) 
+done
+
+
 subsection{*Allowed*}
 
 lemma Allowed_SKIP [simp]: "Allowed(SKIP) = program"
