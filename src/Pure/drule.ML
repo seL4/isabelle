@@ -147,29 +147,36 @@ fun dest_defn tm =
     val (c, ty) = dest_Const head
       handle TERM _ => err "Head of lhs not a constant";
 
-    fun occs_const (Const c_ty') = clash_consts (c, ty) c_ty'
+    fun occs_const (Const (c', _)) = (c = c')
       | occs_const (Abs (_, _, t)) = occs_const t
       | occs_const (t $ u) = occs_const t orelse occs_const u
       | occs_const _ = false;
+
+    val show_frees = commas_quote o map (fst o dest_Free);
+    val show_tfrees = commas_quote o map fst;
+
+    val lhs_dups = duplicates args;
+    val rhs_extras = gen_rems (op =) (term_frees rhs, args);
+    val rhs_extrasT = gen_rems (op =) (term_tfrees rhs, typ_tfrees ty);
   in
     if not (forall is_Free args) then
       err "Arguments of lhs have to be variables"
-    else if not (null (duplicates args)) then
-      err "Duplicate variables on lhs"
-    else if not (term_frees rhs subset args) then
-      err "Extra variables on rhs"
-    else if not (term_tfrees rhs subset typ_tfrees ty) then
-      err "Extra type variables on rhs"
+    else if not (null lhs_dups) then
+      err ("Duplicate variables on lhs: " ^ show_frees lhs_dups)
+    else if not (null rhs_extras) then
+      err ("Extra variables on rhs: " ^ show_frees rhs_extras)
+    else if not (null rhs_extrasT) then
+      err ("Extra type variables on rhs: " ^ show_tfrees rhs_extrasT)
     else if occs_const rhs then
-      err "Constant to be defined clashes with occurrence(s) on rhs"
+      err ("Constant " ^ quote c ^ " occurs on rhs")
     else (c, ty)
   end;
 
 
 (* check_defn *)
 
-fun err_in_axm name msg =
-  (writeln msg; error ("The error(s) above occurred in axiom " ^ quote name));
+fun err_in_defn name msg =
+  (writeln msg; error ("The error(s) above occurred in definition " ^ quote name));
 
 fun check_defn sign (axms, (name, tm)) =
   let
@@ -180,11 +187,11 @@ fun check_defn sign (axms, (name, tm)) =
     fun show_defns c = commas o map (show_defn c);
 
     val (c, ty) = dest_defn tm
-      handle TERM (msg, _) => err_in_axm name msg;
+      handle TERM (msg, _) => err_in_defn name msg;
     val defns = clash_defns (c, ty) axms;
   in
     if not (null defns) then
-      err_in_axm name ("Definition of " ^ show_const (c, ty) ^
+      err_in_defn name ("Definition of " ^ show_const (c, ty) ^
         " clashes with " ^ show_defns c defns)
     else (name, tm) :: axms
   end;
@@ -323,35 +330,96 @@ fun print_theory thy = (print_sign thy; print_axioms thy);
 
 (** Print thm A1,...,An/B in "goal style" -- premises as numbered subgoals **)
 
-fun prettyprints es = writeln(Pretty.string_of(Pretty.blk(0,es)));
+(* get type_env, sort_env of term *)
 
-fun print_goals maxgoals th : unit =
-let val {sign, hyps, prop,...} = rep_thm th;
-    fun printgoals (_, []) = ()
-      | printgoals (n, A::As) =
-        let val prettyn = Pretty.str(" " ^ string_of_int n ^ ". ");
-            val prettyA = Sign.pretty_term sign A
-        in prettyprints[prettyn,prettyA];
-           printgoals (n+1,As)
-        end;
-    fun prettypair(t,u) =
-        Pretty.blk(0, [Sign.pretty_term sign t, Pretty.str" =?=", Pretty.brk 1,
-                       Sign.pretty_term sign u]);
-    fun printff [] = ()
-      | printff tpairs =
-         writeln("\nFlex-flex pairs:\n" ^
-                 Pretty.string_of(Pretty.lst("","") (map prettypair tpairs)))
-    val (tpairs,As,B) = Logic.strip_horn(prop);
-    val ngoals = length As
+local
+  open Syntax;
+
+  fun ins_entry (x, y) [] = [(x, [y])]
+    | ins_entry (x, y) ((pair as (x', ys')) :: pairs) =
+        if x = x' then (x', y ins ys') :: pairs
+        else pair :: ins_entry (x, y) pairs;
+
+  fun add_type_env (Free (x, T), env) = ins_entry (T, x) env
+    | add_type_env (Var (xi, T), env) = ins_entry (T, string_of_vname xi) env
+    | add_type_env (Abs (_, _, t), env) = add_type_env (t, env)
+    | add_type_env (t $ u, env) = add_type_env (u, add_type_env (t, env))
+    | add_type_env (_, env) = env;
+
+  fun add_sort_env (Type (_, Ts), env) = foldr add_sort_env (Ts, env)
+    | add_sort_env (TFree (x, S), env) = ins_entry (S, x) env
+    | add_sort_env (TVar (xi, S), env) = ins_entry (S, string_of_vname xi) env;
+
+  val sort = map (apsnd sort_strings);
 in
-   writeln (Sign.string_of_term sign B);
-   if ngoals=0 then writeln"No subgoals!"
-   else if ngoals>maxgoals
-        then (printgoals (1, take(maxgoals,As));
-              writeln("A total of " ^ string_of_int ngoals ^ " subgoals..."))
-        else printgoals (1, As);
-   printff tpairs
+  fun type_env t = sort (add_type_env (t, []));
+  fun sort_env t = rev (sort (it_term_types add_sort_env (t, [])));
 end;
+
+
+(* print_goals *)
+
+fun print_goals maxgoals state =
+  let
+    open Syntax;
+
+    val {sign, prop, ...} = rep_thm state;
+
+    val pretty_term = Sign.pretty_term sign;
+    val pretty_typ = Sign.pretty_typ sign;
+    val pretty_sort = Sign.pretty_sort;
+
+    fun pretty_vars prtf (X, vs) = Pretty.block
+      [Pretty.block (Pretty.commas (map Pretty.str vs)),
+        Pretty.str " ::", Pretty.brk 1, prtf X];
+
+    fun print_list _ _ [] = ()
+      | print_list name prtf lst =
+          (writeln ""; Pretty.writeln (Pretty.big_list name (map prtf lst)));
+
+
+    fun print_goals (_, []) = ()
+      | print_goals (n, A :: As) = (Pretty.writeln (Pretty.blk (0,
+          [Pretty.str (" " ^ string_of_int n ^ ". "), pretty_term A]));
+            print_goals (n + 1, As));
+
+    val print_ffpairs =
+      print_list "Flex-flex pairs:" (pretty_term o Logic.mk_flexpair);
+
+    val print_types = print_list "Types:" (pretty_vars pretty_typ) o type_env;
+    val print_sorts = print_list "Sorts:" (pretty_vars pretty_sort) o sort_env;
+
+
+    val (tpairs, As, B) = Logic.strip_horn prop;
+    val ngoals = length As;
+
+    val orig_no_freeTs = ! show_no_free_types;
+    val orig_sorts = ! show_sorts;
+
+    fun restore () =
+      (show_no_free_types := orig_no_freeTs; show_sorts := orig_sorts);
+  in
+    (show_no_free_types := true; show_sorts := false;
+
+      Pretty.writeln (pretty_term B);
+
+      if ngoals = 0 then writeln "No subgoals!"
+      else if ngoals > maxgoals then
+        (print_goals (1, take (maxgoals, As));
+          writeln ("A total of " ^ string_of_int ngoals ^ " subgoals..."))
+      else print_goals (1, As);
+
+      print_ffpairs tpairs;
+
+      if orig_sorts then
+        (print_types prop; print_sorts prop)
+      else if ! show_types then
+        print_types prop
+      else ())
+    handle exn => (restore (); raise exn);
+    restore ()
+  end;
+
 
 (*"hook" for user interfaces: allows print_goals to be replaced*)
 val print_goals_ref = ref print_goals;
