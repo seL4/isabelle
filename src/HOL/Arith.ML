@@ -117,7 +117,7 @@ qed "pred_add_is_0";
 Addsimps [pred_add_is_0];
 
 (* Could be generalized, eg to "!!n. k<n ==> m+(n-(Suc k)) = (m+n)-(Suc k)" *)
-goal Arith.thy "!!n. n ~= 0 ==> m + pred n = pred(m+n)";
+goal Arith.thy "!!n. 0<n ==> m + (n-1) = (m+n)-1";
 by (exhaust_tac "m" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [diff_Suc]
                                       addsplits [expand_nat_case])));
