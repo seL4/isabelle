@@ -8,11 +8,11 @@ open Com;
 
 val assign_type = prove_goalw Com.thy [assign_def]
         "!!n. [| sigma:loc -> nat; n:nat |] ==> sigma[n/x] : loc -> nat"
-    (fn _ => [ fast_tac (ZF_cs addIs [apply_type,lam_type,if_type]) 1 ]);
+    (fn _ => [ fast_tac (!claset addIs [apply_type,lam_type,if_type]) 1 ]);
 
-val type_cs = ZF_cs addSDs [evala.dom_subset RS subsetD,
-                            evalb.dom_subset RS subsetD,
-                            evalc.dom_subset RS subsetD];
+val type_cs = !claset addSDs [evala.dom_subset RS subsetD,
+			      evalb.dom_subset RS subsetD,
+			      evalc.dom_subset RS subsetD];
 
 (**********     type_intrs for evala     **********)
 

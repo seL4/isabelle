@@ -29,7 +29,7 @@ val contract_combD1 = contract.dom_subset RS subsetD RS SigmaD1;
 val contract_combD2 = contract.dom_subset RS subsetD RS SigmaD2;
 
 goal Comb.thy "field(contract) = comb";
-by (fast_tac (ZF_cs addIs [equalityI,contract.K] addSEs [contract_combE2]) 1);
+by (fast_tac (!claset addIs [equalityI,contract.K] addSEs [contract_combE2]) 1);
 qed "field_contract_eq";
 
 bind_thm ("reduction_refl",
@@ -60,37 +60,36 @@ val K_contractE = contract.mk_cases comb.con_defs "K -1-> r";
 val S_contractE = contract.mk_cases comb.con_defs "S -1-> r";
 val Ap_contractE = contract.mk_cases comb.con_defs "p#q -1-> r";
 
-val contract_cs =
-    ZF_cs addSIs comb.intrs
-          addIs  contract.intrs
-          addSEs [contract_combD1,contract_combD2]     (*type checking*)
-          addSEs [K_contractE, S_contractE, Ap_contractE]
-          addSEs comb.free_SEs;
+AddSIs comb.intrs;
+AddIs  contract.intrs;
+AddSEs [contract_combD1,contract_combD2];     (*type checking*)
+AddSEs [K_contractE, S_contractE, Ap_contractE];
+AddSEs comb.free_SEs;
 
 goalw Comb.thy [I_def] "!!r. I -1-> r ==> P";
-by (fast_tac contract_cs 1);
+by (Fast_tac 1);
 qed "I_contract_E";
 
 goal Comb.thy "!!p r. K#p -1-> r ==> (EX q. r = K#q & p -1-> q)";
-by (fast_tac contract_cs 1);
+by (Fast_tac 1);
 qed "K1_contractD";
 
 goal Comb.thy "!!p r. [| p ---> q;  r: comb |] ==> p#r ---> q#r";
 by (forward_tac [rtrancl_type RS subsetD RS SigmaD1] 1);
 by (dtac (field_contract_eq RS equalityD1 RS subsetD) 1);
 by (etac rtrancl_induct 1);
-by (fast_tac (contract_cs addIs reduction_rls) 1);
+by (fast_tac (!claset addIs reduction_rls) 1);
 by (etac (trans_rtrancl RS transD) 1);
-by (fast_tac (contract_cs addIs reduction_rls) 1);
+by (fast_tac (!claset addIs reduction_rls) 1);
 qed "Ap_reduce1";
 
 goal Comb.thy "!!p r. [| p ---> q;  r: comb |] ==> r#p ---> r#q";
 by (forward_tac [rtrancl_type RS subsetD RS SigmaD1] 1);
 by (dtac (field_contract_eq RS equalityD1 RS subsetD) 1);
 by (etac rtrancl_induct 1);
-by (fast_tac (contract_cs addIs reduction_rls) 1);
+by (fast_tac (!claset addIs reduction_rls) 1);
 by (etac (trans_rtrancl RS transD) 1);
-by (fast_tac (contract_cs addIs reduction_rls) 1);
+by (fast_tac (!claset addIs reduction_rls) 1);
 qed "Ap_reduce2";
 
 (** Counterexample to the diamond property for -1-> **)
@@ -108,7 +107,7 @@ by (REPEAT (ares_tac (comb.intrs @ [contract.K, comb_I]) 1));
 qed "KIII_contract3";
 
 goalw Comb.thy [diamond_def] "~ diamond(contract)";
-by (fast_tac (ZF_cs addIs [KIII_contract1,KIII_contract2,KIII_contract3]
+by (fast_tac (!claset addIs [KIII_contract1,KIII_contract2,KIII_contract3]
                     addSEs [I_contract_E]) 1);
 qed "not_diamond_contract";
 
@@ -122,7 +121,7 @@ val parcontract_combD1 = parcontract.dom_subset RS subsetD RS SigmaD1;
 val parcontract_combD2 = parcontract.dom_subset RS subsetD RS SigmaD2;
 
 goal Comb.thy "field(parcontract) = comb";
-by (fast_tac (ZF_cs addIs [equalityI, parcontract.K] 
+by (fast_tac (!claset addIs [equalityI, parcontract.K] 
                     addSEs [parcontract_combE2]) 1);
 qed "field_parcontract_eq";
 
@@ -131,27 +130,25 @@ val K_parcontractE = parcontract.mk_cases comb.con_defs "K =1=> r";
 val S_parcontractE = parcontract.mk_cases comb.con_defs "S =1=> r";
 val Ap_parcontractE = parcontract.mk_cases comb.con_defs "p#q =1=> r";
 
-val parcontract_cs =
-    ZF_cs addSIs comb.intrs
-          addIs  parcontract.intrs
-          addSEs [Ap_E, K_parcontractE, S_parcontractE, 
-                  Ap_parcontractE]
-          addSEs [parcontract_combD1, parcontract_combD2]     (*type checking*)
-          addSEs comb.free_SEs;
+AddSIs comb.intrs;
+AddIs  parcontract.intrs;
+AddSEs [Ap_E, K_parcontractE, S_parcontractE, Ap_parcontractE];
+AddSEs [parcontract_combD1, parcontract_combD2];     (*type checking*)
+AddSEs comb.free_SEs;
 
 (*** Basic properties of parallel contraction ***)
 
 goal Comb.thy "!!p r. K#p =1=> r ==> (EX p'. r = K#p' & p =1=> p')";
-by (fast_tac parcontract_cs 1);
+by (Fast_tac 1);
 qed "K1_parcontractD";
 
 goal Comb.thy "!!p r. S#p =1=> r ==> (EX p'. r = S#p' & p =1=> p')";
-by (fast_tac parcontract_cs 1);
+by (Fast_tac 1);
 qed "S1_parcontractD";
 
 goal Comb.thy
  "!!p q r. S#p#q =1=> r ==> (EX p' q'. r = S#p'#q' & p =1=> p' & q =1=> q')";
-by (fast_tac (parcontract_cs addSDs [S1_parcontractD]) 1);
+by (fast_tac (!claset addSDs [S1_parcontractD]) 1);
 qed "S2_parcontractD";
 
 (*Church-Rosser property for parallel contraction*)
@@ -159,7 +156,7 @@ goalw Comb.thy [diamond_def] "diamond(parcontract)";
 by (rtac (impI RS allI RS allI) 1);
 by (etac parcontract.induct 1);
 by (ALLGOALS 
-    (fast_tac (parcontract_cs addSDs [K1_parcontractD,S2_parcontractD])));
+    (fast_tac (!claset addSDs [K1_parcontractD,S2_parcontractD])));
 qed "diamond_parcontract";
 
 (*** Transitive closure preserves the Church-Rosser property ***)
@@ -168,8 +165,8 @@ goalw Comb.thy [diamond_def]
     "!!x y r. [| diamond(r);  <x,y>:r^+ |] ==> \
 \    ALL y'. <x,y'>:r --> (EX z. <y',z>: r^+ & <y,z>: r)";
 by (etac trancl_induct 1);
-by (fast_tac (ZF_cs addIs [r_into_trancl]) 1);
-by (slow_best_tac (ZF_cs addSDs [spec RS mp]
+by (fast_tac (!claset addIs [r_into_trancl]) 1);
+by (slow_best_tac (!claset addSDs [spec RS mp]
                          addIs  [r_into_trancl, trans_trancl RS transD]) 1);
 val diamond_strip_lemmaE = result() RS spec RS mp RS exE;
 
@@ -178,7 +175,7 @@ by (rewtac diamond_def);  (*unfold only in goal, not in premise!*)
 by (rtac (impI RS allI RS allI) 1);
 by (etac trancl_induct 1);
 by (ALLGOALS
-    (slow_best_tac (ZF_cs addIs [r_into_trancl, trans_trancl RS transD]
+    (slow_best_tac (!claset addIs [r_into_trancl, trans_trancl RS transD]
                           addEs [major RS diamond_strip_lemmaE])));
 qed "diamond_trancl";
 
@@ -187,28 +184,28 @@ qed "diamond_trancl";
 
 goal Comb.thy "!!p q. p-1->q ==> p=1=>q";
 by (etac contract.induct 1);
-by (ALLGOALS (fast_tac (parcontract_cs)));
+by (ALLGOALS (fast_tac (!claset)));
 qed "contract_imp_parcontract";
 
 goal Comb.thy "!!p q. p--->q ==> p===>q";
 by (forward_tac [rtrancl_type RS subsetD RS SigmaD1] 1);
 by (dtac (field_contract_eq RS equalityD1 RS subsetD) 1);
 by (etac rtrancl_induct 1);
-by (fast_tac (parcontract_cs addIs [r_into_trancl]) 1);
-by (fast_tac (ZF_cs addIs [contract_imp_parcontract, 
+by (fast_tac (!claset addIs [r_into_trancl]) 1);
+by (fast_tac (!claset addIs [contract_imp_parcontract, 
                            r_into_trancl, trans_trancl RS transD]) 1);
 qed "reduce_imp_parreduce";
 
 
 goal Comb.thy "!!p q. p=1=>q ==> p--->q";
 by (etac parcontract.induct 1);
-by (fast_tac (contract_cs addIs reduction_rls) 1);
-by (fast_tac (contract_cs addIs reduction_rls) 1);
-by (fast_tac (contract_cs addIs reduction_rls) 1);
+by (fast_tac (!claset addIs reduction_rls) 1);
+by (fast_tac (!claset addIs reduction_rls) 1);
+by (fast_tac (!claset addIs reduction_rls) 1);
 by (rtac (trans_rtrancl RS transD) 1);
 by (ALLGOALS 
     (fast_tac 
-     (contract_cs addIs [Ap_reduce1, Ap_reduce2]
+     (!claset addIs [Ap_reduce1, Ap_reduce2]
                   addSEs [parcontract_combD1,parcontract_combD2])));
 qed "parcontract_imp_reduce";
 

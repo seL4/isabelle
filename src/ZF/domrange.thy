@@ -1,3 +1,4 @@
 (*Dummy theory to document dependencies *)
 
-domrange = "pair" + "subset"
+domrange = pair + "subset" 
+

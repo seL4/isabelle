@@ -6,13 +6,23 @@
 Epsilon induction and recursion
 *)
 
-Epsilon = Nat + "mono" +
-consts
-    eclose,rank ::      i=>i
-    transrec    ::      [i, [i,i]=>i] =>i
+Epsilon = Nat + mono +
+constdefs
+  eclose    :: i=>i
+    "eclose(A) == UN n:nat. nat_rec(n, A, %m r. Union(r))"
 
-defs
-  eclose_def    "eclose(A) == UN n:nat. nat_rec(n, A, %m r. Union(r))"
-  transrec_def  "transrec(a,H) == wfrec(Memrel(eclose({a})), a, H)"
-  rank_def      "rank(a) == transrec(a, %x f. UN y:x. succ(f`y))"
+  transrec  :: [i, [i,i]=>i] =>i
+    "transrec(a,H) == wfrec(Memrel(eclose({a})), a, H)"
+ 
+  rank      :: i=>i
+    "rank(a) == transrec(a, %x f. UN y:x. succ(f`y))"
+
+  transrec2 :: [i, i, [i,i]=>i] =>i
+    "transrec2(k, a, b) ==                     
+       transrec(k, 
+                %i r. if(i=0, a, 
+                        if(EX j. i=succ(j),        
+                           b(THE j. i=succ(j), r`(THE j. i=succ(j))),   
+                           UN j<i. r`j)))"
+
 end

@@ -27,7 +27,7 @@ qed "data_mono";
 goalw Data.thy (data.defs@data.con_defs) "data(univ(A),univ(A)) <= univ(A)";
 by (rtac lfp_lowerbound 1);
 by (rtac ([A_subset_univ, Un_upper1] MRS subset_trans RS univ_mono) 2);
-by (fast_tac (ZF_cs addSIs [zero_in_univ, Inl_in_univ, Inr_in_univ,
+by (fast_tac (!claset addSIs [zero_in_univ, Inl_in_univ, Inr_in_univ,
                             Pair_in_univ]) 1);
 qed "data_univ";
 

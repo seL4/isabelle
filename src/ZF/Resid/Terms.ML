@@ -13,17 +13,17 @@ open Terms;
 
 goalw Terms.thy [unmark_def] 
     "unmark(Var(n)) = Var(n)";
-by (asm_simp_tac lift_ss 1);
+by (Asm_simp_tac 1);
 val unmark_Var = result();
 
 goalw Terms.thy [unmark_def] 
     "unmark(Fun(t)) = Fun(unmark(t))";
-by (asm_simp_tac lift_ss 1);
+by (Asm_simp_tac 1);
 val unmark_Fun = result();
 
 goalw Terms.thy [unmark_def] 
     "unmark(App(b,n,m)) = App(0,unmark(n),unmark(m))";
-by (asm_simp_tac lift_ss 1);
+by (Asm_simp_tac 1);
 val unmark_App = result();
 
 
@@ -32,8 +32,9 @@ val unmark_App = result();
 (* ------------------------------------------------------------------------- *)
 
 
-val term_ss = res1_ss addsimps ([unmark_App,unmark_Fun,unmark_Var,
-                                lambda.dom_subset RS subsetD]@lambda.intrs);
+Addsimps ([unmark_App, unmark_Fun, unmark_Var,
+	   lambda.dom_subset RS subsetD] @ 
+	  lambda.intrs);
 
 
 (* ------------------------------------------------------------------------- *)
@@ -43,13 +44,13 @@ val term_ss = res1_ss addsimps ([unmark_App,unmark_Fun,unmark_Var,
 goalw Terms.thy [unmark_def] 
     "!!u.u:redexes ==> unmark(u):lambda";
 by (eresolve_tac [redexes.induct] 1);
-by (ALLGOALS(asm_simp_tac term_ss));
+by (ALLGOALS Asm_simp_tac);
 val unmark_type = result();
 
 goal Terms.thy  
     "!!u.u:lambda ==> unmark(u) = u";
 by (eresolve_tac [lambda.induct] 1);
-by (ALLGOALS(asm_simp_tac term_ss));
+by (ALLGOALS Asm_simp_tac);
 val lambda_unmark = result();
 
 
@@ -60,14 +61,14 @@ val lambda_unmark = result();
 goal Terms.thy  
     "!!u.[|v:lambda|]==> ALL k:nat.lift_rec(v,k):lambda";
 by (eresolve_tac [lambda.induct] 1);
-by (ALLGOALS(asm_full_simp_tac (addsplit term_ss)));
+by (ALLGOALS(asm_full_simp_tac (addsplit (!simpset))));
 val liftL_typea = result();
 val liftL_type =liftL_typea RS bspec ;
 
 goal Terms.thy  
     "!!n.[|v:lambda|]==>  ALL n:nat.ALL u:lambda.subst_rec(u,v,n):lambda";
 by (eresolve_tac [lambda.induct] 1);
-by (ALLGOALS(asm_full_simp_tac ((addsplit term_ss) addsimps [liftL_type])));
+by (ALLGOALS(asm_full_simp_tac ((addsplit (!simpset)) addsimps [liftL_type])));
 val substL_typea = result();
 val substL_type = substL_typea RS bspec RS bspec ;
 

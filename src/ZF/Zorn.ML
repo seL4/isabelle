@@ -14,12 +14,12 @@ open Zorn;
 (*** Section 1.  Mathematical Preamble ***)
 
 goal ZF.thy "!!A B C. (ALL x:C. x<=A | B<=x) ==> Union(C)<=A | B<=Union(C)";
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "Union_lemma0";
 
 goal ZF.thy
     "!!A B C. [| c:C; ALL x:C. A<=x | x<=B |] ==> A<=Inter(C) | Inter(C)<=B";
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "Inter_lemma0";
 
 
@@ -51,7 +51,7 @@ val major::prems = goal Zorn.thy
 \     !!Y. [| Y <= TFin(S,next);  ALL y:Y. P(y) |] ==> P(Union(Y)) \
 \  |] ==> P(n)";
 by (rtac (major RS TFin.induct) 1);
-by (ALLGOALS (fast_tac (ZF_cs addIs prems)));
+by (ALLGOALS (fast_tac (!claset addIs prems)));
 qed "TFin_induct";
 
 (*Perform induction on n, then prove the major premise using prems. *)
@@ -73,7 +73,7 @@ val major::prems = goal Zorn.thy
 \    |] ==> n<=m | next`m<=n";
 by (cut_facts_tac prems 1);
 by (rtac (major RS TFin_induct) 1);
-by (etac Union_lemma0 2);               (*or just fast_tac ZF_cs*)
+by (etac Union_lemma0 2);               (*or just Fast_tac*)
 by (fast_tac (subset_cs addIs [increasing_trans]) 1);
 qed "TFin_linear_lemma1";
 
@@ -131,7 +131,7 @@ by (cut_facts_tac prems 1);
 by (rtac (major RS TFin_induct) 1);
 by (dtac TFin_subsetD 1);
 by (REPEAT (assume_tac 1));
-by (fast_tac (ZF_cs addEs [ssubst]) 1);
+by (fast_tac (!claset addEs [ssubst]) 1);
 by (fast_tac (subset_cs addIs [TFin_is_subset]) 1);
 qed "equal_next_upper";
 
@@ -173,7 +173,7 @@ goal Zorn.thy
 \         |] ==> ch ` super(S,X) : super(S,X)";
 by (etac apply_type 1);
 by (rewrite_goals_tac [super_def, maxchain_def]);
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "choice_super";
 
 goal Zorn.thy
@@ -184,7 +184,7 @@ by (rtac notI 1);
 by (dtac choice_super 1);
 by (assume_tac 1);
 by (assume_tac 1);
-by (asm_full_simp_tac (ZF_ss addsimps [super_def]) 1);
+by (asm_full_simp_tac (!simpset addsimps [super_def]) 1);
 qed "choice_not_equals";
 
 (*This justifies Definition 4.4*)
@@ -199,18 +199,18 @@ by (assume_tac 1);
 by (rewtac increasing_def);
 by (rtac CollectI 1);
 by (rtac lam_type 1);
-by (asm_simp_tac (ZF_ss setloop split_tac [expand_if]) 1);
-by (fast_tac (ZF_cs addSIs [super_subset_chain RS subsetD,
+by (asm_simp_tac (!simpset setloop split_tac [expand_if]) 1);
+by (fast_tac (!claset addSIs [super_subset_chain RS subsetD,
                             chain_subset_Pow RS subsetD,
                             choice_super]) 1);
 (*Now, verify that it increases*)
-by (asm_simp_tac (ZF_ss addsimps [Pow_iff, subset_refl]
+by (asm_simp_tac (!simpset addsimps [Pow_iff, subset_refl]
                         setloop split_tac [expand_if]) 1);
-by (safe_tac ZF_cs);
+by (safe_tac (!claset));
 by (dtac choice_super 1);
 by (REPEAT (assume_tac 1));
 by (rewtac super_def);
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "Hausdorff_next_exists";
 
 (*Lemma 4*)
@@ -223,11 +223,11 @@ goal Zorn.thy
 \      |] ==> c: chain(S)";
 by (etac TFin_induct 1);
 by (asm_simp_tac 
-    (ZF_ss addsimps [chain_subset_Pow RS subsetD, 
+    (!simpset addsimps [chain_subset_Pow RS subsetD, 
                      choice_super RS (super_subset_chain RS subsetD)]
            setloop split_tac [expand_if]) 1);
 by (rewtac chain_def);
-by (rtac CollectI 1 THEN fast_tac ZF_cs 1);
+by (rtac CollectI 1 THEN Fast_tac 1);
 (*Cannot use safe_tac: the disjunction must be left alone*)
 by (REPEAT (rtac ballI 1 ORELSE etac UnionE 1));
 by (res_inst_tac  [("m1","B"), ("n1","Ba")] (TFin_subset_linear RS disjE) 1);
@@ -251,7 +251,7 @@ by (resolve_tac [subset_refl RS TFin_UnionI] 2);
 by (assume_tac 2);
 by (rtac refl 2);
 by (asm_full_simp_tac 
-    (ZF_ss addsimps [subset_refl RS TFin_UnionI RS
+    (!simpset addsimps [subset_refl RS TFin_UnionI RS
                      (TFin.dom_subset RS subsetD)]
            setloop split_tac [expand_if]) 1);
 by (eresolve_tac [choice_not_equals RS notE] 1);
@@ -265,25 +265,25 @@ qed "Hausdorff";
 (*Used in the proof of Zorn's Lemma*)
 goalw Zorn.thy [chain_def]
     "!!c. [| c: chain(A);  z: A;  ALL x:c. x<=z |] ==> cons(z,c) : chain(A)";
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "chain_extend";
 
 goal Zorn.thy
     "!!S. ALL c: chain(S). Union(c) : S ==> EX y:S. ALL z:S. y<=z --> y=z";
 by (resolve_tac [Hausdorff RS exE] 1);
-by (asm_full_simp_tac (ZF_ss addsimps [maxchain_def]) 1);
+by (asm_full_simp_tac (!simpset addsimps [maxchain_def]) 1);
 by (rename_tac "c" 1);
 by (res_inst_tac [("x", "Union(c)")] bexI 1);
-by (fast_tac ZF_cs 2);
-by (safe_tac ZF_cs);
+by (Fast_tac 2);
+by (safe_tac (!claset));
 by (rename_tac "z" 1);
 by (rtac classical 1);
 by (subgoal_tac "cons(z,c): super(S,c)" 1);
-by (fast_tac (ZF_cs addEs [equalityE]) 1);
+by (fast_tac (!claset addEs [equalityE]) 1);
 by (rewtac super_def);
 by (safe_tac eq_cs);
-by (fast_tac (ZF_cs addEs [chain_extend]) 1);
-by (best_tac (ZF_cs addEs [equalityE]) 1);
+by (fast_tac (!claset addEs [chain_extend]) 1);
+by (best_tac (!claset addEs [equalityE]) 1);
 qed "Zorn";
 
 
@@ -295,12 +295,12 @@ val major::prems = goal Zorn.thy
 \    |] ==> ALL m:Z. n<=m";
 by (cut_facts_tac prems 1);
 by (rtac (major RS TFin_induct) 1);
-by (fast_tac ZF_cs 2);                  (*second induction step is easy*)
+by (Fast_tac 2);                  (*second induction step is easy*)
 by (rtac ballI 1);
 by (rtac (bspec RS TFin_subsetD RS disjE) 1);
 by (REPEAT_SOME (eresolve_tac [asm_rl,subsetD]));
 by (subgoal_tac "x = Inter(Z)" 1);
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 by (fast_tac eq_cs 1);
 qed "TFin_well_lemma5";
 
@@ -308,7 +308,7 @@ qed "TFin_well_lemma5";
 goal Zorn.thy "!!Z. [| Z <= TFin(S,next);  z:Z |] ==> Inter(Z) : Z";
 by (rtac classical 1);
 by (subgoal_tac "Z = {Union(TFin(S,next))}" 1);
-by (asm_simp_tac (ZF_ss addsimps [Inter_singleton]) 1);
+by (asm_simp_tac (!simpset addsimps [Inter_singleton]) 1);
 by (etac equal_singleton 1);
 by (rtac (Union_upper RS equalityI) 1);
 by (rtac (subset_refl RS TFin_UnionI RS TFin_well_lemma5 RS bspec) 2);
@@ -324,12 +324,12 @@ by (rewrite_goals_tac [Subset_rel_def, linear_def]);
 (*Prove the linearity goal first*)
 by (REPEAT (rtac ballI 2));
 by (excluded_middle_tac "x=y" 2);
-by (fast_tac ZF_cs 3);
+by (Fast_tac 3);
 (*The x~=y case remains*)
 by (res_inst_tac [("n1","x"), ("m1","y")] 
     (TFin_subset_linear RS disjE) 2  THEN  REPEAT (assume_tac 2));
-by (fast_tac ZF_cs 2);
-by (fast_tac ZF_cs 2);
+by (Fast_tac 2);
+by (Fast_tac 2);
 (*Now prove the well_foundedness goal*)
 by (rtac wf_onI 1);
 by (forward_tac [well_ord_TFin_lemma] 1 THEN assume_tac 1);
@@ -361,12 +361,12 @@ by (rtac lam_type 1);
 (*Verify that it increases*)
 by (rtac allI 2);
 by (rtac impI 2);
-by (asm_simp_tac (ZF_ss addsimps [Pow_iff, subset_consI, subset_refl]
+by (asm_simp_tac (!simpset addsimps [Pow_iff, subset_consI, subset_refl]
                         setloop split_tac [expand_if]) 2);
 (*Type checking is surprisingly hard!*)
-by (asm_simp_tac (ZF_ss addsimps [Pow_iff, cons_subset_iff, subset_refl]
+by (asm_simp_tac (!simpset addsimps [Pow_iff, cons_subset_iff, subset_refl]
                         setloop split_tac [expand_if]) 1);
-by (fast_tac (ZF_cs addSIs [choice_Diff RS DiffD1]) 1);
+by (fast_tac (!claset addSIs [choice_Diff RS DiffD1]) 1);
 qed "Zermelo_next_exists";
 
 
@@ -380,18 +380,19 @@ goal Zorn.thy
 by (res_inst_tac [("d", "%y. ch`(S-y)")] lam_injective 1);
 by (rtac DiffI 1);
 by (resolve_tac [Collect_subset RS TFin_UnionI] 1);
-by (fast_tac (ZF_cs addSIs [Collect_subset RS TFin_UnionI]
-                    addEs [equalityE]) 1);
+by (fast_tac (!claset addSIs [Collect_subset RS TFin_UnionI]
+                      addEs [equalityE]) 1);
 by (subgoal_tac "x ~: Union({y: TFin(S,next). x~: y})" 1);
-by (fast_tac (ZF_cs addEs [equalityE]) 2);
+by (fast_tac (!claset addEs [equalityE]) 2);
 by (subgoal_tac "Union({y: TFin(S,next). x~: y}) ~= S" 1);
-by (fast_tac (ZF_cs addEs [equalityE]) 2);
+by (fast_tac (!claset addEs [equalityE]) 2);
 (*For proving x : next`Union(...);
   Abrial & Laffitte's justification appears to be faulty.*)
 by (subgoal_tac "~ next ` Union({y: TFin(S,next). x~: y}) <= \
 \                  Union({y: TFin(S,next). x~: y})" 1);
 by (asm_simp_tac 
-    (ZF_ss addsimps [Collect_subset RS TFin_UnionI RS TFin_is_subset,
+    (!simpset delsimps [Union_iff]
+	      addsimps [Collect_subset RS TFin_UnionI RS TFin_is_subset,
                      Pow_iff, cons_subset_iff, subset_refl,
                      choice_Diff RS DiffD2]
            setloop split_tac [expand_if]) 2);
@@ -399,7 +400,7 @@ by (subgoal_tac "x : next ` Union({y: TFin(S,next). x~: y})" 1);
 by (fast_tac (subset_cs addSIs [Collect_subset RS TFin_UnionI, TFin_nextI]) 2);
 (*End of the lemmas!*)
 by (asm_full_simp_tac 
-    (ZF_ss addsimps [Collect_subset RS TFin_UnionI RS TFin_is_subset,
+    (!simpset addsimps [Collect_subset RS TFin_UnionI RS TFin_is_subset,
                      Pow_iff, cons_subset_iff, subset_refl]
            setloop split_tac [expand_if]) 1);
 by (REPEAT (eresolve_tac [asm_rl, consE, sym, notE] 1));

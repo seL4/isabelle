@@ -12,7 +12,7 @@ open AC;
 val [nonempty] = goal AC.thy
      "[| !!x. x:A ==> (EX y. y:B(x)) |] ==> EX z. z : Pi(A,B)";
 by (excluded_middle_tac "A=0" 1);
-by (asm_simp_tac (ZF_ss addsimps [Pi_empty1]) 2 THEN fast_tac ZF_cs 2);
+by (asm_simp_tac (!simpset addsimps [Pi_empty1]) 2 THEN Fast_tac 2);
 (*The non-trivial case*)
 by (fast_tac (eq_cs addIs [AC, nonempty]) 1);
 qed "AC_Pi";
@@ -35,7 +35,7 @@ val [nonempty] = goal AC.thy
 \     |] ==> EX f: A->Union(A). ALL x:A. f`x : x";
 by (res_inst_tac [("B1", "%x.x")] (AC_Pi RS exE) 1);
 by (etac nonempty 1);
-by (fast_tac (ZF_cs addDs [apply_type] addIs [Pi_type]) 1);
+by (fast_tac (!claset addDs [apply_type] addIs [Pi_type]) 1);
 qed "AC_func";
 
 goal ZF.thy "!!x A. [| 0 ~: A;  x: A |] ==> EX y. y:x";
@@ -53,7 +53,7 @@ by (resolve_tac [AC_func0 RS bexE] 1);
 by (rtac bexI 2);
 by (assume_tac 2);
 by (etac fun_weaken_type 2);
-by (ALLGOALS (fast_tac ZF_cs));
+by (ALLGOALS (Fast_tac));
 qed "AC_func_Pow";
 
 goal AC.thy "!!A. 0 ~: A ==> EX f. f: (PROD x:A. x)";

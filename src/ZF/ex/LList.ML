@@ -8,6 +8,12 @@ Codatatype definition of Lazy Lists
 
 open LList;
 
+Delrules [subsetI, subsetCE];
+AddSIs [subset_refl, cons_subsetI, subset_consI, 
+	Union_least, UN_least, Un_least, 
+	Inter_greatest, Int_greatest, RepFun_subset,
+	Un_upper1, Un_upper2, Int_lower1, Int_lower2];
+
 (*An elimination rule, for type-checking*)
 val LConsE = llist.mk_cases llist.con_defs "LCons(a,l) : llist(A)";
 
@@ -17,7 +23,7 @@ val LNil_LCons_iff = llist.mk_free "~ LNil=LCons(a,l)";
 
 goal LList.thy "llist(A) = {0} <+> (A <*> llist(A))";
 let open llist;  val rew = rewrite_rule con_defs in  
-by (fast_tac (qsum_cs addSIs (equalityI :: map rew intrs)
+by (fast_tac (!claset addSIs (subsetI :: equalityI :: map rew intrs)
                       addEs [rew elim]) 1)
 end;
 qed "llist_unfold";
@@ -32,12 +38,11 @@ qed "llist_mono";
 
 (** Closure of quniv(A) under llist -- why so complex?  Its a gfp... **)
 
-val quniv_cs = subset_cs addSIs [QPair_Int_Vset_subset_UN RS subset_trans, 
+AddSIs [QPair_Int_Vset_subset_UN RS subset_trans, 
                                  QPair_subset_univ,
-                                 empty_subsetI, one_in_quniv RS qunivD]
-                 addIs  [Int_lower1 RS subset_trans]
-                 addSDs [qunivD]
-                 addSEs [Ord_in_Ord];
+                                 empty_subsetI, one_in_quniv RS qunivD];
+AddSDs [qunivD];
+AddSEs [Ord_in_Ord];
 
 goal LList.thy
    "!!i. Ord(i) ==> ALL l: llist(quniv(A)). l Int Vset(i) <= univ(eclose(A))";
@@ -46,10 +51,9 @@ by (rtac ballI 1);
 by (etac llist.elim 1);
 by (rewrite_goals_tac ([QInl_def,QInr_def]@llist.con_defs));
 (*LNil case*)
-by (fast_tac quniv_cs 1);
+by (Asm_simp_tac 1);
 (*LCons case*)
-by (safe_tac quniv_cs);
-by (ALLGOALS (fast_tac (quniv_cs addSEs [Ord_trans, make_elim bspec])));
+by (deepen_tac (!claset addIs [Ord_trans, Int_lower1 RS subset_trans]) 2 1);
 qed "llist_quniv_lemma";
 
 goal LList.thy "llist(quniv(A)) <= quniv(A)";
@@ -64,9 +68,8 @@ bind_thm ("llist_subset_quniv",
 
 (*** Lazy List Equality: lleq ***)
 
-val lleq_cs = subset_cs
-        addSIs [QPair_Int_Vset_subset_UN RS subset_trans, QPair_mono]
-        addSEs [Ord_in_Ord, Pair_inject];
+AddSIs [QPair_Int_Vset_subset_UN RS subset_trans, QPair_mono];
+AddSEs [Ord_in_Ord, Pair_inject];
 
 (*Lemma for proving finality.  Unfold the lazy list; use induction hypothesis*)
 goal LList.thy
@@ -75,7 +78,7 @@ by (etac trans_induct 1);
 by (REPEAT (resolve_tac [allI, impI] 1));
 by (etac lleq.elim 1);
 by (rewrite_goals_tac (QInr_def::llist.con_defs));
-by (safe_tac lleq_cs);
+by (safe_tac (!claset));
 by (fast_tac (subset_cs addSEs [Ord_trans, make_elim bspec]) 1);
 qed "lleq_Int_Vset_subset_lemma";
 
@@ -87,9 +90,9 @@ bind_thm ("lleq_Int_Vset_subset",
 val [prem] = goal LList.thy "<l,l'> : lleq(A) ==> <l',l> : lleq(A)";
 by (rtac (prem RS converseI RS lleq.coinduct) 1);
 by (rtac (lleq.dom_subset RS converse_type) 1);
-by (safe_tac converse_cs);
+by (safe_tac (!claset));
 by (etac lleq.elim 1);
-by (ALLGOALS (fast_tac qconverse_cs));
+by (ALLGOALS Fast_tac);
 qed "lleq_symmetric";
 
 goal LList.thy "!!l l'. <l,l'> : lleq(A) ==> l=l'";
@@ -102,9 +105,9 @@ val [eqprem,lprem] = goal LList.thy
     "[| l=l';  l: llist(A) |] ==> <l,l'> : lleq(A)";
 by (res_inst_tac [("X", "{<l,l>. l: llist(A)}")] lleq.coinduct 1);
 by (rtac (lprem RS RepFunI RS (eqprem RS subst)) 1);
-by (safe_tac qpair_cs);
+by (safe_tac (!claset));
 by (etac llist.elim 1);
-by (ALLGOALS (fast_tac pair_cs));
+by (ALLGOALS Fast_tac);
 qed "equal_llist_implies_leq";
 
 
@@ -137,19 +140,19 @@ qed "lconst_in_quniv";
 goal LList.thy "!!a A. a:A ==> lconst(a): llist(A)";
 by (rtac (singletonI RS llist.coinduct) 1);
 by (etac (lconst_in_quniv RS singleton_subsetI) 1);
-by (fast_tac (ZF_cs addSIs [lconst]) 1);
+by (fast_tac (!claset addSIs [lconst]) 1);
 qed "lconst_type";
 
 (*** flip --- equations merely assumed; certain consequences proved ***)
 
-val flip_ss = ZF_ss addsimps [flip_LNil, flip_LCons, not_type];
+Addsimps [flip_LNil, flip_LCons, not_type];
 
 goal QUniv.thy "!!b. b:bool ==> b Int X <= univ(eclose(A))";
-by (fast_tac (quniv_cs addSEs [boolE]) 1);
+by (fast_tac (!claset addIs [Int_lower1 RS subset_trans] addSEs [boolE]) 1);
 qed "bool_Int_subset_univ";
 
-val flip_cs = quniv_cs addSIs [not_type]
-                       addIs  [bool_Int_subset_univ];
+AddSIs [not_type];
+AddIs  [bool_Int_subset_univ];
 
 (*Reasoning borrowed from lleq.ML; a similar proof works for all
   "productive" functions -- cf Coquand's "Infinite Objects in Type Theory".*)
@@ -159,14 +162,11 @@ goal LList.thy
 by (etac trans_induct 1);
 by (rtac ballI 1);
 by (etac llist.elim 1);
-by (asm_simp_tac flip_ss 1);
-by (asm_simp_tac flip_ss 2);
-by (rewrite_goals_tac ([QInl_def,QInr_def]@llist.con_defs));
-(*LNil case*)
-by (fast_tac flip_cs 1);
+by (ALLGOALS Asm_simp_tac);
+by (ALLGOALS 
+    (asm_simp_tac (!simpset addsimps ([QInl_def,QInr_def]@llist.con_defs))));
 (*LCons case*)
-by (safe_tac flip_cs);
-by (ALLGOALS (fast_tac (flip_cs addSEs [Ord_trans, make_elim bspec])));
+by (deepen_tac (!claset addIs [Ord_trans, Int_lower1 RS subset_trans]) 2 1);
 qed "flip_llist_quniv_lemma";
 
 goal LList.thy "!!l. l: llist(bool) ==> flip(l) : quniv(bool)";
@@ -178,12 +178,11 @@ val [prem] = goal LList.thy "l : llist(bool) ==> flip(l): llist(bool)";
 by (res_inst_tac [("X", "{flip(l) . l:llist(bool)}")]
        llist.coinduct 1);
 by (rtac (prem RS RepFunI) 1);
-by (fast_tac (ZF_cs addSIs [flip_in_quniv]) 1);
+by (fast_tac (!claset addSIs [flip_in_quniv]) 1);
 by (etac RepFunE 1);
 by (etac llist.elim 1);
-by (asm_simp_tac flip_ss 1);
-by (asm_simp_tac flip_ss 1);
-by (fast_tac (ZF_cs addSIs [not_type]) 1);
+by (ALLGOALS Asm_simp_tac);
+by (Fast_tac 1);
 qed "flip_type";
 
 val [prem] = goal LList.thy
@@ -191,10 +190,10 @@ val [prem] = goal LList.thy
 by (res_inst_tac [("X1", "{<flip(flip(l)),l> . l:llist(bool)}")]
        (lleq.coinduct RS lleq_implies_equal) 1);
 by (rtac (prem RS RepFunI) 1);
-by (fast_tac (ZF_cs addSIs [flip_type]) 1);
+by (fast_tac (!claset addSIs [flip_type]) 1);
 by (etac RepFunE 1);
 by (etac llist.elim 1);
-by (asm_simp_tac flip_ss 1);
-by (asm_simp_tac (flip_ss addsimps [flip_type, not_not]) 1);
-by (fast_tac (ZF_cs addSIs [not_type]) 1);
+by (Asm_simp_tac 1);
+by (asm_simp_tac (!simpset addsimps [flip_type, not_not]) 1);
+by (fast_tac (!claset addSIs [not_type]) 1);
 qed "flip_flip";

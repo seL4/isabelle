@@ -30,7 +30,7 @@ by (REPEAT (ares_tac (prems @ [allI,impI]) 1));
 qed "symI";
 
 goalw Rel.thy [sym_def] "!!r. [| sym(r); <x,y>: r |]  ==>  <y,x>: r";
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "symE";
 
 (* antisymmetry *)
@@ -43,18 +43,18 @@ qed "antisymI";
 
 val prems = goalw Rel.thy [antisym_def]
      "!!r. [| antisym(r); <x,y>: r;  <y,x>: r |]  ==>  x=y";
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "antisymE";
 
 (* transitivity *)
 
 goalw Rel.thy [trans_def]
     "!!r. [| trans(r);  <a,b>:r;  <b,c>:r |] ==> <a,c>:r";
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "transD";
 
 goalw Rel.thy [trans_on_def]
     "!!r. [| trans[A](r);  <a,b>:r;  <b,c>:r;  a:A;  b:A;  c:A |] ==> <a,c>:r";
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "trans_onD";
 

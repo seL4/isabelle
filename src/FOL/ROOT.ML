@@ -14,14 +14,13 @@ writeln banner;
 init_thy_reader();
 
 print_depth 1;  
-use_thy "FOL";
 
 use "../Provers/splitter.ML";
 use "../Provers/ind.ML";
 use "../Provers/hypsubst.ML";
 use "../Provers/classical.ML";
 
-(*** Applying HypsubstFun to generate hyp_subst_tac ***)
+use_thy "IFOL";
 
 structure Hypsubst_Data =
   struct
@@ -38,36 +37,15 @@ structure Hypsubst_Data =
 structure Hypsubst = HypsubstFun(Hypsubst_Data);
 open Hypsubst;
 
+
 use "intprover.ML";
 
-(*** Applying ClassicalFun to create a classical prover ***)
-structure Classical_Data = 
-  struct
-  val sizef     = size_of_thm
-  val mp        = mp
-  val not_elim  = notE
-  val classical = classical
-  val hyp_subst_tacs=[hyp_subst_tac]
-  end;
-
-structure Cla = ClassicalFun(Classical_Data);
-open Cla;
-
-(*Propositional rules 
-  -- iffCE might seem better, but in the examples in ex/cla
-     run about 7% slower than with iffE*)
-val prop_cs = empty_cs addSIs [refl,TrueI,conjI,disjCI,impI,notI,iffI] 
-                       addSEs [conjE,disjE,impCE,FalseE,iffE];
-
-(*Quantifier rules*)
-val FOL_cs = prop_cs addSIs [allI] addIs [exI,ex1I] 
-                     addSEs [exE,ex1E] addEs [allE];
+use_thy "FOL";
 
 qed_goal "ex1_functional" FOL.thy
     "!!a b c. [| EX! z. P(a,z);  P(a,b);  P(a,c) |] ==> b = c"
  (fn _ => [ (deepen_tac FOL_cs 0 1) ]);
 
-use "simpdata.ML";
 
 init_pps ();
 print_depth 8;

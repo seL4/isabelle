@@ -29,8 +29,8 @@ val major::prems = goal Brouwer.thy
 \    |] ==> P(b)";
 by (rtac (major RS brouwer.induct) 1);
 by (REPEAT_SOME (ares_tac prems));
-by (fast_tac (ZF_cs addEs [fun_weaken_type]) 1);
-by (fast_tac (ZF_cs addDs [apply_type]) 1);
+by (fast_tac (!claset addEs [fun_weaken_type]) 1);
+by (fast_tac (!claset addDs [apply_type]) 1);
 qed "brouwer_induct2";
 
 
@@ -51,8 +51,8 @@ val major::prems = goal Brouwer.thy
 \    |] ==> P(w)";
 by (rtac (major RS Well.induct) 1);
 by (REPEAT_SOME (ares_tac prems));
-by (fast_tac (ZF_cs addEs [fun_weaken_type]) 1);
-by (fast_tac (ZF_cs addDs [apply_type]) 1);
+by (fast_tac (!claset addEs [fun_weaken_type]) 1);
+by (fast_tac (!claset addDs [apply_type]) 1);
 qed "Well_induct2";
 
 
@@ -60,5 +60,5 @@ qed "Well_induct2";
   Well to prove this.*)
 goal Brouwer.thy "Well(bool, %x.x) = 1 + (1 -> Well(bool, %x.x))";
 by (resolve_tac [Well_unfold RS trans] 1);
-by (simp_tac (ZF_ss addsimps [Sigma_bool, Pi_empty1, succ_def]) 1);
+by (simp_tac (!simpset addsimps [Sigma_bool, Pi_empty1, succ_def]) 1);
 qed "Well_bool_unfold";

@@ -58,17 +58,17 @@ goalw OrderArith.thy [radd_def] "radd(A,r,B,s) <= (A+B) * (A+B)";
 by (rtac Collect_subset 1);
 qed "radd_type";
 
-bind_thm ("field_radd", (radd_type RS field_rel_subset));
+bind_thm ("field_radd", radd_type RS field_rel_subset);
 
 (** Linearity **)
 
-val radd_ss = sum_ss addsimps [radd_Inl_iff, radd_Inr_iff, 
-                               radd_Inl_Inr_iff, radd_Inr_Inl_iff];
+Addsimps [radd_Inl_iff, radd_Inr_iff, 
+	  radd_Inl_Inr_iff, radd_Inr_Inl_iff];
 
 goalw OrderArith.thy [linear_def]
     "!!r s. [| linear(A,r);  linear(B,s) |] ==> linear(A+B,radd(A,r,B,s))";
 by (REPEAT_FIRST (ares_tac [ballI] ORELSE' etac sumE));
-by (ALLGOALS (asm_simp_tac radd_ss));
+by (ALLGOALS Asm_simp_tac);
 qed "linear_radd";
 
 
@@ -96,7 +96,7 @@ qed "wf_on_radd";
 
 goal OrderArith.thy
      "!!r s. [| wf(r);  wf(s) |] ==> wf(radd(field(r),r,field(s),s))";
-by (asm_full_simp_tac (ZF_ss addsimps [wf_iff_wf_on_field]) 1);
+by (asm_full_simp_tac (!simpset addsimps [wf_iff_wf_on_field]) 1);
 by (rtac (field_radd RSN (2, wf_on_subset_A)) 1);
 by (REPEAT (ares_tac [wf_on_radd] 1));
 qed "wf_radd";
@@ -105,16 +105,12 @@ goal OrderArith.thy
     "!!r s. [| well_ord(A,r);  well_ord(B,s) |] ==> \
 \           well_ord(A+B, radd(A,r,B,s))";
 by (rtac well_ordI 1);
-by (asm_full_simp_tac (ZF_ss addsimps [well_ord_def, wf_on_radd]) 1);
+by (asm_full_simp_tac (!simpset addsimps [well_ord_def, wf_on_radd]) 1);
 by (asm_full_simp_tac 
-    (ZF_ss addsimps [well_ord_def, tot_ord_def, linear_radd]) 1);
+    (!simpset addsimps [well_ord_def, tot_ord_def, linear_radd]) 1);
 qed "well_ord_radd";
 
 (** An ord_iso congruence law **)
-
-val case_ss = 
-    bij_inverse_ss addsimps [Inl_iff, Inl_Inr_iff, Inr_iff, Inr_Inl_iff,
-                             case_Inl, case_Inr, InlI, InrI];
 
 goal OrderArith.thy
  "!!f g. [| f: bij(A,C);  g: bij(B,D) |] ==> \
@@ -122,22 +118,22 @@ goal OrderArith.thy
 by (res_inst_tac 
         [("d", "case(%x. Inl(converse(f)`x), %y. Inr(converse(g)`y))")] 
     lam_bijective 1);
-by (safe_tac (ZF_cs addSEs [sumE]));
-by (ALLGOALS (asm_simp_tac case_ss));
+by (safe_tac (!claset addSEs [sumE]));
+by (ALLGOALS (asm_simp_tac bij_inverse_ss));
 qed "sum_bij";
 
 goalw OrderArith.thy [ord_iso_def]
     "!!r s. [| f: ord_iso(A,r,A',r');  g: ord_iso(B,s,B',s') |] ==>     \
 \           (lam z:A+B. case(%x. Inl(f`x), %y. Inr(g`y), z))            \
 \           : ord_iso(A+B, radd(A,r,B,s), A'+B', radd(A',r',B',s'))";
-by (safe_tac (ZF_cs addSIs [sum_bij]));
+by (safe_tac (!claset addSIs [sum_bij]));
 (*Do the beta-reductions now*)
-by (ALLGOALS (asm_full_simp_tac ZF_ss));
+by (ALLGOALS (Asm_full_simp_tac));
 by (safe_tac sum_cs);
 (*8 subgoals!*)
 by (ALLGOALS
     (asm_full_simp_tac 
-     (radd_ss addcongs [conj_cong] addsimps [bij_is_fun RS apply_type])));
+     (!simpset addcongs [conj_cong] addsimps [bij_is_fun RS apply_type])));
 qed "sum_ord_iso_cong";
 
 (*Could we prove an ord_iso result?  Perhaps 
@@ -150,8 +146,8 @@ by (res_inst_tac [("d", "%z. if(z:A, Inl(z), Inr(z))")]
 by (fast_tac (sum_cs addSIs [if_type]) 2);
 by (DEPTH_SOLVE_1 (eresolve_tac [case_type, UnI1, UnI2] 1));
 by (safe_tac sum_cs);
-by (ALLGOALS (asm_simp_tac (sum_ss setloop split_tac [expand_if])));
-by (fast_tac (ZF_cs addEs [equalityE]) 1);
+by (ALLGOALS (asm_simp_tac (!simpset setloop split_tac [expand_if])));
+by (fast_tac (!claset addEs [equalityE]) 1);
 qed "sum_disjoint_bij";
 
 (** Associativity **)
@@ -161,7 +157,7 @@ goal OrderArith.thy
 \ : bij((A+B)+C, A+(B+C))";
 by (res_inst_tac [("d", "case(%x.Inl(Inl(x)), case(%x.Inl(Inr(x)), Inr))")] 
     lam_bijective 1);
-by (ALLGOALS (asm_simp_tac (case_ss setloop etac sumE)));
+by (ALLGOALS (asm_simp_tac (!simpset setloop etac sumE)));
 qed "sum_assoc_bij";
 
 goal OrderArith.thy
@@ -170,7 +166,7 @@ goal OrderArith.thy
 \           A+(B+C), radd(A, r, B+C, radd(B,s,C,t)))";
 by (resolve_tac [sum_assoc_bij RS ord_isoI] 1);
 by (REPEAT_FIRST (etac sumE));
-by (ALLGOALS (asm_simp_tac radd_ss));
+by (ALLGOALS Asm_simp_tac);
 qed "sum_assoc_ord_iso";
 
 
@@ -182,8 +178,10 @@ goalw OrderArith.thy [rmult_def]
     "!!r s. <<a',b'>, <a,b>> : rmult(A,r,B,s) <->       \
 \           (<a',a>: r  & a':A & a:A & b': B & b: B) |  \
 \           (<b',b>: s  & a'=a & a:A & b': B & b: B)";
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "rmult_iff";
+
+Addsimps [rmult_iff];
 
 val major::prems = goal OrderArith.thy
     "[| <<a',b'>, <a,b>> : rmult(A,r,B,s);              \
@@ -208,10 +206,10 @@ val [lina,linb] = goal OrderArith.thy
     "[| linear(A,r);  linear(B,s) |] ==> linear(A*B,rmult(A,r,B,s))";
 by (rewtac linear_def);    (*Note! the premises are NOT rewritten*)
 by (REPEAT_FIRST (ares_tac [ballI] ORELSE' etac SigmaE));
-by (asm_simp_tac (ZF_ss addsimps [rmult_iff]) 1);
+by (Asm_simp_tac 1);
 by (res_inst_tac [("x","xa"), ("y","xb")] (lina RS linearE) 1);
 by (res_inst_tac [("x","ya"), ("y","yb")] (linb RS linearE) 4);
-by (REPEAT_SOME (fast_tac ZF_cs));
+by (REPEAT_SOME (Fast_tac));
 qed "linear_rmult";
 
 
@@ -223,19 +221,19 @@ by (rtac wf_onI2 1);
 by (etac SigmaE 1);
 by (etac ssubst 1);
 by (subgoal_tac "ALL b:B. <x,b>: Ba" 1);
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 by (eres_inst_tac [("a","x")] wf_on_induct 1 THEN assume_tac 1);
 by (rtac ballI 1);
 by (eres_inst_tac [("a","b")] wf_on_induct 1 THEN assume_tac 1);
 by (etac (bspec RS mp) 1);
-by (fast_tac ZF_cs 1);
-by (best_tac (ZF_cs addSEs [rmultE]) 1);
+by (Fast_tac 1);
+by (best_tac (!claset addSEs [rmultE]) 1);
 qed "wf_on_rmult";
 
 
 goal OrderArith.thy
     "!!r s. [| wf(r);  wf(s) |] ==> wf(rmult(field(r),r,field(s),s))";
-by (asm_full_simp_tac (ZF_ss addsimps [wf_iff_wf_on_field]) 1);
+by (asm_full_simp_tac (!simpset addsimps [wf_iff_wf_on_field]) 1);
 by (rtac (field_rmult RSN (2, wf_on_subset_A)) 1);
 by (REPEAT (ares_tac [wf_on_rmult] 1));
 qed "wf_rmult";
@@ -244,9 +242,9 @@ goal OrderArith.thy
     "!!r s. [| well_ord(A,r);  well_ord(B,s) |] ==> \
 \           well_ord(A*B, rmult(A,r,B,s))";
 by (rtac well_ordI 1);
-by (asm_full_simp_tac (ZF_ss addsimps [well_ord_def, wf_on_rmult]) 1);
+by (asm_full_simp_tac (!simpset addsimps [well_ord_def, wf_on_rmult]) 1);
 by (asm_full_simp_tac 
-    (ZF_ss addsimps [well_ord_def, tot_ord_def, linear_rmult]) 1);
+    (!simpset addsimps [well_ord_def, tot_ord_def, linear_rmult]) 1);
 qed "well_ord_rmult";
 
 
@@ -257,7 +255,7 @@ goal OrderArith.thy
 \        (lam <x,y>:A*B. <f`x, g`y>) : bij(A*B, C*D)";
 by (res_inst_tac [("d", "%<x,y>. <converse(f)`x, converse(g)`y>")] 
     lam_bijective 1);
-by (safe_tac ZF_cs);
+by (safe_tac (!claset));
 by (ALLGOALS (asm_simp_tac bij_inverse_ss));
 qed "prod_bij";
 
@@ -265,18 +263,17 @@ goalw OrderArith.thy [ord_iso_def]
     "!!r s. [| f: ord_iso(A,r,A',r');  g: ord_iso(B,s,B',s') |] ==>     \
 \           (lam <x,y>:A*B. <f`x, g`y>)                                 \
 \           : ord_iso(A*B, rmult(A,r,B,s), A'*B', rmult(A',r',B',s'))";
-by (safe_tac (ZF_cs addSIs [prod_bij]));
+by (safe_tac (!claset addSIs [prod_bij]));
 by (ALLGOALS
-    (asm_full_simp_tac 
-     (ZF_ss addsimps [rmult_iff, bij_is_fun RS apply_type])));
-by (fast_tac ZF_cs 1);
-by (fast_tac (ZF_cs addSEs [bij_is_inj RS inj_apply_equality]) 1);
+    (asm_full_simp_tac (!simpset addsimps [bij_is_fun RS apply_type])));
+by (Fast_tac 1);
+by (fast_tac (!claset addSEs [bij_is_inj RS inj_apply_equality]) 1);
 qed "prod_ord_iso_cong";
 
 goal OrderArith.thy "(lam z:A. <x,z>) : bij(A, {x}*A)";
 by (res_inst_tac [("d", "snd")] lam_bijective 1);
-by (safe_tac ZF_cs);
-by (ALLGOALS (asm_simp_tac ZF_ss));
+by (safe_tac (!claset));
+by (ALLGOALS Asm_simp_tac);
 qed "singleton_prod_bij";
 
 (*Used??*)
@@ -284,8 +281,8 @@ goal OrderArith.thy
  "!!x xr. well_ord({x},xr) ==>  \
 \         (lam z:A. <x,z>) : ord_iso(A, r, {x}*A, rmult({x}, xr, A, r))";
 by (resolve_tac [singleton_prod_bij RS ord_isoI] 1);
-by (asm_simp_tac (ZF_ss addsimps [rmult_iff]) 1);
-by (fast_tac (ZF_cs addEs [well_ord_is_wf RS wf_on_not_refl RS notE]) 1);
+by (Asm_simp_tac 1);
+by (fast_tac (!claset addEs [well_ord_is_wf RS wf_on_not_refl RS notE]) 1);
 qed "singleton_prod_ord_iso";
 
 (*Here we build a complicated function term, then simplify it using
@@ -299,10 +296,10 @@ by (resolve_tac [id_bij RS sum_bij RS comp_bij] 1);
 by (rtac singleton_prod_bij 1);
 by (rtac sum_disjoint_bij 1);
 by (fast_tac eq_cs 1);
-by (asm_simp_tac (ZF_ss addcongs [case_cong] addsimps [id_conv]) 1);
+by (asm_simp_tac (!simpset addcongs [case_cong] addsimps [id_conv]) 1);
 by (resolve_tac [comp_lam RS trans RS sym] 1);
 by (fast_tac (sum_cs addSEs [case_type]) 1);
-by (asm_simp_tac (ZF_ss addsimps [case_case]) 1);
+by (asm_simp_tac (!simpset addsimps [case_case]) 1);
 qed "prod_sum_singleton_bij";
 
 goal OrderArith.thy
@@ -313,11 +310,11 @@ goal OrderArith.thy
 \             pred(A,a,r)*B Un {a}*pred(B,b,s), rmult(A,r,B,s))";
 by (resolve_tac [prod_sum_singleton_bij RS ord_isoI] 1);
 by (asm_simp_tac
-    (ZF_ss addsimps [pred_iff, well_ord_is_wf RS wf_on_not_refl]) 1);
-by (asm_simp_tac ZF_ss 1);
+    (!simpset addsimps [pred_iff, well_ord_is_wf RS wf_on_not_refl]) 1);
+by (Asm_simp_tac 1);
 by (REPEAT_FIRST (eresolve_tac [SigmaE, sumE, predE]));
-by (ALLGOALS (asm_simp_tac (radd_ss addsimps [rmult_iff])));
-by (ALLGOALS (fast_tac (ZF_cs addEs [well_ord_is_wf RS wf_on_asym])));
+by (ALLGOALS (Asm_simp_tac));
+by (ALLGOALS (fast_tac (!claset addEs [well_ord_is_wf RS wf_on_asym])));
 qed "prod_sum_singleton_ord_iso";
 
 (** Distributive law **)
@@ -327,8 +324,8 @@ goal OrderArith.thy
 \ : bij((A+B)*C, (A*C)+(B*C))";
 by (res_inst_tac
     [("d", "case(%<x,y>.<Inl(x),y>, %<x,y>.<Inr(x),y>)")] lam_bijective 1);
-by (safe_tac (ZF_cs addSEs [sumE]));
-by (ALLGOALS (asm_simp_tac case_ss));
+by (safe_tac (!claset addSEs [sumE]));
+by (ALLGOALS Asm_simp_tac);
 qed "sum_prod_distrib_bij";
 
 goal OrderArith.thy
@@ -337,7 +334,7 @@ goal OrderArith.thy
 \           (A*C)+(B*C), radd(A*C, rmult(A,r,C,t), B*C, rmult(B,s,C,t)))";
 by (resolve_tac [sum_prod_distrib_bij RS ord_isoI] 1);
 by (REPEAT_FIRST (eresolve_tac [SigmaE, sumE]));
-by (ALLGOALS (asm_simp_tac (radd_ss addsimps [rmult_iff])));
+by (ALLGOALS (Asm_simp_tac));
 qed "sum_prod_distrib_ord_iso";
 
 (** Associativity **)
@@ -345,7 +342,7 @@ qed "sum_prod_distrib_ord_iso";
 goal OrderArith.thy
  "(lam <<x,y>, z>:(A*B)*C. <x,<y,z>>) : bij((A*B)*C, A*(B*C))";
 by (res_inst_tac [("d", "%<x, <y,z>>. <<x,y>, z>")] lam_bijective 1);
-by (ALLGOALS (asm_simp_tac (case_ss setloop etac SigmaE)));
+by (ALLGOALS (asm_simp_tac (!simpset setloop etac SigmaE)));
 qed "prod_assoc_bij";
 
 goal OrderArith.thy
@@ -354,8 +351,8 @@ goal OrderArith.thy
 \           A*(B*C), rmult(A, r, B*C, rmult(B,s,C,t)))";
 by (resolve_tac [prod_assoc_bij RS ord_isoI] 1);
 by (REPEAT_FIRST (eresolve_tac [SigmaE, ssubst]));
-by (asm_simp_tac (ZF_ss addsimps [rmult_iff]) 1);
-by (fast_tac ZF_cs 1);
+by (Asm_simp_tac 1);
+by (Fast_tac 1);
 qed "prod_assoc_ord_iso";
 
 (**** Inverse image of a relation ****)
@@ -364,7 +361,7 @@ qed "prod_assoc_ord_iso";
 
 goalw OrderArith.thy [rvimage_def] 
     "<a,b> : rvimage(A,f,r)  <->  <f`a,f`b>: r & a:A & b:A";
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "rvimage_iff";
 
 (** Type checking **)
@@ -385,17 +382,17 @@ qed "rvimage_converse";
 
 goalw OrderArith.thy [irrefl_def, rvimage_def]
     "!!A B. [| f: inj(A,B);  irrefl(B,r) |] ==> irrefl(A, rvimage(A,f,r))";
-by (fast_tac (ZF_cs addIs [inj_is_fun RS apply_type]) 1);
+by (fast_tac (!claset addIs [inj_is_fun RS apply_type]) 1);
 qed "irrefl_rvimage";
 
 goalw OrderArith.thy [trans_on_def, rvimage_def] 
     "!!A B. [| f: inj(A,B);  trans[B](r) |] ==> trans[A](rvimage(A,f,r))";
-by (fast_tac (ZF_cs addIs [inj_is_fun RS apply_type]) 1);
+by (fast_tac (!claset addIs [inj_is_fun RS apply_type]) 1);
 qed "trans_on_rvimage";
 
 goalw OrderArith.thy [part_ord_def]
     "!!A B. [| f: inj(A,B);  part_ord(B,r) |] ==> part_ord(A, rvimage(A,f,r))";
-by (fast_tac (ZF_cs addSIs [irrefl_rvimage, trans_on_rvimage]) 1);
+by (fast_tac (!claset addSIs [irrefl_rvimage, trans_on_rvimage]) 1);
 qed "part_ord_rvimage";
 
 (** Linearity **)
@@ -404,15 +401,15 @@ val [finj,lin] = goalw OrderArith.thy [inj_def]
     "[| f: inj(A,B);  linear(B,r) |] ==> linear(A,rvimage(A,f,r))";
 by (rewtac linear_def);    (*Note! the premises are NOT rewritten*)
 by (REPEAT_FIRST (ares_tac [ballI]));
-by (asm_simp_tac (ZF_ss addsimps [rvimage_iff]) 1);
+by (asm_simp_tac (!simpset addsimps [rvimage_iff]) 1);
 by (cut_facts_tac [finj] 1);
 by (res_inst_tac [("x","f`x"), ("y","f`y")] (lin RS linearE) 1);
-by (REPEAT_SOME (fast_tac (ZF_cs addSIs [apply_type])));
+by (REPEAT_SOME (fast_tac (!claset addSIs [apply_type])));
 qed "linear_rvimage";
 
 goalw OrderArith.thy [tot_ord_def] 
     "!!A B. [| f: inj(A,B);  tot_ord(B,r) |] ==> tot_ord(A, rvimage(A,f,r))";
-by (fast_tac (ZF_cs addSIs [part_ord_rvimage, linear_rvimage]) 1);
+by (fast_tac (!claset addSIs [part_ord_rvimage, linear_rvimage]) 1);
 qed "tot_ord_rvimage";
 
 
@@ -422,10 +419,10 @@ goal OrderArith.thy
     "!!r. [| f: A->B;  wf[B](r) |] ==> wf[A](rvimage(A,f,r))";
 by (rtac wf_onI2 1);
 by (subgoal_tac "ALL z:A. f`z=f`y --> z: Ba" 1);
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 by (eres_inst_tac [("a","f`y")] wf_on_induct 1);
-by (fast_tac (ZF_cs addSIs [apply_type]) 1);
-by (best_tac (ZF_cs addSIs [apply_type] addSDs [rvimage_iff RS iffD1]) 1);
+by (fast_tac (!claset addSIs [apply_type]) 1);
+by (best_tac (!claset addSIs [apply_type] addSDs [rvimage_iff RS iffD1]) 1);
 qed "wf_on_rvimage";
 
 (*Note that we need only wf[A](...) and linear(A,...) to get the result!*)
@@ -433,13 +430,13 @@ goal OrderArith.thy
     "!!r. [| f: inj(A,B);  well_ord(B,r) |] ==> well_ord(A, rvimage(A,f,r))";
 by (rtac well_ordI 1);
 by (rewrite_goals_tac [well_ord_def, tot_ord_def]);
-by (fast_tac (ZF_cs addSIs [wf_on_rvimage, inj_is_fun]) 1);
-by (fast_tac (ZF_cs addSIs [linear_rvimage]) 1);
+by (fast_tac (!claset addSIs [wf_on_rvimage, inj_is_fun]) 1);
+by (fast_tac (!claset addSIs [linear_rvimage]) 1);
 qed "well_ord_rvimage";
 
 goalw OrderArith.thy [ord_iso_def]
     "!!A B. f: bij(A,B) ==> f: ord_iso(A, rvimage(A,f,s), B, s)";
-by (asm_full_simp_tac (ZF_ss addsimps [rvimage_iff]) 1);
+by (asm_full_simp_tac (!simpset addsimps [rvimage_iff]) 1);
 qed "ord_iso_rvimage";
 
 goalw OrderArith.thy [ord_iso_def, rvimage_def]

@@ -187,10 +187,33 @@ structure Induction = InductionFun(struct val spec=IFOL.spec end);
 
 open Simplifier Induction;
 
+(*** Integration of simplifier with classical reasoner ***)
+
+(*Add a simpset to a classical set!*)
+infix 4 addss;
+fun cs addss ss = cs addbefore asm_full_simp_tac ss 1;
+
+fun Addss ss = (claset := !claset addbefore asm_full_simp_tac ss 1);
+
+(*Designed to be idempotent, except if best_tac instantiates variables
+  in some of the subgoals*)
+fun auto_tac (cs,ss) = 
+    ALLGOALS (asm_full_simp_tac ss) THEN
+    REPEAT (safe_tac cs THEN ALLGOALS (asm_full_simp_tac ss)) THEN
+    REPEAT (FIRSTGOAL (best_tac (cs addss ss))) THEN
+    prune_params_tac;
+
+fun Auto_tac() = auto_tac (!claset, !simpset);
+
+fun auto() = by (Auto_tac());
+
+
 (*Add congruence rules for = or <-> (instead of ==) *)
 infix 4 addcongs;
 fun ss addcongs congs =
-    ss addeqcongs (congs RL [eq_reflection,iff_reflection]);
+        ss addeqcongs (congs RL [eq_reflection,iff_reflection]);
+
+fun Addcongs congs = (simpset := !simpset addcongs congs);
 
 (*Add a simpset to a classical set!*)
 infix 4 addss;
@@ -223,3 +246,24 @@ val cla_simps =
 
 val FOL_ss = IFOL_ss addsimps (cla_simps @ ex_simps @ all_simps);
 
+
+
+(*** Install simpsets and datatypes in theory structure ***)
+
+simpset := FOL_ss;
+
+exception SS_DATA of simpset;
+
+let fun merge [] = SS_DATA empty_ss
+      | merge ss = let val ss = map (fn SS_DATA x => x) ss;
+                   in SS_DATA (foldl merge_ss (hd ss, tl ss)) end;
+
+    fun put (SS_DATA ss) = simpset := ss;
+
+    fun get () = SS_DATA (!simpset);
+in add_thydata "FOL"
+     ("simpset", ThyMethods {merge = merge, put = put, get = get})
+end;
+
+
+add_thy_reader_file "thy_data.ML";

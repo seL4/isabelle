@@ -6,7 +6,7 @@
 Well-founded Recursion
 *)
 
-WF = Trancl + "mono" + "equalities" +
+WF = Trancl + mono + equalities +
 consts
   wf           :: i=>o
   wf_on        :: [i,i]=>o                      ("wf[_]'(_')")

@@ -9,13 +9,14 @@ Composition of homomorphisms, Pastre's examples, ...
 
 writeln"ZF/ex/misc";
 
+set_current_thy"Perm";
 
 (*Example 12 (credited to Peter Andrews) from
  W. Bledsoe.  A Maximal Method for Set Variables in Automatic Theorem-proving.
  In: J. Hayes and D. Michie and L. Mikulich, eds.  Machine Intelligence 9.
  Ellis Horwood, 53-100 (1979). *)
-goal ZF.thy "(ALL F. {x}: F --> {y}:F) --> (ALL A. x:A --> y:A)";
-by (best_tac ZF_cs 1);
+goal thy "(ALL F. {x}: F --> {y}:F) --> (ALL A. x:A --> y:A)";
+by (Best_tac 1);
 result();
 
 
@@ -28,7 +29,7 @@ result();
 *)
 
 (*collecting the relevant lemmas*)
-val hom_ss = ZF_ss addsimps [comp_fun,comp_fun_apply,SigmaI,apply_funtype];
+Addsimps [comp_fun, SigmaI, apply_funtype];
 
 (*This version uses a super application of simp_tac.  Needs setloop to help
   proving conditions of rewrites such as comp_fun_apply;
@@ -39,7 +40,7 @@ goal Perm.thy
 \                    (ALL x:A. ALL y:A. H`(f`<x,y>) = g`<H`x,H`y>)}) --> \
 \    J : hom(A,f,B,g) & K : hom(B,g,C,h) -->  \
 \    (K O J) : hom(A,f,C,h)";
-by (asm_simp_tac (hom_ss setloop (K (safe_tac FOL_cs))) 1);
+by (asm_simp_tac (!simpset setloop (K (safe_tac (!claset)))) 1);
 val comp_homs = result();
 
 (*This version uses meta-level rewriting, safe_tac and asm_simp_tac*)
@@ -50,17 +51,17 @@ val [hom_def] = goal Perm.thy
 \    J : hom(A,f,B,g) & K : hom(B,g,C,h) -->  \
 \    (K O J) : hom(A,f,C,h)";
 by (rewtac hom_def);
-by (safe_tac ZF_cs);
-by (asm_simp_tac hom_ss 1);
-by (asm_simp_tac hom_ss 1);
+by (safe_tac (!claset));
+by (Asm_simp_tac 1);
+by (Asm_simp_tac 1);
 qed "comp_homs";
 
 
 (** A characterization of functions, suggested by Tobias Nipkow **)
 
-goalw ZF.thy [Pi_def, function_def]
+goalw thy [Pi_def, function_def]
     "r: domain(r)->B  <->  r <= domain(r)*B & (ALL X. r `` (r -`` X) <= X)";
-by (best_tac ZF_cs 1);
+by (Best_tac 1);
 result();
 
 
@@ -139,14 +140,14 @@ qed "pastre6";
 
 (** Yet another example... **)
 
-goal (merge_theories(Sum.thy,Perm.thy))
+goal Perm.thy
     "(lam Z:Pow(A+B). <{x:A. Inl(x):Z}, {y:B. Inr(y):Z}>) \
 \    : bij(Pow(A+B), Pow(A)*Pow(B))";
 by (res_inst_tac [("d", "%<X,Y>.{Inl(x).x:X} Un {Inr(y).y:Y}")] 
     lam_bijective 1);
 by (TRYALL (etac SigmaE));
-by (ALLGOALS (asm_simp_tac ZF_ss));
-by (ALLGOALS (fast_tac (sum_cs addSIs [equalityI])));
+by (ALLGOALS Asm_simp_tac);
+by (ALLGOALS (fast_tac (!claset addSIs [equalityI])));
 val Pow_bij = result();
 
 writeln"Reached end of file.";

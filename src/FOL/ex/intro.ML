@@ -42,16 +42,16 @@ by (assume_tac 1);
 result();
 
 
-(**** Demonstration of fast_tac ****)
+(**** Demonstration of Fast_tac ****)
 
 goal FOL.thy "(EX y. ALL x. J(y,x) <-> ~J(x,x))  \
 \       -->  ~ (ALL x. EX y. ALL z. J(z,y) <-> ~ J(z,x))";
-by (fast_tac FOL_cs 1);
+by (Fast_tac 1);
 result();
 
 goal FOL.thy "ALL x. P(x,f(x)) <-> \
 \       (EX y. (ALL z. P(z,y) --> P(z,f(x))) & P(x,y))";
-by (fast_tac FOL_cs 1);
+by (Fast_tac 1);
 result();
 
 

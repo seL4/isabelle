@@ -3,35 +3,43 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
-Rewriting for ZF set theory -- based on FOL rewriting
+Rewriting for ZF set theory: specialized extraction of rewrites from theorems
 *)
 
-(** Tactics for type checking -- from CTT **)
+(** Rewriting **)
 
-fun is_rigid_elem (Const("Trueprop",_) $ (Const("op :",_) $ a $ _)) = 
-      not (is_Var (head_of a))
-  | is_rigid_elem _ = false;
+(*For proving rewrite rules*)
+fun prove_fun s = 
+    (writeln s;  prove_goal thy s
+       (fn prems => [ (cut_facts_tac prems 1), 
+                      (fast_tac (!claset addSIs [equalityI]) 1) ]));
 
-(*Try solving a:A by assumption provided a is rigid!*) 
-val test_assume_tac = SUBGOAL(fn (prem,i) =>
-    if is_rigid_elem (Logic.strip_assums_concl prem)
-    then  assume_tac i  else  eq_assume_tac i);
+(*Are all these really suitable?*)
+Addsimps (map prove_fun
+	  ["(ALL x:0.P(x)) <-> True",
+	   "(EX  x:0.P(x)) <-> False",
+	   "(ALL x:succ(i).P(x)) <-> P(i) & (ALL x:i.P(x))",
+	   "(EX  x:succ(i).P(x)) <-> P(i) | (EX  x:i.P(x))",
+	   "(ALL x:cons(a,B).P(x)) <-> P(a) & (ALL x:B.P(x))",
+	   "(EX  x:cons(a,B).P(x)) <-> P(a) | (EX  x:B.P(x))",
+	   "(ALL x: RepFun(A,f). P(x)) <-> (ALL y:A. P(f(y)))",
+	   "(EX  x: RepFun(A,f). P(x)) <-> (EX y:A. P(f(y)))"]);
 
-(*Type checking solves a:?A (a rigid, ?A maybe flexible).  
-  match_tac is too strict; would refuse to instantiate ?A*)
-fun typechk_step_tac tyrls =
-    FIRSTGOAL (test_assume_tac ORELSE' filt_resolve_tac tyrls 3);
+Addsimps (map prove_fun
+	  ["{x:0. P(x)} = 0",
+	   "{x:A. False} = 0",
+	   "{x:A. True} = A",
+	   "RepFun(0,f) = 0",
+	   "RepFun(succ(i),f) = cons(f(i), RepFun(i,f))",
+	   "RepFun(cons(a,B),f) = cons(f(a), RepFun(B,f))"]);
 
-fun typechk_tac tyrls = REPEAT (typechk_step_tac tyrls);
-
-val ZF_typechecks =
-    [if_type, lam_type, SigmaI, apply_type, split_type, consI1];
-
-(*Instantiates variables in typing conditions.
-  drawback: does not simplify conjunctions*)
-fun type_auto_tac tyrls hyps = SELECT_GOAL
-    (DEPTH_SOLVE (typechk_step_tac (tyrls@hyps)
-           ORELSE ares_tac [TrueI,refl,iff_refl,ballI,allI,conjI,impI] 1));
+Addsimps (map prove_fun
+	  ["0 Un A = A",  "A Un 0 = A",
+	   "0 Int A = 0", "A Int 0 = 0",
+	   "0-A = 0",     "A-0 = A",
+	   "Union(0) = 0",
+	   "Union(cons(b,A)) = b Un Union(A)",
+	   "Inter({b}) = b"]);
 
 (** New version of mk_rew_rules **)
 
@@ -70,24 +78,8 @@ val ZF_mem_pairs =
    ("op -",     [DiffD1,DiffD2]),
    ("op Int",   [IntD1,IntD2])];
 
-val ZF_simps = 
-    [empty_subsetI, consI1, cons_not_0, cons_not_0 RS not_sym,
-     succI1, succ_not_0, succ_not_0 RS not_sym, succ_inject_iff,
-     ball_simp, if_true, if_false, 
-     beta, eta, restrict, fst_conv, snd_conv, split, Pair_iff, singleton_iff,
-     converse_iff, domain_converse, range_converse,
-     Sigma_empty1, Sigma_empty2, triv_RepFun, subset_refl];
-
-(*Sigma_cong, Pi_cong NOT included by default since they cause
-  flex-flex pairs and the "Check your prover" error -- because most
-  Sigma's and Pi's are abbreviated as * or -> *)
-val ZF_congs =
-   [ball_cong, bex_cong, Replace_cong, RepFun_cong, Collect_cong, lam_cong];
-
 val ZF_atomize = atomize (ZF_conn_pairs, ZF_mem_pairs);
 
-val ZF_ss = FOL_ss 
-      setmksimps (map mk_meta_eq o ZF_atomize o gen_all)
-      addsimps (ZF_simps @ mem_simps @ bquant_simps @ 
-                Collect_simps @ UnInt_simps)
-      addcongs ZF_congs;
+simpset := !simpset setmksimps (map mk_meta_eq o ZF_atomize o gen_all);
+
+val ZF_ss = !simpset;

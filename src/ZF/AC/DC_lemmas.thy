@@ -1,4 +1,4 @@
 (*Dummy theory to document dependencies *)
 
-DC_lemmas = AC_Equiv + first
+DC_lemmas = AC_Equiv
 

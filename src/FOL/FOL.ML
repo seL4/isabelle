@@ -67,3 +67,9 @@ qed_goalw "iffCE" FOL.thy [iff_def]
   [ (rtac conjE 1),
     (REPEAT (DEPTH_SOLVE_1 
         (etac impCE 1  ORELSE  mp_tac 1  ORELSE  ares_tac prems 1))) ]);
+
+
+(*Thus, assignments to the references claset and simpset are recorded
+  with theory "FOL".  These files cannot be loaded directly in ROOT.ML.*)
+use "cladata.ML";
+use "simpdata.ML";

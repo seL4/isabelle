@@ -177,6 +177,7 @@ defs
      and Powerset Axioms using the following definitions. *)
 
   Collect_def   "Collect(A,P) == {y . x:A, x=y & P(x)}"
+  Inter_def     "Inter(A) == { x:Union(A) . ALL y:A. x:y}"
 
   (*Unordered pairs (Upair) express binary union/intersection and cons;
     set enumerations translate as {a,...,z} = cons(a,...,cons(z,0)...)*)
@@ -184,19 +185,6 @@ defs
   Upair_def   "Upair(a,b) == {y. x:Pow(Pow(0)), (x=0 & y=a) | (x=Pow(0) & y=b)}"
   cons_def    "cons(a,A) == Upair(a,a) Un A"
 
-  (* Difference, general intersection, binary union and small intersection *)
-
-  Diff_def      "A - B    == { x:A . ~(x:B) }"
-  Inter_def     "Inter(A) == { x:Union(A) . ALL y:A. x:y}"
-  Un_def        "A Un  B  == Union(Upair(A,B))"
-  Int_def       "A Int B  == Inter(Upair(A,B))"
-
-  (* Definite descriptions -- via Replace over the set "1" *)
-
-  the_def       "The(P)    == Union({y . x:{0}, P(y)})"
-  if_def        "if(P,a,b) == THE z. P & z=a | ~P & z=b"
-
-  (* Ordered pairs and disjoint union of a family of sets *)
 
   (* this "symmetric" definition works better than {{a}, {a,b}} *)
   Pair_def      "<a,b>  == {{a,a}, {a,b}}"
@@ -233,32 +221,9 @@ end
 ML
 
 (* Pattern-matching and 'Dependent' type operators *)
-(*
-local open Syntax
 
-fun pttrn s = const"@pttrn" $ s;
-fun pttrns s t = const"@pttrns" $ s $ t;
-
-fun split2(Abs(x,T,t)) =
-      let val (pats,u) = split1 t
-      in (pttrns (Free(x,T)) pats, subst_bounds([free x],u)) end
-  | split2(Const("split",_) $ r) =
-      let val (pats,s) = split2(r)
-          val (pats2,t) = split1(s)
-      in (pttrns (pttrn pats) pats2, t) end
-and split1(Abs(x,T,t)) =  (Free(x,T), subst_bounds([free x],t))
-  | split1(Const("split",_)$t) = split2(t);
-
-fun split_tr'(t::args) =
-  let val (pats,ft) = split2(t)
-  in list_comb(const"_lambda" $ pttrn pats $ ft, args) end;
-
-in
-*)
 val print_translation = 
   [(*("split", split_tr'),*)
    ("Pi",    dependent_tr' ("@PROD", "op ->")),
    ("Sigma", dependent_tr' ("@SUM", "op *"))];
-(*
-end;
-*)
+

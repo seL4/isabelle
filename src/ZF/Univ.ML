@@ -11,7 +11,7 @@ open Univ;
 (*NOT SUITABLE FOR REWRITING -- RECURSIVE!*)
 goal Univ.thy "Vfrom(A,i) = A Un (UN j:i. Pow(Vfrom(A,j)))";
 by (stac (Vfrom_def RS def_transrec) 1);
-by (simp_tac ZF_ss 1);
+by (Simp_tac 1);
 qed "Vfrom";
 
 (** Monotonicity **)
@@ -40,7 +40,7 @@ goal Univ.thy "Vfrom(A,x) <= Vfrom(A,rank(x))";
 by (eps_ind_tac "x" 1);
 by (stac Vfrom 1);
 by (stac Vfrom 1);
-by (fast_tac (ZF_cs addSIs [rank_lt RS ltD]) 1);
+by (fast_tac (!claset addSIs [rank_lt RS ltD]) 1);
 qed "Vfrom_rank_subset1";
 
 goal Univ.thy "Vfrom(A,rank(x)) <= Vfrom(A,x)";
@@ -71,13 +71,13 @@ qed "Vfrom_rank_eq";
 
 goal Univ.thy "!!x y. y:x ==> 0 : Vfrom(A,x)";
 by (stac Vfrom 1);
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "zero_in_Vfrom";
 
 goal Univ.thy "i <= Vfrom(A,i)";
 by (eps_ind_tac "i" 1);
 by (stac Vfrom 1);
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "i_subset_Vfrom";
 
 goal Univ.thy "A <= Vfrom(A,i)";
@@ -89,20 +89,20 @@ bind_thm ("A_into_Vfrom", A_subset_Vfrom RS subsetD);
 
 goal Univ.thy "!!A a i. a <= Vfrom(A,i) ==> a: Vfrom(A,succ(i))";
 by (stac Vfrom 1);
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "subset_mem_Vfrom";
 
 (** Finite sets and ordered pairs **)
 
 goal Univ.thy "!!a. a: Vfrom(A,i) ==> {a} : Vfrom(A,succ(i))";
 by (rtac subset_mem_Vfrom 1);
-by (safe_tac ZF_cs);
+by (safe_tac (!claset));
 qed "singleton_in_Vfrom";
 
 goal Univ.thy
     "!!A. [| a: Vfrom(A,i);  b: Vfrom(A,i) |] ==> {a,b} : Vfrom(A,succ(i))";
 by (rtac subset_mem_Vfrom 1);
-by (safe_tac ZF_cs);
+by (safe_tac (!claset));
 qed "doubleton_in_Vfrom";
 
 goalw Univ.thy [Pair_def]
@@ -160,7 +160,7 @@ by (etac ([UN_upper, Un_upper2] MRS subset_trans) 1);
 (*opposite inclusion*)
 by (rtac UN_least 1);
 by (stac Vfrom 1);
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "Vfrom_Union";
 
 (*** Vfrom applied to Limit ordinals ***)
@@ -270,7 +270,7 @@ bind_thm ("sum_subset_VLimit", [sum_mono, sum_VLimit] MRS subset_trans);
 goal Univ.thy "!!i A. Transset(A) ==> Transset(Vfrom(A,i))";
 by (eps_ind_tac "i" 1);
 by (stac Vfrom 1);
-by (fast_tac (ZF_cs addSIs [Transset_Union_family, Transset_Un,
+by (fast_tac (!claset addSIs [Transset_Union_family, Transset_Un,
                             Transset_Pow]) 1);
 qed "Transset_Vfrom";
 
@@ -284,7 +284,7 @@ qed "Transset_Vfrom_succ";
 
 goalw Ordinal.thy [Pair_def,Transset_def]
     "!!C. [| <a,b> <= C; Transset(C) |] ==> a: C & b: C";
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "Transset_Pair_subset";
 
 goal Univ.thy
@@ -326,7 +326,7 @@ goal Univ.thy
 by (dtac Transset_Vfrom 1);
 by (rtac subset_mem_Vfrom 1);
 by (rewtac Transset_def);
-by (fast_tac (ZF_cs addIs [Pair_in_Vfrom]) 1);
+by (fast_tac (!claset addIs [Pair_in_Vfrom]) 1);
 qed "prod_in_Vfrom";
 
 val [aprem,bprem,limiti,transset] = goal Univ.thy
@@ -345,7 +345,7 @@ goalw Univ.thy [sum_def]
 by (dtac Transset_Vfrom 1);
 by (rtac subset_mem_Vfrom 1);
 by (rewtac Transset_def);
-by (fast_tac (ZF_cs addIs [zero_in_Vfrom, Pair_in_Vfrom, 
+by (fast_tac (!claset addIs [zero_in_Vfrom, Pair_in_Vfrom, 
                            i_subset_Vfrom RS subsetD]) 1);
 qed "sum_in_Vfrom";
 
@@ -371,7 +371,7 @@ by (rtac Un_upper2 3);
 by (rtac (succI1 RS UN_upper) 2);
 by (rtac Pow_mono 1);
 by (rewtac Transset_def);
-by (fast_tac (ZF_cs addIs [Pair_in_Vfrom]) 1);
+by (fast_tac (!claset addIs [Pair_in_Vfrom]) 1);
 qed "fun_in_Vfrom";
 
 val [aprem,bprem,limiti,transset] = goal Univ.thy
@@ -399,10 +399,10 @@ val Transset_Vset = Transset_0 RS Transset_Vfrom;
 val [ordi] = goal Univ.thy "Ord(i) ==> ALL b. b : Vset(i) --> rank(b) < i";
 by (rtac (ordi RS trans_induct) 1);
 by (stac Vset 1);
-by (safe_tac ZF_cs);
+by (safe_tac (!claset));
 by (stac rank 1);
 by (rtac UN_succ_least_lt 1);
-by (fast_tac ZF_cs 2);
+by (Fast_tac 2);
 by (REPEAT (ares_tac [ltI] 1));
 qed "Vset_rank_imp1";
 
@@ -413,7 +413,7 @@ val [ordi] = goal Univ.thy "Ord(i) ==> ALL b. rank(b) : i --> b : Vset(i)";
 by (rtac (ordi RS trans_induct) 1);
 by (rtac allI 1);
 by (stac Vset 1);
-by (fast_tac (ZF_cs addSIs [rank_lt RS ltD]) 1);
+by (fast_tac (!claset addSIs [rank_lt RS ltD]) 1);
 qed "Vset_rank_imp2";
 
 goal Univ.thy "!!x i. rank(x)<i ==> x : Vset(i)";
@@ -435,7 +435,7 @@ qed "Vset_rank_iff";
 goal Univ.thy "!!i. Ord(i) ==> rank(Vset(i)) = i";
 by (stac rank 1);
 by (rtac equalityI 1);
-by (safe_tac ZF_cs);
+by (safe_tac (!claset));
 by (EVERY' [rtac UN_I, 
             etac (i_subset_Vfrom RS subsetD),
             etac (Ord_in_Ord RS rank_of_Ord RS ssubst),
@@ -463,16 +463,14 @@ qed "Int_Vset_subset";
 val rank_rls = [rank_Inl, rank_Inr, rank_pair1, rank_pair2];
 val rank_trans_rls = rank_rls @ (rank_rls RLN (2, [lt_trans]));
 
-val rank_ss = ZF_ss 
-    addsimps [case_Inl, case_Inr, VsetI]
-    addsimps rank_trans_rls;
+val rank_ss = !simpset addsimps [VsetI] addsimps rank_trans_rls;
 
 (** Recursion over Vset levels! **)
 
 (*NOT SUITABLE FOR REWRITING: recursive!*)
 goalw Univ.thy [Vrec_def] "Vrec(a,H) = H(a, lam x:Vset(rank(a)). Vrec(x,H))";
 by (stac transrec 1);
-by (simp_tac (ZF_ss addsimps [Ord_rank, Ord_succ, VsetD RS ltD RS beta, 
+by (simp_tac (!simpset addsimps [Ord_rank, Ord_succ, VsetD RS ltD RS beta, 
                               VsetI RS beta, le_refl]) 1);
 qed "Vrec";
 
@@ -581,7 +579,7 @@ by (REPEAT (ares_tac [nat_into_univ, nat_0I, nat_succI] 1));
 qed "two_in_univ";
 
 goalw Univ.thy [bool_def] "bool <= univ(A)";
-by (fast_tac (ZF_cs addSIs [zero_in_univ,one_in_univ]) 1);
+by (fast_tac (!claset addSIs [zero_in_univ,one_in_univ]) 1);
 qed "bool_subset_univ";
 
 bind_thm ("bool_into_univ", (bool_subset_univ RS subsetD));
@@ -616,21 +614,21 @@ bind_thm ("sum_subset_univ", [sum_mono, sum_univ] MRS subset_trans);
 goal Univ.thy
    "!!i. [| b: Fin(Vfrom(A,i));  Limit(i) |] ==> EX j. b <= Vfrom(A,j) & j<i";
 by (etac Fin_induct 1);
-by (fast_tac (ZF_cs addSDs [Limit_has_0]) 1);
-by (safe_tac ZF_cs);
+by (fast_tac (!claset addSDs [Limit_has_0]) 1);
+by (safe_tac (!claset));
 by (etac Limit_VfromE 1);
 by (assume_tac 1);
 by (res_inst_tac [("x", "xa Un j")] exI 1);
-by (best_tac (ZF_cs addIs [subset_refl RS Vfrom_mono RS subsetD, 
+by (best_tac (!claset addIs [subset_refl RS Vfrom_mono RS subsetD, 
                            Un_least_lt]) 1);
 val Fin_Vfrom_lemma = result();
 
 goal Univ.thy "!!i. Limit(i) ==> Fin(Vfrom(A,i)) <= Vfrom(A,i)";
 by (rtac subsetI 1);
 by (dtac Fin_Vfrom_lemma 1);
-by (safe_tac ZF_cs);
+by (safe_tac (!claset));
 by (resolve_tac [Vfrom RS ssubst] 1);
-by (fast_tac (ZF_cs addSDs [ltD]) 1);
+by (fast_tac (!claset addSDs [ltD]) 1);
 val Fin_VLimit = result();
 
 bind_thm ("Fin_subset_VLimit", [Fin_mono, Fin_VLimit] MRS subset_trans);

@@ -6,7 +6,7 @@
 Relations in Zermelo-Fraenkel Set Theory 
 *)
 
-Rel = ZF +
+Rel = domrange +
 consts
     refl,irrefl,equiv      :: [i,i]=>o
     sym,asym,antisym,trans :: i=>o

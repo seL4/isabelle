@@ -38,4 +38,9 @@ defs
        UN x:A. UN y:B. UN f: ord_iso(pred(A,x,r), r, pred(B,y,s), s).   
             {<x,y>}"
 
+constdefs
+
+  first :: [i, i, i] => o
+    "first(u, X, R) == u:X & (ALL v:X. v~=u --> <u,v> : R)"
+
 end

@@ -64,9 +64,9 @@ goalw Epsilon.thy [Transset_def]
     "!!X A n. [| Transset(X);  A<=X;  n: nat |] ==> \
 \             nat_rec(n, A, %m r. Union(r)) <= X";
 by (etac nat_induct 1);
-by (asm_simp_tac (ZF_ss addsimps [nat_rec_0]) 1);
-by (asm_simp_tac (ZF_ss addsimps [nat_rec_succ]) 1);
-by (fast_tac ZF_cs 1);
+by (asm_simp_tac (!simpset addsimps [nat_rec_0]) 1);
+by (asm_simp_tac (!simpset addsimps [nat_rec_succ]) 1);
+by (Fast_tac 1);
 qed "eclose_least_lemma";
 
 goalw Epsilon.thy [eclose_def]
@@ -86,7 +86,7 @@ by (rtac (CollectI RS subsetI) 2);
 by (etac (arg_subset_eclose RS subsetD) 2);
 by (etac base 2);
 by (rewtac Transset_def);
-by (fast_tac (ZF_cs addEs [step,ecloseD]) 1);
+by (fast_tac (!claset addEs [step,ecloseD]) 1);
 qed "eclose_induct_down";
 
 goal Epsilon.thy "!!X. Transset(X) ==> eclose(X) = X";
@@ -118,7 +118,7 @@ qed "under_Memrel";
 (* j : eclose(A) ==> Memrel(eclose(A)) -`` j = j *)
 val under_Memrel_eclose = Transset_eclose RS under_Memrel;
 
-bind_thm ("wfrec_ssubst", wf_Memrel RS wfrec RS ssubst);
+val wfrec_ssubst = standard (wf_Memrel RS wfrec RS ssubst);
 
 val [kmemj,jmemi] = goal Epsilon.thy
     "[| k:eclose({j});  j:eclose({i}) |] ==> \
@@ -126,7 +126,7 @@ val [kmemj,jmemi] = goal Epsilon.thy
 by (rtac (kmemj RS eclose_induct) 1);
 by (rtac wfrec_ssubst 1);
 by (rtac wfrec_ssubst 1);
-by (asm_simp_tac (ZF_ss addsimps [under_Memrel_eclose,
+by (asm_simp_tac (!simpset addsimps [under_Memrel_eclose,
                                   jmemi RSN (2,mem_eclose_sing_trans)]) 1);
 qed "wfrec_eclose_eq";
 
@@ -139,7 +139,7 @@ qed "wfrec_eclose_eq2";
 goalw Epsilon.thy [transrec_def]
     "transrec(a,H) = H(a, lam x:a. transrec(x,H))";
 by (rtac wfrec_ssubst 1);
-by (simp_tac (ZF_ss addsimps [wfrec_eclose_eq2, arg_in_eclose_sing,
+by (simp_tac (!simpset addsimps [wfrec_eclose_eq2, arg_in_eclose_sing,
                               under_Memrel_eclose]) 1);
 qed "transrec";
 
@@ -178,7 +178,7 @@ qed "Ord_transrec_type";
 (*NOT SUITABLE FOR REWRITING -- RECURSIVE!*)
 goal Epsilon.thy "rank(a) = (UN y:a. succ(rank(y)))";
 by (stac (rank_def RS def_transrec) 1);
-by (simp_tac ZF_ss 1);
+by (Simp_tac 1);
 qed "rank";
 
 goal Epsilon.thy "Ord(rank(a))";
@@ -192,7 +192,7 @@ qed "Ord_rank";
 val [major] = goal Epsilon.thy "Ord(i) ==> rank(i) = i";
 by (rtac (major RS trans_induct) 1);
 by (stac rank 1);
-by (asm_simp_tac (ZF_ss addsimps [Ord_equality]) 1);
+by (asm_simp_tac (!simpset addsimps [Ord_equality]) 1);
 qed "rank_of_Ord";
 
 goal Epsilon.thy "!!a b. a:b ==> rank(a) < rank(b)";
@@ -228,14 +228,14 @@ qed "rank_Pow";
 
 goal Epsilon.thy "rank(0) = 0";
 by (rtac (rank RS trans) 1);
-by (fast_tac (ZF_cs addSIs [equalityI]) 1);
+by (fast_tac (!claset addSIs [equalityI]) 1);
 qed "rank_0";
 
 goal Epsilon.thy "rank(succ(x)) = succ(rank(x))";
 by (rtac (rank RS trans) 1);
 by (rtac ([UN_least, succI1 RS UN_upper] MRS equalityI) 1);
 by (etac succE 1);
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 by (etac (rank_lt RS leI RS succ_leI RS le_imp_subset) 1);
 qed "rank_succ";
 
@@ -297,3 +297,32 @@ by (rtac equalityI 1);
 by (rtac ([Transset_eclose, subset_refl] MRS eclose_least) 1);
 by (rtac arg_subset_eclose 1);
 qed "eclose_idem";
+
+(*Transfinite recursion for definitions based on the three cases of ordinals.
+*)
+
+goal thy "transrec2(0,a,b) = a";
+by (rtac (transrec2_def RS def_transrec RS trans) 1);
+by (Simp_tac 1);
+qed "transrec2_0";
+
+goal thy "(THE j. i=j) = i";
+by (fast_tac (!claset addSIs [the_equality]) 1);
+qed "THE_eq";
+
+goal thy "transrec2(succ(i),a,b) = b(i, transrec2(i,a,b))";
+by (rtac (transrec2_def RS def_transrec RS trans) 1);
+by (simp_tac (!simpset addsimps [succ_not_0, THE_eq, if_P]
+                    setsolver K Fast_tac) 1);
+qed "transrec2_succ";
+
+goal thy "!!i. Limit(i) ==> transrec2(i,a,b) = (UN j<i. transrec2(j,a,b))";
+by (rtac (transrec2_def RS def_transrec RS trans) 1);
+by (resolve_tac [if_not_P RS trans] 1 THEN
+    fast_tac (!claset addSDs [Limit_has_0] addSEs [ltE]) 1);
+by (resolve_tac [if_not_P RS trans] 1 THEN
+    fast_tac (!claset addSEs [succ_LimitE]) 1);
+by (Simp_tac 1);
+qed "transrec2_Limit";
+
+Addsimps [transrec2_0, transrec2_succ];

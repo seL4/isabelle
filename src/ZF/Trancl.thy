@@ -6,7 +6,7 @@
 Transitive closure of a relation
 *)
 
-Trancl = Fixedpt + Perm + "mono" + Rel + 
+Trancl = Fixedpt + Perm + mono + Rel + 
 consts
     rtrancl :: i=>i  ("(_^*)" [100] 100)  (*refl/transitive closure*)
     trancl  :: i=>i  ("(_^+)" [100] 100)  (*transitive closure*)

@@ -16,12 +16,12 @@ open EquivClass;
 
 goalw EquivClass.thy [trans_def,sym_def]
     "!!r. [| sym(r); trans(r) |] ==> converse(r) O r <= r";
-by (fast_tac (ZF_cs addSEs [converseD,compE]) 1);
+by (fast_tac (!claset) 1);
 qed "sym_trans_comp_subset";
 
 goalw EquivClass.thy [refl_def]
     "!!A r. [| refl(A,r); r <= A*A |] ==> r <= converse(r) O r";
-by (fast_tac (ZF_cs addSIs [converseI] addIs [compI]) 1);
+by (fast_tac (!claset) 1);
 qed "refl_comp_subset";
 
 goalw EquivClass.thy [equiv_def]
@@ -35,10 +35,7 @@ goalw EquivClass.thy [equiv_def,refl_def,sym_def,trans_def]
     "!!A r. [| converse(r) O r = r;  domain(r) = A |] ==> equiv(A,r)";
 by (etac equalityE 1);
 by (subgoal_tac "ALL x y. <x,y> : r --> <y,x> : r" 1);
-by (safe_tac ZF_cs);
-by (fast_tac (ZF_cs addSIs [converseI] addIs [compI]) 3);
-by (ALLGOALS (fast_tac 
-              (ZF_cs addSIs [converseI] addIs [compI] addSEs [compE])));
+by (ALLGOALS (fast_tac (!claset)));
 qed "comp_equivI";
 
 (** Equivalence classes **)
@@ -46,25 +43,25 @@ qed "comp_equivI";
 (*Lemma for the next result*)
 goalw EquivClass.thy [trans_def,sym_def]
     "!!A r. [| sym(r);  trans(r);  <a,b>: r |] ==> r``{a} <= r``{b}";
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "equiv_class_subset";
 
 goalw EquivClass.thy [equiv_def]
     "!!A r. [| equiv(A,r);  <a,b>: r |] ==> r``{a} = r``{b}";
 by (safe_tac (subset_cs addSIs [equalityI, equiv_class_subset]));
 by (rewtac sym_def);
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "equiv_class_eq";
 
 goalw EquivClass.thy [equiv_def,refl_def]
     "!!A r. [| equiv(A,r);  a: A |] ==> a: r``{a}";
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "equiv_class_self";
 
 (*Lemma for the next result*)
 goalw EquivClass.thy [equiv_def,refl_def]
     "!!A r. [| equiv(A,r);  r``{b} <= r``{a};  b: A |] ==> <a,b>: r";
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "subset_equiv_class";
 
 val prems = goal EquivClass.thy
@@ -75,7 +72,7 @@ qed "eq_equiv_class";
 (*thus r``{a} = r``{b} as well*)
 goalw EquivClass.thy [equiv_def,trans_def,sym_def]
     "!!A r. [| equiv(A,r);  x: (r``{a} Int r``{b}) |] ==> <a,b>: r";
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "equiv_class_nondisjoint";
 
 goalw EquivClass.thy [equiv_def] "!!A r. equiv(A,r) ==> r <= A*A";
@@ -84,14 +81,14 @@ qed "equiv_type";
 
 goal EquivClass.thy
     "!!A r. equiv(A,r) ==> <x,y>: r <-> r``{x} = r``{y} & x:A & y:A";
-by (fast_tac (ZF_cs addIs [eq_equiv_class, equiv_class_eq]
-                    addDs [equiv_type]) 1);
+by (fast_tac (!claset addIs [eq_equiv_class, equiv_class_eq]
+                      addDs [equiv_type]) 1);
 qed "equiv_class_eq_iff";
 
 goal EquivClass.thy
     "!!A r. [| equiv(A,r);  x: A;  y: A |] ==> r``{x} = r``{y} <-> <x,y>: r";
-by (fast_tac (ZF_cs addIs [eq_equiv_class, equiv_class_eq]
-                    addDs [equiv_type]) 1);
+by (fast_tac (!claset addIs [eq_equiv_class, equiv_class_eq]
+                      addDs [equiv_type]) 1);
 qed "eq_equiv_class_iff";
 
 (*** Quotients ***)
@@ -118,10 +115,10 @@ qed "Union_quotient";
 
 goalw EquivClass.thy [quotient_def]
     "!!A r. [| equiv(A,r);  X: A/r;  Y: A/r |] ==> X=Y | (X Int Y <= 0)";
-by (safe_tac (ZF_cs addSIs [equiv_class_eq]));
+by (safe_tac (!claset addSIs [equiv_class_eq]));
 by (assume_tac 1);
 by (rewrite_goals_tac [equiv_def,trans_def,sym_def]);
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "quotient_disj";
 
 (**** Defining unary operations upon equivalence classes ****)
@@ -138,7 +135,7 @@ by (rtac ([refl RS UN_cong, UN_constant] MRS trans) 1);
 by (etac equiv_class_self 2);
 by (assume_tac 2);
 by (rewrite_goals_tac [equiv_def,sym_def,congruent_def]);
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "UN_equiv_class";
 
 (*type checking of  UN x:r``{a}. b(x) *)
@@ -147,8 +144,8 @@ val prems = goalw EquivClass.thy [quotient_def]
 \       !!x.  x : A ==> b(x) : B |]     \
 \    ==> (UN x:X. b(x)) : B";
 by (cut_facts_tac prems 1);
-by (safe_tac ZF_cs);
-by (asm_simp_tac (ZF_ss addsimps (UN_equiv_class::prems)) 1);
+by (safe_tac (!claset));
+by (asm_simp_tac (!simpset addsimps (UN_equiv_class::prems)) 1);
 qed "UN_equiv_class_type";
 
 (*Sufficient conditions for injectiveness.  Could weaken premises!
@@ -160,7 +157,7 @@ val prems = goalw EquivClass.thy [quotient_def]
 \       !!x y. [| x:A; y:A; b(x)=b(y) |] ==> <x,y>:r |]         \
 \    ==> X=Y";
 by (cut_facts_tac prems 1);
-by (safe_tac ZF_cs);
+by (safe_tac (!claset));
 by (rtac equiv_class_eq 1);
 by (REPEAT (ares_tac prems 1));
 by (etac box_equals 1);
@@ -173,29 +170,29 @@ qed "UN_equiv_class_inject";
 
 goalw EquivClass.thy [congruent_def,congruent2_def,equiv_def,refl_def]
     "!!A r. [| equiv(A,r);  congruent2(r,b);  a: A |] ==> congruent(r,b(a))";
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "congruent2_implies_congruent";
 
 val equivA::prems = goalw EquivClass.thy [congruent_def]
     "[| equiv(A,r);  congruent2(r,b);  a: A |] ==> \
 \    congruent(r, %x1. UN x2:r``{a}. b(x1,x2))";
 by (cut_facts_tac (equivA::prems) 1);
-by (safe_tac ZF_cs);
+by (safe_tac (!claset));
 by (rtac (equivA RS equiv_type RS subsetD RS SigmaE2) 1);
 by (assume_tac 1);
-by (asm_simp_tac (ZF_ss addsimps [equivA RS UN_equiv_class,
-                                 congruent2_implies_congruent]) 1);
+by (asm_simp_tac (!simpset addsimps [equivA RS UN_equiv_class,
+				     congruent2_implies_congruent]) 1);
 by (rewrite_goals_tac [congruent2_def,equiv_def,refl_def]);
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "congruent2_implies_congruent_UN";
 
 val prems as equivA::_ = goal EquivClass.thy
     "[| equiv(A,r);  congruent2(r,b);  a1: A;  a2: A |]  \
 \    ==> (UN x1:r``{a1}. UN x2:r``{a2}. b(x1,x2)) = b(a1,a2)";
 by (cut_facts_tac prems 1);
-by (asm_simp_tac (ZF_ss addsimps [equivA RS UN_equiv_class,
-                                 congruent2_implies_congruent,
-                                 congruent2_implies_congruent_UN]) 1);
+by (asm_simp_tac (!simpset addsimps [equivA RS UN_equiv_class,
+				     congruent2_implies_congruent,
+				     congruent2_implies_congruent_UN]) 1);
 qed "UN_equiv_class2";
 
 (*type checking*)
@@ -205,7 +202,7 @@ val prems = goalw EquivClass.thy [quotient_def]
 \       !!x1 x2.  [| x1: A; x2: A |] ==> b(x1,x2) : B   \
 \    |] ==> (UN x1:X1. UN x2:X2. b(x1,x2)) : B";
 by (cut_facts_tac prems 1);
-by (safe_tac ZF_cs);
+by (safe_tac (!claset));
 by (REPEAT (ares_tac (prems@[UN_equiv_class_type,
                              congruent2_implies_congruent_UN,
                              congruent2_implies_congruent, quotientI]) 1));
@@ -220,7 +217,7 @@ val prems = goalw EquivClass.thy [congruent2_def,equiv_def,refl_def]
 \       !! y z w. [| w: A;  <y,z> : r |] ==> b(w,y) = b(w,z)       \
 \    |] ==> congruent2(r,b)";
 by (cut_facts_tac prems 1);
-by (safe_tac ZF_cs);
+by (safe_tac (!claset));
 by (rtac trans 1);
 by (REPEAT (ares_tac prems 1
      ORELSE etac (subsetD RS SigmaE2) 1 THEN assume_tac 2 THEN assume_tac 1));
@@ -248,10 +245,10 @@ val [equivA,ZinA,congt,commute] = goalw EquivClass.thy [quotient_def]
 val congt' = rewrite_rule [congruent_def] congt;
 by (cut_facts_tac [ZinA] 1);
 by (rewtac congruent_def);
-by (safe_tac ZF_cs);
+by (safe_tac (!claset));
 by (rtac (equivA RS equiv_type RS subsetD RS SigmaE2) 1);
 by (assume_tac 1);
-by (asm_simp_tac (ZF_ss addsimps [commute,
-                                  [equivA, congt] MRS UN_equiv_class]) 1);
+by (asm_simp_tac (!simpset addsimps [commute,
+				     [equivA, congt] MRS UN_equiv_class]) 1);
 by (REPEAT (ares_tac [congt' RS spec RS spec RS mp] 1));
 qed "congruent_commuteI";

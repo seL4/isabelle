@@ -1,3 +1,3 @@
 (*Dummy theory to document dependencies *)
 
-func = "domrange" + "equalities"
+func = domrange + equalities

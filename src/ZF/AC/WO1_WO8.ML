@@ -10,7 +10,7 @@ The proof of WO8 <-> WO1 (Rubin & Rubin p. 6)
 (* ********************************************************************** *)
 
 goalw thy WO_defs "!!Z. WO1 ==> WO8";
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "WO1_WO8";
 
 (* ********************************************************************** *)
@@ -21,10 +21,10 @@ goalw thy WO_defs "!!Z. WO8 ==> WO1";
 by (rtac allI 1);
 by (eres_inst_tac [("x","{{x}. x:A}")] allE 1);
 by (etac impE 1);
-by (fast_tac (AC_cs addSEs [lam_sing_bij RS bij_is_inj RS
+by (fast_tac (!claset addSEs [lam_sing_bij RS bij_is_inj RS
                         well_ord_rvimage]) 2);
 by (res_inst_tac [("x","lam a:{{x}. x:A}. THE x. a={x}")] exI 1);
-by (fast_tac (ZF_cs addSEs [singleton_eq_iff RS iffD1 RS sym]
+by (fast_tac (!claset addSEs [singleton_eq_iff RS iffD1 RS sym]
                 addSIs [lam_type]
                 addIs [the_equality RS ssubst]) 1);
 qed "WO8_WO1";

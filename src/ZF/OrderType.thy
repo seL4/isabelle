@@ -8,7 +8,7 @@ Order types and ordinal arithmetic.
 The order type of a well-ordering is the least ordinal isomorphic to it.
 *)
 
-OrderType = OrderArith + Ordinal + 
+OrderType = OrderArith + OrdQuant + 
 consts
   ordermap  :: [i,i]=>i
   ordertype :: [i,i]=>i

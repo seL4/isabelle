@@ -18,13 +18,13 @@ open PropLog;
 goal PropLog.thy "prop_rec(Fls,b,c,d) = b";
 by (rtac (prop_rec_def RS def_Vrec RS trans) 1);
 by (rewrite_goals_tac prop.con_defs);
-by (simp_tac rank_ss 1);
+by (Simp_tac 1);
 qed "prop_rec_Fls";
 
 goal PropLog.thy "prop_rec(#v,b,c,d) = c(v)";
 by (rtac (prop_rec_def RS def_Vrec RS trans) 1);
 by (rewrite_goals_tac prop.con_defs);
-by (simp_tac rank_ss 1);
+by (Simp_tac 1);
 qed "prop_rec_Var";
 
 goal PropLog.thy "prop_rec(p=>q,b,c,d) = \
@@ -34,45 +34,43 @@ by (rewrite_goals_tac prop.con_defs);
 by (simp_tac rank_ss 1);
 qed "prop_rec_Imp";
 
-val prop_rec_ss = 
-    arith_ss addsimps [prop_rec_Fls, prop_rec_Var, prop_rec_Imp];
+Addsimps [prop_rec_Fls, prop_rec_Var, prop_rec_Imp];
 
 (*** Semantics of propositional logic ***)
 
 (** The function is_true **)
 
 goalw PropLog.thy [is_true_def] "is_true(Fls,t) <-> False";
-by (simp_tac (prop_rec_ss addsimps [one_not_0 RS not_sym]) 1);
+by (simp_tac (!simpset addsimps [one_not_0 RS not_sym]) 1);
 qed "is_true_Fls";
 
 goalw PropLog.thy [is_true_def] "is_true(#v,t) <-> v:t";
-by (simp_tac (prop_rec_ss addsimps [one_not_0 RS not_sym] 
+by (simp_tac (!simpset addsimps [one_not_0 RS not_sym] 
               setloop (split_tac [expand_if])) 1);
 qed "is_true_Var";
 
 goalw PropLog.thy [is_true_def]
     "is_true(p=>q,t) <-> (is_true(p,t)-->is_true(q,t))";
-by (simp_tac (prop_rec_ss setloop (split_tac [expand_if])) 1);
+by (simp_tac (!simpset setloop (split_tac [expand_if])) 1);
 qed "is_true_Imp";
 
 (** The function hyps **)
 
 goalw PropLog.thy [hyps_def] "hyps(Fls,t) = 0";
-by (simp_tac prop_rec_ss 1);
+by (Simp_tac 1);
 qed "hyps_Fls";
 
 goalw PropLog.thy [hyps_def] "hyps(#v,t) = {if(v:t, #v, #v=>Fls)}";
-by (simp_tac prop_rec_ss 1);
+by (Simp_tac 1);
 qed "hyps_Var";
 
 goalw PropLog.thy [hyps_def] "hyps(p=>q,t) = hyps(p,t) Un hyps(q,t)";
-by (simp_tac prop_rec_ss 1);
+by (Simp_tac 1);
 qed "hyps_Imp";
 
-val prop_ss = prop_rec_ss 
-    addsimps prop.intrs
-    addsimps [is_true_Fls, is_true_Var, is_true_Imp,
-              hyps_Fls, hyps_Var, hyps_Imp];
+Addsimps prop.intrs;
+Addsimps [is_true_Fls, is_true_Var, is_true_Imp,
+	  hyps_Fls, hyps_Var, hyps_Imp];
 
 (*** Proof theory of propositional logic ***)
 
@@ -119,11 +117,11 @@ qed "weaken_right";
 (*The deduction theorem*)
 goal PropLog.thy "!!p q H. [| cons(p,H) |- q;  p:prop |] ==>  H |- p=>q";
 by (etac thms.induct 1);
-by (fast_tac (ZF_cs addIs [thms_I, thms.H RS weaken_right]) 1);
-by (fast_tac (ZF_cs addIs [thms.K RS weaken_right]) 1);
-by (fast_tac (ZF_cs addIs [thms.S RS weaken_right]) 1);
-by (fast_tac (ZF_cs addIs [thms.DN RS weaken_right]) 1);
-by (fast_tac (ZF_cs addIs [thms.S RS thms_MP RS thms_MP]) 1);
+by (fast_tac (!claset addIs [thms_I, thms.H RS weaken_right]) 1);
+by (fast_tac (!claset addIs [thms.K RS weaken_right]) 1);
+by (fast_tac (!claset addIs [thms.S RS weaken_right]) 1);
+by (fast_tac (!claset addIs [thms.DN RS weaken_right]) 1);
+by (fast_tac (!claset addIs [thms.S RS thms_MP RS thms_MP]) 1);
 qed "deduction";
 
 
@@ -145,8 +143,8 @@ bind_thm ("thms_notE", (thms_MP RS thms_FlsE));
 (*Soundness of the rules wrt truth-table semantics*)
 goalw PropLog.thy [logcon_def] "!!H. H |- p ==> H |= p";
 by (etac thms.induct 1);
-by (fast_tac (ZF_cs addSDs [is_true_Imp RS iffD1 RS mp]) 5);
-by (ALLGOALS (asm_simp_tac prop_ss));
+by (fast_tac (!claset addSDs [is_true_Imp RS iffD1 RS mp]) 5);
+by (ALLGOALS Asm_simp_tac);
 qed "soundness";
 
 (*** Towards the completeness proof ***)
@@ -175,10 +173,10 @@ val [major] = goal PropLog.thy
     "p: prop ==> hyps(p,t) |- if(is_true(p,t), p, p=>Fls)";
 by (rtac (expand_if RS iffD2) 1);
 by (rtac (major RS prop.induct) 1);
-by (ALLGOALS (asm_simp_tac (prop_ss addsimps [thms_I, thms.H])));
-by (safe_tac (ZF_cs addSEs [Fls_Imp RS weaken_left_Un1, 
+by (ALLGOALS (asm_simp_tac (!simpset addsimps [thms_I, thms.H])));
+by (safe_tac (!claset addSEs [Fls_Imp RS weaken_left_Un1, 
                             Fls_Imp RS weaken_left_Un2]));
-by (ALLGOALS (fast_tac (ZF_cs addIs [weaken_left_Un1, weaken_left_Un2, 
+by (ALLGOALS (fast_tac (!claset addIs [weaken_left_Un1, weaken_left_Un2, 
                                      weaken_right, Imp_Fls])));
 qed "hyps_thms_if";
 
@@ -187,7 +185,7 @@ val [premp,sat] = goalw PropLog.thy [logcon_def]
     "[| p: prop;  0 |= p |] ==> hyps(p,t) |- p";
 by (rtac (sat RS spec RS mp RS if_P RS subst) 1 THEN
     rtac (premp RS hyps_thms_if) 2);
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "logcon_thms_p";
 
 (*For proving certain theorems in our new propositional logic*)
@@ -217,11 +215,11 @@ qed "thms_excluded_middle_rule";
 val [major] = goal PropLog.thy
     "p: prop ==> hyps(p, t-{v}) <= cons(#v=>Fls, hyps(p,t)-{#v})";
 by (rtac (major RS prop.induct) 1);
-by (simp_tac prop_ss 1);
-by (asm_simp_tac (prop_ss setloop (split_tac [expand_if])) 1);
-by (fast_tac (ZF_cs addSEs prop.free_SEs) 1);
-by (asm_simp_tac prop_ss 1);
-by (fast_tac ZF_cs 1);
+by (Simp_tac 1);
+by (asm_simp_tac (!simpset setloop (split_tac [expand_if])) 1);
+by (fast_tac (!claset addSEs prop.free_SEs) 1);
+by (Asm_simp_tac 1);
+by (Fast_tac 1);
 qed "hyps_Diff";
 
 (*For the case hyps(p,t)-cons(#v => Fls,Y) |- p;
@@ -229,21 +227,21 @@ qed "hyps_Diff";
 val [major] = goal PropLog.thy
     "p: prop ==> hyps(p, cons(v,t)) <= cons(#v, hyps(p,t)-{#v=>Fls})";
 by (rtac (major RS prop.induct) 1);
-by (simp_tac prop_ss 1);
-by (asm_simp_tac (prop_ss setloop (split_tac [expand_if])) 1);
-by (fast_tac (ZF_cs addSEs prop.free_SEs) 1);
-by (asm_simp_tac prop_ss 1);
-by (fast_tac ZF_cs 1);
+by (Simp_tac 1);
+by (asm_simp_tac (!simpset setloop (split_tac [expand_if])) 1);
+by (fast_tac (!claset addSEs prop.free_SEs) 1);
+by (Asm_simp_tac 1);
+by (Fast_tac 1);
 qed "hyps_cons";
 
 (** Two lemmas for use with weaken_left **)
 
-goal ZF.thy "B-C <= cons(a, B-cons(a,C))";
-by (fast_tac ZF_cs 1);
+goal upair.thy "B-C <= cons(a, B-cons(a,C))";
+by (Fast_tac 1);
 qed "cons_Diff_same";
 
-goal ZF.thy "cons(a, B-{c}) - D <= cons(a, B-cons(c,D))";
-by (fast_tac ZF_cs 1);
+goal upair.thy "cons(a, B-{c}) - D <= cons(a, B-cons(c,D))";
+by (Fast_tac 1);
 qed "cons_Diff_subset2";
 
 (*The set hyps(p,t) is finite, and elements have the form #v or #v=>Fls;
@@ -251,9 +249,10 @@ qed "cons_Diff_subset2";
 val [major] = goal PropLog.thy
     "p: prop ==> hyps(p,t) : Fin(UN v:nat. {#v, #v=>Fls})";
 by (rtac (major RS prop.induct) 1);
-by (asm_simp_tac (prop_ss addsimps (Fin.intrs @ [UN_I, cons_iff])
+by (asm_simp_tac (!simpset addsimps [UN_I]
                   setloop (split_tac [expand_if])) 2);
-by (ALLGOALS (asm_simp_tac (prop_ss addsimps [Un_0, Fin.emptyI, Fin_UnI])));
+by (ALLGOALS Asm_simp_tac);
+by (fast_tac (!claset addIs Fin.intrs) 1);
 qed "hyps_finite";
 
 val Diff_weaken_left = subset_refl RSN (2, Diff_mono) RS weaken_left;
@@ -263,8 +262,8 @@ val Diff_weaken_left = subset_refl RSN (2, Diff_mono) RS weaken_left;
 val [premp,sat] = goal PropLog.thy
     "[| p: prop;  0 |= p |] ==> ALL t. hyps(p,t) - hyps(p,t0) |- p";
 by (rtac (premp RS hyps_finite RS Fin_induct) 1);
-by (simp_tac (prop_ss addsimps [premp, sat, logcon_thms_p, Diff_0]) 1);
-by (safe_tac ZF_cs);
+by (simp_tac (!simpset addsimps [premp, sat, logcon_thms_p, Diff_0]) 1);
+by (safe_tac (!claset));
 (*Case hyps(p,t)-cons(#v,Y) |- p *)
 by (rtac thms_excluded_middle_rule 1);
 by (etac prop.Var_I 3);
@@ -291,22 +290,22 @@ qed "completeness_0";
 
 (*A semantic analogue of the Deduction Theorem*)
 goalw PropLog.thy [logcon_def] "!!H p q. [| cons(p,H) |= q |] ==> H |= p=>q";
-by (simp_tac prop_ss 1);
-by (fast_tac ZF_cs 1);
+by (Simp_tac 1);
+by (Fast_tac 1);
 qed "logcon_Imp";
 
 goal PropLog.thy "!!H. H: Fin(prop) ==> ALL p:prop. H |= p --> H |- p";
 by (etac Fin_induct 1);
-by (safe_tac (ZF_cs addSIs [completeness_0]));
+by (safe_tac (!claset addSIs [completeness_0]));
 by (rtac (weaken_left_cons RS thms_MP) 1);
-by (fast_tac (ZF_cs addSIs (logcon_Imp::prop.intrs)) 1);
+by (fast_tac (!claset addSIs (logcon_Imp::prop.intrs)) 1);
 by (fast_tac thms_cs 1);
 qed "completeness_lemma";
 
 val completeness = completeness_lemma RS bspec RS mp;
 
 val [finite] = goal PropLog.thy "H: Fin(prop) ==> H |- p <-> H |= p & p:prop";
-by (fast_tac (ZF_cs addSEs [soundness, finite RS completeness, 
+by (fast_tac (!claset addSEs [soundness, finite RS completeness, 
                             thms_in_pl]) 1);
 qed "thms_iff";
 

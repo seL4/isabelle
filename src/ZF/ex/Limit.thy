@@ -17,7 +17,7 @@
     Laboratory, 1995.
 *)
 
-Limit  =  ZF + Perm + Arith +
+Limit  =  Perm + Arith +
 
 consts
 

@@ -12,7 +12,7 @@ goal Nat.thy "bnd_mono(Inf, %X. {0} Un {succ(i). i:X})";
 by (rtac bnd_monoI 1);
 by (REPEAT (ares_tac [subset_refl, RepFun_mono, Un_mono] 2)); 
 by (cut_facts_tac [infinity] 1);
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "nat_bnd_mono";
 
 (* nat = {0} Un {succ(x). x:nat} *)
@@ -39,6 +39,9 @@ goal Nat.thy "2 : nat";
 by (rtac (nat_1I RS nat_succI) 1);
 qed "nat_2I";
 
+Addsimps [nat_0I, nat_1I, nat_2I, nat_succI];
+AddSIs   [nat_0I, nat_1I, nat_2I];
+
 goal Nat.thy "bool <= nat";
 by (REPEAT (ares_tac [subsetI,nat_0I,nat_1I] 1
             ORELSE eresolve_tac [boolE,ssubst] 1));
@@ -53,7 +56,7 @@ val bool_into_nat = bool_subset_nat RS subsetD;
 val major::prems = goal Nat.thy
     "[| n: nat;  P(0);  !!x. [| x: nat;  P(x) |] ==> P(succ(x)) |] ==> P(n)";
 by (rtac ([nat_def, nat_bnd_mono, major] MRS def_induct) 1);
-by (fast_tac (ZF_cs addIs prems) 1);
+by (fast_tac (!claset addIs prems) 1);
 qed "nat_induct";
 
 (*Perform induction on n, then prove the n:nat subgoal using prems. *)
@@ -90,15 +93,18 @@ by (REPEAT (ares_tac [empty_subsetI,succ_subsetI] 1));
 qed "Ord_nat";
 
 goalw Nat.thy [Limit_def] "Limit(nat)";
-by (safe_tac (ZF_cs addSIs [ltI, nat_0I, nat_1I, nat_succI, Ord_nat]));
+by (safe_tac (!claset addSIs [ltI, nat_succI, Ord_nat]));
 by (etac ltD 1);
 qed "Limit_nat";
+
+Addsimps [Ord_nat, Limit_nat];
+AddSIs   [Ord_nat, Limit_nat];
 
 goal Nat.thy "!!i. Limit(i) ==> nat le i";
 by (rtac subset_imp_le 1);
 by (rtac subsetI 1);
 by (etac nat_induct 1);
-by (fast_tac (ZF_cs addIs [Limit_has_succ RS ltD, ltI, Limit_is_Ord]) 2);
+by (fast_tac (!claset addIs [Limit_has_succ RS ltD, ltI, Limit_is_Ord]) 2);
 by (REPEAT (ares_tac [Limit_has_0 RS ltD,
                       Ord_nat, Limit_is_Ord] 1));
 qed "nat_le_Limit";
@@ -128,7 +134,7 @@ val prems = goal Nat.thy
 by (nat_ind_tac "n" prems 1);
 by (ALLGOALS
     (asm_simp_tac
-     (ZF_ss addsimps (prems@distrib_simps@[le0_iff, le_succ_iff]))));
+     (!simpset addsimps (prems@distrib_simps@[le0_iff, le_succ_iff]))));
 qed "nat_induct_from_lemma";
 
 (*Induction starting from m rather than 0*)
@@ -164,7 +170,7 @@ goal Nat.thy
 by (etac nat_induct 1);
 by (ALLGOALS
     (EVERY' [rtac (impI RS impI), rtac (nat_induct RS ballI), assume_tac,
-             fast_tac lt_cs, fast_tac lt_cs]));
+             fast_tac le_cs, fast_tac le_cs]));
 qed "succ_lt_induct_lemma";
 
 val prems = goal Nat.thy
@@ -180,19 +186,20 @@ qed "succ_lt_induct";
 (** nat_case **)
 
 goalw Nat.thy [nat_case_def] "nat_case(a,b,0) = a";
-by (fast_tac (ZF_cs addIs [the_equality]) 1);
+by (fast_tac (!claset addIs [the_equality]) 1);
 qed "nat_case_0";
 
 goalw Nat.thy [nat_case_def] "nat_case(a,b,succ(m)) = b(m)";
-by (fast_tac (ZF_cs addIs [the_equality]) 1);
+by (fast_tac (!claset addIs [the_equality]) 1);
 qed "nat_case_succ";
+
+Addsimps [nat_case_0, nat_case_succ];
 
 val major::prems = goal Nat.thy
     "[| n: nat;  a: C(0);  !!m. m: nat ==> b(m): C(succ(m))  \
 \    |] ==> nat_case(a,b,n) : C(n)";
 by (rtac (major RS nat_induct) 1);
-by (ALLGOALS 
-    (asm_simp_tac (ZF_ss addsimps (prems @ [nat_case_0, nat_case_succ]))));
+by (ALLGOALS (asm_simp_tac (!simpset addsimps prems)));
 qed "nat_case_type";
 
 
@@ -209,8 +216,7 @@ qed "nat_rec_0";
 val [prem] = goal Nat.thy 
     "m: nat ==> nat_rec(succ(m),a,b) = b(m, nat_rec(m,a,b))";
 by (rtac nat_rec_trans 1);
-by (simp_tac (ZF_ss addsimps [prem, nat_case_succ, nat_succI, Memrel_iff, 
-                              vimage_singleton_iff]) 1);
+by (simp_tac (!simpset addsimps [prem, Memrel_iff, vimage_singleton_iff]) 1);
 qed "nat_rec_succ";
 
 (** The union of two natural numbers is a natural number -- their maximum **)

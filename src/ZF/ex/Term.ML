@@ -52,7 +52,7 @@ qed "term_mono";
 goalw Term.thy (term.defs@term.con_defs) "term(univ(A)) <= univ(A)";
 by (rtac lfp_lowerbound 1);
 by (rtac (A_subset_univ RS univ_mono) 2);
-by (safe_tac ZF_cs);
+by (safe_tac (!claset));
 by (REPEAT (ares_tac [Pair_in_univ, list_univ RS subsetD] 1));
 qed "term_univ";
 
@@ -71,11 +71,11 @@ val [major,ordi] = goal list.thy
     "[| l: list(A);  Ord(i) |] ==>  \
 \    rank(l)<i --> map(%z. (lam x:Vset(i).h(x)) ` z, l) = map(h,l)";
 by (rtac (major RS list.induct) 1);
-by (simp_tac list_ss 1);
+by (Simp_tac 1);
 by (rtac impI 1);
 by (forward_tac [rank_Cons1 RS lt_trans] 1);
 by (dtac (rank_Cons2 RS lt_trans) 1);
-by (asm_simp_tac (list_ss addsimps [ordi, VsetI]) 1);
+by (asm_simp_tac (!simpset addsimps [ordi, VsetI]) 1);
 qed "map_lemma";
 
 (*Typing premise is necessary to invoke map_lemma*)
@@ -84,8 +84,7 @@ val [prem] = goal Term.thy
 \    term_rec(Apply(a,ts), d) = d(a, ts, map (%z. term_rec(z,d), ts))";
 by (rtac (term_rec_def RS def_Vrec RS trans) 1);
 by (rewrite_goals_tac term.con_defs);
-val term_rec_ss = ZF_ss addsimps [Ord_rank, rank_pair2, prem RS map_lemma];
-by (simp_tac term_rec_ss 1);
+by (simp_tac (!simpset addsimps [Ord_rank, rank_pair2, prem RS map_lemma]) 1);;
 qed "term_rec";
 
 (*Slightly odd typing condition on r in the second premise!*)
@@ -100,7 +99,7 @@ by (forward_tac [list_CollectD] 1);
 by (stac term_rec 1);
 by (REPEAT (ares_tac prems 1));
 by (etac list.induct 1);
-by (ALLGOALS (asm_simp_tac (list_ss addsimps [term_rec])));
+by (ALLGOALS (asm_simp_tac (!simpset addsimps [term_rec])));
 by (etac CollectE 1);
 by (REPEAT (ares_tac [list.Cons_I, UN_I] 1));
 qed "term_rec_type";
@@ -172,7 +171,7 @@ val term_typechecks =
      reflect_type, preorder_type];
 
 (*map_type2 and term_map_type2 instantiate variables*)
-val term_ss = list_ss 
+simpset := !simpset
       addsimps [term_rec, term_map, term_size, reflect, preorder]
       setsolver type_auto_tac (list_typechecks@term_typechecks);
 
@@ -181,19 +180,19 @@ val term_ss = list_ss
 
 goal Term.thy "!!t A. t: term(A) ==> term_map(%u.u, t) = t";
 by (etac term_induct_eqn 1);
-by (asm_simp_tac (term_ss addsimps [map_ident]) 1);
+by (asm_simp_tac (!simpset addsimps [map_ident]) 1);
 qed "term_map_ident";
 
 goal Term.thy
   "!!t A. t: term(A) ==> term_map(f, term_map(g,t)) = term_map(%u.f(g(u)), t)";
 by (etac term_induct_eqn 1);
-by (asm_simp_tac (term_ss addsimps [map_compose]) 1);
+by (asm_simp_tac (!simpset addsimps [map_compose]) 1);
 qed "term_map_compose";
 
 goal Term.thy
     "!!t A. t: term(A) ==> term_map(f, reflect(t)) = reflect(term_map(f,t))";
 by (etac term_induct_eqn 1);
-by (asm_simp_tac (term_ss addsimps [rev_map_distrib RS sym, map_compose]) 1);
+by (asm_simp_tac (!simpset addsimps [rev_map_distrib RS sym, map_compose]) 1);
 qed "term_map_reflect";
 
 
@@ -202,18 +201,18 @@ qed "term_map_reflect";
 goal Term.thy
     "!!t A. t: term(A) ==> term_size(term_map(f,t)) = term_size(t)";
 by (etac term_induct_eqn 1);
-by (asm_simp_tac (term_ss addsimps [map_compose]) 1);
+by (asm_simp_tac (!simpset addsimps [map_compose]) 1);
 qed "term_size_term_map";
 
 goal Term.thy "!!t A. t: term(A) ==> term_size(reflect(t)) = term_size(t)";
 by (etac term_induct_eqn 1);
-by (asm_simp_tac (term_ss addsimps [rev_map_distrib RS sym, map_compose,
+by (asm_simp_tac (!simpset addsimps [rev_map_distrib RS sym, map_compose,
                                     list_add_rev]) 1);
 qed "term_size_reflect";
 
 goal Term.thy "!!t A. t: term(A) ==> term_size(t) = length(preorder(t))";
 by (etac term_induct_eqn 1);
-by (asm_simp_tac (term_ss addsimps [length_flat, map_compose]) 1);
+by (asm_simp_tac (!simpset addsimps [length_flat, map_compose]) 1);
 qed "term_size_length";
 
 
@@ -221,7 +220,7 @@ qed "term_size_length";
 
 goal Term.thy "!!t A. t: term(A) ==> reflect(reflect(t)) = t";
 by (etac term_induct_eqn 1);
-by (asm_simp_tac (term_ss addsimps [rev_map_distrib, map_compose,
+by (asm_simp_tac (!simpset addsimps [rev_map_distrib, map_compose,
                                     map_ident, rev_rev_ident]) 1);
 qed "reflect_reflect_ident";
 
@@ -231,7 +230,7 @@ qed "reflect_reflect_ident";
 goal Term.thy
     "!!t A. t: term(A) ==> preorder(term_map(f,t)) = map(f, preorder(t))";
 by (etac term_induct_eqn 1);
-by (asm_simp_tac (term_ss addsimps [map_compose, map_flat]) 1);
+by (asm_simp_tac (!simpset addsimps [map_compose, map_flat]) 1);
 qed "preorder_term_map";
 
 (** preorder(reflect(t)) = rev(postorder(t)) **)

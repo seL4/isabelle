@@ -1,3 +1,3 @@
 (*Dummy theory to document dependencies *)
 
-WO_AC = Order + first
+WO_AC = Order

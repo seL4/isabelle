@@ -30,13 +30,14 @@ by (rtac ifI 1);
 by (rtac ifI 1);
 
 choplev 0;
-val if_cs = FOL_cs addSIs [ifI] addSEs[ifE];
-by (fast_tac if_cs 1);
+AddSIs [ifI];
+AddSEs [ifE];
+by (Fast_tac 1);
 qed "if_commute";
 
 
 goal If.thy "if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,A,B))";
-by (fast_tac if_cs 1);
+by (Fast_tac 1);
 qed "nested_ifs";
 
 choplev 0;
@@ -47,10 +48,10 @@ result();
 
 (*An invalid formula.  High-level rules permit a simpler diagnosis*)
 goal If.thy "if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,B,A))";
-by (fast_tac if_cs 1) handle ERROR => writeln"Failed, as expected";
+by (Fast_tac 1) handle ERROR => writeln"Failed, as expected";
 (*Check that subgoals remain: proof failed.*)
 getgoal 1; 
-by (REPEAT (step_tac if_cs 1));
+by (REPEAT (Step_tac 1));
 
 choplev 0;
 by (rewtac if_def);

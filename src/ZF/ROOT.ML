@@ -11,6 +11,8 @@ This theory is the work of Martin Coen, Philippe Noel and Lawrence Paulson.
 val banner = "ZF Set Theory (in FOL)";
 writeln banner;
 
+eta_contract:=false;
+
 (*For Pure/tactic??  A crude way of adding structure to rules*)
 fun CHECK_SOLVED tac st =
     case Sequence.pull (tac st) of
@@ -32,6 +34,8 @@ use     "../Pure/section_utils.ML";
 use     "thy_syntax.ML";
 
 use_thy "Let";
+use_thy "func";
+use     "typechk.ML";
 use_thy "InfDatatype";
 use_thy "List";
 use_thy "EquivClass";

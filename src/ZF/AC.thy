@@ -8,7 +8,7 @@ The Axiom of Choice
 This definition comes from Halmos (1960), page 59.
 *)
 
-AC = ZF + "func" +
+AC = func +
 rules
   AC    "[| a: A;  !!x. x:A ==> (EX y. y:B(x)) |] ==> EX z. z : Pi(A,B)"
 end

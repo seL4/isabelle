@@ -22,7 +22,7 @@
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
 NAMES = ZF upair subset pair domrange \
-	func AC simpdata equalities Bool \
+	func AC equalities Bool \
 	Sum QPair mono Fixedpt ind_syntax cartprod add_ind_def \
 	constructor intr_elim indrule Inductive Perm Rel EquivClass Trancl \
 	WF Order Ordinal Epsilon Arith Univ \
@@ -30,7 +30,7 @@ NAMES = ZF upair subset pair domrange \
 	Cardinal CardinalArith Cardinal_AC InfDatatype \
 	Zorn Nat Finite List 
 
-FILES = ROOT.ML thy_syntax.ML ../Pure/section_utils.ML \
+FILES = ROOT.ML thy_syntax.ML ../Pure/section_utils.ML simpdata.ML typechk.ML\
 	$(NAMES:%=%.thy) $(NAMES:%=%.ML)
 
 #Uses cp rather than make_database because Poly/ML allows only 3 levels
@@ -83,9 +83,9 @@ IMP:   $(BIN)/ZF  $(IMP_FILES)
 	fi
 
 ##Coinduction example
-COIND_NAMES = ECR Language MT Map Static Types Values 
+COIND_NAMES = ECR MT Map Static Types Values 
 
-COIND_FILES = Coind/ROOT.ML Coind/BCR.thy  Coind/Dynamic.thy \
+COIND_FILES = Coind/ROOT.ML Coind/Language.thy Coind/BCR.thy Coind/Dynamic.thy\
 	      $(COIND_NAMES:%=Coind/%.thy) $(COIND_NAMES:%=Coind/%.ML)
 
 Coind:	$(BIN)/ZF  $(COIND_FILES)
@@ -95,10 +95,10 @@ Coind:	$(BIN)/ZF  $(COIND_FILES)
 	fi
 
 ##AC examples
-AC_NAMES = AC_Equiv OrdQuant Transrec2 Cardinal_aux \
+AC_NAMES = AC_Equiv Cardinal_aux \
 	   AC15_WO6 AC16_WO4 AC16_lemmas AC17_AC1 AC18_AC19 AC1_WO2 \
 	   DC DC_lemmas HH Hartog WO1_AC \
-	   WO2_AC16 WO6_WO1 WO_AC first recfunAC16 rel_is_fun
+	   WO2_AC16 WO6_WO1 WO_AC recfunAC16 rel_is_fun
 
 AC_FILES = AC/ROOT.ML AC/AC0_AC1.ML AC/AC10_AC15.ML AC/AC1_AC17.ML \
 	   AC/AC2_AC6.ML AC/AC7_AC9.ML \

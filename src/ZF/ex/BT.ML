@@ -8,6 +8,8 @@ Datatype definition of binary trees
 
 open BT;
 
+Addsimps bt.case_eqns;
+
 (*Perform induction on l, then prove the major premise using prems. *)
 fun bt_ind_tac a prems i = 
     EVERY [res_inst_tac [("x",a)] bt.induct i,
@@ -26,7 +28,7 @@ qed "bt_mono";
 goalw BT.thy (bt.defs@bt.con_defs) "bt(univ(A)) <= univ(A)";
 by (rtac lfp_lowerbound 1);
 by (rtac (A_subset_univ RS univ_mono) 2);
-by (fast_tac (ZF_cs addSIs [zero_in_univ, Inl_in_univ, Inr_in_univ,
+by (fast_tac (!claset addSIs [zero_in_univ, Inl_in_univ, Inr_in_univ,
                             Pair_in_univ]) 1);
 qed "bt_univ";
 
@@ -45,7 +47,7 @@ qed "rank_Br2";
 
 goal BT.thy "bt_rec(Lf,c,h) = c";
 by (rtac (bt_rec_def RS def_Vrec RS trans) 1);
-by (simp_tac (ZF_ss addsimps bt.case_eqns) 1);
+by (Simp_tac 1);
 qed "bt_rec_Lf";
 
 goal BT.thy
@@ -53,6 +55,8 @@ goal BT.thy
 by (rtac (bt_rec_def RS def_Vrec RS trans) 1);
 by (simp_tac (rank_ss addsimps (bt.case_eqns @ [rank_Br1, rank_Br2])) 1);
 qed "bt_rec_Br";
+
+Addsimps [bt_rec_Lf, bt_rec_Br];
 
 (*Type checking -- proved by induction, as usual*)
 val prems = goal BT.thy
@@ -62,8 +66,7 @@ val prems = goal BT.thy
 \                    h(x,y,z,r,s): C(Br(x,y,z))  \
 \    |] ==> bt_rec(t,c,h) : C(t)";
 by (bt_ind_tac "t" prems 1);
-by (ALLGOALS (asm_simp_tac (ZF_ss addsimps
-                            (prems@[bt_rec_Lf,bt_rec_Br]))));
+by (ALLGOALS (asm_simp_tac (!simpset addsimps prems)));
 qed "bt_rec_type";
 
 (** Versions for use with definitions **)
@@ -84,6 +87,7 @@ fun bt_recs def = map standard ([def] RL [def_bt_rec_Lf, def_bt_rec_Br]);
 (** n_nodes **)
 
 val [n_nodes_Lf,n_nodes_Br] = bt_recs n_nodes_def;
+Addsimps [n_nodes_Lf, n_nodes_Br];
 
 val prems = goalw BT.thy [n_nodes_def] 
     "xs: bt(A) ==> n_nodes(xs) : nat";
@@ -94,6 +98,7 @@ qed "n_nodes_type";
 (** n_leaves **)
 
 val [n_leaves_Lf,n_leaves_Br] = bt_recs n_leaves_def;
+Addsimps [n_leaves_Lf, n_leaves_Br];
 
 val prems = goalw BT.thy [n_leaves_def] 
     "xs: bt(A) ==> n_leaves(xs) : nat";
@@ -103,6 +108,7 @@ qed "n_leaves_type";
 (** bt_reflect **)
 
 val [bt_reflect_Lf, bt_reflect_Br] = bt_recs bt_reflect_def;
+Addsimps [bt_reflect_Lf, bt_reflect_Br];
 
 goalw BT.thy [bt_reflect_def] "!!xs. xs: bt(A) ==> bt_reflect(xs) : bt(A)";
 by (REPEAT (ares_tac (bt.intrs @ [bt_rec_type]) 1));
@@ -115,13 +121,7 @@ qed "bt_reflect_type";
 val bt_typechecks =
     bt.intrs @ [bt_rec_type, n_nodes_type, n_leaves_type, bt_reflect_type];
 
-val bt_ss = arith_ss 
-    addsimps bt.case_eqns
-    addsimps bt_typechecks
-    addsimps [bt_rec_Lf, bt_rec_Br, 
-             n_nodes_Lf, n_nodes_Br,
-             n_leaves_Lf, n_leaves_Br,
-             bt_reflect_Lf, bt_reflect_Br];
+Addsimps bt_typechecks;
 
 
 (*** theorems about n_leaves ***)
@@ -129,13 +129,13 @@ val bt_ss = arith_ss
 val prems = goal BT.thy
     "t: bt(A) ==> n_leaves(bt_reflect(t)) = n_leaves(t)";
 by (bt_ind_tac "t" prems 1);
-by (ALLGOALS (asm_simp_tac (bt_ss addsimps [add_commute, n_leaves_type])));
+by (ALLGOALS (asm_simp_tac (!simpset addsimps [add_commute, n_leaves_type])));
 qed "n_leaves_reflect";
 
 val prems = goal BT.thy
     "t: bt(A) ==> n_leaves(t) = succ(n_nodes(t))";
 by (bt_ind_tac "t" prems 1);
-by (ALLGOALS (asm_simp_tac (bt_ss addsimps [add_succ_right])));
+by (ALLGOALS (asm_simp_tac (!simpset addsimps [add_succ_right])));
 qed "n_leaves_nodes";
 
 (*** theorems about bt_reflect ***)
@@ -143,7 +143,7 @@ qed "n_leaves_nodes";
 val prems = goal BT.thy
     "t: bt(A) ==> bt_reflect(bt_reflect(t))=t";
 by (bt_ind_tac "t" prems 1);
-by (ALLGOALS (asm_simp_tac bt_ss));
+by (ALLGOALS Asm_simp_tac);
 qed "bt_reflect_bt_reflect_ident";
 
 

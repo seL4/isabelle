@@ -11,38 +11,32 @@ open MT;
 (* The Consistency theorem                                      *)
 (* ############################################################ *)
 
-val prems = goal MT.thy 
-  "[| c:Const; hastyenv(ve,te);<te,e_const(c),t>:ElabRel |] ==>         \
-\  <v_const(c), t> : HasTyRel";
-by (cut_facts_tac prems 1);
-by (fast_tac htr_cs 1);
+goal MT.thy 
+  "!!t. [| c:Const; hastyenv(ve,te);<te,e_const(c),t>:ElabRel |] ==>         \
+\       <v_const(c), t> : HasTyRel";
+by (Fast_tac 1);
 qed "consistency_const";
 
 
-val prems = goalw  MT.thy [hastyenv_def]
-  "[| x:ve_dom(ve); hastyenv(ve,te); <te,e_var(x),t>:ElabRel |] ==>     \
+goalw  MT.thy [hastyenv_def]
+  "!!t. [| x:ve_dom(ve); hastyenv(ve,te); <te,e_var(x),t>:ElabRel |] ==>     \
 \  <ve_app(ve,x),t>:HasTyRel";
-by (cut_facts_tac prems 1);
-by (fast_tac static_cs 1);
+by (Fast_tac 1);
 qed "consistency_var";
 
 
-val prems = goalw MT.thy [hastyenv_def]
-  "[| ve:ValEnv; x:ExVar; e:Exp; hastyenv(ve,te);       \
-\     <te,e_fn(x,e),t>:ElabRel  \
-\  |] ==>       \
-\  <v_clos(x, e, ve), t> : HasTyRel";
-by (cut_facts_tac prems 1);
-by (best_tac htr_cs 1);
+goalw MT.thy [hastyenv_def]
+  "!!t. [| ve:ValEnv; x:ExVar; e:Exp; hastyenv(ve,te);       \
+\          <te,e_fn(x,e),t>:ElabRel  \
+\       |] ==> <v_clos(x, e, ve), t> : HasTyRel";
+by (Best_tac 1);
 qed "consistency_fn";
 
-val MT_cs = ZF_cs 
-  addIs (Ty.intrs@TyEnv.intrs@Val_ValEnv.intrs)
-  addDs [te_owrE,(ElabRel.dom_subset RS subsetD)];
+AddIs (Ty.intrs@TyEnv.intrs@Val_ValEnv.intrs);
+AddDs [te_owrE,(ElabRel.dom_subset RS subsetD)];
 
-val MT_ss = 
-  ZF_ss addsimps 
-  [ve_dom_owr,te_dom_owr,ve_app_owr1,ve_app_owr2,te_app_owr1,te_app_owr2];
+Addsimps [ve_dom_owr, te_dom_owr, ve_app_owr1, ve_app_owr2, 
+	  te_app_owr1, te_app_owr2];
 
 val clean_tac = 
   REPEAT_FIRST (fn i => 
@@ -57,7 +51,7 @@ val prems = goalw MT.thy [hastyenv_def]
 \  <cl,t>:HasTyRel";
 by (cut_facts_tac prems 1);
 by (etac elab_fixE 1);
-by (safe_tac ZF_cs);
+by (safe_tac (!claset));
 by (EVERY [forward_tac [subst] 1,atac 2,rtac htr_closCI 1]);
 by clean_tac;
 by (rtac ve_owrI 1);
@@ -70,12 +64,12 @@ by ( eres_inst_tac
 by (assume_tac 1);
 by (rtac ElabRel.elab_fnI 1);
 by clean_tac;
-by (asm_simp_tac MT_ss 1);
+by (Asm_simp_tac 1);
 by (stac ve_dom_owr 1);
 by (assume_tac 1);
 by (etac subst 1);
 by (rtac v_closNE 1);
-by (asm_simp_tac ZF_ss 1);
+by (Asm_simp_tac 1);
 
 by (rtac PowI 1);
 by (stac ve_dom_owr 1);
@@ -84,15 +78,8 @@ by (etac subst 1);
 by (rtac v_closNE 1);
 by (rtac subsetI 1);
 by (etac RepFunE 1);
-by (dtac lem_fix 1);
-by (etac UnE' 1);
-by (rtac UnI1 1);
-by (etac singletonE 1);
-by (asm_full_simp_tac MT_ss 1);
-by (rtac UnI2 1);
-by (etac notsingletonE 1);
-by (dtac not_sym 1);
-by (asm_full_simp_tac MT_ss 1);
+by (excluded_middle_tac "f=y" 1);
+by (Auto_tac());
 qed "consistency_fix";
 
 
@@ -151,7 +138,7 @@ by (assume_tac 1);
 by (assume_tac 1);
 by (assume_tac 2);
 by (rewrite_tac [hastyenv_def]);
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "consistency_app2";
 
 fun mt_cases_tac t = ((rtac t 1) THEN (TRYALL assume_tac)); 
@@ -180,7 +167,7 @@ val prems = goal MT.thy
 by (cut_facts_tac prems 1);
 by (rtac (htr_constE) 1);
 by (dtac consistency 1);
-by (fast_tac (ZF_cs addSIs [basic_consistency_lem]) 1);
+by (fast_tac (!claset addSIs [basic_consistency_lem]) 1);
 by (assume_tac 1);
 qed "basic_consistency";
 

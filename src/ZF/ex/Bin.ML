@@ -8,6 +8,8 @@ For Bin.thy.  Arithmetic on binary integers.
 
 open Bin;
 
+Addsimps bin.case_eqns;
+
 (*Perform induction on l, then prove the major premise using prems. *)
 fun bin_ind_tac a prems i = 
     EVERY [res_inst_tac [("x",a)] bin.induct i,
@@ -43,7 +45,7 @@ val prems = goal Bin.thy
 \    |] ==> bin_rec(w,a,b,h) : C(w)";
 by (bin_ind_tac "w" prems 1);
 by (ALLGOALS 
-    (asm_simp_tac (ZF_ss addsimps (prems@[bin_rec_Plus, bin_rec_Minus,
+    (asm_simp_tac (!simpset addsimps (prems@[bin_rec_Plus, bin_rec_Minus,
                                           bin_rec_Bcons]))));
 qed "bin_rec_type";
 
@@ -71,24 +73,24 @@ fun bin_recs def = map standard
         ([def] RL [def_bin_rec_Plus, def_bin_rec_Minus, def_bin_rec_Bcons]);
 
 goalw Bin.thy [norm_Bcons_def] "norm_Bcons(Plus,0) = Plus";
-by (asm_simp_tac (ZF_ss addsimps (bin.case_eqns @ bool_simps)) 1);
+by (Asm_simp_tac 1);
 qed "norm_Bcons_Plus_0";
 
 goalw Bin.thy [norm_Bcons_def] "norm_Bcons(Plus,1) = Bcons(Plus,1)";
-by (asm_simp_tac (ZF_ss addsimps (bin.case_eqns @ bool_simps)) 1);
+by (Asm_simp_tac 1);
 qed "norm_Bcons_Plus_1";
 
 goalw Bin.thy [norm_Bcons_def] "norm_Bcons(Minus,0) = Bcons(Minus,0)";
-by (asm_simp_tac (ZF_ss addsimps (bin.case_eqns @ bool_simps)) 1);
+by (Asm_simp_tac 1);
 qed "norm_Bcons_Minus_0";
 
 goalw Bin.thy [norm_Bcons_def] "norm_Bcons(Minus,1) = Minus";
-by (asm_simp_tac (ZF_ss addsimps (bin.case_eqns @ bool_simps)) 1);
+by (Asm_simp_tac 1);
 qed "norm_Bcons_Minus_1";
 
 goalw Bin.thy [norm_Bcons_def]
     "norm_Bcons(Bcons(w,x),b) = Bcons(Bcons(w,x),b)";
-by (asm_simp_tac (ZF_ss addsimps bin.case_eqns) 1);
+by (asm_simp_tac (!simpset addsimps bin.case_eqns) 1);
 qed "norm_Bcons_Bcons";
 
 val norm_Bcons_simps = [norm_Bcons_Plus_0, norm_Bcons_Plus_1, 
@@ -108,7 +110,7 @@ qed "integ_of_bin_type";
 goalw Bin.thy [norm_Bcons_def]
     "!!w. [| w: bin; b: bool |] ==> norm_Bcons(w,b) : bin";
 by (etac bin.elim 1);
-by (ALLGOALS (asm_simp_tac (ZF_ss addsimps bin.case_eqns)));
+by (ALLGOALS (asm_simp_tac (!simpset addsimps bin.case_eqns)));
 by (typechk_tac (bin_typechecks0@bool_typechecks));
 qed "norm_Bcons_type";
 
@@ -143,10 +145,9 @@ val bin_typechecks = bin_typechecks0 @
     [integ_of_bin_type, norm_Bcons_type, bin_succ_type, bin_pred_type, 
      bin_minus_type, bin_add_type, bin_mult_type];
 
-val bin_ss = integ_ss 
-    addsimps([bool_1I, bool_0I,
-             bin_rec_Plus, bin_rec_Minus, bin_rec_Bcons] @ 
-             bin_recs integ_of_bin_def @ bool_simps @ bin_typechecks);
+Addsimps ([bool_1I, bool_0I,
+	   bin_rec_Plus, bin_rec_Minus, bin_rec_Bcons] @ 
+	  bin_recs integ_of_bin_def @ bin_typechecks);
 
 val typechecks = bin_typechecks @ integ_typechecks @ nat_typechecks @
                  [bool_subset_nat RS subsetD];
@@ -159,7 +160,7 @@ goal Integ.thy
     "!!z v. [| z $+ v = z' $+ v';  \
 \       z: integ; z': integ;  v: integ; v': integ;  w: integ |]   \
 \    ==> z $+ (v $+ w) = z' $+ (v' $+ w)";
-by (asm_simp_tac (integ_ss addsimps ([zadd_assoc RS sym])) 1);
+by (asm_simp_tac (!simpset addsimps ([zadd_assoc RS sym])) 1);
 qed "zadd_assoc_cong";
 
 goal Integ.thy 
@@ -172,8 +173,7 @@ qed "zadd_assoc_swap";
 bind_thm ("zadd_assoc_znat", (znat_type RS zadd_assoc_swap));
 
 
-val carry_ss = bin_ss addsimps 
-               (bin_recs bin_succ_def @ bin_recs bin_pred_def);
+Addsimps (bin_recs bin_succ_def @ bin_recs bin_pred_def);
 
 
 (*norm_Bcons preserves the integer value of its argument*)
@@ -181,29 +181,29 @@ goal Bin.thy
     "!!w. [| w: bin; b: bool |] ==>     \
 \         integ_of_bin(norm_Bcons(w,b)) = integ_of_bin(Bcons(w,b))";
 by (etac bin.elim 1);
-by (asm_simp_tac (ZF_ss addsimps norm_Bcons_simps) 3);
+by (asm_simp_tac (!simpset addsimps norm_Bcons_simps) 3);
 by (ALLGOALS (etac boolE));
-by (ALLGOALS (asm_simp_tac (bin_ss addsimps (norm_Bcons_simps))));
+by (ALLGOALS (asm_simp_tac (!simpset addsimps (norm_Bcons_simps))));
 qed "integ_of_bin_norm_Bcons";
 
 goal Bin.thy
     "!!w. w: bin ==> integ_of_bin(bin_succ(w)) = $#1 $+ integ_of_bin(w)";
 by (etac bin.induct 1);
-by (simp_tac carry_ss 1);
-by (simp_tac carry_ss 1);
+by (Simp_tac 1);
+by (Simp_tac 1);
 by (etac boolE 1);
 by (ALLGOALS
-    (asm_simp_tac (carry_ss addsimps integ_of_bin_norm_Bcons::zadd_ac)));
+    (asm_simp_tac (!simpset addsimps integ_of_bin_norm_Bcons::zadd_ac)));
 qed "integ_of_bin_succ";
 
 goal Bin.thy
     "!!w. w: bin ==> integ_of_bin(bin_pred(w)) = $~ ($#1) $+ integ_of_bin(w)";
 by (etac bin.induct 1);
-by (simp_tac carry_ss 1);
-by (simp_tac carry_ss 1);
+by (Simp_tac 1);
+by (Simp_tac 1);
 by (etac boolE 1);
 by (ALLGOALS
-    (asm_simp_tac (carry_ss addsimps integ_of_bin_norm_Bcons::zadd_ac)));
+    (asm_simp_tac (!simpset addsimps integ_of_bin_norm_Bcons::zadd_ac)));
 qed "integ_of_bin_pred";
 
 (*These two results replace the definitions of bin_succ and bin_pred*)
@@ -211,69 +211,62 @@ qed "integ_of_bin_pred";
 
 (*** bin_minus: (unary!) negation of binary integers ***)
 
-val bin_minus_ss =
-    bin_ss addsimps (bin_recs bin_minus_def @
-                    [integ_of_bin_succ, integ_of_bin_pred]);
+Addsimps (bin_recs bin_minus_def @
+	  [integ_of_bin_succ, integ_of_bin_pred]);
 
 goal Bin.thy
     "!!w. w: bin ==> integ_of_bin(bin_minus(w)) = $~ integ_of_bin(w)";
 by (etac bin.induct 1);
-by (simp_tac bin_minus_ss 1);
-by (simp_tac bin_minus_ss 1);
+by (Simp_tac 1);
+by (Simp_tac 1);
 by (etac boolE 1);
 by (ALLGOALS 
-    (asm_simp_tac (bin_minus_ss addsimps [zminus_zadd_distrib, zadd_assoc])));
+    (asm_simp_tac (!simpset addsimps (zadd_ac@[zminus_zadd_distrib]))));
 qed "integ_of_bin_minus";
 
 
 (*** bin_add: binary addition ***)
 
 goalw Bin.thy [bin_add_def] "!!w. w: bin ==> bin_add(Plus,w) = w";
-by (asm_simp_tac bin_ss 1);
+by (Asm_simp_tac 1);
 qed "bin_add_Plus";
 
 goalw Bin.thy [bin_add_def] "!!w. w: bin ==> bin_add(Minus,w) = bin_pred(w)";
-by (asm_simp_tac bin_ss 1);
+by (Asm_simp_tac 1);
 qed "bin_add_Minus";
 
 goalw Bin.thy [bin_add_def] "bin_add(Bcons(v,x),Plus) = Bcons(v,x)";
-by (simp_tac bin_ss 1);
+by (Simp_tac 1);
 qed "bin_add_Bcons_Plus";
 
 goalw Bin.thy [bin_add_def] "bin_add(Bcons(v,x),Minus) = bin_pred(Bcons(v,x))";
-by (simp_tac bin_ss 1);
+by (Simp_tac 1);
 qed "bin_add_Bcons_Minus";
 
 goalw Bin.thy [bin_add_def]
     "!!w y. [| w: bin;  y: bool |] ==> \
 \           bin_add(Bcons(v,x), Bcons(w,y)) = \
 \           norm_Bcons(bin_add(v, cond(x and y, bin_succ(w), w)), x xor y)";
-by (asm_simp_tac bin_ss 1);
+by (Asm_simp_tac 1);
 qed "bin_add_Bcons_Bcons";
 
-val bin_add_simps = [bin_add_Plus, bin_add_Minus, bin_add_Bcons_Plus,
-                     bin_add_Bcons_Minus, bin_add_Bcons_Bcons,
-                     integ_of_bin_succ, integ_of_bin_pred,
-                     integ_of_bin_norm_Bcons];
+Addsimps [bin_add_Plus, bin_add_Minus, bin_add_Bcons_Plus,
+	  bin_add_Bcons_Minus, bin_add_Bcons_Bcons,
+	  integ_of_bin_succ, integ_of_bin_pred,
+	  integ_of_bin_norm_Bcons];
 
-val bin_add_ss = 
-    bin_ss addsimps ([bool_subset_nat RS subsetD] @ bin_add_simps);
+Addsimps [bool_subset_nat RS subsetD];
 
 goal Bin.thy
     "!!v. v: bin ==> \
 \         ALL w: bin. integ_of_bin(bin_add(v,w)) = \
 \                     integ_of_bin(v) $+ integ_of_bin(w)";
 by (etac bin.induct 1);
-by (simp_tac bin_add_ss 1);
-by (simp_tac bin_add_ss 1);
+by (Simp_tac 1);
+by (Simp_tac 1);
 by (rtac ballI 1);
 by (bin_ind_tac "wa" [] 1);
-by (asm_simp_tac bin_add_ss 1);
-by (asm_simp_tac (bin_add_ss addsimps zadd_ac) 1);
-by (etac boolE 1);
-by (asm_simp_tac (bin_add_ss addsimps zadd_ac) 2);
-by (etac boolE 1);
-by (ALLGOALS (asm_simp_tac (bin_add_ss addsimps zadd_ac)));
+by (ALLGOALS (asm_simp_tac (!simpset addsimps zadd_ac setloop (etac boolE))));
 val integ_of_bin_add_lemma = result();
 
 bind_thm("integ_of_bin_add", integ_of_bin_add_lemma RS bspec);
@@ -281,10 +274,9 @@ bind_thm("integ_of_bin_add", integ_of_bin_add_lemma RS bspec);
 
 (*** bin_add: binary multiplication ***)
 
-val bin_mult_ss =
-    bin_ss addsimps (bin_recs bin_mult_def @ 
-                       [integ_of_bin_minus, integ_of_bin_add,
-                        integ_of_bin_norm_Bcons]);
+Addsimps (bin_recs bin_mult_def @ 
+	  [integ_of_bin_minus, integ_of_bin_add,
+	   integ_of_bin_norm_Bcons]);
 
 val major::prems = goal Bin.thy
     "[| v: bin; w: bin |] ==>   \
@@ -292,12 +284,12 @@ val major::prems = goal Bin.thy
 \    integ_of_bin(v) $* integ_of_bin(w)";
 by (cut_facts_tac prems 1);
 by (bin_ind_tac "v" [major] 1);
-by (asm_simp_tac bin_mult_ss 1);
-by (asm_simp_tac bin_mult_ss 1);
+by (Asm_simp_tac 1);
+by (Asm_simp_tac 1);
 by (etac boolE 1);
-by (asm_simp_tac (bin_mult_ss addsimps [zadd_zmult_distrib]) 2);
+by (asm_simp_tac (!simpset addsimps [zadd_zmult_distrib]) 2);
 by (asm_simp_tac 
-    (bin_mult_ss addsimps ([zadd_zmult_distrib, zmult_1] @ zadd_ac)) 1);
+    (!simpset addsimps ([zadd_zmult_distrib, zmult_1] @ zadd_ac)) 1);
 qed "integ_of_bin_mult";
 
 (**** Computations ****)
@@ -308,19 +300,19 @@ val [bin_succ_Plus, bin_succ_Minus, _] = bin_recs bin_succ_def;
 val [bin_pred_Plus, bin_pred_Minus, _] = bin_recs bin_pred_def;
 
 goal Bin.thy "bin_succ(Bcons(w,1)) = Bcons(bin_succ(w), 0)";
-by (simp_tac carry_ss 1);
+by (Simp_tac 1);
 qed "bin_succ_Bcons1";
 
 goal Bin.thy "bin_succ(Bcons(w,0)) = norm_Bcons(w,1)";
-by (simp_tac carry_ss 1);
+by (Simp_tac 1);
 qed "bin_succ_Bcons0";
 
 goal Bin.thy "bin_pred(Bcons(w,1)) = norm_Bcons(w,0)";
-by (simp_tac carry_ss 1);
+by (Simp_tac 1);
 qed "bin_pred_Bcons1";
 
 goal Bin.thy "bin_pred(Bcons(w,0)) = Bcons(bin_pred(w), 1)";
-by (simp_tac carry_ss 1);
+by (Simp_tac 1);
 qed "bin_pred_Bcons0";
 
 (** extra rules for bin_minus **)
@@ -328,11 +320,11 @@ qed "bin_pred_Bcons0";
 val [bin_minus_Plus, bin_minus_Minus, _] = bin_recs bin_minus_def;
 
 goal Bin.thy "bin_minus(Bcons(w,1)) = bin_pred(Bcons(bin_minus(w), 0))";
-by (simp_tac bin_minus_ss 1);
+by (Simp_tac 1);
 qed "bin_minus_Bcons1";
 
 goal Bin.thy "bin_minus(Bcons(w,0)) = Bcons(bin_minus(w), 0)";
-by (simp_tac bin_minus_ss 1);
+by (Simp_tac 1);
 qed "bin_minus_Bcons0";
 
 (** extra rules for bin_add **)
@@ -340,19 +332,19 @@ qed "bin_minus_Bcons0";
 goal Bin.thy 
     "!!w. w: bin ==> bin_add(Bcons(v,1), Bcons(w,1)) = \
 \                    norm_Bcons(bin_add(v, bin_succ(w)), 0)";
-by (asm_simp_tac bin_add_ss 1);
+by (Asm_simp_tac 1);
 qed "bin_add_Bcons_Bcons11";
 
 goal Bin.thy 
     "!!w. w: bin ==> bin_add(Bcons(v,1), Bcons(w,0)) =  \
 \                    norm_Bcons(bin_add(v,w), 1)";
-by (asm_simp_tac bin_add_ss 1);
+by (Asm_simp_tac 1);
 qed "bin_add_Bcons_Bcons10";
 
 goal Bin.thy 
     "!!w y. [| w: bin;  y: bool |] ==> \
 \           bin_add(Bcons(v,0), Bcons(w,y)) = norm_Bcons(bin_add(v,w), y)";
-by (asm_simp_tac bin_add_ss 1);
+by (Asm_simp_tac 1);
 qed "bin_add_Bcons_Bcons0";
 
 (** extra rules for bin_mult **)
@@ -361,17 +353,17 @@ val [bin_mult_Plus, bin_mult_Minus, _] = bin_recs bin_mult_def;
 
 goal Bin.thy
     "bin_mult(Bcons(v,1), w) = bin_add(norm_Bcons(bin_mult(v,w),0), w)";
-by (simp_tac bin_mult_ss 1);
+by (Simp_tac 1);
 qed "bin_mult_Bcons1";
 
 goal Bin.thy "bin_mult(Bcons(v,0), w) = norm_Bcons(bin_mult(v,w),0)";
-by (simp_tac bin_mult_ss 1);
+by (Simp_tac 1);
 qed "bin_mult_Bcons0";
 
 
 (*** The computation simpset ***)
 
-val bin_comp_ss = integ_ss 
+val bin_comp_ss = simpset_of "Integ" 
     addsimps [integ_of_bin_add RS sym,   (*invoke bin_add*)
               integ_of_bin_minus RS sym, (*invoke bin_minus*)
               integ_of_bin_mult RS sym,  (*invoke bin_mult*)
@@ -388,6 +380,7 @@ val bin_comp_ss = integ_ss
               bin_mult_Bcons1, bin_mult_Bcons0] @
              norm_Bcons_simps
     setsolver (type_auto_tac ([bool_1I, bool_0I] @ bin_typechecks0));
+
 
 (*** Examples of performing binary arithmetic by simplification ***)
 

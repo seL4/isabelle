@@ -1,3 +1,3 @@
 (*Dummy theory to document dependencies *)
 
-Cardinal_aux = AC_Equiv + first 
+Cardinal_aux = AC_Equiv

@@ -21,20 +21,10 @@ val elab_fixE =
 val elab_appE = 
   ElabRel.mk_cases Exp.con_defs "<te,e_app(e1,e2),t>:ElabRel";
 
-fun mk_static_cs cs=
-  let open ElabRel in 
-  ( cs 
-    addSIs [elab_constI,elab_varI,elab_fnI,elab_fixI]
-    addSEs [elab_constE,elab_varE,elab_fixE]
-    addIs [elab_appI]
-    addEs [elab_appE,elab_fnE]
-    addDs [ElabRel.dom_subset RS subsetD]
-  ) end ;
-
-val static_cs = mk_static_cs ZF_cs;
-
-
-
-
-
-
+let open ElabRel in 
+claset := !claset addSIs [elab_constI,elab_varI,elab_fnI,elab_fixI]
+                  addSEs [elab_constE,elab_varE,elab_fixE]
+		  addIs [elab_appI]
+		  addEs [elab_appE,elab_fnE]
+		  addDs [ElabRel.dom_subset RS subsetD]
+end;

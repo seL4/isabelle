@@ -5,15 +5,11 @@
 A recursive definition used in the proof of WO2 ==> AC16
 *)
 
-recfunAC16 = Transrec2 + Cardinal +
+recfunAC16 = Cardinal + Epsilon +
 
-consts
+constdefs
+  recfunAC16 :: [i, i, i, i] => i
 
-  recfunAC16              :: [i, i, i, i] => i
-
-defs
-
-  recfunAC16_def
     "recfunAC16(f,fa,i,a) == 
          transrec2(i, 0, 
               %g r. if(EX y:r. fa`g <= y, r, 

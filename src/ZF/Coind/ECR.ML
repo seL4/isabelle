@@ -16,7 +16,7 @@ goal ECR.thy
 \ <v_clos(x, e, ve),t>:HasTyRel";
 by (rtac HasTyRel.coinduct 1);
 by (rtac singletonI 1);
-by (fast_tac (ZF_cs addIs Val_ValEnv.intrs) 1);
+by (fast_tac (!claset addIs Val_ValEnv.intrs) 1);
 by (rtac disjI2 1);
 by (etac singletonE 1); 
 by (REPEAT_FIRST (resolve_tac [conjI,exI]));
@@ -42,19 +42,19 @@ fun mk_htr_cs cs =
       addEs [htr_closE])
   end;
 
-val htr_cs = mk_htr_cs(static_cs);
+claset := mk_htr_cs (!claset);
 
 (* Properties of the pointwise extension to environments *)
 
 goalw ECR.thy [hastyenv_def]
   "!!ve.[| ve:ValEnv; te:TyEnv; hastyenv(ve,te); <v,t>:HasTyRel |] ==> \
 \   hastyenv(ve_owr(ve,x,v),te_owr(te,x,t))";
-by (safe_tac ZF_cs);
+by (safe_tac (!claset));
 by (stac ve_dom_owr 1);
 by (assume_tac 1);
 by (etac (HasTyRel.dom_subset RS subsetD RS SigmaD1 RS ValNEE) 1);
 by (stac te_dom_owr 1);
-by (asm_simp_tac ZF_ss 1);
+by (Asm_simp_tac 1);
 by (rtac (excluded_middle RS disjE) 1);
 by (stac ve_app_owr2 1);
 by (assume_tac 1);
@@ -63,21 +63,21 @@ by (stac te_app_owr2 1);
 by (assume_tac 1);
 by (dtac (ve_dom_owr RS subst) 1);
 by (etac (HasTyRel.dom_subset RS subsetD RS SigmaD1 RS ValNEE) 1);
-by ((fast_tac ZF_cs 1) THEN (fast_tac ZF_cs 1));
-by (asm_simp_tac (ZF_ss addsimps [ve_app_owr1,te_app_owr1]) 1);
+by ((Fast_tac 1) THEN (Fast_tac 1));
+by (asm_simp_tac (!simpset addsimps [ve_app_owr1,te_app_owr1]) 1);
 qed "hastyenv_owr";
 
 goalw ECR.thy  [isofenv_def,hastyenv_def]
   "!!ve.[| ve:ValEnv; te:TyEnv; isofenv(ve,te) |] ==> hastyenv(ve,te)";
-by (safe_tac ZF_cs);
+by (safe_tac (!claset));
 by (dtac bspec 1);
 by (assume_tac 1);
-by (safe_tac ZF_cs);
+by (safe_tac (!claset));
 by (dtac HasTyRel.htr_constI 1);
 by (assume_tac 2);
 by (etac te_appI 1);
 by (etac ve_domI 1);
-by (ALLGOALS (asm_full_simp_tac ZF_ss));
+by (ALLGOALS Asm_full_simp_tac);
 qed "basic_consistency_lem";
 
 

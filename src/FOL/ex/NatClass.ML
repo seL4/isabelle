@@ -1,7 +1,6 @@
 (*  Title:      FOL/ex/NatClass.ML
     ID:         $Id$
-    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1992  University of Cambridge
+    Author:     Markus Wenzel, TU Muenchen
 
 This is Nat.ML trivially modified to make it work with NatClass.thy.
 *)
@@ -36,27 +35,27 @@ goalw NatClass.thy [add_def] "Suc(m)+n = Suc(m+n)";
 by (rtac rec_Suc 1);
 qed "add_Suc";
 
-val add_ss = FOL_ss addsimps [add_0, add_Suc];
+Addsimps [add_0, add_Suc];
 
 goal NatClass.thy "(k+m)+n = k+(m+n)";
 by (res_inst_tac [("n","k")] induct 1);
-by (simp_tac add_ss 1);
-by (asm_simp_tac add_ss 1);
+by (Simp_tac 1);
+by (Asm_simp_tac 1);
 qed "add_assoc";
 
 goal NatClass.thy "m+0 = m";
 by (res_inst_tac [("n","m")] induct 1);
-by (simp_tac add_ss 1);
-by (asm_simp_tac add_ss 1);
+by (Simp_tac 1);
+by (Asm_simp_tac 1);
 qed "add_0_right";
 
 goal NatClass.thy "m+Suc(n) = Suc(m+n)";
 by (res_inst_tac [("n","m")] induct 1);
-by (ALLGOALS (asm_simp_tac add_ss));
+by (ALLGOALS (Asm_simp_tac));
 qed "add_Suc_right";
 
 val [prem] = goal NatClass.thy "(!!n. f(Suc(n)) = Suc(f(n))) ==> f(i+j) = i+f(j)";
 by (res_inst_tac [("n","i")] induct 1);
-by (simp_tac add_ss 1);
-by (asm_simp_tac (add_ss addsimps [prem]) 1);
+by (Simp_tac 1);
+by (asm_simp_tac (!simpset addsimps [prem]) 1);
 result();

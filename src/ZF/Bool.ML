@@ -10,6 +10,10 @@ open Bool;
 
 val bool_defs = [bool_def,cond_def];
 
+goalw Bool.thy [succ_def] "{0} = 1";
+br refl 1;
+qed "singleton_0";
+
 (* Introduction rules *)
 
 goalw Bool.thy bool_defs "1 : bool";
@@ -45,11 +49,14 @@ goalw Bool.thy bool_defs "cond(0,c,d) = d";
 by (rtac (succ_not_0 RS not_sym RS if_not_P) 1);
 qed "cond_0";
 
-val major::prems = goal Bool.thy 
-    "[|  b: bool;  c: A(1);  d: A(0) |] ==> cond(b,c,d): A(b)";
-by (rtac (major RS boolE) 1);
-by (asm_simp_tac (ZF_ss addsimps (cond_1::prems)) 1);
-by (asm_simp_tac (ZF_ss addsimps (cond_0::prems)) 1);
+Addsimps [cond_1, cond_0];
+
+fun bool_tac i = fast_tac (!claset addSEs [boolE] addss (!simpset)) i;
+
+
+goal Bool.thy 
+    "!!b. [|  b: bool;  c: A(1);  d: A(0) |] ==> cond(b,c,d): A(b)";
+by (bool_tac 1);
 qed "cond_type";
 
 val [rew] = goal Bool.thy "[| !!b. j(b)==cond(b,c,d) |] ==> j(1) = c";
@@ -65,12 +72,11 @@ qed "def_cond_0";
 fun conds def = [standard (def RS def_cond_1), standard (def RS def_cond_0)];
 
 val [not_1,not_0] = conds not_def;
-
 val [and_1,and_0] = conds and_def;
-
-val [or_1,or_0] = conds or_def;
-
+val [or_1,or_0]   = conds or_def;
 val [xor_1,xor_0] = conds xor_def;
+
+Addsimps [not_1,not_0,and_1,and_0,or_1,or_0,xor_1,xor_0];
 
 qed_goalw "not_type" Bool.thy [not_def]
     "a:bool ==> not(a) : bool"
@@ -89,71 +95,65 @@ qed_goalw "xor_type" Bool.thy [xor_def]
  (fn prems=> [ (typechk_tac(prems@[bool_1I, bool_0I, cond_type, not_type])) ]);
 
 val bool_typechecks = [bool_1I, bool_0I, cond_type, not_type, and_type, 
-                       or_type, xor_type]
-
-val bool_simps = [cond_1,cond_0,not_1,not_0,and_1,and_0,or_1,or_0,xor_1,xor_0];
-
-val bool_ss0 = ZF_ss addsimps bool_simps;
-
-fun bool0_tac i =
-    EVERY [etac boolE i, asm_simp_tac bool_ss0 (i+1), asm_simp_tac bool_ss0 i];
+                       or_type, xor_type];
 
 (*** Laws for 'not' ***)
 
 goal Bool.thy "!!a. a:bool ==> not(not(a)) = a";
-by (bool0_tac 1);
+by (bool_tac 1);
 qed "not_not";
 
 goal Bool.thy "!!a b. a:bool ==> not(a and b) = not(a) or not(b)";
-by (bool0_tac 1);
+by (bool_tac 1);
 qed "not_and";
 
 goal Bool.thy "!!a b. a:bool ==> not(a or b) = not(a) and not(b)";
-by (bool0_tac 1);
+by (bool_tac 1);
 qed "not_or";
+
+Addsimps [not_not, not_and, not_or];
 
 (*** Laws about 'and' ***)
 
 goal Bool.thy "!!a. a: bool ==> a and a = a";
-by (bool0_tac 1);
+by (bool_tac 1);
 qed "and_absorb";
 
+Addsimps [and_absorb];
+
 goal Bool.thy "!!a b. [| a: bool; b:bool |] ==> a and b = b and a";
-by (etac boolE 1);
-by (bool0_tac 1);
-by (bool0_tac 1);
+by (bool_tac 1);
 qed "and_commute";
 
-goal Bool.thy
- "!!a. a: bool ==> (a and b) and c  =  a and (b and c)";
-by (bool0_tac 1);
+goal Bool.thy "!!a. a: bool ==> (a and b) and c  =  a and (b and c)";
+by (bool_tac 1);
 qed "and_assoc";
 
 goal Bool.thy
  "!!a. [| a: bool; b:bool; c:bool |] ==> \
 \      (a or b) and c  =  (a and c) or (b and c)";
-by (REPEAT (bool0_tac 1));
+by (bool_tac 1);
 qed "and_or_distrib";
 
 (** binary orion **)
 
 goal Bool.thy "!!a. a: bool ==> a or a = a";
-by (bool0_tac 1);
+by (bool_tac 1);
 qed "or_absorb";
 
+Addsimps [or_absorb];
+
 goal Bool.thy "!!a b. [| a: bool; b:bool |] ==> a or b = b or a";
-by (etac boolE 1);
-by (bool0_tac 1);
-by (bool0_tac 1);
+by (bool_tac 1);
 qed "or_commute";
 
 goal Bool.thy "!!a. a: bool ==> (a or b) or c  =  a or (b or c)";
-by (bool0_tac 1);
+by (bool_tac 1);
 qed "or_assoc";
 
 goal Bool.thy
  "!!a b c. [| a: bool; b: bool; c: bool |] ==> \
 \          (a and b) or c  =  (a or c) and (b or c)";
-by (REPEAT (bool0_tac 1));
+by (bool_tac 1);
 qed "or_and_distrib";
 

@@ -42,18 +42,17 @@ by (eresolve_tac [lemma3_1 RS sym] 1 THEN (REPEAT (assume_tac 1)));
 by (etac lemma3_1 1 THEN (REPEAT (assume_tac 1)));
 val lemma3 = result();
 
-goal thy "!!a. [| ALL y:x. y < a --> F(y) <= X &  \
+goal thy "!!a. [| ALL y<x. F(y) <= X &  \
 \               (ALL x<a. x < y | (EX Y:F(y). fa(x) <= Y) -->  \
 \                       (EX! Y. Y : F(y) & fa(x) <= Y)); x < a |]  \
 \               ==> ALL y<x. ALL z<a. z < y | (EX Y:F(y). fa(z) <= Y) -->  \
 \                       (EX! Y. Y : F(y) & fa(z) <= Y)";
 by (REPEAT (resolve_tac [oallI, impI] 1));
-by (dresolve_tac [ltD RSN (2, bspec)] 1 THEN (assume_tac 1));
-by (eresolve_tac [lt_trans RSN (2, impE)] 1 THEN (REPEAT (assume_tac 1)));
+by (dresolve_tac [ospec] 1 THEN (assume_tac 1));
 by (fast_tac (FOL_cs addSEs [oallE]) 1);
 val lemma4 = result();
 
-goal thy "!!a. [| ALL y:x. y < a --> F(y) <= X &  \
+goal thy "!!a. [| ALL y<x. F(y) <= X &  \
 \               (ALL x<a. x < y | (EX Y:F(y). fa(x) <= Y) -->  \
 \                       (EX! Y. Y : F(y) & fa(x) <= Y)); \
 \               x < a; Limit(x); ALL i j. i le j --> F(i) <= F(j) |]  \
@@ -63,9 +62,8 @@ goal thy "!!a. [| ALL y:x. y < a --> F(y) <= X &  \
 by (rtac conjI 1);
 by (rtac subsetI 1);
 by (etac OUN_E 1);
-by (dresolve_tac [ltD RSN (2, bspec)] 1 THEN (assume_tac 1));
-by (eresolve_tac [lt_trans RSN (2, impE)] 1 THEN (REPEAT (assume_tac 1)));
-by (fast_tac AC_cs 1);
+by (dresolve_tac [ospec] 1 THEN (assume_tac 1));
+by (Fast_tac 1);
 by (dtac lemma4 1 THEN (assume_tac 1));
 by (rtac oallI 1);
 by (rtac impI 1);
@@ -119,9 +117,9 @@ by (rtac conjI 1);
 by (dresolve_tac [nat_le_infinite_Ord RS le_imp_lepoll] 1
         THEN (assume_tac 1));
 by (rewtac Finite_def);
-by (fast_tac (AC_cs addSEs [eqpoll_sym RS eqpoll_trans]) 2);
+by (fast_tac (!claset addSEs [eqpoll_sym RS eqpoll_trans]) 2);
 by (rtac lepoll_trans 1 THEN (assume_tac 2));
-by (fast_tac (AC_cs addSEs [Ord_nat RSN (2, ltI) RS leI RS le_imp_subset RS 
+by (fast_tac (!claset addSEs [Ord_nat RSN (2, ltI) RS leI RS le_imp_subset RS 
         subset_imp_lepoll RSN (2, eqpoll_imp_lepoll RS lepoll_trans)]) 1);
 val Finite_lesspoll_infinite_Ord = result();
 
@@ -132,25 +130,25 @@ val Union_eq_Un_Diff = result();
 goal thy "!!n. n:nat ==> ALL X. X eqpoll n --> (ALL x:X. Finite(x))  \
 \       --> Finite(Union(X))";
 by (etac nat_induct 1);
-by (fast_tac (AC_cs addSDs [eqpoll_imp_lepoll RS lepoll_0_is_0]
-        addSIs [nat_0I RS nat_into_Finite] addIs [Union_0 RS ssubst]) 1);
+by (fast_tac (!claset addSDs [eqpoll_imp_lepoll RS lepoll_0_is_0]
+        addSIs [nat_0I RS nat_into_Finite] addss (!simpset)) 1);
 by (REPEAT (resolve_tac [allI, impI] 1));
 by (resolve_tac [eqpoll_succ_imp_not_empty RS not_emptyE] 1 THEN (assume_tac 1));
 by (res_inst_tac [("P","%z. Finite(z)")] (Union_eq_Un_Diff RS ssubst) 1
         THEN (assume_tac 1));
 by (rtac Finite_Un 1);
-by (fast_tac AC_cs 2);
-by (fast_tac (AC_cs addSIs [Diff_sing_eqpoll]) 1);
+by (Fast_tac 2);
+by (fast_tac (!claset addSIs [Diff_sing_eqpoll]) 1);
 val Finite_Union_lemma = result();
 
 goal thy "!!X. [| ALL x:X. Finite(x); Finite(X) |] ==> Finite(Union(X))";
 by (eresolve_tac [Finite_def RS def_imp_iff RS iffD1 RS bexE] 1);
 by (dtac Finite_Union_lemma 1);
-by (fast_tac AC_cs 1);
+by (Fast_tac 1);
 val Finite_Union = result();
 
 goalw thy [Finite_def] "!!x. [| x lepoll n; n:nat |] ==> Finite(x)";
-by (fast_tac (AC_cs
+by (fast_tac (!claset
         addEs [nat_into_Ord RSN (2, lepoll_imp_ex_le_eqpoll) RS exE,
         Ord_nat RSN (2, ltI) RSN (2, lt_trans1) RS ltD]) 1);
 val lepoll_nat_num_imp_Finite = result();
@@ -161,7 +159,7 @@ goal thy "!!X. [| ALL x:X. x lepoll n & x <= T; well_ord(T, R); X lepoll b;  \
 by (excluded_middle_tac "Finite(X)" 1);
 by (resolve_tac [Card_is_Ord RSN (3, Finite_lesspoll_infinite_Ord)] 2
         THEN (REPEAT (assume_tac 3)));
-by (fast_tac (AC_cs addSEs [lepoll_nat_num_imp_Finite]
+by (fast_tac (!claset addSEs [lepoll_nat_num_imp_Finite]
                 addSIs [Finite_Union]) 2);
 by (dresolve_tac [lt_Ord RSN (2, lepoll_imp_ex_le_eqpoll)] 1 THEN (assume_tac 1));
 by (REPEAT (eresolve_tac [exE, conjE] 1));
@@ -176,7 +174,7 @@ by (rtac lepoll_lesspoll_lesspoll 1);
 by (eresolve_tac [lt_trans1 RSN (2, lt_Card_imp_lesspoll)] 1
         THEN REPEAT (assume_tac 1));
 by (rtac UN_lepoll 1
-        THEN (TRYALL (fast_tac (AC_cs addSEs [lt_Ord]))));
+        THEN (TRYALL (fast_tac (!claset addSEs [lt_Ord]))));
 val Union_lesspoll = result();
 
 (* ********************************************************************** *)
@@ -188,36 +186,36 @@ by (fast_tac eq_cs 1);
 val Un_sing_eq_cons = result();
 
 goal thy "!!A. A lepoll B ==> A Un {a} lepoll succ(B)";
-by (asm_simp_tac (AC_ss addsimps [Un_sing_eq_cons, succ_def]) 1);
+by (asm_simp_tac (!simpset addsimps [Un_sing_eq_cons, succ_def]) 1);
 by (eresolve_tac [mem_not_refl RSN (2, cons_lepoll_cong)] 1);
 val Un_lepoll_succ = result();
 
 goal thy "!!a. Ord(a) ==> F(a) - (UN b<succ(a). F(b)) = 0";
-by (fast_tac (AC_cs addSIs [OUN_I, le_refl] addIs [equalityI]) 1);
+by (fast_tac (!claset addSIs [OUN_I, le_refl] addIs [equalityI]) 1);
 val Diff_UN_succ_empty = result();
 
 goal thy "!!a. Ord(a) ==> F(a) Un X - (UN b<succ(a). F(b)) <= X";
-by (fast_tac (AC_cs addSIs [OUN_I, le_refl]) 1);
+by (fast_tac (!claset addSIs [OUN_I, le_refl]) 1);
 val Diff_UN_succ_subset = result();
 
 goal thy "!!x. Ord(x) ==>  \
 \       recfunAC16(f, g, x, a) - (UN i<x. recfunAC16(f, g, i, a)) lepoll 1";
 by (etac Ord_cases 1);
-by (asm_simp_tac (AC_ss addsimps [recfunAC16_0,
+by (asm_simp_tac (!simpset addsimps [recfunAC16_0,
                 empty_subsetI RS subset_imp_lepoll]) 1);
-by (asm_simp_tac (AC_ss addsimps [recfunAC16_Limit,
+by (asm_simp_tac (!simpset addsimps [recfunAC16_Limit,
                 Diff_cancel, empty_subsetI RS subset_imp_lepoll]) 2);
-by (asm_simp_tac (AC_ss addsimps [recfunAC16_succ]) 1);
+by (asm_simp_tac (!simpset addsimps [recfunAC16_succ]) 1);
 by (resolve_tac [conjI RS (expand_if RS iffD2)] 1);
-by (fast_tac (AC_cs addSIs [empty_subsetI RS subset_imp_lepoll]
+by (fast_tac (!claset addSIs [empty_subsetI RS subset_imp_lepoll]
                 addSEs [Diff_UN_succ_empty RS ssubst]) 1);
-by (fast_tac (AC_cs addSEs [Diff_UN_succ_subset RS subset_imp_lepoll RS
+by (fast_tac (!claset addSEs [Diff_UN_succ_subset RS subset_imp_lepoll RS
         (singleton_eqpoll_1 RS eqpoll_imp_lepoll RSN (2, lepoll_trans))]) 1);
 val recfunAC16_Diff_lepoll_1 = result();
 
 goal thy "!!z. [| z : F(x); Ord(x) |]  \
 \       ==> z:F(LEAST i. z:F(i)) - (UN j<(LEAST i. z:F(i)). F(j))";
-by (fast_tac (AC_cs addEs [less_LeastE] addSEs [OUN_E, LeastI]) 1);
+by (fast_tac (!claset addEs [less_LeastE] addSEs [OUN_E, LeastI]) 1);
 val in_Least_Diff = result();
 
 goal thy "!!w. [| (LEAST i. w:F(i)) = (LEAST i. z:F(i));  \
@@ -234,7 +232,7 @@ by (eresolve_tac [lt_Ord RSN (2, Least_le) RS lt_trans1] 1
 val Least_eq_imp_ex = result();
 
 goal thy "!!A. [| A lepoll 1; a:A; b:A |] ==> a=b";
-by (fast_tac (AC_cs addSDs [lepoll_1_is_sing]) 1);
+by (fast_tac (!claset addSDs [lepoll_1_is_sing]) 1);
 val two_in_lepoll_1 = result();
 
 goal thy "!!a. [| ALL i<a. F(i)-(UN j<i. F(j)) lepoll 1; Limit(a) |]  \
@@ -250,23 +248,23 @@ by (etac ltD 1);
 by (etac lt_Ord2 1);
 by (rtac ballI 1);
 by (rtac ballI 1);
-by (asm_simp_tac AC_ss 1);
+by (Asm_simp_tac 1);
 by (rtac impI 1);
 by (dtac Least_eq_imp_ex 1 THEN (REPEAT (assume_tac 1)));
-by (fast_tac (AC_cs addSEs [two_in_lepoll_1]) 1);
+by (fast_tac (!claset addSEs [two_in_lepoll_1]) 1);
 val UN_lepoll_index = result();
 
 goal thy "!!y. Ord(y) ==> recfunAC16(f, fa, y, a) lepoll y";
 by (etac trans_induct 1);
 by (etac Ord_cases 1);
-by (asm_simp_tac (AC_ss addsimps [recfunAC16_0, lepoll_refl]) 1);
-by (asm_simp_tac (AC_ss addsimps [recfunAC16_succ]) 1);
-by (fast_tac (AC_cs addIs [conjI RS (expand_if RS iffD2)]
+by (asm_simp_tac (!simpset addsimps [recfunAC16_0, lepoll_refl]) 1);
+by (asm_simp_tac (!simpset addsimps [recfunAC16_succ]) 1);
+by (fast_tac (!claset addIs [conjI RS (expand_if RS iffD2)]
         addSDs [succI1 RSN (2, bspec)]
         addSEs [subset_succI RS subset_imp_lepoll RSN (2, lepoll_trans),
                 Un_lepoll_succ]) 1);
-by (asm_simp_tac (AC_ss addsimps [recfunAC16_Limit]) 1);
-by (fast_tac (AC_cs addSEs [lt_Ord RS recfunAC16_Diff_lepoll_1]
+by (asm_simp_tac (!simpset addsimps [recfunAC16_Limit]) 1);
+by (fast_tac (!claset addSEs [lt_Ord RS recfunAC16_Diff_lepoll_1]
         addSIs [UN_lepoll_index]) 1);
 val recfunAC16_lepoll_index = result();
 
@@ -278,7 +276,7 @@ by (rtac Union_lesspoll 1 THEN (TRYALL assume_tac));
 by (eresolve_tac [lt_Ord RS recfunAC16_lepoll_index] 3);
 by (eresolve_tac [[bij_is_inj, Card_is_Ord RS well_ord_Memrel] MRS
         well_ord_rvimage] 2 THEN (assume_tac 2));
-by (fast_tac (AC_cs addSEs [eqpoll_imp_lepoll]) 1);
+by (fast_tac (!claset addSEs [eqpoll_imp_lepoll]) 1);
 val Union_recfunAC16_lesspoll = result();
 
 goal thy
@@ -308,11 +306,11 @@ goal thy "!!x. [| x : Pow(A - B - fa`i); x eqpoll m;  \
 \       fa : bij(a, {x: Pow(A) . x eqpoll k}); i<a; k:nat; m:nat |]  \
 \       ==> fa ` i Un x : {x: Pow(A) . x eqpoll k #+ m}";
 by (rtac CollectI 1);
-by (fast_tac (AC_cs addSIs [PowD RS (PowD RSN (2, Un_least RS PowI))] 
+by (fast_tac (!claset addSIs [PowD RS (PowD RSN (2, Un_least RS PowI))] 
         addSEs [ltD RSN (2, bij_is_fun RS apply_type RS CollectE)]) 1);
 by (rtac disj_Un_eqpoll_nat_sum 1
         THEN (TRYALL assume_tac));
-by (fast_tac (AC_cs addSIs [equals0I]) 1);
+by (fast_tac (!claset addSIs [equals0I]) 1);
 by (eresolve_tac [ltD RSN (2, bij_is_fun RS apply_type RS CollectE)] 1
         THEN (REPEAT (assume_tac 1)));
 val Un_in_Collect = result();
@@ -321,18 +319,17 @@ val Un_in_Collect = result();
 (* Lemmas simplifying assumptions                                         *)
 (* ********************************************************************** *)
 
-goal thy "!!j. [| ALL y:succ(j). y<a --> F(y)<=X & (ALL x<a. x<y | P(x,y)  \
+goal thy "!!j. [| ALL y<succ(j). F(y)<=X & (ALL x<a. x<y | P(x,y)  \
 \       --> Q(x,y)); succ(j)<a |]  \
 \       ==> F(j)<=X & (ALL x<a. x<j | P(x,j) --> Q(x,j))";
-by (dresolve_tac [succI1 RSN (2, bspec)] 1);
-by (etac impE 1);
-by (resolve_tac [lt_Ord RS (succI1 RS ltI RS lt_Ord RS le_refl) RS lt_trans] 1
+by (dresolve_tac [ospec] 1);
+by (resolve_tac [lt_Ord RS (succI1 RS ltI RS lt_Ord RS le_refl)] 1
         THEN (REPEAT (assume_tac 1)));
 val lemma6 = result();
 
 goal thy "!!j. [| F(j)<=X; (ALL x<a. x<j | P(x,j) --> Q(x,j)); succ(j)<a |]  \
 \       ==> P(j,j) --> F(j) <= X & (ALL x<a. x le j | P(x,j) --> Q(x,j))";
-by (fast_tac (AC_cs addSEs [leE]) 1);
+by (fast_tac (!claset addSEs [leE]) 1);
 val lemma7 = result();
 
 (* ********************************************************************** *)
@@ -348,15 +345,15 @@ by (eresolve_tac [Ord_nat RSN (2, ltI) RS
                 ((eqpoll_sym RS eqpoll_imp_lepoll) RSN (2, lepoll_trans)) RS 
                 lepoll_imp_eqpoll_subset RS exE] 1 
         THEN REPEAT (assume_tac 1));
-by (fast_tac (AC_cs addSEs [eqpoll_sym]) 1);
+by (fast_tac (!claset addSEs [eqpoll_sym]) 1);
 val ex_subset_eqpoll = result();
 
 goal thy "!!A. [| A <= B Un C; A Int C = 0 |] ==> A <= B";
-by (fast_tac (AC_cs addDs [equals0D]) 1);
+by (fast_tac (!claset addDs [equals0D]) 1);
 val subset_Un_disjoint = result();
 
 goal thy "!!F. [| X:Pow(A - Union(B) -C); T:B; F<=T |] ==> F Int X = 0";
-by (fast_tac (AC_cs addSIs [equals0I]) 1);
+by (fast_tac (!claset addSIs [equals0I]) 1);
 val Int_empty = result();
 
 (* ********************************************************************** *)
@@ -369,7 +366,7 @@ val Diffs_eq_imp_eq = result();
 
 goal thy "!!A. m:nat ==> ALL A B. A <= B & m lepoll A & B lepoll m --> A=B";
 by (etac nat_induct 1);
-by (fast_tac (AC_cs addSDs [lepoll_0_is_0] addSIs [equalityI]) 1);
+by (fast_tac (!claset addSDs [lepoll_0_is_0] addSIs [equalityI]) 1);
 by (REPEAT (resolve_tac [allI, impI] 1));
 by (REPEAT (etac conjE 1));
 by (resolve_tac [succ_lepoll_imp_not_empty RS not_emptyE] 1
@@ -379,8 +376,8 @@ by (forward_tac [subsetD RS Diff_sing_lepoll] 1
 by (forward_tac [lepoll_Diff_sing] 1);
 by (REPEAT (eresolve_tac [allE, impE] 1));
 by (rtac conjI 1);
-by (fast_tac AC_cs 2);
-by (fast_tac ZF_cs 1);
+by (Fast_tac 2);
+by (Fast_tac 1);
 by (etac Diffs_eq_imp_eq 1
         THEN REPEAT (assume_tac 1));
 val subset_imp_eq_lemma = result();
@@ -393,12 +390,12 @@ goal thy "!!f. [| f:bij(a, {Y:X. Y eqpoll succ(k)}); k:nat; f`b<=f`y; b<a;  \
 \       y<a |] ==> b=y";
 by (dtac subset_imp_eq 1);
 by (etac nat_succI 3);
-by (fast_tac (AC_cs addSEs [bij_is_fun RS (ltD RSN (2, apply_type)) RS
+by (fast_tac (!claset addSEs [bij_is_fun RS (ltD RSN (2, apply_type)) RS
                 CollectE, eqpoll_sym RS eqpoll_imp_lepoll]) 1);
-by (fast_tac (AC_cs addSEs [bij_is_fun RS (ltD RSN (2, apply_type)) RS
+by (fast_tac (!claset addSEs [bij_is_fun RS (ltD RSN (2, apply_type)) RS
         CollectE, eqpoll_imp_lepoll]) 1);
 by (rewrite_goals_tac [bij_def, inj_def]);
-by (fast_tac (AC_cs addSDs [ltD]) 1);
+by (fast_tac (!claset addSDs [ltD]) 1);
 val bij_imp_arg_eq = result();
 
 goal thy
@@ -423,7 +420,7 @@ by (assume_tac 1);
 by (etac nat_succI 1);
 by (assume_tac 1);
 by (rtac conjI 1);
-by (fast_tac AC_cs 1);
+by (Fast_tac 1);
 by (REPEAT (resolve_tac [ballI, impI, oallI, notI] 1));
 by (dresolve_tac [Int_empty RSN (2, subset_Un_disjoint)] 1
         THEN REPEAT (assume_tac 1));
@@ -456,7 +453,7 @@ by (resolve_tac [right_inverse_bij RS ssubst] 1
 val ex_next_Ord = result();
 
 goal thy "!!Z. [| EX! Y. Y:Z & P(Y); ~P(W) |] ==> EX! Y. Y:Z Un {W} & P(Y)";
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 val ex1_in_Un_sing = result();
 
 (* ********************************************************************** *)
@@ -470,7 +467,7 @@ goal thy "!!j. [| ALL x<a. x<j | (EX xa:F(j). P(x, xa))  \
 \       (ALL x<a. x le j | (EX xa:F(j) Un {L}. P(x, xa)) -->  \
 \               (EX! Y. Y:F(j) Un {L} & P(x, Y)))";
 by (rtac conjI 1);
-by (fast_tac (AC_cs addSIs [singleton_subsetI]) 1);
+by (fast_tac (!claset addSIs [singleton_subsetI]) 1);
 by (rtac oallI 1);
 by (etac oallE 1 THEN (contr_tac 2));
 by (rtac impI 1);
@@ -479,12 +476,12 @@ by (etac leE 1);
 by (eresolve_tac [disjI1 RSN (2, impE)] 1 THEN (assume_tac 1));
 by (rtac ex1E 1 THEN (assume_tac 1));
 by (etac ex1_in_Un_sing 1);
-by (fast_tac AC_cs 1);
-by (fast_tac AC_cs 1);
+by (Fast_tac 1);
+by (Fast_tac 1);
 by (etac bexE 1);
 by (etac UnE 1);
-by (fast_tac (AC_cs addSEs [ex1_in_Un_sing]) 1);
-by (fast_tac AC_cs 1);
+by (fast_tac (!claset addSEs [ex1_in_Un_sing]) 1);
+by (Fast_tac 1);
 val lemma8 = result();
 
 (* ********************************************************************** *)
@@ -499,21 +496,19 @@ goal thy
 \       ==> recfunAC16(f, fa, b, a) <= {X: Pow(A) . X eqpoll succ(k #+ m)} &  \
 \       (ALL x<a. x < b | (EX Y:recfunAC16(f, fa, b, a). fa ` x <= Y) -->  \
 \       (EX! Y. Y:recfunAC16(f, fa, b, a) & fa ` x <= Y))";
-by (rtac impE 1 THEN (REPEAT (assume_tac 2)));
-by (eresolve_tac [lt_Ord RS trans_induct] 1);
-by (rtac impI 1);
+by (etac lt_induct 1);
+by (forward_tac [lt_Ord] 1);
 by (etac Ord_cases 1);
 (* case 0 *)
-by (asm_simp_tac (AC_ss addsimps [recfunAC16_0]) 1);
-by (fast_tac (AC_cs addSEs [ltE]) 1);
+by (asm_simp_tac (!simpset addsimps [recfunAC16_0]) 1);
 (* case Limit *)
-by (asm_simp_tac (AC_ss addsimps [recfunAC16_Limit]) 2);
-by (etac lemma5 2 THEN (REPEAT (assume_tac 2)));
+by (asm_simp_tac (!simpset addsimps [recfunAC16_Limit]) 2);
+by (rtac lemma5 2 THEN (REPEAT (assume_tac 2)));
 by (fast_tac (FOL_cs addSEs [recfunAC16_mono]) 2);
 (* case succ *)
 by (hyp_subst_tac 1);
 by (eresolve_tac [lemma6 RS conjE] 1 THEN (assume_tac 1));
-by (asm_simp_tac (AC_ss addsimps [recfunAC16_succ]) 1);
+by (asm_simp_tac (!simpset addsimps [recfunAC16_succ]) 1);
 by (resolve_tac [conjI RS (expand_if RS iffD2)] 1);
 by (etac lemma7 1 THEN (REPEAT (assume_tac 1)));
 by (rtac impI 1);
@@ -523,6 +518,7 @@ by (etac lemma8 1 THEN (assume_tac 1));
 by (resolve_tac [bij_is_fun RS apply_type] 1 THEN (assume_tac 1));
 by (eresolve_tac [Least_le RS lt_trans2 RS ltD] 1 
         THEN REPEAT (ares_tac [lt_Ord, succ_leI] 1));
+(*VERY SLOW!  24 secs??*)
 by (eresolve_tac [lt_Ord RSN (2, LeastI)] 1 THEN (assume_tac 1));
 val main_induct = result();
 
@@ -541,7 +537,7 @@ by (rtac conjI 1);
 by (rtac subsetI 1);
 by (etac OUN_E 1);
 by (dtac prem1 1);
-by (fast_tac AC_cs 1);
+by (Fast_tac 1);
 by (rtac ballI 1);
 by (etac imageE 1);
 by (dresolve_tac [prem3 RS Limit_is_Ord RSN (2, ltI) RS
@@ -550,15 +546,15 @@ by (forward_tac [prem1] 1);
 by (etac conjE 1);
 by (dresolve_tac [leI RS succ_leE RSN (2, ospec)] 1 THEN (assume_tac 1));
 by (etac impE 1);
-by (fast_tac (AC_cs addSEs [leI RS succ_leE RS lt_Ord RS le_refl]) 1);
+by (fast_tac (!claset addSEs [leI RS succ_leE RS lt_Ord RS le_refl]) 1);
 by (dresolve_tac [prem2 RSN (2, apply_equality)] 1);
 by (REPEAT (eresolve_tac [conjE, ex1E] 1));
 by (rtac ex1I 1);
-by (fast_tac (AC_cs addSIs [OUN_I]) 1);
+by (fast_tac (!claset addSIs [OUN_I]) 1);
 by (REPEAT (eresolve_tac [conjE, OUN_E] 1));
 by (eresolve_tac [lt_Ord RSN (2, lt_Ord RS Ord_linear_le)] 1 THEN (assume_tac 1));
 by (dresolve_tac [prem4 RS subsetD] 2 THEN (assume_tac 2));
-by (fast_tac FOL_cs 2);
+by (Fast_tac 2);
 by (forward_tac [prem1] 1);
 by (forward_tac [succ_leE] 1);
 by (dresolve_tac [prem4 RS subsetD] 1 THEN (assume_tac 1));
@@ -566,7 +562,7 @@ by (etac conjE 1);
 by (dresolve_tac [lt_trans RSN (2, ospec)] 1 THEN (TRYALL assume_tac));
 by (dresolve_tac [disjI1 RSN (2, mp)] 1 THEN (assume_tac 1));
 by (etac ex1_two_eq 1);
-by (REPEAT (fast_tac FOL_cs 1));
+by (REPEAT (Fast_tac 1));
 val lemma_simp_induct = result();
 
 (* ********************************************************************** *)

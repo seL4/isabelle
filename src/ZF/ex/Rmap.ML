@@ -18,8 +18,8 @@ qed "rmap_mono";
 val Nil_rmap_case = rmap.mk_cases list.con_defs "<Nil,zs> : rmap(r)"
 and Cons_rmap_case = rmap.mk_cases list.con_defs "<Cons(x,xs),zs> : rmap(r)";
 
-val rmap_cs = ZF_cs addIs  rmap.intrs
-                    addSEs [Nil_rmap_case, Cons_rmap_case];
+AddIs  rmap.intrs;
+AddSEs [Nil_rmap_case, Cons_rmap_case];
 
 goal Rmap.thy "!!r. r <= A*B ==> rmap(r) <= list(A)*list(B)";
 by (rtac (rmap.dom_subset RS subset_trans) 1);
@@ -31,13 +31,13 @@ goal Rmap.thy
     "!!r. A <= domain(r) ==> list(A) <= domain(rmap(r))";
 by (rtac subsetI 1);
 by (etac list.induct 1);
-by (ALLGOALS (fast_tac rmap_cs));
+by (ALLGOALS Fast_tac);
 qed "rmap_total";
 
 goalw Rmap.thy [function_def] "!!r. function(r) ==> function(rmap(r))";
 by (rtac (impI RS allI RS allI) 1);
 by (etac rmap.induct 1);
-by (ALLGOALS (fast_tac rmap_cs));
+by (ALLGOALS Fast_tac);
 qed "rmap_functional";
 
 
@@ -45,11 +45,11 @@ qed "rmap_functional";
 
 goal Rmap.thy "!!f. f: A->B ==> rmap(f): list(A)->list(B)";
 by (asm_full_simp_tac 
-    (ZF_ss addsimps [Pi_iff, rmap_rel_type, rmap_functional, rmap_total]) 1);
+    (!simpset addsimps [Pi_iff, rmap_rel_type, rmap_functional, rmap_total]) 1);
 qed "rmap_fun_type";
 
 goalw Rmap.thy [apply_def] "rmap(f)`Nil = Nil";
-by (fast_tac (rmap_cs addIs [the_equality]) 1);
+by (fast_tac (!claset addIs [the_equality]) 1);
 qed "rmap_Nil";
 
 goal Rmap.thy "!!f. [| f: A->B;  x: A;  xs: list(A) |] ==> \

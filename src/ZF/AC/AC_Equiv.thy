@@ -12,7 +12,7 @@ proofs presented by the Rubins.  The others are based on the Rubins' proofs,
 but slightly changed.
 *)
 
-AC_Equiv = CardinalArith + Univ + OrdQuant +
+AC_Equiv = CardinalArith + Univ + 
 
 consts
   

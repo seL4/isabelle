@@ -43,27 +43,27 @@ goalw Nat.thy [add_def] "Suc(m)+n = Suc(m+n)";
 by (rtac rec_Suc 1);
 qed "add_Suc";
 
-val add_ss = FOL_ss addsimps [add_0, add_Suc];
+Addsimps [add_0, add_Suc];
 
 goal Nat.thy "(k+m)+n = k+(m+n)";
 by (res_inst_tac [("n","k")] induct 1);
-by (simp_tac add_ss 1);
-by (asm_simp_tac add_ss 1);
+by (Simp_tac 1);
+by (Asm_simp_tac 1);
 qed "add_assoc";
 
 goal Nat.thy "m+0 = m";
 by (res_inst_tac [("n","m")] induct 1);
-by (simp_tac add_ss 1);
-by (asm_simp_tac add_ss 1);
+by (Simp_tac 1);
+by (Asm_simp_tac 1);
 qed "add_0_right";
 
 goal Nat.thy "m+Suc(n) = Suc(m+n)";
 by (res_inst_tac [("n","m")] induct 1);
-by (ALLGOALS (asm_simp_tac add_ss));
+by (ALLGOALS (Asm_simp_tac));
 qed "add_Suc_right";
 
-val [prem] = goal Nat.thy "(!!n. f(Suc(n)) = Suc(f(n))) ==> f(i+j) = i+f(j)";
+val prems = goal Nat.thy "(!!n. f(Suc(n)) = Suc(f(n))) ==> f(i+j) = i+f(j)";
 by (res_inst_tac [("n","i")] induct 1);
-by (simp_tac add_ss 1);
-by (asm_simp_tac (add_ss addsimps [prem]) 1);
+by (Simp_tac 1);
+by (asm_simp_tac (!simpset addsimps prems) 1);
 result();

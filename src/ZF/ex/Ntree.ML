@@ -29,8 +29,8 @@ val major::prems = goal Ntree.thy
 by (rtac (major RS ntree.induct) 1);
 by (etac UN_E 1);
 by (REPEAT_SOME (ares_tac prems));
-by (fast_tac (ZF_cs addEs [fun_weaken_type]) 1);
-by (fast_tac (ZF_cs addDs [apply_type]) 1);
+by (fast_tac (!claset addEs [fun_weaken_type]) 1);
+by (fast_tac (!claset addDs [apply_type]) 1);
 qed "ntree_induct";
 
 (*Induction on ntree(A) to prove an equation*)
@@ -44,7 +44,7 @@ by (REPEAT_SOME (ares_tac prems));
 by (cut_facts_tac prems 1);
 by (rtac fun_extension 1);
 by (REPEAT_SOME (ares_tac [comp_fun]));
-by (asm_simp_tac (ZF_ss addsimps [comp_fun_apply]) 1);
+by (asm_simp_tac (!simpset addsimps [comp_fun_apply]) 1);
 qed "ntree_induct_eqn";
 
 (**  Lemmas to justify using "Ntree" in other recursive type definitions **)
@@ -59,7 +59,7 @@ qed "ntree_mono";
 goalw Ntree.thy (ntree.defs@ntree.con_defs) "ntree(univ(A)) <= univ(A)";
 by (rtac lfp_lowerbound 1);
 by (rtac (A_subset_univ RS univ_mono) 2);
-by (safe_tac ZF_cs);
+by (safe_tac (!claset));
 by (REPEAT (ares_tac [Pair_in_univ, nat_fun_univ RS subsetD] 1));
 qed "ntree_univ";
 
@@ -87,7 +87,7 @@ by (REPEAT_SOME (ares_tac prems));
 by (eresolve_tac [Collect_subset RS FiniteFun_mono1 RS subsetD] 1);
 by (dresolve_tac [FiniteFun.dom_subset RS subsetD] 1);
 by (dresolve_tac [Fin.dom_subset RS subsetD] 1);
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "maptree_induct";
 
 
@@ -112,6 +112,6 @@ by (eresolve_tac [[subset_refl, Collect_subset] MRS
                   FiniteFun_mono RS subsetD] 1);
 by (dresolve_tac [FiniteFun.dom_subset RS subsetD] 1);
 by (dresolve_tac [Fin.dom_subset RS subsetD] 1);
-by (fast_tac ZF_cs 1);
+by (Fast_tac 1);
 qed "maptree2_induct";
 
