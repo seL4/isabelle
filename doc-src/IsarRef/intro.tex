@@ -39,33 +39,15 @@ existing Isar documents) and for production work.
 
 \subsubsection{Proof~General as default Isabelle interface}
 
-The easiest way to use Proof~General is to make it the default Isabelle user
-interface (see also \cite{isabelle-sys}).  Just put something like this into
-your Isabelle settings file:
-\begin{ttbox}
-ISABELLE_INTERFACE=\$ISABELLE_HOME/contrib/ProofGeneral/isar/interface
-PROOFGENERAL_OPTIONS=""
-\end{ttbox}
-You may have to change \texttt{\$ISABELLE_HOME/contrib/ProofGeneral} to the
-actual installation directory of Proof~General.  From now on, the capital
-\texttt{Isabelle} executable refers to the \texttt{ProofGeneral/isar}
-interface.\footnote{There is also a \texttt{ProofGeneral/isa} interface, for
-  classic Isabelle tactic scripts.}
-
-The interface script provides several options, just pass \verb,-?, to see its
-usage.  Apart from the command line, the defaults for these options may be
-overridden via the \texttt{PROOFGENERAL_OPTIONS} setting as well.  For
-example, plain FSF Emacs (instead of the default XEmacs) may be configured in
-Isabelle's settings via \texttt{PROOFGENERAL_OPTIONS="-p emacs"}.
-
-Occasionally, the user's \verb,~/.emacs, file contains material that is
-incompatible with the version of Emacs that Proof~General prefers.  Then
-proper startup may be still achieved by using the \texttt{-u false} option.
-Also note that any Emacs lisp file called \texttt{proofgeneral-settings.el}
-occurring in \texttt{\$ISABELLE_HOME/etc} or \texttt{\$ISABELLE_HOME_USER/etc}
-is automatically loaded by the Proof~General interface script as well.
-
-\medskip
+The easiest way to invoke Proof~General is via the Isabelle interface wrapper
+script.  The default configuration of Isabelle is smart enough to detect the
+Proof~General distribution in several canonical places (e.g.\ 
+\texttt{\$ISABELLE_HOME/contrib/ProofGeneral}).  Thus the capital
+\texttt{Isabelle} executable would already refer to the
+\texttt{ProofGeneral/isar} interface without further ado.\footnote{There is
+  also a \texttt{ProofGeneral/isa} interface for old tactic scripts written in
+  ML.} The Isabelle interface script provides several options, just pass
+\verb,-?, to see its usage.
 
 With the proper Isabelle interface setup, Isar documents may now be edited by
 visiting appropriate theory files, e.g.\ 
@@ -77,6 +59,33 @@ through the text.  Consult the Proof~General documentation \cite{proofgeneral}
 for further basic command sequences, such as ``\texttt{C-c C-return}'' or
 ``\texttt{C-c u}''.
 
+\medskip
+
+Proof~General may be also configured manually by giving Isabelle settings like
+this (see also \cite{isabelle-sys}):
+\begin{ttbox}
+ISABELLE_INTERFACE=\$ISABELLE_HOME/contrib/ProofGeneral/isar/interface
+PROOFGENERAL_OPTIONS=""
+\end{ttbox}
+You may have to change \texttt{\$ISABELLE_HOME/contrib/ProofGeneral} to the
+actual installation directory of Proof~General.
+
+\medskip
+
+Apart from the Isabelle command line, defaults for interface options may be
+given by the \texttt{PROOFGENERAL_OPTIONS} setting as well.  For example, the
+Emacs executable to be used may be configured in Isabelle's settings like this:
+\begin{ttbox}
+PROOFGENERAL_OPTIONS="-p xemacs-nomule"  
+\end{ttbox}
+
+Occasionally, the user's \verb,~/.emacs, file contains material that is
+incompatible with the version of Emacs that Proof~General prefers.  Then
+proper startup may be still achieved by using the \texttt{-u false} option.
+Also note that any Emacs lisp file called \texttt{proofgeneral-settings.el}
+occurring in \texttt{\$ISABELLE_HOME/etc} or \texttt{\$ISABELLE_HOME_USER/etc}
+is automatically loaded by the Proof~General interface script as well.
+
 
 \subsubsection{The X-Symbol package}
 
@@ -87,24 +96,21 @@ the appropriate menu setting by hand.  In any case, the X-Symbol package must
 have been properly installed already.
 
 Contrary to what you may expect from the documentation of X-Symbol, the
-package is very easy to install for individual users and configures itself
-automatically.  Simply download the ``binary'' package file, and do something
-like this to install it in your home directory:
-\begin{ttbox}
-mkdir -p ~/.xemacs
-cd ~/.xemacs
-tar xzf .../x-symbol-pkg.tar.gz
-\end{ttbox}
+package is very easy to install and configures itself automatically.  The
+default configuration of Isabelle is smart enough to detect the X-Symbol
+package in several canonical places (e.g.\ 
+\texttt{\$ISABELLE_HOME/contrib/x-symbol}).
 
 \medskip
 
 Using proper mathematical symbols in Isabelle theories can be very convenient
 for readability of large formulas.  On the other hand, the plain ASCII sources
-easily become somewhat unintelligible.  For example, $\forall$ will appear as
-\verb,\<forall>, according the default set of Isabelle symbols.  Nevertheless,
-the Isabelle document preparation system (see \S\ref{sec:document-prep}) will
-be happy to print non-ASCII symbols properly.  It is even possible to invent
-additional notation beyond the display capabilities of XEmacs and X-Symbol.
+easily become somewhat unintelligible.  For example, $\Longrightarrow$ will
+appear as \verb,\<Longrightarrow>, according the default set of Isabelle
+symbols.  Nevertheless, the Isabelle document preparation system (see
+\S\ref{sec:document-prep}) will be happy to print non-ASCII symbols properly.
+It is even possible to invent additional notation beyond the display
+capabilities of XEmacs and X-Symbol.
 
 
 \section{Isabelle/Isar theories}
