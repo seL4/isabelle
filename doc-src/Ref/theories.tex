@@ -288,19 +288,30 @@ mention this dependency as follows:
 \begin{ttbox}
 B = \(\ldots\) + "orphan" + \(\ldots\)
 \end{ttbox}
-Quoted strings stand for \ML{} files rather than theories, and merely
-document additional dependencies.  Thus {\tt orphan} is not used in building
-the base of theory~$B$, but {\tt orphan.ML} is loaded automatically
-whenever~$B$ is (re)built.
+Quoted strings stand for theories which have to be loaded before the
+current theory is read but which are not used in building the base of
+theory~$B$. Whenever {\tt orphan} changes and is reloaded, Isabelle
+knows that $B$ has to be updated, too.
 
-The orphaned file may have its own dependencies.  If {\tt orphan.ML} depends
-on theories or files $A@1$, \ldots, $A@n$, record this by creating a {\bf
-  pseudo theory} in the file {\tt orphan.thy}:
+Note that it's necessary for {\tt orphan} to declare a special ML
+object of type {\tt theory} which is present in all theories. This is
+normally achieved by adding the file {\tt orphan.thy} to make {\tt
+orphan} a {\bf pseudo theory}. A minimum version of {\tt orphan.thy}
+would be
+
+\begin{ttbox}
+orphan = Pure
+\end{ttbox}
+
+which uses {\tt Pure} to make a dummy theory. Normally though the
+orphaned file has its own dependencies.  If {\tt orphan.ML} depends on
+theories or files $A@1$, \ldots, $A@n$, record this by creating the
+pseudo theory in the following way:
 \begin{ttbox}
 orphan = \(A@1\) + \(\ldots\) + \(A@n\)
 \end{ttbox}
-The resulting theory is a dummy, but it ensures that {\tt update} reloads
-{\tt orphan} whenever it reloads one of the $A@i$.
+The resulting theory ensures that {\tt update} reloads {\tt orphan}
+whenever it reloads one of the $A@i$.
 
 For an extensive example of how this technique can be used to link lots of
 theory files and load them by just a few {\tt use_thy} calls, consult the
@@ -442,6 +453,110 @@ like {\tt read_instantiate_sg}, which take a signature as an argument.
 returns the identification \rmindex{stamps} of the signature associated
 with~$thy$.
 \end{ttdescription}
+
+
+\section{Viewing theories as HTML documents}
+\index{HTML|bold} 
+
+Isabelle is able to make HTML documents that show a theory's
+definition, the theorems proved in its ML file and the relationship
+with its ancestors and descendants. HTML stands for Hypertext Markup
+Language and is used in the World Wide Web to represent text
+containing images and links to other documents. Web browsers like the
+ones from Mosaic or Netscape are used to view these documents.
+
+Besides the three HTML files that are made for every theory
+(definition and theorems, ancestors, descendants), Isabelle stores
+links to all theories in an index file. These indexes are themself
+linked with other indexes.
+
+To make HTML files for logics that are part of the Isabelle
+distribution, simply set the environment variable {\tt MAKE_HTML}
+before compiling a logic. The entry point to all logics is the {\tt
+index.html} file located in Isabelle's main directory. You also can
+access a HTML version of the Isabelle distribution package at
+
+\begin{ttbox}
+http://www4.informatik.tu-muenchen.de/~nipkow/isabelle
+\end{ttbox}
+
+Internally the HTML generation is controlled by
+
+\begin{ttbox}
+index_path  : string ref
+gif_path    : string ref
+base_path   : string ref
+init_html   : unit -> unit
+make_html   : bool ref
+finish_html : unit -> unit
+\end{ttbox}
+
+\begin{ttdescription}
+\item[\ttindexbold{base_path}]
+contains the absolute path of Isabelle's main directory. To make them
+independent from their storage place, the HTML files only contain
+relative paths which are derived from absolute ones like the current
+working directory, {\tt index_path} or {\tt base_path}.
+
+As {\tt base_path} and {\tt gif_path} are set at the time when the
+{\tt Pure} database is made, they are not valid if you use someone
+else's database to read theories stored in your private directory. In
+that case you first have to set {\tt base_path} to the value of {\em
+your} Isabelle main directory, i.e. the directory that contains the
+subdirectories where logics like {\tt FOL}, {\tt HOL} etc. are
+stored. Besides you have to set the next variable:
+
+\item[\ttindexbold{gif_path}]
+contains the absolute path of two GIF images used in the HTML
+documents. Normally it points to the {\tt Tools} subdirectory of
+Isabelle's main directory. As with {\tt base_path} you have to set it
+manually if you use someone else's database.
+
+\item[\ttindexbold{init_html}]
+activates the HTML facility. It stores the current working directory
+in {\tt index_path} which is were the {\tt index.html} file for all
+theories loaded afterwards will be placed.
+
+\item[\ttindexbold{make_html}]
+is a variable read by {\tt use_thy} to decide whether HTML files
+should be made or not. After you have used {\tt init_html} you can
+manually change {\tt make_html}'s value to temporarily disable HTML
+generation.
+
+\item[\ttindexbold{finish_html}]
+has to be called after all theories have been read that should be
+contained in the current {\tt index.html} file. It reads a temporary
+file with information about the theories read since the last use of
+{\tt init_html} and makes the {\tt index.html} file. If {\tt
+make_html} is {\tt false} nothing is done.
+
+The indexes made by this function also contain a link to the {\tt
+README} file if there exists one in the directory were the index is
+stored. If there's a {\tt README.html} file it's used instead of the
+{\tt README} file.
+
+\end{ttdescription}
+
+Please note that the HTML facility was developed to make HTML
+documents for a stable version of a logic. It is not intended to make
+these documents for a logic were theories are changed and only a part
+of the logic is reread.
+
+If you add new subdirectories to Isabelle's logics (or add a completly
+new logic), you would have to call {\tt init_html} at the start of the
+directory's {\tt ROOT.ML} file and {\tt finish_html} at the end of
+it. This is automatically done if you use
+
+\begin{ttbox}
+use_dir : string -> unit
+\end{ttbox}
+
+This function takes a path as its parameter, changes the working
+directory, calls {\tt init_html} if {\tt make_html} is {\tt true},
+executes {\tt ROOT.ML}, and calls {\tt finish_html}. The {\tt
+index.html} file written in this directory will be automatically
+linked to the first index found in the (recursively searched)
+superdirectories.
 
 
 \section{Terms}
