@@ -285,7 +285,7 @@ list of the subgoals~1 to~$i-1$, subgoal~$i$, and the rest of the theorem
 \end{ttdescription}
 
 
-\subsection{*Sort hypotheses} 
+\subsection{*Sort hypotheses} \label{sec:sort-hyps}
 \index{sort hypotheses}
 \begin{ttbox} 
 force_strip_shyps : bool ref \hfill{\bf initially true}
@@ -382,6 +382,14 @@ Each theorem has a signature.  Certified terms have a signature.  When a
 rule takes several premises and certified terms, it merges the signatures
 to make a signature for the conclusion.  This fails if the signatures are
 incompatible. 
+
+\medskip
+
+The following presentation of primitive rules ignores sort
+hypotheses\index{sort hypotheses} (see also \S\ref{sec:sort-hyps}).  These are
+handled transparently by the logic implementation.
+
+\bigskip
 
 \index{meta-implication}
 The {\bf implication} rules are $({\Imp}I)$
