@@ -494,25 +494,6 @@ syntax
   "-" :: exp => exp          ("- _"    [3] 3)
 end
 \end{ttbox}
-If you put this into a file {\tt ExpSyntax.thy} and load it by {\tt
-  use_thy"ExpSyntax"}, you can run some tests:
-\begin{ttbox}
-val read_exp = Syntax.test_read (syn_of ExpSyntax.thy) "exp";
-{\out val it = fn : string -> unit}
-read_exp "0 * 0 * 0 * 0 + 0 + 0 + 0";
-{\out tokens: "0" "*" "0" "*" "0" "*" "0" "+" "0" "+" "0" "+" "0"}
-{\out raw: ("+" ("+" ("+" ("*" "0" ("*" "0" ("*" "0" "0"))) "0") "0") "0")}
-{\out \vdots}
-read_exp "0 + - 0 + 0";
-{\out tokens: "0" "+" "-" "0" "+" "0"}
-{\out raw: ("+" ("+" "0" ("-" "0")) "0")}
-{\out \vdots}
-\end{ttbox}
-The output of \ttindex{Syntax.test_read} includes the token list ({\tt
-  tokens}) and the raw \AST{} directly derived from the parse tree,
-ignoring parse \AST{} translations.  The rest is tracing information
-provided by the macro expander (see \S\ref{sec:macros}).
-
 Executing {\tt Syntax.print_gram} reveals the productions derived from the
 above mixfix declarations (lots of additional information deleted):
 \begin{ttbox}

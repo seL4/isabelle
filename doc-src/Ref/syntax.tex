@@ -551,15 +551,13 @@ The term {\tt Nil} will be printed as {\tt []}, just as expected.
 The term \verb|%Nil.t| will be printed as \verb|%[].t|, which might not be
 expected!  Guess how type~{\tt Nil} is printed?
 
-Normalizing an \AST{} involves repeatedly applying macro rules until
-none are applicable.  Macro rules are chosen in order of appearance in
-the theory definitions.  You can watch the normalization of \AST{}s
-during parsing and printing by setting \ttindex{Syntax.trace_ast}
-to {\tt true}.\index{tracing!of macros} Alternatively, use
-\ttindex{Syntax.test_read}.  The information displayed when tracing
-includes the \AST{} before normalization ({\tt pre}), redexes with
-results ({\tt rewrote}), the normal form finally reached ({\tt post})
-and some statistics ({\tt normalize}).
+Normalizing an \AST{} involves repeatedly applying macro rules until none are
+applicable.  Macro rules are chosen in order of appearance in the theory
+definitions.  You can watch the normalization of \AST{}s during parsing and
+printing by setting \ttindex{Syntax.trace_ast} to {\tt true}.\index{tracing!of
+  macros} The information displayed when tracing includes the \AST{} before
+normalization ({\tt pre}), redexes with results ({\tt rewrote}), the normal
+form finally reached ({\tt post}) and some statistics ({\tt normalize}).
 
 \subsection{Example: the syntax of finite sets}
 \index{examples!of macros}
