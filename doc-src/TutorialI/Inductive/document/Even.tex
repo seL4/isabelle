@@ -17,12 +17,13 @@ step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {
 An inductive definition consists of introduction rules. 
 
 \begin{isabelle}%
-\ \ \ \ \ n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even%
+\ \ \ \ \ n\ {\isasymin}\ Even{\isachardot}even\ {\isasymLongrightarrow}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ Even{\isachardot}even%
 \end{isabelle}
 \rulename{even.step}
 
 \begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}xa\ {\isasymin}\ even{\isacharsemicolon}\ P\ {\isadigit{0}}{\isacharsemicolon}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ even{\isacharsemicolon}\ P\ n{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ xa%
+\ \ \ \ \ {\isasymlbrakk}xa\ {\isasymin}\ Even{\isachardot}even{\isacharsemicolon}\ P\ {\isadigit{0}}{\isacharsemicolon}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ Even{\isachardot}even{\isacharsemicolon}\ P\ n{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}{\isasymrbrakk}\isanewline
+\isaindent{\ \ \ \ \ }{\isasymLongrightarrow}\ P\ xa%
 \end{isabelle}
 \rulename{even.induct}
 
@@ -40,8 +41,8 @@ Our first lemma states that numbers of the form $2\times k$ are even.%
 The first step is induction on the natural number \isa{k}, which leaves
 two subgoals:
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isadigit{2}}\ {\isacharasterisk}\ {\isadigit{0}}\ {\isasymin}\ even\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isadigit{2}}\ {\isacharasterisk}\ n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isadigit{2}}\ {\isacharasterisk}\ Suc\ n\ {\isasymin}\ even%
+\ {\isadigit{1}}{\isachardot}\ {\isadigit{2}}\ {\isacharasterisk}\ {\isadigit{0}}\ {\isasymin}\ Even{\isachardot}even\isanewline
+\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isadigit{2}}\ {\isacharasterisk}\ n\ {\isasymin}\ Even{\isachardot}even\ {\isasymLongrightarrow}\ {\isadigit{2}}\ {\isacharasterisk}\ Suc\ n\ {\isasymin}\ Even{\isachardot}even%
 \end{isabelle}
 Here \isa{auto} simplifies both subgoals so that they match the introduction
 rules, which then are applied automatically.%
@@ -73,7 +74,7 @@ our first rule induction!%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isadigit{2}}\ dvd\ {\isadigit{0}}\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ even{\isacharsemicolon}\ {\isadigit{2}}\ dvd\ n{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isadigit{2}}\ dvd\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}%
+\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ Even{\isachardot}even{\isacharsemicolon}\ {\isadigit{2}}\ dvd\ n{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isadigit{2}}\ dvd\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}%
 \end{isabelle}%
 \end{isamarkuptxt}%
 \isamarkuptrue%
@@ -81,7 +82,7 @@ our first rule induction!%
 %
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ even{\isacharsemicolon}\ {\isasymexists}k{\isachardot}\ n\ {\isacharequal}\ {\isadigit{2}}\ {\isacharasterisk}\ k{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isasymexists}k{\isachardot}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ {\isadigit{2}}\ {\isacharasterisk}\ k%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ Even{\isachardot}even{\isacharsemicolon}\ {\isasymexists}k{\isachardot}\ n\ {\isacharequal}\ {\isadigit{2}}\ {\isacharasterisk}\ k{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isasymexists}k{\isachardot}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ {\isadigit{2}}\ {\isacharasterisk}\ k%
 \end{isabelle}%
 \end{isamarkuptxt}%
 \isamarkuptrue%
@@ -89,7 +90,7 @@ our first rule induction!%
 %
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}n\ k{\isachardot}\ {\isadigit{2}}\ {\isacharasterisk}\ k\ {\isasymin}\ even\ {\isasymLongrightarrow}\ {\isasymexists}ka{\isachardot}\ Suc\ {\isacharparenleft}Suc\ {\isacharparenleft}{\isadigit{2}}\ {\isacharasterisk}\ k{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isadigit{2}}\ {\isacharasterisk}\ ka%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}n\ k{\isachardot}\ {\isadigit{2}}\ {\isacharasterisk}\ k\ {\isasymin}\ Even{\isachardot}even\ {\isasymLongrightarrow}\ {\isasymexists}ka{\isachardot}\ Suc\ {\isacharparenleft}Suc\ {\isacharparenleft}{\isadigit{2}}\ {\isacharasterisk}\ k{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isadigit{2}}\ {\isacharasterisk}\ ka%
 \end{isabelle}%
 \end{isamarkuptxt}%
 \isamarkuptrue%
@@ -115,8 +116,8 @@ this result ISN'T inductive...%
 %
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ n\ {\isasymin}\ even\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}na{\isachardot}\ {\isasymlbrakk}na\ {\isasymin}\ even{\isacharsemicolon}\ n\ {\isasymin}\ even{\isasymrbrakk}\ {\isasymLongrightarrow}\ n\ {\isasymin}\ even%
+\ {\isadigit{1}}{\isachardot}\ n\ {\isasymin}\ Even{\isachardot}even\isanewline
+\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}na{\isachardot}\ {\isasymlbrakk}na\ {\isasymin}\ Even{\isachardot}even{\isacharsemicolon}\ n\ {\isasymin}\ Even{\isachardot}even{\isasymrbrakk}\ {\isasymLongrightarrow}\ n\ {\isasymin}\ Even{\isachardot}even%
 \end{isabelle}%
 \end{isamarkuptxt}%
 \isamarkuptrue%
@@ -132,8 +133,9 @@ this result ISN'T inductive...%
 %
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isadigit{0}}\ {\isacharminus}\ {\isadigit{2}}\ {\isasymin}\ even\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ even{\isacharsemicolon}\ n\ {\isacharminus}\ {\isadigit{2}}\ {\isasymin}\ even{\isasymrbrakk}\ {\isasymLongrightarrow}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharminus}\ {\isadigit{2}}\ {\isasymin}\ even%
+\ {\isadigit{1}}{\isachardot}\ {\isadigit{0}}\ {\isacharminus}\ {\isadigit{2}}\ {\isasymin}\ Even{\isachardot}even\isanewline
+\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ Even{\isachardot}even{\isacharsemicolon}\ n\ {\isacharminus}\ {\isadigit{2}}\ {\isasymin}\ Even{\isachardot}even{\isasymrbrakk}\isanewline
+\isaindent{\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ }{\isasymLongrightarrow}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharminus}\ {\isadigit{2}}\ {\isasymin}\ Even{\isachardot}even%
 \end{isabelle}%
 \end{isamarkuptxt}%
 \isamarkuptrue%

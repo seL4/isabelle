@@ -40,7 +40,8 @@ step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {
 %
 \begin{isamarkuptext}%
 \begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}a\ {\isasymin}\ even{\isacharsemicolon}\ a\ {\isacharequal}\ {\isadigit{0}}\ {\isasymLongrightarrow}\ P{\isacharsemicolon}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}a\ {\isacharequal}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharsemicolon}\ n\ {\isasymin}\ even{\isasymrbrakk}\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ P%
+\ \ \ \ \ {\isasymlbrakk}a\ {\isasymin}\ Even{\isachardot}even{\isacharsemicolon}\ a\ {\isacharequal}\ {\isadigit{0}}\ {\isasymLongrightarrow}\ P{\isacharsemicolon}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}a\ {\isacharequal}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharsemicolon}\ n\ {\isasymin}\ Even{\isachardot}even{\isasymrbrakk}\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\isanewline
+\isaindent{\ \ \ \ \ }{\isasymLongrightarrow}\ P%
 \end{isabelle}
 \rulename{even.cases}
 
@@ -57,7 +58,7 @@ result to a name%
 %
 \begin{isamarkuptext}%
 \begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even{\isacharsemicolon}\ n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ P%
+\ \ \ \ \ {\isasymlbrakk}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ Even{\isachardot}even{\isacharsemicolon}\ n\ {\isasymin}\ Even{\isachardot}even\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ P%
 \end{isabelle}
 \rulename{Suc_Suc_cases}
 

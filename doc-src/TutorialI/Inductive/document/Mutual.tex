@@ -53,7 +53,7 @@ inductive definitions:%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isadigit{2}}\ dvd\ {\isadigit{0}}\isanewline
 \ {\isadigit{2}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ odd{\isacharsemicolon}\ {\isadigit{2}}\ dvd\ Suc\ n{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isadigit{2}}\ dvd\ Suc\ n\isanewline
-\ {\isadigit{3}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ even{\isacharsemicolon}\ {\isadigit{2}}\ dvd\ n{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isadigit{2}}\ dvd\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}%
+\ {\isadigit{3}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}n\ {\isasymin}\ Mutual{\isachardot}even{\isacharsemicolon}\ {\isadigit{2}}\ dvd\ n{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isadigit{2}}\ dvd\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}%
 \end{isabelle}
 The first two subgoals are proved by simplification and the final one can be
 proved in the same manner as in \S\ref{sec:rule-induction}
