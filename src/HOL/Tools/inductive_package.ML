@@ -295,7 +295,7 @@ val bad_concl = "Conclusion of introduction rule must have form \"t : S_i\"";
 val all_not_allowed = 
     "Introduction rule must not have a leading \"!!\" quantifier";
 
-val atomize_cterm = rewrite_cterm true inductive_atomize;
+val atomize_cterm = Tactic.rewrite_cterm true inductive_atomize;
 
 in
 
