@@ -9,10 +9,13 @@ Printing of theories, theorems, etc.
 signature DISPLAY =
 sig
   val show_hyps		: bool ref
+  val show_tags		: bool ref
   val pretty_thm	: thm -> Pretty.T
+  val pretty_thms	: thm list -> Pretty.T
   val string_of_thm	: thm -> string
   val pprint_thm	: thm -> pprint_args -> unit
   val print_thm		: thm -> unit
+  val print_thms	: thm list -> unit
   val prth		: thm -> thm
   val prthq		: thm Seq.seq -> thm Seq.seq
   val prths		: thm list -> thm list
@@ -30,19 +33,25 @@ sig
   val print_theory	: theory -> unit
   val pretty_name_space : string * NameSpace.T -> Pretty.T
   val show_consts	: bool ref
-
 end;
 
 structure Display: DISPLAY =
 struct
 
-(*If false, hypotheses are printed as dots*)
-val show_hyps = ref true;
+(** print thm **)
+
+val show_hyps = ref true;	(*false: print meta-hypotheses as dots*)
+val show_tags = ref false;	(*false: suppress tags*)
+
+fun pretty_tag (name, args) = Pretty.strs (name :: args);
+val pretty_tags = Pretty.list "[" "]" o map pretty_tag;
 
 fun pretty_thm th =
   let
     val {sign, hyps, prop, ...} = rep_thm th;
-    val xshyps = extra_shyps th;
+    val xshyps = Thm.extra_shyps th;
+    val (_, tags) = Thm.get_name_tags th;
+
     val hlen = length xshyps + length hyps;
     val hsymbs =
       if hlen = 0 then []
@@ -52,16 +61,22 @@ fun pretty_thm th =
            map (Sign.pretty_sort sign) xshyps)]
       else
         [Pretty.brk 2, Pretty.str ("[" ^ implode (replicate hlen ".") ^ "]")];
-  in
-    Pretty.block (Sign.pretty_term sign prop :: hsymbs)
-  end;
+    val tsymbs =
+      if null tags orelse not (! show_tags) then []
+      else [Pretty.brk 1, pretty_tags tags];
+  in Pretty.block (Sign.pretty_term sign prop :: (hsymbs @ tsymbs)) end;
 
 val string_of_thm = Pretty.string_of o pretty_thm;
 val pprint_thm = Pretty.pprint o Pretty.quote o pretty_thm;
 
+fun pretty_thms [th] = pretty_thm th
+  | pretty_thms ths = Pretty.block (Pretty.fbreaks (map pretty_thm ths));
 
-(** Top-level commands for printing theorems **)
-val print_thm = writeln o string_of_thm;
+
+(* top-level commands for printing theorems *)
+
+val print_thm = Pretty.writeln o pretty_thm;
+val print_thms = Pretty.writeln o pretty_thms;
 
 fun prth th = (print_thm th; th);
 
