@@ -205,29 +205,30 @@ end;
 structure ArithTheoryDataArgs =
 struct
   val name = "HOL/arith";
-  type T = {splits: thm list, inj_consts: (string * typ)list, discrete: (string * bool) list};
+  type T = {splits: thm list, inj_consts: (string * typ)list, discrete: (string * bool) list, presburger: (int -> tactic) option};
 
-  val empty = {splits = [], inj_consts = [], discrete = []};
+  val empty = {splits = [], inj_consts = [], discrete = [], presburger = None};
   val copy = I;
   val prep_ext = I;
-  fun merge ({splits= splits1, inj_consts= inj_consts1, discrete= discrete1},
-             {splits= splits2, inj_consts= inj_consts2, discrete= discrete2}) =
+  fun merge ({splits= splits1, inj_consts= inj_consts1, discrete= discrete1, presburger= presburger1},
+             {splits= splits2, inj_consts= inj_consts2, discrete= discrete2, presburger= presburger2}) =
    {splits = Drule.merge_rules (splits1, splits2),
     inj_consts = merge_lists inj_consts1 inj_consts2,
-    discrete = merge_alists discrete1 discrete2};
+    discrete = merge_alists discrete1 discrete2,
+    presburger = (case presburger1 of None => presburger2 | p => p)};
   fun print _ _ = ();
 end;
 
 structure ArithTheoryData = TheoryDataFun(ArithTheoryDataArgs);
 
-fun arith_split_add (thy, thm) = (ArithTheoryData.map (fn {splits,inj_consts,discrete} =>
-  {splits= thm::splits, inj_consts= inj_consts, discrete= discrete}) thy, thm);
+fun arith_split_add (thy, thm) = (ArithTheoryData.map (fn {splits,inj_consts,discrete,presburger} =>
+  {splits= thm::splits, inj_consts= inj_consts, discrete= discrete, presburger= presburger}) thy, thm);
 
-fun arith_discrete d = ArithTheoryData.map (fn {splits,inj_consts,discrete} =>
-  {splits = splits, inj_consts = inj_consts, discrete = d :: discrete});
+fun arith_discrete d = ArithTheoryData.map (fn {splits,inj_consts,discrete,presburger} =>
+  {splits = splits, inj_consts = inj_consts, discrete = d :: discrete, presburger= presburger});
 
-fun arith_inj_const c = ArithTheoryData.map (fn {splits,inj_consts,discrete} =>
-  {splits = splits, inj_consts = c :: inj_consts, discrete = discrete});
+fun arith_inj_const c = ArithTheoryData.map (fn {splits,inj_consts,discrete,presburger} =>
+  {splits = splits, inj_consts = c :: inj_consts, discrete = discrete, presburger = presburger});
 
 
 structure LA_Data_Ref: LIN_ARITH_DATA =
@@ -424,12 +425,24 @@ fun raw_arith_tac ex i st =
    ((REPEAT_DETERM o etac linorder_neqE) THEN' fast_ex_arith_tac ex)
    i st;
 
+fun presburger_tac i st =
+  (case ArithTheoryData.get_sg (sign_of_thm st) of
+     {presburger = Some tac, ...} =>
+       (tracing "Simple arithmetic decision procedure failed.\nNow trying full Presburger arithmetic..."; tac i st)
+   | _ => no_tac st);
+
 in
 
-val arith_tac = fast_arith_tac ORELSE'
-                (ObjectLogic.atomize_tac THEN' raw_arith_tac true);
-val silent_arith_tac = fast_arith_tac ORELSE'
-                       (ObjectLogic.atomize_tac THEN' raw_arith_tac false);
+val simple_arith_tac = FIRST' [fast_arith_tac,
+  ObjectLogic.atomize_tac THEN' raw_arith_tac true];
+
+val arith_tac = FIRST' [fast_arith_tac,
+  ObjectLogic.atomize_tac THEN' raw_arith_tac true,
+  presburger_tac];
+
+val silent_arith_tac = FIRST' [fast_arith_tac,
+  ObjectLogic.atomize_tac THEN' raw_arith_tac false,
+  presburger_tac];
 
 fun arith_method prems =
   Method.METHOD (fn facts => HEADGOAL (Method.insert_tac (prems @ facts) THEN' arith_tac));
