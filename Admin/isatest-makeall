@@ -8,6 +8,8 @@
 #              Send email if it fails.
 
 ## global settings
+MAILTO="kleing@in.tum.de test@jflex.de"
+
 LOGPREFIX=~/log
 
 MASTERLOG=$LOGPREFIX/isatest.log
@@ -69,9 +71,19 @@ for SETTINGS in $@; do
         echo ------------------- test successful --- `date` --- $HOSTNAME >> $TESTLOG 2>&1
         mv $DISTPREFIX/Isabelle/etc/settings.save-$SHORT $DISTPREFIX/Isabelle/etc/settings
         gzip -f $TESTLOG
+	rm -rf ~/isabelle-$SHORT
     else
         echo ------------------- test FAILED --- `date` --- $HOSTNAME >> $TESTLOG 2>&1
 	FAIL="$FAIL$SHORT "
+	for R in $MAILTO; do
+    		mail -t $R <<EOM
+Subject: isabelle test failed
+
+Test for platform $SHORT failed. Log file available at
+
+$HOSTNAME:$TESTLOG
+EOM
+	done
         # more action here
     fi
 
