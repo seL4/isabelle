@@ -177,7 +177,8 @@ by (auto_tac (claset() addIs [cpo_trans], simpset()));
 qed "chain_rel_gen_add";
 
 Goal  (* chain_rel_gen *)
-    "[|n le m; chain(D,X); cpo(D); n:nat; m:nat|] ==> rel(D,X`n,X`m)";
+    "[|n le m; chain(D,X); cpo(D); m:nat|] ==> rel(D,X`n,X`m)";
+by (ftac lt_nat_in_nat 1 THEN etac nat_succI 1);
 by (etac rev_mp 1);  (*prepare the induction*)
 by (induct_tac "m" 1);
 by (auto_tac (claset() addIs [cpo_trans],
@@ -244,17 +245,19 @@ qed "lub_const";
 (*----------------------------------------------------------------------*)
 
 Goalw [isub_def,suffix_def]  (* isub_suffix *)
-    "[|chain(D,X); cpo(D); n:nat|] ==> isub(D,suffix(X,n),x) <-> isub(D,X,x)";
+    "[| chain(D,X); cpo(D) |] ==> isub(D,suffix(X,n),x) <-> isub(D,X,x)";
+by Safe_tac;
+by (dres_inst_tac [("x","na")] bspec 1);
 by (auto_tac (claset() addIs [cpo_trans, chain_rel_gen_add], simpset()));
 qed "isub_suffix";
 
 Goalw [islub_def]  (* islub_suffix *)
-  "[|chain(D,X); cpo(D); n:nat|] ==> islub(D,suffix(X,n),x) <-> islub(D,X,x)";
+  "[|chain(D,X); cpo(D)|] ==> islub(D,suffix(X,n),x) <-> islub(D,X,x)";
 by (asm_simp_tac (simpset() addsimps [isub_suffix]) 1);
 qed "islub_suffix";
 
 Goalw [lub_def]  (* lub_suffix *)
-    "[|chain(D,X); cpo(D); n:nat|] ==> lub(D,suffix(X,n)) = lub(D,X)";
+    "[|chain(D,X); cpo(D)|] ==> lub(D,suffix(X,n)) = lub(D,X)";
 by (asm_simp_tac (simpset() addsimps [islub_suffix]) 1);
 qed "lub_suffix";
 
@@ -271,8 +274,8 @@ qed "dominateI";
 Goalw [isub_def, dominate_def]
   "[|dominate(D,X,Y); isub(D,Y,x); cpo(D);  \
 \    X:nat->set(D); Y:nat->set(D)|] ==> isub(D,X,x)";
-by Auto_tac;  
-by (blast_tac (claset() addIs [cpo_trans] addDs [apply_type]) 1);
+by (Asm_full_simp_tac 1);  
+by (blast_tac (claset() addIs [cpo_trans] addSIs [apply_funtype]) 1);
 qed "dominate_isub";
 
 Goalw [islub_def]
@@ -283,7 +286,7 @@ qed "dominate_islub";
 
 Goalw [isub_def, subchain_def]
      "[|subchain(Y,X); isub(D,X,x)|] ==> isub(D,Y,x)";
-by Auto_tac;  
+by (Force_tac 1);
 qed "subchain_isub";
 
 Goal "[|dominate(D,X,Y); subchain(Y,X); islub(D,X,x); islub(D,Y,y); cpo(D);  \
@@ -2342,7 +2345,7 @@ by (res_inst_tac[("b","r(n)")](lub_const RS subst) 1);
 by (stac comp_lubs 3);
 by (REPEAT (blast_tac (claset() addIs [cont_cf, emb_cont, commute_emb, cpo_cf, theta_chain, chain_const, emb_chain_cpo]) 1));
 by (Simp_tac 1);
-by (stac (lub_suffix RS sym) 1);
+by (res_inst_tac [("n1","n")] (lub_suffix RS subst) 1);
 brr[chain_lemma,cpo_cf,emb_chain_cpo] 1;
 by (asm_simp_tac 
     (simpset() addsimps [suffix_lemma, lub_const, cont_cf, emb_cont, 
