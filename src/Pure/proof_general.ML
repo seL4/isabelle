@@ -87,10 +87,10 @@ fun xsymbols_output s =
 
 fun pgml_sym s =
   (case Symbol.decode s of
-    Symbol.Char s => XML.text s
-  | Symbol.Sym s => XML.element "sym" [("name", s)] []
-  | Symbol.Ctrl s => XML.element "ctrl" [("name", s)] []
-  | Symbol.Raw s => s);
+    (* NB: an alternative here would be to output the default print mode alternative
+       in the element content, but unfortunately print modes are not that fine grained. *)
+    Symbol.Sym s => XML.element "sym" [("name", s)] [XML.text s]
+  | _ => XML.text s)
 
 fun pgml_output str =
   let val syms = Symbol.explode str
@@ -712,12 +712,11 @@ end
    was removed during parsing so we can provide markup around commands;
    2) parsing is intertwined with execution in Isar so we have to repeat
    the parsing to extract interesting parts of commands.  The trace of
-   tokens parsed which is now recorded in each transition helps do this.
+   tokens parsed which is now recorded in each transition (added by
+   Markus June '04) helps do this, but the mechanism is still a bad mess.
    
-   If we had proper parse trees it would be easy, or if we could go
-   beyond ML's type system to allow existential types to be part of
-   parsers (the quantified type representing the result of the parse
-   which is used to make the transition function) it might be possible.
+   If we had proper parse trees it would be easy, although having a
+   fixed type of trees might be tricky with Isar's extensible parser.
 
    Probably the best solution is to produce the meta-information at
    the same time as the parse, for each command, e.g. by recording a 
@@ -731,6 +730,15 @@ end
       (token list -> 
        ((Toplevel.transition -> Toplevel.transition) * metainfo list) * 
        token list) -> parser
+
+   We'd also like to render terms as they appear in output, but this
+   will be difficult because inner syntax is extensible and we don't 
+   have the correct syntax to hand when just doing outer parsing
+   without execution.  A reasonable approximation could 
+   perhaps be obtained by using the syntax of the current context.
+   However, this would mean more mess trying to pick out terms, 
+   so at this stage a more serious change to the Isar functions
+   seems necessary.
 *)
 
 local
@@ -820,6 +828,12 @@ local
 		    theoremsP
 		end
 	in 
+	    (* TODO: ideally we would like to render terms properly, just as they are
+	       in output. This implies using PGML for symbols and variables/atoms. 
+	       BUT it's rather tricky without having the correct concrete syntax to hand,
+	       and even if we did, we'd have to mess around here a whole lot more first
+	       to pick out the terms from the syntax. *)
+
 	    if (name mem plain_items) then plain_item
 	    else case name of
 		     "text"      => comment_item
@@ -1171,7 +1185,7 @@ fun process_pgip_element pgipxml = (case pgipxml of
      | "closetheory"    => let 
 			      val thyname = topthy_name()
 			   in (isarscript data;
-			       writeln ("Theory "^thyname^" completed."))
+			       writeln ("Theory \""^thyname^"\" completed."))
 			   end
      (* improperfilecmd: theory-level commands not in script *)
      | "aborttheory"    => isarcmd ("init_toplevel")
