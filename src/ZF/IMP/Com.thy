@@ -109,10 +109,12 @@ inductive
     semi    "[| <c0,sigma> -c-> sigma2; <c1,sigma2> -c-> sigma1 |] ==> \
 \            <c0 ; c1, sigma> -c-> sigma1"
 
-    ifc1     "[| c1: com; <b,sigma> -b-> 1; <c0,sigma> -c-> sigma1 |] ==> \
+    ifc1     "[| b:bexp; c1:com; sigma:loc->nat;   \
+\		 <b,sigma> -b-> 1; <c0,sigma> -c-> sigma1 |] ==> \
 \             <ifc b then c0 else c1, sigma> -c-> sigma1"
 
-    ifc0     "[| c0 : com; <b,sigma> -b-> 0; <c1,sigma> -c-> sigma1 |] ==> \
+    ifc0     "[| b:bexp; c0:com; sigma:loc->nat;   \
+\		 <b,sigma> -b-> 0; <c1,sigma> -c-> sigma1 |] ==> \
 \             <ifc b then c0 else c1, sigma> -c-> sigma1"
 
     while0   "[| c: com; <b, sigma> -b-> 0 |] ==> \
