@@ -41,6 +41,8 @@ sig
   val mk_const_id: Sign.sg -> string -> string
   val mk_type_id: Sign.sg -> string -> string
   val rename_term: term -> term
+  val new_names: term -> string list -> string list
+  val new_name: term -> string -> string
   val get_defn: theory -> string -> typ -> ((term list * term) * int option) option
   val is_instance: theory -> typ -> typ -> bool
   val parens: Pretty.T -> Pretty.T
@@ -248,10 +250,7 @@ fun unfold_attr (thy, eqn) =
       (fst (Logic.dest_equals (prop_of eqn))));
     fun prep thy = map (fn th =>
       if name mem term_consts (prop_of th) then
-        let val sg = sign_of_thm eqn
-        in rewrite_rule [eqn] (if Sign.subsig (sign_of_thm th, sg) then
-          Thm.transfer_sg sg th else th)
-        end
+        rewrite_rule [eqn] (Thm.transfer thy th)
       else th)
   in (add_preprocessor prep thy, eqn) end;
 
