@@ -241,7 +241,9 @@ val scan_str =
 fun implode_xstr cs = enclose "''" "''" (implode (map (fn "'" => "\\'" | c => c) cs));
 
 fun explode_xstr str =
-  #1 (Scan.error (Scan.finite Symbol.stopper scan_str) (Symbol.explode str));
+  (case Scan.read Symbol.stopper scan_str (Symbol.explode str) of
+    Some cs => cs
+  | _ => error ("Inner lexical error: literal string expected at " ^ quote str));
 
 
 
@@ -257,7 +259,7 @@ fun tokenize lex xids chs =
       scan_tvar >> pair TVarSy ||
       scan_var >> pair VarSy ||
       scan_tid >> pair TFreeSy ||
-      $$ "#" ^^ scan_int >> pair NumSy ||		(* FIXME remove "#" *)
+      $$ "#" ^^ scan_int >> pair NumSy ||
       scan_longid >> pair LongIdentSy ||
       scan_xid >> pair IdentSy;
 
@@ -302,8 +304,8 @@ fun scan_vname chrs =
 (* indexname *)
 
 fun indexname cs =
-  (case Scan.error (Scan.finite Symbol.stopper (Scan.option scan_vname)) cs of
-    (Some xi, []) => xi
+  (case Scan.read Symbol.stopper scan_vname cs of
+    Some xi => xi
   | _ => error ("Lexical error in variable name: " ^ quote (implode cs)));
 
 
@@ -321,9 +323,7 @@ fun read_var str =
       $$ "?" |-- $$ "'" |-- scan_vname >> tvar ||
       $$ "?" |-- scan_vname >> var ||
       Scan.any Symbol.not_eof >> (free o implode);
-  in
-    #1 (Scan.error (Scan.finite Symbol.stopper scan) (Symbol.explode str))
-  end;
+  in the (Scan.read Symbol.stopper scan (Symbol.explode str)) end;
 
 
 (* variable kinds *)
@@ -338,9 +338,7 @@ val dest_skolem = unsuffix "__";
 (* read_nat *)
 
 fun read_nat str =
-  (case Scan.finite Symbol.stopper (Scan.option scan_digits1) (Symbol.explode str) of
-    (Some cs, []) => Some (#1 (Term.read_int cs))
-  | _ => None);
+  apsome (#1 o Term.read_int) (Scan.read Symbol.stopper scan_digits1 (Symbol.explode str));
 
 
 end;
