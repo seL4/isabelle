@@ -217,7 +217,7 @@ val is_recfun_type = result();
 
 val [isrec,rel] = goalw WF.thy [is_recfun_def]
     "[| is_recfun(r,a,H,f); <x,a>:r |] ==> f`x = H(x, restrict(f,r-``{x}))";
-by (res_inst_tac [("P", "%x.?t(x) = ?u::i")] (isrec RS ssubst) 1);
+by (res_inst_tac [("P", "%x.?t(x) = (?u::i)")] (isrec RS ssubst) 1);
 by (rtac (rel RS underI RS beta) 1);
 val apply_recfun = result();
 
