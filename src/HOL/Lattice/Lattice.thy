@@ -384,7 +384,7 @@ subsubsection {* Binary products *}
 
 text {*
   The class of lattices is closed under direct binary products (cf.\
-  also \S\ref{sec:prod-order}).
+  \S\ref{sec:prod-order}).
 *}
 
 lemma is_inf_prod: "is_inf p q (fst p \<sqinter> fst q, snd p \<sqinter> snd q)"
@@ -472,7 +472,7 @@ subsubsection {* General products *}
 
 text {*
   The class of lattices is closed under general products (function
-  spaces) as well (cf.\ also \S\ref{sec:fun-order}).
+  spaces) as well (cf.\ \S\ref{sec:fun-order}).
 *}
 
 lemma is_inf_fun: "is_inf f g (\<lambda>x. f x \<sqinter> g x)"
