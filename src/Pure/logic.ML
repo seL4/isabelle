@@ -20,7 +20,6 @@ signature LOGIC =
   val dest_inclass	: term -> typ * class
   val dest_type		: term -> typ
   val flatten_params	: int -> term -> term
-  val freeze_vars	: term -> term
   val incr_indexes	: typ list * int -> term -> term
   val lift_fns		: term * int -> (term -> term) * (term -> term)
   val list_flexpairs	: (term*term)list * term -> term
@@ -44,7 +43,6 @@ signature LOGIC =
   val strip_imp_prems	: term -> term list
   val strip_params	: term -> (string * typ) list
   val strip_prems	: int * term list * term -> term list * term
-  val thaw_vars		: term -> term
   val unvarify		: term -> term
   val varify		: term -> term
   val termord		: term * term -> order
@@ -172,29 +170,6 @@ fun t occs u = (t aconv u) orelse
 fun close_form A =
     list_all_free (map dest_Free (sort atless (term_frees A)),   
 		   A);
-
-
-(*Freeze all (T)Vars by turning them into (T)Frees*)
-fun freeze_vars(Var(ixn,T)) = Free(Syntax.string_of_vname ixn,
-                                   Type.freeze_vars T)
-  | freeze_vars(Const(a,T)) = Const(a,Type.freeze_vars T)
-  | freeze_vars(Free(a,T))  = Free(a,Type.freeze_vars T)
-  | freeze_vars(s$t)        = freeze_vars s $ freeze_vars t
-  | freeze_vars(Abs(a,T,t)) = Abs(a,Type.freeze_vars T,freeze_vars t)
-  | freeze_vars(b)          = b;
-
-(*Reverse the effect of freeze_vars*)
-fun thaw_vars(Const(a,T)) = Const(a,Type.thaw_vars T)
-  | thaw_vars(Free(a,T))  =
-      let val T' = Type.thaw_vars T
-      in case explode a of
-	   "?"::vn => let val (ixn,_) = Syntax.scan_varname vn
-                      in Var(ixn,T') end
-	 | _       => Free(a,T')
-      end
-  | thaw_vars(Abs(a,T,t)) = Abs(a,Type.thaw_vars T, thaw_vars t)
-  | thaw_vars(s$t)        = thaw_vars s $ thaw_vars t
-  | thaw_vars(b)          = b;
 
 
 (*** Specialized operations for resolution... ***)
