@@ -115,7 +115,7 @@ goal thy "!!x.[| x:act A; x~:act B |] \
 by (simp_tac (simpset() addsimps [mkex_def] 
                        setloop (split_tac [expand_if]) ) 1);
 by (cut_inst_tac [("exA","a>>exA")] mkex2_cons_1 1);
-by (Auto_tac());
+by Auto_tac;
 qed"mkex_cons_1";
 
 goal thy "!!x.[| x~:act A; x:act B |] \
@@ -124,7 +124,7 @@ goal thy "!!x.[| x~:act A; x:act B |] \
 by (simp_tac (simpset() addsimps [mkex_def] 
                        setloop (split_tac [expand_if]) ) 1);
 by (cut_inst_tac [("exB","b>>exB")] mkex2_cons_2 1);
-by (Auto_tac());
+by Auto_tac;
 qed"mkex_cons_2";
 
 goal thy "!!x.[| x:act A; x:act B |]  \
@@ -133,7 +133,7 @@ goal thy "!!x.[| x:act A; x:act B |]  \
 by (simp_tac (simpset() addsimps [mkex_def] 
                        setloop (split_tac [expand_if]) ) 1);
 by (cut_inst_tac [("exB","b>>exB"),("exA","a>>exA")] mkex2_cons_3 1);
-by (Auto_tac());
+by Auto_tac;
 qed"mkex_cons_3";
 
 Delsimps [mkex2_UU,mkex2_nil,mkex2_cons_1,mkex2_cons_2,mkex2_cons_3];
@@ -364,7 +364,7 @@ goal thy "(y~= nil & Map fst`x <<y) --> x= Zip`y`(Map snd`x)";
 by (Seq_induct_tac "x" [] 1);
 by (Seq_case_simp_tac "y" 2);
 by (pair_tac "a" 1);
-by (Auto_tac());
+by Auto_tac;
 
 *)
 

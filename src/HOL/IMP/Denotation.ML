@@ -29,7 +29,7 @@ goal Denotation.thy "!!c s t. <c,s> -c-> t ==> (s,t) : C(c)";
 
 (* start with rule induction *)
 by (etac evalc.induct 1);
-by (Auto_tac());
+by Auto_tac;
 (* while *)
 by (rewtac Gamma_def);
 by (stac (rewrite_rule [Gamma_def] (Gamma_mono RS lfp_Tarski)) 1);

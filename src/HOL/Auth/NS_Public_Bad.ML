@@ -33,7 +33,7 @@ result();
 (*Nobody sends themselves messages*)
 goal thy "!!evs. evs : ns_public ==> ALL A X. Says A A X ~: set evs";
 by (etac ns_public.induct 1);
-by (Auto_tac());
+by Auto_tac;
 qed_spec_mp "not_Says_to_self";
 Addsimps [not_Says_to_self];
 AddSEs   [not_Says_to_self RSN (2, rev_notE)];
@@ -286,7 +286,7 @@ by (spy_analz_tac 1);
 (*NS3: unicity of NB identifies A and NA, but not B*)
 by (forw_inst_tac [("A'","A")] (Says_imp_spies RS parts.Inj RS unique_NB) 1
     THEN REPEAT (eresolve_tac [asm_rl, Says_imp_spies RS parts.Inj] 1));
-by (Auto_tac());
+by Auto_tac;
 by (rename_tac "C B' evs3" 1);
 
 (*

@@ -49,8 +49,8 @@ qed "po_refl";
 val [po,xy,yz,x,y,z] = goalw Limit.thy [po_def]
     "[|po(D); rel(D,x,y); rel(D,y,z); x:set(D);  \
 \      y:set(D); z:set(D)|] ==> rel(D,x,z)";
-br (po RS conjunct2 RS conjunct1 RS bspec RS bspec 
-   RS bspec RS mp RS mp) 1;
+by (rtac (po RS conjunct2 RS conjunct1 RS bspec RS bspec 
+   RS bspec RS mp RS mp) 1);
 by (rtac x 1); 
 by (rtac y 1);
 by (rtac z 1);
@@ -126,8 +126,8 @@ qed "islub_in";
 
 val prems = goal Limit.thy
     "[|islub(D,X,x); n:nat|] ==> rel(D,X`n,x)";
-br (rewrite_rule[islub_def,isub_def](hd prems) RS conjunct1 
-   RS conjunct2 RS bspec) 1;
+by (rtac (rewrite_rule[islub_def,isub_def](hd prems) RS conjunct1 
+   RS conjunct2 RS bspec) 1);
 by (resolve_tac prems 1);
 qed "islub_ub";
 

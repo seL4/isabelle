@@ -40,7 +40,7 @@ by (rtac cont2cont_app 1);
 back();
 by (safe_tac set_cs);
 by (rtac cont_flift1_not_arg 1);
-by (Auto_tac());
+by Auto_tac;
 by (rtac cont_flift1_arg 1);
 qed"cont_flift1_arg_and_not_arg";
 

@@ -20,15 +20,15 @@ AddIffs msg.inject;
 
 (*Equations hold because constructors are injective; cannot prove for all f*)
 goal thy "(Friend x : Friend``A) = (x:A)";
-by (Auto_tac());
+by Auto_tac;
 qed "Friend_image_eq";
 
 goal thy "(Key x : Key``A) = (x:A)";
-by (Auto_tac());
+by Auto_tac;
 qed "Key_image_eq";
 
 goal thy "(Nonce x ~: Key``A)";
-by (Auto_tac());
+by Auto_tac;
 qed "Nonce_Key_image_eq";
 Addsimps [Friend_image_eq, Key_image_eq, Nonce_Key_image_eq];
 
@@ -90,7 +90,7 @@ qed "keysFor_insert_MPair";
 
 goalw thy [keysFor_def]
     "keysFor (insert (Crypt K X) H) = insert (invKey K) (keysFor H)";
-by (Auto_tac());
+by Auto_tac;
 qed "keysFor_insert_Crypt";
 
 Addsimps [keysFor_empty, keysFor_Un, keysFor_UN, 
@@ -101,7 +101,7 @@ AddSEs [keysFor_Un RS equalityD1 RS subsetD RS UnE,
 	keysFor_UN RS equalityD1 RS subsetD RS UN_E];
 
 goalw thy [keysFor_def] "keysFor (Key``E) = {}";
-by (Auto_tac ());
+by Auto_tac;
 qed "keysFor_image_Key";
 Addsimps [keysFor_image_Key];
 
@@ -235,7 +235,7 @@ qed "parts_trans";
 goal thy "!!H. [| Y: parts (insert X G);  X: parts H |] \
 \              ==> Y: parts (G Un H)";
 by (etac parts_trans 1);
-by (Auto_tac());
+by Auto_tac;
 qed "parts_cut";
 
 goal thy "!!H. X: parts H ==> parts (insert X H) = parts H";
@@ -279,7 +279,7 @@ goal thy "parts (insert (Crypt K X) H) = \
 by (rtac equalityI 1);
 by (rtac subsetI 1);
 by (etac parts.induct 1);
-by (Auto_tac());
+by Auto_tac;
 by (etac parts.induct 1);
 by (ALLGOALS (blast_tac (claset() addIs [parts.Body])));
 qed "parts_insert_Crypt";
@@ -289,7 +289,7 @@ goal thy "parts (insert {|X,Y|} H) = \
 by (rtac equalityI 1);
 by (rtac subsetI 1);
 by (etac parts.induct 1);
-by (Auto_tac());
+by Auto_tac;
 by (etac parts.induct 1);
 by (ALLGOALS (blast_tac (claset() addIs [parts.Fst, parts.Snd])));
 qed "parts_insert_MPair";
@@ -300,9 +300,9 @@ Addsimps [parts_insert_Agent, parts_insert_Nonce,
 
 
 goal thy "parts (Key``N) = Key``N";
-by (Auto_tac());
+by Auto_tac;
 by (etac parts.induct 1);
-by (Auto_tac());
+by Auto_tac;
 qed "parts_image_Key";
 Addsimps [parts_image_Key];
 
@@ -359,9 +359,9 @@ qed "parts_analz";
 Addsimps [parts_analz];
 
 goal thy "analz (parts H) = parts H";
-by (Auto_tac());
+by Auto_tac;
 by (etac analz.induct 1);
-by (Auto_tac());
+by Auto_tac;
 qed "analz_parts";
 Addsimps [analz_parts];
 
@@ -427,7 +427,7 @@ goal thy "analz (insert {|X,Y|} H) = \
 by (rtac equalityI 1);
 by (rtac subsetI 1);
 by (etac analz.induct 1);
-by (Auto_tac());
+by Auto_tac;
 by (etac analz.induct 1);
 by (ALLGOALS (blast_tac (claset() addIs [analz.Fst, analz.Snd])));
 qed "analz_insert_MPair";
@@ -450,9 +450,9 @@ val lemma1 = result();
 goal thy "!!H. Key (invKey K) : analz H ==>  \
 \              insert (Crypt K X) (analz (insert X H)) <= \
 \              analz (insert (Crypt K X) H)";
-by (Auto_tac());
+by Auto_tac;
 by (eres_inst_tac [("za","x")] analz.induct 1);
-by (Auto_tac());
+by Auto_tac;
 by (blast_tac (claset() addIs [analz_insertI, analz.Decrypt]) 1);
 val lemma2 = result();
 
@@ -484,14 +484,14 @@ goal thy  "analz (insert (Crypt K X) H) <=  \
 \          insert (Crypt K X) (analz (insert X H))";
 by (rtac subsetI 1);
 by (etac analz.induct 1);
-by (Auto_tac());
+by Auto_tac;
 qed "analz_insert_Crypt_subset";
 
 
 goal thy "analz (Key``N) = Key``N";
-by (Auto_tac());
+by Auto_tac;
 by (etac analz.induct 1);
-by (Auto_tac());
+by Auto_tac;
 qed "analz_image_Key";
 
 Addsimps [analz_image_Key];
@@ -808,7 +808,7 @@ by (Simp_tac 1);
 qed "MPair_eq_HPair";
 
 goalw thy [HPair_def] "(Hash[X] Y = {|X',Y'|}) = (X' = Hash{|X,Y|} & Y'=Y)";
-by (Auto_tac());
+by Auto_tac;
 qed "HPair_eq_MPair";
 
 AddIffs [HPair_eq, MPair_eq_HPair, HPair_eq_MPair];

@@ -36,7 +36,7 @@ result();
 (*Nobody sends themselves messages*)
 goal thy "!!evs. evs : ns_public ==> ALL A X. Says A A X ~: set evs";
 by (etac ns_public.induct 1);
-by (Auto_tac());
+by Auto_tac;
 qed_spec_mp "not_Says_to_self";
 Addsimps [not_Says_to_self];
 AddSEs   [not_Says_to_self RSN (2, rev_notE)];
@@ -66,7 +66,7 @@ Addsimps [Spy_see_priK];
 
 goal thy 
  "!!A. evs: ns_public ==> (Key (priK A) : analz (spies evs)) = (A : bad)";
-by (Auto_tac());
+by Auto_tac;
 qed "Spy_analz_priK";
 Addsimps [Spy_analz_priK];
 

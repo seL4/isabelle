@@ -27,7 +27,7 @@ goal thy
 \      ((ALL A B X. ev = Says A B X --> P(sf A B X)) & \
 \       (ALL A X. ev = Notes A X --> P(nf A X)))";
 by (induct_tac "ev" 1);
-by (Auto_tac());
+by Auto_tac;
 qed "expand_event_case";
 
 goal thy "spies (Says A B X # evs) = insert X (spies evs)";

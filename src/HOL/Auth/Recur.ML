@@ -77,7 +77,7 @@ result();
 (*Nobody sends themselves messages*)
 goal thy "!!evs. evs : recur ==> ALL A X. Says A A X ~: set evs";
 by (etac recur.induct 1);
-by (Auto_tac());
+by Auto_tac;
 qed_spec_mp "not_Says_to_self";
 Addsimps [not_Says_to_self];
 AddSEs   [not_Says_to_self RSN (2, rev_notE)];
@@ -175,7 +175,7 @@ goal thy
 \        ==> K : range shrK";
 by (etac rev_mp 1);
 by (etac (respond_imp_responses RS responses.induct) 1);
-by (Auto_tac());
+by Auto_tac;
 qed_spec_mp "Key_in_keysFor_parts";
 
 
@@ -358,7 +358,7 @@ goal thy
 \        ==> ALL C X Y. Says Server C {|X, Agent Server, Y|} ~: set evs";
 by (etac recur.induct 1);
 by (etac (respond.induct) 5);
-by (Auto_tac());
+by Auto_tac;
 qed_spec_mp "Says_Server_not";
 AddSEs [Says_Server_not RSN (2,rev_notE)];
 
@@ -479,7 +479,7 @@ goal thy
 \        ==> Hash {|Key (shrK B), M|} : parts H";
 by (etac rev_mp 1);
 by (etac (respond_imp_responses RS responses.induct) 1);
-by (Auto_tac());
+by Auto_tac;
 qed "Hash_in_parts_respond";
 
 (*Only RA1 or RA2 can have caused such a part of a message to appear.

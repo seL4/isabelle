@@ -136,7 +136,7 @@ by (simp_tac (simpset() addcongs [conj_cong]) 1);
 by (rtac impI 1);
 by (etac conjE 1);
 by (forward_tac  [reachable_rename] 1);
-by (Auto_tac());
+by Auto_tac;
 qed"rename_through_pmap";
 
 

@@ -110,14 +110,14 @@ Addsimps [qfst_conv, qsnd_conv];
 
 qed_goal "qfst_type" thy
     "!!p. p:QSigma(A,B) ==> qfst(p) : A"
- (fn _=> [ Auto_tac() ]);
+ (fn _=> [ Auto_tac ]);
 
 qed_goal "qsnd_type" thy
     "!!p. p:QSigma(A,B) ==> qsnd(p) : B(qfst(p))"
- (fn _=> [ Auto_tac() ]);
+ (fn _=> [ Auto_tac ]);
 
 goal thy "!!a A B. a: QSigma(A,B) ==> <qfst(a); qsnd(a)> = a";
-by (Auto_tac());
+by Auto_tac;
 qed "QPair_qfst_qsnd_eq";
 
 
@@ -142,7 +142,7 @@ qed_goal "qsplit_type" thy
 goalw thy [qsplit_def]
   "!!u. u: A<*>B ==>   \
 \       R(qsplit(c,u)) <-> (ALL x:A. ALL y:B. u = <x;y> --> R(c(x,y)))";
-by (Auto_tac());
+by Auto_tac;
 qed "expand_qsplit";
 
 

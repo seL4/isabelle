@@ -320,7 +320,7 @@ goal thy
  "!!x. [|x~=UU;y~=UU|]==> (x##xs=y##ys) = (x=y & xs=ys)";
 by (rtac iffI 1);
 by (etac (hd seq.injects) 1);
-by (Auto_tac());
+by Auto_tac;
 qed"scons_inject_eq";
 
 goal thy "!!x. nil<<x ==> nil=x";

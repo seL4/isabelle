@@ -39,7 +39,7 @@ result();
 (*Nobody sends themselves messages*)
 goal thy "!!evs. evs : otway ==> ALL A X. Says A A X ~: set evs";
 by (etac otway.induct 1);
-by (Auto_tac());
+by Auto_tac;
 qed_spec_mp "not_Says_to_self";
 Addsimps [not_Says_to_self];
 AddSEs   [not_Says_to_self RSN (2, rev_notE)];
@@ -49,13 +49,13 @@ AddSEs   [not_Says_to_self RSN (2, rev_notE)];
 
 goal thy "!!evs. Says A' B {|N, Agent A, Agent B, X|} : set evs \
 \                ==> X : analz (spies evs)";
-bd (Says_imp_spies RS analz.Inj) 1;
+by (dtac (Says_imp_spies RS analz.Inj) 1);
 by (Blast_tac 1);
 qed "OR2_analz_spies";
 
 goal thy "!!evs. Says S' B {|N, X, Crypt (shrK B) X'|} : set evs \
 \                ==> X : analz (spies evs)";
-bd (Says_imp_spies RS analz.Inj) 1;
+by (dtac (Says_imp_spies RS analz.Inj) 1);
 by (Blast_tac 1);
 qed "OR4_analz_spies";
 

@@ -9,7 +9,7 @@ Compositionality of I/O automata
 
 
 goal thy "!! A. [|eA --> A ; eB & ~eA --> ~A|] ==> (eA | eB) --> A=eA";
-by (Auto_tac());
+by Auto_tac;
 qed"compatibility_consequence3";
 
 
@@ -29,7 +29,7 @@ qed"Filter_actAisFilter_extA";
     or even better A||B= B||A, FIX *)
 
 goal thy "!! A. [|eA --> A ; eB & ~eA --> ~A|] ==> (eB | eA) --> A=eA";
-by (Auto_tac());
+by Auto_tac;
 qed"compatibility_consequence4";
 
 goal thy 

@@ -414,7 +414,7 @@ fun case_prover thy unfold s = prove_goal thy s (fn prems => [
 	(cut_facts_tac prems 1),
 	(rtac trans 1),
 	(stac unfold 1),
-	(Auto_tac ())
+	Auto_tac
 	]);
 
 (* ------------------------------------------------------------------------ *)

@@ -24,7 +24,7 @@ Addsimps g.rules;
 
 goal thy "g x < Suc x";
 by (res_inst_tac [("u","x")] g.induct 1);
-by (Auto_tac());
+by Auto_tac;
 by (trans_tac 1);
 qed "g_terminates";
 

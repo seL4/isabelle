@@ -37,7 +37,7 @@ result();
 (*Nobody sends themselves messages*)
 goal thy "!!evs. evs : woolam ==> ALL A X. Says A A X ~: set evs";
 by (etac woolam.induct 1);
-by (Auto_tac());
+by Auto_tac;
 qed_spec_mp "not_Says_to_self";
 Addsimps [not_Says_to_self];
 AddSEs   [not_Says_to_self RSN (2, rev_notE)];
@@ -72,7 +72,7 @@ Addsimps [Spy_see_shrK];
 
 goal thy 
  "!!evs. evs : woolam ==> (Key (shrK A) : analz (spies evs)) = (A : bad)";
-by (Auto_tac());
+by Auto_tac;
 qed "Spy_analz_shrK";
 Addsimps [Spy_analz_shrK];
 

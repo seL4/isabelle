@@ -431,7 +431,7 @@ by (dres_inst_tac [("t", "%h. h`y ")] subst_context 1);
 by (Asm_full_simp_tac 1);
 by (rtac fun_extension 1);
 by (REPEAT (ares_tac [comp_fun, lam_type] 1));
-by (Auto_tac());
+by Auto_tac;
 qed "comp_eq_id_iff";
 
 goalw Perm.thy [bij_def]

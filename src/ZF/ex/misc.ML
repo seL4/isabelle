@@ -155,7 +155,8 @@ goal Perm.thy
 \    : bij(Pow(A+B), Pow(A)*Pow(B))";
 by (res_inst_tac [("d", "%<X,Y>.{Inl(x).x:X} Un {Inr(y).y:Y}")] 
     lam_bijective 1);
-by (Auto_tac());
-val Pow_bij = result();
+(*Auto_tac no longer proves it*)
+by (REPEAT (fast_tac (claset() addss (simpset())) 1));
+qed "Pow_bij";
 
 writeln"Reached end of file.";

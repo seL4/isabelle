@@ -77,7 +77,7 @@ qed_goal "HistoryLemma" MemoryImplementation.thy
    "Init(RALL p. $(ImpInit p)) .& [](RALL p. ImpNext p)  \
 \   .-> (EEX rmhist.    Init(RALL p. $(HInit rmhist p)) \
 \                    .& [](RALL p. [HNext rmhist p]_<c p, r p, m p, rmhist@p>))"
-   (fn _ => [Auto_tac(),
+   (fn _ => [Auto_tac,
              rtac historyI 1, TRYALL atac,
              action_simp_tac (simpset() addsimps [HInit_def]) [] [] 1,
              res_inst_tac [("x","p")] fun_cong 1, atac 1,
@@ -87,7 +87,7 @@ qed_goal "HistoryLemma" MemoryImplementation.thy
 
 qed_goal "History" MemoryImplementation.thy
    "Implementation .-> (EEX rmhist. Hist rmhist)"
-   (fn _ => [Auto_tac(),
+   (fn _ => [Auto_tac,
              rtac ((temp_mp HistoryLemma) RS eex_mono) 1,
              SELECT_GOAL 
                (auto_tac (MI_css 
@@ -609,7 +609,7 @@ qed_goal "Step2_2a" MemoryImplementation.thy
              action_simp_tac (simpset() addsimps [ImpNext_def])
                              [] [S4EnvUnchE,S4ClerkUnchE,S4RPCUnchE] 1,
              TRYALL (action_simp_tac (simpset() addsimps [square_def]) [] [S4WriteE]),
-             Auto_tac()
+             Auto_tac
             ]);
 
 qed_goal "Step2_2" MemoryImplementation.thy
@@ -664,7 +664,7 @@ qed_goal "Impl_IUSpec" MemoryImplementation.thy
 (* The main theorem: introduce hiding and eliminate history variable. *)
 qed_goal "Implementation" MemoryImplementation.thy
    "Implementation .-> USpec memCh"
-   (fn _ => [Auto_tac(),
+   (fn _ => [Auto_tac,
              forward_tac [temp_mp History] 1,
              auto_tac (MI_css addsimps2 [USpec_def] 
                               addIs2 (map temp_mp [eexI, Impl_IUSpec])

@@ -130,7 +130,7 @@ result();
 (*Nobody sends themselves messages*)
 goal thy "!!evs. evs : tls ==> ALL A X. Says A A X ~: set evs";
 by (etac tls.induct 1);
-by (Auto_tac());
+by Auto_tac;
 qed_spec_mp "not_Says_to_self";
 Addsimps [not_Says_to_self];
 AddSEs   [not_Says_to_self RSN (2, rev_notE)];

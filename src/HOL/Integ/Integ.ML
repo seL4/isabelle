@@ -847,7 +847,7 @@ Addsimps [zminus_zless_zminus, zminus_zle_zminus,
 	  negative_eq_positive, not_znat_zless_negative]; 
 
 goalw Integ.thy [zdiff_def,zless_def] "!! x. znegative x = (x < $# 0)";
-  by (Auto_tac()); 
+  by Auto_tac; 
 qed "znegative_less_0"; 
 
 goalw Integ.thy [zdiff_def,zless_def] "!! x. (~znegative x) = ($# 0 <= x)";
@@ -868,7 +868,7 @@ goal Integ.thy "!! x. ~znegative x ==> ? n. x = $# n";
   by (dtac zle_imp_zless_or_eq 1); 
   by (etac disjE 1); 
   by (dtac zless_eq_zadd_Suc 1); 
-  by (Auto_tac()); 
+  by Auto_tac; 
 qed "not_znegativeD"; 
 
 (* a case theorem distinguishing positive and negative int *)  

@@ -286,7 +286,7 @@ qed_goal "S6_live" MemoryImplementation.thy
    "[](ImpNext p .& [HNext rmhist p]_<c p,r p,m p, rmhist@p> .& $(ImpInv rmhist p)) \
 \   .& SF(MClkReply memCh crCh cst p)_(c p) .& []<>($(S6 rmhist p))  \
 \   .-> []<>($(S1 rmhist p))"
-   (fn _ => [Auto_tac(),
+   (fn _ => [Auto_tac,
 	     subgoal_tac "sigma |= []<>(<MClkReply memCh crCh cst p>_(c p))" 1,
 	     eres_inst_tac [("P","<MClkReply memCh crCh cst p>_(c p)")]
 	                   EnsuresInfinite 1, atac 1,

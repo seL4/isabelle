@@ -38,16 +38,16 @@ AddIffs [not_isSymKey_pubK, not_isSymKey_priK];
 (** "Image" equations that hold for injective functions **)
 
 goal thy "(invKey x : invKey``A) = (x:A)";
-by (Auto_tac());
+by Auto_tac;
 qed "invKey_image_eq";
 
 (*holds because invKey is injective*)
 goal thy "(pubK x : pubK``A) = (x:A)";
-by (Auto_tac());
+by Auto_tac;
 qed "pubK_image_eq";
 
 goal thy "(priK x ~: pubK``A)";
-by (Auto_tac());
+by Auto_tac;
 qed "priK_pubK_image_eq";
 Addsimps [invKey_image_eq, pubK_image_eq, priK_pubK_image_eq];
 
@@ -67,7 +67,7 @@ Addsimps [keysFor_parts_initState];
 (*Agents see their own private keys!*)
 goal thy "Key (priK A) : initState A";
 by (induct_tac "A" 1);
-by (Auto_tac());
+by Auto_tac;
 qed "priK_in_initState";
 AddIffs [priK_in_initState];
 
@@ -114,7 +114,7 @@ fun not_bad_tac s =
 
 goal thy "Nonce N ~: parts (initState B)";
 by (induct_tac "B" 1);
-by (Auto_tac ());
+by Auto_tac;
 qed "Nonce_notin_initState";
 AddIffs [Nonce_notin_initState];
 

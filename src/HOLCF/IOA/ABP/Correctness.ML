@@ -159,7 +159,7 @@ by (rtac conjI 1);
 by (simp_tac (simpset() addsimps [and_de_morgan_and_absorbe]) 2);
 by (Step_tac 1);
 by (ALLGOALS (cut_inst_tac [("l","xs")] cons_not_nil));
-by (Auto_tac());
+by (Auto_tac);
 val reduce_tl =result();
 
 

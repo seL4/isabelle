@@ -149,7 +149,7 @@ qed "surjective_sum";
 goal Sum.thy "R(sum_case f g s) = \
 \             ((! x. s = Inl(x) --> R(f(x))) & (! y. s = Inr(y) --> R(g(y))))";
 by (res_inst_tac [("s","s")] sumE 1);
-by (Auto_tac());
+by Auto_tac;
 qed "expand_sum_case";
 
 (*Prevents simplification of f and g: much faster*)

@@ -179,7 +179,7 @@ goal thy
 by (asm_full_simp_tac (simpset() addsimps [executions_def]) 1);
 by (pair_tac "x" 1);
 by (rtac (execfrag_in_sig RS spec RS mp) 1);
-by (Auto_tac());
+by Auto_tac;
 qed"exec_in_sig";
 
 goalw thy [schedules_def,has_schedule_def]
@@ -213,7 +213,7 @@ by (pair_induct_tac "y" [is_exec_frag_def] 1);
 by (strip_tac 1);
 by (Seq_case_simp_tac "xa" 1);
 by (pair_tac "a" 1);
-by (Auto_tac());
+by Auto_tac;
 qed"execfrag_prefixclosed";
 
 bind_thm ("exec_prefixclosed",conjI RS (execfrag_prefixclosed RS spec RS spec RS mp));
@@ -226,6 +226,6 @@ by (pair_induct_tac "x" [is_exec_frag_def] 1);
 by (strip_tac 1);
 by (Seq_case_simp_tac "s" 1);
 by (pair_tac "a" 1);
-by (Auto_tac());
+by Auto_tac;
 qed_spec_mp"exec_prefix2closed";
 

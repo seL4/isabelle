@@ -82,14 +82,14 @@ val prems = goal thy "[|x:D;~x===y|]==><[x]>~=<[y]>";
 by (cut_facts_tac prems 1);
 by (rtac notI 1);
 by (dtac per_class_eqE 1);
-by (Auto_tac());
+by Auto_tac;
 qed "per_class_neqI";
 
 val prems = goal thy "~(x::'a::er)===y==><[x]>~=<[y]>";
 by (cut_facts_tac prems 1);
 by (rtac notI 1);
 by (dtac er_class_eqE 1);
-by (Auto_tac());
+by Auto_tac;
 qed "er_class_neqI";
 
 val prems = goal thy "<[x]>~=<[y]>==>~x===y";

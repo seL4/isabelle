@@ -8,7 +8,7 @@ Derived rules
 open Option;
 
 qed_goal "not_None_eq" thy "(x ~= None) = (? y. x = Some y)"
-	(K [option.induct_tac "x" 1, Auto_tac()]);
+	(K [option.induct_tac "x" 1, Auto_tac]);
 
 section "case analysis in premises";
 
@@ -31,7 +31,7 @@ qed_goal "option_caseE" thy "[|case x of None => P | Some y => Q y; \
 	res_inst_tac [("opt","x")] optionE 1,
 	 forward_tac prems 1,
 	  forward_tac prems 3, 
-	   Auto_tac()]);
+	   Auto_tac]);
 fun option_case_tac i = EVERY [
 	etac option_caseE i,
 	 hyp_subst_tac (i+1),
@@ -56,4 +56,4 @@ Addsimps [option_map_None, option_map_Some];
 val option_map_SomeD = prove_goalw thy [option_map_def]
 	"!!x. option_map f x = Some y ==> ? z. x = Some z & f z = y" (K [
 	optionE_tac "x" 1,
-	 Auto_tac()]);
+	 Auto_tac]);

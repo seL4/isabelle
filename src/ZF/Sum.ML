@@ -156,7 +156,7 @@ goal Sum.thy
 \       R(case(c,d,u)) <-> \
 \       ((ALL x:A. u = Inl(x) --> R(c(x))) & \
 \       (ALL y:B. u = Inr(y) --> R(d(y))))";
-by (Auto_tac());
+by Auto_tac;
 qed "expand_case";
 
 val major::prems = goal Sum.thy
@@ -172,7 +172,7 @@ goal Sum.thy
   "!!z. z: A+B ==>   \
 \       case(c, d, case(%x. Inl(c'(x)), %y. Inr(d'(y)), z)) = \
 \       case(%x. c(c'(x)), %y. d(d'(y)), z)";
-by (Auto_tac());
+by Auto_tac;
 qed "case_case";
 
 

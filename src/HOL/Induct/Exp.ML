@@ -109,7 +109,7 @@ AddSEs [eval_N_E];
 (*This theorem says that "WHILE TRUE DO c" cannot terminate*)
 goal thy "!!x. (c', s) -[eval]-> t ==> (c' = WHILE (N 0) DO c) --> False";
 by (etac exec.induct 1);
-by (Auto_tac());
+by Auto_tac;
 bind_thm ("while_true_E", refl RSN (2, result() RS mp));
 
 

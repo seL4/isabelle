@@ -244,7 +244,7 @@ Addsimps [mod2_Suc_Suc];
 goal Divides.thy "(0 < m mod 2) = (m mod 2 = 1)";
 by (subgoal_tac "m mod 2 < 2" 1);
 by (asm_simp_tac (simpset() addsimps [mod_less_divisor]) 2);
-by (Auto_tac());
+by Auto_tac;
 qed "mod2_gr_0";
 Addsimps [mod2_gr_0];
 

@@ -603,7 +603,7 @@ qed "all_not_in_conv";
 AddIffs [all_not_in_conv];
 
 goalw thy [Pow_def] "Pow {} = {{}}";
-by (Auto_tac());
+by Auto_tac;
 qed "Pow_empty";
 Addsimps [Pow_empty];
 

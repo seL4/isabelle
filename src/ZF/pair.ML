@@ -118,14 +118,14 @@ qed_goalw "snd_conv" ZF.thy [snd_def] "snd(<a,b>) = b"
 Addsimps [fst_conv,snd_conv];
 
 qed_goal "fst_type" ZF.thy "!!p. p:Sigma(A,B) ==> fst(p) : A"
- (fn _=> [ Auto_tac() ]);
+ (fn _=> [ Auto_tac ]);
 
 qed_goal "snd_type" ZF.thy "!!p. p:Sigma(A,B) ==> snd(p) : B(fst(p))"
- (fn _=> [ Auto_tac() ]);
+ (fn _=> [ Auto_tac ]);
 
 qed_goal "Pair_fst_snd_eq" ZF.thy
     "!!a A B. a: Sigma(A,B) ==> <fst(a),snd(a)> = a"
- (fn _=> [ Auto_tac() ]);
+ (fn _=> [ Auto_tac ]);
 
 
 (*** Eliminator - split ***)
@@ -148,7 +148,7 @@ qed_goal "split_type" ZF.thy
 goalw ZF.thy [split_def]
   "!!u. u: A*B ==>   \
 \       R(split(c,u)) <-> (ALL x:A. ALL y:B. u = <x,y> --> R(c(x,y)))";
-by (Auto_tac());
+by Auto_tac;
 qed "expand_split";
 
 

@@ -37,8 +37,8 @@ qed "DBDeq_visible";
 goal DBuffer.thy "$Enabled (<DBDeq>_<inp,mid,out,q1,q2>) .= ($q2 .~= .[])";
 by (rewtac (action_rewrite DBDeq_visible));
 by (cut_facts_tac [DB_base] 1);
-by (auto_tac (db_css addSEs2 [base_enabled,enabledE] 
-                     addsimps2 [angle_def,DBDeq_def,Deq_def]));
+by (old_auto_tac (db_css addSEs2 [base_enabled,enabledE] 
+                         addsimps2 [angle_def,DBDeq_def,Deq_def]));
 qed "DBDeq_enabled";
 
 goal DBuffer.thy "<DBPass>_<inp,mid,out,q1,q2> .= DBPass";

@@ -219,17 +219,17 @@ val pr_abs_rews = map (fn th => th RS inteq_reflection)
 
 qed_goalw "idle_squareI" Action.thy [square_def]
    "!!s t. ([[s,t]] |= unchanged v) ==> ([[s,t]] |= [A]_v)"
-   (fn _ => [ Auto_tac() ]);
+   (fn _ => [ Auto_tac ]);
 
 qed_goalw "busy_squareI" Action.thy [square_def]
    "!!s t. ([[s,t]] |= A) ==> ([[s,t]] |= [A]_v)"
-   (fn _ => [ Auto_tac() ]);
+   (fn _ => [ Auto_tac ]);
 
 qed_goalw "square_simulation" Action.thy [square_def]
    "[| unchanged f .& .~B .-> unchanged g;   \
 \      A .& .~unchanged g .-> B              \
 \   |] ==> [A]_f .-> [B]_g"
-   (fn [p1,p2] => [Auto_tac(),
+   (fn [p1,p2] => [Auto_tac,
                    etac (action_conjimpE p2) 1,
                    etac swap 3, etac (action_conjimpE p1) 3,
                    ALLGOALS atac
@@ -237,11 +237,11 @@ qed_goalw "square_simulation" Action.thy [square_def]
                    
 qed_goalw "not_square" Action.thy [square_def,angle_def]
    "(.~ [A]_v) .= <.~A>_v"
-   (fn _ => [ Auto_tac() ]);
+   (fn _ => [ Auto_tac ]);
 
 qed_goalw "not_angle" Action.thy [square_def,angle_def]
    "(.~ <A>_v) .= [.~A]_v"
-   (fn _ => [ Auto_tac() ]);
+   (fn _ => [ Auto_tac ]);
 
 (* ============================== Facts about ENABLED ============================== *)
 
@@ -278,22 +278,22 @@ qed_goal "enabled_mono2" Action.thy
 
 qed_goal "enabled_disj1" Action.thy
   "!!s. (Enabled F) s ==> (Enabled (F .| G)) s"
-  (fn _ => [etac enabled_mono 1, Auto_tac()
+  (fn _ => [etac enabled_mono 1, Auto_tac
 	   ]);
 
 qed_goal "enabled_disj2" Action.thy
   "!!s. (Enabled G) s ==> (Enabled (F .| G)) s"
-  (fn _ => [etac enabled_mono 1, Auto_tac()
+  (fn _ => [etac enabled_mono 1, Auto_tac
 	   ]);
 
 qed_goal "enabled_conj1" Action.thy
   "!!s. (Enabled (F .& G)) s ==> (Enabled F) s"
-  (fn _ => [etac enabled_mono 1, Auto_tac()
+  (fn _ => [etac enabled_mono 1, Auto_tac
            ]);
 
 qed_goal "enabled_conj2" Action.thy
   "!!s. (Enabled (F .& G)) s ==> (Enabled G) s"
-  (fn _ => [etac enabled_mono 1, Auto_tac()
+  (fn _ => [etac enabled_mono 1, Auto_tac
            ]);
 
 qed_goal "enabled_conjE" Action.thy

@@ -190,7 +190,7 @@ by Safe_tac;
 (*Cases: p x is true or false*)
 by (rtac (lfilter_cases RS disjE) 1);
 by (etac ssubst 1);
-by (Auto_tac());
+by Auto_tac;
 qed "lfilter_idem";
 
 
@@ -211,7 +211,7 @@ goal thy "!!p. (l,l'') : findRel (%x. p x & q x) \
 \              ==> (l, LCons x l') : findRel q --> ~ p x     \
 \                  --> l' : Domain (findRel (%x. p x & q x))";
 by (etac findRel.induct 1);
-by (Auto_tac());
+by Auto_tac;
 qed_spec_mp "findRel_not_conj_Domain";
 
 
@@ -229,9 +229,9 @@ goal thy "!!p. (lx,ly) : findRel p \
 by (etac findRel.induct 1);
 by (blast_tac (claset() addSDs [sym RS lfilter_eq_LCons]
                        addIs  [findRel_conj]) 1);
-by (Auto_tac());
+by Auto_tac;
 by (dtac (sym RS lfilter_eq_LCons) 1);
-by (Auto_tac());
+by Auto_tac;
 by (dtac spec 1);
 by (dtac (refl RS rev_mp) 1);
 by (blast_tac (claset() addIs [findRel_conj2]) 1);
@@ -303,7 +303,7 @@ goal thy "!!p. lmap f l = LCons x l' -->     \
 \              (EX y l''. x = f y & l' = lmap f l'' & l = LCons y l'')";
 by (stac (lmap_def RS def_llist_corec) 1);
 by (res_inst_tac [("l", "l")] llistE 1);
-by (Auto_tac());
+by Auto_tac;
 qed_spec_mp "lmap_eq_LCons";
 
 

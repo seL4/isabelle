@@ -45,7 +45,7 @@ by possibility_tac;
 (*Nobody sends themselves messages*)
 goal thy "!!evs. evs : ns_shared ==> ALL A X. Says A A X ~: set evs";
 by (etac ns_shared.induct 1);
-by (Auto_tac());
+by Auto_tac;
 qed_spec_mp "not_Says_to_self";
 Addsimps [not_Says_to_self];
 AddSEs   [not_Says_to_self RSN (2, rev_notE)];
@@ -84,7 +84,7 @@ Addsimps [Spy_see_shrK];
 
 goal thy 
  "!!evs. evs : ns_shared ==> (Key (shrK A) : analz (spies evs)) = (A : bad)";
-by (Auto_tac());
+by Auto_tac;
 qed "Spy_analz_shrK";
 Addsimps [Spy_analz_shrK];
 
@@ -124,7 +124,7 @@ goal thy
 \            K' = shrK A";
 by (etac rev_mp 1);
 by (etac ns_shared.induct 1);
-by (Auto_tac());
+by Auto_tac;
 qed "Says_Server_message_form";
 
 
@@ -193,7 +193,7 @@ by (parts_induct_tac 1);
 by (blast_tac (claset() addSEs partsEs
                         addDs [impOfSubs parts_insert_subset_Un]) 1);
 (*Base, NS4 and NS5*)
-by (Auto_tac());
+by Auto_tac;
 result();
 
 

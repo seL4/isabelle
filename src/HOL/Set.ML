@@ -470,7 +470,7 @@ Addsimps [UN_iff];
 
 (*The order of the premises presupposes that A is rigid; b may be flexible*)
 goal Set.thy "!!b. [| a:A;  b: B(a) |] ==> b: (UN x:A. B(x))";
-by (Auto_tac());
+by Auto_tac;
 qed "UN_I";
 
 val major::prems = goalw Set.thy [UNION_def]
@@ -494,7 +494,7 @@ qed "UN_cong";
 section "Intersections of families -- INTER x:A. B(x) is Inter(B``A)";
 
 goalw Set.thy [INTER_def] "(b: (INT x:A. B(x))) = (ALL x:A. b: B(x))";
-by (Auto_tac());
+by Auto_tac;
 qed "INT_iff";
 
 Addsimps [INT_iff];
@@ -505,7 +505,7 @@ by (REPEAT (ares_tac ([CollectI,ballI] @ prems) 1));
 qed "INT_I";
 
 goal Set.thy "!!b. [| b : (INT x:A. B(x));  a:A |] ==> b: B(a)";
-by (Auto_tac());
+by Auto_tac;
 qed "INT_D";
 
 (*"Classical" elimination -- by the Excluded Middle on a:A *)
@@ -537,7 +537,7 @@ Addsimps [Union_iff];
 
 (*The order of the premises presupposes that C is rigid; A may be flexible*)
 goal Set.thy "!!X. [| X:C;  A:X |] ==> A : Union(C)";
-by (Auto_tac());
+by Auto_tac;
 qed "UnionI";
 
 val major::prems = goalw Set.thy [Union_def]
@@ -566,7 +566,7 @@ qed "InterI";
 (*A "destruct" rule -- every X in C contains A as an element, but
   A:X can hold when X:C does not!  This rule is analogous to "spec". *)
 goal Set.thy "!!X. [| A : Inter(C);  X:C |] ==> A:X";
-by (Auto_tac());
+by Auto_tac;
 qed "InterD";
 
 (*"Classical" elimination rule -- does not require proving X:C *)
@@ -672,7 +672,7 @@ qed "psubsetI";
 
 goalw Set.thy [psubset_def]
     "!!x. A < insert x B ==> (x ~: A) & A<=B | x:A & A-{x}<B";
-by (Auto_tac());
+by Auto_tac;
 qed "psubset_insertD";
 
 bind_thm ("psubset_eq", psubset_def RS meta_eq_to_obj_eq);

@@ -170,7 +170,7 @@ by (Asm_full_simp_tac 1);
 by (rtac (Forall_Conc_impl RS mp) 1);
 by (asm_full_simp_tac (simpset() addsimps [ForallPTakewhileQ,intA_is_not_actB,int_is_act]) 1);
 (* a~:A,a~:B *)
-by (Auto_tac());
+by Auto_tac;
 qed"ForallAorB_mksch1";
 
 bind_thm ("ForallAorB_mksch",ForallAorB_mksch1 RS spec RS spec RS mp);
@@ -395,12 +395,12 @@ goal thy "!! y.Finite y ==> ! z tr. Forall (%a.a:ext (A||B)) tr & \
 \                             y = z @@ mksch A B`tr`a`b\
 \                             --> Finite tr";
 by (etac Seq_Finite_ind  1);
-by (Auto_tac());
+by Auto_tac;
 by (Seq_case_simp_tac "tr" 1);
 (* tr = UU *)
 by (asm_full_simp_tac (simpset() addsimps [nil_is_Conc]) 1);
 (* tr = nil *)
-by (Auto_tac());
+by Auto_tac;
 (* tr = Conc *)
 ren "s ss" 1;
 
@@ -419,7 +419,7 @@ by (fast_tac (claset() addSIs [ext_is_act]
 by (Seq_case_simp_tac "tr" 1);
 (* tr = UU *)
 by (asm_full_simp_tac (simpset() addsimps [Conc_Conc_eq]) 1);
-by (Auto_tac());
+by Auto_tac;
 (* tr = nil ok *)
 (* tr = Conc *)
 by (Seq_case_simp_tac "z" 1);
@@ -452,19 +452,19 @@ by (asm_full_simp_tac (simpset() addsimps [Conc_Conc_eq]) 1);
 
 goal thy "(x>>xs = y @@ z) = ((y=nil & x>>xs=z) | (? ys. y=x>>ys & xs=ys@@z))";
 by (Seq_case_simp_tac "y" 1);
-by (Auto_tac());
+by Auto_tac;
 qed"Conc_Conc_eq";
 
 goal thy "!! (y::'a Seq).Finite y ==> ~ y= x@@UU";
 by (etac Seq_Finite_ind 1);
 by (Seq_case_simp_tac "x" 1);
 by (Seq_case_simp_tac "x" 1);
-by (Auto_tac());
+by Auto_tac;
 qed"FiniteConcUU1";
 
 goal thy "~ Finite ((x::'a Seq)@@UU)";
 by (rtac (FiniteConcUU1 COMP rev_contrapos) 1);
-by (Auto_tac());
+by Auto_tac;
 qed"FiniteConcUU";
 
 finiteR_mksch

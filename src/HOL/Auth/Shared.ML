@@ -24,7 +24,7 @@ Addsimps [rewrite_rule [isSymKey_def] isSym_keys];
 
 goalw thy [keysFor_def] "keysFor (parts (initState C)) = {}";
 by (induct_tac "C" 1);
-by (Auto_tac ());
+by Auto_tac;
 qed "keysFor_parts_initState";
 Addsimps [keysFor_parts_initState];
 
@@ -70,7 +70,7 @@ fun not_bad_tac s =
 (*Agents see their own shared keys!*)
 goal thy "Key (shrK A) : initState A";
 by (induct_tac "A" 1);
-by (Auto_tac());
+by Auto_tac;
 qed "shrK_in_initState";
 AddIffs [shrK_in_initState];
 
@@ -97,7 +97,7 @@ Addsimps [Key_not_used, shrK_neq, shrK_neq RS not_sym];
 
 goal thy "Nonce N ~: parts (initState B)";
 by (induct_tac "B" 1);
-by (Auto_tac ());
+by Auto_tac;
 qed "Nonce_notin_initState";
 AddIffs [Nonce_notin_initState];
 
@@ -169,7 +169,7 @@ by (cut_inst_tac [("evs","evs")] (Finites.emptyI RS Key_supply_ax) 1);
 by (etac exE 1);
 by (cut_inst_tac [("evs","evs'")] 
     (Finites.emptyI RS Finites.insertI RS Key_supply_ax) 1);
-by (Auto_tac());
+by Auto_tac;
 qed "Key_supply2";
 
 goal thy "EX K K' K''. Key K ~: used evs & Key K' ~: used evs' & \

@@ -205,5 +205,5 @@ by (simp_tac (simpset() addsimps [de_Morgan_disj, de_Morgan_conj, not_ex]
 by (rtac impI 1);
 by (etac conjE 1);
 by (cut_inst_tac [("C","C"),("g","g"),("s","s")] reachable_rename_ioa 1);
-by (Auto_tac());
+by Auto_tac;
 qed"rename_through_pmap";

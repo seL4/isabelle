@@ -362,14 +362,25 @@ fun op delsimps2 arg = pair_upd2 (op delsimps) arg;
 fun op addcongs2 arg = pair_upd2 (op addcongs) arg;
 fun op delcongs2 arg = pair_upd2 (op delcongs) arg;
 
-fun auto_tac (cs,ss) = 
+
+fun mk_auto_tac (cs, ss) m n =
     let val cs' = cs addss ss 
-    in  EVERY [TRY (safe_tac cs'),
-	       REPEAT (FIRSTGOAL (fast_tac cs')),
+	val bdt = Blast.depth_tac cs m;
+	fun blast_depth_tac i thm = bdt i thm handle Blast.TRANS s => 
+		(warning ("Blast_tac: " ^ s); Seq.empty);
+        val maintac = 
+          blast_depth_tac	   (*fast but can't use addss*)
+          ORELSE'
+          depth_tac cs' n;         (*slower but general*)
+    in  EVERY [ALLGOALS (asm_full_simp_tac ss),
+	       TRY (safe_tac cs'),
+	       REPEAT (FIRSTGOAL maintac),
                TRY (safe_tac (cs addSss ss)),
 	       prune_params_tac] 
     end;
 
-fun Auto_tac () = auto_tac (claset(), simpset());
+fun auto_tac (cs,ss) = mk_auto_tac (cs,ss) 4 2;
 
-fun auto () = by (Auto_tac ());
+fun Auto_tac st = auto_tac (claset(), simpset()) st;
+
+fun auto () = by Auto_tac;

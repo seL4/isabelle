@@ -135,7 +135,7 @@ bind_thm("dup_dmdD", (temp_unlift DmdDmd) RS iffD1);
 
 (* ------------------------ STL4 ------------------------------------------- *)
 qed_goal "STL4" TLA.thy "(F .-> G)  ==> ([]F .-> []G)"
-   (fn [prem] => [Auto_tac(),
+   (fn [prem] => [Auto_tac,
 		  rtac ((temp_mp normalT) RS mp) 1,
 		  REPEAT (ares_tac [prem, necT RS tempD] 1)
 		 ]);
@@ -163,7 +163,7 @@ qed_goal "DmdImplE" TLA.thy
 
 (* ------------------------ STL5 ------------------------------------------- *)
 qed_goal "STL5" TLA.thy "([]F .& []G) .= ([](F .& G))"
-   (fn _ => [Auto_tac(),
+   (fn _ => [Auto_tac,
 	     subgoal_tac "sigma |= [](G .-> (F .& G))" 1,
 	     etac ((temp_mp normalT) RS mp) 1, atac 1,
 	     ALLGOALS (fast_tac (temp_cs addSEs [STL4E]))
@@ -238,7 +238,7 @@ qed_goal "STL4Edup" TLA.thy
 
 qed_goalw "DmdImpl2" TLA.thy [dmd_def]
    "!!sigma. [| (sigma |= <>F); (sigma |= [](F .-> G)) |] ==> (sigma |= <>G)"
-   (fn _ => [Auto_tac(),
+   (fn _ => [Auto_tac,
 	     etac notE 1,
 	     merge_box_tac 1,
 	     fast_tac (temp_cs addSEs [STL4E]) 1
@@ -256,7 +256,7 @@ qed_goal "InfImpl" TLA.thy
 (* ------------------------ STL6 ------------------------------------------- *)
 (* Used in the proof of STL6, but useful in itself. *)
 qed_goalw "BoxDmdT" TLA.thy [dmd_def] "[]F .& <>G .-> <>([]F .& G)"
-  (fn _ => [ Auto_tac(),
+  (fn _ => [ Auto_tac,
              etac dup_boxE 1,
 	     merge_box_tac 1,
              etac swap 1,
@@ -265,7 +265,7 @@ bind_thm("BoxDmd", temp_conjmp BoxDmdT);
 
 (* weaker than BoxDmd, but more polymorphic (and often just right) *)
 qed_goalw "BoxDmdT2" TLA.thy [dmd_def] "<>F .& []G .-> <>(F .& G)"
-  (fn _ => [ Auto_tac(),
+  (fn _ => [ Auto_tac,
 	     merge_box_tac 1,
              fast_tac (temp_cs addSEs [notE,STL4E]) 1
 	   ]);
@@ -278,7 +278,7 @@ qed_goal "STL6" TLA.thy "<>[]F .& <>[]G .-> <>[](F .& G)"
 	    etac DmdImplE 1, rtac BoxDmdT 1,
 	    (* the second subgoal needs commutativity of .&, which complicates the proof *)
 	    etac DmdImplE 1,
-	    Auto_tac(),
+	    Auto_tac,
 	    etac (temp_conjimpE BoxDmdT) 1, atac 1, etac thin_rl 1,
 	    fast_tac (temp_cs addSEs [DmdImplE]) 1
 	   ]);
@@ -347,10 +347,10 @@ val temp_cs = temp_cs addss (empty_ss addsimps temp_simps);
 section "Further rewrites";
 
 qed_goalw "NotBox" TLA.thy [dmd_def] "(.~[]F) .= (<>.~F)"
-   (fn _ => [ Auto_tac() ]);
+   (fn _ => [ Auto_tac ]);
 
 qed_goalw "NotDmd" TLA.thy [dmd_def] "(.~<>F) .= ([].~F)"
-   (fn _ => [ Auto_tac () ]);
+   (fn _ => [ Auto_tac ]);
 
 (* These are not by default included in temp_css, because they could be harmful,
    e.g. []F .& .~[]F becomes []F .& <>.~F !! *)
@@ -363,7 +363,7 @@ qed_goal "BoxDmdBox" TLA.thy "([]<>[]F) .= (<>[]F)"
               rtac ccontr 1,
               subgoal_tac "sigma |= <>[][]F .& <>[].~[]F" 1,
               etac thin_rl 1,
-              Auto_tac(),
+              Auto_tac,
 	      etac (temp_conjimpE STL6) 1, atac 1,
 	      Asm_full_simp_tac 1,
 	      ALLGOALS (asm_full_simp_tac (simpset() addsimps more_temp_simps))
@@ -382,18 +382,19 @@ qed_goal "BoxOr" TLA.thy
    (fn _ => [ fast_tac (temp_cs addSEs [STL4E]) 1 ]);
 
 qed_goal "DBImplBD" TLA.thy "<>[](F::temporal) .-> []<>F"
-  (fn _ => [Auto_tac(),
+  (fn _ => [Auto_tac,
 	    rtac ccontr 1,
-	    auto_tac (temp_css addsimps2 more_temp_simps addEs2 [temp_conjimpE STL6])
+	    old_auto_tac (temp_css addsimps2 more_temp_simps 
+			           addEs2 [temp_conjimpE STL6])
 	   ]);
 
 (* Although the script is the same, the derivation isn't polymorphic and doesn't
    work for other types of formulas (uses STL2).
 *)
 qed_goal "DBImplBDAct" TLA.thy "<>[](A::action) .-> []<>A"
-  (fn _ => [Auto_tac(),
+  (fn _ => [Auto_tac,
 	    rtac ccontr 1,
-	    auto_tac (temp_css addsimps2 more_temp_simps addEs2 [temp_conjimpE STL6])
+	    old_auto_tac (temp_css addsimps2 more_temp_simps addEs2 [temp_conjimpE STL6])
 	   ]);
 
 qed_goal "BoxDmdDmdBox" TLA.thy
@@ -420,7 +421,7 @@ qed_goal "STL2bD_pr" TLA.thy
 
 (* Auxiliary lemma allows priming of boxed actions *)
 qed_goal "BoxPrime" TLA.thy "[]P .-> [](P .& P`)"
-  (fn _ => [Auto_tac(),
+  (fn _ => [Auto_tac,
 	    etac dup_boxE 1,
 	    auto_tac (temp_css addsimps2 [boxact_def]
 		               addSIs2 [STL2bD_pr] addSEs2 [STL4E])
@@ -517,7 +518,7 @@ qed_goal "BoxRec" TLA.thy "([]$P) .= (Init($P) .& ([]P$))"
 	    ]);
 
 qed_goalw "DmdRec" TLA.thy [dmd_def] "(<>$P) .= (Init($P) .| (<>P$))"
-   (fn _ => [Auto_tac(),
+   (fn _ => [Auto_tac,
 	     etac notE 1,
 	     SELECT_GOAL (auto_tac (temp_css addsimps2 (stable_def::Init_simps)
 				             addIs2 [INV1I] addEs2 [STL4E])) 1,
@@ -533,7 +534,7 @@ qed_goal "DmdRec2" TLA.thy
 
 (* The "=>" part of the following is a little intricate. *)
 qed_goal "InfinitePrime" TLA.thy "([]<>$P) .= ([]<>P$)"
-   (fn _ => [Auto_tac(),
+   (fn _ => [Auto_tac,
 	     rtac classical 1,
 	     rtac (temp_mp DBImplBDAct) 1,
 	     subgoal_tac "sigma |= <>[]$P" 1,
@@ -592,7 +593,7 @@ qed_goalw "leadsto_init" TLA.thy [leadsto]
 
 qed_goalw "streett_leadsto" TLA.thy [leadsto]
    "([]<>P .-> []<>Q) .= (<>(P ~> Q))"
-   (fn _ => [Auto_tac(),
+   (fn _ => [Auto_tac,
              asm_full_simp_tac (simpset() addsimps boxact_def::more_temp_simps) 1,
              SELECT_GOAL (auto_tac (temp_css addSEs2 [DmdImplE,STL4E] 
                                              addsimps2 Init_simps)) 1,
@@ -725,26 +726,26 @@ qed_goalw "WF1" TLA.thy [leadsto]
 \      P .& N .-> $(Enabled(<A>_v)) |]   \
 \  ==> []N .& WF(A)_v .-> (P ~> Q)"
    (fn [prem1,prem2,prem3]
-             => [auto_tac (temp_css addSDs2 [BoxWFI]),
-		 etac STL4Edup 1, atac 1,
-		 Auto_tac(),
-		 subgoal_tac "sigmaa |= [](P .-> P` .| Q`)" 1,
-		 auto_tac (temp_css addSDs2 [unless]),
-		 etac (temp_conjimpE INV1) 1, atac 1,
-		 merge_box_tac 1,
-		 rtac STL2D 1,
-		 rtac EnsuresInfinite 1, atac 2,
-		 SELECT_GOAL (auto_tac (temp_css addsimps2 [WF_alt])) 1,
-		 atac 2,
-		 subgoal_tac "sigmaa |= [][]$(Enabled(<A>_v))" 1,
-		 merge_box_tac 1,
-		 SELECT_GOAL (auto_tac (temp_css addsimps2 [dmd_def])) 1,
-		 SELECT_GOAL ((rewtac (temp_rewrite STL3)) THEN
-			      (auto_tac (temp_css addSEs2 [STL4E] addSIs2 [action_mp prem3]))) 1,
-		 fast_tac (action_cs addSIs [action_mp prem2]) 1,
-		 fast_tac (temp_cs addIs [temp_mp DmdPrime]) 1,
-		 fast_tac (temp_cs addSEs [STL4E] addSIs [action_mp prem1]) 1
-		]);
+	 => [auto_tac (temp_css addSDs2 [BoxWFI]),
+	     etac STL4Edup 1, atac 1,
+	     Auto_tac,
+	     subgoal_tac "sigmaa |= [](P .-> P` .| Q`)" 1,
+	     auto_tac (temp_css addSDs2 [unless]),
+	     etac (temp_conjimpE INV1) 1, atac 1,
+	     merge_box_tac 1,
+	     rtac STL2D 1,
+	     rtac EnsuresInfinite 1, atac 2,
+	     SELECT_GOAL (old_auto_tac (temp_css addsimps2 [WF_alt])) 1,
+	     atac 2,
+	     subgoal_tac "sigmaa |= [][]$(Enabled(<A>_v))" 1,
+	     merge_box_tac 1,
+	     SELECT_GOAL (auto_tac (temp_css addsimps2 [dmd_def])) 1,
+	     SELECT_GOAL ((rewtac (temp_rewrite STL3)) THEN
+			  (auto_tac (temp_css addSEs2 [STL4E] addSIs2 [action_mp prem3]))) 1,
+	     fast_tac (action_cs addSIs [action_mp prem2]) 1,
+	     fast_tac (temp_cs addIs [temp_mp DmdPrime]) 1,
+	     fast_tac (temp_cs addSEs [STL4E] addSIs [action_mp prem1]) 1
+	    ]);
 
 (* Sometimes easier to use; designed for action B rather than state predicate Q *)
 qed_goalw "WF_leadsto" TLA.thy [leadsto]
@@ -755,7 +756,7 @@ qed_goalw "WF_leadsto" TLA.thy [leadsto]
    (fn [prem1,prem2,prem3]
        => [auto_tac (temp_css addSDs2 [BoxWFI]),
            etac STL4Edup 1, atac 1,
-           Auto_tac(),
+           Auto_tac,
            subgoal_tac "sigmaa |= <><A>_v" 1,
            SELECT_GOAL (auto_tac (temp_css addSEs2 [DmdImpl2,STL4E] addSIs2 [action_mp prem2])) 1,
            rtac classical 1,
@@ -779,14 +780,14 @@ qed_goalw "SF1" TLA.thy [leadsto]
 		 eres_inst_tac [("F","F")] dup_boxE 1,
 		 merge_temp_box_tac 1,
 		 etac STL4Edup 1, atac 1,
-		 Auto_tac(),
+		 Auto_tac,
 		 subgoal_tac "sigmaa |= [](P .-> P` .| Q`)" 1,
 		 auto_tac (temp_css addSDs2 [unless]),
 		 etac (temp_conjimpE INV1) 1, atac 1,
 		 merge_act_box_tac 1,
 		 rtac STL2D 1,
 		 rtac EnsuresInfinite 1, atac 2,
-		 SELECT_GOAL (auto_tac (temp_css addsimps2 [SF_alt])) 1,
+		 SELECT_GOAL (old_auto_tac (temp_css addsimps2 [SF_alt])) 1,
 		 atac 2,
 		 subgoal_tac "sigmaa |= []<>$(Enabled(<A>_v))" 1,
 		 SELECT_GOAL (auto_tac (temp_css addsimps2 [dmd_def])) 1,
@@ -805,7 +806,7 @@ qed_goal "WF2" TLA.thy
 \      [](N .& [.~B]_f) .& WF(A)_f .& []F .& <>[]($(Enabled(<M>_g))) .-> <>[]P |]   \
 \  ==> []N .& WF(A)_f .& []F .-> WF(M)_g"
    (fn [prem1,prem2,prem3,prem4]
-       => [Auto_tac(),
+       => [Auto_tac,
 	   case_tac "sigma |= <>[]$Enabled(<M>_g)" 1,
 	   SELECT_GOAL (auto_tac (temp_css addsimps2 [WF_def,dmd_def])) 2,
 	   case_tac "sigma |= <>[][.~B]_f" 1,
@@ -819,7 +820,7 @@ qed_goal "WF2" TLA.thy
 	   subgoal_tac "sigma |= <>([]N .& []P .& []<><A>_f)" 1,
 	   rtac ((temp_unlift DmdBoxDmd) RS iffD1) 1,
 	   eres_inst_tac [("F","[]N .& []P .& []<><A>_f")] DmdImplE 1,
-	   SELECT_GOAL (Auto_tac()) 1,
+	   SELECT_GOAL Auto_tac 1,
 	   dres_inst_tac [("P","P")] (temp_mp BoxPrime) 1,
 	   merge_act_box_tac 1,
 	   etac InfImpl 1, atac 1,
@@ -827,7 +828,7 @@ qed_goal "WF2" TLA.thy
 	   etac BoxDmd 1,
 	   dres_inst_tac [("F","<><A>_f"),("G","[]P")] BoxDmd 1, atac 1,
 	   eres_inst_tac [("F","[]<><A>_f .& []P")] DmdImplE 1,
-	   SELECT_GOAL (Auto_tac ()) 1,
+	   SELECT_GOAL Auto_tac 1,
 	   rtac (temp_mp (prem3 RS STL4 RS DmdImpl)) 1,
 	   fast_tac (temp_cs addIs [STL4E,DmdImplE]) 1,
 	   etac (temp_conjimpE STL6) 1, atac 1,
@@ -857,7 +858,7 @@ qed_goal "SF2" TLA.thy
 \      [](N .& [.~B]_f) .& SF(A)_f .& []F .& []<>($(Enabled(<M>_g))) .-> <>[]P |]   \
 \  ==> []N .& SF(A)_f .& []F .-> SF(M)_g"
    (fn [prem1,prem2,prem3,prem4]
-       => [Auto_tac(),
+       => [Auto_tac,
 	   case_tac "sigma |= []<>$Enabled(<M>_g)" 1,
 	   SELECT_GOAL (auto_tac (temp_css addsimps2 [SF_def,dmd_def])) 2,
 	   case_tac "sigma |= <>[][.~B]_f" 1,
@@ -871,7 +872,7 @@ qed_goal "SF2" TLA.thy
 	   subgoal_tac "sigma |= <>([]N .& []P .& []<><A>_f)" 1,
 	   rtac ((temp_unlift DmdBoxDmd) RS iffD1) 1,
 	   eres_inst_tac [("F","[]N .& []P .& []<><A>_f")] DmdImplE 1,
-	   SELECT_GOAL (Auto_tac()) 1,
+	   SELECT_GOAL Auto_tac 1,
 	   dres_inst_tac [("P","P")] (temp_mp BoxPrime) 1,
 	   merge_act_box_tac 1,
 	   etac InfImpl 1, atac 1,
@@ -879,7 +880,7 @@ qed_goal "SF2" TLA.thy
 	   etac BoxDmd 1,
 	   dres_inst_tac [("F","<><A>_f"),("G","[]P")] BoxDmd 1, atac 1,
 	   eres_inst_tac [("F","[]<><A>_f .& []P")] DmdImplE 1,
-	   SELECT_GOAL (Auto_tac ()) 1,
+	   SELECT_GOAL Auto_tac 1,
 	   rtac (temp_mp (prem3 RS DmdImpl RS STL4)) 1,
 	   fast_tac (temp_cs addEs [STL4E,DmdImplE]) 1,
 	   dtac BoxSFI 1,
@@ -915,7 +916,7 @@ qed_goal "wf_dmd" TLA.thy
           subgoal_tac "sigma |= []((REX y. #((y,x):r) .& F y) .-> <>G)" 1,
 	  cut_facts_tac prems 1,
 	  etac STL4Edup 1, atac 1,
-	  Auto_tac(), etac swap 1, atac 1,
+	  Auto_tac, etac swap 1, atac 1,
 	  rtac dup_dmdD 1,
 	  etac DmdImpl2 1, atac 1,
 	  subgoal_tac "sigma |= [](RALL y. #((y,x):r) .& F y .-> <>G)" 1,
@@ -943,7 +944,7 @@ qed_goalw "wf_leadsto" TLA.thy [leadsto]
 (* If r is well-founded, state function v cannot decrease forever *)
 qed_goal "wf_not_box_decrease" TLA.thy
   "!!r. wf r ==> [][ {[v$, $v]} .: #r ]_v .-> <>[][#False]_v"
-  (fn _ => [Auto_tac(),
+  (fn _ => [Auto_tac,
             subgoal_tac "ALL x. (sigma |= [](Init($v .= #x) .-> <>[][#False]_v))" 1,
             etac allE 1,
             dtac STL2D 1,
@@ -968,7 +969,7 @@ qed_goal "wf_not_box_decrease" TLA.thy
             dres_inst_tac [("P", "$v .= #xa")] (temp_mp BoxPrime) 1,
             SELECT_GOAL (auto_tac (temp_css addEs2 [STL4E] addsimps2 [square_def])) 1,
             SELECT_GOAL (auto_tac (temp_css addSIs2 [INV1I] addsimps2 [Init_def])) 1,
-            auto_tac (temp_css addsimps2 [square_def] addSIs2 [unless] addSEs2 [STL4E])
+            old_auto_tac (temp_css addsimps2 [square_def] addSIs2 [unless] addSEs2 [STL4E])
            ]);
 
 (* "wf ?r  ==>  <>[][{[?v$, $?v]} .: #?r]_?v .-> <>[][#False]_?v" *)
@@ -980,14 +981,14 @@ bind_thm("wf_not_dmd_box_decrease",
 *)
 qed_goal "wf_box_dmd_decrease" TLA.thy
   "wf r ==> []<>({[v$, $v]} .: #r) .-> []<><.~({[v$, $v]} .: #r)>_v"
-  (fn [prem] => [Auto_tac(),
+  (fn [prem] => [Auto_tac,
                  rtac ccontr 1,
                  asm_full_simp_tac 
                    (simpset() addsimps ([action_rewrite not_angle] @ more_temp_simps)) 1,
                  dtac (prem RS (temp_mp wf_not_dmd_box_decrease)) 1,
                  dtac BoxDmdDmdBox 1, atac 1,
                  subgoal_tac "sigma |= []<>((#False)::action)" 1,
-                 SELECT_GOAL (Auto_tac()) 1,
+                 SELECT_GOAL Auto_tac 1,
                  etac STL4E 1,
                  rtac DmdImpl 1,
                  auto_tac (action_css addsimps2 [square_def] addSEs2 [prem RS wf_irrefl])
@@ -998,12 +999,12 @@ qed_goal "wf_box_dmd_decrease" TLA.thy
 *)
 qed_goal "nat_box_dmd_decrease" TLA.thy
   "!!n::nat stfun. []<>(n$ .< $n) .-> []<>($n .< n$)"
-  (fn _ => [Auto_tac(),
+  (fn _ => [Auto_tac,
             subgoal_tac "sigma |= []<><.~( {[n$,$n]} .: #less_than)>_n" 1,
             etac thin_rl 1, etac STL4E 1, rtac DmdImpl 1,
             SELECT_GOAL (auto_tac (claset(), simpset() addsimps [angle_def])) 1,
             rtac nat_less_cases 1,
-            Auto_tac(),
+            Auto_tac,
             rtac (temp_mp wf_box_dmd_decrease) 1,
             auto_tac (claset() addSEs [STL4E] addSIs [DmdImpl], simpset())
            ]);

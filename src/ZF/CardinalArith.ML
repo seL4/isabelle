@@ -806,7 +806,7 @@ val nat_implies_well_ord =
 goal CardinalArith.thy "!!m n. [| m:nat; n:nat |] ==> m + n eqpoll m #+ n";
 by (rtac eqpoll_trans 1);
 by (resolve_tac [well_ord_radd RS well_ord_cardinal_eqpoll RS eqpoll_sym] 1);
-by (REPEAT (eresolve_tac [nat_implies_well_ord] 1));
+by (REPEAT (etac nat_implies_well_ord 1));
 by (asm_simp_tac (simpset() 
 		  addsimps [nat_cadd_eq_add RS sym, cadd_def, eqpoll_refl]) 1);
 qed "nat_sum_eqpoll_sum";

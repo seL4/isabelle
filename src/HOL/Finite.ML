@@ -192,7 +192,7 @@ by (subgoal_tac "r^-1 = (%(x,y).(y,x))``r" 1);
   by (simp_tac (simpset() addsplits [expand_split]) 1);
  by (etac finite_imageI 1);
 by (simp_tac (simpset() addsimps [inverse_def,image_def]) 1);
-by (Auto_tac());
+by Auto_tac;
  by (rtac bexI 1);
  by (assume_tac 2);
  by (Simp_tac 1);

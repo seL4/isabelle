@@ -432,7 +432,7 @@ by (rtac iffI 1);
 by (etac (FiniteConc_2 RS spec RS spec RS mp) 1);
 by (rtac refl 1);
 by (rtac (FiniteConc_1 RS mp) 1);
-by (Auto_tac());
+by Auto_tac;
 qed"FiniteConc";
 
 Addsimps [FiniteConc];
@@ -448,13 +448,13 @@ by (strip_tac 1);
 by (Seq_case_simp_tac "t" 1);
 by (Asm_full_simp_tac 1);
 (* main case *)
-by (Auto_tac());
+by Auto_tac;
 by (Seq_case_simp_tac "t" 1);
 by (Asm_full_simp_tac 1);
 qed"FiniteMap2";
 
 goal thy "Finite (Map f`s) = Finite s";
-by (Auto_tac());
+by Auto_tac;
 by (etac (FiniteMap2 RS spec RS mp) 1);
 by (rtac refl 1);
 by (etac FiniteMap1 1);
@@ -482,9 +482,9 @@ by (strip_tac 1);
 by (etac conjE 1);
 by (etac nil_less_is_nil 1);
 (* main case *)
-by (Auto_tac());
+by Auto_tac;
 by (Seq_case_simp_tac "y" 1);
-by (Auto_tac());
+by Auto_tac;
 qed_spec_mp"Finite_flat";
 
 
@@ -499,7 +499,7 @@ by (assume_tac 1);
 by (eres_inst_tac [("x","j")] allE 1);
 by (cut_inst_tac [("x","Y 0"),("y","Y j")] Finite_flat 1);
 (* Generates a contradiction in subgoal 3 *)
-by (Auto_tac());
+by Auto_tac;
 qed"adm_Finite";
 
 Addsimps [adm_Finite];
@@ -530,12 +530,12 @@ Addsimps [nilConc];
 (* FIX: should be same as nil_is_Conc2 when all nils are turned to right side !! *)
 goal thy "(nil = x @@ y) = ((x::'a Seq)= nil & y = nil)";
 by (Seq_case_simp_tac "x" 1);
-by (Auto_tac());
+by Auto_tac;
 qed"nil_is_Conc";
 
 goal thy "(x @@ y = nil) = ((x::'a Seq)= nil & y = nil)";
 by (Seq_case_simp_tac "x" 1);
-by (Auto_tac());
+by Auto_tac;
 qed"nil_is_Conc2";
 
 
@@ -642,14 +642,14 @@ by (Seq_induct_tac "t" [Forall_def,sforall_def] 1);
 by (strip_tac 1); 
 by (Seq_case_simp_tac "sa" 1);
 by (Asm_full_simp_tac 1);
-by (Auto_tac());
+by Auto_tac;
 qed"Forall_prefix";
  
 bind_thm ("Forall_prefixclosed",Forall_prefix RS spec RS mp RS mp);
 
 
 goal thy "!! h. [| Finite h; Forall P s; s= h @@ t |] ==> Forall P t";
-by (Auto_tac());
+by Auto_tac;
 qed"Forall_postfixclosed";
 
 
@@ -728,7 +728,7 @@ goal thy   "!! P. Filter P`ys = UU ==> \
 \                (Forall (%x. ~P x) ys  & ~Finite ys)";
 by (rtac conjI 1);
 by (cut_inst_tac [] (FilterUU_nFinite_lemma2 RS mp COMP rev_contrapos) 1);
-by (Auto_tac());
+by Auto_tac;
 by (blast_tac (claset() addSDs [FilterUU_nFinite_lemma1]) 1);
 qed"FilternPUUForallP";
 
@@ -737,14 +737,14 @@ goal thy  "!! Q P.[| Forall Q ys; Finite ys; !!x. Q x ==> ~P x|] \
 \   ==> Filter P`ys = nil";
 by (etac ForallnPFilterPnil 1);
 by (etac ForallPForallQ 1);
-by (Auto_tac());
+by Auto_tac;
 qed"ForallQFilterPnil";
 
 goal thy "!! Q P. [| ~Finite ys; Forall Q ys;  !!x. Q x ==> ~P x|] \
 \   ==> Filter P`ys = UU ";
 by (etac ForallnPFilterPUU 1);
 by (etac ForallPForallQ 1);
-by (Auto_tac());
+by Auto_tac;
 qed"ForallQFilterPUU";
 
 
@@ -762,7 +762,7 @@ qed"ForallPTakewhileP";
 goal thy"!! P. [| !!x. Q x==> P x |] ==> Forall P (Takewhile Q`x)";
 by (rtac ForallPForallQ 1);
 by (rtac ForallPTakewhileP 1);
-by (Auto_tac());
+by Auto_tac;
 qed"ForallPTakewhileQ";
 
 
@@ -771,7 +771,7 @@ goal thy  "!! Q P.[| Finite (Takewhile Q`ys); !!x. Q x ==> ~P x |] \
 by (etac ForallnPFilterPnil 1);
 by (rtac ForallPForallQ 1);
 by (rtac ForallPTakewhileP 1);
-by (Auto_tac());
+by Auto_tac;
 qed"FilterPTakewhileQnil";
 
 goal thy "!! Q P. [| !!x. Q x ==> P x |] ==> \
@@ -779,7 +779,7 @@ goal thy "!! Q P. [| !!x. Q x ==> P x |] ==> \
 by (rtac ForallPFilterPid 1);
 by (rtac ForallPForallQ 1);
 by (rtac ForallPTakewhileP 1);
-by (Auto_tac());
+by Auto_tac;
 qed"FilterPTakewhileQid";
 
 Addsimps [ForallPTakewhileP,ForallPTakewhileQ,
@@ -864,14 +864,15 @@ by (dtac (nForall_HDFilter RS mp) 1);
 by (safe_tac set_cs);
 by (res_inst_tac [("x","x")] exI 1);
 by (cut_inst_tac [("P1","%x. ~ P x")] (divide_Seq_lemma RS mp) 1);
-by (Auto_tac());
+by Auto_tac;
 qed"divide_Seq2";
 
 
 goal thy  "!! y. ~Forall P y \
 \  ==> ? x bs rs. y= (bs @@ (x>>rs)) & Finite bs & Forall P bs & (~ P x)";
 by (cut_inst_tac [] divide_Seq2 1);
-by (Auto_tac());
+(*Auto_tac no longer proves it*)
+by (REPEAT (fast_tac (claset() addss (simpset())) 1));
 qed"divide_Seq3";
 
 Addsimps [FilterPQ,FilterConc,Conc_cong];
@@ -885,7 +886,7 @@ section "take_lemma";
 goal thy "(!n. seq_take n`x = seq_take n`x') = (x = x')";
 by (rtac iffI 1);
 by (resolve_tac seq.take_lemmas 1);
-by (Auto_tac());
+by Auto_tac;
 qed"seq_take_lemma";
 
 goal thy 
@@ -894,9 +895,9 @@ goal thy
 by (Seq_induct_tac "x" [] 1);
 by (strip_tac 1);
 by (res_inst_tac [("n","n")] natE 1);
-by (Auto_tac());
+by Auto_tac;
 by (res_inst_tac [("n","n")] natE 1);
-by (Auto_tac());
+by Auto_tac;
 qed"take_reduction1";
 
 
@@ -916,9 +917,9 @@ goal thy
 by (Seq_induct_tac "x" [] 1);
 by (strip_tac 1);
 by (res_inst_tac [("n","n")] natE 1);
-by (Auto_tac());
+by Auto_tac;
 by (res_inst_tac [("n","n")] natE 1);
-by (Auto_tac());
+by Auto_tac;
 qed"take_reduction_less1";
 
 
@@ -949,7 +950,7 @@ qed"take_lemma_less1";
 goal thy "(!n. seq_take n`x << seq_take n`x') = (x << x')";
 by (rtac iffI 1);
 by (rtac take_lemma_less1 1);
-by (Auto_tac());
+by Auto_tac;
 by (etac monofun_cfun_arg 1);
 qed"take_lemma_less";
 
@@ -973,7 +974,7 @@ goal thy "!! Q. [|!! s. [| Forall Q s; A s |] ==> (f s) = (g s) ; \
 by (case_tac "Forall Q x" 1);
 by (auto_tac (claset() addSDs [divide_Seq3],simpset()));
 by (resolve_tac seq.take_lemmas 1);
-by (Auto_tac());
+by Auto_tac;
 qed"take_lemma_principle2";
 
 
@@ -1190,8 +1191,9 @@ Addsimps [FilterPQ];
 
 
 goal thy "Map f`(x@@y) = (Map f`x) @@ (Map f`y)";
-by (res_inst_tac [("A1","%x. True"),("x1","x")] (take_lemma_in_eq_out RS mp) 1);
-by (Auto_tac());
+by (res_inst_tac [("A1","%x. True"), ("x1","x")]
+    (take_lemma_in_eq_out RS mp) 1);
+by Auto_tac;
 qed"MapConc_takelemma";
 
 

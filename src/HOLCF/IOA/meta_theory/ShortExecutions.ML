@@ -106,7 +106,7 @@ by (asm_full_simp_tac (simpset() addsimps [Cut_UU,
              ForallQFilterPUU]) 1);
 (* main case *)
 by (asm_full_simp_tac (simpset() addsimps [Cut_Cons,ForallQFilterPnil]) 1);
-by (Auto_tac());
+by Auto_tac;
 qed"FilterCut";
 
 
@@ -124,7 +124,7 @@ by (asm_full_simp_tac (simpset() addsimps [Cut_UU,
 (* main case *)
 by (asm_full_simp_tac (simpset() addsimps [Cut_Cons,ForallQFilterPnil]) 1);
 by (rtac take_reduction 1);
-by (Auto_tac());
+by Auto_tac;
 qed"Cut_idemp";
 
 
@@ -148,7 +148,7 @@ by (asm_full_simp_tac (simpset() addsimps [Map2Finite]) 1);
 by (asm_full_simp_tac (simpset() addsimps [Cut_Cons,MapConc,
           ForallMap,FiniteMap1,o_def]) 1);
 by (rtac take_reduction 1);
-by (Auto_tac());
+by Auto_tac;
 qed"MapCut";
 
 
@@ -174,7 +174,7 @@ by (hyp_subst_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [Cut_Cons]) 1);
 by (rtac take_reduction_less 1);
 (* auto makes also reasoning about Finiteness of parts of s ! *)
-by (Auto_tac());
+by Auto_tac;
 qed_spec_mp"Cut_prefixcl_nFinite";
 
 

@@ -148,7 +148,7 @@ qed"ax_flat_lift";
 goal thy "!!f.[|cont g; cont f|] ==> cont(%x. ((f x)`(g x)) s)";
 by (rtac cont2cont_CF1L 1);
 by (REPEAT (resolve_tac cont_lemmas1 1));
-by (Auto_tac());
+by Auto_tac;
 qed"cont_fapp_app";
 
 goal thy "!!f.[|cont g; cont f|] ==> cont(%x. ((f x)`(g x)) s t)";

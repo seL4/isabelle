@@ -79,7 +79,7 @@ by (etac RepFunE 1);
 by (excluded_middle_tac "f=y" 1);
 by (rtac UnI1 2);
 by (rtac UnI2 1);
-by (Auto_tac());
+by Auto_tac;
 qed "consistency_fix";
 
 
