@@ -708,6 +708,11 @@ val prs_fn = ref(fn s => output (std_out, s));
 fun prs s = !prs_fn s;
 fun writeln s = prs (s ^ "\n");
 
+(* output to LaTeX / xdvi *)
+fun latex s = 
+	execute ( "( cd /tmp ; echo \"" ^ s ^
+	"\" | isa2latex -s > $$.tex ; latex $$.tex ; xdvi $$.dvi ; rm $$.* ) > /dev/null &" ) ;
+
 (*print warning*)
 val warning_fn = ref(fn s => output (std_out, s ^ "\n"));
 fun warning s = !warning_fn ("Warning: " ^ s);

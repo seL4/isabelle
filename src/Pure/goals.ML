@@ -42,6 +42,8 @@ signature GOALS =
   val goalw_cterm	: thm list -> cterm -> thm list
   val pop_proof		: unit -> thm list
   val pr		: unit -> unit
+  val pr_latex		: unit -> unit
+  val printgoal_latex	: int -> unit
   val premises		: unit -> thm list
   val prin		: term -> unit
   val printyp		: typ -> unit
@@ -429,6 +431,24 @@ fun printyp T = writeln (Sign.string_of_typ (top_sg()) T);
 fun pprint_term t = Sign.pprint_term (top_sg()) t;
 
 fun pprint_typ T = Sign.pprint_typ (top_sg()) T;
+
+(* Redirect output of function f:unit->unit to LaTeX *)
+fun redirect_to_latex f =
+	let
+		val s = ref ""
+		val old_prs_fn = !prs_fn
+	in
+		(prs_fn := (fn a => s := !s ^ a);
+		f ();
+		latex (!s);
+		prs_fn := old_prs_fn)
+	end;
+
+(* Display current proof state in xdvi window *)
+fun pr_latex () = redirect_to_latex pr;
+
+(* Display goal n of current proof state in xdvi window *)
+fun printgoal_latex n = redirect_to_latex (fn () => prin(getgoal n));
 
 (*Prints exceptions nicely at top level; 
   raises the exception in order to have a polymorphic type!*)
