@@ -50,6 +50,13 @@ primrec sees list
   sees_Cons "sees lost A (ev#evs) = sees1 A ev Un sees lost A evs"
 
 
+constdefs
+  (*Set of items that might be visible to somebody: complement of the set
+        of fresh items*)
+  used :: event list => msg set
+    "used evs == parts (UN lost B. sees lost B evs)"
+
+
 (*Agents generate "random" nonces, uniquely determined by their argument.*)
 consts
   newN  :: nat => nat

@@ -32,7 +32,8 @@ by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (ns_public.Nil RS ns_public.NS1 RS ns_public.NS2 RS ns_public.NS3) 2);
 by (ALLGOALS (simp_tac (!simpset setsolver safe_solver)));
 by (REPEAT_FIRST (resolve_tac [refl, conjI]));
-by (REPEAT_FIRST (fast_tac (!claset addss (!simpset setsolver safe_solver))));
+by (REPEAT_FIRST (fast_tac (!claset addSEs [Nonce_supply RS notE]
+				    addss (!simpset setsolver safe_solver))));
 result();
 
 
@@ -86,24 +87,6 @@ bind_thm ("Spy_analz_priK_D", analz_subset_parts RS subsetD RS Spy_see_priK_D);
 AddSDs [Spy_see_priK_D, Spy_analz_priK_D];
 
 
-(*** Future nonces can't be seen or used! ***)
-
-goal thy "!!i. evs : ns_public ==>        \
-\             length evs <= i --> Nonce (newN i) ~: parts (sees lost Spy evs)";
-by (parts_induct_tac 1);
-by (REPEAT_FIRST (fast_tac (!claset 
-                              addSEs partsEs
-                              addSDs  [Says_imp_sees_Spy' RS parts.Inj]
-                              addEs [leD RS notE]
-			      addDs  [impOfSubs analz_subset_parts,
-                                      impOfSubs parts_insert_subset_Un,
-                                      Suc_leD]
-                              addss (!simpset))));
-qed_spec_mp "new_nonces_not_seen";
-Addsimps [new_nonces_not_seen];
-
-val nonce_not_seen_now = le_refl RSN (2, new_nonces_not_seen) RSN (2,rev_notE);
-
 fun analz_induct_tac i = 
     etac ns_public.induct i	THEN
     ALLGOALS (asm_simp_tac 
@@ -122,11 +105,9 @@ goal thy
 \     Crypt (pubK C) {|NA', Nonce NA|} ~: parts (sees lost Spy evs)";
 by (analz_induct_tac 1);
 (*NS3*)
-by (fast_tac (!claset addSEs partsEs
-                      addEs  [nonce_not_seen_now]) 4);
+by (fast_tac (!claset addSEs partsEs) 4);
 (*NS2*)
-by (fast_tac (!claset addSEs partsEs
-                      addEs  [nonce_not_seen_now]) 3);
+by (fast_tac (!claset addSEs partsEs) 3);
 (*Fake*)
 by (best_tac (!claset addIs [analz_insertI]
 		      addDs [impOfSubs analz_subset_parts,
@@ -146,12 +127,13 @@ goal thy
 \      A=A' & B=B')";
 by (analz_induct_tac 1);
 (*NS1*)
+by (simp_tac (!simpset addsimps [all_conj_distrib]) 3);
 by (expand_case_tac "NA = ?y" 3 THEN
-    REPEAT (fast_tac (!claset addSEs (nonce_not_seen_now::partsEs)) 3));
+    REPEAT (fast_tac (!claset addSEs partsEs) 3));
 (*Base*)
 by (fast_tac (!claset addss (!simpset)) 1);
 (*Fake*)
-by (simp_tac (!simpset addsimps [all_conj_distrib,parts_insert_sees]) 1);
+by (simp_tac (!simpset addsimps [all_conj_distrib, parts_insert_sees]) 1);
 by (step_tac (!claset addSIs [analz_insertI]) 1);
 by (ex_strip_tac 1);
 by (best_tac (!claset delrules [conjI]
@@ -181,15 +163,14 @@ by (fast_tac (!claset addSDs [Says_imp_sees_Spy' RS parts.Inj]
                       addEs  [no_nonce_NS1_NS2 RSN (2, rev_notE)]) 4);
 (*NS1*)
 by (fast_tac (!claset addSEs partsEs
-                      addSDs [new_nonces_not_seen, 
-			      Says_imp_sees_Spy' RS parts.Inj]) 2);
+		      addSDs [Says_imp_sees_Spy' RS parts.Inj]
+                      addIs  [impOfSubs analz_subset_parts]) 2);
 (*Fake*)
-by (REPEAT_FIRST spy_analz_tac);
+by (spy_analz_tac 1);
 (*NS2*)
 by (Step_tac 1);
 by (fast_tac (!claset addSEs partsEs
-                      addSDs [new_nonces_not_seen, 
-			      Says_imp_sees_Spy' RS parts.Inj]) 2);
+                      addSDs [Says_imp_sees_Spy' RS parts.Inj]) 2);
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy' RS parts.Inj]
                       addDs  [unique_NA]) 1);
 bind_thm ("Spy_not_see_NA", result() RSN (2, rev_mp));
@@ -206,8 +187,7 @@ by (analz_induct_tac 1);
 by (ALLGOALS Asm_simp_tac);
 (*NS1*)
 by (fast_tac (!claset addSEs partsEs
-                      addSDs [new_nonces_not_seen, 
-			      Says_imp_sees_Spy' RS parts.Inj]) 2);
+                      addSDs [Says_imp_sees_Spy' RS parts.Inj]) 2);
 (*Fake*)
 by (REPEAT_FIRST (resolve_tac [impI, conjI]));
 by (fast_tac (!claset addss (!simpset)) 1);
@@ -219,7 +199,8 @@ by (best_tac (!claset addSIs [disjI2]
 (*NS2*)
 by (Step_tac 1);
 by (forward_tac [Spy_not_see_NA] 1 THEN REPEAT (assume_tac 1));
-by (fast_tac (!claset addSDs [Says_imp_sees_Spy' RS parts.Inj]
+(*11 seconds*)
+by (best_tac (!claset addSDs [Says_imp_sees_Spy' RS parts.Inj]
                       addDs  [unique_NA]) 1);
 qed_spec_mp "NA_decrypt_imp_B_msg";
 
@@ -266,12 +247,13 @@ goal thy
 \      A=A' & NA=NA')";
 by (analz_induct_tac 1);
 (*NS2*)
+by (simp_tac (!simpset addsimps [all_conj_distrib]) 3);
 by (expand_case_tac "NB = ?y" 3 THEN
-    REPEAT (fast_tac (!claset addSEs (nonce_not_seen_now::partsEs)) 3));
+    REPEAT (fast_tac (!claset addSEs partsEs) 3));
 (*Base*)
 by (fast_tac (!claset addss (!simpset)) 1);
 (*Fake*)
-by (simp_tac (!simpset addsimps [all_conj_distrib,parts_insert_sees]) 1);
+by (simp_tac (!simpset addsimps [all_conj_distrib, parts_insert_sees]) 1);
 by (step_tac (!claset addSIs [analz_insertI]) 1);
 by (ex_strip_tac 1);
 by (best_tac (!claset delrules [conjI]
@@ -299,26 +281,18 @@ goal thy
 by (analz_induct_tac 1);
 (*NS1*)
 by (fast_tac (!claset addSEs partsEs
-                      addSDs [new_nonces_not_seen, 
-			      Says_imp_sees_Spy' RS parts.Inj]) 2);
+                      addSDs [Says_imp_sees_Spy' RS parts.Inj]) 2);
 (*Fake*)
-by (REPEAT_FIRST spy_analz_tac);
+by (spy_analz_tac 1);
 (*NS2 and NS3*)
 by (Step_tac 1);
+by (TRYALL (fast_tac (!claset addSIs [impOfSubs analz_subset_parts, usedI])));
 (*NS2*)
+by (fast_tac (!claset addSEs partsEs
+                      addSDs [Says_imp_sees_Spy' RS parts.Inj]) 2);
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy' RS parts.Inj]
-                      addEs  [no_nonce_NS1_NS2 RSN (2, rev_notE)]) 3);
-by (fast_tac (!claset addSEs partsEs
-                      addSDs [new_nonces_not_seen, 
-                              Says_imp_sees_Spy' RS parts.Inj]) 2);
-by (Fast_tac 1);
+                      addEs  [no_nonce_NS1_NS2 RSN (2, rev_notE)]) 1);
 (*NS3*)
-by (Fast_tac 2);
-by (fast_tac (!claset addSEs partsEs
-                      addSDs [Says_imp_sees_Spy' RS parts.Inj,
-			      new_nonces_not_seen, 
-                              impOfSubs analz_subset_parts]) 1);
-
 by (forw_inst_tac [("A'","A")] (Says_imp_sees_Spy' RS parts.Inj RS unique_NB) 1
     THEN REPEAT (eresolve_tac [asm_rl, Says_imp_sees_Spy' RS parts.Inj] 1));
 by (Fast_tac 1);
@@ -338,8 +312,7 @@ by (ALLGOALS (asm_simp_tac (!simpset addsimps [ex_disj_distrib])));
 by (ALLGOALS Asm_simp_tac);
 (*NS1*)
 by (fast_tac (!claset addSEs partsEs
-                      addSDs [new_nonces_not_seen, 
-			      Says_imp_sees_Spy' RS parts.Inj]) 2);
+                      addSDs [Says_imp_sees_Spy' RS parts.Inj]) 2);
 (*Fake*)
 by (REPEAT_FIRST (resolve_tac [impI, conjI]));
 by (fast_tac (!claset addss (!simpset)) 1);
@@ -380,16 +353,15 @@ goal thy
 by (analz_induct_tac 1);
 (*NS1*)
 by (fast_tac (!claset addSEs partsEs
-                      addSDs [new_nonces_not_seen, 
-			      Says_imp_sees_Spy' RS parts.Inj]) 2);
+                      addSDs [Says_imp_sees_Spy' RS parts.Inj]) 2);
 (*Fake*)
-by (REPEAT_FIRST spy_analz_tac);
+by (spy_analz_tac 1);
 (*NS2 and NS3*)
 by (Step_tac 1);
+by (fast_tac (!claset addSIs [impOfSubs analz_subset_parts, usedI]) 1);
 (*NS2*)
 by (fast_tac (!claset addSEs partsEs
-                      addSDs [new_nonces_not_seen, 
-                              Says_imp_sees_Spy' RS parts.Inj]) 2);
+                      addSDs [Says_imp_sees_Spy' RS parts.Inj]) 2);
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy' RS parts.Inj]
                       addEs  [no_nonce_NS1_NS2 RSN (2, rev_notE)]) 1);
 (*NS3*)

@@ -11,6 +11,9 @@ Server keys; initial states of agents; new nonces and keys; function "sees"
 
 open Public;
 
+(*Injectiveness of new nonces*)
+AddIffs [inj_newN RS inj_eq];
+
 (*Holds because Friend is injective: thus cannot prove for all f*)
 goal thy "(Friend x : Friend``A) = (x:A)";
 by (Auto_tac());
@@ -23,23 +26,6 @@ Addsimps [Un_insert_left, Un_insert_right];
   this means that some terms displayed as (f o g) will be rewritten, and others
   will not!*)
 Addsimps [o_def];
-
-(*** Basic properties of pubK ***)
-
-(*Injectiveness and freshness of new keys and nonces*)
-AddIffs [inj_pubK RS inj_eq, inj_newN RS inj_eq];
-
-(** Rewrites should not refer to  initState(Friend i) 
-    -- not in normal form! **)
-
-Addsimps [priK_neq_pubK, priK_neq_pubK RS not_sym];
-
-goal thy "Nonce (newN i) ~: parts (initState lost B)";
-by (agent.induct_tac "B" 1);
-by (Auto_tac ());
-qed "newN_notin_initState";
-
-AddIffs [newN_notin_initState];
 
 goalw thy [keysFor_def] "keysFor (parts (initState lost C)) = {}";
 by (agent.induct_tac "C" 1);
@@ -62,6 +48,11 @@ by (agent.induct_tac "A" 1);
 by (event.induct_tac "a" 2);
 by (Auto_tac ());
 qed "sees_mono";
+
+(*** Basic properties of pubK & priK ***)
+
+AddIffs [inj_pubK RS inj_eq];
+Addsimps [priK_neq_pubK, priK_neq_pubK RS not_sym];
 
 (*Agents see their own private keys!*)
 goal thy "A ~= Spy --> Key (priK A) : sees lost A evs";
@@ -155,6 +146,48 @@ qed "Says_Crypt_not_lost";
 
 Addsimps [sees_own, sees_Server, sees_Friend, sees_Spy];
 Delsimps [sees_Cons];   (**** NOTE REMOVAL -- laws above are cleaner ****)
+
+
+(*** Fresh nonces ***)
+
+goal thy "Nonce N ~: parts (initState lost B)";
+by (agent.induct_tac "B" 1);
+by (Auto_tac ());
+qed "Nonce_notin_initState";
+
+AddIffs [Nonce_notin_initState];
+
+goalw thy [used_def] "!!X. X: parts (sees lost B evs) ==> X: used evs";
+be (impOfSubs parts_mono) 1;
+by (Fast_tac 1);
+qed "usedI";
+
+AddIs [usedI];
+
+(*Yields a supply of fresh nonces for possibility theorems.*)
+goalw thy [used_def] "EX N. ALL n. N<=n --> Nonce n ~: used evs";
+by (list.induct_tac "evs" 1);
+by (res_inst_tac [("x","0")] exI 1);
+by (Step_tac 1);
+by (Full_simp_tac 1);
+by (event.induct_tac "a" 1);
+by (full_simp_tac (!simpset addsimps [UN_parts_sees_Says]) 1);
+by (msg.induct_tac "msg" 1);
+by (ALLGOALS (asm_simp_tac (!simpset addsimps [exI, parts_insert2])));
+by (Step_tac 1);
+(*MPair case*)
+by (res_inst_tac [("x","Na+Nb")] exI 2);
+by (fast_tac (!claset addSEs [add_leE]) 2);
+(*Nonce case*)
+by (res_inst_tac [("x","N + Suc nat")] exI 1);
+by (fast_tac (!claset addSEs [add_leE] addafter (TRYALL trans_tac)) 1);
+val lemma = result();
+
+goal thy "Nonce (@ N. Nonce N ~: used evs) ~: used evs";
+br (lemma RS exE) 1;
+br selectI 1;
+by (Fast_tac 1);
+qed "Nonce_supply";
 
 
 (** Power of the Spy **)
