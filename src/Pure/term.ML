@@ -1007,3 +1007,4 @@ end;
 
 structure BasicTerm: BASIC_TERM = Term;
 open BasicTerm;
+structure Vartab = TableFun(type key = indexname val ord = Term.indexname_ord);
