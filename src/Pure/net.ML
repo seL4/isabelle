@@ -39,7 +39,7 @@ struct
 datatype key = CombK | VarK | AtomK of string;
 
 (*Bound variables*)
-fun string_of_bound i = "*B*" ^ chr i;
+fun string_of_bound i = "*B*" ^ chr (i div 256) ^ chr (i mod 256);
 
 (*Keys are preorder lists of symbols -- Combinations, Vars, Atoms.
   Any term whose head is a Var is regarded entirely as a Var.
