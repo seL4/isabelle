@@ -1334,20 +1334,11 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
           :== mk_ext args
       end;
     val upd_specs = map mk_upd_spec fields_more;
-
-    (* code generator data *)
-        (* Representation as nested pairs is revealed for codegeneration *)
-    val [rep_code,abs_code] = map (Codegen.parse_mixfix (K (Bound 0))) ["(_)","(_)"];
-    val ext_type_code = Codegen.parse_mixfix (K dummyT) "(_)";
     
     (* 1st stage: defs_thy *)
     val (defs_thy, (([abs_inject, abs_inverse, abs_induct],ext_def::dest_defs),upd_defs)) =
         thy 
         |> extension_typedef name repT (alphas@[zeta])
-        |>> Codegen.assoc_consts_i 
-               [(mk_AbsN name,None,abs_code),
-                (mk_RepN name,None,rep_code)]
-        |>> Codegen.assoc_types [(extT_name,ext_type_code)]
         |>> Theory.add_consts_i 
               (map Syntax.no_syn ((apfst base ext_decl)::dest_decls@upd_decls))
         |>>> PureThy.add_defs_i false (map Thm.no_attributes (ext_spec::dest_specs))
