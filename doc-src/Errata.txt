@@ -1,0 +1,27 @@
+ERRATA FOR ISABELLE MANUAL
+
+** THM : BASIC INFERENCE **
+
+Pure/tactic/lift_inst_rule: now checks for distinct parameters (could also
+compare with free variable names, though).  Variables in the insts are now
+lifted over all parameters; their index is also increased.  Type vars in
+the lhs variables are also increased by maxidx+1; this is essential for HOL
+examples to work.
+
+
+** THEORY MATTERS (GENERAL) **
+
+Definitions: users must ensure that the left-hand side is nothing
+more complex than a function application -- never using fancy syntax.  E.g.
+never
+>     ("the_def",      "THE y. P(y) == Union({y . x:{0}, P(y)})" ),
+but
+<     ("the_def",      "The(P) == Union({y . x:{0}, P(y)})" ),
+
+Provers/classical, simp (new simplifier), tsimp (old simplifier), ind
+
+** SYSTEMS MATTERS **
+
+explain make system?  maketest
+
+expandshort
