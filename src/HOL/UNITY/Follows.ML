@@ -30,6 +30,11 @@ by (asm_full_simp_tac
 			 impOfSubs mono_LeadsTo_o RS INT_D]) 1);
 qed "mono_Follows_o";
 
+Goal "mono h ==> f Fols g <= (%x. h (f x)) Fols (%x. h (g x))";
+by (dtac mono_Follows_o 1);
+by (force_tac (claset(), simpset() addsimps [o_def]) 1);
+qed "mono_Follows_apply";
+
 Goalw [Follows_def]
      "[| F : f Fols g;  F: g Fols h |] ==> F : f Fols h";
 by (asm_full_simp_tac (simpset() addsimps [Always_eq_includes_reachable]) 1);
