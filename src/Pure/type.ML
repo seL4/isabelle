@@ -868,7 +868,7 @@ fun decode_types tsig is_const def_type def_sort map_const map_type map_sort tm 
     val sort_of = get_sort tsig def_sort map_sort raw_env;
 
     val certT = cert_typ tsig o map_type;
-    fun decodeT t = certT (Syntax.typ_of_term sort_of t);
+    fun decodeT t = certT (Syntax.typ_of_term sort_of map_sort t);
 
     fun decode (Const ("_constrain", _) $ t $ typ) =
           constrain (decode t) (decodeT typ)
