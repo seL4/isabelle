@@ -9,7 +9,7 @@ Deadlock examples from section 5.6 of
 
 (*Trivial, two-process case*)
 Goalw [constrains_def, stable_def]
-    "[| F : constrains (A Int B) A;  F : constrains (B Int A) B |] \
+    "[| F : (A Int B) co A;  F : (B Int A) co B |] \
 \    ==> F : stable (A Int B)";
 by (Blast_tac 1);
 result();
@@ -69,9 +69,9 @@ qed "INT_le_Suc_equals_Int";
 
 (*The final deadlock example*)
 val [zeroprem, allprem] = goalw thy [stable_def]
-    "[| F : constrains (A 0 Int A (Suc n)) (A 0);  \
-\       ALL i: atMost n. F : constrains (A(Suc i) Int A i) \
-\                                         (-A i Un A(Suc i)) |] \
+    "[| F : (A 0 Int A (Suc n)) co (A 0);  \
+\       ALL i: atMost n. F : (A(Suc i) Int A i) co \
+\                            (-A i Un A(Suc i)) |] \
 \    ==> F : stable (INT i: atMost (Suc n). A i)";
 
 by (rtac ([zeroprem, allprem RS ball_constrains_INT] MRS 

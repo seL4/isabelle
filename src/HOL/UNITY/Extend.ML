@@ -172,10 +172,10 @@ qed "extend_Join";
 Addsimps [extend_Join];
 
 
-(*** Safety: constrains, stable ***)
+(*** Safety: co, stable ***)
 
-Goal "(extend h F : constrains (extend_set h A) (extend_set h B)) = \
-\     (F : constrains A B)";
+Goal "(extend h F : (extend_set h A) co (extend_set h B)) = \
+\     (F : A co B)";
 by (simp_tac (simpset() addsimps [constrains_def]) 1);
 qed "extend_constrains";
 
@@ -187,7 +187,7 @@ Goal "(extend h F : invariant (extend_set h A)) = (F : invariant A)";
 by (asm_simp_tac (simpset() addsimps [invariant_def, extend_stable]) 1);
 qed "extend_invariant";
 
-(** Substitution Axiom versions: Constrains, Stable **)
+(** Substitution Axiom versions: Co, Stable **)
 
 Goal "p : reachable (extend h F) ==> f p : reachable F";
 by (etac reachable.induct 1);
@@ -212,8 +212,8 @@ by (ALLGOALS (force_tac (claset() addIs reachable.intrs,
 			 simpset())));
 qed "reachable_extend_eq";
 
-Goal "(extend h F : Constrains (extend_set h A) (extend_set h B)) =  \
-\     (F : Constrains A B)";
+Goal "(extend h F : (extend_set h A) Co (extend_set h B)) =  \
+\     (F : A Co B)";
 by (simp_tac
     (simpset() addsimps [Constrains_def, reachable_extend_eq, 
 			 extend_constrains, extend_set_Int_distrib RS sym]) 1);
@@ -232,16 +232,16 @@ by (auto_tac (claset(),
 				  Domain_extend_act]));
 qed "extend_transient";
 
-Goal "(extend h F : ensures (extend_set h A) (extend_set h B)) = \
-\     (F : ensures A B)";
+Goal "(extend h F : (extend_set h A) ensures (extend_set h B)) = \
+\     (F : A ensures B)";
 by (simp_tac
     (simpset() addsimps [ensures_def, extend_constrains, extend_transient, 
 			 extend_set_Un_distrib RS sym, 
 			 extend_set_Diff_distrib RS sym]) 1);
 qed "extend_ensures";
 
-Goal "F : leadsTo A B \
-\     ==> extend h F : leadsTo (extend_set h A) (extend_set h B)";
+Goal "F : A leadsTo B \
+\     ==> extend h F : (extend_set h A) leadsTo (extend_set h B)";
 by (etac leadsTo_induct 1);
 by (asm_simp_tac (simpset() addsimps [leadsTo_UN, extend_set_Union]) 3);
 by (blast_tac (claset() addIs [leadsTo_Trans]) 2);
@@ -272,7 +272,7 @@ by Auto_tac;
 by (force_tac (claset(), simpset() addsimps [extend_act_def]) 1);
 qed "extend_transient_slice";
 
-Goal "extend h F : ensures A B ==> F : ensures (slice A y) (f `` B)";
+Goal "extend h F : A ensures B ==> F : (slice A y) ensures (f `` B)";
 by (full_simp_tac
     (simpset() addsimps [ensures_def, extend_constrains, extend_transient, 
 			 image_Un RS sym,
@@ -292,14 +292,14 @@ by (force_tac (claset() addIs [f_h_eq RS sym],
 	       simpset() addsimps [slice_def]) 1);
 qed "extend_ensures_slice";
 
-Goal "ALL y. F : leadsTo (slice B y) CU ==> F : leadsTo (f `` B) CU";
+Goal "ALL y. F : (slice B y) leadsTo CU ==> F : (f `` B) leadsTo CU";
 by (simp_tac (simpset() addsimps [image_is_UN_slice]) 1);
 by (blast_tac (claset() addIs [leadsTo_UN]) 1);
 qed "leadsTo_slice_image";
 
 
-Goal "extend h F : leadsTo AU BU \
-\     ==> ALL y. F : leadsTo (slice AU y) (f `` BU)";
+Goal "extend h F : AU leadsTo BU \
+\     ==> ALL y. F : (slice AU y) leadsTo (f `` BU)";
 by (etac leadsTo_induct 1);
 by (full_simp_tac (simpset() addsimps [slice_Union]) 3);
 by (blast_tac (claset() addIs [leadsTo_UN]) 3);
@@ -307,16 +307,16 @@ by (blast_tac (claset() addIs [leadsTo_slice_image, leadsTo_Trans]) 2);
 by (blast_tac (claset() addIs [extend_ensures_slice, leadsTo_Basis]) 1);
 qed_spec_mp "extend_leadsTo_slice";
 
-Goal "(extend h F : leadsTo (extend_set h A) (extend_set h B)) = \
-\     (F : leadsTo A B)";
+Goal "(extend h F : (extend_set h A) leadsTo (extend_set h B)) = \
+\     (F : A leadsTo B)";
 by Safe_tac;
 by (etac leadsTo_imp_extend_leadsTo 2);
 by (dtac extend_leadsTo_slice 1);
 by (full_simp_tac (simpset() addsimps [slice_extend_set]) 1);
 qed "extend_leadsto_eq";
 
-Goal "(extend h F : LeadsTo (extend_set h A) (extend_set h B)) =  \
-\     (F : LeadsTo A B)";
+Goal "(extend h F : (extend_set h A) LeadsTo (extend_set h B)) =  \
+\     (F : A LeadsTo B)";
 by (simp_tac
     (simpset() addsimps [LeadsTo_def, reachable_extend_eq, 
 			 extend_leadsto_eq, extend_set_Int_distrib RS sym]) 1);

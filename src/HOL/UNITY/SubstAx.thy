@@ -3,14 +3,16 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
-LeadsTo relation: restricted to the set of reachable states.
+Weak LeadsTo relation (restricted to the set of reachable states)
 *)
 
 SubstAx = WFair + Constrains + 
 
-constdefs
+consts
+   LeadsTo :: "['a set, 'a set] => 'a program set"       (infixl 60)
 
-   LeadsTo :: "['a set, 'a set] => 'a program set"
-    "LeadsTo A B == {F. F : leadsTo (reachable F  Int  A)
-	   	                    (reachable F  Int  B)}"
+defs
+   LeadsTo_def
+    "A LeadsTo B == {F. F : (reachable F  Int  A) leadsTo
+	   	            (reachable F  Int  B)}"
 end

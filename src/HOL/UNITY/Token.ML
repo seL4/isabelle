@@ -67,7 +67,7 @@ qed "nodeOrder_eq";
 (*From "A Logic for Concurrent Programming", but not used in Chapter 4.
   Note the use of case_tac.  Reasoning about leadsTo takes practice!*)
 Goal "[| i<N; j<N |] ==>   \
-\     F : leadsTo (HasTok i) ({s. (token s, i) : nodeOrder j} Un HasTok j)";
+\     F : (HasTok i) leadsTo ({s. (token s, i) : nodeOrder j} Un HasTok j)";
 by (case_tac "i=j" 1);
 by (blast_tac (claset() addIs [subset_imp_leadsTo]) 1);
 by (rtac (TR7 RS leadsTo_weaken_R) 1);
@@ -78,7 +78,7 @@ qed "TR7_nodeOrder";
 
 (*Chapter 4 variant, the one actually used below.*)
 Goal "[| i<N; j<N; i~=j |]    \
-\     ==> F : leadsTo (HasTok i) {s. (token s, i) : nodeOrder j}";
+\     ==> F : (HasTok i) leadsTo {s. (token s, i) : nodeOrder j}";
 by (rtac (TR7 RS leadsTo_weaken_R) 1);
 by (Clarify_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [HasTok_def, nodeOrder_eq]) 1);
@@ -91,7 +91,7 @@ val token_lemma = result();
 
 
 (*Misra's TR9: the token reaches an arbitrary node*)
-Goal "j<N ==> F : leadsTo {s. token s < N} (HasTok j)";
+Goal "j<N ==> F : {s. token s < N} leadsTo (HasTok j)";
 by (rtac leadsTo_weaken_R 1);
 by (res_inst_tac [("I", "-{j}"), ("f", "token"), ("B", "{}")]
      (wf_nodeOrder RS bounded_induct) 1);
@@ -105,7 +105,7 @@ by (ALLGOALS Blast_tac);
 qed "leadsTo_j";
 
 (*Misra's TR8: a hungry process eventually eats*)
-Goal "j<N ==> F : leadsTo ({s. token s < N} Int H j) (E j)";
+Goal "j<N ==> F : ({s. token s < N} Int H j) leadsTo (E j)";
 by (rtac (leadsTo_cancel1 RS leadsTo_Un_duplicate) 1);
 by (rtac TR6 2);
 by (rtac leadsTo_weaken_R 1);

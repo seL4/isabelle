@@ -43,17 +43,17 @@ locale Token =
   assumes
     N_positive "0<N"
 
-    TR2  "F : constrains (T i) (T i Un H i)"
+    TR2  "F : (T i) co (T i Un H i)"
 
-    TR3  "F : constrains (H i) (H i Un E i)"
+    TR3  "F : (H i) co (H i Un E i)"
 
-    TR4  "F : constrains (H i - HasTok i) (H i)"
+    TR4  "F : (H i - HasTok i) co (H i)"
 
-    TR5  "F : constrains (HasTok i) (HasTok i Un -(E i))"
+    TR5  "F : (HasTok i) co (HasTok i Un -(E i))"
 
-    TR6  "F : leadsTo (H i Int HasTok i) (E i)"
+    TR6  "F : (H i Int HasTok i) leadsTo (E i)"
 
-    TR7  "F : leadsTo (HasTok i) (HasTok (next i))"
+    TR7  "F : (HasTok i) leadsTo (HasTok (next i))"
 
   defines
     nodeOrder_def

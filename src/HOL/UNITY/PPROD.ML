@@ -68,12 +68,12 @@ by (fast_tac (claset() addIs [component_JN]) 1);
 qed "component_PPROD";
 
 
-(*** Safety: constrains, stable, invariant ***)
+(*** Safety: co, stable, invariant ***)
 
 (** 1st formulation of lifting **)
 
-Goal "(lift_prog i F : constrains (lift_set i A) (lift_set i B))  =  \
-\     (F : constrains A B)";
+Goal "(lift_prog i F : (lift_set i A) co (lift_set i B))  =  \
+\     (F : A co B)";
 by (auto_tac (claset(), 
 	      simpset() addsimps [constrains_def, Acts_lift_prog]));
 by (Blast_tac 2);
@@ -85,16 +85,16 @@ by (simp_tac (simpset() addsimps [stable_def, lift_prog_constrains_eq]) 1);
 qed "lift_prog_stable_eq";
 
 (*This one looks strange!  Proof probably is by case analysis on i=j.*)
-Goal "F i : constrains A B  \
-\     ==> lift_prog j (F j) : constrains (lift_set i A) (lift_set i B)";
+Goal "F i : A co B  \
+\     ==> lift_prog j (F j) : (lift_set i A) co (lift_set i B)";
 by (auto_tac (claset(), 
 	      simpset() addsimps [constrains_def, Acts_lift_prog]));
 by (REPEAT (Blast_tac 1));
 qed "constrains_imp_lift_prog_constrains";
 
 Goal "i : I ==>  \
-\     (PPROD I F : constrains (lift_set i A) (lift_set i B))  =  \
-\     (F i : constrains A B)";
+\     (PPROD I F : (lift_set i A) co (lift_set i B))  =  \
+\     (F i : A co B)";
 by (asm_simp_tac (simpset() addsimps [PPROD_def, constrains_JN]) 1);
 by (blast_tac (claset() addIs [lift_prog_constrains_eq RS iffD1, 
 			       constrains_imp_lift_prog_constrains]) 1);
@@ -107,8 +107,8 @@ qed "PPROD_stable";
 
 (** 2nd formulation of lifting **)
 
-Goal "[| lift_prog i F : constrains AA BB |] \
-\     ==> F : constrains (Applyall AA i) (Applyall BB i)";
+Goal "[| lift_prog i F : AA co BB |] \
+\     ==> F : (Applyall AA i) co (Applyall BB i)";
 by (auto_tac (claset(), 
 	      simpset() addsimps [Applyall_def, constrains_def, 
 				  Acts_lift_prog]));
@@ -116,8 +116,8 @@ by (force_tac (claset() addSIs [rinst [("x", "?ff(i := ?u)")] image_eqI],
 	       simpset()) 1);
 qed "lift_prog_constrains_projection";
 
-Goal "[| PPROD I F : constrains AA BB;  i: I |] \
-\     ==> F i : constrains (Applyall AA i) (Applyall BB i)";
+Goal "[| PPROD I F : AA co BB;  i: I |] \
+\     ==> F i : (Applyall AA i) co (Applyall BB i)";
 by (rtac lift_prog_constrains_projection 1);
 (*rotate this assumption to be last*)
 by (dres_inst_tac [("psi", "PPROD I F : ?C")] asm_rl 1);
@@ -163,7 +163,7 @@ by (auto_tac (claset(),
 qed "PFUN_invariant";
 
 
-(*** Substitution Axiom versions: Constrains, Stable ***)
+(*** Substitution Axiom versions: Co, Stable ***)
 
 (** Reachability **)
 
@@ -225,10 +225,10 @@ by (REPEAT_FIRST (ares_tac [equalityI,
 qed "reachable_PPROD_eq";
 
 
-(** Constrains **)
+(** Co **)
 
-Goal "[| F i : Constrains A B;  i: I;  finite I |]  \
-\     ==> PPROD I F : Constrains (lift_set i A) (lift_set i B)";
+Goal "[| F i : A Co B;  i: I;  finite I |]  \
+\     ==> PPROD I F : (lift_set i A) Co (lift_set i B)";
 by (auto_tac
     (claset(),
      simpset() addsimps [Constrains_def, Collect_conj_eq RS sym,
@@ -245,11 +245,11 @@ by (force_tac (claset() addSIs [rinst [("x", "?ff(i := ?u)")] image_eqI],
 	       simpset() addsimps [Applyall_def, lift_set_def]) 1);
 qed "Applyall_Int_depend";
 
-(*Again, we need the f0 premise because otherwise Constrains holds trivially
+(*Again, we need the f0 premise because otherwise holds Co trivially
   for PPROD I F.*)
-Goal "[| PPROD I F : Constrains (lift_set i A) (lift_set i B);  \
+Goal "[| PPROD I F : (lift_set i A) Co (lift_set i B);  \
 \        i: I;  finite I;  f0: Init (PPROD I F) |]  \
-\     ==> F i : Constrains A B";
+\     ==> F i : A Co B";
 by (full_simp_tac (simpset() addsimps [Constrains_def]) 1);
 by (subgoal_tac "ALL i:I. f0 i : reachable (F i)" 1);
 by (blast_tac (claset() addIs [reachable.Init]) 2);
@@ -261,8 +261,8 @@ qed "PPROD_Constrains_imp_Constrains";
 
 
 Goal "[| i: I;  finite I;  f0: Init (PPROD I F) |]  \
-\     ==> (PPROD I F : Constrains (lift_set i A) (lift_set i B)) =  \
-\         (F i : Constrains A B)";
+\     ==> (PPROD I F : (lift_set i A) Co (lift_set i B)) =  \
+\         (F i : A Co B)";
 by (blast_tac (claset() addIs [Constrains_imp_PPROD_Constrains, 
 			       PPROD_Constrains_imp_Constrains]) 1);
 qed "PPROD_Constrains";
@@ -281,9 +281,9 @@ Goal "i: I \
 by (force_tac (claset(), simpset() addsimps [Applyall_def]) 1);
 qed "Applyall_Int";
 
-Goal "[| (PPI x:I. F) : Constrains (lift_set i A) (lift_set i B);  \
+Goal "[| (PPI x:I. F) : (lift_set i A) Co (lift_set i B);  \
 \        i: I;  finite I |]  \
-\     ==> F : Constrains A B";
+\     ==> F : A Co B";
 by (full_simp_tac (simpset() addsimps [Constrains_def]) 1);
 by (dtac PPROD_constrains_projection 1);
 by (assume_tac 1);
@@ -293,8 +293,8 @@ by (asm_full_simp_tac
 qed "PFUN_Constrains_imp_Constrains";
 
 Goal "[| i: I;  finite I |]  \
-\     ==> ((PPI x:I. F) : Constrains (lift_set i A) (lift_set i B)) =  \
-\         (F : Constrains A B)";
+\     ==> ((PPI x:I. F) : (lift_set i A) Co (lift_set i B)) =  \
+\         (F : A Co B)";
 by (blast_tac (claset() addIs [Constrains_imp_PPROD_Constrains, 
 			       PFUN_Constrains_imp_Constrains]) 1);
 qed "PFUN_Constrains";

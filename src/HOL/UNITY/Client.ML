@@ -124,8 +124,7 @@ val lemma1 = result();
 Goal "Cli_prg : \
 \      (Increasing giv Int (rel localTo Cli_prg) Int (ask localTo Cli_prg) \
 \                 Int Invariant giv_meets_ask) \
-\      guarantees (LeadsTo {s. k < size (giv s)}    \
-\                          {s. k < size (rel s)})";
+\      guarantees ({s. k < size (giv s)} LeadsTo {s. k < size (rel s)})";
 by (rtac guaranteesI 1);
 by (Clarify_tac 1);
 by (rtac Stable_transient_reachable_LeadsTo 1);

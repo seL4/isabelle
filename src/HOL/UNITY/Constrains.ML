@@ -41,18 +41,17 @@ by (REPEAT (blast_tac (claset() addIs reachable.intrs) 1));
 qed "invariant_includes_reachable";
 
 
-(*** Constrains ***)
+(*** Co ***)
 
-overload_1st_set "Constrains.Constrains";
+overload_1st_set "Constrains.op Co";
 
-(*F : constrains B B'
-  ==> F : constrains (reachable F Int B) (reachable F Int B')*)
+(*F : B co B' ==> F : (reachable F Int B) co (reachable F Int B')*)
 bind_thm ("constrains_reachable_Int",
 	  subset_refl RS
 	  rewrite_rule [stable_def] stable_reachable RS 
 	  constrains_Int);
 
-Goalw [Constrains_def] "F : constrains A A' ==> F : Constrains A A'";
+Goalw [Constrains_def] "F : A co A' ==> F : A Co A'";
 by (blast_tac (claset() addIs [constrains_reachable_Int]) 1);
 qed "constrains_imp_Constrains";
 
@@ -62,46 +61,46 @@ qed "stable_imp_Stable";
 
 val prems = Goal
     "(!!act s s'. [| act: Acts F;  (s,s') : act;  s: A |] ==> s': A') \
-\    ==> F : Constrains A A'";
+\    ==> F : A Co A'";
 by (rtac constrains_imp_Constrains 1);
 by (blast_tac (claset() addIs (constrainsI::prems)) 1);
 qed "ConstrainsI";
 
-Goalw [Constrains_def, constrains_def] "F : Constrains {} B";
+Goalw [Constrains_def, constrains_def] "F : {} Co B";
 by (Blast_tac 1);
 qed "Constrains_empty";
 
-Goal "F : Constrains A UNIV";
+Goal "F : A Co UNIV";
 by (blast_tac (claset() addIs [ConstrainsI]) 1);
 qed "Constrains_UNIV";
 AddIffs [Constrains_empty, Constrains_UNIV];
 
 
 Goalw [Constrains_def]
-    "[| F : Constrains A A'; A'<=B' |] ==> F : Constrains A B'";
+    "[| F : A Co A'; A'<=B' |] ==> F : A Co B'";
 by (blast_tac (claset() addIs [constrains_weaken_R]) 1);
 qed "Constrains_weaken_R";
 
 Goalw [Constrains_def]
-    "[| F : Constrains A A'; B<=A |] ==> F : Constrains B A'";
+    "[| F : A Co A'; B<=A |] ==> F : B Co A'";
 by (blast_tac (claset() addIs [constrains_weaken_L]) 1);
 qed "Constrains_weaken_L";
 
 Goalw [Constrains_def]
-   "[| F : Constrains A A'; B<=A; A'<=B' |] ==> F : Constrains B B'";
+   "[| F : A Co A'; B<=A; A'<=B' |] ==> F : B Co B'";
 by (blast_tac (claset() addIs [constrains_weaken]) 1);
 qed "Constrains_weaken";
 
 (** Union **)
 
 Goalw [Constrains_def]
-    "[| F : Constrains A A'; F : Constrains B B' |]   \
-\    ==> F : Constrains (A Un B) (A' Un B')";
+    "[| F : A Co A'; F : B Co B' |]   \
+\    ==> F : (A Un B) Co (A' Un B')";
 by (blast_tac (claset() addIs [constrains_Un RS constrains_weaken]) 1);
 qed "Constrains_Un";
 
-Goal "ALL i:I. F : Constrains (A i) (A' i) \
-\     ==> F : Constrains (UN i:I. A i) (UN i:I. A' i)";
+Goal "ALL i:I. F : (A i) Co (A' i) \
+\     ==> F : (UN i:I. A i) Co (UN i:I. A' i)";
 by (asm_full_simp_tac (simpset() addsimps [Constrains_def]) 1);
 by (dtac ball_constrains_UN 1);
 by (blast_tac (claset() addIs [constrains_weaken]) 1);
@@ -110,20 +109,20 @@ qed "ball_Constrains_UN";
 (** Intersection **)
 
 Goalw [Constrains_def]
-    "[| F : Constrains A A'; F : Constrains B B' |]   \
-\    ==> F : Constrains (A Int B) (A' Int B')";
+    "[| F : A Co A'; F : B Co B' |]   \
+\    ==> F : (A Int B) Co (A' Int B')";
 by (blast_tac (claset() addIs [constrains_Int RS constrains_weaken]) 1);
 qed "Constrains_Int";
 
-Goal "ALL i:I. F : Constrains (A i) (A' i)   \
-\     ==> F : Constrains (INT i:I. A i) (INT i:I. A' i)";
+Goal "ALL i:I. F : (A i) Co (A' i)   \
+\     ==> F : (INT i:I. A i) Co (INT i:I. A' i)";
 by (asm_full_simp_tac (simpset() addsimps [Constrains_def]) 1);
 by (dtac ball_constrains_INT 1);
 by (dtac constrains_reachable_Int 1);
 by (blast_tac (claset() addIs [constrains_weaken]) 1);
 qed "ball_Constrains_INT";
 
-Goal "F : Constrains A A' ==> reachable F Int A <= A'";
+Goal "F : A Co A' ==> reachable F Int A <= A'";
 by (asm_full_simp_tac (simpset() addsimps [Constrains_def]) 1);
 by (dtac constrains_imp_subset 1);
 by (ALLGOALS
@@ -131,14 +130,14 @@ by (ALLGOALS
 qed "Constrains_imp_subset";
 
 Goalw [Constrains_def]
-    "[| F : Constrains A B; F : Constrains B C |]   \
-\    ==> F : Constrains A C";
+    "[| F : A Co B; F : B Co C |]   \
+\    ==> F : A Co C";
 by (blast_tac (claset() addIs [constrains_trans, constrains_weaken]) 1);
 qed "Constrains_trans";
 
 Goalw [Constrains_def, constrains_def]
-   "[| F : Constrains A (A' Un B); F : Constrains B B' |] \
-\   ==> F : Constrains A (A' Un B')";
+   "[| F : A Co (A' Un B); F : B Co B' |] \
+\   ==> F : A Co (A' Un B')";
 by (Clarify_tac 1);
 by (Blast_tac 1);
 qed "Constrains_cancel";
@@ -150,11 +149,11 @@ Goal "(F : Stable A) = (F : stable (reachable F Int A))";
 by (simp_tac (simpset() addsimps [Stable_def, Constrains_def, stable_def]) 1);
 qed "Stable_eq_stable";
 
-Goalw [Stable_def] "F : Constrains A A ==> F : Stable A";
+Goalw [Stable_def] "F : A Co A ==> F : Stable A";
 by (assume_tac 1);
 qed "StableI";
 
-Goalw [Stable_def] "F : Stable A ==> F : Constrains A A";
+Goalw [Stable_def] "F : Stable A ==> F : A Co A";
 by (assume_tac 1);
 qed "StableD";
 
@@ -169,14 +168,14 @@ by (blast_tac (claset() addIs [Constrains_Int]) 1);
 qed "Stable_Int";
 
 Goalw [Stable_def]
-    "[| F : Stable C; F : Constrains A (C Un A') |]   \
-\    ==> F : Constrains (C Un A) (C Un A')";
+    "[| F : Stable C; F : A Co (C Un A') |]   \
+\    ==> F : (C Un A) Co (C Un A')";
 by (blast_tac (claset() addIs [Constrains_Un RS Constrains_weaken]) 1);
 qed "Stable_Constrains_Un";
 
 Goalw [Stable_def]
-    "[| F : Stable C; F : Constrains (C Int A) A' |]   \
-\    ==> F : Constrains (C Int A) (C Int A')";
+    "[| F : Stable C; F : (C Int A) Co A' |]   \
+\    ==> F : (C Int A) Co (C Int A')";
 by (blast_tac (claset() addIs [Constrains_Int RS Constrains_weaken]) 1);
 qed "Stable_Constrains_Int";
 
@@ -222,15 +221,15 @@ qed "increasing_imp_Increasing";
      in forward proof. ***)
 
 Goalw [Constrains_def, constrains_def]
-    "[| ALL m. F : Constrains {s. s x = m} (B m) |] \
-\    ==> F : Constrains {s. s x : M} (UN m:M. B m)";
+    "[| ALL m. F : {s. s x = m} Co (B m) |] \
+\    ==> F : {s. s x : M} Co (UN m:M. B m)";
 by (Blast_tac 1);
 qed "Elimination";
 
 (*As above, but for the trivial case of a one-variable state, in which the
   state is identified with its one variable.*)
 Goalw [Constrains_def, constrains_def]
-    "(ALL m. F : Constrains {m} (B m)) ==> F : Constrains M (UN m:M. B m)";
+    "(ALL m. F : {m} Co (B m)) ==> F : M Co (UN m:M. B m)";
 by (Blast_tac 1);
 qed "Elimination_sing";
 
@@ -286,21 +285,21 @@ by (blast_tac (claset() addIs [invariantI, impOfSubs Init_subset_reachable,
 qed "Invariant_eq_UN_invariant";
 
 
-(*** "Constrains" rules involving Invariant ***)
+(*** "Co" rules involving Invariant ***)
 
-Goal "[| F : Invariant INV;  F : Constrains (INV Int A) A' |]   \
-\     ==> F : Constrains A A'";
+Goal "[| F : Invariant INV;  F : (INV Int A) Co A' |]   \
+\     ==> F : A Co A'";
 by (asm_full_simp_tac
     (simpset() addsimps [Invariant_includes_reachable RS Int_absorb2,
 			 Constrains_def, Int_assoc RS sym]) 1);
 qed "Invariant_ConstrainsI";
 
-(* [| F : Invariant INV; F : Constrains (INV Int A) A |]
+(* [| F : Invariant INV; F : (INV Int A) Co A |]
    ==> F : Stable A *)
 bind_thm ("Invariant_StableI", Invariant_ConstrainsI RS StableI);
 
-Goal "[| F : Invariant INV;  F : Constrains A A' |]   \
-\     ==> F : Constrains A (INV Int A')";
+Goal "[| F : Invariant INV;  F : A Co A' |]   \
+\     ==> F : A Co (INV Int A')";
 by (asm_full_simp_tac
     (simpset() addsimps [Invariant_includes_reachable RS Int_absorb2,
 			 Constrains_def, Int_assoc RS sym]) 1);
@@ -334,7 +333,7 @@ val Invariant_Int_rule = foldr1 (fn (th1,th2) => [th1,th2] MRS Invariant_Int);
 (*To allow expansion of the program's definition when appropriate*)
 val program_defs_ref = ref ([] : thm list);
 
-(*proves "constrains" properties when the program is specified*)
+(*proves "co" properties when the program is specified*)
 fun constrains_tac i = 
    SELECT_GOAL
       (EVERY [simp_tac (simpset() addsimps !program_defs_ref) 1,

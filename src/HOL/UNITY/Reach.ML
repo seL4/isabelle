@@ -109,7 +109,7 @@ by (auto_tac (claset() addIs [less_imp_le],
 	      simpset() addsimps [fun_upd_idem]));
 qed "metric_le";
 
-Goal "Rprg : LeadsTo ((metric-``{m}) - fixedpoint) (metric-``(lessThan m))";
+Goal "Rprg : ((metric-``{m}) - fixedpoint) LeadsTo (metric-``(lessThan m))";
 by (simp_tac (simpset() addsimps [Diff_fixedpoint]) 1);
 by (rtac LeadsTo_UN 1);
 by Auto_tac;
@@ -121,7 +121,7 @@ by (auto_tac (claset() addEs [less_not_refl3 RSN (2, rev_notE)],
 	      simpset()));
 qed "LeadsTo_Diff_fixedpoint";
 
-Goal "Rprg : LeadsTo (metric-``{m}) (metric-``(lessThan m) Un fixedpoint)";
+Goal "Rprg : (metric-``{m}) LeadsTo (metric-``(lessThan m) Un fixedpoint)";
 by (rtac ([LeadsTo_Diff_fixedpoint RS LeadsTo_weaken_R,
 	   subset_imp_LeadsTo] MRS LeadsTo_Diff) 1);
 by Auto_tac;
@@ -129,13 +129,13 @@ qed "LeadsTo_Un_fixedpoint";
 
 
 (*Execution in any state leads to a fixedpoint (i.e. can terminate)*)
-Goal "Rprg : LeadsTo UNIV fixedpoint";
+Goal "Rprg : UNIV LeadsTo fixedpoint";
 by (rtac LessThan_induct 1);
 by Auto_tac;
 by (rtac LeadsTo_Un_fixedpoint 1);
 qed "LeadsTo_fixedpoint";
 
-Goal "Rprg : LeadsTo UNIV { %v. (init, v) : edges^* }";
+Goal "Rprg : UNIV LeadsTo { %v. (init, v) : edges^* }";
 by (stac (fixedpoint_invariant_correct RS sym) 1);
 by (rtac ([reach_invariant, LeadsTo_fixedpoint] 
 	  MRS Invariant_LeadsTo_weaken) 1); 

@@ -111,92 +111,91 @@ qed "def_set_simp";
 fun simp_of_set def = def RS def_set_simp;
 
 
-(*** constrains ***)
+(*** co ***)
 
-overload_1st_set "UNITY.constrains";
+overload_1st_set "UNITY.op co";
 overload_1st_set "UNITY.stable";
 overload_1st_set "UNITY.unless";
 
 val prems = Goalw [constrains_def]
     "(!!act s s'. [| act: Acts F;  (s,s') : act;  s: A |] ==> s': A') \
-\    ==> F : constrains A A'";
+\    ==> F : A co A'";
 by (blast_tac (claset() addIs prems) 1);
 qed "constrainsI";
 
 Goalw [constrains_def]
-    "[| F : constrains A A'; act: Acts F;  (s,s'): act;  s: A |] ==> s': A'";
+    "[| F : A co A'; act: Acts F;  (s,s'): act;  s: A |] ==> s': A'";
 by (Blast_tac 1);
 qed "constrainsD";
 
-Goalw [constrains_def] "F : constrains {} B";
+Goalw [constrains_def] "F : {} co B";
 by (Blast_tac 1);
 qed "constrains_empty";
 
-Goalw [constrains_def] "F : constrains A UNIV";
+Goalw [constrains_def] "F : A co UNIV";
 by (Blast_tac 1);
 qed "constrains_UNIV";
 AddIffs [constrains_empty, constrains_UNIV];
 
 (*monotonic in 2nd argument*)
 Goalw [constrains_def]
-    "[| F : constrains A A'; A'<=B' |] ==> F : constrains A B'";
+    "[| F : A co A'; A'<=B' |] ==> F : A co B'";
 by (Blast_tac 1);
 qed "constrains_weaken_R";
 
 (*anti-monotonic in 1st argument*)
 Goalw [constrains_def]
-    "[| F : constrains A A'; B<=A |] ==> F : constrains B A'";
+    "[| F : A co A'; B<=A |] ==> F : B co A'";
 by (Blast_tac 1);
 qed "constrains_weaken_L";
 
 Goalw [constrains_def]
-   "[| F : constrains A A'; B<=A; A'<=B' |] ==> F : constrains B B'";
+   "[| F : A co A'; B<=A; A'<=B' |] ==> F : B co B'";
 by (Blast_tac 1);
 qed "constrains_weaken";
 
 (** Union **)
 
 Goalw [constrains_def]
-    "[| F : constrains A A'; F : constrains B B' |]   \
-\    ==> F : constrains (A Un B) (A' Un B')";
+    "[| F : A co A'; F : B co B' |]   \
+\    ==> F : (A Un B) co (A' Un B')";
 by (Blast_tac 1);
 qed "constrains_Un";
 
 Goalw [constrains_def]
-    "ALL i:I. F : constrains (A i) (A' i) \
-\    ==> F : constrains (UN i:I. A i) (UN i:I. A' i)";
+    "ALL i:I. F : (A i) co (A' i) \
+\    ==> F : (UN i:I. A i) co (UN i:I. A' i)";
 by (Blast_tac 1);
 qed "ball_constrains_UN";
 
 (** Intersection **)
 
 Goalw [constrains_def]
-    "[| F : constrains A A'; F : constrains B B' |]   \
-\    ==> F : constrains (A Int B) (A' Int B')";
+    "[| F : A co A'; F : B co B' |]   \
+\    ==> F : (A Int B) co (A' Int B')";
 by (Blast_tac 1);
 qed "constrains_Int";
 
 Goalw [constrains_def]
-    "ALL i:I. F : constrains (A i) (A' i) \
-\    ==> F : constrains (INT i:I. A i) (INT i:I. A' i)";
+    "ALL i:I. F : (A i) co (A' i) \
+\    ==> F : (INT i:I. A i) co (INT i:I. A' i)";
 by (Blast_tac 1);
 qed "ball_constrains_INT";
 
-Goalw [constrains_def] "F : constrains A A' ==> A <= A'";
+Goalw [constrains_def] "F : A co A' ==> A <= A'";
 by Auto_tac;
 qed "constrains_imp_subset";
 
-(*The reasoning is by subsets since "constrains" refers to single actions
+(*The reasoning is by subsets since "co" refers to single actions
   only.  So this rule isn't that useful.*)
 Goalw [constrains_def]
-    "[| F : constrains A B; F : constrains B C |]   \
-\    ==> F : constrains A C";
+    "[| F : A co B; F : B co C |] ==> F : A co C";
 by (Blast_tac 1);
 qed "constrains_trans";
 
 Goalw [constrains_def]
-   "[| F : constrains A (A' Un B); F : constrains B B' |] \
-\   ==> F : constrains A (A' Un B')";
+   "[| F : A co (A' Un B); F : B co B' |] \
+\   ==> F : A co (A' Un B')";
 by (Clarify_tac 1);
 by (Blast_tac 1);
 qed "constrains_cancel";
@@ -204,11 +203,11 @@ qed "constrains_cancel";
 
 (*** stable ***)
 
-Goalw [stable_def] "F : constrains A A ==> F : stable A";
+Goalw [stable_def] "F : A co A ==> F : stable A";
 by (assume_tac 1);
 qed "stableI";
 
-Goalw [stable_def] "F : stable A ==> F : constrains A A";
+Goalw [stable_def] "F : stable A ==> F : A co A";
 by (assume_tac 1);
 qed "stableD";
 
@@ -237,18 +236,18 @@ by (blast_tac (claset() addIs [ball_constrains_INT]) 1);
 qed "ball_stable_INT";
 
 Goalw [stable_def, constrains_def]
-    "[| F : stable C; F : constrains A (C Un A') |]   \
-\    ==> F : constrains (C Un A) (C Un A')";
+    "[| F : stable C; F : A co (C Un A') |]   \
+\    ==> F : (C Un A) co (C Un A')";
 by (Blast_tac 1);
 qed "stable_constrains_Un";
 
 Goalw [stable_def, constrains_def]
-    "[| F : stable C; F : constrains (C Int A) A' |]   \
-\    ==> F : constrains (C Int A) (C Int A')";
+    "[| F : stable C; F :  (C Int A) co  A' |]   \
+\    ==> F : (C Int A) co (C Int A')";
 by (Blast_tac 1);
 qed "stable_constrains_Int";
 
-(*[| F : stable C; F : constrains (C Int A) A |] ==> F : stable (C Int A)*)
+(*[| F : stable C; F :  co (C Int A) A |] ==> F : stable (C Int A)*)
 bind_thm ("stable_constrains_stable", stable_constrains_Int RS stableI);
 
 
@@ -284,15 +283,15 @@ qed "increasing_stable_less";
     in forward proof. **)
 
 Goalw [constrains_def]
-    "[| ALL m. F : constrains {s. s x = m} (B m) |] \
-\    ==> F : constrains {s. s x : M} (UN m:M. B m)";
+    "[| ALL m:M. F : {s. s x = m} co (B m) |] \
+\    ==> F : {s. s x : M} co (UN m:M. B m)";
 by (Blast_tac 1);
 qed "elimination";
 
 (*As above, but for the trivial case of a one-variable state, in which the
   state is identified with its one variable.*)
 Goalw [constrains_def]
-    "(ALL m. F : constrains {m} (B m)) ==> F : constrains M (UN m:M. B m)";
+    "(ALL m:M. F : {m} co (B m)) ==> F : M co (UN m:M. B m)";
 by (Blast_tac 1);
 qed "elimination_sing";
 
@@ -301,11 +300,11 @@ qed "elimination_sing";
 (*** Theoretical Results from Section 6 ***)
 
 Goalw [constrains_def, strongest_rhs_def]
-    "F : constrains A (strongest_rhs F A )";
+    "F : A co (strongest_rhs F A )";
 by (Blast_tac 1);
 qed "constrains_strongest_rhs";
 
 Goalw [constrains_def, strongest_rhs_def]
-    "F : constrains A B ==> strongest_rhs F A <= B";
+    "F : A co B ==> strongest_rhs F A <= B";
 by (Blast_tac 1);
 qed "strongest_rhs_is_strongest";

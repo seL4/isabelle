@@ -17,16 +17,22 @@ constdefs
   transient :: "'a set => 'a program set"
     "transient A == {F. EX act: Acts F. A <= Domain act & act^^A <= -A}"
 
-  ensures :: "['a set, 'a set] => 'a program set"
-    "ensures A B == constrains (A-B) (A Un B) Int transient (A-B)"
 
+consts
 
-consts leadsto :: "'a program => ('a set * 'a set) set"
+  ensures :: "['a set, 'a set] => 'a program set"       (infixl 60)
+
+  (*LEADS-TO constant for the inductive definition*)
+  leadsto :: "'a program => ('a set * 'a set) set"
+
+  (*visible version of the LEADS-TO relation*)
+  leadsTo :: "['a set, 'a set] => 'a program set"       (infixl 60)
+
   
 inductive "leadsto F"
   intrs 
 
-    Basis  "F : ensures A B ==> (A,B) : leadsto F"
+    Basis  "F : A ensures B ==> (A,B) : leadsto F"
 
     Trans  "[| (A,B) : leadsto F;  (B,C) : leadsto F |]
 	   ==> (A,C) : leadsto F"
@@ -40,12 +46,15 @@ inductive "leadsto F"
 
 
   
-constdefs (*visible version of the relation*)
-  leadsTo :: "['a set, 'a set] => 'a program set"
-    "leadsTo A B == {F. (A,B) : leadsto F}"
+defs
+  ensures_def "A ensures B == (A-B co A Un B) Int transient (A-B)"
+
+  leadsTo_def "A leadsTo B == {F. (A,B) : leadsto F}"
+
+constdefs
   
   (*wlt F B is the largest set that leads to B*)
   wlt :: "['a program, 'a set] => 'a set"
-    "wlt F B == Union {A. F: leadsTo A B}"
+    "wlt F B == Union {A. F: A leadsTo B}"
 
 end

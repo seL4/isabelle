@@ -31,17 +31,20 @@ inductive "reachable F"
     Acts  "[| act: Acts F;  s : reachable F;  (s,s'): act |]
 	   ==> s' : reachable F"
 
+consts
+  Co, Unless :: "['a set, 'a set] => 'a program set"       (infixl 60)
+
+defs
+  Constrains_def
+    "A Co B == {F. F : (reachable F  Int  A) co (reachable F  Int  B)}"
+
+  Unless_def
+    "A Unless B == (A-B) Co (A Un B)"
+
 constdefs
 
-  Constrains :: "['a set, 'a set] => 'a program set"
-    "Constrains A B == {F. F : constrains (reachable F  Int  A)
-  		                          (reachable F  Int  B)}"
-
   Stable     :: "'a set => 'a program set"
-    "Stable A == Constrains A A"
-
-  Unless :: "['a set, 'a set] => 'a program set"
-    "Unless A B == Constrains (A-B) (A Un B)"
+    "Stable A == A Co A"
 
   Invariant :: "'a set => 'a program set"
     "Invariant A == {F. Init F <= A} Int Stable A"
