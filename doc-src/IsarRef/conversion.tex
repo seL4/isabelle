@@ -8,6 +8,23 @@ FIXME thm, theory, bind_thm(s);
 
 \section{Porting proof scripts}
 
+FIXME
+
+\subsection{Basic tactics}
+
+\begin{matharray}{llll}
+  \texttt{rtac}~a~1 & & rule~a \\
+  \texttt{resolve_tac}~[a@1, \dots, a@n]~1 & & rule~a@1~\dots~a@n \\
+  \texttt{res_inst_tac}~[(x@1, t@1), \dots, (x@n, t@n)]~a~1 & &
+  rule_tac~x@1 = t@1~\dots~x@n = t@n~\textrm{in}~a \\
+  
+%  \texttt{} & & \\
+  \texttt{stac}~a~1 & & subst~a \\
+  \texttt{strip_tac}~1 & & intro~strip & \Text{(HOL)} \\
+  \texttt{split_all_tac} & \ll & clarify & \Text{(HOL)} \\
+\end{matharray}
+
+
 \section{Performing actual proof}
 
 FIXME
