@@ -328,9 +328,8 @@ goal ZF.thy
 \         (f Un g) : (A Un C) -> (B Un D)";
 (*Prove the product and domain subgoals using distributive laws*)
 by (asm_full_simp_tac (!simpset addsimps [Pi_iff,extension]@Un_rls) 1);
-by (safe_tac (!claset));
 by (rewtac function_def);
-by (Blast.depth_tac (!claset) 8 1);
+by (Blast_tac 1);
 qed "fun_disjoint_Un";
 
 goal ZF.thy
