@@ -1,4 +1,4 @@
-(*  Title:      Isar/source.ML
+(*  Title:      Pure/Syntax/source.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
@@ -11,7 +11,7 @@ sig
   val set_prompt: string -> ('a, 'b) source -> ('a, 'b) source
   val get: ('a, 'b) source -> 'a list * ('a, 'b) source
   val unget: 'a list * ('a, 'b) source -> ('a, 'b) source
-  val get_single: ('a, 'b) source -> 'a * ('a, 'b) source
+  val get_single: ('a, 'b) source -> 'a option * ('a, 'b) source
   val exhaust: ('a, 'b) source -> 'a list
   val filter: ('a -> bool) -> ('a, 'b) source -> ('a, ('a, 'b) source) source
   val of_list: 'a list -> ('a, 'a list) source
@@ -35,7 +35,7 @@ datatype ('a, 'b) source =
   Source of
    {buffer: 'a list,
     info: 'b,
-    prompt: string option,
+    prompt: string,
     drain: string -> 'b -> 'a list * 'b};
 
 fun make_source buffer info prompt drain =
@@ -47,13 +47,13 @@ fun make_source buffer info prompt drain =
 val default_prompt = "> ";
 
 fun set_prompt prompt (Source {buffer, info, prompt = _, drain}) =
-  make_source buffer info (Some prompt) drain;
+  make_source buffer info prompt drain;
 
 
 (* get / unget *)
 
 fun get (Source {buffer = [], info, prompt, drain}) =
-      let val (xs, info') = drain (if_none prompt default_prompt) info
+      let val (xs, info') = drain prompt info
       in (xs, make_source [] info' prompt drain) end
   | get (Source {buffer, info, prompt, drain}) =
       (buffer, make_source [] info prompt drain);
@@ -68,8 +68,8 @@ fun get_prompt prompt src = get (set_prompt prompt src);
 
 fun get_single src =
   (case get src of
-    ([], _) => error "Input source exhausted!"
-  | (x :: xs, src') => (x, unget (xs, src')));
+    ([], src') => (None, src')
+  | (x :: xs, src') => (Some x, unget (xs, src')));
 
 fun exhaust src =
   (case get src of
@@ -89,7 +89,7 @@ fun drain_filter pred prompt src =
     else (xs', src')
   end;
 
-fun filter pred src = make_source [] src None (drain_filter pred);
+fun filter pred src = make_source [] src default_prompt (drain_filter pred);
 
 
 
@@ -97,13 +97,13 @@ fun filter pred src = make_source [] src None (drain_filter pred);
 
 (* list source *)
 
-(*limiting the master input buffer considerably improves performance*)
+(*limiting the input buffer considerably improves performance*)
 val limit = 4000;
 
 fun drain_list _ xs = (take (limit, xs), drop (limit, xs));
 
-fun of_list xs = make_source [] xs None drain_list;
-fun of_string str = of_list (explode str);
+fun of_list xs = make_source [] xs default_prompt drain_list;
+val of_string = of_list o explode;
 
 
 (* stream source *)
@@ -114,7 +114,7 @@ fun drain_stream instream outstream prompt () =
     (explode (TextIO.inputLine instream), ()));
 
 fun of_stream instream outstream =
-  make_source [] () None (drain_stream instream outstream);
+  make_source [] () default_prompt (drain_stream instream outstream);
 
 val tty = of_stream TextIO.stdIn TextIO.stdOut;
 
@@ -122,22 +122,20 @@ val tty = of_stream TextIO.stdIn TextIO.stdOut;
 
 (** compose sources **)
 
-(* make state-based *)
+fun drain_source source stopper scan prompt src =
+  source prompt get_prompt unget stopper scan src;
 
-fun drain_state_source stopper scan prompt state_src =
-  Scan.source prompt get_prompt unget stopper scan state_src;
+
+(* state-based *)
 
 fun state_source init_state stopper scan src =
-  make_source [] (init_state, src) None (drain_state_source stopper scan);
+  make_source [] (init_state, src) default_prompt (drain_source Scan.source' stopper scan);
 
 
-(* not state-based *)
-
-fun drain_source stopper scan prompt src =
-  apsnd snd (Scan.source prompt get_prompt unget stopper (Scan.lift scan) ((), src));
+(* non state-based *)
 
 fun source stopper scan src =
-   make_source [] src None (drain_source stopper scan);
+   make_source [] src default_prompt (drain_source Scan.source stopper scan);
 
 
 
