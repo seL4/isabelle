@@ -1,7 +1,7 @@
+tutorial	Tutorial on Isabelle/HOL
 intro		Introduction to Isabelle
 ref		The Isabelle Reference Manual
 system		The Isabelle System Manual
 logics		Isabelle's Object-Logics
 ind-defs	(Co)Inductive Definitions in ZF
 axclass		Tutorial on Axiomatic Type Classes
-tutorial	Tutorial on Isabelle/HOL
