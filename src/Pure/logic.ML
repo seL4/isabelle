@@ -26,7 +26,8 @@ signature LOGIC =
   val list_flexpairs	: (term*term)list * term -> term
   val list_implies	: term list * term -> term
   val list_rename_params: string list * term -> term
-  val loops		: Sign.sg -> term list -> term -> term
+  val rewrite_rule_extra_vars: term list -> term -> term -> string option
+  val rewrite_rule_ok   : Sign.sg -> term list -> term -> term
                           -> string option * bool
   val mk_equals		: term * term -> term
   val mk_flexpair	: term * term -> term
@@ -350,7 +351,7 @@ and lextermord(t::ts,u::us) =
 
 fun termless tu = (termord tu = LESS);
 
-(** Check for looping rewrite rules **)
+(** Test wellformedness of rewrite rules **)
 
 fun vperm (Var _, Var _) = true
   | vperm (Abs (_, _, s), Abs (_, _, t)) = vperm (s, t)
@@ -373,18 +374,26 @@ fun looptest sign prems lhs rhs =
   although the rhs is an instance of the lhs. Example:
   ?m < ?n ==> f(?n) == f(?m)*)
 
-fun loops sign prems lhs rhs =
+fun rewrite_rule_extra_vars prems elhs erhs =
+  if not ((term_vars erhs) subset
+          (union_term (term_vars elhs, List.concat(map term_vars prems))))
+  then Some("extra Var(s) on rhs") else
+  if not ((term_tvars erhs) subset
+          (term_tvars elhs  union  List.concat(map term_tvars prems)))
+  then Some("extra TVar(s) on rhs")
+  else None;
+
+fun rewrite_rule_ok sign prems lhs rhs =
   let
     val elhs = Pattern.eta_contract lhs;
     val erhs = Pattern.eta_contract rhs;
     val perm = var_perm (elhs, erhs) andalso not (elhs aconv erhs)
                andalso not (is_Var elhs)
-  in (if not ((term_vars erhs) subset
-              (union_term (term_vars elhs, List.concat(map term_vars prems))))
-      then Some("extra Var(s) on rhs") else
-      if not perm andalso looptest sign prems elhs erhs
-      then Some("loops")
-      else None
+  in (case rewrite_rule_extra_vars prems elhs erhs of
+        None => if not perm andalso looptest sign prems elhs erhs
+                then Some("loops")
+                else None
+      | some => some
       ,perm)
   end;
 
