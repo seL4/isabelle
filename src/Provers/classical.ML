@@ -14,6 +14,9 @@ equivalent.  There should be no variables in the premises that are not in
 the conclusion.
 *)
 
+(*Should be a type abbreviation in signature CLASSICAL*)
+type netpair = (int*(bool*thm)) Net.net * (int*(bool*thm)) Net.net;
+
 signature CLASSICAL_DATA =
   sig
   val mp	: thm    	(* [| P-->Q;  P |] ==> Q *)
@@ -32,7 +35,6 @@ infix 4 addSIs addSEs addSDs addIs addEs addDs delrules
 signature CLASSICAL =
   sig
   type claset
-  type netpair
   val empty_cs		: claset
   val merge_cs		: claset * claset -> claset
   val addDs 		: claset * thm list -> claset
@@ -70,7 +72,6 @@ signature CLASSICAL =
   val best_tac 		: claset -> int -> tactic
   val slow_best_tac 	: claset -> int -> tactic
   val depth_tac		: claset -> int -> int -> tactic
-  val DEEPEN  	        : (int -> int -> tactic) -> int -> int -> tactic
   val deepen_tac	: claset -> int -> int -> tactic
 
   val contr_tac 	: int -> tactic
@@ -154,8 +155,6 @@ fun dup_elim th = th RSN (2, revcut_rl) |> assumption 2 |> Sequence.hd |>
 
 
 (**** Classical rule sets ****)
-
-type netpair = (int*(bool*thm)) Net.net * (int*(bool*thm)) Net.net;
 
 datatype claset =
   CS of {safeIs		: thm list,		(*safe introduction rules*)
@@ -607,12 +606,6 @@ fun depth_tac cs m i = STATE(fn state =>
 	 THEN DEPTH_SOLVE (depth_tac cs (m-1) i)))) 1)
   i);
 
-(*Iterative deepening tactical.  Allows us to "deepen" any search tactic*)
-fun DEEPEN tacf m i = STATE(fn state => 
-   if has_fewer_prems i state then no_tac
-   else (writeln ("Depth = " ^ string_of_int m);
-	 tacf m i  ORELSE  DEEPEN tacf (m+2) i));
-
 (*Search, with depth bound m.  
   This is the "entry point", which does safe inferences first.*)
 fun safe_depth_tac cs m = 
@@ -627,7 +620,7 @@ fun safe_depth_tac cs m =
 		       DEPTH_SOLVE (deti (depth_tac cs m 1))) i
       end);
 
-fun deepen_tac cs = DEEPEN (safe_depth_tac cs);
+fun deepen_tac cs = DEEPEN (2,10) (safe_depth_tac cs);
 
 val claset = ref empty_cs;
 
