@@ -56,12 +56,17 @@ val map_term_tfrees = map_term_types o map_typ_frees;
 fun aT S = TFree ("'a", S);
 
 
-(* get axioms *)
+(* get axioms and theorems *)
 
 fun get_ax thy name =
   Some (get_axiom thy name) handle THEORY _ => None;
 
 val get_axioms = mapfilter o get_ax;
+
+val is_def = is_equals o #prop o rep_thm;
+
+fun witnesses thy axms thms =
+  get_axioms thy axms @ thms @ filter is_def (map snd (axioms_of thy));
 
 
 
@@ -245,8 +250,6 @@ fun class_axms thy =
   (2) rewrite goals using user supplied definitions
   (3) repeatedly resolve goals with user supplied non-definitions*)
 
-val is_def = is_equals o #prop o rep_thm;
-
 fun axclass_tac thy thms =
   TRY (REPEAT_FIRST (resolve_tac (class_axms thy))) THEN
   TRY (rewrite_goals_tac (filter is_def thms)) THEN
@@ -285,19 +288,20 @@ val goal_arity = mk_goal mk_arity;
 
 (** add proved subclass relations and arities **)
 
+
+
 fun add_inst_subclass (c1, c2) axms thms usr_tac thy =
   add_classrel_thms
-  [prove_subclass thy (c1, c2) (get_axioms thy axms @ thms) usr_tac] thy;
+  [prove_subclass thy (c1, c2) (witnesses thy axms thms) usr_tac] thy;
 
 fun add_inst_arity (t, ss, cs) axms thms usr_tac thy =
   let
-    val usr_thms = get_axioms thy axms @ thms;
+    val wthms = witnesses thy axms thms;
     fun prove c =
-      prove_arity thy (t, ss, c) usr_thms usr_tac;
+      prove_arity thy (t, ss, c) wthms usr_tac;
   in
     add_arity_thms (map prove cs) thy
   end;
 
 
 end;
-
