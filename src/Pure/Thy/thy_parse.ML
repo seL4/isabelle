@@ -3,9 +3,6 @@
     Author:     Markus Wenzel, TU Muenchen
 
 The parser for theory files.
-
-TODO:
-  remove sigclass (?)
 *)
 
 infix 5 -- --$$ $$-- ^^;
@@ -46,6 +43,12 @@ sig
   val sort: token list -> string * token list
   val opt_infix: token list -> string * token list
   val opt_mixfix: token list -> string * token list
+  val parens: string -> string
+  val brackets: string -> string
+  val mk_list: string list -> string
+  val mk_big_list: string list -> string
+  val mk_pair: string * string -> string
+  val mk_triple: string * string * string -> string
   type syntax
   val make_syntax: string list ->
     (string * (token list -> (string * string) * token list)) list -> syntax
@@ -79,6 +82,8 @@ fun syn_err s1 s2 n = raise SYNTAX_ERROR (s1, s2, n);
 
 fun eof_err () = error "Unexpected end-of-file";
 
+(*similar to Prolog's cut: reports any syntax error instead of
+  backtracking through a superior ||*)
 fun !! parse toks = parse toks
   handle SYNTAX_ERROR (s1, s2, n) => error ("Syntax error on line " ^
     string_of_int n ^ ": " ^ s1 ^ " expected and " ^ s2 ^ " was found");
@@ -149,14 +154,14 @@ val list1 = enum1 ",";
 
 fun cat s1 s2 = s1 ^ " " ^ s2;
 
-val pars = parents "(" ")";
-val brackets = parents "[" "]";
+val parens = enclose "(" ")";
+val brackets = enclose "[" "]";
 
 val mk_list = brackets o commas;
 val mk_big_list = brackets o space_implode ",\n ";
 
-fun mk_pair (x, y) = pars (commas [x, y]);
-fun mk_triple (x, y, z) = pars (commas [x, y, z]);
+fun mk_pair (x, y) = parens (commas [x, y]);
+fun mk_triple (x, y, z) = parens (commas [x, y, z]);
 fun mk_triple1 ((x, y), z) = mk_triple (x, y, z);
 fun mk_triple2 (x, (y, z)) = mk_triple (x, y, z);
 
@@ -177,11 +182,9 @@ val name_list1 = names1 >> mk_list;
 
 (* classes *)
 
-fun mk_subclass (c, cs) = mk_triple ("[]", c, cs);
-
 val subclass = name -- optional ("<" $$-- !! name_list1) "[]";
 
-val class_decls = repeat1 (subclass >> mk_subclass) >> mk_big_list;
+val class_decls = repeat1 (subclass >> mk_pair) >> mk_big_list;
 
 
 (* arities *)
@@ -211,9 +214,7 @@ val opt_pris = optional ("[" $$-- !! (list nat --$$ "]")) [] >> mk_list;
 val mixfix = string -- !! (opt_pris -- optional nat "max_pri")
   >> (cat "Mixfix" o mk_triple2);
 
-fun opt_syn fx =
-  "(" $$-- fx --$$ ")" ||
-  empty >> K "NoSyn";
+fun opt_syn fx = optional ("(" $$-- fx --$$ ")") "NoSyn";
 
 val opt_infix = opt_syn (infxl || infxr);
 val opt_mixfix = opt_syn (mixfix || infxl || infxr || binder);
@@ -227,7 +228,7 @@ fun mk_old_type_decl ((ts, n), syn) =
 fun mk_type_decl (((xs, t), None), syn) =
       [(mk_triple (t, string_of_int (length xs), syn), false)]
   | mk_type_decl (((xs, t), Some rhs), syn) =
-      [(pars (commas [t, mk_list xs, rhs, syn]), true)];
+      [(parens (commas [t, mk_list xs, rhs, syn]), true)];
 
 fun mk_type_decls tys =
   "|> add_types\n" ^ mk_big_list (keyfilter tys false) ^ "\n\n\
@@ -309,14 +310,6 @@ fun mk_axclass_decl ((c, cs), axms) =
 val axclass_decl = subclass -- repeat (ident -- !! string) >> mk_axclass_decl;
 
 
-(* sigclass *)
-
-fun mk_sigclass_decl ((c, cs), consts) =
-  (mk_pair (c, cs) ^ "\n" ^ consts, [strip_quotes c ^ "I"]);
-
-val sigclass_decl = subclass -- optional const_decls "[]" >> mk_sigclass_decl;
-
-
 (* instance *)
 
 fun mk_witness (axths, opt_tac) =
@@ -331,7 +324,7 @@ val axm_or_thm =
 
 val opt_witness =
   optional ("(" $$-- list1 axm_or_thm --$$ ")") [] --
-  optional (verbatim >> (pars o cat "Some" o pars)) "None"
+  optional (verbatim >> (parens o cat "Some" o parens)) "None"
   >> mk_witness;
 
 val instance_decl =
@@ -388,8 +381,13 @@ fun extension sectab = "+" $$-- !! (repeat (sect sectab) --$$ "end") --
 
 (* theory definition *)
 
-fun mk_structure tname ((thy_name, old_thys), Some (extxt, postxt, mltxt)) =
-      if (thy_name = tname) then
+fun mk_structure tname ((thy_name, old_thys), opt_txts) =
+  if thy_name <> tname then
+    error ("Filename \"" ^ tname ^ ".thy\" and theory name "
+      ^ quote thy_name ^ " are different")
+  else
+    (case opt_txts of
+      Some (extxt, postxt, mltxt) =>
         "structure " ^ thy_name ^ " =\n\
         \struct\n\
         \\n\
@@ -412,18 +410,13 @@ fun mk_structure tname ((thy_name, old_thys), Some (extxt, postxt, mltxt)) =
         \\n\
         \end;\n\
         \end;\n"
-      else error ("use_thy: Filename \"" ^ tname ^ ".thy\" and theory name \""
-                  ^ thy_name ^ "\" are different")
-  | mk_structure tname ((thy_name, old_thys), None) =
-      if (thy_name = tname) then
+    | None =>
         "structure " ^ thy_name ^ " =\n\
         \struct\n\
         \\n\
         \val thy = (" ^ old_thys ^ " false);\n\
         \\n\
-        \end;\n"
-      else error ("use_thy: Filename \"" ^ tname ^ ".thy\" and theory name \""
-                  ^ thy_name ^ "\" are different");
+        \end;\n");
 
 fun theory_defn sectab tname =
   header -- optional (extension sectab >> Some) None -- eof
@@ -462,9 +455,8 @@ val pure_sections =
   section "MLtrans" "|> add_trfuns" mltrans,
   ("MLtext", verbatim >> rpair ""),
   axm_section "rules" "|> add_axioms" axiom_decls,
-  axm_section "defns" "|> add_defns" axiom_decls,
+  axm_section "defs" "|> add_defs" axiom_decls,
   axm_section "axclass" "|> add_axclass" axclass_decl,
-  axm_section "sigclass" "|> add_sigclass" sigclass_decl,
   ("instance", instance_decl)];
 
 
