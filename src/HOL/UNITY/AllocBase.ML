@@ -95,30 +95,46 @@ by (etac order_trans 1);
 by (rtac union_upper1 1); 
 qed "mono_bag_of";
 
-Goal "finite A ==> \
-\     setsum (%i. if i < Suc(length zs) then {#(zs @ [z]) ! i#} else {#}) A = \
-\       setsum (%i. if i < length zs then {#zs ! i#} else {#}) A + \
-\       (if length zs : A then {#z#} else {#})";
-by (etac finite_induct 1);
-by (Simp_tac 1);
-by (asm_simp_tac (simpset() addsimps (nth_append :: thms "plus_ac0")) 1);
-by (subgoal_tac "x < Suc (length zs) & ~ x < length zs --> length zs = x" 1);
-by Auto_tac;
+(** setsum **)
+
+Addcongs [setsum_cong];
+
+Goal "setsum (%i. {#if i<k then f i else g i#}) (A Int lessThan k) = \
+\     setsum (%i. {#f i#}) (A Int lessThan k)";
+by (rtac setsum_cong 1);
+by Auto_tac;  
 qed "bag_of_sublist_lemma";
 
-Goal "finite A \
-\     ==> bag_of (sublist l A) = \
-\         setsum (%i. if i < length l then {# nth l i #} else {#}) A";
+Goal "bag_of (sublist l A) = \
+\     setsum (%i. {# l!i #}) (A Int lessThan (length l))";
 by (res_inst_tac [("xs","l")] rev_induct 1);
 by (Simp_tac 1);
-by (stac (symmetric Zero_def) 1);
-by (rtac (setsum_0 RS sym) 1);
-by (asm_simp_tac (simpset() addsimps [sublist_append, 
-				      bag_of_sublist_lemma]) 1);
+by (asm_simp_tac
+    (simpset() addsimps [sublist_append, Int_insert_right, lessThan_Suc, 
+                    nth_append, bag_of_sublist_lemma] @ thms "plus_ac0") 1);
 qed "bag_of_sublist";
 
-Goal "[| finite A; finite B |] \
-\     ==> bag_of (sublist l (A Un B)) + bag_of (sublist l (A Int B)) = \
-\         bag_of (sublist l A) + bag_of (sublist l B)";
-by (asm_simp_tac (simpset() addsimps [bag_of_sublist, setsum_Un_Int]) 1);
+
+Goal "bag_of (sublist l (A Un B)) + bag_of (sublist l (A Int B)) = \
+\     bag_of (sublist l A) + bag_of (sublist l B)";
+by (subgoal_tac "A Int B Int {..length l(} = \
+\                (A Int {..length l(}) Int (B Int {..length l(})" 1);
+by (asm_simp_tac (simpset() addsimps [bag_of_sublist, Int_Un_distrib2, 
+                                      setsum_Un_Int]) 1);
+by (Blast_tac 1);
 qed "bag_of_sublist_Un_Int";
+
+Goal "A Int B = {} \
+\     ==> bag_of (sublist l (A Un B)) = \
+\         bag_of (sublist l A) + bag_of (sublist l B)"; 
+by (asm_simp_tac (simpset() addsimps [bag_of_sublist_Un_Int RS sym]) 1);
+qed "bag_of_sublist_Un_disjoint";
+
+Goal "[| finite I; ALL i:I. ALL j:I. i~=j --> A i Int A j = {} |] \
+\     ==> bag_of (sublist l (UNION I A)) =  \
+\         setsum (%i. bag_of (sublist l (A i))) I";  
+by (asm_simp_tac (simpset() delsimps UN_simps addsimps (UN_simps RL [sym])
+			    addsimps [bag_of_sublist]) 1);
+by (stac setsum_UN_disjoint 1);
+by Auto_tac;  
+qed_spec_mp "bag_of_sublist_UN_disjoint";
