@@ -172,7 +172,6 @@ qed "leadsTo_Union_distrib";
 
 Goal "[| leadsTo acts A A'; id: acts; B<=A; A'<=B' |] \
 \   ==> leadsTo acts B B'";
-(*PROOF FAILED unless leadsTo_Trans is last*)
 by (blast_tac (claset() addIs [leadsTo_weaken_R, leadsTo_weaken_L,
 			       leadsTo_Trans]) 1);
 qed "leadsTo_weaken";
@@ -490,8 +489,7 @@ by (blast_tac (claset() addIs [wlt_leadsTo, psp_stable2]) 2);
 by (subgoal_tac "leadsTo acts (A Int B) (A Int wlt acts B')" 1);
 by (blast_tac (claset() addIs [leadsTo_subset RS subsetD, 
 			       subset_imp_leadsTo]) 2);
-(*addIs looks safer, but loops with PROOF FAILED*)
-by (blast_tac (claset() addSIs [leadsTo_Trans]) 1);
+by (blast_tac (claset() addIs [leadsTo_Trans]) 1);
 qed "stable_completion";
 
 

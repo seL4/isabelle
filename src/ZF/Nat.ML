@@ -175,9 +175,9 @@ qed "diff_induct";
 Goal "m: nat ==> P(m,succ(m)) --> (ALL x: nat. P(m,x) --> P(m,succ(x))) --> \
 \                 (ALL n:nat. m<n --> P(m,n))";
 by (etac nat_induct 1);
-by (ALLGOALS    (*blast_tac gives PROOF FAILED*)
+by (ALLGOALS   
     (EVERY' [rtac (impI RS impI), rtac (nat_induct RS ballI), assume_tac,
-             best_tac le_cs, best_tac le_cs])); 
+             blast_tac le_cs, blast_tac le_cs])); 
 qed "succ_lt_induct_lemma";
 
 val prems = goal Nat.thy

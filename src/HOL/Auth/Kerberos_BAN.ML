@@ -255,7 +255,7 @@ by (blast_tac (claset() addDs [A_trusts_K_by_Kb2, unique_session_keys]) 2);
 by (blast_tac (claset() addDs [Says_imp_spies RS analz.Inj,
                                Crypt_Spy_analz_bad, analz.Fst, analz.Snd]
                         addIs [less_SucI]) 1);
-val lemma = result() RS mp RS mp RSN(1,rev_notE);
+qed_spec_mp "lemma2";
 
 
 (** CONFIDENTIALITY for the SERVER:
@@ -268,8 +268,7 @@ Goal "[| Says Server A                                           \
 \        A ~: bad;  B ~: bad;  evs : kerberos_ban                \
 \     |] ==> Key K ~: analz (spies evs)";
 by (forward_tac [Says_Server_message_form] 1 THEN assume_tac 1);
-by (Clarify_tac 1);   (*prevents PROOF FAILED*)
-by (blast_tac (claset() addSEs [lemma]) 1);
+by (blast_tac (claset() addIs [lemma2]) 1);
 qed "Confidentiality_S";
 
 (**** THE COUNTERPART OF CONFIDENTIALITY 

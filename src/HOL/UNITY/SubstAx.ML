@@ -100,7 +100,6 @@ qed_spec_mp "LeadsTo_weaken_L";
 Goal "[| LeadsTo prg A A'; id: Acts prg;   \
 \        B  <= A;   A' <= B' |] \
 \     ==> LeadsTo prg B B'";
-(*PROOF FAILED unless the Trans rule is last*)
 by (blast_tac (claset() addIs [LeadsTo_weaken_R, LeadsTo_weaken_L,
 			       LeadsTo_Trans]) 1);
 qed "LeadsTo_weaken";
@@ -177,11 +176,7 @@ qed "Invariant_LeadsTo_weaken";
   This is the most useful form of the "disjunction" rule*)
 Goal "[| LeadsTo prg (A-B) C; LeadsTo prg (A Int B) C; id: Acts prg |] \
 \     ==> LeadsTo prg A C";
-by (stac (Un_Diff_Int RS sym) 1 THEN rtac LeadsTo_Un 1);
-by (REPEAT (assume_tac 1));
-(*One step, but PROOF FAILED...
-  by (blast_tac (claset() addIs [LeadsTo_Un, LeadsTo_weaken]) 1);
-*)
+by (blast_tac (claset() addIs [LeadsTo_Un, LeadsTo_weaken]) 1);
 qed "LeadsTo_Diff";
 
 

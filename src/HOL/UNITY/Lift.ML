@@ -425,9 +425,8 @@ Goal "0 < N ==> \
 \     LeadsTo Lprg \
 \       (moving Int Req n Int (metric n -`` {N}) Int {s. floor s : req s})   \
 \       (moving Int Req n Int (metric n -`` lessThan N))";
-(*Blast_tac: PROOF FAILED*)
-by (best_tac (claset() addSIs [E_thm13, E_thm14, E_thm15, lift_5]
-	               addIs [LeadsTo_Trans]) 1);
+by (blast_tac (claset() addSIs [E_thm13, E_thm14, E_thm15, lift_5]
+	                addIs [LeadsTo_Trans]) 1);
 qed "lift_3_Req";
 
 

@@ -404,9 +404,8 @@ by (Blast_tac 1);
 qed "Pow_in_Vfrom";
 
 Goal "[| a: Vfrom(A,i);  Limit(i);  Transset(A) |] ==> Pow(a) : Vfrom(A,i)";
-(*Blast_tac: PROOF FAILED*)
-by (fast_tac (claset() addEs [Limit_VfromE]
-		       addIs [Limit_has_succ, Pow_in_Vfrom, Limit_VfromI]) 1);
+by (blast_tac (claset() addEs [Limit_VfromE]
+		        addIs [Limit_has_succ, Pow_in_Vfrom, Limit_VfromI]) 1);
 qed "Pow_in_VLimit";
 
 

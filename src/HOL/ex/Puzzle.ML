@@ -40,10 +40,7 @@ val prems = Goal "(!!n. f(n) <= f(Suc(n))) ==> m<n --> f(m) <= f(n)";
 by (res_inst_tac[("n","n")]nat_induct 1);
 by (Simp_tac 1);
 by (simp_tac (simpset() addsimps [less_Suc_eq]) 1);
-  (*Blast_tac: PROOF FAILED.  Perhaps remove DETERM for unsafe tactics,
-    or stop rotating prems for recursive rules: the le-assumptions
-    have got out of order.*)
-by (best_tac (claset() addIs (le_trans::prems)) 1);
+by (blast_tac (claset() addIs (le_trans::prems)) 1);
 qed_spec_mp "mono_lemma1";
 
 val [p1,p2] = goal Puzzle.thy

@@ -133,9 +133,8 @@ by (Blast_tac 1);
 qed "rtrancl_subset";
 
 Goal "(R^* Un S^*)^* = (R Un S)^*";
-(*Blast_tac: PROOF FAILED*)
-by (Blast.depth_tac (claset() addSIs [rtrancl_subset]
-                       addIs [r_into_rtrancl, rtrancl_mono RS subsetD]) 4 1);
+by (blast_tac (claset() addSIs [rtrancl_subset]
+                        addIs [r_into_rtrancl, rtrancl_mono RS subsetD]) 1);
 qed "rtrancl_Un_rtrancl";
 
 Goal "(R^=)^* = R^*";
