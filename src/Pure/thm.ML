@@ -1576,7 +1576,7 @@ fun insert_rrule(mss as Mss {rules,...},
    let val rules' = Net.insert_term ((lhs, rrule), rules, eq_rrule)
    in upd_rules(mss,rules') end
    handle Net.INSERT =>
-     (prthm true "Ignoring duplicate rewrite rule" thm; mss));
+     (prthm true "Ignoring duplicate rewrite rule:" thm; mss));
 
 fun vperm (Var _, Var _) = true
   | vperm (Abs (_, _, s), Abs (_, _, t)) = vperm (s, t)
@@ -1691,7 +1691,7 @@ fun del_rrule(mss as Mss {rules,...},
               rrule as {thm = thm, lhs = lhs, perm = perm}) =
   (upd_rules(mss, Net.delete_term ((lhs, rrule), rules, eq_rrule))
    handle Net.DELETE =>
-     (prthm true "rewrite rule not in simpset" thm; mss));
+     (prthm true "Rewrite rule not in simpset:" thm; mss));
 
 fun del_simps(mss,thms) =
   orient_comb_simps del_rrule (mk_rrule mss) (mss,thms);
@@ -1739,7 +1739,7 @@ fun add_proc (mss as Mss {rules,congs,procs,bounds,prems,mk_rews,termless},
       (Sign.deref sign_ref) t;
     mk_mss (rules, congs,
       Net.insert_term ((t, mk_simproc (name, proc, lhs, id)), procs, eq_simproc)
-        handle Net.INSERT => (trace true "ignored duplicate"; procs),
+        handle Net.INSERT => (trace true "Ignored duplicate"; procs),
         bounds, prems, mk_rews, termless));
 
 fun add_simproc (mss, (name, lhss, proc, id)) =
@@ -1754,7 +1754,7 @@ fun del_proc (mss as Mss {rules,congs,procs,bounds,prems,mk_rews,termless},
     (name, lhs as Cterm {t, ...}, proc, id)) =
   mk_mss (rules, congs,
     Net.delete_term ((t, mk_simproc (name, proc, lhs, id)), procs, eq_simproc)
-      handle Net.DELETE => (trace true "simplification procedure not in simpset"; procs),
+      handle Net.DELETE => (trace true "Simplification procedure not in simpset"; procs),
       bounds, prems, mk_rews, termless);
 
 fun del_simproc (mss, (name, lhss, proc, id)) =
@@ -1813,7 +1813,7 @@ type conv = meta_simpset -> termrec -> termrec;
 
 fun check_conv (thm as Thm{shyps,hyps,prop,sign_ref,der,...}, prop0, ders) =
   let fun err() = (trace_thm false "Proved wrong thm (Check subgoaler?)" thm;
-                   trace_term false "Should have proved" (Sign.deref sign_ref) prop0;
+                   trace_term false "Should have proved:" (Sign.deref sign_ref) prop0;
                    None)
       val (lhs0,_) = Logic.dest_equals(Logic.strip_imp_concl prop0)
   in case prop of
@@ -1843,7 +1843,7 @@ fun add_insts_sorts ((iTs, is), Ss) =
 fun mk_procrule thm =
   let val (_,prems,lhs,rhs,_) = decomp_simp thm
   in if rewrite_rule_extra_vars prems lhs rhs
-     then (prthm true "Extra vars on rhs" thm; [])
+     then (prthm true "Extra vars on rhs:" thm; [])
      else [{thm = thm, lhs = lhs, perm = false}]
   end;
 
@@ -1870,7 +1870,7 @@ fun rewritec (prover,sign_reft,maxt)
     fun rew{thm as Thm{sign_ref,der,shyps,hyps,prop,maxidx,...}, lhs, perm} =
       let
         val _ = if Sign.subsig (Sign.deref sign_ref, signt) then ()
-                else (trace_thm true "rewrite rule from different theory" thm;
+                else (trace_thm true "Rewrite rule from different theory:" thm;
                       raise Pattern.MATCH);
         val rprop = if maxt = ~1 then prop
                     else Logic.incr_indexes([],maxt+1) prop;
@@ -1965,7 +1965,7 @@ fun congc (prover,sign_reft,maxt) {thm=cong,lhs=lhs} (t,(shypst,hypst,ders)) =
                      hyps = union_term(hyps,hypst),
                      prop = prop',
                      maxidx = maxidx'};
-      val unit = trace_thm false "Applying congruence rule" thm';
+      val unit = trace_thm false "Applying congruence rule:" thm';
       fun err() = error("Failed congruence proof!")
 
   in case prover thm' of
@@ -2093,7 +2093,7 @@ fun bottomc ((simprem,useprem,mutsimp),prover,sign_ref,maxidx) =
                            lhss1;
               in case dropwhile (not o reducible) prems of
                    [] => simpconc()
-                 | red::rest => (trace_term false "Can now reduce premise" sg
+                 | red::rest => (trace_term false "Can now reduce premise:" sg
                                             red;
                                  (Some(length rest,prem1),(conc,etc1)))
               end
