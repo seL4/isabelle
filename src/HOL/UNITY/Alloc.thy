@@ -39,13 +39,26 @@ record clientState =
   ask :: nat list   (*client's OUTPUT history: tokens REQUESTED*)
   rel :: nat list   (*client's OUTPUT history: tokens RELEASED*)
 
+record 'a clientState_u =
+  clientState +
+  extra :: 'a       (*dummy field for new variables*)
+
+consts
+  rClient  :: "(clientState * 'a) program"  (*DUMMY CONSTANT*)
+
 record allocState =
   allocGiv :: nat => nat list   (*OUTPUT history: source of "giv" for i*)
   allocAsk :: nat => nat list   (*INPUT: allocator's copy of "ask" for i*)
   allocRel :: nat => nat list   (*INPUT: allocator's copy of "rel" for i*)
 
-record systemState = allocState +
+record 'a allocState_u =
+  allocState +
+  extra    :: 'a                (*dummy field for new variables*)
+
+record 'a systemState =
+  allocState +
   client :: nat => clientState  (*states of all clients*)
+  extra  :: 'a                  (*dummy field for new variables*)
 
 
 constdefs
@@ -53,65 +66,62 @@ constdefs
 (** Resource allocation system specification **)
 
   (*spec (1)*)
-  system_safety :: systemState program set
+  system_safety :: 'a systemState program set
     "system_safety ==
      Always {s. sum (%i. (tokens o giv o sub i o client) s) Nclients
 	        <= NbT + sum (%i. (tokens o rel o sub i o client) s) Nclients}"
 
   (*spec (2)*)
-  system_progress :: systemState program set
+  system_progress :: 'a systemState program set
     "system_progress == INT i : lessThan Nclients.
 			INT h. 
 			  {s. h <= (ask o sub i o client)s} LeadsTo
 			  {s. h pfixLe (giv o sub i o client) s}"
 
-  system_spec :: systemState program set
+  system_spec :: 'a systemState program set
     "system_spec == system_safety Int system_progress"
 
 (** Client specification (required) ***)
 
   (*spec (3)*)
-  client_increasing :: clientState program set
+  client_increasing :: 'a clientState_u program set
     "client_increasing ==
          UNIV guarantees[funPair rel ask]
          Increasing ask Int Increasing rel"
 
   (*spec (4)*)
-  client_bounded :: clientState program set
+  client_bounded :: 'a clientState_u program set
     "client_bounded ==
          UNIV guarantees[ask]
          Always {s. ALL elt : set (ask s). elt <= NbT}"
 
   (*spec (5)*)
-  client_progress :: clientState program set
+  client_progress :: 'a clientState_u program set
     "client_progress ==
 	 Increasing giv
 	 guarantees[funPair rel ask]
 	 (INT h. {s. h <= giv s & h pfixGe ask s}
-		 Ensures {s. tokens h <= (tokens o rel) s})"
+		 LeadsTo {s. tokens h <= (tokens o rel) s})"
 
   (*spec: preserves part*)
-    client_preserves :: clientState program set
+    client_preserves :: 'a clientState_u program set
     "client_preserves == preserves giv"
 
-  client_spec :: clientState program set
+  client_spec :: 'a clientState_u program set
     "client_spec == client_increasing Int client_bounded Int client_progress
                     Int client_preserves"
 
 (** Allocator specification (required) ***)
 
-  (*Specified over the systemState, not the allocState, since then the
-    leads-to properties could not be transferred to  extend sysOfAlloc Alloc*)
-  
   (*spec (6)*)
-  alloc_increasing :: systemState program set
+  alloc_increasing :: 'a allocState_u program set
     "alloc_increasing ==
 	 UNIV
          guarantees[allocGiv]
 	 (INT i : lessThan Nclients. Increasing (sub i o allocGiv))"
 
   (*spec (7)*)
-  alloc_safety :: systemState program set
+  alloc_safety :: 'a allocState_u program set
     "alloc_safety ==
 	 (INT i : lessThan Nclients. Increasing (sub i o allocRel))
          guarantees[allocGiv]
@@ -119,7 +129,7 @@ constdefs
 	         <= NbT + sum (%i. (tokens o sub i o allocRel) s) Nclients}"
 
   (*spec (8)*)
-  alloc_progress :: systemState program set
+  alloc_progress :: 'a allocState_u program set
     "alloc_progress ==
 	 (INT i : lessThan Nclients. Increasing (sub i o allocAsk) Int
 	                             Increasing (sub i o allocRel))
@@ -138,64 +148,71 @@ constdefs
 	             {s. h pfixLe (sub i o allocGiv) s})"
 
   (*spec: preserves part*)
-    alloc_preserves :: systemState program set
-    "alloc_preserves == preserves (funPair client (funPair allocRel allocAsk))"
+    alloc_preserves :: 'a allocState_u program set
+    "alloc_preserves == preserves (funPair allocRel allocAsk)"
   
-  alloc_spec :: systemState program set
+  alloc_spec :: 'a allocState_u program set
     "alloc_spec == alloc_increasing Int alloc_safety Int alloc_progress Int
                    alloc_preserves"
 
 (** Network specification ***)
 
   (*spec (9.1)*)
-  network_ask :: systemState program set
+  network_ask :: 'a systemState program set
     "network_ask == INT i : lessThan Nclients.
 			Increasing (ask o sub i o client)
 			guarantees[allocAsk]
 			((sub i o allocAsk) Fols (ask o sub i o client))"
 
   (*spec (9.2)*)
-  network_giv :: systemState program set
+  network_giv :: 'a systemState program set
     "network_giv == INT i : lessThan Nclients.
 			Increasing (sub i o allocGiv)
 			guarantees[giv o sub i o client]
 			((giv o sub i o client) Fols (sub i o allocGiv))"
 
   (*spec (9.3)*)
-  network_rel :: systemState program set
+  network_rel :: 'a systemState program set
     "network_rel == INT i : lessThan Nclients.
 			Increasing (rel o sub i o client)
 			guarantees[allocRel]
 			((sub i o allocRel) Fols (rel o sub i o client))"
 
   (*spec: preserves part*)
-    network_preserves :: systemState program set
+    network_preserves :: 'a systemState program set
     "network_preserves == preserves allocGiv  Int
                           (INT i : lessThan Nclients.
                            preserves (funPair rel ask o sub i o client))"
   
-  network_spec :: systemState program set
+  network_spec :: 'a systemState program set
     "network_spec == network_ask Int network_giv Int
                      network_rel Int network_preserves"
 
 
 (** State mappings **)
-  sysOfAlloc :: "(allocState * (nat => clientState)) => systemState"
-    "sysOfAlloc == %(s,y). (| allocGiv = allocGiv s,
-			      allocAsk = allocAsk s,
-			      allocRel = allocRel s,
-			      client   = y |)"
+  sysOfAlloc :: "((nat => clientState) * 'a) allocState_u => 'a systemState"
+    "sysOfAlloc == %s. let (cl,xtr) = allocState_u.extra s
+                       in (| allocGiv = allocGiv s,
+			     allocAsk = allocAsk s,
+			     allocRel = allocRel s,
+			     client   = cl,
+			     extra    = xtr|)"
 
-  sysOfClient :: "((nat => clientState) * allocState ) => systemState"
-    "sysOfClient == %(x,y). sysOfAlloc(y,x)"
+
+  sysOfClient :: "(nat => clientState) * 'a allocState_u => 'a systemState"
+    "sysOfClient == %(cl,al). (| allocGiv = allocGiv al,
+			         allocAsk = allocAsk al,
+			         allocRel = allocRel al,
+			         client   = cl,
+			         systemState.extra = allocState_u.extra al|)"
 
 
 locale System =
   fixes 
-    Alloc   :: systemState program
+    Alloc   :: 'a allocState program
     Client  :: clientState program
-    Network :: systemState program
-    System  :: systemState program
+    Network :: 'a systemState program
+    System  :: 'a systemState program
   
   assumes
     Alloc   "Alloc   : alloc_spec"
@@ -204,6 +221,9 @@ locale System =
 
   defines
     System_def
-      "System == Alloc Join Network Join
-                 (extend sysOfClient (plam x: lessThan Nclients. Client))"
+      "System == rename sysOfAlloc Alloc Join Network Join
+                 (rename sysOfClient (plam x: lessThan Nclients. Client))"
+
+
+
 end

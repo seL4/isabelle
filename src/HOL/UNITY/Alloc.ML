@@ -8,7 +8,22 @@ Specification of Chandy and Charpentier's Allocator
 Stop using o (composition)?
 
 guarantees_PLam_I looks wrong: refers to lift_prog
+
+Goal "(plam x: lessThan Nclients. Client) = x";
+Client :: (clientState * ((nat => clientState) * 'b)) program
 *)
+
+    Goal "(inj f) = (inv f o f = id)";
+    by (asm_simp_tac (simpset() addsimps [o_def, expand_fun_eq]) 1);
+    by (blast_tac (claset() addIs [inj_inverseI, inv_f_f]) 1);
+    qed "inj_iff";
+
+    Goal "(surj f) = (f o inv f = id)";
+    by (asm_simp_tac (simpset() addsimps [o_def, expand_fun_eq]) 1);
+    by (blast_tac (claset() addIs [surjI, surj_f_inv_f]) 1);
+    qed "surj_iff";
+
+
 
 AddIs [impOfSubs subset_preserves_o];
 Addsimps [funPair_o_distrib];
@@ -77,72 +92,68 @@ Goalw [mono_def] "mono tokens";
 by (blast_tac (claset() addIs [tokens_mono_prefix]) 1);
 qed "mono_tokens";
 
-Goalw [sysOfAlloc_def] "inj sysOfAlloc";
+Goalw [sysOfAlloc_def, Let_def] "inj sysOfAlloc";
 by (rtac injI 1);
 by (auto_tac (claset() addSWrapper record_split_wrapper, simpset()));
 qed "inj_sysOfAlloc";
-
-Goalw [sysOfAlloc_def] "surj sysOfAlloc";
-by (res_inst_tac [("f", "%s. ((| allocGiv = allocGiv s,    \
-\                                allocAsk = allocAsk s,    \
-\                                allocRel = allocRel s |), \
-\                             client s)")] surjI 1);
-by (auto_tac (claset() addSWrapper record_split_wrapper, simpset()));
-qed "surj_sysOfAlloc";
-
-AddIffs [inj_sysOfAlloc, surj_sysOfAlloc];
-
-Goalw [good_map_def] "good_map sysOfAlloc";
-by Auto_tac;
-qed "good_map_sysOfAlloc";
-Addsimps [good_map_sysOfAlloc];
+AddIffs [inj_sysOfAlloc];
 
 (*MUST BE AUTOMATED: even the statement of such results*)
 Goal "!!s. inv sysOfAlloc s = \
-\            ((| allocGiv = allocGiv s,   \
-\                allocAsk = allocAsk s,   \
-\                allocRel = allocRel s|), \
-\             client s)";
+\            (| allocGiv = allocGiv s,   \
+\               allocAsk = allocAsk s,   \
+\               allocRel = allocRel s,   \
+\               allocState_u.extra = (client s, extra s) |)";
 by (rtac (inj_sysOfAlloc RS inv_f_eq) 1);
 by (auto_tac (claset() addSWrapper record_split_wrapper, 
-	      simpset() addsimps [sysOfAlloc_def]));
+	      simpset() addsimps [sysOfAlloc_def, Let_def]));
 qed "inv_sysOfAlloc_eq";
 Addsimps [inv_sysOfAlloc_eq];
+
+Goal "surj sysOfAlloc";
+by (simp_tac (simpset() addsimps [surj_iff, expand_fun_eq, o_def]) 1);
+by (auto_tac (claset() addSWrapper record_split_wrapper, 
+	      simpset() addsimps [sysOfAlloc_def, Let_def]));
+qed "surj_sysOfAlloc";
+AddIffs [surj_sysOfAlloc];
+
+Goal "bij sysOfAlloc";
+by (blast_tac (claset() addIs [bijI]) 1);
+qed "bij_sysOfAlloc";
+AddIffs [bij_sysOfAlloc];
 
 (**SHOULD NOT BE NECESSARY: The various injections into the system
    state need to be treated symmetrically or done automatically*)
 Goalw [sysOfClient_def] "inj sysOfClient";
 by (rtac injI 1);
-by (auto_tac (claset() addSDs [inj_sysOfAlloc RS injD]
-		       addSWrapper record_split_wrapper, 
-	      simpset()));
+by (auto_tac (claset() addSWrapper record_split_wrapper, simpset()));
 qed "inj_sysOfClient";
-
-Goalw [sysOfClient_def] "surj sysOfClient";
-by (cut_facts_tac [surj_sysOfAlloc] 1);
-by (rewtac surj_def);
-by Auto_tac;
-by (Blast_tac 1);
-qed "surj_sysOfClient";
-
-AddIffs [inj_sysOfClient, surj_sysOfClient];
-
-Goalw [good_map_def] "good_map sysOfClient";
-by Auto_tac;
-qed "good_map_sysOfClient";
-Addsimps [good_map_sysOfClient];
+AddIffs [inj_sysOfClient];
 
 (*MUST BE AUTOMATED: even the statement of such results*)
 Goal "!!s. inv sysOfClient s = \
 \            (client s, \
 \             (| allocGiv = allocGiv s, \
 \                allocAsk = allocAsk s, \
-\                allocRel = allocRel s|) )";
+\                allocRel = allocRel s, \
+\                allocState_u.extra = systemState.extra s|) )";
 by (rtac (inj_sysOfClient RS inv_f_eq) 1);
 by (auto_tac (claset() addSWrapper record_split_wrapper, 
-	      simpset() addsimps [sysOfAlloc_def, sysOfClient_def]));
+	      simpset() addsimps [sysOfClient_def]));
 qed "inv_sysOfClient_eq";
 Addsimps [inv_sysOfClient_eq];
+
+Goal "surj sysOfClient";
+by (simp_tac (simpset() addsimps [surj_iff, expand_fun_eq, o_def]) 1);
+by (auto_tac (claset() addSWrapper record_split_wrapper, 
+	      simpset() addsimps [sysOfClient_def]));
+qed "surj_sysOfClient";
+AddIffs [surj_sysOfClient];
+
+Goal "bij sysOfClient";
+by (blast_tac (claset() addIs [bijI]) 1);
+qed "bij_sysOfClient";
+AddIffs [bij_sysOfClient];
 
 
 Open_locale "System";
