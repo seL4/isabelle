@@ -20,7 +20,8 @@ MAIL=$HOME/bin/pmail
 
 LOGPREFIX=$HOME/log
 MASTERLOG=$LOGPREFIX/isatest.log
-ERRORLOG=$HOME/var/error.log
+ERRORDIR=$HOME/var
+ERRORLOG=$ERRORDIR/error.log
 RUNNING=$HOME/var/running
 DISTPREFIX=$HOME/isadist
 MAKEDIST=$HOME/bin/makedist
@@ -53,6 +54,7 @@ function fail()
 
 # cleanup old error log and test-still-running files
 rm -f $ERRORLOG
+rm -f $ERRORDIR/isatest-*.log
 rm -f $RUNNING/*.runnning
 
 export DISTPREFIX
@@ -81,7 +83,7 @@ then
     echo "$HOSTNAME:$DISTLOG" >> $TMP
 
     for R in $MAILTO; do
-	$MAIL "isabelle dist build failed" $R $TMP
+        $MAIL "isabelle dist build failed" $R $TMP
     done
 
     rm $TMP
