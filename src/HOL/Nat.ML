@@ -265,13 +265,13 @@ qed "add_eq_self_zero";
 
 (**** Additional theorems about "less than" ****)
 
-(*Deleted less_natE; instead use less_eq_Suc_add RS exE*)
+(*Deleted less_natE; instead use less_imp_Suc_add RS exE*)
 Goal "m<n --> (EX k. n=Suc(m+k))";
 by (induct_tac "n" 1);
 by (ALLGOALS (simp_tac (simpset() addsimps [order_le_less])));
 by (blast_tac (claset() addSEs [less_SucE]
                         addSIs [add_0_right RS sym, add_Suc_right RS sym]) 1);
-qed_spec_mp "less_eq_Suc_add";
+qed_spec_mp "less_imp_Suc_add";
 
 Goal "n <= ((m + n)::nat)";
 by (induct_tac "m" 1);
@@ -288,7 +288,7 @@ bind_thm ("less_add_Suc1", (lessI RS (le_add1 RS le_less_trans)));
 bind_thm ("less_add_Suc2", (lessI RS (le_add2 RS le_less_trans)));
 
 Goal "(m<n) = (EX k. n=Suc(m+k))";
-by (blast_tac (claset() addSIs [less_add_Suc1, less_eq_Suc_add]) 1);
+by (blast_tac (claset() addSIs [less_add_Suc1, less_imp_Suc_add]) 1);
 qed "less_iff_Suc_add";
 
 
@@ -634,7 +634,7 @@ qed "mult_le_mono";
 
 (*strict, in 1st argument; proof is by induction on k>0*)
 Goal "!!i::nat. [| i<j; 0<k |] ==> k*i < k*j";
-by (eres_inst_tac [("m1","0")] (less_eq_Suc_add RS exE) 1);
+by (eres_inst_tac [("m1","0")] (less_imp_Suc_add RS exE) 1);
 by (Asm_simp_tac 1);
 by (induct_tac "x" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [add_less_mono])));

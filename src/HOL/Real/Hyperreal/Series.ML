@@ -43,7 +43,7 @@ qed "sumr_mult";
 Goal "n < p --> sumr 0 n f + sumr n p f = sumr 0 p f";
 by (induct_tac "p" 1);
 by (auto_tac (claset() addSDs [CLAIM "n < Suc na ==> n <= na",
-    leI] addDs [le_anti_sym],simpset()));
+    leI] addDs [le_anti_sym], simpset()));
 qed_spec_mp "sumr_split_add";
 
 Goal "!!n. n < p ==> sumr 0 p f + \
@@ -55,7 +55,7 @@ qed "sumr_split_add_minus";
 Goal "abs(sumr m n f) <= sumr m n (%i. abs(f i))";
 by (induct_tac "n" 1);
 by (auto_tac (claset() addIs [(abs_triangle_ineq 
-    RS real_le_trans),real_add_le_mono1],simpset()));
+    RS real_le_trans),real_add_le_mono1], simpset()));
 qed "sumr_rabs";
 
 Goal "!!f g. (ALL r. m <= r & r < n --> f r = g r) \
@@ -83,7 +83,7 @@ qed "sumr_diff_mult_const";
 
 Goal "n < m --> sumr m n f = #0";
 by (induct_tac "n" 1);
-by (auto_tac (claset() addDs [less_imp_le],simpset()));
+by (auto_tac (claset() addDs [less_imp_le], simpset()));
 qed_spec_mp "sumr_less_bounds_zero";
 Addsimps [sumr_less_bounds_zero];
 
@@ -97,7 +97,7 @@ qed "sumr_minus";
 context NatArith.thy;
 
 Goal "!!n. ~ Suc n <= m + k ==> ~ Suc n <= m";
-by (auto_tac (claset() addSDs [not_leE],simpset()));
+by (auto_tac (claset() addSDs [not_leE], simpset()));
 qed "lemma_not_Suc_add";
 
 context thy;
@@ -120,7 +120,7 @@ qed "sumr_minus_one_realpow_zero2";
 Addsimps [sumr_minus_one_realpow_zero2];
 
 Goal "m < Suc n ==> Suc n - m = Suc (n - m)";
-by (dtac less_eq_Suc_add 1);
+by (dtac less_imp_Suc_add 1);
 by (Auto_tac);
 val Suc_diff_n = result();
 
@@ -185,13 +185,13 @@ qed_spec_mp "sumr_ge_zero";
 Goal "(ALL n. m <= n --> #0 <= f n) --> #0 <= sumr m n f";
 by (induct_tac "n" 1);
 by (auto_tac (claset() addIs [rename_numerals real_le_add_order] 
-    addDs [leI],simpset()));
+    addDs [leI], simpset()));
 qed_spec_mp "sumr_ge_zero2";
 
 Goal "#0 <= sumr m n (%n. abs (f n))";
 by (induct_tac "n" 1);
 by (auto_tac (claset() addSIs [rename_numerals real_le_add_order,
-    abs_ge_zero],simpset()));
+    abs_ge_zero], simpset()));
 qed "sumr_rabs_ge_zero";
 Addsimps [sumr_rabs_ge_zero];
 AddSIs [sumr_rabs_ge_zero]; 
@@ -350,12 +350,12 @@ qed "suminf_mult2";
 
 Goal "[| summable f; summable g |]  \
 \     ==> suminf f - suminf g  = suminf(%n. f n - g n)";
-by (auto_tac (claset() addSIs [sums_diff,sums_unique,summable_sums],simpset()));
+by (auto_tac (claset() addSIs [sums_diff,sums_unique,summable_sums], simpset()));
 qed "suminf_diff";
 
 goalw Series.thy [sums_def] 
        "!!x. x sums x0 ==> (%n. - x n) sums - x0";
-by (auto_tac (claset() addSIs [LIMSEQ_minus],simpset() addsimps [sumr_minus]));
+by (auto_tac (claset() addSIs [LIMSEQ_minus], simpset() addsimps [sumr_minus]));
 qed "sums_minus";
 
 Goal "[|summable f; 0 < k |] \
@@ -365,7 +365,7 @@ by (auto_tac (claset(),simpset() addsimps [sums_def,LIMSEQ_def]));
 by (dres_inst_tac [("x","r")] spec 1 THEN Step_tac 1); 
 by (res_inst_tac [("x","no")] exI 1 THEN Step_tac 1); 
 by (dres_inst_tac [("x","n*k")] spec 1); 
-by (auto_tac (claset() addSDs [not_leE],simpset()));
+by (auto_tac (claset() addSDs [not_leE], simpset()));
 by (dres_inst_tac [("j","no")] less_le_trans 1);
 by (Auto_tac);
 qed "sums_group";
@@ -416,7 +416,7 @@ by (cut_inst_tac [("k","sumr 0 n f")] LIMSEQ_const 1);
 by (etac LIMSEQ_le 1 THEN Step_tac 1);
 by (res_inst_tac [("x","n")] exI 1 THEN Step_tac 1);
 by (dtac le_imp_less_or_eq 1 THEN Step_tac 1);
-by (auto_tac (claset() addIs [sumr_le],simpset()));
+by (auto_tac (claset() addIs [sumr_le], simpset()));
 qed "series_pos_le";
 
 Goal "!!f. [| summable f; ALL m. n <= m --> #0 < f(m) |] \
@@ -524,15 +524,15 @@ qed "summable_rabs_comparison_test";
 Goal "[|ALL n. f n <= g n; summable f; summable g |] \
 \     ==> suminf f <= suminf g";
 by (REPEAT(dtac summable_sums 1));
-by (auto_tac (claset() addSIs [LIMSEQ_le],simpset() addsimps [sums_def]));
+by (auto_tac (claset() addSIs [LIMSEQ_le], simpset() addsimps [sums_def]));
 by (rtac exI 1);
-by (auto_tac (claset() addSIs [sumr_le2],simpset()));
+by (auto_tac (claset() addSIs [sumr_le2], simpset()));
 qed "summable_le";
 
 Goal "[|ALL n. abs(f n) <= g n; summable g |] \
 \     ==> summable f & suminf f <= suminf g";
 by (auto_tac (claset() addIs [summable_comparison_test]
-    addSIs [summable_le],simpset()));
+    addSIs [summable_le], simpset()));
 by (auto_tac (claset(),simpset() addsimps [abs_le_interval_iff]));
 qed "summable_le2";
 
@@ -545,7 +545,7 @@ by (dtac spec 1 THEN Auto_tac);
 by (res_inst_tac [("x","N")] exI 1 THEN Auto_tac);
 by (dtac spec 1 THEN Auto_tac);
 by (res_inst_tac [("j","sumr m n (%n. abs(f n))")] real_le_less_trans 1);
-by (auto_tac (claset() addIs [sumr_rabs],simpset()));
+by (auto_tac (claset() addIs [sumr_rabs], simpset()));
 qed "summable_rabs_cancel";
 
 (*-------------------------------------------------------------------
@@ -553,7 +553,7 @@ qed "summable_rabs_cancel";
  -------------------------------------------------------------------*)
 Goal "summable (%n. abs (f n)) ==> abs(suminf f) <= suminf (%n. abs(f n))";
 by (auto_tac (claset() addIs [LIMSEQ_le,LIMSEQ_imp_rabs,summable_rabs_cancel,
-    summable_sumr_LIMSEQ_suminf,sumr_rabs],simpset()));
+    summable_sumr_LIMSEQ_suminf,sumr_rabs], simpset()));
 qed "summable_rabs";
 
 (*-------------------------------------------------------------------
@@ -585,7 +585,7 @@ val lemma_rinv_realpow2 = result();
 
 Goal "(k::nat) <= l ==> (EX n. l = k + n)";
 by (dtac le_imp_less_or_eq 1);
-by (auto_tac (claset() addDs [less_eq_Suc_add],simpset()));
+by (auto_tac (claset() addDs [less_imp_Suc_add], simpset()));
 qed "le_Suc_ex";
 
 Goal "((k::nat) <= l) = (EX n. l = k + n)";
@@ -613,7 +613,7 @@ by (auto_tac (claset() addIs [real_mult_le_le_mono1],
     simpset() addsimps [summable_def, CLAIM_SIMP 
     "a * (b * c) = b * (a * (c::real))" real_mult_ac]));
 by (res_inst_tac [("x","(abs(f N)*rinv(c ^ N))*rinv(#1 - c)")] exI 1);
-by (auto_tac (claset() addSIs [sums_mult,geometric_sums],simpset() addsimps 
+by (auto_tac (claset() addSIs [sums_mult,geometric_sums], simpset() addsimps 
     [abs_eqI2]));
 qed "ratio_test";
 
@@ -625,7 +625,7 @@ qed "ratio_test";
 Goal "(ALL r. m <= r & r < (m + n) --> DERIV (%x. f r x) x :> (f' r x)) \
 \     --> DERIV (%x. sumr m n (%n. f n x)) x :> sumr m n (%r. f' r x)";
 by (induct_tac "n" 1);
-by (auto_tac (claset() addIs [DERIV_add],simpset()));
+by (auto_tac (claset() addIs [DERIV_add], simpset()));
 qed "DERIV_sumr";
 
 

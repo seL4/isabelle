@@ -120,7 +120,7 @@ Goal "!!(f::nat=>nat). ALL n. n <= f n \
 by (induct_tac "u" 1);
 by (auto_tac (claset(),simpset() addsimps [lemma_NSLIMSEQ2]));
 by (auto_tac (claset() addIs [(lemma_NSLIMSEQ3 RS finite_subset),
-    finite_nat_le_segment],simpset()));
+    finite_nat_le_segment], simpset()));
 by (dtac lemma_NSLIMSEQ1 1 THEN Step_tac 1);
 by (ALLGOALS(Asm_simp_tac));
 qed "NSLIMSEQ_finite_set";
@@ -153,7 +153,7 @@ val lemmaLIM = CLAIM  "{n. X (f n) + - L = Y n} Int {n. abs (Y n) < r} <= \
 Goal "{n. abs (X (f n) + - L) < r} Int \
 \         {n. r <= abs (X (f n) + - (L::real))} = {}";
 by (auto_tac (claset() addDs [real_less_le_trans] 
-    addIs [real_less_irrefl],simpset()));
+    addIs [real_less_irrefl], simpset()));
 val lemmaLIM2 = result();
 
 Goal "!!f. [| #0 < r; ALL n. r <= abs (X (f n) + - L); \
@@ -323,7 +323,7 @@ Goalw [NSLIMSEQ_def]
       "!!X. [| X ----NS> a; X ----NS> b |] \
 \           ==> a = b";
 by (REPEAT(dtac (HNatInfinite_whn RSN (2,bspec)) 1));
-by (auto_tac (claset() addDs [inf_close_trans3],simpset()));
+by (auto_tac (claset() addDs [inf_close_trans3], simpset()));
 qed "NSLIMSEQ_unique";
 
 Goal "!!X. [| X ----> a; X ----> b |] \
@@ -377,21 +377,21 @@ qed "convergent_NSconvergent_iff";
 
 Goalw [NSconvergent_def,nslim_def] 
       "NSconvergent X = (X ----NS> nslim X)";
-by (auto_tac (claset() addIs [someI],simpset()));
+by (auto_tac (claset() addIs [someI], simpset()));
 qed "NSconvergent_NSLIMSEQ_iff";
 
 Goalw [convergent_def,lim_def] 
       "convergent X = (X ----> lim X)";
-by (auto_tac (claset() addIs [someI],simpset()));
+by (auto_tac (claset() addIs [someI], simpset()));
 qed "convergent_LIMSEQ_iff";
 
 (*-------------------------------------------------------------------
          Subsequence (alternative definition) (e.g. Hoskins)
  ------------------------------------------------------------------*)
 Goalw [subseq_def] "subseq f = (ALL n. (f n) < (f (Suc n)))";
-by (auto_tac (claset() addSDs [less_eq_Suc_add],simpset()));
+by (auto_tac (claset() addSDs [less_imp_Suc_add], simpset()));
 by (nat_ind_tac "k" 1);
-by (auto_tac (claset() addIs [less_trans],simpset()));
+by (auto_tac (claset() addIs [less_trans], simpset()));
 qed "subseq_Suc_iff";
 
 (*-------------------------------------------------------------------
@@ -403,13 +403,14 @@ Goalw [monoseq_def]
 \                | (ALL n. X (Suc n) <= X n))";
 by (auto_tac (claset () addSDs [le_imp_less_or_eq],
     simpset() addsimps [real_le_refl]));
-by (auto_tac (claset() addSIs [lessI RS less_imp_le] 
-    addSDs [less_eq_Suc_add],simpset()));
+by (auto_tac (claset() addSIs [lessI RS less_imp_le]
+                       addSDs [less_imp_Suc_add], 
+    simpset()));
 by (induct_tac "ka" 1);
-by (auto_tac (claset() addIs [real_le_trans],simpset()));
+by (auto_tac (claset() addIs [real_le_trans], simpset()));
 by (EVERY1[rtac ccontr, rtac swap, Simp_tac]);
 by (induct_tac "k" 1);
-by (auto_tac (claset() addIs [real_le_trans],simpset()));
+by (auto_tac (claset() addIs [real_le_trans], simpset()));
 qed "monoseq_Suc";
 
 Goalw [monoseq_def] 
@@ -568,7 +569,7 @@ by (rtac (CLAIM "{n. f n <= (0::nat) & real_of_posnat n < abs (X (f n))} <= \
           RS finite_subset) 1);
 by (rtac finite_real_of_posnat_less_real 1);
 by (rtac (lemma_finite_NSBseq RS finite_subset) 1);
-by (auto_tac (claset() addIs [finite_real_of_posnat_less_real],simpset()));
+by (auto_tac (claset() addIs [finite_real_of_posnat_less_real], simpset()));
 val lemma_finite_NSBseq2 = result();
 
 Goal "ALL N. real_of_posnat  N < abs (X (f N)) \
@@ -765,7 +766,7 @@ qed "NSBseq_mono_NSconvergent";
 
 Goalw [convergent_def] 
       "!!X. (convergent X) = (convergent (%n. -(X n)))";
-by (auto_tac (claset() addDs [LIMSEQ_minus],simpset()));
+by (auto_tac (claset() addDs [LIMSEQ_minus], simpset()));
 by (dtac LIMSEQ_minus 1 THEN Auto_tac);
 qed "convergent_minus_iff";
 
@@ -781,7 +782,7 @@ Goalw [monoseq_def]
 by (Step_tac 1);
 by (rtac (convergent_minus_iff RS ssubst) 2);
 by (dtac (Bseq_minus_iff RS ssubst) 2);
-by (auto_tac (claset() addSIs [Bseq_mono_convergent],simpset()));
+by (auto_tac (claset() addSIs [Bseq_mono_convergent], simpset()));
 qed "Bseq_monoseq_convergent";
 
 (*----------------------------------------------------------------
@@ -815,7 +816,7 @@ by (Step_tac 1);
 by (res_inst_tac [("j","abs(X n) + abs (X N)")] 
     real_le_trans 1);
 by (auto_tac (claset() addIs [abs_triangle_minus_ineq,
-    real_add_le_mono1],simpset() addsimps [Bseq_iff2]));
+    real_add_le_mono1], simpset() addsimps [Bseq_iff2]));
 qed "Bseq_iff3";
 
 val real_not_leE = CLAIM "~ m <= n ==> n < (m::real)";
@@ -830,7 +831,7 @@ by (auto_tac (claset(),simpset() addsimps [abs_eqI1,
 by (res_inst_tac [("j","abs K")] real_le_trans 1);
 by (res_inst_tac [("j","abs k")] real_le_trans 3);
 by (auto_tac (claset() addSIs [rename_numerals real_le_add_order] addDs 
-    [real_le_trans],simpset() 
+    [real_le_trans], simpset() 
     addsimps [abs_ge_zero,rename_numerals real_zero_less_one,abs_eqI1]));
 by (subgoal_tac "k < 0" 1);
 by (rtac (real_not_leE RSN (2,real_le_less_trans)) 2);
@@ -874,7 +875,7 @@ by (res_inst_tac [("x1","xa")]
     (lemmaCauchy2 RSN (2,FreeUltrafilterNat_subset)) 1);
 by (rtac FreeUltrafilterNat_Int 1 THEN assume_tac 2);
 by (auto_tac (claset() addIs [FreeUltrafilterNat_Int,
-        FreeUltrafilterNat_Nat_set],simpset()));
+        FreeUltrafilterNat_Nat_set], simpset()));
 qed "Cauchy_NSCauchy";
 
 (*-----------------------------------------------
@@ -1052,7 +1053,7 @@ by (auto_tac (claset() addIs [inf_close_trans2],
     [NSBseq_def,NSCauchy_def]));
 by (dtac (HNatInfinite_whn RSN (2,bspec)) 1);
 by (dtac (HNatInfinite_whn RSN (2,bspec)) 1);
-by (auto_tac (claset() addSDs [st_part_Ex],simpset() 
+by (auto_tac (claset() addSDs [st_part_Ex], simpset() 
               addsimps [SReal_iff]));
 by (blast_tac (claset() addIs [inf_close_trans3]) 1);
 qed "NSCauchy_NSconvergent_iff";
@@ -1077,7 +1078,7 @@ by (REPEAT(dtac (HNatInfinite_whn RSN (2,bspec)) 1));
 by (dres_inst_tac [("x","whn")] spec 1);
 by (REPEAT(dtac (bex_Infinitesimal_iff2 RS iffD2) 1));
 by (auto_tac (claset() addIs 
-    [hypreal_of_real_le_add_Infininitesimal_cancel2],simpset()));
+    [hypreal_of_real_le_add_Infininitesimal_cancel2], simpset()));
 qed "NSLIMSEQ_le";
 
 (* standard version *)
@@ -1188,7 +1189,7 @@ qed "NSLIMSEQ_rabs_zero";
  ---------------------------------------*)
 Goalw [NSLIMSEQ_def] 
        "f ----NS> l ==> (%n. abs(f n)) ----NS> abs(l)";
-by (auto_tac (claset() addIs [inf_close_hrabs],simpset() 
+by (auto_tac (claset() addIs [inf_close_hrabs], simpset() 
     addsimps [starfunNat_rabs,hypreal_of_real_hrabs RS sym]));
 qed "NSLIMSEQ_imp_rabs";
 
@@ -1214,7 +1215,7 @@ by (forward_tac [real_less_trans] 1 THEN assume_tac 1);
 by (forw_inst_tac [("x","f n")] (rename_numerals real_rinv_gt_zero) 1);
 by (asm_simp_tac (simpset() addsimps [abs_eqI2]) 1);
 by (res_inst_tac [("t","r")] (real_rinv_rinv RS subst) 1);
-by (auto_tac (claset() addIs [real_rinv_less_iff RS iffD1],simpset()));
+by (auto_tac (claset() addIs [real_rinv_less_iff RS iffD1], simpset()));
 qed "LIMSEQ_rinv_zero";
 
 Goal "ALL y. EX N. ALL n. N <= n --> y < f(n) \
@@ -1232,7 +1233,7 @@ by (cut_inst_tac [("x","y")] reals_Archimedean2 1);
 by (Step_tac 1 THEN res_inst_tac [("x","n")] exI 1);
 by (Step_tac 1 THEN etac (le_imp_less_or_eq RS disjE) 1);
 by (dtac (real_of_posnat_less_iff RS iffD2) 1);
-by (auto_tac (claset() addEs [real_less_trans],simpset()));
+by (auto_tac (claset() addEs [real_less_trans], simpset()));
 qed "LIMSEQ_rinv_real_of_posnat";
 
 Goal "(%n. rinv(real_of_posnat n)) ----NS> #0";
@@ -1304,7 +1305,7 @@ Goalw [Bseq_def]
       "[| #0 <= x; x < #1 |] ==> Bseq (%n. x ^ n)";
 by (res_inst_tac [("x","#1")] exI 1);
 by (auto_tac (claset() addDs [conjI RS realpow_le2] 
-    addIs [real_less_imp_le],simpset() addsimps 
+    addIs [real_less_imp_le], simpset() addsimps 
     [real_zero_less_one,abs_eqI1,realpow_abs RS sym] ));
 qed "Bseq_realpow";
 
@@ -1334,9 +1335,9 @@ by (dres_inst_tac [("x","N + 1hn")] bspec 1 THEN assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [hyperpow_add]) 1);
 by (dtac inf_close_mult_subst_SReal 1 THEN assume_tac 1);
 by (dtac inf_close_trans3 1 THEN assume_tac 1);
-by (auto_tac (claset() addSDs [rename_numerals (real_not_refl2 RS 
-    real_mult_eq_self_zero2)],simpset() addsimps 
-    [hypreal_of_real_mult RS sym]));
+by (auto_tac (claset() addSDs [rename_numerals 
+                                (real_not_refl2 RS real_mult_eq_self_zero2)], 
+    simpset() addsimps [hypreal_of_real_mult RS sym]));
 qed "NSLIMSEQ_realpow_zero";
 
 (*---------------  standard version ---------------*)

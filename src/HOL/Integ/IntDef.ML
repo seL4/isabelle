@@ -351,7 +351,7 @@ by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
 by (res_inst_tac [("z","w")] eq_Abs_Integ 1);
 by (Clarify_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [zadd, zminus]) 1);
-by (safe_tac (claset() addSDs [less_eq_Suc_add]));
+by (safe_tac (claset() addSDs [less_imp_Suc_add]));
 by (res_inst_tac [("x","k")] exI 1);
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps add_ac)));
 qed "zless_iff_Suc_zadd";
