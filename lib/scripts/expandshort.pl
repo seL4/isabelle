@@ -6,6 +6,7 @@
 # in "be ... i;" -> "by (etac ... i);" the "..." phrase is not allowed to
 #   contain punctuation.  Otherwise, comments can be affected!
 # a special case is made to detect    be alpha.alpha digits   
+#
 
 sub expandshort {
     my ($file) = @_;
