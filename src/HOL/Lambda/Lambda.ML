@@ -77,7 +77,7 @@ qed "rtrancl_beta_App";
 
 (*** subst and lift ***)
 
-fun addsplit ss = ss addsimps [subst_Var] setloop (split_tac [expand_if]);
+fun addsplit ss = ss addsimps [subst_Var] setloop (split_inside_tac [expand_if]);
 
 goal Lambda.thy "(Var k)[u/k] = u";
 by (asm_full_simp_tac(addsplit(!simpset)) 1);

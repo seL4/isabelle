@@ -110,7 +110,7 @@ goalw Substitution.thy [subst_rec_def]
 by (asm_full_simp_tac (lift_ss) 1);
 val subst_App = result();
 
-fun addsplit ss = (ss setloop (split_tac [expand_if]) 
+fun addsplit ss = (ss setloop (split_inside_tac [expand_if]) 
                 addsimps [lift_rec_Var,subst_Var]);
 
 

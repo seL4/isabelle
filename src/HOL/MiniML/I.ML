@@ -11,11 +11,11 @@ by (expr.induct_tac "e" 1);
 
   (* case Var n *)
   by (simp_tac (!simpset addsimps [app_subst_list]
-      setloop (split_tac [expand_if])) 1);
+      setloop (split_inside_tac [expand_if])) 1);
   by (fast_tac (HOL_cs addss !simpset) 1);
 
  (* case Abs e *)
- by (asm_full_simp_tac (!simpset setloop (split_tac [expand_bind])) 1);
+ by (asm_full_simp_tac (!simpset setloop (split_inside_tac [expand_bind])) 1);
  by (strip_tac 1);
  by (rtac conjI 1);
   by (strip_tac 1);
@@ -33,7 +33,7 @@ by (expr.induct_tac "e" 1);
                              less_imp_le,lessI]) 1);
 
 (* case App e1 e2 *)
-by (simp_tac (!simpset setloop (split_tac [expand_bind])) 1);
+by (simp_tac (!simpset setloop (split_inside_tac [expand_bind])) 1);
 by (strip_tac 1);
 by (rename_tac "s1' t1 n1 s2' t2 n2 sa" 1);
 by (rtac conjI 1);
