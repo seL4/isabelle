@@ -1,5 +1,16 @@
+
 Isabelle NEWS -- history user-relevant changes
 ==============================================
+
+New in this Isabelle release
+----------------------------
+
+*** General ***
+
+* improved thms_containing: proper indexing of facts instead of raw
+theorems; check validity of results wrt. current name space; include
+local facts of proof configuration (also covers active locales);
+
 
 *** HOL ***
 
@@ -9,6 +20,8 @@ Isabelle NEWS -- history user-relevant changes
   "n div 2 + (n+1) div 2 = (n::nat)".
 * simp's arithmetic capabilities have been enhanced a bit:
   it now takes ~= in premises into account (by performing a case split).
+
+
 
 New in Isabelle2002 (March 2002)
 --------------------------------
