@@ -430,7 +430,7 @@ by (Asm_simp_tac 1);
 qed_spec_mp "psubset_card" ;
 
 
-(*Relates to equivalence classes.   Based on a theorem of F. Kammüller's.
+(*Relates to equivalence classes.   Based on a theorem of F. Kammueller's.
   The "finite C" premise is redundant*)
 goal thy "!!C. finite C ==> finite (Union C) --> \
 \          (! c : C. k dvd card c) -->  \
