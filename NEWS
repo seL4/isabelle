@@ -344,8 +344,9 @@ http://fink.sourceforge.net/);
 * system: Proof General keywords specification is now part of the
 Isabelle distribution (see etc/isar-keywords.el);
 
-* system: some support for persistent Proof General sessions (refrain
-from outdating all loaded theories on startup);
+* system: support for persistent Proof General sessions (refrain from
+outdating all loaded theories on startup); user may create writable
+logic images like this: ``isabelle -q HOL Test'';
 
 * system: smart selection of Isabelle process versus Isabelle
 interface, accommodates case-insensitive file systems (e.g. HFS+); may
