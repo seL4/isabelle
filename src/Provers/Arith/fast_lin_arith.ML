@@ -77,6 +77,7 @@ sig
                      lessD: thm list, simpset: Simplifier.simpset})
                 -> theory -> theory
   val trace           : bool ref
+  val fast_arith_neq_limit: int ref
   val lin_arith_prover: Sign.sg -> thm list -> term -> thm option
   val     lin_arith_tac:     bool -> int -> tactic
   val cut_lin_arith_tac: thm list -> int -> tactic
@@ -620,9 +621,19 @@ fun refute_tac(i,justs) =
     end
     state;
 
+fun count P xs = length(filter P xs);
+
+(* The limit on the number of ~= allowed.
+   Because each ~= is split into two cases, this can lead to an explosion.
+*)
+val fast_arith_neq_limit = ref 9;
+
 fun prove sg ps ex Hs concl =
 let val Hitems = map (LA_Data.decomp sg) Hs
-in case LA_Data.decomp sg concl of
+in if count (fn None => false | Some(_,_,r,_,_,_) => r = "~=") Hitems
+      > !fast_arith_neq_limit then None
+   else
+   case LA_Data.decomp sg concl of
      None => refute sg ps ex (Hitems@[None])
    | Some(citem as (r,i,rel,l,j,d)) =>
        let val neg::rel0 = explode rel
