@@ -35,11 +35,8 @@ fun dddot_bind prop =
   | _ => []);
 
 fun facts _ [] = []
-  | facts name [prop] = statement_binds (name, prop) @ dddot_bind prop
-  | facts name props =
-      flat (map statement_binds
-        (map2 (fn (i, t) => (name ^ string_of_int i, t)) (1 upto length props, props))) @
-      dddot_bind (Library.last_elem props);
+  | facts name [prop] = dddot_bind prop
+  | facts name props =  dddot_bind (Library.last_elem props);
       
 
 end;
