@@ -100,8 +100,8 @@ struct
   val empty = (Symtab.empty, []);
   val copy = I;
   val prep_ext = I;
-  fun merge ((tab1, monos1), (tab2, monos2)) = (Symtab.merge (K true) (tab1, tab2),
-    Library.generic_merge Thm.eq_thm I I monos1 monos2);
+  fun merge ((tab1, monos1), (tab2, monos2)) =
+    (Symtab.merge (K true) (tab1, tab2), Drule.merge_rules (monos1, monos2));
 
   fun print sg (tab, monos) =
     [Pretty.strs ("(co)inductives:" :: map #1 (Sign.cond_extern_table sg Sign.constK tab)),
@@ -480,7 +480,7 @@ fun prove_mono setT fp_fun monos thy =
   Goals.prove_goalw_cterm []      (*NO SkipProof.prove_goalw_cterm here!*)
     (Thm.cterm_of (Theory.sign_of thy) (HOLogic.mk_Trueprop
       (Const (mono_name, (setT --> setT) --> HOLogic.boolT) $ fp_fun)))
-    (fn _ => [rtac monoI 1, REPEAT (ares_tac (get_monos thy @ flat (map mk_mono monos)) 1)]));
+    (fn _ => [rtac monoI 1, REPEAT (ares_tac (flat (map mk_mono monos) @ get_monos thy) 1)]));
 
 
 (* prove introduction rules *)
