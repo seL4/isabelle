@@ -69,7 +69,7 @@ induction, so is this proof: we show at the same time that all words in
 \ \ \ {\isacharparenleft}w\ {\isasymin}\ B\ {\isasymlongrightarrow}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}b{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ x{\isacharequal}a{\isacharbrackright}\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
-These propositions are expressed with the help of the predefined \isa{filter} function on lists, which has the convenient syntax \isa{filter\ P\ xs}, the list of all elements \isa{x} in \isa{xs} such that \isa{P\ x}
+These propositions are expressed with the help of the predefined \isa{filter} function on lists, which has the convenient syntax \isa{{\isacharbrackleft}x{\isasymin}xs{\isachardot}\ P\ x{\isacharbrackright}}, the list of all elements \isa{x} in \isa{xs} such that \isa{P\ x}
 holds. Remember that on lists \isa{size} and \isa{size} are synonymous.
 
 The proof itself is by rule induction and afterwards automatic:%
@@ -89,8 +89,8 @@ is hard: does \isa{S} contain \emph{all} words with an equal number of
 \isa{a}'s and \isa{b}'s? It turns out that this proof requires the
 following little lemma: every string with two more \isa{a}'s than \isa{b}'s can be cut somehwere such that each half has one more \isa{a} than
 \isa{b}. This is best seen by imagining counting the difference between the
-number of \isa{a}'s than \isa{b}'s starting at the left end of the
-word. We start at 0 and end (at the right end) with 2. Since each move to the
+number of \isa{a}'s and \isa{b}'s starting at the left end of the
+word. We start with 0 and end (at the right end) with 2. Since each move to the
 right increases or decreases the difference by 1, we must have passed through
 1 on our way from 0 to 2. Formally, we appeal to the following discrete
 intermediate value theorem \isa{nat{\isadigit{0}}{\isacharunderscore}intermed{\isacharunderscore}int{\isacharunderscore}val}
@@ -133,7 +133,7 @@ discuss it.%
 \isacommand{by}{\isacharparenleft}force\ simp\ add{\isacharcolon}zabs{\isacharunderscore}def\ take{\isacharunderscore}Cons\ split{\isacharcolon}nat{\isachardot}split\ if{\isacharunderscore}splits{\isacharparenright}%
 \begin{isamarkuptext}%
 Finally we come to the above mentioned lemma about cutting a word with two
-more elements of one sort than of the other sort into two halfs:%
+more elements of one sort than of the other sort into two halves:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ part{\isadigit{1}}{\isacharcolon}\isanewline
 \ {\isachardoublequote}size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\ size{\isacharbrackleft}x{\isasymin}w{\isachardot}\ {\isasymnot}P\ x{\isacharbrackright}{\isacharplus}{\isadigit{2}}\ {\isasymLongrightarrow}\isanewline

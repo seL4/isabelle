@@ -59,6 +59,8 @@ literature. In Recdef/termination.thy, at the end.
 
 Syntax section: syntax annotations nor just for consts but also for constdefs and datatype.
 
+Appendix with list functions.
+
 
 Minor additions to the tutorial, unclear where
 ==============================================

@@ -74,7 +74,7 @@ lemma correctness:
 
 txt{*\noindent
 These propositions are expressed with the help of the predefined @{term
-filter} function on lists, which has the convenient syntax @{term"[x\<in>xs. P
+filter} function on lists, which has the convenient syntax @{text"[x\<in>xs. P
 x]"}, the list of all elements @{term x} in @{term xs} such that @{prop"P x"}
 holds. Remember that on lists @{term size} and @{term length} are synonymous.
 
@@ -97,8 +97,8 @@ is hard: does @{term S} contain \emph{all} words with an equal number of
 following little lemma: every string with two more @{term a}'s than @{term
 b}'s can be cut somehwere such that each half has one more @{term a} than
 @{term b}. This is best seen by imagining counting the difference between the
-number of @{term a}'s than @{term b}'s starting at the left end of the
-word. We start at 0 and end (at the right end) with 2. Since each move to the
+number of @{term a}'s and @{term b}'s starting at the left end of the
+word. We start with 0 and end (at the right end) with 2. Since each move to the
 right increases or decreases the difference by 1, we must have passed through
 1 on our way from 0 to 2. Formally, we appeal to the following discrete
 intermediate value theorem @{thm[source]nat0_intermed_int_val}
@@ -141,7 +141,7 @@ by(force simp add:zabs_def take_Cons split:nat.split if_splits);
 
 text{*
 Finally we come to the above mentioned lemma about cutting a word with two
-more elements of one sort than of the other sort into two halfs:
+more elements of one sort than of the other sort into two halves:
 *}
 
 lemma part1:
