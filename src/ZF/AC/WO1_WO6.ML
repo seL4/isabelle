@@ -62,20 +62,20 @@ qed "WO1_WO4";
 (* ********************************************************************** *)
 
 Goalw WO_defs "[| m:nat; n:nat; m le n; WO4(m) |] ==> WO4(n)";
-by (fast_tac (claset() addIs [nat_le_imp_lepoll RSN (2, lepoll_trans)]) 1);
+by (rtac allI 1);
+by (dtac spec 1);
+by (blast_tac (claset() addIs [nat_le_imp_lepoll RSN (2, lepoll_trans)]) 1);
 qed "WO4_mono";
 
 (* ********************************************************************** *)
 
 Goalw WO_defs "[| m:nat; 1 le m; WO4(m) |] ==> WO5";
-    (*ZF_cs is essential: default claset's too slow*)
-by (fast_tac ZF_cs 1);
+by (Blast_tac 1);
 qed "WO4_WO5";
 
 (* ********************************************************************** *)
 
 Goalw WO_defs "WO5 ==> WO6";
-    (*ZF_cs is essential: default claset's too slow*)
-by (fast_tac ZF_cs 1);
+by (Blast_tac 1);
 qed "WO5_WO6";
 
