@@ -124,7 +124,7 @@ fun datatype_decl coind =
     val string_list = "(" $$-- list1 string --$$ ")" || ThyParse.empty;
     val construct = name -- string_list -- opt_mixfix;
   in optional ("<=" $$-- string) "\"\"" --
-     enum1 "and" (string --$$ "=" -- enum1 "|" construct) --
+     enum1 "and" (name --$$ "=" -- enum1 "|" construct) --
      optlist "monos" -- optlist "type_intrs" -- optlist "type_elims"
      >> mk_params
 end;

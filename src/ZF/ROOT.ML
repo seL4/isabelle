@@ -44,6 +44,8 @@ cd "..";
 (*the all-in-one theory*)
 use_thy "Main";
 
+simpset_ref() := simpset() setmksimps (map mk_eq o Ord_atomize o gen_all);
+
 print_depth 8;
 
 Goal "True";  (*leave subgoal package empty*)

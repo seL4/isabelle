@@ -1514,7 +1514,7 @@ qed "e_less_le";
 (* All theorems assume variables m and n are natural numbers. *)
 
 Goal "m:nat ==> e_less(DD,ee,m,succ(m)) = ee`m O id(set(DD`m))";
-by (asm_simp_tac(simpset() addsimps[e_less_le,e_less_eq]) 1);
+by (asm_simp_tac(simpset() addsimps[e_less_le, e_less_eq]) 1);
 qed "e_less_succ";
 
 val prems = goal Limit.thy  (* e_less_succ_emb *)

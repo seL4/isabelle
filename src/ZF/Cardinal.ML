@@ -142,8 +142,7 @@ Goalw [lesspoll_def] "A lesspoll B ==> A lepoll B";
 by (Blast_tac 1);
 qed "lesspoll_imp_lepoll";
 
-Goalw [lepoll_def]
-        "[| A lepoll B; well_ord(B,r) |] ==> EX s. well_ord(A,s)";
+Goalw [lepoll_def] "[| A lepoll B; well_ord(B,r) |] ==> EX s. well_ord(A,s)";
 by (blast_tac (claset() addIs [well_ord_rvimage]) 1);
 qed "lepoll_well_ord";
 
@@ -303,12 +302,15 @@ by (rtac Ord_Least 1);
 qed "Card_is_Ord";
 
 Goal "Card(K) ==> K le |K|";
-by (asm_simp_tac (simpset() addsimps [le_refl, Card_is_Ord, Card_cardinal_eq]) 1);
+by (asm_simp_tac (simpset() addsimps [Card_is_Ord, Card_cardinal_eq]) 1);
 qed "Card_cardinal_le";
 
 Goalw [cardinal_def] "Ord(|A|)";
 by (rtac Ord_Least 1);
 qed "Ord_cardinal";
+
+Addsimps [Ord_cardinal];
+AddSIs [Ord_cardinal];
 
 (*The cardinals are the initial ordinals*)
 Goal "Card(K) <-> Ord(K) & (ALL j. j<K --> ~ j eqpoll K)";
@@ -512,6 +514,16 @@ by (rtac lesspoll_succ_imp_lepoll 1);
 by (assume_tac 2);
 by (asm_simp_tac (simpset() addsimps [lesspoll_def]) 1);
 qed "lepoll_succ_disj";
+
+Goalw [lesspoll_def] "[| A lesspoll i; Ord(i) |] ==> |A| < i";
+by (Clarify_tac 1);
+by (forward_tac [lepoll_cardinal_le] 1);
+by (assume_tac 1);
+by (blast_tac (claset() addIs [well_ord_Memrel,
+			       well_ord_cardinal_eqpoll RS eqpoll_sym]
+                        addDs [lepoll_well_ord] 
+                        addSEs [leE]) 1);
+qed "lesspoll_cardinal_lt";
 
 
 (*** The first infinite cardinal: Omega, or nat ***)
@@ -778,3 +790,7 @@ by (rtac well_ord_converse 1 THEN assume_tac 1);
 by (blast_tac (claset() addDs [ordertype_eq_n] 
                        addSIs [nat_well_ord_converse_Memrel]) 1);
 qed "Finite_well_ord_converse";
+
+Goalw [Finite_def] "n:nat ==> Finite(n)";
+by (fast_tac (claset() addSIs [eqpoll_refl]) 1);
+qed "nat_into_Finite";

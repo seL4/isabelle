@@ -234,6 +234,7 @@ by (etac succE 1);
 by (Blast_tac 1);
 by (etac (rank_lt RS leI RS succ_leI RS le_imp_subset) 1);
 qed "rank_succ";
+Addsimps [rank_0, rank_succ];
 
 Goal "rank(Union(A)) = (UN x:A. rank(x))";
 by (rtac equalityI 1);
@@ -264,6 +265,23 @@ Goalw [Pair_def] "rank(b) < rank(<a,b>)";
 by (rtac (consI1 RS consI2 RS rank_lt RS lt_trans) 1);
 by (rtac (consI1 RS consI2 RS rank_lt) 1);
 qed "rank_pair2";
+
+(*Not clear how to remove the P(a) condition, since the "then" part
+  must refer to "a"*)
+Goal "P(a) ==> (THE x. P(x)) = (if (EX!x. P(x)) then a else 0)";
+by (asm_simp_tac (simpset() addsimps [the_0, the_equality2]) 1);
+qed "the_equality_if";
+
+(*The premise is needed not just to fix i but to ensure f~=0*)
+Goalw [apply_def] "i : domain(f) ==> rank(f`i) < rank(f)";
+by (Clarify_tac 1);
+by (subgoal_tac "rank(y) < rank(f)" 1);
+by (blast_tac (claset() addIs [lt_trans, rank_lt, rank_pair2]) 2);
+by (subgoal_tac "0 < rank(f)" 1);
+by (etac (Ord_rank RS Ord_0_le RS lt_trans1) 2);
+by (asm_simp_tac (simpset() addsimps [the_equality_if]) 1);
+qed "rank_apply";
+
 
 (*** Corollaries of leastness ***)
 

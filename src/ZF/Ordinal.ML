@@ -142,7 +142,7 @@ qed "Ord_succ";
 bind_thm ("Ord_1", Ord_0 RS Ord_succ);
 
 Goal "Ord(succ(i)) <-> Ord(i)";
-by (blast_tac (claset() addIs [Ord_succ] addDs [Ord_succD]) 1);
+by (blast_tac (claset() addIs [Ord_succ]) 1);
 qed "Ord_succ_iff";
 
 Addsimps [Ord_0, Ord_succ_iff];
@@ -246,7 +246,7 @@ AddSEs [lt_irrefl, lt0E];
 (** le is less than or equals;  recall  i le j  abbrevs  i<succ(j) !! **)
 
 Goalw [lt_def] "i le j <-> i<j | (i=j & Ord(j))";
-by (blast_tac (claset() addSIs [Ord_succ] addSDs [Ord_succD]) 1);
+by (Blast_tac 1);
 qed "le_iff";
 
 (*Equivalently, i<j ==> i < succ(j)*)
@@ -259,6 +259,14 @@ by (asm_simp_tac (simpset() addsimps [le_iff]) 1);
 qed "le_eqI";
 
 val le_refl = refl RS le_eqI;
+
+Goal "i le i <-> Ord(i)";
+by (asm_simp_tac (simpset() addsimps [lt_not_refl, le_iff]) 1);
+qed "le_refl_iff";
+
+Addsimps [le_refl_iff];
+AddSIs [le_refl];
+AddSDs [le_refl_iff RS iffD1];
 
 val [prem] = Goal "(~ (i=j & Ord(j)) ==> i<j) ==> i le j";
 by (rtac (disjCI RS (le_iff RS iffD2)) 1);
@@ -277,12 +285,11 @@ by (blast_tac (claset() addEs [lt_asym]) 1);
 qed "le_anti_sym";
 
 Goal "i le 0 <-> i=0";
-by (blast_tac (claset() addSIs [Ord_0 RS le_refl] addSEs [leE]) 1);
+by (blast_tac (claset() addSEs [leE]) 1);
 qed "le0_iff";
 
 bind_thm ("le0D", le0_iff RS iffD1);
 
-AddIs [le_refl];
 AddSDs [le0D];
 Addsimps [le0_iff];
 
@@ -479,13 +486,12 @@ by (blast_tac (subset_cs addIs [OrdmemD] addEs [ltE]) 1);
 qed "le_imp_subset";
 
 Goal "j le i <-> j<=i & Ord(i) & Ord(j)";
-by (blast_tac (claset() addDs [Ord_succD, subset_imp_le, le_imp_subset]
-                       addEs [ltE]) 1);
+by (blast_tac (claset() addDs [subset_imp_le, le_imp_subset] addEs [ltE]) 1);
 qed "le_subset_iff";
 
 Goal "i le succ(j) <-> i le j | i=succ(j) & Ord(i)";
 by (simp_tac (simpset() addsimps [le_iff]) 1);
-by (blast_tac (claset() addIs [Ord_succ] addDs [Ord_succD]) 1);
+by (Blast_tac 1);
 qed "le_succ_iff";
 
 (*Just a variant of subset_imp_le*)
@@ -519,7 +525,7 @@ qed "succ_leI";
 Goal "succ(i) le j ==> i<j";
 by (rtac (not_le_iff_lt RS iffD1) 1);
 by (blast_tac le_cs 3);
-by (ALLGOALS (blast_tac (claset() addEs [ltE, make_elim Ord_succD])));
+by (ALLGOALS (blast_tac (claset() addEs [ltE])));
 qed "succ_leE";
 
 Goal "succ(i) le j <-> i<j";
@@ -680,8 +686,7 @@ qed "Limit_le_succD";
 (** Traditional 3-way case analysis on ordinals **)
 
 Goal "Ord(i) ==> i=0 | (EX j. Ord(j) & i=succ(j)) | Limit(i)";
-by (blast_tac (claset() addSIs [non_succ_LimitI, Ord_0_lt]
-                      addSDs [Ord_succD]) 1);
+by (blast_tac (claset() addSIs [non_succ_LimitI, Ord_0_lt]) 1);
 qed "Ord_cases_disj";
 
 val major::prems = Goal

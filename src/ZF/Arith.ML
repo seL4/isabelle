@@ -14,7 +14,7 @@ Proofs about elementary arithmetic: addition, multiplication, etc.
   Also, rec(m, 0, %z w.z) is pred(m).   
 *)
 
-Addsimps [rec_type, nat_0_le, nat_le_refl];
+Addsimps [rec_type, nat_0_le];
 val nat_typechecks = [rec_type, nat_0I, nat_1I, nat_succI, Ord_nat];
 
 Goal "[| 0<k; k: nat |] ==> EX j: nat. k = succ(j)";
@@ -348,16 +348,16 @@ Goal "[| 0<n;  m:nat;  n:nat |] \
 by (etac complete_induct 1);
 by (excluded_middle_tac "succ(x)<n" 1);
 (* case succ(x) < n *)
-by (asm_simp_tac (simpset() addsimps [mod_less, nat_le_refl RS lt_trans,
-                                     succ_neq_self]) 2);
+by (asm_simp_tac (simpset() addsimps [nat_le_refl RS lt_trans, 
+				      succ_neq_self]) 2);
 by (asm_simp_tac (simpset() addsimps [ltD RS mem_imp_not_eq]) 2);
 (* case n le succ(x) *)
 by (asm_full_simp_tac
-     (simpset() addsimps [not_lt_iff_le, nat_into_Ord, mod_geq]) 1);
+     (simpset() addsimps [not_lt_iff_le, nat_into_Ord]) 1);
 by (etac leE 1);
-by (asm_simp_tac (simpset() addsimps [div_termination RS ltD, diff_succ, 
-                                     mod_geq]) 1);
-by (asm_simp_tac (simpset() addsimps [mod_less, diff_self_eq_0]) 1);
+(*equality case*)
+by (asm_full_simp_tac (simpset() addsimps [diff_self_eq_0]) 2);
+by (asm_simp_tac (simpset() addsimps [div_termination RS ltD, diff_succ]) 1);
 qed "mod_succ";
 
 Goal "[| 0<n;  m:nat;  n:nat |] ==> m mod n < n";
@@ -411,7 +411,7 @@ Goal "[| i<j; j:nat; k:nat |] ==> i#+k < j#+k";
 by (ftac lt_nat_in_nat 1);
 by (assume_tac 1);
 by (etac succ_lt_induct 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [leI])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [nat_into_Ord, leI])));
 qed "add_lt_mono1";
 
 (*strict, in both arguments*)

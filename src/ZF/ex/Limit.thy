@@ -17,7 +17,7 @@
     Laboratory, 1995.
 *)
 
-Limit  =  Perm + Arith +
+Limit  =  Main +
 
 consts
 

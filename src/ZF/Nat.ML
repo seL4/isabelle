@@ -74,6 +74,8 @@ by (nat_ind_tac "n" prems 1);
 by (REPEAT (ares_tac [Ord_0, Ord_succ] 1));
 qed "nat_into_Ord";
 
+Addsimps [nat_into_Ord];
+
 (* i: nat ==> 0 le i; same thing as 0<succ(i)  *)
 bind_thm ("nat_0_le", nat_into_Ord RS Ord_0_le);
 

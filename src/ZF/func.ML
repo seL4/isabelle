@@ -124,6 +124,12 @@ by (asm_full_simp_tac (FOL_ss addsimps [Pi_iff]) 1);
 by (blast_tac (claset() addIs prems addSDs [pi_prem RS Pi_memberD]) 1);
 qed "Pi_type";
 
+(*Such functions arise in non-standard datatypes, ZF/ex/Ntree for instance*)
+Goal "(f : Pi(A, %x. {y:B(x). P(x,y)})) \
+\     <->  f : Pi(A,B) & (ALL x: A. P(x, f`x))";
+by (blast_tac (claset() addIs [Pi_type] addDs [apply_type]) 1);
+qed "Pi_Collect_iff";
+
 
 (** Elimination of membership in a function **)
 

@@ -402,7 +402,7 @@ by (asm_simp_tac (simpset() addsimps [rvimage_iff, rmult_iff, Memrel_iff,
 				      Un_absorb, Un_least_mem_iff, ltD]) 1);
 by (safe_tac (claset() addSEs [mem_irrefl] 
                        addSIs [Un_upper1_le, Un_upper2_le]));
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [lt_def, succI2, Ord_succ])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [lt_def, succI2])));
 qed "csquareD";
 
 Goalw [pred_def]
@@ -540,7 +540,7 @@ by (etac ltE 2 THEN
     REPEAT (ares_tac [cmult_le_self, InfCard_is_Card] 2));
 by (forward_tac [InfCard_is_Card RS Card_is_Ord RS le_refl] 1);
 by (resolve_tac [cmult_le_mono RS le_trans] 1 THEN REPEAT (assume_tac 1));
-by (asm_simp_tac (simpset() addsimps [InfCard_csquare_eq]) 1);
+by (asm_full_simp_tac (simpset() addsimps [InfCard_csquare_eq]) 1);
 qed "InfCard_le_cmult_eq";
 
 (*Corollary 10.13 (1), for cardinal multiplication*)
@@ -570,7 +570,7 @@ by (etac ltE 2 THEN
     REPEAT (ares_tac [cadd_le_self, InfCard_is_Card] 2));
 by (forward_tac [InfCard_is_Card RS Card_is_Ord RS le_refl] 1);
 by (resolve_tac [cadd_le_mono RS le_trans] 1 THEN REPEAT (assume_tac 1));
-by (asm_simp_tac (simpset() addsimps [InfCard_cdouble_eq]) 1);
+by (asm_full_simp_tac (simpset() addsimps [InfCard_cdouble_eq]) 1);
 qed "InfCard_le_cadd_eq";
 
 Goal "[| InfCard(K);  InfCard(L) |] ==> K |+| L = K Un L";
@@ -736,6 +736,14 @@ by (blast_tac (claset() addSIs [Fin_into_Finite, Fin_UnI]
 	 		        Un_upper2 RS Fin_mono RS subsetD]) 1);
 qed "Finite_Un";
 
+Goal "[| ALL y:X. Finite(y);  Finite(X) |] ==> Finite(Union(X))";
+by (asm_full_simp_tac (simpset() addsimps [Finite_Fin_iff]) 1);
+by (rtac Fin_UnionI 1);
+by (etac Fin.induct 1);
+by (Simp_tac 1);
+by (blast_tac (claset() addIs [Fin.consI, impOfSubs Fin_mono]) 1);
+qed "Finite_Union";
+
 
 (** Removing elements from a finite set decreases its cardinality **)
 
@@ -756,7 +764,7 @@ by (simp_tac (simpset() addsimps [succ_def]) 1);
 by (blast_tac (claset() addIs [cons_eqpoll_cong, well_ord_cardinal_eqpoll] 
                         addSEs [mem_irrefl]
                         addSDs [Finite_imp_well_ord]) 1);
-by (blast_tac (claset() addIs [Ord_succ, Card_cardinal, Card_is_Ord]) 1);
+by (blast_tac (claset() addIs [Card_cardinal, Card_is_Ord]) 1);
 by (rtac notI 1);
 by (resolve_tac [Finite_into_Fin RS Fin_imp_not_cons_lepoll RS mp RS notE] 1);
 by (assume_tac 1);
@@ -778,8 +786,7 @@ qed "Finite_imp_succ_cardinal_Diff";
 
 Goal "[| Finite(A);  a:A |] ==> |A-{a}| < |A|";
 by (rtac succ_leE 1);
-by (asm_simp_tac (simpset() addsimps [Finite_imp_succ_cardinal_Diff, 
-				      Ord_cardinal RS le_refl]) 1);
+by (asm_simp_tac (simpset() addsimps [Finite_imp_succ_cardinal_Diff]) 1);
 qed "Finite_imp_cardinal_Diff";
 
 

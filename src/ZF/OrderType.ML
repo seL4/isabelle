@@ -858,8 +858,8 @@ qed "omult_lt_mono";
 Goal "[| Ord(i);  0<j |] ==> i le j**i";
 by (ftac lt_Ord2 1);
 by (eres_inst_tac [("i","i")] trans_induct3 1);
-by (asm_simp_tac (simpset() addsimps [omult_0, Ord_0 RS le_refl]) 1);
-by (asm_simp_tac (simpset() addsimps [omult_succ, succ_le_iff]) 1);
+by (Asm_simp_tac 1);
+by (asm_simp_tac (simpset() addsimps [omult_succ]) 1);
 by (etac lt_trans1 1);
 by (res_inst_tac [("b", "j**x")] (oadd_0 RS subst) 1 THEN 
     rtac oadd_lt_mono2 2);
@@ -869,7 +869,7 @@ by (rtac le_trans 1);
 by (rtac le_implies_UN_le_UN 2);
 by (Blast_tac 2);
 by (asm_simp_tac (simpset() addsimps [Union_eq_UN RS sym, Limit_Union_eq, 
-                                     Limit_is_Ord RS le_refl]) 1);
+                                     Limit_is_Ord]) 1);
 qed "omult_le_self2";
 
 
@@ -880,7 +880,7 @@ by (rtac Ord_linear_lt 1);
 by (REPEAT_SOME assume_tac);
 by (ALLGOALS
     (best_tac (claset() addDs [omult_lt_mono2] 
-                       addss (simpset() addsimps [lt_not_refl]))));
+                        addss (simpset() addsimps [lt_not_refl]))));
 qed "omult_inject";
 
 

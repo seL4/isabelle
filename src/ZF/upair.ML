@@ -203,24 +203,23 @@ qed_goalw "the_equality" thy [the_def]
 AddIs [the_equality];
 
 (* Only use this if you already know EX!x. P(x) *)
-qed_goal "the_equality2" thy
-    "!!P. [| EX! x. P(x);  P(a) |] ==> (THE x. P(x)) = a"
- (fn _ => [ (Blast_tac 1) ]);
+Goal "[| EX! x. P(x);  P(a) |] ==> (THE x. P(x)) = a";
+by (Blast_tac 1);
+qed "the_equality2";
 
-qed_goal "theI" thy "EX! x. P(x) ==> P(THE x. P(x))"
- (fn [major]=>
-  [ (rtac (major RS ex1E) 1),
-    (resolve_tac [major RS the_equality2 RS ssubst] 1),
-    (REPEAT (assume_tac 1)) ]);
+Goal "EX! x. P(x) ==> P(THE x. P(x))";
+by (etac ex1E 1);
+by (rtac (the_equality RS ssubst) 1);
+by (REPEAT (Blast_tac 1));
+qed "theI";
 
 (*the_cong is no longer necessary: if (ALL y.P(y)<->Q(y)) then 
   (THE x.P(x))  rewrites to  (THE x. Q(x))  *)
 
 (*If it's "undefined", it's zero!*)
-qed_goalw "the_0" thy [the_def]
-    "!!P. ~ (EX! x. P(x)) ==> (THE x. P(x))=0"
- (fn _ => [ (blast_tac (claset() addSEs [ReplaceE]) 1) ]);
-
+Goalw  [the_def] "!!P. ~ (EX! x. P(x)) ==> (THE x. P(x))=0";
+by (blast_tac (claset() addSEs [ReplaceE]) 1);
+qed "the_0";
 
 (*Easier to apply than theI: conclusion has only one occurrence of P*)
 val prems = 

@@ -6,8 +6,6 @@
 The cumulative hierarchy and a small universe for recursive types
 *)
 
-open Univ;
-
 (*NOT SUITABLE FOR REWRITING -- RECURSIVE!*)
 Goal "Vfrom(A,i) = A Un (UN j:i. Pow(Vfrom(A,j)))";
 by (stac (Vfrom_def RS def_transrec) 1);
@@ -445,6 +443,7 @@ by (etac (lemma RS spec RS mp) 1);
 by (assume_tac 1);
 qed "VsetI";
 
+(*Merely a lemma for the result following*)
 Goal "Ord(i) ==> b : Vset(i) <-> rank(b) < i";
 by (rtac iffI 1);
 by (REPEAT (eresolve_tac [asm_rl, VsetD, VsetI] 1));
@@ -454,6 +453,10 @@ Goal "b : Vset(a) <-> rank(b) < rank(a)";
 by (rtac (Vfrom_rank_eq RS subst) 1);
 by (rtac (Ord_rank RS Vset_Ord_rank_iff) 1);
 qed "Vset_rank_iff";
+Addsimps [Vset_rank_iff];
+
+(*This is rank(rank(a)) = rank(a) *)
+Addsimps [Ord_rank RS rank_of_Ord];
 
 Goal "Ord(i) ==> rank(Vset(i)) = i";
 by (stac rank 1);
@@ -501,8 +504,9 @@ val rank_ss = simpset() addsimps [VsetI] addsimps rank_trans_rls;
 (*NOT SUITABLE FOR REWRITING: recursive!*)
 Goalw [Vrec_def] "Vrec(a,H) = H(a, lam x:Vset(rank(a)). Vrec(x,H))";
 by (stac transrec 1);
-by (simp_tac (simpset() addsimps [Ord_rank, Ord_succ, VsetD RS ltD RS beta, 
-                              VsetI RS beta, le_refl]) 1);
+by (Simp_tac 1);
+by (rtac (refl RS lam_cong RS subst_context) 1);
+by (Asm_full_simp_tac 1);
 qed "Vrec";
 
 (*This form avoids giant explosions in proofs.  NOTE USE OF == *)
@@ -517,8 +521,9 @@ qed "def_Vrec";
 Goalw [Vrecursor_def]
      "Vrecursor(H,a) = H(lam x:Vset(rank(a)). Vrecursor(H,x),  a)";
 by (stac transrec 1);
-by (simp_tac (simpset() addsimps [Ord_rank, Ord_succ, VsetD RS ltD RS beta, 
-                              VsetI RS beta, le_refl]) 1);
+by (Simp_tac 1);
+by (rtac (refl RS lam_cong RS subst_context) 1);
+by (Asm_full_simp_tac 1);
 qed "Vrecursor";
 
 (*This form avoids giant explosions in proofs.  NOTE USE OF == *)
