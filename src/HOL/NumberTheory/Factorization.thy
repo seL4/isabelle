@@ -149,7 +149,7 @@ subsection {* Sorting *}
 
 lemma nondec_oinsert [rule_format]: "nondec xs --> nondec (oinsert x xs)"
   apply (induct xs)
-   apply (case_tac [2] list)
+   apply (case_tac [2] xs)
     apply (simp_all cong del: list.weak_case_cong)
   done
 
@@ -167,11 +167,11 @@ lemma nondec_sort_eq [rule_format]: "nondec xs --> xs = sort xs"
   apply (induct xs)
    apply safe
     apply simp_all
-   apply (case_tac list)
+   apply (case_tac xs)
     apply simp_all
-  apply (case_tac list)
+  apply (case_tac xs)
    apply simp
-  apply (rule_tac y = aa and ys = lista in x_less_y_oinsert)
+  apply (rule_tac y = aa and ys = list in x_less_y_oinsert)
    apply simp_all
   done
 

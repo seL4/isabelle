@@ -83,14 +83,14 @@ monos listall_def
 lemma nat_eq_dec: "\<And>n::nat. m = n \<or> m \<noteq> n"
   apply (induct m)
   apply (case_tac n)
-  apply (case_tac [3] na)
+  apply (case_tac [3] n)
   apply (simp only: nat.simps, rules?)+
   done
 
 lemma nat_le_dec: "\<And>n::nat. m < n \<or> \<not> (m < n)"
   apply (induct m)
   apply (case_tac n)
-  apply (case_tac [3] na)
+  apply (case_tac [3] n)
   apply (simp del: simp_thms, rules?)+
   done
 

@@ -136,7 +136,7 @@ lemma zcong_zpower_zmult:
     "[x^y = 1] (mod p) \<Longrightarrow> [x^(y * z) = 1] (mod p)"
   apply (induct z)
    apply (auto simp add: zpower_zadd_distrib)
-  apply (subgoal_tac "zcong (x^y * x^(y * n)) (1 * 1) p")
+  apply (subgoal_tac "zcong (x^y * x^(y * z)) (1 * 1) p")
    apply (rule_tac [2] zcong_zmult, simp_all)
   done
 

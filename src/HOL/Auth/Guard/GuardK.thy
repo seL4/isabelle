@@ -206,7 +206,7 @@ lemmas mem_cnb_minus_substI = mem_cnb_minus [THEN ssubst]
 
 lemma cnb_minus [simp]: "x mem l ==> cnb (minus l x) = cnb l - crypt_nb x"
 apply (induct l, auto)
-by (erule_tac l1=list and x1=x in mem_cnb_minus_substI, simp)
+by (erule_tac l1=l and x1=x in mem_cnb_minus_substI, simp)
 
 lemma parts_cnb: "Z:parts (set l) ==>
 cnb l = (cnb l - crypt_nb Z) + crypt_nb Z"
@@ -223,15 +223,15 @@ apply (rule_tac x="[Agent agent]" in exI, simp)
 apply (rule_tac x="[Number nat]" in exI, simp)
 apply (rule_tac x="[Nonce nat]" in exI, simp)
 apply (rule_tac x="[Key nat]" in exI, simp)
-apply (rule_tac x="[Hash msg]" in exI, simp)
+apply (rule_tac x="[Hash X]" in exI, simp)
 apply (clarify, rule_tac x="l@la" in exI, simp)
-by (clarify, rule_tac x="[Crypt nat msg]" in exI, simp)
+by (clarify, rule_tac x="[Crypt nat X]" in exI, simp)
 
 lemma kparts_set: "EX l'. kparts (set l) = set l' & cnb l' = cnb l"
 apply (induct l)
 apply (rule_tac x="[]" in exI, simp, clarsimp)
-apply (subgoal_tac "EX l.  kparts {a} = set l & cnb l = crypt_nb a", clarify)
-apply (rule_tac x="l@l'" in exI, simp)
+apply (subgoal_tac "EX l''.  kparts {a} = set l'' & cnb l'' = crypt_nb a", clarify)
+apply (rule_tac x="l''@l'" in exI, simp)
 apply (rule kparts_insert_substI, simp)
 by (rule kparts_msg_set)
 

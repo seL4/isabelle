@@ -129,7 +129,7 @@ subsection {* Equivalence of Both Definitions.*}
 lemma last_length: "((a#xs)!(length xs))=last (a#xs)"
 apply simp
 apply(induct xs,simp+)
-apply(case_tac list)
+apply(case_tac xs)
 apply simp_all
 done
 

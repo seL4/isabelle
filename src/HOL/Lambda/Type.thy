@@ -121,7 +121,7 @@ lemma types_snoc_eq: "\<And>Ts. e \<tturnstile> ts @ [t] : Ts @ [T] =
   apply (case_tac Ts)
   apply simp+
   apply (case_tac Ts)
-  apply (case_tac "list @ [t]")
+  apply (case_tac "ts @ [t]")
   apply simp+
   done
 
@@ -185,7 +185,7 @@ lemma list_app_typeI:
   apply simp
   apply (erule_tac x = "t \<degree> a" in allE)
   apply (erule_tac x = T in allE)
-  apply (erule_tac x = lista in allE)
+  apply (erule_tac x = list in allE)
   apply (erule impE)
    apply (erule conjE)
    apply (erule typing.App)

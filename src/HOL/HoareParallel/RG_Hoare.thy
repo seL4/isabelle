@@ -528,7 +528,7 @@ subsubsection{* Soundness of the Conditional rule *}
 
 lemma last_length2 [rule_format]: "xs\<noteq>[] \<longrightarrow> (last xs)=(xs!(length xs - (Suc 0)))"
 apply(induct xs,simp+)
-apply(case_tac "length list",simp+)
+apply(case_tac "length xs",simp+)
 done
 
 lemma last_drop: "Suc m<length x \<Longrightarrow> last(drop (Suc m) x) = last x"

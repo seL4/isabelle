@@ -403,21 +403,21 @@ by (force simp add:  wens_single_finite_eq_Union [of act B n])
 
 lemma wens_single_finite_subset_wens_single:
       "wens_single_finite act B k \<subseteq> wens_single act B"
-by (simp add: wens_single_eq_Union, blast) 
+by (simp add: wens_single_eq_Union, blast)
 
 lemma subset_wens_single_finite:
       "[|W \<subseteq> wens_single_finite act B ` (atMost k); single_valued act; W\<noteq>{}|]
        ==> \<exists>m. \<Union>W = wens_single_finite act B m"
 apply (induct k)
- apply (rule_tac x=0 in exI, simp, blast) 
-apply (auto simp add: atMost_Suc) 
-apply (case_tac "wens_single_finite act B (Suc n) \<in> W") 
- prefer 2 apply blast 
-apply (drule_tac x="Suc n" in spec)
+ apply (rule_tac x=0 in exI, simp, blast)
+apply (auto simp add: atMost_Suc)
+apply (case_tac "wens_single_finite act B (Suc k) \<in> W")
+ prefer 2 apply blast
+apply (drule_tac x="Suc k" in spec)
 apply (erule notE, rule equalityI)
- prefer 2 apply blast 
-apply (subst wens_single_finite_eq_Union) 
-apply (simp add: atMost_Suc, blast) 
+ prefer 2 apply blast
+apply (subst wens_single_finite_eq_Union)
+apply (simp add: atMost_Suc, blast)
 done
 
 text{*lemma for Union case*}

@@ -1064,7 +1064,7 @@ proof -
     apply (induct m, simp)
     apply (simp)
     apply (insert tworows)
-    apply (drule_tac x="% j i. (if j = 0 then (foldseq_transposed g (\<lambda>u. A u i) na) else (A (Suc na) i))" in spec)
+    apply (drule_tac x="% j i. (if j = 0 then (foldseq_transposed g (\<lambda>u. A u i) m) else (A (Suc m) i))" in spec)
     by (simp add: foldmatrix_def foldmatrix_transposed_def)
 qed
 

@@ -1007,7 +1007,7 @@ by (induct n) (auto, case_tac xs, auto)
 lemma take_take [simp]: "!!xs n. take n (take m xs) = take (min n m) xs"
 apply (induct m, auto)
 apply (case_tac xs, auto)
-apply (case_tac na, auto)
+apply (case_tac n, auto)
 done
 
 lemma drop_drop [simp]: "!!xs. drop n (drop m xs) = drop (n + m) xs"

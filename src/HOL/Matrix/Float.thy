@@ -25,7 +25,7 @@ proof -
     apply (rule_tac m1="2" and n1="nat (2 + int na)" in ssubst[OF realpow_num_eq_if])
     apply (auto simp add: h)
     apply arith
-    done  
+    done
   show ?thesis
   proof (induct a)
     case (1 n)
@@ -38,7 +38,7 @@ proof -
       apply (subst pow2_neg[of "-1 - int n"])
       apply (auto simp add: g pos)
       done
-  qed  
+  qed
 qed
   
 lemma pow2_add: "pow2 (a+b) = (pow2 a) * (pow2 b)"
@@ -54,10 +54,10 @@ proof (induct b)
   qed
 next
   case (2 n)
-  show ?case 
+  show ?case
   proof (induct n)
     case 0
-    show ?case 
+    show ?case
       apply (auto)
       apply (subst pow2_neg[of "a + -1"])
       apply (subst pow2_neg[of "-1"])
@@ -68,7 +68,7 @@ next
       apply (simp)
       done
     case (Suc m)
-    have a: "int m - (a + -2) =  1 + (int m - a + 1)" by arith	
+    have a: "int m - (a + -2) =  1 + (int m - a + 1)" by arith
     have b: "int m - -2 = 1 + (int m + 1)" by arith
     show ?case
       apply (auto)

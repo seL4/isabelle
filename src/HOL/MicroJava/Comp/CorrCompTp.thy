@@ -116,7 +116,7 @@ apply (subgoal_tac "\<exists> k' kr. ks = k' # kr")
 apply (clarify)
 apply (drule_tac x=kr in spec)
 apply (simp only: rev.simps)
-apply (subgoal_tac "(empty(rev kr @ [k'][\<mapsto>]rev list @ [a])) = empty (rev kr[\<mapsto>]rev list)([k'][\<mapsto>][a])")
+apply (subgoal_tac "(empty(rev kr @ [k'][\<mapsto>]rev xs @ [a])) = empty (rev kr[\<mapsto>]rev xs)([k'][\<mapsto>][a])")
 apply (simp only:)
 apply (case_tac "k' = k")
 apply simp
@@ -1531,9 +1531,9 @@ lemma set_drop_le [rule_format,simp]: "\<forall> n xs. n \<le> m \<longrightarro
 apply (induct m)
 apply simp
 apply (intro strip)
-apply (subgoal_tac "na \<le> n \<or> na = Suc n")
+apply (subgoal_tac "n \<le> m \<or> n = Suc m")
 apply (erule disjE)
-apply (frule_tac x=na in spec, drule_tac x=xs in spec, drule mp, assumption)
+apply (frule_tac x=n in spec, drule_tac x=xs in spec, drule mp, assumption)
 apply (rule set_drop_Suc [THEN subset_trans], assumption)
 apply auto
 done
@@ -2310,7 +2310,7 @@ apply (subgoal_tac "\<exists> vn ty. a = (vn, ty)")
 apply (drule_tac x="lvars_pre @ [a]" in spec)
 apply (drule_tac x="lvars0" in spec)
 apply (simp (no_asm_simp) add: compInitLvars_def)
-apply (rule_tac ?bc1.0="compInit jmb a" and ?bc2.0="compInitLvars jmb list"
+apply (rule_tac ?bc1.0="compInit jmb a" and ?bc2.0="compInitLvars jmb lvars"
   in bc_mt_corresp_comb)
 apply (simp (no_asm_simp) add: compInitLvars_def)+
 

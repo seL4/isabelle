@@ -521,7 +521,7 @@ apply (intro strip)
 apply (case_tac lvals) apply simp
 apply (simp (no_asm_simp) )
 
-apply (rule_tac ?lvars1.0 = "(prfx @ [default_val (snd a)]) @ lista" in progression_transitive, rule HOL.refl)
+apply (rule_tac ?lvars1.0 = "(prfx @ [default_val (snd a)]) @ list" in progression_transitive, rule HOL.refl)
 apply (case_tac a) apply (simp (no_asm_simp) add: compInit_def)
 apply (rule_tac ?instrs0.0 = "[load_default_val b]" in progression_transitive, simp)
 apply (rule progression_one_step)

@@ -124,7 +124,7 @@ lemma sparse_row_vector_abs:
   apply (simp only: Rep_matrix_inject[symmetric])
   apply (rule ext)+
   apply auto
-  apply (subgoal_tac "Rep_matrix (sparse_row_vector list) 0 a = 0")
+  apply (subgoal_tac "Rep_matrix (sparse_row_vector v) 0 a = 0")
   apply (simp)
   apply (rule sorted_sparse_row_vector_zero)
   apply auto
@@ -135,9 +135,7 @@ lemma sorted_spvec_minus_spvec:
   apply (induct v)
   apply (simp)
   apply (frule sorted_spvec_cons1, simp)
-  apply (simp add: sorted_spvec.simps)
-  apply (case_tac list)
-  apply (simp_all)
+  apply (simp add: sorted_spvec.simps split:list.split_asm)
   done
 
 lemma sorted_spvec_abs_spvec:
@@ -145,9 +143,7 @@ lemma sorted_spvec_abs_spvec:
   apply (induct v)
   apply (simp)
   apply (frule sorted_spvec_cons1, simp)
-  apply (simp add: sorted_spvec.simps)
-  apply (case_tac list)
-  apply (simp_all)
+  apply (simp add: sorted_spvec.simps split:list.split_asm)
   done
   
 defs
@@ -193,9 +189,7 @@ lemma sparse_row_vector_addmult_spvec: "sparse_row_vector (addmult_spvec (y::'a:
 lemma sorted_smult_spvec[rule_format]: "sorted_spvec a \<Longrightarrow> sorted_spvec (smult_spvec y a)"
   apply (auto simp add: smult_spvec_def)
   apply (induct a)
-  apply (auto simp add: sorted_spvec.simps)
-  apply (case_tac list)
-  apply (auto)
+  apply (auto simp add: sorted_spvec.simps split:list.split_asm)
   done
 
 lemma sorted_spvec_addmult_spvec_helper: "\<lbrakk>sorted_spvec (addmult_spvec (y, (a, b) # arr, brr)); aa < a; sorted_spvec ((a, b) # arr); 
@@ -370,7 +364,7 @@ lemma sorted_spvec_mult_spmat[rule_format]:
   apply (induct A)
   apply (auto)
   apply (drule sorted_spvec_cons1, simp)
-  apply (case_tac list)
+  apply (case_tac A)
   apply (auto simp add: sorted_spvec.simps)
   done
 
@@ -821,18 +815,14 @@ lemma sorted_spvec_minus_spmat: "sorted_spvec A \<Longrightarrow> sorted_spvec (
   apply (induct A)
   apply (simp)
   apply (frule sorted_spvec_cons1, simp)
-  apply (simp add: sorted_spvec.simps)
-  apply (case_tac list)
-  apply (simp_all)
+  apply (simp add: sorted_spvec.simps split:list.split_asm)
   done 
 
 lemma sorted_spvec_abs_spmat: "sorted_spvec A \<Longrightarrow> sorted_spvec (abs_spmat A)" 
   apply (induct A)
   apply (simp)
   apply (frule sorted_spvec_cons1, simp)
-  apply (simp add: sorted_spvec.simps)
-  apply (case_tac list)
-  apply (simp_all)
+  apply (simp add: sorted_spvec.simps split:list.split_asm)
   done
 
 lemma sorted_spmat_minus_spmat: "sorted_spmat A \<Longrightarrow> sorted_spmat (minus_spmat A)"

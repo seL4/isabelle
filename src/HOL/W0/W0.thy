@@ -890,7 +890,7 @@ lemma I_correct_wrt_W: "!!a m s s' t n.
   apply (tactic "safe_tac HOL_cs")
     apply (bestsimp dest: sym [THEN W_var_geD] new_tv_subst_le new_tv_list_le)
    apply (fastsimp dest: sym [THEN W_var_geD] new_tv_subst_le new_tv_list_le)
-  apply (drule_tac e = expr1 in sym [THEN W_var_geD])
+  apply (drule_tac e = e1 in sym [THEN W_var_geD])
   apply (drule new_tv_subst_tel, assumption)
   apply (drule_tac ts = "$s a" in new_tv_list_le, assumption)
   apply (drule new_tv_subst_tel, assumption)

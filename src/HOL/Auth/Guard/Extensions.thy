@@ -589,11 +589,11 @@ lemma known_used [rule_format]: "[| evs:p; Gets_correct p; one_step p |]
 apply (case_tac "A=Spy", blast dest: parts_knows_Spy_subset_used)
 apply (induct evs)
 apply (simp add: used.simps, blast)
-apply (frule_tac ev=a and evs=list in one_step_Cons, simp, clarify)
+apply (frule_tac ev=a and evs=evs in one_step_Cons, simp, clarify)
 apply (drule_tac P="%G. X:parts G" in knows_Cons_substD, safe)
 apply (erule initState_used)
 apply (case_tac a, auto)
-apply (drule_tac B=A and X=msg and evs=list in Gets_correct_Says)
+apply (drule_tac B=A and X=msg and evs=evs in Gets_correct_Says)
 by (auto dest: Says_imp_used intro: used_ConsI)
 
 lemma known_max_used [rule_format]: "[| evs:p; Gets_correct p; one_step p |]
@@ -602,10 +602,10 @@ apply (case_tac "A=Spy")
 apply (simp, blast dest: parts_knows_Spy_subset_used)
 apply (induct evs)
 apply (simp add: knows_max_def used.simps, blast)
-apply (frule_tac ev=a and evs=list in one_step_Cons, simp, clarify)
+apply (frule_tac ev=a and evs=evs in one_step_Cons, simp, clarify)
 apply (drule_tac P="%G. X:parts G" in knows_max_Cons_substD, safe)
 apply (case_tac a, auto)
-apply (drule_tac B=A and X=msg and evs=list in Gets_correct_Says)
+apply (drule_tac B=A and X=msg and evs=evs in Gets_correct_Says)
 by (auto simp: knows_max'_Cons dest: Says_imp_used intro: used_ConsI)
 
 lemma not_used_not_known: "[| evs:p; X ~:used evs;

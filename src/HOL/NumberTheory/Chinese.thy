@@ -94,7 +94,7 @@ lemma funprod_zdvd [rule_format]:
    apply auto
     apply (rule_tac [1] zdvd_zmult2)
     apply (rule_tac [2] zdvd_zmult)
-    apply (subgoal_tac "i = Suc (k + n)")
+    apply (subgoal_tac "i = Suc (k + l)")
     apply (simp_all (no_asm_simp))
   done
 
@@ -125,11 +125,11 @@ lemma funsum_oneelem [rule_format (no_asm)]:
    apply clarify
    apply (subgoal_tac "k = j")
     apply (simp_all (no_asm_simp))
-  apply (case_tac "Suc (k + n) = j")
-   apply (subgoal_tac "funsum f k n = 0")
+  apply (case_tac "Suc (k + l) = j")
+   apply (subgoal_tac "funsum f k l = 0")
     apply (rule_tac [2] funsum_zero)
-    apply (subgoal_tac [3] "f (Suc (k + n)) = 0")
-     apply (subgoal_tac [3] "j \<le> k + n")
+    apply (subgoal_tac [3] "f (Suc (k + l)) = 0")
+     apply (subgoal_tac [3] "j \<le> k + l")
       prefer 4
       apply arith
      apply auto
