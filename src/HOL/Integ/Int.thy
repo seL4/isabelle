@@ -37,7 +37,7 @@ by (simp add: One_int_def One_nat_def)
 lemma neg_eq_less_0: "neg x = (x < 0)"
 by (unfold zdiff_def zless_def, auto)
 
-lemma not_neg_eq_ge_0: "(~neg x) = (0 <= x)"
+lemma not_neg_eq_ge_0: "(~neg x) = (0 \<le> x)"
 apply (unfold zle_def)
 apply (simp add: neg_eq_less_0)
 done
@@ -152,7 +152,7 @@ by (simp add: zless_def)
 lemma eq_eq_iszero: "(w=z) = iszero(w-z)"
 by (simp add: iszero_def zdiff_eq_eq)
 
-lemma zle_eq_not_neg: "(w<=z) = (~ neg(z-w))"
+lemma zle_eq_not_neg: "(w\<le>z) = (~ neg(z-w))"
 by (simp add: zle_def zless_def)
 
 subsection{*Inequality reasoning*}
@@ -163,13 +163,13 @@ apply (rule_tac x = "Suc n" in exI)
 apply (simp add: int_Suc)
 done
 
-lemma add1_zle_eq: "(w + (1::int) <= z) = (w<z)"
+lemma add1_zle_eq: "(w + (1::int) \<le> z) = (w<z)"
 apply (simp add: zle_def zless_add1_eq)
 apply (auto intro: zless_asym zle_anti_sym
             simp add: order_less_imp_le symmetric zle_def)
 done
 
-lemma add1_left_zle_eq: "((1::int) + w <= z) = (w<z)"
+lemma add1_left_zle_eq: "((1::int) + w \<le> z) = (w<z)"
 apply (subst zadd_commute)
 apply (rule add1_zle_eq)
 done
@@ -183,28 +183,28 @@ by simp
 lemma zadd_left_cancel_zless [simp]: "(z+v < z+w) = (v < (w::int))"
 by simp
 
-lemma zadd_right_cancel_zle [simp] : "(v+z <= w+z) = (v <= (w::int))"
+lemma zadd_right_cancel_zle [simp] : "(v+z \<le> w+z) = (v \<le> (w::int))"
 by simp
 
-lemma zadd_left_cancel_zle [simp] : "(z+v <= z+w) = (v <= (w::int))"
+lemma zadd_left_cancel_zle [simp] : "(z+v \<le> z+w) = (v \<le> (w::int))"
 by simp
 
-(*"v<=w ==> v+z <= w+z"*)
+(*"v\<le>w ==> v+z \<le> w+z"*)
 lemmas zadd_zless_mono1 = zadd_right_cancel_zless [THEN iffD2, standard]
 
-(*"v<=w ==> z+v <= z+w"*)
+(*"v\<le>w ==> z+v \<le> z+w"*)
 lemmas zadd_zless_mono2 = zadd_left_cancel_zless [THEN iffD2, standard]
 
-(*"v<=w ==> v+z <= w+z"*)
+(*"v\<le>w ==> v+z \<le> w+z"*)
 lemmas zadd_zle_mono1 = zadd_right_cancel_zle [THEN iffD2, standard]
 
-(*"v<=w ==> z+v <= z+w"*)
+(*"v\<le>w ==> z+v \<le> z+w"*)
 lemmas zadd_zle_mono2 = zadd_left_cancel_zle [THEN iffD2, standard]
 
-lemma zadd_zle_mono: "[| w'<=w; z'<=z |] ==> w' + z' <= w + (z::int)"
+lemma zadd_zle_mono: "[| w'\<le>w; z'\<le>z |] ==> w' + z' \<le> w + (z::int)"
 by (erule zadd_zle_mono1 [THEN zle_trans], simp)
 
-lemma zadd_zless_mono: "[| w'<w; z'<=z |] ==> w' + z' < w + (z::int)"
+lemma zadd_zless_mono: "[| w'<w; z'\<le>z |] ==> w' + z' < w + (z::int)"
 by (erule zadd_zless_mono1 [THEN order_less_le_trans], simp)
 
 
@@ -213,7 +213,7 @@ subsection{*Comparison laws*}
 lemma zminus_zless_zminus [simp]: "(- x < - y) = (y < (x::int))"
 by (simp add: zless_def zdiff_def zadd_ac)
 
-lemma zminus_zle_zminus [simp]: "(- x <= - y) = (y <= (x::int))"
+lemma zminus_zle_zminus [simp]: "(- x \<le> - y) = (y \<le> (x::int))"
 by (simp add: zle_def)
 
 text{*The next several equations can make the simplifier loop!*}
@@ -224,10 +224,10 @@ by (simp add: zless_def zdiff_def zadd_ac)
 lemma zminus_zless: "(- x < y) = (- y < (x::int))"
 by (simp add: zless_def zdiff_def zadd_ac)
 
-lemma zle_zminus: "(x <= - y) = (y <= - (x::int))"
+lemma zle_zminus: "(x \<le> - y) = (y \<le> - (x::int))"
 by (simp add: zle_def zminus_zless)
 
-lemma zminus_zle: "(- x <= y) = (- y <= (x::int))"
+lemma zminus_zle: "(- x \<le> y) = (- y \<le> (x::int))"
 by (simp add: zle_def zless_zminus)
 
 lemma equation_zminus: "(x = - y) = (y = - (x::int))"
@@ -254,16 +254,16 @@ by (simp add: zless_def)
 lemma negative_zless [iff]: "- (int (Suc n)) < int m"
 by (rule negative_zless_0 [THEN order_less_le_trans], simp)
 
-lemma negative_zle_0: "- int n <= 0"
+lemma negative_zle_0: "- int n \<le> 0"
 by (simp add: zminus_zle)
 
-lemma negative_zle [iff]: "- int n <= int m"
+lemma negative_zle [iff]: "- int n \<le> int m"
 by (simp add: zless_def zle_def zdiff_def zadd_int)
 
-lemma not_zle_0_negative [simp]: "~(0 <= - (int (Suc n)))"
+lemma not_zle_0_negative [simp]: "~(0 \<le> - (int (Suc n)))"
 by (subst zle_zminus, simp)
 
-lemma int_zle_neg: "(int n <= - int m) = (n = 0 & m = 0)"
+lemma int_zle_neg: "(int n \<le> - int m) = (n = 0 & m = 0)"
 apply safe 
 apply (drule_tac [2] zle_zminus [THEN iffD1])
 apply (auto dest: zle_trans [OF _ negative_zle_0]) 
@@ -279,7 +279,7 @@ apply (drule sym)
 apply (simp_all (no_asm_simp))
 done
 
-lemma zle_iff_zadd: "(w <= z) = (EX n. z = w + int n)"
+lemma zle_iff_zadd: "(w \<le> z) = (EX n. z = w + int n)"
 by (force intro: exI [of _ "0::nat"] 
             intro!: not_sym [THEN not0_implies_Suc]
             simp add: zless_iff_Suc_zadd int_le_less)
@@ -322,13 +322,13 @@ apply (auto simp add: neg_nat)
 apply (auto dest: order_less_trans simp add: neg_eq_less_0)
 done
 
-lemma nat_0_le [simp]: "0 <= z ==> int (nat z) = z"
+lemma nat_0_le [simp]: "0 \<le> z ==> int (nat z) = z"
 by (simp add: neg_eq_less_0 zle_def not_neg_nat)
 
-lemma nat_le_0 [simp]: "z <= 0 ==> nat z = 0"
+lemma nat_le_0 [simp]: "z \<le> 0 ==> nat z = 0"
 by (auto simp add: order_le_less neg_eq_less_0 zle_def neg_nat)
 
-(*An alternative condition is  0 <= w  *)
+(*An alternative condition is  0 \<le> w  *)
 lemma nat_mono_iff: "0 < z ==> (nat w < nat z) = (w < z)"
 apply (subst zless_int [symmetric])
 apply (simp (no_asm_simp) add: not_neg_nat not_neg_eq_ge_0 order_le_less)
@@ -355,34 +355,34 @@ done
 
 subsection{*Monotonicity of Multiplication*}
 
-lemma zmult_zle_mono1_lemma: "i <= (j::int) ==> i * int k <= j * int k"
+lemma zmult_zle_mono1_lemma: "i \<le> (j::int) ==> i * int k \<le> j * int k"
 apply (induct_tac "k")
 apply (simp_all (no_asm_simp) add: int_Suc zadd_zmult_distrib2 zadd_zle_mono int_Suc0_eq_1)
 done
 
-lemma zmult_zle_mono1: "[| i <= j;  (0::int) <= k |] ==> i*k <= j*k"
+lemma zmult_zle_mono1: "[| i \<le> j;  (0::int) \<le> k |] ==> i*k \<le> j*k"
 apply (rule_tac t = k in not_neg_nat [THEN subst])
 apply (erule_tac [2] zmult_zle_mono1_lemma)
 apply (simp (no_asm_use) add: not_neg_eq_ge_0)
 done
 
-lemma zmult_zle_mono1_neg: "[| i <= j;  k <= (0::int) |] ==> j*k <= i*k"
+lemma zmult_zle_mono1_neg: "[| i \<le> j;  k \<le> (0::int) |] ==> j*k \<le> i*k"
 apply (rule zminus_zle_zminus [THEN iffD1])
 apply (simp add: zmult_zminus_right [symmetric] zmult_zle_mono1 zle_zminus)
 done
 
-lemma zmult_zle_mono2: "[| i <= j;  (0::int) <= k |] ==> k*i <= k*j"
+lemma zmult_zle_mono2: "[| i \<le> j;  (0::int) \<le> k |] ==> k*i \<le> k*j"
 apply (drule zmult_zle_mono1)
 apply (simp_all add: zmult_commute)
 done
 
-lemma zmult_zle_mono2_neg: "[| i <= j;  k <= (0::int) |] ==> k*j <= k*i"
+lemma zmult_zle_mono2_neg: "[| i \<le> j;  k \<le> (0::int) |] ==> k*j \<le> k*i"
 apply (drule zmult_zle_mono1_neg)
 apply (simp_all add: zmult_commute)
 done
 
-(* <= monotonicity, BOTH arguments*)
-lemma zmult_zle_mono: "[| i <= j;  k <= l;  (0::int) <= j;  (0::int) <= k |] ==> i*k <= j*l"
+(* \<le> monotonicity, BOTH arguments*)
+lemma zmult_zle_mono: "[| i \<le> j;  k \<le> l;  (0::int) \<le> j;  (0::int) \<le> k |] ==> i*k \<le> j*l"
 apply (erule zmult_zle_mono1 [THEN order_trans], assumption)
 apply (erule zmult_zle_mono2, assumption)
 done
@@ -404,74 +404,70 @@ apply (simp add: not_neg_eq_ge_0 order_le_less)
 apply (frule conjI [THEN zless_nat_conj [THEN iffD2]], auto)
 done
 
+text{*The Integers Form an Ordered Ring*}
+instance int :: ordered_ring
+proof
+  fix i j k :: int
+  show "(i + j) + k = i + (j + k)" by simp
+  show "i + j = j + i" by simp
+  show "0 + i = i" by simp
+  show "- i + i = 0" by simp
+  show "i - j = i + (-j)" by simp
+  show "(i * j) * k = i * (j * k)" by (rule zmult_assoc)
+  show "i * j = j * i" by (rule zmult_commute)
+  show "1 * i = i" by simp
+  show "(i + j) * k = i * k + j * k" by (simp add: int_distrib)
+  show "0 \<noteq> (1::int)" by simp
+  show "i \<le> j ==> k + i \<le> k + j" by simp
+  show "i < j ==> 0 < k ==> k * i < k * j" by (simp add: zmult_zless_mono2)
+  show "\<bar>i\<bar> = (if i < 0 then -i else i)" by (simp only: zabs_def)
+qed
+
 lemma zmult_zless_mono1: "[| i<j;  (0::int) < k |] ==> i*k < j*k"
-apply (drule zmult_zless_mono2)
-apply (simp_all add: zmult_commute)
-done
+  by (rule Ring_and_Field.mult_strict_right_mono)
 
 (* < monotonicity, BOTH arguments*)
-lemma zmult_zless_mono: "[| i < j;  k < l;  (0::int) < j;  (0::int) < k |] ==> i*k < j*l"
-apply (erule zmult_zless_mono1 [THEN order_less_trans], assumption)
-apply (erule zmult_zless_mono2, assumption)
-done
+lemma zmult_zless_mono:
+     "[| i < j;  k < l;  (0::int) < j;  (0::int) < k |] ==> i*k < j*l"
+  by (rule Ring_and_Field.mult_strict_mono)
 
 lemma zmult_zless_mono1_neg: "[| i<j;  k < (0::int) |] ==> j*k < i*k"
-apply (rule zminus_zless_zminus [THEN iffD1])
-apply (simp add: zmult_zminus_right [symmetric] zmult_zless_mono1 zless_zminus)
-done
+  by (rule Ring_and_Field.mult_strict_right_mono_neg)
 
 lemma zmult_zless_mono2_neg: "[| i<j;  k < (0::int) |] ==> k*j < k*i"
-apply (rule zminus_zless_zminus [THEN iffD1])
-apply (simp add: zmult_zminus [symmetric] zmult_zless_mono2 zless_zminus)
-done
+  by (rule Ring_and_Field.mult_strict_left_mono_neg)
 
 lemma zmult_eq_0_iff [iff]: "(m*n = (0::int)) = (m = 0 | n = 0)"
-apply (case_tac "m < (0::int) ")
-apply (auto simp add: linorder_not_less order_le_less linorder_neq_iff)
-apply (force dest: zmult_zless_mono1_neg zmult_zless_mono1)+
-done
+  by simp
 
-
-text{*Cancellation laws for k*m < k*n and m*k < n*k, also for <= and =,
-    but not (yet?) for k*m < n*k.*}
-
-lemma zmult_zless_cancel2: "(m*k < n*k) = (((0::int) < k & m<n) | (k < 0 & n<m))"
-apply (case_tac "k = (0::int) ")
-apply (auto simp add: linorder_neq_iff zmult_zless_mono1 zmult_zless_mono1_neg)
-apply (auto simp add: linorder_not_less 
-                      linorder_not_le [symmetric, of "m*k"]
-                      linorder_not_le [symmetric, of m])
-apply (erule_tac [!] notE)
-apply (auto simp add: order_less_imp_le zmult_zle_mono1 zmult_zle_mono1_neg)
-done
-
+lemma zmult_zless_cancel2: "(m*k < n*k) = (((0::int) < k & m<n) | (k<0 & n<m))"
+  by (rule Ring_and_Field.mult_less_cancel_right)
 
 lemma zmult_zless_cancel1:
      "(k*m < k*n) = (((0::int) < k & m<n) | (k < 0 & n<m))"
-by (simp add: zmult_commute [of k] zmult_zless_cancel2)
+  by (rule Ring_and_Field.mult_less_cancel_left)
 
 lemma zmult_zle_cancel2:
-     "(m*k <= n*k) = (((0::int) < k --> m<=n) & (k < 0 --> n<=m))"
-by (simp add: linorder_not_less [symmetric] zmult_zless_cancel2)
+     "(m*k \<le> n*k) = (((0::int) < k --> m\<le>n) & (k < 0 --> n\<le>m))"
+  by (rule Ring_and_Field.mult_le_cancel_right)
 
 lemma zmult_zle_cancel1:
-     "(k*m <= k*n) = (((0::int) < k --> m<=n) & (k < 0 --> n<=m))"
-by (simp add: linorder_not_less [symmetric] zmult_zless_cancel1)
+     "(k*m \<le> k*n) = (((0::int) < k --> m\<le>n) & (k < 0 --> n\<le>m))"
+  by (rule Ring_and_Field.mult_le_cancel_left)
 
-lemma zmult_cancel2 [simp]: "(m*k = n*k) = (k = (0::int) | m=n)"
-apply (cut_tac linorder_less_linear [of 0 k])
-apply (force dest: zmult_zless_mono1_neg zmult_zless_mono1 
-             simp add: linorder_neq_iff)
-done
+lemma zmult_cancel2: "(m*k = n*k) = (k = (0::int) | m=n)"
+ by (rule Ring_and_Field.mult_cancel_right)
 
 lemma zmult_cancel1 [simp]: "(k*m = k*n) = (k = (0::int) | m=n)"
-by (simp add: zmult_commute [of k] zmult_cancel2)
+ by (rule Ring_and_Field.mult_cancel_left)
 
 (*Analogous to zadd_int*)
-lemma zdiff_int [rule_format (no_asm)]: "n<=m --> int m - int n = int (m-n)"
+lemma zdiff_int [rule_format]: "n\<le>m --> int m - int n = int (m-n)"
 apply (induct_tac m n rule: diff_induct)
 apply (auto simp add: int_Suc symmetric zdiff_def)
 done
+
+
 
 ML
 {*

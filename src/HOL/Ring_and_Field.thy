@@ -89,10 +89,10 @@ proof
   assume eq: "a + b = a + c"
   then have "(-a + a) + b = (-a + a) + c"
     by (simp only: eq add_assoc)
-  then show "b = c" by simp
+  thus "b = c" by simp
 next
   assume eq: "b = c"
-  then show "a + b = a + c" by simp
+  thus "a + b = a + c" by simp
 qed
 
 lemma add_right_cancel [simp]:
@@ -118,12 +118,10 @@ lemma neg_equal_iff_equal [simp]: "(-a = -b) = (a = (b::'a::ring))"
     assume "- a = - b"
     then have "- (- a) = - (- b)"
       by simp
-    then show "a=b"
-      by simp
+    thus "a=b" by simp
   next
     assume "a=b"
-    then show "-a = -b"
-      by simp
+    thus "-a = -b" by simp
   qed
 
 lemma neg_equal_0_iff_equal [simp]: "(-a = 0) = (a = (0::'a::ring))"
@@ -175,7 +173,7 @@ lemma mult_left_zero [simp]: "0 * a = (0::'a::ring)"
 proof -
   have "0*a + 0*a = 0*a + 0"
     by (simp add: left_distrib [symmetric])
-  then show ?thesis by (simp only: add_left_cancel)
+  thus ?thesis by (simp only: add_left_cancel)
 qed
 
 lemma mult_right_zero [simp]: "a * 0 = (0::'a::ring)"
@@ -228,7 +226,7 @@ lemma le_imp_neg_le:
     by simp
   then have "0 + (-b) \<le> (-a + b) + (-b)"
     by (rule add_right_mono) 
-  then show ?thesis
+  thus ?thesis
     by (simp add: add_assoc)
   qed
 
@@ -237,12 +235,10 @@ lemma neg_le_iff_le [simp]: "(-b \<le> -a) = (a \<le> (b::'a::ordered_ring))"
     assume "- b \<le> - a"
     then have "- (- a) \<le> - (- b)"
       by (rule le_imp_neg_le)
-    then show "a\<le>b"
-      by simp
+    thus "a\<le>b" by simp
   next
     assume "a\<le>b"
-    then show "-b \<le> -a"
-      by (rule le_imp_neg_le)
+    thus "-b \<le> -a" by (rule le_imp_neg_le)
   qed
 
 lemma neg_le_0_iff_le [simp]: "(-a \<le> 0) = (0 \<le> (a::'a::ordered_ring))"
@@ -292,6 +288,55 @@ lemma mult_right_mono_neg:
      "[|b \<le> a; c < 0|] ==> a * c \<le> b * (c::'a::ordered_ring)"
 by (force simp add: mult_strict_right_mono_neg order_le_less) 
 
+text{*Strict monotonicity in both arguments*}
+lemma mult_strict_mono:
+     "[|a<b; c<d; 0<b; 0<c|] ==> a * c < b * (d::'a::ordered_semiring)"
+apply (erule mult_strict_right_mono [THEN order_less_trans], assumption)
+apply (erule mult_strict_left_mono, assumption)
+done
+
+subsection{*Cancellation Laws for Relationships With a Common Factor*}
+
+text{*Cancellation laws for @{term "c*a < c*b"} and @{term "a*c < b*c"},
+   also with the relations @{text "\<le>"} and equality.*}
+
+lemma mult_less_cancel_right:
+    "(a*c < b*c) = ((0 < c & a < b) | (c < 0 & b < (a::'a::ordered_ring)))"
+apply (case_tac "c = 0")
+apply (auto simp add: linorder_neq_iff mult_strict_right_mono 
+                      mult_strict_right_mono_neg)
+apply (auto simp add: linorder_not_less 
+                      linorder_not_le [symmetric, of "a*c"]
+                      linorder_not_le [symmetric, of a])
+apply (erule_tac [!] notE)
+apply (auto simp add: order_less_imp_le mult_right_mono 
+                      mult_right_mono_neg)
+done
+
+lemma mult_less_cancel_left:
+    "(c*a < c*b) = ((0 < c & a < b) | (c < 0 & b < (a::'a::ordered_ring)))"
+by (simp add: mult_commute [of c] mult_less_cancel_right)
+
+lemma mult_le_cancel_right:
+     "(a*c \<le> b*c) = ((0<c --> a\<le>b) & (c<0 --> b \<le> (a::'a::ordered_ring)))"
+by (simp add: linorder_not_less [symmetric] mult_less_cancel_right)
+
+lemma mult_le_cancel_left:
+     "(c*a \<le> c*b) = ((0<c --> a\<le>b) & (c<0 --> b \<le> (a::'a::ordered_ring)))"
+by (simp add: mult_commute [of c] mult_le_cancel_right)
+
+text{*Cancellation of equalities with a common factor*}
+lemma mult_cancel_right [simp]:
+     "(a*c = b*c) = (c = (0::'a::ordered_ring) | a=b)"
+apply (cut_tac linorder_less_linear [of 0 c])
+apply (force dest: mult_strict_right_mono_neg mult_strict_right_mono
+             simp add: linorder_neq_iff)
+done
+
+lemma mult_cancel_left [simp]:
+     "(c*a = c*b) = (c = (0::'a::ordered_ring) | a=b)"
+by (simp add: mult_commute [of c] mult_cancel_right)
+
 
 subsection{* Products of Signs *}
 
@@ -319,8 +364,7 @@ apply (simp add: mult_commute [of a b])
 apply (blast dest: zero_less_mult_pos) 
 done
 
-
-lemma mult_eq_0_iff [iff]: "(a*b = (0::'a::ordered_ring)) = (a = 0 | b = 0)"
+lemma mult_eq_0_iff [simp]: "(a*b = (0::'a::ordered_ring)) = (a = 0 | b = 0)"
 apply (case_tac "a < 0")
 apply (auto simp add: linorder_not_less order_le_less linorder_neq_iff)
 apply (force dest: mult_strict_right_mono_neg mult_strict_right_mono)+
@@ -369,10 +413,10 @@ apply (auto elim: order_less_asym
                   minus_mult_left [symmetric] minus_mult_right [symmetric])  
 done
 
-lemma abs_eq_0 [iff]: "(abs x = 0) = (x = (0::'a::ordered_ring))"
+lemma abs_eq_0 [simp]: "(abs x = 0) = (x = (0::'a::ordered_ring))"
 by (simp add: abs_if)
 
-lemma zero_less_abs_iff [iff]: "(0 < abs x) = (x ~= (0::'a::ordered_ring))"
+lemma zero_less_abs_iff [simp]: "(0 < abs x) = (x ~= (0::'a::ordered_ring))"
 by (simp add: abs_if linorder_neq_iff)
 
 

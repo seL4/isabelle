@@ -992,7 +992,9 @@ lemma mult_le_mono: "i <= (j::nat) ==> k <= l ==> i * k <= j * l"
 lemma mult_less_mono1: "(i::nat) < j ==> 0 < k ==> i * k < j * k"
   by (drule mult_less_mono2) (simp_all add: mult_commute)
 
-lemma zero_less_mult_iff [simp]: "(0 < (m::nat) * n) = (0 < m & 0 < n)"
+text{*Differs from the standard @{text zero_less_mult_iff} in that
+      there are no negative numbers.*}
+lemma nat_0_less_mult_iff [simp]: "(0 < (m::nat) * n) = (0 < m & 0 < n)"
   apply (induct m)
   apply (case_tac [2] n, simp_all)
   done

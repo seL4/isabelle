@@ -559,7 +559,6 @@ by (case_tac "n" 1 THEN auto_tac (claset(),simpset()
     addsimps [lemma_realpow_diff_sumr2,
     real_diff_mult_distrib2 RS sym,real_mult_assoc] 
     delsimps [realpow_Suc,sumr_Suc]));
-by (rtac (real_mult_left_cancel RS iffD2) 1);
 by (auto_tac (claset(),simpset() addsimps [lemma_realpow_rev_sumr]
     delsimps [sumr_Suc]));
 by (auto_tac (claset(),simpset() addsimps [real_of_nat_Suc,sumr_diff_mult_const,
@@ -773,7 +772,9 @@ by (res_inst_tac [("a","summable (%n. real n * \
 \    (real (n - Suc 0) * abs (c n) * inverse r) * r ^ (n - Suc 0))")] 
     (CLAIM "(a = b) ==> a ==> b") 1  THEN assume_tac 2);
 by (res_inst_tac [("f","summable")] arg_cong 1 THEN rtac ext 1);
-(* 75 *)
+by (dtac (abs_ge_zero RS order_le_less_trans) 2);
+by (asm_full_simp_tac (simpset() addsimps real_mult_ac) 2);
+(* 77 *)
 by (case_tac "n" 1);
 by Auto_tac;
 by (case_tac "nat" 1);
@@ -1016,6 +1017,7 @@ qed "exp_minus";
 Goal "exp(x + y) = exp(x) * exp(y)";
 by (cut_inst_tac [("x1","x"),("y1","y"),("z","exp x")] 
     (exp_add_mult_minus RS (CLAIM "x = y ==> z * y = z * (x::real)")) 1);
+by (asm_full_simp_tac HOL_ss 1);
 by (asm_full_simp_tac (simpset() delsimps [exp_add_mult_minus] 
     addsimps real_mult_ac) 1);
 qed "exp_add";

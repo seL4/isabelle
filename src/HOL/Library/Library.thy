@@ -1,7 +1,6 @@
 (*<*)
 theory Library =
   Quotient +
-  Ring_and_Field + Ring_and_Field_Example +
   Nat_Infinity +
   Rational_Numbers +
   List_Prefix +

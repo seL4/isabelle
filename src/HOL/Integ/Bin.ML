@@ -250,8 +250,8 @@ Goalw [iszero_def] "iszero ((number_of bin.Pls)::int)";
 by (Simp_tac 1); 
 qed "iszero_number_of_Pls"; 
 
-Goalw [iszero_def] "~ iszero ((number_of bin.Min)::int)"; 
-by (Simp_tac 1);
+Goalw [iszero_def] "~ iszero ((number_of bin.Min)::int)";
+by (simp_tac (simpset() addsimps [eq_commute]) 1);
 qed "nonzero_number_of_Min"; 
 
 fun int_case_tac x = res_inst_tac [("z",x)] int_cases;

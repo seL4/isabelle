@@ -1003,7 +1003,7 @@ by (subgoal_tac "poly ([-a, 1] %^ n *** q) = \
 by (dtac (poly_mult_left_cancel RS iffD1) 1);
 by (Asm_full_simp_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [fun_eq,poly_mult,poly_add,poly_cmult,
-    poly_minus] delsimps [pmult_Cons]) 1);
+    poly_minus] delsimps [pmult_Cons, thm"mult_cancel_left"]) 1);
 by (Step_tac 1);
 by (res_inst_tac [("c1","real (Suc n)")] (real_mult_left_cancel 
     RS iffD1) 1);

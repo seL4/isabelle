@@ -233,48 +233,34 @@ done
 subsection{*Some convenient biconditionals for products of signs*}
 
 lemma zmult_pos: "[| (0::int) < i; 0 < j |] ==> 0 < i*j"
-by (drule zmult_zless_mono1, auto)
+  by (rule Ring_and_Field.mult_pos)
 
 lemma zmult_neg: "[| i < (0::int); j < 0 |] ==> 0 < i*j"
-by (drule zmult_zless_mono1_neg, auto)
+  by (rule Ring_and_Field.mult_neg)
 
 lemma zmult_pos_neg: "[| (0::int) < i; j < 0 |] ==> i*j < 0"
-by (drule zmult_zless_mono1_neg, auto)
+  by (rule Ring_and_Field.mult_pos_neg)
 
 lemma int_0_less_mult_iff: "((0::int) < x*y) = (0 < x & 0 < y | x < 0 & y < 0)"
-apply (auto simp add: order_le_less linorder_not_less zmult_pos zmult_neg)
-apply (rule_tac [!] ccontr)
-apply (auto simp add: order_le_less linorder_not_less)
-apply (erule_tac [!] rev_mp)
-apply (drule_tac [!] zmult_pos_neg)
-apply (auto dest: order_less_not_sym simp add: zmult_commute)
-done
+  by (rule Ring_and_Field.zero_less_mult_iff)
 
 lemma int_0_le_mult_iff: "((0::int) \<le> x*y) = (0 \<le> x & 0 \<le> y | x \<le> 0 & y \<le> 0)"
-by (auto simp add: order_le_less linorder_not_less int_0_less_mult_iff)
+  by (rule Ring_and_Field.zero_le_mult_iff)
 
 lemma zmult_less_0_iff: "(x*y < (0::int)) = (0 < x & y < 0 | x < 0 & 0 < y)"
-by (auto simp add: int_0_le_mult_iff linorder_not_le [symmetric])
+  by (rule Ring_and_Field.mult_less_0_iff)
 
 lemma zmult_le_0_iff: "(x*y \<le> (0::int)) = (0 \<le> x & y \<le> 0 | x \<le> 0 & 0 \<le> y)"
-by (auto dest: order_less_not_sym simp add: int_0_less_mult_iff linorder_not_less [symmetric])
-
-lemma abs_mult: "abs (x * y) = abs x * abs (y::int)"
-by (simp del: number_of_reorient split
-          add: zabs_split split add: zabs_split add: zmult_less_0_iff zle_def)
+  by (rule Ring_and_Field.mult_le_0_iff)
 
 lemma abs_eq_0 [iff]: "(abs x = 0) = (x = (0::int))"
-by (simp split add: zabs_split)
+  by (rule Ring_and_Field.abs_eq_0)
 
 lemma zero_less_abs_iff [iff]: "(0 < abs x) = (x ~= (0::int))"
-by (simp split add: zabs_split, arith)
+  by (rule Ring_and_Field.zero_less_abs_iff)
 
-(* THIS LOOKS WRONG: [intro]*)
 lemma square_nonzero [simp]: "0 \<le> x * (x::int)"
-apply (subgoal_tac " (- x) * x \<le> 0")
- apply simp
-apply (simp only: zmult_le_0_iff, auto)
-done
+  by (rule Ring_and_Field.zero_le_square)
 
 
 subsection{*Products and 1, by T. M. Rasmussen*}
