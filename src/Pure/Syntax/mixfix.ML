@@ -161,8 +161,6 @@ val pure_syntax =
   ("_bigimpl",  "[asms, prop] => prop",           Mixfix ("((3[| _ |]) ==>/ _)", [0, 1], 1)),
   ("_ofclass",  "[type, 'a] => prop",             Delimfix "(1OFCLASS/(1'(_,/ _')))"),
   ("_K",        "'a",                             NoSyn),
-  ("_explode",  "'a",                             NoSyn),
-  ("_implode",  "'a",                             NoSyn),
   ("",          "id => logic",                    Delimfix "_"),
   ("",          "var => logic",                   Delimfix "_"),
   ("_appl",     "[logic, args] => logic",         Mixfix ("(1_/(1'(_')))", [max_pri, 0], max_pri)),

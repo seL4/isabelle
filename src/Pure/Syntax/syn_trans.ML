@@ -116,33 +116,6 @@ fun bigimpl_ast_tr (*"_bigimpl"*) [asms, concl] =
   | bigimpl_ast_tr (*"_bigimpl"*) asts = raise_ast "bigimpl_ast_tr" asts;
 
 
-(* explode strings *)
-
-fun explode_tr (*"_explode"*) (ts as [consC, nilC, bit0, bit1, txt]) =
-      let
-        fun mk_list [] = nilC
-          | mk_list (t :: ts) = consC $ t $ mk_list ts;
-
-        fun encode_bit 0 = bit0
-          | encode_bit 1 = bit1
-          | encode_bit _ = sys_error "encode_bit";
-
-        fun encode_char c =
-          let val bits = radixpand (2, ord c) in
-            mk_list (map encode_bit (replicate (8 - length bits) 0 @ bits))
-          end;
-
-        val str =
-          (case txt of
-            Free (s, _) => s
-          | Const (s, _) => s
-          | _ => raise_term "explode_tr" ts);
-      in
-        mk_list (map encode_char (explode str))
-      end
-  | explode_tr (*"_explode"*) ts = raise_term "explode_tr" ts;
-
-
 
 (** print (ast) translations **)
 
@@ -276,42 +249,15 @@ fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
   | dependent_tr' _ _ = raise Match;
 
 
-(* implode strings *)
-
-fun implode_ast_tr' (*"_implode"*) (asts as [Constant cons_name, nilC,
-    bit0, bit1, bitss]) =
-      let
-        fun err () = raise_ast "implode_ast_tr'" asts;
-
-        fun strip_list lst =
-          let val (xs, y) = unfold_ast_p cons_name lst
-          in if y = nilC then xs else err ()
-          end;
-
-        fun decode_bit bit =
-          if bit = bit0 then "0"
-          else if bit = bit1 then "1"
-          else err ();
-
-        fun decode_char bits =
-          chr (#1 (scan_radixint (2, map decode_bit (strip_list bits))));
-      in
-        Variable ("''" ^ implode (map decode_char (strip_list bitss)) ^ "''")
-      end
-  | implode_ast_tr' (*"_implode"*) asts = raise_ast "implode_ast_tr'" asts;
-
-
 
 (** pure_trfuns **)
 
 val pure_trfuns =
  ([(applC, appl_ast_tr), ("_lambda", lambda_ast_tr), ("_idtyp", idtyp_ast_tr),
     ("_bigimpl", bigimpl_ast_tr)],
-  [("_abs", abs_tr), ("_aprop", aprop_tr), ("_ofclass", ofclass_tr),
-    ("_K", k_tr), ("_explode", explode_tr)],
+  [("_abs", abs_tr), ("_aprop", aprop_tr), ("_ofclass", ofclass_tr), ("_K", k_tr)],
   [],
-  [("_abs", abs_ast_tr'), ("_idts", idts_ast_tr'), ("==>", impl_ast_tr'),
-    ("_implode", implode_ast_tr')]);
+  [("_abs", abs_ast_tr'), ("_idts", idts_ast_tr'), ("==>", impl_ast_tr')]);
 
 
 
