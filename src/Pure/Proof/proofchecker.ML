@@ -28,11 +28,8 @@ fun lookup_thm thy =
      | Some thm => thm)
   end;
 
-fun beta_eta_convert thm =
-  let
-    val beta_thm = beta_conversion true (cprop_of thm);
-    val (_, rhs) = Drule.dest_equals (cprop_of beta_thm);
-  in Thm.equal_elim (Thm.transitive beta_thm (eta_conversion rhs)) thm end;
+val beta_eta_convert =
+  MetaSimplifier.fconv_rule MetaSimplifier.beta_eta_conversion;
 
 fun thm_of_proof thy prf =
   let
@@ -53,7 +50,7 @@ fun thm_of_proof thy prf =
           let
             val thm = Thm.implies_intr_hyps (lookup name);
             val {prop, ...} = rep_thm thm;
-            val _ = if prop=prop' then () else
+            val _ = if prop aconv prop' then () else
               error ("Duplicate use of theorem name " ^ quote name ^ "\n" ^
                 Sign.string_of_term sg prop ^ "\n\n" ^
                 Sign.string_of_term sg prop');
@@ -98,7 +95,6 @@ fun thm_of_proof thy prf =
 
       | thm_of _ _ _ = error "thm_of_proof: partial proof term";
 
-  in thm_of [] [] prf end;
+  in beta_eta_convert (thm_of [] [] prf) end;
 
 end;
-
