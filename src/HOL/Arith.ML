@@ -9,55 +9,37 @@ Some from the Hoare example from Norbert Galm
 
 (*** Basic rewrite rules for the arithmetic operators ***)
 
-goalw Arith.thy [pred_def] "pred 0 = 0";
-by (Simp_tac 1);
-qed "pred_0";
-
-goalw Arith.thy [pred_def] "pred(Suc n) = n";
-by (Simp_tac 1);
-qed "pred_Suc";
-
-Addsimps [pred_0,pred_Suc];
-
-(** pred **)
-
-val prems = goal Arith.thy "n ~= 0 ==> Suc(pred n) = n";
-by (res_inst_tac [("n","n")] natE 1);
-by (cut_facts_tac prems 1);
-by (ALLGOALS Asm_full_simp_tac);
-qed "Suc_pred";
-Addsimps [Suc_pred];
-
-goal Arith.thy "pred(n) <= (n::nat)";
-by (res_inst_tac [("n","n")] natE 1);
-by (ALLGOALS Asm_simp_tac);
-qed "pred_le";
-AddIffs [pred_le];
-
-goalw Arith.thy [pred_def] "m<=n --> pred(m) <= pred(n)";
-by (simp_tac (simpset() addsplits [expand_nat_case]) 1);
-qed_spec_mp "pred_le_mono";
-
-goal Arith.thy "!!n. n ~= 0 ==> pred n < n";
-by (exhaust_tac "n" 1);
-by (ALLGOALS Asm_full_simp_tac);
-qed "pred_less";
-Addsimps [pred_less];
 
 (** Difference **)
 
-qed_goalw "diff_0_eq_0" Arith.thy [pred_def]
+qed_goal "diff_0_eq_0" Arith.thy
     "0 - n = 0"
  (fn _ => [induct_tac "n" 1,  ALLGOALS Asm_simp_tac]);
 
 (*Must simplify BEFORE the induction!!  (Else we get a critical pair)
   Suc(m) - Suc(n)   rewrites to   pred(Suc(m) - n)  *)
-qed_goalw "diff_Suc_Suc" Arith.thy [pred_def]
+qed_goal "diff_Suc_Suc" Arith.thy
     "Suc(m) - Suc(n) = m - n"
  (fn _ =>
   [Simp_tac 1, induct_tac "n" 1, ALLGOALS Asm_simp_tac]);
 
 Addsimps [diff_0_eq_0, diff_Suc_Suc];
+
+(* Could be (and is, below) generalized in various ways;
+   However, none of the generalizations are currently in the simpset,
+   and I dread to think what happens if I put them in *)
+goal Arith.thy "!!n. 0 < n ==> Suc(n-1) = n";
+by(asm_simp_tac (simpset() addsplits [expand_nat_case]) 1);
+qed "Suc_pred";
+Addsimps [Suc_pred];
+
+(* Generalize? *)
+goal Arith.thy "!!n. 0<n ==> n-1 < n";
+by(asm_simp_tac (simpset() addsplits [expand_nat_case]) 1);
+qed "pred_less";
+Addsimps [pred_less];
+
+Delsimps [diff_Suc];
 
 
 (**** Inductive properties of the operators ****)
@@ -120,17 +102,25 @@ goal Arith.thy "(m+n = 0) = (m=0 & n=0)";
 by (induct_tac "m" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "add_is_0";
-Addsimps [add_is_0];
+AddIffs [add_is_0];
 
-goal Arith.thy "(pred (m+n) = 0) = (m=0 & pred n = 0 | pred m = 0 & n=0)";
-by (induct_tac "m" 1);
+goal Arith.thy "(0<m+n) = (0<m | 0<n)";
+by(simp_tac (simpset() delsimps [neq0_conv] addsimps [neq0_conv RS sym]) 1);
+qed "add_gr_0";
+AddIffs [add_gr_0];
+
+(* FIXME: really needed?? *)
+goal Arith.thy "((m+n)-1 = 0) = (m=0 & n-1 = 0 | m-1 = 0 & n=0)";
+by (exhaust_tac "m" 1);
 by (ALLGOALS (fast_tac (claset() addss (simpset()))));
 qed "pred_add_is_0";
 Addsimps [pred_add_is_0];
 
+(* Could be generalized, eg to "!!n. k<n ==> m+(n-(Suc k)) = (m+n)-(Suc k)" *)
 goal Arith.thy "!!n. n ~= 0 ==> m + pred n = pred(m+n)";
-by (induct_tac "m" 1);
-by (ALLGOALS Asm_simp_tac);
+by (exhaust_tac "m" 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [diff_Suc]
+                                      addsplits [expand_nat_case])));
 qed "add_pred";
 Addsimps [add_pred];
 
@@ -336,9 +326,6 @@ qed "le_square";
 
 (*** Difference ***)
 
-qed_goal "pred_Suc_diff" Arith.thy "pred(Suc m - n) = m - n"
- (fn _ => [induct_tac "n" 1, ALLGOALS Asm_simp_tac]);
-Addsimps [pred_Suc_diff];
 
 qed_goal "diff_self_eq_0" Arith.thy "m - m = 0"
  (fn _ => [induct_tac "m" 1, ALLGOALS Asm_simp_tac]);
@@ -359,7 +346,6 @@ by (asm_simp_tac (simpset() addsimps [le_add_diff_inverse, add_commute]) 1);
 qed "le_add_diff_inverse2";
 
 Addsimps  [le_add_diff_inverse, le_add_diff_inverse2];
-Delsimps  [diff_Suc];
 
 
 (*** More results about difference ***)
@@ -386,6 +372,14 @@ goal Arith.thy "!!i::nat. i-j-k = i - (j+k)";
 by (res_inst_tac [("m","i"),("n","j")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "diff_diff_left";
+
+(* This is a trivial consequence of diff_diff_left;
+   could be got rid of if diff_diff_left were in the simpset...
+*)
+goal Arith.thy "(Suc m - n)-1 = m - n";
+by(simp_tac (simpset() addsimps [diff_diff_left]) 1);
+qed "pred_Suc_diff";
+Addsimps [pred_Suc_diff];
 
 (*This and the next few suggested by Florian Kammueller*)
 goal Arith.thy "!!i::nat. i-j-k = i-k-j";
@@ -654,7 +648,7 @@ by (etac impE 1);
 by (atac 1);
 by (etac le_trans 1);
 by (res_inst_tac [("m1","n")] (pred_Suc_diff RS subst) 1);
-by (rtac pred_le 1);
+by (simp_tac (simpset() addsimps [diff_Suc] addsplits [expand_nat_case]) 1);
 qed_spec_mp "diff_le_mono";
 
 goal Arith.thy "!!n::nat. m<=n ==> (l-n) <= (l-m)";

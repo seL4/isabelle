@@ -24,7 +24,7 @@ primrec lift dB
   "lift (Abs s) k = Abs(lift s (Suc k))"
 
 primrec subst dB
-  subst_Var "(Var i)[s/k] = (if k < i then Var(pred i)
+  subst_Var "(Var i)[s/k] = (if k < i then Var(i-1)
                             else if i = k then s else Var i)"
   subst_App "(t @ u)[s/k] = t[s/k] @ u[s/k]"
   subst_Abs "(Abs t)[s/k] = Abs (t[lift s 0 / Suc k])"
@@ -35,7 +35,7 @@ primrec liftn dB
   "liftn n (Abs s) k = Abs(liftn n s (Suc k))"
 
 primrec substn dB
-  "substn (Var i) s k = (if k < i then Var(pred i)
+  "substn (Var i) s k = (if k < i then Var(i-1)
                          else if i = k then liftn k s 0 else Var i)"
   "substn (t @ u) s k = (substn t s k) @ (substn u s k)"
   "substn (Abs t) s k = Abs (substn t s (Suc k))"

@@ -33,11 +33,11 @@ qed_spec_mp "subst_not_free";
 Addsimps [subst_not_free RS eqTrueI];
 
 goal Eta.thy "!i k. free (lift t k) i = \
-\                   (i < k & free t i | k < i & free t (pred i))";
+\                   (i < k & free t i | k < i & free t (i-1))";
 by (dB.induct_tac "t" 1);
 by (ALLGOALS(asm_full_simp_tac (addsplit (simpset()) addcongs [conj_cong])));
 by (Blast_tac 2);
-by (simp_tac (simpset() addsimps [pred_def] addsplits [expand_nat_case]) 1);
+by (simp_tac (simpset() addsimps [diff_Suc] addsplits [expand_nat_case]) 1);
 by (safe_tac HOL_cs);
 by (ALLGOALS trans_tac);
 qed "free_lift";
@@ -49,7 +49,7 @@ by (dB.induct_tac "s" 1);
 by (Asm_simp_tac 2);
 by (Blast_tac 2);
 by (asm_full_simp_tac (addsplit (simpset())) 2);
-by (simp_tac (simpset() addsimps [pred_def,subst_Var]
+by (simp_tac (simpset() addsimps [diff_Suc,subst_Var]
                       addsplits [expand_if,expand_nat_case]) 1);
 by (safe_tac (HOL_cs addSEs [nat_neqE]));
 by (ALLGOALS trans_tac);
@@ -173,7 +173,7 @@ by (dB.induct_tac "s" 1);
    by (etac nat_neqE 1);
     by (res_inst_tac [("x","Var nat")] exI 1);
     by (Asm_simp_tac 1);
-   by (res_inst_tac [("x","Var(pred nat)")] exI 1);
+   by (res_inst_tac [("x","Var(nat-1)")] exI 1);
    by (Asm_simp_tac 1);
   by (rtac notE 1);
    by (assume_tac 2);

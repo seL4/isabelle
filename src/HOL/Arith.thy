@@ -11,13 +11,8 @@ Arith = Nat +
 instance
   nat :: {plus, minus, times, power}
 
-consts
-  pred      :: nat => nat
-  (* size of a datatype value; overloaded *)
-  size      :: 'a => nat
-
-defs
-  pred_def  "pred(m) == case m of 0 => 0 | Suc n => n"
+(* size of a datatype value; overloaded *)
+consts size :: 'a => nat
 
 primrec "op +" nat 
   add_0    "0 + n = n"
@@ -25,7 +20,10 @@ primrec "op +" nat
 
 primrec "op -" nat 
   diff_0   "m - 0 = m"
-  diff_Suc "m - Suc n = pred(m - n)"
+  diff_Suc "m - Suc n = (case m - n of 0 => 0 | Suc k => k)"
+
+syntax pred :: nat => nat
+translations "pred m" => "m - 1"
 
 primrec "op *"  nat 
   mult_0   "0 * n = 0"

@@ -52,7 +52,7 @@ goal Lambda.thy "(Var k)[u/k] = u";
 by (asm_full_simp_tac(addsplit(simpset())) 1);
 qed "subst_eq";
 
-goal Lambda.thy "!!s. i<j ==> (Var j)[u/i] = Var(pred j)";
+goal Lambda.thy "!!s. i<j ==> (Var j)[u/i] = Var(j-1)";
 by (asm_full_simp_tac(addsplit(simpset())) 1);
 qed "subst_gt";
 
@@ -75,7 +75,7 @@ qed_spec_mp "lift_lift";
 goal Lambda.thy "!i j s. j < Suc i --> \
 \         lift (t[s/j]) i = (lift t (Suc i)) [lift s i / j]";
 by (dB.induct_tac "t" 1);
-by (ALLGOALS(asm_simp_tac (simpset() addsimps [pred_def,subst_Var,lift_lift]
+by (ALLGOALS(asm_simp_tac (simpset() addsimps [diff_Suc,subst_Var,lift_lift]
                                 addsplits [expand_if,expand_nat_case]
                                 addSolver cut_trans_tac)));
 by (safe_tac HOL_cs);
@@ -105,7 +105,7 @@ goal Lambda.thy "!i j u v. i < Suc j --> \
 \ t[lift v i / Suc j][u[v/j]/i] = t[u/i][v/j]";
 by (dB.induct_tac "t" 1);
 by (ALLGOALS(asm_simp_tac
-      (simpset() addsimps [pred_def,subst_Var,lift_lift RS sym,lift_subst_lt]
+      (simpset() addsimps [diff_Suc,subst_Var,lift_lift RS sym,lift_subst_lt]
                 addsplits [expand_if,expand_nat_case]
                 addSolver cut_trans_tac)));
 by (safe_tac (HOL_cs addSEs [nat_neqE]));
