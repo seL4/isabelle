@@ -1,4 +1,11 @@
- (* Lift2.ML *)
+(*  Title:      HOLCF/Lift2.ML
+    ID:         $Id$
+    Author:     Olaf Mueller, Robert Sandner
+    Copyright   1996 Technische Universitaet Muenchen
+
+Theorems for Lift2.thy
+*)
+
 
 open Lift2;
 Addsimps [less_lift_def];

@@ -1,4 +1,11 @@
-(* Lift1.ML *)
+(*  Title:      HOLCF/Lift1.ML
+    ID:         $Id$
+    Author:     Olaf Mueller, Robert Sandner
+    Copyright   1996 Technische Universitaet Muenchen
+
+Theorems for Lift1.thy
+*)
+
 
 open Lift1;
 

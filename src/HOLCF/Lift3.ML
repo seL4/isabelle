@@ -1,10 +1,13 @@
-(* Lift3.ML *)
+(*  Title:      HOLCF/Lift3.ML
+    ID:         $Id$
+    Author:     Olaf Mueller, Robert Sandner
+    Copyright   1996 Technische Universitaet Muenchen
+
+Theorems for Lift3.thy
+*)
+
 
 open Lift3;
-
-
-
-
 
 (* ----------------------------------------------------------- *)
 (*                        From Undef to UU		       *)

@@ -1,3 +1,11 @@
+(*  Title:      HOLCF/Lift1.thy
+    ID:         $Id$
+    Author:     Olaf Mueller, Robert Sandner
+    Copyright   1996 Technische Universitaet Muenchen
+
+Lifting types of class term to flat pcpo's
+*)
+
 Lift1 = Tr2 + 
 
 default term

@@ -1,3 +1,11 @@
+(*  Title:      HOLCF/Lift2.thy
+    ID:         $Id$
+    Author:     Olaf Mueller, Robert Sandner
+    Copyright   1996 Technische Universitaet Muenchen
+
+Class Instance lift::(term)po
+*)
+
 Lift2 = Lift1 + 
 
 default term
