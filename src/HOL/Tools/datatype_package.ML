@@ -233,7 +233,7 @@ fun gen_case_tac inst_tac (t, Some rule) i state =
         else case_inst_tac inst_tac t
                (#exhaustion (datatype_info_sg_err (Thm.sign_of_thm state) tn))
                i state
-      end;
+      end handle THM _ => Seq.empty;
 
 fun case_tac t = gen_case_tac Tactic.res_inst_tac (t, None);
 
