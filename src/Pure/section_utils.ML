@@ -1,9 +1,9 @@
-(*  Title: 	Pure/section-utils
+(*  Title: 	Pure/section_utils.ML
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
-Utilities for writing new theory sections
+Utilities for writing new theory sections.
 *)
 
 fun ap t u = t$u;
@@ -13,16 +13,9 @@ fun app t (u1,u2) = t $ u1 $ u2;
 fun mk_frees a [] = []
   | mk_frees a (T::Ts) = Free(a,T) :: mk_frees (bump_string a) Ts;
 
-(*Make a definition lhs==rhs*)
-fun mk_defpair (lhs, rhs) = 
-  let val Const(name, _) = head_of lhs
-  in (Sign.base_name name ^ "_def", Logic.mk_equals (lhs, rhs)) end;
-
-fun get_def thy s = get_axiom thy (s^"_def");
-
 
 (*Read an assumption in the given theory*)
-fun assume_read thy a = assume (read_cterm (sign_of thy) (a,propT));
+fun assume_read thy a = Thm.assume (read_cterm (sign_of thy) (a,propT));
 
 (*Read a term from string "b", with expected type T*)
 fun readtm sign T b = 
@@ -65,9 +58,3 @@ fun escape [] = []
 
 (*Remove the first and last charaters -- presumed to be quotes*)
 val trim = implode o escape o rev o tl o rev o tl o Symbol.explode;
-
-
-(*Check for some named theory*)
-fun require_thy thy name sect =
-  if exists (equal name) (Sign.stamp_names_of (sign_of thy)) then ()
-  else error ("Need theory " ^ quote name ^ " as an ancestor for " ^ sect);
