@@ -164,13 +164,13 @@ fun infer_tname state i aterm =
 
 (*Warn if the (induction) variable occurs Free among the premises, which
   usually signals a mistake.  But calls the tactic either way!*)
-fun occs_in_prems tacf vars = 
+fun occs_in_prems tacf vars =
   SUBGOAL (fn (Bi, i) =>
-	   (if  exists (fn Free (a, _) => a mem vars)
-	              (foldr add_term_frees (#2 (strip_context Bi), []))
-	     then warning "Induction variable occurs also among premises!"
-	     else ();
-	    tacf i));
+           (if  exists (fn Free (a, _) => a mem vars)
+                      (foldr add_term_frees (#2 (strip_context Bi), []))
+             then warning "Induction variable occurs also among premises!"
+             else ();
+            tacf i));
 
 (* generic induction tactic for datatypes *)
 
@@ -205,7 +205,7 @@ val exhaust_tac = gen_exhaust_tac exhaustion_of;
 val cases_tac = gen_exhaust_tac cases_of;
 
 
-(* add_cases_induct *)
+(* add_cases_induct -- interface to induct method *)
 
 fun add_cases_induct infos =
   let
@@ -214,10 +214,29 @@ fun add_cases_induct infos =
           (if i + 1 < n then (fn th => th RS conjunct1) else I)
             (Library.funpow i (fn th => th RS conjunct2) thm)
           |> Drule.standard;
+
+    fun dt_recs (DtTFree _) = []
+      | dt_recs (DtType (_, dts)) = flat (map dt_recs dts)
+      | dt_recs (DtRec i) = [i];
+
+    fun dt_cases (descr: descr) (_, args, constrs) =
+      let
+        fun the_bname i = Sign.base_name (#1 (the (assoc (descr, i))));
+        val bnames = map the_bname (distinct (flat (map dt_recs args)));
+      in map (fn (c, _) => space_implode "_" (Sign.base_name c :: bnames)) constrs end;
+
+    fun induct_cases descr =
+      Term.variantlist (flat (map (dt_cases descr) (map #2 descr)), []);
+
+    fun exhaust_cases descr i = dt_cases descr (the (assoc (descr, i)));
+
     fun add (ths, (name, {index, descr, induction, exhaustion, ...}: datatype_info)) =
-      (("", proj index (length descr) induction), [InductMethod.induct_type_global name]) ::
-       (("", exhaustion), [InductMethod.cases_type_global name]) :: ths;
+      (("", proj index (length descr) induction),
+        [RuleCases.case_names (induct_cases descr), InductMethod.induct_type_global name]) ::
+      (("", exhaustion), [RuleCases.case_names (exhaust_cases descr index),
+        InductMethod.cases_type_global name]) :: ths;
   in PureThy.add_thms (foldl add ([], infos)) end;
+
 
 
 (**** simplification procedure for showing distinctness of constructors ****)
@@ -472,7 +491,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
       (DatatypeProp.make_nchotomys descr sorts) thy8;
     val (thy10, case_congs) = add_and_get_axioms "case_cong" new_type_names
       (DatatypeProp.make_case_congs new_type_names descr sorts thy9) thy9;
-    
+
     val dt_infos = map (make_dt_info descr' induct reccomb_names' rec_thms)
       ((0 upto length (hd descr) - 1) ~~ (hd descr) ~~ case_names' ~~ case_thms ~~
         exhaustion ~~ replicate (length (hd descr)) QuickAndDirty ~~ inject ~~
@@ -709,7 +728,7 @@ fun gen_add_datatype prep_typ flat_names new_type_names dts thy =
         val (constrs', constr_syntax', sorts') =
           foldl prep_constr (([], [], sorts), constrs)
 
-      in 
+      in
         case duplicates (map fst constrs') of
            [] =>
              (dts' @ [(i, (Sign.full_name sign (Syntax.type_name tname mx),
