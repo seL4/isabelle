@@ -32,16 +32,6 @@ consts
   pairwise_disjoint       :: "i => o"
   sets_of_size_between    :: "[i, i, i] => o"
 
-(* Auxiliary definitions used in proofs *)
-  NN                      :: "i => i"
-  uu                      :: "[i, i, i, i] => i"
-  
-(* Other useful definitions *)
-  vv1                     :: "[i, i, i] => i"
-  ww1                     :: "[i, i, i] => i"
-  vv2                     :: "[i, i, i, i] => i"
-  ww2                     :: "[i, i, i, i] => i"
-
   GG                      :: "[i, i, i] => i"
   GG2                     :: "[i, i, i] => i"
   HH                      :: "[i, i, i] => i"
@@ -149,32 +139,6 @@ defs
 \			    == ALL B:A. m lepoll B & B lepoll n"
   
 (* Auxiliary definitions used in proofs *)
-
-  NN_def                  "NN(y) == {m:nat. EX a. EX f. Ord(a) & domain(f)=a \
-\			   & (UN b<a. f`b) = y & (ALL b<a. f`b lepoll m)}"
-
-  uu_def                  "uu(f, beta, gamma, delta)   \
-\			   == (f`beta * f`gamma) Int f`delta"
-  
-(* Other useful definitions *)
-
-  vv1_def "vv1(f,b,m) == if(f`b ~= 0,   \
-\          domain(uu(f,b,   \
-\          LEAST g. (EX d. Ord(d) & (domain(uu(f,b,g,d)) ~= 0 &   \
-\	   domain(uu(f,b,g,d)) lesspoll m)),   \
-\          LEAST d. domain(uu(f,b,   \
-\          LEAST g. (EX d. Ord(d) & (domain(uu(f,b,g,d)) ~= 0 &   \
-\	   domain(uu(f,b,g,d)) lesspoll m)), d)) ~= 0 &   \
-\          domain(uu(f,b,   \
-\          LEAST g. (EX d. Ord(d) & (domain(uu(f,b,g,d)) ~= 0 &   \
-\	   domain(uu(f,b,g,d)) lesspoll m)), d)) lesspoll m)), 0)"
-
-  ww1_def "ww1(f,b,m) == f`b - vv1(f,b,m)"
-
-  vv2_def "vv2(f,b,g,s) ==   \
-\	   if(f`g ~= 0, {uu(f,b,g,LEAST d. uu(f,b,g,d) ~= 0)`s}, 0)"
-
-  ww2_def "ww2(f,b,g,s) == f`g - vv2(f,b,g,s)"
 
   GG_def  "GG(f,x,a)  == transrec(a, %b r. (lam z:Pow(x).   \
 \	                 if(z=0, x, f`z))`(x - {r`c. c:b}))"
