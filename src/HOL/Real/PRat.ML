@@ -50,7 +50,9 @@ AddSIs [ratrelI];
 AddSEs [ratrelE];
 
 Goal "(x,x): ratrel";
-by (stac surjective_pairing 1 THEN rtac (refl RS ratrelI) 1);
+by (pair_tac "x" 1);
+by (rtac ratrelI 1);
+by (rtac refl 1);
 qed "ratrel_refl";
 
 Goalw [equiv_def, refl_def, sym_def, trans_def]
@@ -189,7 +191,7 @@ bind_thms ("prat_add_ac", [prat_add_assoc, prat_add_commute, prat_add_left_commu
 
 Goalw [congruent2_def]
     "congruent2 ratrel (%p1 p2.                  \
-\         split (%x1 y1. split (%x2 y2. ratrel^^{(x1*x2, y1*y2)}) p2) p1)";
+\         (%(x1,y1). (%(x2,y2). ratrel^^{(x1*x2, y1*y2)}) p2) p1)";
 (*Proof via congruent2_commuteI seems longer*)
 by Safe_tac;
 by (asm_simp_tac (simpset() addsimps [pnat_mult_assoc]) 1);

@@ -47,7 +47,9 @@ AddSIs [realrelI];
 AddSEs [realrelE];
 
 Goal "(x,x): realrel";
-by (stac surjective_pairing 1 THEN rtac (refl RS realrelI) 1);
+by (pair_tac "x" 1);
+by (rtac realrelI 1);
+by (rtac refl 1);
 qed "realrel_refl";
 
 Goalw [equiv_def, refl_def, sym_def, trans_def]
@@ -107,7 +109,7 @@ qed "eq_Abs_real";
 (**** real_minus: additive inverse on real ****)
 
 Goalw [congruent_def]
-  "congruent realrel (%p. split (%x y. realrel^^{(y,x)}) p)";
+  "congruent realrel (%p. (%(x,y). realrel^^{(y,x)}) p)";
 by Safe_tac;
 by (asm_full_simp_tac (simpset() addsimps [preal_add_commute]) 1);
 qed "real_minus_congruent";
@@ -152,7 +154,7 @@ Addsimps [real_minus_zero_iff];
 (*** Congruence property for addition ***)
 Goalw [congruent2_def]
     "congruent2 realrel (%p1 p2.                  \
-\         split (%x1 y1. split (%x2 y2. realrel^^{(x1+x2, y1+y2)}) p2) p1)";
+\         (%(x1,y1). (%(x2,y2). realrel^^{(x1+x2, y1+y2)}) p2) p1)";
 by Safe_tac;
 by (asm_simp_tac (simpset() addsimps [preal_add_assoc]) 1);
 by (res_inst_tac [("z1.1","x1a")] (preal_add_left_commute RS ssubst) 1);
@@ -319,7 +321,7 @@ qed "real_mult_congruent2_lemma";
 
 Goal 
     "congruent2 realrel (%p1 p2.                  \
-\         split (%x1 y1. split (%x2 y2. realrel^^{(x1*x2 + y1*y2, x1*y2+x2*y1)}) p2) p1)";
+\         (%(x1,y1). (%(x2,y2). realrel^^{(x1*x2 + y1*y2, x1*y2+x2*y1)}) p2) p1)";
 by (rtac (equiv_realrel RS congruent2_commuteI) 1);
 by Safe_tac;
 by (rewtac split_def);
