@@ -1053,8 +1053,7 @@ struct
   val finish = I;
   val prep_ext = I;
   fun merge ((rules1, procs1), (rules2, procs2)) =
-    (merge_lists rules1 rules2,
-     generic_merge (uncurry equal o pairself fst) I I procs1 procs2);
+    (merge_lists rules1 rules2, merge_alists procs1 procs2);
   fun print _ _ = ();
 end;
 
