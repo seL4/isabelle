@@ -23,6 +23,7 @@ signature THM =
                                     maxidx: int}
   val term_of           : cterm -> term
   val cterm_of          : Sign.sg -> term -> cterm
+  val ctyp_of_term      : cterm -> ctyp
   val read_cterm        : Sign.sg -> string * typ -> cterm
   val read_cterms       : Sign.sg -> string list * typ list -> cterm list
   val cterm_fun         : (term -> term) -> (cterm -> cterm)
@@ -37,43 +38,44 @@ signature THM =
 
   (*theories*)
 
-  (*proof terms [must duplicate declaration as a specification]*)
+  (*proof terms [must DUPLICATE declaration as a specification]*)
   datatype deriv_kind = MinDeriv | ThmDeriv | FullDeriv;
   val keep_derivs       : deriv_kind ref
   datatype rule = 
       MinProof                          
     | Oracle of theory * Sign.sg * exn
-    | Axiom             of theory * string
-    | Theorem           of string       
-    | Assume            of cterm
-    | Implies_intr      of cterm
+    | Axiom               of theory * string
+    | Theorem             of string       
+    | Assume              of cterm
+    | Implies_intr        of cterm
     | Implies_intr_shyps
     | Implies_intr_hyps
     | Implies_elim 
-    | Forall_intr       of cterm
-    | Forall_elim       of cterm
-    | Reflexive         of cterm
+    | Forall_intr         of cterm
+    | Forall_elim         of cterm
+    | Reflexive           of cterm
     | Symmetric 
     | Transitive
-    | Beta_conversion   of cterm
+    | Beta_conversion     of cterm
     | Extensional
-    | Abstract_rule     of string * cterm
+    | Abstract_rule       of string * cterm
     | Combination
     | Equal_intr
     | Equal_elim
-    | Trivial           of cterm
-    | Lift_rule         of cterm * int 
-    | Assumption        of int * Envir.env option
-    | Instantiate       of (indexname * ctyp) list * (cterm * cterm) list
-    | Bicompose         of bool * bool * int * int * Envir.env
-    | Flexflex_rule     of Envir.env            
-    | Class_triv        of theory * class       
+    | Trivial             of cterm
+    | Lift_rule           of cterm * int 
+    | Assumption          of int * Envir.env option
+    | Rotate_rule         of int * int
+    | Instantiate         of (indexname * ctyp) list * (cterm * cterm) list
+    | Bicompose           of bool * bool * int * int * Envir.env
+    | Flexflex_rule       of Envir.env            
+    | Class_triv          of theory * class       
     | VarifyT
     | FreezeT
-    | RewriteC          of cterm
-    | CongC             of cterm
-    | Rewrite_cterm     of cterm
-    | Rename_params_rule of string list * int;
+    | RewriteC            of cterm
+    | CongC               of cterm
+    | Rewrite_cterm       of cterm
+    | Rename_params_rule  of string list * int;
 
   type deriv   (* = rule mtree *)
 
@@ -130,6 +132,7 @@ signature THM =
   val lift_rule         : (thm * int) -> thm -> thm
   val assumption        : int -> thm -> thm Sequence.seq
   val eq_assumption     : int -> thm -> thm
+  val rotate_rule       : int -> int -> thm -> thm
   val rename_params_rule: string list * int -> thm -> thm
   val bicompose         : bool -> bool * thm * int ->
     int -> thm -> thm Sequence.seq
@@ -191,6 +194,8 @@ datatype cterm = Cterm of {sign: Sign.sg, t: term, T: typ, maxidx: int};
 
 fun rep_cterm (Cterm args) = args;
 fun term_of (Cterm {t, ...}) = t;
+
+fun ctyp_of_term (Cterm {sign, T, ...}) = Ctyp {sign=sign, T=T};
 
 (*create a cterm by checking a "raw" term with respect to a signature*)
 fun cterm_of sign tm =
@@ -315,6 +320,7 @@ datatype rule =
           Use cterm instead of thm to avoid mutual recursion.*)
   | Lift_rule           of cterm * int 
   | Assumption          of int * Envir.env option (*includes eq_assumption*)
+  | Rotate_rule         of int * int
   | Instantiate         of (indexname * ctyp) list * (cterm * cterm) list
   | Bicompose           of bool * bool * int * int * Envir.env
   | Flexflex_rule       of Envir.env            (*identifies unifier chosen*)
@@ -520,7 +526,7 @@ fun implies_intr_shyps thm =
         val tfrees = map (TFree o rpair logicS) names;
 
         fun mk_insort (T, S) = map (Logic.mk_inclass o pair T) S;
-        val sort_hyps = flat (map2 mk_insort (tfrees, xshyps));
+        val sort_hyps = List.concat (map2 mk_insort (tfrees, xshyps));
       in
         Thm {sign = sign, 
              der = infer_derivs (Implies_intr_shyps, [der]), 
@@ -1026,7 +1032,8 @@ fun instantiate ([], []) th = th
   end
   handle TERM _ =>
            raise THM("instantiate: incompatible signatures",0,[th])
-       | TYPE _ => raise THM("instantiate: type conflict", 0, [th]);
+       | TYPE (msg,_,_) => raise THM("instantiate: type conflict: " ^ msg, 
+				     0, [th]);
 
 (*The trivial implication A==>A, justified by assume and forall rules.
   A can contain Vars, not so for assume!   *)
@@ -1157,6 +1164,31 @@ fun eq_assumption i state =
                   hyps = hyps,
                   prop = Logic.rule_of(tpairs, Bs, C)})
       else  raise THM("eq_assumption", 0, [state])
+  end;
+
+
+(*For rotate_tac: fast rotation of assumptions of subgoal i*)
+fun rotate_rule k i state =
+  let val Thm{sign,der,maxidx,hyps,prop,shyps} = state;
+      val (tpairs, Bs, Bi, C) = dest_state(state,i)
+      val params = Logic.strip_params Bi
+      and asms   = Logic.strip_assums_hyp Bi
+      and concl  = Logic.strip_assums_concl Bi
+      val n      = length asms
+      fun rot m  = if 0=m orelse m=n then Bi
+		   else if 0<m andalso m<n 
+		   then list_all 
+			   (params, 
+			    Logic.list_implies(List.drop(asms, m) @ 
+					       List.take(asms, m),
+					       concl))
+		   else raise THM("rotate_rule", m, [state])
+  in  Thm{sign = sign, 
+	  der = infer_derivs (Rotate_rule (k,i), [der]),
+	  maxidx = maxidx,
+	  shyps = shyps,
+	  hyps = hyps,
+	  prop = Logic.rule_of(tpairs, Bs@[rot (if k<0 then n+k else k)], C)}
   end;
 
 
@@ -1486,7 +1518,7 @@ fun mk_rrule (thm as Thm {sign, prop, ...}) =
       andalso not (is_Var elhs);
   in
     if not ((term_vars erhs) subset
-        (union_term (term_vars elhs, flat(map term_vars prems)))) then
+        (union_term (term_vars elhs, List.concat(map term_vars prems)))) then
       (prtm_warning "extra Var(s) on rhs" sign prop; None)
     else if not perm andalso loops sign prems (elhs, erhs) then
       (prtm_warning "ignoring looping rewrite rule" sign prop; None)
@@ -1662,8 +1694,8 @@ fun mk_procrule (thm as Thm {sign, prop, ...}) =
     val (elhs, erhs) = Logic.dest_equals econcl;
   in
     if not ((term_vars erhs) subset
-        (union_term (term_vars elhs, flat(map term_vars prems)))) then
-      (prtm_warning "extra Var(s) on rhs" sign prop; [])
+        (union_term (term_vars elhs, List.concat(map term_vars prems)))) 
+    then (prtm_warning "extra Var(s) on rhs" sign prop; [])
     else [{thm = thm, lhs = lhs, perm = false}]
   end;
 
