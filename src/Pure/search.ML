@@ -32,6 +32,7 @@ signature SEARCH =
   val THEN_ASTAR	: tactic -> (thm->bool) * (int->thm->int) -> tactic
 			  -> tactic
   val BREADTH_FIRST	: (thm -> bool) -> tactic -> tactic
+  val QUIET_BREADTH_FIRST	: (thm -> bool) -> tactic -> tactic
   end;
 
 structure Search : SEARCH = 
@@ -214,16 +215,19 @@ val BEST_FIRST = THEN_BEST_FIRST all_tac;
 
 (*Breadth-first search to satisfy satpred (including initial state) 
   SLOW -- SHOULD NOT USE APPEND!*)
-fun BREADTH_FIRST satpred tac = 
+fun gen_BREADTH_FIRST message satpred (tac:tactic) = 
   let val tacf = Seq.list_of o tac;
       fun bfs prfs =
 	 (case  partition satpred prfs  of
 	      ([],[]) => []
 	    | ([],nonsats) => 
-		  (prs("breadth=" ^ string_of_int(length nonsats) ^ "\n");
+		  (message("breadth=" ^ string_of_int(length nonsats) ^ "\n");
 		   bfs (List.concat (map tacf nonsats)))
 	    | (sats,_)  => sats)
   in (fn st => Seq.of_list (bfs [st])) end;
+
+val BREADTH_FIRST = gen_BREADTH_FIRST prs;
+val QUIET_BREADTH_FIRST = gen_BREADTH_FIRST (K ());
 
 
 (*  Author: 	Norbert Voelker, FernUniversitaet Hagen
