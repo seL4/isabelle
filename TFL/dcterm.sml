@@ -1,4 +1,4 @@
-(*  Title:      TFL/dcterm
+(*  Title:      TFL/dcterm.sml
     ID:         $Id$
     Author:     Konrad Slind, Cambridge University Computer Laboratory
     Copyright   1997  University of Cambridge

@@ -8,7 +8,6 @@ Emulation of HOL inference rules for TFL
 
 signature Rules_sig =
 sig
-(*  structure USyntax : USyntax_sig *)
   val dest_thm : thm -> term list * term
 
   (* Inference rules *)

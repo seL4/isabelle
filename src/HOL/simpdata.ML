@@ -496,7 +496,7 @@ val HOL_css = (HOL_cs, HOL_ss);
    ref_tac: int -> tactic
    the actual refutation tactic. Should be able to deal with goals
    [| A1; ...; An |] ==> False
-   where the Ai are atomic, i.e. no top-level &, | or ?
+   where the Ai are atomic, i.e. no top-level &, | or EX
 *)
 
 fun refute_tac test prep_tac ref_tac =

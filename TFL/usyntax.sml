@@ -8,8 +8,6 @@ Emulation of HOL's abstract syntax functions.
 
 signature USyntax_sig =
 sig
-  structure Utils : Utils_sig
-
   datatype lambda = VAR   of {Name : string, Ty : typ}
                   | CONST of {Name : string, Ty : typ}
                   | COMB  of {Rator: term, Rand : term}
@@ -98,7 +96,6 @@ end;
 structure USyntax : USyntax_sig =
 struct
 
-structure Utils = Utils;
 open Utils;
 
 infix 4 ##;

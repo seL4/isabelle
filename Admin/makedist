@@ -110,7 +110,8 @@ echo "###"
 cd "$DISTBASE"
 
 $EXPORT
-find . -name CVS -exec rm -rf {} \;
+find . -name CVS -print | xargs rm -rf
+find . -type d -a -empty -print | xargs rm -rf
 
 
 # build docs

@@ -1,6 +1,7 @@
 (*  Title:      HOL/Tools/recdef_package.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Wrapper module for Konrad Slind's TFL package.
 *)
