@@ -308,8 +308,9 @@ fun class_axms sign =
 (* intro_classes *)
 
 fun intro_classes_tac facts i st =
-  (Method.insert_tac facts THEN'
-    REPEAT_ALL_NEW (resolve_tac (class_axms (Thm.sign_of_thm st)))) i st;
+  ((Method.insert_tac facts THEN'
+    REPEAT_ALL_NEW (resolve_tac (class_axms (Thm.sign_of_thm st)))) i
+    THEN Tactic.distinct_subgoals_tac) st;    (*affects all subgoals!?*)
 
 val intro_classes_method =
   ("intro_classes", Method.no_args (Method.METHOD (HEADGOAL o intro_classes_tac)),
@@ -318,8 +319,7 @@ val intro_classes_method =
 
 (* default method *)
 
-fun default_intro_classes_tac [] i = intro_classes_tac [] i THEN
-      Tactic.distinct_subgoals_tac    (*affects all subgoals, which is usually OK*)
+fun default_intro_classes_tac [] i = intro_classes_tac [] i
   | default_intro_classes_tac _ _ = Tactical.no_tac;    (*no error message!*)
 
 fun default_tac rules ctxt facts =
