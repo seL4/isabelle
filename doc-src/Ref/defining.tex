@@ -88,19 +88,19 @@ $A$ & = & {\tt0} & \hspace*{4em} \\
 \begin{figure}
 \begin{center}
 \begin{tabular}{rclc}
+$any$ &=& $prop$ ~~$|$~~ $logic$ \\\\
 $prop$ &=& {\tt PROP} $aprop$ ~~$|$~~ {\tt(} $prop$ {\tt)} \\
-     &$|$& $logic^{(3)}$ {\tt ==} $logic^{(2)}$ & (2) \\
-     &$|$& $logic^{(3)}$ {\tt =?=} $logic^{(2)}$ & (2) \\
+     &$|$& $any^{(3)}$ {\tt ==} $any^{(2)}$ & (2) \\
+     &$|$& $any^{(3)}$ {\tt =?=} $any^{(2)}$ & (2) \\
      &$|$& $prop^{(2)}$ {\tt ==>} $prop^{(1)}$ & (1) \\
      &$|$& {\tt[|} $prop$ {\tt;} \dots {\tt;} $prop$ {\tt|]} {\tt==>} $prop^{(1)}$ & (1) \\
      &$|$& {\tt!!} $idts$ {\tt.} $prop$ & (0) \\\\
-$logic$ &=& $prop$ ~~$|$~~ $fun$ \\\\
 $aprop$ &=& $id$ ~~$|$~~ $var$
-    ~~$|$~~ $fun^{(\infty)}$ {\tt(} $logic$ {\tt,} \dots {\tt,} $logic$ {\tt)} \\\\
-$fun$ &=& $id$ ~~$|$~~ $var$ ~~$|$~~ {\tt(} $fun$ {\tt)} \\
-    &$|$& $fun^{(\infty)}$ {\tt(} $logic$ {\tt,} \dots {\tt,} $logic$ {\tt)} \\
-    &$|$& $fun^{(4)}$ {\tt::} $type$ & (4) \\
-    &$|$& {\tt \%} $idts$ {\tt.} $logic$ & (0) \\\\
+    ~~$|$~~ $logic^{(\infty)}$ {\tt(} $any$ {\tt,} \dots {\tt,} $any$ {\tt)} \\\\
+$logic$ &=& $id$ ~~$|$~~ $var$ ~~$|$~~ {\tt(} $logic$ {\tt)} \\
+    &$|$& $logic^{(\infty)}$ {\tt(} $any$ {\tt,} \dots {\tt,} $any$ {\tt)} \\
+    &$|$& $logic^{(4)}$ {\tt::} $type$ & (4) \\
+    &$|$& {\tt \%} $idts$ {\tt.} $any$ & (0) \\\\
 $idts$ &=& $idt$ ~~$|$~~ $idt^{(1)}$ $idts$ \\\\
 $idt$ &=& $id$ ~~$|$~~ {\tt(} $idt$ {\tt)} \\
     &$|$& $id$ {\tt ::} $type$ & (0) \\\\
@@ -141,18 +141,19 @@ this basic syntax (types, terms and formulae) appears in
 appears in Fig.\ts\ref{fig:pure_gram}.  It defines the following
 nonterminals:
 \begin{ttdescription}
-\item[\ndxbold{prop}] denotes terms of type {\tt prop}.  These are formulae
+  \item[\ndxbold{prop}] denotes terms of type {\tt prop}.  These are formulae
   of the meta-logic.
 
-\item[\ndxbold{aprop}] denotes atomic propositions.  These typically
+  \item[\ndxbold{aprop}] denotes atomic propositions.  These typically
   include the judgement forms of the object-logic; its definition
   introduces a meta-level predicate for each judgement form.
 
-\item[\ndxbold{logic}] denotes terms whose type belongs to class
+  \item[\ndxbold{logic}] denotes terms whose type belongs to class
   \cldx{logic}.  As the syntax is extended by new object-logics, more
   productions for {\tt logic} are added automatically (see below).
 
-  \item[\ndxbold{fun}] denotes terms potentially of function type.
+  \item[\ndxbold{any}] denotes terms that either belong to {\tt prop}
+    or {\tt logic}.
 
   \item[\ndxbold{type}] denotes types of the meta-logic.
 
@@ -174,26 +175,28 @@ nonterminals:
 \subsection{Logical types and default syntax}\label{logical-types}
 \index{lambda calc@$\lambda$-calculus}
 
-Isabelle's representation of mathematical languages is based on the simply
-typed $\lambda$-calculus.  All logical types, namely those of class
-\cldx{logic}, are automatically equipped with a basic syntax of types,
-identifiers, variables, parentheses, $\lambda$-abstractions and
+Isabelle's representation of mathematical languages is based on the
+simply typed $\lambda$-calculus.  All logical types, namely those of
+class \cldx{logic}, are automatically equipped with a basic syntax of
+types, identifiers, variables, parentheses, $\lambda$-abstractions and
 applications.
 
-More precisely, for each type constructor $ty$ with arity $(\vec{s})c$,
-where $c$ is a subclass of \cldx{logic}, several productions are added:
+More precisely, Isabelle internally replaces every nonterminal by
+$logic$ if it belongs to a subclass of \cldx{logic}.  Thereby these
+productions (which actually are productions of the nonterminal
+$logic$) can be used for $ty$:
+
 \begin{center}
 \begin{tabular}{rclc}
 $ty$ &=& $id$ ~~$|$~~ $var$ ~~$|$~~ {\tt(} $ty$ {\tt)} \\
-  &$|$& $fun^{(\infty)}$ {\tt(} $logic$ {\tt,} \dots {\tt,} $logic$ {\tt)}\\
+  &$|$& $logic^{(\infty)}$ {\tt(} $any$ {\tt,} \dots {\tt,} $any$ {\tt)}\\
   &$|$& $ty^{(4)}$ {\tt::} $type$ ~~~~~~~ (3) \\\\
-$logic$ &=& $ty$
 \end{tabular}
 \end{center}
 
 \begin{warn}
   Type constraints bind very weakly. For example, \verb!x<y::nat! is normally
-  parsed as \verb!(x<y)::nat!, unless \verb$<$ has priority of 4 or less, in
+  parsed as \verb!(x<y)::nat!, unless \verb$<$ has priority of 3 or less, in
   which case the string is likely to be ambiguous. The correct form is
   \verb!x<(y::nat)!.
 \end{warn}
@@ -640,6 +643,61 @@ can be polymorphic.
 
 \index{mixfix declarations|)}
 
+\section{Ambiguity of parsed expressions} \label{sec:ambiguity}
+\index{ambiguity!of parsed expressions}
+
+To keep the grammar small and allow common productions to be shared
+all logical types are internally represented
+by one nonterminal, namely {\tt logic}. This and omitted or too freely 
+chosen priorities may lead to ways of parsing an expression that were
+not intended by the theory's maker. In most cases Isabelle is able to
+select one of multiple parse trees that an expression has lead 
+to by checking which of them can be typed correctly. But this may not
+work in every case and always slows down parsing.
+The warning and error messages that can be produced during this process are 
+as follows:
+
+If an ambiguity can be resolved by type inference this warning
+is shown to remind the user that parsing is (unnecessarily) slowed
+down:
+
+\begin{ttbox}
+{\out Warning: Ambiguous input "..."}
+{\out produces the following parse trees:}
+{\out ...}
+{\out Fortunately, only one parse tree is type correct.}
+{\out It helps (speed!) if you disambiguate your grammar or your input.}
+\end{ttbox}
+
+The following message is normally caused by using the same
+syntax in two different productions:
+
+\begin{ttbox}
+{\out Warning: Ambiguous input "..."}
+{\out produces the following parse trees:}
+{\out ...}
+{\out Error: More than one term is type correct:}
+{\out ...}
+\end{ttbox}
+
+On the other hand it's also possible that none of the parse trees can be
+typed correctly though the user did not make a mistake. By default Isabelle 
+assumes that the type of a syntax translation rule is {\tt logic} but does 
+not look at the type unless parsing the rule produces more than one parse 
+tree. In that case this message is output if the rule's type is different 
+from {\tt logic}:
+
+\begin{ttbox}
+{\out Warning: Ambiguous input "..."}
+{\out produces the following parse trees:}
+{\out ...}
+{\out This occured in syntax translation rule: "..."  ->  "..."}
+{\out Type checking error: Term does not have expected type}
+{\out ...}
+\end{ttbox}
+
+To circumvent this the rule's type has to be stated.
+
 
 \section{Example: some minimal logics} \label{sec:min_logics}
 \index{examples!of logic definitions}
@@ -647,7 +705,7 @@ can be polymorphic.
 This section presents some examples that have a simple syntax.  They
 demonstrate how to define new object-logics from scratch.
 
-First we must define how an object-logic syntax embedded into the
+First we must define how an object-logic syntax is embedded into the
 meta-logic.  Since all theorems must conform to the syntax for~\ndx{prop} (see
 Fig.\ts\ref{fig:pure_gram}), that syntax has to be extended with the
 object-level syntax.  Assume that the syntax of your object-logic defines a
@@ -777,5 +835,3 @@ by (dresolve_tac [MinC.conjE2] 1);
 by (eresolve_tac [MinIF.FalseE] 1);
 \end{ttbox}
 Try this as an exercise!
-
-
