@@ -75,10 +75,10 @@ struct
       (NetRules.merge (inductT1, inductT2), NetRules.merge (inductS1, inductS2)));
 
   fun print sg ((casesT, casesS), (inductT, inductS)) =
-    (print_rules "type cases:" sg casesT;
-      print_rules "set cases:" sg casesS;
-      print_rules "type induct:" sg inductT;
-      print_rules "set induct:" sg inductS);
+    (print_rules "induct type:" sg inductT;
+      print_rules "induct set:" sg inductS;
+      print_rules "cases type:" sg casesT;
+      print_rules "cases set:" sg casesS);
 
   fun dest ((casesT, casesS), (inductT, inductS)) =
     {type_cases = NetRules.rules casesT,
