@@ -29,7 +29,8 @@ in val subst_rews = map mk_thm
    val Var_subst = mk_thm "Var(x) <| al = assoc x (Var x) al";
 end;
 
-val subst_ss = raw_subst_ss addsimps subst_rews;
+val subst_ss = raw_subst_ss addsimps subst_rews 
+                            delsimps [de_Morgan_conj, de_Morgan_disj];
 
 (**** Substitutions ****)
 
