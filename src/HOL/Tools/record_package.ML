@@ -8,8 +8,8 @@ Extensible records with structural subtyping in HOL.
 signature BASIC_RECORD_PACKAGE =
 sig
   val record_split_tac: int -> tactic
-  val record_split_wrapper: string * wrapper
   val record_split_name: string
+  val record_split_wrapper: string * wrapper
 end;
 
 signature RECORD_PACKAGE =
@@ -57,7 +57,7 @@ fun add_iffs_global (thy, th) =
   in ss := ss'; cs := cs'; (thy, th) end;
 
 fun add_wrapper wrapper thy =
-  let val r = claset_ref_of thy
+  let val r = Classical.claset_ref_of thy
   in r := ! r addSWrapper wrapper; thy end;
 
 
@@ -86,10 +86,6 @@ fun prove_simp thy tacs simps =
           ^ quote (Sign.string_of_term sign goal)));
   in prove end;
 
-fun simp simps =
-  let val ss = Simplifier.addsimps (HOL_basic_ss, map Attribute.thm_of simps)
-  in apfst (Simplifier.full_simplify ss) end;
-
 
 
 (*** syntax operations ***)
@@ -113,6 +109,14 @@ val caseN = "_case";
 
 
 (** generic operations **)
+
+(* adhoc priming of vars *)
+
+fun prime (Free (x, T)) = Free (x ^ "'", T)
+  | prime t = raise TERM ("prime: no free variable", [t]);
+
+
+(* product case *)
 
 fun fst_fn T U = Abs ("x", T, Abs ("y", U, Bound 1));
 fun snd_fn T U = Abs ("x", T, Abs ("y", U, Bound 0));
@@ -439,10 +443,10 @@ val record_split_wrapper = (record_split_name, fn tac => record_split_tac ORELSE
 
 (* field_type_defs *)
 
-fun field_type_def ((thy, simps, injects), (name, tname, vs, T, U)) =
+fun field_type_def ((thy, simps), (name, tname, vs, T, U)) =
   let
     val full = Sign.full_name (sign_of thy);
-    val (thy', {simps = simps', inject, ...}) =
+    val (thy', {simps = simps', ...}) =
       thy
       |> setmp DatatypePackage.quiet_mode true
         (DatatypePackage.add_datatype_i true [tname]
@@ -451,9 +455,9 @@ fun field_type_def ((thy, simps, injects), (name, tname, vs, T, U)) =
       thy'
       |> setmp AxClass.quiet_mode true
         (AxClass.add_inst_arity_i (full tname, [HOLogic.termS, moreS], moreS) [] [] None);
-  in (thy'', simps' @ simps, flat inject @ injects) end;
+  in (thy'', simps' @ simps) end;
 
-fun field_type_defs args thy = foldl field_type_def ((thy, [], []), args);
+fun field_type_defs args thy = foldl field_type_def ((thy, []), args);
 
 
 (* field_definitions *)
@@ -493,6 +497,12 @@ fun field_definitions fields names zeta moreT more vars named_vars thy =
 
     (* prepare theorems *)
 
+    (*constructor injects*)
+    fun mk_inject_prop (c, v) =
+      HOLogic.mk_eq (mk_field ((c, v), more), mk_field ((c, prime v), prime more)) ===
+        (HOLogic.conj $ HOLogic.mk_eq (v, prime v) $ HOLogic.mk_eq (more, prime more));
+    val inject_props = map mk_inject_prop named_vars;
+
     (*destructor conversions*)
     fun mk_dest_prop dest dest' (c, v) =
       dest (mk_field ((c, v), more)) === dest' (v, more);
@@ -509,7 +519,7 @@ fun field_definitions fields names zeta moreT more vars named_vars thy =
 
     (* 1st stage: types_thy *)
 
-    val (types_thy, simps, raw_injects) =
+    val (types_thy, simps) =
       thy
       |> field_type_defs fieldT_specs;
 
@@ -528,20 +538,19 @@ fun field_definitions fields names zeta moreT more vars named_vars thy =
     val field_defs = get_defs defs_thy field_specs;
     val dest_defs = get_defs defs_thy dest_specs;
 
-    val injects = map (simp (map (apfst Thm.symmetric) field_defs))
-      (map Attribute.tthm_of raw_injects);
-
 
     (* 3rd stage: thms_thy *)
 
     val prove = prove_simp defs_thy;
+    val prove_std = prove [] (field_defs @ dest_defs @ datatype_simps);
 
-    val dest_convs = map (prove [] (field_defs @ dest_defs @ datatype_simps)) dest_props;
+    val field_injects = map prove_std inject_props;
+    val dest_convs = map prove_std dest_props;
     val surj_pairs = map (prove [DatatypePackage.induct_tac "p" 1]
       (map (apfst Thm.symmetric) field_defs @ dest_convs)) surj_props;
 
     fun mk_split th = SplitPairedAll.rule (th RS eq_reflection);
-    val splits = map (fn (th, _) => Attribute.tthm_of (mk_split th)) surj_pairs;
+    val field_splits = map (fn (th, _) => Attribute.tthm_of (mk_split th)) surj_pairs;
 
     val thms_thy =
       defs_thy
@@ -550,9 +559,9 @@ fun field_definitions fields names zeta moreT more vars named_vars thy =
           ("dest_defs", dest_defs),
           ("dest_convs", dest_convs),
           ("surj_pairs", surj_pairs),
-          ("splits", splits)];
+          ("field_splits", field_splits)];
 
-  in (thms_thy, dest_convs, injects, splits) end;
+  in (thms_thy, dest_convs, field_injects, field_splits) end;
 
 
 (* record_definition *)
@@ -678,12 +687,12 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
 
     (* 1st stage: fields_thy *)
 
-    val (fields_thy, field_simps, field_injects, splits) =
+    val (fields_thy, field_simps, field_injects, field_splits) =
       thy
       |> Theory.add_path bname
       |> field_definitions fields names zeta moreT more vars named_vars;
 
-    val field_splits = map2 (fn (c, (th, _)) => (suffix field_typeN c, th)) (names, splits);
+    val named_splits = map2 (fn (c, (th, _)) => (suffix field_typeN c, th)) (names, field_splits);
 
 
     (* 2nd stage: defs_thy *)
@@ -725,7 +734,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
           ("update_convs", update_convs)]
       |> PureThy.add_tthmss
         [(("simps", simps), [Simplifier.simp_add_global]),
-         (("injects", field_injects), [add_iffs_global])];
+         (("iffs", field_injects), [add_iffs_global])];
 
 
     (* 4th stage: final_thy *)
@@ -733,7 +742,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
     val final_thy =
       thms_thy
       |> put_record name {args = args, parent = parent, fields = fields, simps = simps}
-      |> add_record_splits field_splits
+      |> add_record_splits named_splits
       |> Theory.parent_path;
 
   in final_thy end;
