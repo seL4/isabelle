@@ -1,29 +1,33 @@
-#  $Id$
-#########################################################################
-#									#
-#	Makefile for the report "A Fixedpoint Approach ..."		#
-#									#
-#########################################################################
+#
+# $Id$
+#
 
-dvi: dist
+## targets
 
-pdf:
+default: dvi
 
-FILES =  ind-defs.tex ../proof.sty ../iman.sty ../extra.sty
 
-ind-defs.dvi.gz:   $(FILES) 
-	-rm ind-defs.dvi.gz
-	latex ind-defs
-	bibtex ind-defs
-	latex ind-defs
-	latex ind-defs
-	gzip -f ind-defs.dvi
+## dependencies
 
-dist:   $(FILES) 
-	-rm ind-defs.dvi*
-	latex ind-defs
-	latex ind-defs
+include ../Makefile.in
 
-clean:
-	@rm *.aux *.log *.toc
+NAME = ind-defs
+FILES = ind-defs.tex ../proof.sty ../iman.sty ../extra.sty
 
+dvi: $(NAME).dvi
+
+$(NAME).dvi: $(FILES)
+	$(LATEX) $(NAME)
+	$(BIBTEX) $(NAME)
+	$(LATEX) $(NAME)
+	$(LATEX) $(NAME)
+
+pdf: $(NAME).pdf
+
+$(NAME).pdf: $(FILES)
+	$(PDFLATEX) $(NAME)
+	$(BIBTEX) $(NAME)
+	$(PDFLATEX) $(NAME)
+	$(PDFLATEX) $(NAME)
+	$(FIXBOOKMARKS) $(NAME).out
+	$(PDFLATEX) $(NAME)
