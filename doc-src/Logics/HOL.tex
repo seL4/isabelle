@@ -198,26 +198,26 @@ type $nat$.
 
 \subsection{Binders}
 
-Hilbert's {\bf description} operator~$\varepsilon x.P[x]$ stands for
+Hilbert's {\bf description} operator~$\varepsilon x. P[x]$ stands for
 some~$x$ satisfying~$P$, if such exists.  Since all terms in \HOL\ 
 denote something, a description is always meaningful, but we do not
 know its value unless $P$ defines it uniquely.  We may write
-descriptions as \cdx{Eps}($\lambda x.P[x]$) or use the syntax
-\hbox{\tt \at $x$.$P[x]$}.
+descriptions as \cdx{Eps}($\lambda x. P[x]$) or use the syntax
+\hbox{\tt \at $x$. $P[x]$}.
 
 Existential quantification is defined by
-\[ \exists x.P~x \;\equiv\; P(\varepsilon x.P~x). \]
-The unique existence quantifier, $\exists!x.P$, is defined in terms
+\[ \exists x. P~x \;\equiv\; P(\varepsilon x. P~x). \]
+The unique existence quantifier, $\exists!x. P$, is defined in terms
 of~$\exists$ and~$\forall$.  An Isabelle binder, it admits nested
-quantifications.  For instance, $\exists!x\,y.P\,x\,y$ abbreviates
-$\exists!x. \exists!y.P\,x\,y$; note that this does not mean that there
+quantifications.  For instance, $\exists!x\,y. P\,x\,y$ abbreviates
+$\exists!x. \exists!y. P\,x\,y$; note that this does not mean that there
 exists a unique pair $(x,y)$ satisfying~$P\,x\,y$.
 
 \index{*"! symbol}\index{*"? symbol}\index{HOL system@{\sc hol} system}
 Quantifiers have two notations.  As in Gordon's {\sc hol} system, \HOL\
 uses~{\tt!}\ and~{\tt?}\ to stand for $\forall$ and $\exists$.  The
 existential quantifier must be followed by a space; thus {\tt?x} is an
-unknown, while \verb'? x.f x=y' is a quantification.  Isabelle's usual
+unknown, while \verb'? x. f x=y' is a quantification.  Isabelle's usual
 notation for quantifiers, \sdx{ALL} and \sdx{EX}, is also
 available.  Both notations are accepted for input.  The {\ML} reference
 \ttindexbold{HOL_quantifiers} governs the output notation.  If set to {\tt
@@ -225,7 +225,7 @@ true}, then~{\tt!}\ and~{\tt?}\ are displayed; this is the default.  If set
 to \texttt{false}, then~{\tt ALL} and~{\tt EX} are displayed.
 
 If $\tau$ is a type of class \cldx{ord}, $P$ a formula and $x$ a
-variable of type $\tau$, then the term \cdx{LEAST}~$x.P[x]$ is defined
+variable of type $\tau$, then the term \cdx{LEAST}~$x. P[x]$ is defined
 to be the least (w.r.t.\ $\le$) $x$ such that $P~x$ holds (see
 Fig.~\ref{hol-defs}).  The definition uses Hilbert's $\varepsilon$
 choice operator, so \texttt{Least} is always meaningful, but may yield
@@ -238,7 +238,7 @@ $P$.\footnote{Class $ord$ does not require much of its instances, so
 \begin{warn}
 The low priority of binders means that they need to be enclosed in
 parenthesis when they occur in the context of other operations.  For example,
-instead of $P \land \forall x.Q$ you need to write $P \land (\forall x.Q)$.
+instead of $P \land \forall x. Q$ you need to write $P \land (\forall x. Q)$.
 \end{warn}
 
 
@@ -271,11 +271,11 @@ else\dots})$.
 \begin{ttbox}\makeatother
 \tdx{refl}           t = (t::'a)
 \tdx{subst}          [| s = t; P s |] ==> P (t::'a)
-\tdx{ext}            (!!x::'a. (f x :: 'b) = g x) ==> (\%x.f x) = (\%x.g x)
+\tdx{ext}            (!!x::'a. (f x :: 'b) = g x) ==> (\%x. f x) = (\%x. g x)
 \tdx{impI}           (P ==> Q) ==> P-->Q
 \tdx{mp}             [| P-->Q;  P |] ==> Q
 \tdx{iff}            (P-->Q) --> (Q-->P) --> (P=Q)
-\tdx{selectI}        P(x::'a) ==> P(@x.P x)
+\tdx{selectI}        P(x::'a) ==> P(@x. P x)
 \tdx{True_or_False}  (P=True) | (P=False)
 \end{ttbox}
 \caption{The \texttt{HOL} rules} \label{hol-rules}
@@ -299,10 +299,10 @@ comments:
 
 \begin{figure}\hfuzz=4pt%suppress "Overfull \hbox" message
 \begin{ttbox}\makeatother
-\tdx{True_def}   True     == ((\%x::bool.x)=(\%x.x))
-\tdx{All_def}    All      == (\%P. P = (\%x.True))
-\tdx{Ex_def}     Ex       == (\%P. P(@x.P x))
-\tdx{False_def}  False    == (!P.P)
+\tdx{True_def}   True     == ((\%x::bool. x)=(\%x. x))
+\tdx{All_def}    All      == (\%P. P = (\%x. True))
+\tdx{Ex_def}     Ex       == (\%P. P(@x. P x))
+\tdx{False_def}  False    == (!P. P)
 \tdx{not_def}    not      == (\%P. P-->False)
 \tdx{and_def}    op &     == (\%P Q. !R. (P-->Q-->R) --> R)
 \tdx{or_def}     op |     == (\%P Q. !R. (P-->R) --> (Q-->R) --> R)
@@ -384,18 +384,18 @@ type variables explicitly by calling \texttt{res_inst_tac}.
 \begin{figure}
 \begin{ttbox}\makeatother
 \tdx{allI}      (!!x. P x) ==> !x. P x
-\tdx{spec}      !x.P x ==> P x
-\tdx{allE}      [| !x.P x;  P x ==> R |] ==> R
-\tdx{all_dupE}  [| !x.P x;  [| P x; !x.P x |] ==> R |] ==> R
+\tdx{spec}      !x. P x ==> P x
+\tdx{allE}      [| !x. P x;  P x ==> R |] ==> R
+\tdx{all_dupE}  [| !x. P x;  [| P x; !x. P x |] ==> R |] ==> R
 
 \tdx{exI}       P x ==> ? x. P x
 \tdx{exE}       [| ? x. P x; !!x. P x ==> Q |] ==> Q
 
 \tdx{ex1I}      [| P a;  !!x. P x ==> x=a |] ==> ?! x. P x
-\tdx{ex1E}      [| ?! x.P x;  !!x. [| P x;  ! y. P y --> y=x |] ==> R 
+\tdx{ex1E}      [| ?! x. P x;  !!x. [| P x;  ! y. P y --> y=x |] ==> R 
           |] ==> R
 
-\tdx{select_equality} [| P a;  !!x. P x ==> x=a |] ==> (@x.P x) = a
+\tdx{select_equality} [| P a;  !!x. P x ==> x=a |] ==> (@x. P x) = a
 \subcaption{Quantifiers and descriptions}
 
 \tdx{ccontr}          (~P ==> False) ==> P
@@ -403,7 +403,7 @@ type variables explicitly by calling \texttt{res_inst_tac}.
 \tdx{excluded_middle} ~P | P
 
 \tdx{disjCI}          (~Q ==> P) ==> P|Q
-\tdx{exCI}            (! x. ~ P x ==> P a) ==> ? x.P x
+\tdx{exCI}            (! x. ~ P x ==> P a) ==> ? x. P x
 \tdx{impCE}           [| P-->Q; ~ P ==> R; Q ==> R |] ==> R
 \tdx{iffCE}           [| P=Q;  [| P;Q |] ==> R;  [| ~P; ~Q |] ==> R |] ==> R
 \tdx{notnotD}         ~~P ==> P
@@ -511,17 +511,17 @@ The following simple tactics are occasionally useful:
   \it external          & \it internal  & \it description \\ 
   $a$ \ttilde: $b$      & \ttilde($a$ : $b$)    & \rm non-membership\\
   {\ttlbrace}$a@1$, $\ldots${\ttrbrace}  &  insert $a@1$ $\ldots$ {\ttlbrace}{\ttrbrace} & \rm finite set \\
-  {\ttlbrace}$x$.$P[x]${\ttrbrace}        &  Collect($\lambda x.P[x]$) &
+  {\ttlbrace}$x$. $P[x]${\ttrbrace}        &  Collect($\lambda x. P[x]$) &
         \rm comprehension \\
-  \sdx{INT} $x$:$A$.$B[x]$      & INTER $A$ $\lambda x.B[x]$ &
+  \sdx{INT} $x$:$A$. $B[x]$      & INTER $A$ $\lambda x. B[x]$ &
         \rm intersection \\
-  \sdx{UN}{\tt\ }  $x$:$A$.$B[x]$      & UNION $A$ $\lambda x.B[x]$ &
+  \sdx{UN}{\tt\ }  $x$:$A$. $B[x]$      & UNION $A$ $\lambda x. B[x]$ &
         \rm union \\
-  \tt ! $x$:$A$.$P[x]$ or \sdx{ALL} $x$:$A$.$P[x]$ & 
-        Ball $A$ $\lambda x.P[x]$ & 
+  \tt ! $x$:$A$. $P[x]$ or \sdx{ALL} $x$:$A$. $P[x]$ & 
+        Ball $A$ $\lambda x. P[x]$ & 
         \rm bounded $\forall$ \\
-  \sdx{?} $x$:$A$.$P[x]$ or \sdx{EX}{\tt\ } $x$:$A$.$P[x]$ & 
-        Bex $A$ $\lambda x.P[x]$ & \rm bounded $\exists$
+  \sdx{?} $x$:$A$. $P[x]$ or \sdx{EX}{\tt\ } $x$:$A$. $P[x]$ & 
+        Bex $A$ $\lambda x. P[x]$ & \rm bounded $\exists$
 \end{tabular}
 \end{center}
 \subcaption{Translations}
@@ -596,35 +596,35 @@ the obvious manner using~{\tt insert} and~$\{\}$:
   \texttt{insert} \, a \, ({\tt insert} \, b \, ({\tt insert} \, c \, \{\}))
 \end{eqnarray*}
 
-The set \hbox{\tt{\ttlbrace}$x$.$P[x]${\ttrbrace}} consists of all $x$ (of suitable type)
+The set \hbox{\tt{\ttlbrace}$x$. $P[x]${\ttrbrace}} consists of all $x$ (of suitable type)
 that satisfy~$P[x]$, where $P[x]$ is a formula that may contain free
 occurrences of~$x$.  This syntax expands to \cdx{Collect}$(\lambda
-x.P[x])$.  It defines sets by absolute comprehension, which is impossible
+x. P[x])$.  It defines sets by absolute comprehension, which is impossible
 in~{\ZF}; the type of~$x$ implicitly restricts the comprehension.
 
 The set theory defines two {\bf bounded quantifiers}:
 \begin{eqnarray*}
-   \forall x\in A.P[x] &\hbox{abbreviates}& \forall x. x\in A\imp P[x] \\
-   \exists x\in A.P[x] &\hbox{abbreviates}& \exists x. x\in A\conj P[x]
+   \forall x\in A. P[x] &\hbox{abbreviates}& \forall x. x\in A\imp P[x] \\
+   \exists x\in A. P[x] &\hbox{abbreviates}& \exists x. x\in A\conj P[x]
 \end{eqnarray*}
 The constants~\cdx{Ball} and~\cdx{Bex} are defined
 accordingly.  Instead of \texttt{Ball $A$ $P$} and \texttt{Bex $A$ $P$} we may
 write\index{*"! symbol}\index{*"? symbol}
 \index{*ALL symbol}\index{*EX symbol} 
 %
-\hbox{\tt !~$x$:$A$.$P[x]$} and \hbox{\tt ?~$x$:$A$.$P[x]$}.  Isabelle's
+\hbox{\tt !~$x$:$A$. $P[x]$} and \hbox{\tt ?~$x$:$A$. $P[x]$}.  Isabelle's
 usual quantifier symbols, \sdx{ALL} and \sdx{EX}, are also accepted
 for input.  As with the primitive quantifiers, the {\ML} reference
 \ttindex{HOL_quantifiers} specifies which notation to use for output.
 
 Unions and intersections over sets, namely $\bigcup@{x\in A}B[x]$ and
 $\bigcap@{x\in A}B[x]$, are written 
-\sdx{UN}~\hbox{\tt$x$:$A$.$B[x]$} and
-\sdx{INT}~\hbox{\tt$x$:$A$.$B[x]$}.  
+\sdx{UN}~\hbox{\tt$x$:$A$. $B[x]$} and
+\sdx{INT}~\hbox{\tt$x$:$A$. $B[x]$}.  
 
 Unions and intersections over types, namely $\bigcup@x B[x]$ and $\bigcap@x
-B[x]$, are written \sdx{UN}~\hbox{\tt$x$.$B[x]$} and
-\sdx{INT}~\hbox{\tt$x$.$B[x]$}.  They are equivalent to the previous
+B[x]$, are written \sdx{UN}~\hbox{\tt$x$. $B[x]$} and
+\sdx{INT}~\hbox{\tt$x$. $B[x]$}.  They are equivalent to the previous
 union and intersection operators when $A$ is the universal set.
 
 The operators $\bigcup A$ and $\bigcap A$ act upon sets of sets.  They are
@@ -635,22 +635,22 @@ respectively.
 
 \begin{figure} \underscoreon
 \begin{ttbox}
-\tdx{mem_Collect_eq}    (a : {\ttlbrace}x.P x{\ttrbrace}) = P a
-\tdx{Collect_mem_eq}    {\ttlbrace}x.x:A{\ttrbrace} = A
+\tdx{mem_Collect_eq}    (a : {\ttlbrace}x. P x{\ttrbrace}) = P a
+\tdx{Collect_mem_eq}    {\ttlbrace}x. x:A{\ttrbrace} = A
 
-\tdx{empty_def}         {\ttlbrace}{\ttrbrace}          == {\ttlbrace}x.False{\ttrbrace}
-\tdx{insert_def}        insert a B  == {\ttlbrace}x.x=a{\ttrbrace} Un B
+\tdx{empty_def}         {\ttlbrace}{\ttrbrace}          == {\ttlbrace}x. False{\ttrbrace}
+\tdx{insert_def}        insert a B  == {\ttlbrace}x. x=a{\ttrbrace} Un B
 \tdx{Ball_def}          Ball A P    == ! x. x:A --> P x
 \tdx{Bex_def}           Bex A P     == ? x. x:A & P x
 \tdx{subset_def}        A <= B      == ! x:A. x:B
-\tdx{Un_def}            A Un B      == {\ttlbrace}x.x:A | x:B{\ttrbrace}
-\tdx{Int_def}           A Int B     == {\ttlbrace}x.x:A & x:B{\ttrbrace}
-\tdx{set_diff_def}      A - B       == {\ttlbrace}x.x:A & x~:B{\ttrbrace}
+\tdx{Un_def}            A Un B      == {\ttlbrace}x. x:A | x:B{\ttrbrace}
+\tdx{Int_def}           A Int B     == {\ttlbrace}x. x:A & x:B{\ttrbrace}
+\tdx{set_diff_def}      A - B       == {\ttlbrace}x. x:A & x~:B{\ttrbrace}
 \tdx{Compl_def}         Compl A     == {\ttlbrace}x. ~ x:A{\ttrbrace}
 \tdx{INTER_def}         INTER A B   == {\ttlbrace}y. ! x:A. y: B x{\ttrbrace}
 \tdx{UNION_def}         UNION A B   == {\ttlbrace}y. ? x:A. y: B x{\ttrbrace}
-\tdx{INTER1_def}        INTER1 B    == INTER {\ttlbrace}x.True{\ttrbrace} B 
-\tdx{UNION1_def}        UNION1 B    == UNION {\ttlbrace}x.True{\ttrbrace} B 
+\tdx{INTER1_def}        INTER1 B    == INTER {\ttlbrace}x. True{\ttrbrace} B 
+\tdx{UNION1_def}        UNION1 B    == UNION {\ttlbrace}x. True{\ttrbrace} B 
 \tdx{Inter_def}         Inter S     == (INT x:S. x)
 \tdx{Union_def}         Union S     == (UN  x:S. x)
 \tdx{Pow_def}           Pow A       == {\ttlbrace}B. B <= A{\ttrbrace}
@@ -663,20 +663,20 @@ respectively.
 
 \begin{figure} \underscoreon
 \begin{ttbox}
-\tdx{CollectI}        [| P a |] ==> a : {\ttlbrace}x.P x{\ttrbrace}
-\tdx{CollectD}        [| a : {\ttlbrace}x.P x{\ttrbrace} |] ==> P a
-\tdx{CollectE}        [| a : {\ttlbrace}x.P x{\ttrbrace};  P a ==> W |] ==> W
+\tdx{CollectI}        [| P a |] ==> a : {\ttlbrace}x. P x{\ttrbrace}
+\tdx{CollectD}        [| a : {\ttlbrace}x. P x{\ttrbrace} |] ==> P a
+\tdx{CollectE}        [| a : {\ttlbrace}x. P x{\ttrbrace};  P a ==> W |] ==> W
 
 \tdx{ballI}           [| !!x. x:A ==> P x |] ==> ! x:A. P x
 \tdx{bspec}           [| ! x:A. P x;  x:A |] ==> P x
 \tdx{ballE}           [| ! x:A. P x;  P x ==> Q;  ~ x:A ==> Q |] ==> Q
 
 \tdx{bexI}            [| P x;  x:A |] ==> ? x:A. P x
-\tdx{bexCI}           [| ! x:A. ~ P x ==> P a;  a:A |] ==> ? x:A.P x
+\tdx{bexCI}           [| ! x:A. ~ P x ==> P a;  a:A |] ==> ? x:A. P x
 \tdx{bexE}            [| ? x:A. P x;  !!x. [| x:A; P x |] ==> Q  |] ==> Q
 \subcaption{Comprehension and Bounded quantifiers}
 
-\tdx{subsetI}         (!!x.x:A ==> x:B) ==> A <= B
+\tdx{subsetI}         (!!x. x:A ==> x:B) ==> A <= B
 \tdx{subsetD}         [| A <= B;  c:A |] ==> c:B
 \tdx{subsetCE}        [| A <= B;  ~ (c:A) ==> P;  c:B ==> P |] ==> P
 
@@ -822,8 +822,8 @@ and \texttt{range}.
 \tdx{Un_assoc}          (A Un B)  Un C  =  A Un (B Un C)
 \tdx{Un_Int_distrib}    (A Int B) Un C  =  (A Un C) Int (B Un C)
 
-\tdx{Compl_disjoint}    A Int (Compl A) = {\ttlbrace}x.False{\ttrbrace}
-\tdx{Compl_partition}   A Un  (Compl A) = {\ttlbrace}x.True{\ttrbrace}
+\tdx{Compl_disjoint}    A Int (Compl A) = {\ttlbrace}x. False{\ttrbrace}
+\tdx{Compl_partition}   A Un  (Compl A) = {\ttlbrace}x. True{\ttrbrace}
 \tdx{double_complement} Compl(Compl A) = A
 \tdx{Compl_Un}          Compl(A Un B)  = (Compl A) Int (Compl B)
 \tdx{Compl_Int}         Compl(A Int B) = (Compl A) Un (Compl B)
@@ -1078,12 +1078,12 @@ $(t@1,\dots,t@n)$ & $(t@1,(\dots,(t@{n-1},t@n)\dots)$ \\
 In addition, it is possible to use tuples
 as patterns in abstractions:
 \begin{center}
-{\tt\%($x$,$y$).$t$} \quad stands for\quad \texttt{split(\%$x$\thinspace$y$.$t$)} 
+{\tt\%($x$,$y$). $t$} \quad stands for\quad \texttt{split(\%$x$\thinspace$y$. $t$)} 
 \end{center}
 Nested patterns are also supported.  They are translated stepwise:
-{\tt\%($x$,$y$,$z$).$t$} $\leadsto$ {\tt\%($x$,($y$,$z$)).$t$} $\leadsto$
-{\tt split(\%$x$.\%($y$,$z$).$t$)} $\leadsto$ \texttt{split(\%$x$.split(\%$y$
-  $z$.$t$))}.  The reverse translation is performed upon printing.
+{\tt\%($x$,$y$,$z$). $t$} $\leadsto$ {\tt\%($x$,($y$,$z$)). $t$} $\leadsto$
+{\tt split(\%$x$.\%($y$,$z$). $t$)} $\leadsto$ \texttt{split(\%$x$. split(\%$y$
+  $z$. $t$))}.  The reverse translation is performed upon printing.
 \begin{warn}
   The translation between patterns and \texttt{split} is performed automatically
   by the parser and printer.  Thus the internal and external form of a term
@@ -1762,9 +1762,9 @@ inequalities in both directions.  The reduction rules of the {\tt
 We want to define the type $\alpha~mylist$.\footnote{This is just an
   example, there is already a list type in \HOL, of course.} To do
 this we have to build a new theory that contains the type definition.
-We start from the basic \texttt{HOL} theory.
+We start from the theory of arithmetic.
 \begin{ttbox}
-MyList = HOL +
+MyList = Arith +
   datatype 'a mylist = Nil | Cons 'a ('a mylist)
 end
 \end{ttbox}
@@ -1773,7 +1773,7 @@ $Cons~x~xs\neq xs$.  To ease the induction applied below, we state the
 goal with $x$ quantified at the object-level.  This will be stripped
 later using \ttindex{qed_spec_mp}.
 \begin{ttbox}
-goal MyList.thy "!x. Cons x xs ~= xs";
+Goal "!x. Cons x xs ~= xs";
 {\out Level 0}
 {\out ! x. Cons x xs ~= xs}
 {\out  1. ! x. Cons x xs ~= xs}
@@ -1823,7 +1823,7 @@ we want to write \texttt{[]} for \texttt{Nil} and we want to use infix
 notation \verb|#| for \texttt{Cons}.  To do this we simply add mixfix
 annotations after the constructor declarations as follows:
 \begin{ttbox}
-MyList = HOL +
+MyList = Arith +
   datatype 'a mylist =
     Nil ("[]")  |
     Cons 'a ('a mylist)  (infixr "#" 70)
@@ -1837,7 +1837,7 @@ proof is the same.
 
 This example shows a datatype that consists of 7 constructors:
 \begin{ttbox}
-Days = Arith +
+Days = Main +
   datatype days = Mon | Tue | Wed | Thu | Fri | Sat | Sun
 end
 \end{ttbox}
@@ -1847,7 +1847,7 @@ on \texttt{Arith}.  Inequality is expressed via a function
 contained among the distinctness theorems, but the simplifier can
 prove it thanks to rewrite rules inherited from theory \texttt{Arith}:
 \begin{ttbox}
-goal Days.thy "Mon ~= Tue";
+Goal "Mon ~= Tue";
 by (Simp_tac 1);
 \end{ttbox}
 You need not derive such inequalities explicitly: the simplifier will dispose
@@ -1939,7 +1939,7 @@ where
 \item \textit{function} is the name of the function, either as an \textit{id}
   or a \textit{string}.
 \item \textit{type} is the name of the datatype, either as an \textit{id} or
-  in the long form \texttt{$T$.$t$} ($T$ is the name of the theory
+  in the long form \texttt{$T$. $t$} ($T$ is the name of the theory
   where the datatype has been declared, $t$ the name of the datatype).
   The long form is required if the \texttt{datatype} and the {\tt
     primrec} sections are in different theories.
@@ -1970,7 +1970,7 @@ end
 The reduction rules for {\tt\at} become part of the default simpset, which
 leads to short proofs:
 \begin{ttbox}\underscoreon
-goal Append.thy "(xs @ ys) @ zs = xs @ (ys @ zs)";
+Goal "(xs @ ys) @ zs = xs @ (ys @ zs)";
 by (induct\_tac "xs" 1);
 by (ALLGOALS Asm\_simp\_tac);
 \end{ttbox}
@@ -2051,10 +2051,10 @@ well-founded.  Here are those operators, in order of importance:
 \end{itemize}
 
 We can use \texttt{measure} to declare Euclid's algorithm for the greatest
-common divisor.  The measure function, $\lambda(m,n).n$, specifies that the
+common divisor.  The measure function, $\lambda(m,n). n$, specifies that the
 recursion terminates because argument~$n$ decreases.
 \begin{ttbox}
-recdef gcd "measure ((\%(m,n).n) ::nat*nat=>nat)"
+recdef gcd "measure ((\%(m,n). n) ::nat*nat=>nat)"
     "gcd (m, n) = (if n=0 then m else gcd(n, m mod n))"
 \end{ttbox}
 
@@ -2126,7 +2126,7 @@ involving the recursive function itself.
 Isabelle can prove the \texttt{gcd} function's termination condition
 automatically if supplied with the right simpset.
 \begin{ttbox}
-recdef gcd "measure ((\%(m,n).n) ::nat*nat=>nat)"
+recdef gcd "measure ((\%(m,n). n) ::nat*nat=>nat)"
   simpset "simpset() addsimps [mod_less_divisor, zero_less_eq]"
     "gcd (m, n) = (if n=0 then m else gcd(n, m mod n))"
 \end{ttbox}
@@ -2447,10 +2447,14 @@ of~$\alpha$.  This version states that for every function from $\alpha$ to
 its powerset, some subset is outside its range.  
 
 The Isabelle proof uses \HOL's set theory, with the type $\alpha\,set$ and
-the operator \cdx{range}.  The set~$S$ is given as an unknown instead of a
+the operator \cdx{range}.
+\begin{ttbox}
+context Set.thy;
+\end{ttbox}
+The set~$S$ is given as an unknown instead of a
 quantified variable so that we may inspect the subset found by the proof.
 \begin{ttbox}
-goal Set.thy "?S ~: range\thinspace(f :: 'a=>'a set)";
+Goal "?S ~: range\thinspace(f :: 'a=>'a set)";
 {\out Level 0}
 {\out ?S ~: range f}
 {\out  1. ?S ~: range f}

@@ -5,8 +5,10 @@ print_depth 0;
 
 (*** Intuitionistic examples ***)
 
+context IFOL.thy;
+
 (*Quantifier example from Logic&Computation*)
-goal Int_Rule.thy "(EX y. ALL x. Q(x,y)) -->  (ALL x. EX y. Q(x,y))";
+Goal "(EX y. ALL x. Q(x,y)) -->  (ALL x. EX y. Q(x,y))";
 by (resolve_tac [impI] 1);
 by (resolve_tac [allI] 1);
 by (resolve_tac [exI] 1);
@@ -19,7 +21,7 @@ by (assume_tac 1);
 
 
 (*Example of Dyckhoff's method*)
-goalw Int_Rule.thy [not_def] "~ ~ ((P-->Q) | (Q-->P))";
+Goalw [not_def] "~ ~ ((P-->Q) | (Q-->P))";
 by (resolve_tac [impI] 1);
 by (eresolve_tac [disj_impE] 1);
 by (eresolve_tac [imp_impE] 1);
@@ -29,87 +31,13 @@ by (assume_tac 1);
 
 
 
-- goal Int_Rule.thy "(EX ay. ALL x. Q(x,y)) -->  (ALL x. EX y. Q(x,y))";
-Level 0
-(EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))
- 1. (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))
-- by (resolve_tac [impI] 1);
-Level 1
-(EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))
- 1. EX y. ALL x. Q(x,y) ==> ALL x. EX y. Q(x,y)
-- by (resolve_tac [allI] 1);
-Level 2
-(EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))
- 1. !!x. EX y. ALL x. Q(x,y) ==> EX y. Q(x,y)
-- by (resolve_tac [exI] 1);
-Level 3
-(EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))
- 1. !!x. EX y. ALL x. Q(x,y) ==> Q(x,?y2(x))
-- by (eresolve_tac [exE] 1);
-Level 4
-(EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))
- 1. !!x y. ALL x. Q(x,y) ==> Q(x,?y2(x))
-- choplev 2;
-Level 2
-(EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))
- 1. !!x. EX y. ALL x. Q(x,y) ==> EX y. Q(x,y)
-- by (eresolve_tac [exE] 1);
-Level 3
-(EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))
- 1. !!x y. ALL x. Q(x,y) ==> EX y. Q(x,y)
-- by (resolve_tac [exI] 1);
-Level 4
-(EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))
- 1. !!x y. ALL x. Q(x,y) ==> Q(x,?y3(x,y))
-- by (eresolve_tac [allE] 1);
-Level 5
-(EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))
- 1. !!x y. Q(?x4(x,y),y) ==> Q(x,?y3(x,y))
-- by (assume_tac 1);
-Level 6
-(EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))
-No subgoals!
-
-
-
-> goalw Int_Rule.thy [not_def] "~ ~ ((P-->Q) | (Q-->P))";
-Level 0
-~ ~ ((P --> Q) | (Q --> P))
- 1. ((P --> Q) | (Q --> P) --> False) --> False
-> by (resolve_tac [impI] 1);
-Level 1
-~ ~ ((P --> Q) | (Q --> P))
- 1. (P --> Q) | (Q --> P) --> False ==> False
-> by (eresolve_tac [disj_impE] 1);
-Level 2
-~ ~ ((P --> Q) | (Q --> P))
- 1. [| (P --> Q) --> False; (Q --> P) --> False |] ==> False
-> by (eresolve_tac [imp_impE] 1);
-Level 3
-~ ~ ((P --> Q) | (Q --> P))
- 1. [| (Q --> P) --> False; P; Q --> False |] ==> Q
- 2. [| (Q --> P) --> False; False |] ==> False
-> by (eresolve_tac [imp_impE] 1);
-Level 4
-~ ~ ((P --> Q) | (Q --> P))
- 1. [| P; Q --> False; Q; P --> False |] ==> P
- 2. [| P; Q --> False; False |] ==> Q
- 3. [| (Q --> P) --> False; False |] ==> False
-> by (REPEAT (eresolve_tac [FalseE] 2));
-Level 5
-~ ~ ((P --> Q) | (Q --> P))
- 1. [| P; Q --> False; Q; P --> False |] ==> P
-> by (assume_tac 1);
-Level 6
-~ ~ ((P --> Q) | (Q --> P))
-No subgoals!
-
-
 
 
 (*** Classical examples ***)
 
-goal cla_thy "EX y. ALL x. P(y)-->P(x)";
+context FOL.thy;
+
+Goal "EX y. ALL x. P(y)-->P(x)";
 by (resolve_tac [exCI] 1);
 by (resolve_tac [allI] 1);
 by (resolve_tac [impI] 1);
@@ -119,12 +47,12 @@ by (eresolve_tac [it] 1);
 by (resolve_tac [impI] 1);
 by (eresolve_tac [notE] 1);
 by (assume_tac 1);
-goal cla_thy "EX y. ALL x. P(y)-->P(x)";
-by (best_tac FOL_dup_cs 1);
+Goal "EX y. ALL x. P(y)-->P(x)";
+by (Blast_tac 1);
 
 
 
-- goal cla_thy "EX y. ALL x. P(y)-->P(x)";
+- Goal "EX y. ALL x. P(y)-->P(x)";
 Level 0
 EX y. ALL x. P(y) --> P(x)
  1. EX y. ALL x. P(y) --> P(x)
@@ -162,7 +90,7 @@ EX y. ALL x. P(y) --> P(x)
 Level 8
 EX y. ALL x. P(y) --> P(x)
 No subgoals!
-- goal cla_thy "EX y. ALL x. P(y)-->P(x)";
+- Goal "EX y. ALL x. P(y)-->P(x)";
 Level 0
 EX y. ALL x. P(y) --> P(x)
  1. EX y. ALL x. P(y) --> P(x)

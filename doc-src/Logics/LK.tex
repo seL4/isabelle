@@ -23,6 +23,15 @@ packages for sequent calculi at present.  \LK{} implements a classical
 logic theorem prover that is as powerful as the generic classical reasoner,
 except that it does not perform equality reasoning.
 
+To work in LK, start up Isabelle specifying  \texttt{Sequents} as the
+object-logic.  Once in Isabelle, change the context to theory \texttt{LK.thy}:
+\begin{ttbox}
+isabelle Sequents
+context LK.thy;
+\end{ttbox}
+Model logic and linear logic are also available, but unfortunately they are
+not documented.
+
 
 \begin{figure} 
 \begin{center}
@@ -111,15 +120,15 @@ sequence & = & elem \quad (", " elem)^* \\
 Higher-order unification includes associative unification as a special
 case, by an encoding that involves function composition
 \cite[page~37]{huet78}.  To represent lists, let $C$ be a new constant.
-The empty list is $\lambda x.x$, while $[t@1,t@2,\ldots,t@n]$ is
+The empty list is $\lambda x. x$, while $[t@1,t@2,\ldots,t@n]$ is
 represented by
-\[ \lambda x.C(t@1,C(t@2,\ldots,C(t@n,x))).  \]
+\[ \lambda x. C(t@1,C(t@2,\ldots,C(t@n,x))).  \]
 The unifiers of this with $\lambda x.\Var{f}(\Var{g}(x))$ give all the ways
 of expressing $[t@1,t@2,\ldots,t@n]$ as the concatenation of two lists.
 
 Unlike orthodox associative unification, this technique can represent certain
 infinite sets of unifiers by flex-flex equations.   But note that the term
-$\lambda x.C(t,\Var{a})$ does not represent any list.  Flex-flex constraints
+$\lambda x. C(t,\Var{a})$ does not represent any list.  Flex-flex constraints
 containing such garbage terms may accumulate during a proof.
 \index{flex-flex constraints}
 
@@ -172,14 +181,14 @@ and linear logics.
 
 \tdx{FalseL}  $H, False, $G |- $E
 
-\tdx{allR}    (!!x.$H|- $E, P(x), $F) ==> $H|- $E, ALL x.P(x), $F
-\tdx{allL}    $H, P(x), $G, ALL x.P(x) |- $E ==> $H, ALL x.P(x), $G|- $E
+\tdx{allR}    (!!x. $H|- $E, P(x), $F) ==> $H|- $E, ALL x. P(x), $F
+\tdx{allL}    $H, P(x), $G, ALL x. P(x) |- $E ==> $H, ALL x. P(x), $G|- $E
             
-\tdx{exR}     $H|- $E, P(x), $F, EX x.P(x) ==> $H|- $E, EX x.P(x), $F
-\tdx{exL}     (!!x.$H, P(x), $G|- $E) ==> $H, EX x.P(x), $G|- $E
+\tdx{exR}     $H|- $E, P(x), $F, EX x. P(x) ==> $H|- $E, EX x. P(x), $F
+\tdx{exL}     (!!x. $H, P(x), $G|- $E) ==> $H, EX x. P(x), $G|- $E
 
-\tdx{The}     [| $H |- $E, P(a), $F;  !!x.$H, P(x) |- $E, x=a, $F |] ==>
-        $H |- $E, P(THE x.P(x)), $F
+\tdx{The}     [| $H |- $E, P(a), $F;  !!x. $H, P(x) |- $E, x=a, $F |] ==>
+        $H |- $E, P(THE x. P(x)), $F
 \subcaption{Logical rules}
 \end{ttbox}
 
@@ -194,11 +203,11 @@ Figure~\ref{lk-syntax} gives the syntax for {\tt LK}, which is complicated
 by the representation of sequents.  Type $sobj\To sobj$ represents a list
 of formulae.
 
-The {\bf definite description} operator~$\iota x.P[x]$ stands for some~$a$
+The {\bf definite description} operator~$\iota x. P[x]$ stands for some~$a$
 satisfying~$P[a]$, if one exists and is unique.  Since all terms in \LK{}
 denote something, a description is always meaningful, but we do not know
 its value unless $P[x]$ defines it uniquely.  The Isabelle notation is
-\hbox{\tt THE $x$.$P[x]$}.  The corresponding rule (Fig.\ts\ref{lk-rules})
+\hbox{\tt THE $x$. $P[x]$}.  The corresponding rule (Fig.\ts\ref{lk-rules})
 does not entail the Axiom of Choice because it requires uniqueness.
 
 Figure~\ref{lk-grammar} presents the grammar of \LK.  Traditionally,
@@ -241,8 +250,8 @@ the rules and derived rules.
 \tdx{iffL}        [| $H, $G |- $E, P, Q;  $H, Q, P, $G |- $E |] ==>
             $H, P<->Q, $G |- $E
 
-\tdx{allL_thin}   $H, P(x), $G |- $E ==> $H, ALL x.P(x), $G |- $E
-\tdx{exR_thin}    $H |- $E, P(x), $F ==> $H |- $E, EX x.P(x), $F
+\tdx{allL_thin}   $H, P(x), $G |- $E ==> $H, ALL x. P(x), $G |- $E
+\tdx{exR_thin}    $H |- $E, P(x), $F ==> $H |- $E, EX x. P(x), $F
 \end{ttbox}
 
 \caption{Derived rules for {\tt LK}} \label{lk-derived}
@@ -470,7 +479,7 @@ given in~\S\ref{fol-cla-example}.  From a logical point of view, the
 proofs are essentially the same; the key step here is to use \tdx{exR}
 rather than the weaker~\tdx{exR_thin}.
 \begin{ttbox}
-goal LK.thy "|- EX y. ALL x. P(y)-->P(x)";
+Goal "|- EX y. ALL x. P(y)-->P(x)";
 {\out Level 0}
 {\out  |- EX y. ALL x. P(y) --> P(x)}
 {\out  1.  |- EX y. ALL x. P(y) --> P(x)}
@@ -517,7 +526,7 @@ by (resolve_tac [impR] 1);
 {\out  1. !!x xa. P(?x), P(?x7(x)) |- P(x), P(xa)}
 \end{ttbox}
 Subgoal~1 seems to offer lots of possibilities.  Actually the only useful
-step is instantiating~$\Var{x@7}$ to $\lambda x.x$,
+step is instantiating~$\Var{x@7}$ to $\lambda x. x$,
 transforming~$\Var{x@7}(x)$ into~$x$.
 \begin{ttbox}
 by (resolve_tac [basic] 1);
@@ -528,7 +537,7 @@ by (resolve_tac [basic] 1);
 This theorem can be proved automatically.  Because it involves quantifier
 duplication, we employ best-first search:
 \begin{ttbox}
-goal LK.thy "|- EX y. ALL x. P(y)-->P(x)";
+Goal "|- EX y. ALL x. P(y)-->P(x)";
 {\out Level 0}
 {\out  |- EX y. ALL x. P(y) --> P(x)}
 {\out  1.  |- EX y. ALL x. P(y) --> P(x)}
@@ -553,7 +562,7 @@ examples.
 
 We set the main goal and move the negated formula to the left.
 \begin{ttbox}
-goal LK.thy "|- ~ (EX x. ALL y. F(y,x) <-> ~F(y,y))";
+Goal "|- ~ (EX x. ALL y. F(y,x) <-> ~F(y,y))";
 {\out Level 0}
 {\out  |- ~ (EX x. ALL y. F(y,x) <-> ~ F(y,y))}
 {\out  1.  |- ~ (EX x. ALL y. F(y,x) <-> ~ F(y,y))}

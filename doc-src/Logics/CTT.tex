@@ -126,13 +126,13 @@ computation rules might require a separate simplifier.
 \begin{center} \tt\frenchspacing
 \begin{tabular}{rrr} 
   \it external                  & \it internal  & \it standard notation \\ 
-  \sdx{PROD} $x$:$A$ . $B[x]$   &  Prod($A$, $\lambda x.B[x]$) &
+  \sdx{PROD} $x$:$A$ . $B[x]$   &  Prod($A$, $\lambda x. B[x]$) &
         \rm product $\prod@{x\in A}B[x]$ \\
-  \sdx{SUM} $x$:$A$ . $B[x]$    & Sum($A$, $\lambda x.B[x]$) &
+  \sdx{SUM} $x$:$A$ . $B[x]$    & Sum($A$, $\lambda x. B[x]$) &
         \rm sum $\sum@{x\in A}B[x]$ \\
-  $A$ --> $B$     &  Prod($A$, $\lambda x.B$) &
+  $A$ --> $B$     &  Prod($A$, $\lambda x. B$) &
         \rm function space $A\to B$ \\
-  $A$ * $B$       &  Sum($A$, $\lambda x.B$)  &
+  $A$ * $B$       &  Sum($A$, $\lambda x. B$)  &
         \rm binary product $A\times B$
 \end{tabular}
 \end{center}
@@ -169,7 +169,7 @@ The constants are shown in Fig.\ts\ref{ctt-constants}.  The infixes include
 the function application operator (sometimes called `apply'), and the
 2-place type operators.  Note that meta-level abstraction and application,
 $\lambda x.b$ and $f(a)$, differ from object-level abstraction and
-application, \hbox{\tt lam $x$.$b$} and $b{\tt`}a$.  A {\CTT}
+application, \hbox{\tt lam $x$. $b$} and $b{\tt`}a$.  A {\CTT}
 function~$f$ is simply an individual as far as Isabelle is concerned: its
 Isabelle type is~$i$, not say $i\To i$.
 
@@ -180,8 +180,8 @@ the one-element type is $T$; other finite types are built as $T+T+T$, etc.
 \index{*SUM symbol}\index{*PROD symbol}
 Quantification is expressed using general sums $\sum@{x\in A}B[x]$ and
 products $\prod@{x\in A}B[x]$.  Instead of {\tt Sum($A$,$B$)} and {\tt
-  Prod($A$,$B$)} we may write \hbox{\tt SUM $x$:$A$.$B[x]$} and \hbox{\tt
-  PROD $x$:$A$.$B[x]$}.  For example, we may write
+  Prod($A$,$B$)} we may write \hbox{\tt SUM $x$:$A$. $B[x]$} and \hbox{\tt
+  PROD $x$:$A$. $B[x]$}.  For example, we may write
 \begin{ttbox}
 SUM y:B. PROD x:A. C(x,y)   {\rm for}   Sum(B, \%y. Prod(A, \%x. C(x,y)))
 \end{ttbox}
@@ -232,20 +232,20 @@ abbreviations in parsing and uses them whenever possible for printing.
 
 \tdx{NE}        [| p: N;  a: C(0);  
              !!u v. [| u: N; v: C(u) |] ==> b(u,v): C(succ(u)) 
-          |] ==> rec(p, a, \%u v.b(u,v)) : C(p)
+          |] ==> rec(p, a, \%u v. b(u,v)) : C(p)
 
 \tdx{NEL}       [| p = q : N;  a = c : C(0);  
              !!u v. [| u: N; v: C(u) |] ==> b(u,v)=d(u,v): C(succ(u))
-          |] ==> rec(p, a, \%u v.b(u,v)) = rec(q,c,d) : C(p)
+          |] ==> rec(p, a, \%u v. b(u,v)) = rec(q,c,d) : C(p)
 
 \tdx{NC0}       [| a: C(0);  
              !!u v. [| u: N; v: C(u) |] ==> b(u,v): C(succ(u))
-          |] ==> rec(0, a, \%u v.b(u,v)) = a : C(0)
+          |] ==> rec(0, a, \%u v. b(u,v)) = a : C(0)
 
 \tdx{NC_succ}   [| p: N;  a: C(0);  
              !!u v. [| u: N; v: C(u) |] ==> b(u,v): C(succ(u)) 
-          |] ==> rec(succ(p), a, \%u v.b(u,v)) =
-                 b(p, rec(p, a, \%u v.b(u,v))) : C(succ(p))
+          |] ==> rec(succ(p), a, \%u v. b(u,v)) =
+                 b(p, rec(p, a, \%u v. b(u,v))) : C(succ(p))
 
 \tdx{zero_ne_succ}      [| a: N;  0 = succ(a) : N |] ==> 0: F
 \end{ttbox}
@@ -255,22 +255,22 @@ abbreviations in parsing and uses them whenever possible for printing.
 
 \begin{figure} 
 \begin{ttbox}
-\tdx{ProdF}     [| A type; !!x. x:A ==> B(x) type |] ==> PROD x:A.B(x) type
+\tdx{ProdF}     [| A type; !!x. x:A ==> B(x) type |] ==> PROD x:A. B(x) type
 \tdx{ProdFL}    [| A = C;  !!x. x:A ==> B(x) = D(x) |] ==> 
-          PROD x:A.B(x) = PROD x:C.D(x)
+          PROD x:A. B(x) = PROD x:C. D(x)
 
 \tdx{ProdI}     [| A type;  !!x. x:A ==> b(x):B(x)
-          |] ==> lam x.b(x) : PROD x:A.B(x)
+          |] ==> lam x. b(x) : PROD x:A. B(x)
 \tdx{ProdIL}    [| A type;  !!x. x:A ==> b(x) = c(x) : B(x)
-          |] ==> lam x.b(x) = lam x.c(x) : PROD x:A.B(x)
+          |] ==> lam x. b(x) = lam x. c(x) : PROD x:A. B(x)
 
-\tdx{ProdE}     [| p : PROD x:A.B(x);  a : A |] ==> p`a : B(a)
-\tdx{ProdEL}    [| p=q: PROD x:A.B(x);  a=b : A |] ==> p`a = q`b : B(a)
+\tdx{ProdE}     [| p : PROD x:A. B(x);  a : A |] ==> p`a : B(a)
+\tdx{ProdEL}    [| p=q: PROD x:A. B(x);  a=b : A |] ==> p`a = q`b : B(a)
 
 \tdx{ProdC}     [| a : A;  !!x. x:A ==> b(x) : B(x)
-          |] ==> (lam x.b(x)) ` a = b(a) : B(a)
+          |] ==> (lam x. b(x)) ` a = b(a) : B(a)
 
-\tdx{ProdC2}    p : PROD x:A.B(x) ==> (lam x. p`x) = p : PROD x:A.B(x)
+\tdx{ProdC2}    p : PROD x:A. B(x) ==> (lam x. p`x) = p : PROD x:A. B(x)
 \end{ttbox}
 \caption{Rules for the product type $\prod\sb{x\in A}B[x]$} \label{ctt-prod}
 \end{figure}
@@ -278,27 +278,27 @@ abbreviations in parsing and uses them whenever possible for printing.
 
 \begin{figure} 
 \begin{ttbox}
-\tdx{SumF}      [| A type;  !!x. x:A ==> B(x) type |] ==> SUM x:A.B(x) type
+\tdx{SumF}      [| A type;  !!x. x:A ==> B(x) type |] ==> SUM x:A. B(x) type
 \tdx{SumFL}     [| A = C;  !!x. x:A ==> B(x) = D(x) 
-          |] ==> SUM x:A.B(x) = SUM x:C.D(x)
+          |] ==> SUM x:A. B(x) = SUM x:C. D(x)
 
-\tdx{SumI}      [| a : A;  b : B(a) |] ==> <a,b> : SUM x:A.B(x)
-\tdx{SumIL}     [| a=c:A;  b=d:B(a) |] ==> <a,b> = <c,d> : SUM x:A.B(x)
+\tdx{SumI}      [| a : A;  b : B(a) |] ==> <a,b> : SUM x:A. B(x)
+\tdx{SumIL}     [| a=c:A;  b=d:B(a) |] ==> <a,b> = <c,d> : SUM x:A. B(x)
 
-\tdx{SumE}      [| p: SUM x:A.B(x);  
+\tdx{SumE}      [| p: SUM x:A. B(x);  
              !!x y. [| x:A; y:B(x) |] ==> c(x,y): C(<x,y>) 
-          |] ==> split(p, \%x y.c(x,y)) : C(p)
+          |] ==> split(p, \%x y. c(x,y)) : C(p)
 
-\tdx{SumEL}     [| p=q : SUM x:A.B(x); 
+\tdx{SumEL}     [| p=q : SUM x:A. B(x); 
              !!x y. [| x:A; y:B(x) |] ==> c(x,y)=d(x,y): C(<x,y>)
-          |] ==> split(p, \%x y.c(x,y)) = split(q, \%x y.d(x,y)) : C(p)
+          |] ==> split(p, \%x y. c(x,y)) = split(q, \%x y. d(x,y)) : C(p)
 
 \tdx{SumC}      [| a: A;  b: B(a);
              !!x y. [| x:A; y:B(x) |] ==> c(x,y): C(<x,y>)
-          |] ==> split(<a,b>, \%x y.c(x,y)) = c(a,b) : C(<a,b>)
+          |] ==> split(<a,b>, \%x y. c(x,y)) = c(a,b) : C(<a,b>)
 
-\tdx{fst_def}   fst(a) == split(a, \%x y.x)
-\tdx{snd_def}   snd(a) == split(a, \%x y.y)
+\tdx{fst_def}   fst(a) == split(a, \%x y. x)
+\tdx{snd_def}   snd(a) == split(a, \%x y. y)
 \end{ttbox}
 \caption{Rules for the sum type $\sum\sb{x\in A}B[x]$} \label{ctt-sum}
 \end{figure}
@@ -318,23 +318,23 @@ abbreviations in parsing and uses them whenever possible for printing.
 \tdx{PlusE}     [| p: A+B;
              !!x. x:A ==> c(x): C(inl(x));  
              !!y. y:B ==> d(y): C(inr(y))
-          |] ==> when(p, \%x.c(x), \%y.d(y)) : C(p)
+          |] ==> when(p, \%x. c(x), \%y. d(y)) : C(p)
 
 \tdx{PlusEL}    [| p = q : A+B;
              !!x. x: A ==> c(x) = e(x) : C(inl(x));   
              !!y. y: B ==> d(y) = f(y) : C(inr(y))
-          |] ==> when(p, \%x.c(x), \%y.d(y)) = 
-                 when(q, \%x.e(x), \%y.f(y)) : C(p)
+          |] ==> when(p, \%x. c(x), \%y. d(y)) = 
+                 when(q, \%x. e(x), \%y. f(y)) : C(p)
 
 \tdx{PlusC_inl} [| a: A;
              !!x. x:A ==> c(x): C(inl(x));  
              !!y. y:B ==> d(y): C(inr(y))
-          |] ==> when(inl(a), \%x.c(x), \%y.d(y)) = c(a) : C(inl(a))
+          |] ==> when(inl(a), \%x. c(x), \%y. d(y)) = c(a) : C(inl(a))
 
 \tdx{PlusC_inr} [| b: B;
              !!x. x:A ==> c(x): C(inl(x));  
              !!y. y:B ==> d(y): C(inr(y))
-          |] ==> when(inr(b), \%x.c(x), \%y.d(y)) = d(b) : C(inr(b))
+          |] ==> when(inr(b), \%x. c(x), \%y. d(y)) = d(b) : C(inr(b))
 \end{ttbox}
 \caption{Rules for the binary sum type $A+B$} \label{ctt-plus}
 \end{figure}
@@ -458,7 +458,7 @@ parameters.  Section~\ref{ctt-choice} below demonstrates these rules in a
 proof of the Axiom of Choice.
 
 All the rules are given in $\eta$-expanded form.  For instance, every
-occurrence of $\lambda u\,v.b(u,v)$ could be abbreviated to~$b$ in the
+occurrence of $\lambda u\,v. b(u,v)$ could be abbreviated to~$b$ in the
 rules for~$N$.  The expanded form permits Isabelle to preserve bound
 variable names during backward proof.  Names of bound variables in the
 conclusion (here, $u$ and~$v$) are matched with corresponding bound
@@ -658,16 +658,16 @@ tries to solve subgoal~$i$ by backtracking, using {\tt step_tac}.
 \end{constants}
 
 \begin{ttbox}
-\tdx{add_def}           a#+b  == rec(a, b, \%u v.succ(v))  
-\tdx{diff_def}          a-b   == rec(b, a, \%u v.rec(v, 0, \%x y.x))  
+\tdx{add_def}           a#+b  == rec(a, b, \%u v. succ(v))  
+\tdx{diff_def}          a-b   == rec(b, a, \%u v. rec(v, 0, \%x y. x))  
 \tdx{absdiff_def}       a|-|b == (a-b) #+ (b-a)  
 \tdx{mult_def}          a#*b  == rec(a, 0, \%u v. b #+ v)  
 
 \tdx{mod_def}           a mod b ==
-                  rec(a, 0, \%u v. rec(succ(v) |-| b, 0, \%x y.succ(v)))
+                  rec(a, 0, \%u v. rec(succ(v) |-| b, 0, \%x y. succ(v)))
 
 \tdx{div_def}           a div b ==
-                  rec(a, 0, \%u v. rec(succ(u) mod b, succ(v), \%x y.v))
+                  rec(a, 0, \%u v. rec(succ(u) mod b, succ(v), \%x y. v))
 
 \tdx{add_typing}        [| a:N;  b:N |] ==> a #+ b : N
 \tdx{addC0}             b:N ==> 0 #+ b = b : N
@@ -714,7 +714,7 @@ remainder and quotient, respectively.  Since Type Theory has only primitive
 recursion, some of their definitions may be obscure.  
 
 The difference~$a-b$ is computed by taking $b$ predecessors of~$a$, where
-the predecessor function is $\lambda v. {\tt rec}(v, 0, \lambda x\,y.x)$.
+the predecessor function is $\lambda v. {\tt rec}(v, 0, \lambda x\,y. x)$.
 
 The remainder $a\bmod b$ counts up to~$a$ in a cyclic fashion, using 0
 as the successor of~$b-1$.  Absolute difference is used to test the
@@ -751,7 +751,7 @@ initially
 unknown, takes shape in the course of the proof.  Our example is the
 predecessor function on the natural numbers.
 \begin{ttbox}
-goal CTT.thy "lam n. rec(n, 0, \%x y.x) : ?A";
+Goal "lam n. rec(n, 0, \%x y. x) : ?A";
 {\out Level 0}
 {\out lam n. rec(n,0,\%x y. x) : ?A}
 {\out  1. lam n. rec(n,0,\%x y. x) : ?A}
@@ -813,7 +813,7 @@ Even if the original term is ill-typed, one can infer a type for it, but
 unprovable subgoals will be left.  As an exercise, try to prove the
 following invalid goal:
 \begin{ttbox}
-goal CTT.thy "lam n. rec(n, 0, \%x y.tt) : ?A";
+Goal "lam n. rec(n, 0, \%x y. tt) : ?A";
 \end{ttbox}
 
 
@@ -843,7 +843,7 @@ conditions explicit, yields the rule we must derive:
 To begin, we bind the rule's premises --- returned by the~{\tt goal}
 command --- to the {\ML} variable~{\tt prems}.
 \begin{ttbox}
-val prems = goal CTT.thy
+val prems = Goal
     "[| A type;                       \ttback
 \ttback       !!x. x:A ==> B(x) type;       \ttback
 \ttback       !!x. x:A ==> C(x) type;       \ttback
@@ -994,7 +994,7 @@ that the parameter corresponding to the functional's argument is really
 called~$f$; Isabelle echoes the type using \verb|-->| because there is no
 explicit dependence upon~$f$.
 \begin{ttbox}
-val prems = goal CTT.thy
+val prems = Goal
     "[| A type; !!x. x:A ==> B(x) type;                           \ttback
 \ttback               !!z. z: (SUM x:A. B(x)) ==> C(z) type             \ttback
 \ttback    |] ==> ?a : PROD f: (PROD z : (SUM x:A . B(x)) . C(z)).      \ttback
@@ -1074,7 +1074,7 @@ bogged down in the details.  But with a careful selection of derived rules
 (recall Fig.\ts\ref{ctt-derived}) and the type checking tactics, we can
 prove the theorem in nine steps.
 \begin{ttbox}
-val prems = goal CTT.thy
+val prems = Goal
     "[| A type;  !!x. x:A ==> B(x) type;                    \ttback
 \ttback       !!x y.[| x:A;  y:B(x) |] ==> C(x,y) type            \ttback
 \ttback    |] ==> ?a : PROD h: (PROD x:A. SUM y:B(x). C(x,y)).    \ttback

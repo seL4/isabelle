@@ -27,17 +27,17 @@ by (REPEAT (assume_tac 1));
 choplev 0;
 by (fast_tac (ZF_cs addIs [equalityI]) 1);
 
-val [prem] = goal ZF.thy "C<=D ==> Union(C) <= Union(D)";
+Goal "C<=D ==> Union(C) <= Union(D)";
 by (resolve_tac [subsetI] 1);
 by (eresolve_tac [UnionE] 1);
 by (resolve_tac [UnionI] 1);
-by (resolve_tac [prem RS subsetD] 1);
+by (eresolve_tac [subsetD] 1);
 by (assume_tac 1);
 by (assume_tac 1);
 choplev 0;
 by (resolve_tac [Union_least] 1);
 by (resolve_tac [Union_upper] 1);
-by (eresolve_tac [prem RS subsetD] 1);
+by (eresolve_tac [subsetD] 1);
 
 
 val prems = goal ZF.thy
@@ -52,6 +52,19 @@ by (resolve_tac [fun_disjoint_Un] 1);
 by (resolve_tac prems 1);
 by (resolve_tac prems 1);
 by (resolve_tac prems 1);
+
+
+Goal "[| a:A;  f: A->B;  g: C->D;  A Int C = 0 |] ==>  \
+\     (f Un g)`a = f`a";
+by (resolve_tac [apply_equality] 1);
+by (resolve_tac [UnI1] 1);
+by (resolve_tac [apply_Pair] 1);
+by (assume_tac 1);
+by (assume_tac 1);
+by (resolve_tac [fun_disjoint_Un] 1);
+by (assume_tac 1);
+by (assume_tac 1);
+by (assume_tac 1);
 
 
 

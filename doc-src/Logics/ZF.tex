@@ -195,31 +195,31 @@ syntax for image is~$f{\tt``}A$ and that for inverse image is~$f{\tt-``}A$.
   <$a@1$, $\ldots$, $a@{n-1}$, $a@n$> & 
         Pair($a@1$,\ldots,Pair($a@{n-1}$,$a@n$)\ldots) &
         \rm ordered $n$-tuple \\
-  \ttlbrace$x$:$A . P[x]$\ttrbrace    &  Collect($A$,$\lambda x.P[x]$) &
+  \ttlbrace$x$:$A . P[x]$\ttrbrace    &  Collect($A$,$\lambda x. P[x]$) &
         \rm separation \\
-  \ttlbrace$y . x$:$A$, $Q[x,y]$\ttrbrace  &  Replace($A$,$\lambda x\,y.Q[x,y]$) &
+  \ttlbrace$y . x$:$A$, $Q[x,y]$\ttrbrace  &  Replace($A$,$\lambda x\,y. Q[x,y]$) &
         \rm replacement \\
-  \ttlbrace$b[x] . x$:$A$\ttrbrace  &  RepFun($A$,$\lambda x.b[x]$) &
+  \ttlbrace$b[x] . x$:$A$\ttrbrace  &  RepFun($A$,$\lambda x. b[x]$) &
         \rm functional replacement \\
   \sdx{INT} $x$:$A . B[x]$      & Inter(\ttlbrace$B[x] . x$:$A$\ttrbrace) &
         \rm general intersection \\
   \sdx{UN}  $x$:$A . B[x]$      & Union(\ttlbrace$B[x] . x$:$A$\ttrbrace) &
         \rm general union \\
-  \sdx{PROD} $x$:$A . B[x]$     & Pi($A$,$\lambda x.B[x]$) & 
+  \sdx{PROD} $x$:$A . B[x]$     & Pi($A$,$\lambda x. B[x]$) & 
         \rm general product \\
-  \sdx{SUM}  $x$:$A . B[x]$     & Sigma($A$,$\lambda x.B[x]$) & 
+  \sdx{SUM}  $x$:$A . B[x]$     & Sigma($A$,$\lambda x. B[x]$) & 
         \rm general sum \\
-  $A$ -> $B$            & Pi($A$,$\lambda x.B$) & 
+  $A$ -> $B$            & Pi($A$,$\lambda x. B$) & 
         \rm function space \\
-  $A$ * $B$             & Sigma($A$,$\lambda x.B$) & 
+  $A$ * $B$             & Sigma($A$,$\lambda x. B$) & 
         \rm binary product \\
-  \sdx{THE}  $x . P[x]$ & The($\lambda x.P[x]$) & 
+  \sdx{THE}  $x . P[x]$ & The($\lambda x. P[x]$) & 
         \rm definite description \\
-  \sdx{lam}  $x$:$A . b[x]$     & Lambda($A$,$\lambda x.b[x]$) & 
+  \sdx{lam}  $x$:$A . b[x]$     & Lambda($A$,$\lambda x. b[x]$) & 
         \rm $\lambda$-abstraction\\[1ex]
-  \sdx{ALL} $x$:$A . P[x]$      & Ball($A$,$\lambda x.P[x]$) & 
+  \sdx{ALL} $x$:$A . P[x]$      & Ball($A$,$\lambda x. P[x]$) & 
         \rm bounded $\forall$ \\
-  \sdx{EX}  $x$:$A . P[x]$      & Bex($A$,$\lambda x.P[x]$) & 
+  \sdx{EX}  $x$:$A . P[x]$      & Bex($A$,$\lambda x. P[x]$) & 
         \rm bounded $\exists$
 \end{tabular}
 \end{center}
@@ -278,17 +278,17 @@ syntax for image is~$f{\tt``}A$ and that for inverse image is~$f{\tt-``}A$.
 \section{Binding operators}
 The constant \cdx{Collect} constructs sets by the principle of {\bf
   separation}.  The syntax for separation is
-\hbox{\tt\ttlbrace$x$:$A$.$P[x]$\ttrbrace}, where $P[x]$ is a formula
+\hbox{\tt\ttlbrace$x$:$A$. $P[x]$\ttrbrace}, where $P[x]$ is a formula
 that may contain free occurrences of~$x$.  It abbreviates the set {\tt
-  Collect($A$,$\lambda x.P[x]$)}, which consists of all $x\in A$ that
+  Collect($A$,$\lambda x. P[x]$)}, which consists of all $x\in A$ that
 satisfy~$P[x]$.  Note that \texttt{Collect} is an unfortunate choice of
 name: some set theories adopt a set-formation principle, related to
 replacement, called collection.
 
 The constant \cdx{Replace} constructs sets by the principle of {\bf
   replacement}.  The syntax
-\hbox{\tt\ttlbrace$y$.$x$:$A$,$Q[x,y]$\ttrbrace} denotes the set {\tt
-  Replace($A$,$\lambda x\,y.Q[x,y]$)}, which consists of all~$y$ such
+\hbox{\tt\ttlbrace$y$. $x$:$A$,$Q[x,y]$\ttrbrace} denotes the set {\tt
+  Replace($A$,$\lambda x\,y. Q[x,y]$)}, which consists of all~$y$ such
 that there exists $x\in A$ satisfying~$Q[x,y]$.  The Replacement Axiom
 has the condition that $Q$ must be single-valued over~$A$: for
 all~$x\in A$ there exists at most one $y$ satisfying~$Q[x,y]$.  A
@@ -297,16 +297,16 @@ single-valued binary predicate is also called a {\bf class function}.
 The constant \cdx{RepFun} expresses a special case of replacement,
 where $Q[x,y]$ has the form $y=b[x]$.  Such a $Q$ is trivially
 single-valued, since it is just the graph of the meta-level
-function~$\lambda x.b[x]$.  The resulting set consists of all $b[x]$
+function~$\lambda x. b[x]$.  The resulting set consists of all $b[x]$
 for~$x\in A$.  This is analogous to the \ML{} functional \texttt{map},
 since it applies a function to every element of a set.  The syntax is
-\hbox{\tt\ttlbrace$b[x]$.$x$:$A$\ttrbrace}, which expands to {\tt
-  RepFun($A$,$\lambda x.b[x]$)}.
+\hbox{\tt\ttlbrace$b[x]$. $x$:$A$\ttrbrace}, which expands to {\tt
+  RepFun($A$,$\lambda x. b[x]$)}.
 
 \index{*INT symbol}\index{*UN symbol} 
 General unions and intersections of indexed
 families of sets, namely $\bigcup@{x\in A}B[x]$ and $\bigcap@{x\in A}B[x]$,
-are written \hbox{\tt UN $x$:$A$.$B[x]$} and \hbox{\tt INT $x$:$A$.$B[x]$}.
+are written \hbox{\tt UN $x$:$A$. $B[x]$} and \hbox{\tt INT $x$:$A$. $B[x]$}.
 Their meaning is expressed using \texttt{RepFun} as
 \[
 \bigcup(\{B[x]. x\in A\}) \qquad\hbox{and}\qquad 
@@ -319,7 +319,7 @@ This is similar to the situation in Constructive Type Theory (set theory
 has `dependent sets') and calls for similar syntactic conventions.  The
 constants~\cdx{Sigma} and~\cdx{Pi} construct general sums and
 products.  Instead of \texttt{Sigma($A$,$B$)} and \texttt{Pi($A$,$B$)} we may write
-\hbox{\tt SUM $x$:$A$.$B[x]$} and \hbox{\tt PROD $x$:$A$.$B[x]$}.  
+\hbox{\tt SUM $x$:$A$. $B[x]$} and \hbox{\tt PROD $x$:$A$. $B[x]$}.  
 \index{*SUM symbol}\index{*PROD symbol}%
 The special cases as \hbox{\tt$A$*$B$} and \hbox{\tt$A$->$B$} abbreviate
 general sums and products over a constant family.\footnote{Unlike normal
@@ -331,28 +331,28 @@ abbreviations in parsing and uses them whenever possible for printing.
 As mentioned above, whenever the axioms assert the existence and uniqueness
 of a set, Isabelle's set theory declares a constant for that set.  These
 constants can express the {\bf definite description} operator~$\iota
-x.P[x]$, which stands for the unique~$a$ satisfying~$P[a]$, if such exists.
+x. P[x]$, which stands for the unique~$a$ satisfying~$P[a]$, if such exists.
 Since all terms in {\ZF} denote something, a description is always
 meaningful, but we do not know its value unless $P[x]$ defines it uniquely.
 Using the constant~\cdx{The}, we may write descriptions as {\tt
-  The($\lambda x.P[x]$)} or use the syntax \hbox{\tt THE $x$.$P[x]$}.
+  The($\lambda x. P[x]$)} or use the syntax \hbox{\tt THE $x$. $P[x]$}.
 
 \index{*lam symbol}
-Function sets may be written in $\lambda$-notation; $\lambda x\in A.b[x]$
+Function sets may be written in $\lambda$-notation; $\lambda x\in A. b[x]$
 stands for the set of all pairs $\pair{x,b[x]}$ for $x\in A$.  In order for
 this to be a set, the function's domain~$A$ must be given.  Using the
 constant~\cdx{Lambda}, we may express function sets as {\tt
-Lambda($A$,$\lambda x.b[x]$)} or use the syntax \hbox{\tt lam $x$:$A$.$b[x]$}.
+Lambda($A$,$\lambda x. b[x]$)} or use the syntax \hbox{\tt lam $x$:$A$. $b[x]$}.
 
 Isabelle's set theory defines two {\bf bounded quantifiers}:
 \begin{eqnarray*}
-   \forall x\in A.P[x] &\hbox{abbreviates}& \forall x. x\in A\imp P[x] \\
-   \exists x\in A.P[x] &\hbox{abbreviates}& \exists x. x\in A\conj P[x]
+   \forall x\in A. P[x] &\hbox{abbreviates}& \forall x. x\in A\imp P[x] \\
+   \exists x\in A. P[x] &\hbox{abbreviates}& \exists x. x\in A\conj P[x]
 \end{eqnarray*}
 The constants~\cdx{Ball} and~\cdx{Bex} are defined
 accordingly.  Instead of \texttt{Ball($A$,$P$)} and \texttt{Bex($A$,$P$)} we may
 write
-\hbox{\tt ALL $x$:$A$.$P[x]$} and \hbox{\tt EX $x$:$A$.$P[x]$}.
+\hbox{\tt ALL $x$:$A$. $P[x]$} and \hbox{\tt EX $x$:$A$. $P[x]$}.
 
 
 %%%% ZF.thy
@@ -376,7 +376,7 @@ write
 \subcaption{The Zermelo-Fraenkel Axioms}
 
 \tdx{Replace_def}  Replace(A,P) == 
-                   PrimReplace(A, \%x y. (EX!z.P(x,z)) & P(x,y))
+                   PrimReplace(A, \%x y. (EX!z. P(x,z)) & P(x,y))
 \tdx{RepFun_def}   RepFun(A,f)  == {\ttlbrace}y . x:A, y=f(x)\ttrbrace
 \tdx{the_def}      The(P)       == Union({\ttlbrace}y . x:{\ttlbrace}0{\ttrbrace}, P(y){\ttrbrace})
 \tdx{if_def}       if(P,a,b)    == THE z. P & z=a | ~P & z=b
@@ -404,8 +404,8 @@ write
 
 \tdx{Pair_def}       <a,b>      == {\ttlbrace}{\ttlbrace}a,a{\ttrbrace}, {\ttlbrace}a,b{\ttrbrace}{\ttrbrace}
 \tdx{split_def}      split(c,p) == THE y. EX a b. p=<a,b> & y=c(a,b)
-\tdx{fst_def}        fst(A)     == split(\%x y.x, p)
-\tdx{snd_def}        snd(A)     == split(\%x y.y, p)
+\tdx{fst_def}        fst(A)     == split(\%x y. x, p)
+\tdx{snd_def}        snd(A)     == split(\%x y. y, p)
 \tdx{Sigma_def}      Sigma(A,B) == UN x:A. UN y:B(x). {\ttlbrace}<x,y>{\ttrbrace}
 \subcaption{Ordered pairs and Cartesian products}
 
@@ -420,7 +420,7 @@ write
 \tdx{lam_def}    Lambda(A,b) == {\ttlbrace}<x,b(x)> . x:A{\ttrbrace}
 \tdx{apply_def}  f`a         == THE y. <a,y> : f
 \tdx{Pi_def}     Pi(A,B) == {\ttlbrace}f: Pow(Sigma(A,B)). ALL x:A. EX! y. <x,y>: f{\ttrbrace}
-\tdx{restrict_def}   restrict(f,A) == lam x:A.f`x
+\tdx{restrict_def}   restrict(f,A) == lam x:A. f`x
 \subcaption{Functions and general product}
 \end{ttbox}
 \caption{Further definitions of {\ZF}} \label{zf-defs}
@@ -441,7 +441,7 @@ The traditional replacement axiom asserts
 subject to the condition that $P(x,y)$ is single-valued for all~$x\in A$.
 The Isabelle theory defines \cdx{Replace} to apply
 \cdx{PrimReplace} to the single-valued part of~$P$, namely
-\[ (\exists!z.P(x,z)) \conj P(x,y). \]
+\[ (\exists!z. P(x,z)) \conj P(x,y). \]
 Thus $y\in \texttt{Replace}(A,P)$ if and only if there is some~$x$ such that
 $P(x,-)$ holds uniquely for~$y$.  Because the equivalence is unconditional,
 \texttt{Replace} is much easier to use than \texttt{PrimReplace}; it defines the
@@ -493,14 +493,14 @@ over the domain~$A$.
             (ALL x:A. P(x)) <-> (ALL x:A'. P'(x))
 
 \tdx{bexI}        [| P(x);  x: A |] ==> EX x:A. P(x)
-\tdx{bexCI}       [| ALL x:A. ~P(x) ==> P(a);  a: A |] ==> EX x:A.P(x)
+\tdx{bexCI}       [| ALL x:A. ~P(x) ==> P(a);  a: A |] ==> EX x:A. P(x)
 \tdx{bexE}        [| EX x:A. P(x);  !!x. [| x:A; P(x) |] ==> Q |] ==> Q
 
 \tdx{bex_cong}    [| A=A';  !!x. x:A' ==> P(x) <-> P'(x) |] ==> 
             (EX x:A. P(x)) <-> (EX x:A'. P'(x))
 \subcaption{Bounded quantifiers}
 
-\tdx{subsetI}       (!!x.x:A ==> x:B) ==> A <= B
+\tdx{subsetI}       (!!x. x:A ==> x:B) ==> A <= B
 \tdx{subsetD}       [| A <= B;  c:A |] ==> c:B
 \tdx{subsetCE}      [| A <= B;  ~(c:A) ==> P;  c:B ==> P |] ==> P
 \tdx{subset_refl}   A <= A
@@ -768,7 +768,7 @@ below presents an example of this, proving the equation ${{\tt Pow}(A)\cap
 
 \tdx{fst_conv}        fst(<a,b>) = a
 \tdx{snd_conv}        snd(<a,b>) = b
-\tdx{split}           split(\%x y.c(x,y), <a,b>) = c(a,b)
+\tdx{split}           split(\%x y. c(x,y), <a,b>) = c(a,b)
 
 \tdx{SigmaI}          [| a:A;  b:B(a) |] ==> <a,b> : Sigma(A,B)
 
@@ -803,12 +803,12 @@ $b\in B(a)$.
 
 In addition, it is possible to use tuples as patterns in abstractions:
 \begin{center}
-{\tt\%<$x$,$y$>.$t$} \quad stands for\quad \texttt{split(\%$x$ $y$.$t$)}
+{\tt\%<$x$,$y$>. $t$} \quad stands for\quad \texttt{split(\%$x$ $y$. $t$)}
 \end{center}
 Nested patterns are translated recursively:
-{\tt\%<$x$,$y$,$z$>.$t$} $\leadsto$ {\tt\%<$x$,<$y$,$z$>>.$t$} $\leadsto$
-\texttt{split(\%$x$.\%<$y$,$z$>.$t$)} $\leadsto$ \texttt{split(\%$x$.split(\%$y$
-  $z$.$t$))}.  The reverse translation is performed upon printing.
+{\tt\%<$x$,$y$,$z$>. $t$} $\leadsto$ {\tt\%<$x$,<$y$,$z$>>. $t$} $\leadsto$
+\texttt{split(\%$x$.\%<$y$,$z$>. $t$)} $\leadsto$ \texttt{split(\%$x$. split(\%$y$
+  $z$. $t$))}.  The reverse translation is performed upon printing.
 \begin{warn}
   The translation between patterns and \texttt{split} is performed automatically
   by the parser and printer.  Thus the internal and external form of a term
@@ -918,9 +918,9 @@ rules.
 \tdx{lamE}         [| p: (lam x:A. b(x));  !!x.[| x:A; p=<x,b(x)> |] ==> P 
              |] ==>  P
 
-\tdx{lam_type}     [| !!x. x:A ==> b(x): B(x) |] ==> (lam x:A.b(x)) : Pi(A,B)
+\tdx{lam_type}     [| !!x. x:A ==> b(x): B(x) |] ==> (lam x:A. b(x)) : Pi(A,B)
 
-\tdx{beta}         a : A ==> (lam x:A.b(x)) ` a = b(a)
+\tdx{beta}         a : A ==> (lam x:A. b(x)) ` a = b(a)
 \tdx{eta}          f : Pi(A,B) ==> (lam x:A. f`x) = f
 \end{ttbox}
 \caption{$\lambda$-abstraction} \label{zf-lam}
@@ -1274,8 +1274,8 @@ equipollence and cardinality.
 \tdx{rec_def}       rec(k,a,b) ==  
               transrec(k, \%n f. nat_case(a, \%m. b(m, f`m), n))
 
-\tdx{add_def}       m#+n    == rec(m, n, \%u v.succ(v))
-\tdx{diff_def}      m#-n    == rec(n, m, \%u v. rec(v, 0, \%x y.x))
+\tdx{add_def}       m#+n    == rec(m, n, \%u v. succ(v))
+\tdx{diff_def}      m#-n    == rec(n, m, \%u v. rec(v, 0, \%x y. x))
 \tdx{mult_def}      m#*n    == rec(m, 0, \%u v. n #+ v)
 \tdx{mod_def}       m mod n == transrec(m, \%j f. if(j:n, j, f`(j#-n)))
 \tdx{div_def}       m div n == transrec(m, \%j f. if(j:n, 0, succ(f`(j#-n))))
@@ -1375,7 +1375,7 @@ between two given sets.
 \underscoreon %%because @ is used here
 \begin{ttbox}
 \tdx{list_rec_def}    list_rec(l,c,h) == 
-                Vrec(l, \%l g.list_case(c, \%x xs. h(x, xs, g`xs), l))
+                Vrec(l, \%l g. list_case(c, \%x xs. h(x, xs, g`xs), l))
 
 \tdx{map_def}         map(f,l)  == list_rec(l,  0,  \%x xs r. <f(x), r>)
 \tdx{length_def}      length(l) == list_rec(l,  0,  \%x xs r. succ(r))
@@ -1401,8 +1401,8 @@ between two given sets.
 \tdx{list_rec_Nil}    list_rec(Nil,c,h) = c
 \tdx{list_rec_Cons}   list_rec(Cons(a,l), c, h) = h(a, l, list_rec(l,c,h))
 
-\tdx{map_ident}       l: list(A) ==> map(\%u.u, l) = l
-\tdx{map_compose}     l: list(A) ==> map(h, map(j,l)) = map(\%u.h(j(u)), l)
+\tdx{map_ident}       l: list(A) ==> map(\%u. u, l) = l
+\tdx{map_compose}     l: list(A) ==> map(h, map(j,l)) = map(\%u. h(j(u)), l)
 \tdx{map_app_distrib} xs: list(A) ==> map(h, xs@ys) = map(h,xs) @ map(h,ys)
 \tdx{map_type}
     [| l: list(A);  !!x. x: A ==> h(x): B |] ==> map(h,l) : list(B)
@@ -1505,8 +1505,8 @@ extensively.  File \texttt{ZF/simpdata.ML} contains the details.
 
 The extraction of rewrite rules takes set theory primitives into account.
 It can strip bounded universal quantifiers from a formula; for example,
-${\forall x\in A.f(x)=g(x)}$ yields the conditional rewrite rule $x\in A \Imp
-f(x)=g(x)$.  Given $a\in\{x\in A.P(x)\}$ it extracts rewrite rules from
+${\forall x\in A. f(x)=g(x)}$ yields the conditional rewrite rule $x\in A \Imp
+f(x)=g(x)$.  Given $a\in\{x\in A. P(x)\}$ it extracts rewrite rules from
 $a\in A$ and~$P(a)$.  It can also break down $a\in A\int B$ and $a\in A-B$.
 
 The default simplification set contains congruence rules for
@@ -1611,7 +1611,7 @@ from \texttt{ZF/mono.ML}:
 We enter the goal and make the first step, which breaks the equation into
 two inclusions by extensionality:\index{*equalityI theorem}
 \begin{ttbox}
-goal thy "Pow(A Int B) = Pow(A) Int Pow(B)";
+Goal "Pow(A Int B) = Pow(A) Int Pow(B)";
 {\out Level 0}
 {\out Pow(A Int B) = Pow(A) Int Pow(B)}
 {\out  1. Pow(A Int B) = Pow(A) Int Pow(B)}
@@ -1725,16 +1725,15 @@ For another example, we prove that general union is monotonic:
 ${C\subseteq D}$ implies $\bigcup(C)\subseteq \bigcup(D)$.  To begin, we
 tackle the inclusion using \tdx{subsetI}:
 \begin{ttbox}
-val [prem] = goal thy "C<=D ==> Union(C) <= Union(D)";
+Goal "C<=D ==> Union(C) <= Union(D)";
 {\out Level 0}
-{\out Union(C) <= Union(D)}
-{\out  1. Union(C) <= Union(D)}
-{\out val prem = "C <= D  [C <= D]" : thm}
+{\out C <= D ==> Union(C) <= Union(D)}
+{\out  1. C <= D ==> Union(C) <= Union(D)}
 \ttbreak
 by (resolve_tac [subsetI] 1);
 {\out Level 1}
-{\out Union(C) <= Union(D)}
-{\out  1. !!x. x : Union(C) ==> x : Union(D)}
+{\out C <= D ==> Union(C) <= Union(D)}
+{\out  1. !!x. [| C <= D; x : Union(C) |] ==> x : Union(D)}
 \end{ttbox}
 Big union is like an existential quantifier --- the occurrence in the
 assumptions must be eliminated early, since it creates parameters.
@@ -1742,8 +1741,8 @@ assumptions must be eliminated early, since it creates parameters.
 \begin{ttbox}
 by (eresolve_tac [UnionE] 1);
 {\out Level 2}
-{\out Union(C) <= Union(D)}
-{\out  1. !!x B. [| x : B; B : C |] ==> x : Union(D)}
+{\out C <= D ==> Union(C) <= Union(D)}
+{\out  1. !!x B. [| C <= D; x : B; B : C |] ==> x : Union(D)}
 \end{ttbox}
 Now we may apply \tdx{UnionI}, which creates an unknown involving the
 parameters.  To show $x\in \bigcup(D)$ it suffices to show that $x$ belongs
@@ -1751,50 +1750,40 @@ to some element, say~$\Var{B2}(x,B)$, of~$D$.
 \begin{ttbox}
 by (resolve_tac [UnionI] 1);
 {\out Level 3}
-{\out Union(C) <= Union(D)}
-{\out  1. !!x B. [| x : B; B : C |] ==> ?B2(x,B) : D}
-{\out  2. !!x B. [| x : B; B : C |] ==> x : ?B2(x,B)}
+{\out C <= D ==> Union(C) <= Union(D)}
+{\out  1. !!x B. [| C <= D; x : B; B : C |] ==> ?B2(x,B) : D}
+{\out  2. !!x B. [| C <= D; x : B; B : C |] ==> x : ?B2(x,B)}
 \end{ttbox}
-Combining \tdx{subsetD} with the premise $C\subseteq D$ yields 
-$\Var{a}\in C \Imp \Var{a}\in D$, which reduces subgoal~1:
+Combining \tdx{subsetD} with the assumption $C\subseteq D$ yields 
+$\Var{a}\in C \Imp \Var{a}\in D$, which reduces subgoal~1.  Note that
+\texttt{eresolve_tac} has removed that assumption.
 \begin{ttbox}
-by (resolve_tac [prem RS subsetD] 1);
+by (eresolve_tac [subsetD] 1);
 {\out Level 4}
-{\out Union(C) <= Union(D)}
+{\out C <= D ==> Union(C) <= Union(D)}
 {\out  1. !!x B. [| x : B; B : C |] ==> ?B2(x,B) : C}
-{\out  2. !!x B. [| x : B; B : C |] ==> x : ?B2(x,B)}
+{\out  2. !!x B. [| C <= D; x : B; B : C |] ==> x : ?B2(x,B)}
 \end{ttbox}
-The rest is routine.  Note how~$\Var{B2}(x,B)$ is instantiated.
+The rest is routine.  Observe how~$\Var{B2}(x,B)$ is instantiated.
 \begin{ttbox}
 by (assume_tac 1);
 {\out Level 5}
-{\out Union(C) <= Union(D)}
-{\out  1. !!x B. [| x : B; B : C |] ==> x : B}
+{\out C <= D ==> Union(C) <= Union(D)}
+{\out  1. !!x B. [| C <= D; x : B; B : C |] ==> x : B}
 by (assume_tac 1);
 {\out Level 6}
-{\out Union(C) <= Union(D)}
+{\out C <= D ==> Union(C) <= Union(D)}
 {\out No subgoals!}
 \end{ttbox}
-Again, \ttindex{Blast_tac} can prove the theorem in one
-step, provided we somehow supply it with~\texttt{prem}.  We can add
-\hbox{\tt prem RS subsetD} to the claset as an introduction rule:
+Again, \ttindex{Blast_tac} can prove the theorem in one step.
 \begin{ttbox}
-by (blast_tac (claset() addIs [prem RS subsetD]) 1);
+by (Blast_tac 1);
 {\out Depth = 0}
 {\out Depth = 1}
 {\out Depth = 2}
 {\out Level 1}
-{\out Union(C) <= Union(D)}
+{\out C <= D ==> Union(C) <= Union(D)}
 {\out No subgoals!}
-\end{ttbox}
-As an alternative, we could add premise to the assumptions, either using
-\ttindex{cut_facts_tac} or by stating the original goal using~\texttt{!!}:
-\begin{ttbox}
-goal thy "!!C D. C<=D ==> Union(C) <= Union(D)";
-{\out Level 0}
-{\out Union(C) <= Union(D)}
-{\out  1. !!C D. C <= D ==> Union(C) <= Union(D)}
-by (Blast_tac 1);
 \end{ttbox}
 
 The file \texttt{ZF/equalities.ML} has many similar proofs.  Reasoning about
@@ -1802,7 +1791,7 @@ general intersection can be difficult because of its anomalous behaviour on
 the empty set.  However, \ttindex{Blast_tac} copes well with these.  Here is
 a typical example, borrowed from Devlin~\cite[page 12]{devlin79}:
 \begin{ttbox}
-a:C ==> (INT x:C. A(x) Int B(x)) = (INT x:C.A(x)) Int (INT x:C.B(x))
+a:C ==> (INT x:C. A(x) Int B(x)) = (INT x:C. A(x)) Int (INT x:C. B(x))
 \end{ttbox}
 In traditional notation this is
 \[ a\in C \,\Imp\, \inter@{x\in C} \Bigl(A(x) \int B(x)\Bigr) =        
@@ -1819,88 +1808,82 @@ of~\tdx{fun_disjoint_apply1}.  This states that if $f$ and~$g$ are
 functions with disjoint domains~$A$ and~$C$, and if $a\in A$, then
 $(f\un g)`a = f`a$:
 \begin{ttbox}
-val prems = goal thy
-    "[| a:A;  f: A->B;  g: C->D;  A Int C = 0 |] ==>  \ttback
+Goal "[| a:A;  f: A->B;  g: C->D;  A Int C = 0 |] ==>  \ttback
 \ttback    (f Un g)`a = f`a";
 {\out Level 0}
-{\out (f Un g) ` a = f ` a}
-{\out  1. (f Un g) ` a = f ` a}
-\end{ttbox}
-Isabelle has produced the output above; the \ML{} top-level now echoes the
-binding of \texttt{prems}.
-\begin{ttbox}
-{\out val prems = ["a : A  [a : A]",}
-{\out              "f : A -> B  [f : A -> B]",}
-{\out              "g : C -> D  [g : C -> D]",}
-{\out              "A Int C = 0  [A Int C = 0]"] : thm list}
+{\out [| a : A; f : A -> B; g : C -> D; A Int C = 0 |]}
+{\out ==> (f Un g) ` a = f ` a}
+{\out  1. [| a : A; f : A -> B; g : C -> D; A Int C = 0 |]}
+{\out     ==> (f Un g) ` a = f ` a}
 \end{ttbox}
 Using \tdx{apply_equality}, we reduce the equality to reasoning about
 ordered pairs.  The second subgoal is to verify that $f\un g$ is a function.
+To save space, the assumptions will be abbreviated below.
 \begin{ttbox}
 by (resolve_tac [apply_equality] 1);
 {\out Level 1}
-{\out (f Un g) ` a = f ` a}
-{\out  1. <a,f ` a> : f Un g}
-{\out  2. f Un g : (PROD x:?A. ?B(x))}
+{\out [| \ldots |] ==> (f Un g) ` a = f ` a}
+{\out  1. [| \ldots |] ==> <a,f ` a> : f Un g}
+{\out  2. [| \ldots |] ==> f Un g : (PROD x:?A. ?B(x))}
 \end{ttbox}
 We must show that the pair belongs to~$f$ or~$g$; by~\tdx{UnI1} we
 choose~$f$:
 \begin{ttbox}
 by (resolve_tac [UnI1] 1);
 {\out Level 2}
-{\out (f Un g) ` a = f ` a}
-{\out  1. <a,f ` a> : f}
-{\out  2. f Un g : (PROD x:?A. ?B(x))}
+{\out [| \ldots |] ==> (f Un g) ` a = f ` a}
+{\out  1. [| \ldots |] ==> <a,f ` a> : f}
+{\out  2. [| \ldots |] ==> f Un g : (PROD x:?A. ?B(x))}
 \end{ttbox}
 To show $\pair{a,f`a}\in f$ we use \tdx{apply_Pair}, which is
 essentially the converse of \tdx{apply_equality}:
 \begin{ttbox}
 by (resolve_tac [apply_Pair] 1);
 {\out Level 3}
-{\out (f Un g) ` a = f ` a}
-{\out  1. f : (PROD x:?A2. ?B2(x))}
-{\out  2. a : ?A2}
-{\out  3. f Un g : (PROD x:?A. ?B(x))}
+{\out [| \ldots |] ==> (f Un g) ` a = f ` a}
+{\out  1. [| \ldots |] ==> f : (PROD x:?A2. ?B2(x))}
+{\out  2. [| \ldots |] ==> a : ?A2}
+{\out  3. [| \ldots |] ==> f Un g : (PROD x:?A. ?B(x))}
 \end{ttbox}
-Using the premises $f\in A\to B$ and $a\in A$, we solve the two subgoals
+Using the assumptions $f\in A\to B$ and $a\in A$, we solve the two subgoals
 from \tdx{apply_Pair}.  Recall that a $\Pi$-set is merely a generalized
 function space, and observe that~{\tt?A2} is instantiated to~\texttt{A}.
 \begin{ttbox}
-by (resolve_tac prems 1);
+by (assume_tac 1);
 {\out Level 4}
-{\out (f Un g) ` a = f ` a}
-{\out  1. a : A}
-{\out  2. f Un g : (PROD x:?A. ?B(x))}
-by (resolve_tac prems 1);
+{\out [| \ldots |] ==> (f Un g) ` a = f ` a}
+{\out  1. [| \ldots |] ==> a : A}
+{\out  2. [| \ldots |] ==> f Un g : (PROD x:?A. ?B(x))}
+by (assume_tac 1);
 {\out Level 5}
-{\out (f Un g) ` a = f ` a}
-{\out  1. f Un g : (PROD x:?A. ?B(x))}
+{\out [| \ldots |] ==> (f Un g) ` a = f ` a}
+{\out  1. [| \ldots |] ==> f Un g : (PROD x:?A. ?B(x))}
 \end{ttbox}
 To construct functions of the form $f\un g$, we apply
 \tdx{fun_disjoint_Un}:
 \begin{ttbox}
 by (resolve_tac [fun_disjoint_Un] 1);
 {\out Level 6}
-{\out (f Un g) ` a = f ` a}
-{\out  1. f : ?A3 -> ?B3}
-{\out  2. g : ?C3 -> ?D3}
-{\out  3. ?A3 Int ?C3 = 0}
+{\out [| \ldots |] ==> (f Un g) ` a = f ` a}
+{\out  1. [| \ldots |] ==> f : ?A3 -> ?B3}
+{\out  2. [| \ldots |] ==> g : ?C3 -> ?D3}
+{\out  3. [| \ldots |] ==> ?A3 Int ?C3 = 0}
 \end{ttbox}
-The remaining subgoals are instances of the premises.  Again, observe how
+The remaining subgoals are instances of the assumptions.  Again, observe how
 unknowns are instantiated:
 \begin{ttbox}
-by (resolve_tac prems 1);
+by (assume_tac 1);
 {\out Level 7}
-{\out (f Un g) ` a = f ` a}
-{\out  1. g : ?C3 -> ?D3}
-{\out  2. A Int ?C3 = 0}
-by (resolve_tac prems 1);
+{\out [| \ldots |] ==> (f Un g) ` a = f ` a}
+{\out  1. [| \ldots |] ==> g : ?C3 -> ?D3}
+{\out  2. [| \ldots |] ==> A Int ?C3 = 0}
+by (assume_tac 1);
 {\out Level 8}
-{\out (f Un g) ` a = f ` a}
-{\out  1. A Int C = 0}
-by (resolve_tac prems 1);
+{\out [| \ldots |] ==> (f Un g) ` a = f ` a}
+{\out  1. [| \ldots |] ==> A Int C = 0}
+by (assume_tac 1);
 {\out Level 9}
-{\out (f Un g) ` a = f ` a}
+{\out [| \ldots |] ==> (f Un g) ` a = f ` a}
 {\out No subgoals!}
 \end{ttbox}
 See the files \texttt{ZF/func.ML} and \texttt{ZF/WF.ML} for more

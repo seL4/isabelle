@@ -3,7 +3,9 @@
 Pretty.setmargin 72;  (*existing macros just allow this margin*)
 print_depth 0;
 
-goal LK_Rule.thy "|- EX y. ALL x. P(y)-->P(x)";
+Context LK.thy;
+
+Goal "|- EX y. ALL x. P(y)-->P(x)";
 by (resolve_tac [exR] 1);
 by (resolve_tac [allR] 1);
 by (resolve_tac [impR] 1);
@@ -13,12 +15,12 @@ by (resolve_tac [exR_thin] 1);
 by (resolve_tac [allR] 1);
 by (resolve_tac [impR] 1);
 by (resolve_tac [basic] 1);
-goal LK_Rule.thy "|- EX y. ALL x. P(y)-->P(x)";
+Goal "|- EX y. ALL x. P(y)-->P(x)";
 by (best_tac LK_dup_pack 1);
 
 
 
-goal LK_Rule.thy "|- ~ (EX x. ALL y. F(y,x) <-> ~F(y,y))";
+Goal "|- ~ (EX x. ALL y. F(y,x) <-> ~F(y,y))";
 by (resolve_tac [notR] 1);
 by (resolve_tac [exL] 1);
 by (resolve_tac [allL_thin] 1);
@@ -29,8 +31,10 @@ by (resolve_tac [notR] 1);
 by (resolve_tac [basic] 1);
 
 
+STOP_HERE;
 
-> goal LK_Rule.thy "|- EX y. ALL x. P(y)-->P(x)";
+
+> Goal "|- EX y. ALL x. P(y)-->P(x)";
 Level 0
  |- EX y. ALL x. P(y) --> P(x)
  1.  |- EX y. ALL x. P(y) --> P(x)
@@ -65,7 +69,7 @@ Level 7
  |- EX y. ALL x. P(y) --> P(x)
 No subgoals!
 
-> goal LK_Rule.thy "|- EX y. ALL x. P(y)-->P(x)";
+> Goal "|- EX y. ALL x. P(y)-->P(x)";
 Level 0
  |- EX y. ALL x. P(y) --> P(x)
  1.  |- EX y. ALL x. P(y) --> P(x)
@@ -77,7 +81,7 @@ No subgoals!
 
 
 
-> goal LK_Rule.thy "|- ~ (EX x. ALL y. F(y,x) <-> ~F(y,y))";
+> Goal "|- ~ (EX x. ALL y. F(y,x) <-> ~F(y,y))";
 Level 0
  |- ~(EX x. ALL y. F(y,x) <-> ~F(y,y))
  1.  |- ~(EX x. ALL y. F(y,x) <-> ~F(y,y))
