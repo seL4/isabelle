@@ -215,7 +215,9 @@ command.  It provides a limited undo facility, and the {\tt undo} command
 can cancel it.
 
 \item[\ttindexbold{choplev} {\it n};] 
-truncates the state list to level~{\it n}. 
+truncates the state list to level~{\it n}, if $n\geq0$.  A negative value
+of~$n$ refers to the $n$th previous level: 
+\hbox{\verb|choplev ~1|} has the same effect as {\tt chop}.
 
 \item[\ttindexbold{back}();]
 searches the state list for a non-empty branch point, starting from the top
@@ -257,8 +259,9 @@ See also the printing control options described in
 prints the current proof state.
 
 \item[\ttindexbold{prlev} {\it n};] 
-prints the proof state at level {\it n}.  This allows you to review the
-previous steps of the proof.
+prints the proof state at level {\it n}, if $n\geq0$.  A negative value
+of~$n$ refers to the $n$th previous level.  This command allows
+you to review earlier stages of the proof.
 
 \item[\ttindexbold{goals_limit} := {\it k};] 
 specifies~$k$ as the maximum number of subgoals to print.
