@@ -48,9 +48,13 @@ signature TACTICAL =
   val ORELSE'		: ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
   val pause_tac		: tactic
   val print_tac		: tactic
-  val REPEAT1		: tactic -> tactic
   val REPEAT		: tactic -> tactic
+  val REPEAT1		: tactic -> tactic
+  val REPEAT_DETERM_N	: int -> tactic -> tactic
   val REPEAT_DETERM	: tactic -> tactic
+  val REPEAT_DETERM1	: tactic -> tactic
+  val REPEAT_DETERM_FIRST: (int -> tactic) -> tactic
+  val REPEAT_DETERM_SOME: (int -> tactic) -> tactic
   val REPEAT_FIRST	: (int -> tactic) -> tactic
   val REPEAT_SOME	: (int -> tactic) -> tactic
   val SELECT_GOAL	: tactic -> int -> tactic
@@ -250,14 +254,19 @@ fun traced_tac seqf = Tactic (fn st =>
 
 
 (*Deterministic REPEAT: only retains the first outcome; 
-  uses less space than REPEAT; tail recursive*)
-fun REPEAT_DETERM tac = 
+  uses less space than REPEAT; tail recursive.
+  If non-negative, n bounds the number of repetitions.*)
+fun REPEAT_DETERM_N n tac = 
   let val tf = tracify trace_REPEAT tac
-      fun drep st =
-        case Sequence.pull(tf st) of
-  	    None       => Some(st, Sequence.null)
-          | Some(st',_) => drep st'
-  in  traced_tac drep  end;
+      fun drep 0 st = Some(st, Sequence.null)
+	| drep n st =
+	   (case Sequence.pull(tf st) of
+		None       => Some(st, Sequence.null)
+	      | Some(st',_) => drep (n-1) st')
+  in  traced_tac (drep n)  end;
+
+(*Allows any number of repetitions*)
+val REPEAT_DETERM = REPEAT_DETERM_N ~1;
 
 (*General REPEAT: maintains a stack of alternatives; tail recursive*)
 fun REPEAT tac = 
@@ -273,6 +282,7 @@ fun REPEAT tac =
   in  traced_tac (rep [])  end;
 
 (*Repeat 1 or more times*)
+fun REPEAT_DETERM1 tac = DETERM tac THEN REPEAT_DETERM tac;
 fun REPEAT1 tac = tac THEN REPEAT tac;
 
 
@@ -398,9 +408,11 @@ fun FIRSTGOAL tf =
 
 (*Repeatedly solve some using tf. *)
 fun REPEAT_SOME tf = REPEAT1 (SOMEGOAL (REPEAT1 o tf));
+fun REPEAT_DETERM_SOME tf = REPEAT_DETERM1 (SOMEGOAL (REPEAT_DETERM1 o tf));
 
 (*Repeatedly solve the first possible subgoal using tf. *)
 fun REPEAT_FIRST tf = REPEAT1 (FIRSTGOAL (REPEAT1 o tf));
+fun REPEAT_DETERM_FIRST tf = REPEAT_DETERM1 (FIRSTGOAL (REPEAT_DETERM1 o tf));
 
 (*For n subgoals, tries to apply tf to n,...1  *)
 fun TRYALL tf = ALLGOALS (TRY o tf);
