@@ -28,10 +28,9 @@ consts
 
 primrec cd dB
   "cd(Var n) = Var n"
-  "cd(s @ t) = (case s of
-            Var n => s @ (cd t) |
-            s1 @ s2 => (cd s) @ (cd t) |
-            Abs u => deAbs(cd s)[cd t/0])"
+  "cd(s @ t) = (case s of Var n   => (s @ cd t)
+                        | s1 @ s2 => (cd s @ cd t) 
+                        | Abs u   => deAbs(cd s)[cd t/0])"
   "cd(Abs s) = Abs(cd s)"
 
 primrec deAbs dB
