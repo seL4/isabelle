@@ -19,6 +19,7 @@ text {*
  following theorems:
 *}
 
+
 thm "point.simps"
 text {*
 Incomprehensible equations: the selectors Xcoord and Ycoord, also "more";

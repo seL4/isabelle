@@ -77,7 +77,7 @@ indicate \textbf{schematic variables} (also called
 be replaced by arbitrary formulas.  If we use the rule backwards, Isabelle
 tries to unify the current subgoal with the conclusion of the rule, which
 has the form \isa{?P\ \isasymand\ ?Q}.  (Unification is discussed below,
-\S\ref{sec:unification}.)  If successful,
+{\S}\ref{sec:unification}.)  If successful,
 it yields new subgoals given by the formulas assigned to 
 \isa{?P} and \isa{?Q}.
 
@@ -175,7 +175,7 @@ illustrates the use of disjunction elimination.
 \end{isabelle}
 We assume \isa{P\ \isasymor\ Q} and
 must prove \isa{Q\ \isasymor\ P}\@.  Our first step uses the disjunction
-elimination rule, \isa{disjE}\@.  We invoke it using \isaindex{erule}, a
+elimination rule, \isa{disjE}\@.  We invoke it using \methdx{erule}, a
 method designed to work with elimination rules.  It looks for an assumption that
 matches the rule's first premise.  It deletes the matching assumption,
 regards the first premise as proved and returns subgoals corresponding to
@@ -408,9 +408,9 @@ necessary in order to handle negated assumptions gracefully.  This section
 also illustrates the \isa{intro} method: a convenient way of
 applying introduction rules.
 
-Negation introduction deduces $\neg P$ if assuming $P$ leads to a 
+Negation introduction deduces $\lnot P$ if assuming $P$ leads to a 
 contradiction. Negation elimination deduces any formula in the 
-presence of $\neg P$ together with~$P$: 
+presence of $\lnot P$ together with~$P$: 
 \begin{isabelle}
 (?P\ \isasymLongrightarrow\ False)\ \isasymLongrightarrow\ \isasymnot\ ?P%
 \rulenamedx{notI}\isanewline
@@ -418,7 +418,7 @@ presence of $\neg P$ together with~$P$:
 \rulenamedx{notE}
 \end{isabelle}
 %
-Classical logic allows us to assume $\neg P$ 
+Classical logic allows us to assume $\lnot P$ 
 when attempting to prove~$P$: 
 \begin{isabelle}
 (\isasymnot\ ?P\ \isasymLongrightarrow\ ?P)\ \isasymLongrightarrow\ ?P%
@@ -426,7 +426,7 @@ when attempting to prove~$P$:
 \end{isabelle}
 
 \index{contrapositives|(}%
-The implications $P\imp Q$ and $\neg Q\imp\neg P$ are logically
+The implications $P\imp Q$ and $\lnot Q\imp\lnot P$ are logically
 equivalent, and each is called the
 \textbf{contrapositive} of the other.  Four further rules support
 reasoning about contrapositives.  They differ in the placement of the
@@ -450,7 +450,7 @@ assumption and the goal's conclusion.%
 
 The most important of these is \isa{contrapos_np}.  It is useful
 for applying introduction rules to negated assumptions.  For instance, 
-the assumption $\neg(P\imp Q)$ is equivalent to the conclusion $P\imp Q$ and we 
+the assumption $\lnot(P\imp Q)$ is equivalent to the conclusion $P\imp Q$ and we 
 might want to use conjunction introduction on it. 
 Before we can do so, we must move that assumption so that it 
 becomes the conclusion. The following proof demonstrates this 
@@ -586,7 +586,7 @@ $n$th subgoal is like the original one but has an additional assumption: an
 instance of~$Q$.  It is appropriate for destruction rules. 
 \item 
 Method \isa{frule\ R} is like \isa{drule\ R} except that the matching
-assumption is not deleted.  (See \S\ref{sec:frule} below.)
+assumption is not deleted.  (See {\S}\ref{sec:frule} below.)
 \end{itemize}
 
 Other methods apply a rule while constraining some of its
@@ -847,7 +847,7 @@ nor possible.
 
 An alternative to \isa{rule_tac} is to use \isa{rule} with a theorem
 modified using~\isa{of}, described in
-\S\ref{sec:forward} below.   An advantage of \isa{rule_tac} is that the
+{\S}\ref{sec:forward} below.   An advantage of \isa{rule_tac} is that the
 instantiations may refer to 
 \isasymAnd-bound variables in the current subgoal.%
 \index{substitution|)}
@@ -1146,7 +1146,7 @@ unification.  In other cases, the required term is not obvious and we must
 specify it ourselves.  Suitable methods are \isa{rule_tac}, \isa{drule_tac}
 and \isa{erule_tac}.
 
-We have seen (just above, \S\ref{sec:frule}) a proof of this lemma:
+We have seen (just above, {\S}\ref{sec:frule}) a proof of this lemma:
 \begin{isabelle}
 \isacommand{lemma}\ "\isasymlbrakk \isasymforall x.\ P\ x\
 \isasymlongrightarrow \ P\ (h\ x);\ P\ a\isasymrbrakk \
@@ -1265,13 +1265,13 @@ description) and proceed to prove other facts.
 
 A more challenging example illustrates how Isabelle/HOL defines the least number
 operator, which denotes the least \isa{x} satisfying~\isa{P}:%
-\index{least number operator}
+\index{least number operator|see{\protect\isa{LEAST}}}
 \begin{isabelle}
 (LEAST\ x.\ P\ x)\ = (SOME\ x.\ P\ x\ \isasymand \ (\isasymforall y.\
 P\ y\ \isasymlongrightarrow \ x\ \isasymle \ y))
 \end{isabelle}
 %
-Let us prove the counterpart of \isa{some_equality} for \isa{LEAST}\@.
+Let us prove the counterpart of \isa{some_equality} for \sdx{LEAST}\@.
 The first step merely unfolds the definitions (\isa{LeastM} is a
 auxiliary operator):
 \begin{isabelle}
@@ -1775,7 +1775,7 @@ an equation, so it too is a forward step.
 \subsection{Modifying a Theorem using {\tt\slshape of} and {\tt\slshape THEN}}
 
 Let us reproduce our examples in Isabelle.  Recall that in
-\S\ref{sec:recdef-simplification} we declared the recursive function
+{\S}\ref{sec:recdef-simplification} we declared the recursive function
 \isa{gcd}:\index{*gcd (constant)|(}
 \begin{isabelle}
 \isacommand{consts}\ gcd\ ::\ "nat*nat\ \isasymRightarrow\ nat"\isanewline
@@ -1906,7 +1906,7 @@ attribute such as
 \end{warn}
 
 \begin{exercise}
-In \S\ref{sec:subst} the method \isa{subst\ mult_commute} was applied.  How
+In {\S}\ref{sec:subst} the method \isa{subst\ mult_commute} was applied.  How
 can we achieve the same effect using \isa{THEN} with the rule \isa{ssubst}?
 % answer  rule (mult_commute [THEN ssubst])
 \end{exercise}
@@ -2394,7 +2394,7 @@ divisor of its two arguments.
 %
 We use induction: \isa{gcd.induct} is the
 induction rule returned by \isa{recdef}.  We simplify using
-rules proved in \S\ref{sec:recdef-simplification}, since rewriting by the
+rules proved in {\S}\ref{sec:recdef-simplification}, since rewriting by the
 definition of \isa{gcd} can loop.
 \begin{isabelle}
 \isacommand{lemma}\ gcd_dvd_both:\ "(gcd(m,n)\ dvd\ m)\ \isasymand\ (gcd(m,n)\ dvd\

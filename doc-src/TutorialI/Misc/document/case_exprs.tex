@@ -7,7 +7,7 @@
 %
 \begin{isamarkuptext}%
 \label{sec:case-expressions}
-HOL also features \isaindexbold{case}-expressions for analyzing
+HOL also features \sdx{case}-expressions for analyzing
 elements of a datatype. For example,
 \begin{isabelle}%
 \ \ \ \ \ case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ {\isadigit{1}}\ {\isacharbar}\ y\ {\isacharhash}\ ys\ {\isasymRightarrow}\ y%
@@ -58,10 +58,10 @@ indicate their scope%
 \indexbold{induction!structural}
 \indexbold{case distinction}
 Almost all the basic laws about a datatype are applied automatically during
-simplification. Only induction is invoked by hand via \isaindex{induct_tac},
+simplification. Only induction is invoked by hand via \methdx{induct_tac},
 which works for any datatype. In some cases, induction is overkill and a case
 distinction over all constructors of the datatype suffices. This is performed
-by \isaindexbold{case_tac}. A trivial example:%
+by \methdx{case_tac}. A trivial example:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbar}\ y{\isacharhash}ys\ {\isasymRightarrow}\ xs{\isacharparenright}\ {\isacharequal}\ xs{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}case{\isacharunderscore}tac\ xs{\isacharparenright}%

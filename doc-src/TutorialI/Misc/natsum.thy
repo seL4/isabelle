@@ -24,13 +24,13 @@ text{*\newcommand{\mystar}{*%
 }
 The usual arithmetic operations \ttindexboldpos{+}{$HOL2arithfun},
 \ttindexboldpos{-}{$HOL2arithfun}, \ttindexboldpos{\mystar}{$HOL2arithfun},
-\isaindexbold{div}, \isaindexbold{mod}, \isaindexbold{min} and
-\isaindexbold{max} are predefined, as are the relations
+\sdx{div}, \sdx{mod}, \cdx{min} and
+\cdx{max} are predefined, as are the relations
 \indexboldpos{\isasymle}{$HOL2arithrel} and
 \ttindexboldpos{<}{$HOL2arithrel}. As usual, @{prop"m-n = 0"} if
 @{prop"m<n"}. There is even a least number operation
-\isaindexbold{LEAST}. For example, @{prop"(LEAST n. 1 < n) = 2"}, although
-Isabelle does not prove this completely automatically. Note that @{term 1}
+\sdx{LEAST}\@.  For example, @{prop"(LEAST n. 1 < n) = 2"}, although
+Isabelle does not prove this automatically. Note that @{term 1}
 and @{term 2} are available as abbreviations for the corresponding
 @{term Suc}-expressions. If you need the full set of numerals,
 see~\S\ref{sec:numerals}.
@@ -38,8 +38,8 @@ see~\S\ref{sec:numerals}.
 \begin{warn}
   The constant \cdx{0} and the operations
   \ttindexboldpos{+}{$HOL2arithfun}, \ttindexboldpos{-}{$HOL2arithfun},
-  \ttindexboldpos{\mystar}{$HOL2arithfun}, \isaindexbold{min},
-  \isaindexbold{max}, \indexboldpos{\isasymle}{$HOL2arithrel} and
+  \ttindexboldpos{\mystar}{$HOL2arithfun}, \cdx{min},
+  \cdx{max}, \indexboldpos{\isasymle}{$HOL2arithrel} and
   \ttindexboldpos{<}{$HOL2arithrel} are overloaded, i.e.\ they are available
   not just for natural numbers but at other types as well.
   For example, given the goal @{prop"x+0 = x"},
@@ -76,7 +76,7 @@ usual logical connectives (@{text"\<not>"}, @{text"\<and>"}, @{text"\<or>"},
 @{text"\<longrightarrow>"}), the relations @{text"="}, @{text"\<le>"} and @{text"<"},
 and the operations
 @{text"+"}, @{text"-"}, @{term min} and @{term max}. Technically, this is
-known as the class of (quantifier free) \bfindex{linear arithmetic} formulae.
+known as the class of (quantifier free) \textbf{linear arithmetic} formulae.
 For example,
 *}
 
@@ -97,8 +97,8 @@ on properties of multiplication.
 
 \begin{warn}
   The running time of @{text arith} is exponential in the number of occurrences
-  of \ttindexboldpos{-}{$HOL2arithfun}, \isaindexbold{min} and
-  \isaindexbold{max} because they are first eliminated by case distinctions.
+  of \ttindexboldpos{-}{$HOL2arithfun}, \cdx{min} and
+  \cdx{max} because they are first eliminated by case distinctions.
 
   \isa{arith} is incomplete even for the restricted class of
   linear arithmetic formulae. If divisibility plays a

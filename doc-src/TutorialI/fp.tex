@@ -126,8 +126,9 @@ would have alerted us because of the unexpected variable \isa{re}.
   the files have not been modified).
   
   If you suddenly discover that you need to modify a parent theory of your
-  current theory, you must first abandon your current theory\indexbold{abandon
-  theory}\indexbold{theory!abandon} (at the shell
+  current theory, you must first abandon your current theory%
+  \indexbold{abandoning a theory}\indexbold{theories!abandoning} 
+  (at the shell
   level type \commdx{kill}). After the parent theory has
   been modified, you go back to your original theory. When its first line
   \isa{\isacommand{theory}~T~=~\dots~:} is processed, the
@@ -154,12 +155,12 @@ case study.
 
 
 \subsection{Lists}
-\indexbold{*list}
 
+\index{*list (type)}%
 Lists are one of the essential datatypes in computing. Readers of this
 tutorial and users of HOL need to be familiar with their basic operations.
 Theory \isa{ToyList} is only a small fragment of HOL's predefined theory
-\isa{List}\footnote{\url{http://isabelle.in.tum.de/library/HOL/List.html}}.
+\thydx{List}\footnote{\url{http://isabelle.in.tum.de/library/HOL/List.html}}.
 The latter contains many further operations. For example, the functions
 \cdx{hd} (``head'') and \cdx{tl} (``tail'') return the first
 element and the remainder of a list. (However, pattern-matching is usually
@@ -205,8 +206,8 @@ Isabelle will always show \isa{size} on lists as \isa{length}.
 \subsection{Primitive Recursion}
 
 Functions on datatypes are usually defined by recursion. In fact, most of the
-time they are defined by what is called \bfindex{primitive recursion}.
-The keyword \isacommand{primrec}\indexbold{*primrec} is followed by a list of
+time they are defined by what is called \textbf{primitive recursion}.
+The keyword \commdx{primrec} is followed by a list of
 equations
 \[ f \, x@1 \, \dots \, (C \, y@1 \, \dots \, y@k)\, \dots \, x@n = r \]
 such that $C$ is a constructor of the datatype $t$ and all recursive calls of
@@ -230,12 +231,12 @@ A more general method for defining total recursive functions is introduced in
 
 \subsection{Natural Numbers}
 \label{sec:nat}
-\index{arithmetic|(}
+\index{linear arithmetic|(}
 
 \input{Misc/document/fakenat.tex}
 \input{Misc/document/natsum.tex}
 
-\index{arithmetic|)}
+\index{linear arithmetic|)}
 
 
 \subsection{Pairs}
@@ -256,17 +257,18 @@ definitions.
 
 
 \subsection{Type Synonyms}
-\indexbold{type synonym}
 
-Type synonyms are similar to those found in ML\@. Their syntax is fairly self
-explanatory:
+\indexbold{type synonyms|(}%
+Type synonyms are similar to those found in ML\@. They are issued by a 
+\commdx{types} command:
 
 \input{Misc/document/types.tex}%
 
 Note that pattern-matching is not allowed, i.e.\ each definition must be of
 the form $f\,x@1\,\dots\,x@n~\isasymequiv~t$.
 Section~{\S}\ref{sec:Simp-with-Defs} explains how definitions are used
-in proofs.
+in proofs.%
+\indexbold{type synonyms|)}
 
 \input{Misc/document/prime_def.tex}
 
@@ -359,11 +361,14 @@ necessarily become simpler in the process.
 
 \section{Advanced Datatypes}
 \label{sec:advanced-datatypes}
-\index{*datatype|(}
-\index{*primrec|(}
+\index{datatype@\isacommand {datatype} (command)|(}
+\index{primrec@\isacommand {primrec} (command)|(}
 %|)
 
-This section presents advanced forms of \isacommand{datatype}s.
+This section presents advanced forms of datatypes: mutual and nested
+recursion.  A series of examples will culminate in a treatment of the trie
+data structure.
+
 
 \subsection{Mutual Recursion}
 \label{sec:datatype-mut-rec}
@@ -412,9 +417,9 @@ do indeed make sense~\cite{paulson87}.  Note the different arrow,
 expressing the type of \emph{continuous} functions. 
 There is even a version of LCF on top of HOL,
 called HOLCF~\cite{MuellerNvOS99}.
+\index{datatype@\isacommand {datatype} (command)|)}
+\index{primrec@\isacommand {primrec} (command)|)}
 
-\index{*primrec|)}
-\index{*datatype|)}
 
 \subsection{Case Study: Tries}
 \label{sec:Trie}
@@ -472,7 +477,7 @@ of the predefined datatype \isa{option} (see {\S}\ref{sec:option}).
 
 \section{Total Recursive Functions}
 \label{sec:recdef}
-\index{*recdef|(}
+\index{recdef@\isacommand {recdef} (command)|(}\index{functions!total|(}
 
 Although many total functions have a natural primitive recursive definition,
 this is not always the case. Arbitrary total recursive functions can be
@@ -504,4 +509,4 @@ more advanced termination proofs are discussed in {\S}\ref{sec:beyond-measure}.
 
 \index{induction!recursion|)}
 \index{recursion induction|)}
-\index{*recdef|)}
+\index{recdef@\isacommand {recdef} (command)|)}\index{functions!total|)}

@@ -13,8 +13,9 @@ datatype 'a list = Nil                          ("[]")
                  | Cons 'a "'a list"            (infixr "#" 65);
 
 text{*\noindent
-The datatype\index{*datatype} \isaindexbold{list} introduces two
-constructors \isaindexbold{Nil} and \isaindexbold{Cons}, the
+\index{datatype@\isacommand {datatype} (command)}
+The datatype \tydx{list} introduces two
+constructors \cdx{Nil} and \cdx{Cons}, the
 empty~list and the operator that adds an element to the front of a list. For
 example, the term \isa{Cons True (Cons False Nil)} is a value of
 type @{typ"bool list"}, namely the list with the elements @{term"True"} and
@@ -25,7 +26,8 @@ datatype declaration is annotated with an alternative syntax: instead of
 @{term"x # xs"}\index{$HOL2list@\texttt{\#}|bold}. In fact, this
 alternative syntax is the standard syntax. Thus the list \isa{Cons True
 (Cons False Nil)} becomes @{term"True # False # []"}. The annotation
-\isacommand{infixr}\indexbold{*infixr} means that @{text"#"} associates to
+\isacommand{infixr}\index{infixr@\isacommand{infixr} (annotation)} 
+means that @{text"#"} associates to
 the right, i.e.\ the term @{term"x # y # z"} is read as @{text"x # (y # z)"}
 and not as @{text"(x # y) # z"}.
 The @{text 65} is the priority of the infix @{text"#"}.
@@ -37,7 +39,7 @@ The @{text 65} is the priority of the infix @{text"#"}.
   We recommend that novices avoid using
   syntax annotations in their own theories.
 \end{warn}
-Next, two functions @{text"app"} and \isaindexbold{rev} are declared:
+Next, two functions @{text"app"} and \cdx{rev} are declared:
 *}
 
 consts app :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"   (infixr "@" 65)
@@ -67,11 +69,11 @@ text{*
 \noindent
 The equations for @{text"app"} and @{term"rev"} hardly need comments:
 @{text"app"} appends two lists and @{term"rev"} reverses a list.  The
-keyword \isacommand{primrec}\index{*primrec} indicates that the recursion is
+keyword \commdx{primrec} indicates that the recursion is
 of a particularly primitive kind where each recursive call peels off a datatype
 constructor from one of the arguments.  Thus the
 recursion always terminates, i.e.\ the function is \textbf{total}.
-\index{total function}
+\index{functions!total}
 
 The termination requirement is absolutely essential in HOL, a logic of total
 functions. If we were to drop it, inconsistencies would quickly arise: the
@@ -125,7 +127,8 @@ list. The input line
 
 theorem rev_rev [simp]: "rev(rev xs) = xs";
 
-txt{*\index{*theorem|bold}\index{*simp (attribute)|bold}
+txt{*\index{theorem@\isacommand {theorem} (command)|bold}%
+\index{*simp (attribute)|bold}
 \noindent
 does several things.  It
 \begin{itemize}
@@ -170,14 +173,15 @@ a reminder. Hence we rarely show it in this tutorial.
 
 Let us now get back to @{prop"rev(rev xs) = xs"}. Properties of recursively
 defined functions are best established by induction. In this case there is
-not much choice except to induct on @{term"xs"}:
+nothing obvious except induction on @{term"xs"}:
 *}
 
 apply(induct_tac xs);
 
-txt{*\noindent\index{*induct_tac}%
+txt{*\noindent\index{*induct_tac (method)}%
 This tells Isabelle to perform induction on variable @{term"xs"}. The suffix
-@{term"tac"} stands for \bfindex{tactic}, a synonym for ``theorem proving function''.
+@{term"tac"} stands for \textbf{tactic},\index{tactics}
+a synonym for ``theorem proving function''.
 By default, induction acts on the first subgoal. The new proof state contains
 two subgoals, namely the base case (@{term[source]Nil}) and the induction step
 (@{term[source]Cons}):
@@ -217,21 +221,20 @@ In order to simplify this subgoal further, a lemma suggests itself.
 oops
 (*>*)
 
-subsubsection{*First Lemma: @{text"rev(xs @ ys) = (rev ys) @ (rev xs)"}*}
+subsubsection{*First Lemma*}
 
 text{*
-After abandoning the above proof attempt\indexbold{abandon
-proof}\indexbold{proof!abandon} (at the shell level type
-\isacommand{oops}\indexbold{*oops}) we start a new proof:
+\indexbold{abandoning a proof}\indexbold{proofs!abandoning}
+After abandoning the above proof attempt (at the shell level type
+\commdx{oops}) we start a new proof:
 *}
 
 lemma rev_app [simp]: "rev(xs @ ys) = (rev ys) @ (rev xs)";
 
-txt{*\noindent The keywords \isacommand{theorem}\index{*theorem} and
-\isacommand{lemma}\indexbold{*lemma} are interchangeable and merely indicate
+txt{*\noindent The keywords \commdx{theorem} and
+\commdx{lemma} are interchangeable and merely indicate
 the importance we attach to a proposition.  Therefore we use the words
-\emph{theorem}\index{theorem} and \emph{lemma}\index{lemma} pretty much
-interchangeably, too.
+\emph{theorem} and \emph{lemma} pretty much interchangeably, too.
 
 There are two variables that we could induct on: @{term"xs"} and
 @{term"ys"}. Because @{text"@"} is defined by recursion on
@@ -256,7 +259,7 @@ embarking on the proof of a lemma usually remains implicit.
 oops
 (*>*)
 
-subsubsection{*Second Lemma: @{text"xs @ [] = xs"}*}
+subsubsection{*Second Lemma*}
 
 text{*
 This time the canonical proof procedure
@@ -275,8 +278,8 @@ We still need to confirm that the proof is now finished:
 
 done
 
-text{*\noindent\indexbold{done}%
-As a result of that final \isacommand{done}, Isabelle associates the lemma just proved
+text{*\noindent
+As a result of that final \commdx{done}, Isabelle associates the lemma just proved
 with its name. In this tutorial, we sometimes omit to show that final \isacommand{done}
 if it is obvious from the context that the proof is finished.
 

@@ -230,12 +230,12 @@ From the axiom and lemma for @{term"f"}, show that @{term"f"} is the
 identity function.
 \end{exercise}
 
-Method @{text induct_tac} can be applied with any rule $r$
+Method \methdx{induct_tac} can be applied with any rule $r$
 whose conclusion is of the form ${?}P~?x@1 \dots ?x@n$, in which case the
 format is
 \begin{quote}
 \isacommand{apply}@{text"(induct_tac"} $y@1 \dots y@n$ @{text"rule:"} $r$@{text")"}
-\end{quote}\index{*induct_tac}%
+\end{quote}
 where $y@1, \dots, y@n$ are variables in the first subgoal.
 The conclusion of $r$ can even be an (iterated) conjunction of formulae of
 the above form in which case the application is

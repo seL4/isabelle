@@ -110,8 +110,8 @@ automatic case splitting as well, which finishes the proof:
 apply(induct_tac xs, simp, simp split: instr.split);
 (*<*)done(*>*)
 text{*\noindent
-Note that because both \isaindex{simp_all} and \isaindex{auto} perform simplification, they can
-be modified in the same way @{text simp} can. Thus the proof can be
+Note that because both \methdx{simp_all} and \methdx{auto} perform simplification, they can
+be modified in the same way as @{text simp}.  Thus the proof can be
 rewritten as
 *}
 (*<*)

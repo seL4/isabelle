@@ -53,7 +53,7 @@ be empty. Specific modifiers are discussed below.  Most if not all of the
 proofs seen so far could have been performed
 with @{text simp} instead of \isa{auto}, except that @{text simp} attacks
 only the first subgoal and may thus need to be repeated --- use
-\isaindex{simp_all} to simplify all subgoals.
+\methdx{simp_all} to simplify all subgoals.
 Note that @{text simp} fails if nothing changes.
 *}
 
@@ -134,7 +134,7 @@ other modifiers.
 Assumptions are simplified in a left-to-right fashion. If an
 assumption can help in simplifying one to the left of it, this may get
 overlooked. In such cases you have to rotate the assumptions explicitly:
-\isacommand{apply}@{text"(rotate_tac"}~$n$@{text")"}\indexbold{*rotate_tac}
+\isacommand{apply}@{text"("}\methdx{rotate_tac}~$n$@{text")"}
 causes a cyclic shift by $n$ positions from right to left, if $n$ is
 positive, and from left to right, if $n$ is negative.
 Beware that such rotations make proofs quite brittle.
@@ -163,8 +163,8 @@ we may want to prove
 lemma "xor A (\<not>A)";
 
 txt{*\noindent
-Typically, the opening move consists in \emph{unfolding} the definition(s), which we need to
-get started, but nothing else:\indexbold{*unfold}\indexbold{definition!unfolding}
+Typically, we begin by unfolding some definitions:
+\indexbold{definitions!unfolding}
 *}
 
 apply(simp only:xor_def);
@@ -193,7 +193,7 @@ rule because this defeats the whole purpose.
 subsection{*Simplifying {\tt\slshape let}-Expressions*}
 
 text{*\index{simplification!of let-expressions}
-Proving a goal containing \isaindex{let}-expressions almost invariably
+Proving a goal containing \sdx{let}-expressions almost invariably
 requires the @{text"let"}-con\-structs to be expanded at some point. Since
 @{text"let"}\ldots\isa{=}\ldots@{text"in"}{\ldots} is just syntactic sugar for a predefined constant
 (called @{term"Let"}), expanding @{text"let"}-constructs means rewriting with
@@ -260,13 +260,13 @@ apply(split split_if)
 
 txt{*\noindent
 @{subgoals[display,indent=0]}
-where \isaindexbold{split_if} is a theorem that expresses splitting of
+where \tdx{split_if} is a theorem that expresses splitting of
 @{text"if"}s. Because
 case-splitting on @{text"if"}s is almost always the right proof strategy, the
 simplifier performs it automatically. Try \isacommand{apply}@{text"(simp)"}
 on the initial goal above.
 
-This splitting idea generalizes from @{text"if"} to \isaindex{case}.
+This splitting idea generalizes from @{text"if"} to \sdx{case}.
 Let us simplify a case analysis over lists:
 *}(*<*)by simp(*>*)
 lemma "(case xs of [] \<Rightarrow> zs | y#ys \<Rightarrow> y#(ys@zs)) = xs@zs";
@@ -338,7 +338,7 @@ $t$@{text".split_asm"}. Analogously, there is @{thm[source]if_splits}.
   The simplifier merely simplifies the condition of an \isa{if} but not the
   \isa{then} or \isa{else} parts. The latter are simplified only after the
   condition reduces to \isa{True} or \isa{False}, or after splitting. The
-  same is true for \isaindex{case}-expressions: only the selector is
+  same is true for \sdx{case}-expressions: only the selector is
   simplified at first, until either the expression reduces to one of the
   cases or it is split.
 \end{warn}\index{*split (method, attr.)|)}
@@ -349,7 +349,7 @@ by(simp_all)
 
 subsection{*Arithmetic*}
 
-text{*\index{arithmetic}
+text{*\index{linear arithmetic}
 The simplifier routinely solves a small class of linear arithmetic formulae
 (over type \isa{nat} and other numeric types): it only takes into account
 assumptions and conclusions that are relations
@@ -374,7 +374,8 @@ is not proved by simplification and requires @{text arith}.
 subsection{*Tracing*}
 text{*\indexbold{tracing the simplifier}
 Using the simplifier effectively may take a bit of experimentation.  Set the
-\isaindexbold{trace_simp} \rmindex{flag} to get a better idea of what is going
+\isa{trace_simp}\index{*trace_simp (flag)} flag\index{flags} 
+to get a better idea of what is going
 on:
 *}
 

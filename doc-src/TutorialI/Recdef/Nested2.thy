@@ -77,7 +77,7 @@ recdef dummy "{}"
 
 text{*\noindent
 or declare them globally
-by giving them the \isaindexbold{recdef_cong} attribute as in
+by giving them the \attrdx{recdef_cong} attribute as in
 *}
 
 declare map_cong[recdef_cong]

@@ -15,6 +15,13 @@ SEDINDEX = isa-index
 
 NAME = tutorial
 FILES = tutorial.tex basics.tex fp.tex appendix.tex \
+	Advanced/advanced.tex \
+	CTL/ctl.tex \
+	Inductive/inductive.tex Inductive/even-example.tex \
+	Inductive/advanced-examples.tex \
+	Protocol/protocol.tex \
+	Rules/rules.tex Sets/sets.tex \
+	Types/numerics.tex Types/records.tex Types/types.tex \
 	../iman.sty ../ttbox.sty ../extra.sty \
 	isabelle.sty isabellesym.sty ../pdfsetup.sty
 

@@ -5,7 +5,7 @@
 \ \ \ \ \ \ gate\ \ \ \ \ \ \ \ \ {\isacharequal}\ {\isachardoublequote}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequote}\isanewline
 \ \ \ \ \ \ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}alist\ {\isacharequal}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b{\isacharparenright}list{\isachardoublequote}%
 \begin{isamarkuptext}%
-\noindent\indexbold{*types}%
+\noindent
 Internally all synonyms are fully expanded.  As a consequence Isabelle's
 output never contains synonyms.  Their main purpose is to improve the
 readability of theories.  Synonyms can be used just like any other
@@ -17,7 +17,7 @@ type:%
 }
 %
 \begin{isamarkuptext}%
-\label{sec:ConstDefinitions}\indexbold{definition}%
+\label{sec:ConstDefinitions}\indexbold{definitions}%
 The above constants \isa{nand} and \isa{xor} are non-recursive and can
 therefore be defined directly by%
 \end{isamarkuptext}%
@@ -25,19 +25,20 @@ therefore be defined directly by%
 \ \ \ \ \ xor{\isacharunderscore}def{\isacharcolon}\ \ {\isachardoublequote}xor\ A\ B\ \ {\isasymequiv}\ A\ {\isasymand}\ {\isasymnot}B\ {\isasymor}\ {\isasymnot}A\ {\isasymand}\ B{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent%
-where \isacommand{defs}\indexbold{*defs} is a keyword and
+where \commdx{defs} is a keyword and
 \isa{nand{\isacharunderscore}def} and \isa{xor{\isacharunderscore}def} are user-supplied names.
 The symbol \indexboldpos{\isasymequiv}{$IsaEq} is a special form of equality
 that must be used in constant definitions.
-Declarations and definitions can also be merged%
+Declarations and definitions can also be merged in a \commdx{constdefs} 
+command:%
 \end{isamarkuptext}%
 \isacommand{constdefs}\ nor\ {\isacharcolon}{\isacharcolon}\ gate\isanewline
 \ \ \ \ \ \ \ \ \ {\isachardoublequote}nor\ A\ B\ {\isasymequiv}\ {\isasymnot}{\isacharparenleft}A\ {\isasymor}\ B{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ \ \ \ \ \ \ \ \ xor{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ gate\isanewline
 \ \ \ \ \ \ \ \ \ {\isachardoublequote}xor{\isadigit{2}}\ A\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymor}\ B{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}{\isasymnot}A\ {\isasymor}\ {\isasymnot}B{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
-\noindent\indexbold{*constdefs}%
-in which case the default name of each definition is $f$\isa{{\isacharunderscore}def}, where
+\noindent
+The default name of each definition is $f$\isa{{\isacharunderscore}def}, where
 $f$ is the name of the defined constant.%
 \end{isamarkuptext}%
 \end{isabellebody}%

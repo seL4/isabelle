@@ -7,15 +7,17 @@
 %
 \begin{isamarkuptext}%
 \label{sec:def-translations}
+\indexbold{syntax translations|(}%
+\indexbold{translations@\isacommand {translations} (command)|(}
 Isabelle offers an additional definition-like facility,
-\textbf{syntax translations}\indexbold{syntax translation}.
+\textbf{syntax translations}.
 They resemble macros: upon parsing, the defined concept is immediately
 replaced by its definition, and this is reversed upon printing. For example,
 the symbol \isa{{\isasymnoteq}} is defined via a syntax translation:%
 \end{isamarkuptext}%
 \isacommand{translations}\ {\isachardoublequote}x\ {\isasymnoteq}\ y{\isachardoublequote}\ {\isasymrightleftharpoons}\ {\isachardoublequote}{\isasymnot}{\isacharparenleft}x\ {\isacharequal}\ y{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
-\indexbold{*translations}\indexbold{$IsaEqTrans@\isasymrightleftharpoons}
+\indexbold{$IsaEqTrans@\isasymrightleftharpoons}
 \noindent
 Internally, \isa{{\isasymnoteq}} never appears.
 
@@ -30,6 +32,8 @@ via translations.  Translations are preferable to definitions when the new
 concept is a trivial variation on an existing one.  For example, we
 don't need to derive new theorems about \isa{{\isasymnoteq}}, since existing theorems
 about \isa{{\isacharequal}} still apply.%
+\indexbold{syntax translations|)}%
+\indexbold{translations@\isacommand {translations} (command)|)}%
 \end{isamarkuptext}%
 \end{isabellebody}%
 %%% Local Variables:

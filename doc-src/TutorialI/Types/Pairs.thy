@@ -1,9 +1,9 @@
 (*<*)theory Pairs = Main:(*>*)
 
-section{*Pairs*}
+section{*Pairs and Tuples*}
 
 text{*\label{sec:products}
-Pairs were already introduced in \S\ref{sec:pairs}, but only with a minimal
+Ordered pairs were already introduced in \S\ref{sec:pairs}, but only with a minimal
 repertoire of operations: pairing and the two projections @{term fst} and
 @{term snd}. In any non-trivial application of pairs you will find that this
 quickly leads to unreadable formulae involving nests of projections. This

@@ -14,7 +14,7 @@ further. Its main advantage is that you can distinguish if the
 function was applied to an argument in its domain or not. If you do
 not need to make this distinction, for example because the function is
 never used outside its domain, it is easier to work with
-\emph{underdefined}\index{underdefined function} functions: for
+\emph{underdefined}\index{functions!underdefined} functions: for
 certain arguments we only know that a result exists, but we do not
 know what it is. When defining functions that are normally considered
 partial, underdefinedness turns out to be a very reasonable
@@ -143,9 +143,9 @@ done
 subsubsection{*The {\tt\slshape while} Combinator*}
 
 text{*If the recursive function happens to be tail recursive, its
-definition becomes a triviality if based on the predefined \isaindexbold{while}
+definition becomes a triviality if based on the predefined \cdx{while}
 combinator.  The latter lives in the Library theory
-\isa{While_Combinator}, which is not part of @{text Main} but needs to
+\thydx{While_Combinator}, which is not part of @{text Main} but needs to
 be included explicitly among the ancestor theories.
 
 Constant @{term while} is of type @{text"('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a"}

@@ -324,7 +324,7 @@ R\isasymrbrakk\ \isasymLongrightarrow\ R%
 \rulenamedx{UN_E}
 \end{isabelle}
 %
-The following built-in syntax translation (see \S\ref{sec:def-translations})
+The following built-in syntax translation (see {\S}\ref{sec:def-translations})
 lets us express the union over a \emph{type}:
 \begin{isabelle}
 \ \ \ \ \
@@ -368,7 +368,7 @@ A\ \isasymin\ X)
 Isabelle uses logical equivalences such as those above in automatic proof. 
 Unions, intersections and so forth are not simply replaced by their
 definitions.  Instead, membership tests are simplified.  For example,  $x\in
-A\cup B$ is replaced by $x\in A\vee x\in B$.
+A\cup B$ is replaced by $x\in A\lor x\in B$.
 
 The internal form of a comprehension involves the constant  
 \cdx{Collect},
@@ -742,7 +742,7 @@ R\ \isacharcircum\ Suc\ n\ =\ R\ O\ R\isacharcircum n
 
 \subsection{The Reflexive and Transitive Closure}
 
-\index{closure!reflexive and transitive|(}%
+\index{reflexive and transitive closure|(}%
 The \textbf{reflexive and transitive closure} of the
 relation~\isa{r} is written with a
 postfix syntax.  In ASCII we write \isa{r\isacharcircum*} and in
@@ -871,7 +871,7 @@ proceed.  Other methods that split variables in this way are \isa{force},
 \isa{auto}, \isa{fast} and \isa{best}.  Section~\ref{sec:products} will discuss proof
 techniques for ordered pairs in more detail.
 \end{warn}
-\index{relations|)}\index{closure!reflexive and transitive|)}
+\index{relations|)}\index{reflexive and transitive closure|)}
 
 
 \section{Well-Founded Relations and Induction}
@@ -902,7 +902,7 @@ You may want to skip the rest of this section until you need to perform a
 complex recursive function definition or induction.  The induction rule
 returned by
 \isacommand{recdef} is good enough for most purposes.  We use an explicit
-well-founded induction only in \S\ref{sec:CTL-revisited}.
+well-founded induction only in {\S}\ref{sec:CTL-revisited}.
 \end{warn}
 
 Isabelle/HOL declares \cdx{less_than} as a relation object, 
@@ -960,11 +960,11 @@ ra\ <*lex*>\ rb\ \isasymequiv \isanewline
 \end{isabelle}
 
 These constructions can be used in a
-\textbf{recdef} declaration (\S\ref{sec:recdef-simplification}) to define
+\textbf{recdef} declaration ({\S}\ref{sec:recdef-simplification}) to define
 the well-founded relation used to prove termination.
 
 The \bfindex{multiset ordering}, useful for hard termination proofs, is
-available in the Library.  Baader and Nipkow \cite[\S2.5]{Baader-Nipkow}
+available in the Library.  Baader and Nipkow \cite[{\S}2.5]{Baader-Nipkow}
 discuss it. 
 
 \medskip
@@ -1014,7 +1014,7 @@ theorem.
 
 \begin{warn}
 Casual readers should skip the rest of this section.  We use fixed point
-operators only in \S\ref{sec:VMC}.
+operators only in {\S}\ref{sec:VMC}.
 \end{warn}
 
 The theory applies only to monotonic functions.\index{monotone functions|bold} 
@@ -1065,7 +1065,8 @@ mono\ f\ \isasymLongrightarrow\ gfp\ f\ =\ f\ (gfp\ f)
 gfp\ f%
 \rulename{coinduct}
 \end{isabelle}
-A \bfindex{bisimulation} is perhaps the best-known concept defined as a
+A \textbf{bisimulation}\index{bisimulations} 
+is perhaps the best-known concept defined as a
 greatest fixed point.  Exhibiting a bisimulation to prove the equality of
 two agents in a process algebra is an example of coinduction.
 The coinduction rule can be strengthened in various ways; see 

@@ -1,6 +1,8 @@
 % $Id$
-\chapter{Case Study: Verifying a Cryptographic Protocol}
+\chapter{Case Study: Verifying a Security Protocol}
 \label{chap:crypto}
+
+\index{protocols!security|(}
 
 %crypto primitives 
 \def\lbb{\mathopen{\{\kern-.30em|}}
@@ -46,6 +48,7 @@ how to verify protocols using Isabelle.
 
 \section{The Needham-Schroeder Public-Key Protocol}\label{sec:ns-protocol}
 
+\index{Needham-Schroeder protocol|(}%
 This protocol uses public-key cryptography. Each person has a private key, known only to
 himself, and a public key, known to everybody. If Alice wants to send Bob a secret message, she
 encrypts it using Bob's public key (which everybody knows), and sends it to Bob. Only Bob has the
@@ -73,7 +76,8 @@ active.  But the protocol was widely believed~\cite{ban89} to satisfy a
 further property: that
 $Na$ and~$Nb$ were secrets shared by Alice and Bob.  (Many
 protocols generate such shared secrets, which can be used
-to lessen the reliance on slow public-key operations.)  Lowe found this
+to lessen the reliance on slow public-key operations.)  
+Lowe\index{Lowe, Gavin|(} found this
 claim to be false: if Alice runs the protocol with someone untrustworthy
 (Charlie say), then he can start a new run with another agent (Bob say). 
 Charlie uses Alice as an oracle, masquerading as
@@ -115,13 +119,15 @@ $\comp{Na,Nb,C}\sb{Ka}$.  She will abandon the run, and eventually so
 will Bob.  Below, we shall look at parts of this protocol's correctness
 proof. 
 
-In ground-breaking work, Lowe~\cite{lowe-fdr} showed how such attacks
+In ground-breaking work, Lowe~\cite{lowe-fdr}\index{Lowe, Gavin|)}
+showed how such attacks
 could be found automatically using a model checker.  An alternative,
 which we shall examine below, is to prove protocols correct.  Proofs
 can be done under more realistic assumptions because our model does
 not have to be finite.  The strategy is to formalize the operational
 semantics of the system and to prove security properties using rule
-induction.
+induction.%
+\index{Needham-Schroeder protocol|)}
 
 
 \section{Agents and Messages}
@@ -567,7 +573,7 @@ analz\ (insert\ (Crypt\ K\ X)\ H)\ =\isanewline
 \rulename{analz_Crypt_if} 
 \end{isabelle} 
 The simplifier has also used \isa{Spy_see_priK}, proved in
-\S\ref{sec:regularity}) above, to yield \isa{Ba\ \isasymin \ bad}.
+{\S}\ref{sec:regularity}) above, to yield \isa{Ba\ \isasymin \ bad}.
 
 Recall that this subgoal concerns the case
 where the last message to be sent was
@@ -634,6 +640,6 @@ prove that other protocol runs function
 correctly~\cite{paulson-yahalom}.  Proofs of real-world protocols follow
 the strategy illustrated above, but the subgoals can
 be much bigger and there are more of them.
-
+\index{protocols!security|)}
 
 \endinput

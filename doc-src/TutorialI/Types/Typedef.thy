@@ -17,12 +17,14 @@ standard means, then read on.
 subsection{*Declaring New Types*}
 
 text{*\label{sec:typedecl}
-The most trivial way of introducing a new type is by a \bfindex{type
+\index{types!declaring|(}%
+\index{typedecl@\isacommand {typedecl} (command)}%
+The most trivial way of introducing a new type is by a \textbf{type
 declaration}: *}
 
 typedecl my_new_type
 
-text{*\noindent\indexbold{*typedecl}%
+text{*\noindent
 This does not define @{typ my_new_type} at all but merely introduces its
 name. Thus we know nothing about this type, except that it is
 non-empty. Such declarations without definitions are
@@ -48,13 +50,16 @@ of your development. It is extremely easy to write down contradictory sets of
 axioms, in which case you will be able to prove everything but it will mean
 nothing.  In the example above, the axiomatic approach is
 unnecessary: a one-element type called @{typ unit} is already defined in HOL.
+\index{types!declaring|)}
 *}
 
 subsection{*Defining New Types*}
 
 text{*\label{sec:typedef}
-Now we come to the most general method of safely introducing a new type, the
-\bfindex{type definition}. All other methods, for example
+\index{types!defining|(}%
+\index{typedecl@\isacommand {typedef} (command)|(}%
+Now we come to the most general means of safely introducing a new type, the
+\textbf{type definition}. All other means, for example
 \isacommand{datatype}, are based on it. The principle is extremely simple:
 any non-empty subset of an existing type can be turned into a new type.  Thus
 a type definition is merely a notational device: you introduce a new name for
@@ -70,7 +75,7 @@ It is easily represented by the first three natural numbers:
 
 typedef three = "{n. n \<le> 2}"
 
-txt{*\noindent\indexbold{*typedef}%
+txt{*\noindent
 In order to enforce that the representing set on the right-hand side is
 non-empty, this definition actually starts a proof to that effect:
 @{subgoals[display,indent=0]}
@@ -276,7 +281,9 @@ analogous functions on the representation via $Abs_ty$ and $Rep_ty$.
 \item Prove that $P$ holds for $ty$ by lifting $P$ from the representation.
 \end{enumerate}
 You can now forget about the representation and work solely in terms of the
-abstract functions $F$ and properties $P$.
+abstract functions $F$ and properties $P$.%
+\index{typedecl@\isacommand {typedef} (command)|)}%
+\index{types!defining|)}
 *}
 
 (*<*)end(*>*)

@@ -186,4 +186,4 @@ $(LOG)/HOL-Protocol.gz: $(OUT)/HOL Protocol/ROOT.ML  \
 ## clean
 
 clean:
-	@rm -f tutorial.dvi $(LOG)/HOL-Ifexpr.gz $(LOG)/HOL-CodeGen.gz $(LOG)/HOL-Misc.gz $(LOG)/HOL-ToyList.gz $(LOG)/HOL-ToyList2.gz $(LOG)/HOL-Trie.gz $(LOG)/HOL-Datatype.gz $(LOG)/HOL-Recdef.gz $(LOG)/HOL-Advanced.gz $(LOG)/HOL-Rules.gz $(LOG)/HOL-Sets.gz $(LOG)/HOL-CTL.gz $(LOG)/HOL-Inductive.gz $(LOG)/HOL-Types.gz $(LOG)/HOL-Protocol.gz
+	@rm -f tutorial.dvi $(LOG)/HOL-Ifexpr.gz $(LOG)/HOL-CodeGen.gz $(LOG)/HOL-Misc.gz $(LOG)/HOL-ToyList.gz $(LOG)/HOL-ToyList2.gz $(LOG)/HOL-Trie.gz $(LOG)/HOL-Datatype.gz $(LOG)/HOL-Recdef.gz $(LOG)/HOL-Advanced.gz $(LOG)/HOL-Rules.gz $(LOG)/HOL-Sets.gz $(LOG)/HOL-CTL.gz $(LOG)/HOL-Inductive.gz $(LOG)/HOL-Types.gz $(LOG)/HOL-Protocol.gz Rules/document/*.tex Sets/document/*.tex

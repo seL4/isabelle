@@ -3,11 +3,11 @@
 \def\isabellecontext{pairs}%
 %
 \begin{isamarkuptext}%
-\label{sec:pairs}\indexbold{pair}
-HOL also has pairs: \isa{($a@1$,$a@2$)} is of type $\tau@1$
+\label{sec:pairs}\index{pairs and tuples}
+HOL also has ordered pairs: \isa{($a@1$,$a@2$)} is of type $\tau@1$
 \indexboldpos{\isasymtimes}{$Isatype} $\tau@2$ provided each $a@i$ is of type
-$\tau@i$. The components of a pair are extracted by \isaindexbold{fst} and
-\isaindexbold{snd}:
+$\tau@i$. The functions \cdx{fst} and
+\cdx{snd} extract the components of a pair:
  \isa{fst($x$,$y$) = $x$} and \isa{snd($x$,$y$) = $y$}. Tuples
 are simulated by pairs nested to the right: \isa{($a@1$,$a@2$,$a@3$)} stands
 for \isa{($a@1$,($a@2$,$a@3$))} and $\tau@1 \times \tau@2 \times \tau@3$ for
@@ -17,7 +17,7 @@ $\tau@1 \times (\tau@2 \times \tau@3)$. Therefore we have
 Remarks:
 \begin{itemize}
 \item
-There is also the type \isaindexbold{unit}, which contains exactly one
+There is also the type \tydx{unit}, which contains exactly one
 element denoted by \ttindexboldpos{()}{$Isatype}. This type can be viewed
 as a degenerate product with 0 components.
 \item

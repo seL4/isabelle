@@ -212,7 +212,7 @@ be viewed as the intersection of the two classes @{text linord} and @{text
 wford}. Such intersections need not be given a new name but can be created on
 the fly: the expression $\{C@1,\dots,C@n\}$, where the $C@i$ are classes,
 represents the intersection of the $C@i$. Such an expression is called a
-\bfindex{sort}, and sorts can appear in most places where we have only shown
+\textbf{sort},\index{sorts} and sorts can appear in most places where we have only shown
 classes so far, for example in type constraints: @{text"'a::{linord,wford}"}.
 In fact, @{text"'a::C"} is short for @{text"'a::{C}"}.
 However, we do not pursue this rarefied concept further.

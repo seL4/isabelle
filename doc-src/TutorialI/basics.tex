@@ -42,8 +42,9 @@ index.
 \section{Theories}
 \label{sec:Basic:Theories}
 
+\index{theories|(}%
 Working with Isabelle means creating theories. Roughly speaking, a
-\bfindex{theory} is a named collection of types, functions, and theorems,
+\textbf{theory} is a named collection of types, functions, and theorems,
 much like a module in a programming language or a specification in a
 specification language. In fact, theories in HOL can be either. The general
 format of a theory \texttt{T} is
@@ -61,7 +62,7 @@ Everything defined in the parent theories (and their parents \dots) is
 automatically visible. To avoid name clashes, identifiers can be
 \textbf{qualified} by theory names as in \texttt{T.f} and
 \texttt{B.f}.\indexbold{identifier!qualified} Each theory \texttt{T} must
-reside in a \bfindex{theory file} named \texttt{T.thy}.
+reside in a \textbf{theory file}\index{theory files} named \texttt{T.thy}.
 
 This tutorial is concerned with introducing you to the different linguistic
 constructs that can fill \textit{\texttt{declarations, definitions, and
@@ -78,25 +79,25 @@ they look slightly different than the theories in this tutorial, and that all
 proofs are in separate ML files.
 
 \begin{warn}
-  HOL contains a theory \isaindexbold{Main}, the union of all the basic
+  HOL contains a theory \thydx{Main}, the union of all the basic
   predefined theories like arithmetic, lists, sets, etc.  
   Unless you know what you are doing, always include \isa{Main}
   as a direct or indirect parent of all your theories.
-\end{warn}
+\end{warn}%
+\index{theories|)}
 
 
 \section{Types, Terms and Formulae}
 \label{sec:TypesTermsForms}
-\indexbold{type}
 
 Embedded in a theory are the types, terms and formulae of HOL\@. HOL is a typed
 logic whose type system resembles that of functional programming languages
-like ML or Haskell. Thus there are
+like ML or Haskell. Thus there are\index{types}
 \begin{description}
-\item[base types,] in particular \isaindex{bool}, the type of truth values,
-and \isaindex{nat}, the type of natural numbers.
-\item[type constructors,] in particular \isaindex{list}, the type of
-lists, and \isaindex{set}, the type of sets. Type constructors are written
+\item[base types,] in particular \tydx{bool}, the type of truth values,
+and \tydx{nat}, the type of natural numbers.
+\item[type constructors,] in particular \tydx{list}, the type of
+lists, and \tydx{set}, the type of sets. Type constructors are written
 postfix, e.g.\ \isa{(nat)list} is the type of lists whose elements are
 natural numbers. Parentheses around single arguments can be dropped (as in
 \isa{nat list}), multiple arguments are separated by commas (as in
@@ -108,7 +109,7 @@ natural numbers. Parentheses around single arguments can be dropped (as in
   supports the notation \isa{[$\tau@1,\dots,\tau@n$] \isasymFun~$\tau$}
   which abbreviates \isa{$\tau@1$ \isasymFun~$\cdots$ \isasymFun~$\tau@n$
     \isasymFun~$\tau$}.
-\item[type variables,]\indexbold{type variable}\indexbold{variable!type}
+\item[type variables,]\indexbold{type variables}\indexbold{variables!type}
   denoted by \ttindexboldpos{'a}{$Isatype}, \isa{'b} etc., just like in ML\@. They give rise
   to polymorphic types like \isa{'a \isasymFun~'a}, the type of the identity
   function.
@@ -121,37 +122,37 @@ natural numbers. Parentheses around single arguments can be dropped (as in
   the user, Isabelle infers the type of all variables automatically (this is
   called \bfindex{type inference}) and keeps quiet about it. Occasionally
   this may lead to misunderstandings between you and the system. If anything
-  strange happens, we recommend to set the \rmindex{flag}
-  \isaindexbold{show_types} that tells Isabelle to display type information
-  that is usually suppressed: simply type
+  strange happens, we recommend that you set the flag\index{flags}
+  \isa{show_types}\index{*show_types (flag)}.  
+  Isabelle will then display type information
+  that is usually suppressed.   simply type
 \begin{ttbox}
 ML "set show_types"
 \end{ttbox}
 
 \noindent
 This can be reversed by \texttt{ML "reset show_types"}. Various other flags,
-which we introduce as we go along,
-can be set and reset in the same manner.\indexbold{flag!(re)setting}
+which we introduce as we go along, can be set and reset in the same manner.%
+\index{flags!setting and resetting}
 \end{warn}
 
 
-\textbf{Terms}\indexbold{term} are formed as in functional programming by
+\textbf{Terms}\index{terms} are formed as in functional programming by
 applying functions to arguments. If \isa{f} is a function of type
 \isa{$\tau@1$ \isasymFun~$\tau@2$} and \isa{t} is a term of type
 $\tau@1$ then \isa{f~t} is a term of type $\tau@2$. HOL also supports
 infix functions like \isa{+} and some basic constructs from functional
-programming:
+programming, such as conditional expressions:
 \begin{description}
-\item[\isa{if $b$ then $t@1$ else $t@2$}]\indexbold{*if}
-means what you think it means and requires that
-$b$ is of type \isa{bool} and $t@1$ and $t@2$ are of the same type.
-\item[\isa{let $x$ = $t$ in $u$}]\indexbold{*let}
+\item[\isa{if $b$ then $t@1$ else $t@2$}]\indexbold{*if (symbol)}
+Here $b$ is of type \isa{bool} and $t@1$ and $t@2$ are of the same type.
+\item[\isa{let $x$ = $t$ in $u$}]\indexbold{*let (symbol)}
 is equivalent to $u$ where all occurrences of $x$ have been replaced by
 $t$. For example,
 \isa{let x = 0 in x+x} is equivalent to \isa{0+0}. Multiple bindings are separated
 by semicolons: \isa{let $x@1$ = $t@1$; \dots; $x@n$ = $t@n$ in $u$}.
 \item[\isa{case $e$ of $c@1$ \isasymFun~$e@1$ |~\dots~| $c@n$ \isasymFun~$e@n$}]
-\indexbold{*case}
+\indexbold{*case (symbol)}
 evaluates to $e@i$ if $e$ is of the form $c@i$.
 \end{description}
 
@@ -162,8 +163,8 @@ returns \isa{x+1}. Instead of
 \isa{\isasymlambda{}x.\isasymlambda{}y.\isasymlambda{}z.~$t$} we can write
 \isa{\isasymlambda{}x~y~z.~$t$}.
 
-\textbf{Formulae}\indexbold{formula} are terms of type \isaindexbold{bool}.
-There are the basic constants \isaindexbold{True} and \isaindexbold{False} and
+\textbf{Formulae}\indexbold{formulae} are terms of type \tydx{bool}.
+There are the basic constants \cdx{True} and \cdx{False} and
 the usual logical connectives (in decreasing order of priority):
 \indexboldpos{\protect\isasymnot}{$HOL0not}, \indexboldpos{\protect\isasymand}{$HOL0and},
 \indexboldpos{\protect\isasymor}{$HOL0or}, and \indexboldpos{\protect\isasymimp}{$HOL0imp},
@@ -191,7 +192,7 @@ Nested quantifications can be abbreviated:
 \isa{\isasymforall{}x.\isasymforall{}y.\isasymforall{}z.~$P$}.
 
 Despite type inference, it is sometimes necessary to attach explicit
-\textbf{type constraints}\indexbold{type constraint} to a term.  The syntax is
+\bfindex{type constraints} to a term.  The syntax is
 \isa{$t$::$\tau$} as in \isa{x < (y::nat)}. Note that
 \ttindexboldpos{::}{$Isatype} binds weakly and should therefore be enclosed
 in parentheses: \isa{x < y::nat} is ill-typed because it is interpreted as
@@ -208,8 +209,8 @@ problem for novices can be the priority of operators. If you are unsure, use
 additional parentheses. In those cases where Isabelle echoes your
 input, you can see which parentheses are dropped --- they were superfluous. If
 you are unsure how to interpret Isabelle's output because you don't know
-where the (dropped) parentheses go, set the \rmindex{flag}
-\isaindexbold{show_brackets}:
+where the (dropped) parentheses go, set the flag\index{flags}
+\isa{show_brackets}\index{*show_brackets (flag)}:
 \begin{ttbox}
 ML "set show_brackets"; \(\dots\); ML "reset show_brackets";
 \end{ttbox}
@@ -232,8 +233,8 @@ means \isa{(f~x)~+~y} and not \isa{f(x+y)}.
 \item
 Constructs with an opening but without a closing delimiter bind very weakly
 and should therefore be enclosed in parentheses if they appear in subterms, as
-in \isa{(\isasymlambda{}x.~x) = f}. This includes \isaindex{if},
-\isaindex{let}, \isaindex{case}, \isa{\isasymlambda}, and quantifiers.
+in \isa{(\isasymlambda{}x.~x) = f}. This includes \sdx{if},
+\sdx{let}, \sdx{case}, \isa{\isasymlambda}, and quantifiers.
 \item
 Never write \isa{\isasymlambda{}x.x} or \isa{\isasymforall{}x.x=x}
 because \isa{x.x} is always read as a single qualified identifier that
@@ -253,9 +254,10 @@ the appendix.
 
 Isabelle distinguishes free and bound variables just as is customary. Bound
 variables are automatically renamed to avoid clashes with free variables. In
-addition, Isabelle has a third kind of variable, called a \bfindex{schematic
-  variable}\indexbold{variable!schematic} or \bfindex{unknown}, which starts
-with a \isa{?}.  Logically, an unknown is a free variable. But it may be
+addition, Isabelle has a third kind of variable, called a \textbf{schematic
+  variable}\index{variables!schematic} or \textbf{unknown}\index{unknowns}, 
+which must a~\isa{?} as its first character.  
+Logically, an unknown is a free variable. But it may be
 instantiated by another term during the proof process. For example, the
 mathematical theorem $x = x$ is represented in Isabelle as \isa{?x = ?x},
 which means that Isabelle can instantiate it arbitrarily. This is in contrast

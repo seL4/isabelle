@@ -5,7 +5,7 @@ theory case_exprs = Main:
 subsection{*Case Expressions*}
 
 text{*\label{sec:case-expressions}
-HOL also features \isaindexbold{case}-expressions for analyzing
+HOL also features \sdx{case}-expressions for analyzing
 elements of a datatype. For example,
 @{term[display]"case xs of [] => 1 | y#ys => y"}
 evaluates to @{term"1"} if @{term"xs"} is @{term"[]"} and to @{term"y"} if 
@@ -47,10 +47,10 @@ text{*\label{sec:struct-ind-case}
 \indexbold{induction!structural}
 \indexbold{case distinction}
 Almost all the basic laws about a datatype are applied automatically during
-simplification. Only induction is invoked by hand via \isaindex{induct_tac},
+simplification. Only induction is invoked by hand via \methdx{induct_tac},
 which works for any datatype. In some cases, induction is overkill and a case
 distinction over all constructors of the datatype suffices. This is performed
-by \isaindexbold{case_tac}. A trivial example:
+by \methdx{case_tac}. A trivial example:
 *}
 
 lemma "(case xs of [] \<Rightarrow> [] | y#ys \<Rightarrow> xs) = xs";

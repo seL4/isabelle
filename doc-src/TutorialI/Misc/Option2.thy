@@ -4,7 +4,8 @@ hide const None Some
 hide type option
 (*>*)
 
-text{*\indexbold{*option}\indexbold{*None}\indexbold{*Some}
+text{*\indexbold{*option (type)}\indexbold{*None (constant)}%
+\indexbold{*Some (constant)}
 Our final datatype is very simple but still eminently useful:
 *}
 

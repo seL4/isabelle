@@ -15,8 +15,9 @@ ambiguities caused by defining lists twice.%
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Cons\ {\isacharprime}a\ {\isachardoublequote}{\isacharprime}a\ list{\isachardoublequote}\ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}\isakeyword{infixr}\ {\isachardoublequote}{\isacharhash}{\isachardoublequote}\ {\isadigit{6}}{\isadigit{5}}{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
-The datatype\index{*datatype} \isaindexbold{list} introduces two
-constructors \isaindexbold{Nil} and \isaindexbold{Cons}, the
+\index{datatype@\isacommand {datatype} (command)}
+The datatype \tydx{list} introduces two
+constructors \cdx{Nil} and \cdx{Cons}, the
 empty~list and the operator that adds an element to the front of a list. For
 example, the term \isa{Cons True (Cons False Nil)} is a value of
 type \isa{bool\ list}, namely the list with the elements \isa{True} and
@@ -27,7 +28,8 @@ datatype declaration is annotated with an alternative syntax: instead of
 \isa{x\ {\isacharhash}\ xs}\index{$HOL2list@\texttt{\#}|bold}. In fact, this
 alternative syntax is the standard syntax. Thus the list \isa{Cons True
 (Cons False Nil)} becomes \isa{True\ {\isacharhash}\ False\ {\isacharhash}\ {\isacharbrackleft}{\isacharbrackright}}. The annotation
-\isacommand{infixr}\indexbold{*infixr} means that \isa{{\isacharhash}} associates to
+\isacommand{infixr}\index{infixr@\isacommand{infixr} (annotation)} 
+means that \isa{{\isacharhash}} associates to
 the right, i.e.\ the term \isa{x\ {\isacharhash}\ y\ {\isacharhash}\ z} is read as \isa{x\ {\isacharhash}\ {\isacharparenleft}y\ {\isacharhash}\ z{\isacharparenright}}
 and not as \isa{{\isacharparenleft}x\ {\isacharhash}\ y{\isacharparenright}\ {\isacharhash}\ z}.
 The \isa{{\isadigit{6}}{\isadigit{5}}} is the priority of the infix \isa{{\isacharhash}}.
@@ -39,7 +41,7 @@ The \isa{{\isadigit{6}}{\isadigit{5}}} is the priority of the infix \isa{{\isach
   We recommend that novices avoid using
   syntax annotations in their own theories.
 \end{warn}
-Next, two functions \isa{app} and \isaindexbold{rev} are declared:%
+Next, two functions \isa{app} and \cdx{rev} are declared:%
 \end{isamarkuptext}%
 \isacommand{consts}\ app\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\ \ \ {\isacharparenleft}\isakeyword{infixr}\ {\isachardoublequote}{\isacharat}{\isachardoublequote}\ {\isadigit{6}}{\isadigit{5}}{\isacharparenright}\isanewline
 \ \ \ \ \ \ \ rev\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}%
@@ -65,11 +67,11 @@ form. Both functions are defined recursively:%
 \noindent
 The equations for \isa{app} and \isa{rev} hardly need comments:
 \isa{app} appends two lists and \isa{rev} reverses a list.  The
-keyword \isacommand{primrec}\index{*primrec} indicates that the recursion is
+keyword \commdx{primrec} indicates that the recursion is
 of a particularly primitive kind where each recursive call peels off a datatype
 constructor from one of the arguments.  Thus the
 recursion always terminates, i.e.\ the function is \textbf{total}.
-\index{total function}
+\index{functions!total}
 
 The termination requirement is absolutely essential in HOL, a logic of total
 functions. If we were to drop it, inconsistencies would quickly arise: the
@@ -121,7 +123,8 @@ list. The input line%
 \end{isamarkuptext}%
 \isacommand{theorem}\ rev{\isacharunderscore}rev\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}rev{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs{\isachardoublequote}%
 \begin{isamarkuptxt}%
-\index{*theorem|bold}\index{*simp (attribute)|bold}
+\index{theorem@\isacommand {theorem} (command)|bold}%
+\index{*simp (attribute)|bold}
 \noindent
 does several things.  It
 \begin{itemize}
@@ -166,13 +169,14 @@ a reminder. Hence we rarely show it in this tutorial.
 
 Let us now get back to \isa{rev\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs}. Properties of recursively
 defined functions are best established by induction. In this case there is
-not much choice except to induct on \isa{xs}:%
+nothing obvious except induction on \isa{xs}:%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}%
 \begin{isamarkuptxt}%
-\noindent\index{*induct_tac}%
+\noindent\index{*induct_tac (method)}%
 This tells Isabelle to perform induction on variable \isa{xs}. The suffix
-\isa{tac} stands for \bfindex{tactic}, a synonym for ``theorem proving function''.
+\isa{tac} stands for \textbf{tactic},\index{tactics}
+a synonym for ``theorem proving function''.
 By default, induction acts on the first subgoal. The new proof state contains
 two subgoals, namely the base case (\isa{Nil}) and the induction step
 (\isa{Cons}):
@@ -214,21 +218,20 @@ of subgoal~2 becomes the new subgoal~1:
 In order to simplify this subgoal further, a lemma suggests itself.%
 \end{isamarkuptxt}%
 %
-\isamarkupsubsubsection{First Lemma: \isa{rev{\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}rev\ ys{\isacharparenright}\ {\isacharat}\ {\isacharparenleft}rev\ xs{\isacharparenright}}%
+\isamarkupsubsubsection{First Lemma%
 }
 %
 \begin{isamarkuptext}%
-After abandoning the above proof attempt\indexbold{abandon
-proof}\indexbold{proof!abandon} (at the shell level type
-\isacommand{oops}\indexbold{*oops}) we start a new proof:%
+\indexbold{abandoning a proof}\indexbold{proofs!abandoning}
+After abandoning the above proof attempt (at the shell level type
+\commdx{oops}) we start a new proof:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ rev{\isacharunderscore}app\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}rev{\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}rev\ ys{\isacharparenright}\ {\isacharat}\ {\isacharparenleft}rev\ xs{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptxt}%
-\noindent The keywords \isacommand{theorem}\index{*theorem} and
-\isacommand{lemma}\indexbold{*lemma} are interchangeable and merely indicate
+\noindent The keywords \commdx{theorem} and
+\commdx{lemma} are interchangeable and merely indicate
 the importance we attach to a proposition.  Therefore we use the words
-\emph{theorem}\index{theorem} and \emph{lemma}\index{lemma} pretty much
-interchangeably, too.
+\emph{theorem} and \emph{lemma} pretty much interchangeably, too.
 
 There are two variables that we could induct on: \isa{xs} and
 \isa{ys}. Because \isa{{\isacharat}} is defined by recursion on
@@ -249,7 +252,7 @@ first. In the future the step of abandoning an incomplete proof before
 embarking on the proof of a lemma usually remains implicit.%
 \end{isamarkuptxt}%
 %
-\isamarkupsubsubsection{Second Lemma: \isa{xs\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ xs}%
+\isamarkupsubsubsection{Second Lemma%
 }
 %
 \begin{isamarkuptext}%
@@ -269,8 +272,8 @@ We still need to confirm that the proof is now finished:%
 \end{isamarkuptxt}%
 \isacommand{done}%
 \begin{isamarkuptext}%
-\noindent\indexbold{done}%
-As a result of that final \isacommand{done}, Isabelle associates the lemma just proved
+\noindent
+As a result of that final \commdx{done}, Isabelle associates the lemma just proved
 with its name. In this tutorial, we sometimes omit to show that final \isacommand{done}
 if it is obvious from the context that the proof is finished.
 
