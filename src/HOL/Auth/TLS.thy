@@ -99,7 +99,7 @@ inductive tls
 	   NA is CLIENT RANDOM, while SID is SESSION_ID.
            UNIX TIME is omitted because the protocol doesn't use it.
            May assume NA ~: range PRF because CLIENT RANDOM is 28 bytes
-	   while MASTER SECRET is 48 byptes*)
+	   while MASTER SECRET is 48 bytes*)
          "[| evsCH: tls;  A ~= B;  Nonce NA ~: used evsCH;  NA ~: range PRF |]
           ==> Says A B {|Agent A, Nonce NA, Number SID, Number PA|}
 	        # evsCH  :  tls"
