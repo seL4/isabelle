@@ -12,7 +12,7 @@ val H_cong = read_instantiate [("f","H")] (standard(refl RS cong RS cong));
 val H_cong1 = refl RS H_cong;
 
 (*Restriction to domain A.  If r is well-founded over A then wf(r)*)
-val [prem1,prem2] = goalw WF.thy [wf_def]
+val [prem1,prem2] = Goalw [wf_def]
  "[| r <= A Times A;  \
 \    !!x P. [| ! x. (! y. (y,x) : r --> P(y)) --> P(x);  x:A |] ==> P(x) |]  \
 \ ==>  wf(r)";
@@ -22,7 +22,7 @@ by (assume_tac 1);
 by (best_tac (claset() addSEs [prem1 RS subsetD RS SigmaE2] addIs [prem2]) 1);
 qed "wfI";
 
-val major::prems = goalw WF.thy [wf_def]
+val major::prems = Goalw [wf_def]
     "[| wf(r);          \
 \       !!x.[| ! y. (y,x): r --> P(y) |] ==> P(x) \
 \    |]  ==>  P(a)";
@@ -36,26 +36,25 @@ fun wf_ind_tac a prems i =
            rename_last_tac a ["1"] (i+1),
            ares_tac prems i];
 
-val prems = goal WF.thy "[| wf(r);  (a,x):r;  (x,a):r |] ==> P";
+Goal "[| wf(r);  (a,x):r;  (x,a):r |] ==> P";
 by (subgoal_tac "! x. (a,x):r --> (x,a):r --> P" 1);
-by (blast_tac (claset() addIs prems) 1);
-by (wf_ind_tac "a" prems 1);
+by (Blast_tac 1);
+by (wf_ind_tac "a" [] 1);
 by (Blast_tac 1);
 qed "wf_asym";
 
-val prems = goal WF.thy "[| wf(r);  (a,a): r |] ==> P";
-by (rtac wf_asym 1);
-by (REPEAT (resolve_tac prems 1));
+Goal "[| wf(r);  (a,a): r |] ==> P";
+by (blast_tac (claset() addEs [wf_asym]) 1);
 qed "wf_irrefl";
 
 (*transitive closure of a wf relation is wf! *)
-val [prem] = goal WF.thy "wf(r) ==> wf(r^+)";
-by (rewtac wf_def);
+Goal "wf(r) ==> wf(r^+)";
+by (stac wf_def 1);
 by (Clarify_tac 1);
 (*must retain the universal formula for later use!*)
 by (rtac allE 1 THEN assume_tac 1);
 by (etac mp 1);
-by (res_inst_tac [("a","x")] (prem RS wf_induct) 1);
+by (eres_inst_tac [("a","x")] wf_induct 1);
 by (rtac (impI RS allI) 1);
 by (etac tranclE 1);
 by (Blast_tac 1);
@@ -72,14 +71,13 @@ val wf_converse_trancl = prove_goal thy
  * Minimal-element characterization of well-foundedness
  *---------------------------------------------------------------------------*)
 
-val wfr::_ = goalw WF.thy [wf_def]
-    "wf r ==> x:Q --> (? z:Q. ! y. (y,z):r --> y~:Q)";
-by (rtac (wfr RS spec RS mp RS spec) 1);
+Goalw [wf_def] "wf r ==> x:Q --> (? z:Q. ! y. (y,z):r --> y~:Q)";
+bd spec 1;
+by (etac (mp RS spec) 1);
 by (Blast_tac 1);
 val lemma1 = result();
 
-Goalw [wf_def]
-    "(! Q x. x:Q --> (? z:Q. ! y. (y,z):r --> y~:Q)) ==> wf r";
+Goalw [wf_def] "(! Q x. x:Q --> (? z:Q. ! y. (y,z):r --> y~:Q)) ==> wf r";
 by (Clarify_tac 1);
 by (dres_inst_tac [("x", "{x. ~ P x}")] spec 1);
 by (Blast_tac 1);
@@ -138,11 +136,10 @@ AddIffs [wf_insert];
  * Wellfoundedness of `disjoint union'
  *---------------------------------------------------------------------------*)
 
-Goal
- "[| !i:I. wf(r i); \
-\    !i:I.!j:I. r i ~= r j --> Domain(r i) Int Range(r j) = {} & \
-\                              Domain(r j) Int Range(r i) = {} \
-\ |] ==> wf(UN i:I. r i)";
+Goal "[| !i:I. wf(r i); \
+\        !i:I.!j:I. r i ~= r j --> Domain(r i) Int Range(r j) = {} & \
+\                                  Domain(r j) Int Range(r i) = {} \
+\     |] ==> wf(UN i:I. r i)";
 by(asm_full_simp_tac (HOL_basic_ss addsimps [wf_eq_minimal]) 1);
 by(Clarify_tac 1);
 by(rename_tac "A a" 1);
@@ -181,9 +178,8 @@ by(Blast_tac 1);
 by(Blast_tac 1);
 qed "wf_Union";
 
-Goal
- "[| wf r; wf s; Domain r Int Range s = {}; Domain s Int Range r = {} \
-\ |] ==> wf(r Un s)";
+Goal "[| wf r; wf s; Domain r Int Range s = {}; Domain s Int Range r = {} \
+\     |] ==> wf(r Un s)";
 br(simplify (simpset()) (read_instantiate[("R","{r,s}")]wf_Union)) 1;
 by(Blast_tac 1);
 by(Blast_tac 1);
@@ -251,10 +247,9 @@ fun indhyp_tac hyps =
                         eresolve_tac [transD, mp, allE]));
 val wf_super_ss = HOL_ss addSolver indhyp_tac;
 
-val prems = goalw WF.thy [is_recfun_def,cut_def]
+Goalw [is_recfun_def,cut_def]
     "[| wf(r);  trans(r);  is_recfun r H a f;  is_recfun r H b g |] ==> \
     \ (x,a):r --> (x,b):r --> f(x)=g(x)";
-by (cut_facts_tac prems 1);
 by (etac wf_induct 1);
 by (REPEAT (rtac impI 1 ORELSE etac ssubst 1));
 by (asm_simp_tac (wf_super_ss addcongs [if_cong]) 1);
@@ -274,15 +269,13 @@ qed "is_recfun_cut";
 
 (*** Main Existence Lemma -- Basic Properties of the_recfun ***)
 
-val prems = goalw WF.thy [the_recfun_def]
+Goalw [the_recfun_def]
     "is_recfun r H a f ==> is_recfun r H a (the_recfun r H a)";
-by (res_inst_tac [("P", "is_recfun r H a")] selectI 1);
-by (resolve_tac prems 1);
+by (eres_inst_tac [("P", "is_recfun r H a")] selectI 1);
 qed "is_the_recfun";
 
-val prems = goal WF.thy
- "!!r. [| wf(r);  trans(r) |] ==> is_recfun r H a (the_recfun r H a)";
-by (wf_ind_tac "a" prems 1);
+Goal "[| wf(r);  trans(r) |] ==> is_recfun r H a (the_recfun r H a)";
+by (wf_ind_tac "a" [] 1);
 by (res_inst_tac [("f","cut (%y. H (the_recfun r H y) y) r a1")]
                  is_the_recfun 1);
 by (rewtac is_recfun_def);
@@ -309,7 +302,7 @@ qed "unfold_the_recfun";
 val unwind1_the_recfun = rewrite_rule[is_recfun_def] unfold_the_recfun;
 
 (*--------------Old proof-----------------------------------------------------
-val prems = goal WF.thy
+val prems = Goal
     "[| wf(r);  trans(r) |] ==> is_recfun r H a (the_recfun r H a)";
 by (cut_facts_tac prems 1);
 by (wf_ind_tac "a" prems 1);
@@ -376,7 +369,7 @@ qed "wfrec";
 (*---------------------------------------------------------------------------
  * This form avoids giant explosions in proofs.  NOTE USE OF == 
  *---------------------------------------------------------------------------*)
-val rew::prems = goal WF.thy
+val rew::prems = goal thy
     "[| f==wfrec r H;  wf(r) |] ==> f(a) = H (cut f r a) a";
 by (rewtac rew);
 by (REPEAT (resolve_tac (prems@[wfrec]) 1));

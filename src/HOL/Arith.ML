@@ -221,7 +221,7 @@ by (ALLGOALS Asm_simp_tac);
 qed "add_less_mono";
 
 (*A [clumsy] way of lifting < monotonicity to <= monotonicity *)
-val [lt_mono,le] = goal thy
+val [lt_mono,le] = Goal
      "[| !!i j::nat. i<j ==> f(i) < f(j);       \
 \        i <= j                                 \
 \     |] ==> f(i) <= (f(j)::nat)";
@@ -331,8 +331,8 @@ Addsimps  [le_add_diff_inverse, le_add_diff_inverse2];
 
 (*** More results about difference ***)
 
-val [prem] = goal thy "n < Suc(m) ==> Suc(m)-n = Suc(m-n)";
-by (rtac (prem RS rev_mp) 1);
+Goal "n < Suc(m) ==> Suc(m)-n = Suc(m-n)";
+by (etac rev_mp 1);
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "Suc_diff_n";
@@ -411,20 +411,20 @@ by Safe_tac;
 by (ALLGOALS Asm_simp_tac);
 qed "le_imp_diff_is_add";
 
-val [prem] = goal thy "m < Suc(n) ==> m-n = 0";
-by (rtac (prem RS rev_mp) 1);
+Goal "m < Suc(n) ==> m-n = 0";
+by (etac rev_mp 1);
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (asm_simp_tac (simpset() addsimps [less_Suc_eq]) 1);
 by (ALLGOALS Asm_simp_tac);
 qed "less_imp_diff_is_0";
 
-val prems = goal thy "m-n = 0  -->  n-m = 0  -->  m=n";
+Goal "m-n = 0  -->  n-m = 0  -->  m=n";
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (REPEAT(Simp_tac 1 THEN TRY(atac 1)));
 qed_spec_mp "diffs0_imp_equal";
 
-val [prem] = goal thy "m<n ==> 0<n-m";
-by (rtac (prem RS rev_mp) 1);
+Goal "m<n ==> 0<n-m";
+by (etac rev_mp 1);
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "less_imp_diff_positive";
@@ -448,7 +448,7 @@ by (res_inst_tac [("m","k"),("n","i")] diff_induct 1);
 by (ALLGOALS (Clarify_tac THEN' Simp_tac THEN' TRY o Blast_tac));
 qed "zero_induct_lemma";
 
-val prems = goal thy "[| P(k);  !!n. P(Suc(n)) ==> P(n) |] ==> P(0)";
+val prems = Goal "[| P(k);  !!n. P(Suc(n)) ==> P(n) |] ==> P(0)";
 by (rtac (diff_self_eq_0 RS subst) 1);
 by (rtac (zero_induct_lemma RS mp RS mp) 1);
 by (REPEAT (ares_tac ([impI,allI]@prems) 1));

@@ -24,7 +24,7 @@ by (rtac inj_on_inverseI 1);
 by (etac Abs_Prod_inverse 1);
 qed "inj_on_Abs_Prod";
 
-val prems = goalw Prod.thy [Pair_def]
+val prems = Goalw [Pair_def]
     "[| (a, b) = (a',b');  [| a=a';  b=b' |] ==> R |] ==> R";
 by (rtac (inj_on_Abs_Prod RS inj_onD RS Pair_Rep_inject RS conjE) 1);
 by (REPEAT (ares_tac (prems@[ProdI]) 1));
@@ -49,7 +49,7 @@ by (EVERY1[etac exE, etac exE, rtac exI, rtac exI,
            rtac (Rep_Prod_inverse RS sym RS trans),  etac arg_cong]);
 qed "PairE_lemma";
 
-val [prem] = goal Prod.thy "[| !!x y. p = (x,y) ==> Q |] ==> Q";
+val [prem] = Goal "[| !!x y. p = (x,y) ==> Q |] ==> Q";
 by (rtac (PairE_lemma RS exE) 1);
 by (REPEAT (eresolve_tac [prem,exE] 1));
 qed "PairE";
@@ -222,7 +222,7 @@ Goal "c a b ==> split c (a,b)";
 by (Asm_simp_tac 1);
 qed "splitI";
 
-val prems = goalw Prod.thy [split_def]
+val prems = Goalw [split_def]
     "[| split c p;  !!x y. [| p = (x,y);  c x y |] ==> Q |] ==> Q";
 by (REPEAT (resolve_tac (prems@[surjective_pairing]) 1));
 qed "splitE";
@@ -246,7 +246,7 @@ by (split_all_tac 1);
 by (Asm_simp_tac 1);
 qed "mem_splitI2";
 
-val prems = goalw Prod.thy [split_def]
+val prems = Goalw [split_def]
     "[| z: split c p;  !!x y. [| p = (x,y);  z: c x y |] ==> Q |] ==> Q";
 by (REPEAT (resolve_tac (prems@[surjective_pairing]) 1));
 qed "mem_splitE";
@@ -298,13 +298,13 @@ by (Asm_simp_tac 1);
 qed "prod_fun_ident";
 Addsimps [prod_fun_ident];
 
-val prems = goal Prod.thy "(a,b):r ==> (f(a),g(b)) : (prod_fun f g)``r";
+Goal "(a,b):r ==> (f(a),g(b)) : (prod_fun f g)``r";
 by (rtac image_eqI 1);
 by (rtac (prod_fun RS sym) 1);
-by (resolve_tac prems 1);
+by (assume_tac 1);
 qed "prod_fun_imageI";
 
-val major::prems = goal Prod.thy
+val major::prems = Goal
     "[| c: (prod_fun f g)``r;  !!x y. [| c=(f(x),g(y));  (x,y):r |] ==> P  \
 \    |] ==> P";
 by (rtac (major RS imageE) 1);
@@ -354,7 +354,7 @@ qed_goal "SigmaE2" Prod.thy
 
 AddSEs [SigmaE2, SigmaE];
 
-val prems = goal Prod.thy
+val prems = Goal
     "[| A<=C;  !!x. x:A ==> B x <= D x |] ==> Sigma A B <= Sigma C D";
 by (cut_facts_tac prems 1);
 by (blast_tac (claset() addIs (prems RL [subsetD])) 1);
@@ -384,14 +384,14 @@ qed "UNION_Times_distrib";
 
 (*** Domain of a relation ***)
 
-val prems = goalw Prod.thy [image_def] "(a,b) : r ==> a : fst``r";
+Goalw [image_def] "(a,b) : r ==> a : fst``r";
 by (rtac CollectI 1);
 by (rtac bexI 1);
 by (rtac (fst_conv RS sym) 1);
-by (resolve_tac prems 1);
+by (assume_tac 1);
 qed "fst_imageI";
 
-val major::prems = goal Prod.thy
+val major::prems = Goal
     "[| a : fst``r;  !!y.[| (a,y) : r |] ==> P |] ==> P"; 
 by (rtac (major RS imageE) 1);
 by (resolve_tac prems 1);
@@ -402,15 +402,14 @@ qed "fst_imageE";
 
 (*** Range of a relation ***)
 
-val prems = goalw Prod.thy [image_def] "(a,b) : r ==> b : snd``r";
+Goalw [image_def] "(a,b) : r ==> b : snd``r";
 by (rtac CollectI 1);
 by (rtac bexI 1);
 by (rtac (snd_conv RS sym) 1);
-by (resolve_tac prems 1);
+by (assume_tac 1);
 qed "snd_imageI";
 
-val major::prems = goal Prod.thy
-    "[| a : snd``r;  !!y.[| (y,a) : r |] ==> P |] ==> P"; 
+val major::prems = Goal "[| a : snd``r;  !!y.[| (y,a) : r |] ==> P |] ==> P"; 
 by (rtac (major RS imageE) 1);
 by (resolve_tac prems 1);
 by (etac ssubst 1);

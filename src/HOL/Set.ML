@@ -17,17 +17,17 @@ Goal "P(a) ==> a : {x. P(x)}";
 by (Asm_simp_tac 1);
 qed "CollectI";
 
-val prems = goal Set.thy "!!a. a : {x. P(x)} ==> P(a)";
+Goal "a : {x. P(x)} ==> P(a)";
 by (Asm_full_simp_tac 1);
 qed "CollectD";
 
-val [prem] = goal Set.thy "[| !!x. (x:A) = (x:B) |] ==> A = B";
+val [prem] = Goal "[| !!x. (x:A) = (x:B) |] ==> A = B";
 by (rtac (prem RS ext RS arg_cong RS box_equals) 1);
 by (rtac Collect_mem_eq 1);
 by (rtac Collect_mem_eq 1);
 qed "set_ext";
 
-val [prem] = goal Set.thy "[| !!x. P(x)=Q(x) |] ==> {x. P(x)} = {x. Q(x)}";
+val [prem] = Goal "[| !!x. P(x)=Q(x) |] ==> {x. P(x)} = {x. Q(x)}";
 by (rtac (prem RS ext RS arg_cong) 1);
 qed "Collect_cong";
 
@@ -39,17 +39,16 @@ AddSEs [CollectE];
 
 section "Bounded quantifiers";
 
-val prems = goalw Set.thy [Ball_def]
+val prems = Goalw [Ball_def]
     "[| !!x. x:A ==> P(x) |] ==> ! x:A. P(x)";
 by (REPEAT (ares_tac (prems @ [allI,impI]) 1));
 qed "ballI";
 
-val [major,minor] = goalw Set.thy [Ball_def]
-    "[| ! x:A. P(x);  x:A |] ==> P(x)";
-by (rtac (minor RS (major RS spec RS mp)) 1);
+Goalw [Ball_def] "[| ! x:A. P(x);  x:A |] ==> P(x)";
+by (Blast_tac 1);
 qed "bspec";
 
-val major::prems = goalw Set.thy [Ball_def]
+val major::prems = Goalw [Ball_def]
     "[| ! x:A. P(x);  P(x) ==> Q;  x~:A ==> Q |] ==> Q";
 by (rtac (major RS spec RS impCE) 1);
 by (REPEAT (eresolve_tac prems 1));
@@ -61,9 +60,8 @@ fun ball_tac i = etac ballE i THEN contr_tac (i+1);
 AddSIs [ballI];
 AddEs  [ballE];
 
-val prems = goalw Set.thy [Bex_def]
-    "[| P(x);  x:A |] ==> ? x:A. P(x)";
-by (REPEAT (ares_tac (prems @ [exI,conjI]) 1));
+Goalw [Bex_def] "[| P(x);  x:A |] ==> ? x:A. P(x)";
+by (Blast_tac 1);
 qed "bexI";
 
 qed_goal "bexCI" Set.thy 
@@ -72,7 +70,7 @@ qed_goal "bexCI" Set.thy
   [ (rtac classical 1),
     (REPEAT (ares_tac (prems@[bexI,ballI,notI,notE]) 1))  ]);
 
-val major::prems = goalw Set.thy [Bex_def]
+val major::prems = Goalw [Bex_def]
     "[| ? x:A. P(x);  !!x. [| x:A; P(x) |] ==> Q  |] ==> Q";
 by (rtac (major RS exE) 1);
 by (REPEAT (eresolve_tac (prems @ [asm_rl,conjE]) 1));
@@ -95,7 +93,7 @@ Addsimps [ball_triv, bex_triv];
 
 (** Congruence rules **)
 
-val prems = goal Set.thy
+val prems = Goal
     "[| A=B;  !!x. x:B ==> P(x) = Q(x) |] ==> \
 \    (! x:A. P(x)) = (! x:B. Q(x))";
 by (resolve_tac (prems RL [ssubst]) 1);
@@ -103,7 +101,7 @@ by (REPEAT (ares_tac [ballI,iffI] 1
      ORELSE eresolve_tac ([make_elim bspec, mp] @ (prems RL [iffE])) 1));
 qed "ball_cong";
 
-val prems = goal Set.thy
+val prems = Goal
     "[| A=B;  !!x. x:B ==> P(x) = Q(x) |] ==> \
 \    (? x:A. P(x)) = (? x:B. Q(x))";
 by (resolve_tac (prems RL [ssubst]) 1);
@@ -113,7 +111,7 @@ qed "bex_cong";
 
 section "Subsets";
 
-val prems = goalw Set.thy [subset_def] "(!!x. x:A ==> x:B) ==> A <= B";
+val prems = Goalw [subset_def] "(!!x. x:A ==> x:B) ==> A <= B";
 by (REPEAT (ares_tac (prems @ [ballI]) 1));
 qed "subsetI";
 
@@ -130,9 +128,8 @@ seq (fn a => Blast.overloaded (a, HOLogic.dest_setT o domain_type))
 Blast.overloaded ("op ``", domain_type o domain_type);
 
 (*Rule in Modus Ponens style*)
-val major::prems = goalw Set.thy [subset_def] "[| A <= B;  c:A |] ==> c:B";
-by (rtac (major RS bspec) 1);
-by (resolve_tac prems 1);
+Goalw [subset_def] "[| A <= B;  c:A |] ==> c:B";
+by (Blast_tac 1);
 qed "subsetD";
 
 (*The same, with reversed premises for use with etac -- cf rev_mp*)
@@ -149,7 +146,7 @@ qed_goal "rev_contra_subsetD" Set.thy "!!c. [| c ~: B;  A <= B |] ==> c ~: A"
  (fn prems=>  [ (REPEAT (eresolve_tac [asm_rl, contrapos, subsetD] 1)) ]);
 
 (*Classical elimination rule*)
-val major::prems = goalw Set.thy [subset_def] 
+val major::prems = Goalw [subset_def] 
     "[| A <= B;  c~:A ==> P;  c:B ==> P |] ==> P";
 by (rtac (major RS ballE) 1);
 by (REPEAT (eresolve_tac prems 1));
@@ -164,7 +161,7 @@ AddEs  [subsetD, subsetCE];
 qed_goal "subset_refl" Set.thy "A <= (A::'a set)"
  (fn _=> [Fast_tac 1]);		(*Blast_tac would try order_refl and fail*)
 
-val prems = goal Set.thy "!!B. [| A<=B;  B<=C |] ==> A<=(C::'a set)";
+Goal "[| A<=B;  B<=C |] ==> A<=(C::'a set)";
 by (Blast_tac 1);
 qed "subset_trans";
 
@@ -172,32 +169,32 @@ qed "subset_trans";
 section "Equality";
 
 (*Anti-symmetry of the subset relation*)
-val prems = goal Set.thy "[| A <= B;  B <= A |] ==> A = (B::'a set)";
-by (rtac (iffI RS set_ext) 1);
-by (REPEAT (ares_tac (prems RL [subsetD]) 1));
+Goal "[| A <= B;  B <= A |] ==> A = (B::'a set)";
+br set_ext 1;
+by (blast_tac (claset() addIs [subsetD]) 1);
 qed "subset_antisym";
 val equalityI = subset_antisym;
 
 AddSIs [equalityI];
 
 (* Equality rules from ZF set theory -- are they appropriate here? *)
-val prems = goal Set.thy "A = B ==> A<=(B::'a set)";
-by (resolve_tac (prems RL [subst]) 1);
+Goal "A = B ==> A<=(B::'a set)";
+by (etac ssubst 1);
 by (rtac subset_refl 1);
 qed "equalityD1";
 
-val prems = goal Set.thy "A = B ==> B<=(A::'a set)";
-by (resolve_tac (prems RL [subst]) 1);
+Goal "A = B ==> B<=(A::'a set)";
+by (etac ssubst 1);
 by (rtac subset_refl 1);
 qed "equalityD2";
 
-val prems = goal Set.thy
+val prems = Goal
     "[| A = B;  [| A<=B; B<=(A::'a set) |] ==> P |]  ==>  P";
 by (resolve_tac prems 1);
 by (REPEAT (resolve_tac (prems RL [equalityD1,equalityD2]) 1));
 qed "equalityE";
 
-val major::prems = goal Set.thy
+val major::prems = Goal
     "[| A = B;  [| c:A; c:B |] ==> P;  [| c~:A; c~:B |] ==> P |]  ==>  P";
 by (rtac (major RS equalityE) 1);
 by (REPEAT (contr_tac 1 ORELSE eresolve_tac ([asm_rl,subsetCE]@prems) 1));
@@ -206,7 +203,7 @@ qed "equalityCE";
 (*Lemma for creating induction formulae -- for "pattern matching" on p
   To make the induction hypotheses usable, apply "spec" or "bspec" to
   put universal quantifiers over the free variables in p. *)
-val prems = goal Set.thy 
+val prems = Goal 
     "[| p:A;  !!z. z:A ==> p=z --> R |] ==> R";
 by (rtac mp 1);
 by (REPEAT (resolve_tac (refl::prems) 1));
@@ -305,17 +302,15 @@ qed_goalw "Compl_iff" Set.thy [Compl_def] "(c : Compl(A)) = (c~:A)"
 
 Addsimps [Compl_iff];
 
-val prems = goalw Set.thy [Compl_def]
-    "[| c:A ==> False |] ==> c : Compl(A)";
+val prems = Goalw [Compl_def] "[| c:A ==> False |] ==> c : Compl(A)";
 by (REPEAT (ares_tac (prems @ [CollectI,notI]) 1));
 qed "ComplI";
 
 (*This form, with negated conclusion, works well with the Classical prover.
   Negated assumptions behave like formulae on the right side of the notional
   turnstile...*)
-val major::prems = goalw Set.thy [Compl_def]
-    "c : Compl(A) ==> c~:A";
-by (rtac (major RS CollectD) 1);
+Goalw [Compl_def] "c : Compl(A) ==> c~:A";
+by (etac CollectD 1);
 qed "ComplD";
 
 val ComplE = make_elim ComplD;
@@ -345,7 +340,7 @@ qed_goal "UnCI" Set.thy "(c~:B ==> c:A) ==> c : A Un B"
   [ (Simp_tac 1),
     (REPEAT (ares_tac (prems@[disjCI]) 1)) ]);
 
-val major::prems = goalw Set.thy [Un_def]
+val major::prems = Goalw [Un_def]
     "[| c : A Un B;  c:A ==> P;  c:B ==> P |] ==> P";
 by (rtac (major RS CollectD RS disjE) 1);
 by (REPEAT (eresolve_tac prems 1));
@@ -374,7 +369,7 @@ Goal "c : A Int B ==> c:B";
 by (Asm_full_simp_tac 1);
 qed "IntD2";
 
-val [major,minor] = goal Set.thy
+val [major,minor] = Goal
     "[| c : A Int B;  [| c:A; c:B |] ==> P |] ==> P";
 by (rtac minor 1);
 by (rtac (major RS IntD1) 1);
@@ -479,7 +474,7 @@ Goal "[| a:A;  b: B(a) |] ==> b: (UN x:A. B(x))";
 by Auto_tac;
 qed "UN_I";
 
-val major::prems = goalw Set.thy [UNION_def]
+val major::prems = Goalw [UNION_def]
     "[| b : (UN x:A. B(x));  !!x.[| x:A;  b: B(x) |] ==> R |] ==> R";
 by (rtac (major RS CollectD RS bexE) 1);
 by (REPEAT (ares_tac prems 1));
@@ -488,7 +483,7 @@ qed "UN_E";
 AddIs  [UN_I];
 AddSEs [UN_E];
 
-val prems = goal Set.thy
+val prems = Goal
     "[| A=B;  !!x. x:B ==> C(x) = D(x) |] ==> \
 \    (UN x:A. C(x)) = (UN x:B. D(x))";
 by (REPEAT (etac UN_E 1
@@ -505,7 +500,7 @@ qed "INT_iff";
 
 Addsimps [INT_iff];
 
-val prems = goalw Set.thy [INTER_def]
+val prems = Goalw [INTER_def]
     "(!!x. x:A ==> b: B(x)) ==> b : (INT x:A. B(x))";
 by (REPEAT (ares_tac ([CollectI,ballI] @ prems) 1));
 qed "INT_I";
@@ -515,7 +510,7 @@ by Auto_tac;
 qed "INT_D";
 
 (*"Classical" elimination -- by the Excluded Middle on a:A *)
-val major::prems = goalw Set.thy [INTER_def]
+val major::prems = Goalw [INTER_def]
     "[| b : (INT x:A. B(x));  b: B(a) ==> R;  a~:A ==> R |] ==> R";
 by (rtac (major RS CollectD RS ballE) 1);
 by (REPEAT (eresolve_tac prems 1));
@@ -524,7 +519,7 @@ qed "INT_E";
 AddSIs [INT_I];
 AddEs  [INT_D, INT_E];
 
-val prems = goal Set.thy
+val prems = Goal
     "[| A=B;  !!x. x:B ==> C(x) = D(x) |] ==> \
 \    (INT x:A. C(x)) = (INT x:B. D(x))";
 by (REPEAT_FIRST (resolve_tac [INT_I,equalityI,subsetI]));
@@ -546,7 +541,7 @@ Goal "[| X:C;  A:X |] ==> A : Union(C)";
 by Auto_tac;
 qed "UnionI";
 
-val major::prems = goalw Set.thy [Union_def]
+val major::prems = Goalw [Union_def]
     "[| A : Union(C);  !!X.[| A:X;  X:C |] ==> R |] ==> R";
 by (rtac (major RS UN_E) 1);
 by (REPEAT (ares_tac prems 1));
@@ -564,7 +559,7 @@ qed "Inter_iff";
 
 Addsimps [Inter_iff];
 
-val prems = goalw Set.thy [Inter_def]
+val prems = Goalw [Inter_def]
     "[| !!X. X:C ==> A:X |] ==> A : Inter(C)";
 by (REPEAT (ares_tac ([INT_I] @ prems) 1));
 qed "InterI";
@@ -576,7 +571,7 @@ by Auto_tac;
 qed "InterD";
 
 (*"Classical" elimination rule -- does not require proving X:C *)
-val major::prems = goalw Set.thy [Inter_def]
+val major::prems = Goalw [Inter_def]
     "[| A : Inter(C);  X~:C ==> R;  A:X ==> R |] ==> R";
 by (rtac (major RS INT_E) 1);
 by (REPEAT (eresolve_tac prems 1));
@@ -589,15 +584,15 @@ AddEs  [InterD, InterE];
 (*** Image of a set under a function ***)
 
 (*Frequently b does not have the syntactic form of f(x).*)
-val prems = goalw thy [image_def] "[| b=f(x);  x:A |] ==> b : f``A";
-by (REPEAT (resolve_tac (prems @ [CollectI,bexI,prem]) 1));
+Goalw [image_def] "[| b=f(x);  x:A |] ==> b : f``A";
+by (Blast_tac 1);
 qed "image_eqI";
 Addsimps [image_eqI];
 
 bind_thm ("imageI", refl RS image_eqI);
 
 (*The eta-expansion gives variable-name preservation.*)
-val major::prems = goalw thy [image_def]
+val major::prems = Goalw [image_def]
     "[| b : (%x. f(x))``A;  !!x.[| b=f(x);  x:A |] ==> P |] ==> P"; 
 by (rtac (major RS CollectD RS bexE) 1);
 by (REPEAT (ares_tac prems 1));
@@ -621,7 +616,7 @@ qed "image_subset_iff";
 
 (*Replaces the three steps subsetI, imageE, hyp_subst_tac, but breaks too
   many existing proofs.*)
-val prems = goal thy "(!!x. x:A ==> f(x) : B) ==> f``A <= B";
+val prems = Goal "(!!x. x:A ==> f(x) : B) ==> f``A <= B";
 by (blast_tac (claset() addIs prems) 1);
 qed "image_subsetI";
 
@@ -634,7 +629,7 @@ bind_thm ("range_eqI", UNIV_I RSN (2,image_eqI));
 
 bind_thm ("rangeI", UNIV_I RS imageI);
 
-val [major,minor] = goal thy 
+val [major,minor] = Goal 
     "[| b : range(%x. f(x));  !!x. b=f(x) ==> P |] ==> P"; 
 by (rtac (major RS imageE) 1);
 by (etac minor 1);

@@ -32,10 +32,8 @@ qed "integ_trans_lemma";
 
 (** Natural deduction for intrel **)
 
-val prems = goalw Integ.thy [intrel_def]
-    "[| x1+y2 = x2+y1|] ==> \
-\    ((x1,y1),(x2,y2)): intrel";
-by (fast_tac (claset() addIs prems) 1);
+Goalw  [intrel_def] "[| x1+y2 = x2+y1|] ==> ((x1,y1),(x2,y2)): intrel";
+by (Fast_tac 1);
 qed "intrelI";
 
 (*intrelE is hard to derive because fast_tac tries hyp_subst_tac so soon*)
@@ -45,7 +43,7 @@ Goalw [intrel_def]
 by (Fast_tac 1);
 qed "intrelE_lemma";
 
-val [major,minor] = goal Integ.thy
+val [major,minor] = Goal
   "[| p: intrel;  \
 \     !!x1 y1 x2 y2. [| p = ((x1,y1),(x2,y2));  x1+y2 = x2+y1|] ==> Q |] \
 \  ==> Q";
@@ -130,8 +128,7 @@ by (simp_tac (simpset() addsimps
 qed "zminus";
 
 (*by lcp*)
-val [prem] = goal Integ.thy
-    "(!!x y. z = Abs_Integ(intrel^^{(x,y)}) ==> P) ==> P";
+val [prem] = Goal "(!!x y. z = Abs_Integ(intrel^^{(x,y)}) ==> P) ==> P";
 by (res_inst_tac [("x1","z")] 
     (rewrite_rule [Integ_def] Rep_Integ RS quotientE) 1);
 by (dres_inst_tac [("f","Abs_Integ")] arg_cong 1);
@@ -159,8 +156,7 @@ qed "zminus_0";
 (**** znegative: the test for negative integers ****)
 
 
-Goalw [znegative_def, znat_def]
-    "~ znegative($# n)";
+Goalw [znegative_def, znat_def] "~ znegative($# n)";
 by (Simp_tac 1);
 by Safe_tac;
 qed "not_znegative_znat";
@@ -445,13 +441,11 @@ Goalw [zpred_def,zsuc_def,zdiff_def] "$~ zpred(z) = zsuc($~ z)";
 by (Simp_tac 1);
 qed "zminus_zpred";
 
-Goalw [zsuc_def,zpred_def,zdiff_def]
-   "zpred(zsuc(z)) = z";
+Goalw [zsuc_def,zpred_def,zdiff_def]  "zpred(zsuc(z)) = z";
 by (simp_tac (simpset() addsimps [zadd_assoc]) 1);
 qed "zpred_zsuc";
 
-Goalw [zsuc_def,zpred_def,zdiff_def]
-   "zsuc(zpred(z)) = z";
+Goalw [zsuc_def,zpred_def,zdiff_def]  "zsuc(zpred(z)) = z";
 by (simp_tac (simpset() addsimps [zadd_assoc]) 1);
 qed "zsuc_zpred";
 
@@ -473,13 +467,13 @@ by (rtac (zminus_zminus RS sym) 1);
 by (rtac zminus_zminus 1);
 qed "zminus_exchange";
 
-Goal"(zsuc(z)=zsuc(w)) = (z=w)";
+Goal "(zsuc(z)=zsuc(w)) = (z=w)";
 by Safe_tac;
 by (dres_inst_tac [("f","zpred")] arg_cong 1);
 by (asm_full_simp_tac (simpset() addsimps [zpred_zsuc]) 1);
 qed "bijective_zsuc";
 
-Goal"(zpred(z)=zpred(w)) = (z=w)";
+Goal "(zpred(z)=zpred(w)) = (z=w)";
 by Safe_tac;
 by (dres_inst_tac [("f","zsuc")] arg_cong 1);
 by (asm_full_simp_tac (simpset() addsimps [zsuc_zpred]) 1);
@@ -579,7 +573,7 @@ qed "zlessI";
 
 val zless_zsucI = zlessI RSN (2,zless_trans);
 
-Goal "!!z w::int. z<w ==> ~w<z";
+Goal "!!w::int. z<w ==> ~w<z";
 by (safe_tac (claset() addSDs [zless_eq_zadd_Suc]));
 by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
 by Safe_tac;
@@ -611,7 +605,7 @@ by Safe_tac;
 by (asm_full_simp_tac
     (simpset() addsimps [zadd, zminus, Image_iff, Bex_def]) 1);
 by (res_inst_tac [("m1", "x+ya"), ("n1", "xa+y")] (less_linear RS disjE) 1);
-by (REPEAT (fast_tac (claset() addss (simpset() addsimps add_ac)) 1));
+by (auto_tac (claset(), simpset() addsimps add_ac));
 qed "zless_linear";
 
 
@@ -664,14 +658,15 @@ Goal "w <= (w::int)";
 by (simp_tac (simpset() addsimps [zle_eq_zless_or_eq]) 1);
 qed "zle_refl";
 
-val prems = goal Integ.thy "!!i. [| i <= j; j < k |] ==> i < (k::int)";
+Goal "[| i <= j; j < k |] ==> i < (k::int)";
 by (dtac zle_imp_zless_or_eq 1);
 by (fast_tac (claset() addIs [zless_trans]) 1);
 qed "zle_zless_trans";
 
 Goal "[| i <= j; j <= k |] ==> i <= (k::int)";
 by (EVERY1 [dtac zle_imp_zless_or_eq, dtac zle_imp_zless_or_eq,
-            rtac zless_or_eq_imp_zle, fast_tac (claset() addIs [zless_trans])]);
+            rtac zless_or_eq_imp_zle, 
+	    fast_tac (claset() addIs [zless_trans])]);
 qed "zle_trans";
 
 Goal "[| z <= w; w <= z |] ==> z = (w::int)";
@@ -680,7 +675,7 @@ by (EVERY1 [dtac zle_imp_zless_or_eq, dtac zle_imp_zless_or_eq,
 qed "zle_anti_sym";
 
 
-Goal "!!w w' z::int. z + w' = z + w ==> w' = w";
+Goal "!!w::int. z + w' = z + w ==> w' = w";
 by (dres_inst_tac [("f", "%x. x + $~z")] arg_cong 1);
 by (asm_full_simp_tac (simpset() addsimps zadd_ac) 1);
 qed "zadd_left_cancel";
@@ -688,19 +683,19 @@ qed "zadd_left_cancel";
 
 (*** Monotonicity results ***)
 
-Goal "!!v w z::int. v < w ==> v + z < w + z";
+Goal "!!z::int. v < w ==> v + z < w + z";
 by (safe_tac (claset() addSDs [zless_eq_zadd_Suc]));
 by (simp_tac (simpset() addsimps zadd_ac) 1);
 by (simp_tac (simpset() addsimps [zadd_assoc RS sym, zless_zadd_Suc]) 1);
 qed "zadd_zless_mono1";
 
-Goal "!!v w z::int. (v+z < w+z) = (v < w)";
+Goal "!!z::int. (v+z < w+z) = (v < w)";
 by (safe_tac (claset() addSEs [zadd_zless_mono1]));
 by (dres_inst_tac [("z", "$~z")] zadd_zless_mono1 1);
 by (asm_full_simp_tac (simpset() addsimps [zadd_assoc]) 1);
 qed "zadd_left_cancel_zless";
 
-Goal "!!v w z::int. (v+z <= w+z) = (v <= w)";
+Goal "!!z::int. (v+z <= w+z) = (v <= w)";
 by (asm_full_simp_tac
     (simpset() addsimps [zle_def, zadd_left_cancel_zless]) 1);
 qed "zadd_left_cancel_zle";
@@ -709,14 +704,14 @@ qed "zadd_left_cancel_zle";
 bind_thm ("zadd_zle_mono1", zadd_left_cancel_zle RS iffD2);
 
 
-Goal "!!z' z::int. [| w'<=w; z'<=z |] ==> w' + z' <= w + z";
+Goal "!!z z'::int. [| w'<=w; z'<=z |] ==> w' + z' <= w + z";
 by (etac (zadd_zle_mono1 RS zle_trans) 1);
 by (simp_tac (simpset() addsimps [zadd_commute]) 1);
 (*w moves to the end because it is free while z', z are bound*)
 by (etac zadd_zle_mono1 1);
 qed "zadd_zle_mono";
 
-Goal "!!w z::int. z<=$#0 ==> w+z <= w";
+Goal "!!z::int. z<=$#0 ==> w+z <= w";
 by (dres_inst_tac [("z", "w")] zadd_zle_mono1 1);
 by (asm_full_simp_tac (simpset() addsimps [zadd_commute]) 1);
 qed "zadd_zle_self";
@@ -726,7 +721,7 @@ qed "zadd_zle_self";
 
 (** One auxiliary theorem...**)
 
-goal HOL.thy "(x = False) = (~ x)";
+Goal "(x = False) = (~ x)";
   by (fast_tac HOL_cs 1);
 qed "eq_False_conv";
 
@@ -848,8 +843,7 @@ qed "not_znegativeD";
 
 (* a case theorem distinguishing positive and negative int *)  
 
-val prems = goal Integ.thy 
-    "[|!! n. P ($# n); !! n. P ($~ $# Suc n) |] ==> P z"; 
+val prems = Goal "[|!! n. P ($# n); !! n. P ($~ $# Suc n) |] ==> P z"; 
   by (cut_inst_tac [("P","znegative z")] excluded_middle 1); 
   by (fast_tac (HOL_cs addSDs[znegativeD,not_znegativeD] addSIs prems) 1); 
 qed "int_cases"; 

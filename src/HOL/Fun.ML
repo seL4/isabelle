@@ -13,7 +13,7 @@ by (Asm_simp_tac 1);
 by (rtac ext 1 THEN Asm_simp_tac 1);
 qed "expand_fun_eq";
 
-val prems = goal thy
+val prems = Goal
     "[| f(x)=u;  !!x. P(x) ==> g(f(x)) = x;  P(x) |] ==> x=g(u)";
 by (rtac (arg_cong RS box_equals) 1);
 by (REPEAT (resolve_tac (prems@[refl]) 1));
@@ -22,11 +22,11 @@ qed "apply_inverse";
 
 (** "Axiom" of Choice, proved using the description operator **)
 
-goal HOL.thy "!!Q. ALL x. EX y. Q x y ==> EX f. ALL x. Q x (f x)";
+Goal "!!Q. ALL x. EX y. Q x y ==> EX f. ALL x. Q x (f x)";
 by (fast_tac (claset() addEs [selectI]) 1);
 qed "choice";
 
-goal Set.thy "!!S. ALL x:S. EX y. Q x y ==> EX f. ALL x:S. Q x (f x)";
+Goal "!!S. ALL x:S. EX y. Q x y ==> EX f. ALL x:S. Q x (f x)";
 by (fast_tac (claset() addEs [selectI]) 1);
 qed "bchoice";
 
@@ -57,44 +57,43 @@ section "inj";
 
 (*** inj(f): f is a one-to-one function ***)
 
-val prems = goalw thy [inj_def]
+val prems = Goalw [inj_def]
     "[| !! x y. f(x) = f(y) ==> x=y |] ==> inj(f)";
 by (blast_tac (claset() addIs prems) 1);
 qed "injI";
 
-val [major] = goal thy "(!!x. g(f(x)) = x) ==> inj(f)";
+val [major] = Goal "(!!x. g(f(x)) = x) ==> inj(f)";
 by (rtac injI 1);
 by (etac (arg_cong RS box_equals) 1);
 by (rtac major 1);
 by (rtac major 1);
 qed "inj_inverseI";
 
-val [major,minor] = goalw thy [inj_def]
-    "[| inj(f); f(x) = f(y) |] ==> x=y";
-by (rtac (major RS spec RS spec RS mp) 1);
-by (rtac minor 1);
+Goalw [inj_def] "[| inj(f); f(x) = f(y) |] ==> x=y";
+by (Blast_tac 1);
 qed "injD";
 
 (*Useful with the simplifier*)
-val [major] = goal thy "inj(f) ==> (f(x) = f(y)) = (x=y)";
+Goal "inj(f) ==> (f(x) = f(y)) = (x=y)";
 by (rtac iffI 1);
-by (etac (major RS injD) 1);
-by (etac arg_cong 1);
+by (etac arg_cong 2);
+by (etac injD 1);
+ba 1;
 qed "inj_eq";
 
-val [major] = goal thy "inj(f) ==> (@x. f(x)=f(y)) = y";
-by (rtac (major RS injD) 1);
+Goal "inj(f) ==> (@x. f(x)=f(y)) = y";
+by (etac injD 1);
 by (rtac selectI 1);
 by (rtac refl 1);
 qed "inj_select";
 
 (*A one-to-one function has an inverse (given using select).*)
-val [major] = goalw thy [inv_def] "inj(f) ==> inv f (f x) = x";
-by (EVERY1 [rtac (major RS inj_select)]);
+Goalw [inv_def] "inj(f) ==> inv f (f x) = x";
+by (etac inj_select 1);
 qed "inv_f_f";
 
 (* Useful??? *)
-val [oneone,minor] = goal thy
+val [oneone,minor] = Goal
     "[| inj(f); !!y. y: range(f) ==> P(inv f y) |] ==> P(x)";
 by (res_inst_tac [("t", "x")] (oneone RS (inv_f_f RS subst)) 1);
 by (rtac (rangeI RS minor) 1);
@@ -103,60 +102,52 @@ qed "inj_transfer";
 
 (*** inj_on f A: f is one-to-one over A ***)
 
-val prems = goalw thy [inj_on_def]
+val prems = Goalw [inj_on_def]
     "(!! x y. [| f(x) = f(y);  x:A;  y:A |] ==> x=y) ==> inj_on f A";
 by (blast_tac (claset() addIs prems) 1);
 qed "inj_onI";
 
-val [major] = goal thy 
+val [major] = Goal 
     "(!!x. x:A ==> g(f(x)) = x) ==> inj_on f A";
 by (rtac inj_onI 1);
 by (etac (apply_inverse RS trans) 1);
 by (REPEAT (eresolve_tac [asm_rl,major] 1));
 qed "inj_on_inverseI";
 
-val major::prems = goalw thy [inj_on_def]
-    "[| inj_on f A;  f(x)=f(y);  x:A;  y:A |] ==> x=y";
-by (rtac (major RS bspec RS bspec RS mp) 1);
-by (REPEAT (resolve_tac prems 1));
+Goalw [inj_on_def] "[| inj_on f A;  f(x)=f(y);  x:A;  y:A |] ==> x=y";
+by (Blast_tac 1);
 qed "inj_onD";
 
 Goal "[| inj_on f A;  x:A;  y:A |] ==> (f(x)=f(y)) = (x=y)";
 by (blast_tac (claset() addSDs [inj_onD]) 1);
 qed "inj_on_iff";
 
-val major::prems = goal thy
-    "[| inj_on f A;  ~x=y;  x:A;  y:A |] ==> ~ f(x)=f(y)";
-by (rtac contrapos 1);
-by (etac (major RS inj_onD) 2);
-by (REPEAT (resolve_tac prems 1));
+Goalw [inj_on_def] "[| inj_on f A;  ~x=y;  x:A;  y:A |] ==> ~ f(x)=f(y)";
+by (Blast_tac 1);
 qed "inj_on_contraD";
 
-Goalw [inj_on_def]
-    "[| A<=B; inj_on f B |] ==> inj_on f A";
+Goalw [inj_on_def] "[| A<=B; inj_on f B |] ==> inj_on f A";
 by (Blast_tac 1);
 qed "subset_inj_on";
 
 
 (*** Lemmas about inj ***)
 
-Goalw [o_def]
-    "[| inj(f);  inj_on g (range f) |] ==> inj(g o f)";
+Goalw [o_def] "[| inj(f);  inj_on g (range f) |] ==> inj(g o f)";
 by (fast_tac (claset() addIs [injI] addEs [injD, inj_onD]) 1);
 qed "comp_inj";
 
-val [prem] = goal thy "inj(f) ==> inj_on f A";
-by (blast_tac (claset() addIs [prem RS injD, inj_onI]) 1);
+Goal "inj(f) ==> inj_on f A";
+by (blast_tac (claset() addIs [injD, inj_onI]) 1);
 qed "inj_imp";
 
-val [prem] = goalw thy [inv_def] "y : range(f) ==> f(inv f y) = y";
-by (EVERY1 [rtac (prem RS rangeE), rtac selectI, etac sym]);
+Goalw [inv_def] "y : range(f) ==> f(inv f y) = y";
+by (fast_tac (claset() addIs [selectI]) 1);
 qed "f_inv_f";
 
-val prems = goal thy
-    "[| inv f x=inv f y; x: range(f);  y: range(f) |] ==> x=y";
+Goal "[| inv f x=inv f y; x: range(f);  y: range(f) |] ==> x=y";
 by (rtac (arg_cong RS box_equals) 1);
-by (REPEAT (resolve_tac (prems @ [f_inv_f]) 1));
+by (REPEAT (ares_tac [f_inv_f] 1));
 qed "inv_injective";
 
 Goal "[| inj(f);  A<=range(f) |] ==> inj_on (inv f) A";

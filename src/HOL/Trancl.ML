@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
-For Trancl.thy.  Theorems about the transitive closure of a relation
+Theorems about the transitive closure of a relation
 *)
 
 open Trancl;
@@ -46,7 +46,7 @@ qed "rtrancl_mono";
 
 (** standard induction rule **)
 
-val major::prems = goal Trancl.thy 
+val major::prems = Goal 
   "[| (a,b) : r^*; \
 \     !!x. P((x,x)); \
 \     !!x y z.[| P((x,y)); (x,y): r^*; (y,z): r |]  ==>  P((x,z)) |] \
@@ -56,7 +56,7 @@ by (blast_tac (claset() addIs prems) 1);
 qed "rtrancl_full_induct";
 
 (*nice induction rule*)
-val major::prems = goal Trancl.thy
+val major::prems = Goal
     "[| (a::'a,b) : r^*;    \
 \       P(a); \
 \       !!y z.[| (a,y) : r^*;  (y,z) : r;  P(y) |] ==> P(z) |]  \
@@ -85,7 +85,7 @@ bind_thm ("rtrancl_trans", trans_rtrancl RS transD);
 
 
 (*elimination of rtrancl -- by induction on a special formula*)
-val major::prems = goal Trancl.thy
+val major::prems = Goal
     "[| (a::'a,b) : r^*;  (a = b) ==> P;        \
 \       !!y.[| (a,y) : r^*; (y,b) : r |] ==> P  \
 \    |] ==> P";
@@ -133,8 +133,9 @@ by (Blast_tac 1);
 qed "rtrancl_subset";
 
 Goal "(R^* Un S^*)^* = (R Un S)^*";
-by (blast_tac (claset() addSIs [rtrancl_subset]
-                       addIs [r_into_rtrancl, rtrancl_mono RS subsetD]) 1);
+(*Blast_tac: PROOF FAILED*)
+by (Blast.depth_tac (claset() addSIs [rtrancl_subset]
+                       addIs [r_into_rtrancl, rtrancl_mono RS subsetD]) 4 1);
 qed "rtrancl_Un_rtrancl";
 
 Goal "(R^=)^* = R^*";
@@ -160,7 +161,7 @@ Goal "(r^-1)^* = (r^*)^-1";
 by (safe_tac (claset() addSDs [rtrancl_converseD] addSIs [rtrancl_converseI]));
 qed "rtrancl_converse";
 
-val major::prems = goal Trancl.thy
+val major::prems = Goal
     "[| (a,b) : r^*; P(b); \
 \       !!y z.[| (y,z) : r;  (z,b) : r^*;  P(z) |] ==> P(y) |]  \
 \     ==> P(a)";
@@ -169,7 +170,7 @@ by (resolve_tac prems 1);
 by (blast_tac (claset() addIs prems addSDs[rtrancl_converseD])1);
 qed "converse_rtrancl_induct";
 
-val prems = goal Trancl.thy
+val prems = Goal
  "[| ((a,b),(c,d)) : r^*; P c d; \
 \    !!x y z u.[| ((x,y),(z,u)) : r;  ((z,u),(c,d)) : r^*;  P z u |] ==> P x y\
 \ |] ==> P a b";
@@ -183,7 +184,7 @@ by (Asm_full_simp_tac 1);
 by (REPEAT(ares_tac prems 1));
 qed "converse_rtrancl_induct2";
 
-val major::prems = goal Trancl.thy
+val major::prems = Goal
  "[| (x,z):r^*; \
 \    x=z ==> P; \
 \    !!y. [| (x,y):r; (y,z):r^* |] ==> P \
@@ -237,7 +238,7 @@ by (REPEAT (ares_tac [r_into_rtrancl] 1));
 qed "rtrancl_into_trancl2";
 
 (*Nice induction rule for trancl*)
-val major::prems = goal Trancl.thy
+val major::prems = Goal
   "[| (a,b) : r^+;                                      \
 \     !!y.  [| (a,y) : r |] ==> P(y);                   \
 \     !!y z.[| (a,y) : r^+;  (y,z) : r;  P(y) |] ==> P(z)       \
@@ -252,7 +253,7 @@ by (ALLGOALS (blast_tac (claset() addIs (rtrancl_into_trancl1::prems))));
 qed "trancl_induct";
 
 (*elimination of r^+ -- NOT an induction rule*)
-val major::prems = goal Trancl.thy
+val major::prems = Goal
     "[| (a::'a,b) : r^+;  \
 \       (a,b) : r ==> P; \
 \       !!y.[| (a,y) : r^+;  (y,b) : r |] ==> P  \

@@ -9,12 +9,12 @@
 val [nat_rec_0, nat_rec_Suc] = nat.recs;
 
 (*These 2 rules ease the use of primitive recursion.  NOTE USE OF == *)
-val prems = goal thy
+val prems = Goal
     "[| !!n. f(n) == nat_rec c h n |] ==> f(0) = c";
 by (simp_tac (simpset() addsimps prems) 1);
 qed "def_nat_rec_0";
 
-val prems = goal thy
+val prems = Goal
     "[| !!n. f(n) == nat_rec c h n |] ==> f(Suc(n)) = h n (f n)";
 by (simp_tac (simpset() addsimps prems) 1);
 qed "def_nat_rec_Suc";
@@ -26,9 +26,8 @@ by (exhaust_tac "n" 1);
 by (REPEAT (Blast_tac 1));
 qed "not0_implies_Suc";
 
-val prems = goal thy "m<n ==> n ~= 0";
+Goal "m<n ==> n ~= 0";
 by (exhaust_tac "n" 1);
-by (cut_facts_tac prems 1);
 by (ALLGOALS Asm_full_simp_tac);
 qed "gr_implies_not0";
 

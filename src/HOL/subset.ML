@@ -12,32 +12,28 @@ Union and Intersection as lattice operations
 qed_goal "subset_insertI" Set.thy "B <= insert a B"
  (fn _=> [ (rtac subsetI 1), (etac insertI2 1) ]);
 
-goal Set.thy "!!x. x ~: A ==> (A <= insert x B) = (A <= B)";
+Goal "x ~: A ==> (A <= insert x B) = (A <= B)";
 by (Blast_tac 1);
 qed "subset_insert";
 
 (*** Big Union -- least upper bound of a set  ***)
 
-val prems = goal Set.thy
-    "B:A ==> B <= Union(A)";
-by (REPEAT (ares_tac (prems@[subsetI,UnionI]) 1));
+Goal "B:A ==> B <= Union(A)";
+by (REPEAT (ares_tac [subsetI,UnionI] 1));
 qed "Union_upper";
 
-val [prem] = goal Set.thy
-    "[| !!X. X:A ==> X<=C |] ==> Union(A) <= C";
+val [prem] = Goal "[| !!X. X:A ==> X<=C |] ==> Union(A) <= C";
 by (rtac subsetI 1);
 by (REPEAT (eresolve_tac [asm_rl, UnionE, prem RS subsetD] 1));
 qed "Union_least";
 
 (** General union **)
 
-val prems = goal Set.thy
-    "a:A ==> B(a) <= (UN x:A. B(x))";
-by (REPEAT (ares_tac (prems@[UN_I RS subsetI]) 1));
+Goal "a:A ==> B(a) <= (UN x:A. B(x))";
+by (Blast_tac 1);
 qed "UN_upper";
 
-val [prem] = goal Set.thy
-    "[| !!x. x:A ==> B(x)<=C |] ==> (UN x:A. B(x)) <= C";
+val [prem] = Goal "[| !!x. x:A ==> B(x)<=C |] ==> (UN x:A. B(x)) <= C";
 by (rtac subsetI 1);
 by (REPEAT (eresolve_tac [asm_rl, UN_E, prem RS subsetD] 1));
 qed "UN_least";
@@ -45,52 +41,49 @@ qed "UN_least";
 
 (*** Big Intersection -- greatest lower bound of a set ***)
 
-goal Set.thy "!!B. B:A ==> Inter(A) <= B";
+Goal "B:A ==> Inter(A) <= B";
 by (Blast_tac 1);
 qed "Inter_lower";
 
-val [prem] = goal Set.thy
-    "[| !!X. X:A ==> C<=X |] ==> C <= Inter(A)";
+val [prem] = Goal "[| !!X. X:A ==> C<=X |] ==> C <= Inter(A)";
 by (rtac (InterI RS subsetI) 1);
 by (REPEAT (eresolve_tac [asm_rl, prem RS subsetD] 1));
 qed "Inter_greatest";
 
-val prems = goal Set.thy "a:A ==> (INT x:A. B(x)) <= B(a)";
-by (rtac subsetI 1);
-by (REPEAT (resolve_tac prems 1 ORELSE etac INT_D 1));
+Goal "a:A ==> (INT x:A. B(x)) <= B(a)";
+by (Blast_tac 1);
 qed "INT_lower";
 
-val [prem] = goal Set.thy
-    "[| !!x. x:A ==> C<=B(x) |] ==> C <= (INT x:A. B(x))";
+val [prem] = Goal "[| !!x. x:A ==> C<=B(x) |] ==> C <= (INT x:A. B(x))";
 by (rtac (INT_I RS subsetI) 1);
 by (REPEAT (eresolve_tac [asm_rl, prem RS subsetD] 1));
 qed "INT_greatest";
 
 (*** Finite Union -- the least upper bound of 2 sets ***)
 
-goal Set.thy "A <= A Un B";
+Goal "A <= A Un B";
 by (Blast_tac 1);
 qed "Un_upper1";
 
-goal Set.thy "B <= A Un B";
+Goal "B <= A Un B";
 by (Blast_tac 1);
 qed "Un_upper2";
 
-goal Set.thy "!!C. [| A<=C;  B<=C |] ==> A Un B <= C";
+Goal "[| A<=C;  B<=C |] ==> A Un B <= C";
 by (Blast_tac 1);
 qed "Un_least";
 
 (*** Finite Intersection -- the greatest lower bound of 2 sets *)
 
-goal Set.thy "A Int B <= A";
+Goal "A Int B <= A";
 by (Blast_tac 1);
 qed "Int_lower1";
 
-goal Set.thy "A Int B <= B";
+Goal "A Int B <= B";
 by (Blast_tac 1);
 qed "Int_lower2";
 
-goal Set.thy "!!C. [| C<=A;  C<=B |] ==> C <= A Int B";
+Goal "[| C<=A;  C<=B |] ==> C <= A Int B";
 by (Blast_tac 1);
 qed "Int_greatest";
 
@@ -101,14 +94,14 @@ qed_goal "Diff_subset" Set.thy "A-B <= (A::'a set)"
 
 (*** Monotonicity ***)
 
-val [prem] = goal Set.thy "mono(f) ==> f(A) Un f(B) <= f(A Un B)";
+Goal "mono(f) ==> f(A) Un f(B) <= f(A Un B)";
 by (rtac Un_least 1);
-by (rtac (Un_upper1 RS (prem RS monoD)) 1);
-by (rtac (Un_upper2 RS (prem RS monoD)) 1);
+by (etac (Un_upper1 RSN (2,monoD)) 1);
+by (etac (Un_upper2 RSN (2,monoD)) 1);
 qed "mono_Un";
 
-val [prem] = goal Set.thy "mono(f) ==> f(A Int B) <= f(A) Int f(B)";
+Goal "mono(f) ==> f(A Int B) <= f(A) Int f(B)";
 by (rtac Int_greatest 1);
-by (rtac (Int_lower1 RS (prem RS monoD)) 1);
-by (rtac (Int_lower2 RS (prem RS monoD)) 1);
+by (etac (Int_lower1 RSN (2,monoD)) 1);
+by (etac (Int_lower2 RSN (2,monoD)) 1);
 qed "mono_Int";

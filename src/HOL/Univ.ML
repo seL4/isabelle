@@ -14,7 +14,7 @@ Goalw [apfst_def] "apfst f (a,b) = (f(a),b)";
 by (rtac split 1);
 qed "apfst_conv";
 
-val [major,minor] = goal Univ.thy
+val [major,minor] = Goal
     "[| q = apfst f p;  !!x y. [| p = (x,y);  q = (f(x),y) |] ==> R \
 \    |] ==> R";
 by (rtac PairE 1);
@@ -27,26 +27,27 @@ qed "apfst_convE";
 
 (** Push -- an injection, analogous to Cons on lists **)
 
-val [major] = goalw Univ.thy [Push_def] "Push i f = Push j g  ==> i=j";
-by (rtac (major RS fun_cong RS box_equals RS Suc_inject) 1);
+Goalw [Push_def] "Push i f = Push j g  ==> i=j";
+by (etac (fun_cong RS box_equals RS Suc_inject) 1);
 by (rtac nat_case_0 1);
 by (rtac nat_case_0 1);
 qed "Push_inject1";
 
-val [major] = goalw Univ.thy [Push_def] "Push i f = Push j g  ==> f=g";
-by (rtac (major RS fun_cong RS ext RS box_equals) 1);
+Goalw [Push_def] "Push i f = Push j g  ==> f=g";
+by (rtac (ext RS box_equals) 1);
+by (etac fun_cong 1);
 by (rtac (nat_case_Suc RS ext) 1);
 by (rtac (nat_case_Suc RS ext) 1);
 qed "Push_inject2";
 
-val [major,minor] = goal Univ.thy
+val [major,minor] = Goal
     "[| Push i f =Push j g;  [| i=j;  f=g |] ==> P \
 \    |] ==> P";
 by (rtac ((major RS Push_inject2) RS ((major RS Push_inject1) RS minor)) 1);
 qed "Push_inject";
 
-val [major] = goalw Univ.thy [Push_def] "Push k f =(%z.0) ==> P";
-by (rtac (major RS fun_cong RS box_equals RS Suc_neq_Zero) 1);
+Goalw [Push_def] "Push k f =(%z.0) ==> P";
+by (etac (fun_cong RS box_equals RS Suc_neq_Zero) 1);
 by (rtac nat_case_0 1);
 by (rtac refl 1);
 qed "Push_neq_K0";
@@ -125,7 +126,7 @@ AddSDs [Numb_inject];
 
 (** Injectiveness of Push_Node **)
 
-val [major,minor] = goalw Univ.thy [Push_Node_def]
+val [major,minor] = Goalw [Push_Node_def]
     "[| Push_Node i m =Push_Node j n;  [| i=j;  m=n |] ==> P \
 \    |] ==> P";
 by (rtac (major RS Abs_Node_inject RS apfst_convE) 1);
@@ -150,17 +151,17 @@ Goalw [Scons_def] "Scons M N <= Scons M' N' ==> N<=N'";
 by (blast_tac (claset() addSDs [Push_Node_inject]) 1);
 qed "Scons_inject_lemma2";
 
-val [major] = goal Univ.thy "Scons M N = Scons M' N' ==> M=M'";
-by (rtac (major RS equalityE) 1);
+Goal "Scons M N = Scons M' N' ==> M=M'";
+by (etac equalityE 1);
 by (REPEAT (ares_tac [equalityI, Scons_inject_lemma1] 1));
 qed "Scons_inject1";
 
-val [major] = goal Univ.thy "Scons M N = Scons M' N' ==> N=N'";
-by (rtac (major RS equalityE) 1);
+Goal "Scons M N = Scons M' N' ==> N=N'";
+by (etac equalityE 1);
 by (REPEAT (ares_tac [equalityI, Scons_inject_lemma2] 1));
 qed "Scons_inject2";
 
-val [major,minor] = goal Univ.thy
+val [major,minor] = Goal
     "[| Scons M N = Scons M' N';  [| M=M';  N=N' |] ==> P \
 \    |] ==> P";
 by (rtac ((major RS Scons_inject2) RS ((major RS Scons_inject1) RS minor)) 1);
@@ -302,7 +303,7 @@ by (REPEAT (ares_tac [singletonI,UN_I] 1));
 qed "uprodI";
 
 (*The general elimination rule*)
-val major::prems = goalw Univ.thy [uprod_def]
+val major::prems = Goalw [uprod_def]
     "[| c : A<*>B;  \
 \       !!x y. [| x:A;  y:B;  c = Scons x y |] ==> P \
 \    |] ==> P";
@@ -312,7 +313,7 @@ by (REPEAT (eresolve_tac [asm_rl,singletonE,UN_E] 1
 qed "uprodE";
 
 (*Elimination of a pair -- introduces no eigenvariables*)
-val prems = goal Univ.thy
+val prems = Goal
     "[| Scons M N : A<*>B;      [| M:A;  N:B |] ==> P   \
 \    |] ==> P";
 by (rtac uprodE 1);
@@ -330,7 +331,7 @@ Goalw [usum_def] "N:B ==> In1(N) : A<+>B";
 by (Blast_tac 1);
 qed "usum_In1I";
 
-val major::prems = goalw Univ.thy [usum_def]
+val major::prems = Goalw [usum_def]
     "[| u : A<+>B;  \
 \       !!x. [| x:A;  u=In0(x) |] ==> P; \
 \       !!y. [| y:B;  u=In1(y) |] ==> P \
@@ -352,12 +353,12 @@ bind_thm ("In1_not_In0", In0_not_In1 RS not_sym);
 
 AddIffs [In0_not_In1, In1_not_In0];
 
-val [major] = goalw Univ.thy [In0_def] "In0(M) = In0(N) ==>  M=N";
-by (rtac (major RS Scons_inject2) 1);
+Goalw [In0_def] "In0(M) = In0(N) ==>  M=N";
+by (etac (Scons_inject2) 1);
 qed "In0_inject";
 
-val [major] = goalw Univ.thy [In1_def] "In1(M) = In1(N) ==>  M=N";
-by (rtac (major RS Scons_inject2) 1);
+Goalw [In1_def] "In1(M) = In1(N) ==>  M=N";
+by (etac (Scons_inject2) 1);
 qed "In1_inject";
 
 Goal "(In0 M = In0 N) = (M=N)";
@@ -385,14 +386,13 @@ Goalw [ntrunc_def] "ntrunc k M <= M";
 by (Blast_tac 1);
 qed "ntrunc_subsetI";
 
-val [major] = goalw Univ.thy [ntrunc_def]
-    "(!!k. ntrunc k M <= N) ==> M<=N";
+val [major] = Goalw [ntrunc_def] "(!!k. ntrunc k M <= N) ==> M<=N";
 by (blast_tac (claset() addIs [less_add_Suc1, less_add_Suc2, 
 			       major RS subsetD]) 1);
 qed "ntrunc_subsetD";
 
 (*A generalized form of the take-lemma*)
-val [major] = goal Univ.thy "(!!k. ntrunc k M = ntrunc k N) ==> M=N";
+val [major] = Goal "(!!k. ntrunc k M = ntrunc k N) ==> M=N";
 by (rtac equalityI 1);
 by (ALLGOALS (rtac ntrunc_subsetD));
 by (ALLGOALS (rtac (ntrunc_subsetI RSN (2, subset_trans))));
@@ -400,7 +400,7 @@ by (rtac (major RS equalityD1) 1);
 by (rtac (major RS equalityD2) 1);
 qed "ntrunc_equality";
 
-val [major] = goalw Univ.thy [o_def]
+val [major] = Goalw [o_def]
     "[| !!k. (ntrunc(k) o h1) = (ntrunc(k) o h2) |] ==> h1=h2";
 by (rtac (ntrunc_equality RS ext) 1);
 by (rtac (major RS fun_cong) 1);
@@ -478,7 +478,7 @@ qed "diag_eqI";
 val diagI = refl RS diag_eqI |> standard;
 
 (*The general elimination rule*)
-val major::prems = goalw Univ.thy [diag_def]
+val major::prems = Goalw [diag_def]
     "[| c : diag(A);  \
 \       !!x y. [| x:A;  c = (x,x) |] ==> P \
 \    |] ==> P";
@@ -494,7 +494,7 @@ by (Blast_tac 1);
 qed "dprodI";
 
 (*The general elimination rule*)
-val major::prems = goalw Univ.thy [dprod_def]
+val major::prems = Goalw [dprod_def]
     "[| c : r<**>s;  \
 \       !!x y x' y'. [| (x,x') : r;  (y,y') : s;  c = (Scons x y, Scons x' y') |] ==> P \
 \    |] ==> P";
@@ -514,7 +514,7 @@ Goalw [dsum_def]  "(N,N'):s ==> (In1(N), In1(N')) : r<++>s";
 by (Blast_tac 1);
 qed "dsum_In1I";
 
-val major::prems = goalw Univ.thy [dsum_def]
+val major::prems = Goalw [dsum_def]
     "[| w : r<++>s;  \
 \       !!x x'. [| (x,x') : r;  w = (In0(x), In0(x')) |] ==> P; \
 \       !!y y'. [| (y,y') : s;  w = (In1(y), In1(y')) |] ==> P \

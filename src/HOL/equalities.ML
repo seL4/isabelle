@@ -136,7 +136,7 @@ by (Blast_tac 1);
 qed "if_image_distrib";
 Addsimps[if_image_distrib];
 
-val prems= goal thy "[|M = N; !!x. x:N ==> f x = g x|] ==> f``M = g``N";
+val prems= Goal "[|M = N; !!x. x:N ==> f x = g x|] ==> f``M = g``N";
 by (rtac set_ext 1);
 by (simp_tac (simpset() addsimps image_def::prems) 1);
 qed "image_cong";
@@ -211,10 +211,6 @@ qed "Int_Un_distrib";
 Goal "(B Un C) Int A =  (B Int A) Un (C Int A)";
 by (Blast_tac 1);
 qed "Int_Un_distrib2";
-
-Goal "(A<=B) = (A Int B = A)";
-by (blast_tac (claset() addSEs [equalityCE]) 1);
-qed "subset_Int_eq";
 
 Goal "(A Int B = UNIV) = (A = UNIV & B = UNIV)";
 by (blast_tac (claset() addEs [equalityCE]) 1);

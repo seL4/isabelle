@@ -12,7 +12,7 @@ Goalw [id_def] "(a,a) : id";
 by (Blast_tac 1);
 qed "idI";
 
-val major::prems = goalw thy [id_def]
+val major::prems = Goalw [id_def]
     "[| p: id;  !!x.[| p = (x,x) |] ==> P  \
 \    |] ==>  P";  
 by (rtac (major RS CollectE) 1);
@@ -34,7 +34,7 @@ by (Blast_tac 1);
 qed "compI";
 
 (*proof requires higher-level assumptions or a delaying of hyp_subst_tac*)
-val prems = goalw thy [comp_def]
+val prems = Goalw [comp_def]
     "[| xz : r O s;  \
 \       !!x y z. [| xz = (x,z);  (x,y):s;  (y,z):r |] ==> P \
 \    |] ==> P";
@@ -43,7 +43,7 @@ by (REPEAT (eresolve_tac [CollectE, splitE, exE, conjE] 1
      ORELSE ares_tac prems 1));
 qed "compE";
 
-val prems = goal thy
+val prems = Goal
     "[| (a,c) : r O s;  \
 \       !!y. [| (a,y):s;  (y,c):r |] ==> P \
 \    |] ==> P";
@@ -78,7 +78,7 @@ qed "comp_subset_Sigma";
 
 (** Natural deduction for trans(r) **)
 
-val prems = goalw thy [trans_def]
+val prems = Goalw [trans_def]
     "(!! x y z. [| (x,y):r;  (y,z):r |] ==> (x,z):r) ==> trans(r)";
 by (REPEAT (ares_tac (prems@[allI,impI]) 1));
 qed "transI";

@@ -20,22 +20,22 @@ by (stac Nat_unfold 1);
 by (rtac (singletonI RS UnI1) 1);
 qed "Zero_RepI";
 
-val prems = goal thy "i: Nat ==> Suc_Rep(i) : Nat";
+Goal "i: Nat ==> Suc_Rep(i) : Nat";
 by (stac Nat_unfold 1);
 by (rtac (imageI RS UnI2) 1);
-by (resolve_tac prems 1);
+by (assume_tac 1);
 qed "Suc_RepI";
 
 (*** Induction ***)
 
-val major::prems = goal thy
+val major::prems = Goal
     "[| i: Nat;  P(Zero_Rep);   \
 \       !!j. [| j: Nat; P(j) |] ==> P(Suc_Rep(j)) |]  ==> P(i)";
 by (rtac ([Nat_def, Nat_fun_mono, major] MRS def_induct) 1);
 by (blast_tac (claset() addIs prems) 1);
 qed "Nat_induct";
 
-val prems = goalw thy [Zero_def,Suc_def]
+val prems = Goalw [Zero_def,Suc_def]
     "[| P(0);   \
 \       !!n. P(n) ==> P(Suc(n)) |]  ==> P(n)";
 by (rtac (Rep_Nat_inverse RS subst) 1);   (*types force good instantiation*)
@@ -49,7 +49,7 @@ fun nat_ind_tac a i =
   res_inst_tac [("n",a)] nat_induct i  THEN  rename_last_tac a [""] (i+1);
 
 (*A special form of induction for reasoning about m<n and m-n*)
-val prems = goal thy
+val prems = Goal
     "[| !!x. P x 0;  \
 \       !!y. P 0 (Suc y);  \
 \       !!x y. [| P x y |] ==> P (Suc x) (Suc y)  \
@@ -131,10 +131,10 @@ qed "less_eq";
 
 (** Introduction properties **)
 
-val prems = goalw thy [less_def] "[| i<j;  j<k |] ==> i<(k::nat)";
+Goalw [less_def] "[| i<j;  j<k |] ==> i<(k::nat)";
 by (rtac (trans_trancl RS transD) 1);
-by (resolve_tac prems 1);
-by (resolve_tac prems 1);
+by (assume_tac 1);
+by (assume_tac 1);
 qed "less_trans";
 
 Goalw [less_def, pred_nat_def] "n < Suc(n)";
@@ -156,8 +156,8 @@ AddIffs [zero_less_Suc];
 
 (** Elimination properties **)
 
-val prems = goalw thy [less_def] "n<m ==> ~ m<(n::nat)";
-by (blast_tac (claset() addIs ([wf_pred_nat, wf_trancl RS wf_asym]@prems))1);
+Goalw [less_def] "n<m ==> ~ m<(n::nat)";
+by (blast_tac (claset() addIs [wf_pred_nat, wf_trancl RS wf_asym])1);
 qed "less_not_sym";
 
 (* [| n<m; m<n |] ==> R *)
@@ -176,7 +176,7 @@ by (blast_tac (claset() addSEs [less_irrefl]) 1);
 qed "less_not_refl2";
 
 
-val major::prems = goalw thy [less_def, pred_nat_def]
+val major::prems = Goalw [less_def, pred_nat_def]
     "[| i<k;  k=Suc(i) ==> P;  !!j. [| i<j;  k=Suc(j) |] ==> P \
 \    |] ==> P";
 by (rtac (major RS tranclE) 1);
@@ -197,7 +197,7 @@ AddIffs [not_less0];
 (* n<0 ==> R *)
 bind_thm ("less_zeroE", not_less0 RS notE);
 
-val [major,less,eq] = goal thy
+val [major,less,eq] = Goal
     "[| m < Suc(n);  m<n ==> P;  m=n ==> P |] ==> P";
 by (rtac (major RS lessE) 1);
 by (rtac eq 1);
@@ -254,14 +254,14 @@ by (full_simp_tac (simpset() addsimps [nat_neq_iff]) 1);
 by (blast_tac (claset() addSEs [less_irrefl, less_SucE] addEs [less_asym]) 1);
 qed "Suc_lessI";
 
-val [prem] = goal thy "Suc(m) < n ==> m<n";
-by (rtac (prem RS rev_mp) 1);
+Goal "Suc(m) < n ==> m<n";
+by (etac rev_mp 1);
 by (nat_ind_tac "n" 1);
 by (ALLGOALS (fast_tac (claset() addSIs [lessI RS less_SucI]
                                  addEs  [less_trans, lessE])));
 qed "Suc_lessD";
 
-val [major,minor] = goal thy 
+val [major,minor] = Goal 
     "[| Suc(i)<k;  !!j. [| i<j;  k=Suc(j) |] ==> P \
 \    |] ==> P";
 by (rtac (major RS lessE) 1);
@@ -299,7 +299,7 @@ by (ALLGOALS Asm_simp_tac);
 qed "not_less_eq";
 
 (*Complete induction, aka course-of-values induction*)
-val prems = goalw thy [less_def]
+val prems = Goalw [less_def]
     "[| !!n. [| ! m::nat. m<n --> P(m) |] ==> P(n) |]  ==>  P(n)";
 by (wf_ind_tac "n" [wf_pred_nat RS wf_trancl] 1);
 by (eresolve_tac prems 1);
@@ -350,12 +350,12 @@ this could make the simpset (with less_Suc_eq added again) more confluent,
 but less_Suc_eq makes additional problems with terms of the form 0 < Suc (...)
 *)
 
-val prems = goalw thy [le_def] "~n<m ==> m<=(n::nat)";
-by (resolve_tac prems 1);
+Goalw [le_def] "~n<m ==> m<=(n::nat)";
+by (assume_tac 1);
 qed "leI";
 
-val prems = goalw thy [le_def] "m<=n ==> ~ n < (m::nat)";
-by (resolve_tac prems 1);
+Goalw [le_def] "m<=n ==> ~ n < (m::nat)";
+by (assume_tac 1);
 qed "leD";
 
 val leE = make_elim leD;
@@ -505,7 +505,7 @@ Goalw [Least_def]
 by (simp_tac (simpset() addsimps [lemma]) 1);
 qed "Least_nat_def";
 
-val [prem1,prem2] = goalw thy [Least_nat_def]
+val [prem1,prem2] = Goalw [Least_nat_def]
     "[| P(k::nat);  !!x. x<k ==> ~P(x) |] ==> (LEAST x. P(x)) = k";
 by (rtac select_equality 1);
 by (blast_tac (claset() addSIs [prem1,prem2]) 1);
@@ -513,8 +513,8 @@ by (cut_facts_tac [less_linear] 1);
 by (blast_tac (claset() addSIs [prem1] addSDs [prem2]) 1);
 qed "Least_equality";
 
-val [prem] = goal thy "P(k::nat) ==> P(LEAST x. P(x))";
-by (rtac (prem RS rev_mp) 1);
+Goal "P(k::nat) ==> P(LEAST x. P(x))";
+by (etac rev_mp 1);
 by (res_inst_tac [("n","k")] less_induct 1);
 by (rtac impI 1);
 by (rtac classical 1);
@@ -525,8 +525,8 @@ by (Blast_tac 1);
 qed "LeastI";
 
 (*Proof is almost identical to the one above!*)
-val [prem] = goal thy "P(k::nat) ==> (LEAST x. P(x)) <= k";
-by (rtac (prem RS rev_mp) 1);
+Goal "P(k::nat) ==> (LEAST x. P(x)) <= k";
+by (etac rev_mp 1);
 by (res_inst_tac [("n","k")] less_induct 1);
 by (rtac impI 1);
 by (rtac classical 1);
@@ -536,10 +536,9 @@ by (rtac le_refl 2);
 by (blast_tac (claset() addIs [less_imp_le,le_trans]) 1);
 qed "Least_le";
 
-val [prem] = goal thy "k < (LEAST x. P(x)) ==> ~P(k::nat)";
+Goal "k < (LEAST x. P(x)) ==> ~P(k::nat)";
 by (rtac notI 1);
-by (etac (rewrite_rule [le_def] Least_le RS notE) 1);
-by (rtac prem 1);
+by (etac (rewrite_rule [le_def] Least_le RS notE) 1 THEN assume_tac 1);
 qed "not_less_Least";
 
 (*** Instantiation of transitivity prover ***)

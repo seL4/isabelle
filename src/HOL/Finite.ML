@@ -11,7 +11,7 @@ open Finite;
 section "finite";
 
 (*Discharging ~ x:y entails extra work*)
-val major::prems = goal Finite.thy 
+val major::prems = Goal 
     "[| finite F;  P({}); \
 \       !!F x. [| finite F;  x ~: F;  P(F) |] ==> P(insert x F) \
 \    |] ==> P(F)";
@@ -21,7 +21,7 @@ by (etac (insert_absorb RS ssubst) 3 THEN assume_tac 3);   (*backtracking!*)
 by (REPEAT (ares_tac prems 1));
 qed "finite_induct";
 
-val major::subs::prems = goal Finite.thy 
+val major::subs::prems = Goal 
     "[| finite F;  F <= A; \
 \       P({}); \
 \       !!F a. [| finite F; a:A; a ~: F;  P(F) |] ==> P(insert a F) \
@@ -35,10 +35,9 @@ Addsimps Finites.intrs;
 AddSIs Finites.intrs;
 
 (*The union of two finite sets is finite*)
-val major::prems = goal Finite.thy
-    "[| finite F;  finite G |] ==> finite(F Un G)";
-by (rtac (major RS finite_induct) 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps prems)));
+Goal "[| finite F;  finite G |] ==> finite(F Un G)";
+by (etac finite_induct 1);
+by (ALLGOALS Asm_simp_tac);
 qed "finite_UnI";
 
 (*Every subset of a finite set is finite*)
@@ -76,7 +75,7 @@ by (Simp_tac 1);
 by (Asm_simp_tac 1);
 qed "finite_imageI";
 
-val major::prems = goal Finite.thy 
+val major::prems = Goal 
     "[| finite c;  finite b;                                  \
 \       P(b);                                                   \
 \       !!x y. [| finite y;  x:y;  P(y) |] ==> P(y-{x}) \
@@ -87,7 +86,7 @@ by (ALLGOALS (asm_simp_tac
                 (simpset() addsimps (prems@[Diff_subset RS finite_subset]))));
 val lemma = result();
 
-val prems = goal Finite.thy 
+val prems = Goal 
     "[| finite A;                                       \
 \       P(A);                                           \
 \       !!a A. [| finite A;  a:A;  P(A) |] ==> P(A-{a}) \
@@ -134,9 +133,8 @@ qed "finite_imageD";
 
 (** The finite UNION of finite sets **)
 
-val [prem] = goal Finite.thy
- "finite A ==> (!a:A. finite(B a)) --> finite(UN a:A. B a)";
-by (rtac (prem RS finite_induct) 1);
+Goal "finite A ==> (!a:A. finite(B a)) --> finite(UN a:A. B a)";
+by (etac finite_induct 1);
 by (ALLGOALS Asm_simp_tac);
 bind_thm("finite_UnionI", ballI RSN (2, result() RS mp));
 Addsimps [finite_UnionI];
@@ -187,7 +185,7 @@ AddIffs [finite_converse];
 
 section "Finite cardinality -- 'card'";
 
-goal Set.thy "{f i |i. (P i | i=n)} = insert (f n) {f i|i. P i}";
+Goal "{f i |i. (P i | i=n)} = insert (f n) {f i|i. P i}";
 by (Blast_tac 1);
 val Collect_conv_insert = result();
 
@@ -197,9 +195,8 @@ by (ALLGOALS Asm_full_simp_tac);
 qed "card_empty";
 Addsimps [card_empty];
 
-val [major] = goal Finite.thy
-  "finite A ==> ? (n::nat) f. A = {f i |i. i<n}";
-by (rtac (major RS finite_induct) 1);
+Goal "finite A ==> ? (n::nat) f. A = {f i |i. i<n}";
+by (etac finite_induct 1);
  by (res_inst_tac [("x","0")] exI 1);
  by (Simp_tac 1);
 by (etac exE 1);

@@ -31,14 +31,14 @@ Goal "!!R. [| (x,y) : R^0; x=y ==> P |] ==> P";
 by (Asm_full_simp_tac 1);
 qed "rel_pow_0_E";
 
-val [major,minor] = goal RelPow.thy
+val [major,minor] = Goal
   "[| (x,z) : R^(Suc n);  !!y. [| (x,y) : R^n; (y,z) : R |] ==> P |] ==> P";
 by (cut_facts_tac [major] 1);
 by (Asm_full_simp_tac  1);
 by (blast_tac (claset() addIs [minor]) 1);
 qed "rel_pow_Suc_E";
 
-val [p1,p2,p3] = goal RelPow.thy
+val [p1,p2,p3] = Goal
     "[| (x,z) : R^n;  [| n=0; x = z |] ==> P;        \
 \       !!y m. [| n = Suc m; (x,y) : R^m; (y,z) : R |] ==> P  \
 \    |] ==> P";
@@ -52,18 +52,20 @@ qed "rel_pow_E";
 
 Goal "!x z. (x,z):R^(Suc n) --> (? y. (x,y):R & (y,z):R^n)";
 by (nat_ind_tac "n" 1);
-by (blast_tac (claset() addIs [rel_pow_0_I] addEs [rel_pow_0_E,rel_pow_Suc_E]) 1);
-by (blast_tac (claset() addIs [rel_pow_Suc_I] addEs[rel_pow_0_E,rel_pow_Suc_E]) 1);
+by (blast_tac (claset() addIs [rel_pow_0_I] 
+	                addEs [rel_pow_0_E,rel_pow_Suc_E]) 1);
+by (blast_tac (claset() addIs [rel_pow_Suc_I]  
+	                addEs [rel_pow_0_E,rel_pow_Suc_E]) 1);
 qed_spec_mp "rel_pow_Suc_D2";
 
 
 Goal "!x y z. (x,y) : R^n & (y,z) : R --> (? w. (x,w) : R & (w,z) : R^n)";
 by (nat_ind_tac "n" 1);
-by (fast_tac (claset() addss (simpset())) 1);
-by (fast_tac (claset() addss (simpset())) 1);
+by (ALLGOALS Asm_simp_tac);
+by (Blast_tac 1);
 qed_spec_mp "rel_pow_Suc_D2'";
 
-val [p1,p2,p3] = goal RelPow.thy
+val [p1,p2,p3] = Goal
     "[| (x,z) : R^n;  [| n=0; x = z |] ==> P;        \
 \       !!y m. [| n = Suc m; (x,y) : R; (y,z) : R^m |] ==> P  \
 \    |] ==> P";

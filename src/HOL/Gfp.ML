@@ -22,18 +22,18 @@ by (REPEAT (ares_tac ([Union_least]@prems) 1));
 by (etac CollectD 1);
 qed "gfp_least";
 
-val [mono] = goal Gfp.thy "mono(f) ==> gfp(f) <= f(gfp(f))";
+Goal "mono(f) ==> gfp(f) <= f(gfp(f))";
 by (EVERY1 [rtac gfp_least, rtac subset_trans, atac,
-            rtac (mono RS monoD), rtac gfp_upperbound, atac]);
+            etac monoD, rtac gfp_upperbound, atac]);
 qed "gfp_lemma2";
 
-val [mono] = goal Gfp.thy "mono(f) ==> f(gfp(f)) <= gfp(f)";
-by (EVERY1 [rtac gfp_upperbound, rtac (mono RS monoD), 
-            rtac gfp_lemma2, rtac mono]);
+Goal "mono(f) ==> f(gfp(f)) <= gfp(f)";
+by (EVERY1 [rtac gfp_upperbound, rtac monoD, assume_tac,
+            etac gfp_lemma2]);
 qed "gfp_lemma3";
 
-val [mono] = goal Gfp.thy "mono(f) ==> gfp(f) = f(gfp(f))";
-by (REPEAT (resolve_tac [equalityI,gfp_lemma2,gfp_lemma3,mono] 1));
+Goal "mono(f) ==> gfp(f) = f(gfp(f))";
+by (REPEAT (ares_tac [equalityI,gfp_lemma2,gfp_lemma3] 1));
 qed "gfp_Tarski";
 
 (*** Coinduction rules for greatest fixed points ***)
@@ -70,8 +70,8 @@ qed "gfp_fun_UnI2";
          - instead of the condition  X <= f(X)
                            consider  X <= (f(X) Un f(f(X)) ...) Un gfp(X) ***)
 
-val [prem] = goal Gfp.thy "mono(f) ==> mono(%x. f(x) Un X Un B)";
-by (REPEAT (ares_tac [subset_refl, monoI, Un_mono, prem RS monoD] 1));
+Goal "mono(f) ==> mono(%x. f(x) Un X Un B)";
+by (REPEAT (ares_tac [subset_refl, monoI, Un_mono] 1 ORELSE etac monoD 1));
 qed "coinduct3_mono_lemma";
 
 val [prem,mono] = goal Gfp.thy
@@ -88,12 +88,11 @@ by (stac (mono RS coinduct3_mono_lemma RS lfp_Tarski) 1);
 by (rtac Un_upper2 1);
 qed "coinduct3_lemma";
 
-val prems = goal Gfp.thy
-    "[| mono(f);  a:X;  X <= f(lfp(%x. f(x) Un X Un gfp(f))) |] ==> a : gfp(f)";
+Goal
+  "[| mono(f);  a:X;  X <= f(lfp(%x. f(x) Un X Un gfp(f))) |] ==> a : gfp(f)";
 by (rtac (coinduct3_lemma RSN (2,weak_coinduct)) 1);
-by (resolve_tac (prems RL [coinduct3_mono_lemma RS lfp_Tarski RS ssubst]) 1);
-by (rtac (UnI2 RS UnI1) 1);
-by (REPEAT (resolve_tac prems 1));
+by (resolve_tac [coinduct3_mono_lemma RS lfp_Tarski RS ssubst] 1);
+by Auto_tac;
 qed "coinduct3";
 
 
@@ -111,7 +110,7 @@ by (REPEAT (ares_tac (map (rewrite_rule [rew]) prems @ [coinduct]) 1));
 qed "def_coinduct";
 
 (*The version used in the induction/coinduction package*)
-val prems = goal Gfp.thy
+val prems = Goal
     "[| A == gfp(%w. Collect(P(w)));  mono(%w. Collect(P(w)));  \
 \       a: X;  !!z. z: X ==> P (X Un A) z |] ==> \
 \    a : A";
@@ -126,7 +125,7 @@ by (REPEAT (ares_tac (map (rewrite_rule [rew]) prems @ [coinduct3]) 1));
 qed "def_coinduct3";
 
 (*Monotonicity of gfp!*)
-val [prem] = goal Gfp.thy "[| !!Z. f(Z)<=g(Z) |] ==> gfp(f) <= gfp(g)";
+val [prem] = Goal "[| !!Z. f(Z)<=g(Z) |] ==> gfp(f) <= gfp(g)";
 by (rtac (gfp_upperbound RS gfp_least) 1);
 by (etac (prem RSN (2,subset_trans)) 1);
 qed "gfp_mono";

@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
-For Sum.thy.  The disjoint sum of two types
+The disjoint sum of two types
 *)
 
 open Sum;
@@ -51,13 +51,13 @@ val Inr_neq_Inl = sym RS Inl_neq_Inr;
 
 (** Injectiveness of Inl and Inr **)
 
-val [major] = goalw Sum.thy [Inl_Rep_def] "Inl_Rep(a) = Inl_Rep(c) ==> a=c";
-by (rtac (major RS fun_cong RS fun_cong RS fun_cong RS iffE) 1);
+Goalw [Inl_Rep_def] "Inl_Rep(a) = Inl_Rep(c) ==> a=c";
+by (etac (fun_cong RS fun_cong RS fun_cong RS iffE) 1);
 by (Blast_tac 1);
 qed "Inl_Rep_inject";
 
-val [major] = goalw Sum.thy [Inr_Rep_def] "Inr_Rep(b) = Inr_Rep(d) ==> b=d";
-by (rtac (major RS fun_cong RS fun_cong RS fun_cong RS iffE) 1);
+Goalw [Inr_Rep_def] "Inr_Rep(b) = Inr_Rep(d) ==> b=d";
+by (etac (fun_cong RS fun_cong RS fun_cong RS iffE) 1);
 by (Blast_tac 1);
 qed "Inr_Rep_inject";
 
@@ -101,7 +101,7 @@ qed "InrI";
 
 (** Elimination rules **)
 
-val major::prems = goalw Sum.thy [sum_def]
+val major::prems = Goalw [sum_def]
     "[| u: A Plus B;  \
 \       !!x. [| x:A;  u=Inl(x) |] ==> P; \
 \       !!y. [| y:B;  u=Inr(y) |] ==> P \
@@ -130,7 +130,7 @@ Addsimps [sum_case_Inl, sum_case_Inr];
 
 (** Exhaustion rule for sums -- a degenerate form of induction **)
 
-val prems = goalw Sum.thy [Inl_def,Inr_def]
+val prems = Goalw [Inl_def,Inr_def]
     "[| !!x::'a. s = Inl(x) ==> P;  !!y::'b. s = Inr(y) ==> P \
 \    |] ==> P";
 by (rtac (rewrite_rule [Sum_def] Rep_Sum RS CollectE) 1);
@@ -140,7 +140,7 @@ by (REPEAT (eresolve_tac [disjE,exE] 1
                     rtac (Rep_Sum_inverse RS sym)]));
 qed "sumE";
 
-val prems = goal thy "[| !!x. P (Inl x); !!x. P (Inr x) |] ==> P x";
+val prems = Goal "[| !!x. P (Inl x); !!x. P (Inr x) |] ==> P x";
 by (res_inst_tac [("s","x")] sumE 1);
 by (ALLGOALS (hyp_subst_tac THEN' (resolve_tac prems)));
 qed "sum_induct";
@@ -177,7 +177,7 @@ qed "Part_eqI";
 
 val PartI = refl RSN (2,Part_eqI);
 
-val major::prems = goalw Sum.thy [Part_def]
+val major::prems = Goalw [Part_def]
     "[| a : Part A h;  !!z. [| a : A;  a=h(z) |] ==> P  \
 \    |] ==> P";
 by (rtac (major RS IntE) 1);
