@@ -20,25 +20,23 @@ we may want to prove
 lemma "exor A (\\<not>A)";
 
 txt{*\noindent
-There is a special method for \emph{unfolding} definitions, which we need to
-get started:\indexbold{*unfold}\indexbold{definition!unfolding}
+Typically, the opening move consists in \emph{unfolding} the definition(s), which we need to
+get started, but nothing else:\indexbold{*unfold}\indexbold{definition!unfolding}
 *}
 
-apply(unfold exor_def);
+apply(simp only:exor_def);
 
 txt{*\noindent
-It unfolds the given list of definitions (here merely one) in all subgoals:
+In this particular case, the resulting goal
 \begin{isabellepar}%
 ~1.~A~{\isasymand}~{\isasymnot}~{\isasymnot}~A~{\isasymor}~{\isasymnot}~A~{\isasymand}~{\isasymnot}~A%
 \end{isabellepar}%
-The resulting goal can be proved by simplification.
-
-In case we want to expand a definition in the middle of a proof, we can
-simply include it locally:*}(*<*)oops;lemma "exor A (\\<not>A)";(*>*)
-apply(simp add: exor_def);(*<*).(*>*)
+can be proved by simplification. Thus we could have proved the lemma outright
+*}(*<*)oops;lemma "exor A (\\<not>A)";(*>*)
+by(simp add: exor_def)
 
 text{*\noindent
-In fact, this one command proves the above lemma directly.
+Of course we can also unfold definitions in the middle of a proof.
 
 You should normally not turn a definition permanently into a simplification
 rule because this defeats the whole purpose of an abbreviation.

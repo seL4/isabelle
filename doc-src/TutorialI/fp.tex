@@ -534,7 +534,8 @@ simp \(list of modifiers\)
 where the list of \emph{modifiers} helps to fine tune the behaviour and may
 be empty. Most if not all of the proofs seen so far could have been performed
 with \isa{simp} instead of \isa{auto}, except that \isa{simp} attacks
-only the first subgoal and may thus need to be repeated.
+only the first subgoal and may thus need to be repeated---use \isaindex{simp_all}
+to simplify all subgoals.
 Note that \isa{simp} fails if nothing changes.
 
 \subsubsection{Adding and deleting simplification rules}
@@ -851,10 +852,12 @@ supplied) sense.
 \index{induction!recursion|)}
 \index{recursion induction|)}
 
-%\subsection{Advanced forms of recursion}
+\subsection{Advanced forms of recursion}
+\label{sec:advanced-recdef}
 
-%\input{Recdef/document/Nested0.tex}
-%\input{Recdef/document/Nested1.tex}
+\input{Recdef/document/Nested0.tex}
+\input{Recdef/document/Nested1.tex}
+\input{Recdef/document/Nested2.tex}
 
 \index{*recdef|)}
 

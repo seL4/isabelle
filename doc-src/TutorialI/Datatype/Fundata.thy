@@ -36,7 +36,7 @@ Isabelle because the termination proof is not as obvious since
 The following lemma has a canonical proof  *}
 
 lemma "map_bt (g o f) T = map_bt g (map_bt f T)";
-by(induct_tac "T", auto)
+by(induct_tac "T", simp_all)
 
 text{*\noindent
 but it is worth taking a look at the proof state after the induction step

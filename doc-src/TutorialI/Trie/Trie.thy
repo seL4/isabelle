@@ -52,7 +52,7 @@ distinguishes the two cases whether the search string is empty or not:
 *};
 
 lemma [simp]: "lookup (Trie None []) as = None";
-by(case_tac as, auto);
+by(case_tac as, simp_all);
 
 text{*
 Things begin to get interesting with the definition of an update function
@@ -129,8 +129,8 @@ e.g. \isa{[2]} are also allowed.
 This proof may look surprisingly straightforward. However, note that this
 comes at a cost: the proof script is unreadable because the
 intermediate proof states are invisible, and we rely on the (possibly
-brittle) magic of \isa{auto} (after the induction) to split the remaining
-goals up in such a way that case distinction on \isa{bs} makes sense and
+brittle) magic of \isa{auto} (\isa{simp\_all} will not do---try it) to split the subgoals
+of the induction up in such a way that case distinction on \isa{bs} makes sense and
 solves the proof. Part~\ref{Isar} shows you how to write readable and stable
 proofs.
 *};

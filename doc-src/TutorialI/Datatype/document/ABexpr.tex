@@ -91,7 +91,7 @@ theorems simultaneously:%
 \noindent
 The resulting 8 goals (one for each constructor) are proved in one fell swoop:%
 \end{isamarkuptxt}%
-\isacommand{by}\ auto%
+\isacommand{by}\ simp\_all%
 \begin{isamarkuptext}%
 In general, given $n$ mutually recursive datatypes $\tau@1$, \dots, $\tau@n$,
 an inductive proof expects a goal of the form

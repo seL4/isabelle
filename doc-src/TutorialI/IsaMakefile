@@ -88,7 +88,7 @@ HOL-Recdef: HOL $(LOG)/HOL-Recdef.gz
 
 $(LOG)/HOL-Recdef.gz: $(OUT)/HOL Recdef/examples.thy Recdef/termination.thy \
   Recdef/simplification.thy Recdef/Induction.thy \
-  Recdef/Nested0.thy Recdef/Nested1.thy 
+  Recdef/Nested0.thy Recdef/Nested1.thy Recdef/Nested2.thy
 	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Recdef
 	@rm -f tutorial.dvi
 

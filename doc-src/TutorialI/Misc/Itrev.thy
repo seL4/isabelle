@@ -28,7 +28,7 @@ txt{*\noindent
 There is no choice as to the induction variable, and we immediately simplify:
 *};
 
-apply(induct_tac xs, auto);
+apply(induct_tac xs, simp_all);
 
 txt{*\noindent
 Unfortunately, this is not a complete success:
@@ -94,6 +94,6 @@ to learn about some advanced techniques for inductive proofs.
 *};
 
 (*<*)
-by(induct_tac xs, simp, simp);
+by(induct_tac xs, simp_all);
 end
 (*>*)

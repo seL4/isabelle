@@ -36,7 +36,7 @@ clauses for \isa{sep}:
 \end{isabellepar}%
 The rest is pure simplification:%
 \end{isamarkuptxt}%
-\isacommand{by}\ auto%
+\isacommand{by}\ simp\_all%
 \begin{isamarkuptext}%
 Try proving the above lemma by structural induction, and you find that you
 need an additional case distinction. What is worse, the names of variables
@@ -52,13 +52,13 @@ name of a function that takes an $n$-tuple. Usually the subgoal will
 contain the term $f~x@1~\dots~x@n$ but this need not be the case. The
 induction rules do not mention $f$ at all. For example \isa{sep.induct}
 \begin{isabellepar}%
-{\isasymlbrakk}~{\isasymAnd}a.~?P~a~[];\isanewline
-~~{\isasymAnd}a~x.~?P~a~[x];\isanewline
-~~{\isasymAnd}a~x~y~zs.~?P~a~(y~\#~zs)~{\isasymLongrightarrow}~?P~a~(x~\#~y~\#~zs){\isasymrbrakk}\isanewline
-{\isasymLongrightarrow}~?P~?u~?v%
+{\isasymlbrakk}~{\isasymAnd}a.~P~a~[];\isanewline
+~~{\isasymAnd}a~x.~P~a~[x];\isanewline
+~~{\isasymAnd}a~x~y~zs.~P~a~(y~\#~zs)~{\isasymLongrightarrow}~P~a~(x~\#~y~\#~zs){\isasymrbrakk}\isanewline
+{\isasymLongrightarrow}~P~u~v%
 \end{isabellepar}%
-merely says that in order to prove a property \isa{?P} of \isa{?u} and
-\isa{?v} you need to prove it for the three cases where \isa{?v} is the
+merely says that in order to prove a property \isa{P} of \isa{u} and
+\isa{v} you need to prove it for the three cases where \isa{v} is the
 empty list, the singleton list, and the list with at least two elements
 (in which case you may assume it holds for the tail of that list).%
 \end{isamarkuptext}%

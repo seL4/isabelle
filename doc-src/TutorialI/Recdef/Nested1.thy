@@ -1,7 +1,7 @@
 (*<*)
-theory Nested1 = Nested0:
+theory Nested1 = Nested0:;
 (*>*)
-consts trev  :: "('a,'b)term => ('a,'b)term"
+consts trev  :: "('a,'b)term => ('a,'b)term";
 
 text{*\noindent
 Although the definition of @{term"trev"} is quite natural, we will have
@@ -12,31 +12,33 @@ this subsection.
 Defining @{term"trev"} by \isacommand{recdef} rather than \isacommand{primrec}
 simplifies matters because we are now free to use the recursion equation
 suggested at the end of \S\ref{sec:nested-datatype}:
-*}
-ML"Prim.Add_recdef_congs [map_cong]";
-ML"Prim.print_recdef_congs(Context.the_context())";
+*};
 
 recdef trev "measure size"
  "trev (Var x) = Var x"
  "trev (App f ts) = App f (rev(map trev ts))";
-ML"Prim.congs []";
-congs map_cong;
-thm trev.simps;
-(*<*)ML"Pretty.setmargin 60"(*>*)
+
 text{*
 FIXME: recdef should complain and generate unprovable termination condition!
+moveto todo
 
-The point is that the above termination condition is unprovable because it
-ignores some crucial information: the recursive call of @{term"trev"} will
-not involve arbitrary terms but only those in @{term"ts"}. This is expressed
-by theorem \isa{map\_cong}:
+Remember that function @{term"size"} is defined for each \isacommand{datatype}.
+However, the definition does not succeed. Isabelle complains about an unproved termination
+condition
 \begin{quote}
-@{thm[display]"map_cong"}
+@{term[display]"t : set ts --> size t < Suc (term_size ts)"}
 \end{quote}
-*}
+where @{term"set"} returns the set of elements of a list---no special knowledge of sets is
+required in the following.
+First we have to understand why the recursive call of @{term"trev"} underneath @{term"map"} leads
+to the above condition. The reason is that \isacommand{recdef} ``knows'' that @{term"map"} will
+apply @{term"trev"} only to elements of @{term"ts"}. Thus the above condition expresses that
+the size of the argument @{term"t : set ts"} of any recursive call of @{term"trev"} is strictly
+less than @{term"size(App f ts) = Suc(term_size ts)"}.
+We will now prove the termination condition and continue with our definition.
+Below we return to the question of how \isacommand{recdef} ``knows'' about @{term"map"}.
+*};
 
 (*<*)
-end
+end;
 (*>*)
-
-
