@@ -76,20 +76,21 @@ by (simp_tac (simpset() addsplits [option.split]) 1);
 qed_spec_mp "override_Some_iff";
 
 bind_thm ("override_SomeD", standard(override_Some_iff RS iffD1));
+AddSDs[override_SomeD];
 
-Goalw [override_def]
- "((m ++ n) k = None) = (n k = None & m k = None)";
+Goalw [override_def] "((m ++ n) k = None) = (n k = None & m k = None)";
 by (simp_tac (simpset() addsplits [option.split]) 1);
 qed "override_None";
 AddIffs [override_None];
 
-Goalw [override_def] "map_of(xs@ys) = map_of ys ++ map_of xs";
+Goalw [override_def] "map_of ys ++ map_of xs = map_of (xs@ys)";
+by (rtac sym 1);
 by (induct_tac "xs" 1);
 by (Simp_tac 1);
 by (rtac ext 1);
 by (asm_simp_tac (simpset() addsplits [option.split]) 1);
-qed "map_of_append";
-Addsimps [map_of_append];
+qed "map_of_override";
+Addsimps [map_of_override];
 
 Goal "map_of xs k = Some y --> (k,y):set xs";
 by (induct_tac "xs" 1);
@@ -116,9 +117,10 @@ qed_goalw "finite_dom_map_of" Map.thy [dom_def] "finite (dom (map_of l))" (K[
 	induct_tac "l" 1,
 	 ALLGOALS Simp_tac,
 	stac (insert_Collect RS sym) 1,
-	Asm_simp_tac 1]);
+	Asm_full_simp_tac 1]);
 
 Goalw [dom_def] "dom(m++n) = dom n Un dom m";
+by(Simp_tac 1);
 by (Blast_tac 1);
 qed "dom_override";
 Addsimps [dom_override];
