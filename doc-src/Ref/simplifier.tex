@@ -222,9 +222,9 @@ other components to streamline proofs in more sophisticated manners.
 print_ss : simpset -> unit
 rep_ss   : simpset -> \{mss        : meta_simpset, 
                        subgoal_tac: simpset  -> int -> tactic,
-                       loop_tac   :             int -> tactic,
-                       finish_tac : thm list -> int -> tactic,
-                unsafe_finish_tac : thm list -> int -> tactic\}
+                       loop_tacs  : (string * (int -> tactic))list,
+                       finish_tac : solver list,
+                unsafe_finish_tac : solver list\}
 \end{ttbox}
 \begin{ttdescription}
   
@@ -536,16 +536,19 @@ if that fails.
 
 \subsection{*The solver}\label{sec:simp-solver}
 \begin{ttbox}
-setSolver  : simpset * (thm list -> int -> tactic) -> simpset \hfill{\bf infix 4}
-addSolver  : simpset * (thm list -> int -> tactic) -> simpset \hfill{\bf infix 4}
-setSSolver : simpset * (thm list -> int -> tactic) -> simpset \hfill{\bf infix 4}
-addSSolver : simpset * (thm list -> int -> tactic) -> simpset \hfill{\bf infix 4}
+mk_solver  : string -> (thm list -> int -> tactic) -> solver
+setSolver  : simpset * solver -> simpset \hfill{\bf infix 4}
+addSolver  : simpset * solver -> simpset \hfill{\bf infix 4}
+setSSolver : simpset * solver -> simpset \hfill{\bf infix 4}
+addSSolver : simpset * solver -> simpset \hfill{\bf infix 4}
 \end{ttbox}
 
-The solver is a pair of tactics that attempt to solve a subgoal after
+A solver is a tactic that attempts to solve a subgoal after
 simplification.  Typically it just proves trivial subgoals such as
 \texttt{True} and $t=t$.  It could use sophisticated means such as {\tt
   blast_tac}, though that could make simplification expensive.
+To keep things more abstract, solvers are packaged up in type
+\texttt{solver}. The only way to create a solver is via \texttt{mk_solver}.
 
 Rewriting does not instantiate unknowns.  For example, rewriting
 cannot prove $a\in \Var{A}$ since this requires
@@ -555,7 +558,7 @@ simplifier can handle a conditional rewrite rule whose condition
 contains extra variables.  When a simplification tactic is to be
 combined with other provers, especially with the classical reasoner,
 it is important whether it can be considered safe or not.  For this
-reason the solver is split into a safe and an unsafe part.
+reason a simpset contains two solvers, a safe and an unsafe one.
 
 The standard simplification strategy solely uses the unsafe solver,
 which is appropriate in most cases.  For special applications where
@@ -565,7 +568,9 @@ still apply the ordinary unsafe one in nested simplifications for
 conditional rules or congruences.
 
 \begin{ttdescription}
-  
+\item[\ttindexbold{mk_solver} $s$ $tacf$] converts $tacf$ into a new solver;
+  the string $s$ is only attached as a comment and has no other significance.
+
 \item[$ss$ \ttindexbold{setSSolver} $tacf$] installs $tacf$ as the
   \emph{safe} solver of $ss$.
   
