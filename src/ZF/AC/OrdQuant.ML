@@ -1,6 +1,6 @@
 (*  Title: 	ZF/AC/OrdQuant.thy
     ID:         $Id$
-    Authors: 	Krzysztof Gr`abczewski and L C Paulson
+    Authors: 	Krzysztof Grabczewski and L C Paulson
 
 Quantifiers and union operator for ordinals. 
 *)

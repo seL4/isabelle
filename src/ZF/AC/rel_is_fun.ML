@@ -1,6 +1,6 @@
 (*  Title: 	ZF/AC/rel_is_fun.ML
     ID:         $Id$
-    Author: 	Krzysztof Gr`abczewski
+    Author: 	Krzysztof Grabczewski
 
 Lemmas needed to state when a finite relation is a function.
 
@@ -11,23 +11,23 @@ Used in WO6WO1.ML
 (*Using AC we could trivially prove, for all u, domain(u) lepoll u*)
 goalw Cardinal.thy [lepoll_def]
      "!!m. [| m:nat; u lepoll m |] ==> domain(u) lepoll m";
-by (eresolve_tac [exE] 1);
+by (etac exE 1);
 by (res_inst_tac [("x",
 	"lam x:domain(u). LEAST i. EX y. <x,y> : u & f`<x,y> = i")] exI 1);
 by (res_inst_tac [("d","%y. fst(converse(f)`y)")] lam_injective 1);
 by (fast_tac (ZF_cs addIs [LeastI2, nat_into_Ord RS Ord_in_Ord,
 			inj_is_fun RS apply_type]) 1);
-by (eresolve_tac [domainE] 1);
+by (etac domainE 1);
 by (forward_tac [inj_is_fun RS apply_type] 1 THEN (atac 1));
-by (resolve_tac [LeastI2] 1);
+by (rtac LeastI2 1);
 by (REPEAT (fast_tac (ZF_cs addIs [fst_conv, left_inverse RS ssubst]
 			addSEs [nat_into_Ord RS Ord_in_Ord]) 1));
 val lepoll_m_imp_domain_lepoll_m = result();
 
 goal ZF.thy "!!r. [| <a,c> : r; c~=b |] ==> domain(r-{<a,b>}) = domain(r)";
-by (resolve_tac [equalityI] 1);
+by (rtac equalityI 1);
 by (fast_tac (ZF_cs addSIs [domain_mono]) 1);
-by (resolve_tac [subsetI] 1);
+by (rtac subsetI 1);
 by (excluded_middle_tac "x = a" 1);
 by (REPEAT (fast_tac (ZF_cs addSIs [domainI] addSEs [domainE]) 1));
 val domain_Diff_eq_domain = result();

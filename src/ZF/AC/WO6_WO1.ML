@@ -1,6 +1,6 @@
 (*  Title: 	ZF/AC/WO6_WO1.ML
     ID:         $Id$
-    Author: 	Krzysztof Gr`abczewski
+    Author: 	Krzysztof Grabczewski
 
 The proof of "WO6 ==> WO1".  Simplified by L C Paulson.
 
@@ -111,7 +111,7 @@ val domain_gg1 = result();
 goal thy "!!a b. [| P(a, b);  Ord(a);  Ord(b);  \
 \		Least_a = (LEAST a. EX x. Ord(x) & P(a, x)) |]  \
 \		==> P(Least_a, LEAST b. P(Least_a, b))";
-by (eresolve_tac [ssubst] 1);
+by (etac ssubst 1);
 by (res_inst_tac [("Q","%z. P(z, LEAST b. P(z, b))")] LeastI2 1);
 by (REPEAT (fast_tac (ZF_cs addSEs [LeastI]) 1));
 val nested_LeastI = result();
@@ -141,7 +141,7 @@ by (fast_tac (AC_cs addIs [nested_Least_instance RS conjunct2]
 by (asm_simp_tac (ZF_ss addsimps [ww1_def]) 1);
 by (excluded_middle_tac "f`(b--a) = 0" 1);
 by (asm_simp_tac (OrdQuant_ss addsimps [empty_lepollI]) 2);
-by (resolve_tac [Diff_lepoll] 1);
+by (rtac Diff_lepoll 1);
 by (fast_tac AC_cs 1);
 by (rtac vv1_subset 1);
 by (dtac (ospec RS mp) 1);
@@ -170,7 +170,7 @@ val ex_d_uu_not_empty = result();
 goal thy "!!f. [| b<a; g<a; f`b~=0; f`g~=0;  \
 \			y*y<=y;	(UN b<a. f`b)=y |]  \
 \		==> uu(f,b,g,LEAST d. (uu(f,b,g,d) ~= 0)) ~= 0";
-by (dresolve_tac [ex_d_uu_not_empty] 1 THEN REPEAT (assume_tac 1));
+by (dtac ex_d_uu_not_empty 1 THEN REPEAT (assume_tac 1));
 by (fast_tac (AC_cs addSEs [LeastI, lt_Ord]) 1);
 val uu_not_empty = result();
 
@@ -194,12 +194,12 @@ val subset_Diff_sing = result();
 
 (*Could this be proved more directly?*)
 goal thy "!!A B. [| A lepoll m; m lepoll B; B <= A; m:nat |] ==> A=B";
-by (eresolve_tac [natE] 1);
+by (etac natE 1);
 by (fast_tac (AC_cs addSDs [lepoll_0_is_0] addSIs [equalityI]) 1);
 by (hyp_subst_tac 1);
-by (resolve_tac [equalityI] 1);
+by (rtac equalityI 1);
 by (assume_tac 2);
-by (resolve_tac [subsetI] 1);
+by (rtac subsetI 1);
 by (excluded_middle_tac "?P" 1 THEN (assume_tac 2));
 by (eresolve_tac [subset_Diff_sing RS subset_imp_lepoll RSN (2, 
 		Diff_sing_lepoll RSN (3, lepoll_trans RS lepoll_trans)) RS 
@@ -246,7 +246,7 @@ goalw thy [gg2_def]
 \	     ALL b<a. f`b lepoll succ(m); y*y<=y;  			\
 \	     (UN b<a.f`b)=y;  Ord(a);  m:nat;  s:f`b;  b<a		\
 \	  |] ==> (UN g<a++a. gg2(f,a,b,s) ` g) = y";
-bd sym 1;
+by (dtac sym 1);
 by (asm_simp_tac
     (OrdQuant_ss addsimps [UN_oadd, lt_oadd1,
 			   oadd_le_self RS le_imp_not_lt, lt_Ord,
@@ -278,8 +278,8 @@ goalw thy [ww2_def]
 \	  |] ==> ww2(f,b,g,d) lepoll m";
 by (excluded_middle_tac "f`g = 0" 1);
 by (asm_simp_tac (OrdQuant_ss addsimps [empty_lepollI]) 2);
-by (dresolve_tac [ospec] 1 THEN (assume_tac 1));
-by (resolve_tac [Diff_lepoll] 1
+by (dtac ospec 1 THEN (assume_tac 1));
+by (rtac Diff_lepoll 1
 	THEN (TRYALL assume_tac));
 by (asm_simp_tac (OrdQuant_ss addsimps [vv2_def, expand_if, not_emptyI]) 1);
 val ww2_lepoll = result();
@@ -312,8 +312,8 @@ by (fast_tac (OrdQuant_cs addSIs [Ord_oadd, domain_gg1, UN_gg1_eq,
 (* case 2 *)
 by (REPEAT (eresolve_tac [oexE, conjE] 1));
 by (res_inst_tac [("A","f`?B")] not_emptyE 1 THEN (assume_tac 1));
-by (resolve_tac [CollectI] 1);
-by (eresolve_tac [succ_natD] 1);
+by (rtac CollectI 1);
+by (etac succ_natD 1);
 by (res_inst_tac [("x","a++a")] exI 1);
 by (res_inst_tac [("x","gg2(f,a,b,x)")] exI 1);
 (*Calling fast_tac might get rid of the res_inst_tac calls, but it
@@ -392,25 +392,25 @@ val lemma1 = result();
 
 goal thy "!!f. [| (UN b<a. f`b)=y; x:y; ALL b<a. f`b lepoll 1; Ord(a) |]  \
 \		==> f` (LEAST i. f`i = {x}) = {x}";
-by (dresolve_tac [lemma1] 1 THEN REPEAT (assume_tac 1));
+by (dtac lemma1 1 THEN REPEAT (assume_tac 1));
 by (fast_tac (AC_cs addSEs [lt_Ord] addIs [LeastI]) 1);
 val lemma2 = result();
 
 goalw thy [NN_def] "!!y. 1 : NN(y) ==> EX a f. Ord(a) & f:inj(y, a)";
-by (eresolve_tac [CollectE] 1);
+by (etac CollectE 1);
 by (REPEAT (eresolve_tac [exE, conjE] 1));
 by (res_inst_tac [("x","a")] exI 1);
 by (res_inst_tac [("x","lam x:y. LEAST i. f`i = {x}")] exI 1);
-by (resolve_tac [conjI] 1 THEN (assume_tac 1));
+by (rtac conjI 1 THEN (assume_tac 1));
 by (res_inst_tac [("d","%i. THE x. x:f`i")] lam_injective 1);
-by (dresolve_tac [lemma1] 1 THEN REPEAT (assume_tac 1));
+by (dtac lemma1 1 THEN REPEAT (assume_tac 1));
 by (fast_tac (AC_cs addSEs [Least_le RS lt_trans1 RS ltD, lt_Ord]) 1);
 by (resolve_tac [lemma2 RS ssubst] 1 THEN REPEAT (assume_tac 1));
 by (fast_tac (ZF_cs addSIs [the_equality]) 1);
 val NN_imp_ex_inj = result();
 
 goal thy "!!y. [| y*y <= y; 1 : NN(y) |] ==> EX r. well_ord(y, r)";
-by (dresolve_tac [NN_imp_ex_inj] 1);
+by (dtac NN_imp_ex_inj 1);
 by (fast_tac (ZF_cs addSEs [well_ord_Memrel RSN (2,  well_ord_rvimage)]) 1);
 val y_well_ord = result();
 
@@ -422,7 +422,7 @@ val [prem1, prem2] = goal thy
 	"[| n:nat; !!m. [| m:nat; m~=0; P(succ(m)) |] ==> P(m) |]  \
 \	==> n~=0 --> P(n) --> P(1)";
 by (res_inst_tac [("n","n")] nat_induct 1);
-by (resolve_tac [prem1] 1);
+by (rtac prem1 1);
 by (fast_tac ZF_cs 1);
 by (excluded_middle_tac "x=0" 1);
 by (fast_tac ZF_cs 2);
@@ -434,7 +434,7 @@ val prems = goal thy
 \	!!m. [| m:nat; m~=0; P(succ(m)) |] ==> P(m) |]  \
 \	==> P(1)";
 by (resolve_tac [rev_induct_lemma RS impE] 1);
-by (eresolve_tac [impE] 4 THEN (assume_tac 5));
+by (etac impE 4 THEN (assume_tac 5));
 by (REPEAT (ares_tac prems 1));
 val rev_induct = result();
 
@@ -443,8 +443,8 @@ by (etac CollectD1 1);
 val NN_into_nat = result();
 
 goal thy "!!n. [| n:NN(y); y*y <= y; n~=0 |] ==> 1:NN(y)";
-by (resolve_tac [rev_induct] 1 THEN REPEAT (ares_tac [NN_into_nat] 1));
-by (resolve_tac [lemma_ii] 1 THEN REPEAT (assume_tac 1));
+by (rtac rev_induct 1 THEN REPEAT (ares_tac [NN_into_nat] 1));
+by (rtac lemma_ii 1 THEN REPEAT (assume_tac 1));
 val lemma3 = result();
 
 (* ********************************************************************** *)
@@ -458,12 +458,12 @@ by (fast_tac (AC_cs addSIs [equalityI]
 val NN_y_0 = result();
 
 goalw thy [WO1_def] "!!Z. WO6 ==> WO1";
-by (resolve_tac [allI] 1);
+by (rtac allI 1);
 by (excluded_middle_tac "A=0" 1);
 by (fast_tac (ZF_cs addSIs [well_ord_Memrel, nat_0I RS nat_into_Ord]) 2);
 by (res_inst_tac [("x1","A")] (lemma_iv RS revcut_rl) 1);
-by (eresolve_tac [exE] 1);
-by (dresolve_tac [WO6_imp_NN_not_empty] 1);
+by (etac exE 1);
+by (dtac WO6_imp_NN_not_empty 1);
 by (eresolve_tac [Un_subset_iff RS iffD1 RS conjE] 1);
 by (eres_inst_tac [("A","NN(y)")] not_emptyE 1);
 by (forward_tac [y_well_ord] 1);

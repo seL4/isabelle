@@ -3,7 +3,7 @@
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
 
-Executes the proofs of the AC-equivalences, due to Krzysztof Gr`abczewski
+Executes the proofs of the AC-equivalences, due to Krzysztof Grabczewski
 *)
 
 ZF_build_completed;	(*Make examples fail if ZF did*)

@@ -1,6 +1,6 @@
 (*  Title: 	ZF/AC/WO1_WO7.ML
     ID:         $Id$
-    Author: 	Krzysztof Gr`abczewski
+    Author: 	Krzysztof Grabczewski
 
 WO7 <-> LEMMA <-> WO1 (Rubin & Rubin p. 5)
 LEMMA is the sentence denoted by (**)
@@ -21,8 +21,8 @@ val WO7_iff_LEMMA = result();
 
 goalw thy [WO1_def] "!!Z. ALL X. ~Finite(X) -->  \
 \		(EX R. well_ord(X,R) & ~well_ord(X,converse(R))) ==> WO1";
-by (resolve_tac [allI] 1);
-by (eresolve_tac [allE] 1);
+by (rtac allI 1);
+by (etac allE 1);
 by (excluded_middle_tac "Finite(A)" 1);
 by (fast_tac AC_cs 1);
 by (rewrite_goals_tac [Finite_def, eqpoll_def]);
@@ -47,11 +47,11 @@ goalw thy [wf_on_def, wf_def]
     "!!a. [| Ord(a); ~Finite(a) |] ==> ~wf[a](converse(Memrel(a)))";
 by (dresolve_tac [nat_le_infinite_Ord RS le_imp_subset] 1 
     THEN (assume_tac 1));
-by (resolve_tac [notI] 1);
+by (rtac notI 1);
 by (eres_inst_tac [("x","nat")] allE 1);
-by (eresolve_tac [disjE] 1);
+by (etac disjE 1);
 by (fast_tac (ZF_cs addSDs [nat_0I RSN (2,equals0D)]) 1);
-by (eresolve_tac [bexE] 1);
+by (etac bexE 1);
 by (eres_inst_tac [("x","succ(x)")] allE 1);
 by (fast_tac (ZF_cs addSIs [nat_succI, converseI, MemrelI, 
                             nat_succI RSN (2, subsetD)]) 1);

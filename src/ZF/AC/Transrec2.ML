@@ -1,15 +1,12 @@
 (*  Title: 	ZF/AC/Transrec2.ML
     ID:         $Id$
-    Author: 	Krzysztof Gr`abczewski
+    Author: 	Krzysztof Grabczewski
 
 Transfinite recursion introduced to handle definitions based on the three
 cases of ordinals.
 *)
 
 open Transrec2;
-
-val AC_cs = OrdQuant_cs;
-val AC_ss = OrdQuant_ss;
 
 goal thy "transrec2(0,a,b) = a";
 by (rtac (transrec2_def RS def_transrec RS trans) 1);

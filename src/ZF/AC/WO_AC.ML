@@ -1,6 +1,6 @@
 (*  Title: 	ZF/AC/WO_AC.ML
     ID:         $Id$
-    Author: 	Krzysztof Gr`abczewski
+    Author: 	Krzysztof Grabczewski
 
 Lemmas used in the proofs like WO? ==> AC?
 *)

@@ -1,6 +1,6 @@
 (*  Title: 	ZF/AC/WO1-WO6.ML
     ID:         $Id$
-    Author: 	Krzysztof Gr`abczewski
+    Author: 	Krzysztof Grabczewski
 
   Proofs needed to state that formulations WO1,...,WO6 are all equivalent.
   All but one WO6 ==> WO1 (placed in separate file WO6_WO1.ML)
@@ -46,12 +46,12 @@ by (fast_tac (AC_cs addSDs [surj_imp_eq_]
 val surj_imp_eq = result();
 
 goalw thy WO_defs "!!Z. WO1 ==> WO4(1)";
-by (resolve_tac [allI] 1);
+by (rtac allI 1);
 by (eres_inst_tac [("x","A")] allE 1);
-by (eresolve_tac [exE] 1);
+by (etac exE 1);
 by (REPEAT (resolve_tac [exI, conjI] 1));
-by (eresolve_tac [Ord_ordertype] 1);
-by (resolve_tac [conjI] 1);
+by (etac Ord_ordertype 1);
+by (rtac conjI 1);
 by (eresolve_tac [ordermap_bij RS bij_converse_bij RS bij_is_fun RS
 		lam_sets RS domain_of_fun] 1);
 by (asm_simp_tac (AC_ss addsimps [singleton_eqpoll_1 RS eqpoll_imp_lepoll,
