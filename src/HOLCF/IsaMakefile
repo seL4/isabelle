@@ -38,7 +38,8 @@ $(OUT)/HOLCF: $(OUT)/HOL Cfun1.ML Cfun1.thy Cfun2.ML Cfun2.thy \
   Ssum1.thy Ssum2.ML Ssum2.thy Ssum3.ML Ssum3.thy Tr.ML Tr.thy Up1.ML \
   Up1.thy Up2.ML Up2.thy Up3.ML Up3.thy adm.ML cont_consts.ML \
   domain/axioms.ML domain/extender.ML domain/interface.ML \
-  domain/library.ML domain/syntax.ML domain/theorems.ML holcf_logic.ML
+  domain/library.ML domain/syntax.ML domain/theorems.ML holcf_logic.ML \
+  ex/Stream.thy ex/Stream.ML Streams.thy
 	@$(ISATOOL) usedir -b -r $(OUT)/HOL HOLCF
 
 
@@ -58,7 +59,7 @@ HOLCF-ex: HOLCF $(LOG)/HOLCF-ex.gz
 $(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF ex/Dagstuhl.ML ex/Dagstuhl.thy \
   ex/Dnat.thy ex/Fix2.ML ex/Fix2.thy ex/Focus_ex.ML \
   ex/Focus_ex.thy ex/Hoare.ML ex/Hoare.thy ex/Loop.ML ex/Loop.thy \
-  ex/ROOT.ML ex/Stream.ML ex/Stream.thy ex/loeckx.ML \
+  ex/ROOT.ML ex/loeckx.ML \
   ../HOL/Library/Nat_Infinity.thy 
 	@$(ISATOOL) usedir $(OUT)/HOLCF ex
 

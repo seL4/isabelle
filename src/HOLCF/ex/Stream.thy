@@ -4,6 +4,7 @@
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 General Stream domain.
+TODO: should be integrated with HOLCF/Streams
 *)
 
 Stream = HOLCF + Nat_Infinity +

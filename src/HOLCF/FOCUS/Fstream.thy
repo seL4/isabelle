@@ -8,7 +8,7 @@ FOCUS streams (with lifted elements)
 
 (* FOCUS flat streams *)
 
-Fstream = Stream + 
+Fstream = Streams + 
 
 default type
 

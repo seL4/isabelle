@@ -24,4 +24,7 @@ use "domain/theorems.ML";
 use "domain/extender.ML";
 use "domain/interface.ML";
 
+path_add "~~/src/HOLCF/ex";
+use_thy "Streams";
+
 print_depth 10;  
