@@ -21,8 +21,10 @@ library</a>).
 <dt><a
 href="library/HOL/index.html"><strong>Isabelle/HOL</strong></a><dd> is
 a version of classical higher-order logic resembling that of the <A
-HREF="http://www.cl.cam.ac.uk/Research/HVG/HOL/HOL.html">HOL
-System</A>.
+HREF="http://www.cl.cam.ac.uk/Research/HVG/HOL/">HOL System</A>. The
+main libraries of the HOL 4 System are now <a
+href="library/HOL/HOL-Complex/HOL4/index.html">available in
+Isabelle</a>.
 
 <dt><a
 href="library/HOLCF/index.html"><strong>Isabelle/HOLCF</strong></a><dd>
