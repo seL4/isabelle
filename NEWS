@@ -89,6 +89,10 @@ logics (again);
 
 * added prems argument to simplification procedures;
 
+* HOL, FOL, ZF: added infix function `addsplits':
+  instead of `<simpset> setloop (split_tac <thms>)'
+  you can simply write `<simpset> addsplits <thms>'
+
 
 *** Syntax ***
 
@@ -113,16 +117,12 @@ logics (again);
 
 * HOL/Map: new theory of `maps' a la VDM;
 
-* HOL/simplifier: added infix function `addsplits':
-  instead of `<simpset> setloop (split_tac <thms>)'
-  you can simply write `<simpset> addsplits <thms>'
-
 * HOL/simplifier: terms of the form
-  `? x. P1(x) & ... & Pn(x) & x=t & Q1(x) & ... Qn(x)' (or t=x)
+  `? x. P1(x) & ... & Pn(x) & x=t & Q1(x) & ... Qn(x)'  (or t=x)
   are rewritten to
   `P1(t) & ... & Pn(t) & Q1(t) & ... Qn(t)',
   and those of the form
-  `! x. P1(x) & ... & Pn(x) & x=t & Q1(x) & ... Qn(x) --> R(x)' (or t=x)
+  `! x. P1(x) & ... & Pn(x) & x=t & Q1(x) & ... Qn(x) --> R(x)'  (or t=x)
   are rewritten to
   `P1(t) & ... & Pn(t) & Q1(t) & ... Qn(t) --> R(t)',
 

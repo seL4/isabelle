@@ -186,6 +186,8 @@ end;
 val split_asm_tac = mk_case_split_asm_tac split_tac 
 			(disjE,conjE,exE,contrapos,contrapos2,notnotD);
 
+
+
 (*** Standard simpsets ***)
 
 structure Induction = InductionFun(struct val spec=IFOL.spec end);
@@ -201,6 +203,9 @@ fun ss delcongs congs =
 
 fun Addcongs congs = (simpset_ref() := simpset() addcongs congs);
 fun Delcongs congs = (simpset_ref() := simpset() delcongs congs);
+
+infix 4 addsplits;
+fun ss addsplits splits = ss addloop (split_tac splits);
 
 val IFOL_simps =
    [refl RS P_iff_T] @ conj_simps @ disj_simps @ not_simps @ 
