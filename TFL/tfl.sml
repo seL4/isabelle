@@ -289,13 +289,17 @@ fun no_repeat_vars thy pat =
  end;
 
 local fun mk_functional_err s = raise TFL_ERR{func = "mk_functional", mesg=s}
-      fun single [f] = f
+      fun single [Free(a,_)] = 
+	      mk_functional_err (a ^ " has not been declared as a constant")
+        | single [f] = f
         | single fs  = mk_functional_err (Int.toString (length fs) ^ 
                                           " distinct function names!")
 in
 fun mk_functional thy clauses =
- let val (L,R) = ListPair.unzip 
-                    (map (fn (Const("op =",_) $ t $ u) => (t,u)) clauses)
+ let val (L,R) = ListPair.unzip (map HOLogic.dest_eq clauses)
+                   handle _ => raise TFL_ERR
+		       {func = "mk_functional", 
+			mesg = "recursion equations must use the = relation"}
      val (funcs,pats) = ListPair.unzip (map (fn (t$u) =>(t,u)) L)
      val fcon as Const (fname, ftype) = single (gen_distinct (op aconv) funcs)
      val dummy = map (no_repeat_vars thy) pats
