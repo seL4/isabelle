@@ -11,6 +11,11 @@ There may be printing problems if a seqent is in expanded normal form
 
 LK = Sequents +
 
+classes
+  term < logic
+
+default
+  term
 
 consts
 
