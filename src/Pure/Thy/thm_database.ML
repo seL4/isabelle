@@ -198,16 +198,27 @@ fun select_match(obj, signobj, named_thms, extract) =
               None => false
             | Some pat => Pattern.matches tsig (pat, obj);
 
+      fun substsize(prop, tsig) =
+            let val Some pat = extract prop
+                val (_,subst) = Pattern.match tsig (pat,obj)
+            in sum(map (fn (_,t) => size_of_term t) subst) end
+
+      fun thm_order ((p0:int,s0:int,_),(p1,s1,_)) =
+            (((p0=0 andalso p1=0) orelse (p0<>0 andalso p1<>0)) andalso s0<=s1)
+            orelse (p0=0 andalso p1<>0)
+
       fun select((p as (_,thm))::named_thms, sels) =
             let val {prop, sign, ...} = rep_thm thm
             in select(named_thms,
                       if Sign.subsig(sign, signobj) andalso
                          matches(prop,#tsig(Sign.rep_sg signobj))
-                      then p::sels else sels)
+                      then
+			(nprems_of thm,substsize(prop,#tsig(Sign.rep_sg signobj)),p)::sels
+                      else sels)
             end
         | select([],sels) = sels
 
-  in select(named_thms, []) end;
+  in map (fn (_,_,t) => t) (sort thm_order (select(named_thms, []))) end; 
 
 fun find_matching(prop,sign,index,extract) =
   (case top_const prop of
