@@ -206,10 +206,14 @@ val print_help =
 
 (** read theory **)
 
-(* theory keyword *)
+(* special keywords *)
 
+val headerN = "header";
 val theoryN = "theory";
+
 val theory_keyword = OuterParse.$$$ theoryN;
+val header_keyword = OuterParse.$$$ headerN;
+val semicolon = P.$$$ ";";
 
 
 (* sources *)
@@ -217,7 +221,7 @@ val theory_keyword = OuterParse.$$$ theoryN;
 local
 
 val no_terminator =
-  Scan.unless (P.$$$ ";") (Scan.one (OuterLex.not_sync andf OuterLex.not_eof));
+  Scan.unless semicolon (Scan.one (OuterLex.not_sync andf OuterLex.not_eof));
 
 val recover = Scan.prompt "recover# " (Scan.repeat no_terminator);
 
@@ -242,7 +246,7 @@ fun filter_proper src =
   |> Source.filter OuterLex.is_proper;
 
 
-(* detect header *)
+(* scan header *)
 
 fun scan_header get_lex scan (src, pos) =
   src
@@ -252,38 +256,45 @@ fun scan_header get_lex scan (src, pos) =
   |> Source.source OuterLex.stopper (Scan.single scan) None
   |> (fst o the o Source.get_single);
 
-val check_header_lexicon = Scan.make_lexicon [Symbol.explode theoryN];
 
-fun is_old_theory src =
-  is_none (scan_header (K check_header_lexicon) (Scan.option theory_keyword) src);
+(* detect new/old header *)
+
+local
+
+val check_header_lexicon = Scan.make_lexicon [Symbol.explode headerN, Symbol.explode theoryN];
+val check_header = Scan.option (header_keyword || theory_keyword);
+
+in
+
+fun is_old_theory src = is_none (scan_header (K check_header_lexicon) check_header src);
+
+end;
 
 
 (* deps_thy --- inspect theory header *)
 
-val header_lexicon =
-  Scan.make_lexicon (map Symbol.explode ["(", ")", "+", ":", "=", "files", theoryN]);
-
 local
+
+val header_lexicon =
+  Scan.make_lexicon (map Symbol.explode ["(", ")", "+", ":", ";", "=", "files", headerN, theoryN]);
 
 val file_name =
   (P.$$$ "(" |-- P.!!! (P.name --| P.$$$ ")")) >> rpair false || P.name >> rpair true;
 
-val theory_head =
-  (P.name -- (P.$$$ "=" |-- P.enum1 "+" P.name) --
-    Scan.optional (P.$$$ "files" |-- P.!!! (Scan.repeat1 file_name)) [])
-  >> (fn ((A, Bs), files) => (A, Bs, files));
-
 in
 
-val theory_header = theory_head --| (Scan.ahead P.eof || P.$$$ ":");
-val only_header = theory_keyword |-- theory_head --| Scan.ahead P.eof;
-val new_header = theory_keyword |-- P.!!! theory_header;
+val theory_header =
+  (P.name -- (P.$$$ "=" |-- P.enum1 "+" P.name) --
+    Scan.optional (P.$$$ "files" |-- P.!!! (Scan.repeat1 file_name)) [] --|  P.$$$ ":")
+  >> (fn ((A, Bs), files) => (A, Bs, files));
+
+val new_header =
+  header_keyword |-- (P.!!! (P.text -- Scan.option semicolon -- theory_keyword |-- theory_header))
+    || theory_keyword |-- P.!!! theory_header;
 
 val old_header =
   P.name -- (P.$$$ "=" |-- P.name -- Scan.repeat (P.$$$ "+" |-- P.name))
   >> (fn (A, (B, Bs)) => (A, B :: Bs, []: (string * bool) list));
-
-end;
 
 fun deps_thy name path =
   let
@@ -291,7 +302,8 @@ fun deps_thy name path =
     val pos = Path.position path;
     val (name', parents, files) =
       (*Note: old style headers dynamically depend on the current lexicon :-( *)
-      if is_old_theory (src, pos) then scan_header ThySyn.get_lexicon (Scan.error old_header) (src, pos)
+      if is_old_theory (src, pos) then
+        scan_header ThySyn.get_lexicon (Scan.error old_header) (src, pos)
       else scan_header (K header_lexicon) (Scan.error new_header) (src, pos);
 
     val ml_path = ThyLoad.ml_path name;
@@ -302,8 +314,12 @@ fun deps_thy name path =
     else (parents, map (Path.unpack o #1) files @ ml_file)
   end;
 
+end;
+
 
 (* load_thy --- read text (including header) *)
+
+local
 
 fun try_ml_file name ml time =
   let
@@ -316,22 +332,11 @@ fun try_ml_file name ml time =
   end;
 
 fun parse_thy src_pos =
-  let
-    val lex_src = filter_proper (token_source src_pos);
-    val only_head =
-      lex_src
-      |> Source.source OuterLex.stopper (Scan.single (Scan.option only_header)) None
-      |> (fst o the o Source.get_single);
-  in
-    (case only_head of
-      None =>
-        lex_src
-        |> source false false (K (get_parser ()))
-        |> Source.exhaust
-    | Some spec =>
-        [Toplevel.empty |> Toplevel.name theoryN |> IsarThy.theory spec,
-          Toplevel.empty |> Toplevel.name "end" |> Toplevel.exit])
-  end;
+  src_pos
+  |> token_source
+  |> filter_proper
+  |> source false false (K (get_parser ()))
+  |> Source.exhaust;
 
 fun run_thy name path =
   let
@@ -350,6 +355,8 @@ fun run_thy name path =
     Present.verbatim_source name present_text
   end;
 
+in
+
 fun load_thy name ml time path =
  (if time then
     timeit (fn () =>
@@ -359,6 +366,8 @@ fun load_thy name ml time path =
   else run_thy name path;
   Context.context (ThyInfo.get_theory name);
   try_ml_file name ml time);
+
+end;
 
 
 (* interactive source of state transformers *)
