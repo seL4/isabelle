@@ -443,6 +443,25 @@ in
       val size_eqns  = map size_eqn cons_list;
 
 (* -------------------------------------------------------------------- *)
+(* The split equation                                                   *) 
+
+      local
+      val fs = map (fn i => "f"^(string_of_int i)) (1 upto num_of_cons);
+
+      fun split1case ((_,name,_,vns,_),fi) =
+        let val svns = " " ^ (space_implode " " vns);
+            val all = if null vns then "" else "!" ^ svns ^ ". "
+        in "("^all^tname^"0 = "^C_exp name vns^" --> P("^fi^svns^"))" end;
+
+      val rhss  = map split1case (cons_list ~~ fs);
+      val rhs = space_implode " & " rhss;
+      val lhs = "P(" ^ t_case ^ " " ^ (space_implode " " fs) ^" "^ tname^"0)"
+      in
+      val split_eqn = lhs ^ " = (" ^ rhs ^ ")"
+      end;
+
+(* -------------------------------------------------------------------- *)
+
       val consts = 
         map const_type cons_list
         @ (if num_of_cons < dtK then []
@@ -512,7 +531,7 @@ in
            |> Theory.add_arities arities
            |> Theory.add_consts consts
            |> Theory.add_trrules xrules
-           |> Theory.add_axioms rules, add_primrec, size_eqns)
+           |> Theory.add_axioms rules, add_primrec, size_eqns, split_eqn)
     end
 
 (*Warn if the (induction) variable occurs Free among the premises, which

@@ -126,9 +126,10 @@ local
 
   (*generate string for calling add_datatype and build_record*)
   fun mk_params ((ts, tname), cons) =
-   ("val (thy," ^ tname ^ "_add_primrec," ^ tname ^ "_size_eqns) = Datatype.add_datatype\n"
+   ("val (thy,"^tname^"_add_primrec,size_"^tname^"_eqns,split_"^tname^"_eqn) =\n\
+    \    Datatype.add_datatype\n"
     ^ mk_triple (mk_list ts, quote tname, mk_list (mk_cons cons)) ^ " thy\n\
-    \val thy = ("^tname^"_add_primrec "^tname^"_size_eqns thy)"
+    \val thy = ("^tname^"_add_primrec size_"^tname^"_eqns thy)"
     ,
     "val _ = deny (" ^ quote tname ^ " mem (Sign.stamp_names_of (sign_of thy)))\n\
     \   (\"Datatype \\\""^tname^"\\\" would clash with the theory of the same name!\");\n\
@@ -161,9 +162,19 @@ local
       tname ^ ".distinct;\n\
     \val dummy = Addsimps(map (fn (_,eqn) =>\n\
     \ prove_goalw thy [get_def thy " ^ quote("size_"^tname) ^
-                     "] eqn (fn _ => [Simp_tac 1]))\n" ^
-    tname^"_size_eqns)\n"
+                     "] eqn (fn _ => [Simp_tac 1])) size_"^tname^"_eqns);\n\
+    \val split_"^tname^"_case = prove_goal thy split_"^tname^"_eqn\n\
+    \  (fn _ => [#exhaust_tac(snd(hd(!datatypes))) \""^tname^"0\" 1,\n\
+    \            ALLGOALS Asm_simp_tac])"
    );
+(*
+The #exhaust_tac(snd(hd(!datatypes))) in the proof of split_"^tname^"_case
+is a hack. Ideally I would just write exhaust_tac, but the latter extracts the
+specific exhaustion tactic from the theory associated with the proof
+state. However, the exhaustion tactic for the current datatype has only just
+been added to !datatypes (a few lines above) but is not yet associated with
+the theory. Hope this can be simplified in the future.
+*)
 
   (*parsers*)
   val tvars = type_args >> map (cat "dtVar");

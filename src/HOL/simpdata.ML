@@ -145,10 +145,22 @@ val all_simps = map prover
                  "(ALL x. P x --> Q) = ((EX x. P x) --> Q)",
                  "(ALL x. P --> Q x) = (P --> (ALL x. Q x))"];
 
-(*** Simplification procedure for turning  ? x. ... & x = t & ...
-     into                                  ? x. x = t & ... & ...
-     where the latter can be rewritten via (? x. x = t & P(x)) = P(t)
- ***)
+(*** Simplification procedures for turning
+
+            ? x. ... & x = t & ...
+     into   ? x. x = t & ... & ...
+     where the `? x. x = t &' in the latter formula is eliminated
+           by ordinary simplification. 
+
+     and   ! x. (... & x = t & ...) --> P x
+     into  ! x. x = t --> (... & ...) --> P x
+     where the `!x. x=t -->' in the latter formula is eliminated
+           by ordinary simplification.
+
+NB Simproc is only triggered by "!x. P(x) & P'(x) --> Q(x)"
+   "!x. x=t --> P(x)" and "!x. t=x --> P(x)"
+   must be taken care of by ordinary rewrite rules.
+***)
 
 local
 
@@ -171,25 +183,49 @@ fun extract(Const("op &",_) $ P $ Q) =
                  | None => None))))
   | extract _ = None;
 
-fun prove_eq(ceqt) =
+fun prove_ex_eq(ceqt) =
   let val tac = rtac eq_reflection 1 THEN rtac iffI 1 THEN
                 ALLGOALS(EVERY'[etac exE, REPEAT o (etac conjE),
                  rtac exI, REPEAT o (ares_tac [conjI] ORELSE' etac sym)])
   in rule_by_tactic tac (trivial ceqt) end;
 
-fun rearrange sg _ (F as ex $ Abs(x,T,P)) =
+fun rearrange_ex sg _ (F as ex $ Abs(x,T,P)) =
      (case extract P of
         None => None
       | Some(eq,Q) =>
           let val ceqt = cterm_of sg
                        (Logic.mk_equals(F,ex $ Abs(x,T,HOLogic.conj$eq$Q)))
-          in Some(prove_eq ceqt) end)
-  | rearrange _ _ _ = None;
+          in Some(prove_ex_eq ceqt) end)
+  | rearrange_ex _ _ _ = None;
 
-val pattern = read_cterm (sign_of HOL.thy) ("? x. P(x) & Q(x)",HOLogic.boolT)
+val ex_pattern =
+  read_cterm (sign_of HOL.thy) ("? x. P(x) & Q(x)",HOLogic.boolT)
+
+fun prove_all_eq(ceqt) =
+  let fun tac _ = [EVERY1[rtac eq_reflection, rtac iffI,
+                       rtac allI, etac allE, rtac impI, rtac impI, etac mp,
+                          REPEAT o (etac conjE),
+                          REPEAT o (ares_tac [conjI] ORELSE' etac sym),
+                       rtac allI, etac allE, rtac impI, REPEAT o (etac conjE),
+                          etac impE, atac ORELSE' etac sym, etac mp,
+                          REPEAT o (ares_tac [conjI])]]
+  in prove_goalw_cterm [] ceqt tac end;
+
+fun rearrange_all sg _ (F as all $ Abs(x,T,Const("op -->",_)$P$Q)) =
+     (case extract P of
+        None => None
+      | Some(eq,P') =>
+          let val R = HOLogic.imp $ eq $ (HOLogic.imp $ P' $ Q)
+              val ceqt = cterm_of sg (Logic.mk_equals(F,all$Abs(x,T,R)))
+          in Some(prove_all_eq ceqt) end)
+  | rearrange_all _ _ _ = None;
+
+val all_pattern =
+  read_cterm (sign_of HOL.thy) ("! x. P(x) & P'(x) --> Q(x)",HOLogic.boolT)
 
 in
-val defEX_regroup = mk_simproc "defined EX" [pattern] rearrange;
+val defEX_regroup = mk_simproc "defined EX" [ex_pattern] rearrange_ex;
+val defALL_regroup = mk_simproc "defined ALL" [all_pattern] rearrange_all;
 end;
 
 
@@ -386,7 +422,7 @@ val HOL_ss =
        de_Morgan_conj, de_Morgan_disj, imp_disj1, imp_disj2, not_imp,
        not_all, not_ex, cases_simp]
      @ ex_simps @ all_simps @ simp_thms)
-     addsimprocs [defEX_regroup]
+     addsimprocs [defALL_regroup,defEX_regroup]
      addcongs [imp_cong];
 
 qed_goal "if_distrib" HOL.thy

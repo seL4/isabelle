@@ -48,13 +48,7 @@ Addsimps [lists_Int_eq];
 
 (** list_case **)
 
-goal thy
- "P(list_case a f xs) = ((xs=[] --> P(a)) & \
-\                        (!y ys. xs=y#ys --> P(f y ys)))";
-by (induct_tac "xs" 1);
-by (ALLGOALS Asm_simp_tac);
-by (Blast_tac 1);
-qed "expand_list_case";
+val expand_list_case = split_list_case;
 
 val prems = goal thy "[| P([]); !!x xs. P(x#xs) |] ==> P(xs)";
 by (induct_tac "xs" 1);
