@@ -883,20 +883,22 @@ val setup =
 
 (* outer syntax *)
 
-open OuterParse;
+local open OuterParse in
 
 val record_decl =
   type_args -- name -- ($$$ "=" |-- Scan.option (typ --| $$$ "+")
     -- Scan.repeat1 (name -- ($$$ "::" |-- typ)));
 
 val recordP =
-  OuterSyntax.parser false "record" "define extensible record"
+  OuterSyntax.command "record" "define extensible record"
     (record_decl >> (fn (x, (y, z)) => Toplevel.theory (add_record x y z)));
 
 val _ = OuterSyntax.add_parsers [recordP];
 
 end;
 
+
+end;
 
 structure BasicRecordPackage: BASIC_RECORD_PACKAGE = RecordPackage;
 open BasicRecordPackage;
