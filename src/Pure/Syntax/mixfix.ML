@@ -88,7 +88,7 @@ fun string_of_mixfix NoSyn = ""
       parens (spaces ["binder", brackets (string_of_int p1), string_of_int p2]);
 
 
-(* type / const names *)
+(* syntax specifications *)
 
 fun strip ("'" :: c :: cs) = c :: strip cs
   | strip ["'"] = []
@@ -118,13 +118,13 @@ fun fix_mixfix c (Infix p) = (InfixName (c, p))
   | fix_mixfix c (Infixr p) = (InfixrName (c, p))
   | fix_mixfix _ mx = mx;
 
-
-(* mixfix_args *)
-
 fun mixfix_args NoSyn = 0
   | mixfix_args (Mixfix (sy, _, _)) = SynExt.mfix_args sy
   | mixfix_args (Delimfix sy) = SynExt.mfix_args sy
-  | mixfix_args (*infix or binder*) _ = 2;
+  | mixfix_args (InfixName (sy, _)) = 2 + SynExt.mfix_args sy
+  | mixfix_args (InfixlName (sy, _)) = 2 + SynExt.mfix_args sy
+  | mixfix_args (InfixrName (sy, _)) = 2 + SynExt.mfix_args sy
+  | mixfix_args (*old infix or binder*) _ = 2;
 
 
 (* syn_ext_types *)
