@@ -373,7 +373,7 @@ proof -
 qed
 text{*\noindent Explicit $\exists$-elimination as seen above can become
 cumbersome in practice.  The derived Isar language element
-\isakeyword{obtain} provides a more appealing form of generalized
+\isakeyword{obtain} provides a more appealing form of generalised
 existence reasoning: *}
 
 lemma assumes Pf: "\<exists>x. P(f x)" shows "\<exists>y. P y"
@@ -536,7 +536,7 @@ The general idea demonstrated in this subsection is very
 important in Isar and distinguishes it from tactic-style proofs:
 \begin{quote}\em
 Do not manipulate the proof state into a particular form by applying
-tactics but state the desired form explictly and let the tactic verify
+tactics but state the desired form explicitly and let the tactic verify
 that from this form the original goal follows.
 \end{quote}
 This yields more readable and also more robust proofs. *}

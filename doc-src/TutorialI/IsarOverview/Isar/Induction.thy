@@ -47,7 +47,7 @@ abbreviates `\isakeyword{assume}~@{text"True: A"}' and analogously for
 
 The same game can be played with other datatypes, for example lists,
 where @{term tl} is the tail of a list, and @{text length} returns a
-natual number:
+natural number:
 \Tweakskip
 *}
 (*<*)declare length_tl[simp del](*>*)
@@ -132,7 +132,7 @@ first proof steps will be the canonical ones, fixing @{text x} and assuming
 automatically: for example in case @{text"(Suc n)"}, @{text ?case} is only
 @{prop"Q' x"} whereas the assumptions (named @{term Suc}!) contain both the
 usual induction hypothesis \emph{and} @{prop"P' x"}.
-It should be clear how this generalizes to more complex formulae.
+It should be clear how this generalises to more complex formulae.
 
 As an example we will now prove complete induction via
 structural induction. *}
