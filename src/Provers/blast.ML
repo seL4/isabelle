@@ -20,9 +20,10 @@ Blast_tac...
   * its proof strategy is more general but can actually be slower
 
 Known problems:
-  "Recursive" rules such as transitivity can exclude other unsafe formulae
+  "Recursive" chains of rules can sometimes exclude other unsafe formulae
 	from expansion.  This happens because newly-created formulae always
-	have priority over existing ones.
+	have priority over existing ones.  But obviously recursive rules 
+	such as transitivity are treated specially to prevent this.
 
   With overloading:
         Overloading can't follow all chains of type dependencies.  Cannot
@@ -34,9 +35,7 @@ Known problems:
 		type ... set)
 
   With substition for equalities (hyp_subst_tac):
-    1.  Sometimes hyp_subst_tac will fail due to occurrence of the parameter
-        as the argument of a function variable
-    2.  When substitution affects a haz formula or literal, it is moved
+        When substitution affects a haz formula or literal, it is moved
         back to the list of safe formulae.
         But there's no way of putting it in the right place.  A "moved" or
         "no DETERM" flag would prevent proofs failing here.
@@ -106,7 +105,7 @@ signature BLAST =
   end;
 
 
-functor BlastFun(Data: BLAST_DATA)(**********: BLAST*******) = 
+functor BlastFun(Data: BLAST_DATA) : BLAST = 
 struct
 
 type claset = Data.claset;
@@ -123,13 +122,6 @@ datatype term =
   | Abs   of string*term
   | op $  of term*term;
 
-
-exception DEST_EQ;
-
-  (*Take apart an equality (plain or overloaded).  NO constant Trueprop*)
-  fun dest_eq (Const  "op ="     $ t $ u) = (t,u)
-    | dest_eq (OConst("op =",_)  $ t $ u) = (t,u)
-    | dest_eq _                      = raise DEST_EQ;
 
 (** Basic syntactic operations **)
 
@@ -308,7 +300,7 @@ fun subst_bound (arg, t) : term =
   in  subst (t,0)  end;
 
 
-(*Normalize...but not the bodies of ABSTRACTIONS*)
+(*Normalize, INCLUDING bodies of abstractions--this might be slow?*)
 fun norm t = case t of
     Skolem (a,args)      => Skolem(a, vars_in_vars args)
   | (Var (ref None))     => t
@@ -316,6 +308,7 @@ fun norm t = case t of
   | (f $ u) => (case norm f of
 		    Abs(_,body) => norm (subst_bound (u, body))
 		  | nf => nf $ norm u)
+  | Abs (a,body) => Abs (a, norm body)
   | _ => t;
 
 
@@ -333,7 +326,7 @@ fun wkNormAux t = case t of
 		 if (0 mem_int loose_bnos f) orelse wkNorm t <> Bound 0
 		 then Abs(a,nb)
 		 else wkNorm (incr_boundvars ~1 f)
-	   | nb          => Abs (a,nb))
+	   | nb => Abs (a,nb))
   | _ => t
 and wkNorm t = case head_of t of
     Const _        => t
@@ -553,6 +546,77 @@ fun netMkRules P vars (nps: netpair list) =
 end;
 **)
 
+
+(*Pending formulae carry md (may duplicate) flags*)
+type branch = ((term*bool) list *	(*safe formulae on this level*)
+               (term*bool) list) list * (*haz formulae  on this level*)
+	      term list *               (*literals: irreducible formulae*)
+	      term option ref list *    (*variables occurring in branch*)
+	      int;                      (*resource limit*)
+
+val fullTrace = ref[] : branch list list ref;
+
+(*Normalize a branch--for tracing*)
+fun norm2 (G,md) = (norm G, md);
+
+fun normLev (Gs,Hs) = (map norm2 Gs, map norm2 Hs);
+
+fun normBr (br, lits, vars, lim) =
+     (map normLev br, map norm lits, vars, lim);
+
+
+val dummyVar2 = Term.Var(("var",0), dummyT);
+
+(*Convert from prototerms to ordinary terms with dummy types for tracing*)
+fun showTerm d (Const a)     = Term.Const (a,dummyT)
+  | showTerm d (OConst(a,_)) = Term.Const (a,dummyT)
+  | showTerm d (Skolem(a,_)) = Term.Const (a,dummyT)
+  | showTerm d (Free a)      = Term.Free  (a,dummyT)
+  | showTerm d (Bound i)     = Term.Bound i
+  | showTerm d (Var _)       = dummyVar2
+  | showTerm d (Abs(a,t))    = if d=0 then dummyVar
+			       else Term.Abs(a, dummyT, showTerm (d-1) t)
+  | showTerm d (f $ u)       = if d=0 then dummyVar
+			       else Term.$ (showTerm d f, showTerm (d-1) u);
+
+
+fun traceTerm sign t = Sign.string_of_term sign (showTerm 8 (norm t));
+
+
+(*Print tracing information at each iteration of prover*)
+fun tracing sign brs = 
+  let fun printPairs (((G,_)::_,_)::_)  = prs(traceTerm sign G)
+	| printPairs (([],(H,_)::_)::_) = prs(traceTerm sign H ^ "\t (Unsafe)")
+	| printPairs _                 = ()
+      fun printBrs (brs0 as (pairs, lits, _, lim) :: brs) =
+	    (fullTrace := brs0 :: !fullTrace;
+	     seq (fn _ => prs "+") brs;
+	     prs (" [" ^ Int.toString lim ^ "] ");
+	     printPairs pairs;
+	     writeln"")
+  in if !trace then printBrs (map normBr brs) else ()
+  end;
+
+(*Tracing: variables updated in the last branch operation?*)
+fun traceVars ntrl =
+    if !trace then 
+       (case !ntrail-ntrl of
+	    0 => writeln""
+	  | 1 => writeln"\t1 variable updated"
+	  | n => writeln("\t" ^ Int.toString n ^ " variables updated"))
+    else ();
+
+(*Tracing: how many new branches are created?*)
+fun traceNew prems =
+    if !trace then 
+        case length prems of
+	    0 => prs"branch closed by rule"
+	  | 1 => prs"branch extended (1 new subgoal)"
+	  | n => prs("branch split: "^ Int.toString n ^ " new subgoals")
+    else ();
+
+
+
 (*** Code for handling equality: naive substitution, like hyp_subst_tac ***)
 
 (*Replace the ATOMIC term "old" by "new" in t*)  
@@ -593,26 +657,32 @@ fun substOccur t =
         | occ (_)                = false;
   in  occEq  end;
 
+exception DEST_EQ;
+
+(*Take apart an equality (plain or overloaded).  NO constant Trueprop*)
+fun dest_eq (Const  "op ="     $ t $ u) = 
+		(eta_contract_atom t, eta_contract_atom u)
+  | dest_eq (OConst("op =",_)  $ t $ u) = 
+		(eta_contract_atom t, eta_contract_atom u)
+  | dest_eq _                           = raise DEST_EQ;
+
 fun check (t,u,v) = if substOccur t u then raise DEST_EQ else v;
 
 (*IF the goal is an equality with a substitutable variable 
   THEN orient that equality ELSE raise exception DEST_EQ*)
-fun orientGoal (t,u) =
-  case (eta_contract_atom t, eta_contract_atom u) of
+fun orientGoal (t,u) = case (t,u) of
        (Skolem _, _) => check(t,u,(t,u))	(*eliminates t*)
      | (_, Skolem _) => check(u,t,(u,t))	(*eliminates u*)
      | (Free _, _)   => check(t,u,(t,u))	(*eliminates t*)
      | (_, Free _)   => check(u,t,(u,t))	(*eliminates u*)
      | _             => raise DEST_EQ;
 
-
-
-
 (*Substitute through the branch if an equality goal (else raise DEST_EQ).
   Moves affected literals back into the branch, but it is not clear where
   they should go: this could make proofs fail.  ??? *)
-fun equalSubst (G, pairs, lits, vars, lim) = 
-  let val subst = subst_atomic (orientGoal(dest_eq G))
+fun equalSubst sign (G, pairs, lits, vars, lim) = 
+  let val (t,u) = orientGoal(dest_eq G)
+      val subst = subst_atomic (t,u)
       fun subst2(G,md) = (subst G, md)
       (*substitute throughout Haz list; move affected ones to Safe part*)
       fun subHazs ([], Gs, nHs)         = (Gs,nHs)
@@ -630,71 +700,14 @@ fun equalSubst (G, pairs, lits, vars, lim) =
 	    in  if nlit aconv lit then subLits (lits, Gs, nlit::nlits)
 		                  else subLits (lits, (nlit,true)::Gs, nlits)
             end
-  in  if !trace then writeln "substitution in branch" else ();
+  in  if !trace then writeln ("Substituting " ^ traceTerm sign u ^
+			      " for " ^ traceTerm sign t ^ " in branch" )
+      else ();
       subLits (rev lits, [], [])  
   end;
 
 
 exception NEWBRANCHES and CLOSEF;
-
-(*Pending formulae carry md (may duplicate) flags*)
-type branch = ((term*bool) list *	(*safe formulae on this level*)
-               (term*bool) list) list * (*haz formulae  on this level*)
-	      term list *               (*literals: irreducible formulae*)
-	      term option ref list *    (*variables occurring in branch*)
-	      int;                      (*resource limit*)
-
-val fullTrace = ref[] : branch list list ref;
-
-(*Normalize a branch--for tracing*)
-fun norm2 (G,md) = (norm G, md);
-
-fun normLev (Gs,Hs) = (map norm2 Gs, map norm2 Hs);
-
-fun normBr (br, lits, vars, lim) =
-     (map normLev br, map norm lits, vars, lim);
-
-
-val dummyVar2 = Term.Var(("var",0), dummyT);
-
-(*Convert from prototerms to ordinary terms with dummy types for tracing*)
-fun showTerm d (Const a)     = Term.Const (a,dummyT)
-  | showTerm d (OConst(a,_)) = Term.Const (a,dummyT)
-  | showTerm d (Skolem(a,_)) = Term.Const (a,dummyT)
-  | showTerm d (Free a)      = Term.Free  (a,dummyT)
-  | showTerm d (Bound i)     = Term.Bound i
-  | showTerm d (Var _)       = dummyVar2
-  | showTerm d (Abs(a,t))    = if d=0 then dummyVar
-			       else Term.Abs(a, dummyT, showTerm (d-1) t)
-  | showTerm d (f $ u)       = if d=0 then dummyVar
-			       else Term.$ (showTerm d f, showTerm (d-1) u);
-
-
-(*Print tracing information at each iteration of prover*)
-fun tracing sign brs = 
-  let fun pr t = prs (Sign.string_of_term sign (showTerm 8 t))
-      fun printPairs (((G,_)::_,_)::_) = pr G
-	| printPairs (([],(H,_)::_)::_) = (pr H;  prs"\t (Unsafe)")
-	| printPairs _                 = ()
-      fun printBrs (brs0 as (pairs, lits, _, lim) :: brs) =
-	    (fullTrace := brs0 :: !fullTrace;
-	     seq (fn _ => prs "+") brs;
-	     prs (" [" ^ Int.toString lim ^ "] ");
-	     printPairs pairs;
-	     writeln"")
-  in if !trace then printBrs (map normBr brs) else ()
-  end;
-
-fun traceNew prems =
-    if !trace then 
-	case length prems of
-	    0 => writeln"branch closed by rule"
-	  | 1 => writeln"branch extended (1 new subgoal)"
-	  | n => writeln("branch split: "^ Int.toString n ^
-			 " new subgoals")
-    else ();
-
-
 
 exception PROVE;
 
@@ -873,7 +886,7 @@ fun prove (sign, cs, brs, cont) =
 			 val tacs' = (DETERM o (tac false)) :: tacs 
 					 (*no duplication*)
 		     in
-			 traceNew prems;
+			 traceNew prems;  traceVars ntrl;
 			 (if null prems then (*closed the branch: prune!*)
 			    prv(tacs',  brs0::trs, 
 				prune (nbrs, nxtVars, choices'),
@@ -901,7 +914,8 @@ fun prove (sign, cs, brs, cont) =
 			None     => closeF Ls
 		      | Some tac => 
 			    let val choices' = 
-				    (if !trace then writeln"branch closed"
+				    (if !trace then (prs"branch closed";
+						     traceVars ntrl)
 				               else ();
 				     prune (nbrs, nxtVars, 
 					    (ntrl, nbrs, PRV) :: choices))
@@ -919,9 +933,12 @@ fun prove (sign, cs, brs, cont) =
 	  in tracing sign brs0; 
 	     if lim<0 then backtrack choices
 	     else
-	     prv (Data.vars_gen_hyp_subst_tac false :: tacs, 
+	     prv ((TRY  o  Data.vars_gen_hyp_subst_tac false)  ::  tacs, 
+		  (*The TRY above allows the substitution to fail, e.g. if
+		    the real version is z = f(?x z).  Rest of proof might
+		    still succeed!*)
 		  brs0::trs,  choices,
-		  equalSubst (G, (br,haz)::pairs, lits, vars, lim) :: brs)
+		  equalSubst sign (G, (br,haz)::pairs, lits, vars, lim) :: brs)
 	     handle DEST_EQ => closeF lits
 	      handle CLOSEF => closeFl ((br,haz)::pairs)
 	        handle CLOSEF => 
@@ -989,7 +1006,7 @@ fun prove (sign, cs, brs, cont) =
 		       then (*it's faster to kill ALL the alternatives*)
 			   raise NEWBRANCHES
 		       else 
-			 traceNew prems;
+			 traceNew prems;  traceVars ntrl;
 			 prv(tac dup :: tacs, 
 			     brs0::trs, 
 			     (ntrl, length brs0, PRV) :: choices, 
@@ -1073,7 +1090,7 @@ fun fromSubgoal tsig t =
       fun skoSubgoal i t =
 	  if i<npars then 
 	      skoSubgoal (i+1)
-		(subst_bound (Skolem (gensym "SG_", getVars (!alist) i), 
+		(subst_bound (Skolem (gensym "T_", getVars (!alist) i), 
 			      t))
 	  else t
 
