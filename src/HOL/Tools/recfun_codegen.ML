@@ -17,7 +17,7 @@ struct
 
 open Codegen;
 
-structure RecfunArgs =
+structure CodegenArgs =
 struct
   val name = "HOL/recfun_codegen";
   type T = thm list Symtab.table;
@@ -28,7 +28,7 @@ struct
   fun print _ _ = ();
 end;
 
-structure RecfunData = TheoryDataFun(RecfunArgs);
+structure CodegenData = TheoryDataFun(CodegenArgs);
 
 val prop_of = #prop o rep_thm;
 val dest_eqn = HOLogic.dest_eq o HOLogic.dest_Trueprop;
@@ -40,19 +40,19 @@ fun warn thm = warning ("RecfunCodegen: Not a proper equation:\n" ^
 fun add (p as (thy, thm)) =
   let
     val tsig = Sign.tsig_of (sign_of thy);
-    val tab = RecfunData.get thy;
+    val tab = CodegenData.get thy;
     val (s, _) = const_of (prop_of thm);
 
     val matches = curry
       (Pattern.matches tsig o pairself (fst o dest_eqn o prop_of));
 
-  in (RecfunData.put (Symtab.update ((s,
+  in (CodegenData.put (Symtab.update ((s,
     filter_out (matches thm) (if_none (Symtab.lookup (tab, s)) []) @ [thm]),
       tab)) thy, thm)
   end handle TERM _ => (warn thm; p) | Pattern.Pattern => (warn thm; p);
 
 fun get_equations thy (s, T) =
-  (case Symtab.lookup (RecfunData.get thy, s) of
+  (case Symtab.lookup (CodegenData.get thy, s) of
      None => []
    | Some thms => filter (fn thm => is_instance thy T
        (snd (const_of (prop_of thm)))) thms);
@@ -137,10 +137,8 @@ fun recfun_codegen thy gr dep brack t = (case strip_comb t of
 
 
 val setup =
-  [RecfunData.init,
+  [CodegenData.init,
    add_codegen "recfun" recfun_codegen,
-   Attrib.add_attributes [("code",
-     (Attrib.no_args add, Attrib.no_args Attrib.undef_local_attribute),
-     "declare equations to be used for code generation")]];
+   add_attribute "" add];
 
 end;
