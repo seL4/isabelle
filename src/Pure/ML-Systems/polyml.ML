@@ -3,123 +3,119 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
-Compatibility file for Poly/ML (versions 2.x, 3.x).
+Compatibility file for Poly/ML (versions 2.x and 3.x).
 *)
 
 open PolyML ExtendedIO;
 
-use"basis.ML";
+(*needs the Basis Library emulation*)
+use "basis.ML";
 
 
-(*A conditional timing function: applies f to () and, if the flag is true,
-  prints its runtime.*)
+
+(** ML system related **)
+
+(* timing *)
+
+(*a conditional timing function: applies f to () and, if the flag is true,
+  prints its runtime*)
 
 fun cond_timeit flag f =
   if flag then
-    let val before = System.processtime()
-        val result = f()
-        val both = real(System.processtime() - before) / 10.0
-    in  output(std_out, "Process time (incl GC): "^
-                         makestring both ^ " secs\n");
-        result
+    let
+      val before = System.processtime ();
+      val result = f ();
+      val both = real (System.processtime () - before) / 10.0;
+    in
+      print ("Process time (incl GC): " ^ makestring both ^ " secs\n");
+      result
     end
-  else f();
+  else f ();
 
 
-(*Interface for toplevel pretty printers, see also Pure/install_pp.ML*)
+(* toplevel pretty printing (see also Pure/install_pp.ML) *)
 
 fun make_pp _ pprint (str, blk, brk, en) obj =
   pprint obj (str, fn ind => blk (ind, false), fn wd => brk (wd, 0),
     fn () => brk (99999, 0), en);
 
 
-(*** File handling ***)
+(* ML command execution -- 'eval' *)
+
+val use_string =
+  let
+    fun exec line =
+      let
+        val is_first = ref true;
+
+        fun get_line () =
+          if ! is_first then (is_first := false; line)
+          else raise Io "use_string: buffer exhausted";
+      in
+        PolyML.compiler (get_line, print) ()
+      end;
+
+    fun execs [] = ()
+      | execs (line :: lines) = (exec line; execs lines);
+  in execs end;
+
+
+
+(** OS related **)
 
 local
 
-(*These are functions from library.ML *)
-fun take_suffix _ [] = ([], [])
-  | take_suffix pred (x :: xs) =
-      (case take_suffix pred xs of
-         ([], sffx) => if pred x then ([], x :: sffx)
-                                 else ([x], sffx)
-       | (prfx, sffx) => (x :: prfx, sffx));
+fun drop_last [] = []
+  | drop_last [x] = []
+  | drop_last (x :: xs) = x :: drop_last xs;
 
-fun apr (f,y) x = f(x,y);
-
-fun seq (proc: 'a -> unit) : 'a list -> unit =
-  let fun seqf [] = ()
-        | seqf (x :: xs) = (proc x; seqf xs)
-  in seqf end;
-
-fun radixpand num : int list =
-  let fun radix (n, tail) =
-    if n < 10 then n :: tail else radix (n div 10, (n mod 10) :: tail)
-  in radix (num, []) end;
-
-fun radixstring num =
-  let fun chrof n = chr (ord "0" + n);
-  in implode (map chrof (radixpand num)) end;
+val drop_last_char = implode o drop_last o explode;
 
 in
 
-(*Get time of last modification; if file doesn't exist return an empty string*)
-fun file_info "" = ""
-  | file_info name = radixstring (System.filedate name)  handle _ => "";
 
+(* system command execution *)
 
-structure OS =
-  struct
-  structure FileSys =
-    struct
-    val chDir = PolyML.cd
-
-    fun remove name =    (*Delete a file *)
-      let val (is, os) = ExtendedIO.execute ("rm " ^ name)
-      in close_in is; close_out os end;
-
-    (*Get pathname of current working directory *)
-    fun getDir () =
-      let val (is, os) = ExtendedIO.execute ("pwd")
-	  val (path, _) = take_suffix (apr(op=,"\n")) (*remove newline*)
-			   (explode (ExtendedIO.input_line is)) 
-      in close_in is; close_out os; implode path end;
-
-    end
+(*execute Unix command which doesn't take any input from stdin and
+  sends its output to stdout*)
+fun execute command =
+  let
+    val (is, os) =  ExtendedIO.execute command;
+    val result = input (is, 999999);
+  in
+    close_out os;
+    close_in is;
+    result
   end;
 
 
+(* file handling *)
 
-(*** ML command execution ***)
+(*get time of last modification; if file doesn't exist return an empty string*)
+fun file_info "" = ""		(* FIXME !? *)
+  | file_info name = Int.toString (System.filedate name) handle _ => "";
 
-val use_string =
-  let fun exec command =
-    let val firstLine = ref true;
+structure OS =
+struct
+  structure FileSys =
+  struct
+    val chDir = PolyML.cd;
+    fun remove name = (execute ("rm " ^ name); ());
+    fun getDir () = drop_last_char (execute "pwd");
+  end;
+end;
 
-        fun getLine () =
-          if !firstLine
-          then (firstLine := false; command)
-          else raise Io "use_string: buffer exhausted"
-    in PolyML.compiler (getLine, fn s => output (std_out, s)) () end
-  in seq exec end;
+
+(* getenv *)
+
+fun getenv var = drop_last_char
+  (execute ("env | grep '^" ^ var ^ "=' | sed -e 's/" ^ var ^ "=//'"));
+
 
 end;
 
 
-(*** System command execution ***)
-
-(*Execute an Unix command which doesn't take any input from stdin and
-  sends its output to stdout.*)
-fun execute command =
-  let val (is, os) =  ExtendedIO.execute command;
-      val result = input (is, 999999);
-  in close_out os;
-     close_in is;
-     result
-  end;
-
-
-(* symbol input *)
+(* non-ASCII input (see also Thy/symbol_input.ML) *)
 
 val needs_filtered_use =
   (case explode ml_system of
