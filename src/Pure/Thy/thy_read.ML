@@ -49,7 +49,7 @@ val delete_tmpfiles = ref true;
        
 
 (*Make name of the TextIO.output ML file for a theory *)
-fun out_name tname = File.tmp_name (tname ^ ".thy.ML");
+fun out_name tname = File.tmp_name (tname ^ "_thy.ML");
 
 
 (*Read a file specified by thy_file containing theory tname*)
