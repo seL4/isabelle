@@ -440,7 +440,8 @@ val HOL_ss =
        if_True, if_False, if_cancel, if_eq_cancel,
        imp_disjL, conj_assoc, disj_assoc,
        de_Morgan_conj, de_Morgan_disj, imp_disj1, imp_disj2, not_imp,
-       disj_not1, not_all, not_ex, cases_simp, Eps_eq, Eps_sym_eq]
+       disj_not1, not_all, not_ex, cases_simp, Eps_eq, Eps_sym_eq,
+       thm"plus_ac0.zero", thm"plus_ac0_zero_right"]
      @ ex_simps @ all_simps @ simp_thms)
      addsimprocs [defALL_regroup,defEX_regroup]
      addcongs [imp_cong]
