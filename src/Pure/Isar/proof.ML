@@ -151,15 +151,17 @@ fun map_context_result f (state as State ({context, facts, mode, goal}, nodes)) 
 fun put_data kind f = map_context o ProofContext.put_data kind f;
 val declare_term = map_context o ProofContext.declare_term;
 val add_binds = map_context o ProofContext.add_binds_i;
+val auto_bind_goal = map_context o ProofContext.auto_bind_goal;
+val auto_bind_facts = map_context o ProofContext.auto_bind_facts;
 val put_thms = map_context o ProofContext.put_thms;
 val put_thmss = map_context o ProofContext.put_thmss;
 
 
 (* bind statements *)
 
+(* FIXME
 fun bind_props bs state =
-  let val mk_bind = map (fn (x, t) => ((Syntax.binding x, 0), t)) o ObjectLogic.dest_statement
-  in state |> add_binds (flat (map mk_bind bs)) end;
+  state |> add_binds (flat (map ObjectLogic.statement_bindings bs)) end;
 
 fun bind_thms (name, thms) state =
   let
@@ -174,6 +176,13 @@ fun let_thms name_thms state =
   state
   |> put_thms name_thms
   |> bind_thms name_thms;
+*)
+
+(* FIXME elim (!?) *)
+
+fun let_thms name_thms state =
+  state
+  |> put_thms name_thms;
 
 
 (* facts *)
@@ -352,6 +361,13 @@ fun varify_frees names thm =
     |> Drule.forall_elim_vars (maxidx + 1)
   end;
 
+fun varify_tfrees thm =
+  let
+    val {hyps, prop, ...} = Thm.rep_thm thm;
+    val frees = foldr Term.add_term_frees (prop :: hyps, []);
+    val leave_tfrees = foldr Term.add_term_tfree_names (frees, []);
+  in thm |> Thm.varifyT' leave_tfrees end;
+
 fun implies_elim_hyps thm =
   foldl (uncurry Thm.implies_elim) (thm, map Thm.assume (Drule.cprems_of thm));
 
@@ -370,7 +386,7 @@ fun prep_result state asms t raw_thm =
       |> implies_elim_hyps
       |> Drule.implies_intr_list asms
       |> varify_frees (ProofContext.fixed_names ctxt)
-      |> Thm.varifyT;
+      |> varify_tfrees;
 
     val {hyps, prop, sign, ...} = Thm.rep_thm thm;
     val tsig = Sign.tsig_of sign;
@@ -384,7 +400,7 @@ fun prep_result state asms t raw_thm =
       err ("Additional hypotheses:\n" ^ cat_lines (map (Sign.string_of_term sign) hyps))
 (* FIXME    else if not (Pattern.matches tsig (t, Logic.skip_flexpairs prop)) then
       err ("Proved a different theorem: " ^ Sign.string_of_term sign prop) *)
-    else thm
+    else (thm, prop)
   end;
 
 
@@ -509,7 +525,7 @@ fun setup_goal opt_block prepp kind name atts raw_propp state =
   in
     state'
     |> put_goal (Some ((kind atts, (PureThy.default_name name), casms @ cprems, prop), ([], thm)))
-    |> bind_props [("thesis", prop)]
+    |> auto_bind_goal prop
     |> (if is_chain state then use_facts else reset_facts)
     |> new_block
     |> enter_backward
@@ -614,7 +630,7 @@ fun end_block state =
 fun finish_local print_result state =
   let
     val ((kind, name, asms, t), (_, raw_thm)) = current_goal state;
-    val result = prep_result state asms t raw_thm;
+    val (result, result_prop) = prep_result state asms t raw_thm;
     val (atts, opt_solve) =
       (case kind of
         Goal atts => (atts, solve_goal result)
@@ -624,6 +640,7 @@ fun finish_local print_result state =
     print_result {kind = kind_name kind, name = name, thm = result};
     state
     |> close_block
+    |> auto_bind_facts [result_prop]
     |> have_thmss name atts [Thm.no_attributes [result]]
     |> opt_solve
   end;
@@ -639,7 +656,7 @@ fun local_qed finalize print_result state =
 fun finish_global alt_name alt_atts state =
   let
     val ((kind, def_name, asms, t), (_, raw_thm)) = current_goal state;
-    val result = final_result state (prep_result state asms t raw_thm);
+    val result = final_result state (#1 (prep_result state asms t raw_thm));
 
     val name = if_none alt_name def_name;
     val atts =
