@@ -56,12 +56,8 @@ datatype term =
 (*For errors involving type mismatches*)
 exception TYPE of string * typ list * term list;
 
-fun raise_type msg tys ts = raise TYPE (msg, tys, ts);
-
 (*For system errors involving terms*)
 exception TERM of string * term list;
-
-fun raise_term msg ts = raise TERM (msg, ts);
 
 
 (*Note variable naming conventions!
