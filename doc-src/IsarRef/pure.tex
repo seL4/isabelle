@@ -376,26 +376,25 @@ following commands provide some way to do so.
 \end{descr}
 
 
-%FIXME remove!?
-%\subsection{Syntax translation functions}
+\subsection{Syntax translation functions}
 
-%\indexisarcmd{parse-ast-translation}\indexisarcmd{parse-translation}
-%\indexisarcmd{print-translation}\indexisarcmd{typed-print-translation}
-%\indexisarcmd{print-ast-translation}\indexisarcmd{token-translation}
-%\begin{matharray}{rcl}
-%  \isarcmd{parse_ast_translation} & : & \isartrans{theory}{theory} \\
-%  \isarcmd{parse_translation} & : & \isartrans{theory}{theory} \\
-%  \isarcmd{print_translation} & : & \isartrans{theory}{theory} \\
-%  \isarcmd{typed_print_translation} & : & \isartrans{theory}{theory} \\
-%  \isarcmd{print_ast_translation} & : & \isartrans{theory}{theory} \\
-%  \isarcmd{token_translation} & : & \isartrans{theory}{theory} \\
-%\end{matharray}
+\indexisarcmd{parse-ast-translation}\indexisarcmd{parse-translation}
+\indexisarcmd{print-translation}\indexisarcmd{typed-print-translation}
+\indexisarcmd{print-ast-translation}\indexisarcmd{token-translation}
+\begin{matharray}{rcl}
+  \isarcmd{parse_ast_translation} & : & \isartrans{theory}{theory} \\
+  \isarcmd{parse_translation} & : & \isartrans{theory}{theory} \\
+  \isarcmd{print_translation} & : & \isartrans{theory}{theory} \\
+  \isarcmd{typed_print_translation} & : & \isartrans{theory}{theory} \\
+  \isarcmd{print_ast_translation} & : & \isartrans{theory}{theory} \\
+  \isarcmd{token_translation} & : & \isartrans{theory}{theory} \\
+\end{matharray}
 
-%Syntax translation functions written in ML admit almost arbitrary
-%manipulations of Isabelle's inner syntax.  Any of the above commands have a
-%single \railqtoken{text} argument that refers to an ML expression of
-%appropriate type.  See \cite[\S8]{isabelle-ref} for more information on syntax
-%transformations.
+Syntax translation functions written in ML admit almost arbitrary
+manipulations of Isabelle's inner syntax.  Any of the above commands have a
+single \railqtoken{text} argument that refers to an ML expression of
+appropriate type.  See \cite[\S8]{isabelle-ref} for more information on syntax
+transformations.
 
 
 \subsection{Oracles}
