@@ -21,9 +21,9 @@ use "symtab.ML";
 use "term.ML";
 
 (*Syntax module*)
-OS.FileSys.chDir "Syntax";
+cd "Syntax";
 use "ROOT.ML";
-OS.FileSys.chDir "..";
+cd "..";
 
 use "type.ML";
 use "sign.ML";
@@ -48,9 +48,9 @@ structure Pure  = struct val thy = Theory.pure_thy end;
 structure CPure = struct val thy = Theory.cpure_thy end;
 
 (*Theory parser and loader*)
-OS.FileSys.chDir "Thy";
+cd "Thy";
 use "ROOT.ML";
-OS.FileSys.chDir "..";
+cd "..";
 
 use "install_pp.ML";
 fun init_database () = (init_thy_reader (); init_pps ());
