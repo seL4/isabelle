@@ -2,10 +2,6 @@ header {*Relativization and Absoluteness*}
 
 theory Relative = Main:
 
-(*????????????????for IFOL.thy????????????????*)
-lemma eq_commute: "a=b <-> b=a"
-by blast 
-
 subsection{* Relativized versions of standard set-theoretic concepts *}
 
 constdefs
@@ -33,16 +29,19 @@ constdefs
     "successor(M,a,z) == is_cons(M,a,a,z)"
 
   number1 :: "[i=>o,i] => o"
-    "number1(M,a) == (\<exists>x[M]. empty(M,x) & successor(M,x,a))"
+    "number1(M,a) == \<exists>x[M]. empty(M,x) & successor(M,x,a)"
 
   number2 :: "[i=>o,i] => o"
-    "number2(M,a) == (\<exists>x[M]. number1(M,x) & successor(M,x,a))"
+    "number2(M,a) == \<exists>x[M]. number1(M,x) & successor(M,x,a)"
 
   number3 :: "[i=>o,i] => o"
-    "number3(M,a) == (\<exists>x[M]. number2(M,x) & successor(M,x,a))"
+    "number3(M,a) == \<exists>x[M]. number2(M,x) & successor(M,x,a)"
 
   powerset :: "[i=>o,i,i] => o"
     "powerset(M,A,z) == \<forall>x[M]. x \<in> z <-> subset(M,x,A)"
+
+  is_Collect :: "[i=>o,i,i=>o,i] => o"
+    "is_Collect(M,A,P,z) == \<forall>x[M]. x \<in> z <-> x \<in> A & P(x)"
 
   inter :: "[i=>o,i,i,i] => o"
     "inter(M,a,b,z) == \<forall>x[M]. x \<in> z <-> x \<in> a & x \<in> b"
@@ -85,11 +84,11 @@ constdefs
 
   is_domain :: "[i=>o,i,i] => o"
     "is_domain(M,r,z) == 
-	\<forall>x[M]. (x \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>y[M]. pair(M,x,y,w))))"
+	\<forall>x[M]. x \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>y[M]. pair(M,x,y,w)))"
 
   image :: "[i=>o,i,i,i] => o"
     "image(M,r,A,z) == 
-        \<forall>y[M]. (y \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>x[M]. x\<in>A & pair(M,x,y,w))))"
+        \<forall>y[M]. y \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>x[M]. x\<in>A & pair(M,x,y,w)))"
 
   is_range :: "[i=>o,i,i] => o"
     --{*the cleaner 
@@ -97,12 +96,12 @@ constdefs
       unfortunately needs an instance of separation in order to prove 
         @{term "M(converse(r))"}.*}
     "is_range(M,r,z) == 
-	\<forall>y[M]. (y \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>x[M]. pair(M,x,y,w))))"
+	\<forall>y[M]. y \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>x[M]. pair(M,x,y,w)))"
 
   is_field :: "[i=>o,i,i] => o"
     "is_field(M,r,z) == 
-	\<exists>dr[M]. is_domain(M,r,dr) & 
-            (\<exists>rr[M]. is_range(M,r,rr) & union(M,dr,rr,z))"
+	\<exists>dr[M]. \<exists>rr[M]. is_domain(M,r,dr) & is_range(M,r,rr) & 
+                        union(M,dr,rr,z)"
 
   is_relation :: "[i=>o,i] => o"
     "is_relation(M,r) == 
@@ -594,6 +593,16 @@ apply (subgoal_tac "y = Collect(A,P)", blast)
 apply (blast dest: transM) 
 done
 
+lemma separation_iff:
+     "separation(M,P) <-> (\<forall>z[M]. \<exists>y[M]. is_Collect(M,z,P,y))"
+by (simp add: separation_def is_Collect_def) 
+
+lemma (in M_triv_axioms) Collect_abs [simp]: 
+     "[| M(A); M(z) |] ==> is_Collect(M,A,P,z) <-> z = Collect(A,P)"
+apply (simp add: is_Collect_def)
+apply (blast intro!: equalityI dest: transM)
+done
+
 text{*Probably the premise and conclusion are equivalent*}
 lemma (in M_triv_axioms) strong_replacementI [rule_format]:
     "[| \<forall>A[M]. separation(M, %u. \<exists>x[M]. x\<in>A & P(x,u)) |]
@@ -857,6 +866,8 @@ subsection{*Some instances of separation and strong replacement*}
 locale M_axioms = M_triv_axioms +
 assumes Inter_separation:
      "M(A) ==> separation(M, \<lambda>x. \<forall>y[M]. y\<in>A --> x\<in>y)"
+  and Diff_separation:
+     "M(B) ==> separation(M, \<lambda>x. x \<notin> B)"
   and cartprod_separation:
      "[| M(A); M(B) |] 
       ==> separation(M, \<lambda>z. \<exists>x[M]. x\<in>A & (\<exists>y[M]. y\<in>B & pair(M,x,y,z)))"
@@ -1194,6 +1205,61 @@ lemma (in M_axioms) Int_closed [intro,simp]:
 apply (subgoal_tac "M({A,B})")
 apply (frule Inter_closed, force+) 
 done
+
+lemma (in M_axioms) Diff_closed [intro,simp]:
+     "[|M(A); M(B)|] ==> M(A-B)"
+by (insert Diff_separation, simp add: Diff_def)
+
+subsubsection{*Some Facts About Separation Axioms*}
+
+lemma (in M_axioms) separation_conj:
+     "[|separation(M,P); separation(M,Q)|] ==> separation(M, \<lambda>z. P(z) & Q(z))"
+by (simp del: separation_closed
+         add: separation_iff Collect_Int_Collect_eq [symmetric]) 
+
+(*???equalities*)
+lemma Collect_Un_Collect_eq:
+     "Collect(A,P) Un Collect(A,Q) = Collect(A, %x. P(x) | Q(x))"
+by blast
+
+lemma Diff_Collect_eq:
+     "A - Collect(A,P) = Collect(A, %x. ~ P(x))"
+by blast
+
+lemma (in M_triv_axioms) Collect_rall_eq:
+     "M(Y) ==> Collect(A, %x. \<forall>y[M]. y\<in>Y --> P(x,y)) = 
+               (if Y=0 then A else (\<Inter>y \<in> Y. {x \<in> A. P(x,y)}))"
+apply simp 
+apply (blast intro!: equalityI dest: transM) 
+done
+
+lemma (in M_axioms) separation_disj:
+     "[|separation(M,P); separation(M,Q)|] ==> separation(M, \<lambda>z. P(z) | Q(z))"
+by (simp del: separation_closed
+         add: separation_iff Collect_Un_Collect_eq [symmetric]) 
+
+lemma (in M_axioms) separation_neg:
+     "separation(M,P) ==> separation(M, \<lambda>z. ~P(z))"
+by (simp del: separation_closed
+         add: separation_iff Diff_Collect_eq [symmetric]) 
+
+lemma (in M_axioms) separation_imp:
+     "[|separation(M,P); separation(M,Q)|] 
+      ==> separation(M, \<lambda>z. P(z) --> Q(z))"
+by (simp add: separation_neg separation_disj not_disj_iff_imp [symmetric]) 
+
+text{*This result is a hint of how little can be done without the Reflection 
+  Theorem.  The quantifier has to be bounded by a set.  We also need another
+  instance of Separation!*}
+lemma (in M_axioms) separation_rall:
+     "[|M(Y); \<forall>y[M]. separation(M, \<lambda>x. P(x,y)); 
+        \<forall>z[M]. strong_replacement(M, \<lambda>x y. y = {u \<in> z . P(u,x)})|]
+      ==> separation(M, \<lambda>x. \<forall>y[M]. y\<in>Y --> P(x,y))" 
+apply (simp del: separation_closed rall_abs
+         add: separation_iff Collect_rall_eq) 
+apply (blast intro!: Inter_closed RepFun_closed dest: transM) 
+done
+
 
 subsubsection{*Functions and function space*}
 
