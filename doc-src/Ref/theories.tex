@@ -291,6 +291,7 @@ add_path: string -> unit
 del_path: string -> unit
 reset_path: unit -> unit
 with_path: string -> ('a -> 'b) -> 'a -> 'b
+no_document: ('a -> 'b) -> 'a -> 'b
 \end{ttbox}
 
 \begin{ttdescription}
@@ -307,7 +308,10 @@ with_path: string -> ('a -> 'b) -> 'a -> 'b
   (current directory) only.
   
 \item[\ttindexbold{with_path} "$dir$" $f$ $x$;] temporarily adds component
-  $dir$ to the beginning of the load path before executing $(f~x)$.
+  $dir$ to the beginning of the load path while executing $(f~x)$.
+  
+\item[\ttindexbold{no_document} $f$ $x$;] temporarily disables {\LaTeX}
+  document generation while executing $(f~x)$.
 
 \end{ttdescription}
 
