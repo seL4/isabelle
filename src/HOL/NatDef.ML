@@ -160,8 +160,8 @@ Goalw [less_def] "n<m ==> ~ m<(n::nat)";
 by (blast_tac (claset() addIs [wf_pred_nat, wf_trancl RS wf_asym])1);
 qed "less_not_sym";
 
-(* [| n<m; m<n |] ==> R *)
-bind_thm ("less_asym", (less_not_sym RS notE));
+(* [| n<m; ~P ==> m<n |] ==> P *)
+bind_thm ("less_asym", less_not_sym RS swap);
 
 Goalw [less_def] "~ n<(n::nat)";
 by (rtac notI 1);
@@ -170,9 +170,10 @@ qed "less_not_refl";
 
 (* n<n ==> R *)
 bind_thm ("less_irrefl", (less_not_refl RS notE));
+AddSEs [less_irrefl];
 
 Goal "n<m ==> m ~= (n::nat)";
-by (blast_tac (claset() addSEs [less_irrefl]) 1);
+by (Blast_tac 1);
 qed "less_not_refl2";
 
 (* s < t ==> s ~= t *)
@@ -221,7 +222,7 @@ AddIffs [less_one];
 Goal "m<n ==> Suc(m) < Suc(n)";
 by (etac rev_mp 1);
 by (nat_ind_tac "n" 1);
-by (ALLGOALS (fast_tac (claset() addEs  [less_trans, lessE])));
+by (ALLGOALS (fast_tac (claset() addEs [less_trans, lessE])));
 qed "Suc_mono";
 
 (*"Less than" is a linear ordering*)
@@ -429,6 +430,7 @@ bind_thm ("eq_imp_le", disjI2 RS less_or_eq_imp_le);
 Goal "n <= (n::nat)";
 by (simp_tac (simpset() addsimps [le_eq_less_or_eq]) 1);
 qed "le_refl";
+AddSIs [le_refl];
 
 (*Obvious ways of proving m<=n; 
   adding these rules to claset might be risky*)
