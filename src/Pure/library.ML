@@ -889,12 +889,10 @@ fun transitive_closure [] = []
       in (x, zs) :: map step qs end;
 
 
-(** Recommended by Stephen K. Park and Keith W. Miller, 
-      Random number generators: good ones are hard to find,
-      CACM 31 (1988), 1192-1201. 
-    Real number version for systems with 46-bit mantissae
-    Computes  (a*seed) mod m ;  should be applied to integers only! **)
-local val a = 16807.0  and  m = 2147483647.0  (* 2^31 - 1 *)
+(** Simple random number generator; not guaranteed to be good, because modulus
+    has been reduced from 2^31-1 to 2^29-1 to prevent integer overflows
+**)
+local val a = 16807.0  and  m = 536870911.0  (* 2^29 - 1 *)
 in  fun nextrandom seed =
           let val t = a*seed
           in  t - m * real(floor(t/m))  end
@@ -919,10 +917,9 @@ fun newid n =
           else  (*i=63*)    "'"
   in  implode (map char (radixpand (64,n)))  end;
 
-(*Randomly generated identifiers with given prefix; MUST start with a letter
-    [division by two avoids overflow for ML systems whose maxint is 2^30 - 1 *)
+(*Randomly generated identifiers with given prefix; MUST start with a letter*)
 fun gensym pre = pre ^ 
-                 (#1(newid (floor (!seedr/2.0)), 
+                 (#1(newid (floor (!seedr)), 
                      seedr := nextrandom (!seedr)))
 
 (*Increment a list of letters like a reversed base 26 number.
