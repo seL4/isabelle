@@ -1,11 +1,13 @@
 (*<*)theory Star = Main:(*>*)
 
-section{*The reflexive transitive closure*}
+section{*The Reflexive Transitive Closure*}
 
 text{*\label{sec:rtc}
-Many inductive definitions define proper relations rather than merely set
-like @{term even}. A perfect example is the
-reflexive transitive closure of a relation. This concept was already
+An inductive definition may accept parameters, so it can express 
+functions that yield sets.
+Relations too can be defined inductively, since they are just sets of pairs.
+A perfect example is the function that maps a relation to its
+reflexive transitive closure.  This concept was already
 introduced in \S\ref{sec:Relations}, where the operator @{text"^*"} was
 defined as a least fixed point because inductive definitions were not yet
 available. But now they are:
@@ -29,9 +31,9 @@ slows down and may even kill the automatic tactics.
 
 The above definition of the concept of reflexive transitive closure may
 be sufficiently intuitive but it is certainly not the only possible one:
-for a start, it does not even mention transitivity explicitly.
+for a start, it does not even mention transitivity.
 The rest of this section is devoted to proving that it is equivalent to
-the ``standard'' definition. We start with a simple lemma:
+the standard definition. We start with a simple lemma:
 *}
 
 lemma [intro]: "(x,y) : r \<Longrightarrow> (x,y) \<in> r*"
@@ -43,7 +45,7 @@ it has the advantage that it can be declared an introduction rule without the
 danger of killing the automatic tactics because @{term"r*"} occurs only in
 the conclusion and not in the premise. Thus some proofs that would otherwise
 need @{thm[source]rtc_step} can now be found automatically. The proof also
-shows that @{text blast} is quite able to handle @{thm[source]rtc_step}. But
+shows that @{text blast} is able to handle @{thm[source]rtc_step}. But
 some of the other automatic tactics are more sensitive, and even @{text
 blast} can be lead astray in the presence of large numbers of rules.
 
@@ -145,8 +147,9 @@ text{*
 So why did we start with the first definition? Because it is simpler. It
 contains only two rules, and the single step rule is simpler than
 transitivity.  As a consequence, @{thm[source]rtc.induct} is simpler than
-@{thm[source]rtc2.induct}. Since inductive proofs are hard enough, we should
-certainly pick the simplest induction schema available for any concept.
+@{thm[source]rtc2.induct}. Since inductive proofs are hard enough
+anyway, we should
+certainly pick the simplest induction schema available.
 Hence @{term rtc} is the definition of choice.
 
 \begin{exercise}\label{ex:converse-rtc-step}
