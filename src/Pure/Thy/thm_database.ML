@@ -5,10 +5,8 @@
 User level interface to thm database (see also Pure/pure_thy.ML).
 *)
 
-signature THM_DATABASE =
+signature BASIC_THM_DATABASE =
 sig
-  val ml_store_thm: string * thm -> unit
-  val is_ml_identifier: string -> bool
   val store_thm: string * thm -> thm
   val qed_thm: thm option ref
   val bind_thm: string * thm -> unit
@@ -22,6 +20,13 @@ sig
   val findE: int -> int -> (string * thm) list
 end;
 
+signature THM_DATABASE =
+sig
+  include BASIC_THM_DATABASE
+  val ml_store_thm: string * thm -> unit
+  val is_ml_identifier: string -> bool
+end;
+
 structure ThmDatabase: THM_DATABASE =
 struct
 
@@ -30,9 +35,8 @@ struct
 (* store in theory and generate HTML *)
 
 fun store_thm (name, thm) =
-  let val thm' = PureThy.smart_store_thm (name, thm) in
-    BrowserInfo.thm_to_html thm' name; thm'
-  end;
+  let val thm' = PureThy.smart_store_thm (name, thm)
+  in Present.thm name thm'; thm' end;
 
 
 (* store on ML toplevel *)
@@ -181,3 +185,7 @@ fun findE i j =
 
 
 end;
+
+
+structure BasicThmDatabase: BASIC_THM_DATABASE = ThmDatabase;
+open BasicThmDatabase;
