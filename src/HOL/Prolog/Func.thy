@@ -1,4 +1,10 @@
-(* untyped functional language, with call by value semantics *)
+(*  Title:    HOL/Prolog/Func.thy
+    ID:       $Id$
+    Author:   David von Oheimb (based on a lecture on Lambda Prolog by Nadathur)
+    License:  GPL (GNU GENERAL PUBLIC LICENSE)
+
+untyped functional language, with call by value semantics 
+*)
 
 Func = HOHH +
 

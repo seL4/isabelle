@@ -1,3 +1,9 @@
+(*  Title:    HOL/Prolog/Test.ML
+    ID:       $Id$
+    Author:   David von Oheimb (based on a lecture on Lambda Prolog by Nadathur)
+    License:  GPL (GNU GENERAL PUBLIC LICENSE)
+*)
+
 open Test;
 
 val prog_Test = prog_HOHH@[append, reverse, mappred, mapfun, age, eq, bag_appl];

@@ -1,4 +1,10 @@
-(* type inference *)
+(*  Title:    HOL/Prolog/Type.thy
+    ID:       $Id$
+    Author:   David von Oheimb (based on a lecture on Lambda Prolog by Nadathur)
+    License:  GPL (GNU GENERAL PUBLIC LICENSE)
+
+type inference 
+*)
 
 Type = Func +
 

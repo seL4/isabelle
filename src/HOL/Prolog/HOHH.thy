@@ -1,4 +1,10 @@
-(* higher-order hereditary Harrop formulas *)
+(*  Title:    HOL/Prolog/HOHH.thy
+    ID:       $Id$
+    Author:   David von Oheimb (based on a lecture on Lambda Prolog by Nadathur)
+    License:  GPL (GNU GENERAL PUBLIC LICENSE)
+
+higher-order hereditary Harrop formulas 
+*)
 
 HOHH = HOL +
 
