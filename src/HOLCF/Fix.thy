@@ -35,53 +35,36 @@ adm_def:       "adm P == !Y. chain(Y) -->
 admw_def:      "admw P == !F. (!n. P (iterate n F UU)) -->
                             P (lub(range (%i. iterate i F UU)))" 
 
-(*  Title:      HOLCF/Fix.ML
-    ID:         $Id$
-    Author:     Franz Regensburger
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
-
-fixed point operator and admissibility
-*)
-
-(* ------------------------------------------------------------------------ *)
-(* derive inductive properties of iterate from primitive recursion          *)
-(* ------------------------------------------------------------------------ *)
+text {* derive inductive properties of iterate from primitive recursion *}
 
 lemma iterate_Suc2: "iterate (Suc n) F x = iterate n F (F$x)"
 apply (induct_tac "n")
 apply auto
 done
 
-(* ------------------------------------------------------------------------ *)
-(* the sequence of function itertaions is a chain                           *)
-(* This property is essential since monotonicity of iterate makes no sense  *)
-(* ------------------------------------------------------------------------ *)
+text {*
+  The sequence of function iterations is a chain.
+  This property is essential since monotonicity of iterate makes no sense.
+*}
 
 lemma chain_iterate2: "x << F$x ==> chain (%i. iterate i F x)"
-
-apply (unfold chain_def)
-apply (intro strip)
+apply (rule chainI)
 apply (induct_tac "i")
 apply auto
 apply (erule monofun_cfun_arg)
 done
-
 
 lemma chain_iterate: "chain (%i. iterate i F UU)"
 apply (rule chain_iterate2)
 apply (rule minimal)
 done
 
-
-(* ------------------------------------------------------------------------ *)
-(* Kleene's fixed point theorems for continuous functions in pointed        *)
-(* omega cpo's                                                              *)
-(* ------------------------------------------------------------------------ *)
-
+text {*
+  Kleene's fixed point theorems for continuous functions in pointed
+  omega cpo's
+*}
 
 lemma Ifix_eq: "Ifix F =F$(Ifix F)"
-
-
 apply (unfold Ifix_def)
 apply (subst contlub_cfun_arg)
 apply (rule chain_iterate)
@@ -102,9 +85,7 @@ apply (rule is_ub_thelub)
 apply (rule chain_iterate)
 done
 
-
 lemma Ifix_least: "F$x=x ==> Ifix(F) << x"
-
 apply (unfold Ifix_def)
 apply (rule is_lub_thelub)
 apply (rule chain_iterate)
@@ -117,33 +98,27 @@ apply assumption
 apply (erule monofun_cfun_arg)
 done
 
-
-(* ------------------------------------------------------------------------ *)
-(* monotonicity and continuity of iterate                                   *)
-(* ------------------------------------------------------------------------ *)
+text {* monotonicity and continuity of @{term iterate} *}
 
 lemma monofun_iterate: "monofun(iterate(i))"
-apply (unfold monofun)
-apply (intro strip)
+apply (rule monofunI [rule_format])
 apply (induct_tac "i")
-apply (simp (no_asm_simp))
+apply (simp)
 apply (simp add: less_fun monofun_cfun)
 done
 
-(* ------------------------------------------------------------------------ *)
-(* the following lemma uses contlub_cfun which itself is based on a         *)
-(* diagonalisation lemma for continuous functions with two arguments.       *)
-(* In this special case it is the application function Rep_CFun                 *)
-(* ------------------------------------------------------------------------ *)
+text {*
+  The following lemma uses @{thm [source] contlub_cfun} which itself is based
+  on a diagonalisation lemma for continuous functions with two arguments. In
+  this special case it is the application function @{term Rep_CFun}
+*}
 
 lemma contlub_iterate: "contlub(iterate(i))"
-
-apply (unfold contlub)
-apply (intro strip)
+apply (rule contlubI [rule_format])
 apply (induct_tac "i")
-apply (simp (no_asm_simp))
+apply (simp)
 apply (rule lub_const [THEN thelubI, symmetric])
-apply (simp (no_asm_simp) del: range_composition)
+apply (simp del: range_composition)
 apply (rule ext)
 apply (simplesubst thelub_fun)
 apply (rule chainI)
@@ -165,32 +140,27 @@ apply assumption
 apply (erule monofun_iterate [THEN ch2ch_monofun, THEN ch2ch_fun])
 done
 
-
 lemma cont_iterate: "cont(iterate(i))"
 apply (rule monocontlub2cont)
 apply (rule monofun_iterate)
 apply (rule contlub_iterate)
 done
 
-(* ------------------------------------------------------------------------ *)
-(* a lemma about continuity of iterate in its third argument                *)
-(* ------------------------------------------------------------------------ *)
+text {* a lemma about continuity of @{term iterate} in its third argument *}
 
 lemma monofun_iterate2: "monofun(iterate n F)"
-apply (rule monofunI)
-apply (intro strip)
+apply (rule monofunI [rule_format])
 apply (induct_tac "n")
-apply (simp (no_asm_simp))
-apply (simp (no_asm_simp))
+apply (simp)
+apply (simp)
 apply (erule monofun_cfun_arg)
 done
 
 lemma contlub_iterate2: "contlub(iterate n F)"
-apply (rule contlubI)
-apply (intro strip)
+apply (rule contlubI [rule_format])
 apply (induct_tac "n")
-apply (simp (no_asm))
-apply (simp (no_asm))
+apply (simp)
+apply (simp)
 apply (rule_tac t = "iterate n F (lub (range (%u. Y u))) " and s = "lub (range (%i. iterate n F (Y i))) " in ssubst)
 apply assumption
 apply (rule contlub_cfun_arg)
@@ -203,14 +173,11 @@ apply (rule monofun_iterate2)
 apply (rule contlub_iterate2)
 done
 
-(* ------------------------------------------------------------------------ *)
-(* monotonicity and continuity of Ifix                                      *)
-(* ------------------------------------------------------------------------ *)
+text {* monotonicity and continuity of @{term Ifix} *}
 
 lemma monofun_Ifix: "monofun(Ifix)"
-
-apply (unfold monofun Ifix_def)
-apply (intro strip)
+apply (rule monofunI [rule_format])
+apply (unfold Ifix_def)
 apply (rule lub_mono)
 apply (rule chain_iterate)
 apply (rule chain_iterate)
@@ -218,10 +185,10 @@ apply (rule allI)
 apply (rule less_fun [THEN iffD1, THEN spec], erule monofun_iterate [THEN monofunE, THEN spec, THEN spec, THEN mp])
 done
 
-(* ------------------------------------------------------------------------ *)
-(* since iterate is not monotone in its first argument, special lemmas must *)
-(* be derived for lubs in this argument                                     *)
-(* ------------------------------------------------------------------------ *)
+text {*
+  since iterate is not monotone in its first argument, special lemmas must
+  be derived for lubs in this argument
+*}
 
 lemma chain_iterate_lub: 
 "chain(Y) ==> chain(%i. lub(range(%ia. iterate ia (Y i) UU)))"
@@ -229,22 +196,21 @@ apply (rule chainI)
 apply (rule lub_mono)
 apply (rule chain_iterate)
 apply (rule chain_iterate)
-apply (intro strip)
+apply (rule allI)
 apply (erule monofun_iterate [THEN ch2ch_monofun, THEN ch2ch_fun, THEN chainE])
 done
 
-(* ------------------------------------------------------------------------ *)
-(* this exchange lemma is analog to the one for monotone functions          *)
-(* observe that monotonicity is not really needed. The propagation of       *)
-(* chains is the essential argument which is usually derived from monot.    *)
-(* ------------------------------------------------------------------------ *)
+text {*
+  this exchange lemma is analog to the one for monotone functions
+  observe that monotonicity is not really needed. The propagation of
+  chains is the essential argument which is usually derived from monot.
+*}
 
 lemma contlub_Ifix_lemma1: "chain(Y) ==>iterate n (lub(range Y)) y = lub(range(%i. iterate n (Y i) y))"
 apply (rule thelub_fun [THEN subst])
 apply (erule monofun_iterate [THEN ch2ch_monofun])
-apply (simp (no_asm_simp) add: contlub_iterate [THEN contlubE])
+apply (simp add: contlub_iterate [THEN contlubE])
 done
-
 
 lemma ex_lub_iterate: "chain(Y) ==> 
           lub(range(%i. lub(range(%ia. iterate i (Y ia) UU)))) = 
@@ -258,7 +224,7 @@ apply (rule ub_rangeI)
 apply (rule lub_mono)
 apply (erule monofun_iterate [THEN ch2ch_monofun, THEN ch2ch_fun])
 apply (erule chain_iterate_lub)
-apply (intro strip)
+apply (rule allI)
 apply (rule is_ub_thelub)
 apply (rule chain_iterate)
 apply (rule is_lub_thelub)
@@ -269,21 +235,18 @@ apply (rule chain_iterate)
 apply (rule contlub_Ifix_lemma1 [THEN ext, THEN subst])
 apply assumption
 apply (rule chain_iterate)
-apply (intro strip)
+apply (rule allI)
 apply (rule is_ub_thelub)
 apply (erule monofun_iterate [THEN ch2ch_monofun, THEN ch2ch_fun])
 done
 
-
 lemma contlub_Ifix: "contlub(Ifix)"
-
-apply (unfold contlub Ifix_def)
-apply (intro strip)
+apply (rule contlubI [rule_format])
+apply (unfold Ifix_def)
 apply (subst contlub_Ifix_lemma1 [THEN ext])
 apply assumption
 apply (erule ex_lub_iterate)
 done
-
 
 lemma cont_Ifix: "cont(Ifix)"
 apply (rule monocontlub2cont)
@@ -291,23 +254,19 @@ apply (rule monofun_Ifix)
 apply (rule contlub_Ifix)
 done
 
-(* ------------------------------------------------------------------------ *)
-(* propagate properties of Ifix to its continuous counterpart               *)
-(* ------------------------------------------------------------------------ *)
+text {* propagate properties of @{term Ifix} to its continuous counterpart *}
 
 lemma fix_eq: "fix$F = F$(fix$F)"
-
 apply (unfold fix_def)
-apply (simp (no_asm_simp) add: cont_Ifix)
+apply (simp add: cont_Ifix)
 apply (rule Ifix_eq)
 done
 
 lemma fix_least: "F$x = x ==> fix$F << x"
 apply (unfold fix_def)
-apply (simp (no_asm_simp) add: cont_Ifix)
+apply (simp add: cont_Ifix)
 apply (erule Ifix_least)
 done
-
 
 lemma fix_eqI: 
 "[| F$x = x; !z. F$z = z --> x << z |] ==> x = fix$F"
@@ -318,14 +277,11 @@ apply (rule fix_eq [symmetric])
 apply (erule fix_least)
 done
 
-
 lemma fix_eq2: "f == fix$F ==> f = F$f"
-apply (simp (no_asm_simp) add: fix_eq [symmetric])
-done
+by (simp add: fix_eq [symmetric])
 
 lemma fix_eq3: "f == fix$F ==> f$x = F$f$x"
-apply (erule fix_eq2 [THEN cfun_fun_cong])
-done
+by (erule fix_eq2 [THEN cfun_fun_cong])
 
 (* fun fix_tac3 thm i  = ((rtac trans i) THEN (rtac (thm RS fix_eq3) i)) *)
 
@@ -371,10 +327,7 @@ fun case_prover thy unfold s = prove_goal thy s (fn prems => [
 	Auto_tac
 	])
 *)
-(* ------------------------------------------------------------------------ *)
-(* better access to definitions                                             *)
-(* ------------------------------------------------------------------------ *)
-
+text {* better access to definitions *}
 
 lemma Ifix_def2: "Ifix=(%x. lub(range(%i. iterate i x UU)))"
 apply (rule ext)
@@ -382,9 +335,7 @@ apply (unfold Ifix_def)
 apply (rule refl)
 done
 
-(* ------------------------------------------------------------------------ *)
-(* direct connection between fix and iteration without Ifix                 *)
-(* ------------------------------------------------------------------------ *)
+text {* direct connection between @{term fix} and iteration without @{term Ifix} *}
 
 lemma fix_def2: "fix$F = lub(range(%i. iterate i F UU))"
 apply (unfold fix_def)
@@ -392,14 +343,9 @@ apply (fold Ifix_def)
 apply (simp (no_asm_simp) add: cont_Ifix)
 done
 
+text {* Lemmas about admissibility and fixed point induction *}
 
-(* ------------------------------------------------------------------------ *)
-(* Lemmas about admissibility and fixed point induction                     *)
-(* ------------------------------------------------------------------------ *)
-
-(* ------------------------------------------------------------------------ *)
-(* access to definitions                                                    *)
-(* ------------------------------------------------------------------------ *)
+text {* access to definitions *}
 
 lemma admI:
    "(!!Y. [| chain Y; !i. P (Y i) |] ==> P (lub (range Y))) ==> adm P"
@@ -423,9 +369,7 @@ apply (unfold admw_def)
 apply (rule refl)
 done
 
-(* ------------------------------------------------------------------------ *)
-(* an admissible formula is also weak admissible                            *)
-(* ------------------------------------------------------------------------ *)
+text {* an admissible formula is also weak admissible *}
 
 lemma adm_impl_admw: "adm(P)==>admw(P)"
 apply (unfold admw_def)
@@ -435,9 +379,7 @@ apply (rule chain_iterate)
 apply assumption
 done
 
-(* ------------------------------------------------------------------------ *)
-(* fixed point induction                                                    *)
-(* ------------------------------------------------------------------------ *)
+text {* fixed point induction *}
 
 lemma fix_ind:
      "[| adm(P); P(UU); !!x. P(x) ==> P(F$x)|] ==> P(fix$F)"
@@ -457,10 +399,8 @@ apply (erule fix_ind)
 apply assumption
 apply fast
 done
-	
-(* ------------------------------------------------------------------------ *)
-(* computational induction for weak admissible formulae                     *)
-(* ------------------------------------------------------------------------ *)
+
+text {* computational induction for weak admissible formulae *}
 
 lemma wfix_ind: "[| admw(P); !n. P(iterate n F UU)|] ==> P(fix$F)"
 apply (subst fix_def2)
@@ -477,9 +417,7 @@ apply (erule wfix_ind)
 apply assumption
 done
 
-(* ------------------------------------------------------------------------ *)
-(* for chain-finite (easy) types every formula is admissible                *)
-(* ------------------------------------------------------------------------ *)
+text {* for chain-finite (easy) types every formula is admissible *}
 
 lemma adm_max_in_chain: 
 "!Y. chain(Y::nat=>'a) --> (? n. max_in_chain n Y) ==> adm(P::'a=>bool)"
@@ -497,9 +435,7 @@ done
 
 lemmas adm_chfin = chfin [THEN adm_max_in_chain, standard]
 
-(* ------------------------------------------------------------------------ *)
-(* some lemmata for functions with flat/chfin domain/range types	    *)
-(* ------------------------------------------------------------------------ *)
+text {* some lemmata for functions with flat/chfin domain/range types *}
 
 lemma adm_chfindom: "adm (%(u::'a::cpo->'b::chfin). P(u$s))"
 apply (unfold adm_def)
@@ -511,9 +447,7 @@ done
 
 (* adm_flat not needed any more, since it is a special case of adm_chfindom *)
 
-(* ------------------------------------------------------------------------ *)
-(* improved admisibility introduction                                       *)
-(* ------------------------------------------------------------------------ *)
+text {* improved admissibility introduction *}
 
 lemma admI2:
  "(!!Y. [| chain Y; !i. P (Y i); !i. ? j. i < j & Y i ~= Y j & Y i << Y j |] 
@@ -525,12 +459,9 @@ apply assumption
 apply fast
 done
 
+text {* admissibility of special formulae and propagation *}
 
-(* ------------------------------------------------------------------------ *)
-(* admissibility of special formulae and propagation                        *)
-(* ------------------------------------------------------------------------ *)
-
-lemma adm_less: "[|cont u;cont v|]==> adm(%x. u x << v x)"
+lemma adm_less [simp]: "[|cont u;cont v|]==> adm(%x. u x << v x)"
 apply (unfold adm_def)
 apply (intro strip)
 apply (frule_tac f = "u" in cont2mono [THEN ch2ch_monofun])
@@ -543,18 +474,14 @@ apply (erule cont2contlub [THEN contlubE, THEN spec, THEN mp, THEN ssubst])
 apply assumption
 apply (blast intro: lub_mono)
 done
-declare adm_less [simp]
 
-lemma adm_conj: "[| adm P; adm Q |] ==> adm(%x. P x & Q x)"
-apply (fast elim: admD intro: admI)
-done
-declare adm_conj [simp]
+lemma adm_conj [simp]: "[| adm P; adm Q |] ==> adm(%x. P x & Q x)"
+by (fast elim: admD intro: admI)
 
-lemma adm_not_free: "adm(%x. t)"
+lemma adm_not_free [simp]: "adm(%x. t)"
 apply (unfold adm_def)
 apply fast
 done
-declare adm_not_free [simp]
 
 lemma adm_not_less: "cont t ==> adm(%x.~ (t x) << u)"
 apply (unfold adm_def)
@@ -569,8 +496,7 @@ apply assumption
 done
 
 lemma adm_all: "!y. adm(P y) ==> adm(%x.!y. P y x)"
-apply (fast intro: admI elim: admD)
-done
+by (fast intro: admI elim: admD)
 
 lemmas adm_all2 = allI [THEN adm_all, standard]
 
@@ -586,12 +512,9 @@ apply assumption
 done
 
 lemma adm_UU_not_less: "adm(%x.~ UU << t(x))"
-apply (simp (no_asm))
-done
-
+by simp
 
 lemma adm_not_UU: "cont(t)==> adm(%x.~ (t x) = UU)"
-
 apply (unfold adm_def)
 apply (intro strip)
 apply (rule contrapos_nn)
@@ -605,36 +528,27 @@ apply assumption
 done
 
 lemma adm_eq: "[|cont u ; cont v|]==> adm(%x. u x = v x)"
-apply (simp (no_asm_simp) add: po_eq_conv)
-done
+by (simp add: po_eq_conv)
 
-
-
-(* ------------------------------------------------------------------------ *)
-(* admissibility for disjunction is hard to prove. It takes 10 Lemmas       *)
-(* ------------------------------------------------------------------------ *)
-
+text {* admissibility for disjunction is hard to prove. It takes 10 Lemmas *}
 
 lemma adm_disj_lemma1: "!n. P(Y n)|Q(Y n) ==> (? i.!j. R i j --> Q(Y(j))) | (!i.? j. R i j & P(Y(j)))"
-apply fast
-done
+by fast
 
 lemma adm_disj_lemma2: "[| adm(Q); ? X. chain(X) & (!n. Q(X(n))) & 
       lub(range(Y))=lub(range(X))|] ==> Q(lub(range(Y)))"
-apply (force elim: admD)
-done
+by (force elim: admD)
 
 lemma adm_disj_lemma3: "chain Y ==> chain (%m. if m < Suc i then Y (Suc i) else Y m)"
 apply (unfold chain_def)
-apply (simp (no_asm_simp))
+apply (simp)
 apply safe
 apply (subgoal_tac "ia = i")
-apply (simp_all (no_asm_simp))
+apply (simp_all)
 done
 
 lemma adm_disj_lemma4: "!j. i < j --> Q(Y(j))  ==> !n. Q( if n < Suc i then Y(Suc i) else Y n)"
-apply (simp (no_asm_simp))
-done
+by (simp)
 
 lemma adm_disj_lemma5: 
   "!!Y::nat=>'a::cpo. [| chain(Y); ! j. i < j --> Q(Y(j)) |] ==> 
@@ -642,7 +556,7 @@ lemma adm_disj_lemma5:
 apply (safe intro!: lub_equal2 adm_disj_lemma3)
 prefer 2 apply (assumption)
 apply (rule_tac x = "i" in exI)
-apply (simp (no_asm_simp))
+apply (simp)
 done
 
 lemma adm_disj_lemma6: 
@@ -737,7 +651,6 @@ apply (erule adm_disj_lemma6)
 apply assumption
 done
 
-
 lemma adm_lemma11: 
 "[| adm(P); chain(Y); ! i. ? j. i < j & P(Y(j)) |]==>P(lub(range(Y)))"
 apply (erule adm_disj_lemma2)
@@ -764,13 +677,13 @@ apply (subgoal_tac " (%x. P x --> Q x) = (%x. ~P x | Q x) ")
 apply (erule ssubst)
 apply (erule adm_disj)
 apply assumption
-apply (simp (no_asm))
+apply (simp)
 done
 
 lemma adm_iff: "[| adm (%x. P x --> Q x); adm (%x. Q x --> P x) |]  
             ==> adm (%x. P x = Q x)"
 apply (subgoal_tac " (%x. P x = Q x) = (%x. (P x --> Q x) & (Q x --> P x))")
-apply (simp (no_asm_simp))
+apply (simp)
 apply (rule ext)
 apply fast
 done
