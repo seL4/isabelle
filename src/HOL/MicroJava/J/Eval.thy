@@ -94,7 +94,7 @@ inductive "eval G" "evals G" "exec G" intrs
             (md,rT,pns,lvars,blk,res) = the (method (G,dynT) (mn,pTs));
             G\\<turnstile>(np a' x,(h,(init_vars lvars)(pns[\\<mapsto>]pvs)(This\\<mapsto>a'))) -blk-> s3;
             G\\<turnstile> s3 -res\\<succ>v -> (x4,s4) |] ==>
-         G\\<turnstile>Norm s0 -e..mn({pTs}ps)\\<succ>v-> (x4,(heap s4,l))"
+         G\\<turnstile>Norm s0 -{C}e..mn({pTs}ps)\\<succ>v-> (x4,(heap s4,l))"
 
 
 (* evaluation of expression lists *)

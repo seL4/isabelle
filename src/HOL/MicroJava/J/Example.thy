@@ -86,7 +86,7 @@ defs
 			     [((foo,[Class Base]),Class Ext,foo_Ext)]))"
 
   test_def "test == Expr(e::=NewC Ext);; 
-                    Expr(LAcc e..foo({[Class Base]}[Lit Null]))"
+                    Expr({Base}LAcc e..foo({[Class Base]}[Lit Null]))"
 
 
 syntax

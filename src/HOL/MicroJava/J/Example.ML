@@ -195,7 +195,7 @@ qed "max_spec_foo_Base";
 
 fun t thm = resolve_tac ty_expr_ty_exprs_wt_stmt.intrs 1 thm;
 Goalw [test_def] "(tprg, empty(e\\<mapsto>Class Base))\\<turnstile>\ 
-\ Expr(e::=NewC Ext);; Expr(LAcc e..foo({?pTs'}[Lit Null]))\\<surd>";
+\ Expr(e::=NewC Ext);; Expr({Base}LAcc e..foo({?pTs'}[Lit Null]))\\<surd>";
 (* ?pTs' = [Class Base] *)
 by t;		(* ;; *)
 by  t;		(* Expr *)

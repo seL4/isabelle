@@ -136,7 +136,7 @@ inductive "ty_expr E" "ty_exprs E" "wt_stmt E" intrs
   Call  "[| E\\<turnstile>a::Class C;
             E\\<turnstile>ps[::]pTs;
             max_spec (prg E) C (mn, pTs) = {((md,rT),pTs')} |] ==>
-         E\\<turnstile>a..mn({pTs'}ps)::rT"
+         E\\<turnstile>{C}a..mn({pTs'}ps)::rT"
 
 (* well-typed expression lists *)
 
