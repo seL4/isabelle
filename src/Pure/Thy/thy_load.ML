@@ -17,6 +17,7 @@ end;
 signature THY_LOAD =
 sig
   include BASIC_THY_LOAD
+  val cond_with_path: Path.T -> ('a -> 'b) -> 'a -> 'b
   val ml_path: string -> Path.T
   val thy_path: string -> Path.T
   val check_file: Path.T -> (Path.T * File.info) option
