@@ -11,6 +11,7 @@ sig
   val print_theory: theory -> unit
   val get_thm: theory -> xstring -> thm
   val get_thms: theory -> xstring -> thm list
+  val get_thmss: theory -> xstring list -> thm list
   val thms_of: theory -> (string * thm) list
   structure ProtoPure:
     sig
@@ -24,7 +25,6 @@ signature PURE_THY =
 sig
   include BASIC_PURE_THY
   val thms_closure: theory -> xstring -> thm list option
-  val get_thmss: theory -> xstring list -> thm list
   val thms_containing: theory -> string list -> (string * thm) list
   val default_name: string -> string
   val store_thm: (bstring * thm) * theory attribute list -> theory -> theory * thm
