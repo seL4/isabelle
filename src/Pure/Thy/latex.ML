@@ -11,6 +11,7 @@ sig
   val output_symbols: Symbol.symbol list -> string
   datatype token = Basic of OuterLex.token | Markup of string | MarkupEnv of string | Verbatim
   val output_tokens: (token * string) list -> string
+  val flag_markup: bool -> string
   val tex_trailer: string
   val isabelle_file: string -> string -> string
   val old_symbol_source: string -> Symbol.symbol list -> string
@@ -112,6 +113,10 @@ fun output_tok (Basic tok, _) =
 
 
 val output_tokens = implode o map output_tok;
+
+
+fun flag_markup true = "\\isamarkuptrue%\n"
+  | flag_markup false = "\\isamarkupfalse%\n";
 
 
 (* theory presentation *)
