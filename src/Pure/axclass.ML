@@ -193,7 +193,7 @@ struct
 
       fun pretty_axclass (name, {super_classes, intro, axioms}) = Pretty.block (Pretty.fbreaks
         [pretty_class name super_classes, pretty_thms introN [intro], pretty_thms axiomsN axioms]);
-    in seq (Pretty.writeln o pretty_axclass) (Symtab.dest tab) end;
+    in Pretty.writeln (Pretty.chunks (map pretty_axclass (Symtab.dest tab))) end;
 end;
 
 structure AxclassesData = TheoryDataFun(AxclassesArgs);

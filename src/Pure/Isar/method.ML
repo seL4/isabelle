@@ -52,7 +52,7 @@ sig
   val set_tactic: (Proof.context -> thm list -> tactic) -> unit
   val tactic: string -> Proof.context -> Proof.method
   exception METHOD_FAIL of (string * Position.T) * exn
-  val help_methods: theory option -> unit
+  val help_methods: theory option -> Pretty.T list
   val method: theory -> Args.src -> Proof.context -> Proof.method
   val add_methods: (bstring * (Args.src -> Proof.context -> Proof.method) * string) list
     -> theory -> theory
@@ -373,25 +373,23 @@ struct
       meths = Symtab.merge eq_snd (meths1, meths2) handle Symtab.DUPS dups =>
         error ("Attempt to merge different versions of methods " ^ commas_quote dups)};
 
-  fun print_meths verbose {space, meths} =
+  fun pretty_meths verbose {space, meths} =
     let
       fun prt_meth (name, ((_, comment), _)) = Pretty.block
         [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
     in
-      if not verbose then ()
-      else Pretty.writeln (Display.pretty_name_space ("method name space", space));
-      Pretty.writeln (Pretty.big_list "methods:"
-        (map prt_meth (NameSpace.cond_extern_table space meths)))
+      (if not verbose then [] else [Display.pretty_name_space ("method name space", space)]) @
+      [Pretty.big_list "methods:" (map prt_meth (NameSpace.cond_extern_table space meths))]
     end;
 
-  fun print _ = print_meths true;
+  fun print _ = Pretty.writeln o Pretty.chunks o pretty_meths true;
 end;
 
 structure MethodsData = TheoryDataFun(MethodsDataArgs);
 val print_methods = MethodsData.print;
 
-fun help_methods None = writeln "methods: (unkown theory context)"
-  | help_methods (Some thy) = MethodsDataArgs.print_meths false (MethodsData.get thy);
+fun help_methods None = [Pretty.str "methods: (unkown theory context)"]
+  | help_methods (Some thy) = MethodsDataArgs.pretty_meths false (MethodsData.get thy);
 
 
 (* get methods *)

@@ -15,7 +15,7 @@ end;
 signature ATTRIB =
 sig
   include BASIC_ATTRIB
-  val help_attributes: theory option -> unit
+  val help_attributes: theory option -> Pretty.T list
   exception ATTRIB_FAIL of (string * Position.T) * exn
   val global_attribute: theory -> Args.src -> theory attribute
   val local_attribute: theory -> Args.src -> Proof.context attribute
@@ -62,25 +62,23 @@ struct
       attrs = Symtab.merge eq_snd (attrs1, attrs2) handle Symtab.DUPS dups =>
         error ("Attempt to merge different versions of attributes " ^ commas_quote dups)};
 
-  fun print_atts verbose ({space, attrs}) =
+  fun pretty_atts verbose ({space, attrs}) =
     let
       fun prt_attr (name, ((_, comment), _)) = Pretty.block
         [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
     in
-      if not verbose then ()
-      else Pretty.writeln (Display.pretty_name_space ("attribute name space", space));
-      Pretty.writeln (Pretty.big_list "attributes:"
-        (map prt_attr (NameSpace.cond_extern_table space attrs)))
+      (if not verbose then [] else [Display.pretty_name_space ("attribute name space", space)]) @
+      [Pretty.big_list "attributes:" (map prt_attr (NameSpace.cond_extern_table space attrs))]
     end;
 
-   fun print _ = print_atts true;
+   fun print _ = Pretty.writeln o Pretty.chunks o pretty_atts true;
 end;
 
 structure AttributesData = TheoryDataFun(AttributesDataArgs);
 val print_attributes = AttributesData.print;
 
-fun help_attributes None = writeln "attributes: (unkown theory context)"
-  | help_attributes (Some thy) = AttributesDataArgs.print_atts false (AttributesData.get thy);
+fun help_attributes None = [Pretty.str "attributes: (unkown theory context)"]
+  | help_attributes (Some thy) = AttributesDataArgs.pretty_atts false (AttributesData.get thy);
 
 
 (* get global / local attributes *)

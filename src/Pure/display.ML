@@ -31,7 +31,7 @@ sig
   val pretty_theory	: theory -> Pretty.T
   val pprint_theory	: theory -> pprint_args -> unit
   val print_syntax	: theory -> unit
-  val print_theory	: theory -> unit
+  val pretty_full_theory: theory -> Pretty.T list
   val pretty_name_space : string * NameSpace.T -> Pretty.T
   val show_consts	: bool ref
 end;
@@ -155,15 +155,17 @@ fun pretty_name_space (kind, space) =
 
 
 
-(* print signature *)
+(* print theory *)
 
-fun print_sign sg =
+fun pretty_full_theory thy =
   let
+    val sg = Theory.sign_of thy;
+
     fun prt_cls c = Sign.pretty_sort sg [c];
     fun prt_sort S = Sign.pretty_sort sg S;
     fun prt_arity t (c, Ss) = Sign.pretty_arity sg (t, Ss, [c]);
     fun prt_typ ty = Pretty.quote (Sign.pretty_typ sg ty);
-
+    fun prt_term t = Pretty.quote (Sign.pretty_term sg t);
 
     fun pretty_classes cs = Pretty.block
       (Pretty.breaks (Pretty.str "classes:" :: map prt_cls cs));
@@ -195,46 +197,36 @@ fun print_sign sg =
     fun pretty_const (c, ty) = Pretty.block
       [Pretty.str c, Pretty.str " ::", Pretty.brk 1, prt_typ ty];
 
+    fun prt_axm (a, t) = Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1, prt_term t];
+
+
     val {self = _, tsig, const_tab, syn = _, path, spaces, data} = Sign.rep_sg sg;
+    val {axioms, oracles, ...} = Theory.rep_theory thy;
     val spaces' = Library.sort_wrt fst spaces;
     val {classes, classrel, default, tycons = type_tab, log_types, univ_witness, abbrs, arities} =
       Type.rep_tsig tsig;
     val tycons = Sign.cond_extern_table sg Sign.typeK type_tab;
     val consts = Sign.cond_extern_table sg Sign.constK const_tab;
+    val axms = Sign.cond_extern_table sg Theory.axiomK axioms;
+    val oras = Sign.cond_extern_table sg Theory.oracleK oracles;
   in
-    Pretty.writeln (Pretty.strs ("stamps:" :: Sign.stamp_names_of sg));
-    Pretty.writeln (Pretty.strs ("data:" :: Sign.data_kinds data));
-    Pretty.writeln (Pretty.strs ["name prefix:", NameSpace.pack path]);
-    Pretty.writeln (Pretty.big_list "name spaces:" (map pretty_name_space spaces'));
-    Pretty.writeln (pretty_classes classes);
-    Pretty.writeln (Pretty.big_list "class relation:"
-      (map pretty_classrel (Symtab.dest classrel)));
-    Pretty.writeln (pretty_default default);
-    Pretty.writeln (pretty_log_types log_types);
-    Pretty.writeln (pretty_witness univ_witness);
-    Pretty.writeln (Pretty.big_list "type constructors:" (map pretty_ty tycons));
-    Pretty.writeln (Pretty.big_list "type abbreviations:" (map pretty_abbr (Symtab.dest abbrs)));
-    Pretty.writeln (Pretty.big_list "type arities:"
-      (flat (map pretty_arities (Symtab.dest arities))));
-    Pretty.writeln (Pretty.big_list "consts:" (map pretty_const consts))
+    [Pretty.strs ("stamps:" :: Sign.stamp_names_of sg),
+      Pretty.strs ("data:" :: Sign.data_kinds data),
+      Pretty.strs ["name prefix:", NameSpace.pack path],
+      Pretty.big_list "name spaces:" (map pretty_name_space spaces'),
+      pretty_classes classes,
+      Pretty.big_list "class relation:" (map pretty_classrel (Symtab.dest classrel)),
+      pretty_default default,
+      pretty_log_types log_types,
+      pretty_witness univ_witness,
+      Pretty.big_list "type constructors:" (map pretty_ty tycons),
+      Pretty.big_list "type abbreviations:" (map pretty_abbr (Symtab.dest abbrs)),
+      Pretty.big_list "type arities:" (flat (map pretty_arities (Symtab.dest arities))),
+      Pretty.big_list "consts:" (map pretty_const consts),
+      Pretty.big_list "axioms:" (map prt_axm axms),
+      Pretty.strs ("oracles:" :: (map #1 oras))]
   end;
 
-
-(* print axioms, oracles, theorems *)
-
-fun print_thy thy =
-  let
-    val {sign, axioms, oracles, ...} = Theory.rep_theory thy;
-    fun cond_externs kind = Sign.cond_extern_table sign kind;
-
-    fun prt_axm (a, t) = Pretty.block
-      [Pretty.str (a ^ ":"), Pretty.brk 1, Pretty.quote (Sign.pretty_term sign t)];
-  in
-    Pretty.writeln (Pretty.big_list "axioms:" (map prt_axm (cond_externs Theory.axiomK axioms)));
-    Pretty.writeln (Pretty.strs ("oracles:" :: (map #1 (cond_externs Theory.oracleK oracles))))
-  end;
-
-fun print_theory thy = (print_sign (Theory.sign_of thy); print_thy thy);
 
 (*also show consts in case of showing types?*)
 val show_consts = ref false;

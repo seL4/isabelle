@@ -78,7 +78,7 @@ struct
   val prep_ext = mk_empty;
   val merge = mk_empty;
 
-  fun print sg (ref {space, thms_tab, const_idx = _}) =
+  fun pretty sg (ref {space, thms_tab, const_idx = _}) =
     let
       val prt_thm = Display.pretty_thm o Thm.transfer_sg sg;
       fun prt_thms (name, [th]) =
@@ -87,9 +87,11 @@ struct
 
       val thmss = NameSpace.cond_extern_table space thms_tab;
     in
-      Pretty.writeln (Display.pretty_name_space ("theorem name space", space));
-      Pretty.writeln (Pretty.big_list "theorems:" (map prt_thms thmss))
+      [Display.pretty_name_space ("theorem name space", space),
+        Pretty.big_list "theorems:" (map prt_thms thmss)]
     end;
+
+  fun print sg data = Pretty.writeln (Pretty.chunks (pretty sg data));
 end;
 
 structure TheoremsData = TheoryDataFun(TheoremsDataArgs);
@@ -102,8 +104,10 @@ val cond_extern_thm_sg = NameSpace.cond_extern o #space o ! o get_theorems_sg;
 (* print theory *)
 
 val print_theorems = TheoremsData.print;
+
 fun print_theory thy =
-  (Display.print_theory thy; print_theorems thy);
+  Display.pretty_full_theory thy @ TheoremsDataArgs.pretty (Theory.sign_of thy) (get_theorems thy)
+  |> Pretty.chunks |> Pretty.writeln;
 
 
 

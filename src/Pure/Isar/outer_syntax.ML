@@ -205,24 +205,26 @@ fun dest_parsers () =
   map (fn (name, (((cmt, kind), (int_only, _)), _)) => (name, cmt, kind, int_only))
     (Symtab.dest (get_parsers ()));
 
-fun print_outer_syntax () =
+fun help_outer_syntax () =
   let
     fun pretty_cmd (name, comment, _, _) =
       Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
     val (int_cmds, cmds) = partition #4 (dest_parsers ());
   in
-    Pretty.writeln (Pretty.strs ("syntax keywords:" :: map quote (dest_keywords ())));
-    Pretty.writeln (Pretty.big_list "proper commands:" (map pretty_cmd cmds));
-    Pretty.writeln (Pretty.big_list "improper commands (interactive-only):"
-      (map pretty_cmd int_cmds))
+    [Pretty.strs ("syntax keywords:" :: map quote (dest_keywords ())),
+      Pretty.big_list "proper commands:" (map pretty_cmd cmds),
+      Pretty.big_list "improper commands (interactive-only):" (map pretty_cmd int_cmds)]
   end;
+
+val print_outer_syntax = Pretty.writeln o Pretty.chunks o help_outer_syntax;
 
 val print_help =
   Toplevel.keep (fn state =>
     let val opt_thy = try Toplevel.theory_of state in
-      print_outer_syntax ();
-      Method.help_methods opt_thy;
+      help_outer_syntax () @
+      Method.help_methods opt_thy @
       Attrib.help_attributes opt_thy
+      |> Pretty.chunks |> Pretty.writeln
     end);
 
 

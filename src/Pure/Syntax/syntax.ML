@@ -281,10 +281,11 @@ fun print_gram (Syntax tabs) =
     val {lexicon, logtypes, prmodes, gram, prtabs, ...} = tabs;
     val prmodes' = sort_strings (filter_out (equal "") prmodes);
   in
-    Pretty.writeln (pretty_strs_qs "lexicon:" (Scan.dest_lexicon lexicon));
-    Pretty.writeln (Pretty.strs ("logtypes:" :: logtypes));
-    Pretty.writeln (Pretty.big_list "prods:" (Parser.pretty_gram gram));
-    Pretty.writeln (pretty_strs_qs "print modes:" prmodes')
+    [pretty_strs_qs "lexicon:" (Scan.dest_lexicon lexicon),
+      Pretty.strs ("logtypes:" :: logtypes),
+      Pretty.big_list "prods:" (Parser.pretty_gram gram),
+      pretty_strs_qs "print modes:" prmodes']
+    |> Pretty.chunks |> Pretty.writeln
   end;
 
 
@@ -303,14 +304,15 @@ fun print_trans (Syntax tabs) =
     val {consts, parse_ast_trtab, parse_ruletab, parse_trtab, print_trtab,
       print_ruletab, print_ast_trtab, tokentrtab, ...} = tabs;
   in
-    Pretty.writeln (pretty_strs_qs "consts:" consts);
-    Pretty.writeln (pretty_trtab "parse_ast_translation:" parse_ast_trtab);
-    Pretty.writeln (pretty_ruletab "parse_rules:" parse_ruletab);
-    Pretty.writeln (pretty_trtab "parse_translation:" parse_trtab);
-    Pretty.writeln (pretty_trtab "print_translation:" print_trtab);
-    Pretty.writeln (pretty_ruletab "print_rules:" print_ruletab);
-    Pretty.writeln (pretty_trtab "print_ast_translation:" print_ast_trtab);
-    Pretty.writeln (Pretty.big_list "token_translation:" (map pretty_tokentr tokentrtab))
+    [pretty_strs_qs "consts:" consts,
+      pretty_trtab "parse_ast_translation:" parse_ast_trtab,
+      pretty_ruletab "parse_rules:" parse_ruletab,
+      pretty_trtab "parse_translation:" parse_trtab,
+      pretty_trtab "print_translation:" print_trtab,
+      pretty_ruletab "print_rules:" print_ruletab,
+      pretty_trtab "print_ast_translation:" print_ast_trtab,
+      Pretty.big_list "token_translation:" (map pretty_tokentr tokentrtab)]
+    |> Pretty.chunks |> Pretty.writeln
   end;
 
 
@@ -425,7 +427,7 @@ fun read_pattern syn (root, str) =
 
     fun constify (ast as Ast.Constant _) = ast
       | constify (ast as Ast.Variable x) =
-          if x mem consts orelse NameSpace.qualified x then Ast.Constant x
+          if x mem consts orelse NameSpace.is_qualified x then Ast.Constant x
           else ast
       | constify (Ast.Appl asts) = Ast.Appl (map constify asts);
   in

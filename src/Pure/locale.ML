@@ -129,9 +129,10 @@ struct
       val locs = map (apfst extrn) (Symtab.dest locales);
       val scope_names = rev (map (extrn o fst) (! scope));
     in
-      Pretty.writeln (Display.pretty_name_space ("locale name space", space));
-      Pretty.writeln (Pretty.big_list "locales:" (map (pretty_locale sg) locs));
-      Pretty.writeln (Pretty.strs ("current scope:" :: scope_names))
+      [Display.pretty_name_space ("locale name space", space),
+        Pretty.big_list "locales:" (map (pretty_locale sg) locs),
+        Pretty.strs ("current scope:" :: scope_names)]
+      |> Pretty.chunks |> Pretty.writeln
     end;
 end;
 

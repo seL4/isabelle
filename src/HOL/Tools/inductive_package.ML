@@ -79,9 +79,9 @@ struct
     Library.generic_merge Thm.eq_thm I I monos1 monos2);
 
   fun print sg (tab, monos) =
-    (Pretty.writeln (Pretty.strs ("(co)inductives:" ::
-       map #1 (Sign.cond_extern_table sg Sign.constK tab)));
-     Pretty.writeln (Pretty.big_list "monotonicity rules:" (map Display.pretty_thm monos)));
+    [Pretty.strs ("(co)inductives:" :: map #1 (Sign.cond_extern_table sg Sign.constK tab)),
+     Pretty.big_list "monotonicity rules:" (map Display.pretty_thm monos)]
+    |> Pretty.chunks |> Pretty.writeln;
 end;
 
 structure InductiveData = TheoryDataFun(InductiveArgs);
