@@ -13,7 +13,13 @@ open Arith;
 
 val [pred_0, pred_Suc] = nat_recs pred_def;
 val [add_0,add_Suc] = nat_recs add_def; 
-val [mult_0,mult_Suc] = nat_recs mult_def; 
+val [mult_0,mult_Suc] = nat_recs mult_def;
+store_thm("pred_0",pred_0);
+store_thm("pred_Suc",pred_Suc);
+store_thm("add_0",add_0);
+store_thm("add_Suc",add_Suc);
+store_thm("mult_0",mult_0);
+store_thm("mult_Suc",mult_Suc);
 Addsimps [pred_0,pred_Suc,add_0,add_Suc,mult_0,mult_Suc];
 
 (** pred **)
