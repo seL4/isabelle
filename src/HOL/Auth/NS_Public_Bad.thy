@@ -106,8 +106,7 @@ theorem Spy_not_see_NA:
         A \<notin> bad;  B \<notin> bad;  evs \<in> ns_public\<rbrakk>                     
        \<Longrightarrow> Nonce NA \<notin> analz (spies evs)"
 apply (erule rev_mp)   
-apply (erule ns_public.induct, simp_all)
-apply spy_analz
+apply (erule ns_public.induct, simp_all, spy_analz)
 apply (blast dest: unique_NA intro: no_nonce_NS1_NS2)+
 done
 
@@ -167,8 +166,7 @@ theorem Spy_not_see_NB [dest]:
        A \<notin> bad;  B \<notin> bad;  evs \<in> ns_public\<rbrakk>                      
      \<Longrightarrow> Nonce NB \<notin> analz (spies evs)"
 apply (erule rev_mp, erule rev_mp)
-apply (erule ns_public.induct, simp_all)
-apply spy_analz
+apply (erule ns_public.induct, simp_all, spy_analz)
 apply (simp_all add: all_conj_distrib) (*speeds up the next step*)
 apply (blast intro: no_nonce_NS1_NS2)+
 done
@@ -197,17 +195,15 @@ by (blast intro: B_trusts_NS3_lemma)
 lemma "\<lbrakk>A \<notin> bad;  B \<notin> bad;  evs \<in> ns_public\<rbrakk>            
        \<Longrightarrow> Says B A (Crypt (pubK A) \<lbrace>Nonce NA, Nonce NB\<rbrace>) \<in> set evs  
            \<longrightarrow> Nonce NB \<notin> analz (spies evs)"
-apply (erule ns_public.induct, simp_all)
-apply spy_analz
+apply (erule ns_public.induct, simp_all, spy_analz)
 (*NS1: by freshness*)
 apply blast
 (*NS2: by freshness and unicity of NB*)
 apply (blast intro: no_nonce_NS1_NS2)
 (*NS3: unicity of NB identifies A and NA, but not B*)
 apply clarify
-apply (frule_tac A' = "A" in 
-       Says_imp_knows_Spy [THEN parts.Inj, THEN unique_NB])
-apply auto
+apply (frule_tac A' = A in 
+       Says_imp_knows_Spy [THEN parts.Inj, THEN unique_NB], auto)
 apply (rename_tac C B' evs3)
 oops
 

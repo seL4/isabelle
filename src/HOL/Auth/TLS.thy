@@ -318,9 +318,7 @@ apply (rule_tac [2] tls.Nil
                     [THEN tls.ClientHello, THEN tls.ServerHello,
                      THEN tls.Certificate, THEN tls.ClientKeyExch,
                      THEN tls.ClientFinished, THEN tls.ServerFinished,
-                     THEN tls.ClientAccepts])
-apply possibility
-apply blast+
+                     THEN tls.ClientAccepts], possibility, blast+)
 done
 
 
@@ -333,9 +331,7 @@ apply (rule_tac [2] tls.Nil
                     [THEN tls.ClientHello, THEN tls.ServerHello,
                      THEN tls.Certificate, THEN tls.ClientKeyExch,
                      THEN tls.ServerFinished, THEN tls.ClientFinished, 
-                     THEN tls.ServerAccepts])
-apply possibility
-apply blast+
+                     THEN tls.ServerAccepts], possibility, blast+)
 done
 
 
@@ -348,9 +344,7 @@ apply (intro exI bexI)
 apply (rule_tac [2] tls.Nil
                     [THEN tls.ClientHello, THEN tls.ServerHello,
                      THEN tls.Certificate, THEN tls.ClientKeyExch,
-                     THEN tls.CertVerify])
-apply possibility
-apply blast+
+                     THEN tls.CertVerify], possibility, blast+)
 done
 
 
@@ -370,9 +364,7 @@ lemma "[| evs0 \<in> tls;
 apply (intro exI bexI)
 apply (rule_tac [2] tls.ClientHello
                     [THEN tls.ServerHello,
-                     THEN tls.ServerResume, THEN tls.ClientResume])
-apply possibility
-apply blast+
+                     THEN tls.ServerResume, THEN tls.ClientResume], possibility, blast+)
 done
 
 
@@ -395,8 +387,7 @@ fun parts_induct_tac i =
 (*Spy never sees a good agent's private key!*)
 lemma Spy_see_priK [simp]:
      "evs \<in> tls ==> (Key (priK A) \<in> parts (spies evs)) = (A \<in> bad)"
-apply (erule tls.induct, force, simp_all)
-apply blast
+apply (erule tls.induct, force, simp_all, blast)
 done
 
 lemma Spy_analz_priK [simp]:
@@ -415,8 +406,7 @@ by (blast dest: Spy_see_priK)
 lemma certificate_valid:
     "[| certificate B KB \<in> parts (spies evs);  evs \<in> tls |] ==> KB = pubK B"
 apply (erule rev_mp)
-apply (erule tls.induct, force, simp_all)
-apply blast 
+apply (erule tls.induct, force, simp_all, blast) 
 done
 
 lemmas CX_KB_is_pubKB = Says_imp_spies [THEN parts.Inj, THEN certificate_valid]
@@ -467,8 +457,7 @@ lemma TrustCertVerify_lemma:
          evs \<in> tls;  A \<notin> bad |]
       ==> Says A B X \<in> set evs"
 apply (erule rev_mp, erule ssubst)
-apply (erule tls.induct, force, simp_all)
-apply blast
+apply (erule tls.induct, force, simp_all, blast)
 done
 
 (*Final version: B checks X using the distributed KA instead of priK A*)
@@ -487,8 +476,7 @@ lemma UseCertVerify_lemma:
          evs \<in> tls;  A \<notin> bad |]
       ==> Notes A {|Agent B, Nonce PMS|} \<in> set evs"
 apply (erule rev_mp)
-apply (erule tls.induct, force, simp_all)
-apply blast
+apply (erule tls.induct, force, simp_all, blast)
 done
 
 (*Final version using the distributed KA instead of priK A*)

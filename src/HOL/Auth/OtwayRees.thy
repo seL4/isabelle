@@ -98,15 +98,13 @@ apply (intro exI bexI)
 apply (rule_tac [2] otway.Nil
                     [THEN otway.OR1, THEN otway.Reception,
                      THEN otway.OR2, THEN otway.Reception,
-                     THEN otway.OR3, THEN otway.Reception, THEN otway.OR4])
-apply possibility
+                     THEN otway.OR3, THEN otway.Reception, THEN otway.OR4], possibility)
 done
 
 lemma Gets_imp_Says [dest!]:
      "[| Gets B X \<in> set evs; evs \<in> otway |] ==> \<exists>A. Says A B X \<in> set evs"
 apply (erule rev_mp)
-apply (erule otway.induct)
-apply auto
+apply (erule otway.induct, auto)
 done
 
 
@@ -141,8 +139,7 @@ lemmas OR2_parts_knows_Spy =
 lemma Spy_see_shrK [simp]:
      "evs \<in> otway ==> (Key (shrK A) \<in> parts (knows Spy evs)) = (A \<in> bad)"
 apply (erule otway.induct, force,
-       drule_tac [4] OR2_parts_knows_Spy, simp_all)
-apply blast+
+       drule_tac [4] OR2_parts_knows_Spy, simp_all, blast+)
 done
 
 lemma Spy_analz_shrK [simp]:
@@ -162,8 +159,7 @@ lemma Says_Server_message_form:
      "[| Says Server B {|NA, X, Crypt (shrK B) {|NB, Key K|}|} \<in> set evs;
          evs \<in> otway |]
       ==> K \<notin> range shrK & (\<exists>i. NA = Nonce i) & (\<exists>j. NB = Nonce j)"
-apply (erule rev_mp, erule otway.induct, simp_all)
-apply blast
+apply (erule rev_mp, erule otway.induct, simp_all, blast)
 done
 
 
@@ -188,9 +184,7 @@ lemma analz_image_freshK [rule_format]:
 apply (erule otway.induct, force)
 apply (frule_tac [7] Says_Server_message_form)
 apply (drule_tac [6] OR4_analz_knows_Spy)
-apply (drule_tac [4] OR2_analz_knows_Spy)
-apply analz_freshK
-apply spy_analz
+apply (drule_tac [4] OR2_analz_knows_Spy, analz_freshK, spy_analz)
 done
 
 
@@ -225,8 +219,7 @@ lemma Crypt_imp_OR1 [rule_format]:
                  Crypt (shrK A) {|NA, Agent A, Agent B|}|}
         \<in> set evs"
 apply (erule otway.induct, force,
-       drule_tac [4] OR2_parts_knows_Spy, simp_all)
-apply blast+
+       drule_tac [4] OR2_parts_knows_Spy, simp_all, blast+)
 done
 
 lemma Crypt_imp_OR1_Gets:
@@ -248,8 +241,7 @@ lemma unique_NA:
       ==> B = C"
 apply (erule rev_mp, erule rev_mp)
 apply (erule otway.induct, force,
-       drule_tac [4] OR2_parts_knows_Spy, simp_all)
-apply blast+
+       drule_tac [4] OR2_parts_knows_Spy, simp_all, blast+)
 done
 
 
@@ -262,8 +254,7 @@ lemma no_nonce_OR1_OR2:
     ==> Crypt (shrK A) {|NA', NA, Agent A', Agent A|} \<notin> parts (knows Spy evs)"
 apply (erule rev_mp)
 apply (erule otway.induct, force,
-       drule_tac [4] OR2_parts_knows_Spy, simp_all)
-apply blast+
+       drule_tac [4] OR2_parts_knows_Spy, simp_all, blast+)
 done
 
 (*Crucial property: If the encrypted message appears, and A has used NA
@@ -278,8 +269,7 @@ lemma NA_Crypt_imp_Server_msg [rule_format]:
                            Crypt (shrK A) {|NA, Key K|},
                            Crypt (shrK B) {|NB, Key K|}|} \<in> set evs)"
 apply (erule otway.induct, force,
-       drule_tac [4] OR2_parts_knows_Spy, simp_all)
-apply blast
+       drule_tac [4] OR2_parts_knows_Spy, simp_all, blast)
 (*OR1: it cannot be a new Nonce, contradiction.*)
 apply blast
 (*OR3*)
@@ -321,8 +311,7 @@ apply (erule otway.induct, force)
 apply (frule_tac [7] Says_Server_message_form)
 apply (drule_tac [6] OR4_analz_knows_Spy)
 apply (drule_tac [4] OR2_analz_knows_Spy)
-apply (simp_all add: analz_insert_eq analz_insert_freshK pushes)
-apply spy_analz  (*Fake*)
+apply (simp_all add: analz_insert_eq analz_insert_freshK pushes, spy_analz)  (*Fake*)
 (*OR3, OR4, Oops*)
 apply (blast dest: unique_session_keys)+
 done
@@ -363,8 +352,7 @@ lemma Crypt_imp_OR2:
                  \<in> set evs"
 apply (erule rev_mp)
 apply (erule otway.induct, force,
-       drule_tac [4] OR2_parts_knows_Spy, simp_all)
-apply blast+
+       drule_tac [4] OR2_parts_knows_Spy, simp_all, blast+)
 done
 
 
@@ -397,8 +385,7 @@ lemma NB_Crypt_imp_Server_msg [rule_format]:
                     \<in> set evs)"
 apply simp
 apply (erule otway.induct, force,
-       drule_tac [4] OR2_parts_knows_Spy, simp_all)
-apply blast
+       drule_tac [4] OR2_parts_knows_Spy, simp_all, blast)
 (*OR1: it cannot be a new Nonce, contradiction.*)
 (*OR2*)
 apply blast

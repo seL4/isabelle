@@ -122,8 +122,7 @@ lemma "\<exists>K NA. \<exists>evs \<in> recur.
                    END|}  \<in> set evs"
 apply (intro exI bexI)
 apply (rule_tac [2] recur.Nil [THEN recur.RA1, 
-                               THEN recur.RA3 [OF _ _ respond.One]])
-apply possibility
+                               THEN recur.RA3 [OF _ _ respond.One]], possibility)
 done
 
 
@@ -131,8 +130,7 @@ done
 lemma "\<exists>K. \<exists>NA. \<exists>evs \<in> recur.
         Says B A {|Crypt (shrK A) {|Key K, Agent B, Nonce NA|},
                    END|}  \<in> set evs"
-apply (cut_tac Nonce_supply2 Key_supply2)
-apply clarify
+apply (cut_tac Nonce_supply2 Key_supply2, clarify)
 apply (intro exI bexI)
 apply (rule_tac [2] 
           recur.Nil [THEN recur.RA1, 
@@ -149,8 +147,7 @@ done
 lemma "\<exists>K. \<exists>NA. \<exists>evs \<in> recur.
         Says B A {|Crypt (shrK A) {|Key K, Agent B, Nonce NA|},
                    END|}  \<in> set evs"
-apply (tactic "cut_facts_tac [Nonce_supply3, Key_supply3] 1")
-apply clarify
+apply (tactic "cut_facts_tac [Nonce_supply3, Key_supply3] 1", clarify)
 apply (intro exI bexI)
 apply (rule_tac [2] 
           recur.Nil [THEN recur.RA1, 
@@ -210,8 +207,7 @@ lemmas RA4_parts_spies =  RA4_analz_spies [THEN analz_into_parts]
 
 lemma Spy_see_shrK [simp]:
      "evs \<in> recur ==> (Key (shrK A) \<in> parts (spies evs)) = (A \<in> bad)"
-apply (erule recur.induct)
-apply auto
+apply (erule recur.induct, auto)
 (*RA3.  It's ugly to call auto twice, but it seems necessary.*)
 apply (auto dest: Key_in_parts_respond simp add: parts_insert_spies)
 done
@@ -254,9 +250,7 @@ lemma raw_analz_image_freshK:
 apply (erule recur.induct)
 apply (drule_tac [4] RA2_analz_spies,
        drule_tac [5] respond_imp_responses,
-       drule_tac [6] RA4_analz_spies)
-apply analz_freshK
-apply spy_analz
+       drule_tac [6] RA4_analz_spies, analz_freshK, spy_analz)
 (*RA3*)
 apply (simp_all add: resp_analz_image_freshK_lemma)
 done
@@ -289,8 +283,7 @@ apply (erule recur.induct,
        drule_tac [5] respond_imp_responses,
        drule_tac [4] RA2_parts_spies)
 (*RA3 requires a further induction*)
-apply (erule_tac [5] responses.induct)
-apply simp_all
+apply (erule_tac [5] responses.induct, simp_all)
 (*Nil*)
 apply force
 (*Fake*)
@@ -345,8 +338,7 @@ apply (erule rev_mp, erule responses.induct)
 apply (simp_all del: image_insert
              add: analz_image_freshK_simps resp_analz_image_freshK_lemma)
 (*Simplification using two distinct treatments of "image"*)
-apply (simp add: parts_insert2)
-apply blast
+apply (simp add: parts_insert2, blast)
 done
 
 lemmas resp_analz_insert =
@@ -403,8 +395,7 @@ apply (simp_all add: ex_disj_distrib)
 (*Base case of respond*)
 apply blast
 (*Inductive step of respond*)
-apply (intro allI conjI impI)
-apply simp_all
+apply (intro allI conjI impI, simp_all)
 (*by unicity, either B=Aa or B=A', a contradiction if B \<in> bad*)
 apply (blast dest: unique_session_keys [OF _ respond_certificate])
 apply (blast dest!: respond_certificate)
@@ -449,8 +440,7 @@ lemma Hash_in_parts_respond:
          (PB,RB,K) \<in> respond evs |]
       ==> Hash {|Key (shrK B), M|} \<in> parts H"
 apply (erule rev_mp)
-apply (erule respond_imp_responses [THEN responses.induct])
-apply auto
+apply (erule respond_imp_responses [THEN responses.induct], auto)
 done
 
 (*Only RA1 or RA2 can have caused such a part of a message to appear.

@@ -74,8 +74,7 @@ lemma "\<exists>NB. \<exists>evs \<in> woolam.
 apply (intro exI bexI)
 apply (rule_tac [2] woolam.Nil
                     [THEN woolam.WL1, THEN woolam.WL2, THEN woolam.WL3,
-                     THEN woolam.WL4, THEN woolam.WL5])
-apply possibility
+                     THEN woolam.WL4, THEN woolam.WL5], possibility)
 done
 
 (*Could prove forwarding lemmas for WL4, but we do not need them!*)
@@ -88,8 +87,7 @@ done
 (*Spy never sees a good agent's shared key!*)
 lemma Spy_see_shrK [simp]:
      "evs \<in> woolam ==> (Key (shrK A) \<in> parts (spies evs)) = (A \<in> bad)"
-apply (erule woolam.induct, force, simp_all)
-apply blast+
+apply (erule woolam.induct, force, simp_all, blast+)
 done
 
 lemma Spy_analz_shrK [simp]:
@@ -110,8 +108,7 @@ lemma NB_Crypt_imp_Alice_msg:
      "[| Crypt (shrK A) (Nonce NB) \<in> parts (spies evs);
          A \<notin> bad;  evs \<in> woolam |]
       ==> \<exists>B. Says A B (Crypt (shrK A) (Nonce NB)) \<in> set evs"
-apply (erule rev_mp, erule woolam.induct, force, simp_all)
-apply blast+
+apply (erule rev_mp, erule woolam.induct, force, simp_all, blast+)
 done
 
 (*Guarantee for Server: if it gets a message containing a certificate from
@@ -133,8 +130,7 @@ lemma Server_sent_WL5 [dest]:
          evs \<in> woolam |]
       ==> \<exists>B'. Says B' Server {|Agent A, Agent B, Crypt (shrK A) NB|}
              \<in> set evs"
-apply (erule rev_mp, erule woolam.induct, force, simp_all)
-apply blast+
+apply (erule rev_mp, erule woolam.induct, force, simp_all, blast+)
 done
 
 (*If the encrypted message appears then it originated with the Server!*)
@@ -142,8 +138,7 @@ lemma NB_Crypt_imp_Server_msg [rule_format]:
      "[| Crypt (shrK B) {|Agent A, NB|} \<in> parts (spies evs);
          B \<notin> bad;  evs \<in> woolam |]
       ==> Says Server B (Crypt (shrK B) {|Agent A, NB|}) \<in> set evs"
-apply (erule rev_mp, erule woolam.induct, force, simp_all)
-apply blast+
+apply (erule rev_mp, erule woolam.induct, force, simp_all, blast+)
 done
 
 (*Guarantee for B.  If B gets the Server's certificate then A has encrypted
@@ -161,8 +156,7 @@ by (blast dest!: NB_Crypt_imp_Server_msg)
 lemma B_said_WL2:
      "[| Says B A (Nonce NB) \<in> set evs;  B \<noteq> Spy;  evs \<in> woolam |]
       ==> \<exists>A'. Says A' B (Agent A) \<in> set evs"
-apply (erule rev_mp, erule woolam.induct, force, simp_all)
-apply blast+
+apply (erule rev_mp, erule woolam.induct, force, simp_all, blast+)
 done
 
 
@@ -171,9 +165,7 @@ lemma "[| A \<notin> bad;  B \<noteq> Spy;  evs \<in> woolam |]
   ==> Crypt (shrK A) (Nonce NB) \<in> parts (spies evs) &
       Says B A (Nonce NB) \<in> set evs
       --> Says A B (Crypt (shrK A) (Nonce NB)) \<in> set evs"
-apply (erule rev_mp, erule woolam.induct, force, simp_all)
-apply blast
-apply auto
+apply (erule rev_mp, erule woolam.induct, force, simp_all, blast, auto)
 oops
 
 end

@@ -44,7 +44,7 @@ constdefs
                       
  (* A is the true creator of X if she has sent X and X never appeared on
     the trace before this event. Recall that traces grow from head. *)
-  Issues :: [agent , agent, msg, event list] => bool ("_ Issues _ with _ on _")
+  Issues :: [agent, agent, msg, event list] => bool ("_ Issues _ with _ on _")
    "A Issues B with X on evs == 
       \\<exists>Y. Says A B Y \\<in> set evs & X \\<in> parts {Y} &
       X \\<notin> parts (spies (takeWhile (% z. z  \\<noteq> Says A B Y) (rev evs)))"

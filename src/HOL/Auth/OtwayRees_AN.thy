@@ -90,8 +90,7 @@ apply (intro exI bexI)
 apply (rule_tac [2] otway.Nil
                     [THEN otway.OR1, THEN otway.Reception,
                      THEN otway.OR2, THEN otway.Reception,
-                     THEN otway.OR3, THEN otway.Reception, THEN otway.OR4])
-apply possibility
+                     THEN otway.OR3, THEN otway.Reception, THEN otway.OR4], possibility)
 done
 
 lemma Gets_imp_Says [dest!]:
@@ -115,8 +114,7 @@ by blast
 (*Spy never sees a good agent's shared key!*)
 lemma Spy_see_shrK [simp]:
      "evs \<in> otway ==> (Key (shrK A) \<in> parts (knows Spy evs)) = (A \<in> bad)"
-apply (erule otway.induct, simp_all)
-apply blast+
+apply (erule otway.induct, simp_all, blast+)
 done
 
 lemma Spy_analz_shrK [simp]:
@@ -139,9 +137,7 @@ lemma Says_Server_message_form:
          evs \<in> otway |]
       ==> K \<notin> range shrK & (\<exists>i. NA = Nonce i) & (\<exists>j. NB = Nonce j)"
 apply (erule rev_mp)
-apply (erule otway.induct)
-apply simp_all
-apply blast
+apply (erule otway.induct, simp_all, blast)
 done
 
 
@@ -166,9 +162,7 @@ lemma analz_image_freshK [rule_format]:
           (K \<in> KK | Key K \<in> analz (knows Spy evs))"
 apply (erule otway.induct, force)
 apply (frule_tac [7] Says_Server_message_form)
-apply (drule_tac [6] OR4_analz_knows_Spy)
-apply analz_freshK
-apply spy_analz
+apply (drule_tac [6] OR4_analz_knows_Spy, analz_freshK, spy_analz)
 done
 
 lemma analz_insert_freshK:
@@ -191,8 +185,7 @@ lemma unique_session_keys:
          \<in> set evs;
         evs \<in> otway |]
      ==> A=A' & B=B' & NA=NA' & NB=NB'"
-apply (erule rev_mp, erule rev_mp, erule otway.induct)
-apply simp_all
+apply (erule rev_mp, erule rev_mp, erule otway.induct, simp_all)
 (*Remaining cases: OR3 and OR4*)
 apply blast+
 done
@@ -211,7 +204,7 @@ lemma NA_Crypt_imp_Server_msg [rule_format]:
 apply (erule otway.induct, force)
 apply (simp_all add: ex_disj_distrib)
 (*Fake, OR3*)
-apply blast+;
+apply blast+
 done
 
 
@@ -242,8 +235,7 @@ lemma secrecy_lemma:
 apply (erule otway.induct, force)
 apply (frule_tac [7] Says_Server_message_form)
 apply (drule_tac [6] OR4_analz_knows_Spy)
-apply (simp_all add: analz_insert_eq analz_insert_freshK pushes)
-apply spy_analz  (*Fake*)
+apply (simp_all add: analz_insert_eq analz_insert_freshK pushes, spy_analz)  (*Fake*)
 (*OR3, OR4, Oops*)
 apply (blast dest: unique_session_keys)+
 done
@@ -284,7 +276,7 @@ lemma NB_Crypt_imp_Server_msg [rule_format]:
                    \<in> set evs)"
 apply (erule otway.induct, force, simp_all add: ex_disj_distrib)
 (*Fake, OR3*)
-apply blast+;
+apply blast+
 done
 
 

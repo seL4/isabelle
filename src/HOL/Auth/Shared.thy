@@ -39,7 +39,7 @@ use "Shared_lemmas.ML"
 (*Lets blast_tac perform this step without needing the simplifier*)
 lemma invKey_shrK_iff [iff]:
      "(Key (invKey K) \<in> X) = (Key K \<in> X)"
-by auto;
+by auto
 
 (*Specialized methods*)
 

@@ -89,5 +89,4 @@ inductive "kerberos_ban"
              Expired Ts evso |]
           ==> Notes Spy {|Number Ts, Key K|} # evso \\<in> kerberos_ban"
 
-
 end

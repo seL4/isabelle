@@ -85,8 +85,7 @@ lemma "A \\<noteq> Server \\<Longrightarrow> \\<exists>N K. \\<exists>evs \\<in>
 apply (intro exI bexI)
 apply (rule_tac [2] ns_shared.Nil
        [THEN ns_shared.NS1, THEN ns_shared.NS2, THEN ns_shared.NS3,
-	THEN ns_shared.NS4, THEN ns_shared.NS5])
-apply possibility
+	THEN ns_shared.NS4, THEN ns_shared.NS5], possibility)
 done
 
 (*This version is similar, while instantiating ?K and ?N to epsilon-terms
@@ -116,9 +115,7 @@ by blast
 (*Spy never sees another agent's shared key! (unless it's bad at start)*)
 lemma Spy_see_shrK [simp]:
      "evs \\<in> ns_shared \\<Longrightarrow> (Key (shrK A) \\<in> parts (spies evs)) = (A \\<in> bad)"
-apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies)
-apply simp_all
-apply blast+;
+apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies, simp_all, blast+)
 done
 
 lemma Spy_analz_shrK [simp]:
@@ -129,8 +126,7 @@ by auto
 (*Nobody can have used non-existent keys!*)
 lemma new_keys_not_used [rule_format, simp]:
     "evs \\<in> ns_shared \\<Longrightarrow> Key K \\<notin> used evs \\<longrightarrow> K \\<notin> keysFor (parts (spies evs))"
-apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies)
-apply simp_all
+apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies, simp_all)
 (*Fake, NS2, NS4, NS5*)
 apply (blast dest!: keysFor_parts_insert)+
 done
@@ -154,8 +150,7 @@ lemma A_trusts_NS2:
        A \\<notin> bad;  evs \\<in> ns_shared\\<rbrakk>
       \\<Longrightarrow> Says Server A (Crypt (shrK A) \\<lbrace>NA, Agent B, Key K, X\\<rbrace>) \\<in> set evs"
 apply (erule rev_mp)
-apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies)
-apply auto
+apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies, auto)
 done
 
 lemma cert_A_form:
@@ -182,7 +177,7 @@ lemma Says_S_message_form2:
    \\<Longrightarrow> Says Server A (Crypt (shrK A) \\<lbrace>Nonce NA, Agent B, Key K, X\\<rbrace>) \\<in> set evs
        \\<or> X \\<in> analz (spies evs)"
 apply (case_tac "A \\<in> bad")
-apply (force dest!: Says_imp_knows_Spy [THEN analz.Inj]);
+apply (force dest!: Says_imp_knows_Spy [THEN analz.Inj])
 by (blast dest!: A_trusts_NS2 Says_Server_message_form)
 *)
 
@@ -202,8 +197,7 @@ by (blast dest!: A_trusts_NS2 Says_Server_message_form)
 lemma  "\\<lbrakk>evs \\<in> ns_shared;  Kab \\<notin> range shrK\\<rbrakk> \\<Longrightarrow>
          (Crypt KAB X) \\<in> parts (spies evs) \\<and>
          Key K \\<in> parts {X} \\<longrightarrow> Key K \\<in> parts (spies evs)"
-apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies)
-apply simp_all
+apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies, simp_all)
 (*Fake*)
 apply (blast dest: parts_insert_subset_Un)
 (*Base, NS4 and NS5*)
@@ -222,9 +216,7 @@ lemma analz_image_freshK [rule_format]:
              (K \\<in> KK \\<or> Key K \\<in> analz (spies evs))"
 apply (erule ns_shared.induct, force)
 apply (drule_tac [7] Says_Server_message_form)
-apply (erule_tac [4] Says_S_message_form [THEN disjE])
-apply analz_freshK
-apply spy_analz
+apply (erule_tac [4] Says_S_message_form [THEN disjE], analz_freshK, spy_analz)
 done
 
 
@@ -242,9 +234,7 @@ lemma unique_session_keys:
      "\\<lbrakk>Says Server A (Crypt (shrK A) \\<lbrace>NA, Agent B, Key K, X\\<rbrace>) \\<in> set evs;
        Says Server A' (Crypt (shrK A') \\<lbrace>NA', Agent B', Key K, X'\\<rbrace>) \\<in> set evs;
        evs \\<in> ns_shared\\<rbrakk> \\<Longrightarrow> A=A' \\<and> NA=NA' \\<and> B=B' \\<and> X = X'"
-apply (erule rev_mp, erule rev_mp, erule ns_shared.induct)
-apply simp_all
-apply blast+
+apply (erule rev_mp, erule rev_mp, erule ns_shared.induct, simp_all, blast+)
 done
 
 
@@ -263,8 +253,7 @@ apply (erule ns_shared.induct, force)
 apply (frule_tac [7] Says_Server_message_form)
 apply (frule_tac [4] Says_S_message_form)
 apply (erule_tac [5] disjE)
-apply (simp_all add: analz_insert_eq analz_insert_freshK pushes split_ifs)
-apply spy_analz  (*Fake*)
+apply (simp_all add: analz_insert_eq analz_insert_freshK pushes split_ifs, spy_analz)  (*Fake*)
 apply blast      (*NS2*)
 (*NS3, Server sub-case*) (**LEVEL 8 **)
 apply (blast dest!: Crypt_Spy_analz_bad A_trusts_NS2
@@ -295,8 +284,7 @@ lemma B_trusts_NS3:
                                  Crypt (shrK B) \\<lbrace>Key K, Agent A\\<rbrace>\\<rbrace>)
               \\<in> set evs"
 apply (erule rev_mp)
-apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies)
-apply auto
+apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies, auto)
 done
 
 
@@ -307,12 +295,10 @@ lemma A_trusts_NS4_lemma [rule_format]:
       Crypt K (Nonce NB) \\<in> parts (spies evs) \\<longrightarrow>
       Says B A (Crypt K (Nonce NB)) \\<in> set evs"
 apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies)
-apply (analz_mono_contra, simp_all)
-apply blast     (*Fake*)
+apply (analz_mono_contra, simp_all, blast)     (*Fake*)
 (*NS2: contradiction from the assumptions
   Key K \\<notin> used evs2  and Crypt K (Nonce NB) \\<in> parts (spies evs2) *)
-apply (force dest!: Crypt_imp_keysFor)
-apply blast     (*NS3*)
+apply (force dest!: Crypt_imp_keysFor, blast)     (*NS3*)
 (*NS4*)
 apply (blast dest!: B_trusts_NS3
 	     dest: Says_imp_knows_Spy [THEN analz.Inj]
@@ -338,10 +324,8 @@ theorem NS4_implies_NS3 [rule_format]:
      Says Server A (Crypt (shrK A) \\<lbrace>NA, Agent B, Key K, X\\<rbrace>) \\<in> set evs \\<longrightarrow>
      Crypt K (Nonce NB) \\<in> parts (spies evs) \\<longrightarrow>
      (\\<exists>A'. Says A' B X \\<in> set evs)"
-apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies)
-apply analz_mono_contra
-apply (simp_all add: ex_disj_distrib)
-apply blast  (*Fake*)
+apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies, analz_mono_contra)
+apply (simp_all add: ex_disj_distrib, blast)  (*Fake*)
 apply (blast dest!: new_keys_not_used Crypt_imp_keysFor)  (*NS2*)
 apply blast  (*NS3*)
 (*NS4*)
@@ -359,10 +343,7 @@ lemma B_trusts_NS5_lemma [rule_format]:
 			    Crypt (shrK B) \\<lbrace>Key K, Agent A\\<rbrace>\\<rbrace>) \\<in> set evs \\<longrightarrow>
      Crypt K \\<lbrace>Nonce NB, Nonce NB\\<rbrace> \\<in> parts (spies evs) \\<longrightarrow>
      Says A B (Crypt K \\<lbrace>Nonce NB, Nonce NB\\<rbrace>) \\<in> set evs"
-apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies)
-apply analz_mono_contra
-apply simp_all
-apply blast  (*Fake*)
+apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies, analz_mono_contra, simp_all, blast)  (*Fake*)
 apply (blast dest!: new_keys_not_used Crypt_imp_keysFor)  (*NS2*)
 apply (blast dest!: cert_A_form) (*NS3*)
 (*NS5*)

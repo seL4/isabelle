@@ -94,8 +94,7 @@ apply (rule_tac [2] yahalom.Nil
                     [THEN yahalom.YM1, THEN yahalom.Reception, 
                      THEN yahalom.YM2, THEN yahalom.Reception, 
                      THEN yahalom.YM3, THEN yahalom.Reception, 
-                     THEN yahalom.YM4])
-apply possibility
+                     THEN yahalom.YM4], possibility)
 done
 
 lemma Gets_imp_Says:
@@ -135,8 +134,7 @@ by (blast dest!: parts.Body Says_imp_knows_Spy [THEN parts.Inj])
 lemma Spy_see_shrK [simp]:
      "evs \<in> yahalom ==> (Key (shrK A) \<in> parts (knows Spy evs)) = (A \<in> bad)"
 apply (erule yahalom.induct, force, 
-       drule_tac [6] YM4_parts_knows_Spy, simp_all)
-apply blast+
+       drule_tac [6] YM4_parts_knows_Spy, simp_all, blast+)
 done
 
 lemma Spy_analz_shrK [simp]:
@@ -170,8 +168,7 @@ lemma Says_Server_not_range [simp]:
      "[| Says Server A {|Crypt (shrK A) {|Agent B, Key K, na, nb|}, X|}  
            \<in> set evs;   evs \<in> yahalom |]                                 
       ==> K \<notin> range shrK"
-apply (erule rev_mp, erule yahalom.induct, simp_all)
-apply blast
+apply (erule rev_mp, erule yahalom.induct, simp_all, blast)
 done
 
 
@@ -197,9 +194,7 @@ lemma analz_image_freshK [rule_format]:
           (Key K \<in> analz (Key`KK Un (knows Spy evs))) =   
           (K \<in> KK | Key K \<in> analz (knows Spy evs))"
 apply (erule yahalom.induct, force, 
-       drule_tac [6] YM4_analz_knows_Spy)
-apply analz_freshK
-apply spy_analz
+       drule_tac [6] YM4_analz_knows_Spy, analz_freshK, spy_analz)
 apply (simp only: Says_Server_not_range analz_image_freshK_simps)
 done
 
@@ -238,8 +233,7 @@ lemma secrecy_lemma:
           Key K \<notin> analz (knows Spy evs)"
 apply (erule yahalom.induct, force, 
        drule_tac [6] YM4_analz_knows_Spy)
-apply (simp_all add: pushes analz_insert_eq analz_insert_freshK)
-apply spy_analz  (*Fake*)
+apply (simp_all add: pushes analz_insert_eq analz_insert_freshK, spy_analz)  (*Fake*)
 apply (blast dest: unique_session_keys)+  (*YM3, Oops*)
 done
 
@@ -401,8 +395,7 @@ apply (simp_all del: image_insert image_Un
 (*Fake*) 
 apply spy_analz
 (*YM4*)  (** LEVEL 6 **)
-apply (erule_tac V = "\<forall>KK. ?P KK" in thin_rl)
-apply clarify
+apply (erule_tac V = "\<forall>KK. ?P KK" in thin_rl, clarify)
 (*If A \<in> bad then NBa is known, therefore NBa \<noteq> NB.  Previous two steps make
   the next step faster.*)
 apply (blast dest!: Gets_imp_Says Says_imp_spies Crypt_Spy_analz_bad
@@ -423,7 +416,7 @@ lemma single_Nonce_secrecy:
           (Nonce NB \<in> analz (knows Spy evs))"
 by (simp_all del: image_insert image_Un imp_disjL
              add: analz_image_freshK_simps split_ifs
-                  Nonce_secrecy Says_Server_KeyWithNonce);
+                  Nonce_secrecy Says_Server_KeyWithNonce)
 
 
 (*** The Nonce NB uniquely identifies B's message. ***)
@@ -474,8 +467,7 @@ lemma Says_Server_imp_YM2:
          evs \<in> yahalom |]                                              
       ==> Gets Server {| Agent B, Crypt (shrK B) {|Agent A, na, nb|} |}  
              \<in> set evs"
-apply (erule rev_mp, erule yahalom.induct)
-apply auto
+apply (erule rev_mp, erule yahalom.induct, auto)
 done
 
 

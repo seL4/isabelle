@@ -103,8 +103,7 @@ theorem Spy_not_see_NA:
         A \<notin> bad;  B \<notin> bad;  evs \<in> ns_public\<rbrakk>                     
        \<Longrightarrow> Nonce NA \<notin> analz (spies evs)"
 apply (erule rev_mp)   
-apply (erule ns_public.induct, simp_all)
-apply spy_analz
+apply (erule ns_public.induct, simp_all, spy_analz)
 apply (blast dest: unique_NA intro: no_nonce_NS1_NS2)+
 done
 
@@ -166,8 +165,7 @@ theorem Spy_not_see_NB [dest]:
        A \<notin> bad;  B \<notin> bad;  evs \<in> ns_public\<rbrakk>
       \<Longrightarrow> Nonce NB \<notin> analz (spies evs)"
 apply (erule rev_mp)
-apply (erule ns_public.induct, simp_all)
-apply spy_analz
+apply (erule ns_public.induct, simp_all, spy_analz)
 apply (blast intro: no_nonce_NS1_NS2)+
 done
 

@@ -87,8 +87,7 @@ apply (rule_tac [2] yahalom.Nil
                     [THEN yahalom.YM1, THEN yahalom.Reception,
                      THEN yahalom.YM2, THEN yahalom.Reception,
                      THEN yahalom.YM3, THEN yahalom.Reception,
-                     THEN yahalom.YM4])
-apply possibility
+                     THEN yahalom.YM4], possibility)
 done
 
 lemma Gets_imp_Says:
@@ -124,8 +123,7 @@ lemmas YM4_parts_knows_Spy =
 lemma Spy_see_shrK [simp]:
      "evs \<in> yahalom ==> (Key (shrK A) \<in> parts (knows Spy evs)) = (A \<in> bad)"
 apply (erule yahalom.induct, force,
-       drule_tac [6] YM4_parts_knows_Spy, simp_all)
-apply blast+
+       drule_tac [6] YM4_parts_knows_Spy, simp_all, blast+)
 done
 
 lemma Spy_analz_shrK [simp]:
@@ -172,9 +170,7 @@ lemma analz_image_freshK [rule_format]:
           (Key K \<in> analz (Key`KK Un (knows Spy evs))) =
           (K \<in> KK | Key K \<in> analz (knows Spy evs))"
 apply (erule yahalom.induct, force, frule_tac [7] Says_Server_message_form,
-       drule_tac [6] YM4_analz_knows_Spy)
-apply analz_freshK
-apply spy_analz
+       drule_tac [6] YM4_analz_knows_Spy, analz_freshK, spy_analz)
 done
 
 lemma analz_insert_freshK:
@@ -212,8 +208,7 @@ lemma secrecy_lemma:
           Key K \<notin> analz (knows Spy evs)"
 apply (erule yahalom.induct, force, frule_tac [7] Says_Server_message_form,
        drule_tac [6] YM4_analz_knows_Spy)
-apply (simp_all add: pushes analz_insert_eq analz_insert_freshK)
-apply spy_analz  (*Fake*)
+apply (simp_all add: pushes analz_insert_eq analz_insert_freshK, spy_analz)  (*Fake*)
 apply (blast dest: unique_session_keys)+  (*YM3, Oops*)
 done
 
