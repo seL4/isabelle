@@ -9,7 +9,11 @@ and definitions that have local scope.
 
 TODO:
   - reset scope context on qed of legacy goal (!??);
-  - Notes: source form (of atts etc.) (!????);
+  - implicit closure of ``loose'' free vars;
+  - avoid dynamic scoping of facts/atts
+    (use thms_closure for globals, even within att expressions);
+  - scope of implicit fixed in elementents vs. locales (!??);
+  - Fixes: optional type (!?);
 *)
 
 signature BASIC_LOCALE =
@@ -20,17 +24,32 @@ end;
 signature LOCALE =
 sig
   include BASIC_LOCALE
-  type locale
+  type context
   type expression
-  type ('a, 'b) element
+  datatype ('typ, 'term, 'fact, 'att) elem =
+    Fixes of (string * 'typ * mixfix option) list |
+    Assumes of ((string * 'att list) * ('term * ('term list * 'term list)) list) list |
+    Defines of ((string * 'att list) * ('term * 'term list)) list |
+    Notes of ((string * 'att list) * ('fact * 'att list) list) list |
+    Uses of expression
+  type 'att element
+  type 'att element_i
+  type locale
+  val intern: Sign.sg -> xstring -> string
   val cond_extern: Sign.sg -> string -> xstring
+  val intern_att: ('att -> context attribute) ->
+    ('typ, 'term, 'thm, 'att) elem -> ('typ, 'term, 'thm, context attribute) elem
+  val activate_elements: context attribute element list -> context -> context
+  val activate_elements_i: context attribute element_i list -> context -> context
+  val activate_locale: xstring -> context -> context
+  val activate_locale_i: string -> context -> context
 (*
   val add_locale: bstring -> xstring option -> (string * string * mixfix) list ->
-    ((string * ProofContext.context attribute list) * string) list ->
-    ((string * ProofContext.context attribute list) * string) list -> theory -> theory
+    ((string * context attribute list) * string) list ->
+    ((string * context attribute list) * string) list -> theory -> theory
   val add_locale_i: bstring -> xstring option -> (string * typ * mixfix) list ->
-    ((string * ProofContext.context attribute list) * term) list ->
-    ((string * ProofContext.context attribute list) * term) list -> theory -> theory
+    ((string * context attribute list) * term) list ->
+    ((string * context attribute list) * term) list -> theory -> theory
   val read_prop_schematic: Sign.sg -> string -> cterm
 *)
   val setup: (theory -> theory) list
@@ -46,12 +65,17 @@ type context = ProofContext.context;
 
 type expression = unit;  (* FIXME *)
 
-datatype ('typ, 'term) element =
+datatype ('typ, 'term, 'fact, 'att) elem =
   Fixes of (string * 'typ * mixfix option) list |
-  Assumes of ((string * context attribute list) * ('term * ('term list * 'term list)) list) list |
-  Defines of ((string * context attribute list) * ('term * 'term list)) list |
-  Notes of ((string * context attribute list) * (thm list * context attribute list) list) list |
+  Assumes of ((string * 'att list) * ('term * ('term list * 'term list)) list) list |
+  Defines of ((string * 'att list) * ('term * 'term list)) list |
+  Notes of ((string * 'att list) * ('fact * 'att list) list) list |
   Uses of expression;
+
+type 'att element = (string, string, string, 'att) elem;
+type 'att element_i = (typ, term, thm list, 'att) elem;
+type locale = (thm -> string) * string list * context attribute element_i list;
+
 
 fun fixes_of_elem (Fixes fixes) = map #1 fixes
   | fixes_of_elem _ = [];
@@ -64,12 +88,10 @@ fun frees_of_elem _ = [];  (* FIXME *)
 
 (* data kind 'Pure/locales' *)
 
-type locale = string list * (typ, term) element list;
-
 type locale_data =
   {space: NameSpace.T,
     locales: locale Symtab.table,
-    scope: ((string * locale) list * ProofContext.context option) ref};
+    scope: ((string * locale) list * context option) ref};
 
 fun make_locale_data space locales scope =
   {space = space, locales = locales, scope = scope}: locale_data;
@@ -140,7 +162,7 @@ fun pretty_locale thy xname =
   let
     val sg = Theory.sign_of thy;
     val name = intern sg xname;
-    val (ancestors, elements) = the_locale thy name;
+    val (_, ancestors, elements) = the_locale thy name;
 
     val prt_typ = Pretty.quote o Sign.pretty_typ sg;
     val prt_term = Pretty.quote o Sign.pretty_term sg;
@@ -177,6 +199,18 @@ fun pretty_locale thy xname =
 val print_locale = Pretty.writeln oo pretty_locale;
 
 
+(** internalization of theorems and attributes **)
+
+fun int_att attrib (x, srcs) = (x, map attrib srcs);
+
+fun intern_att _ (Fixes fixes) = Fixes fixes
+  | intern_att attrib (Assumes asms) = Assumes (map (apfst (int_att attrib)) asms)
+  | intern_att attrib (Defines defs) = Defines (map (apfst (int_att attrib)) defs)
+  | intern_att attrib (Notes facts) =
+      Notes (map (apfst (int_att attrib) o apsnd (map (int_att attrib))) facts)
+  | intern_att _ (Uses FIXME) = Uses FIXME;
+
+
 
 (** activate locales **)
 
@@ -200,30 +234,59 @@ fun prep_def ((name, atts), eq) =
   in ((name, Drule.rule_attribute (K (unpack_def xs)) :: atts), [(eq', ([], []))]) end;
 *)
 
+fun read_elem closure ctxt =
+ fn (Fixes fixes) =>
+      let val vars =
+        #2 (foldl_map ProofContext.read_vars (ctxt, map (fn (x, T, _) => ([x], Some T)) fixes))
+      in Fixes (map2 (fn (([x'], Some T'), (_, _, mx)) => (x', T', mx)) (vars, fixes)) end
+  | (Assumes asms) =>
+      Assumes (map #1 asms ~~ #2 (ProofContext.read_propp (ctxt, map #2 asms)))
+  | (Defines defs) =>
+      let val propps =
+        #2 (ProofContext.read_propp (ctxt, map (fn (_, (t, ps)) => [(t, (ps, []))]) defs))
+      in Defines (map #1 defs ~~ map (fn [(t', (ps', []))] => (t', ps')) propps) end
+  | (Notes facts) =>
+      Notes (map (apsnd (map (apfst (ProofContext.get_thms ctxt)))) facts)
+  | (Uses FIXME) => Uses FIXME;
 
-fun activate (Fixes fixes) =
-      ProofContext.fix_direct (map (fn (x, T, FIXME) => ([x], Some T)) fixes)
-  | activate (Assumes asms) = #1 o ProofContext.assume_i ProofContext.export_assume asms
-  | activate (Defines defs) = #1 o ProofContext.assume_i ProofContext.export_def
-      (map (fn (a, (t, ps)) => (a, [(t, (ps, []))])) defs)
-  | activate (Notes facts) = #1 o ProofContext.have_thmss facts
-  | activate (Uses FIXME) = I;
 
-val activate_elements = foldl (fn (c, elem) => activate elem c);
+fun activate (ctxt, Fixes fixes) =
+      ProofContext.fix_direct (map (fn (x, T, FIXME) => ([x], Some T)) fixes) ctxt
+  | activate (ctxt, Assumes asms) = #1 (ProofContext.assume_i ProofContext.export_assume asms ctxt)
+  | activate (ctxt, Defines defs) = #1 (ProofContext.assume_i ProofContext.export_def
+      (map (fn (a, (t, ps)) => (a, [(t, (ps, []))])) defs) ctxt)
+  | activate (ctxt, Notes facts) = #1 (ProofContext.have_thmss facts ctxt)
+  | activate (ctxt, Uses FIXME) = ctxt;
 
-fun activate_locale_elems (ctxt, name) =
+(* FIXME closure? *)
+fun read_activate (ctxt, elem) =
+  let val elem' = read_elem (PureThy.get_thms (ProofContext.theory_of ctxt)) ctxt elem
+  in (activate (ctxt, elem'), elem') end;
+
+fun activate_elements_i elems ctxt = foldl activate (ctxt, elems);
+fun activate_elements elems ctxt = foldl (#1 o read_activate) (ctxt, elems);
+
+fun with_locale f name ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
-    val elems = #2 (the_locale thy name);
+    val locale = the_locale thy name;
   in
-    activate_elements (ctxt, elems) handle ProofContext.CONTEXT (msg, c) =>
+    f locale ctxt handle ProofContext.CONTEXT (msg, c) =>
       raise ProofContext.CONTEXT (msg ^ "\nThe error(s) above occurred in locale " ^
         quote (cond_extern (Theory.sign_of thy) name), c)
   end;
 
-fun activate_locale name ctxt =
-  foldl activate_locale_elems
-    (ctxt, (#1 (the_locale (ProofContext.theory_of ctxt) name) @ [name]));
+val activate_locale_elements = with_locale (activate_elements_i o #3);
+
+fun activate_locale_ancestors name ctxt =
+  foldl (fn (c, es) => activate_locale_elements es c)
+    (ctxt, #2 (the_locale (ProofContext.theory_of ctxt) name));
+
+fun activate_locale_i name ctxt =
+  ctxt |> activate_locale_ancestors name |> activate_locale_elements name;
+
+fun activate_locale xname ctxt =
+  activate_locale_i (intern (ProofContext.sign_of ctxt) xname) ctxt;
 
 
 
