@@ -440,20 +440,24 @@ fun strip_imp_concl (Const"==>" $ A $ B) = strip_imp_concl B
 
 (*** Conversion of Elimination Rules to Tableau Operations ***)
 
-(*The conclusion becomes the goal/negated assumption *False*: delete it!*)
-fun squash_nots [] = []
-  | squash_nots (Const "*Goal*" $ (Var (ref (Some (Const"*False*")))) :: Ps) =
-	squash_nots Ps
-  | squash_nots (Const "Not" $ (Var (ref (Some (Const"*False*")))) :: Ps) =
-	squash_nots Ps
-  | squash_nots (P::Ps) = P :: squash_nots Ps;
+exception ElimBadConcl and ElimBadPrem;
+
+(*The conclusion becomes the goal/negated assumption *False*: delete it!
+  If we don't find it then the premise is ill-formed and could cause 
+  PROOF FAILED*)
+fun delete_concl [] = raise ElimBadPrem
+  | delete_concl (Const "*Goal*" $ (Var (ref (Some (Const"*False*")))) :: Ps) =
+	Ps
+  | delete_concl (Const "Not" $ (Var (ref (Some (Const"*False*")))) :: Ps) =
+	Ps
+  | delete_concl (P::Ps) = P :: delete_concl Ps;
 
 fun skoPrem vars (Const "all" $ Abs (_, P)) =
         skoPrem vars (subst_bound (Skolem (gensym "S_", vars), P))
   | skoPrem vars P = P;
 
 fun convertPrem t = 
-    squash_nots (mkGoal (strip_imp_concl t) :: strip_imp_prems t);
+    delete_concl (mkGoal (strip_imp_concl t) :: strip_imp_prems t);
 
 (*Expects elimination rules to have a formula variable as conclusion*)
 fun convertRule vars t =
@@ -461,7 +465,8 @@ fun convertRule vars t =
       val Var v   = strip_imp_concl t
   in  v := Some (Const"*False*");
       (P, map (convertPrem o skoPrem vars) Ps) 
-  end;
+  end
+  handle Bind => raise ElimBadConcl;
 
 
 (*Like dup_elim, but puts the duplicated major premise FIRST*)
@@ -501,11 +506,14 @@ fun fromRule vars rl =
 	THEN
 	rot_subgoals_tac (rot, #2 trl) i
   in Option.SOME (trl, tac) end
-  handle Bind => (*reject: conclusion is not just a variable*)
-   (if !trace then (warning ("ignoring ill-formed elimination rule\n" ^
-		    string_of_thm rl))
-    else ();
-    Option.NONE);
+  handle ElimBadPrem => (*reject: prems don't preserve conclusion*)
+	    (warning("Ignoring weak elimination rule\n" ^ string_of_thm rl);
+	     Option.NONE)
+       | ElimBadConcl => (*ignore: conclusion is not just a variable*)
+	   (if !trace then (warning("Ignoring ill-formed elimination rule:\n" ^
+       	               "conclusion should be a variable\n" ^ string_of_thm rl))
+	    else ();
+	    Option.NONE);
 
 
 (*** Conversion of Introduction Rules ***)
