@@ -728,6 +728,15 @@ apply (subst ge_imp_join_eq)
 apply (rule order_trans[of _ 0])
 by auto
 
+lemma abs_minus_commute: 
+  fixes a :: "'a::lordered_ab_group_abs"
+  shows "abs (a-b) = abs(b-a)"
+proof -
+  have "abs (a-b) = abs (- (a-b))" by (simp only: abs_minus_cancel)
+  also have "... = abs(b-a)" by simp
+  finally show ?thesis .
+qed
+
 lemma zero_le_iff_zero_nprt: "(0 \<le> a) = (nprt a = 0)"
 by (simp add: le_def_meet nprt_def meet_comm)
 
