@@ -292,16 +292,30 @@ fun inst x t = read_instantiate_sg (sign_of NatBin.thy) [(x,t)];
   NOT suitable for rewriting because n recurs in the condition.*)
 bind_thm ("expand_Suc", inst "n" "number_of ?v" Suc_pred');
 
+(** NatDef & Nat **)
+
+Addsimps (map (rename_numerals thy) 
+	  [min_0L, min_0R, max_0L, max_0R]);
+
+AddIffs (map (rename_numerals thy) 
+	 [Suc_not_Zero, Zero_not_Suc, zero_less_Suc, not_less0, less_one, 
+	  le0, le_0_eq, 
+	  neq0_conv, zero_neq_conv, not_gr0]);
+
 (** Arith **)
 
 Addsimps (map (rename_numerals thy) 
 	  [diff_0_eq_0, add_0, add_0_right, add_pred, 
-	   diff_is_0_eq RS iffD2, zero_less_diff,
+	   diff_is_0_eq, zero_is_diff_eq, zero_less_diff,
 	   mult_0, mult_0_right, mult_1, mult_1_right, 
 	   mult_is_0, zero_less_mult_iff,
 	   mult_eq_1_iff]);
 
 AddIffs (map (rename_numerals thy) [add_is_0, zero_is_add, add_gr_0]);
+
+Goal "Suc n = n + #1";
+by (asm_simp_tac numeral_ss 1);
+qed "Suc_eq_add_numeral_1";
 
 (* These two can be useful when m = number_of... *)
 
@@ -314,6 +328,17 @@ Goal "(m::nat) * n = (if m=#0 then #0 else n + ((m - #1) * n))";
 by (exhaust_tac "m" 1);
 by (ALLGOALS (asm_simp_tac numeral_ss));
 qed "mult_eq_if";
+
+Goal "(p ^ m :: nat) = (if m=#0 then #1 else p * (p ^ (m - #1)))";
+by (exhaust_tac "m" 1);
+by (ALLGOALS (asm_simp_tac numeral_ss));
+qed "power_eq_if";
+
+Goal "[| #0<n; #0<m |] ==> m - n < (m::nat)";
+by (asm_full_simp_tac (numeral_ss addsimps [diff_less]) 1);
+qed "diff_less'";
+
+Addsimps [inst "n" "number_of ?v" diff_less'];
 
 (*various theorems that aren't in the default simpset*)
 val add_is_one' = rename_numerals thy add_is_1;
