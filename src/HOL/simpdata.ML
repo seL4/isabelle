@@ -340,11 +340,16 @@ qed_goalw "if_not_P" HOL.thy [if_def] "!!P. ~P ==> (if P then x else y) = y"
  (fn _ => [blast_tac (HOL_cs addIs [select_equality]) 1]);
 
 qed_goal "expand_if" HOL.thy
-    "P(if Q then x else y) = ((Q --> P(x)) & (~Q --> P(y)))"
- (fn _=> [ (res_inst_tac [("Q","Q")] (excluded_middle RS disjE) 1),
+    "P(if Q then x else y) = ((Q --> P(x)) & (~Q --> P(y)))" (K [
+	res_inst_tac [("Q","Q")] (excluded_middle RS disjE) 1,
          stac if_P 2,
          stac if_not_P 1,
-         REPEAT(blast_tac HOL_cs 1) ]);
+         ALLGOALS (blast_tac HOL_cs)]);
+
+qed_goal "split_if_asm" HOL.thy
+    "P(if Q then x else y) = (~((Q & ~P x) | (~Q & ~P y)))" (K [
+	stac expand_if 1,
+        blast_tac HOL_cs 1]);
 
 qed_goal "if_bool_eq" HOL.thy
                    "(if P then Q else R) = ((P-->Q) & (~P-->R))"
@@ -364,8 +369,8 @@ in
 fun split_inside_tac splits = mktac (map mk_meta_eq splits)
 end;
 
-val split_prem_tac = mk_case_split_prem_tac split_tac disjE conjE exE contrapos
-					    contrapos2 notnotD;
+val split_asm_tac = mk_case_split_asm_tac split_tac 
+			(disjE,conjE,exE,contrapos,contrapos2,notnotD);
 
 infix 4 addsplits;
 fun ss addsplits splits = ss addloop (split_tac splits);
