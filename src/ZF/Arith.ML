@@ -50,6 +50,17 @@ val nat_simps = [rec_0, rec_succ, not_lt0, nat_0_le, le0_iff, succ_le_iff,
 val nat_ss = ZF_ss addsimps (nat_simps @ nat_typechecks);
 
 
+goal Arith.thy "!!k. [| 0<k; k: nat |] ==> EX j: nat. k = succ(j)";
+by (etac rev_mp 1);
+by (etac nat_induct 1);
+by (simp_tac nat_ss 1);
+by (fast_tac ZF_cs 1);
+val lemma = result();
+
+(* [| 0 < k; k: nat; !!j. [| j: nat; k = succ(j) |] ==> Q |] ==> Q *)
+bind_thm ("zero_lt_natE", lemma RS bexE);
+
+
 (** Addition **)
 
 qed_goalw "add_type" Arith.thy [add_def]
@@ -253,7 +264,8 @@ by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (ALLGOALS (asm_simp_tac arith_ss));
 qed "diff_succ";
 
-(*Subtraction is the inverse of addition. *)
+(** Subtraction is the inverse of addition. **)
+
 val [mnat,nnat] = goal Arith.thy
     "[| m:nat;  n:nat |] ==> (n#+m) #- n = m";
 by (rtac (nnat RS nat_induct) 1);
@@ -266,11 +278,38 @@ by (res_inst_tac [("m1","m")] (add_commute RS ssubst) 1);
 by (REPEAT (ares_tac [diff_add_inverse] 1));
 qed "diff_add_inverse2";
 
+goal Arith.thy
+    "!!k. [| k:nat; m: nat; n: nat |] ==> (k#+m) #- (k#+n) = m #- n";
+by (nat_ind_tac "k" [] 1);
+by (ALLGOALS (asm_simp_tac arith_ss));
+qed "diff_cancel";
+
+goal Arith.thy
+    "!!n. [| k:nat; m: nat; n: nat |] ==> (m#+k) #- (n#+k) = m #- n";
+val add_commute_k = read_instantiate [("n","k")] add_commute;
+by (asm_simp_tac (arith_ss addsimps [add_commute_k, diff_cancel]) 1);
+qed "diff_cancel2";
+
 val [mnat,nnat] = goal Arith.thy
     "[| m:nat;  n:nat |] ==> n #- (n#+m) = 0";
 by (rtac (nnat RS nat_induct) 1);
 by (ALLGOALS (asm_simp_tac (arith_ss addsimps [mnat])));
 qed "diff_add_0";
+
+(** Difference distributes over multiplication **)
+
+goal Arith.thy 
+  "!!m n. [| m:nat; n: nat; k:nat |] ==> (m #- n) #* k = (m #* k) #- (n #* k)";
+by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
+by (ALLGOALS (asm_simp_tac (arith_ss addsimps [diff_cancel])));
+qed "diff_mult_distrib" ;
+
+goal Arith.thy 
+  "!!m. [| m:nat; n: nat; k:nat |] ==> k #* (m #- n) = (k #* m) #- (k #* n)";
+val mult_commute_k = read_instantiate [("m","k")] mult_commute;
+by (asm_simp_tac (arith_ss addsimps 
+		  [mult_commute_k, diff_mult_distrib]) 1);
+qed "diff_mult_distrib2" ;
 
 (*** Remainder ***)
 
@@ -406,9 +445,9 @@ by (rtac (add_commute RS ssubst) 1);
 by (REPEAT (ares_tac [add_le_self] 1));
 qed "add_le_self2";
 
-(** Monotonicity of addition **)
+(*** Monotonicity of Addition ***)
 
-(*strict, in 1st argument*)
+(*strict, in 1st argument; proof is by rule induction on 'less than'*)
 goal Arith.thy "!!i j k. [| i<j; j:nat; k:nat |] ==> i#+k < j#+k";
 by (forward_tac [lt_nat_in_nat] 1);
 by (assume_tac 1);
@@ -454,7 +493,73 @@ by (EVERY [rtac (add_commute RS ssubst) 1,
 by (REPEAT (eresolve_tac [asm_rl, lt_nat_in_nat, nat_succI] 1));
 qed "add_le_mono";
 
+(*** Monotonicity of Multiplication ***)
+
+goal Arith.thy "!!i j k. [| i le j; j:nat; k:nat |] ==> i#*k le j#*k";
+by (forward_tac [lt_nat_in_nat] 1);
+by (nat_ind_tac "k" [] 2);
+by (ALLGOALS (asm_simp_tac (arith_ss addsimps [mult_0_right, mult_succ_right,
+					       add_le_mono])));
+qed "mult_le_mono1";
+
+(* le monotonicity, BOTH arguments*)
+goal Arith.thy
+    "!!i j k. [| i le j; k le l; j:nat; l:nat |] ==> i#*k le j#*l";
+by (rtac (mult_le_mono1 RS le_trans) 1);
+by (REPEAT (eresolve_tac [asm_rl, lt_nat_in_nat, nat_succI] 1));
+by (EVERY [rtac (mult_commute RS ssubst) 1,
+           rtac (mult_commute RS ssubst) 3,
+           rtac mult_le_mono1 5]);
+by (REPEAT (eresolve_tac [asm_rl, lt_nat_in_nat, nat_succI] 1));
+qed "mult_le_mono";
+
+(*strict, in 1st argument; proof is by induction on k>0*)
+goal Arith.thy "!!i j k. [| i<j; 0<k; j:nat; k:nat |] ==> k#*i < k#*j";
+be zero_lt_natE 1;
+by (forward_tac [lt_nat_in_nat] 2);
+by (ALLGOALS (asm_simp_tac arith_ss));
+by (nat_ind_tac "x" [] 1);
+by (ALLGOALS (asm_simp_tac (arith_ss addsimps [add_0_right, add_lt_mono])));
+qed "mult_lt_mono2";
+
+goal Arith.thy "!!k. [| m: nat; n: nat |] ==> 0 < m#*n <-> 0<m & 0<n";
+by (etac nat_induct 1);
+by (etac nat_induct 2);
+by (ALLGOALS (asm_simp_tac (arith_ss addsimps [mult_0_right])));
+qed "zero_lt_mult_iff";
+
+(*Cancellation law for division*)
+goal Arith.thy
+   "!!k. [| 0<n; 0<k; k:nat; m:nat; n:nat |] ==> (k#*m) div (k#*n) = m div n";
+by (eres_inst_tac [("i","m")] complete_induct 1);
+by (excluded_middle_tac "x<n" 1);
+by (asm_simp_tac (arith_ss addsimps [div_less, zero_lt_mult_iff, 
+				     mult_lt_mono2]) 2);
+by (asm_full_simp_tac
+     (arith_ss addsimps [not_lt_iff_le, nat_into_Ord,
+                         zero_lt_mult_iff, le_refl RS mult_le_mono, div_geq,
+                         diff_mult_distrib2 RS sym,
+			 div_termination RS ltD]) 1);
+qed "div_cancel";
+
+goal Arith.thy
+   "!!k. [| 0<n; 0<k; k:nat; m:nat; n:nat |] ==> \
+\        (k#*m) mod (k#*n) = k #* (m mod n)";
+by (eres_inst_tac [("i","m")] complete_induct 1);
+by (excluded_middle_tac "x<n" 1);
+by (asm_simp_tac (arith_ss addsimps [mod_less, zero_lt_mult_iff, 
+				     mult_lt_mono2]) 2);
+by (asm_full_simp_tac
+     (arith_ss addsimps [not_lt_iff_le, nat_into_Ord,
+                         zero_lt_mult_iff, le_refl RS mult_le_mono, mod_geq,
+                         diff_mult_distrib2 RS sym,
+			 div_termination RS ltD]) 1);
+qed "mult_mod_distrib";
+
+
+
 val arith_ss0 = arith_ss
 and arith_ss = arith_ss addsimps [add_0_right, add_succ_right,
                                   mult_0_right, mult_succ_right,
+				  mod_type, div_type,
                                   mod_less, mod_geq, div_less, div_geq];
