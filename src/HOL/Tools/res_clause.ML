@@ -239,10 +239,23 @@ fun pred_name_type (Const(c,T)) = (lookup_const c,type_of T)
   | pred_name_type (Var(_,_))   = raise CLAUSE("Predicate Not First Order")
   | pred_name_type _          = raise CLAUSE("Predicate input unexpected");
 
+
+(* For type equality *)
+(* here "arg_typ" is the type of "="'s argument's type, not the type of the equality *)
+(* Find type of equality arg *)
+fun eq_arg_type (Type("fun",[T,_])) = 
+    let val (folT,_) = type_of T;
+    in
+	folT
+    end;
+
+
+
 fun fun_name_type (Const(c,T)) = (lookup_const c,type_of T)
   | fun_name_type (Free(x,T)) = (make_fixed_var x,type_of T)
   | fun_name_type _ = raise CLAUSE("Function Not First Order");
     
+
 
 fun term_of (Var(ind_nm,T)) = 
     let val (folType,ts) = type_of T
@@ -257,7 +270,7 @@ fun term_of (Var(ind_nm,T)) =
 	else
             (Fun(make_fixed_var x,folType,[]),ts)
     end
-  | term_of (Const(c,T)) = 
+  | term_of (Const(c,T)) =  (* impossible to be equality *)
     let val (folType,ts) = type_of T
      in
         (Fun(lookup_const c,folType,[]),ts)
@@ -271,8 +284,16 @@ fun term_of (Var(ind_nm,T)) =
             in
 		(Fun(funName,funType,args'),ts3)
             end
+	fun term_of_eq ((Const ("op =", typ)),args) =
+	    let val arg_typ = eq_arg_type typ
+		val (args',ts) = ResLib.unzip (map term_of args)
+		val equal_name = lookup_const ("op =")
+	    in
+		(Fun(equal_name,arg_typ,args'),ResLib.flat_noDup ts)
+	    end
     in
-        case f of Const(_,_) => term_of_aux ()
+        case f of Const ("op =", typ) => term_of_eq (f,args)
+	        | Const(_,_) => term_of_aux ()
                 | Free(s,_)  => if (checkMeta s) then (raise CLAUSE("Function Not First Order")) else term_of_aux ()
                 | _          => raise CLAUSE("Function Not First Order")
     end
@@ -280,19 +301,6 @@ fun term_of (Var(ind_nm,T)) =
 
 
 
-
-(* For type equality *)
-(* here "arg_typ" is the type of "="'s argument's type, not the type of the equality *)
-(* Find type of equality arg *)
-local
-
-fun eq_arg_type (Type("fun",[T,_])) = 
-    let val (folT,_) = type_of T;
-    in
-	folT
-    end;
-
-in
 
 fun pred_of_eq ((Const ("op =", typ)),args) =
     let val arg_typ = eq_arg_type typ 
@@ -302,7 +310,6 @@ fun pred_of_eq ((Const ("op =", typ)),args) =
 	(Predicate(equal_name,arg_typ,args'),ResLib.flat_noDup ts)
     end;
 
-end;
 
 (* changed for non-equality predicate *)
 (* The input "pred" cannot be an equality *)
@@ -553,17 +560,6 @@ fun string_of_kind (Clause cls) = name_of_kind (#kind cls);
 
 fun string_of_axiomName (Clause cls) = #axiom_name cls;
 
-fun string_of_term (UVar(x,_)) = x
-  | string_of_term (Fun (name,typ,[])) = name
-  | string_of_term (Fun (name,typ,terms)) = 
-    let val terms' = map string_of_term terms
-    in
-        if (!keep_types) then name ^ (ResLib.list_to_string (typ :: terms'))
-        else name ^ (ResLib.list_to_string terms')
-    end;
-
-
-
 (****!!!! Changed for typed equality !!!!****)
 fun wrap_eq_type typ t = eq_typ_wrapper ^"(" ^ t ^ "," ^ typ ^ ")";
 
@@ -577,6 +573,18 @@ fun string_of_equality (typ,terms) =
 	    "equal(" ^ (wrap_eq_type typ tstr1) ^ "," ^ (wrap_eq_type typ tstr2) ^ ")"
 	else
 	    "equal(" ^ tstr1 ^ "," ^ tstr2 ^ ")"
+    end
+
+
+and
+    string_of_term (UVar(x,_)) = x
+  | string_of_term (Fun("equal",typ,terms)) = string_of_equality(typ,terms)
+  | string_of_term (Fun (name,typ,[])) = name
+  | string_of_term (Fun (name,typ,terms)) = 
+    let val terms' = map string_of_term terms
+    in
+        if (!keep_types) then name ^ (ResLib.list_to_string (typ :: terms'))
+        else name ^ (ResLib.list_to_string terms')
     end;
 
 
