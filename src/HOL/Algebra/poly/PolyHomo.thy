@@ -12,8 +12,8 @@ instance
   up :: (domain) domain (up_one_not_zero, up_integral)
 
 consts
-  EVAL2	:: ('a::ringS => 'b) => 'b => 'a up => 'b::ringS
-  EVAL	:: 'a::ringS => 'a up => 'a
+  EVAL2	:: "('a::ring => 'b) => 'b => 'a up => 'b::ring"
+  EVAL	:: "'a::ring => 'a up => 'a"
 
 defs
   EVAL2_def	"EVAL2 phi a p ==
