@@ -379,9 +379,11 @@ fun prefer (i, comment_ignore) = ProofHistory.applys (shuffle Method.prefer i);
 
 (* backward steps *)
 
-fun apply (m, comment_ignore) = ProofHistory.applys (Method.refine m o Proof.assert_backward);
-fun apply_end (m, comment_ignore) =
-  ProofHistory.applys (Method.refine_end m o Proof.assert_forward);
+fun apply (m, comment_ignore) = ProofHistory.applys
+  (Seq.map (Proof.goal_facts (K [])) o Method.refine m o Proof.assert_backward);
+
+fun apply_end (m, comment_ignore) = ProofHistory.applys
+  (Method.refine_end m o Proof.assert_forward);
 
 val proof = ProofHistory.applys o Method.proof o
   apsome Comment.ignore_interest o Comment.ignore_interest' o Comment.ignore;

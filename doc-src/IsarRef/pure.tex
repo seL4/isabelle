@@ -1017,9 +1017,10 @@ preparation, for example).
   order to complete the proof properly, any of the actual structured proof
   commands (e.g.\ ``$\DOT$'') has to be given eventually.
   
-  Facts are passed to $m$ as indicated by the goal's forward-chain mode.
-  Common use of $\isarkeyword{apply}$ would be in a purely backward manner,
-  though.
+  Facts are passed to $m$ as indicated by the goal's forward-chain mode, and
+  are \emph{consumed} afterwards.  Thus any further $\isarkeyword{apply}$
+  command would always work in a purely backward manner.
+
 \item [$\isarkeyword{apply_end}~(m)$] applies proof method $m$ as if in
   terminal position.  Basically, this simulates a multi-step tactic script for
   $\QEDNAME$, but may be given anywhere within the proof body.
