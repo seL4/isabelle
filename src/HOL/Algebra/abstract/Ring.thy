@@ -158,15 +158,10 @@ qed
 ML {*
   local
     val lhss = 
-        [read_cterm (sign_of (the_context ()))
-                    ("?t + ?u::'a::ring", TVar (("'z", 0), [])),
-	 read_cterm (sign_of (the_context ()))
-                    ("?t - ?u::'a::ring", TVar (("'z", 0), [])),
-	 read_cterm (sign_of (the_context ()))
-                    ("?t * ?u::'a::ring", TVar (("'z", 0), [])),
-	 read_cterm (sign_of (the_context ()))
-                    ("- ?t::'a::ring", TVar (("'z", 0), []))
-	];
+        ["t + u::'a::ring",
+	 "t - u::'a::ring",
+	 "t * u::'a::ring",
+	 "- t::'a::ring"];
     fun proc sg _ t = 
       let val rew = Tactic.prove sg [] []
             (HOLogic.mk_Trueprop
@@ -179,7 +174,7 @@ ML {*
         else Some rew 
     end;
   in
-    val ring_simproc = mk_simproc "ring" lhss proc;
+    val ring_simproc = Simplifier.simproc (sign_of (the_context ())) "ring" lhss proc;
   end;
 *}
 
