@@ -181,7 +181,7 @@ consts
 syntax
   "_index1"  :: index    ("\<^sub>1")
 translations
-  (index) "\<^sub>1" == "_index 1"
+  (index) "\<^sub>1" => (index) "\<^bsub>\<struct>\<^esub>"
 
 local
 
