@@ -308,16 +308,12 @@ qed "rev_flat";
 Goal "[| xs: list(nat);  ys: list(nat) |] ==> \
 \    list_add(xs@ys) = list_add(ys) #+ list_add(xs)";
 by (induct_tac "xs" 1);
-by (ALLGOALS 
-    (asm_simp_tac (simpset() addsimps [add_0_right, add_assoc RS sym])));
-by (rtac (add_commute RS subst_context) 1);
-by (REPEAT (ares_tac [refl, list_add_type] 1));
+by (ALLGOALS Asm_simp_tac);
 qed "list_add_app";
 
 Goal "l: list(nat) ==> list_add(rev(l)) = list_add(l)";
 by (induct_tac "l" 1);
-by (ALLGOALS
-    (asm_simp_tac (simpset() addsimps [list_add_app, add_0_right])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [list_add_app])));
 qed "list_add_rev";
 
 Goal "ls: list(list(nat)) ==> list_add(flat(ls)) = list_add(map(list_add,ls))";

@@ -105,7 +105,7 @@ by (etac boolE 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps zadd_ac)));
 qed "integ_of_succ";
 
-Goal "w: bin ==> integ_of(bin_pred(w)) = $~ ($#1) $+ integ_of(w)";
+Goal "w: bin ==> integ_of(bin_pred(w)) = $- ($#1) $+ integ_of(w)";
 by (etac bin.induct 1);
 by (Simp_tac 1);
 by (Simp_tac 1);
@@ -118,7 +118,7 @@ Addsimps [integ_of_succ, integ_of_pred];
 
 (*** bin_minus: (unary!) negation of binary integers ***)
 
-Goal "w: bin ==> integ_of(bin_minus(w)) = $~ integ_of(w)";
+Goal "w: bin ==> integ_of(bin_minus(w)) = $- integ_of(w)";
 by (etac bin.induct 1);
 by (Simp_tac 1);
 by (Simp_tac 1);
@@ -236,6 +236,41 @@ qed "bin_mult_BIT1";
 Goal "bin_mult(v BIT 0, w) = NCons(bin_mult(v,w),0)";
 by (Simp_tac 1);
 qed "bin_mult_BIT0";
+
+
+(** Simplification rules with integer constants **)
+
+Goal "#0 $+ z = intify(z)";
+by (Simp_tac 1);
+qed "zadd_0_intify";
+
+Goal "z $+ #0 = intify(z)";
+by (Simp_tac 1);
+qed "zadd_0_right_intify";
+
+Addsimps [zadd_0_intify, zadd_0_right_intify];
+
+Goal "#1 $* z = intify(z)";
+by (Simp_tac 1);
+qed "zmult_1_intify";
+
+Goal "z $* #1 = intify(z)";
+by (stac zmult_commute 1);
+by (Simp_tac 1);
+qed "zmult_1_right_intify";
+
+Addsimps [zmult_1_intify, zmult_1_right_intify];
+
+Goal "#0 $* z = #0";
+by (Simp_tac 1);
+qed "zmult_0";
+
+Goal "z $* #0 = #0";
+by (stac zmult_commute 1);
+by (Simp_tac 1);
+qed "zmult_0_right";
+
+Addsimps [zmult_0, zmult_0_right];
 
 
 (*Delete the original rewrites, with their clumsy conditional expressions*)

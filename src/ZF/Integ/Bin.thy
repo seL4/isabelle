@@ -41,7 +41,7 @@ consts
 
 primrec
   integ_of_Pls  "integ_of (Pls)     = $# 0"
-  integ_of_Min  "integ_of (Min)     = $~($#1)"
+  integ_of_Min  "integ_of (Min)     = $-($#1)"
   integ_of_BIT  "integ_of (w BIT b) = $#b $+ integ_of(w) $+ integ_of(w)"
 
     (** recall that cond(1,b,c)=b and cond(0,b,c)=0 **)

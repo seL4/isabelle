@@ -1345,13 +1345,8 @@ Goalw [e_less_def]  (* e_less_eq *)
 by (asm_simp_tac (simpset() addsimps[diff_self_eq_0]) 1);
 qed "e_less_eq";
  
-(* ARITH_CONV proves the following in HOL. Would like something similar 
-   in Isabelle/ZF. *)
-
 Goal "succ(m#+n)#-m = succ(natify(n))";
-by (asm_simp_tac
-    (simpset() delsimps [add_succ_right]
-	       addsimps [add_succ_right RS sym, diff_add_inverse]) 1);
+by (Asm_simp_tac 1);
 val lemma_succ_sub = result();
 
 Goalw [e_less_def]
@@ -1364,7 +1359,7 @@ by (Asm_simp_tac 1);
 qed "add1";
 
 Goal "[| m le n; n: nat |] ==> EX k: nat. n = m #+ k";
-by (dtac less_imp_Suc_add 1);
+by (dtac less_imp_succ_add 1);
 by Auto_tac;  
 val lemma_le_exists = result();
 
@@ -1725,7 +1720,7 @@ by (asm_simp_tac(simpset() addsimps
 by (auto_tac (claset() addIs [e_gr_e_less_split_add], simpset()));
 qed "eps_split_add_right_rev";
 
-(* Arithmetic, little support in Isabelle/ZF. *)
+(* Arithmetic *)
 
 val [prem1,prem2,prem3,prem4] = Goal
     "[| n le k; k le m;  \
@@ -1734,13 +1729,12 @@ val [prem1,prem2,prem3,prem4] = Goal
 by (rtac (prem1 RS le_exists) 1);
 by (simp_tac (simpset() addsimps [prem2 RS lt_nat_in_nat, prem4]) 2);
 by (rtac ([prem1,prem2] MRS le_trans RS le_exists) 1);
+by (rtac prem4 2);
 by (rtac prem3 1);
 by (assume_tac 2);
 by (assume_tac 2);
 by (cut_facts_tac [prem1,prem2] 1);
-by (Asm_full_simp_tac 1);
-by (etac add_le_elim1 1);
-by (REPEAT (ares_tac prems 1));
+by Auto_tac;
 qed "le_exists_lemma";
 
 Goal  (* eps_split_left_le *)

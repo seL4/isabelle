@@ -6,7 +6,7 @@
 The "divides" relation, the greatest common divisor and Euclid's algorithm
 *)
 
-Primes = Arith +
+Primes = Main +
 consts
   dvd     :: [i,i]=>o              (infixl 70) 
   gcd     :: [i,i,i]=>o            (* great common divisor *)

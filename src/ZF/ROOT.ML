@@ -18,6 +18,8 @@ print_depth 1;
 (*Add user sections for inductive/datatype definitions*)
 use     "thy_syntax";
 
+use "~~/src/Provers/Arith/cancel_numerals.ML";
+
 use_thy "ZF";
 use     "Tools/typechk";
 use_thy "mono";

@@ -6,7 +6,7 @@
 The integers as equivalence classes over nat*nat.
 *)
 
-Int = EquivClass + Arith +
+Int = EquivClass + ArithSimp +
 
 constdefs
   intrel :: i
@@ -25,8 +25,8 @@ constdefs
   raw_zminus :: i=>i
     "raw_zminus(z) == UN <x,y>: z. intrel``{<y,x>}"
 
-  zminus :: i=>i                                 ("$~ _" [80] 80)
-    "$~ z == raw_zminus (intify(z))"
+  zminus :: i=>i                                 ("$- _" [80] 80)
+    "$- z == raw_zminus (intify(z))"
 
   znegative   ::      i=>o
     "znegative(z) == EX x y. x<y & y:nat & <x,y>:z"
@@ -34,7 +34,7 @@ constdefs
   zmagnitude  ::      i=>i
     "zmagnitude(z) ==
      THE m. m : nat & ((~ znegative(z) & z = $# m) |
-		       (znegative(z) & $~ z = $# m))"
+		       (znegative(z) & $- z = $# m))"
 
   raw_zmult   ::      [i,i]=>i
     (*Cannot use UN<x1,y2> here or in zadd because of the form of congruent2.
@@ -60,6 +60,9 @@ constdefs
 
   zless        ::      [i,i]=>o      (infixl "$<" 50)
      "z1 $< z2 == znegative(z1 $- z2)"
+  
+  zle          ::      [i,i]=>o      (infixl "$<=" 50)
+     "z1 $<= z2 == z1 $< z2 | z1=z2"
   
 (*div and mod await definitions!*)
 consts

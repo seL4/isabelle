@@ -26,12 +26,12 @@ Goal "#93746  $+  #-46375 = #47371";
 by (Simp_tac 1);    (*300 msec*)
 result();
 
-Goal "$~ #65745 = #-65745";
+Goal "$- #65745 = #-65745";
 by (Simp_tac 1);    (*80 msec*)
 result();
 
 (* negation of ~54321 *)
-Goal "$~ #-54321 = #54321";
+Goal "$- #-54321 = #54321";
 by (Simp_tac 1);    (*90 msec*)
 result();
 
