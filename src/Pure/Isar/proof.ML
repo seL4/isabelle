@@ -342,7 +342,7 @@ fun print_state nr (state as State (Node {context = ctxt, facts, mode, goal = _}
       | subgoals n = ", " ^ string_of_int n ^ " subgoals";
 
     fun prt_names names =
-      (case filter_out (equal "") names of [] => "" | nms => space_implode " and " nms);
+      (case filter_out (equal "") names of [] => "" | nms => " " ^ space_implode " and " nms);
 
     fun prt_goal (_, (i, (((kind, names, _), (goal_facts, thm)), _))) =
       pretty_facts "using " ctxt
@@ -632,7 +632,9 @@ fun setup_goal opt_block prepp autofix kind after_qed names raw_propss state =
     state'
     |> map_context (autofix props)
     |> put_goal (Some (((kind, names, propss), ([], goal)), after_qed o map_context gen_binds))
-    |> map_context (ProofContext.add_cases (RuleCases.make true goal [rule_contextN]))
+    |> map_context (ProofContext.add_cases
+     (if length props = 1 then RuleCases.make true goal [rule_contextN]
+      else [(rule_contextN, RuleCases.empty)]))
     |> auto_bind_goal props
     |> (if is_chain state then use_facts else reset_facts)
     |> new_block
