@@ -57,11 +57,10 @@ val Const ("==>", _) $ (Const ("Trueprop", _) $
 fun split_format_err() = error("Wrong format for split rule");
 
 fun split_thm_info thm = case concl_of (Data.mk_eq thm) of
-     Const("==", _)$(Var _$t)$c =>
-        (case strip_comb t of
-           (Const(a,_),_) => (a,case c of (Const(s,_)$_)=>s=const_not|_=> false)
-         | _              => split_format_err())
-   | _ => split_format_err();
+     Const("==", _) $ (Var _ $ t) $ c => (case strip_comb t of
+       (Const p, _) => (p, case c of (Const (s, _) $ _) => s = const_not | _ => false)
+     | _ => split_format_err ())
+   | _ => split_format_err ();
 
 fun mk_case_split_tac order =
 let
@@ -371,7 +370,7 @@ val split_inside_tac = mk_case_split_tac (rev_order o int_ord);
 fun split_asm_tac []     = K no_tac
   | split_asm_tac splits = 
 
-  let val cname_list = map (fst o split_thm_info) splits;
+  let val cname_list = map (fst o fst o split_thm_info) splits;
       fun is_case (a,_) = a mem cname_list;
       fun tac (t,i) = 
 	  let val n = find_index (exists_Const is_case) 
@@ -410,19 +409,22 @@ fun gen_split_tac [] = K no_tac
 
 (* addsplits / delsplits *)
 
-fun split_name name asm = "split " ^ name ^ (if asm then " asm" else "");
+fun split_name sg (name, T) asm = "split " ^ 
+  (if asm then "asm " else "") ^ name ^ " :: " ^
+  Sign.string_of_typ sg (typ_subst_TVars
+    (map (rpair dummyT o fst) (typ_tvars T)) T);
 
 fun ss addsplits splits =
   let fun addsplit (ss,split) =
         let val (name,asm) = split_thm_info split
-        in Simplifier.addloop(ss,(split_name name asm,
+        in Simplifier.addloop (ss, (split_name (sign_of_thm split) name asm,
 		       (if asm then split_asm_tac else split_tac) [split])) end
   in foldl addsplit (ss,splits) end;
 
 fun ss delsplits splits =
   let fun delsplit(ss,split) =
         let val (name,asm) = split_thm_info split
-        in Simplifier.delloop(ss,split_name name asm)
+        in Simplifier.delloop (ss, split_name (sign_of_thm split) name asm)
   end in foldl delsplit (ss,splits) end;
 
 fun Addsplits splits = (Simplifier.simpset_ref() := 
