@@ -42,6 +42,7 @@ signature GOALS =
   val goalw_cterm	: thm list -> cterm -> thm list
   val pop_proof		: unit -> thm list
   val pr		: unit -> unit
+  val prlim		: int -> unit
   val pr_latex		: unit -> unit
   val printgoal_latex	: int -> unit
   val premises		: unit -> thm list
@@ -287,9 +288,12 @@ fun chop_level n (pair,pairs) =
 		   string_of_int level)
   end;
 
-(*Print the given level of the proof*)
+(*Print the given level of the proof; prlev ~1 prints previous level*)
 fun prlev n = apply_fun (print_top o pop o (chop_level n));
 fun pr () = apply_fun print_top;
+
+(*Set goals_limit and print again*)
+fun prlim n = (goals_limit:=n; pr());
 
 (** the goal.... commands
     Read main goal.  Set global variables curr_prems, curr_mkresult. 
