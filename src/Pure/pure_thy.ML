@@ -28,10 +28,13 @@ sig
   val get_tthms: theory -> xstring -> tthm list
   val get_tthmss: theory -> xstring list -> tthm list
   val thms_containing: theory -> string list -> (string * thm) list
+  val default_name: string -> string
   val store_tthm: (bstring * tthm) * theory attribute list -> theory -> theory * tthm
   val smart_store_thm: (bstring * thm) -> thm
   val add_tthms: ((bstring * tthm) * theory attribute list) list -> theory -> theory
   val add_tthmss: ((bstring * tthm list) * theory attribute list) list -> theory -> theory
+  val have_tthmss: bstring -> theory attribute list ->
+    (tthm list * theory attribute list) list -> theory -> theory * tthm list
   val add_axioms: ((bstring * string) * theory attribute list) list -> theory -> theory
   val add_axioms_i: ((bstring * term) * theory attribute list) list -> theory -> theory
   val add_axiomss: ((bstring * string list) * theory attribute list) list -> theory -> theory
@@ -201,11 +204,13 @@ fun thms_containing thy consts =
 
 (* naming *)
 
+val default_name = fn "" => "it" | name => name;
+
 fun gen_names len name =
   map (fn i => name ^ "_" ^ string_of_int i) (1 upto len);
 
-fun name_single name x = [(name, x)];
-fun name_multi name xs = gen_names (length xs) name ~~ xs;
+fun name_single name x = [(default_name name, x)];
+fun name_multi name xs = gen_names (length xs) (default_name name) ~~ xs;
 
 
 (* enter_tthmx *)
@@ -253,10 +258,21 @@ fun add_tthmx app_name app_att ((bname, tthmx), atts) thy =
     val tthms'' = enter_tthmx (Theory.sign_of thy') app_name (bname, tthmx');
   in (thy', tthms'') end;
 
-val add_tthms =
-  Theory.apply o map (fn th_atts => fst o add_tthmx name_single Attribute.apply th_atts);
-val add_tthmss =
-  Theory.apply o map (fn th_atts => fst o add_tthmx name_multi Attribute.applys th_atts);
+fun add_tthmxs name app = Library.apply o map (fst oo add_tthmx name app);
+
+val add_tthms = add_tthmxs name_single Attribute.apply;
+val add_tthmss = add_tthmxs name_multi Attribute.applys;
+
+
+(* have_tthmss *)
+
+fun have_tthmss bname more_atts ths_atts thy =
+  let
+    fun app (x, (ths, atts)) = Attribute.applys ((x, ths), atts);
+    val (thy', tthmss') =
+      foldl_map app (thy, map (fn (ths, atts) => (ths, atts @ more_atts)) ths_atts);
+    val tthms'' = enter_tthmx (Theory.sign_of thy') name_multi (bname, flat tthmss');
+  in (thy, tthms'') end;
 
 
 (* store_tthm *)
@@ -283,7 +299,7 @@ local
       val tthms = map (Attribute.tthm_of o Thm.get_axiom thy' o fst) named_axs;
     in add_tthmss [((name, tthms), atts)] thy' end;
 
-  fun add_axs app_name add = Theory.apply o map (add_ax app_name add);
+  fun add_axs app_name add = Library.apply o map (add_ax app_name add);
 in
   val add_axioms    = add_axs name_single Theory.add_axioms;
   val add_axioms_i  = add_axs name_single Theory.add_axioms_i;
@@ -390,7 +406,7 @@ fun add_typedecls decls thy =
 
 val proto_pure =
   Theory.pre_pure
-  |> Theory.apply [TheoremsData.init, TheoryManagementData.init]
+  |> Library.apply [TheoremsData.init, TheoryManagementData.init]
   |> put_name "ProtoPure"
   |> global_path
   |> Theory.add_types
