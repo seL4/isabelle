@@ -39,8 +39,8 @@ sig
     val certify_term: sg -> term -> term * typ * int
     val read_typ: sg * (indexname -> sort option) -> string -> typ
     val infer_types: sg -> (indexname -> typ option) ->
-      (indexname -> sort option) -> bool -> term list * typ ->
-      int * term * (indexname * typ) list
+      (indexname -> sort option) -> string list -> bool -> bool
+      -> term list * typ -> int * term * (indexname * typ) list
     val add_classes: (class * class list) list -> sg -> sg
     val add_classrel: (class * class) list -> sg -> sg
     val add_defsort: sort -> sg -> sg
@@ -252,7 +252,7 @@ fun certify_term (sg as Sg {tsig, ...}) tm =
 
 (** infer_types **)         (*exception ERROR*)
 
-fun infer_types sg types sorts print_msg (ts, T) =
+fun infer_types sg types sorts used freeze print_msg (ts, T) =
   let
     val Sg {tsig, ...} = sg;
     val show_typ = string_of_typ sg;
@@ -268,16 +268,16 @@ fun infer_types sg types sorts print_msg (ts, T) =
 	cat_lines (map show_typ Ts) ^ term_err ts ^ "\n";
 
     val T' = certify_typ sg T
-      handle TYPE arg => error (exn_type_msg arg);
+             handle TYPE arg => error (exn_type_msg arg);
 
     val ct = const_type sg;
 
     fun process_terms (t::ts) (idx, infrd_t, tye) msg n =
-         let fun mk_some (x, y) = (Some x, Some y);
-
-             val ((infrd_t', tye'), msg') = 
-              (mk_some (Type.infer_types (tsig, ct, types, sorts, T', t)), msg)
-              handle TYPE arg => ((None, None), exn_type_msg arg)
+         let val (infrd_t', tye', msg') = 
+              let val (T,tye) =
+                    Type.infer_types(tsig,ct,types,sorts,used,freeze,T',t)
+              in (Some T, Some tye, msg) end
+              handle TYPE arg => (None, None, exn_type_msg arg)
 
              val old_show_brackets = !show_brackets;
 
@@ -291,8 +291,8 @@ fun infer_types sg types sorts print_msg (ts, T) =
                 (show_term (the infrd_t)) else msg') ^ "\n" ^ 
                 (show_term (the infrd_t')) ^ "\n";
 
-             val _ = (show_brackets := old_show_brackets);
-         in if is_none infrd_t' then
+         in show_brackets := old_show_brackets;
+            if is_none infrd_t' then
               process_terms ts (idx, infrd_t, tye) msg'' (n+1)
             else
               process_terms ts (Some n, infrd_t', tye') msg'' (n+1)

@@ -197,9 +197,11 @@ let val {maxidx,sign,...} = rep_thm state
     val rts = types_sorts rule and (types,sorts) = types_sorts state
     fun types'(a,~1) = (case assoc(params,a) of None => types(a,~1) | sm => sm)
       | types'(ixn) = types ixn;
-    val (Tinsts,insts) = read_insts sign rts (types',sorts) sinsts
+    val used = add_term_tvarnames
+                  (#prop(rep_thm state) $ #prop(rep_thm rule),[])
+    val (Tinsts,insts) = read_insts sign rts (types',sorts) used sinsts
 in instantiate (map lifttvar Tinsts, map liftpair insts)
-		(lift_rule (state,i) rule)
+               (lift_rule (state,i) rule)
 end;
 
 

@@ -189,7 +189,14 @@ fun size_of_term (Abs (_,_,body)) = 1 + size_of_term body
   | size_of_term (f$t) = size_of_term f  +  size_of_term t
   | size_of_term _ = 1;
 
- 
+fun map_type_tvar f (Type(a,Ts)) = Type(a, map (map_type_tvar f) Ts)
+  | map_type_tvar f (T as TFree _) = T
+  | map_type_tvar f (TVar x) = f x;
+
+fun map_type_tfree f (Type(a,Ts)) = Type(a, map (map_type_tfree f) Ts)
+  | map_type_tfree f (TFree x) = f x
+  | map_type_tfree f (T as TVar _) = T;
+
 (* apply a function to all types in a term *)
 fun map_term_types f =
 let fun map(Const(a,T)) = Const(a, f T)
@@ -432,9 +439,7 @@ fun maxidx_of_term (Const(_,T)) = maxidx_of_typ T
 
 
 (* Increment the index of all Poly's in T by k *)
-fun incr_tvar k (Type(a,Ts)) = Type(a, map (incr_tvar k) Ts)
-  | incr_tvar k (T as TFree _) = T
-  | incr_tvar k (TVar((a,i),rs)) = TVar((a,i+k),rs);
+fun incr_tvar k = map_type_tvar (fn ((a,i),S) => TVar((a,i+k),S));
 
 
 (**** Syntax-related declarations ****)
@@ -500,19 +505,39 @@ fun add_typ_tfrees(Type(_,Ts),fs) = foldr add_typ_tfrees (Ts,fs)
   | add_typ_tfrees(TFree(f),fs) = f ins fs
   | add_typ_tfrees(TVar(_),fs) = fs;
 
+fun add_typ_varnames(Type(_,Ts),nms) = foldr add_typ_varnames (Ts,nms)
+  | add_typ_varnames(TFree(nm,_),nms) = nm ins nms
+  | add_typ_varnames(TVar((nm,_),_),nms) = nm ins nms;
+
 (*Accumulates the TVars in a term, suppressing duplicates. *)
 val add_term_tvars = it_term_types add_typ_tvars;
-val add_term_tvar_ixns = (map #1) o (it_term_types add_typ_tvars);
 
 (*Accumulates the TFrees in a term, suppressing duplicates. *)
 val add_term_tfrees = it_term_types add_typ_tfrees;
 val add_term_tfree_names = it_term_types add_typ_tfree_names;
+
+val add_term_tvarnames = it_term_types add_typ_varnames;
 
 (*Non-list versions*)
 fun typ_tfrees T = add_typ_tfrees(T,[]);
 fun typ_tvars T = add_typ_tvars(T,[]);
 fun term_tfrees t = add_term_tfrees(t,[]);
 fun term_tvars t = add_term_tvars(t,[]);
+
+(*special code to enforce left-to-right collection of TVar-indexnames*)
+
+fun add_typ_ixns(ixns,Type(_,Ts)) = foldl add_typ_ixns (ixns,Ts)
+  | add_typ_ixns(ixns,TVar(ixn,_)) = if ixn mem ixns then ixns else ixns@[ixn]
+  | add_typ_ixns(ixns,TFree(_)) = ixns;
+
+fun add_term_tvar_ixns(Const(_,T),ixns) = add_typ_ixns(ixns,T)
+  | add_term_tvar_ixns(Free(_,T),ixns) = add_typ_ixns(ixns,T)
+  | add_term_tvar_ixns(Var(_,T),ixns) = add_typ_ixns(ixns,T)
+  | add_term_tvar_ixns(Bound _,ixns) = ixns
+  | add_term_tvar_ixns(Abs(_,T,t),ixns) =
+      add_term_tvar_ixns(t,add_typ_ixns(ixns,T))
+  | add_term_tvar_ixns(f$t,ixns) =
+      add_term_tvar_ixns(t,add_term_tvar_ixns(f,ixns));
 
 (** Frees and Vars **)
 

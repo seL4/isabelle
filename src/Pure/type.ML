@@ -41,10 +41,12 @@ sig
   val rem_sorts: typ -> typ
   val cert_typ: type_sig -> typ -> typ
   val norm_typ: type_sig -> typ -> typ
-  val freeze: (indexname -> bool) -> term -> term
+  val freeze: term -> term
   val freeze_vars: typ -> typ
-  val infer_types: type_sig * (string -> typ option) * (indexname -> typ option) *
-    (indexname -> sort option) * typ * term -> term * (indexname * typ) list
+  val infer_types: type_sig * (string -> typ option) *
+                   (indexname -> typ option) * (indexname -> sort option) *
+                   string list * bool * typ * term
+                   -> term * (indexname * typ) list
   val inst_term_tvars: type_sig * (indexname * typ) list -> term -> term
   val thaw_vars: typ -> typ
   val typ_errors: type_sig -> typ * string list -> string list
@@ -72,9 +74,7 @@ fun no_tvars T =
   else raise_type "Illegal schematic type variable(s)" [T] [];
 
 (*turn TFrees into TVars to allow types & axioms to be written without "?"*)
-fun varifyT (Type (a, Ts)) = Type (a, map varifyT Ts)
-  | varifyT (TFree (a, S)) = TVar ((a, 0), S)
-  | varifyT T = T;
+val varifyT = map_type_tfree (fn (a, S) => TVar((a, 0), S));
 
 (*inverse of varifyT*)
 fun unvarifyT (Type (a, Ts)) = Type (a, map unvarifyT Ts)
@@ -87,13 +87,10 @@ fun varify (t, fixed) =
     val fs = add_term_tfree_names (t, []) \\ fixed;
     val ixns = add_term_tvar_ixns (t, []);
     val fmap = fs ~~ variantlist (fs, map #1 ixns)
-    fun thaw (Type(a, Ts)) = Type (a, map thaw Ts)
-      | thaw (T as TVar _) = T
-      | thaw (T as TFree(a, S)) =
-          (case assoc (fmap, a) of None => T | Some b => TVar((b, 0), S))
-  in
-    map_term_types thaw t
-  end;
+    fun thaw(f as (a,S)) = case assoc (fmap, a) of
+                             None => TFree(f)
+                           | Some b => TVar((b, 0), S)
+  in  map_term_types (map_type_tfree thaw) t  end;
 
 
 
@@ -298,11 +295,10 @@ fun cod_above (a, w, ars) = min_filter a (fn w' => lew a (w, w')) ars;
 (*Instantiation of type variables in types*)
 (*Pre: instantiations obey restrictions! *)
 fun inst_typ tye =
-  let fun inst(Type(a, Ts)) = Type(a, map inst Ts)
-        | inst(T as TFree _) = T
-        | inst(T as TVar(v, _)) =
-            (case assoc(tye, v) of Some U => inst U | None => T)
-  in inst end;
+  let fun inst(var as (v, _)) = case assoc(tye, v) of
+                                  Some U => inst_typ tye U
+                                | None => TVar(var)
+  in map_type_tvar inst end;
 
 (* 'least_sort' returns for a given type its maximum sort:
    - type variables, free types: the sort brought with
@@ -327,11 +323,10 @@ fun check_has_sort(tsig as TySg{subclass, coreg, ...}, T, S) =
 
 (*Instantiation of type variables in types *)
 fun inst_typ_tvars(tsig, tye) =
-  let fun inst(Type(a, Ts)) = Type(a, map inst Ts)
-        | inst(T as TFree _) = T
-        | inst(T as TVar(v, S)) = (case assoc(tye, v) of
-                None => T | Some(U) => (check_has_sort(tsig, U, S); U))
-  in inst end;
+  let fun inst(var as (v, S)) = case assoc(tye, v) of
+              Some U => (check_has_sort(tsig, U, S); U)
+            | None => TVar(var)
+  in map_type_tvar inst end;
 
 (*Instantiation of type variables in terms *)
 fun inst_term_tvars(tsig, tye) = map_term_types (inst_typ_tvars(tsig, tye));
@@ -927,9 +922,8 @@ fun infer tsig =
            end
   in inf end;
 
-fun freeze_vars(Type(a, Ts)) = Type(a, map freeze_vars Ts)
-  | freeze_vars(T as TFree _) = T
-  | freeze_vars(TVar(v, S)) = TFree(Syntax.string_of_vname v, S);
+val freeze_vars =
+      map_type_tvar (fn (v, S) => TFree(Syntax.string_of_vname v, S));
 
 (* Attach a type to a constant *)
 fun type_const (a, T) = Const(a, incr_tvar (new_tvar_inx()) T);
@@ -1013,25 +1007,42 @@ fun unconstrain (Abs(a, T, t)) = Abs(a, T, unconstrain t)
   | unconstrain (f$t) = unconstrain f $ unconstrain t
   | unconstrain (t) = t;
 
+fun nextname(pref,c) = if c="z" then (pref^"a", "a") else (pref,chr(ord(c)+1));
 
-(* Turn all TVars which satisfy p into new TFrees *)
-fun freeze p t =
-  let val fs = add_term_tfree_names(t, []);
-      val inxs = filter p (add_term_tvar_ixns(t, []));
-      val vmap = inxs ~~ variantlist(map #1 inxs, fs);
-      fun free(Type(a, Ts)) = Type(a, map free Ts)
-        | free(T as TVar(v, S)) =
-            (case assoc(vmap, v) of None => T | Some(a) => TFree(a, S))
-        | free(T as TFree _) = T
-  in map_term_types free t end;
+fun newtvars used =
+  let fun new([],_,vmap) = vmap
+        | new(ixn::ixns,p as (pref,c),vmap) =
+            let val nm = pref ^ c
+            in if nm mem used then new(ixn::ixns,nextname p, vmap)
+               else new(ixns, nextname p, (ixn,nm)::vmap)
+            end
+  in new end;
+
+(*
+Turn all TVars which satisfy p into new (if freeze then TFrees else TVars).
+Note that if t contains frozen TVars there is the possibility that a TVar is
+turned into one of those. This is sound but not complete.
+*)
+fun convert used freeze p t =
+  let val used = if freeze then add_term_tfree_names(t, used)
+                 else used union
+                      (map #1 (filter_out p (add_term_tvar_ixns(t, []))))
+      val ixns = filter p (add_term_tvar_ixns(t, []));
+      val vmap = newtvars used (ixns,("'","a"),[]);
+      fun conv(var as (ixn,S)) = case assoc(vmap,ixn) of
+            None => TVar(var) |
+            Some(a) => if freeze then TFree(a,S) else TVar((a,0),S);
+  in map_term_types (map_type_tvar conv) t end;
+
+fun freeze t = convert (add_term_tfree_names(t,[])) true (K true) t;
 
 (* Thaw all TVars that were frozen in freeze_vars *)
-fun thaw_vars(Type(a, Ts)) = Type(a, map thaw_vars Ts)
-  | thaw_vars(T as TFree(a, S)) = (case explode a of
+val thaw_vars =
+  let fun thaw(f as (a, S)) = (case explode a of
           "?"::"'"::vn => let val ((b, i), _) = Syntax.scan_varname vn
                           in TVar(("'"^b, i), S) end
-        | _ => T)
-  | thaw_vars(T) = T;
+        | _ => TFree f)
+  in map_type_tfree thaw end;
 
 
 fun restrict tye =
@@ -1041,8 +1052,8 @@ fun restrict tye =
 
 
 (*Infer types for term t using tables. Check that t's type and T unify *)
-
-fun infer_term (tsig, const_type, types, sorts, T, t) =
+(*freeze determines if internal TVars are turned into TFrees or TVars*)
+fun infer_term (tsig, const_type, types, sorts, used, freeze, T, t) =
   let
     val u = attach_types (tsig, const_type, types, sorts) t;
     val (U, tye) = infer tsig ([], u, []);
@@ -1053,8 +1064,8 @@ fun infer_term (tsig, const_type, types, sorts, T, t) =
     val all = Const("", Type("", map snd Ttye)) $ (inst_types tye' uu)
       (*all is a dummy term which contains all exported TVars*)
     val Const(_, Type(_, Ts)) $ u'' =
-      map_term_types thaw_vars (freeze (fn (_, i) => i < 0) all)
-      (*turn all internally generated TVars into TFrees
+      map_term_types thaw_vars (convert used freeze (fn (_, i) => i < 0) all)
+      (*convert all internally generated TVars into TFrees or TVars
         and thaw all initially frozen TVars*)
   in
     (u'', (map fst Ttye) ~~ Ts)
@@ -1064,4 +1075,3 @@ fun infer_types args = (tyinit (); infer_term args);
 
 
 end;
-

@@ -106,7 +106,7 @@ sig
   val cpure_thy		: theory
   val read_def_cterm 	:
          Sign.sg * (indexname -> typ option) * (indexname -> sort option) ->
-         string * typ -> cterm * (indexname * typ) list
+         string list -> bool -> string * typ -> cterm * (indexname * typ) list
    val reflexive	: cterm -> thm
   val rename_params_rule: string list * int -> thm -> thm
   val rep_thm		: thm -> {prop: term, hyps: term list, 
@@ -193,17 +193,18 @@ fun dest_cimplies (Cterm{sign, T, maxidx, t=Const("==>", _) $ A $ B}) =
 (** read cterms **)   (*exception ERROR*)
 
 (*read term, infer types, certify term*)
-fun read_def_cterm (sign, types, sorts) (a, T) =
+fun read_def_cterm (sign, types, sorts) used freeze (a, T) =
   let
     val T' = Sign.certify_typ sign T
       handle TYPE (msg, _, _) => error msg;
     val ts = Syntax.read (#syn (Sign.rep_sg sign)) T' a;
-    val (_, t', tye) = Sign.infer_types sign types sorts true (ts, T');
+    val (_, t', tye) =
+          Sign.infer_types sign types sorts used freeze true (ts, T');
     val ct = cterm_of sign t'
       handle TERM (msg, _) => error msg;
   in (ct, tye) end;
 
-fun read_cterm sign = #1 o read_def_cterm (sign, K None, K None);
+fun read_cterm sign = #1 o read_def_cterm (sign, K None, K None) [] true;
 
 
 
@@ -371,8 +372,10 @@ fun read_axm sg (name, str) =
     handle ERROR => err_in_axm name;
 
 fun inferT_axm sg (name, pre_tm) =
- (name, no_vars (#2 (Sign.infer_types sg (K None) (K None) true ([pre_tm], propT))))
-    handle ERROR => err_in_axm name;
+  let val t = #2(Sign.infer_types sg (K None) (K None) [] true true
+                                     ([pre_tm], propT))
+  in  (name, no_vars t) end
+  handle ERROR => err_in_axm name;
 
 
 (* extend axioms of a theory *)
@@ -758,7 +761,7 @@ fun varifyT(Thm{sign,maxidx,hyps,prop}) =
 
 (* Replace all TVars by new TFrees *)
 fun freezeT(Thm{sign,maxidx,hyps,prop}) =
-  let val prop' = Type.freeze (K true) prop
+  let val prop' = Type.freeze prop
   in Thm{sign=sign, maxidx=maxidx_of_term prop', hyps=hyps, prop=prop'} end;
 
 

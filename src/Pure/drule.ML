@@ -57,7 +57,7 @@ signature DRULE =
   val read_insts	:
           Sign.sg -> (indexname -> typ option) * (indexname -> sort option)
                   -> (indexname -> typ option) * (indexname -> sort option)
-                  -> (string*string)list
+                  -> string list -> (string*string)list
                   -> (indexname*ctyp)list * (cterm*cterm)list
   val reflexive_thm	: thm
   val revcut_rl		: thm
@@ -249,7 +249,7 @@ fun absent ixn =
 fun inst_failure ixn =
   error("Instantiation of " ^ Syntax.string_of_vname ixn ^ " fails");
 
-fun read_insts sign (rtypes,rsorts) (types,sorts) insts =
+fun read_insts sign (rtypes,rsorts) (types,sorts) used insts =
 let val {tsig,...} = Sign.rep_sg sign
     fun split([],tvs,vs) = (tvs,vs)
       | split((sv,st)::l,tvs,vs) = (case explode sv of
@@ -264,14 +264,15 @@ let val {tsig,...} = Sign.rep_sg sign
            else inst_failure ixn
         end
     val tye = map readT tvs;
-    fun add_cterm ((cts,tye), (ixn,st)) =
+    fun add_cterm ((cts,tye,used), (ixn,st)) =
         let val T = case rtypes ixn of
                       Some T => typ_subst_TVars tye T
                     | None => absent ixn;
-            val (ct,tye2) = read_def_cterm (sign,types,sorts) (st,T);
+            val (ct,tye2) = read_def_cterm(sign,types,sorts) used false (st,T);
             val cv = cterm_of sign (Var(ixn,typ_subst_TVars tye2 T))
-        in ((cv,ct)::cts,tye2 @ tye) end
-    val (cterms,tye') = foldl add_cterm (([],tye), vs);
+            val used' = add_term_tvarnames(term_of ct,used);
+        in ((cv,ct)::cts,tye2 @ tye,used') end
+    val (cterms,tye',_) = foldl add_cterm (([],tye,used), vs);
 in (map (fn (ixn,T) => (ixn,ctyp_of sign T)) tye', cterms) end;
 
 
@@ -584,7 +585,7 @@ fun tha COMP thb =
 (*Instantiate theorem th, reading instantiations under signature sg*)
 fun read_instantiate_sg sg sinsts th =
     let val ts = types_sorts th;
-    in  instantiate (read_insts sg ts ts sinsts) th  end;
+    in  instantiate (read_insts sg ts ts [] sinsts) th  end;
 
 (*Instantiate theorem th, reading instantiations under theory of th*)
 fun read_instantiate sinsts th =
