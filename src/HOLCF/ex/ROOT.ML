@@ -9,7 +9,7 @@ Executes all examples for HOLCF.
 HOLCF_build_completed;    (*Cause examples to fail if HOLCF did*)
 
 writeln"Root file for HOLCF examples";
-proof_timing := true;
+set proof_timing;
 
 time_use_thy "Dnat";
 time_use_thy "Stream";
@@ -19,6 +19,3 @@ time_use_thy "Fix2";
 time_use_thy "Hoare";
 time_use_thy "Loop";
 time_use "loeckx.ML";
-
-OS.FileSys.chDir "..";
-maketest     "END: Root file for HOLCF examples";

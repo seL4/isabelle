@@ -14,7 +14,7 @@ From page 11 of
 
 open OtwayRees_AN;
 
-proof_timing:=true;
+set proof_timing;
 HOL_quantifiers := false;
 
 

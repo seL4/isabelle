@@ -12,7 +12,7 @@ Simplified version from page 11 of
 
 open WooLam;
 
-proof_timing:=true;
+set proof_timing;
 HOL_quantifiers := false;
 
 

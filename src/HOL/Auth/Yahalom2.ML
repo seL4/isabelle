@@ -14,7 +14,7 @@ From page 259 of
 
 open Yahalom2;
 
-proof_timing:=true;
+set proof_timing;
 HOL_quantifiers := false;
 
 (*A "possibility property": there are traces that reach the end*)

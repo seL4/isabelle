@@ -19,7 +19,7 @@ Protocol goals:
 
 open TLS;
 
-proof_timing:=true;
+set proof_timing;
 HOL_quantifiers := false;
 
 (*Automatically unfold the definition of "certificate"*)

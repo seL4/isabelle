@@ -17,7 +17,7 @@ indicates the possibility of this attack.
 
 open OtwayRees_Bad;
 
-proof_timing:=true;
+set proof_timing;
 HOL_quantifiers := false;
 
 

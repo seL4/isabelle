@@ -9,7 +9,7 @@ Exampled of Inductive Definitions
 HOL_build_completed;    (*Make examples fail if HOL did*)
 
 writeln"Root file for HOL/Induct";
-proof_timing := true;
+set proof_timing;
 time_use_thy "Perm";
 time_use_thy "Comb";
 time_use_thy "Mutil";

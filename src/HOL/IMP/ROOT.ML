@@ -7,7 +7,7 @@
 HOL_build_completed;    (*Make examples fail if HOL did*)
 
 writeln"Root file for HOL/IMP";
-proof_timing := true;
+set proof_timing;
 time_use_thy "Expr";
 time_use_thy "Transition";
 time_use_thy "VC";

@@ -12,7 +12,7 @@ From page 257 of
 
 open Yahalom;
 
-proof_timing:=true;
+set proof_timing;
 HOL_quantifiers := false;
 Pretty.setdepth 25;
 

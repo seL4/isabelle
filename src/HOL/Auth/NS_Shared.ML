@@ -12,7 +12,7 @@ From page 247 of
 
 open NS_Shared;
 
-proof_timing:=true;
+set proof_timing;
 HOL_quantifiers := false;
 
 

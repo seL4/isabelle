@@ -126,7 +126,7 @@ fun prove (s,tac) = prove_goal Prod.thy s (fn [] => [tac]);
 
 val meson_tac = safe_meson_tac 1;
 
-proof_timing:=true;
+set proof_timing;
 
 (****************ABOVE FIVE MINUTES
 val BOO003_1 = prove

@@ -13,7 +13,7 @@ From page 260 of
 
 open NS_Public_Bad;
 
-proof_timing:=true;
+set proof_timing;
 HOL_quantifiers := false;
 
 AddIffs [Spy_in_bad];

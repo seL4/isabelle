@@ -9,7 +9,7 @@ Version incorporating Lowe's fix (inclusion of B's identify in round 2).
 
 open NS_Public;
 
-proof_timing:=true;
+set proof_timing;
 HOL_quantifiers := false;
 
 AddIffs [Spy_in_bad];

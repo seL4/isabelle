@@ -9,7 +9,7 @@ Root file for protocol proofs.
 HOL_build_completed;    (*Make examples fail if HOL did*)
 
 writeln"Root file for HOL/Auth";
-proof_timing := true;
+set proof_timing;
 goals_limit := 1;
 
 (*Shared-key protocols*)

@@ -9,7 +9,7 @@ Executes miscellaneous examples for Higher-Order Logic.
 HOL_build_completed;    (*Cause examples to fail if HOL did*)
 
 writeln "Root file for HOL examples";
-proof_timing := true;
+set proof_timing;
 
 (**Some examples of recursive function definitions: the TFL package**)
 time_use_thy "Recdef";
