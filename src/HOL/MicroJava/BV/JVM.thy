@@ -387,7 +387,8 @@ proof -
 qed
 
 
-(* there's still two nontrivial (but provable) "sorry"s in here  *)
+(* there's still one easy, and one nontrivial (but provable) sorry in here  *)
+(*
 theorem wt_kil_complete:
   "[| wt_method G C pTs rT maxs mxl bs phi; wf_prog wf_mb G; 
       length phi = length bs; is_class G C; \<forall>x \<in> set pTs. is_type G x |]
@@ -471,8 +472,33 @@ proof -
 
   have 1: "?phi \<in> list (length bs) (states G maxs ?maxr)" sorry
 
-  from wt_start
-  have 2: "?start <=[le G maxs ?maxr] ?phi" sorry
+  have 2: "?start <=[le G maxs ?maxr] ?phi"
+  proof -
+    { fix n
+      from wt_start
+      have "G \<turnstile> ok_val (?start!0) <=' phi!0"
+        by (simp add: wt_start_def)
+      moreover
+      from instrs length
+      have "0 < length phi" by simp
+      ultimately
+      have "le G maxs ?maxr (?start!0) (?phi!0)"
+        by (simp add: JVM_le_Err_conv Err.le_def lesub_def)
+      moreover
+      { fix n'
+        have "le G maxs ?maxr (OK None) (?phi!n)"
+          by (auto simp add: JVM_le_Err_conv Err.le_def lesub_def 
+            split: err.splits)        
+        hence "[| n = Suc n'; n < length ?start |] 
+          ==> le G maxs ?maxr (?start!n) (?phi!n)"
+          by simp
+      }
+      ultimately
+      have "n < length ?start ==> le G maxs ?maxr (?start!n) (?phi!n)"
+        by - (cases n, blast+)
+    }
+    thus ?thesis sorry
+  qed         
 
   from dynamic
   have "welltyping (le G maxs ?maxr) Err (exec G maxs rT bs) ?succs ?phi"
@@ -486,6 +512,7 @@ proof -
   show "wt_kil G C pTs rT maxs mxl bs"
     by (unfold wt_kil_def) simp
 qed
+*)
 
 lemma is_type_pTs:
   "[| wf_prog wf_mb G; (C,S,fs,mdecls) \<in> set G; (sig,rT,code) \<in> set mdecls; 
