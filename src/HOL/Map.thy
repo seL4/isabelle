@@ -219,16 +219,18 @@ prefer 2 apply assumption
 apply auto
 done
 
-lemma map_of_SomeD [rule_format (no_asm)]: "map_of xs k = Some y --> (k,y):set xs"
+lemma map_of_SomeD [rule_format]: "map_of xs k = Some y --> (k,y):set xs"
 by (induct "xs", auto)
 
-lemma map_of_mapk_SomeI [rule_format (no_asm)]: "inj f ==> map_of t k = Some x -->  
-   map_of (map (split (%k. Pair (f k))) t) (f k) = Some x"
+lemma map_of_mapk_SomeI [rule_format]:
+     "inj f ==> map_of t k = Some x -->  
+        map_of (map (split (%k. Pair (f k))) t) (f k) = Some x"
 apply (induct "t")
 apply  (auto simp add: inj_eq)
 done
 
-lemma weak_map_of_SomeI [rule_format (no_asm)]: "(k, x) : set l --> (? x. map_of l k = Some x)"
+lemma weak_map_of_SomeI [rule_format]:
+     "(k, x) : set l --> (\<exists>x. map_of l k = Some x)"
 by (induct "l", auto)
 
 lemma map_of_filter_in: 
@@ -454,7 +456,7 @@ lemma domI: "m a = Some b ==> a : dom m"
 by (unfold dom_def, auto)
 (* declare domI [intro]? *)
 
-lemma domD: "a : dom m ==> ? b. m a = Some b"
+lemma domD: "a : dom m ==> \<exists>b. m a = Some b"
 by (unfold dom_def, auto)
 
 lemma domIff[iff]: "(a : dom m) = (m a ~= None)"
