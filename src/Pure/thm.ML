@@ -1634,7 +1634,8 @@ fun dest_mss (Mss {rules, congs, procs, ...}) =
    procs =
      map (fn (_, {name, lhs, id, ...}) => ((name, lhs), id)) (Net.dest procs)
      |> partition_eq eq_snd
-     |> map (fn ps => (#1 (#1 (hd ps)), map (#2 o #1) ps))};
+     |> map (fn ps => (#1 (#1 (hd ps)), map (#2 o #1) ps))
+     |> Library.sort_wrt #1};
 
 
 (* merge_mss *)		(*NOTE: ignores mk_rews and termless of 2nd mss*)
