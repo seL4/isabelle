@@ -1,1 +1,1 @@
-by(ALLGOALS (exhaust_tac "bs"));
+by(ALLGOALS (case_tac "bs"));

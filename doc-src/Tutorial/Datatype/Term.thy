@@ -1,9 +1,13 @@
 Term = Main +
-datatype 'a t = A | B "'a * ('a t list)"
-datatype expr = Var string | Lam string expr | App expr expr
-              | Data data
-and      data = Bool bool | Num nat
-              | Closure string expr "(string * data)list"
+datatype
+    'a aexp = IF ('a bexp) ('a aexp) ('a aexp)
+            | Sum ('a aexp list)
+            | Diff ('a aexp) ('a aexp)
+            | Var 'a
+            | Num nat
+and 'a bexp = Less ('a aexp) ('a aexp)
+            | And ('a bexp) ('a bexp)
+            | Neg ('a bexp)
 datatype ('a,'b)term = Var 'a | App 'b ((('a,'b)term)list)
 consts
    subst  :: ('a => ('a,'b)term) => ('a,'b)term      => ('a,'b)term

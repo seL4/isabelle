@@ -1,2 +1,2 @@
 Goal "(case xs of [] => [] | y#ys => xs) = xs";
-by(exhaust_tac "xs" 1);
+by(case_tac "xs" 1);

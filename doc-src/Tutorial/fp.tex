@@ -5,12 +5,12 @@ functional programs in HOL and how to verify them, most of the
 constructs and proof procedures introduced are general purpose and recur in
 any specification or verification task.
 
-The dedicated functional programmer should be warned: HOL offers only what
-could be called {\em total functional programming} --- all functions in HOL
-must be total; lazy data structures are not directly available. On the
-positive side, functions in HOL need not be computable: HOL is a
-specification language that goes well beyond what can be expressed as a
-program. However, for the time being we concentrate on the computable.
+The dedicated functional programmer should be warned: HOL offers only {\em
+  total functional programming} --- all functions in HOL must be total; lazy
+data structures are not directly available. On the positive side, functions
+in HOL need not be computable: HOL is a specification language that goes well
+beyond what can be expressed as a program. However, for the time being we
+concentrate on the computable.
 
 \section{An introductory theory}
 \label{sec:intro-theory}
@@ -128,17 +128,17 @@ list. Typing
 establishes a new goal to be proved in the context of the current theory,
 which is the one we just loaded. Isabelle's response is to print the current proof state:
 \begin{ttbox}
-{\out Level 0}
-{\out rev (rev xs) = xs}
-{\out  1. rev (rev xs) = xs}
+\Out{Level 0}
+\Out{rev (rev xs) = xs}
+\Out{ 1. rev (rev xs) = xs}
 \end{ttbox}
 Until we have finished a proof, the proof state always looks like this:
 \begin{ttbox}
-{\out Level \(i\)}
-{\out \(G\)}
-{\out  1. \(G@1\)}
-{\out  \(\vdots\)}
-{\out  \(n\). \(G@n\)}
+\Out{Level \(i\)}
+\Out{\(G\)}
+\Out{ 1. \(G@1\)}
+\Out{ \(\vdots\)}
+\Out{ \(n\). \(G@n\)}
 \end{ttbox}
 where \texttt{Level}~$i$ indicates that we are $i$ steps into the proof, $G$
 is the overall goal that we are trying to prove, and the numbered lines
@@ -156,12 +156,12 @@ This tells Isabelle to perform induction on variable \texttt{xs} in subgoal
 1. The new proof state contains two subgoals, namely the base case
 (\texttt{Nil}) and the induction step (\texttt{Cons}):
 \begin{ttbox}
-{\out 1. rev (rev []) = []}
-{\out 2. !!a list. rev (rev list) = list ==> rev (rev (a # list)) = a # list}
+\Out{1. rev (rev []) = []}
+\Out{2. !!a list. rev (rev list) = list ==> rev (rev (a # list)) = a # list}
 \end{ttbox}
 The induction step is an example of the general format of a subgoal:
 \begin{ttbox}
-{\out  \(i\). !!\(x@1 \dots x@n\). {\it assumptions} ==> {\it conclusion}}
+\Out{\(i\). !!\(x@1 \dots x@n\). {\it assumptions} ==> {\it conclusion}}
 \end{ttbox}\index{==>@{\tt==>}|bold}
 The prefix of bound variables \texttt{!!\(x@1 \dots x@n\)} can be ignored
 most of the time, or simply treated as a list of variables local to this
@@ -184,7 +184,7 @@ This command tells Isabelle to apply a proof strategy called
 to the equation \texttt{rev [] = []}) and disappears; the simplified version
 of subgoal~2 becomes the new subgoal~1:
 \begin{ttbox}\makeatother
-{\out 1. !!a list. rev(rev list) = list ==> rev(rev list @ a # []) = a # list}
+\Out{1. !!a list. rev(rev list) = list ==> rev(rev list @ a # []) = a # list}
 \end{ttbox}
 In order to simplify this subgoal further, a lemma suggests itself.
 
@@ -201,8 +201,8 @@ the first argument, \texttt{xs} is the correct one:
 This time not even the base case is solved automatically:
 \begin{ttbox}\makeatother
 by(Auto_tac);
-{\out 1. rev ys = rev ys @ []}
-{\out 2. \dots}
+\Out{ 1. rev ys = rev ys @ []}
+\Out{ 2. \dots}
 \end{ttbox}
 We need another lemma.
 
@@ -213,9 +213,8 @@ This time the canonical proof procedure
 \input{ToyList/lemma2}\input{ToyList/inductxs}\input{ToyList/autotac}\end{ttbox}
 leads to the desired message \texttt{No subgoals!}:
 \begin{ttbox}\makeatother
-{\out Level 2}
-{\out xs @ [] = xs}
-{\out No subgoals!}
+\Out{xs @ [] = xs}
+\Out{No subgoals!}
 \end{ttbox}
 Now we can give the lemma just proved a suitable name
 \begin{ttbox}
@@ -233,15 +232,15 @@ Going back to the proof of the first lemma
 we find that this time \texttt{Auto_tac} solves the base case, but the
 induction step merely simplifies to
 \begin{ttbox}\makeatother
-{\out 1. !!a list.}
-{\out       rev (list @ ys) = rev ys @ rev list}
-{\out       ==> (rev ys @ rev list) @ a # [] = rev ys @ rev list @ a # []}
+\Out{1. !!a list.}
+\Out{      rev (list @ ys) = rev ys @ rev list}
+\Out{      ==> (rev ys @ rev list) @ a # [] = rev ys @ rev list @ a # []}
 \end{ttbox}
 Now we need to remember that \texttt{\at} associates to the right, and that
 \texttt{\#} and \texttt{\at} have the same priority (namely the \texttt{65}
 in the definition of \texttt{ToyList}). Thus the conclusion really is
 \begin{ttbox}\makeatother
-{\out     ==> (rev ys @ rev list) @ (a # []) = rev ys @ (rev list @ (a # []))}
+\Out{   ==> (rev ys @ rev list) @ (a # []) = rev ys @ (rev list @ (a # []))}
 \end{ttbox}
 and the missing lemma is associativity of \texttt{\at}.
 
@@ -320,16 +319,16 @@ tactic.
   formulae early on. For example, if \texttt{show_types} is set and the goal
   \texttt{rev(rev xs) = xs} is started, Isabelle prints the additional output
 \begin{ttbox}
-{\out Variables:}
-{\out   xs :: 'a list}
+\Out{Variables:}
+\Out{  xs :: 'a list}
 \end{ttbox}
 which tells us that Isabelle has correctly inferred that
 \texttt{xs} is a variable of list type. On the other hand, had we
 made a typo as in \texttt{rev(re xs) = xs}, the response
 \begin{ttbox}
-Variables:
-  re :: 'a list => 'a list
-  xs :: 'a list
+\Out{Variables:}
+\Out{  re :: 'a list => 'a list}
+\Out{  xs :: 'a list}
 \end{ttbox}
 would have alerted us because of the unexpected variable \texttt{re}.
 \item[(Re)loading theories]\index{loading theories}\index{reloading theories}
@@ -459,10 +458,10 @@ Almost all the basic laws about a datatype are applied automatically during
 simplification. Only induction is invoked by hand via \texttt{induct_tac},
 which works for any datatype. In some cases, induction is overkill and a case
 distinction over all constructors of the datatype suffices. This is performed
-by \ttindexbold{exhaust_tac}. A trivial example:
+by \ttindexbold{case_tac}. A trivial example:
 \begin{ttbox}
-\input{Misc/exhaust.ML}{\out1. xs = [] ==> (case xs of [] => [] | y # ys => xs) = xs}
-{\out2. !!a list. xs = a # list ==> (case xs of [] => [] | y # ys => xs) = xs}
+\input{Misc/exhaust.ML}\Out{ 1. xs = [] ==> (case xs of [] => [] | y # ys => xs) = xs}
+\Out{ 2. !!a list. xs = a # list ==> (case xs of [] => [] | y # ys => xs) = xs}
 \input{Misc/autotac.ML}\end{ttbox}
 Note that this particular case distinction could have been automated
 completely. See~\S\ref{sec:SimpFeatures}.
@@ -596,8 +595,8 @@ primitive recursion, for example
 and induction, for example
 \begin{ttbox}
 \input{Misc/NatSum.ML}\ttbreak
-{\out sum n + sum n = n * Suc n}
-{\out No subgoals!}
+\Out{ sum n + sum n = n * Suc n}
+\Out{ No subgoals!}
 \end{ttbox}
 
 The usual arithmetic operations \ttindexbold{+}, \ttindexbold{-},
@@ -845,16 +844,16 @@ There are four main simplification tactics:
   using the theory's simpset.  It may solve the subgoal completely if it has
   become trivial. For example:
 \begin{ttbox}\makeatother
-{\out 1. [] @ [] = []}
+\Out{ 1. [] @ [] = []}
 by(Simp_tac 1);
-{\out No subgoals!}
+\Out{ No subgoals!}
 \end{ttbox}
 
 \item[\ttindexbold{Asm_simp_tac}]
   is like \verb$Simp_tac$, but extracts additional rewrite rules from
   the assumptions of the subgoal. For example, it solves
 \begin{ttbox}\makeatother
-{\out 1. xs = [] ==> xs @ ys = ys @ xs}
+\Out{1. xs = [] ==> xs @ ys = ys @ xs}
 \end{ttbox}
 which \texttt{Simp_tac} does not do.
   
@@ -866,9 +865,9 @@ which \texttt{Simp_tac} does not do.
   but also simplifies the assumptions. In particular, assumptions can
   simplify each other. For example:
 \begin{ttbox}\makeatother
-\out{ 1. [| xs @ zs = ys @ xs; [] @ xs = [] @ [] |] ==> ys = zs}
+\Out{ 1. [| xs @ zs = ys @ xs; [] @ xs = [] @ [] |] ==> ys = zs}
 by(Asm_full_simp_tac 1);
-{\out No subgoals!}
+\Out{ No subgoals!}
 \end{ttbox}
 The second assumption simplifies to \texttt{xs = []}, which in turn
 simplifies the first assumption to \texttt{zs = ys}, thus reducing the
@@ -881,7 +880,7 @@ tactics. In fact, \texttt{Auto_tac} starts by applying
 of the other three tactics is that sometimes one wants to limit the amount of
 simplification, for example to avoid nontermination:
 \begin{ttbox}\makeatother
-{\out  1. ! x. f x = g (f (g x)) ==> f [] = f [] @ []}
+\Out{1. ! x. f x = g (f (g x)) ==> f [] = f [] @ []}
 \end{ttbox}
 is solved by \texttt{Simp_tac}, but \texttt{Asm_simp_tac} and
 \texttt{Asm_full_simp_tac} loop because the rewrite rule \texttt{f x = g(f(g
@@ -932,8 +931,8 @@ we may want to prove \verb$exor A (~A)$. Instead of \texttt{Goal} we use
 which tells Isabelle to expand the definition of \texttt{exor}---the first
 argument of \texttt{Goalw} can be a list of definitions---in the initial goal:
 \begin{ttbox}
-{\out exor A (~ A)}
-{\out  1. A & ~ ~ A | ~ A & ~ A}
+\Out{exor A (~ A)}
+\Out{ 1. A & ~ ~ A | ~ A & ~ A}
 \end{ttbox}
 In this simple example, the goal is proved by \texttt{Simp_tac}.
 Of course the resulting theorem is insufficient to characterize \texttt{exor}
@@ -963,9 +962,9 @@ Proving a goal containing \ttindex{let}-expressions invariably requires the
 %context List.thy;
 %Goal "(let xs = [] in xs@xs) = ys";
 \begin{ttbox}\makeatother
-{\out  1. (let xs = [] in xs @ xs) = ys}
+\Out{ 1. (let xs = [] in xs @ xs) = ys}
 by(simp_tac (simpset() addsimps [Let_def]) 1);
-{\out  1. [] = ys}
+\Out{ 1. [] = ys}
 \end{ttbox}
 If, in a particular context, there is no danger of a combinatorial explosion
 of nested \texttt{let}s one could even add \texttt{Let_def} permanently via
@@ -978,14 +977,14 @@ accepts {\em conditional\/} equations, for example
 \begin{ttbox}
 xs ~= []  ==>  hd xs # tl xs = xs \hfill \((*)\)
 \end{ttbox}
-(which is proved by \texttt{exhaust_tac} on \texttt{xs} followed by
+(which is proved by \texttt{case_tac} on \texttt{xs} followed by
 \texttt{Asm_full_simp_tac} twice). Assuming that this theorem together with
 %\begin{ttbox}\makeatother
 \texttt{(rev xs = []) = (xs = [])}
 %\end{ttbox}
 are part of the simpset, the subgoal
 \begin{ttbox}\makeatother
-{\out 1. xs ~= [] ==> hd(rev xs) # tl(rev xs) = rev xs}
+\Out{1. xs ~= [] ==> hd(rev xs) # tl(rev xs) = rev xs}
 \end{ttbox}
 is proved by simplification:
 the conditional equation $(*)$ above
@@ -999,11 +998,11 @@ because the corresponding precondition \verb$rev xs ~= []$ simplifies to
 Goals containing \ttindex{if}-expressions are usually proved by case
 distinction on the condition of the \texttt{if}. For example the goal
 \begin{ttbox}
-{\out 1. ! xs. if xs = [] then rev xs = [] else rev xs ~= []}
+\Out{1. ! xs. if xs = [] then rev xs = [] else rev xs ~= []}
 \end{ttbox}
 can be split into
 \begin{ttbox}
-{\out 1. ! xs. (xs = [] --> rev xs = []) \& (xs ~= [] --> rev xs ~= [])}
+\Out{1. ! xs. (xs = [] --> rev xs = []) \& (xs ~= [] --> rev xs ~= [])}
 \end{ttbox}
 by typing
 \begin{ttbox}
@@ -1014,12 +1013,12 @@ on the initial goal above.
 
 This splitting idea generalizes from \texttt{if} to \ttindex{case}:
 \begin{ttbox}\makeatother
-{\out 1. (case xs of [] => zs | y#ys => y#(ys@zs)) = xs@zs}
+\Out{1. (case xs of [] => zs | y#ys => y#(ys@zs)) = xs@zs}
 \end{ttbox}
 becomes
 \begin{ttbox}\makeatother
-{\out 1. (xs = [] --> zs = xs @ zs) &}
-{\out    (! a list. xs = a # list --> a # list @ zs = xs @ zs)}
+\Out{1. (xs = [] --> zs = xs @ zs) &}
+\Out{   (! a list. xs = a # list --> a # list @ zs = xs @ zs)}
 \end{ttbox}
 by typing
 \begin{ttbox}
@@ -1076,34 +1075,34 @@ separately. For details see~\cite{isabelle-ref}.
 Using the simplifier effectively may take a bit of experimentation.  Set the
 \verb$trace_simp$ flag to get a better idea of what is going on:
 \begin{ttbox}\makeatother
-{\out  1. rev [x] = []}
+\Out{  1. rev [x] = []}
 \ttbreak
 set trace_simp;
 by(Simp_tac 1);
 \ttbreak\makeatother
-{\out Applying instance of rewrite rule:}
-{\out rev (?x # ?xs) == rev ?xs @ [?x]}
-{\out Rewriting:}
-{\out rev [x] == rev [] @ [x]}
+\Out{ Applying instance of rewrite rule:}
+\Out{ rev (?x # ?xs) == rev ?xs @ [?x]}
+\Out{ Rewriting:}
+\Out{ rev [x] == rev [] @ [x]}
 \ttbreak
-{\out Applying instance of rewrite rule:}
-{\out rev [] == []}
-{\out Rewriting:}
-{\out rev [] == []}
+\Out{ Applying instance of rewrite rule:}
+\Out{ rev [] == []}
+\Out{ Rewriting:}
+\Out{ rev [] == []}
 \ttbreak\makeatother
-{\out Applying instance of rewrite rule:}
-{\out [] @ ?y == ?y}
-{\out Rewriting:}
-{\out [] @ [x] == [x]}
+\Out{ Applying instance of rewrite rule:}
+\Out{ [] @ ?y == ?y}
+\Out{ Rewriting:}
+\Out{ [] @ [x] == [x]}
 \ttbreak
-{\out Applying instance of rewrite rule:}
-{\out ?x # ?t = ?t == False}
-{\out Rewriting:}
-{\out [x] = [] == False}
+\Out{ Applying instance of rewrite rule:}
+\Out{ ?x # ?t = ?t == False}
+\Out{ Rewriting:}
+\Out{ [x] = [] == False}
 \ttbreak
-{\out Level 1}
-{\out rev [x] = []}
-{\out  1. False}
+\Out{ Level 1}
+\Out{ rev [x] = []}
+\Out{  1. False}
 \end{ttbox}
 In more complicated cases, the trace can be enormous, especially since
 invocations of the simplifier are often nested (e.g.\ when solving conditions
@@ -1161,7 +1160,7 @@ provided the second one is empty:
 There is no choice as to the induction variable, and we immediately simplify:
 \begin{ttbox}
 \input{Misc/induct_auto.ML}\ttbreak\makeatother
-{\out1. !!a list. itrev list [] = rev list\(\;\)==> itrev list [a] = rev list @ [a]}
+\Out{ 1. !!a list. itrev list [] = rev list\(\;\)==> itrev list [a] = rev list @ [a]}
 \end{ttbox}
 Just as predicted above, the overall goal, and hence the induction
 hypothesis, is too weak to solve the induction step because of the fixed
@@ -1184,9 +1183,9 @@ Although we now have two variables, only \texttt{xs} is suitable for
 induction, and we repeat our above proof attempt. Unfortunately, we are still
 not there:
 \begin{ttbox}\makeatother
-{\out 1. !!a list.}
-{\out       itrev list ys = rev list @ ys}
-{\out       ==> itrev list (a # ys) = rev list @ a # ys}
+\Out{1. !!a list.}
+\Out{      itrev list ys = rev list @ ys}
+\Out{      ==> itrev list (a # ys) = rev list @ a # ys}
 \end{ttbox}
 The induction hypothesis is still too weak, but this time it takes no
 intuition to generalize: the problem is that \texttt{ys} is fixed throughout
@@ -1301,6 +1300,7 @@ This section presents advanced forms of \texttt{datatype}s and (in the near
 future!) records.
 
 \subsection{Mutual recursion}
+\label{sec:datatype-mut-rec}
 
 Sometimes it is necessary to define two datatypes that depend on each
 other. This is called \textbf{mutual recursion}. As an example consider a
@@ -1435,31 +1435,11 @@ strengthen it and prove it. (Note: \texttt{o} is function composition; its
 definition is found in the theorem \texttt{o_def}).
 \end{exercise}
 
-Returning to the definition of \texttt{subst}, we have to admit that it does
-not really need the auxiliary \texttt{substs} function. The \texttt{App}-case
-can directly be expressed as
-\begin{ttbox}
-\input{Datatype/appmap}\end{ttbox}
-Although Isabelle insists on the more verbose version, we can easily {\em
-  prove} that the \texttt{map}-equation holds: simply by induction on
-\texttt{ts} followed by \texttt{Auto_tac}.
 
-%FIXME: forward pointer to section where better induction principles are
-%derived?
+Of course, you may also combine mutual and nested recursion. For example,
+constructor \texttt{Sum} in \S\ref{sec:datatype-mut-rec} could take a list of
+expressions as its argument: \texttt{Sum ('a aexp list)}.
 
-\begin{exercise}
-  Define a function \texttt{rev_term} of type \texttt{term -> term} that
-  recursively reverses the order of arguments of all function symbols in a
-  term. Prove that \texttt{rev_term(rev_term t) = t}.
-\end{exercise}
-
-Of course, you may also combine mutual and nested recursion as in the
-following example
-\begin{ttbox}
-\input{Datatype/mutnested}\end{ttbox}
-taken from an operational semantics of applied lambda terms. Note that double
-quotes are required around the type involving \texttt{*}, as explained on
-page~\pageref{startype}.
 
 \subsection{The limits of nested recursion}
 
@@ -1545,7 +1525,8 @@ update function, and prove that they behave as expected.
 Proper tries associate some value with each string. Since the
 information is stored only in the final node associated with the string, many
 nodes do not carry any value. This distinction is captured by the
-following predefined datatype:
+following predefined datatype (from theory \texttt{Option}, which is a parent
+of \texttt{Main}):
 \begin{ttbox}
 datatype 'a option = None | Some 'a
 \end{ttbox}\indexbold{*option}\indexbold{*None}\indexbold{*Some}
@@ -1606,9 +1587,9 @@ The start of the proof is completely conventional:
 \input{Datatype/trieinduct.ML}\end{ttbox}
 Unfortunately, this time we are left with three intimidating looking subgoals:
 \begin{ttbox}
-{\out 1. ... ==> ... lookup (...) bs = lookup t bs}
-{\out 2. ... ==> ... lookup (...) bs = lookup t bs}
-{\out 3. ... ==> ... lookup (...) bs = lookup t bs}
+\Out{1. ... ==> ... lookup (...) bs = lookup t bs}
+\Out{2. ... ==> ... lookup (...) bs = lookup t bs}
+\Out{3. ... ==> ... lookup (...) bs = lookup t bs}
 \end{ttbox}
 Clearly, if we want to make headway we have to instantiate \texttt{bs} as
 well now. It turns out that instead of induction, case distinction
@@ -1705,7 +1686,7 @@ equations.
 In general, Isabelle may not be able to prove all termination conditions
 automatically. For example, termination of
 \begin{ttbox}
-\input{Recdef/constsgcd}recdef gcd "measure ((\%(m,n).n))"
+\input{Recdef/constsgcd}recdef gcd "measure (\%(m,n).n)"
   "gcd (m, n) = (if n=0 then m else gcd(n, m mod n))"
 \end{ttbox}
 relies on the lemma \texttt{mod_less_divisor}
@@ -1775,6 +1756,7 @@ At this point it is not necessary to understand what exactly
 not just for this one example but in general (except that we have to use
 \texttt{Asm_simp_tac} and $f$\texttt{.rules} in general). Try the second
 \texttt{gcd}-equation above!
+
 
 \subsection{Induction}
 
