@@ -186,7 +186,6 @@ val pure_syntax =
   ("",             "id => aprop",                   Delimfix "_"),
   ("",             "longid => aprop",               Delimfix "_"),
   ("",             "var => aprop",                  Delimfix "_"),
-  ("_BIND",        "id => aprop",                   Delimfix "??_"),
   ("_DDDOT",       "aprop",                         Delimfix "..."),
   ("_aprop",       "aprop => prop",                 Delimfix "PROP _"),
   ("",             "prop => asms",                  Delimfix "_"),
@@ -199,7 +198,6 @@ val pure_syntax =
   ("",             "id => logic",                   Delimfix "_"),
   ("",             "longid => logic",               Delimfix "_"),
   ("",             "var => logic",                  Delimfix "_"),
-  ("_BIND",        "id => logic",                   Delimfix "??_"),
   ("_DDDOT",       "logic",                         Delimfix "...")];
 
 val pure_appl_syntax =
