@@ -404,13 +404,13 @@ in
 		     ^ " is not instance of type deduced from equations")
 	end;
 
-    in 
-      (thy
-      |> add_types types
-      |> add_arities arities
-      |> add_consts consts
-      |> add_trrules xrules
-      |> add_axioms rules,add_primrec)
+    in
+      store_datatype (tname, map (fn (x,_,_) => x) cons_list');
+      (thy |> add_types types
+           |> add_arities arities
+           |> add_consts consts
+           |> add_trrules xrules
+           |> add_axioms rules, add_primrec)
     end
 end
 end
