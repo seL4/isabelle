@@ -28,7 +28,8 @@ sig
   val read_termTs: context -> (string * typ) list -> term list * (indexname * typ) list
   val read_term: context -> string -> term
   val read_prop: context -> string -> term
-  val read_pat: context -> string -> term
+  val read_term_pat: context -> string -> term
+  val read_prop_pat: context -> string -> term
   val cert_term: context -> term -> term
   val cert_prop: context -> term -> term
   val declare_term: term -> context -> context
@@ -36,8 +37,10 @@ sig
   val declare_thm: thm -> context -> context
   val add_binds: (indexname * string) list -> context -> context
   val add_binds_i: (indexname * term) list -> context -> context
-  val match_binds: (string * string) list -> context -> context
-  val match_binds_i: (term * term) list -> context -> context
+  val match_binds: (string list * string) list -> context -> context
+  val match_binds_i: (term list * term) list -> context -> context
+  val bind_propp: context * (string * string list) -> context * term
+  val bind_propp_i: context * (term * term list) -> context * term
   val thms_closure: context -> xstring -> tthm list option
   val get_tthm: context -> string -> tthm
   val get_tthms: context -> string -> tthm list
@@ -49,9 +52,9 @@ sig
     -> (tthm list * context attribute list) list -> context -> context * (string * tthm list)
   val assumptions: context -> tthm list
   val fixed_names: context -> string list
-  val assume: string -> context attribute list -> string list -> context
+  val assume: string -> context attribute list -> (string * string list) list -> context
     -> context * (string * tthm list)
-  val assume_i: string -> context attribute list -> term list -> context
+  val assume_i: string -> context attribute list -> (term * term list) list -> context
     -> context * (string * tthm list)
   val fix: (string * string option) list -> context -> context
   val fix_i: (string * typ) list -> context -> context
@@ -402,7 +405,8 @@ fun gen_read read app is_pat (ctxt as Context {binds, defs = (types, sorts, _, u
 val read_termTs = gen_read (read_def_termTs false) (apfst o map) false;
 val read_term = gen_read read_term_sg I false;
 val read_prop = gen_read read_prop_sg I false;
-val read_pat = gen_read read_term_sg I true;
+val read_term_pat = gen_read read_term_sg I true;
+val read_prop_pat = gen_read read_prop_sg I true;
 
 
 (* certify terms *)
@@ -414,7 +418,8 @@ fun gen_cert cert is_pat ctxt t =
 
 val cert_term = gen_cert cert_term_sg false;
 val cert_prop = gen_cert cert_prop_sg false;
-val cert_pat = gen_cert cert_term_sg true;
+val cert_term_pat = gen_cert cert_term_sg true;
+val cert_prop_pat = gen_cert cert_prop_sg true;
 
 
 (* declare terms *)
@@ -453,10 +458,6 @@ fun declare_thm thm ctxt =
   let val {prop, hyps, ...} = Thm.rep_thm thm
   in ctxt |> declare_terms (prop :: hyps) end;
 
-fun prep_declare prep (ctxt, s) =
-  let val t = prep ctxt s
-  in (ctxt |> declare_term t, t) end;
-
 
 
 (** bindings **)
@@ -492,25 +493,37 @@ val add_binds_i = gen_binds cert_term;
 
 (* match_binds(_i) -- parallel *)
 
-fun prep_pair prep_pat prep (ctxt, (raw_pat, raw_t)) =
+fun prep_declare_match (prep_pat, prep) (ctxt, (raw_pats, raw_t)) =
   let
-    val pat = prep_pat ctxt raw_pat;
-    val (ctxt', t) = prep_declare prep (ctxt, raw_t);
-  in (ctxt', (pat, t)) end;
+    val pats = map (prep_pat ctxt) raw_pats;		(* FIXME seq / par / simult (??) *)
+    val t = prep ctxt raw_t;
+  in (ctxt |> declare_term t, (map (rpair t) pats, t)) end;
 
-fun gen_match_binds prep_pat prep raw_pairs ctxt =
-  let
-    val (ctxt', pairs) = foldl_map (prep_pair prep_pat prep) (ctxt, raw_pairs);
-    val Context {defs = (_, _, maxidx, _), ...} = ctxt';
-    val envs = Unify.smash_unifiers (sign_of ctxt', Envir.empty maxidx, pairs);
-    val env =
-      (case Seq.pull envs of
-        None => raise CONTEXT ("Pattern match failed!", ctxt')
-      | Some (env, _) => env);
-  in ctxt' |> update_binds_env env end;
+fun gen_match_binds _ [] ctxt = ctxt
+  | gen_match_binds prepp raw_pairs ctxt =
+      let
+        val (ctxt', matches) = foldl_map (prep_declare_match prepp) (ctxt, raw_pairs);
+        val pairs = flat (map #1 matches);
+        val Context {defs = (_, _, maxidx, _), ...} = ctxt';
+        val envs = Unify.smash_unifiers (sign_of ctxt', Envir.empty maxidx, pairs);
+        val env =
+          (case Seq.pull envs of
+            None => raise CONTEXT ("Pattern match failed!", ctxt')
+          | Some (env, _) => env);
+      in ctxt' |> update_binds_env env end;
 
-val match_binds = gen_match_binds read_pat read_term;
-val match_binds_i = gen_match_binds cert_pat cert_term;
+val match_binds = gen_match_binds (read_term_pat, read_term);
+val match_binds_i = gen_match_binds (cert_term_pat, cert_term);
+
+
+(* bind proposition patterns *)
+
+fun gen_bind_propp prepp (ctxt, (raw_prop, raw_pats)) =
+  let val (ctxt', (pairs, prop)) = prep_declare_match prepp (ctxt, (raw_pats, raw_prop))
+  in (ctxt' |> match_binds_i (map (apfst single) pairs), prop) end;
+
+val bind_propp = gen_bind_propp (read_prop_pat, read_prop);
+val bind_propp_i = gen_bind_propp (cert_prop_pat, cert_prop);
 
 
 
@@ -579,9 +592,9 @@ fun fixed_names (Context {asms = (_, (fixes, _)), ...}) = map #2 fixes;
 
 (* assume *)
 
-fun gen_assume prep name attrs raw_props ctxt =
+fun gen_assume prepp name attrs raw_prop_pats ctxt =
   let
-    val (ctxt', props) = foldl_map prep (ctxt, raw_props);
+    val (ctxt', props) = foldl_map prepp (ctxt, raw_prop_pats);
     val sign = sign_of ctxt';
 
     val asms = map (Attribute.tthm_of o Thm.assume o Thm.cterm_of sign) props;
@@ -597,8 +610,8 @@ fun gen_assume prep name attrs raw_props ctxt =
         (thy, data, (assumes @ [(name, asms)], fixes), binds, thms, defs));
   in (ctxt''', (name, tthms)) end;
 
-val assume = gen_assume (prep_declare read_prop);
-val assume_i = gen_assume (prep_declare cert_prop);
+val assume = gen_assume bind_propp;
+val assume_i = gen_assume bind_propp_i;
 
 
 (* fix *)
