@@ -83,7 +83,7 @@ NAME="$1"; shift
 if [ -n "$BUILD" ]; then
   exec $ISABELLE \
     -e "make_html := $HTML; set_session\"$SESSION\"; exit_use_dir\".\"; make_html := false;" \
-    -q $LOGIC $NAME
+    -q -w $LOGIC $NAME
 else
   exec $ISABELLE \
     -e "make_html := $HTML; set_session\"$SESSION\"; exit_use_dir\"$NAME\"; make_html := false; quit();" \
