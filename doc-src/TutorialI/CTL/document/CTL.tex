@@ -62,7 +62,7 @@ The proof is again pointwise. Fixpoint induction on the premise \isa{s\ {\isasym
 by simplification and clarification%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}rule\ subsetI{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}erule\ Lfp{\isachardot}induct{\isacharbrackleft}OF\ {\isacharunderscore}\ mono{\isacharunderscore}af{\isacharbrackright}{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}erule\ lfp{\isacharunderscore}induct{\isacharbrackleft}OF\ {\isacharunderscore}\ mono{\isacharunderscore}af{\isacharbrackright}{\isacharparenright}\isanewline
 \isacommand{apply}{\isacharparenleft}clarsimp\ simp\ add{\isacharcolon}\ af{\isacharunderscore}def\ Paths{\isacharunderscore}def{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
@@ -120,7 +120,7 @@ The one-step argument in the above sketch%
 \begin{isamarkuptext}%
 \noindent
 is proved by a variant of contraposition (\isa{swap}:
-\isa{{\isasymlbrakk}{\isasymnot}\ Pa{\isacharsemicolon}\ {\isasymnot}\ P\ {\isasymLongrightarrow}\ Pa{\isasymrbrakk}\ {\isasymLongrightarrow}\ P}), i.e.\ assuming the negation of the conclusion
+\isa{{\isasymlbrakk}{\isasymnot}\ Q{\isacharsemicolon}\ {\isasymnot}\ P\ {\isasymLongrightarrow}\ Q{\isasymrbrakk}\ {\isasymLongrightarrow}\ P}), i.e.\ assuming the negation of the conclusion
 and proving \isa{s\ {\isasymin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}}. Unfolding \isa{lfp} once and
 simplifying with the definition of \isa{af} finishes the proof.
 
