@@ -66,7 +66,7 @@ AddSEs [Sreg.mk_cases redexes.con_defs "regular(App(b,f,a))",
 (* ------------------------------------------------------------------------- *)
 
 Goal "u:redexes ==> u ~ u";
-by (eresolve_tac [redexes.induct] 1);
+by (etac redexes.induct 1);
 by (ALLGOALS Fast_tac);
 qed "comp_refl";
 
@@ -92,13 +92,13 @@ qed_spec_mp "comp_trans";
 Goal "u ~ v ==> u <== (u un v)";
 by (etac Scomp.induct 1);
 by (etac boolE 3);
-by (ALLGOALS Asm_full_simp_tac);
+by (ALLGOALS Asm_simp_tac);
 qed "union_l";
 
 Goal "u ~ v ==> v <== (u un v)";
 by (etac Scomp.induct 1);
 by (eres_inst_tac [("c","b2")] boolE 3);
-by (ALLGOALS Asm_full_simp_tac);
+by (ALLGOALS Asm_simp_tac);
 qed "union_r";
 
 Goal "u ~ v ==> u un v = v un u";
@@ -112,8 +112,7 @@ qed "union_sym";
 
 Goal "u ~ v ==> regular(u)-->regular(v)-->regular(u un v)";
 by (etac Scomp.induct 1);
-by (ALLGOALS(asm_full_simp_tac
-             (simpset() setloop(SELECT_GOAL Safe_tac))));
+by Auto_tac;
 by (dres_inst_tac [("psi", "regular(Fun(?u) un ?v)")] asm_rl 1);
 by (Asm_full_simp_tac 1);
 qed_spec_mp "union_preserve_regular";
