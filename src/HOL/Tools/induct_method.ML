@@ -30,7 +30,7 @@ datatype kind = Type | Set | Function | Rule;
 fun intern_kind Type = Sign.intern_tycon
   | intern_kind Set = Sign.intern_const
   | intern_kind Function = Sign.intern_const
-  | intern_kind Rule = K I;	(* FIXME !? *)
+  | intern_kind Rule = K I;
 
 
 
@@ -45,7 +45,7 @@ val cases_var = hd o vars_of o hd o Logic.strip_assums_hyp o Library.last_elem o
 
 
 fun cases_tac (None, None) ctxt =
-      Method.rule_tac (case_split_thm :: InductivePackage.cases (ProofContext.sign_of ctxt))
+      Method.rule_tac (case_split_thm :: InductivePackage.all_cases (ProofContext.sign_of ctxt))
   | cases_tac args ctxt =
       let
         val thy = ProofContext.theory_of ctxt;
@@ -79,37 +79,39 @@ fun induct_rule Type = #induction oo DatatypePackage.datatype_info_err
   | induct_rule Function = #induct oo RecdefPackage.get_recdef
   | induct_rule Rule = PureThy.get_thm;
 
-fun induct_tac (insts, opt_kind_name) ctxt =
-  let
-    val thy = ProofContext.theory_of ctxt;
-    val sign = Theory.sign_of thy;
-    val cert = Thm.cterm_of sign;
-
-    val (kind, name) =
-      (case opt_kind_name of
-        Some (kind, bname) => (kind, intern_kind kind sign bname)
-      | None =>
-          (case try (#1 o Term.dest_Type o Term.type_of o Library.last_elem o hd) insts of
-            Some name => (Type, name)
-          | None => error "Unable to figure out induction rule"));
-    val rule = induct_rule kind thy name;
-
-    fun prep_inst (concl, ts) =
+fun induct_tac ([], None) ctxt =
+      Method.rule_tac (InductivePackage.all_inducts (ProofContext.sign_of ctxt))
+  | induct_tac (insts, opt_kind_name) ctxt =
       let
-        val xs = vars_of concl;
-        val n = length xs - length ts;
-      in
-        if n < 0 then raise THM ("More arguments given than in induction rule", 0, [rule])
-        else map cert (Library.drop (n, xs)) ~~ map cert ts
-      end;
+        val thy = ProofContext.theory_of ctxt;
+        val sign = Theory.sign_of thy;
+        val cert = Thm.cterm_of sign;
 
-    val prep_insts = flat o map2 prep_inst;
+        val (kind, name) =
+          (case opt_kind_name of
+            Some (kind, bname) => (kind, intern_kind kind sign bname)
+          | None =>
+              (case try (#1 o Term.dest_Type o Term.type_of o Library.last_elem o hd) insts of
+                Some name => (Type, name)
+              | None => error "Unable to figure out induction rule"));
+        val rule = induct_rule kind thy name;
 
-    val inst_rule =
-      if null insts then rule
-      else Drule.cterm_instantiate (prep_insts
-        (DatatypeAux.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of rule)), insts)) rule;
-  in Method.rule_tac [inst_rule] end;
+        fun prep_inst (concl, ts) =
+          let
+            val xs = vars_of concl;
+            val n = length xs - length ts;
+          in
+            if n < 0 then raise THM ("More arguments given than in induction rule", 0, [rule])
+            else map cert (Library.drop (n, xs)) ~~ map cert ts
+          end;
+
+        val prep_insts = flat o map2 prep_inst;
+
+        val inst_rule =
+          if null insts then rule
+          else Drule.cterm_instantiate (prep_insts
+            (DatatypeAux.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of rule)), insts)) rule;
+      in Method.rule_tac [inst_rule] end;
 
 val induct_meth = Method.METHOD oo (FINDGOAL ooo induct_tac);
 
