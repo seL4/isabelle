@@ -209,11 +209,11 @@ val binder =
 val opt_pris = Scan.optional ($$$ "[" |-- !!! (list nat --| $$$ "]")) [];
 
 val mixfix =
-  string -- opt_pris -- Scan.optional nat Syntax.max_pri
-  >> (Syntax.Mixfix o triple1);
+  (string -- !!! (opt_pris -- Scan.optional nat Syntax.max_pri))
+  >> (Syntax.Mixfix o triple2);
 
 fun opt_fix fix =
-  Scan.optional ($$$ "(" |-- !!! (fix --| $$$ ")")) Syntax.NoSyn;
+  Scan.optional ($$$ "(" |-- fix --| $$$ ")") Syntax.NoSyn;
 
 val opt_infix = opt_fix (infxl || infxr);
 val opt_mixfix = opt_fix (mixfix || binder || infxl || infxr);
