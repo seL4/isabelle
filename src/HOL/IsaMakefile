@@ -66,9 +66,9 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML		\
   Tools/primrec_package.ML Tools/recdef_package.ML			\
   Tools/record_package.ML Tools/svc_funcs.ML Tools/typedef_package.ML	\
   Trancl.ML Trancl.thy Univ.ML Univ.thy Vimage.ML Vimage.thy WF.ML	\
-  WF.thy WF_Rel.ML WF_Rel.thy arith_data.ML blastdata.ML cladata.ML	\
-  equalities.ML equalities.thy hologic.ML mono.ML mono.thy simpdata.ML	\
-  subset.ML subset.thy thy_syntax.ML
+  WF.thy WF_Rel.ML WF_Rel.thy While.ML While.thy arith_data.ML blastdata.ML \
+  cladata.ML equalities.ML equalities.thy hologic.ML mono.ML mono.thy   \
+  simpdata.ML subset.ML subset.thy thy_syntax.ML
 	@$(ISATOOL) usedir -b $(OUT)/Pure HOL
 
 
