@@ -8,6 +8,7 @@ Session management -- maintain state of logic images.
 
 signature SESSION =
 sig
+  val name: unit -> string
   val welcome: unit -> string
   val use_dir:
     string list -> bool -> bool -> string -> string -> string -> string -> string -> unit
@@ -35,7 +36,8 @@ fun path () = ! session_path;
 fun str_of [] = pure
   | str_of elems = space_implode "/" elems;
 
-fun welcome () = "Welcome to Isabelle/" ^ str_of (path ()) ^ " (" ^ version ^ ")";
+fun name () = "Isabelle/" ^ str_of (path ());
+fun welcome () = "Welcome to " ^ name () ^ " (" ^ version ^ ")";
 
 
 (* add_path *)
