@@ -88,7 +88,7 @@ by (Asm_full_simp_tac 1);
 (* case 2: action sequence of || had Some(a) and 
            filtered sequence also       *)
 by (Asm_full_simp_tac 1);
- by (rtac impI 1);
+ by (strip_tac 1);
  by (REPEAT(hyp_subst_tac 1)); 
  by (Asm_full_simp_tac 1);
 (* case 3: action sequence pf || had Some(a) but
@@ -120,7 +120,7 @@ by (res_inst_tac [("x",
  by (REPEAT(etac exE 1));
  by (case_tac "y:actions(asig_of(C2))" 1);
  by (Asm_full_simp_tac 1);
- by (rtac impI 1);
+ by (strip_tac 1);
  by (REPEAT(hyp_subst_tac 1)); 
  by (Asm_full_simp_tac 1);
  by (Asm_full_simp_tac 1);
@@ -187,35 +187,8 @@ by (asm_full_simp_tac (!simpset addsimps [executions_def,is_execution_fragment_d
     par_def, starts_of_def,trans_of_def,rename_def]) 1);
 by (REPEAT(rtac allI 1));
 by (cut_inst_tac [("x","fst ex n")] opt_cases 1);
- by (etac disjE 1);
-(* case 1: action sequence of rename C had already a None *)
-by (Asm_full_simp_tac 1);
-(* case 2 *)
-by (REPEAT(etac exE 1));
-by (etac conjE 1);
-by (eres_inst_tac [("x","n")] allE 1);
-by (eres_inst_tac [("x","y")] allE 1);
-by (Asm_full_simp_tac 1);
-by (etac exE 1);
-by (etac conjE 1);
-by (dtac sym 1);
-by (dtac sym 1);
-by (dtac sym 1);
-by (Asm_full_simp_tac 1);
-by (safe_tac (!claset));
+by (Auto_tac());
 qed"reachable_rename_ioa";
-
-
-(* HOL Lemmata - must already exist ! *)
-goal HOL.thy  "(~(A|B)) =(~A&~B)";
- by (Fast_tac 1);
-val disj_demorgan = result();
-goal HOL.thy  "(~(A&B)) =(~A|~B)";
- by (Fast_tac 1);
-val conj_demorgan = result();
-goal HOL.thy  "(~(? x.P x)) =(! x. (~ (P x)))";
- by (Fast_tac 1);
-val neg_ex = result();
 
 
 goal Solve.thy "!!f.[| is_weak_pmap f C A |]\
@@ -253,14 +226,10 @@ by (cut_inst_tac [("C","C"),("g","g"),("s","s")] reachable_rename_ioa 1);
 by (assume_tac 1);
 by (Asm_full_simp_tac 1);
 (* x is internal *)
-by (simp_tac (!simpset addsimps [disj_demorgan,neg_ex,conj_demorgan] addcongs [conj_cong]) 1);
+by (simp_tac (!simpset addsimps [de_Morgan_disj, de_Morgan_conj, not_ex] 
+	               addcongs [conj_cong]) 1);
 by (rtac impI 1);
 by (etac conjE 1);
 by (cut_inst_tac [("C","C"),("g","g"),("s","s")] reachable_rename_ioa 1);
-by (assume_tac 1);
-by (eres_inst_tac [("x","s")] allE 1);
-by (eres_inst_tac [("x","t")] allE 1);
-by (eres_inst_tac [("x","x")] allE 1);
-by (eres_inst_tac [("x","x")] allE 1);
-by (Asm_full_simp_tac 1);
+by (Auto_tac());
 qed"rename_through_pmap";

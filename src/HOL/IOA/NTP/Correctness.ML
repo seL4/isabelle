@@ -81,8 +81,7 @@ by (rtac imp_conj_lemma 1);   (* from lemmas.ML *)
 by(Action.action.induct_tac "a"  1);
 by(asm_simp_tac (ss' setloop (split_tac [expand_if])) 1);
 by(forward_tac [inv4] 1);
-by(asm_full_simp_tac (!simpset addsimps 
-                 [imp_ex_equiv,neq_Nil_conv,ex_all_equiv]) 1);
+by (fast_tac (!claset addss (!simpset addsimps [neq_Nil_conv])) 1);
 by(simp_tac ss' 1);
 by(simp_tac ss' 1);
 by(simp_tac ss' 1);
@@ -96,7 +95,7 @@ by(forward_tac [inv4] 1);
 by(forward_tac [inv2] 1);
 by (etac disjE 1);
 by(Asm_simp_tac 1);
-by(asm_full_simp_tac (!simpset addsimps [imp_ex_equiv,neq_Nil_conv,ex_all_equiv]) 1);
+by (fast_tac (!claset addss (!simpset addsimps [neq_Nil_conv])) 1);
 
 by(asm_simp_tac ss' 1);
 by(forward_tac [inv2] 1);
@@ -110,8 +109,7 @@ by(fast_tac (!claset addSDs [add_leD1 RS leD]) 1);
 
 by(case_tac "m = hd(sq(sen(s)))" 1);
 
-by(asm_full_simp_tac (!simpset addsimps 
-                     [imp_ex_equiv,neq_Nil_conv,ex_all_equiv]) 1);
+by (fast_tac (!claset addss (!simpset addsimps [neq_Nil_conv])) 1);
 
 by(Asm_full_simp_tac 1);
 by(fast_tac (!claset addSDs [add_leD1 RS leD]) 1);

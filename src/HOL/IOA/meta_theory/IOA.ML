@@ -59,7 +59,7 @@ goalw IOA.thy (reachable_def::exec_rws)
 \                         %i.if i<Suc n then snd ex i else t)")] bexI 1);
   by(res_inst_tac [("x","Suc(n)")] exI 1);
   by(Simp_tac 1);
-  by(asm_simp_tac (!simpset (*delsimps [less_Suc_eq]*)) 1);
+  by(Asm_simp_tac 1);
   by(REPEAT(rtac allI 1));
   by(res_inst_tac [("m","na"),("n","n")] (make_elim less_linear) 1);
   be disjE 1;
