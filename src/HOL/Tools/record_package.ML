@@ -642,15 +642,12 @@ fun gen_add_record prep_typ prep_raw_parent (params, bname) raw_parent raw_field
 
     (* fields *)
 
-    fun prep_fields (env, []) = (env, [])
-      | prep_fields (env, (c, raw_T) :: fs) =
-          let
-            val (env', T) = prep_typ sign (env, raw_T) handle ERROR =>
-              error ("The error(s) above occured in field " ^ quote c);
-            val (env'', fs') = prep_fields (env', fs);
-      in (env'', (c, T) :: fs') end;
+    fun prep_field (env, (c, raw_T)) =
+      let val (env', T) = prep_typ sign (env, raw_T) handle ERROR =>
+        error ("The error(s) above occured in field " ^ quote c)
+      in (env', (c, T)) end;
 
-    val (envir, bfields) = prep_fields (init_env, raw_fields);
+    val (envir, bfields) = foldl_map prep_field (init_env, raw_fields);
     val envir_names = map fst envir;
 
 
