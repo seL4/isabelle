@@ -240,8 +240,9 @@ tvar      & =   & \mbox{\tt ?}tid ~~|~~
 num       & =   & nat ~~|~~ \mbox{\tt-}nat \\
 xnum      & =   & \mbox{\tt \#}nat ~~|~~ \mbox{\tt \#-}nat \\
 xstr      & =   & \mbox{\tt ''~\dots~\tt ''} \\[1ex]
-letter & = & latin ~|~ \verb,\<,latin\verb,>, ~|~ \verb,\<,latin\,latin\verb,>, ~|~ greek \\
-quasiletter & = & letter ~|~ digit ~|~ \verb,_, ~|~ \verb,', ~|~ \verb,\<^isub>, ~|~ \verb,\<^isup>, \\
+letter & = & latin ~|~ \verb,\<,latin\verb,>, ~|~ \verb,\<,latin\,latin\verb,>, ~|~ greek ~| \\
+      &   & \verb,\<^isub>, ~|~ \verb,\<^isup>, \\
+quasiletter & = & letter ~|~ digit ~|~ \verb,_, ~|~ \verb,', \\
 latin & = & \verb,a, ~|~ \dots ~|~ \verb,z, ~|~ \verb,A, ~|~ \dots ~|~ \verb,Z, \\
 digit & = & \verb,0, ~|~ \dots ~|~ \verb,9, \\
 nat & = & digit^+ \\
