@@ -14,13 +14,13 @@ EX_FILES = ex/ROOT.ML ex/cla.ML ex/foundn.ML ex/If.ML ex/If.thy ex/int.ML \
 	   ex/prop.ML ex/quant.ML
 
 $(OUT)/FOLP: $(OUT)/Pure $(FILES)
-	@$(ISABELLE) -e "make_html := $(ISABELLE_HTML);" -qu $(OUT)/Pure FOLP
+	@$(ISATOOL) usedir -b $(OUT)/Pure FOLP
 	@chmod -w $@
 
 $(OUT)/Pure:
 	@cd ../Pure; $(ISATOOL) make
 
 test: ex/ROOT.ML $(OUT)/FOLP $(EX_FILES)
-	@$(ISATOOL) testdir $(OUT)/FOLP ex
+	@$(ISATOOL) usedir $(OUT)/FOLP ex
 
 .PRECIOUS: $(OUT)/Pure $(OUT)/FOLP
