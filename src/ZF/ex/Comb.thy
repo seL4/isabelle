@@ -17,7 +17,7 @@ Comb = Datatype +
 
 (** Datatype definition of combinators S and K, with infixed application **)
 consts comb :: i
-datatype (* <= "univ(0)" *)
+datatype
   "comb" = K
          | S
          | "#" ("p: comb", "q: comb")   (infixl 90)
@@ -67,16 +67,13 @@ inductive
 
 
 (*Misc definitions*)
-consts
-  diamond   :: i => o
-  I         :: i
+constdefs
+  I :: i
+  "I == S#K#K"
 
-defs
-
-  diamond_def "diamond(r) == ALL x y. <x,y>:r --> 
-                            (ALL y'. <x,y'>:r --> 
-                                 (EX z. <y,z>:r & <y',z> : r))"
-
-  I_def       "I == S#K#K"
+  diamond :: i => o
+  "diamond(r) == ALL x y. <x,y>:r --> 
+                          (ALL y'. <x,y'>:r --> 
+                                   (EX z. <y,z>:r & <y',z> : r))"
 
 end
