@@ -22,8 +22,8 @@ Goalw [general_setsum_def]
 by  (auto_tac (claset(), simpset() addsimps [Fin_into_Finite RS Finite_cons, 
                                              cons_absorb]));
 by (blast_tac (claset() addDs [Fin_into_Finite]) 2);
-by (resolve_tac [fold_cons] 1);
-by (auto_tac (claset(), simpset() addsimps [lcomm_def]));
+by (resolve_tac [thm"fold_typing.fold_cons"] 1);
+by (auto_tac (claset(), simpset() addsimps [thm "fold_typing_def", lcomm_def]));
 qed "general_setsum_cons";
 Addsimps [general_setsum_cons];
 
@@ -185,8 +185,9 @@ Goalw [nsetsum_def, general_setsum_def]
 "[| Finite(C); x~:C |] \
 \  ==> nsetsum(g, cons(x, C))= g(x) #+ nsetsum(g, C)";
 by (auto_tac (claset(), simpset() addsimps [Finite_cons]));
-by (res_inst_tac [("A", "cons(x, C)")] fold_cons 1);
-by (auto_tac (claset() addIs [Finite_cons_lemma], simpset()));
+by (res_inst_tac [("A", "cons(x, C)")] (thm"fold_typing.fold_cons") 1);
+by (auto_tac (claset() addIs [thm"Finite_cons_lemma"], 
+              simpset() addsimps [thm "fold_typing_def"]));
 qed "nsetsum_cons";
 Addsimps [nsetsum_cons];
 

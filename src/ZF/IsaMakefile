@@ -138,7 +138,7 @@ ZF-Induct: ZF $(LOG)/ZF-Induct.gz
 
 $(LOG)/ZF-Induct.gz: $(OUT)/ZF  Induct/ROOT.ML Induct/Acc.thy \
   Induct/Binary_Trees.thy Induct/Brouwer.thy Induct/Comb.thy \
-  Induct/Datatypes.thy Induct/FoldSet.ML Induct/FoldSet.thy \
+  Induct/Datatypes.thy Induct/FoldSet.thy \
   Induct/ListN.thy Induct/Multiset.ML Induct/Multiset.thy Induct/Mutil.thy \
   Induct/Ntree.thy Induct/Primrec.thy Induct/PropLog.thy Induct/Rmap.thy \
   Induct/Term.thy Induct/Tree_Forest.thy Induct/document/root.tex

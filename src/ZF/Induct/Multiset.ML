@@ -398,11 +398,6 @@ by (auto_tac (claset(), simpset() delsimps [int_of_0]
        addsimps [int_of_add RS sym, int_of_0 RS sym]));
 qed "msize_eq_0_iff";
 
-Goal 
-"cons(x, A) Int B = (if x:B then cons(x, A Int B) else A Int B)";
-by Auto_tac;
-qed "cons_Int_right_cases";
-
 Goal
 "Finite(A) ==> setsum(%a. $# mcount(N, a), A Int mset_of(N)) \
 \            = setsum(%a. $# mcount(N, a), A)";
@@ -411,7 +406,7 @@ by Auto_tac;
 by (subgoal_tac "Finite(B Int mset_of(N))" 1);
 by (blast_tac (claset() addIs [subset_Finite]) 2);
 by (auto_tac (claset(), 
-         simpset() addsimps [mcount_def, cons_Int_right_cases]));
+         simpset() addsimps [mcount_def, Int_cons_left]));
 qed "setsum_mcount_Int";
 
 Goalw [msize_def]

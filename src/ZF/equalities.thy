@@ -136,6 +136,9 @@ by blast
 lemma cons_Diff: "a: B ==> cons(a, B-{a}) = B"
 by blast
 
+lemma Diff_cons_eq: "cons(a,B) - C = (if a\<in>C then B-C else cons(a,B-C))" 
+by auto
+
 lemma equal_singleton [rule_format]: "[| a: C;  \<forall>y\<in>C. y=b |] ==> C = {b}"
 by blast
 
@@ -226,6 +229,14 @@ by (blast elim!: equalityE)
 
 lemma Int_Diff_eq: "C<=A ==> (A-B) Int C = C-B"
 by blast
+
+lemma Int_cons_left:
+     "cons(a,A) Int B = (if a : B then cons(a, A Int B) else A Int B)"
+by auto
+
+lemma Int_cons_right:
+     "A Int cons(a, B) = (if a : A then cons(a, A Int B) else A Int B)"
+by auto
 
 subsection{*Binary Union*}
 
@@ -1084,6 +1095,8 @@ val Int_Un_distrib2 = thm "Int_Un_distrib2";
 val subset_Int_iff = thm "subset_Int_iff";
 val subset_Int_iff2 = thm "subset_Int_iff2";
 val Int_Diff_eq = thm "Int_Diff_eq";
+val Int_cons_left = thm "Int_cons_left";
+val Int_cons_right = thm "Int_cons_right";
 val Un_cons = thm "Un_cons";
 val Un_absorb = thm "Un_absorb";
 val Un_left_absorb = thm "Un_left_absorb";

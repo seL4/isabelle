@@ -37,9 +37,10 @@ by (blast_tac (claset() addIs [nat_into_univ]) 1);
 by (assume_tac 1);
 qed "list_nat_into_univ";
 
-(** To be moved to Update theory **)
 
-(** Simplication rules for Collect; To be moved elsewhere **)
+(** Simplication rules for Collect; ????
+  At least change to "{x:A. P(x)} Int A = {x : A Int B. P(x)} **)
+
 Goal "{x:A. P(x)} Int A = {x:A. P(x)}";
 by Auto_tac;
 qed "Collect_Int2";
@@ -48,6 +49,7 @@ Goal "A Int {x:A. P(x)} = {x:A. P(x)}";
 by Auto_tac;
 qed "Collect_Int3";
 
+(*????????????????*)
 AddIffs [Collect_Int2, Collect_Int3];
 
 
@@ -65,15 +67,6 @@ Goal "Union(B) Int A = (UN C:B. C Int A)";
 by (Blast_tac 1);
 qed "Int_Union2";
 
-Goal "A Int cons(a, B) = (if a : A then cons(a, A Int B) else A Int B)";
-by Auto_tac;
-qed "Int_cons_right";
-
 Goal "A Int succ(k) = (if k : A then cons(k, A Int k) else A Int k)";
 by Auto_tac;
 qed "Int_succ_right";
-
-Goal "cons(a,B) Int A = (if a : A then cons(a, A Int B) else A Int B)";
-by Auto_tac;
-qed "Int_cons_left";
-
