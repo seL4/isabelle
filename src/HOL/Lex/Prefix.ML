@@ -87,3 +87,14 @@ by (asm_full_simp_tac (simpset() delsimps [append_assoc]
 by (Simp_tac 1);
 by (Blast_tac 1);
 qed "prefix_append";
+
+Goalw [prefix_def]
+  "[| xs <= ys; length xs < length ys |] ==> xs @ [ys ! length xs] <= ys";
+by (auto_tac(claset(), simpset() addsimps [nth_append]));
+by (exhaust_tac "ys" 1);
+by Auto_tac;
+qed "append_one_prefix";
+
+Goalw [prefix_def] "xs <= ys ==> length xs <= length ys";
+by Auto_tac;
+qed "prefix_length_le";
