@@ -7,8 +7,8 @@ Proof states and methods.
 
 signature BASIC_PROOF =
 sig
-  val FINDGOAL: (int -> tactic) -> tactic
-  val HEADGOAL: (int -> tactic) -> tactic
+  val FINDGOAL: (int -> thm -> 'a Seq.seq) -> thm -> 'a Seq.seq
+  val HEADGOAL: (int -> thm -> 'a Seq.seq) -> thm -> 'a Seq.seq
 end;
 
 signature PROOF =
@@ -41,6 +41,7 @@ sig
   val level: state -> int
   type method
   val method: (thm list -> tactic) -> method
+  val method_cases: (thm list -> thm -> (thm * (string * RuleCases.T) list) Seq.seq) -> method
   val refine: (context -> method) -> state -> state Seq.seq
   val refine_end: (context -> method) -> state -> state Seq.seq
   val find_free: term -> string -> term option
@@ -66,6 +67,7 @@ sig
     -> state -> state
   val presume_i: (string * context attribute list * (term * (term list * term list)) list) list
     -> state -> state
+  val invoke_case: string -> state -> state
   val theorem: bstring -> theory attribute list -> string * (string list * string list)
     -> theory -> state
   val theorem_i: bstring -> theory attribute list -> term * (term list * term list)
@@ -194,6 +196,7 @@ val put_thms = map_context o ProofContext.put_thms;
 val put_thmss = map_context o ProofContext.put_thmss;
 val reset_thms = map_context o ProofContext.reset_thms;
 val assumptions = ProofContext.assumptions o context_of;
+val get_case = ProofContext.get_case o context_of;
 
 
 (* facts *)
@@ -235,16 +238,16 @@ fun get_goal state =
 
 fun put_goal goal = map_current (fn (ctxt, facts, mode, _) => (ctxt, facts, mode, goal));
 
-fun map_goal f (State (Node {context, facts, mode, goal = Some goal}, nodes)) =
-      State (make_node (context, facts, mode, Some (f goal)), nodes)
-  | map_goal f (State (nd, node :: nodes)) =
-      let val State (node', nodes') = map_goal f (State (node, nodes))
-      in State (nd, node' :: nodes') end
-  | map_goal _ state = state;
+fun map_goal f g (State (Node {context, facts, mode, goal = Some goal}, nodes)) =
+      State (make_node (f context, facts, mode, Some (g goal)), nodes)
+  | map_goal f g (State (nd, node :: nodes)) =
+      let val State (node', nodes') = map_goal f g (State (node, nodes))
+      in map_context f (State (nd, node' :: nodes')) end
+  | map_goal _ _ state = state;
 
 fun goal_facts get state =
   state
-  |> map_goal (fn ((result, (_, thm)), f) => ((result, (get state, thm)), f));
+  |> map_goal I (fn ((result, (_, thm)), f) => ((result, (get state, thm)), f));
 
 fun use_facts state =
   state
@@ -341,8 +344,11 @@ fun print_state nr (state as State (Node {context, facts, mode, goal = _}, nodes
 
 (* datatype method *)
 
-datatype method = Method of thm list -> tactic;
-val method = Method;
+datatype method =
+  Method of thm list -> thm -> (thm * (string * RuleCases.T) list) Seq.seq;
+
+fun method tac = Method (fn facts => fn st => Seq.map (rpair []) (tac facts st));
+val method_cases = Method;
 
 
 (* refine goal *)
@@ -358,10 +364,10 @@ fun gen_refine current_context meth_fun state =
     val (goal_ctxt, (_, ((result, (facts, thm)), f))) = find_goal 0 state;
     val Method meth = meth_fun (if current_context then context_of state else goal_ctxt);
 
-    fun refn thm' =
+    fun refn (thm', cases) =
       state
       |> check_sign (Thm.sign_of_thm thm')
-      |> map_goal (K ((result, (facts, thm')), f));
+      |> map_goal (ProofContext.add_cases cases) (K ((result, (facts, thm')), f));
   in Seq.map refn (meth facts thm) end;
 
 in
@@ -421,8 +427,8 @@ fun RANGE [] _ = all_tac
   | RANGE (tac :: tacs) i = RANGE tacs (i + 1) THEN tac i;
 
 fun FINDGOAL tac st =
-  let fun find (i, n) = if i > n then no_tac else tac i APPEND find (i + 1, n)
-  in find (1, nprems_of st) st end;
+  let fun find (i, n) = if i > n then Seq.fail else Seq.APPEND (tac i, find (i + 1, n))
+  in find (1, Thm.nprems_of st) st end;
 
 fun HEADGOAL tac = tac 1;
 
@@ -433,7 +439,7 @@ fun export_goal print_rule raw_rule inner state =
     val rule = exp raw_rule;
     val _ = print_rule rule;
     val thmq = FINDGOAL (Tactic.rtac rule THEN' RANGE (map #1 tacs)) thm;
-  in Seq.map (fn th => map_goal (K ((result, (facts, th)), f)) state) thmq end;
+  in Seq.map (fn th => map_goal I (K ((result, (facts, th)), f)) state) thmq end;
 
 
 fun export_thm inner thm =
@@ -551,6 +557,16 @@ val presume = assm (soft_asm_tac, soft_asm_tac);
 val presume_i = assm_i (soft_asm_tac, soft_asm_tac);
 
 end;
+
+
+(* invoke_case *)
+
+fun invoke_case name state =
+  let val (vars, props) = get_case state name in
+    state
+    |> fix_i (map (fn (x, T) => ([x], Some T)) vars)
+    |> assume_i [("", [], map (fn t => (t, ([], []))) props)]
+  end;
 
 
 
