@@ -160,8 +160,7 @@ $(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML\
   Hyperreal/Transcendental.thy Hyperreal/fuf.ML Hyperreal/hypreal_arith.ML \
   Complex/Complex_Main.thy Complex/CLim.thy Complex/CSeries.thy\
   Complex/CStar.thy Complex/Complex.thy Complex/ComplexBin.thy\
-  Complex/NSCA.ML Complex/NSCA.thy\
-  Complex/NSComplex.thy
+  Complex/NSCA.thy Complex/NSComplex.thy
 	@cd Complex; $(ISATOOL) usedir -b $(OUT)/HOL HOL-Complex
 
 
