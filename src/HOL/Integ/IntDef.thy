@@ -843,13 +843,11 @@ text{*By Jeremy Avigad*}
 lemma setsum_of_nat: "of_nat (setsum f A) = setsum (of_nat \<circ> f) A"
   apply (case_tac "finite A")
   apply (erule finite_induct, auto)
-  apply (simp add: setsum_def)
   done
 
 lemma setsum_of_int: "of_int (setsum f A) = setsum (of_int \<circ> f) A"
   apply (case_tac "finite A")
   apply (erule finite_induct, auto)
-  apply (simp add: setsum_def)
   done
 
 lemma int_setsum: "int (setsum f A) = setsum (int \<circ> f) A"
@@ -858,13 +856,11 @@ lemma int_setsum: "int (setsum f A) = setsum (int \<circ> f) A"
 lemma setprod_of_nat: "of_nat (setprod f A) = setprod (of_nat \<circ> f) A"
   apply (case_tac "finite A")
   apply (erule finite_induct, auto)
-  apply (simp add: setprod_def)
   done
 
 lemma setprod_of_int: "of_int (setprod f A) = setprod (of_int \<circ> f) A"
   apply (case_tac "finite A")
   apply (erule finite_induct, auto)
-  apply (simp add: setprod_def)
   done
 
 lemma int_setprod: "int (setprod f A) = setprod (int \<circ> f) A"

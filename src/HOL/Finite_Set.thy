@@ -303,6 +303,37 @@ lemma finite_Prod_UNIV:
    apply (erule finite_SigmaI, auto)
   done
 
+lemma finite_cartesian_productD1:
+     "[| finite (A <*> B); B \<noteq> {} |] ==> finite A"
+apply (auto simp add: finite_conv_nat_seg_image) 
+apply (drule_tac x=n in spec) 
+apply (drule_tac x="fst o f" in spec) 
+apply (auto simp add: o_def) 
+ prefer 2 apply (force dest!: equalityD2) 
+apply (drule equalityD1) 
+apply (rename_tac y x)
+apply (subgoal_tac "\<exists>k. k<n & f k = (x,y)") 
+ prefer 2 apply force
+apply clarify
+apply (rule_tac x=k in image_eqI, auto)
+done
+
+lemma finite_cartesian_productD2:
+     "[| finite (A <*> B); A \<noteq> {} |] ==> finite B"
+apply (auto simp add: finite_conv_nat_seg_image) 
+apply (drule_tac x=n in spec) 
+apply (drule_tac x="snd o f" in spec) 
+apply (auto simp add: o_def) 
+ prefer 2 apply (force dest!: equalityD2) 
+apply (drule equalityD1)
+apply (rename_tac x y)
+apply (subgoal_tac "\<exists>k. k<n & f k = (x,y)") 
+ prefer 2 apply force
+apply clarify
+apply (rule_tac x=k in image_eqI, auto)
+done
+
+
 instance unit :: finite
 proof
   have "finite {()}" by simp
@@ -889,6 +920,9 @@ lemma setsum_insert [simp]:
     "finite F ==> a \<notin> F ==> setsum f (insert a F) = f a + setsum f F"
   by (simp add: setsum_def ACf.fold_insert [OF ACf_add])
 
+lemma setsum_infinite [simp]: "~ finite A ==> setsum f A = 0"
+  by (simp add: setsum_def)
+
 lemma setsum_reindex:
      "inj_on f B ==> setsum h (f ` B) = setsum (h \<circ> f) B"
 by(auto simp add: setsum_def ACf.fold_reindex[OF ACf_add] dest!:finite_imageD)
@@ -926,36 +960,44 @@ lemma setsum_Un_disjoint: "finite A ==> finite B
   ==> A Int B = {} ==> setsum g (A Un B) = setsum g A + setsum g B"
 by (subst setsum_Un_Int [symmetric], auto)
 
-(* FIXME get rid of finite I. If infinite, rhs is directly 0, and UNION I A
-is also infinite and hence also 0 *)
+(*But we can't get rid of finite I. If infinite, although the rhs is 0, 
+  the lhs need not be, since UNION I A could still be finite.*)
 lemma setsum_UN_disjoint:
     "finite I ==> (ALL i:I. finite (A i)) ==>
         (ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {}) ==>
       setsum f (UNION I A) = (\<Sum>i\<in>I. setsum f (A i))"
 by(simp add: setsum_def ACe.fold_UN_disjoint[OF ACe_add] cong: setsum_cong)
 
-
-(* FIXME get rid of finite C. If infinite, rhs is directly 0, and Union C
-is also infinite and hence also 0 *)
+text{*No need to assume that @{term C} is finite.  If infinite, the rhs is
+directly 0, and @{term "Union C"} is also infinite, hence the lhs is also 0.*}
 lemma setsum_Union_disjoint:
-  "finite C ==> (ALL A:C. finite A) ==>
-        (ALL A:C. ALL B:C. A \<noteq> B --> A Int B = {}) ==>
-      setsum f (Union C) = setsum (setsum f) C"
+  "[| (ALL A:C. finite A);
+      (ALL A:C. ALL B:C. A \<noteq> B --> A Int B = {}) |]
+   ==> setsum f (Union C) = setsum (setsum f) C"
+apply (cases "finite C") 
+ prefer 2 apply (force dest: finite_UnionD simp add: setsum_def)
   apply (frule setsum_UN_disjoint [of C id f])
-  apply (unfold Union_def id_def, assumption+)
-  done
+ apply (unfold Union_def id_def, assumption+)
+done
 
-(* FIXME get rid of finite A. If infinite, lhs is directly 0, and SIGMA A B
-is either infinite or empty, and in both cases the rhs is also 0 *)
+(*But we can't get rid of finite A. If infinite, although the lhs is 0, 
+  the rhs need not be, since SIGMA A B could still be finite.*)
 lemma setsum_Sigma: "finite A ==> ALL x:A. finite (B x) ==>
     (\<Sum>x\<in>A. (\<Sum>y\<in>B x. f x y)) =
     (\<Sum>z\<in>(SIGMA x:A. B x). f (fst z) (snd z))"
 by(simp add:setsum_def ACe.fold_Sigma[OF ACe_add] split_def cong:setsum_cong)
 
-lemma setsum_cartesian_product: "finite A ==> finite B ==>
-    (\<Sum>x\<in>A. (\<Sum>y\<in>B. f x y)) =
-    (\<Sum>z\<in>A <*> B. f (fst z) (snd z))"
-  by (erule setsum_Sigma, auto)
+text{*Here we can eliminate the finiteness assumptions, by cases.*}
+lemma setsum_cartesian_product: 
+   "(\<Sum>x\<in>A. (\<Sum>y\<in>B. f x y)) = (\<Sum>z\<in>A <*> B. f (fst z) (snd z))"
+apply (cases "finite A") 
+ apply (cases "finite B") 
+  apply (simp add: setsum_Sigma)
+ apply (cases "A={}", simp)
+ apply (simp add: setsum_0) 
+apply (auto simp add: setsum_def
+            dest: finite_cartesian_productD1 finite_cartesian_productD2) 
+done
 
 lemma setsum_addf: "setsum (%x. f x + g x) A = (setsum f A + setsum g A)"
 by(simp add:setsum_def ACe.fold_distrib[OF ACe_add])
@@ -1176,6 +1218,9 @@ lemma setprod_insert [simp]: "[| finite A; a \<notin> A |] ==>
     setprod f (insert a A) = f a * setprod f A"
 by (simp add: setprod_def ACf.fold_insert [OF ACf_mult])
 
+lemma setprod_infinite [simp]: "~ finite A ==> setprod f A = 1"
+  by (simp add: setprod_def)
+
 lemma setprod_reindex:
      "inj_on f B ==> setprod h (f ` B) = setprod (h \<circ> f) B"
 by(auto simp: setprod_def ACf.fold_reindex[OF ACf_mult] dest!:finite_imageD)
@@ -1195,7 +1240,6 @@ lemma setprod_reindex_cong: "inj_on f A ==>
 lemma setprod_1: "setprod (%i. 1) A = 1"
   apply (case_tac "finite A")
   apply (erule finite_induct, auto simp add: mult_ac)
-  apply (simp add: setprod_def)
   done
 
 lemma setprod_1': "ALL a:F. f a = 1 ==> setprod f F = 1"
@@ -1219,25 +1263,34 @@ lemma setprod_UN_disjoint:
 by(simp add: setprod_def ACe.fold_UN_disjoint[OF ACe_mult] cong: setprod_cong)
 
 lemma setprod_Union_disjoint:
-  "finite C ==> (ALL A:C. finite A) ==>
-        (ALL A:C. ALL B:C. A \<noteq> B --> A Int B = {}) ==>
-      setprod f (Union C) = setprod (setprod f) C"
+  "[| (ALL A:C. finite A);
+      (ALL A:C. ALL B:C. A \<noteq> B --> A Int B = {}) |] 
+   ==> setprod f (Union C) = setprod (setprod f) C"
+apply (cases "finite C") 
+ prefer 2 apply (force dest: finite_UnionD simp add: setprod_def)
   apply (frule setprod_UN_disjoint [of C id f])
-  apply (unfold Union_def id_def, assumption+)
-  done
+ apply (unfold Union_def id_def, assumption+)
+done
 
 lemma setprod_Sigma: "finite A ==> ALL x:A. finite (B x) ==>
     (\<Prod>x:A. (\<Prod>y: B x. f x y)) =
     (\<Prod>z:(SIGMA x:A. B x). f (fst z) (snd z))"
 by(simp add:setprod_def ACe.fold_Sigma[OF ACe_mult] split_def cong:setprod_cong)
 
-lemma setprod_cartesian_product: "finite A ==> finite B ==>
-    (\<Prod>x:A. (\<Prod>y: B. f x y)) =
-    (\<Prod>z:(A <*> B). f (fst z) (snd z))"
-  by (erule setprod_Sigma, auto)
+text{*Here we can eliminate the finiteness assumptions, by cases.*}
+lemma setprod_cartesian_product: 
+     "(\<Prod>x:A. (\<Prod>y: B. f x y)) = (\<Prod>z:(A <*> B). f (fst z) (snd z))"
+apply (cases "finite A") 
+ apply (cases "finite B") 
+  apply (simp add: setprod_Sigma)
+ apply (cases "A={}", simp)
+ apply (simp add: setprod_1) 
+apply (auto simp add: setprod_def
+            dest: finite_cartesian_productD1 finite_cartesian_productD2) 
+done
 
 lemma setprod_timesf:
-  "setprod (%x. f x * g x) A = (setprod f A * setprod g A)"
+     "setprod (%x. f x * g x) A = (setprod f A * setprod g A)"
 by(simp add:setprod_def ACe.fold_distrib[OF ACe_mult])
 
 
@@ -1348,6 +1401,9 @@ constdefs
 lemma card_empty [simp]: "card {} = 0"
   by (simp add: card_def)
 
+lemma card_infinite [simp]: "~ finite A ==> card A = 0"
+  by (simp add: card_def)
+
 lemma card_eq_setsum: "card A = setsum (%x. 1) A"
 by (simp add: card_def)
 
@@ -1364,6 +1420,9 @@ lemma card_0_eq [simp]: "finite A ==> (card A = 0) = (A = {})"
   apply (drule_tac a = x in mk_disjoint_insert, clarify)
   apply (auto)
   done
+
+lemma card_eq_0_iff: "(card A = 0) = (A = {} | ~ finite A)"
+by auto
 
 lemma card_Suc_Diff1: "finite A ==> x: A ==> Suc (card (A - {x})) = card A"
 apply(rule_tac t = A in insert_Diff [THEN subst], assumption)
@@ -1452,11 +1511,12 @@ apply (simp add: card_insert_disjoint card_Un_disjoint insert_partition
 done
 
 
-lemma setsum_constant_nat:
-    "finite A ==> (\<Sum>x\<in>A. y) = (card A) * y"
+lemma setsum_constant_nat: "(\<Sum>x\<in>A. y) = (card A) * y"
   -- {* Generalized to any @{text comm_semiring_1_cancel} in
         @{text IntDef} as @{text setsum_constant}. *}
-by (erule finite_induct, auto)
+apply (cases "finite A") 
+apply (erule finite_induct, auto)
+done
 
 lemma setprod_constant: "finite A ==> (\<Prod>x: A. (y::'a::recpower)) = y^(card A)"
   apply (erule finite_induct)
@@ -1537,18 +1597,17 @@ lemma card_SigmaI [simp]:
   \<Longrightarrow> card (SIGMA x: A. B x) = (\<Sum>a\<in>A. card (B a))"
 by(simp add:card_def setsum_Sigma)
 
-(* FIXME get rid of prems *)
-lemma card_cartesian_product:
-     "[| finite A; finite B |] ==> card (A <*> B) = card(A) * card(B)"
-  by (simp add: setsum_constant_nat)
+lemma card_cartesian_product: "card (A <*> B) = card(A) * card(B)"
+apply (cases "finite A") 
+apply (cases "finite B") 
+  apply (simp add: setsum_constant_nat) 
+apply (auto simp add: card_eq_0_iff
+            dest: finite_cartesian_productD1 finite_cartesian_productD2) 
+done
 
-(* FIXME should really be a consequence of card_cartesian_product *)
 lemma card_cartesian_product_singleton:  "card({x} <*> A) = card(A)"
-  apply (subgoal_tac "inj_on (%y .(x,y)) A")
-  apply (frule card_image)
-  apply (subgoal_tac "(Pair x ` A) = {x} <*> A")
-  apply (auto simp add: inj_on_def)
-  done
+by (simp add: card_cartesian_product) 
+
 
 
 subsubsection {* Cardinality of the Powerset *}
