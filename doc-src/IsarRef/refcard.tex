@@ -107,8 +107,8 @@
 
   \multicolumn{2}{l}{\textbf{Automated proof tools (inserting facts, or even prems!)}} \\[0.5ex]
   $rules$ & \Text{intuitionistic proof search} \\
-  $simp$, $simp_all$ & Simplifier (+ Splitter) \\
   $blast$, $fast$ & Classical Reasoner \\
+  $simp$, $simp_all$ & Simplifier (+ Splitter) \\
   $auto$, $force$ & Simplifier + Classical Reasoner \\
   $arith$ & Arithmetic procedure \\
 \end{tabular}
@@ -132,6 +132,24 @@
   $split$ & case split rule \\
   $trans$ & transitivity rule \\
   $sym$ & symmetry rule \\
+\end{tabular}
+
+
+\section{Rule declarations and methods}
+
+\begin{tabular}{l|lllll}
+                          & $rule$   & $rules$  & $blast$ etc. & $simp$ etc. & $auto$ etc. \\
+  \hline
+  $elim!$ $intro!$ (Pure) & $\times$ & $\times$ \\
+  $elim$ $intro$ (Pure)   & $\times$ & $\times$ \\
+  $elim!$ $intro!$        & $\times$ &          & $\times$     &             & $\times$ \\
+  $elim$ $intro$          & $\times$ &          & $\times$     &             & $\times$ \\
+  $iff$                   & $\times$ &          & $\times$     & $\times$    & $\times$ \\
+  $iff?$                  & $\times$ \\
+  $elim?$ $intro?$        & $\times$ \\
+  $simp$                  &          &          &              & $\times$    & $\times$ \\
+  $cong$                  &          &          &              & $\times$    & $\times$ \\
+  $split$                 &          &          &              & $\times$    & $\times$ \\
 \end{tabular}
 
 
