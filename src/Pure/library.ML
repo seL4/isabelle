@@ -391,7 +391,7 @@ fun is_quasi_letter "_" = true
 
 (*white space: blanks, tabs, newlines, formfeeds*)
 val is_blank : string -> bool =
-  fn " " => true | "\t" => true | "\n" => true | "\^L" => true | "160" => true
+  fn " " => true | "\t" => true | "\n" => true | "\^L" => true | "\160" => true
     | _ => false;
 
 val is_letdig = is_quasi_letter orf is_digit;
