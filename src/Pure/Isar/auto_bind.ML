@@ -38,8 +38,9 @@ fun dddot_bind prop =
   | _ => []);
 
 fun facts _ [] = []
-  | facts name [prop] = dddot_bind prop
-  | facts name props =  dddot_bind (Library.last_elem props);
+  | facts name props =
+      let val prop = Library.last_elem props
+      in dddot_bind prop @ statement_binds ("this", prop) end;
       
 
 end;
