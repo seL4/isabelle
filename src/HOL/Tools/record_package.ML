@@ -619,8 +619,8 @@ fun field_definitions fields names xs zeta moreT more vars named_vars thy =
     val (defs_thy, (field_defs, dest_defs)) =
       types_thy
        |> (Theory.add_consts_i o map (Syntax.no_syn o apfst base)) (field_decls @ dest_decls)
-       |> (PureThy.add_defs_i o map (fn x => (x, [Drule.tag_internal]))) field_specs
-       |>>> (PureThy.add_defs_i o map (fn x => (x, [Drule.tag_internal]))) dest_specs;
+       |> (PureThy.add_defs_i false o map (fn x => (x, [Drule.tag_internal]))) field_specs
+       |>>> (PureThy.add_defs_i false o map (fn x => (x, [Drule.tag_internal]))) dest_specs;
 
 
     (* 3rd stage: thms_thy *)
@@ -789,9 +789,9 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
       |> Theory.add_trfuns ([], [], field_tr's, [])
       |> (Theory.add_consts_i o map Syntax.no_syn)
         (sel_decls @ update_decls @ make_decls)
-      |> (PureThy.add_defs_i o map (fn x => (x, [Drule.tag_internal]))) sel_specs
-      |>>> (PureThy.add_defs_i o map (fn x => (x, [Drule.tag_internal]))) update_specs
-      |>>> (PureThy.add_defs_i o map Thm.no_attributes) make_specs;
+      |> (PureThy.add_defs_i false o map (fn x => (x, [Drule.tag_internal]))) sel_specs
+      |>>> (PureThy.add_defs_i false o map (fn x => (x, [Drule.tag_internal]))) update_specs
+      |>>> (PureThy.add_defs_i false o map Thm.no_attributes) make_specs;
 
 
     (* 3rd stage: thms_thy *)

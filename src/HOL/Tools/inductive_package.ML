@@ -653,7 +653,7 @@ fun mk_ind_def declare_consts alt_name coind cs intr_ts monos con_defs thy
       |> (if length cs < 2 then I
           else Theory.add_consts_i [(rec_name, paramTs ---> setT, NoSyn)])
       |> Theory.add_path rec_name
-      |> PureThy.add_defss_i [(("defs", def_terms), [])];
+      |> PureThy.add_defss_i false [(("defs", def_terms), [])];
 
     val mono = prove_mono setT fp_fun monos thy'
 

@@ -296,7 +296,7 @@ fun add_primrec_i alt_name eqns_atts thy =
     val primrec_name =
       if alt_name = "" then (space_implode "_" (map (Sign.base_name o #1) defs)) else alt_name;
     val (thy', defs_thms') = thy |> Theory.add_path primrec_name |>
-      (if eq_set (names1, names2) then (PureThy.add_defs_i o map Thm.no_attributes) defs'
+      (if eq_set (names1, names2) then (PureThy.add_defs_i false o map Thm.no_attributes) defs'
        else primrec_err ("functions " ^ commas_quote names2 ^
          "\nare not mutually recursive"));
     val rewrites = o_def :: (map mk_meta_eq rec_rewrites) @ defs_thms';
