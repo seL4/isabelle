@@ -4,6 +4,8 @@
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
+header {* Sigma algebras *}
+
 theory Sigma_Algebra = Main:
 
 text {*
