@@ -12,9 +12,7 @@ qed "even_0";
 Addsimps [even_0];
 
 Goalw [even_def] "even 1 = False";
-by (Clarsimp_tac 1);
-by (dtac dvd_imp_le 1);
-by Auto_tac;
+by (Simp_tac 1);
 qed "not_even_1";
 Addsimps [not_even_1];
 

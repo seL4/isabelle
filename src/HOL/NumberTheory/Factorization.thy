@@ -258,11 +258,8 @@ subsection {* Uniqueness *}
 lemma prime_dvd_mult_list [rule_format]:
     "p \<in> prime ==> p dvd (prod xs) --> (\<exists>m. m:set xs \<and> p dvd m)"
   apply (induct xs)
-   apply simp_all
-   apply (erule prime_nd_one)
-  apply (rule impI)
-  apply (drule prime_dvd_mult)
-   apply auto
+   apply (force simp add: prime_def)
+   apply (force dest: prime_dvd_mult)
   done
 
 lemma hd_xs_dvd_prod:
