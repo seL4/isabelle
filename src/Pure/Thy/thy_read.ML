@@ -250,7 +250,11 @@ fun use_thy name =
          if thy_uptodate orelse thy_file = "" then ()
          else (writeln ("Reading \"" ^ name ^ ".thy\"");
                read_thy tname thy_file;
-               use (out_name tname)
+               use (out_name tname);
+               use_string
+                 ["store_theory (" ^ tname ^ ".thy, " ^ quote tname ^ ");"]
+                       (*Store theory object in case it is needed for store_thm
+                         while reading the ML file*)
               );
 
          if ml_file = "" then ()
@@ -258,6 +262,7 @@ fun use_thy name =
                use ml_file);
 
          use_string ["store_theory (" ^ tname ^ ".thy, " ^ quote tname ^ ");"];
+                    (*Store theory again because it could have been redefined*)
 
          (*Now set the correct info*)
          set_info (file_info thy_file) (file_info ml_file) tname;
@@ -434,15 +439,14 @@ fun store_theory (thy, tname) =
 
 (** store and retrieve theorems **)
 
-(* thyinfo_of_sign *)
-
+(*Guess to which theory a signature belongs and return it's thy_info*)
 fun thyinfo_of_sign sg =
   let
     val ref xname = hd (#stamps (Sign.rep_sg sg));
     val opt_info = get_thyinfo xname;
 
     fun eq_sg (ThyInfo {theory = None, ...}) = false
-      | eq_sg (ThyInfo {theory = Some thy, ...}) = Sign.eq_sg (sg, sign_of thy);
+      | eq_sg (ThyInfo {theory = Some thy, ...}) = Sign.eq_sg (sg,sign_of thy);
 
     val show_sg = Pretty.str_of o Sign.pretty_sg;
   in
@@ -455,19 +459,19 @@ fun thyinfo_of_sign sg =
   end;
 
 
-(* theory_of_sign, theory_of_thm *)
-
+(*Try to get the theory object corresponding to a given signature*)
 fun theory_of_sign sg =
   (case thyinfo_of_sign sg of
     (_, ThyInfo {theory = Some thy, ...}) => thy
   | _ => sys_error "theory_of_sign");
 
+(*Try to get the theory object corresponding to a given theorem*)
 val theory_of_thm = theory_of_sign o #sign o rep_thm;
 
 
-(* store theorems *)
+(* Store theorems *)
 
-(*store a theorem in the thy_info of its theory*)
+(*Store a theorem in the thy_info of its theory*)
 fun store_thm (name, thm) =
   let
     val (thy_name, ThyInfo {path, children, thy_time, ml_time, theory, thms}) =
@@ -476,32 +480,32 @@ fun store_thm (name, thm) =
       handle Symtab.DUPLICATE s => error ("Duplicate theorem name " ^ quote s);
   in
     loaded_thys := Symtab.update
-      ((thy_name, ThyInfo {path = path, children = children,
-        thy_time = thy_time, ml_time = ml_time, theory = theory, thms = thms'}),
-        ! loaded_thys);
+     ((thy_name, ThyInfo {path = path, children = children,
+       thy_time = thy_time, ml_time = ml_time, theory = theory, thms = thms'}),
+      ! loaded_thys);
     thm
   end;
 
-(*store result of proof in loaded_thys and as ML value*)
+(*Store result of proof in loaded_thys and as ML value*)
 fun qed name =
   use_string ["val " ^ name ^ " = store_thm (" ^ quote name ^ ", result ());"];
 
 
-(* retrieve theorems *)
+(* Retrieve theorems *)
 
+(*Get all theorems belonging to a given theory object*)
 fun thmtab thy =
   let val (_, ThyInfo {thms, ...}) = thyinfo_of_sign (sign_of thy)
   in thms end;
 
-(*get a stored theorem specified by theory and name*)
+(*Get a stored theorem specified by theory and name*)
 fun get_thm thy name =
   (case Symtab.lookup (thmtab thy, name) of
     Some thm => thm
   | None => raise THEORY ("get_thm: no theorem " ^ quote name, [thy]));
 
-(*get stored theorems of a theory*)
+(*Get stored theorems of a theory*)
 val thms_of = Symtab.dest o thmtab;
 
 
 end;
-
