@@ -23,4 +23,6 @@ For Isabelle2005:
 
 - rules -> iprover (Stefan)
 
+- ball, bex and setsum congruence rules (Tobias & Stefan)
+
 - remove this file (Tobias)
