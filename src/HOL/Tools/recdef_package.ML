@@ -188,14 +188,14 @@ val recdef_wfN = "recdef_wf";
 
 val recdef_modifiers =
  [Args.$$$ recdef_simpN -- Args.colon >> K ((I, simp_add_local): Method.modifier),
-  Args.$$$ recdef_simpN -- Args.$$$ Args.addN -- Args.colon >> K (I, simp_add_local),
-  Args.$$$ recdef_simpN -- Args.$$$ Args.delN -- Args.colon >> K (I, simp_del_local),
+  Args.$$$ recdef_simpN -- Args.add -- Args.colon >> K (I, simp_add_local),
+  Args.$$$ recdef_simpN -- Args.del -- Args.colon >> K (I, simp_del_local),
   Args.$$$ recdef_congN -- Args.colon >> K (I, cong_add_local),
-  Args.$$$ recdef_congN -- Args.$$$ Args.addN -- Args.colon >> K (I, cong_add_local),
-  Args.$$$ recdef_congN -- Args.$$$ Args.delN -- Args.colon >> K (I, cong_del_local),
+  Args.$$$ recdef_congN -- Args.add -- Args.colon >> K (I, cong_add_local),
+  Args.$$$ recdef_congN -- Args.del -- Args.colon >> K (I, cong_del_local),
   Args.$$$ recdef_wfN -- Args.colon >> K (I, wf_add_local),
-  Args.$$$ recdef_wfN -- Args.$$$ Args.addN -- Args.colon >> K (I, wf_add_local),
-  Args.$$$ recdef_wfN -- Args.$$$ Args.delN -- Args.colon >> K (I, wf_del_local)] @
+  Args.$$$ recdef_wfN -- Args.add -- Args.colon >> K (I, wf_add_local),
+  Args.$$$ recdef_wfN -- Args.del -- Args.colon >> K (I, wf_del_local)] @
   Clasimp.clasimp_modifiers;
 
 
