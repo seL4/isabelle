@@ -6,36 +6,34 @@
 
 Most theorem provers support a fixed logic, such as first-order or
 equational logic.  They bring sophisticated proof procedures to bear upon
-the conjectured formula.  An impressive example is the resolution prover
-Otter, which Quaife~\cite{quaife-book} has used to formalize a body of
-mathematics.
+the conjectured formula.  The resolution prover Otter~\cite{wos-bledsoe} is
+an impressive example.  ALF~\cite{alf}, Coq~\cite{coq} and
+Nuprl~\cite{constable86} each support a fixed logic too, but one far
+removed from first-order logic.  They are explicitly concerned with
+computation.  A diverse collection of logics --- type theories, process
+calculi, $\lambda$-calculi --- may be found in the Computer Science
+literature.  Such logics require proof support.  Few proof procedures are
+known for them, but the theorem prover can at least automate routine steps.
 
-ALF~\cite{alf}, Coq~\cite{coq} and Nuprl~\cite{constable86} each support a
-fixed logic too, but one far removed from first-order logic.  They are
-explicitly concerned with computation.  A diverse collection of logics ---
-type theories, process calculi, $\lambda$-calculi --- may be found in the
-Computer Science literature.  Such logics require proof support.  Few proof
-procedures exist, but the theorem prover can at least check that each
-inference is valid.
-
-A {\bf generic} theorem prover is one that can support many different
-logics.  Most of these \cite{dawson90,mural,sawamura92} work by
-implementing a syntactic framework that can express the features of typical
-inference rules.  Isabelle's distinctive feature is its representation of
-logics using a meta-logic.  This meta-logic is just a fragment of
-higher-order logic; known proof theory may be used to demonstrate that the
-representation is correct~\cite{paulson89}.  The representation has much in
-common with the Edinburgh Logical Framework~\cite{harper-jacm} and with 
+A {\bf generic} theorem prover is one that can support a variety of logics.
+Some generic provers are noteworthy for their user interfaces
+\cite{dawson90,mural,sawamura92}.  Most of them work by implementing a
+syntactic framework that can express typical inference rules.  Isabelle's
+distinctive feature is its representation of logics within a fragment of
+higher-order logic, called the meta-logic.  The proof theory of
+higher-order logic may be used to demonstrate that the representation is
+correct~\cite{paulson89}.  The approach has much in common with the
+Edinburgh Logical Framework~\cite{harper-jacm} and with
 Felty's~\cite{felty93} use of $\lambda$Prolog to implement logics.
 
 An inference rule in Isabelle is a generalized Horn clause.  Rules are
 joined to make proofs by resolving such clauses.  Logical variables in
 goals can be instantiated incrementally.  But Isabelle is not a resolution
-theorem prover like Otter.  Isabelle's clauses are drawn from a richer,
-higher-order language and a fully automatic search would be impractical.
-Isabelle does not join clauses automatically, but under strict user
-control.  You can conduct single-step proofs, use Isabelle's built-in proof
-procedures, or develop new proof procedures using tactics and tacticals.
+theorem prover like Otter.  Isabelle's clauses are drawn from a richer
+language and a fully automatic search would be impractical.  Isabelle does
+not resolve clauses automatically, but under user direction.  You can
+conduct single-step proofs, use Isabelle's built-in proof procedures, or
+develop new proof procedures using tactics and tacticals.
 
 Isabelle's meta-logic is higher-order, based on the typed
 $\lambda$-calculus.  So resolution cannot use ordinary unification, but
@@ -55,7 +53,7 @@ logic.
 
 
 \section*{How to read this book}
-Isabelle is a large system, but beginners can get by with a few commands
+Isabelle is a complex system, but beginners can get by with a few commands
 and a basic knowledge of how Isabelle works.  Some knowledge of
 Standard~\ML{} is essential because \ML{} is Isabelle's user interface.
 Advanced Isabelle theorem proving can involve writing \ML{} code, possibly
@@ -73,10 +71,10 @@ distinct purposes:
   to derive rules define theories, and concludes with an extended example:
   a Prolog interpreter.
 
-\item {\em The Isabelle Reference Manual\/} contains information about most
-  of the facilities of Isabelle, apart from particular object-logics.  This
-  part would make boring reading, though browsing might be useful.  Mostly
-  you should use it to locate facts quickly.
+\item {\em The Isabelle Reference Manual\/} provides detailed information
+  about Isabelle's facilities, excluding the object-logics.  This part
+  would make boring reading, though browsing might be useful.  Mostly you
+  should use it to locate facts quickly.
 
 \item {\em Isabelle's Object-Logics\/} describes the various logics
   distributed with Isabelle.  Its final chapter explains how to define new
@@ -118,7 +116,7 @@ My electronic mail address is {\tt lcp\at cl.cam.ac.uk}.  Please report any
 errors you find in this book and your problems or successes with Isabelle.
 
 
-\subsection*{Acknowledgements} 
+\section*{Acknowledgements} 
 Tobias Nipkow has made immense contributions to Isabelle, including the
 parser generator, type classes, the simplifier, and several object-logics.
 He also arranged for several of his students to help.  Carsten Clasohm
@@ -127,12 +125,12 @@ Mahjoub and Karin Nimmermann also contributed.
 
 Nipkow and his students wrote much of the documentation underlying this
 book.  Nipkow wrote the first versions of \S\ref{sec:defining-theories},
-Chap.\ts\ref{simp-chap}, Chap.\ts\ref{Defining-Logics} and part of
-Chap.\ts\ref{theories}, and App.\ts\ref{app:TheorySyntax}.  Carsten Clasohm
-contributed to Chap.\ts\ref{theories}.  Markus Wenzel contributed to
-Chap.\ts\ref{Defining-Logics}.
+\S\ref{sec:ref-defining-theories}, Chap.\ts\ref{simp-chap},
+Chap.\ts\ref{Defining-Logics} and App.\ts\ref{app:TheorySyntax}\@.  Carsten
+Clasohm contributed to Chap.\ts\ref{theories}.  Markus Wenzel contributed
+to Chap.\ts\ref{Defining-Logics}.
 
-David Aspinall, Sara Kalvala, Ina Kraan, Zhenyu Qian, Norbert Voelker and
+David Aspinall, Sara Kalvala, Ina Kraan, Zhenyu Qian, Norbert V{\"o}lker and
 Markus Wenzel suggested changes and corrections to the documentation.
 
 Martin Coen, Rajeev Gor\'e, Philippe de Groote and Philippe No\"el helped

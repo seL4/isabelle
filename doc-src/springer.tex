@@ -1,9 +1,10 @@
+%% $ lcp Exp $
 \documentstyle[12pt,rail,proof,iman,epsf,mathsing]{book}
-%%%\includeonly{preface}
+%%%\includeonly{Ref/tctical,Ref/thm}
 %%% to index ids: \[\\tt \([a-zA-Z0-9][a-zA-Z0-9_'.]*\)    [\\ttindexbold{\1}
 %% run    sedindex springer    to prepare index file
 
-\sloppy%%%????????????????????????????????????????????????????????????????
+\sloppy
 
 \title{Isabelle\\A Generic Theorem Prover}
 \author{Lawrence C. Paulson\\[2ex] With Contributions by Tobias Nipkow}
@@ -15,7 +16,7 @@
 
 \underscoreoff
 
-\setcounter{secnumdepth}{1} \setcounter{tocdepth}{1}
+\setcounter{secnumdepth}{2} \setcounter{tocdepth}{1}
 
 \binperiod     %%%treat . like a binary operator
 
@@ -44,10 +45,11 @@ G.K. Chesterton, {\em The Man who was Orthodox}
 \end{quote}
 
 
+\index{type classes|see{classes}}
 \index{definitions|see{rewriting, meta-level}}
 \index{rewriting!object-level|see{simplification}}
 \index{rules!meta-level|see{meta-rules}}
-\index{scheme variables|see{unknowns}}
+\index{variables!schematic|see{unknowns}} 
 \index{AST|see{trees, abstract syntax}}
 
 \part{Introduction to Isabelle}   
