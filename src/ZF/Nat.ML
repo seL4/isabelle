@@ -213,17 +213,16 @@ qed "nat_case_type";
 (** nat_rec -- used to define eclose and transrec, then obsolete;
     rec, from arith.ML, has fewer typing conditions **)
 
-val nat_rec_trans = wf_Memrel RS (nat_rec_def RS def_wfrec RS trans);
+val lemma = wf_Memrel RS (nat_rec_def RS def_wfrec RS trans);
 
 Goal "nat_rec(0,a,b) = a";
-by (rtac nat_rec_trans 1);
+by (rtac lemma 1);
 by (rtac nat_case_0 1);
 qed "nat_rec_0";
 
-val [prem] = goal Nat.thy 
-    "m: nat ==> nat_rec(succ(m),a,b) = b(m, nat_rec(m,a,b))";
-by (rtac nat_rec_trans 1);
-by (simp_tac (simpset() addsimps [prem, Memrel_iff, vimage_singleton_iff]) 1);
+Goal "m: nat ==> nat_rec(succ(m),a,b) = b(m, nat_rec(m,a,b))";
+by (rtac lemma 1);
+by (asm_simp_tac (simpset() addsimps [Memrel_iff, vimage_singleton_iff]) 1);
 qed "nat_rec_succ";
 
 (** The union of two natural numbers is a natural number -- their maximum **)

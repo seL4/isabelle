@@ -5,8 +5,6 @@
 Auxiliary lemmas concerning cardinalities
 *)
 
-open Cardinal_aux;
-
 (* ********************************************************************** *)
 (* Lemmas involving ordinals and cardinalities used in the proofs         *)
 (* concerning AC16 and DC                                                 *)
@@ -113,7 +111,7 @@ qed "UN_sing_lepoll";
 
 Goal "[| well_ord(T, R); ~Finite(a); Ord(a); n:nat |] ==>  \
 \       ALL f. (ALL b:a. f`b lepoll n & f`b <= T) --> (UN b:a. f`b) lepoll a";
-by (etac nat_induct 1);
+by (induct_tac "n" 1);
 by (rtac allI 1);
 by (rtac impI 1);
 by (res_inst_tac [("b","UN b:a. f`b")] subst 1);

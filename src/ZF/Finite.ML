@@ -10,8 +10,6 @@ prove X:Fin(A) ==> |X| < nat
 prove:  b: Fin(A) ==> inj(b,b)<=surj(b,b)
 *)
 
-open Finite;
-
 (*** Finite powerset operator ***)
 
 Goalw Fin.defs "A<=B ==> Fin(A) <= Fin(B)";
@@ -104,7 +102,7 @@ qed "Fin_0_induct";
 
 (*Functions from a finite ordinal*)
 Goal "n: nat ==> n->A <= Fin(nat*A)";
-by (nat_ind_tac "n" [] 1);
+by (induct_tac "n" 1);
 by (simp_tac (simpset() addsimps [Pi_empty1, subset_iff, cons_iff]) 1);
 by (asm_simp_tac 
     (simpset() addsimps [succ_def, mem_not_refl RS cons_fun_eq]) 1);

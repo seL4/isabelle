@@ -18,16 +18,13 @@ See also
     Available from the author: kaufmann@cli.com
 *)
 
-open Ramsey;
-
 (*** Cliques and Independent sets ***)
 
 Goalw [Clique_def] "Clique(0,V,E)";
 by (Fast_tac 1);
 qed "Clique0";
 
-Goalw [Clique_def]
-    "[| Clique(C,V',E);  V'<=V |] ==> Clique(C,V,E)";
+Goalw [Clique_def] "[| Clique(C,V',E);  V'<=V |] ==> Clique(C,V,E)";
 by (Fast_tac 1);
 qed "Clique_superset";
 
@@ -74,37 +71,37 @@ qed "Atleast_Diff_succI";
 
 (*The #-succ(0) strengthens the original theorem statement, but precisely
   the same proof could be used!!*)
-val prems = goal Ramsey.thy
-    "m: nat ==> \
-\    ALL n: nat. ALL A B. Atleast((m#+n) #- succ(0), A Un B) -->   \
-\                         Atleast(m,A) | Atleast(n,B)";
-by (nat_ind_tac "m" prems 1);
+Goal "m: nat ==> \
+\     ALL n: nat. ALL A B. Atleast((m#+n) #- succ(0), A Un B) -->   \
+\                          Atleast(m,A) | Atleast(n,B)";
+by (induct_tac "m" 1);
 by (fast_tac (claset() addSIs [Atleast0]) 1);
 by (Asm_simp_tac 1);
 by (rtac ballI 1);
-by (rename_tac "n" 1);          (*simplifier does NOT preserve bound names!*)
-by (nat_ind_tac "n" [] 1);
+by (rename_tac "m' n" 1);       (*simplifier does NOT preserve bound names!*)
+by (induct_tac "n" 1);
 by (fast_tac (claset() addSIs [Atleast0]) 1);
-by (asm_simp_tac (simpset() addsimps [add_succ_right]) 1);
+by (Asm_simp_tac 1);
 by Safe_tac;
 by (etac (Atleast_succD RS bexE) 1);
+by (rename_tac "n' A B z" 1);
 by (etac UnE 1);
-(**case x:B.  Instantiate the 'ALL A B' induction hypothesis. **)
-by (dres_inst_tac [("x1","A"), ("x","B-{x}")] (spec RS spec) 2);
+(**case z:B.  Instantiate the 'ALL A B' induction hypothesis. **)
+by (dres_inst_tac [("x1","A"), ("x","B-{z}")] (spec RS spec) 2);
 by (etac (mp RS disjE) 2);
-(*cases Atleast(succ(m1),A) and Atleast(succ(n1),B)*)
+(*cases Atleast(succ(m1),A) and Atleast(succ(k),B)*)
 by (REPEAT (eresolve_tac [asm_rl, notE, Atleast_Diff_succI] 3));
 (*proving the condition*)
 by (etac Atleast_superset 2 THEN Fast_tac 2);
-(**case x:A.  Instantiate the 'ALL n:nat. ALL A B' induction hypothesis. **)
-by (dres_inst_tac [("x2","succ(n1)"), ("x1","A-{x}"), ("x","B")] 
+(**case z:A.  Instantiate the 'ALL n:nat. ALL A B' induction hypothesis. **)
+by (dres_inst_tac [("x2","succ(n')"), ("x1","A-{z}"), ("x","B")] 
     (bspec RS spec RS spec) 1);
 by (etac nat_succI 1);
 by (etac (mp RS disjE) 1);
-(*cases Atleast(succ(m1),A) and Atleast(succ(n1),B)*)
+(*cases Atleast(succ(m1),A) and Atleast(succ(k),B)*)
 by (REPEAT (eresolve_tac [asm_rl, Atleast_Diff_succI, notE] 2));
 (*proving the condition*)
-by (asm_simp_tac (simpset() addsimps [add_succ_right]) 1);
+by (Asm_simp_tac 1);
 by (etac Atleast_superset 1 THEN Fast_tac 1);
 qed "pigeon2_lemma";
 
@@ -129,31 +126,27 @@ qed "Ramseyi0";
 
 (*The use of succ(m) here, rather than #-succ(0), simplifies the proof of 
   Ramsey_step_lemma.*)
-val prems = goal Ramsey.thy
-    "[| Atleast(m #+ n, A);  m: nat;  n: nat |] ==> \
-\    Atleast(succ(m), {x:A. ~P(x)}) | Atleast(n, {x:A. P(x)})";
+Goal "[| Atleast(m #+ n, A);  m: nat;  n: nat |]  \
+\     ==> Atleast(succ(m), {x:A. ~P(x)}) | Atleast(n, {x:A. P(x)})";
 by (rtac (nat_succI RS pigeon2) 1);
-by (simp_tac (simpset() addsimps prems) 3);
+by (Asm_simp_tac 3);
 by (rtac Atleast_superset 3);
-by (REPEAT (resolve_tac prems 1));
-by (Fast_tac 1);
+by Auto_tac;
 qed "Atleast_partition";
 
 (*For the Atleast part, proves ~(a:I) from the second premise!*)
-val prems = goalw Ramsey.thy [Symmetric_def,Indept_def]
+Goalw [Symmetric_def,Indept_def]
     "[| Symmetric(E);  Indept(I, {z: V-{a}. <a,z> ~: E}, E);  a: V;  \
 \       Atleast(j,I) |] ==>   \
 \    Indept(cons(a,I), V, E) & Atleast(succ(j), cons(a,I))";
-by (cut_facts_tac prems 1);
-by (fast_tac (claset() addSEs [Atleast_succI]) 1);  (*34 secs*)
+by (blast_tac (claset() addSIs [Atleast_succI]) 1);
 qed "Indept_succ";
 
-val prems = goalw Ramsey.thy [Symmetric_def,Clique_def]
+Goalw [Symmetric_def,Clique_def]
     "[| Symmetric(E);  Clique(C, {z: V-{a}. <a,z>:E}, E);  a: V;  \
 \       Atleast(j,C) |] ==>   \
 \    Clique(cons(a,C), V, E) & Atleast(succ(j), cons(a,C))";
-by (cut_facts_tac prems 1);
-by (fast_tac (claset() addSEs [Atleast_succI]) 1);  (*41 secs*)
+by (blast_tac (claset() addSIs [Atleast_succI]) 1);
 qed "Clique_succ";
 
 (** Induction step **)
@@ -187,12 +180,11 @@ qed "Ramsey_step_lemma";
 (** The actual proof **)
 
 (*Again, the induction requires Ramsey numbers to be positive.*)
-val prems = goal Ramsey.thy
-    "i: nat ==> ALL j: nat. EX n:nat. Ramsey(succ(n), i, j)";
-by (nat_ind_tac "i" prems 1);
+Goal "i: nat ==> ALL j: nat. EX n:nat. Ramsey(succ(n), i, j)";
+by (induct_tac "i" 1);
 by (fast_tac (claset() addSIs [Ramsey0j]) 1);
 by (rtac ballI 1);
-by (nat_ind_tac "j" [] 1);
+by (induct_tac "j" 1);
 by (fast_tac (claset() addSIs [Ramseyi0]) 1);
 by (fast_tac (claset() addSDs [bspec]
  		       addSIs [add_type,Ramsey_step_lemma]) 1);

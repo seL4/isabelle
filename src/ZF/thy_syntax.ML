@@ -130,6 +130,19 @@ fun datatype_decl coind =
 end;
 
 
+(** rep_datatype **)
+
+fun mk_rep_dt_string (((elim, induct), case_eqns), recursor_eqns) =
+  "|> DatatypeTactics.rep_datatype_i " ^ elim ^ " " ^ induct ^ "\n    " ^
+  mk_list case_eqns ^ " " ^ mk_list recursor_eqns;
+
+val rep_datatype_decl =
+  (("elim" $$-- ident) -- 
+   ("induct" $$-- ident) --
+   ("case_eqns" $$-- list1 ident) -- 
+   ("recursor_eqns" $$-- list1 ident)) >> mk_rep_dt_string;
+
+
 (** primrec **)
 
 fun mk_primrec_decl eqns =
@@ -154,12 +167,14 @@ in
 
 val _ = ThySyn.add_syntax
  ["inductive", "coinductive", "datatype", "codatatype", "and", "|",
-  "<=", "domains", "intrs", "monos", "con_defs", "type_intrs",
-  "type_elims"]
- [section "inductive"   "" (inductive_decl false),
-  section "coinductive" "" (inductive_decl true),
-  section "datatype"    "" (datatype_decl false),
-  section "codatatype"  "" (datatype_decl true),
-  section "primrec"     "" primrec_decl];
+  "<=", "domains", "intrs", "monos", "con_defs", "type_intrs", "type_elims",
+  (*rep_datatype*)
+  "elim", "induct", "case_eqns", "recursor_eqns"]
+ [section "inductive"    "" (inductive_decl false),
+  section "coinductive"  "" (inductive_decl true),
+  section "datatype"     "" (datatype_decl false),
+  section "codatatype"   "" (datatype_decl true),
+  section "rep_datatype" "" rep_datatype_decl,
+  section "primrec"      "" primrec_decl];
 
 end;

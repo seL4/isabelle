@@ -1,9 +1,13 @@
-(*  Title:      HOL/Tools/induct_tacs.ML
+(*  Title:      ZF/Tools/induct_tacs.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Induction and exhaustion tactics for Isabelle/ZF
+
+The theory information needed to support them (and to support primrec)
+
+Also, a function to install other sets as if they were datatypes
 *)
 
 
@@ -11,7 +15,63 @@ signature DATATYPE_TACTICS =
 sig
   val induct_tac : string -> int -> tactic
   val exhaust_tac : string -> int -> tactic
+  val rep_datatype_i : thm -> thm -> thm list -> thm list -> theory -> theory
 end;
+
+
+
+(** Datatype information, e.g. associated theorems **)
+
+type datatype_info =
+  {inductive: bool,		(*true if inductive, not coinductive*)
+   constructors : term list,    (*the constructors, as Consts*)
+   rec_rewrites : thm list,     (*recursor equations*)
+   case_rewrites : thm list,    (*case equations*)
+   induct : thm,
+   mutual_induct : thm,
+   exhaustion : thm};
+
+structure DatatypesArgs =
+  struct
+  val name = "ZF/datatypes";
+  type T = datatype_info Symtab.table;
+
+  val empty = Symtab.empty;
+  val prep_ext = I;
+  val merge: T * T -> T = Symtab.merge (K true);
+
+  fun print sg tab =
+    Pretty.writeln (Pretty.strs ("datatypes:" ::
+      map (Sign.cond_extern sg Sign.typeK o fst) (Symtab.dest tab)));
+  end;
+
+structure DatatypesData = TheoryDataFun(DatatypesArgs);
+
+
+(** Constructor information: needed to map constructors to datatypes **)
+
+type constructor_info =
+  {big_rec_name : string,     (*name of the mutually recursive set*)
+   constructors : term list,  (*the constructors, as Consts*)
+   rec_rewrites : thm list};  (*recursor equations*)
+
+
+structure ConstructorsArgs =
+struct
+  val name = "ZF/constructors"
+  type T = constructor_info Symtab.table
+
+  val empty = Symtab.empty
+  val prep_ext = I
+  val merge: T * T -> T = Symtab.merge (K true)
+
+  fun print sg tab = ()   (*nothing extra to print*)
+end;
+
+structure ConstructorsData = TheoryDataFun(ConstructorsArgs);
+
+val setup_datatypes = [DatatypesData.init, ConstructorsData.init];
+
 
 
 structure DatatypeTactics : DATATYPE_TACTICS =
@@ -62,7 +122,62 @@ fun exhaust_induct_tac exh var i state =
 val exhaust_tac = exhaust_induct_tac true;
 val induct_tac = exhaust_induct_tac false;
 
+
+
+(**** declare non-datatype as datatype ****)
+
+fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
+  let
+    val sign = sign_of thy;
+
+    (*analyze the LHS of a case equation to get a constructor*)
+    fun const_of (Const("op =", _) $ (_ $ c) $ _) = c
+      | const_of eqn = error ("Ill-formed case equation: " ^
+			      Sign.string_of_term sign eqn);
+
+    val constructors =
+	map (head_of o const_of o FOLogic.dest_Trueprop o
+	     #prop o rep_thm) case_eqns;
+
+    val Const ("op :", _) $ _ $ Const(big_rec_name, _) =
+	FOLogic.dest_Trueprop (hd (prems_of elim));	
+    
+    val simps = case_eqns @ recursor_eqns;
+
+    val dt_info =
+	  {inductive = true,
+	   constructors = constructors,
+	   rec_rewrites = recursor_eqns,
+	   case_rewrites = case_eqns,
+	   induct = induct,
+	   mutual_induct = TrueI,  (*No need for mutual induction*)
+	   exhaustion = elim};
+
+    val con_info =
+	  {big_rec_name = big_rec_name,
+	   constructors = constructors,
+	      (*let primrec handle definition by cases*)
+	   rec_rewrites = (case recursor_eqns of
+			       [] => case_eqns | _ => recursor_eqns)};
+
+    (*associate with each constructor the datatype name and rewrites*)
+    val con_pairs = map (fn c => (#1 (dest_Const c), con_info)) constructors
+
+  in
+      thy |> Theory.add_path (Sign.base_name big_rec_name)
+	  |> PureThy.add_tthmss [(("simps", Attribute.tthms_of simps), 
+				  [Simplifier.simp_add_global])] 
+	  |> DatatypesData.put 
+	      (Symtab.update
+	       ((big_rec_name, dt_info), DatatypesData.get thy)) 
+	  |> ConstructorsData.put
+	       (foldr Symtab.update (con_pairs, ConstructorsData.get thy))
+	  |> Theory.parent_path
+  end
+  handle _ => error "Failure in rep_datatype";
+
 end;
 
 
-open DatatypeTactics;
+val exhaust_tac = DatatypeTactics.exhaust_tac;
+val induct_tac  = DatatypeTactics.induct_tac;

@@ -61,10 +61,9 @@ qed "WO1_WO4";
 
 (* ********************************************************************** *)
 
-Goalw WO_defs "[| m:nat; n:nat; m le n; WO4(m) |] ==> WO4(n)";
-by (rtac allI 1);
-by (dtac spec 1);
-by (blast_tac (claset() addIs [nat_le_imp_lepoll RSN (2, lepoll_trans)]) 1);
+Goalw WO_defs "[| m le n; WO4(m) |] ==> WO4(n)";
+by (blast_tac (claset() addSDs [spec] 
+                        addIs [le_imp_lepoll RSN (2, lepoll_trans)]) 1);
 qed "WO4_mono";
 
 (* ********************************************************************** *)

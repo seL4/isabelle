@@ -16,23 +16,6 @@ val AC_defs = [AC0_def, AC1_def, AC2_def, AC3_def, AC4_def, AC5_def,
  
 val AC_aux_defs = [pairwise_disjoint_def, sets_of_size_between_def];
  
-(* ******************************************** *)
-
-(* Theorems analogous to ones presented in "ZF/Ordinal.ML" *)
-
-(* lemma for nat_le_imp_lepoll *)
-val [prem] = goalw Cardinal.thy [lepoll_def]
-             "m:nat ==> ALL n: nat. m le n --> m lepoll n";
-by (nat_ind_tac "m" [prem] 1);
-by (fast_tac (claset() addSIs [le_imp_subset RS id_subset_inj]) 1);
-by (rtac ballI 1);
-by (eres_inst_tac [("n","n")] natE 1);
-by (asm_simp_tac (simpset() addsimps [inj_def, succI1 RS Pi_empty2]) 1);
-by (fast_tac (claset() addSIs [le_imp_subset RS id_subset_inj]) 1);
-qed "nat_le_imp_lepoll_lemma";
-
-(* used in : AC10-AC15.ML WO1-WO6.ML WO6WO1.ML*)
-val nat_le_imp_lepoll = nat_le_imp_lepoll_lemma RS bspec RS mp |> standard;
 
 (* ********************************************************************** *)
 (*             lemmas concerning FOL and pure ZF theory                   *)

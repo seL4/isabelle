@@ -411,8 +411,7 @@ qed "y_well_ord";
 val [prem1, prem2] = goal thy
         "[| n:nat; !!m. [| m:nat; m~=0; P(succ(m)) |] ==> P(m) |]  \
 \       ==> n~=0 --> P(n) --> P(1)";
-by (res_inst_tac [("n","n")] nat_induct 1);
-by (rtac prem1 1);
+by (rtac (prem1 RS nat_induct) 1);
 by (Blast_tac 1);
 by (excluded_middle_tac "x=0" 1);
 by (Blast_tac 2);

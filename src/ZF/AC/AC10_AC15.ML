@@ -197,8 +197,8 @@ qed "AC1_AC13";
 (* AC13(m) ==> AC13(n) for m <= n                                         *)
 (* ********************************************************************** *)
 
-Goalw AC_defs "[| m:nat; n:nat; m le n; AC13(m) |] ==> AC13(n)";
-by (dtac nat_le_imp_lepoll 1 THEN REPEAT (assume_tac 1));
+Goalw AC_defs "[| m le n; AC13(m) |] ==> AC13(n)";
+by (dtac le_imp_lepoll 1);
 by (fast_tac (claset() addSEs [lepoll_trans]) 1);
 qed "AC13_mono";
 

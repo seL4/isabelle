@@ -5,8 +5,6 @@
 The proofs concerning the Axiom of Dependent Choice
 *)
 
-open DC;
-
 (* ********************************************************************** *)
 (* DC ==> DC(omega)                                                       *)
 (*                                                                        *)
@@ -80,7 +78,7 @@ qed "lemma1_3";
 Goal "[| ALL n:nat. <f`n, f`succ(n)> : RR;  f: nat -> XX;  n:nat |]  \
 \     ==> EX k:nat. f`succ(n) : k -> X & n:k  \
 \                 & <f`succ(n)``n, f`succ(n)`n> : R";
-by (etac nat_induct 1);
+by (induct_tac "n" 1);
 by (dresolve_tac [nat_1I RSN (2, apply_type)] 1);
 by (dresolve_tac [nat_0I RSN (2, bspec)] 1);
 by (asm_full_simp_tac (simpset() addsimps [XX_def]) 1);
@@ -112,7 +110,7 @@ Goal "[| ALL n:nat. <f`n, f`succ(n)> : RR;  f: nat -> XX;  m:nat |]  \
 \     ==>  {f`succ(x)`x. x:m} = {f`succ(m)`x. x:m}";
 by (subgoal_tac "ALL x:m. f`succ(m)`x = f`succ(x)`x" 1);
 by (Asm_full_simp_tac 1);
-by (etac nat_induct 1);
+by (induct_tac "m" 1);
 by (Fast_tac 1);
 by (rtac ballI 1);
 by (etac succE 1);
@@ -207,7 +205,7 @@ by (fast_tac (claset() addSDs [ltD, lepoll_imp_ex_le_eqpoll]
 qed "lesspoll_nat_is_Finite";
 
 Goal "n:nat ==> ALL A. (A eqpoll n & A <= X) --> A : Fin(X)";
-by (etac nat_induct 1);
+by (induct_tac "n" 1);
 by (rtac allI 1);
 by (fast_tac (claset() addSIs [Fin.emptyI]
         addSDs [eqpoll_imp_lepoll RS lepoll_0_is_0]) 1);

@@ -287,7 +287,8 @@ by (rtac ([Transset_eclose, subset_refl] MRS eclose_least) 1);
 by (rtac arg_subset_eclose 1);
 qed "eclose_idem";
 
-(*Transfinite recursion for definitions based on the three cases of ordinals*)
+(** Transfinite recursion for definitions based on the 
+    three cases of ordinals **)
 
 Goal "transrec2(0,a,b) = a";
 by (rtac (transrec2_def RS def_transrec RS trans) 1);
@@ -311,4 +312,41 @@ by (blast_tac (claset() addSDs [Limit_has_0] addSEs [succ_LimitE]) 1);
 qed "transrec2_Limit";
 
 Addsimps [transrec2_0, transrec2_succ];
+
+
+(** recursor -- better than nat_rec; the succ case has no type requirement! **)
+
+(*NOT suitable for rewriting*)
+val lemma = recursor_def RS def_transrec RS trans;
+
+Goal "recursor(a,b,0) = a";
+by (rtac (nat_case_0 RS lemma) 1);
+qed "recursor_0";
+
+Goal "recursor(a,b,succ(m)) = b(m, recursor(a,b,m))";
+by (rtac lemma 1);
+by (Simp_tac 1);
+qed "recursor_succ";
+
+
+(** rec: old version for compatibility **)
+
+Goalw [rec_def] "rec(0,a,b) = a";
+by (rtac recursor_0 1);
+qed "rec_0";
+
+Goalw [rec_def] "rec(succ(m),a,b) = b(m, rec(m,a,b))";
+by (rtac recursor_succ 1);
+qed "rec_succ";
+
+Addsimps [rec_0, rec_succ];
+
+val major::prems = Goal
+    "[| n: nat;  \
+\       a: C(0);  \
+\       !!m z. [| m: nat;  z: C(m) |] ==> b(m,z): C(succ(m))  \
+\    |] ==> rec(n,a,b) : C(n)";
+by (rtac (major RS nat_induct) 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps prems)));
+qed "rec_type";
 

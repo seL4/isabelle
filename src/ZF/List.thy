@@ -33,12 +33,6 @@ consts
   length :: i=>i
   hd      :: i=>i
   tl      :: i=>i
-  map        :: [i=>i, i] => i
-  set_of_list :: i=>i
-  "@"        :: [i,i]=>i                        (infixr 60)
-  rev :: i=>i
-  flat       :: i=>i
-  list_add   :: i=>i
 
 primrec
   "length([]) = 0"
@@ -51,6 +45,12 @@ primrec
   "tl([]) = []"
   "tl(Cons(a,l)) = l"
 
+
+consts
+  map        :: [i=>i, i] => i
+  set_of_list :: i=>i
+  "@"        :: [i,i]=>i                        (infixr 60)
+  
 primrec
   "map(f,[]) = []"
   "map(f,Cons(a,l)) = Cons(f(a), map(f,l))"
@@ -63,6 +63,12 @@ primrec
   "[] @ ys = ys"
   "(Cons(a,l)) @ ys = Cons(a, l @ ys)"
   
+
+consts
+  rev :: i=>i
+  flat       :: i=>i
+  list_add   :: i=>i
+
 primrec
   "rev([]) = []"
   "rev(Cons(a,l)) = rev(l) @ [a]"
@@ -75,8 +81,11 @@ primrec
   "list_add([]) = 0"
   "list_add(Cons(a,l)) = a #+ list_add(l)"
        
-constdefs
+consts
   drop       :: [i,i]=>i
-  "drop(i,l)   == rec(i, l, %j r. tl(r))"
+
+primrec
+  drop_0    "drop(0,l) = l"
+  drop_SUCC "drop(succ(i), l) = tl (drop(i,l))"
 
 end

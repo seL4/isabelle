@@ -42,11 +42,11 @@ use     "Tools/cartprod";
 use_thy "Fixedpt";
 use     "Tools/inductive_package";
 use_thy "Inductive";
+use "Tools/induct_tacs";
+use "Tools/primrec_package";
 use_thy "QUniv";
 use "Tools/datatype_package";
-use "Tools/primrec_package";
 use_thy "Datatype";
-use "Tools/induct_tacs";
 use_thy "InfDatatype";
 use_thy "List";
 

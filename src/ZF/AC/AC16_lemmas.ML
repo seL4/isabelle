@@ -5,8 +5,6 @@
 Lemmas used in the proofs concerning AC16
 *)
 
-open AC16_lemmas;
-
 Goal "a~:A ==> cons(a,A)-{a}=A";
 by (Fast_tac 1);
 qed "cons_Diff_eq";
@@ -126,7 +124,7 @@ qed "Union_eq_Un";
 
 Goal "n:nat ==>  \
 \       ALL z. (ALL y:z. Ord(y)) & z eqpoll n & z~=0 --> Union(z) : z";
-by (etac nat_induct 1);
+by (induct_tac "n" 1);
 by (fast_tac (claset() addSDs [eqpoll_imp_lepoll RS lepoll_0_is_0]) 1);
 by (REPEAT (resolve_tac [allI, impI] 1));
 by (etac natE 1);
@@ -189,7 +187,7 @@ qed "succ_lepoll_succ_succ";
 
 Goal "[| InfCard(X); n:nat |]  \
 \       ==> {Y:Pow(X). Y eqpoll succ(n)} eqpoll X";
-by (etac nat_induct 1);
+by (induct_tac "n" 1);
 by (rtac subsets_eqpoll_1_eqpoll 1);
 by (rtac eqpollI 1);
 by (resolve_tac [subsets_lepoll_lemma1 RS lepoll_trans] 1 

@@ -16,7 +16,7 @@ qed "gt_not_eq";
 
 val succ_pred = prove_goal Arith.thy 
     "!!i.[|j:nat; i:nat|] ==> i < j --> succ(j #- 1) = j"
- (fn prems =>[(etac nat_induct 1),
+ (fn prems =>[(induct_tac "j" 1),
               (Fast_tac 1),
               (Asm_simp_tac 1)]);
 

@@ -13,59 +13,6 @@ Products are used only to derive "streamlined" induction rules for relations
 *)
 
 
-(** Datatype information, e.g. associated theorems **)
-
-type datatype_info =
-  {inductive: bool,		(*true if inductive, not coinductive*)
-   constructors : term list,    (*the constructors, as Consts*)
-   rec_rewrites : thm list,     (*recursor equations*)
-   case_rewrites : thm list,    (*case equations*)
-   induct : thm,
-   mutual_induct : thm,
-   exhaustion : thm};
-
-structure DatatypesArgs =
-  struct
-  val name = "ZF/datatypes";
-  type T = datatype_info Symtab.table;
-
-  val empty = Symtab.empty;
-  val prep_ext = I;
-  val merge: T * T -> T = Symtab.merge (K true);
-
-  fun print sg tab =
-    Pretty.writeln (Pretty.strs ("datatypes:" ::
-      map (Sign.cond_extern sg Sign.typeK o fst) (Symtab.dest tab)));
-  end;
-
-structure DatatypesData = TheoryDataFun(DatatypesArgs);
-
-
-(** Constructor information: needed to map constructors to datatypes **)
-
-type constructor_info =
-  {big_rec_name : string,     (*name of the mutually recursive set*)
-   constructors : term list,  (*the constructors, as Consts*)
-   rec_rewrites : thm list};  (*recursor equations*)
-
-
-structure ConstructorsArgs =
-struct
-  val name = "ZF/constructors"
-  type T = constructor_info Symtab.table
-
-  val empty = Symtab.empty
-  val prep_ext = I
-  val merge: T * T -> T = Symtab.merge (K true)
-
-  fun print sg tab = ()   (*nothing extra to print*)
-end;
-
-structure ConstructorsData = TheoryDataFun(ConstructorsArgs);
-
-val setup_datatypes = [DatatypesData.init, ConstructorsData.init];
-
-
 type datatype_result =
    {con_defs   : thm list,             (*definitions made in thy*)
     case_eqns  : thm list,             (*equations for case operator*)

@@ -61,10 +61,10 @@ string -> unit if you really want to output text without newline;
 *** ZF ***
 
 * new primrec section allows primitive recursive functions to be given
-  directly, as in HOL;
+  directly (as in HOL) over datatypes and the natural numbers;
 
 * new tactics induct_tac and exhaust_tac for induction (or case analysis)
-  on a datatype;
+  over datatypes and the natural numbers;
 
 * the datatype declaration of type T now defines the recursor T_rec;
 

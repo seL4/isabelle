@@ -23,7 +23,7 @@ simpset_ref() := simpset() setSolver (type_auto_tac ([prim_rec_into_fun] @
 					      pr_typechecks @ prim_rec.intrs));
 
 Goalw [ACK_def] "i:nat ==> ACK(i): prim_rec";
-by (etac nat_induct 1);
+by (induct_tac "i" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "ACK_in_prim_rec";
 
@@ -64,10 +64,10 @@ Addsimps [ack_0, ack_succ_0, ack_succ_succ, ack_type, nat_into_Ord];
 
 (*PROPERTY A 4*)
 Goal "i:nat ==> ALL j:nat. j < ack(i,j)";
-by (etac nat_induct 1);
+by (induct_tac "i" 1);
 by (Asm_simp_tac 1);
 by (rtac ballI 1);
-by (eres_inst_tac [("n","j")] nat_induct 1);
+by (induct_tac "j" 1);
 by (DO_GOAL [rtac (nat_0I RS nat_0_le RS lt_trans),
              Asm_simp_tac] 1);
 by (DO_GOAL [etac (succ_leI RS lt_trans1),
@@ -77,7 +77,7 @@ bind_thm ("lt_ack2", (lt_ack2_lemma RS bspec));
 
 (*PROPERTY A 5-, the single-step lemma*)
 Goal "[| i:nat; j:nat |] ==> ack(i,j) < ack(i, succ(j))";
-by (etac nat_induct 1);
+by (induct_tac "i" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [lt_ack2])));
 qed "ack_lt_ack_succ2";
 
@@ -98,7 +98,7 @@ qed "ack_le_mono2";
 
 (*PROPERTY A 6*)
 Goal "[| i:nat;  j:nat |] ==> ack(i, succ(j)) le ack(succ(i), j)";
-by (nat_ind_tac "j" [] 1);
+by (induct_tac "j" 1);
 by (ALLGOALS Asm_simp_tac);
 by (rtac ack_le_mono2 1);
 by (rtac (lt_ack2 RS succ_leI RS le_trans) 1);
@@ -129,13 +129,13 @@ qed "ack_le_mono1";
 
 (*PROPERTY A 8*)
 Goal "j:nat ==> ack(1,j) = succ(succ(j))";
-by (etac nat_induct 1);
+by (induct_tac "j" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "ack_1";
 
 (*PROPERTY A 9*)
 Goal "j:nat ==> ack(succ(1),j) = succ(succ(succ(j#+j)))";
-by (etac nat_induct 1);
+by (induct_tac "j" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [ack_1, add_succ_right])));
 qed "ack_2";
 
@@ -183,7 +183,7 @@ qed "SC_case";
 
 (*PROPERTY A 4'? Extra lemma needed for CONST case, constant functions*)
 Goal "[| i:nat; j:nat |] ==> i < ack(i,j)";
-by (etac nat_induct 1);
+by (induct_tac "i" 1);
 by (asm_simp_tac (simpset() addsimps [nat_0_le]) 1);
 by (etac ([succ_leI, ack_lt_ack_succ1] MRS lt_trans1) 1);
 by (tc_tac []);
@@ -261,7 +261,7 @@ by (exhaust_tac "l" 1);
 by (asm_simp_tac (simpset() addsimps [[nat_le_refl, lt_ack2] MRS lt_trans]) 1);
 by (Asm_simp_tac 1);
 by (etac ssubst 1);  (*get rid of the needless assumption*)
-by (eres_inst_tac [("n","a")] nat_induct 1);
+by (induct_tac "a" 1);
 (*base case*)
 by (DO_GOAL [Asm_simp_tac, rtac lt_trans, etac bspec,
              assume_tac, rtac (add_le_self RS ack_lt_mono1),

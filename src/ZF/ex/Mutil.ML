@@ -96,20 +96,21 @@ by (blast_tac (claset() addSDs [evnodd_subset RS subsetD]
 qed "tiling_domino_0_1";
 
 Goal "[| i: nat;  n: nat |] ==> {i} * (n #+ n) : tiling(domino)";
-by (nat_ind_tac "n" [] 1);
+by (induct_tac "n" 1);
 by (simp_tac (simpset() addsimps tiling.intrs) 1);
 by (asm_simp_tac (simpset() addsimps [Un_assoc RS sym, Sigma_succ2]) 1);
 by (resolve_tac tiling.intrs 1);
 by (assume_tac 2);
+by (rename_tac "n'" 1);
 by (subgoal_tac    (*seems the easiest way of turning one to the other*)
-    "{i}*{succ(n1#+n1)} Un {i}*{n1#+n1} = {<i,n1#+n1>, <i,succ(n1#+n1)>}" 1);
+    "{i}*{succ(n'#+n')} Un {i}*{n'#+n'} = {<i,n'#+n'>, <i,succ(n'#+n')>}" 1);
 by (Blast_tac 2);
 by (asm_simp_tac (simpset() addsimps [domino.horiz]) 1);
 by (blast_tac (claset() addEs [mem_irrefl, mem_asym]) 1);
 qed "dominoes_tile_row";
 
 Goal "[| m: nat;  n: nat |] ==> m * (n #+ n) : tiling(domino)";
-by (nat_ind_tac "m" [] 1);
+by (induct_tac "m" 1);
 by (simp_tac (simpset() addsimps tiling.intrs) 1);
 by (asm_simp_tac (simpset() addsimps [Sigma_succ1]) 1);
 by (blast_tac (claset() addIs [tiling_UnI, dominoes_tile_row] 

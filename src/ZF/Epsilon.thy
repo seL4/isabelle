@@ -25,4 +25,10 @@ constdefs
                            b(THE j. i=succ(j), r`(THE j. i=succ(j))),   
                            UN j<i. r`j)))"
 
+    recursor  :: [i, [i,i]=>i, i]=>i
+     "recursor(a,b,k) ==  transrec(k, %n f. nat_case(a, %m. b(m, f`m), n))"
+
+    rec  :: [i, i, [i,i]=>i]=>i
+     "rec(k,a,b) ==  recursor(a,b,k)"
+
 end

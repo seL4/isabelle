@@ -59,6 +59,7 @@ Goalw [cadd_def] "Card(K) ==> 0 |+| K = K";
 by (asm_simp_tac (simpset() addsimps [sum_0_eqpoll RS cardinal_cong, 
 				      Card_cardinal_eq]) 1);
 qed "cadd_0";
+Addsimps [cadd_0];
 
 (** Addition by another cardinal **)
 
@@ -120,10 +121,8 @@ by (rtac (well_ord_cardinal_eqpoll RS eqpoll_sym) 1);
 by (REPEAT (ares_tac [well_ord_radd, well_ord_Memrel] 1));
 qed "cadd_succ_lemma";
 
-val [mnat,nnat] = goal CardinalArith.thy
-    "[| m: nat;  n: nat |] ==> m |+| n = m#+n";
-by (cut_facts_tac [nnat] 1);
-by (nat_ind_tac "m" [mnat] 1);
+Goal "[| m: nat;  n: nat |] ==> m |+| n = m#+n";
+by (induct_tac "m" 1);
 by (asm_simp_tac (simpset() addsimps [nat_into_Card RS cadd_0]) 1);
 by (asm_simp_tac (simpset() addsimps [nat_into_Ord, cadd_succ_lemma,
 				      nat_into_Card RS Card_cardinal_eq]) 1);
@@ -198,6 +197,7 @@ Goalw [cmult_def] "0 |*| i = 0";
 by (asm_simp_tac (simpset() addsimps [prod_0_eqpoll RS cardinal_cong, 
 				      Card_0 RS Card_cardinal_eq]) 1);
 qed "cmult_0";
+Addsimps [cmult_0];
 
 (** 1 is the identity for multiplication **)
 
@@ -210,6 +210,7 @@ Goalw [cmult_def, succ_def] "Card(K) ==> 1 |*| K = K";
 by (asm_simp_tac (simpset() addsimps [prod_singleton_eqpoll RS cardinal_cong, 
 				      Card_cardinal_eq]) 1);
 qed "cmult_1";
+Addsimps [cmult_1];
 
 (*** Some inequalities for multiplication ***)
 
@@ -285,19 +286,16 @@ by (rtac ([eqpoll_refl, well_ord_cardinal_eqpoll] MRS sum_eqpoll_cong) 1);
 by (REPEAT (ares_tac [well_ord_rmult, well_ord_Memrel] 1));
 qed "cmult_succ_lemma";
 
-val [mnat,nnat] = goal CardinalArith.thy
-    "[| m: nat;  n: nat |] ==> m |*| n = m#*n";
-by (cut_facts_tac [nnat] 1);
-by (nat_ind_tac "m" [mnat] 1);
-by (asm_simp_tac (simpset() addsimps [cmult_0]) 1);
+Goal "[| m: nat;  n: nat |] ==> m |*| n = m#*n";
+by (induct_tac "m" 1);
+by (Asm_simp_tac 1);
 by (asm_simp_tac (simpset() addsimps [nat_into_Ord, cmult_succ_lemma,
 				      nat_cadd_eq_add]) 1);
 qed "nat_cmult_eq_mult";
 
 Goal "Card(n) ==> 2 |*| n = n |+| n";
 by (asm_simp_tac 
-    (simpset() addsimps [Ord_0, Ord_succ, cmult_0, cmult_succ_lemma, 
-			 Card_is_Ord, cadd_0,
+    (simpset() addsimps [Ord_0, Ord_succ, cmult_succ_lemma, Card_is_Ord,
 			 read_instantiate [("j","0")] cadd_commute]) 1);
 qed "cmult_2";
 
@@ -708,7 +706,7 @@ qed "InfCard_csucc";
 (*** Finite sets ***)
 
 Goal "n: nat ==> ALL A. A eqpoll n --> A : Fin(A)";
-by (etac nat_induct 1);
+by (induct_tac "n" 1);
 by (simp_tac (simpset() addsimps eqpoll_0_iff::Fin.intrs) 1);
 by (Clarify_tac 1);
 by (subgoal_tac "EX u. u:A" 1);

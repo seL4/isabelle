@@ -137,7 +137,7 @@ qed "Union_eq_Un_Diff";
 
 Goal "n:nat ==> ALL X. X eqpoll n --> (ALL x:X. Finite(x))  \
 \       --> Finite(Union(X))";
-by (etac nat_induct 1);
+by (induct_tac "n" 1);
 by (fast_tac (claset() addSDs [eqpoll_imp_lepoll RS lepoll_0_is_0]
         addSIs [nat_0I RS nat_into_Finite] addss (simpset())) 1);
 by (REPEAT (resolve_tac [allI, impI] 1));
@@ -396,7 +396,7 @@ qed "Diffs_eq_imp_eq";
 
 
 Goal "m:nat ==> ALL A B. A <= B & m lepoll A & B lepoll m --> A=B";
-by (etac nat_induct 1);
+by (induct_tac "m" 1);
 by (fast_tac (claset() addSDs [lepoll_0_is_0]) 1);
 by (REPEAT (resolve_tac [allI, impI] 1));
 by (REPEAT (etac conjE 1));

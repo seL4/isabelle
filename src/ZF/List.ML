@@ -63,30 +63,26 @@ qed "tl_type";
 
 (** drop **)
 
-Goalw [drop_def] "drop(0, l) = l";
-by (rtac rec_0 1);
-qed "drop_0";
-
-Goalw [drop_def] "i:nat ==> drop(i, Nil) = Nil";
-by (etac nat_induct 1);
+Goal "i:nat ==> drop(i, Nil) = Nil";
+by (induct_tac "i" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "drop_Nil";
 
-Goalw [drop_def]
-    "i:nat ==> drop(succ(i), Cons(a,l)) = drop(i,l)";
+Goal "i:nat ==> drop(succ(i), Cons(a,l)) = drop(i,l)";
 by (rtac sym 1);
-by (etac nat_induct 1);
+by (induct_tac "i" 1);
 by (Simp_tac 1);
 by (Asm_simp_tac 1);
 qed "drop_succ_Cons";
 
-Addsimps [drop_0, drop_Nil, drop_succ_Cons];
+Addsimps [drop_Nil, drop_succ_Cons];
 
-Goalw [drop_def] 
-    "[| i:nat; l: list(A) |] ==> drop(i,l) : list(A)";
-by (etac nat_induct 1);
+Goal "[| i:nat; l: list(A) |] ==> drop(i,l) : list(A)";
+by (induct_tac "i" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [tl_type])));
 qed "drop_type";
+
+Delsimps [drop_SUCC];
 
 
 (** Type checking -- proved by induction, as usual **)

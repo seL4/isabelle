@@ -5,8 +5,6 @@
   The proof of AC16(n, k) ==> WO4(n-k)
 *)
 
-open AC16_WO4;
-
 (* ********************************************************************** *)
 (* The case of finite set                                                 *)
 (* ********************************************************************** *)
@@ -150,7 +148,7 @@ qed "eq_imp_Int_eq";
 
 Goal "[| k:nat; m:nat |] ==>  \
 \       ALL A B. A eqpoll k #+ m & k lepoll B & B<=A --> A-B lepoll m";
-by (eres_inst_tac [("n","k")] nat_induct 1);
+by (induct_tac "k" 1);
 by (simp_tac (simpset() addsimps [add_0]) 1);
 by (fast_tac (claset() addIs [eqpoll_imp_lepoll RS
         (Diff_subset RS subset_imp_lepoll RS lepoll_trans)]) 1);
@@ -180,7 +178,7 @@ qed "eqpoll_sum_imp_Diff_lepoll";
 
 Goal "[| k:nat; m:nat |] ==>  \
 \       ALL A B. A eqpoll k #+ m & k eqpoll B & B<=A --> A-B eqpoll m";
-by (eres_inst_tac [("n","k")] nat_induct 1);
+by (induct_tac "k" 1);
 by (fast_tac (claset() addSDs [eqpoll_sym RS eqpoll_imp_lepoll RS lepoll_0_is_0]
         addss (simpset() addsimps [add_0])) 1);
 by (REPEAT (resolve_tac [allI,impI] 1));
@@ -419,9 +417,9 @@ by (REPEAT (fast_tac (claset() addIs [bij_is_inj RS well_ord_rvimage]) 1));
 qed "well_ord_subsets_eqpoll_n";
 
 Goal "n:nat ==> EX R. well_ord({z:Pow(y). z lepoll n}, R)";
-by (etac nat_induct 1);
-by (fast_tac (claset() addSIs [well_ord_unit]
-        addss (simpset() addsimps [subsets_lepoll_0_eq_unit])) 1);
+by (induct_tac "n" 1);
+by (force_tac (claset() addSIs [well_ord_unit],
+	       simpset() addsimps [subsets_lepoll_0_eq_unit]) 1);
 by (etac exE 1);
 by (resolve_tac [well_ord_subsets_eqpoll_n RS exE] 1 THEN assume_tac 1);
 by (asm_simp_tac (simpset() addsimps [subsets_lepoll_succ]) 1);

@@ -174,7 +174,7 @@ qed "chain_rel";
 Addsimps [chain_in, chain_rel];
 
 Goal "[|chain(D,X); cpo(D); n:nat; m:nat|] ==> rel(D,X`n,(X`(m #+ n)))";
-by (res_inst_tac [("n","m")] nat_induct 1);
+by (induct_tac "m" 1);
 by (ALLGOALS Simp_tac);
 by (rtac cpo_trans 2); (* loops if repeated *)
 by (REPEAT (ares_tac [cpo_refl,chain_in,chain_rel,nat_succI,add_type] 1));
@@ -191,7 +191,7 @@ Goal  (* chain_rel_gen *)
 by (rtac impE 1);  (* The first three steps prepare for the induction proof *)
 by (assume_tac 3);
 by (assume_tac 2);
-by (res_inst_tac [("n","m")] nat_induct 1);
+by (induct_tac "m" 1);
 by Safe_tac;
 by (Asm_full_simp_tac 1);
 by (rtac cpo_trans 2);
@@ -1456,36 +1456,25 @@ by (asm_simp_tac (simpset() addsimps [lemma_succ_sub,diff_add_inverse]) 1);
 qed "e_less_add";
 
 (* Again, would like more theorems about arithmetic. *)
-(* Well, HOL has much better support and automation of natural numbers. *)
 
 val add1 = prove_goal Limit.thy
     "!!x. n:nat ==> succ(n) = n #+ 1"
-  (fn prems => 
-      [asm_simp_tac (simpset() addsimps[add_succ_right,add_0_right]) 1]);
+  (fn prems => [Asm_simp_tac 1]);
 
 Goal  (* succ_sub1 *)
     "x:nat ==> 0 < x --> succ(x #- 1)=x";
-by (res_inst_tac[("n","x")]nat_induct 1);
-by (assume_tac 1);
-by (Fast_tac 1);
-by Safe_tac;
-by (Asm_simp_tac 1);
-by (Asm_simp_tac 1);
+by (induct_tac "x" 1);
+by Auto_tac;
 qed "succ_sub1";
 
 Goal (* succ_le_pos *)
     "[|m:nat; k:nat|] ==> succ(m) le m #+ k --> 0 < k";
-by (res_inst_tac[("n","m")]nat_induct 1);
-by (assume_tac 1);
-by (rtac impI 1);
-by (Asm_full_simp_tac 1);
-by Safe_tac;
-by (Asm_full_simp_tac 1); (* Surprise, surprise. *)
+by (induct_tac "m" 1);
+by Auto_tac;
 qed "succ_le_pos";
 
 Goal "[|n:nat; m:nat|] ==> m le n --> (EX k:nat. n = m #+ k)";
-by (res_inst_tac[("n","m")]nat_induct 1);
-by (assume_tac 1);
+by (induct_tac "m" 1);
 by Safe_tac;
 by (rtac bexI 1);
 by (rtac (add_0 RS sym) 1);
@@ -1539,11 +1528,10 @@ qed "e_less_succ_emb";
 
 Goal "[|emb_chain(DD,ee); m:nat; k:nat|] ==>   \
 \    emb(DD`m,DD`(m#+k),e_less(DD,ee,m,m#+k))";
-by (res_inst_tac[("n","k")]nat_induct 1);
-by (assume_tac 1);
-by (asm_simp_tac(simpset() addsimps[add_0_right,e_less_eq]) 1);
+by (induct_tac "k" 1);
+by (asm_simp_tac(simpset() addsimps[e_less_eq]) 1);
 brr[emb_id,emb_chain_cpo] 1;
-by (asm_simp_tac(simpset() addsimps[add_succ_right,e_less_add]) 1);
+by (asm_simp_tac(simpset() addsimps[e_less_add]) 1);
 by (auto_tac (claset() addIs [emb_comp,emb_chain_emb,emb_chain_cpo,add_type],
 	      simpset()));
 qed "emb_e_less_add";
@@ -1571,7 +1559,7 @@ Goal  (* e_less_split_add_lemma *)
     "[| emb_chain(DD,ee); m:nat; n:nat; k:nat|] ==>  \
 \    n le k --> \
 \    e_less(DD,ee,m,m#+k) = e_less(DD,ee,m#+n,m#+k) O e_less(DD,ee,m,m#+n)";
-by (eres_inst_tac[("n","k")]nat_induct 1);
+by (induct_tac "k" 1);
 by (asm_full_simp_tac(simpset() addsimps [e_less_eq, id_type RS id_comp]) 1);
 by (asm_simp_tac(ZF_ss addsimps[le_succ_iff]) 1);
 by (rtac impI 1);
@@ -1631,10 +1619,9 @@ qed "e_gr_succ_emb";
 Goal  (* e_gr_fun_add *)
     "[|emb_chain(DD,ee); n:nat; k:nat|] ==>   \
 \    e_gr(DD,ee,n#+k,n): set(DD`(n#+k))->set(DD`n)";
-by (res_inst_tac[("n","k")]nat_induct 1);
-by (assume_tac 1);
-by (asm_simp_tac(simpset() addsimps[add_0_right,e_gr_eq,id_type]) 1);
-by (asm_simp_tac(simpset() addsimps[add_succ_right,e_gr_add]) 1);
+by (induct_tac "k" 1);
+by (asm_simp_tac(simpset() addsimps[e_gr_eq,id_type]) 1);
+by (asm_simp_tac(simpset() addsimps[e_gr_add]) 1);
 brr[comp_fun, Rp_cont, cont_fun, emb_chain_emb, emb_chain_cpo, add_type, nat_succI] 1;
 qed "e_gr_fun_add";
 
@@ -1651,11 +1638,10 @@ Goal  (* e_gr_split_add_lemma *)
     "[| emb_chain(DD,ee); m:nat; n:nat; k:nat|] ==>  \
 \    m le k --> \
 \    e_gr(DD,ee,n#+k,n) = e_gr(DD,ee,n#+m,n) O e_gr(DD,ee,n#+k,n#+m)";
-by (res_inst_tac[("n","k")]nat_induct 1);
-by (assume_tac 1);
+by (induct_tac "k" 1);
 by (rtac impI 1);
-by (asm_full_simp_tac(ZF_ss addsimps
-    [le0_iff, add_0_right, e_gr_eq, id_type RS comp_id]) 1);
+by (asm_full_simp_tac(simpset() addsimps
+		      [le0_iff, e_gr_eq, id_type RS comp_id]) 1);
 by (asm_simp_tac(ZF_ss addsimps[le_succ_iff]) 1);
 by (rtac impI 1);
 by (etac disjE 1);
@@ -1683,13 +1669,12 @@ Goal "[|m le n; emb_chain(DD,ee); m:nat; n:nat|] ==>   \
 by (blast_tac (claset() addIs [emb_cont, emb_e_less]) 1);
 qed "e_less_cont";
 
-Goal  (* e_gr_cont_lemma *)
-    "[|emb_chain(DD,ee); m:nat; n:nat|] ==>   \
-\    n le m --> e_gr(DD,ee,m,n):cont(DD`m,DD`n)";
-by (res_inst_tac[("n","m")]nat_induct 1);
-by (assume_tac 1);
-by (asm_full_simp_tac(simpset() addsimps
-    [le0_iff,e_gr_eq,nat_0I]) 1);
+Goal  (* e_gr_cont *)
+    "[|n le m; emb_chain(DD,ee); m:nat; n:nat|] ==>   \
+\    e_gr(DD,ee,m,n):cont(DD`m,DD`n)";
+by (etac rev_mp 1);
+by (induct_tac "m" 1);
+by (asm_full_simp_tac(simpset() addsimps [le0_iff,e_gr_eq,nat_0I]) 1);
 brr[impI,id_cont,emb_chain_cpo,nat_0I] 1;
 by (asm_full_simp_tac(simpset() addsimps[le_succ_iff]) 1);
 by (etac disjE 1);
@@ -1699,12 +1684,6 @@ by (asm_simp_tac(simpset() addsimps[e_gr_le]) 1);
 brr[comp_pres_cont,Rp_cont,emb_chain_cpo,emb_chain_emb,nat_succI] 1;
 by (asm_simp_tac(simpset() addsimps[e_gr_eq,nat_succI]) 1);
 by (auto_tac (claset() addIs [id_cont,emb_chain_cpo], simpset()));
-qed "e_gr_cont_lemma";
-
-Goal  (* e_gr_cont *)
-    "[|n le m; emb_chain(DD,ee); m:nat; n:nat|] ==>   \
-\    e_gr(DD,ee,m,n):cont(DD`m,DD`n)";
-brr[e_gr_cont_lemma RS mp] 1;
 qed "e_gr_cont";
 
 (* Considerably shorter.... 57 against 26 *)
@@ -1713,12 +1692,11 @@ Goal  (* e_less_e_gr_split_add *)
     "[|n le k; emb_chain(DD,ee); m:nat; n:nat; k:nat|] ==>   \
 \    e_less(DD,ee,m,m#+n) = e_gr(DD,ee,m#+k,m#+n) O e_less(DD,ee,m,m#+k)";
 (* Use mp to prepare for induction. *)
-by (rtac mp 1);
-by (assume_tac 2);
-by (res_inst_tac[("n","k")]nat_induct 1);
-by (assume_tac 1);
-by (asm_full_simp_tac(ZF_ss addsimps
-    [le0_iff, add_0_right, e_gr_eq, e_less_eq, id_type RS id_comp]) 1);by (simp_tac(ZF_ss addsimps[le_succ_iff]) 1);
+by (etac rev_mp 1);
+by (induct_tac "k" 1);
+by (asm_full_simp_tac(simpset() addsimps
+		      [e_gr_eq, e_less_eq, id_type RS id_comp]) 1);
+by (simp_tac(ZF_ss addsimps[le_succ_iff]) 1);
 by (rtac impI 1);
 by (etac disjE 1);
 by (etac impE 1);
@@ -1742,12 +1720,10 @@ Goal  (* e_gr_e_less_split_add *)
     "[|m le k; emb_chain(DD,ee); m:nat; n:nat; k:nat|] ==>   \
 \    e_gr(DD,ee,n#+m,n) = e_gr(DD,ee,n#+k,n) O e_less(DD,ee,n#+m,n#+k)";
 (* Use mp to prepare for induction. *)
-by (rtac mp 1);
-by (assume_tac 2);
-by (res_inst_tac[("n","k")]nat_induct 1);
-by (assume_tac 1);
+by (etac rev_mp 1);
+by (induct_tac "k" 1);
 by (asm_full_simp_tac(simpset() addsimps
-    [add_0_right, e_gr_eq, e_less_eq, id_type RS id_comp]) 1);
+		      [e_gr_eq, e_less_eq, id_type RS id_comp]) 1);
 by (simp_tac(ZF_ss addsimps[le_succ_iff]) 1);
 by (rtac impI 1);
 by (etac disjE 1);
@@ -2042,10 +2018,10 @@ Goal (* lemma1 *)
     "[|m le n; emb_chain(DD,ee); x:set(Dinf(DD,ee)); m:nat; n:nat|] ==>   \
 \    rel(DD`n,e_less(DD,ee,m,n)`(x`m),x`n)";
 by (etac rev_mp 1);  (* For induction proof *)
-by (res_inst_tac[("n","n")]nat_induct 1);
-by (rtac impI 2);
-by (asm_full_simp_tac (simpset() addsimps [e_less_eq]) 2);
-by (stac id_thm 2);
+by (induct_tac "n" 1);
+by (rtac impI 1);
+by (asm_full_simp_tac (simpset() addsimps [e_less_eq]) 1);
+by (stac id_thm 1);
 brr[apply_type,Dinf_prod,cpo_refl,emb_chain_cpo,nat_0I] 1;
 by (asm_full_simp_tac (simpset() addsimps [le_succ_iff]) 1);
 by (rtac impI 1);
@@ -2080,10 +2056,10 @@ Goal (* lemma2 *)
     "[|n le m; emb_chain(DD,ee); x:set(Dinf(DD,ee)); m:nat; n:nat|] ==>   \
 \    rel(DD`n,e_gr(DD,ee,m,n)`(x`m),x`n)";
 by (etac rev_mp 1);  (* For induction proof *)
-by (res_inst_tac[("n","m")]nat_induct 1);
-by (rtac impI 2);
-by (asm_full_simp_tac (simpset() addsimps [e_gr_eq]) 2);
-by (stac id_thm 2);
+by (induct_tac "m" 1);
+by (rtac impI 1);
+by (asm_full_simp_tac (simpset() addsimps [e_gr_eq]) 1);
+by (stac id_thm 1);
 brr[apply_type,Dinf_prod,cpo_refl,emb_chain_cpo,nat_0I] 1;
 by (asm_full_simp_tac (simpset() addsimps [le_succ_iff]) 1);
 by (rtac impI 1);
@@ -2429,22 +2405,17 @@ by (auto_tac (claset() addIs [lam_type,comp_pres_cont,cpo_cf,cont_cf],
 	      simpset()));
 qed "mono_lemma";
 
-(* PAINFUL: wish condrew with difficult conds on term bound in lam-abs. *)
-(* Introduces need for lemmas. *)
-
 Goal "[| commute(DD,ee,E,r); commute(DD,ee,G,f);   \
 \        emb_chain(DD,ee); cpo(E); cpo(G); n:nat |] ==>  \  
 \     (lam na:nat. (lam f:cont(E, G). f O r(n)) `  \
 \      ((lam n:nat. f(n) O Rp(DD ` n, E, r(n))) ` na))  = \
 \     (lam na:nat. (f(na) O Rp(DD ` na, E, r(na))) O r(n))";
 by (rtac fun_extension 1);
-by (stac beta 3);
-by (stac beta 4);
-by (stac beta 5);
-by (rtac lam_type 1);
-by (stac beta 1);
-by (ALLGOALS Asm_simp_tac);
-by (ALLGOALS (fast_tac (claset() addIs [lam_type, comp_pres_cont, Rp_cont, emb_cont, commute_emb, emb_chain_cpo])));
+by (fast_tac (claset() addIs [lam_type]) 1);
+by (ALLGOALS 
+    (asm_simp_tac 
+     (simpset() setSolver (type_auto_tac [lam_type, comp_pres_cont, Rp_cont, 
+			        emb_cont, commute_emb, emb_chain_cpo]))));
 val lemma = result();
 
 Goal "[| commute(DD,ee,E,r); commute(DD,ee,G,f);   \

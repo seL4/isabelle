@@ -193,6 +193,6 @@ by (rtac (Transset_0 RS QPair_Int_Vfrom_succ_subset RS subset_trans) 1);
 by (rtac (succI1 RS UN_upper) 1);
 (*Limit(i) case*)
 by (asm_simp_tac
-    (simpset() addsimps [Limit_Vfrom_eq, Int_UN_distrib, subset_refl,
+    (simpset() addsimps [Limit_Vfrom_eq, Int_UN_distrib, 
 			 UN_mono, QPair_Int_Vset_subset_trans]) 1);
 qed "QPair_Int_Vset_subset_UN";
