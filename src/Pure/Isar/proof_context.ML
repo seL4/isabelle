@@ -43,7 +43,7 @@ sig
   val generalizeT: context -> context -> typ -> typ
   val generalize: context -> context -> term -> term
   val find_free: term -> string -> term option
-  val export_wrt: bool -> context -> context option -> thm -> thm Seq.seq
+  val export: bool -> context -> context -> thm -> thm Seq.seq
   val drop_schematic: indexname * term option -> indexname * term option
   val add_binds: (indexname * string option) list -> context -> context
   val add_binds_i: (indexname * term option) list -> context -> context
@@ -547,27 +547,19 @@ end;
 
 (* generalize type variables *)
 
-fun gen_tfrees inner opt_outer =
+fun gen_tfrees inner outer =
   let
-    val inner_used = used_table inner;
-    val inner_fixes = fixed_names inner;
-    val (outer_used, outer_fixes) =
-      (case opt_outer of
-        None => (Symtab.empty, [])
-      | Some ctxt => (used_table ctxt, fixed_names ctxt));
-
-    val extra_fixes = inner_fixes \\ outer_fixes;
+    val extra_fixes = fixed_names inner \\ fixed_names outer;
     fun still_fixed (Free (x, _)) = not (x mem_string extra_fixes)
       | still_fixed _ = false;
-
     fun add (gen, (a, xs)) =
-      if is_some (Symtab.lookup (outer_used, a)) orelse exists still_fixed xs
+      if is_some (Symtab.lookup (used_table outer, a)) orelse exists still_fixed xs
       then gen else a :: gen;
-  in Symtab.foldl add ([], inner_used) end;
+  in Symtab.foldl add ([], used_table inner) end;
 
 fun generalizeT inner outer =
   let
-    val tfrees = gen_tfrees inner (Some outer);
+    val tfrees = gen_tfrees inner outer;
     fun gen (x, S) = if x mem_string tfrees then TVar ((x, 0), S) else TFree (x, S);
   in Term.map_type_tfree gen end;
 
@@ -582,15 +574,11 @@ fun get_free x (None, t as Free (y, _)) = if x = y then Some t else None
 
 fun find_free t x = foldl_aterms (get_free x) (None, t);
 
-fun diff_context inner None = (gen_tfrees inner None, fixed_names inner, assumptions inner)
-  | diff_context inner (Some outer) =
-      (gen_tfrees inner (Some outer),
-        fixed_names inner \\ fixed_names outer,
-        Library.drop (length (assumptions outer), assumptions inner));
-
-fun export_wrt is_goal inner opt_outer =
+fun export is_goal inner outer =
   let
-    val (tfrees, fixes, asms) = diff_context inner opt_outer;
+    val tfrees = gen_tfrees inner outer;
+    val fixes = fixed_names inner \\ fixed_names outer;
+    val asms = Library.drop (length (assumptions outer), assumptions inner);
     val exp_asms = map (fn (cprops, exp) => exp is_goal cprops) asms;
   in fn thm =>
     thm
@@ -1116,8 +1104,9 @@ fun pretty_context (ctxt as Context {asms = (_, (fixes, _)), cases,
     val pretty_thy = Pretty.block [Pretty.str "Theory:", Pretty.brk 1, Sign.pretty_sg sign];
 
     (*fixes*)
-    fun prt_fix (x, x') = Pretty.block
-      [Pretty.str x, Pretty.str " =", Pretty.brk 1, prt_term (Syntax.free x')];
+    fun prt_fix (x, x') =
+      if x = x' then Pretty.str x
+      else Pretty.block [Pretty.str x, Pretty.str " =", Pretty.brk 1, prt_term (Syntax.free x')];
 
     fun prt_fixes [] = []
       | prt_fixes xs = [Pretty.block (Pretty.str "fixed variables:" :: Pretty.brk 1 ::
