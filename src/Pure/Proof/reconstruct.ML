@@ -9,7 +9,7 @@ Reconstruction of partial proof terms.
 signature RECONSTRUCT =
 sig
   val quiet_mode : bool ref
-  val reconstruct_prf : Sign.sg -> term -> Proofterm.proof -> Proofterm.proof
+  val reconstruct_proof : Sign.sg -> term -> Proofterm.proof -> Proofterm.proof
   val expand_proof : Sign.sg -> string list -> Proofterm.proof -> Proofterm.proof
 end;
 
@@ -71,19 +71,19 @@ fun make_Tconstraints_cprf maxidx cprf =
       | mk_Tcnstrts maxidx Ts (AbsP (s, None, cprf)) =
           let val (cs, cprf', maxidx') = mk_Tcnstrts maxidx Ts cprf;
           in (cs, AbsP (s, None, cprf'), maxidx') end
-      | mk_Tcnstrts maxidx Ts (cprf1 % cprf2) =
+      | mk_Tcnstrts maxidx Ts (cprf1 %% cprf2) =
           let
             val (cs, cprf1', maxidx') = mk_Tcnstrts maxidx Ts cprf1;
             val (cs', cprf2', maxidx'') = mk_Tcnstrts maxidx' Ts cprf2;
-          in (cs' @ cs, cprf1' % cprf2', maxidx'') end
-      | mk_Tcnstrts maxidx Ts (cprf %% Some t) =
+          in (cs' @ cs, cprf1' %% cprf2', maxidx'') end
+      | mk_Tcnstrts maxidx Ts (cprf % Some t) =
           let val (cs, cprf', maxidx') = mk_Tcnstrts maxidx Ts cprf;
           in ((mk_abs Ts t, rev Ts ---> TypeInfer.logicT)::cs,
-            cprf' %% Some t, maxidx')
+            cprf' % Some t, maxidx')
           end
-      | mk_Tcnstrts maxidx Ts (cprf %% None) =
+      | mk_Tcnstrts maxidx Ts (cprf % None) =
           let val (cs, cprf', maxidx') = mk_Tcnstrts maxidx Ts cprf;
-          in (cs, cprf %% None, maxidx') end
+          in (cs, cprf % None, maxidx') end
       | mk_Tcnstrts maxidx _ cprf = ([], cprf, maxidx);
   in mk_Tcnstrts maxidx [] cprf end;
 
@@ -150,42 +150,42 @@ fun make_constraints_cprf sg env ts cprf =
             val (u, prf, cnstrts, env'', ts') = mk_cnstrts env' Ts (t::Hs) ts cprf;
           in (Logic.mk_implies (t, u), AbsP (s, Some t, prf), cnstrts, env'', ts')
           end
-      | mk_cnstrts env Ts Hs ts (cprf1 % cprf2) =
+      | mk_cnstrts env Ts Hs ts (cprf1 %% cprf2) =
           let val (u, prf2, cnstrts, env', ts') = mk_cnstrts env Ts Hs ts cprf2
           in (case mk_cnstrts env' Ts Hs ts' cprf1 of
               (Const ("==>", _) $ u' $ t', prf1, cnstrts', env'', ts'') =>
-                add_cnstrt Ts t' (prf1 % prf2) (cnstrts' @ cnstrts)
+                add_cnstrt Ts t' (prf1 %% prf2) (cnstrts' @ cnstrts)
                   env'' ts'' (u, u')
             | (t, prf1, cnstrts', env'', ts'') =>
                 let val (env''', v) = mk_var env'' Ts propT
-                in add_cnstrt Ts v (prf1 % prf2) (cnstrts' @ cnstrts)
+                in add_cnstrt Ts v (prf1 %% prf2) (cnstrts' @ cnstrts)
                   env''' ts'' (t, Logic.mk_implies (u, v))
                 end)
           end
-      | mk_cnstrts env Ts Hs (t::ts) (cprf %% Some _) =
+      | mk_cnstrts env Ts Hs (t::ts) (cprf % Some _) =
           let val t' = strip_abs Ts t
           in (case mk_cnstrts env Ts Hs ts cprf of
              (Const ("all", Type ("fun", [Type ("fun", [T, _]), _])) $ f,
                  prf, cnstrts, env', ts') =>
                let val env'' = unifyT sg env' T
                  (fastype_of1 (map (Envir.norm_type env') Ts, t'))
-               in (betapply (f, t'), prf %% Some t', cnstrts, env'', ts')
+               in (betapply (f, t'), prf % Some t', cnstrts, env'', ts')
                end
            | (u, prf, cnstrts, env', ts') =>
                let
                  val T = fastype_of1 (map (Envir.norm_type env') Ts, t');
                  val (env'', v) = mk_var env' Ts (T --> propT);
                in
-                 add_cnstrt Ts (v $ t') (prf %% Some t') cnstrts env'' ts'
+                 add_cnstrt Ts (v $ t') (prf % Some t') cnstrts env'' ts'
                    (u, Const ("all", (T --> propT) --> propT) $ v)
                end)
           end
-      | mk_cnstrts env Ts Hs ts (cprf %% None) =
+      | mk_cnstrts env Ts Hs ts (cprf % None) =
           (case mk_cnstrts env Ts Hs ts cprf of
              (Const ("all", Type ("fun", [Type ("fun", [T, _]), _])) $ f,
                  prf, cnstrts, env', ts') =>
                let val (env'', t) = mk_var env' Ts T
-               in (betapply (f, t), prf %% Some t, cnstrts, env'', ts')
+               in (betapply (f, t), prf % Some t, cnstrts, env'', ts')
                end
            | (u, prf, cnstrts, env', ts') =>
                let
@@ -193,7 +193,7 @@ fun make_constraints_cprf sg env ts cprf =
                  val (env2, v) = mk_var env1 Ts (T --> propT);
                  val (env3, t) = mk_var env2 Ts T
                in
-                 add_cnstrt Ts (v $ t) (prf %% Some t) cnstrts env3 ts'
+                 add_cnstrt Ts (v $ t) (prf % Some t) cnstrts env3 ts'
                    (u, Const ("all", (T --> propT) --> propT) $ v)
                end)
       | mk_cnstrts env _ _ ts (PThm (name, prf, prop, opTs)) =
@@ -203,7 +203,7 @@ fun make_constraints_cprf sg env ts cprf =
       | mk_cnstrts env _ _ ts (Oracle (name, prop, opTs)) =
           mk_cnstrts_atom env ts prop opTs (fn x => Oracle (name, prop, x))
       | mk_cnstrts env _ _ ts (Hyp t) = (t, Hyp t, [], env, ts)
-      | mk_cnstrts _ _ _ _ _ = error "reconstruct_prf: minimal proof object"
+      | mk_cnstrts _ _ _ _ _ = error "reconstruct_proof: minimal proof object"
   in mk_cnstrts env [] [] ts cprf end;
 
 fun add_term_ixns (is, Var (i, T)) = add_typ_ixns (i ins is, T)
@@ -271,9 +271,9 @@ fun solve _ [] bigenv = bigenv
   reconstruction of proofs
 *********************************************************************************)
 
-fun reconstruct_prf sg prop cprf =
+fun reconstruct_proof sg prop cprf =
   let
-    val (cprf' %% Some prop', thawf) = freeze_thaw_prf (cprf %% Some prop);
+    val (cprf' % Some prop', thawf) = freeze_thaw_prf (cprf % Some prop);
     val _ = message "Collecting type constraints...";
     val (Tcs, cprf'', maxidx) = make_Tconstraints_cprf 0 cprf';
     val (ts, Ts) = ListPair.unzip Tcs;
@@ -295,7 +295,7 @@ fun reconstruct_prf sg prop cprf =
 
 fun full_prf_of thm =
   let val {prop, der = (_, prf), sign, ...} = rep_thm thm
-  in reconstruct_prf sign prop prf end;
+  in reconstruct_proof sign prop prf end;
 
 
 (********************************************************************************
@@ -312,14 +312,14 @@ fun expand_proof sg names prf =
       | expand prfs (Abst (s, T, prf)) = 
           let val (prfs', prf') = expand prfs prf
           in (prfs', Abst (s, T, prf')) end
-      | expand prfs (prf1 % prf2) =
+      | expand prfs (prf1 %% prf2) =
           let
             val (prfs', prf1') = expand prfs prf1;
             val (prfs'', prf2') = expand prfs' prf2;
-          in (prfs'', prf1' % prf2') end
-      | expand prfs (prf %% t) =
+          in (prfs'', prf1' %% prf2') end
+      | expand prfs (prf % t) =
           let val (prfs', prf') = expand prfs prf
-          in (prfs', prf' %% t) end
+          in (prfs', prf' % t) end
       | expand prfs (prf as PThm ((a, _), cprf, prop, Some Ts)) =
           if not (a mem names) then (prfs, prf) else
           let
@@ -328,7 +328,7 @@ fun expand_proof sg names prf =
                   let
                     val _ = message ("Reconstructing proof of " ^ a);
                     val _ = message (Sign.string_of_term sg prop);
-                    val prf = reconstruct_prf sg prop cprf
+                    val prf = reconstruct_proof sg prop cprf
                   in (prf, ((a, prop), prf)::prfs) end
               | Some prf => (prf, prfs));
             val tvars = term_tvars prop;
