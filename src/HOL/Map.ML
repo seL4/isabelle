@@ -148,6 +148,15 @@ Addsimps [fun_upd_apply];
 
 section "dom";
 
+Goalw [dom_def] "m a = Some b ==> a : dom m";
+by Auto_tac;
+qed "domI";
+
+Goalw [dom_def] "a : dom m ==> ? b. m a = Some b";
+by Auto_tac;
+qed "domD";
+AddSDs [domD];
+
 Goalw [dom_def] "dom empty = {}";
 by (Simp_tac 1);
 qed "dom_empty";

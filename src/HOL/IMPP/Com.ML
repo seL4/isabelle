@@ -1,12 +1,3 @@
-Goalw [dom_def] "m a = Some b ==> a : dom m";
-by Auto_tac;
-qed "domI";
-
-Goalw [dom_def] "a : dom m ==> ? b. m a = Some b";
-by Auto_tac;
-qed "domD";
-AddSDs [domD];
-
 val make_imp_tac = EVERY'[rtac mp, fn i => atac (i+1), etac thin_rl];
 
 Goalw [body_def] "finite (dom body)";
