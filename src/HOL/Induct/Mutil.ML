@@ -37,20 +37,19 @@ by Auto_tac;
 qed "Sigma_Suc1";
 
 Goalw [below_def]
-    "A <*> below(#2+n) = (A <*> {n}) Un (A <*> {Suc n}) Un (A <*> (below n))";
+    "A <*> below(Suc n) = (A <*> {n}) Un (A <*> (below n))";
 by Auto_tac;
-by (arith_tac 1);
 qed "Sigma_Suc2";
 
 Addsimps [Sigma_Suc1, Sigma_Suc2];
 
-Goal "({i} <*> {m}) Un ({i} <*> {n}) = {(i,m), (i,n)}";
+Goal "({i} <*> {n}) Un ({i} <*> {m}) = {(i,m), (i,n)}";
 by Auto_tac;
 qed "sing_Times_lemma";
 
 Goal "{i} <*> below(#2*n) : tiling domino";
 by (induct_tac "n" 1);
-by (ALLGOALS Asm_simp_tac);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [Un_assoc RS sym])));
 by (rtac tiling.Un 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [sing_Times_lemma])));
 qed "dominoes_tile_row";
