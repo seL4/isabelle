@@ -121,7 +121,7 @@ val simp_thms = map prover
    "(P | True) = True", "(True | P) = True", 
    "(P | False) = P", "(False | P) = P", "(P | P) = P",
    "((~P) = (~Q)) = (P=Q)",
-   "(!x.P) = P", "(? x.P) = P", "? x. x=t", 
+   "(!x.P) = P", "(? x.P) = P", "? x. x=t", "? x. t=x", 
    "(? x. x=t & P(x)) = P(t)", "(? x. t=x & P(x)) = P(t)", 
    "(! x. x=t --> P(x)) = P(t)", "(! x. t=x --> P(x)) = P(t)" ];
 
