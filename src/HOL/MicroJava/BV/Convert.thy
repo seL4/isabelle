@@ -40,11 +40,13 @@ constdefs
 
   (* lifts a relation to option with None as bottom element *)
   lift_bottom :: "('a => 'b => bool) => ('a option => 'b option => bool)"
-  "lift_bottom P a' a == case a' of 
-                          None    => True 
-                        | Some t' => (case a of None => False | Some t => P t' t)"
+  "lift_bottom P a' a == 
+   case a' of 
+     None    => True 
+   | Some t' => (case a of None => False | Some t => P t' t)"
 
-  sup_ty_opt :: "['code prog,ty err,ty err] => bool" ("_ \<turnstile> _ <=o _" [71,71] 70)
+  sup_ty_opt :: "['code prog,ty err,ty err] => bool" 
+                 ("_ \<turnstile> _ <=o _" [71,71] 70)
   "sup_ty_opt G == lift_top (\<lambda>t t'. G \<turnstile> t \<preceq> t')"
 
   sup_loc :: "['code prog,locvars_type,locvars_type] => bool" 
@@ -53,17 +55,22 @@ constdefs
 
   sup_state :: "['code prog,state_type,state_type] => bool"	  
                ("_ \<turnstile> _ <=s _"  [71,71] 70)
-  "G \<turnstile> s <=s s' == (G \<turnstile> map Ok (fst s) <=l map Ok (fst s')) \<and> G \<turnstile> snd s <=l snd s'"
+  "G \<turnstile> s <=s s' == 
+   (G \<turnstile> map Ok (fst s) <=l map Ok (fst s')) \<and> G \<turnstile> snd s <=l snd s'"
 
   sup_state_opt :: "['code prog,state_type option,state_type option] => bool" 
                    ("_ \<turnstile> _ <=' _"  [71,71] 70)
   "sup_state_opt G == lift_bottom (\<lambda>t t'. G \<turnstile> t <=s t')"
 
 syntax (HTML output) 
-  sup_ty_opt :: "['code prog,ty err,ty err] => bool" ("_ |- _ <=o _")
-  sup_loc :: "['code prog,locvars_type,locvars_type] => bool" ("_ |- _ <=l _"  [71,71] 70)
-  sup_state :: "['code prog,state_type,state_type] => bool"	("_ |- _ <=s _"  [71,71] 70)
-  sup_state_opt :: "['code prog,state_type option,state_type option] => bool" ("_ |- _ <=' _"  [71,71] 70)
+  sup_ty_opt    :: "['code prog,ty err,ty err] => bool" 
+                   ("_ |- _ <=o _")
+  sup_loc       :: "['code prog,locvars_type,locvars_type] => bool" 
+                   ("_ |- _ <=l _"  [71,71] 70)
+  sup_state     :: "['code prog,state_type,state_type] => bool"	
+                   ("_ |- _ <=s _"  [71,71] 70)
+  sup_state_opt :: "['code prog,state_type option,state_type option] => bool"
+                   ("_ |- _ <=' _"  [71,71] 70)
                    
 
 lemma not_Err_eq [iff]:
@@ -80,7 +87,7 @@ lemma lift_top_refl [simp]:
   by (simp add: lift_top_def split: err.splits)
 
 lemma lift_top_trans [trans]:
-  "[| !!x y z. [| P x y; P y z |] ==> P x z; lift_top P x y; lift_top P y z |] 
+  "[| !!x y z. [| P x y; P y z |] ==> P x z; lift_top P x y; lift_top P y z |]
   ==> lift_top P x z"
 proof -
   assume [trans]: "!!x y z. [| P x y; P y z |] ==> P x z"
@@ -141,7 +148,8 @@ lemma lift_bottom_refl [simp]:
   by (simp add: lift_bottom_def split: option.splits)
 
 lemma lift_bottom_trans [trans]:
-  "[| !!x y z. [| P x y; P y z |] ==> P x z; lift_bottom P x y; lift_bottom P y z |]
+  "[| !!x y z. [| P x y; P y z |] ==> P x z; 
+      lift_bottom P x y; lift_bottom P y z |]
   ==> lift_bottom P x z"
 proof -
   assume [trans]: "!!x y z. [| P x y; P y z |] ==> P x z"
@@ -286,8 +294,8 @@ qed
 
 
 theorem all_nth_sup_loc:
-  "\<forall>b. length a = length b --> (\<forall> n. n < length a --> (G \<turnstile> (a!n) <=o (b!n))) --> 
-       (G \<turnstile> a <=l b)" (is "?P a")
+  "\<forall>b. length a = length b --> (\<forall> n. n < length a --> (G \<turnstile> (a!n) <=o (b!n))) 
+  --> (G \<turnstile> a <=l b)" (is "?P a")
 proof (induct a)
   show "?P []" by simp
 

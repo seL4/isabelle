@@ -9,7 +9,8 @@ Semantics of JVM instructions
 JVMExecInstr = JVMInstructions + JVMState +
 
 consts
-exec_instr :: "[instr, jvm_prog, aheap, opstack, locvars, cname, sig, p_count, frame list] => jvm_state"
+  exec_instr :: "[instr, jvm_prog, aheap, opstack, locvars, 
+                  cname, sig, p_count, frame list] => jvm_state"
 primrec
  "exec_instr (Load idx) G hp stk vars Cl sig pc frs = 
       (None, hp, ((vars ! idx) # stk, vars, Cl, sig, pc+1)#frs)"
@@ -63,9 +64,9 @@ primrec
 	     xp'	= raise_xcpt (oref=Null) NullPointer;
 	     dynT	= fst(the(hp(the_Addr oref)));
 	     (dc,mh,mxl,c)= the (method (G,dynT) (mn,ps));
-	     frs'	= if xp'=None
-	                  then [([],rev argsoref@replicate mxl arbitrary,dc,(mn,ps),0)]
-	                  else []
+	     frs'	= if xp'=None then 
+                [([],rev argsoref@replicate mxl arbitrary,dc,(mn,ps),0)]
+	            else []
 	 in
       (xp', hp, frs'@(drop (n+1) stk, vars, Cl, sig, pc+1)#frs))"
 
@@ -84,11 +85,13 @@ primrec
       (None, hp, (hd stk # stk, vars, Cl, sig, pc+1)#frs)"
 
  "exec_instr Dup_x1 G hp stk vars Cl sig pc frs = 
-      (None, hp, (hd stk # hd (tl stk) # hd stk # (tl (tl stk)), vars, Cl, sig, pc+1)#frs)"
+      (None, hp, (hd stk # hd (tl stk) # hd stk # (tl (tl stk)), 
+                  vars, Cl, sig, pc+1)#frs)"
 
  "exec_instr Dup_x2 G hp stk vars Cl sig pc frs = 
-      (None, hp, (hd stk # hd (tl stk) # (hd (tl (tl stk))) # hd stk # (tl (tl (tl stk))),
-                  vars, Cl, sig, pc+1)#frs)"
+      (None, hp, 
+       (hd stk # hd (tl stk) # (hd (tl (tl stk))) # hd stk # (tl (tl (tl stk))),
+       vars, Cl, sig, pc+1)#frs)"
 
  "exec_instr Swap G hp stk vars Cl sig pc frs =
 	(let (val1,val2) = (hd stk,hd (tl stk))
@@ -98,7 +101,8 @@ primrec
  "exec_instr IAdd G hp stk vars Cl sig pc frs =
   (let (val1,val2) = (hd stk,hd (tl stk))
    in
-      (None, hp, (Intg ((the_Intg val1)+(the_Intg val2))#(tl (tl stk)), vars, Cl, sig, pc+1)#frs))"
+      (None, hp, (Intg ((the_Intg val1)+(the_Intg val2))#(tl (tl stk)), 
+       vars, Cl, sig, pc+1)#frs))"
 
  "exec_instr (Ifcmpeq i) G hp stk vars Cl sig pc frs =
 	(let (val1,val2) = (hd stk, hd (tl stk));

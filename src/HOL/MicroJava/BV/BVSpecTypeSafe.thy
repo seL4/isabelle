@@ -7,11 +7,13 @@ Proof that the specification of the bytecode verifier only admits type safe
 programs.
 *)
 
-header "Type Safety Proof"
+header "BV Type Safety Proof"
 
 theory BVSpecTypeSafe = Correct:
 
-lemmas defs1 = sup_state_def correct_state_def correct_frame_def wt_instr_def step_def
+lemmas defs1 = sup_state_def correct_state_def correct_frame_def 
+               wt_instr_def step_def
+
 lemmas [simp del] = split_paired_All
 
 lemma wt_jvm_prog_impl_wt_instr_cor:
@@ -25,17 +27,18 @@ done
 
 lemma Load_correct:
 "[| wf_prog wt G;
-   method (G,C) sig = Some (C,rT,maxl,ins); 
-   ins!pc = Load idx; 
-   wt_instr (ins!pc) G rT (phi C sig) (length ins) pc; 
-   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs); 
-   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
+    method (G,C) sig = Some (C,rT,maxl,ins); 
+    ins!pc = Load idx; 
+    wt_instr (ins!pc) G rT (phi C sig) (length ins) pc; 
+    Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs); 
+    G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
 apply (clarsimp simp add: defs1 map_eq_Cons)
 apply (rule conjI)
  apply (rule approx_loc_imp_approx_val_sup)
  apply simp+
-apply (blast intro: approx_stk_imp_approx_stk_sup approx_loc_imp_approx_loc_sup)
+apply (blast intro: approx_stk_imp_approx_stk_sup 
+                    approx_loc_imp_approx_loc_sup)
 done
 
 lemma Store_correct:
@@ -49,7 +52,8 @@ lemma Store_correct:
 apply (clarsimp simp add: defs1 map_eq_Cons)
 apply (rule conjI)
  apply (blast intro: approx_stk_imp_approx_stk_sup)
-apply (blast intro: approx_loc_imp_approx_loc_subst approx_loc_imp_approx_loc_sup)
+apply (blast intro: approx_loc_imp_approx_loc_subst 
+                    approx_loc_imp_approx_loc_sup)
 done
 
 
@@ -60,14 +64,15 @@ by (simp add: conf_def)
 
 lemma Bipush_correct:
 "[| wf_prog wt G;
-  method (G,C) sig = Some (C,rT,maxl,ins); 
-  ins!pc = Bipush i; 
-  wt_instr (ins!pc) G rT (phi C sig) (length ins) pc; 
-  Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs);
-  G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |]
+    method (G,C) sig = Some (C,rT,maxl,ins); 
+    ins!pc = Bipush i; 
+    wt_instr (ins!pc) G rT (phi C sig) (length ins) pc; 
+    Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs);
+    G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |]
 ==> G,phi \<turnstile>JVM state'\<surd>"
 apply (clarsimp simp add: defs1 approx_val_def sup_PTS_eq map_eq_Cons)
-apply (blast intro: approx_stk_imp_approx_stk_sup approx_loc_imp_approx_loc_sup)
+apply (blast intro: approx_stk_imp_approx_stk_sup 
+                    approx_loc_imp_approx_loc_sup)
 done
 
 lemma NT_subtype_conv:
@@ -87,21 +92,23 @@ qed
 
 lemma Aconst_null_correct:
 "[| wf_prog wt G;
-  method (G,C) sig = Some (C,rT,maxl,ins); 
-  ins!pc =  Aconst_null; 
-  wt_instr (ins!pc) G rT (phi C sig) (length ins) pc; 
-  Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs); 
-  G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
+    method (G,C) sig = Some (C,rT,maxl,ins); 
+    ins!pc =  Aconst_null; 
+    wt_instr (ins!pc) G rT (phi C sig) (length ins) pc; 
+    Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs); 
+    G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
 apply (clarsimp simp add: defs1 map_eq_Cons)
 apply (rule conjI)
  apply (force simp add: approx_val_Null NT_subtype_conv)
-apply (blast intro: approx_stk_imp_approx_stk_sup approx_loc_imp_approx_loc_sup)
+apply (blast intro: approx_stk_imp_approx_stk_sup 
+                    approx_loc_imp_approx_loc_sup)
 done
 
 
 lemma Cast_conf2:
-  "[|wf_prog ok G; G,h\<turnstile>v::\<preceq>RefT rt; cast_ok G C h v; G\<turnstile>Class C\<preceq>T; is_class G C|] 
+  "[| wf_prog ok G; G,h\<turnstile>v::\<preceq>RefT rt; cast_ok G C h v; 
+      G\<turnstile>Class C\<preceq>T; is_class G C|] 
   ==> G,h\<turnstile>v::\<preceq>T"
 apply (unfold cast_ok_def)
 apply (frule widen_Class)
@@ -115,14 +122,15 @@ done
 
 lemma Checkcast_correct:
 "[| wf_prog wt G;
-  method (G,C) sig = Some (C,rT,maxl,ins); 
-  ins!pc = Checkcast D; 
-  wt_instr (ins!pc) G rT (phi C sig) (length ins) pc; 
-  Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; 
-  G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
+    method (G,C) sig = Some (C,rT,maxl,ins); 
+    ins!pc = Checkcast D; 
+    wt_instr (ins!pc) G rT (phi C sig) (length ins) pc; 
+    Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; 
+    G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
 apply (clarsimp simp add: defs1 map_eq_Cons raise_xcpt_def approx_val_def)
-apply (blast intro: approx_stk_imp_approx_stk_sup approx_loc_imp_approx_loc_sup Cast_conf2)
+apply (blast intro: approx_stk_imp_approx_stk_sup 
+                    approx_loc_imp_approx_loc_sup Cast_conf2)
 done
 
 
@@ -134,7 +142,8 @@ lemma Getfield_correct:
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; 
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
-apply (clarsimp simp add: defs1 raise_xcpt_def map_eq_Cons approx_val_def split: option.split)
+apply (clarsimp simp add: defs1 raise_xcpt_def map_eq_Cons approx_val_def
+                split: option.split)
 apply (frule conf_widen)
 apply assumption+
 apply (drule conf_RefTD)
@@ -143,7 +152,8 @@ apply (rule conjI)
  apply (drule widen_cfs_fields)
  apply assumption+
  apply (force intro: conf_widen simp add: hconf_def oconf_def lconf_def)
-apply (blast intro: approx_stk_imp_approx_stk_sup approx_loc_imp_approx_loc_sup)
+apply (blast intro: approx_stk_imp_approx_stk_sup 
+                    approx_loc_imp_approx_loc_sup)
 done
 
 lemma Putfield_correct:
@@ -162,11 +172,14 @@ apply assumption
 apply assumption
 apply (drule conf_RefTD)
 apply clarsimp
-apply (blast intro: sup_heap_update_value approx_stk_imp_approx_stk_sup_heap
-  approx_stk_imp_approx_stk_sup
-  approx_loc_imp_approx_loc_sup_heap approx_loc_imp_approx_loc_sup
-  hconf_imp_hconf_field_update
-  correct_frames_imp_correct_frames_field_update conf_widen dest: widen_cfs_fields)
+apply (blast 
+       intro: 
+         sup_heap_update_value approx_stk_imp_approx_stk_sup_heap
+         approx_stk_imp_approx_stk_sup approx_loc_imp_approx_loc_sup_heap 
+         approx_loc_imp_approx_loc_sup hconf_imp_hconf_field_update
+         correct_frames_imp_correct_frames_field_update conf_widen 
+       dest: 
+         widen_cfs_fields)
 done
 
 lemma collapse_paired_All:
@@ -181,15 +194,18 @@ lemma New_correct:
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; 
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
-apply (clarsimp simp add: NT_subtype_conv approx_val_def conf_def
-		   fun_upd_apply map_eq_Cons is_class_def raise_xcpt_def init_vars_def defs1 
+apply (clarsimp simp add: NT_subtype_conv approx_val_def conf_def defs1
+		   fun_upd_apply map_eq_Cons is_class_def raise_xcpt_def init_vars_def 
        split: option.split)
 apply (force dest!: iffD1 [OF collapse_paired_All]
-            intro: sup_heap_newref approx_stk_imp_approx_stk_sup_heap approx_stk_imp_approx_stk_sup
-                   approx_loc_imp_approx_loc_sup_heap approx_loc_imp_approx_loc_sup
-                   hconf_imp_hconf_newref correct_frames_imp_correct_frames_newref
-                   correct_init_obj simp add:  NT_subtype_conv approx_val_def conf_def
-		   fun_upd_apply map_eq_Cons is_class_def raise_xcpt_def init_vars_def defs1 
+       intro: sup_heap_newref approx_stk_imp_approx_stk_sup_heap 
+              approx_stk_imp_approx_stk_sup 
+              approx_loc_imp_approx_loc_sup_heap 
+              approx_loc_imp_approx_loc_sup
+              hconf_imp_hconf_newref correct_frames_imp_correct_frames_newref
+              correct_init_obj 
+       simp add: NT_subtype_conv approx_val_def conf_def defs1
+         fun_upd_apply map_eq_Cons is_class_def raise_xcpt_def init_vars_def 
        split: option.split)
 done
 
@@ -366,7 +382,8 @@ proof -
         by (simp add: wt_start_def sup_state_def)
 
       have r: "approx_loc G hp (replicate mxl' arbitrary) (replicate mxl' Err)"
-        by (simp add: approx_loc_def approx_val_Err list_all2_def set_replicate_conv_if)
+        by (simp add: approx_loc_def approx_val_Err 
+                      list_all2_def set_replicate_conv_if)
 
       from wfprog mD
       have "G \<turnstile> Class D \<preceq> Class D''"
@@ -463,7 +480,8 @@ lemma Goto_correct:
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
 apply (clarsimp simp add: defs1)
-apply (fast intro: approx_loc_imp_approx_loc_sup approx_stk_imp_approx_stk_sup)
+apply (fast intro: approx_loc_imp_approx_loc_sup 
+                   approx_stk_imp_approx_stk_sup)
 done
 
 
@@ -476,7 +494,8 @@ lemma Ifcmpeq_correct:
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
 apply (clarsimp simp add: defs1)
-apply (fast intro: approx_loc_imp_approx_loc_sup approx_stk_imp_approx_stk_sup)
+apply (fast intro: approx_loc_imp_approx_loc_sup 
+                   approx_stk_imp_approx_stk_sup)
 done
 
 lemma Pop_correct:
@@ -488,7 +507,8 @@ lemma Pop_correct:
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
 apply (clarsimp simp add: defs1)
-apply (fast intro: approx_loc_imp_approx_loc_sup approx_stk_imp_approx_stk_sup)
+apply (fast intro: approx_loc_imp_approx_loc_sup 
+                   approx_stk_imp_approx_stk_sup)
 done
 
 lemma Dup_correct:
@@ -500,7 +520,9 @@ lemma Dup_correct:
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
 apply (clarsimp simp add: defs1 map_eq_Cons)
-apply (force intro: approx_stk_imp_approx_stk_sup approx_val_imp_approx_val_sup approx_loc_imp_approx_loc_sup
+apply (force intro: approx_stk_imp_approx_stk_sup 
+                    approx_val_imp_approx_val_sup 
+                    approx_loc_imp_approx_loc_sup
              simp add: defs1 map_eq_Cons)
 done
 
@@ -513,7 +535,9 @@ lemma Dup_x1_correct:
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
 apply (clarsimp simp add: defs1 map_eq_Cons)
-apply (force intro: approx_stk_imp_approx_stk_sup approx_val_imp_approx_val_sup approx_loc_imp_approx_loc_sup
+apply (force intro: approx_stk_imp_approx_stk_sup 
+                    approx_val_imp_approx_val_sup 
+                    approx_loc_imp_approx_loc_sup
              simp add: defs1 map_eq_Cons)
 done
 
@@ -526,7 +550,9 @@ lemma Dup_x2_correct:
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
 apply (clarsimp simp add: defs1 map_eq_Cons)
-apply (force intro: approx_stk_imp_approx_stk_sup approx_val_imp_approx_val_sup approx_loc_imp_approx_loc_sup
+apply (force intro: approx_stk_imp_approx_stk_sup 
+                    approx_val_imp_approx_val_sup 
+                    approx_loc_imp_approx_loc_sup
              simp add: defs1 map_eq_Cons)
 done
 
@@ -539,7 +565,9 @@ lemma Swap_correct:
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
 apply (clarsimp simp add: defs1 map_eq_Cons)
-apply (force intro: approx_stk_imp_approx_stk_sup approx_val_imp_approx_val_sup approx_loc_imp_approx_loc_sup
+apply (force intro: approx_stk_imp_approx_stk_sup 
+                    approx_val_imp_approx_val_sup 
+                    approx_loc_imp_approx_loc_sup
              simp add: defs1 map_eq_Cons)
 done
 
@@ -552,7 +580,9 @@ lemma IAdd_correct:
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> |] 
 ==> G,phi \<turnstile>JVM state'\<surd>"
 apply (clarsimp simp add: defs1 map_eq_Cons approx_val_def conf_def)
-apply (blast intro: approx_stk_imp_approx_stk_sup approx_val_imp_approx_val_sup approx_loc_imp_approx_loc_sup)
+apply (blast intro: approx_stk_imp_approx_stk_sup 
+                    approx_val_imp_approx_val_sup 
+                    approx_loc_imp_approx_loc_sup)
 done
 
 
@@ -572,10 +602,11 @@ apply (blast intro: Invoke_correct)
 prefer 9
 apply (blast intro: Return_correct)
 apply (unfold wt_jvm_prog_def)
-apply (fast intro: Load_correct Store_correct Bipush_correct Aconst_null_correct 
-       Checkcast_correct Getfield_correct Putfield_correct New_correct 
-       Goto_correct Ifcmpeq_correct Pop_correct Dup_correct 
-       Dup_x1_correct Dup_x2_correct Swap_correct IAdd_correct)+
+apply (fast intro: 
+  Load_correct Store_correct Bipush_correct Aconst_null_correct 
+  Checkcast_correct Getfield_correct Putfield_correct New_correct 
+  Goto_correct Ifcmpeq_correct Pop_correct Dup_correct 
+  Dup_x1_correct Dup_x2_correct Swap_correct IAdd_correct)+
 done
 
 
@@ -627,11 +658,14 @@ done
 
 
 theorem BV_correct_initial:
-"[| wt_jvm_prog G phi; G \<turnstile> s0 -jvm-> (None,hp,(stk,loc,C,sig,pc)#frs); G,phi \<turnstile>JVM s0 \<surd>|] 
- ==>  approx_stk G hp stk (fst (the (((phi  C)  sig) ! pc))) \<and> approx_loc G hp loc (snd (the (((phi  C)  sig) ! pc)))"
+"[| wt_jvm_prog G phi; 
+    G \<turnstile> s0 -jvm-> (None,hp,(stk,loc,C,sig,pc)#frs); G,phi \<turnstile>JVM s0 \<surd>|] 
+==> approx_stk G hp stk (fst (the (((phi  C)  sig) ! pc))) \<and> 
+    approx_loc G hp loc (snd (the (((phi  C)  sig) ! pc)))"
 apply (drule BV_correct)
 apply assumption+
-apply (simp add: correct_state_def correct_frame_def split_def split: option.splits)
+apply (simp add: correct_state_def correct_frame_def split_def 
+            split: option.splits)
 done
 
 end
