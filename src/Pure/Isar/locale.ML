@@ -227,8 +227,9 @@ fun rename_elem ren (Fixes fixes) = Fixes (map (fn (x, T, mx) =>
 
 fun qualify_elem prfx elem =
   let
-    fun qualify ((name, atts), x) =
-      ((NameSpace.pack (filter_out (equal "") (prfx @ [name])), atts), x);
+    fun qualify (arg as ((name, atts), x)) =
+      if name = "" then arg
+      else ((NameSpace.pack (filter_out (equal "") (prfx @ [name])), atts), x);
   in
     (case elem of
       Fixes fixes => Fixes fixes
