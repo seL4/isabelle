@@ -110,7 +110,7 @@ val converse_cs = comp_cs addSIs [converseI]
                           addSEs [converseD,converseE];
 
 goalw Relation.thy [converse_def] "converse(converse R) = R";
-by(fast_tac (!claset addSIs [equalityI]) 1);
+by(Fast_tac 1);
 qed "converse_converse";
 
 (** Domain **)

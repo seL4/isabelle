@@ -430,15 +430,15 @@ qed "Case_In1";
 (**** UN x. B(x) rules ****)
 
 goalw Univ.thy [ntrunc_def] "ntrunc k (UN x.f(x)) = (UN x. ntrunc k (f x))";
-by (fast_tac (!claset addIs [equalityI]) 1);
+by (Fast_tac 1);
 qed "ntrunc_UN1";
 
 goalw Univ.thy [Scons_def] "(UN x.f(x)) $ M = (UN x. f(x) $ M)";
-by (fast_tac (!claset addIs [equalityI]) 1);
+by (Fast_tac 1);
 qed "Scons_UN1_x";
 
 goalw Univ.thy [Scons_def] "M $ (UN x.f(x)) = (UN x. M $ f(x))";
-by (fast_tac (!claset addIs [equalityI]) 1);
+by (Fast_tac 1);
 qed "Scons_UN1_y";
 
 goalw Univ.thy [In0_def] "In0(UN x.f(x)) = (UN x. In0(f(x)))";
@@ -556,16 +556,16 @@ val dsum_subset_Sigma = [dsum_mono, dsum_Sigma] MRS subset_trans |> standard;
 (*** Domain ***)
 
 goal Univ.thy "fst `` diag(A) = A";
-by (fast_tac (!claset addIs [equalityI, diagI] addSEs [diagE]) 1);
+by (fast_tac (!claset addIs [diagI] addSEs [diagE]) 1);
 qed "fst_image_diag";
 
 goal Univ.thy "fst `` (r<**>s) = (fst``r) <*> (fst``s)";
-by (fast_tac (!claset addIs [equalityI, uprodI, dprodI]
+by (fast_tac (!claset addIs [uprodI, dprodI]
                      addSEs [uprodE, dprodE]) 1);
 qed "fst_image_dprod";
 
 goal Univ.thy "fst `` (r<++>s) = (fst``r) <+> (fst``s)";
-by (fast_tac (!claset addIs [equalityI, usum_In0I, usum_In1I, 
+by (fast_tac (!claset addIs [usum_In0I, usum_In1I, 
                              dsum_In0I, dsum_In1I]
                      addSEs [usumE, dsumE]) 1);
 qed "fst_image_dsum";

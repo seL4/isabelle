@@ -17,7 +17,7 @@ by (Fast_tac 1);
 qed "subset_insert";
 
 qed_goal "subset_empty_iff" Set.thy "(A<={}) = (A={})"
- (fn _=> [ (fast_tac (!claset addIs [equalityI]) 1) ]);
+ (fn _=> [ (Fast_tac 1) ]);
 
 (*** Big Union -- least upper bound of a set  ***)
 
