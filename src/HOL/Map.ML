@@ -54,8 +54,8 @@ by (Asm_simp_tac 1);
 qed_spec_mp "map_of_SomeD";
 
 Goal "[| map_of xs k = Some z; P z |] ==> map_of [(k,z):xs . P z] k = Some z";
-br mp 1;
-ba  2;
+by (rtac mp 1);
+by (assume_tac 2);
 by (etac thin_rl 1);
 by (induct_tac "xs" 1);
 by  Auto_tac;
