@@ -913,7 +913,7 @@ val adm_lemmas = [adm_imp,adm_disj,adm_eq,adm_not_UU,adm_UU_not_less,
 
 Addsimps adm_lemmas;
 
-use"adm";
+use"adm.ML";
 
 simpset := !simpset addSolver(fn thms =>
             (adm_tac (cut_facts_tac thms THEN' cont_tacRs)));
