@@ -131,7 +131,7 @@ by (asm_simp_tac (ZF_ss addsimps [nat_succI, add_type,
                                   dominoes_tile_matrix]) 2);
 by (subgoal_tac "(m#+m)#+(n#+n) = (m#+n)#+(m#+n)" 1);
 by (asm_simp_tac (simpset() addsimps add_ac) 2);
-by (asm_full_simp_tac 
+by (asm_lr_simp_tac 
     (simpset() addsimps [evnodd_Diff, mod2_add_self,
                         mod2_succ_succ, tiling_domino_0_1 RS sym]) 1);
 by (rtac lt_trans 1);

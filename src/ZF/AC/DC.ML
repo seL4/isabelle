@@ -406,7 +406,7 @@ by (fast_tac (FOL_cs addSEs [trans, subst_context]
                      addSIs [UN_image_succ_eq_succ] addss (simpset())) 1);
 by (etac conjE 1);
 by (etac notE 1);
-by (asm_full_simp_tac (simpset() addsimps [UN_image_succ_eq_succ]) 1);
+by (asm_lr_simp_tac (simpset() addsimps [UN_image_succ_eq_succ]) 1);
 (** LEVEL 12 **)
 by (REPEAT (eresolve_tac [conjE, bexE] 1));
 by (dtac apply_domain_type 1 THEN REPEAT (assume_tac 1));
@@ -607,5 +607,4 @@ by (resolve_tac [lemma RS CollectD1] 2 THEN REPEAT (assume_tac 2));
 by (asm_full_simp_tac (simpset()
         addsimps [[Card_is_Ord, ltD] MRS lam_images_eq]) 1);
 by (fast_tac (claset() addSEs [ltE, lemma RS CollectD2]) 1);
-qed" WO1_DC_Card";
-
+qed "WO1_DC_Card";

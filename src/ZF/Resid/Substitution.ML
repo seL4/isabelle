@@ -199,7 +199,6 @@ by (eres_inst_tac [("i","x")] leE 1);
 by (forward_tac  [lt_trans1] 1 THEN assume_tac 1);
 by (ALLGOALS(asm_full_simp_tac 
              (simpset() addsimps [succ_pred,leI,gt_pred])));
-by (hyp_subst_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [leI]) 1);
 by (excluded_middle_tac "na < xa" 1);
 by (asm_full_simp_tac (simpset()) 1);
