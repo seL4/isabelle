@@ -263,26 +263,8 @@ val of_local = gen_of I;
 
 (* rename_abs *)
 
-fun rename [] t = ([], t)
-  | rename (x' :: xs) (Abs (x, T, t)) =
-      let val (xs', t') = rename xs t
-      in (xs', Abs (if_none x' x, T, t')) end
-  | rename xs (t $ u) =
-      let
-        val (xs', t') = rename xs t;
-        val (xs'', u') = rename xs' u
-      in (xs'', t' $ u') end
-  | rename xs t = (xs, t);
-
-fun rename_abs_thm xs (ctxt, thm) =
-  let val {sign, prop, ...} = rep_thm thm;
-  in case rename xs prop of
-      ([], prop') => (ctxt, equal_elim (reflexive (cterm_of sign prop')) thm)
-    | _ => error "More names than abstractions in theorem"
-  end;
-
 fun rename_abs src = syntax
-  (Scan.lift (Scan.repeat Args.name_dummy >> rename_abs_thm)) src;
+  (Scan.lift (Scan.repeat Args.name_dummy >> (apsnd o Drule.rename_bvars'))) src;
 
 
 (* unfold / fold definitions *)
