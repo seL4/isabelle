@@ -15,8 +15,8 @@ structure Readthy = ReadthyFUN (structure ThySyn = ThySyn);
 open Readthy;
 
 print_depth 1;  
-use_thy "ifol";
-use_thy "fol";
+use_thy "IFOL";
+use_thy "FOL";
 
 use "../Provers/hypsubst.ML";
 use "../Provers/classical.ML";
@@ -45,7 +45,7 @@ structure Hypsubst_Data =
 structure Hypsubst = HypsubstFun(Hypsubst_Data);
 open Hypsubst;
 
-use "int-prover.ML";
+use "intprover.ML";
 
 (*** Applying ClassicalFun to create a classical prover ***)
 structure Classical_Data = 

@@ -18,7 +18,7 @@
 
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
-FILES =  ROOT.ML ifol.thy ifol.ML fol.thy fol.ML int-prover.ML simpdata.ML \
+FILES =  ROOT.ML ifol.thy ifol.ML fol.thy fol.ML intprover.ML simpdata.ML \
 	../Provers/classical.ML ../Provers/simplifier.ML ../Provers/ind.ML
 
 $(BIN)/FOL:   $(BIN)/Pure  $(FILES) 
