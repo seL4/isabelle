@@ -127,11 +127,12 @@ public class GraphBrowser extends Applet {
 		return tb==null;
 	}
 
-	public void initBrowser(InputStream is) {
+	public void initBrowser(InputStream is, boolean noAWT) {
 		try {
-			TreeNode tn=new TreeNode("Root","",-1,true);
-			gv=new GraphView(new Graph(is,tn),this);
-			tb=new TreeBrowser(tn,gv);
+			Font font = noAWT ? null : new Font("Helvetica", Font.PLAIN, 12);
+			TreeNode tn = new TreeNode("Root", "", -1, true);
+			gv = new GraphView(new Graph(is, tn), this, font);
+			tb = new TreeBrowser(tn, gv, font);
 			gv.setTreeBrowser(tb);
 			Vector v = new Vector(10,10);
 			tn.collapsedDirectories(v);
@@ -175,7 +176,7 @@ public class GraphBrowser extends Applet {
 		gfname=getParameter("graphfile");
 		try {
 			InputStream is=(new URL(getDocumentBase(), gfname)).openConnection().getInputStream();
-			initBrowser(is);
+			initBrowser(is, false);
 			is.close();
 		} catch (MalformedURLException exn) {
 			System.err.println("Invalid URL: "+gfname);
@@ -190,22 +191,20 @@ public class GraphBrowser extends Applet {
 			GraphBrowser gb=new GraphBrowser(args.length > 0 ? args[0] : "");
 			if (args.length > 0) {
 				InputStream is=new FileInputStream(args[0]);
-				gb.initBrowser(is);
+				gb.initBrowser(is, args.length > 1);
 				is.close();
 			}
 			if (args.length > 1) {
                             try {
-			      if (args[1].endsWith(".ps")) {
+			      if (args[1].endsWith(".ps"))
                                 gb.gv.PS(args[1], true);
-                              } else if (args[1].endsWith(".eps")) {
+                              else if (args[1].endsWith(".eps"))
                                 gb.gv.PS(args[1], false);
-                              } else {
+                              else
                                 System.err.println("Unknown file type: " + args[1]);
-                              }
                             } catch (IOException exn) {
                               System.err.println("Unable to write file " + args[1]);
                             }
-			    System.exit(0);
                         } else {
 			    f=new GraphBrowserFrame(gb);
 			    f.setSize(700,500);
