@@ -1,46 +1,4 @@
-\documentclass{article}
-\usepackage{cl2emono-modified,isabelle,isabellesym}
-\usepackage{../proof,amsmath,amsfonts}
-\usepackage{latexsym,verbatim,graphicx,tutorial,../ttbox,comment}
-\usepackage{../pdfsetup}    %last package!
-
-\remarkstrue          %TRUE causes remarks to be displayed (as marginal notes)
-%\remarksfalse
-
-\makeindex
-
-\index{termination|see{total function}}
-\index{product type|see{pair}}
-\index{tuple|see{pair}}
-\index{*<*lex*>|see{lexicographic product}}
-
-\underscoreoff
-
-\setcounter{secnumdepth}{2} \setcounter{tocdepth}{2}  %% {secnumdepth}{2}???
-
-\pagestyle{headings}
-
-
-\begin{document}
-\title{\includegraphics[scale=.8]{isabelle_hol}
-       \\ \vspace{0.5cm} The Tutorial
-       \\ --- DRAFT ---}
-\author{Tobias Nipkow \& Lawrence Paulson\\[1ex]
-Technische Universit{\"a}t M{\"u}nchen \\
-Institut f{\"u}r Informatik \\[1ex]
-University of Cambridge\\
-Computer Laboratory}
-\maketitle
-
-\pagenumbering{roman}
-\setcounter{page}{5}
-
-\input{preface}
-
-\tableofcontents
-
-\newpage\pagenumbering{arabic}
-
+\documentclass{article}\usepackage{cl2emono-modified,isabelle,isabellesym}\usepackage{../proof,amsmath,amsfonts}\usepackage{latexsym,verbatim,graphicx,tutorial,../ttbox,comment}\usepackage{../pdfsetup}   %last package!\remarkstrue          %TRUE causes remarks to be displayed (as marginal notes)%\remarksfalse\makeindex\index{termination|see{total function}}\index{product type|see{pair}}\index{tuple|see{pair}}\index{*<*lex*>|see{lexicographic product}}\underscoreoff\setcounter{secnumdepth}{2} \setcounter{tocdepth}{2}  %% {secnumdepth}{2}???\pagestyle{headings}\begin{document}\title{\includegraphics[scale=.8]{isabelle_hol}       \\ \vspace{0.5cm} The Tutorial       \\ --- DRAFT ---}\author{Tobias Nipkow \& Lawrence Paulson\\[1ex]Technische Universit{\"a}t M{\"u}nchen \\Institut f{\"u}r Informatik \\[1ex]University of Cambridge\\Computer Laboratory}\maketitle\pagenumbering{roman}\setcounter{page}{5}\input{preface}\tableofcontents\newpage\pagenumbering{arabic}
 \input{basics}
 \input{fp}
 \input{Rules/rules}
