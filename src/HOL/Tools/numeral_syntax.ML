@@ -8,8 +8,9 @@ theory HOL/Numeral.
 
 signature NUMERAL_SYNTAX =
 sig
-  val dest_bin: term -> int
-  val setup: (theory -> theory) list
+  val dest_bin : term -> int
+  val mk_bin   : int -> term
+  val setup    : (theory -> theory) list
 end;
 
 structure NumeralSyntax: NUMERAL_SYNTAX =
@@ -33,22 +34,26 @@ fun prefix_len _ [] = 0
   | prefix_len pred (x :: xs) =
       if pred x then 1 + prefix_len pred xs else 0;
 
-fun mk_bin str =
+fun mk_bin n =
   let
-    val (sign, digs) =
-      (case Symbol.explode str of
-        "#" :: "-" :: cs => (~1, cs)
-      | "#" :: cs => (1, cs)
-      | _ => raise ERROR);
-
     fun bin_of 0  = []
       | bin_of ~1 = [~1]
       | bin_of n  = (n mod 2) :: bin_of (n div 2);
 
     fun term_of []   = Syntax.const "Numeral.bin.Pls"
       | term_of [~1] = Syntax.const "Numeral.bin.Min"
-      | term_of (b :: bs) = Syntax.const "Numeral.bin.Bit" $ term_of bs $ mk_bit b;
-    in term_of (bin_of (sign * (#1 (Term.read_int digs)))) end;
+      | term_of (b :: bs) = Syntax.const "Numeral.bin.Bit" $ term_of bs 
+                                                           $ mk_bit b;
+    in term_of (bin_of n) end;
+
+fun bin_of_string str =
+  let
+    val (sign, digs) =
+      (case Symbol.explode str of
+        "#" :: "-" :: cs => (~1, cs)
+      | "#" :: cs => (1, cs)
+      | _ => raise ERROR);
+    in mk_bin (sign * (#1 (Term.read_int digs))) end;
 
 (*we consider all "spellings"; Min is likely to be declared elsewhere*)
 fun bin_of (Const ("Pls", _)) = []
@@ -82,7 +87,7 @@ fun dest_bin_str tm =
 
 fun numeral_tr (*"_Numeral"*) [t as Free (str, _)] =
       (Syntax.const "Numeral.number_of" $
-        (mk_bin str handle ERROR => raise TERM ("numeral_tr", [t])))
+        (bin_of_string str handle ERROR => raise TERM ("numeral_tr", [t])))
   | numeral_tr (*"_Numeral"*) ts = raise TERM ("numeral_tr", ts);
 
 fun numeral_tr' show_sorts (*"number_of"*) (Type ("fun", [_, T])) (t :: ts) =
