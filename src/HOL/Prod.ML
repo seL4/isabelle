@@ -54,6 +54,8 @@ by (rtac (PairE_lemma RS exE) 1);
 by (REPEAT (eresolve_tac [prem,exE] 1));
 qed "PairE";
 
+fun pair_tac s = res_inst_tac [("p",s)] PairE THEN' hyp_subst_tac;
+
 (* replace parameters of product type by individual component parameters *)
 local
 fun is_pair (_,Type("*",_)) = true
@@ -133,6 +135,9 @@ by (EVERY1[stac fst_conv, stac snd_conv]);
 by (rtac refl 1);
 qed "split";
 
+val split_select = prove_goalw Prod.thy [split_def] 
+	"(®(x,y). P x y) = (®xy. P (fst xy) (snd xy))" (K [rtac refl 1]);
+
 Addsimps [fst_conv, snd_conv, split];
 
 goal Prod.thy "(s=t) = (fst(s)=fst(t) & snd(s)=snd(t))";
@@ -157,8 +162,15 @@ by (res_inst_tac [("p","p")] PairE 1);
 by (Asm_simp_tac 1);
 qed "surjective_pairing2";
 
+val surj_pair = prove_goal Prod.thy "? x y. z = (x, y)" (K [
+	rtac exI 1, rtac exI 1, rtac surjective_pairing 1]);
+Addsimps [surj_pair];
+
 qed_goal "split_eta" Prod.thy "(%(x,y). f(x,y)) = f"
   (fn _ => [rtac ext 1, split_all_tac 1, rtac split 1]);
+
+val split_beta = prove_goal Prod.thy "(%(x,y). P x y) z = P (fst z) (snd z)"
+	(fn _ => [stac surjective_pairing 1, stac split 1, rtac refl 1]);
 
 (*For use with split_tac and the simplifier*)
 goal Prod.thy "R(split c p) = (! x y. p = (x,y) --> R(c x y))";
@@ -191,6 +203,12 @@ val prems = goalw Prod.thy [split_def]
     "[| split c p;  !!x y. [| p = (x,y);  c x y |] ==> Q |] ==> Q";
 by (REPEAT (resolve_tac (prems@[surjective_pairing]) 1));
 qed "splitE";
+
+val splitE2 = prove_goal Prod.thy 
+"[|Q (split P z); !!x y. [|z = (x, y); Q (P x y)|] ==> R|] ==> R" (fn prems => [
+	REPEAT (resolve_tac (prems@[surjective_pairing]) 1),
+	rtac (split_beta RS subst) 1,
+	rtac (hd prems) 1]);
 
 goal Prod.thy "!!R a b. split R (a,b) ==> R a b";
 by (etac (split RS iffD1) 1);
@@ -306,6 +324,9 @@ by (Blast_tac 1);
 qed "mem_Sigma_iff";
 AddIffs [mem_Sigma_iff]; 
 
+val Collect_Prod = prove_goal Prod.thy 
+	"{(a,b). P a & Q b} = Collect P Times Collect Q" (K [Blast_tac 1]);
+Addsimps [Collect_Prod];
 
 (*Suggested by Pierre Chartier*)
 goal Prod.thy
