@@ -183,7 +183,7 @@ fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
 	       (foldr Symtab.update (con_pairs, ConstructorsData.get thy))
 	  |> Theory.parent_path
   end
-  handle _ => error "Failure in rep_datatype";
+  handle exn => (writeln "Failure in rep_datatype"; raise exn);
 
 end;
 
