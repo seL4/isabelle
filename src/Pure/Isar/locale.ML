@@ -1501,7 +1501,7 @@ fun def_pred bname parms defs ts norm_ts thy =
   in (defs_thy, (statement, intro, axioms)) end;
 
 (* CB: modify the locale elements:
-   - assume elements become notes elements,
+   - assumes elements become notes elements,
    - notes elements are lifted
 *)
 
