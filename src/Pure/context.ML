@@ -69,16 +69,16 @@ fun >> f = set_context (Some (f (the_context ())));
 
 (* use ML text *)
 
-fun use_mltext txt verb opt_thy = setmp opt_thy (use_text writeln verb) txt;
+fun use_mltext txt verb opt_thy = setmp opt_thy (fn () => use_text writeln verb txt) ();
 fun use_mltext_theory txt verb thy = #2 (pass_theory thy (use_text writeln verb) txt);
 
 fun use_context txt = use_mltext_theory ("Context.>> (" ^ txt ^ ");") false;
 
-fun use_let name body txt =
-  use_context ("let val " ^ name ^ " = " ^ txt ^ " in\n" ^ body ^ " end");
+fun use_let bind body txt =
+  use_context ("let " ^ bind ^ " = " ^ txt ^ " in\n" ^ body ^ " end");
 
 val use_setup =
-  use_let "setup: (theory -> theory) list" "Library.apply setup";
+  use_let "val setup: (theory -> theory) list" "Library.apply setup";
 
 
 end;
