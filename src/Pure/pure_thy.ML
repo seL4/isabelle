@@ -9,7 +9,6 @@ signature PURE_THY =
 sig
   val store_thms: (bstring * thm) list -> theory -> theory   	  (*DESTRUCTIVE*)
   val store_thmss: (bstring * thm list) list -> theory -> theory  (*DESTRUCTIVE*)
-  val store_thm: theory -> (bstring * thm) -> thm                 (*DESTRUCTIVE*)
   val smart_store_thm: (bstring * thm) -> thm                     (*DESTRUCTIVE*)
   val get_thm: theory -> xstring -> thm
   val get_thms: theory -> xstring -> thm list
