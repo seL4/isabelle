@@ -3,11 +3,12 @@
     Author:     Lawrence C Paulson and Markus Wenzel
     Copyright   1996  University of Cambridge
 
-Theories
+Theories.
 *)
 
-signature THEORY =
-  sig
+(*this part made pervasive*)
+signature BASIC_THEORY =
+sig
   type theory
   exception THEORY of string * theory list
   val rep_theory        : theory ->
@@ -22,7 +23,16 @@ signature THEORY =
   val proto_pure_thy    : theory
   val pure_thy          : theory
   val cpure_thy         : theory
-  (*theory primitives*)
+  val cert_axm          : Sign.sg -> string * term -> string * term
+  val read_axm          : Sign.sg -> string * string -> string * term
+  val inferT_axm        : Sign.sg -> string * term -> string * term
+  val merge_theories    : theory * theory -> theory
+end
+
+signature THEORY =
+sig
+  include BASIC_THEORY
+  (*theory extendsion primitives*)
   val add_classes	: (class * class list) list -> theory -> theory
   val add_classrel	: (class * class) list -> theory -> theory
   val add_defsort	: sort -> theory -> theory
@@ -49,21 +59,19 @@ signature THEORY =
     (string * string * (string -> string * int)) list -> theory -> theory
   val add_trrules     : (string * string)Syntax.trrule list -> theory -> theory
   val add_trrules_i	: Syntax.ast Syntax.trrule list -> theory -> theory
-  val cert_axm          : Sign.sg -> string * term -> string * term
-  val read_axm          : Sign.sg -> string * string -> string * term
-  val inferT_axm        : Sign.sg -> string * term -> string * term
   val add_axioms	: (string * string) list -> theory -> theory
   val add_axioms_i	: (string * term) list -> theory -> theory
-  val add_thyname	: string -> theory -> theory
+  val add_defs		: (string * string) list -> theory -> theory
+  val add_defs_i	: (string * term) list -> theory -> theory
+  val add_name		: string -> theory -> theory
 
   val set_oracle	: (Sign.sg * exn -> term) -> theory -> theory
 
-  val merge_theories    : theory * theory -> theory
   val merge_thy_list    : bool -> theory list -> theory
 end;
 
 
-structure Theory : THEORY =
+structure Theory: THEORY =
 struct
 
 (** datatype theory **)
@@ -154,7 +162,7 @@ val add_trfunsT      = ext_sg Sign.add_trfunsT;
 val add_tokentrfuns  = ext_sg Sign.add_tokentrfuns;
 val add_trrules      = ext_sg Sign.add_trrules;
 val add_trrules_i    = ext_sg Sign.add_trrules_i;
-val add_thyname      = ext_sg Sign.add_name;
+val add_name         = ext_sg Sign.add_name;
 
 
 (* prepare axioms *)
@@ -208,9 +216,130 @@ val add_axioms = ext_axms read_axm;
 val add_axioms_i = ext_axms cert_axm;
 
 
+
+(** add constant definitions **)
+
+(* all_axioms_of *)
+
+(*results may contain duplicates!*)
+
+fun ancestry_of thy =
+  thy :: List.concat (map ancestry_of (parents_of thy));
+
+val all_axioms_of =
+  List.concat o map (Symtab.dest o #new_axioms o rep_theory) o ancestry_of;
+
+
+(* clash_types, clash_consts *)
+
+(*check if types have common instance (ignoring sorts)*)
+
+fun clash_types ty1 ty2 =
+  let
+    val ty1' = Type.varifyT ty1;
+    val ty2' = incr_tvar (maxidx_of_typ ty1' + 1) (Type.varifyT ty2);
+  in
+    Type.raw_unify (ty1', ty2')
+  end;
+
+fun clash_consts (c1, ty1) (c2, ty2) =
+  c1 = c2 andalso clash_types ty1 ty2;
+
+
+(* clash_defns *)
+
+fun clash_defn c_ty (name, tm) =
+  let val (c, ty') = dest_Const (head_of (fst (Logic.dest_equals tm))) in
+    if clash_consts c_ty (c, ty') then Some (name, ty') else None
+  end handle TERM _ => None;
+
+fun clash_defns c_ty axms =
+  distinct (mapfilter (clash_defn c_ty) axms);
+
+
+(* dest_defn *)
+
+fun dest_defn tm =
+  let
+    fun err msg = raise_term msg [tm];
+
+    val (lhs, rhs) = Logic.dest_equals (Logic.strip_imp_concl tm)
+      handle TERM _ => err "Not a meta-equality (==)";
+    val (head, args) = strip_comb lhs;
+    val (c, ty) = dest_Const head
+      handle TERM _ => err "Head of lhs not a constant";
+
+    fun occs_const (Const c_ty') = (c_ty' = (c, ty))
+      | occs_const (Abs (_, _, t)) = occs_const t
+      | occs_const (t $ u) = occs_const t orelse occs_const u
+      | occs_const _ = false;
+
+    val show_frees = commas_quote o map (fst o dest_Free);
+    val show_tfrees = commas_quote o map fst;
+
+    val lhs_dups = duplicates args;
+    val rhs_extras = gen_rems (op =) (term_frees rhs, args);
+    val rhs_extrasT = gen_rems (op =) (term_tfrees rhs, typ_tfrees ty);
+  in
+    if not (forall is_Free args) then
+      err "Arguments (on lhs) must be variables"
+    else if not (null lhs_dups) then
+      err ("Duplicate variables on lhs: " ^ show_frees lhs_dups)
+    else if not (null rhs_extras) then
+      err ("Extra variables on rhs: " ^ show_frees rhs_extras)
+    else if not (null rhs_extrasT) then
+      err ("Extra type variables on rhs: " ^ show_tfrees rhs_extrasT)
+    else if occs_const rhs then
+      err ("Constant to be defined occurs on rhs")
+    else (c, ty)
+  end;
+
+
+(* check_defn *)
+
+fun err_in_defn name msg =
+  (writeln msg; error ("The error(s) above occurred in definition " ^ quote name));
+
+fun check_defn sign (axms, (name, tm)) =
+  let
+    fun show_const (c, ty) = quote (Pretty.string_of (Pretty.block
+      [Pretty.str (c ^ " ::"), Pretty.brk 1, Sign.pretty_typ sign ty]));
+
+    fun show_defn c (dfn, ty') = show_const (c, ty') ^ " in " ^ dfn;
+    fun show_defns c = cat_lines o map (show_defn c);
+
+    val (c, ty) = dest_defn tm
+      handle TERM (msg, _) => err_in_defn name msg;
+    val defns = clash_defns (c, ty) axms;
+  in
+    if not (null defns) then
+      err_in_defn name ("Definition of " ^ show_const (c, ty) ^
+        "\nclashes with " ^ show_defns c defns)
+    else (name, tm) :: axms
+  end;
+
+
+(* add_defs *)
+
+fun ext_defns prep_axm raw_axms thy =
+  let
+    val axms = map (prep_axm (sign_of thy)) raw_axms;
+    val all_axms = all_axioms_of thy;
+  in
+    foldl (check_defn (sign_of thy)) (all_axms, axms);
+    add_axioms_i axms thy
+  end;
+
+val add_defs_i = ext_defns cert_axm;
+val add_defs = ext_defns read_axm;
+
+
+
 (** Set oracle of theory **)
 
-fun set_oracle oracle 
+(* FIXME support more than one oracle (!?) *)
+
+fun set_oracle oracle
                (thy as Theory {sign, oraopt = None, new_axioms, parents}) =
       if Sign.is_draft sign then
 	Theory {sign = sign, 
@@ -219,6 +348,7 @@ fun set_oracle oracle
 		parents = parents}
       else raise THEORY ("Can only set oracle of a draft", [thy])
   | set_oracle _ thy = raise THEORY ("Oracle already set", [thy]);
+
 
 
 (** merge theories **)
@@ -248,4 +378,5 @@ fun merge_theories (thy1, thy2) = merge_thy_list false [thy1, thy2];
 
 end;
 
-open Theory;
+structure BasicTheory: BASIC_THEORY = Theory;
+open BasicTheory;
