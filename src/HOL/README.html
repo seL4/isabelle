@@ -1,117 +1,129 @@
+<html>
+
 <!-- $Id$ -->
-<HTML><HEAD><TITLE>HOL/README</TITLE></HEAD><BODY>
 
-<H2>HOL: Higher-Order Logic</H2>
+<head><title>HOL/README</title></head>
 
-This directory contains the ML sources of the Isabelle system for
-Higher-Order Logic.<P>
+<body>
 
-There are several subdirectories with examples:
-<DL>
-<DT>ex
-<DD>general examples
+<h2>HOL: Higher-Order Logic</h2>
 
-<DT>Auth
-<DD>a new approach to verifying authentication protocols 
+This directory contains the sources of the Isabelle system for
+Higher-Order Logic.
 
-<DT>AxClasses
-<DD>a few axiomatic type class examples:
-<DL>
+<p>
 
-<DT> Tutorial <DD> Some simple axclass demos that go along with the
-<em>axclass</em> Isabelle document (<tt>isatool doc axclass</tt>).
+There are also several example sessions:
+<dl>
 
-<DT> Group
-<DD> Some bits of group theory.
+<dt>Algebra
+<dd>rings and univariate polynomials
 
-<DT> Lattice
-<DD> Basic theory of lattices and orders.
+<dt>Auth
+<dd>a new approach to verifying authentication protocols
 
-</DL>
+<dt>AxClasses
+<dd>a few basic examples of using axiomatic type classes
 
-<DT>BCV
-<DD>generic model of bytecode verification, i.e. data-flow analysis
-for assembly languages with subtypes.
+<dt>BCV
+<dd>generic model of bytecode verification, i.e. data-flow analysis
+for assembly languages with subtypes
 
-<DT>Hoare
-<DD>verification of imperative programs; verification conditions are
-generated automatically from pre/post conditions and loop invariants.
+<dt>HOL-Real
+<dd>a development of the reals and hyper-reals, which are used in
+non-standard analysis (builds the image HOL-Real)
 
-<DT>IMP
-<DD>mechanization of a large part of a semantics text by Glynn Winskel
+<dt>HOL-Real-HahnBanach
+<dd>the Hahn-Banach theorem for real vector spaces (in Isabelle/Isar)
 
-<DT>Induct
-<DD>examples of (co)inductive definitions
+<dt>HOL-Real-ex
+<dd>miscellaneous real number examples
 
-<DT>Integ 
-<DD>a development of the integers including efficient integer
-calculations (part of the standard HOL environment)
+<dt>Hoare
+<dd>verification of imperative programs (verification conditions are
+generated automatically from pre/post conditions and loop invariants)
 
-<DT>IOA
-<DD>a simple theory of Input/Output Automata
+<dt>IMP
+<dd>mechanization of a large part of a semantics text by Glynn Winskel
 
-<DT>Isar_examples
-<DD>several introductory Isabelle/Isar examples
+<dt>IMPP
+<dd>extension of IMP with local variables and mutually recursive
+procedures
 
-<DT>Lambda
-<DD>fundamental properties of lambda-calculus (Church-Rosser and termination)
+<dt>IOA
+<dd>a simple theory of Input/Output Automata
 
-<DT>Lex
-<DD>verification of a simple lexical analyzer generator
+<dt>Induct
+<dd>examples of (co)inductive definitions
 
-<DT>MiniML
-<DD>formalization of type inference for the language Mini-ML
+<dt>Isar_examples
+<dd>several introductory examples using Isabelle/Isar
 
-<DT>Real 
-<DD>a development of the reals and hyper-reals, which are used in
-non-standard analysis.  Also includes the positive rationals.  Used to build
-the image HOL-Real.
+<dt>Lambda
+<dd>fundamental properties of lambda-calculus (Church-Rosser and termination)
 
-<DT>Real/HahnBanach
-<DD>the Hahn-Banach theorem for real vectorspaces (Isabelle/Isar).
+<dt>Lattice
+<dd>lattices and order structures (in Isabelle/Isar)
 
-<DT>Subst
-<DD>defines a theory of substitution and unification.
+<dt>Lex
+<dd>verification of a simple lexical analyzer generator
 
-<DT>TLA
-<DD>Lamport's Temporal Logic of Actions
+<dt>MicroJava
+<dd>formalization of a fragment of Java, together with a corresponding
+virtual machine and a specification of its bytecode verifier and a
+lightweight bytecode verifier, including proofs of type-safety.
 
-<DT>Tools
-<DD>holds code used to provide support for records, datatypes, induction, etc.
+<dt>MiniML
+<dd>formalization of type inference for the language Mini-ML
 
-<DT>UNITY
-<DD>Chandy and Misra's UNITY formalism.
+<dt>Modelcheck
+<dd>basic setup for integration of some model checkers in Isabelle/HOL
 
-<DT>W0
-<DD>a precursor of MiniML, without let-expressions
-</DL>
+<dt>NumberTheory
+<dd>fundamental Theorem of Arithmetic, Chinese Remainder Theorem,
+Fermat/Euler Theorem, Wilson's Theorem
+
+<dt>Prolog
+<dd>a (bare-bones) implementation of Lambda-Prolog
+
+<dt>Subst
+<dd>defines a theory of substitution and unification.
+
+<dt>TLA
+<dd>Lamport's Temporal Logic of Actions (with separate example sessions)
+
+<dt>UNITY
+<dd>Chandy and Misra's UNITY formalism
+
+<dt>W0
+<dd>a precursor of MiniML, without let-expressions
+
+<dt>ex
+<dd>miscellaneous examples
+
+</dl>
 
 Useful references on Higher-Order Logic:
 
-<UL>
+<ul>
 
-<LI> P. B. Andrews,<BR>
-    An Introduction to Mathematical Logic and Type Theory<BR>
-    (Academic Press, 1986).
+<li>P. B. Andrews,<br>
+An Introduction to Mathematical Logic and Type Theory<br>
+(Academic Press, 1986).
 
-<P>
+<li>A. Church,<br>
+A Formulation of the Simple Theory of Types<br>
+(Journal of Symbolic Logic, 1940).
 
-<LI> A. Church,<BR>
-    A Formulation of the Simple Theory of Types<BR>
-    (Journal of Symbolic Logic, 1940).
+<li>M. J. C. Gordon and T. F. Melham (editors),<br>
+Introduction to HOL: A theorem proving environment for higher order logic<br>
+(Cambridge University Press, 1993).
 
-<P>
+<li>J. Lambek and P. J. Scott,<br>
+Introduction to Higher Order Categorical Logic<br>
+(Cambridge University Press, 1986).
 
-<LI> M. J. C. Gordon and T. F. Melham (editors),<BR>
-    Introduction to HOL: A theorem proving environment for higher order logic<BR>
-    (Cambridge University Press, 1993).
+</ul>
 
-<P>
-
-<LI> J. Lambek and P. J. Scott,<BR>
-    Introduction to Higher Order Categorical Logic<BR>
-    (Cambridge University Press, 1986).
-
-</UL>
-
-</BODY></HTML>
+</body>
+</html>
