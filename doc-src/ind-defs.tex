@@ -1,6 +1,6 @@
-\documentstyle[a4,proof,iman,extra,times]{llncs}
+\documentstyle[a4,proof,iman,extra,12pt]{llncs}
 \newif\ifCADE
-\CADEtrue
+\CADEfalse
 
 \title{A Fixedpoint Approach to Implementing\\ 
   (Co)Inductive Definitions\thanks{J. Grundy and S. Thompson made detailed
@@ -503,7 +503,8 @@ is the corresponding ML invocation (note that $\cons(a,b)$ abbreviates
 $\{a\}\un b$ in Isabelle/ZF):
 \begin{ttbox}
 structure Fin = Inductive_Fun
- (val thy        = Arith.thy addconsts [(["Fin"],"i=>i")]
+ (val thy        = Arith.thy |> add_consts [("Fin", "i=>i", NoSyn)]
+  val thy_name   = "Fin"
   val rec_doms   = [("Fin","Pow(A)")]
   val sintrs     = ["0 : Fin(A)",
                     "[| a: A;  b: Fin(A) |] ==> cons(a,b) : Fin(A)"]
@@ -548,7 +549,8 @@ $\listn$ occurs with three different parameter lists in the definition.
 \begin{figure}
 \begin{ttbox}
 structure ListN = Inductive_Fun
- (val thy        = ListFn.thy addconsts [(["listn"],"i=>i")]
+ (val thy        = ListFn.thy |> add_consts [("listn","i=>i",NoSyn)]
+  val thy_name   = "ListN"
   val rec_doms   = [("listn", "nat*list(A)")]
   val sintrs     = 
         ["<0,Nil>: listn(A)",
@@ -556,7 +558,7 @@ structure ListN = Inductive_Fun
   val monos      = []
   val con_defs   = []
   val type_intrs = nat_typechecks @ List.intrs @ [SigmaI]
-  val type_elims = [SigmaE2]);
+  val type_elims = []);
 \end{ttbox}
 \hrule
 \caption{Defining lists of $n$ elements} \label{listn-fig}
@@ -688,15 +690,16 @@ introduction rules
 To make this coinductive definition, we invoke \verb|CoInductive_Fun|:
 \begin{ttbox}
 structure LList_Eq = CoInductive_Fun
- (val thy = LList.thy addconsts [(["lleq"],"i=>i")]
+ (val thy        = LList.thy |> add_consts [("lleq","i=>i",NoSyn)]
+  val thy_name   = "LList_Eq"
   val rec_doms   = [("lleq", "llist(A) * llist(A)")]
   val sintrs     = 
        ["<LNil, LNil> : lleq(A)",
         "[| a:A; <l,l'>: lleq(A) |] ==> <LCons(a,l),LCons(a,l')>: lleq(A)"]
   val monos      = []
   val con_defs   = []
-  val type_intrs = LList.intrs @ [SigmaI]
-  val type_elims = [SigmaE2]);
+  val type_intrs = LList.intrs
+  val type_elims = []);
 \end{ttbox}
 Again, {\tt addconsts} declares a constant for $\lleq$ in the parent theory. 
 The domain of $\lleq(A)$ is $\llist(A)\times\llist(A)$.  The type-checking
@@ -753,7 +756,8 @@ $r^{-}``\{a\}$ denotes the inverse image of~$\{a\}$ under~$r$.  The package is
 supplied the theorem {\tt Pow\_mono}, which asserts that $\pow$ is monotonic.
 \begin{ttbox}
 structure Acc = Inductive_Fun
- (val thy        = WF.thy addconsts [(["acc"],"i=>i")]
+ (val thy        = WF.thy |> add_consts [("acc","i=>i",NoSyn)]
+  val thy_name   = "Acc"
   val rec_doms   = [("acc", "field(r)")]
   val sintrs     = ["[| r-``\{a\}:\,Pow(acc(r)); a:\,field(r) |] ==> a:\,acc(r)"]
   val monos      = [Pow_mono]
@@ -829,6 +833,7 @@ each operation on primitive recursive functions combined just two functions.
 \begin{ttbox}
 structure Primrec = Inductive_Fun
  (val thy        = Primrec0.thy
+  val thy_name   = "Primrec"
   val rec_doms   = [("primrec", "list(nat)->nat")]
   val sintrs     = 
         ["SC : primrec",
@@ -995,11 +1000,11 @@ discussed extensively in another paper~\cite{paulson-set-II}.
 \begin{ttbox} 
 structure List = Datatype_Fun
  (val thy        = Univ.thy
+  val thy_name   = "List"
   val rec_specs  = [("list", "univ(A)",
-                      [(["Nil"],    "i"), 
-                       (["Cons"],   "[i,i]=>i")])]
+                      [(["Nil"],    "i",        NoSyn), 
+                       (["Cons"],   "[i,i]=>i", NoSyn)])]
   val rec_styp   = "i=>i"
-  val ext        = None
   val sintrs     = ["Nil : list(A)",
                     "[| a: A;  l: list(A) |] ==> Cons(a,l) : list(A)"]
   val monos      = []
@@ -1013,11 +1018,11 @@ structure List = Datatype_Fun
 \begin{ttbox}
 structure LList = CoDatatype_Fun
  (val thy        = QUniv.thy
+  val thy_name   = "LList"
   val rec_specs  = [("llist", "quniv(A)",
-                      [(["LNil"],   "i"), 
-                       (["LCons"],  "[i,i]=>i")])]
+                      [(["LNil"],   "i",        NoSyn), 
+                       (["LCons"],  "[i,i]=>i", NoSyn)])]
   val rec_styp   = "i=>i"
-  val ext        = None
   val sintrs     = ["LNil : llist(A)",
                     "[| a: A;  l: llist(A) |] ==> LCons(a,l) : llist(A)"]
   val monos      = []
@@ -1094,13 +1099,13 @@ Let us verify the two equations:
 \begin{ttbox}
 structure TF = Datatype_Fun
  (val thy        = Univ.thy
+  val thy_name   = "TF"
   val rec_specs  = [("tree", "univ(A)",
-                       [(["Tcons"],  "[i,i]=>i")]),
+                       [(["Tcons"],  "[i,i]=>i",  NoSyn)]),
                     ("forest", "univ(A)",
-                       [(["Fnil"],   "i"),
-                        (["Fcons"],  "[i,i]=>i")])]
+                       [(["Fnil"],   "i",         NoSyn),
+                        (["Fcons"],  "[i,i]=>i",  NoSyn)])]
   val rec_styp   = "i=>i"
-  val ext        = None
   val sintrs     = 
         ["[| a:A;  f: forest(A) |] ==> Tcons(a,f) : tree(A)",
          "Fnil : forest(A)",
@@ -1182,13 +1187,13 @@ forests:
 \begin{ttbox}
 structure Data = Datatype_Fun
  (val thy        = Univ.thy
+  val thy_name   = "Data"
   val rec_specs  = [("data", "univ(A Un B)",
-                       [(["Con0"],   "i"),
-                        (["Con1"],   "i=>i"),
-                        (["Con2"],   "[i,i]=>i"),
-                        (["Con3"],   "[i,i,i]=>i")])]
+                       [(["Con0"],   "i",           NoSyn),
+                        (["Con1"],   "i=>i",        NoSyn),
+                        (["Con2"],   "[i,i]=>i",    NoSyn),
+                        (["Con3"],   "[i,i,i]=>i",  NoSyn)])]
   val rec_styp   = "[i,i]=>i"
-  val ext        = None
   val sintrs     = 
         ["Con0 : data(A,B)",
          "[| a: A |] ==> Con1(a) : data(A,B)",
@@ -1447,6 +1452,7 @@ end
 \begin{ttbox}
 sig  
 val thy          : theory
+val thy_name     : string
 val rec_doms     : (string*string) list
 val sintrs       : string list
 val monos        : thm list
@@ -1465,6 +1471,9 @@ structure (Figure~\ref{def-arg-fig}).  Its components are as follows:
 \begin{description}
 \item[\tt thy] is the definition's parent theory, which {\it must\/}
 declare constants for the recursive sets.
+
+\item[\tt thy\_name] is a string, informing Isabelle's theory database of
+  the name you will give to the result structure.
 
 \item[\tt rec\_doms] is a list of pairs, associating the name of each recursive
 set with its domain.
@@ -1565,9 +1574,9 @@ and (co)induction rule.
 \begin{ttbox}
 sig
 val thy       : theory
+val thy_name  : string
 val rec_specs : (string * string * (string list*string)list) list
 val rec_styp  : string
-val ext       : Syntax.sext option
 val sintrs    : string list
 val monos     : thm list
 val type_intrs: thm list
@@ -1582,8 +1591,8 @@ end
 Both (co)datatype functors take the same argument structure
 (Figure~\ref{data-arg-fig}).  It does not extend that for (co)inductive
 definitions, but shares several components  and passes them uninterpreted to
-\verb|Datatype_Fun| or
-\verb|CoDatatype_Fun|.  The new components are as follows:
+\verb|Datatype_Fun| or \verb|CoDatatype_Fun|.  The new components are as
+follows: 
 \begin{description}
 \item[\tt thy] is the (co)datatype's parent theory. It {\it must not\/}
 declare constants for the recursive sets.  Recall that (co)inductive
@@ -1591,18 +1600,15 @@ definitions have the opposite restriction.
 
 \item[\tt rec\_specs] is a list of triples of the form ({\it recursive set\/},
 {\it domain\/}, {\it constructors\/}) for each mutually recursive set.  {\it
-Constructors\/} is a list of the form (names, type).  See the discussion and
-examples in~\S\ref{data-sec}.
+Constructors\/} is a list of the form (names, type, mixfix).  The mixfix
+component is usually {\tt NoSyn}, specifying no special syntax for the
+constructor; other useful possibilities are {\tt Infixl}~$p$ and {\tt
+  Infixr}~$p$, specifying an infix operator of priority~$p$.
+Section~\ref{data-sec} presents examples.
 
 \item[\tt rec\_styp] is the common meta-type of the mutually recursive sets,
 specified as a string.  They must all have the same type because all must
 take the same parameters.
-
-\item[\tt ext] is an optional syntax extension, usually omitted by writing
-{\tt None}.  You can supply mixfix syntax for the constructors by supplying
-\begin{ttbox}
-Some (Syntax.simple_sext [{\it mixfix declarations\/}])
-\end{ttbox}
 \end{description}
 The choice of domain is usually simple.  Isabelle/ZF defines the set
 $\univ(A)$, which contains~$A$ and is closed under the standard Cartesian
