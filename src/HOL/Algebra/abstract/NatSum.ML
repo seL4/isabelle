@@ -87,10 +87,8 @@ qed "SUM_rdistr";
 
 section "Results for the Construction of Polynomials";
 
-goal Main.thy (* could go to Arith *)
-  "!!j::nat. [| m <= j; Suc j <= n |] ==> (n - m) - Suc (j - m) = n - Suc j";
-by (asm_simp_tac (simpset() addsimps [Suc_diff_le RS sym]) 1);
-by (asm_simp_tac (simpset() addsimps [diff_right_cancel, less_imp_le]) 1);
+Goal "[| m <= j; Suc j <= n |] ==> (n - m) - Suc (j - m) = n - Suc j";
+by (asm_simp_tac (simpset() addsplits [nat_diff_split']) 1);
 qed "Suc_diff_lemma";
 
 Goal
@@ -105,8 +103,11 @@ by (rtac impI 1);
 by (etac impE 1);
 by (rtac Suc_leD 1);
 by (assume_tac 1);
-by (asm_simp_tac (simpset() addsimps a_ac@[Suc_diff_le, l_distr, r_distr, m_assoc, SUM_add]) 1);
-by (asm_simp_tac (simpset() addsimps a_ac@[Suc_diff_lemma, SUM_ldistr, m_assoc]) 1);
+by (asm_simp_tac
+    (simpset() addsimps a_ac@
+                        [Suc_diff_le, l_distr, r_distr, m_assoc, SUM_add]) 1);
+by (asm_simp_tac
+    (simpset() addsimps a_ac@ [Suc_diff_lemma, SUM_ldistr, m_assoc]) 1);
 qed "poly_assoc_lemma1";
 
 Goal
