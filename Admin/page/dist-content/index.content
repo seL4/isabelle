@@ -31,5 +31,4 @@ href="http://www.cl.cam.ac.uk/Research/HVG/Isabelle/dist/packages.html">Cambridg
 
 For the curious we provide a nightly generated CVS <a
 href="http://isabelle.in.tum.de/devel/">development snapshot</a> of
-Isabelle. It is not as well tested as the stable release available
-from the mirrors above and there is no guarantee that it works.
+Isabelle. 
