@@ -13,7 +13,7 @@ The source distribution of Isabelle:
 
   <!-- _GP_ download("Isabelle sources with dvi documentation", "{ISABELLE}.tar.gz", "{PACKED_SIZE} K") -->
   <!-- _GP_ download("Documentation as pdf files", "{ISABELLE}_pdf.tar.gz", "{PACKED_SIZE_PDF} K") -->
-  <!-- _GP_ download("All files unpacked", "{ISABELLE}", "{UNPACKED_SIZE} K") -->
+  <!-- _GP_ download("Browse all files unpacked", "{ISABELLE}", "{UNPACKED_SIZE} K") -->
 
 </table>
 </center>
