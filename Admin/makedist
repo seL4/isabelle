@@ -31,6 +31,7 @@ function usage()
 
   Checklist for official releases (before running this script):
 
+    * Check release name and date in NEWS!
     * Check that README files are up to date (should have Id: lines).
     * Check Admin/index.html.
     * Make sure that encoding info is consistent (fixencoding)!
