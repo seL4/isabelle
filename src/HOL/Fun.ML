@@ -177,6 +177,7 @@ val set_cs = HOL_cs
             ComplI, IntI, DiffI, UnCI, insertCI] 
     addIs  [bexI, UnionI, UN_I, UN1_I, imageI, rangeI] 
     addSEs [bexE, make_elim PowD, UnionE, UN_E, UN1_E, DiffE,
+	    make_elim singleton_inject,
             CollectE, ComplE, IntE, UnE, insertE, imageE, rangeE, emptyE] 
     addEs  [ballE, InterD, InterE, INT_D, INT_E, make_elim INT1_D,
             subsetD, subsetCE];
