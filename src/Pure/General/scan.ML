@@ -30,6 +30,8 @@ sig
   val ^^ : ('a -> string * 'b) * ('b -> string * 'c) -> 'a -> string * 'c
   (*one element literal*)
   val $$ : ''a -> ''a list -> ''a * ''a list
+  (*literal list*)
+  val list: ''a list -> ''a list -> ''a list * ''a list
 end;
 
 signature SCAN =
@@ -148,6 +150,14 @@ fun one _ [] = raise MORE None
 fun $$ _ [] = raise MORE None
   | $$ a (x :: xs) =
       if a = x then (x, xs) else raise FAIL None;
+
+fun list ys xs =
+  let
+    fun drop_prefix [] xs = xs
+      | drop_prefix (_ :: _) [] = raise MORE None
+      | drop_prefix (y :: ys) (x :: xs) =
+          if y = x then drop_prefix ys xs else raise FAIL None;
+  in (ys, drop_prefix ys xs) end;
 
 fun any _ [] = raise MORE None
   | any pred (lst as x :: xs) =
