@@ -39,13 +39,13 @@ The definition of \isa{{\isasymTurnstile}} is by recursion over the syntax:%
 {\isachardoublequote}s\ {\isasymTurnstile}\ Neg\ f\ \ \ {\isacharequal}\ {\isacharparenleft}{\isasymnot}{\isacharparenleft}s\ {\isasymTurnstile}\ f{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
 {\isachardoublequote}s\ {\isasymTurnstile}\ And\ f\ g\ {\isacharequal}\ {\isacharparenleft}s\ {\isasymTurnstile}\ f\ {\isasymand}\ s\ {\isasymTurnstile}\ g{\isacharparenright}{\isachardoublequote}\isanewline
 {\isachardoublequote}s\ {\isasymTurnstile}\ AX\ f\ \ \ \ {\isacharequal}\ {\isacharparenleft}{\isasymforall}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ {\isasymlongrightarrow}\ t\ {\isasymTurnstile}\ f{\isacharparenright}{\isachardoublequote}\isanewline
-{\isachardoublequote}s\ {\isasymTurnstile}\ EF\ f\ \ \ \ {\isacharequal}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M{\isacharcircum}{\isacharasterisk}\ {\isasymand}\ t\ {\isasymTurnstile}\ f{\isacharparenright}{\isachardoublequote}%
+{\isachardoublequote}s\ {\isasymTurnstile}\ EF\ f\ \ \ \ {\isacharequal}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\isactrlsup {\isacharasterisk}\ {\isasymand}\ t\ {\isasymTurnstile}\ f{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 The first three equations should be self-explanatory. The temporal formula
 \isa{AX\ f} means that \isa{f} is true in all next states whereas
 \isa{EF\ f} means that there exists some future state in which \isa{f} is
-true. The future is expressed via \isa{{\isacharcircum}{\isacharasterisk}}, the transitive reflexive
+true. The future is expressed via \isa{\isactrlsup {\isacharasterisk}}, the transitive reflexive
 closure. Because of reflexivity, the future includes the present.
 
 Now we come to the model checker itself. It maps a formula into the set of
@@ -58,11 +58,11 @@ too:%
 {\isachardoublequote}mc{\isacharparenleft}Neg\ f{\isacharparenright}\ \ \ {\isacharequal}\ {\isacharminus}mc\ f{\isachardoublequote}\isanewline
 {\isachardoublequote}mc{\isacharparenleft}And\ f\ g{\isacharparenright}\ {\isacharequal}\ mc\ f\ {\isasyminter}\ mc\ g{\isachardoublequote}\isanewline
 {\isachardoublequote}mc{\isacharparenleft}AX\ f{\isacharparenright}\ \ \ \ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ {\isasymforall}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ \ {\isasymlongrightarrow}\ t\ {\isasymin}\ mc\ f{\isacharbraceright}{\isachardoublequote}\isanewline
-{\isachardoublequote}mc{\isacharparenleft}EF\ f{\isacharparenright}\ \ \ \ {\isacharequal}\ lfp{\isacharparenleft}{\isasymlambda}T{\isachardot}\ mc\ f\ {\isasymunion}\ M{\isacharcircum}{\isacharminus}{\isadigit{1}}\ {\isacharbackquote}{\isacharbackquote}{\isacharbackquote}\ T{\isacharparenright}{\isachardoublequote}%
+{\isachardoublequote}mc{\isacharparenleft}EF\ f{\isacharparenright}\ \ \ \ {\isacharequal}\ lfp{\isacharparenleft}{\isasymlambda}T{\isachardot}\ mc\ f\ {\isasymunion}\ M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}{\isacharbackquote}\ T{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 Only the equation for \isa{EF} deserves some comments. Remember that the
-postfix \isa{{\isacharcircum}{\isacharminus}{\isadigit{1}}} and the infix \isa{{\isacharbackquote}{\isacharbackquote}{\isacharbackquote}} are predefined and denote the
+postfix \isa{{\isasyminverse}} and the infix \isa{{\isacharbackquote}{\isacharbackquote}{\isacharbackquote}} are predefined and denote the
 converse of a relation and the application of a relation to a set. Thus
 \isa{M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}{\isacharbackquote}\ T} is the set of all predecessors of \isa{T} and the least
 fixed point (\isa{lfp}) of \isa{{\isasymlambda}T{\isachardot}\ mc\ f\ {\isasymunion}\ M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}{\isacharbackquote}\ T} is the least set
@@ -73,7 +73,7 @@ will be proved in a moment.
 
 First we prove monotonicity of the function inside \isa{lfp}%
 \end{isamarkuptext}%
-\isacommand{lemma}\ mono{\isacharunderscore}ef{\isacharcolon}\ {\isachardoublequote}mono{\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ M{\isacharcircum}{\isacharminus}{\isadigit{1}}\ {\isacharbackquote}{\isacharbackquote}{\isacharbackquote}\ T{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{lemma}\ mono{\isacharunderscore}ef{\isacharcolon}\ {\isachardoublequote}mono{\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}{\isacharbackquote}\ T{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}rule\ monoI{\isacharparenright}\isanewline
 \isacommand{apply}\ blast\isanewline
 \isacommand{done}%
@@ -85,7 +85,7 @@ Now we can relate model checking and semantics. For the \isa{EF} case we need
 a separate lemma:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ EF{\isacharunderscore}lemma{\isacharcolon}\isanewline
-\ \ {\isachardoublequote}lfp{\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ M{\isacharcircum}{\isacharminus}{\isadigit{1}}\ {\isacharbackquote}{\isacharbackquote}{\isacharbackquote}\ T{\isacharparenright}\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M{\isacharcircum}{\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A{\isacharbraceright}{\isachardoublequote}%
+\ \ {\isachardoublequote}lfp{\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}{\isacharbackquote}\ T{\isacharparenright}\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\isactrlsup {\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A{\isacharbraceright}{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
 The equality is proved in the canonical fashion by proving that each set
@@ -110,11 +110,11 @@ which is proved by \isa{lfp}-induction:%
 Having disposed of the monotonicity subgoal,
 simplification leaves us with the following main goal
 \begin{isabelle}
-\ \isadigit{1}{\isachardot}\ {\isasymAnd}s{\isachardot}\ s\ {\isasymin}\ A\ {\isasymor}\isanewline
-\ \ \ \ \ \ \ \ \ s\ {\isasymin}\ M{\isacharcircum}{\isacharminus}\isadigit{1}\ {\isacharcircum}{\isacharcircum}\ {\isacharparenleft}lfp\ {\isacharparenleft}{\dots}{\isacharparenright}\ {\isasyminter}\ {\isacharbraceleft}x{\isachardot}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}x{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M{\isacharcircum}{\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A{\isacharbraceright}{\isacharparenright}\isanewline
-\ \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M{\isacharcircum}{\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ x\ {\isasymin}\ A\ {\isasymor}\isanewline
+\ \ \ \ \ \ \ \ \ x\ {\isasymin}\ M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}{\isacharbackquote}\ {\isacharparenleft}lfp\ {\isacharparenleft}\dots{\isacharparenright}\ {\isasyminter}\ {\isacharbraceleft}x{\isachardot}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}x{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\isactrlsup {\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A{\isacharbraceright}{\isacharparenright}\isanewline
+\ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}x{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\isactrlsup {\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A
 \end{isabelle}
-which is proved by \isa{blast} with the help of transitivity of \isa{{\isacharcircum}{\isacharasterisk}}:%
+which is proved by \isa{blast} with the help of transitivity of \isa{\isactrlsup {\isacharasterisk}}:%
 \end{isamarkuptxt}%
 \ \isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ rtrancl{\isacharunderscore}trans{\isacharparenright}%
 \begin{isamarkuptxt}%
