@@ -50,7 +50,7 @@ qed "sing_Times_lemma";
 Goal "{i} Times below(n+n) : tiling domino";
 by (induct_tac "n" 1);
 by (ALLGOALS(asm_simp_tac (simpset() addsimps [Un_assoc RS sym])));
-by (resolve_tac tiling.intrs 1);
+by (rtac tiling.Un 1);
 by (ALLGOALS
     (asm_simp_tac (simpset() addsimps [sing_Times_lemma, domino.horiz])));
 qed "dominoes_tile_row";
@@ -112,14 +112,14 @@ qed "domino_singleton_01";
 (*** Tilings of dominoes ***)
 
 Goal "t:tiling domino ==> finite t";
-by (eresolve_tac [tiling.induct] 1);
+by (etac tiling.induct 1);
 by Auto_tac;
 qed "tiling_domino_finite";
 
 Addsimps [tiling_domino_finite];
 
 Goal "t: tiling domino ==> card(colored 0 t) = card(colored 1 t)";
-by (eresolve_tac [tiling.induct] 1);
+by (etac tiling.induct 1);
 by (dtac domino_singleton_01 2);
 by Auto_tac;
 (*this lemma tells us that both "inserts" are non-trivial*)
