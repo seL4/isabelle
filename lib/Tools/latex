@@ -1,0 +1,92 @@
+#!/bin/bash
+#
+# $Id$
+#
+# DESCRIPTION: Isabelle wrapper for LaTeX (and friends)
+
+
+PRG=$(basename $0)
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG [OPTIONS] FILE"
+  echo
+  echo "  Options are:"
+  echo "    -o FORMAT    specify output format: dvi (default), dvi.gz, ps, ps.gz, pdf"
+  echo
+  echo
+  echo "  Run LaTeX (and related tools) within the Isabelle environment."
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## process command line
+
+# options
+
+OUTFORMAT=dvi
+
+while getopts "o:" OPT
+do
+  case "$OPT" in
+    o)
+      OUTFORMAT="$OPTARG"
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+
+# args
+
+FILE=""
+[ $# -ge 1 ] && { FILE="$1"; shift; }
+
+[ $# -ne 0 -o -z "$FILE" ] && usage
+
+
+## main
+
+DIR=$(dirname "$FILE")
+if [ "$DIR" = "." ]; then
+  FILEBASE=$(basename "$FILE" .tex)
+else
+  FILEBASE=$(dirname "$FILE")/$(basename "$FILE" .tex)
+fi
+
+case "$OUTFORMAT" in
+  dvi)
+    $ISABELLE_LATEX "\\nonstopmode\\input{$FILEBASE.tex}"
+    ;;
+  dvi.gz)
+    $ISABELLE_LATEX "\\nonstopmode\\input{$FILEBASE.tex}"
+    gzip -f "$FILEBASE.dvi"
+    ;;
+  ps)
+    $ISABELLE_LATEX "\\nonstopmode\\input{$FILEBASE.tex}"
+    $ISABELLE_DVIPS -o "$FILEBASE.ps" "$FILEBASE.dvi"
+    ;;
+  ps.gz)
+    $ISABELLE_LATEX "\\nonstopmode\\input{$FILEBASE.tex}"
+    $ISABELLE_DVIPS -o "$FILEBASE.ps" "$FILEBASE.dvi"
+    gzip -f "$FILEBASE.ps"
+    ;;
+  pdf)
+    $ISABELLE_PDFLATEX "\\nonstopmode\\input{$FILEBASE.tex}"
+    ;;
+  *)
+    fail "Bad output format '$OUTFORMAT'"
+    ;;
+esac
