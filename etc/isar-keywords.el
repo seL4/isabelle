@@ -166,6 +166,7 @@
     "use"
     "use_thy"
     "use_thy_only"
+    "using"
     "welcome"
     "with"
     "{"
@@ -215,7 +216,6 @@
     "transitions"
     "transrel"
     "uses"
-    "using"
     "where"))
 
 (defconst isar-keywords-control
@@ -407,7 +407,8 @@
     "moreover"
     "note"
     "txt"
-    "txt_raw"))
+    "txt_raw"
+    "using"))
 
 (defconst isar-keywords-proof-asm
   '("assume"

@@ -161,6 +161,7 @@
     "use"
     "use_thy"
     "use_thy_only"
+    "using"
     "welcome"
     "with"
     "{"
@@ -380,7 +381,8 @@
     "moreover"
     "note"
     "txt"
-    "txt_raw"))
+    "txt_raw"
+    "using"))
 
 (defconst isar-keywords-proof-asm
   '("assume"

@@ -349,6 +349,10 @@ val noteP =
   OuterSyntax.command "note" "define facts" K.prf_decl
     (name_facts >> (Toplevel.print oo (Toplevel.proof o IsarThy.have_facts)));
 
+val usingP =
+  OuterSyntax.command "using" "augment goal facts" K.prf_decl
+    (facts >> (Toplevel.print oo (Toplevel.proof o IsarThy.using_facts)));
+
 
 (* proof context *)
 
@@ -738,11 +742,11 @@ val parsers = [
   (*proof commands*)
   theoremP, lemmaP, corollaryP, showP, haveP, thusP, henceP, fixP,
   assumeP, presumeP, defP, obtainP, letP, caseP, thenP, fromP, withP,
-  noteP, beginP, endP, nextP, qedP, terminal_proofP, default_proofP,
-  immediate_proofP, done_proofP, skip_proofP, forget_proofP, deferP,
-  preferP, applyP, apply_endP, proofP, alsoP, finallyP, moreoverP,
-  ultimatelyP, backP, cannot_undoP, clear_undosP, redoP, undos_proofP,
-  undoP, killP,
+  noteP, usingP, beginP, endP, nextP, qedP, terminal_proofP,
+  default_proofP, immediate_proofP, done_proofP, skip_proofP,
+  forget_proofP, deferP, preferP, applyP, apply_endP, proofP, alsoP,
+  finallyP, moreoverP, ultimatelyP, backP, cannot_undoP, clear_undosP,
+  redoP, undos_proofP, undoP, killP,
   (*diagnostic commands*)
   pretty_setmarginP, print_commandsP, print_contextP, print_theoryP,
   print_syntaxP, print_theoremsP, print_localesP, print_localeP,
