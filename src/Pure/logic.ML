@@ -314,13 +314,19 @@ fun list_rename_params (cs, Const("==>", _) $ A $ B) =
       all T $ Abs(c, T, list_rename_params (cs, t))
   | list_rename_params (cs, B) = B;
 
-(*Strips assumptions in goal yielding  ( [Hn,...,H1], [xm,...,x1], B )
-  where H1,...,Hn are the hypotheses and x1...xm are the parameters.   *)
-fun strip_assums_aux (Hs, params, Const("==>", _) $ H $ B) =
-        strip_assums_aux (H::Hs, params, B)
-  | strip_assums_aux (Hs, params, Const("all",_)$Abs(a,T,t)) =
-        strip_assums_aux (Hs, (a,T)::params, t)
-  | strip_assums_aux (Hs, params, B) = (Hs, params, B);
+(*Strips assumptions in goal yielding  ( [HPn,...,HP1], [xm,...,x1], B ).
+  Where HPi has the form (Hi,nparams_i) and x1...xm are the parameters.
+  We need nparams_i only when the parameters aren't flattened; then we
+    must call incr_boundvars to make up the difference.  See assum_pairs.
+  Without this refinement we can get the wrong answer, e.g. by
+	Goal "!!f. EX B. Q(f,B) ==> (!!y. P(f,y))";
+	by (etac exE 1);
+ *)
+fun strip_assums_aux (HPs, params, Const("==>", _) $ H $ B) =
+        strip_assums_aux ((H,length params)::HPs, params, B)
+  | strip_assums_aux (HPs, params, Const("all",_)$Abs(a,T,t)) =
+        strip_assums_aux (HPs, (a,T)::params, t)
+  | strip_assums_aux (HPs, params, B) = (HPs, params, B);
 
 fun strip_assums A = strip_assums_aux ([],[],A);
 
@@ -329,14 +335,16 @@ fun strip_assums A = strip_assums_aux ([],[],A);
   A is the first premise of the lifted rule, and thus has the form
     H1 ==> ... Hk ==> B   and the pairs are (H1,B),...,(Hk,B) *)
 fun assum_pairs A =
-  let val (Hs, params, B) = strip_assums A
+  let val (HPs, params, B) = strip_assums A
+      val nparams = length params
       val D = Unify.rlist_abs(params, B)
+      fun incr_hyp(H,np) = 
+	  Unify.rlist_abs(params, incr_boundvars (nparams-np) H)
       fun pairrev ([],pairs) = pairs
-        | pairrev (H::Hs,pairs) =
-            pairrev(Hs, (Unify.rlist_abs(params,H), D) :: pairs)
-  in  pairrev (Hs,[])   (*WAS:  map pair (rev Hs)  *)
+        | pairrev ((H,np)::HPs, pairs) =
+            pairrev(HPs,  (incr_hyp(H,np),D) :: pairs)
+  in  pairrev (HPs,[]) 
   end;
-
 
 (*Converts Frees to Vars and TFrees to TVars so that axioms can be written
   without (?) everywhere*)
