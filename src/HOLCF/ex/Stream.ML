@@ -1,16 +1,16 @@
-(*  Title: 	FOCUS/Stream.ML
-    ID:         $ $
+(*  Title: 	HOLCF/ex//Stream.ML
+    ID:         $Id$
     Author: 	Franz Regensburger, David von Oheimb
     Copyright   1993, 1995 Technische Universitaet Muenchen
 
-Theorems for Stream.thy
+general Stream domain
 *)
-
-open Stream;
 
 fun stream_case_tac s i = res_inst_tac [("x",s)] stream.casedist i
 			  THEN hyp_subst_tac i THEN hyp_subst_tac (i+1);
 
+
+val [stream_con_rew1,stream_con_rew2] = stream.con_rews;
 
 (* ----------------------------------------------------------------------- *)
 (* theorems about scons                                                    *)
@@ -23,36 +23,40 @@ qed_goal "scons_eq_UU" thy "a && s = UU = (a = UU)" (fn _ => [
 	etac contrapos2 1,
 	safe_tac (HOL_cs addSIs stream.con_rews)]);
 
-qed_goal "scons_not_empty" thy "[| a && x = UU; a ~= UU |] ==> R" (fn prems => [
+qed_goal "scons_not_empty" thy "[| a && x = UU; a ~= UU |] ==> R" 
+ (fn prems => [
 	cut_facts_tac prems 1,
-	dresolve_tac stream.con_rews 1,
+	dresolve_tac [stream_con_rew2] 1,
 	contr_tac 1]);
 
-qed_goal "stream_exhaust_eq" thy "x ~= UU = (? a y. a ~= UU &  x = a && y)" (fn _ =>[
+qed_goal "stream_exhaust_eq" thy "x ~= UU = (? a y. a ~= UU &  x = a && y)" 
+ (fn _ =>[
 	cut_facts_tac [stream.exhaust] 1,
 	safe_tac HOL_cs,
 	   contr_tac 1,
-	  fast_tac (HOL_cs addDs (tl stream.con_rews)) 1,
+	  fast_tac (HOL_cs addDs [stream_con_rew2]) 1,
 	 fast_tac HOL_cs 1,
-	fast_tac (HOL_cs addDs (tl stream.con_rews)) 1]);
+	fast_tac (HOL_cs addDs [stream_con_rew2]) 1]);
 
 qed_goal "stream_prefix" thy 
-"[| a && s << t; a ~= UU  |] ==> ? b tt. t = b && tt &  b ~= UU &  s << tt" (fn prems => [
+"[| a && s << t; a ~= UU  |] ==> ? b tt. t = b && tt &  b ~= UU &  s << tt" 
+ (fn prems => [
 	cut_facts_tac prems 1,
 	stream_case_tac "t" 1,
-	 fast_tac (HOL_cs addDs [eq_UU_iff RS iffD2,hd (tl stream.con_rews)]) 1,
+	 fast_tac (HOL_cs addDs [eq_UU_iff RS iffD2, stream_con_rew2]) 1,
 	fast_tac (HOL_cs addDs stream.inverts) 1]);
 
 qed_goal "stream_flat_prefix" thy 
 "[| x && xs << y && ys; (x::'a::flat) ~= UU|] ==> x = y & xs << ys"
 (fn prems=>[
 	cut_facts_tac prems 1,
-	(cut_facts_tac [read_instantiate[("x1","x::'a::flat"),("x","y::'a::flat")]
-		(ax_flat RS spec RS spec)] 1),
+	(cut_facts_tac [read_instantiate[("x1","x::'a::flat"),
+					 ("x","y::'a::flat")]
+			(ax_flat RS spec RS spec)] 1),
 	(forward_tac stream.inverts 1),
 	(safe_tac HOL_cs),
 	(dtac (hd stream.con_rews RS subst) 1),
-	(fast_tac (HOL_cs addDs ((eq_UU_iff RS iffD2)::stream.con_rews)) 1)]);
+	(fast_tac (HOL_cs addDs [eq_UU_iff RS iffD2, stream_con_rew2]) 1)]);
 
 qed_goal "stream_prefix'" thy "b ~= UU ==> x << b && z = \
 \(x = UU |  (? a y. x = a && y &  a ~= UU &  a << b &  y << z))" (fn prems => [

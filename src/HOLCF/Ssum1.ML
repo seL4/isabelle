@@ -3,10 +3,8 @@
     Author:     Franz Regensburger
     Copyright   1993  Technische Universitaet Muenchen
 
-Lemmas for theory Ssum1.thy
+Partial ordering for the strict sum ++
 *)
-
-open Ssum1;
 
 local 
 
@@ -212,142 +210,120 @@ end;
 (* optimize lemmas about less_ssum                                          *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "less_ssum2a" thy 
-        "(Isinl x) << (Isinl y) = (x << y)"
- (fn prems =>
-        [
-        (rtac less_ssum1a 1),
-        (rtac refl 1),
-        (rtac refl 1)
-        ]);
+Goal "(Isinl x) << (Isinl y) = (x << y)";
+by (rtac less_ssum1a 1);
+by (rtac refl 1);
+by (rtac refl 1);
+qed "less_ssum2a";
 
-qed_goal "less_ssum2b" thy 
-        "(Isinr x) << (Isinr y) = (x << y)"
- (fn prems =>
-        [
-        (rtac less_ssum1b 1),
-        (rtac refl 1),
-        (rtac refl 1)
-        ]);
+Goal "(Isinr x) << (Isinr y) = (x << y)";
+by (rtac less_ssum1b 1);
+by (rtac refl 1);
+by (rtac refl 1);
+qed "less_ssum2b";
 
-qed_goal "less_ssum2c" thy 
-        "(Isinl x) << (Isinr y) = (x = UU)"
- (fn prems =>
-        [
-        (rtac less_ssum1c 1),
-        (rtac refl 1),
-        (rtac refl 1)
-        ]);
+Goal "(Isinl x) << (Isinr y) = (x = UU)";
+by (rtac less_ssum1c 1);
+by (rtac refl 1);
+by (rtac refl 1);
+qed "less_ssum2c";
 
-qed_goal "less_ssum2d" thy 
-        "(Isinr x) << (Isinl y) = (x = UU)"
- (fn prems =>
-        [
-        (rtac less_ssum1d 1),
-        (rtac refl 1),
-        (rtac refl 1)
-        ]);
+Goal "(Isinr x) << (Isinl y) = (x = UU)";
+by (rtac less_ssum1d 1);
+by (rtac refl 1);
+by (rtac refl 1);
+qed "less_ssum2d";
 
 
 (* ------------------------------------------------------------------------ *)
 (* less_ssum is a partial order on ++                                     *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "refl_less_ssum" thy "(p::'a++'b) << p"
- (fn prems =>
-        [
-        (res_inst_tac [("p","p")] IssumE2 1),
-        (hyp_subst_tac 1),
-        (rtac (less_ssum2a RS iffD2) 1),
-        (rtac refl_less 1),
-        (hyp_subst_tac 1),
-        (rtac (less_ssum2b RS iffD2) 1),
-        (rtac refl_less 1)
-        ]);
+Goal "(p::'a++'b) << p";
+by (res_inst_tac [("p","p")] IssumE2 1);
+by (hyp_subst_tac 1);
+by (rtac (less_ssum2a RS iffD2) 1);
+by (rtac refl_less 1);
+by (hyp_subst_tac 1);
+by (rtac (less_ssum2b RS iffD2) 1);
+by (rtac refl_less 1);
+qed "refl_less_ssum";
 
-qed_goal "antisym_less_ssum" thy 
- "[|(p1::'a++'b) << p2; p2 << p1|] ==> p1=p2"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (res_inst_tac [("p","p1")] IssumE2 1),
-        (hyp_subst_tac 1),
-        (res_inst_tac [("p","p2")] IssumE2 1),
-        (hyp_subst_tac 1),
-        (res_inst_tac [("f","Isinl")] arg_cong 1),
-        (rtac antisym_less 1),
-        (etac (less_ssum2a RS iffD1) 1),
-        (etac (less_ssum2a RS iffD1) 1),
-        (hyp_subst_tac 1),
-        (etac (less_ssum2d RS iffD1 RS ssubst) 1),
-        (etac (less_ssum2c RS iffD1 RS ssubst) 1),
-        (rtac strict_IsinlIsinr 1),
-        (hyp_subst_tac 1),
-        (res_inst_tac [("p","p2")] IssumE2 1),
-        (hyp_subst_tac 1),
-        (etac (less_ssum2c RS iffD1 RS ssubst) 1),
-        (etac (less_ssum2d RS iffD1 RS ssubst) 1),
-        (rtac (strict_IsinlIsinr RS sym) 1),
-        (hyp_subst_tac 1),
-        (res_inst_tac [("f","Isinr")] arg_cong 1),
-        (rtac antisym_less 1),
-        (etac (less_ssum2b RS iffD1) 1),
-        (etac (less_ssum2b RS iffD1) 1)
-        ]);
+Goal "[|(p1::'a++'b) << p2; p2 << p1|] ==> p1=p2";
+by (res_inst_tac [("p","p1")] IssumE2 1);
+by (hyp_subst_tac 1);
+by (res_inst_tac [("p","p2")] IssumE2 1);
+by (hyp_subst_tac 1);
+by (res_inst_tac [("f","Isinl")] arg_cong 1);
+by (rtac antisym_less 1);
+by (etac (less_ssum2a RS iffD1) 1);
+by (etac (less_ssum2a RS iffD1) 1);
+by (hyp_subst_tac 1);
+by (etac (less_ssum2d RS iffD1 RS ssubst) 1);
+by (etac (less_ssum2c RS iffD1 RS ssubst) 1);
+by (rtac strict_IsinlIsinr 1);
+by (hyp_subst_tac 1);
+by (res_inst_tac [("p","p2")] IssumE2 1);
+by (hyp_subst_tac 1);
+by (etac (less_ssum2c RS iffD1 RS ssubst) 1);
+by (etac (less_ssum2d RS iffD1 RS ssubst) 1);
+by (rtac (strict_IsinlIsinr RS sym) 1);
+by (hyp_subst_tac 1);
+by (res_inst_tac [("f","Isinr")] arg_cong 1);
+by (rtac antisym_less 1);
+by (etac (less_ssum2b RS iffD1) 1);
+by (etac (less_ssum2b RS iffD1) 1);
+qed "antisym_less_ssum";
 
-qed_goal "trans_less_ssum" thy 
- "[|(p1::'a++'b) << p2; p2 << p3|] ==> p1 << p3"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (res_inst_tac [("p","p1")] IssumE2 1),
-        (hyp_subst_tac 1),
-        (res_inst_tac [("p","p3")] IssumE2 1),
-        (hyp_subst_tac 1),
-        (rtac (less_ssum2a RS iffD2) 1),
-        (res_inst_tac [("p","p2")] IssumE2 1),
-        (hyp_subst_tac 1),
-        (rtac trans_less 1),
-        (etac (less_ssum2a RS iffD1) 1),
-        (etac (less_ssum2a RS iffD1) 1),
-        (hyp_subst_tac 1),
-        (etac (less_ssum2c RS iffD1 RS ssubst) 1),
-        (rtac minimal 1),
-        (hyp_subst_tac 1),
-        (rtac (less_ssum2c RS iffD2) 1),
-        (res_inst_tac [("p","p2")] IssumE2 1),
-        (hyp_subst_tac 1),
-        (rtac UU_I 1),
-        (rtac trans_less 1),
-        (etac (less_ssum2a RS iffD1) 1),
-        (rtac (antisym_less_inverse RS conjunct1) 1),
-        (etac (less_ssum2c RS iffD1) 1),
-        (hyp_subst_tac 1),
-        (etac (less_ssum2c RS iffD1) 1),
-        (hyp_subst_tac 1),
-        (res_inst_tac [("p","p3")] IssumE2 1),
-        (hyp_subst_tac 1),
-        (rtac (less_ssum2d RS iffD2) 1),
-        (res_inst_tac [("p","p2")] IssumE2 1),
-        (hyp_subst_tac 1),
-        (etac (less_ssum2d RS iffD1) 1),
-        (hyp_subst_tac 1),
-        (rtac UU_I 1),
-        (rtac trans_less 1),
-        (etac (less_ssum2b RS iffD1) 1),
-        (rtac (antisym_less_inverse RS conjunct1) 1),
-        (etac (less_ssum2d RS iffD1) 1),
-        (hyp_subst_tac 1),
-        (rtac (less_ssum2b RS iffD2) 1),
-        (res_inst_tac [("p","p2")] IssumE2 1),
-        (hyp_subst_tac 1),
-        (etac (less_ssum2d RS iffD1 RS ssubst) 1),
-        (rtac minimal 1),
-        (hyp_subst_tac 1),
-        (rtac trans_less 1),
-        (etac (less_ssum2b RS iffD1) 1),
-        (etac (less_ssum2b RS iffD1) 1)
-        ]);
+Goal "[|(p1::'a++'b) << p2; p2 << p3|] ==> p1 << p3";
+by (res_inst_tac [("p","p1")] IssumE2 1);
+by (hyp_subst_tac 1);
+by (res_inst_tac [("p","p3")] IssumE2 1);
+by (hyp_subst_tac 1);
+by (rtac (less_ssum2a RS iffD2) 1);
+by (res_inst_tac [("p","p2")] IssumE2 1);
+by (hyp_subst_tac 1);
+by (rtac trans_less 1);
+by (etac (less_ssum2a RS iffD1) 1);
+by (etac (less_ssum2a RS iffD1) 1);
+by (hyp_subst_tac 1);
+by (etac (less_ssum2c RS iffD1 RS ssubst) 1);
+by (rtac minimal 1);
+by (hyp_subst_tac 1);
+by (rtac (less_ssum2c RS iffD2) 1);
+by (res_inst_tac [("p","p2")] IssumE2 1);
+by (hyp_subst_tac 1);
+by (rtac UU_I 1);
+by (rtac trans_less 1);
+by (etac (less_ssum2a RS iffD1) 1);
+by (rtac (antisym_less_inverse RS conjunct1) 1);
+by (etac (less_ssum2c RS iffD1) 1);
+by (hyp_subst_tac 1);
+by (etac (less_ssum2c RS iffD1) 1);
+by (hyp_subst_tac 1);
+by (res_inst_tac [("p","p3")] IssumE2 1);
+by (hyp_subst_tac 1);
+by (rtac (less_ssum2d RS iffD2) 1);
+by (res_inst_tac [("p","p2")] IssumE2 1);
+by (hyp_subst_tac 1);
+by (etac (less_ssum2d RS iffD1) 1);
+by (hyp_subst_tac 1);
+by (rtac UU_I 1);
+by (rtac trans_less 1);
+by (etac (less_ssum2b RS iffD1) 1);
+by (rtac (antisym_less_inverse RS conjunct1) 1);
+by (etac (less_ssum2d RS iffD1) 1);
+by (hyp_subst_tac 1);
+by (rtac (less_ssum2b RS iffD2) 1);
+by (res_inst_tac [("p","p2")] IssumE2 1);
+by (hyp_subst_tac 1);
+by (etac (less_ssum2d RS iffD1 RS ssubst) 1);
+by (rtac minimal 1);
+by (hyp_subst_tac 1);
+by (rtac trans_less 1);
+by (etac (less_ssum2b RS iffD1) 1);
+by (etac (less_ssum2b RS iffD1) 1);
+qed "trans_less_ssum";
 
 
 

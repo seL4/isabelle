@@ -1,151 +1,135 @@
-(*  Title:      HOLCF/ssum3.ML
+(*  Title:      HOLCF/Ssum3.ML
     ID:         $Id$
     Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
-Lemmas for ssum3.thy
+Class instance of  ++ for class pcpo
 *)
 
-open Ssum3;
-
 (* for compatibility with old HOLCF-Version *)
-qed_goal "inst_ssum_pcpo" thy "UU = Isinl UU"
- (fn prems => 
-        [
-        (simp_tac (HOL_ss addsimps [UU_def,UU_ssum_def]) 1)
-        ]);
+Goal "UU = Isinl UU";
+by (simp_tac (HOL_ss addsimps [UU_def,UU_ssum_def]) 1);
+qed "inst_ssum_pcpo";
 
 (* ------------------------------------------------------------------------ *)
 (* continuity for Isinl and Isinr                                           *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "contlub_Isinl" Ssum3.thy "contlub(Isinl)"
- (fn prems =>
-        [
-        (rtac contlubI 1),
-        (strip_tac 1),
-        (rtac trans 1),
-        (rtac (thelub_ssum1a RS sym) 2),
-        (rtac allI 3),
-        (rtac exI 3),
-        (rtac refl 3),
-        (etac (monofun_Isinl RS ch2ch_monofun) 2),
-        (case_tac "lub(range(Y))=UU" 1),
-        (res_inst_tac [("s","UU"),("t","lub(range(Y))")] ssubst 1),
-        (atac 1),
-        (res_inst_tac [("f","Isinl")] arg_cong  1),
-        (rtac (chain_UU_I_inverse RS sym) 1),
-        (rtac allI 1),
-        (res_inst_tac [("s","UU"),("t","Y(i)")] ssubst 1),
-        (etac (chain_UU_I RS spec ) 1),
-        (atac 1),
-        (rtac Iwhen1 1),
-        (res_inst_tac [("f","Isinl")] arg_cong  1),
-        (rtac lub_equal 1),
-        (atac 1),
-        (rtac (monofun_Iwhen3 RS ch2ch_monofun) 1),
-        (etac (monofun_Isinl RS ch2ch_monofun) 1),
-        (rtac allI 1),
-        (case_tac "Y(k)=UU" 1),
-        (asm_simp_tac Ssum0_ss 1),
-        (asm_simp_tac Ssum0_ss 1)
-        ]);
+Goal "contlub(Isinl)";
+by (rtac contlubI 1);
+by (strip_tac 1);
+by (rtac trans 1);
+by (rtac (thelub_ssum1a RS sym) 2);
+by (rtac allI 3);
+by (rtac exI 3);
+by (rtac refl 3);
+by (etac (monofun_Isinl RS ch2ch_monofun) 2);
+by (case_tac "lub(range(Y))=UU" 1);
+by (res_inst_tac [("s","UU"),("t","lub(range(Y))")] ssubst 1);
+by (atac 1);
+by (res_inst_tac [("f","Isinl")] arg_cong  1);
+by (rtac (chain_UU_I_inverse RS sym) 1);
+by (rtac allI 1);
+by (res_inst_tac [("s","UU"),("t","Y(i)")] ssubst 1);
+by (etac (chain_UU_I RS spec ) 1);
+by (atac 1);
+by (rtac Iwhen1 1);
+by (res_inst_tac [("f","Isinl")] arg_cong  1);
+by (rtac lub_equal 1);
+by (atac 1);
+by (rtac (monofun_Iwhen3 RS ch2ch_monofun) 1);
+by (etac (monofun_Isinl RS ch2ch_monofun) 1);
+by (rtac allI 1);
+by (case_tac "Y(k)=UU" 1);
+by (asm_simp_tac Ssum0_ss 1);
+by (asm_simp_tac Ssum0_ss 1);
+qed "contlub_Isinl";
 
-qed_goal "contlub_Isinr" Ssum3.thy "contlub(Isinr)"
- (fn prems =>
-        [
-        (rtac contlubI 1),
-        (strip_tac 1),
-        (rtac trans 1),
-        (rtac (thelub_ssum1b RS sym) 2),
-        (rtac allI 3),
-        (rtac exI 3),
-        (rtac refl 3),
-        (etac (monofun_Isinr RS ch2ch_monofun) 2),
-        (case_tac "lub(range(Y))=UU" 1),
-        (res_inst_tac [("s","UU"),("t","lub(range(Y))")] ssubst 1),
-        (atac 1),
-        ((rtac arg_cong 1) THEN (rtac (chain_UU_I_inverse RS sym) 1)),
-        (rtac allI 1),
-        (res_inst_tac [("s","UU"),("t","Y(i)")] ssubst 1),
-        (etac (chain_UU_I RS spec ) 1),
-        (atac 1),
-        (rtac (strict_IsinlIsinr RS subst) 1),
-        (rtac Iwhen1 1),
-        ((rtac arg_cong 1) THEN (rtac lub_equal 1)),
-        (atac 1),
-        (rtac (monofun_Iwhen3 RS ch2ch_monofun) 1),
-        (etac (monofun_Isinr RS ch2ch_monofun) 1),
-        (rtac allI 1),
-        (case_tac "Y(k)=UU" 1),
-        (asm_simp_tac Ssum0_ss 1),
-        (asm_simp_tac Ssum0_ss 1)
-        ]);
+Goal "contlub(Isinr)";
+by (rtac contlubI 1);
+by (strip_tac 1);
+by (rtac trans 1);
+by (rtac (thelub_ssum1b RS sym) 2);
+by (rtac allI 3);
+by (rtac exI 3);
+by (rtac refl 3);
+by (etac (monofun_Isinr RS ch2ch_monofun) 2);
+by (case_tac "lub(range(Y))=UU" 1);
+by (res_inst_tac [("s","UU"),("t","lub(range(Y))")] ssubst 1);
+by (atac 1);
+by ((rtac arg_cong 1) THEN (rtac (chain_UU_I_inverse RS sym) 1));
+by (rtac allI 1);
+by (res_inst_tac [("s","UU"),("t","Y(i)")] ssubst 1);
+by (etac (chain_UU_I RS spec ) 1);
+by (atac 1);
+by (rtac (strict_IsinlIsinr RS subst) 1);
+by (rtac Iwhen1 1);
+by ((rtac arg_cong 1) THEN (rtac lub_equal 1));
+by (atac 1);
+by (rtac (monofun_Iwhen3 RS ch2ch_monofun) 1);
+by (etac (monofun_Isinr RS ch2ch_monofun) 1);
+by (rtac allI 1);
+by (case_tac "Y(k)=UU" 1);
+by (asm_simp_tac Ssum0_ss 1);
+by (asm_simp_tac Ssum0_ss 1);
+qed "contlub_Isinr";
 
-qed_goal "cont_Isinl" Ssum3.thy "cont(Isinl)"
- (fn prems =>
-        [
-        (rtac monocontlub2cont 1),
-        (rtac monofun_Isinl 1),
-        (rtac contlub_Isinl 1)
-        ]);
+Goal "cont(Isinl)";
+by (rtac monocontlub2cont 1);
+by (rtac monofun_Isinl 1);
+by (rtac contlub_Isinl 1);
+qed "cont_Isinl";
 
-qed_goal "cont_Isinr" Ssum3.thy "cont(Isinr)"
- (fn prems =>
-        [
-        (rtac monocontlub2cont 1),
-        (rtac monofun_Isinr 1),
-        (rtac contlub_Isinr 1)
-        ]);
+Goal "cont(Isinr)";
+by (rtac monocontlub2cont 1);
+by (rtac monofun_Isinr 1);
+by (rtac contlub_Isinr 1);
+qed "cont_Isinr";
 
 
 (* ------------------------------------------------------------------------ *)
 (* continuity for Iwhen in the firts two arguments                          *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "contlub_Iwhen1" Ssum3.thy "contlub(Iwhen)"
- (fn prems =>
-        [
-        (rtac contlubI 1),
-        (strip_tac 1),
-        (rtac trans 1),
-        (rtac (thelub_fun RS sym) 2),
-        (etac (monofun_Iwhen1 RS ch2ch_monofun) 2),
-        (rtac (expand_fun_eq RS iffD2) 1),
-        (strip_tac 1),
-        (rtac trans 1),
-        (rtac (thelub_fun RS sym) 2),
-        (rtac ch2ch_fun 2),
-        (etac (monofun_Iwhen1 RS ch2ch_monofun) 2),
-        (rtac (expand_fun_eq RS iffD2) 1),
-        (strip_tac 1),
-        (res_inst_tac [("p","xa")] IssumE 1),
-        (asm_simp_tac Ssum0_ss 1),
-        (rtac (lub_const RS thelubI RS sym) 1),
-        (asm_simp_tac Ssum0_ss 1),
-        (etac contlub_cfun_fun 1),
-        (asm_simp_tac Ssum0_ss 1),
-        (rtac (lub_const RS thelubI RS sym) 1)
-        ]);
+Goal "contlub(Iwhen)";
+by (rtac contlubI 1);
+by (strip_tac 1);
+by (rtac trans 1);
+by (rtac (thelub_fun RS sym) 2);
+by (etac (monofun_Iwhen1 RS ch2ch_monofun) 2);
+by (rtac (expand_fun_eq RS iffD2) 1);
+by (strip_tac 1);
+by (rtac trans 1);
+by (rtac (thelub_fun RS sym) 2);
+by (rtac ch2ch_fun 2);
+by (etac (monofun_Iwhen1 RS ch2ch_monofun) 2);
+by (rtac (expand_fun_eq RS iffD2) 1);
+by (strip_tac 1);
+by (res_inst_tac [("p","xa")] IssumE 1);
+by (asm_simp_tac Ssum0_ss 1);
+by (rtac (lub_const RS thelubI RS sym) 1);
+by (asm_simp_tac Ssum0_ss 1);
+by (etac contlub_cfun_fun 1);
+by (asm_simp_tac Ssum0_ss 1);
+by (rtac (lub_const RS thelubI RS sym) 1);
+qed "contlub_Iwhen1";
 
-qed_goal "contlub_Iwhen2" Ssum3.thy "contlub(Iwhen(f))"
- (fn prems =>
-        [
-        (rtac contlubI 1),
-        (strip_tac 1),
-        (rtac trans 1),
-        (rtac (thelub_fun RS sym) 2),
-        (etac (monofun_Iwhen2 RS ch2ch_monofun) 2),
-        (rtac (expand_fun_eq RS iffD2) 1),
-        (strip_tac 1),
-        (res_inst_tac [("p","x")] IssumE 1),
-        (asm_simp_tac Ssum0_ss 1),
-        (rtac (lub_const RS thelubI RS sym) 1),
-        (asm_simp_tac Ssum0_ss 1),
-        (rtac (lub_const RS thelubI RS sym) 1),
-        (asm_simp_tac Ssum0_ss 1),
-        (etac contlub_cfun_fun 1)
-        ]);
+Goal "contlub(Iwhen(f))";
+by (rtac contlubI 1);
+by (strip_tac 1);
+by (rtac trans 1);
+by (rtac (thelub_fun RS sym) 2);
+by (etac (monofun_Iwhen2 RS ch2ch_monofun) 2);
+by (rtac (expand_fun_eq RS iffD2) 1);
+by (strip_tac 1);
+by (res_inst_tac [("p","x")] IssumE 1);
+by (asm_simp_tac Ssum0_ss 1);
+by (rtac (lub_const RS thelubI RS sym) 1);
+by (asm_simp_tac Ssum0_ss 1);
+by (rtac (lub_const RS thelubI RS sym) 1);
+by (asm_simp_tac Ssum0_ss 1);
+by (etac contlub_cfun_fun 1);
+qed "contlub_Iwhen2";
 
 (* ------------------------------------------------------------------------ *)
 (* continuity for Iwhen in its third argument                               *)
@@ -155,45 +139,36 @@ qed_goal "contlub_Iwhen2" Ssum3.thy "contlub(Iwhen(f))"
 (* first 5 ugly lemmas                                                      *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "ssum_lemma9" Ssum3.thy 
-"[| chain(Y); lub(range(Y)) = Isinl(x)|] ==> !i.? x. Y(i)=Isinl(x)"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (strip_tac 1),
-        (res_inst_tac [("p","Y(i)")] IssumE 1),
-        (etac exI 1),
-        (etac exI 1),
-        (res_inst_tac [("P","y=UU")] notE 1),
-        (atac 1),
-        (rtac (less_ssum3d RS iffD1) 1),
-        (etac subst 1),
-        (etac subst 1),
-        (etac is_ub_thelub 1)
-        ]);
+Goal "[| chain(Y); lub(range(Y)) = Isinl(x)|] ==> !i.? x. Y(i)=Isinl(x)";
+by (strip_tac 1);
+by (res_inst_tac [("p","Y(i)")] IssumE 1);
+by (etac exI 1);
+by (etac exI 1);
+by (res_inst_tac [("P","y=UU")] notE 1);
+by (atac 1);
+by (rtac (less_ssum3d RS iffD1) 1);
+by (etac subst 1);
+by (etac subst 1);
+by (etac is_ub_thelub 1);
+qed "ssum_lemma9";
 
 
-qed_goal "ssum_lemma10" Ssum3.thy 
-"[| chain(Y); lub(range(Y)) = Isinr(x)|] ==> !i.? x. Y(i)=Isinr(x)"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (strip_tac 1),
-        (res_inst_tac [("p","Y(i)")] IssumE 1),
-        (rtac exI 1),
-        (etac trans 1),
-        (rtac strict_IsinlIsinr 1),
-        (etac exI 2),
-        (res_inst_tac [("P","xa=UU")] notE 1),
-        (atac 1),
-        (rtac (less_ssum3c RS iffD1) 1),
-        (etac subst 1),
-        (etac subst 1),
-        (etac is_ub_thelub 1)
-        ]);
+Goal "[| chain(Y); lub(range(Y)) = Isinr(x)|] ==> !i.? x. Y(i)=Isinr(x)";
+by (strip_tac 1);
+by (res_inst_tac [("p","Y(i)")] IssumE 1);
+by (rtac exI 1);
+by (etac trans 1);
+by (rtac strict_IsinlIsinr 1);
+by (etac exI 2);
+by (res_inst_tac [("P","xa=UU")] notE 1);
+by (atac 1);
+by (rtac (less_ssum3c RS iffD1) 1);
+by (etac subst 1);
+by (etac subst 1);
+by (etac is_ub_thelub 1);
+qed "ssum_lemma10";
 
-Goal  
-"[| chain(Y); lub(range(Y)) = Isinl(UU) |] ==>\
+Goal "[| chain(Y); lub(range(Y)) = Isinl(UU) |] ==>\
 \   Iwhen f g (lub(range Y)) = lub(range(%i. Iwhen f g (Y i)))";
 by (asm_simp_tac Ssum0_ss 1);
 by (rtac (chain_UU_I_inverse RS sym) 1);
@@ -206,168 +181,152 @@ by (etac (inst_ssum_pcpo RS ssubst) 1);
 by (asm_simp_tac Ssum0_ss 1);
 qed "ssum_lemma11";
 
-qed_goal "ssum_lemma12" Ssum3.thy 
-"[| chain(Y); lub(range(Y)) = Isinl(x); x ~= UU |] ==>\
-\   Iwhen f g (lub(range Y)) = lub(range(%i. Iwhen f g (Y i)))"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (asm_simp_tac Ssum0_ss 1),
-        (res_inst_tac [("t","x")] subst 1),
-        (rtac inject_Isinl 1),
-        (rtac trans 1),
-        (atac 2),
-        (rtac (thelub_ssum1a RS sym) 1),
-        (atac 1),
-        (etac ssum_lemma9 1),
-        (atac 1),
-        (rtac trans 1),
-        (rtac contlub_cfun_arg 1),
-        (rtac (monofun_Iwhen3 RS ch2ch_monofun) 1),
-        (atac 1),
-        (rtac lub_equal2 1),
-        (rtac (chain_mono2 RS exE) 1),
-        (atac 2),
-        (rtac chain_UU_I_inverse2 1),
-        (stac inst_ssum_pcpo 1),
-        (etac swap 1),
-        (rtac inject_Isinl 1),
-        (rtac trans 1),
-        (etac sym 1),
-        (etac notnotD 1),
-        (rtac exI 1),
-        (strip_tac 1),
-        (rtac (ssum_lemma9 RS spec RS exE) 1),
-        (atac 1),
-        (atac 1),
-        (res_inst_tac [("t","Y(i)")] ssubst 1),
-        (atac 1),
-        (rtac trans 1),
-        (rtac cfun_arg_cong 1),
-        (rtac Iwhen2 1),
-        (res_inst_tac [("Pa","Y(i)=UU")] swap 1),
-        (fast_tac HOL_cs 1),
-        (stac inst_ssum_pcpo 1),
-        (res_inst_tac [("t","Y(i)")] ssubst 1),
-        (atac 1),
-        (fast_tac HOL_cs 1),
-        (stac Iwhen2 1),
-        (res_inst_tac [("Pa","Y(i)=UU")] swap 1),
-        (fast_tac HOL_cs 1),
-        (stac inst_ssum_pcpo 1),
-        (res_inst_tac [("t","Y(i)")] ssubst 1),
-        (atac 1),
-        (fast_tac HOL_cs 1),
-        (simp_tac (simpset_of Cfun3.thy) 1),
-        (rtac (monofun_Rep_CFun2 RS ch2ch_monofun) 1),
-        (etac (monofun_Iwhen3 RS ch2ch_monofun) 1),
-        (etac (monofun_Iwhen3 RS ch2ch_monofun) 1)
-        ]);
+Goal "[| chain(Y); lub(range(Y)) = Isinl(x); x ~= UU |] ==>\
+\   Iwhen f g (lub(range Y)) = lub(range(%i. Iwhen f g (Y i)))";
+by (asm_simp_tac Ssum0_ss 1);
+by (res_inst_tac [("t","x")] subst 1);
+by (rtac inject_Isinl 1);
+by (rtac trans 1);
+by (atac 2);
+by (rtac (thelub_ssum1a RS sym) 1);
+by (atac 1);
+by (etac ssum_lemma9 1);
+by (atac 1);
+by (rtac trans 1);
+by (rtac contlub_cfun_arg 1);
+by (rtac (monofun_Iwhen3 RS ch2ch_monofun) 1);
+by (atac 1);
+by (rtac lub_equal2 1);
+by (rtac (chain_mono2 RS exE) 1);
+by (atac 2);
+by (rtac chain_UU_I_inverse2 1);
+by (stac inst_ssum_pcpo 1);
+by (etac swap 1);
+by (rtac inject_Isinl 1);
+by (rtac trans 1);
+by (etac sym 1);
+by (etac notnotD 1);
+by (rtac exI 1);
+by (strip_tac 1);
+by (rtac (ssum_lemma9 RS spec RS exE) 1);
+by (atac 1);
+by (atac 1);
+by (res_inst_tac [("t","Y(i)")] ssubst 1);
+by (atac 1);
+by (rtac trans 1);
+by (rtac cfun_arg_cong 1);
+by (rtac Iwhen2 1);
+by (res_inst_tac [("Pa","Y(i)=UU")] swap 1);
+by (fast_tac HOL_cs 1);
+by (stac inst_ssum_pcpo 1);
+by (res_inst_tac [("t","Y(i)")] ssubst 1);
+by (atac 1);
+by (fast_tac HOL_cs 1);
+by (stac Iwhen2 1);
+by (res_inst_tac [("Pa","Y(i)=UU")] swap 1);
+by (fast_tac HOL_cs 1);
+by (stac inst_ssum_pcpo 1);
+by (res_inst_tac [("t","Y(i)")] ssubst 1);
+by (atac 1);
+by (fast_tac HOL_cs 1);
+by (simp_tac (simpset_of Cfun3.thy) 1);
+by (rtac (monofun_Rep_CFun2 RS ch2ch_monofun) 1);
+by (etac (monofun_Iwhen3 RS ch2ch_monofun) 1);
+by (etac (monofun_Iwhen3 RS ch2ch_monofun) 1);
+qed "ssum_lemma12";
 
 
-qed_goal "ssum_lemma13" Ssum3.thy 
-"[| chain(Y); lub(range(Y)) = Isinr(x); x ~= UU |] ==>\
-\   Iwhen f g (lub(range Y)) = lub(range(%i. Iwhen f g (Y i)))"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (asm_simp_tac Ssum0_ss 1),
-        (res_inst_tac [("t","x")] subst 1),
-        (rtac inject_Isinr 1),
-        (rtac trans 1),
-        (atac 2),
-        (rtac (thelub_ssum1b RS sym) 1),
-        (atac 1),
-        (etac ssum_lemma10 1),
-        (atac 1),
-        (rtac trans 1),
-        (rtac contlub_cfun_arg 1),
-        (rtac (monofun_Iwhen3 RS ch2ch_monofun) 1),
-        (atac 1),
-        (rtac lub_equal2 1),
-        (rtac (chain_mono2 RS exE) 1),
-        (atac 2),
-        (rtac chain_UU_I_inverse2 1),
-        (stac inst_ssum_pcpo 1),
-        (etac swap 1),
-        (rtac inject_Isinr 1),
-        (rtac trans 1),
-        (etac sym 1),
-        (rtac (strict_IsinlIsinr RS subst) 1),
-        (etac notnotD 1),
-        (rtac exI 1),
-        (strip_tac 1),
-        (rtac (ssum_lemma10 RS spec RS exE) 1),
-        (atac 1),
-        (atac 1),
-        (res_inst_tac [("t","Y(i)")] ssubst 1),
-        (atac 1),
-        (rtac trans 1),
-        (rtac cfun_arg_cong 1),
-        (rtac Iwhen3 1),
-        (res_inst_tac [("Pa","Y(i)=UU")] swap 1),
-        (fast_tac HOL_cs 1),
-        (dtac notnotD 1),
-        (stac inst_ssum_pcpo 1),
-        (stac strict_IsinlIsinr 1),
-        (res_inst_tac [("t","Y(i)")] ssubst 1),
-        (atac 1),
-        (fast_tac HOL_cs 1),
-        (stac Iwhen3 1),
-        (res_inst_tac [("Pa","Y(i)=UU")] swap 1),
-        (fast_tac HOL_cs 1),
-        (dtac notnotD 1),
-        (stac inst_ssum_pcpo 1),
-        (stac strict_IsinlIsinr 1),
-        (res_inst_tac [("t","Y(i)")] ssubst 1),
-        (atac 1),
-        (fast_tac HOL_cs 1),
-        (simp_tac (simpset_of Cfun3.thy) 1),
-        (rtac (monofun_Rep_CFun2 RS ch2ch_monofun) 1),
-        (etac (monofun_Iwhen3 RS ch2ch_monofun) 1),
-        (etac (monofun_Iwhen3 RS ch2ch_monofun) 1)
-        ]);
+Goal "[| chain(Y); lub(range(Y)) = Isinr(x); x ~= UU |] ==>\
+\   Iwhen f g (lub(range Y)) = lub(range(%i. Iwhen f g (Y i)))";
+by (asm_simp_tac Ssum0_ss 1);
+by (res_inst_tac [("t","x")] subst 1);
+by (rtac inject_Isinr 1);
+by (rtac trans 1);
+by (atac 2);
+by (rtac (thelub_ssum1b RS sym) 1);
+by (atac 1);
+by (etac ssum_lemma10 1);
+by (atac 1);
+by (rtac trans 1);
+by (rtac contlub_cfun_arg 1);
+by (rtac (monofun_Iwhen3 RS ch2ch_monofun) 1);
+by (atac 1);
+by (rtac lub_equal2 1);
+by (rtac (chain_mono2 RS exE) 1);
+by (atac 2);
+by (rtac chain_UU_I_inverse2 1);
+by (stac inst_ssum_pcpo 1);
+by (etac swap 1);
+by (rtac inject_Isinr 1);
+by (rtac trans 1);
+by (etac sym 1);
+by (rtac (strict_IsinlIsinr RS subst) 1);
+by (etac notnotD 1);
+by (rtac exI 1);
+by (strip_tac 1);
+by (rtac (ssum_lemma10 RS spec RS exE) 1);
+by (atac 1);
+by (atac 1);
+by (res_inst_tac [("t","Y(i)")] ssubst 1);
+by (atac 1);
+by (rtac trans 1);
+by (rtac cfun_arg_cong 1);
+by (rtac Iwhen3 1);
+by (res_inst_tac [("Pa","Y(i)=UU")] swap 1);
+by (fast_tac HOL_cs 1);
+by (dtac notnotD 1);
+by (stac inst_ssum_pcpo 1);
+by (stac strict_IsinlIsinr 1);
+by (res_inst_tac [("t","Y(i)")] ssubst 1);
+by (atac 1);
+by (fast_tac HOL_cs 1);
+by (stac Iwhen3 1);
+by (res_inst_tac [("Pa","Y(i)=UU")] swap 1);
+by (fast_tac HOL_cs 1);
+by (dtac notnotD 1);
+by (stac inst_ssum_pcpo 1);
+by (stac strict_IsinlIsinr 1);
+by (res_inst_tac [("t","Y(i)")] ssubst 1);
+by (atac 1);
+by (fast_tac HOL_cs 1);
+by (simp_tac (simpset_of Cfun3.thy) 1);
+by (rtac (monofun_Rep_CFun2 RS ch2ch_monofun) 1);
+by (etac (monofun_Iwhen3 RS ch2ch_monofun) 1);
+by (etac (monofun_Iwhen3 RS ch2ch_monofun) 1);
+qed "ssum_lemma13";
 
 
-qed_goal "contlub_Iwhen3" Ssum3.thy "contlub(Iwhen(f)(g))"
- (fn prems =>
-        [
-        (rtac contlubI 1),
-        (strip_tac 1),
-        (res_inst_tac [("p","lub(range(Y))")] IssumE 1),
-        (etac ssum_lemma11 1),
-        (atac 1),
-        (etac ssum_lemma12 1),
-        (atac 1),
-        (atac 1),
-        (etac ssum_lemma13 1),
-        (atac 1),
-        (atac 1)
-        ]);
+Goal "contlub(Iwhen(f)(g))";
+by (rtac contlubI 1);
+by (strip_tac 1);
+by (res_inst_tac [("p","lub(range(Y))")] IssumE 1);
+by (etac ssum_lemma11 1);
+by (atac 1);
+by (etac ssum_lemma12 1);
+by (atac 1);
+by (atac 1);
+by (etac ssum_lemma13 1);
+by (atac 1);
+by (atac 1);
+qed "contlub_Iwhen3";
 
-qed_goal "cont_Iwhen1" Ssum3.thy "cont(Iwhen)"
- (fn prems =>
-        [
-        (rtac monocontlub2cont 1),
-        (rtac monofun_Iwhen1 1),
-        (rtac contlub_Iwhen1 1)
-        ]);
+Goal "cont(Iwhen)";
+by (rtac monocontlub2cont 1);
+by (rtac monofun_Iwhen1 1);
+by (rtac contlub_Iwhen1 1);
+qed "cont_Iwhen1";
 
-qed_goal "cont_Iwhen2" Ssum3.thy "cont(Iwhen(f))"
- (fn prems =>
-        [
-        (rtac monocontlub2cont 1),
-        (rtac monofun_Iwhen2 1),
-        (rtac contlub_Iwhen2 1)
-        ]);
+Goal "cont(Iwhen(f))";
+by (rtac monocontlub2cont 1);
+by (rtac monofun_Iwhen2 1);
+by (rtac contlub_Iwhen2 1);
+qed "cont_Iwhen2";
 
-qed_goal "cont_Iwhen3" Ssum3.thy "cont(Iwhen(f)(g))"
- (fn prems =>
-        [
-        (rtac monocontlub2cont 1),
-        (rtac monofun_Iwhen3 1),
-        (rtac contlub_Iwhen3 1)
-        ]);
+Goal "cont(Iwhen(f)(g))";
+by (rtac monocontlub2cont 1);
+by (rtac monofun_Iwhen3 1);
+by (rtac contlub_Iwhen3 1);
+qed "cont_Iwhen3";
 
 (* ------------------------------------------------------------------------ *)
 (* continuous versions of lemmas for 'a ++ 'b                               *)
@@ -421,27 +380,19 @@ qed_goalw "inject_sinr" Ssum3.thy [sinl_def,sinr_def]
         ]);
 
 
-qed_goal "defined_sinl" Ssum3.thy  
-        "x~=UU ==> sinl`x ~= UU"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (etac swap 1),
-        (rtac inject_sinl 1),
-        (stac strict_sinl 1),
-        (etac notnotD 1)
-        ]);
+Goal "x~=UU ==> sinl`x ~= UU";
+by (etac swap 1);
+by (rtac inject_sinl 1);
+by (stac strict_sinl 1);
+by (etac notnotD 1);
+qed "defined_sinl";
 
-qed_goal "defined_sinr" Ssum3.thy  
-        "x~=UU ==> sinr`x ~= UU"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (etac swap 1),
-        (rtac inject_sinr 1),
-        (stac strict_sinr 1),
-        (etac notnotD 1)
-        ]);
+Goal "x~=UU ==> sinr`x ~= UU";
+by (etac swap 1);
+by (rtac inject_sinr 1);
+by (stac strict_sinr 1);
+by (etac notnotD 1);
+qed "defined_sinr";
 
 qed_goalw "Exh_Ssum1" Ssum3.thy [sinl_def,sinr_def] 
         "z=UU | (? a. z=sinl`a & a~=UU) | (? b. z=sinr`b & b~=UU)"
@@ -665,33 +616,26 @@ qed_goalw "thelub_ssum2b_rev" Ssum3.thy [sinl_def,sinr_def]
         cont_Iwhen3]) 1)
         ]);
 
-qed_goal "thelub_ssum3" Ssum3.thy  
-"chain(Y) ==>\ 
+Goal "chain(Y) ==>\ 
 \   lub(range(Y)) = sinl`(lub(range(%i. sscase`(LAM x. x)`(LAM y. UU)`(Y i))))\
-\ | lub(range(Y)) = sinr`(lub(range(%i. sscase`(LAM y. UU)`(LAM x. x)`(Y i))))"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (rtac (ssum_chainE RS disjE) 1),
-        (atac 1),
-        (rtac disjI1 1),
-        (etac thelub_ssum2a 1),
-        (atac 1),
-        (rtac disjI2 1),
-        (etac thelub_ssum2b 1),
-        (atac 1)
-        ]);
+\ | lub(range(Y)) = sinr`(lub(range(%i. sscase`(LAM y. UU)`(LAM x. x)`(Y i))))";
+by (rtac (ssum_chainE RS disjE) 1);
+by (atac 1);
+by (rtac disjI1 1);
+by (etac thelub_ssum2a 1);
+by (atac 1);
+by (rtac disjI2 1);
+by (etac thelub_ssum2b 1);
+by (atac 1);
+qed "thelub_ssum3";
 
 
-qed_goal "sscase4" Ssum3.thy  
-        "sscase`sinl`sinr`z=z"
- (fn prems =>
-        [
-        (res_inst_tac [("p","z")] ssumE 1),
-        (asm_simp_tac ((simpset_of Cfun3.thy) addsimps [sscase1,sscase2,sscase3]) 1),
-        (asm_simp_tac ((simpset_of Cfun3.thy) addsimps [sscase1,sscase2,sscase3]) 1),
-        (asm_simp_tac ((simpset_of Cfun3.thy) addsimps [sscase1,sscase2,sscase3]) 1)
-        ]);
+Goal "sscase`sinl`sinr`z=z";
+by (res_inst_tac [("p","z")] ssumE 1);
+by (asm_simp_tac ((simpset_of Cfun3.thy) addsimps [sscase1,sscase2,sscase3]) 1);
+by (asm_simp_tac ((simpset_of Cfun3.thy) addsimps [sscase1,sscase2,sscase3]) 1);
+by (asm_simp_tac ((simpset_of Cfun3.thy) addsimps [sscase1,sscase2,sscase3]) 1);
+qed "sscase4";
 
 
 (* ------------------------------------------------------------------------ *)

@@ -1,12 +1,10 @@
-(*  Title:      HOLCF/ssum0.ML
+(*  Title:      HOLCF/Ssum0.ML
     ID:         $Id$
     Author:     Franz Regensburger
     Copyright   1993  Technische Universitaet Muenchen
 
-Lemmas for theory ssum0.thy 
+Strict sum with typedef
 *)
-
-open Ssum0;
 
 (* ------------------------------------------------------------------------ *)
 (* A non-emptyness result for Sssum                                         *)
@@ -30,12 +28,10 @@ qed_goalw "SsumIr" Ssum0.thy [Ssum_def] "Sinr_Rep(a):Ssum"
         (rtac refl 1)
         ]);
 
-qed_goal "inj_on_Abs_Ssum" Ssum0.thy "inj_on Abs_Ssum Ssum"
-(fn prems =>
-        [
-        (rtac inj_on_inverseI 1),
-        (etac Abs_Ssum_inverse 1)
-        ]);
+Goal "inj_on Abs_Ssum Ssum";
+by (rtac inj_on_inverseI 1);
+by (etac Abs_Ssum_inverse 1);
+qed "inj_on_Abs_Ssum";
 
 (* ------------------------------------------------------------------------ *)
 (* Strictness of Sinr_Rep, Sinl_Rep and Isinl, Isinr                        *)
@@ -144,39 +140,31 @@ qed_goalw "inject_Sinr_Rep2" Ssum0.thy [Sinr_Rep_def]
         (resolve_tac prems 1)
         ]);
 
-qed_goal "inject_Sinl_Rep" Ssum0.thy 
-        "Sinl_Rep(a1)=Sinl_Rep(a2) ==> a1=a2"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (case_tac "a1=UU" 1),
-        (hyp_subst_tac 1),
-        (rtac (inject_Sinl_Rep1 RS sym) 1),
-        (etac sym 1),
-        (case_tac "a2=UU" 1),
-        (hyp_subst_tac 1),
-        (etac inject_Sinl_Rep1 1),
-        (etac inject_Sinl_Rep2 1),
-        (atac 1),
-        (atac 1)
-        ]);
+Goal "Sinl_Rep(a1)=Sinl_Rep(a2) ==> a1=a2";
+by (case_tac "a1=UU" 1);
+by (hyp_subst_tac 1);
+by (rtac (inject_Sinl_Rep1 RS sym) 1);
+by (etac sym 1);
+by (case_tac "a2=UU" 1);
+by (hyp_subst_tac 1);
+by (etac inject_Sinl_Rep1 1);
+by (etac inject_Sinl_Rep2 1);
+by (atac 1);
+by (atac 1);
+qed "inject_Sinl_Rep";
 
-qed_goal "inject_Sinr_Rep" Ssum0.thy 
-        "Sinr_Rep(b1)=Sinr_Rep(b2) ==> b1=b2"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (case_tac "b1=UU" 1),
-        (hyp_subst_tac 1),
-        (rtac (inject_Sinr_Rep1 RS sym) 1),
-        (etac sym 1),
-        (case_tac "b2=UU" 1),
-        (hyp_subst_tac 1),
-        (etac inject_Sinr_Rep1 1),
-        (etac inject_Sinr_Rep2 1),
-        (atac 1),
-        (atac 1)
-        ]);
+Goal "Sinr_Rep(b1)=Sinr_Rep(b2) ==> b1=b2";
+by (case_tac "b1=UU" 1);
+by (hyp_subst_tac 1);
+by (rtac (inject_Sinr_Rep1 RS sym) 1);
+by (etac sym 1);
+by (case_tac "b2=UU" 1);
+by (hyp_subst_tac 1);
+by (etac inject_Sinr_Rep1 1);
+by (etac inject_Sinr_Rep2 1);
+by (atac 1);
+by (atac 1);
+qed "inject_Sinr_Rep";
 
 qed_goalw "inject_Isinl" Ssum0.thy [Isinl_def]
 "Isinl(a1)=Isinl(a2)==> a1=a2"
@@ -200,25 +188,17 @@ qed_goalw "inject_Isinr" Ssum0.thy [Isinr_def]
         (rtac SsumIr 1)
         ]);
 
-qed_goal "inject_Isinl_rev" Ssum0.thy  
-"a1~=a2 ==> Isinl(a1) ~= Isinl(a2)"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (rtac contrapos 1),
-        (etac inject_Isinl 2),
-        (atac 1)
-        ]);
+Goal "a1~=a2 ==> Isinl(a1) ~= Isinl(a2)";
+by (rtac contrapos 1);
+by (etac inject_Isinl 2);
+by (atac 1);
+qed "inject_Isinl_rev";
 
-qed_goal "inject_Isinr_rev" Ssum0.thy  
-"b1~=b2 ==> Isinr(b1) ~= Isinr(b2)"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (rtac contrapos 1),
-        (etac inject_Isinr 2),
-        (atac 1)
-        ]);
+Goal "b1~=b2 ==> Isinr(b1) ~= Isinr(b2)";
+by (rtac contrapos 1);
+by (etac inject_Isinr 2);
+by (atac 1);
+qed "inject_Isinr_rev";
 
 (* ------------------------------------------------------------------------ *)
 (* Exhaustion of the strict sum ++                                          *)
@@ -270,34 +250,30 @@ qed_goalw "Exh_Ssum" Ssum0.thy [Isinl_def,Isinr_def]
 (* elimination rules for the strict sum ++                                  *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "IssumE" Ssum0.thy
+val prems = Goal
         "[|p=Isinl(UU) ==> Q ;\
 \       !!x.[|p=Isinl(x); x~=UU |] ==> Q;\
-\       !!y.[|p=Isinr(y); y~=UU |] ==> Q|] ==> Q"
- (fn prems =>
-        [
-        (rtac (Exh_Ssum RS disjE) 1),
-        (etac disjE 2),
-        (eresolve_tac prems 1),
-        (etac exE 1),
-        (etac conjE 1),
-        (eresolve_tac prems 1),
-        (atac 1),
-        (etac exE 1),
-        (etac conjE 1),
-        (eresolve_tac prems 1),
-        (atac 1)
-        ]);
+\       !!y.[|p=Isinr(y); y~=UU |] ==> Q|] ==> Q";
+by (rtac (Exh_Ssum RS disjE) 1);
+by (etac disjE 2);
+by (eresolve_tac prems 1);
+by (etac exE 1);
+by (etac conjE 1);
+by (eresolve_tac prems 1);
+by (atac 1);
+by (etac exE 1);
+by (etac conjE 1);
+by (eresolve_tac prems 1);
+by (atac 1);
+qed "IssumE";
 
-qed_goal "IssumE2" Ssum0.thy 
-"[| !!x. [| p = Isinl(x) |] ==> Q;   !!y. [| p = Isinr(y) |] ==> Q |] ==>Q"
- (fn prems =>
-        [
-        (rtac IssumE 1),
-        (eresolve_tac prems 1), 
-        (eresolve_tac prems 1), 
-        (eresolve_tac prems 1)
-        ]);
+val prems = Goal
+"[| !!x. [| p = Isinl(x) |] ==> Q;   !!y. [| p = Isinr(y) |] ==> Q |] ==>Q";
+by (rtac IssumE 1);
+by (eresolve_tac prems 1);
+by (eresolve_tac prems 1);
+by (eresolve_tac prems 1);
+qed "IssumE2";
 
 
 

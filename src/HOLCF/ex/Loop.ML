@@ -3,14 +3,12 @@
     Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
-Lemmas for theory loop.thy
+Theory for a loop primitive like while
 *)
 
-open Loop;
-
-(* --------------------------------------------------------------------------- *)
-(* access to definitions                                                       *)
-(* --------------------------------------------------------------------------- *)
+(* ------------------------------------------------------------------------- *)
+(* access to definitions                                                     *)
+(* ------------------------------------------------------------------------- *)
 
 val step_def2 = prove_goalw Loop.thy [step_def]
 "step`b`g`x = If b`x then g`x else x fi"
@@ -40,7 +38,7 @@ val while_unfold = prove_goal Loop.thy
         ]);
 
 val while_unfold2 = prove_goal Loop.thy 
-        "!x. while`b`g`x = while`b`g`(iterate k (step`b`g) x)"
+        "ALL x. while`b`g`x = while`b`g`(iterate k (step`b`g) x)"
  (fn prems =>
         [
         (nat_ind_tac "k" 1),
@@ -78,12 +76,13 @@ val while_unfold3 = prove_goal Loop.thy
         ]);
 
 
-(* --------------------------------------------------------------------------- *)
-(* properties of while and iterations                                          *)
-(* --------------------------------------------------------------------------- *)
+(* ------------------------------------------------------------------------- *)
+(* properties of while and iterations                                        *)
+(* ------------------------------------------------------------------------- *)
 
 val loop_lemma1 = prove_goal Loop.thy
-"[|? y. b`y=FF; iterate k (step`b`g) x = UU|]==>iterate(Suc k) (step`b`g) x=UU"
+    "[| EX y. b`y=FF; iterate k (step`b`g) x = UU |] \
+\    ==>iterate(Suc k) (step`b`g) x=UU"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -98,7 +97,7 @@ val loop_lemma1 = prove_goal Loop.thy
         ]);
 
 val loop_lemma2 = prove_goal Loop.thy
-"[|? y. b`y=FF;iterate (Suc k) (step`b`g) x ~=UU |]==>\
+"[|EX y. b`y=FF;iterate (Suc k) (step`b`g) x ~=UU |]==>\
 \iterate k (step`b`g) x ~=UU"
  (fn prems =>
         [
@@ -110,9 +109,9 @@ val loop_lemma2 = prove_goal Loop.thy
         ]);
 
 val loop_lemma3 = prove_goal Loop.thy
-"[|!x. INV x & b`x=TT & g`x~=UU --> INV (g`x);\
-\? y. b`y=FF; INV x|] ==>\
-\iterate k (step`b`g) x ~=UU --> INV (iterate k (step`b`g) x)"
+"[| ALL x. INV x & b`x=TT & g`x~=UU --> INV (g`x);\
+\   EX y. b`y=FF; INV x |] \
+\==> iterate k (step`b`g) x ~=UU --> INV (iterate k (step`b`g) x)"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -138,7 +137,7 @@ val loop_lemma3 = prove_goal Loop.thy
 
 
 val loop_lemma4 = prove_goal Loop.thy
-"!x. b`(iterate k (step`b`g) x)=FF --> while`b`g`x= iterate k (step`b`g) x"
+"ALL x. b`(iterate k (step`b`g) x)=FF --> while`b`g`x= iterate k (step`b`g) x"
  (fn prems =>
         [
         (nat_ind_tac "k" 1),
@@ -155,8 +154,8 @@ val loop_lemma4 = prove_goal Loop.thy
         ]);
 
 val loop_lemma5 = prove_goal Loop.thy
-"!k. b`(iterate k (step`b`g) x) ~= FF ==>\
-\ !m. while`b`g`(iterate m (step`b`g) x)=UU"
+"ALL k. b`(iterate k (step`b`g) x) ~= FF ==>\
+\ ALL m. while`b`g`(iterate m (step`b`g) x)=UU"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -183,7 +182,7 @@ val loop_lemma5 = prove_goal Loop.thy
 
 
 val loop_lemma6 = prove_goal Loop.thy
-"!k. b`(iterate k (step`b`g) x) ~= FF ==> while`b`g`x=UU"
+"ALL k. b`(iterate k (step`b`g) x) ~= FF ==> while`b`g`x=UU"
  (fn prems =>
         [
         (res_inst_tac [("t","x")] (iterate_0 RS subst) 1),
@@ -192,7 +191,7 @@ val loop_lemma6 = prove_goal Loop.thy
         ]);
 
 val loop_lemma7 = prove_goal Loop.thy
-"while`b`g`x ~= UU ==> ? k. b`(iterate k (step`b`g) x) = FF"
+"while`b`g`x ~= UU ==> EX k. b`(iterate k (step`b`g) x) = FF"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -202,7 +201,7 @@ val loop_lemma7 = prove_goal Loop.thy
         ]);
 
 val loop_lemma8 = prove_goal Loop.thy
-"while`b`g`x ~= UU ==> ? y. b`y=FF"
+"while`b`g`x ~= UU ==> EX y. b`y=FF"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -216,8 +215,8 @@ val loop_lemma8 = prove_goal Loop.thy
 (* ------------------------------------------------------------------------- *)
 
 val loop_inv2 = prove_goal Loop.thy
-"[| (!y. INV y & b`y=TT & g`y ~= UU --> INV (g`y));\
-\   (!y. INV y & b`y=FF --> Q y);\
+"[| (ALL y. INV y & b`y=TT & g`y ~= UU --> INV (g`y));\
+\   (ALL y. INV y & b`y=FF --> Q y);\
 \   INV x; while`b`g`x~=UU |] ==> Q (while`b`g`x)"
  (fn prems =>
         [
@@ -234,7 +233,7 @@ val loop_inv2 = prove_goal Loop.thy
         (rtac loop_lemma8 1),
         (resolve_tac prems 1),
         (resolve_tac prems 1),
-        (rtac classical2 1),
+        (rtac notI2 1),
         (resolve_tac prems 1),
         (etac box_equals 1),
         (rtac (loop_lemma4 RS spec RS mp RS sym) 1),

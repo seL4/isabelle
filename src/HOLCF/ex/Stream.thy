@@ -1,5 +1,5 @@
-(*  Title: 	FOCUS/Stream.thy
-    ID:         $ $
+(*  Title: 	HOLCF/ex//Stream.thy
+    ID:         $Id$
     Author: 	Franz Regensburger, David von Oheimb
     Copyright   1993, 1995 Technische Universitaet Muenchen
 

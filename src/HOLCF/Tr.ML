@@ -19,16 +19,13 @@ qed_goalw "Exh_tr" thy [FF_def,TT_def] "t=UU | t = TT | t = FF"
 	(fast_tac (HOL_cs addss simpset()) 1)
 	]);
 
-qed_goal "trE" thy
-        "[| p=UU ==> Q; p = TT ==>Q; p = FF ==>Q|] ==>Q"
- (fn prems =>
-        [
-        (rtac (Exh_tr RS disjE) 1),
-        (eresolve_tac prems 1),
-        (etac disjE 1),
-        (eresolve_tac prems 1),
-        (eresolve_tac prems 1)
-        ]);
+val prems = Goal "[| p=UU ==> Q; p = TT ==>Q; p = FF ==>Q|] ==>Q";
+by (rtac (Exh_tr RS disjE) 1);
+by (eresolve_tac prems 1);
+by (etac disjE 1);
+by (eresolve_tac prems 1);
+by (eresolve_tac prems 1);
+qed "trE";
 
 (* ------------------------------------------------------------------------ *) 
 (* tactic for tr-thms with case split                                       *)

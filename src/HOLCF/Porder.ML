@@ -45,17 +45,14 @@ qed_goalw "chain_mono" thy [chain] "chain F ==> x<y --> F x<<F y"
         (atac 1)
         ]);
 
-qed_goal "chain_mono3" thy "[| chain F; x <= y |] ==> F x << F y"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (rtac (le_imp_less_or_eq RS disjE) 1),
-        (atac 1),
-        (etac (chain_mono RS mp) 1),
-        (atac 1),
-        (hyp_subst_tac 1),
-        (rtac refl_less 1)
-        ]);
+Goal "[| chain F; x <= y |] ==> F x << F y";
+by (rtac (le_imp_less_or_eq RS disjE) 1);
+by (atac 1);
+by (etac (chain_mono RS mp) 1);
+by (atac 1);
+by (hyp_subst_tac 1);
+by (rtac refl_less 1);
+qed "chain_mono3";
 
 
 (* ------------------------------------------------------------------------ *)
@@ -75,39 +72,28 @@ qed_goalw "chain_tord" thy [tord]
 (* ------------------------------------------------------------------------ *)
 bind_thm("lub",lub_def RS meta_eq_to_obj_eq);
 
-qed_goal "lubI" thy "? x. M <<| x ==> M <<| lub(M)"
-(fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (stac lub 1),
-        (etac (select_eq_Ex RS iffD2) 1)
-        ]);
+Goal "? x. M <<| x ==> M <<| lub(M)";
+by (stac lub 1);
+by (etac (select_eq_Ex RS iffD2) 1);
+qed "lubI";
 
-qed_goal "lubE" thy "M <<| lub(M) ==> ? x. M <<| x"
-(fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (etac exI 1)
-        ]);
+Goal "M <<| lub(M) ==> ? x. M <<| x";
+by (etac exI 1);
+qed "lubE";
 
-qed_goal "lub_eq" thy "(? x. M <<| x)  = M <<| lub(M)"
-(fn prems => 
-        [
-        (stac lub 1),
-        (rtac (select_eq_Ex RS subst) 1),
-        (rtac refl 1)
-        ]);
+Goal "(? x. M <<| x)  = M <<| lub(M)";
+by (stac lub 1);
+by (rtac (select_eq_Ex RS subst) 1);
+by (rtac refl 1);
+qed "lub_eq";
 
 
-qed_goal "thelubI" thy "M <<| l ==> lub(M) = l"
-(fn prems =>
-        [
-        (cut_facts_tac prems 1), 
-        (rtac unique_lub 1),
-        (stac lub 1),
-        (etac selectI 1),
-        (atac 1)
-        ]);
+Goal "M <<| l ==> lub(M) = l";
+by (rtac unique_lub 1);
+by (stac lub 1);
+by (etac selectI 1);
+by (atac 1);
+qed "thelubI";
 
 
 Goal "lub{x} = x";
@@ -216,16 +202,13 @@ qed_goalw "lub_finch2" thy [finite_chain_def]
         ]);
 
 
-qed_goal "bin_chain" thy "x<<y ==> chain (%i. if i=0 then x else y)"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (rtac chainI 1),
-        (rtac allI 1),
-        (induct_tac "i" 1),
-        (Asm_simp_tac 1),
-        (Asm_simp_tac 1)
-        ]);
+Goal "x<<y ==> chain (%i. if i=0 then x else y)";
+by (rtac chainI 1);
+by (rtac allI 1);
+by (induct_tac "i" 1);
+by (Asm_simp_tac 1);
+by (Asm_simp_tac 1);
+qed "bin_chain";
 
 qed_goalw "bin_chainmax" thy [max_in_chain_def,le_def]
         "x<<y ==> max_in_chain (Suc 0) (%i. if (i=0) then x else y)"
@@ -238,51 +221,42 @@ qed_goalw "bin_chainmax" thy [max_in_chain_def,le_def]
         (Asm_simp_tac 1)
         ]);
 
-qed_goal "lub_bin_chain" thy 
-        "x << y ==> range(%i::nat. if (i=0) then x else y) <<| y"
-(fn prems=>
-        [ (cut_facts_tac prems 1),
-        (res_inst_tac [("s","if (Suc 0) = 0 then x else y")] subst 1),
-        (rtac lub_finch1 2),
-        (etac bin_chain 2),
-        (etac bin_chainmax 2),
-        (Simp_tac  1)
-        ]);
+Goal "x << y ==> range(%i::nat. if (i=0) then x else y) <<| y";
+by (res_inst_tac [("s","if (Suc 0) = 0 then x else y")] subst 1
+    THEN rtac lub_finch1 2);
+by (etac bin_chain 2);
+by (etac bin_chainmax 2);
+by (Simp_tac  1);
+qed "lub_bin_chain";
 
 (* ------------------------------------------------------------------------ *)
 (* the maximal element in a chain is its lub                                *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "lub_chain_maxelem" thy
-"[|? i. Y i=c;!i. Y i<<c|] ==> lub(range Y) = c"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (rtac thelubI 1),
-        (rtac is_lubI 1),
-        (rtac conjI 1),
-        (etac ub_rangeI 1),
-        (strip_tac 1),
-        (etac exE 1),
-        (hyp_subst_tac 1),
-        (etac (ub_rangeE RS spec) 1)
-        ]);
+Goal "[|? i. Y i=c;!i. Y i<<c|] ==> lub(range Y) = c";
+by (rtac thelubI 1);
+by (rtac is_lubI 1);
+by (rtac conjI 1);
+by (etac ub_rangeI 1);
+by (strip_tac 1);
+by (etac exE 1);
+by (hyp_subst_tac 1);
+by (etac (ub_rangeE RS spec) 1);
+qed "lub_chain_maxelem";
 
 (* ------------------------------------------------------------------------ *)
 (* the lub of a constant chain is the constant                              *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "lub_const" thy "range(%x. c) <<| c"
- (fn prems =>
-        [
-        (rtac is_lubI 1),
-        (rtac conjI 1),
-        (rtac ub_rangeI 1),
-        (strip_tac 1),
-        (rtac refl_less 1),
-        (strip_tac 1),
-        (etac (ub_rangeE RS spec) 1)
-        ]);
+Goal "range(%x. c) <<| c";
+by (rtac is_lubI 1);
+by (rtac conjI 1);
+by (rtac ub_rangeI 1);
+by (strip_tac 1);
+by (rtac refl_less 1);
+by (strip_tac 1);
+by (etac (ub_rangeE RS spec) 1);
+qed "lub_const";
 
 
 
