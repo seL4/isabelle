@@ -966,7 +966,7 @@ qed "nat_diff_split";
 *)
 val nat_arith_tac =
   refute_tac (K true) (REPEAT o split_tac[nat_diff_split])
-             ((REPEAT o etac nat_neqE) THEN' fast_nat_arith_tac);
+             ((REPEAT_DETERM o etac nat_neqE) THEN' fast_nat_arith_tac);
 
 (*---------------------------------------------------------------------------*)
 (* End of proof procedures. Now go and USE them!                             *)

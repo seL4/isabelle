@@ -418,8 +418,6 @@ Goal "n <= (n::nat)";
 by (simp_tac (simpset() addsimps [le_eq_less_or_eq]) 1);
 qed "le_refl";
 
-AddIffs [le_refl];
-
 
 Goal "[| i <= j; j < k |] ==> i < (k::nat)";
 by (blast_tac (claset() addSDs [le_imp_less_or_eq]

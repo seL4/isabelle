@@ -27,7 +27,7 @@ section "Orders";
 
 (** Reflexivity **)
 
-Addsimps [order_refl];
+AddIffs [order_refl];
 
 (*This form is useful with the classical reasoner*)
 Goal "!!x::'a::order. x = y ==> x <= y";

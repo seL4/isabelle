@@ -533,8 +533,6 @@ Goal "w <= (w::int)";
 by (simp_tac (simpset() addsimps [integ_le_less]) 1);
 qed "zle_refl";
 
-AddIffs [le_refl];
-
 Goalw [zle_def] "z < w ==> z <= (w::int)";
 by (blast_tac (claset() addEs [zless_asym]) 1);
 qed "zless_imp_zle";
