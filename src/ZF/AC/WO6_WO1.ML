@@ -57,10 +57,10 @@ qed "uu_lepoll_m";
 (* Two cases for lemma ii                                                 *)
 (* ********************************************************************** *)
 Goalw [lesspoll_def] 
-  "!! a f u. ALL b<a. ALL g<a. ALL d<a. u(f,b,g,d) lepoll m ==>  \
-\            (ALL b<a. f`b ~= 0 --> (EX g<a. EX d<a. u(f,b,g,d) ~= 0 &  \
-\                                       u(f,b,g,d) lesspoll m)) |  \
-\            (EX b<a. f`b ~= 0 & (ALL g<a. ALL d<a. u(f,b,g,d) ~= 0 -->  \
+     "ALL b<a. ALL g<a. ALL d<a. u(f,b,g,d) lepoll m  \
+\     ==> (ALL b<a. f`b ~= 0 --> \
+\                 (EX g<a. EX d<a. u(f,b,g,d) ~= 0 & u(f,b,g,d) lesspoll m)) \
+\       | (EX b<a. f`b ~= 0 & (ALL g<a. ALL d<a. u(f,b,g,d) ~= 0 -->  \
 \                                       u(f,b,g,d) eqpoll m))";
 by (Asm_simp_tac 1);
 by (blast_tac (claset() delrules [equalityI]) 1);

@@ -85,9 +85,7 @@ qed "restrict_cons_eq";
 
 Goal "[| Ord(k); i:k |] ==> succ(i) : succ(k)";
 by (resolve_tac [Ord_linear RS disjE] 1 THEN (assume_tac 3));
-by (REPEAT (fast_tac (claset() addSIs [Ord_succ]
-        addEs [Ord_in_Ord, mem_irrefl, mem_asym]
-        addSDs [succ_inject]) 1));
+by (REPEAT (fast_tac (claset() addEs [Ord_in_Ord, mem_irrefl, mem_asym]) 1));
 qed "succ_in_succ";
 
 Goalw [restrict_def]

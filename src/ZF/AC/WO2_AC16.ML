@@ -38,8 +38,8 @@ Goal "[| ALL y<x. ALL z<a. z<y | (EX Y: F(y). f(z)<=Y)  \
 \               ALL i j. i le j --> F(i) <= F(j); i<x; j<x; z<a;  \
 \               V: F(i); f(z)<=V; W:F(j); f(z)<=W |]  \
 \               ==> V = W";
-by (res_inst_tac [("j","j")] (lt_Ord RS (lt_Ord RSN (2, Ord_linear_le))) 1
-        THEN (REPEAT (assume_tac 1)));
+by (res_inst_tac [("j","j")] ([lt_Ord, lt_Ord] MRS Ord_linear_le) 1
+    THEN (REPEAT (assume_tac 1)));
 by (eresolve_tac [lemma3_1 RS sym] 1 THEN (REPEAT (assume_tac 1)));
 by (etac lemma3_1 1 THEN (REPEAT (assume_tac 1)));
 val lemma3 = result();
@@ -118,7 +118,7 @@ qed "dbl_Diff_eqpoll_Card";
 
 
 Goalw [lesspoll_def]
-        "!!X. [| Finite(X); ~Finite(a); Ord(a) |] ==> X lesspoll a";
+        "[| Finite(X); ~Finite(a); Ord(a) |] ==> X lesspoll a";
 by (rtac conjI 1);
 by (dresolve_tac [nat_le_infinite_Ord RS le_imp_lepoll] 1
         THEN (assume_tac 1));
@@ -129,48 +129,13 @@ by (fast_tac (claset() addSEs [Ord_nat RSN (2, ltI) RS leI RS le_imp_subset RS
         subset_imp_lepoll RSN (2, eqpoll_imp_lepoll RS lepoll_trans)]) 1);
 qed "Finite_lesspoll_infinite_Ord";
 
-
-Goal "x:X ==> Union(X) = Union(X-{x}) Un x";
-by (Fast_tac 1);
-qed "Union_eq_Un_Diff";
-
-
-Goal "n:nat ==> ALL X. X eqpoll n --> (ALL x:X. Finite(x))  \
-\       --> Finite(Union(X))";
-by (induct_tac "n" 1);
-by (fast_tac (claset() addSDs [eqpoll_imp_lepoll RS lepoll_0_is_0]
-        addSIs [nat_0I RS nat_into_Finite] addss (simpset())) 1);
-by (REPEAT (resolve_tac [allI, impI] 1));
-by (resolve_tac [eqpoll_succ_imp_not_empty RS not_emptyE] 1 THEN (assume_tac 1));
-by (res_inst_tac [("P","%z. Finite(z)")] (Union_eq_Un_Diff RS ssubst) 1
-        THEN (assume_tac 1));
-by (rtac Finite_Un 1);
-by (Fast_tac 2);
-by (fast_tac (claset() addSIs [Diff_sing_eqpoll]) 1);
-qed "Finite_Union_lemma";
-
-
-Goal "[| ALL x:X. Finite(x); Finite(X) |] ==> Finite(Union(X))";
-by (eresolve_tac [Finite_def RS def_imp_iff RS iffD1 RS bexE] 1);
-by (dtac Finite_Union_lemma 1);
-by (Fast_tac 1);
-qed "Finite_Union";
-
-
-Goalw [Finite_def] "[| x lepoll n; n:nat |] ==> Finite(x)";
-by (fast_tac (claset()
-        addEs [nat_into_Ord RSN (2, lepoll_imp_ex_le_eqpoll) RS exE,
-        Ord_nat RSN (2, ltI) RSN (2, lt_trans1) RS ltD]) 1);
-qed "lepoll_nat_num_imp_Finite";
-
-
 Goal "[| ALL x:X. x lepoll n & x <= T; well_ord(T, R); X lepoll b;  \
 \       b<a; ~Finite(a); Card(a); n:nat |]  \
 \       ==> Union(X) lesspoll a";
 by (excluded_middle_tac "Finite(X)" 1);
 by (resolve_tac [Card_is_Ord RSN (3, Finite_lesspoll_infinite_Ord)] 2
         THEN (REPEAT (assume_tac 3)));
-by (fast_tac (claset() addSEs [lepoll_nat_num_imp_Finite]
+by (fast_tac (claset() addSEs [lepoll_nat_imp_Finite]
                 addSIs [Finite_Union]) 2);
 by (dresolve_tac [lt_Ord RSN (2, lepoll_imp_ex_le_eqpoll)] 1 THEN (assume_tac 1));
 by (REPEAT (eresolve_tac [exE, conjE] 1));
@@ -311,8 +276,9 @@ Goal "[| recfunAC16(f, fa, y, a) <= {X: Pow(A) . X eqpoll succ(k #+ m)};  \
 by (rtac dbl_Diff_eqpoll_Card 1 THEN (TRYALL assume_tac));
 by (rtac Union_recfunAC16_lesspoll 1 THEN (REPEAT (assume_tac 1)));
 by (eresolve_tac [add_type RS nat_succI] 1 THEN (assume_tac 1));
-by (resolve_tac [nat_succI RSN (2, bexI RS (Finite_def RS def_imp_iff RS
-        iffD2)) RS (Card_is_Ord RSN (3, Finite_lesspoll_infinite_Ord))] 1
+by (resolve_tac [nat_succI RSN 
+		 (2, bexI RS (Finite_def RS def_imp_iff RS iffD2)) RS 
+		 (Card_is_Ord RSN (3, Finite_lesspoll_infinite_Ord))] 1
         THEN (TRYALL assume_tac));
 by (eresolve_tac [ltD RSN (2, bij_is_fun RS apply_type) RS CollectE] 1
         THEN (TRYALL assume_tac));
@@ -320,17 +286,16 @@ qed "dbl_Diff_eqpoll";
 
 (* back to the proof *)
 
-val disj_Un_eqpoll_nat_sum = disj_Un_eqpoll_sum RS (
-                             sum_eqpoll_cong RSN (2, 
-                             nat_sum_eqpoll_sum RSN (3, 
-                             eqpoll_trans RS eqpoll_trans))) |> standard;
+val disj_Un_eqpoll_nat_sum = 
+    [disj_Un_eqpoll_sum, sum_eqpoll_cong, nat_sum_eqpoll_sum] MRS 
+    (eqpoll_trans RS eqpoll_trans) |> standard;
 
 
 Goal "[| x : Pow(A - B - fa`i); x eqpoll m;  \
 \       fa : bij(a, {x: Pow(A) . x eqpoll k}); i<a; k:nat; m:nat |]  \
 \       ==> fa ` i Un x : {x: Pow(A) . x eqpoll k #+ m}";
 by (rtac CollectI 1);
-by (fast_tac (claset() addSIs [PowD RS (PowD RSN (2, Un_least RS PowI))] 
+by (fast_tac (claset() 
         addSEs [ltD RSN (2, bij_is_fun RS apply_type RS CollectE)]) 1);
 by (rtac disj_Un_eqpoll_nat_sum 1
         THEN (TRYALL assume_tac));

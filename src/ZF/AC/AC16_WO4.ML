@@ -44,8 +44,9 @@ val lepoll_paired = paired_eqpoll RS eqpoll_sym RS eqpoll_imp_lepoll;
 
 Goal "EX y R. well_ord(y,R) & x Int y = 0 & ~y lepoll z & ~Finite(y)";
 by (res_inst_tac [("x","{{a,x}. a:nat Un Hartog(z)}")] exI 1);
-by (resolve_tac [transfer thy Ord_nat RS well_ord_Memrel RS (Ord_Hartog RS
-                well_ord_Memrel RSN (2, well_ord_Un)) RS exE] 1);
+by (resolve_tac [transfer thy Ord_nat RS well_ord_Memrel RS
+		 (Ord_Hartog RS
+		  well_ord_Memrel RSN (2, well_ord_Un)) RS exE] 1);
 by (fast_tac 
     (claset() addSIs [Ord_Hartog, well_ord_Memrel, well_ord_paired,
 		      HartogI RSN (2, lepoll_trans1),
@@ -55,9 +56,8 @@ by (fast_tac
 		      lepoll_paired RS lepoll_Finite]) 1);
 val lemma2 = result();
 
-val [prem] = goal thy "~Finite(B) ==> ~Finite(A Un B)";
-by (fast_tac (claset()
-        addSIs [subset_imp_lepoll RS (prem RSN (2, lepoll_infinite))]) 1);
+Goal "~Finite(B) ==> ~Finite(A Un B)";
+by (blast_tac (claset() addIs [subset_Finite]) 1);
 qed "infinite_Un";
 
 (* ********************************************************************** *)
@@ -613,7 +613,8 @@ by (cut_facts_tac [lemma2] 1);
 by (REPEAT (eresolve_tac [exE, conjE] 1));
 by (eres_inst_tac [("x","A Un y")] allE 1);
 by (ftac infinite_Un 1 THEN (mp_tac 1));
-by (etac zero_lt_natE 1); by (assume_tac 1);
+by (etac zero_lt_natE 1); 
+by (assume_tac 1);
 by (Clarify_tac 1);
 by (DEPTH_SOLVE (ares_tac [export conclusion] 1));
 qed "AC16_WO4";

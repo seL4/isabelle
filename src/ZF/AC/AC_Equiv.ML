@@ -4,9 +4,6 @@
 
 *)
 
-
-open AC_Equiv;
-
 val WO_defs = [WO1_def, WO2_def, WO3_def, WO4_def, WO5_def, WO6_def, WO8_def];
  
 val AC_defs = [AC0_def, AC1_def, AC2_def, AC3_def, AC4_def, AC5_def, 
@@ -98,10 +95,6 @@ val [major, minor] = goalw thy [inj_def]
 by (fast_tac (claset() addSEs [minor]
         addSIs [major RS CollectD1 RS Pi_type, major RS CollectD2]) 1);
 qed "inj_strengthen_type";
-
-Goalw [Finite_def] "n:nat ==> Finite(n)";
-by (fast_tac (claset() addSIs [eqpoll_refl]) 1);
-qed "nat_into_Finite";
 
 Goalw [Finite_def] "~Finite(nat)";
 by (fast_tac (claset() addSDs [eqpoll_imp_lepoll]

@@ -11,17 +11,16 @@ Auxiliary lemmas concerning cardinalities
 (* ********************************************************************** *)
 
 (* j=|A| *)
-goal Cardinal.thy
-    "!!A. [| A lepoll i; Ord(i) |] ==> EX j. j le i & A eqpoll j";
-by (fast_tac (claset() addIs [lepoll_cardinal_le, well_ord_Memrel,
-                            well_ord_cardinal_eqpoll RS eqpoll_sym]
-                    addDs [lepoll_well_ord]) 1);
+Goal "[| A lepoll i; Ord(i) |] ==> EX j. j le i & A eqpoll j";
+by (blast_tac (claset() addSIs [lepoll_cardinal_le, well_ord_Memrel,
+				well_ord_cardinal_eqpoll RS eqpoll_sym]
+                        addDs [lepoll_well_ord]) 1);
 qed "lepoll_imp_ex_le_eqpoll";
 
 (* j=|A| *)
-goalw Cardinal.thy [lesspoll_def]
-    "!!A a. [| A lesspoll i; Ord(i) |] ==> EX j. j<i & A eqpoll j";
-by (fast_tac (claset() addSDs [lepoll_imp_ex_le_eqpoll] addSEs [leE]) 1);
+Goalw [lesspoll_def]
+    "[| A lesspoll i; Ord(i) |] ==> EX j. j<i & A eqpoll j";
+by (blast_tac (claset() addSDs [lepoll_imp_ex_le_eqpoll] addSEs [leE]) 1);
 qed "lesspoll_imp_ex_lt_eqpoll";
 
 Goalw [InfCard_def] "[| ~Finite(i); Ord(i) |] ==> InfCard(|i|)";
@@ -161,7 +160,7 @@ by (eresolve_tac [Ord_Least RSN (2, ltI)] 1);
 qed "UN_eq_UN_Diffs";
 
 Goalw [lepoll_def, eqpoll_def]
-        "a lepoll X ==> EX Y. Y<=X & a eqpoll Y";
+     "a lepoll X ==> EX Y. Y<=X & a eqpoll Y";
 by (etac exE 1);
 by (forward_tac [subset_refl RSN (2, restrict_bij)] 1);
 by (res_inst_tac [("x","f``a")] exI 1);
@@ -176,9 +175,9 @@ Goal "[| A eqpoll a; ~Finite(a); Card(a); B lesspoll a;  \
 \               A-B lesspoll a |] ==> P";
 by (REPEAT (eresolve_tac [lesspoll_imp_ex_lt_eqpoll RS exE,
         Card_is_Ord, conjE] 1));
-by (forw_inst_tac [("j","xa")] (lt_Ord RS (lt_Ord RSN (2, Un_upper1_le))) 1
+by (forw_inst_tac [("j","xa")] ([lt_Ord, lt_Ord] MRS Un_upper1_le) 1
         THEN (assume_tac 1));
-by (forw_inst_tac [("j","xa")] (lt_Ord RS (lt_Ord RSN (2, Un_upper2_le))) 1
+by (forw_inst_tac [("j","xa")] ([lt_Ord, lt_Ord] MRS Un_upper2_le) 1
         THEN (assume_tac 1));
 by (dtac Un_least_lt 1 THEN (assume_tac 1));
 by (dresolve_tac [le_imp_lepoll RSN
