@@ -1,5 +1,4 @@
 \documentstyle[a4,proof,iman,extra,times]{llncs}
-%Repetition in the two sentences that begin ``The powerset operator''
 \newif\ifCADE
 \CADEtrue
 
@@ -272,7 +271,7 @@ premise $a\in A$ in the following rule from the definition of lists:
 
 \subsection{The fixedpoint definitions}
 The package translates the list of desired introduction rules into a fixedpoint
-definition.  Consider, as a running example, the finite set operator
+definition.  Consider, as a running example, the finite powerset operator
 $\Fin(A)$: the set of all finite subsets of~$A$.  It can be
 defined as the least set closed under the rules
 \[  \emptyset\in\Fin(A)  \qquad 
@@ -494,12 +493,12 @@ discuss several forms of coinduction rules elsewhere~\cite{paulson-coind}.
 
 
 \section{Examples of inductive and coinductive definitions}\label{ind-eg-sec}
-This section presents several examples: the finite set operator,
+This section presents several examples: the finite powerset operator,
 lists of $n$ elements, bisimulations on lazy lists, the well-founded part
 of a relation, and the primitive recursive functions.
 
-\subsection{The finite set operator}
-The definition of finite sets has been discussed extensively above.  Here
+\subsection{The finite powerset operator}
+This operator has been discussed extensively above.  Here
 is the corresponding ML invocation (note that $\cons(a,b)$ abbreviates
 $\{a\}\un b$ in Isabelle/ZF):
 \begin{ttbox}

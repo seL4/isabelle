@@ -539,8 +539,10 @@
 \def\endlisting{\endtrivlist\baselineskip=\oldbaselineskip}
 
 %Add ttbox to Springer's macros!!  - LCP
+%now redefines \{ and \}
 \newenvironment{ttbox}{\par\nobreak\vskip-2pt%
-           \vbox\bgroup\begin{listing}\leftskip\leftmargini}%
+           \vbox\bgroup\begin{listing}\chardef\{=`\{\chardef\}=`\}%
+                      \leftskip\leftmargini}%
         {\end{listing}\egroup\vskip-7pt\@endparenv}
 \newcommand\ttbreak{\end{ttbox}\goodbreak\vskip-8pt plus 3pt\begin{ttbox}}
 

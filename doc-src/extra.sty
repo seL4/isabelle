@@ -13,7 +13,8 @@ July\or August\or September\or October\or November\or December\fi
 %\leftmargini is LaTeX's first-level indentation for items (2.5em)
 %@endparenv is LaTeX's trick for preventing indentation of next paragraph
 \newenvironment{ttbox}{\par\nobreak\vskip-2pt
-           \vbox\bgroup\footnotesize\begin{alltt} \leftskip\leftmargini}%
+           \vbox\bgroup\footnotesize\begin{alltt}\chardef\{=`\{\chardef\}=`\}%
+             \leftskip\leftmargini}%
         {\end{alltt}\egroup\vskip-7pt\@endparenv}
 \newcommand\ttbreak{\end{ttbox}\vskip-10pt\begin{ttbox}}
 
