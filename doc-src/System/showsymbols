@@ -1,4 +1,6 @@
 #!/usr/bin/env perl
+#
+# $Id$
 
 print "\\begin{supertabular}{ll\@{\\qquad}ll}\n";
 
