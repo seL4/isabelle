@@ -8,7 +8,7 @@ TODO:
   - constdefs;
   - axclass axioms: attribs;
   - instance: theory_to_proof (with special attribute to add result arity);
-  - witness: eliminate (!?);
+  - witness: eliminate (!);
   - result (interactive): print current result (?);
   - check evaluation of transformers (exns!);
   - 'result' command;
@@ -397,9 +397,13 @@ val print_lthmsP =
   OuterSyntax.parser true "print_facts" "print local theorems of proof context"
     (Scan.succeed IsarCmd.print_lthms);
 
-val print_thmP =
-  OuterSyntax.parser true "print_thm" "print stored theorem(s)"
+val print_thmsP =
+  OuterSyntax.parser true "thms" "print theorems"
     (xname -- opt_attribs >> IsarCmd.print_thms);
+
+val print_thmP =
+  OuterSyntax.parser true "thm" "print theorem"
+    (xname -- opt_attribs >> IsarCmd.print_thm);
 
 val print_propP =
   OuterSyntax.parser true "print_prop" "read and print proposition"
@@ -486,7 +490,7 @@ val parsers = [
   (*diagnostic commands*)
   print_commandsP, print_theoryP, print_syntaxP, print_attributesP,
   print_methodsP, print_theoremsP, print_bindsP, print_lthmsP,
-  print_thmP, print_propP, print_termP, print_typeP,
+  print_thmP, print_thmsP, print_propP, print_termP, print_typeP,
   (*system commands*)
   cdP, pwdP, use_thyP, loadP, prP, commitP, quitP, exitP, breakP];
 
