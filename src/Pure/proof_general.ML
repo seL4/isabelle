@@ -1168,7 +1168,7 @@ fun process_pgip_element pgipxml = (case pgipxml of
      | "spuriouscmd"    => isarscript data
      | "badcmd"		=> isarscript data
      (* improperproofcmd: improper commands which *do not* belong in script *)
-     | "undostep"       => isarcmd "ProofGeneral.undo"
+     | "undostep"       => isarcmd "undos_proof 1" (* ProofGeneral.undo" *)
      | "abortgoal"      => isarcmd "ProofGeneral.kill_proof"  
      | "forget"         => error "Not implemented" 
      | "restoregoal"    => error "Not implemented"  (* could just treat as forget? *)
