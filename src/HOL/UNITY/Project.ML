@@ -32,7 +32,7 @@ qed_spec_mp "project_unless";
 Goal "(F Join project h C G : A co B)  =  \
 \       (extend h F Join G : (C Int extend_set h A) co (extend_set h B) &  \
 \        F : A co B)";
-by (simp_tac (simpset() addsimps [Join_constrains, project_constrains]) 1);
+by (simp_tac (simpset() addsimps [project_constrains]) 1);
 by (blast_tac (claset() addIs [extend_constrains RS iffD2 RS constrains_weaken]
                         addDs [constrains_imp_subset]) 1);
 qed "Join_project_constrains";
@@ -44,7 +44,7 @@ Goalw [stable_def]
 \     ==> (F Join project h C G : stable A)  =  \
 \         (extend h F Join G : stable (C Int extend_set h A) &  \
 \          F : stable A)";
-by (simp_tac (simpset() addsimps [Join_project_constrains]) 1);
+by (simp_tac (HOL_ss addsimps [Join_project_constrains]) 1);
 by (blast_tac (claset() addIs [constrains_weaken] addDs [constrains_Int]) 1);
 qed "Join_project_stable";
 
@@ -52,8 +52,7 @@ qed "Join_project_stable";
 Goal "extend h F Join G : extend_set h A co extend_set h B \
 \     ==> F Join project h C G : A co B";
 by (asm_full_simp_tac
-    (simpset() addsimps [project_constrains, Join_constrains, 
-			 extend_constrains]) 1);
+    (simpset() addsimps [project_constrains, extend_constrains]) 1);
 by (blast_tac (claset() addIs [constrains_weaken]
 			addDs [constrains_imp_subset]) 1);
 qed "project_constrains_I";
@@ -61,18 +60,18 @@ qed "project_constrains_I";
 Goalw [increasing_def, stable_def]
      "extend h F Join G : increasing (func o f) \
 \     ==> F Join project h C G : increasing func";
-by (asm_full_simp_tac (simpset() addsimps [project_constrains_I, 
-					   extend_set_eq_Collect]) 1);
+by (asm_full_simp_tac (simpset_of SubstAx.thy
+		 addsimps [project_constrains_I, extend_set_eq_Collect]) 1);
 qed "project_increasing_I";
 
 Goal "(F Join project h UNIV G : increasing func)  =  \
 \     (extend h F Join G : increasing (func o f))";
 by (rtac iffI 1);
 by (etac project_increasing_I 2);
-by (asm_full_simp_tac 
-    (simpset() addsimps [increasing_def, Join_project_stable]) 1);
+by (asm_full_simp_tac (simpset_of SubstAx.thy
+		         addsimps [increasing_def, Join_project_stable]) 1);
 by (auto_tac (claset(),
-	      simpset() addsimps [Join_stable, extend_set_eq_Collect,
+	      simpset() addsimps [extend_set_eq_Collect,
 				  extend_stable RS iffD1]));
 qed "Join_project_increasing";
 
@@ -80,8 +79,7 @@ qed "Join_project_increasing";
 Goal "F Join project h UNIV G : A co B \
 \     ==> extend h F Join G : extend_set h A co extend_set h B";
 by (asm_full_simp_tac
-    (simpset() addsimps [project_constrains, Join_constrains, 
-			 extend_constrains]) 1);
+    (simpset() addsimps [project_constrains, extend_constrains]) 1);
 qed "project_constrains_D";
 
 
@@ -192,7 +190,7 @@ qed "extending_stable";
 
 Goalw [extending_def]
      "extending v (%G. UNIV) h F (increasing (func o f)) (increasing func)";
-by (simp_tac (simpset() addsimps [Join_project_increasing]) 1);
+by (simp_tac (HOL_ss addsimps [Join_project_increasing]) 1);
 qed "extending_increasing";
 
 
@@ -216,7 +214,7 @@ qed "reachable_imp_reachable_project";
 Goalw [Constrains_def]
      "F Join project h (reachable (extend h F Join G)) G : A Co B  \
 \     ==> extend h F Join G : (extend_set h A) Co (extend_set h B)";
-by (full_simp_tac (simpset() addsimps [Join_project_constrains]) 1);
+by (full_simp_tac (simpset_of SubstAx.thy addsimps [Join_project_constrains]) 1);
 by (Clarify_tac 1);
 by (etac constrains_weaken 1);
 by (auto_tac (claset() addIs [reachable_imp_reachable_project], simpset()));
@@ -277,14 +275,14 @@ qed "reachable_extend_Join_subset";
 Goalw [Constrains_def]
      "extend h F Join G : (extend_set h A) Co (extend_set h B)  \
 \     ==> F Join project h (reachable (extend h F Join G)) G : A Co B";
-by (full_simp_tac (simpset() addsimps [Join_project_constrains, 
+by (full_simp_tac (simpset_of SubstAx.thy addsimps [Join_project_constrains, 
 				       extend_set_Int_distrib]) 1);
 by (rtac conjI 1);
 by (force_tac
     (claset() addEs [constrains_weaken_L]
               addSDs [extend_constrains_project_set,
 		      subset_refl RS reachable_project_imp_reachable], 
-     simpset() addsimps [Join_constrains]) 2);
+     simpset()) 2);
 by (blast_tac (claset() addIs [constrains_weaken_L]) 1);
 qed "project_Constrains_I";
 
@@ -421,7 +419,7 @@ Goal "[| extend h F : stable C;  G : stable C;  \
 \     ==> F Join project h C G  \
 \           : (project_set h C Int project_set h A) ensures (project_set h B)";
 by (asm_full_simp_tac
-    (simpset() addsimps [ensures_def, Join_constrains, project_constrains, 
+    (simpset() addsimps [ensures_def, project_constrains, 
 			 Join_transient, extend_transient]) 1);
 by (Clarify_tac 1);
 by (REPEAT_FIRST (rtac conjI));
@@ -463,8 +461,7 @@ by (auto_tac (claset() addDs [extend_transient RS iffD2]
                        addIs [transient_strengthen, project_set_I,
 			      project_unless RS unlessD, unlessI, 
 			      project_extend_constrains_I], 
-	      simpset() addsimps [ensures_def, Join_constrains,
-				  Join_stable, Join_transient]));
+	      simpset() addsimps [ensures_def, Join_transient]));
 qed_spec_mp "Join_project_ensures";
 
 (** Lemma useful for both STRONG and WEAK progress, but the transient
@@ -498,13 +495,12 @@ Goal "[| C = (reachable (extend h F Join G)); \
 \        F Join project h C G : A LeadsTo B |] \
 \     ==> extend h F Join G : (extend_set h A) LeadsTo (extend_set h B)";
 by (asm_full_simp_tac 
-    (simpset() addsimps [LeadsTo_def, project_leadsTo_D_lemma, 
+    (simpset_of SubstAx.thy addsimps [LeadsTo_def, project_leadsTo_D_lemma, 
 			 project_set_reachable_extend_eq]) 1);
 qed "Join_project_LeadsTo";
 
 
 (*** Towards project_Ensures_D ***)
-
 
 
 Goalw [project_set_def, extend_set_def, project_act_def]
@@ -560,8 +556,7 @@ Goal "[| G : stable ((C Int extend_set h A) - (extend_set h B));  \
 (*unless*)
 by (auto_tac (claset() addSIs [rewrite_rule [unless_def] project_unless2] 
                        addIs [project_extend_constrains_I], 
-	      simpset() addsimps [ensures_def, Join_constrains,
-				  Join_stable]));
+	      simpset() addsimps [ensures_def]));
 (*transient*)
 by (auto_tac (claset(), simpset() addsimps [Join_transient]));
 by (blast_tac (claset() addIs [stable_project_transient]) 2);

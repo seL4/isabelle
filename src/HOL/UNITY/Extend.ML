@@ -384,8 +384,7 @@ qed "project_set_Union";
 Goal "project h C (extend h F) = \
 \     mk_program (Init F, Restrict (project_set h C) `` Acts F)";
 by (rtac program_equalityI 1);
-by (asm_simp_tac (simpset() addsimps [image_eq_UN, 
-                   project_act_extend_act_restrict]) 2);
+by (asm_simp_tac (simpset() addsimps [image_eq_UN]) 2);
 by (Simp_tac 1);
 qed "project_extend_eq";
 

@@ -4,9 +4,6 @@
     Copyright   2000  University of Cambridge
 
 Implementation of a multiple-client allocator from a single-client allocator
-
-add_path "../Induct";
-time_use_thy "AllocImpl";
 *)
 
 AddIs [impOfSubs subset_preserves_o];

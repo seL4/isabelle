@@ -4,9 +4,6 @@
     Copyright   1998  University of Cambridge
 
 Implementation of a multiple-client allocator from a single-client allocator
-
-add_path "../Induct";
-with_path "../Induct" time_use_thy "AllocImpl";
 *)
 
 AllocImpl = AllocBase + Follows + PPROD + 
@@ -20,38 +17,38 @@ record 'b merge =
   Out  :: 'b list          (*merge's OUTPUT history: merged items*)
   iOut :: nat list         (*merge's OUTPUT history: origins of merged items*)
 
-record ('a,'b) merge_u =
+record ('a,'b) merge_d =
   'b merge +
-  extra :: 'a       (*dummy field for new variables*)
+  dummy :: 'a       (*dummy field for new variables*)
 
 constdefs
-  non_extra :: ('a,'b) merge_u => 'b merge
-    "non_extra s == (|In = In s, Out = Out s, iOut = iOut s|)"
+  non_dummy :: ('a,'b) merge_d => 'b merge
+    "non_dummy s == (|In = In s, Out = Out s, iOut = iOut s|)"
 
 record 'b distr =
   In  :: 'b list          (*items to distribute*)
   iIn :: nat list         (*destinations of items to distribute*)
   Out :: nat => 'b list   (*distributed items*)
 
-record ('a,'b) distr_u =
+record ('a,'b) distr_d =
   'b distr +
-  extra :: 'a       (*dummy field for new variables*)
+  dummy :: 'a       (*dummy field for new variables*)
 
 record allocState =
   giv :: nat list   (*OUTPUT history: source of tokens*)
   ask :: nat list   (*INPUT: tokens requested from allocator*)
   rel :: nat list   (*INPUT: tokens released to allocator*)
 
-record 'a allocState_u =
+record 'a allocState_d =
   allocState +
-  extra    :: 'a                (*dummy field for new variables*)
+  dummy    :: 'a                (*dummy field for new variables*)
 
 record 'a systemState =
   allocState +
   mergeRel :: nat merge
   mergeAsk :: nat merge
   distr    :: nat distr
-  extra    :: 'a                  (*dummy field for new variables*)
+  dummy    :: 'a                  (*dummy field for new variables*)
 
 
 constdefs
@@ -59,25 +56,25 @@ constdefs
 (** Merge specification (the number of inputs is Nclients) ***)
 
   (*spec (10)*)
-  merge_increasing :: ('a,'b) merge_u program set
+  merge_increasing :: ('a,'b) merge_d program set
     "merge_increasing ==
          UNIV guarantees[funPair merge.Out merge.iOut]
          (Increasing merge.Out) Int (Increasing merge.iOut)"
 
   (*spec (11)*)
-  merge_eqOut :: ('a,'b) merge_u program set
+  merge_eqOut :: ('a,'b) merge_d program set
     "merge_eqOut ==
          UNIV guarantees[funPair merge.Out merge.iOut]
          Always {s. length (merge.Out s) = length (merge.iOut s)}"
 
   (*spec (12)*)
-  merge_bounded :: ('a,'b) merge_u program set
+  merge_bounded :: ('a,'b) merge_d program set
     "merge_bounded ==
          UNIV guarantees[merge.iOut]
          Always {s. ALL elt : set (merge.iOut s). elt < Nclients}"
 
   (*spec (13)*)
-  merge_follows :: ('a,'b) merge_u program set
+  merge_follows :: ('a,'b) merge_d program set
     "merge_follows ==
 	 (INT i : lessThan Nclients. Increasing (sub i o merge.In))
 	 guarantees[funPair merge.Out merge.iOut]
@@ -87,17 +84,17 @@ constdefs
 	  Fols (sub i o merge.In))"
 
   (*spec: preserves part*)
-    merge_preserves :: ('a,'b) merge_u program set
-    "merge_preserves == preserves (funPair merge.In merge_u.extra)"
+    merge_preserves :: ('a,'b) merge_d program set
+    "merge_preserves == preserves (funPair merge.In merge_d.dummy)"
 
-  merge_spec :: ('a,'b) merge_u program set
+  merge_spec :: ('a,'b) merge_d program set
     "merge_spec == merge_increasing Int merge_eqOut Int merge_bounded Int
                    merge_follows Int merge_preserves"
 
 (** Distributor specification (the number of outputs is Nclients) ***)
 
   (*spec (14)*)
-  distr_follows :: ('a,'b) distr_u program set
+  distr_follows :: ('a,'b) distr_d program set
     "distr_follows ==
 	 Increasing distr.In Int Increasing distr.iIn Int
 	 Always {s. ALL elt : set (distr.iIn s). elt < Nclients}
@@ -111,17 +108,17 @@ constdefs
 (** Single-client allocator specification (required) ***)
 
   (*spec (18)*)
-  alloc_increasing :: 'a allocState_u program set
+  alloc_increasing :: 'a allocState_d program set
     "alloc_increasing == UNIV guarantees[giv] Increasing giv"
 
   (*spec (19)*)
-  alloc_safety :: 'a allocState_u program set
+  alloc_safety :: 'a allocState_d program set
     "alloc_safety ==
 	 Increasing rel
          guarantees[giv] Always {s. tokens (giv s) <= NbT + tokens (rel s)}"
 
   (*spec (20)*)
-  alloc_progress :: 'a allocState_u program set
+  alloc_progress :: 'a allocState_d program set
     "alloc_progress ==
 	 Increasing ask Int Increasing rel Int
          Always {s. ALL elt : set (ask s). elt <= NbT}
@@ -133,11 +130,11 @@ constdefs
 	     (INT h. {s. h <= ask s} LeadsTo {s. h pfixLe giv s})"
 
   (*spec: preserves part*)
-    alloc_preserves :: 'a allocState_u program set
+    alloc_preserves :: 'a allocState_d program set
     "alloc_preserves == preserves (funPair rel
-				   (funPair ask allocState_u.extra))"
+				   (funPair ask allocState_d.dummy))"
   
-  alloc_spec :: 'a allocState_u program set
+  alloc_spec :: 'a allocState_d program set
     "alloc_spec == alloc_increasing Int alloc_safety Int alloc_progress Int
                    alloc_preserves"
 
@@ -177,26 +174,27 @@ constdefs
 
 
     (** State mappings **)
-      sysOfAlloc :: "((nat => merge) * 'a) allocState_u => 'a systemState"
-	"sysOfAlloc == %s. let (cl,xtr) = allocState_u.extra s
+      sysOfAlloc :: "((nat => merge) * 'a) allocState_d => 'a systemState"
+	"sysOfAlloc == %s. let (cl,xtr) = allocState_d.dummy s
 			   in (| giv = giv s,
 				 ask = ask s,
 				 rel = rel s,
 				 client   = cl,
-				 extra    = xtr|)"
+				 dummy    = xtr|)"
 
 
-      sysOfClient :: "(nat => merge) * 'a allocState_u => 'a systemState"
+      sysOfClient :: "(nat => merge) * 'a allocState_d => 'a systemState"
 	"sysOfClient == %(cl,al). (| giv = giv al,
 				     ask = ask al,
 				     rel = rel al,
 				     client   = cl,
-				     systemState.extra = allocState_u.extra al|)"
+				     systemState.dummy = allocState_d.dummy al|)"
 ****)
 
 consts 
-    Alloc  :: 'a allocState_u program
-    Merge  :: ('a,'b) merge_u program
+    Alloc  :: 'a allocState_d program
+    Merge  :: ('a,'b) merge_d program
+
 (*    
     Network :: 'a systemState program
     System  :: 'a systemState program
@@ -205,17 +203,9 @@ consts
 rules
     Alloc   "Alloc   : alloc_spec"
     Merge  "Merge  : merge_spec"
+
 (**    Network "Network : network_spec"**)
 
-
-
-(**
-defs
-    System_def
-      "System == rename sysOfAlloc Alloc Join Network Join
-                 (rename sysOfMerge
-		  (plam x: lessThan Nclients. rename merge_map Merge))"
-**)
 
 
 end

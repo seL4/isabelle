@@ -15,12 +15,7 @@ Goal "Init (PLam I F) = (INT i:I. lift_set i (Init (F i)))";
 by (simp_tac (simpset() addsimps [PLam_def, lift_def, lift_set_def]) 1);
 qed "Init_PLam";
 
-(*The "insert Id" is needed if I={}, since otherwise the RHS would be {} too*)
-Goal "Acts (PLam I F) = \
-\     insert Id (UN i:I. rename_act (lift_map i) `` Acts (F i))";
-by (simp_tac (simpset() addsimps [PLam_def, lift_def]) 1);
-qed "Acts_PLam";
-Addsimps [Init_PLam, Acts_PLam];
+Addsimps [Init_PLam];
 
 Goal "PLam {} F = SKIP";
 by (simp_tac (simpset() addsimps [PLam_def]) 1);
@@ -46,14 +41,13 @@ by (fast_tac (claset() addIs [component_JN]) 1);
 qed "component_PLam";
 
 
-(** Safety & Progress **)
+(** Safety & Progress: but are they used anywhere? **)
 
 Goal "[| i : I;  ALL j. F j : preserves snd |] ==>  \
 \     (PLam I F : (lift_set i (A <*> UNIV)) co \
 \                 (lift_set i (B <*> UNIV)))  =  \
 \     (F i : (A <*> UNIV) co (B <*> UNIV))";
-by (asm_simp_tac (simpset() addsimps [PLam_def, JN_constrains,
-				      Join_constrains]) 1);
+by (asm_simp_tac (simpset() addsimps [PLam_def, JN_constrains]) 1);
 by (stac (insert_Diff RS sym) 1 THEN assume_tac 1);
 by (asm_simp_tac (simpset() addsimps [lift_constrains]) 1);
 by (blast_tac (claset() addIs [constrains_imp_lift_constrains]) 1);
@@ -70,18 +64,17 @@ Goal "i : I ==> \
 by (asm_simp_tac (simpset() addsimps [JN_transient, PLam_def]) 1);
 qed "PLam_transient";
 
-Addsimps [PLam_constrains, PLam_stable, PLam_transient];
-
 (*This holds because the F j cannot change (lift_set i)*)
 Goal "[| i : I;  F i : (A <*> UNIV) ensures (B <*> UNIV);  \
 \        ALL j. F j : preserves snd |] ==>  \
 \     PLam I F : lift_set i (A <*> UNIV) ensures lift_set i (B <*> UNIV)";
 by (auto_tac (claset(), 
-	      simpset() addsimps [ensures_def, lift_transient_eq_disj,
-				  lift_set_Un_distrib RS sym,
-				  lift_set_Diff_distrib RS sym,
-				  Times_Un_distrib1 RS sym,
-				  Times_Diff_distrib1 RS sym]));
+    simpset() addsimps [ensures_def, PLam_constrains, PLam_transient,
+	                lift_transient_eq_disj,
+			lift_set_Un_distrib RS sym,
+			lift_set_Diff_distrib RS sym,
+			Times_Un_distrib1 RS sym,
+			Times_Diff_distrib1 RS sym]));
 qed "PLam_ensures";
 
 Goal "[| i : I;  \
@@ -102,7 +95,7 @@ Goal "[| F i : invariant (A <*> UNIV);  i : I;  \
 \        ALL j. F j : preserves snd |] \
 \     ==> PLam I F : invariant (lift_set i (A <*> UNIV))";
 by (auto_tac (claset(),
-	      simpset() addsimps [invariant_def]));
+	      simpset() addsimps [PLam_stable, invariant_def]));
 qed "invariant_imp_PLam_invariant";
 
 

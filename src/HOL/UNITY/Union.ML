@@ -188,6 +188,8 @@ Goal "(F Join G : A unless B) = (F : A unless B & G : A unless B)";
 by (simp_tac (simpset() addsimps [Join_constrains, unless_def]) 1);
 qed "Join_unless";
 
+Addsimps [Join_constrains, Join_unless];
+
 (*Analogous weak versions FAIL; see Misra [1994] 5.4.1, Substitution Axiom.
   reachable (F Join G) could be much bigger than reachable F, reachable G
 *)
@@ -195,7 +197,7 @@ qed "Join_unless";
 
 Goal "[| F : A co A';  G : B co B' |] \
 \     ==> F Join G : (A Int B) co (A' Un B')";
-by (simp_tac (simpset() addsimps [Join_constrains]) 1);
+by (Simp_tac 1);
 by (blast_tac (claset() addIs [constrains_weaken]) 1);
 qed "Join_constrains_weaken";
 
@@ -219,7 +221,7 @@ bind_thm ("invariant_JN_I", ballI RS result());
 
 Goal "(F Join G : stable A) = \
 \     (F : stable A & G : stable A)";
-by (simp_tac (simpset() addsimps [stable_def, Join_constrains]) 1);
+by (simp_tac (simpset() addsimps [stable_def]) 1);
 qed "Join_stable";
 
 Goal "(F Join G : increasing f) = \
@@ -228,9 +230,11 @@ by (simp_tac (simpset() addsimps [increasing_def, Join_stable]) 1);
 by (Blast_tac 1);
 qed "Join_increasing";
 
+Addsimps [Join_stable, Join_increasing];
+
 Goal "[| F : invariant A; G : invariant A |]  \
 \     ==> F Join G : invariant A";
-by (full_simp_tac (simpset() addsimps [invariant_def, Join_stable]) 1);
+by (full_simp_tac (simpset() addsimps [invariant_def]) 1);
 by (Blast_tac 1);
 qed "invariant_JoinI";
 
@@ -254,6 +258,8 @@ by (auto_tac (claset(),
 				  Join_def]));
 qed "Join_transient";
 
+Addsimps [Join_transient];
+
 Goal "F : transient A ==> F Join G : transient A";
 by (asm_simp_tac (simpset() addsimps [Join_transient]) 1);
 qed "Join_transient_I1";
@@ -274,8 +280,7 @@ Goalw [ensures_def]
      "F Join G : A ensures B =     \
 \     (F : (A-B) co (A Un B) & G : (A-B) co (A Un B) & \
 \      (F : transient (A-B) | G : transient (A-B)))";
-by (auto_tac (claset(),
-	      simpset() addsimps [Join_constrains, Join_transient]));
+by (auto_tac (claset(), simpset() addsimps [Join_transient]));
 qed "Join_ensures";
 
 Goalw [stable_def, constrains_def, Join_def]
@@ -289,7 +294,7 @@ qed "stable_Join_constrains";
   G : stable A *)
 Goal "[| F : stable A;  G : invariant A |] ==> F Join G : Always A";
 by (full_simp_tac (simpset() addsimps [Always_def, invariant_def, 
-				       Stable_eq_stable, Join_stable]) 1);
+				       Stable_eq_stable]) 1);
 by (force_tac(claset() addIs [stable_Int], simpset()) 1);
 qed "stable_Join_Always1";
 

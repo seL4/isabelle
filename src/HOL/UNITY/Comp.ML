@@ -100,9 +100,9 @@ Goalw [preserves_def, stable_def, constrains_def]
 by (Force_tac 1);
 qed "preserves_imp_eq";
 
-Goal "(F Join G : preserves v) = (F : preserves v & G : preserves v)";
-by (simp_tac (simpset() addsimps [Join_stable, preserves_def]) 1);
-by (Blast_tac 1);
+Goalw [preserves_def]
+     "(F Join G : preserves v) = (F : preserves v & G : preserves v)";
+by Auto_tac;
 qed "Join_preserves";
 
 Goal "(JOIN I F : preserves v) = (ALL i:I. F i : preserves v)";
@@ -173,7 +173,7 @@ qed "preserves_id_subset_stable";
 Goal "[| F : stable {s. P (v s) (w s)};   \
 \        G : preserves v;  G : preserves w |]               \
 \     ==> F Join G : stable {s. P (v s) (w s)}";
-by (asm_simp_tac (simpset() addsimps [Join_stable]) 1);
+by (Asm_simp_tac 1);
 by (subgoal_tac "G: preserves (funPair v w)" 1);
 by (Asm_simp_tac 2);
 by (dres_inst_tac [("P1", "split ?Q")]  
@@ -186,7 +186,7 @@ Goal "[| F : stable {s. v s <= w s};  G : preserves v;       \
 \     ==> F Join G : Stable {s. v s <= w s}";
 by (auto_tac (claset(), 
 	      simpset() addsimps [stable_def, Stable_def, Increasing_def, 
-		    Constrains_def, Join_constrains, all_conj_distrib]));
+				  Constrains_def, all_conj_distrib]));
 by (blast_tac (claset() addIs [constrains_weaken]) 1);
 (*The G case remains*)
 by (auto_tac (claset(), 

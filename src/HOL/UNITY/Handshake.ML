@@ -19,7 +19,7 @@ Goal "(F Join G) : Always invFG";
 by (rtac AlwaysI 1);
 by (Force_tac 1);
 by (rtac (constrains_imp_Constrains RS StableI) 1);
-by (auto_tac (claset(), simpset() addsimps [Join_constrains]));
+by Auto_tac;
 by (constrains_tac 2);
 by (auto_tac (claset() addIs [order_antisym] addSEs [le_SucE], simpset()));
 by (constrains_tac 1);

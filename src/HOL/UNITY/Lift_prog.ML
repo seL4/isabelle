@@ -46,6 +46,7 @@ AddIffs [lift_map_eq_iff];
 Goalw [lift_map_def, drop_map_def] "!!s. drop_map i (lift_map i s) = s";
 by (force_tac (claset() addIs [insert_map_inverse], simpset()) 1);
 qed "drop_map_lift_map_eq";
+Addsimps [drop_map_lift_map_eq];
 
 Goalw [lift_map_def] "inj (lift_map i)";
 by (rtac injI 1);
@@ -57,10 +58,11 @@ qed "inj_lift_map";
 Goalw [lift_map_def, drop_map_def] "!!s. lift_map i (drop_map i s) = s";
 by (force_tac (claset(), simpset() addsimps [insert_map_delete_map_eq]) 1);
 qed "lift_map_drop_map_eq";
+Addsimps [lift_map_drop_map_eq];
 
 Goal "(drop_map i s) = (drop_map i s') ==> s=s'";
 by (dres_inst_tac [("f", "lift_map i")] arg_cong 1);
-by (full_simp_tac (simpset() addsimps [lift_map_drop_map_eq]) 1);
+by (Full_simp_tac 1);
 qed "drop_map_inject";
 AddSDs [drop_map_inject];
 
@@ -74,19 +76,15 @@ by (simp_tac (simpset() addsimps [bij_def, inj_lift_map, surj_lift_map]) 1);
 qed "bij_lift_map";
 AddIffs [bij_lift_map];
 
-AddIffs [bij_lift_map RS mem_rename_act_iff];
-
 Goal "inv (lift_map i) = drop_map i";
 by (rtac inv_equality 1);
-by (rtac lift_map_drop_map_eq 2);
-by (rtac drop_map_lift_map_eq 1);
+by Auto_tac;  
 qed "inv_lift_map_eq";
 Addsimps [inv_lift_map_eq];
 
 Goal "inv (drop_map i) = lift_map i";
 by (rtac inv_equality 1);
-by (rtac drop_map_lift_map_eq 2);
-by (rtac lift_map_drop_map_eq 1);
+by Auto_tac;  
 qed "inv_drop_map_eq";
 Addsimps [inv_drop_map_eq];
 
@@ -96,18 +94,13 @@ by (simp_tac (simpset() delsimps [inv_lift_map_eq]
 qed "bij_drop_map";
 AddIffs [bij_drop_map];
 
-(*** sub ***)
-
+(*sub's main property!*)
 Goal "sub i f = f i";
 by (simp_tac (simpset() addsimps [sub_def]) 1);
 qed "sub_apply";
 Addsimps [sub_apply];
 
-Goal "lift_set i {s. P s} = {s. P (drop_map i s)}";
-by (rtac set_ext 1);
-by (asm_simp_tac (simpset() delsimps [image_Collect]
-			    addsimps [lift_set_def, bij_image_Collect_eq]) 1);
-qed "lift_set_eq_Collect";
+(*** lift_set ***)
 
 Goalw [lift_set_def] "lift_set i {} = {}";
 by Auto_tac;
@@ -117,7 +110,6 @@ Addsimps [lift_set_empty];
 Goalw [lift_set_def] "(lift_map i x : lift_set i A) = (x : A)";
 by (rtac (inj_lift_map RS inj_image_mem_iff) 1);
 qed "lift_set_iff";
-AddIffs [lift_set_iff];
 
 (*Do we really need both this one and its predecessor?*)
 Goal "((f,uu) : lift_set i A) = ((f i, (delete_map i f, uu)) : A)";
@@ -232,6 +224,11 @@ by (asm_simp_tac
 qed "lift_guarantees_eq_lift_inv";
 
 
+(*** We devote an ENORMOUS effort to proving lift_transient_eq_disj, 
+     which is used only in TimerArray and perhaps isn't even essential
+     there!
+***)
+
 (*To preserve snd means that the second component is there just to allow
   guarantees properties to be stated.  Converse fails, for lift i F can 
   change function components other than i*)
@@ -264,12 +261,21 @@ qed "vimage_sub_eq_lift_set";
 
 Addsimps [vimage_o_fst_eq, vimage_sub_eq_lift_set];
 
+Goalw [extend_act_def]
+     "((s,s') : extend_act (%(x,u::unit). lift_map i x) act) = \
+\     ((drop_map i s, drop_map i s') : act)";
+by Auto_tac;  
+by (rtac bexI 1);
+by Auto_tac;  
+qed "mem_lift_act_iff";
+AddIffs [mem_lift_act_iff];
+
 Goal "[| F : preserves snd;  i~=j |] \
 \     ==> lift j F : stable (lift_set i (A <*> UNIV))";
 by (auto_tac (claset(),
 	      simpset() addsimps [lift_def, lift_set_def, 
-				  stable_def, constrains_def, 
-				  mem_rename_act_iff, mem_rename_set_iff]));
+				  stable_def, constrains_def, rename_def,
+                                  extend_def, mem_rename_set_iff]));
 by (auto_tac (claset() addSDs [preserves_imp_eq],
 	      simpset() addsimps [lift_map_def, drop_map_def]));
 by (dres_inst_tac [("x", "i")] fun_cong 1);
@@ -326,8 +332,8 @@ Goal "F : preserves snd \
 by (case_tac "i=j" 1);
 by (auto_tac (claset(), simpset() addsimps [lift_transient]));
 by (auto_tac (claset(),
-	      simpset() addsimps [lift_def, transient_def,
-				  Domain_rename_act]));
+	      simpset() addsimps [lift_set_def, lift_def, transient_def, 
+                              rename_def, extend_def, Domain_extend_act]));
 by (dtac subsetD 1);
 by (Blast_tac 1);
 by Auto_tac;
@@ -338,12 +344,11 @@ by Auto_tac;
 by (dtac sym 1);
 by (dtac subsetD 1);
 by (rtac ImageI 1);
-by (etac rename_actI 1);
-by (force_tac (claset(), simpset() addsimps [lift_set_def]) 1);
+by (etac 
+    (bij_lift_map RS good_map_bij RS export (mem_extend_act_iff RS iffD2)) 1);
+by (Force_tac 1);
 by (etac (lift_map_eq_diff RS exE) 1);
-by (assume_tac 1);
-by (dtac ComplD 1);
-by (etac notE 1 THEN etac ssubst 1 THEN Fast_tac 1);
+by Auto_tac;  
 qed "lift_transient_eq_disj";
 
 (*USELESS??*)

@@ -40,34 +40,8 @@ Goalw [rename_def] "Init (rename h F) = h``(Init F)";
 by (Simp_tac 1);
 qed "Init_rename";
 
-Goalw [rename_def, rename_act_def]
-     "bij h ==> Acts (rename h F) = (rename_act h `` Acts F)";
-by (asm_simp_tac (simpset() addsimps [export Acts_extend]) 1);
-qed "Acts_rename";
+Addsimps [Init_rename];
 
-Addsimps [Init_rename, Acts_rename];
-
-(*Useful if we don't assume bij h*)
-Goalw [rename_def, rename_act_def, extend_def]
-     "Acts (rename h F) = insert Id (rename_act h `` Acts F)";
-by (asm_simp_tac (simpset() addsimps [export Acts_extend]) 1);
-qed "raw_Acts_rename";
-
-Goalw [rename_act_def, extend_act_def]
-     "(s,s') : act ==> (h s, h s') : rename_act h act";
-by Auto_tac;
-qed "rename_actI";
-
-Goalw [rename_act_def]
-     "bij h ==> ((s,s') : rename_act h act) = ((inv h s, inv h s') : act)";
-by (rtac trans 1);
-by (etac (bij_export mem_extend_act_iff) 2);
-by (asm_simp_tac (simpset() addsimps [bij_is_surj RS surj_f_inv_f]) 1);
-qed "mem_rename_act_iff";
-
-Goalw [rename_act_def] "Domain (rename_act h act) = h``(Domain act)";
-by (asm_simp_tac (simpset() addsimps [export Domain_extend_act]) 1);
-qed "Domain_rename_act"; 
 
 (*** inverse properties ***)
 
@@ -139,14 +113,16 @@ by Auto_tac;
 by (dres_inst_tac [("x", "mk_program ({x}, {})")] spec 1);
 by (dres_inst_tac [("x", "mk_program ({y}, {})")] spec 1);
 by (auto_tac (claset(), 
-	      simpset() addsimps [program_equality_iff, raw_Acts_rename]));
+	      simpset() addsimps [program_equality_iff, 
+                                  rename_def, extend_def]));
 qed "inj_rename_imp_inj";
 
 Goalw [surj_def] "surj (rename h) ==> surj h";
 by Auto_tac;
 by (dres_inst_tac [("x", "mk_program ({y}, {})")] spec 1);
 by (auto_tac (claset(), 
-	      simpset() addsimps [program_equality_iff, raw_Acts_rename]));
+	      simpset() addsimps [program_equality_iff, 
+                                  rename_def, extend_def]));
 qed "surj_rename_imp_surj";
 
 Goalw [bij_def] "bij (rename h) ==> bij h";
@@ -337,41 +313,3 @@ qed "rename_image_leadsTo";
 Goal "bij h ==> rename h `` (A LeadsTo B) = (h `` A) LeadsTo (h``B)";
 by (rename_image_tac [rename_LeadsTo]);
 qed "rename_image_LeadsTo";
-
-
-
-
-(** junk
-
-
-Goalw [extend_act_def, project_act_def, surj_def]
- "surj h ==> extend_act (%(x,u). h x) (project_act (%(x,u). h x) act) = act";
-by Auto_tac;
-by (forw_inst_tac [("x", "a")] spec 1);
-by (dres_inst_tac [("x", "b")] spec 1);
-by Auto_tac;
-qed "project_act_inverse";
-
-Goal "bij h ==> rename h (rename (inv h) F) = F";
-by (rtac program_equalityI 1);
-by (Asm_simp_tac 1);
-by (asm_simp_tac
-    (simpset() addsimps [rename_def, inverse_def, export Acts_extend,
-			 image_eq_UN, export extend_act_Id,
-			 bij_is_surj RS project_act_inverse]) 1);
-qed "rename_rename_inv";
-Addsimps [rename_rename_inv];
-
-
-
-Goalw [bij_def]
-     "bij h \
-\     ==> extend_set (%(x,u::'c). inv h x) = inv (extend_set (%(x,u::'c). h x))";
-by (rtac ext 1);
-by (auto_tac (claset() addSIs [image_eqI], 
-	      simpset() addsimps [extend_set_def, project_set_def,
-				  surj_f_inv_f]));
-qed "extend_set_inv";
-
-
-***)

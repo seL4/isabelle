@@ -49,7 +49,7 @@ fun normalize th =
 val record_auto_tac =
     auto_tac (claset() addIs [ext] addSWrapper record_split_wrapper, 
 	      simpset() addsimps [sysOfAlloc_def, sysOfClient_def,
-				  client_map_def, non_extra_def, funPair_def,
+				  client_map_def, non_dummy_def, funPair_def,
 				  o_apply, Let_def]);
 
 
@@ -64,7 +64,7 @@ Goal "!!s. inv sysOfAlloc s = \
 \            (| allocGiv = allocGiv s,   \
 \               allocAsk = allocAsk s,   \
 \               allocRel = allocRel s,   \
-\               allocState_u.extra = (client s, extra s) |)";
+\               allocState_d.dummy = (client s, dummy s) |)";
 by (rtac (inj_sysOfAlloc RS inv_f_eq) 1);
 by record_auto_tac;
 qed "inv_sysOfAlloc_eq";
@@ -95,7 +95,7 @@ Goal "!!s. inv sysOfClient s = \
 \             (| allocGiv = allocGiv s, \
 \                allocAsk = allocAsk s, \
 \                allocRel = allocRel s, \
-\                allocState_u.extra = systemState.extra s|) )";
+\                allocState_d.dummy = systemState.dummy s|) )";
 by (rtac (inj_sysOfClient RS inv_f_eq) 1);
 by record_auto_tac;
 qed "inv_sysOfClient_eq";
@@ -122,7 +122,7 @@ AddIffs [inj_client_map];
 
 Goal "!!s. inv client_map s = \
 \            (%(x,y).(|giv = giv x, ask = ask x, rel = rel x, \
-\                      clientState_u.extra = y|)) s";
+\                      clientState_d.dummy = y|)) s";
 by (rtac (inj_client_map RS inv_f_eq) 1);
 by record_auto_tac;
 qed "inv_client_map_eq";
@@ -142,19 +142,19 @@ AddIffs [bij_client_map];
 
 (** o-simprules for client_map **)
 
-Goalw [client_map_def] "fst o client_map = non_extra";
+Goalw [client_map_def] "fst o client_map = non_dummy";
 by (rtac fst_o_funPair 1);
 qed "fst_o_client_map";
 Addsimps (make_o_equivs fst_o_client_map);
 
-Goalw [client_map_def] "snd o client_map = clientState_u.extra";
+Goalw [client_map_def] "snd o client_map = clientState_d.dummy";
 by (rtac snd_o_funPair 1);
 qed "snd_o_client_map";
 Addsimps (make_o_equivs snd_o_client_map);
 
 (** o-simprules for sysOfAlloc [MUST BE AUTOMATED] **)
 
-Goal "client o sysOfAlloc = fst o allocState_u.extra ";
+Goal "client o sysOfAlloc = fst o allocState_d.dummy ";
 by record_auto_tac;
 qed "client_o_sysOfAlloc";
 Addsimps (make_o_equivs client_o_sysOfAlloc);
@@ -220,13 +220,13 @@ val Client_Spec =
 
 val [Client_Increasing_ask, Client_Increasing_rel,
      Client_Bounded, Client_Progress, Client_preserves_giv,
-     Client_preserves_extra] =
+     Client_preserves_dummy] =
         Client_Spec 
           |> simplify (simpset() addsimps [guarantees_Int_right]) 
           |> list_of_Int;
 
 AddIffs [Client_Increasing_ask, Client_Increasing_rel, Client_Bounded,
-	 Client_preserves_giv, Client_preserves_extra];
+	 Client_preserves_giv, Client_preserves_dummy];
 
 
 (*Network : <unfolded specification> *)
@@ -319,7 +319,7 @@ val rename_client_map_tac =
 			     bij_imp_bij_inv, surj_rename RS surj_range,
 			     inv_inv_eq]) 1,
     asm_simp_tac
-        (simpset() addsimps [o_def, non_extra_def, guarantees_Int_right]) 1];
+        (simpset() addsimps [o_def, non_dummy_def, guarantees_Int_right]) 1];
 
 
 (*Lifting Client_Increasing to systemState*)
@@ -379,7 +379,7 @@ Goal
 by (auto_tac (claset() addSIs [Network_Giv RS component_guaranteesD, 
 		 rename_Alloc_Increasing RS component_guaranteesD], 
 	      simpset()));
-by (ALLGOALS (simp_tac (simpset() addsimps [o_def, non_extra_def])));
+by (ALLGOALS (simp_tac (simpset() addsimps [o_def, non_dummy_def])));
 by (auto_tac
     (claset() addSIs [rename_Alloc_Increasing RS component_guaranteesD],
      simpset()));
@@ -406,14 +406,16 @@ qed "Always_allocRel_le_rel";
 
 (*** Proof of the safety property (1) ***)
 
-(*safety (1), step 1 is System_Increasing_rel*)
+(*safety (1), step 1 is System_Follows_rel*)
 
 (*safety (1), step 2*)
-Goal "i < Nclients ==> System : Increasing (sub i o allocRel)";
-by (etac (System_Follows_rel RS Follows_Increasing1) 1);
-qed "System_Increasing_allocRel";
+(* i < Nclients ==> System : Increasing (sub i o allocRel) *)
+bind_thm ("System_Increasing_allocRel", 
+          System_Follows_rel RS Follows_Increasing1);
 
-(*Lifting Alloc_safety up to the level of systemState*)
+(*Lifting Alloc_safety up to the level of systemState.
+  Simplififying with o_def gets rid of the translations but it unfortunately
+  gets rid of the other "o"s too.*)
 val rename_Alloc_Safety = 
     Alloc_Safety RS rename_guarantees_sysOfAlloc_I
      |> simplify (simpset() addsimps [o_def]);
@@ -427,7 +429,7 @@ Goal
 by (simp_tac (simpset() addsimps [o_apply]) 1);
 by (rtac (rename_Alloc_Safety RS component_guaranteesD) 1);
 by (auto_tac (claset(), 
-	       simpset() addsimps [o_simp System_Increasing_allocRel]));
+              simpset() addsimps [o_simp System_Increasing_allocRel]));
 qed "System_sum_bounded";
 
 
@@ -464,19 +466,14 @@ qed "System_safety";
 
 (*** Proof of the progress property (2) ***)
 
-(*Now there are proofs identical to System_Increasing_rel and
-  System_Increasing_allocRel: tactics needed!*)
-
-(*progress (2), step 1 is System_Increasing_ask and System_Increasing_rel*)
+(*progress (2), step 1 is System_Follows_ask and System_Follows_rel*)
 
 (*progress (2), step 2; see also System_Increasing_allocRel*)
-Goal "i < Nclients ==> System : Increasing (sub i o allocAsk)";
-by (etac (System_Follows_ask RS Follows_Increasing1) 1);
-qed "System_Increasing_allocAsk";
+(* i < Nclients ==> System : Increasing (sub i o allocAsk) *)
+bind_thm ("System_Increasing_allocAsk",
+          System_Follows_ask RS Follows_Increasing1);
 
-(*progress (2), step 3*)
-(*All this trouble just to lift "Client_Bounded" to systemState
-  (though it is similar to that for Client_Increasing*)
+(*progress (2), step 3: lifting "Client_Bounded" to systemState*)
 Goal "i : I \
 \   ==> rename sysOfClient (plam x: I. rename client_map Client) : \
 \         UNIV \
@@ -498,10 +495,9 @@ by (Blast_tac 1);
 qed "Collect_all_imp_eq";
 
 (*progress (2), step 4*)
-Goal "System : Always {s. ALL i. i<Nclients --> \
-\                         (ALL elt : set ((sub i o allocAsk) s). elt <= NbT)}";
-by (auto_tac (claset(), 
-	      simpset() addsimps [Collect_all_imp_eq]));
+Goal "System : Always {s. ALL i<Nclients. \
+\                         ALL elt : set ((sub i o allocAsk) s). elt <= NbT}";
+by (auto_tac (claset(),  simpset() addsimps [Collect_all_imp_eq]));
 by (rtac (Always_Int_rule [Always_allocAsk_le_ask, System_Bounded_ask] 
     RS Always_weaken) 1);
 by (auto_tac (claset() addDs [set_mono], simpset()));
@@ -510,9 +506,9 @@ qed "System_Bounded_allocAsk";
 (*progress (2), step 5 is System_Increasing_allocGiv*)
 
 (*progress (2), step 6*)
-Goal "i < Nclients ==> System : Increasing (giv o sub i o client)";
-by (etac (System_Follows_allocGiv RS Follows_Increasing1) 1);
-qed "System_Increasing_giv";
+(* i < Nclients ==> System : Increasing (giv o sub i o client) *)
+bind_thm ("System_Increasing_giv",
+          System_Follows_allocGiv RS Follows_Increasing1);
 
 
 Goal "i: I \
@@ -523,8 +519,7 @@ Goal "i: I \
 \                           h pfixGe (ask o sub i o client) s}  \
 \                 LeadsTo {s. tokens h <= (tokens o rel o sub i o client) s})";
 by rename_client_map_tac;
-by (asm_simp_tac
-    (simpset() addsimps [rewrite_rule [o_def] Client_Progress]) 1);
+by (asm_simp_tac (simpset() addsimps [o_simp Client_Progress]) 1);
 qed "rename_Client_Progress";
 
 
@@ -538,8 +533,7 @@ by (rtac INT_I 1);
 (*Couldn't have just used Auto_tac since the "INT h" must be kept*)
 by (rtac ([rename_Client_Progress,
 	   Client_component_System] MRS component_guaranteesD) 1);
-by (asm_full_simp_tac (simpset() addsimps [System_Increasing_giv]) 2);
-by Auto_tac;
+by (auto_tac (claset(), simpset() addsimps [System_Increasing_giv]));  
 qed "System_Client_Progress";
 
 (*Concludes
@@ -609,13 +603,10 @@ qed "System_Alloc_Progress";
 
 (*progress (2), step 10 (final result!) *)
 Goalw [system_progress_def] "System : system_progress";
-by (Clarify_tac 1);
-by (rtac LeadsTo_Trans 1);
-by (etac (System_Follows_allocGiv RS Follows_LeadsTo_pfixLe) 2);
-by (rtac LeadsTo_Trans 1);
-by (cut_facts_tac [System_Alloc_Progress] 2);
-by (Blast_tac 2);
-by (etac (System_Follows_ask RS Follows_LeadsTo) 1);
+by (cut_facts_tac [System_Alloc_Progress] 1);
+by (blast_tac (claset() addIs [LeadsTo_Trans, 
+                System_Follows_allocGiv RS Follows_LeadsTo_pfixLe, 
+                System_Follows_ask RS Follows_LeadsTo]) 1);
 qed "System_Progress";
 
 

@@ -15,11 +15,9 @@ Addsimps (map simp_of_act [rel_act_def, tok_act_def, ask_act_def]);
 (*Safety property 1: ask, rel are increasing*)
 Goal "Client: UNIV guarantees[funPair rel ask] \
 \             Increasing ask Int Increasing rel";
-by (safe_tac (claset() addSIs [guaranteesI,increasing_imp_Increasing]));
 by (auto_tac
-    (claset(),
-     simpset() addsimps [impOfSubs preserves_subset_increasing,
-			 Join_increasing]));
+    (claset() addSIs [increasing_imp_Increasing],
+     simpset() addsimps [guar_def, impOfSubs preserves_subset_increasing]));
 by (auto_tac (claset(), simpset() addsimps [increasing_def]));
 by (ALLGOALS constrains_tac);
 by Auto_tac;
@@ -70,9 +68,7 @@ qed "Join_Stable_rel_le_giv";
 
 Goal "[| Client Join G : Increasing giv;  G : preserves rel |] \
 \     ==> Client Join G : Always {s. rel s <= giv s}";
-by (rtac AlwaysI 1);
-by (rtac Join_Stable_rel_le_giv 2);
-by Auto_tac;
+by (force_tac (claset() addIs [AlwaysI, Join_Stable_rel_le_giv], simpset()) 1);
 qed "Join_Always_rel_le_giv";
 
 Goal "Client : transient {s. rel s = k & k<h & h <= giv s & h pfixGe ask s}";
@@ -146,12 +142,12 @@ qed "client_progress";
 
 (*This shows that the Client won't alter other variables in any state
   that it is combined with*)
-Goal "Client : preserves extra";
+Goal "Client : preserves dummy";
 by (rewtac preserves_def);
 by Auto_tac;
 by (constrains_tac 1);
 by Auto_tac;
-qed "client_preserves_extra";
+qed "client_preserves_dummy";
 
 
 (** Obsolete lemmas from first version of the Client **)

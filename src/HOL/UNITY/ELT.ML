@@ -316,8 +316,7 @@ by (rtac leadsETo_Basis 1);
 by (auto_tac (claset(),
 	      simpset() addsimps [Diff_eq_empty_iff RS iffD2,
 				  Int_Diff, ensures_def,
-				  givenBy_eq_Collect, Join_stable,
-				  Join_constrains, Join_transient]));
+				  givenBy_eq_Collect, Join_transient]));
 by (blast_tac (claset() addIs [transient_strengthen]) 3);
 by (ALLGOALS (dres_inst_tac [("P1","P")] (impOfSubs preserves_subset_stable)));
 by (rewtac stable_def);
@@ -335,8 +334,7 @@ by (rtac leadsETo_Basis 1);
 by (case_tac "A <= B" 1);
 by (etac subset_imp_ensures 1);
 by (auto_tac (claset() addIs [constrains_weaken],
-              simpset() addsimps [stable_def, ensures_def, 
-                                  Join_constrains, Join_transient]));
+              simpset() addsimps [stable_def, ensures_def, Join_transient]));
 by (REPEAT (thin_tac "?F : ?A co ?B" 1));
 by (etac transientE 1);
 by (rewtac constrains_def);
@@ -551,11 +549,11 @@ by (asm_simp_tac (simpset() addsimps [Int_Diff, Int_extend_set_lemma,
 by (rtac Join_project_ensures_strong 1);
 by (auto_tac (claset() addDs [preserves_o_project_transient_empty]
 		       addIs [project_stable_project_set], 
-	      simpset() addsimps [Int_left_absorb, Join_stable]));
+	      simpset() addsimps [Int_left_absorb]));
 by (asm_simp_tac
     (simpset() addsimps [stable_ensures_Int RS ensures_weaken_R,
 			 Int_lower2, project_stable_project_set,
-			 Join_stable, extend_stable_project_set]) 1);
+			 extend_stable_project_set]) 1);
 val lemma = result();
 
 Goal "[| extend h F Join G : stable C;  \
@@ -623,7 +621,7 @@ Goal "[| extend h F Join G : stable C;    \
 \             project_set h C Int project_set h B";
 by (rtac (psp_stable2 RS leadsTo_weaken_L) 1);
 by (auto_tac (claset(),
-	      simpset() addsimps [project_stable_project_set, Join_stable, 
+	      simpset() addsimps [project_stable_project_set, 
 				  extend_stable_project_set]));
 val lemma = result();
 
@@ -637,7 +635,7 @@ by (asm_simp_tac (HOL_ss addsimps [Int_UN_distrib, project_set_Union]) 3);
 by (blast_tac (claset() addIs [leadsTo_UN]) 3);
 by (blast_tac (claset() addIs [leadsTo_Trans, lemma]) 2);
 by (asm_full_simp_tac 
-    (simpset() addsimps [givenBy_eq_extend_set, Join_stable]) 1);
+    (simpset() addsimps [givenBy_eq_extend_set]) 1);
 by (rtac leadsTo_Basis 1);
 by (blast_tac (claset() addIs [leadsTo_Basis,
 			       ensures_extend_set_imp_project_ensures]) 1);

@@ -26,6 +26,7 @@ by (constrains_tac 1);
 qed "Timer_preserves_snd";
 AddIffs [Timer_preserves_snd];
 
+Addsimps [PLam_stable];
 
 Goal "finite I \
 \     ==> (plam i: I. Timer) : UNIV leadsTo {(s,uu). ALL i:I. s i = 0}";
