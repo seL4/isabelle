@@ -653,7 +653,7 @@ fun rewritec (prover, signt, maxt)
           else proc_rews ps;
   in case eta_t of
        Abs _ $ _ => Some (transitive eta_thm
-         (beta_conversion false (rhs_of eta_thm)), skel0)
+         (beta_conversion false eta_t'), skel0)
      | _ => (case rews (sort_rrules (Net.match_term rules eta_t)) of
                None => proc_rews (Net.match_term procs eta_t)
              | some => some)
@@ -678,7 +678,9 @@ fun congc (prover,signt,maxt) {thm=cong,lhs=lhs} t =
        None => err ("Could not prove", thm')
      | Some thm2 => (case check_conv true (beta_eta_conversion t) thm2 of
           None => err ("Should not have proved", thm2)
-        | Some thm2' => thm2')
+        | Some thm2' =>
+            if op aconv (pairself term_of (dest_equals (cprop_of thm2')))
+            then None else Some thm2')
   end;
 
 val (cA, (cB, cC)) =
@@ -686,6 +688,9 @@ val (cA, (cB, cC)) =
 
 fun transitive' thm1 None = Some thm1
   | transitive' thm1 (Some thm2) = Some (transitive thm1 thm2);
+
+fun transitive'' None thm2 = Some thm2
+  | transitive'' (Some thm1) thm2 = Some (transitive thm1 thm2);
 
 fun bottomc ((simprem,useprem,mutsimp), prover, sign, maxidx) =
   let
@@ -759,15 +764,15 @@ fun bottomc ((simprem,useprem,mutsimp), prover, sign, maxidx) =
    may be a redex. Example: map (%x.x) = (%xs.xs) wrt map_cong *)
                           (let
                              val thm = congc (prover mss, sign, maxidx) cong t0;
-                             val t = rhs_of thm;
+                             val t = if_none (apsome rhs_of thm) t0;
                              val (cl, cr) = Thm.dest_comb t
                              val dVar = Var(("", 0), dummyT)
                              val skel =
                                list_comb (h, replicate (length ts) dVar)
                            in case botc skel mss cl of
-                                None => Some thm
-                              | Some thm' => Some (transitive thm
-                                  (combination thm' (reflexive cr)))
+                                None => thm
+                              | Some thm' => transitive'' thm
+                                  (combination thm' (reflexive cr))
                            end handle TERM _ => error "congc result"
                                     | Pattern.MATCH => appc ()))
                   | _ => appc ()
