@@ -37,7 +37,8 @@ sig
       induct: thm, intrs: thm list, mk_cases: string -> thm, mono: thm, unfold: thm}
   val print_inductives: theory -> unit
   val cases_of: Sign.sg -> string -> thm
-  val cases: Sign.sg -> thm list
+  val all_cases: Sign.sg -> thm list
+  val all_inducts: Sign.sg -> thm list
   val mono_add_global: theory attribute
   val mono_del_global: theory attribute
   val get_monos: theory -> thm list
@@ -105,7 +106,7 @@ fun put_inductives names info thy =
   in InductiveData.put tab_monos thy end;
 
 
-(* cases rules *)
+(* cases and induct rules *)
 
 fun cases_of sg name =
   let
@@ -119,7 +120,8 @@ fun cases_of sg name =
     | Some thm => thm)
   end;
 
-fun cases sg = flat (map (#elims o #2 o #2) (Symtab.dest (#1 (InductiveData.get_sg sg))));
+fun all_cases sg = flat (map (#elims o #2 o #2) (Symtab.dest (#1 (InductiveData.get_sg sg))));
+fun all_inducts sg = map (#induct o #2 o #2) (Symtab.dest (#1 (InductiveData.get_sg sg)));
       
 
 
