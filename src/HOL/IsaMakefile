@@ -432,7 +432,7 @@ HOL-ex: HOL $(LOG)/HOL-ex.gz
 
 $(LOG)/HOL-ex.gz: $(OUT)/HOL  ex/AVL.ML ex/AVL.thy ex/BT.ML ex/BT.thy \
   ex/InSort.ML ex/InSort.thy ex/MT.ML ex/MT.thy ex/NatSum.ML ex/NatSum.thy \
-  ex/Fib.ML ex/Fib.thy ex/Primes.ML ex/Primes.thy \
+  ex/Fib.ML ex/Fib.thy ex/Primes.thy \
   ex/Factorization.ML ex/Factorization.thy \
   ex/Primrec.ML ex/Primrec.thy \
   ex/Puzzle.ML ex/Puzzle.thy ex/Qsort.ML ex/Qsort.thy \
