@@ -71,20 +71,6 @@ by (rewtac rew);
 by (rtac lfp_subset 1);
 val def_lfp_subset = result();
 
-val subset0_cs = FOL_cs
-  addSIs [ballI, InterI, CollectI, PowI, empty_subsetI]
-  addIs [bexI, UnionI, ReplaceI, RepFunI]
-  addSEs [bexE, make_elim PowD, UnionE, ReplaceE2, RepFunE,
-	  CollectE, emptyE]
-  addEs [rev_ballE, InterD, make_elim InterD, subsetD];
-
-val subset_cs = subset0_cs 
-  addSIs [subset_refl,cons_subsetI,subset_consI,Union_least,UN_least,Un_least,
-	  Inter_greatest,Int_greatest,RepFun_subset]
-  addSIs [Un_upper1,Un_upper2,Int_lower1,Int_lower2]
-  addIs  [Union_upper,Inter_lower]
-  addSEs [cons_subsetE];
-
 val prems = goalw Fixedpt.thy [lfp_def]
     "[| h(D) <= D;  !!X. [| h(X) <= X;  X<=D |] ==> A<=X |] ==> \
 \    A <= lfp(D,h)";
