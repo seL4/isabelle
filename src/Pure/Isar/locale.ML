@@ -888,7 +888,7 @@ fun prep_context_statement prep_expr prep_elemss prep_facts
       activate_facts prep_facts ((context, axioms), ps);
 
 (* CB: testing *)
-
+(*
 val axioms' = if true (* null axioms *) then axioms' else
 let val {view = (ax3_view, ax3_axioms), ...} =
   the_locale (ProofContext.theory_of context) "Type.ax3";
@@ -897,6 +897,7 @@ val ax_TrueFalse = Thm.assume (read_cterm (sign_of_thm (hd axioms))
 val {view = (ax4_view, ax4_axioms), ...} =
   the_locale (ProofContext.theory_of context) "Type.ax4";
 in axioms' @ ax3_axioms @ [ax_TrueFalse] @ (tl ax4_axioms) end;
+*)
     val ((ctxt, _), (elemss, _)) =
       activate_facts prep_facts ((import_ctxt, axioms'), qs);
   in
@@ -922,29 +923,12 @@ fun gen_statement prep_locale prep_ctxt raw_locale elems concl ctxt =
 
 in
 
-(* CB
-arguments are (see below): x->import, y->body (elements?), z->context
+(* CB: arguments are: x->import, y->body (elements?), z->context *)
 fun read_context x y z = #1 (gen_context true [] [] x y [] z);
 fun cert_context x y z = #1 (gen_context_i true [] [] x y [] z);
-*)
-fun read_context x y z = (warning "read_context\n"; #1 (gen_context true [] [] x y [] z));
-fun cert_context x y z = (warning "cert_context\n"; #1 (gen_context_i true [] [] x y [] z));
 
-(* CB
 val read_context_statement = gen_statement intern gen_context;
 val cert_context_statement = gen_statement (K I) gen_context_i;
-*)
-
-fun read_context_statement so cs xss ctxt =
-let val (locale, view_statement, locale_ctxt, elems_ctxt, concl') =
-  gen_statement intern gen_context so cs xss ctxt;
-in (locale, view_statement, locale_ctxt, elems_ctxt, concl')
-end;
-fun cert_context_statement so cs xss ctxt =
-let val (locale, view_statement, locale_ctxt, elems_ctxt, concl') =
-  gen_statement (K I) gen_context_i so cs xss ctxt;
-in (locale, view_statement, locale_ctxt, elems_ctxt, concl')  
-end;
 
 end;
 
