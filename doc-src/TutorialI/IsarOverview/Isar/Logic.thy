@@ -42,13 +42,11 @@ subsubsection{*Introduction rules*}
 
 text{* We start with a really trivial toy proof to introduce the basic
 features of structured proofs. *}
-
 lemma "A \<longrightarrow> A"
 proof (rule impI)
   assume a: "A"
   show "A" by(rule a)
 qed
-
 text{*\noindent
 The operational reading: the \isakeyword{assume}-\isakeyword{show} block
 proves @{prop"A \<Longrightarrow> A"},
@@ -71,7 +69,6 @@ qed
 text{* Trivial proofs, in particular those by assumption, should be trivial
 to perform. Method ``.'' does just that (and a bit more --- see later). Thus
 naming of assumptions is often superfluous: *}
-
 lemma "A \<longrightarrow> A"
 proof
   assume "A"
@@ -81,13 +78,11 @@ qed
 text{* To hide proofs by assumption further, \isakeyword{by}@{text"(method)"}
 first applies @{text method} and then tries to solve all remaining subgoals
 by assumption: *}
-
 lemma "A \<longrightarrow> A \<and> A"
 proof
   assume A
   show "A \<and> A" by(rule conjI)
 qed
-
 text{*\noindent A drawback of these implicit proofs by assumption is that it
 is no longer obvious where an assumption is used.
 
@@ -101,7 +96,6 @@ proof
   assume A
   show "A \<and> A" ..
 qed
-
 text{*\noindent
 This is what happens: first the matching introduction rule @{thm[source]conjI}
 is applied (first ``.''), then the two subgoals are solved by assumption
@@ -113,7 +107,6 @@ text{*A typical elimination rule is @{thm[source]conjE}, $\land$-elimination:
 @{thm[display,indent=5]conjE[no_vars]}  In the following proof it is applied
 by hand, after its first (``\emph{major}'') premise has been eliminated via
 @{text"[OF AB]"}: *}
-
 lemma "A \<and> B \<longrightarrow> B \<and> A"
 proof
   assume AB: "A \<and> B"
@@ -123,7 +116,6 @@ proof
     show ?thesis ..
   qed
 qed
-
 text{*\noindent Note that the term @{text"?thesis"} always stands for the
 ``current goal'', i.e.\ the enclosing \isakeyword{show} (or
 \isakeyword{have}).
@@ -159,7 +151,6 @@ such that the proof of each proposition builds on the previous proposition.
 The previous proposition can be referred to via the fact @{text this}.
 This greatly reduces the need for explicit naming of propositions:
 *}
-
 lemma "A \<and> B \<longrightarrow> B \<and> A"
 proof
   assume "A \<and> B"
@@ -176,7 +167,6 @@ abbreviated to \isakeyword{thus}.
 \medskip
 
 Here is an alternative proof that operates purely by forward reasoning: *}
-
 lemma "A \<and> B \<longrightarrow> B \<and> A"
 proof
   assume ab: "A \<and> B"
@@ -184,7 +174,6 @@ proof
   from ab have b: B ..
   from b a show "B \<and> A" ..
 qed
-
 text{*\noindent
 It is worth examining this text in detail because it exhibits a number of new features.
 
@@ -246,7 +235,6 @@ proof
     qed
   qed
 qed;
-
 text{*\noindent Apart from demonstrating the strangeness of classical
 arguments by contradiction, this example also introduces a new language
 feature to deal with multiple subgoals: \isakeyword{next}.  When showing
@@ -259,13 +247,11 @@ subsection{*Avoiding duplication*}
 text{* So far our examples have been a bit unnatural: normally we want to
 prove rules expressed with @{text"\<Longrightarrow>"}, not @{text"\<longrightarrow>"}. Here is an example:
 *}
-
 lemma "(A \<Longrightarrow> False) \<Longrightarrow> \<not> A"
 proof
   assume "A \<Longrightarrow> False" "A"
   thus False .
 qed
-
 text{*\noindent The \isakeyword{proof} always works on the conclusion,
 @{prop"\<not>A"} in our case, thus selecting $\neg$-introduction. Hence we can
 additionally assume @{prop"A"}. Why does ``.'' prove @{prop False}? Because
@@ -283,7 +269,6 @@ proof
   assume "?P \<Longrightarrow> False" ?P
   thus False .
 qed
-
 text{*\noindent Any formula may be followed by
 @{text"("}\isakeyword{is}~\emph{pattern}@{text")"} which causes the pattern
 to be matched against the formula, instantiating the @{text"?"}-variables in
@@ -300,7 +285,6 @@ proof
   assume ?P
   with A show False .
 qed
-
 text{*\noindent Here we have used the abbreviation
 \begin{center}
 \isakeyword{with}~\emph{facts} \quad = \quad
@@ -322,6 +306,7 @@ proof -
   qed
 qed
 
+
 subsection{*Predicate calculus*}
 
 text{* Command \isakeyword{fix} introduces new local variables into a
@@ -329,13 +314,11 @@ proof. It corresponds to @{text"\<And>"} (the universal quantifier at the
 meta-level) just like \isakeyword{assume}-\isakeyword{show} corresponds to
 @{text"\<Longrightarrow>"}. Here is a sample proof, annotated with the rules that are
 applied implictly: *}
-
 lemma assumes P: "\<forall>x. P x" shows "\<forall>x. P(f x)"
 proof  -- "@{thm[source]allI}: @{thm allI[no_vars]}"
   fix a
   from P show "P(f a)" ..  --"@{thm[source]allE}: @{thm allE[no_vars]}"
 qed
-
 text{*\noindent Note that in the proof we have chosen to call the bound
 variable @{term a} instead of @{term x} merely to show that the choice of
 names is irrelevant.
@@ -352,21 +335,17 @@ proof -
     show ?thesis ..  --"@{thm[source]exI}: @{thm exI[no_vars]}"
   qed
 qed
-
-text {*\noindent
-Explicit $\exists$-elimination as seen above can become
+text{*\noindent Explicit $\exists$-elimination as seen above can become
 cumbersome in practice.  The derived Isar language element
-\isakeyword{obtain} provides a more handsome way to perform
-generalized existence reasoning:
-*}
+\isakeyword{obtain} provides a more handsome way to perform generalized
+existence reasoning: *}
 
 lemma assumes Pf: "\<exists>x. P(f x)" shows "\<exists>y. P y"
 proof -
   from Pf obtain a where "P(f a)" ..
   thus "\<exists>y. P y" ..
 qed
-
-text {*\noindent Note how the proof text follows the usual mathematical style
+text{*\noindent Note how the proof text follows the usual mathematical style
 of concluding $P(x)$ from $\exists x. P(x)$, while carefully introducing $x$
 as a new local variable.  Technically, \isakeyword{obtain} is similar to
 \isakeyword{fix} and \isakeyword{assume} together with a soundness proof of
@@ -389,7 +368,6 @@ text{* So far we have confined ourselves to single step proofs. Of course
 powerful automatic methods can be used just as well. Here is an example,
 Cantor's theorem that there is no surjective function from a set to its
 powerset: *}
-
 theorem "\<exists>S. S \<notin> range (f :: 'a \<Rightarrow> 'a set)"
 proof
   let ?S = "{x. x \<notin> f x}"
@@ -407,7 +385,6 @@ proof
     qed
   qed
 qed
-
 text{*\noindent
 For a start, the example demonstrates two new language elements:
 \begin{itemize}
@@ -447,8 +424,7 @@ proof
     qed
   qed
 qed
-
-text {*\noindent Method @{text contradiction} succeeds if both $P$ and
+text{*\noindent Method @{text contradiction} succeeds if both $P$ and
 $\neg P$ are among the assumptions and the facts fed into that step.
 
 As it happens, Cantor's theorem can be proved automatically by best-first
@@ -458,7 +434,6 @@ navigates through the large search space:
 
 theorem "\<exists>S. S \<notin> range (f :: 'a \<Rightarrow> 'a set)"
 by best
-
 text{*\noindent Of course this only works in the context of HOL's carefully
 constructed introduction and elimination rules for set theory.
 
@@ -475,10 +450,8 @@ proof
     apply assumption
     done
 qed
-
 text{*\noindent You may need to resort to this technique if an automatic step
 fails to prove the desired proposition. *}
-
 
 section{*Case distinction and induction*}
 
@@ -487,14 +460,12 @@ subsection{*Case distinction*}
 
 text{* We have already met the @{text cases} method for performing
 binary case splits. Here is another example: *}
-
 lemma "P \<or> \<not> P"
 proof cases
   assume "P" thus ?thesis ..
 next
   assume "\<not> P" thus ?thesis ..
 qed
-
 text{*\noindent As always, the cases can be tackled in any order.
 
 This form is appropriate if @{term P} is textually small.  However, if
@@ -507,7 +478,6 @@ proof (cases "P")
 next
   case False thus ?thesis ..
 qed
-
 text{*\noindent which is simply a shorthand for the previous
 proof. More precisely, the phrases \isakeyword{case}~@{prop
 True}/@{prop False} abbreviate the corresponding assumptions @{prop P}
@@ -515,14 +485,15 @@ and @{prop"\<not>P"}.
 
 The same game can be played with other datatypes, for example lists:
 *}
+
 (*<*)declare length_tl[simp del](*>*)
+
 lemma "length(tl xs) = length xs - 1"
 proof (cases xs)
   case Nil thus ?thesis by simp
 next
   case Cons thus ?thesis by simp
 qed
-
 text{*\noindent Here \isakeyword{case}~@{text Nil} abbreviates
 \isakeyword{assume}~@{prop"x = []"} and \isakeyword{case}~@{text Cons}
 abbreviates \isakeyword{assume}~@{text"xs = _ # _"}. The names of the head
@@ -544,10 +515,8 @@ next
     by simp
   thus ?thesis by simp
 qed
-
 text{* New case distincion rules can be declared any time, even with
 named cases. *}
-
 
 subsection{*Induction*}
 
@@ -555,14 +524,12 @@ subsection{*Induction*}
 subsubsection{*Structural induction*}
 
 text{* We start with a simple inductive proof where both cases are proved automatically: *}
-
 lemma "2 * (\<Sum>i<n+1. i) = n*(n+1)"
 by (induct n, simp_all)
 
 text{*\noindent If we want to expose more of the structure of the
 proof, we can use pattern matching to avoid having to repeat the goal
 statement: *}
-
 lemma "2 * (\<Sum>i<n+1. i) = n*(n+1)" (is "?P n")
 proof (induct n)
   show "?P 0" by simp
@@ -574,7 +541,6 @@ qed
 text{* \noindent We could refine this further to show more of the equational
 proof. Instead we explore the same avenue as for case distinctions:
 introducing context via the \isakeyword{case} command: *}
-
 lemma "2 * (\<Sum>i<n+1. i) = n*(n+1)"
 proof (induct n)
   case 0 show ?case by simp
@@ -590,7 +556,6 @@ have the same problem as with case distinctions: we cannot refer to @{term n}
 in the induction step because it has not been introduced via \isakeyword{fix}
 (in contrast to the previous proof). The solution is the same as above:
 replace @{term Suc} by @{text"(Suc i)"}: *}
-
 lemma fixes n::nat shows "n < n*n + 1"
 proof (induct n)
   case 0 show ?case by simp
@@ -606,7 +571,6 @@ Let us now tackle a more ambitious lemma: proving complete induction
 @{prop[display,indent=5]"(\<And>n. (\<And>m. m < n \<Longrightarrow> P m) \<Longrightarrow> P n) \<Longrightarrow> P n"}
 via structural induction. It is well known that one needs to prove
 something more general first: *}
-
 lemma cind_lemma:
   assumes A: "(\<And>n. (\<And>m. m < n \<Longrightarrow> P m) \<Longrightarrow> P n)"
   shows "\<And>m. m < n \<Longrightarrow> P(m::nat)"
@@ -625,7 +589,6 @@ next
     with Suc show "P m" by blast
   qed
 qed
-
 text{* \noindent Let us first examine the statement of the lemma.
 In contrast to the style advertized in the
 Tutorial~\cite{LNCS2283}, structured Isar proofs do not need to
@@ -655,7 +618,6 @@ subsubsection{*Rule induction*}
 
 text{* We define our own version of reflexive transitive closure of a
 relation *}
-
 consts rtc :: "('a \<times> 'a)set \<Rightarrow> ('a \<times> 'a)set"   ("_*" [1000] 999)
 inductive "r*"
 intros
@@ -663,7 +625,15 @@ refl:  "(x,x) \<in> r*"
 step:  "\<lbrakk> (x,y) \<in> r; (y,z) \<in> r* \<rbrakk> \<Longrightarrow> (x,z) \<in> r*"
 
 text{* \noindent and prove that @{term"r*"} is indeed transitive: *}
-
+lemma assumes A: "(x,y) \<in> r*"
+  shows "(y,z) \<in> r* \<Longrightarrow> (x,z) \<in> r*" (is "PROP ?P x y")
+using A
+proof induct
+  case refl thus ?case .
+next
+  case step thus ?case by(blast intro: rtc.step)
+qed
+(*
 lemma assumes A: "(x,y) \<in> r*"
   shows "(y,z) \<in> r* \<Longrightarrow> (x,z) \<in> r*" (is "PROP ?P x y")
 proof -
@@ -672,12 +642,12 @@ proof -
     fix x show "PROP ?P x x" .
   next
     fix x' x y
-    assume "(x',x) \<in> r" and
-           "PROP ?P x y" -- "The induction hypothesis"
+    assume "(x',x) \<in> r"
+           "PROP ?P x y"   -- "induction hypothesis"
     thus "PROP ?P x' y" by(blast intro: rtc.step)
   qed
 qed
-
+*)
 text{*\noindent Rule induction is triggered by a fact $(x_1,\dots,x_n) \in R$
 piped into the proof, here \isakeyword{from}~@{text A}. The proof itself
 follows the two rules of the inductive definition very closely.  The only
