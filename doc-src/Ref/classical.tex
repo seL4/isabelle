@@ -558,12 +558,22 @@ but allows unknowns to be instantiated.
 \end{ttdescription}
 
 \subsection{The current claset}\label{sec:current-claset}
-Some logics (\FOL, {\HOL} and \ZF) support the concept of a current
-claset\index{claset!current}.  This is a default set of classical rules.  The
-underlying idea is quite similar to that of a current simpset described in
-\S\ref{sec:simp-for-dummies}; please read that section, including its
-warnings.  Just like simpsets, clasets can be associated with theories.  The
-tactics
+
+Each theory is equipped with an implicit \emph{current
+  claset}\index{claset!current}.  This is a default set of classical
+rules.  The underlying idea is quite similar to that of a current
+simpset described in \S\ref{sec:simp-for-dummies}; please read that
+section, including its warnings.  The implicit claset can be accessed
+as follows:
+\begin{ttbox}
+claset        : unit -> claset
+claset_ref    : unit -> claset ref
+claset_of     : theory -> claset
+claset_ref_of : theory -> claset ref
+print_claset  : theory -> unit
+\end{ttbox}
+
+The tactics
 \begin{ttbox}
 Blast_tac        : int -> tactic
 Auto_tac         :        tactic
@@ -584,10 +594,10 @@ Step_tac         : int -> tactic
 \indexbold{*Step_tac}
 make use of the current claset.  For example, \texttt{Blast_tac} is defined as 
 \begin{ttbox}
-fun Blast_tac i st = blast_tac (!claset) i st;
+fun Blast_tac i st = blast_tac (claset()) i st;
 \end{ttbox}
-and gets the current claset, \ttindex{!claset}, only after it is applied to a
-proof state.  The functions
+and gets the current claset, only after it is applied to a proof
+state.  The functions
 \begin{ttbox}
 AddSIs, AddSEs, AddSDs, AddIs, AddEs, AddDs: thm list -> unit
 \end{ttbox}
