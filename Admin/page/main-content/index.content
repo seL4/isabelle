@@ -35,6 +35,15 @@ workshops and courses.
 
 <p>
 
+<h2>AFP - The Archive of Formal Proofs</h2>
+
+The <a href="http://afp.sf.net">Archive of Formal Proofs</a> is a
+collection of proof libraries, examples, and larger scientifc
+developments, mechanically checked in Isabelle. It is organized in the
+way of a scientific journal. Submissions are refereed.
+
+<p>
+
 <h2><!-- _GP_ distname --></h2>
 New features in <strong><!-- _GP_ distname --></strong> include
 <ul>
