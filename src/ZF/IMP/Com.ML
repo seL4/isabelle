@@ -10,15 +10,16 @@ val assign_type = prove_goalw Com.thy [assign_def]
 	"!!n. [| sigma:loc -> nat; n:nat |] ==> sigma[n/x] : loc -> nat"
     (fn _ => [ fast_tac (ZF_cs addIs [apply_type,lam_type,if_type]) 1 ]);
 
-val type_cs = ZF_cs addSEs [make_elim(evala.dom_subset RS subsetD),
-                            make_elim(evalb.dom_subset RS subsetD),
-                            make_elim(evalc.dom_subset RS subsetD)];
+val type_cs = ZF_cs addSDs [evala.dom_subset RS subsetD,
+                            evalb.dom_subset RS subsetD,
+                            evalc.dom_subset RS subsetD];
 
 (**********     type_intrs for evala     **********)
 
 val evala_type_intrs = 
  map (fn s => prove_goal Com.thy s (fn _ => [(fast_tac type_cs 1)]))
- ["!!a.<a,sigma> -a-> n ==> a:aexp","!!a.<a,sigma> -a-> n ==> sigma:loc->nat",
+ ["!!a.<a,sigma> -a-> n ==> a:aexp",
+  "!!a.<a,sigma> -a-> n ==> sigma:loc->nat",
   "!!a.<a,sigma> -a-> n ==> n:nat"];
 
 
@@ -26,7 +27,8 @@ val evala_type_intrs =
 
 val evalb_type_intrs = 
  map (fn s => prove_goal Com.thy s (fn _ => [(fast_tac type_cs 1)]))
- ["!!b.<b,sigma> -b-> w ==> b:bexp","!!b.<b,sigma> -b-> w ==> sigma:loc->nat",
+ ["!!b.<b,sigma> -b-> w ==> b:bexp",
+  "!!b.<b,sigma> -b-> w ==> sigma:loc->nat",
   "!!b.<b,sigma> -b-> w ==> w:bool"];
 
 
