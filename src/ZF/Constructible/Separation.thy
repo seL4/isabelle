@@ -1,3 +1,9 @@
+(*  Title:      ZF/Constructible/Separation.thy
+    ID:         $Id$
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   2002  University of Cambridge
+*)
+
 header{*Early Instances of Separation and Strong Replacement*}
 
 theory Separation = L_axioms + WF_absolute:
@@ -67,6 +73,26 @@ apply (rule imp_iff_sats)
 apply (rule_tac [2] i=1 and j=0 and env="[y,x,A]" in mem_iff_sats)
 apply (rule_tac i=0 and j=2 in mem_iff_sats)
 apply (simp_all add: succ_Un_distrib [symmetric])
+done
+
+subsection{*Separation for Set Difference*}
+
+lemma Diff_Reflects:
+     "REFLECTS[\<lambda>x. x \<notin> B, \<lambda>i x. x \<notin> B]"
+by (intro FOL_reflections)  
+
+lemma Diff_separation:
+     "L(B) ==> separation(L, \<lambda>x. x \<notin> B)"
+apply (rule separation_CollectI) 
+apply (rule_tac A="{B,z}" in subset_LsetE, blast ) 
+apply (rule ReflectsE [OF Diff_Reflects], assumption)
+apply (drule subset_Lset_ltD, assumption) 
+apply (erule reflection_imp_L_separation)
+  apply (simp_all add: lt_Ord2, clarify)
+apply (rule DPow_LsetI) 
+apply (rule not_iff_sats) 
+apply (rule_tac env="[x,B]" in mem_iff_sats)
+apply (rule sep_rules | simp)+
 done
 
 subsection{*Separation for Cartesian Product*}
@@ -448,18 +474,20 @@ subsection{*Instantiating the locale @{text M_axioms}*}
 text{*Separation (and Strong Replacement) for basic set-theoretic constructions
 such as intersection, Cartesian Product and image.*}
 
-theorem M_axioms_L: "PROP M_axioms(L)"
-  apply (rule M_axioms.intro)
-   apply (rule M_triv_axioms_L)
+lemma M_axioms_axioms_L: "M_axioms_axioms(L)"
   apply (rule M_axioms_axioms.intro)
-               apply (assumption | rule
-                 Inter_separation cartprod_separation image_separation
-                 converse_separation restrict_separation
-                 comp_separation pred_separation Memrel_separation
-                 funspace_succ_replacement well_ord_iso_separation
-                 obase_separation obase_equals_separation
-                 omap_replacement is_recfun_separation)+
+       apply (assumption | rule
+	 Inter_separation Diff_separation cartprod_separation image_separation
+	 converse_separation restrict_separation
+	 comp_separation pred_separation Memrel_separation
+	 funspace_succ_replacement well_ord_iso_separation
+	 obase_separation obase_equals_separation
+	 omap_replacement is_recfun_separation)+
   done
+
+theorem M_axioms_L: "PROP M_axioms(L)"
+by (rule M_axioms.intro [OF M_triv_axioms_L M_axioms_axioms_L])
+
 
 lemmas cartprod_iff = M_axioms.cartprod_iff [OF M_axioms_L]
   and cartprod_closed = M_axioms.cartprod_closed [OF M_axioms_L]

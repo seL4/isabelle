@@ -1,3 +1,10 @@
+(*  Title:      ZF/Constructible/Rec_Separation.thy
+    ID:         $Id$
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   2002  University of Cambridge
+
+FIXME: define nth_fm and prove its "sats" theorem
+*)
 
 header {*Separation for Facts About Recursion*}
 
@@ -199,13 +206,14 @@ done
 
 subsubsection{*Instantiating the locale @{text M_trancl}*}
 
-theorem M_trancl_L: "PROP M_trancl(L)"
-  apply (rule M_trancl.intro)
-    apply (rule M_axioms.axioms [OF M_axioms_L])+
+lemma M_trancl_axioms_L: "M_trancl_axioms(L)"
   apply (rule M_trancl_axioms.intro)
-   apply (assumption | rule
-     rtrancl_separation wellfounded_trancl_separation)+
+   apply (assumption | rule rtrancl_separation wellfounded_trancl_separation)+
   done
+
+theorem M_trancl_L: "PROP M_trancl(L)"
+by (rule M_trancl.intro
+         [OF M_triv_axioms_L M_axioms_axioms_L M_trancl_axioms_L])
 
 lemmas iterates_abs = M_trancl.iterates_abs [OF M_trancl_L]
   and rtran_closure_rtrancl = M_trancl.rtran_closure_rtrancl [OF M_trancl_L]
@@ -298,12 +306,15 @@ done
 (*FIXME: surely proof can be improved?*)
 
 
+text{*The additional variable in the premise, namely @{term f'}, is essential.
+It lets @{term MH} depend upon @{term x}, which seems often necessary.
+The same thing occurs in @{text is_wfrec_reflection}.*}
 theorem is_recfun_reflection:
   assumes MH_reflection:
-    "!!f g h. REFLECTS[\<lambda>x. MH(L, f(x), g(x), h(x)),
-                     \<lambda>i x. MH(**Lset(i), f(x), g(x), h(x))]"
-  shows "REFLECTS[\<lambda>x. M_is_recfun(L, MH(L), f(x), g(x), h(x)),
-               \<lambda>i x. M_is_recfun(**Lset(i), MH(**Lset(i)), f(x), g(x), h(x))]"
+    "!!f' f g h. REFLECTS[\<lambda>x. MH(L, f'(x), f(x), g(x), h(x)), 
+                     \<lambda>i x. MH(**Lset(i), f'(x), f(x), g(x), h(x))]"
+  shows "REFLECTS[\<lambda>x. M_is_recfun(L, MH(L,x), f(x), g(x), h(x)), 
+             \<lambda>i x. M_is_recfun(**Lset(i), MH(**Lset(i),x), f(x), g(x), h(x))]"
 apply (simp (no_asm_use) only: M_is_recfun_def setclass_simps)
 apply (intro FOL_reflections function_reflections
              restriction_reflection MH_reflection)
@@ -311,13 +322,13 @@ done
 
 text{*Currently, @{text sats}-theorems for higher-order operators don't seem
 useful.  Reflection theorems do work, though.  This one avoids the repetition
-of the @{text MH}-term.*}
+of the @{text MH}-term. *}
 theorem is_wfrec_reflection:
   assumes MH_reflection:
-    "!!f g h. REFLECTS[\<lambda>x. MH(L, f(x), g(x), h(x)),
-                     \<lambda>i x. MH(**Lset(i), f(x), g(x), h(x))]"
-  shows "REFLECTS[\<lambda>x. is_wfrec(L, MH(L), f(x), g(x), h(x)),
-               \<lambda>i x. is_wfrec(**Lset(i), MH(**Lset(i)), f(x), g(x), h(x))]"
+    "!!f' f g h. REFLECTS[\<lambda>x. MH(L, f'(x), f(x), g(x), h(x)), 
+                     \<lambda>i x. MH(**Lset(i), f'(x), f(x), g(x), h(x))]"
+  shows "REFLECTS[\<lambda>x. is_wfrec(L, MH(L,x), f(x), g(x), h(x)), 
+               \<lambda>i x. is_wfrec(**Lset(i), MH(**Lset(i),x), f(x), g(x), h(x))]"
 apply (simp (no_asm_use) only: is_wfrec_def setclass_simps)
 apply (intro FOL_reflections MH_reflection is_recfun_reflection)
 done
@@ -435,12 +446,16 @@ done
 
 subsubsection{*Instantiating the locale @{text M_wfrank}*}
 
-theorem M_wfrank_L: "PROP M_wfrank(L)"
-  apply (rule M_wfrank.intro)
-     apply (rule M_trancl.axioms [OF M_trancl_L])+
+lemma M_wfrank_axioms_L: "M_wfrank_axioms(L)"
   apply (rule M_wfrank_axioms.intro)
    apply (assumption | rule
      wfrank_separation wfrank_strong_replacement Ord_wfrank_separation)+
+  done
+
+theorem M_wfrank_L: "PROP M_wfrank(L)"
+  apply (rule M_wfrank.intro)
+     apply (rule M_trancl.axioms [OF M_trancl_L])+
+  apply (rule M_wfrank_axioms_L) 
   done
 
 lemmas iterates_closed = M_wfrank.iterates_closed [OF M_wfrank_L]
@@ -1123,6 +1138,42 @@ done
 subsection{*Absoluteness for the Function @{term nth}*}
 
 
+subsubsection{*The Formula @{term is_hd}, Internalized*}
+
+(*   "is_hd(M,xs,H) == 
+       (is_Nil(M,xs) --> empty(M,H)) &
+       (\<forall>x[M]. \<forall>l[M]. ~ is_Cons(M,x,l,xs) | H=x) &
+       (is_quasilist(M,xs) | empty(M,H))" *)
+constdefs hd_fm :: "[i,i]=>i"
+    "hd_fm(xs,H) == 
+       And(Implies(Nil_fm(xs), empty_fm(H)),
+           And(Forall(Forall(Or(Neg(Cons_fm(1,0,xs#+2)), Equal(H#+2,1)))),
+               Or(quasilist_fm(xs), empty_fm(H))))"
+
+lemma hd_type [TC]:
+     "[| x \<in> nat; y \<in> nat |] ==> hd_fm(x,y) \<in> formula"
+by (simp add: hd_fm_def) 
+
+lemma sats_hd_fm [simp]:
+   "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
+    ==> sats(A, hd_fm(x,y), env) <-> is_hd(**A, nth(x,env), nth(y,env))"
+by (simp add: hd_fm_def is_hd_def)
+
+lemma hd_iff_sats:
+      "[| nth(i,env) = x; nth(j,env) = y;
+          i \<in> nat; j \<in> nat; env \<in> list(A)|]
+       ==> is_hd(**A, x, y) <-> sats(A, hd_fm(i,j), env)"
+by simp
+
+theorem hd_reflection:
+     "REFLECTS[\<lambda>x. is_hd(L,f(x),g(x)), 
+               \<lambda>i x. is_hd(**Lset(i),f(x),g(x))]"
+apply (simp only: is_hd_def setclass_simps)
+apply (intro FOL_reflections Nil_reflection Cons_reflection
+             quasilist_reflection empty_reflection)  
+done
+
+
 subsubsection{*The Formula @{term is_tl}, Internalized*}
 
 (*     "is_tl(M,xs,T) ==
@@ -1156,6 +1207,38 @@ theorem tl_reflection:
 apply (simp only: is_tl_def setclass_simps)
 apply (intro FOL_reflections Nil_reflection Cons_reflection
              quasilist_reflection empty_reflection)
+done
+
+
+subsubsection{*The Formula @{term is_nth}, Internalized*}
+
+(* "is_nth(M,n,l,Z) == 
+      \<exists>X[M]. \<exists>sn[M]. \<exists>msn[M]. 
+       2       1       0
+       successor(M,n,sn) & membership(M,sn,msn) &
+       is_wfrec(M, iterates_MH(M, is_tl(M), l), msn, n, X) &
+       is_hd(M,X,Z)"
+constdefs nth_fm :: "[i,i,i]=>i"
+    "nth_fm(n,l,Z) == 
+       Exists(Exists(Exists(
+         And(successor_fm(n#+3,1),
+          And(membership_fm(1,0),
+           And(
+ *)
+
+theorem nth_reflection:
+     "REFLECTS[\<lambda>x. is_nth(L, f(x), g(x), h(x)),  
+               \<lambda>i x. is_nth(**Lset(i), f(x), g(x), h(x))]"
+apply (simp only: is_nth_def setclass_simps)
+apply (intro FOL_reflections function_reflections is_wfrec_reflection 
+             iterates_MH_reflection hd_reflection tl_reflection) 
+done
+
+theorem bool_of_o_reflection:
+     "REFLECTS[\<lambda>x. is_bool_of_o(L, P(x), f(x)),  
+               \<lambda>i x. is_bool_of_o(**Lset(i), P(x), f(x))]"
+apply (simp only: is_bool_of_o_def setclass_simps)
+apply (intro FOL_reflections function_reflections) 
 done
 
 
@@ -1199,15 +1282,19 @@ done
 
 subsubsection{*Instantiating the locale @{text M_datatypes}*}
 
-theorem M_datatypes_L: "PROP M_datatypes(L)"
-  apply (rule M_datatypes.intro)
-      apply (rule M_wfrank.axioms [OF M_wfrank_L])+
+lemma M_datatypes_axioms_L: "M_datatypes_axioms(L)"
   apply (rule M_datatypes_axioms.intro)
       apply (assumption | rule
         list_replacement1 list_replacement2
         formula_replacement1 formula_replacement2
         nth_replacement)+
   done
+
+theorem M_datatypes_L: "PROP M_datatypes(L)"
+  apply (rule M_datatypes.intro)
+      apply (rule M_wfrank.axioms [OF M_wfrank_L])+
+ apply (rule M_datatypes_axioms_L); 
+ done
 
 lemmas list_closed = M_datatypes.list_closed [OF M_datatypes_L]
   and formula_closed = M_datatypes.formula_closed [OF M_datatypes_L]
@@ -1307,11 +1394,15 @@ done
 
 subsubsection{*Instantiating the locale @{text M_eclose}*}
 
+lemma M_eclose_axioms_L: "M_eclose_axioms(L)"
+  apply (rule M_eclose_axioms.intro)
+   apply (assumption | rule eclose_replacement1 eclose_replacement2)+
+  done
+
 theorem M_eclose_L: "PROP M_eclose(L)"
   apply (rule M_eclose.intro)
        apply (rule M_datatypes.axioms [OF M_datatypes_L])+
-  apply (rule M_eclose_axioms.intro)
-   apply (assumption | rule eclose_replacement1 eclose_replacement2)+
+  apply (rule M_eclose_axioms_L)
   done
 
 lemmas eclose_closed [intro, simp] = M_eclose.eclose_closed [OF M_eclose_L]
