@@ -338,9 +338,9 @@ fun pretty_goals_aux (prt_sort, prt_typ, prt_term) begin_goal (msg, main) maxgoa
       (if sorts then pretty_varsT prop else []);
   in
     setmp show_no_free_types true
-      (setmp show_types (! show_types orelse ! show_sorts)
+      (setmp show_types (! show_types orelse ! show_sorts orelse ! show_all_types)
         (setmp show_sorts false pretty_gs))
-   (! show_types orelse ! show_sorts, ! show_sorts)
+   (! show_types orelse ! show_sorts orelse ! show_all_types, ! show_sorts)
   end;
 
 fun pretty_goals_marker bg n th =
