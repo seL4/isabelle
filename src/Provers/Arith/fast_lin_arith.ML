@@ -52,12 +52,8 @@ mk_nat_thm(t) = "0 <= t"
 
 signature LIN_ARITH_DATA =
 sig
-  val add_mono_thms:    thm list ref
-                            (* [| i rel1 j; m rel2 n |] ==> i + m rel3 j + n *)
-  val lessD:            thm list ref (* m < n ==> m+1 <= n *)
   val decomp:
-    term -> ((term*int)list * int * string * (term*int)list * int * bool)option
-  val ss_ref: simpset ref
+    Sign.sg -> term -> ((term*int)list * int * string * (term*int)list * int * bool)option
 end;
 (*
 decomp(`x Rel y') should yield (p,i,Rel,q,j,d)
@@ -66,13 +62,17 @@ decomp(`x Rel y') should yield (p,i,Rel,q,j,d)
          of summand * multiplicity pairs and a constant summand and
          d indicates if the domain is discrete.
 
-ss_ref must reduce contradictory <= to False.
+ss must reduce contradictory <= to False.
    It should also cancel common summands to keep <= reduced;
    otherwise <= can grow to massive proportions.
 *)
 
 signature FAST_LIN_ARITH =
 sig
+  val setup: (theory -> theory) list
+  val map_data: ({add_mono_thms: thm list, lessD: thm list, simpset: Simplifier.simpset}
+    -> {add_mono_thms: thm list, lessD: thm list, simpset: Simplifier.simpset})
+    -> theory -> theory
   val trace           : bool ref
   val lin_arith_prover: Sign.sg -> thm list -> term -> thm option
   val     lin_arith_tac:             int -> tactic
@@ -82,6 +82,35 @@ end;
 functor Fast_Lin_Arith(structure LA_Logic:LIN_ARITH_LOGIC 
                        and       LA_Data:LIN_ARITH_DATA) : FAST_LIN_ARITH =
 struct
+
+
+(** theory data **)
+
+(* data kind 'Provers/fast_lin_arith' *)
+
+structure DataArgs =
+struct
+  val name = "Provers/fast_lin_arith";
+  type T = {add_mono_thms: thm list, lessD: thm list, simpset: Simplifier.simpset};
+
+  val empty = {add_mono_thms = [], lessD = [], simpset = Simplifier.empty_ss};
+  val copy = I;
+  val prep_ext = I;
+
+  fun merge ({add_mono_thms = add_mono_thms1, lessD = lessD1, simpset = simpset1},
+      {add_mono_thms = add_mono_thms2, lessD = lessD2, simpset = simpset2}) =
+    {add_mono_thms = Drule.merge_rules (add_mono_thms1, add_mono_thms2),
+      lessD = Drule.merge_rules (lessD1, lessD2),
+      simpset = Simplifier.merge_ss (simpset1, simpset2)};
+
+  fun print _ _ = ();
+end;
+
+structure Data = TheoryDataFun(DataArgs);
+val map_data = Data.map;
+val setup = [Data.init];
+
+
 
 (*** A fast decision procedure ***)
 (*** Code ported from HOL Light ***)
@@ -263,14 +292,14 @@ local
  exception FalseE of thm
 in
 fun mkthm sg asms just =
-  let val atoms = foldl (fn (ats,(lhs,_,_,rhs,_,_)) =>
+  let val {add_mono_thms, lessD, simpset} = Data.get_sg sg;
+      val atoms = foldl (fn (ats,(lhs,_,_,rhs,_,_)) =>
                             map fst lhs  union  (map fst rhs  union  ats))
-                        ([], mapfilter (LA_Data.decomp o concl_of) asms)
+                        ([], mapfilter (LA_Data.decomp sg o concl_of) asms)
 
       fun addthms thm1 thm2 =
         let val conj = thm1 RS (thm2 RS LA_Logic.conjI)
-        in the(get_first (fn th => Some(conj RS th) handle _ => None)
-                         (!LA_Data.add_mono_thms))
+        in the(get_first (fn th => Some(conj RS th) handle _ => None) add_mono_thms)
         end;
 
       fun multn(n,thm) =
@@ -278,22 +307,21 @@ fun mkthm sg asms just =
         in if n < 0 then mul(~n,thm) RS LA_Logic.sym else mul(n,thm) end;
 
       fun simp thm =
-        let val thm' = simplify (!LA_Data.ss_ref) thm
+        let val thm' = simplify simpset thm
         in if LA_Logic.is_False thm' then raise FalseE thm' else thm' end
 
       fun mk(Asm i) = trace_thm "Asm" (nth_elem(i,asms))
         | mk(Nat(i)) = (trace_msg "Nat";
 			LA_Logic.mk_nat_thm sg (nth_elem(i,atoms)))
-        | mk(LessD(j)) = trace_thm "L" (hd([mk j] RL !LA_Data.lessD))
+        | mk(LessD(j)) = trace_thm "L" (hd([mk j] RL lessD))
         | mk(NotLeD(j)) = trace_thm "NLe" (mk j RS LA_Logic.not_leD)
-        | mk(NotLeDD(j)) = trace_thm "NLeD" (hd([mk j RS LA_Logic.not_leD] RL 
-						!LA_Data.lessD))
+        | mk(NotLeDD(j)) = trace_thm "NLeD" (hd([mk j RS LA_Logic.not_leD] RL lessD))
         | mk(NotLessD(j)) = trace_thm "NL" (mk j RS LA_Logic.not_lessD)
         | mk(Added(j1,j2)) = simp (trace_thm "+" (addthms (mk j1) (mk j2)))
         | mk(Multiplied(n,j)) = (trace_msg "*"; multn(n,mk j))
 
   in trace_msg "mkthm";
-     simplify (!LA_Data.ss_ref) (mk just) handle FalseE thm => thm end
+     simplify simpset (mk just) handle FalseE thm => thm end
 end;
 
 fun coeff poly atom = case assoc(poly,atom) of None => 0 | Some i => i;
@@ -367,12 +395,12 @@ fun refute2_tac(i,just1,just2) =
     end
     state;
 
-fun prove(pTs,Hs,concl) =
+fun prove sg (pTs,Hs,concl) =
 let val nHs = length Hs
     val ixHs = Hs ~~ (0 upto (nHs-1))
-    val Hitems = mapfilter (fn (h,i) => case LA_Data.decomp h of
+    val Hitems = mapfilter (fn (h,i) => case LA_Data.decomp sg h of
                                  None => None | Some(it) => Some(it,i)) ixHs
-in case LA_Data.decomp concl of
+in case LA_Data.decomp sg concl of
      None => if null Hitems then [] else refute1(pTs,Hitems)
    | Some(citem as (r,i,rel,l,j,d)) =>
        if rel = "="
@@ -386,15 +414,15 @@ end;
 Fast but very incomplete decider. Only premises and conclusions
 that are already (negated) (in)equations are taken into account.
 *)
-val lin_arith_tac = SUBGOAL (fn (A,n) =>
+fun lin_arith_tac i st = SUBGOAL (fn (A,n) =>
   let val pTs = rev(map snd (Logic.strip_params A))
       val Hs = Logic.strip_assums_hyp A
       val concl = Logic.strip_assums_concl A
-  in case prove(pTs,Hs,concl) of
+  in case prove (Thm.sign_of_thm st) (pTs,Hs,concl) of
        [j] => refute1_tac(n,j)
      | [j1,j2] => refute2_tac(n,j1,j2)
      | _ => no_tac
-  end);
+  end) i st;
 
 fun cut_lin_arith_tac thms i = cut_facts_tac thms i THEN lin_arith_tac i;
 
@@ -427,11 +455,11 @@ handle _ => None;
 fun lin_arith_prover sg thms concl =
 let val Hs = map (#prop o rep_thm) thms
     val Tconcl = LA_Logic.mk_Trueprop concl
-in case prove([],Hs,Tconcl) of
+in case prove sg ([],Hs,Tconcl) of
      [j] => prover1(j,sg,thms,Tconcl,true)
    | [j1,j2] => prover2(j1,j2,sg,thms,Tconcl)
    | _ => let val nTconcl = LA_Logic.neg_prop Tconcl
-          in case prove([],Hs,nTconcl) of
+          in case prove sg ([],Hs,nTconcl) of
                [j] => prover1(j,sg,thms,nTconcl,false)
                (* [_,_] impossible because of negation *)
              | _ => None
