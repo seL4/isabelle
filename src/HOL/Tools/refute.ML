@@ -51,7 +51,7 @@ struct
 		val prep_ext = I;
 		val merge =
 			fn (symTable1, symTable2) =>
-				(Symtab.merge (op =) (symTable1, symTable2));
+				(Symtab.merge (op=) (symTable1, symTable2));
 		fun print sg symTable =
 			writeln
 				("'refute', default parameters:\n" ^
@@ -493,7 +493,7 @@ struct
 						None
 					(* string -> int list *)
 					fun string_to_int_list s =
-						mapfilter (option o LargeInt.fromString) (space_explode " " s)
+						mapfilter (option o Int.fromString) (space_explode " " s)
 					(* string -> string -> bool *)
 					fun is_substring s1 s2 =
 					let
@@ -717,7 +717,7 @@ struct
 
 	(* int list -> int *)
 
-	fun sum xs = foldl (op +) (0, xs);
+	fun sum xs = foldl op+ (0, xs);
 
 (* ------------------------------------------------------------------------- *)
 (* product: computes the product of a list of integers; product [] = 1       *)
@@ -725,7 +725,7 @@ struct
 
 	(* int list -> int *)
 
-	fun product xs = foldl (op *) (1, xs);
+	fun product xs = foldl op* (1, xs);
 
 (* ------------------------------------------------------------------------- *)
 (* power: power(a,b) computes a^b, for a>=0, b>=0                            *)
@@ -1507,7 +1507,7 @@ struct
 		(* (string * string) list * string -> int *)
 		fun read_int (parms, name) =
 			case assoc_string (parms, name) of
-			  Some s => (case LargeInt.fromString s of
+			  Some s => (case Int.fromString s of
 				  SOME i => i
 				| NONE   => error ("parameter '" ^ name ^ "' (value is '" ^ s ^ "') must be an integer value"))
 			| None   => error ("parameter '" ^ name ^ "' must be assigned a value")
