@@ -15,14 +15,14 @@ requires you to prove for each \isacommand{recdef} equation that the property
 you are trying to establish holds for the left-hand side provided it holds
 for all recursive calls on the right-hand side. Here is a simple example%
 \end{isamarkuptext}%
-\isacommand{lemma}\ {"}map\ f\ (sep(x,xs))\ =\ sep(f\ x,\ map\ f\ xs){"}%
+\isacommand{lemma}\ {\isachardoublequote}map\ f\ {\isacharparenleft}sep{\isacharparenleft}x{\isacharcomma}xs{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ sep{\isacharparenleft}f\ x{\isacharcomma}\ map\ f\ xs{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
 involving the predefined \isa{map} functional on lists: \isa{map f xs}
 is the result of applying \isa{f} to all elements of \isa{xs}. We prove
 this lemma by recursion induction w.r.t. \isa{sep}:%
 \end{isamarkuptxt}%
-\isacommand{apply}(induct\_tac\ x\ xs\ rule:\ sep.induct)%
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ x\ xs\ rule{\isacharcolon}\ sep{\isachardot}induct{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
 The resulting proof state has three subgoals corresponding to the three

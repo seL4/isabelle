@@ -15,9 +15,9 @@ In general, Isabelle may not be able to prove all termination condition
 (there is one for each recursive call) automatically. For example,
 termination of the following artificial function%
 \end{isamarkuptext}%
-\isacommand{consts}\ f\ ::\ {"}nat*nat\ {\isasymRightarrow}\ nat{"}\isanewline
-\isacommand{recdef}\ f\ {"}measure({\isasymlambda}(x,y).\ x-y){"}\isanewline
-\ \ {"}f(x,y)\ =\ (if\ x\ {\isasymle}\ y\ then\ x\ else\ f(x,y+1)){"}%
+\isacommand{consts}\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat{\isacharasterisk}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
+\isacommand{recdef}\ f\ {\isachardoublequote}measure{\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharminus}y{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}f{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ x\ {\isasymle}\ y\ then\ x\ else\ f{\isacharparenleft}x{\isacharcomma}y{\isacharplus}\isadigit{1}{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 is not proved automatically (although maybe it should be). Isabelle prints a
@@ -25,30 +25,30 @@ kind of error message showing you what it was unable to prove. You will then
 have to prove it as a separate lemma before you attempt the definition
 of your function once more. In our case the required lemma is the obvious one:%
 \end{isamarkuptext}%
-\isacommand{lemma}\ termi\_lem[simp]:\ {"}{\isasymnot}\ x\ {\isasymle}\ y\ {\isasymLongrightarrow}\ x\ -\ Suc\ y\ <\ x\ -\ y{"}%
+\isacommand{lemma}\ termi{\isacharunderscore}lem{\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isasymnot}\ x\ {\isasymle}\ y\ {\isasymLongrightarrow}\ x\ {\isacharminus}\ Suc\ y\ {\isacharless}\ x\ {\isacharminus}\ y{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
 It was not proved automatically because of the special nature of \isa{-}
 on \isa{nat}. This requires more arithmetic than is tried by default:%
 \end{isamarkuptxt}%
-\isacommand{by}(arith)%
+\isacommand{by}{\isacharparenleft}arith{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 Because \isacommand{recdef}'s termination prover involves simplification,
 we have turned our lemma into a simplification rule. Therefore our second
 attempt to define our function will automatically take it into account:%
 \end{isamarkuptext}%
-\isacommand{consts}\ g\ ::\ {"}nat*nat\ {\isasymRightarrow}\ nat{"}\isanewline
-\isacommand{recdef}\ g\ {"}measure({\isasymlambda}(x,y).\ x-y){"}\isanewline
-\ \ {"}g(x,y)\ =\ (if\ x\ {\isasymle}\ y\ then\ x\ else\ g(x,y+1)){"}%
+\isacommand{consts}\ g\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat{\isacharasterisk}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
+\isacommand{recdef}\ g\ {\isachardoublequote}measure{\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharminus}y{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}g{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ x\ {\isasymle}\ y\ then\ x\ else\ g{\isacharparenleft}x{\isacharcomma}y{\isacharplus}\isadigit{1}{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 This time everything works fine. Now \isa{g.simps} contains precisely the
 stated recursion equation for \isa{g} and they are simplification
 rules. Thus we can automatically prove%
 \end{isamarkuptext}%
-\isacommand{theorem}\ wow:\ {"}g(1,0)\ =\ g(1,1){"}\isanewline
-\isacommand{by}(simp)%
+\isacommand{theorem}\ wow{\isacharcolon}\ {\isachardoublequote}g{\isacharparenleft}\isadigit{1}{\isacharcomma}\isadigit{0}{\isacharparenright}\ {\isacharequal}\ g{\isacharparenleft}\isadigit{1}{\isacharcomma}\isadigit{1}{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{by}{\isacharparenleft}simp{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 More exciting theorems require induction, which is discussed below.
@@ -57,7 +57,7 @@ Because lemma \isa{termi_lem} above was only turned into a
 simplification rule for the sake of the termination proof, we may want to
 disable it again:%
 \end{isamarkuptext}%
-\isacommand{lemmas}\ [simp\ del]\ =\ termi\_lem%
+\isacommand{lemmas}\ {\isacharbrackleft}simp\ del{\isacharbrackright}\ {\isacharequal}\ termi{\isacharunderscore}lem%
 \begin{isamarkuptext}%
 The attentive reader may wonder why we chose to call our function \isa{g}
 rather than \isa{f} the second time around. The reason is that, despite
@@ -76,11 +76,11 @@ Although all the above examples employ measure functions, \isacommand{recdef}
 allows arbitrary wellfounded relations. For example, termination of
 Ackermann's function requires the lexicographic product \isa{<*lex*>}:%
 \end{isamarkuptext}%
-\isacommand{consts}\ ack\ ::\ {"}nat*nat\ {\isasymRightarrow}\ nat{"}\isanewline
-\isacommand{recdef}\ ack\ {"}measure(\%m.\ m)\ <*lex*>\ measure(\%n.\ n){"}\isanewline
-\ \ {"}ack(0,n)\ \ \ \ \ \ \ \ \ =\ Suc\ n{"}\isanewline
-\ \ {"}ack(Suc\ m,0)\ \ \ \ \ =\ ack(m,\ 1){"}\isanewline
-\ \ {"}ack(Suc\ m,Suc\ n)\ =\ ack(m,ack(Suc\ m,n)){"}%
+\isacommand{consts}\ ack\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat{\isacharasterisk}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
+\isacommand{recdef}\ ack\ {\isachardoublequote}measure{\isacharparenleft}{\isacharpercent}m{\isachardot}\ m{\isacharparenright}\ {\isacharless}{\isacharasterisk}lex{\isacharasterisk}{\isachargreater}\ measure{\isacharparenleft}{\isacharpercent}n{\isachardot}\ n{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}ack{\isacharparenleft}\isadigit{0}{\isacharcomma}n{\isacharparenright}\ \ \ \ \ \ \ \ \ {\isacharequal}\ Suc\ n{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}ack{\isacharparenleft}Suc\ m{\isacharcomma}\isadigit{0}{\isacharparenright}\ \ \ \ \ {\isacharequal}\ ack{\isacharparenleft}m{\isacharcomma}\ \isadigit{1}{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}ack{\isacharparenleft}Suc\ m{\isacharcomma}Suc\ n{\isacharparenright}\ {\isacharequal}\ ack{\isacharparenleft}m{\isacharcomma}ack{\isacharparenleft}Suc\ m{\isacharcomma}n{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 For details see the manual~\cite{isabelle-HOL} and the examples in the

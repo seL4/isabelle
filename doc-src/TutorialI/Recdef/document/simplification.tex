@@ -8,9 +8,9 @@ problem that must be mentioned: simplification may not
 terminate because of automatic splitting of \isa{if}.
 Let us look at an example:%
 \end{isamarkuptext}%
-\isacommand{consts}\ gcd\ ::\ {"}nat*nat\ {\isasymRightarrow}\ nat{"}\isanewline
-\isacommand{recdef}\ gcd\ {"}measure\ ({\isasymlambda}(m,n).n){"}\isanewline
-\ \ {"}gcd\ (m,\ n)\ =\ (if\ n=0\ then\ m\ else\ gcd(n,\ m\ mod\ n)){"}%
+\isacommand{consts}\ gcd\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat{\isacharasterisk}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
+\isacommand{recdef}\ gcd\ {\isachardoublequote}measure\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}m{\isacharcomma}n{\isacharparenright}{\isachardot}n{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}gcd\ {\isacharparenleft}m{\isacharcomma}\ n{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ n{\isacharequal}\isadigit{0}\ then\ m\ else\ gcd{\isacharparenleft}n{\isacharcomma}\ m\ mod\ n{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 According to the measure function, the second argument should decrease with
@@ -18,7 +18,7 @@ each recursive call. The resulting termination condition
 \begin{quote}
 
 \begin{isabelle}%
-\mbox{n}\ {\isasymnoteq}\ 0\ {\isasymLongrightarrow}\ \mbox{m}\ mod\ \mbox{n}\ <\ \mbox{n}
+\mbox{n}\ {\isasymnoteq}\ \isadigit{0}\ {\isasymLongrightarrow}\ \mbox{m}\ mod\ \mbox{n}\ {\isacharless}\ \mbox{n}
 \end{isabelle}%
 
 \end{quote}
@@ -33,7 +33,7 @@ example, simplification reduces
 \begin{quote}
 
 \begin{isabelle}%
-gcd\ (\mbox{m},\ \mbox{n})\ =\ \mbox{k}
+gcd\ {\isacharparenleft}\mbox{m}{\isacharcomma}\ \mbox{n}{\isacharparenright}\ {\isacharequal}\ \mbox{k}
 \end{isabelle}%
 
 \end{quote}
@@ -41,7 +41,7 @@ in one step to
 \begin{quote}
 
 \begin{isabelle}%
-(if\ \mbox{n}\ =\ 0\ then\ \mbox{m}\ else\ gcd\ (\mbox{n},\ \mbox{m}\ mod\ \mbox{n}))\ =\ \mbox{k}
+{\isacharparenleft}if\ \mbox{n}\ {\isacharequal}\ \isadigit{0}\ then\ \mbox{m}\ else\ gcd\ {\isacharparenleft}\mbox{n}{\isacharcomma}\ \mbox{m}\ mod\ \mbox{n}{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ \mbox{k}
 \end{isabelle}%
 
 \end{quote}
@@ -49,11 +49,11 @@ where the condition cannot be reduced further, and splitting leads to
 \begin{quote}
 
 \begin{isabelle}%
-(\mbox{n}\ =\ 0\ {\isasymlongrightarrow}\ \mbox{m}\ =\ \mbox{k})\ {\isasymand}\ (\mbox{n}\ {\isasymnoteq}\ 0\ {\isasymlongrightarrow}\ gcd\ (\mbox{n},\ \mbox{m}\ mod\ \mbox{n})\ =\ \mbox{k})
+{\isacharparenleft}\mbox{n}\ {\isacharequal}\ \isadigit{0}\ {\isasymlongrightarrow}\ \mbox{m}\ {\isacharequal}\ \mbox{k}{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}\mbox{n}\ {\isasymnoteq}\ \isadigit{0}\ {\isasymlongrightarrow}\ gcd\ {\isacharparenleft}\mbox{n}{\isacharcomma}\ \mbox{m}\ mod\ \mbox{n}{\isacharparenright}\ {\isacharequal}\ \mbox{k}{\isacharparenright}
 \end{isabelle}%
 
 \end{quote}
-Since the recursive call \isa{gcd\ (\mbox{n},\ \mbox{m}\ mod\ \mbox{n})} is no longer protected by
+Since the recursive call \isa{gcd\ {\isacharparenleft}\mbox{n}{\isacharcomma}\ \mbox{m}\ mod\ \mbox{n}{\isacharparenright}} is no longer protected by
 an \isa{if}, it is unfolded again, which leads to an infinite chain of
 simplification steps. Fortunately, this problem can be avoided in many
 different ways.
@@ -68,10 +68,10 @@ If possible, the definition should be given by pattern matching on the left
 rather than \isa{if} on the right. In the case of \isa{gcd} the
 following alternative definition suggests itself:%
 \end{isamarkuptext}%
-\isacommand{consts}\ gcd1\ ::\ {"}nat*nat\ {\isasymRightarrow}\ nat{"}\isanewline
-\isacommand{recdef}\ gcd1\ {"}measure\ ({\isasymlambda}(m,n).n){"}\isanewline
-\ \ {"}gcd1\ (m,\ 0)\ =\ m{"}\isanewline
-\ \ {"}gcd1\ (m,\ n)\ =\ gcd1(n,\ m\ mod\ n){"}%
+\isacommand{consts}\ gcd\isadigit{1}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat{\isacharasterisk}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
+\isacommand{recdef}\ gcd\isadigit{1}\ {\isachardoublequote}measure\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}m{\isacharcomma}n{\isacharparenright}{\isachardot}n{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}gcd\isadigit{1}\ {\isacharparenleft}m{\isacharcomma}\ \isadigit{0}{\isacharparenright}\ {\isacharequal}\ m{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}gcd\isadigit{1}\ {\isacharparenleft}m{\isacharcomma}\ n{\isacharparenright}\ {\isacharequal}\ gcd\isadigit{1}{\isacharparenleft}n{\isacharcomma}\ m\ mod\ n{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 Note that the order of equations is important and hides the side condition
@@ -81,9 +81,9 @@ may not be expressible by pattern matching.
 A very simple alternative is to replace \isa{if} by \isa{case}, which
 is also available for \isa{bool} but is not split automatically:%
 \end{isamarkuptext}%
-\isacommand{consts}\ gcd2\ ::\ {"}nat*nat\ {\isasymRightarrow}\ nat{"}\isanewline
-\isacommand{recdef}\ gcd2\ {"}measure\ ({\isasymlambda}(m,n).n){"}\isanewline
-\ \ {"}gcd2(m,n)\ =\ (case\ n=0\ of\ True\ {\isasymRightarrow}\ m\ |\ False\ {\isasymRightarrow}\ gcd2(n,m\ mod\ n)){"}%
+\isacommand{consts}\ gcd\isadigit{2}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat{\isacharasterisk}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
+\isacommand{recdef}\ gcd\isadigit{2}\ {\isachardoublequote}measure\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}m{\isacharcomma}n{\isacharparenright}{\isachardot}n{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}gcd\isadigit{2}{\isacharparenleft}m{\isacharcomma}n{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}case\ n{\isacharequal}\isadigit{0}\ of\ True\ {\isasymRightarrow}\ m\ {\isacharbar}\ False\ {\isasymRightarrow}\ gcd\isadigit{2}{\isacharparenleft}n{\isacharcomma}m\ mod\ n{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 In fact, this is probably the neatest solution next to pattern matching.
@@ -91,15 +91,15 @@ In fact, this is probably the neatest solution next to pattern matching.
 A final alternative is to replace the offending simplification rules by
 derived conditional ones. For \isa{gcd} it means we have to prove%
 \end{isamarkuptext}%
-\isacommand{lemma}\ [simp]:\ {"}gcd\ (m,\ 0)\ =\ m{"}\isanewline
-\isacommand{by}(simp)\isanewline
-\isacommand{lemma}\ [simp]:\ {"}n\ {\isasymnoteq}\ 0\ {\isasymLongrightarrow}\ gcd(m,\ n)\ =\ gcd(n,\ m\ mod\ n){"}\isanewline
-\isacommand{by}(simp)%
+\isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}gcd\ {\isacharparenleft}m{\isacharcomma}\ \isadigit{0}{\isacharparenright}\ {\isacharequal}\ m{\isachardoublequote}\isanewline
+\isacommand{by}{\isacharparenleft}simp{\isacharparenright}\isanewline
+\isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}n\ {\isasymnoteq}\ \isadigit{0}\ {\isasymLongrightarrow}\ gcd{\isacharparenleft}m{\isacharcomma}\ n{\isacharparenright}\ {\isacharequal}\ gcd{\isacharparenleft}n{\isacharcomma}\ m\ mod\ n{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{by}{\isacharparenleft}simp{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 after which we can disable the original simplification rule:%
 \end{isamarkuptext}%
-\isacommand{lemmas}\ [simp\ del]\ =\ gcd.simps\isanewline
+\isacommand{lemmas}\ {\isacharbrackleft}simp\ del{\isacharbrackright}\ {\isacharequal}\ gcd{\isachardot}simps\isanewline
 \end{isabelle}%
 %%% Local Variables:
 %%% mode: latex
