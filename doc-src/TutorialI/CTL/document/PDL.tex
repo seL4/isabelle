@@ -153,7 +153,7 @@ The base case
 \end{isabelle}
 is solved by unrolling \isa{lfp} once%
 \end{isamarkuptxt}%
-\ \isacommand{apply}{\isacharparenleft}rule\ ssubst{\isacharbrackleft}OF\ lfp{\isacharunderscore}unfold{\isacharbrackleft}OF\ mono{\isacharunderscore}ef{\isacharbrackright}{\isacharbrackright}{\isacharparenright}%
+\ \isacommand{apply}{\isacharparenleft}subst\ lfp{\isacharunderscore}unfold{\isacharbrackleft}OF\ mono{\isacharunderscore}ef{\isacharbrackright}{\isacharparenright}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ t{\isachardot}\ t\ {\isasymin}\ A\ {\isasymLongrightarrow}\ t\ {\isasymin}\ A\ {\isasymunion}\ M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ lfp\ {\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ T{\isacharparenright}%
@@ -165,7 +165,7 @@ and disposing of the resulting trivial subgoal automatically:%
 \noindent
 The proof of the induction step is identical to the one for the base case:%
 \end{isamarkuptxt}%
-\isacommand{apply}{\isacharparenleft}rule\ ssubst{\isacharbrackleft}OF\ lfp{\isacharunderscore}unfold{\isacharbrackleft}OF\ mono{\isacharunderscore}ef{\isacharbrackright}{\isacharbrackright}{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}subst\ lfp{\isacharunderscore}unfold{\isacharbrackleft}OF\ mono{\isacharunderscore}ef{\isacharbrackright}{\isacharparenright}\isanewline
 \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
 \isacommand{done}%
 \begin{isamarkuptext}%

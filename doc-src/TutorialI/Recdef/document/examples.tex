@@ -73,17 +73,13 @@ by the two possibilities that are left: \isa{sep{\isadigit{1}}\ {\isacharparenle
 \ \ {\isachardoublequote}sep{\isadigit{2}}\ xs\ \ \ \ \ \ \ {\isacharequal}\ {\isacharparenleft}{\isasymlambda}a{\isachardot}\ xs{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 Because of its pattern-matching syntax, \isacommand{recdef} is also useful
-for the definition of non-recursive functions:%
+for the definition of non-recursive functions, where the termination measure
+degenerates to the empty set \isa{{\isacharbraceleft}{\isacharbraceright}}:%
 \end{isamarkuptext}%
 \isacommand{consts}\ swap{\isadigit{1}}{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isanewline
 \isacommand{recdef}\ swap{\isadigit{1}}{\isadigit{2}}\ {\isachardoublequote}{\isacharbraceleft}{\isacharbraceright}{\isachardoublequote}\isanewline
 \ \ {\isachardoublequote}swap{\isadigit{1}}{\isadigit{2}}\ {\isacharparenleft}x{\isacharhash}y{\isacharhash}zs{\isacharparenright}\ {\isacharequal}\ y{\isacharhash}x{\isacharhash}zs{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}swap{\isadigit{1}}{\isadigit{2}}\ zs\ \ \ \ \ \ \ {\isacharequal}\ zs{\isachardoublequote}%
-\begin{isamarkuptext}%
-\noindent
-For non-recursive functions the termination measure degenerates to the empty
-set \isa{{\isacharbraceleft}{\isacharbraceright}}.%
-\end{isamarkuptext}%
+\ \ {\isachardoublequote}swap{\isadigit{1}}{\isadigit{2}}\ zs\ \ \ \ \ \ \ {\isacharequal}\ zs{\isachardoublequote}\isanewline
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

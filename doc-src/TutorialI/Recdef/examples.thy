@@ -79,18 +79,14 @@ recdef sep2 "measure length"
 
 text{*
 Because of its pattern-matching syntax, \isacommand{recdef} is also useful
-for the definition of non-recursive functions:
+for the definition of non-recursive functions, where the termination measure
+degenerates to the empty set @{term"{}"}:
 *}
 
 consts swap12 :: "'a list \<Rightarrow> 'a list";
 recdef swap12 "{}"
   "swap12 (x#y#zs) = y#x#zs"
   "swap12 zs       = zs";
-
-text{*\noindent
-For non-recursive functions the termination measure degenerates to the empty
-set @{term"{}"}.
-*}
 
 (*<*)
 end

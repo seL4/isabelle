@@ -92,9 +92,9 @@ apply(rule equalityI);
 apply(rule subsetI);
 apply(simp, clarify);
 apply(erule converse_rtrancl_induct);
- apply(rule ssubst[OF lfp_unfold[OF mono_ef]]);
+ apply(subst lfp_unfold[OF mono_ef]);
  apply(blast);
-apply(rule ssubst[OF lfp_unfold[OF mono_ef]]);
+apply(subst lfp_unfold[OF mono_ef]);
 by(blast);
 (*>*)
 text{*
@@ -164,7 +164,7 @@ is proved by a variant of contraposition:
 lemma not_in_lfp_afD:
  "s \<notin> lfp(af A) \<Longrightarrow> s \<notin> A \<and> (\<exists> t. (s,t) \<in> M \<and> t \<notin> lfp(af A))";
 apply(erule contrapos_np);
-apply(rule ssubst[OF lfp_unfold[OF mono_af]]);
+apply(subst lfp_unfold[OF mono_af]);
 apply(simp add:af_def);
 done;
 
@@ -406,10 +406,10 @@ apply(clarsimp simp add:eusem_def);
 apply(erule rev_mp);
 apply(rule_tac x = x in spec);
 apply(induct_tac p);
- apply(rule ssubst[OF lfp_unfold[OF mono_eufix]]);
+ apply(subst lfp_unfold[OF mono_eufix])
  apply(simp add:eufix_def);
 apply(clarsimp);
-apply(rule ssubst[OF lfp_unfold[OF mono_eufix]]);
+apply(subst lfp_unfold[OF mono_eufix])
 apply(simp add:eufix_def);
 apply blast;
 done

@@ -152,7 +152,7 @@ The base case
 is solved by unrolling @{term lfp} once
 *}
 
- apply(rule ssubst[OF lfp_unfold[OF mono_ef]])
+ apply(subst lfp_unfold[OF mono_ef])
 
 txt{*
 @{subgoals[display,indent=0,goals_limit=1]}
@@ -165,7 +165,7 @@ txt{*\noindent
 The proof of the induction step is identical to the one for the base case:
 *}
 
-apply(rule ssubst[OF lfp_unfold[OF mono_ef]])
+apply(subst lfp_unfold[OF mono_ef])
 apply(blast)
 done
 
@@ -205,7 +205,7 @@ done;
 lemma "(s \<Turnstile> EF f) = (s \<Turnstile> f | s \<Turnstile> Neg(AX(Neg(EF f))))";
 apply(simp only:aux);
 apply(simp);
-apply(rule ssubst[OF lfp_unfold[OF mono_ef]], fast);
+apply(subst lfp_unfold[OF mono_ef], fast);
 done
 
 end
