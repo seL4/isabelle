@@ -465,7 +465,7 @@ qed "nested_number_of_mult";
 Addsimps [nested_number_of_add, nested_diff1_number_of_add,
 	  nested_diff2_number_of_add, nested_number_of_mult]; 
 
-
+use "bin_simprocs";
 
 (*---------------------------------------------------------------------------*)
 (* Linear arithmetic                                                         *)
@@ -485,44 +485,13 @@ struct
 
 val lessD = Nat_LA_Data.lessD @ [add1_zle_eq RS iffD2];
 
-fun add_atom(t,m,(p,i)) = (case assoc(p,t) of None => ((t,m)::p,i)
-                           | Some n => (overwrite(p,(t,n+m:int)), i));
-
-(* Turn term into list of summand * multiplicity plus a constant *)
-fun poly(Const("op +",_) $ s $ t, m, pi) = poly(s,m,poly(t,m,pi))
-  | poly(Const("op -",_) $ s $ t, m, pi) = poly(s,m,poly(t,~1*m,pi))
-  | poly(Const("uminus",_) $ t, m, pi) =   poly(t,~1*m,pi)
-  | poly(all as Const("op *",_) $ (Const("Numeral.number_of",_)$c) $ t, m, pi) =
-      (poly(t,m*NumeralSyntax.dest_bin c,pi) handle Match => add_atom(all,m,pi))
-  | poly(all as Const("Numeral.number_of",_)$t,m,(p,i)) =
-     ((p,i + m*NumeralSyntax.dest_bin t) handle Match => add_atom(all,m,(p,i)))
-  | poly x  = add_atom x;
-
-fun decomp2(rel,lhs,rhs) =
-  let val (p,i) = poly(lhs,1,([],0)) and (q,j) = poly(rhs,1,([],0))
-  in case rel of
-       "op <"  => Some(p,i,"<",q,j)
-     | "op <=" => Some(p,i,"<=",q,j)
-     | "op ="  => Some(p,i,"=",q,j)
-     | _       => None
-  end;
-
-val intT = Type("IntDef.int",[]);
-fun iib T = T = ([intT,intT] ---> HOLogic.boolT);
-
-fun decomp1(T,xxx) =
-  if iib T then decomp2 xxx else Nat_LA_Data.decomp1(T,xxx);
-
-fun decomp(_$(Const(rel,T)$lhs$rhs)) = decomp1(T,(rel,lhs,rhs))
-  | decomp(_$(Const("Not",_)$(Const(rel,T)$lhs$rhs))) =
-      Nat_LA_Data.negate(decomp1(T,(rel,lhs,rhs)))
-  | decomp _ = None
-
 (* reduce contradictory <= to False *)
-val add_rules = simp_thms@bin_arith_simps@bin_rel_simps@[int_0];
+val add_rules = simp_thms @ bin_arith_simps @ bin_rel_simps @
+                [int_0,zmult_0,zmult_0_right];
 
 val cancel_sums_ss = Nat_LA_Data.cancel_sums_ss addsimps add_rules
-          addsimprocs [Int_Cancel.sum_conv, Int_Cancel.rel_conv];
+          addsimprocs [Int_Cancel.sum_conv, Int_Cancel.rel_conv,
+                       Int_CC.sum_conv, Int_CC.rel_conv];
 
 val simp = simplify cancel_sums_ss;
 
@@ -541,8 +510,8 @@ end;
 (* Update parameters of arithmetic prover *)
 LA_Data_Ref.add_mono_thms := Int_LA_Data.add_mono_thms;
 LA_Data_Ref.lessD :=         Int_LA_Data.lessD;
-LA_Data_Ref.decomp :=        Int_LA_Data.decomp;
 LA_Data_Ref.simp :=          Int_LA_Data.simp;
+LA_Data_Ref.discrete := !LA_Data_Ref.discrete @ [("IntDef.int",true)];
 
 
 val int_arith_simproc_pats =

@@ -131,8 +131,6 @@ by (ALLGOALS Asm_simp_tac);
 by (etac splitE 1);
 by (auto_tac (claset(), 
 	      simpset() addsimps zmult_ac@[zadd_zmult_distrib2, Let_def]));
-(*the "just double" case*)
-by (asm_full_simp_tac (simpset() addsimps zcompare_rls@[zmult_2_right]) 1);
 qed_spec_mp "posDivAlg_correct";
 
 
@@ -175,8 +173,6 @@ by (ALLGOALS Asm_simp_tac);
 by (etac splitE 1);
 by (auto_tac (claset(), 
 	      simpset() addsimps zmult_ac@[zadd_zmult_distrib2, Let_def]));
-(*the "just double" case*)
-by (asm_full_simp_tac (simpset() addsimps zcompare_rls@[zmult_2_right]) 1);
 qed_spec_mp "negDivAlg_correct";
 
 
@@ -344,7 +340,6 @@ Goal "[| (#0::int) < a; a = r + a*q; #0 <= r |] ==> q <= #1";
 by (subgoal_tac "#0 <= a*(#1-q)" 1);
 by (asm_simp_tac (simpset() addsimps [zdiff_zmult_distrib2]) 2);
 by (asm_full_simp_tac (simpset() addsimps [pos_imp_zmult_nonneg_iff]) 1);
-by (full_simp_tac (simpset() addsimps zcompare_rls) 1);
 val lemma2 = result();
 
 Goal "[| quorem((a,a),(q,r));  a ~= (#0::int) |] ==> q = #1";
@@ -566,14 +561,13 @@ Goal "[| quorem((b,c),(q,r));  c ~= #0 |] \
 \     ==> quorem ((a*b, c), (a*q + a*r div c, a*r mod c))";
 by (auto_tac
     (claset(),
-     simpset() addsimps split_ifs@zmult_ac@
+     simpset() delsimprocs [Int_CC.sum_conv, Int_CC.rel_conv]
+               addsimps split_ifs@zmult_ac@
                         [quorem_def, linorder_neq_iff, 
 			 zadd_zmult_distrib2,
 			 pos_mod_sign,pos_mod_bound,
 			 neg_mod_sign, neg_mod_bound]));
-by (rtac (zmod_zdiv_equality RS trans) 2);
-by (rtac (zmod_zdiv_equality RS trans) 1);
-by Auto_tac;
+by (ALLGOALS(rtac zmod_zdiv_equality));
 val lemma = result();
 
 Goal "(a*b) div c = a*(b div c) + a*(b mod c) div (c::int)";
@@ -613,14 +607,13 @@ Goal "[| quorem((a,c),(aq,ar));  quorem((b,c),(bq,br));  c ~= #0 |] \
 \     ==> quorem ((a+b, c), (aq + bq + (ar+br) div c, (ar+br) mod c))";
 by (auto_tac
     (claset(),
-     simpset() addsimps split_ifs@zmult_ac@
+     simpset() delsimprocs [Int_CC.sum_conv, Int_CC.rel_conv]
+               addsimps split_ifs@zmult_ac@
                         [quorem_def, linorder_neq_iff, 
 			 zadd_zmult_distrib2,
 			 pos_mod_sign,pos_mod_bound,
 			 neg_mod_sign, neg_mod_bound]));
-by (rtac (zmod_zdiv_equality RS trans) 2);
-by (rtac (zmod_zdiv_equality RS trans) 1);
-by Auto_tac;
+by (ALLGOALS(rtac zmod_zdiv_equality));
 val lemma = result();
 
 (*NOT suitable for rewriting: the RHS has an instance of the LHS*)
@@ -727,15 +720,14 @@ Goal "[| quorem ((a,b), (q,r));  b ~= #0;  #0 < c |] \
 \     ==> quorem ((a, b*c), (q div c, b*(q mod c) + r))";
 by (auto_tac  (*SLOW*)
     (claset(),
-     simpset() addsimps split_ifs@zmult_ac@
+     simpset() delsimprocs [Int_CC.sum_conv, Int_CC.rel_conv]
+               addsimps split_ifs@zmult_ac@
                         [quorem_def, linorder_neq_iff,
 			 pos_imp_zmult_pos_iff,
 			 neg_imp_zmult_pos_iff,
 			 zadd_zmult_distrib2 RS sym,
 			 lemma1, lemma2, lemma3, lemma4]));
-by (rtac (zmod_zdiv_equality RS trans) 2);
-by (rtac (zmod_zdiv_equality RS trans) 1);
-by Auto_tac;
+by (ALLGOALS(rtac zmod_zdiv_equality));
 val lemma = result();
 
 Goal "(#0::int) < c ==> a div (b*c) = (a div b) div c";
@@ -829,9 +821,9 @@ by (stac zdiv_zadd1_eq 1);
 by (asm_simp_tac (simpset() addsimps [zdiv_zmult_zmult2, zmod_zmult_zmult2, 
 				      div_pos_pos_trivial]) 1);
 by (stac div_pos_pos_trivial 1);
-by (asm_simp_tac (simpset() addsimps zadd_ac@
-           [zmult_2_right, mod_pos_pos_trivial, 
-	   pos_mod_sign RS zadd_zle_mono1 RSN (2,order_trans)]) 1);
+by (asm_simp_tac (simpset() delsimprocs [Int_CC.sum_conv, Int_CC.rel_conv]
+           addsimps zadd_ac@ [zmult_2_right, mod_pos_pos_trivial,
+                    pos_mod_sign RS zadd_zle_mono1 RSN (2,order_trans)]) 1);
 by (auto_tac (claset(),
 	      simpset() addsimps [mod_pos_pos_trivial]));
 qed "pos_zdiv_times_2";
@@ -863,7 +855,8 @@ Goal "number_of (v BIT b) div number_of (w BIT False) = \
 by (simp_tac (simpset_of Int.thy
 			 addsimps [zadd_assoc, number_of_BIT]) 1);
 by (asm_simp_tac (simpset()
-		  delsimps bin_arith_extra_simps@bin_rel_simps
+		  delsimprocs [Int_CC.sum_conv, Int_CC.rel_conv]
+                  delsimps bin_arith_extra_simps@bin_rel_simps
 		  addsimps [zmult_2 RS sym, zdiv_zmult_zmult1,
 			    pos_zdiv_times_2, lemma, neg_zdiv_times_2]) 1);
 qed "zdiv_number_of_BIT";
@@ -888,9 +881,9 @@ by (stac zmod_zadd1_eq 1);
 by (asm_simp_tac (simpset() addsimps [zmod_zmult_zmult2, 
 				      mod_pos_pos_trivial]) 1);
 by (rtac mod_pos_pos_trivial 1);
-by (asm_simp_tac (simpset() addsimps zadd_ac@
-           [zmult_2_right, mod_pos_pos_trivial, 
-	   pos_mod_sign RS zadd_zle_mono1 RSN (2,order_trans)]) 1);
+by (asm_simp_tac (simpset() delsimprocs [Int_CC.sum_conv, Int_CC.rel_conv]
+                  addsimps zadd_ac@ [zmult_2_right, mod_pos_pos_trivial,
+                    pos_mod_sign RS zadd_zle_mono1 RSN (2,order_trans)]) 1);
 by (auto_tac (claset(),
 	      simpset() addsimps [mod_pos_pos_trivial]));
 qed "pos_zmod_times_2";
@@ -921,6 +914,7 @@ Goal "number_of (v BIT b) mod number_of (w BIT False) = \
 by (simp_tac (simpset_of Int.thy
 			 addsimps [zadd_assoc, number_of_BIT]) 1);
 by (asm_simp_tac (simpset()
+		  delsimprocs [Int_CC.sum_conv, Int_CC.rel_conv]
 		  delsimps bin_arith_extra_simps@bin_rel_simps
 		  addsimps [zmult_2 RS sym, zmod_zmult_zmult1,
 			    pos_zmod_times_2, lemma, neg_zmod_times_2]) 1);
