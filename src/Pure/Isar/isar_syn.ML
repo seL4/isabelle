@@ -58,8 +58,8 @@ val subsubsectionP =
 val textP = OuterSyntax.markup_command "text" "formal comment (theory)" K.thy_decl
   (P.comment >> (Toplevel.theory o IsarThy.add_text));
 
-val verbatimP = OuterSyntax.verbatim_command "verbatim" "verbatim document preparation text"
-  K.thy_decl (P.comment >> (Toplevel.theory o IsarThy.add_verbatim));
+val text_rawP = OuterSyntax.verbatim_command "text_raw" "raw document preparation text"
+  K.thy_decl (P.comment >> (Toplevel.theory o IsarThy.add_text_raw));
 
 
 val sectP = OuterSyntax.markup_command "sect" "formal comment (proof)" K.prf_decl
@@ -74,8 +74,8 @@ val subsubsectP = OuterSyntax.markup_command "subsubsect" "formal comment (proof
 val txtP = OuterSyntax.markup_command "txt" "formal comment (proof)" K.prf_decl
   (P.comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_txt)));
 
-val verbP = OuterSyntax.verbatim_command "verb" "verbatim document preparation text (proof)"
-  K.prf_decl (P.comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_verb)));
+val txt_rawP = OuterSyntax.verbatim_command "txt_raw" "raw document preparation text (proof)"
+  K.prf_decl (P.comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_txt_raw)));
 
 
 
@@ -607,7 +607,7 @@ val parsers = [
   theoryP, end_excursionP, kill_excursionP, contextP,
   (*markup commands*)
   headerP, chapterP, sectionP, subsectionP, subsubsectionP, textP,
-  verbatimP, sectP, subsectP, subsubsectP, txtP, verbP,
+  text_rawP, sectP, subsectP, subsubsectP, txtP, txt_rawP,
   (*theory sections*)
   classesP, classrelP, defaultsortP, typedeclP, typeabbrP, nontermP,
   aritiesP, constsP, syntaxP, translationsP, axiomsP, defsP,
