@@ -17,6 +17,22 @@ Isabelle, however; please experiment interactively.
 
 
 \section{Basic interaction with Isabelle}
+\index{starting up|bold}\nobreak
+%
+First, read the instructions on file {\tt README} in the top-level
+distribution directory.  Follow them to create the object-logics you need
+on a directory you have created to hold binary images.  Suppose the
+environment variable {\tt ISABELLEBIN} refers to this directory.  The
+instructions for starting up a logic (say {\tt HOL}) depend upon which
+Standard ML compiler you are using.
+\begin{itemize}
+\item With Standard ML of New Jersey, type \verb|$ISABELLEBIN/HOL|.
+\item With Poly/ML, type \verb|poly $ISABELLEBIN/HOL|, possibly prefixing the
+  command with the directory where {\tt poly} is kept.
+\end{itemize}
+Either way, you will find yourself at the \ML{} top level.  All Isabelle
+commands are bound to \ML{} identifiers.
+
 \index{saving your work|bold}
 Isabelle provides no means of storing theorems or proofs on files.
 Theorems are simply part of the \ML{} state and are named by \ML{}
