@@ -18,15 +18,15 @@ goal LK.thy "|- (ALL x. P(x) & Q(x)) <-> (ALL x. P(x))  &  (ALL x. Q(x))";
 by (fast_tac LK_pack 1);
 result(); 
 
-goal LK.thy "|- (EX x. P-->Q(x))  <->  (P --> (EX x.Q(x)))";
+goal LK.thy "|- (EX x. P-->Q(x))  <->  (P --> (EX x. Q(x)))";
 by (fast_tac LK_pack 1);
 result(); 
 
-goal LK.thy "|- (EX x.P(x)-->Q)  <->  (ALL x.P(x)) --> Q";
+goal LK.thy "|- (EX x. P(x)-->Q)  <->  (ALL x. P(x)) --> Q";
 by (fast_tac LK_pack 1);
 result(); 
 
-goal LK.thy "|- (ALL x.P(x)) | Q  <->  (ALL x. P(x) | Q)";
+goal LK.thy "|- (ALL x. P(x)) | Q  <->  (ALL x. P(x) | Q)";
 by (fast_tac LK_pack 1);
 result(); 
 
@@ -81,7 +81,7 @@ result();
 
 writeln"Problem 24";
 goal LK.thy "|- ~(EX x. S(x)&Q(x)) & (ALL x. P(x) --> Q(x)|R(x)) &  \
-\    ~(EX x.P(x)) --> (EX x.Q(x)) & (ALL x. Q(x)|R(x) --> S(x))  \
+\    ~(EX x. P(x)) --> (EX x. Q(x)) & (ALL x. Q(x)|R(x) --> S(x))  \
 \   --> (EX x. P(x)&R(x))";
 by (pc_tac LK_pack 1);
 result();
@@ -114,7 +114,7 @@ result();
 writeln"Problem 28.  AMENDED";
 goal LK.thy "|- (ALL x. P(x) --> (ALL x. Q(x))) &   \
 \       ((ALL x. Q(x)|R(x)) --> (EX x. Q(x)&S(x))) &  \
-\       ((EX x.S(x)) --> (ALL x. L(x) --> M(x)))  \
+\       ((EX x. S(x)) --> (ALL x. L(x) --> M(x)))  \
 \   --> (ALL x. P(x) & L(x) --> M(x))";
 by (pc_tac LK_pack 1);  
 result();
@@ -134,7 +134,7 @@ by (fast_tac LK_pack 1);
 result();
 
 writeln"Problem 31";
-goal LK.thy "|- ~(EX x.P(x) & (Q(x) | R(x))) & \
+goal LK.thy "|- ~(EX x. P(x) & (Q(x) | R(x))) & \
 \       (EX x. L(x) & P(x)) & \
 \       (ALL x. ~ R(x) --> M(x))  \
 \   --> (EX x. L(x) & M(x))";
@@ -184,7 +184,7 @@ result();
 
 writeln"Problem 37";
 goal LK.thy "|- (ALL z. EX w. ALL x. EX y. \
-\          (P(x,z)-->P(y,w)) & P(y,z) & (P(y,w) --> (EX u.Q(u,w)))) & \
+\          (P(x,z)-->P(y,w)) & P(y,z) & (P(y,w) --> (EX u. Q(u,w)))) & \
 \       (ALL x z. ~P(x,z) --> (EX y. Q(y,z))) & \
 \       ((EX x y. Q(x,y)) --> (ALL x. R(x,x)))  \
 \   --> (ALL x. EX y. R(x,y))";
@@ -246,7 +246,7 @@ result();
 
 writeln"Problem 50";  
 goal LK.thy
-    "|- (ALL x. P(a,x) | (ALL y.P(x,y))) --> (EX x. ALL y.P(x,y))";
+    "|- (ALL x. P(a,x) | (ALL y. P(x,y))) --> (EX x. ALL y. P(x,y))";
 by (best_tac LK_dup_pack 1);
 result();
 

@@ -13,20 +13,20 @@ goal LK.thy "|- (ALL x. P)  <->  P";
 by (fast_tac LK_pack 1);
 result(); 
 
-goal LK.thy "|- (ALL x y.P(x,y))  <->  (ALL y x.P(x,y))";
+goal LK.thy "|- (ALL x y. P(x,y))  <->  (ALL y x. P(x,y))";
 by (fast_tac LK_pack 1);
 result(); 
 
-goal LK.thy "ALL u.P(u), ALL v.Q(v) |- ALL u v. P(u) & Q(v)";
+goal LK.thy "ALL u. P(u), ALL v. Q(v) |- ALL u v. P(u) & Q(v)";
 by (fast_tac LK_pack 1);
 result(); 
 
 writeln"Permutation of existential quantifier.";
-goal LK.thy "|- (EX x y.P(x,y)) <-> (EX y x.P(x,y))";
+goal LK.thy "|- (EX x y. P(x,y)) <-> (EX y x. P(x,y))";
 by (fast_tac LK_pack 1);
 result(); 
 
-goal LK.thy "|- (ALL x. P(x) & Q(x)) <-> (ALL x.P(x)) & (ALL x.Q(x))";
+goal LK.thy "|- (ALL x. P(x) & Q(x)) <-> (ALL x. P(x)) & (ALL x. Q(x))";
 by (fast_tac LK_pack 1);
 result(); 
 
@@ -43,7 +43,7 @@ by (fast_tac LK_pack 1);
 result(); 
 
 
-goal LK.thy "|- (ALL x.P(x)-->Q)  <->  ((EX x.P(x)) --> Q)";
+goal LK.thy "|- (ALL x. P(x)-->Q)  <->  ((EX x. P(x)) --> Q)";
 by (fast_tac LK_pack 1);
 result(); 
 
@@ -67,19 +67,19 @@ result();
 
 writeln"Harder examples: classical theorems.";
 
-goal LK.thy "|- (EX x. P-->Q(x))  <->  (P --> (EX x.Q(x)))";
+goal LK.thy "|- (EX x. P-->Q(x))  <->  (P --> (EX x. Q(x)))";
 by (fast_tac LK_pack 1);
 result(); 
 (*3 secs*)
 
 
-goal LK.thy "|- (EX x.P(x)-->Q)  <->  (ALL x.P(x)) --> Q";
+goal LK.thy "|- (EX x. P(x)-->Q)  <->  (ALL x. P(x)) --> Q";
 by (fast_tac LK_pack 1);
 result(); 
 (*5 secs*)
 
 
-goal LK.thy "|- (ALL x.P(x)) | Q  <->  (ALL x. P(x) | Q)";
+goal LK.thy "|- (ALL x. P(x)) | Q  <->  (ALL x. P(x) | Q)";
 by (fast_tac LK_pack 1);
 result(); 
 
@@ -109,24 +109,24 @@ goal LK.thy "|- (EX x. Q(x))  -->  (ALL x. Q(x))";
 by (fast_tac LK_pack 1) handle ERROR => writeln"Failed, as expected";
 getgoal 1; 
 
-goal LK.thy "|- P(?a) --> (ALL x.P(x))";
+goal LK.thy "|- P(?a) --> (ALL x. P(x))";
 by (fast_tac LK_pack 1) handle ERROR => writeln"Failed, as expected";
 (*Check that subgoals remain: proof failed.*)
 getgoal 1;  
 
-goal LK.thy "|- (P(?a) --> (ALL x.Q(x))) --> (ALL x. P(x) --> Q(x))";
+goal LK.thy "|- (P(?a) --> (ALL x. Q(x))) --> (ALL x. P(x) --> Q(x))";
 by (fast_tac LK_pack 1) handle ERROR => writeln"Failed, as expected";
 getgoal 1;  
 
 
 writeln"Back to things that are provable...";
 
-goal LK.thy "|- (ALL x. P(x)-->Q(x)) & (EX x.P(x)) --> (EX x.Q(x))";
+goal LK.thy "|- (ALL x. P(x)-->Q(x)) & (EX x. P(x)) --> (EX x. Q(x))";
 by (fast_tac LK_pack 1); 
 result();  
 
 (*An example of why exR should be delayed as long as possible*)
-goal LK.thy "|- (P--> (EX x.Q(x))) & P--> (EX x.Q(x))";
+goal LK.thy "|- (P--> (EX x. Q(x))) & P--> (EX x. Q(x))";
 by (fast_tac LK_pack 1);
 result();  
 
@@ -145,7 +145,7 @@ result();
 
 
 writeln"Principia Mathematica *11.55";
-goal LK.thy "|- (EX x y. P(x) & Q(x,y)) <-> (EX x. P(x) & (EX y.Q(x,y)))";
+goal LK.thy "|- (EX x y. P(x) & Q(x,y)) <-> (EX x. P(x) & (EX y. Q(x,y)))";
 by (fast_tac LK_pack 1);
 result();
 

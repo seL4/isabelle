@@ -59,11 +59,11 @@ rules
 
   (*Quantifiers*)
 
-  allR  "(!!x.$H |- $E, P(x), $F) ==> $H |- $E, ALL x.P(x), $F"
-  allL  "$H, P(x), $G, ALL x.P(x) |- $E ==> $H, ALL x.P(x), $G |- $E"
+  allR  "(!!x.$H |- $E, P(x), $F) ==> $H |- $E, ALL x. P(x), $F"
+  allL  "$H, P(x), $G, ALL x. P(x) |- $E ==> $H, ALL x. P(x), $G |- $E"
 
-  exR   "$H |- $E, P(x), $F, EX x.P(x) ==> $H |- $E, EX x.P(x), $F"
-  exL   "(!!x.$H, P(x), $G |- $E) ==> $H, EX x.P(x), $G |- $E"
+  exR   "$H |- $E, P(x), $F, EX x. P(x) ==> $H |- $E, EX x. P(x), $F"
+  exL   "(!!x.$H, P(x), $G |- $E) ==> $H, EX x. P(x), $G |- $E"
 
   (*Equality*)
 
@@ -75,7 +75,7 @@ rules
   (*Descriptions*)
 
   The "[| $H |- $E, P(a), $F;  !!x.$H, P(x) |- $E, x=a, $F |] ==> 
-          $H |- $E, P(THE x.P(x)), $F"
+          $H |- $E, P(THE x. P(x)), $F"
 end
 
   ML

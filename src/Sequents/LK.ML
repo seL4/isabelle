@@ -37,11 +37,11 @@ qed_goalw "TrueR" LK.thy [True_def]
 (** Weakened quantifier rules.  Incomplete, they let the search terminate.**)
 
 qed_goal "allL_thin" LK.thy 
-    "$H, P(x), $G |- $E ==> $H, ALL x.P(x), $G |- $E"
+    "$H, P(x), $G |- $E ==> $H, ALL x. P(x), $G |- $E"
  (fn prems=> [ (rtac allL 1), (rtac thinL 1), (resolve_tac prems 1) ]);
 
 qed_goal "exR_thin" LK.thy 
-    "$H |- $E, P(x), $F ==> $H |- $E, EX x.P(x), $F"
+    "$H |- $E, P(x), $F ==> $H |- $E, EX x. P(x), $F"
  (fn prems=> [ (rtac exR 1), (rtac thinR 1), (resolve_tac prems 1) ]);
 
 (* Symmetry of equality in hypotheses *)
