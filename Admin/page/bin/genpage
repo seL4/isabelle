@@ -1,0 +1,423 @@
+#!/bin/sh
+exec perl -x. $0 ${1+"$@"} 
+#
+#!perl -w
+
+# Genpage - Webpage Generator.
+#
+# Copyright (C) Joe Vaughan <joev@freddyfrog.com> 1998-1999
+# Some portions Copyright (C)  Ronan Waide <waider@waider.ie> 1999
+# Some portions Copyright (C)  Rocco Caputo <troc@netrus.net> 1999
+# 
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#   
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#   
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+$|=1;
+
+$version = "1.0b3";
+
+# following fix for Mac Perl submitted by Dair Grant <dair@webthing.net>
+# I shoulda thought of this, but I don't have a mac :) Thanks Dair.
+#  
+# dair, construct a path procedurally
+sub build_path
+{
+
+    # Retrieve our parameters
+    #
+    my $thePath = $_[0];
+    my $theItem = $_[1];
+
+
+
+    # If we're running on a Mac, munge the path/item/separator
+    #
+    if ($^O eq "MacOS")
+        {
+        $thePath =~ s/:$//;     # Strip off trailing ':'
+        $theItem =~ s/^:$//;    # Drop theItem == ':'
+        $pathDiv  = ":";        # Use Mac separator
+        }
+    else
+        {
+        $pathDiv = "/";         # Use Unix separator
+        }
+
+
+
+    # Return the path to the item
+    #
+    return($thePath . $pathDiv . $theItem);
+}
+
+
+
+# Some handy variables.
+$numfiles = 0;
+$numcontentfiles = 0;
+$numignoredfiles = 0;
+$numskippedfiles = 0;
+$numcpfiles = 0;
+$numdirfiles =0;
+
+use Getopt::Std;
+use File::Find;
+use File::Copy 'cp';
+
+# Current Working Dir.
+$pwd = `pwd`;
+chomp ($pwd);
+
+getopts('dt:c:o:fqhi:') || die "Invalid args, use $0 -h for help\n";
+
+# $opt_d is debug flag
+# $opt_t is template file. If not set, use standard template.
+# $opt_c is content directory. If not set, use standard content dir.
+# $opt_o is output dir, if not set, use standard output dir.
+# $opt_q sets quiet mode (no stdout output)
+# $opt_f sets a force flag - force generation even if output file is present
+#        and newer.
+# $opt_h runs usage and exits
+    
+# dair, build paths procedurally
+$opt_t ||= build_path("", "layout") . build_path("", "template.html");
+$opt_c ||= build_path("", "content");
+$opt_o ||= build_path("", "www");
+$opt_f ||= 0;
+$opt_d ||= 0;
+$opt_q ||= 0;
+$opt_h ||= 0;
+$opt_i ||= 'CVS|.*,v$';
+
+# dair, build paths procedurally
+$opt_t = build_path($pwd, $opt_t);
+$opt_c = build_path($pwd, $opt_c);
+$opt_o = build_path($pwd, $opt_o);
+
+
+if ($opt_h) { &usage; }
+
+if (!$opt_q) { 
+  print "Genpage, version $version starting run...\n";
+}
+
+if ($opt_d) { print "pwd = $pwd\n"; }
+
+#Swallow template file whole... 
+open( TEMPLATE, "<$opt_t" ) || die "Can\'t open template file $opt_t: $!\n";
+{ 
+local $/;
+undef $/;
+$template = <TEMPLATE>;
+close( TEMPLATE );
+}
+if (!$opt_q) {print "Using template file: $opt_t\n";}
+
+# Go through files in content dir and if it's a content file then 
+# process it otherwise, copy it (and it's dir structure) to the output dir.
+
+# if the output dir doesn't exist, create it.
+if (! -d $opt_o)
+{ 
+  mkdir $opt_o, 0755;
+  if (!$opt_q) 
+    {
+      print "Creating output directory: $opt_o\n"; 
+    }
+}
+
+if (!$opt_q) 
+  {
+    print "Processing files:\n"; 
+  }
+
+if (! -d $opt_c) { die "Can\'t open content dir\n" }
+
+find( \&process_file, $opt_c );
+
+if (!$opt_q) 
+  {
+    #numfiles reports one too many...
+    $numfiles--;
+    print "\nFinished.\n\n";
+    print "Run Summary.\n===========\n";
+    print "$numfiles total files and directories processed.\n";
+    print "$numcontentfiles content files parsed.\n";
+    print "$numskippedfiles content files skipped.\n"; 
+    print "$numcpfiles files copied.\n"; 
+    print "$numdirfiles directories created\n"; 
+    print "$numignoredfiles files or directories ignored.\n";
+  }
+
+exit;
+
+##############################################################################
+# Process_file the current file.
+##############################################################################
+sub process_file
+  {
+    if (!$opt_q) 
+      {
+	print "."; 
+      }
+
+    $numfiles++;
+    my $filename = $_;
+    my $dir = $File::Find::dir;
+    (undef,$reldir) = split( $opt_c, $dir);
+    if (!defined ($reldir) ) { $reldir = ""; }
+
+    # dair, build paths procedurally
+    $outdir  = build_path($opt_o,  $reldir);
+    $outfile = build_path($outdir, $filename);
+    $infile  = build_path($dir,    $filename);
+
+    # Ignore CVS stuff, ./ etc.
+    if ($infile =~ /$opt_i/) {
+      $numignoredfiles++;
+      return;
+    }
+
+    # Find returns ./ in each directory... avoid.
+
+    if ($infile =~ /\/.$/) {
+      return;
+    }
+    
+    # Ok, If the file is a dir, we create it (if necessary)
+    # if it's a content file, we parse it, otherwise, we
+    # copy it to the appropriate location.
+    
+    if ( -d $infile ) {
+      if ($opt_d) { print "Making dir $outfile\n"; };
+      mkdir $outfile, 0755 unless -d $outfile;
+      $numdirfiles++;
+      return;
+    }
+    
+    if ($filename =~ /^(.*)\.content$/) 
+      {
+
+    # dair, build paths procedurally
+    $outfile = build_path($outdir, "$1.html");
+
+	if ($opt_d) {print "Parsing: $infile\n Outputing to: $outfile\n";};
+	process_content($infile,$outfile);
+      }
+    else
+      {
+	if ($opt_d) { print "Copying: $infile => $outfile\n"; };
+	cp($infile,$outfile);
+	$numcpfiles++;
+      }
+    $_ = $filename; # because we broke it...
+  }
+
+##############################################################################
+# Process the tags in the template, substituting in the content file 
+# components and other things like inline function definitions and 
+# "include" directives
+##############################################################################
+ 
+sub process_content
+  {
+    
+    $inputfile = shift;
+    $outputfile = shift;
+    my @content = "";
+   
+    $temp = $template;
+
+    if ($opt_d) { print "processing $inputfile to $outputfile\n";}
+
+# Make-like check for last modification times to see if it's necessary
+# to re-gen this page.
+
+    if ( -f $outputfile) 
+      {
+	   
+	if (!$opt_f && ( -M $outputfile < -M $inputfile)) 
+	  {
+	    $numskippedfiles++;
+	    if ($opt_d) { 
+	      print "skipping $inputfile because $outputfile is newer\n";
+	    }
+	    return;
+	  }
+      }
+    # Read content file
+    open( CONTENT, "<$inputfile" ) || die $!;
+    @content = <CONTENT>;
+    close( CONTENT );
+
+    $numcontentfiles++;
+
+    undef %page;
+    undef $tag;
+    foreach $line ( @content )
+      {
+	if ( $line =~ /^\s*\%(.+)\%/ )
+	{
+	  $tag = $1;
+	  next;
+	}
+	next if !defined( $tag );
+	
+	 $line .= "\n" if $line !~ /\n$/;
+	
+	if ( defined( $page{ $tag } ))
+	  {
+	    $page{ $tag } .= $line;
+	  }
+	else
+	  {
+	    $page{ $tag } = $line;
+	  }
+      }
+    
+    open( HTML, ">$outputfile" ) || die $1;
+    
+    while ($temp =~ /^(.*?)<!--\s*_GP_\s*(.*?)\s*-->(.*)$/s)
+      {
+	local $replacement = "";
+	my ($left, $middle, $right) = ($1, $2, $3);
+        if (!defined($replacement = eval ($middle))) 
+	  { 
+	    $replacement = "";
+	  }
+	
+	if ($@) {
+          $middle =~ s/\s+/ /g;
+          print STDERR "error evaluating { $middle }: $@\n";
+        }
+        else {
+          if ($opt_d) {
+	    print "evaluation output: $replacement\n";
+	  }
+        }
+	
+	$temp = $left . $replacement . $right;
+      }
+    print HTML $temp;
+    close( HTML );
+  }
+
+
+sub include
+  {
+    my ($file) = shift;
+    my ($section) = shift;
+
+    if ($opt_d) { 
+      print "include: file = $file\n"; 
+    }
+    if (!open( INCLUDE, "<$file" )) { 
+      return "<!-- include: file not found: $file -->";
+    }
+    
+    if (defined($section)) {
+    undef %incpage;
+    undef $inctag;
+
+      @content = <INCLUDE>;
+      close (INCLUDE);
+
+      foreach $line ( @content )
+	{
+	  if ( $line =~ /^\s*\%(.+)\%/ )
+	    {
+	      $inctag = $1; 
+	      next;
+	    }
+	  next if !defined( $inctag );
+	  $line .= "\n" if $line !~ /\n$/;
+
+	  if ( defined( $incpage{ $inctag } ))
+	    {
+	      $incpage{ $inctag } .= $line;
+	    }
+	  else
+	    {
+	      $incpage{ $inctag } = $line;
+	    }
+	}
+      if (defined( $incpage{$section}) ) {
+	$inline = $incpage{$section};
+      }
+      else {
+	$inline = "<!-- include: no such section - $section - in $file -->";  
+      }
+    } 
+    else
+      {	
+	local $/;
+	undef $/;
+	$inline = <INCLUDE>;
+	close( INCLUDE );
+      }
+    return "$inline";
+  }
+
+sub content
+  {
+    my $tag = shift;
+
+    if ($opt_d) { print "content: tag = $tag\n"; }
+    if (defined( $page{ $tag } ))
+      {      
+	$output = $page { $tag };
+	if ($opt_d) { print "content: output = $output\n"; }
+	return "$output";
+      }
+    else
+      {
+	return "<!-- content: undefined tag: $tag -->";
+      }
+  }
+
+sub version
+  {
+    return ( "<a href=\"http://www.mnemonic.org/genpage/\">Genpage</a> - Version: $version" );
+  }
+
+sub usage
+  {
+    print <<EOT;
+usage: genpage [-dqfh] [-c <content dir>] [-o <output dir>] 
+               [-t <template file>] [ -i <ignore regexp> ]
+
+
+       -d debug mode.     Turn on debugging (very verbose!)
+       -q quiet mode.     Don't print anything while running.
+       -f force mode.     Force the parsing of content files.
+       -h help.           Print this help text.
+       -c <content dir>   The directory where your content tree exists.
+                          Defaults to ./content.
+       -o <output dir>    The directory to put the output website.
+                          Defaults to ./www
+       -t <template file> The template to use to generate the site.
+                          Defaults to ./layout/template.html
+       -i <ignore regexp> Regular expression telling genpage to ignore certain
+                          files or directories. defaults to "CVS|.*,v$"
+
+       Genpage $version Copyright (C) Joe Vaughan <joev\@mnemonic.org> 1999
+       This program is released under the terms of the GNU Public License
+       Please read the accompanying COPYING file for details.
+
+       For detailed instructions on how to use Genpage, please consult the 
+       accompanying documentation. If you have questions, comments or 
+       suggestions for Genpage please contact the author.
+EOT
+exit;
+}

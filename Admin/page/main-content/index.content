@@ -1,0 +1,53 @@
+%title%
+Isabelle
+
+%body%
+
+<p>
+
+<h2>Isabelle</h2> 
+is a popular generic theorem proving
+environment developed at Cambridge University (<a
+href="http://www.cl.cam.ac.uk/users/lcp/">Larry Paulson</a>) and TU
+Munich (<a href="http://www.in.tum.de/~nipkow/">Tobias Nipkow</a>).
+
+<p>
+
+This page provides general information on Isabelle, more specific
+information is available from the local pages
+
+<ul>
+
+<li> <a
+href="http://www.cl.cam.ac.uk/Research/HVG/Isabelle/cambridge.html"><strong>Isabelle
+at Cambridge</strong></a> 
+
+<li> <a href="munich.html"><strong>Isabelle
+at Munich</strong></a>
+
+</ul>
+
+See there for information on projects done with Isabelle, mailing list
+archives, research papers, the Isabelle bibliography, and Isabelle
+workshops and courses.
+
+<p>
+&nbsp;
+
+<h2>Obtaining Isabelle</h2>
+
+The current version is <strong>{ISABELLE}</strong>.  Several mirror
+sites provide the Isabelle <a href="dist/">distribution</a>, which
+includes sources, documentation, and binary packages.
+
+
+<p>
+&nbsp;
+
+
+<h2>Mailing list</h2>
+
+Use the mailing list <a href="mailto:
+isabelle-users@cl.cam.ac.uk">isabelle-users@cl.cam.ac.uk</a> to
+discuss problems and results.  
+(Why not <A HREF="mailto:lcp@cl.cam.ac.uk">subscribe</A>?)

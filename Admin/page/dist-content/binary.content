@@ -1,0 +1,32 @@
+%title%
+Isabelle Binary Distribution
+
+%body%
+The binary distribution of {ISABELLE} for rpm-based Linux/x86 systems:
+
+<p>
+
+<!-- _GP_ setdowncolor("#E0E0E0") -->
+<center>
+<table border="0" cellspacing="5" cellpadding="4" width="520">
+
+  <!-- _GP_ download("ML system", "rpm/smlnj-base-110.0.6-0.i386.rpm", "{RPM_SML_SIZE} K") -->
+  <!-- _GP_ download("Isabelle system", "rpm/isabelle.rpm", "{RPM_BASE_SIZE} K") -->
+  <!-- _GP_ download("Isabelle/HOL image", "rpm/isabelle-HOL.i386.rpm", "{RPM_HOL_SIZE} K") -->
+  <!-- _GP_ download("Isabelle/HOL-Real image (optional)", "rpm/isabelle-HOL-Real.i386.rpm", "{RPM_REAL_SIZE} K") -->
+  <!-- _GP_ download("Isabelle/ZF image (optional)", "rpm/isabelle-ZF.i386.rpm", "{RPM_ZF_SIZE} K") -->
+  <!-- _GP_ download("Isabelle pdf documentation (optional)", "rpm/isabelle-pdfdocs.rpm", "{RPM_DOCS_SIZE} K") -->
+
+</table>
+
+</center>
+
+<p>
+
+Example installation procedure:
+
+<pre>
+rpm -i smlnj-base-110.0.6-0.i386.rpm
+rpm -i --prefix /usr/share isabelle.rpm             
+rpm -i --prefix /usr/share isabelle-HOL.i386.rpm    
+</pre>

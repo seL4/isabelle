@@ -1,0 +1,24 @@
+
+<!-- $Id$ -->
+
+%title%
+Isabelle Distribution Area
+
+
+%body%
+<p>
+
+<h2>Mirror sites (in alphabetical order)</h2>
+
+<ul>	
+
+<li> <a href="http://www.cl.cam.ac.uk/Research/HVG/Isabelle/dist/">Cambridge (UK)</a> <br>&nbsp;</li>
+
+<li> <a href="http://isabelle.in.tum.de/dist/">Munich (Germany)</a> <br>&nbsp;</li>
+	
+
+<li> <a href="ftp://ftp.research.bell-labs.com/dist/smlnj/isabelle/index.html">New Jersey (USA)</a> <br>&nbsp;</li>
+
+</ul>
+
+

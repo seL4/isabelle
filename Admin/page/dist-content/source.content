@@ -1,0 +1,24 @@
+%title%
+Isabelle Source Releases
+
+%body%
+The source distribution of Isabelle:
+
+<p>
+
+<!-- _GP_ setdowncolor("#E0E0E0") -->
+
+<center>
+<table border="0" cellspacing="5" cellpadding="4" width="500">
+
+  <!-- _GP_ download("Isabelle sources with dvi documentation", "{ISABELLE}.tar.gz", "{PACKED_SIZE} K") -->
+  <!-- _GP_ download("Documentation as pdf files", "{ISABELLE}_pdf.tar.gz", "{PACKED_SIZE_PDF} K") -->
+  <!-- _GP_ download("All files unpacked", "{ISABELLE}", "{UNPACKED_SIZE} K") -->
+
+</table>
+</center>
+
+<p>
+
+Please see the Isabelle <a href="{ISABELLE}/README.html">README</a> file for more information.
+

@@ -1,0 +1,9 @@
+%title%
+Isabelle Documentation
+
+%body%
+The Isabelle documentation:
+
+<!-- _GP_ include("$pwd/docu-contents.dist") -->
+
+All this documentation is also part of the Isabelle <a href="source.html">distribution</a>.

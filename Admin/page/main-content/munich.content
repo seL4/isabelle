@@ -1,0 +1,76 @@
+%title%
+Isabelle at Munich
+
+
+%body%
+
+<h1>Isabelle at Munich</h1> 
+
+<p>
+
+<a href="http://isabelle.in.tum.de/">Isabelle</a> is a generic theorem
+proving environment developed at Cambridge University (<a
+href="http://www.cl.cam.ac.uk/users/lcp/">Larry Paulson</a>) and TU
+Munich (<a href="http://www.in.tum.de/~nipkow/">Tobias Nipkow</a>).
+This is the local page of the Munich group.
+
+
+<h2>People</h2>
+
+The following people are involved in Isabelle applications or
+development at our group (alphabetical order):
+
+<ul>
+
+<li> <a href="http://www.in.tum.de/~bauerg/">Gertrud Bauer</a>
+<li> <a href="/~berghofe/">Stefan Berghofer</a>
+<li> <a href="/~kleing/">Gerwin Klein</a>
+<li> <a href="/~narasche/">Wolfgang Naraschewski</a>
+<li> <a href="/~nipkow/">Tobias Nipkow</a>
+<li> <a href="/~oheimb/">David von Oheimb</a>
+<li> <a href="/~prensani/">Leonor Prensa Nieto</a>
+<li> <a href="/~pusch/">Cornelia Pusch</a>
+<li> <a href="/~wenzelm/">Markus Wenzel</a>
+
+</ul>
+
+
+<h2>Projects</h2>
+
+The main Isabelle related projects at TU Munich are currently:
+
+<ul>
+
+<li> <b><a href="Bali/">Isabelle/Bali</a></b> Java and JVM
+formalization --- type system, semantics, compilers
+
+<li> <b>Isabelle/HOOL</b> Object-oriented verification of Java
+programs
+
+<li> <b><a href="Isar/">Isabelle/Isar</a></b> Intelligible
+semi-automated reasoning --- readable formal proof documents
+
+<li><b><a href="IOA/">Isabelle/IOA</a></b> Verification of
+distributed, reactive systems using I/O Automata
+
+</ul>
+
+<p>
+
+<b>Important local information:</b> Students are welcome to
+participate, see <a href="stud/">Isabelle Projekte für Studenten</a>
+(in German) for more information.
+
+
+<h2>Isabelle resources</h2>
+
+<ul>
+
+<li> Isabelle <a href="dist/">distribution area</a>
+
+<li> Isabelle online theory library: <a
+href="library-Isabelle99/">Isabelle99</a>, <a
+href="library-Isabelle98-1/">Isabelle98-1</a>
+
+
+</ul>

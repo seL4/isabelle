@@ -1,57 +1,8 @@
-<html>
+%title%
+About Isabelle
 
-<head>
-<!-- $Id$ -->
-<title>Isabelle</title>
-</head>
-
-<body>
-
-<h1>Isabelle </h1> <a href="http://isabelle.in.tum.de/logo/"><img
-src="isabelle.gif" width=100 align=right alt="[Isabelle logo]"></a>
-
-<p>
-
-<strong>Isabelle</strong> is a popular generic theorem proving
-environment developed at Cambridge University (<a
-href="http://www.cl.cam.ac.uk/users/lcp/">Larry Paulson</a>) and TU
-Munich (<a href="http://www.in.tum.de/~nipkow/">Tobias Nipkow</a>).
-
-<p>
-
-<a
-href="http://www.cl.cam.ac.uk/Research/HVG/Isabelle/cambridge.html"><img
-src="cambridge.gif" width=145 border=0 align=right
-alt="[Cambridge logo]"></a> <a
-href="http://isabelle.in.tum.de/munich.html"><img src="munich.gif"
-width=48 border=0 align=right alt="[Munich logo]"></a> This page
-provides general information on Isabelle, more specific information is
-available from the local pages
-
-<ul>
-
-<li> <a
-href="http://www.cl.cam.ac.uk/Research/HVG/Isabelle/cambridge.html"><strong>Isabelle
-at Cambridge</strong></a> 
-
-<li> <a href="http://isabelle.in.tum.de/munich.html"><strong>Isabelle
-at Munich</strong></a>
-
-</ul>
-
-See there for information on projects done with Isabelle, mailing list
-archives, research papers, the Isabelle bibliography, and Isabelle
-workshops and courses.
-
-
-<h2>Obtaining Isabelle</h2>
-
-The current version is <strong>Isabelle99</strong>.  Several mirror
-sites provide the Isabelle <a href="dist/">distribution</a>, which
-includes sources, documentation, and binary packages.
-
-
-<h2>What is  Isabelle?</h2>
+%body%
+<h2>What is Isabelle?</h2>
 
 Isabelle can be viewed from two main perspectives.  On the one hand it
 may serve as a generic framework for rapid prototyping of deductive
@@ -149,16 +100,3 @@ prover involves only minimal ML-based setup.  One may also write
 arbitrary proof procedures or even theory extension packages in ML,
 without breaching system soundness (Isabelle follows the well-known
 <em>LCF system approach</em> to achieve a secure system).
-
-
-<h2>Mailing list</h2>
-
-Use the mailing list <a href="mailto:
-isabelle-users@cl.cam.ac.uk">isabelle-users@cl.cam.ac.uk</a> to
-discuss problems and results.  
-(Why not <A HREF="mailto:lcp@cl.cam.ac.uk">subscribe</A>?)
-
-
-</body>
-
-</html>

@@ -1,0 +1,47 @@
+#!/usr/bin/perl
+
+# mkcontents.pl
+#   simple script to create a html version of the Contents file in the
+#   Isabelle documentation directory.
+#
+#   Nov/14/1999 Version 1.0  -  Gerwin Klein <kleing@in.tum.de>
+#
+#   command line:
+#   mkcontent [-p <url-path-prefix>] <Content-file> <output-file>
+#
+
+
+use Getopt::Long ;
+   
+$opt_p="";
+$result = GetOptions ("p=s");
+
+$path=$opt_p;
+
+$infile  = $ARGV[0];
+$outfile = $ARGV[1];
+
+$fileHeader = "<ul>\n";
+$lineHeader = "  <li> ";
+$lineEnd    = "  </li>\n";
+$fileFooter = "</ul>\n";
+
+open(IN, "<$infile") || die "cannot read input file <$infile>";
+open(OUT, ">$outfile") || die "cannot write output file <$outfile>";
+
+print OUT $fileHeader;
+
+while (<IN>) {
+  if (/[ \t]*([^ \t]+)[ \t]+(.+)\n/) {
+    print OUT $lineHeader;
+    print OUT "<a href=\"$path$1.pdf\">$2</a>";
+    print OUT $lineEnd;
+  }
+}
+
+print OUT $fileFooter;
+
+close(OUT);
+close(IN);
+
+exit(0);
