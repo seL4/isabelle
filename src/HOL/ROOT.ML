@@ -33,33 +33,7 @@ use "~~/src/Provers/Arith/assoc_fold.ML";
 use "~~/src/Provers/quantifier1.ML";
 use "~~/src/Provers/Arith/combine_coeff.ML";
 
-use_thy "subset";
-use "Tools/typedef_package.ML";
-use_thy "Inductive";
-use_thy "NatDef";
-
-use "Tools/datatype_aux.ML";
-use "Tools/datatype_prop.ML";
-use "Tools/datatype_rep_proofs.ML";
-use "Tools/datatype_abs_proofs.ML";
-use "Tools/datatype_package.ML";
-use "Tools/primrec_package.ML";
-use_thy "Datatype";
-
-(*TFL: recursive function definitions*)
-use_thy "WF_Rel";
-cd "../TFL"; use "sys.sml"; cd "../HOL";
-use_thy "Recdef";
-
-use_thy "Numeral";
-cd "Integ";
-use_thy "IntDef";
-use "simproc.ML";
-use_thy "NatBin";
-cd "..";
-
-(*the all-in-one theory*)
-use_thy "Main";
+with_path "Integ" use_thy "Main";
 
 print_depth 8;
 
