@@ -692,7 +692,7 @@ fun movedot_lambda _ [] = []
 
 
 val warned = ref false;                            (*flag for warning message*)
-val branching_level = ref 250;                   (*trigger value for warnings*)
+val branching_level = ref 400;                   (*trigger value for warnings*)
 
 (*get all productions of a NT and NTs chained to it which can
   be started by specified token*)
