@@ -198,8 +198,8 @@ qed "wf_weak_decr_stable";
 (* special case: <= *)
 
 Goal "(m, n) : pred_nat^* = (m <= n)";
-by (simp_tac (simpset() addsimps [less_eq, reflcl_trancl RS sym] 
-                        delsimps [reflcl_trancl]) 1);
+by (simp_tac (simpset() addsimps [less_eq, thm"reflcl_trancl" RS sym] 
+                        delsimps [thm"reflcl_trancl"]) 1);
 by (arith_tac 1);
 qed "le_eq";
 

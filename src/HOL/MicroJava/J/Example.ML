@@ -60,7 +60,7 @@ Goal "(C,C) \\<in> (subcls1 tprg)^+ ==> R";
 by (auto_tac (claset() addSDs [tranclD,subcls1D],simpset()));
 by (ftac class_tprgD 1);
 by (auto_tac (claset() addSDs [],simpset()));
-bd rtranclD 1;
+bd (thm"rtranclD") 1;
 by Auto_tac;
 qed "not_class_subcls_class";
 AddSEs [not_class_subcls_class];
@@ -176,7 +176,7 @@ by (Simp_tac 1);
 by (fold_goals_tac [ExtC_def]);
 br (wf_foo_Ext RS conjI) 1;
 by Auto_tac;
-bd rtranclD 1;
+bd (thm"rtranclD") 1;
 by Auto_tac;
 qed "wf_ExtC";
 

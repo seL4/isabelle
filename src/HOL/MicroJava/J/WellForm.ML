@@ -27,8 +27,8 @@ by( dtac subcls1D 1);
 by(Clarify_tac 1);
 by( datac class_wf 1 1);
 by( rewtac wf_cdecl_def);
-by(force_tac (claset(), simpset() addsimps [reflcl_trancl RS sym] 
-				  delsimps [reflcl_trancl]) 1);
+by(force_tac (claset(), simpset() addsimps [thm"reflcl_trancl" RS sym] 
+				  delsimps [thm"reflcl_trancl"]) 1);
 qed "subcls1_wfD";
 
 Goalw [wf_cdecl_def] 
@@ -234,7 +234,7 @@ Goal
 "[|field (G,C) fn = Some (fd, fT); G\\<turnstile>D\\<preceq>C C; wf_prog wf_mb G|]==> \
 \ map_of (fields (G,D)) (fn, fd) = Some fT";
 by (dtac field_fields 1);
-by (dtac rtranclD 1);
+by (dtac (thm"rtranclD") 1);
 by Safe_tac;
 by (ftac subcls_is_class 1);
 by (dtac trancl_into_rtrancl 1);
@@ -268,7 +268,7 @@ qed_spec_mp "method_wf_mdecl";
 Goal "[|G\\<turnstile>T\\<preceq>C T'; wf_prog wf_mb G|] ==> \
 \  \\<forall>D rT b. method (G,T') sig = Some (D,rT ,b) -->\
 \ (\\<exists>D' rT' b'. method (G,T) sig = Some (D',rT',b') \\<and> G\\<turnstile>rT'\\<preceq>rT)";
-by( dtac rtranclD 1);
+by( dtac (thm"rtranclD") 1);
 by( etac disjE 1);
 by(  Fast_tac 1);
 by( etac conjE 1);
