@@ -15,7 +15,7 @@ function usage()
   echo "  Expand shorthand goal commands in FILES.  Also contracts uses of"
   echo "  resolve_tac, dresolve_tac, eresolve_tac, rewrite_goals_tac on"
   echo "  1-element lists; furthermore expands tabs, since they are now"
-  echo "  forbidden in strings."
+  echo "  forbidden in ML string constants."
   echo
   echo "  Renames old versions of FILES by appending \"~~\"."
   echo
