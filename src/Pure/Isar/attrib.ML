@@ -32,7 +32,6 @@ sig
   val local_thmss: Proof.context * Args.T list -> thm list * (Proof.context * Args.T list)
   val syntax: ('a * Args.T list -> 'a attribute * ('a * Args.T list)) -> Args.src -> 'a attribute
   val no_args: 'a attribute -> Args.src -> 'a attribute
-  val bang_args: 'a attribute -> 'a attribute -> Args.src -> 'a attribute
   val add_del_args: 'a attribute -> 'a attribute -> Args.src -> 'a attribute
   val setup: (theory -> theory) list
 end;
@@ -156,9 +155,6 @@ fun syntax scan src (st, th) =
   in f (st', th) end;
 
 fun no_args x = syntax (Scan.succeed x);
-
-fun bang_args a b x = syntax
-  (Scan.lift Args.bang >> K a || Scan.succeed b) x;
 
 fun add_del_args add del x = syntax
   (Scan.lift (Args.add >> K add || Args.del >> K del || Scan.succeed add)) x;
