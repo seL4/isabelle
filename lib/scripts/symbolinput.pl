@@ -1,11 +1,11 @@
-# Title:	lib/scripts/symbolinput.pl
-# ID:		$Id$
-# Author:	Markus Wenzel and David von Oheimb, TU Muenchen
 #
-# Translate symbols into \<...> sequences.  Please keep consistent
-# with Pure/Syntax/symbol_font.ML!
+# $Id$
+#
+# symbolinput.pl - expand isabelle-0 encoded chars to \<...> sequences.
+#
 
 %tab = (
+#GENERATED TEXT FOLLOWS - Do not edit!
   "\xa1", "\\\\<Gamma>",
   "\xa2", "\\\\<Delta>",
   "\xa3", "\\\\<Theta>",
@@ -100,12 +100,14 @@
   "\xfc", "\\\\<bullet>",
   "\xfd", "\\\\<parallel>",
   "\xfe", "\\\\<surd>",
-  "\xff", "\\\\<copyright>");
+  "\xff", "\\\\<copyright>"
+#END OF GENERATED TEXT
+);
 
 $SIG{INT} = "IGNORE";
 $| = 1;
 
 while (<ARGV>) {
-  s/([\xa1-\xff])/$tab{$1}/g;
+  s/([\xa1-\xff])/\\$tab{$1}/g;
   print;
 }
