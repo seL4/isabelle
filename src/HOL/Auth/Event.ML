@@ -129,10 +129,10 @@ qed "used_subset_append";
   this information isn't needed, the proof will be much shorter, since
   it will omit complicated reasoning about analz.*)
 val analz_mono_contra_tac = 
-  let val impI' = read_instantiate_sg (sign_of thy)
-                [("P", "?Y ~: analz (sees ?A ?evs)")] impI;
+  let val analz_impI = read_instantiate_sg (sign_of thy)
+                [("P", "?Y ~: analz (spies ?evs)")] impI;
   in
-    rtac impI THEN' 
+    rtac analz_impI THEN' 
     REPEAT1 o 
       (dresolve_tac 
        [spies_subset_spies_Says  RS analz_mono RS contra_subsetD,
