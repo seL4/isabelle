@@ -165,8 +165,11 @@ fun add_fp_def_i (rec_tms, dom_sum, intr_tms) thy =
              | _ => rec_tms ~~          (*define the sets as Parts*)
                     map (subst_atomic [(Free(X',iT),big_rec_tm)]) parts));
 
-    val dummy = seq (writeln o Sign.string_of_term sign o #2) axpairs
-  
+    (*tracing: print the fixedpoint definition*)
+    val _ = if !Ind_Syntax.trace then
+		seq (writeln o Sign.string_of_term sign o #2) axpairs
+            else ()
+
   in  thy |> PureThy.add_store_defs_i axpairs  end
 
 

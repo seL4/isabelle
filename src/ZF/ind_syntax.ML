@@ -12,6 +12,9 @@ Abstract Syntax functions for Inductive Definitions
 structure Ind_Syntax =
 struct
 
+(*Print tracing messages during processing of "inductive" theory sections*)
+val trace = ref false;
+
 (** Abstract syntax definitions for ZF **)
 
 val iT = Type("i",[]);
@@ -124,3 +127,5 @@ fun mk_free_SEs iffs = map (gen_make_elim [conjE,FalseE]) (iffs RL [iffD1]);
 
 end;
 
+
+val trace_induct = Ind_Syntax.trace;

@@ -62,7 +62,7 @@ fun induct_prem ind_alist intr =
   in list_all_free (quantfrees, Logic.list_implies (iprems,concl)) end
   handle Bind => error"Recursion term not found in conclusion";
 
-(*Reduces backtracking by delivering the correct premise to each goal.
+(*Minimizes backtracking by delivering the correct premise to each goal.
   Intro rules with extra Vars in premises still cause some backtracking *)
 fun ind_tac [] 0 = all_tac
   | ind_tac(prem::prems) i = 
@@ -74,13 +74,15 @@ val pred = Free(pred_name, Ind_Syntax.iT --> FOLogic.oT);
 val ind_prems = map (induct_prem (map (rpair pred) Inductive.rec_tms)) 
                     Inductive.intr_tms;
 
-(*Debugging code...
-val _ = writeln "ind_prems = ";
-val _ = seq (writeln o Sign.string_of_term sign) ind_prems;
-*)
+val _ = if !Ind_Syntax.trace then 
+            (writeln "ind_prems = ";
+	     seq (writeln o Sign.string_of_term sign) ind_prems;
+	     writeln "raw_induct = "; print_thm Intr_elim.raw_induct)
+        else ();
+
 
 (*We use a MINIMAL simpset because others (such as FOL_ss) contain too many
-  simplifications.  If the premises get simplified, then the proofs will 
+  simplifications.  If the premises get simplified, then the proofs could 
   fail.  *)
 val min_ss = empty_ss
       setmksimps (map mk_meta_eq o ZF_atomize o gen_all)
@@ -98,8 +100,12 @@ val quant_induct =
         DETERM (etac Intr_elim.raw_induct 1),
         (*Push Part inside Collect*)
         full_simp_tac (min_ss addsimps [Part_Collect]) 1,
-        REPEAT (FIRSTGOAL (eresolve_tac [CollectE, exE, conjE, disjE] ORELSE'
-                           hyp_subst_tac)),
+        (*This CollectE and disjE separates out the introduction rules*)
+	REPEAT (FIRSTGOAL (eresolve_tac [CollectE, disjE])),
+	(*Now break down the individual cases.  No disjE here in case
+          some premise involves disjunction.*)
+        REPEAT (FIRSTGOAL (eresolve_tac [CollectE, exE, conjE] 
+                           ORELSE' hyp_subst_tac)),
         ind_tac (rev prems) (length prems) ]);
 
 (*** Prove the simultaneous induction rule ***)
@@ -165,7 +171,8 @@ val lemma = (*makes the link between the two induction rules*)
 	     [cut_facts_tac prems 1, 
 	      REPEAT (rewrite_goals_tac [Pr.split_eq] THEN
 		      lemma_tac 1)]))
-  else TrueI;
+  else (writeln "  [ No mutual induction rule needed ]";
+        TrueI);
 
 (*Mutual induction follows by freeness of Inl/Inr.*)
 
@@ -184,7 +191,7 @@ val all_defs = Inductive.con_defs @ part_rec_defs;
 *)
 val cmonos = [subset_refl RS Collect_mono] RL Inductive.monos RLN (2,[rev_subsetD]);
 
-(*Avoids backtracking by delivering the correct premise to each goal*)
+(*Minimizes backtracking by delivering the correct premise to each goal*)
 fun mutual_ind_tac [] 0 = all_tac
   | mutual_ind_tac(prem::prems) i = 
       DETERM
