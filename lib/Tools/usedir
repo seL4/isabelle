@@ -93,10 +93,10 @@ fi
 
 if [ -n "$BUILD" ]; then
   exec $ISABELLE \
-    -e "make_html := $INFO; make_graph := $INFO; output_dir := \"$ISABELLE_BROWSER_INFO\"; home_path := \"$HOME\"; set_session\"$SESSION\"; exit_use_dir\".\"; make_html := false; make_graph := false;" \
+    -e "make_html := $INFO; make_graph := $INFO; output_dir := \"$ISABELLE_BROWSER_INFO\"; home_path := \"$HOME\"; add_session\"$SESSION\"; exit_use_dir\".\"; make_html := false; make_graph := false;" \
     -q -w $LOGIC $NAME
 else
   exec $ISABELLE \
-    -e "make_html := $INFO; make_graph := $INFO; output_dir := \"$ISABELLE_BROWSER_INFO\"; home_path := \"$HOME\"; set_session\"$SESSION\"; exit_use_dir\"$NAME\"; make_html := false; make_graph := false; quit();" \
+    -e "make_html := $INFO; make_graph := $INFO; output_dir := \"$ISABELLE_BROWSER_INFO\"; home_path := \"$HOME\"; add_session\"$SESSION\"; exit_use_dir\"$NAME\"; make_html := false; make_graph := false; quit();" \
     -r -q $LOGIC
 fi
