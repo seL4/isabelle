@@ -1,1 +1,1 @@
-use_thy "Equivalence";
+use_thy "Example";

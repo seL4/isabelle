@@ -115,7 +115,7 @@ lemma eval_eval_exec_max:
 apply (drule (1) eval_eval_max, erule thin_rl)
 by (fast intro: exec_mono eval_mono le_maxI1 le_maxI2)
 
-lemma Impl_body_eq: "(\<lambda>t. \<exists>n. z -Impl M-n\<rightarrow> t) = (\<lambda>t. \<exists>n. z -body M-n\<rightarrow> t)"
+lemma Impl_body_eq: "(\<lambda>t. \<exists>n. Z -Impl M-n\<rightarrow> t) = (\<lambda>t. \<exists>n. Z -body M-n\<rightarrow> t)"
 apply (rule ext)
 apply (fast elim: exec_elim_cases intro: exec_eval.Impl)
 done

@@ -134,7 +134,7 @@ apply blast
 apply blast
 (* Impl *)
 apply (rule allI)
-apply (rule_tac x=z in spec)
+apply (rule_tac x=Z in spec)
 apply (induct_tac "n")
 apply  (clarify intro!: Impl_nvalid_0)
 apply (clarify  intro!: Impl_nvalid_Suc)
@@ -164,14 +164,14 @@ done
 subsection "(Relative) Completeness"
 
 constdefs MGT    :: "stmt => state =>  triple"
-         "MGT  c z \<equiv> (\<lambda>s. z = s, c, \<lambda>  t. \<exists>n. z -c-  n-> t)"
+         "MGT  c Z \<equiv> (\<lambda>s. Z = s, c, \<lambda>  t. \<exists>n. Z -c-  n-> t)"
           MGTe   :: "expr => state => etriple"
-         "MGTe e z \<equiv> (\<lambda>s. z = s, e, \<lambda>v t. \<exists>n. z -e>v-n-> t)"
+         "MGTe e Z \<equiv> (\<lambda>s. Z = s, e, \<lambda>v t. \<exists>n. Z -e>v-n-> t)"
 syntax (xsymbols)
          MGTe    :: "expr => state => etriple" ("MGT\<^sub>e")
 
 lemma MGF_implies_complete:
- "\<forall>z. {} |\<turnstile> { MGT c z} \<Longrightarrow> \<Turnstile>  {P} c {Q} \<Longrightarrow> {} \<turnstile>  {P} c {Q}"
+ "\<forall>Z. {} |\<turnstile> { MGT c Z} \<Longrightarrow> \<Turnstile>  {P} c {Q} \<Longrightarrow> {} \<turnstile>  {P} c {Q}"
 apply (simp only: valid_def2)
 apply (unfold MGT_def)
 apply (erule hoare_ehoare.Conseq)
@@ -179,7 +179,7 @@ apply (clarsimp simp add: nvalid_def2)
 done
 
 lemma eMGF_implies_complete:
- "\<forall>z. {} |\<turnstile>\<^sub>e MGT\<^sub>e e z \<Longrightarrow> \<Turnstile>\<^sub>e {P} e {Q} \<Longrightarrow> {} \<turnstile>\<^sub>e {P} e {Q}"
+ "\<forall>Z. {} |\<turnstile>\<^sub>e MGT\<^sub>e e Z \<Longrightarrow> \<Turnstile>\<^sub>e {P} e {Q} \<Longrightarrow> {} \<turnstile>\<^sub>e {P} e {Q}"
 apply (simp only: evalid_def2)
 apply (unfold MGTe_def)
 apply (erule hoare_ehoare.eConseq)
@@ -188,9 +188,9 @@ done
 
 declare exec_eval.intros[intro!]
 
-lemma MGF_Loop: "\<forall>z. A \<turnstile> {op = z} c {\<lambda>t. \<exists>n. z -c-n\<rightarrow> t} \<Longrightarrow> 
-  A \<turnstile> {op = z} While (x) c {\<lambda>t. \<exists>n. z -While (x) c-n\<rightarrow> t}"
-apply (rule_tac P' = "\<lambda>z s. (z,s) \<in> ({(s,t). \<exists>n. s<x> \<noteq> Null \<and> s -c-n\<rightarrow> t})^*"
+lemma MGF_Loop: "\<forall>Z. A \<turnstile> {op = Z} c {\<lambda>t. \<exists>n. Z -c-n\<rightarrow> t} \<Longrightarrow> 
+  A \<turnstile> {op = Z} While (x) c {\<lambda>t. \<exists>n. Z -While (x) c-n\<rightarrow> t}"
+apply (rule_tac P' = "\<lambda>Z s. (Z,s) \<in> ({(s,t). \<exists>n. s<x> \<noteq> Null \<and> s -c-n\<rightarrow> t})^*"
        in hoare_ehoare.Conseq)
 apply  (rule allI)
 apply  (rule hoare_ehoare.Loop)
@@ -199,7 +199,7 @@ apply  clarsimp
 apply  (blast intro:rtrancl_into_rtrancl)
 apply (erule thin_rl)
 apply clarsimp
-apply (erule_tac x = z in allE)
+apply (erule_tac x = Z in allE)
 apply clarsimp
 apply (erule converse_rtrancl_induct)
 apply  blast
@@ -208,8 +208,8 @@ apply (drule (1) exec_exec_max)
 apply (blast del: exec_elim_cases)
 done
 
-lemma MGF_lemma: "\<forall>M z. A |\<turnstile> {MGT (Impl M) z} \<Longrightarrow> 
- (\<forall>z. A |\<turnstile> {MGT c z}) \<and> (\<forall>z. A |\<turnstile>\<^sub>e MGT\<^sub>e e z)"
+lemma MGF_lemma: "\<forall>M Z. A |\<turnstile> {MGT (Impl M) Z} \<Longrightarrow> 
+ (\<forall>Z. A |\<turnstile> {MGT c Z}) \<and> (\<forall>Z. A |\<turnstile>\<^sub>e MGT\<^sub>e e Z)"
 apply (simp add: MGT_def MGTe_def)
 apply (rule stmt_expr.induct)
 apply (rule_tac [!] allI)
@@ -239,7 +239,7 @@ apply (erule hoare_ehoare.eConseq [THEN hoare_ehoare.LAss])
 apply fast
 
 apply (erule thin_rl)
-apply (rule_tac Q = "\<lambda>a s. \<exists>n. z -expr1\<succ>Addr a-n\<rightarrow> s" in hoare_ehoare.FAss)
+apply (rule_tac Q = "\<lambda>a s. \<exists>n. Z -expr1\<succ>Addr a-n\<rightarrow> s" in hoare_ehoare.FAss)
 apply  (drule spec)
 apply  (erule eConseq2)
 apply  fast
@@ -269,7 +269,7 @@ apply blast
 apply (erule hoare_ehoare.eConseq [THEN hoare_ehoare.FAcc])
 apply fast
 
-apply (rule_tac R = "\<lambda>a v s. \<exists>n1 n2 t. z -expr1\<succ>a-n1\<rightarrow> t \<and> t -expr2\<succ>v-n2\<rightarrow> s" in
+apply (rule_tac R = "\<lambda>a v s. \<exists>n1 n2 t. Z -expr1\<succ>a-n1\<rightarrow> t \<and> t -expr2\<succ>v-n2\<rightarrow> s" in
                 hoare_ehoare.Call)
 apply   (erule spec)
 apply  (rule allI)
@@ -283,12 +283,12 @@ apply (drule spec, drule spec, erule hoare_ehoare.Conseq)
 apply (erule thin_rl, erule thin_rl)
 apply (clarsimp del: Impl_elim_cases)
 apply (drule (2) eval_eval_exec_max)
-apply (fast del: Impl_elim_cases)
+apply (force del: Impl_elim_cases)
 done
 
-lemma MGF_Impl: "{} |\<turnstile> {MGT (Impl M) z}"
+lemma MGF_Impl: "{} |\<turnstile> {MGT (Impl M) Z}"
 apply (unfold MGT_def)
-apply (rule Impl1)
+apply (rule_tac 'a = state in Impl1')
 apply  (rule_tac [2] UNIV_I)
 apply clarsimp
 apply (rule hoare_ehoare.ConjI)
@@ -314,6 +314,18 @@ apply  (erule_tac [2] asm_rl)
 apply (rule allI)
 apply (rule MGF_lemma [THEN conjunct2, rule_format])
 apply (rule MGF_Impl)
+done
+
+lemma cFalse: "A \<turnstile> {\<lambda>s. False} c {Q}"
+apply (rule cThin)
+apply (rule hoare_relative_complete)
+apply (auto simp add: valid_def)
+done
+
+lemma eFalse: "A \<turnstile>\<^sub>e {\<lambda>s. False} e {Q}"
+apply (rule eThin)
+apply (rule ehoare_relative_complete)
+apply (auto simp add: evalid_def)
 done
 
 end

@@ -12,7 +12,7 @@ datatype ty
   = NT           --{* null type  *}
   | Class cname  --{* class type *}
 
-text{* field declaration *}
+text{* Field declaration *}
 types	fdecl		
 	= "fname \<times> ty"
 
@@ -22,7 +22,7 @@ record  methd
           lcl ::"(vname \<times> ty) list"
           bdy :: stmt
 
-text{* method declaration *}
+text{* Method declaration *}
 types	mdecl
         = "mname \<times> methd"
 
@@ -31,7 +31,7 @@ record	class
           fields  ::"fdecl list"
           methods ::"mdecl list"
 
-text{* class declaration *}
+text{* Class declaration *}
 types	cdecl
 	= "cname \<times> class"
 

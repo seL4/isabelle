@@ -18,7 +18,7 @@ consts
   Par  :: vname --{* method parameter *}
   Res  :: vname --{* method result *}
 
-text {* Inequality axioms not required here *}
+text {* Inequality axioms are not required for the meta theory. *}
 (*
 axioms
   This_neq_Par [simp]: "This \<noteq> Par"
@@ -29,8 +29,8 @@ axioms
 datatype stmt
   = Skip                   --{* empty statement *}
   | Comp       stmt stmt   ("_;; _"             [91,90   ] 90)
-  | Cond expr  stmt stmt   ("If '(_') _ Else _" [99,91,91] 91)
-  | Loop vname stmt        ("While '(_') _"     [99,91   ] 91)
+  | Cond expr  stmt stmt   ("If '(_') _ Else _" [ 3,91,91] 91)
+  | Loop vname stmt        ("While '(_') _"     [ 3,91   ] 91)
   | LAss vname expr        ("_ :== _"           [99,   95] 94) --{* local assignment *}
   | FAss expr  fname expr  ("_.._:==_"          [95,99,95] 94) --{* field assignment *}
   | Meth "cname \<times> mname"   --{* virtual method *}

@@ -31,13 +31,13 @@ consts
   field  :: "cname => (fname \<leadsto> ty)"
 
 
-text {* The rest of this theory is not actually used. *}
+subsection "Declarations and properties not used in the meta theory"
 
-text{* direct subclass relation *}
+text{* Direct subclass relation *}
 defs
  subcls1_def: "subcls1 \<equiv> {(C,D). C\<noteq>Object \<and> (\<exists>c. class C = Some c \<and> super c=D)}"
 
-text{* widening, viz. method invocation conversion *}
+text{* Widening, viz. method invocation conversion *}
 inductive widen intros 
   refl   [intro!, simp]:           "T \<preceq> T"
   subcls         : "C\<preceq>C D \<Longrightarrow> Class C \<preceq> Class D"
@@ -121,7 +121,7 @@ apply  assumption
 apply simp
 done
 
---{* methods of a class, with inheritance and hiding *}
+--{* Methods of a class, with inheritance and hiding *}
 defs method_def: "method C \<equiv> class_rec C methods"
 
 lemma method_rec: "\<lbrakk>class C = Some m; ws_prog\<rbrakk> \<Longrightarrow>
@@ -132,7 +132,7 @@ apply simp
 done
 
 
---{* fields of a class, with inheritance and hiding *}
+--{* Fields of a class, with inheritance and hiding *}
 defs field_def: "field C \<equiv> class_rec C fields"
 
 lemma fields_rec: "\<lbrakk>class C = Some m; ws_prog\<rbrakk> \<Longrightarrow>
