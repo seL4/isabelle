@@ -5,7 +5,7 @@
 #
 
 ###
-### ML compiler settings (ESSENTIAL)
+### ML compiler settings (ESSENTIAL!)
 ###
 
 ## Uncomment and adapt one of the sections below.  Note that ML_HOME
@@ -17,10 +17,10 @@
 #ML_OPTIONS="-h 30000"
 
 # Poly/ML 3.1
-ML_SYSTEM=polyml-3.1
-ML_HOME=/usr/local/ldist/DIR/polyml-3.1/polyml/sunos5.4
-ML_OPTIONS="-h 30000"
-LM_LICENSE_FILE=$ML_HOME/license.dat
+#ML_SYSTEM=polyml-3.1
+#ML_HOME=/usr/local/ldist/DIR/polyml-3.1/polyml/sunos5.4
+#ML_OPTIONS="-h 30000"
+#LM_LICENSE_FILE=$ML_HOME/license.dat
 
 # Standard ML of New Jersey 0.93
 #ML_SYSTEM=smlnj-0.93
@@ -32,14 +32,14 @@ LM_LICENSE_FILE=$ML_HOME/license.dat
 #ML_HOME=/usr/local/sml107/bin
 #ML_OPTIONS="@SMLdebug=/dev/null"
 
-# Standard ML of New Jersey 1.09
-#ML_SYSTEM=smlnj-1.09
-#ML_HOME=/usr/local/sml109/bin
-#ML_OPTIONS="@SMLdebug=/dev/null"
+# Standard ML of New Jersey 1.09.27
+ML_SYSTEM=smlnj-1.09
+ML_HOME=/usr/local/sml109.27/bin
+ML_OPTIONS="@SMLdebug=/dev/null"
 
 
 ###
-### Misc options
+### Compilation options
 ###
 
 ISABELLE_USEDIR_OPTIONS=""
@@ -52,7 +52,7 @@ ISABELLE_USEDIR_OPTIONS=""
 # The place for user configuration, heap files, etc.
 ISABELLE_HOME_USER=~/isabelle
 
-# Where to look for isabelle tools.
+# Where to look for isabelle tools (multiple dirs separated by ':').
 ISABELLE_TOOLS=$ISABELLE_HOME/lib/Tools
 
 
@@ -60,20 +60,23 @@ ISABELLE_TOOLS=$ISABELLE_HOME/lib/Tools
 
 ISABELLE_PATH=$ISABELLE_HOME_USER/heaps:$ISABELLE_HOME/heaps
 
+#A hack! 'build' tells us store heaps within the distribution.
 if [ "$THIS_IS_ISABELLE_BUILD" = true ]; then
   ISABELLE_OUTPUT=$ISABELLE_HOME/heaps
 else
   ISABELLE_OUTPUT=$ISABELLE_HOME_USER/heaps
 fi
 
-
+#Users may want to change this.
 DEFAULT_LOGIC=HOL
 
 
 ## Docs
 
+#Where to look for docs (multiple dirs separated by ':').
 ISABELLE_DOCS=$ISABELLE_HOME/doc
 
+#The dvi file viewer
 DVI_VIEWER=xdvi
 #DVI_VIEWER="xdvi -geometry 498x704 -expert -s 5"
 #DVI_VIEWER="xdvi -geometry 500x704 -expert -s 10"
