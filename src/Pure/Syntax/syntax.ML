@@ -81,10 +81,10 @@ fun lookup_trtab tab c =
 fun err_dup_trfuns name cs =
   error ("More than one " ^ name ^ " for " ^ commas_quote cs);
 
-val empty_trtab = Symtab.null;
+val empty_trtab = Symtab.empty;
 
 fun extend_trtab tab trfuns name =
-  Symtab.extend_new (tab, map (fn (c, f) => (c, (f, stamp ()))) trfuns)
+  Symtab.extend (tab, map (fn (c, f) => (c, (f, stamp ()))) trfuns)
     handle Symtab.DUPS cs => err_dup_trfuns name cs;
 
 fun merge_trtabs tab1 tab2 name =
@@ -140,13 +140,13 @@ fun dest_ruletab tab = flat (map snd (Symtab.dest tab));
 (* lookup_ruletab *)
 
 fun lookup_ruletab tab =
-  if Symtab.is_null tab then None
+  if Symtab.is_empty tab then None
   else Some (fn a => Symtab.lookup_multi (tab, a));
 
 
 (* empty, extend, merge ruletabs *)
 
-val empty_ruletab = Symtab.null;
+val empty_ruletab = Symtab.empty;
 
 fun extend_ruletab tab rules =
   generic_extend (op =) Symtab.dest_multi Symtab.make_multi tab

@@ -50,7 +50,7 @@ local
 
 fun mk_empty _ =
   Theorems (ref {space = NameSpace.empty,
-    thms_tab = Symtab.null, const_idx = (0, Symtab.null)});
+    thms_tab = Symtab.empty, const_idx = (0, Symtab.empty)});
 
 fun print sg (Theorems (ref {space, thms_tab, const_idx = _})) =
   let
@@ -143,7 +143,7 @@ fun add_const_idx ((next, table), thm) =
   in (next + 1, foldl add (table, consts)) end;
 
 fun make_const_idx thm_tab =
-  foldl (foldl add_const_idx) ((0, Symtab.null), map snd (Symtab.dest thm_tab));
+  foldl (foldl add_const_idx) ((0, Symtab.empty), map snd (Symtab.dest thm_tab));
 
 
 (* lookup index *)
@@ -203,7 +203,7 @@ fun enter_thms sg single (raw_name, thms) =
             (warn_same name; false)
           else (warn_overwrite name; true));
 
-    val space' = NameSpace.extend ([name], space);
+    val space' = NameSpace.extend (space, [name]);
     val thms_tab' = Symtab.update ((name, named_thms), thms_tab);
     val const_idx' =
       if overwrite then make_const_idx thms_tab'

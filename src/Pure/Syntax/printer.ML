@@ -189,7 +189,7 @@ type prtabs = (string * ((symb list * int * int) list) Symtab.table) list;
 
 (*find tab for mode*)
 fun get_tab prtabs mode =
-  if_none (assoc (prtabs, mode)) Symtab.null;
+  if_none (assoc (prtabs, mode)) Symtab.empty;
 
 (*collect tabs for mode hierarchy (default "")*)
 fun tabs_of prtabs modes =

@@ -427,7 +427,7 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
 
 (*The mother of all grammars*)
 val empty_gram = Gram {nt_count = 0, prod_count = 0,
-                       tags = Symtab.null, chains = [], lambdas = [],
+                       tags = Symtab.empty, chains = [], lambdas = [],
                        prods = Array.array (0, (([], []), []))};
 
 

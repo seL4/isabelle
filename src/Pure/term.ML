@@ -943,7 +943,7 @@ fun atomic_tag (Type (a,_)) = if a<>"fun" then a else raise Match
 fun type_tag (Type("fun",[S,T])) = atomic_tag S ^ type_tag T
   | type_tag T = atomic_tag T;
 
-val memo_types = ref (Symtab.null : typ list Symtab.table);
+val memo_types = ref (Symtab.empty : typ list Symtab.table);
 
 (* special case of library/find_first *)
 fun find_type (T, []: typ list) = None
@@ -973,7 +973,7 @@ fun compress_type T =
 
 (** Sharing of atomic terms **)
 
-val memo_terms = ref (Symtab.null : term list Symtab.table);
+val memo_terms = ref (Symtab.empty : term list Symtab.table);
 
 (* special case of library/find_first *)
 fun find_term (t, []: term list) = None
