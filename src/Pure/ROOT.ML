@@ -57,8 +57,12 @@ cd "Thy"; use "ROOT.ML"; cd "..";
 (*the Isar subsystem*)
 cd "Isar"; use "ROOT.ML"; cd "..";
 
-(*final Pure theory setup*)
 use "axclass.ML";
+
+(*external interfaces*)
+cd "Interface"; use "ROOT.ML"; cd "..";
+
+(*final Pure theory setup*)
 use "pure.ML";
 
 (*several object-logics declare theories that hide basis library structures*)
