@@ -63,16 +63,6 @@ Goalw [CONS_def] "CONS M (UN x. f(x)) = (UN x. CONS M (f x))";
 by (simp_tac (simpset() addsimps [In1_UN1, Scons_UN1_y]) 1);
 qed "CONS_UN1";
 
-(*UNUSED; obsolete?
-goal Prod.thy "split p (%x y. UN z. f x y z) = (UN z. split p (%x y. f x y z))";
-by (Simp_tac 1);
-qed "split_UN1";
-
-goal Sum.thy "sum_case s f (%y. UN z. g y z) = (UN z. sum_case s f (%y. g y z))";
-by (Simp_tac 1);
-qed "sum_case2_UN1";
-*)
-
 val prems = goalw LList.thy [CONS_def]
     "[| M<=M';  N<=N' |] ==> CONS M N <= CONS M' N'";
 by (REPEAT (resolve_tac ([In1_mono,Scons_mono]@prems) 1));
@@ -148,7 +138,7 @@ by (fast_tac (claset() addSIs (map rew LListD.intrs)
 end;
 qed "LListD_unfold";
 
-Goal "!M N. (M,N) : LListD(diag(A)) --> ntrunc k M = ntrunc k N";
+Goal "!M N. (M,N) : LListD(diag A) --> ntrunc k M = ntrunc k N";
 by (res_inst_tac [("n", "k")] less_induct 1);
 by (safe_tac ((claset_of Fun.thy) delrules [equalityI]));
 by (etac LListD.elim 1);
@@ -163,16 +153,16 @@ qed "LListD_implies_ntrunc_equality";
 
 (*The domain of the LListD relation*)
 Goalw (llist.defs @ [NIL_def, CONS_def])
-    "fst``LListD(diag(A)) <= llist(A)";
+    "Domain (LListD(diag A)) <= llist(A)";
 by (rtac gfp_upperbound 1);
 (*avoids unfolding LListD on the rhs*)
-by (res_inst_tac [("P", "%x. fst``x <= ?B")] (LListD_unfold RS ssubst) 1);
+by (res_inst_tac [("P", "%x. Domain x <= ?B")] (LListD_unfold RS ssubst) 1);
 by (Simp_tac 1);
 by (Fast_tac 1);
-qed "fst_image_LListD";
+qed "Domain_LListD";
 
 (*This inclusion justifies the use of coinduction to show M=N*)
-Goal "LListD(diag(A)) <= diag(llist(A))";
+Goal "LListD(diag A) <= diag(llist(A))";
 by (rtac subsetI 1);
 by (res_inst_tac [("p","x")] PairE 1);
 by Safe_tac;
@@ -180,7 +170,7 @@ by (rtac diag_eqI 1);
 by (rtac (LListD_implies_ntrunc_equality RS spec RS spec RS mp RS 
           ntrunc_equality) 1);
 by (assume_tac 1);
-by (etac (fst_imageI RS (fst_image_LListD RS subsetD)) 1);
+by (etac (DomainI RS (Domain_LListD RS subsetD)) 1);
 qed "LListD_subset_diag";
 
 
@@ -216,7 +206,7 @@ qed "LListD_Fun_LListD_I";
 
 
 (*This converse inclusion helps to strengthen LList_equalityI*)
-Goal "diag(llist(A)) <= LListD(diag(A))";
+Goal "diag(llist(A)) <= LListD(diag A)";
 by (rtac subsetI 1);
 by (etac LListD_coinduct 1);
 by (rtac subsetI 1);
@@ -228,7 +218,7 @@ by (ALLGOALS
 				       LListD_Fun_CONS_I])));
 qed "diag_subset_LListD";
 
-Goal "LListD(diag(A)) = diag(llist(A))";
+Goal "LListD(diag A) = diag(llist(A))";
 by (REPEAT (resolve_tac [equalityI, LListD_subset_diag, 
                          diag_subset_LListD] 1));
 qed "LListD_eq_diag";

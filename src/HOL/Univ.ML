@@ -568,16 +568,16 @@ val dsum_subset_Sigma = [dsum_mono, dsum_Sigma] MRS subset_trans |> standard;
 
 (*** Domain ***)
 
-Goal "fst `` diag(A) = A";
+Goal "Domain (diag A) = A";
 by Auto_tac;
-qed "fst_image_diag";
+qed "Domain_diag";
 
-Goal "fst `` (r<**>s) = (fst``r) <*> (fst``s)";
+Goal "Domain (r<**>s) = (Domain r) <*> (Domain s)";
 by Auto_tac;
-qed "fst_image_dprod";
+qed "Domain_dprod";
 
-Goal "fst `` (r<++>s) = (fst``r) <+> (fst``s)";
+Goal "Domain (r<++>s) = (Domain r) <+> (Domain s)";
 by Auto_tac;
-qed "fst_image_dsum";
+qed "Domain_dsum";
 
-Addsimps [fst_image_diag, fst_image_dprod, fst_image_dsum];
+Addsimps [Domain_diag, Domain_dprod, Domain_dsum];

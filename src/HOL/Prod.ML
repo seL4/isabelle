@@ -301,6 +301,9 @@ by (Blast_tac 2);
 by (blast_tac (claset() addIs [prod_fun]) 1);
 qed "prod_fun_imageE";
 
+AddIs  [prod_fun_imageI];
+AddSEs [prod_fun_imageE];
+
 
 (*** Disjoint union of a family of sets - Sigma ***)
 
@@ -369,41 +372,6 @@ Goal "(UN (a,b):(A Times B). E a Times F b) = (UNION A E) Times (UNION B F)";
 by (Blast_tac 1);
 qed "UNION_Times_distrib";
 
-(*** Domain of a relation ***)
-
-Goalw [image_def] "(a,b) : r ==> a : fst``r";
-by (rtac CollectI 1);
-by (rtac bexI 1);
-by (rtac (fst_conv RS sym) 1);
-by (assume_tac 1);
-qed "fst_imageI";
-
-val major::prems = Goal
-    "[| a : fst``r;  !!y.[| (a,y) : r |] ==> P |] ==> P"; 
-by (rtac (major RS imageE) 1);
-by (resolve_tac prems 1);
-by (etac ssubst 1);
-by (rtac (surjective_pairing RS subst) 1);
-by (assume_tac 1);
-qed "fst_imageE";
-
-(*** Range of a relation ***)
-
-Goalw [image_def] "(a,b) : r ==> b : snd``r";
-by (rtac CollectI 1);
-by (rtac bexI 1);
-by (rtac (snd_conv RS sym) 1);
-by (assume_tac 1);
-qed "snd_imageI";
-
-val major::prems = Goal "[| a : snd``r;  !!y.[| (y,a) : r |] ==> P |] ==> P"; 
-by (rtac (major RS imageE) 1);
-by (resolve_tac prems 1);
-by (etac ssubst 1);
-by (rtac (surjective_pairing RS subst) 1);
-by (assume_tac 1);
-qed "snd_imageE";
-
 
 (** Exhaustion rule for unit -- a degenerate form of induction **)
 
@@ -413,10 +381,6 @@ by (stac (rewrite_rule [unit_def] Rep_unit RS singletonD RS sym) 1);
 by (rtac (Rep_unit_inverse RS sym) 1);
 qed "unit_eq";
  
-AddIs  [fst_imageI, snd_imageI, prod_fun_imageI];
-AddSEs [fst_imageE, snd_imageE, prod_fun_imageE];
-
-
 (*simplification procedure for unit_eq.
   Cannot use this rule directly -- it loops!*)
 local
