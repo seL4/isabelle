@@ -20,6 +20,9 @@
 \railalias{prop}{\railqtoken{prop}}
 \railalias{atom}{\railqtoken{atom}}
 
+\newcommand{\drv}{\mathrel{\vdash}}
+\newcommand{\edrv}{\mathop{\drv}\nolimits}
+
 
 \setcounter{secnumdepth}{2} \setcounter{tocdepth}{2}
 
@@ -28,6 +31,9 @@
 \binperiod     %%%treat . like a binary operator
 
 \renewcommand{\phi}{\varphi}
+
+%\includeonly{pure}
+
 
 
 \begin{document}
@@ -46,15 +52,15 @@
   immediately ``executable'', by virtue of the \emph{Isar/VM} interpreter.
   
   The current version of Isabelle offers Isar as an alternative proof language
-  interface layer, beyond traditional tactic scripts.  The Isabelle/Isar
-  system provides an interpreter for the Isar formal proof document language.
-  Isabelle/Isar input may consist either of \emph{proper document
-    constructors}, or \emph{improper auxiliary commands} (for diagnostics,
-  exploration etc.).  Proof texts consisting of proper document constructors
-  only, admit a purely static reading, thus being intelligible later without
-  requiring dynamic replay that is so typical for traditional proof scripts.
-  Any of the Isabelle/Isar commands may be executed in single-steps, so
-  basically the interpreter has a proof text debugger already built-in.
+  interface layer.  The Isabelle/Isar system provides an interpreter for the
+  Isar formal proof document language.  The input may consist either of
+  \emph{proper document constructors}, or \emph{improper auxiliary commands}
+  (for diagnostics, exploration etc.).  Proof texts consisting of proper
+  document constructors only, admit a purely static reading, thus being
+  intelligible later without requiring dynamic replay that is so typical for
+  traditional proof scripts.  Any of the Isabelle/Isar commands may be
+  executed in single-steps, so basically the interpreter has a proof text
+  debugger already built-in.
   
   Employing the Isar instantiation of \emph{Proof~General}, the generic Emacs
   interface for interactive proof assistants of LFCS Edinburgh, we arrive at a
@@ -65,10 +71,10 @@
   
   The Isar subsystem is tightly integrated into the Isabelle/Pure meta-logic
   implementation.  Theories, theorems, proof procedures etc.\ may be used
-  interchangeably between Isabelle-classic proof scripts and Isabelle/Isar
+  interchangeably between classic Isabelle proof scripts and Isabelle/Isar
   documents.  Isar is as generic as Isabelle, able to support a wide range of
-  object-logics.  The current working environment for end-users is setup
-  mainly for Isabelle/HOL.
+  object-logics.  Currently, the end-user working environment is most complete
+  for Isabelle/HOL.
 \end{abstract}
 
 \pagenumbering{roman} \tableofcontents \clearfirst
@@ -88,6 +94,9 @@
 \include{pure}
 \include{generic}
 \include{hol}
+
+\appendix
+\include{refcard}
 
 \begingroup
   \bibliographystyle{plain} \small\raggedright\frenchspacing

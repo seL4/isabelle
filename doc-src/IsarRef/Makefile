@@ -14,7 +14,7 @@ include ../Makefile.in
 NAME = isar-ref
 
 FILES = isar-ref.tex intro.tex basics.tex syntax.tex pure.tex \
-	generic.tex hol.tex ../isar.sty \
+	generic.tex hol.tex refcard.tex ../isar.sty \
 	../rail.sty ../railsetup.sty ../proof.sty ../iman.sty ../extra.sty ../manual.bib
 
 dvi: $(NAME).dvi

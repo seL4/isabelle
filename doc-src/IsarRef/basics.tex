@@ -1,21 +1,22 @@
 
 \chapter{Basic Concepts}\label{ch:basics}
 
+\section{Isabelle/Isar theories}
+
 Isabelle/Isar offers two main improvements over classic Isabelle:
 \begin{enumerate}
 \item A new \emph{theory format}, occasionally referred to as ``new-style
-  theories'', supporting interactive development with unlimited undo
-  operation.
-\item A \emph{formal proof language} designed to support intelligible
-  semi-automated reasoning.  Rather than putting together tactic scripts, the
-  author is enabled to express the reasoning in way that is close to
-  mathematical practice.
+  theories'', supporting interactive development and unlimited undo operation.
+\item A \emph{formal proof document language} designed to support intelligible
+  semi-automated reasoning.  Instead of putting together unreadable tactic
+  scripts, the author is enabled to express the reasoning in way that is close
+  to mathematical practice.
 \end{enumerate}
 
 The Isar proof language is embedded into the new theory format as a proper
 sub-language.  Proof mode is entered by stating some $\THEOREMNAME$ or
-$\LEMMANAME$ at the theory level, and left with the conclusion of the proof
-(via $\QEDNAME$ etc.).  Some theory extension mechanisms require proof as
+$\LEMMANAME$ at the theory level, and left again with the final conclusion
+(e.g.\ via $\QEDNAME$).  A few theory extension mechanisms require proof as
 well, such as the HOL $\isarkeyword{typedef}$ which demands non-emptiness of
 the representing sets.
 
@@ -29,10 +30,10 @@ they have any idea of the Isar proof language.
 
 \begin{warn}
   Currently Proof~General does \emph{not} support mixed interactive
-  development of classic Isabelle theory files and tactic scripts together
+  development of classic Isabelle theory files and tactic scripts, together
   with Isar documents at the same time.  The ``\texttt{isa}'' and
   ``\texttt{isar}'' versions of Proof~General are handled as two different
-  theorem proving systems, only one may be active at the same time.
+  theorem proving systems, only one of these may be active.
 \end{warn}
 
 Porting of existing tactic scripts is best done by running two separate
@@ -55,7 +56,6 @@ Sorry, this important section has not been written yet!  Refer to
 \subsection{Methods}
 
 \subsection{Attributes}
-
 
 %%% Local Variables: 
 %%% mode: latex

@@ -15,7 +15,8 @@ constdefs foo :: nat  "foo == 1";
 lemma "0 < foo" by (simp add: foo_def);
 end
 \end{ttbox}
-Note that any Isabelle/Isar command may be retracted by \texttt{undo}.
+Note that any Isabelle/Isar command may be retracted by \texttt{undo}; the
+\texttt{help} command prints the list of available language elements.
 
 Plain TTY-based interaction like this used to be quite feasible with
 traditional tactic based theorem proving, but developing Isar documents
@@ -23,16 +24,17 @@ demands some better user-interface support.  \emph{Proof~General}\index{Proof
   General} of LFCS Edinburgh \cite{proofgeneral} offers a generic Emacs-based
 environment for interactive theorem provers that does all the cut-and-paste
 and forward-backward walk through the document in a very neat way.  Note that
-in Isabelle/Isar, the current position within a partial proof document is more
-informative than the actual proof state.  Thus Proof~General provides the
-canonical working environment for Isabelle/Isar, both for getting acquainted
-(e.g.\ by replaying existing Isar documents) and serious production work.
+in Isabelle/Isar, the current position within a partial proof document is
+equally important than the actual proof state.  Thus Proof~General provides
+the canonical working environment for Isabelle/Isar, both for getting
+acquainted (e.g.\ by replaying existing Isar documents) and real production
+work.
 
 \medskip
 
 The easiest way to use Proof~General is to make it the default Isabelle user
-interface.  Just say something like this in your Isabelle settings file (cf.\ 
-\cite{isabelle-sys}):
+interface.  Just put something like this into your Isabelle settings file (see
+also \cite{isabelle-sys}):
 \begin{ttbox}
 ISABELLE_INTERFACE=\$ISABELLE_HOME/contrib/ProofGeneral/isar/interface
 PROOFGENERAL_OPTIONS="-u false"
@@ -69,26 +71,28 @@ Isabelle \({\langle}isabellehome{\rangle}\)/src/HOL/Isar_examples/BasicLogic.thy
 \end{ttbox}
 Users of XEmacs may note the tool bar for navigating forward and backward
 through the text.  Consult the Proof~General documentation \cite{proofgeneral}
-for further basic commands, like \texttt{c-c return} or \texttt{c-c u}.
+for further basic command sequences, like ``\texttt{c-c return}'' or
+``\texttt{c-c u}''.
 
 \medskip
 
-Occasionally, a user's \texttt{.emacs} contains material that is incompatible
-with the version of (X)Emacs that Proof~General prefers.  Then proper startup
-may be still achieved by using the \texttt{-u false} option.\footnote{Any
-  Emacs lisp file \texttt{proofgeneral-settings.el} occurring in
-  \texttt{\$ISABELLE_HOME/etc} or \texttt{\$ISABELLE_HOME_USER/etc} is
-  automatically loaded by the Proof~General interface script as well.}
+Occasionally, a user's \texttt{.emacs} file contains material that is
+incompatible with the version of (X)Emacs that Proof~General prefers.  Then
+proper startup may be still achieved by using the \texttt{-u false}
+option.\footnote{Any Emacs lisp file \texttt{proofgeneral-settings.el}
+  occurring in \texttt{\$ISABELLE_HOME/etc} or
+  \texttt{\$ISABELLE_HOME_USER/etc} is automatically loaded by the
+  Proof~General interface script as well.}
 
 \section{How to write Isar proofs anyway?}
 
 This is one of the key questions, of course.  Isar offers a rather different
 approach to formal proof documents than plain old tactic scripts.  Experienced
 users of existing interactive theorem proving systems may have to learn
-thinking different in order to make effective use of Isabelle/Isar.  On the
+thinking differently in order to make effective use of Isabelle/Isar.  On the
 other hand, Isabelle/Isar comes much closer to existing mathematical practice
 of formal proof, so users with less experience in old-style tactical proving,
-but a good understanding of mathematical proof might cope with Isar even
+but a good understanding of mathematical proof, might cope with Isar even
 better.
 
 This document really is a \emph{reference manual}.  Nevertheless, we will give
@@ -107,8 +111,8 @@ Isabelle library:
   \end{tabular}
 \end{center}
 
-Apart from browsable HTML sources, both example sessions also provide actual
-documents.
+Apart from browsable HTML sources, both Isabelle/Isar sessions also provide
+actual documents (in PDF).
 
 %%% Local Variables: 
 %%% mode: latex
