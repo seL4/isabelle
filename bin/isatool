@@ -1,0 +1,59 @@
+#!/bin/bash
+#
+# Isabelle tool starter -- keeps your PATH name space clean.
+#
+# $Id$
+
+
+## settings
+
+ISABELLE_HOME=$(dirname $(dirname $0))
+. $ISABELLE_HOME/lib/scripts/getsettings
+
+
+
+## diagnostics
+
+PRG=$(basename $0)
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG TOOL [ARGS ...]"
+  echo
+  echo "  Start Isabelle utility program TOOL with ARGS."
+  echo
+  echo "  Availabe tools are:"
+  (
+    cd "$ISABELLE_HOME/lib/Tools"
+    for T in *
+    do
+      if [ -f "$T" -a -x "$T" ]; then
+        DESCRLINE=$(grep DESCRIPTION: "$T" | sed -e 's/^.*DESCRIPTION: *//')
+        echo "    $T - $DESCRLINE"
+      fi
+    done
+  )
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1"
+  exit 2
+}
+
+
+
+## main
+
+[ $# -lt 1 ] && usage
+
+TOOL_BASE="$1"
+TOOL="$ISABELLE_HOME/lib/Tools/$1"
+shift
+
+[ -f "$TOOL" -a -x "$TOOL" ] && exec "$TOOL" "$@"
+
+fail "Tool not found: $TOOL_BASE"
