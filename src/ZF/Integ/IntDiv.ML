@@ -90,51 +90,6 @@ by (rtac add1_zle_iff 1);
 qed "add1_left_zle_iff";
 
 
-(*** Monotonicity results ***)
-
-Goal "(v$+z $< w$+z) <-> (v $< w)";
-by (Simp_tac 1);
-qed "zadd_right_cancel_zless";
-
-Goal "(z$+v $< z$+w) <-> (v $< w)";
-by (Simp_tac 1);
-qed "zadd_left_cancel_zless";
-
-Addsimps [zadd_right_cancel_zless, zadd_left_cancel_zless];
-
-Goal "(v$+z $<= w$+z) <-> (v $<= w)";
-by (Simp_tac 1);
-qed "zadd_right_cancel_zle";
-
-Goal "(z$+v $<= z$+w) <-> (v $<= w)";
-by (Simp_tac 1);
-qed "zadd_left_cancel_zle";
-
-Addsimps [zadd_right_cancel_zle, zadd_left_cancel_zle];
-
-(*"v $<= w ==> v$+z $<= w$+z"*)
-bind_thm ("zadd_zless_mono1", zadd_right_cancel_zless RS iffD2);
-
-(*"v $<= w ==> z$+v $<= z$+w"*)
-bind_thm ("zadd_zless_mono2", zadd_left_cancel_zless RS iffD2);
-
-(*"v $<= w ==> v$+z $<= w$+z"*)
-bind_thm ("zadd_zle_mono1", zadd_right_cancel_zle RS iffD2);
-
-(*"v $<= w ==> z$+v $<= z$+w"*)
-bind_thm ("zadd_zle_mono2", zadd_left_cancel_zle RS iffD2);
-
-Goal "[| w' $<= w; z' $<= z |] ==> w' $+ z' $<= w $+ z";
-by (etac (zadd_zle_mono1 RS zle_trans) 1);
-by (Simp_tac 1);
-qed "zadd_zle_mono";
-
-Goal "[| w' $< w; z' $<= z |] ==> w' $+ z' $< w $+ z";
-by (etac (zadd_zless_mono1 RS zless_zle_trans) 1);
-by (Simp_tac 1);
-qed "zadd_zless_mono";
-
-
 (*** Monotonicity of Multiplication ***)
 
 Goal "k \\<in> nat ==> i $<= j ==> i $* $#k $<= j $* $#k";
@@ -235,6 +190,9 @@ by (asm_simp_tac (simpset() delsimps [zmult_zminus]
 				      zmult_zless_mono2, zless_zminus]) 1);
 qed "zmult_zless_mono2_neg";
 
+
+(** Products of zeroes **)
+
 Goal "[| m \\<in> int; n \\<in> int |] ==> (m$*n = #0) <-> (m = #0 | n = #0)";
 by (case_tac "m $< #0" 1);
 by (auto_tac (claset(), 
@@ -247,6 +205,7 @@ val lemma = result();
 Goal "(m$*n = #0) <-> (intify(m) = #0 | intify(n) = #0)";
 by (asm_full_simp_tac (simpset() addsimps [lemma RS iff_sym]) 1);
 qed "zmult_eq_0_iff";
+AddIffs [zmult_eq_0_iff];
 
 
 (** Cancellation laws for k*m < k*n and m*k < n*k, also for <= and =,
@@ -435,27 +394,6 @@ qed "posDivAlg_induct";
 Goal "intify(m) = #0 <-> (m $<= #0 & #0 $<= m)";
 by (simp_tac (simpset() addsimps [int_eq_iff_zle]) 1); 
 qed "intify_eq_0_iff_zle";
-
-
-
-(*** Products of zeroes ***)
-
-Goal "[| x \\<in> int; y \\<in> int |] \
-\     ==> (x $* y = #0) <-> (intify(x) = #0 | intify(y) = #0)";
-by (case_tac "x $< #0" 1);
-by (auto_tac (claset(), 
-      simpset() addsimps [not_zless_iff_zle, zle_def, neq_iff_zless]));
-by (REPEAT
-    (force_tac (claset() addDs [zmult_zless_mono1_neg, zmult_zless_mono1], 
-		simpset()) 1));
-qed "zmult_eq_0_iff_lemma";
-
-Goal "(x $* y = #0) <-> (intify(x) = #0 | intify(y) = #0)";
-by (cut_inst_tac [("x","intify(x)"),("y","intify(y)")] 
-                 zmult_eq_0_iff_lemma 1);
-by Auto_tac; 
-qed "zmult_eq_0_iff";
-AddIffs [zmult_eq_0_iff];
 
 
 (*** Some convenient biconditionals for products of signs ***)

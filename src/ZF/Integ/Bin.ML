@@ -396,10 +396,6 @@ by (asm_full_simp_tac (simpset() addsimps [zdiff_def])1);
 by (asm_simp_tac (simpset() addsimps [equation_zminus, int_of_diff RS sym])1);
 qed "neg_integ_of_BIT"; 
 
-Goal "w: bin ==> iszero (integ_of (w BIT 0)) <-> iszero (integ_of(w))"; 
-by (asm_simp_tac (ZF_ss addsimps [iszero_integ_of_BIT]) 1); 
-qed "iszero_integ_of_0"; 
-
 (** Less-than-or-equals (<=) **)
 
 Goal "(integ_of(x) $<= (integ_of(w))) <-> ~ (integ_of(w) $< (integ_of(x)))";
