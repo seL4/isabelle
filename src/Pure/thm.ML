@@ -743,7 +743,8 @@ fun transitive th1 th2 =
       fun err(msg) = raise THM("transitive: "^msg, 0, [th1,th2])
   in case (prop1,prop2) of
        ((eq as Const("==",_)) $ t1 $ u, Const("==",_) $ u' $ t2) =>
-          if not (u aconv u') then err"middle term"  else
+          if not (u aconv u') then err"middle term"
+          else let val thm =      
               fix_shyps [th1, th2] []
                 (Thm{sign= merge_thm_sgs(th1,th2), 
 		     der = infer_derivs (Transitive, [der1, der2]),
@@ -751,6 +752,7 @@ fun transitive th1 th2 =
 		     shyps = [],
 		     hyps = hyps1 union hyps2,
 		     prop = eq$t1$t2})
+               in nodup_Vars thm "transitive"; thm end
      | _ =>  err"premises"
   end;
 
@@ -1025,13 +1027,16 @@ fun class_triv thy c =
 (* Replace all TFrees not in the hyps by new TVars *)
 fun varifyT(Thm{sign,der,maxidx,shyps,hyps,prop}) =
   let val tfrees = foldr add_term_tfree_names (hyps,[])
-  in (*no fix_shyps*)
+  in let val thm = (*no fix_shyps*)
     Thm{sign = sign, 
 	der = infer_derivs (VarifyT, [der]), 
 	maxidx = max[0,maxidx], 
 	shyps = shyps, 
 	hyps = hyps,
         prop = Type.varify(prop,tfrees)}
+     in nodup_Vars thm "varifyT"; thm end
+(* this nodup_Vars check can be removed if thms are guaranteed not to contain
+duplicate TVars with differnt sorts *)
   end;
 
 (* Replace all TVars by new TFrees *)
