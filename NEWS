@@ -29,9 +29,6 @@ given (the default is 40);
 "foo" are split into "foo.hyps" (from the rule) and "foo.prems" (from
 the goal statement); "foo" still refers to all facts collectively;
 
-* Provers: Simplifier.simproc(_i) now provide sane interface for
-setting up simprocs;
-
 
 *** HOL ***
 
@@ -52,6 +49,18 @@ but fails if divisibility plays a role like in
 
 * simp's arithmetic capabilities have been enhanced a bit: it now
 takes ~= in premises into account (by performing a case split);
+
+
+*** ML ***
+
+* Pure: Tactic.prove provides sane interface for internal proofs;
+omits the infamous "standard" operation, so this is more appropriate
+than prove_goalw_cterm in many situations (e.g. in simprocs);
+
+* Pure: improved error reporting of simprocs;
+
+* Provers: Simplifier.simproc(_i) provides sane interface for setting
+up simprocs;
 
 
 
