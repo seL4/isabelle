@@ -24,6 +24,9 @@ qed_goal "update_triv" thy "!!X. t k = Some x ==> t[k|->x] = t"
 	(K [rtac ext 1, Asm_simp_tac 1]);
 (*Addsimps [update_same, update_other, update_triv];*)
 
+qed_goal "option_map_o_update" thy 
+	"option_map f o m[a|->b] = (option_map f o m)[a|->f b]" 
+	(K [rtac ext 1,Auto_tac]);
 
 section "++";
 
@@ -45,7 +48,7 @@ goalw thy [override_def]
 by (simp_tac (simpset() addsplits [split_option_case]) 1);
 qed_spec_mp "override_Some_iff";
 
-bind_thm("override_SomeD", standard(override_Some_iff RS iffD1));
+bind_thm ("override_SomeD", standard(override_Some_iff RS iffD1));
 
 goalw thy [override_def]
  "((m ++ n) k = None) = (n k = None & m k = None)";
