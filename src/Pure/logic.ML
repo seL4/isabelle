@@ -29,6 +29,7 @@ sig
   val strip_flexpairs   : term -> (term*term)list * term
   val skip_flexpairs    : term -> term
   val strip_horn        : term -> (term*term)list * term list * term
+  val has_meta_prems    : term -> int -> bool
   val mk_cond_defpair   : term list -> term * term -> string * term
   val mk_defpair        : term * term -> string * term
   val mk_type           : typ -> term
@@ -154,6 +155,19 @@ fun strip_horn A =
   let val (tpairs,horn) = strip_flexpairs A
   in  (tpairs, strip_imp_prems horn, strip_imp_concl horn)   end;
 
+(*test for meta connectives in prems of a 'subgoal'*)
+fun has_meta_prems prop i =
+  let
+    fun is_meta (Const ("==>", _) $ _ $ _) = true
+      | is_meta (Const ("all", _) $ _) = true
+      | is_meta _ = false;
+    val horn = skip_flexpairs prop;
+  in
+    (case strip_prems (i, [], horn) of
+      (B :: _, _) => exists is_meta (strip_imp_prems B)
+    | _ => false) handle TERM _ => false
+  end;
+
 
 (** definitions **)
 
@@ -250,6 +264,7 @@ fun strip_assums_concl (Const("==>", _) $ H $ B) = strip_assums_concl B
 fun strip_params (Const("==>", _) $ H $ B) = strip_params B
   | strip_params (Const("all",_)$Abs(a,T,t)) = (a,T) :: strip_params t
   | strip_params B = [];
+
 
 (*Removes the parameters from a subgoal and renumber bvars in hypotheses,
     where j is the total number of parameters (precomputed)
