@@ -31,6 +31,14 @@ by Auto_tac;
 qed "one_le_power";
 Addsimps [one_le_power];
 
+Goal "!!i::nat. 1 < i ==> !m. (i^n = i^m) = (n=m)";
+by (induct_tac "n" 1);
+by Auto_tac;
+by (ALLGOALS (case_tac "m"));
+by Auto_tac;
+qed_spec_mp "power_inject";
+Addsimps [power_inject];
+
 Goalw [dvd_def] "!!i::nat. m<=n ==> i^m dvd i^n";
 by (etac (not_less_iff_le RS iffD2 RS add_diff_inverse RS subst) 1);
 by (asm_simp_tac (simpset() addsimps [power_add]) 1);
