@@ -90,10 +90,10 @@ sig
     -> theory -> state
   val chain: state -> state
   val from_facts: thm list -> state -> state
-  val show: (state -> state Seq.seq) -> string -> context attribute list
-    -> string * (string list * string list) -> state -> state
-  val show_i: (state -> state Seq.seq) -> string -> context attribute list
-    -> term * (term list * term list) -> state -> state
+  val show: (bool -> state -> state) -> (state -> state Seq.seq) -> string
+    -> context attribute list -> string * (string list * string list) -> bool -> state -> state
+  val show_i: (bool -> state -> state) -> (state -> state Seq.seq) -> string
+    -> context attribute list -> term * (term list * term list) -> bool -> state -> state
   val have: (state -> state Seq.seq) -> string -> context attribute list
     -> string * (string list * string list) -> state -> state
   val have_i: (state -> state Seq.seq) -> string -> context attribute list
@@ -619,14 +619,18 @@ val lemma_i = global_goal ProofContext.bind_propp_schematic_i Lemma;
 
 
 (*local goals*)
-fun local_goal prepp kind f name atts args state =
+fun local_goal' prepp kind check f name atts args int state =
   state
   |> setup_goal open_block prepp kind f name atts args
-  |> warn_extra_tfrees state;
+  |> warn_extra_tfrees state
+  |> check int;
 
-val show   = local_goal ProofContext.bind_propp Show;
-val show_i = local_goal ProofContext.bind_propp_i Show;
-val have   = local_goal ProofContext.bind_propp Have;
+fun local_goal prepp kind f name atts args =
+  local_goal' prepp kind (K I) f name atts args false;
+
+val show = local_goal' ProofContext.bind_propp Show;
+val show_i = local_goal' ProofContext.bind_propp_i Show;
+val have = local_goal ProofContext.bind_propp Have;
 val have_i = local_goal ProofContext.bind_propp_i Have;
 
 
