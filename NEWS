@@ -1,4 +1,3 @@
-
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
@@ -69,6 +68,8 @@ takes ~= in premises into account (by performing a case split);
 
 * simp reduces "m*(n div m) + n mod m" to n, even if the two summands
 are distributed over a sum of terms;
+
+* the simplifier trace now shows the names of the applied rewrite rules
 
 * Real/HahnBanach: updated and adapted to locales;
 
