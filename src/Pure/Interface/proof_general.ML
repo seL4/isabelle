@@ -317,3 +317,7 @@ end;
 
 
 end;
+
+(*this hack avoids problems with escapes in ML commands; required for
+  Proof General 3.2*)
+infix \\\\ val op \\\\ = op \\;
