@@ -38,6 +38,58 @@ $(OUT)/HOL:
 
 #### Tests and examples
 
+## IOA meta theory and examples
+
+
+IOA_FILES = IOA/ROOT.ML IOA/meta_theory/Traces.thy \
+  IOA/meta_theory/Asig.ML IOA/meta_theory/Asig.thy \
+  IOA/meta_theory/CompoScheds.thy IOA/meta_theory/CompoExecs.ML \
+  IOA/meta_theory/CompoTraces.thy IOA/meta_theory/CompoScheds.ML \
+  IOA/meta_theory/CompoTraces.ML IOA/meta_theory/Sequence.ML \
+  IOA/meta_theory/Seq.thy IOA/meta_theory/RefCorrectness.thy \
+  IOA/meta_theory/Automata.thy IOA/meta_theory/Traces.ML \
+  IOA/meta_theory/Seq.ML IOA/meta_theory/RefMappings.ML \
+  IOA/meta_theory/ShortExecutions.thy IOA/meta_theory/ShortExecutions.ML \
+  IOA/meta_theory/IOA.thy IOA/meta_theory/IOA.ML \
+  IOA/meta_theory/Sequence.thy IOA/meta_theory/Automata.ML \
+  IOA/meta_theory/CompoExecs.thy IOA/meta_theory/RefMappings.thy \
+  IOA/meta_theory/RefCorrectness.ML IOA/meta_theory/Compositionality.ML \
+  IOA/meta_theory/Compositionality.thy
+
+
+IOA_ABP_FILES = IOA/ABP/Abschannel.thy \
+  IOA/ABP/Abschannel_finite.thy IOA/ABP/Action.ML \
+  IOA/ABP/Action.thy IOA/ABP/Check.ML \
+  IOA/ABP/Correctness.ML IOA/ABP/Correctness.thy \
+  IOA/ABP/Env.thy IOA/ABP/Impl.thy \
+  IOA/ABP/Impl_finite.thy IOA/ABP/Lemmas.ML \
+  IOA/ABP/Lemmas.thy IOA/ABP/Packet.thy \
+  IOA/ABP/ROOT.ML IOA/ABP/Receiver.thy \
+  IOA/ABP/Sender.thy IOA/ABP/Spec.thy 
+
+
+IOA_NTP_FILES = IOA/NTP/Abschannel.ML \
+  IOA/NTP/Abschannel.thy IOA/NTP/Action.ML  \
+  IOA/NTP/Action.thy IOA/NTP/Correctness.ML \
+  IOA/NTP/Correctness.thy IOA/NTP/Impl.ML \
+  IOA/NTP/Impl.thy IOA/NTP/Lemmas.ML \
+  IOA/NTP/Lemmas.thy IOA/NTP/Multiset.ML \
+  IOA/NTP/Multiset.thy IOA/NTP/Packet.ML \
+  IOA/NTP/Packet.thy IOA/NTP/ROOT.ML \
+  IOA/NTP/Receiver.ML IOA/NTP/Receiver.thy \
+  IOA/NTP/Sender.ML IOA/NTP/Sender.thy \
+  IOA/NTP/Spec.thy 
+
+ 
+IOA: $(OUT)/HOLCF $(IOA_FILES)
+	@cd IOA; $(ISATOOL) usedir -b $(OUT)/HOLCF IOA
+
+IOA_ABP: $(OUT)/IOA $(IOA_ABP_FILES)
+	@cd IOA; $(ISATOOL) usedir $(OUT)/IOA ABP
+
+IOA_NTP: $(OUT)/IOA $(IOA_NTP_FILES)
+	@cd IOA; $(ISATOOL) usedir $(OUT)/IOA NTP
+
 ## IMP
 
 IMP_THYS = IMP/Denotational.thy
@@ -60,7 +112,7 @@ EX:	ex/ROOT.ML $(EX_FILES)
 
 ## Full test
 
-test:	$(OUT)/HOLCF IMP EX
+test:	$(OUT)/HOLCF IOA IOA_ABP IOA_NTP IMP EX
 	echo 'Test examples ran successfully' > test
 
 .PRECIOUS: $(OUT)/HOL $(OUT)/HOLCF
