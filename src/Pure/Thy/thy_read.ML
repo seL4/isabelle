@@ -40,6 +40,10 @@ sig
   val theory_of_thm: thm -> theory
   val store_thm: string * thm -> thm
   val qed: string -> unit
+  val qed_goal_thm: thm ref
+  val qed_goal: string -> theory -> string -> (thm list -> tactic list) -> unit
+  val qed_goalw: string -> theory->thm list->string->(thm list->tactic list)
+                 -> unit
   val get_thm: theory -> string -> thm
   val thms_of: theory -> (string * thm) list
 end;
@@ -490,6 +494,16 @@ fun store_thm (name, thm) =
 fun qed name =
   use_string ["val " ^ name ^ " = store_thm (" ^ quote name ^ ", result ());"];
 
+val qed_goal_thm = ref flexpair_def(*dummy*);
+fun qed_goal name thy agoal tacsf =
+  (qed_goal_thm := prove_goal thy agoal tacsf;
+   use_string ["val " ^ name ^ " = store_thm (" ^ quote name ^ 
+               ", !qed_goal_thm);"]);
+
+fun qed_goalw name thy rths agoal tacsf =
+  (qed_goal_thm := prove_goalw thy rths agoal tacsf;
+   use_string ["val " ^ name ^ " = store_thm (" ^ quote name ^ 
+               ", !qed_goal_thm);"]);
 
 (* Retrieve theorems *)
 
