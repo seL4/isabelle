@@ -44,7 +44,7 @@ qed_goal "RPCFail_enabled" RPC.thy
    "!!p. basevars (rtrner send!p, caller rcv!p, rst!p) ==> \
 \        |- ~Calling rcv p & Calling send p --> Enabled (RPCFail send rcv rst p)"
    (fn _ => [action_simp_tac (simpset() addsimps [RPCFail_def,Return_def,caller_def,rtrner_def])
-                             [] [base_enabled,Pair_inject] 1
+                             [exI] [base_enabled,Pair_inject] 1
 	    ]);
 
 qed_goal "RPCReply_enabled" RPC.thy
@@ -52,5 +52,5 @@ qed_goal "RPCReply_enabled" RPC.thy
 \        |- ~Calling rcv p & Calling send p & rst!p = #rpcB \
 \           --> Enabled (RPCReply send rcv rst p)"
    (fn _ => [action_simp_tac (simpset() addsimps [RPCReply_def,Return_def,caller_def,rtrner_def])
-                             [] [base_enabled,Pair_inject] 1]);
+                             [exI] [base_enabled,Pair_inject] 1]);
 

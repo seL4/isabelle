@@ -91,7 +91,8 @@ qed_goal "N1_enabled_at_g" Inc.thy
   (fn _ => [Clarsimp_tac 1,
 	    res_inst_tac [("F","gamma1")] enabled_mono 1,
 	    enabled_tac Inc_base 1,
-	    auto_tac (Inc_css addsimps2 [angle_def,gamma1_def,N1_def])
+            force_tac (Inc_css addsimps2 [gamma1_def]) 1,
+	    force_tac (Inc_css addsimps2 [angle_def,gamma1_def,N1_def]) 1
 	   ]);
 
 qed_goal "g1_leadsto_a1" Inc.thy
@@ -112,7 +113,8 @@ qed_goal "N2_enabled_at_g" Inc.thy
   (fn _ => [Clarsimp_tac 1,
 	    res_inst_tac [("F","gamma2")] enabled_mono 1,
 	    enabled_tac Inc_base 1,
-	    auto_tac (Inc_css addsimps2 [angle_def,gamma2_def,N2_def])
+            force_tac (Inc_css addsimps2 [gamma2_def]) 1,
+	    force_tac (Inc_css addsimps2 [angle_def,gamma2_def,N2_def]) 1
 	   ]);
 
 qed_goal "g2_leadsto_a2" Inc.thy
@@ -131,7 +133,8 @@ qed_goal "N2_enabled_at_b" Inc.thy
   (fn _ => [Clarsimp_tac 1,
 	    res_inst_tac [("F","beta2")] enabled_mono 1,
 	    enabled_tac Inc_base 1,
-	    auto_tac (Inc_css addsimps2 [angle_def,beta2_def,N2_def])
+            force_tac (Inc_css addsimps2 [beta2_def]) 1,
+	    force_tac (Inc_css addsimps2 [angle_def,beta2_def,N2_def]) 1
 	   ]);
 
 qed_goal "b2_leadsto_g2" Inc.thy
@@ -173,8 +176,8 @@ qed_goal "N1_enabled_at_both_a" Inc.thy
   (fn _ => [Clarsimp_tac 1,
 	    res_inst_tac [("F","alpha1")] enabled_mono 1,
 	    enabled_tac Inc_base 1,
-	    auto_tac (Inc_css addIs2 [sym]
-		              addsimps2 [angle_def,alpha1_def,N1_def] @ PsiInv_defs)
+            force_tac (Inc_css addsimps2 (alpha1_def::PsiInv_defs)) 1,
+	    force_tac (Inc_css addsimps2 [angle_def,alpha1_def,N1_def]) 1
 	   ]);
 
 qed_goal "a1_leadsto_b1" Inc.thy
@@ -218,7 +221,8 @@ qed_goal "N1_enabled_at_b" Inc.thy
   (fn _ => [Clarsimp_tac 1,
 	    res_inst_tac [("F","beta1")] enabled_mono 1,
 	    enabled_tac Inc_base 1,
-	    auto_tac (Inc_css addsimps2 [angle_def,beta1_def,N1_def])
+            force_tac (Inc_css addsimps2 [beta1_def]) 1,
+	    force_tac (Inc_css addsimps2 [angle_def,beta1_def,N1_def]) 1
 	   ]);
 
 (* Now assemble the bits and pieces to prove that Psi is fair. *)

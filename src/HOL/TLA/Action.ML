@@ -201,11 +201,20 @@ qed_goal "enabled_ex" Action.thy
 
 (* A rule that combines enabledI and baseE, but generates fewer possible instantiations *)
 qed_goal "base_enabled" Action.thy
+  "[| basevars vs; ? c. ! u. vs u = c --> A(s,u) |] ==> s |= Enabled A"
+  (fn prems => [cut_facts_tac prems 1,
+		etac exE 1, etac baseE 1, 
+                rtac (action_use enabledI) 1,
+                etac allE 1, etac mp 1, atac 1
+               ]);
+                
+(*** old version immediately generates schematic variable
+qed_goal "base_enabled" Action.thy
   "[| basevars vs; !!u. vs u = c s ==> A (s,u) |] ==> s |= Enabled A"
   (fn prems => [cut_facts_tac prems 1,
 		etac baseE 1, rtac (action_use enabledI) 1,
 		REPEAT (ares_tac prems 1)]);
-
+***)
 
 (* ================================ action_simp_tac ================================== *)
 

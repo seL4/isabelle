@@ -64,18 +64,17 @@ qed_goal "MemReturn_enabled" Memory.thy
 \           --> Enabled (<MemReturn ch rs p>_(rtrner ch ! p, rs!p))"
   (K [action_simp_tac (simpset()) [MemReturn_change RSN (2,enabled_mono)] [] 1,
       action_simp_tac (simpset() addsimps [MemReturn_def,Return_def,rtrner_def])
-                             [] [base_enabled,Pair_inject] 1
-	    ]);
+                      [exI] [base_enabled,Pair_inject] 1
+     ]);
 
 qed_goal "ReadInner_enabled" Memory.thy
  "!!p. basevars (rtrner ch ! p, rs!p) ==> \
 \      |- Calling ch p & (arg<ch!p> = #(read l)) --> Enabled (ReadInner ch mm rs p l)"
    (fn _ => [case_tac "l : MemLoc" 1,
              ALLGOALS
-	        (action_simp_tac 
-                    (simpset() addsimps [ReadInner_def,GoodRead_def,BadRead_def,
-					RdRequest_def])
-                    [] [base_enabled,Pair_inject])
+	        (force_tac (mem_css addsimps2 [ReadInner_def,GoodRead_def,
+                                               BadRead_def,RdRequest_def]
+                            addSIs2 [exI] addSEs2 [base_enabled]))
             ]);
 
 qed_goal "WriteInner_enabled" Memory.thy
@@ -83,10 +82,10 @@ qed_goal "WriteInner_enabled" Memory.thy
 \        |- Calling ch p & (arg<ch!p> = #(write l v)) \
 \           --> Enabled (WriteInner ch mm rs p l v)"
    (fn _ => [case_tac "l:MemLoc & v:MemVal" 1,
-             ALLGOALS (action_simp_tac 
-                 (simpset() addsimps [WriteInner_def,GoodWrite_def,BadWrite_def,
-					WrRequest_def] delsimps [disj_not1])
-                    [] [base_enabled,Pair_inject])
+             ALLGOALS 
+	        (force_tac (mem_css addsimps2 [WriteInner_def,GoodWrite_def,
+                                               BadWrite_def,WrRequest_def]
+                            addSIs2 [exI] addSEs2 [base_enabled]))
             ]);
 
 qed_goal "ReadResult" Memory.thy

@@ -32,7 +32,7 @@ qed_goal "MClkFwd_enabled" MemClerk.thy
 \        |- Calling send p & ~Calling rcv p & cst!p = #clkA  \
 \           --> Enabled (MClkFwd send rcv cst p)"
    (fn _ => [action_simp_tac (simpset() addsimps [MClkFwd_def,Call_def,caller_def,rtrner_def])
-                             [] [base_enabled,Pair_inject] 1]);
+                             [exI] [base_enabled,Pair_inject] 1]);
 
 qed_goal "MClkFwd_ch_enabled" MemClerk.thy
    "|- Enabled (MClkFwd send rcv cst p)  -->  \
@@ -53,7 +53,7 @@ qed_goal "MClkReply_enabled" MemClerk.thy
 \           --> Enabled (<MClkReply send rcv cst p>_(cst!p, rtrner send!p, caller rcv!p))"
    (fn _ => [action_simp_tac (simpset()) [MClkReply_change RSN (2,enabled_mono)] [] 1,
 	     action_simp_tac (simpset() addsimps [MClkReply_def,Return_def,caller_def,rtrner_def])
-                             [] [base_enabled,Pair_inject] 1
+                             [exI] [base_enabled,Pair_inject] 1
 	    ]);
 
 qed_goal "MClkReplyNotRetry" MemClerk.thy
