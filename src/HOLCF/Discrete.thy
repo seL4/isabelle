@@ -6,6 +6,8 @@
 Discrete CPOs.
 *)
 
+header {* Discrete cpo types *}
+
 theory Discrete
 imports Cont Datatype
 begin
