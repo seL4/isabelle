@@ -18,6 +18,7 @@ sig
   val declare_rulify: theory attribute
   val atomize_term: Sign.sg -> term -> term
   val atomize_tac: int -> tactic
+  val full_atomize_tac: int -> tactic
   val atomize_goal: int -> thm -> thm
   val rulify: thm -> thm
   val rulify_no_asm: thm -> thm
@@ -134,6 +135,9 @@ fun atomize_tac i st =
   if Logic.has_meta_prems (Thm.prop_of st) i then
     (rewrite_prems_tac (get_atomize (Thm.sign_of_thm st)) i) st
   else all_tac st;
+
+fun full_atomize_tac i st =
+  rewrite_goal_tac (get_atomize (Thm.sign_of_thm st)) i st;
 
 fun atomize_goal i st =
   (case Seq.pull (atomize_tac i st) of None => st | Some (st', _) => st');

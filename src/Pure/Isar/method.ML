@@ -182,6 +182,12 @@ fun unfold ths = SIMPLE_METHOD (CHANGED_PROP (rewrite_goals_tac ths));
 fun fold ths = SIMPLE_METHOD (CHANGED_PROP (fold_goals_tac ths));
 
 
+(* atomize rule statements *)
+
+fun atomize false = SIMPLE_METHOD' HEADGOAL (CHANGED_PROP o ObjectLogic.atomize_tac)
+  | atomize true = RAW_METHOD (K (HEADGOAL (CHANGED_PROP o ObjectLogic.full_atomize_tac)));
+
+
 (* unfold intro/elim rules *)
 
 fun intro ths = SIMPLE_METHOD' HEADGOAL (CHANGED_PROP o REPEAT_ALL_NEW (Tactic.match_tac ths));
@@ -640,7 +646,7 @@ val pure_methods =
   ("intro", thms_args intro, "repeatedly apply introduction rules"),
   ("elim", thms_args elim, "repeatedly apply elimination rules"),
   ("fold", thms_args fold, "fold definitions"),
-  ("atomize", no_args (SIMPLE_METHOD' HEADGOAL (CHANGED_PROP o ObjectLogic.atomize_tac)),
+  ("atomize", (atomize o #2) oo syntax (Args.mode "full"),
     "present local premises as object-level statements"),
   ("rules", rules_args rules_meth, "apply many rules, including proof search"),
   ("rule", thms_ctxt_args some_rule, "apply some intro/elim rule"),
