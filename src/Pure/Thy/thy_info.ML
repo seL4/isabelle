@@ -28,6 +28,7 @@ sig
   val str_of_action: action -> string
   val add_hook: (action -> string -> unit) -> unit
   val names: unit -> string list
+  val lookup_theory: string -> theory option
   val get_theory: string -> theory
   val get_preds: string -> string list
   val loaded_files: string -> ((Path.T * File.info) * bool) list
@@ -151,9 +152,11 @@ fun get_preds name =
 
 (* access theory *)
 
+fun lookup_theory name = #2 (get_thy name);
+
 fun get_theory name =
-  (case get_thy name of
-    (_, Some theory) => theory
+  (case lookup_theory name of
+    (Some theory) => theory
   | _ => error (loader_msg "undefined theory entry for" [name]));
 
 val theory_of_sign = get_theory o Sign.name_of;
@@ -194,7 +197,7 @@ end;
 
 fun check_unfinished fail name =
   if is_some (lookup_thy name) andalso is_finished name then
-    fail (loader_msg "cannot change finished theory" [name])
+    fail (loader_msg "cannot update finished theory" [name])
   else ();
 
 
