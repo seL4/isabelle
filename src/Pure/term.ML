@@ -254,7 +254,8 @@ fun dest_Var (Var x) =  x
   | dest_Var t = raise TERM("dest_Var", [t]);
 
 
-fun domain_type (Type("fun", [T,_])) = T;
+fun domain_type (Type("fun", [T,_])) = T
+and range_type  (Type("fun", [_,T])) = T;
 
 (* maps  [T1,...,Tn]--->T  to the list  [T1,T2,...,Tn]*)
 fun binder_types (Type("fun",[S,T])) = S :: binder_types T
