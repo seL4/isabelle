@@ -2,34 +2,9 @@
 # $Id$
 #
 # Isabelle user settings sample (everything commented out)
-#   -- some parts may be copied into ~/isabelle/etc/settings.
+#   -- may be copied to ~/isabelle/etc/settings
 #
-
-###
-### Compilation options
-###
 
 #ISABELLE_USEDIR_OPTIONS="-i true -d pdf"
 
-
-###
-### Heap files
-###
-
-# Note: ML system identifier appended automatically!
-
-#ISABELLE_PATH=other-places-where-heaps-may-reside:$ISABELLE_PATH
-#ISABELLE_OUTPUT=somewhere-else
-
 #ISABELLE_LOGIC=ZF
-
-
-###
-### Interfaces
-###
-
-# Simple xterm based interface.
-#ISABELLE_INTERFACE=xterm
-
-# Emacs running Isamode.
-#ISABELLE_INTERFACE=emacs

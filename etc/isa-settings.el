@@ -1,9 +1,7 @@
 ;
 ; $Id$
 ;
-; Setup Emacs for Isabelle environment.
+; Options for Isamode (old)
 ;
-
-;; Misc settings
 
 (setq isa-use-sml-mode nil)
