@@ -51,20 +51,21 @@ fun mk_case_equation (((id,T,syn), name, args, prems), case_free) =
     mk_tprop (eq_const $ (big_case_tm $ (list_comb (Const(name,T), args)))
 		         $ (list_comb (case_free, args))) ;
 
-val case_trans = hd con_defs RS def_trans;
+val case_trans = hd con_defs RS def_trans
+and split_trans = Pr.split_eq RS meta_eq_to_obj_eq RS trans;
 
 (*Proves a single case equation.  Could use simp_tac, but it's slower!*)
 fun case_tacsf con_def _ = 
   [rewtac con_def,
    rtac case_trans 1,
-   REPEAT (resolve_tac [refl, Pr.split_eq RS trans, 
-			Su.case_inl RS trans, 
-			Su.case_inr RS trans] 1)];
+   REPEAT (resolve_tac [refl, split_trans, 
+                        Su.case_inl RS trans, 
+                        Su.case_inr RS trans] 1)];
 
 fun prove_case_equation (arg,con_def) =
     prove_goalw_cterm [] 
         (cterm_of (sign_of thy) (mk_case_equation arg))
-	(case_tacsf con_def);
+        (case_tacsf con_def);
 
 val free_iffs = 
     map standard (con_defs RL [def_swap_iff]) @
