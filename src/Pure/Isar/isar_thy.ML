@@ -250,7 +250,7 @@ fun gen_hide intern ((kind, xnames), comment_ignore) thy =
         val names = map (intern sg kind) xnames;
         val bads = filter_out (check sg) names;
       in
-        if null bads then Theory.hide_space_i (kind, names) thy
+        if null bads then Theory.hide_space_i true (kind, names) thy
         else error ("Attempt to hide undeclared item(s): " ^ commas_quote bads)
       end
   | None => error ("Bad name space specification: " ^ quote kind));
