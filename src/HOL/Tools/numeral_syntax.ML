@@ -46,15 +46,6 @@ fun mk_bin n =
       | term_of (b :: bs) = HOLogic.bit_const $ term_of bs $ mk_bit b;
     in term_of (bin_of n) end;
 
-fun bin_of_string str =
-  let
-    val (sign, digs) =
-      (case Symbol.explode str of
-        "#" :: "-" :: cs => (~1, cs)
-      | "#" :: cs => (1, cs)
-      | _ => raise ERROR);
-    in mk_bin (sign * (#1 (Term.read_int digs))) end;
-
 (*we consider all "spellings"; Min is likely to be declared elsewhere*)
 fun bin_of (Const ("Pls", _)) = []
   | bin_of (Const ("bin.Pls", _)) = []
@@ -83,8 +74,7 @@ fun dest_bin_str tm =
 (* translation of integer numeral tokens to and from bitstrings *)
 
 fun numeral_tr (*"_Numeral"*) [t as Free (str, _)] =
-      (Syntax.const "Numeral.number_of" $
-        (bin_of_string str handle ERROR => raise TERM ("numeral_tr", [t])))
+      (Syntax.const "Numeral.number_of" $ mk_bin (Syntax.read_xnum str))
   | numeral_tr (*"_Numeral"*) ts = raise TERM ("numeral_tr", ts);
 
 fun numeral_tr' show_sorts (*"number_of"*) (Type ("fun", [_, T])) (t :: ts) =
