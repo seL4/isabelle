@@ -20,9 +20,9 @@ translations
   "s ->=  t" == "(s,t) : beta^="
 
 primrec free Lambda.db
-  free_Var "free (Var j) i = (j=i)"
-  free_App "free (s @ t) i = (free s i | free t i)"
-  free_Fun "free (Fun s) i = free s (Suc i)"
+  "free (Var j) i = (j=i)"
+  "free (s @ t) i = (free s i | free t i)"
+  "free (Fun s) i = free s (Suc i)"
 
 defs
   decr_def "decr t i == t[Var i/i]"
@@ -34,3 +34,4 @@ intrs
    appR  "s -e> t ==> u@s -e> u@t"
    abs   "s -e> t ==> Fun s -e> Fun t"
 end
+

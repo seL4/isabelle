@@ -16,11 +16,11 @@ consts
         W :: [expr, typ list, nat] => result_W
 
 primrec W expr
-  W_Var "W (Var i) a n = (if i < length a then Ok(id_subst, nth i a, n)
+  "W (Var i) a n = (if i < length a then Ok(id_subst, nth i a, n)
                           else Fail)"
-  W_Abs "W (Abs e) a n = ( (s,t,m) := W e ((TVar n)#a) (Suc n);
+  "W (Abs e) a n = ( (s,t,m) := W e ((TVar n)#a) (Suc n);
                            Ok(s, (s n) -> t, m) )"
-  W_App "W (App e1 e2) a n =
+  "W (App e1 e2) a n =
                  ( (s1,t1,m1) := W e1 a n;
                    (s2,t2,m2) := W e2 ($s1 a) m1;
                    u := mgu ($s2 t1) (t2 -> (TVar m2));

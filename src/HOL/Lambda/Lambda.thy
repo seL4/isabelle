@@ -19,9 +19,9 @@ consts
   liftn  :: [nat,db,nat] => db
 
 primrec lift db
-  lift_Var "lift (Var i) k = (if i < k then Var i else Var(Suc i))"
-  lift_App "lift (s @ t) k = (lift s k) @ (lift t k)"
-  lift_Fun "lift (Fun s) k = Fun(lift s (Suc k))"
+  "lift (Var i) k = (if i < k then Var i else Var(Suc i))"
+  "lift (s @ t) k = (lift s k) @ (lift t k)"
+  "lift (Fun s) k = Fun(lift s (Suc k))"
 
 primrec subst db
   subst_Var "(Var i)[s/k] = (if k < i then Var(pred i)
@@ -30,15 +30,15 @@ primrec subst db
   subst_Fun "(Fun t)[s/k] = Fun (t[lift s 0 / Suc k])"
 
 primrec liftn db
-  liftn_Var "liftn n (Var i) k = (if i < k then Var i else Var(i+n))"
-  liftn_App "liftn n (s @ t) k = (liftn n s k) @ (liftn n t k)"
-  liftn_Fun "liftn n (Fun s) k = Fun(liftn n s (Suc k))"
+  "liftn n (Var i) k = (if i < k then Var i else Var(i+n))"
+  "liftn n (s @ t) k = (liftn n s k) @ (liftn n t k)"
+  "liftn n (Fun s) k = Fun(liftn n s (Suc k))"
 
 primrec substn db
-  substn_Var "substn (Var i) s k = (if k < i then Var(pred i)
+  "substn (Var i) s k = (if k < i then Var(pred i)
                                     else if i = k then liftn k s 0 else Var i)"
-  substn_App "substn (t @ u) s k = (substn t s k) @ (substn u s k)"
-  substn_Fun "substn (Fun t) s k = Fun (substn t s (Suc k))"
+  "substn (t @ u) s k = (substn t s k) @ (substn u s k)"
+  "substn (Fun t) s k = Fun (substn t s (Suc k))"
 
 consts  beta :: "(db * db) set"
 

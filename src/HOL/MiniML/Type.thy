@@ -48,12 +48,12 @@ consts
         free_tv :: ['a::type_struct] => nat set
 
 primrec free_tv typ
-  free_tv_TVar    "free_tv (TVar m) = {m}"
-  free_tv_Fun     "free_tv (t1 -> t2) = (free_tv t1) Un (free_tv t2)"
+  "free_tv (TVar m) = {m}"
+  "free_tv (t1 -> t2) = (free_tv t1) Un (free_tv t2)"
 
 primrec free_tv List.list
-  free_tv_Nil     "free_tv [] = {}"
-  free_tv_Cons    "free_tv (x#l) = (free_tv x) Un (free_tv l)"
+  "free_tv [] = {}"
+  "free_tv (x#l) = (free_tv x) Un (free_tv l)"
 
 (* domain of a substitution *)
 constdefs

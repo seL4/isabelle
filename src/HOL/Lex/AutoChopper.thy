@@ -29,9 +29,9 @@ defs
   auto_chopper_def "auto_chopper A xs == acc xs (start A) [] [] ([],xs) A"
 
 primrec acc List.list
-  acc_Nil  "acc [] st ys zs chopsr A =
+  "acc [] st ys zs chopsr A =
               (if ys=[] then chopsr else (ys#fst(chopsr),snd(chopsr)))" 
-  acc_Cons "acc(x#xs) st ys zs chopsr A =
+  "acc(x#xs) st ys zs chopsr A =
             (let s0 = start(A); nxt = next(A); fin = fin(A)
              in if fin(nxt st x)
                 then acc xs (nxt st x) (zs@[x]) (zs@[x])

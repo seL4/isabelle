@@ -27,15 +27,15 @@ consts
   deFun :: db => db
 
 primrec cd db
-  cd_Var "cd(Var n) = Var n"
-  cd_App "cd(s @ t) = (case s of
+  "cd(Var n) = Var n"
+  "cd(s @ t) = (case s of
             Var n => s @ (cd t) |
             s1 @ s2 => (cd s) @ (cd t) |
             Fun u => deFun(cd s)[cd t/0])"
-  cd_Fun "cd(Fun s) = Fun(cd s)"
+  "cd(Fun s) = Fun(cd s)"
 
 primrec deFun db
-  deFun_Var "deFun(Var n) = Var n"
-  deFun_App "deFun(s @ t) = s @ t"
-  deFun_Fun "deFun(Fun s) = s"
+  "deFun(Var n) = Var n"
+  "deFun(s @ t) = s @ t"
+  "deFun(Fun s) = s"
 end
