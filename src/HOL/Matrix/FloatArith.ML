@@ -28,13 +28,13 @@ fun is_zero (a,b) =
 fun ipow2 a = IntInf.pow ((IntInf.fromInt 2), IntInf.toInt a)
 
 fun add (a1, b1) (a2, b2) = 
-    if b1 < b2 then
+    if IntInf.< (b1, b2) then
 	(iadd a1 (imul a2 (ipow2 (isub b2 b1))), b1)
     else
 	(iadd (imul a1 (ipow2 (isub b1 b2))) a2, b2)
 
 fun sub (a1, b1) (a2, b2) = 
-    if b1 < b2 then
+    if IntInf.< (b1, b2) then
 	(isub a1 (imul a2 (ipow2 (isub b2 b1))), b1)
     else
 	(isub (imul a1 (ipow2 (isub b1 b2))) a2, b2)
