@@ -224,6 +224,7 @@ by (induct_tac "k" 1);
 by (simp_tac (simpset() addsimps [atMost_Suc]) 2);
 by Auto_tac;
 qed "finite_atMost";
+AddIffs [finite_lessThan, finite_atMost];
 
 (* A bounded set of natural numbers is finite *)
 Goal "(!i:N. i<(n::nat)) ==> finite N";
