@@ -129,7 +129,7 @@ by (Fast_tac 1);
 qed "Nonce_supply";
 
 (*Tactic for possibility theorems*)
-val possibility_tac =
+fun possibility_tac st = st |>
     REPEAT (*omit used_Says so that Nonces, Keys start from different traces!*)
     (ALLGOALS (simp_tac (!simpset delsimps [used_Says] setSolver safe_solver))
      THEN
