@@ -127,6 +127,12 @@ by (stac Un_eq_Union 1);
 by (blast_tac (claset() addIs [leadsTo_Union]) 1);
 qed "leadsTo_Un";
 
+val prems = 
+Goal "(!!x. x : A ==> F : {x} leadsTo B) ==> F : A leadsTo B";
+by (stac (UN_singleton RS sym) 1 THEN rtac leadsTo_UN 1);
+by (blast_tac (claset() addIs prems) 1);
+qed "single_leadsTo_I";
+
 
 (*The INDUCTION rule as we should have liked to state it*)
 val major::prems = Goalw [leadsTo_def]
@@ -213,7 +219,8 @@ qed "all_leadsTo_UN_UN";
 
 
 (*Binary union version*)
-Goal "[| F : A leadsTo A'; F : B leadsTo B' |]     ==> F : (A Un B) leadsTo (A' Un B')";
+Goal "[| F : A leadsTo A'; F : B leadsTo B' |] \
+\     ==> F : (A Un B) leadsTo (A' Un B')";
 by (blast_tac (claset() addIs [leadsTo_Un, 
 			       leadsTo_weaken_R]) 1);
 qed "leadsTo_Un_Un";
@@ -222,13 +229,13 @@ qed "leadsTo_Un_Un";
 (** The cancellation law **)
 
 Goal "[| F : A leadsTo (A' Un B); F : B leadsTo B' |] \
-\   ==> F : A leadsTo (A' Un B')";
+\     ==> F : A leadsTo (A' Un B')";
 by (blast_tac (claset() addIs [leadsTo_Un_Un, 
 			       subset_imp_leadsTo, leadsTo_Trans]) 1);
 qed "leadsTo_cancel2";
 
 Goal "[| F : A leadsTo (A' Un B); F : (B-A') leadsTo B' |] \
-\   ==> F : A leadsTo (A' Un B')";
+\     ==> F : A leadsTo (A' Un B')";
 by (rtac leadsTo_cancel2 1);
 by (assume_tac 2);
 by (ALLGOALS Asm_simp_tac);
@@ -286,24 +293,27 @@ qed "psp_stable2";
 
 Goalw [ensures_def, constrains_def]
    "[| F : A ensures A'; F : B co B' |] \
-\   ==> F : (A Int B) ensures ((A' Int B) Un (B' - B))";
+\   ==> F : (A Int B') ensures ((A' Int B) Un (B' - B))";
+by (Clarify_tac 1);  (*speeds up the proof*)
 by (blast_tac (claset() addIs [transient_strengthen]) 1);
 qed "psp_ensures";
 
 Goal "[| F : A leadsTo A'; F : B co B' |] \
-\     ==> F : (A Int B) leadsTo ((A' Int B) Un (B' - B))";
+\     ==> F : (A Int B') leadsTo ((A' Int B) Un (B' - B))";
 by (etac leadsTo_induct 1);
 by (blast_tac (claset() addIs [leadsTo_Union_Int]) 3);
 (*Transitivity case has a delicate argument involving "cancellation"*)
 by (rtac leadsTo_Un_duplicate2 2);
 by (etac leadsTo_cancel_Diff1 2);
 by (asm_full_simp_tac (simpset() addsimps [Int_Diff, Diff_triv]) 2);
+by (blast_tac (claset() addIs [leadsTo_weaken_L] 
+                        addDs [constrains_imp_subset]) 2);
 (*Basis case*)
 by (blast_tac (claset() addIs [leadsTo_Basis, psp_ensures]) 1);
 qed "psp";
 
 Goal "[| F : A leadsTo A'; F : B co B' |] \
-\   ==> F : (B Int A) leadsTo ((B Int A') Un (B' - B))";
+\   ==> F : (B' Int A) leadsTo ((B Int A') Un (B' - B))";
 by (asm_simp_tac (simpset() addsimps psp::Int_ac) 1);
 qed "psp2";
 
@@ -313,10 +323,7 @@ Goalw [unless_def]
 \   ==> F : (A Int B) leadsTo ((A' Int B) Un B')";
 by (dtac psp 1);
 by (assume_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [Un_Diff_Diff, Int_Diff_Un]) 1);
-by (asm_full_simp_tac (simpset() addsimps [Diff_Int_distrib]) 1);
-by (etac leadsTo_Diff 1);
-by (blast_tac (claset() addIs [subset_imp_leadsTo]) 1);
+by (blast_tac (claset() addIs [leadsTo_weaken]) 1);
 qed "psp_unless";
 
 
@@ -504,13 +511,13 @@ by (asm_full_simp_tac
     (simpset() addsimps [wlt_increasing, Un_assoc, Un_absorb2]) 2);
 by (subgoal_tac "F : (A Int W - C) leadsTo (A' Int W Un C)" 1);
 by (simp_tac (simpset() addsimps [Int_Diff]) 2);
-by (blast_tac (claset() addIs [wlt_leadsTo, psp RS leadsTo_weaken_R]) 2);
+by (blast_tac (claset() addIs [wlt_leadsTo, psp RS leadsTo_weaken]) 2);
 (** LEVEL 7 **)
 by (subgoal_tac "F : (A' Int W Un C) leadsTo (A' Int B' Un C)" 1);
-by (blast_tac (claset() addIs [wlt_leadsTo, leadsTo_Un_Un, 
-                               psp2 RS leadsTo_weaken_R, 
-			       subset_refl RS subset_imp_leadsTo, 
-			       leadsTo_Un_duplicate2]) 2);
+by (rtac leadsTo_Un_duplicate2 2);
+by (blast_tac (claset() addIs [leadsTo_Un_Un, 
+                               wlt_leadsTo RS psp2 RS leadsTo_weaken, 
+                               subset_refl RS subset_imp_leadsTo]) 2);
 by (dtac leadsTo_Diff 1);
 by (blast_tac (claset() addIs [subset_imp_leadsTo]) 1);
 by (subgoal_tac "A Int B <= A Int W" 1);
