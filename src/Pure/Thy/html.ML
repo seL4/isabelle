@@ -77,7 +77,7 @@ local
      | "\\<not>" => (1.0, "&not;")
      | "\\<hyphen>" => (1.0, "&shy;")
      | "\\<registered>" => (1.0, "&reg;")
-     | "\\<macron>" => (1.0, "&macr;")
+     | "\\<inverse>" => (1.0, "&macr;")
      | "\\<degree>" => (1.0, "&deg;")
      | "\\<plusminus>" => (1.0, "&plusmn;")
      | "\\<twosuperior>" => (1.0, "&sup2;")
