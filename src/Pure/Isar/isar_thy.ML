@@ -7,7 +7,7 @@ Pure/Isar derived theory operations.
 
 signature ISAR_THY =
 sig
-  val add_title: Comment.text -> Comment.text -> Comment.text -> theory -> theory
+  val add_header: Comment.text -> Toplevel.transition -> Toplevel.transition
   val add_chapter: Comment.text -> theory -> theory
   val add_section: Comment.text -> theory -> theory
   val add_subsection: Comment.text -> theory -> theory
@@ -166,8 +166,10 @@ struct
 
 (* formal comments *)
 
+fun add_header comment =
+  Toplevel.keep (fn state => if Toplevel.is_toplevel state then () else raise Toplevel.UNDEF);
+
 fun add_text comment thy = thy:theory;
-fun add_title title author date thy = thy;
 val add_chapter = add_text;
 
 fun gen_add_section add present txt thy =
@@ -512,10 +514,7 @@ fun gen_begin_theory bg name parents files =
 
 val begin_theory = gen_begin_theory ThyInfo.begin_theory;
 val begin_update_theory = gen_begin_theory ThyInfo.begin_update_theory;
-
-fun end_theory thy =
-  (Present.end_theory (PureThy.get_name thy); ThyInfo.end_theory thy);
-
+val end_theory = ThyInfo.end_theory;
 fun kill_theory thy = ThyInfo.remove_thy (PureThy.get_name thy);
 
 
