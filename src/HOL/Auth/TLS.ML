@@ -110,9 +110,10 @@ AddIffs (keys_distinct @ (keys_distinct RL [not_sym]));
 (*Possibility property ending with ServerFinished.*)
 goal thy 
  "!!A B. [| ALL evs. (@ N. Nonce N ~: used evs) ~: range PRF;  \
-\           A ~= B |] ==> EX NA XA NB XB M. EX evs: tls.    \
+\           A ~= B |] ==> EX SID NA XA NB XB M. EX evs: tls.    \
 \  Says B A (Crypt (serverK(NA,NB,M))                       \
-\            (Hash{|Nonce M, Nonce NA, Number XA, Agent A,      \
+\            (Hash{|Nonce M, Number SID,             \
+\                   Nonce NA, Number XA, Agent A,      \
 \                   Nonce NB, Number XB, Agent B|})) \
 \    : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
@@ -125,9 +126,10 @@ result();
 (*And one for ClientFinished.  Either FINISHED message may come first.*)
 goal thy 
  "!!A B. [| ALL evs. (@ N. Nonce N ~: used evs) ~: range PRF;  \
-\           A ~= B |] ==> EX NA XA NB XB M. EX evs: tls.    \
+\           A ~= B |] ==> EX SID NA XA NB XB M. EX evs: tls.    \
 \  Says A B (Crypt (clientK(NA,NB,M))                           \
-\            (Hash{|Nonce M, Nonce NA, Number XA, Agent A, \
+\            (Hash{|Nonce M, Number SID,             \
+\                   Nonce NA, Number XA, Agent A,      \
 \                   Nonce NB, Number XB, Agent B|})) : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (tls.Nil RS tls.ClientHello RS tls.ServerHello RS tls.ClientCertKeyEx
@@ -292,7 +294,7 @@ goal thy
  "!!evs. [| X = Crypt (priK A)                                        \
 \                 (Hash{|Nonce NB, certificate B KB, Nonce PMS|});      \
 \           evs : tls;  A ~: lost;  B ~= Spy |]                       \
-\    ==> Says B A {|Nonce NA, Nonce NB, Number XB, certificate B KB|}  \
+\    ==> Says B A {|Nonce NB, Number SID, Number XB, certificate B KB|}  \
 \          : set evs --> \
 \        X : parts (sees Spy evs) --> Says A B X : set evs";
 by (hyp_subst_tac 1);
@@ -588,12 +590,13 @@ qed "Notes_unique_PMS";
 
 (*The mention of her name (A) in X assumes A that B knows who she is.*)
 goal thy
- "!!evs. [| X = Crypt (serverK(Na,Nb,M))                                \
-\                 (Hash{|Nonce M, Nonce NA, Number XA, Agent A,         \
+ "!!evs. [| X = Crypt (serverK(Na,Nb,M))                  \
+\                 (Hash{|Nonce M, Number SID,             \
+\                        Nonce NA, Number XA, Agent A,    \
 \                        Nonce NB, Number XB, Agent B|}); \
-\           M = PRF(PMS,NA,NB); \
-\           evs : tls;  A ~: lost;  B ~: lost |]                        \
-\        ==> Notes A {|Agent B, Nonce PMS|} : set evs -->                 \
+\           M = PRF(PMS,NA,NB);                           \
+\           evs : tls;  A ~: lost;  B ~: lost |]          \
+\        ==> Notes A {|Agent B, Nonce PMS|} : set evs --> \
 \        X : parts (sees Spy evs) --> Says B A X : set evs";
 by (hyp_subst_tac 1);
 by (analz_induct_tac 1);
@@ -674,7 +677,7 @@ qed_spec_mp "TrustClientMsg";
  ***)
 goal thy
  "!!evs. [| Says A' B (Crypt (clientK(Na,Nb,PRF(PMS,NA,NB))) Y) : set evs; \
-\           Says B  A {|Nonce NA, Nonce NB, Number XB, certificate B KB|}  \
+\           Says B  A {|Nonce NB, Number SID, Number XB, certificate B KB|}  \
 \             : set evs;                                                  \
 \           Says A'' B (Crypt (priK A)                                    \
 \                       (Hash{|Nonce NB, certificate B KB, Nonce PMS|}))  \
