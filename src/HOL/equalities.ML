@@ -228,10 +228,12 @@ Addsimps[Un_UNIV_right];
 goal Set.thy "(insert a B) Un C = insert a (B Un C)";
 by (Blast_tac 1);
 qed "Un_insert_left";
+Addsimps[Un_insert_left];
 
 goal Set.thy "A Un (insert a B) = insert a (A Un B)";
 by (Blast_tac 1);
 qed "Un_insert_right";
+Addsimps[Un_insert_right];
 
 goal Set.thy "(insert a B) Int C = (if a:C then insert a (B Int C) \
 \                                          else        B Int C)";
