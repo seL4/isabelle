@@ -3,10 +3,8 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
-For prod.thy.  Ordered Pairs, the Cartesian product type, the unit type
+Ordered Pairs, the Cartesian product type, the unit type
 *)
-
-open Prod;
 
 (*This counts as a non-emptiness result for admitting 'a * 'b as a type*)
 Goalw [Prod_def] "Pair_Rep a b : Prod";
@@ -363,6 +361,9 @@ by (Blast_tac 1);
 qed "mem_Sigma_iff";
 AddIffs [mem_Sigma_iff]; 
 
+
+(*** Complex rules for Sigma ***)
+
 val Collect_split = prove_goal Prod.thy 
 	"{(a,b). P a & Q b} = Collect P Times Collect Q" (K [Blast_tac 1]);
 Addsimps [Collect_split];
@@ -371,6 +372,42 @@ Addsimps [Collect_split];
 Goal "(UN (a,b):(A Times B). E a Times F b) = (UNION A E) Times (UNION B F)";
 by (Blast_tac 1);
 qed "UNION_Times_distrib";
+
+
+Goal "(ALL z: A Times B. P z) = (ALL x:A. ALL y: B. P(x,y))";
+by (Fast_tac 1);
+qed "split_paired_Ball_Times";
+Addsimps [split_paired_Ball_Times];
+
+Goal "(EX z: A Times B. P z) = (EX x:A. EX y: B. P(x,y))";
+by (Fast_tac 1);
+qed "split_paired_Bex_Times";
+Addsimps [split_paired_Bex_Times];
+
+
+Goal "(SIGMA i:I Un J. C(i)) = (SIGMA i:I. C(i)) Un (SIGMA j:J. C(j))";
+by (Blast_tac 1);
+qed "Sigma_Un_distrib1";
+
+Goal "(SIGMA i:I. A(i) Un B(i)) = (SIGMA i:I. A(i)) Un (SIGMA i:I. B(i))";
+by (Blast_tac 1);
+qed "Sigma_Un_distrib2";
+
+Goal "(SIGMA i:I Int J. C(i)) = (SIGMA i:I. C(i)) Int (SIGMA j:J. C(j))";
+by (Blast_tac 1);
+qed "Sigma_Int_distrib1";
+
+Goal "(SIGMA i:I. A(i) Int B(i)) = (SIGMA i:I. A(i)) Int (SIGMA i:I. B(i))";
+by (Blast_tac 1);
+qed "Sigma_Int_distrib2";
+
+Goal "(SIGMA i:I - J. C(i)) = (SIGMA i:I. C(i)) - (SIGMA j:J. C(j))";
+by (Blast_tac 1);
+qed "Sigma_Diff_distrib1";
+
+Goal "(SIGMA i:I. A(i) - B(i)) = (SIGMA i:I. A(i)) - (SIGMA i:I. B(i))";
+by (Blast_tac 1);
+qed "Sigma_Diff_distrib2";
 
 
 (** Exhaustion rule for unit -- a degenerate form of induction **)
@@ -446,3 +483,5 @@ fun split_rule rl = remove_split (foldr split_rule_var' (term_vars (concl_of rl)
                     |> standard;
 
 end;
+
+
