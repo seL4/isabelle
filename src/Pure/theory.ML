@@ -164,10 +164,10 @@ val oracleK = "oracle";
 (* extend logical part of a theory *)
 
 fun err_dup_axms names =
-  error ("Duplicate axiom name(s) " ^ commas_quote names);
+  error ("Duplicate axiom name(s): " ^ commas_quote names);
 
 fun err_dup_oras names =
-  error ("Duplicate oracles " ^ commas_quote names);
+  error ("Duplicate oracles: " ^ commas_quote names);
 
 fun ext_theory thy ext_sg ext_deps new_axms new_oras =
   let
@@ -384,12 +384,15 @@ fun add_deps (c, cs) deps =
 
 fun check_defn sg overloaded ((deps, axms), def as (name, tm)) =
   let
-    fun show_const (c, ty) = quote (Pretty.string_of (Pretty.block
-      [Pretty.str (c ^ " ::"), Pretty.brk 1, Sign.pretty_typ sg ty]));
+    fun pretty_const (c, ty) = [Pretty.str c, Pretty.str " ::", Pretty.brk 1,
+      Pretty.quote (Sign.pretty_typ sg (#1 (Type.freeze_thaw_type ty)))];
 
-    fun def_txt c_ty = "Definition of " ^ show_const c_ty;
-    fun show_defn c (dfn, ty') = show_const (c, ty') ^ " in " ^ dfn;
-    fun show_defns c = cat_lines o map (show_defn c);
+    fun def_txt (c_ty, txt) = Pretty.block
+      (Pretty.str "Definition of " :: pretty_const c_ty @
+        (if txt = "" then [] else [Pretty.str txt]));
+
+    fun show_defn c (dfn, ty') = Pretty.block
+      (Pretty.str "  " :: pretty_const (c, ty') @ [Pretty.str " in ", Pretty.str dfn]);
 
     val (c_ty as (c, ty), rhs) = dest_defn tm
       handle TERM (msg, _) => err_in_defn sg name msg;
@@ -400,7 +403,8 @@ fun check_defn sg overloaded ((deps, axms), def as (name, tm)) =
     val clashed = clash_defns c_ty axms;
   in
     if not (null clashed) then
-      err_in_defn sg name (def_txt c_ty ^"\nclashes with "^ show_defns c clashed)
+      err_in_defn sg name (Pretty.string_of (Pretty.chunks
+        (def_txt (c_ty, " clashes with") :: map (show_defn c) clashed)))
     else
       (case overloading sg c_decl ty of
         NoOverloading =>
@@ -408,12 +412,13 @@ fun check_defn sg overloaded ((deps, axms), def as (name, tm)) =
               handle Graph.CYCLES namess => err_in_defn sg name (cycle_msg namess),
             def :: axms)
       | Useless =>
-           err_in_defn sg name (Library.setmp show_sorts true def_txt c_ty ^
-             "\nimposes additional sort constraints on the declared type of the constant.")
+           err_in_defn sg name (Pretty.string_of (Pretty.chunks
+             [Library.setmp show_sorts true def_txt (c_ty, ""), Pretty.str
+                 "imposes additional sort constraints on the declared type of the constant"]))
       | Plain =>
-         (if not overloaded then
-           warning (def_txt c_ty ^ "\nis strictly less general than the declared type (see "
-             ^ quote (Sign.full_name sg name) ^ ")")
+         (if not overloaded then warning (Pretty.string_of (Pretty.chunks
+           [def_txt (c_ty, ""), Pretty.str ("is strictly less general than the declared type (see "
+               ^ quote (Sign.full_name sg name) ^ ")")]))
          else (); (deps, def :: axms)))
   end;
 
