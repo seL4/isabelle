@@ -51,8 +51,9 @@ sig
 end;
 
 
-functor ReadthyFUN(structure ThySyn: THY_SYN): READTHY =
+functor ReadthyFUN(structure ThySyn: THY_SYN and ThmDB: THMDB): READTHY =
 struct
+local open ThmDB in
 
 datatype basetype = Thy  of string
                   | File of string;
@@ -284,7 +285,8 @@ fun use_thy name =
          else (writeln ("Reading \"" ^ name ^ ".ML\"");
                use ml_file);
 
-         use_string ["store_theory (" ^ tname ^ ".thy, " ^ quote tname ^ ");"];
+         use_string ["store_theory (" ^ tname ^ ".thy, " ^ quote tname ^ ");",
+                     "map store_thm_db (axioms_of " ^ tname ^ ".thy);"];
                     (*Store theory again because it could have been redefined*)
 
          (*Now set the correct info*)
@@ -441,7 +443,7 @@ fun mk_base bases child mk_draft =
         merge_thy_list mk_draft (map get_theory mergelist) end;
 
 (*Change theory object for an existent item of loaded_thys
-  or create a new item *)
+  or create a new item; also store axioms in Thm database*)
 fun store_theory (thy, tname) =
   let val tinfo = case Symtab.lookup (!loaded_thys, tname) of
                Some (ThyInfo {path, children, thy_time, ml_time, thms, ...}) =>
@@ -451,8 +453,8 @@ fun store_theory (thy, tname) =
              | None => ThyInfo {path = "", children = [],
                                 thy_time = None, ml_time = None,
                                 theory = Some thy, thms = Symtab.null};
-  in loaded_thys := Symtab.update ((tname, tinfo), !loaded_thys) end;
-
+  in loaded_thys := Symtab.update ((tname, tinfo), !loaded_thys)
+  end;
 
 
 (** store and retrieve theorems **)
@@ -506,7 +508,7 @@ fun store_thm (name, thm) =
      ((thy_name, ThyInfo {path = path, children = children,
        thy_time = thy_time, ml_time = ml_time, theory = theory, thms = thms'}),
       ! loaded_thys);
-    thm
+    store_thm_db (name, thm)
   end;
 
 (*Store result of proof in loaded_thys and as ML value*)
@@ -578,5 +580,5 @@ fun print_thms thy =
 
 fun print_theory thy = (Drule.print_theory thy; print_thms thy);
 
-
+end
 end;
