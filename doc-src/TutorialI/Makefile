@@ -11,7 +11,7 @@ default: dvi
 
 include ../Makefile.in
 
-SEDINDEX = isa-index
+SEDINDEX = ./isa-index
 
 NAME = tutorial
 FILES = tutorial.tex basics.tex fp.tex appendix.tex \
