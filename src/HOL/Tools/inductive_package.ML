@@ -292,6 +292,9 @@ fun err_in_prem sg name t p msg =
 
 val bad_concl = "Conclusion of introduction rule must have form \"t : S_i\"";
 
+val all_not_allowed = 
+    "Introduction rule must not have a leading \"!!\" quantifier";
+
 val atomize_cterm = hol_rewrite_cterm inductive_atomize;
 
 in
@@ -307,13 +310,14 @@ fun check_rule sg cs ((name, rule), att) =
       if can HOLogic.dest_Trueprop aprem then ()
       else err_in_prem sg name rule prem "Non-atomic premise";
   in
-    (case HOLogic.dest_Trueprop concl of
-      (Const ("op :", _) $ t $ u) =>
+    (case concl of
+      Const ("Trueprop", _) $ (Const ("op :", _) $ t $ u) =>
         if u mem cs then
           if exists (Logic.occs o rpair t) cs then
             err_in_rule sg name rule "Recursion term on left of member symbol"
           else seq check_prem (prems ~~ aprems)
         else err_in_rule sg name rule bad_concl
+      | Const ("all", _) $ _ => err_in_rule sg name rule all_not_allowed
       | _ => err_in_rule sg name rule bad_concl);
     ((name, arule), att)
   end;
