@@ -84,7 +84,7 @@ fun use_dir build modes reset info doc doc_graph parent name dump rpath_str leve
       (init reset parent name;
        Present.init build info doc doc_graph (path ()) name
          (if dump = "" then None else Some (Path.unpack dump)) (get_rpath rpath_str) verbose;
-       File.symbol_use root_file;
+       File.use root_file;
        finish ()))) ()
   handle exn => (writeln (Toplevel.exn_message exn); exit 1);
 

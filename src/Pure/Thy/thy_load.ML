@@ -88,7 +88,7 @@ fun check_file src_path =
 fun load_file raw_path =
   (case check_file raw_path of
     None => error ("Could not find ML file " ^ quote (Path.pack raw_path))
-  | Some (path, info) => (File.symbol_use path; (path, info)));
+  | Some (path, info) => (File.use path; (path, info)));
 
 
 (* datatype master *)
