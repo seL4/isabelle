@@ -87,8 +87,7 @@ fun xsymbols_output s =
 
 fun pgml_sym s =
   (case Symbol.decode s of
-    Symbol.Char "\\" => "\\\\"
-  | Symbol.Char s => XML.text s
+    Symbol.Char s => XML.text s
   | Symbol.Sym s => XML.element "sym" [("name", s)] []
   | Symbol.Ctrl s => XML.element "ctrl" [("name", s)] []
   | Symbol.Raw s => s);
@@ -736,10 +735,7 @@ local
     fun markup_text_attrs str elt attrs = [XML.element elt attrs [XML.text str]]
     fun empty elt = [XML.element elt [] []]
 
-    fun whitespace "" = ""
-      | whitespace str = XML.element "whitespace" []
-				(map (fn c=> "&#"^Int.toString (Char.ord c)^ ";") 
-				     (String.explode str))
+    fun whitespace str = XML.element "whitespace" [] [XML.text str]
 
     (* an extra token is needed to terminate the command *)
     val sync = OuterSyntax.scan "\\<^sync>";
@@ -923,7 +919,7 @@ fun markup_comment_whs [] = []
 	val (prewhs,rest) = take_prefix (OuterLex.is_kind OuterLex.Space) toks
     in 
 	if (prewhs <> []) then
-	    whitespace (implode (map OuterLex.unparse prewhs)) 
+	    whitespace (implode (map OuterLex.unparse prewhs))
 	    :: (markup_comment_whs rest)
 	else 
 	    (markup_text (OuterLex.unparse t) "comment") @
