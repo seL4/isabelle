@@ -209,8 +209,13 @@ val cases_tac = gen_exhaust_tac cases_of;
 
 fun add_cases_induct infos =
   let
-    fun add (ths, (name, {induction, exhaustion, ...}: datatype_info)) =
-      (("", induction), [InductMethod.induct_type_global name]) ::
+    fun proj _ 1 thm = thm
+      | proj i n thm =
+          (if i + 1 < n then (fn th => th RS conjunct1) else I)
+            (Library.funpow i (fn th => th RS conjunct2) thm)
+          |> Drule.standard;
+    fun add (ths, (name, {index, descr, induction, exhaustion, ...}: datatype_info)) =
+      (("", proj index (length descr) induction), [InductMethod.induct_type_global name]) ::
        (("", exhaustion), [InductMethod.cases_type_global name]) :: ths;
   in PureThy.add_thms (foldl add ([], infos)) end;
 
