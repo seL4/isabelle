@@ -686,7 +686,7 @@ struct
 
 	(* theory -> model -> arguments -> Term.term -> (interpretation * model * arguments) option *)
 
-	fun boundvar_interpreter thy model args (Bound i) = Some (nth_elem (i, #bounds args), model, args)
+	fun boundvar_interpreter thy model args (Bound i) = Some (nth_elem (i, #bounds (args:arguments)), model, args)
 	  | boundvar_interpreter thy model args _         = None;
 
 	(* theory -> model -> arguments -> Term.term -> (interpretation * model * arguments) option *)

@@ -198,7 +198,7 @@ struct
 (* solvers: a (reference to a) table of all registered SAT solvers           *)
 (* ------------------------------------------------------------------------- *)
 
-	val solvers = ref Symtab.empty;
+	val solvers = ref (Symtab.empty : solver Symtab.table);
 
 (* ------------------------------------------------------------------------- *)
 (* add_solver: updates 'solvers' by adding a new solver                      *)
@@ -209,7 +209,7 @@ struct
 	(* string * solver -> unit *)
 
 	fun add_solver (name, new_solver) =
-		solvers := Symtab.update_new ((name, new_solver), !solvers);
+		(solvers := Symtab.update_new ((name, new_solver), !solvers));
 
 (* ------------------------------------------------------------------------- *)
 (* invoke_solver: returns the solver associated with the given 'name'        *)
