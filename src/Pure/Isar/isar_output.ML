@@ -292,17 +292,15 @@ fun pretty_term ctxt t =
 fun pretty_thm ctxt thms =
   Pretty.chunks (map (pretty_term ctxt o #prop o Thm.rep_thm) thms);
 
-fun pretty_goals state print_goal _ _ =
-  Pretty.chunks (Proof.pretty_goals (Toplevel.proof_of state
-                                     handle Toplevel.UNDEF
-                                        => error "No proof state")
-                                    print_goal);
-
 fun output_with pretty src ctxt x =
   let
     val prt = pretty ctxt x;      (*always pretty!*)
     val prt' = if ! source then pretty_source src else prt;
   in cond_display (cond_quote prt') end;
+
+fun output_goals main_goal src state = args (Scan.succeed ()) (output_with (fn _ => fn _ =>
+  Pretty.chunks (Proof.pretty_goals main_goal (Toplevel.proof_of state
+      handle Toplevel.UNDEF => error "No proof state")))) src state;
 
 in
 
@@ -312,10 +310,8 @@ val _ = add_commands
   ("prop", args Args.local_prop (output_with pretty_term)),
   ("term", args Args.local_term (output_with pretty_term)),
   ("typ", args Args.local_typ_no_norm (output_with pretty_typ)),
-  ("goals", fn src => fn state =>
-      args (Scan.succeed ()) (output_with (pretty_goals state true)) src state),
-  ("subgoals", fn src => fn state =>
-      args (Scan.succeed ()) (output_with (pretty_goals state false)) src state)];
+  ("goals", output_goals true),
+  ("subgoals", output_goals false)];
 
 end;
 
