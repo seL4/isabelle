@@ -7,6 +7,27 @@ Datatypes of agents and messages;
 Inductive relations "parts", "analz" and "synth"
 *)
 
+val prems = goal HOL.thy "[| P ==> Q(True); ~P ==> Q(False) |] ==> Q(P)";
+by (case_tac "P" 1);
+by (ALLGOALS (asm_simp_tac (!simpset addsimps prems)));
+val expand_case = result();
+
+fun expand_case_tac P i =
+    res_inst_tac [("P",P)] expand_case i THEN
+    Simp_tac (i+1) THEN 
+    Simp_tac i;
+
+
+
+(*GOALS.ML??*)
+fun prlim n = (goals_limit:=n; pr());
+
+(*FUN.ML??  WE NEED A NOTION OF INVERSE IMAGE, OR GRAPH!!*)
+goal Set.thy "!!f. B <= range f = (B = f`` {x. f x: B})";
+by (fast_tac (!claset addEs [equalityE]) 1);
+val subset_range_iff = result();
+
+
 open Message;
 
 
@@ -705,4 +726,49 @@ qed "Crypt_synth_analz";
 
 (*We do NOT want Crypt... messages broken up in protocols!!*)
 Delrules partsEs;
+
+
+(** Rewrites to push in Key and Crypt messages, so that other messages can
+    be pulled out using the analz_insert rules **)
+
+fun insComm thy x y = read_instantiate_sg (sign_of thy) [("x",x), ("y",y)] 
+                          insert_commute;
+
+val pushKeys = map (insComm thy "Key ?K") 
+                  ["Agent ?C", "Nonce ?N", "MPair ?X ?Y", "Crypt ?X ?K'"];
+
+val pushCrypts = map (insComm thy "Crypt ?X ?K") 
+                    ["Agent ?C", "Nonce ?N", "MPair ?X' ?Y"];
+
+(*Cannot be added with Addsimps -- we don't always want to re-order messages*)
+val pushes = pushKeys@pushCrypts;
+
+
+(*No premature instantiation of variables.  For proving weak liveness.*)
+fun safe_solver prems =
+    match_tac (TrueI::refl::prems) ORELSE' eq_assume_tac
+    ORELSE' etac FalseE;
+
+(*Analysis of Fake cases and of messages that forward unknown parts
+  Abstraction over i is ESSENTIAL: it delays the dereferencing of claset
+  DEPENDS UPON "X" REFERRING TO THE FRADULENT MESSAGE *)
+fun spy_analz_tac i =
+  SELECT_GOAL 
+   (EVERY [  (*push in occurrences of X...*)
+           (REPEAT o CHANGED)
+             (res_inst_tac [("x1","X")] (insert_commute RS ssubst) 1),
+             (*...allowing further simplifications*)
+           simp_tac (!simpset setloop split_tac [expand_if]) 1,
+           REPEAT (resolve_tac [allI,impI,notI] 1),
+           dtac (impOfSubs Fake_analz_insert) 1,
+           eresolve_tac [asm_rl, synth.Inj] 1,
+           Fast_tac 1,
+           Asm_full_simp_tac 1,
+           IF_UNSOLVED (depth_tac (!claset addIs [impOfSubs analz_mono]) 2 1)
+           ]) i;
+
+
+(*Useful in many uniqueness proofs*)
+fun ex_strip_tac i = REPEAT (swap_res_tac [exI, conjI] i) THEN 
+                     assume_tac (i+1);
 
