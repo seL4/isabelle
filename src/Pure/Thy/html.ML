@@ -37,6 +37,8 @@ sig
   val theorem: string -> thm -> text
   val theorems: string -> thm list -> text
   val section: string -> text
+  val subsection: string -> text
+  val subsubsection: string -> text
   val setup: (theory -> theory) list
 end;
 
@@ -266,9 +268,11 @@ val theorems = results "theorems";
 end;
 
 
-(* section *)
+(* sections *)
 
 fun section heading = "\n\n<h2>" ^ plain heading ^ "</h2>\n";
+fun subsection heading = "\n\n<h3>" ^ plain heading ^ "</h3>\n";
+fun subsubsection heading = "\n\n<h4>" ^ plain heading ^ "</h4>\n";
 
 
 
