@@ -22,19 +22,20 @@ This is a typical proof skeleton:
 \begin{tabular}{@ {}ll}
 \isakeyword{proof}\\
 \hspace*{3ex}\isakeyword{assume} @{text"\""}\emph{the-assm}@{text"\""}\\
-\hspace*{3ex}\isakeyword{have} @{text"\""}\dots@{text"\""}  & -- intermediate result\\
+\hspace*{3ex}\isakeyword{have} @{text"\""}\dots@{text"\""}  & --- intermediate result\\
 \hspace*{3ex}\vdots\\
-\hspace*{3ex}\isakeyword{have} @{text"\""}\dots@{text"\""}  & -- intermediate result\\
+\hspace*{3ex}\isakeyword{have} @{text"\""}\dots@{text"\""}  & --- intermediate result\\
 \hspace*{3ex}\isakeyword{show} @{text"\""}\emph{the-concl}@{text"\""}\\
 \isakeyword{qed}
 \end{tabular}
 \end{center}
 It proves \emph{the-assm}~@{text"\<Longrightarrow>"}~\emph{the-concl}.
-Text starting with ``--'' is a comment.
+Text starting with ``---'' is a comment.
 
-Note that propositions in \isakeyword{assume} may but need not be
-separated by \isakeyword{and}, whose purpose is to structure the
-assumptions into possibly named blocks. For example in
+Note that \emph{propositions} (following \isakeyword{assume} etc)
+may but need not be
+separated by \isakeyword{and}, whose purpose is to structure them
+into possibly named blocks. For example in
 \begin{center}
 \isakeyword{assume} @{text"A:"} $A_1$ $A_2$ \isakeyword{and} @{text"B:"} $A_3$
 \isakeyword{and} $A_4$
@@ -120,7 +121,7 @@ lemma "A \<and> B \<longrightarrow> B \<and> A"
 proof
   assume AB: "A \<and> B"
   show "B \<and> A"
-  proof (rule conjE[OF AB])  -- {*@{prop"(A \<Longrightarrow> B \<Longrightarrow> R) \<Longrightarrow> R"}*}
+  proof (rule conjE[OF AB])  -- {*@{text"conjE[OF AB]"}: @{thm conjE[OF AB]} *}
     assume A and B
     show ?thesis ..
   qed
@@ -356,9 +357,9 @@ meta-level) just like \isakeyword{assume}-\isakeyword{show} corresponds to
 @{text"\<Longrightarrow>"}. Here is a sample proof, annotated with the rules that are
 applied implicitly: *}
 lemma assumes P: "\<forall>x. P x" shows "\<forall>x. P(f x)"
-proof  -- "@{thm[source]allI}: @{thm allI[no_vars]}"
+proof    -- "@{thm[source]allI}: @{thm allI}"
   fix a
-  from P show "P(f a)" ..  --"@{thm[source]allE}: @{thm allE[no_vars]}"
+  from P show "P(f a)" ..   --"@{thm[source]allE}: @{thm allE}"
 qed
 text{*\noindent Note that in the proof we have chosen to call the bound
 variable @{term a} instead of @{term x} merely to show that the choice of
@@ -533,7 +534,7 @@ next
   case Cons thus ?thesis by simp
 qed
 text{*\noindent Here \isakeyword{case}~@{text Nil} abbreviates
-\isakeyword{assume}~@{prop"x = []"} and \isakeyword{case}~@{text Cons}
+\isakeyword{assume}~@{prop"xs = []"} and \isakeyword{case}~@{text Cons}
 abbreviates \isakeyword{assume}~@{text"xs = _ # _"}. The names of the head
 and tail of @{text xs} have been chosen by the system. Therefore we cannot
 refer to them (this would lead to obscure proofs) and have not even shown
@@ -555,10 +556,7 @@ next
 qed
 
 
-subsection{*Induction*}
-
-
-subsubsection{*Structural induction*}
+subsection{*Structural induction*}
 
 text{* We start with a simple inductive proof where both cases are proved automatically: *}
 lemma "2 * (\<Sum>i<n+1. i) = n*(n+1)"
@@ -614,8 +612,8 @@ lemma cind_lemma:
 proof (induct n)
   case 0 thus ?case by simp
 next
-  case (Suc n m)
-  show ?case
+  case (Suc n m)  --{*@{thm[source]Suc}: @{thm Suc}*}
+  show ?case      --{*@{text ?case}: @{term ?case}*}
   proof cases
     assume eq: "m = n"
     from Suc A have "P n" by blast
@@ -648,10 +646,9 @@ far the only parameters where the arguments to the constructor, but now we
 have an additional parameter coming from the @{text"\<And>m"} in the main
 \isakeyword{shows} clause. Thus @{text"(Suc n m)"} does not mean that
 constructor @{term Suc} is applied to two arguments but that the two
-parameters in the @{term Suc} case are to be named @{text n} and @{text
-m}. *}
+parameters in the @{term Suc} case are to be named @{text n} and @{text m}. *}
 
-subsubsection{*Rule induction*}
+subsection{*Rule induction*}
 
 text{* We define our own version of reflexive transitive closure of a
 relation *}
@@ -704,9 +701,9 @@ obvious forward step @{text"IH[OF B]"}. *}
 subsection{*More induction*}
 
 text{* We close the section by demonstrating how arbitrary induction rules
-are applied. As a simple example we have chose recursion induction, i.e.\
+are applied. As a simple example we have chosen recursion induction, i.e.\
 induction based on a recursive function definition. The example is an unusual
-definition of rotation of a list: *}
+definition of rotation: *}
 
 consts rot :: "'a list \<Rightarrow> 'a list"
 recdef rot "measure length"
@@ -726,7 +723,8 @@ next
   fix x y zs assume "?P (x#zs)"
   thus "?P (x#y#zs)" by simp
 qed
-text{* This proof skeletons works for arbitrary induction rules, not just
+text{*\noindent
+This proof skeleton works for arbitrary induction rules, not just
 @{thm[source]rot.induct}.
 
 In the following proof we rely on a default naming scheme for cases: they are
@@ -743,8 +741,10 @@ next
   case 3 thus ?case by simp
 qed
 
-text{*Of course both proofs are so simple that they can be condensed to*}
+text{*\noindent Why can case 2 get away with \isakeyword{show} instead of
+\isakeyword{thus}?
+
+Of course both proofs are so simple that they can be condensed to*}
 (*<*)lemma "xs \<noteq> [] \<Longrightarrow> rot xs = tl xs @ [hd xs]"(*>*)
 by (induct xs rule: rot.induct, simp_all)
-
 (*<*)end(*>*)
