@@ -608,8 +608,9 @@ applies $({\Forall}E)$, mapping the premise $\Forall x.\phi$ to the conclusion
 $\phi[\Var{x@k}/x]$.  Thus, it replaces the outermost $\Forall$-bound
 variable by an unknown having subscript~$k$.
 
-\item[\ttindexbold{forall_elim_vars} $ks$ $thm$] 
-applies {\tt forall_elim_var} repeatedly, for every element of the list~$ks$.
+\item[\ttindexbold{forall_elim_vars} $k$ $thm$] 
+applies {\tt forall_elim_var}~$k$ repeatedly until the theorem no longer has
+the form $\Forall x.\phi$.
 \end{ttdescription}
 
 

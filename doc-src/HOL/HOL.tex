@@ -1997,7 +1997,7 @@ where $\vec{\alpha} = (\alpha@1,\ldots,\alpha@h)$ is a list of type variables,
 $C^j@i$ are distinct constructor names and $\tau^j@{i,i'}$ are {\em
   admissible} types containing at most the type variables $\alpha@1, \ldots,
 \alpha@h$. A type $\tau$ occurring in a \texttt{datatype} definition is {\em
-  admissible} iff
+  admissible} if and only if
 \begin{itemize}
 \item $\tau$ is non-recursive, i.e.\ $\tau$ does not contain any of the
 newly defined type constructors $t@1,\ldots,t@n$, or
@@ -2046,7 +2046,7 @@ datatype 'a tree = Atom 'a | Branch "nat => 'a tree"
 \medskip
 
 Types in HOL must be non-empty. Each of the new datatypes
-$(\vec{\alpha})t@j$ with $1 \leq j \leq n$ is non-empty iff it has a
+$(\vec{\alpha})t@j$ with $1 \leq j \leq n$ is non-empty if and only if it has a
 constructor $C^j@i$ with the following property: for all argument types
 $\tau^j@{i,i'}$ of the form $(\vec{\alpha})t@{j'}$ the datatype
 $(\vec{\alpha})t@{j'}$ is non-empty.
@@ -2704,19 +2704,22 @@ well-founded.  Here are those operators, in order of importance:
   (It has type $(nat\times nat)set$, while $<$ has type $[nat,nat]\To bool$.
   
 \item $\mathop{\mathtt{measure}} f$, where $f$ has type $\tau\To nat$, is the
-  relation~$\prec$ on type~$\tau$ such that $x\prec y$ iff $f(x)<f(y)$.
+  relation~$\prec$ on type~$\tau$ such that $x\prec y$ if and only if
+  $f(x)<f(y)$.  
   Typically, $f$ takes the recursive function's arguments (as a tuple) and
   returns a result expressed in terms of the function \texttt{size}.  It is
   called a \textbf{measure function}.  Recall that \texttt{size} is overloaded
   and is defined on all datatypes (see {\S}\ref{sec:HOL:size}).
                                                     
-\item $\mathop{\mathtt{inv_image}} f\;R$ is a generalisation of
-  \texttt{measure}.  It specifies a relation such that $x\prec y$ iff $f(x)$
+\item $\mathop{\mathtt{inv_image}} R\;f$ is a generalisation of
+  \texttt{measure}.  It specifies a relation such that $x\prec y$ if and only
+  if $f(x)$ 
   is less than $f(y)$ according to~$R$, which must itself be a well-founded
   relation.
 
 \item $R@1\texttt{**}R@2$ is the lexicographic product of two relations.  It
-  is a relation on pairs and satisfies $(x@1,x@2)\prec(y@1,y@2)$ iff $x@1$
+  is a relation on pairs and satisfies $(x@1,x@2)\prec(y@1,y@2)$ if and only
+  if $x@1$ 
   is less than $y@1$ according to~$R@1$ or $x@1=y@1$ and $x@2$
   is less than $y@2$ according to~$R@2$.
 
