@@ -19,10 +19,7 @@ val optionE = prove_goal thy
 	dtac (not_None_eq RS iffD1) 1,
 	etac exE 1,
 	eresolve_tac prems 1]);
-fun optionE_tac s i = EVERY [
-	res_inst_tac [("opt",s)] optionE i,
-	 hyp_subst_tac (i+1),
-	hyp_subst_tac i];
+fun optionE_tac s = res_inst_tac [("opt",s)] optionE THEN_ALL_NEW hyp_subst_tac;
 
 qed_goal "option_caseE" thy "[|case x of None => P | Some y => Q y; \
 \                  [|x = None;   P  |] ==> R; \
@@ -60,11 +57,15 @@ AddIffs[option_map_eq_Some];
 
 section "o2s";
 
+qed_goal "ospec" thy 
+	"!!x. [| !x:o2s A. P x; A = Some x |] ==> P x" (K [Auto_tac]);
+claset_ref() := claset() addSaltern ("ospec", dtac ospec THEN' atac);
+
 val elem_o2s = prove_goal thy "!!X. x : o2s xo = (xo = Some x)"
  (K [optionE_tac "xo" 1, Auto_tac]);
-AddSDs [elem_o2s RS iffD1];
-Addsimps [elem_o2s];
+AddIffs [elem_o2s];
 
 val o2s_empty_eq = prove_goal thy "(o2s xo = {}) = (xo = None)"
  (K [optionE_tac "xo" 1, Auto_tac]);
 Addsimps [o2s_empty_eq];
+
