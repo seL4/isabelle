@@ -639,7 +639,7 @@ val concl = #2 o dest_thm;
 (*---------------------------------------------------------------------------
  * Names of all variables occurring in a term, including bound ones. These
  * are added into the second argument.
- *---------------------------------------------------------------------------*)
+ *---------------------------------------------------------------------------
 fun add_term_names tm =
 let fun insert (x:string) = 
      let fun canfind[] = [x] 
@@ -655,7 +655,8 @@ let fun insert (x:string) =
       | add _ V = V
 in add tm
 end;
-
+Why bound ones???
+*)
 
 (*---------------------------------------------------------------------------
  * We need to make everything free, so that we can put the term into a
@@ -693,7 +694,7 @@ fun build_case_cong sign case_rewrites =
      val clause1 = hd clauses
      val left = (#1 o dest_eq) clause1
      val ty = type_of ((#2 o dest_comb) left)
-     val varnames = itlist add_term_names clauses []
+     val varnames = foldr add_term_names (clauses, [])
      val M = variant varnames "M"
      val Mvar = Free(M, ty)
      val M' = variant (M::varnames) M
@@ -755,7 +756,7 @@ fun prove_case_cong nchotomy case_rewrites ctm =
 fun build_nchotomy sign case_rewrites =
  let val clauses = map concl case_rewrites
      val C_ybars = map (rand o #1 o dest_eq) clauses
-     val varnames = itlist add_term_names C_ybars []
+     val varnames = foldr add_term_names (C_ybars, [])
      val vname = variant varnames "v"
      val ty = type_of (hd C_ybars)
      val v = mk_var(vname,ty)

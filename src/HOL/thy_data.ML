@@ -52,7 +52,7 @@ fun extract_info thy =
 (* generic induction tactic for datatypes *)
 fun induct_tac var i =
   let fun find_tname Bi =
-        let val frees = map (fn Free x => x) (term_frees Bi)
+        let val frees = map dest_Free (term_frees Bi)
             val params = Logic.strip_params Bi;
         in case assoc (frees@params, var) of
              None => error("No such variable in subgoal: " ^ quote var)
