@@ -31,6 +31,13 @@ fun forall_intr (t, prop) =
 fun forall_intr_vfs prop = foldr forall_intr
   (vars_of prop @ sort (make_ord atless) (term_frees prop), prop);
 
+fun forall_intr_prf (t, prf) =
+  let val (a, T) = (case t of Var ((a, _), T) => (a, T) | Free p => p)
+  in Abst (a, Some T, prf_abstract_over t prf) end;
+
+fun forall_intr_vfs_prf prop prf = foldr forall_intr_prf
+  (vars_of prop @ sort (make_ord atless) (term_frees prop), prf);
+
 fun merge_envs (Envir.Envir {asol=asol1, iTs=iTs1, maxidx=maxidx1})
   (Envir.Envir {asol=asol2, iTs=iTs2, maxidx=maxidx2}) =
     Envir.Envir {asol=Vartab.merge (op aconv) (asol1, asol2),
@@ -108,23 +115,47 @@ fun decompose sg env Ts
 fun cantunify sg t u = error ("Non-unifiable terms:\n" ^
   Sign.string_of_term sg t ^ "\n\n" ^ Sign.string_of_term sg u);
 
+(*finds type of term without checking that combinations are consistent
+  rbinder holds types of bound variables*)
+fun fastype (Envir.Envir {iTs, ...}) =
+  let
+    fun devar (T as TVar (ixn, _)) = (case Vartab.lookup (iTs, ixn) of
+          None => T | Some U => devar U)
+      | devar T = T;
+    fun fast Ts (f $ u) = (case devar (fast Ts f) of
+           Type("fun",[_,T]) => T
+         | _ => raise TERM ("fastype: expected function type", [f $ u]))
+      | fast Ts (Const (_, T)) = T
+      | fast Ts (Free (_, T)) = T
+      | fast Ts (Bound i) =
+        (nth_elem (i, Ts)
+         handle LIST _=> raise TERM("fastype: Bound", [Bound i]))
+      | fast Ts (Var (_, T)) = T 
+      | fast Ts (Abs (_, T, u)) = T --> fast (T :: Ts) u
+  in fast end;
+
 fun make_constraints_cprf sg env ts cprf =
   let
     fun add_cnstrt Ts prop prf cs env ts (t, u) =
       let
         val t' = mk_abs Ts t;
         val u' = mk_abs Ts u;
-        val nt = Envir.norm_term env t';
-        val nu = Envir.norm_term env u'
+        val nt = Envir.beta_norm t';
+        val nu = Envir.beta_norm u'
+
       in
-        if Pattern.pattern nt andalso Pattern.pattern nu then
-          let
-            val env' = (Pattern.unify (sg, env, [(nt, nu)]) handle Pattern.Unif =>
-                       cantunify sg nt nu);
-          in (Envir.norm_term env' prop, prf, cs, env', ts) end
-        else
-          let val (env', cs') = decompose sg env [] nt nu
-          in (Envir.norm_term env' prop, prf, cs @ cs', env', ts) end
+        ((prop, prf, cs, Pattern.unify (sg, env, [(nt, nu)]), ts)
+         handle Pattern.Pattern =>
+           let
+             val nt' = Envir.norm_term env nt;
+             val nu' = Envir.norm_term env nu
+           in
+             (prop, prf, cs, Pattern.unify (sg, env, [(nt', nu')]), ts)
+             handle Pattern.Pattern =>
+               let val (env', cs') = decompose sg env [] nt' nu'
+               in (prop, prf, cs @ cs', env', ts) end
+           end) handle Pattern.Unif =>
+        cantunify sg (Envir.norm_term env t') (Envir.norm_term env u')
       end;
 
     fun mk_cnstrts_atom env ts prop opTs mk_prf =
@@ -171,13 +202,12 @@ fun make_constraints_cprf sg env ts cprf =
           in (case mk_cnstrts env Ts Hs ts cprf of
              (Const ("all", Type ("fun", [Type ("fun", [T, _]), _])) $ f,
                  prf, cnstrts, env', ts') =>
-               let val env'' = unifyT sg env' T
-                 (fastype_of1 (map (Envir.norm_type env') Ts, t'))
+               let val env'' = unifyT sg env' T (fastype env' Ts t')
                in (betapply (f, t'), prf % Some t', cnstrts, env'', ts')
                end
            | (u, prf, cnstrts, env', ts') =>
                let
-                 val T = fastype_of1 (map (Envir.norm_type env') Ts, t');
+                 val T = fastype env' Ts t';
                  val (env'', v) = mk_var env' Ts (T --> propT);
                in
                  add_cnstrt Ts (v $ t') (prf % Some t') cnstrts env'' ts'
@@ -307,8 +337,6 @@ fun full_prf_of thm =
   expand and reconstruct subproofs
 *********************************************************************************)
 
-fun full_forall_intr_proof prf x a T = Abst (a, Some T, prf_abstract_over x prf);
-
 fun expand_proof sg names prf =
   let
     fun expand prfs (AbsP (s, t, prf)) = 
@@ -333,16 +361,13 @@ fun expand_proof sg names prf =
                   let
                     val _ = message ("Reconstructing proof of " ^ a);
                     val _ = message (Sign.string_of_term sg prop);
-                    val prf = reconstruct_proof sg prop cprf
-                  in (prf, ((a, prop), prf)::prfs) end
+                    val (prfs', prf) = expand prfs (forall_intr_vfs_prf prop
+                      (reconstruct_proof sg prop cprf))
+                  in (prf, ((a, prop), prf) :: prfs') end
               | Some prf => (prf, prfs));
-            val tvars = term_tvars prop;
-            val vars = vars_of prop;
-            val tye = map fst tvars ~~ Ts;
-            fun abst (t as Var ((s, _), T), prf) = full_forall_intr_proof prf t s T;
-            val prf' = map_proof_terms (subst_TVars tye) (typ_subst_TVars tye) prf
+            val tye = map fst (term_tvars prop) ~~ Ts
           in
-            expand prfs' (foldr abst (map (subst_TVars tye) vars, prf'))
+            (prfs', map_proof_terms (subst_TVars tye) (typ_subst_TVars tye) prf)
           end
       | expand prfs prf = (prfs, prf);
 
