@@ -1008,7 +1008,8 @@ done
 subsubsection{*For L to satisfy Powerset *}
 
 lemma LPow_env_typing:
-     "[| y : Lset(i); Ord(i); y \<subseteq> X |] ==> y \<in> (\<Union>y\<in>Pow(X). Lset(succ(lrank(y))))"
+    "[| y : Lset(i); Ord(i); y \<subseteq> X |] 
+     ==> \<exists>z \<in> Pow(X). y \<in> Lset(succ(lrank(z)))"
 by (auto intro: L_I iff: Lset_succ_lrank_iff) 
 
 lemma LPow_in_Lset:
@@ -1018,15 +1019,15 @@ apply simp
 apply (rule LsetI [OF succI1])
 apply (simp add: DPow_def) 
 apply (intro conjI, clarify) 
-apply (rule_tac a=x in UN_I, simp+)  
+ apply (rule_tac a=x in UN_I, simp+)  
 txt{*Now to create the formula @{term "y \<subseteq> X"} *}
 apply (rule_tac x="Cons(X,Nil)" in bexI) 
  apply (rule_tac x="subset_fm(0,1)" in bexI) 
   apply typecheck
-apply (rule conjI) 
+ apply (rule conjI) 
 apply (simp add: succ_Un_distrib [symmetric]) 
 apply (rule equality_iffI) 
-apply (simp add: Transset_UN [OF Transset_Lset] list.Cons [OF LPow_env_typing])
+apply (simp add: Transset_UN [OF Transset_Lset] LPow_env_typing)
 apply (auto intro: L_I iff: Lset_succ_lrank_iff) 
 done
 
