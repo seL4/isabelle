@@ -3,7 +3,7 @@
     Author:     Carsten Clasohm, TU Muenchen
     Copyright   1996  TU Muenchen
 
-Compatibility file for Standard ML of New Jersey, version 1.09.27 or later.
+Compatibility file for Standard ML of New Jersey version 1.09.27 or later.
 *)
 
 (** ML system related **)
@@ -43,7 +43,6 @@ Compiler.Control.secondaryPrompt := "# ";
 
 (*a conditional timing function: applies f to () and, if the flag is true,
   prints its runtime*)
-
 fun cond_timeit flag f =
   if flag then
     let open Time  (*...for Time.toString, Time.+ and Time.- *)

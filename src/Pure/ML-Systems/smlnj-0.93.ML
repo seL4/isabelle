@@ -6,19 +6,57 @@
 Compatibility file for Standard ML of New Jersey version 0.93.
 *)
 
+(*needs the Basis Library emulation*)
+use "basis.ML";
 
-use"basis.ML";
+
+(** ML system related **)
+
+(* New Jersey ML parameters *)
+
+System.Control.Runtime.gcmessages := 0;
 
 
-(*** Poly/ML emulation ***)
+(* Poly/ML emulation *)
 
 fun quit () = exit 0;
 
-(*To limit the printing depth [divided by 2 for comparibility with Poly/ML]*)
-fun print_depth n = (System.Control.Print.printDepth := n div 2;
-                     System.Control.Print.printLength := n);
+(*limit the printing depth -- divided by 2 for comparibility with Poly/ML*)
+fun print_depth n =
+ (System.Control.Print.printDepth := n div 2;
+  System.Control.Print.printLength := n);
 
-(*Interface for toplevel pretty printers, see also Pure/install_pp.ML*)
+
+(* timing *)
+
+local
+  (*print microseconds, suppressing trailing zeroes*)
+  fun umakestring 0 = ""
+    | umakestring n =
+        chr (ord "0" + n div 100000) ^ umakestring (10 * (n mod 100000));
+in
+  (*a conditional timing function: applies f to () and, if the flag is true,
+    prints its runtime*)
+  fun cond_timeit flag f =
+    if flag then
+      let fun string_of_time (System.Timer.TIME {sec, usec}) =
+              makestring sec ^ "." ^ (if usec=0 then "0" else umakestring usec)
+          open System.Timer;
+          val start = start_timer()
+          val result = f();
+          val nongc = check_timer(start)
+          and gc = check_timer_gc(start);
+          val both = add_time(nongc, gc)
+      in  print("Non GC " ^ string_of_time nongc ^
+                 "   GC " ^ string_of_time gc ^
+                 "  both "^ string_of_time both ^ " secs\n");
+          result
+      end
+    else f();
+end;
+
+
+(* toplevel pretty printing (see also Pure/install_pp.ML) *)
 
 fun make_pp path pprint =
   let
@@ -36,88 +74,71 @@ fun make_pp path pprint =
 fun install_pp (path, pp) = System.PrettyPrint.install_pp path pp;
 
 
-(*** New Jersey ML parameters ***)
+(* ML command execution *)
 
-(* Suppresses Garbage Collection messages;  default was 2 *)
-System.Control.Runtime.gcmessages := 0;
-
-
-(*** Timing functions ***)
-
-(*Print microseconds, suppressing trailing zeroes*)
-fun umakestring 0 = ""
-  | umakestring n = chr(ord "0" + n div 100000) ^
-                    umakestring(10 * (n mod 100000));
-
-(*A conditional timing function: applies f to () and, if the flag is true,
-  prints its runtime. *)
-fun cond_timeit flag f =
-  if flag then
-    let fun string_of_time (System.Timer.TIME {sec, usec}) =
-            makestring sec ^ "." ^ (if usec=0 then "0" else umakestring usec)
-        open System.Timer;
-        val start = start_timer()
-        val result = f();
-        val nongc = check_timer(start)
-        and gc = check_timer_gc(start);
-        val both = add_time(nongc, gc)
-    in  print("Non GC " ^ string_of_time nongc ^
-               "   GC " ^ string_of_time gc ^
-               "  both "^ string_of_time both ^ " secs\n");
-        result
-    end
-  else f();
-
-
-(*** File handling ***)
-
-(*Get time of last modification; if file doesn't exist return an empty string*)
-local
-    open System.Timer;
-    open System.Unsafe.SysIO;
-in
-  fun file_info "" = ""
-    | file_info name = makestring (mtime (PATH name))  handle _ => "";
-end;
-
-structure OS =
-  struct
-  structure FileSys =
-    struct
-    val chDir = System.Directory.cd
-    val remove = System.Unsafe.SysIO.unlink       (*Delete a file *)
-    val getDir = System.Directory.getWD           (*path of working directory*)
-    end
-  end;
-
-
-(*** ML command execution ***)
-
-fun use_string commands = 
+fun use_string commands =
   System.Compile.use_stream (open_string (implode commands));
 
 
-(*** System command execution ***)
 
-(*Execute an Unix command which doesn't take any input from stdin and
-  sends its output to stdout.
-  This could be done more easily by IO.execute, but that function
-  seems to be buggy in SML/NJ 0.93.*)
+(** OS related **)
+
+(* system command execution *)
+
+(*execute Unix command which doesn't take any input from stdin and
+  sends its output to stdout; could be done more easily by IO.execute,
+  but that function seems to be buggy in SML/NJ 0.93*)
 fun execute command =
-  let val tmp_name = "isa_converted.tmp"
-      val is = (System.system (command ^ " > " ^ tmp_name);
-                open_in tmp_name);
-      val result = input (is, 999999);
-  in close_in is;
-     OS.FileSys.remove tmp_name;
-     result
+  let
+    val tmp_name = "/tmp/.isabelle-execute";	(*let's hope we win the race!*)
+    val is = (System.system (command ^ " > " ^ tmp_name); open_in tmp_name);
+    val result = input (is, 999999);
+  in
+    close_in is;
+    System.Unsafe.SysIO.unlink tmp_name;
+    result
   end;
 
+
+(* file handling *)
+
+(*Get time of last modification; if file doesn't exist return an empty string*)
+local
+  open System.Timer System.Unsafe.SysIO;
+in
+  fun file_info "" = ""
+    | file_info name = makestring (mtime (PATH name)) handle _ => "";
+end;
+
+structure OS =
+struct
+  structure FileSys =
+  struct
+    val chDir = System.Directory.cd;
+    val remove = System.Unsafe.SysIO.unlink;
+    val getDir = System.Directory.getWD;
+  end;
+end;
+
 (*redefine to flush its output immediately -- temporary patch suggested
-  by Kim Dam Petersen*)
-val output = fn(s, t) => (output(s, t); flush_out s);
+  by Kim Dam Petersen*)		(* FIXME !? *)
+val output = fn (s, t) => (output (s, t); flush_out s);
 
 
-(* symbol input *)
+(* getenv *)
+
+local
+  fun drop_last [] = []
+    | drop_last [x] = []
+    | drop_last (x :: xs) = x :: drop_last xs;
+
+  val drop_last_char = implode o drop_last o explode;
+in
+  fun getenv var = drop_last_char
+    (execute ("env | grep '^" ^ var ^ "=' | sed -e 's/" ^ var ^ "=//'"));
+end;
+
+
+(* non-ASCII input (see also Thy/symbol_input.ML) *)
 
 val needs_filtered_use = false;
