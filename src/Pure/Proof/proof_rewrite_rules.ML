@@ -25,6 +25,20 @@ fun rew _ (PThm (("ProtoPure.rev_triv_goal", _), _, _, _) % _ %%
       (PAxm ("ProtoPure.equal_intr", _, _) % A % B %% prf1 %% prf2)) =
           Some (equal_intr_axm % B % A %% prf2 %% prf1)
 
+  | rew _ (PAxm ("ProtoPure.equal_elim", _, _) % Some (_ $ A) % Some (_ $ B) %%
+      (PAxm ("ProtoPure.combination", _, _) % Some (Const ("Goal", _)) %
+        _ % _ % _ %% (PAxm ("ProtoPure.reflexive", _, _) % _) %% prf1) %%
+      ((tg as PThm (("ProtoPure.triv_goal", _), _, _, _)) % _ %% prf2)) =
+      Some (tg %> B %% (equal_elim_axm %> A %> B %% prf1 %% prf2))
+
+  | rew _ (PAxm ("ProtoPure.equal_elim", _, _) % Some (_ $ A) % Some (_ $ B) %%
+      (PAxm ("ProtoPure.symmetric", _, _) % _ % _ %%
+        (PAxm ("ProtoPure.combination", _, _) % Some (Const ("Goal", _)) %
+           _ % _ % _ %% (PAxm ("ProtoPure.reflexive", _, _) % _) %% prf1)) %%
+      ((tg as PThm (("ProtoPure.triv_goal", _), _, _, _)) % _ %% prf2)) =
+      Some (tg %> B %% (equal_elim_axm %> A %> B %%
+        (symmetric_axm % None % None %% prf1) %% prf2))
+
   | rew _ (PAxm ("ProtoPure.equal_elim", _, _) % Some X % Some Y %%
       (PAxm ("ProtoPure.combination", _, _) % _ % _ % _ % _ %%
         (PAxm ("ProtoPure.combination", _, _) % Some (Const ("==>", _)) % _ % _ % _ %%
