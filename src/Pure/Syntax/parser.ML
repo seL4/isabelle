@@ -260,40 +260,15 @@ val empty_gram = mk_gram [];
 
 fun extend_gram (gram1 as Gram (prods1, _)) roots xprods2 =
   let
-    fun simplify preserve s = 
-      if preserve then 
-        (if s mem (roots \\ ["type", "prop", "any"]) then "logic" else s)
-      else (if s = "prop" then "@prop_H" else
-              (if s mem (roots \\ ["type", "prop", "any"]) then 
-                 "@logic_H" 
-               else s));
-
-    fun not_delim (Delim _) = false
-      | not_delim _ = true
-
-    fun symb_of _ (Delim s) = Some (Terminal (Token s))
-      | symb_of preserve (Argument (s, p)) =
+    fun symb_of (Delim s) = Some (Terminal (Token s))
+      | symb_of (Argument (s, p)) =
           (case predef_term s of
-            None => Some (Nonterminal (simplify preserve s, p))
+            None => Some (Nonterminal (s, p))
           | Some tk => Some (Terminal tk))
-      | symb_of _ _ = None;
+      | symb_of _ = None;
 
     fun prod_of (XProd (lhs, xsymbs, const, pri)) =
-      let val copy_prod = (lhs = "prop" andalso forall not_delim xsymbs andalso
-                           const <> "");
-
-          val preserve = copy_prod 
-                         orelse pri = chain_pri andalso lhs = "logic"
-                         orelse lhs mem ["@prop_H", "@logic_H", "any"];
-
-          val lhs' = if copy_prod then "@prop_H" else
-                     if lhs = "logic" andalso pri = chain_pri
-                        then "@logic_H"
-                     else if lhs mem ("logic1" :: (roots \\ ["type", "prop"])) 
-                        then "logic"
-                     else lhs;
-      in (lhs', (mapfilter (symb_of preserve) xsymbs, const, pri))
-      end;
+      (lhs, (mapfilter symb_of xsymbs, const, pri));
 
     val prods2 = distinct (map prod_of xprods2);
   in
@@ -583,10 +558,6 @@ val get_trees = mapfilter (fn (_, _, [pt], _, _, _) => Some pt | _ => None);
 
 fun earley grammar startsymbol indata =
   let
-    val startsymbol' = case startsymbol of
-                           "logic" => "@logic_H"
-                         | "prop"  => "@prop_H"
-                         | other   => other;
     val rhss_ref = case assoc (grammar, startsymbol) of
                        Some r => r
                      | None   => error ("parse: Unknown startsymbol " ^ 

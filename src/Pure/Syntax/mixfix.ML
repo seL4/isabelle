@@ -78,7 +78,7 @@ fun const_name c (Infixl _) = infix_name c
 
 (* syn_ext_types *)
 
-fun syn_ext_types all_roots type_decls =
+fun syn_ext_types logtypes type_decls =
   let
     fun name_of (t, _, mx) = type_name t mx;
 
@@ -95,13 +95,13 @@ fun syn_ext_types all_roots type_decls =
     val mfix = mapfilter mfix_of type_decls;
     val xconsts = map name_of type_decls;
   in
-    syn_ext all_roots [] mfix xconsts ([], [], [], []) ([], [])
+    syn_ext logtypes mfix xconsts ([], [], [], []) ([], [])
   end;
 
 
 (* syn_ext_consts *)
 
-fun syn_ext_consts all_roots const_decls =
+fun syn_ext_consts logtypes const_decls =
   let
     fun name_of (c, _, mx) = const_name c mx;
 
@@ -130,7 +130,7 @@ fun syn_ext_consts all_roots const_decls =
     val binder_trs = map mk_binder_tr binders;
     val binder_trs' = map (mk_binder_tr' o swap) binders;
   in
-    syn_ext all_roots [] mfix xconsts ([], binder_trs, binder_trs', []) ([], [])
+    syn_ext logtypes mfix xconsts ([], binder_trs, binder_trs', []) ([], [])
   end;
 
 
@@ -140,7 +140,7 @@ fun syn_ext_consts all_roots const_decls =
 val pure_types =
   map (fn t => (t, 0, NoSyn))
     (terminals @ [logic, "type", "types", "sort", "classes", args, "idt",
-      "idts", "aprop", "asms", "any"]);
+      "idts", "aprop", "asms"]);
 
 val pure_syntax =
  [("_lambda",   "[idts, 'a] => ('b => 'a)",       Mixfix ("(3%_./ _)", [], 0)),
@@ -163,7 +163,6 @@ val pure_syntax =
   ("_K",        "'a",                             NoSyn),
   ("",          "id => logic",                    Delimfix "_"),
   ("",          "var => logic",                   Delimfix "_"),
-  ("_appl",     "[logic, args] => logic",         Mixfix ("(1_/(1'(_')))", [max_pri, 0], max_pri)),
-  ("_constrain", "[logic, type] => logic",        Mixfix ("_::_", [4, 0], 3))]
+  ("_appl",     "[logic, args] => logic",         Mixfix ("(1_/(1'(_')))", [max_pri, 0], max_pri))]
 
 end;

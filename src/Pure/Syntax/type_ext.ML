@@ -157,8 +157,7 @@ val sortT = Type ("sort", []);
 val classesT = Type ("classes", []);
 val typesT = Type ("types", []);
 
-val type_ext = syn_ext
-  [logic, "type"] [logic, "type"]
+val type_ext = mk_syn_ext false []
   [Mfix ("_",           tidT --> typeT,                "", [], max_pri),
    Mfix ("_",           tvarT --> typeT,               "", [], max_pri),
    Mfix ("_",           idT --> typeT,                 "", [], max_pri),
@@ -185,4 +184,3 @@ val type_ext = syn_ext
 
 
 end;
-

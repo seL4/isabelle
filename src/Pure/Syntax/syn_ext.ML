@@ -32,7 +32,7 @@ sig
     datatype mfix = Mfix of string * typ * string * int list * int
     datatype syn_ext =
       SynExt of {
-        roots: string list,
+        logtypes: string list,
         xprods: xprod list,
         consts: string list,
         parse_ast_translation: (string * (ast list -> ast)) list,
@@ -41,17 +41,23 @@ sig
         print_translation: (string * (term list -> term)) list,
         print_rules: (ast * ast) list,
         print_ast_translation: (string * (ast list -> ast)) list}
-    val syn_ext: string list -> string list -> mfix list -> string list ->
+    val mk_syn_ext: bool -> string list -> mfix list ->
+      string list -> (string * (ast list -> ast)) list * 
+      (string * (term list -> term)) list *
+      (string * (term list -> term)) list * (string * (ast list -> ast)) list
+      -> (ast * ast) list * (ast * ast) list -> syn_ext
+    val syn_ext: string list -> mfix list -> string list ->
       (string * (ast list -> ast)) list * (string * (term list -> term)) list *
       (string * (term list -> term)) list * (string * (ast list -> ast)) list
       -> (ast * ast) list * (ast * ast) list -> syn_ext
-    val syn_ext_roots: string list -> string list -> syn_ext
+    val syn_ext_logtypes: string list -> syn_ext
     val syn_ext_const_names: string list -> string list -> syn_ext
     val syn_ext_rules: string list -> (ast * ast) list * (ast * ast) list -> syn_ext
     val syn_ext_trfuns: string list ->
       (string * (ast list -> ast)) list * (string * (term list -> term)) list *
       (string * (term list -> term)) list * (string * (ast list -> ast)) list
       -> syn_ext
+    val pure_ext: syn_ext
   end
 end;
 
@@ -70,18 +76,17 @@ val logic = "logic";
 val logicT = Type (logic, []);
 
 val logic1 = "logic1";
-val logic1T = Type (logic1, []);
 
 val args = "args";
 val argsT = Type (args, []);
 
 val typeT = Type ("type", []);
 
-val funT = Type ("fun", []);
+val sprop = "#prop";
+val spropT = Type (sprop, []);
 
-val any = "any"
+val any = "any";
 val anyT = Type (any, []);
-
 
 (* constants *)
 
@@ -145,19 +150,22 @@ datatype mfix = Mfix of string * typ * string * int list * int;
 
 (* typ_to_nonterm *)
 
-fun typ_to_nonterm (Type (c, _)) = c
+(*get nonterminal for rhs*)
+fun typ_to_nonterm (Type (c, _)) = if c="fun" then logic else c
   | typ_to_nonterm _ = any;
 
-fun typ_to_nonterm1 (Type (c, _)) = c
-  | typ_to_nonterm1 _ = logic1;
+(*get nonterminal for lhs*)
+fun typ_to_nonterm1 (ty as Type (c, _)) = typ_to_nonterm ty
+  | typ_to_nonterm1 _ = logic;
 
 
 (* mfix_to_xprod *)
 
-fun mfix_to_xprod (Mfix (sy, typ, const, pris, pri)) =
+fun mfix_to_xprod convert logtypes (Mfix (sy, typ, const, pris, pri)) =
   let
     fun err msg =
-      (writeln ("Error in mixfix annotation " ^ quote sy ^ " for " ^ quote const);
+      (writeln ("Error in mixfix annotation " ^ quote sy ^ " for " 
+                ^ quote const);
         error msg);
 
     fun check_pri p =
@@ -218,21 +226,37 @@ fun mfix_to_xprod (Mfix (sy, typ, const, pris, pri)) =
     fun rem_pri (Argument (s, _)) = Argument (s, chain_pri)
       | rem_pri sym = sym;
 
+    fun is_delim (Delim _) = true
+      | is_delim _ = false;
+
+    (*replace logical types on rhs by "logic"*)
+    fun unify_logtypes copy_prod (a as (Argument (s, p))) =
+          if s mem logtypes then Argument (logic, p)
+          else a
+      | unify_logtypes _ a = a;
 
     val (raw_symbs, _) = repeat scan_symb (explode sy);
     val (symbs, lhs) = add_args raw_symbs typ pris;
-    val xprod = XProd (lhs, symbs, const, pri);
+    val copy_prod = lhs mem ["prop", "logic"]
+          andalso const <> ""
+          andalso not (exists is_delim symbs);
+    val lhs' = if convert andalso not copy_prod then
+                 (if lhs mem logtypes then logic
+                  else if lhs = "prop" then sprop else lhs)
+               else lhs;
+    val symbs' = map (unify_logtypes copy_prod) symbs;
+    val xprod = XProd (lhs', symbs', const, pri);
   in
     seq check_pri pris;
     check_pri pri;
-    check_blocks symbs;
+    check_blocks symbs';
 
-    if is_terminal lhs then err ("illegal lhs: " ^ lhs)
+    if is_terminal lhs' then err ("illegal lhs: " ^ lhs')
     else if const <> "" then xprod
-    else if length (filter is_arg symbs) <> 1 then
+    else if length (filter is_arg symbs') <> 1 then
       err "copy production must have exactly one argument"
-    else if exists is_term symbs then xprod
-    else XProd (lhs, map rem_pri symbs, "", chain_pri)
+    else if exists is_term symbs' then xprod
+    else XProd (lhs', map rem_pri symbs', "", chain_pri)
   end;
 
 
@@ -240,7 +264,7 @@ fun mfix_to_xprod (Mfix (sy, typ, const, pris, pri)) =
 
 datatype syn_ext =
   SynExt of {
-    roots: string list,
+    logtypes: string list,
     xprods: xprod list,
     consts: string list,
     parse_ast_translation: (string * (ast list -> ast)) list,
@@ -253,31 +277,18 @@ datatype syn_ext =
 
 (* syn_ext *)
 
-fun syn_ext all_roots new_roots mfixes consts trfuns rules =
+fun mk_syn_ext convert logtypes mfixes consts trfuns rules =
   let
     val (parse_ast_translation, parse_translation, print_translation,
       print_ast_translation) = trfuns;
     val (parse_rules, print_rules) = rules;
+    val logtypes' = logtypes \ "prop";
 
     val mfix_consts = distinct (map (fn (Mfix (_, _, c, _, _)) => c) mfixes);
-    val mfixes' = (if "prop" mem new_roots then
-                     [Mfix ("'(_')", Type ("@prop_H", [])
-                            --> Type ("@prop_H", []), "", [0], max_pri),
-                      Mfix ("'(_')", Type ("@logic_H", []) 
-                            --> Type ("@logic_H", []), "", [0], max_pri),
-                      Mfix ("'(_')", anyT --> anyT, "", [0], max_pri),
-                      Mfix ("_", propT --> Type ("@prop_H", []), "", [0], 0),
-                      Mfix ("_", propT --> anyT, "", [0], 0)]
-                   else []) @
-                   (if all_roots = new_roots then
-                     [Mfix ("_", logicT --> Type ("@logic_H", []), "", [0], 0),
-                      Mfix ("_", logicT --> anyT, "", [0], 0)]
-                    else [])    
-    val xprods = map mfix_to_xprod mfixes 
-                 @ map mfix_to_xprod mfixes';
+    val xprods = map (mfix_to_xprod convert logtypes') mfixes;
   in
     SynExt {
-      roots = new_roots,
+      logtypes = logtypes',
       xprods = xprods,
       consts = filter is_xid (consts union mfix_consts),
       parse_ast_translation = parse_ast_translation,
@@ -288,18 +299,32 @@ fun syn_ext all_roots new_roots mfixes consts trfuns rules =
       print_ast_translation = print_ast_translation}
   end;
 
+val syn_ext = mk_syn_ext true;
 
-fun syn_ext_roots roots new_roots =
-  syn_ext roots new_roots [] [] ([], [], [], []) ([], []);
+fun syn_ext_logtypes logtypes =
+  syn_ext logtypes [] [] ([], [], [], []) ([], []);
 
-fun syn_ext_const_names roots cs =
-  syn_ext roots [] [] cs ([], [], [], []) ([], []);
+fun syn_ext_const_names logtypes cs =
+  syn_ext logtypes [] cs ([], [], [], []) ([], []);
 
-fun syn_ext_rules roots rules =
-  syn_ext roots [] [] [] ([], [], [], []) rules;
+fun syn_ext_rules logtypes rules =
+  syn_ext logtypes [] [] ([], [], [], []) rules;
 
-fun syn_ext_trfuns roots trfuns =
-  syn_ext roots [] [] [] trfuns ([], []);
+fun syn_ext_trfuns logtypes trfuns =
+  syn_ext logtypes [] [] trfuns ([], []);
 
+(* pure_ext *)
+
+val pure_ext = mk_syn_ext false []
+  [Mfix ("_", spropT --> propT, "", [0], 0),
+   Mfix ("_", logicT --> anyT, "", [0], 0),
+   Mfix ("_", spropT --> anyT, "", [0], 0),
+   Mfix ("'(_')", logicT --> logicT, "", [0], max_pri),
+   Mfix ("'(_')", spropT --> spropT, "", [0], max_pri),
+   Mfix ("_::_",  [logicT, typeT] ---> logicT, "_constrain", [4, 0], 3),
+   Mfix ("_::_",  [spropT, typeT] ---> spropT, "_constrain", [4, 0], 3)]
+  []
+  ([], [], [], [])
+  ([], []);
 
 end;
