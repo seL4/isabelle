@@ -12,7 +12,7 @@ instantiation of theorems can lead to inconsistent sorting of type vars if
 *)
 
 val banner = "Pure Isabelle";
-val version = "Isabelle-94: September 94";
+val version = "Isabelle-94 revision 3: March 95";
 
 print_depth 1;
 
