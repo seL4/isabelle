@@ -6,12 +6,14 @@ The abstract type "sg" of signatures.
 *)
 
 signature SIGN =
-  sig
+sig
   type sg
   val rep_sg: sg ->
    {tsig: Type.type_sig,
     const_tab: typ Symtab.table,
     syn: Syntax.syntax,
+    path: string list,
+    spaces: (string * NameSpace.T) list,
     stamps: string ref list}
   val subsig: sg * sg -> bool
   val eq_sg: sg * sg -> bool
@@ -23,14 +25,27 @@ signature SIGN =
   val nodup_Vars: term -> unit
   val norm_sort: sg -> sort -> sort
   val nonempty_sort: sg -> sort list -> sort -> bool
+  val long_names: bool ref
+  val intern_class: sg -> class -> class
+  val extern_class: sg -> class -> class
+  val intern_sort: sg -> sort -> sort
+  val extern_sort: sg -> sort -> sort
+  val intern_typ: sg -> typ -> typ
+  val extern_typ: sg -> typ -> typ
+  val intern_term: sg -> term -> term
+  val extern_term: sg -> term -> term
+  val intern_tycons: sg -> typ -> typ
+  val intern_tycon: sg -> string -> string
+  val intern_const: sg -> string -> string
   val print_sg: sg -> unit
   val pretty_sg: sg -> Pretty.T
   val pprint_sg: sg -> pprint_args -> unit
   val pretty_term: sg -> term -> Pretty.T
   val pretty_typ: sg -> typ -> Pretty.T
-  val pretty_sort: sort -> Pretty.T
+  val pretty_sort: sg -> sort -> Pretty.T
   val string_of_term: sg -> term -> string
   val string_of_typ: sg -> typ -> string
+  val string_of_sort: sg -> sort -> string
   val pprint_term: sg -> term -> pprint_args -> unit
   val pprint_typ: sg -> typ -> pprint_args -> unit
   val certify_typ: sg -> typ -> typ
@@ -40,12 +55,16 @@ signature SIGN =
     (indexname -> sort option) -> string list -> bool
     -> term list * typ -> int * term * (indexname * typ) list
   val add_classes: (class * class list) list -> sg -> sg
+  val add_classes_i: (class * class list) list -> sg -> sg
   val add_classrel: (class * class) list -> sg -> sg
+  val add_classrel_i: (class * class) list -> sg -> sg
   val add_defsort: sort -> sg -> sg
+  val add_defsort_i: sort -> sg -> sg
   val add_types: (string * int * mixfix) list -> sg -> sg
   val add_tyabbrs: (string * string list * string * mixfix) list -> sg -> sg
   val add_tyabbrs_i: (string * string list * typ * mixfix) list -> sg -> sg
   val add_arities: (string * sort list * sort) list -> sg -> sg
+  val add_arities_i: (string * sort list * sort) list -> sg -> sg
   val add_consts: (string * string * mixfix) list -> sg -> sg
   val add_consts_i: (string * typ * mixfix) list -> sg -> sg
   val add_syntax: (string * string * mixfix) list -> sg -> sg
@@ -63,6 +82,8 @@ signature SIGN =
     (string * string * (string -> string * int)) list -> sg -> sg
   val add_trrules: (string * string) Syntax.trrule list -> sg -> sg
   val add_trrules_i: ast Syntax.trrule list -> sg -> sg
+  val add_path: string -> sg -> sg
+  val add_space: string * string list -> sg -> sg
   val add_name: string -> sg -> sg
   val make_draft: sg -> sg
   val merge: sg * sg -> sg
@@ -71,23 +92,24 @@ signature SIGN =
   val cpure: sg
   val const_of_class: class -> string
   val class_of_const: string -> class
-  end;
+end;
 
 structure Sign : SIGN =
 struct
 
-
 (** datatype sg **)
-
-(*the "ref" in stamps ensures that no two signatures are identical -- it is
-  impossible to forge a signature*)
 
 datatype sg =
   Sg of {
-    tsig: Type.type_sig,            (*order-sorted signature of types*)
-    const_tab: typ Symtab.table,    (*types of constants*)
-    syn: Syntax.syntax,             (*syntax for parsing and printing*)
-    stamps: string ref list};       (*unique theory indentifier*)
+    tsig: Type.type_sig,                        (*order-sorted signature of types*)
+    const_tab: typ Symtab.table,                (*types of constants*)
+    syn: Syntax.syntax,                         (*syntax for parsing and printing*)
+    path: string list,                     	(*current position in name space*)
+    spaces: (string * NameSpace.T) list,   	(*name spaces for consts, types etc.*)
+    stamps: string ref list};                   (*unique theory indentifier*)
+
+    (*the "ref" in stamps ensures that no two signatures are identical
+      -- it is impossible to forge a signature*)
 
 fun rep_sg (Sg args) = args;
 val tsig_of = #tsig o rep_sg;
@@ -146,9 +168,128 @@ val subsort = Type.subsort o tsig_of;
 val norm_sort = Type.norm_sort o tsig_of;
 val nonempty_sort = Type.nonempty_sort o tsig_of;
 
-(* FIXME move to Sorts? *)
-fun pretty_sort [c] = Pretty.str c
-  | pretty_sort cs = Pretty.str_list "{" "}" cs;
+
+
+(** name spaces **)
+
+(*prune names by default*)
+val long_names = ref false;
+
+
+(* kinds *)
+
+val classK = "class";
+val typeK = "type";
+val constK = "const";
+
+
+(* add and retrieve names *)
+
+fun space_of spaces kind =
+  if_none (assoc (spaces, kind)) NameSpace.empty;
+
+(*input and output of qualified names*)
+fun intrn spaces kind = NameSpace.lookup (space_of spaces kind);
+fun extrn spaces kind = NameSpace.prune (space_of spaces kind);
+
+(*add names*)
+fun add_names spaces kind names =
+  let val space' = NameSpace.extend (names, space_of spaces kind) in
+    overwrite (spaces, (kind, space'))
+  end;
+
+fun full_name path name = NameSpace.pack (path @ (NameSpace.unpack name));
+
+
+(* intern / extern names *)
+
+(*Note: These functions are not necessarily idempotent!*)	(* FIXME *)
+
+local
+
+  (* FIXME move to term.ML? *)
+
+  fun add_typ_classes (Type (_, Ts), cs) = foldr add_typ_classes (Ts, cs)
+    | add_typ_classes (TFree (_, S), cs) = S union cs
+    | add_typ_classes (TVar (_, S), cs) = S union cs;
+
+  fun add_typ_tycons (Type (c, Ts), cs) = foldr add_typ_tycons (Ts, c ins cs)
+    | add_typ_tycons (_, cs) = cs;
+
+  val add_term_classes = it_term_types add_typ_classes;
+  val add_term_tycons = it_term_types add_typ_tycons;
+
+  fun add_term_consts (Const (c, _), cs) = c ins cs
+    | add_term_consts (t $ u, cs) = add_term_consts (t, add_term_consts (u, cs))
+    | add_term_consts (Abs (_, _, t), cs) = add_term_consts (t, cs)
+    | add_term_consts (_, cs) = cs;
+
+
+  (*map classes, tycons*)
+  fun map_typ f g (Type (c, Ts)) = Type (g c, map (map_typ f g) Ts)
+    | map_typ f _ (TFree (x, S)) = TFree (x, map f S)
+    | map_typ f _ (TVar (xi, S)) = TVar (xi, map f S);
+
+  (*map classes, tycons, consts*)
+  fun map_term f g h (Const (c, T)) = Const (h c, map_typ f g T)
+    | map_term f g _ (Free (x, T)) = Free (x, map_typ f g T)
+    | map_term f g _ (Var (xi, T)) = Var (xi, map_typ f g T)
+    | map_term _ _ _ (t as Bound _) = t
+    | map_term f g h (Abs (x, T, t)) = Abs (x, map_typ f g T, map_term f g h t)
+    | map_term f g h (t $ u) = map_term f g h t $ map_term f g h u;
+
+  (*prepare mapping of names*)
+  fun mapping f add_xs t =
+    let
+      fun f' x = let val y = f x in if x = y then None else Some (x, y) end;
+      val table = mapfilter f' (add_xs (t, []));
+      fun lookup x = if_none (assoc (table, x)) x;
+    in lookup end;
+
+  (*intern / extern typ*)
+  fun trn_typ trn T =
+    T |> map_typ
+      (mapping (trn classK) add_typ_classes T)
+      (mapping (trn typeK) add_typ_tycons T);
+
+  (*intern / extern term*)
+  fun trn_term trn t =
+    t |> map_term
+      (mapping (trn classK) add_term_classes t)
+      (mapping (trn typeK) add_term_tycons t)
+      (mapping (trn constK) add_term_consts t);
+
+
+  fun spaces_of (Sg {spaces, ...}) = spaces;
+
+in
+
+  fun intrn_class spaces = intrn spaces classK;
+  fun extrn_class spaces = extrn spaces classK;
+  val intrn_sort = map o intrn_class;
+  val extrn_sort = map o extrn_class;
+  val intrn_typ = trn_typ o intrn;
+  val extrn_typ = trn_typ o extrn;
+  val intrn_term = trn_term o intrn;
+  val extrn_term = trn_term o extrn;
+
+  val intern_class = intrn_class o spaces_of;
+  val extern_class = extrn_class o spaces_of;
+  val intern_sort = intrn_sort o spaces_of;
+  val extern_sort = extrn_sort o spaces_of;
+  val intern_typ = intrn_typ o spaces_of;
+  val extern_typ = extrn_typ o spaces_of;
+  val intern_term = intrn_term o spaces_of;
+  val extern_term = extrn_term o spaces_of;
+
+  fun intrn_tycons spaces T =
+    map_typ I (mapping (intrn spaces typeK) add_typ_tycons T) T;
+
+  fun intern_tycon sg = intrn (spaces_of sg) typeK;
+  fun intern_const sg = intrn (spaces_of sg) constK;
+  val intern_tycons = intrn_tycons o spaces_of;
+
+end;
 
 
 
@@ -158,48 +299,56 @@ fun stamp_names stamps = rev (map ! stamps);
 
 fun print_sg sg =
   let
-    fun prt_typ syn ty = Pretty.quote (Syntax.pretty_typ syn ty);
+    val Sg {syn, ...} = sg;
 
-    fun pretty_classrel (cl, cls) = Pretty.block
-      (Pretty.str (cl ^ " <") :: Pretty.brk 1 ::
-        Pretty.commas (map Pretty.str cls));
+    fun prt_typ ty = Pretty.quote (Syntax.pretty_typ syn ty);
+    fun prt_cls c = Syntax.pretty_sort syn [c];
 
-    fun pretty_default cls = Pretty.block
-      [Pretty.str "default:", Pretty.brk 1, pretty_sort cls];
+    fun pretty_space (kind, space) = Pretty.block (Pretty.breaks
+      (map Pretty.str (kind ^ ":" :: map quote (NameSpace.dest space))));
+
+    fun pretty_classes cs = Pretty.block
+      (Pretty.breaks (Pretty.str "classes:" :: map prt_cls cs));
+
+    fun pretty_classrel (c, cs) = Pretty.block
+      (prt_cls c :: Pretty.str " <" :: Pretty.brk 1 ::
+        Pretty.commas (map prt_cls cs));
+
+    fun pretty_default S = Pretty.block
+      [Pretty.str "default:", Pretty.brk 1, Syntax.pretty_sort syn S];
 
     fun pretty_ty (ty, n) = Pretty.str (ty ^ " " ^ string_of_int n);
 
-    fun pretty_abbr syn (ty, (vs, rhs)) = Pretty.block
-      [prt_typ syn (Type (ty, map (fn v => TVar ((v, 0), [])) vs)),
-        Pretty.str " =", Pretty.brk 1, prt_typ syn rhs];
+    fun pretty_abbr (ty, (vs, rhs)) = Pretty.block
+      [prt_typ (Type (ty, map (fn v => TVar ((v, 0), [])) vs)),
+        Pretty.str " =", Pretty.brk 1, prt_typ rhs];
 
-    fun pretty_arity ty (cl, []) = Pretty.block
-          [Pretty.str (ty ^ " ::"), Pretty.brk 1, Pretty.str cl]
-      | pretty_arity ty (cl, srts) = Pretty.block
+    fun pretty_arity ty (c, []) = Pretty.block
+          [Pretty.str (ty ^ " ::"), Pretty.brk 1, prt_cls c]
+      | pretty_arity ty (c, Ss) = Pretty.block
           [Pretty.str (ty ^ " ::"), Pretty.brk 1,
-            Pretty.list "(" ")" (map pretty_sort srts),
-            Pretty.brk 1, Pretty.str cl];
+            Pretty.list "(" ")" (map (Syntax.pretty_sort syn) Ss),
+            Pretty.brk 1, prt_cls c];
 
     fun pretty_arities (ty, ars) = map (pretty_arity ty) ars;
 
-    fun pretty_const syn (c, ty) = Pretty.block
-      [Pretty.str (quote c ^ " ::"), Pretty.brk 1, prt_typ syn ty];
+    fun pretty_const (c, ty) = Pretty.block
+      [Pretty.str (quote c ^ " ::"), Pretty.brk 1, prt_typ ty];
 
-
-    val Sg {tsig, const_tab, syn, stamps} = sg;
+    val Sg {tsig, const_tab, syn, path, spaces, stamps} = sg;
     val {classes, classrel, default, tycons, abbrs, arities} =
       Type.rep_tsig tsig;
   in
     Pretty.writeln (Pretty.strs ("stamps:" :: stamp_names stamps));
-    Pretty.writeln (Pretty.strs ("classes:" :: classes));
-    Pretty.writeln (Pretty.big_list "classrel:" (map pretty_classrel classrel));
+    Pretty.writeln (Pretty.strs ["name entry path:", NameSpace.pack path]);
+    Pretty.writeln (Pretty.big_list "name spaces:" (map pretty_space spaces));
+    Pretty.writeln (pretty_classes classes);
+    Pretty.writeln (Pretty.big_list "class relation:" (map pretty_classrel classrel));
     Pretty.writeln (pretty_default default);
-    Pretty.writeln (Pretty.big_list "types:" (map pretty_ty tycons));
-    Pretty.writeln (Pretty.big_list "abbrs:" (map (pretty_abbr syn) abbrs));
-    Pretty.writeln (Pretty.big_list "arities:"
-      (List.concat (map pretty_arities arities)));
-    Pretty.writeln (Pretty.big_list "consts:"
-      (map (pretty_const syn) (Symtab.dest const_tab)))
+    Pretty.writeln (Pretty.big_list "type constructors:" (map pretty_ty tycons));
+    Pretty.writeln (Pretty.big_list "type abbreviations:" (map pretty_abbr abbrs));
+    Pretty.writeln (Pretty.big_list "type arities:" (flat (map pretty_arities arities)));
+    Pretty.writeln (Pretty.big_list "consts:" (map pretty_const (Symtab.dest const_tab)))
   end;
 
 
@@ -212,17 +361,23 @@ val pprint_sg = Pretty.pprint o pretty_sg;
 
 (** pretty printing of terms and types **)
 
-fun pretty_term (Sg {syn, stamps, ...}) =
-  let val curried = "CPure" mem_string (map ! stamps);
-  in Syntax.pretty_term curried syn end;
+fun pretty_term (Sg {syn, spaces, stamps, ...}) t =
+  Syntax.pretty_term syn
+    ("CPure" mem_string (map ! stamps))
+    (if ! long_names then t else extrn_term spaces t);
 
-fun pretty_typ (Sg {syn, ...}) = Syntax.pretty_typ syn;
+fun pretty_typ (Sg {syn, spaces, ...}) T =
+  Syntax.pretty_typ syn
+    (if ! long_names then T else extrn_typ spaces T);
 
-fun string_of_term (Sg {syn, stamps, ...}) =
-  let val curried = "CPure" mem_string (map ! stamps);
-  in Syntax.string_of_term curried syn end;
+fun pretty_sort (Sg {syn, spaces, ...}) S =
+  Syntax.pretty_sort syn
+    (if ! long_names then S else extrn_sort spaces S);
 
-fun string_of_typ (Sg {syn, ...}) = Syntax.string_of_typ syn;
+
+fun string_of_term sg t = Pretty.string_of (pretty_term sg t);
+fun string_of_typ sg T = Pretty.string_of (pretty_typ sg T);
+fun string_of_sort sg S = Pretty.string_of (pretty_sort sg S);
 
 fun pprint_term sg = Pretty.pprint o Pretty.quote o (pretty_term sg);
 fun pprint_typ sg = Pretty.pprint o Pretty.quote o (pretty_typ sg);
@@ -234,13 +389,14 @@ fun pprint_typ sg = Pretty.pprint o Pretty.quote o (pretty_typ sg);
 fun err_in_type s =
   error ("The error(s) above occurred in type " ^ quote s);
 
-fun read_raw_typ syn tsig sort_of str =
-  Syntax.read_typ syn (Type.eq_sort tsig) (Type.get_sort tsig sort_of) str
-    handle ERROR => err_in_type str;
-
+fun read_raw_typ syn tsig spaces def_sort str =
+  intrn_tycons spaces
+    (Syntax.read_typ syn (Type.get_sort tsig def_sort (intrn_sort spaces)) str
+      handle ERROR => err_in_type str);
+  
 (*read and certify typ wrt a signature*)
-fun read_typ (Sg {tsig, syn, ...}, sort_of) str =
-  Type.cert_typ tsig (read_raw_typ syn tsig sort_of str)
+fun read_typ (Sg {tsig, syn, spaces, ...}, def_sort) str =
+  Type.cert_typ tsig (read_raw_typ syn tsig spaces def_sort str)
     handle TYPE (msg, _, _) => (error_msg msg; err_in_type str);
 
 
@@ -258,8 +414,8 @@ fun nodup_TVars (tvars, T) =
       (case assoc_string_int (tvars, a) of
         Some S' =>
           if S = S' then tvars
-          else raise_type ("Type variable " ^ Syntax.string_of_vname a ^
-            " has two distinct sorts") [TVar (a, S'), T] []
+          else raise TYPE ("Type variable " ^ Syntax.string_of_vname a ^
+            " has two distinct sorts", [TVar (a, S'), T], [])
       | None => v :: tvars))
 (*equivalent to foldl nodup_TVars_list, but 3X faster under Poly/ML*)
 and nodup_TVars_list (tvars, []) = tvars
@@ -277,11 +433,11 @@ fun nodup_Vars tm =
           (case assoc_string_int (vars, ixn) of
             Some T' =>
               if T = T' then (vars, nodup_TVars (tvars, T))
-              else raise_type ("Variable " ^ Syntax.string_of_vname ixn ^
-                " has two distinct types") [T', T] []
+              else raise TYPE ("Variable " ^ Syntax.string_of_vname ixn ^
+                " has two distinct types", [T', T], [])
           | None => (v :: vars, tvars))
       | Bound _ => (vars, tvars)
-      | Abs(_, T, t) => nodups vars (nodup_TVars (tvars, T)) t
+      | Abs (_, T, t) => nodups vars (nodup_TVars (tvars, T)) t
       | s $ t =>
           let val (vars',tvars') = nodups vars tvars s in
             nodups vars' tvars' t
@@ -312,12 +468,12 @@ fun certify_term (sg as Sg {tsig, ...}) tm =
     val norm_tm =
       (case it_term_types (Type.typ_errors tsig) (tm, []) of
         [] => map_term_types (Type.norm_typ tsig) tm
-      | errs => raise_type (cat_lines errs) [] [tm]);
+      | errs => raise TYPE (cat_lines errs, [], [tm]));
     val _ = nodup_Vars norm_tm;
   in
     (case mapfilt_atoms atom_err norm_tm of
       [] => (norm_tm, type_of norm_tm, maxidx_of_term norm_tm)
-    | errs => raise_type (cat_lines errs) [] [norm_tm])
+    | errs => raise TYPE (cat_lines errs, [], [norm_tm]))
   end;
 
 
@@ -339,8 +495,8 @@ fun infer_types sg def_type def_sort used freeze (ts, T) =
     val Sg {tsig, ...} = sg;
     val prt = setmp Syntax.show_brackets true (pretty_term sg);
     val prT = pretty_typ sg;
-    val infer = Type.infer_types prt prT tsig (const_type sg)
-      def_type def_sort used freeze;
+    val infer = Type.infer_types prt prT tsig (const_type sg) def_type def_sort
+      (intern_const sg) (intern_tycons sg) (intern_sort sg) used freeze;
 
     val T' = certify_typ sg T handle TYPE (msg, _, _) => error msg;
 
@@ -376,7 +532,7 @@ fun infer_types sg def_type def_sort used freeze (ts, T) =
         else (); res)
     | Errs errs => (warn (); error (cat_lines errs))
     | Ambigs us =>
-        (warn (); error ("Error: More than one term is type correct:\n" ^
+        (warn (); error ("More than one term is type correct:\n" ^
           (cat_lines (map (Pretty.string_of o prt) us)))))
   end;
 
@@ -386,53 +542,64 @@ fun infer_types sg def_type def_sort used freeze (ts, T) =
 
 (** signature extension functions **)  (*exception ERROR*)
 
-fun decls_of name_of mfixs =
-  map (fn (x, y, mx) => (name_of x mx, y)) mfixs;
+fun decls_of path name_of mfixs =
+  map (fn (x, y, mx) => (full_name path (name_of x mx), y)) mfixs;
+
+fun no_read _ _ _ decl = decl;
 
 
 (* add default sort *)
 
-fun ext_defsort (syn, tsig, ctab) defsort =
-  (syn, Type.ext_tsig_defsort tsig defsort, ctab);
+fun ext_defsort int (syn, tsig, ctab, (path, spaces)) S =
+  (syn, Type.ext_tsig_defsort tsig (if int then intrn_sort spaces S else S),
+    ctab, (path, spaces));
 
 
 (* add type constructors *)
 
-fun ext_types (syn, tsig, ctab) types =
-  (Syntax.extend_type_gram syn types,
-    Type.ext_tsig_types tsig (decls_of Syntax.type_name types),
-    ctab);
+fun ext_types (syn, tsig, ctab, (path, spaces)) types =
+  let val decls = decls_of path Syntax.type_name types in
+    (Syntax.extend_type_gram syn types,
+      Type.ext_tsig_types tsig decls, ctab,
+      (path, add_names spaces typeK (map fst decls)))
+  end;
 
 
 (* add type abbreviations *)
 
-fun read_abbr syn tsig (t, vs, rhs_src) =
-  (t, vs, read_raw_typ syn tsig (K None) rhs_src)
+fun read_abbr syn tsig spaces (t, vs, rhs_src) =
+  (t, vs, read_raw_typ syn tsig spaces (K None) rhs_src)
     handle ERROR => error ("in type abbreviation " ^ t);
 
-fun ext_abbrs rd_abbr (syn, tsig, ctab) abbrs =
+fun ext_abbrs rd_abbr (syn, tsig, ctab, (path, spaces)) abbrs =
   let
     fun mfix_of (t, vs, _, mx) = (t, length vs, mx);
-    val syn1 = Syntax.extend_type_gram syn (map mfix_of abbrs);
+    val syn' = Syntax.extend_type_gram syn (map mfix_of abbrs);
 
-    fun decl_of (t, vs, rhs, mx) =
-      rd_abbr syn1 tsig (Syntax.type_name t mx, vs, rhs);
+    val abbrs' =
+      map (fn (t, vs, rhs, mx) =>
+        (full_name path (Syntax.type_name t mx), vs, rhs)) abbrs;
+    val space' = add_names spaces typeK (map #1 abbrs');
+    val decls = map (rd_abbr syn' tsig space') abbrs';
   in
-    (syn1, Type.ext_tsig_abbrs tsig (map decl_of abbrs), ctab)
+    (syn', Type.ext_tsig_abbrs tsig decls, ctab, (path, spaces))
   end;
 
-fun ext_tyabbrs_i arg = ext_abbrs (K (K I)) arg;
-fun ext_tyabbrs   arg = ext_abbrs read_abbr arg;
+fun ext_tyabbrs abbrs = ext_abbrs read_abbr abbrs;
+fun ext_tyabbrs_i abbrs = ext_abbrs no_read abbrs;
 
 
 (* add type arities *)
 
-fun ext_arities (syn, tsig, ctab) arities =
+fun ext_arities int (syn, tsig, ctab, (path, spaces)) arities =
   let
-    val tsig1 = Type.ext_tsig_arities tsig arities;
-    val log_types = Type.logical_types tsig1;
+    fun intrn_arity (c, Ss, S) =
+      (intrn spaces typeK c, map (intrn_sort spaces) Ss, intrn_sort spaces S);
+    val intrn = if int then map intrn_arity else I;
+    val tsig' = Type.ext_tsig_arities tsig (intrn arities);
+    val log_types = Type.logical_types tsig';
   in
-    (Syntax.extend_log_types syn log_types, tsig1, ctab)
+    (Syntax.extend_log_types syn log_types, tsig', ctab, (path, spaces))
   end;
 
 
@@ -445,32 +612,33 @@ fun err_dup_consts cs =
   error ("Duplicate declaration of constant(s) " ^ commas_quote cs);
 
 
-fun read_const syn tsig (c, ty_src, mx) =
-  (c, read_raw_typ syn tsig (K None) ty_src, mx)
+fun read_const syn tsig spaces (c, ty_src, mx) =
+  (c, read_raw_typ syn tsig spaces (K None) ty_src, mx)
     handle ERROR => err_in_const (Syntax.const_name c mx);
 
-fun ext_cnsts rd_const syn_only prmode (syn, tsig, ctab) raw_consts =
+fun ext_cnsts rd_const syn_only prmode (syn, tsig, ctab, (path, spaces)) raw_consts =
   let
     fun prep_const (c, ty, mx) =
-     (c, compress_type (Type.varifyT (Type.cert_typ tsig (Type.no_tvars ty))), mx)
-       handle TYPE (msg, _, _)
-         => (error_msg msg; err_in_const (Syntax.const_name c mx));
+      (c, compress_type (Type.varifyT (Type.cert_typ tsig (Type.no_tvars ty))), mx)
+        handle TYPE (msg, _, _) =>
+          (error_msg msg; err_in_const (Syntax.const_name c mx));
 
-    val consts = map (prep_const o rd_const syn tsig) raw_consts;
+    val consts = map (prep_const o rd_const syn tsig spaces) raw_consts;
     val decls =
       if syn_only then []
-      else filter_out (equal "" o fst) (decls_of Syntax.const_name consts);
+      else decls_of path Syntax.const_name consts;
   in
     (Syntax.extend_const_gram syn prmode consts, tsig,
       Symtab.extend_new (ctab, decls)
-        handle Symtab.DUPS cs => err_dup_consts cs)
+        handle Symtab.DUPS cs => err_dup_consts cs,
+      (path, add_names spaces constK (map fst decls)))
   end;
 
-val ext_consts_i = ext_cnsts (K (K I)) false ("", true);
+val ext_consts_i = ext_cnsts no_read false ("", true);
 val ext_consts = ext_cnsts read_const false ("", true);
-val ext_syntax_i = ext_cnsts (K (K I)) true ("", true);
+val ext_syntax_i = ext_cnsts no_read true ("", true);
 val ext_syntax = ext_cnsts read_const true ("", true);
-fun ext_modesyntax_i sg (prmode, consts) = ext_cnsts (K (K I)) true prmode sg consts;
+fun ext_modesyntax_i sg (prmode, consts) = ext_cnsts no_read true prmode sg consts;
 fun ext_modesyntax sg (prmode, consts) = ext_cnsts read_const true prmode sg consts;
 
 
@@ -480,35 +648,63 @@ fun const_of_class c = c ^ "_class";
 
 fun class_of_const c_class =
   let
-    val c = implode (take (size c_class - 6, explode c_class));
+    val c = implode (take (size c_class - size "_class", explode c_class));
   in
     if const_of_class c = c_class then c
-    else raise_term ("class_of_const: bad name " ^ quote c_class) []
+    else raise TERM ("class_of_const: bad name " ^ quote c_class, [])
   end;
 
 
-fun ext_classes (syn, tsig, ctab) classes =
+fun ext_classes int (syn, tsig, ctab, (path, spaces)) classes =
   let
     val names = map fst classes;
     val consts =
       map (fn c => (const_of_class c, a_itselfT --> propT, NoSyn)) names;
+
+    val full_names = map (full_name path) names;
+    val spaces' = add_names spaces classK full_names;
+    val intrn = if int then map (intrn_class spaces') else I;
+    val classes' =
+      ListPair.map (fn (c, (_, cs)) => (c, intrn cs)) (full_names, classes);
   in
     ext_consts_i
-      (Syntax.extend_consts syn names, Type.ext_tsig_classes tsig classes, ctab)
-      consts
+      (Syntax.extend_consts syn names,
+        Type.ext_tsig_classes tsig classes', ctab, (path, spaces'))
+    consts
   end;
 
 
 (* add to classrel *)
 
-fun ext_classrel (syn, tsig, ctab) pairs =
-  (syn, Type.ext_tsig_classrel tsig pairs, ctab);
+fun ext_classrel int (syn, tsig, ctab, (path, spaces)) pairs =
+  let val intrn = if int then map (pairself (intrn_class spaces)) else I in
+    (syn, Type.ext_tsig_classrel tsig (intrn pairs), ctab, (path, spaces))
+  end;
 
 
 (* add to syntax *)
 
-fun ext_syn extfun (syn, tsig, ctab) args =
-  (extfun syn args, tsig, ctab);
+fun ext_syn extfun (syn, tsig, ctab, names) args =
+  (extfun syn args, tsig, ctab, names);
+
+
+(* add to path *)
+
+fun ext_path (syn, tsig, ctab, (path, spaces)) elem =
+  let
+    val path' =
+      if elem = ".." andalso not (null path) then fst (split_last path)
+      else if elem = "/" then []
+      else path @ NameSpace.unpack elem;
+  in
+    (syn, tsig, ctab, (path', spaces))
+  end;      
+
+
+(* add to name space *)
+
+fun ext_space (syn, tsig, ctab, (path, spaces)) (kind, names) =
+  (syn, tsig, ctab, (path, add_names spaces kind names));
 
 
 (* build signature *)
@@ -522,23 +718,27 @@ fun ext_stamps stamps name =
     else ref name :: stmps
   end;
 
-fun make_sign (syn, tsig, ctab) stamps name =
-  Sg {tsig = tsig, const_tab = ctab, syn = syn,
+fun make_sign (syn, tsig, ctab, (path, spaces)) stamps name =
+  Sg {tsig = tsig, const_tab = ctab, syn = syn, path = path, spaces = spaces,
     stamps = ext_stamps stamps name};
 
-fun extend_sign extfun name decls (Sg {tsig, const_tab, syn, stamps}) =
-  make_sign (extfun (syn, tsig, const_tab) decls) stamps name;
+fun extend_sign extfun name decls (Sg {tsig, const_tab, syn, path, spaces, stamps}) =
+  make_sign (extfun (syn, tsig, const_tab, (path, spaces)) decls) stamps name;
 
 
 (* the external interfaces *)
 
-val add_classes      = extend_sign ext_classes "#";
-val add_classrel     = extend_sign ext_classrel "#";
-val add_defsort      = extend_sign ext_defsort "#";
+val add_classes      = extend_sign (ext_classes true) "#";
+val add_classes_i    = extend_sign (ext_classes false) "#";
+val add_classrel     = extend_sign (ext_classrel true) "#";
+val add_classrel_i   = extend_sign (ext_classrel false) "#";
+val add_defsort      = extend_sign (ext_defsort true) "#";
+val add_defsort_i    = extend_sign (ext_defsort false) "#";
 val add_types        = extend_sign ext_types "#";
 val add_tyabbrs      = extend_sign ext_tyabbrs "#";
 val add_tyabbrs_i    = extend_sign ext_tyabbrs_i "#";
-val add_arities      = extend_sign ext_arities "#";
+val add_arities      = extend_sign (ext_arities true) "#";
+val add_arities_i    = extend_sign (ext_arities false) "#";
 val add_consts       = extend_sign ext_consts "#";
 val add_consts_i     = extend_sign ext_consts_i "#";
 val add_syntax       = extend_sign ext_syntax "#";
@@ -550,13 +750,15 @@ val add_trfunsT      = extend_sign (ext_syn Syntax.extend_trfunsT) "#";
 val add_tokentrfuns  = extend_sign (ext_syn Syntax.extend_tokentrfuns) "#";
 val add_trrules      = extend_sign (ext_syn Syntax.extend_trrules) "#";
 val add_trrules_i    = extend_sign (ext_syn Syntax.extend_trrules_i) "#";
-
+val add_path         = extend_sign ext_path "#";
+val add_space        = extend_sign ext_space "#";
 fun add_name name sg = extend_sign K name () sg;
+
 val make_draft = add_name "#";
 
 
 
-(** merge signatures **)    (*exception TERM*) (*exception ERROR (* FIXME *)*)
+(** merge signatures **)    (*exception TERM*) (*exception ERROR (* FIXME *) handle_error? *)
 
 fun merge (sg1, sg2) =
   if fast_subsig (sg2, sg1) then sg1
@@ -564,32 +766,39 @@ fun merge (sg1, sg2) =
   else if subsig (sg2, sg1) then sg1
   else if subsig (sg1, sg2) then sg2
   else if is_draft sg1 orelse is_draft sg2 then
-    raise_term "Illegal merge of draft signatures" []
+    raise TERM ("Illegal merge of draft signatures", [])
   else
     (*neither is union already; must form union*)
     let
       val Sg {tsig = tsig1, const_tab = const_tab1, syn = syn1,
-        stamps = stamps1} = sg1;
+        path, spaces = spaces1, stamps = stamps1} = sg1;
       val Sg {tsig = tsig2, const_tab = const_tab2, syn = syn2,
-        stamps = stamps2} = sg2;
+        path = _, spaces = spaces2, stamps = stamps2} = sg2;
 
 
       val stamps = merge_rev_lists stamps1 stamps2;
       val _ =
         (case duplicates (stamp_names stamps) of
           [] => ()
-        | dups => raise_term ("Attempt to merge different versions of theories "
-            ^ commas_quote dups) []);
+        | dups => raise TERM ("Attempt to merge different versions of theories "
+            ^ commas_quote dups, []));
 
       val tsig = Type.merge_tsigs (tsig1, tsig2);
 
       val const_tab = Symtab.merge (op =) (const_tab1, const_tab2)
         handle Symtab.DUPS cs =>
-          raise_term ("Incompatible types for constant(s) " ^ commas_quote cs) [];
+          raise TERM ("Incompatible types for constant(s) " ^ commas_quote cs, []);
 
       val syn = Syntax.merge_syntaxes syn1 syn2;
+
+      val kinds = distinct (map fst (spaces1 @ spaces2));
+      val spaces =
+        kinds ~~
+          ListPair.map NameSpace.merge
+            (map (space_of spaces1) kinds, map (space_of spaces2) kinds);
     in
-      Sg {tsig = tsig, const_tab = const_tab, syn = syn, stamps = stamps}
+      Sg {tsig = tsig, const_tab = const_tab, syn = syn,
+        path = path, spaces = spaces, stamps = stamps}
     end;
 
 
@@ -597,15 +806,15 @@ fun merge (sg1, sg2) =
 (** the Pure signature **)
 
 val proto_pure =
-  make_sign (Syntax.pure_syn, Type.tsig0, Symtab.null) [] "#"
+  make_sign (Syntax.pure_syn, Type.tsig0, Symtab.null, ([], [])) [] "#"
   |> add_types
    (("fun", 2, NoSyn) ::
     ("prop", 0, NoSyn) ::
     ("itself", 1, NoSyn) ::
     Syntax.pure_types)
-  |> add_classes [(logicC, [])]
-  |> add_defsort logicS
-  |> add_arities
+  |> add_classes_i [(logicC, [])]
+  |> add_defsort_i logicS
+  |> add_arities_i
    [("fun", [logicS, logicS], logicS),
     ("prop", [], logicS),
     ("itself", [logicS], logicS)]
@@ -631,4 +840,8 @@ val cpure = proto_pure
   |> add_syntax Syntax.pure_applC_syntax
   |> add_name "CPure";
 
+
 end;
+
+
+val long_names = Sign.long_names;
