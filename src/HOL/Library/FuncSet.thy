@@ -57,6 +57,9 @@ lemma Pi_mem: "[|f: Pi A B; x \<in> A|] ==> f x \<in> B x"
 lemma funcset_mem: "[|f \<in> A -> B; x \<in> A|] ==> f x \<in> B"
   by (simp add: Pi_def)
 
+lemma funcset_image: "f \<in> A\<rightarrow>B ==> f ` A \<subseteq> B"
+by (auto simp add: Pi_def)
+
 lemma Pi_eq_empty: "((PI x: A. B x) = {}) = (\<exists>x\<in>A. B(x) = {})"
 apply (simp add: Pi_def, auto)
 txt{*Converse direction requires Axiom of Choice to exhibit a function
@@ -164,6 +167,34 @@ lemma compose_id_Inv:
   apply (rule restrict_ext)
   apply (simp add: f_Inv_f)
   done
+
+
+subsection{*Bijections Between Sets*}
+
+text{*The basic definition could be moved to @{text "Fun.thy"}, but most of
+the theorems belong here, or need at least @{term Hilbert_Choice}.*}
+
+constdefs
+  bij_betw :: "['a => 'b, 'a set, 'b set] => bool"         (*bijective*)
+    "bij_betw f A B == inj_on f A & f ` A = B"
+
+lemma bij_betw_imp_inj_on: "bij_betw f A B \<Longrightarrow> inj_on f A"
+by (simp add: bij_betw_def)
+
+lemma bij_betw_imp_funcset: "bij_betw f A B \<Longrightarrow> f \<in> A \<rightarrow> B"
+by (auto simp add: bij_betw_def inj_on_Inv Pi_def)
+
+lemma bij_betw_Inv: "bij_betw f A B \<Longrightarrow> bij_betw (Inv A f) B A"
+apply (auto simp add: bij_betw_def inj_on_Inv Inv_mem) 
+apply (simp add: image_compose [symmetric] o_def) 
+apply (simp add: image_def Inv_f_f) 
+done
+
+lemma bij_betw_compose:
+    "[| bij_betw f A B; bij_betw g B C |] ==> bij_betw (compose A g f) A C"
+apply (simp add: bij_betw_def compose_eq inj_on_compose)
+apply (auto simp add: compose_def image_def)
+done
 
 
 subsection{*Cardinality*}
