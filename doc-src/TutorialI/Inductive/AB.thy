@@ -18,14 +18,14 @@ B &\to& b S \mid a B B \nonumber
 At the end we say a few words about the relationship of the formalization
 and the text in the book~\cite[p.\ 81]{HopcroftUllman}.
 
-We start by fixing the alpgabet, which consists only of @{term a}'s
+We start by fixing the alphabet, which consists only of @{term a}'s
 and @{term b}'s:
 *}
 
 datatype alfa = a | b;
 
 text{*\noindent
-For convenience we includ the following easy lemmas as simplification rules:
+For convenience we include the following easy lemmas as simplification rules:
 *}
 
 lemma [simp]: "(x \<noteq> a) = (x = b) \<and> (x \<noteq> b) = (x = a)";
