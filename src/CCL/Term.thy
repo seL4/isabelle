@@ -11,38 +11,45 @@ Term = CCL +
 
 consts
 
-  one        ::	      "i"
+  one        :: "i"
 
-  if         ::       "[i,i,i]=>i"           ("(3if _/ then _/ else _)" [] 60)
+  if         :: "[i,i,i]=>i"           ("(3if _/ then _/ else _)" [0,0,60] 60)
 
-  inl,inr    ::	      "i=>i"
-  when       ::	      "[i,i=>i,i=>i]=>i" 
+  inl,inr    :: "i=>i"
+  when       :: "[i,i=>i,i=>i]=>i" 
 
-  split      ::	      "[i,[i,i]=>i]=>i"
+  split      :: "[i,[i,i]=>i]=>i"
   fst,snd,   
-  thd        ::       "i=>i"
+  thd        :: "i=>i"
 
-  zero       ::	      "i"
-  succ       ::	      "i=>i"
-  ncase      ::	      "[i,i,i=>i]=>i"
-  nrec       ::	      "[i,i,[i,i]=>i]=>i"
+  zero       :: "i"
+  succ       :: "i=>i"
+  ncase      :: "[i,i,i=>i]=>i"
+  nrec       :: "[i,i,[i,i]=>i]=>i"
 
-  nil        ::       "i"                    ("([])")
-  "$"        ::       "[i,i]=>i"             (infixr 80)
-  lcase      ::	      "[i,i,[i,i]=>i]=>i"
-  lrec       ::	      "[i,i,[i,i,i]=>i]=>i"
+  nil        :: "i"                        ("([])")
+  "$"        :: "[i,i]=>i"                 (infixr 80)
+  lcase      :: "[i,i,[i,i]=>i]=>i"
+  lrec       :: "[i,i,[i,i,i]=>i]=>i"
 
-  let        ::       "[i,i=>i]=>i"
-  letrec     ::       "[[i,i=>i]=>i,(i=>i)=>i]=>i"
-  letrec2    ::       "[[i,i,i=>i=>i]=>i,(i=>i=>i)=>i]=>i"
-  letrec3    ::       "[[i,i,i,i=>i=>i=>i]=>i,(i=>i=>i=>i)=>i]=>i"  
+  let        :: "[i,i=>i]=>i"
+  letrec     :: "[[i,i=>i]=>i,(i=>i)=>i]=>i"
+  letrec2    :: "[[i,i,i=>i=>i]=>i,(i=>i=>i)=>i]=>i"
+  letrec3    :: "[[i,i,i,i=>i=>i=>i]=>i,(i=>i=>i=>i)=>i]=>i"  
 
-  "@let"     ::       "[idt,i,i]=>i"             ("(3let _ be _/ in _)" [] 60)
-  "@letrec"  ::       "[idt,idt,i,i]=>i"          ("(3letrec _ _ be _/ in _)"  [] 60)
-  "@letrec2" ::       "[idt,idt,idt,i,i]=>i"       ("(3letrec _ _ _ be _/ in _)"  [] 60)
-  "@letrec3" ::       "[idt,idt,idt,idt,i,i]=>i"    ("(3letrec _ _ _ _ be _/ in _)"  [] 60)
+  "@let"     :: "[idt,i,i]=>i"             ("(3let _ be _/ in _)"
+  			[0,0,60] 60)
 
-  napply    :: "[i=>i,i,i]=>i"      ("(_ ^ _ ` _)")
+  "@letrec"  :: "[idt,idt,i,i]=>i"         ("(3letrec _ _ be _/ in _)"
+  			[0,0,0,60] 60)
+
+  "@letrec2" :: "[idt,idt,idt,i,i]=>i"     ("(3letrec _ _ _ be _/ in _)"
+  			[0,0,0,0,60] 60)
+
+  "@letrec3" :: "[idt,idt,idt,idt,i,i]=>i" ("(3letrec _ _ _ _ be _/ in _)"
+  			[0,0,0,0,0,60] 60)
+
+  napply     :: "[i=>i,i,i]=>i"            ("(_ ^ _ ` _)" [56,56,56] 56)
 
 rules
 
