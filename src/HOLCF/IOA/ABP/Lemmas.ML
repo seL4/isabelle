@@ -5,19 +5,19 @@
 
 (* Logic *)
 
-goal HOL.thy "(~(A&B)) = ((~A)&B| ~B)";
+Goal "(~(A&B)) = ((~A)&B| ~B)";
 by (Fast_tac 1);
-val and_de_morgan_and_absorbe = result();
+qed "and_de_morgan_and_absorbe";
 
-goal HOL.thy "(if C then A else B) --> (A|B)";
+Goal "(if C then A else B) --> (A|B)";
 by (stac split_if 1);
 by (Fast_tac 1);
-val bool_if_impl_or = result();
+qed "bool_if_impl_or";
 
 (* Sets *)
 
 val set_lemmas =
-   map (fn s => prove_goal Set.thy s (fn _ => [Fast_tac 1]))
+   map (fn s => prove_goal Main.thy s (fn _ => [Fast_tac 1]))
         ["f(x) : (UN x. {f(x)})",
          "f x y : (UN x y. {f x y})",
          "!!a. (!x. a ~= f(x)) ==> a ~: (UN x. {f(x)})",
@@ -25,14 +25,14 @@ val set_lemmas =
 
 (* 2 Lemmas to add to set_lemmas ... , used also for action handling, 
    namely for Intersections and the empty list (compatibility of IOA!)  *)
-goal Set.thy "(UN b.{x. x=f(b)})= (UN b.{f(b)})"; 
+Goal "(UN b.{x. x=f(b)})= (UN b.{f(b)})"; 
  by (rtac set_ext 1);
  by (Fast_tac 1);
-val singleton_set =result();
+qed "singleton_set";
 
-goal HOL.thy "((A|B)=False) = ((~A)&(~B))";
+Goal "((A|B)=False) = ((~A)&(~B))";
  by (Fast_tac 1);
-val de_morgan = result();
+qed "de_morgan";
 
 (* Lists *)
 
@@ -40,7 +40,7 @@ Goal "hd(l@m) = (if l~=[] then hd(l) else hd(m))";
 by (induct_tac "l" 1);
 by (Simp_tac 1);
 by (Simp_tac 1);
-val hd_append =result();
+qed "hd_append";
 
 Goal "l ~= [] --> (? x xs. l = (x#xs))";
  by (induct_tac "l" 1);

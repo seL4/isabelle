@@ -72,7 +72,7 @@ by (asm_full_simp_tac (simpset()
              Sender.ssent_def, Receiver.rsent_def,Receiver.rrcvd_def]) 1);
 
 by (simp_tac (simpset() delsimps [trans_of_par4]
-                addsimps [fork_lemma,inv1_def]) 1);
+                addsimps [imp_conjR,inv1_def]) 1);
 
 (* Split proof in two *)
 by (rtac conjI 1); 
@@ -242,7 +242,7 @@ val tac3 = asm_full_simp_tac (ss addsimps [inv3_def]);
   by (asm_full_simp_tac ss 1);
   by (simp_tac (simpset() addsimps [inv3_def]) 1);
   by (strip_tac  1 THEN REPEAT (etac conjE 1));
-  by (rtac (imp_or_lem RS iffD2) 1);
+  by (rtac (imp_disjL RS iffD1) 1);
   by (rtac impI 1);
   by (forward_tac [rewrite_rule [Impl.inv2_def] (inv2 RS invariantE)] 1);
   by (Asm_full_simp_tac 1);
@@ -263,7 +263,7 @@ val tac3 = asm_full_simp_tac (ss addsimps [inv3_def]);
   (* 1 *)
   by (tac3 1);
   by (strip_tac  1 THEN REPEAT (etac conjE 1));
-  by (rtac (imp_or_lem RS iffD2) 1);
+  by (rtac (imp_disjL RS iffD1) 1);
   by (rtac impI 1);
   by (forward_tac [rewrite_rule [Impl.inv2_def] (inv2 RS invariantE)] 1);
   by (Asm_full_simp_tac 1);

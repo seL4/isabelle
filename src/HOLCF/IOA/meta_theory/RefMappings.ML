@@ -59,9 +59,9 @@ by (Asm_simp_tac 1);
 qed"weak_ref_map2ref_map";
 
 
-val prems = goal HOL.thy "(P ==> Q-->R) ==> P&Q --> R";
+val prems = Goal "(P ==> Q-->R) ==> P&Q --> R";
   by (fast_tac (claset() addDs prems) 1);
-val lemma = result();
+qed "imp_conj_lemma";
 
 Delsplits [split_if]; Delcongs [if_weak_cong];
 
@@ -73,7 +73,7 @@ by (rtac conjI 1);
 by (asm_full_simp_tac (simpset() addsimps [rename_def,rename_set_def,starts_of_def]) 1);
 (* 2: reachable transitions *)
 by (REPEAT (rtac allI 1));
-by (rtac lemma 1);
+by (rtac imp_conj_lemma 1);
 by (simp_tac (simpset() addsimps [rename_def,rename_set_def]) 1);
 by (asm_full_simp_tac (simpset() addsimps [externals_def,asig_inputs_def,
 asig_outputs_def,asig_of_def,trans_of_def]) 1);
