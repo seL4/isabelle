@@ -521,3 +521,24 @@ by (etac impE 1);
 by (Force_tac 1);
 by (force_tac (claset(), simpset() addsimps [less_eq,not_le_iff_less]) 1);
 qed "nonempty_has_least";
+
+(** Re-orientation of the equations 0=x and Suc n = x. *
+
+  The condition "True" is a hack to prevent looping for e.g. Suc m = Suc n.
+  Conditional rewrite rules are tried after unconditional ones.
+**)
+
+Goal "True ==> (0 = x) = (x = (0::nat))";
+by Auto_tac;  
+qed "zero_reorient";
+Addsimps [zero_reorient];
+
+Goal "True ==> (1 = x) = (x = 1)";
+by Auto_tac;  
+qed "one_reorient";
+Addsimps [one_reorient];
+
+Goal "True ==> (2 = x) = (x = 2)";
+by Auto_tac;  
+qed "two_reorient";
+Addsimps [two_reorient];
