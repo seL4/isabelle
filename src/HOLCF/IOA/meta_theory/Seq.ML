@@ -284,7 +284,7 @@ qed"szip_UU1";
 goal thy "!!x. x~=nil ==> szip`x`UU=UU"; 
 by (stac szip_unfold 1);
 by (Asm_full_simp_tac 1);
-by (res_inst_tac [("x","x")] seq.cases 1);
+by (res_inst_tac [("x","x")] seq.casedist 1);
 by (REPEAT (Asm_full_simp_tac 1));
 qed"szip_UU2";
 
@@ -324,7 +324,7 @@ by (Auto_tac());
 qed"scons_inject_eq";
 
 goal thy "!!x. nil<<x ==> nil=x";
-by (res_inst_tac [("x","x")] seq.cases 1);
+by (res_inst_tac [("x","x")] seq.casedist 1);
 by (hyp_subst_tac 1);
 by (etac antisym_less 1);
 by (Asm_full_simp_tac 1);

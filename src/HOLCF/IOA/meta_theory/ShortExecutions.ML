@@ -184,7 +184,7 @@ qed_spec_mp"Cut_prefixcl_nFinite";
 goal thy "Finite s --> (? y. s = Cut P s @@ y)";
 by (strip_tac 1);
 by (rtac exI 1);
-by (rtac seq.take_lemma 1);
+by (resolve_tac seq.take_lemmas 1);
 by (rtac mp 1);
 by (assume_tac 2);
 by (thin_tac' 1 1);

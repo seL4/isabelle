@@ -119,7 +119,7 @@ qed"Last_nil";
 
 goal thy "Last`(x>>xs)= (if xs=nil then Def x else Last`xs)"; 
 by (simp_tac (!simpset addsimps [Last_def, Cons_def]) 1);
-by (res_inst_tac [("x","xs")] seq.cases 1);
+by (res_inst_tac [("x","xs")] seq.casedist 1);
 by (asm_simp_tac (!simpset setloop split_tac [expand_if]) 1);
 by (REPEAT (Asm_simp_tac 1));
 qed"Last_cons";
@@ -170,7 +170,7 @@ qed"Zip_UU1";
 goal thy "!! x. x~=nil ==> Zip`x`UU =UU";
 by (stac Zip_unfold 1);
 by (Simp_tac 1);
-by (res_inst_tac [("x","x")] seq.cases 1);
+by (res_inst_tac [("x","x")] seq.casedist 1);
 by (REPEAT (Asm_full_simp_tac 1));
 qed"Zip_UU2";
 
@@ -884,7 +884,7 @@ section "take_lemma";
 
 goal thy "(!n. seq_take n`x = seq_take n`x') = (x = x')";
 by (rtac iffI 1);
-by (rtac seq.take_lemma 1);
+by (resolve_tac seq.take_lemmas 1);
 by (Auto_tac());
 qed"seq_take_lemma";
 
@@ -972,7 +972,7 @@ goal thy "!! Q. [|!! s. [| Forall Q s; A s |] ==> (f s) = (g s) ; \
 \              ==> A x --> (f x)=(g x)";
 by (case_tac "Forall Q x" 1);
 by (auto_tac (!claset addSDs [divide_Seq3],!simpset));
-by (rtac seq.take_lemma 1);
+by (resolve_tac seq.take_lemmas 1);
 by (Auto_tac());
 qed"take_lemma_principle2";
 
@@ -993,7 +993,7 @@ goal thy
 \                             = seq_take (Suc n)`(g (s1 @@ y>>s2)) |] \
 \              ==> A x --> (f x)=(g x)";
 by (rtac impI 1);
-by (rtac seq.take_lemma 1);
+by (resolve_tac seq.take_lemmas 1);
 by (rtac mp 1);
 by (assume_tac 2);
 by (res_inst_tac [("x","x")] spec 1);
@@ -1015,7 +1015,7 @@ goal thy
 \                             = seq_take n`(g (s1 @@ y>>s2)) |] \
 \              ==> A x --> (f x)=(g x)";
 by (rtac impI 1);
-by (rtac seq.take_lemma 1);
+by (resolve_tac seq.take_lemmas 1);
 by (rtac mp 1);
 by (assume_tac 2);
 by (res_inst_tac [("x","x")] spec 1);
@@ -1067,7 +1067,7 @@ goal thy
 \                             = seq_take n`(g (s1 @@ y>>s2) h1 h2) |] \
 \              ==> ! h1 h2. (A x h1 h2) --> (f x h1 h2)=(g x h1 h2)";
 by (strip_tac 1);
-by (rtac seq.take_lemma 1);
+by (resolve_tac seq.take_lemmas 1);
 by (rtac mp 1);
 by (assume_tac 2);
 by (res_inst_tac [("x","h2a")] spec 1);
@@ -1121,7 +1121,7 @@ goal thy
 \                        = seq_take (Suc n)`(g (y>>s)) |] \
 \              ==> A x --> (f x)=(g x)";
 by (rtac impI 1);
-by (rtac seq.take_lemma 1);
+by (resolve_tac seq.take_lemmas 1);
 by (rtac mp 1);
 by (assume_tac 2);
 by (res_inst_tac [("x","x")] spec 1);
