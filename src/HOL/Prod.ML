@@ -136,7 +136,7 @@ by (rtac refl 1);
 qed "split";
 
 val split_select = prove_goalw Prod.thy [split_def] 
-	"(®(x,y). P x y) = (®xy. P (fst xy) (snd xy))" (K [rtac refl 1]);
+	"(@(x,y). P x y) = (@xy. P (fst xy) (snd xy))" (K [rtac refl 1]);
 
 Addsimps [fst_conv, snd_conv, split];
 

@@ -369,7 +369,7 @@ section "UN and INT";
 
 (*Basic identities*)
 
-val not_empty = prove_goal Set.thy "A Û {} = (Ãx. xÎA)" (K [Blast_tac 1]);
+val not_empty = prove_goal Set.thy "A ~= {} = (? x. x:A)" (K [Blast_tac 1]);
 (*Addsimps[not_empty];*)
 
 goal thy "(UN x:{}. B x) = {}";

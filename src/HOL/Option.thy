@@ -13,9 +13,9 @@ datatype 'a option = None | Some 'a
 constdefs
 
   the		:: "'a option => 'a"
- "the Ú %y. case y of None => arbitrary | Some x => x"
+ "the == %y. case y of None => arbitrary | Some x => x"
 
   option_map	:: "('a => 'b) => ('a option => 'b option)"
- "option_map Ú %f y. case y of None => None | Some x => Some (f x)"
+ "option_map == %f y. case y of None => None | Some x => Some (f x)"
 
 end
