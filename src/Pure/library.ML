@@ -374,11 +374,12 @@ fun string_of_indexname (a,0) = a
 (** strings **)
 
 fun is_letter ch =
-  ord "A" <= ord ch andalso ord ch <= ord "Z" orelse
-  ord "a" <= ord ch andalso ord ch <= ord "z";
+  size ch = 1 andalso
+   (ord "A" <= ord ch andalso ord ch <= ord "Z" orelse
+    ord "a" <= ord ch andalso ord ch <= ord "z");
 
 fun is_digit ch =
-  ord "0" <= ord ch andalso ord ch <= ord "9";
+  size ch = 1 andalso ord "0" <= ord ch andalso ord ch <= ord "9";
 
 (*letter or _ or prime (')*)
 fun is_quasi_letter "_" = true
@@ -393,13 +394,13 @@ val is_blank : string -> bool =
 val is_letdig = is_quasi_letter orf is_digit;
 
 (*printable chars*)
-fun is_printable c = ord c > ord " " andalso ord c <= ord "~";
+fun is_printable c = size c = 1 andalso ord c > ord " " andalso ord c <= ord "~";
 
 (*lower all chars of string*)
 val to_lower =
   let
     fun lower ch =
-      if ch >= "A" andalso ch <= "Z" then
+      if size ch = 1 andalso ch >= "A" andalso ch <= "Z" then
         chr (ord ch - ord "A" + ord "a")
       else ch;
   in implode o (map lower) o explode end;
