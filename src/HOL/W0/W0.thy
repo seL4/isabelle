@@ -64,7 +64,7 @@ subsection {* Substitutions *}
 consts
   app_subst :: "subst \<Rightarrow> 'a::type_struct \<Rightarrow> 'a::type_struct"    ("$")
   -- {* extension of substitution to type structures *}
-primrec
+primrec (app_subst_typ)
   app_subst_TVar: "$s (TVar n) = s n"
   app_subst_Fun: "$s (t1 -> t2) = $s t1 -> $s t2"
 
@@ -75,11 +75,11 @@ consts
   free_tv :: "'a::type_struct \<Rightarrow> nat set"
   -- {* @{text "free_tv s"}: the type variables occuring freely in the type structure @{text s} *}
 
-primrec
+primrec (free_tv_typ)
   "free_tv (TVar m) = {m}"
   "free_tv (t1 -> t2) = free_tv t1 \<union> free_tv t2"
 
-primrec
+primrec (free_tv_list)
   "free_tv [] = {}"
   "free_tv (x # xs) = free_tv x \<union> free_tv xs"
 

@@ -41,16 +41,16 @@ instance  fun::(type,type_struct)type_struct
 consts
   free_tv :: ['a::type_struct] => nat set
 
-primrec
+primrec (free_tv_typ)
   free_tv_TVar    "free_tv (TVar m) = {m}"
   free_tv_Fun     "free_tv (t1 -> t2) = (free_tv t1) Un (free_tv t2)"
 
-primrec
+primrec (free_tv_type_scheme)
   "free_tv (FVar m) = {m}"
   "free_tv (BVar m) = {}"
   "free_tv (S1 =-> S2) = (free_tv S1) Un (free_tv S2)"
 
-primrec
+primrec (free_tv_list)
   "free_tv [] = {}"
   "free_tv (x#l) = (free_tv x) Un (free_tv l)"
 
@@ -59,12 +59,12 @@ primrec
 consts
   free_tv_ML :: ['a::type_struct] => nat list
 
-primrec
+primrec (free_tv_ML_type_scheme)
   "free_tv_ML (FVar m) = [m]"
   "free_tv_ML (BVar m) = []"
   "free_tv_ML (S1 =-> S2) = (free_tv_ML S1) @ (free_tv_ML S2)"
 
-primrec
+primrec (free_tv_ML_list)
   "free_tv_ML [] = []"
   "free_tv_ML (x#l) = (free_tv_ML x) @ (free_tv_ML l)"
 
@@ -82,12 +82,12 @@ constdefs
 consts
   bound_tv :: ['a::type_struct] => nat set
 
-primrec
+primrec (bound_tv_type_scheme)
   "bound_tv (FVar m) = {}"
   "bound_tv (BVar m) = {m}"
   "bound_tv (S1 =-> S2) = (bound_tv S1) Un (bound_tv S2)"
 
-primrec
+primrec (bound_tv_list)
   "bound_tv [] = {}"
   "bound_tv (x#l) = (bound_tv x) Un (bound_tv l)"
 
@@ -97,7 +97,7 @@ primrec
 consts
   min_new_bound_tv :: 'a::type_struct => nat
 
-primrec
+primrec (min_new_bound_tv_type_scheme)
   "min_new_bound_tv (FVar n) = 0"
   "min_new_bound_tv (BVar n) = Suc n"
   "min_new_bound_tv (sch1 =-> sch2) = max (min_new_bound_tv sch1) (min_new_bound_tv sch2)"
@@ -118,11 +118,11 @@ constdefs
 consts
   app_subst :: [subst, 'a::type_struct] => 'a::type_struct ("$")
 
-primrec
+primrec (app_subst_typ)
   app_subst_TVar "$ S (TVar n) = S n" 
   app_subst_Fun  "$ S (t1 -> t2) = ($ S t1) -> ($ S t2)" 
 
-primrec
+primrec (app_subst_type_scheme)
   "$ S (FVar n) = mk_scheme (S n)"
   "$ S (BVar n) = (BVar n)"
   "$ S (sch1 =-> sch2) = ($ S sch1) =-> ($ S sch2)"

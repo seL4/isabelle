@@ -197,7 +197,7 @@ proof (induct xs)
   qed
 qed
 
-theorem correctness: "execute (compile e) env = eval e env"
+theorem correctness': "execute (compile e) env = eval e env"
 proof -
   have exec_compile:
     "ALL stack. exec (compile e) stack env = eval e env # stack"

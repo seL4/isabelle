@@ -956,7 +956,7 @@ done
 
 subsection{* division of a number by itself *}
 
-lemma lemma1: "[| #0 $< a; a = r $+ a$*q; r $< a |] ==> #1 $<= q"
+lemma self_quotient_aux1: "[| #0 $< a; a = r $+ a$*q; r $< a |] ==> #1 $<= q"
 apply (subgoal_tac "#0 $< a$*q")
 apply (cut_tac w = "#0" and z = "q" in add1_zle_iff)
 apply (simp add: int_0_less_mult_iff)
@@ -967,7 +967,7 @@ apply (drule sym)
 apply (simp add: zcompare_rls)
 done
 
-lemma lemma2: "[| #0 $< a; a = r $+ a$*q; #0 $<= r |] ==> q $<= #1"
+lemma self_quotient_aux2: "[| #0 $< a; a = r $+ a$*q; #0 $<= r |] ==> q $<= #1"
 apply (subgoal_tac "#0 $<= a$* (#1$-q)")
  apply (simp add: int_0_le_mult_iff zcompare_rls)
  apply (blast dest: zle_zless_trans)
@@ -984,11 +984,12 @@ apply safe
 apply auto
 prefer 4 apply (blast dest: zless_trans)
 apply (blast dest: zless_trans)
-apply (rule_tac [3] a = "$-a" and r = "$-r" in lemma1)
-apply (rule_tac a = "$-a" and r = "$-r" in lemma2)
+apply (rule_tac [3] a = "$-a" and r = "$-r" in self_quotient_aux1)
+apply (rule_tac a = "$-a" and r = "$-r" in self_quotient_aux2)
 apply (rule_tac [6] zminus_equation [THEN iffD1])
 apply (rule_tac [2] zminus_equation [THEN iffD1])
-apply (force intro: lemma1 lemma2 simp add: zadd_commute zmult_zminus)+
+apply (force intro: self_quotient_aux1 self_quotient_aux2
+  simp add: zadd_commute zmult_zminus)+
 done
 
 lemma self_remainder:
@@ -1481,7 +1482,7 @@ subsection{* proving  a zdiv (b*c) = (a zdiv b) zdiv c *}
 
 (** first, four lemmas to bound the remainder for the cases b<0 and b>0 **)
 
-lemma lemma1:
+lemma zdiv_zmult2_aux1:
      "[| #0 $< c;  b $< r;  r $<= #0 |] ==> b$*c $< b$*(q zmod c) $+ r"
 apply (subgoal_tac "b $* (c $- q zmod c) $< r $* #1")
 apply (simp add: zdiff_zmult_distrib2 zadd_commute zcompare_rls)
@@ -1492,7 +1493,7 @@ apply (auto simp add: zcompare_rls zadd_commute add1_zle_iff pos_mod_bound)
 apply (blast intro: zless_imp_zle dest: zless_zle_trans)
 done
 
-lemma lemma2:
+lemma zdiv_zmult2_aux2:
      "[| #0 $< c;   b $< r;  r $<= #0 |] ==> b $* (q zmod c) $+ r $<= #0"
 apply (subgoal_tac "b $* (q zmod c) $<= #0")
  prefer 2
@@ -1504,7 +1505,7 @@ apply assumption
 apply (simp add: zadd_commute)
 done
 
-lemma lemma3:
+lemma zdiv_zmult2_aux3:
      "[| #0 $< c;  #0 $<= r;  r $< b |] ==> #0 $<= b $* (q zmod c) $+ r"
 apply (subgoal_tac "#0 $<= b $* (q zmod c)")
  prefer 2
@@ -1516,7 +1517,7 @@ apply assumption
 apply (simp add: zadd_commute)
 done
 
-lemma lemma4:
+lemma zdiv_zmult2_aux4:
      "[| #0 $< c; #0 $<= r; r $< b |] ==> b $* (q zmod c) $+ r $< b $* c"
 apply (subgoal_tac "r $* #1 $< b $* (c $- q zmod c)")
 apply (simp add: zdiff_zmult_distrib2 zadd_commute zcompare_rls)
@@ -1532,7 +1533,8 @@ lemma zdiv_zmult2_lemma:
       ==> quorem (<a,b$*c>, <q zdiv c, b$*(q zmod c) $+ r>)"
 apply (auto simp add: zmult_ac zmod_zdiv_equality [symmetric] quorem_def
                neq_iff_zless int_0_less_mult_iff 
-               zadd_zmult_distrib2 [symmetric] lemma1 lemma2 lemma3 lemma4)
+               zadd_zmult_distrib2 [symmetric] zdiv_zmult2_aux1 zdiv_zmult2_aux2
+               zdiv_zmult2_aux3 zdiv_zmult2_aux4)
 apply (blast dest: zless_trans)+
 done
 
@@ -1568,16 +1570,16 @@ done
 
 subsection{* Cancellation of common factors in "zdiv" *}
 
-lemma lemma1:
+lemma zdiv_zmult_zmult1_aux1:
      "[| #0 $< b;  intify(c) \<noteq> #0 |] ==> (c$*a) zdiv (c$*b) = a zdiv b"
 apply (subst zdiv_zmult2_eq)
 apply auto
 done
 
-lemma lemma2:
+lemma zdiv_zmult_zmult1_aux2:
      "[| b $< #0;  intify(c) \<noteq> #0 |] ==> (c$*a) zdiv (c$*b) = a zdiv b"
 apply (subgoal_tac " (c $* ($-a)) zdiv (c $* ($-b)) = ($-a) zdiv ($-b)")
-apply (rule_tac [2] lemma1)
+apply (rule_tac [2] zdiv_zmult_zmult1_aux1)
 apply auto
 done
 
@@ -1585,7 +1587,8 @@ lemma zdiv_zmult_zmult1_raw:
      "[|intify(c) \<noteq> #0; b \<in> int|] ==> (c$*a) zdiv (c$*b) = a zdiv b"
 apply (case_tac "b = #0")
  apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD) 
-apply (auto simp add: neq_iff_zless [of b] lemma1 lemma2)
+apply (auto simp add: neq_iff_zless [of b]
+  zdiv_zmult_zmult1_aux1 zdiv_zmult_zmult1_aux2)
 done
 
 lemma zdiv_zmult_zmult1: "intify(c) \<noteq> #0 ==> (c$*a) zdiv (c$*b) = a zdiv b"
@@ -1601,18 +1604,18 @@ done
 
 subsection{* Distribution of factors over "zmod" *}
 
-lemma lemma1:
+lemma zmod_zmult_zmult1_aux1:
      "[| #0 $< b;  intify(c) \<noteq> #0 |]  
       ==> (c$*a) zmod (c$*b) = c $* (a zmod b)"
 apply (subst zmod_zmult2_eq)
 apply auto
 done
 
-lemma lemma2:
+lemma zmod_zmult_zmult1_aux2:
      "[| b $< #0;  intify(c) \<noteq> #0 |]  
       ==> (c$*a) zmod (c$*b) = c $* (a zmod b)"
 apply (subgoal_tac " (c $* ($-a)) zmod (c $* ($-b)) = c $* (($-a) zmod ($-b))")
-apply (rule_tac [2] lemma1)
+apply (rule_tac [2] zmod_zmult_zmult1_aux1)
 apply auto
 done
 
@@ -1622,7 +1625,8 @@ apply (case_tac "b = #0")
  apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD) 
 apply (case_tac "c = #0")
  apply (simp add: DIVISION_BY_ZERO_ZDIV DIVISION_BY_ZERO_ZMOD) 
-apply (auto simp add: neq_iff_zless [of b] lemma1 lemma2)
+apply (auto simp add: neq_iff_zless [of b]
+  zmod_zmult_zmult1_aux1 zmod_zmult_zmult1_aux2)
 done
 
 lemma zmod_zmult_zmult1: "(c$*a) zmod (c$*b) = c $* (a zmod b)"
