@@ -138,16 +138,16 @@ fun join_assums th =
   val gen_all = S.gen_all
 in
 fun proof_stage ss theory {f, R, rules, full_pats_TCs, TCs} =
-  let val dummy = prs "Proving induction theorem..  "
+  let val dummy = writeln "Proving induction theorem..  "
       val ind = Prim.mk_induction theory f R full_pats_TCs
-      val dummy = prs "Proved induction theorem.\nPostprocessing..  "
+      val dummy = writeln "Proved induction theorem.\nPostprocessing..  "
       val {rules, induction, nested_tcs} = 
 	  std_postprocessor ss theory {rules=rules, induction=ind, TCs=TCs}
   in
   case nested_tcs
   of [] => (writeln "Postprocessing done.";
             {induction=induction, rules=rules,tcs=[]})
-  | L  => let val dummy = prs "Simplifying nested TCs..  "
+  | L  => let val dummy = writeln "Simplifying nested TCs..  "
               val (solved,simplified,stubborn) =
                U.itlist (fn th => fn (So,Si,St) =>
                      if (id_thm th) then (So, Si, th::St) else
@@ -231,13 +231,13 @@ end;
 local structure R = Rules
 in
 fun function theory eqs = 
- let val dummy = prs "Making definition..   "
+ let val dummy = writeln "Making definition..   "
      val {rules,R,theory,full_pats_TCs,...} = Prim.lazyR_def theory eqs
      val f = func_of_cond_eqn (concl(R.CONJUNCT1 rules handle _ => rules))
-     val dummy = prs "Definition made.\n"
-     val dummy = prs "Proving induction theorem..  "
+     val dummy = writeln "Definition made."
+     val dummy = writeln "Proving induction theorem..  "
      val induction = Prim.mk_induction theory f R full_pats_TCs
-     val dummy = prs "Induction theorem proved.\n"
+     val dummy = writeln "Induction theorem proved."
  in {theory = theory, 
      eq_ind = standard (induction RS (rules RS conjI))}
  end

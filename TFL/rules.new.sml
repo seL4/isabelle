@@ -514,17 +514,14 @@ val mss_ref = ref [] : meta_simpset list ref;
 val thm_ref = ref [] : thm list ref;
 val tracing = ref false;
 
-fun say s = if !tracing then prs s else ();
+fun say s = if !tracing then writeln s else ();
 
 fun print_thms s L = 
-   (say s; 
-    map (fn th => say (string_of_thm th ^"\n")) L;
-    say"\n");
+  say (cat_lines (s :: map string_of_thm L));
 
 fun print_cterms s L = 
-   (say s; 
-    map (fn th => say (string_of_cterm th ^"\n")) L;
-    say"\n");
+  say (cat_lines (s :: map string_of_cterm L));
+
 
 (*---------------------------------------------------------------------------
  * General abstraction handlers, should probably go in USyntax.
@@ -639,24 +636,24 @@ fun CONTEXT_REWRITE_RULE (ss, func, R, cut_lemma, congs) th =
      val cut_lemma' = (cut_lemma RS mp) RS eq_reflection
      fun prover mss thm =
      let fun cong_prover mss thm =
-         let val dummy = say "cong_prover:\n"
+         let val dummy = say "cong_prover:"
              val cntxt = prems_of_mss mss
-             val dummy = print_thms "cntxt:\n" cntxt
-             val dummy = say "cong rule:\n"
-             val dummy = say (string_of_thm thm^"\n")
+             val dummy = print_thms "cntxt:" cntxt
+             val dummy = say "cong rule:"
+             val dummy = say (string_of_thm thm)
              val dummy = thm_ref := (thm :: !thm_ref)
              val dummy = mss_ref := (mss :: !mss_ref)
              (* Unquantified eliminate *)
              fun uq_eliminate (thm,imp,sign) = 
                  let val tych = cterm_of sign
-                     val dummy = print_cterms "To eliminate:\n" [tych imp]
+                     val dummy = print_cterms "To eliminate:" [tych imp]
                      val ants = map tych (Logic.strip_imp_prems imp)
                      val eq = Logic.strip_imp_concl imp
                      val lhs = tych(get_lhs eq)
                      val mss' = add_prems(mss, map ASSUME ants)
                      val lhs_eq_lhs1 = Thm.rewrite_cterm(false,true,false)mss' prover lhs
                        handle _ => reflexive lhs
-                     val dummy = print_thms "proven:\n" [lhs_eq_lhs1]
+                     val dummy = print_thms "proven:" [lhs_eq_lhs1]
                      val lhs_eq_lhs2 = implies_intr_list ants lhs_eq_lhs1
                      val lhs_eeq_lhs2 = lhs_eq_lhs2 RS meta_eq_to_obj_eq
                   in
@@ -724,9 +721,9 @@ fun CONTEXT_REWRITE_RULE (ss, func, R, cut_lemma, congs) th =
          end handle _ => None
 
         fun restrict_prover mss thm =
-          let val dummy = say "restrict_prover:\n"
+          let val dummy = say "restrict_prover:"
               val cntxt = rev(prems_of_mss mss)
-              val dummy = print_thms "cntxt:\n" cntxt
+              val dummy = print_thms "cntxt:" cntxt
               val {prop = Const("==>",_) $ (Const("Trueprop",_) $ A) $ _,
                    sign,...} = rep_thm thm
               fun genl tm = let val vlist = gen_rems (op aconv)
@@ -748,12 +745,12 @@ fun CONTEXT_REWRITE_RULE (ss, func, R, cut_lemma, congs) th =
               val antl = case rcontext of [] => [] 
                          | _   => [S.list_mk_conj(map cncl rcontext)]
               val TC = genl(S.list_mk_imp(antl, A))
-              val dummy = print_cterms "func:\n" [cterm_of sign func]
-              val dummy = print_cterms "TC:\n" 
+              val dummy = print_cterms "func:" [cterm_of sign func]
+              val dummy = print_cterms "TC:" 
 		              [cterm_of sign (HOLogic.mk_Trueprop TC)]
               val dummy = tc_list := (TC :: !tc_list)
               val nestedp = is_some (S.find_term is_func TC)
-              val dummy = if nestedp then say"nested\n" else say"not_nested\n"
+              val dummy = if nestedp then say "nested" else say "not_nested"
               val dummy = term_ref := ([func,TC]@(!term_ref))
               val th' = if nestedp then raise RULES_ERR{func = "solver", 
                                                       mesg = "nested function"}
