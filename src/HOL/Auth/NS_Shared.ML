@@ -99,7 +99,7 @@ by (parts_induct_tac 1);
 (*Fake*)
 by (blast_tac (claset() addSDs [keysFor_parts_insert]) 1);
 (*NS2, NS4, NS5*)
-by (ALLGOALS (Blast_tac));
+by (ALLGOALS Blast_tac);
 qed_spec_mp "new_keys_not_used";
 
 bind_thm ("new_keys_not_analzd",
@@ -386,12 +386,12 @@ qed "NS4_implies_NS3";
 goal thy
  "!!evs. [| B ~: bad;  evs : ns_shared |]                              \
 \        ==> Key K ~: analz (spies evs) -->                            \
-\            Says Server A                                     \
+\            Says Server A                                             \
 \              (Crypt (shrK A) {|NA, Agent B, Key K,                   \
 \                                Crypt (shrK B) {|Key K, Agent A|}|})  \
-\             : set evs -->         \
-\            Says B A (Crypt K (Nonce NB))  : set evs -->  \
-\            Crypt K {|Nonce NB, Nonce NB|} : parts (spies evs) --> \
+\             : set evs -->                                            \
+\            Says B A (Crypt K (Nonce NB))  : set evs -->              \
+\            Crypt K {|Nonce NB, Nonce NB|} : parts (spies evs) -->    \
 \            Says A B (Crypt K {|Nonce NB, Nonce NB|}) : set evs";
 by (parts_induct_tac 1);
 (*NS4*)
@@ -407,7 +407,7 @@ by (Blast_tac 1);
 by (Clarify_tac 1);
 by (not_bad_tac "Aa" 1);
 by (blast_tac (claset() addDs [A_trusts_NS2, unique_session_keys]) 1);
-val lemma = result();
+qed_spec_mp "B_trusts_NS5_lemma";
 
 
 (*Very strong Oops condition reveals protocol's weakness*)
@@ -420,6 +420,6 @@ goal thy
 \        ==> Says A B (Crypt K {|Nonce NB, Nonce NB|}) : set evs";
 by (dtac B_trusts_NS3 1);
 by (ALLGOALS Clarify_tac);
-by (blast_tac (claset() addSIs [normalize_thm [RSspec, RSmp] lemma]
+by (blast_tac (claset() addSIs [B_trusts_NS5_lemma]
 	         addSEs [Spy_not_see_encrypted_key RSN (2,rev_notE)]) 1);
 qed "B_trusts_NS5";
