@@ -705,6 +705,18 @@ by (induct_tac "xs" 1);
 by (auto_tac (claset(), simpset() addsimps [nth_Cons] addsplits [nat.split]));
 qed_spec_mp "nth_list_update";
 
+Goal "i < length xs  ==> (xs[i:=x])!i = x";
+by (asm_simp_tac (simpset() addsimps [nth_list_update]) 1);
+qed "nth_list_update_eq";
+Addsimps [nth_list_update_eq];
+
+Goal "!i j. i ~= j --> xs[i:=x]!j = xs!j";
+by (induct_tac "xs" 1);
+ by (Simp_tac 1);
+by (auto_tac (claset(), simpset() addsimps [nth_Cons] addsplits [nat.split]));
+qed_spec_mp "nth_list_update_neq";
+Addsimps [nth_list_update_neq];
+
 Goal "!i. i < size xs --> xs[i:=x, i:=y] = xs[i:=y]";
 by (induct_tac "xs" 1);
  by (Simp_tac 1);
