@@ -27,9 +27,10 @@ sig
   val left_distrib: thm
   (*proof tools*)
   val prove_conv: tactic list -> Sign.sg -> term * term -> thm option
-  val subst_tac: thm option -> tactic
-  val norm_tac: tactic
-  val numeral_simp_tac: tactic
+  val trans_tac: thm option -> tactic (*applies the initial lemma*)
+  val norm_tac: tactic                (*proves the initial lemma*)
+  val numeral_simp_tac: tactic        (*proves the final theorem*)
+  val simplify_meta_eq: thm -> thm    (*simplifies the final theorem*)
 end;
 
 
@@ -76,10 +77,11 @@ fun proc sg _ t =
 			 Data.mk_sum ([Data.mk_coeff(m,u),
 				       Data.mk_coeff(n,u)] @ terms))
   in
-      Data.prove_conv 
-        [Data.subst_tac reshape, rtac Data.left_distrib 1,
-	 Data.numeral_simp_tac] sg
-	(t, Data.mk_sum (Data.mk_coeff(m+n,u) :: terms))
+      apsome Data.simplify_meta_eq
+	 (Data.prove_conv 
+	    [Data.trans_tac reshape, rtac Data.left_distrib 1,
+	     Data.numeral_simp_tac] sg
+	    (t, Data.mk_sum (Data.mk_coeff(m+n,u) :: terms)))
   end
   handle TERM _ => None
        | TYPE _ => None;   (*Typically (if thy doesn't include Numeral)

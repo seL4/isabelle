@@ -111,9 +111,11 @@ fun dest_sum t =
 
 fun dest_Sucs_sum t = dest_sum (dest_Sucs (0,t));
 
-val subst_tac = Int_Numeral_Simprocs.subst_tac;
+val trans_tac = Int_Numeral_Simprocs.trans_tac;
 
 val prove_conv = Int_Numeral_Simprocs.prove_conv;
+
+val simplify_meta_eq = Int_Numeral_Simprocs.simplify_meta_eq;
 
 val bin_simps = [add_nat_number_of, nat_number_of_add_left,
 		 diff_nat_number_of, le_nat_number_of_eq_not_less, 
@@ -173,7 +175,7 @@ structure CancelNumeralsCommon =
   val mk_coeff		= mk_coeff
   val dest_coeff	= dest_coeff
   val find_first_coeff	= find_first_coeff []
-  val subst_tac          = subst_tac
+  val trans_tac          = trans_tac
   val norm_tac = ALLGOALS
                    (simp_tac (HOL_ss addsimps add_0s@mult_1s@
                                        [add_0, Suc_eq_add_numeral_1]@add_ac))
@@ -181,6 +183,7 @@ structure CancelNumeralsCommon =
 				(HOL_ss addsimps bin_simps@add_ac@mult_ac))
   val numeral_simp_tac	= ALLGOALS
                 (simp_tac (HOL_ss addsimps [numeral_0_eq_0 RS sym]@add_0s@bin_simps))
+  val simplify_meta_eq  = simplify_meta_eq (add_0s@mult_1s)
   end;
 
 
@@ -253,7 +256,7 @@ structure CombineNumeralsData =
   val dest_coeff	= dest_coeff
   val left_distrib	= left_add_mult_distrib RS trans
   val prove_conv	= prove_conv "nat_combine_numerals"
-  val subst_tac          = subst_tac
+  val trans_tac          = trans_tac
   val norm_tac = ALLGOALS
                    (simp_tac (HOL_ss addsimps add_0s@mult_1s@
                                        [add_0, Suc_eq_add_numeral_1]@add_ac))
@@ -261,6 +264,7 @@ structure CombineNumeralsData =
 				(HOL_ss addsimps bin_simps@add_ac@mult_ac))
   val numeral_simp_tac	= ALLGOALS
                 (simp_tac (HOL_ss addsimps [numeral_0_eq_0 RS sym]@add_0s@bin_simps))
+  val simplify_meta_eq  = simplify_meta_eq (add_0s@mult_1s)
   end;
 
 structure CombineNumerals = CombineNumeralsFun(CombineNumeralsData);

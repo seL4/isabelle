@@ -37,9 +37,10 @@ sig
   val bal_add2: thm
   (*proof tools*)
   val prove_conv: tactic list -> Sign.sg -> term * term -> thm option
-  val subst_tac: thm option -> tactic
-  val norm_tac: tactic
-  val numeral_simp_tac: tactic
+  val trans_tac: thm option -> tactic (*applies the initial lemma*)
+  val norm_tac: tactic                (*proves the initial lemma*)
+  val numeral_simp_tac: tactic        (*proves the final theorem*)
+  val simplify_meta_eq: thm -> thm    (*simplifies the final theorem*)
 end;
 
 
@@ -85,16 +86,17 @@ fun proc sg _ t =
 				      newshape(n2,terms2')))
   in
 
-      if n2<=n1 then 
-	  Data.prove_conv 
-	     [Data.subst_tac reshape, rtac Data.bal_add1 1,
-	      Data.numeral_simp_tac] sg
-	     (t, Data.mk_bal (newshape(n1-n2,terms1'), Data.mk_sum terms2'))
-      else
-	  Data.prove_conv 
-	     [Data.subst_tac reshape, rtac Data.bal_add2 1,
-	      Data.numeral_simp_tac] sg
-	     (t, Data.mk_bal (Data.mk_sum terms1', newshape(n2-n1,terms2')))
+      apsome Data.simplify_meta_eq
+       (if n2<=n1 then 
+	    Data.prove_conv 
+	       [Data.trans_tac reshape, rtac Data.bal_add1 1,
+		Data.numeral_simp_tac] sg
+	       (t, Data.mk_bal (newshape(n1-n2,terms1'), Data.mk_sum terms2'))
+	else
+	    Data.prove_conv 
+	       [Data.trans_tac reshape, rtac Data.bal_add2 1,
+		Data.numeral_simp_tac] sg
+	       (t, Data.mk_bal (Data.mk_sum terms1', newshape(n2-n1,terms2'))))
   end
   handle TERM _ => None
        | TYPE _ => None;   (*Typically (if thy doesn't include Numeral)

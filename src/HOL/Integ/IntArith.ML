@@ -76,6 +76,11 @@ by (asm_simp_tac (simpset() addsimps [zdiff_def, zadd_zmult_distrib]
                                      @zadd_ac@rel_iff_rel_0_rls) 1);
 qed "le_add_iff2";
 
+(*To tidy up the result of a simproc.  Only the RHS will be simplified.*)
+Goal "u = u' ==> (t=u) = (t=u')";
+by Auto_tac;
+qed "eq_cong2";
+
 
 structure Int_Numeral_Simprocs =
 struct
@@ -178,24 +183,24 @@ val zminus_simps = NCons_simps @
 (*To let us treat subtraction as addition*)
 val diff_simps = [zdiff_def, zminus_zadd_distrib, zminus_zminus];
 
-val def_trans = def_imp_eq RS trans;
-
 (*Apply the given rewrite (if present) just once*)
-fun subst_tac None      = all_tac
-  | subst_tac (Some th) = ALLGOALS (rtac (th RS def_trans));
-
-val mk_eqv = HOLogic.mk_Trueprop o HOLogic.mk_eq;
+fun trans_tac None      = all_tac
+  | trans_tac (Some th) = ALLGOALS (rtac (th RS trans));
 
 fun prove_conv name tacs sg (t, u) =
   if t aconv u then None
   else
-  Some
-     (mk_meta_eq (prove_goalw_cterm [] (cterm_of sg (mk_eqv (t, u)))
-	(K tacs))
+  let val ct = cterm_of sg (HOLogic.mk_Trueprop (HOLogic.mk_eq (t, u)))
+  in Some
+     (prove_goalw_cterm [] ct (K tacs)
       handle ERROR => error 
 	  ("The error(s) above occurred while trying to prove " ^
-	   string_of_cterm (cterm_of sg (mk_eqv (t, u))) ^ 
-	   "\nInternal failure of simproc " ^ name));
+	   string_of_cterm ct ^ "\nInternal failure of simproc " ^ name))
+  end;
+
+fun simplify_meta_eq rules =
+    mk_meta_eq o
+    simplify (HOL_basic_ss addcongs[eq_cong2] addsimps rules)
 
 fun prep_simproc (name, pats, proc) = Simplifier.mk_simproc name pats proc;
 fun prep_pat s = Thm.read_cterm (Theory.sign_of Int.thy) (s, HOLogic.termT);
@@ -208,13 +213,14 @@ structure CancelNumeralsCommon =
   val mk_coeff		= mk_coeff
   val dest_coeff	= dest_coeff 1
   val find_first_coeff	= find_first_coeff []
-  val subst_tac         = subst_tac
+  val trans_tac         = trans_tac
   val norm_tac = ALLGOALS (simp_tac (HOL_ss addsimps add_0s@mult_1s@diff_simps@
                                                      zminus_simps@zadd_ac))
                  THEN ALLGOALS
                     (simp_tac (HOL_ss addsimps [zmult_zminus_right RS sym]@
                                                bin_simps@zadd_ac@zmult_ac))
   val numeral_simp_tac	= ALLGOALS (simp_tac (HOL_ss addsimps add_0s@bin_simps))
+  val simplify_meta_eq  = simplify_meta_eq (add_0s@mult_1s)
   end;
 
 
@@ -272,7 +278,7 @@ structure CombineNumeralsData =
   val dest_coeff	= dest_coeff 1
   val left_distrib	= left_zadd_zmult_distrib RS trans
   val prove_conv	= prove_conv "int_combine_numerals"
-  val subst_tac          = subst_tac
+  val trans_tac          = trans_tac
   val norm_tac = ALLGOALS
                    (simp_tac (HOL_ss addsimps add_0s@mult_1s@diff_simps@
                                               zminus_simps@zadd_ac))
@@ -281,6 +287,7 @@ structure CombineNumeralsData =
                                                bin_simps@zadd_ac@zmult_ac))
   val numeral_simp_tac	= ALLGOALS 
                     (simp_tac (HOL_ss addsimps add_0s@bin_simps))
+  val simplify_meta_eq  = simplify_meta_eq (add_0s@mult_1s)
   end;
 
 structure CombineNumerals = CombineNumeralsFun(CombineNumeralsData);
