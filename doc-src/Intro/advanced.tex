@@ -36,15 +36,15 @@ definitions.
 \label{deriving-example}
 \index{examples!of deriving rules}
 
-The subgoal module supports the derivation of rules.  The \ttindex{goal}
-command, when supplied a goal of the form $\List{\theta@1; \ldots;
-\theta@k} \Imp \phi$, creates $\phi\Imp\phi$ as the initial proof state and
-returns a list consisting of the theorems 
-${\theta@i\;[\theta@i]}$, for $i=1$, \ldots,~$k$.  These meta-assumptions are
-also recorded internally, allowing \ttindex{result} to discharge them in the
-original order.
+The subgoal module supports the derivation of rules, as discussed in
+\S\ref{deriving}.  The \ttindex{goal} command, when supplied a goal of the
+form $\List{\theta@1; \ldots; \theta@k} \Imp \phi$, creates $\phi\Imp\phi$
+as the initial proof state and returns a list consisting of the theorems
+${\theta@i\;[\theta@i]}$, for $i=1$, \ldots,~$k$.  These meta-assumptions
+are also recorded internally, allowing \ttindex{result} to discharge them
+in the original order.
 
-Let us derive $\conj$ elimination~(\S\ref{deriving}) using Isabelle.
+Let us derive $\conj$ elimination using Isabelle.
 Until now, calling \ttindex{goal} has returned an empty list, which we have
 thrown away.  In this example, the list contains the two premises of the
 rule.  We bind them to the \ML\ identifiers {\tt major} and {\tt
@@ -353,7 +353,7 @@ rules on abstract syntax trees, for defining notations and abbreviations.
 The {\ML} section contains code to perform arbitrary syntactic
 transformations.  The main declaration forms are discussed below.
 The full syntax can be found in \iflabelundefined{app:TheorySyntax}{the
-  appendix of the {\it Reference Manual}}{Appendix~\ref{app:TheorySyntax}}.
+  appendix of the {\it Reference Manual}}{App.\ts\ref{app:TheorySyntax}}.
 
 All the declaration parts can be omitted.  In the simplest case, $T$ is
 just the union of $S@1$,~\ldots,~$S@n$.  New theories always extend one
@@ -518,28 +518,26 @@ quotation marks!  Types and rules must be quoted because the theory
 translator passes them verbatim to the {\ML} output file.
 \end{warn}
 
-\subsection{Type synonyms}
-\indexbold{types!synonyms}\index{types!abbreviations|see{synonyms}}
-
+\subsection{Type synonyms}\indexbold{types!synonyms}
 Isabelle supports {\bf type synonyms} ({\bf abbreviations}) which are similar
-to those found in ML. Such synonyms are defined in the type declaration part
+to those found in \ML.  Such synonyms are defined in the type declaration part
 and are fairly self explanatory:
 \begin{ttbox}
-types gate = "[o,o] => o"
-      'a pred = "'a => o"
+types gate       = "[o,o] => o"
+      'a pred    = "'a => o"
       ('a,'b)nuf = "'b => 'a"
 \end{ttbox}
 Type declarations and synonyms can be mixed arbitrarily:
 \begin{ttbox}
 types nat
       'a stream = "nat => 'a"
-      signal = "nat stream"
+      signal    = "nat stream"
       'a list
 \end{ttbox}
-A synonym is merely an abbreviation for some existing type expression. Hence
-synonyms may not be recursive! Internally all synonyms are fully expanded. As
-a consequence Isabelle output never contains synonyms. Their main purpose is
-to improve the readability of theories. Synonyms can be used just like any
+A synonym is merely an abbreviation for some existing type expression.  Hence
+synonyms may not be recursive!  Internally all synonyms are fully expanded.  As
+a consequence Isabelle output never contains synonyms.  Their main purpose is
+to improve the readability of theories.  Synonyms can be used just like any
 other type:
 \begin{ttbox}
 consts and,or :: "gate"
@@ -641,7 +639,7 @@ subclass of $k$ existing classes:
         \(id\) < \(c@1\), \ldots, \(c@k\)
 \end{ttbox}
 Type classes allow constants to be overloaded.  As suggested in
-\S\ref{polymorphic}, let us define the class $arith$ of ``arithmetic''
+\S\ref{polymorphic}, let us define the class $arith$ of arithmetic
 types with the constants ${+} :: [\alpha,\alpha]\To \alpha$ and $0,1 {::}
 \alpha$, for $\alpha{::}arith$.  We introduce $arith$ as a subclass of
 $term$ and add the three polymorphic constants of this class.
@@ -699,7 +697,7 @@ Section\ts\ref{sec:logical-syntax} has formalized a first-order logic,
 including a type~$nat$ and the constants $0::nat$ and $Suc::nat\To nat$.
 Let us introduce the Peano axioms for mathematical induction and the
 freeness of $0$ and~$Suc$:
-\[ \vcenter{\infer[(induct)*]{P[n/x]}{P[0/x] & \infer*{P[Suc(x)/x]}{[P]}}}
+\[ \vcenter{\infer[(induct)]{P[n/x]}{P[0/x] & \infer*{P[Suc(x)/x]}{[P]}}}
  \qquad \parbox{4.5cm}{provided $x$ is not free in any assumption except~$P$}
 \]
 \[ \infer[(Suc\_inject)]{m=n}{Suc(m)=Suc(n)} \qquad
@@ -752,7 +750,9 @@ function:
 \index{examples!of theories}
 Let us create the theory \ttindexbold{Nat} starting from theory~\verb$FOL$,
 which contains only classical logic with no natural numbers.  We declare
-the 0-place type constructor $nat$ and the constants $rec$ and~$Suc$:
+the 0-place type constructor $nat$ and the associated constants.  Note that
+the constant~0 requires a mixfix annotation because~0 is not a legal
+identifier, and could not otherwise be written in terms:
 \begin{ttbox}
 Nat = FOL +
 types   nat
@@ -835,7 +835,7 @@ and destruct-resolution, respectively.
 \end{description}
 The list {\it insts} consists of pairs $[(v@1,e@1), \ldots, (v@n,e@n)]$,
 where $v@1$, \ldots, $v@n$ are names of schematic variables in the rule ---
-with no leading question marks!! --- and $e@1$, \ldots, $e@n$ are
+with no leading question marks! --- and $e@1$, \ldots, $e@n$ are
 expressions giving their instantiations.  The expressions are type-checked
 in the context of a particular subgoal: free variables receive the same
 types as they have in the subgoal, and parameters may appear.  Type
