@@ -81,26 +81,21 @@ syntax as presented in \cite{isabelle-ref}.
   string & = & \verb,", ~\dots~ \verb,", \\
   verbatim & = & \verb,{*, ~\dots~ \verb,*}, \\[1ex]
 
-  letter & = & sletter ~|~ xletter \\
+  letter & = & latin ~|~ symletter \\
+  latin & = & \verb,a, ~|~ \dots ~|~ \verb,z, ~|~ \verb,A, ~|~ \dots ~|~ \verb,Z, \\
   digit & = & \verb,0, ~|~ \dots ~|~ \verb,9, \\
-  quasiletter & = & letter ~|~ digit ~|~ \verb,_, ~|~ \verb,', \\
+  quasiletter & = & letter ~|~ digit ~|~ \verb,_, ~|~ \verb,', ~|~ \verb,\<^isub>, ~|~ \verb,\<^isup>, \\
   sym & = & \verb,!, ~|~ \verb,#, ~|~ \verb,$, ~|~ \verb,%, ~|~ \verb,&, ~|~  %$
    \verb,*, ~|~ \verb,+, ~|~ \verb,-, ~|~ \verb,/, ~|~ \verb,:, ~|~ \\
   & & \verb,<, ~|~ \verb,=, ~|~ \verb,>, ~|~ \verb,?, ~|~ \texttt{\at} ~|~
   \verb,^, ~|~ \verb,_, ~|~ \verb,`, ~|~ \verb,|, ~|~ \verb,~, \\
   symbol & = & {\forall} ~|~ {\exists} ~|~ {\land} ~|~ {\lor} ~|~ \dots\\
-sletter & = & \verb,a, ~|~ \dots ~|~ \verb,z, ~|~ \verb,A, ~|~ \dots ~|~ \verb,Z, \\
-xletter & = & {\tt \backslash<} ~ (sletter ~|~ dletter ~|~ gletter ~|~ cletter) ~ {\tt >}\\
-dletter & = & \verb,aa, ~|~ \dots ~|~ \verb,zz, ~|~ \verb,AA, ~|~ \dots ~|~ \verb,ZZ, \\
-bletter & = & {\tt bool} ~|~ {\tt complex} ~|~ {\tt nat} ~|~ {\tt rat} ~|~ {\tt real} ~|~ {\tt int}\\
-cletter & = & {\tt \hat{}\, isup} ~~|~~ {\tt \hat{}\, isub}
-\end{matharray}
-\begin{matharray}{rcl}
-gletter & = & {\tt alpha} ~|~ {\tt beta} ~|~ {\tt gamma} ~|~ {\tt delta} ~|~ {\tt epsilon} ~|~ {\tt zeta} ~|~ {\tt eta} ~|\\ 
-        &   & {\tt theta} ~|~ {\tt iota} ~|~ {\tt kappa} ~|~ {\tt mu} ~|~ {\tt nu} ~|~ {\tt xi} ~|~ {\tt pi} ~|~ {\tt rho} ~|\\
-        &   & {\tt sigma} ~|~ {\tt tau} ~|~ {\tt upsilon} ~|~ {\tt phi} ~|~ {\tt psi} ~|~ {\tt omega} ~|~ {\tt Gamma} ~|\\
-        &   & {\tt Delta} ~|~ {\tt Theta} ~|~ {\tt Lambda} ~|~ {\tt Xi} ~|~ {\tt Pi} ~|~ {\tt Sigma} ~|~ {\tt Upsilon} ~|\\
-        &   & {\tt Phi} ~|~ {\tt Psi} ~|~ {\tt Omega}
+symletter & = & \verb,\<, (latin ~|~ latin~latin ~|~ greek) \verb,>, \\
+greek & = & \verb,alpha, ~|~ \verb,beta, ~|~ \verb,gamma, ~|~ \verb,delta, ~|~ \verb,epsilon, ~|~ \verb,zeta, ~|~ \verb,eta, ~| \\
+        &   & \verb,theta, ~|~ \verb,iota, ~|~ \verb,kappa, ~|~ \verb,mu, ~|~ \verb,nu, ~|~ \verb,xi, ~|~ \verb,pi, ~|~ \verb,rho, ~| \\
+        &   & \verb,sigma, ~|~ \verb,tau, ~|~ \verb,upsilon, ~|~ \verb,phi, ~|~ \verb,psi, ~|~ \verb,omega, ~|~ \verb,Gamma, ~| \\
+        &   & \verb,Delta, ~|~ \verb,Theta, ~|~ \verb,Lambda, ~|~ \verb,Xi, ~|~ \verb,Pi, ~|~ \verb,Sigma, ~|~ \verb,Upsilon, ~| \\
+        &   & \verb,Phi, ~|~ \verb,Psi, ~|~ \verb,Omega,
 \end{matharray}
 
 The syntax of $string$ admits any characters, including newlines; ``\verb|"|''
@@ -128,11 +123,9 @@ provides \emph{formal comments} that are considered as part of the text (see
 Mathematical symbols such as ``$\forall$'' are represented in plain ASCII as
 ``\verb,\<forall>,''.  Concerning Isabelle itself, any sequence of the form
 \verb,\<,$ident$\verb,>, (or \verb,\\<,$ident$\verb,>,) is a legal symbol.
-Greek letters \verb+\<alpha>+, \verb+\<beta>+, etc (apart from
-\verb+\<lambda>+), caligraphic letters in various styles, as
-well as the special \verb+\<^isub>+ and \verb+\<^isup>+ sub/superscipt
-control characters are considered proper letters and can be used as
-part of any identifier. 
+Greek letters \verb+\<alpha>+, \verb+\<beta>+, etc. (apart from
+\verb+\<lambda>+), as well as the \verb+\<^isub>+ and \verb+\<^isup>+ control
+characters may be used in identifiers as well.
 
 Display of appropriate glyphs is a matter of front-end tools, say the
 user-interface of Proof~General plus the X-Symbol package, or the {\LaTeX}
@@ -146,8 +139,8 @@ Subsequently, we introduce several basic syntactic entities, such as names,
 terms, and theorem specifications, which have been factored out of the actual
 Isar language elements to be described later.
 
-Note that some of the basic syntactic entities introduced below (e.g.\ 
-\railqtok{name}) act much like tokens rather than plain nonterminals (e.g.\ 
+Note that some of the basic syntactic entities introduced below (e.g.\
+\railqtok{name}) act much like tokens rather than plain nonterminals (e.g.\
 \railnonterm{sort}), especially for the sake of error messages.  E.g.\ syntax
 elements like $\CONSTS$ referring to \railqtok{name} or \railqtok{type} would
 really report a missing name or type rather than any of the constituent
@@ -159,7 +152,7 @@ primitive tokens such as \railtok{ident} or \railtok{string}.
 Entity \railqtok{name} usually refers to any name of types, constants,
 theorems etc.\ that are to be \emph{declared} or \emph{defined} (so qualified
 identifiers are excluded here).  Quoted strings provide an escape for
-non-identifier names or those ruled out by outer syntax keywords (e.g.\ 
+non-identifier names or those ruled out by outer syntax keywords (e.g.\
 \verb|"let"|).  Already existing objects are usually referenced by
 \railqtok{nameref}.
 
@@ -471,7 +464,7 @@ Note that the syntax of antiquotations may \emph{not} include source comments
 \texttt{(*~\dots~*)} or verbatim text \verb|{*|~\dots~\verb|*}|.
 
 \begin{descr}
-  
+
 \item [$\at\{thm~\vec a\}$] prints theorems $\vec a$. Note that attribute
   specifications may be included as well (see also \S\ref{sec:syn-att}); the
   $no_vars$ operation (see \S\ref{sec:misc-meth-att}) would be particularly
@@ -482,12 +475,12 @@ Note that the syntax of antiquotations may \emph{not} include source comments
 \item [$\at\{term~t\}$] prints a well-typed term $t$.
 
 \item [$\at\{typ~\tau\}$] prints a well-formed type $\tau$.
-  
+
 \item [$\at\{text~s\}$] prints uninterpreted source text $s$.  This is
   particularly useful to print portions of text according to the Isabelle
   {\LaTeX} output style, without demanding well-formedness (e.g.\ small pieces
   of terms that should not be parsed or type-checked yet).
-  
+
 \item [$\at\{goals\}$] prints the current \emph{dynamic} goal state.  This is
   mainly for support of tactic-emulation scripts within Isar --- presentation
   of goal states does not conform to actual human-readable proof documents.
@@ -538,6 +531,9 @@ these coincide with ML flags of the same names (see also \cite{isabelle-ref}).
   admits arbitrary output).
 \item[$goals_limit = nat$] determines the maximum number of goals to be
   printed.
+\item[$locale = name$] specifies an alternative context used for evaluating
+  and printing the subsequent argument.  Note that a proof context is escaped
+  to the enclosing theory context first.
 \end{descr}
 
 For boolean flags, ``$name = true$'' may be abbreviated as ``$name$''.  All of
@@ -549,7 +545,7 @@ consistency-checking of informal explanations with formal developments:
 well-formedness of terms and types with respect to the current theory or proof
 context is ensured here.
 
-%%% Local Variables: 
+%%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "isar-ref"
-%%% End: 
+%%% End:
