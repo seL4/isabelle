@@ -111,13 +111,7 @@ sig
   val string_of_indexname: string * int -> string
 
   (*strings*)
-  val is_letter: string -> bool
-  val is_digit: string -> bool
-  val is_quasi_letter: string -> bool
-  val is_blank: string -> bool
-  val is_letdig: string -> bool
-  val is_printable: string -> bool
-  val to_lower: string -> string
+  val beginning: string list -> string
   val enclose: string -> string -> string -> string
   val quote: string -> string
   val space_implode: string -> string list -> string
@@ -176,6 +170,7 @@ sig
   val generic_merge: ('a * 'a -> bool) -> ('b -> 'a list) -> ('a list -> 'b) -> 'b -> 'b -> 'b
   val extend_list: ''a list -> ''a list -> ''a list
   val merge_lists: ''a list -> ''a list -> ''a list
+  val merge_alists: (''a * 'b) list -> (''a * 'b) list -> (''a * 'b) list
   val merge_rev_lists: ''a list -> ''a list -> ''a list
 
   (*balanced trees*)
@@ -602,37 +597,8 @@ fun string_of_indexname (a,0) = a
 
 (** strings **)
 
-fun is_letter ch =
-  size ch = 1 andalso
-   (ord "A" <= ord ch andalso ord ch <= ord "Z" orelse
-    ord "a" <= ord ch andalso ord ch <= ord "z");
-
-fun is_digit ch =
-  size ch = 1 andalso ord "0" <= ord ch andalso ord ch <= ord "9";
-
-(*letter or _ or prime (')*)
-fun is_quasi_letter "_" = true
-  | is_quasi_letter "'" = true
-  | is_quasi_letter ch = is_letter ch;
-
-(*white space: blanks, tabs, newlines, formfeeds*)
-val is_blank : string -> bool =					(* FIXME *)
-  fn " " => true | "\t" => true | "\n" => true | "\^L" => true | "\160" => true
-    | _ => false;
-
-val is_letdig = is_quasi_letter orf is_digit;
-
-(*printable chars*)
-fun is_printable c = size c = 1 andalso ord c > ord " " andalso ord c <= ord "~";
-
-(*lower all chars of string*)
-val to_lower =
-  let
-    fun lower ch =
-      if size ch = 1 andalso ch >= "A" andalso ch <= "Z" then
-        chr (ord ch - ord "A" + ord "a")
-      else ch;
-  in implode o (map lower) o explode end;
+(*beginning of text*)
+fun beginning cs = implode (take (10, cs)) ^ " ...";
 
 (*enclose in brackets*)
 fun enclose lpar rpar str = lpar ^ str ^ rpar;
@@ -894,6 +860,7 @@ fun generic_merge eq dest_tab mk_tab tab1 tab2 =
 (*lists as tables*)
 fun extend_list tab = generic_extend (op =) I I tab;
 fun merge_lists tab = generic_merge (op =) I I tab;
+fun merge_alists tab = generic_merge eq_fst I I tab;
 
 fun merge_rev_lists xs [] = xs
   | merge_rev_lists [] ys = ys
