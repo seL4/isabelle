@@ -40,17 +40,14 @@ done
 
 lemma Part_eqI [intro]: 
     "[| a : A;  a=h(b) |] ==> a : Part(A,h)"
-apply (unfold Part_def)
-apply blast
-done
+by (unfold Part_def, blast)
 
 lemmas PartI = refl [THEN [2] Part_eqI]
 
 lemma PartE [elim!]: 
     "[| a : Part(A,h);  !!z. [| a : A;  a=h(z) |] ==> P   
      |] ==> P"
-apply (unfold Part_def)
-apply blast
+apply (unfold Part_def, blast)
 done
 
 lemma Part_subset: "Part(A,h) <= A"
@@ -64,21 +61,15 @@ done
 lemmas sum_defs = sum_def Inl_def Inr_def case_def
 
 lemma Sigma_bool: "Sigma(bool,C) = C(0) + C(1)"
-apply (unfold bool_def sum_def)
-apply blast
-done
+by (unfold bool_def sum_def, blast)
 
 (** Introduction rules for the injections **)
 
 lemma InlI [intro!,simp,TC]: "a : A ==> Inl(a) : A+B"
-apply (unfold sum_defs)
-apply blast
-done
+by (unfold sum_defs, blast)
 
 lemma InrI [intro!,simp,TC]: "b : B ==> Inr(b) : A+B"
-apply (unfold sum_defs)
-apply blast
-done
+by (unfold sum_defs, blast)
 
 (** Elimination rules **)
 
@@ -87,31 +78,24 @@ lemma sumE [elim!]:
         !!x. [| x:A;  u=Inl(x) |] ==> P;  
         !!y. [| y:B;  u=Inr(y) |] ==> P  
      |] ==> P"
-apply (unfold sum_defs)
-apply (blast intro: elim:); 
-done
+by (unfold sum_defs, blast) 
 
 (** Injection and freeness equivalences, for rewriting **)
 
 lemma Inl_iff [iff]: "Inl(a)=Inl(b) <-> a=b"
-apply (simp add: sum_defs)
-done
+by (simp add: sum_defs)
 
 lemma Inr_iff [iff]: "Inr(a)=Inr(b) <-> a=b"
-apply (simp add: sum_defs)
-done
+by (simp add: sum_defs)
 
 lemma Inl_Inr_iff [iff]: "Inl(a)=Inr(b) <-> False"
-apply (simp add: sum_defs)
-done
+by (simp add: sum_defs)
 
 lemma Inr_Inl_iff [iff]: "Inr(b)=Inl(a) <-> False"
-apply (simp add: sum_defs)
-done
+by (simp add: sum_defs)
 
 lemma sum_empty [simp]: "0+0 = 0"
-apply (simp add: sum_defs)
-done
+by (simp add: sum_defs)
 
 (*Injection and freeness rules*)
 
@@ -122,49 +106,44 @@ lemmas Inr_neq_Inl = Inr_Inl_iff [THEN iffD1, THEN FalseE]
 
 
 lemma InlD: "Inl(a): A+B ==> a: A"
-apply blast
-done
+by blast
 
 lemma InrD: "Inr(b): A+B ==> b: B"
-apply blast
-done
+by blast
 
 lemma sum_iff: "u: A+B <-> (EX x. x:A & u=Inl(x)) | (EX y. y:B & u=Inr(y))"
-apply blast
-done
+by blast
+
+lemma Inl_in_sum_iff [simp]: "(Inl(x) \<in> A+B) <-> (x \<in> A)";
+by auto
+
+lemma Inr_in_sum_iff [simp]: "(Inr(y) \<in> A+B) <-> (y \<in> B)";
+by auto
 
 lemma sum_subset_iff: "A+B <= C+D <-> A<=C & B<=D"
-apply blast
-done
+by blast
 
 lemma sum_equal_iff: "A+B = C+D <-> A=C & B=D"
-apply (simp add: extension sum_subset_iff)
-apply blast
-done
+by (simp add: extension sum_subset_iff, blast)
 
 lemma sum_eq_2_times: "A+A = 2*A"
-apply (simp add: sum_def)
-apply blast
-done
+by (simp add: sum_def, blast)
 
 
 (*** Eliminator -- case ***)
 
 lemma case_Inl [simp]: "case(c, d, Inl(a)) = c(a)"
-apply (simp add: sum_defs)
-done
+by (simp add: sum_defs)
 
 lemma case_Inr [simp]: "case(c, d, Inr(b)) = d(b)"
-apply (simp add: sum_defs)
-done
+by (simp add: sum_defs)
 
 lemma case_type [TC]:
     "[| u: A+B;  
         !!x. x: A ==> c(x): C(Inl(x));    
         !!y. y: B ==> d(y): C(Inr(y))  
      |] ==> case(c,d,u) : C(u)"
-apply (auto );  
-done
+by auto
 
 lemma expand_case: "u: A+B ==>    
         R(case(c,d,u)) <->  
@@ -177,10 +156,11 @@ lemma case_cong:
       !!x. x:A ==> c(x)=c'(x);   
       !!y. y:B ==> d(y)=d'(y)    
    |] ==> case(c,d,z) = case(c',d',z)"
-by (auto ); 
+by auto 
 
 lemma case_case: "z: A+B ==>    
-        case(c, d, case(%x. Inl(c'(x)), %y. Inr(d'(y)), z)) =  
+        
+	case(c, d, case(%x. Inl(c'(x)), %y. Inr(d'(y)), z)) =  
         case(%x. c(c'(x)), %y. d(d'(y)), z)"
 by auto
 
@@ -188,39 +168,31 @@ by auto
 (*** More rules for Part(A,h) ***)
 
 lemma Part_mono: "A<=B ==> Part(A,h)<=Part(B,h)"
-apply blast
-done
+by blast
 
 lemma Part_Collect: "Part(Collect(A,P), h) = Collect(Part(A,h), P)"
-apply blast
-done
+by blast
 
 lemmas Part_CollectE =
      Part_Collect [THEN equalityD1, THEN subsetD, THEN CollectE, standard]
 
 lemma Part_Inl: "Part(A+B,Inl) = {Inl(x). x: A}"
-apply blast
-done
+by blast
 
 lemma Part_Inr: "Part(A+B,Inr) = {Inr(y). y: B}"
-apply blast
-done
+by blast
 
 lemma PartD1: "a : Part(A,h) ==> a : A"
-apply (simp add: Part_def)
-done
+by (simp add: Part_def)
 
 lemma Part_id: "Part(A,%x. x) = A"
-apply blast
-done
+by blast
 
 lemma Part_Inr2: "Part(A+B, %x. Inr(h(x))) = {Inr(y). y: Part(B,h)}"
-apply blast
-done
+by blast
 
 lemma Part_sum_equality: "C <= A+B ==> Part(C,Inl) Un Part(C,Inr) = C"
-apply blast
-done
+by blast
 
 ML
 {*

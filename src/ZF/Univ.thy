@@ -563,6 +563,9 @@ apply (unfold univ_def)
 apply (rule nat_0I [THEN zero_in_Vfrom])
 done
 
+lemma zero_subset_univ: "{0} <= univ(A)"
+by (blast intro: zero_in_univ)
+
 lemma A_subset_univ: "A <= univ(A)"
 apply (unfold univ_def)
 apply (rule A_subset_Vfrom)
@@ -649,10 +652,16 @@ done
 
 lemmas sum_subset_univ = subset_trans [OF sum_mono sum_univ]
 
+lemma Sigma_subset_univ:
+  "[|A \<subseteq> univ(D); \<And>x. x \<in> A \<Longrightarrow> B(x) \<subseteq> univ(D)|] ==> Sigma(A,B) \<subseteq> univ(D)"
+apply (simp add: univ_def)
+apply (blast intro: Sigma_subset_VLimit del: subsetI) 
+done
 
-subsubsection{* Closure under binary union -- use Un_least *}
-subsubsection{* Closure under Collect -- use  (Collect_subset RS subset_trans)  *}
-subsubsection{* Closure under RepFun -- use   RepFun_subset  *}
+
+(*Closure under binary union -- use Un_least
+  Closure under Collect -- use  Collect_subset [THEN subset_trans]
+  Closure under RepFun -- use   RepFun_subset *)
 
 
 subsection{* Finite Branching Closure Properties *}
