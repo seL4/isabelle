@@ -443,12 +443,6 @@ done
 
 subsection{* Isomorphisms *}
 
-lemma inj_Rep_LList: "inj Rep_LList"
-apply (rule inj_on_inverseI)
-apply (rule Rep_LList_inverse)
-done
-
-
 lemma LListI: "x \<in> llist (range Leaf) ==> x \<in> LList"
 by (unfold LList_def, simp)
 

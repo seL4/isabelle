@@ -152,21 +152,8 @@ lemmas equiv_hcomplexrel_iff =
 lemma hcomplexrel_in_hcomplex [simp]: "hcomplexrel``{x} : hcomplex"
 by (simp add: hcomplex_def hcomplexrel_def quotient_def, blast)
 
-lemma inj_on_Abs_hcomplex: "inj_on Abs_hcomplex hcomplex"
-apply (rule inj_on_inverseI)
-apply (erule Abs_hcomplex_inverse)
-done
-
-declare inj_on_Abs_hcomplex [THEN inj_on_iff, simp]
-        Abs_hcomplex_inverse [simp]
-
+declare Abs_hcomplex_inject [simp] Abs_hcomplex_inverse [simp]
 declare equiv_hcomplexrel [THEN eq_equiv_class_iff, simp]
-
-
-lemma inj_Rep_hcomplex: "inj(Rep_hcomplex)"
-apply (rule inj_on_inverseI)
-apply (rule Rep_hcomplex_inverse)
-done
 
 lemma lemma_hcomplexrel_refl [simp]: "x: hcomplexrel `` {x}"
 by (simp add: hcomplexrel_def)
@@ -1552,8 +1539,6 @@ val hcomplexrel_trans = thm"hcomplexrel_trans";
 val equiv_hcomplexrel = thm"equiv_hcomplexrel";
 val equiv_hcomplexrel_iff = thm"equiv_hcomplexrel_iff";
 val hcomplexrel_in_hcomplex = thm"hcomplexrel_in_hcomplex";
-val inj_on_Abs_hcomplex = thm"inj_on_Abs_hcomplex";
-val inj_Rep_hcomplex = thm"inj_Rep_hcomplex";
 val lemma_hcomplexrel_refl = thm"lemma_hcomplexrel_refl";
 val hcomplex_empty_not_mem = thm"hcomplex_empty_not_mem";
 val Rep_hcomplex_nonempty = thm"Rep_hcomplex_nonempty";

@@ -86,23 +86,9 @@ lemmas equiv_hypnatrel_iff =
 lemma hypnatrel_in_hypnat [simp]: "hypnatrel``{x}:hypnat"
 by (simp add: hypnat_def hypnatrel_def quotient_def, blast)
 
-lemma inj_on_Abs_hypnat: "inj_on Abs_hypnat hypnat"
-apply (rule inj_on_inverseI)
-apply (erule Abs_hypnat_inverse)
-done
-
-declare inj_on_Abs_hypnat [THEN inj_on_iff, simp]
-        Abs_hypnat_inverse [simp]
-
+declare Abs_hypnat_inject [simp] Abs_hypnat_inverse [simp]
 declare equiv_hypnatrel [THEN eq_equiv_class_iff, simp]
-
 declare hypnatrel_iff [iff]
-
-
-lemma inj_Rep_hypnat: "inj(Rep_hypnat)"
-apply (rule inj_on_inverseI)
-apply (rule Rep_hypnat_inverse)
-done
 
 lemma lemma_hypnatrel_refl: "x \<in> hypnatrel `` {x}"
 by (simp add: hypnatrel_def)
@@ -792,8 +778,6 @@ val hypnat_omega_def = thm"hypnat_omega_def";
 
 val hypnatrel_iff = thm "hypnatrel_iff";
 val hypnatrel_in_hypnat = thm "hypnatrel_in_hypnat";
-val inj_on_Abs_hypnat = thm "inj_on_Abs_hypnat";
-val inj_Rep_hypnat = thm "inj_Rep_hypnat";
 val lemma_hypnatrel_refl = thm "lemma_hypnatrel_refl";
 val hypnat_empty_not_mem = thm "hypnat_empty_not_mem";
 val Rep_hypnat_nonempty = thm "Rep_hypnat_nonempty";

@@ -76,27 +76,11 @@ theorem nat_induct: "P 0 ==> (!!n. P n ==> P (Suc n)) ==> P n"
   apply (rules elim: Abs_Nat_inverse [THEN subst])
   done
 
-
-text {* Isomorphisms: @{text Abs_Nat} and @{text Rep_Nat} *}
-
-lemma inj_Rep_Nat: "inj Rep_Nat"
-  apply (rule inj_on_inverseI)
-  apply (rule Rep_Nat_inverse)
-  done
-
-lemma inj_on_Abs_Nat: "inj_on Abs_Nat Nat"
-  apply (rule inj_on_inverseI)
-  apply (erule Abs_Nat_inverse)
-  done
-
 text {* Distinctness of constructors *}
 
 lemma Suc_not_Zero [iff]: "Suc m \<noteq> 0"
-  apply (unfold Zero_nat_def Suc_def)
-  apply (rule inj_on_Abs_Nat [THEN inj_on_contraD])
-  apply (rule Suc_Rep_not_Zero_Rep)
-  apply (rule Rep_Nat Nat.Suc_RepI Nat.Zero_RepI)+
-  done
+  by (simp add: Zero_nat_def Suc_def Abs_Nat_inject Rep_Nat Suc_RepI Zero_RepI
+                Suc_Rep_not_Zero_Rep) 
 
 lemma Zero_not_Suc [iff]: "0 \<noteq> Suc m"
   by (rule not_sym, rule Suc_not_Zero not_sym)
@@ -110,22 +94,14 @@ lemma Zero_neq_Suc: "0 = Suc m ==> R"
 text {* Injectiveness of @{term Suc} *}
 
 lemma inj_Suc: "inj_on Suc N"
-  apply (unfold Suc_def)
-  apply (rule inj_onI)
-  apply (drule inj_on_Abs_Nat [THEN inj_onD])
-  apply (rule Rep_Nat Nat.Suc_RepI)+
-  apply (drule inj_Suc_Rep [THEN injD])
-  apply (erule inj_Rep_Nat [THEN injD])
-  done
+  by (simp add: Suc_def inj_on_def Abs_Nat_inject Rep_Nat Suc_RepI 
+                inj_Suc_Rep [THEN inj_eq] Rep_Nat_inject) 
 
 lemma Suc_inject: "Suc x = Suc y ==> x = y"
   by (rule inj_Suc [THEN injD])
 
 lemma Suc_Suc_eq [iff]: "(Suc m = Suc n) = (m = n)"
-  apply (rule iffI)
-  apply (erule Suc_inject)
-  apply (erule arg_cong)
-  done
+  by (rule inj_Suc [THEN inj_eq])
 
 lemma nat_not_singleton: "(\<forall>x. x = (0::nat)) = False"
   by auto

@@ -255,24 +255,12 @@ lemmas equiv_hyprel_iff =
 lemma hyprel_in_hypreal [simp]: "hyprel``{x}:hypreal"
 by (simp add: hypreal_def hyprel_def quotient_def, blast)
 
-lemma inj_on_Abs_hypreal: "inj_on Abs_hypreal hypreal"
-apply (rule inj_on_inverseI)
-apply (erule Abs_hypreal_inverse)
-done
 
-declare inj_on_Abs_hypreal [THEN inj_on_iff, simp] 
-        Abs_hypreal_inverse [simp]
-
+declare Abs_hypreal_inject [simp] Abs_hypreal_inverse [simp]
 declare equiv_hyprel [THEN eq_equiv_class_iff, simp]
-
 declare hyprel_iff [iff]
 
 lemmas eq_hyprelD = eq_equiv_class [OF _ equiv_hyprel]
-
-lemma inj_Rep_hypreal: "inj(Rep_hypreal)"
-apply (rule inj_on_inverseI)
-apply (rule Rep_hypreal_inverse)
-done
 
 lemma lemma_hyprel_refl [simp]: "x \<in> hyprel `` {x}"
 by (simp add: hyprel_def)
@@ -723,8 +711,6 @@ val FreeUltrafilterNat_Un = thm "FreeUltrafilterNat_Un";
 val hyprel_iff = thm "hyprel_iff";
 val hyprel_in_hypreal = thm "hyprel_in_hypreal";
 val Abs_hypreal_inverse = thm "Abs_hypreal_inverse";
-val inj_on_Abs_hypreal = thm "inj_on_Abs_hypreal";
-val inj_Rep_hypreal = thm "inj_Rep_hypreal";
 val lemma_hyprel_refl = thm "lemma_hyprel_refl";
 val hypreal_empty_not_mem = thm "hypreal_empty_not_mem";
 val Rep_hypreal_nonempty = thm "Rep_hypreal_nonempty";

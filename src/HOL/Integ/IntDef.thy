@@ -75,25 +75,16 @@ text{*All equivalence classes belong to set of representatives*}
 lemma [simp]: "intrel``{(x,y)} \<in> Integ"
 by (auto simp add: Integ_def intrel_def quotient_def)
 
-lemma inj_on_Abs_Integ: "inj_on Abs_Integ Integ"
-apply (rule inj_on_inverseI)
-apply (erule Abs_Integ_inverse)
-done
-
-text{*This theorem reduces equality on abstractions to equality on 
-      representatives:
+text{*Reduces equality on abstractions to equality on representatives:
   @{term "\<lbrakk>x \<in> Integ; y \<in> Integ\<rbrakk> \<Longrightarrow> (Abs_Integ x = Abs_Integ y) = (x=y)"} *}
-declare inj_on_Abs_Integ [THEN inj_on_iff, simp]
-
-declare Abs_Integ_inverse [simp]
+declare Abs_Integ_inject [simp]  Abs_Integ_inverse [simp]
 
 text{*Case analysis on the representation of an integer as an equivalence
       class of pairs of naturals.*}
 lemma eq_Abs_Integ [case_names Abs_Integ, cases type: int]:
      "(!!x y. z = Abs_Integ(intrel``{(x,y)}) ==> P) ==> P"
-apply (rule Rep_Integ [of z, unfolded Integ_def, THEN quotientE])
-apply (drule arg_cong [where f=Abs_Integ])
-apply (auto simp add: Rep_Integ_inverse)
+apply (rule Abs_Integ_cases [of z]) 
+apply (auto simp add: Integ_def quotient_def) 
 done
 
 
@@ -408,8 +399,7 @@ lemma int_nat_eq [simp]: "int (nat z) = (if 0 \<le> z then z else 0)"
 by (cases z, simp add: nat le int_def Zero_int_def)
 
 corollary nat_0_le: "0 \<le> z ==> int (nat z) = z"
-apply simp 
-done
+by simp
 
 lemma nat_le_0 [simp]: "z \<le> 0 ==> nat z = 0"
 by (cases z, simp add: nat le int_def Zero_int_def)
@@ -496,12 +486,20 @@ lemma negative_eq_positive [simp]: "(- int n = int m) = (n = 0 & m = 0)"
 by (force simp add: order_eq_iff [of "- int n"] int_zle_neg)
 
 lemma zle_iff_zadd: "(w \<le> z) = (\<exists>n. z = w + int n)"
-apply (cases w, cases z)
-apply (auto simp add: le add int_def) 
-apply (rename_tac a b c d) 
-apply (rule_tac x="c+b - (a+d)" in exI) 
-apply arith
-done
+proof (cases w, cases z, simp add: le add int_def)
+  fix a b c d
+  assume "w = Abs_Integ (intrel `` {(a,b)})" "z = Abs_Integ (intrel `` {(c,d)})"
+  show "(a+d \<le> c+b) = (\<exists>n. c+b = a+n+d)"
+  proof
+    assume "a + d \<le> c + b" 
+    thus "\<exists>n. c + b = a + n + d" 
+      by (auto intro!: exI [where x="c+b - (a+d)"])
+  next    
+    assume "\<exists>n. c + b = a + n + d" 
+    then obtain n where "c + b = a + n + d" ..
+    thus "a + d \<le> c + b" by arith
+  qed
+qed
 
 lemma abs_int_eq [simp]: "abs (int m) = int m"
 by (simp add: abs_if)

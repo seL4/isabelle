@@ -131,19 +131,7 @@ by (blast dest: Push_inject1 Push_inject2)
 lemma Push_neq_K0: "Push (Inr (Suc k)) f = (%z. Inr 0) ==> P"
 by (auto simp add: Push_def expand_fun_eq split: nat.split_asm)
 
-(*** Isomorphisms ***)
-
-lemma inj_Rep_Node: "inj(Rep_Node)"
-apply (rule inj_on_inverseI) 
-apply (rule Rep_Node_inverse)
-done
-
-lemma inj_on_Abs_Node: "inj_on Abs_Node Node"
-apply (rule inj_on_inverseI)
-apply (erule Abs_Node_inverse)
-done
-
-lemmas Abs_Node_inj = inj_on_Abs_Node [THEN inj_onD, standard]
+lemmas Abs_Node_inj = Abs_Node_inject [THEN [2] rev_iffD1, standard]
 
 
 (*** Introduction rules for Node ***)
@@ -151,8 +139,7 @@ lemmas Abs_Node_inj = inj_on_Abs_Node [THEN inj_onD, standard]
 lemma Node_K0_I: "(%k. Inr 0, a) : Node"
 by (simp add: Node_def)
 
-lemma Node_Push_I: 
-    "p: Node ==> apfst (Push i) p : Node"
+lemma Node_Push_I: "p: Node ==> apfst (Push i) p : Node"
 apply (simp add: Node_def Push_def) 
 apply (fast intro!: apfst_conv nat_case_Suc [THEN trans])
 done
@@ -211,7 +198,7 @@ apply (simp add: Push_Node_def)
 apply (erule Abs_Node_inj [THEN apfst_convE])
 apply (rule Rep_Node [THEN Node_Push_I])+
 apply (erule sym [THEN apfst_convE]) 
-apply (blast intro: inj_Rep_Node [THEN injD] trans sym elim!: Push_inject)
+apply (blast intro: Rep_Node_inject [THEN iffD1] trans sym elim!: Push_inject)
 done
 
 
@@ -551,8 +538,6 @@ val Push_inject1 = thm "Push_inject1";
 val Push_inject2 = thm "Push_inject2";
 val Push_inject = thm "Push_inject";
 val Push_neq_K0 = thm "Push_neq_K0";
-val inj_Rep_Node = thm "inj_Rep_Node";
-val inj_on_Abs_Node = thm "inj_on_Abs_Node";
 val Abs_Node_inj = thm "Abs_Node_inj";
 val Node_K0_I = thm "Node_K0_I";
 val Node_Push_I = thm "Node_Push_I";

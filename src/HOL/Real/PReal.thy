@@ -95,17 +95,8 @@ defs (overloaded)
     "inverse R == Abs_preal(inverse_set (Rep_preal R))"
 
 
-lemma inj_on_Abs_preal: "inj_on Abs_preal preal"
-apply (rule inj_on_inverseI)
-apply (erule Abs_preal_inverse)
-done
-
-declare inj_on_Abs_preal [THEN inj_on_iff, simp]
-
-lemma inj_Rep_preal: "inj(Rep_preal)"
-apply (rule inj_on_inverseI)
-apply (rule Rep_preal_inverse)
-done
+text{*Reduces equality on abstractions to equality on representatives*}
+declare Abs_preal_inject [simp]
 
 lemma preal_nonempty: "A \<in> preal ==> \<exists>x\<in>A. 0 < x"
 by (unfold preal_def cut_def, blast)
@@ -601,7 +592,7 @@ apply (drule_tac w=w and x=x and y=y in preal_add_mult_distrib_mean, auto)
 done
 
 lemma preal_add_mult_distrib2: "(w * ((x::preal) + y)) = (w * x) + (w * y)"
-apply (rule inj_Rep_preal [THEN injD])
+apply (rule Rep_preal_inject [THEN iffD1])
 apply (rule equalityI [OF distrib_subset1 distrib_subset2])
 done
 
@@ -887,14 +878,12 @@ apply (simp add: zero_less_mult_iff preal_imp_pos [OF Rep_preal])
 apply (blast intro: inverse_mult_subset_lemma) 
 done
 
-lemma preal_mult_inverse:
-     "inverse R * R = (preal_of_rat 1)"
-apply (rule inj_Rep_preal [THEN injD])
+lemma preal_mult_inverse: "inverse R * R = (preal_of_rat 1)"
+apply (rule Rep_preal_inject [THEN iffD1])
 apply (rule equalityI [OF inverse_mult_subset subset_inverse_mult]) 
 done
 
-lemma preal_mult_inverse_right:
-     "R * inverse R = (preal_of_rat 1)"
+lemma preal_mult_inverse_right: "R * inverse R = (preal_of_rat 1)"
 apply (rule preal_mult_commute [THEN subst])
 apply (rule preal_mult_inverse)
 done
@@ -1328,8 +1317,6 @@ by (simp add: preal_of_rat_le_iff order_eq_iff)
 
 ML
 {*
-val inj_on_Abs_preal = thm"inj_on_Abs_preal";
-val inj_Rep_preal = thm"inj_Rep_preal";
 val mem_Rep_preal_Ex = thm"mem_Rep_preal_Ex";
 val preal_add_commute = thm"preal_add_commute";
 val preal_add_assoc = thm"preal_add_assoc";
