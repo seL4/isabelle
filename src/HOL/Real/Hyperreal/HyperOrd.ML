@@ -501,10 +501,11 @@ by (full_simp_tac (simpset() addsimps
 		    pnat_add_ac) 1);
 qed "hypreal_of_posnat_two";
 
+(*FIXME: delete this and all posnat*)
 Goalw [hypreal_of_posnat_def]
-          "hypreal_of_posnat n1 + hypreal_of_posnat n2 = \
-\          hypreal_of_posnat (n1 + n2) + 1hr";
-by (full_simp_tac (simpset() addsimps [hypreal_of_posnat_one RS sym,
+     "hypreal_of_posnat n1 + hypreal_of_posnat n2 = \
+\     hypreal_of_posnat (n1 + n2) + 1hr";
+by (full_simp_tac (HOL_ss addsimps [hypreal_of_posnat_one RS sym,
     hypreal_of_real_add RS sym,hypreal_of_posnat_def,real_of_preal_add RS sym,
     preal_of_prat_add RS sym,prat_of_pnat_add RS sym,pnat_of_nat_add]) 1);
 qed "hypreal_of_posnat_add";
@@ -617,11 +618,10 @@ by (full_simp_tac (simpset() addsimps [hypreal_of_posnat_two,
 qed "hypreal_of_nat_one";
 
 Goalw [hypreal_of_nat_def]
-      "hypreal_of_nat n1 + hypreal_of_nat n2 = \
-\      hypreal_of_nat (n1 + n2)";
+     "hypreal_of_nat n1 + hypreal_of_nat n2 = hypreal_of_nat (n1 + n2)";
 by (full_simp_tac (simpset() addsimps hypreal_add_ac) 1);
 by (simp_tac (simpset() addsimps [hypreal_of_posnat_add,
-    hypreal_add_assoc RS sym]) 1);
+                                  hypreal_add_assoc RS sym]) 1);
 qed "hypreal_of_nat_add";
 
 Goal "hypreal_of_nat 2 = 1hr + 1hr";

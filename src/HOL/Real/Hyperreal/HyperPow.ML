@@ -20,7 +20,7 @@ Goal "r ~= (0::hypreal) --> inverse(r ^ n) = (inverse r) ^ n";
 by (induct_tac "n" 1);
 by (Auto_tac);
 by (forw_inst_tac [("n","n")] hrealpow_not_zero 1);
-by (auto_tac (claset(), simpset() addsimps [inverse_mult_eq]));
+by (auto_tac (claset(), simpset() addsimps [hypreal_inverse_distrib]));
 qed_spec_mp "hrealpow_inverse";
 
 Goal "abs (r::hypreal) ^ n = abs (r ^ n)";

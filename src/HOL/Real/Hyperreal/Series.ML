@@ -313,12 +313,17 @@ qed "series_zero";
 
 Goalw [sums_def] "x sums x0 ==> (%n. c * x(n)) sums (c * x0)";
 by (auto_tac (claset() addSIs [LIMSEQ_mult] addIs [LIMSEQ_const], 
-    simpset() addsimps [sumr_mult RS sym]));
+              simpset() addsimps [sumr_mult RS sym]));
 qed "sums_mult";
 
-Goalw [sums_def] "[| x sums x0; y sums y0 |] ==> (%n. x n - y n) sums (x0 - y0)";
+Goal "x sums x' ==> (%n. x(n)/c) sums (x'/c)";
+by (asm_simp_tac (simpset() addsimps [real_divide_def, sums_mult,
+                              inst "w" "inverse c" real_mult_commute]) 1); 
+qed "sums_divide";
+
+Goalw [sums_def] "[| x sums x0; y sums y0 |] ==> (%n. x n - y n) sums (x0-y0)";
 by (auto_tac (claset() addIs [LIMSEQ_diff],
-    simpset() addsimps [sumr_diff RS sym]));
+              simpset() addsimps [sumr_diff RS sym]));
 qed "sums_diff";
 
 Goal "summable f ==> suminf f * c = suminf(%n. f n * c)";
@@ -415,7 +420,7 @@ qed "series_pos_less";
                     sum of geometric progression                 
  -------------------------------------------------------------------*)
 
-Goal "x ~= #1 ==> sumr 0 n (%n. x ^ n) = (x ^ n - #1) * inverse(x - #1)";
+Goal "x ~= #1 ==> sumr 0 n (%n. x ^ n) = (x ^ n - #1) / (x - #1)";
 by (induct_tac "n" 1);
 by (Auto_tac);
 by (res_inst_tac [("c1","x - #1")] (real_mult_right_cancel RS iffD1) 1);
@@ -426,17 +431,18 @@ by (auto_tac (claset(),
                            real_diff_def, real_mult_commute]));
 qed "sumr_geometric";
 
-Goal "abs(x) < #1 ==> (%n. x ^ n) sums inverse(#1 - x)";
+Goal "abs(x) < #1 ==> (%n. x ^ n) sums (#1/(#1 - x))";
 by (case_tac "x = #1" 1);
 by (auto_tac (claset() addSDs [LIMSEQ_rabs_realpow_zero2],
-    simpset() addsimps [sumr_geometric,abs_one,sums_def,
-    real_diff_def,real_add_mult_distrib]));
-by (rtac (real_add_zero_left RS subst) 1);
-by (rtac (real_mult_0 RS subst) 1);
-by (rtac LIMSEQ_add 1 THEN rtac LIMSEQ_mult 1);
-by (auto_tac (claset() addIs [LIMSEQ_const], simpset() addsimps 
-    [real_minus_inverse RS sym,real_diff_def,real_add_commute,
-     rename_numerals LIMSEQ_rabs_realpow_zero2]));
+             simpset() addsimps [sumr_geometric ,abs_one, sums_def,
+                                 real_diff_def, real_add_divide_distrib]));
+by (subgoal_tac "#1 / (#1 + - x) = #0/(x-#1) + - #1/(x-#1)" 1);
+by (asm_full_simp_tac (simpset() addsimps [real_divide_eq_cancel1,
+                 real_divide_minus_eq RS sym, real_diff_def]) 2); 
+by (etac ssubst 1); 
+by (rtac LIMSEQ_add 1 THEN rtac LIMSEQ_divide 1);
+by (auto_tac (claset() addIs [LIMSEQ_const], 
+              simpset() addsimps [real_diff_def, LIMSEQ_rabs_realpow_zero2]));
 qed "geometric_sums";
 
 (*-------------------------------------------------------------------
@@ -547,18 +553,6 @@ by (TRYALL(arith_tac));
 qed "rabs_ratiotest_lemma";
 
 (* lemmas *)
-Goal "#0 < (r::real) ==> (x * r ^ n) * inverse (r ^ n) = x";
-by (auto_tac (claset(),simpset() addsimps 
-    [real_mult_assoc,rename_numerals realpow_not_zero]));
-val lemma_inverse_realpow = result();
-
-Goal "[| (c::real) ~= #0; ALL n. N <= n --> abs(f(Suc n)) <= c*abs(f n) |] \
-\  ==> ALL n. N <= n --> abs(f(Suc n)) <= (c * c ^ n)* (inverse(c ^ n)*abs(f n))";
-by (auto_tac (claset(),simpset() addsimps real_mult_ac));
-by (res_inst_tac [("z2.1","c ^ n")] (real_mult_left_commute RS subst) 1);
-by (auto_tac (claset(),simpset() addsimps [rename_numerals  
-    realpow_not_zero]));
-val lemma_inverse_realpow2 = result();
 
 Goal "(k::nat) <= l ==> (EX n. l = k + n)";
 by (dtac le_imp_less_or_eq 1);
@@ -569,29 +563,38 @@ Goal "((k::nat) <= l) = (EX n. l = k + n)";
 by (auto_tac (claset(),simpset() addsimps [le_Suc_ex]));
 qed "le_Suc_ex_iff";
 
-Goal "[| c < #1; ALL n. N <= n --> abs(f(Suc n)) <= c*abs(f n) |] \
-\     ==> summable f";
-by (subgoal_tac "c <= #0 | #0 < c" 1 THEN Auto_tac);
+(*All this trouble just to get #0<c *)
+Goal "[| ALL n. N <= n --> abs(f(Suc n)) <= c*abs(f n) |] \
+\     ==> #0 < c | summable f";
+by (simp_tac (simpset() addsimps [linorder_not_le RS sym]) 1); 
 by (asm_full_simp_tac (simpset() addsimps [summable_Cauchy]) 1);
 by (Step_tac 1 THEN subgoal_tac "ALL n. N <= n --> f (Suc n) = #0" 1);
 by (blast_tac (claset() addIs [rabs_ratiotest_lemma]) 2);
 by (res_inst_tac [("x","Suc N")] exI 1 THEN Step_tac 1);
 by (dtac Suc_le_imp_diff_ge2 1 THEN Auto_tac);
-by (res_inst_tac [("g","%n. (abs (f N)* inverse(c ^ N))*c ^ n")] 
+qed "ratio_test_lemma2";
+
+
+Goal "[| c < #1; ALL n. N <= n --> abs(f(Suc n)) <= c*abs(f n) |] \
+\     ==> summable f";
+by (forward_tac [ratio_test_lemma2] 1);
+by Auto_tac;  
+by (res_inst_tac [("g","%n. (abs (f N)/(c ^ N))*c ^ n")] 
     summable_comparison_test 1);
 by (res_inst_tac [("x","N")] exI 1 THEN Step_tac 1);
 by (dtac (le_Suc_ex_iff RS iffD1) 1);
 by (auto_tac (claset(),simpset() addsimps [realpow_add,
-    CLAIM_SIMP "(a * b) * (c * d) = (a * d) * (b * (c::real))" real_mult_ac,
     rename_numerals realpow_not_zero]));
 by (induct_tac "na" 1 THEN Auto_tac);
 by (res_inst_tac [("j","c*abs(f(N + n))")] real_le_trans 1);
 by (auto_tac (claset() addIs [real_mult_le_le_mono1],
-    simpset() addsimps [summable_def, CLAIM_SIMP 
-    "a * (b * c) = b * (a * (c::real))" real_mult_ac]));
-by (res_inst_tac [("x","(abs(f N)*inverse(c ^ N))*inverse(#1 - c)")] exI 1);
-by (auto_tac (claset() addSIs [sums_mult,geometric_sums], simpset() addsimps 
-    [abs_eqI2]));
+    simpset() addsimps [summable_def]));
+by (asm_full_simp_tac (simpset() addsimps real_mult_ac) 1);
+by (res_inst_tac [("x","abs(f N) * (#1/(#1 - c)) / (c ^ N)")] exI 1);
+by (rtac sums_divide 1); 
+by (rtac sums_mult 1); 
+by (auto_tac (claset() addSIs [sums_mult,geometric_sums], 
+              simpset() addsimps [real_abs_def]));
 qed "ratio_test";
 
 

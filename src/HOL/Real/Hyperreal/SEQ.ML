@@ -205,12 +205,12 @@ qed "LIMSEQ_const";
 Goalw [NSLIMSEQ_def]
       "[| X ----NS> a; Y ----NS> b |] ==> (%n. X n + Y n) ----NS> a + b";
 by (auto_tac (claset() addIs [inf_close_add],
-    simpset() addsimps [starfunNat_add RS sym,hypreal_of_real_add]));
+    simpset() addsimps [starfunNat_add RS sym]));
 qed "NSLIMSEQ_add";
 
 Goal "[| X ----> a; Y ----> b |] ==> (%n. X n + Y n) ----> a + b";
 by (asm_full_simp_tac (simpset() addsimps [LIMSEQ_NSLIMSEQ_iff,
-    NSLIMSEQ_add]) 1);
+                                           NSLIMSEQ_add]) 1);
 qed "LIMSEQ_add";
 
 Goalw [NSLIMSEQ_def]
@@ -273,14 +273,9 @@ Goalw [NSLIMSEQ_def]
      "[| X ----NS> a;  a ~= #0 |] ==> (%n. inverse(X n)) ----NS> inverse(a)";
 by (Clarify_tac 1);
 by (dtac bspec 1);
-by (auto_tac (claset(),
-              simpset() addsimps [hypreal_of_real_not_zero_iff RS sym,
-                                  hypreal_of_real_inverse RS sym]));
-by (forward_tac [inf_close_hypreal_of_real_not_zero] 1 THEN assume_tac 1);
-by (dtac hypreal_of_real_HFinite_diff_Infinitesimal 1);
-by (stac (starfunNat_inverse RS sym) 1);
-by (auto_tac (claset() addSEs [inf_close_inverse],
-              simpset() addsimps [hypreal_of_real_zero_iff]));
+by (auto_tac (claset(), 
+              simpset() addsimps [starfunNat_inverse RS sym, 
+                                  hypreal_of_real_inf_close_inverse]));  
 qed "NSLIMSEQ_inverse";
 
 
@@ -1289,6 +1284,7 @@ qed "convergent_realpow";
 
 (* We now use NS criterion to bring proof of theorem through *)
 
+
 Goalw [NSLIMSEQ_def]
      "[| #0 <= x; x < #1 |] ==> (%n. x ^ n) ----NS> #0";
 by (auto_tac (claset() addSDs [convergent_realpow],
@@ -1305,7 +1301,8 @@ by (asm_full_simp_tac (simpset() addsimps [hyperpow_add]) 1);
 by (dtac inf_close_mult_subst_SReal 1 THEN assume_tac 1);
 by (dtac inf_close_trans3 1 THEN assume_tac 1);
 by (auto_tac (claset(),
-              simpset() addsimps [hypreal_of_real_mult RS sym]));
+              simpset() delsimps [hypreal_of_real_mult]
+			addsimps [hypreal_of_real_mult RS sym]));
 qed "NSLIMSEQ_realpow_zero";
 
 (*---------------  standard version ---------------*)

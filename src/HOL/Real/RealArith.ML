@@ -519,6 +519,11 @@ by (Simp_tac 1);
 qed "real_divide_minus1";
 Addsimps [real_divide_minus1];
 
+Goal "#-1/(x::real) = - (#1/x)";
+by (simp_tac (simpset() addsimps [real_divide_def, real_minus_inverse]) 1); 
+qed "real_minus1_divide";
+Addsimps [real_minus1_divide];
+
 Goal "[| (#0::real) < d1; #0 < d2 |] ==> EX e. #0 < e & e < d1 & e < d2";
 by (res_inst_tac [("x","(min d1 d2)/#2")] exI 1); 
 by (asm_simp_tac (simpset() addsimps [min_def]) 1); 

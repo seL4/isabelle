@@ -376,11 +376,7 @@ by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),
             simpset() addsimps [starfun, hypreal_inverse, hypreal_zero_def]));
 qed "starfun_inverse_inverse";
-
-(* more specifically *)
-Goal "(*f* inverse) ehr = inverse (ehr)";
-by (rtac starfun_inverse_inverse 1);
-qed "starfun_inverse_epsilon";
+Addsimps [starfun_inverse_inverse];
 
 Goal "inverse ((*f* f) x) = (*f* (%x. inverse (f x))) x";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
@@ -457,13 +453,14 @@ qed "STAR_starfun_rabs_add_minus";
    In this theory since hypreal_hrabs proved here. (To Check:) Maybe 
    move both if possible? 
  -------------------------------------------------------------------*)
-Goal "(x:Infinitesimal) = (EX X:Rep_hypreal(x). \
-\              ALL m. {n. abs(X n) < inverse(real_of_posnat m)}:FreeUltrafilterNat)";
+Goal "(x:Infinitesimal) = \
+\     (EX X:Rep_hypreal(x). \
+\       ALL m. {n. abs(X n) < inverse(real_of_posnat m)}:FreeUltrafilterNat)";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (auto_tac (claset() addSIs [bexI,lemma_hyprel_refl],
-    simpset() addsimps [Infinitesimal_hypreal_of_posnat_iff,
-    hypreal_of_real_of_posnat,hypreal_of_real_def,hypreal_inverse,
-    hypreal_hrabs,hypreal_less])); 
+	simpset() addsimps [Infinitesimal_hypreal_of_posnat_iff,
+	    hypreal_of_real_of_posnat,hypreal_of_real_def,hypreal_inverse,
+	    hypreal_hrabs,hypreal_less])); 
 by (dres_inst_tac [("x","n")] spec 1);
 by (Fuf_tac 1);
 qed  "Infinitesimal_FreeUltrafilterNat_iff2";
@@ -473,8 +470,9 @@ Goal "(Abs_hypreal(hyprel^^{X}) @= Abs_hypreal(hyprel^^{Y})) = \
 \                 inverse(real_of_posnat m)} : FreeUltrafilterNat)";
 by (rtac (inf_close_minus_iff RS ssubst) 1);
 by (rtac (mem_infmal_iff RS subst) 1);
-by (auto_tac (claset(), simpset() addsimps [hypreal_minus,
-              hypreal_add,Infinitesimal_FreeUltrafilterNat_iff2]));
+by (auto_tac (claset(), 
+              simpset() addsimps [hypreal_minus, hypreal_add,
+                                  Infinitesimal_FreeUltrafilterNat_iff2]));
 by (dres_inst_tac [("x","m")] spec 1);
 by (Fuf_tac 1);
 qed "inf_close_FreeUltrafilterNat_iff";
