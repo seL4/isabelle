@@ -1,7 +1,7 @@
 (*  Title       : Transcendental.thy
     Author      : Jacques D. Fleuriot
     Copyright   : 1998,1999 University of Cambridge
-                  1999 University of Edinburgh
+                  1999,2001 University of Edinburgh
     Description : Power Series, transcendental functions etc.
 *)
 
