@@ -9,8 +9,6 @@ The Lift-Control Example
 (*split_all_tac causes a big blow-up*)
 claset_ref() := claset() delSWrapper record_split_name;
 
-Delsimps [split_paired_All];
-
 Goal "[| x ~: A;  y : A |] ==> x ~= y";
 by (Blast_tac 1);
 qed "not_mem_distinct";
@@ -55,7 +53,7 @@ Addsimps (map simp_of_set always_defs);
 
 
 val LeadsTo_Trans_Un' = rotate_prems 1 LeadsTo_Trans_Un;
-(* [| Lprg : B LeadsTo C; Lprg : A LeadsTo B |] ==> Lprg : (A Un B) LeadsTo C *)
+(* [| Lprg: B LeadsTo C; Lprg: A LeadsTo B |] ==> Lprg: (A Un B) LeadsTo C *)
 
 
 (*Simplification for records*)
