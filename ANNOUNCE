@@ -52,6 +52,9 @@ NEWS of the distribution for more details).
   * HOL/IMP: new proofs in Isar format
     (by Gerwin Klein).
 
+  * HOL/MicroJava: exception handling on the bytecode level
+    (by Gerwin Klein).
+
   * ZF/UNITY: typeless version of Chandy and Misra's formalism
     (by Sidi O Ehmety).
 
