@@ -79,6 +79,9 @@ val typeT = Type ("type", []);
 
 val funT = Type ("fun", []);
 
+val any = "any"
+val anyT = Type (any, []);
+
 
 (* constants *)
 
@@ -143,7 +146,7 @@ datatype mfix = Mfix of string * typ * string * int list * int;
 (* typ_to_nonterm *)
 
 fun typ_to_nonterm (Type (c, _)) = c
-  | typ_to_nonterm _ = logic;
+  | typ_to_nonterm _ = any;
 
 fun typ_to_nonterm1 (Type (c, _)) = c
   | typ_to_nonterm1 _ = logic1;
@@ -256,78 +259,26 @@ fun syn_ext all_roots new_roots mfixes consts trfuns rules =
       print_ast_translation) = trfuns;
     val (parse_rules, print_rules) = rules;
 
-    val Troots = map (apr (Type, [])) new_roots;
-    val Troots' = Troots \\ [typeT, propT];
-
-    fun change_name T ext =
-      let val Type (name, ts) = T
-      in Type ("@" ^ name ^ ext, ts) end;
-
-    (* Append "_H" to lhs if production is not a copy or chain production *)
-    fun hide_xprod roots (XProd (lhs, symbs, const, pri)) =
-      let fun is_delim (Delim _) = true
-            | is_delim _ = false
-      in if const <> "" andalso lhs mem roots andalso exists is_delim symbs then
-           XProd ("@" ^ lhs ^ "_H", symbs, const, pri)
-         else XProd (lhs, symbs, const, pri)
-      end;
-
-    (* Make descend production and append "_H" to rhs nonterminal *)
-    fun descend_right (from, to) =
-      Mfix ("_", change_name to "_H" --> from, "", [0], 0);
-
-    (* Make descend production and append "_H" to lhs *)
-    fun descend_left (from, to) =
-      Mfix ("_", to --> change_name from "_H", "", [0], 0);
-
-    (* Make descend production and append "_A" to lhs *)
-    fun descend1 (from, to) =
-      Mfix ("_", to --> change_name from "_A", "", [0], 0);
-
-    (* Make parentheses production for 'hidden' and 'automatic' nonterminal *)
-    fun parents T =
-      if T = typeT then
-        [Mfix ("'(_')", T --> T, "", [0], max_pri)]
-      else
-        [Mfix ("'(_')", change_name T "_H" --> change_name T "_H", "", [0], max_pri),
-         Mfix ("'(_')", change_name T "_A" --> change_name T "_A", "", [0], max_pri)];
-
-    fun mkappl T =
-      Mfix ("(1_/(1'(_')))", [funT, argsT] ---> change_name T "_A", applC,
-            [max_pri, 0], max_pri);
-
-    fun mkid T =
-      Mfix ("_", idT --> change_name T "_A", "", [], max_pri);
-
-    fun mkvar T =
-      Mfix ("_", varT --> change_name T "_A", "", [], max_pri);
-
-    fun constrain T =
-      Mfix ("_::_", [T, typeT] ---> change_name T "_A", constrainC,
-            [4, 0], 3)
-
-    fun unhide T =
-      if T <> logicT then
-        [Mfix ("_", change_name T "_H" --> T, "", [0], 0),
-         Mfix ("_", change_name T "_A" --> T, "", [0], 0)]
-      else
-        [Mfix ("_", change_name T "_A" --> T, "", [0], 0)];
-
-    val mfixes' = flat (map parents Troots) @ map mkappl Troots' @
-      map mkid Troots' @ map mkvar Troots' @ map constrain Troots' @
-      map (apl (logicT, descend_right)) (Troots \\ [logicT, typeT]) @
-      map (apr (descend1, logic1T)) (Troots') @
-      flat (map unhide (Troots \\ [typeT]));
-    val mfix_consts =
-      distinct (map (fn (Mfix (_, _, c, _, _)) => c) (mfixes @ mfixes'));
-    val xprods = map mfix_to_xprod mfixes;
-    val xprods' = map mfix_to_xprod mfixes';
+    val mfix_consts = distinct (map (fn (Mfix (_, _, c, _, _)) => c) mfixes);
+    val mfixes' = (if "prop" mem new_roots then
+                     [Mfix ("'(_')", Type ("@prop_H", [])
+                            --> Type ("@prop_H", []), "", [0], max_pri),
+                      Mfix ("'(_')", Type ("@logic_H", []) 
+                            --> Type ("@logic_H", []), "", [0], max_pri),
+                      Mfix ("'(_')", anyT --> anyT, "", [0], max_pri),
+                      Mfix ("_", propT --> Type ("@prop_H", []), "", [0], 0),
+                      Mfix ("_", propT --> anyT, "", [0], 0)]
+                   else []) @
+                   (if all_roots = new_roots then
+                     [Mfix ("_", logicT --> Type ("@logic_H", []), "", [0], 0),
+                      Mfix ("_", logicT --> anyT, "", [0], 0)]
+                    else [])    
+    val xprods = map mfix_to_xprod mfixes 
+                 @ map mfix_to_xprod mfixes';
   in
     SynExt {
       roots = new_roots,
-      xprods = (map (hide_xprod (all_roots \\ ["logic", "type"])) xprods)
-               @ xprods',    (* hide only productions that weren't created
-                                automatically *)
+      xprods = xprods,
       consts = filter is_xid (consts union mfix_consts),
       parse_ast_translation = parse_ast_translation,
       parse_rules = parse_rules,
@@ -352,4 +303,3 @@ fun syn_ext_trfuns roots trfuns =
 
 
 end;
-

@@ -12,7 +12,7 @@ sig
   local open Lexicon SynExt SynExt.Ast in
     type gram
     val empty_gram: gram
-    val extend_gram: gram -> xprod list -> gram
+    val extend_gram: gram -> string list -> xprod list -> gram
     val merge_grams: gram -> gram -> gram
     val pretty_gram: gram -> Pretty.T list
     datatype parsetree =
@@ -257,17 +257,42 @@ fun mk_gram prods =
 
 val empty_gram = mk_gram [];
 
-fun extend_gram (gram1 as Gram (prods1, _)) xprods2 =
+fun extend_gram (gram1 as Gram (prods1, _)) roots xprods2 =
   let
-    fun symb_of (Delim s) = Some (Terminal (Token s))
-      | symb_of (Argument (s, p)) =
+    fun simplify preserve s = 
+      if preserve then 
+        (if s mem (roots \\ ["type", "prop", "any"]) then "logic" else s)
+      else (if s = "prop" then "@prop_H" else
+              (if s mem (roots \\ ["type", "prop", "any"]) then 
+                 "@logic_H" 
+               else s));
+
+    fun not_delim (Delim _) = false
+      | not_delim _ = true
+
+    fun symb_of _ (Delim s) = Some (Terminal (Token s))
+      | symb_of preserve (Argument (s, p)) =
           (case predef_term s of
-            None => Some (Nonterminal (s, p))
+            None => Some (Nonterminal (simplify preserve s, p))
           | Some tk => Some (Terminal tk))
-      | symb_of _ = None;
+      | symb_of _ _ = None;
 
     fun prod_of (XProd (lhs, xsymbs, const, pri)) =
-      (lhs, (mapfilter symb_of xsymbs, const, pri));
+      let val copy_prod = (lhs = "prop" andalso forall not_delim xsymbs andalso
+                           const <> "");
+
+          val preserve = copy_prod 
+                         orelse pri = chain_pri andalso lhs = "logic"
+                         orelse lhs mem ["@prop_H", "@logic_H", "any"];
+
+          val lhs' = if copy_prod then "@prop_H" else
+                     if lhs = "logic" andalso pri = chain_pri
+                        then "@logic_H"
+                     else if lhs mem ("logic1" :: (roots \\ ["type", "prop"])) 
+                        then "logic"
+                     else lhs;
+      in (lhs', (mapfilter (symb_of preserve) xsymbs, const, pri))
+      end;
 
     val prods2 = distinct (map prod_of xprods2);
   in
@@ -553,10 +578,14 @@ val get_trees = mapfilter (fn (_, _, [pt], _, _, _) => Some pt | _ => None);
 
 fun earley grammar startsymbol indata =
   let
+    val startsymbol' = case startsymbol of
+                           "logic" => "@logic_H"
+                         | "prop"  => "@prop_H"
+                         | other   => other;
     val rhss_ref = case assoc (grammar, startsymbol) of
                        Some r => r
-                     | None => error ("parse: Unknown startsymbol " ^ 
-                                      quote startsymbol);
+                     | None   => error ("parse: Unknown startsymbol " ^ 
+                                        quote startsymbol);
     val S0 = [(ref [], 0, [], [Nonterm (rhss_ref, 0), Term EndToken], "", 0)];
     val s = length indata + 1;
     val Estate = Array.array (s, []);
@@ -564,15 +593,17 @@ fun earley grammar startsymbol indata =
     Array.update (Estate, 0, S0);
     let
       val l = produce Estate 0 indata EndToken(*dummy*);
+
       val p_trees = get_trees l;
     in p_trees end
   end;
 
 
 fun parse (Gram (_, prod_tab)) start toks =
+let val r =
   (case earley prod_tab start toks of
     [] => sys_error "parse: no parse trees"
   | pts => pts);
+in r end
 
 end;
-

@@ -140,7 +140,7 @@ fun syn_ext_consts all_roots const_decls =
 val pure_types =
   map (fn t => (t, 0, NoSyn))
     (terminals @ [logic, "type", "types", "sort", "classes", args, "idt",
-      "idts", "aprop", "asms"]);
+      "idts", "aprop", "asms", "any"]);
 
 val pure_syntax =
  [("_lambda",   "[idts, 'a] => ('b => 'a)",       Mixfix ("(3%_./ _)", [], 0)),
@@ -162,8 +162,10 @@ val pure_syntax =
   ("_ofclass",  "[type, 'a] => prop",             Delimfix "(1OFCLASS/(1'(_,/ _')))"),
   ("_K",        "'a",                             NoSyn),
   ("_explode",  "'a",                             NoSyn),
-  ("_implode",  "'a",                             NoSyn)];
-
+  ("_implode",  "'a",                             NoSyn),
+  ("",          "id => logic",                    Delimfix "_"),
+  ("",          "var => logic",                   Delimfix "_"),
+  ("_appl",     "[logic, args] => logic",         Mixfix ("(1_/(1'(_')))", [max_pri, 0], max_pri)),
+  ("_constrain", "[logic, type] => logic",        Mixfix ("_::_", [max_pri, 0], 999))]
 
 end;
-
