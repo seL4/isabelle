@@ -528,5 +528,5 @@ by (ALLGOALS Asm_simp_tac);
 by (Clarify_tac 1);
 by (dtac ball_constrains_INT 1);
 by (asm_full_simp_tac (simpset() addsimps [completion]) 1); 
-qed "finite_completion";
+qed_spec_mp "finite_completion";
 

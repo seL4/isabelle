@@ -397,7 +397,7 @@ by (blast_tac (claset() addIs [completion, leadsTo_weaken]) 1);
 qed "Completion";
 
 
-Goal "[| finite I |] \
+Goal "finite I \
 \     ==> (ALL i:I. F : (A i) LeadsTo (A' i Un C)) -->  \
 \         (ALL i:I. F : (A' i) Co (A' i Un C)) --> \
 \         F : (INT i:I. A i) LeadsTo ((INT i:I. A' i) Un C)";
@@ -406,7 +406,7 @@ by (ALLGOALS Asm_simp_tac);
 by (Clarify_tac 1);
 by (dtac ball_Constrains_INT 1);
 by (asm_full_simp_tac (simpset() addsimps [Completion]) 1); 
-qed "Finite_completion";
+qed_spec_mp "Finite_completion";
 
 
 (*proves "ensures/leadsTo" properties when the program is specified*)
