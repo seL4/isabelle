@@ -94,6 +94,12 @@ New in this Isabelle release
   full type-inference.
 
 
+*** ZF ***
+
+* ZF/ex/{Group,Ring}: examples in abstract algebra, including the First
+  Isomorphism Theorem (on quotienting by the kernel of a homomorphism).
+
+
 
 New in Isabelle2004 (April 2004)
 --------------------------------
