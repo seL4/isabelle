@@ -52,7 +52,18 @@ qed "sees_mono";
 (*** Basic properties of pubK & priK ***)
 
 AddIffs [inj_pubK RS inj_eq];
-Addsimps [priK_neq_pubK, priK_neq_pubK RS not_sym];
+AddIffs [priK_neq_pubK, priK_neq_pubK RS not_sym];
+
+goalw thy [isSymKey_def] "~ isSymKey (pubK A)";
+by (Simp_tac 1);
+qed "not_isSymKey_pubK";
+
+goalw thy [isSymKey_def] "~ isSymKey (priK A)";
+by (Simp_tac 1);
+qed "not_isSymKey_priK";
+
+AddIffs [not_isSymKey_pubK, not_isSymKey_priK];
+
 
 (*Agents see their own private keys!*)
 goal thy "A ~= Spy --> Key (priK A) : sees lost A evs";
@@ -61,10 +72,10 @@ by (agent.induct_tac "A" 1);
 by (Auto_tac ());
 qed_spec_mp "sees_own_priK";
 
-(*All public keys are visible*)
-goal thy "Key (pubK A) : sees lost A evs";
+(*All public keys are visible to all*)
+goal thy "Key (pubK A) : sees lost B evs";
 by (list.induct_tac "evs" 1);
-by (agent.induct_tac "A" 1);
+by (agent.induct_tac "B" 1);
 by (Auto_tac ());
 qed_spec_mp "sees_pubK";
 
@@ -74,7 +85,7 @@ by (list.induct_tac "evs" 1);
 by (Auto_tac());
 qed "Spy_sees_lost";
 
-AddIffs [sees_pubK];
+AddIffs [sees_pubK, sees_pubK RS analz.Inj];
 AddSIs  [sees_own_priK, Spy_sees_lost];
 
 
