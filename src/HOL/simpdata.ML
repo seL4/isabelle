@@ -238,6 +238,9 @@ prove "imp_disjL" "((P|Q) --> R) = ((P-->R)&(Q-->R))";
 prove "imp_disj_not1" "((P --> Q | R)) = (~Q --> P --> R)";
 prove "imp_disj_not2" "((P --> Q | R)) = (~R --> P --> Q)";
 
+prove "imp_disj1" "((P-->Q)|R) = (P--> Q|R)";
+prove "imp_disj2" "(Q|(P-->R)) = (P--> Q|R)";
+
 prove "de_Morgan_disj" "(~(P | Q)) = (~P & ~Q)";
 prove "de_Morgan_conj" "(~(P & Q)) = (~P | ~Q)";
 prove "not_imp" "(~(P --> Q)) = (P & ~Q)";
@@ -371,7 +374,7 @@ val HOL_ss =
        True_implies_equals, (* prune asms `True' *)
        if_True, if_False, if_cancel,
        o_apply, imp_disjL, conj_assoc, disj_assoc,
-       de_Morgan_conj, de_Morgan_disj, not_imp,
+       de_Morgan_conj, de_Morgan_disj, imp_disj1, imp_disj2, not_imp,
        not_all, not_ex, cases_simp]
      @ ex_simps @ all_simps @ simp_thms)
      addsimprocs [defEX_regroup]
