@@ -6,13 +6,19 @@
 
 %%% Simple document preparation (based on theory token language)
 
-% basic environment
+% basic isabelle environment
 
+\newcommand{\isabelledefaultstyle}{\small\tt\slshape}
 \newcommand{\isabellestyle}{}
+
+\newdimen\isa@parindent\newdimen\isa@parskip
 \newenvironment{isabelle}{%
-\newdimen\@parindent\@parindent\parindent\parindent0pt%
-\newdimen\@parskip\@parskip\parskip\parskip0pt%
-\small\tt\slshape\isabellestyle}{}
+\isa@parindent\parindent\parindent0pt%
+\isa@parskip\parskip\parskip0pt%
+\isabelledefaultstyle\isabellestyle}{}
+
+\newcommand{\isa}[1]{\emph{\isabelledefaultstyle\isabellestyle #1}}
+
 \newcommand{\isanewline}{\mbox{}\\\mbox{}}
 
 \chardef\isabraceleft=`\{
@@ -38,7 +44,7 @@
 \newcommand{\isamarkupsubsect}[1]{\subsection{#1}}
 \newcommand{\isamarkupsubsubsect}[1]{\subsubsection{#1}}
 
-\newenvironment{isapar}{\parindent\@parindent\parskip\@parskip\par\medskip}{\par\smallskip}
+\newenvironment{isapar}{\parindent\isa@parindent\parskip\isa@parskip\par\medskip}{\par\smallskip}
 \newenvironment{isamarkuptext}{\normalsize\rm\begin{isapar}}{\end{isapar}}
 \newenvironment{isamarkuptxt}{\rm\begin{isapar}}{\end{isapar}}
 \newcommand{\isamarkupcmt}[1]{{\rm--- #1}}
