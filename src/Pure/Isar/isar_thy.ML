@@ -111,10 +111,10 @@ sig
     -> ProofHistory.T -> ProofHistory.T
   val obtain: (string list * string option) list
     * ((string * Args.src list) * (string * (string list * string list)) list) list
-    -> ProofHistory.T -> ProofHistory.T
+    -> Toplevel.transition -> Toplevel.transition
   val obtain_i: (string list * typ option) list
     * ((string * Proof.context attribute list) * (term * (term list * term list)) list) list
-    -> ProofHistory.T -> ProofHistory.T
+    -> Toplevel.transition -> Toplevel.transition
   val begin_block: ProofHistory.T -> ProofHistory.T
   val next_block: ProofHistory.T -> ProofHistory.T
   val end_block: ProofHistory.T -> ProofHistory.T
@@ -405,14 +405,14 @@ val assume      = local_statement Proof.assume I;
 val assume_i    = local_statement_i Proof.assume_i I;
 val presume     = local_statement Proof.presume I;
 val presume_i   = local_statement_i Proof.presume_i I;
-val have        = local_statement (Proof.have Seq.single) I;
-val have_i      = local_statement_i (Proof.have_i Seq.single) I;
-val hence       = local_statement (Proof.have Seq.single) Proof.chain;
-val hence_i     = local_statement_i (Proof.have_i Seq.single) Proof.chain;
-val show        = local_statement' (Proof.show check_goal Seq.single) I;
-val show_i      = local_statement_i' (Proof.show_i check_goal Seq.single) I;
-val thus        = local_statement' (Proof.show check_goal Seq.single) Proof.chain;
-val thus_i      = local_statement_i' (Proof.show_i check_goal Seq.single) Proof.chain;
+val have        = local_statement (Proof.have Seq.single true) I;
+val have_i      = local_statement_i (Proof.have_i Seq.single true) I;
+val hence       = local_statement (Proof.have Seq.single true) Proof.chain;
+val hence_i     = local_statement_i (Proof.have_i Seq.single true) Proof.chain;
+val show        = local_statement' (Proof.show check_goal Seq.single true) I;
+val show_i      = local_statement_i' (Proof.show_i check_goal Seq.single true) I;
+val thus        = local_statement' (Proof.show check_goal Seq.single true) Proof.chain;
+val thus_i      = local_statement_i' (Proof.show_i check_goal Seq.single true) Proof.chain;
 
 fun gen_def f ((name, srcs), def) = ProofHistory.apply (fn state =>
   f name (map (Attrib.local_attribute (Proof.theory_of state)) srcs) def state);
@@ -420,10 +420,10 @@ fun gen_def f ((name, srcs), def) = ProofHistory.apply (fn state =>
 val local_def = gen_def Proof.def;
 val local_def_i = gen_def Proof.def_i;
 
-fun obtain (xs, asms) = ProofHistory.applys (fn state =>
-  Obtain.obtain xs (map (local_attributes' state) asms) state);
+fun obtain (xs, asms) = proof'' (ProofHistory.applys o (fn print => fn state =>
+  Obtain.obtain xs (map (local_attributes' state) asms) print state));
 
-fun obtain_i (xs, asms) = ProofHistory.applys (Obtain.obtain_i xs asms);
+fun obtain_i (xs, asms) = proof'' (ProofHistory.applys o Obtain.obtain_i xs asms);
 
 end;
 
