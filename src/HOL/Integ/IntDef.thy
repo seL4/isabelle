@@ -235,7 +235,7 @@ lemma zmult_1_right: "z * (1::int) = z"
 by (rule trans [OF zmult_commute zmult_1])
 
 
-text{*The Integers Form A comm_ring_1*}
+text{*The integers form a @{text comm_ring_1}*}
 instance int :: comm_ring_1
 proof
   fix i j k :: int
@@ -368,7 +368,7 @@ defs (overloaded)
     zabs_def:  "abs(i::int) == if i < 0 then -i else i"
 
 
-text{*The Integers Form an Ordered comm_ring_1*}
+text{*The integers form an ordered @{text comm_ring_1}*}
 instance int :: ordered_idom
 proof
   fix i j k :: int
@@ -560,7 +560,8 @@ lemma not_neg_nat: "~ neg z ==> int (nat z) = z"
 by (simp add: linorder_not_less neg_def)
 
 
-subsection{*Embedding of the Naturals into any comm_semiring_1_cancel: @{term of_nat}*}
+subsection{*Embedding of the Naturals into any @{text
+comm_semiring_1_cancel}: @{term of_nat}*}
 
 consts of_nat :: "nat => 'a::comm_semiring_1_cancel"
 
@@ -616,8 +617,9 @@ text{*Special cases where either operand is zero*}
 declare of_nat_le_iff [of 0, simplified, simp]
 declare of_nat_le_iff [of _ 0, simplified, simp]
 
-text{*The ordering on the comm_semiring_1_cancel is necessary to exclude the possibility of
-a finite field, which indeed wraps back to zero.*}
+text{*The ordering on the @{text comm_semiring_1_cancel} is necessary
+to exclude the possibility of a finite field, which indeed wraps back to
+zero.*}
 lemma of_nat_eq_iff [simp]:
      "(of_nat m = (of_nat n::'a::ordered_semidom)) = (m = n)"
 by (simp add: order_eq_iff)
@@ -681,7 +683,8 @@ proof
 qed
 
 
-subsection{*Embedding of the Integers into any comm_ring_1: @{term of_int}*}
+subsection{*Embedding of the Integers into any @{text comm_ring_1}:
+@{term of_int}*}
 
 constdefs
    of_int :: "int => 'a::comm_ring_1"
@@ -738,7 +741,8 @@ text{*Special cases where either operand is zero*}
 declare of_int_less_iff [of 0, simplified, simp]
 declare of_int_less_iff [of _ 0, simplified, simp]
 
-text{*The ordering on the comm_ring_1 is necessary. See @{text of_nat_eq_iff} above.*}
+text{*The ordering on the @{text comm_ring_1} is necessary.
+ See @{text of_nat_eq_iff} above.*}
 lemma of_int_eq_iff [simp]:
      "(of_int w = (of_int z::'a::ordered_idom)) = (w = z)"
 by (simp add: order_eq_iff)

@@ -892,7 +892,7 @@ lemma setsum_eq_0_iff [simp]:
 
 lemma setsum_constant_nat [simp]:
     "finite A ==> (\<Sum>x: A. y) = (card A) * y"
-  -- {* Later generalized to any comm_semiring_1_cancel. *}
+  -- {* Later generalized to any @{text comm_semiring_1_cancel}. *}
   by (erule finite_induct, auto)
 
 lemma setsum_Un: "finite A ==> finite B ==>

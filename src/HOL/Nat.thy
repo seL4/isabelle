@@ -712,7 +712,7 @@ lemma nat_mult_assoc: "(m * n) * k = m * ((n * k)::nat)"
   by (induct m) (simp_all add: add_mult_distrib)
 
 
-text{*The Naturals Form A comm_semiring_1_cancel*}
+text{*The naturals form a @{text comm_semiring_1_cancel}*}
 instance nat :: comm_semiring_1_cancel
 proof
   fix i j k :: nat
@@ -760,7 +760,7 @@ lemma mult_less_mono2: "(i::nat) < j ==> 0 < k ==> k * i < k * j"
   done
 
 
-text{*The Naturals Form an Ordered comm_semiring_1_cancel*}
+text{*The naturals form an ordered @{text comm_semiring_1_cancel}*}
 instance nat :: ordered_semidom
 proof
   fix i j k :: nat
