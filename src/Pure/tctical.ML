@@ -31,7 +31,6 @@ sig
   val FIRST'            : ('a -> tactic) list -> 'a -> tactic
   val FIRST1            : (int -> tactic) list -> tactic
   val FIRSTGOAL         : (int -> tactic) -> tactic
-  val goals_limit       : int ref
   val INTLEAVE          : tactic * tactic -> tactic
   val INTLEAVE'         : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
   val METAHYPS          : (thm list -> tactic) -> int -> tactic
@@ -196,14 +195,11 @@ fun RANGE [] _ = all_tac
 
 (*** Tracing tactics ***)
 
-(*Max number of goals to print -- set by user*)
-val goals_limit = ref 10;
-
 (*Print the current proof state and pass it on.*)
 fun print_tac msg = 
     (fn st => 
      (writeln msg;
-      Display.print_goals (!goals_limit) st; Seq.single st));
+      Display.print_goals (! Display.goals_limit) st; Seq.single st));
 
 (*Pause until a line is typed -- if non-empty then fail. *)
 fun pause_tac st =  
@@ -240,7 +236,7 @@ fun exec_trace_command flag (tac, st) =
 (*Extract from a tactic, a thm->thm seq function that handles tracing*)
 fun tracify flag tac st =
   if !flag andalso not (!suppress_tracing)
-           then (Display.print_goals (!goals_limit) st;
+           then (Display.print_goals (! Display.goals_limit) st;
                  writeln "** Press RETURN to continue:";
                  exec_trace_command flag (tac,st))
   else tac st;
