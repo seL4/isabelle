@@ -6,35 +6,39 @@
 Root file for UNITY proofs.
 *)
 
-time_use_thy "UNITY";
-time_use_thy "Deadlock";
-time_use_thy "WFair";
-time_use_thy "Common";
-time_use_thy "Network";
-time_use_thy "Token";
-time_use_thy "Channel";
-time_use_thy "Mutex";
+(*Basic meta-theory*)
 time_use_thy "FP";
-time_use_thy "Reach";
-time_use_thy "Handshake";
-time_use_thy "Lift";
+time_use_thy "WFair";
+
+(*Simple examples: no composition*)
+time_use_thy "Simple/Deadlock";
+time_use_thy "Simple/Common";
+time_use_thy "Simple/Network";
+time_use_thy "Simple/Token";
+time_use_thy "Simple/Channel";
+time_use_thy "Simple/Lift";
+time_use_thy "Simple/Mutex";
+time_use_thy "Simple/Reach";
+time_use_thy "Simple/Reachability";
+
+with_path "../Auth"  (*to find Public.thy*)
+  time_use_thy"Simple/NSP_Bad";
+
+(*Example of composition*)
 time_use_thy "Comp";
-time_use_thy "Reachability";
+time_use_thy "Comp/Handshake";
 
 (*Universal properties examples*)
-time_use_thy "Counter";
-time_use_thy "Counterc";
-time_use_thy "Priority";
+time_use_thy "Comp/Counter";
+time_use_thy "Comp/Counterc";
+time_use_thy "Comp/Priority";
 
 (*Allocator example*)
 time_use_thy "PPROD";
-time_use_thy "TimerArray";
+time_use_thy "Comp/TimerArray";
 
-time_use_thy "Alloc";
-time_use_thy "AllocImpl";
-time_use_thy "Client";
+time_use_thy "Comp/Alloc";
+time_use_thy "Comp/AllocImpl";
+time_use_thy "Comp/Client";
 
 time_use_thy "ELT";  (*obsolete*)
-
-with_path "../Auth"  (*to find Public.thy*)
-  time_use_thy"NSP_Bad";
