@@ -7,6 +7,7 @@ Gordon/HOL style type definitions.
 
 signature TYPEDEF_PACKAGE =
 sig
+  val add_typedecls: (bstring * string list * mixfix) list -> theory -> theory
   val prove_nonempty: cterm -> thm list -> tactic option -> thm
   val add_typedef: string -> bstring * string list * mixfix ->
     string -> string list -> thm list -> tactic option -> theory -> theory
@@ -17,6 +18,24 @@ end;
 structure TypedefPackage: TYPEDEF_PACKAGE =
 struct
 
+
+(** type declarations **)
+
+fun add_typedecls decls thy =
+  let
+    val full = Sign.full_name (Theory.sign_of thy);
+
+    fun arity_of (raw_name, args, mx) =
+      (full (Syntax.type_name raw_name mx), replicate (length args) HOLogic.termS, HOLogic.termS);
+  in
+    thy
+    |> PureThy.add_typedecls decls
+    |> Theory.add_arities_i (map arity_of decls)
+  end;
+
+
+
+(** type definitions **)
 
 (* prove non-emptyness of a set *)   (*exception ERROR*)
 
