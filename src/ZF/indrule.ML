@@ -139,8 +139,7 @@ val lemma = (*makes the link between the two induction rules*)
 (*Simplification largely reduces the mutual induction rule to the 
   standard rule*)
 val mut_ss = 
-    FOL_ss addcongs [Collect_cong]
-	   addsimps [Su.distinct, Su.distinct', Su.inl_iff, Su.inr_iff];
+    FOL_ss addsimps   [Su.distinct, Su.distinct', Su.inl_iff, Su.inr_iff];
 
 val all_defs = con_defs@part_rec_defs;
 
@@ -159,17 +158,19 @@ fun mutual_ind_tac [] 0 = all_tac
        (SELECT_GOAL 
 	  (
 	   (*Simplify the assumptions and goal by unfolding Part and
-	     using freeness of the Sum constructors*)
+	     using freeness of the Sum constructors; proves all but one
+             conjunct by contradiction*)
 	   rewrite_goals_tac all_defs  THEN
 	   simp_tac (mut_ss addsimps [Part_iff]) 1  THEN
 	   IF_UNSOLVED (*simp_tac may have finished it off!*)
-	     (asm_full_simp_tac mut_ss 1  THEN
+	     ((*simplify assumptions, but don't accept new rewrite rules!*)
+	      asm_full_simp_tac (mut_ss setmksimps K[]) 1  THEN
 	      (*unpackage and use "prem" in the corresponding place*)
 	      REPEAT (rtac impI 1)  THEN
 	      rtac (rewrite_rule all_defs prem) 1  THEN
 	      (*prem must not be REPEATed below: could loop!*)
 	      DEPTH_SOLVE (FIRSTGOAL (ares_tac [impI] ORELSE' 
-			      eresolve_tac ([conjE]@cmonos))))
+				      eresolve_tac (conjE::mp::cmonos))))
 	  ) i)
        THEN mutual_ind_tac prems (i-1);
 
