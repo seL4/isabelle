@@ -553,20 +553,6 @@ fun gen_distinct eq lst =
 
 fun distinct l = gen_distinct (op =) l;
 
-(*tuned version of distinct -- eq wrt. strings in fst component*)
-fun distinct_fst_string lst =
-  let
-    fun mem_str ((_:string, _), []) = false
-      | mem_str (p as (x, _), ((y, _) :: qs)) = x = y orelse mem_str (p, qs);
-
-    fun dist (rev_seen, []) = rev rev_seen
-      | dist (rev_seen, p :: ps) =
-          if mem_str (p, rev_seen) then dist (rev_seen, ps)
-          else dist (p :: rev_seen, ps);
-  in
-    dist ([], lst)
-  end;
-
 
 (*returns the tail beginning with the first repeated element, or []*)
 fun findrep [] = []

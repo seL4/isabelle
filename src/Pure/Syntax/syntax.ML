@@ -96,7 +96,7 @@ fun merge_trtabs tab1 tab2 name =
 (** tables of token translation functions **)
 
 fun lookup_tokentr tabs modes =
-  let val trs = distinct_fst_string (flat (map (assocs tabs) (modes @ [""])))
+  let val trs = gen_distinct eq_fst (flat (map (assocs tabs) (modes @ [""])))
   in fn c => apsome fst (assoc (trs, c)) end;
 
 fun merge_tokentrtabs tabs1 tabs2 =
