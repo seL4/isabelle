@@ -4,9 +4,9 @@
     Copyright:  Clemens Ballarin
 *)
 
-theory Module = CRing:
+header {* Modules over an Abelian Group *}
 
-section {* Modules over an Abelian Group *}
+theory Module = CRing:
 
 record ('a, 'b) module = "'b ring" +
   smult :: "['a, 'b] => 'b" (infixl "\<odot>\<index>" 70)

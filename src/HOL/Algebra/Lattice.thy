@@ -5,9 +5,9 @@
   Copyright: Clemens Ballarin
 *)
 
-theory Lattice = Group:
+header {* Order and Lattices *}
 
-section {* Order and Lattices *}
+theory Lattice = Group:
 
 subsection {* Partial Orders *}
 

@@ -7,6 +7,8 @@
 lessThan, greaterThan, atLeast, atMost and two-sided intervals
 *)
 
+header {* Set intervals *}
+
 theory SetInterval = IntArith:
 
 constdefs
@@ -145,33 +147,33 @@ done
 
 subsection {*Two-sided intervals*}
 
-(* greaterThanLessThan *)
+text {* @{text greaterThanLessThan} *}
 
 lemma greaterThanLessThan_iff [simp]:
   "(i : {)l..u(}) = (l < i & i < u)"
 by (simp add: greaterThanLessThan_def)
 
-(* atLeastLessThan *)
+text {* @{text atLeastLessThan} *}
 
 lemma atLeastLessThan_iff [simp]:
   "(i : {l..u(}) = (l <= i & i < u)"
 by (simp add: atLeastLessThan_def)
 
-(* greaterThanAtMost *)
+text {* @{text greaterThanAtMost} *}
 
 lemma greaterThanAtMost_iff [simp]:
   "(i : {)l..u}) = (l < i & i <= u)"
 by (simp add: greaterThanAtMost_def)
 
-(* atLeastAtMost *)
+text {* @{text atLeastAtMost} *}
 
 lemma atLeastAtMost_iff [simp]:
   "(i : {l..u}) = (l <= i & i <= u)"
 by (simp add: atLeastAtMost_def)
 
-(* The above four lemmas could be declared as iffs.
-   If we do so, a call to blast in Hyperreal/Star.ML, lemma STAR_Int
-   seems to take forever (more than one hour). *)
+text {* The above four lemmas could be declared as iffs.
+  If we do so, a call to blast in Hyperreal/Star.ML, lemma @{text STAR_Int}
+  seems to take forever (more than one hour). *}
 
 
 subsection {* Intervals of natural numbers *}
@@ -227,7 +229,7 @@ done
 lemma UN_atMost_UNIV: "(UN m::nat. atMost m) = UNIV"
 by blast
 
-(* Intervals of nats with Suc *)
+text {* Intervals of nats with @{text Suc} *}
 
 lemma atLeastLessThanSuc_atLeastAtMost: "{l..Suc u(} = {l..u}"
   by (simp add: lessThan_Suc_atMost atLeastAtMost_def atLeastLessThan_def)
@@ -391,11 +393,11 @@ lemma card_greaterThanLessThan_int [simp]: "card {)l..u(} = nat (u - (l + 1))"
 
 subsection {*Lemmas useful with the summation operator setsum*}
 
-(* For examples, see Algebra/poly/UnivPoly.thy *)
+text {* For examples, see Algebra/poly/UnivPoly.thy *}
 
-(** Disjoint Unions **)
+subsubsection {* Disjoint Unions *}
 
-(* Singletons and open intervals *)
+text {* Singletons and open intervals *}
 
 lemma ivl_disj_un_singleton:
   "{l::'a::linorder} Un {)l..} = {l..}"
@@ -406,7 +408,7 @@ lemma ivl_disj_un_singleton:
   "(l::'a::linorder) <= u ==> {l..u(} Un {u} = {l..u}"
 by auto
 
-(* One- and two-sided intervals *)
+text {* One- and two-sided intervals *}
 
 lemma ivl_disj_un_one:
   "(l::'a::linorder) < u ==> {..l} Un {)l..u(} = {..u(}"
@@ -419,7 +421,7 @@ lemma ivl_disj_un_one:
   "(l::'a::linorder) <= u ==> {l..u(} Un {u..} = {l..}"
 by auto
 
-(* Two- and two-sided intervals *)
+text {* Two- and two-sided intervals *}
 
 lemma ivl_disj_un_two:
   "[| (l::'a::linorder) < m; m <= u |] ==> {)l..m(} Un {m..u(} = {)l..u(}"
@@ -434,9 +436,9 @@ by auto
 
 lemmas ivl_disj_un = ivl_disj_un_singleton ivl_disj_un_one ivl_disj_un_two
 
-(** Disjoint Intersections **)
+subsubsection {* Disjoint Intersections *}
 
-(* Singletons and open intervals *)
+text {* Singletons and open intervals *}
 
 lemma ivl_disj_int_singleton:
   "{l::'a::order} Int {)l..} = {}"
@@ -447,7 +449,7 @@ lemma ivl_disj_int_singleton:
   "{l..u(} Int {u} = {}"
   by simp+
 
-(* One- and two-sided intervals *)
+text {* One- and two-sided intervals *}
 
 lemma ivl_disj_int_one:
   "{..l::'a::order} Int {)l..u(} = {}"
@@ -460,7 +462,7 @@ lemma ivl_disj_int_one:
   "{l..u(} Int {u..} = {}"
   by auto
 
-(* Two- and two-sided intervals *)
+text {* Two- and two-sided intervals *}
 
 lemma ivl_disj_int_two:
   "{)l::'a::order..m(} Int {m..u(} = {}"

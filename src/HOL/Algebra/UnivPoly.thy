@@ -5,9 +5,9 @@
   Copyright: Clemens Ballarin
 *)
 
-theory UnivPoly = Module:
+header {* Univariate Polynomials *}
 
-section {* Univariate Polynomials *}
+theory UnivPoly = Module:
 
 text {*
   Polynomials are formalised as modules with additional operations for 

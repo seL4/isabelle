@@ -17,8 +17,9 @@ text{*Where K above is a literal*}
 lemma Suc_diff_eq_diff_pred: "Numeral0 < n ==> Suc m - n = m - (n - Numeral1)"
 by (simp add: numeral_0_eq_0 numeral_1_eq_1 split add: nat_diff_split)
 
-(*Now just instantiating n to (number_of v) does the right simplification,
-  but with some redundant inequality tests.*)
+text {*Now just instantiating @{text n} to @{text "number_of v"} does
+  the right simplification, but with some redundant inequality
+  tests.*}
 lemma neg_number_of_bin_pred_iff_0:
      "neg (number_of (bin_pred v)::int) = (number_of v = (0::nat))"
 apply (subgoal_tac "neg (number_of (bin_pred v)) = (number_of v < Suc 0) ")
@@ -171,8 +172,9 @@ declare divide_less_0_iff [of "number_of w", standard, simp]
 declare zero_le_divide_iff [of "number_of w", standard, simp]
 declare divide_le_0_iff [of "number_of w", standard, simp]
 
-(*Replaces "inverse #nn" by 1/#nn.  It looks strange, but then other simprocs
-simplify the quotient.*)
+text {*Replaces @{text "inverse #nn"} by @{text "1/#nn"}.  It looks
+  strange, but then other simprocs simplify the quotient.*}
+
 declare inverse_eq_divide [of "number_of w", standard, simp]
 
 text{*These laws simplify inequalities, moving unary minus from a term
@@ -194,16 +196,14 @@ declare minus_less_iff [of _ 1, simplified, simp]
 declare minus_le_iff [of _ 1, simplified, simp]
 declare minus_equation_iff [of _ 1, simplified, simp]
 
-
-(*Cancellation of constant factors in comparisons (< and \<le>) *)
+text {*Cancellation of constant factors in comparisons (@{text "<"} and @{text "\<le>"}) *}
 
 declare mult_less_cancel_left [of "number_of v", standard, simp]
 declare mult_less_cancel_right [of _ "number_of v", standard, simp]
 declare mult_le_cancel_left [of "number_of v", standard, simp]
 declare mult_le_cancel_right [of _ "number_of v", standard, simp]
 
-
-(*Multiplying out constant divisors in comparisons (< \<le> and =) *)
+text {*Multiplying out constant divisors in comparisons (@{text "<"}, @{text "\<le>"} and @{text "="}) *}
 
 declare le_divide_eq [of _ _ "number_of w", standard, simp]
 declare divide_le_eq [of _ "number_of w", standard, simp]

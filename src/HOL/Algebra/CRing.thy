@@ -5,10 +5,10 @@
   Copyright: Clemens Ballarin
 *)
 
+header {* Abelian Groups *}
+
 theory CRing = FiniteProduct
 files ("ringsimp.ML"):
-
-section {* Abelian Groups *}
 
 record 'a ring = "'a monoid" +
   zero :: 'a ("\<zero>\<index>")
