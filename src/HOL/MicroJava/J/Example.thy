@@ -22,10 +22,8 @@ class Ext extends Base{
 
 class Example {
   public static void main (String args[]) {
-    Base e;
-    e=new Ext();
-    try {e.foo(null); }
-    catch (NullPointerException x) {}
+    Base e=new Ext();
+    e.foo(null);
   }
 }
 *)
@@ -91,12 +89,6 @@ defs
 		    Expr(LAcc e..foo({[Class Base]}[Lit Null]))"
 
 
-
-
-
-
-
-
 syntax
 
   NP		:: xcpt
@@ -106,7 +98,7 @@ syntax
 
 translations
 
-  "NP"      == "NullPointer"
+  "NP"   == "NullPointer"
   "tprg" == "[ObjectC, BaseC, ExtC]"
   "obj1"    <= "(Ext, empty((vee, Base)\\<mapsto>Bool False)
 			   ((vee, Ext )\\<mapsto>Intg #0))"

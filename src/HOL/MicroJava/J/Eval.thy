@@ -21,12 +21,12 @@ syntax
   exec :: "[java_mb prog,xstate,stmt,    xstate] \\<Rightarrow> bool "("_\\<turnstile>_ -_\\<rightarrow> _"  [51,82,82,   82]81)
 
 translations
-  "G\\<turnstile>s -e \\<succ> v\\<rightarrow> (x,s')" == "(s, e, v, x, s') \\<in> eval  G"
-  "G\\<turnstile>s -e \\<succ> v\\<rightarrow>    s' " == "(s, e, v,    s') \\<in> eval  G"
-  "G\\<turnstile>s -e[\\<succ>]v\\<rightarrow> (x,s')" == "(s, e, v, x, s') \\<in> evals G"
-  "G\\<turnstile>s -e[\\<succ>]v\\<rightarrow>    s' " == "(s, e, v,    s') \\<in> evals G"
-  "G\\<turnstile>s -c     \\<rightarrow> (x,s')" == "(s, c, x, s') \\<in> exec  G"
-  "G\\<turnstile>s -c     \\<rightarrow>    s' " == "(s, c,    s') \\<in> exec  G"
+  "G\\<turnstile>s -e \\<succ> v\\<rightarrow> (x,s')" <= "(s, e, v, (_args x s')) \\<in> eval  G"
+  "G\\<turnstile>s -e \\<succ> v\\<rightarrow>    s' " == "(s, e, v,          s' ) \\<in> eval  G"
+  "G\\<turnstile>s -e[\\<succ>]v\\<rightarrow> (x,s')" <= "(s, e, v, (_args x s')) \\<in> evals G"
+  "G\\<turnstile>s -e[\\<succ>]v\\<rightarrow>    s' " == "(s, e, v,          s' ) \\<in> evals G"
+  "G\\<turnstile>s -c    \\<rightarrow> (x,s')" <= "(s, c,    (_args x s')) \\<in> exec  G"
+  "G\\<turnstile>s -c    \\<rightarrow>    s' " == "(s, c,             s')  \\<in> exec  G"
 
 inductive "eval G" "evals G" "exec G" intrs
 
@@ -49,7 +49,7 @@ inductive "eval G" "evals G" "exec G" intrs
   Lit				   "G\\<turnstile>Norm s -Lit v\\<succ>v\\<rightarrow> Norm s"
 
   BinOp "\\<lbrakk>G\\<turnstile>Norm s -e1\\<succ>v1\\<rightarrow> s1;
-	  G\\<turnstile>s1     -e1\\<succ>v2\\<rightarrow> s2;
+	  G\\<turnstile>s1     -e2\\<succ>v2\\<rightarrow> s2;
 	  v = (case bop of Eq  \\<Rightarrow> Bool (v1 = v2)
 	                 | Add \\<Rightarrow> Intg (the_Intg v1 + the_Intg v2))\\<rbrakk> \\<Longrightarrow>
 				   G\\<turnstile>Norm s -BinOp bop e1 e2\\<succ>v\\<rightarrow> s2"
