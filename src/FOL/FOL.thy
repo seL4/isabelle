@@ -75,6 +75,7 @@ ML {*
   (struct
     val dest_concls = FOLogic.dest_concls;
     val cases_default = thm "case_split";
+    val local_imp_def = thm "induct_implies_def";
     val local_impI = thm "induct_impliesI";
     val conjI = thm "conjI";
     val atomize = thms "induct_atomize";
