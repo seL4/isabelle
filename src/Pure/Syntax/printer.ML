@@ -62,7 +62,7 @@ fun ast_of_term trf show_types show_sorts tm =
     fun aprop t = Const (apropC, dummyT) $ t;
 
     fun is_prop tys tm =
-      fastype_of (tys, tm) = propT handle TERM _ => false;
+      fastype_of1 (tys, tm) = propT handle TERM _ => false;
 
     fun fix_aprop _ (tm as Const _) = tm
       | fix_aprop _ (tm as Free (x, ty)) =
