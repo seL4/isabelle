@@ -41,7 +41,7 @@ fun kinds (Data tab) = map fst (Symtab.dest tab);
 (* errors *)
 
 fun err_method name kind =
-  error ("Error while invoking " ^ name ^ " method of " ^ quote kind ^ " data");
+  error ("Error while invoking " ^ quote kind ^ " " ^ name ^ " method");
 
 fun err_dup_init kind =
   error ("Duplicate initialization of " ^ quote kind ^ " data");
