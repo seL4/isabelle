@@ -27,7 +27,7 @@ NEWS file distributed with Isabelle for more details.
       Thomas M Rasmussen, Markus Wenzel)
     A collection of generic theories to be used together with main HOL.
 
-  * HOL/Real and HOL/Hyperreal (Lawrence C Paulson and Jacques Fleuriot)
+  * HOL/Real and HOL/Hyperreal (Jacques Fleuriot and Lawrence C Paulson)
     General cleanup, more on nonstandard real analysis.
 
   * HOL/Unix (Markus Wenzel)
