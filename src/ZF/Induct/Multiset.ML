@@ -884,7 +884,7 @@ qed "multirel1_base";
 
 Goal "acc(0)=0";
 by (auto_tac (claset()  addSIs [equalityI]
-    addDs  [acc.dom_subset RS subsetD], simpset()));
+    addDs  [thm "acc.dom_subset" RS subsetD], simpset()));
 qed "acc_0";
 
 Goal "[| ALL b:A. <b,a>:r --> \
@@ -893,10 +893,10 @@ Goal "[| ALL b:A. <b,a>:r --> \
 \   ALL M. <M,M0> : multirel1(A, r) --> M +# {#a#} : acc(multirel1(A, r)) |] \
 \ ==> M0 +# {#a#} : acc(multirel1(A, r))";
 by (subgoal_tac "multiset[A](M0)" 1);
-by (etac acc.elim 2);
+by (etac (thm "acc.cases") 2);
 by (etac fieldE 2);
 by (REPEAT(blast_tac (claset() addDs [multirel1D]) 2));
-by (rtac accI 1);
+by (rtac (thm "accI") 1);
 by (rename_tac "N" 1);
 by (dtac less_munion 1);
 by (Blast_tac 1);
@@ -926,13 +926,12 @@ qed "lemma1";
 Goal  "[| ALL b:A. <b,a>:r  \
 \  --> (ALL M : acc(multirel1(A, r)). M +# {#b#} :acc(multirel1(A, r))); \
 \       M:acc(multirel1(A, r)); a:A|] ==> M +# {#a#} : acc(multirel1(A, r))";
-by (etac acc_induct 1);
+by (etac (thm "acc_induct") 1);
 by (blast_tac (claset() addIs [lemma1]) 1);
 qed "lemma2";
 
-Goal
- "[| wf[A](r); a:A |] ==> \
-\  ALL M:acc(multirel1(A, r)). M +# {#a#} : acc(multirel1(A, r))";
+Goal "[| wf[A](r); a:A |] \
+\     ==> ALL M:acc(multirel1(A, r)). M +# {#a#} : acc(multirel1(A, r))";
 by (eres_inst_tac [("a","a")] wf_on_induct 1);
 by (Blast_tac 1);
 by (blast_tac (claset() addIs [lemma2]) 1);
@@ -943,7 +942,7 @@ Goal "multiset(M) ==> mset_of(M)<=A --> \
 by (etac  multiset_induct 1);
 by (ALLGOALS(Clarify_tac));
 (* proving the base case *)
-by (rtac accI 1);
+by (rtac (thm "accI") 1);
 by (cut_inst_tac [("M", "b"), ("r", "r")] not_less_0 1);
 by (Force_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [multirel1_def]) 1);
@@ -974,7 +973,7 @@ by (rtac wf_imp_wf_on 1);
 by (rtac wf_on_field_imp_wf 1);
 by (asm_simp_tac (simpset() addsimps [wf_on_0]) 1);
 by (res_inst_tac [("A", "acc(multirel1(A,r))")] wf_on_subset_A 1);
-by (rtac wf_on_acc  1);
+by (rtac (thm "wf_on_acc") 1);
 by (Clarify_tac 1);
 by (full_simp_tac (simpset() addsimps [FiniteFun_iff_multiset_on]) 1);
 by (blast_tac (claset() addIs [all_accessible]) 1);
@@ -1031,8 +1030,7 @@ by (rotate_simp_tac "J:?u" 1);
 by (auto_tac (claset() addDs [domain_type], simpset() addsimps [lemma]));
 qed "mdiff_union_single_conv";
 
-Goal 
-"[| n le m;  m:nat; n:nat; k:nat |] ==> m #- n #+ k = m #+ k #- n";
+Goal "[| n le m;  m:nat; n:nat; k:nat |] ==> m #- n #+ k = m #+ k #- n";
 by (auto_tac (claset(), simpset() addsimps 
          [le_iff, diff_self_eq_0, less_iff_succ_add]));
 qed "diff_add_commute";
@@ -1105,9 +1103,8 @@ by (asm_simp_tac (simpset()
 qed "melem_imp_eq_diff_union";
 Addsimps [melem_imp_eq_diff_union];
     
-Goal 
-"[| msize(M)=$# succ(n); multiset[A](M); n:nat |] \
-\  ==> EX a N. M = N +# {#a#} & multiset[A](N) & a:A";
+Goal "[| msize(M)=$# succ(n); multiset[A](M); n:nat |] \
+\     ==> EX a N. M = N +# {#a#} & multiset[A](N) & a:A";
 by (dtac msize_eq_succ_imp_elem 1);
 by Auto_tac;
 by (res_inst_tac [("x", "a")] exI 1);
@@ -1372,8 +1369,7 @@ bind_thm ("mless_irrefl", mless_not_refl RS notE);
 AddSEs [mless_irrefl];
 
 (*transitivity*)
-Goalw [mless_def]
-     "[| K <# M; M <# N |] ==> K <# N";
+Goalw [mless_def] "[| K <# M; M <# N |] ==> K <# N";
 by (Clarify_tac 1);
 by (res_inst_tac [("x", "i Un ia")] exI 1);
 by (blast_tac (claset() addDs 
@@ -1459,13 +1455,11 @@ qed "munion_less_mono";
 
 (* <#= *)
 
-Goalw [mle_def]
- "M <#= N ==> omultiset(M) & omultiset(N)";
+Goalw [mle_def] "M <#= N ==> omultiset(M) & omultiset(N)";
 by (auto_tac (claset(), simpset() addsimps [mless_imp_omultiset]));
 qed "mle_imp_omultiset";
 
-Goal
-  "[| M <#= K;  N <#= L |] ==> M +# N <#= K +# L";
+Goal "[| M <#= K;  N <#= L |] ==> M +# N <#= K +# L";
 by (forw_inst_tac [("M", "M")] mle_imp_omultiset 1);
 by (forw_inst_tac [("M", "N")] mle_imp_omultiset 1);
 by (rewtac mle_def);
@@ -1483,8 +1477,7 @@ by Auto_tac;
 qed "omultiset_0";
 AddIffs [omultiset_0];
 
-Goalw [mle_def, mless_def]
-     "omultiset(M) ==> 0 <#= M";
+Goalw [mle_def, mless_def] "omultiset(M) ==> 0 <#= M";
 by (subgoal_tac "EX i. Ord(i) & multiset[field(Memrel(i))](M)" 1);
 by (asm_full_simp_tac (simpset() addsimps [omultiset_def]) 2);
 by (case_tac "M=0" 1);
