@@ -181,7 +181,7 @@ qed "zgcd_0_1_iff";
 Addsimps [zgcd_0_1_iff];
 
 Goal "#0<=(n::int) --> (zgcd(m,n) dvd m) & (zgcd(m,n) dvd n)";
-by (res_inst_tac [("u","m"),("v","n")] zgcd.induct 1);
+by (induct_thm_tac zgcd.induct "m n" 1);
 by (case_tac "n=#0" 1);
 by (auto_tac (claset() addDs [zdvd_zmod_imp_zdvd],
               simpset() addsimps [zle_neq_implies_zless,neq_commute,
@@ -198,14 +198,14 @@ by (asm_full_simp_tac (simpset() addsimps [zle_anti_sym]) 1);
 val lemma_false = result();
 
 Goal "#0<=(n::int) --> (f dvd m) --> (f dvd n) --> f dvd zgcd(m,n)";
-by (res_inst_tac [("u","m"),("v","n")] zgcd.induct 1);
+by (induct_thm_tac zgcd.induct "m n" 1);
 by (case_tac "n=#0" 1);
 by (auto_tac (claset() addDs [lemma_false] addIs [pos_mod_sign,zdvd_zmod],
         simpset() addsimps [zgcd_non_0,neq_commute,zle_neq_implies_zless]));
 qed_spec_mp "zgcd_greatest";
 
 Goal "#0 < (n::int) --> #0 < zgcd (m, n)";
-by (res_inst_tac [("u","m"),("v","n")] zgcd.induct 1);
+by (induct_thm_tac zgcd.induct "m n" 1);
 by (auto_tac (claset(), simpset() addsimps zgcd.simps));
 qed_spec_mp "zgcd_zless";
 
@@ -269,7 +269,7 @@ by (ALLGOALS (asm_simp_tac (simpset()
 qed "zgcd_assoc";
 
 Goal "#0<=(n::int) --> #0<=k --> k * zgcd(m,n) = zgcd(k*m, k*n)";
-by (res_inst_tac [("u","m"),("v","n")] zgcd.induct 1);
+by (induct_thm_tac zgcd.induct "m n" 1);
 by (case_tac "n=#0" 1);
 by (auto_tac (claset() addDs [lemma_false],
               simpset() addsimps [zle_neq_implies_zless,pos_mod_sign,

@@ -33,7 +33,7 @@ qed "is_maxsplitter_reducing";
 
 Goal "is_maxsplitter P splitf ==> \
 \ !yss zs. chop splitf xs = (yss,zs) --> xs = concat yss @ zs";
-by (res_inst_tac [("xs","xs")] length_induct 1);
+by (induct_thm_tac length_induct "xs" 1);
 by (asm_simp_tac (simpset() delsplits [split_if]
                            addsimps [chop_rule,is_maxsplitter_reducing]) 1);
 by (asm_full_simp_tac (simpset() addsimps [Let_def,is_maxsplitter_def]
@@ -42,7 +42,7 @@ qed_spec_mp "chop_concat";
 
 Goal "is_maxsplitter P splitf ==> \
 \ !yss zs. chop splitf xs = (yss,zs) --> (!ys : set yss. ys ~= [])";
-by (res_inst_tac [("xs","xs")] length_induct 1);
+by (induct_thm_tac length_induct "xs" 1);
 by (asm_simp_tac (simpset() addsimps [chop_rule,is_maxsplitter_reducing]) 1);
 by (asm_full_simp_tac (simpset() addsimps [Let_def,is_maxsplitter_def]
                                  addsplits [split_split]) 1);

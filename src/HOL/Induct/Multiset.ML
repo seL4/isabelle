@@ -457,7 +457,7 @@ by (etac disjE 1);
 by (Clarify_tac 1);
 by (rotate_tac ~1 1);
 by (etac rev_mp 1);
-by (res_inst_tac [("M","K")] multiset_induct 1);
+by (induct_thm_tac multiset_induct "K" 1);
  by (Asm_simp_tac 1);
 by (simp_tac (simpset() addsimps [union_assoc RS sym]) 1);
 by (Blast_tac 1);
@@ -476,7 +476,7 @@ by (blast_tac (claset() addIs [export lemma2]) 1);
 qed "lemma3";
 
 Goalw [W_def] "wf(r) ==> M : W";
-by (res_inst_tac [("M","M")] multiset_induct 1);
+by (induct_thm_tac multiset_induct "M" 1);
  by (rtac accI 1);
  by (Asm_full_simp_tac 1);
 by (blast_tac (claset() addDs [export lemma3]) 1);

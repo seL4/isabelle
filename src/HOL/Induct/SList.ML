@@ -52,7 +52,7 @@ qed "list_induct2";
 
 (*Perform induction on xs. *)
 fun list_ind_tac a M = 
-    EVERY [res_inst_tac [("l",a)] list_induct2 M,
+    EVERY [induct_thm_tac list_induct2 a M,
            rename_last_tac a ["1"] (M+1)];
 
 (*** Isomorphisms ***)

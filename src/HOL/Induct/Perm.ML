@@ -145,7 +145,7 @@ qed "cons_perm_eq";
 AddIffs [cons_perm_eq];
 
 Goal "ALL xs ys. zs@xs <~~> zs@ys --> xs <~~> ys";
-by (res_inst_tac [("xs","zs")] rev_induct 1);
+by (rev_induct_tac "zs" 1);
 by (ALLGOALS Full_simp_tac);
 by (Blast_tac 1);
 qed_spec_mp "append_perm_imp_perm";

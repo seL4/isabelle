@@ -9,7 +9,7 @@ The verification of Quicksort
 (*** Version one: higher-order ***)
 
 Goal "multiset (qsort(le,xs)) x = multiset xs x";
-by (res_inst_tac [("v","xs"),("u","le")] qsort.induct 1);
+by (induct_thm_tac qsort.induct "le xs" 1);
 by Auto_tac;
 qed "qsort_permutes";
 Addsimps [qsort_permutes];
@@ -21,7 +21,7 @@ qed "set_qsort";
 Addsimps [set_qsort];
 
 Goal "total(le) --> transf(le) --> sorted le (qsort(le,xs))";
-by (res_inst_tac [("v","xs"),("u","le")] qsort.induct 1);
+by (induct_thm_tac qsort.induct "le xs" 1);
 by (ALLGOALS Asm_simp_tac);
 by (rewrite_goals_tac [Sorting.total_def, Sorting.transf_def]);
 by (Blast_tac 1);

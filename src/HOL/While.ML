@@ -40,7 +40,7 @@ val [prem1,prem2,prem3] = Goal
 \   !!s. [| P s; ~b s |] ==> Q s; \
 \   wf{(t,s). P s & b s & t = c s} |] \
 \ ==> P s --> Q(while b c s)";
-by(res_inst_tac [("a","s")] (prem3 RS wf_induct) 1);
+by(induct_thm_tac (prem3 RS wf_induct) "s" 1);
 by(Asm_full_simp_tac 1);
 by(Clarify_tac 1);
 by(stac while_unfold 1);

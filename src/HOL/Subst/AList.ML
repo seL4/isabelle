@@ -18,5 +18,5 @@ qed "alist_induct";
 
 (*Perform induction on xs. *)
 fun alist_ind_tac a M = 
-    EVERY [res_inst_tac [("l",a)] alist_induct M,
+    EVERY [induct_thm_tac alist_induct a M,
            rename_last_tac a ["1"] (M+1)];

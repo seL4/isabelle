@@ -42,13 +42,13 @@ by (ALLGOALS (asm_simp_tac (simpset() addsimps [d22set_eq,prem1])));
 qed "d22set_induct";
 
 Goal "b:(d22set a) --> #1<b";
-by (res_inst_tac [("u","a")] d22set_induct 1);
+by (induct_thm_tac d22set_induct "a" 1);
 by (stac d22set_eq 2);
 by Auto_tac;
 qed_spec_mp "d22set_g_1";
 
 Goal "b:(d22set a) --> b<=a";
-by (res_inst_tac [("u","a")] d22set_induct 1);
+by (induct_thm_tac d22set_induct "a" 1);
 by (stac d22set_eq 2);
 by Auto_tac;
 qed_spec_mp "d22set_le";
@@ -60,13 +60,13 @@ by Auto_tac;
 qed "d22set_le_swap";
 
 Goal "#1<b --> b<=a --> b:(d22set a)";
-by (res_inst_tac [("x","a")] d22set.induct 1);
+by (induct_thm_tac d22set.induct "a" 1);
 by Auto_tac;
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [d22set_eq])));
 qed_spec_mp "d22set_mem";
 
 Goal "finite (d22set a)";
-by (res_inst_tac [("u","a")] d22set_induct 1);
+by (induct_thm_tac d22set_induct "a" 1);
 by (stac d22set_eq 2);
 by Auto_tac;
 qed "d22set_fin";
@@ -75,7 +75,7 @@ val [zfact_eq] = zfact.simps;
 Delsimps zfact.simps; 
 
 Goal "setprod(d22set a) = zfact a";
-by (res_inst_tac [("x","a")] d22set.induct 1);
+by (induct_thm_tac d22set.induct "a" 1);
 by Safe_tac;
 by (asm_full_simp_tac (simpset() addsimps [d22set_eq,zfact_eq]) 1);
 by (stac d22set_eq 1);

@@ -53,7 +53,7 @@ qed "TFin_induct";
 
 (*Perform induction on n, then prove the major premise using prems. *)
 fun TFin_ind_tac a prems i = 
-    EVERY [res_inst_tac [("n",a)] TFin_induct i,
+    EVERY [induct_thm_tac TFin_induct a i,
            rename_last_tac a ["1"] (i+1),
            rename_last_tac a ["2"] (i+2),
            ares_tac prems i];

@@ -48,7 +48,7 @@ qed "pnat_induct";
 
 (*Perform induction on n. *)
 fun pnat_ind_tac a i = 
-  res_inst_tac [("n",a)] pnat_induct i  THEN  rename_last_tac a [""] (i+1);
+  induct_thm_tac pnat_induct a i  THEN  rename_last_tac a [""] (i+1);
 
 val prems = Goal
     "[| !!x. P x 1p;  \

@@ -586,7 +586,7 @@ qed "preal_mem_mult_invD";
 Goal "ALL xa : Rep_preal(A). xa + x : Rep_preal(A) ==> \
 \            EX xb : Rep_preal(A). xb + (prat_of_pnat p)*x : Rep_preal(A)";
 by (cut_facts_tac [mem_Rep_preal_Ex] 1);
-by (res_inst_tac [("n","p")] pnat_induct 1);
+by (induct_thm_tac pnat_induct "p" 1);
 by (auto_tac (claset(),simpset() addsimps [pnat_one_def,
     pSuc_is_plus_one,prat_add_mult_distrib,
    prat_of_pnat_add,prat_add_assoc RS sym]));

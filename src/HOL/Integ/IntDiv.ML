@@ -113,7 +113,7 @@ bind_thm ("posDivAlg_induct", lemma RS posDivAlg.induct);
 
 (*Correctness of posDivAlg: it computes quotients correctly*)
 Goal "#0 <= a --> #0 < b --> quorem ((a, b), posDivAlg (a, b))";
-by (res_inst_tac [("u", "a"), ("v", "b")] posDivAlg_induct 1);
+by (induct_thm_tac posDivAlg_induct "a b" 1);
 by Auto_tac;
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [quorem_def])));
 (*base case: a<b*)
@@ -152,7 +152,7 @@ bind_thm ("negDivAlg_induct", lemma RS negDivAlg.induct);
 (*Correctness of negDivAlg: it computes quotients correctly
   It doesn't work if a=0 because the 0/b=0 rather than -1*)
 Goal "a < #0 --> #0 < b --> quorem ((a, b), negDivAlg (a, b))";
-by (res_inst_tac [("u", "a"), ("v", "b")] negDivAlg_induct 1);
+by (induct_thm_tac negDivAlg_induct "a b" 1);
 by Auto_tac;
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [quorem_def])));
 (*base case: 0<=a+b*)

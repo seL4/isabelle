@@ -114,7 +114,7 @@ by (Fast_tac 1);
 qed "free_tv_alpha";
 
 Goal "!!(k::nat). n <= n + k";
-by (res_inst_tac [("n","k")] nat_induct 1);
+by (induct_thm_tac nat_induct "k" 1);
 by (Simp_tac 1);
 by (Asm_simp_tac 1);
 val aux_plus = result();

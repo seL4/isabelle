@@ -341,7 +341,7 @@ qed "prefix_snoc";
 Addsimps [prefix_snoc];
 
 Goal "(xs <= ys@zs) = (xs <= ys | (? us. xs = ys@us & us <= zs))";
-by (res_inst_tac [("xs","zs")] rev_induct 1);
+by (rev_induct_tac "zs" 1);
  by (Force_tac 1);
 by (asm_full_simp_tac (simpset() delsimps [append_assoc]
                                  addsimps [append_assoc RS sym])1);

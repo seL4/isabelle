@@ -9,6 +9,7 @@ Datatype package for Isabelle/HOL.
 signature BASIC_DATATYPE_PACKAGE =
 sig
   val induct_tac : string -> int -> tactic
+  val induct_thm_tac : thm -> string -> int -> tactic
   val case_tac : string -> int -> tactic
   val distinct_simproc : simproc
 end;
@@ -198,6 +199,9 @@ fun gen_induct_tac (varss, opt_rule) i state =
   in occs_in_prems (Tactic.res_inst_tac insts rule) (map #2 insts) i state end;
 
 fun induct_tac s = gen_induct_tac (map (Library.single o Some) (Syntax.read_idents s), None);
+
+fun induct_thm_tac th s =
+  gen_induct_tac ([map Some (Syntax.read_idents s)], Some th);
 
 end;
 

@@ -414,10 +414,10 @@ by (resolve_tac prems 1);
 by (eresolve_tac prems 1);
 qed "rev_induct";
 
-fun rev_induct_tac xs = res_inst_tac [("xs",xs)] rev_induct;
+val rev_induct_tac = induct_thm_tac rev_induct;
 
 Goal  "(xs = [] --> P) -->  (!ys y. xs = ys@[y] --> P) --> P";
-by (res_inst_tac [("xs","xs")] rev_induct 1);
+by (rev_induct_tac "xs" 1);
 by Auto_tac;
 bind_thm ("rev_exhaust",
   impI RSN (2,allI RSN (2,allI RSN (2,impI RS (result() RS mp RS mp)))));
@@ -752,7 +752,7 @@ qed "butlast_snoc";
 Addsimps [butlast_snoc];
 
 Goal "length(butlast xs) = length xs - 1";
-by (res_inst_tac [("xs","xs")] rev_induct 1);
+by (rev_induct_tac "xs" 1);
 by Auto_tac;
 qed "length_butlast";
 Addsimps [length_butlast];
@@ -1217,7 +1217,7 @@ by Auto_tac;
 qed "map_Suc_upt";
 
 Goal "ALL i. i < n-m --> (map f [m..n(]) ! i = f(m+i)";
-by (res_inst_tac [("m","n"),("n","m")] diff_induct 1);
+by (induct_thm_tac diff_induct "n m" 1);
 by (stac (map_Suc_upt RS sym) 3);
 by (auto_tac (claset(), simpset() addsimps [less_diff_conv, nth_upt]));
 qed_spec_mp "nth_map_upt";
@@ -1453,14 +1453,14 @@ qed "sublist_nil";
 
 Goal "map fst [p:zip xs [i..i + length xs(] . snd p : A] =     \
 \     map fst [p:zip xs [0..length xs(] . snd p + i : A]";
-by (res_inst_tac [("xs","xs")] rev_induct 1);
+by (rev_induct_tac "xs" 1);
  by (asm_simp_tac (simpset() addsimps [add_commute]) 2);
 by (Simp_tac 1);
 qed "sublist_shift_lemma";
 
 Goalw [sublist_def]
      "sublist (l@l') A = sublist l A @ sublist l' {j. j + length l : A}";
-by (res_inst_tac [("xs","l'")] rev_induct 1);
+by (rev_induct_tac "l'" 1);
 by (Simp_tac 1);
 by (asm_simp_tac (simpset() addsimps [inst "i" "0" upt_add_eq_append, 
 	                              zip_append, sublist_shift_lemma]) 1);
@@ -1470,7 +1470,7 @@ qed "sublist_append";
 Addsimps [sublist_empty, sublist_nil];
 
 Goal "sublist (x#l) A = (if 0:A then [x] else []) @ sublist l {j. Suc j : A}";
-by (res_inst_tac [("xs","l")] rev_induct 1);
+by (rev_induct_tac "l" 1);
  by (asm_simp_tac (simpset() delsimps [append_Cons]
 	 		     addsimps [append_Cons RS sym, sublist_append]) 2);
 by (simp_tac (simpset() addsimps [sublist_def]) 1);
@@ -1482,7 +1482,7 @@ qed "sublist_singleton";
 Addsimps [sublist_singleton];
 
 Goal "sublist l {..n(} = take n l";
-by (res_inst_tac [("xs","l")] rev_induct 1);
+by (rev_induct_tac "l" 1);
  by (asm_simp_tac (simpset() addsplits [nat_diff_split]
                              addsimps [sublist_append]) 2);
 by (Simp_tac 1);

@@ -83,7 +83,7 @@ qed "diamond_par_beta";
 (*** cd ***)
 
 Goal "!t. s => t --> t => cd s";
-by (res_inst_tac[("x","s")] cd.induct 1);
+by (induct_thm_tac cd.induct "s" 1);
 by (Auto_tac);
 by (fast_tac (claset() addSIs [par_beta_subst]) 1);
 qed_spec_mp "par_beta_cd";

@@ -88,7 +88,7 @@ qed "nat_le_eq_zle";
 
 (*Analogous to zadd_int, but more easily provable using the arithmetic in Bin*)
 Goal "n<=m --> int m - int n = int (m-n)";
-by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
+by (induct_thm_tac diff_induct "m n" 1);
 by Auto_tac;
 qed_spec_mp "zdiff_int";
 

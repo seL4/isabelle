@@ -24,7 +24,7 @@ val prems = goal thy
      "[| !!m. P m 0;     \
 \        !!m n. [| 0<n;  P n (m mod n) |] ==> P m n  \
 \     |] ==> P (m::nat) (n::nat)";
-by (res_inst_tac [("u","m"),("v","n")] gcd.induct 1);
+by (induct_thm_tac gcd.induct "m n" 1);
 by (case_tac "n=0" 1);
 by (asm_simp_tac (simpset() addsimps prems) 1);
 by Safe_tac;
@@ -50,7 +50,7 @@ Addsimps [gcd_1];
 
 (*gcd(m,n) divides m and n.  The conjunctions don't seem provable separately*)
 Goal "(gcd(m,n) dvd m) & (gcd(m,n) dvd n)";
-by (res_inst_tac [("m","m"),("n","n")] gcd_induct 1);
+by (induct_thm_tac gcd_induct "m n" 1);
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [gcd_non_0])));
 by (blast_tac (claset() addDs [dvd_mod_imp_dvd]) 1);
 qed "gcd_dvd_both";
@@ -62,7 +62,7 @@ bind_thm ("gcd_dvd2", gcd_dvd_both RS conjunct2);
 (*Maximality: for all m,n,f naturals, 
                 if f divides m and f divides n then f divides gcd(m,n)*)
 Goal "(f dvd m) --> (f dvd n) --> f dvd gcd(m,n)";
-by (res_inst_tac [("m","m"),("n","n")] gcd_induct 1);
+by (induct_thm_tac gcd_induct "m n" 1);
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps[gcd_non_0, dvd_mod])));
 qed_spec_mp "gcd_greatest";
 
@@ -118,7 +118,7 @@ Addsimps [gcd_0_left, gcd_1_left];
 
 (*Davenport, page 27*)
 Goal "k * gcd(m,n) = gcd(k*m, k*n)";
-by (res_inst_tac [("m","m"),("n","n")] gcd_induct 1);
+by (induct_thm_tac gcd_induct "m n" 1);
 by (Asm_full_simp_tac 1);
 by (case_tac "k=0" 1);
  by (Asm_full_simp_tac 1);

@@ -97,7 +97,7 @@ val prems = Goal
 "[| !!n ts. !t : set ts. P t ==> P((Var n)$$ts); \
 \   !!u ts. [| P u; !t : set ts. P t |] ==> P((Abs u)$$ts) \
 \|] ==> !t. size t = n --> P t";
-by (res_inst_tac [("n","n")] less_induct 1);
+by (induct_thm_tac less_induct "n" 1);
 by (rtac allI 1);
 by (cut_inst_tac [("t","t")] ex_head_tail 1);
 by (Clarify_tac 1);

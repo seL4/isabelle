@@ -175,7 +175,7 @@ by Auto_tac;
 qed "wset_subset";
 
 Goal "p:zprime --> a<p-#1 --> b:(wset(a,p)) --> #1<b";
-by (res_inst_tac [("u","a"),("v","p")] wset_induct 1);
+by (induct_thm_tac wset_induct "a p" 1);
 by Auto_tac;
 by (case_tac "b=a" 1);
 by (case_tac "b=inv p a" 2);
@@ -187,7 +187,7 @@ by Auto_tac;
 qed_spec_mp "wset_g_1";
 
 Goal "p:zprime --> a<p-#1 --> b:(wset(a,p)) --> b<p-#1";
-by (res_inst_tac [("u","a"),("v","p")] wset_induct 1);
+by (induct_thm_tac wset_induct "a p" 1);
 by Auto_tac;
 by (case_tac "b=a" 1);
 by (case_tac "b=inv p a" 2);
@@ -199,7 +199,7 @@ by Auto_tac;
 qed_spec_mp "wset_less";
 
 Goal "p:zprime --> a<p-#1 --> #1<b --> b<=a --> b:(wset(a,p))"; 
-by (res_inst_tac [("u","a"),("v","p")] wset.induct 1);
+by (induct_thm_tac wset.induct "a p" 1);
 by Auto_tac;
 by (subgoal_tac "b=a" 1);
 by (rtac zle_anti_sym 2);
@@ -210,7 +210,7 @@ qed_spec_mp "wset_mem";
 
 Goal "p:zprime --> #5<=p --> a<p-#1 --> b:(wset (a,p)) \
 \     --> (inv p b):(wset (a,p))";
-by (res_inst_tac [("u","a"),("v","p")] wset_induct 1);
+by (induct_thm_tac wset_induct "a p" 1);
 by Auto_tac;
 by (case_tac "b=a" 1);
 by (stac wset_eq 1);
@@ -234,14 +234,14 @@ by (ALLGOALS (Asm_simp_tac));
 qed "wset_inv_mem_mem";
 
 Goal "finite (wset (a,p))";
-by (res_inst_tac [("u","a"),("v","p")] wset_induct 1);
+by (induct_thm_tac wset_induct "a p" 1);
 by (stac wset_eq 2);
 by (rewtac Let_def);
 by Auto_tac;
 qed "wset_fin";
 
 Goal "p:zprime --> #5<=p --> a<p-#1 --> [setprod (wset (a,p)) = #1](mod p)";
-by (res_inst_tac [("u","a"),("v","p")] wset_induct 1);
+by (induct_thm_tac wset_induct "a p" 1);
 by (stac wset_eq 2);
 by (rewtac Let_def);
 by Auto_tac;

@@ -46,7 +46,7 @@ Addsimps [SC, CONST, PROJ_0, COMP_1, PREC_0, PREC_Suc];
 
 (*PROPERTY A 4*)
 Goal "j < ack(i,j)";
-by (res_inst_tac [("u","i"),("v","j")] ack.induct 1);
+by (induct_thm_tac ack.induct "i j" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "less_ack2";
 
@@ -54,7 +54,7 @@ AddIffs [less_ack2];
 
 (*PROPERTY A 5-, the single-step lemma*)
 Goal "ack(i,j) < ack(i, Suc(j))";
-by (res_inst_tac [("u","i"),("v","j")] ack.induct 1);
+by (induct_thm_tac ack.induct "i j" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "ack_less_ack_Suc2";
 
@@ -62,7 +62,7 @@ AddIffs [ack_less_ack_Suc2];
 
 (*PROPERTY A 5, monotonicity for < *)
 Goal "j<k --> ack(i,j) < ack(i,k)";
-by (res_inst_tac [("u","i"),("v","k")] ack.induct 1);
+by (induct_thm_tac ack.induct "i k" 1);
 by (ALLGOALS Asm_simp_tac);
 by (blast_tac (claset() addSEs [less_SucE] addIs [less_trans]) 1);
 qed_spec_mp "ack_less_mono2";
@@ -115,10 +115,10 @@ Addsimps [ack_2];
 
 (*PROPERTY A 7, monotonicity for < [not clear why ack_1 is now needed first!]*)
 Goal "ack(i,k) < ack(Suc(i+i'),k)";
-by (res_inst_tac [("u","i"),("v","k")] ack.induct 1);
+by (induct_thm_tac ack.induct "i k" 1);
 by (ALLGOALS Asm_full_simp_tac);
 by (blast_tac (claset() addIs [less_trans, ack_less_mono2]) 2);
-by (res_inst_tac [("u","i'"),("v","n")] ack.induct 1);
+by (induct_thm_tac ack.induct "i' n" 1);
 by (ALLGOALS Asm_simp_tac);
 by (blast_tac (claset() addIs [less_trans, ack_less_mono2]) 1);
 by (blast_tac (claset() addIs [Suc_leI RS le_less_trans, ack_less_mono2]) 1);

@@ -30,7 +30,7 @@ by (ALLGOALS (asm_simp_tac (simpset() addsimps [BnorRset_eq,prem1])));
 qed "BnorRset_induct";
 
 Goal "b:BnorRset(a,m) --> b<=a";
-by (res_inst_tac [("u","a"),("v","m")] BnorRset_induct 1);
+by (induct_thm_tac BnorRset_induct "a m" 1);
 by (stac BnorRset_eq 2);
 by (rewtac Let_def);
 by Auto_tac;
@@ -43,14 +43,14 @@ by Auto_tac;
 qed "Bnor_mem_zle_swap";
 
 Goal "b:BnorRset(a,m) --> #0<b";
-by (res_inst_tac [("u","a"),("v","m")] BnorRset_induct 1);
+by (induct_thm_tac BnorRset_induct "a m" 1);
 by (stac BnorRset_eq 2);
 by (rewtac Let_def);
 by Auto_tac;
 qed_spec_mp "Bnor_mem_zg"; 
 
 Goal "zgcd(b,m) = #1 --> #0<b --> b<=a --> b:BnorRset(a,m)";
-by (res_inst_tac [("u","a"),("v","m")] BnorRset.induct 1);
+by (induct_thm_tac BnorRset.induct "a m" 1);
 by Auto_tac;
 by (case_tac "a=b" 1);
 by (asm_full_simp_tac (simpset() addsimps [zle_neq_implies_zless]) 2);
@@ -61,7 +61,7 @@ by Auto_tac;
 qed_spec_mp "Bnor_mem_if";
 
 Goal "a<m --> BnorRset (a,m) : RsetR m";
-by (res_inst_tac [("u","a"),("v","m")] BnorRset_induct 1);
+by (induct_thm_tac BnorRset_induct "a m" 1);
 by (Simp_tac 1);
 by (stac BnorRset_eq 1);
 by (rewtac Let_def);
@@ -77,7 +77,7 @@ by Auto_tac;
 qed_spec_mp "Bnor_in_RsetR";
 
 Goal "finite (BnorRset (a,m))";
-by (res_inst_tac [("u","a"),("v","m")] BnorRset_induct 1);
+by (induct_thm_tac BnorRset_induct "a m" 1);
 by (stac BnorRset_eq 2);
 by (rewtac Let_def);
 by Auto_tac;
@@ -210,7 +210,7 @@ val lemma = result();
 
 Goal "x~=#0 ==> a<m --> setprod ((%a. a*x) `` BnorRset(a,m)) = \
 \     setprod (BnorRset(a,m)) * x^card(BnorRset(a,m))";
-by (res_inst_tac [("u","a"),("v","m")] BnorRset_induct 1);
+by (induct_thm_tac BnorRset_induct "a m" 1);
 by (stac BnorRset_eq 2);
 by (rewtac Let_def);
 by Auto_tac;
@@ -235,7 +235,7 @@ qed "bijzcong_zcong_prod";
 
 Goalw [norRRset_def,phi_def]
       "#0<m --> a<m --> zgcd (setprod (BnorRset (a,m)),m) = #1";
-by (res_inst_tac [("u","a"),("v","m")] BnorRset_induct 1);
+by (induct_thm_tac BnorRset_induct "a m" 1);
 by (stac BnorRset_eq 2);
 by (rewtac Let_def);
 by Auto_tac;
@@ -270,7 +270,7 @@ qed "EulerFermatTheorem";
 Goalw [zprime_def] 
       "p:zprime ==> a<p --> (ALL b. #0<b & b<=a --> zgcd(b,p) = #1) \
 \      --> card (BnorRset(a, p)) = nat a";
-by (res_inst_tac [("u","a"),("v","p")] BnorRset.induct 1);
+by (induct_thm_tac BnorRset.induct "a p" 1);
 by (stac BnorRset_eq 1);
 by (rewtac Let_def);
 by Auto_tac;

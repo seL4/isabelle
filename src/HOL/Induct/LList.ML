@@ -128,7 +128,7 @@ end;
 qed "LListD_unfold";
 
 Goal "!M N. (M,N) : LListD(diag A) --> ntrunc k M = ntrunc k N";
-by (res_inst_tac [("n", "k")] less_induct 1);
+by (induct_thm_tac less_induct "k" 1);
 by (safe_tac (claset() delrules [equalityI]));
 by (etac LListD.elim 1);
 by (safe_tac (claset() delrules [equalityI]));
@@ -287,7 +287,7 @@ Goal
 by (rtac (ntrunc_equality RS ext) 1);
 by (rename_tac "x k" 1);
 by (res_inst_tac [("x", "x")] spec 1);
-by (res_inst_tac [("n", "k")] less_induct 1);
+by (induct_thm_tac less_induct "k" 1);
 by (rename_tac "n" 1);
 by (rtac allI 1);
 by (rename_tac "y" 1);

@@ -66,7 +66,7 @@ qed "apps_betasE";
 AddSEs [apps_betasE];
 
 Goal "r -> s ==> r$$ss -> s$$ss";
-by (res_inst_tac [("xs","ss")] rev_induct 1);
+by (rev_induct_tac "ss" 1);
 by (Auto_tac);
 qed "apps_preserves_beta";
 Addsimps [apps_preserves_beta];
@@ -79,7 +79,7 @@ qed "apps_preserves_beta2";
 Addsimps [apps_preserves_beta2];
 
 Goal "!ss. rs => ss --> r$$rs -> r$$ss";
-by (res_inst_tac [("xs","rs")] rev_induct 1);
+by (rev_induct_tac "rs" 1);
  by (Asm_full_simp_tac 1);
 by (Asm_full_simp_tac 1);
 by (Clarify_tac 1);
