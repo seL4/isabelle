@@ -50,7 +50,12 @@ fun termtext sign term =
     (Sign.string_of_term sign) term;
 
 fun call_mc s =
-  execute ( "echo \"" ^ s ^ "\" | pmu -w" );
+  let
+    val eindhoven_home = getenv "EINDHOVEN_HOME";
+    val pmu =
+      if eindhoven_home = "" then error "Environment variable EINDHOVEN_HOME not set"
+      else eindhoven_home ^ "/pmu";
+  in execute ("echo \"" ^ s ^ "\" | " ^ pmu ^ " -w") end;
 
 in
 

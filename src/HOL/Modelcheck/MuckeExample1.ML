@@ -6,16 +6,12 @@
 
 val reach_rws = [INIT_def,N_def,reach_def];
 
-(*
-goal thy "reach (True,True,True)";
+Goal "reach (True,True,True)";
 by (simp_tac (Mucke_ss addsimps reach_rws) 1); 
-by (mc_mucke_tac thy [] 1);
+by (mc_mucke_tac [] 1);
 qed "reach_ex_thm1";
 
-(* Alternative: *)
-goal thy "reach (True,True,True)";
-by (mc_mucke_tac thy reach_rws 1);
-qed "reach_ex_thm1";
-
-*)
-
+(*alternative*)
+Goal "reach (True,True,True)";
+by (mc_mucke_tac reach_rws 1);
+qed "reach_ex_thm1'";

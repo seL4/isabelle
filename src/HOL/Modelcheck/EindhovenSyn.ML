@@ -4,13 +4,6 @@
     Copyright   1997  TU Muenchen
 *)
 
-
-
-
-
-
-
-
 fun mc_eindhoven_tac i state =
 let val sign = #sign (rep_thm state)
 in 
@@ -43,5 +36,8 @@ end;
 
 
 val Eindhoven_ss =
-  simpset() addsimprocs [pair_eta_expand_proc]
-    addsimps [split_paired_Ex, Let_def];
+  simpset() addsimprocs [pair_eta_expand_proc] addsimps [Let_def];
+
+(*check if user has pmu installed*)
+fun eindhoven_enabled () = getenv "EINDHOVEN_HOME" <> "";
+fun if_eindhoven_enabled f x = if eindhoven_enabled () then f x else ();

@@ -1,4 +1,4 @@
-exception MuckeOracleExn of term * theory;
+exception MuckeOracleExn of term;
 
 val trace_mc = ref false; 
 
@@ -494,16 +494,36 @@ end;
 
 fun callmc s =
   let
-    val path = Path.unpack "tmp.mu";
-    val _ = File.write path s;
-    val result = execute "mucke -nb tmp";
-  in File.rm path; result end;
+    val mucke_home = getenv "MUCKE_HOME";
+    val mucke =
+      if mucke_home = "" then error "Environment variable MUCKE_HOME not set"
+      else mucke_home ^ "/mucke";
+    val mucke_input_file = File.tmp_path (Path.basic "tmp.mu");
+    val _ = File.write mucke_input_file s;
+    val result = execute (mucke ^ " -nb " ^ (File.sysify_path mucke_input_file));
+  in
+    if not (!trace_mc) then (File.rm mucke_input_file) else (); 
+    result
+  end;
 
 (* extract_result looks for true value before *) 
 (* finishing line "===..." of mucke output    *)
+(* ------------------------------------------ *)
+(* Be Careful:                                *)
+(* If the mucke version changes, some changes *)
+(* have also to be made here:                 *)
+(* In extract_result, the value               *)
+(* answer_with_info_lines checks the output   *)
+(* of the muche version, where the output     *)
+(* finishes with information about memory and *)
+(* time (segregated from the "true" value by  *)
+(* a line of equality signs).                 *)
+(* For older versions, where this line does   *)
+(* exist, value general_answer checks whether *)
+(* "true" stand at the end of the output.     *)
 local
 
-infix is_prefix_of contains string_contains;
+infix is_prefix_of contains at_post string_contains string_at_post;
 
   val is_blank : string -> bool =
       fn " " => true | "\t" => true | "\n" => true | "\^L" => true 
@@ -525,8 +545,14 @@ infix is_prefix_of contains string_contains;
     | [] contains s = false
     | (x::xs) contains s = (s is_prefix_of (x::xs)) orelse (xs contains s);
 
+  fun [] at_post [] = true
+    | [] at_post s = false
+    | (x::xs) at_post s = (s = (x::xs)) orelse (xs at_post s);
+ 
   fun s string_contains s1 = 
       (explode s) contains (explode s1);
+  fun s string_at_post s1 =
+      (explode s) at_post (explode s1);
 
 in 
 
@@ -534,8 +560,10 @@ fun extract_result goal answer =
   let 
     val search_text_true = "istrue===";
     val short_answer = delete_blanks_string answer;
+    val answer_with_info_lines = short_answer string_contains search_text_true;
+    val general_answer = short_answer string_at_post "true" 
   in
-    short_answer string_contains search_text_true
+    (answer_with_info_lines) orelse (general_answer)
   end;
 
 end; 
@@ -907,8 +935,8 @@ in
 else (check_finity gl ((t,cl)::bl) r b))
 end;
 
-fun preprocess_td sg t [] done = [] |
-preprocess_td sg t (a::b) done =
+fun preprocess_td sg [] done = [] |
+preprocess_td sg (a::b) done =
 let
 fun extract_hd sg (_ $ Abs(_,_,r)) = extract_hd sg r |
 extract_hd sg (Const("Trueprop",_) $ r) = extract_hd sg r |
@@ -945,7 +973,7 @@ in
 end;
 in
         if (a mem done)
-        then (preprocess_td sg t b done)
+        then (preprocess_td sg b done)
         else
         (let
 	 fun qtn (Type(a,tl)) = (a,tl) |
@@ -953,11 +981,11 @@ in
 	 val s =  post_last_dot(fst(qtn a));
 	 fun param_types ((Const("Trueprop",_)) $ (_ $ (Var(_,Type(_,t)))))  = t |
 	 param_types _ = error "malformed induct-theorem in preprocess_td";	
-	 val pl = param_types (concl_of (get_thm t (s ^ ".induct")));		
-         val l = split_constrs sg (snd(qtn a)) pl (prems_of (get_thm t (s ^ ".induct")));
+	 val pl = param_types (concl_of (get_thm (theory_of_sign sg) (s ^ ".induct")));		
+         val l = split_constrs sg (snd(qtn a)) pl (prems_of (get_thm (theory_of_sign sg) (s ^ ".induct")));
 	 val ntl = new_types l;
         in 
-        ((a,l) :: (preprocess_td sg t (ntl @ b) (a :: done)))
+        ((a,l) :: (preprocess_td sg (ntl @ b) (a :: done)))
         end)
 end;
 
@@ -988,7 +1016,7 @@ end;
 (**********************************************************)
 (* mk_mc_oracle:  new argument of MuckeOracleExn: source_thy *)
 
-fun mk_mucke_mc_oracle (sign, MuckeOracleExn (subgoal,source_thy)) = 
+fun mk_mucke_mc_oracle (sign, MuckeOracleExn (subgoal)) = 
   let 	val Freesubgoal = freeze_thaw subgoal;
 
 	val prems = Logic.strip_imp_prems Freesubgoal; 
@@ -998,7 +1026,7 @@ fun mk_mucke_mc_oracle (sign, MuckeOracleExn (subgoal,source_thy)) =
 	val decls_str = string_of_terms sign Muckedecls;
 	
 	val type_list = (extract_type_names_prems sign (prems@[concl]));
-	val ctl =  preprocess_td sign source_thy type_list [];
+	val ctl =  preprocess_td sign type_list [];
 	val b = if (ctl=[]) then true else (check_finity [Type("bool",[])] [] ctl false);
 	val type_str = make_type_decls ctl 
 				((Type("bool",[]),("True",[])::("False",[])::[])::ctl);

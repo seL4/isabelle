@@ -82,10 +82,10 @@ end; (* local *)
 
 (* Type of call_mucke_tac has changed: an argument t of type thy was inserted (TH); *)
 (* Normally t can be user-instantiated by the value thy of the Isabelle context     *)
-fun call_mucke_tac t i state =
+fun call_mucke_tac i state =
 let val sign = #sign (rep_thm state);
     val (subgoal::_) = drop(i-1,prems_of state);
-    val OraAss = invoke_oracle MuckeSyn.thy "Mucke" (sign,MuckeOracleExn (subgoal,t));
+    val OraAss = invoke_oracle MuckeSyn.thy "Mucke" (sign,MuckeOracleExn (subgoal));
 in 
 (cut_facts_tac [OraAss] i) state
 end;
@@ -147,12 +147,7 @@ end;
 
 (* first simplification, then model checking *)
 
-goal Prod.thy "(? x. P x) = (? a b. P(a,b))";
-by (Simp_tac 1);
-qed "split_paired_Ex";
-
-
-goalw thy [split_def] "(f::'a*'b=>'c) = (%(x, y). f (x, y))";
+goalw Prod.thy [split_def] "(f::'a*'b=>'c) = (%(x, y). f (x, y))";
   br ext 1;
   by (stac (surjective_pairing RS sym) 1);
   br refl 1;
@@ -169,24 +164,22 @@ in
 end;
 
 
-val Mucke_ss = simpset() addsimprocs [pair_eta_expand_proc] 
-                      addsimps [split_paired_Ex,Let_def];
+val Mucke_ss = simpset() addsimprocs [pair_eta_expand_proc] addsimps [Let_def];
 
-(* the Interface *)
 
-(* type of mc_tac has changed: an argument t of type thy was inserted;  *)
-(* t can be user-instantiated by the value thy of the Isabelle context; *)
-(* furthermore, tactic was extended by full_simp_tac  (TH) *)
-fun mc_mucke_tac t defs i state =
-let val sign = #sign (rep_thm state);
-in
-case drop(i-1,prems_of state) of
-   [] => PureGeneral.Seq.empty |
-   subgoal::_ => 
-		EVERY[REPEAT(etac thin_rl i),
-                        cut_facts_tac (mk_lam_defs defs) i,
-                 full_simp_tac (Mucke_ss delsimps [not_iff,split_part]) i,
-                        move_mus i, call_mucke_tac t i,atac i,
-                        REPEAT(rtac refl i)] state 
-end;
+(* the interface *)
 
+fun mc_mucke_tac defs i state =
+  (case drop (i - 1, Thm.prems_of state) of
+    [] => PureGeneral.Seq.empty
+  | subgoal :: _ =>
+      EVERY [
+        REPEAT (etac thin_rl i),
+        cut_facts_tac (mk_lam_defs defs) i,
+        full_simp_tac (Mucke_ss delsimps [not_iff,split_part]) i,
+        move_mus i, call_mucke_tac i,atac i,
+        REPEAT (rtac refl i)] state);
+
+(*check if user has mucke installed*)
+fun mucke_enabled () = getenv "MUCKE_HOME" <> "";
+fun if_mucke_enabled f x = if mucke_enabled () then f x else ();
