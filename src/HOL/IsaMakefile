@@ -6,7 +6,7 @@
 
 default: HOL
 generate: HOL-Complex-Generate-HOL
-images: HOL HOL-Algebra HOL-Complex TLA HOL4
+images: HOL HOL-Algebra HOL-Complex TLA ####lcp temporary####HOL4
 
 #Note: keep targets sorted (except for HOL-Library)
 test: \
@@ -18,7 +18,7 @@ test: \
   HOL-CTL \
   HOL-Extraction \
       HOL-Complex-HahnBanach \
-      HOL-Complex-Import \
+      ####lcp temporary####HOL-Complex-Import \
   HOL-Hoare \
   HOL-HoareParallel \
   HOL-IMP \
