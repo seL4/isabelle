@@ -62,14 +62,15 @@ sig
 
   (*type unification*)
   exception TUNIFY
-  val unify: type_sig -> int -> typ Vartab.table -> typ * typ -> typ Vartab.table * int
+  val unify: type_sig -> typ Vartab.table * int -> typ * typ -> typ Vartab.table * int
   val raw_unify: typ * typ -> bool
 
   (*type inference*)
   val get_sort: type_sig -> (indexname -> sort option) -> (sort -> sort)
     -> (indexname * sort) list -> indexname -> sort
   val constrain: term -> typ -> term
-  val param: string list -> string * sort -> typ
+  val param: int -> string * sort -> typ
+  val paramify_dummies: int * typ -> int * typ
   val infer_types: (term -> Pretty.T) -> (typ -> Pretty.T)
     -> type_sig -> (string -> typ option) -> (indexname -> typ option)
     -> (indexname -> sort option) -> (string -> string) -> (typ -> typ)
@@ -760,9 +761,10 @@ fun devar (T as TVar (v, _), tye) =
 fun add_env (vT as (v, T), tab) = Vartab.update_new (vT, Vartab.map
   (fn (U as (TVar (w, S))) => if eq_ix (v, w) then T else U | U => U) tab);
 
+
 (* unify *)
 
-fun unify (tsig as TySg {classrel, arities, ...}) maxidx tyenv TU =
+fun unify (tsig as TySg {classrel, arities, ...}) (tyenv, maxidx) TU =
   let
     val tyvar_count = ref maxidx;
     fun gen_tyvar S = TVar (("'a", inc tyvar_count), S);
@@ -803,16 +805,14 @@ fun unify (tsig as TySg {classrel, arities, ...}) maxidx tyenv TU =
           if a <> b then raise TUNIFY
           else foldr unif (Ts ~~ Us, tye)
       | (T, U) => if T = U then tye else raise TUNIFY);
-  in
-    (unif (TU, tyenv), ! tyvar_count)
-  end;
+  in (unif (TU, tyenv), ! tyvar_count) end;
 
 
 (* raw_unify *)
 
 (*purely structural unification -- ignores sorts*)
 fun raw_unify (ty1, ty2) =
-  (unify tsig0 0 Vartab.empty (rem_sorts ty1, rem_sorts ty2); true)
+  (unify tsig0 (Vartab.empty, 0) (rem_sorts ty1, rem_sorts ty2); true)
     handle TUNIFY => false;
 
 
@@ -855,7 +855,13 @@ fun constrain t T =
 (* user parameters *)
 
 fun is_param (x, _) = size x > 0 andalso ord x = ord "?";
-fun param used (x, S) = TVar ((variant used ("?" ^ x), 0), S);
+fun param i (x, S) = TVar (("?" ^ x, i), S);
+
+fun paramify_dummies (i, TFree ("'_dummy_", S)) = (i + 1, param i ("'dummy", S))
+  | paramify_dummies (i, Type (a, Ts)) =
+      let val (i', Ts') = foldl_map paramify_dummies (i, Ts)
+      in (i', Type (a, Ts')) end
+  | paramify_dummies arg = arg;
 
 
 (* decode_types *)
