@@ -102,6 +102,7 @@ diff -r Isabelle-2.6/elisp/isa-proofstate.el Isamode/elisp/isa-proofstate.el
 
 * function bind_thms stores lists of theorems (cf. bind_thm);
 
+* new shorthand tactics ftac, eatac, datac, fatac
 
 *** HOL ***
 
@@ -205,6 +206,9 @@ thus available for user theories;
 * HOLCF/IOA/Sequents: renamed 'Cons' to 'Consq' to avoid clash with
 HOL/List; hardly an INCOMPATIBILITY since '>>' syntax is used all the
 time;
+
+* HOL: new tactic smp_tac: int -> int -> tactic, which applies spec several
+  times and then mp
 
 
 *** LK ***
