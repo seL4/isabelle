@@ -97,6 +97,14 @@ fun try_param_tac x s rule i st =
 
 
 
+(*** code generator data ***)
+
+val [prod_code, fst_code, snd_code] =
+  map (Codegen.parse_mixfix (K (Bound 0))) ["(_,/ _)", "fst", "snd"];
+val prodT_code = Codegen.parse_mixfix (K dummyT) "(_ */ _)";
+
+
+
 (*** syntax operations ***)
 
 (** name components **)
@@ -579,7 +587,6 @@ fun field_definitions fields names xs alphas zeta moreT more vars named_vars thy
   let
     val sign = Theory.sign_of thy;
     val base = Sign.base_name;
-    val full_path = Sign.full_name_path sign;
 
     val xT = TFree (variant alphas "'x", HOLogic.typeS);
 
@@ -630,6 +637,12 @@ fun field_definitions fields names xs alphas zeta moreT more vars named_vars thy
 
     val (thms_thy, [field_defs', dest_defs', dest_convs', field_injects',
         field_splits', field_inducts', field_cases']) = defs_thy
+      |> Codegen.assoc_consts_i (flat (map (fn (s, _) =>
+           [(suffix fieldN s, None, prod_code),
+            (suffix fstN s, None, fst_code),
+            (suffix sndN s, None, snd_code)]) fields))
+      |> Codegen.assoc_types (map (fn (s, _) =>
+           (suffix field_typeN s, prodT_code)) fields)
       |> (PureThy.add_thmss o map Thm.no_attributes)
        [("field_defs", field_defs),
         ("dest_defs", dest_defs1 @ dest_defs2),
