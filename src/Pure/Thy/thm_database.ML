@@ -273,7 +273,7 @@ fun findE i j =
   and in the theory's HTML file*)
 fun store_thm (name, thm) =
   let
-    val (thy_name, ThyInfo {path, children, parents, thy_time, ml_time,
+    val (thy_name, {path, children, parents, thy_time, ml_time,
                             theory, thms, methods, data}) =
       thyinfo_of_sign (#sign (rep_thm thm))
 
@@ -290,7 +290,7 @@ fun store_thm (name, thm) =
     val thm' = Thm.name_thm (name, thm)
   in
     loaded_thys := Symtab.update
-     ((thy_name, ThyInfo {path = path, children = children, parents = parents,
+     ((thy_name, {path = path, children = children, parents = parents,
                           thy_time = thy_time, ml_time = ml_time,
                           theory = theory, thms = thms',
                           methods = methods, data = data}),
@@ -329,12 +329,12 @@ fun qed_goalw name thy rths agoal tacsf =
 
 (*Get all theorems belonging to a given theory*)
 fun thmtab_of_thy thy =
-  let val (_, ThyInfo {thms, ...}) = thyinfo_of_sign (sign_of thy);
+  let val (_, {thms, ...}) = thyinfo_of_sign (sign_of thy);
   in thms end;
 
 
 fun thmtab_of_name name =
-  let val ThyInfo {thms, ...} = the (get_thyinfo name);
+  let val {thms, ...} = the (get_thyinfo name);
   in thms end;
 
 
@@ -361,15 +361,15 @@ val thms_of = Symtab.dest o thmtab_of_thy;
 fun delete_thms tname =
   let
     val tinfo = case get_thyinfo tname of
-        Some (ThyInfo {path, children, parents, thy_time, ml_time, theory,
+        Some ({path, children, parents, thy_time, ml_time, theory,
                        methods, data, ...}) =>
-          ThyInfo {path = path, children = children, parents = parents,
+          {path = path, children = children, parents = parents,
                    thy_time = thy_time, ml_time = ml_time,
                    theory = theory, thms = Symtab.null,
                    methods = methods, data = data}
       | None => error ("Theory " ^ tname ^ " not stored by loader");
 
-    val ThyInfo {theory, ...} = tinfo;
+    val {theory, ...} = tinfo;
   in loaded_thys := Symtab.update ((tname, tinfo), !loaded_thys);
      case theory of
          Some t => delete_thm_db t

@@ -173,7 +173,7 @@ fun thyfile2html tname thy_path = if not (!make_html) then () else
 
     (*Make list of all theories and all theories that own a .thy file*)
     fun list_theories [] theories thy_files = (theories, thy_files)
-      | list_theories ((tname, ThyInfo {thy_time, ...}) :: ts)
+      | list_theories ((tname, {thy_time, ...}: thy_info) :: ts)
                       theories thy_files =
           list_theories ts (tname :: theories)
             (if is_some thy_time andalso the thy_time <> "" then
@@ -741,7 +741,7 @@ fun init_graph usedir_arg =
 fun mk_graph tname abs_path = if not (!make_graph) then () else
   let val parents =
         map (fn (t, _) => tack_on (path_of t) t)
-          (filter (fn (_, ThyInfo {children,...}) => tname mem children)
+          (filter (fn (_, {children,...}) => tname mem children)
              (Symtab.dest(!loaded_thys)));
 
       val dir_name = relative_path

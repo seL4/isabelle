@@ -1,27 +1,29 @@
 (*  Title:      Pure/Thy/thy_info.ML
     ID:         $Id$
-    Author:     Carsten Clasohm and Markus Wenzel and Sonia Mahjoub and
-                Tobias Nipkow and L C Paulson
-    Copyright   1994 TU Muenchen
+    Author:     Stefan Berghofer and Markus Wenzel, TU Muenchen
 
-Functions for storing and retrieving arbitrary theory information.
+Theory loader info database.
 *)
 
-(*Types for theory storage*)
-
+(* FIXME wipe out! *)
 (*Functions to handle arbitrary data added by the user; type "exn" is used
   to store data*)
 datatype thy_methods =
   ThyMethods of {merge: exn list -> exn, put: exn -> unit, get: unit -> exn};
 
-datatype thy_info =
-  ThyInfo of {path: string,
-              children: string list, parents: string list,
-              thy_time: string option, ml_time: string option,
-              theory: theory option, thms: thm Symtab.table,
-              methods: thy_methods Symtab.table,
-              data: exn Symtab.table * exn Symtab.table};
-      (*thy_time, ml_time = None     theory file has not been read yet
+
+type thy_info =
+  {path: string,
+    children: string list, parents: string list,
+    thy_time: string option, ml_time: string option,
+    theory: theory option, thms: thm Symtab.table,
+    methods: thy_methods Symtab.table,
+    data: exn Symtab.table * exn Symtab.table};
+
+(*
+        path: directory where theory's files are located
+
+        thy_time, ml_time = None     theory file has not been read yet
                           = Some ""  theory was read but has either been marked
                                      as outdated or there is no such file for
                                      this theory (see e.g. 'virtual' theories
@@ -44,8 +46,7 @@ datatype thy_info =
               if ML files has not been read, second element is identical to
               first one because get_thydata, which is meant to return the
               latest data, always accesses the 2nd element
-       *)
-
+*)
 
 signature THY_INFO =
 sig
@@ -57,7 +58,6 @@ sig
   val theory_of_thm  : thm -> theory
   val children_of    : string -> string list
   val parents_of_name: string -> string list
-  val thyname_of_sign: Sign.sg -> string
   val thyinfo_of_sign: Sign.sg -> string * thy_info
 
   val add_thydata    : string -> string * thy_methods -> unit
@@ -70,111 +70,82 @@ sig
 end;
 
 
-
 structure ThyInfo: THY_INFO =
 struct
 
+(* loaded theories *)
 
+fun mk_info (name, children, parents, theory) =
+  (name,
+    {path = "", children = children, parents = parents, thy_time = Some "",
+      ml_time = Some "", theory = Some theory, thms = Symtab.null,
+      methods = Symtab.null, data = (Symtab.null, Symtab.null)}: thy_info);
+
+(*preloaded theories*)
 val loaded_thys =
-  ref (Symtab.make [("ProtoPure",
-                     ThyInfo {path = "",
-                              children = ["Pure", "CPure"], parents = [],
-                              thy_time = Some "", ml_time = Some "",
-                              theory = Some proto_pure_thy,
-                              thms = Symtab.null, methods = Symtab.null,
-                              data = (Symtab.null, Symtab.null)}),
-                    ("Pure",
-                     ThyInfo {path = "", children = [],
-                              parents = ["ProtoPure"],
-                              thy_time = Some "", ml_time = Some "",
-                              theory = Some pure_thy, thms = Symtab.null,
-                              methods = Symtab.null,
-                              data = (Symtab.null, Symtab.null)}),
-                    ("CPure",
-                     ThyInfo {path = "",
-                              children = [], parents = ["ProtoPure"],
-                              thy_time = Some "", ml_time = Some "",
-                              theory = Some cpure_thy,
-                              thms = Symtab.null,
-                              methods = Symtab.null,
-                              data = (Symtab.null, Symtab.null)})
-                   ]);
+  ref (Symtab.make (map mk_info
+    [("ProtoPure", ["Pure", "CPure"], [], Theory.proto_pure),
+     ("Pure", [], ["ProtoPure"], Theory.pure),
+     ("CPure", [], ["ProtoPure"], Theory.cpure)]));
 
 
-(*Get thy_info for a loaded theory *)
-fun get_thyinfo tname = Symtab.lookup (!loaded_thys, tname);
+(* retrieve info *)
 
-(*Get path where theory's files are located*)
-fun path_of tname =
-  let val ThyInfo {path, ...} = the (get_thyinfo tname)
-  in path end;
+fun err_not_stored name =
+  error ("Theory " ^ name ^ " not stored by loader");
 
+fun get_thyinfo name = Symtab.lookup (! loaded_thys, name);
 
-(*Guess the name of a theory object
-  (First the quick way by looking at the stamps; if that doesn't work,
-   we search loaded_thys for the first theory which fits.)
-*)
-fun thyname_of_sign sg =
-  let val ref xname = hd (#stamps (Sign.rep_sg sg));
-      val opt_info = get_thyinfo xname;
+fun the_thyinfo name =
+  (case get_thyinfo name of
+    Some info => info
+  | None => err_not_stored name);
 
-    fun eq_sg (ThyInfo {theory = None, ...}) = false
-      | eq_sg (ThyInfo {theory = Some thy, ...}) = Sign.eq_sg (sg,sign_of thy);
-
-    val show_sg = Pretty.str_of o Sign.pretty_sg;
-  in
-    if is_some opt_info andalso eq_sg (the opt_info) then xname
-    else
-      (case Symtab.find_first (eq_sg o snd) (!loaded_thys) of
-        Some (name, _) => name
-      | None => error ("Theory " ^ show_sg sg ^ " not stored by loader"))
-  end;
-
-
-(*Guess to which theory a signature belongs and return it's thy_info*)
 fun thyinfo_of_sign sg =
-  let val name = thyname_of_sign sg;
-  in (name, the (get_thyinfo name)) end;
+  let val name = Sign.name_of sg
+  in (name, the_thyinfo name) end;
 
 
-(*Try to get the theory object corresponding to a given signature*)
+(*path where theory's files are located*)
+val path_of = #path o the_thyinfo;
+
+
+(*try to get the theory object corresponding to a given signature*)
 fun theory_of_sign sg =
   (case thyinfo_of_sign sg of
-    (_, ThyInfo {theory = Some thy, ...}) => thy
+    (_, {theory = Some thy, ...}) => thy
   | _ => sys_error "theory_of_sign");
 
-
-(*Try to get the theory object corresponding to a given theorem*)
+(*try to get the theory object corresponding to a given theorem*)
 val theory_of_thm = theory_of_sign o #sign o rep_thm;
 
-
-(*Get all direct descendants of a theory*)
+(*get all direct descendants of a theory*)
 fun children_of t =
-  case get_thyinfo t of Some (ThyInfo {children, ...}) => children
-                      | None => [];
+  (case get_thyinfo t of
+    Some ({children, ...}) => children
+  | None => []);
 
-
-(*Get all direct ancestors of a theory*)
+(*get all direct ancestors of a theory*)
 fun parents_of_name t =
-  case get_thyinfo t of Some (ThyInfo {parents, ...}) => parents
-                      | None => [];
+  (case get_thyinfo t of
+    Some ({parents, ...}) => parents
+  | None => []);
 
-
-(*Get theory object for a loaded theory *)
+(*get theory object for a loaded theory*)
 fun theory_of name =
-  case get_thyinfo name of Some (ThyInfo {theory = Some t, ...}) => t
-                         | _ => error ("Theory " ^ name ^
-                                       " not stored by loader");
+  (case get_thyinfo name of
+    Some ({theory = Some t, ...}) => t
+  | _ => err_not_stored name);
 
 
-(*Invoke every put method stored in a theory's methods table to initialize
+(*invoke every put method stored in a theory's methods table to initialize
   the state of user defined variables*)
 fun put_thydata first tname =
   let val (methods, data) = 
         case get_thyinfo tname of
-            Some (ThyInfo {methods, data, ...}) => 
+            Some ({methods, data, ...}) =>
               (methods, Symtab.dest ((if first then fst else snd) data))
-          | None => error ("Theory " ^ tname ^ " not stored by loader");
+          | None => err_not_stored tname;
 
       fun put_data (id, date) =
             case Symtab.lookup (methods, id) of
@@ -190,9 +161,9 @@ val set_current_thy = put_thydata false;
 (*Change theory object for an existent item of loaded_thys*)
 fun store_theory (thy, tname) =
   let val tinfo = case Symtab.lookup (!loaded_thys, tname) of
-               Some (ThyInfo {path, children, parents, thy_time, ml_time, thms,
+               Some ({path, children, parents, thy_time, ml_time, thms,
                               methods, data, ...}) =>
-                 ThyInfo {path = path, children = children, parents = parents,
+                 {path = path, children = children, parents = parents,
                           thy_time = thy_time, ml_time = ml_time,
                           theory = Some thy, thms = thms,
                           methods = methods, data = data}
@@ -204,12 +175,9 @@ fun store_theory (thy, tname) =
 
 (*Add data handling methods to theory*)
 fun add_thydata tname (new_methods as (id, ThyMethods {get, ...})) =
-  let val ThyInfo {path, children, parents, thy_time, ml_time, theory,
-                   thms, methods, data} =
-        case get_thyinfo tname of
-            Some ti => ti
-          | None => error ("Theory " ^ tname ^ " not stored by loader");
-  in loaded_thys := Symtab.update ((tname, ThyInfo {path = path,
+  let val {path, children, parents, thy_time, ml_time, theory,
+                   thms, methods, data} = the_thyinfo tname;
+  in loaded_thys := Symtab.update ((tname, {path = path,
        children = children, parents = parents, thy_time = thy_time,
        ml_time = ml_time, theory = theory, thms = thms,
        methods = Symtab.update (new_methods, methods), data = data}),
@@ -217,11 +185,9 @@ fun add_thydata tname (new_methods as (id, ThyMethods {get, ...})) =
   end;
 
 
-(*Retrieve data associated with theory*)
-fun get_thydata tname id =
-  let val d2 = case get_thyinfo tname of
-                   Some (ThyInfo {data, ...}) => snd data
-                 | None => error ("Theory " ^ tname ^ " not stored by loader");
-  in Symtab.lookup (d2, id) end;
+(*retrieve data associated with theory*)
+fun get_thydata name id =
+  Symtab.lookup (snd (#data (the_thyinfo name)), id);
+
 
 end;

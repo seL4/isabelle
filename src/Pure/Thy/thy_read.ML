@@ -66,7 +66,7 @@ fun read_thy tname thy_file =
 fun already_loaded thy =
   let val t = get_thyinfo thy
   in if is_none t then false
-     else let val ThyInfo {thy_time, ml_time, ...} = the t
+     else let val {thy_time, ml_time, ...} = the t
           in is_some thy_time andalso is_some ml_time end
   end;
 
@@ -75,7 +75,7 @@ fun already_loaded thy =
   Return a pair of boolean values for .thy and for .ML *)
 fun thy_unchanged thy thy_file ml_file =
   case get_thyinfo thy of
-      Some (ThyInfo {thy_time, ml_time, ...}) =>
+      Some {thy_time, ml_time, ...} =>
        let val tn = is_none thy_time;
            val mn = is_none ml_time
        in if not tn andalso not mn then
@@ -136,7 +136,7 @@ fun get_filenames path name =
 
       val tinfo = get_thyinfo name;
   in if is_some tinfo andalso path = "" then
-       let val ThyInfo {path = abs_path, ...} = the tinfo;
+       let val {path = abs_path, ...} = the tinfo;
            val (thy_file, ml_file) = if abs_path = "" then new_filename ()
                                      else (find_file abs_path (name ^ ".thy"),
                                            find_file abs_path (name ^ ".ML"))
@@ -154,9 +154,9 @@ fun get_filenames path name =
 
 (*Remove theory from all child lists in loaded_thys *)
 fun unlink_thy tname =
-  let fun remove (ThyInfo {path, children, parents, thy_time, ml_time,
+  let fun remove ({path, children, parents, thy_time, ml_time,
                            theory, thms, methods, data}) =
-        ThyInfo {path = path, children = children \ tname, parents = parents,
+        {path = path, children = children \ tname, parents = parents,
                  thy_time = thy_time, ml_time = ml_time, theory = theory, 
                  thms = thms, methods = methods, data = data}
   in loaded_thys := Symtab.map remove (!loaded_thys) end;
@@ -171,9 +171,9 @@ fun remove_thy tname =
 (*Change thy_time and ml_time for an existent item *)
 fun set_info tname thy_time ml_time =
   let val tinfo = case Symtab.lookup (!loaded_thys, tname) of
-          Some (ThyInfo {path, children, parents, theory, thms,
+          Some ({path, children, parents, theory, thms,
                          methods, data, ...}) =>
-            ThyInfo {path = path, children = children, parents = parents,
+            {path = path, children = children, parents = parents,
                      thy_time = thy_time, ml_time = ml_time,
                      theory = theory, thms = thms,
                      methods = methods, data = data}
@@ -186,7 +186,7 @@ fun mark_outdated tname =
   let val t = get_thyinfo tname;
   in if is_none t then ()
      else
-       let val ThyInfo {thy_time, ml_time, ...} = the t
+       let val {thy_time, ml_time, ...} = the t
        in set_info tname (if is_none thy_time then None else Some "")
                          (if is_none ml_time then None else Some "")
        end
@@ -217,11 +217,11 @@ fun use_thy1 tmp_loadpath_valid name =
 
     (*Set absolute path for loaded theory *)
     fun set_path () =
-      let val ThyInfo {children, parents, thy_time, ml_time, theory, thms,
+      let val {children, parents, thy_time, ml_time, theory, thms,
                        methods, data, ...} =
             the (Symtab.lookup (!loaded_thys, tname));
       in loaded_thys := Symtab.update ((tname,
-                          ThyInfo {path = abs_path,
+                          {path = abs_path,
                                    children = children, parents = parents,
                                    thy_time = thy_time, ml_time = ml_time,
                                    theory = theory, thms = thms,
@@ -245,7 +245,7 @@ fun use_thy1 tmp_loadpath_valid name =
     (*Invoke every get method stored in the methods table and store result in
       data table*)
     fun save_data thy_only =
-      let val ThyInfo {path, children, parents, thy_time, ml_time,
+      let val {path, children, parents, thy_time, ml_time,
                        theory, thms, methods, data} = the (get_thyinfo tname);
 
           fun get_data [] data = data
@@ -257,7 +257,7 @@ fun use_thy1 tmp_loadpath_valid name =
           val data' = (if thy_only then new_data else fst data, new_data)
                       (* 2nd component must be up to date *)
       in loaded_thys := Symtab.update
-           ((tname, ThyInfo {path = path,
+           ((tname, {path = path,
                              children = children, parents = parents,
                              thy_time = thy_time, ml_time = ml_time,
                              theory = theory, thms = thms,
@@ -267,7 +267,7 @@ fun use_thy1 tmp_loadpath_valid name =
 
     (*Make sure that loaded_thys contains an entry for tname*)
     fun init_thyinfo () =
-    let val tinfo = ThyInfo {path = "", children = [], parents = [],
+    let val tinfo = {path = "", children = [], parents = [],
                              thy_time = None, ml_time = None,
                              theory = None, thms = Symtab.null,
                              methods = Symtab.null,
@@ -372,7 +372,7 @@ fun update () =
 
       fun reload_changed (t :: ts) =
             let val abspath = case get_thyinfo t of
-                                  Some (ThyInfo {path, ...}) => path
+                                  Some ({path, ...}) => path
                                 | None => "";
 
                 val (thy_file, ml_file) = get_filenames abspath t;
@@ -388,7 +388,7 @@ fun update () =
        If there are still children in the deleted theory's list
        schedule them for reloading *)
      fun collect_garbage no_garbage =
-       let fun collect ((tname, ThyInfo {children, ...}) :: ts) =
+       let fun collect ((tname, {children, ...}: thy_info) :: ts) =
                  if tname mem no_garbage then collect ts
                  else (writeln ("Theory \"" ^ tname ^
                        "\" is no longer linked with ProtoPure - removing it.");
@@ -413,7 +413,7 @@ fun mk_base bases child =
                    error ("Cyclic dependency of theories: "
                           ^ child ^ "->" ^ base ^ result)
                  else if is_some tinfo then
-                   let val ThyInfo {children, ...} = the tinfo
+                   let val {children, ...} = the tinfo
                    in seq (find_it ("->" ^ curr ^ result)) children
                    end
                  else ()
@@ -429,14 +429,14 @@ fun mk_base bases child =
       fun add_child base =
         let val tinfo =
               case Symtab.lookup (!loaded_thys, base) of
-                  Some (ThyInfo {path, children, parents, thy_time, ml_time,
+                  Some ({path, children, parents, thy_time, ml_time,
                            theory, thms, methods, data}) =>
-                    ThyInfo {path = path,
+                    {path = path,
                              children = child ins children, parents = parents,
                              thy_time = thy_time, ml_time = ml_time,
                              theory = theory, thms = thms,
                              methods = methods, data = data}
-                | None => ThyInfo {path = "", children = [child], parents = [],
+                | None => {path = "", children = [child], parents = [],
                                    thy_time = None, ml_time = None,
                                    theory = None, thms = Symtab.null,
                                    methods = Symtab.null,
@@ -480,13 +480,13 @@ fun mk_base bases child =
 
       val datas =
         let fun get_data t =
-              let val ThyInfo {data, ...} = the (get_thyinfo t)
+              let val {data, ...} = the (get_thyinfo t)
               in snd data end;
         in map (Symtab.dest o get_data) mergelist end;
 
       val methods =
         let fun get_methods t =
-              let val ThyInfo {methods, ...} = the (get_thyinfo t)
+              let val {methods, ...} = the (get_thyinfo t)
               in methods end;
 
             val ms = map get_methods mergelist;
@@ -536,9 +536,9 @@ fun mk_base bases child =
 
       val dummy =
         let val tinfo = case Symtab.lookup (!loaded_thys, child) of
-              Some (ThyInfo {path, children, thy_time, ml_time, theory, thms,
+              Some ({path, children, thy_time, ml_time, theory, thms,
                              data, ...}) =>
-                 ThyInfo {path = path,
+                 {path = path,
                           children = children, parents = mergelist,
                           thy_time = thy_time, ml_time = ml_time,
                           theory = theory, thms = thms,
