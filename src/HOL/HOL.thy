@@ -193,7 +193,6 @@ defs
 
 setup Simplifier.setup
 setup ClasetThyData.setup
-setup ThyData.setup
 
 
 end
