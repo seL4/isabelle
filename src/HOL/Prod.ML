@@ -299,12 +299,6 @@ AddSEs [SigmaE2, SigmaE, splitE, mem_splitE,
         fst_imageE, snd_imageE, prod_fun_imageE,
         Pair_inject];
 
-val prod_cs = set_cs addSIs [SigmaI, splitI, splitI2, mem_splitI, mem_splitI2] 
-                     addIs  [fst_imageI, snd_imageI, prod_fun_imageI]
-                     addSEs [SigmaE2, SigmaE, splitE, mem_splitE, 
-                             fst_imageE, snd_imageE, prod_fun_imageE,
-                             Pair_inject];
-
 structure Prod_Syntax =
 struct
 
