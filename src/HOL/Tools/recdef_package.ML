@@ -136,26 +136,26 @@ val setup = [RecdefData.init];
 
 (* outer syntax *)
 
-local open OuterParse in
+local structure P = OuterParse and K = OuterSyntax.Keyword in
 
 val recdef_decl =
-  name -- term -- Scan.repeat1 term --
-  Scan.optional ($$$ "(" |-- $$$ "congs" |-- !!! (xthms1 --| $$$ ")")) [] --
-  Scan.option ($$$ "(" |-- $$$ "simpset" |-- !!! (name --| $$$ ")"))
+  P.name -- P.term -- Scan.repeat1 P.term --
+  Scan.optional (P.$$$ "(" |-- P.$$$ "congs" |-- P.!!! (P.xthms1 --| P.$$$ ")")) [] --
+  Scan.option (P.$$$ "(" |-- P.$$$ "simpset" |-- P.!!! (P.name --| P.$$$ ")"))
   >> (fn ((((f, R), eqs), congs), ss) => #1 o add_recdef_x f R eqs ss congs);
 
 val recdefP =
-  OuterSyntax.command "recdef" "define general recursive functions (TFL)"
+  OuterSyntax.command "recdef" "define general recursive functions (TFL)" K.thy_decl
     (recdef_decl >> Toplevel.theory);
 
 
 val defer_recdef_decl =
-  name -- Scan.repeat1 term --
-  Scan.optional ($$$ "(" |-- $$$ "congs" |-- !!! (xthms1 --| $$$ ")")) []
+  P.name -- Scan.repeat1 P.term --
+  Scan.optional (P.$$$ "(" |-- P.$$$ "congs" |-- P.!!! (P.xthms1 --| P.$$$ ")")) []
   >> (fn ((f, eqs), congs) => #1 o defer_recdef f eqs congs);
 
 val defer_recdefP =
-  OuterSyntax.command "defer_recdef" "defer general recursive functions (TFL)"
+  OuterSyntax.command "defer_recdef" "defer general recursive functions (TFL)" K.thy_decl
     (defer_recdef_decl >> Toplevel.theory);
 
 val _ = OuterSyntax.add_keywords ["congs", "simpset"];

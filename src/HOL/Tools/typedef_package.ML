@@ -205,23 +205,25 @@ val typedef_proof_i = gen_typedef_proof cert_term;
 
 (** outer syntax **)
 
-local open OuterParse in
+local structure P = OuterParse and K = OuterSyntax.Keyword in
 
 val typedeclP =
-  OuterSyntax.command "typedecl" "HOL type declaration"
-    (type_args -- name -- opt_mixfix >> (fn ((vs, t), mx) =>
+  OuterSyntax.command "typedecl" "HOL type declaration" K.thy_decl
+    (P.type_args -- P.name -- P.opt_mixfix >> (fn ((vs, t), mx) =>
       Toplevel.theory (add_typedecls [(t, vs, mx)])));
 
+
 val typedef_proof_decl =
-  Scan.option ($$$ "(" |-- name --| $$$ ")") --
-    (type_args -- name) -- opt_infix -- ($$$ "=" |-- term);
+  Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") --
+    (P.type_args -- P.name) -- P.opt_infix -- (P.$$$ "=" |-- P.term);
 
 fun mk_typedef_proof (((opt_name, (vs, t)), mx), A) =
   typedef_proof (if_none opt_name (Syntax.type_name t mx)) (t, vs, mx) A;
 
 val typedefP =
-  OuterSyntax.command "typedef" "HOL type definition (requires non-emptiness proof)"
+  OuterSyntax.command "typedef" "HOL type definition (requires non-emptiness proof)" K.thy_goal
     (typedef_proof_decl >> (Toplevel.print oo (Toplevel.theory_to_proof o mk_typedef_proof)));
+
 
 val _ = OuterSyntax.add_parsers [typedeclP, typedefP];
 

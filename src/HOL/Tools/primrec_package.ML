@@ -261,16 +261,16 @@ fun add_primrec alt_name eqns thy = add_primrec_i alt_name (map (read_eqn thy) e
 
 (* outer syntax *)
 
-local open OuterParse in
+local structure P = OuterParse and K = OuterSyntax.Keyword in
 
 val primrec_decl =
-  Scan.optional ($$$ "(" |-- name --| $$$ ")") "" --
-    Scan.repeat1 (opt_thm_name ":" -- term);
+  Scan.optional (P.$$$ "(" |-- P.name --| P.$$$ ")") "" --
+    Scan.repeat1 (P.opt_thm_name ":" -- P.term);
 
 val primrecP =
-  OuterSyntax.command "primrec" "define primitive recursive functions on datatypes"
+  OuterSyntax.command "primrec" "define primitive recursive functions on datatypes" K.thy_decl
     (primrec_decl >> (fn (alt_name, eqns) =>
-      Toplevel.theory (#1 o add_primrec alt_name (map triple_swap eqns))));
+      Toplevel.theory (#1 o add_primrec alt_name (map P.triple_swap eqns))));
 
 val _ = OuterSyntax.add_parsers [primrecP];
 

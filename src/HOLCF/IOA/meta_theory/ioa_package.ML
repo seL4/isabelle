@@ -523,42 +523,45 @@ fun mk_rename_decl (aut, (source_aut, rename_f)) =
 
 (* parsers *)
 
-local open OuterParse in
+local structure P = OuterParse and K = OuterSyntax.Keyword in
 
-val actionlist = list1 term;
-val inputslist = $$$ "inputs" |-- actionlist;
-val outputslist = $$$ "outputs" |-- actionlist;
-val internalslist = $$$ "internals" |-- actionlist;
-val stateslist = $$$ "states" |-- Scan.repeat1 (name --| $$$ "::" -- typ);
-val initial = $$$ "initially" |-- term;
-val assign_list = list1 (name --| $$$ ":=" -- term);
-val pre = $$$ "pre" |-- term;
-val post = $$$ "post" |-- assign_list;
+val actionlist = P.list1 P.term;
+val inputslist = P.$$$ "inputs" |-- actionlist;
+val outputslist = P.$$$ "outputs" |-- actionlist;
+val internalslist = P.$$$ "internals" |-- actionlist;
+val stateslist = P.$$$ "states" |-- Scan.repeat1 (P.name --| P.$$$ "::" -- P.typ);
+val initial = P.$$$ "initially" |-- P.term;
+val assign_list = P.list1 (P.name --| P.$$$ ":=" -- P.term);
+val pre = P.$$$ "pre" |-- P.term;
+val post = P.$$$ "post" |-- assign_list;
 val pre1 = (pre -- (Scan.optional post [])) >> mk_trans_of_prepost;
 val post1 = ((Scan.optional pre "True") -- post) >> mk_trans_of_prepost;
-val transrel =  ($$$ "transrel" |-- term) >> mk_trans_of_rel;
-val transition = term -- (transrel || pre1 || post1);
-val translist = $$$ "transitions" |-- Scan.repeat1 transition;
+val transrel =  (P.$$$ "transrel" |-- P.term) >> mk_trans_of_rel;
+val transition = P.term -- (transrel || pre1 || post1);
+val translist = P.$$$ "transitions" |-- Scan.repeat1 transition;
 
 val ioa_decl =
-  (name -- ($$$ "=" |--
-    ($$$ "signature" |--
-      ($$$ "actions" |--
-        (typ --
+  (P.name -- (P.$$$ "=" |--
+    (P.$$$ "signature" |--
+      (P.$$$ "actions" |--
+        (P.typ --
           (Scan.optional inputslist []) --
           (Scan.optional outputslist []) --
           (Scan.optional internalslist []) --
           stateslist --
           (Scan.optional initial "True") --
         translist))))) >> mk_ioa_decl ||
-  (name -- ($$$ "=" |-- ($$$ "compose" |-- list1 name))) >> mk_composition_decl ||
-  (name -- ($$$ "=" |--	($$$ "hide" |-- list1 term -- ($$$ "in" |-- name)))) >> mk_hiding_decl ||
-  (name -- ($$$ "=" |-- ($$$ "restrict" |-- name -- ($$$ "to" |-- list1 term))))
+  (P.name -- (P.$$$ "=" |-- (P.$$$ "compose" |-- P.list1 P.name))) >> mk_composition_decl ||
+  (P.name -- (P.$$$ "=" |-- (P.$$$ "hide" |-- P.list1 P.term -- (P.$$$ "in" |-- P.name))))
+    >> mk_hiding_decl ||
+  (P.name -- (P.$$$ "=" |-- (P.$$$ "restrict" |-- P.name -- (P.$$$ "to" |-- P.list1 P.term))))
     >> mk_restriction_decl ||
-  (name -- ($$$ "=" |-- ($$$ "rename" |-- name -- ($$$ "with" |-- term)))) >> mk_rename_decl;
+  (P.name -- (P.$$$ "=" |-- (P.$$$ "rename" |-- P.name -- (P.$$$ "with" |-- P.term))))
+    >> mk_rename_decl;
 
-val automatonP = OuterSyntax.command "automaton" "define Lynch/Vaandrager-style I/O automaton"
-  (ioa_decl >> Toplevel.theory);
+val automatonP =
+  OuterSyntax.command "automaton" "define Lynch/Vaandrager-style I/O automaton" K.thy_decl
+    (ioa_decl >> Toplevel.theory);
 
 end;
 

@@ -666,11 +666,11 @@ val setup = [DatatypesData.init];
 
 (* outer syntax *)
 
-local open OuterParse in
+local structure P = OuterParse and K = OuterSyntax.Keyword in
 
 val datatype_decl =
-  Scan.option ($$$ "(" |-- name --| $$$ ")") -- type_args -- name -- opt_infix --
-    ($$$ "=" |-- enum1 "|" (name -- Scan.repeat typ -- opt_mixfix));
+  Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") -- P.type_args -- P.name -- P.opt_infix --
+    (P.$$$ "=" |-- P.enum1 "|" (P.name -- Scan.repeat P.typ -- P.opt_mixfix));
 
 fun mk_datatype args =
   let
@@ -679,20 +679,20 @@ fun mk_datatype args =
   in #1 o add_datatype false names specs end;
 
 val datatypeP =
-  OuterSyntax.command "datatype" "define inductive datatypes"
-    (enum1 "and" datatype_decl >> (Toplevel.theory o mk_datatype));
+  OuterSyntax.command "datatype" "define inductive datatypes" K.thy_decl
+    (P.and_list1 datatype_decl >> (Toplevel.theory o mk_datatype));
 
 
 val rep_datatype_decl =
-  Scan.option (Scan.repeat1 name) --
-    Scan.optional ($$$ "distinct" |-- !!! (and_list1 xthms1)) [] --
-    Scan.optional ($$$ "inject" |-- !!! (and_list1 xthms1)) [] --
-    ($$$ "induction" |-- !!! xthm);
+  Scan.option (Scan.repeat1 P.name) --
+    Scan.optional (P.$$$ "distinct" |-- P.!!! (P.and_list1 P.xthms1)) [] --
+    Scan.optional (P.$$$ "inject" |-- P.!!! (P.and_list1 P.xthms1)) [] --
+    (P.$$$ "induction" |-- P.!!! P.xthm);
 
 fun mk_rep_datatype (((opt_ts, dss), iss), ind) = #1 o rep_datatype opt_ts dss iss ind;
 
 val rep_datatypeP =
-  OuterSyntax.command "rep_datatype" "represent existing types inductively"
+  OuterSyntax.command "rep_datatype" "represent existing types inductively" K.thy_decl
     (rep_datatype_decl >> (Toplevel.theory o mk_rep_datatype));
 
 

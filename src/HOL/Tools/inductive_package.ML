@@ -704,20 +704,23 @@ val setup = [InductiveData.init];
 
 (* outer syntax *)
 
-local open OuterParse in
+local structure P = OuterParse and K = OuterSyntax.Keyword in
 
 fun mk_ind coind (((sets, (atts, intrs)), monos), con_defs) =
-  #1 o add_inductive true coind sets atts (map triple_swap intrs) monos con_defs;
+  #1 o add_inductive true coind sets atts (map P.triple_swap intrs) monos con_defs;
 
 fun ind_decl coind =
-  Scan.repeat1 term --
-  ($$$ "intrs" |-- !!! (opt_attribs -- Scan.repeat1 (opt_thm_name ":" -- term))) --
-  Scan.optional ($$$ "monos" |-- !!! xthms1) [] --
-  Scan.optional ($$$ "con_defs" |-- !!! xthms1) []
+  Scan.repeat1 P.term --
+  (P.$$$ "intrs" |-- P.!!! (P.opt_attribs -- Scan.repeat1 (P.opt_thm_name ":" -- P.term))) --
+  Scan.optional (P.$$$ "monos" |-- P.!!! P.xthms1) [] --
+  Scan.optional (P.$$$ "con_defs" |-- P.!!! P.xthms1) []
   >> (Toplevel.theory o mk_ind coind);
 
-val inductiveP = OuterSyntax.command "inductive" "define inductive sets" (ind_decl false);
-val coinductiveP = OuterSyntax.command "coinductive" "define coinductive sets" (ind_decl true);
+val inductiveP =
+  OuterSyntax.command "inductive" "define inductive sets" K.thy_decl (ind_decl false);
+
+val coinductiveP =
+  OuterSyntax.command "coinductive" "define coinductive sets" K.thy_decl (ind_decl true);
 
 val _ = OuterSyntax.add_keywords ["intrs", "monos", "con_defs"];
 val _ = OuterSyntax.add_parsers [inductiveP, coinductiveP];

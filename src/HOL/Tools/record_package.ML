@@ -878,14 +878,14 @@ val setup =
 
 (* outer syntax *)
 
-local open OuterParse in
+local structure P = OuterParse and K = OuterSyntax.Keyword in
 
 val record_decl =
-  type_args -- name -- ($$$ "=" |-- Scan.option (typ --| $$$ "+")
-    -- Scan.repeat1 (name -- ($$$ "::" |-- typ)));
+  P.type_args -- P.name -- (P.$$$ "=" |-- Scan.option (P.typ --| P.$$$ "+")
+    -- Scan.repeat1 (P.name -- (P.$$$ "::" |-- P.typ)));
 
 val recordP =
-  OuterSyntax.command "record" "define extensible record"
+  OuterSyntax.command "record" "define extensible record" K.thy_decl
     (record_decl >> (fn (x, (y, z)) => Toplevel.theory (#1 o add_record x y z)));
 
 val _ = OuterSyntax.add_parsers [recordP];
