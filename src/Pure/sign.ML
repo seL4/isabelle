@@ -20,15 +20,15 @@ sig
   type sg
   type sg_ref
   val rep_sg: sg ->
-   {id: string ref,			(* FIXME hide!? *)
-    self: sg_ref,
+   {self: sg_ref,
     tsig: Type.type_sig,
     const_tab: typ Symtab.table,
     syn: Syntax.syntax,
     path: string list,
     spaces: (string * NameSpace.T) list,
-    data: Data.T,
-    stamps: string ref list}		(* FIXME hide!? *)
+    data: Data.T}
+  val name_of: sg -> string
+  val stamp_names_of: sg -> string list
   val tsig_of: sg -> Type.type_sig
   val deref: sg_ref -> sg
   val self_ref: sg -> sg_ref
@@ -115,7 +115,7 @@ sig
   val put_data: string * exn -> sg -> sg
   val print_data: sg -> string -> unit
   val merge_refs: sg_ref * sg_ref -> sg_ref
-  val make_draft: sg -> sg
+  val prep_ext: sg -> sg
   val merge: sg * sg -> sg
   val proto_pure: sg
   val pure: sg
@@ -131,40 +131,47 @@ struct
 (** datatype sg **)
 
 datatype sg =
-  Sg of {
-    id: string ref,				(*id*)
-    self: sg_ref,				(*mutable self reference*)
+  Sg of
+   {id: string ref,                             (*id*)
+    stamps: string ref list} *                  (*unique theory indentifier*)
+   {self: sg_ref,                               (*mutable self reference*)
     tsig: Type.type_sig,                        (*order-sorted signature of types*)
     const_tab: typ Symtab.table,                (*type schemes of constants*)
     syn: Syntax.syntax,                         (*syntax for parsing and printing*)
-    path: string list,                     	(*current name space entry prefix*)
-    spaces: (string * NameSpace.T) list,   	(*name spaces for consts, types etc.*)
-    data: Data.T,				(*additional data*)
-    stamps: string ref list}                    (*unique theory indentifier*)
-      (*the "ref" in stamps ensures that no two signatures are identical
-        -- it is impossible to forge a signature*)
+    path: string list,                          (*current name space entry prefix*)
+    spaces: (string * NameSpace.T) list,        (*name spaces for consts, types etc.*)
+    data: Data.T}                               (*additional data*)
 and sg_ref =
   SgRef of sg ref option;
 
 (*make signature*)
 fun make_sign (id, self, tsig, const_tab, syn, path, spaces, data, stamps) =
-  Sg {id = id, self = self, tsig = tsig, const_tab = const_tab, syn = syn,
-    path = path, spaces = spaces, data = data, stamps = stamps};
+  Sg ({id = id, stamps = stamps}, {self = self, tsig = tsig, const_tab = const_tab,
+    syn = syn, path = path, spaces = spaces, data = data});
 
-(*dest signature*)
-fun rep_sg (Sg args) = args;
-val tsig_of = #tsig o rep_sg;
-val self_ref = #self o rep_sg;
 
-fun get_data (Sg {data, ...}) = Data.get data;
-fun print_data (Sg {data, ...}) = Data.print data;
+(* basic components *)
 
+fun rep_sg (Sg (_, args)) = args;
 
 (*show stamps*)
-fun stamp_names stamps = rev (map ! stamps);
-
-fun pretty_sg (Sg {stamps, ...}) = Pretty.str_list "{" "}" (stamp_names stamps);
+fun stamp_names_of (Sg ({stamps, ...}, _)) = rev (map ! stamps);
+fun pretty_sg sg = Pretty.str_list "{" "}" (stamp_names_of sg);
+val str_of_sg = Pretty.str_of o pretty_sg;
 val pprint_sg = Pretty.pprint o pretty_sg;
+
+
+val tsig_of = #tsig o rep_sg;
+val self_ref = #self o rep_sg;
+val get_data = Data.get o #data o rep_sg;
+val print_data = Data.print o #data o rep_sg;
+
+fun const_type (Sg (_, {const_tab, ...})) c = Symtab.lookup (const_tab, c);
+val classes = #classes o Type.rep_tsig o tsig_of;
+
+val subsort = Type.subsort o tsig_of;
+val norm_sort = Type.norm_sort o tsig_of;
+val nonempty_sort = Type.nonempty_sort o tsig_of;
 
 
 (* signature id *)
@@ -172,10 +179,16 @@ val pprint_sg = Pretty.pprint o pretty_sg;
 fun deref (SgRef (Some (ref sg))) = sg
   | deref (SgRef None) = sys_error "Sign.deref";
 
-fun check_stale (sg as Sg {id, self = SgRef (Some (ref (Sg {id = id', ...}))), ...}) =
+fun check_stale (sg as Sg ({id, ...},
+        {self = SgRef (Some (ref (Sg ({id = id', ...}, _)))), ...})) =
       if id = id' then sg
-      else raise TERM ("Stale signature: " ^ Pretty.str_of (pretty_sg sg), [])
+      else raise TERM ("Stale signature: " ^ str_of_sg sg, [])
   | check_stale _ = sys_error "Sign.check_stale";
+
+fun name_of (sg as Sg ({id = ref name, ...}, _)) =
+  if name = "" orelse name = "#" then
+    raise TERM ("Nameless signature " ^ str_of_sg sg, [])
+  else name;
 
 
 (* inclusion and equality *)
@@ -196,13 +209,13 @@ local
         if x = y then fast_sub (xs, ys)
         else fast_sub (x :: xs, ys);
 in
-  fun eq_sg (sg1 as Sg {id = id1, ...}, sg2 as Sg {id = id2, ...}) =
+  fun eq_sg (sg1 as Sg ({id = id1, ...}, _), sg2 as Sg ({id = id2, ...}, _)) =
     (check_stale sg1; check_stale sg2; id1 = id2);
 
-  fun subsig (sg1 as Sg {stamps = s1, ...}, sg2 as Sg {stamps = s2, ...}) =
+  fun subsig (sg1 as Sg ({stamps = s1, ...}, _), sg2 as Sg ({stamps = s2, ...}, _)) =
     eq_sg (sg1, sg2) orelse subset_stamp (s1, s2);
 
-  fun fast_subsig (sg1 as Sg {stamps = s1, ...}, sg2 as Sg {stamps = s2, ...}) =
+  fun fast_subsig (sg1 as Sg ({stamps = s1, ...}, _), sg2 as Sg ({stamps = s2, ...}, _)) =
     eq_sg (sg1, sg2) orelse fast_sub (s1, s2);
 end;
 
@@ -210,11 +223,11 @@ end;
 (*test if same theory names are contained in signatures' stamps,
   i.e. if signatures belong to same theory but not necessarily to the
   same version of it*)
-fun same_sg (sg1 as Sg {stamps = s1, ...}, sg2 as Sg {stamps = s2, ...}) =
+fun same_sg (sg1 as Sg ({stamps = s1, ...}, _), sg2 as Sg ({stamps = s2, ...}, _)) =
   eq_sg (sg1, sg2) orelse eq_set_string (pairself (map (op !)) (s1, s2));
 
 (*test for drafts*)
-fun is_draft (Sg {stamps = ref "#" :: _, ...}) = true
+fun is_draft (Sg ({stamps = ref "#" :: _, ...}, _)) = true
   | is_draft _ = false;
 
 
@@ -239,31 +252,17 @@ fun create_sign self stamps name (syn, tsig, ctab, (path, spaces), data) =
     sign
   end;
 
-fun extend_sign extfun name decls
-    (sg as Sg {id = _, self, tsig, const_tab, syn, path, spaces, data, stamps}) =
+fun extend_sign keep extfun name decls
+    (sg as Sg ({id = _, stamps}, {self, tsig, const_tab, syn, path, spaces, data})) =
   let
     val _ = check_stale sg;
     val (self', data') =
-      if is_draft sg then (self, data)
+      if is_draft sg andalso keep then (self, data)
       else (SgRef (Some (ref sg)), Data.prep_ext data);
   in
     create_sign self' stamps name
       (extfun (syn, tsig, const_tab, (path, spaces), data') decls)
   end;
-
-
-(* consts *)
-
-fun const_type (Sg {const_tab, ...}) c = Symtab.lookup (const_tab, c);
-
-
-(* classes and sorts *)
-
-val classes = #classes o Type.rep_tsig o tsig_of;
-
-val subsort = Type.subsort o tsig_of;
-val norm_sort = Type.norm_sort o tsig_of;
-val nonempty_sort = Type.nonempty_sort o tsig_of;
 
 
 
@@ -360,7 +359,7 @@ local
       (mapping (trn constK) add_term_consts t);
 
 
-  fun spaces_of (Sg {spaces, ...}) = spaces;
+  val spaces_of = #spaces o rep_sg;
 
 in
 
@@ -392,7 +391,7 @@ in
 
   val intern_tycons = intrn_tycons o spaces_of;
 
-  fun full_name (Sg {path, ...}) = full path;
+  val full_name = full o #path o rep_sg;
 
 end;
 
@@ -400,16 +399,16 @@ end;
 
 (** pretty printing of terms and types **)
 
-fun pretty_term (Sg {syn, spaces, stamps, ...}) t =
+fun pretty_term (sg as Sg (_, {syn, spaces, ...})) t =
   Syntax.pretty_term syn
-    ("CPure" mem_string (map ! stamps))
+    ("CPure" mem_string (stamp_names_of sg))
     (if ! long_names then t else extrn_term spaces t);
 
-fun pretty_typ (Sg {syn, spaces, ...}) T =
+fun pretty_typ (Sg (_, {syn, spaces, ...})) T =
   Syntax.pretty_typ syn
     (if ! long_names then T else extrn_typ spaces T);
 
-fun pretty_sort (Sg {syn, spaces, ...}) S =
+fun pretty_sort (Sg (_, {syn, spaces, ...})) S =
   Syntax.pretty_sort syn
     (if ! long_names then S else extrn_sort spaces S);
 
@@ -446,10 +445,12 @@ fun print_sg sg =
   let
     fun prt_cls c = pretty_sort sg [c];
     fun prt_sort S = pretty_sort sg S;
-    fun prt_tycon t = Pretty.str (cond_extern sg typeK t);
     fun prt_arity t (c, Ss) = pretty_arity sg (t, Ss, [c]);
     fun prt_typ ty = Pretty.quote (pretty_typ sg ty);
-    fun prt_const c = Pretty.quote (Pretty.str (cond_extern sg constK c));
+
+    val ext_class = cond_extern sg classK;
+    val ext_tycon = cond_extern sg typeK;
+    val ext_const = cond_extern sg constK;
 
 
     fun pretty_space (kind, space) = Pretty.block (Pretty.breaks
@@ -466,7 +467,7 @@ fun print_sg sg =
       [Pretty.str "default:", Pretty.brk 1, pretty_sort sg S];
 
     fun pretty_ty (t, n) = Pretty.block
-      [prt_tycon t, Pretty.str (" " ^ string_of_int n)];
+      [Pretty.str (ext_tycon t), Pretty.str (" " ^ string_of_int n)];
 
     fun pretty_abbr (t, (vs, rhs)) = Pretty.block
       [prt_typ (Type (t, map (fn v => TVar ((v, 0), [])) vs)),
@@ -475,14 +476,15 @@ fun print_sg sg =
     fun pretty_arities (t, ars) = map (prt_arity t) ars;
 
     fun pretty_const (c, ty) = Pretty.block
-      [prt_const c, Pretty.str " ::", Pretty.brk 1, prt_typ ty];
+      [Pretty.str c, Pretty.str " ::", Pretty.brk 1, prt_typ ty];
 
-    val Sg {id = _, self = _, tsig, const_tab, syn = _, path, spaces, data, stamps} = sg;
+    val Sg (_, {self = _, tsig, const_tab, syn = _, path, spaces, data}) = sg;
     val spaces' = sort (fn ((k1, _), (k2, _)) => k1 < k2) spaces;
     val {classes, classrel, default, tycons, abbrs, arities} =
       Type.rep_tsig tsig;
+    val consts = sort_wrt fst (map (apfst ext_const) (Symtab.dest const_tab));
   in
-    Pretty.writeln (Pretty.strs ("stamps:" :: stamp_names stamps));
+    Pretty.writeln (Pretty.strs ("stamps:" :: stamp_names_of sg));
     Pretty.writeln (Pretty.strs ("data:" :: Data.kinds data));
     Pretty.writeln (Pretty.strs ["name entry path:", NameSpace.pack path]);
     Pretty.writeln (Pretty.big_list "name spaces:" (map pretty_space spaces'));
@@ -492,7 +494,7 @@ fun print_sg sg =
     Pretty.writeln (Pretty.big_list "type constructors:" (map pretty_ty tycons));
     Pretty.writeln (Pretty.big_list "type abbreviations:" (map pretty_abbr abbrs));
     Pretty.writeln (Pretty.big_list "type arities:" (flat (map pretty_arities arities)));
-    Pretty.writeln (Pretty.big_list "consts:" (map pretty_const (Symtab.dest const_tab)))
+    Pretty.writeln (Pretty.big_list "consts:" (map pretty_const consts))
   end;
 
 
@@ -508,7 +510,7 @@ fun read_raw_typ syn tsig spaces def_sort str =
       handle ERROR => err_in_type str);
   
 (*read and certify typ wrt a signature*)
-fun read_typ (sg as Sg {tsig, syn, spaces, ...}, def_sort) str =
+fun read_typ (sg as Sg (_, {tsig, syn, spaces, ...}), def_sort) str =
   (check_stale sg;
     Type.cert_typ tsig (read_raw_typ syn tsig spaces def_sort str)
       handle TYPE (msg, _, _) => (error_msg msg; err_in_type str));
@@ -517,7 +519,7 @@ fun read_typ (sg as Sg {tsig, syn, spaces, ...}, def_sort) str =
 
 (** certify types and terms **)   (*exception TYPE*)
 
-fun certify_typ (Sg {tsig, ...}) ty = Type.cert_typ tsig ty;
+val certify_typ = Type.cert_typ o tsig_of;
 
 (*check for duplicate TVars with distinct sorts*)
 fun nodup_TVars (tvars, T) =
@@ -564,19 +566,19 @@ fun mapfilt_atoms f (Abs (_, _, t)) = mapfilt_atoms f t
   | mapfilt_atoms f a = (case f a of Some y => [y] | None => []);
 
 
-fun certify_term (sg as Sg {tsig, ...}) tm =
+fun certify_term sg tm =
   let
     val _ = check_stale sg;
+    val tsig = tsig_of sg;
 
-    fun valid_const a T =
-      (case const_type sg a of
-        Some U => Type.typ_instance (tsig, T, U)
-      | _ => false);
+    fun show_const a T = quote a ^ " :: " ^ quote (string_of_typ sg T);
 
     fun atom_err (Const (a, T)) =
-          if valid_const a T then None
-          else Some ("Illegal type for constant " ^ quote a ^ " :: " ^
-            quote (string_of_typ sg T))
+        (case const_type sg a of
+          None => Some ("Undeclared constant " ^ show_const a T)
+        | Some U =>
+            if Type.typ_instance (tsig, T, U) then None
+            else Some ("Illegal type for constant " ^ show_const a T))
       | atom_err (Var ((x, i), _)) =
           if i < 0 then Some ("Negative index for Var " ^ quote x) else None
       | atom_err _ = None;
@@ -608,7 +610,7 @@ fun certify_term (sg as Sg {tsig, ...}) tm =
 
 fun infer_types sg def_type def_sort used freeze (ts, T) =
   let
-    val Sg {tsig, ...} = sg;
+    val tsig = tsig_of sg;
     val prt =
       setmp Syntax.show_brackets true
         (setmp long_names true (pretty_term sg));
@@ -838,35 +840,34 @@ fun ext_put_data (syn, tsig, ctab, names, data) (kind, e) =
 
 (* the external interfaces *)
 
-val add_classes      = extend_sign (ext_classes true) "#";
-val add_classes_i    = extend_sign (ext_classes false) "#";
-val add_classrel     = extend_sign (ext_classrel true) "#";
-val add_classrel_i   = extend_sign (ext_classrel false) "#";
-val add_defsort      = extend_sign (ext_defsort true) "#";
-val add_defsort_i    = extend_sign (ext_defsort false) "#";
-val add_types        = extend_sign ext_types "#";
-val add_tyabbrs      = extend_sign ext_tyabbrs "#";
-val add_tyabbrs_i    = extend_sign ext_tyabbrs_i "#";
-val add_arities      = extend_sign (ext_arities true) "#";
-val add_arities_i    = extend_sign (ext_arities false) "#";
-val add_consts       = extend_sign ext_consts "#";
-val add_consts_i     = extend_sign ext_consts_i "#";
-val add_syntax       = extend_sign ext_syntax "#";
-val add_syntax_i     = extend_sign ext_syntax_i "#";
-val add_modesyntax   = extend_sign ext_modesyntax "#";
-val add_modesyntax_i = extend_sign ext_modesyntax_i "#";
-val add_trfuns       = extend_sign (ext_syn Syntax.extend_trfuns) "#";
-val add_trfunsT      = extend_sign (ext_syn Syntax.extend_trfunsT) "#";
-val add_tokentrfuns  = extend_sign (ext_syn Syntax.extend_tokentrfuns) "#";
-val add_trrules      = extend_sign (ext_syn Syntax.extend_trrules) "#";
-val add_trrules_i    = extend_sign (ext_syn Syntax.extend_trrules_i) "#";
-val add_path         = extend_sign ext_path "#";
-val add_space        = extend_sign ext_space "#";
-val init_data        = extend_sign ext_init_data "#";
-val put_data         = extend_sign ext_put_data "#";
-fun add_name name sg = extend_sign K name () sg;
-
-val make_draft = add_name "#";
+val add_classes      = extend_sign true (ext_classes true) "#";
+val add_classes_i    = extend_sign true (ext_classes false) "#";
+val add_classrel     = extend_sign true (ext_classrel true) "#";
+val add_classrel_i   = extend_sign true (ext_classrel false) "#";
+val add_defsort      = extend_sign true (ext_defsort true) "#";
+val add_defsort_i    = extend_sign true (ext_defsort false) "#";
+val add_types        = extend_sign true ext_types "#";
+val add_tyabbrs      = extend_sign true ext_tyabbrs "#";
+val add_tyabbrs_i    = extend_sign true ext_tyabbrs_i "#";
+val add_arities      = extend_sign true (ext_arities true) "#";
+val add_arities_i    = extend_sign true (ext_arities false) "#";
+val add_consts       = extend_sign true ext_consts "#";
+val add_consts_i     = extend_sign true ext_consts_i "#";
+val add_syntax       = extend_sign true ext_syntax "#";
+val add_syntax_i     = extend_sign true ext_syntax_i "#";
+val add_modesyntax   = extend_sign true ext_modesyntax "#";
+val add_modesyntax_i = extend_sign true ext_modesyntax_i "#";
+val add_trfuns       = extend_sign true (ext_syn Syntax.extend_trfuns) "#";
+val add_trfunsT      = extend_sign true (ext_syn Syntax.extend_trfunsT) "#";
+val add_tokentrfuns  = extend_sign true (ext_syn Syntax.extend_tokentrfuns) "#";
+val add_trrules      = extend_sign true (ext_syn Syntax.extend_trrules) "#";
+val add_trrules_i    = extend_sign true (ext_syn Syntax.extend_trrules_i) "#";
+val add_path         = extend_sign true ext_path "#";
+val add_space        = extend_sign true ext_space "#";
+val init_data        = extend_sign true ext_init_data "#";
+val put_data         = extend_sign true ext_put_data "#";
+fun add_name name sg = extend_sign true K name () sg;
+fun prep_ext sg      = extend_sign false K "#" () sg;
 
 
 
@@ -895,18 +896,17 @@ fun merge_aux (sg1, sg2) =
   else
     (*neither is union already; must form union*)
     let
-      val Sg {id = _, self = _, tsig = tsig1, const_tab = const_tab1, syn = syn1,
-        path = _, spaces = spaces1, data = data1, stamps = stamps1} = sg1;
-      val Sg {id = _, self = _, tsig = tsig2, const_tab = const_tab2, syn = syn2,
-        path = _, spaces = spaces2, data = data2, stamps = stamps2} = sg2;
-
+      val Sg ({id = _, stamps = stamps1}, {self = _, tsig = tsig1, const_tab = const_tab1,
+        syn = syn1, path = _, spaces = spaces1, data = data1}) = sg1;
+      val Sg ({id = _, stamps = stamps2}, {self = _, tsig = tsig2, const_tab = const_tab2,
+        syn = syn2, path = _, spaces = spaces2, data = data2}) = sg2;
 
       val id = ref "";
-      val self_ref = ref sg1;			(*dummy value*)
+      val self_ref = ref sg1;                   (*dummy value*)
       val self = SgRef (Some self_ref);
       val stamps = merge_rev_lists stamps1 stamps2;
       val _ =
-        (case duplicates (stamp_names stamps) of
+        (case duplicates (map ! stamps) of
           [] => ()
         | dups => raise TERM ("Attempt to merge different versions of theories "
             ^ commas_quote dups, []));
