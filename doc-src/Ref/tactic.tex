@@ -6,6 +6,10 @@ functions from theorems to theorem sequences, where the theorems represent
 states of a backward proof.  Tactics seldom need to be coded from scratch,
 as functions; instead they are expressed using basic tactics and tacticals.
 
+This chapter only presents the primitive tactics.  Substantial proofs require
+the power of simplification (Chapter~\ref{simp-chap}) and classical reasoning
+(Chapter~\ref{chap:classical}).
+
 \section{Resolution and assumption tactics}
 {\bf Resolution} is Isabelle's basic mechanism for refining a subgoal using
 a rule.  {\bf Elim-resolution} is particularly suited for elimination
@@ -159,47 +163,6 @@ result as a new assumption.
 
 
 \section{Other basic tactics}
-\subsection{Definitions and meta-level rewriting}
-\index{tactics!meta-rewriting|bold}\index{meta-rewriting|bold}
-\index{definitions}
-
-Definitions in Isabelle have the form $t\equiv u$, where $t$ is typically a
-constant or a constant applied to a list of variables, for example $\it
-sqr(n)\equiv n\times n$.  (Conditional definitions, $\phi\Imp t\equiv u$,
-are not supported.)  {\bf Unfolding} the definition ${t\equiv u}$ means using
-it as a rewrite rule, replacing~$t$ by~$u$ throughout a theorem.  {\bf
-Folding} $t\equiv u$ means replacing~$u$ by~$t$.  Rewriting continues until
-no rewrites are applicable to any subterm.
-
-There are rules for unfolding and folding definitions; Isabelle does not do
-this automatically.  The corresponding tactics rewrite the proof state,
-yielding a single next state.  See also the {\tt goalw} command, which is the
-easiest way of handling definitions.
-\begin{ttbox} 
-rewrite_goals_tac : thm list -> tactic
-rewrite_tac       : thm list -> tactic
-fold_goals_tac    : thm list -> tactic
-fold_tac          : thm list -> tactic
-\end{ttbox}
-\begin{ttdescription}
-\item[\ttindexbold{rewrite_goals_tac} {\it defs}]  
-unfolds the {\it defs} throughout the subgoals of the proof state, while
-leaving the main goal unchanged.  Use \ttindex{SELECT_GOAL} to restrict it to a
-particular subgoal.
-
-\item[\ttindexbold{rewrite_tac} {\it defs}]  
-unfolds the {\it defs} throughout the proof state, including the main goal
---- not normally desirable!
-
-\item[\ttindexbold{fold_goals_tac} {\it defs}]  
-folds the {\it defs} throughout the subgoals of the proof state, while
-leaving the main goal unchanged.
-
-\item[\ttindexbold{fold_tac} {\it defs}]  
-folds the {\it defs} throughout the proof state.
-\end{ttdescription}
-
-
 \subsection{Tactic shortcuts}
 \index{shortcuts!for tactics}
 \index{tactics!resolution}\index{tactics!assumption}
@@ -246,7 +209,7 @@ cut_inst_tac  : (string*string)list -> thm -> int -> tactic
 subgoal_tac   : string -> int -> tactic
 subgoal_tacs  : string list -> int -> tactic
 \end{ttbox}
-These tactics add assumptions to a given subgoal.
+These tactics add assumptions to a subgoal.
 \begin{ttdescription}
 \item[\ttindexbold{cut_facts_tac} {\it thms} {\it i}] 
   adds the {\it thms} as new assumptions to subgoal~$i$.  Once they have
@@ -269,6 +232,63 @@ adds the {\it formula} as a assumption to subgoal~$i$, and inserts the same
 \item[\ttindexbold{subgoals_tac} {\it formulae} {\it i}] 
   uses {\tt subgoal_tac} to add the members of the list of {\it
     formulae} as assumptions to subgoal~$i$. 
+\end{ttdescription}
+
+
+\subsection{``Putting off'' a subgoal}
+\begin{ttbox} 
+defer_tac : int -> tactic
+\end{ttbox}
+\begin{ttdescription}
+\item[\ttindexbold{defer_tac} {\it i}] 
+  moves subgoal~$i$ to the last position in the proof state.  It can be
+  useful when correcting a proof script: if the tactic given for subgoal~$i$
+  fails, calling {\tt defer_tac} instead will let you continue with the rest
+  of the script.
+
+  The tactic fails if subgoal~$i$ does not exist or if the proof state
+  contains type unknowns. 
+\end{ttdescription}
+
+
+\subsection{Definitions and meta-level rewriting}
+\index{tactics!meta-rewriting|bold}\index{meta-rewriting|bold}
+\index{definitions}
+
+Definitions in Isabelle have the form $t\equiv u$, where $t$ is typically a
+constant or a constant applied to a list of variables, for example $\it
+sqr(n)\equiv n\times n$.  (Conditional definitions, $\phi\Imp t\equiv u$,
+are not supported.)  {\bf Unfolding} the definition ${t\equiv u}$ means using
+it as a rewrite rule, replacing~$t$ by~$u$ throughout a theorem.  {\bf
+Folding} $t\equiv u$ means replacing~$u$ by~$t$.  Rewriting continues until
+no rewrites are applicable to any subterm.
+
+There are rules for unfolding and folding definitions; Isabelle does not do
+this automatically.  The corresponding tactics rewrite the proof state,
+yielding a single next state.  See also the {\tt goalw} command, which is the
+easiest way of handling definitions.
+\begin{ttbox} 
+rewrite_goals_tac : thm list -> tactic
+rewrite_tac       : thm list -> tactic
+fold_goals_tac    : thm list -> tactic
+fold_tac          : thm list -> tactic
+\end{ttbox}
+\begin{ttdescription}
+\item[\ttindexbold{rewrite_goals_tac} {\it defs}]  
+unfolds the {\it defs} throughout the subgoals of the proof state, while
+leaving the main goal unchanged.  Use \ttindex{SELECT_GOAL} to restrict it to a
+particular subgoal.
+
+\item[\ttindexbold{rewrite_tac} {\it defs}]  
+unfolds the {\it defs} throughout the proof state, including the main goal
+--- not normally desirable!
+
+\item[\ttindexbold{fold_goals_tac} {\it defs}]  
+folds the {\it defs} throughout the subgoals of the proof state, while
+leaving the main goal unchanged.
+
+\item[\ttindexbold{fold_tac} {\it defs}]  
+folds the {\it defs} throughout the proof state.
 \end{ttdescription}
 
 
@@ -406,7 +426,7 @@ These operations are not intended for interactive use.  They are concerned
 with the processing of large numbers of rules in automatic proof
 strategies.  Higher-order resolution involving a long list of rules is
 slow.  Filtering techniques can shorten the list of rules given to
-resolution, and can also detect whether a given subgoal is too flexible,
+resolution, and can also detect whether a subgoal is too flexible,
 with too many rules applicable.
 
 \subsection{Combined resolution and elim-resolution} \label{biresolve_tac}
