@@ -10,6 +10,7 @@ Reference Manual.
   classical.ML          theorem prover for classical logics
   hypsubst.ML           tactic to substitute in the hypotheses
   ind.ML                a simple induction package
+  induct_method.ML      proof by cases and induction on sets and types (Isar)
   quantifier1.ML	simplification procedures for "1 point rules"
   simp.ML               powerful but slow simplifier
   simplifier.ML         fast simplifier
