@@ -529,16 +529,22 @@ by Auto_tac;
 qed "filter_append";
 Addsimps [filter_append];
 
-Goal "filter (%x. True) xs = xs";
+Goal "filter P (filter Q xs) = filter (%x. Q x & P x) xs";
 by (induct_tac "xs" 1);
 by Auto_tac;
-qed "filter_True";
+qed "filter_filter";
+Addsimps [filter_filter];
+
+Goal "(!x : set xs. P x) --> filter P xs = xs";
+by (induct_tac "xs" 1);
+by Auto_tac;
+qed_spec_mp "filter_True";
 Addsimps [filter_True];
 
-Goal "filter (%x. False) xs = []";
+Goal "(!x : set xs. ~P x) --> filter P xs = []";
 by (induct_tac "xs" 1);
 by Auto_tac;
-qed "filter_False";
+qed_spec_mp "filter_False";
 Addsimps [filter_False];
 
 Goal "length (filter P xs) <= length xs";
