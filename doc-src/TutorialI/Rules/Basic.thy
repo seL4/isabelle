@@ -228,7 +228,7 @@ text{*but we know nothing about inv Suc 0*}
 
 theorem Least_equality:
      "\<lbrakk> P (k::nat);  \<forall>x. P x \<longrightarrow> k \<le> x \<rbrakk> \<Longrightarrow> (LEAST x. P(x)) = k"
-apply (simp add: Least_def)
+apply (simp add: Least_def LeastM_def)
  
 txt{*omit maybe?
 @{subgoals[display,indent=0,margin=65]}
@@ -266,7 +266,7 @@ by (rule someI)
 
 (*both can be done by blast, which however hasn't been introduced yet*)
 lemma "[| P (k::nat);  \<forall>x. P x \<longrightarrow> k \<le> x |] ==> (LEAST x. P(x)) = k";
-apply (simp add: Least_def)
+apply (simp add: Least_def LeastM_def)
 by (blast intro: some_equality order_antisym);
 
 theorem axiom_of_choice: "(\<forall>x. \<exists>y. P x y) \<Longrightarrow> \<exists>f. \<forall>x. P x (f x)"
