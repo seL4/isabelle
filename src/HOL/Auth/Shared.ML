@@ -26,19 +26,52 @@ Addsimps [o_def];
 
 (*** Basic properties of shrK and newK ***)
 
+goalw thy [newN_def] "!!evs. newN evs = newN evt ==> length evs = length evt";
+by (fast_tac (!claset addSDs [inj_random RS injD]) 1);
+qed "newN_length";
+
+goalw thy [newK_def] "!!evs. newK evs = newK evt ==> length evs = length evt";
+by (fast_tac (!claset addSDs [inj_random RS injD]) 1);
+qed "newK_length";
+
+goalw thy [newK_def] "newK evs ~= shrK A";
+by (rtac random_neq_shrK 1);
+qed "newK_neq_shrK";
+
+goalw thy [newK_def] "isSymKey (newK evs)";
+by (rtac isSym_random 1);
+qed "isSym_newK";
+
 (* invKey (shrK A) = shrK A *)
 bind_thm ("invKey_shrK", rewrite_rule [isSymKey_def] isSym_shrK);
 
+(* invKey (random x) = random x *)
+bind_thm ("invKey_random", rewrite_rule [isSymKey_def] isSym_random);
+
 (* invKey (newK evs) = newK evs *)
 bind_thm ("invKey_newK", rewrite_rule [isSymKey_def] isSym_newK);
-Addsimps [invKey_shrK, invKey_newK];
+Addsimps [invKey_shrK, invKey_random, invKey_newK];
 
+goal thy "!!K. random x = invKey K ==> random x = K";
+by (rtac (invKey_eq RS iffD1) 1);
+by (Simp_tac 1);
+val random_invKey = result();
+
+AddSDs [random_invKey, sym RS random_invKey];
+
+goal thy "!!K. newK evs = invKey K ==> newK evs = K";
+by (rtac (invKey_eq RS iffD1) 1);
+by (Simp_tac 1);
+val newK_invKey = result();
+
+AddSDs [newK_invKey, sym RS newK_invKey];
 
 (*Injectiveness and freshness of new keys and nonces*)
-AddIffs [inj_shrK RS inj_eq];
+AddIffs [inj_shrK RS inj_eq, inj_random RS inj_eq];
 AddSDs  [newN_length, newK_length];
 
-Addsimps [newK_neq_shrK, newK_neq_shrK RS not_sym];
+Addsimps [random_neq_shrK, random_neq_shrK RS not_sym,
+	  newK_neq_shrK, newK_neq_shrK RS not_sym];
 
 (** Rewrites should not refer to  initState(Friend i) 
     -- not in normal form! **)
@@ -71,6 +104,12 @@ by (agent.induct_tac "A" 1);
 by (Auto_tac ());
 qed "shrK_notin_image_newK";
 Addsimps [shrK_notin_image_newK];
+
+goal thy "shrK A ~: random``E";
+by (agent.induct_tac "A" 1);
+by (Auto_tac ());
+qed "shrK_notin_image_random";
+Addsimps [shrK_notin_image_random];
 
 
 (*** Function "sees" ***)
@@ -220,14 +259,6 @@ val parts_insert_sees =
 
 (*Push newK applications in, allowing other keys to be pulled out*)
 val pushKey_newK = insComm thy "Key (newK ?evs)"  "Key (shrK ?C)";
-
-goal thy "!!K. newK evs = invKey K ==> newK evs = K";
-by (rtac (invKey_eq RS iffD1) 1);
-by (Simp_tac 1);
-val newK_invKey = result();
-
-AddSDs [newK_invKey];
-AddSDs [sym RS newK_invKey];
 
 Delsimps [image_insert];
 Addsimps [image_insert RS sym];

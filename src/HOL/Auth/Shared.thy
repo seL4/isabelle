@@ -44,19 +44,24 @@ primrec sees list
   sees_Cons "sees lost A (ev#evs) = sees1 A ev Un sees lost A evs"
 
 
-(*Agents generate "random" nonces and keys.  These are uniquely determined by
-  the length of their argument, a trace.*)
+(*Agents generate "random" numbers for use as symmetric keys, as well as
+  nonces.*)
+
 consts
-  newN :: "event list => nat"
-  newK :: "event list => key"
+  random :: "nat*nat => nat"
+
+constdefs
+  newN   :: event list => nat
+  "newN evs == random (length evs, 0)"
+
+  newK   :: event list => nat
+  "newK evs == random (length evs, 1)"
 
 rules
-  inj_shrK      "inj shrK"
+  inj_shrK        "inj shrK"
+  inj_random      "inj random"
 
-  newN_length   "(newN evs = newN evt) ==> (length evs = length evt)"
-  newK_length   "(newK evs = newK evt) ==> (length evs = length evt)"
-
-  newK_neq_shrK "newK evs ~= shrK A" 
-  isSym_newK    "isSymKey (newK evs)"
+  random_neq_shrK "random ij ~= shrK A" 
+  isSym_random    "isSymKey (random ij)"
 
 end
