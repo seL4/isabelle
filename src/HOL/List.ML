@@ -417,8 +417,9 @@ val rev_induct_tac = induct_thm_tac rev_induct;
 Goal  "(xs = [] --> P) -->  (!ys y. xs = ys@[y] --> P) --> P";
 by (rev_induct_tac "xs" 1);
 by Auto_tac;
-bind_thm ("rev_exhaust",
-  impI RSN (2,allI RSN (2,allI RSN (2,impI RS (result() RS mp RS mp)))));
+qed "rev_exhaust_aux";
+
+bind_thm ("rev_exhaust", Rulify.rulify rev_exhaust_aux);
 
 
 (** set **)
