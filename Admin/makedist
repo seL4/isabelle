@@ -132,7 +132,7 @@ rm Distribution/doc/Isa-logics.eps
 cp Admin/index.html $DISTBASE
 rm -rf Admin Doc
 
-mkdir src
+mkdir src contrib
 mv $LOGICS src
 
 mv Distribution/* .
