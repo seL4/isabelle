@@ -2,8 +2,9 @@
 Isabelle NEWS -- history of user-visible changes
 ================================================
 
-New in Isabelle94-8 (???????????)
----------------------------------
+
+New in Isabelle94-8 (??????????? 1997 FIXME)
+---------------------------------------
 
 * the NEWS file;
 
@@ -42,11 +43,67 @@ Beware of Union_iff.  eq_cs is gone, can be put back as ZF_cs addSIs
 * more default rewrite rules in HOL for quantifiers, union/intersection;
 
 
+
 New in Isabelle94-7 (November 96)
 ---------------------------------
 
 * allowing negative levels (as offsets) in prlev and choplev;
 
-* many more things we do not remember :-)
+* super-linear speedup for large simplifications;
+
+* FOL, ZF and HOL now use miniscoping: rewriting pushes
+quantifications in as far as possible (COULD MAKE EXISTING PROOFS
+FAIL); can suppress it using the command Delsimps (ex_simps @
+all_simps); De Morgan laws are also now included, by default;
+
+* improved printing of ==>  :  ~:
+
+* new object-logic "Sequents" adds linear logic, while replacing LK
+and Modal (thanks to Sara Kalvala);
+
+* HOL/Auth: correctness proofs for authentication protocols;
+
+* HOL: new auto_tac combines rewriting and classical reasoning (many
+examples on HOL/Auth);
+
+* HOL: new command AddIffs for declaring theorems of the form P=Q to
+the rewriter and classical reasoner simultaneously;
+
+* function uresult no longer returns theorems in "standard" format;
+regain previous version by: val uresult = standard o uresult;
+
+
+
+New in Isabelle94-6
+-------------------
+
+* oracles -- these establish an interface between Isabelle and trusted
+external reasoners, which may deliver results as theorems;
+
+* proof objects (in particular record all uses of oracles);
+
+* Simp_tac, Fast_tac, etc. that refer to implicit simpset / claset;
+
+* "constdefs" section in theory files;
+
+* "primrec" section (HOL) no longer requires names;
+
+* internal type "tactic" now simply "thm -> thm Sequence.seq";
+
+
+
+New in Isabelle94-5
+-------------------
+
+* reduced space requirements;
+
+* automatic HTML generation from theories;
+
+* theory files no longer require "..." (quotes) around most types;
+
+* new examples, including two proofs of the Church-Rosser theorem;
+
+* non-curried (1994) version of HOL is no longer distributed;
+
 
 $Id$
