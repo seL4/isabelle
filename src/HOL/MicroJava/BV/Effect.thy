@@ -184,6 +184,32 @@ constdefs
   "app i G maxs rT pc et s == case s of None \<Rightarrow> True | Some t \<Rightarrow> app' (i,G,pc,maxs,rT,t) \<and> xcpt_app i G pc et"
 
 
+lemma match_any_match_table:
+  "C \<in> set (match_any G pc et) \<Longrightarrow> match_exception_table G C pc et \<noteq> None"
+  apply (induct et)
+   apply simp
+  apply simp
+  apply clarify
+  apply (simp split: split_if_asm)
+  apply (auto simp add: match_exception_entry_def)
+  done
+
+lemma match_X_match_table:
+  "C \<in> set (match G X pc et) \<Longrightarrow> match_exception_table G C pc et \<noteq> None"
+  apply (induct et)
+   apply simp
+  apply (simp split: split_if_asm)
+  done
+
+lemma xcpt_names_in_et:
+  "C \<in> set (xcpt_names (i,G,pc,et)) \<Longrightarrow> 
+  \<exists>e \<in> set et. the (match_exception_table G C pc et) = fst (snd (snd e))"
+  apply (cases i)
+  apply (auto dest!: match_any_match_table match_X_match_table 
+              dest: match_exception_table_in_et)
+  done
+
+
 lemma 1: "2 < length a \<Longrightarrow> (\<exists>l l' l'' ls. a = l#l'#l''#ls)"
 proof (cases a)
   fix x xs assume "a = x#xs" "2 < length a"

@@ -299,8 +299,8 @@ lemma stable_pres_lemma:
 lemma merges_bounded_lemma:
   "\<lbrakk> semilat (A,r,f); mono r step n A; bounded step n; 
      \<forall>(p',s') \<in> set (step p (ss!p)). s' \<in> A; ss \<in> list n A; ts \<in> list n A; p < n; 
-     ss <=[r] ts; ! p. p < n \<longrightarrow> stable r step ts p \<rbrakk> 
-  \<Longrightarrow> merges f (step p (ss!p)) ss <=[r] ts"
+     ss <=[r] ts; \<forall>p. p < n \<longrightarrow> stable r step ts p \<rbrakk> 
+  \<Longrightarrow> merges f (step p (ss!p)) ss <=[r] ts" 
   apply (unfold stable_def)
   apply (rule merges_pres_le_ub)
       apply assumption
@@ -319,7 +319,7 @@ lemma merges_bounded_lemma:
     apply simp
    apply (simp add: le_listD)
   
-  apply (drule lesub_step_type, assumption) 
+  apply (drule lesub_step_typeD, assumption) 
   apply clarify
   apply (drule bspec, assumption)
   apply simp

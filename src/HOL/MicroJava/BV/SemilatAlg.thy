@@ -9,17 +9,16 @@ header {* \isaheader{More on Semilattices} *}
 theory SemilatAlg = Typing_Framework + Product:
 
 
-syntax "@lesubstep_type" :: "(nat \<times> 's) list \<Rightarrow> 's ord \<Rightarrow> (nat \<times> 's) list \<Rightarrow> bool"
-       ("(_ /<=|_| _)" [50, 0, 51] 50)
-translations
- "x <=|r| y" == "x <=[(Product.le (op =) r)] y"
- 
+constdefs 
+  lesubstep_type :: "(nat \<times> 's) list \<Rightarrow> 's ord \<Rightarrow> (nat \<times> 's) list \<Rightarrow> bool"
+                    ("(_ /<=|_| _)" [50, 0, 51] 50)
+  "x <=|r| y \<equiv> \<forall>(p,s) \<in> set x. \<exists>s'. (p,s') \<in> set y \<and> s <=_r s'"
+
 consts
  "@plusplussub" :: "'a list \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" ("(_ /++'__ _)" [65, 1000, 66] 65)
 primrec
   "[] ++_f y = y"
   "(x#xs) ++_f y = xs ++_f (x +_f y)"
-
 
 constdefs
  bounded :: "'s step_type \<Rightarrow> nat \<Rightarrow> bool"
@@ -44,6 +43,14 @@ lemma monoD:
 lemma boundedD: 
   "\<lbrakk> bounded step n; p < n; (q,t) : set (step p xs) \<rbrakk> \<Longrightarrow> q < n" 
   by (unfold bounded_def, blast)
+
+lemma lesubstep_type_refl [simp, intro]:
+  "(\<And>x. x <=_r x) \<Longrightarrow> x <=|r| x"
+  by (unfold lesubstep_type_def) auto
+
+lemma lesub_step_typeD:
+  "a <=|r| b \<Longrightarrow> (x,y) \<in> set a \<Longrightarrow> \<exists>y'. (x, y') \<in> set b \<and> y <=_r y'"
+  by (unfold lesubstep_type_def) blast
 
 
 lemma list_update_le_listI [rule_format]:
@@ -161,21 +168,5 @@ apply (induct S)
 apply auto 
 done
 
-
-lemma lesub_step_type:
-  "\<And>b x y. a <=|r| b \<Longrightarrow> (x,y) \<in> set a \<Longrightarrow> \<exists>y'. (x, y') \<in> set b \<and> y <=_r y'"
-apply (induct a)
- apply simp
-apply simp
-apply (case_tac b)
- apply simp
-apply simp
-apply (erule disjE)
- apply clarify
- apply (simp add: lesub_def)
- apply blast   
-apply clarify
-apply blast
-done
 
 end

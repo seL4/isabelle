@@ -9,60 +9,60 @@ header {* \isaheader{Completeness of the LBV} *}
 theory LBVComplete = LBVSpec + Typing_Framework:
 
 constdefs
-  contains_targets :: "['s steptype, 's certificate, 's option list, nat, nat] \<Rightarrow> bool"
-  "contains_targets step cert phi pc n \<equiv>
-  \<forall>(pc',s') \<in> set (step pc (OK (phi!pc))). pc' \<noteq> pc+1 \<and> pc' < n \<longrightarrow> cert!pc' = phi!pc'"
+  contains_targets :: "['s steptype, 's certificate, 's option list, nat] \<Rightarrow> bool"
+  "contains_targets step cert phi pc \<equiv>
+  \<forall>(pc',s') \<in> set (step pc (OK (phi!pc))). pc' \<noteq> pc+1 \<and> pc' < length phi \<longrightarrow> cert!pc' = phi!pc'"
 
-  fits :: "['s steptype, 's certificate, 's option list, nat] \<Rightarrow> bool"
-  "fits step cert phi n \<equiv> \<forall>pc. pc < n \<longrightarrow> 
-                               contains_targets step cert phi pc n \<and>
-                               (cert!pc = None \<or> cert!pc = phi!pc)"
+  fits :: "['s steptype, 's certificate, 's option list] \<Rightarrow> bool"
+  "fits step cert phi \<equiv> \<forall>pc. pc < length phi \<longrightarrow> 
+                             contains_targets step cert phi pc \<and>
+                             (cert!pc = None \<or> cert!pc = phi!pc)"
 
-  is_target :: "['s steptype, 's option list, nat, nat] \<Rightarrow> bool" 
-  "is_target step phi pc' n \<equiv>
-     \<exists>pc s'. pc' \<noteq> pc+1 \<and> pc < n \<and> (pc',s') \<in> set (step pc (OK (phi!pc)))"
+  is_target :: "['s steptype, 's option list, nat] \<Rightarrow> bool" 
+  "is_target step phi pc' \<equiv>
+     \<exists>pc s'. pc' \<noteq> pc+1 \<and> pc < length phi \<and> (pc',s') \<in> set (step pc (OK (phi!pc)))"
 
-  make_cert :: "['s steptype, 's option list, nat] \<Rightarrow> 's certificate"
-  "make_cert step phi n \<equiv> 
-     map (\<lambda>pc. if is_target step phi pc n then phi!pc else None) [0..n(]"
+  make_cert :: "['s steptype, 's option list] \<Rightarrow> 's certificate"
+  "make_cert step phi \<equiv> 
+     map (\<lambda>pc. if is_target step phi pc then phi!pc else None) [0..length phi(]"
 
   
 lemmas [simp del] = split_paired_Ex
 
 lemma make_cert_target:
-  "\<lbrakk> pc < n; is_target step phi pc n \<rbrakk> \<Longrightarrow> make_cert step phi n ! pc = phi!pc"
+  "\<lbrakk> pc < length phi; is_target step phi pc \<rbrakk> \<Longrightarrow> make_cert step phi ! pc = phi!pc"
   by (simp add: make_cert_def)
 
 lemma make_cert_approx:
-  "\<lbrakk> pc < n; make_cert step phi n ! pc \<noteq> phi!pc \<rbrakk> \<Longrightarrow> 
-   make_cert step phi n ! pc = None"
+  "\<lbrakk> pc < length phi; make_cert step phi ! pc \<noteq> phi!pc \<rbrakk> \<Longrightarrow> 
+   make_cert step phi ! pc = None"
   by (auto simp add: make_cert_def)
 
 lemma make_cert_contains_targets:
-  "pc < n \<Longrightarrow> contains_targets step (make_cert step phi n) phi pc n"
+  "pc < length phi \<Longrightarrow> contains_targets step (make_cert step phi) phi pc"
 proof (unfold contains_targets_def, clarify)
   fix pc' s'
-  assume "pc < n"
+  assume "pc < length phi"
          "(pc',s') \<in> set (step pc (OK (phi ! pc)))"
          "pc' \<noteq> pc+1" and
-    pc': "pc' < n"
-  hence "is_target step phi pc' n"  by (auto simp add: is_target_def)
-  with pc' show "make_cert step phi n ! pc' = phi ! pc'" 
+    pc': "pc' < length phi"
+  hence "is_target step phi pc'"  by (auto simp add: is_target_def)
+  with pc' show "make_cert step phi ! pc' = phi!pc'" 
     by (auto intro: make_cert_target)
 qed
 
 theorem fits_make_cert:
-  "fits step (make_cert step phi n) phi n"
+  "fits step (make_cert step phi) phi"
   by (auto dest: make_cert_approx simp add: fits_def make_cert_contains_targets)
 
 lemma fitsD: 
-  "\<lbrakk> fits step cert phi n; (pc',s') \<in> set (step pc (OK (phi ! pc)));
-      pc' \<noteq> Suc pc; pc < n; pc' < n \<rbrakk>
+  "\<lbrakk> fits step cert phi; (pc',s') \<in> set (step pc (OK (phi ! pc)));
+      pc' \<noteq> Suc pc; pc < length phi; pc' < length phi \<rbrakk>
   \<Longrightarrow> cert!pc' = phi!pc'"
   by (auto simp add: fits_def contains_targets_def)
 
 lemma fitsD2:
-   "\<lbrakk> fits step cert phi n; pc < n; cert!pc = Some s \<rbrakk>
+   "\<lbrakk> fits step cert phi; pc < length phi; cert!pc = Some s \<rbrakk>
   \<Longrightarrow> cert!pc = phi!pc"
   by (auto simp add: fits_def)
 
@@ -82,8 +82,9 @@ qed
   
 lemma stable_wtl:
   assumes stable: "stable (Err.le (Opt.le r)) step (map OK phi) pc"
-  assumes fits:   "fits step cert phi n"
+  assumes fits:   "fits step cert phi"  
   assumes pc:     "pc < length phi"
+  assumes bounded:"bounded step (length phi)"
   shows "wtl_inst cert f r step pc (phi!pc) \<noteq> Err"
 proof -
   from pc have [simp]: "map OK phi ! pc = OK (phi!pc)" by simp
@@ -91,7 +92,10 @@ proof -
   have "\<forall>(q,s')\<in>set (step pc (OK (phi!pc))). s' \<le>|r (map OK phi!q)"
     by (simp add: stable_def)
   
-
+  have "merge cert f r pc (step pc (OK (phi ! pc))) (OK (cert ! Suc pc)) \<noteq> Err"
+    sorry
+  thus ?thesis by (simp add: wtl_inst_def)  
+qed
 
 
 lemma wtl_inst_mono:

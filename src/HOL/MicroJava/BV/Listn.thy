@@ -142,6 +142,20 @@ apply (unfold lesssub_def)
 apply auto
 done  
 
+lemma le_list_appendI:
+  "\<And>b c d. a <=[r] b \<Longrightarrow> c <=[r] d \<Longrightarrow> a@c <=[r] b@d"
+apply (induct a)
+ apply simp
+apply (case_tac b)
+apply auto
+done
+
+lemma le_listI:
+  "length a = length b \<Longrightarrow> (\<And>n. n < length a \<Longrightarrow> a!n <=_r b!n) \<Longrightarrow> a <=[r] b"
+  apply (unfold lesub_def Listn.le_def)
+  apply (simp add: list_all2_conv_all_nth)
+  done
+
 lemma listI:
   "\<lbrakk> length xs = n; set xs <= A \<rbrakk> \<Longrightarrow> xs : list n A"
 apply (unfold list_def)
@@ -201,6 +215,37 @@ done
 lemma listE_nth_in:
   "\<lbrakk> xs : list n A; i < n \<rbrakk> \<Longrightarrow> (xs!i) : A"
   by auto
+
+
+lemma listn_Cons_Suc [elim!]:
+  "l#xs \<in> list n A \<Longrightarrow> (\<And>n'. n = Suc n' \<Longrightarrow> l \<in> A \<Longrightarrow> xs \<in> list n' A \<Longrightarrow> P) \<Longrightarrow> P"
+  by (cases n) auto
+
+lemma listn_appendE [elim!]:
+  "a@b \<in> list n A \<Longrightarrow> (\<And>n1 n2. n=n1+n2 \<Longrightarrow> a \<in> list n1 A \<Longrightarrow> b \<in> list n2 A \<Longrightarrow> P) \<Longrightarrow> P" 
+proof -
+  have "\<And>n. a@b \<in> list n A \<Longrightarrow> \<exists>n1 n2. n=n1+n2 \<and> a \<in> list n1 A \<and> b \<in> list n2 A"
+    (is "\<And>n. ?list a n \<Longrightarrow> \<exists>n1 n2. ?P a n n1 n2")
+  proof (induct a)
+    fix n assume "?list [] n"
+    hence "?P [] n 0 n" by simp
+    thus "\<exists>n1 n2. ?P [] n n1 n2" by fast
+  next
+    fix n l ls
+    assume "?list (l#ls) n"
+    then obtain n' where n: "n = Suc n'" "l \<in> A" and "ls@b \<in> list n' A" by fastsimp
+    assume "\<And>n. ls @ b \<in> list n A \<Longrightarrow> \<exists>n1 n2. n = n1 + n2 \<and> ls \<in> list n1 A \<and> b \<in> list n2 A"
+    hence "\<exists>n1 n2. n' = n1 + n2 \<and> ls \<in> list n1 A \<and> b \<in> list n2 A" .
+    then obtain n1 n2 where "n' = n1 + n2" "ls \<in> list n1 A" "b \<in> list n2 A" by fast
+    with n have "?P (l#ls) n (n1+1) n2" by simp
+    thus "\<exists>n1 n2. ?P (l#ls) n n1 n2" by fastsimp
+  qed
+  moreover
+  assume "a@b \<in> list n A" "\<And>n1 n2. n=n1+n2 \<Longrightarrow> a \<in> list n1 A \<Longrightarrow> b \<in> list n2 A \<Longrightarrow> P"
+  ultimately
+  show ?thesis by blast
+qed
+
 
 lemma listt_update_in_list [simp, intro!]:
   "\<lbrakk> xs : list n A; x:A \<rbrakk> \<Longrightarrow> xs[i := x] : list n A"

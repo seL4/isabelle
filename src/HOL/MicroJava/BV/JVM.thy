@@ -6,13 +6,17 @@
 
 header {* \isaheader{Kildall for the JVM}\label{sec:JVM} *}
 
-theory JVM = Kildall_Lift + JVMType + Opt + Product + Typing_Framework_err +
-             EffectMono + BVSpec:
+theory JVM = Kildall_Lift + JVMType + EffectMono + BVSpec:
+
 
 constdefs
+  check_bounded :: "instr list \<Rightarrow> exception_table \<Rightarrow> bool"
+  "check_bounded ins et \<equiv> (\<forall>pc < length ins. \<forall>pc' \<in> set (succs (ins!pc) pc). pc' < length ins) \<and>
+                          (\<forall>e \<in> set et. fst (snd (snd e)) < length ins)"
+
   exec :: "jvm_prog \<Rightarrow> nat \<Rightarrow> ty \<Rightarrow> exception_table \<Rightarrow> instr list \<Rightarrow> state step_type"
   "exec G maxs rT et bs == 
-  err_step (\<lambda>pc. app (bs!pc) G maxs rT pc et) (\<lambda>pc. eff (bs!pc) G pc et)"
+  err_step (size bs) (\<lambda>pc. app (bs!pc) G maxs rT pc et) (\<lambda>pc. eff (bs!pc) G pc et)"
 
   kiljvm :: "jvm_prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> ty \<Rightarrow> exception_table \<Rightarrow> 
              instr list \<Rightarrow> state list \<Rightarrow> state list"
@@ -22,7 +26,7 @@ constdefs
   wt_kil :: "jvm_prog \<Rightarrow> cname \<Rightarrow> ty list \<Rightarrow> ty \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 
              exception_table \<Rightarrow> instr list \<Rightarrow> bool"
   "wt_kil G C pTs rT mxs mxl et ins ==
-   bounded (exec G mxs rT et ins) (size ins) \<and> 0 < size ins \<and> 
+   check_bounded ins et \<and> 0 < size ins \<and> 
    (let first  = Some ([],(OK (Class C))#((map OK pTs))@(replicate mxl Err));
         start  = OK first#(replicate (size ins - 1) (OK None));
         result = kiljvm G mxs (1+size pTs+mxl) rT et ins start
@@ -32,6 +36,65 @@ constdefs
   "wt_jvm_prog_kildall G ==
   wf_prog (\<lambda>G C (sig,rT,(maxs,maxl,b,et)). wt_kil G C (snd sig) rT maxs maxl et b) G"
 
+
+
+text {*
+  Executability of @{term check_bounded}:
+*}
+consts
+  list_all'_rec :: "('a \<Rightarrow> nat \<Rightarrow> bool) \<Rightarrow> nat \<Rightarrow> 'a list \<Rightarrow> bool"
+primrec
+  "list_all'_rec P n []     = True"
+  "list_all'_rec P n (x#xs) = (P x n \<and> list_all'_rec P (Suc n) xs)"
+
+constdefs
+  list_all' :: "('a \<Rightarrow> nat \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool"
+  "list_all' P xs \<equiv> list_all'_rec P 0 xs"
+
+lemma list_all'_rec:
+  "\<And>n. list_all'_rec P n xs = (\<forall>p < size xs. P (xs!p) (p+n))"
+  apply (induct xs)
+  apply auto
+  apply (case_tac p)
+  apply auto
+  done
+
+lemma list_all' [iff]:
+  "list_all' P xs = (\<forall>n < size xs. P (xs!n) n)"
+  by (unfold list_all'_def) (simp add: list_all'_rec)
+
+lemma list_all_ball:
+  "list_all P xs = (\<forall>x \<in> set xs. P x)"
+  by (induct xs) auto
+
+lemma [code]:
+  "check_bounded ins et = 
+  (list_all' (\<lambda>i pc. list_all (\<lambda>pc'. pc' < length ins) (succs i pc)) ins \<and> 
+   list_all (\<lambda>e. fst (snd (snd e)) < length ins) et)"
+  by (simp add: list_all_ball check_bounded_def)
+  
+text {*
+  Lemmas for Kildall instantiation
+*}
+
+lemma check_bounded_is_bounded:
+  "check_bounded ins et \<Longrightarrow> bounded (\<lambda>pc. eff (ins!pc) G pc et) (length ins)"
+  apply (unfold bounded_def eff_def)
+  apply clarify
+  apply simp
+  apply (unfold check_bounded_def)
+  apply clarify
+  apply (erule disjE)
+   apply blast
+  apply (erule allE, erule impE, assumption)
+  apply (unfold xcpt_eff_def)
+  apply clarsimp    
+  apply (drule xcpt_names_in_et)
+  apply clarify
+  apply (drule bspec, assumption)
+  apply simp
+  done
+   
 
 lemma special_ex_swap_lemma [iff]: 
   "(? X. (? n. X = A n & P n) & Q X) = (? n. Q(A n) & P n)"
@@ -45,36 +108,6 @@ lemma non_empty_succs: "succs i pc \<noteq> []"
 lemma non_empty:
   "non_empty (\<lambda>pc. eff (bs!pc) G pc et)" 
   by (simp add: non_empty_def eff_def non_empty_succs)
-
-lemma listn_Cons_Suc [elim!]:
-  "l#xs \<in> list n A \<Longrightarrow> (\<And>n'. n = Suc n' \<Longrightarrow> l \<in> A \<Longrightarrow> xs \<in> list n' A \<Longrightarrow> P) \<Longrightarrow> P"
-  by (cases n) auto
-
-lemma listn_appendE [elim!]:
-  "a@b \<in> list n A \<Longrightarrow> (\<And>n1 n2. n=n1+n2 \<Longrightarrow> a \<in> list n1 A \<Longrightarrow> b \<in> list n2 A \<Longrightarrow> P) \<Longrightarrow> P" 
-proof -
-  have "\<And>n. a@b \<in> list n A \<Longrightarrow> \<exists>n1 n2. n=n1+n2 \<and> a \<in> list n1 A \<and> b \<in> list n2 A"
-    (is "\<And>n. ?list a n \<Longrightarrow> \<exists>n1 n2. ?P a n n1 n2")
-  proof (induct a)
-    fix n assume "?list [] n"
-    hence "?P [] n 0 n" by simp
-    thus "\<exists>n1 n2. ?P [] n n1 n2" by fast
-  next
-    fix n l ls
-    assume "?list (l#ls) n"
-    then obtain n' where n: "n = Suc n'" "l \<in> A" and "ls@b \<in> list n' A" by fastsimp
-    assume "\<And>n. ls @ b \<in> list n A \<Longrightarrow> \<exists>n1 n2. n = n1 + n2 \<and> ls \<in> list n1 A \<and> b \<in> list n2 A"
-    hence "\<exists>n1 n2. n' = n1 + n2 \<and> ls \<in> list n1 A \<and> b \<in> list n2 A" .
-    then obtain n1 n2 where "n' = n1 + n2" "ls \<in> list n1 A" "b \<in> list n2 A" by fast
-    with n have "?P (l#ls) n (n1+1) n2" by simp
-    thus "\<exists>n1 n2. ?P (l#ls) n n1 n2" by fastsimp
-  qed
-  moreover
-  assume "a@b \<in> list n A" "\<And>n1 n2. n=n1+n2 \<Longrightarrow> a \<in> list n1 A \<Longrightarrow> b \<in> list n2 A \<Longrightarrow> P"
-  ultimately
-  show ?thesis by blast
-qed
-
 
 theorem exec_pres_type:
   "wf_prog wf_mb S \<Longrightarrow> 
@@ -172,15 +205,6 @@ theorem exec_pres_type:
 
 lemmas [iff] = not_None_eq
 
-lemma map_fst_eq:
-  "map fst (map (\<lambda>z. (f z, x z)) a) = map fst (map (\<lambda>z. (f z, y z)) a)"
-  by (induct a) auto
-
-lemma succs_stable_eff:
-  "succs_stable (sup_state_opt G) (\<lambda>pc. eff (bs!pc) G pc et)"
-  apply (unfold succs_stable_def eff_def xcpt_eff_def)
-  apply (simp add: map_fst_eq)
-  done
 
 lemma sup_state_opt_unfold:
   "sup_state_opt G \<equiv> Opt.le (Product.le (Listn.le (subtype G)) (Listn.le (Err.le (subtype G))))"
@@ -193,25 +217,32 @@ constdefs
 lemma app_mono:
   "app_mono (sup_state_opt G) (\<lambda>pc. app (bs!pc) G maxs rT pc et) (length bs) (opt_states G maxs maxr)"
   by (unfold app_mono_def lesub_def) (blast intro: EffectMono.app_mono)
+  
 
-lemma le_list_appendI:
-  "\<And>b c d. a <=[r] b \<Longrightarrow> c <=[r] d \<Longrightarrow> a@c <=[r] b@d"
-apply (induct a)
- apply simp
-apply (case_tac b)
-apply auto
-done
-
-lemma le_listI:
-  "length a = length b \<Longrightarrow> (\<And>n. n < length a \<Longrightarrow> a!n <=_r b!n) \<Longrightarrow> a <=[r] b"
-  apply (unfold lesub_def Listn.le_def)
-  apply (simp add: list_all2_conv_all_nth)
+lemma lesubstep_type_simple:
+  "a <=[Product.le (op =) r] b \<Longrightarrow> a <=|r| b"
+  apply (unfold lesubstep_type_def)
+  apply clarify
+  apply (simp add: set_conv_nth)
+  apply clarify
+  apply (drule le_listD, assumption)
+  apply (clarsimp simp add: lesub_def Product.le_def)
+  apply (rule exI)
+  apply (rule conjI)
+   apply (rule exI)
+   apply (rule conjI)
+    apply (rule sym)
+    apply assumption
+   apply assumption
+  apply assumption
   done
   
+
 lemma eff_mono:
   "\<lbrakk>p < length bs; s <=_(sup_state_opt G) t; app (bs!p) G maxs rT pc et t\<rbrakk>
   \<Longrightarrow> eff (bs!p) G p et s <=|sup_state_opt G| eff (bs!p) G p et t"
   apply (unfold eff_def)
+  apply (rule lesubstep_type_simple)
   apply (rule le_list_appendI)
    apply (simp add: norm_eff_def)
    apply (rule le_listI)
@@ -243,14 +274,14 @@ lemma order_sup_state_opt:
   by (unfold sup_state_opt_unfold) (blast dest: acyclic_subcls1 order_widen)
 
 theorem exec_mono:
-  "wf_prog wf_mb G \<Longrightarrow>
+  "wf_prog wf_mb G \<Longrightarrow> bounded (exec G maxs rT et bs) (size bs) \<Longrightarrow>
   mono (JVMType.le G maxs maxr) (exec G maxs rT et bs) (size bs) (states G maxs maxr)"  
   apply (unfold exec_def JVM_le_unfold JVM_states_unfold)  
   apply (rule mono_lift)
      apply (fold sup_state_opt_unfold opt_states_def)
      apply (erule order_sup_state_opt)
-    apply (rule succs_stable_eff)
-   apply (rule app_mono)
+    apply (rule app_mono)
+   apply assumption
   apply clarify
   apply (rule eff_mono)
   apply assumption+
@@ -275,7 +306,7 @@ lemma sl_triple_conv:
 
 
 theorem is_bcv_kiljvm:
-  "\<lbrakk> wf_prog wf_mb G; bounded (exec G maxs rT et bs) (size bs) \<rbrakk> \<Longrightarrow> 
+  "\<lbrakk> wf_prog wf_mb G; bounded (exec G maxs rT et bs) (size bs) \<rbrakk> \<Longrightarrow>
       is_bcv (JVMType.le G maxs maxr) Err (exec G maxs rT et bs)
              (size bs) (states G maxs maxr) (kiljvm G maxs maxr rT et bs)"
   apply (unfold kiljvm_def sl_triple_conv)
@@ -287,8 +318,8 @@ theorem is_bcv_kiljvm:
                    dest: wf_subcls1 wf_acyclic) 
      apply (simp add: JVM_le_unfold)
     apply (erule exec_pres_type)
-    apply assumption
-  apply (erule exec_mono)
+   apply assumption
+  apply (erule exec_mono, assumption)  
   done
 
 
@@ -306,19 +337,20 @@ proof -
 
   assume "wt_kil G C pTs rT maxs mxl et bs"
   then obtain maxr r where    
-    bounded: "bounded (exec G maxs rT et bs) (size bs)" and
+    bounded: "check_bounded bs et" and
     result:  "r = kiljvm G maxs maxr rT et bs ?start" and
     success: "\<forall>n < size bs. r!n \<noteq> Err" and
     instrs:  "0 < size bs" and
     maxr:    "maxr = Suc (length pTs + mxl)" 
     by (unfold wt_kil_def) simp
 
-  from wf bounded
-  have bcv:
+  from bounded have "bounded (exec G maxs rT et bs) (size bs)"
+    by (unfold exec_def) (intro bounded_lift check_bounded_is_bounded)
+  with wf have bcv:
     "is_bcv (JVMType.le G maxs maxr) Err (exec G maxs rT et bs) 
-            (size bs) (states G maxs maxr) (kiljvm G maxs maxr rT et bs)"
+    (size bs) (states G maxs maxr) (kiljvm G maxs maxr rT et bs)"
     by (rule is_bcv_kiljvm)
-
+    
   { fix l x have "set (replicate l x) \<subseteq> {x}" by (cases "0 < l") simp+
   } note subset_replicate = this
   from istype have "set pTs \<subseteq> types G" by auto
@@ -346,9 +378,9 @@ proof -
     s: "?start <=[JVMType.le G maxs maxr] phi'" and
     w: "wt_step (JVMType.le G maxs maxr) Err (exec G maxs rT et bs) phi'"
     by blast
-  hence dynamic:
-    "dynamic_wt (sup_state_opt G) (exec G maxs rT et bs) phi'"
-    by (simp add: dynamic_wt_def exec_def JVM_le_Err_conv)
+  hence wt_err_step:
+    "wt_err_step (sup_state_opt G) (exec G maxs rT et bs) phi'"
+    by (simp add: wt_err_step_def exec_def JVM_le_Err_conv)
 
   from s have le: "JVMType.le G maxs maxr (?start ! 0) (phi'!0)"
     by (drule_tac p=0 in le_listD) (simp add: lesub_def)+
@@ -360,14 +392,14 @@ proof -
 
   from l bounded 
   have bounded': "bounded (\<lambda>pc. eff (bs!pc) G pc et) (length phi')"
-    by (simp add: exec_def bounded_lift)  
-  with dynamic
-  have "static_wt (sup_state_opt G) (\<lambda>pc. app (bs!pc) G maxs rT pc et) 
-                  (\<lambda>pc. eff (bs!pc) G pc et) (map ok_val phi')"
-    by (auto intro: dynamic_imp_static simp add: exec_def non_empty)
+    by (simp add: exec_def check_bounded_is_bounded)  
+  with wt_err_step
+  have "wt_app_eff (sup_state_opt G) (\<lambda>pc. app (bs!pc) G maxs rT pc et) 
+                   (\<lambda>pc. eff (bs!pc) G pc et) (map ok_val phi')"
+    by (auto intro: wt_err_imp_wt_app_eff simp add: l exec_def non_empty)
   with instrs l le bounded'
   have "wt_method G C pTs rT maxs mxl bs et (map ok_val phi')"
-    apply (unfold wt_method_def static_wt_def)
+    apply (unfold wt_method_def wt_app_eff_def)
     apply simp
     apply (rule conjI)
      apply (unfold wt_start_def)
@@ -387,7 +419,8 @@ qed
 
 theorem wt_kil_complete:
   "\<lbrakk> wt_method G C pTs rT maxs mxl bs et phi; wf_prog wf_mb G; 
-      length phi = length bs; is_class G C; \<forall>x \<in> set pTs. is_type G x;
+     check_bounded bs et; length phi = length bs; is_class G C; 
+      \<forall>x \<in> set pTs. is_type G x;
       map OK phi \<in> list (length bs) (states G maxs (1+size pTs+mxl)) \<rbrakk>
   \<Longrightarrow> wt_kil G C pTs rT maxs mxl et bs"
 proof -
@@ -396,6 +429,7 @@ proof -
   assume istype: "\<forall>x \<in> set pTs. is_type G x"
   assume length: "length phi = length bs"
   assume istype_phi: "map OK phi \<in> list (length bs) (states G maxs (1+size pTs+mxl))"
+  assume bounded: "check_bounded bs et"
 
   assume "wt_method G C pTs rT maxs mxl bs et phi"
   then obtain
@@ -408,37 +442,22 @@ proof -
   let ?eff  = "\<lambda>pc. eff (bs!pc) G pc et"
   let ?app   = "\<lambda>pc. app (bs!pc) G maxs rT pc et"
 
-  have bounded_eff: "bounded ?eff (size bs)"
-  proof (unfold bounded_def, clarify)
-    fix pc pc' s s' assume "pc < length bs"
-    with wt_ins have "wt_instr (bs!pc) G rT phi maxs (length bs) et pc" by fast
-    then obtain "\<forall>(pc',s') \<in> set (?eff pc (phi!pc)). pc' < length bs"
-      by (unfold wt_instr_def) fast
-    hence "\<forall>pc' \<in> set (map fst (?eff pc (phi!pc))). pc' < length bs" by auto
-    also 
-    note succs_stable_eff 
-    hence "map fst (?eff pc (phi!pc)) = map fst (?eff pc s)" 
-      by (rule succs_stableD)
-    finally have "\<forall>(pc',s') \<in> set (?eff pc s). pc' < length bs" by auto
-    moreover assume "(pc',s') \<in> set (?eff pc s)"
-    ultimately show "pc' < length bs" by blast
-  qed
-  hence bounded_exec: "bounded (exec G maxs rT et bs) (size bs)" 
-    by (simp add: exec_def bounded_lift)
+  from bounded
+  have bounded_exec: "bounded (exec G maxs rT et bs) (size bs)"
+    by (unfold exec_def) (intro bounded_lift check_bounded_is_bounded)
  
   from wt_ins
-  have "static_wt (sup_state_opt G) ?app ?eff phi"
-    apply (unfold static_wt_def wt_instr_def lesub_def)
+  have "wt_app_eff (sup_state_opt G) ?app ?eff phi"
+    apply (unfold wt_app_eff_def wt_instr_def lesub_def)
     apply (simp (no_asm) only: length)
     apply blast
     done
-
-  with bounded_eff
-  have "dynamic_wt (sup_state_opt G) (err_step ?app ?eff) (map OK phi)"
-    by - (erule static_imp_dynamic, simp add: length)
-  hence dynamic:
-    "dynamic_wt (sup_state_opt G) (exec G maxs rT et bs) (map OK phi)"
-    by (unfold exec_def)
+  with bounded_exec
+  have "wt_err_step (sup_state_opt G) (err_step (size phi) ?app ?eff) (map OK phi)"
+    by - (erule wt_app_eff_imp_wt_err,simp add: exec_def length)
+  hence wt_err:
+    "wt_err_step (sup_state_opt G) (exec G maxs rT et bs) (map OK phi)"
+    by (unfold exec_def) (simp add: length)
  
   let ?maxr = "1+size pTs+mxl"
   from wf bounded_exec
@@ -501,13 +520,13 @@ proof -
     ultimately show ?thesis by (rule le_listI)
   qed         
 
-  from dynamic
+  from wt_err
   have "wt_step (JVMType.le G maxs ?maxr) Err (exec G maxs rT et bs) ?phi"
-    by (simp add: dynamic_wt_def JVM_le_Err_conv)  
+    by (simp add: wt_err_step_def JVM_le_Err_conv)  
   with start istype_phi less_phi is_bcv
   have "\<forall>p. p < length bs \<longrightarrow> kiljvm G maxs ?maxr rT et bs ?start ! p \<noteq> Err"
     by (unfold is_bcv_def) auto
-  with bounded_exec instrs
+  with bounded instrs
   show "wt_kil G C pTs rT maxs mxl et bs" by (unfold wt_kil_def) simp
 qed
 text {*
@@ -592,5 +611,6 @@ proof -
 
   thus ?thesis by blast
 qed
+
 
 end
