@@ -8,7 +8,7 @@ Isabelle/HOL~\cite{LNCS2283}. We intentionally do not present the full
 language but concentrate on the essentials. Neither do we give a
 formal semantics of Isar. Instead we introduce Isar by example. Again
 this is intentional: we believe that the language ``speaks for
-itself'' in the same way that traditional mathamtical proofs do, which
+itself'' in the same way that traditional mathematical proofs do, which
 are also introduced by example rather than by teaching students logic
 first. A detailed exposition of Isar can be found in Markus Wenzel's
 PhD thesis~\cite{Wenzel-PhD} and the Isar reference
@@ -27,26 +27,23 @@ uncommented assembly language programs. We call them
 tactics.
 
 A radically different approach was taken by the Mizar
-system
-%~\cite{Mizar}
-where proofs are written a stylized language akin to that used in
-ordinary mathematics texts. The most important argument in favour of a
-mathematics-like proof language is communication: as soon as not just
-the theorem but also the proof becomes an object of interest, it
-should be readable.  From a system development point of view there is
-a second important argument against tactic-style proofs: they are much
-harder to maintain when the system is modified. The reason is as
-follows. Since it is usually quite unclear what exactly is proved at
-some point in the middle of a command sequence, updating a failed
-proof often requires executing the proof up to the point of failure
-using the old version of the system.  In contrast, mathematics-like
-proofs contain enough information to tell you what is proved at any
-point.
+system~\cite{Rudnicki92} where proofs are written in a stylized language akin
+to that used in ordinary mathematics texts. The most important argument in
+favour of a mathematics-like proof language is communication: as soon as not
+just the theorem but also the proof becomes an object of interest, it should
+be readable.  From a system development point of view there is a second
+important argument against tactic-style proofs: they are much harder to
+maintain when the system is modified. The reason is as follows. Since it is
+usually quite unclear what exactly is proved at some point in the middle of a
+command sequence, updating a failed proof often requires executing the proof
+up to the point of failure using the old version of the system.  In contrast,
+mathematics-like proofs contain enough information to tell you what is proved
+at any point.
 
 For these reasons the Isabelle system, originally firmly in the
 LCF-tradition, was extended with a language for writing structured
 proofs in a mathematics-like style. As the name already indicates,
-Isar was certainly inspired by Mizar. However, there are very many
+Isar was certainly inspired by Mizar. However, there are many
 differences. For a start, Isar is generic: only a few of the language
 constructs described below are specific to HOL; many are generic and
 thus available for any logic defined in Isabelle, e.g.\ ZF.
@@ -86,9 +83,8 @@ Parentheses are used for grouping and $^?$ indicates an optional item:
 \end{center}
 A proof can be either compound (\isakeyword{proof} --
 \isakeyword{qed}) or atomic (\isakeyword{by}). A \emph{method} is a
-proof method offered by the underlying theorem prover, for example
-\isa{rule} or \isa{simp} in Isabelle.  Thus this grammar is
-generic both w.r.t.\ the logic and the theorem prover.
+proof method (tactic) offered by the underlying theorem prover.
+Thus this grammar is generic both w.r.t.\ the logic and the theorem prover.
 
 This is a typical proof skeleton:
 \begin{center}
@@ -114,18 +110,18 @@ In order to make this paper self-contained we recall some basic
 notions and notation from Isabelle~\cite{LNCS2283}. Isabelle's
 meta-logic offers an implication $\Longrightarrow$ and a universal quantifier $\bigwedge$
 for expressing inference rules and generality. Iterated implications
-$A_1 \Longrightarrow \dots A_n \Longrightarrow A$ may be abbreviated to $[\!| A_1; \dots; A_n
-|\!] \Longrightarrow A$. Applying a theorem $A \Longrightarrow B$ (named \isa{T}) to a theorem
+$A_1 \Longrightarrow \dots A_n \Longrightarrow A$ may be abbreviated to $[\![ A_1; \dots; A_n
+]\!] \Longrightarrow A$. Applying a theorem $A \Longrightarrow B$ (named \isa{T}) to a theorem
 $A$ (named \isa{U}) is written \isa{T[OF U]} and yields theorem $B$.
 
 Isabelle terms are simply typed. Function types are
 written $\tau_1 \Rightarrow \tau_2$.
 
-Free variables that may be instantiated (``logical variables'' in
-Prolog parlance) are prefixed with a \isa{?}. Typically, theorems are
-stated with ordinary free variables but after the proof those are
-replaced by \isa{?}-variables. Thus the theorem can be used with
-arbitrary instances of its free variables.
+Free variables that may be instantiated (``logical variables'' in Prolog
+parlance) are prefixed with a \isa{?}. Typically, theorems are stated with
+ordinary free variables but after the proof those are automatically replaced
+by \isa{?}-variables. Thus the theorem can be used with arbitrary instances
+of its free variables.
 
 Isabelle/HOL offers all the usual logical symbols like $\longrightarrow$, $\land$,
 $\forall$ etc. Proof methods include \isa{rule} (which performs a backwards
@@ -141,12 +137,11 @@ Section~\ref{sec:Logic} introduces proofs in pure logic based on
 natural deduction. Section~\ref{sec:Induct} is dedicated to induction,
 the key reasoning principle for computer science applications.
 
-There are at least two further areas where Isar provides specific
-support, but which we do not document here: reasoning by chains of
-(in)equations is described elsewhere~\cite{BauerW-TPHOLs01}, whereas
-reasoning about axiomatically defined structures by means of so called
-``locales'' \cite{KWP-TPHOLs99} is only described in a very early
-form and has evolved much since then.
+There are at least two further areas where Isar provides specific support,
+but which we do not document here. Reasoning by chains of (in)equations is
+described elsewhere~\cite{BauerW-TPHOLs01}.  Reasoning about axiomatically
+defined structures by means of so called ``locales'' was first described in
+\cite{KWP-TPHOLs99} but has evolved much since then.
 
 Do not be mislead by the simplicity of the formulae being proved,
 especially in the beginning. Isar has been used very successfully in

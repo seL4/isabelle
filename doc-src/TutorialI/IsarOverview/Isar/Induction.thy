@@ -147,7 +147,7 @@ proof (rule A)
     case 0 thus ?case by simp
   next
     case (Suc n)   -- {*\isakeyword{fix} @{term m} \isakeyword{assume} @{text Suc}: @{text[source]"?m < n \<Longrightarrow> P ?m"} @{prop[source]"m < Suc n"}*}
-    show ?case     -- {*@{term ?case}*}
+    show ?case    -- {*@{term ?case}*}
     proof cases
       assume eq: "m = n"
       from Suc and A have "P n" by blast
@@ -165,7 +165,7 @@ readable.
 
 The statement of the lemma is interesting because it deviates from the style in
 the Tutorial~\cite{LNCS2283}, which suggests to introduce @{text"\<forall>"} or
-@{text"\<longrightarrow>"} into a theorem to strengthen it for induction. In structured Isar
+@{text"\<longrightarrow>"} into a theorem to strengthen it for induction. In Isar
 proofs we can use @{text"\<And>"} and @{text"\<Longrightarrow>"} instead. This simplifies the
 proof and means we do not have to convert between the two kinds of
 connectives.
@@ -174,7 +174,7 @@ connectives.
 subsection{*Rule induction*}
 
 text{* HOL also supports inductively defined sets. See \cite{LNCS2283}
-for details. As an example we define our own version of reflexive
+for details. As an example we define our own version of the reflexive
 transitive closure of a relation --- HOL provides a predefined one as well.*}
 consts rtc :: "('a \<times> 'a)set \<Rightarrow> ('a \<times> 'a)set"   ("_*" [1000] 999)
 inductive "r*"
@@ -227,9 +227,9 @@ base case is trivial. In the assumptions for the induction step we can
 see very clearly how things fit together and permit ourselves the
 obvious forward step @{text"IH[OF B]"}.
 
-The notation \isakeyword{case}~\isa{(constructor} \emph{vars}\isa{)}
-is also supported for inductive definitions. The constructor is (the
-names of) the rule and the \emph{vars} fix the free variables in the
+The notation `\isakeyword{case}~\isa{(}\emph{constructor} \emph{vars}\isa{)}'
+is also supported for inductive definitions. The \emph{constructor} is (the
+name of) the rule and the \emph{vars} fix the free variables in the
 rule; the order of the \emph{vars} must correspond to the
 \emph{alphabetical order} of the variables as they appear in the rule.
 For example, we could start the above detailed proof of the induction
@@ -291,7 +291,7 @@ of \isakeyword{thus}?
 
 The third case is only shown in gory detail (see \cite{BauerW-TPHOLs01}
 for how to reason with chains of equations) to demonstrate that the
-\isakeyword{case}~\isa{(constructor} \emph{vars}\isa{)} notation also
+`\isakeyword{case}~\isa{(}\emph{constructor} \emph{vars}\isa{)}' notation also
 works for arbitrary induction theorems with numbered cases. The order
 of the \emph{vars} corresponds to the order of the
 @{text"\<And>"}-quantified variables in each case of the induction

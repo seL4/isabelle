@@ -97,9 +97,9 @@ to be eliminated. In Isar they are triggered by propositions being fed
 \end{center}
 where \emph{fact} stands for the name of a previously proved
 proposition, e.g.\ an assumption, an intermediate result or some global
-theorem, which may also be modified with @{text of}, @{text OF} etc.
+theorem, which may also be modified with @{text OF} etc.
 The \emph{fact} is ``piped'' into the \emph{proof}, which can deal with it
-how it choses. If the \emph{proof} starts with a plain \isakeyword{proof},
+how it chooses. If the \emph{proof} starts with a plain \isakeyword{proof},
 an elimination rule (from a predefined list) is applied
 whose first premise is solved by the \emph{fact}. Thus the proof above
 is equivalent to the following one: *}
@@ -201,7 +201,7 @@ An} into a sequence by separating their proofs with
 for \isakeyword{from}~@{term A1}~\dots~@{term An}.  This avoids having to
 introduce names for all of the sequence elements.  *}
 
-text{* Although we have only seen a few introduction and elemination rules so
+text{* Although we have only seen a few introduction and elimination rules so
 far, Isar's predefined rules include all the usual natural deduction
 rules. We conclude our exposition of propositional logic with an extended
 example --- which rules are used implicitly where? *}
@@ -278,7 +278,7 @@ qed
 text{*\noindent Any formula may be followed by
 @{text"("}\isakeyword{is}~\emph{pattern}@{text")"} which causes the pattern
 to be matched against the formula, instantiating the @{text"?"}-variables in
-the pattern. Subsequent uses of these variables in other terms simply causes
+the pattern. Subsequent uses of these variables in other terms causes
 them to be replaced by the terms they stand for.
 
 We can simplify things even more by stating the theorem by means of the
@@ -440,12 +440,12 @@ proof
       assume "y \<in> ?S"
       hence "y \<notin> f y"   by simp
       hence "y \<notin> ?S"    by(simp add:fy)
-      thus False        by contradiction
+      thus False         by contradiction
     next
       assume "y \<notin> ?S"
       hence "y \<in> f y"   by simp
       hence "y \<in> ?S"    by(simp add:fy)
-      thus False        by contradiction
+      thus False         by contradiction
     qed
   qed
 qed
@@ -546,7 +546,7 @@ qed
 text{*\noindent You may need to resort to this technique if an
 automatic step fails to prove the desired proposition.
 
-When converting a proof from tactic-style into Isar you can proceeed
+When converting a proof from tactic-style into Isar you can proceed
 in a top-down manner: parts of the proof can be left in script form
 while to outer structure is already expressed in Isar. *}
 
