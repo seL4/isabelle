@@ -146,7 +146,7 @@ fun prepare_typedef prep_term no_def name (t, vs, mx) raw_set thy =
     val x_new = Free ("x", newT);
     val y_old = Free ("y", oldT);
 
-    val set' = if no_def then set else setC;    (* FIXME !?? *)
+    val set' = if no_def then set else setC;
 
     val typedef_name = "type_definition_" ^ name;
     val typedefC =
@@ -171,9 +171,8 @@ fun prepare_typedef prep_term no_def name (t, vs, mx) raw_set thy =
           |> (#1 oo PureThy.add_thms)
             ([((Rep_name, make Rep), []),
               ((Rep_name ^ "_inverse", make Rep_inverse), []),
-              ((Abs_name ^ "_inverse", make Abs_inverse), [])] @
-            (if no_def then [] else
-             [((Rep_name ^ "_inject", make Rep_inject), []),
+              ((Abs_name ^ "_inverse", make Abs_inverse), []),
+              ((Rep_name ^ "_inject", make Rep_inject), []),
               ((Abs_name ^ "_inject", make Abs_inject), []),
               ((Rep_name ^ "_cases", make Rep_cases),
                 [RuleCases.case_names [Rep_name], InductAttrib.cases_set_global full_name]),
@@ -182,7 +181,7 @@ fun prepare_typedef prep_term no_def name (t, vs, mx) raw_set thy =
               ((Rep_name ^ "_induct", make Rep_induct),
                 [RuleCases.case_names [Rep_name], InductAttrib.induct_set_global full_name]),
               ((Abs_name ^ "_induct", make Abs_induct),
-                [RuleCases.case_names [Abs_name], InductAttrib.induct_type_global full_tname])]))
+                [RuleCases.case_names [Abs_name], InductAttrib.induct_type_global full_tname])])
         end)
       handle ERROR => err_in_typedef name;
 
