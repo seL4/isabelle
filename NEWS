@@ -3,7 +3,7 @@ Isabelle NEWS -- history of user-visible changes
 ================================================
 
 New in Isabelle94-8 (April 1997)
-------------------------------------------------
+--------------------------------
 
 * added token_translation interface (may translate name tokens in
 arbitrary ways, dependent on their type (free, bound, tfree, ...));
