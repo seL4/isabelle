@@ -12,6 +12,7 @@ Goal "{a} = {b} <-> a=b";
 by (resolve_tac [extension RS iff_trans] 1);
 by (Blast_tac 1) ;
 qed "singleton_eq_iff";
+AddIffs [singleton_eq_iff];
 
 Goal "{a,b} = {c,d} <-> (a=c & b=d) | (a=d & b=c)";
 by (resolve_tac [extension RS iff_trans] 1);

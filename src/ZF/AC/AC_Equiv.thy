@@ -151,12 +151,9 @@ apply (rule_tac P = "%a. ordertype (A,a) =ordertype (A,r) " in rvimage_id [THEN 
 apply (erule id_bij [THEN bij_ordertype_vimage])
 done
 
-lemma the_element: "(THE z. {x}={z}) = x"
-by (fast elim!: singleton_eq_iff [THEN iffD1, symmetric])
-
 lemma lam_sing_bij: "(\<lambda>x \<in> A. {x}) \<in> bij(A, {{x}. x \<in> A})"
 apply (rule_tac d = "%z. THE x. z={x}" in lam_bijective)
-apply (auto simp add: the_element) 
+apply (auto simp add: the_equality)
 done
 
 lemma inj_strengthen_type: 

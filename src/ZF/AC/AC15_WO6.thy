@@ -269,7 +269,7 @@ apply (rule lam_type)
 apply (drule bspec, assumption)
 apply (elim conjE)
 apply (erule lemma_aux [THEN exE], assumption)
-apply (simp add: the_element)
+apply (simp add: the_equality)
 done
 
 theorem AC13_AC1: "AC13(1) ==> AC1"
