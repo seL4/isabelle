@@ -194,13 +194,13 @@ fun extract_first p =
         | extract xs []      = (None,xs)
   in extract [] end;
 
-
+(*?
 fun print_ineqs ineqs =
  writeln(cat_lines(""::map (fn Lineq(c,t,l,_) =>
    string_of_int c ^
    (case t of Eq => " =  " | Lt=> " <  " | Le => " <= ") ^
    commas(map string_of_int l)) ineqs));
-
+!*)
 
 fun elim ineqs =
   let (*?val dummy = print_ineqs ineqs;!*)
