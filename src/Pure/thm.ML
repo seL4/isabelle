@@ -328,7 +328,7 @@ fun eq_thm (th1, th2) =
       rep_thm th2;
   in
     Sign.joinable (sg1, sg2) andalso
-    eq_set_sort (shyps1, shyps2) andalso
+    Sorts.eq_set_sort (shyps1, shyps2) andalso
     aconvs (hyps1, hyps2) andalso
     aconvs (terms_of_tpairs tpairs1, terms_of_tpairs tpairs2) andalso
     prop1 aconv prop2
@@ -393,8 +393,8 @@ fun cprop_of (Thm {sign_ref, maxidx, prop, ...}) =
   to improve efficiency a bit*)
 
 fun add_typ_sorts (Type (_, Ts), Ss) = add_typs_sorts (Ts, Ss)
-  | add_typ_sorts (TFree (_, S), Ss) = ins_sort(S,Ss)
-  | add_typ_sorts (TVar (_, S), Ss) = ins_sort(S,Ss)
+  | add_typ_sorts (TFree (_, S), Ss) = Sorts.ins_sort(S,Ss)
+  | add_typ_sorts (TVar (_, S), Ss) = Sorts.ins_sort(S,Ss)
 and add_typs_sorts ([], Ss) = Ss
   | add_typs_sorts (T :: Ts, Ss) = add_typs_sorts (Ts, add_typ_sorts (T, Ss));
 
@@ -422,17 +422,17 @@ fun add_thm_sorts (Thm {hyps, tpairs, prop, ...}, Ss) =
 
 fun add_thms_shyps ([], Ss) = Ss
   | add_thms_shyps (Thm {shyps, ...} :: ths, Ss) =
-      add_thms_shyps (ths, union_sort (shyps, Ss));
+      add_thms_shyps (ths, Sorts.union_sort (shyps, Ss));
 
 
 (*get 'dangling' sort constraints of a thm*)
 fun extra_shyps (th as Thm {shyps, ...}) =
-  Term.rems_sort (shyps, add_thm_sorts (th, []));
+  Sorts.rems_sort (shyps, add_thm_sorts (th, []));
 
 
 (* fix_shyps *)
 
-fun all_sorts_nonempty sign_ref = is_some (Sign.univ_witness (Sign.deref sign_ref));
+fun all_sorts_nonempty sign_ref = is_some (Sign.universal_witness (Sign.deref sign_ref));
 
 (*preserve sort contexts of rule premises and substituted types*)
 fun fix_shyps thms Ts (thm as Thm {sign_ref, der, maxidx, hyps, tpairs, prop, ...}) =
@@ -455,11 +455,11 @@ fun strip_shyps (thm as Thm {shyps = [], ...}) = thm
         val sign = Sign.deref sign_ref;
 
         val present_sorts = add_thm_sorts (thm, []);
-        val extra_shyps = Term.rems_sort (shyps, present_sorts);
+        val extra_shyps = Sorts.rems_sort (shyps, present_sorts);
         val witnessed_shyps = Sign.witness_sorts sign present_sorts extra_shyps;
       in
         Thm {sign_ref = sign_ref, der = der, maxidx = maxidx,
-             shyps = Term.rems_sort (shyps, map #2 witnessed_shyps),
+             shyps = Sorts.rems_sort (shyps, map #2 witnessed_shyps),
              hyps = hyps, tpairs = tpairs, prop = prop}
       end;
 
@@ -616,7 +616,7 @@ fun implies_elim thAB thA : thm =
                   Thm{sign_ref= merge_thm_sgs(thAB,thA),
                       der = Pt.infer_derivs (curry Pt.%%) der derA,
                       maxidx = Int.max(maxA,maxidx),
-                      shyps = union_sort (shypsA, shyps),
+                      shyps = Sorts.union_sort (shypsA, shyps),
                       hyps = union_term(hypsA,hyps),  (*dups suppressed*)
                       tpairs = tpairsA @ tpairs,
                       prop = B}
@@ -726,7 +726,7 @@ fun transitive th1 th2 =
                  Thm{sign_ref= merge_thm_sgs(th1,th2), 
                      der = Pt.infer_derivs (Pt.transitive u T) der1 der2,
                      maxidx = Int.max(max1,max2), 
-                     shyps = union_sort (shyps1, shyps2),
+                     shyps = Sorts.union_sort (shyps1, shyps2),
                      hyps = union_term(hyps1,hyps2),
                      tpairs = tpairs1 @ tpairs2,
                      prop = eq$t1$t2}
@@ -824,7 +824,7 @@ fun combination th1 th2 =
                             der = Pt.infer_derivs
                               (Pt.combination f g t u fT) der1 der2,
                             maxidx = Int.max(max1,max2), 
-                            shyps = union_sort(shyps1,shyps2),
+                            shyps = Sorts.union_sort(shyps1,shyps2),
                             hyps = union_term(hyps1,hyps2),
                             tpairs = tpairs1 @ tpairs2,
                             prop = Logic.mk_equals(f$t, g$u)}
@@ -855,7 +855,7 @@ fun equal_intr th1 th2 =
               Thm{sign_ref = merge_thm_sgs(th1,th2),
                   der = Pt.infer_derivs (Pt.equal_intr A B) der1 der2,
                   maxidx = Int.max(max1,max2),
-                  shyps = union_sort(shyps1,shyps2),
+                  shyps = Sorts.union_sort(shyps1,shyps2),
                   hyps = union_term(hyps1,hyps2),
                   tpairs = tpairs1 @ tpairs2,
                   prop = Logic.mk_equals(A,B)}
@@ -973,7 +973,7 @@ fun instantiate ([], []) th = th
   let val (newsign_ref,tpairs) = foldr add_ctpair (ctpairs, (sign_ref,[]));
       val (newsign_ref,vTs) = foldr add_ctyp (vcTs, (newsign_ref,[]));
       val tsig = Sign.tsig_of (Sign.deref newsign_ref);
-      fun subst t = subst_atomic tpairs (Type.inst_term_tvars (tsig, vTs) t);
+      fun subst t = subst_atomic tpairs (Type.inst_term_tvars tsig vTs t);
       val newprop = subst prop;
       val newdpairs = map (pairself subst) dpairs;
       val newth =
@@ -1093,8 +1093,8 @@ fun lift_rule (state, i) orule =
       Thm{sign_ref = merge_thm_sgs(state,orule),
           der = Pt.infer_derivs' (Pt.lift_proof Bi (smax+1) prop) der,
           maxidx = maxidx+smax+1,
-          shyps=union_sort(sshyps,shyps), 
-          hyps=hyps, 
+          shyps = Sorts.union_sort(sshyps,shyps), 
+          hyps = hyps, 
           tpairs = map (pairself lift_abs) tpairs,
           prop = Logic.list_implies (map lift_all As, lift_all B)}
   end;
@@ -1371,7 +1371,7 @@ fun bicompose_aux match (state, (stpairs, Bs, Bi, C), lifted)
                        curry op oo (Pt.norm_proof' env))
                     (Pt.bicompose_proof Bs oldAs As A n)) rder' sder,
                  maxidx = maxidx,
-                 shyps = add_env_sorts (env, union_sort(rshyps,sshyps)),
+                 shyps = add_env_sorts (env, Sorts.union_sort(rshyps,sshyps)),
                  hyps = union_term(rhyps,shyps),
                  tpairs = ntpairs,
                  prop = Logic.list_implies normp}
