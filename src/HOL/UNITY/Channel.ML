@@ -23,7 +23,7 @@ Goalw [minSet_def] "x:A ==> minSet A = Some (LEAST x. x: A)";
 by Auto_tac;
 qed_spec_mp "minSet_nonempty";
 
-Goal "F : (minSet -`` {Some x}) leadsTo (minSet -`` (Some``greaterThan x))";
+Goal "F : (minSet -` {Some x}) leadsTo (minSet -` (Some`greaterThan x))";
 by (rtac leadsTo_weaken 1);
 by (res_inst_tac [("x1","x")] ([UC2, UC1] MRS psp) 1);
 by Safe_tac;
@@ -32,7 +32,7 @@ by (auto_tac (claset() addDs [minSet_eq_SomeD],
 qed "minSet_greaterThan";
 
 (*The induction*)
-Goal "F : (UNIV-{{}}) leadsTo (minSet -`` (Some``atLeast y))";
+Goal "F : (UNIV-{{}}) leadsTo (minSet -` (Some`atLeast y))";
 by (rtac leadsTo_weaken_R 1);
 by (res_inst_tac  [("l", "y"), ("f", "the o minSet"), ("B", "{}")]
      greaterThan_bounded_induct 1);

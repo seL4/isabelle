@@ -319,43 +319,43 @@ qed "cont_Iwhen3";
 (* continuous versions of lemmas for 'a ++ 'b                               *)
 (* ------------------------------------------------------------------------ *)
 
-Goalw [sinl_def] "sinl`UU =UU";
+Goalw [sinl_def] "sinl$UU =UU";
 by (simp_tac (Ssum0_ss addsimps [cont_Isinl]) 1);
 by (rtac (inst_ssum_pcpo RS sym) 1);
 qed "strict_sinl";
 Addsimps [strict_sinl];
 
-Goalw [sinr_def] "sinr`UU=UU";
+Goalw [sinr_def] "sinr$UU=UU";
 by (simp_tac (Ssum0_ss addsimps [cont_Isinr]) 1);
 by (rtac (inst_ssum_pcpo RS sym) 1);
 qed "strict_sinr";
 Addsimps [strict_sinr];
 
 Goalw [sinl_def,sinr_def] 
-        "sinl`a=sinr`b ==> a=UU & b=UU";
+        "sinl$a=sinr$b ==> a=UU & b=UU";
 by (auto_tac (claset() addSDs [noteq_IsinlIsinr], simpset()));
 qed "noteq_sinlsinr";
 
 Goalw [sinl_def,sinr_def] 
-        "sinl`a1=sinl`a2==> a1=a2";
+        "sinl$a1=sinl$a2==> a1=a2";
 by Auto_tac;
 qed "inject_sinl";
 
 Goalw [sinl_def,sinr_def] 
-        "sinr`a1=sinr`a2==> a1=a2";
+        "sinr$a1=sinr$a2==> a1=a2";
 by Auto_tac;
 qed "inject_sinr";
 
 AddSDs [inject_sinl, inject_sinr];
 
-Goal "x~=UU ==> sinl`x ~= UU";
+Goal "x~=UU ==> sinl$x ~= UU";
 by (etac contrapos_nn 1);
 by (rtac inject_sinl 1);
 by Auto_tac;
 qed "defined_sinl";
 Addsimps [defined_sinl];
 
-Goal "x~=UU ==> sinr`x ~= UU";
+Goal "x~=UU ==> sinr$x ~= UU";
 by (etac contrapos_nn 1);
 by (rtac inject_sinr 1);
 by Auto_tac;
@@ -363,7 +363,7 @@ qed "defined_sinr";
 Addsimps [defined_sinr];
 
 Goalw [sinl_def,sinr_def] 
-        "z=UU | (? a. z=sinl`a & a~=UU) | (? b. z=sinr`b & b~=UU)";
+        "z=UU | (? a. z=sinl$a & a~=UU) | (? b. z=sinr$b & b~=UU)";
 by (asm_simp_tac (Ssum0_ss addsimps [cont_Isinr,cont_Isinl]) 1);
 by (stac inst_ssum_pcpo 1);
 by (rtac Exh_Ssum 1);
@@ -372,8 +372,8 @@ qed "Exh_Ssum1";
 
 val [major,prem2,prem3] = Goalw [sinl_def,sinr_def] 
         "[|p=UU ==> Q ;\
-\       !!x.[|p=sinl`x; x~=UU |] ==> Q;\
-\       !!y.[|p=sinr`y; y~=UU |] ==> Q|] ==> Q";
+\       !!x.[|p=sinl$x; x~=UU |] ==> Q;\
+\       !!y.[|p=sinr$y; y~=UU |] ==> Q|] ==> Q";
 by (rtac (major RS IssumE) 1);
 by (stac inst_ssum_pcpo 1);
 by (atac 1);
@@ -387,8 +387,8 @@ qed "ssumE";
 
 
 val [preml,premr] = Goalw [sinl_def,sinr_def] 
-      "[|!!x.[|p=sinl`x|] ==> Q;\
-\        !!y.[|p=sinr`y|] ==> Q|] ==> Q";
+      "[|!!x.[|p=sinl$x|] ==> Q;\
+\        !!y.[|p=sinr$y|] ==> Q|] ==> Q";
 by (rtac IssumE2 1);
 by (rtac preml 1);
 by (rtac premr 2);
@@ -399,7 +399,7 @@ val tac = (REPEAT (resolve_tac (cont_lemmas1 @ [cont_Iwhen1,cont_Iwhen2,
                 cont_Iwhen3,cont2cont_CF1L]) 1)); 
 
 Goalw [sscase_def,sinl_def,sinr_def] 
-        "sscase`f`g`UU = UU";
+        "sscase$f$g$UU = UU";
 by (stac inst_ssum_pcpo 1);
 by (stac beta_cfun 1);
 by tac;
@@ -416,7 +416,7 @@ val tac = (REPEAT (resolve_tac (cont_lemmas1 @ [cont_Iwhen1,cont_Iwhen2,
                 cont_Iwhen3,cont_Isinl,cont_Isinr,cont2cont_CF1L]) 1));
 
 Goalw [sscase_def,sinl_def,sinr_def] 
-        "x~=UU==> sscase`f`g`(sinl`x) = f`x";
+        "x~=UU==> sscase$f$g$(sinl$x) = f$x";
 by (stac beta_cfun 1);
 by tac;
 by (stac beta_cfun 1);
@@ -430,7 +430,7 @@ qed "sscase2";
 Addsimps [sscase2];
 
 Goalw [sscase_def,sinl_def,sinr_def] 
-        "x~=UU==> sscase`f`g`(sinr`x) = g`x";
+        "x~=UU==> sscase$f$g$(sinr$x) = g$x";
 by (stac beta_cfun 1);
 by tac;
 by (stac beta_cfun 1);
@@ -445,7 +445,7 @@ Addsimps [sscase3];
 
 
 Goalw [sinl_def,sinr_def] 
-        "(sinl`x << sinl`y) = (x << y)";
+        "(sinl$x << sinl$y) = (x << y)";
 by (stac beta_cfun 1);
 by tac;
 by (stac beta_cfun 1);
@@ -454,7 +454,7 @@ by (rtac less_ssum3a 1);
 qed "less_ssum4a";
 
 Goalw [sinl_def,sinr_def] 
-        "(sinr`x << sinr`y) = (x << y)";
+        "(sinr$x << sinr$y) = (x << y)";
 by (stac beta_cfun 1);
 by tac;
 by (stac beta_cfun 1);
@@ -463,7 +463,7 @@ by (rtac less_ssum3b 1);
 qed "less_ssum4b";
 
 Goalw [sinl_def,sinr_def] 
-        "(sinl`x << sinr`y) = (x = UU)";
+        "(sinl$x << sinr$y) = (x = UU)";
 by (stac beta_cfun 1);
 by tac;
 by (stac beta_cfun 1);
@@ -472,7 +472,7 @@ by (rtac less_ssum3c 1);
 qed "less_ssum4c";
 
 Goalw [sinl_def,sinr_def] 
-        "(sinr`x << sinl`y) = (x = UU)";
+        "(sinr$x << sinl$y) = (x = UU)";
 by (stac beta_cfun 1);
 by tac;
 by (stac beta_cfun 1);
@@ -481,15 +481,15 @@ by (rtac less_ssum3d 1);
 qed "less_ssum4d";
 
 Goalw [sinl_def,sinr_def] 
-        "chain(Y) ==> (!i.? x.(Y i)=sinl`x)|(!i.? y.(Y i)=sinr`y)";
+        "chain(Y) ==> (!i.? x.(Y i)=sinl$x)|(!i.? y.(Y i)=sinr$y)";
 by (asm_simp_tac (Ssum0_ss addsimps [cont_Isinr,cont_Isinl]) 1);
 by (etac ssum_lemma4 1);
 qed "ssum_chainE";
 
 
 Goalw [sinl_def,sinr_def,sscase_def] 
-"[| chain(Y); !i.? x. Y(i) = sinl`x |] ==>\ 
-\   lub(range(Y)) = sinl`(lub(range(%i. sscase`(LAM x. x)`(LAM y. UU)`(Y i))))";
+"[| chain(Y); !i.? x. Y(i) = sinl$x |] ==>\ 
+\   lub(range(Y)) = sinl$(lub(range(%i. sscase$(LAM x. x)$(LAM y. UU)$(Y i))))";
 by (stac beta_cfun 1);
 by tac;
 by (stac beta_cfun 1);
@@ -510,8 +510,8 @@ by (asm_simp_tac (Ssum0_ss addsimps [cont_Isinl]) 1);
 qed "thelub_ssum2a";
 
 Goalw [sinl_def,sinr_def,sscase_def] 
-"[| chain(Y); !i.? x. Y(i) = sinr`x |] ==>\ 
-\   lub(range(Y)) = sinr`(lub(range(%i. sscase`(LAM y. UU)`(LAM x. x)`(Y i))))";
+"[| chain(Y); !i.? x. Y(i) = sinr$x |] ==>\ 
+\   lub(range(Y)) = sinr$(lub(range(%i. sscase$(LAM y. UU)$(LAM x. x)$(Y i))))";
 by (stac beta_cfun 1);
 by tac;
 by (stac beta_cfun 1);
@@ -532,22 +532,22 @@ by (asm_simp_tac (Ssum0_ss addsimps [cont_Isinr,cont_Isinl,cont_Iwhen1,cont_Iwhe
 qed "thelub_ssum2b";
 
 Goalw [sinl_def,sinr_def] 
-        "[| chain(Y); lub(range(Y)) = sinl`x|] ==> !i.? x. Y(i)=sinl`x";
+        "[| chain(Y); lub(range(Y)) = sinl$x|] ==> !i.? x. Y(i)=sinl$x";
 by (asm_simp_tac (Ssum0_ss addsimps [cont_Isinr,cont_Isinl,cont_Iwhen1,cont_Iwhen2, cont_Iwhen3]) 1);
 by (etac ssum_lemma9 1);
 by (asm_simp_tac (Ssum0_ss addsimps [cont_Isinr,cont_Isinl,cont_Iwhen1,cont_Iwhen2, cont_Iwhen3]) 1);
 qed "thelub_ssum2a_rev";
 
 Goalw [sinl_def,sinr_def] 
-     "[| chain(Y); lub(range(Y)) = sinr`x|] ==> !i.? x. Y(i)=sinr`x";
+     "[| chain(Y); lub(range(Y)) = sinr$x|] ==> !i.? x. Y(i)=sinr$x";
 by (asm_simp_tac (Ssum0_ss addsimps [cont_Isinr,cont_Isinl,cont_Iwhen1,cont_Iwhen2, cont_Iwhen3]) 1);
 by (etac ssum_lemma10 1);
 by (asm_simp_tac (Ssum0_ss addsimps [cont_Isinr,cont_Isinl,cont_Iwhen1,cont_Iwhen2, cont_Iwhen3]) 1);
 qed "thelub_ssum2b_rev";
 
 Goal "chain(Y) ==>\ 
-\   lub(range(Y)) = sinl`(lub(range(%i. sscase`(LAM x. x)`(LAM y. UU)`(Y i))))\
-\ | lub(range(Y)) = sinr`(lub(range(%i. sscase`(LAM y. UU)`(LAM x. x)`(Y i))))";
+\   lub(range(Y)) = sinl$(lub(range(%i. sscase$(LAM x. x)$(LAM y. UU)$(Y i))))\
+\ | lub(range(Y)) = sinr$(lub(range(%i. sscase$(LAM y. UU)$(LAM x. x)$(Y i))))";
 by (rtac (ssum_chainE RS disjE) 1);
 by (atac 1);
 by (rtac disjI1 1);
@@ -558,7 +558,7 @@ by (etac thelub_ssum2b 1);
 by (atac 1);
 qed "thelub_ssum3";
 
-Goal "sscase`sinl`sinr`z=z";
+Goal "sscase$sinl$sinr$z=z";
 by (res_inst_tac [("p","z")] ssumE 1);
 by Auto_tac;
 qed "sscase4";

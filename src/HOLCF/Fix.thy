@@ -20,7 +20,7 @@ admw		:: "('a=>bool)=>bool"
 
 primrec
   iterate_0   "iterate 0 F x = x"
-  iterate_Suc "iterate (Suc n) F x  = F`(iterate n F x)"
+  iterate_Suc "iterate (Suc n) F x  = F$(iterate n F x)"
 
 defs
 

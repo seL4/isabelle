@@ -72,9 +72,9 @@ bind_thms ("orelse_thms", map prover [
 			"(y orelse y) = y"]);
 
 bind_thms ("neg_thms", map prover [
-                        "neg`TT = FF",
-                        "neg`FF = TT",
-                        "neg`UU = UU"
+                        "neg$TT = FF",
+                        "neg$FF = TT",
+                        "neg$UU = UU"
                         ]);
 
 bind_thms ("ifte_thms", map prover [

@@ -127,7 +127,7 @@ by (rewtac zprime_def);
 by (auto_tac (claset() addIs [d22set_g_1,d22set_le,l1,l2,l3,l4],simpset()));
 qed "inv_inj";
 
-Goal "p : zprime ==> (inv p)``(d22set (p-#2)) = (d22set (p-#2))";
+Goal "p : zprime ==> (inv p)`(d22set (p-#2)) = (d22set (p-#2))";
 by (rtac endo_inj_surj 1);
 by (rtac d22set_fin 1);
 by (etac inv_inj 2);
@@ -141,7 +141,7 @@ qed "inv_d22set_d22set";
 
 Goalw [reciR_def] "p:zprime \
 \    ==> (d22set(p-#2),d22set(p-#2)) : (bijR (reciR p))";
-by (res_inst_tac [("s","(d22set(p-#2),(inv p)``(d22set(p-#2)))")] subst 1);
+by (res_inst_tac [("s","(d22set(p-#2),(inv p)`(d22set(p-#2)))")] subst 1);
 by (asm_simp_tac (simpset() addsimps [inv_d22set_d22set]) 1);
 by (rtac inj_func_bijR 1);
 by (rtac d22set_fin 3);

@@ -6,7 +6,7 @@
 The positive naturals -- proofs mainly as in theory Nat.
 *)
 
-Goal "mono(%X. {1} Un (Suc``X))";
+Goal "mono(%X. {1} Un Suc`X)";
 by (REPEAT (ares_tac [monoI, subset_refl, image_mono, Un_mono] 1));
 qed "pnat_fun_mono";
 

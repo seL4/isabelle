@@ -88,9 +88,9 @@ inductive hoare_derivs intrs
 	  |-{P}.  the (body pn) .{Q} ==>
 	 G|-{P}.       BODY pn  .{Q}"
 *)
-  Body	"[| G Un (%p. {P p}.      BODY p  .{Q p})``Procs
-	      ||-(%p. {P p}. the (body p) .{Q p})``Procs |]
-	==>  G||-(%p. {P p}.      BODY p  .{Q p})``Procs"
+  Body	"[| G Un (%p. {P p}.      BODY p  .{Q p})`Procs
+	      ||-(%p. {P p}. the (body p) .{Q p})`Procs |]
+	==>  G||-(%p. {P p}.      BODY p  .{Q p})`Procs"
 
   Call	   "G|-{P}. BODY pn .{%Z s. Q Z (setlocs s (getlocs s')[X::=s<Res>])}
 	==> G|-{%Z s. s'=s & P Z (setlocs s newlocs[Loc Arg::=a s])}.

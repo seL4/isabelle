@@ -178,7 +178,7 @@ by (auto_tac (claset() addIs [order_less_imp_le]
               simpset() addsimps [hypreal_mult_less_mono2]));
 qed_spec_mp "hrealpow_Suc_le";
 
-Goal "Abs_hypreal(hyprel```{%n. X n}) ^ m = Abs_hypreal(hyprel```{%n. (X n) ^ m})";
+Goal "Abs_hypreal(hyprel``{%n. X n}) ^ m = Abs_hypreal(hyprel``{%n. (X n) ^ m})";
 by (induct_tac "m" 1);
 by (auto_tac (claset(),
               simpset() delsimps [one_eq_numeral_1]
@@ -221,14 +221,14 @@ qed_spec_mp "hrealpow_HFinite";
  --------------------------------------------------------------*)
 Goalw [congruent_def]
      "congruent hyprel \
-\    (%X Y. hyprel```{%n. ((X::nat=>real) n ^ (Y::nat=>nat) n)})";
+\    (%X Y. hyprel``{%n. ((X::nat=>real) n ^ (Y::nat=>nat) n)})";
 by (safe_tac (claset() addSIs [ext]));
 by (ALLGOALS(Fuf_tac));
 qed "hyperpow_congruent";
 
 Goalw [hyperpow_def]
-  "Abs_hypreal(hyprel```{%n. X n}) pow Abs_hypnat(hypnatrel```{%n. Y n}) = \
-\  Abs_hypreal(hyprel```{%n. X n ^ Y n})";
+  "Abs_hypreal(hyprel``{%n. X n}) pow Abs_hypnat(hypnatrel``{%n. Y n}) = \
+\  Abs_hypreal(hyprel``{%n. X n ^ Y n})";
 by (res_inst_tac [("f","Abs_hypreal")] arg_cong 1);
 by (auto_tac (claset() addSIs [lemma_hyprel_refl,bexI],
     simpset() addsimps [hyprel_in_hypreal RS 

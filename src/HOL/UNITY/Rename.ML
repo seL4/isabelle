@@ -26,18 +26,18 @@ by (asm_simp_tac (simpset() addsimps [surj_f_inv_f]) 1);
 by (etac surj_f_inv_f 1);
 qed "fst_o_inv_eq_inv";
 
-Goal "bij h ==> z : h``A = (inv h z : A)";
+Goal "bij h ==> z : h`A = (inv h z : A)";
 by (auto_tac (claset() addSIs [image_eqI],
 	      simpset() addsimps [bij_is_inj, bij_is_surj RS surj_f_inv_f]));
 qed "mem_rename_set_iff";
 
-Goal "extend_set (%(x,u). h x) A = h``A";
+Goal "extend_set (%(x,u). h x) A = h`A";
 by (auto_tac (claset() addSIs [image_eqI],
 	      simpset() addsimps [extend_set_def]));
 qed "extend_set_eq_image";
 Addsimps [extend_set_eq_image];
 
-Goalw [rename_def] "Init (rename h F) = h``(Init F)";
+Goalw [rename_def] "Init (rename h F) = h`(Init F)";
 by (Simp_tac 1);
 qed "Init_rename";
 
@@ -145,7 +145,7 @@ by (etac (bij_project RS bij_is_inj) 1);
 by (asm_simp_tac (simpset() addsimps [export extend_inverse]) 1); 
 qed "inv_project_eq";
 
-Goal "bij h ==> Allowed (rename h F) = rename h `` Allowed F";
+Goal "bij h ==> Allowed (rename h F) = rename h ` Allowed F";
 by (asm_simp_tac (simpset() addsimps [rename_def, export Allowed_extend]) 1);
 by (stac bij_vimage_eq_inv_image 1); 
 by (rtac bij_project 1); 
@@ -209,17 +209,17 @@ Addsimps [rename_JN];
 (*** Strong Safety: co, stable ***)
 
 Goalw [rename_def]
-     "bij h ==> (rename h F : (h``A) co (h``B)) = (F : A co B)";
+     "bij h ==> (rename h F : (h`A) co (h`B)) = (F : A co B)";
 by (REPEAT (stac (extend_set_eq_image RS sym) 1));
 by (etac (good_map_bij RS export extend_constrains) 1);
 qed "rename_constrains";
 
 Goalw [stable_def]
-     "bij h ==> (rename h F : stable (h``A)) = (F : stable A)";
+     "bij h ==> (rename h F : stable (h`A)) = (F : stable A)";
 by (asm_simp_tac (simpset() addsimps [rename_constrains]) 1);
 qed "rename_stable";
 
-Goal "bij h ==> (rename h F : invariant (h``A)) = (F : invariant A)";
+Goal "bij h ==> (rename h F : invariant (h`A)) = (F : invariant A)";
 by (asm_simp_tac (simpset() addsimps [invariant_def, rename_stable,
 				      bij_is_inj RS inj_image_subset_iff]) 1);
 qed "rename_invariant";
@@ -234,22 +234,22 @@ qed "rename_increasing";
 (*** Weak Safety: Co, Stable ***)
 
 Goalw [rename_def]
-     "bij h ==> reachable (rename h F) = h `` (reachable F)";
+     "bij h ==> reachable (rename h F) = h ` (reachable F)";
 by (asm_simp_tac (simpset() addsimps [export reachable_extend_eq]) 1);
 qed "reachable_rename_eq";
 
-Goal "bij h ==> (rename h F : (h``A) Co (h``B)) = (F : A Co B)";
+Goal "bij h ==> (rename h F : (h`A) Co (h`B)) = (F : A Co B)";
 by (asm_simp_tac
     (simpset() addsimps [Constrains_def, reachable_rename_eq, 
 			 rename_constrains, bij_is_inj, image_Int RS sym]) 1);
 qed "rename_Constrains";
 
 Goalw [Stable_def]
-     "bij h ==> (rename h F : Stable (h``A)) = (F : Stable A)";
+     "bij h ==> (rename h F : Stable (h`A)) = (F : Stable A)";
 by (asm_simp_tac (simpset() addsimps [rename_Constrains]) 1);
 qed "rename_Stable";
 
-Goal "bij h ==> (rename h F : Always (h``A)) = (F : Always A)";
+Goal "bij h ==> (rename h F : Always (h`A)) = (F : Always A)";
 by (asm_simp_tac (simpset() addsimps [Always_def, rename_Stable,
 				      bij_is_inj RS inj_image_subset_iff]) 1);
 qed "rename_Always";
@@ -264,32 +264,32 @@ qed "rename_Increasing";
 (*** Progress: transient, ensures ***)
 
 Goalw [rename_def]
-     "bij h ==> (rename h F : transient (h``A)) = (F : transient A)";
+     "bij h ==> (rename h F : transient (h`A)) = (F : transient A)";
 by (stac (extend_set_eq_image RS sym) 1);
 by (etac (good_map_bij RS export extend_transient) 1);
 qed "rename_transient";
 
 Goalw [rename_def]
-     "bij h ==> (rename h F : (h``A) ensures (h``B)) = (F : A ensures B)";
+     "bij h ==> (rename h F : (h`A) ensures (h`B)) = (F : A ensures B)";
 by (REPEAT (stac (extend_set_eq_image RS sym) 1));
 by (etac (good_map_bij RS export extend_ensures) 1);
 qed "rename_ensures";
 
 Goalw [rename_def]
-     "bij h ==> (rename h F : (h``A) leadsTo (h``B)) = (F : A leadsTo B)";
+     "bij h ==> (rename h F : (h`A) leadsTo (h`B)) = (F : A leadsTo B)";
 by (REPEAT (stac (extend_set_eq_image RS sym) 1));
 by (etac (good_map_bij RS export extend_leadsTo) 1);
 qed "rename_leadsTo";
 
 Goalw [rename_def]
-     "bij h ==> (rename h F : (h``A) LeadsTo (h``B)) = (F : A LeadsTo B)";
+     "bij h ==> (rename h F : (h`A) LeadsTo (h`B)) = (F : A LeadsTo B)";
 by (REPEAT (stac (extend_set_eq_image RS sym) 1));
 by (etac (good_map_bij RS export extend_LeadsTo) 1);
 qed "rename_LeadsTo";
 
 Goalw [rename_def]
-     "bij h ==> (rename h F : (rename h `` X) guarantees \
-\                             (rename h `` Y)) = \
+     "bij h ==> (rename h F : (rename h ` X) guarantees \
+\                             (rename h ` Y)) = \
 \               (F : X guarantees Y)";
 by (stac (good_map_bij RS export extend_guarantees_eq RS sym) 1);
 by (assume_tac 1);
@@ -297,8 +297,8 @@ by (asm_simp_tac (simpset() addsimps [fst_o_inv_eq_inv, o_def]) 1);
 qed "rename_rename_guarantees_eq";
 
 Goal "bij h ==> (rename h F : X guarantees Y) = \
-\               (F : (rename (inv h) `` X) guarantees \
-\                    (rename (inv h) `` Y))";
+\               (F : (rename (inv h) ` X) guarantees \
+\                    (rename (inv h) ` Y))";
 by (stac (rename_rename_guarantees_eq RS sym) 1);
 by (assume_tac 1);
 by (asm_simp_tac
@@ -336,47 +336,47 @@ fun rename_image_tac ths =
 	 (auto_tac (claset() addSIs [surj_rename RS surj_f_inv_f RS sym],
 	      simpset() addsimps ths))];
 
-Goal "bij h ==> rename h `` (A co B) = (h `` A) co (h``B)";
+Goal "bij h ==> rename h ` (A co B) = (h ` A) co (h`B)";
 by (rename_image_tac [rename_constrains]);
 qed "rename_image_constrains";
 
-Goal "bij h ==> rename h `` stable A = stable (h `` A)";
+Goal "bij h ==> rename h ` stable A = stable (h ` A)";
 by (rename_image_tac [rename_stable]);
 qed "rename_image_stable";
 
-Goal "bij h ==> rename h `` increasing func = increasing (func o inv h)";
+Goal "bij h ==> rename h ` increasing func = increasing (func o inv h)";
 by (rename_image_tac [rename_increasing, o_def, bij_is_inj]);
 qed "rename_image_increasing";
 
-Goal "bij h ==> rename h `` invariant A = invariant (h `` A)";
+Goal "bij h ==> rename h ` invariant A = invariant (h ` A)";
 by (rename_image_tac [rename_invariant]);
 qed "rename_image_invariant";
 
-Goal "bij h ==> rename h `` (A Co B) = (h `` A) Co (h``B)";
+Goal "bij h ==> rename h ` (A Co B) = (h ` A) Co (h`B)";
 by (rename_image_tac [rename_Constrains]);
 qed "rename_image_Constrains";
 
-Goal "bij h ==> rename h `` preserves v = preserves (v o inv h)";
+Goal "bij h ==> rename h ` preserves v = preserves (v o inv h)";
 by (asm_simp_tac (simpset() addsimps [o_def, rename_image_stable,
                     preserves_def, bij_image_INT, bij_image_Collect_eq]) 1); 
 qed "rename_image_preserves";
 
-Goal "bij h ==> rename h `` Stable A = Stable (h `` A)";
+Goal "bij h ==> rename h ` Stable A = Stable (h ` A)";
 by (rename_image_tac [rename_Stable]);
 qed "rename_image_Stable";
 
-Goal "bij h ==> rename h `` Increasing func = Increasing (func o inv h)";
+Goal "bij h ==> rename h ` Increasing func = Increasing (func o inv h)";
 by (rename_image_tac [rename_Increasing, o_def, bij_is_inj]);
 qed "rename_image_Increasing";
 
-Goal "bij h ==> rename h `` Always A = Always (h `` A)";
+Goal "bij h ==> rename h ` Always A = Always (h ` A)";
 by (rename_image_tac [rename_Always]);
 qed "rename_image_Always";
 
-Goal "bij h ==> rename h `` (A leadsTo B) = (h `` A) leadsTo (h``B)";
+Goal "bij h ==> rename h ` (A leadsTo B) = (h ` A) leadsTo (h`B)";
 by (rename_image_tac [rename_leadsTo]);
 qed "rename_image_leadsTo";
 
-Goal "bij h ==> rename h `` (A LeadsTo B) = (h `` A) LeadsTo (h``B)";
+Goal "bij h ==> rename h ` (A LeadsTo B) = (h ` A) LeadsTo (h`B)";
 by (rename_image_tac [rename_LeadsTo]);
 qed "rename_image_LeadsTo";

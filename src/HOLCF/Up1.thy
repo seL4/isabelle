@@ -22,7 +22,7 @@ consts
 
 defs
   Iup_def     "Iup x == Abs_Up(Inr(x))"
-  Ifup_def    "Ifup(f)(x)== case Rep_Up(x) of Inl(y) => UU | Inr(z) => f`z"
+  Ifup_def    "Ifup(f)(x)== case Rep_Up(x) of Inl(y) => UU | Inr(z) => f$z"
   less_up_def "(op <<) == (%x1 x2. case Rep_Up(x1) of                 
                Inl(y1) => True          
              | Inr(y2) => (case Rep_Up(x2) of Inl(z1) => False       

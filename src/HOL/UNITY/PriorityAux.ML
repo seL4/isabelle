@@ -20,14 +20,14 @@ AddIffs [[subset_UNIV, [finite_vertex_univ, finite_vertex_univ]
 (* The equalities (above i r = {}) = (A i r = {}) 
    and (reach i r = {}) = (R i r) rely on the following theorem  *)
 
-Goal "((r^+)```{i} = {}) = (r```{i} = {})";
+Goal "((r^+)``{i} = {}) = (r``{i} = {})";
 by Auto_tac;
 by (etac trancl_induct 1);
 by Auto_tac;
 qed "image0_trancl_iff_image0_r";
 
 (* Another form usefull in some situation *)
-Goal "(r```{i}={}) = (ALL x. ((i,x):r^+) = False)";
+Goal "(r``{i}={}) = (ALL x. ((i,x):r^+) = False)";
 by Auto_tac;
 by (dtac (image0_trancl_iff_image0_r RS ssubst) 1);
 by Auto_tac;
@@ -76,7 +76,7 @@ qed "reach_above_lemma";
 
 (* Lemma 2 *)
 Goal 
-"(z, i):r^+ ==> (ALL y. (y, z):r --> (y, i)~:r^+) = ((r^-1)```{z}={})";
+"(z, i):r^+ ==> (ALL y. (y, z):r --> (y, i)~:r^+) = ((r^-1)``{z}={})";
 by Auto_tac;
 by (forw_inst_tac [("r", "r")] trancl_into_trancl2 1);
 by Auto_tac;
@@ -86,7 +86,7 @@ Goal
  "acyclic r ==> A i r~={}-->(EX j:above i r. A j r = {})";
 by (full_simp_tac (simpset() 
             addsimps [acyclic_eq_wf, wf_eq_minimal]) 1);
-by (dres_inst_tac [("x", "((r^-1)^+)```{i}")] spec 1);
+by (dres_inst_tac [("x", "((r^-1)^+)``{i}")] spec 1);
 by Auto_tac;
 by (rotate_tac ~1 1);
 by (asm_full_simp_tac (simpset() 

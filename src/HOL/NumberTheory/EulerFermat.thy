@@ -30,7 +30,7 @@ recdef BnorRset "measure ((% (a,m).(nat a)) ::int*int=>nat)"
 defs
   norRRset_def "norRRset m   == BnorRset (m-#1,m)"
 
-  noXRRset_def "noXRRset m x == (%a. a*x)``(norRRset m)"
+  noXRRset_def "noXRRset m x == (%a. a*x)`(norRRset m)"
 
   phi_def      "phi m == card (norRRset m)"
 

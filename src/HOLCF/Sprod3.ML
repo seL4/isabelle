@@ -240,7 +240,7 @@ qed "spair_eq";
 (* ------------------------------------------------------------------------ *)
 
 Goalw [spair_def]
-        "(LAM x y. Ispair x y)`a`b = Ispair a b";
+        "(LAM x y. Ispair x y)$a$b = Ispair a b";
 by (stac beta_cfun 1);
 by (simp_tac (simpset() addsimps [cont_Ispair2, cont_Ispair1, cont2cont_CF1L]) 1);
 by (stac beta_cfun 1);
@@ -343,7 +343,7 @@ qed "sprodE";
 
 
 Goalw [sfst_def] 
-        "p=UU==>sfst`p=UU";
+        "p=UU==>sfst$p=UU";
 by (stac beta_cfun 1);
 by (rtac cont_Isfst 1);
 by (rtac strict_Isfst 1);
@@ -352,7 +352,7 @@ by (atac 1);
 qed "strict_sfst";
 
 Goalw [sfst_def,spair_def] 
-        "sfst`(:UU,y:) = UU";
+        "sfst$(:UU,y:) = UU";
 by (stac beta_cfun_sprod 1);
 by (stac beta_cfun 1);
 by (rtac cont_Isfst 1);
@@ -360,7 +360,7 @@ by (rtac strict_Isfst1 1);
 qed "strict_sfst1";
  
 Goalw [sfst_def,spair_def] 
-        "sfst`(:x,UU:) = UU";
+        "sfst$(:x,UU:) = UU";
 by (stac beta_cfun_sprod 1);
 by (stac beta_cfun 1);
 by (rtac cont_Isfst 1);
@@ -368,7 +368,7 @@ by (rtac strict_Isfst2 1);
 qed "strict_sfst2";
 
 Goalw [ssnd_def] 
-        "p=UU==>ssnd`p=UU";
+        "p=UU==>ssnd$p=UU";
 by (stac beta_cfun 1);
 by (rtac cont_Issnd 1);
 by (rtac strict_Issnd 1);
@@ -377,7 +377,7 @@ by (atac 1);
 qed "strict_ssnd";
 
 Goalw [ssnd_def,spair_def] 
-        "ssnd`(:UU,y:) = UU";
+        "ssnd$(:UU,y:) = UU";
 by (stac beta_cfun_sprod 1);
 by (stac beta_cfun 1);
 by (rtac cont_Issnd 1);
@@ -385,7 +385,7 @@ by (rtac strict_Issnd1 1);
 qed "strict_ssnd1";
 
 Goalw [ssnd_def,spair_def] 
-        "ssnd`(:x,UU:) = UU";
+        "ssnd$(:x,UU:) = UU";
 by (stac beta_cfun_sprod 1);
 by (stac beta_cfun 1);
 by (rtac cont_Issnd 1);
@@ -393,7 +393,7 @@ by (rtac strict_Issnd2 1);
 qed "strict_ssnd2";
 
 Goalw [sfst_def,spair_def] 
-        "y~=UU ==>sfst`(:x,y:)=x";
+        "y~=UU ==>sfst$(:x,y:)=x";
 by (stac beta_cfun_sprod 1);
 by (stac beta_cfun 1);
 by (rtac cont_Isfst 1);
@@ -401,7 +401,7 @@ by (etac Isfst2 1);
 qed "sfst2";
 
 Goalw [ssnd_def,spair_def] 
-        "x~=UU ==>ssnd`(:x,y:)=y";
+        "x~=UU ==>ssnd$(:x,y:)=y";
 by (stac beta_cfun_sprod 1);
 by (stac beta_cfun 1);
 by (rtac cont_Issnd 1);
@@ -410,7 +410,7 @@ qed "ssnd2";
 
 
 Goalw [sfst_def,ssnd_def,spair_def]
-        "p~=UU ==> sfst`p ~=UU & ssnd`p ~=UU";
+        "p~=UU ==> sfst$p ~=UU & ssnd$p ~=UU";
 by (stac beta_cfun 1);
 by (rtac cont_Issnd 1);
 by (stac beta_cfun 1);
@@ -420,7 +420,7 @@ by (rtac (inst_sprod_pcpo RS subst) 1);
 by (atac 1);
 qed "defined_sfstssnd";
  
-Goalw [sfst_def,ssnd_def,spair_def] "(:sfst`p , ssnd`p:) = p";
+Goalw [sfst_def,ssnd_def,spair_def] "(:sfst$p , ssnd$p:) = p";
 by (stac beta_cfun_sprod 1);
 by (stac beta_cfun 1);
 by (rtac cont_Issnd 1);
@@ -431,7 +431,7 @@ qed "surjective_pairing_Sprod2";
 
 Goalw [sfst_def,ssnd_def,spair_def]
 "chain(S) ==> range(S) <<| \
-\              (: lub(range(%i. sfst`(S i))), lub(range(%i. ssnd`(S i))) :)";
+\              (: lub(range(%i. sfst$(S i))), lub(range(%i. ssnd$(S i))) :)";
 by (stac beta_cfun_sprod 1);
 by (stac (beta_cfun RS ext) 1);
 by (rtac cont_Issnd 1);
@@ -445,11 +445,11 @@ bind_thm ("thelub_sprod2", lub_sprod2 RS thelubI);
 (*
  "chain ?S1 ==>
  lub (range ?S1) =
- (:lub (range (%i. sfst`(?S1 i))), lub (range (%i. ssnd`(?S1 i))):)" : thm
+ (:lub (range (%i. sfst$(?S1 i))), lub (range (%i. ssnd$(?S1 i))):)" : thm
 *)
 
 Goalw [ssplit_def]
-        "ssplit`f`UU=UU";
+        "ssplit$f$UU=UU";
 by (stac beta_cfun 1);
 by (Simp_tac 1);
 by (stac strictify1 1);
@@ -457,7 +457,7 @@ by (rtac refl 1);
 qed "ssplit1";
 
 Goalw [ssplit_def]
-        "[|x~=UU;y~=UU|] ==> ssplit`f`(:x,y:)= f`x`y";
+        "[|x~=UU;y~=UU|] ==> ssplit$f$(:x,y:)= f$x$y";
 by (stac beta_cfun 1);
 by (Simp_tac 1);
 by (stac strictify2 1);
@@ -475,7 +475,7 @@ qed "ssplit2";
 
 
 Goalw [ssplit_def]
-  "ssplit`spair`z=z";
+  "ssplit$spair$z=z";
 by (stac beta_cfun 1);
 by (Simp_tac 1);
 by (case_tac "z=UU" 1);

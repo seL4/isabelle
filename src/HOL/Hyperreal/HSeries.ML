@@ -8,14 +8,14 @@
 Goalw [sumhr_def]
      "sumhr(M,N,f) =  \
 \       Abs_hypreal(UN X:Rep_hypnat(M). UN Y: Rep_hypnat(N). \
-\         hyprel ```{%n::nat. sumr (X n) (Y n) f})";
+\         hyprel ``{%n::nat. sumr (X n) (Y n) f})";
 by (Auto_tac);
 qed "sumhr_iff";
 
 Goalw [sumhr_def]
-     "sumhr(Abs_hypnat(hypnatrel```{%n. M n}), \
-\           Abs_hypnat(hypnatrel```{%n. N n}), f) = \
-\     Abs_hypreal(hyprel ``` {%n. sumr (M n) (N n) f})";
+     "sumhr(Abs_hypnat(hypnatrel``{%n. M n}), \
+\           Abs_hypnat(hypnatrel``{%n. N n}), f) = \
+\     Abs_hypreal(hyprel `` {%n. sumr (M n) (N n) f})";
 by (res_inst_tac [("f","Abs_hypreal")] arg_cong 1);
 by (Auto_tac THEN Ultra_tac 1);
 qed "sumhr";
@@ -27,7 +27,7 @@ qed "sumhr";
 Goalw [sumhr_def]
       "sumhr p = (%(M,N,f). Abs_hypreal(UN X:Rep_hypnat(M). \
 \                     UN Y: Rep_hypnat(N). \
-\           hyprel ```{%n::nat. sumr (X n) (Y n) f})) p";
+\           hyprel ``{%n::nat. sumr (X n) (Y n) f})) p";
 by (res_inst_tac [("p","p")] PairE 1);
 by (res_inst_tac [("p","y")] PairE 1);
 by (Auto_tac);

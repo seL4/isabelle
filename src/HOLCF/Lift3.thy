@@ -29,9 +29,9 @@ defs
                    Undef => UU
                  | Def y => Def (f y)))"
  liftpair_def
-  "liftpair x  == (case (cfst`x) of 
+  "liftpair x  == (case (cfst$x) of 
                   Undef  => UU
-                | Def x1 => (case (csnd`x) of 
+                | Def x1 => (case (csnd$x) of 
                                Undef => UU
                              | Def x2 => Def (x1,x2)))"
 

@@ -51,7 +51,7 @@ constdefs
 
 
 defs
-  constrains_def "A co B == {F. ALL act: Acts F. act```A <= B}"
+  constrains_def "A co B == {F. ALL act: Acts F. act``A <= B}"
 
   unless_def     "A unless B == (A-B) co (A Un B)"
 

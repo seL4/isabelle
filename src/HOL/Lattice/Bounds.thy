@@ -100,11 +100,11 @@ theorem dual_sup [iff?]:
   by (simp add: is_inf_def is_sup_def dual_all [symmetric] dual_leq)
 
 theorem dual_Inf [iff?]:
-    "is_Inf (dual `` A) (dual sup) = is_Sup A sup"
+    "is_Inf (dual ` A) (dual sup) = is_Sup A sup"
   by (simp add: is_Inf_def is_Sup_def dual_all [symmetric] dual_leq)
 
 theorem dual_Sup [iff?]:
-    "is_Sup (dual `` A) (dual inf) = is_Inf A inf"
+    "is_Sup (dual ` A) (dual inf) = is_Inf A inf"
   by (simp add: is_Inf_def is_Sup_def dual_all [symmetric] dual_leq)
 
 
@@ -169,8 +169,8 @@ proof -
   assume sup: "is_Sup A sup" and sup': "is_Sup A sup'"
   have "dual sup = dual sup'"
   proof (rule is_Inf_uniq)
-    from sup show "is_Inf (dual `` A) (dual sup)" ..
-    from sup' show "is_Inf (dual `` A) (dual sup')" ..
+    from sup show "is_Inf (dual ` A) (dual sup)" ..
+    from sup' show "is_Inf (dual ` A) (dual sup')" ..
   qed
   thus "sup = sup'" ..
 qed
@@ -268,9 +268,9 @@ qed
 
 theorem is_Sup_binary: "is_Sup {x, y} sup = is_sup x y sup"
 proof -
-  have "is_Sup {x, y} sup = is_Inf (dual `` {x, y}) (dual sup)"
+  have "is_Sup {x, y} sup = is_Inf (dual ` {x, y}) (dual sup)"
     by (simp only: dual_Inf)
-  also have "dual `` {x, y} = {dual x, dual y}"
+  also have "dual ` {x, y} = {dual x, dual y}"
     by simp
   also have "is_Inf \<dots> (dual sup) = is_inf (dual x) (dual y) (dual sup)"
     by (rule is_Inf_binary)
@@ -312,12 +312,12 @@ qed
 theorem Sup_Inf: "is_Sup {b. \<forall>a \<in> A. b \<sqsubseteq> a} inf \<Longrightarrow> is_Inf A inf"
 proof -
   assume "is_Sup {b. \<forall>a \<in> A. b \<sqsubseteq> a} inf"
-  hence "is_Inf (dual `` {b. \<forall>a \<in> A. dual a \<sqsubseteq> dual b}) (dual inf)"
+  hence "is_Inf (dual ` {b. \<forall>a \<in> A. dual a \<sqsubseteq> dual b}) (dual inf)"
     by (simp only: dual_Inf dual_leq)
-  also have "dual `` {b. \<forall>a \<in> A. dual a \<sqsubseteq> dual b} = {b'. \<forall>a' \<in> dual `` A. a' \<sqsubseteq> b'}"
+  also have "dual ` {b. \<forall>a \<in> A. dual a \<sqsubseteq> dual b} = {b'. \<forall>a' \<in> dual ` A. a' \<sqsubseteq> b'}"
     by (auto iff: dual_ball dual_Collect)  (* FIXME !? *)
   finally have "is_Inf \<dots> (dual inf)" .
-  hence "is_Sup (dual `` A) (dual inf)"
+  hence "is_Sup (dual ` A) (dual inf)"
     by (rule Inf_Sup)
   thus ?thesis ..
 qed

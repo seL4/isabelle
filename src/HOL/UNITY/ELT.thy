@@ -44,7 +44,7 @@ constdefs
   
   (*the set of all sets determined by f alone*)
   givenBy :: "['a => 'b] => 'a set set"
-    "givenBy f == range (%B. f-`` B)"
+    "givenBy f == range (%B. f-` B)"
 
   (*visible version of the LEADS-TO relation*)
   leadsETo :: "['a set, 'a set set, 'a set] => 'a program set"
@@ -54,6 +54,6 @@ constdefs
   LeadsETo :: "['a set, 'a set set, 'a set] => 'a program set"
                                         ("(3_/ LeadsTo[_]/ _)" [80,0,80] 80)
     "LeadsETo A CC B ==
-      {F. F : (reachable F Int A) leadsTo[(%C. reachable F Int C) `` CC] B}"
+      {F. F : (reachable F Int A) leadsTo[(%C. reachable F Int C) ` CC] B}"
 
 end

@@ -94,18 +94,18 @@ Goalw [SReal_def] "(x: SReal) = (EX y. x = hypreal_of_real y)";
 by Auto_tac;
 qed "SReal_iff";
 
-Goalw [SReal_def] "hypreal_of_real ``(UNIV::real set) = SReal";
+Goalw [SReal_def] "hypreal_of_real `(UNIV::real set) = SReal";
 by Auto_tac;
 qed "hypreal_of_real_image";
 
-Goalw [SReal_def] "inv hypreal_of_real ``SReal = (UNIV::real set)";
+Goalw [SReal_def] "inv hypreal_of_real `SReal = (UNIV::real set)";
 by Auto_tac;
 by (rtac (inj_hypreal_of_real RS inv_f_f RS subst) 1);
 by (Blast_tac 1);
 qed "inv_hypreal_of_real_image";
 
 Goalw [SReal_def] 
-      "[| EX x. x: P; P <= SReal |] ==> EX Q. P = hypreal_of_real `` Q";
+      "[| EX x. x: P; P <= SReal |] ==> EX Q. P = hypreal_of_real ` Q";
 by (Best_tac 1); 
 qed "SReal_hypreal_of_real_image";
 
@@ -140,13 +140,13 @@ qed "SReal_sup_lemma2";
     lifting of ub and property of lub
  -------------------------------------------------------*)
 Goalw [isUb_def,setle_def] 
-      "(isUb (SReal) (hypreal_of_real `` Q) (hypreal_of_real Y)) = \
+      "(isUb (SReal) (hypreal_of_real ` Q) (hypreal_of_real Y)) = \
 \      (isUb (UNIV :: real set) Q Y)";
 by Auto_tac;
 qed "hypreal_of_real_isUb_iff";
 
 Goalw [isLub_def,leastP_def] 
-     "isLub SReal (hypreal_of_real `` Q) (hypreal_of_real Y) \
+     "isLub SReal (hypreal_of_real ` Q) (hypreal_of_real Y) \
 \     ==> isLub (UNIV :: real set) Q Y";
 by (auto_tac (claset() addIs [hypreal_of_real_isUb_iff RS iffD2],
               simpset() addsimps [hypreal_of_real_isUb_iff, setge_def]));
@@ -154,7 +154,7 @@ qed "hypreal_of_real_isLub1";
 
 Goalw [isLub_def,leastP_def] 
       "isLub (UNIV :: real set) Q Y \
-\      ==> isLub SReal (hypreal_of_real `` Q) (hypreal_of_real Y)";
+\      ==> isLub SReal (hypreal_of_real ` Q) (hypreal_of_real Y)";
 by (auto_tac (claset(),
               simpset() addsimps [hypreal_of_real_isUb_iff, setge_def]));
 by (forw_inst_tac [("x2","x")] (isUbD2a RS (SReal_iff RS iffD1) RS exE) 1);
@@ -163,7 +163,7 @@ by (dres_inst_tac [("x","xa")] spec 1);
 by (auto_tac (claset(), simpset() addsimps [hypreal_of_real_isUb_iff]));
 qed "hypreal_of_real_isLub2";
 
-Goal "(isLub SReal (hypreal_of_real `` Q) (hypreal_of_real Y)) = \
+Goal "(isLub SReal (hypreal_of_real ` Q) (hypreal_of_real Y)) = \
 \     (isLub (UNIV :: real set) Q Y)";
 by (blast_tac (claset() addIs [hypreal_of_real_isLub1,
                                hypreal_of_real_isLub2]) 1);
@@ -2059,7 +2059,7 @@ qed "FreeUltrafilterNat_omega";
        Omega is a member of HInfinite
  -----------------------------------------------*)
 
-Goal "hyprel```{%n::nat. real_of_nat (Suc n)} : hypreal";
+Goal "hyprel``{%n::nat. real_of_nat (Suc n)} : hypreal";
 by Auto_tac;
 qed "hypreal_omega";
 
@@ -2192,7 +2192,7 @@ qed "FreeUltrafilterNat_inverse_real_of_posnat";
     |X(n) - x| < 1/n ==> [<X n>] - hypreal_of_real x|: Infinitesimal 
  -----------------------------------------------------*)
 Goal "ALL n. abs(X n + -x) < inverse(real_of_nat(Suc n)) \ 
-\    ==> Abs_hypreal(hyprel```{X}) + -hypreal_of_real x : Infinitesimal";
+\    ==> Abs_hypreal(hyprel``{X}) + -hypreal_of_real x : Infinitesimal";
 by (auto_tac (claset() addSIs [bexI] 
            addDs [rename_numerals FreeUltrafilterNat_inverse_real_of_posnat,
                   FreeUltrafilterNat_all,FreeUltrafilterNat_Int] 
@@ -2203,21 +2203,21 @@ by (auto_tac (claset() addSIs [bexI]
 qed "real_seq_to_hypreal_Infinitesimal";
 
 Goal "ALL n. abs(X n + -x) < inverse(real_of_nat(Suc n)) \ 
-\     ==> Abs_hypreal(hyprel```{X}) @= hypreal_of_real x";
+\     ==> Abs_hypreal(hyprel``{X}) @= hypreal_of_real x";
 by (rtac (inf_close_minus_iff RS ssubst) 1);
 by (rtac (mem_infmal_iff RS subst) 1);
 by (etac real_seq_to_hypreal_Infinitesimal 1);
 qed "real_seq_to_hypreal_inf_close";
 
 Goal "ALL n. abs(x + -X n) < inverse(real_of_nat(Suc n)) \ 
-\              ==> Abs_hypreal(hyprel```{X}) @= hypreal_of_real x";
+\              ==> Abs_hypreal(hyprel``{X}) @= hypreal_of_real x";
 by (asm_full_simp_tac (simpset() addsimps [abs_minus_add_cancel,
         real_seq_to_hypreal_inf_close]) 1);
 qed "real_seq_to_hypreal_inf_close2";
 
 Goal "ALL n. abs(X n + -Y n) < inverse(real_of_nat(Suc n)) \ 
-\     ==> Abs_hypreal(hyprel```{X}) + \
-\         -Abs_hypreal(hyprel```{Y}) : Infinitesimal";
+\     ==> Abs_hypreal(hyprel``{X}) + \
+\         -Abs_hypreal(hyprel``{Y}) : Infinitesimal";
 by (auto_tac (claset() addSIs [bexI] 
                   addDs [rename_numerals 
                          FreeUltrafilterNat_inverse_real_of_posnat,

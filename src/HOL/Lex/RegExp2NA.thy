@@ -12,7 +12,7 @@ RegExp2NA = RegExp + NA +
 types 'a bitsNA = ('a,bool list)na
 
 syntax "##" :: 'a => 'a list set => 'a list set (infixr 65)
-translations "x ## S" == "Cons x `` S"
+translations "x ## S" == "Cons x ` S"
 
 constdefs
  atom  :: 'a => 'a bitsNA

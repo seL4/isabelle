@@ -15,7 +15,7 @@ Addsimps [givenBy_id];
 
 Goalw [givenBy_def] "(givenBy v) = {A. ALL x:A. ALL y. v x = v y --> y: A}";
 by Safe_tac;
-by (res_inst_tac [("x", "v `` ?u")] image_eqI 2);
+by (res_inst_tac [("x", "v ` ?u")] image_eqI 2);
 by Auto_tac;
 qed "givenBy_eq_all";
 
@@ -307,7 +307,7 @@ qed "e_psp2";
 (*??IS THIS NEEDED?? or is it just an example of what's provable??*)
 Goal "[| F: (A leadsTo[givenBy v] B);  G : preserves v;  \
 \        F Join G : stable C |] \
-\     ==> F Join G : ((C Int A) leadsTo[(%D. C Int D) `` givenBy v] B)";
+\     ==> F Join G : ((C Int A) leadsTo[(%D. C Int D) ` givenBy v] B)";
 by (etac leadsETo_induct 1);
 by (stac Int_Union 3);
 by (blast_tac (claset() addIs [leadsETo_UN]) 3);
@@ -368,7 +368,7 @@ qed "leadsETo_UNIV_eq_leadsTo";
 
 Goalw [LeadsETo_def]
      "A LeadsTo[CC] B = \
-\       {F. F : (reachable F Int A) leadsTo[(%C. reachable F Int C) `` CC] \
+\       {F. F : (reachable F Int A) leadsTo[(%C. reachable F Int C) ` CC] \
 \       (reachable F Int B)}";
 by (blast_tac (claset() addDs [e_psp_stable2] addIs [leadsETo_weaken]) 1);
 qed "LeadsETo_eq_leadsETo";
@@ -467,7 +467,7 @@ Open_locale "Extend";
 
 (*givenBy laws that need to be in the locale*)
 
-Goal "givenBy (v o f) = extend_set h `` (givenBy v)";
+Goal "givenBy (v o f) = extend_set h ` (givenBy v)";
 by (simp_tac (simpset() addsimps [givenBy_eq_Collect]) 1);
 by (Deepen_tac 0 1);
 qed "givenBy_o_eq_extend_set";
@@ -483,7 +483,7 @@ by (Blast_tac 1);
 qed "extend_set_givenBy_I";
 
 Goal "F : A leadsTo[CC] B \
-\     ==> extend h F : (extend_set h A) leadsTo[extend_set h `` CC] \
+\     ==> extend h F : (extend_set h A) leadsTo[extend_set h ` CC] \
 \                      (extend_set h B)";
 by (etac leadsETo_induct 1);
 by (asm_simp_tac (simpset() addsimps [leadsETo_UN, extend_set_Union]) 3);
@@ -531,11 +531,11 @@ by (blast_tac (claset() addSIs [stable_Int, preserves_givenBy_imp_stable,
 qed "preserves_o_project_transient_empty";
 
 Goal "[| extend h F Join G : stable C;  \
-\        F Join project h C G : (project_set h C Int A) leadsTo[(%D. project_set h C Int D)``givenBy v] B;  \
+\        F Join project h C G : (project_set h C Int A) leadsTo[(%D. project_set h C Int D)`givenBy v] B;  \
 \        G : preserves (v o f) |] \
 \     ==> extend h F Join G : \
 \           (C Int extend_set h (project_set h C Int A)) \
-\           leadsTo[(%D. C Int extend_set h D)``givenBy v]  (extend_set h B)";
+\           leadsTo[(%D. C Int extend_set h D)`givenBy v]  (extend_set h B)";
 by (etac leadsETo_induct 1);
 by (asm_simp_tac (simpset() delsimps UN_simps
 		  addsimps [Int_UN_distrib, leadsETo_UN, extend_set_Union]) 3);
@@ -560,10 +560,10 @@ val lemma = result();
 Goal "[| extend h F Join G : stable C;  \
 \        F Join project h C G : \
 \            (project_set h C Int A) \
-\            leadsTo[(%D. project_set h C Int D)``givenBy v] B;  \
+\            leadsTo[(%D. project_set h C Int D)`givenBy v] B;  \
 \        G : preserves (v o f) |] \
 \     ==> extend h F Join G : (C Int extend_set h A) \
-\           leadsTo[(%D. C Int extend_set h D)``givenBy v] (extend_set h B)";
+\           leadsTo[(%D. C Int extend_set h D)`givenBy v] (extend_set h B)";
 by (rtac (lemma RS leadsETo_weaken) 1);
 by (auto_tac (claset(), 
 	      simpset() addsimps [split_extended_all]));
@@ -630,7 +630,7 @@ val lemma = result();
 
 Goal "[| extend h F Join G : stable C;  \
 \        extend h F Join G : \
-\          (C Int A) leadsTo[(%D. C Int D)``givenBy f]  B |]  \
+\          (C Int A) leadsTo[(%D. C Int D)`givenBy f]  B |]  \
 \ ==> F Join project h C G  \
 \   : (project_set h C Int project_set h (C Int A)) leadsTo (project_set h B)";
 by (etac leadsETo_induct 1);

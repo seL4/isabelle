@@ -20,20 +20,20 @@ instance
 constdefs
 
   prat_of_pnat :: pnat => prat           
-  "prat_of_pnat m == Abs_prat(ratrel```{(m,Abs_pnat 1)})"
+  "prat_of_pnat m == Abs_prat(ratrel``{(m,Abs_pnat 1)})"
 
   qinv      :: prat => prat
-  "qinv(Q)  == Abs_prat(UN (x,y):Rep_prat(Q). ratrel```{(y,x)})" 
+  "qinv(Q)  == Abs_prat(UN (x,y):Rep_prat(Q). ratrel``{(y,x)})" 
 
 defs
 
   prat_add_def  
   "P + Q == Abs_prat(UN (x1,y1):Rep_prat(P). UN (x2,y2):Rep_prat(Q).
-		     ratrel```{(x1*y2 + x2*y1, y1*y2)})"
+		     ratrel``{(x1*y2 + x2*y1, y1*y2)})"
 
   prat_mult_def  
   "P * Q == Abs_prat(UN (x1,y1):Rep_prat(P). UN (x2,y2):Rep_prat(Q).
-		     ratrel```{(x1*x2, y1*y2)})"
+		     ratrel``{(x1*x2, y1*y2)})"
  
   (*** Gleason p. 119 ***)
   prat_less_def

@@ -39,7 +39,7 @@ qed "in_steps_append";
 AddIffs [in_steps_append];
 
 (* Equivalence of steps and delta
-(* Use "(? x : f `` A. P x) = (? a:A. P(f x))" ?? *)
+(* Use "(? x : f ` A. P x) = (? a:A. P(f x))" ?? *)
 Goal "!p. (p,q) : steps A w = (q : delta A w p)";
 by (induct_tac "w" 1);
  by (Simp_tac 1);

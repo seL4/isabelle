@@ -13,7 +13,7 @@ types ('a,'s)na = "'s * ('a => 's => 's set) * ('s => bool)"
 consts delta :: "('a,'s)na => 'a list => 's => 's set"
 primrec
 "delta A []    p = {p}"
-"delta A (a#w) p = Union(delta A w `` next A a p)"
+"delta A (a#w) p = Union(delta A w ` next A a p)"
 
 constdefs
  accepts ::   ('a,'s)na => 'a list => bool

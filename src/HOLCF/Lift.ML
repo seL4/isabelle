@@ -81,25 +81,25 @@ simpset_ref() := simpset() addSolver
 (* ---------------------------------------------------------- *)
 
 
-Goal "flift1 f`(Def x) = (f x)";
+Goal "flift1 f$(Def x) = (f x)";
 by (simp_tac (simpset() addsimps [flift1_def]) 1);
 qed"flift1_Def";
 
-Goal "flift2 f`(Def x) = Def (f x)";
+Goal "flift2 f$(Def x) = Def (f x)";
 by (simp_tac (simpset() addsimps [flift2_def]) 1);
 qed"flift2_Def";
 
-Goal "flift1 f`UU = UU";
+Goal "flift1 f$UU = UU";
 by (simp_tac (simpset() addsimps [flift1_def]) 1);
 qed"flift1_UU";
 
-Goal "flift2 f`UU = UU";
+Goal "flift2 f$UU = UU";
 by (simp_tac (simpset() addsimps [flift2_def]) 1);
 qed"flift2_UU";
 
 Addsimps [flift1_Def,flift2_Def,flift1_UU,flift2_UU];
 
-Goal "x~=UU ==> (flift2 f)`x~=UU";
+Goal "x~=UU ==> (flift2 f)$x~=UU";
 by (def_tac 1);
 qed"flift2_nUU";
 

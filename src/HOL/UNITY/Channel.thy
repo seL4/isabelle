@@ -21,10 +21,10 @@ constdefs
 
 rules
 
-  UC1  "F : (minSet -`` {Some x}) co (minSet -`` (Some``atLeast x))"
+  UC1  "F : (minSet -` {Some x}) co (minSet -` (Some`atLeast x))"
 
   (*  UC1  "F : {s. minSet s = x} co {s. x <= minSet s}"  *)
 
-  UC2  "F : (minSet -`` {Some x}) leadsTo {s. x ~: s}"
+  UC2  "F : (minSet -` {Some x}) leadsTo {s. x ~: s}"
 
 end

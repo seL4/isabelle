@@ -20,7 +20,7 @@ Previous definition of llistD_Fun was explicit:
   llistD_Fun_def
    "llistD_Fun(r) ==    
        {(LNil,LNil)}  Un        
-       (UN x. (split(%l1 l2.(LCons(x,l1),LCons(x,l2))))``r)"
+       (UN x. (split(%l1 l2.(LCons(x,l1),LCons(x,l2))))`r)"
 *)
 
 LList = Main + SList +
@@ -87,9 +87,9 @@ constdefs
 
   llistD_Fun :: "('a llist * 'a llist)set => ('a llist * 'a llist)set"
     "llistD_Fun(r) ==    
-        prod_fun Abs_LList Abs_LList ``         
+        prod_fun Abs_LList Abs_LList `         
                 LListD_Fun (diag(range Leaf))   
-                            (prod_fun Rep_LList Rep_LList `` r)"
+                            (prod_fun Rep_LList Rep_LList ` r)"
 
 
 

@@ -22,6 +22,6 @@ sinr_def        "sinr   == (LAM x. Isinr(x))"
 sscase_def      "sscase   == (LAM f g s. Iwhen(f)(g)(s))"
 
 translations
-"case s of sinl`x => t1 | sinr`y => t2" == "sscase`(LAM x. t1)`(LAM y. t2)`s"
+"case s of sinl$x => t1 | sinr$y => t2" == "sscase$(LAM x. t1)$(LAM y. t2)$s"
 
 end

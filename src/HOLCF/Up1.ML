@@ -64,7 +64,7 @@ by (rtac refl 1);
 qed "Ifup1";
 
 Goalw [Ifup_def,Iup_def]
-        "Ifup(f)(Iup(x))=f`x";
+        "Ifup(f)(Iup(x))=f$x";
 by (stac Abs_Up_inverse2 1);
 by (stac sum_case_Inr 1);
 by (rtac refl 1);

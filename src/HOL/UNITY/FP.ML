@@ -49,11 +49,11 @@ by (simp_tac (simpset() addsimps [FP_equivalence, prem RS FP_Orig_weakest]) 1);
 qed "FP_weakest";
 
 Goalw [FP_def, stable_def, constrains_def]
-    "-(FP F) = (UN act: Acts F. -{s. act```{s} <= {s}})";
+    "-(FP F) = (UN act: Acts F. -{s. act``{s} <= {s}})";
 by (Blast_tac 1);
 qed "Compl_FP";
 
-Goal "A - (FP F) = (UN act: Acts F. A - {s. act```{s} <= {s}})";
+Goal "A - (FP F) = (UN act: Acts F. A - {s. act``{s} <= {s}})";
 by (simp_tac (simpset() addsimps [Diff_eq, Compl_FP]) 1);
 qed "Diff_FP";
 

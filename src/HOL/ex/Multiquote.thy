@@ -13,7 +13,7 @@ theory Multiquote = Main:
 
 syntax
   "_quote" :: "'b => ('a => 'b)"	     (".'(_')." [0] 1000)
-  "_antiquote" :: "('a => 'b) => 'b"         ("`_" [1000] 1000)
+  "_antiquote" :: "('a => 'b) => 'b"         ("´_" [1000] 1000)
 
 parse_translation {*
   let
@@ -35,14 +35,14 @@ parse_translation {*
 
 text {* basic examples *}
 term ".(a + b + c)."
-term ".(a + b + c + `x + `y + 1)."
-term ".(`(f w) + `x)."
-term ".(f `x `y z)."
+term ".(a + b + c + ´x + ´y + 1)."
+term ".(´(f w) + ´x)."
+term ".(f ´x ´y z)."
 
 text {* advanced examples *}
-term ".(.(` `x + `y).)."
-term ".(.(` `x + `y). o `f)."
-term ".(`(f o `g))."
-term ".(.( ` `(f o `g) ).)."
+term ".(.(´ ´x + ´y).)."
+term ".(.(´ ´x + ´y). o ´f)."
+term ".(´(f o ´g))."
+term ".(.( ´ ´(f o ´g) ).)."
 
 end

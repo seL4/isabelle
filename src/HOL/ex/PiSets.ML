@@ -38,7 +38,7 @@ qed "inj_PiBij";
 
 
 
-Goal "PiBij A B `` (Pi A B) = Graph A B";
+Goal "PiBij A B ` (Pi A B) = Graph A B";
 by (rtac equalityI 1);
 by (force_tac (claset(), simpset() addsimps [image_def,PiBij_in_Graph]) 1);
 by (rtac subsetI 1);

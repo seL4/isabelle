@@ -33,12 +33,12 @@ by (ALLGOALS (blast_tac (claset() addIs prems)));
 val lemma_induct = result();
 
 Goalw [inj_on_def] 
-      "[| A <= B; a ~: A ; a : B; inj_on f B |] ==> (f a) ~: f``A";
+      "[| A <= B; a ~: A ; a : B; inj_on f B |] ==> (f a) ~: f`A";
 by Auto_tac;
 val lemma = result();
 
 Goal "[| ALL a. a:A --> P a (f a); inj_on f A; finite A; F <= A |] \
-\    ==> (F,f``F) : bijR P";
+\    ==> (F,f`F) : bijR P";
 by (res_inst_tac [("F","F"),("A","A")] lemma_induct 1);
 by (rtac finite_subset 1);
 by Auto_tac;
@@ -48,7 +48,7 @@ by Auto_tac;
 val lemma = result();
 
 Goal "[| ALL a. a:A --> P a (f a); inj_on f A; finite A |] \
-\    ==> (A,f``A) : bijR P";
+\    ==> (A,f`A) : bijR P";
 by (rtac lemma 1);
 by Auto_tac;
 qed "inj_func_bijR";

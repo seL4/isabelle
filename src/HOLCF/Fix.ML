@@ -10,7 +10,7 @@ fixed point operator and admissibility
 (* derive inductive properties of iterate from primitive recursion          *)
 (* ------------------------------------------------------------------------ *)
 
-Goal "iterate (Suc n) F x = iterate n F (F`x)";
+Goal "iterate (Suc n) F x = iterate n F (F$x)";
 by (induct_tac "n" 1);
 by Auto_tac;  
 qed "iterate_Suc2";
@@ -20,7 +20,7 @@ qed "iterate_Suc2";
 (* This property is essential since monotonicity of iterate makes no sense  *)
 (* ------------------------------------------------------------------------ *)
 
-Goalw [chain]  "x << F`x ==> chain (%i. iterate i F x)";
+Goalw [chain]  "x << F$x ==> chain (%i. iterate i F x)";
 by (strip_tac 1);
 by (induct_tac "i" 1);
 by Auto_tac;  
@@ -40,7 +40,7 @@ qed "chain_iterate";
 (* ------------------------------------------------------------------------ *)
 
 
-Goalw [Ifix_def] "Ifix F =F`(Ifix F)";
+Goalw [Ifix_def] "Ifix F =F$(Ifix F)";
 by (stac contlub_cfun_arg 1);
 by (rtac chain_iterate 1);
 by (rtac antisym_less 1);
@@ -61,7 +61,7 @@ by (rtac chain_iterate 1);
 qed "Ifix_eq";
 
 
-Goalw [Ifix_def] "F`x=x ==> Ifix(F) << x";
+Goalw [Ifix_def] "F$x=x ==> Ifix(F) << x";
 by (rtac is_lub_thelub 1);
 by (rtac chain_iterate 1);
 by (rtac ub_rangeI 1);
@@ -250,19 +250,19 @@ qed "cont_Ifix";
 (* propagate properties of Ifix to its continuous counterpart               *)
 (* ------------------------------------------------------------------------ *)
 
-Goalw [fix_def] "fix`F = F`(fix`F)";
+Goalw [fix_def] "fix$F = F$(fix$F)";
 by (asm_simp_tac (simpset() addsimps [cont_Ifix]) 1);
 by (rtac Ifix_eq 1);
 qed "fix_eq";
 
-Goalw [fix_def] "F`x = x ==> fix`F << x";
+Goalw [fix_def] "F$x = x ==> fix$F << x";
 by (asm_simp_tac (simpset() addsimps [cont_Ifix]) 1);
 by (etac Ifix_least 1);
 qed "fix_least";
 
 
 Goal
-"[| F`x = x; !z. F`z = z --> x << z |] ==> x = fix`F";
+"[| F$x = x; !z. F$z = z --> x << z |] ==> x = fix$F";
 by (rtac antisym_less 1);
 by (etac allE 1);
 by (etac mp 1);
@@ -271,22 +271,22 @@ by (etac fix_least 1);
 qed "fix_eqI";
 
 
-Goal "f == fix`F ==> f = F`f";
+Goal "f == fix$F ==> f = F$f";
 by (asm_simp_tac (simpset() addsimps [fix_eq RS sym]) 1);
 qed "fix_eq2";
 
-Goal "f == fix`F ==> f`x = F`f`x";
+Goal "f == fix$F ==> f$x = F$f$x";
 by (etac (fix_eq2 RS cfun_fun_cong) 1);
 qed "fix_eq3";
 
 fun fix_tac3 thm i  = ((rtac trans i) THEN (rtac (thm RS fix_eq3) i)); 
 
-Goal "f = fix`F ==> f = F`f";
+Goal "f = fix$F ==> f = F$f";
 by (hyp_subst_tac 1);
 by (rtac fix_eq 1);
 qed "fix_eq4";
 
-Goal "f = fix`F ==> f`x = F`f`x";
+Goal "f = fix$F ==> f$x = F$f$x";
 by (rtac trans 1);
 by (etac (fix_eq4 RS cfun_fun_cong) 1);
 by (rtac refl 1);
@@ -294,7 +294,7 @@ qed "fix_eq5";
 
 fun fix_tac5 thm i  = ((rtac trans i) THEN (rtac (thm RS fix_eq5) i)); 
 
-(* proves the unfolding theorem for function equations f = fix`... *)
+(* proves the unfolding theorem for function equations f = fix$... *)
 fun fix_prover thy fixeq s = prove_goal thy s (fn prems => [
         (rtac trans 1),
         (rtac (fixeq RS fix_eq4) 1),
@@ -303,7 +303,7 @@ fun fix_prover thy fixeq s = prove_goal thy s (fn prems => [
         (Simp_tac 1)
         ]);
 
-(* proves the unfolding theorem for function definitions f == fix`... *)
+(* proves the unfolding theorem for function definitions f == fix$... *)
 fun fix_prover2 thy fixdef s = prove_goal thy s (fn prems => [
         (rtac trans 1),
         (rtac (fix_eq2) 1),
@@ -335,7 +335,7 @@ qed "Ifix_def2";
 (* direct connection between fix and iteration without Ifix                 *)
 (* ------------------------------------------------------------------------ *)
 
-Goalw [fix_def] "fix`F = lub(range(%i. iterate i F UU))";
+Goalw [fix_def] "fix$F = lub(range(%i. iterate i F UU))";
 by (fold_goals_tac [Ifix_def]);
 by (asm_simp_tac (simpset() addsimps [cont_Ifix]) 1);
 qed "fix_def2";
@@ -379,7 +379,7 @@ qed "adm_impl_admw";
 (* ------------------------------------------------------------------------ *)
 
 val major::prems = Goal
-     "[| adm(P); P(UU); !!x. P(x) ==> P(F`x)|] ==> P(fix`F)";
+     "[| adm(P); P(UU); !!x. P(x) ==> P(F$x)|] ==> P(fix$F)";
 by (stac fix_def2 1);
 by (rtac (major RS admD) 1);
 by (rtac chain_iterate 1);
@@ -389,8 +389,8 @@ by (asm_simp_tac (simpset() addsimps (iterate_0::prems)) 1);
 by (asm_simp_tac (simpset() addsimps (iterate_Suc::prems)) 1);
 qed "fix_ind";
 
-val prems = Goal "[| f == fix`F; adm(P); \
-\       P(UU); !!x. P(x) ==> P(F`x)|] ==> P f";
+val prems = Goal "[| f == fix$F; adm(P); \
+\       P(UU); !!x. P(x) ==> P(F$x)|] ==> P f";
 by (cut_facts_tac prems 1);
 by (asm_simp_tac HOL_ss 1);
 by (etac fix_ind 1);
@@ -402,7 +402,7 @@ qed "def_fix_ind";
 (* computational induction for weak admissible formulae                     *)
 (* ------------------------------------------------------------------------ *)
 
-Goal "[| admw(P); !n. P(iterate n F UU)|] ==> P(fix`F)";
+Goal "[| admw(P); !n. P(iterate n F UU)|] ==> P(fix$F)";
 by (stac fix_def2 1);
 by (rtac (admw_def2 RS iffD1 RS spec RS mp) 1);
 by (atac 1);
@@ -410,7 +410,7 @@ by (rtac allI 1);
 by (etac spec 1);
 qed "wfix_ind";
 
-Goal "[| f == fix`F; admw(P); \
+Goal "[| f == fix$F; admw(P); \
 \       !n. P(iterate n F UU) |] ==> P f";
 by (asm_simp_tac HOL_ss 1);
 by (etac wfix_ind 1);
@@ -440,7 +440,7 @@ bind_thm ("adm_chfin" ,chfin RS adm_max_in_chain);
 (* some lemmata for functions with flat/chfin domain/range types	    *)
 (* ------------------------------------------------------------------------ *)
 
-val _ = goalw thy [adm_def] "adm (%(u::'a::cpo->'b::chfin). P(u`s))";
+val _ = goalw thy [adm_def] "adm (%(u::'a::cpo->'b::chfin). P(u$s))";
 by (strip_tac 1);
 by (dtac chfin_Rep_CFunR 1);
 by (eres_inst_tac [("x","s")] allE 1);

@@ -17,7 +17,7 @@ typedef (CFun)  ('a, 'b) "->" (infixr 0) = "{f::'a => 'b. cont f}" (CfunI)
 instance "->"  :: (cpo,cpo)sq_ord
 
 syntax
-	Rep_CFun  :: "('a -> 'b)=>('a => 'b)" ("_`_" [999,1000] 999)
+	Rep_CFun  :: "('a -> 'b)=>('a => 'b)" ("_$_" [999,1000] 999)
                                                 (* application      *)
         Abs_CFun  :: "('a => 'b)=>('a -> 'b)"     (binder "LAM " 10)
                                                 (* abstraction      *)

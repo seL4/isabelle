@@ -9,7 +9,7 @@ RealInt = RealOrd +
 
 constdefs 
    real_of_int :: int => real
-   "real_of_int z == Abs_real(UN (i,j): Rep_Integ z. realrel ```
+   "real_of_int z == Abs_real(UN (i,j): Rep_Integ z. realrel ``
                      {(preal_of_prat(prat_of_pnat(pnat_of_nat i)),
                        preal_of_prat(prat_of_pnat(pnat_of_nat j)))})"
 

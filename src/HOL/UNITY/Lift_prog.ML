@@ -214,14 +214,14 @@ qed "lift_LeadsTo";
 (** guarantees **)
 
 Goalw [lift_def]
-     "(lift i F : (lift i `` X) guarantees (lift i `` Y)) = \
+     "(lift i F : (lift i ` X) guarantees (lift i ` Y)) = \
 \     (F : X guarantees Y)";
 by (stac (bij_lift_map RS rename_rename_guarantees_eq RS sym) 1);
 by (asm_simp_tac (simpset() addsimps [o_def]) 1);
 qed "lift_lift_guarantees_eq";
 
 Goal "(lift i F : X guarantees Y) = \
-\     (F : (rename (drop_map i) `` X) guarantees (rename (drop_map i) `` Y))";
+\     (F : (rename (drop_map i) ` X) guarantees (rename (drop_map i) ` Y))";
 by (asm_simp_tac 
     (simpset() addsimps [bij_lift_map RS rename_guarantees_eq_rename_inv,
 			 lift_def]) 1);
@@ -255,11 +255,11 @@ qed "delete_map_neq_apply";
 
 (*A set of the form (A <*> UNIV) ignores the second (dummy) state component*)
 
-Goal "(f o fst) -`` A = (f-``A) <*> UNIV";
+Goal "(f o fst) -` A = (f-`A) <*> UNIV";
 by Auto_tac;
 qed "vimage_o_fst_eq";
 
-Goal "(sub i -``A) <*> UNIV = lift_set i (A <*> UNIV)";
+Goal "(sub i -`A) <*> UNIV = lift_set i (A <*> UNIV)";
 by Auto_tac;
 qed "vimage_sub_eq_lift_set";
 
@@ -356,7 +356,7 @@ by Auto_tac;
 qed "lift_transient_eq_disj";
 
 (*USELESS??*)
-Goal "lift_map i `` (A <*> UNIV) = \
+Goal "lift_map i ` (A <*> UNIV) = \
 \     (UN s:A. UN f. {insert_map i s f}) <*> UNIV";
 by (auto_tac (claset() addSIs [bexI, image_eqI],
               simpset() addsimps [lift_map_def]));
@@ -475,12 +475,12 @@ by (asm_full_simp_tac
                          UNION_OK_lift_I]) 1); 
 qed "OK_lift_I";
 
-Goal "Allowed (lift i F) = lift i `` (Allowed F)";
+Goal "Allowed (lift i F) = lift i ` (Allowed F)";
 by (simp_tac (simpset() addsimps [lift_def, Allowed_rename]) 1); 
 qed "Allowed_lift"; 
 Addsimps [Allowed_lift];
 
-Goal "lift i `` preserves v = preserves (v o drop_map i)";
+Goal "lift i ` preserves v = preserves (v o drop_map i)";
 by (simp_tac (simpset() addsimps [rename_image_preserves, lift_def, 
                                   inv_lift_map_eq]) 1); 
 qed "lift_image_preserves";

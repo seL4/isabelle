@@ -436,7 +436,7 @@ val int_arith_setup =
     simpset = simpset addsimps add_rules
                       addsimprocs simprocs
                       addcongs [if_weak_cong]}),
-  arith_inj_const ("IntDef.int", HOLogic.natT --> Type("IntDef.int",[])),
+  arith_inj_const ("IntDef.int", HOLogic.natT --> HOLogic.intT),
   arith_discrete ("IntDef.int", true)];
 
 end;

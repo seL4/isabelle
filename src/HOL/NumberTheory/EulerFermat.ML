@@ -121,7 +121,7 @@ by (rtac RsetR.induct 1);
 by Auto_tac;
 qed_spec_mp "RRset_gcd";
 
-Goal "[| A : RsetR m;  #0<m; zgcd(x, m) = #1 |] ==> (%a. a*x)``A : RsetR m";
+Goal "[| A : RsetR m;  #0<m; zgcd(x, m) = #1 |] ==> (%a. a*x)`A : RsetR m";
 by (etac RsetR.induct 1);
 by (ALLGOALS Simp_tac);
 by (rtac RsetR.insert 1);
@@ -196,7 +196,7 @@ by (res_inst_tac [("b","b")] zcong_trans 1);
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [zcong_sym])));
 qed "RRset2norRR_inj";
 
-Goal "[| #1<m; is_RRset A m |] ==> (RRset2norRR A m)``A = (norRRset m)";
+Goal "[| #1<m; is_RRset A m |] ==> (RRset2norRR A m)`A = (norRRset m)";
 by (rtac card_seteq 1);
 by (stac card_image 3);
 by (rtac RRset2norRR_inj 4);
@@ -207,11 +207,11 @@ by (rewrite_goals_tac [is_RRset_def,phi_def,norRRset_def]);
 by (auto_tac (claset(),simpset() addsimps [RsetR_fin,Bnor_fin]));
 qed "RRset2norRR_eq_norR";
 
-Goalw [inj_on_def] "[| a ~: A ; inj f |] ==> (f a) ~: f``A";
+Goalw [inj_on_def] "[| a ~: A ; inj f |] ==> (f a) ~: f`A";
 by Auto_tac;
 val lemma = result();
 
-Goal "x~=#0 ==> a<m --> setprod ((%a. a*x) `` BnorRset(a,m)) = \
+Goal "x~=#0 ==> a<m --> setprod ((%a. a*x) ` BnorRset(a,m)) = \
 \     setprod (BnorRset(a,m)) * x^card(BnorRset(a,m))";
 by (induct_thm_tac BnorRset_induct "a m" 1);
 by (stac BnorRset_eq 2);

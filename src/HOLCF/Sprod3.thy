@@ -21,12 +21,12 @@ syntax
 
 translations
         "(:x, y, z:)"   == "(:x, (:y, z:):)"
-        "(:x, y:)"      == "spair`x`y"
+        "(:x, y:)"      == "spair$x$y"
 
 defs
 spair_def       "spair  == (LAM x y. Ispair x y)"
 sfst_def        "sfst   == (LAM p. Isfst p)"
 ssnd_def        "ssnd   == (LAM p. Issnd p)"     
-ssplit_def      "ssplit == (LAM f. strictify`(LAM p. f`(sfst`p)`(ssnd`p)))"
+ssplit_def      "ssplit == (LAM f. strictify$(LAM p. f$(sfst$p)$(ssnd$p)))"
 
 end

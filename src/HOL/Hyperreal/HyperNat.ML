@@ -65,7 +65,7 @@ qed "equiv_hypnatrel";
 val equiv_hypnatrel_iff =
     [UNIV_I, UNIV_I] MRS (equiv_hypnatrel RS eq_equiv_class_iff);
 
-Goalw  [hypnat_def,hypnatrel_def,quotient_def] "hypnatrel```{x}:hypnat";
+Goalw  [hypnat_def,hypnatrel_def,quotient_def] "hypnatrel``{x}:hypnat";
 by (Blast_tac 1);
 qed "hypnatrel_in_hypnat";
 
@@ -85,7 +85,7 @@ by (rtac inj_inverseI 1);
 by (rtac Rep_hypnat_inverse 1);
 qed "inj_Rep_hypnat";
 
-Goalw [hypnatrel_def] "x: hypnatrel ``` {x}";
+Goalw [hypnatrel_def] "x: hypnatrel `` {x}";
 by (Step_tac 1);
 by Auto_tac;
 qed "lemma_hypnatrel_refl";
@@ -121,7 +121,7 @@ by Auto_tac;
 qed "inj_hypnat_of_nat";
 
 val [prem] = Goal
-    "(!!x. z = Abs_hypnat(hypnatrel```{x}) ==> P) ==> P";
+    "(!!x. z = Abs_hypnat(hypnatrel``{x}) ==> P) ==> P";
 by (res_inst_tac [("x1","z")] 
     (rewrite_rule [hypnat_def] Rep_hypnat RS quotientE) 1);
 by (dres_inst_tac [("f","Abs_hypnat")] arg_cong 1);
@@ -133,14 +133,14 @@ qed "eq_Abs_hypnat";
    Addition for hyper naturals: hypnat_add 
  -----------------------------------------------------------*)
 Goalw [congruent2_def]
-     "congruent2 hypnatrel (%X Y. hypnatrel```{%n. X n + Y n})";
+     "congruent2 hypnatrel (%X Y. hypnatrel``{%n. X n + Y n})";
 by Safe_tac;
 by (ALLGOALS(Fuf_tac));
 qed "hypnat_add_congruent2";
 
 Goalw [hypnat_add_def]
-  "Abs_hypnat(hypnatrel```{%n. X n}) + Abs_hypnat(hypnatrel```{%n. Y n}) = \
-\  Abs_hypnat(hypnatrel```{%n. X n + Y n})";
+  "Abs_hypnat(hypnatrel``{%n. X n}) + Abs_hypnat(hypnatrel``{%n. Y n}) = \
+\  Abs_hypnat(hypnatrel``{%n. X n + Y n})";
 by (asm_simp_tac
     (simpset() addsimps [[equiv_hypnatrel, hypnat_add_congruent2] 
      MRS UN_equiv_class2]) 1);
@@ -186,14 +186,14 @@ Addsimps [hypnat_add_zero_left,hypnat_add_zero_right];
    Subtraction for hyper naturals: hypnat_minus
  -----------------------------------------------------------*)
 Goalw [congruent2_def]
-    "congruent2 hypnatrel (%X Y. hypnatrel```{%n. X n - Y n})";
+    "congruent2 hypnatrel (%X Y. hypnatrel``{%n. X n - Y n})";
 by Safe_tac;
 by (ALLGOALS(Fuf_tac));
 qed "hypnat_minus_congruent2";
  
 Goalw [hypnat_minus_def]
-  "Abs_hypnat(hypnatrel```{%n. X n}) - Abs_hypnat(hypnatrel```{%n. Y n}) = \
-\  Abs_hypnat(hypnatrel```{%n. X n - Y n})";
+  "Abs_hypnat(hypnatrel``{%n. X n}) - Abs_hypnat(hypnatrel``{%n. Y n}) = \
+\  Abs_hypnat(hypnatrel``{%n. X n - Y n})";
 by (asm_simp_tac
     (simpset() addsimps [[equiv_hypnatrel, hypnat_minus_congruent2] 
      MRS UN_equiv_class2]) 1);
@@ -273,14 +273,14 @@ Addsimps [hypnat_diff_add_0];
    Multiplication for hyper naturals: hypnat_mult
  -----------------------------------------------------------*)
 Goalw [congruent2_def]
-    "congruent2 hypnatrel (%X Y. hypnatrel```{%n. X n * Y n})";
+    "congruent2 hypnatrel (%X Y. hypnatrel``{%n. X n * Y n})";
 by Safe_tac;
 by (ALLGOALS(Fuf_tac));
 qed "hypnat_mult_congruent2";
 
 Goalw [hypnat_mult_def]
-  "Abs_hypnat(hypnatrel```{%n. X n}) * Abs_hypnat(hypnatrel```{%n. Y n}) = \
-\  Abs_hypnat(hypnatrel```{%n. X n * Y n})";
+  "Abs_hypnat(hypnatrel``{%n. X n}) * Abs_hypnat(hypnatrel``{%n. Y n}) = \
+\  Abs_hypnat(hypnatrel``{%n. X n * Y n})";
 by (asm_simp_tac
     (simpset() addsimps [[equiv_hypnatrel,hypnat_mult_congruent2] MRS
      UN_equiv_class2]) 1);
@@ -475,8 +475,8 @@ qed "hypnat_less_asym";
 (* See comments in HYPER for corresponding thm *)
 
 Goalw [hypnat_less_def]
-      "(Abs_hypnat(hypnatrel```{%n. X n}) < \
-\           Abs_hypnat(hypnatrel```{%n. Y n})) = \
+      "(Abs_hypnat(hypnatrel``{%n. X n}) < \
+\           Abs_hypnat(hypnatrel``{%n. Y n})) = \
 \      ({n. X n < Y n} : FreeUltrafilterNat)";
 by (auto_tac (claset() addSIs [lemma_hypnatrel_refl],simpset()));
 by (Fuf_tac 1);
@@ -527,7 +527,7 @@ qed "hypnat_mult_order";
 (*---------------------------------------------------------------------------------
                    Trichotomy of the hyper naturals
   --------------------------------------------------------------------------------*)
-Goalw [hypnatrel_def] "EX x. x: hypnatrel ``` {%n. 0}";
+Goalw [hypnatrel_def] "EX x. x: hypnatrel `` {%n. 0}";
 by (res_inst_tac [("x","%n. 0")] exI 1);
 by (Step_tac 1);
 by Auto_tac;
@@ -620,8 +620,8 @@ qed "hypnat_less_le";
 
 (*------ hypnat le iff nat le a.e ------*)
 Goalw [hypnat_le_def,le_def]
-      "(Abs_hypnat(hypnatrel```{%n. X n}) <= \
-\           Abs_hypnat(hypnatrel```{%n. Y n})) = \
+      "(Abs_hypnat(hypnatrel``{%n. X n}) <= \
+\           Abs_hypnat(hypnatrel``{%n. Y n})) = \
 \      ({n. X n <= Y n} : FreeUltrafilterNat)";
 by (auto_tac (claset() addSDs [FreeUltrafilterNat_Compl_mem],
     simpset() addsimps [hypnat_less]));
@@ -833,7 +833,7 @@ qed "hypnat_of_nat_Suc";
               Existence of infinite hypernatural number
  ---------------------------------------------------------------------------------*)
 
-Goal "hypnatrel```{%n::nat. n} : hypnat";
+Goal "hypnatrel``{%n::nat. n} : hypnat";
 by Auto_tac;
 qed "hypnat_omega";
 
@@ -936,23 +936,23 @@ Goalw [SHNat_def] "(x: SNat) = (EX y. x = hypnat_of_nat  y)";
 by Auto_tac;
 qed "SHNat_iff";
 
-Goalw [SHNat_def] "hypnat_of_nat ``(UNIV::nat set) = SNat";
+Goalw [SHNat_def] "hypnat_of_nat `(UNIV::nat set) = SNat";
 by Auto_tac;
 qed "hypnat_of_nat_image";
 
-Goalw [SHNat_def] "inv hypnat_of_nat ``SNat = (UNIV::nat set)";
+Goalw [SHNat_def] "inv hypnat_of_nat `SNat = (UNIV::nat set)";
 by Auto_tac;
 by (rtac (inj_hypnat_of_nat RS inv_f_f RS subst) 1);
 by (Blast_tac 1);
 qed "inv_hypnat_of_nat_image";
 
 Goalw [SHNat_def] 
-     "[| EX x. x: P; P <= SNat |] ==> EX Q. P = hypnat_of_nat `` Q";
+     "[| EX x. x: P; P <= SNat |] ==> EX Q. P = hypnat_of_nat ` Q";
 by (Best_tac 1); 
 qed "SHNat_hypnat_of_nat_image";
 
 Goalw [SHNat_def] 
-      "SNat = hypnat_of_nat `` (UNIV::nat set)";
+      "SNat = hypnat_of_nat ` (UNIV::nat set)";
 by Auto_tac;
 qed "SHNat_hypnat_of_nat_iff";
 
@@ -1066,7 +1066,7 @@ Goalw [HNatInfinite_def,SHNat_def,hypnat_of_nat_def]
      "HNatInfinite = {N. ALL n:SNat. n < N}";
 by (Step_tac 1);
 by (dres_inst_tac [("x","Abs_hypnat \
-\        (hypnatrel ``` {%n. N})")] bspec 2);
+\        (hypnatrel `` {%n. N})")] bspec 2);
 by (res_inst_tac [("z","x")] eq_Abs_hypnat 1);
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (auto_tac (claset(),simpset() addsimps [hypnat_less_iff]));
@@ -1215,14 +1215,14 @@ qed "HNat_mult";
     Embedding of the hypernaturals into the hyperreal
  --------------------------------------------------------------*)
 
-Goal "(Ya : hyprel ```{%n. f(n)}) = \
+Goal "(Ya : hyprel ``{%n. f(n)}) = \
 \     ({n. f n = Ya n} : FreeUltrafilterNat)";
 by Auto_tac;
 qed "lemma_hyprel_FUFN";
 
 Goalw [hypreal_of_hypnat_def]
-      "hypreal_of_hypnat (Abs_hypnat(hypnatrel```{%n. X n})) = \
-\         Abs_hypreal(hyprel ``` {%n. real_of_nat (X n)})";
+      "hypreal_of_hypnat (Abs_hypnat(hypnatrel``{%n. X n})) = \
+\         Abs_hypreal(hyprel `` {%n. real_of_nat (X n)})";
 by (res_inst_tac [("f","Abs_hypreal")] arg_cong 1);
 by (auto_tac (claset()
                   addEs [FreeUltrafilterNat_Int RS FreeUltrafilterNat_subset],

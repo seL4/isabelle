@@ -108,7 +108,7 @@ by (auto_tac (claset() addIs [less_imp_le],
 	      simpset() addsimps [fun_upd_idem]));
 qed "metric_le";
 
-Goal "Rprg : ((metric-``{m}) - fixedpoint) LeadsTo (metric-``(lessThan m))";
+Goal "Rprg : ((metric-`{m}) - fixedpoint) LeadsTo (metric-`(lessThan m))";
 by (simp_tac (simpset() addsimps [Diff_fixedpoint]) 1);
 by (rtac LeadsTo_UN 1);
 by Auto_tac;
@@ -120,7 +120,7 @@ by (auto_tac (claset() addEs [less_not_refl3 RSN (2, rev_notE)],
 	      simpset()));
 qed "LeadsTo_Diff_fixedpoint";
 
-Goal "Rprg : (metric-``{m}) LeadsTo (metric-``(lessThan m) Un fixedpoint)";
+Goal "Rprg : (metric-`{m}) LeadsTo (metric-`(lessThan m) Un fixedpoint)";
 by (rtac ([LeadsTo_Diff_fixedpoint RS LeadsTo_weaken_R,
 	   subset_imp_LeadsTo] MRS LeadsTo_Diff) 1);
 by Auto_tac;

@@ -187,7 +187,7 @@ proof -
   have "set pTs \<subseteq> types G"
     by auto
 
-  hence "OK `` set pTs \<subseteq> err (types G)"
+  hence "OK ` set pTs \<subseteq> err (types G)"
     by auto
 
   with instrs maxr isclass 
@@ -329,7 +329,7 @@ proof -
   have "set pTs \<subseteq> types G"
     by auto
 
-  hence "OK `` set pTs \<subseteq> err (types G)"
+  hence "OK ` set pTs \<subseteq> err (types G)"
     by auto
 
   with instrs isclass 

@@ -9,7 +9,7 @@
 PNat = Main +
 
 typedef
-  pnat = "lfp(%X. {1} Un (Suc``X))"   (lfp_def)
+  pnat = "lfp(%X. {1} Un Suc`X)"   (lfp_def)
 
 instance
    pnat :: {ord, plus, times}

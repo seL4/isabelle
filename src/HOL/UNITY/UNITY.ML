@@ -383,17 +383,17 @@ by (Blast_tac 1);
 qed "Un_Diff_Diff";
 Addsimps [Un_Diff_Diff];
 
-Goal "Union(B) Int A = Union((%C. C Int A)``B)";
+Goal "Union(B) Int A = Union((%C. C Int A)`B)";
 by (Blast_tac 1);
 qed "Int_Union_Union";
 
 (** Needed for WF reasoning in WFair.ML **)
 
-Goal "less_than ``` {k} = greaterThan k";
+Goal "less_than `` {k} = greaterThan k";
 by (Blast_tac 1);
 qed "Image_less_than";
 
-Goal "less_than^-1 ``` {k} = lessThan k";
+Goal "less_than^-1 `` {k} = lessThan k";
 by (Blast_tac 1);
 qed "Image_inverse_less_than";
 

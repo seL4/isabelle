@@ -420,7 +420,7 @@ Goal
 \    f(NIL)=g(NIL);                                             \
 \    !!x l. [| x:A;  l: llist(A) |] ==>                         \
 \           (f(CONS x l),g(CONS x l)) :                         \
-\               LListD_Fun (diag A) ((%u.(f(u),g(u)))``llist(A) Un  \
+\               LListD_Fun (diag A) ((%u.(f(u),g(u)))`llist(A) Un  \
 \                                   diag(llist(A)))             \
 \ |] ==> f(M) = g(M)";
 by (rtac LList_equalityI 1);
@@ -461,7 +461,7 @@ by (REPEAT (ares_tac [list_Fun_NIL_I, list_Fun_CONS_I,
 qed "Lmap_type";
 
 (*This type checking rule synthesises a sufficiently large set for f*)
-Goal "M: llist(A) ==> Lmap f M: llist(f``A)";
+Goal "M: llist(A) ==> Lmap f M: llist(f`A)";
 by (etac Lmap_type 1);
 by (etac imageI 1);
 qed "Lmap_type2";
@@ -541,7 +541,7 @@ qed "Lappend_type";
 
 (*strong co-induction: bisimulation and case analysis on one variable*)
 Goal "[| M: llist(A); N: llist(A) |] ==> Lappend M N: llist(A)";
-by (res_inst_tac [("X", "(%u. Lappend u N)``llist(A)")] llist_coinduct 1);
+by (res_inst_tac [("X", "(%u. Lappend u N)`llist(A)")] llist_coinduct 1);
 by (etac imageI 1);
 by (rtac image_subsetI 1);
 by (eres_inst_tac [("aa", "x")] llist.elim 1);
@@ -623,21 +623,21 @@ by (simp_tac (simpset() addsimps [NIL_def, CONS_def]) 1);
 by (Fast_tac 1);
 qed "LListD_Fun_subset_Times_llist";
 
-Goal "prod_fun Rep_LList Rep_LList `` r <= \
+Goal "prod_fun Rep_LList Rep_LList ` r <= \
 \    (llist(range Leaf)) <*> (llist(range Leaf))";
 by (fast_tac (claset() delrules [image_subsetI]
 		       addIs [Rep_LList RS LListD]) 1);
 qed "subset_Times_llist";
 
 Goal "r <= (llist(range Leaf)) <*> (llist(range Leaf)) ==> \
-\    prod_fun (Rep_LList o Abs_LList) (Rep_LList o Abs_LList) `` r <= r";
+\    prod_fun (Rep_LList o Abs_LList) (Rep_LList o Abs_LList) ` r <= r";
 by Safe_tac;
 by (etac (subsetD RS SigmaE2) 1);
 by (assume_tac 1);
 by (asm_simp_tac (simpset() addsimps [LListI RS Abs_LList_inverse]) 1);
 qed "prod_fun_lemma";
 
-Goal "prod_fun Rep_LList  Rep_LList `` range(%x. (x, x)) = \
+Goal "prod_fun Rep_LList  Rep_LList ` range(%x. (x, x)) = \
 \    diag(llist(range Leaf))";
 by (rtac equalityI 1);
 by (Blast_tac 1);
@@ -659,7 +659,7 @@ qed "llistD_Fun_mono";
 Goalw [llistD_Fun_def]
     "[| (l1,l2) : r;  r <= llistD_Fun(r Un range(%x.(x,x))) |] ==> l1=l2";
 by (rtac (inj_Rep_LList RS injD) 1);
-by (res_inst_tac [("r", "prod_fun Rep_LList Rep_LList ``r"),
+by (res_inst_tac [("r", "prod_fun Rep_LList Rep_LList `r"),
                   ("A", "range(Leaf)")] 
         LList_equalityI 1);
 by (etac prod_fun_imageI 1);

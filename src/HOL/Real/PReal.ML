@@ -582,10 +582,10 @@ by (auto_tac (claset(),simpset() addsimps [pnat_one_def,
    prat_of_pnat_add,prat_add_assoc RS sym]));
 qed "lemma1_gleason9_34";
 
-Goal "Abs_prat (ratrel ``` {(y, z)}) < xb + \
-\         Abs_prat (ratrel ``` {(x*y, Abs_pnat 1)})*Abs_prat (ratrel ``` {(w, x)})";
-by (res_inst_tac [("j","Abs_prat (ratrel ``` {(x * y, Abs_pnat 1)}) *\
-\                   Abs_prat (ratrel ``` {(w, x)})")] prat_le_less_trans 1);
+Goal "Abs_prat (ratrel `` {(y, z)}) < xb + \
+\         Abs_prat (ratrel `` {(x*y, Abs_pnat 1)})*Abs_prat (ratrel `` {(w, x)})";
+by (res_inst_tac [("j","Abs_prat (ratrel `` {(x * y, Abs_pnat 1)}) *\
+\                   Abs_prat (ratrel `` {(w, x)})")] prat_le_less_trans 1);
 by (rtac prat_self_less_add_right 2);
 by (auto_tac (claset() addIs [lemma_Abs_prat_le3],
     simpset() addsimps [prat_mult,pre_lemma_gleason9_34b,pnat_mult_assoc]));

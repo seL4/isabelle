@@ -133,23 +133,23 @@ qed "cont_Ifup2";
 (* continuous versions of lemmas for ('a)u                                  *)
 (* ------------------------------------------------------------------------ *)
 
-Goalw [up_def] "z = UU | (EX x. z = up`x)";
+Goalw [up_def] "z = UU | (EX x. z = up$x)";
 by (simp_tac (Up0_ss addsimps [cont_Iup]) 1);
 by (stac inst_up_pcpo 1);
 by (rtac Exh_Up 1);
 qed "Exh_Up1";
 
-Goalw [up_def] "up`x=up`y ==> x=y";
+Goalw [up_def] "up$x=up$y ==> x=y";
 by (rtac inject_Iup 1);
 by Auto_tac;
 qed "inject_up";
 
-Goalw [up_def] " up`x ~= UU";
+Goalw [up_def] " up$x ~= UU";
 by Auto_tac;
 qed "defined_up";
 
 val prems = Goalw [up_def] 
-        "[| p=UU ==> Q; !!x. p=up`x==>Q|] ==>Q";
+        "[| p=UU ==> Q; !!x. p=up$x==>Q|] ==>Q";
 by (rtac upE 1);
 by (resolve_tac prems 1);
 by (etac (inst_up_pcpo RS ssubst) 1);
@@ -160,7 +160,7 @@ qed "upE1";
 val tac = (simp_tac (simpset() addsimps [cont_Iup,cont_Ifup1,
                 cont_Ifup2,cont2cont_CF1L]) 1);
 
-Goalw [up_def,fup_def] "fup`f`UU=UU";
+Goalw [up_def,fup_def] "fup$f$UU=UU";
 by (stac inst_up_pcpo 1);
 by (stac beta_cfun 1);
 by tac;
@@ -169,7 +169,7 @@ by tac;
 by (simp_tac (Up0_ss addsimps [cont_Iup,cont_Ifup1,cont_Ifup2]) 1);
 qed "fup1";
 
-Goalw [up_def,fup_def] "fup`f`(up`x)=f`x";
+Goalw [up_def,fup_def] "fup$f$(up$x)=f$x";
 by (stac beta_cfun 1);
 by (rtac cont_Iup 1);
 by (stac beta_cfun 1);
@@ -179,20 +179,20 @@ by (rtac cont_Ifup2 1);
 by (simp_tac (Up0_ss addsimps [cont_Iup,cont_Ifup1,cont_Ifup2]) 1);
 qed "fup2";
 
-Goalw [up_def,fup_def] "~ up`x << UU";
+Goalw [up_def,fup_def] "~ up$x << UU";
 by (simp_tac (Up0_ss addsimps [cont_Iup]) 1);
 by (rtac less_up3b 1);
 qed "less_up4b";
 
 Goalw [up_def,fup_def]
-         "(up`x << up`y) = (x<<y)";
+         "(up$x << up$y) = (x<<y)";
 by (simp_tac (Up0_ss addsimps [cont_Iup]) 1);
 by (rtac less_up2c 1);
 qed "less_up4c";
 
 Goalw [up_def,fup_def] 
-"[| chain(Y); EX i x. Y(i) = up`x |] ==>\
-\      lub(range(Y)) = up`(lub(range(%i. fup`(LAM x. x)`(Y i))))";
+"[| chain(Y); EX i x. Y(i) = up$x |] ==>\
+\      lub(range(Y)) = up$(lub(range(%i. fup$(LAM x. x)$(Y i))))";
 by (stac beta_cfun 1);
 by tac;
 by (stac beta_cfun 1);
@@ -213,7 +213,7 @@ qed "thelub_up2a";
 
 
 Goalw [up_def,fup_def] 
-"[| chain(Y); ! i x. Y(i) ~= up`x |] ==> lub(range(Y)) = UU";
+"[| chain(Y); ! i x. Y(i) ~= up$x |] ==> lub(range(Y)) = UU";
 by (stac inst_up_pcpo 1);
 by (rtac thelub_up1b 1);
 by (atac 1);
@@ -224,7 +224,7 @@ by (asm_full_simp_tac (Up0_ss addsimps [cont_Iup]) 1);
 qed "thelub_up2b";
 
 
-Goal "(EX x. z = up`x) = (z~=UU)";
+Goal "(EX x. z = up$x) = (z~=UU)";
 by (rtac iffI 1);
 by (etac exE 1);
 by (hyp_subst_tac 1);
@@ -236,7 +236,7 @@ by (etac exI 1);
 qed "up_lemma2";
 
 
-Goal "[| chain(Y); lub(range(Y)) = up`x |] ==> EX i x. Y(i) = up`x";
+Goal "[| chain(Y); lub(range(Y)) = up$x |] ==> EX i x. Y(i) = up$x";
 by (rtac exE 1);
 by (rtac chain_UU_I_inverse2 1);
 by (rtac (up_lemma2 RS iffD1) 1);
@@ -246,14 +246,14 @@ by (rtac (up_lemma2 RS iffD2) 1);
 by (atac 1);
 qed "thelub_up2a_rev";
 
-Goal "[| chain(Y); lub(range(Y)) = UU |] ==> ! i x.  Y(i) ~= up`x";
+Goal "[| chain(Y); lub(range(Y)) = UU |] ==> ! i x.  Y(i) ~= up$x";
 by (blast_tac (claset() addSDs [chain_UU_I RS spec, 
                                 exI RS (up_lemma2 RS iffD1)]) 1);
 qed "thelub_up2b_rev";
 
 
 Goal "chain(Y) ==> lub(range(Y)) = UU | \
-\                  lub(range(Y)) = up`(lub(range(%i. fup`(LAM x. x)`(Y i))))";
+\                  lub(range(Y)) = up$(lub(range(%i. fup$(LAM x. x)$(Y i))))";
 by (rtac disjE 1);
 by (rtac disjI1 2);
 by (rtac thelub_up2b 2);
@@ -266,7 +266,7 @@ by (atac 2);
 by (fast_tac HOL_cs 1);
 qed "thelub_up3";
 
-Goal "fup`up`x=x";
+Goal "fup$up$x=x";
 by (res_inst_tac [("p","x")] upE1 1);
 by (asm_simp_tac ((simpset_of Cfun3.thy) addsimps [fup1,fup2]) 1);
 by (asm_simp_tac ((simpset_of Cfun3.thy) addsimps [fup1,fup2]) 1);

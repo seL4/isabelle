@@ -25,12 +25,12 @@ qed "";
 (** Examples for the Blast_tac paper **)
 
 (*Union-image, called Un_Union_image on equalities.ML*)
-Goal "(UN x:C. f(x) Un g(x)) = Union(f``C)  Un  Union(g``C)";
+Goal "(UN x:C. f(x) Un g(x)) = Union(f`C)  Un  Union(g`C)";
 by (Blast_tac 1);
 qed "";
 
 (*Inter-image, called Int_Inter_image on equalities.ML*)
-Goal "(INT x:C. f(x) Int g(x)) = Inter(f``C) Int Inter(g``C)";
+Goal "(INT x:C. f(x) Int g(x)) = Inter(f`C) Int Inter(g`C)";
 by (Blast_tac 1);
 qed "";
 
@@ -83,24 +83,24 @@ qed "";
 
 (*** The Schroeder-Berstein Theorem ***)
 
-Goal "[| -(f``X) = g``(-X);  f(a)=g(b);  a:X |] ==> b:X";
+Goal "[| -(f`X) = g`(-X);  f(a)=g(b);  a:X |] ==> b:X";
 by (Blast_tac 1);
 qed "disj_lemma";
 
-Goal "-(f``X) = g``(-X) ==> surj(%z. if z:X then f(z) else g(z))";
+Goal "-(f`X) = g`(-X) ==> surj(%z. if z:X then f(z) else g(z))";
 by (asm_simp_tac (simpset() addsimps [surj_def]) 1);
 by (Blast_tac 1);
 qed "surj_if_then_else";
 
 Goalw [inj_on_def]
-     "[| inj_on f X;  inj_on g (-X);  -(f``X) = g``(-X); \
+     "[| inj_on f X;  inj_on g (-X);  -(f`X) = g`(-X); \
 \        h = (%z. if z:X then f(z) else g(z)) |]       \
 \     ==> inj(h) & surj(h)";
 by (asm_simp_tac (simpset() addsimps [surj_if_then_else]) 1);
 by (blast_tac (claset() addDs [disj_lemma, sym]) 1);
 qed "bij_if_then_else";
 
-Goal "EX X. X = - (g``(- (f``X)))";
+Goal "EX X. X = - (g`(- (f`X)))";
 by (rtac exI 1);
 by (rtac lfp_unfold 1);
 by (REPEAT (ares_tac [monoI, image_mono, Compl_anti_mono] 1));

@@ -127,7 +127,7 @@ Goalw [PLam_def]
 by (asm_simp_tac (simpset() addsimps [guarantees_JN_I]) 1);
 qed "guarantees_PLam_I";
 
-Goal "Allowed (PLam I F) = (INT i:I. lift i `` Allowed(F i))";
+Goal "Allowed (PLam I F) = (INT i:I. lift i ` Allowed(F i))";
 by (simp_tac (simpset() addsimps [PLam_def]) 1); 
 qed "Allowed_PLam";
 Addsimps [Allowed_PLam];

@@ -201,8 +201,8 @@ proof
   fix A' :: "'a::complete_lattice dual set"
   show "\<exists>inf'. is_Inf A' inf'"
   proof -
-    have "\<exists>sup. is_Sup (undual `` A') sup" by (rule ex_Sup)
-    hence "\<exists>sup. is_Inf (dual `` undual `` A') (dual sup)" by (simp only: dual_Inf)
+    have "\<exists>sup. is_Sup (undual ` A') sup" by (rule ex_Sup)
+    hence "\<exists>sup. is_Inf (dual ` undual ` A') (dual sup)" by (simp only: dual_Inf)
     thus ?thesis by (simp add: dual_ex [symmetric] image_compose [symmetric])
   qed
 qed
@@ -212,17 +212,17 @@ text {*
   other.
 *}
 
-theorem dual_Meet [intro?]: "dual (\<Sqinter>A) = \<Squnion>(dual `` A)"
+theorem dual_Meet [intro?]: "dual (\<Sqinter>A) = \<Squnion>(dual ` A)"
 proof -
-  from is_Inf_Meet have "is_Sup (dual `` A) (dual (\<Sqinter>A))" ..
-  hence "\<Squnion>(dual `` A) = dual (\<Sqinter>A)" ..
+  from is_Inf_Meet have "is_Sup (dual ` A) (dual (\<Sqinter>A))" ..
+  hence "\<Squnion>(dual ` A) = dual (\<Sqinter>A)" ..
   thus ?thesis ..
 qed
 
-theorem dual_Join [intro?]: "dual (\<Squnion>A) = \<Sqinter>(dual `` A)"
+theorem dual_Join [intro?]: "dual (\<Squnion>A) = \<Sqinter>(dual ` A)"
 proof -
-  from is_Sup_Join have "is_Inf (dual `` A) (dual (\<Squnion>A))" ..
-  hence "\<Sqinter>(dual `` A) = dual (\<Squnion>A)" ..
+  from is_Sup_Join have "is_Inf (dual ` A) (dual (\<Squnion>A))" ..
+  hence "\<Sqinter>(dual ` A) = dual (\<Squnion>A)" ..
   thus ?thesis ..
 qed
 
@@ -306,8 +306,8 @@ qed
 theorem Join_subset_mono: "A \<subseteq> B \<Longrightarrow> \<Squnion>A \<sqsubseteq> \<Squnion>B"
 proof -
   assume "A \<subseteq> B"
-  hence "dual `` A \<subseteq> dual `` B" by blast
-  hence "\<Sqinter>(dual `` B) \<sqsubseteq> \<Sqinter>(dual `` A)" by (rule Meet_subset_antimono)
+  hence "dual ` A \<subseteq> dual ` B" by blast
+  hence "\<Sqinter>(dual ` B) \<sqsubseteq> \<Sqinter>(dual ` A)" by (rule Meet_subset_antimono)
   hence "dual (\<Squnion>B) \<sqsubseteq> dual (\<Squnion>A)" by (simp only: dual_Join)
   thus ?thesis by (simp only: dual_leq)
 qed
@@ -352,9 +352,9 @@ qed
 
 theorem Join_Un: "\<Squnion>(A \<union> B) = \<Squnion>A \<squnion> \<Squnion>B"
 proof -
-  have "dual (\<Squnion>(A \<union> B)) = \<Sqinter>(dual `` A \<union> dual `` B)"
+  have "dual (\<Squnion>(A \<union> B)) = \<Sqinter>(dual ` A \<union> dual ` B)"
     by (simp only: dual_Join image_Un)
-  also have "\<dots> = \<Sqinter>(dual `` A) \<sqinter> \<Sqinter>(dual `` B)"
+  also have "\<dots> = \<Sqinter>(dual ` A) \<sqinter> \<Sqinter>(dual ` B)"
     by (rule Meet_Un)
   also have "\<dots> = dual (\<Squnion>A \<squnion> \<Squnion>B)"
     by (simp only: dual_join dual_Join)

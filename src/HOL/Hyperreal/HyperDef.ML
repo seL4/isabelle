@@ -206,11 +206,11 @@ by (auto_tac (claset() addSIs [hyprel_refl]
 	      simpset() addsimps [FreeUltrafilterNat_Nat_set]));
 qed "equiv_hyprel";
 
-(* (hyprel ``` {x} = hyprel ``` {y}) = ((x,y) : hyprel) *)
+(* (hyprel `` {x} = hyprel `` {y}) = ((x,y) : hyprel) *)
 bind_thm ("equiv_hyprel_iff",
     	  [equiv_hyprel, UNIV_I, UNIV_I] MRS eq_equiv_class_iff);
 
-Goalw  [hypreal_def,hyprel_def,quotient_def] "hyprel```{x}:hypreal";
+Goalw  [hypreal_def,hyprel_def,quotient_def] "hyprel``{x}:hypreal";
 by (Blast_tac 1);
 qed "hyprel_in_hypreal";
 
@@ -230,7 +230,7 @@ by (rtac inj_inverseI 1);
 by (rtac Rep_hypreal_inverse 1);
 qed "inj_Rep_hypreal";
 
-Goalw [hyprel_def] "x: hyprel ``` {x}";
+Goalw [hyprel_def] "x: hyprel `` {x}";
 by (Step_tac 1);
 by (auto_tac (claset() addSIs [FreeUltrafilterNat_Nat_set], simpset()));
 qed "lemma_hyprel_refl";
@@ -267,7 +267,7 @@ by Auto_tac;
 qed "inj_hypreal_of_real";
 
 val [prem] = goal (the_context ())
-    "(!!x y. z = Abs_hypreal(hyprel```{x}) ==> P) ==> P";
+    "(!!x y. z = Abs_hypreal(hyprel``{x}) ==> P) ==> P";
 by (res_inst_tac [("x1","z")] 
     (rewrite_rule [hypreal_def] Rep_hypreal RS quotientE) 1);
 by (dres_inst_tac [("f","Abs_hypreal")] arg_cong 1);
@@ -278,13 +278,13 @@ qed "eq_Abs_hypreal";
 (**** hypreal_minus: additive inverse on hypreal ****)
 
 Goalw [congruent_def]
-  "congruent hyprel (%X. hyprel```{%n. - (X n)})";
+  "congruent hyprel (%X. hyprel``{%n. - (X n)})";
 by Safe_tac;
 by (ALLGOALS Ultra_tac);
 qed "hypreal_minus_congruent";
 
 Goalw [hypreal_minus_def]
-   "- (Abs_hypreal(hyprel```{%n. X n})) = Abs_hypreal(hyprel ``` {%n. -(X n)})";
+   "- (Abs_hypreal(hyprel``{%n. X n})) = Abs_hypreal(hyprel `` {%n. -(X n)})";
 by (res_inst_tac [("f","Abs_hypreal")] arg_cong 1);
 by (simp_tac (simpset() addsimps 
       [hyprel_in_hypreal RS Abs_hypreal_inverse,
@@ -322,20 +322,20 @@ Addsimps [hypreal_minus_zero_iff];
 (**** hyperreal addition: hypreal_add  ****)
 
 Goalw [congruent2_def]
-    "congruent2 hyprel (%X Y. hyprel```{%n. X n + Y n})";
+    "congruent2 hyprel (%X Y. hyprel``{%n. X n + Y n})";
 by Safe_tac;
 by (ALLGOALS(Ultra_tac));
 qed "hypreal_add_congruent2";
 
 Goalw [hypreal_add_def]
-  "Abs_hypreal(hyprel```{%n. X n}) + Abs_hypreal(hyprel```{%n. Y n}) = \
-\  Abs_hypreal(hyprel```{%n. X n + Y n})";
+  "Abs_hypreal(hyprel``{%n. X n}) + Abs_hypreal(hyprel``{%n. Y n}) = \
+\  Abs_hypreal(hyprel``{%n. X n + Y n})";
 by (simp_tac (simpset() addsimps 
          [[equiv_hyprel, hypreal_add_congruent2] MRS UN_equiv_class2]) 1);
 qed "hypreal_add";
 
-Goal "Abs_hypreal(hyprel```{%n. X n}) - Abs_hypreal(hyprel```{%n. Y n}) = \
-\     Abs_hypreal(hyprel```{%n. X n - Y n})";
+Goal "Abs_hypreal(hyprel``{%n. X n}) - Abs_hypreal(hyprel``{%n. Y n}) = \
+\     Abs_hypreal(hyprel``{%n. X n - Y n})";
 by (simp_tac (simpset() addsimps 
          [hypreal_diff_def, hypreal_minus,hypreal_add]) 1);
 qed "hypreal_diff";
@@ -496,14 +496,14 @@ Addsimps [hypreal_add_minus_cancelA, hypreal_minus_add_cancelA];
 (**** hyperreal multiplication: hypreal_mult  ****)
 
 Goalw [congruent2_def]
-    "congruent2 hyprel (%X Y. hyprel```{%n. X n * Y n})";
+    "congruent2 hyprel (%X Y. hyprel``{%n. X n * Y n})";
 by Safe_tac;
 by (ALLGOALS(Ultra_tac));
 qed "hypreal_mult_congruent2";
 
 Goalw [hypreal_mult_def]
-  "Abs_hypreal(hyprel```{%n. X n}) * Abs_hypreal(hyprel```{%n. Y n}) = \
-\  Abs_hypreal(hyprel```{%n. X n * Y n})";
+  "Abs_hypreal(hyprel``{%n. X n}) * Abs_hypreal(hyprel``{%n. Y n}) = \
+\  Abs_hypreal(hyprel``{%n. X n * Y n})";
 by (simp_tac (simpset() addsimps 
       [[equiv_hyprel, hypreal_mult_congruent2] MRS UN_equiv_class2]) 1);
 qed "hypreal_mult";
@@ -622,13 +622,13 @@ qed "hypreal_zero_not_eq_one";
 (**** multiplicative inverse on hypreal ****)
 
 Goalw [congruent_def]
-  "congruent hyprel (%X. hyprel```{%n. if X n = #0 then #0 else inverse(X n)})";
+  "congruent hyprel (%X. hyprel``{%n. if X n = #0 then #0 else inverse(X n)})";
 by (Auto_tac THEN Ultra_tac 1);
 qed "hypreal_inverse_congruent";
 
 Goalw [hypreal_inverse_def]
-      "inverse (Abs_hypreal(hyprel```{%n. X n})) = \
-\      Abs_hypreal(hyprel ``` {%n. if X n = #0 then #0 else inverse(X n)})";
+      "inverse (Abs_hypreal(hyprel``{%n. X n})) = \
+\      Abs_hypreal(hyprel `` {%n. if X n = #0 then #0 else inverse(X n)})";
 by (res_inst_tac [("f","Abs_hypreal")] arg_cong 1);
 by (simp_tac (simpset() addsimps 
    [hyprel_in_hypreal RS Abs_hypreal_inverse,
@@ -800,8 +800,8 @@ qed "hypreal_less_asym";
   makes many of them more straightforward. 
  -------------------------------------------------------*)
 Goalw [hypreal_less_def]
-      "(Abs_hypreal(hyprel```{%n. X n}) < \
-\           Abs_hypreal(hyprel```{%n. Y n})) = \
+      "(Abs_hypreal(hyprel``{%n. X n}) < \
+\           Abs_hypreal(hyprel``{%n. Y n})) = \
 \      ({n. X n < Y n} : FreeUltrafilterNat)";
 by (auto_tac (claset() addSIs [lemma_hyprel_refl], simpset()));
 by (Ultra_tac 1);
@@ -840,7 +840,7 @@ qed "hypreal_mult_order";
                          Trichotomy of the hyperreals
   --------------------------------------------------------------------------------*)
 
-Goalw [hyprel_def] "EX x. x: hyprel ``` {%n. #0}";
+Goalw [hyprel_def] "EX x. x: hyprel `` {%n. #0}";
 by (res_inst_tac [("x","%n. #0")] exI 1);
 by (Step_tac 1);
 by (auto_tac (claset() addSIs [FreeUltrafilterNat_Nat_set], simpset()));
@@ -958,8 +958,8 @@ qed "hypreal_linear_less2";
 (*------ hypreal le iff reals le a.e ------*)
 
 Goalw [hypreal_le_def,real_le_def]
-      "(Abs_hypreal(hyprel```{%n. X n}) <= \
-\           Abs_hypreal(hyprel```{%n. Y n})) = \
+      "(Abs_hypreal(hyprel``{%n. X n}) <= \
+\           Abs_hypreal(hyprel``{%n. Y n})) = \
 \      ({n. X n <= Y n} : FreeUltrafilterNat)";
 by (auto_tac (claset(),simpset() addsimps [hypreal_less]));
 by (ALLGOALS(Ultra_tac));

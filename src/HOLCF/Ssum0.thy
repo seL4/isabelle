@@ -31,7 +31,7 @@ defs   (*defining the abstract constants*)
 
   Iwhen_def     "Iwhen(f)(g)(s) == @z.
                                     (s=Isinl(UU) --> z=UU)
-                        &(!a. a~=UU & s=Isinl(a) --> z=f`a)  
-                        &(!b. b~=UU & s=Isinr(b) --> z=g`b)"  
+                        &(!a. a~=UU & s=Isinl(a) --> z=f$a)  
+                        &(!b. b~=UU & s=Isinr(b) --> z=g$b)"  
 
 end

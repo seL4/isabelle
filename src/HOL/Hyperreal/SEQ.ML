@@ -141,7 +141,7 @@ qed "FreeUltrafilterNat_NSLIMSEQ";
 
 (* thus, the sequence defines an infinite hypernatural! *)
 Goal "ALL n. n <= f n \
-\         ==> Abs_hypnat (hypnatrel ``` {f}) : HNatInfinite";
+\         ==> Abs_hypnat (hypnatrel `` {f}) : HNatInfinite";
 by (auto_tac (claset(),simpset() addsimps [HNatInfinite_FreeUltrafilterNat_iff]));
 by (EVERY[rtac bexI 1, rtac lemma_hypnatrel_refl 2, Step_tac 1]);
 by (etac FreeUltrafilterNat_NSLIMSEQ 1);
@@ -156,7 +156,7 @@ by Auto_tac;
 val lemmaLIM2 = result();
 
 Goal "[| #0 < r; ALL n. r <= abs (X (f n) + - L); \
-\          (*fNat* X) (Abs_hypnat (hypnatrel ``` {f})) + \
+\          (*fNat* X) (Abs_hypnat (hypnatrel `` {f})) + \
 \          - hypreal_of_real  L @= 0 |] ==> False";
 by (auto_tac (claset(),simpset() addsimps [starfunNat,
     mem_infmal_iff RS sym,hypreal_of_real_def,
@@ -178,7 +178,7 @@ by (rtac ccontr 1 THEN Asm_full_simp_tac 1);
 by (Step_tac 1);
 (* skolemization step *)
 by (dtac choice 1 THEN Step_tac 1);
-by (dres_inst_tac [("x","Abs_hypnat(hypnatrel```{f})")] bspec 1);
+by (dres_inst_tac [("x","Abs_hypnat(hypnatrel``{f})")] bspec 1);
 by (dtac (inf_close_minus_iff RS iffD1) 2);
 by (fold_tac [real_le_def]);
 by (blast_tac (claset() addIs [HNatInfinite_NSLIMSEQ]) 1);
@@ -511,7 +511,7 @@ by (Blast_tac 1);
 val lemmaNSBseq2 = result();
 
 Goal "ALL N. real_of_nat(Suc N) < abs (X (f N)) \
-\         ==>  Abs_hypreal(hyprel```{X o f}) : HInfinite";
+\         ==>  Abs_hypreal(hyprel``{X o f}) : HInfinite";
 by (auto_tac (claset(),
               simpset() addsimps [HInfinite_FreeUltrafilterNat_iff,o_def]));
 by (EVERY[rtac bexI 1, rtac lemma_hyprel_refl 2, Step_tac 1]);
@@ -542,7 +542,7 @@ by (auto_tac (claset() addIs [finite_real_of_nat_less_real],
 val lemma_finite_NSBseq2 = result();
 
 Goal "ALL N. real_of_nat(Suc N) < abs (X (f N)) \
-\     ==> Abs_hypnat(hypnatrel```{f}) : HNatInfinite";
+\     ==> Abs_hypnat(hypnatrel``{f}) : HNatInfinite";
 by (auto_tac (claset(),
               simpset() addsimps [HNatInfinite_FreeUltrafilterNat_iff]));
 by (EVERY[rtac bexI 1, rtac lemma_hypnatrel_refl 2, Step_tac 1]);
@@ -795,7 +795,7 @@ qed "BseqI2";
 (*-------------------------------
       Standard def => NS def
  -------------------------------*)
-Goal "Abs_hypnat (hypnatrel ``` {x}) : HNatInfinite \
+Goal "Abs_hypnat (hypnatrel `` {x}) : HNatInfinite \
 \         ==> {n. M <= x n} : FreeUltrafilterNat";
 by (auto_tac (claset(),
               simpset() addsimps [HNatInfinite_FreeUltrafilterNat_iff]));
@@ -843,7 +843,7 @@ by (dtac choice 1 THEN
     step_tac (claset() addSDs [all_conj_distrib RS iffD1]) 1);
 by (REPEAT(dtac HNatInfinite_NSLIMSEQ 1));
 by (dtac bspec 1 THEN assume_tac 1);
-by (dres_inst_tac [("x","Abs_hypnat (hypnatrel ``` {fa})")] bspec 1 
+by (dres_inst_tac [("x","Abs_hypnat (hypnatrel `` {fa})")] bspec 1 
     THEN auto_tac (claset(), simpset() addsimps [starfunNat]));
 by (dtac (inf_close_minus_iff RS iffD1) 1);
 by (dtac (mem_infmal_iff RS iffD2) 1);
@@ -1334,7 +1334,7 @@ qed "NSLIMSEQ_rabs_realpow_zero2";
                  Hyperreals and Sequences
  ---------------------------------------------------------------***)
 (*** A bounded sequence is a finite hyperreal ***)
-Goal "NSBseq X ==> Abs_hypreal(hyprel```{X}) : HFinite";
+Goal "NSBseq X ==> Abs_hypreal(hyprel``{X}) : HFinite";
 by (auto_tac (claset() addSIs [bexI,lemma_hyprel_refl] addIs 
        [FreeUltrafilterNat_all RS FreeUltrafilterNat_subset],
        simpset() addsimps [HFinite_FreeUltrafilterNat_iff,
@@ -1343,7 +1343,7 @@ qed "NSBseq_HFinite_hypreal";
 
 (*** A sequence converging to zero defines an infinitesimal ***)
 Goalw [NSLIMSEQ_def] 
-      "X ----NS> #0 ==> Abs_hypreal(hyprel```{X}) : Infinitesimal";
+      "X ----NS> #0 ==> Abs_hypreal(hyprel``{X}) : Infinitesimal";
 by (dres_inst_tac [("x","whn")] bspec 1);
 by (simp_tac (simpset() addsimps [HNatInfinite_whn]) 1);
 by (auto_tac (claset(),

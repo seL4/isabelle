@@ -19,7 +19,7 @@ consts
         strictify    :: "('a->'b)->'a->'b"
 defs
 
-Istrictify_def  "Istrictify f x == if x=UU then UU else f`x"    
+Istrictify_def  "Istrictify f x == if x=UU then UU else f$x"    
 strictify_def   "strictify == (LAM f x. Istrictify f x)"
 
 consts
@@ -28,11 +28,11 @@ consts
 
 syntax  "@oo"   :: "('b->'c)=>('a->'b)=>'a->'c" ("_ oo _" [101,100] 100)
      
-translations    "f1 oo f2" == "cfcomp`f1`f2"
+translations    "f1 oo f2" == "cfcomp$f1$f2"
 
 defs
 
   ID_def        "ID ==(LAM x. x)"
-  oo_def        "cfcomp == (LAM f g x. f`(g`x))" 
+  oo_def        "cfcomp == (LAM f g x. f$(g$x))" 
 
 end

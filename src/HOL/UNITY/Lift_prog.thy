@@ -25,7 +25,7 @@ constdefs
     "drop_map i == %(g, uu). (g i, (delete_map i g, uu))"
 
   lift_set :: "[nat, ('b * ((nat=>'b) * 'c)) set] => ((nat=>'b) * 'c) set"
-    "lift_set i A == lift_map i `` A"
+    "lift_set i A == lift_map i ` A"
 
   lift :: "[nat, ('b * ((nat=>'b) * 'c)) program] => ((nat=>'b) * 'c) program"
     "lift i == rename (lift_map i)"

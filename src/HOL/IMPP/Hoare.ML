@@ -64,8 +64,8 @@ be conseq12 1;
 by (Fast_tac 1);
 qed "conseq2";
 
-Goal "[| G Un (%p. {P p}.      BODY p  .{Q p})``Procs  \
-\         ||- (%p. {P p}. the (body p) .{Q p})``Procs; \
+Goal "[| G Un (%p. {P p}.      BODY p  .{Q p})`Procs  \
+\         ||- (%p. {P p}. the (body p) .{Q p})`Procs; \
 \   pn:Procs |] ==> G|-{P pn}. BODY pn .{Q pn}";
 bd hoare_derivs.Body 1;
 be hoare_derivs.weaken 1;
@@ -129,7 +129,7 @@ qed "derivs_insertD";
 
 Goal "[| finite U; \
 \ !p. G |-     {P' p}.c0 p.{Q' p}       --> G |-     {P p}.c0 p.{Q p} |] ==> \
-\     G||-(%p. {P' p}.c0 p.{Q' p}) `` U --> G||-(%p. {P p}.c0 p.{Q p}) `` U";
+\     G||-(%p. {P' p}.c0 p.{Q' p}) ` U --> G||-(%p. {P p}.c0 p.{Q p}) ` U";
 be finite_induct 1;
 by (ALLGOALS Clarsimp_tac);
 bd derivs_insertD 1;
@@ -154,9 +154,9 @@ by  (ALLGOALS Fast_tac);
 qed "Loop_sound_lemma";
 
 Goalw [hoare_valids_def]
-   "[| G Un (%pn. {P pn}.      BODY pn  .{Q pn})``Procs \
-\        ||=(%pn. {P pn}. the (body pn) .{Q pn})``Procs |] ==> \
-\       G||=(%pn. {P pn}.      BODY pn  .{Q pn})``Procs";
+   "[| G Un (%pn. {P pn}.      BODY pn  .{Q pn})`Procs \
+\        ||=(%pn. {P pn}. the (body pn) .{Q pn})`Procs |] ==> \
+\       G||=(%pn. {P pn}.      BODY pn  .{Q pn})`Procs";
 br allI 1;
 by (induct_tac "n" 1);
 by  (fast_tac (claset() addIs [Body_triple_valid_0]) 1);
@@ -255,12 +255,12 @@ Goal "[| !!G ts. ts <= G ==> P G ts;\
 \ !!G pn. P (insert (mgt_call pn) G) {mgt(the(body pn))} ==> P G {mgt_call pn};\
 \         !!G c. [| wt c; !pn:U. P G {mgt_call pn} |] ==> P G {mgt c}; \
 \         !!pn. pn : U ==> wt (the (body pn)); \
-\         finite U; uG = mgt_call``U |] ==> \
+\         finite U; uG = mgt_call`U |] ==> \
 \ !G. G <= uG --> n <= card uG --> card G = card uG - n --> (!c. wt c --> P G {mgt c})";
 by (cut_facts_tac (premises()) 1);
 by (induct_tac "n" 1);
 by  (ALLGOALS Clarsimp_tac);
-by  (subgoal_tac "G = mgt_call `` U" 1);
+by  (subgoal_tac "G = mgt_call ` U" 1);
 by   (asm_simp_tac (simpset() addsimps [card_seteq, finite_imageI]) 2);
 by  (Asm_full_simp_tac 1);
 by  (eresolve_tac (tl(tl(premises()))(*MGF_lemma1*)) 1);
@@ -308,9 +308,9 @@ qed "MGF";
 (* Version: simultaneous recursion in call rule *)
 
 (* finiteness not really necessary here *)
-Goalw [MGT_def]     "[| G Un (%pn. {=}.      BODY pn  .{->})``Procs \
-\                         ||-(%pn. {=}. the (body pn) .{->})``Procs; \
-\ finite Procs |] ==>   G ||-(%pn. {=}.      BODY pn  .{->})``Procs";
+Goalw [MGT_def]     "[| G Un (%pn. {=}.      BODY pn  .{->})`Procs \
+\                         ||-(%pn. {=}. the (body pn) .{->})`Procs; \
+\ finite Procs |] ==>   G ||-(%pn. {=}.      BODY pn  .{->})`Procs";
 br hoare_derivs.Body 1;
 be finite_pointwise 1;
 ba  2;
@@ -321,8 +321,8 @@ qed "MGT_Body";
 
 (* requires empty, insert, com_det *)
 Goal "[| state_not_singleton; WT_bodies; \
-\ F<=(%pn. {=}.the (body pn).{->})``dom body |] ==> \
-\    (%pn. {=}.     BODY pn .{->})``dom body||-F";
+\ F<=(%pn. {=}.the (body pn).{->})`dom body |] ==> \
+\    (%pn. {=}.     BODY pn .{->})`dom body||-F";
 by (ftac finite_subset 1);
 br  (finite_dom_body RS finite_imageI) 1;
 by (rotate_tac 2 1);
@@ -344,7 +344,7 @@ br MGF_lemma1 1;
 ba   1;
 ba  2;
 by (Clarsimp_tac 1);
-by (subgoal_tac "{}||-(%pn. {=}. BODY pn .{->})``dom body" 1);
+by (subgoal_tac "{}||-(%pn. {=}. BODY pn .{->})`dom body" 1);
 be  hoare_derivs.weaken 1;
 by  (fast_tac (claset() addIs [domI]) 1);
 br (finite_dom_body RSN (2,MGT_Body)) 1;

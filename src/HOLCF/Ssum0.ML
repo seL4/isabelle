@@ -237,7 +237,7 @@ qed "Iwhen1";
 
 
 Goalw [Iwhen_def]
-        "x~=UU ==> Iwhen f g (Isinl x) = f`x";
+        "x~=UU ==> Iwhen f g (Isinl x) = f$x";
 by (rtac some_equality 1);
 by (fast_tac HOL_cs  2);
 by (rtac conjI 1);
@@ -260,7 +260,7 @@ by (fast_tac HOL_cs  1);
 qed "Iwhen2";
 
 Goalw [Iwhen_def]
-        "y~=UU ==> Iwhen f g (Isinr y) = g`y";
+        "y~=UU ==> Iwhen f g (Isinr y) = g$y";
 by (rtac some_equality 1);
 by (fast_tac HOL_cs  2);
 by (rtac conjI 1);

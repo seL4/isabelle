@@ -22,13 +22,13 @@ syntax
 
 translations
         "<x, y, z>"   == "<x, <y, z>>"
-        "<x, y>"      == "cpair`x`y"
+        "<x, y>"      == "cpair$x$y"
 
 defs
 cpair_def       "cpair  == (LAM x y.(x,y))"
 cfst_def        "cfst   == (LAM p. fst(p))"
 csnd_def        "csnd   == (LAM p. snd(p))"      
-csplit_def      "csplit == (LAM f p. f`(cfst`p)`(csnd`p))"
+csplit_def      "csplit == (LAM f p. f$(cfst$p)$(csnd$p))"
 
 
 
@@ -43,7 +43,7 @@ csplit_def      "csplit == (LAM f p. f`(cfst`p)`(csnd`p))"
 
 constdefs
   CLet           :: "'a -> ('a -> 'b) -> 'b"
-  "CLet == LAM s f. f`s"
+  "CLet == LAM s f. f$s"
 
 
 (* syntax for Let *)
@@ -59,7 +59,7 @@ syntax
 
 translations
   "_CLet (_Cbinds b bs) e"  == "_CLet b (_CLet bs e)"
-  "Let x = a in e"          == "CLet`a`(LAM x. e)"
+  "Let x = a in e"          == "CLet$a$(LAM x. e)"
 
 
 (* syntax for LAM <x,y,z>.e *)
@@ -68,9 +68,9 @@ syntax
   "_LAM"    :: "[patterns, 'a => 'b] => ('a -> 'b)"  ("(3LAM <_>./ _)" [0, 10] 10)
 
 translations
-  "LAM <x,y,zs>.b"        == "csplit`(LAM x. LAM <y,zs>.b)"
-  "LAM <x,y>. LAM zs. b"  <= "csplit`(LAM x y zs. b)"
-  "LAM <x,y>.b"           == "csplit`(LAM x y. b)"
+  "LAM <x,y,zs>.b"        == "csplit$(LAM x. LAM <y,zs>.b)"
+  "LAM <x,y>. LAM zs. b"  <= "csplit$(LAM x y zs. b)"
+  "LAM <x,y>.b"           == "csplit$(LAM x y. b)"
 
 syntax (symbols)
   "_LAM"    :: "[patterns, 'a => 'b] => ('a -> 'b)"  ("(3\\<Lambda>()<_>./ _)" [0, 10] 10)

@@ -25,8 +25,8 @@ qed "ex1_some_eq_trivial";
 
 section "unique";
 
-Goal "(x, y) : set l --> x : fst `` set l";
-by (induct_tac "l" 1);
+Goal "(x, y) : set xys --> x : fst ` set xys";
+by (induct_tac "xys" 1);
 by  Auto_tac;
 qed_spec_mp "fst_in_set_lemma";
 

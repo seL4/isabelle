@@ -134,13 +134,13 @@ qed"ax_flat_lift";
 
 (* Two specific lemmas for the combination of LCF and HOL terms *)
 
-Goal "[|cont g; cont f|] ==> cont(%x. ((f x)`(g x)) s)";
+Goal "[|cont g; cont f|] ==> cont(%x. ((f x)$(g x)) s)";
 by (rtac cont2cont_CF1L 1);
 by (REPEAT (resolve_tac cont_lemmas1 1));
 by Auto_tac;
 qed"cont_Rep_CFun_app";
 
-Goal "[|cont g; cont f|] ==> cont(%x. ((f x)`(g x)) s t)";
+Goal "[|cont g; cont f|] ==> cont(%x. ((f x)$(g x)) s t)";
 by (rtac cont2cont_CF1L 1);
 by (etac cont_Rep_CFun_app 1);
 by (assume_tac 1);

@@ -83,12 +83,12 @@ Goalw [starset_def,hypreal_of_real_def]
 by (auto_tac (claset() addIs [FreeUltrafilterNat_subset],simpset()));
 qed "STAR_mem";
 
-Goalw [starset_def] "hypreal_of_real `` A <= *s* A";
+Goalw [starset_def] "hypreal_of_real ` A <= *s* A";
 by (auto_tac (claset(),simpset() addsimps [hypreal_of_real_def]));
 by (blast_tac (claset() addIs [FreeUltrafilterNat_subset]) 1);
 qed "STAR_hypreal_of_real_image_subset";
 
-Goalw [starset_def] "*s* X Int SReal = hypreal_of_real `` X";
+Goalw [starset_def] "*s* X Int SReal = hypreal_of_real ` X";
 by (auto_tac (claset(),simpset() addsimps [hypreal_of_real_def,SReal_def]));
 by (fold_tac [hypreal_of_real_def]);
 by (rtac imageI 1 THEN rtac ccontr 1);
@@ -98,7 +98,7 @@ by (blast_tac (claset() addIs [FreeUltrafilterNat_subset]) 2);
 by (Auto_tac);
 qed "STAR_hypreal_of_real_Int";
 
-Goal "x ~: hypreal_of_real `` A ==> ALL y: A. x ~= hypreal_of_real y";
+Goal "x ~: hypreal_of_real ` A ==> ALL y: A. x ~= hypreal_of_real y";
 by (Auto_tac);
 qed "lemma_not_hyprealA";
 
@@ -108,7 +108,7 @@ qed "lemma_Compl_eq";
 
 Goalw [starset_def]
     "ALL n. (X n) ~: M \
-\         ==> Abs_hypreal(hyprel```{X}) ~: *s* M";
+\         ==> Abs_hypreal(hyprel``{X}) ~: *s* M";
 by (Auto_tac THEN rtac bexI 1 THEN rtac lemma_hyprel_refl 2);
 by (Auto_tac);
 qed "STAR_real_seq_to_hypreal";
@@ -193,14 +193,14 @@ qed "Rep_hypreal_FreeUltrafilterNat";
     Nonstandard extension of functions- congruence 
  -----------------------------------------------------------------------*) 
 
-Goalw [congruent_def] "congruent hyprel (%X. hyprel```{%n. f (X n)})";
+Goalw [congruent_def] "congruent hyprel (%X. hyprel``{%n. f (X n)})";
 by (safe_tac (claset()));
 by (ALLGOALS(Fuf_tac));
 qed "starfun_congruent";
 
 Goalw [starfun_def]
-      "(*f* f) (Abs_hypreal(hyprel```{%n. X n})) = \
-\      Abs_hypreal(hyprel ``` {%n. f (X n)})";
+      "(*f* f) (Abs_hypreal(hyprel``{%n. X n})) = \
+\      Abs_hypreal(hyprel `` {%n. f (X n)})";
 by (res_inst_tac [("f","Abs_hypreal")] arg_cong 1);
 by (simp_tac (simpset() addsimps 
    [hyprel_in_hypreal RS Abs_hypreal_inverse,[equiv_hyprel,
@@ -417,8 +417,8 @@ qed "starfun_mem_starset";
    applied entrywise to equivalence class representative.
    This is easily proved using starfun and ns extension thm
  ------------------------------------------------------------*)
-Goal "abs (Abs_hypreal (hyprel ``` {X})) = \
-\                 Abs_hypreal(hyprel ``` {%n. abs (X n)})";
+Goal "abs (Abs_hypreal (hyprel `` {X})) = \
+\                 Abs_hypreal(hyprel `` {%n. abs (X n)})";
 by (simp_tac (simpset() addsimps [starfun_rabs_hrabs RS sym,starfun]) 1);
 qed "hypreal_hrabs";
 
@@ -470,7 +470,7 @@ by (dres_inst_tac [("x","n")] spec 1);
 by (Fuf_tac 1);
 qed  "Infinitesimal_FreeUltrafilterNat_iff2";
 
-Goal "(Abs_hypreal(hyprel```{X}) @= Abs_hypreal(hyprel```{Y})) = \
+Goal "(Abs_hypreal(hyprel``{X}) @= Abs_hypreal(hyprel``{Y})) = \
 \     (ALL m. {n. abs (X n + - Y n) < \
 \                 inverse(real_of_nat(Suc m))} : FreeUltrafilterNat)";
 by (rtac (inf_close_minus_iff RS ssubst) 1);
@@ -485,6 +485,6 @@ qed "inf_close_FreeUltrafilterNat_iff";
 Goal "inj starfun";
 by (rtac injI 1);
 by (rtac ext 1 THEN rtac ccontr 1);
-by (dres_inst_tac [("x","Abs_hypreal(hyprel ```{%n. xa})")] fun_cong 1);
+by (dres_inst_tac [("x","Abs_hypreal(hyprel ``{%n. xa})")] fun_cong 1);
 by (auto_tac (claset(),simpset() addsimps [starfun]));
 qed "inj_starfun";

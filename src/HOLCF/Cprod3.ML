@@ -125,7 +125,7 @@ qed "cont_snd";
 (* ------------------------------------------------------------------------ *)
 
 Goalw [cpair_def]
-        "(LAM x y.(x,y))`a`b = (a,b)";
+        "(LAM x y.(x,y))$a$b = (a,b)";
 by (stac beta_cfun 1);
 by (simp_tac (simpset() addsimps [cont_pair1,cont_pair2,cont2cont_CF1L]) 1);
 by (stac beta_cfun 1);
@@ -170,7 +170,7 @@ by (etac (beta_cfun_cprod RS ssubst) 1);
 qed "cprodE";
 
 Goalw [cfst_def,cpair_def] 
-        "cfst`<x,y>=x";
+        "cfst$<x,y>=x";
 by (stac beta_cfun_cprod 1);
 by (stac beta_cfun 1);
 by (rtac cont_fst 1);
@@ -178,22 +178,22 @@ by (Simp_tac  1);
 qed "cfst2";
 
 Goalw [csnd_def,cpair_def] 
-        "csnd`<x,y>=y";
+        "csnd$<x,y>=y";
 by (stac beta_cfun_cprod 1);
 by (stac beta_cfun 1);
 by (rtac cont_snd 1);
 by (Simp_tac  1);
 qed "csnd2";
 
-Goal "cfst`UU = UU";
+Goal "cfst$UU = UU";
 by (simp_tac (HOL_ss addsimps [inst_cprod_pcpo2,cfst2]) 1);
 qed "cfst_strict";
 
-Goal "csnd`UU = UU";
+Goal "csnd$UU = UU";
 by (simp_tac (HOL_ss addsimps [inst_cprod_pcpo2,csnd2]) 1);
 qed "csnd_strict";
 
-Goalw [cfst_def,csnd_def,cpair_def] "<cfst`p , csnd`p> = p";
+Goalw [cfst_def,csnd_def,cpair_def] "<cfst$p , csnd$p> = p";
 by (stac beta_cfun_cprod 1);
 by (stac beta_cfun 1);
 by (rtac cont_snd 1);
@@ -212,7 +212,7 @@ qed "less_cprod5c";
 
 Goalw [cfst_def,csnd_def,cpair_def]
 "[|chain(S)|] ==> range(S) <<| \
-\ <(lub(range(%i. cfst`(S i)))) , lub(range(%i. csnd`(S i)))>";
+\ <(lub(range(%i. cfst$(S i)))) , lub(range(%i. csnd$(S i)))>";
 by (stac beta_cfun_cprod 1);
 by (stac (beta_cfun RS ext) 1);
 by (rtac cont_snd 1);
@@ -226,17 +226,17 @@ bind_thm ("thelub_cprod2", lub_cprod2 RS thelubI);
 (*
 chain ?S1 ==>
  lub (range ?S1) =
- <lub (range (%i. cfst`(?S1 i))), lub (range (%i. csnd`(?S1 i)))>" 
+ <lub (range (%i. cfst$(?S1 i))), lub (range (%i. csnd$(?S1 i)))>" 
 *)
 Goalw [csplit_def]
-        "csplit`f`<x,y> = f`x`y";
+        "csplit$f$<x,y> = f$x$y";
 by (stac beta_cfun 1);
 by (Simp_tac 1);
 by (simp_tac (simpset() addsimps [cfst2,csnd2]) 1);
 qed "csplit2";
 
 Goalw [csplit_def]
-  "csplit`cpair`z=z";
+  "csplit$cpair$z=z";
 by (stac beta_cfun 1);
 by (Simp_tac 1);
 by (simp_tac (simpset() addsimps [surjective_pairing_Cprod2]) 1);

@@ -50,7 +50,7 @@ qed "Restrict_eq_mono";
 
 Goalw [Restrict_def, image_def]
      "[| s : RR;  Restrict A r = Restrict A s |] \
-\     ==> Restrict A r : Restrict A `` RR";
+\     ==> Restrict A r : Restrict A ` RR";
 by Auto_tac;
 qed "Restrict_imageI";
 
@@ -58,14 +58,14 @@ Goal "Domain (Restrict A r) = A Int Domain r";
 by (Blast_tac 1);
 qed "Domain_Restrict";
 
-Goal "(Restrict A r) ``` B = r ``` (A Int B)";
+Goal "(Restrict A r) `` B = r `` (A Int B)";
 by (Blast_tac 1);
 qed "Image_Restrict";
 
 Addsimps [Domain_Restrict, Image_Restrict];
 
 
-Goal "f Id = Id ==> insert Id (f``Acts F) = f `` Acts F";
+Goal "f Id = Id ==> insert Id (f`Acts F) = f ` Acts F";
 by (blast_tac (claset() addIs [sym RS image_eqI]) 1);
 qed "insert_Id_image_Acts";
 
@@ -211,7 +211,7 @@ Addsimps [standard extend_set_UNIV_eq];
 (*** project_set: basic properties ***)
 
 (*project_set is simply image!*)
-Goal "project_set h C = f `` C";
+Goal "project_set h C = f ` C";
 by (auto_tac (claset() addIs [f_h_eq RS sym], 
 	      simpset() addsimps [split_extended_all]));
 qed "project_set_eq";
@@ -308,7 +308,7 @@ by (rtac extend_act_inverse 1);
 qed "inj_extend_act";
 
 Goalw [extend_set_def, extend_act_def]
-     "extend_act h act ``` (extend_set h A) = extend_set h (act ``` A)";
+     "extend_act h act `` (extend_set h A) = extend_set h (act `` A)";
 by (Force_tac 1);
 qed "extend_act_Image";
 Addsimps [extend_act_Image];
@@ -363,17 +363,17 @@ by Auto_tac;
 qed "Init_project";
 Addsimps [Init_project];
 
-Goal "Acts (extend h F) = (extend_act h `` Acts F)";
+Goal "Acts (extend h F) = (extend_act h ` Acts F)";
 by (simp_tac (simpset() addsimps [extend_def, insert_Id_image_Acts]) 1);
 qed "Acts_extend";
 Addsimps [Acts_extend];
 
-Goal "AllowedActs (extend h F) = project_act h -`` AllowedActs F";
+Goal "AllowedActs (extend h F) = project_act h -` AllowedActs F";
 by (simp_tac (simpset() addsimps [extend_def, insert_absorb]) 1);
 qed "AllowedActs_extend";
 Addsimps [AllowedActs_extend];
 
-Goal "Acts(project h C F) = insert Id (project_act h `` Restrict C `` Acts F)";
+Goal "Acts(project h C F) = insert Id (project_act h ` Restrict C ` Acts F)";
 by (auto_tac (claset(), 
 	      simpset() addsimps [project_def, image_iff]));
 qed "Acts_project";
@@ -381,7 +381,7 @@ Addsimps [Acts_project];
 
 Goal "AllowedActs(project h C F) = \
 \       {act. Restrict (project_set h C) act \
-\              : project_act h `` Restrict C `` AllowedActs F}";
+\              : project_act h ` Restrict C ` AllowedActs F}";
 by (simp_tac (simpset() addsimps [project_def, image_iff]) 1);
 by (stac insert_absorb 1);
 by (auto_tac (claset() addSIs [inst "x" "Id" bexI], 
@@ -389,7 +389,7 @@ by (auto_tac (claset() addSIs [inst "x" "Id" bexI],
 qed "AllowedActs_project";
 Addsimps [AllowedActs_project];
 
-Goal "Allowed (extend h F) = project h UNIV -`` Allowed F";
+Goal "Allowed (extend h F) = project h UNIV -` Allowed F";
 by (simp_tac (simpset() addsimps [AllowedActs_extend, Allowed_def]) 1);
 by (Blast_tac 1); 
 qed "Allowed_extend";
@@ -422,8 +422,8 @@ by (auto_tac (claset(), simpset() addsimps [project_act_def]));
 qed "project_act_Restrict_Id_eq";
 
 Goal "project h C (extend h F) = \
-\     mk_program (Init F, Restrict (project_set h C) `` Acts F, \
-\                 {act. Restrict (project_set h C) act : project_act h `` Restrict C `` (project_act h -`` AllowedActs F)})";
+\     mk_program (Init F, Restrict (project_set h C) ` Acts F, \
+\                 {act. Restrict (project_set h C) act : project_act h ` Restrict C ` (project_act h -` AllowedActs F)})";
 by (rtac program_equalityI 1);
 by (asm_simp_tac (simpset() addsimps [image_eq_UN]) 2);
 by (Simp_tac 1);
@@ -761,14 +761,14 @@ by Auto_tac;
 qed "OK_extend_iff";
 
 Goal "F : X guarantees Y ==> \
-\     extend h F : (extend h `` X) guarantees (extend h `` Y)";
+\     extend h F : (extend h ` X) guarantees (extend h ` Y)";
 by (rtac guaranteesI 1);
 by (Clarify_tac 1);
 by (blast_tac (claset() addDs [ok_extend_imp_ok_project, 
                                extend_Join_eq_extend_D, guaranteesD]) 1);
 qed "guarantees_imp_extend_guarantees";
 
-Goal "extend h F : (extend h `` X) guarantees (extend h `` Y) \
+Goal "extend h F : (extend h ` X) guarantees (extend h ` Y) \
 \     ==> F : X guarantees Y";
 by (auto_tac (claset(), simpset() addsimps [guar_def]));
 by (dres_inst_tac [("x", "extend h G")] spec 1);
@@ -778,7 +778,7 @@ by (asm_full_simp_tac
                          inj_extend RS inj_image_mem_iff]) 1);
 qed "extend_guarantees_imp_guarantees";
 
-Goal "(extend h F : (extend h `` X) guarantees (extend h `` Y)) = \
+Goal "(extend h F : (extend h ` X) guarantees (extend h ` Y)) = \
 \    (F : X guarantees Y)";
 by (blast_tac (claset() addIs [guarantees_imp_extend_guarantees,
 			       extend_guarantees_imp_guarantees]) 1);

@@ -91,15 +91,15 @@ lemma undual_equality [iff?]: "(undual x' = undual y') = (x' = y')"
 lemma dual_equality [iff?]: "(dual x = dual y) = (x = y)"
   by simp
 
-lemma dual_ball [iff?]: "(\<forall>x \<in> A. P (dual x)) = (\<forall>x' \<in> dual `` A. P x')"
+lemma dual_ball [iff?]: "(\<forall>x \<in> A. P (dual x)) = (\<forall>x' \<in> dual ` A. P x')"
 proof
   assume a: "\<forall>x \<in> A. P (dual x)"
-  show "\<forall>x' \<in> dual `` A. P x'"
+  show "\<forall>x' \<in> dual ` A. P x'"
   proof
-    fix x' assume x': "x' \<in> dual `` A"
+    fix x' assume x': "x' \<in> dual ` A"
     have "undual x' \<in> A"
     proof -
-      from x' have "undual x' \<in> undual `` dual `` A" by simp
+      from x' have "undual x' \<in> undual ` dual ` A" by simp
       thus "undual x' \<in> A" by (simp add: image_compose [symmetric])
     qed
     with a have "P (dual (undual x'))" ..
@@ -107,16 +107,16 @@ proof
     finally show "P x'" .
   qed
 next
-  assume a: "\<forall>x' \<in> dual `` A. P x'"
+  assume a: "\<forall>x' \<in> dual ` A. P x'"
   show "\<forall>x \<in> A. P (dual x)"
   proof
     fix x assume "x \<in> A"
-    hence "dual x \<in> dual `` A" by simp
+    hence "dual x \<in> dual ` A" by simp
     with a show "P (dual x)" ..
   qed
 qed
 
-lemma range_dual [simp]: "dual `` UNIV = UNIV"
+lemma range_dual [simp]: "dual ` UNIV = UNIV"
 proof (rule surj_range)
   have "\<And>x'. dual (undual x') = x'" by simp
   thus "surj dual" by (rule surjI)
@@ -124,7 +124,7 @@ qed
 
 lemma dual_all [iff?]: "(\<forall>x. P (dual x)) = (\<forall>x'. P x')"
 proof -
-  have "(\<forall>x \<in> UNIV. P (dual x)) = (\<forall>x' \<in> dual `` UNIV. P x')"
+  have "(\<forall>x \<in> UNIV. P (dual x)) = (\<forall>x' \<in> dual ` UNIV. P x')"
     by (rule dual_ball)
   thus ?thesis by simp
 qed

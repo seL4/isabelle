@@ -19,7 +19,7 @@ constdefs
        "fup == (LAM f p. Ifup(f)(p))"
 
 translations
-"case l of up`x => t1" == "fup`(LAM x. t1)`l"
+"case l of up$x => t1" == "fup$(LAM x. t1)$l"
 
 end
 

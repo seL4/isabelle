@@ -15,7 +15,7 @@ constdefs
   (*This definition specifies weak fairness.  The rest of the theory
     is generic to all forms of fairness.*)
   transient :: "'a set => 'a program set"
-    "transient A == {F. EX act: Acts F. A <= Domain act & act```A <= -A}"
+    "transient A == {F. EX act: Acts F. A <= Domain act & act``A <= -A}"
 
   ensures :: "['a set, 'a set] => 'a program set"       (infixl 60)
     "A ensures B == (A-B co A Un B) Int transient (A-B)"

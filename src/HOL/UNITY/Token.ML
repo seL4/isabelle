@@ -74,8 +74,7 @@ by (rtac (TR7 RS leadsTo_weaken_R) 1);
 by (auto_tac (claset(), simpset() addsimps [HasTok_def, nodeOrder_eq]));
 qed "TR7_aux";
 
-Goal "({s. token s < N} Int token -`` {m}) = \
-\     (if m<N then token -`` {m} else {})";
+Goal "({s. token s < N} Int token -` {m}) = (if m<N then token -` {m} else {})";
 by Auto_tac;
 val token_lemma = result();
 

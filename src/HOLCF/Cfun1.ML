@@ -50,15 +50,15 @@ qed "trans_less_cfun";
 (* lemmas about application of continuous functions                         *)
 (* ------------------------------------------------------------------------ *)
 
-Goal "[| f=g; x=y |] ==> f`x = g`y";
+Goal "[| f=g; x=y |] ==> f$x = g$y";
 by (Asm_simp_tac 1);
 qed "cfun_cong";
 
-Goal "f=g ==> f`x = g`x";
+Goal "f=g ==> f$x = g$x";
 by (Asm_simp_tac 1);
 qed "cfun_fun_cong";
 
-Goal "x=y ==> f`x = f`y";
+Goal "x=y ==> f$x = f$y";
 by (Asm_simp_tac 1);
 qed "cfun_arg_cong";
 
@@ -77,7 +77,7 @@ qed "Abs_Cfun_inverse2";
 (* simplification of application                                            *)
 (* ------------------------------------------------------------------------ *)
 
-Goal "cont f ==> (Abs_CFun f)`x = f x";
+Goal "cont f ==> (Abs_CFun f)$x = f x";
 by (etac (Abs_Cfun_inverse2 RS fun_cong) 1);
 qed "Cfunapp2";
 
@@ -85,7 +85,7 @@ qed "Cfunapp2";
 (* beta - equality for continuous functions                                 *)
 (* ------------------------------------------------------------------------ *)
 
-Goal "cont(c1) ==> (LAM x .c1 x)`u = c1 u";
+Goal "cont(c1) ==> (LAM x .c1 x)$u = c1 u";
 by (rtac Cfunapp2 1);
 by (atac 1);
 qed "beta_cfun";

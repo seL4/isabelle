@@ -32,5 +32,5 @@ defs
   hyperpow_def
   "(R::hypreal) pow (N::hypnat) 
       == Abs_hypreal(UN X:Rep_hypreal(R). UN Y: Rep_hypnat(N).
-             hyprel```{%n::nat. (X n) ^ (Y n)})"
+             hyprel``{%n::nat. (X n) ^ (Y n)})"
 end
