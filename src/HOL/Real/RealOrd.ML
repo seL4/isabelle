@@ -61,6 +61,11 @@ structure Real_Cancel = Abel_Cancel (Real_Cancel_Data);
 
 Addsimprocs [Real_Cancel.sum_conv, Real_Cancel.rel_conv];
 
+Goal "- (z - y) = y - (z::real)";
+by (Simp_tac 1);
+qed "real_minus_diff_eq";
+Addsimps [real_minus_diff_eq];
+
 
 (**** Theorems about the ordering ****)
 
