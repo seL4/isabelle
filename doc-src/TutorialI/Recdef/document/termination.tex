@@ -1,0 +1,89 @@
+\begin{isabelle}%
+%
+\begin{isamarkuptext}%
+When a function is defined via \isacommand{recdef}, Isabelle tries to prove
+its termination with the help of the user-supplied measure.  All of the above
+examples are simple enough that Isabelle can prove automatically that the
+measure of the argument goes down in each recursive call. In that case
+$f$.\isa{simps} contains the defining equations (or variants derived from
+them) as theorems. For example, look (via \isacommand{thm}) at
+\isa{sep.simps} and \isa{sep1.simps} to see that they define the same
+function. What is more, those equations are automatically declared as
+simplification rules.
+
+In general, Isabelle may not be able to prove all termination condition
+(there is one for each recursive call) automatically. For example,
+termination of the following artificial function%
+\end{isamarkuptext}%
+\isacommand{consts}~f~::~{"}nat*nat~{\isasymRightarrow}~nat{"}\isanewline
+\isacommand{recdef}~f~{"}measure({\isasymlambda}(x,y).~x-y){"}\isanewline
+~~{"}f(x,y)~=~(if~x~{\isasymle}~y~then~x~else~f(x,y+1)){"}%
+\begin{isamarkuptext}%
+\noindent
+is not proved automatically (although maybe it should be). Isabelle prints a
+kind of error message showing you what it was unable to prove. You will then
+have to prove it as a separate lemma before you attempt the definition
+of your function once more. In our case the required lemma is the obvious one:%
+\end{isamarkuptext}%
+\isacommand{lemma}~termi\_lem[simp]:~{"}{\isasymnot}~x~{\isasymle}~y~{\isasymLongrightarrow}~x~-~Suc~y~<~x~-~y{"}%
+\begin{isamarkuptxt}%
+\noindent
+It was not proved automatically because of the special nature of \isa{-}
+on \isa{nat}. This requires more arithmetic than is tried by default:%
+\end{isamarkuptxt}%
+\isacommand{apply}(arith)\isacommand{.}%
+\begin{isamarkuptext}%
+\noindent
+Because \isacommand{recdef}'s the termination prover involves simplification,
+we have declared our lemma a simplification rule. Therefore our second
+attempt to define our function will automatically take it into account:%
+\end{isamarkuptext}%
+\isacommand{consts}~g~::~{"}nat*nat~{\isasymRightarrow}~nat{"}\isanewline
+\isacommand{recdef}~g~{"}measure({\isasymlambda}(x,y).~x-y){"}\isanewline
+~~{"}g(x,y)~=~(if~x~{\isasymle}~y~then~x~else~g(x,y+1)){"}%
+\begin{isamarkuptext}%
+\noindent
+This time everything works fine. Now \isa{g.simps} contains precisely the
+stated recursion equation for \isa{g} and they are simplification
+rules. Thus we can automatically prove%
+\end{isamarkuptext}%
+\isacommand{theorem}~wow:~{"}g(1,0)~=~g(1,1){"}\isanewline
+\isacommand{apply}(simp)\isacommand{.}%
+\begin{isamarkuptext}%
+\noindent
+More exciting theorems require induction, which is discussed below.
+
+Because lemma \isa{termi_lem} above was only turned into a
+simplification rule for the sake of the termination proof, we may want to
+disable it again:%
+\end{isamarkuptext}%
+\isacommand{lemmas}~[simp~del]~=~termi\_lem%
+\begin{isamarkuptext}%
+The attentive reader may wonder why we chose to call our function \isa{g}
+rather than \isa{f} the second time around. The reason is that, despite
+the failed termination proof, the definition of \isa{f} did not
+fail (and thus we could not define it a second time). However, all theorems
+about \isa{f}, for example \isa{f.simps}, carry as a precondition the
+unproved termination condition. Moreover, the theorems \isa{f.simps} are
+not simplification rules. However, this mechanism allows a delayed proof of
+termination: instead of proving \isa{termi_lem} up front, we could prove
+it later on and then use it to remove the preconditions from the theorems
+about \isa{f}. In most cases this is more cumbersome than proving things
+up front
+%FIXME, with one exception: nested recursion.
+
+Although all the above examples employ measure functions, \isacommand{recdef}
+allows arbitrary wellfounded relations. For example, termination of
+Ackermann's function requires the lexicographic product \isa{<*lex*>}:%
+\end{isamarkuptext}%
+\isacommand{consts}~ack~::~{"}nat*nat~{\isasymRightarrow}~nat{"}\isanewline
+\isacommand{recdef}~ack~{"}measure(\%m.~m)~<*lex*>~measure(\%n.~n){"}\isanewline
+~~{"}ack(0,n)~~~~~~~~~=~Suc~n{"}\isanewline
+~~{"}ack(Suc~m,0)~~~~~=~ack(m,~1){"}\isanewline
+~~{"}ack(Suc~m,Suc~n)~=~ack(m,ack(Suc~m,n)){"}%
+\begin{isamarkuptext}%
+\noindent
+For details see the manual~\cite{isabelle-HOL} and the examples in the
+library.%
+\end{isamarkuptext}%
+\end{isabelle}%

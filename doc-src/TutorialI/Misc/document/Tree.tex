@@ -1,0 +1,13 @@
+\begin{isabelle}%
+%
+\begin{isamarkuptext}%
+\noindent
+Define the datatype of binary trees%
+\end{isamarkuptext}%
+\isacommand{datatype}~'a~tree~=~Tip~|~Node~{"}'a~tree{"}~'a~{"}'a~tree{"}%
+\begin{isamarkuptext}%
+\noindent
+and a function \isa{mirror} that mirrors a binary tree
+by swapping subtrees (recursively). Prove%
+\end{isamarkuptext}%
+\isacommand{lemma}~mirror\_mirror:~{"}mirror(mirror~t)~=~t{"}\end{isabelle}%

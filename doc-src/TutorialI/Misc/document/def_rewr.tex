@@ -1,0 +1,44 @@
+\begin{isabelle}%
+%
+\begin{isamarkuptext}%
+\noindent Constant definitions (\S\ref{sec:ConstDefinitions}) can
+be used as simplification rules, but by default they are not.  Hence the
+simplifier does not expand them automatically, just as it should be:
+definitions are introduced for the purpose of abbreviating complex
+concepts. Of course we need to expand the definitions initially to derive
+enough lemmas that characterize the concept sufficiently for us to forget the
+original definition. For example, given%
+\end{isamarkuptext}%
+\isacommand{constdefs}~exor~::~{"}bool~{\isasymRightarrow}~bool~{\isasymRightarrow}~bool{"}\isanewline
+~~~~~~~~~{"}exor~A~B~{\isasymequiv}~(A~{\isasymand}~{\isasymnot}B)~{\isasymor}~({\isasymnot}A~{\isasymand}~B){"}%
+\begin{isamarkuptext}%
+\noindent
+we may want to prove%
+\end{isamarkuptext}%
+\isacommand{lemma}~{"}exor~A~({\isasymnot}A){"}%
+\begin{isamarkuptxt}%
+\noindent
+There is a special method for \emph{unfolding} definitions, which we need to
+get started:\indexbold{*unfold}\indexbold{definition!unfolding}%
+\end{isamarkuptxt}%
+\isacommand{apply}(unfold~exor\_def)%
+\begin{isamarkuptxt}%
+\noindent
+It unfolds the given list of definitions (here merely one) in all subgoals:
+\begin{isabellepar}%
+~1.~A~{\isasymand}~{\isasymnot}~{\isasymnot}~A~{\isasymor}~{\isasymnot}~A~{\isasymand}~{\isasymnot}~A%
+\end{isabellepar}%
+The resulting goal can be proved by simplification.
+
+In case we want to expand a definition in the middle of a proof, we can
+simply include it locally:%
+\end{isamarkuptxt}%
+\isacommand{apply}(simp~add:~exor\_def)%
+\begin{isamarkuptext}%
+\noindent
+In fact, this one command proves the above lemma directly.
+
+You should normally not turn a definition permanently into a simplification
+rule because this defeats the whole purpose of an abbreviation.%
+\end{isamarkuptext}%
+\end{isabelle}%
