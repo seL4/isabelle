@@ -20,11 +20,11 @@ eta_contract:=false;
 (** Prove the termination condition and remove it from the recursion equations
     and induction rule **)
 
-Tfl.tgoalw thy [] gcd.rules;
+Tfl.tgoalw thy [] gcd.simps;
 by (simp_tac (simpset() addsimps [mod_less_divisor]) 1);
 val tc = result();
 
-val gcd_eq = tc RS hd gcd.rules;
+val gcd_eq = tc RS hd gcd.simps;
 
 val prems = goal thy
      "[| !!m. P m 0;     \

@@ -4,7 +4,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-val defs1 = exec.rules@[split_def,sup_state_def,correct_state_def,
+val defs1 = exec.simps@[split_def,sup_state_def,correct_state_def,
 		correct_frame_def,wt_instr_def];
 
 Goalw [correct_state_def,Let_def,correct_frame_def,split_def]
@@ -541,14 +541,14 @@ by(split_all_tac 1);
 by(rename_tac "xp hp frs" 1);
 by (case_tac "xp" 1);
  by (case_tac "frs" 1);
-  by (asm_full_simp_tac (simpset() addsimps exec.rules) 1);
+  by (asm_full_simp_tac (simpset() addsimps exec.simps) 1);
  by(split_all_tac 1);
  by(hyp_subst_tac 1);
  by(forward_tac [correct_state_impl_Some_method] 1);
  by (force_tac (claset() addIs [LS_correct,CO_correct,MO_correct,CH_correct,MI_correct,MR_correct,OS_correct,
-	BR_correct], simpset() addsplits [split_if_asm,instr.split,instr.split_asm] addsimps exec.rules@[split_def]) 1);
+	BR_correct], simpset() addsplits [split_if_asm,instr.split,instr.split_asm] addsimps exec.simps@[split_def]) 1);
 by (case_tac "frs" 1);
- by (ALLGOALS(asm_full_simp_tac (simpset() addsimps exec.rules)));
+ by (ALLGOALS(asm_full_simp_tac (simpset() addsimps exec.simps)));
 qed_spec_mp "BV_correct_1";
 
 (*******)

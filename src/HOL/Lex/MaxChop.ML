@@ -15,7 +15,7 @@ goalw_cterm [reducing_def] (cterm_of (sign_of thy) (HOLogic.mk_Trueprop tc));
 by (blast_tac (claset() addDs [sym]) 1);
 val lemma = result();
 
-val chopr_rule = let val [chopr_rule] = chopr.rules in lemma RS chopr_rule end;
+val chopr_rule = let val [chopr_rule] = chopr.simps in lemma RS chopr_rule end;
 
 Goalw [chop_def] "reducing splitf ==> \
 \ chop splitf xs = (let (pre,post) = splitf xs \

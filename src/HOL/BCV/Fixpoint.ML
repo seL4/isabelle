@@ -33,7 +33,7 @@ Goalw [wf_iff_no_infinite_down_chain RS eq_reflection]
 \    !a:A. next a : option A; s:A |] ==> \
 \ fix(next,s) = (case next s of None => False \
 \                | Some t => if t=s then True else fix(next,t))";
-by (stac (fix_tc RS (hd fix.rules)) 1);
+by (stac (fix_tc RS (hd fix.simps)) 1);
 by (Simp_tac 1);
 by (Clarify_tac 1);
 by (subgoal_tac "!i. f i : A" 1);

@@ -99,7 +99,7 @@ val lemma = result();
 
 (* removing the termination condition from the generated theorems *)
 
-bind_thm ("posDivAlg_raw_eqn", lemma RS hd posDivAlg.rules);
+bind_thm ("posDivAlg_raw_eqn", lemma RS hd posDivAlg.simps);
 
 (**use with simproc to avoid re-proving the premise*)
 Goal "#0 < b ==> \
@@ -140,7 +140,7 @@ val lemma = result();
 
 (* removing the termination condition from the generated theorems *)
 
-bind_thm ("negDivAlg_raw_eqn", lemma RS hd negDivAlg.rules);
+bind_thm ("negDivAlg_raw_eqn", lemma RS hd negDivAlg.simps);
 
 (**use with simproc to avoid re-proving the premise*)
 Goal "#0 < b ==> \

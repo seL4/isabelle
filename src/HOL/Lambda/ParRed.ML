@@ -82,8 +82,6 @@ qed "diamond_par_beta";
 
 (*** cd ***)
 
-Addsimps cd.rules;
-
 Goal "!t. s => t --> t => cd s";
 by (res_inst_tac[("u","s")] cd.induct 1);
 by (Auto_tac);

@@ -9,7 +9,7 @@ Lemma statements from Konrad Slind's Web site
 
 (** The silly g function: example of nested recursion **)
 
-Addsimps g.rules;
+Addsimps g.simps;
 
 Goal "g x < Suc x";
 by (res_inst_tac [("u","x")] g.induct 1);
@@ -32,7 +32,7 @@ by (ALLGOALS Asm_simp_tac);
 val lemma = result();
 
 (* removing the termination condition from the generated thms: *)
-val [mapf_0,mapf_Suc] = mapf.rules;
+val [mapf_0,mapf_Suc] = mapf.simps;
 val mapf_Suc = lemma RS mapf_Suc;
 
 val mapf_induct = lemma RS mapf.induct;

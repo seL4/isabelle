@@ -17,10 +17,8 @@ Fibonacci numbers: proofs of laws taken from
     selectively at first.
 **)
 
-val [fib_0, fib_1, fib_Suc_Suc] = fib.rules;
-
-Addsimps [fib_0, fib_1];
-
+val [fib_Suc_Suc] = thms"fib.2";
+Delsimps [fib_Suc_Suc];
 
 val fib_Suc3 = read_instantiate [("x", "(Suc ?n)")] fib_Suc_Suc;
 

@@ -44,8 +44,6 @@ qed "PREC_Suc";
 Addsimps [SC, CONST, PROJ_0, COMP_1, PREC_0, PREC_Suc];
 
 
-Addsimps ack.rules;
-
 (*PROPERTY A 4*)
 Goal "j < ack(i,j)";
 by (res_inst_tac [("u","i"),("v","j")] ack.induct 1);

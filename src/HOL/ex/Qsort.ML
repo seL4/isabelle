@@ -8,8 +8,6 @@ The verification of Quicksort
 
 (*** Version one: higher-order ***)
 
-Addsimps qsort.rules;
-
 Goal "multiset (qsort(le,xs)) x = multiset xs x";
 by (res_inst_tac [("v","xs"),("u","le")] qsort.induct 1);
 by Auto_tac;
@@ -31,8 +29,6 @@ qed_spec_mp "sorted_qsort";
 
 
 (*** Version two: type classes ***)
-
-Addsimps quickSort.rules;
 
 Goal "multiset (quickSort xs) z = multiset xs z";
 by (res_inst_tac [("u","xs")] quickSort.induct 1);

@@ -38,7 +38,7 @@ open Unify;
 (*---------------------------------------------------------------------------
  * The non-nested TC plus the wellfoundedness of unifyRel.
  *---------------------------------------------------------------------------*)
-Tfl.tgoalw Unify.thy [] unify.rules;
+Tfl.tgoalw Unify.thy [] unify.simps;
 (* Wellfoundedness of unifyRel *)
 by (simp_tac (simpset() addsimps [unifyRel_def,
 				 wf_inv_image, wf_lex_prod, wf_finite_psubset,
@@ -129,7 +129,7 @@ qed "var_elimR";
 val wfr = tc0 RS conjunct1
 and tc  = tc0 RS conjunct2;
 val unifyRules0 = map (normalize_thm [fn th => wfr RS th, fn th => tc RS th]) 
-                     unify.rules;
+                     unify.simps;
 
 val unifyInduct0 = [wfr,tc] MRS unify.induct;
 
@@ -170,7 +170,7 @@ qed_spec_mp "unify_TC";
 
 
 (*---------------------------------------------------------------------------
- * Now for elimination of nested TC from unify.rules and induction. 
+ * Now for elimination of nested TC from unify.simps and induction. 
  *---------------------------------------------------------------------------*)
 
 (*Desired rule, copied from the theory file.  Could it be made available?*)

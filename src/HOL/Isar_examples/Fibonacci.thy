@@ -30,9 +30,7 @@ consts fib :: "nat => nat";
 recdef fib less_than
  "fib 0 = 0"
  "fib 1 = 1"
- "fib (Suc (Suc x)) = (fib x + fib (Suc x))";
-
-lemmas [simp] = fib.rules;
+ "fib (Suc (Suc x)) = fib x + fib(Suc x)";
 
 lemma [simp]: "0 < fib (Suc n)";
   by (induct n rule: fib.induct) (simp+);

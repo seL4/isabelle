@@ -6,7 +6,7 @@
 Parallel reduction and a complete developments function "cd".
 *)
 
-ParRed = Lambda + Commutation + Recdef +
+ParRed = Lambda + Commutation +
 
 consts  par_beta :: "(dB * dB) set"
 

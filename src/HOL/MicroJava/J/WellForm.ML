@@ -99,7 +99,7 @@ Goal "wf_prog wf_mb G \\<Longrightarrow> method (G,C) = \
 \ (case class G C of None \\<Rightarrow> empty | Some (sc,fs,ms) \\<Rightarrow> \
 \ (case sc of None \\<Rightarrow> empty | Some D \\<Rightarrow> method (G,D)) \\<oplus> \
 \ map_of (map (\\<lambda>(s,m). (s,(C,m))) ms))";
-by( stac (method_TC RS (wf_subcls1_rel RS (hd method.rules))) 1);
+by( stac (method_TC RS (wf_subcls1_rel RS (hd method.simps))) 1);
 by( clarsimp_tac (claset(), simpset() addsimps [wf_subcls1,empty_def] 
 		addsplits [option.split]) 1);
 by( case_tac "C = Object" 1);
@@ -114,7 +114,7 @@ qed "method_rec";
 Goal "\\<lbrakk>class G C = Some (sc,fs,ms); wf_prog wf_mb G\\<rbrakk> \\<Longrightarrow> fields (G,C) = \
 \ map (\\<lambda>(fn,ft). ((fn,C),ft)) fs @ \
 \ (case sc of None \\<Rightarrow> [] | Some D \\<Rightarrow> fields (G,D))";
-by( stac (fields_TC RS (wf_subcls1_rel RS (hd fields.rules))) 1);
+by( stac (fields_TC RS (wf_subcls1_rel RS (hd fields.simps))) 1);
 by( asm_simp_tac (simpset() addsimps [wf_subcls1,empty_def]) 1);
 by( option_case_tac2 "sc" 1);
 by(  Asm_simp_tac 1);

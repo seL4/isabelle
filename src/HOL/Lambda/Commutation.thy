@@ -6,7 +6,7 @@
 Abstract commutation and confluence notions.
 *)
 
-Commutation = Trancl +
+Commutation = Main +
 
 consts
   square  :: "[('a*'a)set,('a*'a)set,('a*'a)set,('a*'a)set] => bool"
