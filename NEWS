@@ -192,6 +192,8 @@ New in this Isabelle release
   Moreover, the mathematically important symbolic identifier
   \<epsilon> becomes available as variable, constant etc.
 
+* HOL: "x > y" abbreviates "y < x" and "x >= y" abbreviates "y <= x"
+
 * HOL/SetInterval: The syntax for open intervals has changed:
 
   Old         New
