@@ -265,7 +265,7 @@ end;
 fun required_by _ [] = ""
   | required_by s initiators = s ^ "(required by " ^ show_path (rev initiators) ^ ")";
 
-fun load_thy really ml time initiators dir name parents =
+fun load_thy really ml time initiators dir name =
   let
     val _ =
       if really then priority ("Loading theory " ^ quote name ^ required_by " " initiators)
@@ -288,6 +288,8 @@ fun load_thy really ml time initiators dir name parents =
 
 
 (* require_thy *)
+
+fun base_of_path s = Path.pack (Path.base (Path.unpack s));
 
 local
 
@@ -326,21 +328,24 @@ fun require_thy really ml time strict keep_strict initiators prfx (visited, str)
       let
         val dir = Path.append prfx (Path.dir path);
         val req_parent = require_thy true true time (strict andalso keep_strict) keep_strict
-          (name :: initiators) dir;
+          (name :: initiators);
 
         val (current, (new_deps, parents)) = current_deps ml strict dir name handle ERROR =>
           error (loader_msg "the error(s) above occurred while examining theory" [name] ^
             (if null initiators then "" else required_by "\n" initiators));
-        val (visited', parent_results) = foldl_map req_parent (name :: visited, parents);
+        val dir' = (case new_deps of
+            None => dir
+          | Some (Some {master = Some m, ...}) => Path.dir (fst (ThyLoad.get_thy m)));
+        val (visited', parent_results) = foldl_map (req_parent dir') (name :: visited, parents);
 
         val thy = if not really then Some (get_theory name) else None;
         val result =
           if current andalso forall #1 parent_results then true
           else
             ((case new_deps of
-              Some deps => change_thys (update_node name parents (deps, thy))
+              Some deps => change_thys (update_node name (map base_of_path parents) (deps, thy))
             | None => ());
-             load_thy really ml (time orelse ! Output.timing) initiators dir name parents;
+             load_thy really ml (time orelse ! Output.timing) initiators dir name;
              false);
       in (visited', (result, name)) end
   end;
@@ -382,17 +387,18 @@ fun remove_thy name =
 
 fun begin_theory present upd name parents paths =
   let
+    val bparents = map base_of_path parents;
     val assert_thy = if upd then quiet_update_thy true else weak_use_thy;
     val _ = check_unfinished error name;
-    val _ = (map Path.basic parents; seq assert_thy parents);
-    val theory = PureThy.begin_theory name (map get_theory parents);
+    val _ = seq assert_thy parents;
+    val theory = PureThy.begin_theory name (map get_theory bparents);
     val deps =
       if known_thy name then get_deps name
       else (init_deps None (map #1 paths));   (*records additional ML files only!*)
     val use_paths = mapfilter (fn (x, true) => Some x | _ => None) paths;
 
-    val _ = change_thys (update_node name parents (deps, Some (Theory.copy theory)));
-    val theory' = theory |> present name parents paths;
+    val _ = change_thys (update_node name bparents (deps, Some (Theory.copy theory)));
+    val theory' = theory |> present name bparents paths;
     val _ = put_theory name (Theory.copy theory');
     val ((), theory'') = Context.pass_theory theory' (seq (load_file false)) use_paths;
     val _ = put_theory name (Theory.copy theory'');
