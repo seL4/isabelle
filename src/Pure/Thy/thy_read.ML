@@ -82,7 +82,7 @@ sig
   val pure_subchart : string option ref
   val make_html     : bool ref
   val init_html     : unit -> unit
-  val make_chart    : unit -> unit
+  val finish_html   : unit -> unit
 end;
 
 
@@ -1045,6 +1045,11 @@ fun init_html () =
       val rel_gif_path = relative_path cwd (!gif_path);
       val package = relative_path (!base_path) cwd;
 
+      val dummy = if (explode (!base_path)) prefix (explode cwd) then ()
+        else error "The current working directory seems to be no \
+                   \subdirectory of\nIsabelle's main directory. \
+                   \Please ensure that base_path's value is correct.";
+
       (*Make new HTML files for Pure and CPure*)
       fun init_pure_html () =
         let val pure_out = open_out ".Pure_sub.html";
@@ -1070,7 +1075,7 @@ fun init_html () =
   end;
 
 (*Generate index.html*)
-fun make_chart () = if not (!make_html) then () else
+fun finish_html () = if not (!make_html) then () else
   let val tlist_path = tack_on (!index_path) ".theory_list.txt";
       val theory_list = open_in tlist_path;
       val theories = space_explode "\n" (input (theory_list, 999999));
@@ -1100,7 +1105,7 @@ fun make_chart () = if not (!make_html) then () else
 
       (*Look for index.html in superdirectories*)
       fun find_super_index [] _ =
-            error "make_chart: Unable to find super index file."
+            error "finish_html: Unable to find super index file."
         | find_super_index (p::ps) n =
           let val index_path = "/" ^ space_implode "/" (rev ps);
           in if file_exists (index_path ^ "/index.html") then (index_path, n)
@@ -1200,12 +1205,12 @@ fun use_dir dirname =
   (cd dirname;
    if !make_html then init_html() else ();
    use "ROOT.ML";
-   make_chart());
+   finish_html());
 
 fun exit_use_dir dirname =
   (cd dirname;
    if !make_html then init_html() else ();
    exit_use "ROOT.ML";
-   make_chart());
+   finish_html());
 
 end;
