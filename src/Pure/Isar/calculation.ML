@@ -135,12 +135,13 @@ fun calculate final prt state =
       (prt calc;
         state
         |> Proof.bind_i [(Syntax.dddot_indexname, dddot)]
+        |> put_calculation calc
         |> have_thm calc
-        |> (if final then I else Proof.reset_facts)))
+        |> (if final then Proof.chain else Proof.reset_facts)))
   end;
 
-val also = calculate false;
-val finally = calculate true;
+fun also prt = calculate false prt;
+fun finally prt = calculate true prt;
 
 
 
