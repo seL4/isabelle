@@ -109,7 +109,8 @@ fun print_thy thy =
       Pretty.quote (Sign.pretty_term sign t)];
   in
     Pretty.writeln (Pretty.big_list "additional axioms:" (map prt_axm axioms));
-    Pretty.writeln (Pretty.strs ("oracles:" :: oras))
+    Pretty.writeln (Pretty.strs ("oracles:" :: oras));
+    Sign.print_data sign
   end;
 
 fun print_theory thy = (Sign.print_sg (sign_of thy); print_thy thy);
