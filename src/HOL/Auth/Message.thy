@@ -28,10 +28,10 @@ constdefs
   isSymKey :: key=>bool
   "isSymKey K == (invKey K = K)"
 
-  (*We do not assume  Crypt (Crypt X K) (invKey K) = X
-    because Crypt is a constructor!  We assume that encryption is injective,
+  (*We do not assume  Crypt (invKey K) (Crypt K X) = X
+    because Crypt a is constructor!  We assume that encryption is injective,
     which is not true in the real world.  The alternative is to take
-    Crypt as an uninterpreted function symbol satisfying the equation
+    Crypt an as uninterpreted function symbol satisfying the equation
     above.  This seems to require moving to ZF and regarding msg as an
     inductive definition instead of a datatype.*) 
 
@@ -43,7 +43,7 @@ datatype  (*Messages are agent names, nonces, keys, pairs and encryptions*)
       | Nonce nat
       | Key   key
       | MPair msg msg
-      | Crypt msg key
+      | Crypt key msg
 
 (*Allows messages of the form {|A,B,NA|}, etc...*)
 syntax
@@ -56,7 +56,7 @@ translations
 
 constdefs  (*Keys useful to decrypt elements of a message set*)
   keysFor :: msg set => key set
-  "keysFor H == invKey `` {K. EX X. Crypt X K : H}"
+  "keysFor H == invKey `` {K. EX X. Crypt K X : H}"
 
 (** Inductive definition of all "parts" of a message.  **)
 
@@ -66,7 +66,7 @@ inductive "parts H"
     Inj     "X: H ==> X: parts H"
     Fst     "{|X,Y|} : parts H ==> X : parts H"
     Snd     "{|X,Y|} : parts H ==> Y : parts H"
-    Body    "Crypt X K : parts H ==> X : parts H"
+    Body    "Crypt K X : parts H ==> X : parts H"
 
 
 (** Inductive definition of "analz" -- what can be broken down from a set of
@@ -79,7 +79,7 @@ inductive "analz H"
     Inj     "X: H ==> X: analz H"
     Fst     "{|X,Y|} : analz H ==> X : analz H"
     Snd     "{|X,Y|} : analz H ==> Y : analz H"
-    Decrypt "[| Crypt X K : analz H; Key(invKey K): analz H |] ==> X : analz H"
+    Decrypt "[| Crypt K X : analz H; Key(invKey K): analz H |] ==> X : analz H"
 
 
 (** Inductive definition of "synth" -- what can be built up from a set of
@@ -92,6 +92,6 @@ inductive "synth H"
     Inj     "X: H ==> X: synth H"
     Agent   "Agent agt : synth H"
     MPair   "[| X: synth H;  Y: synth H |] ==> {|X,Y|} : synth H"
-    Crypt   "[| X: synth H; Key(K): H |] ==> Crypt X K : synth H"
+    Crypt   "[| X: synth H; Key(K): H |] ==> Crypt K X : synth H"
 
 end

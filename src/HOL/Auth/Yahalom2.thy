@@ -48,25 +48,25 @@ inductive "yahalom lost"
                : set_of_list evs |]
           ==> Says Server A
                {|Nonce NB, 
-                 Crypt {|Agent B, Key (newK evs), Nonce NA|} (shrK A),
-                 Crypt {|Nonce NB, Key (newK evs), Agent A|} (shrK B)|}
+                 Crypt (shrK A) {|Agent B, Key (newK evs), Nonce NA|},
+                 Crypt (shrK B) {|Nonce NB, Key (newK evs), Agent A|}|}
                  # evs : yahalom lost"
 
          (*Alice receives the Server's (?) message, checks her Nonce, and
            uses the new session key to send Bob his Nonce.*)
     YM4  "[| evs: yahalom lost;  A ~= Server;  A ~= B;  
-             Says S A {|Nonce NB, Crypt {|Agent B, Key K, Nonce NA|} (shrK A),
+             Says S A {|Nonce NB, Crypt (shrK A) {|Agent B, Key K, Nonce NA|},
                         X|}
                : set_of_list evs;
              Says A B {|Agent A, Nonce NA|} : set_of_list evs |]
-          ==> Says A B {|X, Crypt (Nonce NB) K|} # evs : yahalom lost"
+          ==> Says A B {|X, Crypt K (Nonce NB)|} # evs : yahalom lost"
 
          (*This message models possible leaks of session keys.  The nonces
            identify the protocol run.  Quoting Server here ensures they are
            correct. *)
     Oops "[| evs: yahalom lost;  A ~= Spy;
              Says Server A {|Nonce NB, 
-                             Crypt {|Agent B, Key K, Nonce NA|} (shrK A),
+                             Crypt (shrK A) {|Agent B, Key K, Nonce NA|},
                              X|}  : set_of_list evs |]
           ==> Says A Spy {|Nonce NA, Nonce NB, Key K|} # evs : yahalom lost"
 

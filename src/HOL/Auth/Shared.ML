@@ -120,7 +120,7 @@ qed "Spy_sees_lost";
 AddSIs [sees_own_shrK, Spy_sees_lost];
 
 (*Added for Yahalom/lost_tac*)
-goal thy "!!A. [| Crypt X (shrK A) : analz (sees lost Spy evs);  A: lost |] \
+goal thy "!!A. [| Crypt (shrK A) X : analz (sees lost Spy evs);  A: lost |] \
 \              ==> X : analz (sees lost Spy evs)";
 by (fast_tac (!claset addSDs [analz.Decrypt] addss (!simpset)) 1);
 qed "Crypt_Spy_analz_lost";
@@ -172,14 +172,14 @@ by (Auto_tac ());
 qed_spec_mp "Says_imp_sees_Spy";
 
 goal thy  
- "!!evs. [| Says A B (Crypt X (shrK C)) : set_of_list evs;  C : lost |] \
+ "!!evs. [| Says A B (Crypt (shrK C) X) : set_of_list evs;  C : lost |] \
 \        ==> X : analz (sees lost Spy evs)";
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]
                       addss (!simpset)) 1);
 qed "Says_Crypt_lost";
 
 goal thy  
- "!!evs. [| Says A B (Crypt X (shrK C)) : set_of_list evs;        \
+ "!!evs. [| Says A B (Crypt (shrK C) X) : set_of_list evs;        \
 \           X ~: analz (sees lost Spy evs) |]                     \
 \        ==> C ~: lost";
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]

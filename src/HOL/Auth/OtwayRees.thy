@@ -30,8 +30,8 @@ inductive "otway lost"
          (*Alice initiates a protocol run*)
     OR1  "[| evs: otway lost;  A ~= B;  B ~= Server |]
           ==> Says A B {|Nonce (newN evs), Agent A, Agent B, 
-                         Crypt {|Nonce (newN evs), Agent A, Agent B|} 
-                               (shrK A) |} 
+                         Crypt (shrK A)
+                               {|Nonce (newN evs), Agent A, Agent B|} |} 
                  # evs : otway lost"
 
          (*Bob's response to Alice's message.  Bob doesn't know who 
@@ -41,8 +41,8 @@ inductive "otway lost"
              Says A' B {|Nonce NA, Agent A, Agent B, X|} : set_of_list evs |]
           ==> Says B Server 
                   {|Nonce NA, Agent A, Agent B, X, 
-                    Crypt {|Nonce NA, Nonce (newN evs), 
-                            Agent A, Agent B|} (shrK B)|}
+                    Crypt 
+                          (shrK B){|Nonce NA, Nonce (newN evs), Agent A, Agent B|}|}
                  # evs : otway lost"
 
          (*The Server receives Bob's message and checks that the three NAs
@@ -51,30 +51,30 @@ inductive "otway lost"
     OR3  "[| evs: otway lost;  B ~= Server;
              Says B' Server 
                   {|Nonce NA, Agent A, Agent B, 
-                    Crypt {|Nonce NA, Agent A, Agent B|} (shrK A), 
-                    Crypt {|Nonce NA, Nonce NB, Agent A, Agent B|} (shrK B)|}
+                    Crypt (shrK A) {|Nonce NA, Agent A, Agent B|}, 
+                    Crypt (shrK B) {|Nonce NA, Nonce NB, Agent A, Agent B|}|}
                : set_of_list evs |]
           ==> Says Server B 
                   {|Nonce NA, 
-                    Crypt {|Nonce NA, Key (newK evs)|} (shrK A),
-                    Crypt {|Nonce NB, Key (newK evs)|} (shrK B)|}
+                    Crypt (shrK A) {|Nonce NA, Key (newK evs)|},
+                    Crypt (shrK B) {|Nonce NB, Key (newK evs)|}|}
                  # evs : otway lost"
 
          (*Bob receives the Server's (?) message and compares the Nonces with
 	   those in the message he previously sent the Server.*)
     OR4  "[| evs: otway lost;  A ~= B;  
-             Says S B {|Nonce NA, X, Crypt {|Nonce NB, Key K|} (shrK B)|}
+             Says S B {|Nonce NA, X, Crypt (shrK B) {|Nonce NB, Key K|}|}
                : set_of_list evs;
              Says B Server {|Nonce NA, Agent A, Agent B, X', 
-                             Crypt {|Nonce NA, Nonce NB, Agent A, Agent B|} 
-                                   (shrK B)|}
+                             Crypt (shrK B)
+                                   {|Nonce NA, Nonce NB, Agent A, Agent B|}|}
                : set_of_list evs |]
           ==> Says B A {|Nonce NA, X|} # evs : otway lost"
 
          (*This message models possible leaks of session keys.  The nonces
            identify the protocol run.*)
     Oops "[| evs: otway lost;  B ~= Spy;
-             Says Server B {|Nonce NA, X, Crypt {|Nonce NB, Key K|} (shrK B)|}
+             Says Server B {|Nonce NA, X, Crypt (shrK B) {|Nonce NB, Key K|}|}
                : set_of_list evs |]
           ==> Says B Spy {|Nonce NA, Nonce NB, Key K|} # evs : otway lost"
 

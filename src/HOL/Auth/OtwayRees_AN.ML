@@ -22,7 +22,7 @@ HOL_quantifiers := false;
 goal thy 
  "!!A B. [| A ~= B; A ~= Server; B ~= Server |]   \
 \        ==> EX K. EX NA. EX evs: otway lost.          \
-\             Says B A (Crypt {|Nonce NA, Agent A, Agent B, Key K|} (shrK A)) \
+\             Says B A (Crypt (shrK A) {|Nonce NA, Agent A, Agent B, Key K|}) \
 \             : set_of_list evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (otway.Nil RS otway.OR1 RS otway.OR2 RS otway.OR3 RS otway.OR4) 2);
@@ -59,7 +59,7 @@ goal thy "!!evs. Says S B {|X, X'|} : set_of_list evs ==> \
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]) 1);
 qed "OR4_analz_sees_Spy";
 
-goal thy "!!evs. Says Server B {|X, Crypt {|NB, a, Agent B, K|} K'|} \
+goal thy "!!evs. Says Server B {|X, Crypt K' {|NB, a, Agent B, K|}|} \
 \                  : set_of_list evs ==> K : parts (sees lost Spy evs)";
 by (fast_tac (!claset addSEs partsEs
                       addSDs [Says_imp_sees_Spy RS parts.Inj]) 1);
@@ -176,8 +176,8 @@ Addsimps [new_keys_not_used, new_keys_not_analzd];
 (*Describes the form of K and NA when the Server sends this message.*)
 goal thy 
  "!!evs. [| Says Server B \
-\           {|Crypt {|NA, Agent A, Agent B, K|} (shrK A),                    \
-\             Crypt {|NB, Agent A, Agent B, K|} (shrK B)|} : set_of_list evs; \
+\           {|Crypt (shrK A) {|NA, Agent A, Agent B, K|},                    \
+\             Crypt (shrK B) {|NB, Agent A, Agent B, K|}|} : set_of_list evs; \
 \           evs : otway lost |]                                        \
 \        ==> (EX evt: otway lost. K = Key(newK evt)) &                  \
 \            (EX i. NA = Nonce i) &                  \
@@ -246,8 +246,8 @@ goal thy
  "!!evs. evs : otway lost ==>                      \
 \      EX A' B' NA' NB'. ALL A B NA NB.                    \
 \       Says Server B \
-\         {|Crypt {|NA, Agent A, Agent B, K|} (shrK A),                    \
-\           Crypt {|NB, Agent A, Agent B, K|} (shrK B)|} : set_of_list evs  \
+\         {|Crypt (shrK A) {|NA, Agent A, Agent B, K|},                    \
+\           Crypt (shrK B) {|NB, Agent A, Agent B, K|}|} : set_of_list evs  \
 \       --> A=A' & B=B' & NA=NA' & NB=NB'";
 by (etac otway.induct 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [all_conj_distrib])));
@@ -266,12 +266,12 @@ val lemma = result();
 
 goal thy 
 "!!evs. [| Says Server B                                           \
-\            {|Crypt {|NA, Agent A, Agent B, K|} (shrK A),         \
-\              Crypt {|NB, Agent A, Agent B, K|} (shrK B)|}        \
+\            {|Crypt (shrK A) {|NA, Agent A, Agent B, K|},         \
+\              Crypt (shrK B) {|NB, Agent A, Agent B, K|}|}        \
 \           : set_of_list evs;                                     \
 \          Says Server B'                                          \
-\            {|Crypt {|NA', Agent A', Agent B', K|} (shrK A'),     \
-\              Crypt {|NB', Agent A', Agent B', K|} (shrK B')|}    \
+\            {|Crypt (shrK A') {|NA', Agent A', Agent B', K|},     \
+\              Crypt (shrK B') {|NB', Agent A', Agent B', K|}|}    \
 \           : set_of_list evs;                                     \
 \          evs : otway lost |]                                     \
 \       ==> A=A' & B=B' & NA=NA' & NB=NB'";
@@ -289,11 +289,11 @@ qed "unique_session_keys";
 (*If the encrypted message appears then it originated with the Server!*)
 goal thy 
  "!!evs. [| A ~: lost;  evs : otway lost |]                 \
-\ ==> Crypt {|NA, Agent A, Agent B, Key K|} (shrK A)        \
+\ ==> Crypt (shrK A) {|NA, Agent A, Agent B, Key K|}        \
 \      : parts (sees lost Spy evs)                          \
 \     --> (EX NB. Says Server B                                     \
-\                  {|Crypt {|NA, Agent A, Agent B, Key K|} (shrK A),     \
-\                    Crypt {|NB, Agent A, Agent B, Key K|} (shrK B)|}    \
+\                  {|Crypt (shrK A) {|NA, Agent A, Agent B, Key K|},     \
+\                    Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|}    \
 \                  : set_of_list evs)";
 by (parts_induct_tac 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [ex_disj_distrib])));
@@ -308,12 +308,12 @@ qed_spec_mp "NA_Crypt_imp_Server_msg";
   Spy_not_see_encrypted_key.  (We can implicitly infer freshness of
   the Server's message from its nonce NA.)*)
 goal thy 
- "!!evs. [| Says B' A (Crypt {|NA, Agent A, Agent B, Key K|} (shrK A))  \
+ "!!evs. [| Says B' A (Crypt (shrK A) {|NA, Agent A, Agent B, Key K|})  \
 \            : set_of_list evs;                                         \
 \           A ~: lost;  evs : otway lost |]                             \
 \        ==> EX NB. Says Server B                                       \
-\                    {|Crypt {|NA, Agent A, Agent B, Key K|} (shrK A),  \
-\                      Crypt {|NB, Agent A, Agent B, Key K|} (shrK B)|} \
+\                    {|Crypt (shrK A) {|NA, Agent A, Agent B, Key K|},  \
+\                      Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|} \
 \                   : set_of_list evs";
 by (fast_tac (!claset addSIs [NA_Crypt_imp_Server_msg]
                       addEs  partsEs
@@ -328,8 +328,8 @@ qed "A_trust_OR4";
 goal thy 
  "!!evs. [| A ~: lost;  B ~: lost;  evs : otway lost |]                    \
 \        ==> Says Server B                                                 \
-\             {|Crypt {|NA, Agent A, Agent B, Key K|} (shrK A),            \
-\               Crypt {|NB, Agent A, Agent B, Key K|} (shrK B)|}           \
+\             {|Crypt (shrK A) {|NA, Agent A, Agent B, Key K|},            \
+\               Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|}           \
 \            : set_of_list evs -->                                         \
 \            Says B Spy {|NA, NB, Key K|} ~: set_of_list evs -->           \
 \            Key K ~: analz (sees lost Spy evs)";
@@ -351,8 +351,8 @@ val lemma = result() RS mp RS mp RSN(2,rev_notE);
 
 goal thy 
  "!!evs. [| Says Server B                                                     \
-\            {|Crypt {|NA, Agent A, Agent B, K|} (shrK A),                    \
-\              Crypt {|NB, Agent A, Agent B, K|} (shrK B)|} : set_of_list evs;\
+\            {|Crypt (shrK A) {|NA, Agent A, Agent B, K|},                    \
+\              Crypt (shrK B) {|NB, Agent A, Agent B, K|}|} : set_of_list evs;\
 \           Says B Spy {|NA, NB, K|} ~: set_of_list evs;                      \
 \           A ~: lost;  B ~: lost;  evs : otway lost |]                       \
 \        ==> K ~: analz (sees lost Spy evs)";
@@ -364,8 +364,8 @@ qed "Spy_not_see_encrypted_key";
 goal thy 
  "!!evs. [| C ~: {A,B,Server};                                                \
 \           Says Server B                                                     \
-\            {|Crypt {|NA, Agent A, Agent B, K|} (shrK A),                    \
-\              Crypt {|NB, Agent A, Agent B, K|} (shrK B)|} : set_of_list evs;\
+\            {|Crypt (shrK A) {|NA, Agent A, Agent B, K|},                    \
+\              Crypt (shrK B) {|NB, Agent A, Agent B, K|}|} : set_of_list evs;\
 \           Says B Spy {|NA, NB, K|} ~: set_of_list evs;                 \
 \           A ~: lost;  B ~: lost;  evs : otway lost |]                  \
 \        ==> K ~: analz (sees lost C evs)";
@@ -381,11 +381,11 @@ qed "Agent_not_see_encrypted_key";
 (*If the encrypted message appears then it originated with the Server!*)
 goal thy 
  "!!evs. [| B ~: lost;  evs : otway lost |]                                 \
-\    ==> Crypt {|NB, Agent A, Agent B, Key K|} (shrK B)                     \
+\    ==> Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}                     \
 \         : parts (sees lost Spy evs)                                       \
 \        --> (EX NA. Says Server B                                          \
-\                     {|Crypt {|NA, Agent A, Agent B, Key K|} (shrK A),     \
-\                       Crypt {|NB, Agent A, Agent B, Key K|} (shrK B)|}    \
+\                     {|Crypt (shrK A) {|NA, Agent A, Agent B, Key K|},     \
+\                       Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|}    \
 \                     : set_of_list evs)";
 by (parts_induct_tac 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [ex_disj_distrib])));
@@ -398,11 +398,11 @@ qed_spec_mp "NB_Crypt_imp_Server_msg";
   has sent the correct message.*)
 goal thy 
  "!!evs. [| B ~: lost;  evs : otway lost;                                   \
-\           Says S B {|X, Crypt {|NB, Agent A, Agent B, Key K|} (shrK B)|}  \
+\           Says S B {|X, Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|}  \
 \            : set_of_list evs |]                                           \
 \        ==> EX NA. Says Server B                                           \
-\                     {|Crypt {|NA, Agent A, Agent B, Key K|} (shrK A),     \
-\                       Crypt {|NB, Agent A, Agent B, Key K|} (shrK B)|}    \
+\                     {|Crypt (shrK A) {|NA, Agent A, Agent B, Key K|},     \
+\                       Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|}    \
 \                     : set_of_list evs";
 by (fast_tac (!claset addSIs [NB_Crypt_imp_Server_msg]
                       addEs  partsEs

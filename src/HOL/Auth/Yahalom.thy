@@ -35,35 +35,35 @@ inductive "yahalom lost"
              Says A' B {|Agent A, Nonce NA|} : set_of_list evs |]
           ==> Says B Server 
                   {|Agent B, 
-                    Crypt {|Agent A, Nonce NA, Nonce (newN evs)|} (shrK B)|}
+                    Crypt (shrK B) {|Agent A, Nonce NA, Nonce (newN evs)|}|}
                  # evs : yahalom lost"
 
          (*The Server receives Bob's message.  He responds by sending a
             new session key to Alice, with a packet for forwarding to Bob.*)
     YM3  "[| evs: yahalom lost;  A ~= Server;
              Says B' Server 
-                  {|Agent B, Crypt {|Agent A, Nonce NA, Nonce NB|} (shrK B)|}
+                  {|Agent B, Crypt (shrK B) {|Agent A, Nonce NA, Nonce NB|}|}
                : set_of_list evs |]
           ==> Says Server A
-                  {|Crypt {|Agent B, Key (newK evs), 
-                            Nonce NA, Nonce NB|} (shrK A),
-                    Crypt {|Agent A, Key (newK evs)|} (shrK B)|}
+                  {|Crypt (shrK A) {|Agent B, Key (newK evs), 
+                            Nonce NA, Nonce NB|},
+                    Crypt (shrK B) {|Agent A, Key (newK evs)|}|}
                  # evs : yahalom lost"
 
          (*Alice receives the Server's (?) message, checks her Nonce, and
            uses the new session key to send Bob his Nonce.*)
     YM4  "[| evs: yahalom lost;  A ~= Server;  A ~= B;  
-             Says S A {|Crypt {|Agent B, Key K, Nonce NA, Nonce NB|} (shrK A),
+             Says S A {|Crypt (shrK A) {|Agent B, Key K, Nonce NA, Nonce NB|},
                         X|}  : set_of_list evs;
              Says A B {|Agent A, Nonce NA|} : set_of_list evs |]
-          ==> Says A B {|X, Crypt (Nonce NB) K|} # evs : yahalom lost"
+          ==> Says A B {|X, Crypt K (Nonce NB)|} # evs : yahalom lost"
 
          (*This message models possible leaks of session keys.  The Nonces
            identify the protocol run.  Quoting Server here ensures they are
            correct.*)
     Oops "[| evs: yahalom lost;  A ~= Spy;
-             Says Server A {|Crypt {|Agent B, Key K, Nonce NA, Nonce NB|} 
-                                   (shrK A),
+             Says Server A {|Crypt (shrK A)
+                                   {|Agent B, Key K, Nonce NA, Nonce NB|},
                              X|}  : set_of_list evs |]
           ==> Says A Spy {|Nonce NA, Nonce NB, Key K|} # evs : yahalom lost"
 

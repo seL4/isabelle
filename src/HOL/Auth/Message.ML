@@ -58,9 +58,8 @@ by (fast_tac (!claset addss (!simpset)) 1);
 qed "keysFor_insert_MPair";
 
 goalw thy [keysFor_def]
-    "keysFor (insert (Crypt X K) H) = insert (invKey K) (keysFor H)";
+    "keysFor (insert (Crypt K X) H) = insert (invKey K) (keysFor H)";
 by (Auto_tac());
-by (Fast_tac 1);
 qed "keysFor_insert_Crypt";
 
 Addsimps [keysFor_empty, keysFor_Un, keysFor_UN, 
@@ -68,7 +67,7 @@ Addsimps [keysFor_empty, keysFor_Un, keysFor_UN,
           keysFor_insert_Key, keysFor_insert_MPair,
           keysFor_insert_Crypt];
 
-goalw thy [keysFor_def] "!!H. Crypt X K : H ==> invKey K : keysFor H";
+goalw thy [keysFor_def] "!!H. Crypt K X : H ==> invKey K : keysFor H";
 by (Fast_tac 1);
 qed "Crypt_imp_invKey_keysFor";
 
@@ -234,8 +233,8 @@ by (etac parts.induct 1);
 by (ALLGOALS (fast_tac (!claset addss (!simpset))));
 qed "parts_insert_Key";
 
-goal thy "parts (insert (Crypt X K) H) = \
-\         insert (Crypt X K) (parts (insert X H))";
+goal thy "parts (insert (Crypt K X) H) = \
+\         insert (Crypt K X) (parts (insert X H))";
 by (rtac equalityI 1);
 by (rtac subsetI 1);
 by (etac parts.induct 1);
@@ -378,8 +377,8 @@ qed "analz_insert_MPair";
 
 (*Can pull out enCrypted message if the Key is not known*)
 goal thy "!!H. Key (invKey K) ~: analz H ==>  \
-\              analz (insert (Crypt X K) H) = \
-\              insert (Crypt X K) (analz H)";
+\              analz (insert (Crypt K X) H) = \
+\              insert (Crypt K X) (analz H)";
 by (rtac (analz_insert RSN (2, equalityI)) 1);
 by (rtac subsetI 1);
 by (etac analz.induct 1);
@@ -387,16 +386,16 @@ by (ALLGOALS (fast_tac (!claset addss (!simpset))));
 qed "analz_insert_Crypt";
 
 goal thy "!!H. Key (invKey K) : analz H ==>  \
-\              analz (insert (Crypt X K) H) <= \
-\              insert (Crypt X K) (analz (insert X H))";
+\              analz (insert (Crypt K X) H) <= \
+\              insert (Crypt K X) (analz (insert X H))";
 by (rtac subsetI 1);
 by (eres_inst_tac [("za","x")] analz.induct 1);
 by (ALLGOALS (fast_tac (!claset addss (!simpset))));
 val lemma1 = result();
 
 goal thy "!!H. Key (invKey K) : analz H ==>  \
-\              insert (Crypt X K) (analz (insert X H)) <= \
-\              analz (insert (Crypt X K) H)";
+\              insert (Crypt K X) (analz (insert X H)) <= \
+\              analz (insert (Crypt K X) H)";
 by (Auto_tac());
 by (eres_inst_tac [("za","x")] analz.induct 1);
 by (Auto_tac());
@@ -405,19 +404,19 @@ by (best_tac (!claset addIs [subset_insertI RS analz_mono RS subsetD,
 val lemma2 = result();
 
 goal thy "!!H. Key (invKey K) : analz H ==>  \
-\              analz (insert (Crypt X K) H) = \
-\              insert (Crypt X K) (analz (insert X H))";
+\              analz (insert (Crypt K X) H) = \
+\              insert (Crypt K X) (analz (insert X H))";
 by (REPEAT (ares_tac [equalityI, lemma1, lemma2] 1));
 qed "analz_insert_Decrypt";
 
 (*Case analysis: either the message is secure, or it is not!
   Effective, but can cause subgoals to blow up!
   Use with expand_if;  apparently split_tac does not cope with patterns
-  such as "analz (insert (Crypt X K) H)" *)
-goal thy "analz (insert (Crypt X K) H) =                \
+  such as "analz (insert (Crypt K X) H)" *)
+goal thy "analz (insert (Crypt K X) H) =                \
 \         (if (Key (invKey K) : analz H)                \
-\          then insert (Crypt X K) (analz (insert X H)) \
-\          else insert (Crypt X K) (analz H))";
+\          then insert (Crypt K X) (analz (insert X H)) \
+\          else insert (Crypt K X) (analz H))";
 by (case_tac "Key (invKey K)  : analz H " 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [analz_insert_Crypt, 
                                                analz_insert_Decrypt])));
@@ -428,8 +427,8 @@ Addsimps [analz_insert_Agent, analz_insert_Nonce,
           analz_Crypt_if];
 
 (*This rule supposes "for the sake of argument" that we have the key.*)
-goal thy  "analz (insert (Crypt X K) H) <=  \
-\          insert (Crypt X K) (analz (insert X H))";
+goal thy  "analz (insert (Crypt K X) H) <=  \
+\          insert (Crypt K X) (analz (insert X H))";
 by (rtac subsetI 1);
 by (etac analz.induct 1);
 by (Auto_tac());
@@ -496,7 +495,7 @@ by (asm_simp_tac (!simpset addsimps [insert_def]
 qed "analz_insert_cong";
 
 (*If there are no pairs or encryptions then analz does nothing*)
-goal thy "!!H. [| ALL X Y. {|X,Y|} ~: H;  ALL X K. Crypt X K ~: H |] ==> \
+goal thy "!!H. [| ALL X Y. {|X,Y|} ~: H;  ALL X K. Crypt K X ~: H |] ==> \
 \         analz H = H";
 by (Step_tac 1);
 by (etac analz.induct 1);
@@ -528,7 +527,7 @@ val mk_cases = synth.mk_cases msg.simps;
 val Nonce_synth = mk_cases "Nonce n : synth H";
 val Key_synth   = mk_cases "Key K : synth H";
 val MPair_synth = mk_cases "{|X,Y|} : synth H";
-val Crypt_synth = mk_cases "Crypt X K : synth H";
+val Crypt_synth = mk_cases "Crypt K X : synth H";
 
 AddSEs [Nonce_synth, Key_synth, MPair_synth, Crypt_synth];
 
@@ -589,7 +588,7 @@ goal thy "(Key K : synth H) = (Key K : H)";
 by (Fast_tac 1);
 qed "Key_synth_eq";
 
-goal thy "!!K. Key K ~: H ==> (Crypt X K : synth H) = (Crypt X K: H)";
+goal thy "!!K. Key K ~: H ==> (Crypt K X : synth H) = (Crypt K X: H)";
 by (Fast_tac 1);
 qed "Crypt_synth_eq";
 
@@ -660,9 +659,9 @@ by (Deepen_tac 0 1);
 qed "Fake_parts_insert";
 
 goal thy
-     "!!H. [| Crypt Y K : parts (insert X H);  X: synth (analz G);  \
+     "!!H. [| Crypt K Y : parts (insert X H);  X: synth (analz G);  \
 \             Key K ~: analz G |]                                   \
-\          ==> Crypt Y K : parts G Un parts H";
+\          ==> Crypt K Y : parts G Un parts H";
 by (dtac (impOfSubs Fake_parts_insert) 1);
 by (assume_tac 1);
 by (fast_tac (!claset addDs [impOfSubs analz_subset_parts]
@@ -699,7 +698,7 @@ qed "MPair_synth_analz";
 AddIffs [MPair_synth_analz];
 
 goal thy "!!K. [| Key K : analz H;  Key (invKey K) : analz H |] \
-\              ==> (Crypt X K : synth (analz H)) = (X : synth (analz H))";
+\              ==> (Crypt K X : synth (analz H)) = (X : synth (analz H))";
 by (Fast_tac 1);
 qed "Crypt_synth_analz";
 

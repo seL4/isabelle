@@ -22,7 +22,7 @@ Pretty.setdepth 20;
 goal thy 
  "!!A B. [| A ~= B; A ~= Server; B ~= Server |]   \
 \        ==> EX X NB K. EX evs: yahalom lost.          \
-\               Says A B {|X, Crypt (Nonce NB) K|} : set_of_list evs";
+\               Says A B {|X, Crypt K (Nonce NB)|} : set_of_list evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (yahalom.Nil RS yahalom.YM1 RS yahalom.YM2 RS yahalom.YM3 RS yahalom.YM4) 2);
 by (ALLGOALS (simp_tac (!simpset setsolver safe_solver)));
@@ -54,7 +54,7 @@ AddSEs   [not_Says_to_self RSN (2, rev_notE)];
 (** For reasoning about the encrypted portion of messages **)
 
 (*Lets us treat YM4 using a similar argument as for the Fake case.*)
-goal thy "!!evs. Says S A {|Crypt Y (shrK A), X|} : set_of_list evs ==> \
+goal thy "!!evs. Says S A {|Crypt (shrK A) Y, X|} : set_of_list evs ==> \
 \                X : analz (sees lost Spy evs)";
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]) 1);
 qed "YM4_analz_sees_Spy";
@@ -63,7 +63,7 @@ bind_thm ("YM4_parts_sees_Spy",
           YM4_analz_sees_Spy RS (impOfSubs analz_subset_parts));
 
 (*Relates to both YM4 and Oops*)
-goal thy "!!evs. Says S A {|Crypt {|B, K, NA, NB|} (shrK A), X|} \
+goal thy "!!evs. Says S A {|Crypt (shrK A) {|B, K, NA, NB|}, X|} \
 \                  : set_of_list evs ==> \
 \                K : parts (sees lost Spy evs)";
 by (fast_tac (!claset addSEs partsEs
@@ -145,7 +145,7 @@ qed "Says_imp_old_keys";
 
 
 (*Ready-made for the classical reasoner*)
-goal thy "!!evs. [| Says A B {|Crypt {|b, Key (newK evs), na, nb|} K, X|}  \
+goal thy "!!evs. [| Says A B {|Crypt K {|b, Key (newK evs), na, nb|}, X|}  \
 \                   : set_of_list evs;  evs : yahalom lost |]              \
 \                ==> R";
 by (fast_tac (!claset addEs [Says_imp_old_keys RS less_irrefl]
@@ -189,7 +189,7 @@ Addsimps [new_keys_not_used, new_keys_not_analzd];
   Oops as well as main secrecy property.*)
 goal thy 
  "!!evs. [| Says Server A                                           \
-\            {|Crypt {|Agent B, K, NA, NB|} (shrK A), X|} : set_of_list evs; \
+\            {|Crypt (shrK A) {|Agent B, K, NA, NB|}, X|} : set_of_list evs; \
 \           evs : yahalom lost |]                                   \
 \        ==> (EX evt: yahalom lost. K = Key(newK evt))";
 by (etac rev_mp 1);
@@ -222,7 +222,7 @@ val analz_Fake_tac =
   We require that agents should behave like this subsequently also.*)
 goal thy 
  "!!evs. evs : yahalom lost ==> \
-\        (Crypt X (newK evt)) : parts (sees lost Spy evs) & \
+\        (Crypt (newK evt) X) : parts (sees lost Spy evs) & \
 \        Key K : parts {X} --> Key K : parts (sees lost Spy evs)";
 by (etac yahalom.induct 1);
 by parts_Fake_tac;
@@ -273,7 +273,7 @@ goal thy
  "!!evs. evs : yahalom lost ==>                                     \
 \      EX A' B' NA' NB' X'. ALL A B NA NB X.                             \
 \          Says Server A                                            \
-\           {|Crypt {|Agent B, Key K, NA, NB|} (shrK A), X|}        \
+\           {|Crypt (shrK A) {|Agent B, Key K, NA, NB|}, X|}        \
 \          : set_of_list evs --> A=A' & B=B' & NA=NA' & NB=NB' & X=X'";
 by (etac yahalom.induct 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [all_conj_distrib])));
@@ -289,10 +289,10 @@ val lemma = result();
 
 goal thy 
 "!!evs. [| Says Server A                                            \
-\           {|Crypt {|Agent B, Key K, NA, NB|} (shrK A), X|}        \
+\           {|Crypt (shrK A) {|Agent B, Key K, NA, NB|}, X|}        \
 \           : set_of_list evs;                                      \
 \          Says Server A'                                           \
-\           {|Crypt {|Agent B', Key K, NA', NB'|} (shrK A'), X'|}   \
+\           {|Crypt (shrK A') {|Agent B', Key K, NA', NB'|}, X'|}   \
 \           : set_of_list evs;                                      \
 \          evs : yahalom lost |]                                    \
 \       ==> A=A' & B=B' & NA=NA' & NB=NB'";
@@ -306,12 +306,12 @@ qed "unique_session_keys";
 
 (*If the encrypted message appears then it originated with the Server*)
 goal thy
- "!!evs. [| Crypt {|Agent B, Key K, NA, NB|} (shrK A)                  \
+ "!!evs. [| Crypt (shrK A) {|Agent B, Key K, NA, NB|}                  \
 \            : parts (sees lost Spy evs);                              \
 \           A ~: lost;  evs : yahalom lost |]                          \
 \         ==> Says Server A                                            \
-\              {|Crypt {|Agent B, Key K, NA, NB|} (shrK A),            \
-\                Crypt {|Agent A, Key K|} (shrK B)|}                   \
+\              {|Crypt (shrK A) {|Agent B, Key K, NA, NB|},            \
+\                Crypt (shrK B) {|Agent A, Key K|}|}                   \
 \             : set_of_list evs";
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
@@ -323,8 +323,8 @@ qed "A_trust_YM3";
 goal thy 
  "!!evs. [| A ~: lost;  B ~: lost;  evs : yahalom lost |]         \
 \        ==> Says Server A                                        \
-\              {|Crypt {|Agent B, Key K, NA, NB|} (shrK A),       \
-\                Crypt {|Agent A, Key K|} (shrK B)|}              \
+\              {|Crypt (shrK A) {|Agent B, Key K, NA, NB|},       \
+\                Crypt (shrK B) {|Agent A, Key K|}|}              \
 \             : set_of_list evs -->                               \
 \            Says A Spy {|NA, NB, Key K|} ~: set_of_list evs -->  \
 \            Key K ~: analz (sees lost Spy evs)";
@@ -349,8 +349,8 @@ val lemma = result() RS mp RS mp RSN(2,rev_notE);
 (*Final version: Server's message in the most abstract form*)
 goal thy 
  "!!evs. [| Says Server A                                               \
-\            {|Crypt {|Agent B, K, NA, NB|} (shrK A),                   \
-\              Crypt {|Agent A, K|} (shrK B)|} : set_of_list evs;       \
+\            {|Crypt (shrK A) {|Agent B, K, NA, NB|},                   \
+\              Crypt (shrK B) {|Agent A, K|}|} : set_of_list evs;       \
 \           Says A Spy {|NA, NB, K|} ~: set_of_list evs;                \
 \           A ~: lost;  B ~: lost;  evs : yahalom lost |] ==>           \
 \     K ~: analz (sees lost Spy evs)";
@@ -362,8 +362,8 @@ qed "Spy_not_see_encrypted_key";
 goal thy 
  "!!evs. [| C ~: {A,B,Server};                                          \
 \           Says Server A                                               \
-\            {|Crypt {|Agent B, K, NA, NB|} (shrK A),                   \
-\              Crypt {|Agent A, K|} (shrK B)|} : set_of_list evs;       \
+\            {|Crypt (shrK A) {|Agent B, K, NA, NB|},                   \
+\              Crypt (shrK B) {|Agent A, K|}|} : set_of_list evs;       \
 \           Says A Spy {|NA, NB, K|} ~: set_of_list evs;                \
 \           A ~: lost;  B ~: lost;  evs : yahalom lost |] ==>           \
 \     K ~: analz (sees lost C evs)";
@@ -379,12 +379,12 @@ qed "Agent_not_see_encrypted_key";
 (*B knows, by the first part of A's message, that the Server distributed 
   the key for A and B.  But this part says nothing about nonces.*)
 goal thy 
- "!!evs. [| Crypt {|Agent A, Key K|} (shrK B) : parts (sees lost Spy evs); \
+ "!!evs. [| Crypt (shrK B) {|Agent A, Key K|} : parts (sees lost Spy evs); \
 \           B ~: lost;  evs : yahalom lost |]                           \
 \        ==> EX NA NB. Says Server A                                    \
-\                        {|Crypt {|Agent B, Key K,                      \
-\                                  Nonce NA, Nonce NB|} (shrK A),       \
-\                          Crypt {|Agent A, Key K|} (shrK B)|}          \
+\                        {|Crypt (shrK A) {|Agent B, Key K,                      \
+\                                  Nonce NA, Nonce NB|},       \
+\                          Crypt (shrK B) {|Agent A, Key K|}|}          \
 \                       : set_of_list evs";
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
@@ -429,7 +429,7 @@ val nonce_not_seen_now = le_refl RSN (2, new_nonces_not_seen) RSN (2,rev_notE);
 
 goal thy 
  "!!evs. evs : yahalom lost ==> EX NA' A' B'. ALL NA A B. \
-\      Crypt {|Agent A, Nonce NA, NB|} (shrK B) : parts(sees lost Spy evs) \
+\      Crypt (shrK B) {|Agent A, Nonce NA, NB|} : parts(sees lost Spy evs) \
 \      --> B ~: lost --> NA = NA' & A = A' & B = B'";
 by (parts_induct_tac 1);  (*100 seconds??*)
 by (simp_tac (!simpset addsimps [all_conj_distrib]) 1); 
@@ -439,9 +439,9 @@ by (fast_tac (!claset addSEs (nonce_not_seen_now::partsEs)) 1);
 val lemma = result();
 
 goal thy 
- "!!evs.[| Crypt {|Agent A, Nonce NA, NB|} (shrK B) \
+ "!!evs.[| Crypt (shrK B) {|Agent A, Nonce NA, NB|} \
 \                  : parts (sees lost Spy evs);         \
-\          Crypt {|Agent A', Nonce NA', NB|} (shrK B') \
+\          Crypt (shrK B') {|Agent A', Nonce NA', NB|} \
 \                  : parts (sees lost Spy evs);         \
 \          evs : yahalom lost;  B ~: lost;  B' ~: lost |]  \
 \        ==> NA' = NA & A' = A & B' = B";
@@ -473,9 +473,9 @@ fun lost_tac s =
 
 (*Variant useful for proving secrecy of NB*)
 goal thy 
- "!!evs.[| Says C D   {|X,  Crypt {|Agent A, Nonce NA, NB|} (shrK B)|} \
+ "!!evs.[| Says C D   {|X,  Crypt (shrK B) {|Agent A, Nonce NA, NB|}|} \
 \          : set_of_list evs;  B ~: lost;         \
-\          Says C' D' {|X', Crypt {|Agent A', Nonce NA', NB|} (shrK B')|} \
+\          Says C' D' {|X', Crypt (shrK B') {|Agent A', Nonce NA', NB|}|} \
 \          : set_of_list evs;                           \
 \          NB ~: analz (sees lost Spy evs);             \
 \          evs : yahalom lost |]  \
@@ -489,8 +489,8 @@ qed "Says_unique_NB";
 goal thy 
  "!!evs. [| B ~: lost;  evs : yahalom lost  |]               \
 \ ==>  Nonce NB ~: analz (sees lost Spy evs) -->  \
-\      Crypt {|Agent A, Nonce NA, Nonce NB|} (shrK B) : parts (sees lost Spy evs) \
-\ --> Crypt {|Agent A', Nonce NB, NB'|} (shrK B') ~: parts (sees lost Spy evs)";
+\      Crypt (shrK B) {|Agent A, Nonce NA, Nonce NB|} : parts (sees lost Spy evs) \
+\ --> Crypt (shrK B') {|Agent A', Nonce NB, NB'|} ~: parts (sees lost Spy evs)";
 by (etac yahalom.induct 1);
 by parts_Fake_tac;
 by (REPEAT_FIRST 
@@ -519,11 +519,11 @@ val no_nonce_YM1_YM2 = standard (result() RS mp RSN (2, rev_mp) RS notE);
 goal thy 
  "!!evs. evs : yahalom lost                                             \
 \        ==> Nonce NB ~: analz (sees lost Spy evs) -->                  \
-\            Crypt (Nonce NB) K : parts (sees lost Spy evs) -->         \
+\            Crypt K (Nonce NB) : parts (sees lost Spy evs) -->         \
 \            (EX A B NA. Says Server A                                  \
-\                        {|Crypt {|Agent B, Key K,                      \
-\                                  Nonce NA, Nonce NB|} (shrK A),       \
-\                          Crypt {|Agent A, Key K|} (shrK B)|}          \
+\                        {|Crypt (shrK A) {|Agent B, Key K,                      \
+\                                  Nonce NA, Nonce NB|},       \
+\                          Crypt (shrK B) {|Agent A, Key K|}|}          \
 \                       : set_of_list evs)";
 by (etac yahalom.induct 1);
 by parts_Fake_tac;
@@ -552,11 +552,11 @@ val B_trusts_YM4_newK = result() RS mp RSN (2, rev_mp);
 goal thy 
  "!!evs. evs : yahalom lost                                             \
 \        ==> Key K ~: analz (sees lost Spy evs) -->                     \
-\            Crypt (Nonce NB) K : parts (sees lost Spy evs) -->         \
+\            Crypt K (Nonce NB) : parts (sees lost Spy evs) -->         \
 \            (EX A B NA. Says Server A                                  \
-\                        {|Crypt {|Agent B, Key K,                      \
-\                                  Nonce NA, Nonce NB|} (shrK A),       \
-\                          Crypt {|Agent A, Key K|} (shrK B)|}          \
+\                        {|Crypt (shrK A) {|Agent B, Key K,                      \
+\                                  Nonce NA, Nonce NB|},       \
+\                          Crypt (shrK B) {|Agent A, Key K|}|}          \
 \                       : set_of_list evs)";
 by (etac yahalom.induct 1);
 by parts_Fake_tac;
@@ -580,10 +580,10 @@ result() RS mp RSN (2, rev_mp);
 (*YM3 can only be triggered by YM2*)
 goal thy 
  "!!evs. [| Says Server A                                           \
-\            {|Crypt {|Agent B, k, na, nb|} (shrK A), X|} : set_of_list evs; \
+\            {|Crypt (shrK A) {|Agent B, k, na, nb|}, X|} : set_of_list evs; \
 \           evs : yahalom lost |]                                        \
 \        ==> EX B'. Says B' Server                                       \
-\                      {| Agent B, Crypt {|Agent A, na, nb|} (shrK B) |} \
+\                      {| Agent B, Crypt (shrK B) {|Agent A, na, nb|} |} \
 \                   : set_of_list evs";
 by (etac rev_mp 1);
 by (etac yahalom.induct 1);
@@ -622,7 +622,7 @@ goal thy
 \     ALL E. Nonce NB : analz (Key``(newK``E) Un (sees lost Spy evs)) --> \
 \     (EX K: newK``E. EX A B na X.                                        \
 \            Says Server A                                                \
-\                {|Crypt {|Agent B, Key K, na, Nonce NB|} (shrK A), X|}   \
+\                {|Crypt (shrK A) {|Agent B, Key K, na, Nonce NB|}, X|}   \
 \            : set_of_list evs)  |  Nonce NB : analz (sees lost Spy evs)";
 by (etac yahalom.induct 1);
 by analz_Fake_tac;
@@ -673,7 +673,7 @@ val Nonce_secrecy = result() RS spec RSN (2, rev_mp) |> standard;
   for the induction to carry through.*)
 goal thy 
  "!!evs. [| Says Server A                                                     \
-\            {|Crypt {|Agent B, Key (newK evt), na, Nonce NB'|} (shrK A), X|} \
+\            {|Crypt (shrK A) {|Agent B, Key (newK evt), na, Nonce NB'|}, X|} \
 \           : set_of_list evs;                                                \
 \           Nonce NB : analz (insert (Key (newK evt)) (sees lost Spy evs));   \
 \           evs : yahalom lost |]                                             \
@@ -688,7 +688,7 @@ val single_Nonce_secrecy = result();
 goal thy 
  "!!evs. [| A ~: lost;  B ~: lost;  Spy: lost;  evs : yahalom lost |]  \
 \ ==> Says B Server                                                    \
-\          {|Agent B, Crypt {|Agent A, Nonce NA, Nonce NB|} (shrK B)|} \
+\          {|Agent B, Crypt (shrK B) {|Agent A, Nonce NA, Nonce NB|}|} \
 \     : set_of_list evs -->                               \
 \     (ALL k. Says A Spy {|Nonce NA, Nonce NB, k|} ~: set_of_list evs) -->  \
 \     Nonce NB ~: analz (sees lost Spy evs)";
@@ -757,16 +757,16 @@ val Spy_not_see_NB = result() RSN(2,rev_mp) RSN(2,rev_mp) |> standard;
   nonces are forced to agree with NA and NB). *)
 goal thy 
  "!!evs. [| Says B Server                                        \
-\            {|Agent B, Crypt {|Agent A, Nonce NA, Nonce NB|} (shrK B)|}  \
+\            {|Agent B, Crypt (shrK B) {|Agent A, Nonce NA, Nonce NB|}|}  \
 \           : set_of_list evs;       \
-\           Says A' B {|Crypt {|Agent A, Key K|} (shrK B),              \
-\                       Crypt (Nonce NB) K|} : set_of_list evs;         \
+\           Says A' B {|Crypt (shrK B) {|Agent A, Key K|},              \
+\                       Crypt K (Nonce NB)|} : set_of_list evs;         \
 \           ALL k. Says A Spy {|Nonce NA, Nonce NB, k|} ~: set_of_list evs; \
 \           A ~: lost;  B ~: lost;  Spy: lost;  evs : yahalom lost |]   \
 \         ==> Says Server A                                       \
-\                     {|Crypt {|Agent B, Key K,                         \
-\                               Nonce NA, Nonce NB|} (shrK A),          \
-\                       Crypt {|Agent A, Key K|} (shrK B)|}             \
+\                     {|Crypt (shrK A) {|Agent B, Key K,                         \
+\                               Nonce NA, Nonce NB|},          \
+\                       Crypt (shrK B) {|Agent A, Key K|}|}             \
 \                   : set_of_list evs";
 by (forward_tac [Spy_not_see_NB] 1 THEN REPEAT (assume_tac 1));
 by (etac (Says_imp_sees_Spy RS parts.Inj RS MPair_parts) 1 THEN

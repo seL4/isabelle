@@ -36,15 +36,15 @@ inductive "ns_shared lost"
                the sender field.*)
     NS2  "[| evs: ns_shared lost;  A ~= B;  A ~= Server;
              Says A' Server {|Agent A, Agent B, Nonce NA|} : set_of_list evs |]
-          ==> Says Server A 
-                  (Crypt {|Nonce NA, Agent B, Key (newK evs),   
-                           (Crypt {|Key (newK evs), Agent A|} (shrK B))|}
-                   (shrK A)) # evs : ns_shared lost"
+          ==> Says Server A (Crypt (shrK A)
+                             {|Nonce NA, Agent B, Key (newK evs),   
+                               (Crypt (shrK B) {|Key (newK evs), Agent A|})|}) 
+                # evs : ns_shared lost"
 
           (*We can't assume S=Server.  Agent A "remembers" her nonce.
             Can inductively show A ~= Server*)
     NS3  "[| evs: ns_shared lost;  A ~= B;
-             Says S A (Crypt {|Nonce NA, Agent B, Key K, X|} (shrK A)) 
+             Says S A (Crypt (shrK A) {|Nonce NA, Agent B, Key K, X|}) 
                : set_of_list evs;
              Says A Server {|Agent A, Agent B, Nonce NA|} : set_of_list evs |]
           ==> Says A B X # evs : ns_shared lost"
@@ -52,8 +52,8 @@ inductive "ns_shared lost"
          (*Bob's nonce exchange.  He does not know who the message came
            from, but responds to A because she is mentioned inside.*)
     NS4  "[| evs: ns_shared lost;  A ~= B;  
-             Says A' B (Crypt {|Key K, Agent A|} (shrK B)) : set_of_list evs |]
-          ==> Says B A (Crypt (Nonce (newN evs)) K) # evs : ns_shared lost"
+             Says A' B (Crypt (shrK B) {|Key K, Agent A|}) : set_of_list evs |]
+          ==> Says B A (Crypt K (Nonce (newN evs))) # evs : ns_shared lost"
 
          (*Alice responds with Nonce NB if she has seen the key before.
            Maybe should somehow check Nonce NA again.
@@ -61,17 +61,17 @@ inductive "ns_shared lost"
            Letting the Spy add or subtract 1 lets him send ALL nonces.
            Instead we distinguish the messages by sending the nonce twice.*)
     NS5  "[| evs: ns_shared lost;  A ~= B;  
-             Says B' A (Crypt (Nonce NB) K) : set_of_list evs;
-             Says S  A (Crypt {|Nonce NA, Agent B, Key K, X|} (shrK A))
+             Says B' A (Crypt K (Nonce NB)) : set_of_list evs;
+             Says S  A (Crypt (shrK A) {|Nonce NA, Agent B, Key K, X|})
                : set_of_list evs |]
-          ==> Says A B (Crypt {|Nonce NB, Nonce NB|} K) # evs : ns_shared lost"
+          ==> Says A B (Crypt K {|Nonce NB, Nonce NB|}) # evs : ns_shared lost"
   
          (*This message models possible leaks of session keys.
            The two Nonces identify the protocol run: the rule insists upon
            the true senders in order to make them accurate.*)
     Oops "[| evs: ns_shared lost;  A ~= Spy;
-             Says B A (Crypt (Nonce NB) K) : set_of_list evs;
-             Says Server A (Crypt {|Nonce NA, Agent B, Key K, X|} (shrK A))
+             Says B A (Crypt K (Nonce NB)) : set_of_list evs;
+             Says Server A (Crypt (shrK A) {|Nonce NA, Agent B, Key K, X|})
                : set_of_list evs |]
           ==> Says A Spy {|Nonce NA, Nonce NB, Key K|} # evs : ns_shared lost"
 
