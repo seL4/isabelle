@@ -60,8 +60,8 @@
   \FINALLY & \approx & \ALSO~\FROM{calculation} \\[0.5ex]
   \PRESUME{a}{\vec\phi} & \approx & \ASSUME{a}{\vec\phi}~~\text{(permissive assumption)} \\
   \DEF{a}{x \equiv t} & \approx & \FIX{x}~\ASSUME{a}{x \equiv t}~~\text{(definitional assumption)} \\
-  \OBTAIN{\vec x}{a}{\vec\phi} & \approx & \FIX{\vec x}~\ASSUME{a}{\vec\phi}~~\text{(generalized elimination)} \\
-  \CASE{a} & \approx & \FIX{\vec x}~\ASSUME{a}{\vec\phi}~~\text{(named context)} \\[0.5ex]
+  \OBTAIN{\vec x}{a}{\vec\phi} & \approx & \dots~\FIX{\vec x}~\ASSUME{a}{\vec\phi}~~\text{(generalized existence)} \\
+  \CASE{c} & \approx & \FIX{\vec x}~\ASSUME{c}{\vec\phi}~~\text{(named context)} \\[0.5ex]
   \SORRY & \approx & \BY{cheating} \\
 \end{matharray}
 
@@ -69,8 +69,9 @@
 \subsection{Diagnostic commands}
 
 \begin{matharray}{ll}
+  \isarkeyword{help} & \text{print help on Isar language elements} \\
   \isarkeyword{pr} & \text{print current state} \\
-  \isarkeyword{thm}~a@1\;\dots\;a@n & \text{print theorems} \\
+  \isarkeyword{thm}~\vec a & \text{print theorems} \\
   \isarkeyword{term}~t & \text{print term} \\
   \isarkeyword{prop}~\phi & \text{print meta-level proposition} \\
   \isarkeyword{typ}~\tau & \text{print meta-level type} \\
@@ -86,17 +87,18 @@
   \multicolumn{2}{l}{\textbf{Single steps (forward-chaining facts)}} \\[0.5ex]
   $assumption$ & apply some assumption \\
   $this$ & apply current facts \\
-  $rule~a@1\;\dots\;a@n$ & apply some rule  \\
+  $rule~\vec a$ & apply some rule  \\
   $rule$ & apply standard rule (default for $\PROOFNAME$) \\
   $contradiction$ & apply $\neg{}$ elimination rule (any order) \\
-  $cases~x$ & case analysis (emits named cases) \\
-  $induct~x$ & proof by induction (emits named cases) \\[2ex]
+  $cases~x$ & case analysis (provides cases) \\
+  $induct~x$ & proof by induction (provides cases) \\[2ex]
 
   \multicolumn{2}{l}{\textbf{Repeated steps (inserting facts)}} \\[0.5ex]
   $-$ & \text{no rules} \\
-  $intro~a@1\;\dots\;a@n$ & \text{introduction rules} \\
-  $elim~a@1\;\dots\;a@n$ & \text{elimination rules} \\
-  $unfold~a@1\;\dots\;a@n$ & \text{definitions} \\[2ex]
+  $intro~\vec a$ & \text{introduction rules} \\
+  $intro_classes$ & \text{class introduction rules} \\
+  $elim~\vec a$ & \text{elimination rules} \\
+  $unfold~\vec a$ & \text{definitions} \\[2ex]
 
   \multicolumn{2}{l}{\textbf{Automated proof tools (inserting facts, or even prems!)}} \\[0.5ex]
   $simp$ & Simplifier (+ Splitter) \\
@@ -110,8 +112,8 @@
 
 \begin{tabular}{ll}
   \multicolumn{2}{l}{\textbf{Manipulate rules}} \\[0.5ex]
-  $OF~a@1\;\dots\;a@n$ & apply rule to facts (skipping ``$_$'') \\
-  $of~t@1\;\dots\;t@n$ & apply rule to terms (skipping ``$_$'') \\
+  $OF~\vec a$ & apply rule to facts (skipping ``$_$'') \\
+  $of~\vec t$ & apply rule to terms (skipping ``$_$'') \\
   $RS~b$ & resolve fact with rule \\
   $standard$ & put into standard result form \\
   $rulify$ & put into object-rule form \\
