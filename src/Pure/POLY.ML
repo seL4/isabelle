@@ -123,5 +123,5 @@ fun execute command =
   end;
 
 
-
+(*Non-printing and 8-bit chars are forbidden in string constants*)
 val needs_filtered_use = true;
