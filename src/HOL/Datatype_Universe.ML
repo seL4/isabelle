@@ -382,43 +382,6 @@ by (rtac ext 1);
 by (blast_tac (claset() addSEs [Push_Node_inject]) 1);
 qed "Lim_inject";
 
-Goalw [Funs_def] "S <= T ==> Funs S <= Funs T";
-by (Blast_tac 1);
-qed "Funs_mono";
-
-val [prem] = Goalw [Funs_def] "(!!x. f x : S) ==> f : Funs S";
-by (blast_tac (claset() addIs [prem]) 1);
-qed "FunsI";
-
-Goalw [Funs_def] "f : Funs S ==> f x : S";
-by (etac CollectE 1);
-by (etac subsetD 1);
-by (rtac rangeI 1);
-qed "FunsD";
-
-val [p1, p2] = Goalw [o_def]
-   "[| f : Funs R; !!x. x : R ==> r (a x) = x |] ==> r o (a o f) = f";
-by (rtac (p2 RS ext) 1);
-by (rtac (p1 RS FunsD) 1);
-qed "Funs_inv";
-
-val [p1, p2, p3] = Goalw [o_def]
-     "[| inj g; f : Funs (range g); !!h. f = g o h ==> P |] ==> P";
-by (res_inst_tac [("h", "%x. THE y. (f::'c=>'b) x = g y")] p3 1);
-by (rtac ext 1);
-by (rtac (p2 RS FunsD RS rangeE) 1);
-by (rtac theI 1);
-by (atac 1);
-by (rtac (p1 RS injD) 1);
-by (etac (sym RS trans) 1);
-by (atac 1);
-qed "Funs_rangeE";
-
-Goal "a : S ==> (%x. a) : Funs S";
-by (rtac FunsI 1);
-by (assume_tac 1);
-qed "Funs_nonempty";
-
 
 (*** proving equality of sets and functions using ntrunc ***)
 

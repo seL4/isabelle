@@ -33,9 +33,7 @@ consts
   Numb      :: nat => ('a, 'b) dtree
   Scons     :: [('a, 'b) dtree, ('a, 'b) dtree] => ('a, 'b) dtree
   In0,In1   :: ('a, 'b) dtree => ('a, 'b) dtree
-
   Lim       :: ('b => ('a, 'b) dtree) => ('a, 'b) dtree
-  Funs      :: "'u set => ('t => 'u) set"
 
   ntrunc    :: [nat, ('a, 'b) dtree] => ('a, 'b) dtree
 
@@ -75,7 +73,6 @@ defs
 
   (*Function spaces*)
   Lim_def "Lim f == Union {z. ? x. z = Push_Node (Inl x) ` (f x)}"
-  Funs_def "Funs S == {f. range f <= S}"
 
   (*the set of nodes with depth less than k*)
   ndepth_def "ndepth(n) == (%(f,x). LEAST k. f k = Inr 0) (Rep_Node n)"
