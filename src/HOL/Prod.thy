@@ -49,10 +49,9 @@ nonterminals
 
 syntax
   "@Tuple"      :: "['a, args] => 'a * 'b"       ("(1'(_,/ _'))")
-
-  "_pattern"    :: [pttrn, patterns] => pttrn    ("'(_,/_')")
-  ""            :: pttrn => patterns             ("_")
-  "_patterns"   :: [pttrn, patterns] => patterns ("_,/_")
+  "_pattern"    :: [pttrn, patterns] => pttrn      ("'(_,/ _')")
+  ""            :: pttrn => patterns                     ("_")
+  "_patterns"   :: [pttrn, patterns] => patterns     ("_,/ _")
 
   "@Sigma"      :: "[pttrn, 'a set, 'b set] => ('a * 'b) set"   ("(3SIGMA _:_./ _)" 10)
   "@Times"      :: "['a set, 'a => 'b set] => ('a * 'b) set"    (infixr "<*>" 80)

@@ -43,7 +43,7 @@ syntax
   "@list"     :: args => 'a list                          ("[(_)]")
 
   (* Special syntax for filter *)
-  "@filter"   :: [pttrn, 'a list, bool] => 'a list        ("(1[_:_ ./ _])")
+  "@filter"   :: [pttrn, 'a list, bool] => 'a list        ("(1[_:_./ _])")
 
   (* list update *)
   "_lupdbind"      :: ['a, 'a] => lupdbind            ("(2_ :=/ _)")
