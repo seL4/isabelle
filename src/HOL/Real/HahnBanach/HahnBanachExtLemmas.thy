@@ -190,8 +190,7 @@ lemma h'_norm_pres:
       SOME (y, a). x = y + a \<cdot> x0 \<and> y \<in> H in h y + a * xi"
     and H'_def: "H' \<equiv> H + lin x0"
     and x0: "x0 \<notin> H"  "x0 \<in> E"  "x0 \<noteq> 0"
-  includes vectorspace E + subvectorspace H E +
-    seminorm E p + linearform H h
+  includes vectorspace E + subspace H E + seminorm E p + linearform H h
   assumes a: "\<forall>y \<in> H. h y \<le> p y"
     and a': "\<forall>y \<in> H. - p (y + x0) - h y \<le> xi \<and> xi \<le> p (y + x0) - h y"
   shows "\<forall>x \<in> H'. h' x \<le> p x"

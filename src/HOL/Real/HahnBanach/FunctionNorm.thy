@@ -53,9 +53,9 @@ text {*
   empty set. Since @{text \<real>} is unbounded, there would be no supremum.
   To avoid this situation it must be guaranteed that there is an
   element in this set. This element must be @{text "{} \<ge> 0"} so that
-  @{text function_norm} has the norm properties. Furthermore
-  it does not have to change the norm in all other cases, so it must
-  be @{text 0}, as all other elements are @{text "{} \<ge> 0"}.
+  @{text fn_norm} has the norm properties. Furthermore it does not
+  have to change the norm in all other cases, so it must be @{text 0},
+  as all other elements are @{text "{} \<ge> 0"}.
 
   Thus we define the set @{text B} where the supremum is taken from as
   follows:
@@ -63,31 +63,25 @@ text {*
   @{text "{0} \<union> {\<bar>f x\<bar> / \<parallel>x\<parallel>. x \<noteq> 0 \<and> x \<in> F}"}
   \end{center}
 
-  @{text function_norm} is equal to the supremum of @{text B}, if the
+  @{text fn_norm} is equal to the supremum of @{text B}, if the
   supremum exists (otherwise it is undefined).
 *}
 
-locale function_norm = norm_syntax +
-  fixes B
-  defines "B V f \<equiv> {0} \<union> {\<bar>f x\<bar> / \<parallel>x\<parallel> | x. x \<noteq> 0 \<and> x \<in> V}"
-  fixes function_norm ("\<parallel>_\<parallel>\<hyphen>_" [0, 1000] 999)
+locale fn_norm = norm_syntax +
+  fixes B defines "B V f \<equiv> {0} \<union> {\<bar>f x\<bar> / \<parallel>x\<parallel> | x. x \<noteq> 0 \<and> x \<in> V}"
+  fixes fn_norm ("\<parallel>_\<parallel>\<hyphen>_" [0, 1000] 999)
   defines "\<parallel>f\<parallel>\<hyphen>V \<equiv> \<Squnion>(B V f)"
 
-lemma (in function_norm) B_not_empty [intro]: "0 \<in> B V f"
-  by (unfold B_def) simp
-
-locale (open) functional_vectorspace =
-    normed_vectorspace + function_norm +
-  fixes cont
-  defines "cont f \<equiv> continuous V norm f"
+lemma (in fn_norm) B_not_empty [intro]: "0 \<in> B V f"
+  by (simp add: B_def)
 
 text {*
   The following lemma states that every continuous linear form on a
   normed space @{text "(V, \<parallel>\<cdot>\<parallel>)"} has a function norm.
 *}
 
-lemma (in functional_vectorspace) function_norm_works:
-  includes continuous
+lemma (in normed_vectorspace) fn_norm_works:   (* FIXME bug with "(in fn_norm)" !? *)
+  includes fn_norm + continuous
   shows "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
 proof -
   txt {* The existence of the supremum is shown using the
@@ -148,38 +142,40 @@ proof -
       thus ?thesis ..
     qed
   qed
-  then show ?thesis
-    by (unfold function_norm_def) (rule the_lubI_ex)
+  then show ?thesis by (unfold fn_norm_def) (rule the_lubI_ex)
 qed
 
-lemma (in functional_vectorspace) function_norm_ub [intro?]:
-  includes continuous
+lemma (in normed_vectorspace) fn_norm_ub [iff?]:
+  includes fn_norm + continuous
   assumes b: "b \<in> B V f"
   shows "b \<le> \<parallel>f\<parallel>\<hyphen>V"
 proof -
-  have "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)" by (rule function_norm_works)
+  have "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
+    by (unfold B_def fn_norm_def) (rule fn_norm_works)
   from this and b show ?thesis ..
 qed
 
-lemma (in functional_vectorspace) function_norm_least' [intro?]:
-  includes continuous
+lemma (in normed_vectorspace) fn_norm_leastB:
+  includes fn_norm + continuous
   assumes b: "\<And>b. b \<in> B V f \<Longrightarrow> b \<le> y"
   shows "\<parallel>f\<parallel>\<hyphen>V \<le> y"
 proof -
-  have "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)" by (rule function_norm_works)
+  have "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
+    by (unfold B_def fn_norm_def) (rule fn_norm_works)
   from this and b show ?thesis ..
 qed
 
 text {* The norm of a continuous function is always @{text "\<ge> 0"}. *}
 
-lemma (in functional_vectorspace) function_norm_ge_zero [iff]:
-  includes continuous
+lemma (in normed_vectorspace) fn_norm_ge_zero [iff]:
+  includes fn_norm + continuous
   shows "0 \<le> \<parallel>f\<parallel>\<hyphen>V"
 proof -
   txt {* The function norm is defined as the supremum of @{text B}.
     So it is @{text "\<ge> 0"} if all elements in @{text B} are @{text "\<ge>
     0"}, provided the supremum exists and @{text B} is not empty. *}
-  have "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)" by (rule function_norm_works)
+  have "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
+    by (unfold B_def fn_norm_def) (rule fn_norm_works)
   moreover have "0 \<in> B V f" ..
   ultimately show ?thesis ..
 qed
@@ -191,8 +187,8 @@ text {*
   \end{center}
 *}
 
-lemma (in functional_vectorspace) function_norm_le_cong:
-  includes continuous + vectorspace_linearform
+lemma (in normed_vectorspace) fn_norm_le_cong:
+  includes fn_norm + continuous + linearform
   assumes x: "x \<in> V"
   shows "\<bar>f x\<bar> \<le> \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>"
 proof cases
@@ -202,7 +198,7 @@ proof cases
   also have "\<bar>\<dots>\<bar> = 0" by simp
   also have "\<dots> \<le> \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>"
   proof (rule real_le_mult_order1a)
-    show "0 \<le> \<parallel>f\<parallel>\<hyphen>V" ..
+    show "0 \<le> \<parallel>f\<parallel>\<hyphen>V" by (unfold B_def fn_norm_def) rule
     show "0 \<le> norm x" ..
   qed
   finally show "\<bar>f x\<bar> \<le> \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>" .
@@ -213,11 +209,10 @@ next
   also have "\<dots> \<le>  \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>"
   proof (rule real_mult_le_le_mono2)
     from x show "0 \<le> \<parallel>x\<parallel>" ..
-    show "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<le> \<parallel>f\<parallel>\<hyphen>V"
-    proof
-      from x and neq show "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<in> B V f"
-        by (auto simp add: B_def real_divide_def)
-    qed
+    from x and neq have "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<in> B V f"
+      by (auto simp add: B_def real_divide_def)
+    then show "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<le> \<parallel>f\<parallel>\<hyphen>V"
+      by (unfold B_def fn_norm_def) (rule fn_norm_ub)
   qed
   finally show ?thesis .
 qed
@@ -230,11 +225,11 @@ text {*
   \end{center}
 *}
 
-lemma (in functional_vectorspace) function_norm_least [intro?]:
-  includes continuous
+lemma (in normed_vectorspace) fn_norm_least [intro?]:
+  includes fn_norm + continuous
   assumes ineq: "\<forall>x \<in> V. \<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>" and ge: "0 \<le> c"
   shows "\<parallel>f\<parallel>\<hyphen>V \<le> c"
-proof (rule function_norm_least')
+proof (rule fn_norm_leastB [folded B_def fn_norm_def])
   fix b assume b: "b \<in> B V f"
   show "b \<le> c"
   proof cases
@@ -260,10 +255,5 @@ proof (rule function_norm_least')
     finally show ?thesis .
   qed
 qed
-
-lemmas [iff?] =
-  functional_vectorspace.function_norm_ge_zero
-  functional_vectorspace.function_norm_le_cong
-  functional_vectorspace.function_norm_least
 
 end

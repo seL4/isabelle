@@ -53,8 +53,7 @@ text {*
 *}
 
 theorem HahnBanach:
-  includes vectorspace E + subvectorspace F E +
-    seminorm_vectorspace E p + linearform F f
+  includes vectorspace E + subspace F E + seminorm E p + linearform F f
   assumes fp: "\<forall>x \<in> F. f x \<le> p x"
   shows "\<exists>h. linearform E h \<and> (\<forall>x \<in> F. h x = f x) \<and> (\<forall>x \<in> E. h x \<le> p x)"
     -- {* Let @{text E} be a vector space, @{text F} a subspace of @{text E}, @{text p} a seminorm on @{text E}, *}
@@ -63,6 +62,7 @@ theorem HahnBanach:
 proof -
   def M \<equiv> "norm_pres_extensions E p F f"
   hence M: "M = \<dots>" by (simp only:)
+  have E: "vectorspace E" .
   have F: "vectorspace F" ..
   {
     fix c assume cM: "c \<in> chain M" and ex: "\<exists>x. x \<in> c"
@@ -121,7 +121,7 @@ proof -
       -- {* @{text g} is the graph of some linear form @{text h} defined on a subspace @{text H} of @{text E}, *}
       -- {* and @{text h} is an extension of @{text f} that is again bounded by @{text p}. \skp *}
   from HE have H: "vectorspace H"
-    by (rule subvectorspace.vectorspace)
+    by (rule subspace.vectorspace)
 
   have HE_eq: "H = E"
     -- {* We show that @{text h} is defined on whole @{text E} by classical contradiction. \skp *}
@@ -164,7 +164,7 @@ proof -
           fix u v assume u: "u \<in> H" and v: "v \<in> H"
           with HE have uE: "u \<in> E" and vE: "v \<in> E" by auto
           from H u v linearform have "h v - h u = h (v - u)"
-            by (simp add: vectorspace_linearform.diff)
+            by (simp add: linearform.diff)
           also from hp and H u v have "\<dots> \<le> p (v - u)"
             by (simp only: vectorspace.diff_closed)
           also from x'E uE vE have "v - u = x' + - x' + v + - u"
@@ -173,11 +173,10 @@ proof -
             by (simp add: add_ac)
           also from x'E uE vE have "\<dots> = (v + x') - (u + x')"
             by (simp add: diff_eq1)
-          also from x'E uE vE have "p \<dots> \<le> p (v + x') + p (u + x')"
+          also from x'E uE vE E have "p \<dots> \<le> p (v + x') + p (u + x')"
             by (simp add: diff_subadditive)
           finally have "h v - h u \<le> p (v + x') + p (u + x')" .
-          then show "- p (u + x') - h u \<le> p (v + x') - h v"
-            by simp
+          then show "- p (u + x') - h u \<le> p (v + x') - h v" by simp
         qed
         then show ?thesis ..
       qed
@@ -298,8 +297,7 @@ text {*
 *}
 
 theorem abs_HahnBanach:
-  includes vectorspace E + subvectorspace F E +
-    linearform F f + seminorm_vectorspace E p
+  includes vectorspace E + subspace F E + linearform F f + seminorm E p
   assumes fp: "\<forall>x \<in> F. \<bar>f x\<bar> \<le> p x"
   shows "\<exists>g. linearform E g
     \<and> (\<forall>x \<in> F. g x = f x)
@@ -330,8 +328,7 @@ text {*
 *}
 
 theorem norm_HahnBanach:
-  includes functional_vectorspace E + subvectorspace F E +
-    linearform F f + continuous F norm f
+  includes normed_vectorspace E + subspace F E + linearform F f + fn_norm + continuous F norm f
   shows "\<exists>g. linearform E g
      \<and> continuous E norm g
      \<and> (\<forall>x \<in> F. g x = f x)
@@ -343,6 +340,9 @@ proof -
   have F: "vectorspace F" ..
   have linearform: "linearform F f" .
   have F_norm: "normed_vectorspace F norm" ..
+  have ge_zero: "0 \<le> \<parallel>f\<parallel>\<hyphen>F"
+    by (rule normed_vectorspace.fn_norm_ge_zero
+      [OF F_norm, folded B_def fn_norm_def])
 
   txt {* We define a function @{text p} on @{text E} as follows:
     @{text "p x = \<parallel>f\<parallel> \<cdot> \<parallel>x\<parallel>"} *}
@@ -356,9 +356,7 @@ proof -
     txt {* @{text p} is positive definite: *}
     show "0 \<le> p x"
     proof (unfold p_def, rule real_le_mult_order1a)
-      show "0 \<le> \<parallel>f\<parallel>\<hyphen>F"
-        apply (unfold function_norm_def B_def)
-        using normed_vectorspace.axioms [OF F_norm] ..
+      show "0 \<le> \<parallel>f\<parallel>\<hyphen>F" by (rule ge_zero)
       from x show "0 \<le> \<parallel>x\<parallel>" ..
     qed
 
@@ -366,14 +364,10 @@ proof -
 
     show "p (a \<cdot> x) = \<bar>a\<bar> * p x"
     proof -
-      have "p (a \<cdot> x) = \<parallel>f\<parallel>\<hyphen>F * \<parallel>a \<cdot> x\<parallel>"
-        by (simp only: p_def)
-      also from x have "\<parallel>a \<cdot> x\<parallel> = \<bar>a\<bar> * \<parallel>x\<parallel>"
-        by (rule abs_homogenous)
-      also have "\<parallel>f\<parallel>\<hyphen>F * (\<bar>a\<bar> * \<parallel>x\<parallel>) = \<bar>a\<bar> * (\<parallel>f\<parallel>\<hyphen>F * \<parallel>x\<parallel>)"
-        by simp
-      also have "\<dots> = \<bar>a\<bar> * p x"
-        by (simp only: p_def)
+      have "p (a \<cdot> x) = \<parallel>f\<parallel>\<hyphen>F * \<parallel>a \<cdot> x\<parallel>" by (simp only: p_def)
+      also from x have "\<parallel>a \<cdot> x\<parallel> = \<bar>a\<bar> * \<parallel>x\<parallel>" by (rule abs_homogenous)
+      also have "\<parallel>f\<parallel>\<hyphen>F * (\<bar>a\<bar> * \<parallel>x\<parallel>) = \<bar>a\<bar> * (\<parallel>f\<parallel>\<hyphen>F * \<parallel>x\<parallel>)" by simp
+      also have "\<dots> = \<bar>a\<bar> * p x" by (simp only: p_def)
       finally show ?thesis .
     qed
 
@@ -381,19 +375,14 @@ proof -
 
     show "p (x + y) \<le> p x + p y"
     proof -
-      have "p (x + y) = \<parallel>f\<parallel>\<hyphen>F * \<parallel>x + y\<parallel>"
-        by (simp only: p_def)
+      have "p (x + y) = \<parallel>f\<parallel>\<hyphen>F * \<parallel>x + y\<parallel>" by (simp only: p_def)
       also have "\<dots> \<le> \<parallel>f\<parallel>\<hyphen>F * (\<parallel>x\<parallel> + \<parallel>y\<parallel>)"
       proof (rule real_mult_le_le_mono1a)
-        show "0 \<le> \<parallel>f\<parallel>\<hyphen>F"
-          apply (unfold function_norm_def B_def)
-          using normed_vectorspace.axioms [OF F_norm] ..  (* FIXME *)
+        show "0 \<le> \<parallel>f\<parallel>\<hyphen>F" by (rule ge_zero)
         from x y show "\<parallel>x + y\<parallel> \<le> \<parallel>x\<parallel> + \<parallel>y\<parallel>" ..
       qed
-      also have "\<dots> = \<parallel>f\<parallel>\<hyphen>F * \<parallel>x\<parallel> + \<parallel>f\<parallel>\<hyphen>F * \<parallel>y\<parallel>"
-        by (simp only: real_add_mult_distrib2)
-      also have "\<dots> = p x + p y"
-        by (simp only: p_def)
+      also have "\<dots> = \<parallel>f\<parallel>\<hyphen>F * \<parallel>x\<parallel> + \<parallel>f\<parallel>\<hyphen>F * \<parallel>y\<parallel>" by (simp only: real_add_mult_distrib2)
+      also have "\<dots> = p x + p y" by (simp only: p_def)
       finally show ?thesis .
     qed
   qed
@@ -404,8 +393,8 @@ proof -
   proof
     fix x assume "x \<in> F"
     show "\<bar>f x\<bar> \<le> p x"
-      apply (unfold p_def function_norm_def B_def)
-      using normed_vectorspace.axioms [OF F_norm] .. (* FIXME *)
+      by (unfold p_def) (rule normed_vectorspace.fn_norm_le_cong
+        [OF F_norm, folded B_def fn_norm_def])
   qed
 
   txt {* Using the fact that @{text p} is a seminorm and @{text f} is bounded
@@ -454,45 +443,32 @@ proof -
       with b show "\<bar>g x\<bar> \<le> \<parallel>f\<parallel>\<hyphen>F * \<parallel>x\<parallel>"
         by (simp only: p_def)
     qed
+    from continuous.axioms [OF g_cont] this ge_zero
     show "\<parallel>g\<parallel>\<hyphen>E \<le> \<parallel>f\<parallel>\<hyphen>F"
-      apply (unfold function_norm_def B_def)
-      apply rule
-      apply (rule normed_vectorspace.axioms [OF E_norm])+
-      apply (rule continuous.axioms [OF g_cont])+
-      apply (rule b [unfolded p_def function_norm_def B_def])
-      using normed_vectorspace.axioms [OF F_norm] ..  (* FIXME *)
+      by (rule fn_norm_least [of g, folded B_def fn_norm_def])
 
     txt {* The other direction is achieved by a similar argument. *}
 
-    have ** : "\<forall>x \<in> F. \<bar>f x\<bar> \<le> \<parallel>g\<parallel>\<hyphen>E * \<parallel>x\<parallel>"
-    proof
-      fix x assume x: "x \<in> F"
-      from a have "g x = f x" ..
-      hence "\<bar>f x\<bar> = \<bar>g x\<bar>" by (simp only:)
-      also have "\<dots> \<le> \<parallel>g\<parallel>\<hyphen>E * \<parallel>x\<parallel>"
-        apply (unfold function_norm_def B_def)
-        apply rule
-        apply (rule normed_vectorspace.axioms [OF E_norm])+
-        apply (rule continuous.axioms [OF g_cont])+
-      proof -
-        from FE x show "x \<in> E" ..
-      qed
-      finally show "\<bar>f x\<bar> \<le> \<parallel>g\<parallel>\<hyphen>E * \<parallel>x\<parallel>" .
-    qed
     show "\<parallel>f\<parallel>\<hyphen>F \<le> \<parallel>g\<parallel>\<hyphen>E"
-      apply (unfold function_norm_def B_def)
-      apply rule
-      apply (rule normed_vectorspace.axioms [OF F_norm])+
-      apply assumption+
-      apply (rule ** [unfolded function_norm_def B_def])
-      apply rule
-      apply assumption+
-      apply (rule continuous.axioms [OF g_cont])+
-      done  (* FIXME *)
+    proof (rule normed_vectorspace.fn_norm_least [OF F_norm, folded B_def fn_norm_def])
+      show "\<forall>x \<in> F. \<bar>f x\<bar> \<le> \<parallel>g\<parallel>\<hyphen>E * \<parallel>x\<parallel>"
+      proof
+	fix x assume x: "x \<in> F"
+	from a have "g x = f x" ..
+	hence "\<bar>f x\<bar> = \<bar>g x\<bar>" by (simp only:)
+	also from continuous.axioms [OF g_cont]
+	have "\<dots> \<le> \<parallel>g\<parallel>\<hyphen>E * \<parallel>x\<parallel>"
+	proof (rule fn_norm_le_cong [of g, folded B_def fn_norm_def])
+	  from FE x show "x \<in> E" ..
+	qed
+	finally show "\<bar>f x\<bar> \<le> \<parallel>g\<parallel>\<hyphen>E * \<parallel>x\<parallel>" .
+      qed
+      show "0 \<le> \<parallel>g\<parallel>\<hyphen>E"
+	using continuous.axioms [OF g_cont]
+	by (rule fn_norm_ge_zero [of g, folded B_def fn_norm_def])
+    qed
   qed
-
-  with linearformE a g_cont show ?thesis
-    by blast
+  with linearformE a g_cont show ?thesis by blast
 qed
 
 end

@@ -23,11 +23,9 @@ locale seminorm = var V + norm_syntax +
     and abs_homogenous [iff?]: "x \<in> V \<Longrightarrow> \<parallel>a \<cdot> x\<parallel> = \<bar>a\<bar> * \<parallel>x\<parallel>"
     and subadditive [iff?]: "x \<in> V \<Longrightarrow> y \<in> V \<Longrightarrow> \<parallel>x + y\<parallel> \<le> \<parallel>x\<parallel> + \<parallel>y\<parallel>"
 
-locale (open) seminorm_vectorspace =
-  seminorm + vectorspace
-
-lemma (in seminorm_vectorspace) diff_subadditive:
-  "x \<in> V \<Longrightarrow> y \<in> V \<Longrightarrow> \<parallel>x - y\<parallel> \<le> \<parallel>x\<parallel> + \<parallel>y\<parallel>"
+lemma (in seminorm) diff_subadditive:
+  includes vectorspace
+  shows "x \<in> V \<Longrightarrow> y \<in> V \<Longrightarrow> \<parallel>x - y\<parallel> \<le> \<parallel>x\<parallel> + \<parallel>y\<parallel>"
 proof -
   assume x: "x \<in> V" and y: "y \<in> V"
   hence "x - y = x + - 1 \<cdot> y"
@@ -40,8 +38,9 @@ proof -
   finally show ?thesis .
 qed
 
-lemma (in seminorm_vectorspace) minus:
-  "x \<in> V \<Longrightarrow> \<parallel>- x\<parallel> = \<parallel>x\<parallel>"
+lemma (in seminorm) minus:
+  includes vectorspace
+  shows "x \<in> V \<Longrightarrow> \<parallel>- x\<parallel> = \<parallel>x\<parallel>"
 proof -
   assume x: "x \<in> V"
   hence "- x = - 1 \<cdot> x" by (simp only: negate_eq1)
@@ -70,7 +69,7 @@ text {*
   space}.
 *}
 
-locale normed_vectorspace = vectorspace + seminorm_vectorspace + norm
+locale normed_vectorspace = vectorspace + norm
 
 lemma (in normed_vectorspace) gt_zero [intro?]:
   "x \<in> V \<Longrightarrow> x \<noteq> 0 \<Longrightarrow> 0 < \<parallel>x\<parallel>"
@@ -91,7 +90,7 @@ text {*
 *}
 
 lemma subspace_normed_vs [intro?]:
-  includes subvectorspace F E + normed_vectorspace E
+  includes subspace F E + normed_vectorspace E
   shows "normed_vectorspace F norm"
 proof
   show "vectorspace F" by (rule vectorspace)

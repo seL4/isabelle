@@ -16,11 +16,9 @@ locale linearform = var V + var f +
   assumes add [iff]: "x \<in> V \<Longrightarrow> y \<in> V \<Longrightarrow> f (x + y) = f x + f y"
     and mult [iff]: "x \<in> V \<Longrightarrow> f (a \<cdot> x) = a * f x"
 
-locale (open) vectorspace_linearform =
-  vectorspace + linearform
-
-lemma (in vectorspace_linearform) neg [iff]:
-  "x \<in> V \<Longrightarrow> f (- x) = - f x"
+lemma (in linearform) neg [iff]:
+  includes vectorspace
+  shows "x \<in> V \<Longrightarrow> f (- x) = - f x"
 proof -
   assume x: "x \<in> V"
   hence "f (- x) = f ((- 1) \<cdot> x)" by (simp add: negate_eq1)
@@ -29,21 +27,22 @@ proof -
   finally show ?thesis .
 qed
 
-lemma (in vectorspace_linearform) diff [iff]:
-  "x \<in> V \<Longrightarrow> y \<in> V \<Longrightarrow> f (x - y) = f x - f y"
+lemma (in linearform) diff [iff]:
+  includes vectorspace
+  shows "x \<in> V \<Longrightarrow> y \<in> V \<Longrightarrow> f (x - y) = f x - f y"
 proof -
   assume x: "x \<in> V" and y: "y \<in> V"
   hence "x - y = x + - y" by (rule diff_eq1)
-  also have "f ... = f x + f (- y)"
-    by (rule add) (simp_all add: x y)
-  also from y have "f (- y) = - f y" by (rule neg)
+  also have "f ... = f x + f (- y)" by (rule add) (simp_all add: x y)
+  also from _ y have "f (- y) = - f y" by (rule neg)
   finally show ?thesis by simp
 qed
 
 text {* Every linear form yields @{text 0} for the @{text 0} vector. *}
 
-lemma (in vectorspace_linearform) linearform_zero [iff]:
-  "f 0 = 0"
+lemma (in linearform) zero [iff]:
+  includes vectorspace
+  shows "f 0 = 0"
 proof -
   have "f 0 = f (0 - 0)" by simp
   also have "\<dots> = f 0 - f 0" by (rule diff) simp_all

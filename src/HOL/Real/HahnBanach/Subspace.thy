@@ -37,12 +37,9 @@ lemma subspaceD [elim]: "U \<unlhd> V \<Longrightarrow> x \<in> U \<Longrightarr
 lemma rev_subspaceD [elim?]: "x \<in> U \<Longrightarrow> U \<unlhd> V \<Longrightarrow> x \<in> V"
   by (rule subspace.subsetD)
 
-
-locale (open) subvectorspace =
-  subspace + vectorspace
-
-lemma (in subvectorspace) diff_closed [iff]:
-    "x \<in> U \<Longrightarrow> y \<in> U \<Longrightarrow> x - y \<in> U"
+lemma (in subspace) diff_closed [iff]:
+  includes vectorspace
+  shows "x \<in> U \<Longrightarrow> y \<in> U \<Longrightarrow> x - y \<in> U"
   by (simp add: diff_eq1 negate_eq1)
 
 
@@ -52,7 +49,9 @@ text {*
   carrier set and by vector space laws.
 *}
 
-lemma (in subvectorspace) zero [intro]: "0 \<in> U"
+lemma (in subspace) zero [intro]:
+  includes vectorspace
+  shows "0 \<in> U"
 proof -
   have "U \<noteq> {}" by (rule U_V.non_empty)
   then obtain x where x: "x \<in> U" by blast
@@ -61,14 +60,17 @@ proof -
   finally show ?thesis .
 qed
 
-lemma (in subvectorspace) neg_closed [iff]: "x \<in> U \<Longrightarrow> - x \<in> U"
+lemma (in subspace) neg_closed [iff]:
+  includes vectorspace
+  shows "x \<in> U \<Longrightarrow> - x \<in> U"
   by (simp add: negate_eq1)
 
 
 text {* \medskip Further derived laws: every subspace is a vector space. *}
 
-lemma (in subvectorspace) vectorspace [iff]:
-  "vectorspace U"
+lemma (in subspace) vectorspace [iff]:
+  includes vectorspace
+  shows "vectorspace U"
 proof
   show "U \<noteq> {}" ..
   fix x y z assume x: "x \<in> U" and y: "y \<in> U" and z: "z \<in> U"
@@ -195,7 +197,7 @@ text {* Any linear closure is a vector space. *}
 
 lemma (in vectorspace) lin_vectorspace [intro]:
     "x \<in> V \<Longrightarrow> vectorspace (lin x)"
-  by (rule subvectorspace.vectorspace) (rule lin_subspace)
+  by (rule subspace.vectorspace) (rule lin_subspace)
 
 
 subsection {* Sum of two vectorspaces *}
@@ -244,7 +246,7 @@ qed
 text {* The sum of two subspaces is again a subspace. *}
 
 lemma sum_subspace [intro?]:
-  includes subvectorspace U E + subvectorspace V E
+  includes subspace U E + vectorspace E + subspace V E
   shows "U + V \<unlhd> E"
 proof
   have "0 \<in> U + V"
@@ -289,7 +291,7 @@ text{* The sum of two subspaces is a vectorspace. *}
 
 lemma sum_vs [intro?]:
     "U \<unlhd> E \<Longrightarrow> V \<unlhd> E \<Longrightarrow> vectorspace E \<Longrightarrow> vectorspace (U + V)"
-  by (rule subvectorspace.vectorspace) (rule sum_subspace)
+  by (rule subspace.vectorspace) (rule sum_subspace)
 
 
 subsection {* Direct sums *}
@@ -310,8 +312,8 @@ lemma decomp:
     and sum: "u1 + v1 = u2 + v2"
   shows "u1 = u2 \<and> v1 = v2"
 proof
-  have U: "vectorspace U" by (rule subvectorspace.vectorspace)
-  have V: "vectorspace V" by (rule subvectorspace.vectorspace)
+  have U: "vectorspace U" by (rule subspace.vectorspace)
+  have V: "vectorspace V" by (rule subspace.vectorspace)
   from u1 u2 v1 v2 and sum have eq: "u1 - u2 = v2 - v1"
     by (simp add: add_diff_swap)
   from u1 u2 have u: "u1 - u2 \<in> U"
@@ -345,7 +347,7 @@ text {*
 *}
 
 lemma decomp_H':
-  includes vectorspace E + subvectorspace H E
+  includes vectorspace E + subspace H E
   assumes y1: "y1 \<in> H" and y2: "y2 \<in> H"
     and x': "x' \<notin> H"  "x' \<in> E"  "x' \<noteq> 0"
     and eq: "y1 + a1 \<cdot> x' = y2 + a2 \<cdot> x'"
@@ -397,7 +399,7 @@ text {*
 *}
 
 lemma decomp_H'_H:
-  includes vectorspace E + subvectorspace H E
+  includes vectorspace E + subspace H E
   assumes t: "t \<in> H"
     and x': "x' \<notin> H"  "x' \<in> E"  "x' \<noteq> 0"
   shows "(SOME (y, a). t = y + a \<cdot> x' \<and> y \<in> H) = (t, 0)"
@@ -424,7 +426,7 @@ lemma h'_definite:
     "h' \<equiv> (\<lambda>x. let (y, a) = SOME (y, a). (x = y + a \<cdot> x' \<and> y \<in> H)
                 in (h y) + a * xi)"
     and x: "x = y + a \<cdot> x'"
-  includes vectorspace E + subvectorspace H E
+  includes vectorspace E + subspace H E
   assumes y: "y \<in> H"
     and x': "x' \<notin> H"  "x' \<in> E"  "x' \<noteq> 0"
   shows "h' x = h y + a * xi"

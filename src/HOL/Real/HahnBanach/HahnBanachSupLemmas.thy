@@ -322,7 +322,7 @@ lemma sup_subE:
 proof
   show "H \<noteq> {}"
   proof -
-    from FE E have "0 \<in> F" by (rule subvectorspace.zero)
+    from FE E have "0 \<in> F" by (rule subspace.zero)
     also from graph M cM ex FE have "F \<unlhd> H" by (rule sup_supF)
     then have "F \<subseteq> H" ..
     finally show ?thesis by blast
@@ -397,10 +397,10 @@ text {*
 *}
 
 lemma abs_ineq_iff:
-  includes subvectorspace H E + seminorm E p + linearform H h
+  includes subspace H E + vectorspace E + seminorm E p + linearform H h
   shows "(\<forall>x \<in> H. \<bar>h x\<bar> \<le> p x) = (\<forall>x \<in> H. h x \<le> p x)" (is "?L = ?R")
 proof
-  have h: "vectorspace H" by (rule vectorspace)
+  have H: "vectorspace H" ..
   {
     assume l: ?L
     show ?R
@@ -420,12 +420,13 @@ proof
       show "- p x \<le> h x"
       proof (rule real_minus_le)
         have "linearform H h" .
-        from h this x have "- h x = h (- x)"
-          by (rule vectorspace_linearform.neg [symmetric])
-        also from r x have "\<dots> \<le> p (- x)" by simp
+        from this H x have "- h x = h (- x)" by (rule linearform.neg [symmetric])
+        also
+	from H x have "- x \<in> H" by (rule vectorspace.neg_closed)
+	with r have "h (- x) \<le> p (- x)" ..
         also have "\<dots> = p x"
-        proof (rule seminorm_vectorspace.minus)
-          show "x \<in> E" ..
+        proof (rule seminorm.minus)
+          from x show "x \<in> E" ..
         qed
         finally show "- h x \<le> p x" .
       qed
