@@ -76,7 +76,10 @@ qed "infinite_Un";
 Goal "[| ~(\\<exists>x \\<in> A. f`x=y); f \\<in> inj(A, B); y \\<in> B |]  \
 \     ==> (\\<lambda>a \\<in> succ(A). if(a=A, y, f`a)) \\<in> inj(succ(A), B)";
 by (res_inst_tac [("d","%z. if(z=y, A, converse(f)`z)")] lam_injective 1);
-by (auto_tac (claset(), simpset() addsimps [inj_is_fun RS apply_type]));
+by (force_tac (claset(), simpset() addsimps [inj_is_fun RS apply_type]) 1);
+(*this preliminary simplification prevents looping somehow*)
+by (Asm_simp_tac 1);  
+by (force_tac (claset(), simpset() addsimps []) 1);  
 qed "succ_not_lepoll_lemma";
 
 Goalw [lepoll_def, eqpoll_def, bij_def, surj_def]
@@ -251,14 +254,14 @@ val all_ex_l = simplify (FOL_ss addsimps [k_def]) all_ex;
 
 Goal "[| l eqpoll a; a \\<subseteq> y |] ==> y - a eqpoll y";
 by (cut_facts_tac [WO_R, Infinite, lnat] 1);
-by (fast_tac (empty_cs addIs [lepoll_lesspoll_lesspoll]
+by (fast_tac (empty_cs addIs [lesspoll_trans1]
         addSIs [Card_cardinal, Diff_lesspoll_eqpoll_Card RS eqpoll_trans,
                 Card_cardinal RS Card_is_Ord RS nat_le_infinite_Ord
                 RS le_imp_lepoll]
         addSEs [well_ord_cardinal_eqpoll,
                 well_ord_cardinal_eqpoll RS eqpoll_sym,
                 eqpoll_sym RS eqpoll_imp_lepoll,
-                n_lesspoll_nat RS lesspoll_lepoll_lesspoll,
+                n_lesspoll_nat RS lesspoll_trans2,
                 well_ord_cardinal_eqpoll RS eqpoll_sym RS eqpoll_imp_lepoll
                 RS lepoll_infinite]) 1);
 qed "Diff_Finite_eqpoll";
@@ -605,3 +608,4 @@ by (assume_tac 1);
 by (Clarify_tac 1);
 by (DEPTH_SOLVE (ares_tac [export conclusion] 1));
 qed "AC16_WO4";
+

@@ -145,12 +145,8 @@ by (eresolve_tac [eqpoll_sym RS (eqpoll_def RS def_imp_iff RS iffD1) RS
 by (forward_tac [bij_is_surj RS surj_image_eq] 1);
 by (dresolve_tac [[bij_is_fun, subset_refl] MRS image_fun] 1);
 by (dresolve_tac [sym RS trans] 1 THEN (assume_tac 1));
-by (hyp_subst_tac 1);
-by (rtac lepoll_lesspoll_lesspoll 1);
-by (eresolve_tac [lt_trans1 RSN (2, lt_Card_imp_lesspoll)] 1
-        THEN REPEAT (assume_tac 1));
-by (rtac UN_lepoll 1
-        THEN (TRYALL (fast_tac (claset() addSEs [lt_Ord]))));
+by (blast_tac (claset() addIs [lesspoll_trans1, UN_lepoll, lt_Ord, 
+                               lt_trans1 RSN (2, lt_Card_imp_lesspoll)]) 1); 
 qed "Union_lesspoll";
 
 (* ********************************************************************** *)

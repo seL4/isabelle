@@ -13,9 +13,7 @@ but slightly changed.
 *)
 
 
-AC_Equiv = CardinalArith + Univ +
-           (*NOT "Main" because that theory includes AC!!!*)
-
+AC_Equiv = Main + (*obviously not Main_ZFC*)
 
 consts
   

@@ -62,8 +62,8 @@ by (rtac range_subset_domain 1);
 by (Blast_tac 2);
 by (Clarify_tac 1);
 by (forward_tac [fun_is_rel RS image_subset RS PowI RS (all_ex RS bspec)] 1);
-by (eresolve_tac [[n_lesspoll_nat, nat_into_Ord RSN (2, image_Ord_lepoll)]
-        MRS lepoll_lesspoll_lesspoll RSN (2, impE)] 1
+by (eresolve_tac [[nat_into_Ord RSN (2, image_Ord_lepoll), n_lesspoll_nat]
+        MRS lesspoll_trans1 RSN (2, impE)] 1
         THEN REPEAT (assume_tac 1));
 by (etac bexE 1);
 by (res_inst_tac [("x","cons(<n,x>, g)")] exI 1);
@@ -517,8 +517,8 @@ by (asm_full_simp_tac (simpset()
         addsimps [[lam_type_RepFun, subset_refl] MRS image_fun]) 1);
 by (etac lemmaX 1 THEN assume_tac 1);
 by (blast_tac (claset() addIs [Card_is_Ord RSN (2, OrdmemD) RS subsetD]) 1);
-by (fast_tac (claset() addSEs [[in_Card_imp_lesspoll, RepFun_lepoll]
-			       MRS lepoll_lesspoll_lesspoll]) 1);
+by (blast_tac (claset() addIs [lesspoll_trans1, in_Card_imp_lesspoll, 
+                               RepFun_lepoll]) 1); 
 qed "lemma";
 
 Goalw [DC_def, WO1_def] "WO1 ==> \\<forall>K. Card(K) --> DC(K)";

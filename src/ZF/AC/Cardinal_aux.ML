@@ -171,8 +171,7 @@ qed "lepoll_imp_eqpoll_subset";
 (* Diff_lesspoll_eqpoll_Card                                              *)
 (* ********************************************************************** *)
 
-Goal "[| A eqpoll a; ~Finite(a); Card(a); B lesspoll a;  \
-\               A-B lesspoll a |] ==> P";
+Goal "[| A\\<approx>a; ~Finite(a); Card(a); B lesspoll a; A-B lesspoll a |] ==> P";
 by (REPEAT (eresolve_tac [lesspoll_imp_ex_lt_eqpoll RS exE,
         Card_is_Ord, conjE] 1));
 by (forw_inst_tac [("j","xa")] ([lt_Ord, lt_Ord] MRS Un_upper1_le) 1
@@ -192,11 +191,10 @@ by (dresolve_tac [[lepoll_Finite, lepoll_Finite] MRS Finite_Un] 2
 by (dresolve_tac [subset_Un_Diff RS subset_imp_lepoll RS lepoll_Finite] 2);
 by (fast_tac (claset()
         addDs [eqpoll_sym RS eqpoll_imp_lepoll RS lepoll_Finite]) 2);
-by (dresolve_tac [ Un_lepoll_Inf_Ord] 1
-        THEN (REPEAT (assume_tac 1)));
+by (dresolve_tac [ Un_lepoll_Inf_Ord] 1 THEN (REPEAT (assume_tac 1)));
 by (fast_tac (claset() addSEs [ltE, Ord_in_Ord]) 1);
-by (dresolve_tac [subset_Un_Diff RS subset_imp_lepoll RS lepoll_trans RSN
-        (3, lt_Card_imp_lesspoll RS lepoll_lesspoll_lesspoll)] 1
+by (dresolve_tac [subset_Un_Diff RS subset_imp_lepoll RS lepoll_trans RS
+         (lt_Card_imp_lesspoll RSN (2, lesspoll_trans1))] 1
         THEN (TRYALL assume_tac));
 by (fast_tac (claset() addSDs [lesspoll_def RS def_imp_iff RS iffD1]) 1);
 qed "Diff_lesspoll_eqpoll_Card_lemma";

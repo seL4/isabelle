@@ -169,15 +169,15 @@ Goalw [lesspoll_def]
 by (blast_tac (claset() addSEs [eqpollE] addIs [eqpollI, lepoll_trans]) 1);
 qed "lesspoll_trans";
 
+Goalw [lesspoll_def] 
+      "[| X lepoll Y; Y lesspoll Z |] ==> X lesspoll Z";
+by (blast_tac (claset() addSEs [eqpollE] addIs [eqpollI, lepoll_trans]) 1);
+qed "lesspoll_trans1";
+
 Goalw [lesspoll_def]
       "[| X lesspoll Y; Y lepoll Z |] ==> X lesspoll Z";
 by (blast_tac (claset() addSEs [eqpollE] addIs [eqpollI, lepoll_trans]) 1);
-qed "lesspoll_lepoll_lesspoll";
-
-Goalw [lesspoll_def] 
-      "[| X lesspoll Y; Z lepoll X |] ==> Z lesspoll Y";
-by (blast_tac (claset() addSEs [eqpollE] addIs [eqpollI, lepoll_trans]) 1);
-qed "lepoll_lesspoll_lesspoll";
+qed "lesspoll_trans2";
 
 
 (** LEAST -- the least number operator [from HOL/Univ.ML] **)
