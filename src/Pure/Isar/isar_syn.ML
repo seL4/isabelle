@@ -5,6 +5,8 @@
 Pure outer syntax.
 
 TODO:
+  - add_parsers: warn if command name coincides with other keyword (if
+    not already present) (!?);
   - constdefs;
   - axclass axioms: attribs;
   - instance: theory_to_proof (with special attribute to add result arity);
@@ -30,20 +32,22 @@ open OuterParse;
 
 (** init and exit **)
 
-val contextP =
-  OuterSyntax.parser false "context" "switch theory context"
-    (name >> (fn x => Toplevel.print o Toplevel.init_theory (IsarThy.the_theory x) (K ())));
-
 val theoryP =
   OuterSyntax.parser false "theory" "begin theory"
-    (name -- ($$$ "=" |-- !!! (enum "+" name --| (Scan.ahead eof || $$$ ":")))
-      >> (fn x => Toplevel.print o
-            Toplevel.init_theory (IsarThy.begin_theory x) IsarThy.end_theory));
+    (OuterSyntax.theory_header >> (Toplevel.print oo IsarThy.theory));
 
 (*end current theory / sub-proof / excursion*)
 val endP =
   OuterSyntax.parser false "end" "end current theory / sub-proof / excursion"
     (Scan.succeed (Toplevel.print o Toplevel.exit o Toplevel.proof IsarThy.end_block));
+
+val contextP =
+  OuterSyntax.parser true "context" "switch theory context"
+    (name >> (Toplevel.print oo IsarThy.context));
+
+val update_contextP =
+  OuterSyntax.parser true "update_context" "switch theory context, forcing update"
+    (name >> (Toplevel.print oo IsarThy.update_context));
 
 
 
@@ -512,7 +516,7 @@ val keywords =
 
 val parsers = [
   (*theory structure*)
-  contextP, theoryP, endP,
+  theoryP, endP, contextP, update_contextP,
   (*theory sections*)
   textP, chapterP, sectionP, subsectionP, subsubsectionP, classesP,
   classrelP, defaultsortP, typedeclP, typeabbrP, nontermP, aritiesP,
