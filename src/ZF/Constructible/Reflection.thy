@@ -1,7 +1,6 @@
 (*  Title:      ZF/Constructible/Reflection.thy
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   2002  University of Cambridge
 *)
 
 header {* The Reflection Theorem*}

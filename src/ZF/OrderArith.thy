@@ -398,6 +398,61 @@ lemma ord_iso_rvimage_eq:
 by (unfold ord_iso_def rvimage_def, blast)
 
 
+subsection{*Every well-founded relation is a subset of some inverse image of
+      an ordinal*}
+
+lemma wf_rvimage_Ord: "Ord(i) \<Longrightarrow> wf(rvimage(A, f, Memrel(i)))"
+by (blast intro: wf_rvimage wf_Memrel)
+
+
+constdefs
+  wfrank :: "[i,i]=>i"
+    "wfrank(r,a) == wfrec(r, a, %x f. \<Union>y \<in> r-``{x}. succ(f`y))"
+
+constdefs
+  wftype :: "i=>i"
+    "wftype(r) == \<Union>y \<in> range(r). succ(wfrank(r,y))"
+
+lemma wfrank: "wf(r) ==> wfrank(r,a) = (\<Union>y \<in> r-``{a}. succ(wfrank(r,y)))"
+by (subst wfrank_def [THEN def_wfrec], simp_all)
+
+lemma Ord_wfrank: "wf(r) ==> Ord(wfrank(r,a))"
+apply (rule_tac a=a in wf_induct, assumption)
+apply (subst wfrank, assumption)
+apply (rule Ord_succ [THEN Ord_UN], blast)
+done
+
+lemma wfrank_lt: "[|wf(r); <a,b> \<in> r|] ==> wfrank(r,a) < wfrank(r,b)"
+apply (rule_tac a1 = b in wfrank [THEN ssubst], assumption)
+apply (rule UN_I [THEN ltI])
+apply (simp add: Ord_wfrank vimage_iff)+
+done
+
+lemma Ord_wftype: "wf(r) ==> Ord(wftype(r))"
+by (simp add: wftype_def Ord_wfrank)
+
+lemma wftypeI: "\<lbrakk>wf(r);  x \<in> field(r)\<rbrakk> \<Longrightarrow> wfrank(r,x) \<in> wftype(r)"
+apply (simp add: wftype_def)
+apply (blast intro: wfrank_lt [THEN ltD])
+done
+
+
+lemma wf_imp_subset_rvimage:
+     "[|wf(r); r \<subseteq> A*A|] ==> \<exists>i f. Ord(i) & r <= rvimage(A, f, Memrel(i))"
+apply (rule_tac x="wftype(r)" in exI)
+apply (rule_tac x="\<lambda>x\<in>A. wfrank(r,x)" in exI)
+apply (simp add: Ord_wftype, clarify)
+apply (frule subsetD, assumption, clarify)
+apply (simp add: rvimage_iff wfrank_lt [THEN ltD])
+apply (blast intro: wftypeI)
+done
+
+theorem wf_iff_subset_rvimage:
+  "relation(r) ==> wf(r) <-> (\<exists>i f A. Ord(i) & r <= rvimage(A, f, Memrel(i)))"
+by (blast dest!: relation_field_times_field wf_imp_subset_rvimage
+          intro: wf_rvimage_Ord [THEN wf_subset])
+
+
 subsection{*Other Results*}
 
 lemma wf_times: "A Int B = 0 ==> wf(A*B)"

@@ -1,7 +1,6 @@
 (*  Title:      ZF/Constructible/WFrec.thy
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   2002  University of Cambridge
 *)
 
 header{*Relativized Well-Founded Recursion*}
@@ -292,9 +291,9 @@ constdefs
 
 lemma (in M_basic) is_recfun_abs:
      "[| \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g));  M(r); M(a); M(f); 
-         relativize2(M,MH,H) |] 
+         relation2(M,MH,H) |] 
       ==> M_is_recfun(M,MH,r,a,f) <-> is_recfun(r,a,H,f)"
-apply (simp add: M_is_recfun_def relativize2_def is_recfun_relativize)
+apply (simp add: M_is_recfun_def relation2_def is_recfun_relativize)
 apply (rule rall_cong)
 apply (blast dest: transM)
 done
@@ -307,16 +306,16 @@ by (simp add: M_is_recfun_def)
 
 lemma (in M_basic) is_wfrec_abs:
      "[| \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g)); 
-         relativize2(M,MH,H);  M(r); M(a); M(z) |]
+         relation2(M,MH,H);  M(r); M(a); M(z) |]
       ==> is_wfrec(M,MH,r,a,z) <-> 
           (\<exists>g[M]. is_recfun(r,a,H,g) & z = H(a,g))"
-by (simp add: is_wfrec_def relativize2_def is_recfun_abs)
+by (simp add: is_wfrec_def relation2_def is_recfun_abs)
 
 text{*Relating @{term wfrec_replacement} to native constructs*}
 lemma (in M_basic) wfrec_replacement':
   "[|wfrec_replacement(M,MH,r);
      \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g)); 
-     relativize2(M,MH,H);  M(r)|] 
+     relation2(M,MH,H);  M(r)|] 
    ==> strong_replacement(M, \<lambda>x z. \<exists>y[M]. 
                 pair(M,x,y,z) & (\<exists>g[M]. is_recfun(r,x,H,g) & y = H(x,g)))"
 by (simp add: wfrec_replacement_def is_wfrec_abs) 
@@ -328,260 +327,6 @@ lemma wfrec_replacement_cong [cong]:
           wfrec_replacement(M, %x y. MH'(x,y), r')" 
 by (simp add: is_wfrec_def wfrec_replacement_def) 
 
-
-subsection{*Ordinal Arithmetic: Two Examples of Recursion*}
-
-subsubsection{*Ordinal Addition*}
-
-(*FIXME: update to use new techniques!!*)
-constdefs
- (*This expresses ordinal addition in the language of ZF.  It also 
-   provides an abbreviation that can be used in the instance of strong
-   replacement below.  Here j is used to define the relation, namely
-   Memrel(succ(j)), while x determines the domain of f.*)
- is_oadd_fun :: "[i=>o,i,i,i,i] => o"
-    "is_oadd_fun(M,i,j,x,f) == 
-       (\<forall>sj msj. M(sj) --> M(msj) --> 
-                 successor(M,j,sj) --> membership(M,sj,msj) --> 
-	         M_is_recfun(M, 
-		     %x g y. \<exists>gx[M]. image(M,g,x,gx) & union(M,i,gx,y),
-		     msj, x, f))"
-
- is_oadd :: "[i=>o,i,i,i] => o"
-    "is_oadd(M,i,j,k) == 
-        (~ ordinal(M,i) & ~ ordinal(M,j) & k=0) |
-        (~ ordinal(M,i) & ordinal(M,j) & k=j) |
-        (ordinal(M,i) & ~ ordinal(M,j) & k=i) |
-        (ordinal(M,i) & ordinal(M,j) & 
-	 (\<exists>f fj sj. M(f) & M(fj) & M(sj) & 
-		    successor(M,j,sj) & is_oadd_fun(M,i,sj,sj,f) & 
-		    fun_apply(M,f,j,fj) & fj = k))"
-
- (*NEEDS RELATIVIZATION*)
- omult_eqns :: "[i,i,i,i] => o"
-    "omult_eqns(i,x,g,z) ==
-            Ord(x) & 
-	    (x=0 --> z=0) &
-            (\<forall>j. x = succ(j) --> z = g`j ++ i) &
-            (Limit(x) --> z = \<Union>(g``x))"
-
- is_omult_fun :: "[i=>o,i,i,i] => o"
-    "is_omult_fun(M,i,j,f) == 
-	    (\<exists>df. M(df) & is_function(M,f) & 
-                  is_domain(M,f,df) & subset(M, j, df)) & 
-            (\<forall>x\<in>j. omult_eqns(i,x,f,f`x))"
-
- is_omult :: "[i=>o,i,i,i] => o"
-    "is_omult(M,i,j,k) == 
-	\<exists>f fj sj. M(f) & M(fj) & M(sj) & 
-                  successor(M,j,sj) & is_omult_fun(M,i,sj,f) & 
-                  fun_apply(M,f,j,fj) & fj = k"
-
-
-locale M_ord_arith = M_basic +
-  assumes oadd_strong_replacement:
-   "[| M(i); M(j) |] ==>
-    strong_replacement(M, 
-         \<lambda>x z. \<exists>y[M]. pair(M,x,y,z) & 
-                  (\<exists>f[M]. \<exists>fx[M]. is_oadd_fun(M,i,j,x,f) & 
-		           image(M,f,x,fx) & y = i Un fx))"
-
- and omult_strong_replacement':
-   "[| M(i); M(j) |] ==>
-    strong_replacement(M, 
-         \<lambda>x z. \<exists>y[M]. z = <x,y> &
-	     (\<exists>g[M]. is_recfun(Memrel(succ(j)),x,%x g. THE z. omult_eqns(i,x,g,z),g) & 
-	     y = (THE z. omult_eqns(i, x, g, z))))" 
-
-
-
-text{*@{text is_oadd_fun}: Relating the pure "language of set theory" to Isabelle/ZF*}
-lemma (in M_ord_arith) is_oadd_fun_iff:
-   "[| a\<le>j; M(i); M(j); M(a); M(f) |] 
-    ==> is_oadd_fun(M,i,j,a,f) <->
-	f \<in> a \<rightarrow> range(f) & (\<forall>x. M(x) --> x < a --> f`x = i Un f``x)"
-apply (frule lt_Ord) 
-apply (simp add: is_oadd_fun_def Memrel_closed Un_closed 
-             relativize2_def is_recfun_abs [of "%x g. i Un g``x"]
-             image_closed is_recfun_iff_equation  
-             Ball_def lt_trans [OF ltI, of _ a] lt_Memrel)
-apply (simp add: lt_def) 
-apply (blast dest: transM) 
-done
-
-
-lemma (in M_ord_arith) oadd_strong_replacement':
-    "[| M(i); M(j) |] ==>
-     strong_replacement(M, 
-            \<lambda>x z. \<exists>y[M]. z = <x,y> &
-		  (\<exists>g[M]. is_recfun(Memrel(succ(j)),x,%x g. i Un g``x,g) & 
-		  y = i Un g``x))" 
-apply (insert oadd_strong_replacement [of i j]) 
-apply (simp add: is_oadd_fun_def relativize2_def is_recfun_abs [of "%x g. i Un g``x"])  
-done
-
-
-lemma (in M_ord_arith) exists_oadd:
-    "[| Ord(j);  M(i);  M(j) |]
-     ==> \<exists>f[M]. is_recfun(Memrel(succ(j)), j, %x g. i Un g``x, f)"
-apply (rule wf_exists_is_recfun [OF wf_Memrel trans_Memrel])
-    apply (simp_all add: Memrel_type oadd_strong_replacement') 
-done 
-
-lemma (in M_ord_arith) exists_oadd_fun:
-    "[| Ord(j);  M(i);  M(j) |] ==> \<exists>f[M]. is_oadd_fun(M,i,succ(j),succ(j),f)"
-apply (rule exists_oadd [THEN rexE])
-apply (erule Ord_succ, assumption, simp) 
-apply (rename_tac f) 
-apply (frule is_recfun_type)
-apply (rule_tac x=f in rexI) 
- apply (simp add: fun_is_function domain_of_fun lt_Memrel apply_recfun lt_def
-                  is_oadd_fun_iff Ord_trans [OF _ succI1], assumption)
-done
-
-lemma (in M_ord_arith) is_oadd_fun_apply:
-    "[| x < j; M(i); M(j); M(f); is_oadd_fun(M,i,j,j,f) |] 
-     ==> f`x = i Un (\<Union>k\<in>x. {f ` k})"
-apply (simp add: is_oadd_fun_iff lt_Ord2, clarify) 
-apply (frule lt_closed, simp)
-apply (frule leI [THEN le_imp_subset])  
-apply (simp add: image_fun, blast) 
-done
-
-lemma (in M_ord_arith) is_oadd_fun_iff_oadd [rule_format]:
-    "[| is_oadd_fun(M,i,J,J,f); M(i); M(J); M(f); Ord(i); Ord(j) |] 
-     ==> j<J --> f`j = i++j"
-apply (erule_tac i=j in trans_induct, clarify) 
-apply (subgoal_tac "\<forall>k\<in>x. k<J")
- apply (simp (no_asm_simp) add: is_oadd_def oadd_unfold is_oadd_fun_apply)
-apply (blast intro: lt_trans ltI lt_Ord) 
-done
-
-lemma (in M_ord_arith) Ord_oadd_abs:
-    "[| M(i); M(j); M(k); Ord(i); Ord(j) |] ==> is_oadd(M,i,j,k) <-> k = i++j"
-apply (simp add: is_oadd_def is_oadd_fun_iff_oadd)
-apply (frule exists_oadd_fun [of j i], blast+)
-done
-
-lemma (in M_ord_arith) oadd_abs:
-    "[| M(i); M(j); M(k) |] ==> is_oadd(M,i,j,k) <-> k = i++j"
-apply (case_tac "Ord(i) & Ord(j)")
- apply (simp add: Ord_oadd_abs)
-apply (auto simp add: is_oadd_def oadd_eq_if_raw_oadd)
-done
-
-lemma (in M_ord_arith) oadd_closed [intro,simp]:
-    "[| M(i); M(j) |] ==> M(i++j)"
-apply (simp add: oadd_eq_if_raw_oadd, clarify) 
-apply (simp add: raw_oadd_eq_oadd) 
-apply (frule exists_oadd_fun [of j i], auto)
-apply (simp add: apply_closed is_oadd_fun_iff_oadd [symmetric]) 
-done
-
-
-subsubsection{*Ordinal Multiplication*}
-
-lemma omult_eqns_unique:
-     "[| omult_eqns(i,x,g,z); omult_eqns(i,x,g,z') |] ==> z=z'";
-apply (simp add: omult_eqns_def, clarify) 
-apply (erule Ord_cases, simp_all) 
-done
-
-lemma omult_eqns_0: "omult_eqns(i,0,g,z) <-> z=0"
-by (simp add: omult_eqns_def)
-
-lemma the_omult_eqns_0: "(THE z. omult_eqns(i,0,g,z)) = 0"
-by (simp add: omult_eqns_0)
-
-lemma omult_eqns_succ: "omult_eqns(i,succ(j),g,z) <-> Ord(j) & z = g`j ++ i"
-by (simp add: omult_eqns_def)
-
-lemma the_omult_eqns_succ:
-     "Ord(j) ==> (THE z. omult_eqns(i,succ(j),g,z)) = g`j ++ i"
-by (simp add: omult_eqns_succ) 
-
-lemma omult_eqns_Limit:
-     "Limit(x) ==> omult_eqns(i,x,g,z) <-> z = \<Union>(g``x)"
-apply (simp add: omult_eqns_def) 
-apply (blast intro: Limit_is_Ord) 
-done
-
-lemma the_omult_eqns_Limit:
-     "Limit(x) ==> (THE z. omult_eqns(i,x,g,z)) = \<Union>(g``x)"
-by (simp add: omult_eqns_Limit)
-
-lemma omult_eqns_Not: "~ Ord(x) ==> ~ omult_eqns(i,x,g,z)"
-by (simp add: omult_eqns_def)
-
-
-lemma (in M_ord_arith) the_omult_eqns_closed:
-    "[| M(i); M(x); M(g); function(g) |] 
-     ==> M(THE z. omult_eqns(i, x, g, z))"
-apply (case_tac "Ord(x)")
- prefer 2 apply (simp add: omult_eqns_Not) --{*trivial, non-Ord case*}
-apply (erule Ord_cases) 
-  apply (simp add: omult_eqns_0)
- apply (simp add: omult_eqns_succ apply_closed oadd_closed) 
-apply (simp add: omult_eqns_Limit) 
-done
-
-lemma (in M_ord_arith) exists_omult:
-    "[| Ord(j);  M(i);  M(j) |]
-     ==> \<exists>f[M]. is_recfun(Memrel(succ(j)), j, %x g. THE z. omult_eqns(i,x,g,z), f)"
-apply (rule wf_exists_is_recfun [OF wf_Memrel trans_Memrel])
-    apply (simp_all add: Memrel_type omult_strong_replacement') 
-apply (blast intro: the_omult_eqns_closed) 
-done
-
-lemma (in M_ord_arith) exists_omult_fun:
-    "[| Ord(j);  M(i);  M(j) |] ==> \<exists>f[M]. is_omult_fun(M,i,succ(j),f)"
-apply (rule exists_omult [THEN rexE])
-apply (erule Ord_succ, assumption, simp) 
-apply (rename_tac f) 
-apply (frule is_recfun_type)
-apply (rule_tac x=f in rexI) 
-apply (simp add: fun_is_function domain_of_fun lt_Memrel apply_recfun lt_def
-                 is_omult_fun_def Ord_trans [OF _ succI1])
- apply (force dest: Ord_in_Ord' 
-              simp add: omult_eqns_def the_omult_eqns_0 the_omult_eqns_succ
-                        the_omult_eqns_Limit, assumption)
-done
-
-lemma (in M_ord_arith) is_omult_fun_apply_0:
-    "[| 0 < j; is_omult_fun(M,i,j,f) |] ==> f`0 = 0"
-by (simp add: is_omult_fun_def omult_eqns_def lt_def ball_conj_distrib)
-
-lemma (in M_ord_arith) is_omult_fun_apply_succ:
-    "[| succ(x) < j; is_omult_fun(M,i,j,f) |] ==> f`succ(x) = f`x ++ i"
-by (simp add: is_omult_fun_def omult_eqns_def lt_def, blast) 
-
-lemma (in M_ord_arith) is_omult_fun_apply_Limit:
-    "[| x < j; Limit(x); M(j); M(f); is_omult_fun(M,i,j,f) |] 
-     ==> f ` x = (\<Union>y\<in>x. f`y)"
-apply (simp add: is_omult_fun_def omult_eqns_def domain_closed lt_def, clarify)
-apply (drule subset_trans [OF OrdmemD], assumption+)  
-apply (simp add: ball_conj_distrib omult_Limit image_function)
-done
-
-lemma (in M_ord_arith) is_omult_fun_eq_omult:
-    "[| is_omult_fun(M,i,J,f); M(J); M(f); Ord(i); Ord(j) |] 
-     ==> j<J --> f`j = i**j"
-apply (erule_tac i=j in trans_induct3)
-apply (safe del: impCE)
-  apply (simp add: is_omult_fun_apply_0) 
- apply (subgoal_tac "x<J") 
-  apply (simp add: is_omult_fun_apply_succ omult_succ)  
- apply (blast intro: lt_trans) 
-apply (subgoal_tac "\<forall>k\<in>x. k<J")
- apply (simp add: is_omult_fun_apply_Limit omult_Limit) 
-apply (blast intro: lt_trans ltI lt_Ord) 
-done
-
-lemma (in M_ord_arith) omult_abs:
-    "[| M(i); M(j); M(k); Ord(i); Ord(j) |] ==> is_omult(M,i,j,k) <-> k = i**j"
-apply (simp add: is_omult_def is_omult_fun_eq_omult)
-apply (frule exists_omult_fun [of j i], blast+)
-done
 
 end
 

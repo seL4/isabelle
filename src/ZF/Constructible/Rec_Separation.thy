@@ -1,7 +1,6 @@
 (*  Title:      ZF/Constructible/Rec_Separation.thy
-    ID:         $Id$
+    ID:   $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   2002  University of Cambridge
 *)
 
 header {*Separation for Facts About Recursion*}
@@ -9,7 +8,7 @@ header {*Separation for Facts About Recursion*}
 theory Rec_Separation = Separation + Internalize:
 
 text{*This theory proves all instances needed for locales @{text
-"M_trancl"}, @{text "M_wfrank"} and @{text "M_datatypes"}*}
+"M_trancl"} and @{text "M_datatypes"}*}
 
 lemma eq_succ_imp_lt: "[|i = succ(j); Ord(i)|] ==> j<i"
 by simp
@@ -221,139 +220,6 @@ declare rtrancl_closed [intro,simp]
 declare rtrancl_abs [simp]
 declare trancl_closed [intro,simp]
 declare trancl_abs [simp]
-
-
-subsection{*The Locale @{text "M_wfrank"}*}
-
-subsubsection{*Separation for @{term "wfrank"}*}
-
-lemma wfrank_Reflects:
- "REFLECTS[\<lambda>x. \<forall>rplus[L]. tran_closure(L,r,rplus) -->
-              ~ (\<exists>f[L]. M_is_recfun(L, %x f y. is_range(L,f,y), rplus, x, f)),
-      \<lambda>i x. \<forall>rplus \<in> Lset(i). tran_closure(**Lset(i),r,rplus) -->
-         ~ (\<exists>f \<in> Lset(i).
-            M_is_recfun(**Lset(i), %x f y. is_range(**Lset(i),f,y),
-                        rplus, x, f))]"
-by (intro FOL_reflections function_reflections is_recfun_reflection tran_closure_reflection)
-
-lemma wfrank_separation:
-     "L(r) ==>
-      separation (L, \<lambda>x. \<forall>rplus[L]. tran_closure(L,r,rplus) -->
-         ~ (\<exists>f[L]. M_is_recfun(L, %x f y. is_range(L,f,y), rplus, x, f)))"
-apply (rule gen_separation [OF wfrank_Reflects], simp)
-apply (rule DPow_LsetI)
-apply (rule ball_iff_sats imp_iff_sats)+
-apply (rule_tac env="[rplus,x,r]" in tran_closure_iff_sats)
-apply (rule sep_rules is_recfun_iff_sats | simp)+
-done
-
-
-subsubsection{*Replacement for @{term "wfrank"}*}
-
-lemma wfrank_replacement_Reflects:
- "REFLECTS[\<lambda>z. \<exists>x[L]. x \<in> A &
-        (\<forall>rplus[L]. tran_closure(L,r,rplus) -->
-         (\<exists>y[L]. \<exists>f[L]. pair(L,x,y,z)  &
-                        M_is_recfun(L, %x f y. is_range(L,f,y), rplus, x, f) &
-                        is_range(L,f,y))),
- \<lambda>i z. \<exists>x \<in> Lset(i). x \<in> A &
-      (\<forall>rplus \<in> Lset(i). tran_closure(**Lset(i),r,rplus) -->
-       (\<exists>y \<in> Lset(i). \<exists>f \<in> Lset(i). pair(**Lset(i),x,y,z)  &
-         M_is_recfun(**Lset(i), %x f y. is_range(**Lset(i),f,y), rplus, x, f) &
-         is_range(**Lset(i),f,y)))]"
-by (intro FOL_reflections function_reflections fun_plus_reflections
-             is_recfun_reflection tran_closure_reflection)
-
-lemma wfrank_strong_replacement:
-     "L(r) ==>
-      strong_replacement(L, \<lambda>x z.
-         \<forall>rplus[L]. tran_closure(L,r,rplus) -->
-         (\<exists>y[L]. \<exists>f[L]. pair(L,x,y,z)  &
-                        M_is_recfun(L, %x f y. is_range(L,f,y), rplus, x, f) &
-                        is_range(L,f,y)))"
-apply (rule strong_replacementI)
-apply (rule_tac u="{r,A}" in gen_separation [OF wfrank_replacement_Reflects], 
-       simp)
-apply (drule mem_Lset_imp_subset_Lset, clarsimp)
-apply (rule DPow_LsetI)
-apply (rule bex_iff_sats ball_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[x,z,A,r]" in mem_iff_sats)
-apply (rule sep_rules list.intros app_type tran_closure_iff_sats 
-            is_recfun_iff_sats | simp)+
-done
-
-
-subsubsection{*Separation for Proving @{text Ord_wfrank_range}*}
-
-lemma Ord_wfrank_Reflects:
- "REFLECTS[\<lambda>x. \<forall>rplus[L]. tran_closure(L,r,rplus) -->
-          ~ (\<forall>f[L]. \<forall>rangef[L].
-             is_range(L,f,rangef) -->
-             M_is_recfun(L, \<lambda>x f y. is_range(L,f,y), rplus, x, f) -->
-             ordinal(L,rangef)),
-      \<lambda>i x. \<forall>rplus \<in> Lset(i). tran_closure(**Lset(i),r,rplus) -->
-          ~ (\<forall>f \<in> Lset(i). \<forall>rangef \<in> Lset(i).
-             is_range(**Lset(i),f,rangef) -->
-             M_is_recfun(**Lset(i), \<lambda>x f y. is_range(**Lset(i),f,y),
-                         rplus, x, f) -->
-             ordinal(**Lset(i),rangef))]"
-by (intro FOL_reflections function_reflections is_recfun_reflection
-          tran_closure_reflection ordinal_reflection)
-
-lemma  Ord_wfrank_separation:
-     "L(r) ==>
-      separation (L, \<lambda>x.
-         \<forall>rplus[L]. tran_closure(L,r,rplus) -->
-          ~ (\<forall>f[L]. \<forall>rangef[L].
-             is_range(L,f,rangef) -->
-             M_is_recfun(L, \<lambda>x f y. is_range(L,f,y), rplus, x, f) -->
-             ordinal(L,rangef)))"
-apply (rule gen_separation [OF Ord_wfrank_Reflects], simp)
-apply (rule DPow_LsetI)
-apply (rule ball_iff_sats imp_iff_sats)+
-apply (rule_tac env="[rplus,x,r]" in tran_closure_iff_sats)
-apply (rule sep_rules is_recfun_iff_sats | simp)+
-done
-
-
-subsubsection{*Instantiating the locale @{text M_wfrank}*}
-
-lemma M_wfrank_axioms_L: "M_wfrank_axioms(L)"
-  apply (rule M_wfrank_axioms.intro)
-   apply (assumption | rule
-     wfrank_separation wfrank_strong_replacement Ord_wfrank_separation)+
-  done
-
-theorem M_wfrank_L: "PROP M_wfrank(L)"
-  apply (rule M_wfrank.intro)
-     apply (rule M_trancl.axioms [OF M_trancl_L])+
-  apply (rule M_wfrank_axioms_L) 
-  done
-
-lemmas iterates_closed = M_wfrank.iterates_closed [OF M_wfrank_L]
-  and exists_wfrank = M_wfrank.exists_wfrank [OF M_wfrank_L]
-  and M_wellfoundedrank = M_wfrank.M_wellfoundedrank [OF M_wfrank_L]
-  and Ord_wfrank_range = M_wfrank.Ord_wfrank_range [OF M_wfrank_L]
-  and Ord_range_wellfoundedrank = M_wfrank.Ord_range_wellfoundedrank [OF M_wfrank_L]
-  and function_wellfoundedrank = M_wfrank.function_wellfoundedrank [OF M_wfrank_L]
-  and domain_wellfoundedrank = M_wfrank.domain_wellfoundedrank [OF M_wfrank_L]
-  and wellfoundedrank_type = M_wfrank.wellfoundedrank_type [OF M_wfrank_L]
-  and Ord_wellfoundedrank = M_wfrank.Ord_wellfoundedrank [OF M_wfrank_L]
-  and wellfoundedrank_eq = M_wfrank.wellfoundedrank_eq [OF M_wfrank_L]
-  and wellfoundedrank_lt = M_wfrank.wellfoundedrank_lt [OF M_wfrank_L]
-  and wellfounded_imp_subset_rvimage = M_wfrank.wellfounded_imp_subset_rvimage [OF M_wfrank_L]
-  and wellfounded_imp_wf = M_wfrank.wellfounded_imp_wf [OF M_wfrank_L]
-  and wellfounded_on_imp_wf_on = M_wfrank.wellfounded_on_imp_wf_on [OF M_wfrank_L]
-  and wf_abs = M_wfrank.wf_abs [OF M_wfrank_L]
-  and wf_on_abs = M_wfrank.wf_on_abs [OF M_wfrank_L]
-  and wfrec_replacement_iff = M_wfrank.wfrec_replacement_iff [OF M_wfrank_L]
-  and trans_wfrec_closed = M_wfrank.trans_wfrec_closed [OF M_wfrank_L]
-  and wfrec_closed = M_wfrank.wfrec_closed [OF M_wfrank_L]
-
-declare iterates_closed [intro,simp]
-declare Ord_wfrank_range [rule_format]
-declare wf_abs [simp]
-declare wf_on_abs [simp]
 
 
 subsection{*@{term L} is Closed Under the Operator @{term list}*}
@@ -578,7 +444,7 @@ lemma M_datatypes_axioms_L: "M_datatypes_axioms(L)"
 
 theorem M_datatypes_L: "PROP M_datatypes(L)"
   apply (rule M_datatypes.intro)
-      apply (rule M_wfrank.axioms [OF M_wfrank_L])+
+      apply (rule M_trancl.axioms [OF M_trancl_L])+
  apply (rule M_datatypes_axioms_L) 
  done
 

@@ -8,3 +8,4 @@ Inner Models, Absoluteness and Consistency Proofs
 
 use_thy "DPow_absolute";
 use_thy "AC_in_L";
+use_thy "Rank_Separation";

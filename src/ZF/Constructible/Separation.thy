@@ -1,7 +1,6 @@
 (*  Title:      ZF/Constructible/Separation.thy
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   2002  University of Cambridge
 *)
 
 header{*Early Instances of Separation and Strong Replacement*}
@@ -270,113 +269,7 @@ apply (rule sep_rules | simp)+
 done
 
 
-subsection{*Separation for Order-Isomorphisms*}
-
-lemma well_ord_iso_Reflects:
-  "REFLECTS[\<lambda>x. x\<in>A -->
-                (\<exists>y[L]. \<exists>p[L]. fun_apply(L,f,x,y) & pair(L,y,x,p) & p \<in> r),
-        \<lambda>i x. x\<in>A --> (\<exists>y \<in> Lset(i). \<exists>p \<in> Lset(i).
-                fun_apply(**Lset(i),f,x,y) & pair(**Lset(i),y,x,p) & p \<in> r)]"
-by (intro FOL_reflections function_reflections)
-
-lemma well_ord_iso_separation:
-     "[| L(A); L(f); L(r) |]
-      ==> separation (L, \<lambda>x. x\<in>A --> (\<exists>y[L]. (\<exists>p[L].
-                     fun_apply(L,f,x,y) & pair(L,y,x,p) & p \<in> r)))"
-apply (rule gen_separation [OF well_ord_iso_Reflects, of "{A,f,r}"], simp)
-apply (drule mem_Lset_imp_subset_Lset, clarsimp)
-apply (rule DPow_LsetI)
-apply (rule imp_iff_sats)
-apply (rule_tac env = "[x,A,f,r]" in mem_iff_sats)
-apply (rule sep_rules | simp)+
-done
-
-
-subsection{*Separation for @{term "obase"}*}
-
-lemma obase_reflects:
-  "REFLECTS[\<lambda>a. \<exists>x[L]. \<exists>g[L]. \<exists>mx[L]. \<exists>par[L].
-             ordinal(L,x) & membership(L,x,mx) & pred_set(L,A,a,r,par) &
-             order_isomorphism(L,par,r,x,mx,g),
-        \<lambda>i a. \<exists>x \<in> Lset(i). \<exists>g \<in> Lset(i). \<exists>mx \<in> Lset(i). \<exists>par \<in> Lset(i).
-             ordinal(**Lset(i),x) & membership(**Lset(i),x,mx) & pred_set(**Lset(i),A,a,r,par) &
-             order_isomorphism(**Lset(i),par,r,x,mx,g)]"
-by (intro FOL_reflections function_reflections fun_plus_reflections)
-
-lemma obase_separation:
-     --{*part of the order type formalization*}
-     "[| L(A); L(r) |]
-      ==> separation(L, \<lambda>a. \<exists>x[L]. \<exists>g[L]. \<exists>mx[L]. \<exists>par[L].
-             ordinal(L,x) & membership(L,x,mx) & pred_set(L,A,a,r,par) &
-             order_isomorphism(L,par,r,x,mx,g))"
-apply (rule gen_separation [OF obase_reflects, of "{A,r}"], simp)
-apply (drule mem_Lset_imp_subset_Lset, clarsimp)
-apply (rule DPow_LsetI)
-apply (rule bex_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[x,a,A,r]" in ordinal_iff_sats)
-apply (rule sep_rules | simp)+
-done
-
-
-subsection{*Separation for a Theorem about @{term "obase"}*}
-
-lemma obase_equals_reflects:
-  "REFLECTS[\<lambda>x. x\<in>A --> ~(\<exists>y[L]. \<exists>g[L].
-                ordinal(L,y) & (\<exists>my[L]. \<exists>pxr[L].
-                membership(L,y,my) & pred_set(L,A,x,r,pxr) &
-                order_isomorphism(L,pxr,r,y,my,g))),
-        \<lambda>i x. x\<in>A --> ~(\<exists>y \<in> Lset(i). \<exists>g \<in> Lset(i).
-                ordinal(**Lset(i),y) & (\<exists>my \<in> Lset(i). \<exists>pxr \<in> Lset(i).
-                membership(**Lset(i),y,my) & pred_set(**Lset(i),A,x,r,pxr) &
-                order_isomorphism(**Lset(i),pxr,r,y,my,g)))]"
-by (intro FOL_reflections function_reflections fun_plus_reflections)
-
-lemma obase_equals_separation:
-     "[| L(A); L(r) |]
-      ==> separation (L, \<lambda>x. x\<in>A --> ~(\<exists>y[L]. \<exists>g[L].
-                              ordinal(L,y) & (\<exists>my[L]. \<exists>pxr[L].
-                              membership(L,y,my) & pred_set(L,A,x,r,pxr) &
-                              order_isomorphism(L,pxr,r,y,my,g))))"
-apply (rule gen_separation [OF obase_equals_reflects, of "{A,r}"], simp)
-apply (drule mem_Lset_imp_subset_Lset, clarsimp)
-apply (rule DPow_LsetI)
-apply (rule imp_iff_sats ball_iff_sats disj_iff_sats not_iff_sats)+
-apply (rule_tac env = "[x,A,r]" in mem_iff_sats)
-apply (rule sep_rules | simp)+
-done
-
-
-subsection{*Replacement for @{term "omap"}*}
-
-lemma omap_reflects:
- "REFLECTS[\<lambda>z. \<exists>a[L]. a\<in>B & (\<exists>x[L]. \<exists>g[L]. \<exists>mx[L]. \<exists>par[L].
-     ordinal(L,x) & pair(L,a,x,z) & membership(L,x,mx) &
-     pred_set(L,A,a,r,par) & order_isomorphism(L,par,r,x,mx,g)),
- \<lambda>i z. \<exists>a \<in> Lset(i). a\<in>B & (\<exists>x \<in> Lset(i). \<exists>g \<in> Lset(i). \<exists>mx \<in> Lset(i).
-        \<exists>par \<in> Lset(i).
-         ordinal(**Lset(i),x) & pair(**Lset(i),a,x,z) &
-         membership(**Lset(i),x,mx) & pred_set(**Lset(i),A,a,r,par) &
-         order_isomorphism(**Lset(i),par,r,x,mx,g))]"
-by (intro FOL_reflections function_reflections fun_plus_reflections)
-
-lemma omap_replacement:
-     "[| L(A); L(r) |]
-      ==> strong_replacement(L,
-             \<lambda>a z. \<exists>x[L]. \<exists>g[L]. \<exists>mx[L]. \<exists>par[L].
-             ordinal(L,x) & pair(L,a,x,z) & membership(L,x,mx) &
-             pred_set(L,A,a,r,par) & order_isomorphism(L,par,r,x,mx,g))"
-apply (rule strong_replacementI)
-apply (rename_tac B)
-apply (rule_tac u="{A,r,B}" in gen_separation [OF omap_reflects], simp)
-apply (drule mem_Lset_imp_subset_Lset, clarsimp)
-apply (rule DPow_LsetI)
-apply (rule bex_iff_sats conj_iff_sats)+
-apply (rule_tac env = "[a,z,A,B,r]" in mem_iff_sats)
-apply (rule sep_rules | simp)+
-done
-
-
-subsection{*Separation for a Theorem about @{term "obase"}*}
+subsection{*Separation for a Theorem about @{term "is_recfun"}*}
 
 lemma is_recfun_reflects:
   "REFLECTS[\<lambda>x. \<exists>xa[L]. \<exists>xb[L].
@@ -416,9 +309,7 @@ lemma M_basic_axioms_L: "M_basic_axioms(L)"
 	 Inter_separation Diff_separation cartprod_separation image_separation
 	 converse_separation restrict_separation
 	 comp_separation pred_separation Memrel_separation
-	 funspace_succ_replacement well_ord_iso_separation
-	 obase_separation obase_equals_separation
-	 omap_replacement is_recfun_separation)+
+	 funspace_succ_replacement is_recfun_separation)+
   done
 
 theorem M_basic_L: "PROP M_basic(L)"
@@ -469,7 +360,6 @@ lemmas is_recfun_equal = M_basic.is_recfun_equal [OF M_basic_L]
   and is_recfun_relativize = M_basic.is_recfun_relativize [OF M_basic_L]
   and is_recfun_restrict = M_basic.is_recfun_restrict [OF M_basic_L]
   and univalent_is_recfun = M_basic.univalent_is_recfun [OF M_basic_L]
-  and exists_is_recfun_indstep = M_basic.exists_is_recfun_indstep [OF M_basic_L]
   and wellfounded_exists_is_recfun = M_basic.wellfounded_exists_is_recfun [OF M_basic_L]
   and wf_exists_is_recfun = M_basic.wf_exists_is_recfun [OF M_basic_L]
   and is_recfun_abs = M_basic.is_recfun_abs [OF M_basic_L]
@@ -499,34 +389,8 @@ lemmas pred_closed = M_basic.pred_closed [OF M_basic_L]
   and membership_abs = M_basic.membership_abs [OF M_basic_L]
   and M_Memrel_iff = M_basic.M_Memrel_iff [OF M_basic_L]
   and Memrel_closed = M_basic.Memrel_closed [OF M_basic_L]
-  and wellordered_iso_predD = M_basic.wellordered_iso_predD [OF M_basic_L]
-  and wellordered_iso_pred_eq = M_basic.wellordered_iso_pred_eq [OF M_basic_L]
   and wellfounded_on_asym = M_basic.wellfounded_on_asym [OF M_basic_L]
   and wellordered_asym = M_basic.wellordered_asym [OF M_basic_L]
-  and ord_iso_pred_imp_lt = M_basic.ord_iso_pred_imp_lt [OF M_basic_L]
-  and obase_iff = M_basic.obase_iff [OF M_basic_L]
-  and omap_iff = M_basic.omap_iff [OF M_basic_L]
-  and omap_unique = M_basic.omap_unique [OF M_basic_L]
-  and omap_yields_Ord = M_basic.omap_yields_Ord [OF M_basic_L]
-  and otype_iff = M_basic.otype_iff [OF M_basic_L]
-  and otype_eq_range = M_basic.otype_eq_range [OF M_basic_L]
-  and Ord_otype = M_basic.Ord_otype [OF M_basic_L]
-  and domain_omap = M_basic.domain_omap [OF M_basic_L]
-  and omap_subset = M_basic.omap_subset [OF M_basic_L]
-  and omap_funtype = M_basic.omap_funtype [OF M_basic_L]
-  and wellordered_omap_bij = M_basic.wellordered_omap_bij [OF M_basic_L]
-  and omap_ord_iso = M_basic.omap_ord_iso [OF M_basic_L]
-  and Ord_omap_image_pred = M_basic.Ord_omap_image_pred [OF M_basic_L]
-  and restrict_omap_ord_iso = M_basic.restrict_omap_ord_iso [OF M_basic_L]
-  and obase_equals = M_basic.obase_equals [OF M_basic_L]
-  and omap_ord_iso_otype = M_basic.omap_ord_iso_otype [OF M_basic_L]
-  and obase_exists = M_basic.obase_exists [OF M_basic_L]
-  and omap_exists = M_basic.omap_exists [OF M_basic_L]
-  and otype_exists = M_basic.otype_exists [OF M_basic_L]
-  and omap_ord_iso_otype' = M_basic.omap_ord_iso_otype' [OF M_basic_L]
-  and ordertype_exists = M_basic.ordertype_exists [OF M_basic_L]
-  and relativized_imp_well_ord = M_basic.relativized_imp_well_ord [OF M_basic_L]
-  and well_ord_abs = M_basic.well_ord_abs [OF M_basic_L]
 
 declare cartprod_closed [intro, simp]
 declare sum_closed [intro, simp]

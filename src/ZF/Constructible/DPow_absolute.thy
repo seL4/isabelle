@@ -1,7 +1,6 @@
 (*  Title:      ZF/Constructible/DPow_absolute.thy
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   2002  University of Cambridge
 *)
 
 header {*Absoluteness for the Definable Powerset Function*}
@@ -522,14 +521,14 @@ lemma (in M_Lset) Lset_abs:
    ==> is_Lset(M,i,z) <-> z = Lset(i)"
 apply (simp add: is_Lset_def Lset_eq_transrec_DPow') 
 apply (rule transrec_abs)  
-apply (simp_all add: transrec_rep' relativize2_def RepFun_DPow_apply_closed)
+apply (simp_all add: transrec_rep' relation2_def RepFun_DPow_apply_closed)
 done
 
 lemma (in M_Lset) Lset_closed:
   "[|Ord(i);  M(i)|] ==> M(Lset(i))"
 apply (simp add: Lset_eq_transrec_DPow') 
 apply (rule transrec_closed [OF transrec_rep']) 
-apply (simp_all add: relativize2_def RepFun_DPow_apply_closed)
+apply (simp_all add: relation2_def RepFun_DPow_apply_closed)
 done
 
 
@@ -629,13 +628,11 @@ constdefs
     "constructible(M,x) ==
        \<exists>i[M]. \<exists>Li[M]. ordinal(M,i) & is_Lset(M,i,Li) & x \<in> Li"
 
-
 theorem V_equals_L_in_L:
   "L(x) ==> constructible(L,x)"
 apply (simp add: constructible_def Lset_abs Lset_closed) 
 apply (simp add: L_def)
 apply (blast intro: Ord_in_L) 
 done
-
 
 end

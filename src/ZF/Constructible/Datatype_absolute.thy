@@ -1,7 +1,6 @@
 (*  Title:      ZF/Constructible/Datatype_absolute.thy
     ID: $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   2002  University of Cambridge
 *)
 
 header {*Absoluteness Properties for Recursive Datatypes*}
@@ -127,38 +126,38 @@ constdefs
          wfrec_replacement(M, iterates_MH(M,isF,v), Memrel(succ(n)))"
 
 lemma (in M_basic) iterates_MH_abs:
-  "[| relativize1(M,isF,F); M(n); M(g); M(z) |] 
+  "[| relation1(M,isF,F); M(n); M(g); M(z) |] 
    ==> iterates_MH(M,isF,v,n,g,z) <-> z = nat_case(v, \<lambda>m. F(g`m), n)"
 by (simp add: nat_case_abs [of _ "\<lambda>m. F(g ` m)"]
-              relativize1_def iterates_MH_def)  
+              relation1_def iterates_MH_def)  
 
 lemma (in M_basic) iterates_imp_wfrec_replacement:
-  "[|relativize1(M,isF,F); n \<in> nat; iterates_replacement(M,isF,v)|] 
+  "[|relation1(M,isF,F); n \<in> nat; iterates_replacement(M,isF,v)|] 
    ==> wfrec_replacement(M, \<lambda>n f z. z = nat_case(v, \<lambda>m. F(f`m), n), 
                        Memrel(succ(n)))" 
 by (simp add: iterates_replacement_def iterates_MH_abs)
 
 theorem (in M_trancl) iterates_abs:
-  "[| iterates_replacement(M,isF,v); relativize1(M,isF,F);
+  "[| iterates_replacement(M,isF,v); relation1(M,isF,F);
       n \<in> nat; M(v); M(z); \<forall>x[M]. M(F(x)) |] 
    ==> is_wfrec(M, iterates_MH(M,isF,v), Memrel(succ(n)), n, z) <->
        z = iterates(F,n,v)" 
 apply (frule iterates_imp_wfrec_replacement, assumption+)
 apply (simp add: wf_Memrel trans_Memrel relation_Memrel nat_into_M
-                 relativize2_def iterates_MH_abs 
+                 relation2_def iterates_MH_abs 
                  iterates_nat_def recursor_def transrec_def 
                  eclose_sing_Ord_eq nat_into_M
          trans_wfrec_abs [of _ _ _ _ "\<lambda>n g. nat_case(v, \<lambda>m. F(g`m), n)"])
 done
 
 
-lemma (in M_wfrank) iterates_closed [intro,simp]:
-  "[| iterates_replacement(M,isF,v); relativize1(M,isF,F);
+lemma (in M_trancl) iterates_closed [intro,simp]:
+  "[| iterates_replacement(M,isF,v); relation1(M,isF,F);
       n \<in> nat; M(v); \<forall>x[M]. M(F(x)) |] 
    ==> M(iterates(F,n,v))"
 apply (frule iterates_imp_wfrec_replacement, assumption+)
 apply (simp add: wf_Memrel trans_Memrel relation_Memrel nat_into_M
-                 relativize2_def iterates_MH_abs 
+                 relation2_def iterates_MH_abs 
                  iterates_nat_def recursor_def transrec_def 
                  eclose_sing_Ord_eq nat_into_M
          trans_wfrec_closed [of _ _ _ "\<lambda>n g. nat_case(v, \<lambda>m. F(g`m), n)"])
@@ -459,7 +458,7 @@ constdefs
   is_formula :: "[i=>o,i] => o"
     "is_formula(M,Z) == \<forall>p[M]. p \<in> Z <-> mem_formula(M,p)"
 
-locale M_datatypes = M_wfrank +
+locale M_datatypes = M_trancl +
  assumes list_replacement1: 
    "M(A) ==> iterates_replacement(M, is_list_functor(M,A), 0)"
   and list_replacement2: 
@@ -487,14 +486,14 @@ lemma (in M_datatypes) list_replacement2':
 apply (insert list_replacement2 [of A]) 
 apply (rule strong_replacement_cong [THEN iffD1])  
 apply (rule conj_cong [OF iff_refl iterates_abs [of "is_list_functor(M,A)"]]) 
-apply (simp_all add: list_replacement1 relativize1_def) 
+apply (simp_all add: list_replacement1 relation1_def) 
 done
 
 lemma (in M_datatypes) list_closed [intro,simp]:
      "M(A) ==> M(list(A))"
 apply (insert list_replacement1)
 by  (simp add: RepFun_closed2 list_eq_Union 
-               list_replacement2' relativize1_def
+               list_replacement2' relation1_def
                iterates_closed [of "is_list_functor(M,A)"])
 
 text{*WARNING: use only with @{text "dest:"} or with variables fixed!*}
@@ -504,21 +503,21 @@ lemma (in M_datatypes) list_N_abs [simp]:
      "[|M(A); n\<in>nat; M(Z)|] 
       ==> is_list_N(M,A,n,Z) <-> Z = list_N(A,n)"
 apply (insert list_replacement1)
-apply (simp add: is_list_N_def list_N_def relativize1_def nat_into_M
+apply (simp add: is_list_N_def list_N_def relation1_def nat_into_M
                  iterates_abs [of "is_list_functor(M,A)" _ "\<lambda>X. {0} + A*X"])
 done
 
 lemma (in M_datatypes) list_N_closed [intro,simp]:
      "[|M(A); n\<in>nat|] ==> M(list_N(A,n))"
 apply (insert list_replacement1)
-apply (simp add: is_list_N_def list_N_def relativize1_def nat_into_M
+apply (simp add: is_list_N_def list_N_def relation1_def nat_into_M
                  iterates_closed [of "is_list_functor(M,A)"])
 done
 
 lemma (in M_datatypes) mem_list_abs [simp]:
      "M(A) ==> mem_list(M,A,l) <-> l \<in> list(A)"
 apply (insert list_replacement1)
-apply (simp add: mem_list_def list_N_def relativize1_def list_eq_Union
+apply (simp add: mem_list_def list_N_def relation1_def list_eq_Union
                  iterates_closed [of "is_list_functor(M,A)"]) 
 done
 
@@ -535,14 +534,14 @@ lemma (in M_datatypes) formula_replacement2':
 apply (insert formula_replacement2) 
 apply (rule strong_replacement_cong [THEN iffD1])  
 apply (rule conj_cong [OF iff_refl iterates_abs [of "is_formula_functor(M)"]]) 
-apply (simp_all add: formula_replacement1 relativize1_def) 
+apply (simp_all add: formula_replacement1 relation1_def) 
 done
 
 lemma (in M_datatypes) formula_closed [intro,simp]:
      "M(formula)"
 apply (insert formula_replacement1)
 apply  (simp add: RepFun_closed2 formula_eq_Union 
-                  formula_replacement2' relativize1_def
+                  formula_replacement2' relation1_def
                   iterates_closed [of "is_formula_functor(M)"])
 done
 
@@ -552,7 +551,7 @@ lemma (in M_datatypes) formula_N_abs [simp]:
      "[|n\<in>nat; M(Z)|] 
       ==> is_formula_N(M,n,Z) <-> Z = formula_N(n)"
 apply (insert formula_replacement1)
-apply (simp add: is_formula_N_def formula_N_def relativize1_def nat_into_M
+apply (simp add: is_formula_N_def formula_N_def relation1_def nat_into_M
                  iterates_abs [of "is_formula_functor(M)" _ 
                                   "\<lambda>X. ((nat*nat) + (nat*nat)) + (X*X + X)"])
 done
@@ -560,14 +559,14 @@ done
 lemma (in M_datatypes) formula_N_closed [intro,simp]:
      "n\<in>nat ==> M(formula_N(n))"
 apply (insert formula_replacement1)
-apply (simp add: is_formula_N_def formula_N_def relativize1_def nat_into_M
+apply (simp add: is_formula_N_def formula_N_def relation1_def nat_into_M
                  iterates_closed [of "is_formula_functor(M)"])
 done
 
 lemma (in M_datatypes) mem_formula_abs [simp]:
      "mem_formula(M,l) <-> l \<in> formula"
 apply (insert formula_replacement1)
-apply (simp add: mem_formula_def relativize1_def formula_eq_Union formula_N_def
+apply (simp add: mem_formula_def relation1_def formula_eq_Union formula_N_def
                  iterates_closed [of "is_formula_functor(M)"]) 
 done
 
@@ -624,27 +623,27 @@ lemma (in M_eclose) eclose_replacement2':
 apply (insert eclose_replacement2 [of A]) 
 apply (rule strong_replacement_cong [THEN iffD1])  
 apply (rule conj_cong [OF iff_refl iterates_abs [of "big_union(M)"]]) 
-apply (simp_all add: eclose_replacement1 relativize1_def) 
+apply (simp_all add: eclose_replacement1 relation1_def) 
 done
 
 lemma (in M_eclose) eclose_closed [intro,simp]:
      "M(A) ==> M(eclose(A))"
 apply (insert eclose_replacement1)
 by  (simp add: RepFun_closed2 eclose_eq_Union 
-               eclose_replacement2' relativize1_def
+               eclose_replacement2' relation1_def
                iterates_closed [of "big_union(M)"])
 
 lemma (in M_eclose) is_eclose_n_abs [simp]:
      "[|M(A); n\<in>nat; M(Z)|] ==> is_eclose_n(M,A,n,Z) <-> Z = Union^n (A)"
 apply (insert eclose_replacement1)
-apply (simp add: is_eclose_n_def relativize1_def nat_into_M
+apply (simp add: is_eclose_n_def relation1_def nat_into_M
                  iterates_abs [of "big_union(M)" _ "Union"])
 done
 
 lemma (in M_eclose) mem_eclose_abs [simp]:
      "M(A) ==> mem_eclose(M,A,l) <-> l \<in> eclose(A)"
 apply (insert eclose_replacement1)
-apply (simp add: mem_eclose_def relativize1_def eclose_eq_Union
+apply (simp add: mem_eclose_def relation1_def eclose_eq_Union
                  iterates_closed [of "big_union(M)"]) 
 done
 
@@ -679,7 +678,7 @@ text{*The condition @{term "Ord(i)"} lets us use the simpler
   @{text "trans_wfrec_abs"} rather than @{text "trans_wfrec_abs"},
   which I haven't even proved yet. *}
 theorem (in M_eclose) transrec_abs:
-  "[|transrec_replacement(M,MH,i);  relativize2(M,MH,H);
+  "[|transrec_replacement(M,MH,i);  relation2(M,MH,H);
      Ord(i);  M(i);  M(z);
      \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g))|] 
    ==> is_transrec(M,MH,i,z) <-> z = transrec(i,H)" 
@@ -688,7 +687,7 @@ by (simp add: trans_wfrec_abs transrec_replacement_def is_transrec_def
 
 
 theorem (in M_eclose) transrec_closed:
-     "[|transrec_replacement(M,MH,i);  relativize2(M,MH,H);
+     "[|transrec_replacement(M,MH,i);  relation2(M,MH,H);
 	Ord(i);  M(i);  
 	\<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g))|] 
       ==> M(transrec(i,H))"
@@ -770,7 +769,7 @@ apply (subgoal_tac "M(l)")
  prefer 2 apply (blast intro: transM)
 apply (simp add: is_nth_def nth_eq_hd_iterates_tl nat_into_M
                  tl'_closed iterates_tl'_closed 
-                 iterates_abs [OF _ relativize1_tl] nth_replacement)
+                 iterates_abs [OF _ relation1_tl] nth_replacement)
 done
 
 
@@ -848,14 +847,14 @@ constdefs
       (\<forall>x[M]. mem_formula(M,x) --> is_Forall(M,x,p) --> is_d(x,z))"
 
 lemma (in M_datatypes) formula_case_abs [simp]: 
-     "[| Relativize2(M,nat,nat,is_a,a); Relativize2(M,nat,nat,is_b,b); 
-         Relativize2(M,formula,formula,is_c,c); Relativize1(M,formula,is_d,d); 
+     "[| Relation2(M,nat,nat,is_a,a); Relation2(M,nat,nat,is_b,b); 
+         Relation2(M,formula,formula,is_c,c); Relation1(M,formula,is_d,d); 
          p \<in> formula; M(z) |] 
       ==> is_formula_case(M,is_a,is_b,is_c,is_d,p,z) <-> 
           z = formula_case(a,b,c,d,p)"
 apply (simp add: formula_into_M is_formula_case_def)
 apply (erule formula.cases) 
-   apply (simp_all add: Relativize1_def Relativize2_def) 
+   apply (simp_all add: Relation1_def Relation2_def) 
 done
 
 lemma (in M_datatypes) formula_case_closed [intro,simp]:
@@ -935,18 +934,18 @@ done
 
 text{*Sufficient conditions to relative the instance of @{term formula_case}
       in @{term formula_rec}*}
-lemma (in M_datatypes) Relativize1_formula_rec_case:
-     "[|Relativize2(M, nat, nat, is_a, a);
-        Relativize2(M, nat, nat, is_b, b);
-        Relativize2 (M, formula, formula, 
+lemma (in M_datatypes) Relation1_formula_rec_case:
+     "[|Relation2(M, nat, nat, is_a, a);
+        Relation2(M, nat, nat, is_b, b);
+        Relation2 (M, formula, formula, 
            is_c, \<lambda>u v. c(u, v, h`succ(depth(u))`u, h`succ(depth(v))`v));
-        Relativize1(M, formula, 
+        Relation1(M, formula, 
            is_d, \<lambda>u. d(u, h ` succ(depth(u)) ` u));
  	M(h) |] 
-      ==> Relativize1(M, formula,
+      ==> Relation1(M, formula,
                          is_formula_case (M, is_a, is_b, is_c, is_d),
                          formula_rec_case(a, b, c, d, h))"
-apply (simp (no_asm) add: formula_rec_case_def Relativize1_def) 
+apply (simp (no_asm) add: formula_rec_case_def Relation1_def) 
 apply (simp add: formula_case_abs) 
 done
 
@@ -963,19 +962,19 @@ locale Formula_Rec = M_eclose +
 	 (M, fml, is_formula_case (M, is_a, is_b, is_c(f), is_d(f)), z)"
 
   assumes a_closed: "[|x\<in>nat; y\<in>nat|] ==> M(a(x,y))"
-      and a_rel:    "Relativize2(M, nat, nat, is_a, a)"
+      and a_rel:    "Relation2(M, nat, nat, is_a, a)"
       and b_closed: "[|x\<in>nat; y\<in>nat|] ==> M(b(x,y))"
-      and b_rel:    "Relativize2(M, nat, nat, is_b, b)"
+      and b_rel:    "Relation2(M, nat, nat, is_b, b)"
       and c_closed: "[|x \<in> formula; y \<in> formula; M(gx); M(gy)|]
                      ==> M(c(x, y, gx, gy))"
       and c_rel:
          "M(f) ==> 
-          Relativize2 (M, formula, formula, is_c(f),
+          Relation2 (M, formula, formula, is_c(f),
              \<lambda>u v. c(u, v, f ` succ(depth(u)) ` u, f ` succ(depth(v)) ` v))"
       and d_closed: "[|x \<in> formula; M(gx)|] ==> M(d(x, gx))"
       and d_rel:
          "M(f) ==> 
-          Relativize1(M, formula, is_d(f), \<lambda>u. d(u, f ` succ(depth(u)) ` u))"
+          Relation1(M, formula, is_d(f), \<lambda>u. d(u, f ` succ(depth(u)) ` u))"
       and fr_replace: "n \<in> nat ==> transrec_replacement(M,MH,n)"
       and fr_lam_replace:
            "M(g) ==>
@@ -992,12 +991,12 @@ lemma (in Formula_Rec) formula_rec_lam_closed:
 by (simp add: lam_closed2 fr_lam_replace formula_rec_case_closed)
 
 lemma (in Formula_Rec) MH_rel2:
-     "relativize2 (M, MH,
+     "relation2 (M, MH,
              \<lambda>x h. Lambda (formula, formula_rec_case(a,b,c,d,h)))"
-apply (simp add: relativize2_def MH_def, clarify) 
+apply (simp add: relation2_def MH_def, clarify) 
 apply (rule lambda_abs2) 
 apply (rule fr_lam_replace, assumption)
-apply (rule Relativize1_formula_rec_case)  
+apply (rule Relation1_formula_rec_case)  
 apply (simp_all add: a_rel b_rel c_rel d_rel formula_rec_case_closed) 
 done
 

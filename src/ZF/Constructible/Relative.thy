@@ -1,7 +1,6 @@
 (*  Title:      ZF/Constructible/Relative.thy
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   2002  University of Cambridge
 *)
 
 header {*Relativization and Absoluteness*}
@@ -197,43 +196,43 @@ constdefs
        (\<forall>m[M]. successor(M,m,k) --> is_b(m,z)) &
        (is_quasinat(M,k) | empty(M,z))"
 
-  relativize1 :: "[i=>o, [i,i]=>o, i=>i] => o"
-    "relativize1(M,is_f,f) == \<forall>x[M]. \<forall>y[M]. is_f(x,y) <-> y = f(x)"
+  relation1 :: "[i=>o, [i,i]=>o, i=>i] => o"
+    "relation1(M,is_f,f) == \<forall>x[M]. \<forall>y[M]. is_f(x,y) <-> y = f(x)"
 
-  Relativize1 :: "[i=>o, i, [i,i]=>o, i=>i] => o"
+  Relation1 :: "[i=>o, i, [i,i]=>o, i=>i] => o"
     --{*as above, but typed*}
-    "Relativize1(M,A,is_f,f) ==
+    "Relation1(M,A,is_f,f) ==
         \<forall>x[M]. \<forall>y[M]. x\<in>A --> is_f(x,y) <-> y = f(x)"
 
-  relativize2 :: "[i=>o, [i,i,i]=>o, [i,i]=>i] => o"
-    "relativize2(M,is_f,f) == \<forall>x[M]. \<forall>y[M]. \<forall>z[M]. is_f(x,y,z) <-> z = f(x,y)"
+  relation2 :: "[i=>o, [i,i,i]=>o, [i,i]=>i] => o"
+    "relation2(M,is_f,f) == \<forall>x[M]. \<forall>y[M]. \<forall>z[M]. is_f(x,y,z) <-> z = f(x,y)"
 
-  Relativize2 :: "[i=>o, i, i, [i,i,i]=>o, [i,i]=>i] => o"
-    "Relativize2(M,A,B,is_f,f) ==
+  Relation2 :: "[i=>o, i, i, [i,i,i]=>o, [i,i]=>i] => o"
+    "Relation2(M,A,B,is_f,f) ==
         \<forall>x[M]. \<forall>y[M]. \<forall>z[M]. x\<in>A --> y\<in>B --> is_f(x,y,z) <-> z = f(x,y)"
 
-  relativize3 :: "[i=>o, [i,i,i,i]=>o, [i,i,i]=>i] => o"
-    "relativize3(M,is_f,f) ==
+  relation3 :: "[i=>o, [i,i,i,i]=>o, [i,i,i]=>i] => o"
+    "relation3(M,is_f,f) ==
        \<forall>x[M]. \<forall>y[M]. \<forall>z[M]. \<forall>u[M]. is_f(x,y,z,u) <-> u = f(x,y,z)"
 
-  Relativize3 :: "[i=>o, i, i, i, [i,i,i,i]=>o, [i,i,i]=>i] => o"
-    "Relativize3(M,A,B,C,is_f,f) ==
+  Relation3 :: "[i=>o, i, i, i, [i,i,i,i]=>o, [i,i,i]=>i] => o"
+    "Relation3(M,A,B,C,is_f,f) ==
        \<forall>x[M]. \<forall>y[M]. \<forall>z[M]. \<forall>u[M].
          x\<in>A --> y\<in>B --> z\<in>C --> is_f(x,y,z,u) <-> u = f(x,y,z)"
 
-  relativize4 :: "[i=>o, [i,i,i,i,i]=>o, [i,i,i,i]=>i] => o"
-    "relativize4(M,is_f,f) ==
+  relation4 :: "[i=>o, [i,i,i,i,i]=>o, [i,i,i,i]=>i] => o"
+    "relation4(M,is_f,f) ==
        \<forall>u[M]. \<forall>x[M]. \<forall>y[M]. \<forall>z[M]. \<forall>a[M]. is_f(u,x,y,z,a) <-> a = f(u,x,y,z)"
 
 
 text{*Useful when absoluteness reasoning has replaced the predicates by terms*}
-lemma triv_Relativize1:
-     "Relativize1(M, A, \<lambda>x y. y = f(x), f)"
-by (simp add: Relativize1_def)
+lemma triv_Relation1:
+     "Relation1(M, A, \<lambda>x y. y = f(x), f)"
+by (simp add: Relation1_def)
 
-lemma triv_Relativize2:
-     "Relativize2(M, A, B, \<lambda>x y a. a = f(x,y), f)"
-by (simp add: Relativize2_def)
+lemma triv_Relation2:
+     "Relation2(M, A, B, \<lambda>x y a. a = f(x,y), f)"
+by (simp add: Relation2_def)
 
 
 subsection {*The relativized ZF axioms*}
@@ -730,9 +729,9 @@ done
 
 lemma (in M_trivial) lambda_abs2 [simp]:
      "[| strong_replacement(M, \<lambda>x y. x\<in>A & y = \<langle>x, b(x)\<rangle>);
-         Relativize1(M,A,is_b,b); M(A); \<forall>m[M]. m\<in>A --> M(b(m)); M(z) |]
+         Relation1(M,A,is_b,b); M(A); \<forall>m[M]. m\<in>A --> M(b(m)); M(z) |]
       ==> is_lambda(M,A,is_b,z) <-> z = Lambda(A,b)"
-apply (simp add: Relativize1_def is_lambda_def)
+apply (simp add: Relation1_def is_lambda_def)
 apply (rule iffI)
  prefer 2 apply (simp add: lam_def)
 apply (rule M_equalityI)
@@ -787,7 +786,7 @@ lemma (in M_trivial) quasinat_abs [simp]:
 by (auto simp add: is_quasinat_def quasinat_def)
 
 lemma (in M_trivial) nat_case_abs [simp]:
-     "[| relativize1(M,is_b,b); M(k); M(z) |]
+     "[| relation1(M,is_b,b); M(k); M(z) |]
       ==> is_nat_case(M,a,is_b,k,z) <-> z = nat_case(a,b,k)"
 apply (case_tac "quasinat(k)")
  prefer 2
@@ -795,7 +794,7 @@ apply (case_tac "quasinat(k)")
  apply (force simp add: quasinat_def)
 apply (simp add: quasinat_def is_nat_case_def)
 apply (elim disjE exE)
- apply (simp_all add: relativize1_def)
+ apply (simp_all add: relation1_def)
 done
 
 (*NOT for the simplifier.  The assumption M(z') is apparently necessary, but
@@ -929,30 +928,8 @@ assumes Inter_separation:
       strong_replacement(M, \<lambda>p z. \<exists>f[M]. \<exists>b[M]. \<exists>nb[M]. \<exists>cnbf[M].
                 pair(M,f,b,p) & pair(M,n,b,nb) & is_cons(M,nb,f,cnbf) &
                 upair(M,cnbf,cnbf,z))"
-  and well_ord_iso_separation:
-     "[| M(A); M(f); M(r) |]
-      ==> separation (M, \<lambda>x. x\<in>A --> (\<exists>y[M]. (\<exists>p[M].
-		     fun_apply(M,f,x,y) & pair(M,y,x,p) & p \<in> r)))"
-  and obase_separation:
-     --{*part of the order type formalization*}
-     "[| M(A); M(r) |]
-      ==> separation(M, \<lambda>a. \<exists>x[M]. \<exists>g[M]. \<exists>mx[M]. \<exists>par[M].
-	     ordinal(M,x) & membership(M,x,mx) & pred_set(M,A,a,r,par) &
-	     order_isomorphism(M,par,r,x,mx,g))"
-  and obase_equals_separation:
-     "[| M(A); M(r) |]
-      ==> separation (M, \<lambda>x. x\<in>A --> ~(\<exists>y[M]. \<exists>g[M].
-			      ordinal(M,y) & (\<exists>my[M]. \<exists>pxr[M].
-			      membership(M,y,my) & pred_set(M,A,x,r,pxr) &
-			      order_isomorphism(M,pxr,r,y,my,g))))"
-  and omap_replacement:
-     "[| M(A); M(r) |]
-      ==> strong_replacement(M,
-             \<lambda>a z. \<exists>x[M]. \<exists>g[M]. \<exists>mx[M]. \<exists>par[M].
-	     ordinal(M,x) & pair(M,a,x,z) & membership(M,x,mx) &
-	     pred_set(M,A,a,r,par) & order_isomorphism(M,par,r,x,mx,g))"
   and is_recfun_separation:
-     --{*for well-founded recursion*}
+     --{*for well-founded recursion: used to prove @{text is_recfun_equal}*}
      "[| M(r); M(f); M(g); M(a); M(b) |]
      ==> separation(M,
             \<lambda>x. \<exists>xa[M]. \<exists>xb[M].
@@ -1490,7 +1467,7 @@ lemma (in M_trivial) quasilist_abs [simp]:
 by (auto simp add: is_quasilist_def quasilist_def)
 
 lemma (in M_trivial) list_case_abs [simp]:
-     "[| relativize2(M,is_b,b); M(k); M(z) |]
+     "[| relation2(M,is_b,b); M(k); M(z) |]
       ==> is_list_case(M,a,is_b,k,z) <-> z = list_case'(a,b,k)"
 apply (case_tac "quasilist(k)")
  prefer 2
@@ -1498,7 +1475,7 @@ apply (case_tac "quasilist(k)")
  apply (force simp add: quasilist_def)
 apply (simp add: quasilist_def is_list_case_def)
 apply (elim disjE exE)
- apply (simp_all add: relativize2_def)
+ apply (simp_all add: relation2_def)
 done
 
 
@@ -1536,8 +1513,8 @@ apply (simp add: quasilist_def is_tl_def)
 apply (elim disjE exE, auto)
 done
 
-lemma (in M_trivial) relativize1_tl: "relativize1(M, is_tl(M), tl')"
-by (simp add: relativize1_def)
+lemma (in M_trivial) relation1_tl: "relation1(M, is_tl(M), tl')"
+by (simp add: relation1_def)
 
 lemma hd'_Nil: "hd'([]) = 0"
 by (simp add: hd'_def)

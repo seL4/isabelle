@@ -1,7 +1,6 @@
 (*  Title:      ZF/Constructible/Satisfies_absolute.thy
-    ID:         $Id$
+    ID:  $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   2002  University of Cambridge
 *)
 
 header {*Absoluteness for the Satisfies Relation on Formulas*}
@@ -367,9 +366,9 @@ apply (blast intro: lam_closed2 Member_replacement')
 done
 
 lemma (in M_satisfies) a_rel:
-     "M(A) ==> Relativize2(M, nat, nat, satisfies_is_a(M,A), satisfies_a(A))"
-apply (simp add: Relativize2_def satisfies_is_a_def satisfies_a_def)
-apply (simp add: lambda_abs2 [OF Member_replacement'] Relativize1_def)
+     "M(A) ==> Relation2(M, nat, nat, satisfies_is_a(M,A), satisfies_a(A))"
+apply (simp add: Relation2_def satisfies_is_a_def satisfies_a_def)
+apply (simp add: lambda_abs2 [OF Member_replacement'] Relation1_def)
 done
 
 lemma (in M_satisfies) b_closed:
@@ -379,9 +378,9 @@ apply (blast intro: lam_closed2 Equal_replacement')
 done
 
 lemma (in M_satisfies) b_rel:
-     "M(A) ==> Relativize2(M, nat, nat, satisfies_is_b(M,A), satisfies_b(A))"
-apply (simp add: Relativize2_def satisfies_is_b_def satisfies_b_def)
-apply (simp add: lambda_abs2 [OF Equal_replacement'] Relativize1_def)
+     "M(A) ==> Relation2(M, nat, nat, satisfies_is_b(M,A), satisfies_b(A))"
+apply (simp add: Relation2_def satisfies_is_b_def satisfies_b_def)
+apply (simp add: lambda_abs2 [OF Equal_replacement'] Relation1_def)
 done
 
 lemma (in M_satisfies) c_closed:
@@ -395,12 +394,12 @@ done
 
 lemma (in M_satisfies) c_rel:
  "[|M(A); M(f)|] ==> 
-  Relativize2 (M, formula, formula, 
+  Relation2 (M, formula, formula, 
                satisfies_is_c(M,A,f),
 	       \<lambda>u v. satisfies_c(A, u, v, f ` succ(depth(u)) ` u, 
 					  f ` succ(depth(v)) ` v))"
-apply (simp add: Relativize2_def satisfies_is_c_def satisfies_c_def)
-apply (simp add: lambda_abs2 [OF Nand_replacement' triv_Relativize1] 
+apply (simp add: Relation2_def satisfies_is_c_def satisfies_c_def)
+apply (simp add: lambda_abs2 [OF Nand_replacement' triv_Relation1] 
                  formula_into_M)
 done
 
@@ -414,11 +413,11 @@ done
 
 lemma (in M_satisfies) d_rel:
  "[|M(A); M(f)|] ==> 
-  Relativize1(M, formula, satisfies_is_d(M,A,f), 
+  Relation1(M, formula, satisfies_is_d(M,A,f), 
      \<lambda>u. satisfies_d(A, u, f ` succ(depth(u)) ` u))"
 apply (simp del: rall_abs 
-            add: Relativize1_def satisfies_is_d_def satisfies_d_def)
-apply (simp add: lambda_abs2 [OF Forall_replacement' triv_Relativize1] 
+            add: Relation1_def satisfies_is_d_def satisfies_d_def)
+apply (simp add: lambda_abs2 [OF Forall_replacement' triv_Relation1] 
                  formula_into_M)
 done
 

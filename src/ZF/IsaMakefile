@@ -83,6 +83,7 @@ $(LOG)/ZF-Constructible.gz: $(OUT)/ZF  Constructible/ROOT.ML \
   Constructible/AC_in_L.thy Constructible/Relative.thy \
   Constructible/L_axioms.thy    Constructible/Wellorderings.thy \
   Constructible/MetaExists.thy  Constructible/Normal.thy \
+  Constructible/Rank.thy Constructible/Rank_Separation.thy \
   Constructible/Rec_Separation.thy Constructible/Separation.thy \
   Constructible/Satisfies_absolute.thy Constructible/WF_absolute.thy \
   Constructible/Reflection.thy  Constructible/WFrec.thy \
