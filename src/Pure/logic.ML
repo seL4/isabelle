@@ -345,7 +345,7 @@ fun get_goal st i = List.nth (strip_imp_prems st, i-1)
 (*reverses parameters for substitution*)
 fun goal_params st i =
   let val gi = get_goal st i
-      val rfrees = rev (map Free (rename_wrt_term gi (strip_params gi)))
+      val rfrees = map Free (rename_wrt_term gi (strip_params gi))
   in (gi, rfrees) end;
 
 fun concl_of_goal st i =
