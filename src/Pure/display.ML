@@ -12,6 +12,7 @@ signature DISPLAY =
   val pprint_ctyp	: ctyp -> pprint_args -> unit
   val pprint_theory	: theory -> pprint_args -> unit
   val pprint_thm	: thm -> pprint_args -> unit
+  val pretty_cterm	: cterm -> Pretty.T
   val pretty_thm	: thm -> Pretty.T
   val print_cterm	: cterm -> unit
   val print_ctyp	: ctyp -> unit
@@ -78,6 +79,9 @@ fun string_of_ctyp cT =
   let val {sign, T} = rep_ctyp cT in Sign.string_of_typ sign T end;
 
 val print_ctyp = writeln o string_of_ctyp;
+
+fun pretty_cterm ct =
+  let val {sign, t, ...} = rep_cterm ct in Sign.pretty_term sign t end;
 
 fun pprint_cterm ct =
   let val {sign, t, ...} = rep_cterm ct in Sign.pprint_term sign t end;
