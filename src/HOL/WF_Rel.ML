@@ -59,6 +59,11 @@ by (rtac (wf_less_than RS wf_inv_image) 1);
 qed "wf_measure";
 AddIffs [wf_measure];
 
+val measure_induct = standard
+    (asm_full_simplify (simpset() addsimps [measure_def,inv_image_def])
+      (wf_measure RS wf_induct));
+store_thm("measure_induct",measure_induct);
+
 (*----------------------------------------------------------------------------
  * Wellfoundedness of lexicographic combinations
  *---------------------------------------------------------------------------*)

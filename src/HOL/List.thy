@@ -6,7 +6,7 @@
 The datatype of finite lists.
 *)
 
-List = Divides +
+List = WF_Rel +
 
 datatype 'a list = "[]" ("[]") | "#" 'a ('a list) (infixr 65)
 

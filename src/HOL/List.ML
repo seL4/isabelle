@@ -6,8 +6,6 @@
 List lemmas
 *)
 
-open List;
-
 goal thy "!x. xs ~= x#xs";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
@@ -46,7 +44,8 @@ qed "lists_Int_eq";
 Addsimps [lists_Int_eq];
 
 
-(** list_case **)
+(**  Case analysis **)
+section "Case analysis";
 
 val prems = goal thy "[| P([]); !!x xs. P(x#xs) |] ==> P(xs)";
 by (induct_tac "xs" 1);
@@ -59,7 +58,6 @@ by (Blast_tac 1);
 by (Blast_tac 1);
 bind_thm("list_eq_cases",
   impI RSN (2,allI RSN (2,allI RSN (2,impI RS (conjI RS (result() RS mp))))));
-
 
 (** length **)
 (* needs to come before "@" because of thm append_eq_append_conv *)
@@ -509,6 +507,51 @@ by (asm_full_simp_tac (simpset() addsplits [expand_if]) 1);
 qed_spec_mp "nth_mem";
 Addsimps [nth_mem];
 
+(**  More case analysis and induction **)
+section "More case analysis and induction";
+
+val [prem] = goal thy
+  "(!!xs. (!ys. length ys < length xs --> P ys) ==> P xs) ==> P(xs)";
+by(rtac measure_induct 1 THEN etac prem 1);
+qed "length_induct";
+
+goal thy "xs ~= [] --> (? ys y. xs = ys@[y])";
+by(res_inst_tac [("xs","xs")] length_induct 1);
+by(Clarify_tac 1);
+bd (neq_Nil_conv RS iffD1) 1;
+by(Clarify_tac 1);
+by(rename_tac "ys" 1);
+by(case_tac "ys = []" 1);
+ by(res_inst_tac [("x","[]")] exI 1);
+ by(Asm_full_simp_tac 1);
+by(eres_inst_tac [("x","ys")] allE 1);
+by(Asm_full_simp_tac 1);
+by(REPEAT(etac exE 1));
+by(rename_tac "zs z" 1);
+by(hyp_subst_tac 1);
+by(res_inst_tac [("x","y#zs")] exI 1);
+by(Simp_tac 1);
+qed_spec_mp "neq_Nil_snocD";
+
+val prems = goal thy
+  "[| xs=[] ==> P []; !!ys y. xs=ys@[y] ==> P(ys@[y]) |] ==> P xs";
+by(case_tac "xs = []" 1);
+ by(Asm_simp_tac 1);
+ bes prems 1;
+bd neq_Nil_snocD 1;
+by(REPEAT(etac exE 1));
+by(Asm_simp_tac 1);
+bes prems 1;
+qed "snoc_eq_cases";
+
+val prems = goal thy
+  "[| P []; !!x xs. P xs ==> P(xs@[x]) |] ==> P(xs)";
+by(res_inst_tac [("xs","xs")] length_induct 1);
+by(res_inst_tac [("xs","xs")] snoc_eq_cases 1);
+ brs prems 1;
+by(fast_tac (claset() addIs prems addss simpset()) 1);
+qed "snoc_induct";
+
 (** last & butlast **)
 
 goal thy "last(xs@[x]) = x";
@@ -522,6 +565,12 @@ by (induct_tac "xs" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsplits [expand_if])));
 qed "butlast_snoc";
 Addsimps [butlast_snoc];
+
+goal thy "length(butlast xs) = length xs - 1";
+by(res_inst_tac [("xs","xs")] snoc_induct 1);
+by(ALLGOALS Asm_simp_tac);
+qed "length_butlast";
+Addsimps [length_butlast];
 
 goal thy
   "!ys. butlast (xs@ys) = (if ys=[] then butlast xs else xs@butlast ys)";
