@@ -20,4 +20,9 @@ while (<ARGV>) {
     }
 }
 
+if ("$eol" eq "\\\\") {
+    print "$eol\n";
+}
+
 print "\\end{supertabular}\n";
+
