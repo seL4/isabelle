@@ -100,9 +100,8 @@ HOL-Misc: HOL $(LOG)/HOL-Misc.gz
 $(LOG)/HOL-Misc.gz: $(OUT)/HOL Misc/ROOT.ML Misc/Tree.thy Misc/Tree2.thy \
   Misc/fakenat.thy Misc/natsum.thy Misc/pairs.thy Misc/types.thy \
   Misc/prime_def.thy Misc/case_exprs.thy \
-  Misc/arith1.thy Misc/arith2.thy Misc/arith3.thy Misc/arith4.thy \
-  Misc/def_rewr.thy Misc/let_rewr.thy Misc/cond_rewr.thy Misc/case_splits.thy \
-  Misc/trace_simp.thy Misc/Itrev.thy Misc/AdvancedInd.thy Misc/asm_simp.thy
+  Misc/arith1.thy Misc/arith2.thy Misc/arith3.thy \
+  Misc/simp.thy Misc/Itrev.thy Misc/AdvancedInd.thy
 	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Misc
 	@rm -f tutorial.dvi
 

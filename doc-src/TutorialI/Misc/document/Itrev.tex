@@ -1,7 +1,33 @@
 %
 \begin{isabellebody}%
 %
+\isamarkupsection{Induction heuristics}
+%
 \begin{isamarkuptext}%
+\label{sec:InductionHeuristics}
+The purpose of this section is to illustrate some simple heuristics for
+inductive proofs. The first one we have already mentioned in our initial
+example:
+\begin{quote}
+\emph{Theorems about recursive functions are proved by induction.}
+\end{quote}
+In case the function has more than one argument
+\begin{quote}
+\emph{Do induction on argument number $i$ if the function is defined by
+recursion in argument number $i$.}
+\end{quote}
+When we look at the proof of \isa{{\isachardoublequote}{\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}\ {\isacharat}\ zs\ {\isacharequal}\ xs\ {\isacharat}\ {\isacharparenleft}ys\ {\isacharat}\ zs{\isacharparenright}{\isachardoublequote}}
+in \S\ref{sec:intro-proof} we find (a) \isa{{\isacharat}} is recursive in
+the first argument, (b) \isa{xs} occurs only as the first argument of
+\isa{{\isacharat}}, and (c) both \isa{ys} and \isa{zs} occur at least once as
+the second argument of \isa{{\isacharat}}. Hence it is natural to perform induction
+on \isa{xs}.
+
+The key heuristic, and the main point of this section, is to
+generalize the goal before induction. The reason is simple: if the goal is
+too specific, the induction hypothesis is too weak to allow the induction
+step to go through. Let us now illustrate the idea with an example.
+
 Function \isa{rev} has quadratic worst-case running time
 because it calls function \isa{{\isacharat}} for each element of the list and
 \isa{{\isacharat}} is linear in its first argument.  A linear time version of
@@ -32,7 +58,7 @@ There is no choice as to the induction variable, and we immediately simplify:%
 \begin{isamarkuptxt}%
 \noindent
 Unfortunately, this is not a complete success:
-\begin{isabelle}
+\begin{isabelle}\makeatother
 ~1.~\dots~itrev~list~[]~=~rev~list~{\isasymLongrightarrow}~itrev~list~[a]~=~rev~list~@~[a]%
 \end{isabelle}
 Just as predicted above, the overall goal, and hence the induction
@@ -57,7 +83,7 @@ the main source of complications in inductive proofs.
 Although we now have two variables, only \isa{xs} is suitable for
 induction, and we repeat our above proof attempt. Unfortunately, we are still
 not there:
-\begin{isabelle}
+\begin{isabelle}\makeatother
 ~1.~{\isasymAnd}a~list.\isanewline
 ~~~~~~~itrev~list~ys~=~rev~list~@~ys~{\isasymLongrightarrow}\isanewline
 ~~~~~~~itrev~list~(a~\#~ys)~=~rev~list~@~a~\#~ys
@@ -69,7 +95,7 @@ the subgoal, but the induction hypothesis needs to be applied with
 for all \isa{ys} instead of a fixed one:%
 \end{isamarkuptxt}%
 \isacommand{lemma}\ {\isachardoublequote}{\isasymforall}ys{\isachardot}\ itrev\ xs\ ys\ {\isacharequal}\ rev\ xs\ {\isacharat}\ ys{\isachardoublequote}%
-\begin{isamarkuptxt}%
+\begin{isamarkuptext}%
 \noindent
 This time induction on \isa{xs} followed by simplification succeeds. This
 leads to another heuristic for generalization:
@@ -87,8 +113,20 @@ induction does not go through, and no obvious lemma suggests itself, you may
 need to generalize your proposition even further. This requires insight into
 the problem at hand and is beyond simple rules of thumb. In a nutshell: you
 will need to be creative. Additionally, you can read \S\ref{sec:advanced-ind}
-to learn about some advanced techniques for inductive proofs.%
-\end{isamarkuptxt}%
+to learn about some advanced techniques for inductive proofs.
+
+A final point worth mentioning is the orientation of the equation we just
+proved: the more complex notion (\isa{itrev}) is on the left-hand
+side, the simpler one (\isa{rev}) on the right-hand side. This constitutes
+another, albeit weak heuristic that is not restricted to induction:
+\begin{quote}
+  \emph{The right-hand side of an equation should (in some sense) be simpler
+    than the left-hand side.}
+\end{quote}
+This heuristic is tricky to apply because it is not obvious that
+\isa{rev\ xs\ {\isacharat}\ ys} is simpler than \isa{itrev\ xs\ ys}. But see what
+happens if you try to prove \isa{rev\ xs\ {\isacharat}\ ys\ {\isacharequal}\ itrev\ xs\ ys}!%
+\end{isamarkuptext}%
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

@@ -370,11 +370,7 @@ the form $f\,x@1\,\dots\,x@n~\isasymequiv~t$.
 Section~\S\ref{sec:Simplification} explains how definitions are used
 in proofs.
 
-\begin{warn}%
-A common mistake when writing definitions is to introduce extra free
-variables on the right-hand side as in the following fictitious definition:
-\input{Misc/document/prime_def.tex}%
-\end{warn}
+\input{Misc/document/prime_def.tex}
 
 
 \chapter{More Functional Programming}
@@ -425,181 +421,17 @@ This is also known as \bfindex{term rewriting} and the equations are referred
 to as \bfindex{rewrite rules}. ``Rewriting'' is more honest than ``simplification''
 because the terms do not necessarily become simpler in the process.
 
-\subsubsection{Simplification rules}
-\indexbold{simplification rules}
-
-To facilitate simplification, theorems can be declared to be simplification
-rules (with the help of the attribute \isa{[simp]}\index{*simp
-  (attribute)}), in which case proofs by simplification make use of these
-rules automatically. In addition the constructs \isacommand{datatype} and
-\isacommand{primrec} (and a few others) invisibly declare useful
-simplification rules. Explicit definitions are \emph{not} declared
-simplification rules automatically!
-
-Not merely equations but pretty much any theorem can become a simplification
-rule. The simplifier will try to make sense of it.  For example, a theorem
-\isasymnot$P$ is automatically turned into \isa{$P$ = False}. The details
-are explained in \S\ref{sec:SimpHow}.
-
-The simplification attribute of theorems can be turned on and off as follows:
-\begin{ttbox}
-lemmas [simp] = \(list of theorem names\);
-lemmas [simp del] = \(list of theorem names\);
-\end{ttbox}
-As a rule of thumb, equations that really simplify (like \isa{rev(rev xs) =
-  xs} and \mbox{\isa{xs \at\ [] = xs}}) should be made simplification
-rules.  Those of a more specific nature (e.g.\ distributivity laws, which
-alter the structure of terms considerably) should only be used selectively,
-i.e.\ they should not be default simplification rules.  Conversely, it may
-also happen that a simplification rule needs to be disabled in certain
-proofs.  Frequent changes in the simplification status of a theorem may
-indicate a badly designed theory.
-\begin{warn}
-  Simplification may not terminate, for example if both $f(x) = g(x)$ and
-  $g(x) = f(x)$ are simplification rules. It is the user's responsibility not
-  to include simplification rules that can lead to nontermination, either on
-  their own or in combination with other simplification rules.
-\end{warn}
-
-\subsubsection{The simplification method}
-\index{*simp (method)|bold}
-
-The general format of the simplification method is
-\begin{ttbox}
-simp \(list of modifiers\)
-\end{ttbox}
-where the list of \emph{modifiers} helps to fine tune the behaviour and may
-be empty. Most if not all of the proofs seen so far could have been performed
-with \isa{simp} instead of \isa{auto}, except that \isa{simp} attacks
-only the first subgoal and may thus need to be repeated---use \isaindex{simp_all}
-to simplify all subgoals.
-Note that \isa{simp} fails if nothing changes.
-
-\subsubsection{Adding and deleting simplification rules}
-
-If a certain theorem is merely needed in a few proofs by simplification,
-we do not need to make it a global simplification rule. Instead we can modify
-the set of simplification rules used in a simplification step by adding rules
-to it and/or deleting rules from it. The two modifiers for this are
-\begin{ttbox}
-add: \(list of theorem names\)
-del: \(list of theorem names\)
-\end{ttbox}
-In case you want to use only a specific list of theorems and ignore all
-others:
-\begin{ttbox}
-only: \(list of theorem names\)
-\end{ttbox}
-
-
-\subsubsection{Assumptions}
-\index{simplification!with/of assumptions}
-
-{\makeatother\input{Misc/document/asm_simp.tex}}
-
-\subsubsection{Rewriting with definitions}
-\index{simplification!with definitions}
-
-\input{Misc/document/def_rewr.tex}
-
-\begin{warn}
-  If you have defined $f\,x\,y~\isasymequiv~t$ then you can only expand
-  occurrences of $f$ with at least two arguments. Thus it is safer to define
-  $f$~\isasymequiv~\isasymlambda$x\,y.\;t$.
-\end{warn}
-
-\input{Misc/document/let_rewr.tex}
-
-\subsubsection{Conditional equations}
-
-\input{Misc/document/cond_rewr.tex}
-
-
-\subsubsection{Automatic case splits}
-\indexbold{case splits}
-\index{*split|(}
-
-{\makeatother\input{Misc/document/case_splits.tex}}
-\index{*split|)}
-
-\begin{warn}
-  The simplifier merely simplifies the condition of an \isa{if} but not the
-  \isa{then} or \isa{else} parts. The latter are simplified only after the
-  condition reduces to \isa{True} or \isa{False}, or after splitting. The
-  same is true for \isaindex{case}-expressions: only the selector is
-  simplified at first, until either the expression reduces to one of the
-  cases or it is split.
-\end{warn}
-
-\subsubsection{Arithmetic}
-\index{arithmetic}
-
-The simplifier routinely solves a small class of linear arithmetic formulae
-(over type \isa{nat} and other numeric types): it only takes into account
-assumptions and conclusions that are (possibly negated) (in)equalities
-(\isa{=}, \isasymle, \isa{<}) and it only knows about addition. Thus
-
-\input{Misc/document/arith1.tex}%
-is proved by simplification, whereas the only slightly more complex
-
-\input{Misc/document/arith4.tex}%
-is not proved by simplification and requires \isa{arith}.
-
-\subsubsection{Tracing}
-\indexbold{tracing the simplifier}
-
-{\makeatother\input{Misc/document/trace_simp.tex}}
+\input{Misc/document/simp.tex}
 
 \index{simplification|)}
 
-\section{Induction heuristics}
-\label{sec:InductionHeuristics}
-
-The purpose of this section is to illustrate some simple heuristics for
-inductive proofs. The first one we have already mentioned in our initial
-example:
-\begin{quote}
-\emph{Theorems about recursive functions are proved by induction.}
-\end{quote}
-In case the function has more than one argument
-\begin{quote}
-\emph{Do induction on argument number $i$ if the function is defined by
-recursion in argument number $i$.}
-\end{quote}
-When we look at the proof of {\makeatother\isa{(xs @ ys) @ zs = xs @ (ys @
-  zs)}} in \S\ref{sec:intro-proof} we find (a) \isa{\at} is recursive in
-the first argument, (b) \isa{xs} occurs only as the first argument of
-\isa{\at}, and (c) both \isa{ys} and \isa{zs} occur at least once as
-the second argument of \isa{\at}. Hence it is natural to perform induction
-on \isa{xs}.
-
-The key heuristic, and the main point of this section, is to
-generalize the goal before induction. The reason is simple: if the goal is
-too specific, the induction hypothesis is too weak to allow the induction
-step to go through. Let us now illustrate the idea with an example.
-
-{\makeatother\input{Misc/document/Itrev.tex}}
-
-A final point worth mentioning is the orientation of the equation we just
-proved: the more complex notion (\isa{itrev}) is on the left-hand
-side, the simpler \isa{rev} on the right-hand side. This constitutes
-another, albeit weak heuristic that is not restricted to induction:
-\begin{quote}
-  \emph{The right-hand side of an equation should (in some sense) be simpler
-    than the left-hand side.}
-\end{quote}
-This heuristic is tricky to apply because it is not obvious that
-\isa{rev xs \at\ ys} is simpler than \isa{itrev xs ys}. But see what
-happens if you try to prove \isa{rev xs \at\ ys = itrev xs ys}!
+\input{Misc/document/Itrev.tex}
 
 \begin{exercise}
 \input{Misc/document/Tree2.tex}%
 \end{exercise}
 
-\section{Case study: compiling expressions}
-\label{sec:ExprCompiler}
-
-{\makeatother\input{CodeGen/document/CodeGen.tex}}
+\input{CodeGen/document/CodeGen.tex}
 
 
 \section{Advanced datatypes}

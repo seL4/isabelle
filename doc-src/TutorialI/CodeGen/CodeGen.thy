@@ -2,7 +2,9 @@
 theory CodeGen = Main:
 (*>*)
 
-text{*\noindent
+section{*Case study: compiling expressions*}
+
+text{*\label{sec:ExprCompiler}
 The task is to develop a compiler from a generic type of expressions (built
 up from variables, constants and binary operations) to a stack machine.  This
 generic type of expressions is a generalization of the boolean expressions in
