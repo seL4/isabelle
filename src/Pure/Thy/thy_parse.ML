@@ -68,7 +68,7 @@ sig
   val strip_quotes: string -> string
 end;
 
-functor ThyParseFun(structure Symtab: SYMTAB and ThyScan: THY_SCAN): THY_PARSE =
+functor ThyParseFun(structure Symtab: SYMTAB and ThyScan: THY_SCAN): THY_PARSE=
 struct
 
 open ThyScan;
@@ -253,13 +253,58 @@ val type_args =
 val type_decl = type_args -- name -- optional ("=" $$-- !! string >> Some) None
   -- opt_infix >> mk_type_decl;
 
-val type_decls = repeat1 (old_type_decl || type_decl) >> (mk_type_decls o flat);
+val type_decls = repeat1 (old_type_decl || type_decl) >>
+                 (mk_type_decls o flat);
 
 
 (* consts *)
 
-val const_decls = repeat1 (names1 --$$ "::" -- !! (string -- opt_mixfix))
-  >> (mk_big_list o map mk_triple2 o split_decls);
+val simple_type = ident || kind TypeVar;
+
+(*Types with type arguments, like e.g. "'a list list"*)
+fun complex_type toks =
+  let val typ = simple_type || "(" $$-- complex_type --$$ ")" >> parens;
+      val typ2 = complex_type || "(" $$-- complex_type --$$ ")" >> parens;
+  in
+   (typ -- repeat ident >> (fn (t, ts) => space_implode " " (t::ts)) ||
+    "(" $$-- !! (list1 typ2) --$$ ")" -- !! (repeat1 ident) >>
+      (fn (tas, ts) => space_implode " " (parens (commas tas) :: ts))) toks
+  end;
+
+(*Const type which is limited at the end by "=>", ")", "]" or ","*)
+fun param_type toks =
+  ((complex_type || "(" $$-- param_type --$$ ")" >> parens ||
+    "[" $$-- !! (list1 param_type) --$$ "]" >> mk_list) --
+     repeat ("=>" $$-- param_type >> cat " =>") >>
+     (fn (t, ts) => t ^ implode ts)) toks;
+
+(*Parse an identifier, but only if it is not followed by colons or a comma*)
+fun ident_no_colon [] = eof_err()
+  | ident_no_colon ((Ident, s, n) :: (rest as (Keyword, s2, n2) :: toks)) =
+      if s2 = "::" orelse s2 = "," then
+        syn_err (name_of_kind Ident) (quote s2) n2
+      else (s, rest)
+  | ident_no_colon ((Ident, s, n) :: toks) = (s, toks)
+  | ident_no_colon ((k, s, n) :: _) =
+      syn_err (name_of_kind Ident) (quote s) n;
+
+(*Type after last "=>"*)
+val appl_last =
+  (simple_type || "(" $$-- param_type --$$ ")" >> parens) --
+  repeat ident_no_colon >> (fn (t, ts) => space_implode " " (t::ts));
+
+(*Type specified before "=>"*)
+val appl_param =
+  (complex_type || "(" $$-- param_type --$$ ")" >> parens ||
+   "[" $$-- !! (list1 param_type) --$$ "]" >> (brackets o commas)) --$$ "=>";
+
+(*Top level const type*)
+val const_type = repeat appl_param -- appl_last >>
+  (fn (ts, t) => space_implode " => " (ts@[t]));
+
+val const_decls = repeat1 (names1 --$$ "::" -- !!
+                    ((string || const_type>>quote) -- opt_mixfix)) >>
+                  (mk_big_list o map mk_triple2 o split_decls);
 
 
 (* translations *)
