@@ -78,7 +78,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   $(SRC)/TFL/rules.ML $(SRC)/TFL/tfl.ML $(SRC)/TFL/thms.ML $(SRC)/TFL/thry.ML \
   $(SRC)/TFL/usyntax.ML $(SRC)/TFL/utils.ML \
   Datatype.thy Datatype_Universe.ML Datatype_Universe.thy Divides.ML \
-  Divides.thy Finite.ML Finite.thy Fun.ML Fun.thy Gfp.ML Gfp.thy \
+  Divides.thy Finite_Set.ML Finite_Set.thy Fun.ML Fun.thy Gfp.ML Gfp.thy \
   Hilbert_Choice.thy Hilbert_Choice_lemmas.ML HOL.ML \
   HOL.thy HOL_lemmas.ML Inductive.thy Integ/Bin.ML Integ/Bin.thy \
   Integ/Equiv.ML Integ/Equiv.thy Integ/Int.ML Integ/Int.thy \
