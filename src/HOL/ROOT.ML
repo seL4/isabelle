@@ -56,12 +56,8 @@ use "Tools/primrec_package.ML";
 use_thy "Arith";
 use "arith_data.ML";
 
-use_thy "RelPow";
 use_thy "Finite";
-use_thy "Sexp";
-use_thy "Recdef";
 use_thy "Map";
-use_thy "Update";
 
 cd "Integ";
 use_thy "Bin";
