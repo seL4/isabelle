@@ -249,7 +249,8 @@ fun use_thy name =
        else
        (
          if thy_uptodate orelse thy_file = "" then ()
-         else (read_thy thyl thy_file;
+         else (writeln ("Reading thy-file \"" ^ thyl ^ ".thy\"");
+               read_thy thyl thy_file;
                use (out_name thyl)
               );
 
