@@ -140,7 +140,8 @@ val finalconstsP =
 val mode_spec =
   (P.$$$ "output" >> K ("", false)) || P.name -- Scan.optional (P.$$$ "output" >> K false) true;
 
-val opt_mode = Scan.optional (P.$$$ "(" |-- P.!!! (mode_spec --| P.$$$ ")")) ("", true);
+val opt_mode =
+  Scan.optional (P.$$$ "(" |-- P.!!! (mode_spec --| P.$$$ ")")) Syntax.default_mode;
 
 val syntaxP =
   OuterSyntax.command "syntax" "declare syntactic constants" K.thy_decl

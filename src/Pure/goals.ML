@@ -507,7 +507,7 @@ fun gen_add_locale prep_typ prep_term bname bancestor raw_consts raw_rules raw_d
 
     val syntax_thy =
       thy
-      |> Theory.add_modesyntax_i ("", true) loc_syn
+      |> Theory.add_modesyntax_i Syntax.default_mode loc_syn
       |> Theory.add_trfuns ([], loc_trfuns, [], []);
 
     val syntax_sign = Theory.sign_of syntax_thy;
