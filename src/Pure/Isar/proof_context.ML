@@ -141,7 +141,8 @@ val print_binds = seq writeln o strings_of_binds;
 (* local theorems *)
 
 fun strings_of_thms (Context {thms, ...}) =
-  strings_of_items Display.pretty_thm "Local theorems:" (Symtab.dest thms);
+  strings_of_items (setmp Display.show_hyps false Display.pretty_thm)
+    "Local theorems:" (Symtab.dest thms);
 
 val print_thms = seq writeln o strings_of_thms;
 
