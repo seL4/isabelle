@@ -22,6 +22,7 @@ sig
   val imm_succs: 'a T -> key -> key list
   val all_preds: 'a T -> key list -> key list
   val all_succs: 'a T -> key list -> key list
+  val strong_conn: 'a T -> key list list
   val find_paths: 'a T -> key * key -> key list list
   val new_node: key * 'a -> 'a T -> 'a T
   val del_nodes: key list -> 'a T -> 'a T
@@ -32,6 +33,7 @@ sig
   val add_edge_acyclic: key * key -> 'a T -> 'a T
   val add_deps_acyclic: key * key list -> 'a T -> 'a T
   val merge_acyclic: ('a * 'a -> bool) -> 'a T * 'a T -> 'a T
+  val merge: ('a * 'a -> bool) -> 'a T * 'a T -> 'a T
 end;
 
 functor GraphFun(Key: KEY): GRAPH =
@@ -103,26 +105,32 @@ fun map_node x f = map_entry x (fn (i, ps) => (f i, ps));
 (*nodes reachable from xs -- topologically sorted for acyclic graphs*)
 fun reachable next xs =
   let
-    fun reach ((rs, R), x) =
-      if x mem_keys R then (rs, R)
-      else apfst (cons x) (reachs ((rs, x ins_keys R), next x))
+    fun reach ((R, rs), x) =
+      if x mem_keys R then (R, rs)
+      else apsnd (cons x) (reachs ((x ins_keys R, rs), next x))
     and reachs R_xs = foldl reach R_xs;
-  in reachs (([], empty_keys), xs) end;
+  in foldl_map (reach o apfst (rpair [])) (empty_keys, xs) end;
 
 (*immediate*)
 fun imm_preds G = #1 o #2 o get_entry G;
 fun imm_succs G = #2 o #2 o get_entry G;
 
 (*transitive*)
-fun all_preds G = #1 o reachable (imm_preds G);
-fun all_succs G = #1 o reachable (imm_succs G);
+fun all_preds G = flat o snd o reachable (imm_preds G);
+fun all_succs G = flat o snd o reachable (imm_succs G);
+
+(* strongly connected components; see: David King and John Launchbury, *)
+(* "Structuring Depth First Search Algorithms in Haskell"              *)
+
+fun strong_conn G = filter_out null (snd (reachable (imm_preds G)
+  (flat (rev (snd (reachable (imm_succs G) (keys G)))))));
 
 
 (* paths *)
 
 fun find_paths G (x, y) =
   let
-    val (_, X) = reachable (imm_succs G) [x];
+    val (X, _) = reachable (imm_succs G) [x];
     fun paths ps p =
       if not (null ps) andalso eq_key (p, x) then [p :: ps]
       else if p mem_keys X andalso not (p mem_key ps)
@@ -175,9 +183,12 @@ fun add_deps_acyclic (y, xs) G =
 
 (* merge_acyclic *)
 
-fun merge_acyclic eq (Graph tab1, G2 as Graph tab2) =
-  foldl (fn (G, xy) => add_edge_acyclic xy G)
+fun gen_merge add eq (Graph tab1, G2 as Graph tab2) =
+  foldl (fn (G, xy) => add xy G)
     (Graph (Table.merge (fn ((i1, _), (i2, _)) => eq (i1, i2)) (tab1, tab2)), edges G2);
+
+fun merge_acyclic eq p = gen_merge add_edge_acyclic eq p;
+fun merge eq p = gen_merge add_edge eq p;
 
 
 end;
