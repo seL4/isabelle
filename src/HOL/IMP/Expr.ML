@@ -35,7 +35,7 @@ val evalb_simps = map (fn s => prove_goal Expr.thy s
 goal Expr.thy "!n. ((a,s) -a-> n) = (n = A a s)";
 by (aexp.induct_tac "a" 1);                               (* struct. ind. *)
 by (ALLGOALS Simp_tac);                                   (* rewr. Den.   *)
-by (TRYALL (fast_tac (set_cs addSIs (evala.intrs@prems)
+by (TRYALL (fast_tac (!claset addSIs (evala.intrs@prems)
                              addSEs evala_elim_cases)));
 qed_spec_mp "aexp_iff";
 

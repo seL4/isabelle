@@ -10,23 +10,23 @@ open Transition;
 
 section "Winskel's Proof";
 
-val relpow_cs = rel_cs addSEs [rel_pow_0_E];
+AddSEs [rel_pow_0_E];
 
-val evalc1_elim_cases = map (evalc1.mk_cases com.simps)
-   ["(SKIP,s) -1-> t", "(x:=a,s) -1-> t", "(c1;c2, s) -1-> t",
-    "(IF b THEN c1 ELSE c2, s) -1-> t", "(WHILE b DO c,s) -1-> t"];
+val evalc1_SEs = map (evalc1.mk_cases com.simps)
+   ["(SKIP,s) -1-> t", "(x:=a,s) -1-> t","(c1;c2, s) -1-> t", 
+    "(IF b THEN c1 ELSE c2, s) -1-> t"];
+val evalc1_Es = map (evalc1.mk_cases com.simps)
+   ["(WHILE b DO c,s) -1-> t"];
 
-val evalc1_cs = relpow_cs addIs (evalc.intrs@evalc1.intrs);
+AddSEs evalc1_SEs;
 
-goal Transition.thy "!!c. (c,s) -0-> (SKIP,u) ==> c = SKIP & s = u";
-by(fast_tac evalc1_cs 1);
-val hlemma1 = result();
+AddIs evalc1.intrs;
 
 goal Transition.thy "!!s. (SKIP,s) -m-> (SKIP,t) ==> s = t & m = 0";
 be rel_pow_E2 1;
 by (Asm_full_simp_tac 1);
-by (eresolve_tac evalc1_elim_cases 1);
-val hlemma2 = result();
+by(Fast_tac 1);
+val hlemma = result();
 
 
 goal Transition.thy
@@ -34,11 +34,11 @@ goal Transition.thy
 \              (c;d, s) -*-> (SKIP, u)";
 by(nat_ind_tac "n" 1);
  (* case n = 0 *)
- by(fast_tac (evalc1_cs addIs [rtrancl_into_rtrancl2])1);
+ by(fast_tac (!claset addIs [rtrancl_into_rtrancl2])1);
 (* induction step *)
-by (safe_tac (HOL_cs addSDs [rel_pow_Suc_D2]));
+by (safe_tac (!claset addSDs [rel_pow_Suc_D2]));
 by(split_all_tac 1);
-by(fast_tac (evalc1_cs addIs [rtrancl_into_rtrancl2]) 1);
+by(fast_tac (!claset addIs [rtrancl_into_rtrancl2]) 1);
 qed_spec_mp "lemma1";
 
 
@@ -49,18 +49,18 @@ be evalc.induct 1;
 br rtrancl_refl 1;
 
 (* ASSIGN *)
-by (fast_tac (evalc1_cs addSIs [r_into_rtrancl]) 1);
+by (fast_tac (!claset addSIs [r_into_rtrancl]) 1);
 
 (* SEMI *)
-by (fast_tac (set_cs addDs [rtrancl_imp_UN_rel_pow] addIs [lemma1]) 1);
+by (fast_tac (!claset addDs [rtrancl_imp_UN_rel_pow] addIs [lemma1]) 1);
 
 (* IF *)
-by (fast_tac (evalc1_cs addIs [rtrancl_into_rtrancl2]) 1);
-by (fast_tac (evalc1_cs addIs [rtrancl_into_rtrancl2]) 1);
+by (fast_tac (!claset addIs [rtrancl_into_rtrancl2]) 1);
+by (fast_tac (!claset addIs [rtrancl_into_rtrancl2]) 1);
 
 (* WHILE *)
-by (fast_tac (evalc1_cs addSIs [r_into_rtrancl]) 1);
-by (fast_tac (evalc1_cs addDs [rtrancl_imp_UN_rel_pow]
+by (fast_tac (!claset addSIs [r_into_rtrancl]) 1);
+by (fast_tac (!claset addDs [rtrancl_imp_UN_rel_pow]
                         addIs [rtrancl_into_rtrancl2,lemma1]) 1);
 
 qed "evalc_impl_evalc1";
@@ -71,33 +71,31 @@ goal Transition.thy
 \            (? t m. (c,s) -*-> (SKIP,t) & (d,t) -m-> (SKIP,u) & m <= n)";
 by(nat_ind_tac "n" 1);
  (* case n = 0 *)
- by (fast_tac (HOL_cs addSDs [hlemma1] addss !simpset) 1);
+ by (fast_tac (!claset addss !simpset) 1);
 (* induction step *)
-by (fast_tac (HOL_cs addSIs [rtrancl_refl,le_SucI,le_refl]
+by (fast_tac (!claset addSIs [le_SucI,le_refl]
                      addSDs [rel_pow_Suc_D2]
-                     addSEs (evalc1_elim_cases@
-                             [rel_pow_imp_rtrancl,rtrancl_into_rtrancl2])) 1);
+                     addSEs [rel_pow_imp_rtrancl,rtrancl_into_rtrancl2]) 1);
 qed_spec_mp "lemma2";
 
 goal Transition.thy "!s t. (c,s) -*-> (SKIP,t) --> <c,s> -c-> t";
 by (com.induct_tac "c" 1);
-by (safe_tac (evalc1_cs addSDs [rtrancl_imp_UN_rel_pow]));
+by (safe_tac (!claset addSDs [rtrancl_imp_UN_rel_pow]));
 
 (* SKIP *)
-by (fast_tac (evalc1_cs addSEs rel_pow_E2::evalc1_elim_cases) 1);
+by (fast_tac (!claset addSEs [rel_pow_E2]) 1);
 
 (* ASSIGN *)
-by (fast_tac (evalc1_cs addSDs [hlemma2]
-                        addSEs rel_pow_E2::evalc1_elim_cases
-                        addss !simpset) 1);
+by (fast_tac (!claset addSDs [hlemma]  addSEs [rel_pow_E2]
+                      addss !simpset) 1);
 
 (* SEMI *)
-by (fast_tac (evalc1_cs addSDs [lemma2,rel_pow_imp_rtrancl]) 1);
+by (fast_tac (!claset addSDs [lemma2,rel_pow_imp_rtrancl]) 1);
 
 (* IF *)
 be rel_pow_E2 1;
 by (Asm_full_simp_tac 1);
-by (fast_tac (evalc1_cs addSDs[rel_pow_imp_rtrancl]addEs evalc1_elim_cases) 1);
+by (fast_tac (!claset addSDs [rel_pow_imp_rtrancl]) 1);
 
 (* WHILE, induction on the length of the computation *)
 by(rotate_tac 1 1);
@@ -107,13 +105,13 @@ by(res_inst_tac [("n","n")] less_induct 1);
 by (strip_tac 1);
 be rel_pow_E2 1;
  by (Asm_full_simp_tac 1);
-by (eresolve_tac evalc1_elim_cases 1);
+by (eresolve_tac evalc1_Es 1);
 
 (* WhileFalse *)
- by (fast_tac (evalc1_cs addSDs [hlemma2]) 1);
+ by (fast_tac (!claset addSDs [hlemma]) 1);
 
 (* WhileTrue *)
-by(fast_tac(evalc1_cs addSDs[lemma2,le_imp_less_or_eq,less_Suc_eq RS iffD2])1);
+by(fast_tac(!claset addSDs[lemma2,le_imp_less_or_eq,less_Suc_eq RS iffD2])1);
 
 qed_spec_mp "evalc1_impl_evalc";
 
@@ -131,8 +129,8 @@ goal Transition.thy
  "!!c1. (c1,s1) -*-> (SKIP,s2) ==> \
 \ (c2,s2) -*-> cs3 --> (c1;c2,s1) -*-> cs3";
 be converse_rtrancl_induct2 1;
-by(fast_tac (evalc1_cs addIs [rtrancl_into_rtrancl2]) 1);
-by(fast_tac (evalc1_cs addIs [rtrancl_into_rtrancl2]) 1);
+by(fast_tac (!claset addIs [rtrancl_into_rtrancl2]) 1);
+by(fast_tac (!claset addIs [rtrancl_into_rtrancl2]) 1);
 qed_spec_mp "my_lemma1";
 
 
@@ -143,18 +141,18 @@ be evalc.induct 1;
 br rtrancl_refl 1;
 
 (* ASSIGN *)
-by (fast_tac (evalc1_cs addSIs [r_into_rtrancl]) 1);
+by (fast_tac (!claset addSIs [r_into_rtrancl]) 1);
 
 (* SEMI *)
-by (fast_tac (HOL_cs addIs [my_lemma1]) 1);
+by (fast_tac (!claset addIs [my_lemma1]) 1);
 
 (* IF *)
-by (fast_tac (evalc1_cs addIs [rtrancl_into_rtrancl2]) 1);
-by (fast_tac (evalc1_cs addIs [rtrancl_into_rtrancl2]) 1);
+by (fast_tac (!claset addIs [rtrancl_into_rtrancl2]) 1);
+by (fast_tac (!claset addIs [rtrancl_into_rtrancl2]) 1);
 
 (* WHILE *)
-by (fast_tac (evalc1_cs addSIs [r_into_rtrancl]) 1);
-by (fast_tac (evalc1_cs addIs [rtrancl_into_rtrancl2,my_lemma1]) 1);
+by (fast_tac (!claset addSIs [r_into_rtrancl]) 1);
+by (fast_tac (!claset addIs [rtrancl_into_rtrancl2,my_lemma1]) 1);
 
 qed "evalc_impl_evalc1";
 
@@ -196,17 +194,16 @@ of Lemma 1.
 goal Transition.thy 
   "!!c s. ((c,s) -1-> (c',s')) ==> (!t. <c',s'> -c-> t --> <c,s> -c-> t)";
 be evalc1.induct 1;
-by(ALLGOALS(fast_tac (evalc1_cs addEs (evalc_elim_cases@evalc1_elim_cases)
-                                addss !simpset)));
+auto();
 qed_spec_mp "FB_lemma3";
 
 val [major] = goal Transition.thy
   "(c,s) -*-> (c',s') ==> <c',s'> -c-> t --> <c,s> -c-> t";
 br (major RS rtrancl_induct2) 1;
-by(fast_tac prod_cs 1);
-by(fast_tac (prod_cs addIs [FB_lemma3] addbefore (split_all_tac 1)) 1);
+by(Fast_tac 1);
+by(fast_tac (!claset addIs [FB_lemma3] addbefore (split_all_tac 1)) 1);
 qed_spec_mp "FB_lemma2";
 
 goal Transition.thy "!!c. (c,s) -*-> (SKIP,t) ==> <c,s> -c-> t";
-by (fast_tac (evalc1_cs addEs [FB_lemma2]) 1);
+by (fast_tac (!claset addEs [FB_lemma2]) 1);
 qed "evalc1_impl_evalc";

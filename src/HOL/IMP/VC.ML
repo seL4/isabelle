@@ -8,34 +8,25 @@ Soundness and completeness of vc
 
 open VC;
 
-val lemma = prove_goal HOL.thy "!s.P s --> P s" (K[fast_tac HOL_cs 1]);
+AddIs hoare.intrs;
+
+val lemma = prove_goal HOL.thy "!s.P s --> P s" (K[Fast_tac 1]);
 
 goal VC.thy "!Q. (!s. vc c Q s) --> |- {wp c Q} astrip c {Q}";
 by(acom.induct_tac "c" 1);
     by(ALLGOALS Simp_tac);
-    by(fast_tac (HOL_cs addIs hoare.intrs) 1);
-   by(fast_tac (HOL_cs addIs hoare.intrs) 1);
-  by(fast_tac (HOL_cs addIs hoare.intrs) 1);
+    by(Fast_tac 1);
+   by(Fast_tac 1);
+  by(Fast_tac 1);
  (* if *)
- br allI 1;
- br impI 1;
- brs hoare.intrs 1;
-  brs hoare.intrs 1;
-    by(fast_tac HOL_cs 2);
-   by(fast_tac HOL_cs 1);
-  by(fast_tac HOL_cs 1);
- brs hoare.intrs 1;
-   by(fast_tac HOL_cs 2);
-  by(fast_tac HOL_cs 1);
- by(fast_tac HOL_cs 1);
+ by(Deepen_tac 4 1);
 (* while *)
 by(safe_tac HOL_cs);
 by (resolve_tac hoare.intrs 1);
   br lemma 1;
  brs hoare.intrs 1;
  brs hoare.intrs 1;
-   by(fast_tac HOL_cs 2);
-  by(ALLGOALS(fast_tac HOL_cs));
+   by(ALLGOALS(fast_tac HOL_cs));
 qed "vc_sound";
 
 goal VC.thy "!P Q. (!s. P s --> Q s) --> (!s. wp c P s --> wp c Q s)";
