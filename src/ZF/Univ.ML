@@ -325,7 +325,7 @@ val [aprem,bprem,limiti,step] = goal Univ.thy
 (*Infer that a, b occur at ordinals x,xa < i.*)
 by (rtac ([aprem,limiti] MRS Limit_VfromE) 1);
 by (rtac ([bprem,limiti] MRS Limit_VfromE) 1);
-by (res_inst_tac [("j1", "x Un xa Un succ(1)")] (step RS exE) 1);
+by (res_inst_tac [("j1", "x Un xa Un 2")] (step RS exE) 1);
 by (DO_GOAL [etac conjE, etac Limit_VfromI, rtac limiti, atac] 5);
 by (etac (Vfrom_UnI2 RS Vfrom_UnI1) 4);
 by (etac (Vfrom_UnI1 RS Vfrom_UnI1) 3);
@@ -451,7 +451,7 @@ goal Univ.thy "!!i. Ord(i) ==> rank(Vset(i)) = i";
 by (rtac (rank RS ssubst) 1);
 by (rtac equalityI 1);
 by (safe_tac ZF_cs);
-by (EVERY' [wtac UN_I, 
+by (EVERY' [rtac UN_I, 
 	    etac (i_subset_Vfrom RS subsetD),
 	    etac (Ord_in_Ord RS rank_of_Ord RS ssubst),
 	    assume_tac,
@@ -591,7 +591,7 @@ by (rtac (Limit_nat RS one_in_VLimit) 1);
 qed "one_in_univ";
 
 (*unused!*)
-goal Univ.thy "succ(1) : univ(A)";
+goal Univ.thy "2 : univ(A)";
 by (REPEAT (ares_tac [nat_into_univ, nat_0I, nat_succI] 1));
 qed "two_in_univ";
 
