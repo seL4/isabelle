@@ -338,20 +338,19 @@ by (fast_tac (HOL_cs addSIs [lessI]
 qed "Suc_mono";
 
 
+(*
 goal Nat.thy "(Suc m < n | Suc m = n) = (m < n)";
 
 
 goal Nat.thy "(Suc(m) < Suc(n)) = (m<n)";
 by(stac less_Suc_eq 1);
 by(rtac 
+*)
 
-
-(*
 goal Nat.thy "(Suc(m) < Suc(n)) = (m<n)";
 by (EVERY1 [rtac iffI, etac Suc_less_SucD, etac Suc_mono]);
 qed "Suc_less_eq";
 Addsimps [Suc_less_eq];
-*)
 
 goal Nat.thy "~(Suc(n) < n)";
 by (fast_tac (HOL_cs addEs [Suc_lessD RS less_irrefl]) 1);
