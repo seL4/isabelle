@@ -169,6 +169,8 @@ fun add_fp_def_i (rec_tms, domts, intr_tms) thy =
 	     | _ => rec_tms ~~		(*define the sets as Parts*)
 		    map (subst_atomic [(Free(X',iT),big_rec_tm)]) parts));
 
+    val _ = seq (writeln o Sign.string_of_term sign o #2) axpairs
+  
   in  thy |> add_defs_i axpairs  end
 
 
