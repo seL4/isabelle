@@ -23,7 +23,8 @@ theorem rationals_rep: "x \<in> \<rat> \<Longrightarrow>
   \<exists>m n. n \<noteq> 0 \<and> \<bar>x\<bar> = real m / real n \<and> gcd (m, n) = 1"
 proof -
   assume "x \<in> \<rat>"
-  then obtain m n :: nat where n: "n \<noteq> 0" and x_rat: "\<bar>x\<bar> = real m / real n"
+  then obtain m n :: nat where
+      n: "n \<noteq> 0" and x_rat: "\<bar>x\<bar> = real m / real n"
     by (unfold rationals_def) blast
   let ?gcd = "gcd (m, n)"
   from n have gcd: "?gcd \<noteq> 0" by (simp add: gcd_zero)
@@ -40,7 +41,8 @@ proof -
   moreover
   have "\<bar>x\<bar> = real ?k / real ?l"
   proof -
-    from gcd have "real ?k / real ?l = real (?gcd * ?k) / real (?gcd * ?l)"
+    from gcd have "real ?k / real ?l =
+        real (?gcd * ?k) / real (?gcd * ?l)"
       by (simp add: real_mult_div_cancel1)
     also from gcd_k and gcd_l have "\<dots> = real m / real n" by simp
     also from x_rat have "\<dots> = \<bar>x\<bar>" ..
@@ -102,12 +104,6 @@ proof
   then have "p \<le> 1" by (simp add: dvd_imp_le)
   with p show False by simp
 qed
-
-text {*
-  Just for the record: we instantiate the main theorem for the
-  specific prime number @{text 2} (real mathematicians would never do
-  this formally :-).
-*}
 
 corollary "sqrt (real (2::nat)) \<notin> \<rat>"
   by (rule sqrt_prime_irrational) (rule two_is_prime)

@@ -23,8 +23,8 @@ lemma prime_dvd_other_side: "n * n = p * (k * k) \<Longrightarrow> p \<in> prime
   apply (rule_tac j = "k * k" in dvd_mult_left, simp)
   done
 
-lemma reduction:
-    "p \<in> prime \<Longrightarrow> 0 < k \<Longrightarrow> k * k = p * (j * j) \<Longrightarrow> k < p * j \<and> 0 < j"
+lemma reduction: "p \<in> prime \<Longrightarrow>
+    0 < k \<Longrightarrow> k * k = p * (j * j) \<Longrightarrow> k < p * j \<and> 0 < j"
   apply (rule ccontr)
   apply (simp add: linorder_not_less)
   apply (erule disjE)
