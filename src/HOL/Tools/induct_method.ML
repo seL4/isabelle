@@ -38,7 +38,7 @@ fun lookup_rule (rs:rules) name = Library.assoc (NetRules.rules rs, name);
 
 fun print_rules kind rs =
   let val thms = map snd (NetRules.rules rs)
-  in Pretty.writeln (Pretty.big_list (kind ^ " rules:") (map Display.pretty_thm thms)) end;
+  in Pretty.writeln (Pretty.big_list kind (map Display.pretty_thm thms)) end;
 
 
 (* theory data kind 'HOL/induct_method' *)
@@ -57,10 +57,10 @@ struct
       (NetRules.merge (inductT1, inductT2), NetRules.merge (inductS1, inductS2)));
 
   fun print _ ((casesT, casesS), (inductT, inductS)) =
-    (print_rules "type cases" casesT;
-      print_rules "set cases" casesS;
-      print_rules "type induct" inductT;
-      print_rules "set induct" inductS);
+    (print_rules "type cases:" casesT;
+      print_rules "set cases:" casesS;
+      print_rules "type induct:" inductT;
+      print_rules "set induct:" inductS);
 end;
 
 structure GlobalInduct = TheoryDataFun(GlobalInductArgs);
