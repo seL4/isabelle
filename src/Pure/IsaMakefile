@@ -19,8 +19,7 @@ FILES = ML-Systems/polyml.ML ML-Systems/smlnj-0.93.ML ML-Systems/smlnj-1.09.ML \
         axclass.ML basis.ML deriv.ML display.ML drule.ML \
 	envir.ML goals.ML install_pp.ML library.ML logic.ML net.ML pattern.ML \
 	search.ML section_utils.ML sequence.ML sign.ML sorts.ML symtab.ML tactic.ML \
-	tctical.ML term.ML theory.ML thm.ML type.ML type_infer.ML unify.ML \
-	../Provers/simplifier.ML
+	tctical.ML term.ML theory.ML thm.ML type.ML type_infer.ML unify.ML
 
 $(OUT)/Pure: $(FILES)
 	@./mk
