@@ -20,8 +20,13 @@ apply (case_tac "1 <= a")
 apply (rule_tac x = "1" in exI)
 apply (drule_tac [2] linorder_not_le [THEN iffD1])
 apply (drule_tac [2] less_not_refl2 [THEN not0_implies_Suc])
-apply (auto intro!: realpow_Suc_le_self simp add: zero_less_one)
+apply (simp add: ); 
+apply (force intro!: realpow_Suc_le_self simp del: realpow_Suc)
 done
+
+text{*Used only just below*}
+lemma realpow_ge_self2: "[| (1::real) \<le> r; 0 < n |] ==> r \<le> r ^ n"
+by (insert power_increasing [of 1 n r], simp)
 
 lemma lemma_nth_realpow_isUb_ex:
      "[| (0::real) < a; 0 < n |]  
@@ -129,10 +134,10 @@ apply (frule less_isLub_not_isUb [THEN not_isUb_less_ex])
 apply (rule_tac n = "k" in real_mult_less_self)
 apply (blast intro: lemma_nth_realpow_isLub_gt_zero)
 apply (safe)
-apply (drule_tac n = "k" in lemma_nth_realpow_isLub_gt_zero [THEN real_mult_add_one_minus_ge_zero])
-apply (drule_tac [3] conjI [THEN realpow_le2])
-apply (rule_tac [3] order_less_imp_le) 
-apply (auto intro: order_trans)
+apply (drule_tac n = "k" in
+        lemma_nth_realpow_isLub_gt_zero [THEN real_mult_add_one_minus_ge_zero])
+apply assumption+
+apply (blast intro: order_trans order_less_imp_le power_mono) 
 done
 
 text{*Second result we want*}
@@ -141,11 +146,12 @@ lemma realpow_nth_le:
      isLub (UNIV::real set)  
      {x. x ^ n <= a & 0 < x} u |] ==> u ^ n <= a"
 apply (frule lemma_nth_realpow_isLub_le , safe)
-apply (rule LIMSEQ_inverse_real_of_nat_add_minus_mult [THEN LIMSEQ_pow, THEN LIMSEQ_le_const2])
+apply (rule LIMSEQ_inverse_real_of_nat_add_minus_mult
+                [THEN LIMSEQ_pow, THEN LIMSEQ_le_const2])
 apply (auto simp add: real_of_nat_def)
 done
 
-(*----------- The theorem at last! -----------*)
+text{*The theorem at last!*}
 lemma realpow_nth: "[| (0::real) < a; 0 < n |] ==> \<exists>r. r ^ n = a"
 apply (frule nth_realpow_isLub_ex , auto)
 apply (auto intro: realpow_nth_le realpow_nth_ge real_le_anti_sym)

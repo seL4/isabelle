@@ -575,7 +575,7 @@ by (res_inst_tac [("g","%n. (abs (f N)/(c ^ N))*c ^ n")]
     summable_comparison_test 1);
 by (res_inst_tac [("x","N")] exI 1 THEN Step_tac 1);
 by (dtac (le_Suc_ex_iff RS iffD1) 1);
-by (auto_tac (claset(),simpset() addsimps [realpow_add, realpow_not_zero]));
+by (auto_tac (claset(),simpset() addsimps [power_add, realpow_not_zero]));
 by (induct_tac "na" 1 THEN Auto_tac);
 by (res_inst_tac [("y","c*abs(f(N + n))")] order_trans 1);
 by (auto_tac (claset() addIs [mult_right_mono],

@@ -825,6 +825,9 @@ subsection{*The Reals Form an Ordered Field*}
 instance real :: ordered_field
 proof
   fix x y z :: real
+  show "0 < (1::real)" 
+    by (force intro: real_gt_zero_preal_Ex [THEN iffD2]
+              simp add: real_one_def real_of_preal_def)
   show "x \<le> y ==> z + x \<le> z + y" by (rule real_add_left_mono)
   show "x < y ==> 0 < z ==> z * x < z * y" by (simp add: real_mult_less_mono2)
   show "\<bar>x\<bar> = (if x < 0 then -x else x)"

@@ -1216,22 +1216,25 @@ by (asm_full_simp_tac (simpset() addsimps [LIMSEQ_NSLIMSEQ_iff,
 qed "LIMSEQ_pow";
 
 (*----------------------------------------------------------------
-               0 <= x < 1 ==> (x ^ n ----> 0)
+               0 <= x <= 1 ==> (x ^ n ----> 0)
   Proof will use (NS) Cauchy equivalence for convergence and
   also fact that bounded and monotonic sequence converges.  
  ---------------------------------------------------------------*)
-Goalw [Bseq_def] "[| 0 <= x; x < 1 |] ==> Bseq (%n. x ^ n)";
+Goalw [Bseq_def] "[| 0 <= x; x <= 1 |] ==> Bseq (%n. x ^ n)";
 by (res_inst_tac [("x","1")] exI 1);
-by (auto_tac (claset() addDs [conjI RS realpow_le] 
+by (asm_full_simp_tac (simpset() addsimps [power_abs]) 1);
+by (auto_tac (claset() addDs [power_mono] 
                        addIs [order_less_imp_le], 
-              simpset() addsimps [abs_eqI1, realpow_abs] ));
+              simpset() addsimps [abs_if] ));
 qed "Bseq_realpow";
 
-Goal "[| 0 <= x; x < 1 |] ==> monoseq (%n. x ^ n)";
-by (blast_tac (claset() addSIs [mono_SucI2,realpow_Suc_le3]) 1);
+Goal "[| 0 <= x; x <= 1 |] ==> monoseq (%n. x ^ n)";
+by (clarify_tac (claset() addSIs [mono_SucI2]) 1);
+by (cut_inst_tac [("n","n"),("N","Suc n"),("a","x")] power_decreasing 1);
+by Auto_tac;
 qed "monoseq_realpow";
 
-Goal "[| 0 <= x; x < 1 |] ==> convergent (%n. x ^ n)";
+Goal "[| 0 <= x; x <= 1 |] ==> convergent (%n. x ^ n)";
 by (blast_tac (claset() addSIs [Bseq_monoseq_convergent,
                                 Bseq_realpow,monoseq_realpow]) 1);
 qed "convergent_realpow";
@@ -1269,7 +1272,7 @@ Goal "1 < x ==> (%n. a / (x ^ n)) ----> 0";
 by (cut_inst_tac [("a","a"),("x1","inverse x")] 
     ([LIMSEQ_const, LIMSEQ_realpow_zero] MRS LIMSEQ_mult) 1);
 by (auto_tac (claset(), 
-              simpset() addsimps [real_divide_def, realpow_inverse])); 
+              simpset() addsimps [real_divide_def, power_inverse])); 
 by (asm_simp_tac (simpset() addsimps [inverse_eq_divide,
                                       pos_divide_less_eq]) 1); 
 qed "LIMSEQ_divide_realpow_zero";
@@ -1289,7 +1292,7 @@ qed "NSLIMSEQ_rabs_realpow_zero";
 Goal "abs(c) < 1 ==> (%n. c ^ n) ----> 0";
 by (rtac (LIMSEQ_rabs_zero RS iffD1) 1);
 by (auto_tac (claset() addIs [LIMSEQ_rabs_realpow_zero],
-              simpset() addsimps [realpow_abs]));
+              simpset() addsimps [power_abs]));
 qed "LIMSEQ_rabs_realpow_zero2";
 
 Goal "abs(c) < 1 ==> (%n. c ^ n) ----NS> 0";

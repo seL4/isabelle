@@ -344,7 +344,8 @@ proof
   show "i * j = j * i" by (rule zmult_commute)
   show "1 * i = i" by simp
   show "(i + j) * k = i * k + j * k" by (simp add: int_distrib)
-  show "0 \<noteq> (1::int)" by (simp only: Zero_int_def One_int_def One_nat_def int_int_eq)
+  show "0 \<noteq> (1::int)" 
+    by (simp only: Zero_int_def One_int_def One_nat_def int_int_eq)
   assume eq: "k+i = k+j" 
     hence "(-k + k) + i = (-k + k) + j" by (simp only: eq zadd_assoc)
     thus "i = j" by simp

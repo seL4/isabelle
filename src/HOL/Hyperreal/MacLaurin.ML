@@ -65,8 +65,8 @@ by (asm_simp_tac (HOL_ss addsimps
      delsimps [realpow_Suc]) 2);
 by (stac real_mult_inv_left 2);
 by (stac real_mult_inv_left 3);
-by (dtac (realpow_gt_zero RS real_not_refl2 RS not_sym) 2);
-by (assume_tac 2);
+by (rtac (real_not_refl2 RS not_sym) 2);
+by (etac zero_less_power 2);
 by (rtac real_of_nat_fact_not_zero 2);
 by (Simp_tac 2);
 by (etac exE 1);
@@ -281,7 +281,7 @@ by (rtac sumr_fun_eq 1);
 by (Asm_full_simp_tac 1);
 by (auto_tac (claset(),simpset() addsimps [real_divide_def,
     CLAIM "((a * b) * c) * d = (b * c) * (a * (d::real))",
-    realpow_mult RS sym]));
+    power_mult_distrib RS sym]));
 qed "Maclaurin_minus";
 
 Goal "(h < 0 & 0 < n & diff 0 = f & \
@@ -490,7 +490,7 @@ by (asm_full_simp_tac (simpset() addsimps [numeral_2_eq_2,real_divide_def]) 1);
 by (dtac lemma_odd_mod_4_div_2 1);
 by (asm_full_simp_tac (simpset() addsimps [numeral_2_eq_2, real_divide_def]) 1);
 by (auto_tac (claset() addSIs [real_mult_le_lemma,mult_right_mono],
-      simpset() addsimps [real_divide_def,abs_mult,abs_inverse,realpow_abs RS
+      simpset() addsimps [real_divide_def,abs_mult,abs_inverse,power_abs RS
 sym]));
 qed "Maclaurin_sin_bound";
 
@@ -520,7 +520,7 @@ Goal "EX t. sin x = \
 by (cut_inst_tac [("f","sin"),("n","n"),("x","x"),
        ("diff","%n x. sin(x + 1/2*real (n)*pi)")] 
        Maclaurin_all_lt_objl 1);
-by (Step_tac 1);
+by (Safe_tac);
 by (Simp_tac 1);
 by (Simp_tac 1);
 by (case_tac "n" 1);

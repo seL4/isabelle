@@ -173,7 +173,7 @@ proof -;
       also have "(-1::int)^2 = 1";
         by auto
       finally; show ?thesis;
-        by (auto simp add: zpower_1)
+        by auto
     qed;
 qed;
 
@@ -199,7 +199,7 @@ proof -;
       also have "(-1::int)^2 = 1";
         by auto
       finally; show ?thesis;
-        by (auto simp add: zpower_1)
+        by auto
     qed;
 qed;
 

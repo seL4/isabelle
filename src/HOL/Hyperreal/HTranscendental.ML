@@ -4,6 +4,8 @@
     Description : Nonstandard extensions of transcendental functions
 *)
 
+val hpowr_Suc= thm"hpowr_Suc";
+
 (*-------------------------------------------------------------------------*)
 (* NS extension of square root function                                    *)
 (*-------------------------------------------------------------------------*)
@@ -44,8 +46,7 @@ by (auto_tac (claset(),simpset() addsimps [numeral_2_eq_2]));
 qed "hypreal_sqrt_not_zero";
 
 Goal "0 < x ==> inverse (( *f* sqrt)(x)) ^ 2 = inverse x";
-by (forward_tac [hypreal_sqrt_not_zero] 1);
-by (dres_inst_tac [("n1","2"),("r1","( *f* sqrt) x")] (hrealpow_inverse RS sym) 1);
+by (cut_inst_tac [("n1","2"),("a1","( *f* sqrt) x")] (power_inverse RS sym) 1);
 by (auto_tac (claset() addDs [hypreal_sqrt_gt_zero_pow2],simpset()));
 qed "hypreal_inverse_sqrt_pow2";
 
@@ -81,14 +82,14 @@ Addsimps [hypreal_sqrt_approx_zero2];
 Goal "(( *f* sqrt)(x*x + y*y + z*z) @= 0) = (x*x + y*y + z*z @= 0)";
 by (rtac hypreal_sqrt_approx_zero2 1);
 by (REPEAT(rtac hypreal_le_add_order 1));
-by Auto_tac;
+by (auto_tac (claset(), simpset() addsimps [zero_le_square]));
 qed "hypreal_sqrt_sum_squares";
 Addsimps [hypreal_sqrt_sum_squares];
 
 Goal  "(( *f* sqrt)(x*x + y*y) @= 0) = (x*x + y*y @= 0)";
 by (rtac hypreal_sqrt_approx_zero2 1);
 by (rtac hypreal_le_add_order 1);
-by Auto_tac;
+by (auto_tac (claset(), simpset() addsimps [zero_le_square]));
 qed "hypreal_sqrt_sum_squares2";
 Addsimps [hypreal_sqrt_sum_squares2];
 
@@ -126,15 +127,15 @@ qed "hypreal_sqrt_hyperpow_hrabs";
 Addsimps [hypreal_sqrt_hyperpow_hrabs];
 
 Goal "[| x: HFinite; 0 <= x |] ==> st(( *f* sqrt) x) = ( *f* sqrt)(st x)";
-by (res_inst_tac [("n","1")] hrealpow_Suc_cancel_eq 1);
+by (res_inst_tac [("n","1")] power_inject_base 1);
 by (auto_tac (claset() addSIs [st_zero_le,hypreal_sqrt_ge_zero],simpset()));
-by (rtac (st_mult RS subst) 2);
-by (rtac (hypreal_sqrt_mult_distrib2 RS subst) 4);
-by (rtac (hypreal_sqrt_mult_distrib2 RS subst) 6);
+by (rtac (st_mult RS subst) 1);
+by (rtac (hypreal_sqrt_mult_distrib2 RS subst) 3);
+by (rtac (hypreal_sqrt_mult_distrib2 RS subst) 5);
 by (auto_tac (claset(), simpset() addsimps [st_hrabs,st_zero_le]));
 by (ALLGOALS(rtac (HFinite_square_iff RS iffD1)));
-by (auto_tac (claset(),simpset() addsimps 
-    [hypreal_sqrt_mult_distrib2 RS sym] 
+by (auto_tac (claset(),
+     simpset() addsimps [hypreal_sqrt_mult_distrib2 RS sym] 
     delsimps [HFinite_square_iff]));
 qed "st_hypreal_sqrt";
 
@@ -169,7 +170,7 @@ Addsimps [HFinite_hypreal_sqrt_iff];
 Goal  "(( *f* sqrt)(x*x + y*y) : HFinite) = (x*x + y*y : HFinite)";
 by (rtac HFinite_hypreal_sqrt_iff 1);
 by (rtac  hypreal_le_add_order 1);
-by Auto_tac;
+by (auto_tac (claset(), simpset() addsimps [zero_le_square]));
 qed "HFinite_sqrt_sum_squares";
 Addsimps [HFinite_sqrt_sum_squares];
 
@@ -197,7 +198,7 @@ Addsimps [Infinitesimal_hypreal_sqrt_iff];
 Goal  "(( *f* sqrt)(x*x + y*y) : Infinitesimal) = (x*x + y*y : Infinitesimal)";
 by (rtac Infinitesimal_hypreal_sqrt_iff 1);
 by (rtac hypreal_le_add_order 1);
-by Auto_tac;
+by (auto_tac (claset(), simpset() addsimps [zero_le_square]));
 qed "Infinitesimal_sqrt_sum_squares";
 Addsimps [Infinitesimal_sqrt_sum_squares];
 
@@ -225,7 +226,7 @@ Addsimps [HInfinite_hypreal_sqrt_iff];
 Goal  "(( *f* sqrt)(x*x + y*y) : HInfinite) = (x*x + y*y : HInfinite)";
 by (rtac HInfinite_hypreal_sqrt_iff 1);
 by (rtac hypreal_le_add_order 1);
-by Auto_tac;
+by (auto_tac (claset(), simpset() addsimps [zero_le_square]));
 qed "HInfinite_sqrt_sum_squares";
 Addsimps [HInfinite_sqrt_sum_squares];
 

@@ -514,8 +514,7 @@ proof
     by (induct q, induct r)
        (simp add: mult_rat divide_rat inverse_rat zero_rat eq_rat)
   show "0 \<noteq> (1::rat)"
-    by (simp add: zero_rat_def one_rat_def rat_of_equality 
-                  zero_fraction_def one_fraction_def) 
+    by (simp add: zero_rat one_rat eq_rat) 
   assume eq: "s+q = s+r" 
     hence "(-s + s) + q = (-s + s) + r" by (simp only: eq rat_add_assoc)
     thus "q = r" by (simp add: rat_left_minus rat_add_0)
@@ -592,6 +591,8 @@ qed
 instance rat :: ordered_field
 proof
   fix q r s :: rat
+  show "0 < (1::rat)" 
+    by (simp add: zero_rat one_rat less_rat) 
   show "q \<le> r ==> s + q \<le> s + r"
   proof (induct q, induct r, induct s)
     fix a b c d e f :: int

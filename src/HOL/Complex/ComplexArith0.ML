@@ -168,7 +168,7 @@ qed "complex_divide_minus1";
 Addsimps [complex_divide_minus1];
 
 Goal "-1/(x::complex) = - (1/x)";
-by (simp_tac (simpset() addsimps [complex_divide_def, complex_minus_inverse]) 1); 
+by (simp_tac (simpset() addsimps [complex_divide_def, inverse_minus_eq]) 1); 
 qed "complex_minus1_divide";
 Addsimps [complex_minus1_divide];
 

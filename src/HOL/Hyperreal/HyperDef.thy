@@ -697,8 +697,12 @@ subsection{*The Hyperreals Form an Ordered Field*}
 instance hypreal :: ordered_field
 proof
   fix x y z :: hypreal
-  show "x \<le> y ==> z + x \<le> z + y" by (rule hypreal_add_left_le_mono1)
-  show "x < y ==> 0 < z ==> z * x < z * y" by (simp add: hypreal_mult_less_mono2)
+  show "0 < (1::hypreal)" 
+    by (unfold hypreal_one_def hypreal_zero_def hypreal_less_def, force)
+  show "x \<le> y ==> z + x \<le> z + y" 
+    by (rule hypreal_add_left_le_mono1)
+  show "x < y ==> 0 < z ==> z * x < z * y" 
+    by (simp add: hypreal_mult_less_mono2)
   show "\<bar>x\<bar> = (if x < 0 then -x else x)"
     by (auto dest: order_le_less_trans simp add: hrabs_def linorder_not_le)
 qed

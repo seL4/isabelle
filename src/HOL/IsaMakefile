@@ -93,7 +93,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   Integ/Presburger.thy Integ/presburger.ML Integ/qelim.ML \
   Lfp.ML Lfp.thy List.ML List.thy Main.ML Main.thy Map.thy Nat.ML \
   Nat.thy NatArith.ML NatArith.thy Numeral.thy \
-  Power.ML Power.thy PreList.thy Product_Type.ML Product_Type.thy ROOT.ML \
+  Power.thy PreList.thy Product_Type.ML Product_Type.thy ROOT.ML \
   Recdef.thy Record.thy Relation.ML Relation.thy Relation_Power.ML \
   Relation_Power.thy Ring_and_Field.thy\
   Set.ML Set.thy SetInterval.ML SetInterval.thy \
@@ -152,8 +152,7 @@ $(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML\
   Hyperreal/HyperArith0.thy Hyperreal/HyperArith.thy\
   Hyperreal/HyperBin.ML Hyperreal/HyperBin.thy \
   Hyperreal/HyperDef.thy Hyperreal/HyperNat.ML Hyperreal/HyperNat.thy\
-  Hyperreal/HyperOrd.thy Hyperreal/HyperPow.ML\
-  Hyperreal/HyperPow.thy Hyperreal/Hyperreal.thy\
+  Hyperreal/HyperOrd.thy Hyperreal/HyperPow.thy Hyperreal/Hyperreal.thy\
   Hyperreal/Lim.ML Hyperreal/Lim.thy  Hyperreal/Log.ML Hyperreal/Log.thy\
   Hyperreal/MacLaurin.ML Hyperreal/MacLaurin.thy\
   Hyperreal/NatStar.ML Hyperreal/NatStar.thy\

@@ -771,6 +771,7 @@ text{*The Naturals Form an Ordered Semiring*}
 instance nat :: ordered_semiring
 proof
   fix i j k :: nat
+  show "0 < (1::nat)" by simp
   show "i \<le> j ==> k + i \<le> k + j" by simp
   show "i < j ==> 0 < k ==> k * i < k * j" by (simp add: mult_less_mono2)
 qed

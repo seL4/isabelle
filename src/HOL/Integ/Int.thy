@@ -148,6 +148,7 @@ text{*The Integers Form an Ordered Ring*}
 instance int :: ordered_ring
 proof
   fix i j k :: int
+  show "0 < (1::int)" by (rule int_0_less_1)
   show "i \<le> j ==> k + i \<le> k + j" by simp
   show "i < j ==> 0 < k ==> k * i < k * j" by (simp add: zmult_zless_mono2)
   show "\<bar>i\<bar> = (if i < 0 then -i else i)" by (simp only: zabs_def)

@@ -15,6 +15,15 @@ primrec
   power_Suc: "p ^ (Suc n) = (p::int) * (p ^ n)"
 
 
+instance int :: ringpower
+proof
+  fix z :: int
+  fix n :: nat
+  show "z^0 = 1" by simp
+  show "z^(Suc n) = z * (z^n)" by simp
+qed
+
+
 lemma zpower_zmod: "((x::int) mod m)^y mod m = x^y mod m"
 apply (induct_tac "y", auto)
 apply (rule zmod_zmult1_eq [THEN trans])
@@ -22,27 +31,11 @@ apply (simp (no_asm_simp))
 apply (rule zmod_zmult_distrib [symmetric])
 done
 
-lemma zpower_1 [simp]: "1^y = (1::int)"
-by (induct_tac "y", auto)
-
-lemma zpower_zmult_distrib: "(x*z)^y = ((x^y)*(z^y)::int)"
-by (induct_tac "y", auto)
-
 lemma zpower_zadd_distrib: "x^(y+z) = ((x^y)*(x^z)::int)"
-by (induct_tac "y", auto)
+  by (rule Power.power_add)
 
 lemma zpower_zpower: "(x^y)^z = (x^(y*z)::int)"
-apply (induct_tac "y", auto)
-apply (subst zpower_zmult_distrib)
-apply (subst zpower_zadd_distrib)
-apply (simp (no_asm_simp))
-done
-
-
-(*** Logical equivalences for inequalities ***)
-
-lemma zpower_eq_0_iff [simp]: "(x^n = 0) = (x = (0::int) & 0<n)"
-by (induct_tac "n", auto)
+  by (rule Power.power_mult [symmetric])
 
 lemma zero_less_zpower_abs_iff [simp]:
      "(0 < (abs x)^n) = (x \<noteq> (0::int) | n=0)"
@@ -58,11 +51,8 @@ done
 ML
 {*
 val zpower_zmod = thm "zpower_zmod";
-val zpower_1 = thm "zpower_1";
-val zpower_zmult_distrib = thm "zpower_zmult_distrib";
 val zpower_zadd_distrib = thm "zpower_zadd_distrib";
 val zpower_zpower = thm "zpower_zpower";
-val zpower_eq_0_iff = thm "zpower_eq_0_iff";
 val zero_less_zpower_abs_iff = thm "zero_less_zpower_abs_iff";
 val zero_le_zpower_abs = thm "zero_le_zpower_abs";
 *}

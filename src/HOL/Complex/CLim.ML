@@ -852,13 +852,10 @@ qed "CDERIV_mult";
 
 Goal "NSCDERIV f x :> D ==> NSCDERIV (%x. c * f x) x :> c*D";
 by (asm_full_simp_tac 
-    (simpset() addsimps [complex_times_divide1_eq RS sym, NSCDERIV_NSCLIM_iff,
-                         complex_minus_mult_eq2, complex_add_mult_distrib2 RS sym,
+    (simpset() addsimps [times_divide_eq_right RS sym, NSCDERIV_NSCLIM_iff,
+                         minus_mult_right, complex_add_mult_distrib2 RS sym,
                          complex_diff_def] 
-             delsimps [complex_times_divide1_eq, complex_minus_mult_eq2 RS sym]
-             delsimps [times_divide_eq_right, minus_mult_right RS sym]
-
-) 1);
+             delsimps [times_divide_eq_right, minus_mult_right RS sym]) 1);
 by (etac (NSCLIM_const RS NSCLIM_mult) 1);
 qed "NSCDERIV_cmult";
 

@@ -1348,7 +1348,7 @@ qed "DERIV_inverse";
 Goal "[| DERIV f x :> d; f(x) \\<noteq> 0 |] \
 \     ==> DERIV (%x. inverse(f x)) x :> (- (d * inverse(f(x) ^ Suc (Suc 0))))";
 by (rtac (real_mult_commute RS subst) 1);
-by (asm_simp_tac (HOL_ss addsimps [minus_mult_left, realpow_inverse]) 1);
+by (asm_simp_tac (HOL_ss addsimps [minus_mult_left, power_inverse]) 1);
 by (fold_goals_tac [o_def]);
 by (blast_tac (claset() addSIs [DERIV_chain,DERIV_inverse]) 1);
 qed "DERIV_inverse_fun";
@@ -1369,7 +1369,7 @@ by (dtac DERIV_mult 2);
 by (REPEAT(assume_tac 1));
 by (asm_full_simp_tac
     (simpset() addsimps [real_divide_def, right_distrib,
-                         realpow_inverse,minus_mult_left] @ mult_ac 
+                         power_inverse,minus_mult_left] @ mult_ac 
        delsimps [realpow_Suc, minus_mult_right RS sym, minus_mult_left RS sym]) 1);
 qed "DERIV_quotient";
 

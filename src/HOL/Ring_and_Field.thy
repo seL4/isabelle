@@ -38,6 +38,7 @@ axclass ring \<subseteq> semiring, minus
   diff_minus: "a - b = a + (-b)"
 
 axclass ordered_semiring \<subseteq> semiring, linorder
+  zero_less_one: "0 < 1" --{*This axiom too is needed for semirings only.*}
   add_left_mono: "a \<le> b ==> c + a \<le> c + b"
   mult_strict_left_mono: "a < b ==> 0 < c ==> c * a < c * b"
 
@@ -484,6 +485,22 @@ lemma mult_right_mono:
      "[|a \<le> b; 0 \<le> c|] ==> a*c \<le> b * (c::'a::ordered_semiring)"
   by (simp add: mult_left_mono mult_commute [of _ c]) 
 
+lemma mult_left_le_imp_le:
+     "[|c*a \<le> c*b; 0 < c|] ==> a \<le> (b::'a::ordered_semiring)"
+  by (force simp add: mult_strict_left_mono linorder_not_less [symmetric])
+ 
+lemma mult_right_le_imp_le:
+     "[|a*c \<le> b*c; 0 < c|] ==> a \<le> (b::'a::ordered_semiring)"
+  by (force simp add: mult_strict_right_mono linorder_not_less [symmetric])
+
+lemma mult_left_less_imp_less:
+     "[|c*a < c*b; 0 \<le> c|] ==> a < (b::'a::ordered_semiring)"
+  by (force simp add: mult_left_mono linorder_not_le [symmetric])
+ 
+lemma mult_right_less_imp_less:
+     "[|a*c < b*c; 0 \<le> c|] ==> a < (b::'a::ordered_semiring)"
+  by (force simp add: mult_right_mono linorder_not_le [symmetric])
+
 lemma mult_strict_left_mono_neg:
      "[|b < a; c < 0|] ==> c * a < c * (b::'a::ordered_ring)"
 apply (drule mult_strict_left_mono [of _ _ "-c"])
@@ -552,12 +569,7 @@ done
 lemma zero_le_square: "(0::'a::ordered_ring) \<le> a*a"
 by (simp add: zero_le_mult_iff linorder_linear) 
 
-lemma zero_less_one: "(0::'a::ordered_ring) < 1"
-apply (insert zero_le_square [of 1]) 
-apply (simp add: order_less_le) 
-done
-
-lemma zero_le_one: "(0::'a::ordered_ring) \<le> 1"
+lemma zero_le_one: "(0::'a::ordered_semiring) \<le> 1"
   by (rule zero_less_one [THEN order_less_imp_le]) 
 
 
@@ -708,7 +720,7 @@ done
 
 text{*Compared with @{text mult_eq_0_iff}, this version removes the requirement
       of an ordering.*}
-lemma field_mult_eq_0_iff: "(a*b = (0::'a::field)) = (a = 0 | b = 0)"
+lemma field_mult_eq_0_iff [simp]: "(a*b = (0::'a::field)) = (a = 0 | b = 0)"
   proof cases
     assume "a=0" thus ?thesis by simp
   next
@@ -733,7 +745,7 @@ lemma field_mult_cancel_right_lemma:
     by (simp add: mult_assoc cnz)
   qed
 
-lemma field_mult_cancel_right:
+lemma field_mult_cancel_right [simp]:
      "(a*c = b*c) = (c = (0::'a::field) | a=b)"
   proof cases
     assume "c=0" thus ?thesis by simp
@@ -742,7 +754,7 @@ lemma field_mult_cancel_right:
     thus ?thesis by (force dest: field_mult_cancel_right_lemma)
   qed
 
-lemma field_mult_cancel_left:
+lemma field_mult_cancel_left [simp]:
      "(c*a = c*b) = (c = (0::'a::field) | a=b)"
   by (simp add: mult_commute [of c] field_mult_cancel_right) 
 
@@ -1401,6 +1413,10 @@ apply (auto elim: order_less_asym
                   minus_mult_left [symmetric] minus_mult_right [symmetric])  
 done
 
+
+lemma abs_mult_self: "abs a * abs a = a * (a::'a::ordered_ring)"
+by (simp add: abs_if) 
+
 lemma abs_eq_0 [simp]: "(abs a = 0) = (a = (0::'a::ordered_ring))"
 by (simp add: abs_if)
 
@@ -1617,6 +1633,10 @@ val mult_strict_left_mono = thm"mult_strict_left_mono";
 val mult_strict_right_mono = thm"mult_strict_right_mono";
 val mult_left_mono = thm"mult_left_mono";
 val mult_right_mono = thm"mult_right_mono";
+val mult_left_le_imp_le = thm"mult_left_le_imp_le";
+val mult_right_le_imp_le = thm"mult_right_le_imp_le";
+val mult_left_less_imp_less = thm"mult_left_less_imp_less";
+val mult_right_less_imp_less = thm"mult_right_less_imp_less";
 val mult_strict_left_mono_neg = thm"mult_strict_left_mono_neg";
 val mult_strict_right_mono_neg = thm"mult_strict_right_mono_neg";
 val mult_pos = thm"mult_pos";
@@ -1744,6 +1764,7 @@ val dense = thm"dense";
 val abs_zero = thm"abs_zero";
 val abs_one = thm"abs_one";
 val abs_mult = thm"abs_mult";
+val abs_mult_self = thm"abs_mult_self";
 val abs_eq_0 = thm"abs_eq_0";
 val zero_less_abs_iff = thm"zero_less_abs_iff";
 val abs_not_less_zero = thm"abs_not_less_zero";
