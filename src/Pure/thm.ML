@@ -1211,7 +1211,8 @@ fun rewritec (prover,signt) (mss as Mss{net,...}) (hypst,t) =
   let val t = Pattern.eta_contract t;
       fun rew {thm as Thm{sign,hyps,maxidx,prop,...}, lhs, perm} =
         let val unit = if Sign.subsig(sign,signt) then ()
-                  else (writeln"Warning: rewrite rule from different theory";
+                  else (trace_thm"Warning: rewrite rule from different theory"
+                          thm;
                         raise Pattern.MATCH)
             val insts = Pattern.match (#tsig(Sign.rep_sg signt)) (lhs,t)
             val prop' = subst_vars insts prop;
