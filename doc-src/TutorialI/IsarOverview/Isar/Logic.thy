@@ -1,6 +1,6 @@
 (*<*)theory Logic = Main:(*>*)
 text{* We begin by looking at a simplified grammar for Isar proofs
-where paranthesis are used for grouping and $^?$ indicates an optional item:
+where parentheses are used for grouping and $^?$ indicates an optional item:
 \begin{center}
 \begin{tabular}{lrl}
 \emph{proof} & ::= & \isakeyword{proof} \emph{method}$^?$
@@ -8,13 +8,12 @@ where paranthesis are used for grouping and $^?$ indicates an optional item:
                      \isakeyword{qed} \\
                  &$\mid$& \isakeyword{by} \emph{method}\\[1ex]
 \emph{statement} &::= & \isakeyword{fix} \emph{variables} \\
-             &$\mid$& \isakeyword{assume} \emph{proposition}
-                      (\isakeyword{and} \emph{proposition})*\\
-             &$\mid$& (\isakeyword{from} \emph{label}$^*$ $\mid$
-                       \isakeyword{then})$^?$ 
+             &$\mid$& \isakeyword{assume} \emph{propositions} \\
+             &$\mid$& (\isakeyword{from} \emph{facts})$^?$ 
                     (\isakeyword{show} $\mid$ \isakeyword{have})
-                      \emph{string} \emph{proof} \\[1ex]
-\emph{proposition} &::=& (\emph{label}{\bf:})$^?$ \emph{string}
+                      \emph{propositions} \emph{proof} \\[1ex]
+\emph{proposition} &::=& (\emph{label}{\bf:})$^?$ \emph{string} \\[1ex]
+\emph{fact} &::=& \emph{label}
 \end{tabular}
 \end{center}
 
@@ -32,6 +31,16 @@ This is a typical proof skeleton:
 \end{center}
 It proves \emph{the-assm}~@{text"\<Longrightarrow>"}~\emph{the-concl}.
 Text starting with ``--'' is a comment.
+
+Note that propositions in \isakeyword{assume} may but need not be
+separated by \isakeyword{and} whose purpose is to structure the
+assumptions into possibly named blocks, for example
+\begin{center}
+\isakeyword{assume} @{text"A:"} $A_1$ $A_2$ \isakeyword{and} @{text"B:"} $A_3$
+\isakeyword{and} $A_4$
+\end{center}
+Here label @{text A} refers to the list of propositions $A_1$ $A_2$ and
+label @{text B} to $A_3$.
 *}
 
 section{*Logic*}
@@ -67,7 +76,7 @@ proof
 qed
 
 text{* Trivial proofs, in particular those by assumption, should be trivial
-to perform. Method ``.'' does just that (and a bit more --- see later). Thus
+to perform. Proof ``.'' does just that (and a bit more). Thus
 naming of assumptions is often superfluous: *}
 lemma "A \<longrightarrow> A"
 proof
@@ -88,7 +97,7 @@ is no longer obvious where an assumption is used.
 
 Proofs of the form \isakeyword{by}@{text"(rule"}~\emph{name}@{text")"} can be
 abbreviated to ``..''
-if \emph{name} is one of the predefined introduction rules:
+if \emph{name} refers to one of the predefined introduction rules:
 *}
 
 lemma "A \<longrightarrow> A \<and> A"
@@ -118,7 +127,7 @@ proof
 qed
 text{*\noindent Note that the term @{text"?thesis"} always stands for the
 ``current goal'', i.e.\ the enclosing \isakeyword{show} (or
-\isakeyword{have}).
+\isakeyword{have}) statement.
 
 This is too much proof text. Elimination rules should be selected
 automatically based on their major premise, the formula or rather connective
@@ -161,9 +170,14 @@ proof
   qed
 qed
 
-text{*\noindent
-A final simplification: \isakeyword{from}~@{text this} can be
-abbreviated to \isakeyword{thus}.
+text{*\noindent Because of the frequency of \isakeyword{from}~@{text
+this} Isar provides two abbreviations:
+\begin{center}
+\begin{tabular}{rcl}
+\isakeyword{then} &=& \isakeyword{from} @{text this} \\
+\isakeyword{thus} &=& \isakeyword{then} \isakeyword{show}
+\end{tabular}
+\end{center}
 \medskip
 
 Here is an alternative proof that operates purely by forward reasoning: *}
@@ -175,7 +189,7 @@ proof
   from b a show "B \<and> A" ..
 qed
 text{*\noindent
-It is worth examining this text in detail because it exhibits a number of new features.
+It is worth examining this text in detail because it exhibits a number of new concepts.
 
 For a start, this is the first time we have proved intermediate propositions
 (\isakeyword{have}) on the way to the final \isakeyword{show}. This is the
@@ -187,7 +201,8 @@ proved automatically via @{thm[source]conjE} triggered by
 The \isakeyword{show} command illustrates two things:
 \begin{itemize}
 \item \isakeyword{from} can be followed by any number of facts.
-Given \isakeyword{from}~@{text f}$_1$~\dots~@{text f}$_n$, \isakeyword{show}
+Given \isakeyword{from}~@{text f}$_1$~\dots~@{text f}$_n$, the
+\isakeyword{proof} step after \isakeyword{show}
 tries to find an elimination rule whose first $n$ premises can be proved
 by the given facts in the given order.
 \item If there is no matching elimination rule, introduction rules are tried,
@@ -203,7 +218,7 @@ application of rules as well. Thus you could replace the final ``..'' above
 with \isakeyword{by}@{text"(rule conjI)"}. 
 
 Note that Isar's predefined introduction and elimination rules include all the
-usual natural deduction rules for propositional logic. We conclude this
+usual natural deduction rules. We conclude this
 section with an extended example --- which rules are used implicitly where?
 Rule @{thm[source]ccontr} is @{thm ccontr[no_vars]}.
 *}
@@ -247,27 +262,27 @@ subsection{*Avoiding duplication*}
 text{* So far our examples have been a bit unnatural: normally we want to
 prove rules expressed with @{text"\<Longrightarrow>"}, not @{text"\<longrightarrow>"}. Here is an example:
 *}
-lemma "(A \<Longrightarrow> False) \<Longrightarrow> \<not> A"
+lemma "A \<and> B \<Longrightarrow> B \<and> A"
 proof
-  assume "A \<Longrightarrow> False" "A"
-  thus False .
+  assume "A \<and> B" thus "B" ..
+next
+  assume "A \<and> B" thus "A" ..
 qed
 text{*\noindent The \isakeyword{proof} always works on the conclusion,
-@{prop"\<not>A"} in our case, thus selecting $\neg$-introduction. Hence we can
-additionally assume @{prop"A"}. Why does ``.'' prove @{prop False}? Because
-``.'' tries any of the assumptions, including proper rules (here: @{prop"A \<Longrightarrow>
-False"}), such that all of its premises can be solved directly by some other
-assumption (here: @{prop A}).
+@{prop"B \<and> A"} in our case, thus selecting $\land$-introduction. Hence
+we must show @{prop B} and @{prop A}; both are proved by
+$\land$-elimination.
 
 This is all very well as long as formulae are small. Let us now look at some
 devices to avoid repeating (possibly large) formulae. A very general method
 is pattern matching: *}
 
-lemma "(large_formula \<Longrightarrow> False) \<Longrightarrow> \<not> large_formula"
-      (is "(?P \<Longrightarrow> _) \<Longrightarrow> _")
+lemma "large_A \<and> large_B \<Longrightarrow> large_B \<and> large_A"
+      (is "?AB \<Longrightarrow> ?B \<and> ?A")
 proof
-  assume "?P \<Longrightarrow> False" ?P
-  thus False .
+  assume ?AB thus ?B ..
+next
+  assume ?AB thus ?A ..
 qed
 text{*\noindent Any formula may be followed by
 @{text"("}\isakeyword{is}~\emph{pattern}@{text")"} which causes the pattern
@@ -276,20 +291,39 @@ the pattern. Subsequent uses of these variables in other terms simply causes
 them to be replaced by the terms they stand for.
 
 We can simplify things even more by stating the theorem by means of the
-\isakeyword{assumes} and \isakeyword{shows} primitives which allow direct
+\isakeyword{assumes} and \isakeyword{shows} elements which allow direct
 naming of assumptions: *}
 
-lemma assumes A: "large_formula \<Longrightarrow> False"
-  shows "\<not> large_formula" (is "\<not> ?P")
+lemma assumes AB: "large_A \<and> large_B"
+  shows "large_B \<and> large_A" (is "?B \<and> ?A")
 proof
-  assume ?P
-  with A show False .
+  from AB show ?B ..
+next
+  from AB show ?A ..
 qed
-text{*\noindent Here we have used the abbreviation
+text{*\noindent Note the difference between @{text ?AB}, a term, and
+@{text AB}, a fact.
+
+Finally we want to start the proof with $\land$-elimination so we
+don't have to perform it twice, as above. Here is a slick way to
+achieve this: *}
+
+lemma assumes AB: "large_A \<and> large_B"
+  shows "large_B \<and> large_A" (is "?B \<and> ?A")
+using AB
+proof
+  assume ?A and ?B show ?thesis ..
+qed
+text{*\noindent Command \isakeyword{using} can appear before a proof
+and adds further facts to those piped into the proof. Here @{text AB}
+is the only such fact and it triggers $\land$-elimination. Another
+frequent usage is as follows:
 \begin{center}
-\isakeyword{with}~\emph{facts} \quad = \quad
-\isakeyword{from}~\emph{facts} \isakeyword{and} @{text this}
+\isakeyword{from} \emph{important facts}
+\isakeyword{show} \emph{something}
+\isakeyword{using} \emph{minor facts}
 \end{center}
+\medskip
 
 Sometimes it is necessary to supress the implicit application of rules in a
 \isakeyword{proof}. For example \isakeyword{show}~@{prop"A \<or> B"} would
@@ -305,12 +339,13 @@ proof -
     assume B show ?thesis ..
   qed
 qed
-
+text{*\noindent Could \isakeyword{using} help to eliminate this ``@{text"-"}''? *}
 
 subsection{*Predicate calculus*}
 
 text{* Command \isakeyword{fix} introduces new local variables into a
-proof. It corresponds to @{text"\<And>"} (the universal quantifier at the
+proof. The pair \isakeyword{fix}-\isakeyword{show} corresponds to @{text"\<And>"}
+(the universal quantifier at the
 meta-level) just like \isakeyword{assume}-\isakeyword{show} corresponds to
 @{text"\<Longrightarrow>"}. Here is a sample proof, annotated with the rules that are
 applied implictly: *}
@@ -321,7 +356,7 @@ proof  -- "@{thm[source]allI}: @{thm allI[no_vars]}"
 qed
 text{*\noindent Note that in the proof we have chosen to call the bound
 variable @{term a} instead of @{term x} merely to show that the choice of
-names is irrelevant.
+local names is irrelevant.
 
 Next we look at @{text"\<exists>"} which is a bit more tricky.
 *}
@@ -337,20 +372,19 @@ proof -
 qed
 text{*\noindent Explicit $\exists$-elimination as seen above can become
 cumbersome in practice.  The derived Isar language element
-\isakeyword{obtain} provides a more handsome way to perform generalized
+\isakeyword{obtain} provides a more appealing form of generalized
 existence reasoning: *}
 
 lemma assumes Pf: "\<exists>x. P(f x)" shows "\<exists>y. P y"
 proof -
-  from Pf obtain a where "P(f a)" ..
+  from Pf obtain x where "P(f x)" ..
   thus "\<exists>y. P y" ..
 qed
 text{*\noindent Note how the proof text follows the usual mathematical style
 of concluding $P(x)$ from $\exists x. P(x)$, while carefully introducing $x$
 as a new local variable.  Technically, \isakeyword{obtain} is similar to
 \isakeyword{fix} and \isakeyword{assume} together with a soundness proof of
-the elimination involved.  Thus it behaves similar to any other forward proof
-element.
+the elimination involved.
 
 Here is a proof of a well known tautology which employs another useful
 abbreviation: \isakeyword{hence} abbreviates \isakeyword{from}~@{text
@@ -386,7 +420,7 @@ proof
   qed
 qed
 text{*\noindent
-For a start, the example demonstrates two new language elements:
+For a start, the example demonstrates three new language elements:
 \begin{itemize}
 \item \isakeyword{let} introduces an abbreviation for a term, in our case
 the witness for the claim, because the term occurs multiple times in the proof.
@@ -394,6 +428,11 @@ the witness for the claim, because the term occurs multiple times in the proof.
 implicit what the two cases are: it is merely expected that the two subproofs
 prove @{prop"P \<Longrightarrow> Q"} and @{prop"\<not>P \<Longrightarrow> Q"} for suitable @{term P} and
 @{term Q}.
+\item \isakeyword{with} is an abbreviation:
+\begin{center}
+\isakeyword{with}~\emph{facts} \quad = \quad
+\isakeyword{from}~\emph{facts} \isakeyword{and} @{text this}
+\end{center}
 \end{itemize}
 If you wonder how to \isakeyword{obtain} @{term y}:
 via the predefined elimination rule @{thm rangeE[no_vars]}.
@@ -425,7 +464,7 @@ proof
   qed
 qed
 text{*\noindent Method @{text contradiction} succeeds if both $P$ and
-$\neg P$ are among the assumptions and the facts fed into that step.
+$\neg P$ are among the assumptions and the facts fed into that step, in any order.
 
 As it happens, Cantor's theorem can be proved automatically by best-first
 search. Depth-first search would diverge, but best-first search successfully
@@ -440,7 +479,7 @@ constructed introduction and elimination rules for set theory.
 Finally, whole scripts may appear in the leaves of the proof tree, although
 this is best avoided.  Here is a contrived example: *}
 
-lemma "A \<longrightarrow> (A \<longrightarrow>B) \<longrightarrow> B"
+lemma "A \<longrightarrow> (A \<longrightarrow> B) \<longrightarrow> B"
 proof
   assume a: A
   show "(A \<longrightarrow>B) \<longrightarrow> B"
@@ -466,7 +505,7 @@ proof cases
 next
   assume "\<not> P" thus ?thesis ..
 qed
-text{*\noindent As always, the cases can be tackled in any order.
+text{*\noindent Note that the two cases must come in this order.
 
 This form is appropriate if @{term P} is textually small.  However, if
 @{term P} is large, we don't want to repeat it. This can be avoided by
@@ -481,13 +520,12 @@ qed
 text{*\noindent which is simply a shorthand for the previous
 proof. More precisely, the phrases \isakeyword{case}~@{prop
 True}/@{prop False} abbreviate the corresponding assumptions @{prop P}
-and @{prop"\<not>P"}.
+and @{prop"\<not>P"}. In contrast to the previous proof we can prove the cases
+in arbitrary order.
 
 The same game can be played with other datatypes, for example lists:
 *}
-
 (*<*)declare length_tl[simp del](*>*)
-
 lemma "length(tl xs) = length xs - 1"
 proof (cases xs)
   case Nil thus ?thesis by simp
@@ -498,10 +536,10 @@ text{*\noindent Here \isakeyword{case}~@{text Nil} abbreviates
 \isakeyword{assume}~@{prop"x = []"} and \isakeyword{case}~@{text Cons}
 abbreviates \isakeyword{assume}~@{text"xs = _ # _"}. The names of the head
 and tail of @{text xs} have been chosen by the system. Therefore we cannot
-refer to them (this would lead to brittle proofs) and have not even shown
-them. Luckily, the proof is simple enough we do not need to refer to them.
+refer to them (this would lead to obscure proofs) and have not even shown
+them. Luckily, this proof is simple enough we do not need to refer to them.
 However, in general one may have to. Hence Isar offers a simple scheme for
-naming those variables: Replace the anonymous @{text Cons} by, for example,
+naming those variables: replace the anonymous @{text Cons} by, for example,
 @{text"(Cons y ys)"}, which abbreviates \isakeyword{fix}~@{text"y ys"}
 \isakeyword{assume}~@{text"xs = Cons y ys"}, i.e.\ @{prop"xs = y # ys"}. Here
 is a (somewhat contrived) example: *}
@@ -515,8 +553,7 @@ next
     by simp
   thus ?thesis by simp
 qed
-text{* New case distincion rules can be declared any time, even with
-named cases. *}
+
 
 subsection{*Induction*}
 
@@ -552,7 +589,7 @@ text{* \noindent The implicitly defined @{text ?case} refers to the
 corresponding case to be proved, i.e.\ @{text"?P 0"} in the first case and
 @{text"?P(Suc n)"} in the second case. Context \isakeyword{case}~@{text 0} is
 empty whereas \isakeyword{case}~@{text Suc} assumes @{text"?P n"}. Again we
-have the same problem as with case distinctions: we cannot refer to @{term n}
+have the same problem as with case distinctions: we cannot refer to an anonymous @{term n}
 in the induction step because it has not been introduced via \isakeyword{fix}
 (in contrast to the previous proof). The solution is the same as above:
 replace @{term Suc} by @{text"(Suc i)"}: *}
@@ -609,7 +646,7 @@ n)"} used above is not the whole truth. The variable names after the case
 name (here: @{term Suc}) are the names of the parameters of that subgoal. So
 far the only parameters where the arguments to the constructor, but now we
 have an additonal parameter coming from the @{text"\<And>m"} in the main
-\isakeyword{shows} clause. Thus  Thus @{text"(Suc n m)"} does not mean that
+\isakeyword{shows} clause. Thus @{text"(Suc n m)"} does not mean that
 constructor @{term Suc} is applied to two arguments but that the two
 parameters in the @{term Suc} case are to be named @{text n} and @{text
 m}. *}
@@ -625,39 +662,20 @@ refl:  "(x,x) \<in> r*"
 step:  "\<lbrakk> (x,y) \<in> r; (y,z) \<in> r* \<rbrakk> \<Longrightarrow> (x,z) \<in> r*"
 
 text{* \noindent and prove that @{term"r*"} is indeed transitive: *}
-lemma assumes A: "(x,y) \<in> r*"
-  shows "(y,z) \<in> r* \<Longrightarrow> (x,z) \<in> r*" (is "PROP ?P x y")
+lemma assumes A: "(x,y) \<in> r*" shows "(y,z) \<in> r* \<Longrightarrow> (x,z) \<in> r*"
 using A
 proof induct
   case refl thus ?case .
 next
   case step thus ?case by(blast intro: rtc.step)
 qed
-(*
-lemma assumes A: "(x,y) \<in> r*"
-  shows "(y,z) \<in> r* \<Longrightarrow> (x,z) \<in> r*" (is "PROP ?P x y")
-proof -
-  from A show "PROP ?P x y"
-  proof induct
-    fix x show "PROP ?P x x" .
-  next
-    fix x' x y
-    assume "(x',x) \<in> r"
-           "PROP ?P x y"   -- "induction hypothesis"
-    thus "PROP ?P x' y" by(blast intro: rtc.step)
-  qed
-qed
-*)
-text{*\noindent Rule induction is triggered by a fact $(x_1,\dots,x_n) \in R$
-piped into the proof, here \isakeyword{from}~@{text A}. The proof itself
-follows the two rules of the inductive definition very closely.  The only
-surprising thing should be the keyword @{text PROP}: because of certain
-syntactic subleties it is required in front of terms of type @{typ prop} (the
-type of meta-level propositions) which are not obviously of type @{typ prop}
-(e.g.\ @{text"?P x y"}) because they do not contain a tell-tale constant such
-as @{text"\<And>"} or @{text"\<Longrightarrow>"}.
+text{*\noindent Rule induction is triggered by a fact $(x_1,\dots,x_n)
+\in R$ piped into the proof, here \isakeyword{using}~@{text A}. The
+proof itself follows the inductive definition very
+closely: there is one case for each rule, and it has the same name as
+the rule, analogous to structural induction.
 
-However, the proof is rather terse. Here is a more readable version:
+However, this proof is rather terse. Here is a more readable version:
 *}
 
 lemma assumes A: "(x,y) \<in> r*" and B: "(y,z) \<in> r*"
@@ -675,14 +693,12 @@ proof -
     from 1 IH[OF B] show "(x',z) \<in> r*" by(rule rtc.step)
   qed
 qed
-
 text{*\noindent We start the proof with \isakeyword{from}~@{text"A
-B"}. Only @{text A} is ``consumed'' by the first proof step, here
-induction. Since @{text B} is left over we don't just prove @{text
-?thesis} but @{text"B \<Longrightarrow> ?thesis"}, just as in the previous
-proof, only more elegantly. The base case is trivial. In the
-assumptions for the induction step we can see very clearly how things
-fit together and permit ourselves the obvious forward step
-@{text"IH[OF B]"}. *}
+B"}. Only @{text A} is ``consumed'' by the induction step.
+Since @{text B} is left over we don't just prove @{text
+?thesis} but @{text"B \<Longrightarrow> ?thesis"}, just as in the previous proof. The
+base case is trivial. In the assumptions for the induction step we can
+see very clearly how things fit together and permit ourselves the
+obvious forward step @{text"IH[OF B]"}. *}
 
 (*<*)end(*>*)
