@@ -930,13 +930,9 @@ Goal "(x = y + z) = (x + -z = (y::hypreal))";
 by (auto_tac (claset(),simpset() addsimps [hypreal_add_assoc]));
 qed "hypreal_eq_minus_iff3";
 
-Goal "(x = z + y) = (x + -z = (y::hypreal))";
-by (auto_tac (claset(),simpset() addsimps hypreal_add_ac));
-qed "hypreal_eq_minus_iff4";
-
 Goal "(x ~= a) = (x + -a ~= (0::hypreal))";
-by (auto_tac (claset() addDs [sym RS 
-    (hypreal_eq_minus_iff RS iffD2)],simpset())); 
+by (auto_tac (claset() addDs [sym RS (hypreal_eq_minus_iff RS iffD2)],
+              simpset())); 
 qed "hypreal_not_eq_minus_iff";
 
 (*** linearity ***)
@@ -1074,6 +1070,7 @@ Goalw [hypreal_le_def] "((0::hypreal) <= -r) = (r <= (0::hypreal))";
 by (simp_tac (simpset() addsimps 
     [hypreal_minus_zero_less_iff2]) 1);
 qed "hypreal_minus_zero_le_iff";
+Addsimps [hypreal_minus_zero_le_iff];
 
 (*----------------------------------------------------------
   hypreal_of_real preserves field and order properties
@@ -1304,11 +1301,6 @@ by Auto_tac;
 by (blast_tac (claset() addIs [hypreal_mult_not_0E]) 1);
 qed "hypreal_mult_self_eq_zero_iff";
 Addsimps [hypreal_mult_self_eq_zero_iff];
-
-Goal "(0 = x * x) = (x = (0::hypreal))";
-by (auto_tac (claset() addDs [sym],simpset()));
-qed "hypreal_mult_self_eq_zero_iff2";
-Addsimps [hypreal_mult_self_eq_zero_iff2];
 
 Goalw [hypreal_diff_def] "(x<y) = (x-y < (0::hypreal))";
 by (rtac hypreal_less_minus_iff2 1);

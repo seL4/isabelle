@@ -292,17 +292,16 @@ by (asm_full_simp_tac (simpset() addsimps [NSLIMSEQ_inverse,
     LIMSEQ_NSLIMSEQ_iff]) 1);
 qed "LIMSEQ_inverse";
 
-(* trivially proved *)
-Goal "[| X ----NS> a; Y ----NS> b; b ~= #0 |] \
-\     ==> (%n. (X n) * inverse(Y n)) ----NS> a*inverse(b)";
-by (blast_tac (claset() addDs [NSLIMSEQ_inverse,NSLIMSEQ_mult]) 1);
+Goal "[| X ----NS> a;  Y ----NS> b;  b ~= #0 |] \
+\     ==> (%n. X n / Y n) ----NS> a/b";
+by (asm_full_simp_tac (simpset() addsimps [NSLIMSEQ_mult, NSLIMSEQ_inverse, 
+                                           real_divide_def]) 1);
 qed "NSLIMSEQ_mult_inverse";
 
-(* let's give a standard proof of theorem *)
-Goal "[| X ----> a; Y ----> b; b ~= #0 |] \
-\     ==> (%n. (X n) * inverse(Y n)) ----> a*inverse(b)";
-by (blast_tac (claset() addDs [LIMSEQ_inverse,LIMSEQ_mult]) 1);
-qed "LIMSEQ_mult_inverse";
+Goal "[| X ----> a;  Y ----> b;  b ~= #0 |] ==> (%n. X n / Y n) ----> a/b";
+by (asm_full_simp_tac (simpset() addsimps [LIMSEQ_mult, LIMSEQ_inverse, 
+                                           real_divide_def]) 1);
+qed "LIMSEQ_divide";
 
 (*-----------------------------------------------
             Uniqueness of limit
@@ -1296,11 +1295,11 @@ qed "convergent_realpow";
 Goalw [NSLIMSEQ_def]
      "[| #0 <= x; x < #1 |] ==> (%n. x ^ n) ----NS> #0";
 by (auto_tac (claset() addSDs [convergent_realpow],
-    simpset() addsimps [convergent_NSconvergent_iff]));
+              simpset() addsimps [convergent_NSconvergent_iff]));
 by (forward_tac [NSconvergentD] 1);
-by (auto_tac (claset(),simpset() addsimps [NSLIMSEQ_def,
-    NSCauchy_NSconvergent_iff RS sym,NSCauchy_def,
-    starfunNat_pow]));
+by (auto_tac (claset(),
+        simpset() addsimps [NSLIMSEQ_def, NSCauchy_NSconvergent_iff RS sym,
+                            NSCauchy_def, starfunNat_pow]));
 by (forward_tac [HNatInfinite_add_one] 1);
 by (dtac bspec 1 THEN assume_tac 1);
 by (dtac bspec 1 THEN assume_tac 1);
@@ -1308,16 +1307,24 @@ by (dres_inst_tac [("x","N + 1hn")] bspec 1 THEN assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [hyperpow_add]) 1);
 by (dtac inf_close_mult_subst_SReal 1 THEN assume_tac 1);
 by (dtac inf_close_trans3 1 THEN assume_tac 1);
-by (auto_tac (claset() addSDs [rename_numerals 
-                                (real_not_refl2 RS real_mult_eq_self_zero2)], 
-    simpset() addsimps [hypreal_of_real_mult RS sym]));
+by (auto_tac (claset(),
+              simpset() addsimps [hypreal_of_real_mult RS sym]));
 qed "NSLIMSEQ_realpow_zero";
 
 (*---------------  standard version ---------------*)
 Goal "[| #0 <= x; x < #1 |] ==> (%n. x ^ n) ----> #0";
-by (asm_full_simp_tac (simpset() addsimps [NSLIMSEQ_realpow_zero,
-    LIMSEQ_NSLIMSEQ_iff]) 1);
+by (asm_simp_tac (simpset() addsimps [NSLIMSEQ_realpow_zero,
+                                      LIMSEQ_NSLIMSEQ_iff]) 1);
 qed "LIMSEQ_realpow_zero";
+
+Goal "#1 < x ==> (%n. a / (x ^ n)) ----> #0";
+by (cut_inst_tac [("a","a"),("x1","inverse x")] 
+    ([LIMSEQ_const, LIMSEQ_realpow_zero] MRS LIMSEQ_mult) 1);
+by (auto_tac (claset(), 
+              simpset() addsimps [real_divide_def, realpow_inverse])); 
+by (asm_simp_tac (simpset() addsimps [real_inverse_eq_divide,
+                                      pos_real_divide_less_eq]) 1); 
+qed "LIMSEQ_divide_realpow_zero";
 
 (*----------------------------------------------------------------
                Limit of c^n for |c| < 1  
@@ -1334,7 +1341,7 @@ qed "NSLIMSEQ_rabs_realpow_zero";
 Goal "abs(c) < #1 ==> (%n. c ^ n) ----> #0";
 by (rtac (LIMSEQ_rabs_zero RS iffD1) 1);
 by (auto_tac (claset() addIs [LIMSEQ_rabs_realpow_zero],
-         simpset() addsimps [realpow_abs RS sym]));
+              simpset() addsimps [realpow_abs RS sym]));
 qed "LIMSEQ_rabs_realpow_zero2";
 
 Goal "abs(c) < #1 ==> (%n. c ^ n) ----NS> #0";

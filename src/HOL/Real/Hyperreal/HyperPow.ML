@@ -114,10 +114,9 @@ by (auto_tac (claset() addSIs [hypreal_le_add_order],simpset()));
 qed "hrealpow_two_le_add_order2";
 Addsimps [hrealpow_two_le_add_order2];
 
-(* See HYPER.ML *)
-Goal "(x ^ 2 + y ^ 2 + z ^ 2 = (0::hypreal)) = \ 
-\               (x = 0 & y = 0 & z = 0)";
-by (simp_tac (simpset() addsimps [hrealpow_two]) 1);
+Goal "(x ^ 2 + y ^ 2 + z ^ 2 = (0::hypreal)) = (x = 0 & y = 0 & z = 0)";
+by (simp_tac (HOL_ss addsimps [hypreal_three_squares_add_zero_iff, 
+                               hrealpow_two]) 1);
 qed "hrealpow_three_squares_add_zero_iff";
 Addsimps [hrealpow_three_squares_add_zero_iff];
 
@@ -127,8 +126,8 @@ qed "hrabs_hrealpow_two";
 Addsimps [hrabs_hrealpow_two];
 
 Goal "abs(x) ^ 2 = (x::hypreal) ^ 2";
-by (simp_tac (simpset() addsimps [hrealpow_hrabs,
-    hrabs_eqI1] delsimps [hpowr_Suc]) 1);
+by (simp_tac (simpset() addsimps [hrealpow_hrabs, hrabs_eqI1] 
+                        delsimps [hpowr_Suc]) 1);
 qed "hrealpow_two_hrabs";
 Addsimps [hrealpow_two_hrabs];
 

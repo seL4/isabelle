@@ -212,11 +212,12 @@ structure CancelNumeralFactorCommon =
   val dest_coeff	= dest_coeff 1
   val trans_tac         = trans_tac
   val norm_tac = ALLGOALS (simp_tac (HOL_ss addsimps mult_plus_1s))
-            THEN ALLGOALS
-                 (simp_tac 
-                  (HOL_ss addsimps [eq_real_number_of, 
-                                    real_mult_minus_right RS sym]@
-    [mult_real_number_of, real_mult_number_of_left]@bin_simps@real_mult_ac))
+     THEN ALLGOALS (simp_tac (HOL_ss addsimps bin_simps@real_mult_minus_simps))
+     THEN ALLGOALS
+	  (simp_tac 
+	   (HOL_ss addsimps [eq_real_number_of, mult_real_number_of, 
+                             real_mult_number_of_left]@
+           real_minus_from_mult_simps @ real_mult_ac))
   val numeral_simp_tac	= 
          ALLGOALS (simp_tac (HOL_ss addsimps rel_real_number_of@bin_simps))
   val simplify_meta_eq  = simplify_meta_eq
@@ -260,16 +261,16 @@ structure LeCancelNumeralFactor = CancelNumeralFactorFun
 
 val real_cancel_numeral_factors = 
   map prep_simproc
-   [("realeq_cancel_numeral_factors",
+   [("realeq_cancel_numeral_factor",
      prep_pats ["(l::real) * m = n", "(l::real) = m * n"], 
      EqCancelNumeralFactor.proc),
-    ("realless_cancel_numeral_factors", 
+    ("realless_cancel_numeral_factor", 
      prep_pats ["(l::real) * m < n", "(l::real) < m * n"], 
      LessCancelNumeralFactor.proc),
-    ("realle_cancel_numeral_factors", 
+    ("realle_cancel_numeral_factor", 
      prep_pats ["(l::real) * m <= n", "(l::real) <= m * n"], 
      LeCancelNumeralFactor.proc),
-    ("realdiv_cancel_numeral_factors", 
+    ("realdiv_cancel_numeral_factor", 
      prep_pats ["((l::real) * m) / n", "(l::real) / (m * n)"], 
      DivCancelNumeralFactor.proc)];
 

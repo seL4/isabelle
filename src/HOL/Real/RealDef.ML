@@ -270,20 +270,6 @@ Goal "(y + (x::real)= z + x) = (y = z)";
 by (simp_tac (simpset() addsimps [real_add_commute,real_add_left_cancel]) 1);
 qed "real_add_right_cancel";
 
-Goal "((x::real) = y) = (0 = x + (- y))";
-by (Step_tac 1);
-by (res_inst_tac [("x1","-y")] 
-      (real_add_right_cancel RS iffD1) 2);
-by Auto_tac;
-qed "real_eq_minus_iff"; 
-
-Goal "((x::real) = y) = (x + (- y) = 0)";
-by (Step_tac 1);
-by (res_inst_tac [("x1","-y")] 
-      (real_add_right_cancel RS iffD1) 2);
-by Auto_tac;
-qed "real_eq_minus_iff2"; 
-
 Goal "(0::real) - x = -x";
 by (simp_tac (simpset() addsimps [real_diff_def]) 1);
 qed "real_diff_0";

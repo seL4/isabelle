@@ -99,18 +99,11 @@ by (induct_tac "n" 1);
 by (Auto_tac);
 qed "sumr_shift_bounds";
 
-(*FIXME: replace*)
-Goal "sumr 0 (n + n) (%i. (- #1) ^ Suc i) = #0";
+Goal "sumr 0 (#2*n) (%i. (#-1) ^ Suc i) = #0";
 by (induct_tac "n" 1);
 by (Auto_tac);
 qed "sumr_minus_one_realpow_zero";
 Addsimps [sumr_minus_one_realpow_zero];
-
-Goal "sumr 0 (n + n) (%i. (#-1) ^ Suc i) = #0";
-by (induct_tac "n" 1);
-by (Auto_tac);
-qed "sumr_minus_one_realpow_zero2";
-Addsimps [sumr_minus_one_realpow_zero2];
 
 Goal "m < Suc n ==> Suc n - m = Suc (n - m)";
 by (dtac less_imp_Suc_add 1);
@@ -421,15 +414,13 @@ qed "series_pos_less";
 (*-------------------------------------------------------------------
                     sum of geometric progression                 
  -------------------------------------------------------------------*)
-(* lemma *)
 
 Goal "x ~= #1 ==> sumr 0 n (%n. x ^ n) = (x ^ n - #1) * inverse(x - #1)";
 by (induct_tac "n" 1);
 by (Auto_tac);
 by (res_inst_tac [("c1","x - #1")] (real_mult_right_cancel RS iffD1) 1);
 by (auto_tac (claset(),
-       simpset() addsimps [real_eq_minus_iff2 RS sym,
-                           real_mult_assoc, real_add_mult_distrib]));
+       simpset() addsimps [real_mult_assoc, real_add_mult_distrib]));
 by (auto_tac (claset(),
        simpset() addsimps [real_add_mult_distrib2,
                            real_diff_def, real_mult_commute]));

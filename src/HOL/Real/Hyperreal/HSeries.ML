@@ -187,13 +187,6 @@ by (auto_tac (claset(),simpset() addsimps [sumhr,
          real_of_nat_def,hypreal_minus,hypreal_add]));
 qed "sumhr_hypreal_omega_minus_one";
 
-(***??SERIES.ML??replace old versions???*)
-Goal "sumr 0 (#2*n) (%i. (#-1) ^ Suc i) = #0";
-by (induct_tac "n" 1);
-by (Auto_tac);
-qed "sumr_minus_one_realpow_zero";
-Addsimps [sumr_minus_one_realpow_zero];
-
 Goalw [hypnat_zero_def, hypnat_omega_def, hypreal_zero_def]
      "sumhr(0, whn + whn, %i. (-#1) ^ (i+1)) = 0";
 by (simp_tac (simpset() addsimps [sumhr,hypnat_add] 

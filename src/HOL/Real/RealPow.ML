@@ -43,7 +43,7 @@ by (Simp_tac 1);
 qed "realpow_one";
 Addsimps [realpow_one];
 
-Goal "(r::real) ^ 2 = r * r";
+Goal "(r::real)^2 = r * r";
 by (Simp_tac 1);
 qed "realpow_two";
 
@@ -111,24 +111,24 @@ by (induct_tac "n" 1);
 by (auto_tac (claset(),simpset() addsimps real_mult_ac));
 qed "realpow_mult";
 
-Goal "(#0::real) <= r ^ 2";
+Goal "(#0::real) <= r^2";
 by (simp_tac (simpset() addsimps [rename_numerals real_le_square]) 1);
 qed "realpow_two_le";
 Addsimps [realpow_two_le];
 
-Goal "abs((x::real) ^ 2) = x ^ 2";
+Goal "abs((x::real)^2) = x^2";
 by (simp_tac (simpset() addsimps [abs_eqI1, 
 				  rename_numerals real_le_square]) 1);
 qed "abs_realpow_two";
 Addsimps [abs_realpow_two];
 
-Goal "abs(x::real) ^ 2 = x ^ 2";
+Goal "abs(x::real) ^ 2 = x^2";
 by (simp_tac (simpset() addsimps [realpow_abs,abs_eqI1]
                         delsimps [realpow_Suc]) 1);
 qed "realpow_two_abs";
 Addsimps [realpow_two_abs];
 
-Goal "(#1::real) < r ==> #1 < r ^ 2";
+Goal "(#1::real) < r ==> #1 < r^2";
 by Auto_tac;
 by (cut_facts_tac [rename_numerals real_zero_less_one] 1);
 by (forw_inst_tac [("R1.0","#0")] real_less_trans 1);
@@ -352,37 +352,27 @@ qed "realpow_two_mult_inverse";
 Addsimps [realpow_two_mult_inverse];
 
 (* 05/00 *)
-Goal "(-x) ^ 2 = (x::real) ^ 2";
+Goal "(-x)^2 = (x::real) ^ 2";
 by (Simp_tac 1);
 qed "realpow_two_minus";
 Addsimps [realpow_two_minus];
 
-Goal "(x::real) ^ 2 + - (y ^ 2) = (x + -y) * (x + y)";
-by (simp_tac (simpset() addsimps [real_add_mult_distrib2,
-    real_add_mult_distrib, real_minus_mult_eq2 RS sym] 
-    @ real_mult_ac) 1);
-qed "realpow_two_add_minus";
-
-Goalw [real_diff_def] 
-      "(x::real) ^ 2 - y ^ 2 = (x - y) * (x + y)";
-by (simp_tac (simpset() addsimps [realpow_two_add_minus]
-                        delsimps [realpow_Suc]) 1);
+Goalw [real_diff_def] "(x::real)^2 - y^2 = (x - y) * (x + y)";
+by (simp_tac (simpset() addsimps 
+              [real_add_mult_distrib2, real_add_mult_distrib, 
+               real_minus_mult_eq2 RS sym] @ real_mult_ac) 1);
 qed "realpow_two_diff";
 
-Goalw [real_diff_def] 
-      "((x::real) ^ 2 = y ^ 2) = (x = y | x = -y)";
-by (auto_tac (claset(),simpset() delsimps [realpow_Suc]));
-by (dtac (rename_numerals (real_eq_minus_iff RS iffD1 RS sym)) 1);
-by (auto_tac (claset() addDs [rename_numerals real_add_minus_eq_minus], 
-          simpset() addsimps [realpow_two_add_minus] delsimps [realpow_Suc]));
+Goalw [real_diff_def] "((x::real)^2 = y^2) = (x = y | x = -y)";
+by (cut_inst_tac [("x","x"),("y","y")] realpow_two_diff 1);
+by (auto_tac (claset(), simpset() delsimps [realpow_Suc]));
 qed "realpow_two_disj";
 
 (* used in Transc *)
 Goal  "[|(x::real) ~= #0; m <= n |] ==> x ^ (n - m) = x ^ n * inverse (x ^ m)";
 by (auto_tac (claset(),
-              simpset() addsimps [le_eq_less_or_eq,
-                                  less_iff_Suc_add,realpow_add,
-                                  realpow_not_zero] @ real_mult_ac));
+       simpset() addsimps [le_eq_less_or_eq, less_iff_Suc_add, realpow_add,
+                           realpow_not_zero] @ real_mult_ac));
 qed "realpow_diff";
 
 Goal "real_of_nat (m) ^ n = real_of_nat (m ^ n)";

@@ -137,7 +137,7 @@ Addsimps (map rename_numerals
 	   real_mult_minus_1_right, real_mult_minus_1, real_inverse_1,
 	   real_minus_zero_less_iff]);
 
-AddIffs (map rename_numerals [real_mult_is_0, real_0_is_mult]);
+AddIffs (map rename_numerals [real_mult_is_0]);
 
 bind_thm ("real_0_less_mult_iff", 
 	  rename_numerals real_zero_less_mult_iff);

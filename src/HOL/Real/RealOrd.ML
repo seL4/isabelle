@@ -698,26 +698,7 @@ Goal "(x*y = 0) = (x = 0 | y = (0::real))";
 by Auto_tac;
 by (blast_tac (claset() addIs [ccontr] addDs [real_mult_not_zero]) 1);
 qed "real_mult_is_0";
-
-Goal "(0 = x*y) = (0 = x | (0::real) = y)";
-by (stac eq_commute 1 THEN stac real_mult_is_0 1);
-by Auto_tac;
-qed "real_0_is_mult";
-AddIffs [real_mult_is_0, real_0_is_mult];
-
-Goal "[| x ~= 1r; y * x = y |] ==> y = 0";
-by (subgoal_tac "y*(1r + -x) = 0" 1);
-by (stac real_add_mult_distrib2 2);
-by (auto_tac (claset(),
-	      simpset() addsimps [real_eq_minus_iff2 RS sym]));
-qed "real_mult_eq_self_zero";
-Addsimps [real_mult_eq_self_zero];
-
-Goal "[| x ~= 1r; y = y * x |] ==> y = 0";
-by (dtac sym 1);
-by (Asm_full_simp_tac 1);
-qed "real_mult_eq_self_zero2";
-Addsimps [real_mult_eq_self_zero2];
+AddIffs [real_mult_is_0];
 
 Goal "[| 0 <= x * y; 0 < x |] ==> (0::real) <= y";
 by (ftac real_inverse_gt_zero 1);

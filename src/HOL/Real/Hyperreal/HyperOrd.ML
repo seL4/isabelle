@@ -176,8 +176,8 @@ qed "hypreal_mult_less_zero";
 Goalw [hypreal_one_def,hypreal_zero_def,hypreal_less_def] "0 < 1hr";
 by (res_inst_tac [("x","%n. #0")] exI 1);
 by (res_inst_tac [("x","%n. #1")] exI 1);
-by (auto_tac (claset(),simpset() addsimps [real_zero_less_one,
-    FreeUltrafilterNat_Nat_set]));
+by (auto_tac (claset(),
+        simpset() addsimps [real_zero_less_one, FreeUltrafilterNat_Nat_set]));
 qed "hypreal_zero_less_one";
 
 Goal "1hr < 1hr + 1hr";
@@ -428,52 +428,28 @@ by (blast_tac (claset() addSIs [hypreal_less_half_sum,
 qed "hypreal_dense";
 
 
-Goal "(x*x + y*y = 0) = (x = 0 & y = (0::hypreal))";
+(*?? more needed and earlier??*)
+Goal "(x+y = (0::hypreal)) = (x = -y)";
+by (stac hypreal_eq_minus_iff 1);
 by Auto_tac;
-by (dtac (sym RS (hypreal_eq_minus_iff3 RS iffD1))  1);
-by (dtac (sym RS (hypreal_eq_minus_iff4 RS iffD1))  2);
-by (ALLGOALS(rtac ccontr));
-by (ALLGOALS(dtac hypreal_mult_self_not_zero));
-by (cut_inst_tac [("x1","x")] (hypreal_le_square 
-        RS hypreal_le_imp_less_or_eq) 1);
-by (cut_inst_tac [("x1","y")] (hypreal_le_square 
-        RS hypreal_le_imp_less_or_eq) 2);
-by (auto_tac (claset() addDs [sym],simpset()));
-by (dres_inst_tac [("x1","y")] (hypreal_less_minus_square 
-    RS hypreal_le_less_trans) 1);
-by (dres_inst_tac [("x1","x")] (hypreal_less_minus_square 
-    RS hypreal_le_less_trans) 2);
-by (auto_tac (claset(),simpset() addsimps 
-       [hypreal_less_not_refl]));
+qed "hypreal_add_eq_0_iff";
+AddIffs [hypreal_add_eq_0_iff];
+
+Goal "[| 0 <= x; 0 <= y |] ==> (x+y = 0) = (x = 0 & y = (0::hypreal))";
+by (auto_tac (claset() addIs [order_antisym], simpset()));
+qed "hypreal_add_nonneg_eq_0_iff";
+
+Goal "(x*x + y*y = 0) = (x = 0 & y = (0::hypreal))";
+by (simp_tac
+    (HOL_ss addsimps [hypreal_le_square, hypreal_add_nonneg_eq_0_iff]) 1);
+by Auto_tac;
 qed "hypreal_squares_add_zero_iff";
 Addsimps [hypreal_squares_add_zero_iff];
 
-Goal "x * x ~= 0 ==> (0::hypreal) < x* x + y*y + z*z";
-by (cut_inst_tac [("x1","x")] (hypreal_le_square 
-        RS hypreal_le_imp_less_or_eq) 1);
-by (auto_tac (claset() addSIs [hypreal_add_order_le],
-              simpset()));
-qed "hypreal_sum_squares3_gt_zero";
-
-Goal "x * x ~= 0 ==> (0::hypreal) < y*y + x*x + z*z";
-by (dtac hypreal_sum_squares3_gt_zero 1);
-by (auto_tac (claset(), simpset() addsimps hypreal_add_ac));
-qed "hypreal_sum_squares3_gt_zero2";
-
-Goal "x * x ~= 0 ==> (0::hypreal) < y*y + z*z + x*x";
-by (dtac hypreal_sum_squares3_gt_zero 1);
-by (auto_tac (claset(), simpset() addsimps hypreal_add_ac));
-qed "hypreal_sum_squares3_gt_zero3";
-
-
 Goal "(x*x + y*y + z*z = 0) = (x = 0 & y = 0 & z = (0::hypreal))";
+by (simp_tac (HOL_ss addsimps [hypreal_le_square, hypreal_le_add_order, 
+                               hypreal_add_nonneg_eq_0_iff]) 1);
 by Auto_tac;
-by (ALLGOALS(rtac ccontr));
-by (ALLGOALS(dtac hypreal_mult_self_not_zero));
-by (auto_tac (claset() addDs [hypreal_not_refl2 RS not_sym,
-   hypreal_sum_squares3_gt_zero3,hypreal_sum_squares3_gt_zero,
-   hypreal_sum_squares3_gt_zero2],simpset() delsimps
-   [hypreal_mult_self_eq_zero_iff]));
 qed "hypreal_three_squares_add_zero_iff";
 Addsimps [hypreal_three_squares_add_zero_iff];
 
@@ -758,11 +734,12 @@ qed "hypreal_mult_le_ge_zero";
  ----------------------------------------------------------------------------*)
 
 Goal "((0::hypreal) < x*y) = (0 < x & 0 < y | x < 0 & y < 0)";
- by (auto_tac (claset(), simpset() addsimps [order_le_less, 
-    linorder_not_less, hypreal_mult_order, hypreal_mult_less_zero1]));
+ by (auto_tac (claset(), 
+               simpset() addsimps [order_le_less, linorder_not_less, 
+                              hypreal_mult_order, hypreal_mult_less_zero1]));
 by (ALLGOALS (rtac ccontr)); 
-by (auto_tac (claset(), simpset() addsimps 
-    [order_le_less, linorder_not_less]));
+by (auto_tac (claset(), 
+              simpset() addsimps [order_le_less, linorder_not_less]));
 by (ALLGOALS (etac rev_mp)); 
 by (ALLGOALS (dtac hypreal_mult_less_zero THEN' assume_tac));
 by (auto_tac (claset() addDs [order_less_not_sym], 
@@ -770,9 +747,9 @@ by (auto_tac (claset() addDs [order_less_not_sym],
 qed "hypreal_zero_less_mult_iff";
 
 Goal "((0::hypreal) <= x*y) = (0 <= x & 0 <= y | x <= 0 & y <= 0)";
-by (auto_tac (claset() addDs [sym RS hypreal_mult_zero_disj],
-    simpset() addsimps [order_le_less,
-    linorder_not_less,hypreal_zero_less_mult_iff]));
+by (auto_tac (claset() addDs [hypreal_mult_zero_disj],
+              simpset() addsimps [order_le_less, linorder_not_less,
+                                  hypreal_zero_less_mult_iff]));
 qed "hypreal_zero_le_mult_iff";
 
 Goal "(x*y < (0::hypreal)) = (0 < x & y < 0 | x < 0 & 0 < y)";

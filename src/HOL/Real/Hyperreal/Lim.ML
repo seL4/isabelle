@@ -6,22 +6,9 @@
 *)
 
 
-(*DELETE?????*)
 fun ARITH_PROVE str = prove_goal thy str 
                       (fn prems => [cut_facts_tac prems 1,arith_tac 1]);
 
-
-
-(***?REALARITH.ML?? also below??*)
-Goal "(x + - a = (#0::real)) = (x=a)";
-by (arith_tac 1);
-qed "real_add_minus_iff";
-Addsimps [real_add_minus_iff];
-
-Goal "(-b = -a) = (b = (a::real))";
-by (arith_tac 1);
-qed "real_minus_eq_cancel";
-Addsimps [real_minus_eq_cancel];
 
 
 (*---------------------------------------------------------------
@@ -545,23 +532,21 @@ qed "isNSCont_isCont";
  --------------------------------------------------------------------------*)
 (* Prove equivalence between NS limits - *)
 (* seems easier than using standard def  *)
-Goalw [NSLIM_def] 
-      "(f -- a --NS> L) = ((%h. f(a + h)) -- #0 --NS> L)";
+Goalw [NSLIM_def] "(f -- a --NS> L) = ((%h. f(a + h)) -- #0 --NS> L)";
 by (auto_tac (claset(),simpset() addsimps [hypreal_of_real_zero]));
 by (dres_inst_tac [("x","hypreal_of_real a + x")] spec 1);
 by (dres_inst_tac [("x","-hypreal_of_real a + x")] spec 2);
 by (Step_tac 1);
-by (dtac (sym RS (hypreal_eq_minus_iff4 RS iffD1)) 1);
+by (Asm_full_simp_tac 1);
 by (rtac ((mem_infmal_iff RS iffD2) RS 
-    (Infinitesimal_add_inf_close_self RS inf_close_sym)) 2);
-by (rtac (inf_close_minus_iff2 RS iffD1) 5);
-by (asm_full_simp_tac (simpset() addsimps [hypreal_add_commute]) 4);
-by (dtac (sym RS (hypreal_eq_minus_iff RS iffD2)) 4);
-by (res_inst_tac [("z","x")] eq_Abs_hypreal 3);
-by (res_inst_tac [("z","x")] eq_Abs_hypreal 6);
-by (auto_tac (claset(),simpset() addsimps [starfun,
-    hypreal_of_real_def,hypreal_minus,hypreal_add,
-    real_add_assoc,inf_close_refl,hypreal_zero_def]));
+    (Infinitesimal_add_inf_close_self RS inf_close_sym)) 1);
+by (rtac (inf_close_minus_iff2 RS iffD1) 4);
+by (asm_full_simp_tac (simpset() addsimps [hypreal_add_commute]) 3);
+by (res_inst_tac [("z","x")] eq_Abs_hypreal 2);
+by (res_inst_tac [("z","x")] eq_Abs_hypreal 4);
+by (auto_tac (claset(),
+       simpset() addsimps [starfun, hypreal_of_real_def, hypreal_minus,
+              hypreal_add, real_add_assoc, inf_close_refl, hypreal_zero_def]));
 qed "NSLIM_h_iff";
 
 Goal "(f -- a --NS> f a) = ((%h. f(a + h)) -- #0 --NS> f a)";
@@ -569,12 +554,10 @@ by (rtac NSLIM_h_iff 1);
 qed "NSLIM_isCont_iff";
 
 Goal "(f -- a --> f a) = ((%h. f(a + h)) -- #0 --> f(a))";
-by (asm_full_simp_tac (simpset() addsimps [LIM_NSLIM_iff,
-    NSLIM_isCont_iff]) 1);
+by (simp_tac (simpset() addsimps [LIM_NSLIM_iff, NSLIM_isCont_iff]) 1);
 qed "LIM_isCont_iff";
 
-Goalw [isCont_def] 
-      "(isCont f x) = ((%h. f(x + h)) -- #0 --> f(x))";
+Goalw [isCont_def] "(isCont f x) = ((%h. f(x + h)) -- #0 --> f(x))";
 by (simp_tac (simpset() addsimps [LIM_isCont_iff]) 1);
 qed "isCont_iff";
 
@@ -1414,6 +1397,22 @@ qed "NSDERIV_pow";
  ---------------------------------------------------------------*)
 
 
+
+(*??REPLACE THE ONE IN HYPERDEF*??*)
+Goal "inverse(x*y) = inverse(x)*inverse(y::hypreal)";
+by (case_tac "x=0 | y=0" 1);
+by (force_tac (claset(), simpset() addsimps [HYPREAL_INVERSE_ZERO]) 1); 
+by (res_inst_tac [("c1","x")] (hypreal_mult_left_cancel RS iffD1) 1);
+by (auto_tac (claset(),
+        simpset() addsimps [hypreal_mult_assoc RS sym, hypreal_mult_not_0]));
+by (res_inst_tac [("c1","y")] (hypreal_mult_right_cancel RS iffD1) 1);
+by (auto_tac (claset(),
+        simpset() addsimps [hypreal_mult_not_0] @ hypreal_mult_ac));
+by (auto_tac (claset(),
+        simpset() addsimps [hypreal_mult_assoc RS sym, hypreal_mult_not_0]));
+qed "inverse_mult_eq";
+
+(**?? FIXME messy proof, needs simprocs! ??*)
 (*Can't get rid of x ~= #0 because it isn't continuous at zero*)
 Goalw [nsderiv_def]
      "x ~= #0 ==> NSDERIV (%x. inverse(x)) x :> (- (inverse x ^ 2))";
@@ -1427,13 +1426,26 @@ by (auto_tac (claset(),
                delsimps [hypreal_minus_mult_eq1 RS sym,
                          hypreal_minus_mult_eq2 RS sym]));
 by (dtac (hypreal_of_real_not_zero_iff RS iffD2) 1);
-by (asm_full_simp_tac (simpset() addsimps [hypreal_inverse_add,
-         inverse_mult_eq RS sym, hypreal_minus_inverse RS sym] 
-         @ hypreal_add_ac @ hypreal_mult_ac delsimps [hypreal_minus_mult_eq1 RS
-         sym,hypreal_minus_mult_eq2 RS sym] ) 1);
+by (asm_full_simp_tac
+     (simpset() addsimps [hypreal_inverse_add,
+          inverse_mult_eq RS sym, hypreal_minus_inverse RS sym] 
+          @ hypreal_add_ac @ hypreal_mult_ac 
+       delsimps [hypreal_minus_mult_eq1 RS sym,
+                 hypreal_minus_mult_eq2 RS sym] ) 1);
+by (stac hypreal_inverse_add 1); 
+by (asm_full_simp_tac (simpset() addsimps []) 1);
+by (stac hypreal_add_commute 1);  
+by (asm_simp_tac (simpset() addsimps []) 1); 
+by (asm_full_simp_tac
+     (simpset() addsimps [hypreal_inverse_add,
+          inverse_mult_eq RS sym, hypreal_minus_inverse RS sym] 
+          @ hypreal_add_ac @ hypreal_mult_ac 
+       delsimps [hypreal_minus_mult_eq1 RS sym,
+                 hypreal_minus_mult_eq2 RS sym] ) 1);
 by (asm_simp_tac (simpset() addsimps [hypreal_mult_assoc RS sym,
-         hypreal_add_mult_distrib2] delsimps [hypreal_minus_mult_eq1 RS
-         sym,hypreal_minus_mult_eq2 RS sym]) 1);
+                                      hypreal_add_mult_distrib2] 
+         delsimps [hypreal_minus_mult_eq1 RS sym, 
+                   hypreal_minus_mult_eq2 RS sym]) 1);
 by (dres_inst_tac [("x3","x") ] ((HFinite_hypreal_of_real RSN
          (2,Infinitesimal_HFinite_mult2)) RS  
           (Infinitesimal_minus_iff RS iffD1)) 1); 
@@ -1445,6 +1457,8 @@ by (auto_tac (claset() addIs [HFinite_minus_iff RS iffD1]
          hypreal_of_real_HFinite_diff_Infinitesimal], simpset() addsimps 
          [hypreal_minus_inverse RS sym,hypreal_of_real_mult RS sym]));
 qed "NSDERIV_inverse";
+
+
 
 Goal "x ~= #0 ==> DERIV (%x. inverse(x)) x :> (-(inverse x ^ 2))";
 by (asm_simp_tac (simpset() addsimps [NSDERIV_inverse,
@@ -1769,14 +1783,6 @@ qed "lemma_BOLZANO2";
 (* Intermediate Value Theorem (prove contrapositive by bisection)             *)
 (*----------------------------------------------------------------------------*)
 
-
-    (*ALREADY IN REALABS.ML????????????????*)
-    Goalw [abs_real_def] "(abs x = #0) = (x=(#0::real))";
-    by (Full_simp_tac 1);
-    qed "abs_zero_iff";
-    AddIffs [abs_zero_iff];
-
-
 Goal "[| f(a) <= y & y <= f(b); \
 \        a <= b; \
 \        (ALL x. a <= x & x <= b --> isCont f x) |] \
@@ -1899,8 +1905,6 @@ by (res_inst_tac [("j","abs(f xa)")] real_le_trans 3);
 by (res_inst_tac [("j","abs(f x) + abs(f(xa) - f(x))")] real_le_trans 4);
 by (auto_tac (claset() addIs [abs_triangle_ineq RSN (2, real_le_trans)],
               simpset() addsimps [real_diff_def,abs_ge_self]));
-(*arith_tac problem: this step should not be needed*)
-by (asm_full_simp_tac (simpset() addsimps [rename_numerals (real_eq_minus_iff2 RS sym)]) 1);
 by (auto_tac (claset(),
               simpset() addsimps [abs_real_def] addsplits [split_if_asm]));
 qed "isCont_bounded";
