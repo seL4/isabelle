@@ -75,10 +75,9 @@ setting goals_limit);
 * HOL/ex/Ring.thy declares cring_simp, which solves equational
 problems in commutative rings, using axiomatic type classes for + and *;
 
-* ZF now has Fast_tac, Simp_tac and Auto_tac.  WARNING: don't use
-ZF.thy anymore!  Contains fewer defs and could make a bogus simpset.
-Beware of Union_iff.  eq_cs is gone, can be put back as ZF_cs addSIs
-[equalityI];
+* ZF now has Fast_tac, Simp_tac and Auto_tac.  Union_iff is a now a default
+rewrite rule; this may affect some proofs.  eq_cs is gone but can be put back
+as ZF_cs addSIs [equalityI];
 
 * more examples in HOL/MiniML and HOL/Auth;
 
