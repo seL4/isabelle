@@ -267,7 +267,7 @@ val prove_subclass =
   prove mk_classrel (fn (c1, c2) => c1 ^ " < " ^ c2);
 
 val prove_arity =
-  prove mk_arity (fn (t, ss, c) => Type.str_of_arity (t, ss, [c]));
+  prove mk_arity (fn (t, ss, c) => Sorts.str_of_arity (t, ss, [c]));
 
 
 (* make goals (for interactive use) *)
