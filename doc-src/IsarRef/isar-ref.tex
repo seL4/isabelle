@@ -1,0 +1,61 @@
+
+%% $Id$
+
+\documentclass[12pt]{report}
+\usepackage{graphicx,a4,../iman,../extra,../proof,../rail,../pdfsetup}
+
+\title{\includegraphics[scale=0.5]{isabelle_isar} \\[4ex] The Isabelle/Isar Reference Manual}
+
+\author{\emph{Markus Wenzel} \\ TU M\"unchen}
+
+\setcounter{secnumdepth}{2} \setcounter{tocdepth}{2}
+
+\pagestyle{headings}
+\sloppy
+\binperiod     %%%treat . like a binary operator
+
+\railalias{lbrace}{\ttlbrace}
+\railalias{rbrace}{\ttrbrace}
+\railterm{lbrace,rbrace}
+
+\railterm{ident,longident,symident,var,textvar,typefree,typevar,nat,string,verbatim}
+
+
+\begin{document}
+
+\underscoreoff
+
+\maketitle 
+
+\begin{abstract}
+  FIXME
+\end{abstract}
+
+\pagenumbering{roman} \tableofcontents \clearfirst
+
+%FIXME
+\nocite{Rudnicki:1992:MizarOverview}
+\nocite{Harrison:1996:MizarHOL}
+\nocite{Rudnicki:1992:MizarOverview}
+\nocite{Trybulec:1993:MizarFeatures}
+\nocite{Syme:1997:DECLARE}
+\nocite{Syme:1998:thesis}
+\nocite{Syme:1999:TPHOL}
+\nocite{Wenzel:1999:TPHOL}
+
+\include{intro}
+\include{basics}
+\include{syntax}
+\include{pure}
+\include{simplifier}
+\include{classical}
+\include{hol}
+
+\begingroup
+  \bibliographystyle{plain} \small\raggedright\frenchspacing
+  \bibliography{../manual}
+\endgroup
+
+\input{isar-ref.ind}
+
+\end{document}

@@ -1,0 +1,64 @@
+
+\chapter{Isar document syntax}
+
+\section{Inner versus outer syntax}
+
+\section{Lexical matters}
+
+\section{Common syntax entities}
+
+\subsection{Atoms}
+
+\begin{rail}
+  name : ident | symident | string
+  ;
+
+  nameref : name | longident
+  ;
+
+  text : nameref | verbatim
+  ;
+\end{rail}
+
+\subsection{Comments}
+
+\begin{rail}
+  comment : (() | '--' text)
+  ;
+  interest : (() | '\%')
+  ;
+\end{rail}
+
+
+\subsection{Sorts and arities}
+
+\begin{rail}
+  sort : nameref | lbrace (nameref * ',') rbrace
+  ;
+  arity : ( () | '(' (sort + ',') ')' ) sort
+  ;
+  simple\-arity : ( () | '(' (sort + ',') ')' ) nameref
+  ;
+\end{rail}
+
+
+\subsection{Terms and Types}
+
+\begin{rail}
+  
+\end{rail}
+
+\subsection{Mixfix annotations}
+
+
+\subsection{}
+
+\subsection{}
+
+\subsection{}
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "isar-ref"
+%%% End: 
