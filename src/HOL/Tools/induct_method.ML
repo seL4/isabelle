@@ -126,6 +126,8 @@ end;
 
 (** misc utils **)
 
+(* terms *)
+
 fun vars_of tm =        (*ordered left-to-right, preferring right!*)
   Term.foldl_aterms (fn (ts, t as Var _) => t :: ts | (ts, _) => ts) ([], tm)
   |> Library.distinct |> rev;
@@ -171,6 +173,8 @@ end;
   ...   cases ... r   - explicit rule
 *)
 
+local
+
 fun cases_var thm =
   (case try (hd o vars_of o hd o Logic.strip_assums_hyp o Library.last_elem o Thm.prems_of) thm of
     None => raise THM ("Malformed cases rule", 0, [thm])
@@ -179,7 +183,7 @@ fun cases_var thm =
 fun simplify_cases ctxt =
   Tactic.rule_by_tactic (con_elim_solved_tac (Simplifier.get_local_simpset ctxt));
 
-fun cases_tac (ctxt, ((simplified, opt_tm), opt_rule)) facts =
+fun cases_tac (ctxt, (simplified, args)) facts =
   let
     val sg = ProofContext.sign_of ctxt;
     val cert = Thm.cterm_of sg;
@@ -188,7 +192,7 @@ fun cases_tac (ctxt, ((simplified, opt_tm), opt_rule)) facts =
       Drule.cterm_instantiate [(cert (cases_var thm), cert t)] thm;
 
     val raw_thms =
-      (case ((opt_tm, opt_rule), facts) of
+      (case (args, facts) of
         ((None, None), []) => [case_split_thm]
       | ((None, None), th :: _) =>
           NetRules.may_unify (#2 (get_cases ctxt))
@@ -207,7 +211,11 @@ fun cases_tac (ctxt, ((simplified, opt_tm), opt_rule)) facts =
       |> (if simplified then Seq.map (simplify_cases ctxt) else I);
   in Method.resolveq_tac thms end;
 
+in
+
 val cases_meth = Method.METHOD o (FINDGOAL oo cases_tac);
+
+end;
 
 
 
@@ -220,6 +228,8 @@ val cases_meth = Method.METHOD o (FINDGOAL oo cases_tac);
   ...   induct x       - datatype induction
   ...   induct ... r   - explicit rule
 *)
+
+local
 
 fun induct_rule ctxt t =
   let val name = type_name t in
@@ -250,7 +260,7 @@ fun join_rules [(_, thm)] = thm
         | bads => error ("Incompatible rules for " ^ commas_quote (map #1 bads)))
       end;
 
-fun induct_tac (ctxt, args) facts =
+fun induct_tac (ctxt, (stripped, args)) facts =
   let
     val sg = ProofContext.sign_of ctxt;
     val cert = Thm.cterm_of sg;
@@ -276,9 +286,17 @@ fun induct_tac (ctxt, args) facts =
           [inst_rule insts (join_rules (map (induct_rule ctxt o last_elem) insts))]
       | (([], Some thm), _) => [thm]
       | ((insts, Some thm), _) => [inst_rule insts thm]);
-  in Method.rule_tac thms facts end;
+  in
+    if stripped then
+      Method.rule_tac thms facts THEN_ALL_NEW (REPEAT o resolve_tac [impI, allI, ballI])
+    else Method.rule_tac thms facts
+  end;
+
+in
 
 val induct_meth = Method.METHOD o (FINDGOAL oo induct_tac);
+
+end;
 
 
 
@@ -286,7 +304,10 @@ val induct_meth = Method.METHOD o (FINDGOAL oo induct_tac);
 
 val casesN = "cases";
 val inductN = "induct";
+
 val simplifiedN = "simplified";
+val strippedN = "stripped";
+
 val typeN = "type";
 val setN = "set";
 val ruleN = "rule";
@@ -333,13 +354,15 @@ val induct_rule = rule lookup_inductT lookup_inductS;
 val kind = (Args.$$$ typeN || Args.$$$ setN || Args.$$$ ruleN) -- Args.$$$ ":";
 val term = Scan.unless (Scan.lift kind) Args.local_term;
 
-val simp_mode =
-  Scan.lift (Scan.optional (Args.$$$ simplifiedN -- Args.$$$ ":" >> K true) false);
+fun mode name =
+  Scan.lift (Scan.optional (Args.$$$ name -- Args.$$$ ":" >> K true) false);
 
 in
 
-val cases_args = Method.syntax (simp_mode -- Scan.option term -- Scan.option cases_rule);
-val induct_args = Method.syntax (Args.and_list (Scan.repeat1 term) -- Scan.option induct_rule);
+val cases_args =
+  Method.syntax (mode simplifiedN -- (Scan.option term -- Scan.option cases_rule));
+val induct_args =
+  Method.syntax (mode strippedN -- (Args.and_list (Scan.repeat1 term) -- Scan.option induct_rule));
 
 end;
 
