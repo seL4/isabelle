@@ -3,6 +3,9 @@
     Author:     Markus Wenzel, TU Muenchen
 
 The parser for theory files.
+
+TODO:
+  remove sigclass (?)
 *)
 
 infix 5 -- --$$ $$-- ^^;
@@ -41,6 +44,8 @@ sig
     -> token list -> 'a list * token list
   val name: token list -> string * token list
   val sort: token list -> string * token list
+  val opt_infix: token list -> string * token list
+  val opt_mixfix: token list -> string * token list
   type syntax
   val make_syntax: string list ->
     (string * (token list -> (string * string) * token list)) list -> syntax
@@ -312,7 +317,7 @@ fun mk_sigclass_decl ((c, cs), consts) =
 val sigclass_decl = subclass -- optional const_decls "[]" >> mk_sigclass_decl;
 
 
-(* subclass, instance *)
+(* instance *)
 
 fun mk_witness (axths, opt_tac) =
   mk_list (keyfilter axths false) ^ "\n" ^
@@ -323,19 +328,17 @@ val axm_or_thm =
   string >> rpair false ||
   long_id >> rpair true;
 
+
 val opt_witness =
   optional ("(" $$-- list1 axm_or_thm --$$ ")") [] --
   optional (verbatim >> (pars o cat "Some" o pars)) "None"
   >> mk_witness;
 
-
-val subclass_decl =
-  name --$$ "<" -- name -- opt_witness
-  >> (fn ((c1, c2), witn) => mk_pair (c1, c2) ^ "\n" ^ witn);
-
 val instance_decl =
-  name --$$ "::" -- arity -- opt_witness
-  >> (fn ((t, (ss, s)), wit) => mk_triple (t, ss, s) ^ "\n" ^ wit);
+  (name --$$ "<" -- name >> (pair "|> add_inst_subclass" o mk_pair) ||
+    name --$$ "::" -- arity >> (pair "|> add_inst_arity" o mk_triple2))
+  -- opt_witness
+  >> (fn ((x, y), z) => (cat_lines [x, y, z], ""));
 
 
 
@@ -345,8 +348,9 @@ type syntax =
   lexicon * (token list -> (string * string) * token list) Symtab.table;
 
 fun make_syntax keywords sects =
-  (make_lexicon keywords, Symtab.make sects handle Symtab.DUPS dups
-    => error ("Duplicate sections in thy syntax: " ^ commas_quote dups));
+  (make_lexicon (map fst sects @ keywords),
+    Symtab.make sects handle Symtab.DUPS dups =>
+      error ("Duplicate sections in theory file syntax: " ^ commas_quote dups));
 
 
 (* header *)
@@ -438,11 +442,8 @@ fun section name pretxt parse =
 
 
 val pure_keywords =
- ["classes", "default", "types", "arities", "consts", "syntax",
-  "translations", "MLtrans", "MLtext", "rules", "defns", "axclass",
-  "sigclass", "subclass", "instance", "end", "ML", "mixfix", "infixr",
-  "infixl", "binder", "=", "+", ",", "<", "{", "}", "(", ")", "[", "]", "::",
-  "==", "=>", "<="];
+ ["end", "ML", "mixfix", "infixr", "infixl", "binder", "=", "+", ",", "<",
+   "{", "}", "(", ")", "[", "]", "::", "==", "=>", "<="];
 
 val pure_sections =
  [section "classes" "|> add_classes" class_decls,
@@ -458,8 +459,7 @@ val pure_sections =
   axm_section "defns" "|> add_defns" axiom_decls,
   axm_section "axclass" "|> add_axclass" axclass_decl,
   axm_section "sigclass" "|> add_sigclass" sigclass_decl,
-  section "subclass" "|> add_subclass" subclass_decl,
-  section "instance" "|> add_instance" instance_decl];
+  ("instance", instance_decl)];
 
 
 end;
