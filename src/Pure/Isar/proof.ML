@@ -6,16 +6,12 @@ Proof states and methods.
 
 TODO:
   - assume: improve schematic Vars handling (!?);
+  - warn_vars;
   - bind: check rhs (extra (T)Vars etc.) (How to handle these anyway?);
   - prep_result: avoid duplicate asms;
-  - goal: need asms field? (may take from goal context!?);
-  - finish: filter results (!??) (no?);
-  - finish_tac: make a parameter (method) (!!?);
   - prep_result error: use error channel (!);
-  - next_block: fetch_facts (!?);
-  - warn_vars;
-  - string constants in one place (e.g. "it", "thesis") (??!);
   - check_finished: trace results (!?);
+  - next_block: fetch_facts (!?);
 *)
 
 signature PROOF =
@@ -41,8 +37,8 @@ sig
   val bind_i: (indexname * term) list -> state -> state
   val match_bind: (string * string) list -> state -> state
   val match_bind_i: (term * term) list -> state -> state
-  val have_tthms: string -> context attribute list ->
-    (tthm * context attribute list) list -> state -> state
+  val have_tthmss: string -> context attribute list ->
+    (tthm list * context attribute list) list -> state -> state
   val assume: string -> context attribute list -> string list -> state -> state
   val assume_i: string -> context attribute list -> term list -> state -> state
   val fix: (string * string option) list -> state -> state
@@ -69,7 +65,6 @@ sig
   include PROOF
   val put_data: Object.kind -> ('a -> Object.T) -> 'a -> state -> state
 end;
-
 
 structure Proof: PROOF_PRIVATE =
 struct
@@ -433,14 +428,12 @@ val match_bind = gen_bind ProofContext.match_binds;
 val match_bind_i = gen_bind ProofContext.match_binds_i;
 
 
-(* have_tthms *)
+(* have_tthmss *)
 
-val def_name = fn "" => "it" | name => name;
-
-fun have_tthms name atts ths_atts state =
+fun have_tthmss name atts ths_atts state =
   state
   |> assert_forward
-  |> map_context_result (ProofContext.have_tthms (def_name name) atts ths_atts)
+  |> map_context_result (ProofContext.have_tthmss (PureThy.default_name name) atts ths_atts)
   |> these_facts;
 
 
@@ -461,7 +454,7 @@ val fix_i = gen_fix ProofContext.fix_i;
 fun gen_assume f name atts props state =
   state
   |> assert_forward
-  |> map_context_result (f (def_name name) atts props)
+  |> map_context_result (f (PureThy.default_name name) atts props)
   |> these_facts
   |> (fn st => let_tthms ("prems", ProofContext.assumptions (context_of st)) st);
 
@@ -508,7 +501,7 @@ fun setup_goal opt_block prep kind name atts raw_prop state =
     |> opt_block
 
     |> declare_term prop
-    |> put_goal (Some ((kind atts, (def_name name), casms, prop), ([], thm)))
+    |> put_goal (Some ((kind atts, (PureThy.default_name name), casms, prop), ([], thm)))
     |> bind_props [("thesis", prop)]
     |> (if is_chain state then use_facts else reset_facts)
 
@@ -607,7 +600,7 @@ fun finish_local state =
   in
     state
     |> close_block
-    |> have_tthms name atts [((result, []), [])]
+    |> have_tthmss name atts [([(result, [])], [])]
     |> opt_solve
   end;
 
@@ -636,7 +629,7 @@ fun finish_global alt_name alt_atts state =
     val atts =
       (case kind of
         Theorem atts => if_none alt_atts atts
-      | Lemma atts => Attribute.tag_lemma :: if_none alt_atts atts
+      | Lemma atts => (if_none alt_atts atts) @ [Attribute.tag_lemma]
       | _ => raise STATE ("No global goal!", state));
 
     val (thy', result') = PureThy.store_tthm ((name, (result, [])), atts) (theory_of state);
