@@ -162,7 +162,7 @@ qed "wf_pred_nat";
 
 (* The unrolling rule for nat_rec *)
 goal Nat.thy
-   "(%n. nat_rec n c d) = wfrec pred_nat (%f. nat_case ?c (%m. ?d m (f m)))";
+   "(%n. nat_rec c d n) = wfrec pred_nat (%f. nat_case ?c (%m. ?d m (f m)))";
   by (simp_tac (HOL_ss addsimps [nat_rec_def]) 1);
 bind_thm("nat_rec_unfold", wf_pred_nat RS 
                             ((result() RS eq_reflection) RS def_wfrec));
@@ -174,25 +174,25 @@ bind_thm("nat_rec_unfold", wf_pred_nat RS
 
 (** conversion rules **)
 
-goal Nat.thy "nat_rec 0 c h = c";
+goal Nat.thy "nat_rec c h 0 = c";
 by (rtac (nat_rec_unfold RS trans) 1);
 by (simp_tac (!simpset addsimps [nat_case_0]) 1);
 qed "nat_rec_0";
 
-goal Nat.thy "nat_rec (Suc n) c h = h n (nat_rec n c h)";
+goal Nat.thy "nat_rec c h (Suc n) = h n (nat_rec c h n)";
 by (rtac (nat_rec_unfold RS trans) 1);
 by (simp_tac (!simpset addsimps [nat_case_Suc, pred_natI, cut_apply]) 1);
 qed "nat_rec_Suc";
 
 (*These 2 rules ease the use of primitive recursion.  NOTE USE OF == *)
 val [rew] = goal Nat.thy
-    "[| !!n. f(n) == nat_rec n c h |] ==> f(0) = c";
+    "[| !!n. f(n) == nat_rec c h n |] ==> f(0) = c";
 by (rewtac rew);
 by (rtac nat_rec_0 1);
 qed "def_nat_rec_0";
 
 val [rew] = goal Nat.thy
-    "[| !!n. f(n) == nat_rec n c h |] ==> f(Suc(n)) = h n (f n)";
+    "[| !!n. f(n) == nat_rec c h n |] ==> f(Suc(n)) = h n (f n)";
 by (rewtac rew);
 by (rtac nat_rec_Suc 1);
 qed "def_nat_rec_Suc";
@@ -426,7 +426,7 @@ qed_goal "nat_case_weak_cong" Nat.thy
   (fn [prem] => [rtac (prem RS arg_cong) 1]);
 
 qed_goal "nat_rec_weak_cong" Nat.thy
-  "m=n ==> nat_rec m a f = nat_rec n a f"
+  "m=n ==> nat_rec a f m = nat_rec a f n"
   (fn [prem] => [rtac (prem RS arg_cong) 1]);
 
 val prems = goalw Nat.thy [le_def] "~n<m ==> m<=(n::nat)";

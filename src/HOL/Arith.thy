@@ -16,10 +16,10 @@ consts
   div, mod  :: [nat, nat] => nat  (infixl 70)
 
 defs
-  pred_def  "pred(m) == nat_rec m 0 (%n r.n)"
-  add_def   "m+n == nat_rec m n (%u v. Suc(v))"
-  diff_def  "m-n == nat_rec n m (%u v. pred(v))"
-  mult_def  "m*n == nat_rec m 0 (%u v. n + v)"
+  pred_def  "pred(m) == nat_rec 0 (%n r.n) m"
+  add_def   "m+n == nat_rec n (%u v. Suc(v)) m"
+  diff_def  "m-n == nat_rec m (%u v. pred(v)) n"
+  mult_def  "m*n == nat_rec 0 (%u v. n + v) m"
 
   mod_def   "m mod n == wfrec (trancl pred_nat)
                           (%f j. if j<n then j else f (j-n)) m"
@@ -30,5 +30,5 @@ end
 (*"Difference" is subtraction of natural numbers.
   There are no negative numbers; we have
      m - n = 0  iff  m<=n   and     m - n = Suc(k) iff m)n.
-  Also, nat_rec(m, 0, %z w.z) is pred(m).   *)
+  Also, nat_rec(0, %z w.z, m) is pred(m).   *)
 

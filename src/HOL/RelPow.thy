@@ -11,5 +11,5 @@ RelPow = Nat +
 consts
   "^" :: "('a * 'a) set => nat => ('a * 'a) set" (infixr 100)
 defs
-  rel_pow_def "R^n == nat_rec n id (%m S. R O S)"
+  rel_pow_def "R^n == nat_rec id (%m S. R O S) n"
 end

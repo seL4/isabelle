@@ -26,7 +26,7 @@ inductive "tiling A"
     Un     "[| a: A;  t: tiling A;  a Int t = {} |] ==> a Un t : tiling A"
 
 defs
-  below_def  "below n    == nat_rec n {} insert"
+  below_def  "below n    == nat_rec {} insert n"
   evnodd_def "evnodd A b == A Int {(i,j). (i+j) mod 2 = b}"
 
 end

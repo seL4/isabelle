@@ -93,8 +93,8 @@ defs
 
   LList_corec_fun_def
     "LList_corec_fun k f == 
-     nat_rec k (%x. {})                         
-              (%j r x. sum_case (%u.NIL) (split(%z w. CONS z (r w))) (f x))"
+     nat_rec (%x. {})                         
+              (%j r x. sum_case (%u.NIL) (split(%z w. CONS z (r w))) (f x)) k"
 
   LList_corec_def
     "LList_corec a f == UN k. LList_corec_fun k f a"

@@ -753,13 +753,13 @@ qed "iterates_lmap";
 (** Two lemmas about natrec n x (%m.g), which is essentially (g^n)(x) **)
 
 goal LList.thy
-    "nat_rec n (LCons b l) (%m. lmap(f)) =      \
-\    LCons (nat_rec n b (%m. f)) (nat_rec n l (%m. lmap(f)))";
+    "nat_rec (LCons b l) (%m. lmap(f)) n =      \
+\    LCons (nat_rec b (%m. f) n) (nat_rec l (%m. lmap(f)) n)";
 by (nat_ind_tac "n" 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [lmap_LCons])));
 qed "fun_power_lmap";
 
-goal Nat.thy "nat_rec n (g x) (%m. g) = nat_rec (Suc n) x (%m. g)";
+goal Nat.thy "nat_rec (g x) (%m. g) n = nat_rec x (%m. g) (Suc n)";
 by (nat_ind_tac "n" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "fun_power_Suc";
@@ -773,8 +773,8 @@ val [prem] = goal LList.thy
     "(!!x. h(x) = LCons x (lmap f (h x))) ==> h = iterates(f)";
 by (rtac ext 1);
 by (res_inst_tac [("r", 
-   "UN u. range(%n. (nat_rec n (h u) (%m y.lmap f y), \
-\                    nat_rec n (iterates f u) (%m y.lmap f y)))")] 
+   "UN u. range(%n. (nat_rec (h u) (%m y.lmap f y) n, \
+\                    nat_rec (iterates f u) (%m y.lmap f y) n))")] 
     llist_equalityI 1);
 by (REPEAT (resolve_tac [UN1_I, range_eqI, Pair_cong, nat_rec_0 RS sym] 1));
 by (safe_tac (!claset));

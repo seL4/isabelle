@@ -93,5 +93,5 @@ primrec take list
   take_Nil  "take n [] = []"
   take_Cons "take n (x#xs) = (case n of 0 => [] | Suc(m) => x # take m xs)"
 defs
-  nth_def  "nth(n) == nat_rec n hd (%m r xs. r(tl(xs)))"
+  nth_def  "nth(n) == nat_rec hd (%m r xs. r(tl(xs))) n"
 end

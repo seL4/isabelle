@@ -49,7 +49,7 @@ consts
   Suc       :: nat => nat
   nat_case  :: ['a, nat => 'a, nat] => 'a
   pred_nat  :: "(nat * nat) set"
-  nat_rec   :: [nat, 'a, [nat, 'a] => 'a] => 'a
+  nat_rec   :: ['a, [nat, 'a] => 'a, nat] => 'a
 
   Least     :: (nat=>bool) => nat    (binder "LEAST " 10)
 
@@ -71,8 +71,8 @@ defs
 
   le_def        "m<=(n::nat) == ~(n<m)"
 
-  nat_rec_def   "nat_rec n c d ==
-                 wfrec pred_nat (%f. nat_case c (%m. d m (f m))) n"
+  nat_rec_def   "nat_rec c d ==
+                 wfrec pred_nat (%f. nat_case c (%m. d m (f m)))"
   (*least number operator*)
   Least_def     "Least(P) == @k. P(k) & (ALL j. j<k --> ~P(j))"
 

@@ -46,8 +46,8 @@ constdefs
   "While b inv c s s' == ? n. Iter n b c s s'"
 
   Iter          :: [nat, 'a bexp, 'a com] => 'a com
-  "Iter n b c == nat_rec n (%s s'.~b(s) & (s=s'))
-             (%n_rec iter_rec.%s s'.b(s) & Seq c iter_rec s s')"
+  "Iter n b c == nat_rec (%s s'.~b(s) & (s=s'))
+             (%n_rec iter_rec.%s s'.b(s) & Seq c iter_rec s s') n"
 
   Spec          :: ['a bexp, 'a com, 'a bexp] => bool
   "Spec p c q == !s s'. c s s' --> p s --> q s'"
