@@ -10,6 +10,7 @@ signature INDUCT_METHOD_DATA =
 sig
   val dest_concls: term -> term list
   val cases_default: thm
+  val local_imp_def: thm
   val local_impI: thm
   val conjI: thm
   val atomize: thm list
@@ -149,6 +150,8 @@ val rulify_tac =
   Tactic.rewrite_goal_tac Data.rulify2 THEN'
   Tactic.norm_hhf_tac;
 
+val localize_concl = Tactic.simplify false [Thm.symmetric Data.local_imp_def];
+
 
 (* imp_intr --- limited to atomic prems *)
 
@@ -209,7 +212,7 @@ fun divinate_inst rule i st =
       in
         Unify.smash_unifiers (sign, Envir.empty (#maxidx (Thm.rep_thm rule')),
           [(Thm.concl_of rule', concl)])
-        |> Seq.map (fn env => Thm.instantiate (dest_env sign env) rule')
+        |> Seq.map (fn env => Drule.instantiate (dest_env sign env) rule')
       end
   end handle Subscript => Seq.empty;
 
@@ -222,7 +225,7 @@ fun resolveq_cases_tac' make ruleq i st =
   ruleq |> Seq.map (fn (rule, (cases, k, more_facts)) => st
     |> (Method.insert_tac more_facts THEN' atomize_tac) i
     |> Seq.map (fn st' => divinate_inst (internalize k rule) i st' |> Seq.map (fn rule' =>
-          st' |> Tactic.rtac rule' i |> Seq.map (rpair (make (rulify rule') cases))) |> Seq.flat)
+          (PolyML.print st') |> Tactic.rtac (PolyML.print rule') i |> Seq.map (rpair (make (rulify rule') cases))) |> Seq.flat)
     |> Seq.flat)
   |> Seq.flat;
 
@@ -264,9 +267,11 @@ fun induct_tac (ctxt, (open_parms, (insts, opt_rule))) facts =
           let val rules = find_inductS ctxt facts @ find_inductT ctxt insts in
             if null rules then error "Unable to figure out induct rule" else ();
             Method.trace ctxt rules;
-            Seq.flat (Seq.map (Seq.try inst_rule) (Seq.of_list rules))
+            Seq.flat (Seq.map (Seq.APPEND (Seq.try inst_rule,
+              Seq.try (inst_rule o localize_concl))) (Seq.of_list rules))
           end
-      | Some r => Seq.single (inst_rule r));
+      | Some r => Seq.make (fn () => Some (inst_rule r,
+          Seq.make (fn () => Some (inst_rule (localize_concl r), Seq.empty)))));
 
     fun prep_rule (th, (cases, n)) =
       Seq.map (rpair (cases, n - length facts, drop (n, facts)))
@@ -276,7 +281,7 @@ fun induct_tac (ctxt, (open_parms, (insts, opt_rule))) facts =
 
 in
 
-val induct_meth = Method.METHOD_CASES o (HEADGOAL oo induct_tac);
+val induct_meth = Method.RAW_METHOD_CASES o (HEADGOAL oo induct_tac);
 
 end;
 
