@@ -203,7 +203,8 @@ First we rephrase the conclusion slightly because we need to prove simultaneousl
 both the path property and the fact that @{term Q} holds:
 *};
 
-apply(subgoal_tac "\<exists>p. s = p (0::nat) \<and> (\<forall>i. (p i, p(i+1)) \<in> M \<and> Q(p i))");
+apply(subgoal_tac
+  "\<exists>p. s = p 0 \<and> (\<forall>i::nat. (p i, p(i+1)) \<in> M \<and> Q(p i))");
 
 txt{*\noindent
 From this proposition the original goal follows easily:

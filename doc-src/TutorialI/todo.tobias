@@ -3,27 +3,9 @@
 Implementation
 ==============
 
-- (#2 * x) = #2 * - x is not proved by arith
+Add map_cong?? (upto 10% slower)
 
 a simp command for terms
-
-----------------------------------------------------------------------
-primrec 
-"(foorec [] []) = []"
-"(foorec [] (y # ys)) = (y # (foorec [] ys))"
-
-*** Primrec definition error:
-*** extra variables on rhs: "y", "ys"
-*** in
-*** "((foorec [] ((y::'a_1) # (ys::'a_1 list))) = (y # (foorec [] ys)))"
-*** At command "primrec".
-
-Bessere Fehlermeldung!
-----------------------------------------------------------------------
-
-Relation: comp -> composition
-
-Add map_cong?? (upto 10% slower)
 
 Recdef: Get rid of function name in header.
 Support mutual recursion (Konrad?)
@@ -32,9 +14,6 @@ improve solver in simplifier: treat & and ! ...
 
 better 1 point rules:
 !x. !y. x = f y --> P x y  should reduce to  !y. P (f y) y.
-
-use arith_tac in recdef to solve termination conditions?
--> new example in Recdef/termination
 
 it would be nice if @term could deal with ?-vars.
 then a number of (unchecked!) @texts could be converted to @terms.

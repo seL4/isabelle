@@ -1,4 +1,3 @@
-
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
@@ -223,6 +222,10 @@ MAY FAIL;
 Isabelle's type classes, ^ on functions and relations has too general
 a domain, namely ('a * 'b) set and 'a => 'b; this means that it may be
 necessary to attach explicit type constraints;
+
+* HOL/Relation: the prefix name of the infix "O" has been changed from "comp"
+to "rel_comp"; INCOMPATIBILITY: a few theorems have been renamed accordingly
+(eg "compI" -> "rel_compI").
 
 * HOL: syntax translations now work properly with numerals and records
 expressions;

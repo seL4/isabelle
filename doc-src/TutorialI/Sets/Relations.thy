@@ -12,8 +12,8 @@ text{*
 *}
 
 text{*
-@{thm[display] comp_def[no_vars]}
-\rulename{comp_def}
+@{thm[display] rel_comp_def[no_vars]}
+\rulename{rel_comp_def}
 *}
 
 text{*
@@ -22,8 +22,8 @@ text{*
 *}
 
 text{*
-@{thm[display] comp_mono[no_vars]}
-\rulename{comp_mono}
+@{thm[display] rel_comp_mono[no_vars]}
+\rulename{rel_comp_mono}
 *}
 
 text{*
@@ -32,8 +32,8 @@ text{*
 *}
 
 text{*
-@{thm[display] converse_comp[no_vars]}
-\rulename{converse_comp}
+@{thm[display] converse_rel_comp[no_vars]}
+\rulename{converse_rel_comp}
 *}
 
 text{*

@@ -25,7 +25,7 @@ For example, the theorem
 are explained in \S\ref{sec:SimpHow}.
 
 The simplification attribute of theorems can be turned on and off:%
-\index{*simp del (attribute)}\REMARK{need to index attributes!switching off??}
+\index{*simp del (attribute)}
 \begin{quote}
 \isacommand{declare} \textit{theorem-name}\isa{{\isacharbrackleft}simp{\isacharbrackright}}\\
 \isacommand{declare} \textit{theorem-name}\isa{{\isacharbrackleft}simp\ del{\isacharbrackright}}
@@ -237,7 +237,7 @@ Of course we can also unfold definitions in the middle of a proof.
 There is also the special method \isa{unfold}\index{*unfold (method)|bold}
 which merely unfolds
 one or several definitions, as in \isacommand{apply}\isa{(unfold xor_def)}.
-This is can be useful if \isa{simp} does too much.%
+This is can be useful in situations where \isa{simp} does too much.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

@@ -21,7 +21,7 @@ For example, the theorem
 are explained in \S\ref{sec:SimpHow}.
 
 The simplification attribute of theorems can be turned on and off:%
-\index{*simp del (attribute)}\REMARK{need to index attributes!switching off??}
+\index{*simp del (attribute)}
 \begin{quote}
 \isacommand{declare} \textit{theorem-name}@{text"[simp]"}\\
 \isacommand{declare} \textit{theorem-name}@{text"[simp del]"}

@@ -15,55 +15,56 @@ the same function. What is more, those equations are automatically declared as
 simplification rules.
 
 Isabelle may fail to prove the termination condition for some
-recursive call.  Let us try the following artificial function:%
+recursive call.  Let us try to define Quicksort:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{consts}\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat{\isasymtimes}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
+\isacommand{consts}\ qs\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ list\ {\isasymRightarrow}\ nat\ list{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{recdef}\ f\ {\isachardoublequote}measure{\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharminus}y{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}f{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ x\ {\isasymle}\ y\ then\ x\ else\ f{\isacharparenleft}x{\isacharcomma}y{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isacommand{recdef}\ qs\ {\isachardoublequote}measure\ length{\isachardoublequote}\isanewline
+\ {\isachardoublequote}qs\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequote}\isanewline
+\ {\isachardoublequote}qs{\isacharparenleft}x{\isacharhash}xs{\isacharparenright}\ {\isacharequal}\ qs{\isacharparenleft}filter\ {\isacharparenleft}{\isasymlambda}y{\isachardot}\ y{\isasymle}x{\isacharparenright}\ xs{\isacharparenright}\ {\isacharat}\ {\isacharbrackleft}x{\isacharbrackright}\ {\isacharat}\ qs{\isacharparenleft}filter\ {\isacharparenleft}{\isasymlambda}y{\isachardot}\ x{\isacharless}y{\isacharparenright}\ xs{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
-\noindent This definition fails, and Isabelle prints an error message
-showing you what it was unable to prove. You will then have to prove it as a
-separate lemma before you attempt the definition of your function once
-more. In our case the required lemma is the obvious one:%
+\noindent where \isa{filter} is predefined and \isa{filter\ P\ xs}
+is the list of elements of \isa{xs} satisfying \isa{P}.
+This definition of \isa{qs} fails, and Isabelle prints an error message
+showing you what it was unable to prove:
+\begin{isabelle}%
+\ \ \ \ \ length\ {\isacharparenleft}filter\ {\isachardot}{\isachardot}{\isachardot}\ xs{\isacharparenright}\ {\isacharless}\ Suc\ {\isacharparenleft}length\ xs{\isacharparenright}%
+\end{isabelle}
+We can either prove this as a separate lemma, or try to figure out which
+existing lemmas may help. We opt for the second alternative. The theory of
+lists contains the simplification rule \isa{length\ {\isacharparenleft}filter\ P\ xs{\isacharparenright}\ {\isasymle}\ length\ xs},
+which is already
+close to what we need, except that we still need to turn \mbox{\isa{{\isacharless}\ Suc}}
+into
+\isa{{\isasymle}} for the simplification rule to apply. Lemma
+\isa{less{\isacharunderscore}Suc{\isacharunderscore}eq{\isacharunderscore}le} does just that: \isa{{\isacharparenleft}m\ {\isacharless}\ Suc\ n{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}m\ {\isasymle}\ n{\isacharparenright}}.
+
+Now we retry the above definition but supply the lemma(s) just found (or
+proved). Because \isacommand{recdef}'s termination prover involves
+simplification, we include in our second attempt a hint: the
+\attrdx{recdef_simp} attribute says to use \isa{less{\isacharunderscore}Suc{\isacharunderscore}eq{\isacharunderscore}le} as a
+simplification rule.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{lemma}\ termi{\isacharunderscore}lem{\isacharcolon}\ {\isachardoublequote}{\isasymnot}\ x\ {\isasymle}\ y\ {\isasymLongrightarrow}\ x\ {\isacharminus}\ Suc\ y\ {\isacharless}\ x\ {\isacharminus}\ y{\isachardoublequote}\isamarkupfalse%
-%
-\begin{isamarkuptxt}%
-\noindent
-It was not proved automatically because of the awkward behaviour of subtraction
-on type \isa{nat}. This requires more arithmetic than is tried by default:%
-\end{isamarkuptxt}%
-\isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}arith{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{done}\isamarkupfalse%
+\isamarkupfalse%
+\isacommand{recdef}\ qs\ {\isachardoublequote}measure\ length{\isachardoublequote}\isanewline
+\ {\isachardoublequote}qs\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequote}\isanewline
+\ {\isachardoublequote}qs{\isacharparenleft}x{\isacharhash}xs{\isacharparenright}\ {\isacharequal}\ qs{\isacharparenleft}filter\ {\isacharparenleft}{\isasymlambda}y{\isachardot}\ y{\isasymle}x{\isacharparenright}\ xs{\isacharparenright}\ {\isacharat}\ {\isacharbrackleft}x{\isacharbrackright}\ {\isacharat}\ qs{\isacharparenleft}filter\ {\isacharparenleft}{\isasymlambda}y{\isachardot}\ x{\isacharless}y{\isacharparenright}\ xs{\isacharparenright}{\isachardoublequote}\isanewline
+{\isacharparenleft}\isakeyword{hints}\ recdef{\isacharunderscore}simp{\isacharcolon}\ less{\isacharunderscore}Suc{\isacharunderscore}eq{\isacharunderscore}le{\isacharparenright}\isamarkupfalse%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent
-Because \isacommand{recdef}'s termination prover involves simplification,
-we include in our second attempt a hint: the \attrdx{recdef_simp} attribute 
-says to use \isa{termi{\isacharunderscore}lem} as a simplification rule.%
+This time everything works fine. Now \isa{qs{\isachardot}simps} contains precisely
+the stated recursion equations for \isa{qs} and they have become
+simplification rules.
+Thus we can automatically prove results such as this one:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isamarkupfalse%
-\isamarkupfalse%
-\isacommand{recdef}\ f\ {\isachardoublequote}measure{\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharminus}y{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}f{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ x\ {\isasymle}\ y\ then\ x\ else\ f{\isacharparenleft}x{\isacharcomma}y{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
-{\isacharparenleft}\isakeyword{hints}\ recdef{\isacharunderscore}simp{\isacharcolon}\ termi{\isacharunderscore}lem{\isacharparenright}\isamarkupfalse%
-\isamarkupfalse%
-%
-\begin{isamarkuptext}%
-\noindent
-This time everything works fine. Now \isa{f{\isachardot}simps} contains precisely
-the stated recursion equation for \isa{f}, which has been turned into a
-simplification rule.  Thus we can automatically prove results such as this one:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{theorem}\ {\isachardoublequote}f{\isacharparenleft}{\isadigit{1}}{\isacharcomma}{\isadigit{0}}{\isacharparenright}\ {\isacharequal}\ f{\isacharparenleft}{\isadigit{1}}{\isacharcomma}{\isadigit{1}}{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{theorem}\ {\isachardoublequote}qs{\isacharbrackleft}{\isadigit{2}}{\isacharcomma}{\isadigit{3}}{\isacharcomma}{\isadigit{0}}{\isacharbrackright}\ {\isacharequal}\ qs{\isacharbrackleft}{\isadigit{3}}{\isacharcomma}{\isadigit{0}}{\isacharcomma}{\isadigit{2}}{\isacharbrackright}{\isachardoublequote}\isanewline
 \isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
 \isamarkupfalse%
@@ -73,10 +74,10 @@ simplification rule.  Thus we can automatically prove results such as this one:%
 \noindent
 More exciting theorems require induction, which is discussed below.
 
-If the termination proof requires a new lemma that is of general use, you can
+If the termination proof requires a lemma that is of general use, you can
 turn it permanently into a simplification rule, in which case the above
-\isacommand{hint} is not necessary. But our \isa{termi{\isacharunderscore}lem} is not
-sufficiently general to warrant this distinction.%
+\isacommand{hint} is not necessary. But in the case of
+\isa{less{\isacharunderscore}Suc{\isacharunderscore}eq{\isacharunderscore}le} this would be of dubious value.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isamarkupfalse%
