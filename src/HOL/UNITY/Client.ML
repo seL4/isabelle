@@ -12,9 +12,6 @@ program_defs_ref := [Cli_prg_def];
 
 Addsimps (map simp_of_act [rel_act_def, tok_act_def, ask_act_def]);
 
-(*Simplification for records*)
-Addsimps (thms"state.update_defs");
-
 
 fun invariant_tac i = 
     rtac invariantI i  THEN

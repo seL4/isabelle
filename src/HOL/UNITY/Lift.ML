@@ -60,9 +60,6 @@ val LeadsTo_Trans_Un' = rotate_prems 1 LeadsTo_Trans_Un;
 (* [| Lift: B LeadsTo C; Lift: A LeadsTo B |] ==> Lift: (A Un B) LeadsTo C *)
 
 
-(*Simplification for records*)
-Addsimps (thms"state.update_defs");
-
 Addsimps [bounded_def, open_stop_def, open_move_def, stop_floor_def,
 	  moving_up_def, moving_down_def];
 

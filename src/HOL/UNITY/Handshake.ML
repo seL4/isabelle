@@ -15,9 +15,6 @@ Addsimps [F_def RS def_prg_Init, G_def RS def_prg_Init];
 program_defs_ref := [F_def, G_def];
 
 Addsimps (map simp_of_act [cmdF_def, cmdG_def]);
-
-(*Simplification for records*)
-Addsimps (thms"state.update_defs");
 Addsimps [simp_of_set invFG_def];
 
 

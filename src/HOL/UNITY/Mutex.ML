@@ -18,8 +18,6 @@ Addsimps (map simp_of_act
 
 Addsimps (map simp_of_set [IU_def, IV_def, bad_IU_def]);
 
-(*Simplification for records*)
-Addsimps (thms"state.update_defs");
 
 Goal "Mutex : Always IU";
 by (rtac AlwaysI 1);
