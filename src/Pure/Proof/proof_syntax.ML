@@ -59,7 +59,7 @@ fun add_proof_syntax sg =
        ("AbsP", [propT, proofT --> proofT] ---> proofT, NoSyn)]
   |> Sign.add_nonterminals ["param", "params"]
   |> Sign.add_syntax_i
-      [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(3Lam _./ _)", [0, 3], 3)),
+      [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1Lam _./ _)", [0, 3], 3)),
        ("_Lam0", [paramT, paramsT] ---> paramsT, Mixfix ("_/ _", [1, 0], 0)),
        ("_Lam0", [idtT, paramsT] ---> paramsT, Mixfix ("_/ _", [1, 0], 0)),
        ("_Lam1", [idtT, propT] ---> paramT, Mixfix ("_: _", [0, 0], 0)),
@@ -67,7 +67,7 @@ fun add_proof_syntax sg =
        ("", idtT --> paramsT, Delimfix "_"),
        ("", paramT --> paramsT, Delimfix "_")]
   |> Sign.add_modesyntax_i (("xsymbols", true),
-      [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(3\\<Lambda>_./ _)", [0, 3], 3)),
+      [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1\\<Lambda>_./ _)", [0, 3], 3)),
        ("Appt", [proofT, aT] ---> proofT, Mixfix ("(1_ \\<cdot>/ _)", [4, 5], 4)),
        ("AppP", [proofT, proofT] ---> proofT, Mixfix ("(1_ \\<bullet>/ _)", [4, 5], 4))])
   |> Sign.add_trrules_i (map Syntax.ParsePrintRule
