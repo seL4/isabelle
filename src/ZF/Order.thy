@@ -13,7 +13,7 @@ consts
   well_ord        :: [i,i]=>o           (*Well-ordering*)
   mono_map        :: [i,i,i,i]=>i       (*Order-preserving maps*)
   ord_iso         :: [i,i,i,i]=>i       (*Order isomorphisms*)
-  pred            :: [i,i,i]=>i (*Set of predecessors*)
+  pred            :: [i,i,i]=>i		(*Set of predecessors*)
   ord_iso_map     :: [i,i,i,i]=>i       (*Construction for linearity theorem*)
 
 defs
