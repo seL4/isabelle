@@ -150,6 +150,15 @@ qed_goal "conj_cong" IFOL.thy
       ORELSE  eresolve_tac [iffE,conjE,mp] 1
       ORELSE  iff_tac prems 1)) ]);
 
+(*Reversed congruence rule!   Used in ZF/Order*)
+qed_goal "conj_cong2" IFOL.thy 
+    "[| P <-> P';  P' ==> Q <-> Q' |] ==> (Q&P) <-> (Q'&P')"
+ (fn prems =>
+  [ (cut_facts_tac prems 1),
+    (REPEAT  (ares_tac [iffI,conjI] 1
+      ORELSE  eresolve_tac [iffE,conjE,mp] 1
+      ORELSE  iff_tac prems 1)) ]);
+
 qed_goal "disj_cong" IFOL.thy 
     "[| P <-> P';  Q <-> Q' |] ==> (P|Q) <-> (P'|Q')"
  (fn prems =>
