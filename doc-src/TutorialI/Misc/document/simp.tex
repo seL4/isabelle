@@ -217,9 +217,9 @@ can be proved by simplification. Thus we could have proved the lemma outright by
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isamarkupfalse%
-\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}\ xor{\isacharunderscore}def{\isacharparenright}\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}\ xor{\isacharunderscore}def{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isamarkupfalse%
 %
 \begin{isamarkuptext}%
@@ -293,7 +293,8 @@ is present as well,
 the lemma below is proved by plain simplification:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{lemma}\ {\isachardoublequote}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ hd{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharhash}\ tl{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ rev\ xs{\isachardoublequote}\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ hd{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharhash}\ tl{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ rev\ xs{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isamarkupfalse%
 %
 \begin{isamarkuptext}%
@@ -341,7 +342,6 @@ This splitting idea generalizes from \isa{if} to \sdx{case}.
 Let us simplify a case analysis over lists:\index{*list.split (theorem)}%
 \end{isamarkuptxt}%
 \isamarkuptrue%
-\isanewline
 \isamarkupfalse%
 \isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ zs\ {\isacharbar}\ y{\isacharhash}ys\ {\isasymRightarrow}\ y{\isacharhash}{\isacharparenleft}ys{\isacharat}zs{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ xs{\isacharat}zs{\isachardoublequote}\isanewline
 \isamarkupfalse%
@@ -362,9 +362,9 @@ lemma above can be proved in one step by%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isamarkupfalse%
-\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}simp\ split{\isacharcolon}\ list{\isachardot}split{\isacharparenright}\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}simp\ split{\isacharcolon}\ list{\isachardot}split{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isamarkupfalse%
 %
 \begin{isamarkuptext}%
@@ -384,9 +384,9 @@ The \isa{split} attribute can be removed with the \isa{del} modifier,
 either locally%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}simp\ split\ del{\isacharcolon}\ split{\isacharunderscore}if{\isacharparenright}\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}simp\ split\ del{\isacharcolon}\ split{\isacharunderscore}if{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isamarkupfalse%
 %
 \begin{isamarkuptext}%
@@ -454,7 +454,8 @@ on:%
 \isamarkupfalse%
 \isacommand{lemma}\ {\isachardoublequote}rev\ {\isacharbrackleft}a{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isamarkupfalse%
 %
 \begin{isamarkuptext}%
@@ -492,8 +493,8 @@ rules.  Thus it is advisable to reset it:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{ML}\ {\isachardoublequote}reset\ trace{\isacharunderscore}simp{\isachardoublequote}\isanewline
-\isamarkupfalse%
 \isanewline
+\isamarkupfalse%
 \isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:

@@ -1,7 +1,6 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Fundata}%
-\isanewline
 \isamarkupfalse%
 \isacommand{datatype}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}i{\isacharparenright}bigtree\ {\isacharequal}\ Tip\ {\isacharbar}\ Br\ {\isacharprime}a\ {\isachardoublequote}{\isacharprime}i\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}i{\isacharparenright}bigtree{\isachardoublequote}\isamarkupfalse%
 %
@@ -46,7 +45,8 @@ The following lemma has a simple proof by induction:%
 \isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ T{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{done}\isamarkupfalse%
+\isacommand{done}\isanewline
+\isamarkupfalse%
 \isamarkupfalse%
 \isamarkupfalse%
 %
@@ -62,7 +62,6 @@ Notice the quantified induction hypothesis:
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isamarkupfalse%
-\isanewline
 \isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:

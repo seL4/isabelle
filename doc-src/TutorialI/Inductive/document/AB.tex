@@ -224,7 +224,8 @@ merely appending a single letter at the front. Hence we induct on the length
 of \isa{w}, using the induction rule \isa{length{\isacharunderscore}induct}:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ w\ rule{\isacharcolon}\ length{\isacharunderscore}induct{\isacharparenright}\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ w\ rule{\isacharcolon}\ length{\isacharunderscore}induct{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isamarkupfalse%
 %
 \begin{isamarkuptxt}%
@@ -240,7 +241,8 @@ on whether \isa{w} is empty or not.%
 \isamarkuptrue%
 \isacommand{apply}{\isacharparenleft}case{\isacharunderscore}tac\ w{\isacharparenright}\isanewline
 \ \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}simp{\isacharunderscore}all{\isacharparenright}\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}simp{\isacharunderscore}all{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isamarkupfalse%
 %
 \begin{isamarkuptxt}%
@@ -355,7 +357,6 @@ are scrutinized formally.%
 \index{grammars!defining inductively|)}%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isanewline
 \isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:

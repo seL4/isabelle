@@ -96,7 +96,8 @@ Now we have to prove the correctness of the compiler, i.e.\ that the
 execution of a compiled expression results in the value of the expression:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{theorem}\ {\isachardoublequote}exec\ {\isacharparenleft}comp\ e{\isacharparenright}\ s\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}value\ e\ s{\isacharbrackright}{\isachardoublequote}\isamarkupfalse%
+\isacommand{theorem}\ {\isachardoublequote}exec\ {\isacharparenleft}comp\ e{\isacharparenright}\ s\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}value\ e\ s{\isacharbrackright}{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isamarkupfalse%
 %
 \begin{isamarkuptext}%
@@ -113,7 +114,6 @@ First, we must prove a lemma about executing the concatenation of two
 instruction sequences:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
-\isanewline
 \isamarkupfalse%
 \isacommand{lemma}\ exec{\isacharunderscore}app{\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\isanewline
 \ \ {\isachardoublequote}{\isasymforall}vs{\isachardot}\ exec\ {\isacharparenleft}xs{\isacharat}ys{\isacharparenright}\ s\ vs\ {\isacharequal}\ exec\ ys\ s\ {\isacharparenleft}exec\ xs\ s\ vs{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
@@ -126,7 +126,8 @@ that contains two \isa{case}-expressions over instructions. Thus we add
 automatic case splitting, which finishes the proof:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharcomma}\ simp{\isacharcomma}\ simp\ split{\isacharcolon}\ instr{\isachardot}split{\isacharparenright}\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharcomma}\ simp{\isacharcomma}\ simp\ split{\isacharcolon}\ instr{\isachardot}split{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isamarkupfalse%
 %
 \begin{isamarkuptext}%
@@ -137,9 +138,9 @@ rewritten as%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isamarkupfalse%
-\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharcomma}\ simp{\isacharunderscore}all\ split{\isacharcolon}\ instr{\isachardot}split{\isacharparenright}\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharcomma}\ simp{\isacharunderscore}all\ split{\isacharcolon}\ instr{\isachardot}split{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isamarkupfalse%
 %
 \begin{isamarkuptext}%
@@ -155,7 +156,6 @@ its instance.%
 \isamarkuptrue%
 \isamarkupfalse%
 \isamarkupfalse%
-\isanewline
 \isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:

@@ -78,7 +78,8 @@ Both \isa{auto} and \isa{simp}
 simple arithmetic goals automatically:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{lemma}\ {\isachardoublequote}{\isasymlbrakk}\ {\isasymnot}\ m\ {\isacharless}\ n{\isacharsemicolon}\ m\ {\isacharless}\ n\ {\isacharplus}\ {\isacharparenleft}{\isadigit{1}}{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ m\ {\isacharequal}\ n{\isachardoublequote}\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}{\isasymlbrakk}\ {\isasymnot}\ m\ {\isacharless}\ n{\isacharsemicolon}\ m\ {\isacharless}\ n\ {\isacharplus}\ {\isacharparenleft}{\isadigit{1}}{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ m\ {\isacharequal}\ n{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isamarkupfalse%
 %
 \begin{isamarkuptext}%
@@ -88,7 +89,8 @@ logical connectives, and all arithmetic operations apart from addition.
 In consequence, \isa{auto} and \isa{simp} cannot prove this slightly more complex goal:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{lemma}\ {\isachardoublequote}m\ {\isasymnoteq}\ {\isacharparenleft}n{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ {\isasymLongrightarrow}\ m\ {\isacharless}\ n\ {\isasymor}\ n\ {\isacharless}\ m{\isachardoublequote}\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}m\ {\isasymnoteq}\ {\isacharparenleft}n{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ {\isasymLongrightarrow}\ m\ {\isacharless}\ n\ {\isasymor}\ n\ {\isacharless}\ m{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isamarkupfalse%
 %
 \begin{isamarkuptext}%
@@ -105,7 +107,8 @@ For example,%
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}min\ i\ {\isacharparenleft}max\ j\ {\isacharparenleft}k{\isacharasterisk}k{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ max\ {\isacharparenleft}min\ {\isacharparenleft}k{\isacharasterisk}k{\isacharparenright}\ i{\isacharparenright}\ {\isacharparenleft}min\ i\ {\isacharparenleft}j{\isacharcolon}{\isacharcolon}nat{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}arith{\isacharparenright}\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}arith{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isamarkupfalse%
 %
 \begin{isamarkuptext}%
@@ -113,7 +116,8 @@ For example,%
 succeeds because \isa{k\ {\isacharasterisk}\ k} can be treated as atomic. In contrast,%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{lemma}\ {\isachardoublequote}n{\isacharasterisk}n\ {\isacharequal}\ n\ {\isasymLongrightarrow}\ n{\isacharequal}{\isadigit{0}}\ {\isasymor}\ n{\isacharequal}{\isadigit{1}}{\isachardoublequote}\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}n{\isacharasterisk}n\ {\isacharequal}\ n\ {\isasymLongrightarrow}\ n{\isacharequal}{\isadigit{0}}\ {\isasymor}\ n{\isacharequal}{\isadigit{1}}{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isamarkupfalse%
 %
 \begin{isamarkuptext}%
@@ -132,7 +136,6 @@ on properties of multiplication.
 \end{warn}%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isanewline
 \isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:

@@ -101,7 +101,6 @@ simplification and splitting in one command that proves the goal outright:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isamarkupfalse%
-\isanewline
 \isamarkupfalse%
 \isacommand{by}{\isacharparenleft}simp\ split{\isacharcolon}\ split{\isacharunderscore}split{\isacharparenright}\isamarkupfalse%
 %
@@ -121,7 +120,6 @@ A paired \isa{let} reduces to a paired $\lambda$-abstraction, which
 can be split as above. The same is true for paired set comprehension:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
-\isanewline
 \isamarkupfalse%
 \isacommand{lemma}\ {\isachardoublequote}p\ {\isasymin}\ {\isacharbraceleft}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharequal}y{\isacharbraceright}\ {\isasymlongrightarrow}\ fst\ p\ {\isacharequal}\ snd\ p{\isachardoublequote}\isanewline
 \isamarkupfalse%
@@ -137,7 +135,6 @@ as above. If you are worried about the strange form of the premise:
 The same proof procedure works for%
 \end{isamarkuptxt}%
 \isamarkuptrue%
-\isanewline
 \isamarkupfalse%
 \isacommand{lemma}\ {\isachardoublequote}p\ {\isasymin}\ {\isacharbraceleft}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharequal}y{\isacharbraceright}\ {\isasymLongrightarrow}\ fst\ p\ {\isacharequal}\ snd\ p{\isachardoublequote}\isamarkupfalse%
 %
@@ -150,7 +147,6 @@ However, splitting \isa{split} is not always a solution, as no \isa{split}
 may be present in the goal. Consider the following function:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
-\isanewline
 \isamarkupfalse%
 \isacommand{consts}\ swap\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymtimes}\ {\isacharprime}a{\isachardoublequote}\isanewline
 \isamarkupfalse%
@@ -192,7 +188,6 @@ You can split \emph{all} \isa{{\isasymAnd}}-quantified variables in a goal
 with the rewrite rule \isa{split{\isacharunderscore}paired{\isacharunderscore}all}:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
-\isanewline
 \isamarkupfalse%
 \isacommand{lemma}\ {\isachardoublequote}{\isasymAnd}p\ q{\isachardot}\ swap{\isacharparenleft}swap\ p{\isacharparenright}\ {\isacharequal}\ q\ {\isasymlongrightarrow}\ p\ {\isacharequal}\ q{\isachardoublequote}\isanewline
 \isamarkupfalse%
@@ -222,9 +217,9 @@ The following command could fail (here it does not)
 where two separate \isa{simp} applications succeed.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}\ split{\isacharunderscore}paired{\isacharunderscore}all{\isacharparenright}\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}\ split{\isacharunderscore}paired{\isacharunderscore}all{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isamarkupfalse%
 %
 \begin{isamarkuptext}%
@@ -251,7 +246,6 @@ responsible simplification rules:
 \end{center}%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isanewline
 \isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:

@@ -63,9 +63,9 @@ implication~(\isa{{\isasymlongrightarrow}}), letting
 result to the usual \isa{{\isasymLongrightarrow}} form:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
-\isanewline
 \isamarkupfalse%
-\isacommand{lemma}\ hd{\isacharunderscore}rev\ {\isacharbrackleft}rule{\isacharunderscore}format{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymlongrightarrow}\ hd{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ last\ xs{\isachardoublequote}\isamarkupfalse%
+\isacommand{lemma}\ hd{\isacharunderscore}rev\ {\isacharbrackleft}rule{\isacharunderscore}format{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymlongrightarrow}\ hd{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ last\ xs{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isamarkupfalse%
 %
 \begin{isamarkuptxt}%
@@ -247,7 +247,8 @@ The final \isa{refl} gets rid of the premise \isa{{\isacharquery}k\ {\isacharequ
 We could have included this derivation in the original statement of the lemma:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{lemma}\ f{\isacharunderscore}incr{\isacharbrackleft}rule{\isacharunderscore}format{\isacharcomma}\ OF\ refl{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isasymforall}i{\isachardot}\ k\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{\isachardoublequote}\isamarkupfalse%
+\isacommand{lemma}\ f{\isacharunderscore}incr{\isacharbrackleft}rule{\isacharunderscore}format{\isacharcomma}\ OF\ refl{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isasymforall}i{\isachardot}\ k\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isamarkupfalse%
 %
 \begin{isamarkuptext}%
@@ -338,7 +339,6 @@ a special case of \isa{wf{\isacharunderscore}induct} where \isa{r} is \isa{{\isa
 \isa{nat}. The details can be found in theory \isa{Wellfounded_Recursion}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isanewline
 \isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:
