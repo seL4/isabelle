@@ -170,7 +170,8 @@ val is_sid = is_symid orf Syntax.is_identifier;
 
 val scan_str =
   scan_blank ||
-  keep_line ($$ "\\" |-- Scan.one (Symbol.not_sync andf Symbol.not_eof)) ||
+  keep_line ($$ "\\") |-- !! (lex_err (K "bad escape character in string"))
+      (scan_blank || keep_line ($$ "\"" || $$ "\\")) ||
   keep_line (Scan.one (not_equal "\\" andf not_equal "\"" andf
     Symbol.not_sync andf Symbol.not_eof));
 

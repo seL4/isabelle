@@ -65,9 +65,9 @@ should not be confused, though.
 
 The syntax of \texttt{string} admits any characters, including newlines;
 ``\verb|"|'' (double-quote) and ``\verb|\|'' (backslash) have to be escaped by
-a backslash.  Note that ML-style control characters are \emph{not} supported.
-The body of \texttt{verbatim} may consist of any text not containing
-``\verb|*}|''.
+a backslash; newlines need not be escaped.  Note that ML-style control
+characters are \emph{not} supported.  The body of \texttt{verbatim} may
+consist of any text not containing ``\verb|*}|''.
 
 Comments take the form \texttt{(*~\dots~*)} and may be
 nested\footnote{Proof~General may occasionally get confused by nested
