@@ -766,6 +766,7 @@ val rep_datatype = gen_rep_datatype IsarThy.apply_theorems;
 val rep_datatype_i = gen_rep_datatype IsarThy.apply_theorems_i;
 
 
+
 (******************************** add datatype ********************************)
 
 fun gen_add_datatype prep_typ flat_names new_type_names dts thy =
@@ -870,8 +871,8 @@ val datatypeP =
 
 val rep_datatype_decl =
   Scan.option (Scan.repeat1 P.name) --
-    Scan.optional (P.$$$ "distinct" |-- P.!!! (P.and_list1 P.xthms1)) [] --
-    Scan.optional (P.$$$ "inject" |-- P.!!! (P.and_list1 P.xthms1)) [] --
+    Scan.optional (P.$$$ "distinct" |-- P.!!! (P.and_list1 P.xthms1)) [[]] --
+    Scan.optional (P.$$$ "inject" |-- P.!!! (P.and_list1 P.xthms1)) [[]] --
     (P.$$$ "induction" |-- P.!!! P.xthm);
 
 fun mk_rep_datatype (((opt_ts, dss), iss), ind) = #1 o rep_datatype opt_ts dss iss ind;
