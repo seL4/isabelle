@@ -176,7 +176,7 @@ val InfCard_nat_Un_cardinal = [InfCard_nat, Card_cardinal] MRS InfCard_Un
 val le_nat_Un_cardinal = 
     [Ord_nat, Card_cardinal RS Card_is_Ord] MRS Un_upper2_le  |> standard;
 
-val UN_upper_cardinal = UN_upper RS subset_imp_lepoll RS lepoll_imp_le 
+val UN_upper_cardinal = UN_upper RS subset_imp_lepoll RS lepoll_imp_Card_le 
                         |> standard;
 
 (*For most K-branching datatypes with domain Vfrom(A, csucc(K)) *)
