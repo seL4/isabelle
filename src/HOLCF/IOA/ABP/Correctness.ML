@@ -187,7 +187,7 @@ qed"env_unchanged";
 
 
 Goal "compatible srch_ioa rsch_ioa"; 
-by (simp_tac (simpset() addsimps [compatible_def,Int_def,empty_def]) 1);
+by (simp_tac (simpset() addsimps [compatible_def,Int_def]) 1);
 by (rtac set_ext 1);
 by (induct_tac "x" 1);
 by (ALLGOALS(Simp_tac));
@@ -195,7 +195,7 @@ val compat_single_ch = result();
 
 (* totally the same as before *)
 Goal "compatible srch_fin_ioa rsch_fin_ioa"; 
-by (simp_tac (simpset() addsimps [compatible_def,Int_def,empty_def]) 1);
+by (simp_tac (simpset() addsimps [compatible_def,Int_def]) 1);
 by (rtac set_ext 1);
 by (induct_tac "x" 1);
 by (ALLGOALS(Simp_tac));
@@ -209,7 +209,7 @@ val ss =
                       Receiver.receiver_trans_def] @ set_lemmas);
 
 Goal "compatible receiver_ioa (srch_ioa || rsch_ioa)";
-by (simp_tac (ss addsimps [empty_def,compatible_def,asig_of_par,asig_comp_def,
+by (simp_tac (ss addsimps [compatible_def,asig_of_par,asig_comp_def,
 			   actions_def,Int_def]) 1);
 by (Simp_tac 1);
 by (rtac set_ext 1);
@@ -219,7 +219,7 @@ val compat_rec = result();
 
 (* 5 proofs totally the same as before *)
 Goal "compatible receiver_ioa (srch_fin_ioa || rsch_fin_ioa)";
-by (simp_tac (ss addsimps [empty_def,compatible_def,asig_of_par,asig_comp_def,
+by (simp_tac (ss addsimps [compatible_def,asig_of_par,asig_comp_def,
 			actions_def,Int_def]) 1);
 by (Simp_tac 1);
 by (rtac set_ext 1);
@@ -229,7 +229,7 @@ val compat_rec_fin =result();
 
 Goal "compatible sender_ioa \
 \      (receiver_ioa || srch_ioa || rsch_ioa)";
-by (simp_tac (ss addsimps [empty_def,compatible_def,asig_of_par,asig_comp_def,
+by (simp_tac (ss addsimps [compatible_def,asig_of_par,asig_comp_def,
 			actions_def,Int_def]) 1);
 by (Simp_tac 1);
 by (rtac set_ext 1);
@@ -239,7 +239,7 @@ val compat_sen=result();
 
 Goal "compatible sender_ioa\
 \      (receiver_ioa || srch_fin_ioa || rsch_fin_ioa)";
-by (simp_tac (ss addsimps [empty_def,  compatible_def,asig_of_par,asig_comp_def,
+by (simp_tac (ss addsimps [compatible_def,asig_of_par,asig_comp_def,
 				actions_def,Int_def]) 1);
 by (Simp_tac 1);
 by (rtac set_ext 1);
@@ -249,7 +249,7 @@ val compat_sen_fin =result();
 
 Goal "compatible env_ioa\
 \      (sender_ioa || receiver_ioa || srch_ioa || rsch_ioa)";
-by (simp_tac (ss addsimps [empty_def,compatible_def,asig_of_par,asig_comp_def,
+by (simp_tac (ss addsimps [compatible_def,asig_of_par,asig_comp_def,
 				actions_def,Int_def]) 1);
 by (Simp_tac 1);
 by (rtac set_ext 1);
@@ -259,7 +259,7 @@ val compat_env=result();
 
 Goal "compatible env_ioa\
 \      (sender_ioa || receiver_ioa || srch_fin_ioa || rsch_fin_ioa)";
-by (simp_tac (ss addsimps [empty_def,compatible_def,asig_of_par,asig_comp_def,
+by (simp_tac (ss addsimps [compatible_def,asig_of_par,asig_comp_def,
 			actions_def,Int_def]) 1);
 by (Simp_tac 1);
 by (rtac set_ext 1);
