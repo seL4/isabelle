@@ -457,7 +457,7 @@ simpset_ref() := HOL_ss;
 
 
 
-(*** Integration of simplifier with classical reasoner ***)
+(*** integration of simplifier with classical reasoner ***)
 
 (* rot_eq_tac rotates the first equality premise of subgoal i to the front,
    fails if there is no equaliy or if an equality is already at the front *)
@@ -471,7 +471,12 @@ val rot_eq_tac =
 		if n>0 then rotate_tac n i else no_tac end)
 end;
 
-use "$ISABELLE_HOME/src/Provers/clasimp.ML";
+
+structure Clasimp = ClasimpFun
+ (structure Simplifier = Simplifier and Classical = Classical and Blast = Blast
+  val addcongs = op addcongs and delcongs = op delcongs
+  and addSaltern = op addSaltern and addbefore = op addbefore);
+
 open Clasimp;
 
 val HOL_css = (HOL_cs, HOL_ss);

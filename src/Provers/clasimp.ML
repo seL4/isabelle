@@ -2,18 +2,32 @@
     ID:         $Id$
     Author:     David von Oheimb, TU Muenchen
 
-Combination of classical reasoner and simplifier
-to be used after installing both of them
+Combination of classical reasoner and simplifier (depends on
+simplifier.ML, classical.ML, blast.ML).
 *)
-
-type clasimpset = claset * simpset;
 
 infix 4 addSIs2 addSEs2 addSDs2 addIs2 addEs2 addDs2
 	addsimps2 delsimps2 addcongs2 delcongs2;
 infix 4 addSss addss;
 
+signature CLASIMP_DATA =
+sig
+  structure Simplifier: SIMPLIFIER
+  structure Classical: CLASSICAL
+  structure Blast: BLAST
+  sharing type Classical.claset = Blast.claset
+  val addcongs: Simplifier.simpset * thm list -> Simplifier.simpset
+  val delcongs: Simplifier.simpset * thm list -> Simplifier.simpset
+  val addSaltern: Classical.claset * (string * (int -> tactic)) -> Classical.claset
+  val addbefore: Classical.claset * (string * (int -> tactic)) -> Classical.claset
+end
+
 signature CLASIMP =
 sig
+  include CLASIMP_DATA
+  type claset
+  type simpset
+  type clasimpset
   val addSIs2	: clasimpset * thm list -> clasimpset
   val addSEs2	: clasimpset * thm list -> clasimpset
   val addSDs2	: clasimpset * thm list -> clasimpset
@@ -35,89 +49,101 @@ sig
   val force	: int -> unit
 end;
 
-structure Clasimp: CLASIMP =
+functor ClasimpFun(Data: CLASIMP_DATA): CLASIMP =
 struct
 
-(* this interface for updating a clasimpset is rudimentary and just for 
-   convenience for the most common cases. 
-   In other cases a clasimpset may be dealt with componentwise. *)
-local 
-  fun pair_upd1 f ((a,b),x) = (f(a,x), b);
-  fun pair_upd2 f ((a,b),x) = (a, f(b,x));
-in
-  fun op addSIs2   arg = pair_upd1 (op addSIs) arg;
-  fun op addSEs2   arg = pair_upd1 (op addSEs) arg;
-  fun op addSDs2   arg = pair_upd1 (op addSDs) arg;
-  fun op addIs2    arg = pair_upd1 (op addIs ) arg;
-  fun op addEs2    arg = pair_upd1 (op addEs ) arg;
-  fun op addDs2    arg = pair_upd1 (op addDs ) arg;
-  fun op addsimps2 arg = pair_upd2 (op addsimps) arg;
-  fun op delsimps2 arg = pair_upd2 (op delsimps) arg;
-  fun op addcongs2 arg = pair_upd2 (op addcongs) arg;
-  fun op delcongs2 arg = pair_upd2 (op delcongs) arg;
-end;
+open Data;
+
+type claset = Classical.claset;
+type simpset = Simplifier.simpset;
+type clasimpset = claset * simpset;
+
+
+(* clasimpset operations *)
+
+(*this interface for updating a clasimpset is rudimentary and just for
+  convenience for the most common cases*)
+
+fun pair_upd1 f ((a,b),x) = (f(a,x), b);
+fun pair_upd2 f ((a,b),x) = (a, f(b,x));
+
+fun op addSIs2   arg = pair_upd1 Classical.addSIs arg;
+fun op addSEs2   arg = pair_upd1 Classical.addSEs arg;
+fun op addSDs2   arg = pair_upd1 Classical.addSDs arg;
+fun op addIs2    arg = pair_upd1 Classical.addIs arg;
+fun op addEs2    arg = pair_upd1 Classical.addEs arg;
+fun op addDs2    arg = pair_upd1 Classical.addDs arg;
+fun op addsimps2 arg = pair_upd2 Simplifier.addsimps arg;
+fun op delsimps2 arg = pair_upd2 Simplifier.delsimps arg;
+fun op addcongs2 arg = pair_upd2 Data.addcongs arg;
+fun op delcongs2 arg = pair_upd2 Data.delcongs arg;
 
 (*Add a simpset to a classical set!*)
 (*Caution: only one simpset added can be added by each of addSss and addss*)
 fun cs addSss ss = cs addSaltern ("safe_asm_full_simp_tac",
-			CHANGED o (safe_asm_full_simp_tac ss));
-fun cs addss  ss = cs addbefore  (     "asm_full_simp_tac",
-					asm_full_simp_tac ss);
+			CHANGED o Simplifier.safe_asm_full_simp_tac ss);
+fun cs addss  ss = cs addbefore  ("asm_full_simp_tac", Simplifier.asm_full_simp_tac ss);
 
 
-fun CLASIMPSET tacf state = CLASET (fn cs => SIMPSET (fn ss => tacf (cs, ss))) state;
-fun CLASIMPSET' tacf i state = CLASET (fn cs => SIMPSET (fn ss => tacf (cs, ss) i)) state;
+(* tacticals *)
+
+fun CLASIMPSET tacf state =
+  Classical.CLASET (fn cs => Simplifier.SIMPSET (fn ss => tacf (cs, ss))) state;
+
+fun CLASIMPSET' tacf i state =
+  Classical.CLASET (fn cs => Simplifier.SIMPSET (fn ss => tacf (cs, ss) i)) state;
 
 
-local
+(* auto_tac *)
 
-	fun blast_depth_tac cs m i thm = Blast.depth_tac cs m i thm 
-		handle Blast.TRANS s => (warning ("Blast_tac: " ^ s); Seq.empty);
+fun blast_depth_tac cs m i thm =
+  Blast.depth_tac cs m i thm handle Blast.TRANS s => (warning ("Blast_tac: " ^ s); Seq.empty);
 
-	(* a variant of depth_tac that avoids interference of the simplifier 
-	   with dup_step_tac when they are combined by auto_tac *)
-	fun nodup_depth_tac cs m i state = 
-	  SELECT_GOAL 
-	   (appWrappers cs
-	    (fn i => REPEAT_DETERM1 (COND (has_fewer_prems i) no_tac
-	                             (safe_step_tac cs i)) THEN_ELSE
-	     (DEPTH_SOLVE (nodup_depth_tac cs m i),
-	      inst0_step_tac cs i  APPEND
-	      COND (K(m=0)) no_tac
-	        ((instp_step_tac cs i APPEND step_tac cs i)
-	         THEN DEPTH_SOLVE (nodup_depth_tac cs (m-1) i)))) 1)
-	  i state;
-
-in
+(* a variant of depth_tac that avoids interference of the simplifier 
+   with dup_step_tac when they are combined by auto_tac *)
+fun nodup_depth_tac cs m i state = 
+  SELECT_GOAL 
+   (Classical.appWrappers cs
+    (fn i => REPEAT_DETERM1 (COND (has_fewer_prems i) no_tac
+                             (Classical.safe_step_tac cs i)) THEN_ELSE
+     (DEPTH_SOLVE (nodup_depth_tac cs m i),
+      Classical.inst0_step_tac cs i  APPEND
+      COND (K(m=0)) no_tac
+        ((Classical.instp_step_tac cs i APPEND Classical.step_tac cs i)
+         THEN DEPTH_SOLVE (nodup_depth_tac cs (m-1) i)))) 1)
+  i state;
 
 (*Designed to be idempotent, except if best_tac instantiates variables
   in some of the subgoals*)
 fun mk_auto_tac (cs, ss) m n =
-    let val cs' = cs addss ss 
+    let val cs' = cs addss ss
         val maintac = 
           blast_depth_tac cs m		(*fast but can't use addss*)
           ORELSE'
           nodup_depth_tac cs' n;	(*slower but more general*)
-    in  EVERY [ALLGOALS (asm_full_simp_tac ss),
-	       TRY (safe_tac cs'),
+    in  EVERY [ALLGOALS (Simplifier.asm_full_simp_tac ss),
+	       TRY (Classical.safe_tac cs'),
 	       REPEAT (FIRSTGOAL maintac),
-               TRY (safe_tac (cs addSss ss)),
+               TRY (Classical.safe_tac (cs addSss ss)),
 	       prune_params_tac] 
     end;
-end;
 
 fun auto_tac (cs,ss) = mk_auto_tac (cs,ss) 4 2;
 
-fun Auto_tac st = auto_tac (claset(), simpset()) st;
+fun Auto_tac st = auto_tac (Classical.claset(), Simplifier.simpset()) st;
 
 fun auto () = by Auto_tac;
 
+
+(* force_tac *)
+
 (* aimed to solve the given subgoal totally, using whatever tools possible *)
 fun force_tac (cs,ss) = let val cs' = cs addss ss in SELECT_GOAL (EVERY [
-	clarify_tac cs' 1,
-	IF_UNSOLVED (asm_full_simp_tac ss 1),
-	ALLGOALS (best_tac cs')]) end;
-fun Force_tac i = force_tac (claset(), simpset()) i;
+	Classical.clarify_tac cs' 1,
+	IF_UNSOLVED (Simplifier.asm_full_simp_tac ss 1),
+	ALLGOALS (Classical.best_tac cs')]) end;
+fun Force_tac i = force_tac (Classical.claset(), Simplifier.simpset()) i;
 fun force i = by (Force_tac i);
+
 
 end;
