@@ -121,7 +121,8 @@ cd $DISTBASE/$DISTNAME
 
 find . -name CVS -exec rm -rf {} \;
 
-mkdir -p Tools/8bit/bin    #FIXME tmp
+( cd Tools/8bit; ./mk; )
+
 find Doc \( -name \*.dvi -o -name \*.eps -o -name \*.ps \) -exec mv {} Distribution/doc \;
 rm Distribution/doc/Isa-logics.eps
 rm -rf Admin Doc
