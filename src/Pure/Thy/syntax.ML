@@ -7,7 +7,7 @@ Definition of theory syntax together with translation to ML code.
 
 signature THYSYN =
  sig
-  datatype BaseType = Thy  of string
+  datatype basetype = Thy  of string
                     | File of string
 
    val read: string list -> string
@@ -115,8 +115,7 @@ fun mk_rules ps =
     axs ^ "\n\n" ^ vals
   end;
 
-fun mk_struct (id, s) = "structure " ^ id ^ " =\nstruct\n" ^ s ^ "\nend;\n"
-                        ^ "store_theory " ^ quote id ^ " " ^ id ^ ".thy;\n";
+fun mk_struct (id, s) = "structure " ^ id ^ " =\nstruct\n" ^ s ^ "\nend;\n";
 
 
 fun mk_sext mfix trans =
@@ -164,7 +163,7 @@ fun mk_structure ((name, base), Some (ext, tinfix, mfix, trans, ml)) =
   | mk_structure ((name, base), None) =
       mk_struct (name, "\nval thy = " ^ base ^ (quote name));
 
-datatype BaseType = Thy  of string
+datatype basetype = Thy  of string
                   | File of string;
 
 fun merge thys =
