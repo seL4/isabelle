@@ -182,7 +182,7 @@ Lex:	$(BIN)/HOL  $(LEX_FILES)
 
 ##Miscellaneous examples
 EX_NAMES = LexProd MT Acc PropLog Puzzle Mutil Qsort LList Rec Simult Term \
-	   String BT Perm
+	   String BT Perm Comb
 
 EX_FILES = ex/ROOT.ML ex/cla.ML ex/meson.ML ex/mesontest.ML ex/rel.ML \
            ex/set.ML $(EX_NAMES:%=ex/%.thy) $(EX_NAMES:%=ex/%.ML)

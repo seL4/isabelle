@@ -16,6 +16,7 @@ time_use     "mesontest.ML";
 time_use_thy "String";
 time_use_thy "BT";
 time_use_thy "Perm";
+time_use_thy "Comb";
 time_use_thy "InSort";
 time_use_thy "Qsort";
 time_use_thy "LexProd";
