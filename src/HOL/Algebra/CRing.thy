@@ -90,7 +90,7 @@ lemma (in abelian_monoid) a_comm_semigroup:
   by (unfold comm_semigroup_def semigroup_def)
     (fast intro: comm_monoid.axioms a_comm_monoid)
 
-lemmas monoid_record_simps = semigroup.simps monoid.simps
+lemmas monoid_record_simps = partial_object.simps semigroup.simps monoid.simps
 
 lemma (in abelian_monoid) a_closed [intro, simp]:
   "[| x \<in> carrier G; y \<in> carrier G |] ==> x \<oplus> y \<in> carrier G"

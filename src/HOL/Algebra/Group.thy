@@ -20,8 +20,12 @@ text {*
 
 subsection {* Definitions *}
 
-record 'a semigroup =
+(* Object with a carrier set. *)
+
+record 'a partial_object =
   carrier :: "'a set"
+
+record 'a semigroup = "'a partial_object" +
   mult :: "['a, 'a] => 'a" (infixl "\<otimes>\<index>" 70)
 
 record 'a monoid = "'a semigroup" +
