@@ -8,9 +8,9 @@ Internal interface for typedefs.
 signature TYPEDEF =
 sig
   val prove_nonempty: cterm -> thm list -> tactic option -> thm
-  val add_typedef: string -> rstring * string list * mixfix ->
+  val add_typedef: string -> bstring * string list * mixfix ->
     string -> string list -> thm list -> tactic option -> theory -> theory
-  val add_typedef_i: string -> rstring * string list * mixfix ->
+  val add_typedef_i: string -> bstring * string list * mixfix ->
     term -> string list -> thm list -> tactic option -> theory -> theory
 end;
 
@@ -127,11 +127,11 @@ fun ext_typedef prep_term name (t, vs, mx) raw_set axms thms usr_tac thy =
 
 (* external interfaces *)
 
-fun cert_term sg tm =
-  cterm_of sg tm handle TERM (msg, _) => error msg;
-
 fun read_term sg str =
   read_cterm sg (str, HOLogic.termTVar);
+
+fun cert_term sg tm =
+  cterm_of sg tm handle TERM (msg, _) => error msg;
 
 val add_typedef = ext_typedef read_term;
 val add_typedef_i = ext_typedef cert_term;
