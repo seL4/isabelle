@@ -89,7 +89,7 @@ fun str_of_ast (Constant a) = quote a
 fun pretty_ast (Constant a) = Pretty.str (quote a)
   | pretty_ast (Variable x) = Pretty.str x
   | pretty_ast (Appl asts) =
-      Pretty.parents "(" ")" (Pretty.breaks (map pretty_ast asts));
+      Pretty.enclose "(" ")" (Pretty.breaks (map pretty_ast asts));
 
 
 (* pprint_ast *)
