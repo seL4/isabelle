@@ -143,7 +143,6 @@ by (induct_tac "n" 1);
 by (auto_tac (claset() addSDs [real_le_imp_less_or_eq],
 	      simpset()));
 by (dtac (rename_numerals (real_zero_less_one RS real_mult_less_mono)) 1);
-by (dtac sym 4);
 by (auto_tac (claset() addSIs [real_less_imp_le],
 	      simpset() addsimps [real_zero_less_one]));
 qed_spec_mp "realpow_ge_one";

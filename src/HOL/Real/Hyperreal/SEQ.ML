@@ -203,8 +203,7 @@ by (Auto_tac);
 qed "LIMSEQ_const";
 
 Goalw [NSLIMSEQ_def]
-      "[| X ----NS> a; Y ----NS> b |] \
-\           ==> (%n. X n + Y n) ----NS> a + b";
+      "[| X ----NS> a; Y ----NS> b |] ==> (%n. X n + Y n) ----NS> a + b";
 by (auto_tac (claset() addIs [inf_close_add],
     simpset() addsimps [starfunNat_add RS sym,hypreal_of_real_add]));
 qed "NSLIMSEQ_add";
@@ -216,28 +215,25 @@ by (asm_full_simp_tac (simpset() addsimps [LIMSEQ_NSLIMSEQ_iff,
 qed "LIMSEQ_add";
 
 Goalw [NSLIMSEQ_def]
-      "[| X ----NS> a; Y ----NS> b |] \
-\           ==> (%n. X n * Y n) ----NS> a * b";
+      "[| X ----NS> a; Y ----NS> b |] ==> (%n. X n * Y n) ----NS> a * b";
 by (auto_tac (claset() addSIs [starfunNat_mult_HFinite_inf_close],
     simpset() addsimps [hypreal_of_real_mult]));
 qed "NSLIMSEQ_mult";
 
-Goal "[| X ----> a; Y ----> b |] \
-\           ==> (%n. X n * Y n) ----> a * b";
+Goal "[| X ----> a; Y ----> b |] ==> (%n. X n * Y n) ----> a * b";
 by (asm_full_simp_tac (simpset() addsimps [LIMSEQ_NSLIMSEQ_iff,
-    NSLIMSEQ_mult]) 1);
+                                           NSLIMSEQ_mult]) 1);
 qed "LIMSEQ_mult";
 
 Goalw [NSLIMSEQ_def] 
-      "X ----NS> a ==> (%n. -(X n)) ----NS> -a";
+     "X ----NS> a ==> (%n. -(X n)) ----NS> -a";
 by (auto_tac (claset() addIs [inf_close_minus],
-    simpset() addsimps [starfunNat_minus RS sym,
-    hypreal_of_real_minus]));
+       simpset() addsimps [starfunNat_minus RS sym, hypreal_of_real_minus]));
 qed "NSLIMSEQ_minus";
 
 Goal "X ----> a ==> (%n. -(X n)) ----> -a";
 by (asm_full_simp_tac (simpset() addsimps [LIMSEQ_NSLIMSEQ_iff,
-    NSLIMSEQ_minus]) 1);
+                                           NSLIMSEQ_minus]) 1);
 qed "LIMSEQ_minus";
 
 Goal "(%n. -(X n)) ----> -a ==> X ----> a";

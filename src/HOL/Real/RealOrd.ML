@@ -270,7 +270,8 @@ by (res_inst_tac [("C","r")] real_less_add_right_cancel 1);
 by (simp_tac (simpset() addsimps [real_add_assoc]) 1);
 qed "real_add_minus_positive_less_self";
 
-Goal "((r::real) <= s) = (-s <= -r)";
+Goal "(-s <= -r) = ((r::real) <= s)";
+by (rtac sym 1);
 by (Step_tac 1);
 by (dres_inst_tac [("x","-s")] real_add_left_le_mono1 1);
 by (dres_inst_tac [("x","r")] real_add_left_le_mono1 2);
@@ -279,7 +280,7 @@ by (dres_inst_tac [("z","-r")] real_add_le_mono1 1);
 by (dres_inst_tac [("z","s")] real_add_le_mono1 2);
 by (auto_tac (claset(), simpset() addsimps [real_add_assoc]));
 qed "real_le_minus_iff";
-Addsimps [real_le_minus_iff RS sym];
+Addsimps [real_le_minus_iff];
           
 Goal "0 <= 1r";
 by (rtac (real_zero_less_one RS real_less_imp_le) 1);

@@ -70,13 +70,10 @@ by (Simp_tac 1);
 qed "abs_idempotent";
 Addsimps [abs_idempotent];
 
-Goalw [abs_real_def] "(x=(#0::real)) = (abs x = #0)";
+Goalw [abs_real_def] "(abs x = #0) = (x=(#0::real))";
 by (Full_simp_tac 1);
 qed "abs_zero_iff";
-
-Goal  "(x ~= (#0::real)) = (abs x ~= #0)";
-by (full_simp_tac (simpset() addsimps [abs_zero_iff RS sym]) 1);
-qed "abs_not_zero_iff";
+AddIffs [abs_zero_iff];
 
 Goalw [abs_real_def] "x<=abs (x::real)";
 by (simp_tac (simpset() addsimps [zero_eq_numeral_0]) 1);

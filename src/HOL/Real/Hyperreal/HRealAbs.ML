@@ -69,21 +69,17 @@ by (blast_tac (claset() addIs [if_P,hrabs_ge_zero]) 1);
 qed "hrabs_idempotent";
 Addsimps [hrabs_idempotent];
 
-Goalw [hrabs_def] "(x=(0::hypreal)) = (abs x = (0::hypreal))";
+Goalw [hrabs_def] "(abs x = (0::hypreal)) = (x=0)";
 by (Simp_tac 1);
 qed "hrabs_zero_iff";
-Addsimps [hrabs_zero_iff RS sym];
+AddIffs [hrabs_zero_iff];
 
-Goal  "(x ~= (0::hypreal)) = (abs x ~= 0)";
-by (Simp_tac 1);
-qed "hrabs_not_zero_iff";
-
-Goalw [hrabs_def] "(x::hypreal)<=abs x";
+Goalw [hrabs_def] "(x::hypreal) <= abs x";
 by (auto_tac (claset() addDs [not_hypreal_leE RS hypreal_less_imp_le],
-    simpset() addsimps [hypreal_le_zero_iff]));
+              simpset() addsimps [hypreal_le_zero_iff]));
 qed "hrabs_ge_self";
 
-Goalw [hrabs_def] "-(x::hypreal)<=abs x";
+Goalw [hrabs_def] "-(x::hypreal) <= abs x";
 by (full_simp_tac (simpset() addsimps [hypreal_ge_zero_iff]) 1);
 qed "hrabs_ge_minus_self";
 

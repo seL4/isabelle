@@ -1769,14 +1769,23 @@ qed "lemma_BOLZANO2";
 (* Intermediate Value Theorem (prove contrapositive by bisection)             *)
 (*----------------------------------------------------------------------------*)
 
+
+    (*ALREADY IN REALABS.ML????????????????*)
+    Goalw [abs_real_def] "(abs x = #0) = (x=(#0::real))";
+    by (Full_simp_tac 1);
+    qed "abs_zero_iff";
+    AddIffs [abs_zero_iff];
+
+
 Goal "[| f(a) <= y & y <= f(b); \
 \        a <= b; \
-\        (ALL x. a <= x & x <= b --> isCont f x) \
-\     |] ==> EX x. a <= x & x <= b & f(x) = y";
+\        (ALL x. a <= x & x <= b --> isCont f x) |] \
+\     ==> EX x. a <= x & x <= b & f(x) = y";
 by (rtac contrapos_pp 1);
 by (assume_tac 1);
-by (cut_inst_tac [("P","%(u,v). a <= u & u <= v & v <= b --> \
-\   ~(f(u) <= y & y <= f(v))")] lemma_BOLZANO2 1);
+by (cut_inst_tac
+    [("P","%(u,v). a <= u & u <= v & v <= b --> ~(f(u) <= y & y <= f(v))")] 
+    lemma_BOLZANO2 1);
 by (Step_tac 1);
 by (ALLGOALS(Asm_full_simp_tac));
 by (Blast_tac 2);
@@ -1784,44 +1793,30 @@ by (asm_full_simp_tac (simpset() addsimps [isCont_iff,LIM_def]) 1);
 by (rtac ccontr 1);
 by (subgoal_tac "a <= x & x <= b" 1);
 by (Asm_full_simp_tac 2);
-by (rotate_tac 3 2);
-by (dres_inst_tac [("x","1r")] spec 2);
+by (dres_inst_tac [("P", "%d. #0<d --> ?P d"),("x","#1")] spec 2);
 by (Step_tac 2);
 by (Asm_full_simp_tac 2);
 by (Asm_full_simp_tac 2);
 by (REPEAT(blast_tac (claset() addIs [real_le_trans]) 2));
 by (REPEAT(dres_inst_tac [("x","x")] spec 1));
 by (Asm_full_simp_tac 1);
-(**)
-by (rotate_tac 4 1);
-by (dres_inst_tac [("x","abs(y - f x)")] spec 1);
+by (dres_inst_tac [("P", "%r. ?P r --> (EX s. #0<s & ?Q r s)"),
+                   ("x","abs(y - f x)")] spec 1);
 by (Step_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [real_less_le,
-                                           abs_ge_zero,real_diff_def]) 1);
-by (dtac (sym RS (abs_zero_iff RS iffD2)) 1);
-by (arith_tac 1);
+by (asm_full_simp_tac (simpset() addsimps []) 1);
 by (dres_inst_tac [("x","s")] spec 1);
-by (Step_tac 1);
+by (Clarify_tac 1);
 by (cut_inst_tac [("R1.0","f x"),("R2.0","y")] real_linear 1);
-by (Auto_tac);
+by Safe_tac;
 by (dres_inst_tac [("x","ba - x")] spec 1);
-by (auto_tac (claset(),
-     simpset() 
-	       addsimps [abs_iff, real_diff_le_eq,
-       (real_diff_def RS meta_eq_to_obj_eq) RS sym,
-       real_less_le_iff, real_le_diff_eq, 
-       CLAIM "(~(x::real) <= y) = (y < x)",
-       CLAIM "(-x < -y) = ((y::real) < x)",
-       CLAIM "(-(y - x)) = (x - (y::real))",
-       CLAIM "(x-y=#0) = (x = (y::real))"]));
+by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [abs_iff])));
 by (dres_inst_tac [("x","aa - x")] spec 1);
 by (case_tac "x <= aa" 1);
-by (auto_tac (claset(),simpset() addsimps [real_minus_zero_le_iff2,
-    real_le_diff_eq,real_diff_le_eq,(real_le_def RS meta_eq_to_obj_eq) 
-    RS sym]));
+by (ALLGOALS Asm_full_simp_tac);
 by (dres_inst_tac [("z","x"),("w","aa")] real_le_anti_sym 1);
 by (assume_tac 1 THEN Asm_full_simp_tac 1);
 qed "IVT";
+
 
 Goal "[| f(b) <= y & y <= f(a); \
 \        a <= b; \
@@ -1833,6 +1828,8 @@ by (dres_inst_tac [("f","%x. - f x")] IVT 1);
 by (auto_tac (claset() addIs [isCont_minus],simpset()));
 qed "IVT2";
 
+
+(*HOL style here: object-level formulations*)
 Goal "(f(a) <= y & y <= f(b) & a <= b & \
 \     (ALL x. a <= x & x <= b --> isCont f x)) \
 \     --> (EX x. a <= x & x <= b & f(x) = y)";

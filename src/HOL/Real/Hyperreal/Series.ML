@@ -260,12 +260,6 @@ by (auto_tac (claset(),simpset() addsimps [sumr_split_add,add_commute]));
 qed "sumr_group";
 Addsimps [sumr_group];
 
-Goal "0 < (k::nat) --> ~(n*k < n)";
-by (induct_tac "n" 1);
-by (Auto_tac);
-qed_spec_mp "lemma_summable_group";
-Addsimps [lemma_summable_group];
-
 (*-------------------------------------------------------------------
                         Infinite sums
     Theorems follow from properties of limits and sums

@@ -364,6 +364,18 @@ val real_minus_simps = NCons_simps @
 (*To let us treat subtraction as addition*)
 val diff_simps = [real_diff_def, real_minus_add_distrib, real_minus_minus];
 
+(*push the unary minus down: - x * y = x * - y *)
+val real_minus_mult_eq_1_to_2 = 
+    [real_minus_mult_eq1 RS sym, real_minus_mult_eq2] MRS trans |> standard;
+
+(*to extract again any uncancelled minuses*)
+val real_minus_from_mult_simps = 
+    [real_minus_minus, real_minus_mult_eq1 RS sym, real_minus_mult_eq2 RS sym];
+
+(*combine unary minus with numeric literals, however nested within a product*)
+val real_mult_minus_simps =
+    [real_mult_assoc, real_minus_mult_eq1, real_minus_mult_eq_1_to_2];
+
 (*Apply the given rewrite (if present) just once*)
 fun trans_tac None      = all_tac
   | trans_tac (Some th) = ALLGOALS (rtac (th RS trans));
@@ -400,11 +412,13 @@ structure CancelNumeralsCommon =
   val dest_coeff	= dest_coeff 1
   val find_first_coeff	= find_first_coeff []
   val trans_tac         = trans_tac
-  val norm_tac = ALLGOALS (simp_tac (HOL_ss addsimps add_0s@mult_1s@diff_simps@
-                                                real_minus_simps@real_add_ac))
-                 THEN ALLGOALS
-                    (simp_tac (HOL_ss addsimps [real_minus_mult_eq2]@
-                                         bin_simps@real_add_ac@real_mult_ac))
+  val norm_tac = 
+     ALLGOALS (simp_tac (HOL_ss addsimps add_0s@mult_1s@diff_simps@
+                                         real_minus_simps@real_add_ac))
+     THEN ALLGOALS (simp_tac (HOL_ss addsimps bin_simps@real_mult_minus_simps))
+     THEN ALLGOALS
+              (simp_tac (HOL_ss addsimps real_minus_from_mult_simps@
+                                         real_add_ac@real_mult_ac))
   val numeral_simp_tac	= ALLGOALS (simp_tac (HOL_ss addsimps add_0s@bin_simps))
   val simplify_meta_eq  = simplify_meta_eq
   end;
@@ -466,12 +480,12 @@ structure CombineNumeralsData =
   val left_distrib	= left_real_add_mult_distrib RS trans
   val prove_conv	= prove_conv_nohyps "real_combine_numerals"
   val trans_tac          = trans_tac
-  val norm_tac = ALLGOALS
-                   (simp_tac (HOL_ss addsimps add_0s@mult_1s@diff_simps@
-                                              real_minus_simps@real_add_ac))
-                 THEN ALLGOALS
-                    (simp_tac (HOL_ss addsimps [real_minus_mult_eq2]@
-                                               bin_simps@real_add_ac@real_mult_ac))
+  val norm_tac = 
+     ALLGOALS (simp_tac (HOL_ss addsimps add_0s@mult_1s@diff_simps@
+                                         real_minus_simps@real_add_ac))
+     THEN ALLGOALS (simp_tac (HOL_ss addsimps bin_simps@real_mult_minus_simps))
+     THEN ALLGOALS (simp_tac (HOL_ss addsimps real_minus_from_mult_simps@
+                                              real_add_ac@real_mult_ac))
   val numeral_simp_tac	= ALLGOALS 
                     (simp_tac (HOL_ss addsimps add_0s@bin_simps))
   val simplify_meta_eq  = simplify_meta_eq
@@ -571,4 +585,7 @@ structure Real_Times_Assoc = Assoc_Fold (Real_Times_Assoc_Data);
 
 Addsimprocs [Real_Times_Assoc.conv];
 
-
+(*Simplification of  x-y < 0, etc.*)
+AddIffs [real_less_iff_diff_less_0 RS sym];
+AddIffs [real_eq_iff_diff_eq_0 RS sym];
+AddIffs [real_le_iff_diff_le_0 RS sym];
