@@ -173,7 +173,7 @@ val sort =
   xname >> single || $$$ "{" |-- !!! (list xname --| $$$ "}");
 
 fun gen_arity cod =
-  Scan.optional ($$$ "(" |-- !!! (Scan.repeat1 sort --| $$$ ")")) [] -- cod;
+  Scan.optional ($$$ "(" |-- !!! (list1 sort --| $$$ ")")) [] -- cod;
 
 val arity = gen_arity sort;
 val simple_arity = gen_arity name;
