@@ -153,16 +153,13 @@ fun proof_stage cs ss wfs theory {f, R, rules, full_pats_TCs, TCs} =
 
 
 (*lcp: curry the predicate of the induction rule*)
-fun curry_rule rl = split_rule_var
-                        (head_of (HOLogic.dest_Trueprop (concl_of rl)),
-                         rl);
+fun curry_rule rl =
+  SplitRule.split_rule_var (Term.head_of (HOLogic.dest_Trueprop (concl_of rl)), rl);
 
 (*lcp: put a theorem into Isabelle form, using meta-level connectives*)
 val meta_outer =
-    curry_rule o standard o
-    rule_by_tactic (REPEAT
-                    (FIRSTGOAL (resolve_tac [allI, impI, conjI]
-                                ORELSE' etac conjE)));
+  curry_rule o standard o
+  rule_by_tactic (REPEAT (FIRSTGOAL (resolve_tac [allI, impI, conjI] ORELSE' etac conjE)));
 
 (*Strip off the outer !P*)
 val spec'= read_instantiate [("x","P::?'b=>bool")] spec;
