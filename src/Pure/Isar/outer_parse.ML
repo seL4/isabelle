@@ -50,6 +50,7 @@ sig
   val term: token list -> string * token list
   val prop: token list -> string * token list
   val propp: token list -> (string * (string list * string list)) * token list
+  val termp: token list -> (string * string list) * token list
   val attribs: token list -> Args.src list * token list
   val opt_attribs: token list -> Args.src list * token list
   val thm_name: string -> token list -> (bstring * Args.src list) * token list
@@ -224,13 +225,15 @@ val term = group "term" trm;
 val prop = group "proposition" trm;
 
 
-(* prop patters *)
+(* patterns *)
 
+val is_terms = Scan.repeat1 ($$$ "is" |-- term);
 val is_props = Scan.repeat1 ($$$ "is" |-- prop);
 val concl_props = $$$ "concl" |-- !!! is_props;
 val any_props = is_props -- Scan.optional concl_props [] || concl_props >> pair [];
 
 val propp = prop -- Scan.optional ($$$ "(" |-- !!! (any_props --| $$$ ")")) ([], []);
+val termp = term -- Scan.optional ($$$ "(" |-- !!! (is_terms --| $$$ ")")) [];
 
 
 (* arguments *)
