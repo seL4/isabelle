@@ -300,8 +300,8 @@ by (rtac natE 1);
 by (etac ssubst 1);
 by (rtac zero_less_Suc 1);
 qed "neq0_conv";
-Addsimps [neq0_conv];
-AddSDs [neq0_conv RS iffD1];
+AddIffs [neq0_conv];
+
 
 bind_thm("gr0I", notI RS (neq0_conv RS iffD1));
 
@@ -437,6 +437,7 @@ goalw thy [le_def] "(i <= 0) = (i = 0)";
 by (nat_ind_tac "i" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "le_0_eq";
+AddIffs [le_0_eq];
 
 Addsimps [(*less_Suc_eq, makes simpset non-confluent*) le0, le_0_eq,
           Suc_n_not_le_n,
@@ -447,6 +448,9 @@ goal thy "!!m. (m <= Suc(n)) = (m<=n | m = Suc n)";
 by (simp_tac (simpset() addsimps [le_eq_less_Suc]) 1);
 by (blast_tac (claset() addSEs [less_SucE] addIs [less_SucI]) 1);
 qed "le_Suc_eq";
+
+(* [| m <= Suc n;  m <= n ==> R;  m = Suc n ==> R |] ==> R *)
+bind_thm ("le_SucE", le_Suc_eq RS iffD1 RS disjE);
 
 (*
 goal thy "(Suc m < n | Suc m = n) = (m < n)";
