@@ -426,7 +426,7 @@ by (res_inst_tac [("m","j"),("n","k")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed_spec_mp "diff_add_assoc";
 
-Goal "k <= (j::nat) --> (j + i) - k = i + (j - k)";
+Goal "k <= (j::nat) --> (j + i) - k = (j - k) + i";
 by (asm_simp_tac (simpset() addsimps [add_commute, diff_add_assoc]) 1);
 qed_spec_mp "diff_add_assoc2";
 
@@ -1050,10 +1050,6 @@ Goal "[| a < (b::nat); c <= a |] ==> a-c < b-c";
 by (arith_tac 1);
 qed "diff_less_mono";
 
-Goal "a+b < (c::nat) ==> a < c-b";
-by (arith_tac 1);
-qed "add_less_imp_less_diff";
-
 Goal "(i < j-k) = (i+k < (j::nat))";
 by (arith_tac 1);
 qed "less_diff_conv";
@@ -1078,10 +1074,6 @@ Addsimps [diff_diff_cancel];
 Goal "k <= (n::nat) ==> m <= n + m - k";
 by (arith_tac 1);
 qed "le_add_diff";
-
-Goal "[| 0<k; j<i |] ==> j+k-i < k";
-by (arith_tac 1);
-qed "add_diff_less";
 
 Goal "m-1 < n ==> m <= n";
 by (arith_tac 1);
@@ -1115,8 +1107,7 @@ Goal "[| 0<n; 0<m |] ==> m - n < m";
 by (arith_tac 1);
 qed "diff_less";
 
-
-(*** Reducting subtraction to addition ***)
+(*** Reducing subtraction to addition ***)
 
 Goal "n<=(l::nat) --> Suc l - n + m = Suc (l - n + m)";
 by (simp_tac (simpset() addsplits [nat_diff_split]) 1);
@@ -1137,6 +1128,20 @@ qed "diff_Suc_le_Suc_diff";
 Goal "[| k<=n; n<=m |] ==> (m-k) - (n-k) = m-(n::nat)";
 by (asm_simp_tac (simpset() addsplits [nat_diff_split]) 1);
 qed "diff_right_cancel";
+
+(** Simplification of relational expressions involving subtraction **)
+
+Goal "[| k <= m;  k <= (n::nat) |] ==> (m-k = n-k) = (m=n)";
+by (auto_tac (claset(), simpset() addsplits [nat_diff_split']));
+qed "eq_diff_iff";
+
+Goal "[| k <= m;  k <= (n::nat) |] ==> (m-k < n-k) = (m<n)";
+by (auto_tac (claset(), simpset() addsplits [nat_diff_split']));
+qed "less_diff_iff";
+
+Goal "[| k <= m;  k <= (n::nat) |] ==> (m-k <= n-k) = (m<=n)";
+by (auto_tac (claset(), simpset() addsplits [nat_diff_split']));
+qed "le_diff_iff";
 
 
 (** (Anti)Monotonicity of subtraction -- by Stephan Merz **)
