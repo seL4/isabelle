@@ -21,15 +21,15 @@ consts
 inductive "sexp"
   intrs
     LeafI  "Leaf(a): sexp"
-    NumbI  "Numb(a): sexp"
+    NumbI  "Numb(i): sexp"
     SconsI "[| M: sexp;  N: sexp |] ==> M$N : sexp"
 
 defs
 
   sexp_case_def	
    "sexp_case c d e M == @ z. (? x.   M=Leaf(x) & z=c(x))  
-                           | (? k.   M=Numb(k) & z=d(k))  
-                           | (? N1 N2. M = N1 $ N2  & z=e N1 N2)"
+                            | (? k.   M=Numb(k) & z=d(k))  
+                            | (? N1 N2. M = N1 $ N2  & z=e N1 N2)"
 
   pred_sexp_def
      "pred_sexp == UN M: sexp. UN N: sexp. {(M, M$N), (N, M$N)}"
