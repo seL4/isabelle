@@ -11,8 +11,7 @@ Addsimps qsort.rules;
 
 Goal "(x: set (qsort (ord,l))) = (x: set l)";
 by (res_inst_tac [("u","ord"),("v","l")] qsort.induct 1);
-by (ALLGOALS Asm_simp_tac);
-by (Blast_tac 1);
+by Auto_tac;
 qed "qsort_mem_stable";
 
 

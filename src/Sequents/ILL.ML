@@ -5,9 +5,6 @@
 
 *)
 
-open ILL;
-
-
 val lazy_cs = empty_pack
  add_safes [tensl, conjr, disjl, promote0,
 	    context2,context3]

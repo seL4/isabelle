@@ -21,12 +21,6 @@ by Auto_tac;
 qed "lift_act_Id";
 Addsimps [lift_act_Id];
 
-(*NEEDED????????????????????????????????????????????????????????????????*)
-Goal "Id : lift_act i `` Acts F";
-by (auto_tac (claset() addSIs [lift_act_Id RS sym], 
-	      simpset() addsimps [image_iff]));
-qed "Id_mem_lift_act";
-
 Goalw [lift_prog_def] "Init (lift_prog i F) = lift_set i (Init F)";
 by Auto_tac;
 qed "Init_lift_prog";
@@ -133,19 +127,12 @@ qed "PPROD_constrains_projection";
 
 (** invariant **)
 
-(*????????????????*)
-Goal "F : invariant A ==> lift_prog i F : invariant (lift_set i A)";
+(*UNUSED*)
+Goal "(lift_prog i F : invariant (lift_set i A)) = (F : invariant A)";
 by (auto_tac (claset(),
 	      simpset() addsimps [invariant_def, lift_prog_stable_eq]));
-qed "invariant_imp_lift_prog_invariant";
+qed "lift_prog_invariant_eq";
 
-(*????????????????*)
-Goal "[| lift_prog i F : invariant (lift_set i A) |] ==> F : invariant A";
-by (auto_tac (claset(),
-	      simpset() addsimps [invariant_def, lift_prog_stable_eq]));
-qed "lift_prog_invariant_imp_invariant";
-
-(*NOT clear that the previous lemmas help in proving this one.*)
 Goal "[| F i : invariant A;  i : I |] \
 \     ==> PPROD I F : invariant (lift_set i A)";
 by (auto_tac (claset(),

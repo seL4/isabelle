@@ -333,13 +333,11 @@ by Auto_tac;
 qed "rev_map";
 
 (* a congruence rule for map: *)
-Goal "(xs=ys) --> (!x. x : set ys --> f x = g x) --> map f xs = map g ys";
-by (rtac impI 1);
+Goal "xs=ys ==> (!x. x : set ys --> f x = g x) --> map f xs = map g ys";
 by (hyp_subst_tac 1);
 by (induct_tac "ys" 1);
 by Auto_tac;
-val lemma = result();
-bind_thm("map_cong",impI RSN (2,allI RSN (2,lemma RS mp RS mp)));
+bind_thm("map_cong", impI RSN (2,allI RSN (2, result() RS mp)));
 
 Goal "(map f xs = []) = (xs = [])";
 by (induct_tac "xs" 1);
