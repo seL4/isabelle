@@ -8,7 +8,15 @@ Compatibility file for Poly/ML (version 4.0).
 
 (** ML system related **)
 
-open PolyML;
+(* old Poly/ML emulation *)
+
+local
+  val orig_exit = exit;
+in
+  open PolyML;
+  val exit = orig_exit;
+  fun quit () = exit 0;
+end;
 
 
 (* restore old-style character / string functions *)
@@ -43,13 +51,9 @@ fun ml_prompts p1 p2 = (PolyML.Compiler.prompt1 := p1; PolyML.Compiler.prompt2 :
 
 (* toplevel pretty printing (see also Pure/install_pp.ML) *)
 
-fun make_pp path pprint = ();
-fun install_pp _ = ();
-(* FIXME
-fun make_pp _ pprint (str, blk, brk, en) obj =
+fun make_pp _ pprint (str, blk, brk, en) _ _ obj =
   pprint obj (str, fn ind => blk (ind, false), fn wd => brk (wd, 0),
     fn () => brk (99999, 0), en);
-*)
 
 
 (* ML command execution -- 'eval' *)
@@ -90,11 +94,36 @@ end;
 
 
 
-(** interrupts **)      (*Note: may get into race conditions*)
+(** interrupts **)
 
-fun mask_interrupt f x = f x;
-fun unmask_interrupt f x = f x;
-fun exhibit_interrupt f x = f x;
+local
+
+datatype 'a result =
+  Result of 'a |
+  Exn of exn;
+
+fun capture f x = Result (f x) handle exn => Exn exn;
+
+fun release (Result x) = x
+  | release (Exn exn) = raise exn;
+
+
+val sig_int = 2;
+
+fun change_signal new_handler f x =
+  let
+    (*RACE wrt. other signals*)
+    val old_handler = Signal.signal (sig_int, new_handler);
+    val result = capture f x;
+    val _ = Signal.signal (sig_int, old_handler);
+  in release result end;
+
+in
+
+fun mask_interrupt f = change_signal Signal.SIG_IGN f;
+fun exhibit_interrupt f = change_signal Signal.SIG_DFL f;
+
+end;
 
 
 
