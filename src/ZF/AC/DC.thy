@@ -5,7 +5,7 @@
 Theory file for the proofs concernind the Axiom of Dependent Choice
 *)
 
-DC  =  AC_Equiv + Hartog + Cardinal_aux + "DC_lemmas" + 
+DC  =  AC_Equiv + Hartog + Cardinal_aux + DC_lemmas + 
 
 consts
 
