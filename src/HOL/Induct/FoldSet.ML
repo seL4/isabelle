@@ -4,6 +4,7 @@
     Copyright   1998  University of Cambridge
 
 A "fold" functional for finite sets
+use_thy"FS";
 *)
 
 val empty_foldSetE = foldSet.mk_cases [] "({}, x) : foldSet f e";
@@ -30,29 +31,10 @@ by Auto_tac;
 qed "finite_imp_foldSet";
 
 
-Open_locale "ACI"; 
+Open_locale "LC"; 
 
 (*Strip meta-quantifiers: perhaps the locale should do this?*)
-val f_ident   = forall_elim_vars 0 (thm "ident");
-val f_commute = forall_elim_vars 0 (thm "commute");
-val f_assoc   = forall_elim_vars 0 (thm "assoc");
-
-
-Goal "f x (f y z) = f y (f x z)";
-by (rtac (f_commute RS trans) 1);
-by (rtac (f_assoc RS trans) 1);
-by (rtac (f_commute RS arg_cong) 1);
-qed "f_left_commute";
-
-(*Addition is an AC-operator*)
-val f_ac = [f_assoc, f_commute, f_left_commute];
-
-Goal "f e x = x";
-by (stac f_commute 1);
-by (rtac f_ident 1);
-qed "f_left_ident";
-
-Addsimps [f_left_ident, f_ident];
+val f_lcomm = forall_elim_vars 0 (thm "lcomm");
 
 
 Goal "ALL A x. card(A) < n --> (A, x) : foldSet f e --> \
@@ -94,7 +76,7 @@ by (subgoal_tac "(Ab - {xa}, x) : foldSet f e" 1);
  by (Asm_full_simp_tac 2);
 by (subgoal_tac "yb = f xa x" 1);
  by (blast_tac (claset() addDs [Diff_foldSet]) 2);
-by (asm_simp_tac (simpset() addsimps f_ac) 1);
+by (asm_simp_tac (simpset() addsimps [f_lcomm]) 1);
 val lemma = result();
 
 
@@ -130,24 +112,73 @@ by (auto_tac (claset() addIs [finite_imp_foldSet],
 		        addsimps [symmetric fold_def,
 				  fold_equality]));
 qed "fold_insert";
-Addsimps [fold_insert];
+
+Close_locale();
+
+Open_locale "ACe"; 
+
+(*Strip meta-quantifiers: perhaps the locale should do this?*)
+val f_ident   = forall_elim_vars 0 (thm "ident");
+val f_commute = forall_elim_vars 0 (thm "commute");
+val f_assoc   = forall_elim_vars 0 (thm "assoc");
+
+
+Goal "f x (f y z) = f y (f x z)";
+by (rtac (f_commute RS trans) 1);
+by (rtac (f_assoc RS trans) 1);
+by (rtac (f_commute RS arg_cong) 1);
+qed "f_left_commute";
+
+val f_ac = [f_assoc, f_commute, f_left_commute];
+
+Goal "f e x = x";
+by (stac f_commute 1);
+by (rtac f_ident 1);
+qed "f_left_ident";
+
+val f_idents = [f_left_ident, f_ident];
 
 Goal "[| finite A; finite B |] \
 \     ==> f (fold f e A) (fold f e B) =  \
 \         f (fold f e (A Un B)) (fold f e (A Int B))";
 by (etac finite_induct 1);
-by (Simp_tac 1);
-by (asm_simp_tac
-    (simpset() addsimps f_ac @ [insert_absorb, Int_insert_left]) 1);
-by (rtac impI 1);
-by (stac f_commute 1 THEN rtac refl 1);
+by (simp_tac (simpset() addsimps f_idents) 1);
+by (asm_simp_tac (simpset() addsimps f_ac @ f_idents @
+           [export fold_insert,insert_absorb, Int_insert_left]) 1);
 qed "fold_Un_Int";
 
 Goal "[| finite A; finite B; A Int B = {} |] \
 \     ==> fold f e (A Un B) = f (fold f e A) (fold f e B)";
-by (asm_simp_tac (simpset() addsimps [fold_Un_Int]) 1);
+by (asm_simp_tac (simpset() addsimps fold_Un_Int::f_idents) 1);
 qed "fold_Un_disjoint";
-
 
 Close_locale();
 
+
+(*** setsum ***)
+
+Goalw [setsum_def] "setsum f {} = 0";
+by(Simp_tac 1);
+qed "setsum_empty";
+Addsimps [setsum_empty];
+
+Goalw [setsum_def]
+ "[| finite F; a ~: F |] ==> setsum f (insert a F) = f(a) + setsum f F";
+by(asm_simp_tac (simpset() addsimps [export fold_insert]) 1);
+qed "setsum_insert";
+Addsimps [setsum_insert];
+
+Goal "[| finite A; finite B |] ==> A Int B = {} --> \
+\     setsum f (A Un B) = setsum f A + setsum f B";
+by (etac finite_induct 1);
+by(Simp_tac 1);
+by(asm_simp_tac (simpset() addsimps [Int_insert_left]) 1);
+qed_spec_mp "setsum_disj_Un";
+
+Goal "[| finite F |] ==> \
+\     setsum f (F-{a}) = (if a:F then setsum f F - f a else setsum f F)";
+be finite_induct 1;
+by(auto_tac (claset(), simpset() addsimps [insert_Diff_if]));
+by(dres_inst_tac [("a","a")] mk_disjoint_insert 1);
+by(Auto_tac);
+qed_spec_mp "setsum_diff1";
