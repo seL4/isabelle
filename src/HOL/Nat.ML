@@ -52,13 +52,13 @@ by (rtac iffI 1);
  by (etac swap 1);
  by (ALLGOALS Asm_full_simp_tac);
 qed "not_gr0";
-Addsimps [not_gr0];
+AddIffs [not_gr0];
 
-Goal "m<n ==> 0 < n";
+(*Goal "m<n ==> 0 < n";
 by (dtac gr_implies_not0 1);
 by (Asm_full_simp_tac 1);
 qed "gr_implies_gr0";
-Addsimps [gr_implies_gr0];
+Addsimps [gr_implies_gr0];*)
 
 qed_goalw "Least_Suc" thy [Least_nat_def]
  "!!P. [| ? n. P(Suc n); ~ P 0 |] ==> (LEAST n. P n) = Suc (LEAST m. P(Suc m))"

@@ -144,3 +144,9 @@ qed "linorder_neq_iff";
 
 (*** eliminates ~= in premises ***)
 bind_thm("linorder_neqE", linorder_neq_iff RS iffD1 RS disjE);
+
+Goal "!!x::'a::linorder. (~ x < y) = (y <= x)";
+by (simp_tac (simpset() addsimps [order_less_le]) 1);
+by (cut_facts_tac [linorder_linear] 1);
+by (blast_tac (claset() addIs [order_antisym]) 1);
+qed "linorder_not_less";

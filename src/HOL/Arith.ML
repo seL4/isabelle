@@ -852,6 +852,7 @@ val conjI = conjI;
 val neqE = linorder_neqE;
 val notI = notI;
 val sym = sym;
+val not_lessD = linorder_not_less RS iffD1;
 
 val mk_Eq = mk_eq;
 val mk_Trueprop = HOLogic.mk_Trueprop;
@@ -870,7 +871,6 @@ struct
 
 val lessD = Suc_leI;
 val not_leD = not_leE RS Suc_leI;
-val not_lessD = leI;
 
 (* Turn term into list of summand * multiplicity plus a constant *)
 fun poly(Const("Suc",_)$t, (p,i)) = poly(t, (p,i+1))

@@ -280,10 +280,10 @@ by (EVERY1 [rtac iffI, etac Suc_less_SucD, etac Suc_mono]);
 qed "Suc_less_eq";
 Addsimps [Suc_less_eq];
 
-Goal "~(Suc(n) < n)";
+(*Goal "~(Suc(n) < n)";
 by (blast_tac (claset() addEs [Suc_lessD RS less_irrefl]) 1);
 qed "not_Suc_n_less_n";
-(*Addsimps [not_Suc_n_less_n];*)
+Addsimps [not_Suc_n_less_n];*)
 
 Goal "i<j ==> j<k --> Suc i < k";
 by (nat_ind_tac "k" 1);
@@ -385,7 +385,7 @@ by (blast_tac (claset() addDs [Suc_lessD]) 1);
 qed "le_SucI";
 Addsimps[le_SucI];
 
-bind_thm ("le_Suc", not_Suc_n_less_n RS leI);
+(*bind_thm ("le_Suc", not_Suc_n_less_n RS leI);*)
 
 Goalw [le_def] "m < n ==> m <= (n::nat)";
 by (blast_tac (claset() addEs [less_asym]) 1);
@@ -472,32 +472,6 @@ qed "not_less_less_Suc_eq";
 (*Rewrite (n < Suc m) to (n=m) if  ~ n<m or m<=n hold.
   Not suitable as default simprules because they often lead to looping*)
 val not_less_simps = [not_less_less_Suc_eq, leD RS not_less_less_Suc_eq];
-
-(** max
-
-Goalw [max_def] "!!z::nat. (z <= max x y) = (z <= x | z <= y)";
-by (simp_tac (simpset() addsimps [not_le_iff_less]) 1);
-by (blast_tac (claset() addIs [less_imp_le, le_trans]) 1);
-qed "le_max_iff_disj";
-
-Goalw [max_def] "!!z::nat. (max x y <= z) = (x <= z & y <= z)";
-by (simp_tac (simpset() addsimps [not_le_iff_less]) 1);
-by (blast_tac (claset() addIs [less_imp_le, le_trans]) 1);
-qed "max_le_iff_conj";
-
-
-(** min **)
-
-Goalw [min_def] "!!z::nat. (z <= min x y) = (z <= x & z <= y)";
-by (simp_tac (simpset() addsimps [not_le_iff_less]) 1);
-by (blast_tac (claset() addIs [less_imp_le, le_trans]) 1);
-qed "le_min_iff_conj";
-
-Goalw [min_def] "!!z::nat. (min x y <= z) = (x <= z | y <= z)";
-by (simp_tac (simpset() addsimps [not_le_iff_less] addsplits) 1);
-by (blast_tac (claset() addIs [less_imp_le, le_trans]) 1);
-qed "min_le_iff_disj";
- **)
 
 (** LEAST -- the least number operator **)
 

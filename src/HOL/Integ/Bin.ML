@@ -404,7 +404,6 @@ struct
 
 val lessD = add1_zle_eq RS iffD2;
 val not_leD = not_zleE RS lessD;
-val not_lessD = zleI;
 
 val intT = Type("IntDef.int",[]);
 
