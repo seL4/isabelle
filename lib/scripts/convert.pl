@@ -26,6 +26,7 @@ sub subst_RS {
   s/([\w\'\.]+) RS ([\w\'\.]+) RS ([\w\'\.]+)/$1 \[THEN $2, THEN $3\]/g;
   s/\(([\w\'\.]+) RS ([\w\'\.]+)\)/$1 \[THEN $2\]/g;
   s/([\w\'\.]+) RS ([\w\'\.]+)/$1 \[THEN $2\]/g;
+  s/THEN sym\b/symmetric$1/g;
 }
 
 sub subst_RS_fun {
@@ -99,61 +100,57 @@ sub process_tac {
   s/ALLGOALS \(asm_simp_tac \(simpset\(\) (.*?)\)\)/simp_all (no_asm_simp) $1/g;
   s/ALLGOALS \(simp_tac \(simpset\(\) (.*?)\)\)/simp_all (no_asm) $1/g;
 
-  s/atac 1/assumption/g;
-  s/atac (\d+)/tactic \"assume_tac $1\"/g;
-  s/^mp_tac 1/erule (1) notE impE/g;
-  s/^mp_tac (\d+)/erule_tac [$1] notE impE, tactic \"assume_tac $1\"/g;
+  s/a((ssume_)?)tac 1/assumption/g;
+  s/a((ssume_)?)tac (\d+)/tactic \"assume_tac $1\"/g;
+  s/\bmp_tac 1/erule (1) notE impE/g;
+  s/\bmp_tac (\d+)/erule_tac [$1] notE impE, tactic \"assume_tac $1\"/g;
 
   s/hypsubst_tac 1/hypsubst/g;
   s/arith_tac 1/arith/g;
   s/strip_tac 1/intro strip/g;
   s/split_all_tac 1/simp (no_asm_simp) only: split_tupled_all/g;
 
-  s/rotate_tac (\d+) 1/rotate_tac $1/g;
   s/rotate_tac (\d+) (\d+)/rotate_tac [$2] $1/g;
-  s/rotate_tac (~\d+) 1/rotate_tac -$1/g;
-  s/rotate_tac (~\d+) (\d+)/rotate_tac [$2] -$1/g;
-  s/rename_tac (\".*?\") 1/rename_tac $1/g;
+  s/rotate_tac ~ *(\d+) (\d+)/rotate_tac [$2] -$1/g;
   s/rename_tac (\".*?\") (\d+)/rename_tac [$2] $1/g;
-  s/case_tac (\".*?\") 1/case_tac $1/g;
   s/case_tac (\".*?\") (\d+)/case_tac [$2] $1/g;
-  s/induct_tac (\".*?\") 1/induct_tac $1/g;
   s/induct_tac (\".*?\") (\d+)/induct_tac [$2] $1/g;
-  s/induct_thm_tac ([\w\'\. \[,\]]+?) (\".*?\") 1/induct_tac $2 rule: $1/g;
   s/induct_thm_tac ([\w\'\. \[,\]]+?) (\".*?\") (\d+)/induct_tac [$3] $2 rule: $1/g;
-  s/subgoal_tac (\".*?\") 1/subgoal_tac $1/g;
   s/subgoal_tac (\".*?\") (\d+)/subgoal_tac [$2] $1/g;
-  s/thin_tac (\".*?\") *1/erule_tac V = $1 in thin_rl/g;
   s/thin_tac (\".*?\") *(\d+)/erule_tac [$2] V = $1 in thin_rl/g;
 
   s/THEN /, /g;
   s/ORELSE/|/g;
   subst_RS();
 
+  s/\(\"(.*?)\" *, *(\".*?\")\) *, */$1 = $2 and /g; # instantiations
+  s/\(\"(.*?)\" *, *(\".*?\")\)/$1 = $2/g;       # last instantiation
+
   s/rewtac ([\w\'\. \[,\]]+)/unfold $1/g;
   s/stac ([\w\'\. \[,\]]+?) 1/subst $1/g;
   s/rtac ([\w\'\. \[,\]]+?) 1/rule $1/g;
   s/rtac ([\w\'\. \[,\]]+?) (\d+)/rule_tac [$2] $1/g;
-  s/res_inst_tac \[\((\".*?\"),(\".*?\")\)\] ([\w\'\. \[,\]]+?) 1/rule_tac $1 = $2 in $3/g;
+  s/res_inst_tac \[(.*?)\] ([\w\'\. \[,\]]+?) (\d+)/rule_tac [$3] $1 in $2/g;
   s/dtac ([\w\'\. \[,\]]+?) 1/drule $1/g;
   s/dtac ([\w\'\. \[,\]]+?) (\d+)/drule_tac [$2] $1/g;
-  s/dres_inst_tac \[\((\".*?\"),(\".*?\")\)\] ([\w\'\. \[,\]]+?) 1/drule_tac $1 = $2 in $3/g;
+  s/dres_inst_tac \[(.*?)\] ([\w\'\. \[,\]]+?) (\d+)/drule_tac [$3] $1 in $2/g;
   s/datac ([\w\'\. \[,\]]+?) (\d+) 1/drule ($2) $1/g;
   s/etac ([\w\'\. \[,\]]+?) 1/erule $1/g;
   s/etac ([\w\'\. \[,\]]+?) (\d+)/erule_tac [$2] $1/g;
-  s/eres_inst_tac \[\((\".*?\"),(\".*?\")\)\] ([\w\'\. \[,\]]+?) 1/erule_tac $1 = $2 in $3/g;
+  s/eres_inst_tac \[(.*?)\] ([\w\'\. \[,\]]+?) (\d+)/erule_tac [$3] $1 in $2/g;
   s/eatac ([\w\'\. \[,\]]+?) (\d+) 1/erule ($2) $1/g;
   s/forward_tac \[([\w\'\. \[,\]]+)\] 1/frule $1/g;
   s/forward_tac \[([\w\'\. \[,\]]+)\] (\d+)/frule_tac [$2] $1/g;
   s/ftac ([\w\'\. \[,\]]+?) 1/frule $1/g;
   s/ftac ([\w\'\. \[,\]]+?) (\d+)/frule_tac [$2] $1/g;
-  s/forw_inst_tac \[\((\".*?\"),(\".*?\")\)\] ([\w\'\. \[,\]]+?) 1/frule_tac $1 = $2 in $3/g;
+  s/forw_inst_tac \[(.*?)\] ([\w\'\. \[,\]]+?) (\d+)/frule_tac [$3] $1 in $2/g;
   s/fatac ([\w\'\. \[,\]]+?) (\d+) 1/frule ($2) $1/g;
 
 
   s/fold_goals_tac *(\[[\w\'\. ,]*\]|[\w\'\. \[,\]]+)/"fold ".thmlist($1)/eg;
   s/rewrite_goals_tac *(\[[\w\'\. ,]*\]|[\w\'\. \[,\]]+)/"unfold ".thmlist($1)/eg;
-  s/cut_facts_tac *(\[[\w\'\. ,]*\]|[\w\'\. \[,\]]+) 1/"cut_tac ".thmlist($1)/eg;
+  s/cut_inst_tac \[(.*?)\] ([\w\'\. \[,\]]+?) (\d+)/cut_tac [$3] $1 in $2/g;
+  s/cut_facts_tac *(\[[\w\'\. ,]*\]|[\w\'\. \[,\]]+) (\d+)/"cut_tac [$2] ".thmlist($1)/eg;
   s/resolve_tac *(\[[\w\'\. ,]*\]|[\w\'\. \[,\]]+) 1/"rule ".thmlist($1)/eg;
 
   s/addIs *(\[[\w\'\. ,]*\]|[\w\'\. \[,\]]+)/"intro: ".thmlist($1)/eg;
@@ -170,6 +167,7 @@ sub process_tac {
   s/addsplits *(\[[\w\'\. ,]*\]|[\w\'\. \[,\]]+)/"split add: ".thmlist($1)/eg;
   s/delsplits *(\[[\w\'\. ,]*\]|[\w\'\. \[,\]]+)/"split del: ".thmlist($1)/eg;
 
+  s/_tac \[1\]/_tac/g;
   s/ +/ /g;                       # remove multiple whitespace
   s/\( /\(/; s/ \)/\)/g;  # remove leading and trailing space inside parentheses
   s/^ *(.*?) *$/$1/s;             # remove enclosing whitespace
@@ -189,7 +187,7 @@ sub backpatch_thmnames {
       s/@@(\d+)@@/$thmnames[$1]/eg;
       print TMPW $_;
     }
-    system("mv $currfile $currfile~0~");
+    system("mv $currfile $currfile~0~") if($currfile ne $default);
     system("rm $tmpfile");
   }
 }
@@ -203,10 +201,11 @@ sub done {
 
 $currfile = "";
 $next = "nonempty";
+$default = "convert_default_stdout";
 while (<>) { # main loop
   if ($ARGV ne $currfile) {
     $x=$_; backpatch_thmnames; $_=$x;
-    $currfile = $ARGV;
+    $currfile = ($ARGV eq "-" ? $default : $ARGV);
     $thmcount=0;
     $finalfile = "$currfile.thy";
     $tmpfile   = "$finalfile.~0~";
@@ -238,9 +237,11 @@ while (<>) { # main loop
   s/^Goalw *(\[[\w\'\.\s,]*\]|[\w\'\. \[,\]]+) *(.+)/
     "lemma ".thmname().": $2$head"."apply (unfold ".thmlist($1).")"/se;
   s/^Goal *(.+)/"lemma ".thmname().": $1"/se;
-  s/( |^)goal/"(*".thmname()."*)$1goal"/se; # ugly old-style goals
+  s/\bgoal/"(*".thmname()."*)goal"/se; # ugly old-style goals
   s/^qed_spec_mp *\"(.*?)\"/done($1," [rule_format (no_asm)]")/se;
   s/^qed *\"(.*?)\"/done($1,"")/se;
+  s/^val *(\w+) *= *result *\( *\) *$/done($1,"")/se;
+  s/^bind_thm *\( *\"(.*?)\" *, *(result *\( *\) *?) *\) *$/done($1,"")/se;
   s/^bind_thm *\( *\"(.*?)\" *, *(.*?result *\( *\).*?) *\) *$/done($1,"[?? $2 ??] ")/se;
   s/^bind_thm *\( *\"(.*?)\" *, *(.*?) *\) *$/"lemmas $1 = ".subst_RS_fun($2)/se;
   s/^by(\s*\(?\s*)(.*?)\s*(\)?)\s*$/"apply".$1.process_tac($1,$2).$3/se;
