@@ -1031,18 +1031,18 @@ fun biresolution match brules i state =
 type rrule = {thm:thm, lhs:term, perm:bool};
 type cong = {thm:thm, lhs:term};
 datatype meta_simpset =
-  Mss of {net:rrule Net.net, congs:(string * cong)list, primes:string,
+  Mss of {net:rrule Net.net, congs:(string * cong)list, bounds:string list,
           prems: thm list, mk_rews: thm -> thm list};
 
 (*A "mss" contains data needed during conversion:
   net: discrimination net of rewrite rules
   congs: association list of congruence rules
-  primes: offset for generating unique new names
-          for rewriting under lambda abstractions
+  bounds: names of bound variables already used;
+          for generating new names when rewriting under lambda abstractions
   mk_rews: used when local assumptions are added
 *)
 
-val empty_mss = Mss{net= Net.empty, congs= [], primes="", prems= [],
+val empty_mss = Mss{net= Net.empty, congs= [], bounds=[], prems= [],
                     mk_rews = K[]};
 
 exception SIMPLIFIER of string * thm;
@@ -1082,7 +1082,7 @@ local
         {thm=Thm{prop=p2,...},...}:rrule) = p1 aconv p2
 in
 
-fun add_simp(mss as Mss{net,congs,primes,prems,mk_rews},
+fun add_simp(mss as Mss{net,congs,bounds,prems,mk_rews},
              thm as Thm{sign,prop,...}) =
   case mk_rrule thm of
     None => mss
@@ -1092,9 +1092,9 @@ fun add_simp(mss as Mss{net,congs,primes,prems,mk_rews},
                  handle Net.INSERT =>
                   (prtm "Warning: ignoring duplicate rewrite rule" sign prop;
                    net)),
-           congs=congs, primes=primes, prems=prems,mk_rews=mk_rews});
+           congs=congs, bounds=bounds, prems=prems,mk_rews=mk_rews});
 
-fun del_simp(mss as Mss{net,congs,primes,prems,mk_rews},
+fun del_simp(mss as Mss{net,congs,bounds,prems,mk_rews},
              thm as Thm{sign,prop,...}) =
   case mk_rrule thm of
     None => mss
@@ -1103,7 +1103,7 @@ fun del_simp(mss as Mss{net,congs,primes,prems,mk_rews},
                 handle Net.INSERT =>
                  (prtm "Warning: rewrite rule not in simpset" sign prop;
                   net)),
-             congs=congs, primes=primes, prems=prems,mk_rews=mk_rews}
+             congs=congs, bounds=bounds, prems=prems,mk_rews=mk_rews}
 
 end;
 
@@ -1112,25 +1112,25 @@ val del_simps = foldl del_simp;
 
 fun mss_of thms = add_simps(empty_mss,thms);
 
-fun add_cong(Mss{net,congs,primes,prems,mk_rews},thm) =
+fun add_cong(Mss{net,congs,bounds,prems,mk_rews},thm) =
   let val (lhs,_) = Logic.dest_equals(concl_of thm) handle TERM _ =>
                     raise SIMPLIFIER("Congruence not a meta-equality",thm)
       val lhs = Pattern.eta_contract lhs
       val (a,_) = dest_Const (head_of lhs) handle TERM _ =>
                   raise SIMPLIFIER("Congruence must start with a constant",thm)
-  in Mss{net=net, congs=(a,{lhs=lhs,thm=thm})::congs, primes=primes,
+  in Mss{net=net, congs=(a,{lhs=lhs,thm=thm})::congs, bounds=bounds,
          prems=prems, mk_rews=mk_rews}
   end;
 
 val (op add_congs) = foldl add_cong;
 
-fun add_prems(Mss{net,congs,primes,prems,mk_rews},thms) =
-  Mss{net=net, congs=congs, primes=primes, prems=thms@prems, mk_rews=mk_rews};
+fun add_prems(Mss{net,congs,bounds,prems,mk_rews},thms) =
+  Mss{net=net, congs=congs, bounds=bounds, prems=thms@prems, mk_rews=mk_rews};
 
 fun prems_of_mss(Mss{prems,...}) = prems;
 
-fun set_mk_rews(Mss{net,congs,primes,prems,...},mk_rews) =
-  Mss{net=net, congs=congs, primes=primes, prems=prems, mk_rews=mk_rews};
+fun set_mk_rews(Mss{net,congs,bounds,prems,...},mk_rews) =
+  Mss{net=net, congs=congs, bounds=bounds, prems=prems, mk_rews=mk_rews};
 fun mk_rews_of_mss(Mss{mk_rews,...}) = mk_rews;
 
 
@@ -1245,33 +1245,59 @@ fun congc (prover,signt) {thm=cong,lhs=lhs} (hypst,t) =
   in case prover thm' of
        None => err()
      | Some(thm2) => (case check_conv(thm2,prop') of
-                        None => err() | Some(x) => x)
+                        None => err() | some => some)
   end;
 
 
-fun bottomc ((simprem,useprem),prover,sign) =
-  let fun botc mss trec = let val trec1 = subc mss trec
-                          in case rewritec (prover,sign) mss trec1 of
-                               None => trec1
-                             | Some(trec2) => botc mss trec2
-                          end
 
-      and subc (mss as Mss{net,congs,primes,prems,mk_rews})
+fun bottomc ((simprem,useprem),prover,sign) =
+  let fun botc fail mss trec =
+            (case subc mss trec of
+               some as Some(trec1) =>
+                 (case rewritec (prover,sign) mss trec1 of
+                    Some(trec2) => botc false mss trec2
+                  | None => some)
+             | None =>
+                 (case rewritec (prover,sign) mss trec of
+                    Some(trec2) => botc false mss trec2
+                  | None => if fail then None else Some(trec)))
+
+      and try_botc mss trec = (case botc true mss trec of
+                                 Some(trec1) => trec1
+                               | None => trec)
+
+      and subc (mss as Mss{net,congs,bounds,prems,mk_rews})
                (trec as (hyps,t)) =
         (case t of
             Abs(a,T,t) =>
-              let val v = Free(".subc." ^ primes,T)
-                  val mss' = Mss{net=net, congs=congs, primes=primes^"'",
+              let val b = variant bounds a
+                  val v = Free("." ^ b,T)
+                  val mss' = Mss{net=net, congs=congs, bounds=b::bounds,
                                  prems=prems,mk_rews=mk_rews}
-                  val (hyps',t') = botc mss' (hyps,subst_bounds([v],t))
-              in  (hyps', Abs(a, T, abstract_over(v,t')))  end
+              in case botc true mss' (hyps,subst_bounds([v],t)) of
+                   Some(hyps',t') =>
+                     Some(hyps', Abs(a, T, abstract_over(v,t')))
+                 | None => None
+              end
           | t$u => (case t of
-              Const("==>",_)$s  => impc(hyps,s,u,mss)
-            | Abs(_,_,body)     => subc mss (hyps,subst_bounds([u], body))
-            | _                 =>
-                let fun appc() = let val (hyps1,t1) = botc mss (hyps,t)
-                                     val (hyps2,u1) = botc mss (hyps1,u)
-                                 in (hyps2,t1$u1) end
+              Const("==>",_)$s  => Some(impc(hyps,s,u,mss))
+            | Abs(_,_,body) =>
+                let val trec = (hyps,subst_bounds([u], body))
+                in case subc mss trec of
+                     None => Some(trec)
+                   | trec => trec
+                end
+            | _  =>
+                let fun appc() =
+                          (case botc true mss (hyps,t) of
+                             Some(hyps1,t1) =>
+                               (case botc true mss (hyps1,u) of
+                                  Some(hyps2,u1) => Some(hyps2,t1$u1)
+                                | None => Some(hyps1,t1$u))
+                           | None =>
+                               (case botc true mss (hyps,u) of
+                                  Some(hyps1,u1) => Some(hyps1,t$u1)
+                                | None => None))
                     val (h,ts) = strip_comb t
                 in case h of
                      Const(a,_) =>
@@ -1280,19 +1306,20 @@ fun bottomc ((simprem,useprem),prover,sign) =
                         | Some(cong) => congc (prover mss,sign) cong trec)
                    | _ => appc()
                 end)
-          | _ => trec)
+          | _ => None)
 
       and impc(hyps,s,u,mss as Mss{mk_rews,...}) =
-        let val (hyps1,s') = if simprem then botc mss (hyps,s) else (hyps,s)
-            val mss' =
-              if not useprem orelse maxidx_of_term s' <> ~1 then mss
-              else let val thm = Thm{sign=sign,hyps=[s'],prop=s',maxidx= ~1}
+        let val (hyps1,s1) = if simprem then try_botc mss (hyps,s)
+                             else (hyps,s)
+            val mss1 =
+              if not useprem orelse maxidx_of_term s1 <> ~1 then mss
+              else let val thm = Thm{sign=sign,hyps=[s1],prop=s1,maxidx= ~1}
                    in add_simps(add_prems(mss,[thm]), mk_rews thm) end
-            val (hyps2,u') = botc mss' (hyps1,u)
-            val hyps2' = if s' mem hyps1 then hyps2 else hyps2\s'
-        in (hyps2', Logic.mk_implies(s',u')) end
+            val (hyps2,u1) = try_botc mss1 (hyps1,u)
+            val hyps3 = if s1 mem hyps1 then hyps2 else hyps2\s1
+        in (hyps3, Logic.mk_implies(s1,u1)) end
 
-  in botc end;
+  in try_botc end;
 
 
 (*** Meta-rewriting: rewrites t to u and returns the theorem t==u ***)
@@ -1302,7 +1329,7 @@ fun bottomc ((simprem,useprem),prover,sign) =
    prover: how to solve premises in conditional rewrites and congruences
 *)
 
-(*** FIXME: check that #primes(mss) does not "occur" in ct alread ***)
+(*** FIXME: check that #bounds(mss) does not "occur" in ct alread ***)
 fun rewrite_cterm mode mss prover ct =
   let val {sign, t, T, maxidx} = rep_cterm ct;
       val (hyps,u) = bottomc (mode,prover,sign) mss ([],t);
