@@ -213,11 +213,11 @@ fun xprod_to_fmt (XProd (_, _, "", _)) = None
           (if is_terminal s then max_pri else p);
 
         fun xsyms_to_syms (Delim s :: xsyms) =
-              apfst (cons_str s) (xsyms_to_syms xsyms)
+              apfst (cons_str (Symbol.output s)) (xsyms_to_syms xsyms)
           | xsyms_to_syms (Argument s_p :: xsyms) =
               apfst (cons (arg s_p)) (xsyms_to_syms xsyms)
           | xsyms_to_syms (Space s :: xsyms) =
-              apfst (cons_str s) (xsyms_to_syms xsyms)
+              apfst (cons_str (Symbol.output s)) (xsyms_to_syms xsyms)
           | xsyms_to_syms (Bg i :: xsyms) =
               let
                 val (bsyms, xsyms') = xsyms_to_syms xsyms;
