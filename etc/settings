@@ -43,11 +43,11 @@ LM_LICENSE_FILE=$ML_HOME/license.dat
 ###
 
 # Should be 'true' or 'false':
-ISABELLE_HTML=true
+ISABELLE_HTML=false
 
 
 ###
-### Misc path settings
+### Misc path settings etc.
 ###
 
 # The place for user configuration, heap files, etc.
@@ -65,6 +65,11 @@ ISABELLE_DOCS=$ISABELLE_HOME/doc
 #DVI_VIEWER="xdvi -geometry 498x704 -expert -s 5"
 #DVI_VIEWER="xdvi -geometry 500x704 -expert -s 10"
 DVI_VIEWER="xdvi -geometry 555x782 -expert -s 9"
+
+
+# How to install the isabelle X11 fonts
+ISABELLE_INSTALLFONTS="xset fp+ $ISABELLE_HOME/lib/fonts; xset fp rehash"
+#ISABELLE_INSTALLFONTS="xset fp+ tcp/font-serv:7100"
 
 
 ###
