@@ -43,13 +43,15 @@ sig
   val try: ('a -> 'b) -> 'a -> 'b
   val force: ('a -> 'b) -> 'a -> 'b
   val prompt: string -> ('a -> 'b) -> 'a -> 'b
-  val finite': ''a -> ('b * ''a list -> 'c * ('d * ''a list))
-    -> 'b * ''a list -> 'c * ('d * ''a list)
-  val finite: ''a -> (''a list -> 'b * ''a list) -> ''a list -> 'b * ''a list
+  val finite': 'a * ('a -> bool) -> ('b * 'a list -> 'c * ('d * 'a list))
+    -> 'b * 'a list -> 'c * ('d * 'a list)
+  val finite: 'a * ('a -> bool) -> ('a list -> 'b * 'a list) -> 'a list -> 'b * 'a list
   val error: ('a -> 'b) -> 'a -> 'b
   val source: string -> (string -> 'a -> 'b list * 'a) ->
-    ('c * 'a -> 'd) -> ('e * 'b list -> 'f * ('g * 'c)) -> 'e * 'a -> 'f * ('g * 'd)
-  val bulk: bool -> ('a -> 'b * 'a) -> 'a -> 'b list * 'a
+    ('b list * 'a -> 'c) -> 'b * ('b -> bool) -> ('d * 'b list -> 'e list * ('d * 'b list)) ->
+      'd * 'a -> 'e list * ('d * 'c)
+  val single: ('a -> 'b * 'a) -> 'a -> 'b list * 'a
+  val bulk: ('a -> 'b * 'a) -> 'a -> 'b list * 'a
   type lexicon
   val dest_lexicon: lexicon -> string list list
   val make_lexicon: string list list -> lexicon
@@ -76,7 +78,7 @@ fun (scan >> f) xs = apfst f (scan xs);
 
 fun (scan1 || scan2) xs = scan1 xs handle FAIL _ => scan2 xs;
 
-(*dependent pair*)
+(*dependent pairing*)
 fun (scan1 :-- scan2) xs =
   let
     val (x, ys) = scan1 xs;
@@ -86,7 +88,6 @@ fun (scan1 :-- scan2) xs =
 fun (scan1 -- scan2) = scan1 :-- (fn _ => scan2);
 fun (scan1 |-- scan2) = scan1 -- scan2 >> #2;
 fun (scan1 --| scan2) = scan1 -- scan2 >> #1;
-
 fun (scan1 ^^ scan2) = scan1 -- scan2 >> op ^;
 
 
@@ -154,16 +155,16 @@ fun error scan xs = scan xs handle ABORT msg => Library.error msg;
 
 (* finite scans *)
 
-fun finite' stopper scan (state, input) =
+fun finite' (stopper, is_stopper) scan (state, input) =
   let
     fun lost () = raise ABORT "Scanner bug: lost stopper of finite scan!";
 
     fun stop [] = lost ()
       | stop lst =
           let val (xs, x) = split_last lst
-          in if x = stopper then ((), xs) else lost () end;
+          in if is_stopper x then ((), xs) else lost () end;
   in
-    if exists (equal stopper) input then
+    if exists is_stopper input then
       raise ABORT "Stopper may not occur in input of finite scan!"
     else (force scan --| lift stop) (state, input @ [stopper])
   end;
@@ -175,21 +176,24 @@ fun finite stopper scan xs =
 
 (* infinite scans -- draining state-based source *)
 
-fun source def_prmpt get unget scan (state, src) =
+fun source def_prmpt get unget stopper scan (state, src) =
   let
     fun drain (xs, s) =
-      (scan (state, xs), s)
-        handle MORE prmpt =>
-          let val (xs', s') = get (if_none prmpt def_prmpt) s in
-            if null xs' then raise ABORT "Input source exhausted"
-            else drain (xs @ xs', s')
-          end;
-    val ((ys, (state', rest)), src') = drain (get def_prmpt src);
-  in (ys, (state', unget (rest, src'))) end;
+      (scan (state, xs), s) handle MORE prmpt =>
+        (case get (if_none prmpt def_prmpt) s of
+          ([], _) => (finite' stopper scan (state, xs), s)
+        | (xs', s') => drain (xs @ xs', s'));
+
+    val ((ys, (state', rest)), src') =
+      (case get def_prmpt src of
+        ([], s) => (([], (state, [])), s)
+      | xs_s => drain xs_s);
+  in
+    (ys, (state', unget (rest, src')))
+  end;
 
 fun single scan = scan >> (fn x => [x]);
-fun many scan = scan -- repeat (try scan) >> (op ::);
-fun bulk do_many = if do_many then many else single;
+fun bulk scan = scan -- repeat (try scan) >> (op ::);
 
 
 
