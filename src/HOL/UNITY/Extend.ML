@@ -119,8 +119,7 @@ qed "h_inject1";
 AddDs [h_inject1];
 
 Goal "h(f z, g z) = z";
-by (simp_tac (simpset() addsimps [f_def, g_def, surjective_pairing RS sym,
-				  surj_h RS surj_f_inv_f]) 1);
+by (simp_tac (simpset() addsimps [f_def, g_def, surj_h RS surj_f_inv_f]) 1);
 qed "h_f_g_eq";
 
 

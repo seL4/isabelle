@@ -67,6 +67,7 @@ Goal "p = (fst(p),snd(p))";
 by (pair_tac "p" 1);
 by (Asm_simp_tac 1);
 qed "surjective_pairing";
+Addsimps [surjective_pairing RS sym];
 
 Goal "? x y. z = (x, y)";
 by (rtac exI 1);

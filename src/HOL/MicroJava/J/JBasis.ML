@@ -40,7 +40,6 @@ val BallE = prove_goal thy "\\<lbrakk>Ball A P; x \\<notin> A \\<Longrightarrow>
 val set_cs2 = set_cs delrules [ballE] addSEs [BallE];
 
 Addsimps [Let_def];
-Addsimps [surjective_pairing RS sym];
 
 (* To HOL.ML *)
 

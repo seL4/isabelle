@@ -35,12 +35,10 @@ qed "prod_assoc";
 
 Goalw [times_prod_def, one_prod_def] "1 * x = (x::'a::monoid*'b::monoid)";
 by (simp_tac (prod_ss addsimps [Monoid.left_unit]) 1);
-by (rtac (surjective_pairing RS sym) 1);
 qed "prod_left_unit";
 
 Goalw [times_prod_def, one_prod_def] "x * 1 = (x::'a::monoid*'b::monoid)";
 by (simp_tac (prod_ss addsimps [Monoid.right_unit]) 1);
-by (rtac (surjective_pairing RS sym) 1);
 qed "prod_right_unit";
 
 Goalw [times_prod_def, inverse_prod_def, one_prod_def]
