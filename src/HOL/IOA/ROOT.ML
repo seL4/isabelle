@@ -7,16 +7,31 @@ This is the ROOT file for the theory of I/O-Automata.
 The formalization is by a semantic model of I/O-Automata.
 For details see
 
-@unpublished{Nipkow-Slind-IOA,
+@inproceedings{Nipkow-Slind-IOA,
 author={Tobias Nipkow and Konrad Slind},
 title={{I/O} Automata in {Isabelle/HOL}},
-year=1994,
-note={Submitted for publication}}
+booktitle={Proc.\ TYPES Workshop 1994},
+publisher=Springer,
+series=LNCS,
+note={To appear}}
 ftp://ftp.informatik.tu-muenchen.de/local/lehrstuhl/nipkow/ioa.ps.gz
+
+and
+
+@inproceedings{Mueller-Nipkow,
+author={Olaf M\"uller and Tobias Nipkow},
+title={Combining Model Checking and Deduction for {I/O}-Automata},
+booktitle={Proc.\ TACAS Workshop},
+organization={Aarhus University, BRICS report},
+year=1995}
+ftp://ftp.informatik.tu-muenchen.de/local/lehrstuhl/nipkow/tacas.dvi.gz
 
 Should be executed in the subdirectory HOL.
 *)
 goals_limit := 1;
 
-loadpath := "IOA/meta_theory" :: "IOA/example" :: !loadpath;
+loadpath := ["IOA/meta_theory","IOA/NTP"];
+use_thy "Correctness";
+
+loadpath := ["IOA/meta_theory","IOA/ABP"];
 use_thy "Correctness";
