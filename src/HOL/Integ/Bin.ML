@@ -267,6 +267,10 @@ qed "zmult_2_right";
 
 (** Inequality reasoning **)
 
+Goal "(m*n = (#0::int)) = (m = #0 | n = #0)";
+by (stac (int_0 RS sym) 1 THEN rtac zmult_eq_int0_iff 1);
+qed "zmult_eq_0_iff";
+
 Goal "(w < z + (#1::int)) = (w<z | w=z)";
 by (simp_tac (simpset() addsimps [zless_add_int_Suc_eq]) 1);
 qed "zless_add1_eq";
@@ -280,7 +284,7 @@ Goal "neg x = (x < #0)";
 by (simp_tac (simpset() addsimps [neg_eq_less_int0]) 1); 
 qed "neg_eq_less_0"; 
 
-Goal "(~neg x) = (int 0 <= x)";
+Goal "(~neg x) = (#0 <= x)";
 by (simp_tac (simpset() addsimps [not_neg_eq_ge_int0]) 1); 
 qed "not_neg_eq_ge_0"; 
 
