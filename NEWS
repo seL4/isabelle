@@ -221,6 +221,9 @@ New in this Isabelle release
   Function 'Summation' over nat is gone, its syntax '\<Sum>i<k. e'
   now translates into 'setsum' as above.
 
+* HOL: Finite set induction: In Isar proofs, the insert case is now
+  "case (insert x F)" instead of the old counterintuitive "case (insert F x)".
+
 * HOL/Simplifier:
 
   - Is now set up to reason about transitivity chains involving "trancl"
