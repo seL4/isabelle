@@ -28,10 +28,9 @@ arities
 (* substitutions *)
 
 (* identity *)
-consts
+constdefs
         id_subst :: subst
-defs
-        id_subst_def "id_subst == (%n.TVar n)"
+        "id_subst == (%n.TVar n)"
 
 (* extension of substitution to type structures *)
 consts
@@ -54,16 +53,14 @@ rules
         free_tv_Cons    "free_tv (x#l) = (free_tv x) Un (free_tv l)"
 
 (* domain of a substitution *)
-consts
+constdefs
         dom :: subst => nat set
-defs
-        dom_def         "dom s == {n. s n ~= TVar n}" 
+        "dom s == {n. s n ~= TVar n}" 
 
 (* codomain of a substitutions: the introduced variables *)
-consts
+constdefs
      cod :: subst => nat set
-defs
-        cod_def         "cod s == (UN m:dom s. free_tv (s m))"
+     "cod s == (UN m:dom s. free_tv (s m))"
 
 defs
         free_tv_subst   "free_tv s == (dom s) Un (cod s)"
@@ -71,10 +68,9 @@ defs
 (* new_tv s n computes whether n is a new type variable w.r.t. a type 
    structure s, i.e. whether n is greater than any type variable 
    occuring in the type structure *)
-consts
+constdefs
         new_tv :: [nat,'a::type_struct] => bool
-defs
-        new_tv_def      "new_tv n ts == ! m. m:free_tv ts --> m<n"
+        "new_tv n ts == ! m. m:free_tv ts --> m<n"
 
 (* unification algorithm mgu *)
 consts
