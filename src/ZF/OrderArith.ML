@@ -204,6 +204,28 @@ qed "rvimage_type";
 
 bind_thm ("field_rvimage", (rvimage_type RS field_rel_subset));
 
+goalw OrderArith.thy [rvimage_def] 
+    "rvimage(A,f, converse(r)) = converse(rvimage(A,f,r))";
+by (fast_tac eq_cs 1);
+qed "rvimage_converse";
+
+
+(** Partial Ordering Properties **)
+
+goalw OrderArith.thy [irrefl_def, rvimage_def]
+    "!!A B. [| f: inj(A,B);  irrefl(B,r) |] ==> irrefl(A, rvimage(A,f,r))";
+by (fast_tac (ZF_cs addIs [inj_is_fun RS apply_type]) 1);
+qed "irrefl_rvimage";
+
+goalw OrderArith.thy [trans_on_def, rvimage_def] 
+    "!!A B. [| f: inj(A,B);  trans[B](r) |] ==> trans[A](rvimage(A,f,r))";
+by (fast_tac (ZF_cs addIs [inj_is_fun RS apply_type]) 1);
+qed "trans_on_rvimage";
+
+goalw OrderArith.thy [part_ord_def]
+    "!!A B. [| f: inj(A,B);  part_ord(B,r) |] ==> part_ord(A, rvimage(A,f,r))";
+by (fast_tac (ZF_cs addSIs [irrefl_rvimage, trans_on_rvimage]) 1);
+qed "part_ord_rvimage";
 
 (** Linearity **)
 
@@ -216,6 +238,11 @@ by (cut_facts_tac [finj] 1);
 by (res_inst_tac [("x","f`x"), ("y","f`y")] (lin RS linearE) 1);
 by (REPEAT_SOME (fast_tac (ZF_cs addSIs [apply_type])));
 qed "linear_rvimage";
+
+goalw OrderArith.thy [tot_ord_def] 
+    "!!A B. [| f: inj(A,B);  tot_ord(B,r) |] ==> tot_ord(A, rvimage(A,f,r))";
+by (fast_tac (ZF_cs addSIs [part_ord_rvimage, linear_rvimage]) 1);
+qed "tot_ord_rvimage";
 
 
 (** Well-foundedness **)
@@ -230,6 +257,7 @@ by (fast_tac (ZF_cs addSIs [apply_type]) 1);
 by (best_tac (ZF_cs addSIs [apply_type] addSDs [rvimage_iff RS iffD1]) 1);
 qed "wf_on_rvimage";
 
+(*Note that we need only wf[A](...) and linear(A,...) to get the result!*)
 goal OrderArith.thy 
     "!!r. [| f: inj(A,B);  well_ord(B,r) |] ==> well_ord(A, rvimage(A,f,r))";
 by (rtac well_ordI 1);
@@ -242,3 +270,8 @@ goalw OrderArith.thy [ord_iso_def]
     "!!A B. f: bij(A,B) ==> f: ord_iso(A, rvimage(A,f,s), B, s)";
 by (asm_full_simp_tac (ZF_ss addsimps [rvimage_iff]) 1);
 qed "ord_iso_rvimage";
+
+goalw OrderArith.thy [ord_iso_def, rvimage_def]
+    "!!A B. f: ord_iso(A,r, B,s) ==> rvimage(A,f,s) = r Int A*A";
+by (fast_tac eq_cs 1);
+qed "ord_iso_rvimage_eq";
