@@ -9,7 +9,7 @@
 
 OUT = $(ISABELLE_OUTPUT)
 
-FILES = ML-Systems/polyml.ML ML-Systems/smlnj-0.93.ML \
+FILES = ML-Systems/mlworks.ML ML-Systems/polyml.ML ML-Systems/smlnj-0.93.ML \
 	ML-Systems/smlnj.ML ROOT.ML Syntax/ROOT.ML Syntax/ast.ML \
 	Syntax/lexicon.ML Syntax/mixfix.ML Syntax/parser.ML Syntax/pretty.ML \
 	Syntax/printer.ML Syntax/symbol_font.ML Syntax/syn_ext.ML \
