@@ -1119,8 +1119,8 @@ fun intro_elim_tac netpair_of res_tac rules cs facts =
       else res_tac rules;
   in Method.insert_tac facts THEN' REPEAT_ALL_NEW tac end;
 
-val intro_tac = intro_elim_tac (fn (inet, _) => (inet, Net.empty)) resolve_tac;
-val elim_tac = intro_elim_tac (fn (_, enet) => (Net.empty, enet)) eresolve_tac;
+val intro_tac = intro_elim_tac (fn (inet, _) => (inet, Net.empty)) Tactic.match_tac;
+val elim_tac = intro_elim_tac (fn (_, enet) => (Net.empty, enet)) Tactic.ematch_tac;
 
 in
   val intro = METHOD_CLASET' o intro_tac;
