@@ -1,6 +1,6 @@
-(*  Title: 	FOLP/IFOLP.thy
+(*  Title:      FOLP/IFOLP.thy
     ID:         $Id$
-    Author: 	Martin D Coen, Cambridge University Computer Laboratory
+    Author:     Martin D Coen, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 Intuitionistic First-Order Logic with Proofs
@@ -19,41 +19,41 @@ types
 arities
   p,o :: logic
 
-consts	
+consts  
       (*** Judgements ***)
- "@Proof"   	::   "[p,o]=>prop"	("(_ /: _)" [51,10] 5)
- Proof  	::   "[o,p]=>prop"
+ "@Proof"       ::   "[p,o]=>prop"      ("(_ /: _)" [51,10] 5)
+ Proof          ::   "[o,p]=>prop"
  EqProof        ::   "[p,p,o]=>prop"    ("(3_ /= _ :/ _)" [10,10,10] 5)
         
       (*** Logical Connectives -- Type Formers ***)
- "="		::	"['a,'a] => o"	(infixl 50)
- True,False	::	"o"
- "Not"		::	"o => o"	("~ _" [40] 40)
- "&"		::	"[o,o] => o"	(infixr 35)
- "|"		::	"[o,o] => o"	(infixr 30)
- "-->"		::	"[o,o] => o"	(infixr 25)
- "<->"		::	"[o,o] => o"	(infixr 25)
+ "="            ::      "['a,'a] => o"  (infixl 50)
+ True,False     ::      "o"
+ "Not"          ::      "o => o"        ("~ _" [40] 40)
+ "&"            ::      "[o,o] => o"    (infixr 35)
+ "|"            ::      "[o,o] => o"    (infixr 30)
+ "-->"          ::      "[o,o] => o"    (infixr 25)
+ "<->"          ::      "[o,o] => o"    (infixr 25)
       (*Quantifiers*)
- All		::	"('a => o) => o"	(binder "ALL " 10)
- Ex		::	"('a => o) => o"	(binder "EX " 10)
- Ex1		::	"('a => o) => o"	(binder "EX! " 10)
+ All            ::      "('a => o) => o"        (binder "ALL " 10)
+ Ex             ::      "('a => o) => o"        (binder "EX " 10)
+ Ex1            ::      "('a => o) => o"        (binder "EX! " 10)
       (*Rewriting gadgets*)
- NORM		::	"o => o"
- norm		::	"'a => 'a"
+ NORM           ::      "o => o"
+ norm           ::      "'a => 'a"
 
       (*** Proof Term Formers: precedence must exceed 50 ***)
- tt		:: "p"
- contr		:: "p=>p"
- fst,snd	:: "p=>p"
- pair		:: "[p,p]=>p"		("(1<_,/_>)")
- split		:: "[p, [p,p]=>p] =>p"
- inl,inr	:: "p=>p"
- when		:: "[p, p=>p, p=>p]=>p"
- lambda		:: "(p => p) => p"	(binder "lam " 55)
- "`"		:: "[p,p]=>p"		(infixl 60)
+ tt             :: "p"
+ contr          :: "p=>p"
+ fst,snd        :: "p=>p"
+ pair           :: "[p,p]=>p"           ("(1<_,/_>)")
+ split          :: "[p, [p,p]=>p] =>p"
+ inl,inr        :: "p=>p"
+ when           :: "[p, p=>p, p=>p]=>p"
+ lambda         :: "(p => p) => p"      (binder "lam " 55)
+ "`"            :: "[p,p]=>p"           (infixl 60)
  alll           :: "['a=>p]=>p"         (binder "all " 55)
  "^"            :: "[p,'a]=>p"          (infixl 55)
- exists		:: "['a,p]=>p"		("(1[_,/_])")
+ exists         :: "['a,p]=>p"          ("(1[_,/_])")
  xsplit         :: "[p,['a,p]=>p]=>p"
  ideq           :: "'a=>p"
  idpeel         :: "[p,'a=>p]=>p"
@@ -66,7 +66,7 @@ rules
 (*Equality*)
 (* Like Intensional Equality in MLTT - but proofs distinct from terms *)
 
-ieqI	  "ideq(a) : a=a"
+ieqI      "ideq(a) : a=a"
 ieqE      "[| p : a=b;  !!x.f(x) : P(x,x) |] ==> idpeel(p,f) : P(a,b)"
 
 (* Truth and Falsity *)
@@ -94,11 +94,11 @@ mp        "[| f:P-->Q;  a:P |] ==> f`a:Q"
 
 (*Quantifiers*)
 
-allI	  "(!!x. f(x) : P(x)) ==> all x.f(x) : ALL x.P(x)"
-spec	  "(f:ALL x.P(x)) ==> f^x : P(x)"
+allI      "(!!x. f(x) : P(x)) ==> all x.f(x) : ALL x.P(x)"
+spec      "(f:ALL x.P(x)) ==> f^x : P(x)"
 
-exI	  "p : P(x) ==> [x,p] : EX x.P(x)"
-exE	  "[| p: EX x.P(x);  !!x u. u:P(x) ==> f(x,u) : R |] ==> xsplit(p,f):R"
+exI       "p : P(x) ==> [x,p] : EX x.P(x)"
+exE       "[| p: EX x.P(x);  !!x u. u:P(x) ==> f(x,u) : R |] ==> xsplit(p,f):R"
 
 (**** Equality between proofs ****)
 
@@ -124,15 +124,15 @@ specB      "[| !!x.f(x) : P(x) |] ==> (all x.f(x)) ^ a = f(a) : P(a)"
 
 (**** Definitions ****)
 
-not_def 	     "~P == P-->False"
+not_def              "~P == P-->False"
 iff_def         "P<->Q == (P-->Q) & (Q-->P)"
 
 (*Unique existence*)
 ex1_def   "EX! x. P(x) == EX x. P(x) & (ALL y. P(y) --> y=x)"
 
 (*Rewriting -- special constants to flag normalized terms and formulae*)
-norm_eq	"nrm : norm(x) = x"
-NORM_iff	"NRM : NORM(P) <-> P"
+norm_eq "nrm : norm(x) = x"
+NORM_iff        "NRM : NORM(P) <-> P"
 
 end
 
