@@ -661,7 +661,7 @@ $(LOG)/TLA-Memory.gz: $(OUT)/TLA TLA/Memory/MIParameters.thy \
 
 clean:
 	@rm -f  $(OUT)/HOL $(OUT)/HOL-Complex $(OUT)/TLA \
-		$(LOG)/HOL.gz $(LOG)/HOL-Real.gz $(LOG)/TLA.gz \
+		$(LOG)/HOL.gz $(LOG)/TLA.gz \
 		$(LOG)/HOL-Isar_examples.gz $(LOG)/HOL-Induct.gz \
 		$(LOG)/HOL-ex.gz $(LOG)/HOL-Subst.gz $(LOG)/HOL-IMP.gz \
 		$(LOG)/HOL-IMPP.gz $(LOG)/HOL-Hoare.gz \
@@ -673,7 +673,8 @@ clean:
                 $(LOG)/HOL-Bali.gz $(LOG)/HOL-CTL.gz \
 		$(LOG)/HOL-MicroJava.gz $(LOG)/HOL-NanoJava.gz \
 		$(LOG)/HOL-IOA.gz $(LOG)/HOL-AxClasses \
-		$(LOG)/HOL-Lattice $(LOG)/HOL-Real-ex.gz \
+		$(LOG)/HOL-Lattice \
+		$(LOG)/HOL-Complex.gz \
 		$(LOG)/HOL-Complex-ex.gz \
 		$(LOG)/HOL-Real-HahnBanach.gz $(LOG)/TLA-Inc.gz \
 		$(LOG)/TLA-Buffer.gz $(LOG)/TLA-Memory.gz \
