@@ -222,13 +222,13 @@ Addsimprocs nat_cancel;
 
 
 (*This proof requires natdiff_cancel_sums*)
-goal Arith.thy "!!n::nat. m<n --> m<l --> (l-n) < (l-m)";
+Goal "m < (n::nat) --> m<l --> (l-n) < (l-m)";
 by (induct_tac "l" 1);
 by (Simp_tac 1);
 by (Clarify_tac 1);
 by (etac less_SucE 1);
+by (Clarify_tac 2);
+by (asm_simp_tac (simpset() addsimps [Suc_le_eq]) 2);
 by (asm_simp_tac (simpset() addsimps [diff_Suc_le_Suc_diff RS le_less_trans,
 				      Suc_diff_le]) 1);
-by (Clarify_tac 1);
-by (asm_simp_tac (simpset() addsimps [Suc_le_eq]) 1);
 qed_spec_mp "diff_less_mono2";

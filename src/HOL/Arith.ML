@@ -16,7 +16,7 @@ qed_goal "diff_0_eq_0" thy
     "0 - n = 0"
  (fn _ => [induct_tac "n" 1,  ALLGOALS Asm_simp_tac]);
 
-(*Must simplify BEFORE the induction!!  (Else we get a critical pair)
+(*Must simplify BEFORE the induction!  (Else we get a critical pair)
   Suc(m) - Suc(n)   rewrites to   pred(Suc(m) - n)  *)
 qed_goal "diff_Suc_Suc" thy
     "Suc(m) - Suc(n) = m - n"
@@ -63,25 +63,25 @@ qed_goal "add_left_commute" thy "x+(y+z)=y+((x+z)::nat)"
 (*Addition is an AC-operator*)
 val add_ac = [add_assoc, add_commute, add_left_commute];
 
-Goal "!!k::nat. (k + m = k + n) = (m=n)";
+Goal "(k + m = k + n) = (m=(n::nat))";
 by (induct_tac "k" 1);
 by (Simp_tac 1);
 by (Asm_simp_tac 1);
 qed "add_left_cancel";
 
-Goal "!!k::nat. (m + k = n + k) = (m=n)";
+Goal "(m + k = n + k) = (m=(n::nat))";
 by (induct_tac "k" 1);
 by (Simp_tac 1);
 by (Asm_simp_tac 1);
 qed "add_right_cancel";
 
-Goal "!!k::nat. (k + m <= k + n) = (m<=n)";
+Goal "(k + m <= k + n) = (m<=(n::nat))";
 by (induct_tac "k" 1);
 by (Simp_tac 1);
 by (Asm_simp_tac 1);
 qed "add_left_cancel_le";
 
-Goal "!!k::nat. (k + m < k + n) = (m<n)";
+Goal "(k + m < k + n) = (m<(n::nat))";
 by (induct_tac "k" 1);
 by (Simp_tac 1);
 by (Asm_simp_tac 1);
@@ -110,7 +110,7 @@ by (ALLGOALS (fast_tac (claset() addss (simpset()))));
 qed "pred_add_is_0";
 Addsimps [pred_add_is_0];
 
-(* Could be generalized, eg to "!!n. k<n ==> m+(n-(Suc k)) = (m+n)-(Suc k)" *)
+(* Could be generalized, eg to "k<n ==> m+(n-(Suc k)) = (m+n)-(Suc k)" *)
 Goal "0<n ==> m + (n-1) = (m+n)-1";
 by (exhaust_tac "m" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [diff_Suc]
@@ -118,7 +118,7 @@ by (ALLGOALS (asm_simp_tac (simpset() addsimps [diff_Suc]
 qed "add_pred";
 Addsimps [add_pred];
 
-Goal "!!m::nat. m + n = m ==> n = 0";
+Goal "m + n = m ==> n = 0";
 by (dtac (add_0_right RS ssubst) 1);
 by (asm_full_simp_tac (simpset() addsimps [add_assoc]
                                  delsimps [add_0_right]) 1);
@@ -150,6 +150,11 @@ qed "le_add1";
 bind_thm ("less_add_Suc1", (lessI RS (le_add1 RS le_less_trans)));
 bind_thm ("less_add_Suc2", (lessI RS (le_add2 RS le_less_trans)));
 
+Goal "(m<n) = (? k. n=Suc(m+k))";
+by (blast_tac (claset() addSIs [less_add_Suc1, less_eq_Suc_add]) 1);
+qed "less_iff_Suc_add";
+
+
 (*"i <= j ==> i <= j+m"*)
 bind_thm ("trans_le_add1", le_add1 RSN (2,le_trans));
 
@@ -169,12 +174,12 @@ by (ALLGOALS Asm_simp_tac);
 by (blast_tac (claset() addDs [Suc_lessD]) 1);
 qed "add_lessD1";
 
-Goal "!!i::nat. ~ (i+j < i)";
+Goal "~ (i+j < (i::nat))";
 by (rtac notI 1);
 by (etac (add_lessD1 RS less_irrefl) 1);
 qed "not_add_less1";
 
-Goal "!!i::nat. ~ (j+i < i)";
+Goal "~ (j+i < (i::nat))";
 by (simp_tac (simpset() addsimps [add_commute, not_add_less1]) 1);
 qed "not_add_less2";
 AddIffs [not_add_less1, not_add_less2];
@@ -185,20 +190,21 @@ by (ALLGOALS Asm_simp_tac);
 by (blast_tac (claset() addDs [Suc_leD]) 1);
 qed_spec_mp "add_leD1";
 
-Goal "!!n::nat. m+k<=n ==> k<=n";
+Goal "m+k<=n ==> k<=(n::nat)";
 by (full_simp_tac (simpset() addsimps [add_commute]) 1);
 by (etac add_leD1 1);
 qed_spec_mp "add_leD2";
 
-Goal "!!n::nat. m+k<=n ==> m<=n & k<=n";
+Goal "m+k<=n ==> m<=n & k<=(n::nat)";
 by (blast_tac (claset() addDs [add_leD1, add_leD2]) 1);
 bind_thm ("add_leE", result() RS conjE);
 
-Goal "!!k l::nat. [| k<l; m+l = k+n |] ==> m<n";
+(*needs !!k for add_ac to work*)
+Goal "!!k:: nat. [| k<l;  m+l = k+n |] ==> m<n";
 by (safe_tac (claset() addSDs [less_eq_Suc_add]));
 by (asm_full_simp_tac
     (simpset() delsimps [add_Suc_right]
-                addsimps ([add_Suc_right RS sym, add_left_cancel] @add_ac)) 1);
+               addsimps ([add_Suc_right RS sym, add_left_cancel] @ add_ac)) 1);
 by (etac subst 1);
 by (simp_tac (simpset() addsimps [less_add_Suc1]) 1);
 qed "less_add_eq_less";
@@ -207,13 +213,13 @@ qed "less_add_eq_less";
 (*** Monotonicity of Addition ***)
 
 (*strict, in 1st argument*)
-Goal "!!i j k::nat. i < j ==> i + k < j + k";
+Goal "i < j ==> i + k < j + (k::nat)";
 by (induct_tac "k" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "add_less_mono1";
 
 (*strict, in both arguments*)
-Goal "!!i j k::nat. [|i < j; k < l|] ==> i + k < j + l";
+Goal "[|i < j; k < l|] ==> i + k < j + (l::nat)";
 by (rtac (add_less_mono1 RS less_trans) 1);
 by (REPEAT (assume_tac 1));
 by (induct_tac "j" 1);
@@ -231,18 +237,16 @@ by (blast_tac (claset() addSIs [lt_mono]) 1);
 qed "less_mono_imp_le_mono";
 
 (*non-strict, in 1st argument*)
-Goal "!!i j k::nat. i<=j ==> i + k <= j + k";
+Goal "i<=j ==> i + k <= j + (k::nat)";
 by (res_inst_tac [("f", "%j. j+k")] less_mono_imp_le_mono 1);
 by (etac add_less_mono1 1);
 by (assume_tac 1);
 qed "add_le_mono1";
 
 (*non-strict, in both arguments*)
-Goal "!!k l::nat. [|i<=j;  k<=l |] ==> i + k <= j + l";
+Goal "[|i<=j;  k<=l |] ==> i + k <= j + (l::nat)";
 by (etac (add_le_mono1 RS le_trans) 1);
 by (simp_tac (simpset() addsimps [add_commute]) 1);
-(*j moves to the end because it is free while k, l are bound*)
-by (etac add_le_mono1 1);
 qed "add_le_mono";
 
 
@@ -298,7 +302,7 @@ by (ALLGOALS Asm_simp_tac);
 qed "mult_is_0";
 Addsimps [mult_is_0];
 
-Goal "!!m::nat. m <= m*m";
+Goal "m <= m*(m::nat)";
 by (induct_tac "m" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [add_assoc RS sym])));
 by (etac (le_add2 RSN (2,le_trans)) 1);
@@ -337,13 +341,18 @@ by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "Suc_diff_le";
 
+Goal "n<=(l::nat) --> Suc l - n + m = Suc (l - n + m)";
+by (res_inst_tac [("m","n"),("n","l")] diff_induct 1);
+by (ALLGOALS Asm_simp_tac);
+qed_spec_mp "Suc_diff_add_le";
+
 Goal "m - n < Suc(m)";
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (etac less_SucE 3);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [less_Suc_eq])));
 qed "diff_less_Suc";
 
-Goal "!!m::nat. m - n <= m";
+Goal "m - n <= (m::nat)";
 by (res_inst_tac [("m","m"), ("n","n")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "diff_le_self";
@@ -385,33 +394,33 @@ Goal "!!i::nat. i-j-k = i-k-j";
 by (simp_tac (simpset() addsimps [diff_diff_left, add_commute]) 1);
 qed "diff_commute";
 
-Goal "!!i j k:: nat. k<=j --> j<=i --> i - (j - k) = i - j + k";
+Goal "k<=j --> j<=i --> i - (j - k) = i - j + (k::nat)";
 by (res_inst_tac [("m","i"),("n","j")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
 by (asm_simp_tac (simpset() addsimps [Suc_diff_le, le_Suc_eq]) 1);
 qed_spec_mp "diff_diff_right";
 
-Goal "!!i j k:: nat. k<=j --> (i + j) - k = i + (j - k)";
+Goal "k <= (j::nat) --> (i + j) - k = i + (j - k)";
 by (res_inst_tac [("m","j"),("n","k")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed_spec_mp "diff_add_assoc";
 
-Goal "!!i j k:: nat. k<=j --> (j + i) - k = i + (j - k)";
+Goal "k <= (j::nat) --> (j + i) - k = i + (j - k)";
 by (asm_simp_tac (simpset() addsimps [add_commute, diff_add_assoc]) 1);
 qed_spec_mp "diff_add_assoc2";
 
-Goal "!!n::nat. (n+m) - n = m";
+Goal "(n+m) - n = (m::nat)";
 by (induct_tac "n" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "diff_add_inverse";
 Addsimps [diff_add_inverse];
 
-Goal "!!n::nat.(m+n) - n = m";
+Goal "(m+n) - n = (m::nat)";
 by (simp_tac (simpset() addsimps [diff_add_assoc]) 1);
 qed "diff_add_inverse2";
 Addsimps [diff_add_inverse2];
 
-Goal "!!i j k::nat. i<=j ==> (j-i=k) = (j=k+i)";
+Goal "i <= (j::nat) ==> (j-i=k) = (j=k+i)";
 by Safe_tac;
 by (ALLGOALS Asm_simp_tac);
 qed "le_imp_diff_is_add";
@@ -457,20 +466,20 @@ by (rtac (zero_induct_lemma RS mp RS mp) 1);
 by (REPEAT (ares_tac ([impI,allI]@prems) 1));
 qed "zero_induct";
 
-Goal "!!k::nat. (k+m) - (k+n) = m - n";
+Goal "(k+m) - (k+n) = m - (n::nat)";
 by (induct_tac "k" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "diff_cancel";
 Addsimps [diff_cancel];
 
-Goal "!!m::nat. (m+k) - (n+k) = m - n";
+Goal "(m+k) - (n+k) = m - (n::nat)";
 val add_commute_k = read_instantiate [("n","k")] add_commute;
 by (asm_simp_tac (simpset() addsimps ([add_commute_k])) 1);
 qed "diff_cancel2";
 Addsimps [diff_cancel2];
 
 (*From Clemens Ballarin, proof by lcp*)
-Goal "!!n::nat. [| k<=n; n<=m |] ==> (m-k) - (n-k) = m-n";
+Goal "[| k<=n; n<=m |] ==> (m-k) - (n-k) = m-(n::nat)";
 by (REPEAT (etac rev_mp 1));
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
@@ -478,7 +487,7 @@ by (ALLGOALS Asm_simp_tac);
 by (asm_simp_tac (simpset() addsimps [Suc_diff_le, le_Suc_eq]) 1);
 qed "diff_right_cancel";
 
-Goal "!!n::nat. n - (n+m) = 0";
+Goal "n - (n+m) = 0";
 by (induct_tac "n" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "diff_add_0";
@@ -501,13 +510,13 @@ qed "diff_mult_distrib2" ;
 
 (*** Monotonicity of Multiplication ***)
 
-Goal "!!i::nat. i<=j ==> i*k<=j*k";
+Goal "i <= (j::nat) ==> i*k<=j*k";
 by (induct_tac "k" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [add_le_mono])));
 qed "mult_le_mono1";
 
 (*<=monotonicity, BOTH arguments*)
-Goal "!!i::nat. [| i<=j; k<=l |] ==> i*k<=j*l";
+Goal "[| i <= (j::nat); k <= l |] ==> i*k <= j*l";
 by (etac (mult_le_mono1 RS le_trans) 1);
 by (rtac le_trans 1);
 by (stac mult_commute 2);
@@ -516,14 +525,14 @@ by (simp_tac (simpset() addsimps [mult_commute]) 1);
 qed "mult_le_mono";
 
 (*strict, in 1st argument; proof is by induction on k>0*)
-Goal "!!i::nat. [| i<j; 0<k |] ==> k*i < k*j";
+Goal "[| i<j; 0<k |] ==> k*i < k*j";
 by (eres_inst_tac [("m1","0")] (less_eq_Suc_add RS exE) 1);
 by (Asm_simp_tac 1);
 by (induct_tac "x" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [add_less_mono])));
 qed "mult_less_mono2";
 
-Goal "!!i::nat. [| i<j; 0<k |] ==> i*k < j*k";
+Goal "[| i<j; 0<k |] ==> i*k < j*k";
 by (dtac mult_less_mono2 1);
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [mult_commute])));
 qed "mult_less_mono1";
@@ -599,7 +608,7 @@ qed "mult_eq_self_implies_10";
 
 (*** Subtraction laws -- mostly from Clemens Ballarin ***)
 
-Goal "!! a b c::nat. [| a < b; c <= a |] ==> a-c < b-c";
+Goal "[| a < (b::nat); c <= a |] ==> a-c < b-c";
 by (subgoal_tac "c+(a-c) < c+(b-c)" 1);
 by (Full_simp_tac 1);
 by (subgoal_tac "c <= b" 1);
@@ -607,7 +616,7 @@ by (blast_tac (claset() addIs [less_imp_le, le_trans]) 2);
 by (Asm_simp_tac 1);
 qed "diff_less_mono";
 
-Goal "!! a b c::nat. a+b < c ==> a < c-b";
+Goal "a+b < (c::nat) ==> a < c-b";
 by (dtac diff_less_mono 1);
 by (rtac le_add2 1);
 by (Asm_full_simp_tac 1);
@@ -628,14 +637,14 @@ Goal "Suc i <= n ==> Suc (n - Suc i) = n - i";
 by (asm_simp_tac (simpset() addsimps [Suc_diff_le RS sym]) 1);
 qed "Suc_diff_Suc";
 
-Goal "!! i::nat. i <= n ==> n - (n - i) = i";
+Goal "i <= (n::nat) ==> n - (n - i) = i";
 by (etac rev_mp 1);
 by (res_inst_tac [("m","n"),("n","i")] diff_induct 1);
 by (ALLGOALS (asm_simp_tac  (simpset() addsimps [Suc_diff_le])));
 qed "diff_diff_cancel";
 Addsimps [diff_diff_cancel];
 
-Goal "!!k::nat. k <= n ==> m <= n + m - k";
+Goal "k <= (n::nat) ==> m <= n + m - k";
 by (etac rev_mp 1);
 by (res_inst_tac [("m", "k"), ("n", "n")] diff_induct 1);
 by (Simp_tac 1);
@@ -643,7 +652,7 @@ by (simp_tac (simpset() addsimps [less_add_Suc2, less_imp_le]) 1);
 by (Simp_tac 1);
 qed "le_add_diff";
 
-Goal "!!i::nat. 0<k ==> j<i --> j+k-i < k";
+Goal "0<k ==> j<i --> j+k-i < k";
 by (res_inst_tac [("m","j"),("n","i")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed_spec_mp "add_diff_less";
@@ -701,14 +710,14 @@ qed "le_diff_less";
 (** (Anti)Monotonicity of subtraction -- by Stefan Merz **)
 
 (* Monotonicity of subtraction in first argument *)
-Goal "!!n::nat. m<=n --> (m-l) <= (n-l)";
+Goal "m <= (n::nat) --> (m-l) <= (n-l)";
 by (induct_tac "n" 1);
 by (Simp_tac 1);
 by (simp_tac (simpset() addsimps [le_Suc_eq]) 1);
 by (blast_tac (claset() addIs [diff_le_Suc_diff, le_trans]) 1);
 qed_spec_mp "diff_le_mono";
 
-Goal "!!n::nat. m<=n ==> (l-n) <= (l-m)";
+Goal "m <= (n::nat) ==> (l-n) <= (l-m)";
 by (induct_tac "l" 1);
 by (Simp_tac 1);
 by (case_tac "n <= na" 1);
