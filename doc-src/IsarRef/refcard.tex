@@ -116,7 +116,8 @@
   \multicolumn{2}{l}{\textbf{Manipulate rules}} \\[0.5ex]
   $OF~\vec a$ & apply rule to facts (skipping ``$_$'') \\
   $of~\vec t$ & apply rule to terms (skipping ``$_$'') \\
-  $RS~b$ & resolve fact with rule \\
+  $THEN~b$ & resolve fact with rule \\
+  $symmetric$ & apply symmetry of equality \\
   $standard$ & put into standard result form \\
   $rulify$ & put into object-rule form \\
   $elimify$ & put destruction rule into elimination form \\[1ex]
@@ -137,26 +138,33 @@
 \begin{tabular}{ll}
   $\isarkeyword{apply}~(m)$ & apply proof method at initial position \\
   $\isarkeyword{apply_end}~(m)$ & apply proof method near terminal position \\
+  $\isarkeyword{done}$ & complete proof \\
   $\isarkeyword{defer}~n$ & move subgoal to end \\
   $\isarkeyword{prefer}~n$ & move subgoal to beginning \\
   $\isarkeyword{back}$ & backtrack last command \\
+  $\isarkeyword{declare}$ & declare rules in current theory \\
 \end{tabular}
 
 \subsection{Methods}
 
 \begin{tabular}{ll}
-  $rule_tac~insts$ & resolution with instantiation \\
-  $erule_tac~insts$ & elim-resolution with instantiation \\
-  $drule_tac~insts$ & destruct-resolution with instantiation \\
-  $frule_tac~insts$ & forward-resolution with instantiation \\
-  $subgoal_tac~\phi$ & insert new claims \\
+  $rule_tac~insts$ & resolution (with instantiation) \\
+  $erule_tac~insts$ & elim-resolution (with instantiation) \\
+  $drule_tac~insts$ & destruct-resolution (with instantiation) \\
+  $frule_tac~insts$ & forward-resolution (with instantiation) \\
+  $cut_tac~insts$ & insert facts (with instantiation) \\
+  $thin_tac~\phi$ & delete assumptions \\
+  $subgoal_tac~\phi$ & new claims \\
+  $rename_tac~\vec x$ & rename suffix of goal parameters \\
+  $rotate_tac~n$ & rotate assumptions of goal \\
+  $tactic~text$ & arbitrary ML tactic \\
   $case_tac~t$ & exhaustion (datatypes) \\
   $induct_tac~\vec x$ & induction (datatypes) \\
-  $tactic~text$ & method from ML tactic \\
+  $ind_cases~t$ & exhaustion + simplification (inductive sets) \\
 \end{tabular}
 
 
-%%% Local Variables: 
+%%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "isar-ref"
-%%% End: 
+%%% End:
