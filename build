@@ -11,7 +11,7 @@ PRG=$(basename $0)
 
 ISABELLE_HOME=$(dirname $0)
 . $ISABELLE_HOME/lib/scripts/getsettings || \
-  { echo "$PRG probably not called from its original place!"; exit 2 }
+  { echo "$PRG probably not called from its original place!"; exit 2; }
 
 
 ## diagnostics

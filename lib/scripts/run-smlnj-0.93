@@ -37,7 +37,7 @@ else
     mkdir -p "$OUTDIR" || fail_out
     MOVE=true
   fi
-  [ -f "$OUTFILE" ] && { chmod +w "$OUTFILE" || fail_out }
+  [ -f "$OUTFILE" ] && { chmod +w "$OUTFILE" || fail_out; }
   COMMIT="fun commit () = not (exportML\"$OUTFILE\");"
 fi
 

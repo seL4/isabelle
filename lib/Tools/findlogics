@@ -36,4 +36,4 @@ do
   done
 done
 
-echo $({ for L in $LOGICS; do echo $L; done } | sort | uniq)
+echo $({ for L in $LOGICS; do echo $L; done; } | sort | uniq)

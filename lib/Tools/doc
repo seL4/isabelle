@@ -30,7 +30,7 @@ function fail()
 ## args
 
 DOC=""
-[ $# -ge 1 ] && { DOC="$1"; shift }
+[ $# -ge 1 ] && { DOC="$1"; shift; }
 
 [ $# -ne 0 -o "$DOC" = "-?" ] && usage
 
@@ -45,7 +45,7 @@ if [ -z "$DOC" ]; then
 else
   for DIR in $ISABELLE_DOCS
   do
-    [ -f $DIR/$DOC.dvi ] && { cd $DIR; exec $DVI_VIEWER $DOC.dvi }
+    [ -f $DIR/$DOC.dvi ] && { cd $DIR; exec $DVI_VIEWER $DOC.dvi; }
   done
   fail "Unknown Isabelle document: $DOC"  
 fi

@@ -44,12 +44,12 @@ if [ -z "$OUTFILE" ]; then
 elif [ "$INFILE" -ef "$OUTFILE" ]; then
   DB="$INFILE"
 elif [ -n "$COPYDB" ]; then
-  [ -f "$OUTFILE" ] && { rm -f "$OUTFILE" || fail_out }
+  [ -f "$OUTFILE" ] && { rm -f "$OUTFILE" || fail_out; }
   cp "$INFILE" "$OUTFILE" || fail_out
   chmod +w "$OUTFILE" || fail_out
   DB="$OUTFILE"
 else
-  [ -f "$OUTFILE" ] && { rm -f "$OUTFILE" || fail_out }
+  [ -f "$OUTFILE" ] && { rm -f "$OUTFILE" || fail_out; }
   echo "PolyML.make_database \"$OUTFILE\"; PolyML.quit();" | $POLY -r "$INFILE"
   [ -f "$OUTFILE" ] || fail_out
   DB="$OUTFILE"

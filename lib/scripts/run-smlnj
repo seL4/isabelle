@@ -39,11 +39,11 @@ COMMIT="fun commit () = not (exportML\"$OUTFILE\");"
 if [ -z "$OUTFILE" ]; then
   COMMIT='fun commit () = (output (std_err, "Error - Database is not opened for writing.\n"); false);'
 elif [ -n "$INFILE" -a ! "$INFILE" -ef "$OUTFILE" ]; then
-  [ -f "$OUTFILE" ] && { rm -f "$OUTFILE" || fail_out }
+  [ -f "$OUTFILE" ] && { rm -f "$OUTFILE" || fail_out; }
   cp "$INFILE" "$OUTFILE" || fail_out
 fi
 
-[ -n "$OUTFILE" -a -f "$OUTFILE" ] && { chmod +w "$OUTFILE" || fail_out }
+[ -n "$OUTFILE" -a -f "$OUTFILE" ] && { chmod +w "$OUTFILE" || fail_out; }
 
 MLTEXT="$EXIT $COMMIT $MLTEXT"
 MLEXIT="commit();"
