@@ -43,7 +43,7 @@ It has been instantiated to support reasoning in several object-logics:
 \begin{itemize}
 \item first-order logic, constructive and classical versions
 \item higher-order logic, similar to that of Gordon's {\sc
-hol}~\cite{gordon88a}
+hol}~\cite{mgordon-hol}
 \item Zermelo-Fraenkel set theory~\cite{suppes72}
 \item an extensional version of Martin-L\"of's Type Theory~\cite{nordstrom90}
 \item the classical first-order sequent calculus, {\sc lk}
@@ -68,22 +68,13 @@ used in computer science; there are many good
 texts~\cite{galton90,reeves90}.
 
 \index{LCF}
-{\sc lcf}, developed by Robin Milner and colleagues~\cite{gordon79}, is an
+{\sc lcf}, developed by Robin Milner and colleagues~\cite{mgordon79}, is an
 ancestor of {\sc hol}, Nuprl, and several other systems.  Isabelle borrows
 ideas from {\sc lcf}: formulae are~\ML{} values; theorems belong to an
 abstract type; tactics and tacticals support backward proof.  But {\sc lcf}
 represents object-level rules by functions, while Isabelle represents them
 by terms.  You may find my other writings~\cite{paulson87,paulson-handbook}
 helpful in understanding the relationship between {\sc lcf} and Isabelle.
-
-Isabelle does not keep a record of inference steps.  Each step is checked
-at run time to ensure that theorems can only be constructed by applying
-inference rules.  An Isabelle proof typically involves hundreds of
-primitive inferences, and would be unintelligible if displayed.
-Discarding proofs saves vast amounts of storage.  But can Isabelle be
-trusted?  If desired, object-logics can be formalized such that each
-theorem carries a proof term, which could be checked by another program.
-Proofs can also be traced.
 
 \index{Isabelle!release history} Isabelle was first distributed in 1986.
 The 1987 version introduced a higher-order meta-logic with an improved
@@ -142,7 +133,7 @@ G.K. Chesterton, {\em The Man who was Orthodox}
 \include{advanced}
 
 \bibliographystyle{plain} \small\raggedright\frenchspacing
-\bibliography{string,atp,funprog,general,logicprog,theory}
+\bibliography{string,atp,funprog,general,logicprog,isabelle,theory}
 
 \input{intro.ind}
 \end{document}
