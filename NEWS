@@ -182,6 +182,8 @@ are some hints on converting existing sources:
 
   - remove all special provisions on numerals in proofs;
 
+* HOL: symbolic syntax for x^2 (numeral 2);
+
 * HOL: the class of all HOL types is now called "type" rather than
 "term"; INCOMPATIBILITY, need to adapt references to this type class
 in axclass/classes, instance/arities, and (usually rare) occurrences
