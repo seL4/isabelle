@@ -72,12 +72,23 @@ by (asm_simp_tac (simpset() addsimps [Int_Un_distrib RS sym,
 				      stable_constrains_Int]) 1);
 qed "stable_ensures_Int";
 
+Goal "[| stable acts A;  transient acts C;  A <= B Un C |] \
+\     ==> ensures acts A B";
+by (asm_full_simp_tac (simpset() addsimps [ensures_def, stable_def]) 1);
+by (blast_tac (claset() addIs [constrains_weaken, transient_strengthen]) 1);
+qed "stable_transient_ensures";
+
 
 (*** leadsTo ***)
 
 (*Synonyms for the theorems produced by the inductive defn package*)
 bind_thm ("leadsTo_Basis", leadsto.Basis);
 bind_thm ("leadsTo_Trans", leadsto.Trans);
+
+Goal "transient acts A ==> leadsTo acts A (-A)";
+by (asm_simp_tac 
+    (simpset() addsimps [leadsTo_Basis, ensuresI, Compl_partition]) 1);
+qed "transient_imp_leadsTo";
 
 Goal "act: acts ==> leadsTo acts A UNIV";
 by (blast_tac (claset() addIs [ensures_UNIV RS leadsTo_Basis]) 1);
@@ -264,7 +275,7 @@ qed "leadsTo_empty";
 
 (** PSP: Progress-Safety-Progress **)
 
-(*Special case of PSP: Misra's "stable conjunction".  Doesn't need Id:acts. *)
+(*Special case of PSP: Misra's "stable conjunction"*)
 Goalw [stable_def]
    "[| leadsTo acts A A'; stable acts B |] \
 \   ==> leadsTo acts (A Int B) (A' Int B)";
