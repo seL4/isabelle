@@ -442,13 +442,11 @@ fun is_cong thm =
 
    
 fun dest_equal(Const ("==",_) $ 
-              (Const ("Trueprop",_) $ lhs) 
-            $ (Const ("Trueprop",_) $ rhs)) = {lhs=lhs, rhs=rhs}
+	       (Const ("Trueprop",_) $ lhs) 
+	       $ (Const ("Trueprop",_) $ rhs)) = {lhs=lhs, rhs=rhs}
   | dest_equal(Const ("==",_) $ lhs $ rhs)  = {lhs=lhs, rhs=rhs}
   | dest_equal tm = S.dest_eq tm;
 
-
-fun get_rhs tm = #rhs(dest_equal (HOLogic.dest_Trueprop tm));
 fun get_lhs tm = #lhs(dest_equal (HOLogic.dest_Trueprop tm));
 
 fun variants FV vlist =
@@ -654,7 +652,7 @@ val pbeta_reduce = simpl_conv [split RS eq_reflection];
 val restricted = U.can(S.find_term
                        (U.holds(fn c => (#Name(S.dest_const c)="cut"))))
 
-fun CONTEXT_REWRITE_RULE(func,R){thms=[cut_lemma],congs,th} =
+fun CONTEXT_REWRITE_RULE(func,R){cut_lemma, congs, th} =
  let val tc_list = ref[]: term list ref
      val dummy = term_ref := []
      val dummy = thm_ref  := []
@@ -690,7 +688,6 @@ fun CONTEXT_REWRITE_RULE(func,R){thms=[cut_lemma],congs,th} =
                   val dummy = assert (forall (op aconv)
                                       (ListPair.zip (vlist, args)))
                                "assertion failed in CONTEXT_REWRITE_RULE"
-(*                val fbvs1 = variants (S.free_vars imp) fbvs *)
                   val imp_body1 = subst_free (ListPair.zip (args, vstrl))
                                              imp_body
                   val tych = cterm_of sign
@@ -702,7 +699,7 @@ fun CONTEXT_REWRITE_RULE(func,R){thms=[cut_lemma],congs,th} =
                   val mss' = add_prems(mss, map ASSUME ants1)
                   val Q1eeqQ2 = rewrite_cterm (false,true) mss' prover Q1
                                 handle _ => reflexive Q1
-                  val Q2 = get_rhs(HOLogic.dest_Trueprop(#prop(rep_thm Q1eeqQ2)))
+                  val Q2 = #2 (Logic.dest_equals (#prop(rep_thm Q1eeqQ2)))
                   val Q3 = tych(list_comb(list_mk_aabs(vstrl,Q2),vstrl))
                   val Q2eeqQ3 = symmetric(pbeta_reduce Q3 RS eq_reflection)
                   val thA = transitive(QeqQ1 RS eq_reflection) Q1eeqQ2
@@ -775,14 +772,16 @@ fun CONTEXT_REWRITE_RULE(func,R){thms=[cut_lemma],congs,th} =
                          | _   => [S.list_mk_conj(map cncl rcontext)]
               val TC = genl(S.list_mk_imp(antl, A))
               val dummy = print_cterms "func:\n" [cterm_of sign func]
-              val dummy = print_cterms "TC:\n" [cterm_of sign (HOLogic.mk_Trueprop TC)]
+              val dummy = print_cterms "TC:\n" 
+		              [cterm_of sign (HOLogic.mk_Trueprop TC)]
               val dummy = tc_list := (TC :: !tc_list)
               val nestedp = nested TC
-              val dummy = if nestedp then say "nested\n" else say "not_nested\n"
+              val dummy = if nestedp then say"nested\n" else say"not_nested\n"
               val dummy = term_ref := ([func,TC]@(!term_ref))
               val th' = if nestedp then raise RULES_ERR{func = "solver", 
                                                       mesg = "nested function"}
-                        else let val cTC = cterm_of sign (HOLogic.mk_Trueprop TC)
+                        else let val cTC = cterm_of sign 
+			                      (HOLogic.mk_Trueprop TC)
                              in case rcontext of
                                 [] => SPEC_ALL(ASSUME cTC)
                                | _ => MP (SPEC_ALL (ASSUME cTC)) 

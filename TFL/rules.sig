@@ -50,14 +50,12 @@ sig
   val simpl_conv : thm list -> cterm -> thm
 
 (* For debugging my isabelle solver in the conditional rewriter *)
-(*
   val term_ref : term list ref
   val thm_ref : thm list ref
   val mss_ref : meta_simpset list ref
   val tracing :bool ref
-*)
   val CONTEXT_REWRITE_RULE : term * term
-                             -> {thms:thm list,congs: thm list, th:thm} 
+                             -> {cut_lemma:thm, congs: thm list, th:thm} 
                              -> thm * term list
   val RIGHT_ASSOC : thm -> thm 
 
