@@ -85,16 +85,18 @@ fun add_fp_def_i (rec_tms, dom_sum, intr_tms) thy =
     val sign = sign_of thy;
 
     (*recT and rec_params should agree for all mutually recursive components*)
-    val (Const(_,recT),rec_params) = strip_comb (hd rec_tms)
-    and rec_hds = map head_of rec_tms;
+    val rec_hds = map head_of rec_tms;
 
-    val rec_names = map (#1 o dest_Const) rec_hds;
+    val _ = assert_all is_Const rec_hds
+	    (fn t => "Recursive set not previously declared as constant: " ^ 
+	             Sign.string_of_term sign t);
+
+    (*Now we know they are all Consts, so get their names, type and params*)
+    val rec_names = map (#1 o dest_Const) rec_hds
+    and (Const(_,recT),rec_params) = strip_comb (hd rec_tms);
 
     val _ = assert_all Syntax.is_identifier rec_names
        (fn a => "Name of recursive set not an identifier: " ^ a);
-
-    val _ = assert_all (is_some o Sign.const_type sign) rec_names
-       (fn a => "Recursive set not previously declared as constant: " ^ a);
 
     local (*Checking the introduction rules*)
       val intr_sets = map (#2 o rule_concl_msg sign) intr_tms;
