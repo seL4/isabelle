@@ -8,6 +8,7 @@ Compatibility tweak for later versions of Standard ML of New Jersey 110.
 
 structure Compiler =
 struct
+  open Compiler;
   structure Control = Control;
   structure PrettyPrint = PrettyPrint;
   structure PPTable = CompilerPPTable;
