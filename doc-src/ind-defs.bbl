@@ -26,7 +26,7 @@ Boyer, R.~S., Moore, J.~S.,
 Camilleri, J., Melham, T.~F.,
 \newblock Reasoning with inductively defined relations in the {HOL} theorem
   prover,
-\newblock Tech. Rep. 265, Comp. Lab., Univ. Cambridge, August 1992
+\newblock Tech. Rep. 265, Comp. Lab., Univ. Cambridge, Aug. 1992
 
 \bibitem{davey&priestley}
 Davey, B.~A., Priestley, H.~A.,
@@ -118,13 +118,12 @@ Paulson, L.~C.,
 \bibitem{paulson-final}
 Paulson, L.~C.,
 \newblock A concrete final coalgebra theorem for {ZF} set theory,
-\newblock Tech. rep., Comp. Lab., Univ. Cambridge, 1994
+\newblock Tech. Rep. 334, Comp. Lab., Univ. Cambridge, 1994
 
 \bibitem{pitts94}
 Pitts, A.~M.,
 \newblock A co-induction principle for recursively defined domains,
-\newblock {\em Theoretical Comput. Sci.\/} (1994),
-\newblock In press; available as Report 252, Comp. Lab., Univ. Cambridge
+\newblock {\em Theoretical Comput. Sci. {\bf 124}\/} (1994), 195--219
 
 \bibitem{saaltink-fme}
 Saaltink, M., Kromodimoeljo, S., Pase, B., Craigen, D., Meisels, I.,
