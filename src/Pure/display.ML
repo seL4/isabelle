@@ -10,8 +10,9 @@ signature DISPLAY =
 sig
   val show_hyps		: bool ref
   val show_tags		: bool ref
-  val pretty_thm_no_quote: thm -> Pretty.T
   val pretty_thm	: thm -> Pretty.T
+  val pretty_thm_no_quote: thm -> Pretty.T
+  val pretty_thm_no_hyps: thm -> Pretty.T
   val pretty_thms	: thm list -> Pretty.T
   val string_of_thm	: thm -> string
   val pprint_thm	: thm -> pprint_args -> unit
@@ -79,8 +80,9 @@ fun pretty_thm_aux quote th =
 
 in
 
-val pretty_thm_no_quote = pretty_thm_aux false;
 val pretty_thm = pretty_thm_aux true;
+val pretty_thm_no_quote = pretty_thm_aux false;
+val pretty_thm_no_hyps = setmp show_hyps false pretty_thm;
 
 end;
 
