@@ -35,11 +35,6 @@ workshops and courses.
 
 <h2>Obtaining Isabelle</h2>
 
-You get <strong><!-- _GP_ distname --></strong> in the 
-<a href="dist/index.html">distribution area</a>.
-
-<p>
-
 The <strong><!-- _GP_ distname --></strong> distribution is available
 from several <a href="dist/index.html">mirror sites</a>.  It includes
 source and binary packages and browsable documentation.
