@@ -43,6 +43,7 @@ signature PRETTY =
   val str_list: string -> string -> string list -> T
   val big_list: string -> T list -> T
   val chunks: T list -> T
+  val indent: int -> T -> T
   val string_of: T -> string
   val writeln: T -> unit
   val str_of: T -> string
@@ -72,7 +73,10 @@ fun repstring a 0 = ""
   | repstring a 1 = a
   | repstring a k =
       if k mod 2 = 0 then repstring(a^a) (k div 2)
-                     else repstring(a^a) (k div 2) ^ a;
+      else repstring(a^a) (k div 2) ^ a;
+
+val spaces = repstring " ";
+
 
 (*** Type for lines of text: string, # of lines, position on line ***)
 
@@ -81,7 +85,7 @@ type text = {tx: Buffer.T, nl: int, pos: int};
 val emptytext = {tx = Buffer.empty, nl = 0, pos = 0};
 
 fun blanks wd {tx, nl, pos} =
-    {tx  = Buffer.add (Symbol.output (repstring " " wd)) tx,
+    {tx  = Buffer.add (Symbol.output (spaces wd)) tx,
      nl  = nl,
      pos = pos+wd};
 
@@ -169,7 +173,7 @@ fun fbreaks prts = separate fbrk prts;
 
 fun block prts = blk (2, prts);
 
-val strs = block o breaks o (map str);
+val strs = block o breaks o map str;
 
 fun enclose lpar rpar prts =
   block (str lpar :: (prts @ [str rpar]));
@@ -178,6 +182,9 @@ fun list lpar rpar prts = enclose lpar rpar (commas prts);
 fun str_list lpar rpar strs = list lpar rpar (map str strs);
 fun big_list name prts = block (fbreaks (str name :: prts));
 fun chunks prts = blk (0, fbreaks prts);
+
+fun indent 0 prt = prt
+  | indent n prt = blk (0, [str (spaces n), prt]);
 
 
 (*** Pretty printing with depth limitation ***)
@@ -205,7 +212,7 @@ fun str_of prt =
   let
     fun s_of (Block (prts, _, _)) = implode (map s_of prts)
       | s_of (String (s, _)) = s
-      | s_of (Break (false, wd)) = Symbol.output (repstring " " wd)
+      | s_of (Break (false, wd)) = Symbol.output (spaces wd)
       | s_of (Break (true, _)) = Symbol.output " ";
   in s_of (prune (! depth) prt) end;
 
