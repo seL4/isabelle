@@ -17,6 +17,7 @@ proof;
   show A; .;
 qed;
 
+
 lemma K: "A --> B --> A";
 proof;
   assume A;
@@ -27,10 +28,20 @@ proof;
 qed;
 
 lemma K': "A --> B --> A";
+proof;
+  assume A;
+  thus "B --> A"; ..;
+qed;
+
+lemma K'': "A --> B --> A";
 proof intro;
   assume A;
   show A; .;
 qed;
+
+lemma K''': "A --> B --> A";
+  by intro;
+
 
 lemma S: "(A --> B --> C) --> (A --> B) --> A --> C";
 proof;
