@@ -122,6 +122,7 @@ if [ -n "$KDE" ]; then
   else
     fail "Unknown KDE version \"$KDE\""
   fi
+  mkdir -p "$KDEDESKTOP" || fail "Bad directory: $KDEDESKTOP"
 
   KDEICONS="$KDEHOME/share/icons"
   mkdir -p "$KDEICONS" || fail "Bad directory: $KDEICONS"
