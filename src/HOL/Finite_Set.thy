@@ -496,6 +496,23 @@ lemma card_Diff1_le: "finite A ==> card (A - {x}) <= card A"
 lemma card_psubset: "finite B ==> A \<subseteq> B ==> card A < card B ==> A < B"
 by (erule psubsetI, blast)
 
+lemma insert_partition:
+     "[| x \<notin> F; \<forall>c1\<in>insert x F. \<forall>c2 \<in> insert x F. c1 \<noteq> c2 --> c1 \<inter> c2 = {}|] 
+      ==> x \<inter> \<Union> F = {}"
+by auto
+
+(* main cardinality theorem *)
+lemma card_partition [rule_format]:
+     "finite C ==>  
+        finite (\<Union> C) -->  
+        (\<forall>c\<in>C. card c = k) -->   
+        (\<forall>c1 \<in> C. \<forall>c2 \<in> C. c1 \<noteq> c2 --> c1 \<inter> c2 = {}) -->  
+        k * card(C) = card (\<Union> C)"
+apply (erule finite_induct, simp)
+apply (simp add: card_insert_disjoint card_Un_disjoint insert_partition 
+       finite_subset [of _ "\<Union> (insert x F)"])
+done
+
 
 subsubsection {* Cardinality of image *}
 
