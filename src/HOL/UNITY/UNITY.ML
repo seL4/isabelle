@@ -55,8 +55,9 @@ by (asm_full_simp_tac (rep_ss addsimps [insert_absorb]) 1);
 qed "surjective_mk_program";
 
 Goal "[| Init F = Init G; Acts F = Acts G |] ==> F = G";
-by (stac (surjective_mk_program RS sym) 1);
-by (stac (surjective_mk_program RS sym) 1 THEN Force_tac 1);
+by (res_inst_tac [("t", "F")] (surjective_mk_program RS subst) 1);
+by (res_inst_tac [("t", "G")] (surjective_mk_program RS subst) 1);
+by (Asm_simp_tac 1);
 qed "program_equalityI";
 
 val [major,minor] =
