@@ -71,10 +71,8 @@ by (blast_tac (claset() addIs prems) 1);
 by (blast_tac (claset() addIs prems) 1);
 qed "rtrancl_induct";
 
-bind_thm
-  ("rtrancl_induct2",
-   Prod_Syntax.split_rule
-     (read_instantiate [("a","(ax,ay)"), ("b","(bx,by)")] rtrancl_induct));
+bind_thm ("rtrancl_induct2", split_rule
+  (read_instantiate [("a","(ax,ay)"), ("b","(bx,by)")] rtrancl_induct));
 
 (*transitivity of transitive closure!! -- by induction.*)
 Goalw [trans_def] "trans(r^*)";

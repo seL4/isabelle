@@ -51,10 +51,8 @@ by (EVERY1 [rtac Int_greatest, rtac subset_trans,
             rtac (CollectI RS subsetI), rtac indhyp, atac]);
 qed "induct";
 
-bind_thm
-  ("induct2",
-   Prod_Syntax.split_rule
-     (read_instantiate [("a","(a,b)")] induct));
+bind_thm ("induct2",
+  split_rule (read_instantiate [("a","(a,b)")] induct));
 
 
 (** Definition forms of lfp_Tarski and induct, to control unfolding **)
