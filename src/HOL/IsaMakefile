@@ -383,7 +383,7 @@ $(LOG)/HOL-Auth.gz: $(OUT)/HOL \
   Auth/Guard/NS_Public.thy Auth/Guard/OtwayRees.thy \
   Auth/Guard/P1.thy Auth/Guard/P2.thy \
   Auth/Guard/Proto.thy Auth/Guard/Yahalom.thy
-	@$(ISATOOL) usedir $(OUT)/HOL Auth
+	@$(ISATOOL) usedir -g true $(OUT)/HOL Auth
 
 
 ## HOL-UNITY
