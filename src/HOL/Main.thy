@@ -1,4 +1,4 @@
 
 (*theory Main includes everything*)
 
-Main = Bin + Map + Recdef + Record + RelPow + Sexp + String + Calculation
+Main = IntDiv + Map + Recdef + Record + RelPow + Sexp + String + Calculation
