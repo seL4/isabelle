@@ -2,6 +2,8 @@
     ID:         $Id$
     Author: 	Franz Regensburger, David von Oheimb
     Copyright   1993, 1995 Technische Universitaet Muenchen
+    Author: 	David von Oheimb (major extensions)
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 general Stream domain
 *)
@@ -12,9 +14,8 @@ fun stream_case_tac s i = res_inst_tac [("x",s)] stream.casedist i
 
 val [stream_con_rew1,stream_con_rew2] = stream.con_rews;
 
-Addsimps stream.take_rews;
-Addsimps stream.when_rews;
-Addsimps stream.sel_rews;
+Addsimps stream.rews;
+Addsimps[eq_UU_iff RS sym];
 
 (* ----------------------------------------------------------------------- *)
 (* theorems about scons                                                    *)
@@ -59,13 +60,14 @@ Goal "b ~= UU ==> x << b && z = \
 by Safe_tac;
 by (stream_case_tac "x" 1);
 by (safe_tac (claset() addSDs stream.inverts 
-                addSIs [minimal, monofun_cfun, monofun_cfun_arg]));
+                addSIs [monofun_cfun, monofun_cfun_arg]));
 by (Fast_tac 1);
 qed "stream_prefix'";
 
 Goal "[| a ~= UU; b ~= UU |] ==> (a && s = b && t) = (a = b &  s = t)";
 by (best_tac (claset() addSEs stream.injects) 1);
 qed "stream_inject_eq";	
+Addsimps [stream_inject_eq];
 
 
 (* ----------------------------------------------------------------------- *)
@@ -76,7 +78,7 @@ section "stream_when";
 
 Goal "stream_when$UU$s=UU";
 by (stream_case_tac "s" 1);
-by (ALLGOALS(asm_simp_tac (simpset() addsimps [strict_Rep_CFun1])));
+by (ALLGOALS Asm_simp_tac);
 qed "stream_when_strictf";
 	
 
@@ -95,8 +97,8 @@ qed "stream_ft_lemma1";
 
 Goal "s~=UU ==> ft$s~=UU";
 by (stream_case_tac "s" 1);
-by (Blast_tac 1);
-by (asm_simp_tac (simpset() addsimps stream.rews) 1);
+by  (Blast_tac 1);
+by (Asm_simp_tac 1);
 qed "ft_defin";
 
 Goal "rt$s~=UU ==> s~=UU";
@@ -105,7 +107,7 @@ qed "rt_strict_rev";
 
 Goal "(ft$s)&&(rt$s)=s";
 by (stream_case_tac "s" 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps stream.rews)));
+by (ALLGOALS Asm_simp_tac);
 qed "surjectiv_scons";
 
 Goal "ALL x s. x << s --> iterate i rt x << iterate i rt s";
@@ -136,7 +138,7 @@ qed "stream_reach2";
 
 Goal "chain (%i. stream_take i$s)";
 by (rtac chainI 1);
-by (subgoal_tac "ALL i s. stream_take i$s << stream_take (Suc i)$s" 1);
+by (subgoal_tac "ALL i s::'a stream. stream_take i$s << stream_take (Suc i)$s" 1);
 by (Fast_tac 1);
 by (rtac allI 1);
 by (induct_tac "ia" 1);
@@ -158,7 +160,7 @@ by (stac fix_def2 1);
 by (rtac is_ub_thelub 1);
 by (rtac chain_iterate 1);
 by (etac subst 1 THEN rtac monofun_cfun_fun 1);
-by (rtac (rewrite_rule [chain] chain_iterate RS spec) 1);
+by (rtac (rewrite_rule [chain_def] chain_iterate RS spec) 1);
 qed "stream_take_more";
 
 (*
@@ -185,7 +187,7 @@ qed "stream_take_lemma2";
 *)
 
 Goal 
- "ALL x xs. x~=UU --> stream_take n$(x && xs) = x && xs --> stream_take n$xs=xs";
+"ALL x xs. x~=UU --> stream_take n$(x && xs) = x && xs --> stream_take n$xs=xs";
 by (induct_tac "n" 1);
 by (Asm_simp_tac 1);
 by (strip_tac 1);
@@ -293,18 +295,18 @@ by (res_inst_tac [("x","rt$x")] exI 1);
 by (res_inst_tac [("x","rt$x'")] exI 1);
 by (rtac conjI 1);
 by (etac ft_defin 1);
-by (asm_simp_tac (simpset() addsimps stream.rews addsimps [surjectiv_scons]) 1);
+by (asm_simp_tac (simpset() addsimps [surjectiv_scons]) 1);
 by (eres_inst_tac [("s","ft$x"),("t","ft$x'")] subst 1);
-by (simp_tac (simpset() addsimps stream.rews addsimps [surjectiv_scons]) 1);
+by (simp_tac (simpset() addsimps [surjectiv_scons]) 1);
 by (res_inst_tac [("x","ft$x'")] exI 1);
 by (res_inst_tac [("x","rt$x")] exI 1);
 by (res_inst_tac [("x","rt$x'")] exI 1);
 by (rtac conjI 1);
 by (etac ft_defin 1);
-by (asm_simp_tac (simpset() addsimps stream.rews addsimps [surjectiv_scons]) 1);
+by (asm_simp_tac (simpset() addsimps [surjectiv_scons]) 1);
 by (res_inst_tac [("s","ft$x"),("t","ft$x'")] ssubst 1);
 by (etac sym 1);
-by (simp_tac (simpset() addsimps stream.rews addsimps [surjectiv_scons]) 1);
+by (simp_tac (simpset() addsimps [surjectiv_scons]) 1);
 qed "stream_coind_lemma2";
 
 (* ----------------------------------------------------------------------- *)
@@ -316,7 +318,7 @@ section "stream_finite";
 
 Goalw [stream.finite_def] "stream_finite UU";
 by (rtac exI 1);
-by (simp_tac (simpset() addsimps stream.rews) 1);
+by (Simp_tac 1);
 qed "stream_finite_UU";
 
 Goal  "~  stream_finite s ==> s ~= UU";
@@ -354,3 +356,243 @@ Goal "adm (%x. ~  stream_finite x)";
 by (rtac admI2 1);
 by (best_tac (claset() addIs [stream_finite_less, is_ub_thelub]) 1);
 qed "adm_not_stream_finite";
+
+section "smap";
+
+bind_thm ("smap_unfold", fix_prover2 thy smap_def 
+	"smap = (\\<Lambda>f s. case s of x && l => f\\<cdot>x && smap\\<cdot>f\\<cdot>l)");
+
+Goal "smap\\<cdot>f\\<cdot>\\<bottom> = \\<bottom>";
+by (stac smap_unfold 1);
+by (Simp_tac 1);
+qed "smap_empty";
+
+Goal "x~=\\<bottom> ==> smap\\<cdot>f\\<cdot>(x&&xs) = (f\\<cdot>x)&&(smap\\<cdot>f\\<cdot>xs)";
+by (rtac trans 1);
+by  (stac smap_unfold 1);
+by  (Asm_simp_tac 1);
+by (rtac refl 1);
+qed "smap_scons";
+
+Addsimps [smap_empty, smap_scons];
+
+(* ------------------------------------------------------------------------- *)
+
+section "slen";
+
+Goalw [slen_def, stream.finite_def] "#\\<bottom> = 0";
+by (Simp_tac 1);
+by (stac Least_equality 1);
+by    Auto_tac;
+by (simp_tac(simpset() addsimps [Fin_0]) 1);
+qed "slen_empty";
+
+Goalw [slen_def] "x ~= \\<bottom> ==> #(x&&xs) = iSuc (#xs)";
+by (res_inst_tac [("Q1","stream_finite (x && xs)")] (split_if RS iffD2) 1);
+by Safe_tac;
+by (rtac (split_if RS iffD2) 2);
+by  Safe_tac;
+by   (fast_tac (claset() addIs [stream_finite_lemma1]) 2);
+by  (rtac (iSuc_Infty RS sym) 2);
+by (rtac (split_if RS iffD2) 1);
+by (Simp_tac 1);
+by Safe_tac;
+by  (eatac stream_finite_lemma2 1 2);
+by (rewtac stream.finite_def);
+by (Clarify_tac 1);
+by (eatac Least_Suc2 1 1);
+by  (rtac not_sym 1);
+by  Auto_tac;
+qed "slen_scons"; 
+
+Addsimps [slen_empty, slen_scons];
+
+Goal "#x < Fin 1 = (x = UU)";
+by (stream_case_tac "x" 1);
+by (auto_tac (claset(), simpset() delsimps [iSuc_Fin] addsimps
+ [Fin_0, iSuc_Fin RS sym,i0_iless_iSuc, iSuc_mono]));
+qed "slen_less_1_eq";
+
+Goal "(#x = 0) = (x = \\<bottom>)";
+by Auto_tac;
+by (stream_case_tac "x" 1);
+by (rotate_tac ~1 2);
+by Auto_tac;
+qed "slen_empty_eq";
+
+Goal "Fin (Suc n) < #x = (? a y. x = a && y &  a ~= \\<bottom> &  Fin n < #y)";
+by (stream_case_tac "x" 1);
+by (auto_tac (claset(), simpset() delsimps [iSuc_Fin] addsimps
+                [iSuc_Fin RS sym, iSuc_mono]));
+by  (dtac sym 1);
+by  (rotate_tac 2 2);
+by  Auto_tac;
+qed "slen_scons_eq";
+
+
+Goal "#x = iSuc n --> (? a y. x = a&&y &  a ~= \\<bottom> &  #y = n)";
+by (stream_case_tac "x" 1);
+by Auto_tac;
+qed_spec_mp "slen_iSuc";
+
+
+Goal 
+"#x < Fin (Suc (Suc n)) = (!a y. x ~= a && y |  a = \\<bottom> |  #y < Fin (Suc n))";
+by (stac (iSuc_Fin RS sym) 1);
+by (stac (iSuc_Fin RS sym) 1);
+by (safe_tac HOL_cs);
+by  (rotate_tac ~1 1);
+by  (asm_full_simp_tac (HOL_ss addsimps [slen_scons, iSuc_mono]) 1);
+by  (Asm_full_simp_tac 1);
+by (stream_case_tac "x" 1);
+by ( simp_tac (HOL_ss addsimps [slen_empty, i0_iless_iSuc]) 1);
+by (asm_simp_tac (HOL_ss addsimps [slen_scons, iSuc_mono]) 1);
+by (etac allE 1);
+by (etac allE 1);
+by (safe_tac HOL_cs);
+by (  contr_tac 2);
+by ( fast_tac HOL_cs 1);
+by (Asm_full_simp_tac 1);
+qed "slen_scons_eq_rev";
+
+Goal "!x. Fin n < #x = (stream_take n\\<cdot>x ~= x)";
+by (nat_ind_tac "n" 1);
+by  (simp_tac(simpset() addsimps [slen_empty_eq, Fin_0]) 1);
+by  (Fast_tac 1);
+by (rtac allI 1);
+by (asm_simp_tac (simpset() addsimps [slen_scons_eq]) 1);
+by (etac thin_rl 1);
+by (safe_tac HOL_cs);
+by  (Asm_full_simp_tac 1);
+by (stream_case_tac "x" 1);
+by (rotate_tac ~1 2);
+by Auto_tac;
+qed_spec_mp "slen_take_eq";
+
+Goalw [ile_def] "#x <= Fin n = (stream_take n\\<cdot>x = x)";
+by (simp_tac (simpset() addsimps [slen_take_eq]) 1);
+qed "slen_take_eq_rev";
+
+Goal "#x = Fin n ==> stream_take n\\<cdot>x = x";
+by (asm_simp_tac (simpset() addsimps [slen_take_eq_rev RS sym]) 1);
+qed "slen_take_lemma1";
+
+Goal "!x. ~stream_finite x --> #(stream_take i\\<cdot>x) = Fin i";
+by (nat_ind_tac "i" 1);
+by  (simp_tac(simpset() addsimps [Fin_0]) 1);
+by (rtac allI 1);
+by (stream_case_tac "x" 1);
+by  (auto_tac (claset()addSIs [stream_finite_lemma1], simpset() delsimps [iSuc_Fin] addsimps [iSuc_Fin RS sym]));
+by (force_tac (claset(), simpset() addsimps [stream.finite_def]) 1);
+qed_spec_mp "slen_take_lemma2";
+
+Goal "stream_finite x = (#x ~= Infty)";
+by (rtac iffI 1);
+by  (etac stream_finite_ind 1);
+by   (Simp_tac 1);
+by  (etac (slen_scons RS ssubst) 1);
+by  (stac (iSuc_Infty RS sym) 1);
+by  (etac contrapos_nn 1);
+by  (etac (iSuc_inject RS iffD1) 1);
+by (case_tac "#x" 1);
+by (auto_tac (claset()addSDs [slen_take_lemma1],
+        simpset() addsimps [stream.finite_def]));
+qed "slen_infinite";
+
+Goal "s << t ==> #s <= #t";
+by (case_tac "stream_finite t" 1);
+by  (EVERY'[dtac (slen_infinite RS subst), dtac notnotD] 2);
+by  (Asm_simp_tac 2);
+by (etac rev_mp 1);
+by (res_inst_tac [("x","s")] allE 1);
+by  (atac 2);
+by (etac (stream_finite_ind) 1);
+by  (Simp_tac 1);
+by (rtac allI 1);
+by (stream_case_tac "x" 1);
+by  (asm_simp_tac (HOL_ss addsimps [slen_empty, i0_lb]) 1);
+by (asm_simp_tac (HOL_ss addsimps [slen_scons]) 1);
+by (fast_tac(claset() addSIs [iSuc_ile_mono RS iffD2] addSDs stream.inverts) 1);
+qed "slen_mono";
+
+Goal "!(x::'a::flat stream) y. Fin n <= #x --> x << y --> \
+\ stream_take n\\<cdot>x = stream_take n\\<cdot>y";
+by (nat_ind_tac "n" 1);
+by ( simp_tac(simpset() addsimps [slen_empty_eq]) 1);
+by (strip_tac 1);
+by (stream_case_tac "x" 1);
+by  (asm_full_simp_tac (HOL_ss addsimps [slen_empty, 
+              iSuc_Fin RS sym, not_iSuc_ilei0]) 1);
+by (fatac stream_prefix 1 1);
+by (safe_tac (claset() addSDs [stream_flat_prefix]));
+by (Simp_tac 1);
+by (rtac cfun_arg_cong 1);
+by (rotate_tac 3 1);
+by (asm_full_simp_tac (simpset() delsimps [iSuc_Fin] addsimps 
+        [iSuc_Fin RS sym, iSuc_ile_mono]) 1);
+qed_spec_mp "slen_take_lemma3";
+
+Goal "stream_finite t ==> \
+\!s. #(s::'a::flat stream) = #t &  s << t --> s = t";
+by (etac stream_finite_ind 1);
+by  (fast_tac (claset() addDs [eq_UU_iff RS iffD2]) 1);
+by (Safe_tac);
+by (stream_case_tac "sa" 1);
+by  (dtac sym 1);
+by  (Asm_full_simp_tac 1);
+by (safe_tac (claset() addSDs [stream_flat_prefix]));
+by (rtac cfun_arg_cong 1);
+by (etac allE 1);
+by (etac mp 1);
+by (Asm_full_simp_tac 1);
+qed "slen_strict_mono_lemma";
+
+Goal "[|stream_finite t; s ~= t; s << (t::'a::flat stream) |] ==> #s < #t";
+by (rtac ilessI1 1);
+by  (etac slen_mono 1);
+by (dtac slen_strict_mono_lemma 1);
+by (Fast_tac 1);
+qed "slen_strict_mono";
+
+Goal "!x. Fin (i + j) <= #x --> Fin j <= #(iterate i rt x)";
+by (nat_ind_tac "i" 1);
+by  (Simp_tac 1);
+by (strip_tac 1);
+by (stream_case_tac "x" 1);
+by  (asm_full_simp_tac (simpset() delsimps [iSuc_Fin] 
+             addsimps [iSuc_Fin RS sym]) 1);
+by (stac iterate_Suc2 1);
+by (rotate_tac 2 1);
+by (asm_full_simp_tac  (simpset() delsimps [iSuc_Fin] 
+    addsimps [iSuc_Fin RS sym, iSuc_ile_mono]) 1);
+qed_spec_mp "slen_rt_mult";
+
+
+(* ------------------------------------------------------------------------- *)
+
+section "sfilter";
+
+bind_thm ("sfilter_unfold", fix_prover2 thy sfilter_def 
+	"sfilter = (\\<Lambda>p s. case s of x && xs => \
+\  If p\\<cdot>x then x && sfilter\\<cdot>p\\<cdot>xs else sfilter\\<cdot>p\\<cdot>xs fi)");
+
+Goal "sfilter\\<cdot>\\<bottom> = \\<bottom>";
+by (rtac ext_cfun 1);
+by (stac sfilter_unfold 1);
+by (stream_case_tac "x" 1);
+by  Auto_tac;
+qed "strict_sfilter";
+
+Goal "sfilter\\<cdot>f\\<cdot>\\<bottom> = \\<bottom>";
+by (stac sfilter_unfold 1);
+by (Simp_tac 1);
+qed "sfilter_empty";
+
+Goal "x ~= \\<bottom> ==> sfilter\\<cdot>f\\<cdot>(x && xs) = \
+\ If f\\<cdot>x then x && sfilter\\<cdot>f\\<cdot>xs else sfilter\\<cdot>f\\<cdot>xs fi";
+by (rtac trans 1);
+by (stac sfilter_unfold 1);
+by (Asm_simp_tac 1);
+by (rtac refl 1);
+qed "sfilter_scons";
+
