@@ -1200,6 +1200,19 @@ apply (induct_tac "n")
 apply (auto simp add: zero_le_mult_iff)
 done
 
+lemma zdiv_int: "int (a div b) = (int a) div (int b)"
+apply (subst split_div, auto)
+apply (subst split_zdiv, auto)
+apply (rule_tac a="int (b * i) + int j" and b="int b" and r="int j" and r'=ja in IntDiv.unique_quotient)
+apply (auto simp add: IntDiv.quorem_def int_eq_of_nat)
+done
+
+lemma zmod_int: "int (a mod b) = (int a) mod (int b)"
+apply (subst split_mod, auto)
+apply (subst split_zmod, auto)
+apply (rule_tac a="int (b * i) + int j" and b="int b" and q="int i" and q'=ia in IntDiv.unique_remainder)
+apply (auto simp add: IntDiv.quorem_def int_eq_of_nat)
+done
 
 ML
 {*
