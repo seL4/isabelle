@@ -52,16 +52,14 @@ by (rtac realrelI 1);
 by (rtac refl 1);
 qed "realrel_refl";
 
-Goalw [equiv_def, refl_def, sym_def, trans_def]
-    "equiv {x::(preal*preal).True} realrel";
+Goalw [equiv_def, refl_def, sym_def, trans_def] "equiv UNIV realrel";
 by (fast_tac (claset() addSIs [realrel_refl] 
-                      addSEs [sym,preal_trans_lemma]) 1);
+                       addSEs [sym, preal_trans_lemma]) 1);
 qed "equiv_realrel";
 
+(* (realrel ^^ {x} = realrel ^^ {y}) = ((x,y) : realrel) *)
 bind_thm ("equiv_realrel_iff",
-    [TrueI, TrueI] MRS 
-    ([CollectI, CollectI] MRS 
-    (equiv_realrel RS eq_equiv_class_iff)));
+    	  [equiv_realrel, UNIV_I, UNIV_I] MRS eq_equiv_class_iff);
 
 Goalw  [real_def,realrel_def,quotient_def] "realrel^^{(x,y)}:real";
 by (Blast_tac 1);
@@ -114,14 +112,12 @@ by Safe_tac;
 by (asm_full_simp_tac (simpset() addsimps [preal_add_commute]) 1);
 qed "real_minus_congruent";
 
-(*Resolve th against the corresponding facts for real_minus*)
-val real_minus_ize = RSLIST [equiv_realrel, real_minus_congruent];
-
 Goalw [real_minus_def]
       "- (Abs_real(realrel^^{(x,y)})) = Abs_real(realrel ^^ {(y,x)})";
 by (res_inst_tac [("f","Abs_real")] arg_cong 1);
 by (simp_tac (simpset() addsimps 
-   [realrel_in_real RS Abs_real_inverse,real_minus_ize UN_equiv_class]) 1);
+   [realrel_in_real RS Abs_real_inverse,
+    [equiv_realrel, real_minus_congruent] MRS UN_equiv_class]) 1);
 qed "real_minus";
 
 Goal "- (- z) = (z::real)";
@@ -162,13 +158,11 @@ by (asm_simp_tac (simpset() addsimps [preal_add_assoc RS sym]) 1);
 by (asm_simp_tac (simpset() addsimps preal_add_ac) 1);
 qed "real_add_congruent2";
 
-(*Resolve th against the corresponding facts for real_add*)
-val real_add_ize = RSLIST [equiv_realrel, real_add_congruent2];
-
 Goalw [real_add_def]
   "Abs_real(realrel^^{(x1,y1)}) + Abs_real(realrel^^{(x2,y2)}) = \
 \  Abs_real(realrel^^{(x1+x2, y1+y2)})";
-by (asm_simp_tac (simpset() addsimps [real_add_ize UN_equiv_class2]) 1);
+by (simp_tac (simpset() addsimps 
+              [[equiv_realrel, real_add_congruent2] MRS UN_equiv_class2]) 1);
 qed "real_add";
 
 Goal "(z::real) + w = w + z";
@@ -329,13 +323,11 @@ by (asm_simp_tac (simpset() addsimps [preal_mult_commute,preal_add_commute]) 1);
 by (auto_tac (claset(),simpset() addsimps [real_mult_congruent2_lemma]));
 qed "real_mult_congruent2";
 
-(*Resolve th against the corresponding facts for real_mult*)
-val real_mult_ize = RSLIST [equiv_realrel, real_mult_congruent2];
-
 Goalw [real_mult_def]
    "Abs_real((realrel^^{(x1,y1)})) * Abs_real((realrel^^{(x2,y2)})) =   \
 \   Abs_real(realrel ^^ {(x1*x2+y1*y2,x1*y2+x2*y1)})";
-by (simp_tac (simpset() addsimps [real_mult_ize UN_equiv_class2]) 1);
+by (simp_tac (simpset() addsimps
+               [[equiv_realrel, real_mult_congruent2] MRS UN_equiv_class2]) 1);
 qed "real_mult";
 
 Goal "(z::real) * w = w * z";
@@ -397,7 +389,7 @@ by (res_inst_tac [("z","x")] eq_Abs_real 1);
 by (res_inst_tac [("z","y")] eq_Abs_real 1);
 by (auto_tac (claset(),
 	      simpset() addsimps [real_minus,real_mult] 
-    @ preal_mult_ac @ preal_add_ac));
+                                 @ preal_mult_ac @ preal_add_ac));
 qed "real_minus_mult_eq1";
 
 Goal "-(x * y) = x * (- y :: real)";

@@ -22,7 +22,7 @@ constdefs
     "hyprel == {p. ? X Y. p = ((X::nat=>real),Y) & 
                    {n::nat. X(n) = Y(n)}: FreeUltrafilterNat}"
 
-typedef hypreal = "{x::nat=>real. True}/hyprel"   (Equiv.quotient_def)
+typedef hypreal = "UNIV//hyprel"   (Equiv.quotient_def)
 
 instance
    hypreal  :: {ord, zero, plus, times, minus}

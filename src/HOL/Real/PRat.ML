@@ -451,7 +451,7 @@ qed "qless_Ex";
 
 (* lemma for proving $< is linear *)
 Goalw [prat_def,prat_less_def] 
-      "ratrel ^^ {(x, y * ya)} : {p::(pnat*pnat).True}/ratrel";
+      "ratrel ^^ {(x, y * ya)} : {p::(pnat*pnat).True}//ratrel";
 by (asm_full_simp_tac (simpset() addsimps [ratrel_def,quotient_def]) 1);
 by (Blast_tac 1);
 qed "lemma_prat_less_linear";

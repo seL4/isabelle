@@ -15,8 +15,6 @@ by (auto_tac (claset(),
 				  preal_of_prat_add RS sym]));
 qed "real_of_int_congruent";
 
-val real_of_int_ize = RSLIST [equiv_intrel, real_of_int_congruent];
-
 Goalw [real_of_int_def]
    "real_of_int (Abs_Integ (intrel ^^ {(i, j)})) = \
 \     Abs_real(realrel ^^ \
@@ -24,7 +22,7 @@ Goalw [real_of_int_def]
 \         preal_of_prat (prat_of_pnat (pnat_of_nat j)))})";
 by (res_inst_tac [("f","Abs_real")] arg_cong 1);
 by (simp_tac (simpset() addsimps [realrel_in_real RS Abs_real_inverse,
-				  real_of_int_ize UN_equiv_class]) 1);
+		[equiv_intrel, real_of_int_congruent] MRS UN_equiv_class]) 1);
 qed "real_of_int";
 
 Goal "inj(real_of_int)";

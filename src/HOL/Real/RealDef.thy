@@ -11,7 +11,7 @@ constdefs
   realrel   ::  "((preal * preal) * (preal * preal)) set"
   "realrel == {p. ? x1 y1 x2 y2. p = ((x1,y1),(x2,y2)) & x1+y2 = x2+y1}" 
 
-typedef real = "{x::(preal*preal).True}/realrel"          (Equiv.quotient_def)
+typedef real = "UNIV//realrel"  (Equiv.quotient_def)
 
 
 instance

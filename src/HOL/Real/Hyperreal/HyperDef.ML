@@ -107,8 +107,7 @@ by (rtac (FreeUltrafilterNat_mem RS FreeUltrafilter_Ultrafilter RS
 qed "FreeUltrafilterNat_UNIV";
 Addsimps [FreeUltrafilterNat_UNIV];
 
-Goal "{n::nat. True}: FreeUltrafilterNat";
-by (subgoal_tac "{n::nat. True} = (UNIV::nat set)" 1);
+Goal "UNIV : FreeUltrafilterNat";
 by Auto_tac;
 qed "FreeUltrafilterNat_Nat_set";
 Addsimps [FreeUltrafilterNat_Nat_set];
@@ -202,18 +201,16 @@ by Auto_tac;
 by (Ultra_tac 1);
 qed_spec_mp "hyprel_trans";
 
-Goalw [equiv_def, refl_def, sym_def, trans_def]
-    "equiv {x::nat=>real. True} hyprel";
+Goalw [equiv_def, refl_def, sym_def, trans_def] "equiv UNIV hyprel";
 by (auto_tac (claset() addSIs [hyprel_refl] 
                        addSEs [hyprel_sym,hyprel_trans] 
                        delrules [hyprelI,hyprelE],
 	      simpset() addsimps [FreeUltrafilterNat_Nat_set]));
 qed "equiv_hyprel";
 
+(* (hyprel ^^ {x} = hyprel ^^ {y}) = ((x,y) : hyprel) *)
 bind_thm ("equiv_hyprel_iff",
-    [TrueI, TrueI] MRS 
-    ([CollectI, CollectI] MRS 
-    (equiv_hyprel RS eq_equiv_class_iff)));
+    	  [equiv_hyprel, UNIV_I, UNIV_I] MRS eq_equiv_class_iff);
 
 Goalw  [hypreal_def,hyprel_def,quotient_def] "hyprel^^{x}:hypreal";
 by (Blast_tac 1);
@@ -288,14 +285,12 @@ by Safe_tac;
 by (ALLGOALS Ultra_tac);
 qed "hypreal_minus_congruent";
 
-(*Resolve th against the corresponding facts for hypreal_minus*)
-val hypreal_minus_ize = RSLIST [equiv_hyprel, hypreal_minus_congruent];
-
 Goalw [hypreal_minus_def]
       "- (Abs_hypreal(hyprel^^{%n. X n})) = Abs_hypreal(hyprel ^^ {%n. -(X n)})";
 by (res_inst_tac [("f","Abs_hypreal")] arg_cong 1);
 by (simp_tac (simpset() addsimps 
-   [hyprel_in_hypreal RS Abs_hypreal_inverse,hypreal_minus_ize UN_equiv_class]) 1);
+   [hyprel_in_hypreal RS Abs_hypreal_inverse,
+    [equiv_hyprel, hypreal_minus_congruent] MRS UN_equiv_class]) 1);
 qed "hypreal_minus";
 
 Goal "- (- z) = (z::hypreal)";
@@ -331,15 +326,13 @@ Goalw [congruent_def]
 by (Auto_tac THEN Ultra_tac 1);
 qed "hypreal_hrinv_congruent";
 
-(* Resolve th against the corresponding facts for hrinv *)
-val hypreal_hrinv_ize = RSLIST [equiv_hyprel, hypreal_hrinv_congruent];
-
 Goalw [hrinv_def]
       "hrinv (Abs_hypreal(hyprel^^{%n. X n})) = \
 \      Abs_hypreal(hyprel ^^ {%n. if X n = #0 then #0 else rinv(X n)})";
 by (res_inst_tac [("f","Abs_hypreal")] arg_cong 1);
 by (simp_tac (simpset() addsimps 
-   [hyprel_in_hypreal RS Abs_hypreal_inverse,hypreal_hrinv_ize UN_equiv_class]) 1);
+   [hyprel_in_hypreal RS Abs_hypreal_inverse,
+    [equiv_hyprel, hypreal_hrinv_congruent] MRS UN_equiv_class]) 1);
 qed "hypreal_hrinv";
 
 Goal "z ~= 0 ==> hrinv (hrinv z) = z";
@@ -369,14 +362,11 @@ by Safe_tac;
 by (ALLGOALS(Ultra_tac));
 qed "hypreal_add_congruent2";
 
-(*Resolve th against the corresponding facts for hyppreal_add*)
-val hypreal_add_ize = RSLIST [equiv_hyprel, hypreal_add_congruent2];
-
 Goalw [hypreal_add_def]
   "Abs_hypreal(hyprel^^{%n. X n}) + Abs_hypreal(hyprel^^{%n. Y n}) = \
 \  Abs_hypreal(hyprel^^{%n. X n + Y n})";
-by (asm_simp_tac
-    (simpset() addsimps [hypreal_add_ize UN_equiv_class2]) 1);
+by (simp_tac (simpset() addsimps 
+         [[equiv_hyprel, hypreal_add_congruent2] MRS UN_equiv_class2]) 1);
 qed "hypreal_add";
 
 Goal "(z::hypreal) + w = w + z";
@@ -531,14 +521,11 @@ by Safe_tac;
 by (ALLGOALS(Ultra_tac));
 qed "hypreal_mult_congruent2";
 
-(*Resolve th against the corresponding facts for hypreal_mult*)
-val hypreal_mult_ize = RSLIST [equiv_hyprel, hypreal_mult_congruent2];
-
 Goalw [hypreal_mult_def]
   "Abs_hypreal(hyprel^^{%n. X n}) * Abs_hypreal(hyprel^^{%n. Y n}) = \
 \  Abs_hypreal(hyprel^^{%n. X n * Y n})";
-by (asm_simp_tac
-    (simpset() addsimps [hypreal_mult_ize UN_equiv_class2]) 1);
+by (simp_tac (simpset() addsimps 
+      [[equiv_hyprel, hypreal_mult_congruent2] MRS UN_equiv_class2]) 1);
 qed "hypreal_mult";
 
 Goal "(z::hypreal) * w = w * z";
