@@ -110,6 +110,9 @@ by (res_inst_tac [("p","p")] PairE 1);
 by (Asm_simp_tac 1);
 qed "surjective_pairing2";
 
+qed_goal "split_eta" Prod.thy "(%(x,y). f(x,y)) = f"
+  (fn _ => [rtac ext 1, split_all_tac 1, rtac split 1]);
+
 (*For use with split_tac and the simplifier*)
 goal Prod.thy "R(split c p) = (! x y. p = (x,y) --> R(c x y))";
 by (stac surjective_pairing 1);

@@ -61,7 +61,7 @@ defs
   Pair_def      "Pair a b == Abs_Prod(Pair_Rep a b)"
   fst_def       "fst(p) == @a. ? b. p = (a, b)"
   snd_def       "snd(p) == @b. ? a. p = (a, b)"
-  split_def     "split c p == c (fst p) (snd p)"
+  split_def     "split == (%c p. c (fst p) (snd p))"
   prod_fun_def  "prod_fun f g == split(%x y.(f(x), g(y)))"
   Sigma_def     "Sigma A B == UN x:A. UN y:B(x). {(x, y)}"
 

@@ -181,3 +181,15 @@ prove "conj_disj_distribR" "((P|Q)&R) = (P&R | Q&R)";
 prove "de_Morgan_disj" "(~(P | Q)) = (~P & ~Q)";
 prove "de_Morgan_conj" "(~(P & Q)) = (~P | ~Q)";
 
+prove "ex_disj_distrib" "(? x. P(x) | Q(x)) = ((? x. P(x)) | (? x. Q(x)))";
+prove "all_conj_distrib" "(!x. P(x) & Q(x)) = ((! x. P(x)) & (! x. Q(x)))";
+
+qed_goal "if_cancel" HOL.thy "(if c then x else x) = x"
+  (fn _ => [simp_tac (HOL_ss setloop (split_tac [expand_if])) 1]);
+
+qed_goal "if_distrib" HOL.thy
+  "f(if c then x else y) = (if c then f x else f y)" 
+  (fn _ => [simp_tac (HOL_ss setloop (split_tac [expand_if])) 1]);
+
+qed_goalw "o_assoc" HOL.thy [o_def] "(f o g) o h = (f o g o h)"
+  (fn _=>[rtac ext 1, rtac refl 1]);

@@ -27,7 +27,7 @@ Addsimps [Suc_pred];
 
 (** Difference **)
 
-val diff_0 = diff_def RS def_nat_rec_0;
+bind_thm("diff_0", diff_def RS def_nat_rec_0);
 
 qed_goalw "diff_0_eq_0" Arith.thy [diff_def, pred_def]
     "0 - n = 0"
