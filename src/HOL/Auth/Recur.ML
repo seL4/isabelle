@@ -21,8 +21,8 @@ Pretty.setdepth 30;
 
 (*Simplest case: Alice goes directly to the server*)
 goal thy
- "!!A. A ~= Server                          \
-\ ==> EX K NA. EX evs: recur lost.          \
+ "!!A. A ~= Server                                                      \
+\ ==> EX K NA. EX evs: recur lost.                                      \
 \     Says Server A {|Crypt (shrK A) {|Key K, Agent Server, Nonce NA|}, \
 \                     Agent Server|}  : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
@@ -34,8 +34,8 @@ result();
 
 (*Case two: Alice, Bob and the server*)
 goal thy
- "!!A B. [| A ~= B; A ~= Server; B ~= Server |]   \
-\ ==> EX K. EX NA. EX evs: recur lost.            \
+ "!!A B. [| A ~= B; A ~= Server; B ~= Server |]                 \
+\ ==> EX K. EX NA. EX evs: recur lost.                          \
 \       Says B A {|Crypt (shrK A) {|Key K, Agent B, Nonce NA|}, \
 \                  Agent Server|}  : set evs";
 by (cut_facts_tac [Nonce_supply2, Key_supply2] 1);
@@ -54,8 +54,8 @@ result();
   TOO SLOW to run every time!
 goal thy
  "!!A B. [| A ~= B; B ~= C; A ~= Server; B ~= Server; C ~= Server |]   \
-\ ==> EX K. EX NA. EX evs: recur lost.                          \
-\       Says B A {|Crypt (shrK A) {|Key K, Agent B, Nonce NA|}, \
+\ ==> EX K. EX NA. EX evs: recur lost.                                 \
+\       Says B A {|Crypt (shrK A) {|Key K, Agent B, Nonce NA|},        \
 \                  Agent Server|}  : set evs";
 by (cut_facts_tac [Nonce_supply3, Key_supply3] 1);
 by (REPEAT (eresolve_tac [exE, conjE] 1));
@@ -324,14 +324,14 @@ by (step_tac (!claset addSEs partsEs) 1);
 by (ALLGOALS (expand_case_tac "NA = ?y"));
 by (REPEAT_FIRST (ares_tac [exI]));
 by (REPEAT (blast_tac (!claset addSDs [Hash_imp_body]
-                              addSEs sees_Spy_partsEs) 1));
+                               addSEs sees_Spy_partsEs) 1));
 val lemma = result();
 
 goalw thy [HPair_def]
- "!!evs.[| Hash[Key(shrK A)] {|Agent A,B,NA,P|} : parts (sees lost Spy evs);  \
-\          Hash[Key(shrK A)] {|Agent A,B',NA,P'|} : parts (sees lost Spy evs);\
-\          evs : recur lost;  A ~: lost |]                                    \
-\        ==> B=B' & P=P'";
+ "!!A.[| Hash[Key(shrK A)] {|Agent A, B,NA,P|}   : parts(sees lost Spy evs); \
+\        Hash[Key(shrK A)] {|Agent A, B',NA,P'|} : parts(sees lost Spy evs); \
+\        evs : recur lost;  A ~: lost |]                                     \
+\      ==> B=B' & P=P'";
 by (REPEAT (eresolve_tac partsEs 1));
 by (prove_unique_tac lemma 1);
 qed "unique_NA";
@@ -358,7 +358,7 @@ goal thy
 \           ALL K KK. KK <= Compl (range shrK) -->          \
 \                     (Key K : analz (Key``KK Un H)) =      \
 \                     (K : KK | Key K : analz H) |]         \
-\       ==> (Key K : analz (insert RB H)) --> \
+\       ==> (Key K : analz (insert RB H)) -->               \
 \           (Key K : parts{RB} | Key K : analz H)";
 by (etac responses.induct 1);
 by (ALLGOALS
@@ -377,9 +377,8 @@ bind_thm ("resp_analz_insert",
 (*The Server does not send such messages.  This theorem lets us avoid
   assuming B~=Server in RA4.*)
 goal thy 
- "!!evs. evs : recur lost       \
-\ ==> ALL C X Y P. Says Server C {|X, Agent Server, Agent C, Y, P|} \
-\                  ~: set evs";
+ "!!evs. evs : recur lost \
+\        ==> ALL C X Y. Says Server C {|X, Agent Server, Y|} ~: set evs";
 by (etac recur.induct 1);
 by (etac (respond.induct) 5);
 by (Auto_tac());
