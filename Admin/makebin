@@ -93,7 +93,9 @@ chgrp -R isabelle "$TMP"
 
 for IMG in HOL HOL-Real ZF
 do
-  "$TAR" cf "${IMG}_$PLATFORM.tar" "$ISABELLE_NAME/heaps/$COMPILER/$IMG"
+  "$TAR" cf "${IMG}_$PLATFORM.tar" \
+    "$ISABELLE_NAME/heaps/$COMPILER/$IMG" \
+    "$ISABELLE_NAME/heaps/$COMPILER/log/$IMG.gz"
   gzip "${IMG}_$PLATFORM.tar"
   cp -f "${IMG}_$PLATFORM.tar.gz" "$ARCHIVE_DIR"
 done
