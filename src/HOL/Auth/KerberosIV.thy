@@ -855,12 +855,14 @@ txt{*Case-splits for Oops1 and message 5: the negated case simplifies using
 apply (case_tac [11] "KeyCryptKey AuthKey SK evsO1")
 apply (case_tac [8] "KeyCryptKey ServKey SK evs5")
 apply (simp_all del: image_insert
-          add: analz_image_freshK_simps KeyCryptKey_Says shrK_not_KeyCryptKey
-               Oops2_not_KeyCryptKey Auth_fresh_not_KeyCryptKey
-               Serv_fresh_not_KeyCryptKey Says_Tgs_KeyCryptKey Spy_analz_shrK)
-  --{*18 seconds on a 1.8GHz machine??*}
+          add: analz_image_freshK_simps KeyCryptKey_Says)
 txt{*Fake*} 
 apply spy_analz
+apply (simp_all del: image_insert
+          add: shrK_not_KeyCryptKey
+               Oops2_not_KeyCryptKey Auth_fresh_not_KeyCryptKey
+               Serv_fresh_not_KeyCryptKey Says_Tgs_KeyCryptKey Spy_analz_shrK)
+  --{*Splitting the @{text simp_all} into two parts makes it faster.*}
 txt{*K2*}
 apply blast 
 txt{*K3*}
