@@ -661,7 +661,7 @@ val norm_hhf_eq =
         |> Thm.forall_intr cx
         |> Thm.implies_intr cphi
         |> Thm.implies_intr rhs)
-    |> store_standard_thm "norm_hhf_eq"
+    |> open_store_standard_thm "norm_hhf_eq"
   end;
 
 
