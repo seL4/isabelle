@@ -32,6 +32,7 @@ val enc_end = 255;
 
 val enc_vector =
 [
+(* GENERATED TEXT FOLLOWS - Do not edit! *)
       "Gamma", "Delta", "Theta", "Lambda", "Pi", "Sigma", "Phi",
   "Psi", "Omega", "alpha", "beta", "gamma", "delta", "epsilon", "zeta",
   "eta", "theta", "kappa", "lambda", "mu", "nu", "xi", "pi",
@@ -44,6 +45,7 @@ val enc_vector =
   "rightarrow", "Leftarrow", "Midarrow", "Rightarrow", "bow", "mapsto", "leadsto", "up",
   "down", "notin", "times", "oplus", "ominus", "otimes", "oslash", "subset",
   "infinity", "box", "diamond", "circ", "bullet", "parallel", "surd", "copyright"
+(* END OF GENERATED TEXT *)
 ];
 
 val enc_rel = enc_vector ~~ (map chr (enc_start upto enc_end));
