@@ -341,9 +341,10 @@ some way to do so.
   Furthermore, the file name is checked with the $\isarkeyword{files}$
   dependency declaration given in the theory header (see also
   \S\ref{sec:begin-thy}).
+
 \item [$\isarkeyword{ML}~text$] reads and executes ML commands from $text$.
   The theory context is passed just as for $\isarkeyword{use}$.
-%FIXME picked up again!?
+
 \item [$\isarkeyword{setup}~text$] changes the current theory context by
   applying setup functions $text$, which has to be an ML expression of type
   $(theory \to theory)~list$.  The $\isarkeyword{setup}$ command is the usual
@@ -468,7 +469,7 @@ hypothetical equation $x = t$ to be eliminated by reflexivity.  Thus,
 exporting some result $\phi[x]$ simply yields $\phi[t]$.
 
 \begin{rail}
-  'fix' (var +) comment?
+  'fix' (vars + 'and') comment?
   ;
   ('assume' | 'presume') (assm comment? + 'and')
   ;
@@ -476,6 +477,8 @@ exporting some result $\phi[x]$ simply yields $\phi[t]$.
   ;
 
   var: name ('::' type)?
+  ;
+  vars: name+ ('::' type)?
   ;
   assm: thmdecl? (prop proppat? +)
   ;
@@ -496,6 +499,8 @@ exporting some result $\phi[x]$ simply yields $\phi[t]$.
   In results exported from the context, $x$ is replaced by $t$.  Basically,
   $\DEF{}{x \equiv t}$ abbreviates $\FIX{x}~\PRESUME{}{x \equiv t}$, with the
   resulting hypothetical equation solved by reflexivity.
+  
+  The default name for the definitional equation is $x_def$.
 \end{descr}
 
 The special theorem name $prems$\indexisarthm{prems} refers to all current
