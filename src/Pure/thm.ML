@@ -182,6 +182,7 @@ end;
 signature THM =
 sig
   include BASIC_THM
+  val no_prems		: thm -> bool
   val no_attributes	: 'a -> 'a * 'b attribute list
   val apply_attributes	: ('a * thm) * 'a attribute list -> ('a * thm)
   val applys_attributes	: ('a * thm list) * 'a attribute list -> ('a * thm list)
@@ -477,6 +478,8 @@ fun prems_of (Thm {prop, ...}) =
 (*counts premises in a rule*)
 fun nprems_of (Thm {prop, ...}) =
   Logic.count_prems (Logic.skip_flexpairs prop, 0);
+
+fun no_prems thm = nprems_of thm = 0;
 
 (*maps object-rule to conclusion*)
 fun concl_of (Thm {prop, ...}) = Logic.strip_imp_concl prop;
@@ -2255,7 +2258,7 @@ fun bottomc ((simprem,useprem,mutsimp),prover,sign_ref,maxidx) =
     and mut_impc1(prems, prem1, conc, mss, etc1 as (_,hyps1,_)) =
       let
         fun uncond({thm,lhs,elhs,perm}) =
-          if nprems_of thm = 0 then Some lhs else None
+          if no_prems thm then Some lhs else None
 
         val (lhss1,mss1) =
           if maxidx_of_term prem1 <> ~1
