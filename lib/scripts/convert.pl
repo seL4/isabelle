@@ -20,6 +20,7 @@ sub thmlist {
 sub subst_RS {
   s/ RS ([\w\'\.]+)/ [THEN $1]/g;
   s/ RS \((.+?)\)/ [THEN $1]/g;
+  s/\(([\w\'\.]+ \[THEN [\w\'\.]+\])\)/$1/g;
   s/\] \[THEN /, /g;
   s/THEN sym\b/symmetric/g;
 }
@@ -59,6 +60,10 @@ sub process_tac {
   s/ ?\( ?\)/\(\)/g;      # remove space before and inside empty tuples
   s/\(\)([^ ])/\(\) $1/g; # possibly add space after empty tuples
 
+  if(s/^\(EVERY\'\[(.*?)\]\s*(\d+)\)$/\($1 $2\)/) {
+    $goal = $2;
+    s/,/ $goal,/g;
+  }
   s/Blast_tac 1/blast/g;
   s/^Blast_tac (\d+)/{$prefer="prefer $1 "; "blast"}/e;
   s/Fast_tac 1/fast/g;
