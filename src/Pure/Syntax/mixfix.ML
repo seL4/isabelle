@@ -164,7 +164,7 @@ val pure_syntax =
   ("",          "prop => asms",                   Delimfix "_"),
   ("_asms",     "[prop, asms] => asms",           Delimfix "_;/ _"),
   ("_bigimpl",  "[asms, prop] => prop",           Mixfix ("((3[| _ |]) ==>/ _)", [0, 1], 1)),
-  ("_insort",   "[type, 'a] => prop",             Delimfix "(2'(| _ :/ _ |'))"),
+  ("_ofclass",  "[type, 'a] => prop",             Delimfix "(1OFCLASS/(1'(_,/ _')))"),
   ("_K",        "'a",                             NoSyn),
   ("_explode",  "'a",                             NoSyn),
   ("_implode",  "'a",                             NoSyn)];
