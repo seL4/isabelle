@@ -475,7 +475,7 @@ fun mk_base bases child mk_draft =
       val mergelist = load_base bases;
 
       val base_thy = (writeln ("Loading theory " ^ (quote child));
-                      merge_thy_list mk_draft (map theory_of mergelist));
+                      Theory.merge_thy_list mk_draft (map theory_of mergelist));
 
       val datas =
         let fun get_data t =
