@@ -65,4 +65,9 @@ translations
 end
 
 (* start 8bit 2 *)
+ML
+val parse_ast_translation = ("¤",    fn asts => Appl (Constant "LAM " :: asts)) ::
+			    parse_ast_translation;
+val print_ast_translation = ("LAM ", fn asts => Appl (Constant "¤"    :: asts)) ::
+			    print_ast_translation;
 (* end 8bit 2 *)
