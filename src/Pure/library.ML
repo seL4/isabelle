@@ -228,7 +228,7 @@ fun find_index pred =
         | find n (x :: xs) = if pred x then n else find (n + 1) xs;
   in find 0 end;
 
-val find_index_eq = find_index o equal;
+fun find_index_eq x = find_index (equal x);
 
 (*find first element satisfying predicate*)
 fun find_first _ [] = None
