@@ -203,7 +203,7 @@ fun pretty_full_theory thy =
     fun pretty_nonterminals ts = Pretty.block
       (Pretty.breaks (Pretty.str "syntactic types:" :: map Pretty.str ts));
 
-    fun pretty_abbr (t, (vs, rhs)) = Pretty.block
+    fun pretty_abbr (t, (vs, rhs, _)) = Pretty.block
       [prt_typ_no_tvars (Type (t, map (fn v => TVar ((v, 0), [])) vs)),
         Pretty.str " =", Pretty.brk 1, prt_typ_no_tvars rhs];
 
