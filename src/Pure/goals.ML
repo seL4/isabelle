@@ -330,7 +330,7 @@ fun by_com tac ((th,ths), pairs) : gstack =
        (if eq_thm(th,th2) 
 	  then warning "Warning: same as previous level"
 	  else if eq_thm_sg(th,th2) then ()
-	  else writeln ("Warning: signature of proof state has changed" ^
+	  else warning ("Warning: signature of proof state has changed" ^
 		       sign_error (#sign(rep_thm th), #sign(rep_thm th2)));
        ((th2,ths2)::(th,ths)::pairs)));
 
