@@ -1,6 +1,7 @@
 %% edited by LCP!!  
+%%   Modified page break penalties
 %%   Commented out the change to \newlinechar
-%%   Increased space in Contents
+%%   Increased space in Contents and List of Figures
 %%   Changed \thebibliography to the defn in llncs.sty
 %%   Added ttbox
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -99,9 +100,10 @@
 \abovedisplayshortskip=0.0 mm plus7.2pt minus 2.4pt
 \belowdisplayshortskip=2.4 mm plus4.8pt minus 4.8pt
 
-\predisplaypenalty=0          % penalties for page break
-\clubpenalty=10000            %
-\widowpenalty=10000           %
+%%LCP: were 0, 10000, 10000
+\predisplaypenalty=100        % penalties for page break
+\clubpenalty=400              %
+\widowpenalty=400             %
 
 
 %
@@ -346,6 +348,7 @@
 
 %copied from book.sty to leave room for 12.11, etc. -- Frank Holzwarth via LCP
 \def\l@section{\@dottedtocline{1}{1.5em}{2.8em}}
+\def\l@figure{\@dottedtocline{1}{1.5em}{2.8em}}
 
 %
 %     Adaption of \tableofcontents (title,headings,pagenumber)

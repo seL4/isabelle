@@ -17,11 +17,29 @@
 \newcommand\fnote[1]{#1n}
 \newcommand\indexbold[1]{\index{#1|bold}}
 
+%for indexing constants, symbols, theorems, ...
+\newcommand\cdx[1]{{\tt#1}\index{#1@{\tt#1} constant}}
+\newcommand\sdx[1]{{\tt#1}\index{#1@{\tt#1} symbol}}
+
+\newcommand\tdx[1]{{\tt#1}\index{#1@{\tt#1} theorem}}
+\newcommand\tdxbold[1]{{\tt#1}\index{#1@{\tt#1} theorem|bold}}
+
+\newcommand\mltydx[1]{{\tt#1}\index{#1@{\tt#1} ML type}}
+\newcommand\xdx[1]{{\tt#1}\index{#1@{\tt#1} exception}}
+
+\newcommand\ndx[1]{{\tt#1}\index{#1@{\tt#1} nonterminal}}
+\newcommand\ndxbold[1]{{\tt#1}\index{#1@{\tt#1} nonterminal|bold}}
+
+\newcommand\cldx[1]{{\tt#1}\index{#1@{\tt#1} class}}
+\newcommand\tydx[1]{{\tt#1}\index{#1@{\tt#1} type}}
+\newcommand\thydx[1]{{\tt#1}\index{#1@{\tt#1} theory}}
+
 %for cross-references: 2nd argument (page number) is ignored
 \newcommand\see[2]{{\it see \/}{#1}}
 \newcommand\seealso[2]{{\it see also \/}{#1}}
 
 %set argument in \tt font; at the sime time, index using * prefix
+\newcommand\rmindex[1]{{#1}\index{#1}\@}
 \newcommand\ttindex[1]{{\tt#1}\index{*#1}\@}
 \newcommand\ttindexbold[1]{{\tt#1}\index{*#1|bold}\@}
 
@@ -85,6 +103,7 @@
 
 \def\ML{{\sc ml}}
 \def\OBJ{{\sc obj}}
+\def\AST{{\sc ast}}
 
 \def\LCF{{\tt LCF}\@}
 \def\FOL{{\tt FOL}\@}
@@ -103,6 +122,14 @@
 %redefinition of \sloppy and \fussy to use \emergencystretch
 \def\sloppy{\tolerance2000 \hfuzz.5pt \vfuzz.5pt \emergencystretch=15pt}
 \def\fussy{\tolerance200 \hfuzz.1pt \vfuzz.1pt \emergencystretch=0pt}
+
+%%%% \tt things
+
+\def\ttdescriptionlabel#1{\hspace\labelsep \tt #1}
+\def\ttdescription{\list{}{\labelwidth\z@ \itemindent-\leftmargin
+       \let\makelabel\ttdescriptionlabel}}
+
+\let\endttdescription\endlist
 
 \chardef\ttilde=`\~     % A tilde for \tt font
 \chardef\ttback=`\\     % A backslash for \tt font
