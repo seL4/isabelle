@@ -235,6 +235,7 @@ by (Simp_tac 1);
 by (res_inst_tac [("x","s'")] exI 1);
 by (Asm_simp_tac 1);
 
+(** LEVEL 10 **)
 (* case Abs e *)
 by (strip_tac 1);
 by (eresolve_tac has_type_casesE 1);
@@ -245,6 +246,7 @@ by (eres_inst_tac [("x","Suc n")] allE 1);
 by (fast_tac (HOL_cs addss (!simpset addcongs [conj_cong]
                             setloop (split_tac [expand_bind]))) 1);
 
+(** LEVEL 17 **)
 (* case App e1 e2 *)
 by (strip_tac 1);
 by (eresolve_tac has_type_casesE 1);
@@ -266,6 +268,7 @@ by (fast_tac HOL_cs 1);
 by (fast_tac (HOL_cs addIs [sym RS W_var_geD,new_tv_W RS
                             conjunct1,new_tv_list_le,new_tv_subst_tel]) 1);
 
+(** LEVEL 35 **)
 by (subgoal_tac
   "$ (%x.if x=ma then t' else (if x:(free_tv t - free_tv sa) then r x \
 \        else ra x)) ($ sa t) = \
@@ -280,6 +283,7 @@ by (strip_tac 2);
 by (subgoal_tac "na ~=ma" 2);
 by (fast_tac (HOL_cs addDs [new_tv_W,sym RS W_var_geD,
                             new_tv_not_free_tv,new_tv_le]) 3);
+(** LEVEL 42 **)
 by (case_tac "na:free_tv sa" 2);
 (* na ~: free_tv sa *)
 by (asm_simp_tac (!simpset addsimps [not_free_impl_id]
@@ -293,6 +297,7 @@ by (case_tac "na:dom sa" 2);
 (* na ~: dom sa *)
 by (asm_full_simp_tac (!simpset addsimps [dom_def] 
                        setloop (split_tac [expand_if])) 3);
+(** LEVEL 50 **)
 (* na : dom sa *)
 by (rtac eq_free_eq_subst_te 2);
 by (strip_tac 2);
@@ -307,6 +312,7 @@ by (fast_tac (set_cs addss (!simpset addsimps [cod_def,free_tv_subst]
                             setloop (split_tac [expand_if]))) 2);
 
 by (Simp_tac 2);  
+(** LEVEL 60 **)
 by (rtac eq_free_eq_subst_te 2);
 by (strip_tac 2 );
 by (subgoal_tac "na ~= ma" 2);
@@ -315,6 +321,7 @@ by (etac conjE 3);
 by (dtac (sym RS W_var_geD) 3);
 by (fast_tac (HOL_cs addDs [new_tv_list_le,new_tv_subst_tel,new_tv_W,new_tv_not_free_tv]) 3);
 by (case_tac "na: free_tv t - free_tv sa" 2);
+(** LEVEL 68 **)
 (* case na ~: free_tv t - free_tv sa *)
 by ( asm_full_simp_tac (!simpset setloop (split_tac [expand_if])) 3);
 (* case na : free_tv t - free_tv sa *)
