@@ -498,16 +498,18 @@ $(LOG)/TLA-Memory.gz: $(OUT)/TLA TLA/Memory/MIParameters.thy \
 ## clean
 
 clean:
-	@rm -f $(OUT)/HOL $(OUT)/HOL-Real $(LOG)/HOL.gz $(LOG)/HOL-Subst.gz \
-	  $(LOG)/HOL-IMP.gz $(LOG)/HOL-IMPP.gz $(LOG)/HOL-Hoare.gz \
-	  $(LOG)/HOL-Induct.gz $(LOG)/HOL-Lex.gz $(LOG)/HOL-Algebra.gz \
-	  $(LOG)/HOL-Auth.gz $(LOG)/HOL-UNITY.gz \
-	  $(LOG)/HOL-Modelcheck.gz $(LOG)/HOL-Lambda.gz \
-	  $(LOG)/HOL-W0.gz $(LOG)/HOL-MiniML.gz $(LOG)/HOL-BCV.gz $(LOG)/HOL-IOA.gz \
-	  $(LOG)/HOL-AxClasses-Group.gz		\
-	  $(LOG)/HOL-AxClasses-Lattice.gz	\
-	  $(LOG)/HOL-AxClasses-Tutorial.gz $(LOG)/HOL-Quot.gz \
-	  $(LOG)/HOL-ex.gz $(LOG)/HOL-Isar_examples.gz $(OUT)/TLA \
-	  $(LOG)/TLA.gz $(LOG)/TLA-Inc.gz $(LOG)/TLA-Buffer.gz \
-	  $(LOG)/TLA-Memory.gz $(LOG)/HOL-Real.gz $(LOG)/HOL-Real-ex.gz \
-	  $(LOG)/HOL-Real-HahnBanach.gz
+	@rm -f $(OUT)/HOL $(OUT)/HOL-Real $(OUT)/TLA \
+		$(LOG)/HOL.gz $(LOG)/HOL-Real.gz $(LOG)/TLA.gz \
+		$(LOG)/HOL-Isar_examples.gz $(LOG)/HOL-Induct.gz \
+		$(LOG)/HOL-ex.gz $(LOG)/HOL-Subst.gz $(LOG)/HOL-IMP.gz \
+		$(LOG)/HOL-IMPP.gz $(LOG)/HOL-Hoare.gz \
+		$(LOG)/HOL-Lex.gz $(LOG)/HOL-Algebra.gz \
+		$(LOG)/HOL-Auth.gz $(LOG)/HOL-UNITY.gz \
+		$(LOG)/HOL-Modelcheck.gz $(LOG)/HOL-Lambda.gz \
+		$(LOG)/HOL-W0.gz $(LOG)/HOL-MiniML.gz \
+		$(LOG)/HOL-BCV.gz $(LOG)/HOL-MicroJava.gz \
+		$(LOG)/HOL-IOA.gz $(LOG)/HOL-AxClasses-Group.gz \
+		$(LOG)/HOL-AxClasses-Lattice.gz	\
+		$(LOG)/HOL-AxClasses-Tutorial.gz $(LOG)/HOL-Real-ex.gz \
+		$(LOG)/HOL-Real-HahnBanach.gz $(LOG)/TLA-Inc.gz \
+		$(LOG)/TLA-Buffer.gz $(LOG)/TLA-Memory.gz

@@ -38,7 +38,7 @@ functor ObtainFun(Data: OBTAIN_DATA): OBTAIN =
 struct
 
 
-(** export_obtained **)
+(** disch_obtained **)
 
 fun disch_obtained state parms rule cprops thm =
   let
@@ -55,15 +55,12 @@ fun disch_obtained state parms rule cprops thm =
     val bads = parms inter (Term.term_frees concl);
   in
     if not (null bads) then
-      raise Proof.STATE ("Result contains illegal parameters: " ^
+      raise Proof.STATE ("Conclusion contains obtained parameters: " ^
         space_implode " " (map (Sign.string_of_term sign) bads), state)
     else if not (AutoBind.is_judgment (Logic.strip_assums_concl prop)) then
-      raise Proof.STATE ("Conclusion of result is not an object-logic judgment", state)
+      raise Proof.STATE ("Conclusion is not an object-logic judgment", state)
     else (Tactic.rtac thm' THEN' RANGE elim_tacs) 1 rule
   end;
-
-fun export_obtained state parms rule =
-  (disch_obtained state parms rule, fn _ => fn _ => []);
 
 
 
@@ -108,11 +105,14 @@ fun gen_obtain prep_vars prep_propp prep_att (raw_vars, raw_asms) state =
     val bound_thesis = bind_skolem (Data.atomic_thesis thesisN);
     val that_prop = Term.list_all_free (xs', Logic.list_implies (asm_props, bound_thesis));
 
+    fun export_obtained rule =
+      (disch_obtained state parms rule, fn _ => fn _ => []);
+
     fun after_qed st = st
       |> Proof.end_block
       |> Seq.map (fn st' => st'
         |> Proof.fix_i vars
-        |> Proof.assm_i (export_obtained state parms (Proof.the_fact st')) asms);
+        |> Proof.assm_i (export_obtained (Proof.the_fact st')) asms);
   in
     state
     |> Proof.enter_forward
