@@ -40,6 +40,7 @@ use "drule.ML";
 use "tctical.ML";
 use "tactic.ML";
 use "goals.ML";
+use "axclass.ML";
 
 (*Will be visible to all object-logics.*)
 structure Type = TypeFun(structure Symtab=Symtab and Syntax=Syntax);
@@ -59,7 +60,9 @@ structure Tactic = TacticFun(structure Logic=Logic and Drule=Drule
                              and Tactical=Tactical and Net=Net);
 structure Goals = GoalsFun(structure Logic=Logic and Drule=Drule
                            and Tactic=Tactic and Pattern=Pattern);
-open BasicSyntax Thm Drule Tactical Tactic Goals;
+structure AxClass = AxClassFun(structure Logic = Logic 
+  and Goals = Goals and Tactic = Tactic);
+open BasicSyntax Thm Drule Tactical Tactic Goals AxClass;
 
 structure Pure = struct val thy = pure_thy end;
 
