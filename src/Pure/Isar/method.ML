@@ -496,6 +496,7 @@ fun proof opt_text state =
   state
   |> Proof.assert_backward
   |> refine (if_none opt_text default_text)
+  |> Seq.map (Proof.goal_facts (K []))
   |> Seq.map Proof.enter_forward;
 
 fun local_qed opt_text = Proof.local_qed (refine (finish_text opt_text));
