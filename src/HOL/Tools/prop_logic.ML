@@ -21,7 +21,7 @@ sig
 	val SAnd : prop_formula * prop_formula -> prop_formula
 
 	val indices : prop_formula -> int list  (* set of all variable indices *)
-	val maxidx  : prop_formula -> int  (* maximal variable index *)
+	val maxidx  : prop_formula -> int       (* maximal variable index *)
 
 	val nnf    : prop_formula -> prop_formula  (* negation normal form *)
 	val cnf    : prop_formula -> prop_formula  (* conjunctive normal form *)
