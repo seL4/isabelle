@@ -4,7 +4,7 @@
     Author: Clemens Ballarin, started 15 April 1997
 *)
 
-PolyHomo = UnivPoly +
+PolyHomo = UnivPoly2 +
 
 consts
   EVAL2	:: "['a::ring => 'b, 'b, 'a up] => 'b::ring"

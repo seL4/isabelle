@@ -12,7 +12,7 @@ by (force_tac (claset() addDs [inst "m" "n" boundD],
                simpset()) 1); 
 qed "below_bound";
 
-goal UnivPoly.thy "bound (LEAST n. bound n (Rep_UP p)) (Rep_UP p)";
+goal UnivPoly2.thy "bound (LEAST n. bound n (Rep_UP p)) (Rep_UP p)";
 by (rtac exE 1);
 by (rtac LeastI 2);
 by (assume_tac 2);
@@ -275,7 +275,7 @@ by (induct_tac "n" 1);
 by Auto_tac;
 qed "coeff_SUM";
 
-goal UnivPoly.thy
+goal UnivPoly2.thy
   "!! f::(nat=>'a::ring). \
 \    bound n f ==> setsum (%i. if i = x then f i else 0) {..n} = f x";
 by (simp_tac (simpset() addsimps [SUM_if_singleton]) 1);

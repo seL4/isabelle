@@ -1,13 +1,13 @@
-(*  Title:      Summation Operator for Abelian Groups
+(*  Title:      Product Operator for Commutative Monoids
     ID:         $Id$
     Author:     Clemens Ballarin, started 19 November 2002
 
 This file is largely based on HOL/Finite_Set.thy.
 *)
 
-header {* Summation Operator *}
+header {* Product Operator *}
 
-theory Summation = Group:
+theory FiniteProduct = Group:
 
 (* Instantiation of LC from Finite_Set.thy is not possible,
    because here we have explicit typing rules like x : carrier G.
@@ -37,7 +37,7 @@ lemma Diff1_foldSetD:
   "[| (A - {x}, y) : foldSetD D f e; x : A; f x y : D |] ==>
    (A, f x y) : foldSetD D f e"
   apply (erule insert_Diff [THEN subst], rule foldSetD.intros)
-   apply auto
+    apply auto
   done
 
 lemma foldSetD_imp_finite [simp]: "(A, x) : foldSetD D f e ==> finite A"
@@ -63,7 +63,8 @@ locale LCD =
   fixes B :: "'b set"
   and D :: "'a set"
   and f :: "'b => 'a => 'a"    (infixl "\<cdot>" 70)
-  assumes left_commute: "[| x : B; y : B; z : D |] ==> x \<cdot> (y \<cdot> z) = y \<cdot> (x \<cdot> z)"
+  assumes left_commute:
+    "[| x : B; y : B; z : D |] ==> x \<cdot> (y \<cdot> z) = y \<cdot> (x \<cdot> z)"
   and f_closed [simp, intro!]: "!!x y. [| x : B; y : D |] ==> f x y : D"
 
 lemma (in LCD) foldSetD_closed [dest]:
@@ -72,11 +73,11 @@ lemma (in LCD) foldSetD_closed [dest]:
 
 lemma (in LCD) Diff1_foldSetD:
   "[| (A - {x}, y) : foldSetD D f e; x : A; A <= B |] ==>
-   (A, f x y) : foldSetD D f e"
+  (A, f x y) : foldSetD D f e"
   apply (subgoal_tac "x : B")
-  prefer 2 apply fast
+   prefer 2 apply fast
   apply (erule insert_Diff [THEN subst], rule foldSetD.intros)
-   apply auto
+    apply auto
   done
 
 lemma (in LCD) foldSetD_imp_finite [simp]:
@@ -100,7 +101,7 @@ lemma (in LCD) foldSetD_determ_aux:
   "e : D ==> ALL A x. A <= B & card A < n --> (A, x) : foldSetD D f e -->
     (ALL y. (A, y) : foldSetD D f e --> y = x)"
   apply (induct n)
-   apply (auto simp add: less_Suc_eq)
+   apply (auto simp add: less_Suc_eq) (* slow *)
   apply (erule foldSetD.cases)
    apply blast
   apply (erule foldSetD.cases)
@@ -125,44 +126,31 @@ lemma (in LCD) foldSetD_determ_aux:
    apply (rule Suc_le_mono [THEN subst])
    apply (simp add: card_Suc_Diff1)
   apply (rule_tac A1 = "Aa - {xb}" in finite_imp_foldSetD [THEN exE])
-  apply (blast intro: foldSetD_imp_finite finite_Diff)
-(* new subgoal from finite_imp_foldSetD *)
-    apply best (* blast doesn't seem to solve this *)
+     apply (blast intro: foldSetD_imp_finite finite_Diff)
+    apply best
    apply assumption
   apply (frule (1) Diff1_foldSetD)
-(* new subgoal from Diff1_foldSetD *)
-    apply best
-(*
-apply (best del: foldSetD_closed elim: foldSetD_closed)
-    apply (rule f_closed) apply assumption apply (rule foldSetD_closed)
-    prefer 3 apply assumption apply (rule e_closed)
-    apply (rule f_closed) apply force apply assumption
-*)
+   apply best
   apply (subgoal_tac "ya = f xb x")
    prefer 2
-(* new subgoal to make IH applicable *) 
-  apply (subgoal_tac "Aa <= B")
-   prefer 2 apply best
+   apply (subgoal_tac "Aa <= B")
+    prefer 2 apply best (* slow *)
    apply (blast del: equalityCE)
   apply (subgoal_tac "(Ab - {xa}, x) : foldSetD D f e")
    prefer 2 apply simp
   apply (subgoal_tac "yb = f xa x")
    prefer 2 
-(*   apply (drule_tac x = xa in Diff1_foldSetD)
-     apply assumption
-     apply (rule f_closed) apply best apply (rule foldSetD_closed)
-     prefer 3 apply assumption apply (rule e_closed)
-     apply (rule f_closed) apply best apply assumption
-*)
    apply (blast del: equalityCE dest: Diff1_foldSetD)
-   apply (simp (no_asm_simp))
-   apply (rule left_commute)
-   apply assumption apply best apply best
- done
+  apply (simp (no_asm_simp))
+  apply (rule left_commute)
+    apply assumption
+   apply best (* slow *)
+  apply best
+  done
 
 lemma (in LCD) foldSetD_determ:
   "[| (A, x) : foldSetD D f e; (A, y) : foldSetD D f e; e : D; A <= B |]
-   ==> y = x"
+  ==> y = x"
   by (blast intro: foldSetD_determ_aux [rule_format])
 
 lemma (in LCD) foldD_equality:
@@ -179,10 +167,9 @@ lemma (in LCD) foldD_insert_aux:
     (EX y. (A, y) : foldSetD D f e & v = f x y)"
   apply auto
   apply (rule_tac A1 = A in finite_imp_foldSetD [THEN exE])
-   apply (fastsimp dest: foldSetD_imp_finite)
-(* new subgoal by finite_imp_foldSetD *)
+     apply (fastsimp dest: foldSetD_imp_finite)
     apply assumption
-    apply assumption
+   apply assumption
   apply (blast intro: foldSetD_determ)
   done
 
@@ -192,8 +179,8 @@ lemma (in LCD) foldD_insert:
   apply (unfold foldD_def)
   apply (simp add: foldD_insert_aux)
   apply (rule the_equality)
-  apply (auto intro: finite_imp_foldSetD
-    cong add: conj_cong simp add: foldD_def [symmetric] foldD_equality)
+   apply (auto intro: finite_imp_foldSetD
+     cong add: conj_cong simp add: foldD_def [symmetric] foldD_equality)
   done
 
 lemma (in LCD) foldD_closed [simp]:
@@ -280,7 +267,6 @@ lemma (in ACeD) foldD_Un_Int:
     foldD D f e (A Un B) \<cdot> foldD D f e (A Int B)"
   apply (induct set: Finites)
    apply (simp add: left_commute LCD.foldD_closed [OF LCD.intro [of D]])
-(* left_commute is required to show premise of LCD.intro *)
   apply (simp add: AC insert_absorb Int_insert_left
     LCD.foldD_insert [OF LCD.intro [of D]]
     LCD.foldD_closed [OF LCD.intro [of D]]
@@ -301,48 +287,45 @@ constdefs
       then foldD (carrier G) (mult G o f) (one G) A
       else arbitrary"
 
-(*
-locale finite_prod = abelian_monoid + var prod +
-  defines "prod == (%f A. if finite A
-      then foldD (carrier G) (op \<otimes> o f) \<one> A
-      else arbitrary)"
-*)
 (* TODO: nice syntax for the summation operator inside the locale
    like \<Otimes>\<index> i\<in>A. f i, probably needs hand-coded translation *)
 
 ML_setup {* 
+  Context.>> (fn thy => (simpset_ref_of thy :=
+    simpset_of thy setsubgoaler asm_full_simp_tac; thy))
+*}
 
-Context.>> (fn thy => (simpset_ref_of thy :=
-  simpset_of thy setsubgoaler asm_full_simp_tac; thy)) *}
-
-lemma (in abelian_monoid) finprod_empty [simp]: 
+lemma (in comm_monoid) finprod_empty [simp]: 
   "finprod G f {} = \<one>"
   by (simp add: finprod_def)
 
 ML_setup {* 
-
-Context.>> (fn thy => (simpset_ref_of thy :=
-  simpset_of thy setsubgoaler asm_simp_tac; thy)) *}
+  Context.>> (fn thy => (simpset_ref_of thy :=
+    simpset_of thy setsubgoaler asm_simp_tac; thy))
+*}
 
 declare funcsetI [intro]
   funcset_mem [dest]
 
-lemma (in abelian_monoid) finprod_insert [simp]:
+lemma (in comm_monoid) finprod_insert [simp]:
   "[| finite F; a \<notin> F; f \<in> F -> carrier G; f a \<in> carrier G |] ==>
    finprod G f (insert a F) = f a \<otimes> finprod G f F"
   apply (rule trans)
-  apply (simp add: finprod_def)
+   apply (simp add: finprod_def)
   apply (rule trans)
-  apply (rule LCD.foldD_insert [OF LCD.intro [of "insert a F"]])
-    apply simp
-    apply (rule m_lcomm)
-      apply fast apply fast apply assumption
-    apply (fastsimp intro: m_closed)
-    apply simp+ apply fast
+   apply (rule LCD.foldD_insert [OF LCD.intro [of "insert a F"]])
+         apply simp
+         apply (rule m_lcomm)
+           apply fast
+          apply fast
+         apply assumption
+        apply (fastsimp intro: m_closed)
+       apply simp+
+   apply fast
   apply (auto simp add: finprod_def)
   done
 
-lemma (in abelian_monoid) finprod_one:
+lemma (in comm_monoid) finprod_one [simp]:
   "finite A ==> finprod G (%i. \<one>) A = \<one>"
 proof (induct set: Finites)
   case empty show ?case by simp
@@ -352,7 +335,7 @@ next
   with insert show ?case by simp
 qed
 
-lemma (in abelian_monoid) finprod_closed [simp]:
+lemma (in comm_monoid) finprod_closed [simp]:
   fixes A
   assumes fin: "finite A" and f: "f \<in> A -> carrier G" 
   shows "finprod G f A \<in> carrier G"
@@ -374,11 +357,11 @@ lemma funcset_Un_left [iff]:
   "(f \<in> A Un B -> C) = (f \<in> A -> C & f \<in> B -> C)"
   by fast
 
-lemma (in abelian_monoid) finprod_Un_Int:
+lemma (in comm_monoid) finprod_Un_Int:
   "[| finite A; finite B; g \<in> A -> carrier G; g \<in> B -> carrier G |] ==>
      finprod G g (A Un B) \<otimes> finprod G g (A Int B) =
      finprod G g A \<otimes> finprod G g B"
-  -- {* The reversed orientation looks more natural, but LOOPS as a simprule! *}
+-- {* The reversed orientation looks more natural, but LOOPS as a simprule! *}
 proof (induct set: Finites)
   case empty then show ?case by (simp add: finprod_closed)
 next
@@ -386,19 +369,19 @@ next
   then have a: "g a \<in> carrier G" by fast
   from insert have A: "g \<in> A -> carrier G" by fast
   from insert A a show ?case
-    by (simp add: ac Int_insert_left insert_absorb finprod_closed
+    by (simp add: m_ac Int_insert_left insert_absorb finprod_closed
           Int_mono2 Un_subset_iff) 
 qed
 
-lemma (in abelian_monoid) finprod_Un_disjoint:
+lemma (in comm_monoid) finprod_Un_disjoint:
   "[| finite A; finite B; A Int B = {};
       g \<in> A -> carrier G; g \<in> B -> carrier G |]
    ==> finprod G g (A Un B) = finprod G g A \<otimes> finprod G g B"
   apply (subst finprod_Un_Int [symmetric])
-    apply (auto simp add: finprod_closed)
+      apply (auto simp add: finprod_closed)
   done
 
-lemma (in abelian_monoid) finprod_multf:
+lemma (in comm_monoid) finprod_multf:
   "[| finite A; f \<in> A -> carrier G; g \<in> A -> carrier G |] ==>
    finprod G (%x. f x \<otimes> g x) A = (finprod G f A \<otimes> finprod G g A)"
 proof (induct set: Finites)
@@ -409,14 +392,14 @@ next
   from insert have fa: "f a : carrier G" by fast
   from insert have gA: "g : A -> carrier G" by fast
   from insert have ga: "g a : carrier G" by fast
-  from insert have fga: "(%x. f x \<otimes> g x) a : carrier G" by (simp add: Pi_def)
   from insert have fgA: "(%x. f x \<otimes> g x) : A -> carrier G"
     by (simp add: Pi_def)
   show ?case  (* check if all simps are really necessary *)
-    by (simp add: insert fA fa gA ga fgA fga ac finprod_closed Int_insert_left insert_absorb Int_mono2 Un_subset_iff)
+    by (simp add: insert fA fa gA ga fgA m_ac Int_insert_left insert_absorb
+      Int_mono2 Un_subset_iff)
 qed
 
-lemma (in abelian_monoid) finprod_cong':
+lemma (in comm_monoid) finprod_cong':
   "[| A = B; g : B -> carrier G;
       !!i. i : B ==> f i = g i |] ==> finprod G f A = finprod G g B"
 proof -
@@ -457,7 +440,7 @@ proof -
   qed
 qed
 
-lemma (in abelian_monoid) finprod_cong:
+lemma (in comm_monoid) finprod_cong:
   "[| A = B; !!i. i : B ==> f i = g i;
       g : B -> carrier G = True |] ==> finprod G f A = finprod G g B"
   by (rule finprod_cong') fast+
@@ -465,36 +448,36 @@ lemma (in abelian_monoid) finprod_cong:
 text {*Usually, if this rule causes a failed congruence proof error,
   the reason is that the premise @{text "g : B -> carrier G"} cannot be shown.
   Adding @{thm [source] Pi_def} to the simpset is often useful.
-  For this reason, @{thm [source] abelian_monoid.finprod_cong}
+  For this reason, @{thm [source] comm_monoid.finprod_cong}
   is not added to the simpset by default.
 *}
 
 declare funcsetI [rule del]
   funcset_mem [rule del]
 
-lemma (in abelian_monoid) finprod_0 [simp]:
+lemma (in comm_monoid) finprod_0 [simp]:
   "f : {0::nat} -> carrier G ==> finprod G f {..0} = f 0"
 by (simp add: Pi_def)
 
-lemma (in abelian_monoid) finprod_Suc [simp]:
+lemma (in comm_monoid) finprod_Suc [simp]:
   "f : {..Suc n} -> carrier G ==>
    finprod G f {..Suc n} = (f (Suc n) \<otimes> finprod G f {..n})"
 by (simp add: Pi_def atMost_Suc)
 
-lemma (in abelian_monoid) finprod_Suc2:
+lemma (in comm_monoid) finprod_Suc2:
   "f : {..Suc n} -> carrier G ==>
    finprod G f {..Suc n} = (finprod G (%i. f (Suc i)) {..n} \<otimes> f 0)"
 proof (induct n)
   case 0 thus ?case by (simp add: Pi_def)
 next
-  case Suc thus ?case by (simp add: m_assoc Pi_def finprod_closed)
+  case Suc thus ?case by (simp add: m_assoc Pi_def)
 qed
 
-lemma (in abelian_monoid) finprod_mult [simp]:
+lemma (in comm_monoid) finprod_mult [simp]:
   "[| f : {..n} -> carrier G; g : {..n} -> carrier G |] ==>
      finprod G (%i. f i \<otimes> g i) {..n::nat} =
      finprod G f {..n} \<otimes> finprod G g {..n}"
-  by (induct n) (simp_all add: ac Pi_def finprod_closed)
+  by (induct n) (simp_all add: m_ac Pi_def)
 
 end
 

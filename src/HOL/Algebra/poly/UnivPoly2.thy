@@ -7,7 +7,7 @@
 
 header {* Univariate Polynomials *}
 
-theory UnivPoly = Abstract:
+theory UnivPoly2 = Abstract:
 
 (* already proved in Finite_Set.thy
 
