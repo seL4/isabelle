@@ -239,6 +239,9 @@ New in this Isabelle release
   Similarly for all quantifiers: "ALL x > y" etc.
   The x-symbol for >= is \<ge>.
 
+* HOL/Set: "{x:A. P}" abbreviates "{x. x:A & P}"
+           (and similarly for "\<in>" instead of ":")
+
 * HOL/SetInterval: The syntax for open intervals has changed:
 
   Old         New
