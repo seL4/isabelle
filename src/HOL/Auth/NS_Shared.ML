@@ -296,7 +296,8 @@ by (blast_tac (!claset addDs [unique_session_keys]) 2);
 by (step_tac (!claset delrules [impCE]) 1);
 by (forward_tac [Says_imp_sees_Spy' RS parts.Inj RS A_trusts_NS2] 1);
 by (assume_tac 2);
-by (blast_tac (!claset addSDs [Says_Crypt_not_lost]) 1);
+by (blast_tac (!claset addDs [Says_imp_sees_Spy RS analz.Inj RS
+			      Crypt_Spy_analz_lost]) 1);
 by (blast_tac (!claset addDs [unique_session_keys]) 1);
 val lemma = result() RS mp RS mp RSN(2,rev_notE);
 
@@ -379,7 +380,8 @@ by (thin_tac "?PP-->?QQ" 1);
 by (case_tac "Ba : lost" 1);
 by (blast_tac (!claset addDs [Says_imp_sees_Spy' RS parts.Inj RS B_trusts_NS3, 
 			      unique_session_keys]) 2);
-by (blast_tac (!claset addDs [Says_Crypt_lost]) 1);
+by (blast_tac (!claset addDs [Says_imp_sees_Spy RS analz.Inj RS
+			      Crypt_Spy_analz_lost]) 1);
 val lemma = result();
 
 goal thy
