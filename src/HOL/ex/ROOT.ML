@@ -33,7 +33,7 @@ time_use_thy "Tarski";
 
 time_use_thy "StringEx";
 time_use_thy "BinEx";
-time_use     "svc_test.ML";
+time_use_thy "svc_test";
 
 (*basic use of extensible records*)
 time_use_thy "MonoidGroup";
