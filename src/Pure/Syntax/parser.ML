@@ -130,7 +130,7 @@ fun mk_gram prods =
       val ref_gram = elim_chain (mk_ref_gram prods []);
 
       (*make a list of all lambda NTs 
-        (i.e. nonterminals that can produce lambda*)
+        (i.e. nonterminals that can produce lambda)*)
       val lambdas =
         let fun lambda [] result = result
               | lambda ((_, rhss_ref) :: nts) result =
@@ -142,8 +142,8 @@ fun mk_gram prods =
                         fun only_lambdas [] result = result
                           | only_lambdas ((_, rhss_ref) :: ps) result =
                               let fun only (symbs, _, _) =
-                                   forall (fn (Nonterm (id, _)) => id mem result
-                                            | (Term _)          => false) symbs;
+                                  forall (fn (Nonterm (id, _)) => id mem result
+                                           | (Term _)          => false) symbs;
                           
                                   val (_, rhss) = hd (!rhss_ref);
                               in if not (rhss_ref mem result) andalso
@@ -191,8 +191,8 @@ fun mk_gram prods =
                                   let val (_, rhss) = hd (!rhss_ref);
                                   in look2 ls (rhss @ todos) result end;
                   in case start_token of
-                         Some tk => look2 skipped todos (start_token ins result)
-                       | None => look2 skipped todos result
+                        Some tk => look2 skipped todos (start_token ins result)
+                      | None => look2 skipped todos result
                   end;
  
             val (_, rhss) = hd (!rhss_ref);
@@ -361,7 +361,7 @@ fun getRHS' minPrec maxPrec =
 fun mkStates i minPrec lhsID rhss =
   let fun mkState (rhs, id, prodPrec) = (lhsID, prodPrec, [], rhs, id, i);
   in map mkState rhss end;
-	
+
 (*Add parse tree to list and eliminate duplicates 
   saving the maximum precedence*)
 fun conc (t, prec:int) [] = (None, [(t, prec)])
@@ -374,17 +374,17 @@ fun conc (t, prec:int) [] = (None, [(t, prec)])
         in (n, (t', prec') :: ts') end;
 
 (*Update entry in used*)
-fun update_tree ((B, (i, ts)) :: used) (A, t) =
+fun update_trees ((B, (i, ts)) :: used) (A, t) =
   if A = B then
     let val (n, ts') = conc t ts
     in ((A, (i, ts')) :: used, n) end
   else
-    let val (used', n) = update_tree used (A, t)
+    let val (used', n) = update_trees used (A, t)
     in ((B, (i, ts)) :: used', n) end;
 
 (*Replace entry in used*)
-fun update_index (A, prec) used =
-  let fun update((hd as (B, (_, ts))) :: used, used') =
+fun update_prec (A, prec) used =
+  let fun update ((hd as (B, (_, ts))) :: used, used') =
         if A = B
         then used' @ ((A, (prec, ts)) :: used)
         else update (used, hd :: used')
@@ -412,7 +412,7 @@ fun getStates Estate i ii A maxPrec =
 
 fun movedot_term (A, j, ts, Term a :: sa, id, i) c =
   if valued_token c then
-    (A, j, (ts @ [Tip c]), sa, id, i)
+    (A, j, ts @ [Tip c], sa, id, i)
   else (A, j, ts, sa, id, i);
 
 fun movedot_nonterm ts (A, j, tss, Nonterm _ :: sa, id, i) =
@@ -427,7 +427,7 @@ fun movedot_lambda _ [] = []
 
 
 val warned = ref false;  (*flag for warning message*)
-val branching_level = ref 100;  (*trigger value for warnings*)
+val branching_level = ref 200;  (*trigger value for warnings*)
 
 fun PROCESSS Estate i c states =
 let
@@ -438,7 +438,7 @@ fun processS used [] (Si, Sii) = (Si, Sii)
       (case S of
         (_, _, _, Nonterm (rhss_ref, minPrec) :: _, _, _) =>
           let                                       (*predictor operation*)
-            val (used_new, new_states) =
+            val (used', new_states) =
               (case assoc (used, rhss_ref) of
                 Some (usedPrec, l) =>       (*nonterminal has been processed*)
                   if usedPrec <= minPrec then
@@ -448,7 +448,7 @@ fun processS used [] (Si, Sii) = (Si, Sii)
                     let val rhss = get_lookahead rhss_ref;
                       val States' = mkStates i minPrec rhss_ref
                                       (getRHS' minPrec usedPrec rhss);
-                    in (update_index (rhss_ref, minPrec) used, 
+                    in (update_prec (rhss_ref, minPrec) used, 
                         movedot_lambda S l @ States')
                     end
 
@@ -456,34 +456,31 @@ fun processS used [] (Si, Sii) = (Si, Sii)
                   let val rhss = get_lookahead rhss_ref;
                       val States' = mkStates i minPrec rhss_ref
                                       (getRHS minPrec rhss);
-                  in ((rhss_ref, (minPrec, [])) :: used, States') end)
+                  in ((rhss_ref, (minPrec, [])) :: used, States') end);
+
+            val _ = if not (!warned) andalso
+                       length (new_states @ States) > (!branching_level) then
+                     (writeln "Warning: Currently parsed expression could be \
+                              \extremely ambiguous.";
+                      warned := true)
+                    else ()
           in
-            processS used_new (new_states @ States) (S :: Si, Sii)
+            processS used' (new_states @ States) (S :: Si, Sii)
           end
       | (_, _, _, Term a :: _, _, _) =>               (*scanner operation*)
           processS used States
             (S :: Si,
               if matching_tokens (a, c) then movedot_term S c :: Sii else Sii)
       | (A, prec, ts, [], id, j) =>                   (*completer operation*)
-          let
-            fun check_branching len =
-              if not (!warned) andalso len > (!branching_level) then
-                (writeln "Warning: Currently parsed expression could be \
-                         \extremely ambiguous.";
-                 warned := true)
-              else ();
-
-            val tt = if id = "" then ts else [Node (id, ts)]
-          in
+          let val tt = if id = "" then ts else [Node (id, ts)] in
             if j = i then                             (*lambda production?*)
               let
-                val (used', O) = update_tree used (A, (tt, prec));
+                val (used', O) = update_trees used (A, (tt, prec));
               in
                 (case O of
                   None =>
                     let
                       val Slist = getS A prec Si;
-                      val _ = check_branching (length Slist);
                       val States' = map (movedot_nonterm tt) Slist;
                     in
                       processS used' (States' @ States) (S :: Si, Sii)
@@ -494,17 +491,15 @@ fun processS used [] (Si, Sii) = (Si, Sii)
                     else
                       let
                         val Slist = getS' A prec n Si;
-                        val _ = check_branching (length Slist);
                         val States' = map (movedot_nonterm tt) Slist;
                       in
                        processS used' (States' @ States) (S :: Si, Sii)
                       end)
               end 
             else
-              let val Slist = getStates Estate i j A prec;
-                  val _ = check_branching (length Slist);
-              in processS used (map (movedot_nonterm tt) Slist @ States)
-                   (S :: Si, Sii)
+              let val Slist = getStates Estate i j A prec in
+                processS used (map (movedot_nonterm tt) Slist @ States)
+                         (S :: Si, Sii)
               end
           end)
 in processS [] states ([], []) end;
