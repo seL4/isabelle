@@ -40,6 +40,7 @@ sig
     val certify_typ: sg -> typ -> typ
     val certify_term: sg -> term -> term * typ * int
     val read_typ: sg * (indexname -> sort option) -> string -> typ
+    val exn_type_msg: sg -> string * typ list * term list -> string
     val infer_types: sg -> (indexname -> typ option) ->
       (indexname -> sort option) -> string list -> bool
       -> term list * typ -> int * term * (indexname * typ) list
@@ -262,26 +263,34 @@ fun certify_term (sg as Sg {tsig, ...}) tm =
   end;
 
 
+(*Package error messages from type checking*)
+fun exn_type_msg sg (msg, Ts, ts) =
+    let val show_typ = string_of_typ sg
+	val show_term = string_of_term sg
+	fun term_err [] = ""
+	  | term_err [t] = "\nInvolving this term:\n" ^ show_term t
+	  | term_err ts =
+	    "\nInvolving these terms:\n" ^ cat_lines (map show_term ts);
+    in  "\nType checking error: " ^ msg ^ "\n" ^
+	cat_lines (map show_typ Ts) ^ term_err ts ^ "\n"
+    end; 
+
+
 
 (** infer_types **)         (*exception ERROR*)
 
+(*ts is the list of alternative parses; only one is hoped to be type-correct.
+  T is the expected type for the correct term.
+  Other standard arguments:
+    types is a partial map from indexnames to types (constrains Free, Var).
+    sorts is a partial map from indexnames to sorts (constrains TFree, TVar).
+    used is the list of already used type variables.
+    If freeze then internal TVars are turned into TFrees, else TVars.*)
 fun infer_types sg types sorts used freeze (ts, T) =
   let
     val Sg {tsig, ...} = sg;
-    val show_typ = string_of_typ sg;
-    val show_term = string_of_term sg;
 
-    fun term_err [] = ""
-      | term_err [t] = "\nInvolving this term:\n" ^ show_term t
-      | term_err ts =
-          "\nInvolving these terms:\n" ^ cat_lines (map show_term ts);
-
-    fun exn_type_msg (msg, Ts, ts) =
-	"\nType checking error: " ^ msg ^ "\n" ^
-	cat_lines (map show_typ Ts) ^ term_err ts ^ "\n";
-
-    val T' = certify_typ sg T
-             handle TYPE arg => error (exn_type_msg arg);
+    val T' = certify_typ sg T handle TYPE arg => error (exn_type_msg sg arg);
 
     val ct = const_type sg;
 
@@ -298,7 +307,8 @@ fun infer_types sg types sorts used freeze (ts, T) =
                     | Ambigs of term list;
 
     fun process_term(res,(t,i)) =
-       let val (u,tye) = Type.infer_types(tsig,ct,types,sorts,used,freeze,T',t)
+       let val ([u],tye) = 
+	       Type.infer_types(tsig,ct,types,sorts,used,freeze,[T'],[t])
        in case res of
             One(_,t0,_) => Ambigs([u,t0])
           | Errs _ => One(i,u,tye)
@@ -314,12 +324,12 @@ fun infer_types sg types sorts used freeze (ts, T) =
             \It helps (speed!) if you disambiguate your grammar or your input."
           else ();
           res)
-     | Errs(errs) => (warn(); error(cat_lines(map exn_type_msg errs)))
+     | Errs(errs) => (warn(); error(cat_lines(map (exn_type_msg sg) errs)))
      | Ambigs(us) =>
          (warn();
           let val old_show_brackets = !show_brackets
               val dummy = show_brackets := true;
-              val errs = cat_lines(map show_term us)
+              val errs = cat_lines(map (string_of_term sg) us)
           in show_brackets := old_show_brackets;
              error("Error: More than one term is type correct:\n" ^ errs)
           end)
