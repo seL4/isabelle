@@ -565,7 +565,7 @@ fun invoke_case name state =
   let val (vars, props) = get_case state name in
     state
     |> fix_i (map (fn (x, T) => ([x], Some T)) vars)
-    |> assume_i [("", [], map (fn t => (t, ([], []))) props)]
+    |> assume_i [(name, [], map (fn t => (t, ([], []))) props)]
   end;
 
 
