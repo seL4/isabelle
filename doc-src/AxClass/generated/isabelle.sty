@@ -29,9 +29,10 @@
 \newdimen\isa@parindent\newdimen\isa@parskip
 
 \newenvironment{isabellebody}{%
+\par%
 \isa@parindent\parindent\parindent0pt%
 \isa@parskip\parskip\parskip0pt%
-\isastyle}{}
+\isastyle}{\par}
 
 \newenvironment{isabelle}
 {\begin{trivlist}\begin{isabellebody}\item\relax}
