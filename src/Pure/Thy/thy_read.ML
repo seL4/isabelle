@@ -220,7 +220,7 @@ fun use_thy1 tmp_loadpath_valid name =
                                    thy_time = thy_time, ml_time = ml_time,
                                    theory = theory}),
                           !loaded_thys)
-      end;
+      end
 
     (*Mark all direct descendants of a theory as changed *)
     fun mark_children thy =
@@ -233,34 +233,44 @@ fun use_thy1 tmp_loadpath_valid name =
                     ^ (quote (space_implode "\",\"" loaded)))
          else ();
          seq mark_outdated present
-      end;
+      end
 
     (*Make sure that loaded_thys contains an entry for tname*)
     fun init_thyinfo () =
-    let val tinfo = {path = "", children = [], parents = [],
-                             thy_time = None, ml_time = None,
-                             theory = None};
-    in if is_some (get_thyinfo tname) then ()
-       else loaded_thys := Symtab.update ((tname, tinfo), !loaded_thys)
-    end;
+      let val tinfo = {path = "", children = [], parents = [],
+			       thy_time = None, ml_time = None,
+			       theory = None};
+      in if is_some (get_thyinfo tname) then ()
+	 else loaded_thys := Symtab.update ((tname, tinfo), !loaded_thys)
+      end
+    fun read_thy_file() =
+	   if thy_file = "" then ()
+	   else
+	     (writeln ("Reading \"" ^ name ^ ".thy\"");
+	      init_thyinfo ();
+	      read_thy tname thy_file;
+              let val old_pt = ! Goals.proof_timing;
+	      in  (*suppress annoying messages during theory loading*)
+		  proof_timing := false;
+		  Use.use (out_name tname);
+                  proof_timing := old_pt
+                  end;
+	      if not (!delete_tmpfiles) then ()
+	      else OS.FileSys.remove (out_name tname);
+	      thyfile2html tname abs_path)
+
+       (*Add theory to list of all loaded theories (for index.html)
+         and it to its parents' sub-charts*)
+    fun add_theory path = 
+	   if path = "" then               (*first time theory has been read*)
+	       (mk_html tname abs_path old_parents;
+		mk_graph tname abs_path)   (*Add it to graph definition file*)
+	   else ()
   in if thy_uptodate andalso ml_uptodate then ()
      else
-      (if thy_file = "" then ()
-       else
-         (writeln ("Reading \"" ^ name ^ ".thy\"");
-
-          init_thyinfo ();
-          read_thy tname thy_file;
-          Use.use (out_name tname);
-
-          if not (!delete_tmpfiles) then ()
-          else OS.FileSys.remove (out_name tname);
-
-          thyfile2html tname abs_path
-         );
-       
+      (read_thy_file();       
        set_info tname (Some (file_info thy_file)) None;
-                                       (*mark thy_file as successfully loaded*)
+            (*mark thy_file as successfully loaded*)
 
        if ml_file = "" then ()
        else (writeln ("Reading \"" ^ name ^ ".ML\"");
@@ -269,31 +279,13 @@ fun use_thy1 tmp_loadpath_valid name =
        (*Store theory again because it could have been redefined*)
        use_text false ("val _ = store_theory " ^ tname ^ ".thy;");
 
-       (*Add theory to list of all loaded theories (for index.html)
-         and add it to its parents' sub-charts*)
-       let val path = path_of tname;
-       in if path = "" then               (*first time theory has been read*)
-          (
-            (*Add theory to list of all loaded theories (for index.html)
-              and add it to its parents' sub-charts*)
-            mk_html tname abs_path old_parents;
-
-            (*Add theory to graph definition file*)
-            mk_graph tname abs_path
-          )
-          else ()
-       end;
+       add_theory (path_of tname);
 
        (*Now set the correct info*)
        set_info tname (Some (file_info thy_file)) (Some (file_info ml_file));
        set_path ();
-
-       (*Mark theories that have to be reloaded*)
-       mark_children tname;
-
-       (*Close HTML file*)
-       close_html ()
-      )
+       mark_children tname;  (*Mark theories that have to be reloaded*)
+       close_html () )
   end;
 
 
