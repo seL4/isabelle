@@ -224,9 +224,7 @@ by (ALLGOALS (asm_simp_tac (simpset() addsimps metric_simps @ zcompare_rls)));
 by (Blast_tac 1);
 qed "E_thm16a";
 
-(*Must sometimes delete them because they introduce multiplication*)
-val metric_ss = simpset() delsimprocs [Int_CC.sum_conv, Int_CC.rel_conv]
-                          addsimps metric_simps;
+val metric_ss = simpset() addsimps metric_simps;
 
 
 (*lem_lift_5_1 has ~goingup instead of goingdown*)
