@@ -10,7 +10,7 @@ TODO:
   - have_theorems, have_lemmas;
   - load theory;
   - 'methods' section (proof macros, ML method defs) (!?);
-  - now_block: ProofHistory open / close (!?);
+  - next_block: ProofHistory open / close (!?);
   - from_facts: attribs, args (!?) (beware of termination!!);
 *)
 
@@ -34,7 +34,7 @@ sig
   val qed: ProofHistory.T -> theory
   val kill_proof: ProofHistory.T -> theory
   val tac: Method.text -> ProofHistory.T -> ProofHistory.T
-  val etac: Method.text -> ProofHistory.T -> ProofHistory.T
+  val then_tac: Method.text -> ProofHistory.T -> ProofHistory.T
   val proof: Method.text option -> ProofHistory.T -> ProofHistory.T
   val terminal_proof: Method.text -> ProofHistory.T -> ProofHistory.T
   val trivial_proof: ProofHistory.T -> ProofHistory.T
@@ -126,7 +126,7 @@ val next_block = ProofHistory.apply Proof.next_block;
 (* backward steps *)
 
 val tac = ProofHistory.applys o Method.tac;
-val etac = ProofHistory.applys o Method.etac;
+val then_tac = ProofHistory.applys o Method.then_tac;
 val proof = ProofHistory.applys o Method.proof;
 val end_block = ProofHistory.applys_close Method.end_block;
 val terminal_proof = ProofHistory.applys_close o Method.terminal_proof;
