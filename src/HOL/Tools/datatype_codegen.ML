@@ -24,7 +24,7 @@ fun mk_tuple [p] = p
 
 (**** datatype definition ****)
 
-fun add_dt_defs thy dep gr descr =
+fun add_dt_defs thy dep gr (descr: DatatypeAux.descr) =
   let
     val sg = sign_of thy;
     val tab = DatatypePackage.get_datatypes thy;
