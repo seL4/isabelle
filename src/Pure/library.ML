@@ -117,6 +117,8 @@ sig
   val take_suffix: ('a -> bool) -> 'a list -> 'a list * 'a list
 
   (*integers*)
+  val gcd: int * int -> int
+  val lcm: int * int -> int
   val inc: int ref -> int
   val dec: int ref -> int
   val upto: int * int -> int list
@@ -126,6 +128,16 @@ sig
   val radixstring: int * string * int -> string
   val string_of_int: int -> string
   val string_of_indexname: string * int -> string
+
+  (*rational numbers*)
+  type rat
+  val rep_rat: rat -> int * int
+  val ratadd: rat * rat -> rat
+  val ratmul: rat * rat -> rat
+  val ratinv: rat -> rat
+  val int_ratdiv: int * int -> rat
+  val ratneg: rat -> rat
+  val rat_of_int: int -> rat
 
   (*strings*)
   val nth_elem_string: int * string -> string
@@ -635,6 +647,13 @@ fun take_suffix _ [] = ([], [])
 
 (** integers **)
 
+fun gcd(x,y) =
+  let fun gxd x y =
+    if y = 0 then x else gxd y (x mod y)
+  in if x < y then gxd y x else gxd x y end;
+
+fun lcm(x,y) = (x * y) div gcd(x,y);
+
 fun inc i = (i := ! i + 1; ! i);
 fun dec i = (i := ! i - 1; ! i);
 
@@ -677,7 +696,6 @@ val string_of_int = Int.toString;
 
 fun string_of_indexname (a,0) = a
   | string_of_indexname (a,i) = a ^ "_" ^ Int.toString i;
-
 
 
 (** strings **)
@@ -1205,6 +1223,35 @@ fun timeap f x = timeit (fn () => f x);
 (*global timing mode*)
 val timing = ref false;
 
+
+
+(** rational numbers **)
+
+datatype rat = Rat of bool * int * int
+
+fun rep_rat(Rat(a,p,q)) = (if a then p else ~p,q)
+
+fun ratnorm(a,p,q) = if p=0 then Rat(a,0,1) else
+  let val absp = abs p
+      val m = gcd(absp,q)
+  in Rat(a = (0 <= p), absp div m, q div m) end;
+
+fun ratadd(Rat(a,p,q),Rat(b,r,s)) =
+  let val den = lcm(q,s)
+      val p = p*(den div q) and r = r*(den div s)
+      val num = (if a then p else ~p) + (if b then r else ~r)
+  in ratnorm(true,num,den) end;
+
+fun ratmul(Rat(a,p,q),Rat(b,r,s)) = ratnorm(a=b,p*r,q*s)
+
+fun ratinv(Rat(a,p,q)) = if p=0 then error("ratinv") else Rat(a,q,p)
+
+fun int_ratdiv(p,q) =
+  if q=0 then error("int_ratdiv") else ratnorm(0<=q, p, abs q)
+
+fun ratneg(Rat(b,p,q)) = Rat(not b,p,q);
+
+fun rat_of_int i = if i < 0 then Rat(false,abs i,1) else Rat(true,i,1);
 
 
 (** misc **)
