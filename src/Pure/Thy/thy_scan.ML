@@ -74,8 +74,7 @@ fun string ("\"" :: cs) n = (["\""], cs, n)
         (None, _) => lex_err n "bad escape sequence in string"
       | (Some s, cs') => cons_fst ("\\" ^ s) (string cs' (inc_line n s)))
   | string (c :: cs) n = 
-      if c = "\n" then 
-        lex_err n "no matching quote found on this line"
+      if c = "\n" then string cs (n+1)
       else cons_fst c (string cs n)
   | string [] n = lex_err n "missing quote at end of string";
 
