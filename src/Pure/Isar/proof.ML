@@ -123,7 +123,7 @@ type context = ProofContext.context;
 datatype kind =
   Theorem of string * theory attribute list |    (*top-level theorem*)
   Show of context attribute list |               (*intermediate result, solving subgoal*)
-  Have of context attribute list ;               (*intermediate result*)
+  Have of context attribute list;                (*intermediate result*)
 
 val kind_name = fn Theorem (s, _) => s | Show _ => "show" | Have _ => "have";
 
