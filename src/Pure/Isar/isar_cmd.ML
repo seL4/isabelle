@@ -7,9 +7,10 @@ Non-logical toplevel commands.
 
 signature ISAR_CMD =
 sig
+  val welcome: Toplevel.transition -> Toplevel.transition
+  val init_toplevel: Toplevel.transition -> Toplevel.transition
   val exit: Toplevel.transition -> Toplevel.transition
   val quit: Toplevel.transition -> Toplevel.transition
-  val init_toplevel: Toplevel.transition -> Toplevel.transition
   val touch_all_thys: Toplevel.transition -> Toplevel.transition
   val touch_thy: string -> Toplevel.transition -> Toplevel.transition
   val remove_thy: string -> Toplevel.transition -> Toplevel.transition
@@ -49,7 +50,10 @@ structure IsarCmd: ISAR_CMD =
 struct
 
 
-(* variations on exit *)
+(* variations on init / exit *)
+
+val init_toplevel = Toplevel.imperative (fn () => raise Toplevel.RESTART);
+val welcome = Toplevel.imperative (writeln o Session.welcome);
 
 val exit = Toplevel.keep (fn state =>
   (Context.set_context (try Toplevel.theory_of state);
@@ -57,8 +61,6 @@ val exit = Toplevel.keep (fn state =>
     raise Toplevel.TERMINATE));
 
 val quit = Toplevel.imperative quit;
-
-val init_toplevel = Toplevel.imperative (fn () => raise Toplevel.RESTART);
 
 
 (* touch theories *)

@@ -559,6 +559,10 @@ val init_toplevelP =
   OuterSyntax.improper_command "init_toplevel" "restart Isar toplevel loop" K.control
     (Scan.succeed IsarCmd.init_toplevel);
 
+val welcomeP =
+  OuterSyntax.improper_command "welcome" "print welcome message" K.control
+    (Scan.succeed IsarCmd.welcome);
+
 
 
 (** the Pure outer syntax **)
@@ -599,7 +603,7 @@ val parsers = [
   (*system commands*)
   cdP, pwdP, use_thyP, use_thy_onlyP, update_thyP, update_thy_onlyP,
   touch_thyP, touch_all_thysP, remove_thyP, prP, disable_prP,
-  enable_prP, commitP, quitP, exitP, init_toplevelP];
+  enable_prP, commitP, quitP, exitP, init_toplevelP, welcomeP];
 
 
 end;
