@@ -18,7 +18,7 @@ sig
   (*proof tools*)
   val prove_conv: tactic list -> Sign.sg -> term * term -> thm option
   val add_norm_tac: tactic
-  val numeral_simp_tac: thm list -> tactic
+  val numeral_simp_tac: tactic
 end;
 
 
@@ -42,7 +42,7 @@ fun proc sg _ t =
 		  (sum, Data.mk_sum (lit_m::terms')))
   in
       Data.prove_conv 
-        [Data.numeral_simp_tac assocs] sg
+        [rewrite_goals_tac assocs, Data.numeral_simp_tac] sg
 	(t, Data.mk_sum (Data.mk_numeral (m+1) :: terms'))
   end
   handle TERM _ => None;
