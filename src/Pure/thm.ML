@@ -68,6 +68,7 @@ signature BASIC_THM =
     | Lift_rule           of cterm * int 
     | Assumption          of int * Envir.env option
     | Rotate_rule         of int * int
+    | Permute_prems       of int * int
     | Instantiate         of (indexname * ctyp) list * (cterm * cterm) list
     | Bicompose           of bool * bool * int * int * Envir.env
     | Flexflex_rule       of Envir.env            
@@ -139,6 +140,7 @@ signature BASIC_THM =
   val assumption        : int -> thm -> thm Seq.seq
   val eq_assumption     : int -> thm -> thm
   val rotate_rule       : int -> int -> thm -> thm
+  val permute_prems     : int -> int -> thm -> thm
   val rename_params_rule: string list * int -> thm -> thm
   val bicompose         : bool -> bool * thm * int ->
     int -> thm -> thm Seq.seq
@@ -344,6 +346,7 @@ datatype rule =
   | Lift_rule           of cterm * int 
   | Assumption          of int * Envir.env option (*includes eq_assumption*)
   | Rotate_rule         of int * int
+  | Permute_prems       of int * int
   | Instantiate         of (indexname * ctyp) list * (cterm * cterm) list
   | Bicompose           of bool * bool * int * int * Envir.env
   | Flexflex_rule       of Envir.env            (*identifies unifier chosen*)
@@ -1272,13 +1275,40 @@ fun rotate_rule k i state =
 			    Logic.list_implies(List.drop(asms, m) @ 
 					       List.take(asms, m),
 					       concl))
-		   else raise THM("rotate_rule", m, [state])
+		   else raise THM("rotate_rule", k, [state])
   in  Thm{sign_ref = sign_ref, 
 	  der = infer_derivs (Rotate_rule (k,i), [der]),
 	  maxidx = maxidx,
 	  shyps = shyps,
 	  hyps = hyps,
 	  prop = Logic.rule_of(tpairs, Bs@[rot (if k<0 then n+k else k)], C)}
+  end;
+
+
+(*Rotates a rule's premises to the left by k, leaving the first j premises
+  unchanged.  Does nothing if k=0 or if k equals n-j, where n is the
+  number of premises.  Useful with etac and underlies tactic/defer_tac*)
+fun permute_prems j k rl =
+  let val Thm{sign_ref,der,maxidx,hyps,prop,shyps} = rl
+      val prems  = Logic.strip_imp_prems prop
+      and concl  = Logic.strip_imp_concl prop
+      val moved_prems = List.drop(prems, j)
+      and fixed_prems = List.take(prems, j)
+        handle Subscript => raise THM("permute_prems:j", j, [rl])
+      val n_j    = length moved_prems
+      fun rot m  = if 0 = m orelse m = n_j then prop
+		   else if 0<m andalso m<n_j 
+		   then Logic.list_implies(fixed_prems @
+					   List.drop(moved_prems, m) @ 
+					   List.take(moved_prems, m),
+					   concl)
+		   else raise THM("permute_prems:k", k, [rl])
+  in  Thm{sign_ref = sign_ref, 
+	  der = infer_derivs (Permute_prems (j,k), [der]),
+	  maxidx = maxidx,
+	  shyps = shyps,
+	  hyps = hyps,
+	  prop = rot (if k<0 then n_j + k else k)}
   end;
 
 

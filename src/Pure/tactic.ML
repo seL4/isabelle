@@ -105,26 +105,6 @@ fun trace_goalno_tac tac i st =
       | seqcell => (writeln ("Subgoal " ^ string_of_int i ^ " selected"); 
     			 Seq.make(fn()=> seqcell));
 
-
-(*Rotates the given subgoal to be the last.  Useful when re-playing
-  an old proof script, when the proof of an early subgoal fails.
-  DOES NOT WORK FOR TYPE VARIABLES.
-  Similar to drule/rotate_prems*)
-fun defer_rule i state =
-    let val (state',thaw) = freeze_thaw state
-	val hyps = Drule.strip_imp_prems (adjust_maxidx (cprop_of state'))
-	val hyp::hyps' = List.drop(hyps, i-1)
-    in  implies_intr hyp (implies_elim_list state' (map assume hyps)) 
-        |> implies_intr_list (List.take(hyps, i-1) @ hyps')
-        |> thaw
-    end;
-
-fun defer_tac i state =
-  (case try (defer_rule i) state of
-    Some state' => Seq.single state'
-  | None => Seq.empty);
-
-
 (*Makes a rule by applying a tactic to an existing rule*)
 fun rule_by_tactic tac rl =
   let val (st, thaw) = freeze_thaw (zero_var_indexes rl)
@@ -564,6 +544,9 @@ val prune_params_tac = rewrite_goals_tac [triv_forall_equality];
   right to left if n is positive, and from left to right if n is negative.*)
 fun rotate_tac 0 i = all_tac
   | rotate_tac k i = PRIMITIVE (rotate_rule k i);
+
+(*Rotates the given subgoal to be the last.*)
+fun defer_tac i = PRIMITIVE (permute_prems (i-1) 1);
 
 (* remove premises that do not satisfy p; fails if all prems satisfy p *)
 fun filter_prems_tac p =

@@ -273,35 +273,30 @@ fun standard th =
   reversing that operation.  DOES NOT WORK FOR TYPE VARIABLES.
   Similar code in type/freeze_thaw*)
 fun freeze_thaw th =
-  let val fth = freezeT th
-      val {prop,sign,...} = rep_thm fth
-      val used = add_term_names (prop, [])
-      and vars = term_vars prop
-      fun newName (Var(ix,_), (pairs,used)) = 
-	    let val v = variant used (string_of_indexname ix)
-	    in  ((ix,v)::pairs, v::used)  end;
-      val (alist, _) = foldr newName (vars, ([], used))
-      fun mk_inst (Var(v,T)) = 
-	  (cterm_of sign (Var(v,T)),
-	   cterm_of sign (Free(the (assoc(alist,v)), T)))
-      val insts = map mk_inst vars
-      fun thaw th' = 
-	  th' |> forall_intr_list (map #2 insts)
-	      |> forall_elim_list (map #1 insts)
-  in  (instantiate ([],insts) fth, thaw)  end;
+ let val fth = freezeT th
+     val {prop,sign,...} = rep_thm fth
+ in
+   case term_vars prop of
+       [] => (fth, fn x => x)
+     | vars =>
+         let fun newName (Var(ix,_), (pairs,used)) = 
+		   let val v = variant used (string_of_indexname ix)
+		   in  ((ix,v)::pairs, v::used)  end;
+	     val (alist, _) = foldr newName
+		                (vars, ([], add_term_names (prop, [])))
+	     fun mk_inst (Var(v,T)) = 
+		 (cterm_of sign (Var(v,T)),
+		  cterm_of sign (Free(the (assoc(alist,v)), T)))
+	     val insts = map mk_inst vars
+	     fun thaw th' = 
+		 th' |> forall_intr_list (map #2 insts)
+	             |> forall_elim_list (map #1 insts)
+	 in  (instantiate ([],insts) fth, thaw)  end
+ end;
 
 
-(*Rotates a rule's premises to the left by k.  Does nothing if k=0 or
-  if k equals the number of premises.  Useful, for instance, with etac.
-  Similar to tactic/defer_tac*)
-fun rotate_prems k rl = 
-    let val (rl',thaw) = freeze_thaw rl
-	val hyps = strip_imp_prems (adjust_maxidx (cprop_of rl'))
-	val hyps' = List.drop(hyps, k)
-    in  implies_elim_list rl' (map assume hyps)
-        |> implies_intr_list (hyps' @ List.take(hyps, k))
-        |> thaw |> varifyT
-    end;
+(*Rotates a rule's premises to the left by k*)
+val rotate_prems = permute_prems 0;
 
 
 (*Assume a new formula, read following the same conventions as axioms.
