@@ -1,7 +1,7 @@
 
-header {* Defining natural numbers in FOL \label{sec:ex-natclass} *};
+header {* Defining natural numbers in FOL \label{sec:ex-natclass} *}
 
-theory NatClass = FOL:;
+theory NatClass = FOL:
 
 text {*
  \medskip\noindent Axiomatic type classes abstract over exactly one
@@ -12,12 +12,12 @@ text {*
  We illustrate this with the natural numbers in
  Isabelle/FOL.\footnote{See also
  \url{http://isabelle.in.tum.de/library/FOL/ex/NatClass.html}}
-*};
+*}
 
 consts
   zero :: 'a    ("0")
   Suc :: "'a \\<Rightarrow> 'a"
-  rec :: "'a \\<Rightarrow> 'a \\<Rightarrow> ('a \\<Rightarrow> 'a \\<Rightarrow> 'a) \\<Rightarrow> 'a";
+  rec :: "'a \\<Rightarrow> 'a \\<Rightarrow> ('a \\<Rightarrow> 'a \\<Rightarrow> 'a) \\<Rightarrow> 'a"
 
 axclass
   nat < "term"
@@ -25,11 +25,11 @@ axclass
   Suc_inject: "Suc(m) = Suc(n) \\<Longrightarrow> m = n"
   Suc_neq_0:  "Suc(m) = 0 \\<Longrightarrow> R"
   rec_0:      "rec(0, a, f) = a"
-  rec_Suc:    "rec(Suc(m), a, f) = f(m, rec(m, a, f))";
+  rec_Suc:    "rec(Suc(m), a, f) = f(m, rec(m, a, f))"
 
 constdefs
   add :: "'a::nat \\<Rightarrow> 'a \\<Rightarrow> 'a"    (infixl "+" 60)
-  "m + n \\<equiv> rec(m, n, \\<lambda>x y. Suc(y))";
+  "m + n \\<equiv> rec(m, n, \\<lambda>x y. Suc(y))"
 
 text {*
  This is an abstract version of the plain $Nat$ theory in
@@ -57,6 +57,6 @@ text {*
  way as for the concrete version.  The original proof scripts may be
  re-used with some trivial changes only (mostly adding some type
  constraints).
-*};
+*}
 
-end;
+end

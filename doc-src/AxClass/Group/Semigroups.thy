@@ -1,7 +1,7 @@
 
-header {* Semigroups *};
+header {* Semigroups *}
 
-theory Semigroups = Main:;
+theory Semigroups = Main:
 
 text {*
  \medskip\noindent An axiomatic type class is simply a class of types
@@ -14,13 +14,13 @@ text {*
 
  We illustrate these basic concepts by the following formulation of
  semigroups.
-*};
+*}
 
 consts
-  times :: "'a \\<Rightarrow> 'a \\<Rightarrow> 'a"    (infixl "\<Otimes>" 70);
+  times :: "'a \\<Rightarrow> 'a \\<Rightarrow> 'a"    (infixl "\<Otimes>" 70)
 axclass
   semigroup < "term"
-  assoc: "(x \<Otimes> y) \<Otimes> z = x \<Otimes> (y \<Otimes> z)";
+  assoc: "(x \<Otimes> y) \<Otimes> z = x \<Otimes> (y \<Otimes> z)"
 
 text {*
  \noindent Above we have first declared a polymorphic constant $\TIMES
@@ -38,18 +38,18 @@ text {*
  Below, class $plus_semigroup$ represents semigroups of the form
  $(\tau, \PLUS^\tau)$, while the original $semigroup$ would correspond
  to semigroups $(\tau, \TIMES^\tau)$.
-*};
+*}
 
 consts
-  plus :: "'a \\<Rightarrow> 'a \\<Rightarrow> 'a"    (infixl "\<Oplus>" 70);
+  plus :: "'a \\<Rightarrow> 'a \\<Rightarrow> 'a"    (infixl "\<Oplus>" 70)
 axclass
   plus_semigroup < "term"
-  assoc: "(x \<Oplus> y) \<Oplus> z = x \<Oplus> (y \<Oplus> z)";
+  assoc: "(x \<Oplus> y) \<Oplus> z = x \<Oplus> (y \<Oplus> z)"
 
 text {*
  \noindent Even if classes $plus_semigroup$ and $semigroup$ both
  represent semigroups in a sense, they are certainly not quite the
  same.
-*};
+*}
 
-end;
+end

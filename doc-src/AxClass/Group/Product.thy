@@ -1,7 +1,7 @@
 
-header {* Syntactic classes *};
+header {* Syntactic classes *}
 
-theory Product = Main:;
+theory Product = Main:
 
 text {*
  \medskip\noindent There is still a feature of Isabelle's type system
@@ -16,12 +16,12 @@ text {*
 
  The $product$ class below provides a less degenerate example of
  syntactic type classes.
-*};
+*}
 
 axclass
-  product < "term";
+  product < "term"
 consts
-  product :: "'a::product \\<Rightarrow> 'a \\<Rightarrow> 'a"    (infixl "\\<Otimes>" 70);
+  product :: "'a::product \\<Rightarrow> 'a \\<Rightarrow> 'a"    (infixl "\\<Otimes>" 70)
 
 text {*
  Here class $product$ is defined as subclass of $term$ without any
@@ -50,12 +50,12 @@ text {*
  certain type $\tau$ do we instantiate $\tau :: c$.
 
  This is done for class $product$ and type $bool$ as follows.
-*};
+*}
 
-instance bool :: product;
-  by intro_classes;
+instance bool :: product
+  by intro_classes
 defs
-  product_bool_def: "x \\<Otimes> y \\<equiv> x \\<and> y";
+  product_bool_def: "x \\<Otimes> y \\<equiv> x \\<and> y"
 
 text {*
  The definition $prod_bool_def$ becomes syntactically well-formed only
@@ -78,6 +78,6 @@ text {*
  This style of \texttt{instance} won't make much sense in Isabelle's
  meta-logic, because there is no internal notion of ``providing
  operations'' or even ``names of functions''.
-*};
+*}
 
-end;
+end
