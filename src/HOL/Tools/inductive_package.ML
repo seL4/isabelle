@@ -64,7 +64,7 @@ struct
 
 (** theory context references **)
 
-val mono_name = "HOL.mono";
+val mono_name = "Orderings.mono";
 val gfp_name = "Gfp.gfp";
 val lfp_name = "Lfp.lfp";
 val vimage_name = "Set.vimage";
