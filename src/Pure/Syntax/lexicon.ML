@@ -14,6 +14,7 @@ sig
   val scan_longid: string list -> string * string list
   val scan_var: string list -> string * string list
   val scan_tid: string list -> string * string list
+  val scan_tvar: string list -> string * string list
   val scan_nat: string list -> string * string list
   val scan_int: string list -> string * string list
   val string_of_vname: indexname -> string
@@ -93,6 +94,7 @@ val scan_int = $$ "~" ^^ scan_nat || scan_nat;
 
 val scan_id_nat = scan_id ^^ Scan.optional ($$ "." ^^ scan_nat) "";
 val scan_var = $$ "?" ^^ scan_id_nat;
+val scan_tvar = $$ "?" ^^ $$ "'" ^^ scan_id_nat;
 
 
 
@@ -246,7 +248,7 @@ fun tokenize lex xids chs =
       else scan_id;
 
     val scan_val =
-      $$ "?" ^^ $$ "'" ^^ scan_id_nat >> pair TVarSy ||
+      scan_tvar >> pair TVarSy ||
       scan_var >> pair VarSy ||
       scan_tid >> pair TFreeSy ||
       $$ "#" ^^ scan_int >> pair NumSy ||		(* FIXME remove "#" *)
