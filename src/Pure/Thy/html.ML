@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-HTML markup elements.
+HTML presentation primitives.
 *)
 
 signature HTML =
@@ -22,13 +22,15 @@ sig
   val verbatim: string -> text
   val begin_document: string -> text
   val end_document: text
-  val insert_here: text
+  val begin_index: Path.T * string -> Path.T * string -> Path.T option -> text
+  val end_index: text
+  val theory_entry: Path.T * string -> text
+  val session_entries: (Path.T * string) list -> text
   val source: (string, 'a) Source.source -> text
   val begin_theory: Path.T * string -> string -> string list -> ((Path.T * Path.T) * bool) list
     -> text -> text
   val end_theory: text
   val ml_file: Path.T -> string -> text
-  val conclude_theory: text
   val theorem: string -> thm -> text
   val section: string -> text
   val setup: (theory -> theory) list
@@ -48,15 +50,32 @@ fun html_mode f x = setmp print_mode [htmlN] f x;
 
 (* symbol output *)
 
-val escape = fn "<" => "&lt;" | ">" => "&gt;" | "&" => "&amp;" | c => c;
+local
+  val escape = fn "<" => "&lt;" | ">" => "&gt;" | "&" => "&amp;" | c => c;
 
-val output_chars = implode o map escape;
+  val output_sym =
+    fn "\\<not>" => (1.0, "&not;")
+     | "\\<hyphen>" => (1.0, "&shy;")
+     | "\\<cdot>" => (1.0, "&middot;")
+     | "\\<times>" => (1.0, "&times;")
+     | "\\<copyright>" => (1.0, "&copy;")
+     | "\\<mu>" => (1.0, "&micro;")
+     | s => (real (size s), implode (map escape (explode s)));
 
-fun output s =
-  if not (exists_string (equal "<" orf equal ">" orf equal "&") s) then s
-  else implode (map escape (explode s));        (*sic!*)
+  fun add_sym (width, (w: real, s)) = (width + w, s);
+in
 
-fun output_width s = (output s, real (size s));
+fun output_width str =
+  if not (exists_string (equal "<" orf equal ">" orf equal "&") str) then (str, real (size str))
+  else
+    let val (width, syms) = foldl_map add_sym (0.0, map output_sym (Symbol.explode str))
+    in (implode syms, width) end;
+
+val output = #1 o output_width;
+val output_symbols = map (#2 o output_sym);
+
+end;
+
 
 val _ = Symbol.add_mode htmlN output_width;
 
@@ -118,13 +137,30 @@ val end_document =
   "</body>\n\
   \</html>\n";
 
-val insert_here = "<!--insert--here-->";
+fun back_link (back_path, back_name) =
+  para (href_path back_path "Back" ^ " to index of " ^ plain back_name);
+
+
+(* session index *)
+
+fun begin_index back (index_path, session) opt_readme =
+  begin_document ("Index of " ^ session) ^ back_link back ^
+  (case opt_readme of None => "" | Some p => para (href_path p "README" ^ " file")) ^
+  "\n<hr>\n\n<h2>Theories</h2>\n";
+
+val end_index = end_document;
+
+fun entry (p, s) = href_path p (plain s) ^ "<br>\n";
+val theory_entry = entry;
+
+fun session_entries [] = ""
+  | session_entries es = "\n<hr>\n\n<h2>Sessions</h2>\n" ^ cat_lines (map entry es);
 
 
 (* theory *)
 
-fun source src =
-  "\n<hr>\n<pre>" ^ output_chars (Source.exhaust src) ^ "</pre>\n<hr>\n";
+fun output_source src = implode (output_symbols (Source.exhaust (Symbol.source false src)));
+fun source src = "\n<hr>\n<pre>" ^ output_source src ^ "</pre>\n<hr>\n";
 
 
 local
@@ -136,9 +172,8 @@ local
 
   val plus_names = space_implode " + " o map name;
 
-  fun theory (back_path, back_name) A =
-    begin_document ("Theory " ^ A) ^ "\n" ^
-    href_path back_path "Back" ^ " to the index of " ^ plain back_name ^ "\n<p>\n" ^
+  fun theory back A =
+    begin_document ("Theory " ^ A) ^ "\n" ^ back_link back ^
     keyword "theory" ^ " " ^ name A ^ " = ";
 in
 
@@ -148,8 +183,7 @@ fun begin_theory back A Bs [] body = theory back A ^ plus_names (suffix_last ":"
       "<br>" ^ keyword "files" ^ " " ^ space_implode " + " (map file Ps) ^ ":" ^ "\n" ^ body;
 end;
 
-val end_theory = "";
-val conclude_theory = end_document;
+val end_theory = end_document;
 
 
 (* ML file *)
