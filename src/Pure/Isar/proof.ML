@@ -713,7 +713,7 @@ fun finish_global state =
     val full_name = if name = "" then "" else Sign.full_name (sign_of state) name;
     val result =
       prep_result state t raw_thm
-      |> Drule.standard
+      |> Drule.standard |> Tactic.norm_hhf
       |> curry Thm.name_thm full_name;
 
     val atts =
