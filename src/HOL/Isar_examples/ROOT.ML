@@ -5,10 +5,11 @@
 Miscellaneous Isabelle/Isar examples for Higher-Order Logic.
 *)
 
-use_thy "BasicLogic";
-use_thy "Peirce";
-use_thy "Cantor";
-use_thy "ExprCompiler";
-use_thy "Group";
-use_thy "NatSum";
-use_thy "KnasterTarski";
+time_use_thy "BasicLogic";
+time_use_thy "Peirce";
+time_use_thy "Cantor";
+time_use_thy "ExprCompiler";
+time_use_thy "Group";
+time_use_thy "NatSum";
+time_use_thy "KnasterTarski";
+time_use_thy "MutilatedCheckerboard";
