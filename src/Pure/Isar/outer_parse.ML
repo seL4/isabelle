@@ -30,6 +30,8 @@ sig
   val enum1: string -> (token list -> 'a * token list) -> token list -> 'a list * token list
   val list: (token list -> 'a * token list) -> token list -> 'a list * token list
   val list1: (token list -> 'a * token list) -> token list -> 'a list * token list
+  val and_list: (token list -> 'a * token list) -> token list -> 'a list * token list
+  val and_list1: (token list -> 'a * token list) -> token list -> 'a list * token list
   val name: token list -> bstring * token list
   val xname: token list -> xstring * token list
   val text: token list -> string * token list
@@ -133,6 +135,9 @@ fun enum sep scan = enum1 sep scan || Scan.succeed [];
 fun list1 scan = enum1 "," scan;
 fun list scan = enum "," scan;
 
+fun and_list1 scan = enum1 "and" scan;
+fun and_list scan = enum "and" scan;
+
 
 (* names and text *)
 
@@ -234,7 +239,7 @@ fun thm_name s = name -- opt_attribs --| $$$ s;
 fun opt_thm_name s = Scan.optional (thm_name s) ("", []);
 
 val xthm = xname -- opt_attribs;
-val xthms1 = Scan.repeat1 xthm;
+val xthms1 = and_list1 xthm;
 
 
 (* proof methods *)

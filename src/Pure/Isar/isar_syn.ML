@@ -297,17 +297,17 @@ val factsP =
 
 val assumeP =
   OuterSyntax.parser false "assume" "assume propositions"
-    (opt_thm_name ":" -- Scan.repeat1 propp >>
+    (opt_thm_name ":" -- and_list1 propp >>
       (fn ((x, y), z) => Toplevel.print o Toplevel.proof (IsarThy.assume x y z)));
 
 val fixP =
   OuterSyntax.parser false "fix" "fix variables (Skolem constants)"
-    (Scan.repeat1 (name -- Scan.option ($$$ "::" |-- typ))
+    (and_list1 (name -- Scan.option ($$$ "::" |-- typ))
       >> (fn xs => Toplevel.print o Toplevel.proof (IsarThy.fix xs)));
 
 val letP =
   OuterSyntax.parser false "let" "bind text variables"
-    (enum1 "and" (enum1 "as" term -- ($$$ "=" |-- term))
+    (and_list1 (enum1 "as" term -- ($$$ "=" |-- term))
       >> (fn bs => Toplevel.print o Toplevel.proof (IsarThy.match_bind bs)));
 
 
@@ -508,7 +508,7 @@ val breakP =
 val keywords =
  ["(", ")", "*", "+", "--", ",", ":", "::", ";", "<", "<=", "=", "==", "=>",
   "?", "[", "]", "and", "as", "binder", "infixl", "infixr", "is",
-  "mixfix", "output", "{", "|", "}"];
+  "output", "{", "|", "}"];
 
 val parsers = [
   (*theory structure*)
