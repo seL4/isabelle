@@ -325,9 +325,9 @@ qed "card_insert_disjoint";
 Addsimps [card_insert_disjoint];
 *)
 
-val cardR_emptyE = cardR.mk_cases [] "({},n) : cardR";
+val cardR_emptyE = cardR.mk_cases "({},n) : cardR";
 AddSEs [cardR_emptyE];
-val cardR_insertE = cardR.mk_cases [] "(insert a A,n) : cardR";
+val cardR_insertE = cardR.mk_cases "(insert a A,n) : cardR";
 AddSIs cardR.intrs;
 
 Goal "[| (A,n) : cardR |] ==> a : A --> (? m. n = Suc m)";
@@ -565,7 +565,7 @@ qed_spec_mp "dvd_partition";
 
 (*** foldSet ***)
 
-val empty_foldSetE = foldSet.mk_cases [] "({}, x) : foldSet f e";
+val empty_foldSetE = foldSet.mk_cases "({}, x) : foldSet f e";
 
 AddSEs [empty_foldSetE];
 AddIs foldSet.intrs;

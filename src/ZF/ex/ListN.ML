@@ -9,8 +9,6 @@ See Ch. Paulin-Mohring, Inductive Definitions in the System Coq.
 Research Report 92-49, LIP, ENS Lyon.  Dec 1992.
 *)
 
-open ListN;
-
 Goal "l:list(A) ==> <length(l),l> : listn(A)";
 by (etac list.induct 1);
 by (ALLGOALS Asm_simp_tac);
@@ -40,8 +38,8 @@ by (etac listn.induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps listn.intrs)));
 qed "listn_append";
 
-val Nil_listn_case = listn.mk_cases list.con_defs "<i,Nil> : listn(A)"
-and Cons_listn_case = listn.mk_cases list.con_defs "<i,Cons(x,l)> : listn(A)";
+val Nil_listn_case  = listn.mk_cases "<i,Nil> : listn(A)"
+and Cons_listn_case = listn.mk_cases "<i,Cons(x,l)> : listn(A)";
 
-val zero_listn_case = listn.mk_cases list.con_defs "<0,l> : listn(A)"
-and succ_listn_case = listn.mk_cases list.con_defs "<succ(i),l> : listn(A)";
+val zero_listn_case = listn.mk_cases "<0,l> : listn(A)"
+and succ_listn_case = listn.mk_cases "<succ(i),l> : listn(A)";

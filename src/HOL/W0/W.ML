@@ -36,7 +36,7 @@ by (asm_full_simp_tac (simpset() addsimps [eq_sym_conv]) 1);
 by (asm_full_simp_tac (simpset() addsimps [subst_comp_tel RS sym,o_def,has_type_cl_sub,eq_sym_conv]) 1);
 qed_spec_mp "W_correct";
 
-val has_type_casesE = map(has_type.mk_cases expr.simps)
+val has_type_casesE = map has_type.mk_cases
         [" s |- Var n :: t"," s |- Abs e :: t","s |- App e1 e2 ::t"];
 
 (* the resulting type variable is always greater or equal than the given one *)

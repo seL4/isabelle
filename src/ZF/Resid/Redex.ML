@@ -12,10 +12,10 @@ fun rotate n i = EVERY(replicate n (etac revcut_rl i));
 (*    Specialisation of comp-rules                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val compD1 =Scomp.dom_subset RS subsetD RS SigmaD1;
-val compD2 =Scomp.dom_subset RS subsetD RS SigmaD2;
+val compD1 = Scomp.dom_subset RS subsetD RS SigmaD1;
+val compD2 = Scomp.dom_subset RS subsetD RS SigmaD2;
 
-val regD =Sreg.dom_subset RS subsetD;
+val regD = Sreg.dom_subset RS subsetD;
 
 (* ------------------------------------------------------------------------- *)
 (*    Equality rules for union                                               *)
@@ -29,8 +29,7 @@ Goal "[|u:redexes; v:redexes|]==>Fun(u) un Fun(v)=Fun(u un v)";
 by (asm_simp_tac (simpset() addsimps [union_def]) 1);
 qed "union_Fun";
  
-Goal
- "[|b1:bool; b2:bool; u1:redexes; v1:redexes; u2:redexes; v2:redexes|]==> \
+Goal "[|b1:bool; b2:bool; u1:redexes; v1:redexes; u2:redexes; v2:redexes|]==> \
 \     App(b1,u1,v1) un App(b2,u2,v2)=App(b1 or b2,u1 un u2,v1 un v2)";
 by (asm_simp_tac (simpset() addsimps [union_def]) 1);
 qed "union_App";
@@ -42,17 +41,16 @@ Addsimps (Ssub.intrs@bool_typechecks@
 	   union_App,union_Fun,union_Var,compD2,compD1,regD]);
 
 AddIs Scomp.intrs;
-AddSEs [Sreg.mk_cases redexes.con_defs "regular(App(b,f,a))",
-	Sreg.mk_cases redexes.con_defs "regular(Fun(b))",
-	Sreg.mk_cases redexes.con_defs "regular(Var(b))",
-	Scomp.mk_cases redexes.con_defs "Fun(u) ~ Fun(t)",
-	Scomp.mk_cases redexes.con_defs "u ~ Fun(t)",
-	Scomp.mk_cases redexes.con_defs "u ~ Var(n)",
-	Scomp.mk_cases redexes.con_defs "u ~ App(b,t,a)",
-	Scomp.mk_cases redexes.con_defs "Fun(t) ~ v",
-	Scomp.mk_cases redexes.con_defs "App(b,f,a) ~ v",
-	Scomp.mk_cases redexes.con_defs "Var(n) ~ u"
-	];
+AddSEs [Sreg.mk_cases "regular(App(b,f,a))",
+	Sreg.mk_cases "regular(Fun(b))",
+	Sreg.mk_cases "regular(Var(b))",
+	Scomp.mk_cases "Fun(u) ~ Fun(t)",
+	Scomp.mk_cases "u ~ Fun(t)",
+	Scomp.mk_cases "u ~ Var(n)",
+	Scomp.mk_cases "u ~ App(b,t,a)",
+	Scomp.mk_cases "Fun(t) ~ v",
+	Scomp.mk_cases "App(b,f,a) ~ v",
+	Scomp.mk_cases "Var(n) ~ u"];
 
 
 

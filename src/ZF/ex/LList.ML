@@ -6,8 +6,9 @@
 Codatatype definition of Lazy Lists
 *)
 
-open LList;
-
+(*These commands cause classical reasoning to regard the subset relation
+  as primitive, not reducing it to membership*)
+  
 Delrules [subsetI, subsetCE];
 AddSIs [subset_refl, cons_subsetI, subset_consI, 
 	Union_least, UN_least, Un_least, 
@@ -15,7 +16,7 @@ AddSIs [subset_refl, cons_subsetI, subset_consI,
 	Un_upper1, Un_upper2, Int_lower1, Int_lower2];
 
 (*An elimination rule, for type-checking*)
-val LConsE = llist.mk_cases llist.con_defs "LCons(a,l) : llist(A)";
+val LConsE = llist.mk_cases "LCons(a,l) : llist(A)";
 
 (*Proving freeness results*)
 val LCons_iff      = llist.mk_free "LCons(a,l)=LCons(a',l') <-> a=a' & l=l'";

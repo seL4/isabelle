@@ -34,13 +34,13 @@ sig
     term list -> thm list -> thm list -> theory -> theory *
       {defs:thm list, elims:thm list, raw_induct:thm, induct:thm,
        intrs:thm list,
-       mk_cases:thm list -> string -> thm, mono:thm,
+       mk_cases:string -> thm, mono:thm,
        unfold:thm}
   val add_inductive : bool -> bool -> string list -> string list
     -> xstring list -> xstring list -> theory -> theory *
       {defs:thm list, elims:thm list, raw_induct:thm, induct:thm,
        intrs:thm list,
-       mk_cases:thm list -> string -> thm, mono:thm,
+       mk_cases:string -> thm, mono:thm,
        unfold:thm}
 end;
 
@@ -289,21 +289,21 @@ fun prove_elims cs cTs params intr_ts unfold rec_sets_defs thy =
   the given defs.  Cannot simply use the local con_defs because con_defs=[] 
   for inference systems.
  *)
-fun con_elim_tac simps =
+fun con_elim_tac ss =
   let val elim_tac = REPEAT o (eresolve_tac elim_rls)
   in ALLGOALS(EVERY'[elim_tac,
-                 asm_full_simp_tac (simpset_of NatDef.thy addsimps simps),
-                 elim_tac,
-                 REPEAT o bound_hyp_subst_tac])
+		     asm_full_simp_tac ss,
+		     elim_tac,
+		     REPEAT o bound_hyp_subst_tac])
      THEN prune_params_tac
   end;
 
 (*String s should have the form t:Si where Si is an inductive set*)
-fun mk_cases elims simps s =
-  let val prem = assume (read_cterm (sign_of_thm (hd elims)) (s, propT));
-      val elims' = map (try (fn r =>
-        rule_by_tactic (con_elim_tac simps) (prem RS r) |> standard)) elims
-  in case find_first is_some elims' of
+fun mk_cases elims s =
+  let val prem = assume (read_cterm (sign_of_thm (hd elims)) (s, propT))
+      fun mk_elim rl = rule_by_tactic (con_elim_tac (simpset())) (prem RS rl) 
+	               |> standard
+  in case find_first is_some (map (try mk_elim) elims) of
        Some (Some r) => r
      | None => error ("mk_cases: string '" ^ s ^ "' not of form 't : S_i'")
   end;

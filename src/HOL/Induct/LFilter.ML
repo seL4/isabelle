@@ -9,8 +9,7 @@ The "filter" functional for coinductive lists
 
 (*** findRel: basic laws ****)
 
-val findRel_LConsE = 
-    findRel.mk_cases [LCons_LCons_eq] "(LCons x l, l'') : findRel p";
+val findRel_LConsE = findRel.mk_cases "(LCons x l, l'') : findRel p";
 
 AddSEs [findRel_LConsE];
 

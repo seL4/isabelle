@@ -19,7 +19,7 @@ type inductive_result =
     dom_subset : thm,                  (*inclusion of recursive set in dom*)
     intrs      : thm list,             (*introduction rules*)
     elim       : thm,                  (*case analysis theorem*)
-    mk_cases   : thm list -> string -> thm,    (*generates case theorems*)
+    mk_cases   : string -> thm,        (*generates case theorems*)
     induct     : thm,                  (*main induction rule*)
     mutual_induct : thm};              (*mutual induction rule*)
 
@@ -270,10 +270,10 @@ fun add_inductive_i verbose (rec_tms, dom_sum, intr_tms,
       the given defs.  Cannot simply use the local con_defs because  
       con_defs=[] for inference systems. 
     String s should have the form t:Si where Si is an inductive set*)
-  fun mk_cases defs s = 
-      rule_by_tactic (rewrite_goals_tac defs THEN 
-		      basic_elim_tac THEN
-		      fold_tac defs)
+  fun mk_cases s = 
+      rule_by_tactic (basic_elim_tac THEN
+		      ALLGOALS Asm_full_simp_tac THEN 
+		      basic_elim_tac)
 	 (assume_read (theory_of_thm elim) s
 	              (*Don't use thy1: it will be stale*)
 	  RS  elim)

@@ -9,7 +9,7 @@ Datatype definition of Lists
 (*** Aspects of the datatype definition ***)
 
 (*An elimination rule, for type-checking*)
-val ConsE = list.mk_cases list.con_defs "Cons(a,l) : list(A)";
+val ConsE = list.mk_cases "Cons(a,l) : list(A)";
 
 (*Proving freeness results*)
 val Cons_iff     = list.mk_free "Cons(a,l)=Cons(a',l') <-> a=a' & l=l'";

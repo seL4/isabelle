@@ -12,8 +12,7 @@ confluence of beta+eta
 Addsimps eta.intrs;
 AddIs eta.intrs;
 
-val eta_cases = map (eta.mk_cases dB.simps)
-    ["Abs s -e> z","s $ t -e> u","Var i -e> t"];
+val eta_cases = map eta.mk_cases ["Abs s -e> z", "s $ t -e> u", "Var i -e> t"];
 AddSEs eta_cases;
 
 section "eta, subst and free";

@@ -6,8 +6,6 @@
 Inductive definition of an operator to "map" a relation over a list
 *)
 
-open Rmap;
-
 Goalw rmap.defs "r<=s ==> rmap(r) <= rmap(s)";
 by (rtac lfp_mono 1);
 by (REPEAT (rtac rmap.bnd_mono 1));
@@ -15,8 +13,8 @@ by (REPEAT (ares_tac ([Sigma_mono, list_mono, domain_mono, range_mono] @
                       basic_monos) 1));
 qed "rmap_mono";
 
-val Nil_rmap_case = rmap.mk_cases list.con_defs "<Nil,zs> : rmap(r)"
-and Cons_rmap_case = rmap.mk_cases list.con_defs "<Cons(x,xs),zs> : rmap(r)";
+val Nil_rmap_case  = rmap.mk_cases "<Nil,zs> : rmap(r)"
+and Cons_rmap_case = rmap.mk_cases "<Cons(x,xs),zs> : rmap(r)";
 
 AddIs  rmap.intrs;
 AddSEs [Nil_rmap_case, Cons_rmap_case];
@@ -43,16 +41,16 @@ qed "rmap_functional";
 (** If f is a function then rmap(f) behaves as expected. **)
 
 Goal "f: A->B ==> rmap(f): list(A)->list(B)";
-by (asm_full_simp_tac 
-    (simpset() addsimps [Pi_iff, rmap_rel_type, rmap_functional, rmap_total]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Pi_iff, rmap_rel_type,
+					   rmap_functional, rmap_total]) 1);
 qed "rmap_fun_type";
 
 Goalw [apply_def] "rmap(f)`Nil = Nil";
 by (Blast_tac 1);
 qed "rmap_Nil";
 
-Goal "[| f: A->B;  x: A;  xs: list(A) |] ==> \
-\                   rmap(f) ` Cons(x,xs) = Cons(f`x, rmap(f)`xs)";
+Goal "[| f: A->B;  x: A;  xs: list(A) |]  \
+\     ==> rmap(f) ` Cons(x,xs) = Cons(f`x, rmap(f)`xs)";
 by (rtac apply_equality 1);
 by (REPEAT (ares_tac ([apply_Pair, rmap_fun_type] @ rmap.intrs) 1));
 qed "rmap_Cons";

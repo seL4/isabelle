@@ -43,48 +43,27 @@ qed "IT_implies_termi";
 
 (*** Every terminating term is in IT ***)
 
-val IT_cases = map (IT.mk_cases
- ([Var_apps_eq_Var_apps_conv, Abs_eq_apps_conv, apps_eq_Abs_conv,
-   Abs_apps_eq_Abs_apps_conv,
-   Var_apps_neq_Abs_apps, Var_apps_neq_Abs_apps RS not_sym,
-   hd(tl(get_thms List.thy "foldl.simps")) RS sym ]
-  @ dB.simps @ list.simps))
-    ["Var n $$ ss : IT", "Abs t : IT", "Abs r $ s $$ ts : IT"];
+Addsimps [Var_apps_neq_Abs_apps RS not_sym];
+
+Goal "Var n $$ ss ~= Abs r $ s $$ ts";
+by (simp_tac (simpset() addsimps [foldl_Cons RS sym] 
+	                delsimps [foldl_Cons]) 1);
+qed "Var_apps_neq_Abs_app_apps";
+Addsimps [Var_apps_neq_Abs_app_apps,
+	  Var_apps_neq_Abs_app_apps RS not_sym];
+
+
+Goal "(Abs r $ s $$ ss = Abs r' $ s' $$ ss') = (r=r' & s=s' & ss=ss')";
+by (simp_tac (simpset() addsimps [foldl_Cons RS sym] 
+	                delsimps [foldl_Cons]) 1);
+qed "Abs_apps_eq_Abs_app_apps";
+Addsimps [Abs_apps_eq_Abs_app_apps];
+
+val IT_cases = 
+    map IT.mk_cases
+        ["Var n $$ ss : IT", "Abs t : IT", "Abs r $ s $$ ts : IT"];
 AddSEs IT_cases;
 
-(* Turned out to be redundant:
-Goal "t : termi beta ==> \
-\     !r rs. t = r$$rs --> r : termi beta & rs : termi(step1 beta)";
-by (etac acc_induct 1);
-by (force_tac (claset()
-     addIs [apps_preserves_beta,apps_preserves_betas,accI],simpset()) 1);
-val lemma = result();
-
-Goal "r$$rs : termi beta ==> r : termi beta & rs : termi(step1 beta)";
-by (dtac lemma 1);
-by (Blast_tac 1);
-qed "apps_in_termi_betaD";
-
-Goal "t : termi beta ==> !r. t = Abs r --> r : termi beta";
-by (etac acc_induct 1);
-by (force_tac (claset() addIs [accI],simpset()) 1);
-val lemma = result();
-
-Goal "Abs r : termi beta ==> r : termi beta";
-by (dtac lemma 1);
-by (Blast_tac 1);
-qed "Abs_in_termi_betaD";
-
-Goal "t : termi beta ==> !r s. t = r$s --> r : termi beta & s : termi beta";
-by (etac acc_induct 1);
-by (force_tac (claset() addIs [accI],simpset()) 1);
-val lemma = result();
-
-Goal "r$s : termi beta ==> r : termi beta & s : termi beta";
-by (dtac lemma 1);
-by (Blast_tac 1);
-qed "App_in_termi_betaD";
-*)
 
 Goal "r : termi beta ==> r : IT";
 by (etac acc_induct 1);

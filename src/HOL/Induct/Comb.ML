@@ -45,9 +45,9 @@ qed "diamond_rtrancl";
 (*** Results about Contraction ***)
 
 (*Derive a case for each combinator constructor*)
-val K_contractE = contract.mk_cases comb.simps "K -1-> z";
-val S_contractE = contract.mk_cases comb.simps "S -1-> z";
-val Ap_contractE = contract.mk_cases comb.simps "x#y -1-> z";
+val K_contractE  = contract.mk_cases "K -1-> z";
+val S_contractE  = contract.mk_cases "S -1-> z";
+val Ap_contractE = contract.mk_cases "x#y -1-> z";
 
 AddSIs [contract.K, contract.S];
 AddIs  [contract.Ap1, contract.Ap2];
@@ -96,9 +96,9 @@ qed "not_diamond_contract";
 (*** Results about Parallel Contraction ***)
 
 (*Derive a case for each combinator constructor*)
-val K_parcontractE = parcontract.mk_cases comb.simps "K =1=> z";
-val S_parcontractE = parcontract.mk_cases comb.simps "S =1=> z";
-val Ap_parcontractE = parcontract.mk_cases comb.simps "x#y =1=> z";
+val K_parcontractE  = parcontract.mk_cases "K =1=> z";
+val S_parcontractE  = parcontract.mk_cases "S =1=> z";
+val Ap_parcontractE = parcontract.mk_cases "x#y =1=> z";
 
 AddSIs [parcontract.refl, parcontract.K, parcontract.S];
 AddIs  [parcontract.Ap];

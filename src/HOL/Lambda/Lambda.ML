@@ -8,8 +8,7 @@ Substitution-lemmas.
 
 (*** Lambda ***)
 
-val beta_cases = map (beta.mk_cases dB.simps)
-    ["Var i -> t", "Abs r -> s", "s $ t -> u"];
+val beta_cases = map beta.mk_cases ["Var i -> t", "Abs r -> s", "s $ t -> u"];
 AddSEs beta_cases;
 
 Delsimps [subst_Var];

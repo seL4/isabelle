@@ -380,6 +380,7 @@ fun add_datatype_i (dom_sum, rec_tms, con_ty_lists,
         {big_rec_name = big_rec_name,
 	 constructors = constructors,
             (*let primrec handle definition by cases*)
+	 free_iffs = free_iffs,
 	 rec_rewrites = (case recursor_eqns of
 			     [] => case_eqns | _ => recursor_eqns)};
 

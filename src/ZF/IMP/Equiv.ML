@@ -20,12 +20,12 @@ val aexp2 = aexp_iff RS iffD2;
 
 val bexp_elim_cases = 
    [
-    evalb.mk_cases bexp.con_defs "<true,sigma> -b-> x",
-    evalb.mk_cases bexp.con_defs "<false,sigma> -b-> x",
-    evalb.mk_cases bexp.con_defs "<ROp(f,a0,a1),sigma> -b-> x",
-    evalb.mk_cases bexp.con_defs "<noti(b),sigma> -b-> x",
-    evalb.mk_cases bexp.con_defs "<b0 andi b1,sigma> -b-> x",
-    evalb.mk_cases bexp.con_defs "<b0 ori b1,sigma> -b-> x"
+    evalb.mk_cases "<true,sigma> -b-> x",
+    evalb.mk_cases "<false,sigma> -b-> x",
+    evalb.mk_cases "<ROp(f,a0,a1),sigma> -b-> x",
+    evalb.mk_cases "<noti(b),sigma> -b-> x",
+    evalb.mk_cases "<b0 andi b1,sigma> -b-> x",
+    evalb.mk_cases "<b0 ori b1,sigma> -b-> x"
    ];
 
 

@@ -40,7 +40,7 @@ qed "thms_mono";
 
 val thms_in_pl = thms.dom_subset RS subsetD;
 
-val ImpE = prop.mk_cases prop.con_defs "p=>q : prop";
+val ImpE = prop.mk_cases "p=>q : prop";
 
 (*Stronger Modus Ponens rule: no typechecking!*)
 Goal "[| H |- p=>q;  H |- p |] ==> H |- q";
@@ -166,22 +166,14 @@ qed "thms_excluded_middle_rule";
   we also have hyps(p,t)-{#v} <= hyps(p, t-{v}) *)
 Goal "p: prop ==> hyps(p, t-{v}) <= cons(#v=>Fls, hyps(p,t)-{#v})";
 by (etac prop.induct 1);
-by (Simp_tac 1);
-by (Asm_simp_tac 1);
-by (fast_tac (claset() addSEs prop.free_SEs) 1);
-by (Asm_simp_tac 1);
-by (Fast_tac 1);
+by Auto_tac;
 qed "hyps_Diff";
 
 (*For the case hyps(p,t)-cons(#v => Fls,Y) |- p;
   we also have hyps(p,t)-{#v=>Fls} <= hyps(p, cons(v,t)) *)
 Goal "p: prop ==> hyps(p, cons(v,t)) <= cons(#v, hyps(p,t)-{#v=>Fls})";
 by (etac prop.induct 1);
-by (Simp_tac 1);
-by (Asm_simp_tac 1);
-by (fast_tac (claset() addSEs prop.free_SEs) 1);
-by (Asm_simp_tac 1);
-by (Fast_tac 1);
+by Auto_tac;
 qed "hyps_cons";
 
 (** Two lemmas for use with weaken_left **)

@@ -2657,7 +2657,7 @@ names given them in the theory file.
 \item[\tt elim] is the head of the list \texttt{elims}.
   
 \item[\tt mk_cases] is a function to create simplified instances of {\tt
-elim}, using freeness reasoning on some underlying datatype.
+elim} using freeness reasoning on underlying datatypes.
 \end{description}
 
 For an inductive definition, the result structure contains the
@@ -2676,7 +2676,7 @@ val unfold       : thm
 val intrs        : thm list
 val elims        : thm list
 val elim         : thm
-val mk_cases     : thm list -> string -> thm
+val mk_cases     : string -> thm
 {\it(Inductive definitions only)} 
 val induct       : thm
 {\it(coinductive definitions only)}

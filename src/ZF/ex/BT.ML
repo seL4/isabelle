@@ -10,14 +10,14 @@ Addsimps bt.intrs;
 
 Goal "l : bt(A) ==> ALL x r. Br(x,l,r) ~= l";
 by (induct_tac "l" 1);
-by (ALLGOALS (asm_full_simp_tac (simpset() addsimps bt.free_iffs)));
+by (ALLGOALS Asm_full_simp_tac);
 qed_spec_mp "Br_neq_left";
 
 (*Proving a freeness theorem*)
 val Br_iff = bt.mk_free "Br(a,l,r) = Br(a',l',r') <-> a=a' & l=l' & r=r'";
 
 (*An elimination rule, for type-checking*)
-val BrE = bt.mk_cases bt.con_defs "Br(a,l,r) : bt(A)";
+val BrE = bt.mk_cases "Br(a,l,r) : bt(A)";
 
 (**  Lemmas to justify using "bt" in other recursive type definitions **)
 

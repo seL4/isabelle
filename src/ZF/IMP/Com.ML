@@ -4,8 +4,6 @@
     Copyright   1994 TUM
 *)
 
-open Com;
-
 val type_cs = claset() addSDs [evala.dom_subset RS subsetD,
 			      evalb.dom_subset RS subsetD,
 			      evalc.dom_subset RS subsetD];
@@ -42,8 +40,8 @@ val op_type_intrs = evala_type_intrs@evalb_type_intrs@evalc_type_intrs;
 
 val aexp_elim_cases = 
    [
-    evala.mk_cases aexp.con_defs "<N(n),sigma> -a-> i",
-    evala.mk_cases aexp.con_defs "<X(x),sigma> -a-> i",
-    evala.mk_cases aexp.con_defs "<Op1(f,e),sigma> -a-> i",
-    evala.mk_cases aexp.con_defs "<Op2(f,a1,a2),sigma>  -a-> i"
+    evala.mk_cases "<N(n),sigma> -a-> i",
+    evala.mk_cases "<X(x),sigma> -a-> i",
+    evala.mk_cases "<Op1(f,e),sigma> -a-> i",
+    evala.mk_cases "<Op2(f,a1,a2),sigma>  -a-> i"
    ];

@@ -5,9 +5,6 @@
     Logic Image: ZF
 *)
 
-open Reduction;
-
-
 (* ------------------------------------------------------------------------- *)
 (*     Setting up rulelists for reduction                                    *)
 (* ------------------------------------------------------------------------- *)
@@ -25,7 +22,7 @@ val par_redD2  = Spar_red.dom_subset RS subsetD RS SigmaD2;
 AddIs (Sred1.intrs@[Sred.one_step, Sred.refl]@Spar_red1.intrs@
        [Spar_red.one_step, lambda.dom_subset RS subsetD,
 	unmark_type]@lambda.intrs@bool_typechecks);
-AddSEs [Spar_red1.mk_cases redexes.con_defs "Fun(t) =1=> Fun(u)"];
+AddSEs [Spar_red1.mk_cases "Fun(t) =1=> Fun(u)"];
 
 Addsimps (Sred1.intrs@[Sred.one_step, Sred.refl]@Spar_red1.intrs@
 	  [Spar_red.one_step, substL_type, redD1, redD2, par_redD1, 

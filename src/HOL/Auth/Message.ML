@@ -576,16 +576,12 @@ Addsimps [analz_UN_analz];
 
 AddIs  synth.intrs;
 
-(*Can only produce a nonce or key if it is already known,
-  but can synth a pair or encryption from its components...*)
-val mk_cases = synth.mk_cases (atomic.simps @ msg.simps);
-
 (*NO Agent_synth, as any Agent name can be synthesized.  Ditto for Number*)
-val Nonce_synth = mk_cases "Nonce n : synth H";
-val Key_synth   = mk_cases "Key K : synth H";
-val Hash_synth  = mk_cases "Hash X : synth H";
-val MPair_synth = mk_cases "{|X,Y|} : synth H";
-val Crypt_synth = mk_cases "Crypt K X : synth H";
+val Nonce_synth = synth.mk_cases "Nonce n : synth H";
+val Key_synth   = synth.mk_cases "Key K : synth H";
+val Hash_synth  = synth.mk_cases "Hash X : synth H";
+val MPair_synth = synth.mk_cases "{|X,Y|} : synth H";
+val Crypt_synth = synth.mk_cases "Crypt K X : synth H";
 
 AddSEs [Nonce_synth, Key_synth, Hash_synth, MPair_synth, Crypt_synth];
 

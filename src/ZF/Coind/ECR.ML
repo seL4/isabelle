@@ -24,11 +24,9 @@ qed "htr_closCI";
 
 (* Specialised elimination rules *)
 
-val htr_constE = 
-  (HasTyRel.mk_cases Val_ValEnv.con_defs "<v_const(c),t>:HasTyRel");
+val htr_constE = HasTyRel.mk_cases "<v_const(c),t>:HasTyRel";
 
-val htr_closE =
-  (HasTyRel.mk_cases Val_ValEnv.con_defs "<v_clos(x,e,ve),t>:HasTyRel");
+val htr_closE = HasTyRel.mk_cases "<v_clos(x,e,ve),t>:HasTyRel";
 
 (* Classical reasoning sets *)
 

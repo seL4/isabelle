@@ -8,11 +8,14 @@ open Natural;
 
 AddIs evalc.intrs;
 
-val evalc_elim_cases = map (evalc.mk_cases com.simps)
-   ["<SKIP,s> -c-> t", "<x:=a,s> -c-> t", "<c1;c2, s> -c-> t",
-    "<IF b THEN c1 ELSE c2, s> -c-> t"];
+val evalc_elim_cases = 
+    map evalc.mk_cases
+       ["<SKIP,s> -c-> t", 
+	"<x:=a,s> -c-> t", 
+	"<c1;c2, s> -c-> t",
+	"<IF b THEN c1 ELSE c2, s> -c-> t"];
 
-val evalc_WHILE_case = evalc.mk_cases com.simps "<WHILE b DO c,s> -c-> t";
+val evalc_WHILE_case = evalc.mk_cases "<WHILE b DO c,s> -c-> t";
 
 AddSEs evalc_elim_cases;
 

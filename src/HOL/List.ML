@@ -32,7 +32,7 @@ by (rtac lfp_mono 1);
 by (REPEAT (ares_tac basic_monos 1));
 qed "lists_mono";
 
-val listsE = lists.mk_cases list.simps  "x#l : lists A";
+val listsE = lists.mk_cases "x#l : lists A";
 AddSEs [listsE];
 AddSIs lists.intrs;
 

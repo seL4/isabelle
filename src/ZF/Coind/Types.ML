@@ -4,10 +4,7 @@
     Copyright   1995  University of Cambridge
 *)
 
-open Types;
-
-val te_owrE = 
-  TyEnv.mk_cases TyEnv.con_defs "te_owr(te,f,t):TyEnv";
+val te_owrE = TyEnv.mk_cases "te_owr(te,f,t):TyEnv";
 
 Goal "te_app(te_owr(te,x,t),x) = t";
 by (Simp_tac 1);

@@ -632,9 +632,9 @@ $x$ is $\pair{i,\Nil}$ or $\pair{i,\Cons(a,l)}$ then {\tt listn.mk\_cases}
 deduces the corresponding form of~$i$;  this is called rule inversion.  
 Here is a sample session: 
 \begin{ttbox}
-listn.mk_cases list.con_defs "<i,Nil> : listn(A)";
+listn.mk_cases "<i,Nil> : listn(A)";
 {\out "[| <?i, []> : listn(?A); ?i = 0 ==> ?Q |] ==> ?Q" : thm}
-listn.mk_cases list.con_defs "<i,Cons(a,l)> : listn(A)";
+listn.mk_cases "<i,Cons(a,l)> : listn(A)";
 {\out "[| <?i, Cons(?a, ?l)> : listn(?A);}
 {\out     !!n. [| ?a : ?A; <n, ?l> : listn(?A); ?i = succ(n) |] ==> ?Q }
 {\out  |] ==> ?Q" : thm}

@@ -18,10 +18,8 @@ struct
 
 exception RecError of string;
 
-(* FIXME: move? *)
-
-fun dest_eq (Const ("Trueprop", _) $ (Const ("op =", _) $ lhs $ rhs)) = (lhs, rhs)
-  | dest_eq t = raise TERM ("dest_eq", [t])
+(*Remove outer Trueprop and equality sign*)
+val dest_eqn = FOLogic.dest_eq o FOLogic.dest_Trueprop;
 
 fun primrec_err s = error ("Primrec definition error:\n" ^ s);
 
@@ -33,9 +31,10 @@ fun primrec_eq_err sign s eq =
 (*rec_fn_opt records equations already noted for this function*)
 fun process_eqn thy (eq, rec_fn_opt) = 
   let
-    val (lhs, rhs) = if null (term_vars eq) then
-        dest_eq eq handle _ => raise RecError "not a proper equation"
-      else raise RecError "illegal schematic variable(s)";
+    val (lhs, rhs) = 
+	if null (term_vars eq) then
+	    dest_eqn eq handle _ => raise RecError "not a proper equation"
+	else raise RecError "illegal schematic variable(s)";
 
     val (recfun, args) = strip_comb lhs;
     val (fname, ftype) = dest_Const recfun handle _ => 
@@ -104,7 +103,7 @@ fun process_fun thy (fname, ftype, ls, rs, con_info: constructor_info, eqns) =
       | use_fabs t       = t
 
     val cnames         = map (#1 o dest_Const) constructors
-    and recursor_pairs = map (dest_eq o concl_of) rec_rewrites
+    and recursor_pairs = map (dest_eqn o concl_of) rec_rewrites
 
     fun absterm (Free(a,T), body) = absfree (a,T,body)
       | absterm (t,body)          = Abs("rec", iT, abstract_over (t, body))

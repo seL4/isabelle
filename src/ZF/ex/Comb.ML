@@ -15,8 +15,6 @@ HOL system proofs may be found in
 /usr/groups/theory/hvg-aftp/contrib/rule-induction/cl.ml
 *)
 
-open Comb;
-
 (*** Transitive closure preserves the Church-Rosser property ***)
 
 Goalw [diamond_def]
@@ -39,7 +37,7 @@ qed "diamond_trancl";
 
 
 val [_,_,comb_Ap] = comb.intrs;
-val Ap_E = comb.mk_cases comb.con_defs "p#q : comb";
+val Ap_E = comb.mk_cases "p#q : comb";
 
 AddSIs comb.intrs;
 AddSEs comb.free_SEs;
@@ -81,9 +79,9 @@ qed "comb_I";
 (** Non-contraction results **)
 
 (*Derive a case for each combinator constructor*)
-val K_contractE = contract.mk_cases comb.con_defs "K -1-> r";
-val S_contractE = contract.mk_cases comb.con_defs "S -1-> r";
-val Ap_contractE = contract.mk_cases comb.con_defs "p#q -1-> r";
+val K_contractE = contract.mk_cases "K -1-> r";
+val S_contractE = contract.mk_cases "S -1-> r";
+val Ap_contractE = contract.mk_cases "p#q -1-> r";
 
 AddIs  [contract.Ap1, contract.Ap2];
 AddSEs [K_contractE, S_contractE, Ap_contractE];
@@ -148,9 +146,9 @@ by (blast_tac (claset() addIs [parcontract.K]
 qed "field_parcontract_eq";
 
 (*Derive a case for each combinator constructor*)
-val K_parcontractE = parcontract.mk_cases comb.con_defs "K =1=> r";
-val S_parcontractE = parcontract.mk_cases comb.con_defs "S =1=> r";
-val Ap_parcontractE = parcontract.mk_cases comb.con_defs "p#q =1=> r";
+val K_parcontractE = parcontract.mk_cases "K =1=> r";
+val S_parcontractE = parcontract.mk_cases "S =1=> r";
+val Ap_parcontractE = parcontract.mk_cases "p#q =1=> r";
 
 AddIs  parcontract.intrs;
 AddSEs [Ap_E, K_parcontractE, S_parcontractE, Ap_parcontractE];

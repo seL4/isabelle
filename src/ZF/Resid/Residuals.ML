@@ -10,8 +10,7 @@
 (* ------------------------------------------------------------------------- *)
 
 AddIs (Sres.intrs @ redexes.intrs @ Sreg.intrs @ [subst_type]); 
-AddSEs (redexes.free_SEs @
-	(map (Sres.mk_cases redexes.con_defs) 
+AddSEs (map Sres.mk_cases
 	     ["residuals(Var(n),Var(n),v)",
 	      "residuals(Fun(t),Fun(u),v)",
 	      "residuals(App(b, u1, u2), App(0, v1, v2),v)",
@@ -21,19 +20,21 @@ AddSEs (redexes.free_SEs @
 	      "residuals(App(b, u1, u2), w,v)",
 	      "residuals(u,Var(n),v)",
 	      "residuals(u,Fun(t),v)",
-	      "residuals(w,App(b, u1, u2),v)"]) @
-	(map (Ssub.mk_cases redexes.con_defs) 
+	      "residuals(w,App(b, u1, u2),v)"]);
+
+AddSEs (map Ssub.mk_cases
 	     ["Var(n) <== u",
 	      "Fun(n) <== u",
 	      "u <== Fun(n)",
 	      "App(1,Fun(t),a) <== u",
-	      "App(0,t,a) <== u"]) @
-	[redexes.mk_cases redexes.con_defs "Fun(t):redexes"]);
+	      "App(0,t,a) <== u"]);
+
+AddSEs [redexes.mk_cases "Fun(t):redexes"];
 
 Addsimps Sres.intrs;
-val resD1 =Sres.dom_subset RS subsetD RS SigmaD1;
-val resD2 =Sres.dom_subset RS subsetD RS SigmaD2 RS SigmaD1;
-val resD3 =Sres.dom_subset RS subsetD RS SigmaD2 RS SigmaD2;
+val resD1 = Sres.dom_subset RS subsetD RS SigmaD1;
+val resD2 = Sres.dom_subset RS subsetD RS SigmaD2 RS SigmaD1;
+val resD3 = Sres.dom_subset RS subsetD RS SigmaD2 RS SigmaD2;
 
 
 (* ------------------------------------------------------------------------- *)
@@ -42,7 +43,7 @@ val resD3 =Sres.dom_subset RS subsetD RS SigmaD2 RS SigmaD2;
 
 Goal "residuals(u,v,w) ==> ALL w1. residuals(u,v,w1) --> w1 = w";
 by (etac Sres.induct 1);
-by (ALLGOALS Fast_tac);
+by (ALLGOALS Force_tac);
 qed_spec_mp "residuals_function";
 
 Goal "u~v ==> regular(v) --> (EX w. residuals(u,v,w))";
@@ -81,7 +82,8 @@ qed "res_App";
 Goalw [res_func_def]
     "[|s~u; regular(u); t~v; regular(v); b:bool|]==> \
 \           App(b,Fun(s),t) |> App(1,Fun(u),v) = (t |> v)/ (s |> u)";
-by (blast_tac (claset() addSDs [comp_resfuncD]
+by (blast_tac (claset() addSEs redexes.free_SEs
+			addSDs [comp_resfuncD]
 			addIs [residuals_function]) 1);
 qed "res_redex";
 
@@ -97,8 +99,6 @@ qed "resfunc_type";
 Addsimps [res_Var, res_Fun, res_App, res_redex, lift_rec_preserve_comp,
 	  lift_rec_preserve_reg, subst_rec_preserve_comp, resfunc_type,
 	  subst_rec_preserve_reg];
-
-Addsimps redexes.free_iffs;
 
 
 (* ------------------------------------------------------------------------- *)

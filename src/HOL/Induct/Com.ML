@@ -8,11 +8,14 @@ Example of Mutual Induction via Iteratived Inductive Definitions: Commands
 
 AddIs exec.intrs;
 
-val exec_elim_cases = map (exec.mk_cases exp.simps)
-   ["(SKIP,s) -[eval]-> t", "(x:=a,s) -[eval]-> t", "(c1;;c2, s) -[eval]-> t",
-    "(IF e THEN c1 ELSE c2, s) -[eval]-> t"];
+val exec_elim_cases = 
+    map exec.mk_cases
+       ["(SKIP,s) -[eval]-> t",
+	"(x:=a,s) -[eval]-> t", 
+	"(c1;;c2, s) -[eval]-> t",
+	"(IF e THEN c1 ELSE c2, s) -[eval]-> t"];
 
-val exec_WHILE_case = exec.mk_cases exp.simps "(WHILE b DO c,s) -[eval]-> t";
+val exec_WHILE_case = exec.mk_cases "(WHILE b DO c,s) -[eval]-> t";
 
 AddSEs exec_elim_cases;
 

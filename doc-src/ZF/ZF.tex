@@ -1669,7 +1669,7 @@ val con_defs      : thm list  \textrm{definitions of the case operator and const
 val free_iffs     : thm list  \textrm{logical equivalences for proving freeness}
 val free_SEs      : thm list  \textrm{elimination rules for proving freeness}
 val mk_free       : string -> thm  \textrm{A function for proving freeness theorems}
-val mk_cases      : thm list -> string -> thm  \textrm{case analysis, see below}
+val mk_cases      : string -> thm  \textrm{case analysis, see below}
 val defs          : thm list  \textrm{definitions of operators}
 val bnd_mono      : thm list  \textrm{monotonicity property}
 val dom_subset    : thm list  \textrm{inclusion in `bounding set'}
@@ -1746,13 +1746,12 @@ val Br_iff = bt.mk_free "Br(a,l,r)=Br(a',l',r') <-> a=a' & l=l' & r=r'";
 {\out                     ?a = ?a' & ?l = ?l' & ?r = ?r'" : thm}
 \end{ttbox}
 
-The purpose of \ttindex{mk_cases} is to generate simplified instances of the
-elimination (case analysis) rule.  Its theorem list argument is a list of
-constructor definitions, which it uses for freeness reasoning.  For example,
-this instance of the elimination rule propagates type-checking information
-from the premise $\texttt{Br}(a,l,r)\in\texttt{bt}(A)$:
+The purpose of \ttindex{mk_cases} is to generate instances of the elimination
+(case analysis) rule that have been simplified using freeness reasoning.  For
+example, this instance of the elimination rule propagates type-checking
+information from the premise $\texttt{Br}(a,l,r)\in\texttt{bt}(A)$:
 \begin{ttbox}
-val BrE = bt.mk_cases bt.con_defs "Br(a,l,r) : bt(A)";
+val BrE = bt.mk_cases "Br(a,l,r) : bt(A)";
 {\out val BrE =}
 {\out   "[| Br(?a, ?l, ?r) : bt(?A);}
 {\out       [| ?a : ?A; ?l : bt(?A); ?r : bt(?A) |] ==> ?Q |] ==> ?Q" : thm}
@@ -2130,7 +2129,7 @@ having the same name.  The the substructure contains the following elements:
 \begin{ttbox}
 val intrs         : thm list  \textrm{the introduction rules}
 val elim          : thm       \textrm{the elimination (case analysis) rule}
-val mk_cases      : thm list -> string -> thm  \textrm{case analysis, see below}
+val mk_cases      : string -> thm  \textrm{case analysis, see below}
 val induct        : thm       \textrm{the standard induction rule}
 val mutual_induct : thm       \textrm{the mutual induction rule, or \texttt{True}}
 val defs          : thm list  \textrm{definitions of operators}
@@ -2160,7 +2159,7 @@ The theory goes on to define contraction and parallel contraction
 inductively.  Then the file \texttt{ex/Comb.ML} defines special cases of
 contraction using \texttt{mk_cases}:
 \begin{ttbox}
-val K_contractE = contract.mk_cases comb.con_defs "K -1-> r";
+val K_contractE = contract.mk_cases "K -1-> r";
 {\out val K_contractE = "K -1-> ?r ==> ?Q" : thm}
 \end{ttbox}
 We can read this as saying that the combinator \texttt{K} cannot reduce to

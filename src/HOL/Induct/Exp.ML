@@ -9,11 +9,12 @@ Example of Mutual Induction via Iteratived Inductive Definitions: Expressions
 AddSIs [eval.N, eval.X];
 AddIs  [eval.Op, eval.valOf];
 
-val eval_elim_cases = map (eval.mk_cases exp.simps)
-   ["(N(n),sigma) -|-> (n',s')", "(X(x),sigma) -|-> (n,s')",
-    "(Op f a1 a2,sigma)  -|-> (n,s')",
-    "(VALOF c RESULTIS e, s) -|-> (n, s1)"
-   ];
+val eval_elim_cases = 
+    map eval.mk_cases 
+       ["(N(n),sigma) -|-> (n',s')", 
+	"(X(x),sigma) -|-> (n,s')",
+	"(Op f a1 a2,sigma)  -|-> (n,s')",
+	"(VALOF c RESULTIS e, s) -|-> (n, s1)"];
 
 AddSEs eval_elim_cases;
 

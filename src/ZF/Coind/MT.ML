@@ -55,7 +55,7 @@ by (dtac (ElabRel.dom_subset RS subsetD) 1);
 by (eres_inst_tac [("Q","te_owr(te,f,t_fun(t1,t2)):TyEnv")] 
     (SigmaD1 RS te_owrE) 1);
 by (assume_tac 1);
-by (rtac ElabRel.elab_fnI 1);
+by (rtac ElabRel.fnI 1);
 by clean_tac;
 by (Asm_simp_tac 1);
 by (stac ve_dom_owr 1);
@@ -78,8 +78,7 @@ by Auto_tac;
 qed "consistency_fix";
 
 
-Goal
-   "[| ve:ValEnv; e1:Exp; e2:Exp; c1:Const; c2:Const;   \
+Goal "[| ve:ValEnv; e1:Exp; e2:Exp; c1:Const; c2:Const;   \
 \     <ve,e1,v_const(c1)>:EvalRel;                      \
 \     ALL t te.                                         \
 \       hastyenv(ve,te) --> <te,e1,t>:ElabRel --> <v_const(c1),t>:HasTyRel; \
@@ -93,25 +92,24 @@ by (etac elab_appE 1);
 by (fast_tac ((mk_htr_cs ZF_cs) addSIs [c_appI] addIs [isof_app]) 1);
 qed "consistency_app1";
 
-Goal
-   "[| ve:ValEnv; vem:ValEnv; e1:Exp; e2:Exp; em:Exp; xm:ExVar; v:Val;  \
-\      <ve,e1,v_clos(xm,em,vem)>:EvalRel;       \
-\      ALL t te.                                \
-\        hastyenv(ve,te) -->                    \
-\        <te,e1,t>:ElabRel -->                  \
-\        <v_clos(xm,em,vem),t>:HasTyRel;        \
-\      <ve,e2,v2>:EvalRel;                      \
-\      ALL t te.                                \
-\        hastyenv(ve,te) -->                    \
-\        <te,e2,t>:ElabRel -->                  \
-\        <v2,t>:HasTyRel;                       \
-\      <ve_owr(vem,xm,v2),em,v>:EvalRel;        \
-\      ALL t te.                                \
-\        hastyenv(ve_owr(vem,xm,v2),te) -->     \
-\        <te,em,t>:ElabRel -->                  \
-\        <v,t>:HasTyRel;                        \
-\      hastyenv(ve,te); <te,e_app(e1,e2),t>:ElabRel |] ==>      \
-\   <v,t>:HasTyRel ";
+Goal "[| ve:ValEnv; vem:ValEnv; e1:Exp; e2:Exp; em:Exp; xm:ExVar; v:Val;  \
+\        <ve,e1,v_clos(xm,em,vem)>:EvalRel;       \
+\        ALL t te.                                \
+\          hastyenv(ve,te) -->                    \
+\          <te,e1,t>:ElabRel -->                  \
+\          <v_clos(xm,em,vem),t>:HasTyRel;        \
+\        <ve,e2,v2>:EvalRel;                      \
+\        ALL t te.                                \
+\          hastyenv(ve,te) -->                    \
+\          <te,e2,t>:ElabRel -->                  \
+\          <v2,t>:HasTyRel;                       \
+\        <ve_owr(vem,xm,v2),em,v>:EvalRel;        \
+\        ALL t te.                                \
+\          hastyenv(ve_owr(vem,xm,v2),te) -->     \
+\          <te,em,t>:ElabRel -->                  \
+\          <v,t>:HasTyRel;                        \
+\        hastyenv(ve,te); <te,e_app(e1,e2),t>:ElabRel |] ==>      \
+\     <v,t>:HasTyRel ";
 by (etac elab_appE 1);
 by (dtac (spec RS spec RS mp RS mp) 1);
 by (assume_tac 1);
@@ -121,8 +119,8 @@ by (assume_tac 1);
 by (assume_tac 1);
 by (etac htr_closE 1);
 by (etac elab_fnE 1);
-by (rewrite_tac Ty.con_defs);
-by Safe_tac;
+by (Full_simp_tac 1);
+by (Clarify_tac 1);
 by (dtac (spec RS spec RS mp RS mp) 1);
 by (assume_tac 3);
 by (assume_tac 2);
@@ -130,33 +128,24 @@ by (rtac hastyenv_owr 1);
 by (assume_tac 1);
 by (assume_tac 1);
 by (assume_tac 2);
-by (simp_tac (simpset() addsimps [hastyenv_def]) 1);
+by (asm_simp_tac (simpset() addsimps [hastyenv_def]) 1);
 by (Fast_tac 1);
 qed "consistency_app2";
-
-fun mt_cases_tac t = ((rtac t 1) THEN (TRYALL assume_tac)); 
 
 Goal "<ve,e,v>:EvalRel ==>         \
 \       (ALL t te. hastyenv(ve,te) --> <te,e,t>:ElabRel --> <v,t>:HasTyRel)";
 by (etac EvalRel.induct 1);
-by (safe_tac ZF_cs);
-by (mt_cases_tac consistency_const);
-by (mt_cases_tac consistency_var);
-by (mt_cases_tac consistency_fn);
-by (mt_cases_tac consistency_fix);
-by (mt_cases_tac consistency_app1);
-by (mt_cases_tac consistency_app2);
+by (blast_tac (claset() addIs [consistency_app2]) 6);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [consistency_const, consistency_var, consistency_fn, consistency_fix, consistency_app1])));
 qed "consistency";
 
 
-Goal
-  "[| ve:ValEnv; te:TyEnv;              \
-\     isofenv(ve,te);                   \
-\     <ve,e,v_const(c)>:EvalRel;        \
-\     <te,e,t>:ElabRel                  \
-\  |] ==>                               \
-\  isof(c,t)";
-by (rtac (htr_constE) 1);
+Goal "[| ve:ValEnv; te:TyEnv;              \
+\        isofenv(ve,te);                   \
+\        <ve,e,v_const(c)>:EvalRel;        \
+\        <te,e,t>:ElabRel                  \
+\     |] ==> isof(c,t)";
+by (rtac htr_constE 1);
 by (dtac consistency 1);
 by (fast_tac (claset() addSIs [basic_consistency_lem]) 1);
 by (assume_tac 1);

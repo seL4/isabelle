@@ -8,9 +8,7 @@ Example of a BIG enumeration type
 Can go up to at least 100 constructors, but it takes nearly 7 minutes...
 *)
 
-open Enum;
-
 Goal "C00 ~= C01";
-by (simp_tac (simpset() addsimps enum.free_iffs) 1);
+by (Simp_tac 1);
 result();
 

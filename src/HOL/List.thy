@@ -114,8 +114,8 @@ primrec
   "filter P [] = []"
   "filter P (x#xs) = (if P x then x#filter P xs else filter P xs)"
 primrec
-  "foldl f a [] = a"
-  "foldl f a (x#xs) = foldl f (f a x) xs"
+  foldl_Nil  "foldl f a [] = a"
+  foldl_Cons "foldl f a (x#xs) = foldl f (f a x) xs"
 primrec
   "concat([]) = []"
   "concat(x#xs) = x @ concat(xs)"

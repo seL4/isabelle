@@ -53,6 +53,7 @@ structure DatatypesData = TheoryDataFun(DatatypesArgs);
 type constructor_info =
   {big_rec_name : string,     (*name of the mutually recursive set*)
    constructors : term list,  (*the constructors, as Consts*)
+   free_iffs    : thm list,   (*freeness simprules*)
    rec_rewrites : thm list};  (*recursor equations*)
 
 
@@ -161,6 +162,9 @@ fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
 	  {big_rec_name = big_rec_name,
 	   constructors = constructors,
 	      (*let primrec handle definition by cases*)
+	   free_iffs = [],  (*thus we expect the necessary freeness rewrites
+			      to be in the simpset already, as is the case for
+			      Nat and disjoint sum*)
 	   rec_rewrites = (case recursor_eqns of
 			       [] => case_eqns | _ => recursor_eqns)};
 

@@ -10,11 +10,14 @@ section "Winskel's Proof";
 
 AddSEs [rel_pow_0_E];
 
-val evalc1_SEs = map (evalc1.mk_cases com.simps)
-   ["(SKIP,s) -1-> t", "(x:=a,s) -1-> t","(c1;c2, s) -1-> t", 
-    "(IF b THEN c1 ELSE c2, s) -1-> t"];
-val evalc1_Es = map (evalc1.mk_cases com.simps)
-   ["(WHILE b DO c,s) -1-> t"];
+val evalc1_SEs = 
+    map evalc1.mk_cases
+       ["(SKIP,s) -1-> t", 
+	"(x:=a,s) -1-> t",
+	"(c1;c2, s) -1-> t", 
+	"(IF b THEN c1 ELSE c2, s) -1-> t"];
+
+val evalc1_E = evalc1.mk_cases "(WHILE b DO c,s) -1-> t";
 
 AddSEs evalc1_SEs;
 
@@ -95,7 +98,7 @@ by (res_inst_tac [("n","n")] less_induct 1);
 by (strip_tac 1);
 by (etac rel_pow_E2 1);
  by (Asm_full_simp_tac 1);
-by (eresolve_tac evalc1_Es 1);
+by (etac evalc1_E 1);
 
 (* WhileFalse *)
  by (fast_tac (claset() addSDs [hlemma]) 1);

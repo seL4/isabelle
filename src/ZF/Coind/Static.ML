@@ -4,27 +4,22 @@
     Copyright   1995  University of Cambridge
 *)
 
-open BCR Static;
+val elab_constE	= ElabRel.mk_cases "<te,e_const(c),t>:ElabRel";
 
-val elab_constE = 
-  ElabRel.mk_cases Exp.con_defs "<te,e_const(c),t>:ElabRel";
+val elab_varE 	= ElabRel.mk_cases "<te,e_var(x),t>:ElabRel";
 
-val elab_varE =
-  ElabRel.mk_cases Exp.con_defs "<te,e_var(x),t>:ElabRel";
+val elab_fnE 	= ElabRel.mk_cases "<te,e_fn(x,e),t>:ElabRel";
 
-val elab_fnE =
-  ElabRel.mk_cases Exp.con_defs "<te,e_fn(x,e),t>:ElabRel";
+val elab_fixE 	= ElabRel.mk_cases "<te,e_fix(f,x,e),t>:ElabRel";
 
-val elab_fixE =
-  ElabRel.mk_cases Exp.con_defs "<te,e_fix(f,x,e),t>:ElabRel";
+val elab_appE 	= ElabRel.mk_cases "<te,e_app(e1,e2),t>:ElabRel";
 
-val elab_appE = 
-  ElabRel.mk_cases Exp.con_defs "<te,e_app(e1,e2),t>:ElabRel";
+AddSEs [elab_constE, elab_varE, elab_fixE];
 
-let open ElabRel in 
-claset_ref() := claset() addSIs [elab_constI,elab_varI,elab_fnI,elab_fixI]
-                  addSEs [elab_constE,elab_varE,elab_fixE]
-		  addIs [elab_appI]
-		  addEs [elab_appE,elab_fnE]
-		  addDs [ElabRel.dom_subset RS subsetD]
-end;
+AddSIs [ElabRel.constI, ElabRel.varI, ElabRel.fnI, ElabRel.fixI];
+
+AddIs  [ElabRel.appI];
+
+AddEs [elab_appE, elab_fnE];
+
+AddDs [ElabRel.dom_subset RS subsetD];

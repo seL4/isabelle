@@ -10,10 +10,8 @@ See discussion in
   Report 334,  Cambridge University Computer Laboratory.  1994.
 *)
 
-open CoUnit;
-  
 (*USELESS because folding on Con(?xa) == ?xa fails*)
-val ConE = counit.mk_cases counit.con_defs "Con(x) : counit";
+val ConE = counit.mk_cases "Con(x) : counit";
 
 (*Proving freeness results*)
 val Con_iff = counit.mk_free "Con(x)=Con(y) <-> x=y";
@@ -33,7 +31,7 @@ qed "counit_eq_univ";
   The resulting set is a singleton.
 *)
 
-val Con2E = counit2.mk_cases counit2.con_defs "Con2(x,y) : counit2";
+val Con2E = counit2.mk_cases "Con2(x,y) : counit2";
 
 (*Proving freeness results*)
 val Con2_iff = counit2.mk_free "Con2(x,y)=Con2(x',y') <-> x=x' & y=y'";
