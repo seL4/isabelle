@@ -225,11 +225,9 @@ inductive_cases listsE [elim!]: "x#l : lists A"
 lemma lists_mono [mono]: "A \<subseteq> B ==> lists A \<subseteq> lists B"
 by (unfold lists.defs) (blast intro!: lfp_mono)
 
-lemma lists_IntI [rule_format]:
-"l: lists A ==> l: lists B --> l: lists (A Int B)"
-apply (erule lists.induct)
-apply blast+
-done
+lemma lists_IntI:
+  assumes l: "l: lists A" shows "l: lists B ==> l: lists (A Int B)" using l
+  by induct blast+
 
 lemma lists_Int_eq [simp]: "lists (A \<inter> B) = lists A \<inter> lists B"
 apply (rule mono_Int [THEN equalityI])
@@ -292,15 +290,13 @@ by (induct xs) auto
 lemma self_append_conv [iff]: "(xs = xs @ ys) = (ys = [])"
 by (induct xs) auto
 
-lemma append_eq_append_conv [rule_format, simp]:
- "\<forall>ys. length xs = length ys \<or> length us = length vs
- --> (xs@us = ys@vs) = (xs=ys \<and> us=vs)"
-apply (induct_tac xs)
- apply(rule allI)
+lemma append_eq_append_conv [simp]:
+ "!!ys. length xs = length ys \<or> length us = length vs
+ ==> (xs@us = ys@vs) = (xs=ys \<and> us=vs)"
+apply (induct xs)
  apply (case_tac ys)
 apply simp
  apply force
-apply (rule allI)
 apply (case_tac ys)
  apply force
 apply simp
@@ -1041,6 +1037,20 @@ lemma list_all2_conv_all_nth:
 (length xs = length ys \<and> (\<forall>i < length xs. P (xs!i) (ys!i)))"
 by (force simp add: list_all2_def set_zip)
 
+lemma list_all2_trans:
+  assumes tr: "!!a b c. P1 a b ==> P2 b c ==> P3 a c"
+  shows "!!bs cs. list_all2 P1 as bs ==> list_all2 P2 bs cs ==> list_all2 P3 as cs"
+        (is "!!bs cs. PROP ?Q as bs cs")
+proof (induct as)
+  fix x xs bs assume I1: "!!bs cs. PROP ?Q xs bs cs"
+  show "!!cs. PROP ?Q (x # xs) bs cs"
+  proof (induct bs)
+    fix y ys cs assume I2: "!!cs. PROP ?Q (x # xs) ys cs"
+    show "PROP ?Q (x # xs) (y # ys) cs"
+      by (induct cs) (auto intro: tr I1 I2)
+  qed simp
+qed simp
+
 lemma list_all2_all_nthI [intro?]:
   "length a = length b \<Longrightarrow> (\<And>n. n < length a \<Longrightarrow> P (a!n) (b!n)) \<Longrightarrow> list_all2 P a b"
   by (simp add: list_all2_conv_all_nth)
@@ -1056,19 +1066,6 @@ lemma list_all2_map1:
 lemma list_all2_map2: 
   "list_all2 P as (map f bs) = list_all2 (\<lambda>x y. P x (f y)) as bs"
   by (auto simp add: list_all2_conv_all_nth)
-
-lemma list_all2_trans[rule_format]:
-"\<forall>a b c. P1 a b --> P2 b c --> P3 a c ==>
-\<forall>bs cs. list_all2 P1 as bs --> list_all2 P2 bs cs --> list_all2 P3 as cs"
-apply(induct_tac as)
- apply simp
-apply(rule allI)
-apply(induct_tac bs)
- apply simp
-apply(rule allI)
-apply(induct_tac cs)
- apply auto
-done
 
 lemma list_all2_refl:
   "(\<And>x. P x x) \<Longrightarrow> list_all2 P xs xs"
@@ -1173,11 +1170,10 @@ prefer 3 apply (subst map_Suc_upt[symmetric])
 apply (auto simp add: less_diff_conv nth_upt)
 done
 
-lemma nth_take_lemma [rule_format]:
-"ALL xs ys. k <= length xs --> k <= length ys
---> (ALL i. i < k --> xs!i = ys!i)
---> take k xs = take k ys"
-apply (induct k)
+lemma nth_take_lemma:
+  "!!xs ys. k <= length xs ==> k <= length ys ==>
+     (!!i. i < k --> xs!i = ys!i) ==> take k xs = take k ys"
+apply (atomize, induct k)
 apply (simp_all add: less_Suc_eq_0_disj all_conj_distrib)
 apply clarify
 txt {* Both lists must be non-empty *}
