@@ -21,6 +21,8 @@ structure List = Datatype_Fun
   val type_intrs = datatype_intrs
   val type_elims = datatype_elims);
 
+store_theory "List" List.thy;
+
 val [NilI, ConsI] = List.intrs;
 
 (*An elimination rule, for type-checking*)

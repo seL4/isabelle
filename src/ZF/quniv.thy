@@ -6,7 +6,7 @@
 A small universe for lazy recursive types
 *)
 
-QUniv = Univ + QPair +
+QUniv = Univ + QPair + "mono" + "equalities" +
 consts
     quniv        :: "i=>i"
 

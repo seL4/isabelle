@@ -8,7 +8,7 @@ The cumulative hierarchy and a small universe for recursive types
 Standard notation for Vset(i) is V(i), but users might want V for a variable
 *)
 
-Univ = Arith + Sum +
+Univ = Arith + Sum + "mono" +
 consts
     Limit       ::      "i=>o"
     Vfrom       ::      "[i,i]=>i"

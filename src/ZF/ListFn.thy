@@ -10,7 +10,7 @@ object-level functions.  This simplifies the final form of term_rec_conv,
 although complicating its derivation.
 *)
 
-ListFn = List +
+ListFn = List + "constructor" +
 consts
   "@"	     :: "[i,i]=>i"      			(infixr 60)
   list_rec   :: "[i, i, [i,i,i]=>i] => i"

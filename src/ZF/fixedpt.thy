@@ -6,7 +6,7 @@
 Least and greatest fixed points
 *)
 
-Fixedpt = ZF +
+Fixedpt = ZF + "domrange" +
 consts
   bnd_mono    :: "[i,i=>i]=>o"
   lfp, gfp    :: "[i,i=>i]=>i"

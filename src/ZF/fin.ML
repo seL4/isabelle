@@ -28,6 +28,8 @@ structure Fin = Inductive_Fun
   val type_intrs = [empty_subsetI, cons_subsetI, PowI]
   val type_elims = [make_elim PowD]);
 
+store_theory "Fin" Fin.thy;
+
 val [Fin_0I, Fin_consI] = Fin.intrs;
 
 

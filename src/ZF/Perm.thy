@@ -9,7 +9,7 @@ The theory underlying permutation groups
   -- Lemmas for the Schroeder-Bernstein Theorem
 *)
 
-Perm = ZF +
+Perm = ZF + "mono" +
 consts
     O    	::      "[i,i]=>i"      (infixr 60)
     id  	::      "i=>i"

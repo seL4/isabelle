@@ -6,7 +6,7 @@
 Arithmetic operators and their definitions
 *)
 
-Arith = Epsilon +
+Arith = Epsilon + "simpdata" +
 consts
     rec  :: "[i, i, [i,i]=>i]=>i"
     "#*" :: "[i,i]=>i"      		(infixl 70)

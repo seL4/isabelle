@@ -6,7 +6,7 @@
 Natural numbers in Zermelo-Fraenkel Set Theory 
 *)
 
-Nat = Ord + Bool + 
+Nat = Ord + Bool + "mono" +
 consts
     nat 	::      "i"
     nat_case    ::      "[i, i=>i, i]=>i"

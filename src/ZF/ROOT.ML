@@ -11,8 +11,6 @@ This theory is the work of Martin Coen, Philippe Noel and Lawrence Paulson.
 val banner = "ZF Set Theory (in FOL)";
 writeln banner;
 
-set_loadpath [".", "ex", "../FOL"];
-
 (*For Pure/tactic??  A crude way of adding structure to rules*)
 fun CHECK_SOLVED (Tactic tf) = 
   Tactic (fn state => 
@@ -29,47 +27,9 @@ fun CHECK_SOLVED (Tactic tf) =
 fun DO_GOAL tfs = SELECT_GOAL (CHECK_SOLVED (EVERY1 tfs));
 
 print_depth 1;
-use_thy "zf";
 
-use     "upair.ML";
-use     "subset.ML";
-use     "pair.ML";
-use     "domrange.ML";
-use     "func.ML";
-use     "equalities.ML";
-use     "simpdata.ML";  
-
-(*further development*)
-use_thy "bool";
-use_thy "sum";
-use_thy "qpair";
-use     "mono.ML";
-use_thy "fixedpt";
-
-(*Inductive/coinductive definitions*)
-use     "ind_syntax.ML";
-use     "intr_elim.ML";
-use     "indrule.ML";
-use     "inductive.ML";
-use     "coinductive.ML";
-
-use_thy "perm";
-use_thy "trancl";
-use_thy "wf";
-use_thy "ord";
-use_thy "nat";
-use_thy "epsilon";
-use_thy "arith";
-
-(*Datatype/codatatype definitions*)
-use_thy "univ";
-use_thy "quniv";
-use     "constructor.ML";
-use     "datatype.ML";
-
-use     "fin.ML";
-use_thy "List";
-use_thy "listfn";
+use_thy "fin";
+use_thy "ListFn";
 
 (*printing functions are inherited from FOL*)
 print_depth 8;

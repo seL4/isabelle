@@ -6,7 +6,7 @@
 Well-founded Recursion
 *)
 
-WF = Trancl +
+WF = Trancl + "mono" +
 consts
     wf		 ::      "i=>o"
     wftrec,wfrec ::      "[i, i, [i,i]=>i] =>i"

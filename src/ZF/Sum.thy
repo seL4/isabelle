@@ -7,7 +7,7 @@ Disjoint sums in Zermelo-Fraenkel Set Theory
 "Part" primitive for simultaneous recursive type definitions
 *)
 
-Sum = Bool +
+Sum = Bool + "simpdata" +
 consts
     "+"    	:: "[i,i]=>i"      		(infixr 65)
     Inl,Inr     :: "i=>i"

@@ -6,7 +6,7 @@
 Booleans in Zermelo-Fraenkel Set Theory 
 *)
 
-Bool = ZF +
+Bool = ZF + "simpdata" +
 consts
     "1"		::      "i"     	("1")
     bool        ::      "i"

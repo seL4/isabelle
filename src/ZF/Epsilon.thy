@@ -6,7 +6,7 @@
 Epsilon induction and recursion
 *)
 
-Epsilon = Nat +
+Epsilon = Nat + "mono" +
 consts
     eclose,rank ::      "i=>i"
     transrec    ::      "[i, [i,i]=>i] =>i"
