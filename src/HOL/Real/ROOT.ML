@@ -4,6 +4,8 @@
     Copyright   1998  University of Cambridge
 
 Construction of the Reals using Dedekind Cuts, by Jacques Fleuriot
+
+Linear real arithmetic is installed in RealBin.ML.
 *)
 
 writeln"Root file for HOL/Real";

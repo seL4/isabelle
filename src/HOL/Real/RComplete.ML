@@ -138,7 +138,6 @@ by (dres_inst_tac [("C","-x"),("A","0r + x")] real_add_less_mono2 1);
 by (asm_full_simp_tac
     (simpset() addsimps [real_add_zero_right, real_add_assoc RS sym,
 			 real_add_minus_left,real_add_zero_left]) 1);
-by (asm_full_simp_tac (simpset() addsimps real_add_ac) 1);
 qed "lemma_real_complete1";
 
 Goal "[| x + (-X) + 1r <= S; xa < x |] ==> xa + (-X) + 1r <= S";

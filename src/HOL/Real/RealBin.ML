@@ -151,3 +151,350 @@ Addsimps (map (rename_numerals thy)
 (*Perhaps add some theorems that aren't in the default simpset, as
   done in Integ/NatBin.ML*)
 
+
+(*  Author:     Tobias Nipkow, TU Muenchen
+    Copyright   1999 TU Muenchen
+
+Instantiate linear arithmetic decision procedure for the reals.
+FIXME: multiplication with constants (eg #2 * x) does not work yet.
+Solution: there should be a simproc for combining coefficients.
+*)
+
+let
+
+(* reduce contradictory <= to False *)
+val simps = [order_less_irrefl,zero_eq_numeral_0,one_eq_numeral_1,
+  add_real_number_of,minus_real_number_of,diff_real_number_of,
+  mult_real_number_of,eq_real_number_of,less_real_number_of,
+  le_real_number_of_eq_not_less];
+
+val simprocs = [Real_Cancel.sum_conv, Real_Cancel.rel_conv];
+
+val add_mono_thms =
+  map (fn s => prove_goal thy s
+                 (fn prems => [cut_facts_tac prems 1,
+                      asm_simp_tac (simpset() addsimps
+     [real_add_le_mono,real_add_less_mono,
+      real_add_less_le_mono,real_add_le_less_mono]) 1]))
+    ["(i <= j) & (k <= l) ==> i + k <= j + (l::real)",
+     "(i  = j) & (k <= l) ==> i + k <= j + (l::real)",
+     "(i <= j) & (k  = l) ==> i + k <= j + (l::real)",
+     "(i  = j) & (k  = l) ==> i + k  = j + (l::real)",
+     "(i < j) & (k = l)   ==> i + k < j + (l::real)",
+     "(i = j) & (k < l)   ==> i + k < j + (l::real)",
+     "(i < j) & (k <= l)  ==> i + k < j + (l::real)",
+     "(i <= j) & (k < l)  ==> i + k < j + (l::real)",
+     "(i < j) & (k < l)   ==> i + k < j + (l::real)"];
+
+in
+LA_Data_Ref.add_mono_thms := !LA_Data_Ref.add_mono_thms @ add_mono_thms;
+LA_Data_Ref.ss_ref := !LA_Data_Ref.ss_ref addsimps simps
+                      addsimprocs simprocs;
+LA_Data_Ref.discrete := !LA_Data_Ref.discrete @ [("RealDef.real",false)]
+end;
+
+let
+val real_arith_simproc_pats =
+  map (fn s => Thm.read_cterm (Theory.sign_of thy) (s, HOLogic.boolT))
+      ["(m::real) < n","(m::real) <= n", "(m::real) = n"];
+
+val fast_real_arith_simproc = mk_simproc
+  "fast_real_arith" real_arith_simproc_pats Fast_Arith.lin_arith_prover;
+in
+Addsimprocs [fast_real_arith_simproc]
+end;
+
+Goalw [rabs_def]
+  "P(rabs x) = ((#0 <= x --> P x) & (x < #0 --> P(-x)))";
+by(auto_tac (claset(), simpset() addsimps [zero_eq_numeral_0]));
+qed "rabs_split";
+
+arith_tac_split_thms := !arith_tac_split_thms @ [rabs_split];
+
+(** Tests **)
+Goal "(x + y = x) = (y = (#0::real))";
+by(arith_tac 1);
+
+Goal "(x + y = y) = (x = (#0::real))";
+by(arith_tac 1);
+
+Goal "(x + y = (#0::real)) = (x = -y)";
+by(arith_tac 1);
+
+Goal "(x + y = (#0::real)) = (y = -x)";
+by(arith_tac 1);
+
+Goal "((x + y) < (x + z)) = (y < (z::real))";
+by(arith_tac 1);
+
+Goal "((x + z) < (y + z)) = (x < (y::real))";
+by(arith_tac 1);
+
+Goal "(~ x < y) = (y <= (x::real))";
+by(arith_tac 1);
+
+Goal "~(x < y & y < (x::real))";
+by(arith_tac 1);
+
+Goal "(x::real) < y ==> ~ y < x";
+by(arith_tac 1);
+
+Goal "((x::real) ~= y) = (x < y | y < x)";
+by(arith_tac 1);
+
+Goal "(~ x <= y) = (y < (x::real))";
+by(arith_tac 1);
+
+Goal "x <= y | y <= (x::real)";
+by(arith_tac 1);
+
+Goal "x <= y | y < (x::real)";
+by(arith_tac 1);
+
+Goal "x < y | y <= (x::real)";
+by(arith_tac 1);
+
+Goal "x <= (x::real)";
+by(arith_tac 1);
+
+Goal "((x::real) <= y) = (x < y | x = y)";
+by(arith_tac 1);
+
+Goal "((x::real) <= y & y <= x) = (x = y)";
+by(arith_tac 1);
+
+Goal "~(x < y & y <= (x::real))";
+by(arith_tac 1);
+
+Goal "~(x <= y & y < (x::real))";
+by(arith_tac 1);
+
+Goal "(-x < (#0::real)) = (#0 < x)";
+by(arith_tac 1);
+
+Goal "((#0::real) < -x) = (x < #0)";
+by(arith_tac 1);
+
+Goal "(-x <= (#0::real)) = (#0 <= x)";
+by(arith_tac 1);
+
+Goal "((#0::real) <= -x) = (x <= #0)";
+by(arith_tac 1);
+
+Goal "(x::real) = y | x < y | y < x";
+by(arith_tac 1);
+
+Goal "(x::real) = #0 | #0 < x | #0 < -x";
+by(arith_tac 1);
+
+Goal "(#0::real) <= x | #0 <= -x";
+by(arith_tac 1);
+
+Goal "((x::real) + y <= x + z) = (y <= z)";
+by(arith_tac 1);
+
+Goal "((x::real) + z <= y + z) = (x <= y)";
+by(arith_tac 1);
+
+Goal "(w::real) < x & y < z ==> w + y < x + z";
+by(arith_tac 1);
+
+Goal "(w::real) <= x & y <= z ==> w + y <= x + z";
+by(arith_tac 1);
+
+Goal "(#0::real) <= x & #0 <= y ==> #0 <= x + y";
+by(arith_tac 1);
+
+Goal "(#0::real) < x & #0 < y ==> #0 < x + y";
+by(arith_tac 1);
+
+Goal "(-x < y) = (#0 < x + (y::real))";
+by(arith_tac 1);
+
+Goal "(x < -y) = (x + y < (#0::real))";
+by(arith_tac 1);
+
+Goal "(y < x + -z) = (y + z < (x::real))";
+by(arith_tac 1);
+
+Goal "(x + -y < z) = (x < z + (y::real))";
+by(arith_tac 1);
+
+Goal "x <= y ==> x < y + (#1::real)";
+by(arith_tac 1);
+
+Goal "(x - y) + y = (x::real)";
+by(arith_tac 1);
+
+Goal "y + (x - y) = (x::real)";
+by(arith_tac 1);
+
+Goal "x - x = (#0::real)";
+by(arith_tac 1);
+
+Goal "(x - y = #0) = (x = (y::real))";
+by(arith_tac 1);
+
+Goal "((#0::real) <= x + x) = (#0 <= x)";
+by(arith_tac 1);
+
+Goal "(-x <= x) = ((#0::real) <= x)";
+by(arith_tac 1);
+
+Goal "(x <= -x) = (x <= (#0::real))";
+by(arith_tac 1);
+
+Goal "(-x = (#0::real)) = (x = #0)";
+by(arith_tac 1);
+
+Goal "-(x - y) = y - (x::real)";
+by(arith_tac 1);
+
+Goal "((#0::real) < x - y) = (y < x)";
+by(arith_tac 1);
+
+Goal "((#0::real) <= x - y) = (y <= x)";
+by(arith_tac 1);
+
+Goal "(x + y) - x = (y::real)";
+by(arith_tac 1);
+
+Goal "(-x = y) = (x = (-y::real))";
+by(arith_tac 1);
+
+Goal "x < (y::real) ==> ~(x = y)";
+by(arith_tac 1);
+
+Goal "(x <= x + y) = ((#0::real) <= y)";
+by(arith_tac 1);
+
+Goal "(y <= x + y) = ((#0::real) <= x)";
+by(arith_tac 1);
+
+Goal "(x < x + y) = ((#0::real) < y)";
+by(arith_tac 1);
+
+Goal "(y < x + y) = ((#0::real) < x)";
+by(arith_tac 1);
+
+Goal "(x - y) - x = (-y::real)";
+by(arith_tac 1);
+
+Goal "(x + y < z) = (x < z - (y::real))";
+by(arith_tac 1);
+
+Goal "(x - y < z) = (x < z + (y::real))";
+by(arith_tac 1);
+
+Goal "(x < y - z) = (x + z < (y::real))";
+by(arith_tac 1);
+
+Goal "(x <= y - z) = (x + z <= (y::real))";
+by(arith_tac 1);
+
+Goal "(x - y <= z) = (x <= z + (y::real))";
+by(arith_tac 1);
+
+Goal "(-x < -y) = (y < (x::real))";
+by(arith_tac 1);
+
+Goal "(-x <= -y) = (y <= (x::real))";
+by(arith_tac 1);
+
+Goal "(a + b) - (c + d) = (a - c) + (b - (d::real))";
+by(arith_tac 1);
+
+Goal "(#0::real) - x = -x";
+by(arith_tac 1);
+
+Goal "x - (#0::real) = x";
+by(arith_tac 1);
+
+Goal "w <= x & y < z ==> w + y < x + (z::real)";
+by(arith_tac 1);
+
+Goal "w < x & y <= z ==> w + y < x + (z::real)";
+by(arith_tac 1);
+
+Goal "(#0::real) <= x & #0 < y ==> #0 < x + (y::real)";
+by(arith_tac 1);
+
+Goal "(#0::real) < x & #0 <= y ==> #0 < x + y";
+by(arith_tac 1);
+
+Goal "-x - y = -(x + (y::real))";
+by(arith_tac 1);
+
+Goal "x - (-y) = x + (y::real)";
+by(arith_tac 1);
+
+Goal "-x - -y = y - (x::real)";
+by(arith_tac 1);
+
+Goal "(a - b) + (b - c) = a - (c::real)";
+by(arith_tac 1);
+
+Goal "(x = y - z) = (x + z = (y::real))";
+by(arith_tac 1);
+
+Goal "(x - y = z) = (x = z + (y::real))";
+by(arith_tac 1);
+
+Goal "x - (x - y) = (y::real)";
+by(arith_tac 1);
+
+Goal "x - (x + y) = -(y::real)";
+by(arith_tac 1);
+
+Goal "x = y ==> x <= (y::real)";
+by(arith_tac 1);
+
+Goal "(#0::real) < x ==> ~(x = #0)";
+by(arith_tac 1);
+
+Goal "(x + y) * (x - y) = (x * x) - (y * y)";
+
+Goal "(-x = -y) = (x = (y::real))";
+by(arith_tac 1);
+
+Goal "(-x < -y) = (y < (x::real))";
+by(arith_tac 1);
+
+Goal "!!a::real. [| a <= b; c <= d; x+y<z |] ==> a+c <= b+d";
+by (fast_arith_tac 1);
+
+Goal "!!a::real. [| a < b; c < d |] ==> a-d <= b+(-c)";
+by (fast_arith_tac 1);
+
+Goal "!!a::real. [| a <= b; b+b <= c |] ==> a+a <= c";
+by (fast_arith_tac 1);
+
+Goal "!!a::real. [| a+b <= i+j; a<=b; i<=j |] \
+\     ==> a+a <= j+j";
+by (fast_arith_tac 1);
+
+Goal "!!a::real. [| a+b < i+j; a<b; i<j |] \
+\     ==> a+a < j+j";
+by (fast_arith_tac 1);
+
+Goal "!!a::real. a+b+c <= i+j+k & a<=b & b<=c & i<=j & j<=k --> a+a+a <= k+k+k";
+by (arith_tac 1);
+
+Goal "!!a::real. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
+\     ==> a <= l";
+by (fast_arith_tac 1);
+
+Goal "!!a::real. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
+\     ==> a+a+a+a <= l+l+l+l";
+by (fast_arith_tac 1);
+
+(* Too slow. Needs "combine_coefficients" simproc
+Goal "!!a::real. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
+\     ==> a+a+a+a+a <= l+l+l+l+i";
+by (fast_arith_tac 1);
+
+Goal "!!a::real. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
+\     ==> a+a+a+a+a+a <= l+l+l+l+i+l";
+by (fast_arith_tac 1);
+*)
+
