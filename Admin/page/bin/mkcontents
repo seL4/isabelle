@@ -2,7 +2,7 @@
 
 # mkcontents.pl
 #
-#   $ID$
+#   $Id$
 #
 #   simple script to create a html version of the Contents file in the
 #   Isabelle documentation directory.
