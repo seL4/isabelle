@@ -272,12 +272,12 @@ cutL_tac : string -> int -> tactic
 These tactics refine a subgoal into two by applying the cut rule.  The cut
 formula is given as a string, and replaces some other formula in the sequent.
 \begin{description}
-\item[\ttindexbold{cutR_tac} {\it formula} {\it i}] 
+\item[\ttindexbold{cutR_tac} {\it P\/} {\it i}] 
 reads an \LK{} formula~$P$, and applies the cut rule to subgoal~$i$.  It
 then deletes some formula from the right side of subgoal~$i$, replacing
 that formula by~$P$.
 
-\item[\ttindexbold{cutL_tac} {\it formula} {\it i}] 
+\item[\ttindexbold{cutL_tac} {\it P\/} {\it i}] 
 reads an \LK{} formula~$P$, and applies the cut rule to subgoal~$i$.  It
 then deletes some formula from the let side of the new subgoal $i+1$,
 replacing that formula by~$P$.
