@@ -136,7 +136,7 @@ fun THEN_ITER_DEEPEN tac0 satp tac1 = traced_tac (fn st =>
                    val rgd' = not (has_vars (hd (prems_of st)))
                    val k' = k+np'-np+1  (*difference in # of subgoals, +1*)
                in  if k'+np' >= bnd 
-		   then depth (bnd, min [inc, k'+np'+1-bnd]) qs
+		   then depth (bnd, Int.min(inc, k'+np'+1-bnd)) qs
 		   else if np' < np (*solved a subgoal; prune rigid ancestors*)
                    then depth (bnd,inc) 
 		         (prune ((k', np', rgd', tf st), (k,np,rgd,stq) :: qs))

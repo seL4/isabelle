@@ -120,7 +120,7 @@ fun thin_leading_eqs_tac bnd m i = STATE(fn state =>
 			      1 + count Bs)
                              handle Match => 0)
 	val (_,_,Bi,_) = dest_state(state,i)
-        val j = min [m, count (Logic.strip_assums_hyp Bi)]
+        val j = Int.min(m, count (Logic.strip_assums_hyp Bi))
     in  REPEAT_DETERM_N j     (etac thin_rl i)   THEN
         REPEAT_DETERM_N (m-j) (etac revcut_rl i)
     end);

@@ -102,7 +102,7 @@ fun add_lbnos(is,t) = add_loose_bnos(t,0,is);
    has a body of type T; otherwise the expansion thm will fail later on
 *)
 fun type_test(T,lbnos,apsns) =
-  let val (_,U,_) = nth_elem(min lbnos,apsns)
+  let val (_,U,_) = nth_elem(foldl Int.min (hd lbnos, tl lbnos), apsns)
   in T=U end;
 
 (*************************************************************************
@@ -139,7 +139,8 @@ fun mk_split_pack(thm,T,n,ts,apsns,pos,TB,t) =
            val flbnos = filter (fn i => i < lev) lbnos
            val tt = incr_bv(~lev,0,t)
        in if null flbnos then [(thm,[],pos,TB,tt)]
-          else if type_test(T,flbnos,apsns) then [(thm, rev apsns,pos,TB,tt)] else []
+          else if type_test(T,flbnos,apsns) then [(thm, rev apsns,pos,TB,tt)] 
+               else []
        end;
 
 
