@@ -395,17 +395,18 @@ for more details.
 Most theories simply declare constants, definitions and rules.  The {\bf
   constant declaration part} has the form
 \begin{ttbox}
-consts  \(c@1\) :: "\(\tau@1\)"
+consts  \(c@1\) :: \(\tau@1\)
         \vdots
-        \(c@n\) :: "\(\tau@n\)"
+        \(c@n\) :: \(\tau@n\)
 \end{ttbox}
 where $c@1$, \ldots, $c@n$ are constants and $\tau@1$, \ldots, $\tau@n$ are
-types.  Each type {\em must\/} be enclosed in quotation marks.  Each
+types.  The types must be enclosed in quotation marks if they contain
+user-declared infix type constructors like {\tt *}.  Each
 constant must be enclosed in quotation marks unless it is a valid
 identifier.  To declare $c@1$, \ldots, $c@n$ as constants of type $\tau$,
 the $n$ declarations may be abbreviated to a single line:
 \begin{ttbox}
-        \(c@1\), \ldots, \(c@n\) :: "\(\tau\)"
+        \(c@1\), \ldots, \(c@n\) :: \(\tau\)
 \end{ttbox}
 The {\bf rule declaration part} has the form
 \begin{ttbox}
@@ -431,7 +432,7 @@ This theory extends first-order logic by declaring and defining two constants,
 {\em nand} and {\em xor}:
 \begin{ttbox}
 Gate = FOL +
-consts  nand,xor :: "[o,o] => o"
+consts  nand,xor :: [o,o] => o
 defs    nand_def "nand(P,Q) == ~(P & Q)"
         xor_def  "xor(P,Q)  == P & ~Q | ~P & Q"
 end
@@ -493,7 +494,7 @@ distinct from formulae, which have type $o::logic$.)
 Bool = FOL +
 types   bool
 arities bool    :: term
-consts  tt,ff   :: "bool"
+consts  tt,ff   :: bool
 end
 \end{ttbox}
 A $k$-place type constructor may have arities of the form
@@ -521,8 +522,8 @@ polymorphic types:%
 List = FOL +
 types   'a list
 arities list    :: (term)term
-consts  Nil     :: "'a list"
-        Cons    :: "['a, 'a list] => 'a list" 
+consts  Nil     :: 'a list
+        Cons    :: ['a, 'a list] => 'a list
 end
 \end{ttbox}
 Multiple arity declarations may be abbreviated to a single line:
@@ -541,15 +542,15 @@ Isabelle supports {\bf type synonyms} ({\bf abbreviations}) which are similar
 to those found in \ML.  Such synonyms are defined in the type declaration part
 and are fairly self explanatory:
 \begin{ttbox}
-types gate       = "[o,o] => o"
-      'a pred    = "'a => o"
-      ('a,'b)nuf = "'b => 'a"
+types gate       = [o,o] => o
+      'a pred    = 'a => o
+      ('a,'b)nuf = 'b => 'a
 \end{ttbox}
 Type declarations and synonyms can be mixed arbitrarily:
 \begin{ttbox}
 types nat
-      'a stream = "nat => 'a"
-      signal    = "nat stream"
+      'a stream = nat => 'a
+      signal    = nat stream
       'a list
 \end{ttbox}
 A synonym is merely an abbreviation for some existing type expression.  Hence
@@ -558,8 +559,8 @@ a consequence Isabelle output never contains synonyms.  Their main purpose is
 to improve the readability of theories.  Synonyms can be used just like any
 other type:
 \begin{ttbox}
-consts and,or :: "gate"
-       negate :: "signal => signal"
+consts and,or :: gate
+       negate :: signal => signal
 \end{ttbox}
 
 \subsection{Infix and mixfix operators}
@@ -569,8 +570,8 @@ Infix or mixfix syntax may be attached to constants.  Consider the
 following theory:
 \begin{ttbox}
 Gate2 = FOL +
-consts  "~&"     :: "[o,o] => o"         (infixl 35)
-        "#"      :: "[o,o] => o"         (infixl 30)
+consts  "~&"     :: [o,o] => o         (infixl 35)
+        "#"      :: [o,o] => o         (infixl 30)
 defs    nand_def "P ~& Q == ~(P & Q)"    
         xor_def  "P # Q  == P & ~Q | ~P & Q"
 end
@@ -590,7 +591,7 @@ Q.True \xor Q$ and $\lambda Q.True \nand Q$ are identical.
 {\bf Mixfix} operators may have arbitrary context-free syntaxes.  Let us
 add a line to the constant declaration part:
 \begin{ttbox}
-        If :: "[o,o,o] => o"       ("if _ then _ else _")
+        If :: [o,o,o] => o       ("if _ then _ else _")
 \end{ttbox}
 This declares a constant $If$ of type $[o,o,o] \To o$ with concrete syntax {\tt
   if~$P$ then~$Q$ else~$R$} as well as {\tt If($P$,$Q$,$R$)}.  Underscores
@@ -607,7 +608,7 @@ layout of mixfix operators.  For details, see
 Mixfix declarations can be annotated with priorities, just like
 infixes.  The example above is just a shorthand for
 \begin{ttbox}
-        If :: "[o,o,o] => o"       ("if _ then _ else _" [0,0,0] 1000)
+        If :: [o,o,o] => o       ("if _ then _ else _" [0,0,0] 1000)
 \end{ttbox}
 The numeric components determine priorities.  The list of integers
 defines, for each argument position, the minimal priority an expression
@@ -617,7 +618,7 @@ acceptable because priorities are non-negative, and conditionals may
 appear everywhere because 1000 is the highest priority.  On the other
 hand, the declaration
 \begin{ttbox}
-        If :: "[o,o,o] => o"       ("if _ then _ else _" [100,0,0] 99)
+        If :: [o,o,o] => o       ("if _ then _ else _" [100,0,0] 99)
 \end{ttbox}
 defines concrete syntax for a conditional whose first argument cannot have
 the form {\tt if~$P$ then~$Q$ else~$R$} because it must have a priority
@@ -675,9 +676,9 @@ $term$ and add the three polymorphic constants of this class.
 \begin{ttbox}
 Arith = FOL +
 classes arith < term
-consts  "0"     :: "'a::arith"                  ("0")
-        "1"     :: "'a::arith"                  ("1")
-        "+"     :: "['a::arith,'a] => 'a"       (infixl 60)
+consts  "0"     :: 'a::arith                  ("0")
+        "1"     :: 'a::arith                  ("1")
+        "+"     :: ['a::arith,'a] => 'a       (infixl 60)
 end
 \end{ttbox}
 No rules are declared for these constants: we merely introduce their
@@ -693,7 +694,7 @@ declare the 0-place type constructors $bool$ and $nat$:
 BoolNat = Arith +
 types   bool  nat
 arities bool, nat   :: arith
-consts  Suc         :: "nat=>nat"
+consts  Suc         :: nat=>nat
 \ttbreak
 rules   add0        "0 + n = n::nat"
         addS        "Suc(m)+n = Suc(m+n)"
@@ -785,10 +786,10 @@ identifier, and could not otherwise be written in terms:
 Nat = FOL +
 types   nat
 arities nat         :: term
-consts  "0"         :: "nat"                              ("0")
-        Suc         :: "nat=>nat"
-        rec         :: "[nat, 'a, [nat,'a]=>'a] => 'a"
-        "+"         :: "[nat, nat] => nat"                (infixl 60)
+consts  "0"         :: nat                              ("0")
+        Suc         :: nat=>nat
+        rec         :: [nat, 'a, [nat,'a]=>'a] => 'a
+        "+"         :: [nat, nat] => nat                (infixl 60)
 rules   Suc_inject  "Suc(m)=Suc(n) ==> m=n"
         Suc_neq_0   "Suc(m)=0      ==> R"
         induct      "[| P(0);  !!x. P(x) ==> P(Suc(x)) |]  ==> P(n)"
@@ -1077,10 +1078,10 @@ rules of~{\tt FOL}.
 Prolog = FOL +
 types   'a list
 arities list    :: (term)term
-consts  Nil     :: "'a list"
-        ":"     :: "['a, 'a list]=> 'a list"            (infixr 60)
-        app     :: "['a list, 'a list, 'a list] => o"
-        rev     :: "['a list, 'a list] => o"
+consts  Nil     :: 'a list
+        ":"     :: ['a, 'a list]=> 'a list            (infixr 60)
+        app     :: ['a list, 'a list, 'a list] => o
+        rev     :: ['a list, 'a list] => o
 rules   appNil  "app(Nil,ys,ys)"
         appCons "app(xs,ys,zs) ==> app(x:xs, ys, x:zs)"
         revNil  "rev(Nil,Nil)"

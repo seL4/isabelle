@@ -487,10 +487,10 @@ EXP = Pure +
 types
   exp
 syntax
-  "0" :: "exp"                ("0"      9)
-  "+" :: "[exp, exp] => exp"  ("_ + _"  [0, 1] 0)
-  "*" :: "[exp, exp] => exp"  ("_ * _"  [3, 2] 2)
-  "-" :: "exp => exp"         ("- _"    [3] 3)
+  "0" :: exp                 ("0"      9)
+  "+" :: [exp, exp] => exp   ("_ + _"  [0, 1] 0)
+  "*" :: [exp, exp] => exp   ("_ * _"  [3, 2] 2)
+  "-" :: exp => exp          ("- _"    [3] 3)
 end
 \end{ttbox}
 If you put this into a file {\tt EXP.thy} and load it via {\tt use_thy"EXP"},
@@ -578,16 +578,16 @@ Paulson~\cite{paulson91}.
 
 Infix operators associating to the left or right can be declared
 using {\tt infixl} or {\tt infixr}.
-Roughly speaking, the form {\tt $c$ ::\ "$\sigma$" (infixl $p$)}
+Roughly speaking, the form {\tt $c$ ::\ $\sigma$ (infixl $p$)}
 abbreviates the mixfix declarations
 \begin{ttbox}
-"op \(c\)" :: "\(\sigma\)"   ("(_ \(c\)/ _)" [\(p\), \(p+1\)] \(p\))
-"op \(c\)" :: "\(\sigma\)"   ("op \(c\)")
+"op \(c\)" :: \(\sigma\)   ("(_ \(c\)/ _)" [\(p\), \(p+1\)] \(p\))
+"op \(c\)" :: \(\sigma\)   ("op \(c\)")
 \end{ttbox}
-and {\tt $c$ ::\ "$\sigma$" (infixr $p$)} abbreviates the mixfix declarations
+and {\tt $c$ ::\ $\sigma$ (infixr $p$)} abbreviates the mixfix declarations
 \begin{ttbox}
-"op \(c\)" :: "\(\sigma\)"   ("(_ \(c\)/ _)" [\(p+1\), \(p\)] \(p\))
-"op \(c\)" :: "\(\sigma\)"   ("op \(c\)")
+"op \(c\)" :: \(\sigma\)   ("(_ \(c\)/ _)" [\(p+1\), \(p\)] \(p\))
+"op \(c\)" :: \(\sigma\)   ("op \(c\)")
 \end{ttbox}
 The infix operator is declared as a constant with the prefix {\tt op}.
 Thus, prefixing infixes with \sdx{op} makes them behave like ordinary
@@ -602,7 +602,7 @@ escaped, as in delimiters, using a single quote.
 A {\bf binder} is a variable-binding construct such as a quantifier.  The
 constant declaration
 \begin{ttbox}
-\(c\) :: "\(\sigma\)"   (binder "\(\Q\)" [\(pb\)] \(p\))
+\(c\) :: \(\sigma\)   (binder "\(\Q\)" [\(pb\)] \(p\))
 \end{ttbox}
 introduces a constant~$c$ of type~$\sigma$, which must have the form
 $(\tau@1 \To \tau@2) \To \tau@3$.  Its concrete syntax is $\Q~x.P$, where
@@ -613,8 +613,8 @@ in $\Q$ must be escaped using a single quote.
 
 The declaration is expanded internally to something like
 \begin{ttbox}
-\(c\)    :: "(\(\tau@1\) => \(\tau@2\)) => \(\tau@3\)"
-"\(\Q\)"\hskip-3pt  :: "[idts, \(\tau@2\)] => \(\tau@3\)"   ("(3\(\Q\)_./ _)" [0, \(pb\)] \(p\))
+\(c\)    :: (\(\tau@1\) => \(\tau@2\)) => \(\tau@3\)
+"\(\Q\)"\hskip-3pt  :: [idts, \(\tau@2\)] => \(\tau@3\)   ("(3\(\Q\)_./ _)" [0, \(pb\)] \(p\))
 \end{ttbox}
 Here \ndx{idts} is the nonterminal symbol for a list of identifiers with
 \index{type constraints}
@@ -631,7 +631,7 @@ corresponds to the internal form
 \medskip
 For example, let us declare the quantifier~$\forall$:\index{quantifiers}
 \begin{ttbox}
-All :: "('a => o) => o"   (binder "ALL " 10)
+All :: ('a => o) => o   (binder "ALL " 10)
 \end{ttbox}
 This lets us write $\forall x.P$ as either {\tt All(\%$x$.$P$)} or {\tt ALL
   $x$.$P$}.  When printing, Isabelle prefers the latter form, but must fall
@@ -712,7 +712,7 @@ types
 arities
   o :: logic
 consts
-  Trueprop :: "o => prop"   ("_" 5)
+  Trueprop :: o => prop   ("_" 5)
 end
 \end{ttbox}
 The constant \cdx{Trueprop} (the name is arbitrary) acts as an invisible
@@ -725,7 +725,7 @@ illustrates the overall mechanism nicely:
 \begin{ttbox}
 Hilbert = Base +
 consts
-  "-->" :: "[o, o] => o"   (infixr 10)
+  "-->" :: [o, o] => o   (infixr 10)
 rules
   K     "P --> Q --> P"
   S     "(P --> Q --> R) --> (P --> Q) --> P --> R"
@@ -775,7 +775,7 @@ better:
 \begin{ttbox}
 MinI = Base +
 consts
-  "-->" :: "[o, o] => o"   (infixr 10)
+  "-->" :: [o, o] => o   (infixr 10)
 rules
   impI  "(P ==> Q) ==> P --> Q"
   impE  "[| P --> Q; P |] ==> Q"
@@ -792,7 +792,7 @@ We may easily extend minimal logic with falsity:
 \begin{ttbox}
 MinIF = MinI +
 consts
-  False :: "o"
+  False :: o
 rules
   FalseE "False ==> P"
 end
@@ -801,7 +801,7 @@ On the other hand, we may wish to introduce conjunction only:
 \begin{ttbox}
 MinC = Base +
 consts
-  "&" :: "[o, o] => o"   (infixr 30)
+  "&" :: [o, o] => o   (infixr 30)
 \ttbreak
 rules
   conjI  "[| P; Q |] ==> P & Q"

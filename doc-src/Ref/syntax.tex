@@ -356,14 +356,14 @@ types
 arities
   i, o :: logic
 consts
-  Trueprop      :: "o => prop"              ("_" 5)
-  Collect       :: "[i, i => o] => i"
-  Replace       :: "[i, [i, i] => o] => i"
-  Ball          :: "[i, i => o] => o"
+  Trueprop      :: o => prop                ("_" 5)
+  Collect       :: [i, i => o] => i
+  Replace       :: [i, [i, i] => o] => i
+  Ball          :: [i, i => o] => o
 syntax
-  "{\at}Collect"    :: "[idt, i, o] => i"       ("(1{\ttlbrace}_:_./ _{\ttrbrace})")
-  "{\at}Replace"    :: "[idt, idt, i, o] => i"  ("(1{\ttlbrace}_./ _:_, _{\ttrbrace})")
-  "{\at}Ball"       :: "[idt, i, o] => o"       ("(3ALL _:_./ _)" 10)
+  "{\at}Collect"    :: [idt, i, o] => i         ("(1{\ttlbrace}_:_./ _{\ttrbrace})")
+  "{\at}Replace"    :: [idt, idt, i, o] => i    ("(1{\ttlbrace}_./ _:_, _{\ttrbrace})")
+  "{\at}Ball"       :: [idt, i, o] => o         ("(3ALL _:_./ _)" 10)
 translations
   "{\ttlbrace}x:A. P{\ttrbrace}"    == "Collect(A, \%x. P)"
   "{\ttlbrace}y. x:A, Q{\ttrbrace}" == "Replace(A, \%x y. Q)"
@@ -542,9 +542,9 @@ indistinguishable, which may make some rules prone to misbehaviour.  Example:
 types
   Nil
 consts
-  Nil     :: "'a list"
+  Nil     :: 'a list
 syntax
-  "[]"    :: "'a list"    ("[]")
+  "[]"    :: 'a list    ("[]")
 translations
   "[]"    == "Nil"
 \end{ttbox}
@@ -578,13 +578,13 @@ FINSET = SET +
 types
   is
 syntax
-  ""            :: "i => is"                ("_")
-  "{\at}Enum"       :: "[i, is] => is"          ("_,/ _")
+  ""            :: i => is                  ("_")
+  "{\at}Enum"       :: [i, is] => is            ("_,/ _")
 consts
-  empty         :: "i"                      ("{\ttlbrace}{\ttrbrace}")
-  insert        :: "[i, i] => i"
+  empty         :: i                        ("{\ttlbrace}{\ttrbrace}")
+  insert        :: [i, i] => i
 syntax
-  "{\at}Finset"     :: "is => i"                ("{\ttlbrace}(_){\ttrbrace}")
+  "{\at}Finset"     :: is => i                  ("{\ttlbrace}(_){\ttrbrace}")
 translations
   "{\ttlbrace}x, xs{\ttrbrace}"     == "insert(x, {\ttlbrace}xs{\ttrbrace})"
   "{\ttlbrace}x{\ttrbrace}"         == "insert(x, {\ttlbrace}{\ttrbrace})"
@@ -656,10 +656,10 @@ macros:
 \begin{ttbox}
 PROD = FINSET +
 consts
-  Pi            :: "[i, i => i] => i"
+  Pi            :: [i, i => i] => i
 syntax
-  "{\at}PROD"       :: "[idt, i, i] => i"     ("(3PROD _:_./ _)" 10)
-  "{\at}->"         :: "[i, i] => i"          ("(_ ->/ _)" [51, 50] 50)
+  "{\at}PROD"       :: [idt, i, i] => i       ("(3PROD _:_./ _)" 10)
+  "{\at}->"         :: [i, i] => i            ("(_ ->/ _)" [51, 50] 50)
 \ttbreak
 translations
   "PROD x:A. B" => "Pi(A, \%x. B)"

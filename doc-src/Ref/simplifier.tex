@@ -515,7 +515,7 @@ interpretation ${\tt sum}(f,n+1) = \sum@{i=0}^n f(i)$.  We extend {\tt
   Arith} using a theory file:
 \begin{ttbox}
 NatSum = Arith +
-consts sum     :: "[nat=>nat, nat] => nat"
+consts sum     :: [nat=>nat, nat] => nat
 rules  sum_0      "sum(f,0) = 0"
        sum_Suc    "sum(f,Suc(n)) = f(n) + sum(f,n)"
 end
