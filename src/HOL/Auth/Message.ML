@@ -124,6 +124,12 @@ by (Asm_full_simp_tac 1);
 qed "parts_emptyE";
 AddSEs [parts_emptyE];
 
+(*WARNING: loops if H = {Y}, therefore must not be repeated!*)
+goal thy "!!H. X: parts H ==> EX Y:H. X: parts {Y}";
+be parts.induct 1;
+by (ALLGOALS Fast_tac);
+qed "parts_singleton";
+
 
 (** Unions **)
 

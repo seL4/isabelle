@@ -102,9 +102,9 @@ inductive traces
           |] ==> (Says A Server {|Agent A, Agent B, Nonce (newN evs)|}) 
                  # evs : traces"
 
-          (*We can't trust the sender field: change that A to A'?  *)
-    NS2  "[| evs: traces;  A ~= B;
-             evs = (Says A Server {|Agent A, Agent B, Nonce NA|}) # evs'
+          (*We can't trust the sender field, hence the A' in it  *)
+    NS2  "[| evs: traces;  A ~= B;  A ~= Server;
+             evs = (Says A' Server {|Agent A, Agent B, Nonce NA|}) # evs'
           |] ==> (Says Server A 
                   (Crypt {|Nonce NA, Agent B, Key (newK evs),   
                            (Crypt {|Key (newK evs), Agent A|} (serverKey B))|}
