@@ -715,12 +715,13 @@ syntactic) or type constructors.
 {\tt print_syntax} displays the sets of names associated with the
 translation functions of a theory under
 \ttindex{parse_ast_translation}, \ttindex{parse_translation},
-\ttindex{print_translation} and \ttindex{print_ast_translation}.  You
-can add new ones via the {\tt ML} section\index{*ML section} of a
-theory definition file.  There may never be more than one function of
-the same kind per name.  Even though the {\tt ML} section is the very
-last part of the file, newly installed translation functions are
-already effective when processing all of the preceding sections.
+\ttindex{print_translation} (or \ttindex{typed_print_translation}) and
+\ttindex{print_ast_translation}.  You can add new ones via the {\tt
+  ML} section\index{*ML section} of a theory definition file.  There
+may never be more than one function of the same kind per name.  Even
+though the {\tt ML} section is the very last part of the file, newly
+installed translation functions are already effective when processing
+all of the preceding sections.
 
 The {\tt ML} section's contents are simply copied verbatim near the
 beginning of the \ML\ file generated from a theory definition file.
@@ -733,7 +734,8 @@ val parse_ast_translation   : (string * (ast list -> ast)) list
 val print_ast_translation   : (string * (ast list -> ast)) list
 val parse_translation       : (string * (term list -> term)) list
 val print_translation       : (string * (term list -> term)) list
-val typed_print_translation : (string * (typ -> term list -> term)) list
+val typed_print_translation :
+    (string * (bool -> typ -> term list -> term)) list
 \end{ttbox}
 
 \subsection{The translation strategy}
@@ -751,7 +753,8 @@ combination has the form $\ttfct{Const} (c, \tau)$ or $\ttfct{Const}
 (c, \tau) \ttapp x@1 \ttapp \ldots \ttapp x@n$.  Terms allow more
 sophisticated transformations than \AST{}s do, typically involving
 abstractions and bound variables. {\em Typed} print translations may
-even peek at the type $\tau$ of the constant they are invoked on.
+even peek at the type $\tau$ of the constant they are invoked on; they
+are also passed the current value of the \ttindex{show_sorts} flag.
 
 Regardless of whether they act on terms or \AST{}s, translation
 functions called during the parsing process differ from those for
