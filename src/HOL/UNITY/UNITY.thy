@@ -72,6 +72,9 @@ done
 lemma insert_Id_Acts [iff]: "insert Id (Acts F) = Acts F"
 by (simp add: insert_absorb Id_in_Acts)
 
+lemma Acts_nonempty [simp]: "Acts F \<noteq> {}"
+by auto
+
 lemma Id_in_AllowedActs [iff]: "Id \<in> AllowedActs F"
 apply (cut_tac x = F in Rep_Program)
 apply (auto simp add: program_typedef) 

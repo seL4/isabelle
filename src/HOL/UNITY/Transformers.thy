@@ -48,15 +48,23 @@ lemma wp_totalize_act:
      "wp (totalize_act act) B = (wp act B \<inter> Domain act) \<union> (B - Domain act)"
 by (simp add: wp_def totalize_act_def, blast)
 
+lemma awp_subset: "(awp F A \<subseteq> A)"
+by (force simp add: awp_def wp_def)
+
 lemma awp_Int_eq: "awp F (A\<inter>B) = awp F A \<inter> awp F B"
 by (simp add: awp_def wp_def, blast) 
 
 text{*The fundamental theorem for awp*}
-theorem awp_iff: "(A <= awp F B) = (F \<in> A co B)"
+theorem awp_iff_constrains: "(A <= awp F B) = (F \<in> A co B)"
 by (simp add: awp_def constrains_def wp_iff INT_subset_iff) 
 
-theorem stable_iff_awp: "(A \<subseteq> awp F A) = (F \<in> stable A)"
-by (simp add: awp_iff stable_def) 
+lemma awp_iff_stable: "(A \<subseteq> awp F A) = (F \<in> stable A)"
+by (simp add: awp_iff_constrains stable_def) 
+
+lemma stable_imp_awp_ident: "F \<in> stable A ==> awp F A = A"
+apply (rule equalityI [OF awp_subset]) 
+apply (simp add: awp_iff_stable) 
+done
 
 lemma awp_mono: "(A \<subseteq> B) ==> awp F A \<subseteq> awp F B"
 by (simp add: awp_def wp_def, blast)
@@ -168,8 +176,8 @@ done
 
 lemma leadsTo_imp_wens_set: "F \<in> A leadsTo B ==> \<exists>C \<in> wens_set F B. A \<subseteq> C"
 apply (erule leadsTo_induct_pre)
-  apply (blast dest!: ensures_imp_wens intro: wens_set.Basis wens_set.Wens, clarify) 
- apply (drule ensures_weaken_R, assumption)  
+  apply (blast dest!: ensures_imp_wens intro: wens_set.Basis wens_set.Wens) 
+ apply (clarify, drule ensures_weaken_R, assumption)  
  apply (blast dest!: ensures_imp_wens intro: wens_set.Wens)
 apply (case_tac "S={}") 
  apply (simp, blast intro: wens_set.Basis)
@@ -197,8 +205,7 @@ text{*Assertion (4.30) of thesis, reoriented*}
 lemma awp_Join_eq: "awp (F\<squnion>G) B = awp F B \<inter> awp G B"
 by (simp add: awp_def wp_def, blast)
 
-lemma wens_subset: 
-     "wens F act B - B \<subseteq> wp act B \<inter> awp F (B \<union> wens F act B)"
+lemma wens_subset: "wens F act B - B \<subseteq> wp act B \<inter> awp F (B \<union> wens F act B)"
 by (subst wens_unfold, fast) 
 
 text{*Assertion (4.31)*}
@@ -239,8 +246,7 @@ apply (subgoal_tac "T-X \<subseteq> awp F T")
 apply (rule_tac B = "wens (F\<squnion>G) act (T\<inter>X)" in subset_trans) 
  prefer 2 apply (blast intro!: wens_mono)
 apply (subst wens_Int_eq, assumption+) 
-apply (rule subset_wens_Join [of _ T], simp) 
- apply blast
+apply (rule subset_wens_Join [of _ T], simp, blast)
 apply (subgoal_tac "T \<inter> wens F act (T\<inter>X) \<union> T\<inter>X = T \<inter> wens F act X")
  prefer 2
  apply (subst wens_Int_eq [symmetric], assumption+) 
@@ -388,8 +394,7 @@ lemma subset_wens_single_finite:
       "[|W \<subseteq> wens_single_finite act B ` (atMost k); single_valued act; W\<noteq>{}|]
        ==> \<exists>m. \<Union>W = wens_single_finite act B m"
 apply (induct k)
- apply (rule_tac x=0 in exI, simp) 
- apply blast 
+ apply (rule_tac x=0 in exI, simp, blast) 
 apply (auto simp add: atMost_Suc) 
 apply (case_tac "wens_single_finite act B (Suc n) \<in> W") 
  prefer 2 apply blast 
@@ -469,11 +474,8 @@ text{*Generalizing Misra's Fixed Point Union Theorem (4.41)*}
 
 lemma fp_leadsTo_Union:
     "[|T-B \<subseteq> awp F T; T-B \<subseteq> FP G; F \<in> A leadsTo B|] ==> F\<squnion>G \<in> T\<inter>A leadsTo B"
-apply (rule leadsTo_Union) 
-apply assumption; 
- apply (simp add: FP_def awp_iff stable_def constrains_def) 
- apply (blast intro: elim:); 
-apply assumption; 
+apply (rule leadsTo_Union, assumption)
+ apply (simp add: FP_def awp_iff_constrains stable_def constrains_def, blast, assumption)
 done
 
 end
