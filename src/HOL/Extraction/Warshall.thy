@@ -250,7 +250,7 @@ extract warshall
 
 text {*
   The program extracted from the above proof looks as follows
-  @{thm [display] warshall_def [no_vars]}
+  @{thm [display, eta_contract=false] warshall_def [no_vars]}
   The corresponding correctness theorem is
   @{thm [display] warshall_correctness [no_vars]}
 *}
