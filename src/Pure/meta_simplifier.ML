@@ -921,14 +921,10 @@ fun rewrite_cterm mode prover mss ct =
       Pretty.string_of (Display.pretty_thms thms));
 
 (*In [A1,...,An]==>B, rewrite the selected A's only -- for rewrite_goals_tac*)
-(*Do not rewrite flex-flex pairs*)
 fun goals_conv pred cv =
   let fun gconv i ct =
         let val (A,B) = Drule.dest_implies ct
-            val (thA,j) = case term_of A of
-                  Const("=?=",_)$_$_ => (reflexive A, i)
-                | _ => (if pred i then cv A else reflexive A, i+1)
-        in  imp_cong' thA (gconv j B) end
+        in imp_cong' (if pred i then cv A else reflexive A) (gconv (i+1) B) end
         handle TERM _ => reflexive ct
   in gconv 1 end;
 
