@@ -291,6 +291,17 @@ lemma impossible_Cons [rule_format]:
 apply (induct xs, auto)
 done
 
+lemma list_induct2[consumes 1]: "\<And>ys.
+ \<lbrakk> length xs = length ys;
+   P [] [];
+   \<And>x xs y ys. \<lbrakk> length xs = length ys; P xs ys \<rbrakk> \<Longrightarrow> P (x#xs) (y#ys) \<rbrakk>
+ \<Longrightarrow> P xs ys"
+apply(induct xs)
+ apply simp
+apply(case_tac ys)
+ apply simp
+apply(simp)
+done
 
 subsection {* @{text "@"} -- append *}
 
@@ -968,10 +979,8 @@ zip (xs@ys) (us@vs) = zip xs us @ zip ys vs"
 by (simp add: zip_append1)
 
 lemma zip_rev:
-"!!xs. length xs = length ys ==> zip (rev xs) (rev ys) = rev (zip xs ys)"
-apply (induct ys, simp)
-apply (case_tac xs, simp_all)
-done
+"length xs = length ys ==> zip (rev xs) (rev ys) = rev (zip xs ys)"
+by (induct rule:list_induct2, simp_all)
 
 lemma nth_zip [simp]:
 "!!i xs. [| i < length xs; i < length ys|] ==> (zip xs ys)!i = (xs!i, ys!i)"
@@ -1051,11 +1060,9 @@ apply (simp add: ball_Un)
 done
 
 lemma list_all2_append:
-  "\<And>b. length a = length b \<Longrightarrow>
-  list_all2 P (a@c) (b@d) = (list_all2 P a b \<and> list_all2 P c d)"
-  apply (induct a, simp)
-  apply (case_tac b, auto)
-  done
+  "length xs = length ys \<Longrightarrow>
+  list_all2 P (xs@us) (ys@vs) = (list_all2 P xs ys \<and> list_all2 P us vs)"
+by (induct rule:list_induct2, simp_all)
 
 lemma list_all2_appendI [intro?, trans]:
   "\<lbrakk> list_all2 P a b; list_all2 P c d \<rbrakk> \<Longrightarrow> list_all2 P (a@c) (b@d)"
