@@ -171,9 +171,9 @@ val singletonE = prove_goal ZF.thy "[| a: {b};  a=b ==> P |] ==> P"
 
 val the_equality = prove_goalw ZF.thy [the_def]
     "[| P(a);  !!x. P(x) ==> x=a |] ==> (THE x. P(x)) = a"
- (fn prems=>
-  [ (fast_tac (lemmas_cs addIs ([equalityI,singletonI]@prems) 
-	                 addEs (prems RL [subst])) 1) ]);
+ (fn [pa,eq] =>
+  [ (fast_tac (lemmas_cs addSIs [singletonI,pa] addIs [equalityI]
+	                 addEs [eq RS subst]) 1) ]);
 
 (* Only use this if you already know EX!x. P(x) *)
 val the_equality2 = prove_goal ZF.thy
