@@ -9,7 +9,7 @@ Summing natural numbers, squares and cubes. Could be continued...
 Addsimps ([NatSum.sum_0,NatSum.sum_Suc] @ add_ac);
 
 (*The sum of the first n positive integers equals n(n+1)/2.*)
-goal NatSum.thy "Suc(Suc(0))*sum (%i.i) (Suc n) = n*Suc(n)";
+goal NatSum.thy "2*sum (%i.i) (Suc n) = n*Suc(n)";
 by (Simp_tac 1);
 by (nat_ind_tac "n" 1);
 by (Simp_tac 1);
