@@ -53,12 +53,6 @@ by (ALLGOALS Simp_tac);
 by (etac ([perm.swap, perm.Cons] MRS perm.trans) 1);
 qed "perm_append_Cons";
 
-(*single steps
-by (rtac perm.trans 1);
-by (rtac perm.swap 1);
-by (rtac perm.Cons 1);
-*)
-
 Goal "xs@ys <~~> ys@xs";
 by (induct_tac "xs" 1);
 by (ALLGOALS Simp_tac);
@@ -115,19 +109,16 @@ AddIffs [perm_empty2];
 Goal "ys <~~> xs ==> xs=[y] --> ys=[y]";
 by (etac perm.induct 1);
 by Auto_tac;
-qed "perm_one_elem_imp";
+qed_spec_mp "perm_sing_imp";
 
 Goal "(ys <~~> [y]) = (ys = [y])"; 
-by Safe_tac;
-by (rtac mp 1);
-by (rtac perm_one_elem_imp 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [perm_refl])));
+by (blast_tac (claset() addIs [perm_sing_imp]) 1);
 qed "perm_sing_eq";
 AddIffs [perm_sing_eq];
 
 Goal "([y] <~~> ys) = (ys = [y])"; 
 by Auto_tac;
-bd perm_sym 1;
+by (dtac perm_sym 1);
 by Auto_tac;
 qed "perm_sing_eq2";
 AddIffs [perm_sing_eq2];
@@ -174,3 +165,12 @@ Goal "(zs@xs <~~> zs@ys) = (xs <~~> ys)";
 by (blast_tac (claset() addIs [append_perm_imp_perm, perm_append1]) 1);
 qed "perm_append1_eq";
 AddIffs [perm_append1_eq];
+
+Goal "(xs@zs <~~> ys@zs) = (xs <~~> ys)";
+by (safe_tac (claset() addSIs [perm_append2]));
+by (rtac append_perm_imp_perm 1);
+by (rtac (perm_append_swap RS perm.trans) 1);
+(*Not clear why this blast_tac alone can't find the proof.*)
+by (blast_tac (claset() addIs [perm_append_swap, perm.trans]) 1);
+qed "perm_append2_eq";
+AddIffs [perm_append2_eq];
