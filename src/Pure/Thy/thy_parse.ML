@@ -201,12 +201,8 @@ val class_decls = repeat1 (subclass >> mk_pair) >> mk_big_list;
 
 (* arities *)
 
-val sort =
-  name >> brackets ||
-  "{" $$-- name_list --$$ "}";
-
+val sort = name || "{" $$-- list ident --$$ "}" >> (quote o enclose "{" "}" o commas);
 val sort_list1 = list1 sort >> mk_list;
-
 
 val arity = optional ("(" $$-- !! (sort_list1 --$$")")) "[]" -- sort;
 

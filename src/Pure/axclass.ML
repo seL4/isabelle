@@ -19,9 +19,9 @@ sig
     -> tactic option -> theory -> theory
   val add_inst_subclass_i: class * class -> string list -> thm list
     -> tactic option -> theory -> theory
-  val add_inst_arity: xstring * xsort list * xclass list -> string list
+  val add_inst_arity: xstring * string list * string -> string list
     -> thm list -> tactic option -> theory -> theory
-  val add_inst_arity_i: string * sort list * class list -> string list
+  val add_inst_arity_i: string * sort list * sort -> string list
     -> thm list -> tactic option -> theory -> theory
   val axclass_tac: thm list -> tactic
   val prove_subclass: theory -> class * class -> thm list
@@ -29,10 +29,10 @@ sig
   val prove_arity: theory -> string * sort list * class -> thm list
     -> tactic option -> thm
   val goal_subclass: theory -> xclass * xclass -> thm list
-  val goal_arity: theory -> xstring * xsort list * xclass -> thm list
+  val goal_arity: theory -> xstring * string list * xclass -> thm list
   val instance_subclass_proof: (xclass * xclass) * Comment.text -> bool -> theory -> ProofHistory.T
   val instance_subclass_proof_i: (class * class) * Comment.text -> bool -> theory -> ProofHistory.T
-  val instance_arity_proof: (xstring * xsort list * xclass) * Comment.text
+  val instance_arity_proof: (xstring * string list * xclass) * Comment.text
     -> bool -> theory -> ProofHistory.T
   val instance_arity_proof_i: (string * sort list * class) * Comment.text
     -> bool -> theory -> ProofHistory.T
@@ -146,7 +146,7 @@ fun add_classrel_thms thms thy =
         val (c1, c2) = dest_classrel prop handle TERM _ =>
           raise THM ("add_classrel_thms: theorem is not a class relation", 0, [thm]);
       in (c1, c2) end;
-  in Theory.add_classrel (map prep_thm thms) thy end;
+  in Theory.add_classrel_i (map prep_thm thms) thy end;
 
 (*theorems expressing arities*)
 fun add_arity_thms thms thy =
@@ -157,7 +157,7 @@ fun add_arity_thms thms thy =
         val (t, ss, c) = dest_arity prop handle TERM _ =>
           raise THM ("add_arity_thms: theorem is not an arity", 0, [thm]);
       in (t, ss, [c]) end;
-  in Theory.add_arities (map prep_thm thms) thy end;
+  in Theory.add_arities_i (map prep_thm thms) thy end;
 
 
 
@@ -357,15 +357,32 @@ val prove_arity =
 
 (** add proved subclass relations and arities **)
 
-fun intrn_classrel sg c1_c2 =
-  pairself (Sign.intern_class sg) c1_c2;
+(* prepare classes and arities *)
 
-fun intrn_arity intrn sg (raw_t, Ss, x) =
-  let val t = Sign.intern_tycon sg raw_t in
-    if Sign.is_type_abbr sg t then error ("Illegal type abbreviation: " ^ quote t)
-    else (t, map (Sign.intern_sort sg) Ss, intrn sg x)
+fun read_class sg c = Sign.certify_class sg (Sign.intern_class sg c);
+
+fun cert_classrel sg cc = Library.pairself (Sign.certify_class sg) cc;
+fun read_classrel sg cc = Library.pairself (read_class sg) cc;
+
+fun check_tycon sg t =
+  let val {tycons, abbrs, ...} = Type.rep_tsig (Sign.tsig_of sg) in
+    if is_some (Symtab.lookup (abbrs, t)) then
+      error ("Illegal type abbreviation: " ^ quote t)
+    else if is_none (Symtab.lookup (tycons, t)) then
+      error ("Undeclared type constructor: " ^ quote t)
+    else t
   end;
 
+fun prep_arity prep_tycon prep_sort prep_x sg (t, Ss, x) =
+  (check_tycon sg (prep_tycon sg t), map (prep_sort sg) Ss, prep_x sg x);
+
+val read_arity = prep_arity Sign.intern_tycon Sign.read_sort Sign.read_sort;
+val cert_arity = prep_arity (K I) Sign.certify_sort Sign.certify_sort;
+val read_simple_arity = prep_arity Sign.intern_tycon Sign.read_sort Sign.intern_class;
+val cert_simple_arity = prep_arity (K I) Sign.certify_sort (K I);
+
+
+(* old-style instance declarations *)
 
 fun ext_inst_subclass prep_classrel raw_c1_c2 names thms usr_tac thy =
   let val c1_c2 = prep_classrel (Theory.sign_of thy) raw_c1_c2 in
@@ -386,10 +403,10 @@ fun ext_inst_arity prep_arity (raw_t, raw_Ss, raw_cs) names thms usr_tac thy =
   in add_arity_thms (map prove cs) thy end;
 
 
-val add_inst_subclass = ext_inst_subclass intrn_classrel;
-val add_inst_subclass_i = ext_inst_subclass (K I);
-val add_inst_arity = ext_inst_arity (intrn_arity Sign.intern_sort);
-val add_inst_arity_i = ext_inst_arity (K I);
+val add_inst_subclass = ext_inst_subclass read_classrel;
+val add_inst_subclass_i = ext_inst_subclass cert_classrel;
+val add_inst_arity = ext_inst_arity read_arity;
+val add_inst_arity_i = ext_inst_arity cert_arity;
 
 
 (* make old-style interactive goals *)
@@ -397,8 +414,8 @@ val add_inst_arity_i = ext_inst_arity (K I);
 fun mk_goal mk_prop thy sig_prop =
   Goals.goalw_cterm [] (Thm.cterm_of (Theory.sign_of thy) (mk_prop (Theory.sign_of thy) sig_prop));
 
-val goal_subclass = mk_goal (mk_classrel oo intrn_classrel);
-val goal_arity = mk_goal (mk_arity oo intrn_arity Sign.intern_class);
+val goal_subclass = mk_goal (mk_classrel oo read_classrel);
+val goal_arity = mk_goal (mk_arity oo read_simple_arity);
 
 
 
@@ -411,10 +428,10 @@ fun inst_proof mk_prop add_thms (sig_prop, comment) int thy =
   |> IsarThy.theorem_i (("", [inst_attribute add_thms],
     (mk_prop (Theory.sign_of thy) sig_prop, ([], []))), comment) int;
 
-val instance_subclass_proof = inst_proof (mk_classrel oo intrn_classrel) add_classrel_thms;
-val instance_subclass_proof_i = inst_proof (K mk_classrel) add_classrel_thms;
-val instance_arity_proof = inst_proof (mk_arity oo intrn_arity Sign.intern_class) add_arity_thms;
-val instance_arity_proof_i = inst_proof (K mk_arity) add_arity_thms;
+val instance_subclass_proof = inst_proof (mk_classrel oo read_classrel) add_classrel_thms;
+val instance_subclass_proof_i = inst_proof (mk_classrel oo cert_classrel) add_classrel_thms;
+val instance_arity_proof = inst_proof (mk_arity oo read_simple_arity) add_arity_thms;
+val instance_arity_proof_i = inst_proof (mk_arity oo cert_simple_arity) add_arity_thms;
 
 
 

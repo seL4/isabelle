@@ -40,7 +40,7 @@ sig
   val add_classes_i: (bclass * class list) list -> theory -> theory
   val add_classrel: (xclass * xclass) list -> theory -> theory
   val add_classrel_i: (class * class) list -> theory -> theory
-  val add_defsort: xsort -> theory -> theory
+  val add_defsort: string -> theory -> theory
   val add_defsort_i: sort -> theory -> theory
   val add_types: (bstring * int * mixfix) list -> theory -> theory
   val add_nonterminals: bstring list -> theory -> theory
@@ -48,7 +48,7 @@ sig
     -> theory -> theory
   val add_tyabbrs_i: (bstring * string list * typ * mixfix) list
     -> theory -> theory
-  val add_arities: (xstring * xsort list * xsort) list -> theory -> theory
+  val add_arities: (xstring * string list * string) list -> theory -> theory
   val add_arities_i: (string * sort list * sort) list -> theory -> theory
   val add_consts: (bstring * string * mixfix) list -> theory -> theory
   val add_consts_i: (bstring * typ * mixfix) list -> theory -> theory

@@ -28,14 +28,14 @@ sig
   val add_classes_i: (bclass * class list) list * Comment.text  -> theory -> theory
   val add_classrel: (xclass * xclass) * Comment.text -> theory -> theory
   val add_classrel_i: (class * class) * Comment.text -> theory -> theory
-  val add_defsort: xsort * Comment.text -> theory -> theory
+  val add_defsort: string * Comment.text -> theory -> theory
   val add_defsort_i: sort * Comment.text -> theory -> theory
   val add_nonterminals: (bstring * Comment.text) list -> theory -> theory
   val add_tyabbrs: ((bstring * string list * string * mixfix) * Comment.text) list
     -> theory -> theory
   val add_tyabbrs_i: ((bstring * string list * typ * mixfix) * Comment.text) list
     -> theory -> theory
-  val add_arities: ((xstring * xsort list * xsort) * Comment.text) list -> theory -> theory
+  val add_arities: ((xstring * string list * string) * Comment.text) list -> theory -> theory
   val add_arities_i: ((string * sort list * sort) * Comment.text) list -> theory -> theory
   val add_typedecl: (bstring * string list * mixfix) * Comment.text -> theory -> theory
   val add_consts: ((bstring * string * mixfix) * Comment.text) list -> theory -> theory
