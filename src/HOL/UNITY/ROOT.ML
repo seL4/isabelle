@@ -25,9 +25,11 @@ time_use_thy "Reach";
 time_use_thy "Handshake";
 time_use_thy "Lift";
 time_use_thy "Comp";
+(*Allocator example*)
 time_use_thy "Client";
 time_use_thy "Extend";
 time_use_thy "PPROD";
+time_use_thy "Follows";
 
 add_path "../Auth";	(*to find Public.thy*)
 use_thy"NSP_Bad";
