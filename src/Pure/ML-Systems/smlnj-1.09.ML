@@ -14,6 +14,10 @@ fun quit () = exit 0;
 fun print_depth n = (Compiler.Control.Print.printDepth := n div 2;
                      Compiler.Control.Print.printLength := n);
 
+Compiler.Control.primaryPrompt := "> ";
+Compiler.Control.secondaryPrompt := "# ";
+
+
 (*Interface for toplevel pretty printers, see also Pure/install_pp.ML*)
 
 fun make_pp path pprint =
