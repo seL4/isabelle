@@ -11,7 +11,7 @@ by (induct_tac "xs" 1);
 by Auto_tac;
 qed "multiset_append";
 
-Goal "multiset [x:xs. ~p(x)] x + multiset [x:xs. p(x)] x = multiset xs x";
+Goal "multiset [x:xs. ~p(x)] z + multiset [x:xs. p(x)] z = multiset xs z";
 by (induct_tac "xs" 1);
 by Auto_tac;
 qed "multiset_compl_add";
