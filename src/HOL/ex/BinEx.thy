@@ -8,6 +8,122 @@ header {* Binary arithmetic examples *}
 
 theory BinEx = Main:
 
+subsection {* Regression Testing for Cancellation Simprocs *}
+
+(*taken from HOL/Integ/int_arith1.ML *)
+
+
+lemma "l + 2 + 2 + 2 + (l + 2) + (oo + 2) = (uu::int)"
+apply simp  oops
+
+lemma "2*u = (u::int)"
+apply simp  oops
+
+lemma "(i + j + 12 + (k::int)) - 15 = y"
+apply simp  oops
+
+lemma "(i + j + 12 + (k::int)) - 5 = y"
+apply simp  oops
+
+lemma "y - b < (b::int)"
+apply simp  oops
+
+lemma "y - (3*b + c) < (b::int) - 2*c"
+apply simp  oops
+
+lemma "(2*x - (u*v) + y) - v*3*u = (w::int)"
+apply simp  oops
+
+lemma "(2*x*u*v + (u*v)*4 + y) - v*u*4 = (w::int)"
+apply simp  oops
+
+lemma "(2*x*u*v + (u*v)*4 + y) - v*u = (w::int)"
+apply simp  oops
+
+lemma "u*v - (x*u*v + (u*v)*4 + y) = (w::int)"
+apply simp  oops
+
+lemma "(i + j + 12 + (k::int)) = u + 15 + y"
+apply simp  oops
+
+lemma "(i + j*2 + 12 + (k::int)) = j + 5 + y"
+apply simp  oops
+
+lemma "2*y + 3*z + 6*w + 2*y + 3*z + 2*u = 2*y' + 3*z' + 6*w' + 2*y' + 3*z' + u + (vv::int)"
+apply simp  oops
+
+lemma "a + -(b+c) + b = (d::int)"
+apply simp  oops
+
+lemma "a + -(b+c) - b = (d::int)"
+apply simp  oops
+
+(*negative numerals*)
+lemma "(i + j + -2 + (k::int)) - (u + 5 + y) = zz"
+apply simp  oops
+
+lemma "(i + j + -3 + (k::int)) < u + 5 + y"
+apply simp  oops
+
+lemma "(i + j + 3 + (k::int)) < u + -6 + y"
+apply simp  oops
+
+lemma "(i + j + -12 + (k::int)) - 15 = y"
+apply simp  oops
+
+lemma "(i + j + 12 + (k::int)) - -15 = y"
+apply simp  oops
+
+lemma "(i + j + -12 + (k::int)) - -15 = y"
+apply simp  oops
+
+
+subsection {* Arithmetic Method Tests *}
+
+
+lemma "!!a::int. [| a <= b; c <= d; x+y<z |] ==> a+c <= b+d"
+by arith
+
+lemma "!!a::int. [| a < b; c < d |] ==> a-d+ 2 <= b+(-c)"
+by arith
+
+lemma "!!a::int. [| a < b; c < d |] ==> a+c+ 1 < b+d"
+by arith
+
+lemma "!!a::int. [| a <= b; b+b <= c |] ==> a+a <= c"
+by arith
+
+lemma "!!a::int. [| a+b <= i+j; a<=b; i<=j |] ==> a+a <= j+j"
+by arith
+
+lemma "!!a::int. [| a+b < i+j; a<b; i<j |] ==> a+a - - -1 < j+j - 3"
+by arith
+
+lemma "!!a::int. a+b+c <= i+j+k & a<=b & b<=c & i<=j & j<=k --> a+a+a <= k+k+k"
+by arith
+
+lemma "!!a::int. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |]
+      ==> a <= l"
+by arith
+
+lemma "!!a::int. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |]
+      ==> a+a+a+a <= l+l+l+l"
+by arith
+
+lemma "!!a::int. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |]
+      ==> a+a+a+a+a <= l+l+l+l+i"
+by arith
+
+lemma "!!a::int. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |]
+      ==> a+a+a+a+a+a <= l+l+l+l+i+l"
+by arith
+
+lemma "!!a::int. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |]
+      ==> 6*a <= 5*l+i"
+by arith
+
+
+
 subsection {* The Integers *}
 
 text {* Addition *}
@@ -349,7 +465,7 @@ lemma bin_minus_normal: "w \<in> normal ==> bin_minus w \<in> normal"
   apply (rule normal.intros)
    apply assumption
   apply (simp add: normal_Pls_eq_0)
-  apply (simp only: number_of_minus zminus_0 iszero_def 
+  apply (simp only: number_of_minus zminus_0 iszero_def
                     zminus_equation [of _ "0"])
   apply (simp add: eq_commute)
   done

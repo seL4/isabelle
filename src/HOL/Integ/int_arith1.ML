@@ -175,6 +175,11 @@ val bin_simps = [int_numeral_0_eq_0 RS sym, int_numeral_1_eq_1 RS sym,
                  add_number_of_left, mult_number_of_left] @
                 bin_arith_simps @ bin_rel_simps;
 
+(*Binary arithmetic BUT NOT ADDITION since it may collapse adjacent terms
+  during re-arrangement*)
+val non_add_bin_simps = 
+    bin_simps \\ [add_number_of_left, number_of_add RS sym];
+
 (*To evaluate binary negations of coefficients*)
 val zminus_simps = NCons_simps @
                    [zminus_1_eq_m1, number_of_minus RS sym,
@@ -215,7 +220,7 @@ structure CancelNumeralsCommon =
   val norm_tac =
      ALLGOALS (simp_tac (HOL_ss addsimps numeral_syms@add_0s@mult_1s@
                                          diff_simps@zminus_simps@zadd_ac))
-     THEN ALLGOALS (simp_tac (HOL_ss addsimps bin_simps@int_mult_minus_simps))
+     THEN ALLGOALS (simp_tac (HOL_ss addsimps non_add_bin_simps@int_mult_minus_simps))
      THEN ALLGOALS (simp_tac (HOL_ss addsimps int_minus_from_mult_simps@
                                               zadd_ac@zmult_ac))
   val numeral_simp_tac  = ALLGOALS (simp_tac (HOL_ss addsimps add_0s@bin_simps))
@@ -282,7 +287,7 @@ structure CombineNumeralsData =
   val norm_tac =
      ALLGOALS (simp_tac (HOL_ss addsimps numeral_syms@add_0s@mult_1s@
                                          diff_simps@zminus_simps@zadd_ac))
-     THEN ALLGOALS (simp_tac (HOL_ss addsimps bin_simps@int_mult_minus_simps))
+     THEN ALLGOALS (simp_tac (HOL_ss addsimps non_add_bin_simps@int_mult_minus_simps))
      THEN ALLGOALS (simp_tac (HOL_ss addsimps int_minus_from_mult_simps@
                                               zadd_ac@zmult_ac))
   val numeral_simp_tac  = ALLGOALS
