@@ -364,6 +364,8 @@ fun clearTo n =
 
 
 (*First-order unification with bound variables.  
+  "allowClash", if true, treats OConst and Const as the same;
+	we do so when closing a branch but not when applying rules!
   "vars" is a list of variables local to the rule and NOT to be put
 	on the trail (no point in doing so)
 *)
@@ -848,6 +850,8 @@ fun prove (sign, cs, brs, cont) =
      fun prv (tacs, trs, choices, []) = cont (tacs, trs, choices)
        | prv (tacs, trs, choices, 
 	      brs0 as (((G,md)::br, haz)::pairs, lits, vars, lim) :: brs) =
+   	     (*apply a safe rule only (possibly allowing instantiation);
+               defer any haz formulae*)
 	  let exception PRV (*backtrack to precisely this recursion!*)
 	      val ntrl = !ntrail 
 	      val nbrs = length brs0
@@ -941,7 +945,7 @@ fun prove (sign, cs, brs, cont) =
 		 deeper rules
 		  handle NEWBRANCHES => 
 		   (case netMkRules G vars hazList of
-		       [] => (*no plausible rules: move G to literals*)
+		       [] => (*no plausible haz rules: move G to literals*)
 			   prv (tacs, brs0::trs, choices,
 				((br,haz)::pairs, addLit(G,lits), vars, lim)
 				::brs)
@@ -992,9 +996,18 @@ fun prove (sign, cs, brs, cont) =
 				   both dup and recur are false.  Proofs are
 				   found at shallower depths, but looping
 				   occurs too often...*)
-			 val mayUndo = not(null grls)   (*other rules to try?*)
-				     orelse ntrl < ntrl' (*variables updated?*)
-				     orelse vars=vars'   (*no new Vars?*)
+			 val mayUndo = 
+			     (*Allowing backtracking from a rule application
+			       if other matching rules exist, if the rule
+			       updated variables, or if the rule did not
+			       introduce new variables.  This latter condition
+			       means it is not a standard "gamma-rule" but
+			       some other form of unsafe rule.  Aim is to
+			       emulate Fast_tac, which allows all unsafe steps
+			       to be undone.*)
+			     not(null grls)   (*other rules to try?*)
+			     orelse ntrl < ntrl' (*variables updated?*)
+			     orelse vars=vars'   (*no new Vars?*)
 			 val tac' = if mayUndo then tac dup
 				    else DETERM o (tac dup) 
 		     in
