@@ -699,18 +699,20 @@ while the Simplifier is the canonical tool for automated normalization (see
 
 \subsection{Automated methods}\label{sec:classical-auto}
 
-\indexisarmeth{blast}\indexisarmeth{fast}\indexisarmeth{best}\indexisarmeth{clarify}
+\indexisarmeth{blast}\indexisarmeth{fast}\indexisarmeth{best}
+\indexisarmeth{safe}\indexisarmeth{clarify}
 \begin{matharray}{rcl}
- blast & : & \isarmeth \\
- fast & : & \isarmeth \\
- best & : & \isarmeth \\
- clarify & : & \isarmeth \\
+  blast & : & \isarmeth \\
+  fast & : & \isarmeth \\
+  best & : & \isarmeth \\
+  safe & : & \isarmeth \\
+  clarify & : & \isarmeth \\
 \end{matharray}
 
 \begin{rail}
   'blast' ('!' ?) nat? (clamod * )
   ;
-  ('fast' | 'best' | 'clarify') ('!' ?) (clamod * )
+  ('fast' | 'best' | 'clarify' | 'safe') ('!' ?) (clamod * )
   ;
 
   clamod: (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del') ':' thmrefs
@@ -724,9 +726,9 @@ while the Simplifier is the canonical tool for automated normalization (see
   classical proof procedure in Isabelle that can handle actual object-logic
   rules as local assumptions ($fast$ etc.\ would just ignore non-atomic
   facts).
-\item [$fast$, $best$, and $clarify$] refer to the generic classical reasoner.
-  See \texttt{fast_tac}, \texttt{best_tac}, and \texttt{clarify_tac} in
-  \cite[\S11]{isabelle-ref} for more information.
+\item [$fast$, $best$, $safe$, and $clarify$] refer to the generic classical
+  reasoner.  See \texttt{fast_tac}, \texttt{best_tac}, \texttt{safe_tac}, and
+  \texttt{clarify_tac} in \cite[\S11]{isabelle-ref} for more information.
 \end{descr}
 
 Any of above methods support additional modifiers of the context of classical
@@ -751,7 +753,9 @@ This is slightly less hazardous than for the Simplifier (see
 \end{matharray}
 
 \begin{rail}
-  ('auto' | 'force' | 'clarsimp' | 'fastsimp') ('!' ?) (clasimpmod * )
+  'auto' '!'? (nat nat)? (clasimpmod * )
+  ;
+  ('force' | 'clarsimp' | 'fastsimp') '!'? (clasimpmod * )
   ;
 
   clasimpmod: ('simp' (() | 'add' | 'del' | 'only') |
