@@ -191,9 +191,23 @@ gzip $DISTNAME.tar
 gzip ${DISTNAME}_pdf.tar
 
 
+# cleanup dist
+
+mv $DISTNAME ${DISTNAME}-old
+mkdir $DISTNAME
+
+mv ${DISTNAME}-old/lib/logo/isabelle.gif .
+mv ${DISTNAME}-old/README.html ${DISTNAME}-old/INSTALL $DISTNAME
+mkdir $DISTNAME/doc && \
+  mv ${DISTNAME}-old/doc/*.pdf ${DISTNAME}-old/doc/Contents $DISTNAME/doc
+
+rm -rf ${DISTNAME}-old
+
+
 # prepare web pages
 
-$THIS/filesizes -norpm
+#FIXME
+#$THIS/filesizes -norpm
 
 
 # final note
