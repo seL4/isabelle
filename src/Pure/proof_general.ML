@@ -434,6 +434,11 @@ val inform_file_retracted =
 val inform_file_processed = 
     ThyInfo.if_known_thy ThyInfo.touch_child_thys o thy_name;
 
+fun if_known_thy_no_warning f name = if ThyInfo.known_thy name then f name else ();
+
+val openfile_retract = 
+    if_known_thy_no_warning ThyInfo.remove_thy o thy_name;
+
 fun proper_inform_file_processed file state =
   let val name = thy_name file in
     if Toplevel.is_toplevel state andalso ThyInfo.known_thy name then
@@ -646,6 +651,23 @@ fun send_pgip_config () =
 end
 
 
+(* Reveal some information about prover state *)
+fun send_informguise (openfile, opentheory, openproofpos) =
+    let val guisefile = 
+	    case openfile of SOME f => [XML.element "guisefile" 
+						    [("url",Url.pack (Url.File (Path.unpack f)))] []]
+			   | _ => []
+	val guisetheory = 
+	    case opentheory of SOME t => [XML.element "guisetheory" [("thyname", t)] []]
+			     | _ => []
+	val guiseproof = 
+	    case openproofpos of SOME i => [XML.element "guiseproof" [("proofpos", string_of_int i)] []]
+			       | _ => []
+    in 
+	issue_pgips [XML.element "informguise" [] (guisefile @ guisetheory @ guiseproof)]
+    end 
+
+
 (* PGIP identifier tables (prover objects). [incomplete] *)
 
 local
@@ -710,7 +732,8 @@ fun showid (_,        "theory", n) =
   | showid (_, ot, _) = error ("Cannot show objects of type "^ot)
 
 end
-	 
+
+
 (** Parsing proof scripts without execution **)
 
 (* Notes.
@@ -1138,6 +1161,10 @@ local
   val topthy_name = PureThy.get_name o topthy
 
   val currently_open_file = ref (NONE : string option)
+
+  val topnode = Toplevel.node_of o Toplevel.get_state
+  fun topproofpos () = (case topnode() of Toplevel.Proof ph => SOME(ProofHistory.position ph) 
+					| _ => NONE) handle Toplevel.UNDEF => NONE
 in
 
 fun process_pgip_element pgipxml = (case pgipxml of 
@@ -1161,6 +1188,7 @@ fun process_pgip_element pgipxml = (case pgipxml of
      | "pgmlsymbolsoff"  => (print_mode := (!print_mode \ "xsymbols"))
      (* properproofcmd: proper commands which belong in script *)
      (* FIXME: next ten are by Eclipse interface, can be removed in favour of dostep *)
+     (* NB: Isar doesn't make lemma name of goal accessible during proof *)
      | "opengoal"       => isarscript data
      | "proofstep"      => isarscript data
      | "closegoal"      => isarscript data
@@ -1181,6 +1209,9 @@ fun process_pgip_element pgipxml = (case pgipxml of
      (* proofctxt: improper commands *)
      | "askids"         => askids (thyname_attro attrs, objtype_attro attrs)
      | "showid"	        => showid (thyname_attro attrs, objtype_attr attrs, name_attr attrs)
+     | "askguise"	=> send_informguise (!currently_open_file,
+					     SOME (topthy_name()) handle Toplevel.UNDEF => NONE,
+					     topproofpos())
      | "parsescript"    => parsescript (xmltext data) attrs (* just pass back attrs unchanged *)
      | "showproofstate" => isarcmd "pr"
      | "showctxt"       => isarcmd "print_theory"   (* more useful than print_context *)
@@ -1203,7 +1234,7 @@ fun process_pgip_element pgipxml = (case pgipxml of
      | "aborttheory"    => isarcmd ("init_toplevel")
      | "retracttheory"  => isarcmd ("kill_thy " ^ (quote (thyname_attr attrs)))
      | "loadfile"       => use_thy_or_ml_file (fileurl_of attrs)
-     | "openfile"       => (inform_file_retracted (fileurl_of attrs);
+     | "openfile"       => (openfile_retract (fileurl_of attrs);
 			    currently_open_file := SOME (fileurl_of attrs))
      | "closefile"      => (case !currently_open_file of 
 				SOME f => (inform_file_processed f;
