@@ -49,11 +49,8 @@ signature LOGIC =
   val varify		: term -> term  
   end;
 
-functor LogicFun (structure Unify: UNIFY and Net:NET): LOGIC =
+structure Logic : LOGIC =
 struct
-
-structure Sign = Unify.Sign;
-structure Type = Sign.Type;
 
 (*** Abstract syntax operations on the meta-connectives ***)
 

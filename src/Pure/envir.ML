@@ -33,9 +33,8 @@ sig
   val vupdate		: (indexname * term) * env -> env
 end;
 
-functor EnvirFun () : ENVIR =
+structure Envir : ENVIR =
 struct
-
 
 (*association lists with keys in ascending order, no repeated keys*)
 datatype 'a xolist = Olist of (indexname * 'a) list;
@@ -154,69 +153,61 @@ fun vupdate((a,t), env) = case t of
 fun alist_of (Envir{maxidx,asol,...}) = alist_of_olist asol;
 
 
-(*Beta normal form for terms (not eta normal form).
-  Chases variables in env;  Does not exploit sharing of variable bindings
-  Does not check types, so could loop. *)
-local
-      (*raised when norm has no effect on a term,
-        to encourage sharing instead of copying*)
-  exception SAME;
+(*** Beta normal form for terms (not eta normal form).
+     Chases variables in env;  Does not exploit sharing of variable bindings
+     Does not check types, so could loop. ***)
 
-  fun norm_term1 (asol,t) : term =
-    let fun norm (Var (w,T)) =
-              (case xsearch(asol,w) of
-                  Some u => normh u
-                | None   => raise SAME)
-          | norm (Abs(a,T,body)) =  Abs(a, T, norm body)
-          | norm (Abs(_,_,body) $ t) = normh(subst_bounds([t], body))
-          | norm (f $ t) =
-              ((case norm f of
-                 Abs(_,_,body) => normh(subst_bounds([t], body))
-               | nf => nf $ normh t)
-              handle SAME => f $ norm t)
-          | norm _ =  raise SAME
-        and normh t = (norm t) handle SAME => t
-    in normh t end
+(*raised when norm has no effect on a term, to do sharing instead of copying*)
+exception SAME;
 
-  and norm_term2(asol,iTs,t) : term =
-    let fun normT(Type(a,Ts)) = Type(a, normTs Ts)
-          | normT(TFree _) = raise SAME
-          | normT(TVar(v,_)) = (case assoc(iTs,v) of
-                  Some(U) => normTh U
-                | None => raise SAME)
-        and normTh T = ((normT T) handle SAME => T)
-        and normTs([]) = raise SAME
-          | normTs(T::Ts) = ((normT T :: normTsh Ts)
-                             handle SAME => T :: normTs Ts)
-        and normTsh Ts = ((normTs Ts) handle SAME => Ts)
-        and norm(Const(a,T)) = Const(a, normT T)
-          | norm(Free(a,T)) = Free(a, normT T)
-          | norm(Var (w,T)) =
-              (case xsearch(asol,w) of
-                  Some u => normh u
-                | None   => Var(w,normT T))
-          | norm(Abs(a,T,body)) =
-                (Abs(a,normT T,normh body) handle SAME => Abs(a, T, norm body))
-          | norm(Abs(_,_,body) $ t) = normh(subst_bounds([t], body))
-          | norm(f $ t) =
-              ((case norm f of
-                 Abs(_,_,body) => normh(subst_bounds([t], body))
-               | nf => nf $ normh t)
-              handle SAME => f $ norm t)
-          | norm _ =  raise SAME
-        and normh t = (norm t) handle SAME => t
-    in normh t end;
+fun norm_term1 (asol,t) : term =
+  let fun norm (Var (w,T)) =
+	    (case xsearch(asol,w) of
+		Some u => normh u
+	      | None   => raise SAME)
+	| norm (Abs(a,T,body)) =  Abs(a, T, norm body)
+	| norm (Abs(_,_,body) $ t) = normh(subst_bounds([t], body))
+	| norm (f $ t) =
+	    ((case norm f of
+	       Abs(_,_,body) => normh(subst_bounds([t], body))
+	     | nf => nf $ normh t)
+	    handle SAME => f $ norm t)
+	| norm _ =  raise SAME
+      and normh t = (norm t) handle SAME => t
+  in normh t end
 
-in
+and norm_term2(asol,iTs,t) : term =
+  let fun normT(Type(a,Ts)) = Type(a, normTs Ts)
+	| normT(TFree _) = raise SAME
+	| normT(TVar(v,_)) = (case assoc(iTs,v) of
+		Some(U) => normTh U
+	      | None => raise SAME)
+      and normTh T = ((normT T) handle SAME => T)
+      and normTs([]) = raise SAME
+	| normTs(T::Ts) = ((normT T :: normTsh Ts)
+			   handle SAME => T :: normTs Ts)
+      and normTsh Ts = ((normTs Ts) handle SAME => Ts)
+      and norm(Const(a,T)) = Const(a, normT T)
+	| norm(Free(a,T)) = Free(a, normT T)
+	| norm(Var (w,T)) =
+	    (case xsearch(asol,w) of
+		Some u => normh u
+	      | None   => Var(w,normT T))
+	| norm(Abs(a,T,body)) =
+	      (Abs(a,normT T,normh body) handle SAME => Abs(a, T, norm body))
+	| norm(Abs(_,_,body) $ t) = normh(subst_bounds([t], body))
+	| norm(f $ t) =
+	    ((case norm f of
+	       Abs(_,_,body) => normh(subst_bounds([t], body))
+	     | nf => nf $ normh t)
+	    handle SAME => f $ norm t)
+	| norm _ =  raise SAME
+      and normh t = (norm t) handle SAME => t
+  in normh t end;
 
 (*curried version might be slower in recursive calls*)
 fun norm_term (env as Envir{asol,iTs,...}) t : term =
         if null iTs then norm_term1(asol, t) else norm_term2(asol,iTs, t)
-
-fun norm_ter (env as Envir{asol,iTs,...}) t : term =
-        if null iTs then norm_term1(asol, t) else norm_term2(asol,iTs, t)
-
-end;
 
 end;
 

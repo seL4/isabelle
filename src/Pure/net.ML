@@ -31,7 +31,7 @@ signature NET =
   end;
 
 
-functor NetFun () : NET = 
+structure Net : NET = 
 struct
 
 datatype key = CombK | VarK | AtomK of string;

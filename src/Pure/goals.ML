@@ -12,8 +12,6 @@ pending proofs.
 
 signature GOALS =
   sig
-  structure Tactical: TACTICAL
-  local open Tactical Tactical.Thm in
   type proof
   val ba		: int -> unit
   val back		: unit -> unit
@@ -66,17 +64,10 @@ signature GOALS =
   val save_proof	: unit -> proof
   val topthm		: unit -> thm
   val undo		: unit -> unit
-  end
   end;
 
-functor GoalsFun (structure Logic: LOGIC and Drule: DRULE and Tactic: TACTIC
-                        and Pattern:PATTERN
-	  sharing type Pattern.type_sig = Drule.Thm.Sign.Type.type_sig
-              and Drule.Thm = Tactic.Tactical.Thm) : GOALS =
+structure Goals : GOALS =
 struct
-structure Tactical = Tactic.Tactical
-local open Tactic Tactic.Tactical Tactic.Tactical.Thm Drule
-in
 
 (*Each level of goal stack includes a proof state and alternative states,
   the output of the tactic applied to the preceeding level.  *)
@@ -154,7 +145,7 @@ fun prepare_proof rths chorn =
                  cat_lines (map (Sign.string_of_term sign) hyps))
 	    else if not (null xshyps) then result_error state
                 ("Extra sort hypotheses: " ^
-                 commas (map Sign.Type.str_of_sort xshyps))
+                 commas (map Type.str_of_sort xshyps))
 	    else if Pattern.matches (#tsig(Sign.rep_sg sign)) 
 			            (term_of chorn, prop)
 		 then  standard th 
@@ -199,7 +190,7 @@ fun prove_goalw_cterm rths chorn tacsf =
   let val (prems, st0, mkresult) = prepare_proof rths chorn
       val tac = EVERY (tacsf prems)
       fun statef() = 
-	  (case Sequence.pull (tapply(tac,st0)) of 
+	  (case Sequence.pull (tac st0) of 
 	       Some(st,_) => st
 	     | _ => error ("prove_goal: tactic failed"))
   in  mkresult (true, cond_timeit (!proof_timing) statef)  end
@@ -270,7 +261,7 @@ fun getgoal i =
 local exception GETHYPS of thm list
 in
 fun gethyps i = 
-    (tapply(METAHYPS (fn hyps => raise (GETHYPS hyps)) i, topthm());  [])
+    (METAHYPS (fn hyps => raise (GETHYPS hyps)) i (topthm());  [])
     handle GETHYPS hyps => hyps
 end;
 
@@ -316,7 +307,7 @@ fun goal thy = goalw thy [];
 
 (*Proof step "by" the given tactic -- apply tactic to the proof state*)
 fun by_com tac ((th,ths), pairs) : gstack =
-  (case  Sequence.pull(tapply(tac, th))  of
+  (case  Sequence.pull(tac th)  of
      None      => error"by: tactic failed"
    | Some(th2,ths2) => 
        (if eq_thm(th,th2) 
@@ -444,4 +435,5 @@ fun pprint_typ T = Sign.pprint_typ (top_sg()) T;
 fun print_exn e = (print_sign_exn_unit (top_sg()) e;  raise e);
 
 end;
-end;
+
+open Goals;
