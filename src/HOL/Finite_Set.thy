@@ -1997,7 +1997,7 @@ next
 qed
 
 
-subsubsection{* Lemmas about {@text fold1} *}
+subsubsection{* Lemmas about @{text fold1} *}
 
 lemma (in ACf) fold1_Un:
 assumes A: "finite A" "A \<noteq> {}"
