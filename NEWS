@@ -202,8 +202,10 @@ may also be iterated as in f(a:=b,c:=d,...);
 
 * HOL/Vimage: new theory for inverse image of a function, syntax f-``B;
 
-* HOL/List: new function list_update written xs[i:=v] that updates the i-th
-  list position. May also be iterated as in xs[i:=a,j:=b,...].
+* HOL/List:
+  - new function list_update written xs[i:=v] that updates the i-th
+    list position. May also be iterated as in xs[i:=a,j:=b,...].
+  - new lexicographic orderings and corresponding wellfoundedness theorems.
 
 * HOL/Arith:
   - removed 'pred' (predecessor) function;
