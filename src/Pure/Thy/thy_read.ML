@@ -278,26 +278,13 @@ fun use_thy1 tmp_loadpath_valid name =
   in if thy_uptodate andalso ml_uptodate then ()
      else
       (if thy_file = "" then ()
-       else if thy_uptodate then put_thydata true tname
        else
          (writeln ("Reading \"" ^ name ^ ".thy\"");
 
           init_thyinfo ();
-          delete_thms tname;
           read_thy tname thy_file;
           SymbolInput.use (out_name tname);
           save_data true;
-
-          (*Store axioms of theory
-            (but only if it's not a copy of an older theory)*)
-          let val parents = parents_of_name tname;
-              val this_thy = theory_of tname;
-              val axioms =
-                if length parents = 1
-                   andalso Sign.eq_sg (sign_of (theory_of (hd parents)),
-                                       sign_of this_thy) then []
-                else axioms_of this_thy;
-          in map store_thm_db axioms end;
 
           if not (!delete_tmpfiles) then ()
           else OS.FileSys.remove (out_name tname);
