@@ -277,7 +277,10 @@ struct
 			let
 				val (xs1, xs2) = take_prefix (fn i => i <> 0) xs
 			in
-				xs1 :: clauses (tl xs2)
+				case xs2 of
+				  []      => [xs1]
+				| (0::[]) => [xs1]
+				| (0::tl) => xs1 :: clauses tl
 			end
 		(* int -> PropLogic.prop_formula *)
 		fun literal_from_int i =
