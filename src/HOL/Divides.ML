@@ -613,6 +613,18 @@ by (etac exE 1);
 by (asm_full_simp_tac (simpset() addsimps mult_ac) 1);
 qed "dvd_mult_cancel";
 
+Goal "0<m ==> (m*n dvd m) = (n=1)";
+by Auto_tac;  
+by (subgoal_tac "m*n dvd m*1" 1);
+by (dtac dvd_mult_cancel 1); 
+by Auto_tac;  
+qed "dvd_mult_cancel1";
+
+Goal "0<m ==> (n*m dvd m) = (n=1)";
+by (stac mult_commute 1); 
+by (etac dvd_mult_cancel1 1); 
+qed "dvd_mult_cancel2";
+
 Goalw [dvd_def] "[| i dvd m; j dvd n|] ==> i*j dvd (m*n :: nat)";
 by (Clarify_tac 1);
 by (res_inst_tac [("x","k*ka")] exI 1);
