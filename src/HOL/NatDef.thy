@@ -39,13 +39,12 @@ typedef (Nat)
   nat = "lfp(%X. {Zero_Rep} Un (Suc_Rep``X))"   (lfp_def)
 
 instance
-  nat :: ord
+  nat :: {ord, zero}
 
 
 (* abstract constants and syntax *)
 
 consts
-  "0"       :: nat                ("0")
   Suc       :: nat => nat
   pred_nat  :: "(nat * nat) set"
 
