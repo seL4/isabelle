@@ -75,10 +75,8 @@ $(LOG)/ZF-AC.gz: $(OUT)/ZF \
 ZF-Coind: ZF $(LOG)/ZF-Coind.gz
 
 $(LOG)/ZF-Coind.gz: $(OUT)/ZF Coind/BCR.thy Coind/Dynamic.thy \
-  Coind/ECR.ML Coind/ECR.thy Coind/Language.thy Coind/MT.ML Coind/MT.thy \
-  Coind/Map.ML Coind/Map.thy Coind/ROOT.ML Coind/Static.ML \
-  Coind/Static.thy Coind/Types.ML Coind/Types.thy Coind/Values.ML \
-  Coind/Values.thy
+  Coind/ECR.thy Coind/Language.thy Coind/Map.thy Coind/ROOT.ML \
+  Coind/Static.thy Coind/Types.thy Coind/Values.thy
 	@$(ISATOOL) usedir $(OUT)/ZF Coind
 
 
@@ -95,9 +93,9 @@ $(LOG)/ZF-IMP.gz: $(OUT)/ZF IMP/Com.ML IMP/Com.thy IMP/Denotation.ML \
 
 ZF-Resid: ZF $(LOG)/ZF-Resid.gz
 
-$(LOG)/ZF-Resid.gz: $(OUT)/ZF Resid/ROOT.ML Resid/Confluence.thy \
-  Resid/Redex.thy Resid/Reduction.thy Resid/Residuals.thy \
-  Resid/Substitution.thy 
+$(LOG)/ZF-Resid.gz: $(OUT)/ZF Resid/ROOT.ML \
+  Resid/Confluence.thy  Resid/Redex.thy \
+  Resid/Reduction.thy Resid/Residuals.thy Resid/Substitution.thy 
 	@$(ISATOOL) usedir $(OUT)/ZF Resid
 
 

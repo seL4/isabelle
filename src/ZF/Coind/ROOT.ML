@@ -13,4 +13,4 @@ Written up as
     Report, Computer Lab, University of Cambridge (1995).
 *)
 
-time_use_thy "MT";
+time_use_thy "ECR";
