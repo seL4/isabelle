@@ -63,7 +63,7 @@ val loaded_thys =
 (* retrieve info *)
 
 fun err_not_stored name =
-  error ("Theory " ^ name ^ " not stored by loader");
+  error ("Theory " ^ quote name ^ " not stored by loader");
 
 fun get_thyinfo name = Symtab.lookup (! loaded_thys, name);
 
