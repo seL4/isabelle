@@ -36,14 +36,12 @@ apply (blast intro: monoD order_trans)+
 done
 
 lemma Follows_constant [iff]: "F \<in> (%s. c) Fols (%s. c)"
-by (unfold Follows_def, auto)
+by (simp add: Follows_def)
 
 lemma mono_Follows_o: "mono h ==> f Fols g \<subseteq> (h o f) Fols (h o g)"
-apply (unfold Follows_def, clarify)
-apply (simp add: mono_Increasing_o [THEN [2] rev_subsetD]
-                 mono_Always_o [THEN [2] rev_subsetD]
-                 mono_LeadsTo_o [THEN [2] rev_subsetD, THEN INT_D])
-done
+by (auto simp add: Follows_def mono_Increasing_o [THEN [2] rev_subsetD]
+		   mono_Always_o [THEN [2] rev_subsetD]
+		   mono_LeadsTo_o [THEN [2] rev_subsetD, THEN INT_D])
 
 lemma mono_Follows_apply:
      "mono h ==> f Fols g \<subseteq> (%x. h (f x)) Fols (%x. h (g x))"
@@ -53,7 +51,7 @@ done
 
 lemma Follows_trans: 
      "[| F \<in> f Fols g;  F \<in> g Fols h |] ==> F \<in> f Fols h"
-apply (unfold Follows_def)
+apply (simp add: Follows_def)
 apply (simp add: Always_eq_includes_reachable)
 apply (blast intro: order_trans LeadsTo_Trans)
 done
@@ -62,17 +60,17 @@ done
 subsection{*Destruction rules*}
 
 lemma Follows_Increasing1: "F \<in> f Fols g ==> F \<in> Increasing f"
-by (unfold Follows_def, blast)
+by (simp add: Follows_def)
 
 lemma Follows_Increasing2: "F \<in> f Fols g ==> F \<in> Increasing g"
-by (unfold Follows_def, blast)
+by (simp add: Follows_def)
 
 lemma Follows_Bounded: "F \<in> f Fols g ==> F \<in> Always {s. f s \<subseteq> g s}"
-by (unfold Follows_def, blast)
+by (simp add: Follows_def)
 
 lemma Follows_LeadsTo: 
      "F \<in> f Fols g ==> F \<in> {s. k \<le> g s} LeadsTo {s. k \<le> f s}"
-by (unfold Follows_def, blast)
+by (simp add: Follows_def)
 
 lemma Follows_LeadsTo_pfixLe:
      "F \<in> f Fols g ==> F \<in> {s. k pfixLe g s} LeadsTo {s. k pfixLe f s}"
@@ -96,7 +94,7 @@ done
 lemma Always_Follows1: 
      "[| F \<in> Always {s. f s = f' s}; F \<in> f Fols g |] ==> F \<in> f' Fols g"
 
-apply (unfold Follows_def Increasing_def Stable_def, auto)
+apply (simp add: Follows_def Increasing_def Stable_def, auto)
 apply (erule_tac [3] Always_LeadsTo_weaken)
 apply (erule_tac A = "{s. z \<le> f s}" and A' = "{s. z \<le> f s}" 
        in Always_Constrains_weaken, auto)
@@ -106,7 +104,7 @@ done
 
 lemma Always_Follows2: 
      "[| F \<in> Always {s. g s = g' s}; F \<in> f Fols g |] ==> F \<in> f Fols g'"
-apply (unfold Follows_def Increasing_def Stable_def, auto)
+apply (simp add: Follows_def Increasing_def Stable_def, auto)
 apply (erule_tac [3] Always_LeadsTo_weaken)
 apply (erule_tac A = "{s. z \<le> g s}" and A' = "{s. z \<le> g s}"
        in Always_Constrains_weaken, auto)
@@ -121,7 +119,7 @@ subsection{*Union properties (with the subset ordering)*}
 lemma increasing_Un: 
     "[| F \<in> increasing f;  F \<in> increasing g |]  
      ==> F \<in> increasing (%s. (f s) \<union> (g s))"
-apply (unfold increasing_def stable_def constrains_def, auto)
+apply (simp add: increasing_def stable_def constrains_def, auto)
 apply (drule_tac x = "f xa" in spec)
 apply (drule_tac x = "g xa" in spec)
 apply (blast dest!: bspec)
@@ -162,8 +160,7 @@ done
 lemma Follows_Un: 
     "[| F \<in> f' Fols f;  F \<in> g' Fols g |]  
      ==> F \<in> (%s. (f' s) \<union> (g' s)) Fols (%s. (f s) \<union> (g s))"
-apply (unfold Follows_def)
-apply (simp add: Increasing_Un Always_Un, auto)
+apply (simp add: Follows_def Increasing_Un Always_Un del: Un_subset_iff, auto)
 apply (rule LeadsTo_Trans)
 apply (blast intro: Follows_Un_lemma)
 (*Weakening is used to exchange Un's arguments*)
@@ -176,7 +173,7 @@ subsection{*Multiset union properties (with the multiset ordering)*}
 lemma increasing_union: 
     "[| F \<in> increasing f;  F \<in> increasing g |]  
      ==> F \<in> increasing (%s. (f s) + (g s :: ('a::order) multiset))"
-apply (unfold increasing_def stable_def constrains_def, auto)
+apply (simp add: increasing_def stable_def constrains_def, auto)
 apply (drule_tac x = "f xa" in spec)
 apply (drule_tac x = "g xa" in spec)
 apply (drule bspec, assumption) 
@@ -223,7 +220,7 @@ lemma Follows_union:
      "!!g g' ::'b => ('a::order) multiset.  
         [| F \<in> f' Fols f;  F \<in> g' Fols g |]  
         ==> F \<in> (%s. (f' s) + (g' s)) Fols (%s. (f s) + (g s))"
-apply (unfold Follows_def)
+apply (simp add: Follows_def)
 apply (simp add: Increasing_union Always_union, auto)
 apply (rule LeadsTo_Trans)
 apply (blast intro: Follows_union_lemma)

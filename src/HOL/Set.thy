@@ -1275,7 +1275,7 @@ lemma Int_Un_distrib2: "(B \<union> C) \<inter> A = (B \<inter> A) \<union> (C \
 lemma Int_UNIV [simp]: "(A \<inter> B = UNIV) = (A = UNIV & B = UNIV)"
   by blast
 
-lemma Int_subset_iff: "(C \<subseteq> A \<inter> B) = (C \<subseteq> A & C \<subseteq> B)"
+lemma Int_subset_iff [simp]: "(C \<subseteq> A \<inter> B) = (C \<subseteq> A & C \<subseteq> B)"
   by blast
 
 lemma Int_Collect: "(x \<in> A \<inter> {x. P x}) = (x \<in> A & P x)"
@@ -1352,7 +1352,8 @@ lemma subset_Un_eq: "(A \<subseteq> B) = (A \<union> B = B)"
 
 lemma Un_empty [iff]: "(A \<union> B = {}) = (A = {} & B = {})"
   by blast
-lemma Un_subset_iff: "(A \<union> B \<subseteq> C) = (A \<subseteq> C & B \<subseteq> C)"
+
+lemma Un_subset_iff [simp]: "(A \<union> B \<subseteq> C) = (A \<subseteq> C & B \<subseteq> C)"
   by blast
 
 lemma Un_Diff_Int: "(A - B) \<union> (A \<inter> B) = A"
@@ -1473,7 +1474,7 @@ lemma UN_singleton [simp]: "(\<Union>x\<in>A. {x}) = A"
   by blast
 
 lemma UN_absorb: "k \<in> I ==> A k \<union> (\<Union>i\<in>I. A i) = (\<Union>i\<in>I. A i)"
-  by blast
+  by auto
 
 lemma INT_empty [simp]: "(\<Inter>x\<in>{}. B x) = UNIV"
   by blast

@@ -1048,7 +1048,7 @@ apply (auto simp add: divide_inverse power_inverse)
 apply (simp add: inverse_eq_divide pos_divide_less_eq)
 done
 
-subsubsection{*Limit of @{term "c^n"} for @{term"\<bar>c\<bar> < 1"}*}
+text{*Limit of @{term "c^n"} for @{term"\<bar>c\<bar> < 1"}*}
 
 lemma LIMSEQ_rabs_realpow_zero: "\<bar>c\<bar> < 1 ==> (%n. \<bar>c\<bar> ^ n) ----> 0"
 by (blast intro!: LIMSEQ_realpow_zero abs_ge_zero)

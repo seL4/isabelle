@@ -26,16 +26,7 @@ lemma Example1:
     COEND
  SAT [\<lbrace> n < length \<acute>A \<rbrace>, \<lbrace> \<ordmasculine>A = \<ordfeminine>A \<rbrace>, \<lbrace> True \<rbrace>, \<lbrace> \<forall>i < n. \<acute>A ! i = 0 \<rbrace>]"
 apply(rule Parallel)
-    apply simp
-    apply clarify
-    apply simp
-    apply(erule disjE)
-     apply simp
-    apply clarify
-    apply simp
-   apply auto
-apply(rule Basic)
-apply auto
+apply (auto intro!: Basic) 
 done
 
 lemma Example1_parameterized: 
@@ -53,33 +44,14 @@ lemma Example1_parameterized:
       (\<forall>i<length \<ordmasculine>A . (i<k*n \<longrightarrow> \<ordmasculine>A!i = \<ordfeminine>A!i) \<and> ((Suc k)*n \<le> i\<longrightarrow> \<ordmasculine>A!i = \<ordfeminine>A!i))\<rbrace>, 
       \<lbrace>\<forall>i<n. \<acute>A!(k*n+i) = 0\<rbrace>]"
 apply(rule Parallel)
-    apply simp
-    apply clarify
-    apply simp
-    apply(erule disjE)
-     apply clarify
-     apply simp
-    apply clarify
-    apply simp
-    apply clarify
-    apply simp
-    apply(erule_tac x="k*n +i" in allE)
-    apply(subgoal_tac "k*n+i <length (A b)")
-     apply force
-    apply(erule le_less_trans2) 
-    apply(case_tac t,simp+)
-    apply (simp add:add_commute)
-    apply(rule add_le_mono)
-     apply simp
-    apply simp
-   apply simp
-   apply clarify
-   apply(rotate_tac -1)
+    apply auto
+  apply(erule_tac x="k*n +i" in allE)
+  apply(subgoal_tac "k*n+i <length (A b)")
    apply force
-  apply force
- apply force
-apply simp
-apply clarify
+  apply(erule le_less_trans2) 
+  apply(case_tac t,simp+)
+  apply (simp add:add_commute)
+  apply(simp add: add_le_mono)
 apply(rule Basic)
    apply simp
    apply clarify
@@ -88,11 +60,9 @@ apply(rule Basic)
    apply(erule le_less_trans2)
    apply(case_tac t,simp+)
    apply (simp add:add_commute)
-   apply(rule add_le_mono)
-    apply simp
-   apply simp
-  apply force+
+   apply(rule add_le_mono, auto)
 done
+
 
 subsection {* Increment a Variable in Parallel *}
 
@@ -134,7 +104,7 @@ apply(rule Parallel)
    apply clarify
    apply(case_tac i)
     apply simp
-    apply(erule disjE)
+    apply(rule conjI)
      apply clarify
      apply simp
     apply clarify
@@ -142,7 +112,7 @@ apply(rule Parallel)
     apply(case_tac j,simp)
     apply simp
    apply simp
-   apply(erule disjE)
+   apply(rule conjI)
     apply clarify
     apply simp
    apply clarify
@@ -179,10 +149,7 @@ apply(rule Seq)
  apply(rule Basic)
   apply simp_all
  apply(rule subset_refl)
-apply(rule Basic)
-apply simp_all
-apply clarify
-apply simp
+apply(auto intro!: Basic)
 done
 
 subsubsection {* Parameterized *}

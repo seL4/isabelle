@@ -4,6 +4,8 @@ theory RG_Hoare = RG_Tran:
 
 subsection {* Proof System for Component Programs *}
 
+declare Un_subset_iff [iff del]
+
 constdefs
   stable :: "'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> bool"  
   "stable \<equiv> \<lambda>f g. (\<forall>x y. x \<in> f \<longrightarrow> (x, y) \<in> g \<longrightarrow> y \<in> f)" 
@@ -1179,12 +1181,9 @@ lemma two:
   \<Longrightarrow> \<forall>j i. i<length clist \<and> Suc j<length x \<longrightarrow> (clist!i!j) -c\<rightarrow> (clist!i!Suc j) 
   \<longrightarrow> (snd(clist!i!j), snd(clist!i!Suc j)) \<in> Guar(xs!i)"
 apply(unfold par_cp_def)
+apply (rule ccontr) 
 --{* By contradiction: *}
-apply(subgoal_tac "True")
- prefer 2
- apply simp 
-apply(erule_tac Q="True" in contrapos_pp)
-apply simp
+apply (simp del: Un_subset_iff)
 apply(erule exE)
 --{* the first c-tran that does not satisfy the guarantee-condition is from @{text "\<sigma>_i"} at step @{text "m"}. *}
 apply(drule_tac n=j and P="\<lambda>j. \<exists>i. ?H i j" in Ex_first_occurrence)
@@ -1199,13 +1198,12 @@ apply(subgoal_tac "take (Suc (Suc m)) (clist!i) \<in> assum(Pre(xs!i), Rely(xs!i
  apply(simp add:cp_def comm_def)
  apply(drule_tac c="take (Suc (Suc m)) (clist ! i)" in subsetD)
   apply simp
-  apply(erule_tac x=i in allE, erule impE, assumption,erule conjE)
-  apply(erule takecptn_is_cptn)
+  apply (blast intro: takecptn_is_cptn) 
  apply simp
  apply clarify
  apply(erule_tac x=m and P="\<lambda>j. ?I j \<and> ?J j \<longrightarrow> ?H j" in allE)
  apply (simp add:conjoin_def same_length_def)
-apply(simp add:assum_def)
+apply(simp add:assum_def del: Un_subset_iff)
 apply(rule conjI)
  apply(erule_tac x=i and P="\<lambda>j. ?H j \<longrightarrow>  ?I j \<in>cp (?K j) (?J j)" in allE)
  apply(simp add:cp_def par_assum_def)
@@ -1213,7 +1211,7 @@ apply(rule conjI)
  apply simp
 apply clarify
 apply(erule_tac x=i and P="\<lambda>j. ?H j \<longrightarrow> ?M \<union> UNION (?S j) (?T j) \<subseteq>  (?L j)" in allE)
-apply simp
+apply(simp del: Un_subset_iff)
 apply(erule subsetD)
 apply simp
 apply(simp add:conjoin_def compat_label_def)
@@ -1241,6 +1239,7 @@ apply(erule disjE)
 therefore it satisfies @{text "rely \<or> guar_{ib}"} *}
 apply (force simp add:par_assum_def same_state_def)
 done
+
 
 lemma three [rule_format]: 
   "\<lbrakk> xs\<noteq>[]; \<forall>i<length xs. rely \<union> (\<Union>j\<in>{j. j < length xs \<and> j \<noteq> i}. Guar (xs ! j)) 
@@ -1282,14 +1281,14 @@ lemma four:
    x \<in> par_cp (ParallelCom xs) s; x \<in> par_assum (pre, rely); Suc i < length x; 
    x ! i -pc\<rightarrow> x ! Suc i\<rbrakk>
   \<Longrightarrow> (snd (x ! i), snd (x ! Suc i)) \<in> guar"
-apply(simp add: ParallelCom_def)
+apply(simp add: ParallelCom_def del: Un_subset_iff)
 apply(subgoal_tac "(map (Some \<circ> fst) xs)\<noteq>[]")
  prefer 2
  apply simp
 apply(frule rev_subsetD)
  apply(erule one [THEN equalityD1])
 apply(erule subsetD)
-apply simp
+apply (simp del: Un_subset_iff)
 apply clarify
 apply(drule_tac pre=pre and rely=rely and  x=x and s=s and xs=xs and clist=clist in two)
 apply(assumption+)
@@ -1332,14 +1331,14 @@ lemma five:
     \<Turnstile> Com (xs ! i) sat [Pre (xs ! i), Rely (xs ! i), Guar (xs ! i), Post (xs ! i)];
     x \<in> par_cp (ParallelCom xs) s; x \<in> par_assum (pre, rely); 
    All_None (fst (last x)) \<rbrakk> \<Longrightarrow> snd (last x) \<in> post"
-apply(simp add: ParallelCom_def)
+apply(simp add: ParallelCom_def del: Un_subset_iff)
 apply(subgoal_tac "(map (Some \<circ> fst) xs)\<noteq>[]")
  prefer 2
  apply simp
 apply(frule rev_subsetD)
  apply(erule one [THEN equalityD1])
 apply(erule subsetD)
-apply simp
+apply(simp del: Un_subset_iff)
 apply clarify
 apply(subgoal_tac "\<forall>i<length clist. clist!i\<in>assum(Pre(xs!i), Rely(xs!i))")
  apply(erule_tac x=i and P="\<lambda>i. ?H i \<longrightarrow> \<Turnstile> (?J i) sat [?I i,?K i,?M i,?N i]" in allE,erule impE,assumption)

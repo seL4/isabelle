@@ -110,52 +110,28 @@ named after David Park, is weaker but sufficient for this proof:
 \isa{f\ S\ {\isasymsubseteq}\ S\ {\isasymLongrightarrow}\ lfp\ f\ {\isasymsubseteq}\ S} \hfill (\isa{lfp{\isacharunderscore}lowerbound})
 \end{center}
 The instance of the premise \isa{f\ S\ {\isasymsubseteq}\ S} is proved pointwise,
-a decision that clarification takes for us:%
+a decision that \isa{auto} takes for us:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}{\isacharparenleft}rule\ lfp{\isacharunderscore}lowerbound{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}clarsimp\ simp\ add{\isacharcolon}\ af{\isacharunderscore}def\ Paths{\isacharunderscore}def{\isacharparenright}\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}auto\ simp\ add{\isacharcolon}\ af{\isacharunderscore}def\ Paths{\isacharunderscore}def{\isacharparenright}\isamarkupfalse%
 %
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isasymlbrakk}p\ {\isadigit{0}}\ {\isasymin}\ A\ {\isasymor}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isasymlbrakk}}{\isacharparenleft}{\isasymforall}t{\isachardot}\ {\isacharparenleft}p\ {\isadigit{0}}{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymlongrightarrow}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isasymlbrakk}{\isacharparenleft}{\isasymforall}t{\isachardot}\ }{\isacharparenleft}{\isasymforall}p{\isachardot}\ t\ {\isacharequal}\ p\ {\isadigit{0}}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharparenright}\ {\isasymlongrightarrow}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isasymlbrakk}{\isacharparenleft}{\isasymforall}t{\isachardot}\ {\isacharparenleft}{\isasymforall}p{\isachardot}\ }{\isacharparenleft}{\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharsemicolon}\isanewline
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isasymlbrakk}{\isasymforall}t{\isachardot}\ {\isacharparenleft}p\ {\isadigit{0}}{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymlongrightarrow}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isasymlbrakk}{\isasymforall}t{\isachardot}\ }{\isacharparenleft}{\isasymforall}p{\isachardot}\ t\ {\isacharequal}\ p\ {\isadigit{0}}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharparenright}\ {\isasymlongrightarrow}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isasymlbrakk}{\isasymforall}t{\isachardot}\ {\isacharparenleft}{\isasymforall}p{\isachardot}\ }{\isacharparenleft}{\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A{\isacharparenright}{\isacharparenright}{\isacharsemicolon}\isanewline
 \isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ \ }{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isasymrbrakk}\isanewline
 \isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ }{\isasymLongrightarrow}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A%
 \end{isabelle}
-Now we eliminate the disjunction. The case \isa{p\ {\isadigit{0}}\ {\isasymin}\ A} is trivial:%
-\end{isamarkuptxt}%
-\isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}erule\ disjE{\isacharparenright}\isanewline
-\ \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isamarkupfalse%
-%
-\begin{isamarkuptxt}%
-\noindent
-In the other case we set \isa{t} to \isa{p\ {\isadigit{1}}} and simplify matters:%
+In this remaining case, we set \isa{t} to \isa{p\ {\isadigit{1}}}.
+The rest is automatic.%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}{\isacharparenleft}erule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequote}p\ {\isadigit{1}}{\isachardoublequote}\ \isakeyword{in}\ allE{\isacharparenright}\isanewline
 \isamarkupfalse%
-\isacommand{apply}{\isacharparenleft}clarsimp{\isacharparenright}\isamarkupfalse%
-%
-\begin{isamarkuptxt}%
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isasymlbrakk}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharsemicolon}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ \ }{\isasymforall}pa{\isachardot}\ p\ {\isacharparenleft}Suc\ {\isadigit{0}}{\isacharparenright}\ {\isacharequal}\ pa\ {\isadigit{0}}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}pa\ i{\isacharcomma}\ pa\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharparenright}\ {\isasymlongrightarrow}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ \ {\isasymforall}pa{\isachardot}\ }{\isacharparenleft}{\isasymexists}i{\isachardot}\ pa\ i\ {\isasymin}\ A{\isacharparenright}{\isasymrbrakk}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ }{\isasymLongrightarrow}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A%
-\end{isabelle}
-It merely remains to set \isa{pa} to \isa{{\isasymlambda}i{\isachardot}\ p\ {\isacharparenleft}i\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}}, that is, 
-\isa{p} without its first element.  The rest is automatic:%
-\end{isamarkuptxt}%
-\isamarkuptrue%
-\isacommand{apply}{\isacharparenleft}erule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequote}{\isasymlambda}i{\isachardot}\ p{\isacharparenleft}i{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isachardoublequote}\ \isakeyword{in}\ allE{\isacharparenright}\isanewline
-\isamarkupfalse%
-\isacommand{apply}\ force\isanewline
+\isacommand{apply}{\isacharparenleft}auto{\isacharparenright}\isanewline
 \isamarkupfalse%
 \isacommand{done}\isamarkupfalse%
 %
@@ -438,8 +414,6 @@ and prove the equivalence between semantics and model checking, i.e.\ that
 For more CTL exercises see, for example, Huth and Ryan \cite{Huth-Ryan-book}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isamarkupfalse%
-\isamarkupfalse%
 \isamarkupfalse%
 \isamarkupfalse%
 \isamarkupfalse%

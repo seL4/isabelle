@@ -1477,7 +1477,7 @@ proof
   qed
 next
   show "?Hd x y \<union> ?Tl xs ys  \<subseteq> ?List x xs y ys" 
-  proof 
+  proof (rule subsetI)
     fix el 
     assume  el_in_hd_tl: "el \<in>  ?Hd x y \<union> ?Tl xs ys"
     show "el \<in> ?List x xs y ys"
@@ -2978,7 +2978,7 @@ proof -
 	  by simp
 	from da_e1 s0_s1 True obtain E1' where
 	  "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> (dom (locals (store s1)))\<guillemotright>In1l e1\<guillemotright> E1'"
-	  by - (rule da_weakenE,auto)
+	  by - (rule da_weakenE, auto iff del: Un_subset_iff)
 	with conf_s1 wt_e1
 	obtain 
 	  "s2\<Colon>\<preceq>(G, L)"
@@ -2997,7 +2997,7 @@ proof -
 	  by simp
 	from da_e2 s0_s1 False obtain E2' where
 	  "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> (dom (locals (store s1)))\<guillemotright>In1l e2\<guillemotright> E2'"
-	  by - (rule da_weakenE,auto)
+	  by - (rule da_weakenE, auto iff del: Un_subset_iff)
 	with conf_s1 wt_e2
 	obtain 
 	  "s2\<Colon>\<preceq>(G, L)"

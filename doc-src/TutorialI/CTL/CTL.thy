@@ -117,34 +117,19 @@ named after David Park, is weaker but sufficient for this proof:
 @{thm lfp_lowerbound[of _ "S",no_vars]} \hfill (@{thm[source]lfp_lowerbound})
 \end{center}
 The instance of the premise @{prop"f S \<subseteq> S"} is proved pointwise,
-a decision that clarification takes for us:
+a decision that \isa{auto} takes for us:
 *};
 apply(rule lfp_lowerbound);
-apply(clarsimp simp add: af_def Paths_def);
+apply(auto simp add: af_def Paths_def);
 
 txt{*
 @{subgoals[display,indent=0,margin=70,goals_limit=1]}
-Now we eliminate the disjunction. The case @{prop"p(0::nat) \<in> A"} is trivial:
-*};
-
-apply(erule disjE);
- apply(blast);
-
-txt{*\noindent
-In the other case we set @{term t} to @{term"p(1::nat)"} and simplify matters:
+In this remaining case, we set @{term t} to @{term"p(1::nat)"}.
+The rest is automatic.
 *};
 
 apply(erule_tac x = "p 1" in allE);
-apply(clarsimp);
-
-txt{*
-@{subgoals[display,indent=0,margin=70,goals_limit=1]}
-It merely remains to set @{term pa} to @{term"\<lambda>i. p(i+1::nat)"}, that is, 
-@{term p} without its first element.  The rest is automatic:
-*};
-
-apply(erule_tac x = "\<lambda>i. p(i+1)" in allE);
-apply force;
+apply(auto);
 done;
 
 
@@ -389,11 +374,9 @@ constdefs
 
 lemma "lfp(eufix A B) \<subseteq> eusem A B"
 apply(rule lfp_lowerbound)
-apply(clarsimp simp add: eusem_def eufix_def);
-apply(erule disjE);
+apply(auto simp add: eusem_def eufix_def);
  apply(rule_tac x = "[]" in exI);
  apply simp
-apply(clarsimp);
 apply(rule_tac x = "y#xc" in exI);
 apply simp;
 done

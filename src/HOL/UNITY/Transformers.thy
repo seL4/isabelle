@@ -121,6 +121,10 @@ done
 text{*Assertion 4.17 in the thesis*}
 lemma Diff_wens_constrains: "F \<in> (wens F act A - A) co wens F act A" 
 by (simp add: wens_def gfp_def wp_def awp_def constrains_def, blast)
+  --{*Proved instantly, yet remarkably fragile. If @{text Un_subset_iff}
+      is declared as an iff-rule, then it's almost impossible to prove. 
+      One proof is via @{text meson} after expanding all definitions, but it's
+      slow!*}
 
 text{*Assertion (7): 4.18 in the thesis.  NOTE that many of these results
 hold for an arbitrary action.  We often do not require @{term "act \<in> Acts F"}*}

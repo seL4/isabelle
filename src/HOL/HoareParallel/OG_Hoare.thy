@@ -117,19 +117,13 @@ lemma SEM_fwhile: "SEM S (p \<inter> b) \<subseteq> p \<Longrightarrow> SEM (fwh
 apply (induct "k")
  apply(simp (no_asm) add: L3_5v_lemma3)
 apply(simp (no_asm) add: L3_5iv L3_5ii Parallel_empty)
-apply(rule Un_least)
- apply(rule subset_trans)
-  prefer 2 apply simp
- apply(erule L3_5i)
+apply(rule conjI)
+ apply (blast dest: L3_5i) 
 apply(simp add: SEM_def sem_def id_def)
-apply clarify
-apply(drule rtrancl_imp_UN_rel_pow)
-apply clarify
-apply(drule Basic_ntran)
- apply fast+
+apply (blast dest: Basic_ntran rtrancl_imp_UN_rel_pow) 
 done
 
-lemma atom_hoare_sound [rule_format (no_asm)]: 
+lemma atom_hoare_sound [rule_format]: 
  " \<parallel>- p c q \<longrightarrow> atom_com(c) \<longrightarrow> \<parallel>= p c q"
 apply (unfold com_validity_def)
 apply(rule oghoare_induct)
@@ -143,19 +137,11 @@ apply simp_all
     prefer 2 apply simp
    apply(simp add: L3_5ii L3_5i)
 --{* Cond *}
-  apply(rule impI)
   apply(simp add: L3_5iv)
-  apply(erule Un_least)
-  apply assumption
 --{* While *}
- apply(rule impI)
- apply(simp add: L3_5v)
- apply(rule UN_least)
- apply(drule SEM_fwhile)
- apply assumption
+ apply (force simp add: L3_5v dest: SEM_fwhile) 
 --{* Conseq *}
-apply(simp add: SEM_def sem_def)
-apply force
+apply(force simp add: SEM_def sem_def)
 done
     
 subsection {* Soundness of the System for Component Programs *}
@@ -450,7 +436,7 @@ apply(drule  Parallel_Strong_Soundness_aux)
 apply simp+
 done
 
-lemma oghoare_sound [rule_format (no_asm)]: "\<parallel>- p c q \<longrightarrow> \<parallel>= p c q"
+lemma oghoare_sound [rule_format]: "\<parallel>- p c q \<longrightarrow> \<parallel>= p c q"
 apply (unfold com_validity_def)
 apply(rule oghoare_induct)
 apply(rule TrueI)+
@@ -477,16 +463,11 @@ apply(rule TrueI)+
    apply(simp add: L3_5ii L3_5i)
 --{* Cond *}
   apply(simp add: L3_5iv)
-  apply(erule Un_least)
-  apply assumption
 --{* While *}
  apply(simp add: L3_5v)
- apply(rule UN_least)
- apply(drule SEM_fwhile)
- apply assumption
+ apply (blast dest: SEM_fwhile) 
 --{* Conseq *}
-apply(simp add: SEM_def sem_def)
-apply auto
+apply(auto simp add: SEM_def sem_def)
 done
 
 end

@@ -486,11 +486,11 @@ lemma commutativity1_lemma:
   shows "closed F T B L"
 apply (simp add: closed_def, clarify)
 apply (rule ProgressSets.cl_subset_in_lattice [OF _ lattice])  
-apply (simp add: Int_Un_distrib cl_Un [OF lattice] Un_subset_iff
+apply (simp add: Int_Un_distrib cl_Un [OF lattice] Un_subset_iff 
                  cl_ident Int_in_lattice [OF TL BL lattice] Un_upper1)
 apply (subgoal_tac "cl L (T \<inter> wp act M) \<subseteq> T \<inter> (B \<union> wp act (cl L (T \<inter> M)))") 
  prefer 2 
- apply (simp add: commutes [unfolded commutes_def]) 
+ apply (cut_tac commutes, simp add: commutes_def) 
 apply (erule subset_trans) 
 apply (simp add: cl_ident)
 apply (blast intro: rev_subsetD [OF _ wp_mono]) 
@@ -548,7 +548,7 @@ lemma commutativity2_lemma:
       and TL: "T \<in> L"
       and Fstable: "F \<in> stable T"
   shows  "commutes F T B L"
-apply (simp add: commutes_def, clarify)  
+apply (simp add: commutes_def del: Int_subset_iff, clarify)  
 apply (rename_tac t)
 apply (subgoal_tac "\<exists>s. (s,t) \<in> relcl L & s \<in> T \<inter> wp act M") 
  prefer 2 
