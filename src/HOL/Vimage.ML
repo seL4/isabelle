@@ -46,7 +46,11 @@ goal thy "f-``(A Un B) = (f-``A) Un (f-``B)";
 by (Blast_tac 1);
 qed "vimage_Un";
 
-Addsimps [vimage_empty, vimage_Compl, vimage_Un];
+goal thy "f-``(UN x:A. B x) = (UN x:A. f -`` B x)";
+by (Blast_tac 1);
+qed "vimage_UN";
+
+Addsimps [vimage_empty, vimage_Un];
 
 (*NOT suitable for rewriting because of the recurrence of {a}*)
 goal thy "f-``(insert a B) = (f-``{a}) Un (f-``B)";

@@ -504,6 +504,10 @@ goal thy "A Int Union(B) = (UN C:B. A Int C)";
 by (Blast_tac 1);
 qed "Int_Union";
 
+goal thy "Union(B) Int A = (UN C:B. C Int A)";
+by (Blast_tac 1);
+qed "Int_Union2";
+
 (* Devlin, Fundamentals of Contemporary Set Theory, page 12, exercise 5: 
    Union of a family of unions **)
 goal thy "(UN x:C. A(x) Un B(x)) = Union(A``C)  Un  Union(B``C)";
@@ -572,6 +576,10 @@ goal thy "A-A = {}";
 by (Blast_tac 1);
 qed "Diff_cancel";
 Addsimps[Diff_cancel];
+
+goal thy "!!A B. A Int B = {} ==> A-B = A";
+by (blast_tac (claset() addEs [equalityE]) 1);
+qed "Diff_triv";
 
 goal thy "{}-A = {}";
 by (Blast_tac 1);
