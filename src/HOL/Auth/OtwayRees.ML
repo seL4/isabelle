@@ -15,6 +15,22 @@ open OtwayRees;
 proof_timing:=true;
 HOL_quantifiers := false;
 
+
+(** Weak liveness: there are traces that reach the end **)
+
+goal thy 
+ "!!A B. [| A ~= B; A ~= Server; B ~= Server |]   \
+\        ==> EX K. EX evs: otway.          \
+\               Says A B (Crypt (Agent A) K) : set_of_list evs";
+by (REPEAT (resolve_tac [exI,bexI] 1));
+br (otway.Nil RS otway.OR1 RS otway.OR2 RS otway.OR3 RS otway.OR4 RS 
+    otway.OR5) 2;
+by (ALLGOALS (simp_tac (!simpset setsolver safe_solver)));
+by (REPEAT_FIRST (resolve_tac [refl, conjI]));
+by (ALLGOALS (fast_tac (!claset addss (!simpset setsolver safe_solver))));
+qed "weak_liveness";
+
+
 (**** Inductive proofs about otway ****)
 
 (*The Enemy can see more than anybody else, except for their initial state*)
@@ -45,17 +61,17 @@ AddSEs   [not_Notes RSN (2, rev_notE)];
 
 (** For reasoning about the encrypted portion of messages **)
 
-goal thy "!!evs. (Says A' B {|N, Agent A, Agent B, X|}) : set_of_list evs ==> \
+goal thy "!!evs. Says A' B {|N, Agent A, Agent B, X|} : set_of_list evs ==> \
 \                X : analz (sees Enemy evs)";
 by (fast_tac (!claset addSDs [Says_imp_sees_Enemy RS analz.Inj]) 1);
 qed "OR2_analz_sees_Enemy";
 
-goal thy "!!evs. (Says S B {|N, X, X'|}) : set_of_list evs ==> \
+goal thy "!!evs. Says S B {|N, X, X'|} : set_of_list evs ==> \
 \                X : analz (sees Enemy evs)";
 by (fast_tac (!claset addSDs [Says_imp_sees_Enemy RS analz.Inj]) 1);
 qed "OR4_analz_sees_Enemy";
 
-goal thy "!!evs. (Says B' A {|N, Crypt {|N,K|} K'|}) : set_of_list evs ==> \
+goal thy "!!evs. Says B' A {|N, Crypt {|N,K|} K'|} : set_of_list evs ==> \
 \                K : parts (sees Enemy evs)";
 by (fast_tac (!claset addSEs partsEs
 	              addSDs [Says_imp_sees_Enemy RS parts.Inj]) 1);
@@ -165,18 +181,16 @@ by (EVERY (map (fast_tac (!claset addDs [Suc_leD] addss (!simpset))) [4,2]));
 by (EVERY 
     (map
      (best_tac
-      (!claset addSDs [newK_invKey]
-	       addDs [impOfSubs (analz_subset_parts RS keysFor_mono),
+      (!claset addDs [impOfSubs (analz_subset_parts RS keysFor_mono),
 		      impOfSubs (parts_insert_subset_Un RS keysFor_mono),
 		      Suc_leD]
 	       addEs [new_keys_not_seen RS not_parts_not_analz RSN(2,rev_notE)]
 	       addss (!simpset)))
      [3,2,1]));
 (*OR5: dummy message*)
-by (best_tac (!claset addSDs [newK_invKey]
-		        addEs  [new_keys_not_seen RSN(2,rev_notE)]
-			addIs  [less_SucI, impOfSubs keysFor_mono]
-			addss (!simpset addsimps [le_def])) 1);
+by (best_tac (!claset addEs  [new_keys_not_seen RSN(2,rev_notE)]
+		      addIs  [less_SucI, impOfSubs keysFor_mono]
+		      addss (!simpset addsimps [le_def])) 1);
 val lemma = result();
 
 goal thy 
@@ -259,19 +273,6 @@ AddIs [impOfSubs synth_analz_thin];
 
 (** Session keys are not used to encrypt other session keys **)
 
-(*Could generalize this so that the X component doesn't have to be first
-  in the message?*)
-val enemy_analz_tac =
-  SELECT_GOAL 
-   (EVERY [REPEAT (resolve_tac [impI,notI] 1),
-	   dtac (impOfSubs Fake_analz_insert) 1,
-	   eresolve_tac [asm_rl, synth.Inj] 1,
-	   Fast_tac 1,
-	   Asm_full_simp_tac 1,
-	   IF_UNSOLVED (deepen_tac (!claset addIs [impOfSubs analz_mono]) 0 1)
-	   ]);
-
-
 (*Lemma for the trivial direction of the if-and-only-if*)
 goal thy  
  "!!evs. (Key K : analz (Key``nE Un sEe)) --> \
@@ -294,22 +295,11 @@ by (ALLGOALS (*Takes 35 secs*)
      (!simpset addsimps ([insert_Key_singleton, insert_Key_image, pushKey_newK]
 			 @ pushes)
                setloop split_tac [expand_if])));
-(*OR4*) 
-by (enemy_analz_tac 5);
+(*OR4, OR2, Fake*) 
+by (EVERY (map enemy_analz_tac [5,3,2]));
 (*OR3*)
-by (Fast_tac 4);
-(*OR2*) (** LEVEL 7 **)
-by (res_inst_tac [("x1","X"), ("y1", "{|?XX,?YY|}")] 
-    (insert_commute RS ssubst) 3);
-by (res_inst_tac [("x1","X"), ("y1", "{|?XX,?YY|}")]
-    (insert_commute RS ssubst) 3);
-by (asm_simp_tac (!simpset setloop split_tac [expand_if]) 3);
-by (enemy_analz_tac 3);
-(*Fake case*) (** LEVEL 11 **)
-by (res_inst_tac [("y1","X"), ("A1", "?G Un (?H::msg set)")] 
-    (insert_commute RS ssubst) 2);
-by (enemy_analz_tac 2);
-(*Base case*)
+by (Fast_tac 2);
+(*Base case*) 
 by (fast_tac (!claset addIs [image_eqI] addss (!simpset)) 1);
 qed_spec_mp "analz_image_newK";
 
@@ -360,20 +350,10 @@ by (ALLGOALS
      (!simpset addsimps ([analz_subset_parts RS contra_subsetD,
 			  analz_insert_Key_newK] @ pushes)
                setloop split_tac [expand_if])));
+(*OR4, OR2, Fake*) 
+by (EVERY (map enemy_analz_tac [4,2,1]));
 (*OR3*)
-by (fast_tac (!claset addSEs [less_irrefl]) 3);
-(*Fake*) (** LEVEL 10 **)
-by (res_inst_tac [("y1","X"), ("x1", "Key ?K")] (insert_commute RS ssubst) 1);
-by (enemy_analz_tac 1);
-(*OR4*)
-by (mp_tac 2);
-by (enemy_analz_tac 2);
-(*OR2*)
-by (mp_tac 1);
-by (res_inst_tac [("x1","X"), ("y1", "{|?XX,?YY|}")]
-    (insert_commute RS ssubst) 1);
-by (asm_simp_tac (!simpset setloop split_tac [expand_if]) 1);
-by (enemy_analz_tac 1);
+by (fast_tac (!claset addSEs [less_irrefl]) 1);
 qed "Enemy_not_see_encrypted_key";
 
 
@@ -432,9 +412,9 @@ by (fast_tac (!claset addIs [impOfSubs (subset_insertI RS parts_mono)]
 		      addEs [Says_imp_old_keys RS less_irrefl]
 	              addss (!simpset)) 3);
 (*OR2*) (** LEVEL 12 **)
+(*enemy_analz_tac just does not work here: it is an entirely different proof!*)
 by (ex_strip_tac 2);
-by (res_inst_tac [("x1","X"), ("y1", "{|?XX,?YY|}")]
-    (insert_commute RS ssubst) 2);
+by (res_inst_tac [("x1","X")] (insert_commute RS ssubst) 2);
 by (Simp_tac 2);
 by (fast_tac (!claset addSDs [synth.Inj RS Crypt_Fake_parts, 
 			      Crypt_parts_singleton]) 2);
