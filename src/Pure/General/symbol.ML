@@ -214,6 +214,7 @@ fun scanner msg scan chs =
 
 (* scan *)
 
+val scan_newline = ($$ "\r" ^^ $$ "\n" || $$ "\r") >> K "\n";
 val scan_id = Scan.one is_letter ^^ (Scan.any is_letdig >> implode);
 val scan_rawctrlid = 
     $$ "r" ^^ $$ "a" ^^ $$ "w" ^^ $$ ":" ^^ (Scan.any is_ctrl_letter >> implode);
@@ -223,7 +224,9 @@ val scan =
   ($$ "\\" --| Scan.optional ($$ "\\") "") ^^ $$ "<" ^^
     !! (fn (cs, _) => "Malformed symbolic character specification: \\" ^ "<" ^ beginning cs)
        ((($$ "^" ^^ (scan_rawctrlid || scan_id)) || scan_id) ^^ $$ ">") ||
+  scan_newline ||
   Scan.one not_eof;
+
 
 (* source *)
 
@@ -235,13 +238,14 @@ fun source do_recover src =
 
 (* explode *)
 
-fun no_syms [] = true
-  | no_syms ("\\" :: "<" :: _) = false
-  | no_syms (_ :: cs) = no_syms cs;
+fun no_explode [] = true
+  | no_explode ("\\" :: "<" :: _) = false
+  | no_explode ("\r" :: _) = false
+  | no_explode (_ :: cs) = no_explode cs;
 
 fun sym_explode str =
   let val chs = explode str in
-    if no_syms chs then chs     (*tune trivial case*)
+    if no_explode chs then chs
     else the (Scan.read stopper (Scan.repeat scan) chs)
   end;
 
