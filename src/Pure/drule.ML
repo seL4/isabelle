@@ -615,7 +615,7 @@ val norm_hhf_eq =
         |> Thm.forall_intr cx
         |> Thm.implies_intr cphi
         |> Thm.implies_intr rhs)
-    |> standard |> curry Thm.name_thm "ProtoPure.norm_hhf_eq"
+    |> store_standard_thm "norm_hhf_eq"
   end;
 
 
@@ -827,7 +827,6 @@ val freeze_all = freeze_all_Vars o freeze_all_TVars;
 
 (*make an initial proof state, "PROP A ==> (PROP A)" *)
 fun mk_triv_goal ct = instantiate' [] [Some ct] triv_goal;
-
 
 end;
 
