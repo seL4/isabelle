@@ -1,3 +1,4 @@
+% $Id$
 \chapter{The Rules of the Game}
 \label{chap:rules}
  
@@ -1314,10 +1315,8 @@ of its arguments.  The proof is by induction and simplification.
 \begin{isabelle}
 \isacommand{lemma}\ gcd_greatest\
 [rule_format]:\isanewline
-\ \ \ \ \ \ \ "(k\ dvd\
-m)\ \isasymlongrightarrow\ (k\ dvd\
-n)\ \isasymlongrightarrow\ k\ dvd\
-gcd(m,n)"\isanewline
+\ \ \ \ \ \ \ "k\ dvd\ m\ \isasymlongrightarrow\ k\ dvd\ n\ \isasymlongrightarrow\
+k\ dvd\ gcd(m,n)"\isanewline
 \isacommand{apply}\ (induct_tac\ m\ n\
 rule:\ gcd.induct)\isanewline
 \isacommand{apply}\ (case_tac\ "n=0")\isanewline
@@ -1338,7 +1337,8 @@ equivalence.  This step gives us a chance to see another application
 of \isa{blast}, and it is worth doing for sound logical reasons.
 \begin{isabelle}
 \isacommand{theorem}\ gcd_greatest_iff\ [iff]:\isanewline
-\ \ \ \ \ \ \ \ \ "k\ dvd\ gcd(m,n)\ =\ (k\ dvd\ m\ \isasymand\ k\ dvd\ n)"\isanewline
+\ \ \ \ \ \ \ \ \ "(k\ dvd\ gcd(m,n))\ =\ (k\ dvd\ m\ \isasymand\ k\ dvd\
+n)"\isanewline
 \isacommand{apply}\ (blast\ intro!:\ gcd_greatest\ intro:\ dvd_trans)\isanewline
 \isacommand{done}
 \end{isabelle}
