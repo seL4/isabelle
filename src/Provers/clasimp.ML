@@ -121,19 +121,21 @@ fun cs addss  ss = Classical.addbefore  (cs, ("asm_full_simp_tac",
 local
 
 fun addIff dest elim intro simp ((cs, ss), th) =
-  (          dest (intro (cs, [zero_var_indexes (th RS Data.iffD2)]),
-                              [zero_var_indexes (rotate_prems (nprems_of th)
-                                                (th RS Data.iffD1))])
-   handle THM _ => (elim (cs, [zero_var_indexes (th RS Data.notE )])
-                    handle THM _ => intro (cs, [th])),
-   simp (ss, [th]));
+  let val zero_rotate = zero_var_indexes o rotate_prems (nprems_of th) in
+    (dest (intro (cs, [zero_rotate (th RS Data.iffD2)]), [zero_rotate (th RS Data.iffD1)])
+      handle THM _ => (elim (cs, [zero_rotate (th RS Data.notE)])
+        handle THM _ => intro (cs, [th])),
+     simp (ss, [th]))
+  end;
 
 fun delIff ((cs, ss), th) =
-(             Classical.delrules (cs, [zero_var_indexes (th RS Data.iffD2),
-                   Data.cla_make_elim (zero_var_indexes (th RS Data.iffD1))])
- handle THM _ => (Classical.delrules (cs, [zero_var_indexes (th RS Data.notE)])
-                  handle THM _ => Classical.delrules (cs, [th])), 
- Simplifier.delsimps (ss, [th]));
+  let val zero_rotate = zero_var_indexes o rotate_prems (nprems_of th) in
+    (Classical.delrules (cs, [zero_rotate (th RS Data.iffD2),
+        Data.cla_make_elim (zero_rotate (th RS Data.iffD1))])
+      handle THM _ => (Classical.delrules (cs, [zero_rotate (th RS Data.notE)])
+        handle THM _ => Classical.delrules (cs, [th])),
+     Simplifier.delsimps (ss, [th]))
+  end;
 
 fun store_clasimp (cs, ss) =
   (Classical.claset_ref () := cs; Simplifier.simpset_ref () := ss);
