@@ -295,8 +295,8 @@ lemma (in UP_cring) UP_a_comm:
   by (rule up_eqI, simp add: a_comm R, simp_all add: R)
 
 ML_setup {*
-Context.>> (fn thy => (simpset_ref_of thy :=
-  simpset_of thy setsubgoaler asm_full_simp_tac; thy)) *}
+  simpset_ref() := simpset() setsubgoaler asm_full_simp_tac;
+*}
 
 lemma (in UP_cring) UP_m_assoc:
   assumes R: "p \<in> carrier P" "q \<in> carrier P" "r \<in> carrier P"
@@ -328,8 +328,8 @@ proof (rule up_eqI)
 qed (simp_all add: R)
 
 ML_setup {*
-Context.>> (fn thy => (simpset_ref_of thy :=
-  simpset_of thy setsubgoaler asm_simp_tac; thy)) *}
+  simpset_ref() := simpset() setsubgoaler asm_simp_tac;
+*}
 
 lemma (in UP_cring) UP_l_one [simp]:
   assumes R: "p \<in> carrier P"
@@ -618,8 +618,8 @@ lemma (in UP_cring) monom_zero [simp]:
   by (simp add: UP_def P_def)
 
 ML_setup {*
-Context.>> (fn thy => (simpset_ref_of thy :=
-  simpset_of thy setsubgoaler asm_full_simp_tac; thy)) *}
+  simpset_ref() := simpset() setsubgoaler asm_full_simp_tac;
+*}
 
 lemma (in UP_cring) monom_mult_is_smult:
   assumes R: "a \<in> carrier R" "p \<in> carrier P"
@@ -639,8 +639,8 @@ proof (rule up_eqI)
 qed (simp_all add: R)
 
 ML_setup {*
-Context.>> (fn thy => (simpset_ref_of thy :=
-  simpset_of thy setsubgoaler asm_simp_tac; thy)) *}
+  simpset_ref() := simpset() setsubgoaler asm_simp_tac;
+*}
 
 lemma (in UP_cring) monom_add [simp]:
   "[| a \<in> carrier R; b \<in> carrier R |] ==>
@@ -648,8 +648,8 @@ lemma (in UP_cring) monom_add [simp]:
   by (rule up_eqI) simp_all
 
 ML_setup {*
-Context.>> (fn thy => (simpset_ref_of thy :=
-  simpset_of thy setsubgoaler asm_full_simp_tac; thy)) *}
+  simpset_ref() := simpset() setsubgoaler asm_full_simp_tac;
+*}
 
 lemma (in UP_cring) monom_one_Suc:
   "monom P \<one> (Suc n) = monom P \<one> n \<otimes>\<^sub>2 monom P \<one> 1"
@@ -725,8 +725,8 @@ proof (rule up_eqI)
 qed (simp_all)
 
 ML_setup {*
-Context.>> (fn thy => (simpset_ref_of thy :=
-  simpset_of thy setsubgoaler asm_simp_tac; thy)) *}
+  simpset_ref() := simpset() setsubgoaler asm_simp_tac;
+*}
 
 lemma (in UP_cring) monom_mult_smult:
   "[| a \<in> carrier R; b \<in> carrier R |] ==> monom P (a \<otimes> b) n = a \<odot>\<^sub>2 monom P b n"
@@ -977,8 +977,8 @@ proof (rule deg_aboveI)
 qed (simp add: R)
 
 ML_setup {*
-Context.>> (fn thy => (simpset_ref_of thy :=
-  simpset_of thy setsubgoaler asm_full_simp_tac; thy)) *}
+  simpset_ref() := simpset() setsubgoaler asm_full_simp_tac;
+*}
 
 lemma (in UP_domain) deg_mult [simp]:
   "[| p ~= \<zero>\<^sub>2; q ~= \<zero>\<^sub>2; p \<in> carrier P; q \<in> carrier P |] ==>
@@ -1017,8 +1017,8 @@ lemma (in UP_cring) coeff_finsum:
   using fin by induct (auto simp: Pi_def)
 
 ML_setup {*
-Context.>> (fn thy => (simpset_ref_of thy :=
-  simpset_of thy setsubgoaler asm_full_simp_tac; thy)) *}
+  simpset_ref() := simpset() setsubgoaler asm_full_simp_tac;
+*}
 
 lemma (in UP_cring) up_repr:
   assumes R: "p \<in> carrier P"
@@ -1073,8 +1073,8 @@ proof -
 qed
 
 ML_setup {*
-Context.>> (fn thy => (simpset_ref_of thy :=
-  simpset_of thy setsubgoaler asm_simp_tac; thy)) *}
+  simpset_ref() := simpset() setsubgoaler asm_simp_tac;
+*}
 
 subsection {* Polynomials over an integral domain form an integral domain *}
 
@@ -1153,8 +1153,8 @@ lemma (in UP_domain) smult_integral:
 subsection {* Evaluation Homomorphism and Universal Property*}
 
 ML_setup {*
-Context.>> (fn thy => (simpset_ref_of thy :=
-  simpset_of thy setsubgoaler asm_full_simp_tac; thy)) *}
+  simpset_ref() := simpset() setsubgoaler asm_full_simp_tac;
+*}
 
 (* alternative congruence rule (possibly more efficient)
 lemma (in abelian_monoid) finsum_cong2:
@@ -1493,7 +1493,6 @@ proof -
     by (auto intro: ring_hom_cringI UP_cring S.cring Phi)
   have Psi_hom: "ring_hom_cring P S Psi"
     by (auto intro: ring_hom_cringI UP_cring S.cring Psi)
-thm monom_mult
   have "Phi p = Phi (finsum P
     (%i. monom P (coeff P p i) 0 \<otimes>\<^sub>3 (monom P \<one> 1) (^)\<^sub>3 i) {..deg R p})"
     by (simp add: up_repr RS monom_mult [THEN sym] monom_pow del: monom_mult)

@@ -36,11 +36,11 @@ qed
    This makes setsum_cong more convenient to use, because assumptions
    like i:{m..n} get simplified (to m <= i & i <= n). *)
 
-ML_setup {* 
+declare setsum_cong [cong]
 
-Addcongs [thm "setsum_cong"];
-Context.>> (fn thy => (simpset_ref_of thy :=
-  simpset_of thy setsubgoaler asm_full_simp_tac; thy)) *}
+ML_setup {* 
+  simpset_ref() := simpset() setsubgoaler asm_full_simp_tac;
+*}
 
 section {* Definition of type up *}
 

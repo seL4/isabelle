@@ -291,8 +291,7 @@ constdefs
    like \<Otimes>\<index> i\<in>A. f i, probably needs hand-coded translation *)
 
 ML_setup {* 
-  Context.>> (fn thy => (simpset_ref_of thy :=
-    simpset_of thy setsubgoaler asm_full_simp_tac; thy))
+  simpset_ref() := simpset() setsubgoaler asm_full_simp_tac;
 *}
 
 lemma (in comm_monoid) finprod_empty [simp]: 
@@ -300,8 +299,7 @@ lemma (in comm_monoid) finprod_empty [simp]:
   by (simp add: finprod_def)
 
 ML_setup {* 
-  Context.>> (fn thy => (simpset_ref_of thy :=
-    simpset_of thy setsubgoaler asm_simp_tac; thy))
+  simpset_ref() := simpset() setsubgoaler asm_simp_tac;
 *}
 
 declare funcsetI [intro]

@@ -1022,15 +1022,13 @@ structure Trans_Tac = Trans_Tac_Fun (
 
   end);  (* struct *)
 
-Context.>> (fn thy => (simpset_ref_of thy :=
-  simpset_of thy
+simpset_ref() := simpset ()
     addSolver (mk_solver "Trans_linear" (fn _ => Trans_Tac.linear_tac))
     addSolver (mk_solver "Trans_partial" (fn _ => Trans_Tac.partial_tac));
   (* Adding the transitivity reasoners also as safe solvers showed a slight
      speed up, but the reasoning strength appears to be not higher (at least
      no breaking of additional proofs in the entire HOL distribution, as
      of 5 March 2004, was observed). *)
-  thy))
 *}
 
 (* Optional methods
