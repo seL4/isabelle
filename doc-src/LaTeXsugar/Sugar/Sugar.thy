@@ -1,6 +1,6 @@
 (*<*)
 theory Sugar
-imports LaTeXsugar
+imports LaTeXsugar OptionalSugar
 begin
 (*>*)
 
@@ -32,7 +32,8 @@ that must be punished by instant rejection.
 This document shows you how to make Isabelle and \LaTeX\ cooperate to
 produce ordinary looking mathematics that hides the fact that it was
 typeset by a machine. You merely need to import theory
-\texttt{LaTeXsugar} in the header of your own theory. You may also
+\texttt{LaTeXsugar} in the header of your own theory and copy the bits of 
+\texttt{OptionalSugar} that you want to use. You may also
 need additional \LaTeX\ packages. These should be included
 at the beginning of your \LaTeX\ document, typically in \texttt{root.tex}.
 *}
@@ -77,11 +78,15 @@ If you prefer more space around the $\cdot$ you have to redefine
 \item @{term"nth xs n"} instead of @{text"nth xs i"},
       the $n$th element of @{text xs}.
 
-%\item The @ {text"@"} operation associates implicitly to the right,
-%which leads to unpleasant line breaks if the term is too long for one
-%line. To avoid this, @ {text"@"}-terms are grouped to the left before
-%printing, which leads to better line breaking behaviour:
-%@ {term[display]"term\<^isub>0 @ term\<^isub>1 @ term\<^isub>2 @ term\<^isub>3 @ term\<^isub>4 @ term\<^isub>5 @ term\<^isub>6 @ term\<^isub>7 @ term\<^isub>9 @ term\<^isub>1\<^isub>0"}
+\item The @{text"@"} operation associates implicitly to the right,
+which leads to unpleasant line breaks if the term is too long for one
+line. To avoid this, \texttt{OptionalSugar} contains syntax to group
+@{text"@"}-terms to the left before printing, which leads to better
+line breaking behaviour:
+@{term[display]"term\<^isub>0 @ term\<^isub>1 @ term\<^isub>2 @ term\<^isub>3 @ term\<^isub>4 @ term\<^isub>5 @ term\<^isub>6 @ term\<^isub>7 @ term\<^isub>9 @ term\<^isub>1\<^isub>0"}
+
+\item The same can be done for @{text"\<and>"}:
+@{term[display]"term\<^isub>0 \<and> term\<^isub>1 \<and> term\<^isub>2 \<and> term\<^isub>3 \<and> term\<^isub>4 \<and> term\<^isub>5 \<and> term\<^isub>6 \<and> term\<^isub>7 \<and> term\<^isub>9 \<and> term\<^isub>1\<^isub>0 \<and> term\<^isub>1\<^isub>1"}
 
 \end{itemize}
 *}
@@ -161,7 +166,155 @@ In which case you should use \texttt{mode=IfThenNoBox} instead of
 \begin{theorem}
 @{prop[mode=IfThenNoBox] "longpremise \<Longrightarrow> longerpremise \<Longrightarrow> P(f(f(f(f(f(f(f(f(f(x)))))))))) \<Longrightarrow> longestpremise \<Longrightarrow> conclusion"}
 \end{theorem}
+*}
 
+subsection {*Definitions and Equations*}
+
+text {*
+  The \verb!thm! antiquotation works nicely for proper theorems, but
+  sets of equations as used in defintions are more difficult to
+  typeset nicely: for some reason people tend to prefer aligned 
+  @{text "="} signs.
+
+  Isabelle2005 will have a nice mechanism for that, namely the two
+  antiquotations \verb!@!\verb!{lhs thm}! and \verb!@!\verb!{rhs thm}!.
+
+  \begin{center}
+  \begin{tabular}{l@ {~~@{text "="}~~}l}
+  @{lhs foldl_Nil[no_vars]} & @{rhs foldl_Nil[no_vars]}\\
+  @{lhs foldl_Cons[no_vars]} & @{rhs foldl_Cons[no_vars]}
+  \end{tabular}
+  \end{center}
+
+  \noindent 
+  is produced by the following code:
+
+\begin{quote}
+  \verb!\begin{center}!\\
+  \verb!\begin{tabular}{l@ {~~!\verb!@!\verb!{text "="}~~}l}!\\
+  \verb!@!\verb!{lhs foldl_Nil[no_vars]} & @!\verb!{rhs foldl_Nil[no_vars]}!\\
+  \verb!@!\verb!{lhs foldl_Cons[no_vars]} & @!\verb!{rhs foldl_Cons[no_vars]}!\\
+  \verb!\end{tabular}!\\
+  \verb!\end{center}!
+\end{quote}
+
+  \noindent
+  Note the space between \verb!@! and \verb!{! in the tabular argument.
+  It prevents Isabelle from interpreting \verb!@ {~~...~~}! 
+  as antiquotation. \verb!@!\verb!{lhs thm}! and \verb!@!\verb!{rhs thm}! 
+  try to be smart about the interpretation of the theorem they
+  print, they work just as well for meta equality @{text "\<equiv>"} and other
+  binary operators like @{text "<"}.
+
+  Should you lack both the development version of Isabelle and a time
+  machine, you can still try to simulate the effect using the equation syntax
+  in \texttt{sugar.sty} and \texttt{OptionalSugar}.
+  
+  \begin{center}
+  \begin{tabular}{l@ { }l@ { }l}
+  \setcounter{isatabs}{0}%
+  @{thm [mode=tab] foldl_Nil[no_vars]}\nl
+  @{thm [mode=tab] foldl_Cons[no_vars]}
+  \end{tabular}
+  \end{center}
+
+  \noindent 
+  is produced by:
+
+\begin{quote}
+  \verb!\begin{center}!\\
+  \verb!\begin{tabular}{l@ { }l@ { }l}!\\
+  \verb!\setcounter{isatabs}{0}%!\\
+  \verb!@!\verb!{thm [mode=tab] foldl_Nil[no_vars]}\nl!\\
+  \verb!@!\verb!{thm [mode=tab] foldl_Cons[no_vars]}!\\
+  \verb!\end{tabular}!\\
+  \verb!\end{center}!
+\end{quote}
+
+  \noindent
+  These \LaTeX\ macros are not as flexible as the antiquotations
+  above, they only work for proper equations and definitions and they
+  only work correctly if the left hand side does not contain any
+  @{text "="} signs.
+*}
+
+subsection "Patterns"
+
+text {*
+  Sometimes functions ignore one or more of their
+  arguments and some functional languages have nice 
+  syntax for that as in @{thm hd.simps [where xs=DUMMY,no_vars]}.
+
+  You can simulate this in Isabelle by instantiating the @{term xs} in
+  definition \mbox{@{thm hd.simps[no_vars]}} with a constant @{text DUMMY} that
+  is printed as @{term DUMMY}. The code for the pattern above is 
+  \verb!@!\verb!{thm hd.simps [where xs=DUMMY,novars]}!.
+
+  You can drive this game even further and extend the syntax of let
+  bindings such that certain functions like @{term fst}, @{term hd}, 
+  etc.\ are printed nicely. \texttt{OptionalSugar} provides the
+  following pretty printing patterns:
+  
+  \begin{center}
+  \begin{tabular}{l@ {~~produced by~~}l}
+  @{term "let x = fst p in t"} & \verb!@!\verb!{term "let x = fst p in t"}!\\
+  @{term "let x = snd p in t"} & \verb!@!\verb!{term "let x = snd p in t"}!\\
+  @{term "let x = hd xs in t"} & \verb!@!\verb!{term "let x = hd xs in t"}!\\
+  @{term "let x = tl xs in t"} & \verb!@!\verb!{term "let x = tl xs in t"}!\\
+  @{term "let x = the y in t"} & \verb!@!\verb!{term "let x = the y in t"}!\\
+  \end{tabular}
+  \end{center}
+*}
+
+subsection "Proofs"
+
+text {*
+  Full proofs, even if written in beatiful Isar style, are likely to
+  be too long and detailed to be included in conference papers, but
+  some key lemmas might be of interest.
+
+  It is usually easiest to put them in figures like the one in Fig.\
+  \ref{fig:proof}. This was achieved with the \isakeyword{text\_raw}
+  command:
+*}
+text_raw {*
+  \begin{figure}
+  \begin{center}\begin{minipage}{0.6\textwidth}  
+  \begin{isabellebody}
+*}
+lemma True
+proof -
+  -- "pretty trivial"
+  show True by force
+qed
+text_raw {*  
+  \end{isabellebody}
+  \end{minipage}\end{center}
+  \caption{Example proof in a figure.}\label{fig:proof}
+  \end{figure}
+*}
+text {*
+
+\begin{quote}
+\small
+\verb!text_raw {!\verb!*!\\
+\verb!  \begin{figure}!\\
+\verb!  \begin{center}\begin{minipage}{0.6\textwidth}!\\
+\verb!  \begin{isabellebody}!\\
+\verb!*!\verb!}!\\
+\verb!lemma True!\\
+\verb!proof -!\\
+\verb!  -- "pretty trivial"!\\
+\verb!  show True by force!\\
+\verb!qed!\\
+\verb!text_raw {!\verb!*!\\
+\verb!  \end{isabellebody}!\\
+\verb!  \end{minipage}\end{center}!\\
+\verb!  \caption{Example proof in a figure.}\label{fig:proof}!\\
+\verb!  \end{figure}!\\
+\verb!*!\verb!}!
+\end{quote}
+  
 *}
 
 (*<*)

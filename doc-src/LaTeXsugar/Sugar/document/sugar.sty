@@ -1,0 +1,13 @@
+\usepackage{ifthen}
+
+% ------------------------------------------
+% for typesetting equations in tabular envs
+
+\newcounter{isatabs}
+\newcommand{\putisatab}{%
+\ifthenelse{\value{isatabs}<2}{&\addtocounter{isatabs}{1}}{}}
+\newcommand{\nl}{\\\setcounter{isatabs}{0}}
+
+\newcommand{\isactrltab}{\putisatab}
+
+% ------------------------------------------

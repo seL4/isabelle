@@ -46,13 +46,8 @@ syntax (latex output)
 syntax (latex output)
   nth :: "'a list \<Rightarrow> nat \<Rightarrow> 'a" ("_\<^raw:$_{[\mathit{>_\<^raw:}]}$>" [1000,0] 1000)
 
-(* append
-syntax (latex output)
-  "appendL" :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" ("_ \<^raw:\isacharat>/ _" [65,66] 65)
-translations
-  "appendL xs ys" <= "xs @ ys" 
-  "appendL (appendL xs ys) zs" <= "appendL xs (appendL ys zs)"
-*)
+(* DUMMY *)
+consts DUMMY :: 'a ("\<^raw:\_>")
 
 (* THEOREMS *)
 syntax (Rule output)
