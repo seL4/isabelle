@@ -19,16 +19,25 @@ function usage()
 }
 
 
+## check for isabelle fonts
+
+function checkfonts()
+{
+  RESULT=$(xlsfonts -fn "-isabelle-*" 2>&1) || return 1
+
+  case "$RESULT" in
+    xlsfonts:*)
+      return 1
+      ;;
+  esac
+
+  return 0
+}
+
+
 ## main
 
 [ $# -ne 0 ] && usage
 
-
-RESULT=$(xlsfonts -fn "-isabelle-*" 2>&1) || exit 1
-
-case "$RESULT" in
-  xlsfonts:*)
-    xset fp+ $ISABELLE_HOME/lib/fonts
-    xset fp rehash
-    ;;
-esac
+checkfonts || eval $ISABELLE_INSTALLFONTS
+checkfonts || echo "WARNING: Isabelle fonts probably not installed correctly!" >&2
