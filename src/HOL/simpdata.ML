@@ -228,7 +228,7 @@ fun split_inside_tac splits = mktac (map mk_meta_eq splits)
 end;
 
 
-(* eliminiation of existential quantifiers in assumptions *)
+(* elimination of existential quantifiers in assumptions *)
 
 val ex_all_equiv =
   let val lemma1 = prove_goal HOL.thy
@@ -242,13 +242,25 @@ val ex_all_equiv =
 (* '&' congruence rule: not included by default!
    May slow rewrite proofs down by as much as 50% *)
 
-val conj_cong = impI RSN
-    (2, prove_goal HOL.thy "(P=P')--> (P'--> (Q=Q'))--> ((P&Q) = (P'&Q'))"
-        (fn _=> [fast_tac HOL_cs 1]) RS mp RS mp);
+val conj_cong = 
+  let val th = prove_goal HOL.thy 
+                "(P=P')--> (P'--> (Q=Q'))--> ((P&Q) = (P'&Q'))"
+		(fn _=> [fast_tac HOL_cs 1])
+  in  standard (impI RSN (2, th RS mp RS mp))  end;
 
-val rev_conj_cong = impI RSN
-    (2, prove_goal HOL.thy "(Q=Q')--> (Q'--> (P=P'))--> ((P&Q) = (P'&Q'))"
-        (fn _=> [fast_tac HOL_cs 1]) RS mp RS mp);
+val rev_conj_cong =
+  let val th = prove_goal HOL.thy 
+                "(Q=Q')--> (Q'--> (P=P'))--> ((P&Q) = (P'&Q'))"
+		(fn _=> [fast_tac HOL_cs 1])
+  in  standard (impI RSN (2, th RS mp RS mp))  end;
+
+(* '|' congruence rule: not included by default! *)
+
+val disj_cong = 
+  let val th = prove_goal HOL.thy 
+                "(P=P')--> (~P'--> (Q=Q'))--> ((P|Q) = (P'|Q'))"
+		(fn _=> [fast_tac HOL_cs 1])
+  in  standard (impI RSN (2, th RS mp RS mp))  end;
 
 (** 'if' congruence rules: neither included by default! *)
 
