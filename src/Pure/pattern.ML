@@ -155,13 +155,14 @@ fun split_type (T,0,Ts)                    = (Ts,T)
   | split_type (Type ("fun",[T1,T2]),n,Ts) = split_type (T2,n-1,T1::Ts)
   | split_type _                           = error("split_type");
 
-fun type_of_G (T,n,is) =
-  let val (Ts,U) = split_type(T,n,[]) in map(at Ts)is ---> U end;
+fun type_of_G (env as Envir.Envir {iTs, ...}) (T,n,is) =
+  let val (Ts, U) = split_type (Envir.norm_type iTs T, n, [])
+  in map (at Ts) is ---> U end;
 
 fun mkhnf (binders,is,G,js) = mkabs (binders, is, app(G,js));
 
 fun mknewhnf(env,binders,is,F as (a,_),T,js) =
-  let val (env',G) = Envir.genvar a (env,type_of_G(T,length is,js))
+  let val (env',G) = Envir.genvar a (env,type_of_G env (T,length is,js))
   in Envir.update((F,mkhnf(binders,is,G,js)),env') end;
 
 
@@ -194,7 +195,7 @@ fun proj(s,env,binders,is) =
                           val js' = map (trans d) js;
                           val ks = mk_proj_list js';
                           val ls = filter (fn i => i >= 0) js'
-                          val Hty = type_of_G(Fty,length js,ks)
+                          val Hty = type_of_G env (Fty,length js,ks)
                           val (env',H) = Envir.genvar a (env,Hty)
                           val env'' =
                                 Envir.update((F,mkhnf(binders,js,H,ks)),env')
@@ -229,7 +230,7 @@ fun flexflex2(env,binders,F,Fty,is,G,Gty,js) =
             then let val t= mkabs(binders,is,app(Var(G,Gty),map (idx is) js))
                  in Envir.update((F,t),env) end
             else let val ks = is inter_int js
-                     val Hty = type_of_G(Fty,length is,map (idx is) ks)
+                     val Hty = type_of_G env (Fty,length is,map (idx is) ks)
                      val (env',H) = Envir.genvar a (env,Hty)
                      fun lam(is) = mkabs(binders,is,app(H,map (idx is) ks));
                  in Envir.update((G,lam js), Envir.update((F,lam is),env'))
