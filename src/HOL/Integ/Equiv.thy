@@ -87,7 +87,7 @@ theorem equiv_class_eq_iff:
   "equiv A r ==> ((x, y) \<in> r) = (r``{x} = r``{y} & x \<in> A & y \<in> A)"
   by (blast intro!: equiv_class_eq dest: eq_equiv_class equiv_type)
 
-corollary eq_equiv_class_iff:
+theorem eq_equiv_class_iff:
   "equiv A r ==> x \<in> A ==> y \<in> A ==> (r``{x} = r``{y}) = ((x, y) \<in> r)"
   by (blast intro!: equiv_class_eq dest: eq_equiv_class equiv_type)
 
@@ -137,16 +137,16 @@ lemma quotient_eq_iff:
 subsection {* Defining unary operations upon equivalence classes *}
 
 locale congruent =
-  fixes r and b
-  assumes congruent: "(y, z) \<in> r ==> b y = b z"
+  fixes r and f
+  assumes congruent: "(y, z) \<in> r ==> f y = f z"
 
-lemma UN_constant_eq: "a \<in> A ==> \<forall>y \<in> A. b y = c ==> (\<Union>y \<in> A. b(y))=c"
+lemma UN_constant_eq: "a \<in> A ==> \<forall>y \<in> A. f y = c ==> (\<Union>y \<in> A. f(y))=c"
   -- {* lemma required to prove @{text UN_equiv_class} *}
   by auto
 
 lemma UN_equiv_class:
-  "equiv A r ==> congruent r b ==> a \<in> A
-    ==> (\<Union>x \<in> r``{a}. b x) = b a"
+  "equiv A r ==> congruent r f ==> a \<in> A
+    ==> (\<Union>x \<in> r``{a}. f x) = f a"
   -- {* Conversion rule *}
   apply (rule equiv_class_self [THEN UN_constant_eq], assumption+)
   apply (unfold equiv_def congruent_def sym_def)
@@ -154,8 +154,8 @@ lemma UN_equiv_class:
   done
 
 lemma UN_equiv_class_type:
-  "equiv A r ==> congruent r b ==> X \<in> A//r ==>
-    (!!x. x \<in> A ==> b x : B) ==> (\<Union>x \<in> X. b x) : B"
+  "equiv A r ==> congruent r f ==> X \<in> A//r ==>
+    (!!x. x \<in> A ==> f x \<in> B) ==> (\<Union>x \<in> X. f x) \<in> B"
   apply (unfold quotient_def)
   apply clarify
   apply (subst UN_equiv_class)
@@ -165,19 +165,19 @@ lemma UN_equiv_class_type:
 text {*
   Sufficient conditions for injectiveness.  Could weaken premises!
   major premise could be an inclusion; bcong could be @{text "!!y. y \<in>
-  A ==> b y \<in> B"}.
+  A ==> f y \<in> B"}.
 *}
 
 lemma UN_equiv_class_inject:
-  "equiv A r ==> congruent r b ==>
-    (\<Union>x \<in> X. b x) = (\<Union>y \<in> Y. b y) ==> X \<in> A//r ==> Y \<in> A//r
-    ==> (!!x y. x \<in> A ==> y \<in> A ==> b x = b y ==> (x, y) \<in> r)
+  "equiv A r ==> congruent r f ==>
+    (\<Union>x \<in> X. f x) = (\<Union>y \<in> Y. f y) ==> X \<in> A//r ==> Y \<in> A//r
+    ==> (!!x y. x \<in> A ==> y \<in> A ==> f x = f y ==> (x, y) \<in> r)
     ==> X = Y"
   apply (unfold quotient_def)
   apply clarify
   apply (rule equiv_class_eq)
    apply assumption
-  apply (subgoal_tac "b x = b xa")
+  apply (subgoal_tac "f x = f xa")
    apply blast
   apply (erule box_equals)
    apply (assumption | rule UN_equiv_class)+
@@ -187,17 +187,17 @@ lemma UN_equiv_class_inject:
 subsection {* Defining binary operations upon equivalence classes *}
 
 locale congruent2 =
-  fixes r and b
+  fixes r and f
   assumes congruent2:
-    "(y1, z1) \<in> r ==> (y2, z2) \<in> r ==> b y1 y2 = b z1 z2"
+    "(y1, z1) \<in> r ==> (y2, z2) \<in> r ==> f y1 y2 = f z1 z2"
 
 lemma congruent2_implies_congruent:
-    "equiv A r ==> congruent2 r b ==> a \<in> A ==> congruent r (b a)"
+    "equiv A r ==> congruent2 r f ==> a \<in> A ==> congruent r (f a)"
   by (unfold congruent_def congruent2_def equiv_def refl_def) blast
 
 lemma congruent2_implies_congruent_UN:
-  "equiv A r ==> congruent2 r b ==> a \<in> A ==>
-    congruent r (\<lambda>x1. \<Union>x2 \<in> r``{a}. b x1 x2)"
+  "equiv A r ==> congruent2 r f ==> a \<in> A ==>
+    congruent r (\<lambda>x1. \<Union>x2 \<in> r``{a}. f x1 x2)"
   apply (unfold congruent_def)
   apply clarify
   apply (rule equiv_type [THEN subsetD, THEN SigmaE2], assumption+)
@@ -207,15 +207,15 @@ lemma congruent2_implies_congruent_UN:
   done
 
 lemma UN_equiv_class2:
-  "equiv A r ==> congruent2 r b ==> a1 \<in> A ==> a2 \<in> A
-    ==> (\<Union>x1 \<in> r``{a1}. \<Union>x2 \<in> r``{a2}. b x1 x2) = b a1 a2"
+  "equiv A r ==> congruent2 r f ==> a1 \<in> A ==> a2 \<in> A
+    ==> (\<Union>x1 \<in> r``{a1}. \<Union>x2 \<in> r``{a2}. f x1 x2) = f a1 a2"
   by (simp add: UN_equiv_class congruent2_implies_congruent
     congruent2_implies_congruent_UN)
 
 lemma UN_equiv_class_type2:
-  "equiv A r ==> congruent2 r b ==> X1 \<in> A//r ==> X2 \<in> A//r
-    ==> (!!x1 x2. x1 \<in> A ==> x2 \<in> A ==> b x1 x2 \<in> B)
-    ==> (\<Union>x1 \<in> X1. \<Union>x2 \<in> X2. b x1 x2) \<in> B"
+  "equiv A r ==> congruent2 r f ==> X1 \<in> A//r ==> X2 \<in> A//r
+    ==> (!!x1 x2. x1 \<in> A ==> x2 \<in> A ==> f x1 x2 \<in> B)
+    ==> (\<Union>x1 \<in> X1. \<Union>x2 \<in> X2. f x1 x2) \<in> B"
   apply (unfold quotient_def)
   apply clarify
   apply (blast intro: UN_equiv_class_type congruent2_implies_congruent_UN
@@ -231,9 +231,9 @@ lemma UN_UN_split_split_eq:
 
 lemma congruent2I:
   "equiv A r
-    ==> (!!y z w. w \<in> A ==> (y, z) \<in> r ==> b y w = b z w)
-    ==> (!!y z w. w \<in> A ==> (y, z) \<in> r ==> b w y = b w z)
-    ==> congruent2 r b"
+    ==> (!!y z w. w \<in> A ==> (y, z) \<in> r ==> f y w = f z w)
+    ==> (!!y z w. w \<in> A ==> (y, z) \<in> r ==> f w y = f w z)
+    ==> congruent2 r f"
   -- {* Suggested by John Harrison -- the two subproofs may be *}
   -- {* \emph{much} simpler than the direct proof. *}
   apply (unfold congruent2_def equiv_def refl_def)
@@ -243,9 +243,9 @@ lemma congruent2I:
 
 lemma congruent2_commuteI:
   assumes equivA: "equiv A r"
-    and commute: "!!y z. y \<in> A ==> z \<in> A ==> b y z = b z y"
-    and congt: "!!y z w. w \<in> A ==> (y, z) \<in> r ==> b w y = b w z"
-  shows "congruent2 r b"
+    and commute: "!!y z. y \<in> A ==> z \<in> A ==> f y z = f z y"
+    and congt: "!!y z w. w \<in> A ==> (y, z) \<in> r ==> f w y = f w z"
+  shows "congruent2 r f"
   apply (rule equivA [THEN congruent2I])
    apply (rule commute [THEN trans])
      apply (rule_tac [3] commute [THEN trans, symmetric])
@@ -287,9 +287,6 @@ lemma equiv_imp_dvd_card:
 
 ML
 {*
-
-(* legacy ML bindings *)
-
 val UN_UN_split_split_eq = thm "UN_UN_split_split_eq";
 val UN_constant_eq = thm "UN_constant_eq";
 val UN_equiv_class = thm "UN_equiv_class";
