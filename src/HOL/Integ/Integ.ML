@@ -580,8 +580,8 @@ by Safe_tac;
 by (asm_full_simp_tac (simpset() addsimps ([znat_def, zadd])) 1);
 qed "zless_not_sym";
 
-(* [| n<m; m<n |] ==> R *)
-bind_thm ("zless_asym", (zless_not_sym RS notE));
+(* [| n<m;  ~P ==> m<n |] ==> P *)
+bind_thm ("zless_asym", (zless_not_sym RS swap));
 
 Goal "!!z::int. ~ z<z";
 by (resolve_tac [zless_asym RS notI] 1);
@@ -592,7 +592,7 @@ qed "zless_not_refl";
 bind_thm ("zless_irrefl", (zless_not_refl RS notE));
 
 Goal "z<w ==> w ~= (z::int)";
-by (fast_tac (claset() addEs [zless_irrefl]) 1);
+by (blast_tac (claset() addEs [zless_irrefl]) 1);
 qed "zless_not_refl2";
 
 
@@ -637,17 +637,17 @@ by (Fast_tac 1);
 qed "not_zleE";
 
 Goalw [zle_def] "z < w ==> z <= (w::int)";
-by (fast_tac (claset() addEs [zless_asym]) 1);
+by (blast_tac (claset() addEs [zless_asym]) 1);
 qed "zless_imp_zle";
 
 Goalw [zle_def] "z <= w ==> z < w | z=(w::int)";
 by (cut_facts_tac [zless_linear] 1);
-by (fast_tac (claset() addEs [zless_irrefl,zless_asym]) 1);
+by (blast_tac (claset() addEs [zless_irrefl,zless_asym]) 1);
 qed "zle_imp_zless_or_eq";
 
 Goalw [zle_def] "z<w | z=w ==> z <=(w::int)";
 by (cut_facts_tac [zless_linear] 1);
-by (fast_tac (claset() addEs [zless_irrefl,zless_asym]) 1);
+by (blast_tac (claset() addEs [zless_irrefl,zless_asym]) 1);
 qed "zless_or_eq_imp_zle";
 
 Goal "(x <= (y::int)) = (x < y | x=y)";
@@ -660,18 +660,18 @@ qed "zle_refl";
 
 Goal "[| i <= j; j < k |] ==> i < (k::int)";
 by (dtac zle_imp_zless_or_eq 1);
-by (fast_tac (claset() addIs [zless_trans]) 1);
+by (blast_tac (claset() addIs [zless_trans]) 1);
 qed "zle_zless_trans";
 
 Goal "[| i <= j; j <= k |] ==> i <= (k::int)";
 by (EVERY1 [dtac zle_imp_zless_or_eq, dtac zle_imp_zless_or_eq,
             rtac zless_or_eq_imp_zle, 
-	    fast_tac (claset() addIs [zless_trans])]);
+	    blast_tac (claset() addIs [zless_trans])]);
 qed "zle_trans";
 
 Goal "[| z <= w; w <= z |] ==> z = (w::int)";
 by (EVERY1 [dtac zle_imp_zless_or_eq, dtac zle_imp_zless_or_eq,
-            fast_tac (claset() addEs [zless_irrefl,zless_asym])]);
+            blast_tac (claset() addEs [zless_irrefl,zless_asym])]);
 qed "zle_anti_sym";
 
 
@@ -722,7 +722,7 @@ qed "zadd_zle_self";
 (** One auxiliary theorem...**)
 
 Goal "(x = False) = (~ x)";
-  by (fast_tac HOL_cs 1);
+  by (Blast_tac 1);
 qed "eq_False_conv";
 
 (** Additional theorems for Integ.thy **) 
