@@ -164,8 +164,11 @@ val verbatim = preform o output;
 (* document *)
 
 fun begin_document title =
-  "<html>\n\
+  "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n\
+  \\n\
+  \<html>\n\
   \<head>\n\
+  \<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">\n\
   \<title>" ^ plain (title ^ " (" ^ version ^ ")") ^ "</title>\n\
   \</head>\n\
   \\n\
