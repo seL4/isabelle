@@ -22,11 +22,12 @@ parameters (as in CASL, for example); just specify something like
 * Pure: improved thms_containing: proper indexing of facts instead of
 raw theorems; check validity of results wrt. current name space;
 include local facts of proof configuration (also covers active
-locales); an optional limit for the number of printed facts may be
-given (the default is 40);
+locales), cover fixed variables in index; may use "_" in term
+specification; an optional limit for the number of printed facts may
+be given (the default is 40);
 
-* Pure: disallow duplicate fact bindings within new-style theory
-files;
+* Pure: disallow duplicate fact bindings within new-style theory files
+(batch-mode only);
 
 * Provers: improved induct method: assumptions introduced by case
 "foo" are split into "foo.hyps" (from the rule) and "foo.prems" (from
