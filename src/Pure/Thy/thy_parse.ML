@@ -415,7 +415,7 @@ val instance_decl =
 
 (* local, global path *)
 
-val empty_decl = empty >> K "";
+fun empty_decl toks = (empty >> K "") toks;
 
 val global_path =
   "|> (fn thy => if ! global_names then thy else Theory.add_path \"/\" thy)";
