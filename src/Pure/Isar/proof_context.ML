@@ -28,7 +28,6 @@ sig
   val cert_typ: context -> typ -> typ
   val cert_typ_no_norm: context -> typ -> typ
   val get_skolem: context -> string -> string
-  val intern_skolem: context -> term -> term
   val extern_skolem: context -> term -> term
   val read_termTs: context -> (string * typ) list -> term list * (indexname * typ) list
   val read_term: context -> string -> term
@@ -444,7 +443,7 @@ fun no_skolem internal ctxt x =
 fun intern_skolem ctxt =
   let
     fun intern (t as Free (x, T)) =
-          (case lookup_skolem ctxt (no_skolem true ctxt x) of
+          (case lookup_skolem ctxt (no_skolem false ctxt x) of
             Some x' => Free (x', T)
           | None => t)
       | intern (t $ u) = intern t $ intern u
