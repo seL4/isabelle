@@ -12,12 +12,11 @@ For Isabelle2005:
 - check/establish conformity of HTML files to (some version of) the HTML
   language specification (cf. http://validator.w3.org/) (Tjark, or anyone
   who is interested)
-
-- eliminate the last remaining old-style theories (Larry):  
-  HOL_lemmas.ML
-  NatArith.ML
-  Relation_Power.ML
+  
+- fix the inductive definition bug (Larry): Equations in the intro rules can make proofs fail. Perhaps the critical proof could "protect" the initial equations e.g. by disjoining False, and removing this later.
   
 - update or remove ex/MT (Larry? Tobias?)  
+
+- Include IsaPlanner? (Larry to co-ordinate)
 
 - remove this file (Tobias)
