@@ -5,6 +5,15 @@ Isabelle NEWS -- history user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** General ***
+
+* tuned current_goals_markers semantics: begin / end goal avoids
+printing empty lines;
+
+
+New in Isabelle98-1 (October 1998)
+----------------------------------
+
 *** Overview of INCOMPATIBILITIES (see below for more details) ***
 
 * several changes of automated proof tools;
