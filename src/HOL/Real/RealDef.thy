@@ -805,17 +805,8 @@ by (simp add: add: real_of_nat_def)
 lemma real_of_int_real_of_nat: "real (int n) = real n"
 by (simp add: real_of_nat_def real_of_int_def int_eq_of_nat)
 
-
-text{*Still needed for binary arithmetic*}
-lemma real_of_nat_real_of_int: "~neg z ==> real (nat z) = real z"
-proof (simp add: not_neg_eq_ge_0 real_of_nat_def real_of_int_def)
-  assume "0 \<le> z"
-  hence eq: "of_nat (nat z) = z" 
-    by (simp add: nat_0_le int_eq_of_nat[symmetric]) 
-  have "of_nat (nat z) = of_int (of_nat (nat z))" by simp
-  also have "... = of_int z" by (simp add: eq)
-  finally show "of_nat (nat z) = of_int z" .
-qed
+lemma real_of_int_of_nat_eq [simp]: "real (of_nat n :: int) = real n"
+by (simp add: real_of_int_def real_of_nat_def)
 
 
 

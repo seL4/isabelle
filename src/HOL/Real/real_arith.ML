@@ -1,4 +1,4 @@
-(*  Title:      HOL/Real/real_arith0.ML
+(*  Title:      HOL/Real/real_arith.ML
     ID:         $Id$
     Author:     Tobias Nipkow, TU Muenchen
     Copyright   1999 TU Muenchen
@@ -113,6 +113,7 @@ val not_real_of_nat_less_zero = thm "not_real_of_nat_less_zero";
 val real_of_nat_ge_zero_cancel_iff = thm "real_of_nat_ge_zero_cancel_iff";
 val real_number_of = thm"real_number_of";
 val real_of_nat_number_of = thm"real_of_nat_number_of";
+val real_of_int_of_nat_eq = thm"real_of_int_of_nat_eq";
 
 
 (****Instantiation of the generic linear arithmetic package****)
@@ -130,7 +131,7 @@ val real_mult_mono_thms =
 val simps = [real_of_nat_zero, real_of_nat_Suc, real_of_nat_add, 
        real_of_nat_mult, real_of_int_zero, real_of_one, real_of_int_add RS sym,
        real_of_int_minus RS sym, real_of_int_diff RS sym,
-       real_of_int_mult RS sym,
+       real_of_int_mult RS sym, real_of_int_of_nat_eq,
        real_of_nat_number_of, real_number_of];
 
 val int_inj_thms = [real_of_int_le_iff RS iffD2, real_of_int_less_iff RS iffD2,
