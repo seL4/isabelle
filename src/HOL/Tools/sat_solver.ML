@@ -8,19 +8,19 @@ Interface to external SAT solvers, and (simple) built-in SAT solvers.
 
 signature SAT_SOLVER =
 sig
-	type solver  (* PropLogic.prop_formula -> (int -> bool) option *)
+	type solver  (* PropLogic.prop_formula -> (int -> bool) option option *)
 
 	(* external SAT solvers *)
 	val write_dimacs_cnf_file : Path.T -> PropLogic.prop_formula -> unit
 	val write_dimacs_sat_file : Path.T -> PropLogic.prop_formula -> unit
 	val parse_std_result_file : Path.T -> string -> (int -> bool) option
-	val make_external_solver  : string -> (PropLogic.prop_formula -> unit) -> (unit -> (int -> bool) option) -> solver
+	val make_external_solver  : string -> (PropLogic.prop_formula -> unit) -> (unit -> (int -> bool) option)
+			-> PropLogic.prop_formula -> (int -> bool) option
 
 	(* generic interface *)
-	val solvers       : (solver Symtab.table) ref
-	val add_solver    : string * solver -> unit  (* exception DUP *)
-	val invoke_solver : string -> solver         (* exception OPTION *)
-	val preferred     : string ref
+	val solvers       : (string * solver) list ref
+	val add_solver    : string * solver -> unit
+	val invoke_solver : string -> solver  (* exception OPTION *)
 end;
 
 structure SatSolver : SAT_SOLVER =
@@ -31,9 +31,11 @@ struct
 (* ------------------------------------------------------------------------- *)
 (* Type of SAT solvers: given a propositional formula, a satisfying          *)
 (*      assignment may be returned                                           *)
+(*      - 'Some None' means that no satisfying assignment was found          *)
+(*      - 'None' means that the solver was not configured/installed properly *)
 (* ------------------------------------------------------------------------- *)
 
-	type solver = prop_formula -> (int -> bool) option;
+	type solver = prop_formula -> (int -> bool) option option;
 
 (* ------------------------------------------------------------------------- *)
 (* write_dimacs_cnf_file: serializes a formula 'fm' of propositional logic   *)
@@ -187,7 +189,7 @@ struct
 (* make_external_solver: call 'writefn', execute 'cmd', call 'readfn'        *)
 (* ------------------------------------------------------------------------- *)
 
-	(* string -> (prop_formula -> unit) -> (unit -> (int -> bool) option) -> solver *)
+	(* string -> (prop_formula -> unit) -> (unit -> (int -> bool) option) -> prop_formula -> (int -> bool) option *)
 
 	fun make_external_solver cmd writefn readfn fm =
 		(writefn fm;
@@ -198,18 +200,16 @@ struct
 (* solvers: a (reference to a) table of all registered SAT solvers           *)
 (* ------------------------------------------------------------------------- *)
 
-	val solvers = ref (Symtab.empty : solver Symtab.table);
+	val solvers = ref ([] : (string * solver) list);
 
 (* ------------------------------------------------------------------------- *)
 (* add_solver: updates 'solvers' by adding a new solver                      *)
-(* Note: No two solvers may have the same 'name'; otherwise exception 'DUP'  *)
-(*       will be raised.                                                     *)
 (* ------------------------------------------------------------------------- *)
 
 	(* string * solver -> unit *)
 
 	fun add_solver (name, new_solver) =
-		(solvers := Symtab.update_new ((name, new_solver), !solvers));
+		(solvers := overwrite_warn (!solvers, (name, new_solver)) ("SAT solver " ^ quote name ^ " was defined before"));
 
 (* ------------------------------------------------------------------------- *)
 (* invoke_solver: returns the solver associated with the given 'name'        *)
@@ -220,13 +220,7 @@ struct
 	(* string -> solver *)
 
 	fun invoke_solver name =
-		(the o Symtab.lookup) (!solvers, name);
-
-(* ------------------------------------------------------------------------- *)
-(* preferred: the name of the preferred SAT solver                           *)
-(* ------------------------------------------------------------------------- *)
-
-	val preferred = ref "";
+		(the o assoc) (!solvers, name);
 
 end;  (* SatSolver *)
 
@@ -274,7 +268,7 @@ let
 		solver_loop []
 	end
 in
-	SatSolver.add_solver ("enumerate", enum_solver)
+	SatSolver.add_solver ("enumerate", Some o enum_solver)
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -359,33 +353,25 @@ let
 		end
 	end  (* local *)
 in
-	SatSolver.add_solver ("dpll", dpll_solver);
-	SatSolver.preferred := "dpll"
+	SatSolver.add_solver ("dpll", Some o dpll_solver)
 end;
 
 (* ------------------------------------------------------------------------- *)
 (* Internal SAT solver, available as 'SatSolver.solve "auto"': uses the      *)
-(* preferred solver, or "dpll" if the preferred solver isn't present         *)
+(* first installed solver (other than "auto" itself)                         *)
 (* ------------------------------------------------------------------------- *)
 
 let
 	fun auto_solver fm =
-	let
-		val preferred = !SatSolver.preferred
-		val fallback  = "dpll"
-	in
-		if preferred="auto" then  (* prevent infinite recursion *)
-			(warning ("Preferred SAT solver \"auto\": using solver " ^ quote fallback ^ " instead.");
-			SatSolver.invoke_solver fallback fm)
-		else if preferred=fallback then
-			(warning ("Preferred SAT solver is " ^ quote fallback ^ "; for better performance, consider using an external solver.");
-			SatSolver.invoke_solver fallback fm)
-		else
-			(SatSolver.invoke_solver preferred fm
-			handle OPTION =>
-				(warning ("Preferred SAT solver " ^ quote preferred ^ " not installed; using solver " ^ quote fallback ^ " instead.");
-				SatSolver.invoke_solver fallback fm))
-	end
+		get_first (fn (name,solver) =>
+			if name="auto" then
+				None
+			else
+				((if name="dpll" then
+					warning ("Using SAT solver \"dpll\"; for better performance, consider using an external solver.")
+				else
+					());
+				solver fm)) (rev (!SatSolver.solvers))
 in
 	SatSolver.add_solver ("auto", auto_solver)
 end;
@@ -394,7 +380,8 @@ end;
 (* ZChaff, Version 2003.12.04                                                *)
 (* ------------------------------------------------------------------------- *)
 
-if getenv "ZCHAFF_HOME" <> "" then
+let
+	fun zchaff fm =
 	let
 		val inname     = "isabelle.cnf"
 		val outname    = "result"
@@ -403,37 +390,28 @@ if getenv "ZCHAFF_HOME" <> "" then
 		val cmd        = (getenv "ZCHAFF_HOME") ^ "/zchaff " ^ (Path.pack inpath) ^ " > " ^ (Path.pack outpath)
 		fun writefn fm = SatSolver.write_dimacs_cnf_file inpath fm
 		fun readfn ()  = SatSolver.parse_std_result_file outpath "Verify Solution successful. Instance satisfiable"
-		fun zchaff fm =
-		let
-			val _          = assert (not (File.exists inpath)) ("file " ^ quote (Path.pack inpath) ^ " exists, please delete (will not overwrite)")
-			val _          = assert (not (File.exists outpath)) ("file " ^ quote (Path.pack outpath) ^ " exists, please delete (will not overwrite)")
-			val assignment = SatSolver.make_external_solver cmd writefn readfn fm
-			val _          = (File.rm inpath handle _ => ())
-			val _          = (File.rm outpath handle _ => ())
-		in
-			assignment
-		end
+		val _          = assert (not (File.exists inpath)) ("file " ^ quote (Path.pack inpath) ^ " exists, please delete (will not overwrite)")
+		val _          = assert (not (File.exists outpath)) ("file " ^ quote (Path.pack outpath) ^ " exists, please delete (will not overwrite)")
+		val assignment = SatSolver.make_external_solver cmd writefn readfn fm
+		val _          = (File.rm inpath handle _ => ())
+		val _          = (File.rm outpath handle _ => ())
 	in
-		SatSolver.add_solver ("zchaff", zchaff);
-		SatSolver.preferred := "zchaff"
+		assignment
 	end
-else
-	();
+in
+		SatSolver.add_solver ("zchaff", (fn fm => if getenv "ZCHAFF_HOME" <> "" then Some (zchaff fm) else None))
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Add code for other SAT solvers below.                                     *)
 (* ------------------------------------------------------------------------- *)
 
 (*
-if mysolver_is_installed then
-	let
-		fun mysolver fm = ...
-	in
-		SatSolver.add_solver ("myname", mysolver);  -- register the solver
-		SatSolver.preferred := "myname"             -- make it the preferred solver (optional)
-	end
-else
-	();
+let
+	fun mysolver fm = ...
+in
+	SatSolver.add_solver ("myname", (fn fm => if mysolver_is_installed then Some (mysolver fm) else None));  -- register the solver
+end;
 
 -- the solver is now available as SatSolver.invoke_solver "myname"
 *)
