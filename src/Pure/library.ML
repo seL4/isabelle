@@ -177,6 +177,7 @@ sig
   val suffix: string -> string -> string
   val unsuffix: string -> string -> string
   val replicate_string: int -> string -> string
+  val translate_string: (string -> string) -> string -> string
 
   (*lists as sets*)
   val mem: ''a * ''a list -> bool
@@ -596,6 +597,8 @@ fun replicate n (x: 'a) : 'a list =
     if n < 0 then raise LIST "replicate"
     else rep (n, [])
   end;
+
+fun translate_string f = String.translate (f o String.str);
 
 (*multiply [a, b, c, ...] * [xs, ys, zs, ...]*)
 fun multiply ([], _) = []
