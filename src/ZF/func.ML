@@ -23,15 +23,10 @@ Goal "f: Pi(A,B) ==> function(f)";
 by (asm_full_simp_tac (FOL_ss addsimps [Pi_iff]) 1);
 qed "fun_is_function";
 
-(**Two "destruct" rules for Pi **)
-
+(*Functions are relations*)
 Goalw [Pi_def] "f: Pi(A,B) ==> f <= Sigma(A,B)";  
 by (Blast_tac 1);
 qed "fun_is_rel";
-
-Goal "[| f: Pi(A,B);  a:A |] ==> EX! y. <a,y>: f";  
-by (blast_tac (claset() addSDs [Pi_iff_old RS iffD1]) 1);
-qed "fun_unique_Pair";
 
 val prems = Goalw [Pi_def]
     "[| A=A';  !!x. x:A' ==> B(x)=B'(x) |] ==> Pi(A,B) = Pi(A',B')";
@@ -72,10 +67,15 @@ by (ftac fun_is_rel 1);
 by (blast_tac (claset() addDs [apply_equality]) 1);
 qed "Pi_memberD";
 
+Goal "[| function(f);  a : domain(f)|] ==> <a,f`a>: f";
+by (asm_full_simp_tac (simpset() addsimps [function_def, apply_def]) 1); 
+by (rtac theI2 1);
+by Auto_tac;  
+qed "function_apply_Pair";
+
 Goal "[| f: Pi(A,B);  a:A |] ==> <a,f`a>: f";
-by (rtac (fun_unique_Pair RS ex1E) 1);
-by (resolve_tac [apply_equality RS ssubst] 3);
-by (REPEAT (assume_tac 1));
+by (asm_full_simp_tac (simpset() addsimps [Pi_iff]) 1); 
+by (blast_tac (claset() addIs [function_apply_Pair]) 1); 
 qed "apply_Pair";
 
 (*Conclusion is flexible -- use res_inst_tac or else apply_funtype below!*)
