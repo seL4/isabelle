@@ -13,6 +13,7 @@ sig
   val sync: symbol
   val is_sync: symbol -> bool
   val not_sync: symbol -> bool
+  val malformed: symbol
   val eof: symbol
   val is_eof: symbol -> bool
   val not_eof: symbol -> bool
@@ -61,6 +62,7 @@ type symbol = string;
 
 val space = " ";
 val sync = "\\<^sync>";
+val malformed = "\\<^malformed>";
 val eof = "";
 
 
@@ -280,7 +282,7 @@ val scan =
 
 (* source *)
 
-val recover = Scan.any ((not o is_blank) andf not_eof);
+val recover = Scan.any ((not o is_blank) andf not_eof) >> K [malformed];
 
 fun source do_recover src =
   Source.source stopper (Scan.bulk scan) (if do_recover then Some recover else None) src;
