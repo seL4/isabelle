@@ -13,19 +13,6 @@ goal HOL.thy "~ (ALL x. x~=y)";
 by (Blast_tac 1);
 Addsimps [result()];
 
-
-(*Classical simplification*)
-val rev_conjI = conjI RS (conj_commute RS iffD1) |> standard;
-val acontr_tac = assume_tac ORELSE' contr_tac;
-fun impCE_tac i = eresolve_tac [impCE] i  THEN  
-                (acontr_tac i ORELSE acontr_tac (i+1));
-
-val clarify_tac =
-    REPEAT_FIRST (ares_tac [impI, notI, allI] ORELSE'
-		  eresolve_tac [exE, conjE, conjI, rev_conjI] ORELSE'
-		  contr_tac ORELSE' impCE_tac ORELSE' hyp_subst_tac);
-
-
 open Message;
 
 AddIffs atomic.inject;
@@ -547,7 +534,7 @@ qed "analz_insert_eq";
 
 goal thy "!!H. [| analz G <= analz G'; analz H <= analz H' \
 \              |] ==> analz (G Un H) <= analz (G' Un H')";
-by (Step_tac 1);
+by (Clarify_tac 1);
 by (etac analz.induct 1);
 by (ALLGOALS (best_tac (!claset addIs [analz_mono RS subsetD])));
 qed "analz_subset_cong";
