@@ -3,16 +3,23 @@
 
 \section{Miscellaneous attributes}\label{sec:rule-format}
 
-\indexisaratt{rule-format}
+\indexisaratt{rule-format}\indexisaratt{split-format}
 \begin{matharray}{rcl}
   rule_format & : & \isaratt \\
+  split_format & : & \isaratt \\
 \end{matharray}
 
 \railalias{ruleformat}{rule\_format}
 \railterm{ruleformat}
 
+\railalias{splitformat}{split\_format}
+\railterm{splitformat}
+\railterm{complete}
+
 \begin{rail}
   ruleformat ('(' noasm ')')?
+  ;
+  splitformat (((name * ) + 'and') | ('(' complete ')'))
   ;
 \end{rail}
 
@@ -23,6 +30,15 @@
   the corresponding meta-logical connectives.  By default, the result is fully
   normalized, including assumptions and conclusions at any depth.  The
   $no_asm$ option restricts the transformation to the conclusion of a rule.
+  
+\item [$split_format~\vec p@1 \dots \vec p@n$] puts tuple objects into
+  canonical form as specified by the arguments given; $\vec p@i$ refers to
+  occurrences in premise $i$ of the rule.
+  
+  The $split_format~(complete)$ form causes \emph{all} arguments in function
+  applications to be represented canonically according to their tuple type
+  structure.
+
 \end{descr}
 
 
