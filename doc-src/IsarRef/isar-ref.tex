@@ -1,13 +1,6 @@
 
 %% $Id$
 
-% FIXME TODO
-%
-% - update Proof General and X-symbol installation notes;
-% - update tactic emulation (including refcard);
-% - proof script conversion guide;
-
-
 \documentclass[12pt,a4paper,fleqn]{report}
 \usepackage{latexsym,graphicx,../iman,../extra,../ttbox,../proof,../rail,../railsetup,../isar,../pdfsetup}
 
@@ -76,15 +69,14 @@
   satisfy quite contradictory requirements, being both ``declarative'' and
   immediately ``executable'', by virtue of the \emph{Isar/VM} interpreter.
   
-  The current version of Isabelle offers Isar as an alternative proof language
-  interface layer.  The Isabelle/Isar system provides an interpreter for the
-  Isar formal proof language.  The input may consist either of proper document
-  constructors, or improper auxiliary commands (for diagnostics, exploration
-  etc.).  Proof texts consisting of proper elements only, admit a purely
-  static reading, thus being intelligible later without requiring dynamic
-  replay that is so typical for traditional proof scripts.  Any of the
-  Isabelle/Isar commands may be executed in single-steps, so basically the
-  interpreter has a proof text debugger already built-in.
+  The Isabelle/Isar system provides an interpreter for the Isar formal proof
+  language.  The input may consist either of proper document constructors, or
+  improper auxiliary commands (for diagnostics, exploration etc.).  Proof
+  texts consisting of proper elements only admit a purely static reading, thus
+  being intelligible later without requiring dynamic replay that is so typical
+  for traditional proof scripts.  Any of the Isabelle/Isar commands may be
+  executed in single-steps, so basically the interpreter has a proof text
+  debugger already built-in.
   
   Employing the Isar instantiation of \emph{Proof~General}, a generic Emacs
   interface for interactive proof assistants, we arrive at a reasonable
@@ -96,9 +88,12 @@
   The Isar subsystem is tightly integrated into the Isabelle/Pure meta-logic
   implementation.  Theories, theorems, proof procedures etc.\ may be used
   interchangeably between classic Isabelle proof scripts and Isabelle/Isar
-  documents.  Isar is as generic as Isabelle, able to support a wide range of
-  object-logics.  Currently, the end-user working environment is most complete
-  for Isabelle/HOL.
+  documents.  Even more, Isar provides a set of emulation commands and methods
+  for simulating traditional tactic scripts within new-style theory documents.
+  
+  The Isar framework is as generic as Isabelle, able to support a wide range
+  of object-logics.  Currently, the end-user working environment is most
+  complete for Isabelle/HOL.
 \end{abstract}
 
 \pagenumbering{roman} \tableofcontents \clearfirst

@@ -1,15 +1,15 @@
 
-\chapter{The Isabelle/Isar Conversion Guide}
+\chapter{Isabelle/Isar Conversion Guide}\label{ap:conv}
 
 Subsequently, we give a few practical hints on working in a mixed environment
 of old Isabelle ML proof scripts and new Isabelle/Isar theories.  There are
 basically three ways to cope with this issue.
 \begin{enumerate}
 \item Do not convert old sources at all, but communicate directly at the level
-  of internal theory and theorem values.
+  of \emph{internal} theory and theorem values.
 \item Port old-style theory files to new-style ones (very easy), and ML proof
   scripts to Isar tactic-emulation scripts (quite easy).
-\item Actually redo ML proof scripts as human readable Isar proof texts
+\item Actually redo ML proof scripts as human-readable Isar proof texts
   (probably hard, depending who wrote the original scripts).
 \end{enumerate}
 
@@ -48,8 +48,8 @@ this is no longer done in new-style Isabelle/Isar theories.
   
   Old-style theories often use the ML binding \texttt{thy}, which is
   dynamically created by the ML code generated from old theory source.  This
-  is no longer the recommended way in any case!  The \texttt{the_context}
-  function should be used for old scripts as well.
+  is no longer the recommended way in any case!  Function \texttt{the_context}
+  should be used for old scripts as well.
   
 \item [$\mathtt{theory}~name$] retrieves the named theory from the global
   theory-loader database.
@@ -67,7 +67,7 @@ bind_thm   : string * thm -> unit
 bind_thms  : string * thm list -> unit
 \end{ttbox}
 
-ML proof scripts have to be well-behaved in storing theorems properly within
+ML proof scripts have to be well-behaved by storing theorems properly within
 the current theory context, in order to enable new-style theories to retrieve
 these these later.
 
@@ -76,14 +76,15 @@ these these later.
   ML.  This already manages entry in the theorem database of the current
   theory context.
 \item [$\mathtt{bind_thm}~(name, thm)$ and $\mathtt{bind_thms}~(name, thms)$]
-  store (lists of) theorems that have been produced in ML in an ad-hoc manner.
+  store theorems that have been produced in ML in an ad-hoc manner.
 \end{descr}
 
 Note that the original ``LCF-system'' approach of binding theorem values on
-the ML toplevel only has long been given up in Isabelle!  Legacy proof scripts
-occasionally contain code such as \texttt{val foo = result();} which is
-ill-behaved in several respects.  Apart from preventing access from Isar
-theories, it also omits the result from the WWW presentation, for example.
+the ML toplevel only has long been given up in Isabelle!  Despite of this, old
+legacy proof scripts occasionally contain code such as \texttt{val foo =
+  result();} which is ill-behaved in several respects.  Apart from preventing
+access from Isar theories, it also omits the result from the WWW presentation,
+for example.
 
 
 \subsection{ML declarations in Isar}
@@ -98,8 +99,8 @@ old-style theorem binding may be mimicked as follows.
 \[
 \isarkeyword{ML}~\{*~\mbox{\texttt{val foo = thm "foo"}}~*\}
 \]
-This command cannot be undone; invalid theorem bindings in ML may persist.
-Also note that the current theory may not be modified; use
+Note that this command cannot be undone, so invalid theorem bindings in ML may
+persist.  Also note that the current theory may not be modified; use
 $\isarkeyword{ML_setup}$ for declarations that act on the current context.
 
 
@@ -142,14 +143,13 @@ as follows.
   identifiers $x$, numerals $1$, or symbols $\forall$ (input as
   \verb,\<forall>,).
 \item Theorem declarations require an explicit colon to separate the name from
-  the statement (the name is usually optional).  See the syntax of $\DEFS$ in
-  \S\ref{sec:consts}, or $\THEOREMNAME$ in \S\ref{sec:axms-thms}), for
-  example.
+  the statement (the name is usually optional).  Cf.\ the syntax of $\DEFS$ in
+  \S\ref{sec:consts}, or $\THEOREMNAME$ in \S\ref{sec:axms-thms}.
 \end{itemize}
 
-Also note that Isabelle/Isar error messages are usually quite explicit about
-the problem at hand.  So in cases of doubt, input syntax may be just as well
-tried interactively.
+Note that Isabelle/Isar error messages are usually quite explicit about the
+problem at hand.  So in cases of doubt, input syntax may be just as well tried
+out interactively.
 
 
 \subsection{Goal statements}\label{sec:conv-goal}
@@ -194,33 +194,33 @@ This is replaced by using the $unfold$ proof method explicitly.
 Isar Proof methods closely resemble traditional tactics, when used in
 unstructured sequences of $\isarkeyword{apply}$ commands (cf.\ 
 \S\ref{sec:conv-goal}).  Isabelle/Isar provides emulations for all major ML
-tactic of classic Isabelle, mostly for the sake of easy porting of existing
-developments --- actual Isar proof texts would demand much less diversity of
-proof methods.
+tactics of classic Isabelle --- mostly for the sake of easy porting of
+existing developments, as actual Isar proof texts would demand much less
+diversity of proof methods.
 
 Unlike tactic expressions in ML, Isar proof methods provide proper concrete
 syntax for additional arguments, options, modifiers etc.  Thus a typical
 method text is usually more concise than the corresponding ML tactic.
 Furthermore, the Isar versions of classic Isabelle tactics often cover several
-variant forms into a single method, with separate options to tune the
-behavior.  For example, method $simp$ replaces all of \texttt{simp_tac}~/
-\texttt{asm_simp_tac}~/ \texttt{full_simp_tac}~/ \texttt{asm_full_simp_tac};
+variant forms by a single method with separate options to tune the behavior.
+For example, method $simp$ replaces all of \texttt{simp_tac}~/
+\texttt{asm_simp_tac}~/ \texttt{full_simp_tac}~/ \texttt{asm_full_simp_tac},
 there is also concrete syntax for augmenting the Simplifier context (the
-current ``simpset'').
+current ``simpset'') in a handsome way.
 
 
 \subsubsection{Resolution tactics}
 
 Classic Isabelle provides several variant forms of tactics for single-step
-rule applications (based on higher-order resolution).  The space of possible
+rule applications (based on higher-order resolution).  The space of resolution
 tactics has the following main dimensions.
 \begin{enumerate}
-\item The ``mode'' of resolution: intro, elim, destruct, forward (e.g.\ 
+\item The ``mode'' of resolution: intro, elim, destruct, or forward (e.g.\ 
   \texttt{resolve_tac}, \texttt{eresolve_tac}, \texttt{dresolve_tac},
   \texttt{forward_tac}).
-\item Optional explicit instantiation (e.g.\ \texttt{resolve_tac},
+\item Optional explicit instantiation (e.g.\ \texttt{resolve_tac} vs.\ 
   \texttt{res_inst_tac}).
-\item Abbreviations for common arguments (e.g.\ \texttt{resolve_tac},
+\item Abbreviations for singleton arguments (e.g.\ \texttt{resolve_tac} vs.\ 
   \texttt{rtac}).
 \end{enumerate}
 
@@ -231,9 +231,9 @@ single or multiple arguments.  Although it is more convenient in most cases to
 use the plain $rule$ method (see \S\ref{sec:pure-meth-att}), or any of its
 ``improper'' variants $erule$, $drule$, $frule$ (see
 \S\ref{sec:misc-methods}).  Note that explicit goal addressing is only
-supported by $rule_tac$ versions.
+supported by the actual $rule_tac$ version.
 
-\medskip Thus plain resolution tactics may be ported to Isar as follows.
+With this in mind, plain resolution tactics may be ported as follows.
 \begin{matharray}{lll}
   \texttt{rtac}~a~1 & & rule~a \\
   \texttt{resolve_tac}~[a@1, \dots]~1 & & rule~a@1~\dots \\
@@ -285,7 +285,7 @@ by application of attributes, see \S\ref{sec:conv-decls} for more information.
 The Classical Reasoner provides a rather large number of variations of
 automated tactics, such as \texttt{Blast_tac}, \texttt{Fast_tac},
 \texttt{Clarify_tac} etc.\ (see \cite{isabelle-ref}).  The corresponding Isar
-methods usually have the same base name, such as $blast$, $fast$, $clarify$
+methods usually share the same base name, such as $blast$, $fast$, $clarify$
 etc.\ (see \S\ref{sec:classical-auto}).
 
 Similar to the Simplifier, there is separate method modifier syntax for
@@ -325,8 +325,8 @@ Classic Isabelle provides a huge amount of tacticals for combination and
 modification of existing tactics.  This has been greatly reduced in Isar,
 providing the bare minimum of combinators only: ``$,$'' (sequential
 composition), ``$|$'' (alternative choices), ``$?$'' (try), ``$+$'' (repeat at
-least once).  Nevertheless, these are usually sufficient in practice.  If all
-fails, arbitrary ML tactic code may be invoked via the $tactic$ method (see
+least once).  These are usually sufficient in practice; if all fails,
+arbitrary ML tactic code may be invoked via the $tactic$ method (see
 \S\ref{sec:tactics}).
 
 \medskip Common ML tacticals may be expressed directly in Isar as follows:
@@ -346,12 +346,11 @@ change in the goal state.  Nevertheless, ``$?$'' (try) may be used to accept
 \emph{unchanged} results as well.
 
 \medskip \texttt{ALLGOALS}, \texttt{SOMEGOAL} etc.\ (see \cite{isabelle-ref})
-are not available in Isar, since there is no direct goal addressing available.
-Nevertheless, some basic methods (notably $simp_all$, see \S\ref{sec:simp})
-address all goals internally.  Also note that \texttt{ALLGOALS} may be often
-replaced by ``$+$'' (repeat at least once), although this usually has a
-slightly different operational behavior, such as solving goals in a different
-order.
+are not available in Isar, since there is no direct goal addressing.
+Nevertheless, some basic methods address all goals internally, notably
+$simp_all$ (see \S\ref{sec:simp}).  Also note that \texttt{ALLGOALS} may be
+often replaced by ``$+$'' (repeat at least once), although this usually has a
+different operational behavior, such as solving goals in a different order.
 
 \medskip Iterated resolution, such as
 \texttt{REPEAT~(FIRSTGOAL~(resolve_tac~$\dots$))}, is usually better expressed
@@ -372,18 +371,19 @@ where theorems are referenced, say within a method argument.  The subsequent
 common ML combinators may be expressed directly in Isar as follows.
 \begin{matharray}{lll}
   thm@1~\texttt{RS}~thm@2 & & thm@1~[THEN~thm@2] \\
-  thm@1~\texttt{RSN}~(i, thm@2) & & thm@1~[THEN~i~thm@2] \\
+  thm@1~\texttt{RSN}~(i, thm@2) & & thm@1~[THEN~[i]~thm@2] \\
   thm@1~\texttt{COMP}~thm@2 & & thm@1~[COMP~thm@2] \\
   \relax[thm@1, \dots]~\texttt{MRS}~thm & & thm~[OF~thm@1~\dots] \\
   \texttt{read_instantiate}~[(x@1, t@1), \dots]~thm & & thm~[where~x@1 = t@1~and~\dots] \\
   \texttt{standard}~thm & & thm~[standard] \\
   \texttt{make_elim}~thm & & thm~[elim_format] \\
 \end{matharray}
-Note that $OF$ is often more readable then $THEN$; likewise positional
+
+Note that $OF$ is often more readable as $THEN$; likewise positional
 instantiation with $of$ is more handsome than $where$.
 
 The special ML command \texttt{qed_spec_mp} of Isabelle/HOL and FOL may be
-replaced by passing the result of a proof through the $rule_format$.
+replaced by passing the result of a proof through $rule_format$.
 
 \medskip Global ML declarations may be expressed using the
 $\isarkeyword{declare}$ command (see \S\ref{sec:tactic-commands}) together
@@ -415,29 +415,31 @@ This may be expressed more concisely in Isar like this:
   \LEMMA{name~[simp]}{\phi} \\
   \quad\vdots
 \end{matharray}
+The $name$ may be even omitted, although this would make it difficult to
+declare the theorem otherwise later (e.g.\ as $[simp~del]$).
 
 
 \section{Converting to actual Isar proof texts}
 
 Porting legacy ML proof scripts into Isar tactic emulation scripts (see
-\S\ref{sec:port-scripts}) is mainly a purely technical issue, since the basic
-representation of the formal ``proof'' has been preserved.  In contrast,
-converting existing Isabelle developments into actual human readably Isar
+\S\ref{sec:port-scripts}) is mainly a technical issue, since the basic
+representation of formal ``proof script'' is preserved.  In contrast,
+converting existing Isabelle developments into actual human-readably Isar
 proof texts is more involved, due to the fundamental change of the underlying
 paradigm.
 
 This issue is comparable to that of converting programs written in a low-level
-programming languages (say assembly) into higher-level ones (say Haskell).  In
-order to accomplish this, one needs a working knowledge of the target
+programming languages (say Assembler) into higher-level ones (say Haskell).
+In order to accomplish this, one needs a working knowledge of the target
 language, as well an understanding of the \emph{original} idea of the piece of
 code expressed in the low-level language.
 
 As far as Isar proofs are concerned, it is usually much easier to re-use only
 definitions and the main statements directly, while following the arrangement
 of proof scripts only very loosely.  Ideally, one would also have some
-\emph{informal} proof outlines available as well.  In the worst case, obscure
-proof scripts would have to be re-engineered by tracing forth and backwards,
-and by educated guessing!
+\emph{informal} proof outlines available for guidance as well.  In the worst
+case, obscure proof scripts would have to be re-engineered by tracing forth
+and backwards, and by educated guessing!
 
 \medskip This is a possible schedule to embark on actual conversion of legacy
 proof scripts into Isar proof texts.
@@ -446,16 +448,17 @@ proof scripts into Isar proof texts.
   \S\ref{sec:port-scripts}).
 \item Get sufficiently acquainted with Isabelle/Isar proof
   development.\footnote{As there is still no Isar tutorial around, it is best
-    to look at existing Isar examples.}
+    to look at existing Isar examples, see also \S\ref{sec:isar-howto}.}
 \item Recover the proof structure of a few important theorems.
 \item Rephrase the original intention of the course of reasoning in terms of
   Isar proof language elements.
 \end{enumerate}
 
-Certainly, rewriting formal reasoning in Isar requires additional efforts.  On
-the other hand, one gains a human readable representation of machine-checked
-formal proof.  Depending on the context of application, this might be even
-indispensable to start with!
+Certainly, rewriting formal reasoning in Isar requires much additional effort.
+On the other hand, one gains a human-readable representation of
+machine-checked formal proof.  Depending on the context of application, this
+might be even indispensable to start with!
+
 
 %%% Local Variables: 
 %%% mode: latex

@@ -66,9 +66,9 @@ should not be confused, though.
   digit & = & \verb,0, ~|~ \dots ~|~ \verb,9, \\
   quasiletter & = & letter ~|~ digit ~|~ \verb,_, ~|~ \verb,', \\
   sym & = & \verb,!, ~|~ \verb,#, ~|~ \verb,$, ~|~ \verb,%, ~|~ \verb,&, ~|~  %$
-   \verb,*, ~|~ \verb,+, ~|~ \verb,-, ~|~ \verb,/, ~|~ \verb,:, ~|~
-   \verb,<, ~|~ \verb,=, ~|~ \verb,>, ~|~ \verb,?, ~|~ \texttt{\at} ~|~ \\
-  & & \verb,^, ~|~ \verb,_, ~|~ \verb,`, ~|~ \verb,|, ~|~ \verb,~, \\
+   \verb,*, ~|~ \verb,+, ~|~ \verb,-, ~|~ \verb,/, ~|~ \verb,:, ~|~ \\
+  & & \verb,<, ~|~ \verb,=, ~|~ \verb,>, ~|~ \verb,?, ~|~ \texttt{\at} ~|~
+  \verb,^, ~|~ \verb,_, ~|~ \verb,`, ~|~ \verb,|, ~|~ \verb,~, \\
   symbol & = & {\forall} ~|~ {\exists} ~|~ \dots
 \end{matharray}
 
@@ -84,6 +84,9 @@ nested\footnote{Proof~General may occasionally get confused by nested
 which are stripped after lexical analysis of the input.  The Isar document
 syntax also provides \emph{formal comments} that are actually part of the text
 (see \S\ref{sec:comments}).
+
+Mathematical symbols such as ``$\forall$'' are represented in plain ASCII as
+``\verb,\<forall>,''.
 
 
 \section{Common syntax entities}
@@ -340,10 +343,14 @@ are to be presented in the final output produced by the Isabelle document
 preparation system (see also \S\ref{sec:document-prep}).
 
 Thus embedding of
-\texttt{{\at}{\ttlbrace}term[show_types]~"f(x)~=~a~+~x"{\ttrbrace}} within a
+\texttt{{\at}{\ttlbrace}term~[show_types]~"f(x)~=~a~+~x"{\ttrbrace}} within a
 text block would cause
 \isa{(f{\isasymColon}'a~{\isasymRightarrow}~'a)~(x{\isasymColon}'a)~=~(a{\isasymColon}'a)~+~x}
-to appear in the final {\LaTeX} document.
+to appear in the final {\LaTeX} document.  Also note that theorem
+antiquotations may involve attributes as well.  For example,
+\texttt{{\at}{\ttlbrace}thm~sym~[no_vars]{\ttrbrace}} would print the
+statement where all schematic variables have been replaced by fixed ones,
+which are better readable.
 
 Antiquotations do not only spare the author from tedious typing, but also
 achieve some degree of consistency-checking of informal explanations with

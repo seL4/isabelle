@@ -18,7 +18,7 @@ lemma "0 < foo" by (simp add: foo_def);
 end
 \end{ttbox}
 Note that any Isabelle/Isar command may be retracted by \texttt{undo}.  See
-the Isabelle/Isar Quick Reference (Appendix~\ref{ap:refcard}) for a
+the Isabelle/Isar Quick Reference (appendix~\ref{ap:refcard}) for a
 comprehensive overview of available commands and other language elements.
 
 
@@ -105,7 +105,7 @@ package in several canonical places (e.g.\
 
 Using proper mathematical symbols in Isabelle theories can be very convenient
 for readability of large formulas.  On the other hand, the plain ASCII sources
-easily become somewhat unintelligible.  For example, $\Longrightarrow$ will
+easily become somewhat unintelligible.  For example, $\Longrightarrow$ would
 appear as \verb,\<Longrightarrow>, according the default set of Isabelle
 symbols.  Nevertheless, the Isabelle document preparation system (see
 \S\ref{sec:document-prep}) will be happy to print non-ASCII symbols properly.
@@ -153,9 +153,11 @@ Isar proof language at all.
   of these may be active at the same time.
 \end{warn}
 
-Porting of existing tactic scripts is best done by running two separate
+Conversion of existing tactic scripts is best done by running two separate
 Proof~General sessions, one for replaying the old script and the other for the
-emerging Isabelle/Isar document.
+emerging Isabelle/Isar document.  Also note that Isar supports emulation
+commands and methods that support traditional tactic scripts within new-style
+theories, see appendix~\ref{ap:conv} for more information.
 
 
 \subsection{Document preparation}\label{sec:document-prep}
@@ -212,7 +214,7 @@ See \emph{The Isabelle System Manual} \cite{isabelle-sys} for further details
 on Isabelle logic sessions and theory presentation.
 
 
-\subsection{How to write Isar proofs anyway?}
+\subsection{How to write Isar proofs anyway?}\label{sec:isar-howto}
 
 This is one of the key questions, of course.  Isar offers a rather different
 approach to formal proof documents than plain old tactic scripts.  Experienced
@@ -221,16 +223,18 @@ thinking differently in order to make effective use of Isabelle/Isar.  On the
 other hand, Isabelle/Isar comes much closer to existing mathematical practice
 of formal proof, so users with less experience in old-style tactical proving,
 but a good understanding of mathematical proof, might cope with Isar even
-better.  See also \cite{Wenzel:1999:TPHOL} for further background information
-on Isar.
-%FIXME cite [HahnBanach-in-Isar]
+better.  See also \cite{Wenzel:1999:TPHOL,Bauer-Wenzel:2000:HB} for further
+background information on Isar.
 
-\medskip This really is a \emph{reference manual}.  Nevertheless, we will also
-give some clues of how the concepts introduced here may be put into practice.
-Appendix~\ref{ap:refcard} provides a quick reference card of the most common
-Isabelle/Isar language elements.  There are several examples distributed with
-Isabelle, and available via the Isabelle WWW library as well as the
-Isabelle/Isar page:
+\medskip This really is a reference manual on Isabelle/Isar, not a tutorial.
+Nevertheless, we will also give some clues of how the concepts introduced here
+may be put into practice.  Appendix~\ref{ap:refcard} provides a quick
+reference card of the most common Isabelle/Isar language elements.
+Appendix~\ref{ap:conv} offers some practical hints on converting existing
+Isabelle theories and proof scripts to the new format.
+
+Several example applications are distributed with Isabelle, and available via
+the Isabelle WWW library as well as the Isabelle/Isar page:
 \begin{center}\small
   \begin{tabular}{l}
     \url{http://www.cl.cam.ac.uk/Research/HVG/Isabelle/library/} \\
@@ -239,10 +243,28 @@ Isabelle/Isar page:
   \end{tabular}
 \end{center}
 
-See \texttt{HOL/Isar_examples} for a collection of introductory examples, and
-\texttt{HOL/HOL-Real/HahnBanach} for a big mathematics application.  Apart
-from plain HTML sources, these sessions also provide actual documents (in
-PDF).
+The following examples may be of particular interest.  Apart from the plain
+sources represented in HTML, these Isabelle sessions also provide actual
+documents (in PDF).
+\begin{itemize}
+\item \url{http://isabelle.in.tum.de/library/HOL/Isar_examples/} is a
+  collection of introductory examples.
+\item \url{http://isabelle.in.tum.de/library/HOL/Lattice/} is an example of
+  typical mathematics-style reasoning in ``axiomatic'' structures.
+\item \url{http://isabelle.in.tum.de/library/HOL/HOL-Real/HahnBanach/} is a
+  big mathematics application on infinitary vector spaces and functional
+  analysis.
+\item \url{http://isabelle.in.tum.de/library/HOL/Lambda/} develops fundamental
+  properties of $\lambda$-calculus (Church-Rosser and termination).  This may
+  serve as a realistic example of porting of legacy proof scripts into Isar
+  tactic emulation scripts.
+\item \url{http://isabelle.in.tum.de/library/HOL/MicroJava/} is a
+  formalization of a fragment of Java, together with a corresponding virtual
+  machine and a specification of its bytecode verifier and a lightweight
+  bytecode verifier, including proofs of type-safety.  This represents a very
+  ``realistic'' example of large formalizations performed in either form of
+  legacy scripts, tactic emulation scripts, and proper Isar proof texts.
+\end{itemize}
 
 
 %%% Local Variables: 

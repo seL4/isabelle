@@ -961,22 +961,35 @@ The syntax of $\ISNAME$ patterns follows \railnonterm{termpat} or
   but part of others (such as $\ASSUMENAME$, $\HAVENAME$ etc.).
 \end{descr}
 
-A few \emph{automatic} term abbreviations\index{term abbreviations} for goals
+Some \emph{automatic} term abbreviations\index{term abbreviations} for goals
 and facts are available as well.  For any open goal,
-$\Var{thesis_prop}$\indexisarvar{thesis-prop} refers to the full proposition
-(which may be a rule), $\Var{thesis_concl}$\indexisarvar{thesis-concl} to its
-(atomic) conclusion, and $\Var{thesis}$\indexisarvar{thesis} to its
-object-level statement.  The latter two abstract over any meta-level
-parameters.
+$\Var{thesis}$\indexisarvar{thesis} refers to its object-level statement,
+abstracted over any meta-level parameters (if present).  Likewise,
+$\Var{this}$\indexisarvar{this} is bound for fact statements resulting from
+assumptions or finished goals.  In case $\Var{this}$ refers to an object-logic
+statement that is an application $f(t)$, then $t$ is bound to the special text
+variable ``$\dots$''\indexisarvar{\dots} (three dots).  The canonical
+application of the latter are calculational proofs (see
+\S\ref{sec:calculation}).
 
-Fact statements resulting from assumptions or finished goals are bound as
-$\Var{this_prop}$\indexisarvar{this-prop},
-$\Var{this_concl}$\indexisarvar{this-concl}, and
-$\Var{this}$\indexisarvar{this}, similar to $\Var{thesis}$ above.  In case
-$\Var{this}$ refers to an object-logic statement that is an application
-$f(t)$, then $t$ is bound to the special text variable
-``$\dots$''\indexisarvar{\dots} (three dots).  The canonical application of
-the latter are calculational proofs (see \S\ref{sec:calculation}).
+%FIXME !?
+
+% A few \emph{automatic} term abbreviations\index{term abbreviations} for goals
+% and facts are available as well.  For any open goal,
+% $\Var{thesis_prop}$\indexisarvar{thesis-prop} refers to the full proposition
+% (which may be a rule), $\Var{thesis_concl}$\indexisarvar{thesis-concl} to its
+% (atomic) conclusion, and $\Var{thesis}$\indexisarvar{thesis} to its
+% object-level statement.  The latter two abstract over any meta-level
+% parameters.
+
+% Fact statements resulting from assumptions or finished goals are bound as
+% $\Var{this_prop}$\indexisarvar{this-prop},
+% $\Var{this_concl}$\indexisarvar{this-concl}, and
+% $\Var{this}$\indexisarvar{this}, similar to $\Var{thesis}$ above.  In case
+% $\Var{this}$ refers to an object-logic statement that is an application
+% $f(t)$, then $t$ is bound to the special text variable
+% ``$\dots$''\indexisarvar{\dots} (three dots).  The canonical application of
+% the latter are calculational proofs (see \S\ref{sec:calculation}).
 
 
 \subsection{Block structure}
