@@ -272,6 +272,13 @@ by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "diff_succ";
 
+Goal "[| m: nat; n: nat |] ==> 0 < n #- m  <->  m<n";
+by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
+by (ALLGOALS Asm_simp_tac);
+qed "zero_less_diff";
+Addsimps [zero_less_diff];
+
+
 (** Subtraction is the inverse of addition. **)
 
 val [mnat,nnat] = goal Arith.thy
