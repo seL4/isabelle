@@ -285,13 +285,11 @@ Addsimps [mod2_add_more, mod2_add_self];
 (**** Additional theorems about "le" ****)
 
 Goal "m:nat ==> m le (m #+ n)";
-by (induct_tac "m" 1);
-by (ALLGOALS Asm_simp_tac);
+by (Asm_simp_tac 1);
 qed "add_le_self";
 
 Goal "m:nat ==> m le (n #+ m)";
-by (stac add_commute 1);
-by (etac add_le_self 1);
+by (Asm_simp_tac 1);
 qed "add_le_self2";
 
 (*** Monotonicity of Multiplication ***)
