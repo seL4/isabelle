@@ -19,7 +19,7 @@ qed "Stable_transient_reachable_LeadsTo";
 
 
 (*split_all_tac causes a big blow-up*)
-claset_ref() := claset() delSWrapper "split_all_tac";
+claset_ref() := claset() delSWrapper "record_split_tac";
 
 Addsimps [Cli_prg_def RS def_prg_Init];
 program_defs_ref := [Cli_prg_def];

@@ -12,7 +12,7 @@ qed "not_zless_zless1_eq";
 
 
 (*split_all_tac causes a big blow-up*)
-claset_ref() := claset() delSWrapper "split_all_tac";
+claset_ref() := claset() delSWrapper "record_split_tac";
 
 Delsimps [split_paired_All];
 

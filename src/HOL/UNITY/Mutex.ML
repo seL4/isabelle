@@ -7,7 +7,7 @@ Based on "A Family of 2-Process Mutual Exclusion Algorithms" by J Misra
 *)
 
 (*split_all_tac causes a big blow-up*)
-claset_ref() := claset() delSWrapper "split_all_tac";
+claset_ref() := claset() delSWrapper "record_split_tac";
 
 Addsimps [Mprg_def RS def_prg_Init];
 program_defs_ref := [Mprg_def];
