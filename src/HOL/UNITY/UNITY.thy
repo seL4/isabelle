@@ -244,6 +244,10 @@ apply (unfold stable_def)
 apply (blast intro: constrains_UN)
 done
 
+lemma stable_Union: 
+    "(!!A. A \<in> X ==> F \<in> stable A) ==> F \<in> stable (\<Union>X)"
+by (unfold stable_def constrains_def, blast)
+
 (** Intersection **)
 
 lemma stable_Int: 
@@ -258,6 +262,10 @@ apply (unfold stable_def)
 apply (blast intro: constrains_INT)
 done
 
+lemma stable_Inter: 
+    "(!!A. A \<in> X ==> F \<in> stable A) ==> F \<in> stable (\<Inter>X)"
+by (unfold stable_def constrains_def, blast)
+
 lemma stable_constrains_Un: 
     "[| F \<in> stable C; F \<in> A co (C \<union> A') |] ==> F \<in> (C \<union> A) co (C \<union> A')"
 by (unfold stable_def constrains_def, blast)
@@ -267,7 +275,7 @@ lemma stable_constrains_Int:
 by (unfold stable_def constrains_def, blast)
 
 (*[| F \<in> stable C; F \<in>  (C \<inter> A) co A |] ==> F \<in> stable (C \<inter> A) *)
-lemmas stable_constrains_stable = stable_constrains_Int [THEN stableI, standard]
+lemmas stable_constrains_stable = stable_constrains_Int[THEN stableI, standard]
 
 
 (*** invariant ***)

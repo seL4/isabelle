@@ -12,6 +12,25 @@ header{*Sylow's theorem using locales*}
 
 theory Sylow = Coset:
 
+subsection {*Order of a Group and Lagrange's Theorem*}
+
+constdefs
+  order     :: "(('a,'b) semigroup_scheme) => nat"
+   "order(S) == card(carrier S)"
+
+theorem (in coset) lagrange:
+     "[| finite(carrier G); subgroup H G |] 
+      ==> card(rcosets G H) * card(H) = order(G)"
+apply (simp (no_asm_simp) add: order_def setrcos_part_G [symmetric])
+apply (subst mult_commute)
+apply (rule card_partition)
+   apply (simp add: setrcos_subset_PowG [THEN finite_subset])
+  apply (simp add: setrcos_part_G)
+ apply (simp add: card_cosets_equal subgroup.subset)
+apply (simp add: rcos_disjoint)
+done
+
+
 text{*The combinatorial argument is in theory Exponent*}
 
 locale sylow = coset +
@@ -25,7 +44,7 @@ locale sylow = coset +
 
 lemma (in sylow) RelM_refl: "refl calM RelM"
 apply (auto simp add: refl_def RelM_def calM_def) 
-apply (blast intro!: coset_sum_zero [symmetric]) 
+apply (blast intro!: coset_mult_one [symmetric]) 
 done
 
 lemma (in sylow) RelM_sym: "sym RelM"
@@ -33,13 +52,13 @@ proof (unfold sym_def RelM_def, clarify)
   fix y g
   assume   "y \<in> calM"
     and g: "g \<in> carrier G"
-  hence "y = y #> g #> (\<ominus>g)" by (simp add: coset_sum_assoc calM_def)
+  hence "y = y #> g #> (inv g)" by (simp add: coset_mult_assoc calM_def)
   thus "\<exists>g'\<in>carrier G. y = y #> g #> g'"
-   by (blast intro: g minus_closed)
+   by (blast intro: g inv_closed)
 qed
 
 lemma (in sylow) RelM_trans: "trans RelM"
-by (auto simp add: trans_def RelM_def calM_def coset_sum_assoc) 
+by (auto simp add: trans_def RelM_def calM_def coset_mult_assoc) 
 
 lemma (in sylow) RelM_equiv: "equiv calM RelM"
 apply (unfold equiv_def)
@@ -87,16 +106,28 @@ apply (auto simp add: calM_def)
 done
 
 lemma (in sylow_central) M1_inj_H: "\<exists>f \<in> H\<rightarrow>M1. inj_on f H"
-apply (rule exists_x_in_M1 [THEN exE])
-apply (rule_tac x = "%z: H. sum G x z" in bexI)
- apply (rule inj_onI)
- apply (rule left_cancellation)
-    apply (auto simp add: H_def M1_subset_G [THEN subsetD])
-apply (rule restrictI)
-apply (simp add: H_def, clarify) 
-apply (erule subst)
-apply (simp add: rcosI)
-done
+  proof -
+    from exists_x_in_M1 obtain m1 where m1M: "m1 \<in> M1"..
+    have m1G: "m1 \<in> carrier G" by (simp add: m1M M1_subset_G [THEN subsetD])
+    show ?thesis
+    proof
+      show "inj_on (\<lambda>z\<in>H. m1 \<otimes> z) H"
+	by (simp add: inj_on_def l_cancel [of m1 x y, THEN iffD1] H_def m1G)
+      show "restrict (op \<otimes> m1) H \<in> H \<rightarrow> M1"
+      proof (rule restrictI)
+	fix z assume zH: "z \<in> H"
+	show "m1 \<otimes> z \<in> M1"
+	proof -
+	  from zH
+	  have zG: "z \<in> carrier G" and M1zeq: "M1 #> z = M1" 
+	    by (auto simp add: H_def)
+	  show ?thesis
+	    by (rule subst [OF M1zeq], simp add: m1M zG rcosI)
+	qed
+      qed
+    qed
+  qed
+
 
 subsection{*Discharging the Assumptions of @{text sylow_central}*}
 
@@ -111,7 +142,7 @@ done
 
 lemma (in sylow) zero_less_o_G: "0 < order(G)"
 apply (unfold order_def)
-apply (blast intro: zero_closed zero_less_card_empty)
+apply (blast intro: one_closed zero_less_card_empty)
 done
 
 lemma (in sylow) zero_less_m: "0 < m"
@@ -157,14 +188,14 @@ by (simp add: H_def)
 lemma (in sylow_central) in_H_imp_eq: "g : H ==> M1 #> g = M1"
 by (simp add: H_def)
 
-lemma (in sylow_central) H_sum_closed: "[| x\<in>H; y\<in>H|] ==> x \<oplus> y \<in> H"
+lemma (in sylow_central) H_m_closed: "[| x\<in>H; y\<in>H|] ==> x \<otimes> y \<in> H"
 apply (unfold H_def)
-apply (simp add: coset_sum_assoc [symmetric] sum_closed)
+apply (simp add: coset_mult_assoc [symmetric] m_closed)
 done
 
 lemma (in sylow_central) H_not_empty: "H \<noteq> {}"
 apply (simp add: H_def)
-apply (rule exI [of _ \<zero>], simp)
+apply (rule exI [of _ \<one>], simp)
 done
 
 lemma (in sylow_central) H_is_subgroup: "subgroup H G"
@@ -174,8 +205,8 @@ apply (erule H_into_carrier_G)
 apply (rule H_not_empty)
 apply (simp add: H_def, clarify)
 apply (erule_tac P = "%z. ?lhs(z) = M1" in subst)
-apply (simp add: coset_sum_assoc )
-apply (blast intro: H_sum_closed)
+apply (simp add: coset_mult_assoc )
+apply (blast intro: H_m_closed)
 done
 
 
@@ -203,8 +234,8 @@ apply (simp (no_asm) add: RelM_def calM_def card_M1 M1_subset_G)
 apply (rule conjI)
  apply (blast intro: rcosetGM1g_subset_G)
 apply (simp (no_asm_simp) add: card_M1 M1_cardeq_rcosetGM1g)
-apply (rule bexI [of _ "\<ominus>g"])
-apply (simp_all add: coset_sum_assoc M1_subset_G)
+apply (rule bexI [of _ "inv g"])
+apply (simp_all add: coset_mult_assoc M1_subset_G)
 done
 
 
@@ -235,7 +266,7 @@ lemmas (in sylow_central) M_elem_map_eq =
 lemma (in sylow_central) M_funcset_setrcos_H:
      "(%x:M. H #> (SOME g. g \<in> carrier G & M1 #> g = x)) \<in> M \<rightarrow> rcosets G H"
 apply (rule setrcosI [THEN restrictI])
-apply (rule H_is_subgroup [THEN subgroup_imp_subset])
+apply (rule H_is_subgroup [THEN subgroup.subset])
 apply (erule M_elem_map_carrier)
 done
 
@@ -246,13 +277,13 @@ apply (rule inj_onI, simp)
 apply (rule trans [OF _ M_elem_map_eq])
 prefer 2 apply assumption
 apply (rule M_elem_map_eq [symmetric, THEN trans], assumption)
-apply (rule coset_sum_minus1)
+apply (rule coset_mult_inv1)
 apply (erule_tac [2] M_elem_map_carrier)+
 apply (rule_tac [2] M1_subset_G)
 apply (rule coset_join1 [THEN in_H_imp_eq])
 apply (rule_tac [3] H_is_subgroup)
-prefer 2 apply (blast intro: sum_closed M_elem_map_carrier minus_closed)
-apply (simp add: coset_sum_minus2 H_def M_elem_map_carrier subset_def)
+prefer 2 apply (blast intro: m_closed M_elem_map_carrier inv_closed)
+apply (simp add: coset_mult_inv2 H_def M_elem_map_carrier subset_def)
 done
 
 
@@ -293,13 +324,13 @@ apply (simp)
 apply (rule trans [OF _ H_elem_map_eq])
 prefer 2 apply assumption
 apply (rule H_elem_map_eq [symmetric, THEN trans], assumption)
-apply (rule coset_sum_minus1)
+apply (rule coset_mult_inv1)
 apply (erule_tac [2] H_elem_map_carrier)+
-apply (rule_tac [2] H_is_subgroup [THEN subgroup_imp_subset])
+apply (rule_tac [2] H_is_subgroup [THEN subgroup.subset])
 apply (rule coset_join2)
-apply (blast intro: sum_closed minus_closed H_elem_map_carrier)
+apply (blast intro: m_closed inv_closed H_elem_map_carrier)
 apply (rule H_is_subgroup) 
-apply (simp add: H_I coset_sum_minus2 M1_subset_G H_elem_map_carrier)
+apply (simp add: H_I coset_mult_inv2 M1_subset_G H_elem_map_carrier)
 done
 
 lemma (in sylow_central) calM_subset_PowG: "calM <= Pow(carrier G)"
@@ -325,7 +356,7 @@ by (simp add: cardMeqIndexH lagrange H_is_subgroup)
 lemma (in sylow_central) lemma_leq1: "p^a <= card(H)"
 apply (rule dvd_imp_le)
  apply (rule div_combine [OF prime_p not_dvd_M])
- prefer 2 apply (blast intro: subgroup_card_positive H_is_subgroup)
+ prefer 2 apply (blast intro: subgroup.finite_imp_card_positive H_is_subgroup)
 apply (simp add: index_lem order_G power_add mult_dvd_mono power_exponent_dvd
                  zero_less_m)
 done

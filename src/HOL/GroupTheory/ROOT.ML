@@ -1,6 +1,4 @@
-no_document use_thy "Primes";
 no_document use_thy "FuncSet";
 
-use_thy "Sylow";
-use_thy "Module";
+use_thy "Bij";
 use_thy "Summation";

@@ -132,7 +132,7 @@ constdefs
 
   progress_set :: "['a program, 'a set, 'a set] => 'a set set set"
    "progress_set F T B ==
-      {L. F \<in> stable T & lattice L & B \<in> L & T \<in> L & closed F T B L}"
+      {L. lattice L & B \<in> L & T \<in> L & closed F T B L}"
 
 lemma closedD:
    "[|closed F T B L; act \<in> Acts F; B\<subseteq>M; T\<inter>M \<in> L|] 
@@ -234,7 +234,7 @@ qed
 
 text{*The Lemma proved on page 96*}
 lemma progress_set_lemma:
-     "[|C \<in> progress_set F T B; r \<in> wens_set F B|] ==> T\<inter>r \<in> C"
+     "[|C \<in> progress_set F T B; r \<in> wens_set F B; F \<in> stable T|] ==> T\<inter>r \<in> C"
 apply (simp add: progress_set_def, clarify) 
 apply (erule wens_set.induct) 
   txt{*Base*}
@@ -278,12 +278,13 @@ by (simp add: progress_set_def closed_def closed_mono [OF BB']
 
 theorem progress_set_Union:
   assumes prog: "C \<in> progress_set F T B"
+      and Fstable: "F \<in> stable T"
       and BB':  "B \<subseteq> B'"
       and B'C:  "B' \<in> C"
       and Gco: "!!X. X\<in>C ==> G \<in> X-B co X"
       and leadsTo: "F \<in> A leadsTo B'"
   shows "F\<squnion>G \<in> T\<inter>A leadsTo B'"
-apply (insert prog) 
+apply (insert prog Fstable) 
 apply (rule leadsTo_Join [OF leadsTo]) 
   apply (force simp add: progress_set_def awp_iff_stable [symmetric]) 
 apply (simp add: awp_iff_constrains)
@@ -291,5 +292,11 @@ apply (drule progress_set_mono [OF BB' B'C])
 apply (blast intro: progress_set_lemma Gco constrains_weaken_L 
                     BB' [THEN subsetD]) 
 done
+
+
+subsection {*Some Progress Sets*}
+
+lemma UNIV_in_progress_set: "UNIV \<in> progress_set F T B"
+by (simp add: progress_set_def lattice_def closed_def)
 
 end

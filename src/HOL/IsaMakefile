@@ -280,12 +280,8 @@ HOL-GroupTheory: HOL $(LOG)/HOL-GroupTheory.gz
 $(LOG)/HOL-GroupTheory.gz: $(OUT)/HOL \
   Library/Primes.thy Library/FuncSet.thy \
   GroupTheory/Bij.thy \
-  GroupTheory/Coset.thy \
-  GroupTheory/Exponent.thy \
   GroupTheory/Group.thy \
-  GroupTheory/Module.thy GroupTheory/Ring.thy \
   GroupTheory/Summation.thy \
-  GroupTheory/Sylow.thy \
   GroupTheory/ROOT.ML \
   GroupTheory/document/root.tex
 	@$(ISATOOL) usedir -g true $(OUT)/HOL GroupTheory
@@ -340,6 +336,9 @@ $(LOG)/HOL-Lex.gz: $(OUT)/HOL \
 HOL-Algebra: HOL $(LOG)/HOL-Algebra.gz
 
 $(LOG)/HOL-Algebra.gz: $(OUT)/HOL Algebra/ROOT.ML \
+  Algebra/Coset.thy \
+  Algebra/Exponent.thy \
+  Algebra/Sylow.thy \
   Algebra/abstract/Abstract.thy \
   Algebra/abstract/Factor.ML Algebra/abstract/Factor.thy \
   Algebra/abstract/Field.thy \
