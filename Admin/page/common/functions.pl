@@ -14,6 +14,7 @@
        if (defined(&setnavcolor)) { undef &setnavcolor; }
        if (defined(&twodig)) { undef &twodig; }
        if (defined(&setdowncolor)) { undef &setdowncolor; }
+       if (defined(&downloadhead)) { undef &downloadhead; }
        if (defined(&download)) { undef &download; }
 
  -->
@@ -92,9 +93,9 @@ EOF
       return $retval;
     }
 
-    # size(filename)
     sub size {
       my $filename = $_[0];
+
       my @s = stat $filename;
       my $size = defined $s[7] ? $s[7]/1024 : 0;
 
@@ -106,12 +107,19 @@ EOF
       return "";
     }
 
-   # download(description, url, prefix)
-    sub download {
+    sub downloadhead {
+      my $text = $_[0];
 
-      my $descr = $_[0];
-      my $url   = $_[1];
-      my $prefix  = $_[2];
+      return <<EOF;
+      <tr><td colspan=3><strong>$text</strong></td></tr>
+EOF
+    }
+
+    sub download {
+      my $rowspan = $_[0];
+      my $descr = $_[1];
+      my $url   = $_[2];
+      my $prefix  = $_[3];
 
       my $size = size("$prefix/$url");
       $size = "$size K";
@@ -124,11 +132,17 @@ EOF
 
       my $td   = "nowrap bgcolor=$downcolor";
       
-      my $retval = <<EOF;
-      <tr>
-        <td align="left" $td>
+      my $descr_text = "";
+      if ($descr ne "") {
+        $descr_text = <<EOF;
+	<td rowspan=$rowspan align="left" $td>
           &nbsp; $descr
         </td>
+EOF
+      }
+
+      my $retval = <<EOF;
+      <tr>$descr_text
         <td align="left" $td>
           &nbsp; <A HREF="$url">$filename</A>
         </td>

@@ -16,109 +16,105 @@ and <tt>perl</tt> (usually provided by the operating system), and a
 suitable implementation of Standard ML (e.g. Poly/ML as provided
 below).  A <em>comfortable</em> Isabelle working environment demands
 further user interface support, as provided by <a
-href="http://www.dcs.ed.ac.uk/home/proofgen/">Proof General</a>
-together with the (optional) <a
+href="http://www.proofgeneral.org">Proof General</a> together with the
+(optional) <a
 href="http://www.fmi.uni-passau.de/~wedler/x-symbol/">X-Symbol</a>
 package.  Both of these should be used with a recent version of <a
-href="http://www.xemacs.org">XEmacs</a> (e.g. version 21.1).
+href="http://www.xemacs.org">XEmacs-21</a>.
 
 <p>
 
-We provide ready-to-go packages for Isabelle, Proof General and
+
+<h2>Packages</h2>
+
+We provide a complete set of packages for Isabelle, Proof General and
 X-Symbol.  While XEmacs-21 is not included here, most operating system
-distributions already provide suitable packages, although not
+distributions already provide a suitable package, although not
 installed by default.
 
 <p>
 
-Following the example installation procedures below, there is
-<em>no</em> separate configuration required of any of these
-components.  After installation, users may invoke the Isabelle
-executables without further ado.
-
-<p>
-
-
-<h2>(1) Linux/x86 systems with RPM</h2>
-
-This version of the <!-- _GP_ distname --> distribution is for generic
-Linux/x86 systems with RPM package management, as used by most Linux
-distributions.  Note that <tt>rpm</tt> requires root user access for
-installation.
+Some packages are platform dependent.  Everything is included below
+for Linux/x86 and Solaris/Sparc systems.  Other Unix platforms work as
+well, but require manual compilation of Isabelle logic images using a
+suitable Standard ML system.
 
 <p>
 
 <!-- _GP_ setdowncolor("\"#E0E0E0\"") -->
 <center>
+
 <table border="0" cellspacing="5" cellpadding="4" width="520">
-  <!-- _GP_ download("Poly/ML system", "contrib/polyml.i386.rpm", "../..") -->
-  <!-- _GP_ download("Isabelle system", "isabelle.rpm", "../..") -->
-  <!-- _GP_ download("Isabelle/HOL image", "isabelle-HOL.i386.rpm", "../..") -->
-  <!-- _GP_ download("Isabelle/HOL-Real image (optional)", "isabelle-HOL-Real.i386.rpm", "../..") -->
-  <!-- _GP_ download("Isabelle/ZF image (optional)", "isabelle-ZF.i386.rpm", "../..") -->
-  <!-- _GP_ download("Isabelle pdf documentation (optional)", "isabelle-pdfdocs.rpm", "../..") -->
-  <!-- _GP_ download("Proof General (recommended)", "contrib/proofgeneral.rpm", "../..") -->
-  <!-- _GP_ download("X-Symbol package (recommended)", "contrib/xsymbol.rpm", "../..") -->
+
+<!-- _GP_ downloadhead("Isabelle system") -->
+<!-- _GP_ download(1, "Isabelle main system", distname . ".tar.gz", "../..") -->
+<!-- _GP_ download(1, "Isabelle pdf documentation", distname . "_pdf.tar.gz", "../..") -->
+
+<!-- _GP_ downloadhead("Poly/ML compiler and runtime system") -->
+<!-- _GP_ download(1, "Poly/ML base system", "contrib/polyml_base.tar.gz", "../..") -->
+<!-- _GP_ download(2, "Poly/ML binary modules", "contrib/polyml_x86-linux.tar.gz", "../..") -->
+<!-- _GP_ download(0, "", "contrib/polyml_sparc-solaris.tar.gz", "../..") -->
+
+<!-- _GP_ downloadhead("Precompiled Isabelle logics") -->
+<!-- _GP_ download(2, "HOL", "HOL_x86-linux.tar.gz", "../..") -->
+<!-- _GP_ download(0, "", "HOL_sparc-solaris.tar.gz", "../..") -->
+<!-- _GP_ download(2, "HOL-Real", "HOL-Real_x86-linux.tar.gz", "../..") -->
+<!-- _GP_ download(0, "", "HOL-Real_sparc-solaris.tar.gz", "../..") -->
+<!-- _GP_ download(2, "ZF", "ZF_x86-linux.tar.gz", "../..") -->
+<!-- _GP_ download(0, "", "ZF_sparc-solaris.tar.gz", "../..") -->
+
+<!-- _GP_ downloadhead("Proof General system") -->
+<!-- _GP_ download(1, "Proof General", "contrib/ProofGeneral.tar.gz", "../..") -->
+<!-- _GP_ download(1, "X-Symbol package", "contrib/x-symbol.tar.gz", "../..") -->
+
 </table>
 </center>
 
 <p>
 
-Example installation procedure (the location of <tt>--prefix
-/usr/share</tt> may be changed):
+<h2>Installation</h2>
 
-<pre>
-rpm -i --prefix /usr/share polyml.i386.rpm
-rpm -i --prefix /usr/share isabelle.rpm
-rpm -i --prefix /usr/share isabelle-HOL.i386.rpm
-rpm -i --prefix /usr/share proofgeneral.rpm
-rpm -i --prefix /usr/share xsymbol.rpm
-</pre>
-
-Note that installed RPMs may be removed like this:
-
-<pre>
-rpm -e xsymbol proofgeneral isabelle-HOL isabelle polyml
-</pre>
+Installation is very easy.  Basically, just unpack all required
+packages within the same directory.  There is <em>no</em> manual
+configuration required of any of these components, if used according
+the default settings of Isabelle.
 
 <p>
 
-
-<h2>(2) Other Linux/x86 or Solaris/Sparc systems</h2>
-
-The following <!-- _GP_ distname --> distribution works for any
-Linux/x86 or Solaris/Sparc system.  Installation does not rely on
-package management at all.
+A typical Linux/x86 site installation of Isabelle/HOL works as follows
+(the location <tt>/usr/local</tt> may be changed):
 
 <p>
 
-<!-- _GP_ setdowncolor("\"#E0E0E0\"") -->
-<center>
-<table border="0" cellspacing="5" cellpadding="4" width="520">
-  <!-- _GP_ download("Poly/ML base system", "contrib/polyml_base.tar.gz", "../..") -->
-  <!-- _GP_ download("Poly/ML module for Linux/x86", "contrib/polyml_x86-linux.tar.gz", "../..") -->
-  <!-- _GP_ download("Poly/ML module for Solaris/Sparc", "contrib/polyml_sparc-solaris.tar.gz", "../..") -->
-  <!-- _GP_ download("Isabelle system", distname . ".tar.gz", "../..") -->
-  <!-- _GP_ download("Isabelle pdf documentation (optional)", distname . "_pdf.tar.gz", "../..") -->  <!-- _GP_ download("Proof General (recommended)", "contrib/ProofGeneral.tar.gz", "../..") -->
-  <!-- _GP_ download("X-Symbol package (recommended)", "contrib/x-symbol.tar.gz", "../..") -->
-</table>
-</center>
+<tt>
+&nbsp;&nbsp; tar -C /usr/local -xzf
+<!-- _GP_ href(distname . ".tar.gz", distname . ".tar.gz") --> <br>
+&nbsp;&nbsp; tar -C /usr/local -xzf
+<!-- _GP_ href("contrib/polyml_base.tar.gz", "polyml_base.tar.gz") --> <br>
+&nbsp;&nbsp; tar -C /usr/local -xzf
+<!-- _GP_ href("contrib/polyml_x86-linux.tar.gz", "polyml_x86-linux.tar.gz") --> <br>
+&nbsp;&nbsp; tar -C /usr/local -xzf
+<!-- _GP_ href("HOL_x86-linux.tar.gz", "HOL_x86-linux.tar.gz") --> <br>
+&nbsp;&nbsp; tar -C /usr/local -xzf
+<!-- _GP_ href("contrib/ProofGeneral.tar.gz", "ProofGeneral.tar.gz") --> <br>
+&nbsp;&nbsp; tar -C /usr/local -xzf
+<!-- _GP_ href("contrib/x-symbol.tar.gz", "x-symbol.tar.gz") --> <br>
+</tt>
 
 <p>
 
-Example installation in <tt>/usr/local</tt> for Linux/x86:
+The installation may be finished as follows:
 
-<pre>
-tar -C /usr/local -x -z -f polyml_base.tar.gz
-tar -C /usr/local -x -z -f polyml_x86-linux.tar.gz
-tar -C /usr/local -x -z -f <!-- _GP_ distname . ".tar.gz"-->
-tar -C /usr/local -x -z -f ProofGeneral.tar.gz
-tar -C /usr/local -x -z -f x-symbol.tar.gz
+<p>
 
-cd <!-- _GP_ "/usr/local/" . distname -->
-./configure
-./build
-./bin/isatool install -p /usr/local/bin
-</pre>
+<tt>
+&nbsp;&nbsp; <!-- _GP_ "cd /usr/local/" . distname --> <br>
+&nbsp;&nbsp; ./configure <br>
+&nbsp;&nbsp; ./bin/isatool install -p /usr/local/bin <br>
+</tt>
+
+<p>
+
+Users can now invoke the Isabelle executables without further ado.
 
 <p>
