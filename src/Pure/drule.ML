@@ -705,7 +705,7 @@ fun is_norm_hhf tm =
 
 fun norm_hhf sg t =
   if is_norm_hhf t then t
-  else Pattern.rewrite_term (Sign.tsig_of sg) [Logic.dest_equals (prop_of norm_hhf_eq)] t;
+  else Pattern.rewrite_term (Sign.tsig_of sg) [Logic.dest_equals (prop_of norm_hhf_eq)] [] t;
 
 
 (*** Instantiate theorem th, reading instantiations under signature sg ****)

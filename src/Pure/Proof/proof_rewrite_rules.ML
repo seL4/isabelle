@@ -247,7 +247,7 @@ fun elim_defs sign defs prf =
       null (foldr add_term_consts (map fst ps, []) inter cnames))
         (Symtab.dest (thms_of_proof Symtab.empty prf))) \\ defnames
   in
-    rewrite_terms (Pattern.rewrite_term tsig defs') (insert_refl defnames []
+    rewrite_terms (Pattern.rewrite_term tsig defs' []) (insert_refl defnames []
       (Reconstruct.expand_proof sign thmnames prf))
   end;
 
