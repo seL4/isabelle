@@ -466,9 +466,12 @@ struct
 						std_output " invoking SAT solver...";
 						case SatSolver.invoke_solver satsolver fm of
 						  None =>
+							(std_output (" error: SAT solver " ^ quote satsolver ^ " not configured.\n");
+							true)
+						| Some None =>
 							(std_output " no model found.\n";
 							false)
-						| Some assignment =>
+						| Some (Some assignment) =>
 							(writeln ("\nModel found:\n" ^ print_model thy model assignment);
 							true)
 					)
