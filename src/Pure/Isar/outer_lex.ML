@@ -10,7 +10,7 @@ signature OUTER_LEX =
 sig
   datatype token_kind =
     Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
-    Nat | String | Verbatim | Space | Comment | Sync | EOF
+    Nat | String | Verbatim | Space | Comment | Sync | Malformed | EOF
   type token
   val str_of_kind: token_kind -> string
   val stopper: token * (token -> bool)
@@ -54,7 +54,7 @@ struct
 
 datatype token_kind =
   Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
-  Nat | String | Verbatim | Space | Comment | Sync | EOF;
+  Nat | String | Verbatim | Space | Comment | Sync | Malformed | EOF;
 
 datatype token = Token of Position.T * (token_kind * string);
 
@@ -73,13 +73,16 @@ val str_of_kind =
   | Space => "white space"
   | Comment => "comment text"
   | Sync => "sync marker"
+  | Malformed => "bad input"
   | EOF => "end-of-file";
 
 
-(* sync token *)
+(* control tokens *)
 
 fun not_sync (Token (_, (Sync, _))) = false
   | not_sync _ = true;
+
+val malformed = Token (Position.none, (Malformed, ""));
 
 
 (* eof token *)
@@ -133,7 +136,9 @@ fun is_indent (Token (_, (Space, s))) =
 (* name and value of token *)
 
 fun name_of (tok as Token (_, (k, x))) =
-  if is_semicolon tok then "terminator" else str_of_kind k ^ " " ^ quote x;
+  if is_semicolon tok then "terminator"
+  else if x = "" then str_of_kind k
+  else str_of_kind k ^ " " ^ quote x;
 
 fun val_of (Token (_, (_, x))) = x;
 
@@ -265,7 +270,7 @@ fun scan (lex1, lex2) =
 (* token sources *)
 
 val is_junk = (not o Symbol.is_blank) andf Symbol.not_sync andf Symbol.not_eof;
-fun recover xs = keep_line (Scan.any is_junk) xs;
+fun recover xs = (keep_line (Scan.any is_junk) >> K [malformed]) xs;
 
 fun source do_recover get_lex pos src =
   Source.source' pos Symbol.stopper (Scan.bulk (fn xs => scan (get_lex ()) xs))
