@@ -9,8 +9,7 @@ text{*difference and empty set*}
 text{*complement, union and universal set*}
 
 lemma "(x \<in> A \<inter> B) = (x \<in> A \<and> x \<in> B)"
-  apply (blast)
-  done
+by blast
 
 text{*
 @{thm[display] IntI[no_vars]}
@@ -24,8 +23,7 @@ text{*
 *}
 
 lemma "(x \<in> -A) = (x \<notin> A)"
-  apply (blast)
-  done
+by blast
 
 text{*
 @{thm[display] Compl_iff[no_vars]}
@@ -33,8 +31,7 @@ text{*
 *}
 
 lemma "- (A \<union> B) = -A \<inter> -B"
-  apply (blast)
-  done
+by blast
 
 text{*
 @{thm[display] Compl_Un[no_vars]}
@@ -42,8 +39,7 @@ text{*
 *}
 
 lemma "A-A = {}"
-  apply (blast)
-  done
+by blast
 
 text{*
 @{thm[display] Diff_disjoint[no_vars]}
@@ -53,8 +49,7 @@ text{*
   
 
 lemma "A \<union> -A = UNIV"
-  apply (blast)
-  done
+by blast
 
 text{*
 @{thm[display] Compl_partition[no_vars]}
@@ -73,8 +68,7 @@ text{*
 *}
 
 lemma "((A \<union> B) \<subseteq> C) = (A \<subseteq> C \<and> B \<subseteq> C)"
-  apply (blast)
-  done
+by blast
 
 text{*
 @{thm[display] Un_subset_iff[no_vars]}
@@ -82,8 +76,7 @@ text{*
 *}
 
 lemma "(A \<subseteq> -B) = (B \<subseteq> -A)"
-  apply (blast)
-  done
+by blast
 
 lemma "(A <= -B) = (B <= -A)"
   oops
@@ -92,8 +85,7 @@ text{*ASCII version: blast fails because of overloading because
  it doesn't have to be sets*}
 
 lemma "((A:: 'a set) <= -B) = (B <= -A)"
-  apply (blast)
-  done
+by blast
 
 text{*A type constraint lets it work*}
 
@@ -119,8 +111,7 @@ text{*finite sets: insertion and membership relation*}
 text{*finite set notation*}
 
 lemma "insert x A = {x} \<union> A"
-  apply (blast)
-  done
+by blast
 
 text{*
 @{thm[display] insert_is_Un[no_vars]}
@@ -128,26 +119,23 @@ text{*
 *}
 
 lemma "{a,b} \<union> {c,d} = {a,b,c,d}"
-  apply (blast)
-  done
+by blast
 
 lemma "{a,b} \<inter> {b,c} = {b}"
-  apply (auto)
-  oops
+apply auto
+oops
 text{*fails because it isn't valid*}
 
 lemma "{a,b} \<inter> {b,c} = (if a=c then {a,b} else {b})"
-  apply (simp)
-  apply (blast)
-  done
+apply simp
+by blast
 
 text{*or just force or auto.  blast alone can't handle the if-then-else*}
 
 text{*next: some comprehension examples*}
 
 lemma "(a \<in> {z. P z}) = P a"
-  apply (blast)
-  done
+by blast
 
 text{*
 @{thm[display] mem_Collect_eq[no_vars]}
@@ -155,8 +143,7 @@ text{*
 *}
 
 lemma "{x. x \<in> A} = A"
-  apply (blast)
-  done
+by blast
   
 text{*
 @{thm[display] Collect_mem_eq[no_vars]}
@@ -164,12 +151,10 @@ text{*
 *}
 
 lemma "{x. P x \<or> x \<in> A} = {x. P x} \<union> A"
-  apply (blast)
-  done
+by blast
 
 lemma "{x. P x \<longrightarrow> Q x} = -{x. P x} \<union> {x. Q x}"
-  apply (blast)
-  done
+by blast
 
 constdefs
   prime   :: "nat set"
@@ -177,16 +162,14 @@ constdefs
 
 lemma "{p*q | p q. p\<in>prime \<and> q\<in>prime} = 
        {z. \<exists>p q. z = p*q \<and> p\<in>prime \<and> q\<in>prime}"
-  apply (blast)
-  done
+by (rule refl)
 
 text{*binders*}
 
 text{*bounded quantifiers*}
 
 lemma "(\<exists>x\<in>A. P x) = (\<exists>x. x\<in>A \<and> P x)"
-  apply (blast)
-  done
+by blast
 
 text{*
 @{thm[display] bexI[no_vars]}
@@ -199,8 +182,7 @@ text{*
 *}
 
 lemma "(\<forall>x\<in>A. P x) = (\<forall>x. x\<in>A \<longrightarrow> P x)"
-  apply (blast)
-  done
+by blast
 
 text{*
 @{thm[display] ballI[no_vars]}
@@ -215,8 +197,7 @@ text{*
 text{*indexed unions and variations*}
 
 lemma "(\<Union>x. B x) = (\<Union>x\<in>UNIV. B x)"
-  apply (blast)
-  done
+by blast
 
 text{*
 @{thm[display] UN_iff[no_vars]}
@@ -229,12 +210,10 @@ text{*
 *}
 
 lemma "(\<Union>x\<in>A. B x) = {y. \<exists>x\<in>A. y \<in> B x}"
-  apply (blast)
-  done
+by blast
 
 lemma "\<Union>S = (\<Union>x\<in>S. x)"
-  apply (blast)
-  done
+by blast
 
 text{*
 @{thm[display] UN_I[no_vars]}
@@ -249,8 +228,7 @@ text{*
 text{*indexed intersections*}
 
 lemma "(\<Inter>x. B x) = {y. \<forall>x. y \<in> B x}"
-  apply (blast)
-  done
+by blast
 
 text{*
 @{thm[display] INT_iff[no_vars]}
