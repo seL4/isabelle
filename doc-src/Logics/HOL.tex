@@ -1720,10 +1720,10 @@ by (ALLGOALS Asm_simp_tac);
 
 \subsubsection{The datatype $\alpha~mylist$ with mixfix syntax}
 
-In this example we define the type $\alpha~mylist$ again but this time we want
-to write {\tt []} instead of {\tt Nil} and we want to use the infix operator
-\verb|#| instead of {\tt Cons}. To do this we simply add mixfix annotations
-after the constructor declarations as follows:
+In this example we define the type $\alpha~mylist$ again but this time
+we want to write {\tt []} for {\tt Nil} and we want to use infix
+notation \verb|#| for {\tt Cons}. To do this we simply add mixfix
+annotations after the constructor declarations as follows:
 \begin{ttbox}
 MyList = HOL +
   datatype 'a mylist =
