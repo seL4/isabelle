@@ -25,6 +25,9 @@ New in this Isabelle release
 * Provers/trancl.ML:  new transitivity reasoner for transitive and
   reflexive-transitive closure of relations.
 
+* Provers/blast.ML:  new reference depth_limit to make blast's depth
+  limit (previously hard-coded with a value of 20) user-definable.
+
 * Pure: considerably improved version of 'constdefs' command.  Now
   performs automatic type-inference of declared constants; additional
   support for local structure declarations (cf. locales and HOL
