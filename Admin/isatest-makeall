@@ -101,7 +101,7 @@ for SETTINGS in $@; do
 
     # the test
 
-    touch $RUNNING/$SHORT
+    touch $RUNNING/$SHORT.running
 
     echo ------------------- starting test --- `date` --- $HOSTNAME > $TESTLOG 2>&1
 
@@ -128,7 +128,7 @@ for SETTINGS in $@; do
         FAIL="$FAIL$SHORT "
     fi
 
-    rm -f $RUNNING/$SHORT
+    rm -f $RUNNING/$SHORT.running
 done
 
 # time and success/failure to master log
