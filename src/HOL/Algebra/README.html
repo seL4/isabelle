@@ -1,0 +1,59 @@
+<!-- $Id$ -->
+<HTML><HEAD><TITLE>HOL/Algebra/README.html</TITLE></HEAD><BODY>
+
+<H2>Algebra: Theories of Rings and Polynomials</H2>
+
+<P>This development of univariate polynomials is separated into an
+abstract development of rings and the development of polynomials
+itself. The formalisation is based on [Jacobson1985], and polynomials
+have a sparse, mathematical representation. These theories were
+developed as a base for the integration of a computer algebra system
+to Isabelle [Ballarin1999], and was designed to match implementations
+of these domains in some typed computer algebra systems.  Summary:
+
+<P><EM>Rings:</EM>
+  Classes of rings are represented by axiomatic type classes. The
+  following are available:
+
+<PRE>
+  ringS:	Syntactic class
+  ring:		Commutative rings with one (including a summation
+		operator, which is needed for the polynomials)
+  domain:	Integral domains
+  factorial:	Factorial domains (divisor chain condition is missing)
+  pid:		Principal ideal domains
+  field:	Fields
+</PRE>
+
+  Also, some facts about ring homomorphisms and ideals are mechanised.
+
+<P><EM>Polynomials:</EM>
+  Polynomials have a natural, mathematical representation. Facts about
+  the following topics are provided:
+
+<MENU>
+<LI>Degree function
+<LI> Universal Property, evaluation homomorphism
+<LI>Long division (existence and uniqueness)
+<LI>Polynomials over a ring form a ring
+<LI>Polynomials over an integral domain form an integral domain
+</MENU>
+
+ <P>Still missing are
+    Polynomials over a factorial domain form a factorial domain
+    (difficult), and polynomials over a field form a pid.
+
+<P>[Jacobson1985] Nathan Jacobson, Basic Algebra I, Freeman, 1985.
+
+<P>[Ballarin1999] Clemens Ballarin, Computer Algebra and Theorem Proving,
+  Author's <A HREF="http://iaks-www.ira.uka.de/iaks-calmet/ballarin/publications.html">PhD thesis</A>, 1999.
+
+<HR>
+<P>Last modified on $Date$
+
+<ADDRESS>
+<P><A HREF="http://iaks-www.ira.uka.de/iaks-calmet/ballarin">Clemens Ballarin</A>.  Karlsruhe, October 1999
+
+<A NAME="ballarin@ira.uka.de" HREF="mailto:ballarin@ira.uka.de">ballarin@ira.uka.de</A>
+</ADDRESS>
+</BODY></HTML>
