@@ -1,0 +1,128 @@
+<!-- Title:      Pure/pgip_isar.xml
+     ID:         $Id$
+     Author:     David Aspinall, University of Edinburgh
+		 Christoph Lueth, University of Bremen
+     License:    GPL (GNU GENERAL PUBLIC LICENSE)
+
+This file contains the configuration messages which configure 
+PGIP interfaces for Isabelle/Isar, in particular, explaining
+internal types of objects and operations available on them.
+
+See http://proofgeneral.inf.ed.ac.uk/kit for more details.
+
+This file is a contributed part of the Isabelle Distribution.
+-->
+
+<guiconfig>
+  <!-- objtypes -->
+  <objtype name="toplevel" descr="top-level context (PGIP internal)">
+  <contains objtype="theory"/>
+  </objtype>
+  <objtype name="theory" descr="Isabelle theory">
+  <contains objtype="theorem"/>
+  <contains objtype="theory"/>
+  </objtype>
+  <objtype name="theorem" descr="Isabelle theorem">
+  <hasprefs prefcategory="Theorem attributes">
+   <haspref name="thm-kind" descr="Theorem kind">
+    <pgipchoice>
+     <pgipchoiceitem>theorem</pgipchoiceitem>
+     <pgipchoiceitem>lemma</pgipchoiceitem>
+     <pgipchoiceitem>corollary</pgipchoiceitem>
+    </pgipchoice>
+   </haspref>
+   <haspref name="thm-simp" descr="Include in simplifier set">
+    <pgipbool/>
+   </haspref>
+   <haspref name="thm-intro" descr="Flag as introduction rule">
+    <pgipbool/>
+   </haspref>
+   <haspref name="thm-elim" descr="Flag as elimination rule">
+    <pgipbool/>
+   </haspref>
+   <haspref name="thm-dest" descr="Flag as destruction rule">
+    <pgipbool/>
+   </haspref>
+  </hasprefs>
+  </objtype>
+  <objtype name="term"      descr="Isabelle term">
+    <icon>
+      R0lGODlhJgAgAIQAAP////r6+uDg4Nra2tnZ2fn5+WFhYUJCQkFBQWBgYMnO
+      91xq6K208wsg3XiD7OTm+0FR5CY54Pb29t3d3dfX119fX/T09NbW1tjY2AAA
+      AAAAAAAAAAAAAAAAAAAAAAAAACH+FUNyZWF0ZWQgd2l0aCBUaGUgR0lNUAAh
+      +QQBCgAfACwAAAAAJgAgAAAFnCAgjmRpnqgYCAPhvnAsz7BQAIJxIHzv/8Cg
+      LyHA6YTI5I8IWLVo0Gjtlqpar9istqRYLBTbMIDRaDDEW7IZrVWf2VYGw1F2
+      yBkP+KnM77/1Jm6AcWV/gyeChyiJioGFjYiPkCWMkyKVlpiTmpBqEJYlEWUR
+      XgugDBCjDnmgrZMSExQUUrQ0NgADFUq7SUy5vMBATBYDFxi1yFMAIQA7
+    </icon>
+  </objtype>
+  <objtype name="type"      descr="Isabelle type">
+    <icon>
+      R0lGODlhJgAgAIQAAP////r6+uDg4Nra2tnZ2fn5+WFhYUJCQkFBQWBgYOTm
+      +62080FR5Asg3SY54Fxq6MnO95Kc73iD7Pb29t3d3dfX119fX/T09NbW1tjY
+      2AAAAAAAAAAAAAAAAAAAAAAAACH+FUNyZWF0ZWQgd2l0aCBUaGUgR0lNUAAh
+      +QQBCgAfACwAAAAAJgAgAAAFsyAgjmRpnqgYCAPhvnAsz7BQAIJxIHzv/8Cg
+      LyHA6YTI5I8IWLVo0Gjtlqpar9istqRYeL9exbaqYDTOaPRijFI40vDGmm16
+      NB74NwOPh9C5DWIidn9VERIkb4UpEYIiZ4tZkJFWEA0MlFYLd5lVmw+dKZ8k
+      fqEim4GnoKYAlndiDIisAG9ppawSaauzALkNsrzBwsPEIxMUFRVSyzQ2AAMW
+      StJJTNDT10BMFwMYGczfUwAhADs=
+    </icon>
+  </objtype>
+  <objtype name="thmset"    descr="Set of Isabelle theorems">
+    <contains objtype="theorem"/>
+  </objtype>
+<!-- possible objtypes not yet supported:
+  <objtype name="oopsgoal"  descr="Abandoned proof"></objtype>
+  <objtype name="sorrygoal" descr="Postponed proof"></objtype>
+  <objtype name="proof"	    descr="Completed proof"></objtype>
+  <objtype name="method"    descr="Isar method or proof step"></objtype>
+-->
+
+  <!-- object operations -->
+
+  <opn name="add to simpset">
+    <opsrc>theorem</opsrc>
+    <optrg></optrg>
+    <opcmd>declare %1 [simp]</opcmd>
+  </opn>
+
+  <opn name="remove from simpset">
+    <opsrc>theorem</opsrc>
+    <optrg></optrg>
+    <opcmd>declare %1 [simp del]</opcmd>
+  </opn>
+
+  <opn name="instantiatevar">
+    <opsrc>theorem term</opsrc>
+    <optrg>theorem</optrg>
+    <opcmd>%1 [OF %2]</opcmd>
+  </opn>
+
+  <!-- interactive operations -->
+  <!-- da: this isn't really a good example.  
+       Isar doesn't have cterms, the "term" command just checks & prints
+       a term in the current context. -->
+  <opn name="checkterm">
+    <inputform>
+      <field name="term"><pgipstring/><prompt>Input a term:</prompt></field>
+    </inputform>
+    <opsrc></opsrc>
+    <optrg>term</optrg>
+    <opcmd>term %term</opcmd>
+  </opn>
+
+  <!-- proof operations -->
+  <opn name="applyrule">
+    <opsrc>ruleset</opsrc>
+    <opcmd>apply (rule %1)</opcmd>
+  </opn>
+  <opn name="applyerule">
+    <opsrc>ruleset</opsrc>
+    <opcmd>apply (erule %1)</opcmd>
+  </opn>
+  <opn name="applydrule">
+    <opsrc>ruleset</opsrc>
+    <opcmd>apply (drule %1)</opcmd>
+  </opn>
+</guiconfig>
+
