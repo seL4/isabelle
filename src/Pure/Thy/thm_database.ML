@@ -44,7 +44,7 @@ val thm_db = ref (ThmDB
  {count = 0, thy_idx = []:(Sign.sg * (string list * int list)) list,
   const_idx = Symtab.make ([]:(string * ((int * (string * thm)) list)) list)});
 
-(*list all relevant constants a term contains*)
+(*List all relevant constants a term contains*)
 fun list_consts t =
   let fun consts (Const (c, _)) = if c mem ignore then [] else [c]
         | consts (Free _) = []
@@ -54,7 +54,7 @@ fun list_consts t =
         | consts (t1$t2) = (consts t1) union (consts t2);
   in distinct (consts t) end;
 
-(*store a theorem in database*)
+(*Store a theorem in database*)
 fun store_thm_db (named_thm as (name, thm)) =
   let val {prop, hyps, sign, ...} = rep_thm thm;
 
@@ -99,13 +99,14 @@ fun store_thm_db (named_thm as (name, thm)) =
      thm
   end;
 
-(*remove all theorems with given signature from database*)
+(*Remove all theorems with given signature from database*)
 fun delete_thm_db thy =
   let
     val sign = sign_of thy;
 
     val ThmDB {count, thy_idx, const_idx} = !thm_db;
 
+    (*Remove theory from thy_idx and get the data associated with it*)
     fun update_thys [] result = (result, [], [])
       | update_thys ((thy as (thy_sign, (thy_consts, thy_nums))) :: ts)
                     result =
@@ -115,6 +116,7 @@ fun delete_thm_db thy =
 
     val (thy_idx', thy_consts, thy_nums) = update_thys thy_idx [];
 
+    (*Remove all theorems belonging to a theory*)
     fun update_db [] result = result
       | update_db (c :: cs) result =
         let val thms' = filter_out (fn (num, _) => num mem thy_nums)
@@ -124,7 +126,7 @@ fun delete_thm_db thy =
                       const_idx = update_db thy_consts const_idx}
   end;
 
-(*intersection of two theorem lists with descending tags*)
+(*Intersection of two theorem lists with descending tags*)
 infix desc_inter;
 fun ([] : (int*'a) list) desc_inter (ys : (int*'a) list) = []
   | xs desc_inter [] = []
@@ -133,7 +135,7 @@ fun ([] : (int*'a) list) desc_inter (ys : (int*'a) list) = []
       else if xi > yi then xs desc_inter yss
       else xss desc_inter ys;
 
-(*get all theorems from database that contain a list of constants*)
+(*Get all theorems from database that contain a list of constants*)
 fun thms_containing constants =
   let fun collect [] _ result = map snd result
         | collect (c :: cs) first result =
