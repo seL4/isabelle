@@ -1,11 +1,11 @@
 %% $Id$
 \part{Getting Started with Isabelle}\label{chap:getting}
-We now consider how to perform simple proofs using Isabelle.  As of this
-writing, Isabelle's user interface is \ML.  Proofs are conducted by
-applying certain \ML{} functions, which update a stored proof state.  All
-syntax must be expressed using {\sc ascii} characters.  Menu-driven
-graphical interfaces are under construction, but Isabelle users will always
-need to know some \ML, at least to use tacticals.
+Let us consider how to perform simple proofs using Isabelle.  At present,
+Isabelle's user interface is \ML.  Proofs are conducted by applying certain
+\ML{} functions, which update a stored proof state.  All syntax must be
+expressed using {\sc ascii} characters.  Menu-driven graphical interfaces
+are under construction, but Isabelle users will always need to know some
+\ML, at least to use tacticals.
 
 Object-logics are built upon Pure Isabelle, which implements the meta-logic
 and provides certain fundamental data structures: types, terms, signatures,
@@ -15,13 +15,12 @@ the corresponding \ML{} types {\tt typ}, {\tt term}, {\tt Sign.sg}, {\tt thm},
 tactic->tactic}.  Isabelle users can operate on these data structures by
 writing \ML{} programs.
 
-\section{Forward proof}
-\index{Isabelle!getting started}\index{ML}
+\section{Forward proof}\label{sec:forward} \index{forward proof|(}
 This section describes the concrete syntax for types, terms and theorems,
 and demonstrates forward proof.
 
 \subsection{Lexical matters}
-\index{identifiers|bold}\index{reserved words|bold} 
+\index{identifiers}\index{reserved words} 
 An {\bf identifier} is a string of letters, digits, underscores~(\verb|_|)
 and single quotes~({\tt'}), beginning with a letter.  Single quotes are
 regarded as primes; for instance {\tt x'} is read as~$x'$.  Identifiers are
@@ -57,17 +56,20 @@ renaming of unknowns prior to unification.%
 
 
 \subsection{Syntax of types and terms}
-\index{Isabelle!syntax of}
-\index{classes!built-in|bold}
-Classes are denoted by identifiers; the built-in class \ttindex{logic}
+\index{classes!built-in|bold}\index{syntax!of types and terms}
+
+Classes are denoted by identifiers; the built-in class \cldx{logic}
 contains the `logical' types.  Sorts are lists of classes enclosed in
 braces~\} and \{; singleton sorts may be abbreviated by dropping the braces.
 
-\index{types!syntax|bold}
-Types are written with a syntax like \ML's.  The built-in type \ttindex{prop}
+\index{types!syntax of|bold}
+Types are written with a syntax like \ML's.  The built-in type \tydx{prop}
 is the type of propositions.  Type variables can be constrained to particular
 classes or sorts, for example {\tt 'a::term} and {\tt ?'b::\{ord,arith\}}.
 \[\dquotes
+\index{*:: symbol}\index{*=> symbol}
+\index{{}@{\tt\ttlbrace} symbol}\index{{}@{\tt\ttrbrace} symbol}
+\index{*[ symbol}\index{*] symbol}
 \begin{array}{lll}
     \multicolumn{3}{c}{\hbox{ASCII Notation for Types}} \\ \hline
   t "::" C              & t :: C        & \hbox{class constraint} \\
@@ -81,8 +83,10 @@ classes or sorts, for example {\tt 'a::term} and {\tt ?'b::\{ord,arith\}}.
 \end{array} 
 \]
 Terms are those of the typed $\lambda$-calculus.
-\index{terms!syntax|bold}
+\index{terms!syntax of|bold}
 \[\dquotes
+\index{%@{\tt\%} symbol}\index{lambda abs@$\lambda$-abstractions}
+\index{*:: symbol}
 \begin{array}{lll}
     \multicolumn{3}{c}{\hbox{ASCII Notation for Terms}} \\ \hline
   t "::" \sigma         & t :: \sigma   & \hbox{type constraint} \\
@@ -96,8 +100,11 @@ Terms are those of the typed $\lambda$-calculus.
 The theorems and rules of an object-logic are represented by theorems in
 the meta-logic, which are expressed using meta-formulae.  Since the
 meta-logic is higher-order, meta-formulae~$\phi$, $\psi$, $\theta$,~\ldots{}
-are just terms of type~\ttindex{prop}.  
-\index{meta-formulae!syntax|bold}
+are just terms of type~{\tt prop}.  
+\index{meta-implication}
+\index{meta-quantifiers}\index{meta-equality}
+\index{*"!"! symbol}\index{*"["| symbol}\index{*"|"] symbol}
+\index{*== symbol}\index{*=?= symbol}\index{*==> symbol}
 \[\dquotes
   \begin{array}{l@{\quad}l@{\quad}l}
     \multicolumn{3}{c}{\hbox{ASCII Notation for Meta-Formulae}} \\ \hline
@@ -113,18 +120,17 @@ are just terms of type~\ttindex{prop}.
 \]
 Flex-flex constraints are meta-equalities arising from unification; they
 require special treatment.  See~\S\ref{flexflex}.
-\index{flex-flex equations}
+\index{flex-flex constraints}
 
+\index{*Trueprop constant}
 Most logics define the implicit coercion $Trueprop$ from object-formulae to
-propositions.  
-\index{Trueprop@{$Trueprop$}}
-This could cause an ambiguity: in $P\Imp Q$, do the variables $P$ and $Q$
-stand for meta-formulae or object-formulae?  If the latter, $P\Imp Q$
-really abbreviates $Trueprop(P)\Imp Trueprop(Q)$.  To prevent such
-ambiguities, Isabelle's syntax does not allow a meta-formula to consist of
-a variable.  Variables of type~\ttindex{prop} are seldom useful, but you
-can make a variable stand for a meta-formula by prefixing it with the
-keyword \ttindex{PROP}:
+propositions.  This could cause an ambiguity: in $P\Imp Q$, do the
+variables $P$ and $Q$ stand for meta-formulae or object-formulae?  If the
+latter, $P\Imp Q$ really abbreviates $Trueprop(P)\Imp Trueprop(Q)$.  To
+prevent such ambiguities, Isabelle's syntax does not allow a meta-formula
+to consist of a variable.  Variables of type~\tydx{prop} are seldom
+useful, but you can make a variable stand for a meta-formula by prefixing
+it with the symbol {\tt PROP}:\index{*PROP symbol}
 \begin{ttbox} 
 PROP ?psi ==> PROP ?theta 
 \end{ttbox}
@@ -173,8 +179,8 @@ For a final example, the rule $(\exists E)$ is rendered in {\sc ascii} as
 
 \subsection{Basic operations on theorems}
 \index{theorems!basic operations on|bold}
-\index{LCF}
-Meta-level theorems have type \ttindex{thm} and represent the theorems and
+\index{LCF system}
+Meta-level theorems have type \mltydx{thm} and represent the theorems and
 inference rules of object-logics.  Isabelle's meta-logic is implemented
 using the {\sc lcf} approach: each meta-level inference rule is represented by
 a function from theorems to theorems.  Object-level rules are taken as
@@ -184,31 +190,33 @@ The main theorem printing commands are {\tt prth}, {\tt prths} and~{\tt
   prthq}.  Of the other operations on theorems, most useful are {\tt RS}
 and {\tt RSN}, which perform resolution.
 
-\index{printing commands|bold}
-\begin{description}
-\item[\ttindexbold{prth} {\it thm}]  pretty-prints {\it thm\/} at the terminal.
+\index{theorems!printing of}
+\begin{ttdescription}
+\item[\ttindex{prth} {\it thm};]
+  pretty-prints {\it thm\/} at the terminal.
 
-\item[\ttindexbold{prths} {\it thms}]  pretty-prints {\it thms}, a list of
-theorems.
+\item[\ttindex{prths} {\it thms};]
+  pretty-prints {\it thms}, a list of theorems.
 
-\item[\ttindexbold{prthq} {\it thmq}]  pretty-prints {\it thmq}, a sequence of
-theorems; this is useful for inspecting the output of a tactic.
+\item[\ttindex{prthq} {\it thmq};]
+  pretty-prints {\it thmq}, a sequence of theorems; this is useful for
+  inspecting the output of a tactic.
 
-\item[\tt$thm1$ RS $thm2$] \indexbold{*RS} resolves the conclusion of $thm1$
-with the first premise of~$thm2$.
+\item[$thm1$ RS $thm2$] \index{*RS} 
+  resolves the conclusion of $thm1$ with the first premise of~$thm2$.
 
-\item[\tt$thm1$ RSN $(i,thm2)$] \indexbold{*RSN} resolves the conclusion of $thm1$
-with the $i$th premise of~$thm2$.
+\item[$thm1$ RSN $(i,thm2)$] \index{*RSN} 
+  resolves the conclusion of $thm1$ with the $i$th premise of~$thm2$.
 
-\item[\ttindexbold{standard} $thm$]  puts $thm$ into a standard
-format.  It also renames schematic variables to have subscript zero,
-improving readability and reducing subscript growth.
-\end{description}
-\index{ML}
+\item[\ttindex{standard} $thm$]  
+  puts $thm$ into a standard format.  It also renames schematic variables
+  to have subscript zero, improving readability and reducing subscript
+  growth.
+\end{ttdescription}
 The rules of a theory are normally bound to \ML\ identifiers.  Suppose we
 are running an Isabelle session containing natural deduction first-order
 logic.  Let us try an example given in~\S\ref{joining}.  We first print
-\ttindex{mp}, which is the rule~$({\imp}E)$, then resolve it with itself.
+\tdx{mp}, which is the rule~$({\imp}E)$, then resolve it with itself.
 \begin{ttbox} 
 prth mp; 
 {\out [| ?P --> ?Q; ?P |] ==> ?Q}
@@ -227,7 +235,7 @@ like {\tt prth} omit the quotes and the surrounding {\tt val \ldots :\
   thm}.  Ignoring their side-effects, the commands are identity functions.
 
 To contrast {\tt RS} with {\tt RSN}, we resolve
-\ttindex{conjunct1}, which stands for~$(\conj E1)$, with~\ttindex{mp}.
+\tdx{conjunct1}, which stands for~$(\conj E1)$, with~\tdx{mp}.
 \begin{ttbox} 
 conjunct1 RS mp;
 {\out val it = "[| (?P --> ?Q) & ?Q1; ?P |] ==> ?Q" : thm}
@@ -241,7 +249,7 @@ These correspond to the following proofs:
 \]
 %
 Rules can be derived by pasting other rules together.  Let us join
-\ttindex{spec}, which stands for~$(\forall E)$, with {\tt mp} and {\tt
+\tdx{spec}, which stands for~$(\forall E)$, with {\tt mp} and {\tt
   conjunct1}.  In \ML{}, the identifier~{\tt it} denotes the value just
 printed.
 \begin{ttbox} 
@@ -261,9 +269,10 @@ By resolving $(\forall E)$ with (${\imp}E)$ and (${\conj}E1)$, we have
 derived a destruction rule for formulae of the form $\forall x.
 P(x)\imp(Q(x)\conj R(x))$.  Used with destruct-resolution, such specialized
 rules provide a way of referring to particular assumptions.
+\index{assumptions!use of}
 
-\subsection{*Flex-flex equations} \label{flexflex}
-\index{flex-flex equations|bold}\index{unknowns!of function type}
+\subsection{*Flex-flex constraints} \label{flexflex}
+\index{flex-flex constraints|bold}\index{unknowns!function}
 In higher-order unification, {\bf flex-flex} equations are those where both
 sides begin with a function unknown, such as $\Var{f}(0)\qeq\Var{g}(0)$.
 They admit a trivial unifier, here $\Var{f}\equiv \lambda x.\Var{a}$ and
@@ -308,7 +317,7 @@ $\Var{g}\equiv\lambda y.?h(k(y))$.
 the resolution delivers {\bf exactly one} resolvent.  For multiple results,
 use \ttindex{RL} and \ttindex{RLN}, which operate on theorem lists.  The
 following example uses \ttindex{read_instantiate} to create an instance
-of \ttindex{refl} containing no schematic variables.
+of \tdx{refl} containing no schematic variables.
 \begin{ttbox} 
 val reflk = read_instantiate [("a","k")] refl;
 {\out val reflk = "k = k" : thm}
@@ -330,6 +339,7 @@ four resolvents:
 \end{ttbox} 
 \end{warn}
 
+\index{forward proof|)}
 
 \section{Backward proof}
 Although {\tt RS} and {\tt RSN} are fine for simple forward reasoning,
@@ -337,7 +347,6 @@ large proofs require tactics.  Isabelle provides a suite of commands for
 conducting a backward proof using tactics.
 
 \subsection{The basic tactics}
-\index{tactics!basic|bold}
 The tactics {\tt assume_tac}, {\tt
 resolve_tac}, {\tt eresolve_tac}, and {\tt dresolve_tac} suffice for most
 single-step proofs.  Although {\tt eresolve_tac} and {\tt dresolve_tac} are
@@ -346,63 +355,63 @@ destruction rules.  All the tactics act on a subgoal designated by a
 positive integer~$i$, failing if~$i$ is out of range.  The resolution
 tactics try their list of theorems in left-to-right order.
 
-\begin{description}
-\item[\ttindexbold{assume_tac} {\it i}] is the tactic that attempts to solve
-subgoal~$i$ by assumption.  Proof by assumption is not a trivial step; it
-can falsify other subgoals by instantiating shared variables.  There may be
-several ways of solving the subgoal by assumption.
+\begin{ttdescription}
+\item[\ttindex{assume_tac} {\it i}] \index{tactics!assumption}
+  is the tactic that attempts to solve subgoal~$i$ by assumption.  Proof by
+  assumption is not a trivial step; it can falsify other subgoals by
+  instantiating shared variables.  There may be several ways of solving the
+  subgoal by assumption.
 
-\item[\ttindexbold{resolve_tac} {\it thms} {\it i}]
-is the basic resolution tactic, used for most proof steps.  The $thms$
-represent object-rules, which are resolved against subgoal~$i$ of the proof
-state.  For each rule, resolution forms next states by unifying the
-conclusion with the subgoal and inserting instantiated premises in its
-place.  A rule can admit many higher-order unifiers.  The tactic fails if
-none of the rules generates next states.
+\item[\ttindex{resolve_tac} {\it thms} {\it i}]\index{tactics!resolution}
+  is the basic resolution tactic, used for most proof steps.  The $thms$
+  represent object-rules, which are resolved against subgoal~$i$ of the
+  proof state.  For each rule, resolution forms next states by unifying the
+  conclusion with the subgoal and inserting instantiated premises in its
+  place.  A rule can admit many higher-order unifiers.  The tactic fails if
+  none of the rules generates next states.
 
-\item[\ttindexbold{eresolve_tac} {\it thms} {\it i}] 
-performs elim-resolution.  Like
-\hbox{\tt resolve_tac {\it thms} {\it i}} followed by \hbox{\tt assume_tac
-{\it i}}, it applies a rule then solves its first premise by assumption.
-But {\tt eresolve_tac} additionally deletes that assumption from any
-subgoals arising from the resolution.
+\item[\ttindex{eresolve_tac} {\it thms} {\it i}] \index{elim-resolution}
+  performs elim-resolution.  Like {\tt resolve_tac~{\it thms}~{\it i\/}}
+  followed by {\tt assume_tac~{\it i}}, it applies a rule then solves its
+  first premise by assumption.  But {\tt eresolve_tac} additionally deletes
+  that assumption from any subgoals arising from the resolution.
 
-
-\item[\ttindexbold{dresolve_tac} {\it thms} {\it i}] 
-performs destruct-resolution with the~$thms$, as described
-in~\S\ref{destruct}.  It is useful for forward reasoning from the
-assumptions.
-\end{description}
+\item[\ttindex{dresolve_tac} {\it thms} {\it i}]
+  \index{forward proof}\index{destruct-resolution}
+  performs destruct-resolution with the~$thms$, as described
+  in~\S\ref{destruct}.  It is useful for forward reasoning from the
+  assumptions.
+\end{ttdescription}
 
 \subsection{Commands for backward proof}
-\index{proof!commands for|bold}
+\index{proofs!commands for}
 Tactics are normally applied using the subgoal module, which maintains a
 proof state and manages the proof construction.  It allows interactive
 backtracking through the proof space, going away to prove lemmas, etc.; of
 its many commands, most important are the following:
-\begin{description}
-\item[\ttindexbold{goal} {\it theory} {\it formula}; ] 
+\begin{ttdescription}
+\item[\ttindex{goal} {\it theory} {\it formula}; ] 
 begins a new proof, where $theory$ is usually an \ML\ identifier
 and the {\it formula\/} is written as an \ML\ string.
 
-\item[\ttindexbold{by} {\it tactic}; ] 
+\item[\ttindex{by} {\it tactic}; ] 
 applies the {\it tactic\/} to the current proof
 state, raising an exception if the tactic fails.
 
-\item[\ttindexbold{undo}(); ] 
+\item[\ttindex{undo}(); ] 
   reverts to the previous proof state.  Undo can be repeated but cannot be
   undone.  Do not omit the parentheses; typing {\tt\ \ undo;\ \ } merely
   causes \ML\ to echo the value of that function.
 
-\item[\ttindexbold{result}()] 
+\item[\ttindex{result}()] 
 returns the theorem just proved, in a standard format.  It fails if
 unproved subgoals are left, etc.
-\end{description}
+\end{ttdescription}
 The commands and tactics given above are cumbersome for interactive use.
 Although our examples will use the full commands, you may prefer Isabelle's
 shortcuts:
 \begin{center} \tt
-\indexbold{*br} \indexbold{*be} \indexbold{*bd} \indexbold{*ba}
+\index{*br} \index{*be} \index{*bd} \index{*ba}
 \begin{tabular}{l@{\qquad\rm abbreviates\qquad}l}
     ba {\it i};           & by (assume_tac {\it i}); \\
 
@@ -428,11 +437,11 @@ goal FOL.thy "P|P --> P";
 {\out Level 0} 
 {\out P | P --> P} 
 {\out 1. P | P --> P} 
-\end{ttbox}
+\end{ttbox}\index{level of a proof}
 Isabelle responds by printing the initial proof state, which has $P\disj
-P\imp P$ as the main goal and the only subgoal.  The \bfindex{level} of the
+P\imp P$ as the main goal and the only subgoal.  The {\bf level} of the
 state is the number of {\tt by} commands that have been applied to reach
-it.  We now use \ttindex{resolve_tac} to apply the rule \ttindex{impI},
+it.  We now use \ttindex{resolve_tac} to apply the rule \tdx{impI},
 or~$({\imp}I)$, to subgoal~1:
 \begin{ttbox}
 by (resolve_tac [impI] 1); 
@@ -442,7 +451,7 @@ by (resolve_tac [impI] 1);
 \end{ttbox}
 In the new proof state, subgoal~1 is $P$ under the assumption $P\disj P$.
 (The meta-implication {\tt==>} indicates assumptions.)  We apply
-\ttindex{disjE}, or~(${\disj}E)$, to that subgoal:
+\tdx{disjE}, or~(${\disj}E)$, to that subgoal:
 \begin{ttbox}
 by (resolve_tac [disjE] 1); 
 {\out Level 2} 
@@ -477,7 +486,7 @@ by (assume_tac 1);
 {\out No subgoals!}
 \end{ttbox}
 Isabelle tells us that there are no longer any subgoals: the proof is
-complete.  Calling \ttindex{result} returns the theorem.
+complete.  Calling {\tt result} returns the theorem.
 \begin{ttbox}
 val mythm = result(); 
 {\out val mythm = "?P | ?P --> ?P" : thm} 
@@ -494,7 +503,7 @@ instantiations affect the proof state.
 \subsection{Part of a distributive law}
 \index{examples!propositional}
 To demonstrate the tactics \ttindex{eresolve_tac}, \ttindex{dresolve_tac}
-and the tactical \ttindex{REPEAT}, let us prove part of the distributive
+and the tactical {\tt REPEAT}, let us prove part of the distributive
 law 
 \[ (P\conj Q)\disj R \,\bimp\, (P\disj R)\conj (Q\disj R). \]
 We begin by stating the goal to Isabelle and applying~$({\imp}I)$ to it:
@@ -546,8 +555,8 @@ by (resolve_tac [disjI2] 2);
 {\out  1. P ==> P}
 {\out  2. R ==> R}
 \end{ttbox}
-Two calls of~\ttindex{assume_tac} can finish the proof.  The
-tactical~\ttindex{REPEAT} expresses a tactic that calls {\tt assume_tac~1}
+Two calls of {\tt assume_tac} can finish the proof.  The
+tactical~\ttindex{REPEAT} here expresses a tactic that calls {\tt assume_tac~1}
 as many times as possible.  We can restrict attention to subgoal~1 because
 the other subgoals move up after subgoal~1 disappears.
 \begin{ttbox}
@@ -559,7 +568,7 @@ by (REPEAT (assume_tac 1));
 
 
 \section{Quantifier reasoning}
-\index{quantifiers!reasoning about}\index{parameters}\index{unknowns}
+\index{quantifiers}\index{parameters}\index{unknowns}
 This section illustrates how Isabelle enforces quantifier provisos.
 Quantifier rules create terms such as~$\Var{f}(x,z)$, where~$\Var{f}$ is a
 function unknown and $x$ and~$z$ are parameters.  This may be replaced by
@@ -673,8 +682,8 @@ by (resolve_tac [impI] 1);
 \end{ttbox}
 
 \paragraph{The wrong approach.}
-Using \ttindex{dresolve_tac}, we apply the rule $(\forall E)$, bound to the
-\ML\ identifier \ttindex{spec}.  Then we apply $(\forall I)$.
+Using {\tt dresolve_tac}, we apply the rule $(\forall E)$, bound to the
+\ML\ identifier \tdx{spec}.  Then we apply $(\forall I)$.
 \begin{ttbox}
 by (dresolve_tac [spec] 1);
 {\out Level 2}
@@ -686,7 +695,7 @@ by (resolve_tac [allI] 1);
 {\out (ALL x y. P(x,y)) --> (ALL z w. P(w,z))}
 {\out  1. !!z. ALL y. P(?x1,y) ==> ALL w. P(w,z)}
 \end{ttbox}
-The unknown {\tt ?u} and the parameter {\tt z} have appeared.  We again
+The unknown {\tt ?x1} and the parameter {\tt z} have appeared.  We again
 apply $(\forall E)$ and~$(\forall I)$.
 \begin{ttbox}
 by (dresolve_tac [spec] 1);
@@ -701,8 +710,8 @@ by (resolve_tac [allI] 1);
 \end{ttbox}
 The unknown {\tt ?y3} and the parameter {\tt w} have appeared.  Each
 unknown is applied to the parameters existing at the time of its creation;
-instances of {\tt ?x1} cannot contain~{\tt z} or~{\tt w}, while instances
-of {\tt?y3(z)} can only contain~{\tt z}.  Because of these restrictions,
+instances of~{\tt ?x1} cannot contain~{\tt z} or~{\tt w}, while instances
+of {\tt?y3(z)} can only contain~{\tt z}.  Due to the restriction on~{\tt ?x1},
 proof by assumption will fail.
 \begin{ttbox}
 by (assume_tac 1);
@@ -767,8 +776,8 @@ choplev 0;
 {\out (ALL x y. P(x,y)) --> (ALL z w. P(w,z))}
 {\out  1. (ALL x y. P(x,y)) --> (ALL z w. P(w,z))}
 \end{ttbox}
-As we have just seen, \ttindex{allI} should be attempted
-before~\ttindex{spec}, while \ttindex{assume_tac} generally can be
+As we have just seen, \tdx{allI} should be attempted
+before~\tdx{spec}, while \ttindex{assume_tac} generally can be
 attempted first.  Such priorities can easily be expressed
 using~\ttindex{ORELSE}, and repeated using~\ttindex{REPEAT}.
 \begin{ttbox}
@@ -787,7 +796,7 @@ the equivalence
 \[ (\forall x. P(x) \imp Q) \,\bimp\, ((\exists x. P(x)) \imp Q). \]
 We state the left-to-right half to Isabelle in the normal way.
 Since $\imp$ is nested to the right, $({\imp}I)$ can be applied twice; we
-use \ttindex{REPEAT}:
+use {\tt REPEAT}:
 \begin{ttbox}
 goal FOL.thy "(ALL x.P(x) --> Q) --> (EX x.P(x)) --> Q";
 {\out Level 0}
@@ -802,7 +811,7 @@ by (REPEAT (resolve_tac [impI] 1));
 We can eliminate the universal or the existential quantifier.  The
 existential quantifier should be eliminated first, since this creates a
 parameter.  The rule~$(\exists E)$ is bound to the
-identifier~\ttindex{exE}.
+identifier~\tdx{exE}.
 \begin{ttbox}
 by (eresolve_tac [exE] 1);
 {\out Level 2}
@@ -840,14 +849,14 @@ by (assume_tac 1);
 \end{ttbox}
 
 
-\subsection{The classical reasoning package}
-\index{classical reasoning package}
+\subsection{The classical reasoner}
+\index{classical reasoner}
 Although Isabelle cannot compete with fully automatic theorem provers, it
 provides enough automation to tackle substantial examples.  The classical
-reasoning package can be set up for any classical natural deduction logic
+reasoner can be set up for any classical natural deduction logic
 --- see the {\em Reference Manual}.
 
-Rules are packaged into bundles called \bfindex{classical sets}.  The package
+Rules are packaged into bundles called {\bf classical sets}.  The package
 provides several tactics, which apply rules using naive algorithms, using
 unification to handle quantifiers.  The most useful tactic
 is~\ttindex{fast_tac}.  
@@ -891,14 +900,8 @@ by (fast_tac FOL_cs 1);
 {\out ALL x. P(x,f(x)) <-> (EX y. (ALL z. P(z,y) --> P(z,f(x))) & P(x,y))}
 {\out No subgoals!}
 \end{ttbox}
-The classical reasoning package is not restricted to the usual logical
+The classical reasoner is not restricted to the usual logical
 connectives.  The natural deduction rules for unions and intersections in
 set theory resemble those for disjunction and conjunction, and in the
 infinitary case, for quantifiers.  The package is valuable for reasoning in
 set theory.
-
-
-% Local Variables: 
-% mode: latex
-% TeX-master: t
-% End: 
