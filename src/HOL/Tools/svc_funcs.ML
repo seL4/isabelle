@@ -124,6 +124,9 @@ struct
      Buildin("=>", [Buildin("<=", [Int 0, UnInterp (a, [])]),
 		    e]);
 
+ fun param_string [] = ""
+   | param_string is = "_" ^ space_implode "_" (map string_of_int is)
+
  (*Translate an Isabelle formula into an SVC expression
    pos ["positive"]: true if an assumption, false if a goal*)
  fun expr_of pos t =
@@ -132,17 +135,20 @@ struct
     and body   = Term.strip_all_body t
     val nat_vars = ref ([] : string list)
     (*translation of a variable: record all natural numbers*)
-    fun trans_var (a,T) =
+    fun trans_var (a,T,is) =
 	(if T = HOLogic.natT then nat_vars := (a ins_string (!nat_vars))
 	                     else ();
-         UnInterp (a, []))
-    fun var (Free(a,T))      = trans_var ("F_" ^ a, T)
-      | var (Var((a, 0), T)) = trans_var (a, T)
-      | var (Bound i)        = 
+         UnInterp (a ^ param_string is, []))
+    (*A variable, perhaps applied to a series of parameters*)
+    fun var (Free(a,T), is)      = trans_var ("F_" ^ a, T, is)
+      | var (Var((a, 0), T), is) = trans_var (a, T, is)
+      | var (Bound i, is)        = 
           let val (a,T) = List.nth (params, i)
-	  in  trans_var ("B_" ^ a, T)  end
-      | var (t $ Bound _)    = var t    (*removing a parameter from a Var*)
-      | var t = raise OracleExn t;
+	  in  trans_var ("B_" ^ a, T, is)  end
+      | var (t $ Bound i, is)    = var(t,i::is)
+            (*removing a parameter from a Var: the bound var index will
+               become part of the Var's name*)
+      | var (t,_) = raise OracleExn t;
     (*translation of a literal*)
     fun lit (Const("Numeral.number_of", _) $ w) = NumeralSyntax.dest_bin w
       | lit (Const("0", _)) = 0
@@ -184,7 +190,7 @@ struct
 	  if is_numeric_op T then Interp("*", [Int ~1, tm x])
           else raise OracleExn t
       | tm t = Int (lit t) 
-	       handle Match => var t
+	       handle Match => var (t,[])
     (*translation of a formula*)
     and fm pos (Const("op &", _) $ p $ q) =  
 	    Buildin("AND", [fm pos p, fm pos q])
@@ -226,7 +232,7 @@ struct
 	    else if is_intnat T then
 		Buildin("<", [tm x, suc (tm y)])
 	    else raise OracleExn t
-      | fm pos t = var t;
+      | fm pos t = var(t,[]);
       (*entry point, and translation of a meta-formula*)
       fun mt pos ((c as Const("Trueprop", _)) $ p) = fm pos (iff_tag p)
 	| mt pos ((c as Const("==>", _)) $ p $ q) = 
