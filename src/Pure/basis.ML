@@ -10,8 +10,15 @@ Needed for Poly/ML and Standard ML of New Jersey version 0.93
 Full compatibility cannot be obtained using a file: what about char constants?
 *)
 
+structure Bool =
+  struct
+  fun toString true  = "true"
+    | toString false = "false"
+  end;
+
 structure Int =
   struct
+  fun toString (i: int) = makestring i;
   fun max (x, y) = if x < y then y else x : int;
   fun min (x, y) = if x < y then x else y : int;
   end;
