@@ -4,7 +4,7 @@
     Copyright   1995 TUM
 *)
 
-Prefix = List +
+Prefix = Main +
 
 arities list :: (term)ord
 
