@@ -109,6 +109,14 @@ struct
 	  | maxidx (And (fm1,fm2)) = Int.max (maxidx fm1, maxidx fm2);
 
 (* ------------------------------------------------------------------------- *)
+(* exception SAME: raised to indicate that the return value of a function is *)
+(*                 identical to its argument (optimization to allow sharing, *)
+(*                 rather than copying)                                      *)
+(* ------------------------------------------------------------------------- *)
+
+	exception SAME;
+
+(* ------------------------------------------------------------------------- *)
 (* nnf: computes the negation normal form of a formula 'fm' of propositional *)
 (*      logic (i.e. only variables may be negated, but not subformulas)      *)
 (* ------------------------------------------------------------------------- *)
@@ -120,7 +128,7 @@ struct
 	    nnf True                  = True
 	  | nnf False                 = False
 	(* variables *)
-	  | nnf (BoolVar i)           = BoolVar i
+	  | nnf (BoolVar i)           = (BoolVar i)
 	(* 'or' and 'and' as outermost connectives are left untouched *)
 	  | nnf (Or  (fm1,fm2))       = SOr  (nnf fm1, nnf fm2)
 	  | nnf (And (fm1,fm2))       = SAnd (nnf fm1, nnf fm2)
@@ -147,29 +155,26 @@ struct
 	let
 		fun
 		(* constants *)
-		    cnf_from_nnf True              = True
-		  | cnf_from_nnf False             = False
+		    cnf_from_nnf True             = True
+		  | cnf_from_nnf False            = False
 		(* literals *)
-		  | cnf_from_nnf (BoolVar i)       = BoolVar i
-		  | cnf_from_nnf (Not (BoolVar i)) = Not (BoolVar i)
+		  | cnf_from_nnf (BoolVar i)      = BoolVar i
+		  | cnf_from_nnf (Not fm1)        = Not fm1  (* 'fm1' must be a variable since the formula is in NNF *)
 		(* pushing 'or' inside of 'and' using distributive laws *)
-		  | cnf_from_nnf (Or (fm1,fm2)) =
+		  | cnf_from_nnf (Or (fm1, fm2))  =
 			let
-				val fm1' = cnf_from_nnf fm1
-				val fm2' = cnf_from_nnf fm2
+				fun cnf_or (And (fm11, fm12), fm2) =
+					And (cnf_or (fm11, fm2), cnf_or (fm12, fm2))
+				  | cnf_or (fm1, And (fm21, fm22)) =
+					And (cnf_or (fm1, fm21), cnf_or (fm1, fm22))
+				(* neither subformula contains 'and' *)
+				  | cnf_or (fm1, fm2) =
+					Or (fm1, fm2)
 			in
-				case fm1' of
-				  And (fm11,fm12) => cnf_from_nnf (SAnd (SOr(fm11,fm2'),SOr(fm12,fm2')))
-				| _               =>
-					(case fm2' of
-					  And (fm21,fm22) => cnf_from_nnf (SAnd (SOr(fm1',fm21),SOr(fm1',fm22)))
-					(* neither subformula contains 'and' *)
-					| _               => Or (fm1,fm2))
+				cnf_or (cnf_from_nnf fm1, cnf_from_nnf fm2)
 			end
 		(* 'and' as outermost connective is left untouched *)
-		  | cnf_from_nnf (And (fm1,fm2))   = SAnd (cnf_from_nnf fm1, cnf_from_nnf fm2)
-		(* 'not' + something other than a variable: formula is not in negation normal form *)
-		  | cnf_from_nnf _                 = raise ERROR
+		  | cnf_from_nnf (And (fm1, fm2)) = And (cnf_from_nnf fm1, cnf_from_nnf fm2)
 	in
 		(cnf_from_nnf o nnf) fm
 	end;
@@ -189,49 +194,52 @@ struct
 		(* 'new' specifies the next index that is available to introduce an auxiliary variable *)
 		fun
 		(* constants *)
-		    defcnf_from_nnf (True,new)            = (True, new)
-		  | defcnf_from_nnf (False,new)           = (False, new)
+		    defcnf_from_nnf (True, new)            = (True, new)
+		  | defcnf_from_nnf (False, new)           = (False, new)
 		(* literals *)
-		  | defcnf_from_nnf (BoolVar i,new)       = (BoolVar i, new)
-		  | defcnf_from_nnf (Not (BoolVar i),new) = (Not (BoolVar i), new)
-		(* pushing 'or' inside of 'and' using distributive laws *)
-		  | defcnf_from_nnf (Or (fm1,fm2),new)    =
+		  | defcnf_from_nnf (BoolVar i, new)       = (BoolVar i, new)
+		  | defcnf_from_nnf (Not fm1, new)         = (Not fm1, new)  (* 'fm1' must be a variable since the formula is in NNF *)
+		(* pushing 'or' inside of 'and' using auxiliary variables *)
+		  | defcnf_from_nnf (Or (fm1, fm2), new)   =
 			let
-				val (fm1',new')  = defcnf_from_nnf (fm1, new)
-				val (fm2',new'') = defcnf_from_nnf (fm2, new')
-			in
-				case fm1' of
-				  And (fm11,fm12) =>
+				val (fm1', new')  = defcnf_from_nnf (fm1, new)
+				val (fm2', new'') = defcnf_from_nnf (fm2, new')
+				(* prop_formula * prop_formula -> int -> prop_formula * int *)
+				fun defcnf_or (And (fm11, fm12), fm2) new =
 					let
-						val aux = BoolVar new''
+						val aux            = BoolVar new
+						val (fm_a, new')   = defcnf_or (fm11, aux)     (new+1)
+						val (fm_b, new'')  = defcnf_or (fm12, aux)     new'
+						val (fm_c, new''') = defcnf_or (fm2,  Not aux) new''
 					in
-						(* '(fm11 AND fm12) OR fm2' is SAT-equivalent to '(fm11 OR aux) AND (fm12 OR aux) AND (fm2 OR NOT aux)' *)
-						defcnf_from_nnf (SAnd (SAnd (SOr (fm11,aux), SOr (fm12,aux)), SOr(fm2', Not aux)), new''+1)
+						(And (And (fm_a, fm_b), fm_c), new''')
 					end
-				| _               =>
-					(case fm2' of
-					  And (fm21,fm22) =>
-						let
-							val aux = BoolVar new''
-						in
-							(* 'fm1 OR (fm21 AND fm22)' is SAT-equivalent to '(fm1 OR NOT aux) AND (fm21 OR aux) AND (fm22 OR NOT aux)' *)
-							defcnf_from_nnf (SAnd (SOr (fm1', Not aux), SAnd (SOr (fm21,aux), SOr (fm22,aux))), new''+1)
-						end
-					(* neither subformula contains 'and' *)
-					| _               => (Or (fm1,fm2),new))
+				  | defcnf_or (fm1, And (fm21, fm22)) new =
+					let
+						val aux            = BoolVar new
+						val (fm_a, new')   = defcnf_or (fm1,  Not aux) (new+1)
+						val (fm_b, new'')  = defcnf_or (fm21, aux)     new'
+						val (fm_c, new''') = defcnf_or (fm22, aux)     new''
+					in
+						(And (fm_a, And (fm_b, fm_c)), new''')
+					end
+				(* neither subformula contains 'and' *)
+				  | defcnf_or (fm1, fm2) new =
+					(Or (fm1, fm2), new)
+			in
+				defcnf_or (fm1', fm2') new''
 			end
 		(* 'and' as outermost connective is left untouched *)
-		  | defcnf_from_nnf (And (fm1,fm2),new)   =
+		  | defcnf_from_nnf (And (fm1, fm2), new)   =
 			let
-				val (fm1',new')  = defcnf_from_nnf (fm1, new)
-				val (fm2',new'') = defcnf_from_nnf (fm2, new')
+				val (fm1', new')  = defcnf_from_nnf (fm1, new)
+				val (fm2', new'') = defcnf_from_nnf (fm2, new')
 			in
-				(SAnd (fm1', fm2'), new'')
+				(And (fm1', fm2'), new'')
 			end
-		(* 'not' + something other than a variable: formula is not in negation normal form *)
-		  | defcnf_from_nnf (_,_)                 = raise ERROR
+		val fm'    = nnf fm
 	in
-		(fst o defcnf_from_nnf) (nnf fm, (maxidx fm)+1)
+		(fst o defcnf_from_nnf) (fm', (maxidx fm')+1)
 	end;
 
 (* ------------------------------------------------------------------------- *)
