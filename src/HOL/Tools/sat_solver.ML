@@ -299,7 +299,6 @@ let
 			  | partial_eval xs (Not fm)         = SNot (partial_eval xs fm)
 			  | partial_eval xs (Or (fm1, fm2))  = SOr (partial_eval xs fm1, partial_eval xs fm2)
 			  | partial_eval xs (And (fm1, fm2)) = SAnd (partial_eval xs fm1, partial_eval xs fm2)
-			  | partial_eval xs _                = raise ERROR  (* formula is not in negation normal form *)
 			(* prop_formula -> int list *)
 			fun forced_vars True              = []
 			  | forced_vars False             = []
