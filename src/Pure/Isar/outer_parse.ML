@@ -14,6 +14,7 @@ sig
   val !!!! : (token list -> 'a) -> token list -> 'a
   val $$$ : string -> token list -> string * token list
   val semicolon: token list -> string * token list
+  val underscore: token list -> string * token list
   val position: (token list -> 'a * 'b) -> token list -> ('a * Position.T) * 'b
   val command: token list -> string * token list
   val keyword: token list -> string * token list
@@ -142,6 +143,8 @@ fun $$$ x =
     (Scan.one (T.keyword_with (equal x)) >> T.val_of);
 
 val semicolon = $$$ ";";
+
+val underscore = sym_ident :-- (fn "_" => Scan.succeed () | _ => Scan.fail) >> #1;
 
 val nat = number >> (fst o Term.read_int o Symbol.explode);
 
