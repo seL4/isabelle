@@ -250,10 +250,11 @@ cancel a series of commands.
 \begin{ttbox} 
 pr    : unit -> unit
 prlev : int -> unit
+prlim : int -> unit
 goals_limit: int ref \hfill{\bf initially 10}
 \end{ttbox}
-See also the printing control options described in
-\S\ref{sec:printing-control}. 
+See also the printing control options described 
+in~\S\ref{sec:printing-control}. 
 \begin{ttdescription}
 \item[\ttindexbold{pr}();] 
 prints the current proof state.
@@ -262,6 +263,11 @@ prints the current proof state.
 prints the proof state at level {\it n}, if $n\geq0$.  A negative value
 of~$n$ refers to the $n$th previous level.  This command allows
 you to review earlier stages of the proof.
+
+\item[\ttindexbold{prlim} {\it k};] 
+prints the current proof state, limiting the number of subgoals to~$k$.  It
+updates {\tt goals_limit} (see below) and is helpful when there are many
+subgoals. 
 
 \item[\ttindexbold{goals_limit} := {\it k};] 
 specifies~$k$ as the maximum number of subgoals to print.
