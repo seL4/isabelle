@@ -1,0 +1,27 @@
+
+Checklist for official releases
+===============================
+
+- make sure that etc/isar-keywords.el and etc/isar-keywords-ZF.el are
+up-to-date; in ML use ``ProofGeneral.write_keywords ""'' and
+``ProofGeneral.write_keywords "ZF"'';
+
+- check ANNOUNCE, README, INSTALL, NEWS, Admin/page;
+
+- run tests with *all* supported ML systems (yes this is tedious!);
+
+- maintain Docs:
+    Doc/Contents
+    Distribution/doc/Contents
+    Admin/index.html
+
+- maintain Logics:
+    Admin/makedist
+    Distribution/build
+    Distribution/lib/Tools/makeall
+    Distribution/lib/html/index1.html
+    Distribution/lib/html/index2.html
+    Doc/Logics/intro.tex
+    Doc/Logics/logics.tex
+
+$Id$

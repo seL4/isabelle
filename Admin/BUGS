@@ -10,28 +10,3 @@ Isabelle BUGS -- history of reported faults
 2.  Symptom: read_instantiate_sg has problems instantiating types in some
     simultaneous instantiations (Message-id: <199710301432.PAA20594@sirius.Informatik.Uni-Bremen.DE> on isabelle-users)
 
-
-- res_inst_tac bug:
-val [p1, p2] = Goalw [o_def]
-     "[| f : Funs (range g); !!h. f = g o h ==> P |] ==> P";
-by (res_inst_tac [("h", "%x. @y. f x = g y")] p2 1);
-by (res_inst_tac [("h", "%x. @y. (f x::'b) = g y")] p2 1);
-                                      ^^^^ required!
-Problem: lift_inst_rule only refers to syntactic context of current
-dynamic proof state; old-style goal initially does not contain hyps
-(!!);
-
-Fix: either make assumptions statically scoped (included as hyps in
-goal), or pass additional environment to lift_inst_rule (this would
-improve upon Isar's res_inst_tac as well);
-
-- type infer / inst bug:
-Goal "x = (x::?'a)";
-by (cut_inst_tac [("t", "x")] refl 1);
-
-- bug in prove_goal (!?):
-forall_elim: Variable ?uu has two distinct types
-'a
-'b
-*** The exception above was raised for
-*** (!!uu uua. PROP P (uu, uua)) ==> PROP P xa
