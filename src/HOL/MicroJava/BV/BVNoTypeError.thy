@@ -281,7 +281,7 @@ proof -
       by (clarsimp simp add: app_def)
 
     with eff stk loc pc'
-    have "check_instr (ins!pc) G hp stk loc C sig pc frs'"
+    have "check_instr (ins!pc) G hp stk loc C sig pc maxs frs'"
     proof (cases "ins!pc")
       case (Getfield F C) 
       with app stk loc phi obtain v vT stk' where
@@ -391,7 +391,7 @@ proof -
         apply (clarsimp simp add: neq_Nil_conv isRef_def2)
         done
     qed auto
-    hence "check G s" by (simp add: check_def meth)
+    hence "check G s" by (simp add: check_def meth pc)
   } ultimately
   have "check G s" by blast
   thus "exec_d G (Normal s) \<noteq> TypeError" ..
@@ -418,6 +418,32 @@ theorem welltyped_aggressive_imp_defensive:
   apply blast
   done
 
+
+lemma neq_TypeError_eq [simp]: "s \<noteq> TypeError = (\<exists>s'. s = Normal s')"
+  by (cases s, auto)
+
+theorem no_type_errors:
+  "wt_jvm_prog G Phi \<Longrightarrow> G,Phi \<turnstile>JVM s \<surd>
+  \<Longrightarrow> G \<turnstile> (Normal s) -jvmd\<rightarrow> t \<Longrightarrow> t \<noteq> TypeError"
+  apply (unfold exec_all_d_def)   
+  apply (erule rtrancl_induct)
+   apply simp
+  apply (fold exec_all_d_def)
+  apply (auto dest: defensive_imp_aggressive BV_correct no_type_error)
+  done
+
+corollary no_type_errors_initial:
+  fixes G ("\<Gamma>") and Phi ("\<Phi>")
+  assumes "wt_jvm_prog \<Gamma> \<Phi>"  
+  assumes "is_class \<Gamma> C" "method (\<Gamma>,C) (m,[]) = Some (C, b)" "m \<noteq> init"
+  defines start: "s \<equiv> start_state \<Gamma> C m"
+
+  assumes "\<Gamma> \<turnstile> (Normal s) -jvmd\<rightarrow> t" 
+  shows "t \<noteq> TypeError"
+proof -
+  have "\<Gamma>,\<Phi> \<turnstile>JVM s \<surd>" by (unfold start, rule BV_correct_initial)
+  thus ?thesis by - (rule no_type_errors)
+qed
 
 text {*
   As corollary we get that the aggressive and the defensive machine
