@@ -21,6 +21,7 @@ function usage()
   echo "    -b           build mode (output heap image, using current dir)"
   echo "    -c BOOL      tell ML system to compress output image (default true)"
   echo "    -d FORMAT    build document as FORMAT (default false)"
+  echo "    -f NAME      use ML file NAME (default ROOT.ML)"
   echo "    -g BOOL      generate session graph image for document (default false)"
   echo "    -i BOOL      generate HTML and graph browser information (default false)"
   echo "    -m MODE      add print mode for output"
@@ -63,6 +64,7 @@ RPATH=""
 BUILD=""
 COMPRESS=true
 DOCUMENT=false
+ROOT_FILE=ROOT.ML
 DOCUMENT_GRAPH=false
 INFO=false
 MODES=""
@@ -74,7 +76,7 @@ VERBOSE=false
 function getoptions()
 {
   OPTIND=1
-  while getopts "D:P:bc:d:g:i:m:p:rs:v:" OPT
+  while getopts "D:P:bc:d:f:g:i:m:p:rs:v:" OPT
   do
     case "$OPT" in
       D)
@@ -92,6 +94,9 @@ function getoptions()
         ;;
       d)
         DOCUMENT="$OPTARG"
+        ;;
+      f)
+        ROOT_FILE="$OPTARG"
         ;;
       g)
         check_bool "$OPTARG"
@@ -189,7 +194,7 @@ if [ -n "$BUILD" ]; then
   [ "$COMPRESS" = true ] && OPT_C="-c"
 
   "$ISABELLE" \
-    -e "Session.use_dir true [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\" $PROOFS $VERBOSE;" \
+    -e "Session.use_dir \"$ROOT_FILE\" true [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\" $PROOFS $VERBOSE;" \
     $OPT_C -q -w $LOGIC $NAME > "$LOG"
   RC="$?"
 else
@@ -198,7 +203,7 @@ else
   LOG="$LOGDIR/$ITEM"
 
   "$ISABELLE" \
-    -e "Session.use_dir false [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\" $PROOFS $VERBOSE; quit();" \
+    -e "Session.use_dir \"$ROOT_FILE\" false [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\" $PROOFS $VERBOSE; quit();" \
     -r -q "$LOGIC" > "$LOG"
   RC="$?"
   cd ..
