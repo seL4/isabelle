@@ -1,35 +1,16 @@
 % extra.sty : Isabelle Manual extra macros for non-Springer version
 %
-\typeout{Document Style extra. Released 17 February 1994}
+\typeout{Document Style extra. Released 17/2/94, version of 22/8/00}
+
+\usepackage{ttbox}
+{\obeylines\gdef\ttbreak
+{\allowbreak}}
 
 %%Euro-style date: 20 September 1955
 \def\today{\number\day\space\ifcase\month\or
 January\or February\or March\or April\or May\or June\or
 July\or August\or September\or October\or November\or December\fi
 \space\number\year}
-
-%%Borrowed from alltt.sty, but leaves % as the comment character
-\def\docspecials{\do\ \do\$\do\&%
-  \do\#\do\^\do\^^K\do\_\do\^^A\do\~}
-
-\def\alltt{\trivlist \item[]\if@minipage\else\vskip\parskip\fi
-\leftskip\@totalleftmargin\rightskip\z@
-\parindent\z@\parfillskip\@flushglue\parskip\z@
-\@tempswafalse \def\par{\if@tempswa\hbox{}\fi\@tempswatrue\@@par}
-\obeylines \tt \catcode``=13 \@noligs \let\do\@makeother \docspecials
- \frenchspacing\@vobeyspaces}
-
-\let\endalltt=\endtrivlist
-
-%Indented, boxed alltt environment; uses \small\tt font
-%\leftmargini is LaTeX's first-level indentation for items (2.5em)
-%@endparenv is LaTeX's trick for preventing indentation of next paragraph
-%redefines \{ and \} to be in \tt font
-\newenvironment{ttbox}{\par\nobreak\vskip-2pt
-           \vbox\bgroup\footnotesize\begin{alltt}\chardef\{=`\{\chardef\}=`\}%
-             \leftskip\leftmargini}%
-        {\end{alltt}\egroup\vskip-7pt\@endparenv}
-\newcommand\ttbreak{\end{ttbox}\vskip-10pt\begin{ttbox}}
 
 %%%Put first chapter on odd page, with arabic numbering; like \cleardoublepage
 \newcommand\clearfirst{\clearpage\ifodd\c@page\else
