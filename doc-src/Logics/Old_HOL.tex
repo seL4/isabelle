@@ -414,10 +414,12 @@ simplifying both sides of an equation.
         & intersection over a set\\
   \cdx{UNION} & $[\alpha\,set,\alpha\To\beta\,set]\To\beta\,set$
         & union over a set\\
-  \cdx{Inter} & $((\alpha\,set)set)\To\alpha\,set$
+  \cdx{Inter} & $(\alpha\,set)set\To\alpha\,set$
         &set of sets intersection \\
-  \cdx{Union} & $((\alpha\,set)set)\To\alpha\,set$
+  \cdx{Union} & $(\alpha\,set)set\To\alpha\,set$
         &set of sets union \\
+  \cdx{Pow}   & $\alpha\,set \To (\alpha\,set)set$
+        & powerset \\[1ex]
   \cdx{range}   & $(\alpha\To\beta )\To\beta\,set$
         & range of a function \\[1ex]
   \cdx{Ball}~~\cdx{Bex} & $[\alpha\,set,\alpha\To bool]\To bool$
@@ -616,7 +618,8 @@ respectively.
 \tdx{INTER1_def}        INTER1(B)   == INTER(\{x.True\}, B)
 \tdx{UNION1_def}        UNION1(B)   == UNION(\{x.True\}, B)
 \tdx{Inter_def}         Inter(S)    == (INT x:S. x)
-\tdx{Union_def}         Union(S)    ==  (UN x:S. x)
+\tdx{Union_def}         Union(S)    == (UN  x:S. x)
+\tdx{Pow_def}           Pow(A)      == \{B. B <= A\}
 \tdx{image_def}         f``A        == \{y. ? x:A. y=f(x)\}
 \tdx{range_def}         range(f)    == \{y. ? x. y=f(x)\}
 \tdx{mono_def}          mono(f)     == !A B. A <= B --> f(A) <= f(B)
@@ -698,6 +701,9 @@ respectively.
 \tdx{InterI}   [| !!X. X:C ==> A:X |] ==> A : Inter(C)
 \tdx{InterD}   [| A : Inter(C);  X:C |] ==> A:X
 \tdx{InterE}   [| A : Inter(C);  A:X ==> R;  ~ X:C ==> R |] ==> R
+
+\tdx{PowI}     A<=B ==> A: Pow(B)
+\tdx{PowD}     A: Pow(B) ==> A<=B
 \end{ttbox}
 \caption{Further derived rules for set theory} \label{hol-set2}
 \end{figure}
@@ -1344,7 +1350,7 @@ cons     : (id | string) ( () | '(' (typ + ',') ')' ) ( () | mixfix )
          ;
 typ      : typevarlist id
            | tid
-	 ;
+         ;
 typevarlist : () | tid | '(' (tid + ',') ')'
          ;
 \end{rail}
@@ -1528,8 +1534,174 @@ Note that usually it is not necessary to derive these inequalities explicitly
 because the simplifier will dispose of them automatically.
 
 \index{*datatype|)}
-\underscoreoff
 
+
+\section{Inductive and coinductive definitions}
+\index{*inductive|(}
+\index{*coinductive|(}
+
+An {\bf inductive definition} specifies the least set closed under given
+rules.  For example, a structural operational semantics is an inductive
+definition of an evaluation relation.  Dually, a {\bf coinductive
+  definition} specifies the greatest set closed under given rules.  An
+important example is using bisimulation relations to formalize equivalence
+of processes and infinite data structures.
+
+A theory file may contain any number of inductive and coinductive
+definitions.  They may be intermixed with other declarations; in
+particular, the (co)inductive sets {\bf must} be declared separately as
+constants, and may have mixfix syntax or be subject to syntax translations.
+
+Each (co)inductive definition adds definitions to the theory and also
+proves some theorems.  Each definition creates an ML structure, which is a
+substructure of the main theory structure.
+
+This package is derived from the ZF one, described in a
+separate paper,\footnote{It appeared in CADE~\cite{paulson-CADE} and a
+  longer version is distributed with Isabelle.} which you should refer to
+in case of difficulties.  The package is simpler than ZF's, thanks to HOL's
+automatic type-checking.  The type of the (co)inductive determines the
+domain of the fixedpoint definition, and the package does not use inference
+rules for type-checking.
+
+
+\subsection{The result structure}
+Many of the result structure's components have been discussed in the paper;
+others are self-explanatory.
+\begin{description}
+\item[\tt thy] is the new theory containing the recursive sets.
+
+\item[\tt defs] is the list of definitions of the recursive sets.
+
+\item[\tt mono] is a monotonicity theorem for the fixedpoint operator.
+
+\item[\tt unfold] is a fixedpoint equation for the recursive set (the union of
+the recursive sets, in the case of mutual recursion).
+
+\item[\tt intrs] is the list of introduction rules, now proved as theorems, for
+the recursive sets.  The rules are also available individually, using the
+names given them in the theory file. 
+
+\item[\tt elim] is the elimination rule.
+
+\item[\tt mk\_cases] is a function to create simplified instances of {\tt
+elim}, using freeness reasoning on some underlying datatype.
+\end{description}
+
+For an inductive definition, the result structure contains two induction rules,
+{\tt induct} and \verb|mutual_induct|.  For a coinductive definition, it
+contains the rule \verb|coinduct|.
+
+Figure~\ref{def-result-fig} summarizes the two result signatures,
+specifying the types of all these components.
+
+\begin{figure}
+\begin{ttbox}
+sig
+val thy          : theory
+val defs         : thm list
+val mono         : thm
+val unfold       : thm
+val intrs        : thm list
+val elim         : thm
+val mk_cases     : thm list -> string -> thm
+{\it(Inductive definitions only)} 
+val induct       : thm
+val mutual_induct: thm
+{\it(Coinductive definitions only)}
+val coinduct    : thm
+end
+\end{ttbox}
+\hrule
+\caption{The result of a (co)inductive definition} \label{def-result-fig}
+\end{figure}
+
+\subsection{The syntax of a (co)inductive definition}
+An inductive definition has the form
+\begin{ttbox}
+inductive    {\it inductive sets}
+  intrs      {\it introduction rules}
+  monos      {\it monotonicity theorems}
+  con_defs   {\it constructor definitions}
+\end{ttbox}
+A coinductive definition is identical, except that it starts with the keyword
+{\tt coinductive}.  
+
+The {\tt monos} and {\tt con\_defs} sections are optional.  If present,
+each is specified as a string, which must be a valid ML expression of type
+{\tt thm list}.  It is simply inserted into the {\tt .thy.ML} file; if it
+is ill-formed, it will trigger ML error messages.  You can then inspect the
+file on your directory.
+
+\begin{itemize}
+\item The {\it inductive sets} are specified by one or more strings.
+
+\item The {\it introduction rules} specify one or more introduction rules in
+  the form {\it ident\/}~{\it string}, where the identifier gives the name of
+  the rule in the result structure.
+
+\item The {\it monotonicity theorems} are required for each operator
+  applied to a recursive set in the introduction rules.  There {\bf must}
+  be a theorem of the form $A\subseteq B\Imp M(A)\subseteq M(B)$, for each
+  premise $t\in M(R_i)$ in an introduction rule!
+
+\item The {\it constructor definitions} contain definitions of constants
+  appearing in the introduction rules.  In most cases it can be omitted.
+\end{itemize}
+
+The package has a few notable restrictions:
+\begin{itemize}
+\item The theory must separately declare the recursive sets as
+  constants.
+
+\item The names of the recursive sets must be identifiers, not infix
+operators.  
+
+\item Side-conditions must not be conjunctions.  However, an introduction rule
+may contain any number of side-conditions.
+
+\item Side-conditions of the form $x=t$, where the variable~$x$ does not
+  occur in~$t$, will be substituted through the rule \verb|mutual_induct|.
+\end{itemize}
+
+
+\subsection{Example of an inductive definition}
+Two declarations, included in a theory file, define the finite powerset
+operator.  First we declare the constant~{\tt Fin}.  Then we declare it
+inductively, with two introduction rules:
+\begin{ttbox}
+consts Fin :: "'a set => 'a set set"
+inductive "Fin(A)"
+  intrs
+    emptyI  "{} : Fin(A)"
+    insertI "[| a: A;  b: Fin(A) |] ==> insert(a,b) : Fin(A)"
+\end{ttbox}
+The resulting theory structure contains a substructure, called~{\tt Fin}.
+It contains the {\tt Fin}$(A)$ introduction rules as the list {\tt Fin.intrs},
+and also individually as {\tt Fin.emptyI} and {\tt Fin.consI}.  The induction
+rule is {\tt Fin.induct}.
+
+For another example, here is a theory file defining the accessible part of a
+relation.  The main thing to note is the use of~{\tt Pow} in the sole
+introduction rule, and the corresponding mention of the rule
+\verb|Pow_mono| in the {\tt monos} list.  The paper discusses a ZF version
+of this example in more detail.
+\begin{ttbox}
+Acc = WF + 
+consts pred :: "['b, ('a * 'b)set] => 'a set"   (*Set of predecessors*)
+       acc  :: "('a * 'a)set => 'a set"         (*Accessible part*)
+defs   pred_def  "pred(x,r) == {y. <y,x>:r}"
+inductive "acc(r)"
+  intrs
+     pred "pred(a,r): Pow(acc(r)) ==> a: acc(r)"
+  monos   "[Pow_mono]"
+end
+\end{ttbox}
+The HOL distribution contains many other inductive definitions, such as the
+theory {\tt HOL/ex/PropLog.thy} and the directory {\tt HOL/IMP}.  The
+theory {\tt HOL/LList.thy} contains coinductive definitions.
+
+\index{*coinductive|)} \index{*inductive|)} \underscoreoff
 
 
 \section{The examples directories}
@@ -1538,49 +1710,52 @@ substitutions and unifiers.  It is based on Paulson's previous
 mechanisation in {\LCF}~\cite{paulson85} of Manna and Waldinger's
 theory~\cite{mw81}. 
 
+Directory {\tt HOL/IMP} contains a mechanised version of a semantic
+equivalence proof taken from Winskel~\cite{winskel93}.  It formalises the
+denotational and operational semantics of a simple while-language, then
+proves the two equivalent.  It contains several datatype and inductive
+definitions, and demonstrates their use.
+
 Directory {\tt HOL/ex} contains other examples and experimental proofs in
 {\HOL}.  Here is an overview of the more interesting files.
-\begin{ttdescription}
-\item[HOL/ex/cla.ML] demonstrates the classical reasoner on over sixty
+\begin{itemize}
+\item File {\tt cla.ML} demonstrates the classical reasoner on over sixty
   predicate calculus theorems, ranging from simple tautologies to
   moderately difficult problems involving equality and quantifiers.
 
-\item[HOL/ex/meson.ML] contains an experimental implementation of the {\sc
+\item File {\tt meson.ML} contains an experimental implementation of the {\sc
     meson} proof procedure, inspired by Plaisted~\cite{plaisted90}.  It is
   much more powerful than Isabelle's classical reasoner.  But it is less
   useful in practice because it works only for pure logic; it does not
   accept derived rules for the set theory primitives, for example.
 
-\item[HOL/ex/mesontest.ML] contains test data for the {\sc meson} proof
+\item File {\tt mesontest.ML} contains test data for the {\sc meson} proof
   procedure.  These are mostly taken from Pelletier \cite{pelletier86}.
 
-\item[HOL/ex/set.ML] proves Cantor's Theorem, which is presented in
+\item File {\tt set.ML} proves Cantor's Theorem, which is presented in
   \S\ref{sec:hol-cantor} below, and the Schr\"oder-Bernstein Theorem.
 
-\item[HOL/ex/InSort.ML] and {\tt HOL/ex/Qsort.ML} contain correctness
-  proofs about insertion sort and quick sort.
+\item Theories {\tt InSort} and {\tt Qsort} prove correctness properties of
+  insertion sort and quick sort.
 
-\item[HOL/ex/PropLog.ML] proves the soundness and completeness of classical
-  propositional logic, given a truth table semantics.  The only connective
-  is $\imp$.  A Hilbert-style axiom system is specified, and its set of
-  theorems defined inductively.  A similar proof in \ZF{} is described
-  elsewhere~\cite{paulson-set-II}. 
+\item Theory {\tt PropLog} proves the soundness and completeness of
+  classical propositional logic, given a truth table semantics.  The only
+  connective is $\imp$.  A Hilbert-style axiom system is specified, and its
+  set of theorems defined inductively.  A similar proof in \ZF{} is
+  described elsewhere~\cite{paulson-set-II}.
 
-\item[HOL/ex/Term.ML] 
-  contains proofs about an experimental recursive type definition;
+\item Theory {\tt Term} develops an experimental recursive type definition;
   the recursion goes through the type constructor~\tydx{list}.
 
-\item[HOL/ex/Simult.ML] defines primitives for solving mutually recursive
-  equations over sets.  It constructs sets of trees and forests as an
-  example, including induction and recursion rules that handle the mutual
-  recursion.
+\item Theory {\tt Simult} constructs mutually recursive sets of trees and
+  forests, including induction and recursion rules.
 
-\item[HOL/ex/MT.ML] contains Jacob Frost's formalization~\cite{frost93} of
+\item Theory {\tt MT} contains Jacob Frost's formalization~\cite{frost93} of
   Milner and Tofte's coinduction example~\cite{milner-coind}.  This
   substantial proof concerns the soundness of a type system for a simple
   functional language.  The semantics of recursion is given by a cyclic
   environment, which makes a coinductive argument appropriate.
-\end{ttdescription}
+\end{itemize}
 
 
 \goodbreak
