@@ -31,7 +31,7 @@ fun trace_msg s = if !trace then tracing s else ();
 (* Invoking the oracle *)
 
 fun pres_oracle sg t = 
-  invoke_oracle (the_context()) "presburger_oracle" 
+  invoke_oracle (theory "Presburger") "presburger_oracle" 
      (sg, CooperDec.COOPER_ORACLE t) ;
 
 val presburger_ss = simpset_of (theory "Presburger");
