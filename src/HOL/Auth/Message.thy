@@ -28,35 +28,14 @@ constdefs
 datatype  (*We allow any number of friendly agents*)
   agent = Server | Friend nat | Spy
 
-
-(*Datatype msg is (awkwardly) split into two parts to avoid having freeness
-  expressed using natural numbers.*)
-datatype  
-  atomic = AGENT  agent	(*Agent names*)
-         | NUMBER nat   (*Ordinary integers, timestamps, ...*)
-         | NONCE  nat   (*Unguessable nonces*)
-         | KEY    key   (*Crypto keys*)
-
 datatype
-     msg = Atomic atomic
+     msg = Agent  agent	    (*Agent names*)
+         | Number nat       (*Ordinary integers, timestamps, ...*)
+         | Nonce  nat       (*Unguessable nonces*)
+         | Key    key       (*Crypto keys*)
 	 | Hash   msg       (*Hashing*)
 	 | MPair  msg msg   (*Compound messages*)
 	 | Crypt  key msg   (*Encryption, public- or shared-key*)
-
-(*These translations complete the illustion that "msg" has seven constructors*)
-syntax
-  Agent       :: agent => msg
-  Number      :: nat   => msg
-  Nonce       :: nat   => msg
-  Key         :: key   => msg
-
-translations
-  "Agent x"   == "Atomic (AGENT x)"
-  "Number x"  == "Atomic (NUMBER x)"
-  "Nonce x"   == "Atomic (NONCE x)"
-  "Nonce``x"  == "Atomic `` (NONCE `` x)"
-  "Key x"     == "Atomic (KEY x)"
-  "Key``x"    == "Atomic `` (KEY `` x)"
 
 
 (*Concrete syntax: messages appear as {|A,B,NA|}, etc...*)

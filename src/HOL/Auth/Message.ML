@@ -13,7 +13,6 @@ goal HOL.thy "~ (ALL x. x~=y)";
 by (Blast_tac 1);
 Addsimps [result()];
 
-AddIffs atomic.inject;
 AddIffs msg.inject;
 
 (*Equations hold because constructors are injective; cannot prove for all f*)
@@ -63,27 +62,27 @@ by (Blast_tac 1);
 qed "keysFor_mono";
 
 Goalw [keysFor_def] "keysFor (insert (Agent A) H) = keysFor H";
-by (Blast_tac 1);
+by Auto_tac;
 qed "keysFor_insert_Agent";
 
 Goalw [keysFor_def] "keysFor (insert (Nonce N) H) = keysFor H";
-by (Blast_tac 1);
+by Auto_tac;
 qed "keysFor_insert_Nonce";
 
 Goalw [keysFor_def] "keysFor (insert (Number N) H) = keysFor H";
-by (Blast_tac 1);
+by Auto_tac;
 qed "keysFor_insert_Number";
 
 Goalw [keysFor_def] "keysFor (insert (Key K) H) = keysFor H";
-by (Blast_tac 1);
+by Auto_tac;
 qed "keysFor_insert_Key";
 
 Goalw [keysFor_def] "keysFor (insert (Hash X) H) = keysFor H";
-by (Blast_tac 1);
+by Auto_tac;
 qed "keysFor_insert_Hash";
 
 Goalw [keysFor_def] "keysFor (insert {|X,Y|} H) = keysFor H";
-by (Blast_tac 1);
+by Auto_tac;
 qed "keysFor_insert_MPair";
 
 Goalw [keysFor_def]
@@ -250,7 +249,7 @@ Addsimps [parts_cut_eq];
 fun parts_tac i =
   EVERY [rtac ([subsetI, parts_insert_subset] MRS equalityI) i,
          etac parts.induct i,
-         REPEAT (Blast_tac i)];
+         Auto_tac];
 
 Goal "parts (insert (Agent agt) H) = insert (Agent agt) (parts H)";
 by (parts_tac 1);
@@ -308,7 +307,6 @@ Addsimps [parts_image_Key];
 (*In any message, there is an upper bound N on its greatest nonce.*)
 Goal "EX N. ALL n. N<=n --> Nonce n ~: parts {msg}";
 by (induct_tac "msg" 1);
-by (induct_tac "atomic" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [exI, parts_insert2])));
 (*MPair case: blast_tac works out the necessary sum itself!*)
 by (blast_tac (claset() addSEs [add_leE]) 2);
@@ -395,7 +393,7 @@ qed "analz_insert";
 fun analz_tac i =
   EVERY [rtac ([subsetI, analz_insert] MRS equalityI) i,
          etac analz.induct i,
-         REPEAT (Blast_tac i)];
+         Auto_tac];
 
 Goal "analz (insert (Agent agt) H) = insert (Agent agt) (analz H)";
 by (analz_tac 1);
@@ -442,7 +440,7 @@ Goal "Key (invKey K) : analz H ==>  \
 \              insert (Crypt K X) (analz (insert X H))";
 by (rtac subsetI 1);
 by (eres_inst_tac [("xa","x")] analz.induct 1);
-by (ALLGOALS (Blast_tac));
+by Auto_tac;
 val lemma1 = result();
 
 Goal "Key (invKey K) : analz H ==>  \

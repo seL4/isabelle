@@ -410,10 +410,10 @@ by (Blast_tac 3);
 by (blast_tac (claset() addIs [parts_insertI]) 2);
 (** LEVEL 6 **)
 (*Oops*)
-by (Force_tac 6);
 by (REPEAT 
-    (blast_tac (claset() addSDs [Notes_Crypt_parts_spies, 
-				 Notes_master_imp_Crypt_PMS]) 1));
+    (force_tac (claset() addSDs [Notes_Crypt_parts_spies, 
+				 Notes_master_imp_Crypt_PMS],
+		simpset()) 1));
 val lemma = result();
 
 Goal "[| Key (sessionK((Na, Nb, PRF(PMS,NA,NB)), role)) : parts (spies evs); \

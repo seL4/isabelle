@@ -368,8 +368,8 @@ by (Blast_tac 1);
 by (REPEAT_FIRST (resolve_tac [allI, conjI, impI]));
 by (ALLGOALS Clarify_tac);
 by (blast_tac (claset() addSDs  [resp_analz_insert]
- 		        addIs  [impOfSubs analz_subset_parts]) 2);
-by (blast_tac (claset() addSDs [respond_certificate]) 1);
+ 		        addIs  [impOfSubs analz_subset_parts]) 3);
+by (blast_tac (claset() addSDs [respond_certificate]) 2);
 by (Asm_full_simp_tac 1);
 (*by unicity, either B=Aa or B=A', a contradiction if B: bad*)
 by (blast_tac
@@ -395,7 +395,7 @@ by (spy_analz_tac 3);
 (*Fake*)
 by (spy_analz_tac 2);
 (*Base*)
-by (Blast_tac 1);
+by (Force_tac 1);
 (*RA3 remains*)
 by (simp_tac (simpset() addsimps [parts_insert_spies]) 1);
 by (safe_tac (claset() delrules [impCE]));
