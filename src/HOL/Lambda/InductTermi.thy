@@ -34,7 +34,7 @@ lemma double_induction_lemma [rulify]:
   apply (erule acc_induct)
   apply clarify
   apply (rule accI)
-  apply (tactic {* safe_tac (claset () addSEs [apps_betasE]) *})  -- FIXME
+  apply (tactic {* safe_tac (claset () addSEs [thm "apps_betasE"]) *})  -- FIXME
      apply assumption
     apply (blast intro: subst_preserves_beta apps_preserves_beta)
    apply (blast intro: apps_preserves_beta2 subst_preserves_beta2 rtrancl_converseI
