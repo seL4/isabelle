@@ -36,51 +36,53 @@ syntax (xsymbols)
 use "Transitive_Closure_lemmas.ML"
 
 
-lemma reflcl_trancl[simp]: "(r\<^sup>+)\<^sup>= = r\<^sup>*"
-apply safe;
-apply (erule trancl_into_rtrancl);
-by (blast elim:rtranclE dest:rtrancl_into_trancl1)
+lemma reflcl_trancl [simp]: "(r\<^sup>+)\<^sup>= = r\<^sup>*"
+  apply safe
+  apply (erule trancl_into_rtrancl)
+  apply (blast elim: rtranclE dest: rtrancl_into_trancl1)
+  done
 
-lemma trancl_reflcl[simp]: "(r\<^sup>=)\<^sup>+ = r\<^sup>*"
-apply safe
- apply (drule trancl_into_rtrancl)
- apply simp;
-apply (erule rtranclE)
- apply safe
- apply(rule r_into_trancl)
- apply simp
-apply(rule rtrancl_into_trancl1)
- apply(erule rtrancl_reflcl[THEN equalityD2, THEN subsetD])
-apply fast
-done
+lemma trancl_reflcl [simp]: "(r\<^sup>=)\<^sup>+ = r\<^sup>*"
+  apply safe
+   apply (drule trancl_into_rtrancl)
+   apply simp
+  apply (erule rtranclE)
+   apply safe
+   apply (rule r_into_trancl)
+   apply simp
+  apply (rule rtrancl_into_trancl1)
+   apply (erule rtrancl_reflcl [THEN equalityD2, THEN subsetD])
+  apply fast
+  done
 
-lemma trancl_empty[simp]: "{}\<^sup>+ = {}"
-by (auto elim:trancl_induct)
+lemma trancl_empty [simp]: "{}\<^sup>+ = {}"
+  by (auto elim: trancl_induct)
 
-lemma rtrancl_empty[simp]: "{}\<^sup>* = Id"
-by(rule subst[OF reflcl_trancl], simp)
+lemma rtrancl_empty [simp]: "{}\<^sup>* = Id"
+  by (rule subst [OF reflcl_trancl]) simp
 
-lemma rtranclD: "(a,b) \<in> R\<^sup>* \<Longrightarrow> a=b \<or> a\<noteq>b \<and> (a,b) \<in> R\<^sup>+"
-by(force simp add: reflcl_trancl[THEN sym] simp del: reflcl_trancl)
+lemma rtranclD: "(a, b) \<in> R\<^sup>* ==> a = b \<or> a \<noteq> b \<and> (a, b) \<in> R\<^sup>+"
+  by (force simp add: reflcl_trancl [symmetric] simp del: reflcl_trancl)
+
 
 (* should be merged with the main body of lemmas: *)
 
-lemma Domain_rtrancl[simp]: "Domain(R\<^sup>*) = UNIV"
-by blast
+lemma Domain_rtrancl [simp]: "Domain (R\<^sup>*) = UNIV"
+  by blast
 
-lemma Range_rtrancl[simp]: "Range(R\<^sup>*) = UNIV"
-by blast
+lemma Range_rtrancl [simp]: "Range (R\<^sup>*) = UNIV"
+  by blast
 
 lemma rtrancl_Un_subset: "(R\<^sup>* \<union> S\<^sup>*) \<subseteq> (R Un S)\<^sup>*"
-by(rule rtrancl_Un_rtrancl[THEN subst], fast)
+  by (rule rtrancl_Un_rtrancl [THEN subst]) fast
 
-lemma in_rtrancl_UnI: "x \<in> R\<^sup>* \<or> x \<in> S\<^sup>* \<Longrightarrow> x \<in> (R \<union> S)\<^sup>*"
-by (blast intro: subsetD[OF rtrancl_Un_subset])
+lemma in_rtrancl_UnI: "x \<in> R\<^sup>* \<or> x \<in> S\<^sup>* ==> x \<in> (R \<union> S)\<^sup>*"
+  by (blast intro: subsetD [OF rtrancl_Un_subset])
 
 lemma trancl_domain [simp]: "Domain (r\<^sup>+) = Domain r"
-by (unfold Domain_def, blast dest:tranclD)
+  by (unfold Domain_def) (blast dest: tranclD)
 
 lemma trancl_range [simp]: "Range (r\<^sup>+) = Range r"
-by (simp add:Range_def trancl_converse[THEN sym])
+  by (simp add: Range_def trancl_converse [symmetric])
 
 end
