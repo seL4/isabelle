@@ -11,55 +11,55 @@ theory Power = Divides:
 
 subsection{*Powers for Arbitrary (Semi)Rings*}
 
-axclass ringpower \<subseteq> comm_semiring_1_cancel, power
-  power_0 [simp]:   "a ^ 0       = 1"
-  power_Suc: "a ^ (Suc n) = a * (a ^ n)"
+axclass recpower \<subseteq> comm_semiring_1_cancel, power
+  power_0 [simp]: "a ^ 0       = 1"
+  power_Suc:      "a ^ (Suc n) = a * (a ^ n)"
 
-lemma power_0_Suc [simp]: "(0::'a::ringpower) ^ (Suc n) = 0"
+lemma power_0_Suc [simp]: "(0::'a::recpower) ^ (Suc n) = 0"
 by (simp add: power_Suc)
 
 text{*It looks plausible as a simprule, but its effect can be strange.*}
-lemma power_0_left: "0^n = (if n=0 then 1 else (0::'a::ringpower))"
+lemma power_0_left: "0^n = (if n=0 then 1 else (0::'a::recpower))"
 by (induct_tac "n", auto)
 
-lemma power_one [simp]: "1^n = (1::'a::ringpower)"
+lemma power_one [simp]: "1^n = (1::'a::recpower)"
 apply (induct_tac "n")
 apply (auto simp add: power_Suc)
 done
 
-lemma power_one_right [simp]: "(a::'a::ringpower) ^ 1 = a"
+lemma power_one_right [simp]: "(a::'a::recpower) ^ 1 = a"
 by (simp add: power_Suc)
 
-lemma power_add: "(a::'a::ringpower) ^ (m+n) = (a^m) * (a^n)"
+lemma power_add: "(a::'a::recpower) ^ (m+n) = (a^m) * (a^n)"
 apply (induct_tac "n")
 apply (simp_all add: power_Suc mult_ac)
 done
 
-lemma power_mult: "(a::'a::ringpower) ^ (m*n) = (a^m) ^ n"
+lemma power_mult: "(a::'a::recpower) ^ (m*n) = (a^m) ^ n"
 apply (induct_tac "n")
 apply (simp_all add: power_Suc power_add)
 done
 
-lemma power_mult_distrib: "((a::'a::ringpower) * b) ^ n = (a^n) * (b^n)"
+lemma power_mult_distrib: "((a::'a::recpower) * b) ^ n = (a^n) * (b^n)"
 apply (induct_tac "n")
 apply (auto simp add: power_Suc mult_ac)
 done
 
 lemma zero_less_power:
-     "0 < (a::'a::{ordered_semidom,ringpower}) ==> 0 < a^n"
+     "0 < (a::'a::{ordered_semidom,recpower}) ==> 0 < a^n"
 apply (induct_tac "n")
 apply (simp_all add: power_Suc zero_less_one mult_pos)
 done
 
 lemma zero_le_power:
-     "0 \<le> (a::'a::{ordered_semidom,ringpower}) ==> 0 \<le> a^n"
+     "0 \<le> (a::'a::{ordered_semidom,recpower}) ==> 0 \<le> a^n"
 apply (simp add: order_le_less)
 apply (erule disjE)
 apply (simp_all add: zero_less_power zero_less_one power_0_left)
 done
 
 lemma one_le_power:
-     "1 \<le> (a::'a::{ordered_semidom,ringpower}) ==> 1 \<le> a^n"
+     "1 \<le> (a::'a::{ordered_semidom,recpower}) ==> 1 \<le> a^n"
 apply (induct_tac "n")
 apply (simp_all add: power_Suc)
 apply (rule order_trans [OF _ mult_mono [of 1 _ 1]])
@@ -70,7 +70,7 @@ lemma gt1_imp_ge0: "1 < a ==> 0 \<le> (a::'a::ordered_semidom)"
   by (simp add: order_trans [OF zero_le_one order_less_imp_le])
 
 lemma power_gt1_lemma:
-  assumes gt1: "1 < (a::'a::{ordered_semidom,ringpower})"
+  assumes gt1: "1 < (a::'a::{ordered_semidom,recpower})"
   shows "1 < a * a^n"
 proof -
   have "1*1 < a*1" using gt1 by simp
@@ -81,11 +81,11 @@ proof -
 qed
 
 lemma power_gt1:
-     "1 < (a::'a::{ordered_semidom,ringpower}) ==> 1 < a ^ (Suc n)"
+     "1 < (a::'a::{ordered_semidom,recpower}) ==> 1 < a ^ (Suc n)"
 by (simp add: power_gt1_lemma power_Suc)
 
 lemma power_le_imp_le_exp:
-  assumes gt1: "(1::'a::{ringpower,ordered_semidom}) < a"
+  assumes gt1: "(1::'a::{recpower,ordered_semidom}) < a"
   shows "!!n. a^m \<le> a^n ==> m \<le> n"
 proof (induct m)
   case 0
@@ -109,26 +109,26 @@ qed
 
 text{*Surely we can strengthen this? It holds for @{text "0<a<1"} too.*}
 lemma power_inject_exp [simp]:
-     "1 < (a::'a::{ordered_semidom,ringpower}) ==> (a^m = a^n) = (m=n)"
+     "1 < (a::'a::{ordered_semidom,recpower}) ==> (a^m = a^n) = (m=n)"
   by (force simp add: order_antisym power_le_imp_le_exp)
 
 text{*Can relax the first premise to @{term "0<a"} in the case of the
 natural numbers.*}
 lemma power_less_imp_less_exp:
-     "[| (1::'a::{ringpower,ordered_semidom}) < a; a^m < a^n |] ==> m < n"
+     "[| (1::'a::{recpower,ordered_semidom}) < a; a^m < a^n |] ==> m < n"
 by (simp add: order_less_le [of m n] order_less_le [of "a^m" "a^n"]
               power_le_imp_le_exp)
 
 
 lemma power_mono:
-     "[|a \<le> b; (0::'a::{ringpower,ordered_semidom}) \<le> a|] ==> a^n \<le> b^n"
+     "[|a \<le> b; (0::'a::{recpower,ordered_semidom}) \<le> a|] ==> a^n \<le> b^n"
 apply (induct_tac "n")
 apply (simp_all add: power_Suc)
 apply (auto intro: mult_mono zero_le_power order_trans [of 0 a b])
 done
 
 lemma power_strict_mono [rule_format]:
-     "[|a < b; (0::'a::{ringpower,ordered_semidom}) \<le> a|]
+     "[|a < b; (0::'a::{recpower,ordered_semidom}) \<le> a|]
       ==> 0 < n --> a^n < b^n"
 apply (induct_tac "n")
 apply (auto simp add: mult_strict_mono zero_le_power power_Suc
@@ -136,51 +136,51 @@ apply (auto simp add: mult_strict_mono zero_le_power power_Suc
 done
 
 lemma power_eq_0_iff [simp]:
-     "(a^n = 0) = (a = (0::'a::{ordered_idom,ringpower}) & 0<n)"
+     "(a^n = 0) = (a = (0::'a::{ordered_idom,recpower}) & 0<n)"
 apply (induct_tac "n")
 apply (auto simp add: power_Suc zero_neq_one [THEN not_sym])
 done
 
 lemma field_power_eq_0_iff [simp]:
-     "(a^n = 0) = (a = (0::'a::{field,ringpower}) & 0<n)"
+     "(a^n = 0) = (a = (0::'a::{field,recpower}) & 0<n)"
 apply (induct_tac "n")
 apply (auto simp add: power_Suc field_mult_eq_0_iff zero_neq_one[THEN not_sym])
 done
 
-lemma field_power_not_zero: "a \<noteq> (0::'a::{field,ringpower}) ==> a^n \<noteq> 0"
+lemma field_power_not_zero: "a \<noteq> (0::'a::{field,recpower}) ==> a^n \<noteq> 0"
 by force
 
 lemma nonzero_power_inverse:
-  "a \<noteq> 0 ==> inverse ((a::'a::{field,ringpower}) ^ n) = (inverse a) ^ n"
+  "a \<noteq> 0 ==> inverse ((a::'a::{field,recpower}) ^ n) = (inverse a) ^ n"
 apply (induct_tac "n")
 apply (auto simp add: power_Suc nonzero_inverse_mult_distrib mult_commute)
 done
 
 text{*Perhaps these should be simprules.*}
 lemma power_inverse:
-  "inverse ((a::'a::{field,division_by_zero,ringpower}) ^ n) = (inverse a) ^ n"
+  "inverse ((a::'a::{field,division_by_zero,recpower}) ^ n) = (inverse a) ^ n"
 apply (induct_tac "n")
 apply (auto simp add: power_Suc inverse_mult_distrib)
 done
 
 lemma nonzero_power_divide:
-    "b \<noteq> 0 ==> (a/b) ^ n = ((a::'a::{field,ringpower}) ^ n) / (b ^ n)"
+    "b \<noteq> 0 ==> (a/b) ^ n = ((a::'a::{field,recpower}) ^ n) / (b ^ n)"
 by (simp add: divide_inverse power_mult_distrib nonzero_power_inverse)
 
 lemma power_divide:
-    "(a/b) ^ n = ((a::'a::{field,division_by_zero,ringpower}) ^ n / b ^ n)"
+    "(a/b) ^ n = ((a::'a::{field,division_by_zero,recpower}) ^ n / b ^ n)"
 apply (case_tac "b=0", simp add: power_0_left)
 apply (rule nonzero_power_divide)
 apply assumption
 done
 
-lemma power_abs: "abs(a ^ n) = abs(a::'a::{ordered_idom,ringpower}) ^ n"
+lemma power_abs: "abs(a ^ n) = abs(a::'a::{ordered_idom,recpower}) ^ n"
 apply (induct_tac "n")
 apply (auto simp add: power_Suc abs_mult)
 done
 
 lemma zero_less_power_abs_iff [simp]:
-     "(0 < (abs a)^n) = (a \<noteq> (0::'a::{ordered_idom,ringpower}) | n=0)"
+     "(0 < (abs a)^n) = (a \<noteq> (0::'a::{ordered_idom,recpower}) | n=0)"
 proof (induct "n")
   case 0
     show ?case by (simp add: zero_less_one)
@@ -190,12 +190,12 @@ next
 qed
 
 lemma zero_le_power_abs [simp]:
-     "(0::'a::{ordered_idom,ringpower}) \<le> (abs a)^n"
+     "(0::'a::{ordered_idom,recpower}) \<le> (abs a)^n"
 apply (induct_tac "n")
 apply (auto simp add: zero_le_one zero_le_power)
 done
 
-lemma power_minus: "(-a) ^ n = (- 1)^n * (a::'a::{comm_ring_1,ringpower}) ^ n"
+lemma power_minus: "(-a) ^ n = (- 1)^n * (a::'a::{comm_ring_1,recpower}) ^ n"
 proof -
   have "-a = (- 1) * a"  by (simp add: minus_mult_left [symmetric])
   thus ?thesis by (simp only: power_mult_distrib)
@@ -203,14 +203,14 @@ qed
 
 text{*Lemma for @{text power_strict_decreasing}*}
 lemma power_Suc_less:
-     "[|(0::'a::{ordered_semidom,ringpower}) < a; a < 1|]
+     "[|(0::'a::{ordered_semidom,recpower}) < a; a < 1|]
       ==> a * a^n < a^n"
 apply (induct_tac n)
 apply (auto simp add: power_Suc mult_strict_left_mono)
 done
 
 lemma power_strict_decreasing:
-     "[|n < N; 0 < a; a < (1::'a::{ordered_semidom,ringpower})|]
+     "[|n < N; 0 < a; a < (1::'a::{ordered_semidom,recpower})|]
       ==> a^N < a^n"
 apply (erule rev_mp)
 apply (induct_tac "N")
@@ -223,7 +223,7 @@ done
 
 text{*Proof resembles that of @{text power_strict_decreasing}*}
 lemma power_decreasing:
-     "[|n \<le> N; 0 \<le> a; a \<le> (1::'a::{ordered_semidom,ringpower})|]
+     "[|n \<le> N; 0 \<le> a; a \<le> (1::'a::{ordered_semidom,recpower})|]
       ==> a^N \<le> a^n"
 apply (erule rev_mp)
 apply (induct_tac "N")
@@ -235,13 +235,13 @@ apply (auto simp add: zero_le_power zero_le_one)
 done
 
 lemma power_Suc_less_one:
-     "[| 0 < a; a < (1::'a::{ordered_semidom,ringpower}) |] ==> a ^ Suc n < 1"
+     "[| 0 < a; a < (1::'a::{ordered_semidom,recpower}) |] ==> a ^ Suc n < 1"
 apply (insert power_strict_decreasing [of 0 "Suc n" a], simp)
 done
 
 text{*Proof again resembles that of @{text power_strict_decreasing}*}
 lemma power_increasing:
-     "[|n \<le> N; (1::'a::{ordered_semidom,ringpower}) \<le> a|] ==> a^n \<le> a^N"
+     "[|n \<le> N; (1::'a::{ordered_semidom,recpower}) \<le> a|] ==> a^n \<le> a^N"
 apply (erule rev_mp)
 apply (induct_tac "N")
 apply (auto simp add: power_Suc le_Suc_eq)
@@ -253,13 +253,13 @@ done
 
 text{*Lemma for @{text power_strict_increasing}*}
 lemma power_less_power_Suc:
-     "(1::'a::{ordered_semidom,ringpower}) < a ==> a^n < a * a^n"
+     "(1::'a::{ordered_semidom,recpower}) < a ==> a^n < a * a^n"
 apply (induct_tac n)
 apply (auto simp add: power_Suc mult_strict_left_mono order_less_trans [OF zero_less_one])
 done
 
 lemma power_strict_increasing:
-     "[|n < N; (1::'a::{ordered_semidom,ringpower}) < a|] ==> a^n < a^N"
+     "[|n < N; (1::'a::{ordered_semidom,recpower}) < a|] ==> a^n < a^N"
 apply (erule rev_mp)
 apply (induct_tac "N")
 apply (auto simp add: power_less_power_Suc power_Suc less_Suc_eq)
@@ -272,7 +272,7 @@ done
 
 lemma power_le_imp_le_base:
   assumes le: "a ^ Suc n \<le> b ^ Suc n"
-      and xnonneg: "(0::'a::{ordered_semidom,ringpower}) \<le> a"
+      and xnonneg: "(0::'a::{ordered_semidom,recpower}) \<le> a"
       and ynonneg: "0 \<le> b"
   shows "a \<le> b"
  proof (rule ccontr)
@@ -286,7 +286,7 @@ lemma power_le_imp_le_base:
 
 lemma power_inject_base:
      "[| a ^ Suc n = b ^ Suc n; 0 \<le> a; 0 \<le> b |]
-      ==> a = (b::'a::{ordered_semidom,ringpower})"
+      ==> a = (b::'a::{ordered_semidom,recpower})"
 by (blast intro: power_le_imp_le_base order_antisym order_eq_refl sym)
 
 
@@ -296,7 +296,7 @@ primrec (power)
   "p ^ 0 = 1"
   "p ^ (Suc n) = (p::nat) * (p ^ n)"
 
-instance nat :: ringpower
+instance nat :: recpower
 proof
   fix z n :: nat
   show "z^0 = 1" by simp

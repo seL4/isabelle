@@ -1138,20 +1138,19 @@ lemma setprod_eq_1_iff [simp]:
     "finite F ==> (setprod f F = 1) = (ALL a:F. f a = (1::nat))"
   by (induct set: Finites) auto
 
-lemma setprod_constant: "finite A ==> (\<Prod>x: A. (y::'a::ringpower)) =
-    y^(card A)"
+lemma setprod_constant: "finite A ==> (\<Prod>x: A. (y::'a::recpower)) = y^(card A)"
   apply (erule finite_induct)
   apply (auto simp add: power_Suc)
   done
 
-lemma setprod_zero: "finite A ==> EX x: A. f x = (0::'a::comm_semiring_1_cancel) ==>
-    setprod f A = 0"
+lemma setprod_zero:
+     "finite A ==> EX x: A. f x = (0::'a::comm_semiring_1_cancel) ==> setprod f A = 0"
   apply (induct set: Finites, force, clarsimp)
   apply (erule disjE, auto)
   done
 
-lemma setprod_nonneg [rule_format]: "(ALL x: A. (0::'a::ordered_idom) \<le> f x)
-     --> 0 \<le> setprod f A"
+lemma setprod_nonneg [rule_format]:
+     "(ALL x: A. (0::'a::ordered_idom) \<le> f x) --> 0 \<le> setprod f A"
   apply (case_tac "finite A")
   apply (induct set: Finites, force, clarsimp)
   apply (subgoal_tac "0 * 0 \<le> f x * setprod f F", force)
