@@ -19,4 +19,13 @@ constdefs
  accepts ::   ('a,'s)na => 'a list => bool
 "accepts A w == ? q : delta A w (start A). fin A q"
 
+constdefs
+ step :: "('a,'s)na => 'a => ('s * 's)set"
+"step A a == {(p,q) . q : next A a p}"
+
+consts steps :: "('a,'s)na => 'a list => ('s * 's)set"
+primrec
+"steps A [] = id"
+"steps A (a#w) = steps A w  O  step A a"
+
 end

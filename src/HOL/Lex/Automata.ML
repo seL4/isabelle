@@ -4,7 +4,7 @@
     Copyright   1998 TUM
 *)
 
-(*** Equivalence of NA and DA --- redundant ***)
+(*** Equivalence of NA and DA ***)
 
 Goalw [na2da_def]
  "!Q. DA.delta (na2da A) w Q = Union(NA.delta A w `` Q)";

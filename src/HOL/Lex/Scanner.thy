@@ -4,4 +4,4 @@
     Copyright   1998 TUM
 *)
 
-Scanner = Automata + RegExp2NAe
+Scanner = Automata + RegExp2NA + RegExp2NAe

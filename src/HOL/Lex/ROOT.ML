@@ -14,5 +14,6 @@ use_thy"AutoMaxChop";
    Or via ML-bound names of axioms that are overwritten?
 *)
 use_thy"RegSet_of_nat_DA";
+use_thy"RegExp2NA";
 use_thy"RegExp2NAe";
 use_thy"Scanner";
