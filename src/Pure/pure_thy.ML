@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-The Pure theories.
+Theorem database, derived theory operations, and the Pure theories.
 *)
 
 signature BASIC_PURE_THY =
@@ -10,6 +10,7 @@ sig
   val get_thm: theory -> xstring -> thm
   val get_thms: theory -> xstring -> thm list
   val thms_of: theory -> (string * thm) list
+  val global_names: bool ref
 end;
 
 signature PURE_THY =
@@ -32,6 +33,12 @@ sig
   val add_defs_x: ((bstring * string) * tag list) list -> theory -> theory
   val add_defss: ((bstring * string list) * theory attribute list) list -> theory -> theory
   val add_defss_i: ((bstring * term list) * theory attribute list) list -> theory -> theory
+  val get_name: theory -> string
+  val put_name: string -> theory -> theory
+  val global_path: theory -> theory
+  val local_path: theory -> theory
+  val begin_theory: string -> theory list -> theory
+  val end_theory: theory -> theory
   val add_typedecls: (bstring * string list * mixfix) list -> theory -> theory
   val proto_pure: theory
   val pure: theory
@@ -276,7 +283,58 @@ fun add_defs_x defs thy = add_defs (map (apsnd (map (Attribute.global_attr thy))
 
 
 
-(*** add logical types ***)
+(*** derived theory operations ***)
+
+(** theory management **)
+
+(* data kind 'Pure/theory' *)		(* FIXME push down to sign.ML *)
+
+val theoryK = "Pure/theory";
+exception Theory of string;
+
+local
+  fun mk_empty _ = Theory "";
+  fun print _ (Theory name) = writeln name;
+in
+  val theory_setup = Theory.init_data [(theoryK, (mk_empty (), mk_empty, mk_empty, print))];
+end;
+
+
+(* get / put name *)
+
+fun get_name thy =
+  (case Theory.get_data thy theoryK of
+    Theory name => name
+  | _ => type_error theoryK);
+
+fun put_name name = Theory.put_data (theoryK, Theory name);
+
+
+(* control prefixing of theory name *)
+
+(*compatibility flag, likely to disappear someday*)
+val global_names = ref false;
+
+fun global_path thy =
+  if ! global_names then thy else Theory.root_path thy;
+
+fun local_path thy =
+  if ! global_names then thy
+  else thy |> Theory.root_path |> Theory.add_path (get_name thy);
+
+
+(* begin / end theory *)
+
+fun begin_theory name thys =
+  Theory.prep_ext_merge thys
+  |> put_name name
+  |> local_path;
+
+fun end_theory thy = Theory.add_name (get_name thy) thy;
+
+
+
+(** add logical types **)
 
 fun add_typedecls decls thy =
   let
@@ -303,7 +361,9 @@ fun add_typedecls decls thy =
 
 val proto_pure =
   Theory.pre_pure
-  |> Theory.apply [Attribute.setup, theorems_setup]
+  |> Theory.apply [Attribute.setup, theorems_setup, theory_setup]
+  |> put_name "ProtoPure"
+  |> global_path
   |> Theory.add_types
    [("fun", 2, NoSyn),
     ("prop", 0, NoSyn),
@@ -329,23 +389,21 @@ val proto_pure =
     ("all", "('a => prop) => prop", Binder ("!!", 0, 0)),
     ("Goal", "prop => prop", Mixfix ("GOAL _", [999], 1000)),
     ("TYPE", "'a itself", NoSyn)]
-  |> Theory.add_path "ProtoPure"
+  |> local_path
   |> (add_defs o map Attribute.none)
    [("flexpair_def", "(t =?= u) == (t == u::'a::{})"),
     ("Goal_def", "GOAL (PROP A) == PROP A")]
-  |> Theory.add_name "ProtoPure";
+  |> end_theory;
 
 val pure =
-  Theory.prep_ext_merge [proto_pure]
-  |> Theory.add_path "Pure"
+  begin_theory "Pure" [proto_pure]
   |> Theory.add_syntax Syntax.pure_appl_syntax
-  |> Theory.add_name "Pure";
+  |> end_theory;
 
 val cpure =
-  Theory.prep_ext_merge [proto_pure]
-  |> Theory.add_path "CPure"
+  begin_theory "CPure" [proto_pure]
   |> Theory.add_syntax Syntax.pure_applC_syntax
-  |> Theory.add_name "CPure";
+  |> end_theory;
 
 
 end;
@@ -356,7 +414,7 @@ open BasicPureThy;
 
 
 
-(** theory structures **)
+(** Pure theory structures **)
 
 structure ProtoPure =
 struct
