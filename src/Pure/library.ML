@@ -45,6 +45,13 @@ fun funpow n f x =
 
 
 
+(** stamps **)
+
+type stamp = unit ref;
+val stamp: unit -> stamp = ref;
+
+
+
 (** options **)
 
 datatype 'a option = None | Some of 'a;
