@@ -10,7 +10,7 @@ default: ZF
 images: ZF
 
 #Note: keep targets sorted
-test: ZF-AC ZF-Coind ZF-IMP ZF-Induct ZF-Resid ZF-UNITY ZF-ex
+test: ZF-AC ZF-Coind ZF-Constructible ZF-IMP ZF-Induct ZF-Resid ZF-UNITY ZF-ex
 all: images test
 
 
@@ -71,6 +71,18 @@ $(LOG)/ZF-Coind.gz: $(OUT)/ZF Coind/Dynamic.thy \
   Coind/ECR.thy Coind/Language.thy Coind/Map.thy Coind/ROOT.ML \
   Coind/Static.thy Coind/Types.thy Coind/Values.thy
 	@$(ISATOOL) usedir $(OUT)/ZF Coind
+
+
+## ZF-Constructible
+
+ZF-Constructible: ZF $(LOG)/ZF-Constructible.gz
+
+$(LOG)/ZF-Constructible.gz: $(OUT)/ZF  Constructible/ROOT.ML \
+  Constructible/Formula.thy     Constructible/Relative.thy \
+  Constructible/L_axioms.thy    Constructible/Wellorderings.thy \
+  Constructible/Normal.thy      Constructible/WF_absolute.thy \
+  Constructible/Reflection.thy  Constructible/WFrec.thy
+	@$(ISATOOL) usedir $(OUT)/ZF Constructible
 
 
 ## ZF-IMP
@@ -134,5 +146,6 @@ $(LOG)/ZF-ex.gz: $(OUT)/ZF ex/ROOT.ML \
 
 clean:
 	@rm -f $(OUT)/ZF $(LOG)/ZF.gz $(LOG)/ZF-AC.gz $(LOG)/ZF-Coind.gz \
-	  $(LOG)/ZF-ex.gz $(LOG)/ZF-IMP.gz $(LOG)/ZF-Resid.gz \
+	  $(LOG)/ZF-Constructible.gz $(LOG)/ZF-ex.gz \
+          $(LOG)/ZF-IMP.gz $(LOG)/ZF-Resid.gz \
 	  $(LOG)/ZF-UNITY.gz
