@@ -87,7 +87,7 @@ by Auto_tac;
 qed "length_rev";
 Addsimps [length_rev];
 
-Goal "xs ~= [] ==> length(tl xs) = (length xs) - 1";
+Goal "length(tl xs) = (length xs) - 1";
 by (exhaust_tac "xs" 1);
 by Auto_tac;
 qed "length_tl";
