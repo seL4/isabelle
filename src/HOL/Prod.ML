@@ -432,6 +432,11 @@ end;
 Addsimprocs [unit_eq_proc];
 
 
+Goal "P () ==> P x";
+by (Simp_tac 1);
+qed "unit_induct";
+
+
 (*This rewrite counters the effect of unit_eq_proc on (%u::unit. f u),
   replacing it by f rather than by %u.f(). *)
 Goal "(%u::unit. f()) = f";
