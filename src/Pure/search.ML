@@ -225,12 +225,12 @@ fun gen_BREADTH_FIRST message satpred (tac:tactic) =
 	 (case  partition satpred prfs  of
 	      ([],[]) => []
 	    | ([],nonsats) => 
-		  (message("breadth=" ^ string_of_int(length nonsats) ^ "\n");
+		  (message("breadth=" ^ string_of_int(length nonsats));
 		   bfs (List.concat (map tacf nonsats)))
 	    | (sats,_)  => sats)
   in (fn st => Seq.of_list (bfs [st])) end;
 
-val BREADTH_FIRST = gen_BREADTH_FIRST prs;
+val BREADTH_FIRST = gen_BREADTH_FIRST writeln;
 val QUIET_BREADTH_FIRST = gen_BREADTH_FIRST (K ());
 
 

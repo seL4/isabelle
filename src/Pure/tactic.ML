@@ -102,7 +102,7 @@ struct
 fun trace_goalno_tac tac i st =  
     case Seq.pull(tac i st) of
 	None    => Seq.empty
-      | seqcell => (prs("Subgoal " ^ string_of_int i ^ " selected\n"); 
+      | seqcell => (writeln ("Subgoal " ^ string_of_int i ^ " selected"); 
     			 Seq.make(fn()=> seqcell));
 
 
