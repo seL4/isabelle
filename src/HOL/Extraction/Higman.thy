@@ -63,7 +63,7 @@ consts
 inductive bar
 intros
   bar1 [CPure.intro]: "ws \<in> good \<Longrightarrow> ws \<in> bar"
-  bar2 [CPure.intro]: "(\<forall>w. w # ws \<in> bar) \<Longrightarrow> ws \<in> bar"
+  bar2 [CPure.intro]: "(\<And>w. w # ws \<in> bar) \<Longrightarrow> ws \<in> bar"
 
 theorem prop1: "([] # ws) \<in> bar" by rules
 
@@ -127,67 +127,6 @@ theorem lemma3 [rule_format]: "(ws, zs) \<in> T a \<Longrightarrow> ws \<in> goo
   apply rules+
   done
 
-theorem letter_cases:
-  "(a::letter) \<noteq> b \<Longrightarrow> (x = a \<Longrightarrow> P) \<Longrightarrow> (x = b \<Longrightarrow> P) \<Longrightarrow> P"
-  apply (case_tac a)
-  apply (case_tac b)
-  apply (case_tac x, simp, simp)
-  apply (case_tac x, simp, simp)
-  apply (case_tac b)
-  apply (case_tac x, simp, simp)
-  apply (case_tac x, simp, simp)
-  done
-  
-theorem prop2:
-  "xs \<in> bar \<Longrightarrow> \<forall>ys. ys \<in> bar \<longrightarrow>
-     (\<forall>a b zs. a \<noteq> b \<longrightarrow> (xs, zs) \<in> T a \<longrightarrow> (ys, zs) \<in> T b \<longrightarrow> zs \<in> bar)"
-  apply (erule bar.induct)
-  apply (rule allI impI)+
-  apply (rule bar1)
-  apply (rule lemma3)
-  apply assumption+
-  apply (rule allI, rule impI)
-  apply (erule bar.induct)
-  apply (rule allI impI)+
-  apply (rule bar1)
-  apply (rule lemma3, assumption, assumption)
-  apply (rule allI impI)+
-  apply (rule bar2)
-  apply (rule allI)
-  apply (induct_tac w)
-  apply (rule prop1)
-  apply (rule_tac x=aa in letter_cases, assumption)
-  apply hypsubst
-  apply (erule_tac x=list in allE)
-  apply (erule conjE)
-  apply (erule_tac x=wsa in allE, erule impE)
-  apply (rule bar2)
-  apply rules
-  apply (erule allE, erule allE, erule_tac x="(a # list) # zs" in allE,
-    erule impE, assumption)
-  apply (erule impE)
-  apply (rule T1)
-  apply assumption
-  apply (erule mp)
-  apply (rule T2)
-  apply (erule not_sym)
-  apply assumption
-  apply hypsubst
-  apply (rotate_tac 1)
-  apply (erule_tac x=list in allE)
-  apply (erule conjE)
-  apply (erule allE, erule allE, erule_tac x="(b # list) # zs" in allE,
-    erule impE)
-  apply assumption
-  apply (erule impE)
-  apply (rule T2)
-  apply assumption
-  apply assumption
-  apply (erule mp)
-  apply (rule T1)
-  apply assumption
-  done
-
 theorem lemma4 [rule_format]: "(ws, zs) \<in> R a \<Longrightarrow> ws \<noteq> [] \<longrightarrow> (ws, zs) \<in> T a"
   apply (erule R.induct)
   apply rules
@@ -208,10 +147,17 @@ theorem lemma4 [rule_format]: "(ws, zs) \<in> R a \<Longrightarrow> ws \<noteq> 
   apply simp
   done
 
-theorem R_nil: "([], zs) \<in> R a \<Longrightarrow> zs = []"
-  by (erule R.elims, simp+)
+lemma letter_neq: "(a::letter) \<noteq> b \<Longrightarrow> c \<noteq> a \<Longrightarrow> c = b"
+  apply (case_tac a)
+  apply (case_tac b)
+  apply (case_tac c, simp, simp)
+  apply (case_tac c, simp, simp)
+  apply (case_tac b)
+  apply (case_tac c, simp, simp)
+  apply (case_tac c, simp, simp)
+  done
 
-theorem letter_eq_dec: "(a::letter) = b \<or> a \<noteq> b"
+lemma letter_eq_dec: "(a::letter) = b \<or> a \<noteq> b"
   apply (case_tac a)
   apply (case_tac b)
   apply simp
@@ -221,50 +167,92 @@ theorem letter_eq_dec: "(a::letter) = b \<or> a \<noteq> b"
   apply simp
   done
 
-theorem prop3: "xs \<in> bar \<Longrightarrow> \<forall>zs. (xs, zs) \<in> R a \<longrightarrow> zs \<in> bar"
-  apply (erule bar.induct)
-  apply (rule allI impI)+
-  apply (rule bar1)
-  apply (rule lemma2)
-  apply assumption+
-  apply (rule allI impI)+
-  apply (case_tac ws)
-  apply simp
-  apply (drule R_nil)
-  apply simp_all
-  apply rules
-  apply (rule bar2)
-  apply (rule allI)
-  apply (induct_tac w)
-  apply (rule prop1)
-  apply (rule_tac a1=aaa and b1=a in disjE [OF letter_eq_dec])
-  apply rules
-  apply (rule_tac xs="aa # list" and ys="lista # zs" and zs="(aaa # lista) # zs"
-    and b=aaa in prop2 [rule_format])
-  apply (rule bar2)
-  apply rules
-  apply assumption
-  apply (erule not_sym)
-  apply (rule T2)
-  apply (erule not_sym)
-  apply (erule lemma4)
-  apply simp
-  apply (rule T0)
-  apply assumption+
-  done
+theorem prop2:
+  assumes ab: "a \<noteq> b" and bar: "xs \<in> bar"
+  shows "\<And>ys zs. ys \<in> bar \<Longrightarrow> (xs, zs) \<in> T a \<Longrightarrow> (ys, zs) \<in> T b \<Longrightarrow> zs \<in> bar" using bar
+proof induct
+  fix xs zs assume "xs \<in> good" and "(xs, zs) \<in> T a"
+  show "zs \<in> bar" by (rule bar1) (rule lemma3)
+next
+  fix xs ys
+  assume I: "\<And>w ys zs. ys \<in> bar \<Longrightarrow> (w # xs, zs) \<in> T a \<Longrightarrow> (ys, zs) \<in> T b \<Longrightarrow> zs \<in> bar"
+  assume "ys \<in> bar"
+  thus "\<And>zs. (xs, zs) \<in> T a \<Longrightarrow> (ys, zs) \<in> T b \<Longrightarrow> zs \<in> bar"
+  proof induct
+    fix ys zs assume "ys \<in> good" and "(ys, zs) \<in> T b"
+    show "zs \<in> bar" by (rule bar1) (rule lemma3)
+  next
+    fix ys zs assume I': "\<And>w zs. (xs, zs) \<in> T a \<Longrightarrow> (w # ys, zs) \<in> T b \<Longrightarrow> zs \<in> bar"
+    and ys: "\<And>w. w # ys \<in> bar" and Ta: "(xs, zs) \<in> T a" and Tb: "(ys, zs) \<in> T b"
+    show "zs \<in> bar"
+    proof (rule bar2)
+      fix w
+      show "w # zs \<in> bar"
+      proof (cases w)
+	case Nil
+	thus ?thesis by simp (rule prop1)
+      next
+	case (Cons c cs)
+	from letter_eq_dec show ?thesis
+	proof
+	  assume ca: "c = a"
+	  from ab have "(a # cs) # zs \<in> bar" by (rules intro: I ys Ta Tb)+
+	  thus ?thesis by (simp add: Cons ca)
+	next
+	  assume "c \<noteq> a"
+	  with ab have cb: "c = b" by (rule letter_neq)
+	  from ab have "(b # cs) # zs \<in> bar" by (rules intro: I' Ta Tb)+
+	  thus ?thesis by (simp add: Cons cb)
+	qed
+      qed
+    qed
+  qed
+qed
 
-theorem prop5: "[w] \<in> bar"
-  apply (induct_tac w)
-  apply (rule prop1)
-  apply (rule prop3 [rule_format])
-  apply rules+
-  done
+theorem prop3:
+  assumes bar: "xs \<in> bar"
+  shows "\<And>zs. xs \<noteq> [] \<Longrightarrow> (xs, zs) \<in> R a \<Longrightarrow> zs \<in> bar" using bar
+proof induct
+  fix xs zs
+  assume "xs \<in> good" and "(xs, zs) \<in> R a"
+  show "zs \<in> bar" by (rule bar1) (rule lemma2)
+next
+  fix xs zs
+  assume I: "\<And>w zs. w # xs \<noteq> [] \<Longrightarrow> (w # xs, zs) \<in> R a \<Longrightarrow> zs \<in> bar"
+  and xsb: "\<And>w. w # xs \<in> bar" and xsn: "xs \<noteq> []" and R: "(xs, zs) \<in> R a"
+  show "zs \<in> bar"
+  proof (rule bar2)
+    fix w
+    show "w # zs \<in> bar"
+    proof (induct w)
+      case Nil
+      show ?case by (rule prop1)
+    next
+      case (Cons c cs)
+      from letter_eq_dec show ?case
+      proof
+	assume "c = a"
+	thus ?thesis by (rules intro: I [simplified] R)
+      next
+	from R xsn have T: "(xs, zs) \<in> T a" by (rule lemma4)
+	assume "c \<noteq> a"
+	thus ?thesis by (rules intro: prop2 Cons xsb xsn R T)
+      qed
+    qed
+  qed
+qed
 
 theorem higman: "[] \<in> bar"
-  apply (rule bar2)
-  apply (rule allI)
-  apply (rule prop5)
-  done
+proof (rule bar2)
+  fix w
+  show "[w] \<in> bar"
+  proof (induct w)
+    show "[[]] \<in> bar" by (rule prop1)
+  next
+    fix c cs assume "[cs] \<in> bar"
+    thus "[c # cs] \<in> bar" by (rule prop3) (simp, rules)
+  qed
+qed
 
 consts
   is_prefix :: "'a list \<Rightarrow> (nat \<Rightarrow> 'a) \<Rightarrow> bool"
@@ -274,22 +262,20 @@ primrec
   "is_prefix (x # xs) f = (x = f (length xs) \<and> is_prefix xs f)"
 
 theorem good_prefix_lemma:
-  "ws \<in> bar \<Longrightarrow> is_prefix ws f \<longrightarrow> (\<exists>vs. is_prefix vs f \<and> vs \<in> good)"
-  apply (erule bar.induct)
-  apply rules
-  apply (rule impI)
-  apply (erule_tac x="f (length ws)" in allE)
-  apply (erule conjE)
-  apply (erule impE)
-  apply simp
-  apply assumption
-  done
+  assumes bar: "ws \<in> bar"
+  shows "is_prefix ws f \<Longrightarrow> \<exists>vs. is_prefix vs f \<and> vs \<in> good" using bar
+proof induct
+  case bar1
+  thus ?case by rules
+next
+  case (bar2 ws)
+  have "is_prefix (f (length ws) # ws) f" by simp
+  thus ?case by (rules intro: bar2)
+qed
 
 theorem good_prefix: "\<exists>vs. is_prefix vs f \<and> vs \<in> good"
-  apply (insert higman)
-  apply (drule good_prefix_lemma)
-  apply simp
-  done
+  using higman
+  by (rule good_prefix_lemma) simp+
 
 subsection {* Extracting the program *}
 
@@ -306,8 +292,6 @@ text {*
   @{thm [display] good_prefix_lemma_def [no_vars]}
   Program extracted from the proof of @{text higman}:
   @{thm [display] higman_def [no_vars]}
-  Program extracted from the proof of @{text prop5}:
-  @{thm [display] prop5_def [no_vars]}
   Program extracted from the proof of @{text prop1}:
   @{thm [display] prop1_def [no_vars]}
   Program extracted from the proof of @{text prop2}:
