@@ -84,6 +84,7 @@ sig
   val prep_ext: theory -> theory
   val prep_ext_merge: theory list -> theory
   val requires: theory -> string -> string -> unit
+  val assert_super: theory -> theory -> theory
   val pre_pure: theory
 end;
 
@@ -131,10 +132,14 @@ exception THEORY of string * theory list;
 val subthy = Sign.subsig o pairself sign_of;
 val eq_thy = Sign.eq_sg o pairself sign_of;
 
-(*check for some named theory*)
+(*check for some theory*)
 fun requires thy name what =
   if exists (equal name) (Sign.stamp_names_of (sign_of thy)) then ()
   else error ("Require theory " ^ quote name ^ " as an ancestor for " ^ what);
+
+fun assert_super thy1 thy2 =
+  if subthy (thy1, thy2) then thy2
+  else raise THEORY ("Not a super theory", [thy1, thy2]);
 
 (*partial Pure theory*)
 val pre_pure = make_theory Sign.pre_pure Symtab.empty Symtab.empty [] [];
