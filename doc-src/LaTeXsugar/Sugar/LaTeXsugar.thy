@@ -63,7 +63,7 @@ syntax (Rule output)
   ("\<^raw:\mbox{}\inferrule{>_\<^raw:}>\<^raw:{\mbox{>_\<^raw:}}>")
 
   "_asms" :: "prop \<Rightarrow> asms \<Rightarrow> asms" 
-  ("_\<^raw:\\>/ _")
+  ("\<^raw:\mbox{>_\<^raw:}\\>/ _")
 
   "_asm" :: "prop \<Rightarrow> asms" ("\<^raw:\mbox{>_\<^raw:}>")
 
