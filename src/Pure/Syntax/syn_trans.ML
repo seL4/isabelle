@@ -317,7 +317,7 @@ fun quote_antiquote_tr' quoteN antiquoteN name =
       | antiquote_tr' i a = no_loose_bvar i a;
 
     fun quote_tr' (Abs (x, T, t) :: ts) =
-          Term.list_comb ( Lexicon.const quoteN $ Term.incr_boundvars ~1 (antiquote_tr' 0 t), ts)
+          Term.list_comb (Lexicon.const quoteN $ Term.incr_boundvars ~1 (antiquote_tr' 0 t), ts)
       | quote_tr' _ = raise Match;
   in (name, quote_tr') end;
 
