@@ -94,7 +94,7 @@ inductive "analz H"
     Fst:     "{|X,Y|} \<in> analz H ==> X \<in> analz H"
     Snd:     "{|X,Y|} \<in> analz H ==> Y \<in> analz H"
     Decrypt [dest]: 
-             "[|Crypt K X \<in> analz H; Key(invKey K): analz H|] ==> X \<in> analz H"
+             "[|Crypt K X \<in> analz H; Key(invKey K) \<in> analz H|] ==> X \<in> analz H"
 
 
 (*Monotonicity; Lemma 1 of Lowe's paper*)
