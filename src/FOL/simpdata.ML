@@ -60,21 +60,6 @@ val distrib_simps  = map int_prove_fun
 
 fun gen_all th = forall_elim_vars (#maxidx(rep_thm th)+1) th;
 
-(*Make atomic rewrite rules*)
-fun atomize r =
-  case concl_of r of
-    Const("Trueprop",_) $ p =>
-      (case p of
-         Const("op -->",_)$_$_ => atomize(r RS mp)
-       | Const("op &",_)$_$_   => atomize(r RS conjunct1) @
-                                  atomize(r RS conjunct2)
-       | Const("All",_)$_      => atomize(r RS spec)
-       | Const("True",_)       => []    (*True is DELETED*)
-       | Const("False",_)      => []    (*should False do something?*)
-       | _                     => [r])
-  | _ => [r];
-
-
 val P_iff_F = int_prove_fun "~P ==> (P <-> False)";
 val iff_reflection_F = P_iff_F RS iff_reflection;
 
@@ -89,6 +74,28 @@ fun mk_meta_eq th = case concl_of th of
   | _ $ (Const("Not",_)$_)      => th RS iff_reflection_F
   | _                           => th RS iff_reflection_T;
 
+val mksimps_pairs =
+  [("op -->", [mp]), ("op &", [conjunct1,conjunct2]),
+   ("All", [spec]), ("True", []), ("False", [])];
+
+(* FIXME: move to Provers/simplifier.ML
+val mk_atomize:      (string * thm list) list -> thm -> thm list
+*)
+(* FIXME: move to Provers/simplifier.ML*)
+fun mk_atomize pairs =
+  let fun atoms th =
+        (case concl_of th of
+           Const("Trueprop",_) $ p =>
+             (case head_of p of
+                Const(a,_) =>
+                  (case assoc(pairs,a) of
+                     Some(rls) => flat (map atoms ([th] RL rls))
+                   | None => [th])
+              | _ => [th])
+         | _ => [th])
+  in atoms end;
+
+fun mksimps pairs = (map mk_meta_eq o mk_atomize pairs o gen_all);
 
 (*** Classical laws ***)
 
@@ -230,22 +237,32 @@ end;
 
 (*** Case splitting ***)
 
-qed_goal "meta_iffD" IFOL.thy "[| P==Q; Q |] ==> P"
-        (fn [prem1,prem2] => [rewtac prem1, rtac prem2 1]);
+val meta_eq_to_iff = prove_goal IFOL.thy "x==y ==> x<->y"
+  (fn [prem] => [rewtac prem, rtac iffI 1, atac 1, atac 1]);
 
-local val mktac = mk_case_split_tac meta_iffD
-in
-fun split_tac splits = mktac (map mk_meta_eq splits)
-end;
+structure SplitterData =
+  struct
+  structure Simplifier = Simplifier
+  val mk_meta_eq     = mk_meta_eq
+  val meta_eq_to_iff = meta_eq_to_iff
+  val iffD           = iffD2
+  val disjE          = disjE
+  val conjE          = conjE
+  val exE            = exE
+  val contrapos      = contrapos
+  val contrapos2     = contrapos2
+  val notnotD        = notnotD
+  end;
 
-local val mktac = mk_case_split_inside_tac meta_iffD
-in
-fun split_inside_tac splits = mktac (map mk_meta_eq splits)
-end;
+structure Splitter = SplitterFun(SplitterData);
 
-val split_asm_tac = mk_case_split_asm_tac split_tac 
-			(disjE,conjE,exE,contrapos,contrapos2,notnotD);
-
+val split_tac        = Splitter.split_tac;
+val split_inside_tac = Splitter.split_inside_tac;
+val split_asm_tac    = Splitter.split_asm_tac;
+val addsplits        = Splitter.addsplits;
+val delsplits        = Splitter.delsplits;
+val Addsplits        = Splitter.Addsplits;
+val Delsplits        = Splitter.Delsplits;
 
 
 (*** Standard simpsets ***)
@@ -264,35 +281,6 @@ fun ss delcongs congs =
 fun Addcongs congs = (simpset_ref() := simpset() addcongs congs);
 fun Delcongs congs = (simpset_ref() := simpset() delcongs congs);
 
-(** FIXME: this is a PATCH until similar code in Provers/splitter is
-    generalized **)
-
-fun split_format_err() = error("Wrong format for split rule");
-
-fun split_thm_info thm =
-  (case concl_of thm of
-     Const("Trueprop",_) $ (Const("op <->", _)$(Var _$t)$c) =>
-        (case strip_comb t of
-           (Const(a,_),_) => (a,case c of (Const("Not",_)$_)=> true |_=> false)
-         | _              => split_format_err())
-   | _ => split_format_err());
-
-infix 4 addsplits delsplits;
-fun ss addsplits splits =
-  let fun addsplit (ss,split) =
-        let val (name,asm) = split_thm_info split 
-        in ss addloop ("split "^ name ^ (if asm then " asm" else ""),
-		       (if asm then split_asm_tac else split_tac) [split]) end
-  in foldl addsplit (ss,splits) end;
-
-fun ss delsplits splits =
-  let fun delsplit(ss,split) =
-        let val (name,asm) = split_thm_info split 
-        in ss delloop ("split "^ name ^ (if asm then " asm" else "")) end
-  in foldl delsplit (ss,splits) end;
-
-fun Addsplits splits = (simpset_ref() := simpset() addsplits splits);
-fun Delsplits splits = (simpset_ref() := simpset() delsplits splits);
 
 val IFOL_simps =
    [refl RS P_iff_T] @ conj_simps @ disj_simps @ not_simps @ 
@@ -312,7 +300,9 @@ val FOL_basic_ss = empty_ss setsubgoaler asm_simp_tac
                             addsimprocs [defALL_regroup,defEX_regroup]
 			    setSSolver   safe_solver
 			    setSolver  unsafe_solver
-			    setmksimps (map mk_meta_eq o atomize o gen_all);
+			    setmksimps (mksimps mksimps_pairs);
+
+
 
 (*intuitionistic simprules only*)
 val IFOL_ss = FOL_basic_ss addsimps (IFOL_simps @ int_ex_simps @ int_all_simps)
@@ -335,20 +325,6 @@ simpset_ref() := FOL_ss;
 
 
 (*** integration of simplifier with classical reasoner ***)
-
-(* rot_eq_tac rotates the first equality premise of subgoal i to the front,
-   fails if there is no equaliy or if an equality is already at the front *)
-local
-  fun is_eq (Const ("Trueprop", _) $ (Const("op ="  ,_) $ _ $ _)) = true
-    | is_eq (Const ("Trueprop", _) $ (Const("op <->",_) $ _ $ _)) = true
-    | is_eq _ = false;
-  val find_eq = find_index is_eq;
-in
-val rot_eq_tac = 
-     SUBGOAL (fn (Bi,i) => let val n = find_eq (Logic.strip_assums_hyp Bi) in
-		if n>0 then rotate_tac n i else no_tac end)
-end;
-
 
 structure Clasimp = ClasimpFun
  (structure Simplifier = Simplifier and Classical = Cla and Blast = Blast

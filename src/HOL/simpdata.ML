@@ -3,7 +3,7 @@
     Author:     Tobias Nipkow
     Copyright   1991  University of Cambridge
 
-Instantiation of the generic simplifier.
+Instantiation of the generic simplifier for HOL.
 *)
 
 section "Simplifier";
@@ -56,6 +56,7 @@ fun AddIffs thms = store_clasimp ((claset (), simpset ()) addIffs thms);
 fun DelIffs thms = store_clasimp ((claset (), simpset ()) delIffs thms);
 end;
 
+
 qed_goal "meta_eq_to_obj_eq" HOL.thy "x==y ==> x=y"
   (fn [prem] => [rewtac prem, rtac refl 1]);
 
@@ -69,32 +70,19 @@ local
   val not_P_imp_P_iff_F = prover "~P --> (P = False)" RS mp;
   val not_P_imp_P_eq_False = not_P_imp_P_iff_F RS eq_reflection;
 
-  fun atomize pairs =
-    let fun atoms th =
-          (case concl_of th of
-             Const("Trueprop",_) $ p =>
-               (case head_of p of
-                  Const(a,_) =>
-                    (case assoc(pairs,a) of
-                       Some(rls) => flat (map atoms ([th] RL rls))
-                     | None => [th])
-                | _ => [th])
-           | _ => [th])
-    in atoms end;
-
-  fun gen_all th = forall_elim_vars (#maxidx(rep_thm th)+1) th;
-
 in
 
-  fun mk_meta_eq r = r RS eq_reflection;
+  fun meta_eq r = r RS eq_reflection;
+
+  fun mk_meta_eq th = case concl_of th of
+          Const("==",_)$_$_       => th
+      |   _$(Const("op =",_)$_$_) => meta_eq th
+      |   _$(Const("Not",_)$_)    => th RS not_P_imp_P_eq_False
+      |   _                       => th RS P_imp_P_eq_True;
+  (* last 2 lines requires all formulae to be of the from Trueprop(.) *)
+
   fun mk_meta_eq_True r = Some(r RS meta_eq_to_obj_eq RS P_imp_P_eq_True);
 
-  fun mk_meta_eq_simp r = case concl_of r of
-          Const("==",_)$_$_ => r
-      |   _$(Const("op =",_)$lhs$rhs) => mk_meta_eq r
-      |   _$(Const("Not",_)$_) => r RS not_P_imp_P_eq_False
-      |   _ => r RS P_imp_P_eq_True;
-  (* last 2 lines requires all formulae to be of the from Trueprop(.) *)
 
 val simp_thms = map prover
  [ "(x=x) = True",
@@ -122,7 +110,7 @@ val simp_thms = map prover
 infix 4 addcongs delcongs;
 
 fun mk_meta_cong rl =
-  standard(mk_meta_eq(replicate (nprems_of rl) meta_eq_to_obj_eq MRS rl))
+  standard(meta_eq(replicate (nprems_of rl) meta_eq_to_obj_eq MRS rl))
   handle THM _ =>
   error("Premises and conclusion of congruence rules must be =-equalities");
 
@@ -132,8 +120,6 @@ fun ss delcongs congs = ss deleqcongs (map mk_meta_cong congs);
 
 fun Addcongs congs = (simpset_ref() := simpset() addcongs congs);
 fun Delcongs congs = (simpset_ref() := simpset() delcongs congs);
-
-fun mksimps pairs = map mk_meta_eq_simp o atomize pairs o gen_all;
 
 val imp_cong = impI RSN
     (2, prove_goal HOL.thy "(P=P')--> (P'--> (Q=Q'))--> ((P-->Q) = (P'-->Q'))"
@@ -249,9 +235,6 @@ in  bind_thm("disj_cong",standard (impI RSN (2, th RS mp RS mp)))  end;
 
 prove "eq_sym_conv" "(x=y) = (y=x)";
 
-qed_goalw "o_apply" HOL.thy [o_def] "(f o g) x = f (g x)"
- (K [rtac refl 1]);
-
 
 (** if-then-else rules **)
 
@@ -261,12 +244,9 @@ qed_goalw "if_True" HOL.thy [if_def] "(if True then x else y) = x"
 qed_goalw "if_False" HOL.thy [if_def] "(if False then x else y) = y"
  (K [Blast_tac 1]);
 
-qed_goal "if_P" HOL.thy "P ==> (if P then x else y) = x"
- (fn [prem] => [ stac (prem RS eqTrueI) 1, rtac if_True 1 ]);
-(*
-qed_goal "if_not_P" HOL.thy "~P ==> (if P then x else y) = y"
- (fn [prem] => [ stac (prem RS not_P_imp_P_iff_F) 1, rtac if_False 1 ]);
-*)
+qed_goalw "if_P" HOL.thy [if_def] "!!P. P ==> (if P then x else y) = x"
+ (K [Blast_tac 1]);
+
 qed_goalw "if_not_P" HOL.thy [if_def] "!!P. ~P ==> (if P then x else y) = y"
  (K [Blast_tac 1]);
 
@@ -283,6 +263,12 @@ qed_goal "split_if_asm" HOL.thy
     "P(if Q then x else y) = (~((Q & ~P x) | (~Q & ~P y)))"
     (K [stac split_if 1,
 	Blast_tac 1]);
+
+qed_goal "if_cancel" HOL.thy "(if c then x else x) = x"
+  (K [stac split_if 1, Blast_tac 1]);
+
+qed_goal "if_eq_cancel" HOL.thy "(if x = y then y else x) = x"
+  (K [stac split_if 1, Blast_tac 1]);
 
 (*This form is useful for expanding IFs on the RIGHT of the ==> symbol*)
 qed_goal "if_bool_eq_conj" HOL.thy
@@ -339,42 +325,29 @@ end;
 
 (*** Case splitting ***)
 
-local val mktac = mk_case_split_tac (meta_eq_to_obj_eq RS iffD2)
-in
-fun split_tac splits = mktac (map mk_meta_eq splits)
-end;
+structure SplitterData =
+  struct
+  structure Simplifier = Simplifier
+  val mk_meta_eq     = mk_meta_eq
+  val meta_eq_to_iff = meta_eq_to_obj_eq
+  val iffD           = iffD2
+  val disjE          = disjE
+  val conjE          = conjE
+  val exE            = exE
+  val contrapos      = contrapos
+  val contrapos2     = contrapos2
+  val notnotD        = notnotD
+  end;
 
-local val mktac = mk_case_split_inside_tac (meta_eq_to_obj_eq RS iffD2)
-in
-fun split_inside_tac splits = mktac (map mk_meta_eq splits)
-end;
+structure Splitter = SplitterFun(SplitterData);
 
-val split_asm_tac = mk_case_split_asm_tac split_tac 
-			(disjE,conjE,exE,contrapos,contrapos2,notnotD);
-
-infix 4 addsplits delsplits;
-
-fun ss addsplits splits =
-  let fun addsplit (ss,split) =
-        let val (name,asm) = split_thm_info split 
-        in ss addloop ("split "^ name ^ (if asm then " asm" else ""),
-		       (if asm then split_asm_tac else split_tac) [split]) end
-  in foldl addsplit (ss,splits) end;
-
-fun ss delsplits splits =
-  let fun delsplit(ss,split) =
-        let val (name,asm) = split_thm_info split 
-        in ss delloop ("split "^ name ^ (if asm then " asm" else "")) end
-  in foldl delsplit (ss,splits) end;
-
-fun Addsplits splits = (simpset_ref() := simpset() addsplits splits);
-fun Delsplits splits = (simpset_ref() := simpset() delsplits splits);
-
-qed_goal "if_cancel" HOL.thy "(if c then x else x) = x"
-  (K [split_tac [split_if] 1, Blast_tac 1]);
-
-qed_goal "if_eq_cancel" HOL.thy "(if x = y then y else x) = x"
-  (K [split_tac [split_if] 1, Blast_tac 1]);
+val split_tac        = Splitter.split_tac;
+val split_inside_tac = Splitter.split_inside_tac;
+val split_asm_tac    = Splitter.split_asm_tac;
+val addsplits        = Splitter.addsplits;
+val delsplits        = Splitter.delsplits;
+val Addsplits        = Splitter.Addsplits;
+val Delsplits        = Splitter.Delsplits;
 
 (** 'if' congruence rules: neither included by default! *)
 
@@ -402,10 +375,31 @@ qed_goal "let_weak_cong" HOL.thy
   rewriting by "(P|Q --> R) = ((P-->R)&(Q-->R))" might be justified on the
   grounds that it allows simplification of R in the two cases.*)
 
+fun gen_all th = forall_elim_vars (#maxidx(rep_thm th)+1) th;
+
 val mksimps_pairs =
   [("op -->", [mp]), ("op &", [conjunct1,conjunct2]),
    ("All", [spec]), ("True", []), ("False", []),
    ("If", [if_bool_eq_conj RS iffD1])];
+
+(* FIXME: move to Provers/simplifier.ML
+val mk_atomize:      (string * thm list) list -> thm -> thm list
+*)
+(* FIXME: move to Provers/simplifier.ML*)
+fun mk_atomize pairs =
+  let fun atoms th =
+        (case concl_of th of
+           Const("Trueprop",_) $ p =>
+             (case head_of p of
+                Const(a,_) =>
+                  (case assoc(pairs,a) of
+                     Some(rls) => flat (map atoms ([th] RL rls))
+                   | None => [th])
+              | _ => [th])
+         | _ => [th])
+  in atoms end;
+
+fun mksimps pairs = (map mk_meta_eq o mk_atomize pairs o gen_all);
 
 fun unsafe_solver prems = FIRST'[resolve_tac (reflexive_thm::TrueI::refl::prems),
 				 atac, etac FalseE];
@@ -424,9 +418,9 @@ val HOL_ss =
      ([triv_forall_equality, (* prunes params *)
        True_implies_equals, (* prune asms `True' *)
        if_True, if_False, if_cancel, if_eq_cancel,
-       o_apply, imp_disjL, conj_assoc, disj_assoc,
+       imp_disjL, conj_assoc, disj_assoc,
        de_Morgan_conj, de_Morgan_disj, imp_disj1, imp_disj2, not_imp,
-       disj_not1, not_all, not_ex, cases_simp]
+       disj_not1, not_all, not_ex, cases_simp, Eps_eq]
      @ ex_simps @ all_simps @ simp_thms)
      addsimprocs [defALL_regroup,defEX_regroup]
      addcongs [imp_cong]
@@ -435,9 +429,6 @@ val HOL_ss =
 qed_goal "if_distrib" HOL.thy
   "f(if c then x else y) = (if c then f x else f y)" 
   (K [simp_tac (HOL_ss setloop (split_tac [split_if])) 1]);
-
-qed_goalw "o_assoc" HOL.thy [o_def] "f o (g o h) = f o g o h"
-  (K [rtac ext 1, rtac refl 1]);
 
 
 (*For expand_case_tac*)
@@ -461,19 +452,6 @@ simpset_ref() := HOL_ss;
 
 
 (*** integration of simplifier with classical reasoner ***)
-
-(* rot_eq_tac rotates the first equality premise of subgoal i to the front,
-   fails if there is no equaliy or if an equality is already at the front *)
-local
-  fun is_eq (Const ("Trueprop", _) $ (Const("op ="  ,_) $ _ $ _)) = true
-    | is_eq _ = false;
-  val find_eq = find_index is_eq;
-in
-val rot_eq_tac = 
-     SUBGOAL (fn (Bi,i) => let val n = find_eq (Logic.strip_assums_hyp Bi) in
-		if n>0 then rotate_tac n i else no_tac end)
-end;
-
 
 structure Clasimp = ClasimpFun
  (structure Simplifier = Simplifier and Classical = Classical and Blast = Blast

@@ -4,23 +4,57 @@
     Copyright   1995  TU Munich
 
 Generic case-splitter, suitable for most logics.
-
-Use:
-
-val split_tac = mk_case_split_tac iffD;
-
-by(split_tac splits i);
-
-where splits = [P(elim(...)) == rhs, ...]
-      iffD  = [| P <-> Q; Q |] ==> P (* is called iffD2 in HOL *)
-
 *)
 
-local
+infix 4 addsplits delsplits;
+
+signature SPLITTER_DATA =
+sig
+  structure Simplifier: SIMPLIFIER
+  val mk_meta_eq    : thm -> thm
+  val meta_eq_to_iff: thm (* "x == y ==> x = y"                    *)
+  val iffD          : thm (* "[| P = Q; Q |] ==> P"                *)
+  val disjE         : thm (* "[| P | Q; P ==> R; Q ==> R |] ==> R" *)
+  val conjE         : thm (* "[| P & Q; [| P; Q |] ==> R |] ==> R" *)
+  val exE           : thm (* "[|  x. P x; !!x. P x ==> Q |] ==> Q" *)
+  val contrapos     : thm (* "[| ~ Q; P ==> Q |] ==> ~ P"          *)
+  val contrapos2    : thm (* "[| Q; ~ P ==> ~ Q |] ==> P"          *)
+  val notnotD       : thm (* "~ ~ P ==> P"                         *)
+end
+
+signature SPLITTER =
+sig
+  type simpset
+  val split_tac       : thm list -> int -> tactic
+  val split_inside_tac: thm list -> int -> tactic
+  val split_asm_tac   : thm list -> int -> tactic
+  val addsplits       : simpset * thm list -> simpset
+  val delsplits       : simpset * thm list -> simpset
+  val Addsplits       : thm list -> unit
+  val Delsplits       : thm list -> unit
+end;
+
+functor SplitterFun(Data: SPLITTER_DATA): SPLITTER =
+struct 
+
+type simpset = Data.Simplifier.simpset;
+
+val Const ("==>", _) $ (Const ("Trueprop", _) $
+         (Const (const_not, _) $ _    )) $ _ = #prop (rep_thm(Data.notnotD));
+
+val Const ("==>", _) $ (Const ("Trueprop", _) $
+         (Const (const_or , _) $ _ $ _)) $ _ = #prop (rep_thm(Data.disjE));
 
 fun split_format_err() = error("Wrong format for split rule");
 
-fun mk_case_split_tac_2 iffD order =
+fun split_thm_info thm = case concl_of (Data.mk_meta_eq thm) of
+     Const("==", _)$(Var _$t)$c =>
+        (case strip_comb t of
+           (Const(a,_),_) => (a,case c of (Const(s,_)$_)=>s=const_not|_=> false)
+         | _              => split_format_err())
+   | _ => split_format_err();
+
+fun mk_case_split_tac order =
 let
 
 
@@ -30,9 +64,10 @@ let
    [| !! x. Q(x)==R(x) ; P(R) == C |] ==> P(Q)==C
 
 *************************************************************)
- 
+
+val meta_iffD = Data.meta_eq_to_iff RS Data.iffD;
 val lift =
-  let val ct = read_cterm (#sign(rep_thm iffD))
+  let val ct = read_cterm (#sign(rep_thm Data.iffD))
            ("[| !!x::'b::logic. Q(x) == R(x) |] ==> \
             \P(%x. Q(x)) == P(%x. R(x))::'a::logic",propT)
   in prove_goalw_cterm [] ct
@@ -253,7 +288,8 @@ fun inst_split Ts t tt thm TB state i =
 
 fun split_tac [] i = no_tac
   | split_tac splits i =
-  let fun const(thm) =
+  let val splits = map Data.mk_meta_eq splits;
+      fun const(thm) =
             (case concl_of thm of _$(t as _$lhs)$_ =>
                (case strip_comb lhs of (Const(a,_),args) =>
                   (a,(thm,fastype_of t,length args))
@@ -274,72 +310,70 @@ fun split_tac [] i = no_tac
                                     lift_split_tac])
             end
   in COND (has_fewer_prems i) no_tac 
-          (rtac iffD i THEN lift_split_tac)
+          (rtac meta_iffD i THEN lift_split_tac)
   end;
 
 in split_tac end;
 
-(* FIXME: this junk is only FOL/HOL specific and should therefore not go here!*)
-(* split_thm_info is used in FOL/simpdata.ML and HOL/simpdata.ML *)
-fun split_thm_info thm =
-  (case concl_of thm of
-     Const("Trueprop",_) $ (Const("op =", _)$(Var _$t)$c) =>
-        (case strip_comb t of
-           (Const(a,_),_) => (a,case c of (Const("Not",_)$_)=> true |_=> false)
-         | _              => split_format_err())
-   | _ => split_format_err());
 
-fun mk_case_split_asm_tac split_tac 
-			  (disjE,conjE,exE,contrapos,contrapos2,notnotD) = 
-let
+val split_tac        = mk_case_split_tac              int_ord;
+
+val split_inside_tac = mk_case_split_tac (rev_order o int_ord);
+
 
 (*****************************************************************************
    The split-tactic for premises
    
    splits : list of split-theorems to be tried
-   i      : number of subgoal the tactic should be applied to
-*****************************************************************************)
-
+****************************************************************************)
 fun split_asm_tac []     = K no_tac
   | split_asm_tac splits = 
+
   let val cname_list = map (fst o split_thm_info) splits;
       fun is_case (a,_) = a mem cname_list;
       fun tac (t,i) = 
 	  let val n = find_index (exists_Const is_case) 
 				 (Logic.strip_assums_hyp t);
 	      fun first_prem_is_disj (Const ("==>", _) $ (Const ("Trueprop", _)
-				 $ (Const ("op |", _) $ _ $ _ )) $ _ ) = true
+				 $ (Const (s, _) $ _ $ _ )) $ _ ) = (s=const_or)
 	      |   first_prem_is_disj (Const("all",_)$Abs(_,_,t)) = 
 					first_prem_is_disj t
 	      |   first_prem_is_disj _ = false;
 	      fun flat_prems_tac i = SUBGOAL (fn (t,i) => 
-				   (if first_prem_is_disj t
-				    then EVERY[etac disjE i, rotate_tac ~1 i,
-					       rotate_tac ~1  (i+1),
-					       flat_prems_tac (i+1)]
-				    else all_tac) 
-				   THEN REPEAT (eresolve_tac [conjE,exE] i)
-				   THEN REPEAT (dresolve_tac [notnotD]   i)) i;
+			   (if first_prem_is_disj t
+			    then EVERY[etac Data.disjE i,rotate_tac ~1 i,
+				       rotate_tac ~1  (i+1),
+				       flat_prems_tac (i+1)]
+			    else all_tac) 
+			   THEN REPEAT (eresolve_tac [Data.conjE,Data.exE] i)
+			   THEN REPEAT (dresolve_tac [Data.notnotD]   i)) i;
 	  in if n<0 then no_tac else DETERM (EVERY'
-		[rotate_tac n, etac contrapos2,
+		[rotate_tac n, etac Data.contrapos2,
 		 split_tac splits, 
-		 rotate_tac ~1, etac contrapos, rotate_tac ~1, 
+		 rotate_tac ~1, etac Data.contrapos, rotate_tac ~1, 
 		 flat_prems_tac] i)
 	  end;
   in SUBGOAL tac
   end;
 
-in split_asm_tac end;
+fun split_name name asm = "split " ^ name ^ (if asm then " asm" else "");
 
+fun ss addsplits splits =
+  let fun addsplit (ss,split) =
+        let val (name,asm) = split_thm_info split
+        in Data.Simplifier.addloop(ss,(split_name name asm,
+		       (if asm then split_asm_tac else split_tac) [split])) end
+  in foldl addsplit (ss,splits) end;
 
-in
+fun ss delsplits splits =
+  let fun delsplit(ss,split) =
+        let val (name,asm) = split_thm_info split
+        in Data.Simplifier.delloop(ss,split_name name asm)
+  end in foldl delsplit (ss,splits) end;
 
-val split_thm_info = split_thm_info;
-
-fun mk_case_split_tac iffD = mk_case_split_tac_2 iffD int_ord;
-
-fun mk_case_split_inside_tac iffD = mk_case_split_tac_2 iffD (rev_order o int_ord);
-
-val mk_case_split_asm_tac = mk_case_split_asm_tac;
+fun Addsplits splits = (Data.Simplifier.simpset_ref() := 
+			Data.Simplifier.simpset() addsplits splits);
+fun Delsplits splits = (Data.Simplifier.simpset_ref() := 
+			Data.Simplifier.simpset() delsplits splits);
 
 end;

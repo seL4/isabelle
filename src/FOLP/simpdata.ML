@@ -73,16 +73,25 @@ fun mk_eq th = case concl_of th of
     | _ $ (Const("Not",_)$_) $ _ => th RS not_P_imp_P_iff_F 
     | _ => make_iff_T th;
 
-fun atomize th = case concl_of th of (*The operator below is "Proof $ P $ p"*)
-      _ $ (Const("op -->",_) $ _ $ _) $ _ => atomize(th RS mp)
-    | _ $ (Const("op &",_) $ _ $ _) $ _ => atomize(th RS conjunct1) @
-                                       atomize(th RS conjunct2)
-    | _ $ (Const("All",_) $ _) $ _ => atomize(th RS spec)
-    | _ $ (Const("True",_)) $ _ => []
-    | _ $ (Const("False",_)) $ _ => []
-    | _ => [th];
 
-fun mk_rew_rules th = map mk_eq (atomize th);
+val mksimps_pairs =
+  [("op -->", [mp]), ("op &", [conjunct1,conjunct2]),
+   ("All", [spec]), ("True", []), ("False", [])];
+
+fun mk_atomize pairs =
+  let fun atoms th =
+        (case concl_of th of
+           Const("Trueprop",_) $ p =>
+             (case head_of p of
+                Const(a,_) =>
+                  (case assoc(pairs,a) of
+                     Some(rls) => flat (map atoms ([th] RL rls))
+                   | None => [th])
+              | _ => [th])
+         | _ => [th])
+  in atoms end;
+
+fun mk_rew_rules th = map mk_eq (mk_atomize mksimps_pairs th);
 
 (*destruct function for analysing equations*)
 fun dest_red(_ $ (red $ lhs $ rhs) $ _) = (red,lhs,rhs)
