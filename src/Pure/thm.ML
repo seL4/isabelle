@@ -358,7 +358,7 @@ fun nprems_of (Thm {prop, ...}) =
 
 fun major_prem_of thm =
   (case prems_of thm of
-    prem :: _ => prem
+    prem :: _ => Logic.strip_assums_concl prem
   | [] => raise THM ("major_prem_of: rule with no premises", 0, [thm]));
 
 fun no_prems thm = nprems_of thm = 0;
