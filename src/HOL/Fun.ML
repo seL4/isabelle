@@ -31,6 +31,12 @@ by (fast_tac (claset() addEs [selectI]) 1);
 qed "bchoice";
 
 
+section "Id";
+
+qed_goalw "Id_apply" thy [Id_def] "Id x = x" (K [rtac refl 1]);
+Addsimps [Id_apply];
+
+
 section "o";
 
 qed_goalw "o_apply" thy [o_def] "(f o g) x = f (g x)"
