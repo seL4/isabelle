@@ -477,6 +477,7 @@ fun mk_structure tname ((thy_name, old_thys), opt_txts) =
         \\n"
         ^ extxt ^ "\n\
         \\n\
+        \|> Theory.add_path \"/\"\n\
         \|> Theory.add_name " ^ quote thy_name ^ ";\n\
         \\n\
         \val _ = store_theory (thy, " ^ quote thy_name ^ ");\n\
@@ -545,6 +546,7 @@ val pure_sections =
   axm_section "defs" "|> Theory.add_defs" axiom_decls,
   axm_section "constdefs" "|> Theory.add_consts" constaxiom_decls,
   axm_section "axclass" "|> AxClass.add_axclass" axclass_decl,
-  section "instance" "" instance_decl];
+  section "instance" "" instance_decl,
+  section "path" "|> Theory.add_path" name];
 
 end;
