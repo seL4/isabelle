@@ -279,14 +279,13 @@ fun split_tac [] i = no_tac
 
 in split_tac end;
 
-(* FIXME: this junk is only HOL specific and should therefore not go here! *)
-(* const_of_split_thm is used in HOL/simpdata.ML *)
-
-fun const_of_split_thm thm =
+(* FIXME: this junk is only FOL/HOL specific and should therefore not go here!*)
+(* split_thm_info is used in FOL/simpdata.ML and HOL/simpdata.ML *)
+fun split_thm_info thm =
   (case concl_of thm of
-     Const("Trueprop",_) $ (Const("op =", _)$(Var _$t)$_) =>
+     Const("Trueprop",_) $ (Const("op =", _)$(Var _$t)$c) =>
         (case strip_comb t of
-           (Const(a,_),_) => a
+           (Const(a,_),_) => (a,case c of (Const("Not",_)$_)=> true |_=> false)
          | _              => split_format_err())
    | _ => split_format_err());
 
@@ -303,7 +302,7 @@ let
 
 fun split_asm_tac []     = K no_tac
   | split_asm_tac splits = 
-  let val cname_list = map const_of_split_thm splits;
+  let val cname_list = map (fst o split_thm_info) splits;
       fun is_case (a,_) = a mem cname_list;
       fun tac (t,i) = 
 	  let val n = find_index (exists_Const is_case) 
@@ -335,7 +334,7 @@ in split_asm_tac end;
 
 in
 
-val const_of_split_thm = const_of_split_thm;
+val split_thm_info = split_thm_info;
 
 fun mk_case_split_tac iffD = mk_case_split_tac_2 iffD int_ord;
 

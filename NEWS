@@ -97,8 +97,8 @@ the well-founded relation;
   remove it in a specific call of the simplifier using
   `... delsplits [split_if]'.
   You can also add/delete other case splitting rules to/from the default
-  simpset: every datatype generates a suitable rule `split_t_case' (where t
-  is the name of the datatype).
+  simpset: every datatype generates suitable rules `split_t_case' and
+  `split_t_case_asm' (where t is the name of the datatype).
 
 * new theory Vimage (inverse image of a function, syntax f-``B);
 
@@ -267,19 +267,16 @@ default in Arith.thy -- this COULD MAKE EXISTING PROOFS FAIL;
        (!y1 ... ymn. x = Cn y1 ... ymn --> P(f1 y1 ... ymn))
      )
 
-  which can be added to a simpset via `addsplits'. The existing theorems
-  expand_list_case and expand_option_case have been renamed to
-  split_list_case and split_option_case.
-
-  Additionally, there is a theorem `split_t_case_asm' of the form
+  and a theorem `split_t_case_asm' of the form
 
   P(t_case f1 ... fn x) =
     ~( (? y1 ... ym1. x = C1 y1 ... ym1 & ~P(f1 y1 ... ym1)) |
         ...
        (? y1 ... ymn. x = Cn y1 ... ymn & ~P(f1 y1 ... ymn))
      )
-
-  it be used with the new `split_asm_tac'.
+  which can be added to a simpset via `addsplits'. The existing theorems
+  expand_list_case and expand_option_case have been renamed to
+  split_list_case and split_option_case.
 
 * HOL/Arithmetic:
   - `pred n' is automatically converted to `n-1'.
