@@ -74,7 +74,7 @@ $(LOG)/ZF-AC.gz: $(OUT)/ZF \
 
 ZF-Coind: ZF $(LOG)/ZF-Coind.gz
 
-$(LOG)/ZF-Coind.gz: $(OUT)/ZF Coind/BCR.thy Coind/Dynamic.thy \
+$(LOG)/ZF-Coind.gz: $(OUT)/ZF Coind/Dynamic.thy \
   Coind/ECR.thy Coind/Language.thy Coind/Map.thy Coind/ROOT.ML \
   Coind/Static.thy Coind/Types.thy Coind/Values.thy
 	@$(ISATOOL) usedir $(OUT)/ZF Coind
@@ -84,8 +84,8 @@ $(LOG)/ZF-Coind.gz: $(OUT)/ZF Coind/BCR.thy Coind/Dynamic.thy \
 
 ZF-IMP: ZF $(LOG)/ZF-IMP.gz
 
-$(LOG)/ZF-IMP.gz: $(OUT)/ZF IMP/Com.ML IMP/Com.thy IMP/Denotation.ML \
-  IMP/Denotation.thy IMP/Equiv.ML IMP/Equiv.thy IMP/ROOT.ML
+$(LOG)/ZF-IMP.gz: $(OUT)/ZF IMP/Com.thy \
+  IMP/Denotation.thy IMP/Equiv.thy IMP/ROOT.ML
 	@$(ISATOOL) usedir $(OUT)/ZF IMP
 
 
@@ -131,9 +131,9 @@ $(LOG)/ZF-Induct.gz: $(OUT)/ZF  Induct/ROOT.ML Induct/Acc.thy \
 ZF-ex: ZF $(LOG)/ZF-ex.gz
 
 $(LOG)/ZF-ex.gz: $(OUT)/ZF ex/ROOT.ML \
-  ex/BinEx.thy ex/CoUnit.thy ex/Commutation.ML ex/Commutation.thy \
-  ex/Limit.ML ex/Limit.thy ex/LList.ML ex/LList.thy ex/Primes.ML ex/Primes.thy \
-  ex/NatSum.ML ex/NatSum.thy ex/Ramsey.ML ex/Ramsey.thy ex/misc.thy
+  ex/BinEx.thy ex/CoUnit.thy ex/Commutation.thy \
+  ex/Limit.ML ex/Limit.thy ex/LList.thy ex/Primes.thy \
+  ex/NatSum.thy ex/Ramsey.thy ex/misc.thy
 	@$(ISATOOL) usedir $(OUT)/ZF ex
 
 
