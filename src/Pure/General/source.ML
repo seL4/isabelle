@@ -19,6 +19,7 @@ sig
   val filter: ('a -> bool) -> ('a, 'b) source -> ('a, ('a, 'b) source) source
   val of_list: 'a list -> ('a, 'a list) source
   val of_string: string -> (string, string list) source
+  val exhausted: ('a, 'b) source -> ('a, 'a list) source
   val of_stream: TextIO.instream -> TextIO.outstream -> (string, unit) source
   val tty: (string, unit) source
   val source': 'a -> 'b * ('b -> bool) -> ('a * 'b list -> 'c list * ('a * 'b list)) ->
@@ -108,6 +109,8 @@ fun drain_list _ xs = (take (limit, xs), drop (limit, xs));
 
 fun of_list xs = make_source [] xs default_prompt drain_list;
 val of_string = of_list o explode;
+
+fun exhausted src = of_list (exhaust src);
 
 
 (* stream source *)
