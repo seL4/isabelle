@@ -14,7 +14,7 @@ sig
   val record_split_simproc: (term -> bool) -> simproc
   val record_ex_sel_eq_simproc: simproc
   val record_split_tac: int -> tactic
-  val record_split_simp_tac: (term -> bool) -> int -> tactic
+  val record_split_simp_tac: thm list -> (term -> bool) -> int -> tactic
   val record_split_name: string
   val record_split_wrapper: string * wrapper
   val print_record_type_abbr: bool ref
@@ -267,7 +267,7 @@ struct
         updates = Symtab.merge (K true) (upds1, upds2),
         simpset = Simplifier.merge_ss (ss1, ss2)}
       (Symtab.merge Thm.eq_thm (equalities1, equalities2))
-      (extinjects1 @ extinjects2)
+      (gen_merge_lists Thm.eq_thm extinjects1 extinjects2)
       (Symtab.merge Thm.eq_thm (extsplit1,extsplit2))
       (Symtab.merge (fn ((a,b,c,d),(w,x,y,z)) 
                      => Thm.eq_thm (a,w) andalso Thm.eq_thm (b,x) andalso 
@@ -1109,7 +1109,7 @@ in
  * P can peek on the whole subterm (including the quantifier); for free variables P
  * can only peek on the variable itself. 
  *)
-fun record_split_simp_tac P i st =
+fun record_split_simp_tac thms P i st =
   let
     val sg = Thm.sign_of_thm st;
     val {sel_upd={simpset,...},...} 
@@ -1149,7 +1149,7 @@ fun record_split_simp_tac P i st =
     val simprocs = if has_rec goal then [record_split_simproc P] else [];
    
   in st |> (EVERY split_frees_tacs) 
-           THEN (Simplifier.full_simp_tac (simpset addsimprocs simprocs) i)
+           THEN (Simplifier.full_simp_tac (simpset addsimps thms addsimprocs simprocs) i)
   end handle Library.LIST _ => Seq.empty;
 end;
 
