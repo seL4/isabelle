@@ -1223,21 +1223,6 @@ The tactic {\tt\ttindex{list_ind_tac} "$xs$" $i$} performs induction over the
 variable~$xs$ in subgoal~$i$.
 
 
-\subsection{The type constructor for lazy lists, {\tt llist}}
-\index{*llist type}
-
-The definition of lazy lists demonstrates methods for handling infinite
-data structures and coinduction in higher-order logic.  Theory
-\thydx{LList} defines an operator for corecursion on lazy lists, which is
-used to define a few simple functions such as map and append.  Corecursion
-cannot easily define operations such as filter, which can compute
-indefinitely before yielding the next element (if any!) of the lazy list.
-A coinduction principle is defined for proving equations on lazy lists.
-
-I have written a paper discussing the treatment of lazy lists; it also
-covers finite lists~\cite{paulson-coind}.
-
-
 \section{Datatype declarations}
 \index{*datatype|(}
 
@@ -1745,7 +1730,7 @@ end
 \end{ttbox}
 The HOL distribution contains many other inductive definitions, such as the
 theory {\tt HOL/ex/PropLog.thy} and the directory {\tt HOL/IMP}.  The
-theory {\tt HOL/LList.thy} contains coinductive definitions.
+theory {\tt HOL/ex/LList.thy} contains coinductive definitions.
 
 \index{*coinductive|)} \index{*inductive|)} \underscoreoff
 
@@ -1783,6 +1768,15 @@ Directory {\tt HOL/ex} contains other examples and experimental proofs in
 
 \item Theories {\tt InSort} and {\tt Qsort} prove correctness properties of
   insertion sort and quick sort.
+
+\item The definition of lazy lists demonstrates methods for handling
+  infinite data structures and coinduction in higher-order
+  logic~\cite{paulson-coind}.  Theory \thydx{LList} defines an operator for
+  corecursion on lazy lists, which is used to define a few simple functions
+  such as map and append.  Corecursion cannot easily define operations such
+  as filter, which can compute indefinitely before yielding the next
+  element (if any!) of the lazy list.  A coinduction principle is defined
+  for proving equations on lazy lists.
 
 \item Theory {\tt PropLog} proves the soundness and completeness of
   classical propositional logic, given a truth table semantics.  The only
