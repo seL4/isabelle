@@ -18,6 +18,7 @@ sig
   val unpack: string -> string list
   val pack: string list -> string
   val base: string -> string
+  val map_base: (string -> string) -> string -> string
   val is_qualified: string -> bool
   val accesses: string -> string list
   type T
@@ -58,6 +59,11 @@ val unpack = space_explode separator;
 val pack = space_implode separator;
 
 val base = last_elem o unpack;
+
+fun map_base f name =
+  let val uname = unpack name
+  in pack (map_nth_elem (length uname - 1) f uname) end;
+
 fun is_qualified name = length (unpack name) > 1;
 
 fun accesses name =
