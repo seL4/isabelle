@@ -59,7 +59,7 @@ constdefs
   "fold f e A == @x. (A,x) : foldSet f e"
 
    setsum :: "('a => 'b) => 'a set => ('b::plus_ac0)"
-  "setsum f == fold (op+ o f) 0"
+  "setsum f A == if finite A then fold (op+ o f) 0 A else 0"
 
 locale LC =
   fixes
