@@ -592,8 +592,8 @@ qed "INT_eq";
 
 Goal "(UNION A B = {}) = (ALL x:A. B x = {})";
 by Auto_tac; 
-qed "UN_empty";
-AddIffs [UN_empty];
+qed "UN_empty3";
+AddIffs [UN_empty3];
 
 
 (*Distributive laws...*)
