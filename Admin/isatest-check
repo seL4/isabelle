@@ -58,13 +58,13 @@ function fail()
 
 # check if tests are still running, wait for them to finish for max 10h
 i=0
-while [ -n $(ls $RUNNING) -a $((i < 10)) ]; do 
+while [ -n "$(ls $RUNNING)" -a $i -lt 10 ]; do 
     sleep 3600
-    $((i = i+1))
+    let "i = i+1"
 done
 
 # still running -> give up
-if [ -n $(ls $RUNNING) ]; then
+if [ -n "$(ls $RUNNING)" ]; then
     echo "giving up waiting for test to finish at $(date)" > $TMP
     echo >> $TMP
     echo "Have a nice day," >> $TMP
@@ -79,15 +79,17 @@ fi
 
 # no tests running, check if there were errors
 if [ -e $ERRORLOG ]; then
-  cat $ERRORLOG > $TMP
-	echo "Have a nice day," >> $TMP
-	echo "  isatest" >> $TMP
+    cat $ERRORLOG > $TMP
+    echo "Have a nice day," >> $TMP
+    echo "  isatest" >> $TMP
 
-  for R in $MAILTO; do
-	    $MAIL "isabelle test failed" $R $TMP
-	done
+    for R in $MAILTO; do
+        $MAIL "isabelle test failed" $R $TMP
+    done
 
-	rm $TMP
+    rm $TMP
+    exit 1
 fi
 
+exit 0
 ## end
