@@ -84,14 +84,9 @@ function pre_latex ()
 {
   local FMT="$1"
   [ -n "$CLEAN" ] && rm -f *.aux *.out
-  if [ -f root.bib ]
-  then
-    "$ISATOOL" latex -o "$FMT" && \
-    "$ISATOOL" latex -o bbl && \
-    "$ISATOOL" latex -o "$FMT"
-  else
-    "$ISATOOL" latex -o "$FMT"
-  fi
+  "$ISATOOL" latex -o "$FMT" && \
+  { [ ! -f root.bib ] || "$ISATOOL" latex -o bbl; } && \
+  "$ISATOOL" latex -o "$FMT"
 }
 
 (
