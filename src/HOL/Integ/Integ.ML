@@ -577,11 +577,12 @@ by (res_inst_tac [("z","w")] eq_Abs_Integ 1);
 by (safe_tac (!claset));
 by (asm_full_simp_tac (!simpset addsimps [zadd, zminus]) 1);
 by (safe_tac (!claset addSDs [less_eq_Suc_add]));
+by (rename_tac "k" 1);
 by (res_inst_tac [("x","k")] exI 1);
 by (asm_full_simp_tac (!simpset delsimps [add_Suc, add_Suc_right]
                                 addsimps ([add_Suc RS sym] @ add_ac)) 1);
 (*To cancel x2, rename it to be first!*)
-by (rename_tac "a b c" 1);
+by (rename_tac "a b" 1);
 by (asm_full_simp_tac (!simpset delsimps [add_Suc_right]
                                 addsimps (add_left_cancel::add_ac)) 1);
 qed "zless_eq_zadd_Suc";

@@ -297,15 +297,19 @@ val [prem1,prem2] = goal LList.thy
 \    !!x. h2(x) = sum_case (%u.NIL) (split(%z w. CONS z (h2 w))) (f x) |]\
 \ ==> h1=h2";
 by (rtac (ntrunc_equality RS ext) 1);
+by (rename_tac "x k" 1);
 by (res_inst_tac [("x", "x")] spec 1);
 by (res_inst_tac [("n", "k")] less_induct 1);
+by (rename_tac "n" 1);
 by (rtac allI 1);
+by (rename_tac "y" 1);
 by (stac prem1 1);
 by (stac prem2 1);
 by (simp_tac (!simpset setloop (split_tac [expand_sum_case])) 1);
 by (strip_tac 1);
 by (res_inst_tac [("n", "n")] natE 1);
-by (res_inst_tac [("n", "xb")] natE 2);
+by (rename_tac "m" 2);
+by (res_inst_tac [("n", "m")] natE 2);
 by (ALLGOALS(asm_simp_tac(!simpset addsimps
             [ntrunc_0,ntrunc_one_CONS,ntrunc_CONS, less_Suc_eq])));
 result();

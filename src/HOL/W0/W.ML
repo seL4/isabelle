@@ -219,7 +219,6 @@ by (fast_tac (HOL_cs addDs [mgu_free, codD,free_tv_subst_var RS subsetD,
 		     addss !simpset) 1); 
 qed_spec_mp "free_tv_W"; 
 
-
 (* Completeness of W w.r.t. has_type *)
 goal thy
  "!s' a t' n. $s' a |- e :: t' --> new_tv n a -->     \
@@ -347,9 +346,8 @@ by (res_inst_tac [("x","rb")] exI 1);
 by (rtac conjI 1);
 by (dres_inst_tac [("x","ma")] fun_cong 2);
 by ( asm_full_simp_tac (!simpset addsimps [eq_sym_conv]) 2);
-by (simp_tac (!simpset addsimps [subst_comp_tel RS sym]) 1);
-by (res_inst_tac [("ts2","($ sa ($ s a))")] ((subst_comp_tel RS sym) RSN 
-    (2,trans)) 1);
+by (simp_tac (!simpset addsimps [o_def,subst_comp_tel RS sym]) 1);
+by (rtac ((subst_comp_tel RS sym) RSN (2,trans)) 1);
 by ( asm_full_simp_tac (!simpset addsimps [o_def,eq_sym_conv]) 1);
 (** LEVEL 90 **)
 by (rtac eq_free_eq_subst_tel 1);
