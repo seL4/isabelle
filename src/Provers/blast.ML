@@ -80,6 +80,7 @@ signature BLAST =
     | $  of term*term;
   type branch
   val depth_tac 	: claset -> int -> int -> tactic
+  val depth_limit : int ref
   val blast_tac 	: claset -> int -> tactic
   val Blast_tac 	: int -> tactic
   val setup		: (theory -> theory) list
@@ -1283,8 +1284,10 @@ fun timing_depth_tac start cs lim i st0 =
 (*Public version with fixed depth*)
 fun depth_tac cs lim i st = timing_depth_tac (startTiming()) cs lim i st;
 
+val depth_limit = ref 20;
+
 fun blast_tac cs i st = 
-    ((DEEPEN (1,20) (timing_depth_tac (startTiming()) cs) 0) i 
+    ((DEEPEN (1, !depth_limit) (timing_depth_tac (startTiming()) cs) 0) i 
      THEN flexflex_tac) st
     handle TRANS s =>
       ((if !trace then warning ("blast: " ^ s) else ()); 
