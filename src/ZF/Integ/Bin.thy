@@ -105,6 +105,3 @@ primrec
 setup NumeralSyntax.setup
 
 end
-
-
-ML
