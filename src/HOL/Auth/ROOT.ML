@@ -12,7 +12,7 @@ writeln"Root file for HOL/Auth";
 proof_timing := true;
 goals_limit := 1;
 
-use_thy "Shared";
+(*Shared-key protocols*)
 use_thy "NS_Shared";
 use_thy "OtwayRees";
 use_thy "OtwayRees_AN";
@@ -20,4 +20,8 @@ use_thy "OtwayRees_Bad";
 use_thy "WooLam";
 use_thy "Yahalom";
 use_thy "Yahalom2";
+
+(*Public-key protocols*)
+use_thy "NS_Public_Bad";
+use_thy "NS_Public";
 
