@@ -207,7 +207,11 @@ val useP =
 
 val mlP =
   OuterSyntax.command "ML" "eval ML text (diagnostic)" K.diag
-    (P.text >> IsarCmd.use_mltext)
+    (P.text >> IsarCmd.use_mltext true);
+
+val ml_commandP =
+  OuterSyntax.command "ML_command" "eval ML text" K.diag
+    (P.text >> IsarCmd.use_mltext false);
 
 val ml_setupP =
   OuterSyntax.command "ML_setup" "eval ML text (may change theory)" K.thy_decl
@@ -612,8 +616,8 @@ val parsers = [
   classesP, classrelP, defaultsortP, typedeclP, typeabbrP, nontermP,
   aritiesP, constsP, syntaxP, translationsP, axiomsP, defsP,
   constdefsP, theoremsP, lemmasP, globalP, localP, useP, mlP,
-  ml_setupP, setupP, parse_ast_translationP, parse_translationP,
-  print_translationP, typed_print_translationP,
+  ml_commandP, ml_setupP, setupP, parse_ast_translationP,
+  parse_translationP, print_translationP, typed_print_translationP,
   print_ast_translationP, token_translationP, oracleP,
   (*proof commands*)
   theoremP, lemmaP, showP, haveP, thusP, henceP, assumeP, presumeP,

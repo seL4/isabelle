@@ -23,7 +23,7 @@ sig
   val undo: Toplevel.transition -> Toplevel.transition
   val use: string -> Toplevel.transition -> Toplevel.transition
   val use_mltext_theory: string -> Toplevel.transition -> Toplevel.transition
-  val use_mltext: string -> Toplevel.transition -> Toplevel.transition
+  val use_mltext: bool -> string -> Toplevel.transition -> Toplevel.transition
   val use_commit: Toplevel.transition -> Toplevel.transition
   val cd: string -> Toplevel.transition -> Toplevel.transition
   val pwd: Toplevel.transition -> Toplevel.transition
@@ -100,11 +100,11 @@ fun use name = Toplevel.keep (fn state =>
 val use_mltext_theory = Toplevel.theory' o IsarThy.use_mltext_theory;
 
 (*ignore result theory context*)
-fun use_mltext txt = Toplevel.keep' (fn verb => fn state =>
-  (IsarThy.use_mltext txt verb (try Toplevel.theory_of state)));
+fun use_mltext v txt = Toplevel.keep' (fn verb => fn state =>
+  (IsarThy.use_mltext txt (v andalso verb) (try Toplevel.theory_of state)));
 
 (*Note: commit is dynamically bound*)
-val use_commit = use_mltext "commit();";
+val use_commit = use_mltext false "commit();";
 
 
 (* current working directory *)
