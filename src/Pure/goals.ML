@@ -133,7 +133,7 @@ fun sign_error (sign,sign') =
 fun result_error_default state msg : thm =
  (writeln "Bad final proof state:";
   print_goals (!goals_limit) state;
-  writeln msg; raise ERROR);
+  writeln msg; error "Proof failed");
 
 val result_error_fn = ref result_error_default;
 
