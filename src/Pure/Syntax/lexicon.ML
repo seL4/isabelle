@@ -28,6 +28,7 @@ signature SCANNER =
   val max_of: ('a -> ('b * string) * 'a) -> ('a -> ('b * string) * 'a)
     -> 'a -> ('b * string) option * 'a
   val scan_id: string list -> string * string list
+  val scan_longid: string list -> string * string list
   val scan_tid: string list -> string * string list
   val scan_nat: string list -> string * string list
   type lexicon
@@ -60,6 +61,7 @@ signature LEXICON =
   datatype token =
     Token of string |
     IdentSy of string |
+    LongIdentSy of string |
     VarSy of string |
     TFreeSy of string |
     TVarSy of string |
@@ -67,6 +69,7 @@ signature LEXICON =
     StrSy of string |
     EndToken
   val idT: typ
+  val longidT: typ
   val varT: typ
   val tidT: typ
   val tvarT: typ
@@ -125,6 +128,7 @@ fun string_of_vname' (xi as (x, i)) =
 datatype token =
   Token of string |
   IdentSy of string |
+  LongIdentSy of string |
   VarSy of string |
   TFreeSy of string |
   TVarSy of string |
@@ -136,11 +140,12 @@ datatype token =
 (* terminal arguments *)
 
 val idT = Type ("id", []);
+val longidT = Type ("longid", []);
 val varT = Type ("var", []);
 val tidT = Type ("tid", []);
 val tvarT = Type ("tvar", []);
 
-val terminals = ["id", "var", "tid", "tvar", "xnum", "xstr"];
+val terminals = ["id", "longid", "var", "tid", "tvar", "xnum", "xstr"];
 
 fun is_terminal s = s mem terminals;
 
@@ -149,6 +154,7 @@ fun is_terminal s = s mem terminals;
 
 fun str_of_token (Token s) = s
   | str_of_token (IdentSy s) = s
+  | str_of_token (LongIdentSy s) = s
   | str_of_token (VarSy s) = s
   | str_of_token (TFreeSy s) = s
   | str_of_token (TVarSy s) = s
@@ -161,6 +167,7 @@ fun str_of_token (Token s) = s
 
 fun display_token (Token s) = quote s
   | display_token (IdentSy s) = "id(" ^ s ^ ")"
+  | display_token (LongIdentSy s) = "longid(" ^ s ^ ")"
   | display_token (VarSy s) = "var(" ^ s ^ ")"
   | display_token (TFreeSy s) = "tid(" ^ s ^ ")"
   | display_token (TVarSy s) = "tvar(" ^ s ^ ")"
@@ -173,6 +180,7 @@ fun display_token (Token s) = quote s
 
 fun matching_tokens (Token x, Token y) = (x = y)
   | matching_tokens (IdentSy _, IdentSy _) = true
+  | matching_tokens (LongIdentSy _, LongIdentSy _) = true
   | matching_tokens (VarSy _, VarSy _) = true
   | matching_tokens (TFreeSy _, TFreeSy _) = true
   | matching_tokens (TVarSy _, TVarSy _) = true
@@ -198,6 +206,7 @@ fun token_assoc (list, key) =
 
 fun valued_token (Token _) = false
   | valued_token (IdentSy _) = true
+  | valued_token (LongIdentSy _) = true
   | valued_token (VarSy _) = true
   | valued_token (TFreeSy _) = true
   | valued_token (TVarSy _) = true
@@ -209,6 +218,7 @@ fun valued_token (Token _) = false
 (* predef_term *)
 
 fun predef_term "id" = Some (IdentSy "id")
+  | predef_term "longid" = Some (LongIdentSy "longid")
   | predef_term "var" = Some (VarSy "var")
   | predef_term "tid" = Some (TFreeSy "tid")
   | predef_term "tvar" = Some (TVarSy "tvar")
@@ -346,6 +356,8 @@ val scan_digits1 = scan_any1 is_digit;
 
 val scan_id = scan_letter_letdigs >> implode;
 
+val scan_longid = scan_id ^^ (repeat1 ($$ "." ^^ scan_id) >> implode);
+
 val scan_id_nat =
   scan_id ^^ ($$ "." ^^ (scan_digits1 >> implode) || scan_empty >> K "");
 
@@ -389,6 +401,7 @@ fun tokenize lex xids chs =
       $$ "?" ^^ scan_id_nat >> pair VarSy ||
       $$ "'" ^^ scan_id >> pair TFreeSy ||
       $$ "#" ^^ scan_int >> pair NumSy ||
+      scan_longid >> pair LongIdentSy ||
       scan_xid >> pair IdentSy;
 
     fun scan_str ("'" :: "'" :: cs) = ([], cs)
