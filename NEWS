@@ -1,17 +1,16 @@
+
 Isabelle NEWS -- history of user-visible changes
 ================================================
 
 New in this Isabelle version
 ----------------------------
 
-*** General Changes ***
+*** Overview of INCOMPATIBILITIES (see below for more details) ***
 
-* new toplevel commands `Goal' and `Goalw' that improve upon `goal'
-and `goalw': the theory is no longer needed as an explicit argument -
-the current theory is used; assumptions are no longer returned at the
-ML-level unless one of them starts with ==> or !!; it is recommended
-to convert to these new commands using isatool fixgoal (as usual,
-backup your sources first!);
+* HOL/inductive requires Inductive.thy as an ancestor;
+
+
+*** Proof tools ***
 
 * Simplifier: Asm_full_simp_tac is now more aggressive.
   1. It will sometimes reorient premises if that increases their power to
@@ -21,27 +20,66 @@ backup your sources first!);
   For compatibility reasons there is now Asm_lr_simp_tac which is like the
   old Asm_full_simp_tac in that it does not rotate premises.
 
-* Changed wrapper mechanism for the classical reasoner now allows for
-selected deletion of wrappers, by introduction of names for wrapper
-functionals.  This implies that addbefore, addSbefore, addaltern, and
-addSaltern now take a pair (name, tactic) as argument, and that adding
-two tactics with the same name overwrites the first one (emitting a
-warning).
+* Classical reasoner: wrapper mechanism for the classical reasoner now
+allows for selected deletion of wrappers, by introduction of names for
+wrapper functionals.  This implies that addbefore, addSbefore,
+addaltern, and addSaltern now take a pair (name, tactic) as argument,
+and that adding two tactics with the same name overwrites the first
+one (emitting a warning).
   type wrapper = (int -> tactic) -> (int -> tactic)
   setWrapper, setSWrapper, compWrapper and compSWrapper are replaced by
   addWrapper, addSWrapper: claset * (string * wrapper) -> claset
   delWrapper, delSWrapper: claset *  string            -> claset
   getWrapper is renamed to appWrappers, getSWrapper to appSWrappers;
 
-* inductive definitions now handle disjunctive premises correctly (HOL
-and ZF);
+* HOL/split_all_tac is now much faster and fails if there is nothing
+to split.  Existing (fragile) proofs may require adaption because the
+order and the names of the automatically generated variables have
+changed.  split_all_tac has moved within claset() from unsafe wrappers
+to safe wrappers, which means that !!-bound variables are split much
+more aggressively, and safe_tac and clarify_tac now split such
+variables.  If this splitting is not appropriate, use delSWrapper
+"split_all_tac".
+
+* HOL/Simplifier:
+
+ - Rewrite rules for case distinctions can now be added permanently to
+   the default simpset using Addsplits just like Addsimps. They can be
+   removed via Delsplits just like Delsimps. Lower-case versions are
+   also available.
+
+ - The rule split_if is now part of the default simpset. This means
+   that the simplifier will eliminate all occurrences of if-then-else
+   in the conclusion of a goal. To prevent this, you can either remove
+   split_if completely from the default simpset by `Delsplits
+   [split_if]' or remove it in a specific call of the simplifier using
+   `... delsplits [split_if]'.  You can also add/delete other case
+   splitting rules to/from the default simpset: every datatype
+   generates suitable rules `split_t_case' and `split_t_case_asm'
+   (where t is the name of the datatype).
+
+* Classical reasoner - Simplifier combination: new force_tac (and
+derivatives Force_tac, force) combines rewriting and classical
+reasoning (and whatever other tools) similarly to auto_tac, but is
+aimed to solve the given subgoal completely;
+
+
+*** General ***
+
+* new toplevel commands `Goal' and `Goalw' that improve upon `goal'
+and `goalw': the theory is no longer needed as an explicit argument -
+the current theory context is used; assumptions are no longer returned
+at the ML-level unless one of them starts with ==> or !!; it is
+recommended to convert to these new commands using isatool fixgoal (as
+usual, backup your sources first!);
 
 * new toplevel commands 'thm' and 'thms' for retrieving theorems from
 the current theory context;
 
-* new theory section 'nonterminals';
+* new theory section 'nonterminals' for purely syntactic types;
 
-* new theory section 'setup';
+* new theory section 'setup' for generic ML setup functions
+(e.g. package initialization);
 
 
 *** HOL ***
@@ -49,12 +87,26 @@ the current theory context;
 * reorganized the main HOL image: HOL/Integ and String loaded by
 default; theory Main includes everything;
 
-* HOL/Real: a construction of the reals using Dedekind cuts;
+* added option_map_eq_Some to the default simpset claset;
 
-* HOL/record: now includes concrete syntax for record terms (still
-lacks important theorems, like surjective pairing and split);
+* added disj_not1 = "(~P | Q) = (P --> Q)" to the default simpset;
 
-* Inductive definition package: Mutually recursive definitions such as
+* many new identities for unions, intersections, set difference, etc.;
+
+* expand_if, expand_split, expand_sum_case and expand_nat_case are now
+called split_if, split_split, split_sum_case and split_nat_case (to go
+with add/delsplits);
+
+* HOL/Prod introduces simplification procedure unit_eq_proc rewriting
+(?x::unit) = (); this is made part of the default simpset, which COULD
+MAKE EXISTING PROOFS FAIL under rare circumstances (consider
+'Delsimprocs [unit_eq_proc];' as last resort);
+
+* HOL/record package: now includes concrete syntax for record terms
+(still lacks important theorems, like surjective pairing and split);
+
+* HOL/inductive package reorganized and improved: now supports mutual
+definitions such as
 
   inductive EVEN ODD
     intrs
@@ -62,79 +114,37 @@ lacks important theorems, like surjective pairing and split);
       oddI "n : EVEN ==> Suc n : ODD"
       evenI "n : ODD ==> Suc n : EVEN"
 
-  are now possible. Theories containing (co)inductive definitions must now
-  have theory "Inductive" as an ancestor. The new component "elims" of the
-  structure created by the package contains an elimination rule for each of
-  the recursive sets. Note that the component "mutual_induct" no longer
-  exists - the induction rule is always contained in "induct".
+new component "elims" of the structure created by the package contains
+an elimination rule for each of the recursive sets; requires
+Inductive.thy as an ancestor; component "mutual_induct" no longer
+exists - the induction rule is always contained in "induct"; inductive
+definitions now handle disjunctive premises correctly (also ZF);
 
-* simplification procedure unit_eq_proc rewrites (?x::unit) = (); this
-is made part of the default simpset of Prod.thy, which COULD MAKE
-EXISTING PROOFS FAIL (consider 'Delsimprocs [unit_eq_proc];' as last
-resort);
+* HOL/recdef can now declare non-recursive functions, with {} supplied as
+the well-founded relation;
 
-* new force_tac (and its derivations Force_tac, force): combines
-rewriting and classical reasoning (and whatever other tools) similarly
-to auto_tac, but is aimed to solve the given subgoal totally;
+* HOL/Update: new theory of function updates:
+    f(a:=b) == %x. if x=a then b else f x
+may also be iterated as in f(a:=b,c:=d,...);
 
-* added option_map_eq_Some to simpset() and claset();
-
-* New directory HOL/UNITY: Chandy and Misra's UNITY formalism;
-
-* New theory HOL/Update of function updates:
-  f(a:=b) == %x. if x=a then b else f x
-  May also be iterated as in f(a:=b,c:=d,...).
+* HOL/Vimage: new theory for inverse image of a function, syntax f-``B;
 
 * HOL/List: new function list_update written xs[i:=v] that updates the i-th
   list position. May also be iterated as in xs[i:=a,j:=b,...].
 
-* split_all_tac is now much faster and fails if there is nothing to
-split.  Existing (fragile) proofs may require adaption because the
-order and the names of the automatically generated variables have
-changed.  split_all_tac has moved within claset() from usafe wrappers
-to safe wrappers, which means that !!-bound variables are splitted
-much more aggressively, and safe_tac and clarify_tac now split such
-variables.  If this splitting is not appropriate, use delSWrapper
-"split_all_tac".
+* HOL/Arith:
+  - removed 'pred' (predecessor) function;
+  - generalized some theorems about n-1;
+  - many new laws about "div" and "mod";
+  - new laws about greatest common divisors (see theory ex/Primes);
 
-* added disj_not1 = "(~P | Q) = (P --> Q)" to the default simpset;
-
-* HOL/Arithmetic:
-  
-  - removed 'pred' (predecessor) function
-  - generalized some theorems about n-1
-  - Many new laws about "div" and "mod"
-  - New laws about greatest common divisors (see theory ex/Primes)
-
-* HOL/Relation: renamed the relational operatotr r^-1 "converse"
+* HOL/Relation: renamed the relational operator r^-1 "converse"
 instead of "inverse";
 
-* recdef can now declare non-recursive functions, with {} supplied as
-the well-founded relation;
+* directory HOL/Real: a construction of the reals using Dedekind cuts
+(not included by default);
 
-* expand_if, expand_split, expand_sum_case and expand_nat_case are now called
-  split_if, split_split, split_sum_case and split_nat_case
-  (to go with add/delsplits).
-
-* Simplifier:
-
- -Rewrite rules for case distinctions can now be added permanently to the
-  default simpset using Addsplits just like Addsimps. They can be removed via
-  Delsplits just like Delsimps. Lower-case versions are also available.
-
- -The rule split_if is now part of the default simpset. This means that
-  the simplifier will eliminate all ocurrences of if-then-else in the
-  conclusion of a goal. To prevent this, you can either remove split_if
-  completely from the default simpset by `Delsplits [split_if]' or
-  remove it in a specific call of the simplifier using
-  `... delsplits [split_if]'.
-  You can also add/delete other case splitting rules to/from the default
-  simpset: every datatype generates suitable rules `split_t_case' and
-  `split_t_case_asm' (where t is the name of the datatype).
-
-* new theory Vimage (inverse image of a function, syntax f-``B);
-
-* many new identities for unions, intersections, set difference, etc.;
+* directory HOL/UNITY: Chandy and Misra's UNITY formalism;
 
 
 *** ZF ***
@@ -142,7 +152,7 @@ the well-founded relation;
 * in  let x=t in u(x), neither t nor u(x) has to be an FOL term.
 
 
-*** Internal changes ***
+*** Internal programming interfaces ***
 
 * improved the theory data mechanism to support encapsulation (data
 kind name replaced by private Object.kind, acting as authorization
@@ -150,6 +160,9 @@ key); new type-safe user interface via functor TheoryDataFun;
 
 * module Pure/Syntax now offers quote / antiquote translation
 functions (useful for Hoare logic etc. with implicit dependencies);
+
+* Simplifier now offers conversions (asm_)(full_)rewrite: simpset ->
+cterm -> thm;
 
 
 
