@@ -38,6 +38,7 @@ sig
   val isabelle_fontN: string
   val symbolsN: string
   val xsymbolsN: string
+  val plain_output: string -> string
   val output: string -> string
   val output_width: string -> string * real
 end;
@@ -353,6 +354,7 @@ fun output_width s =
   | Some f => f s);
 
 val output = #1 o output_width;
+val plain_output = #1 o default_output;
 
 
 (*final declarations of this structure!*)
