@@ -14,7 +14,6 @@ sig
   val write: string -> string -> unit
   val append: string -> string -> unit
   val copy: string -> string -> unit
-  val source: string -> (string, string list) Source.source
 end;
 
 structure File: FILE =
@@ -60,8 +59,6 @@ fun append name txt =
 fun copy infile outfile =
   if not (exists infile) then error ("File not found: " ^ quote infile)
   else write outfile (read infile);
-
-val source = Source.of_string o read;
 
 
 end;
