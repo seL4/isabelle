@@ -113,21 +113,21 @@
 \section{Attributes}
 
 \begin{tabular}{ll}
-  \multicolumn{2}{l}{\textbf{Manipulate rules}} \\[0.5ex]
-  $OF~\vec a$ & apply rule to facts (skipping ``$_$'') \\
-  $of~\vec t$ & apply rule to terms (skipping ``$_$'') \\
-  $THEN~b$ & resolve fact with rule \\
-  $symmetric$ & apply symmetry of equality \\
-  $standard$ & put into standard result form \\
-  $rulify$ & put into object-rule form \\
-  $elimify$ & put destruction rule into elimination form \\[1ex]
+  \multicolumn{2}{l}{\textbf{Operations}} \\[0.5ex]
+  $OF~\vec a$ & rule applied to facts (skipping ``$_$'') \\
+  $of~\vec t$ & rule applied to terms (skipping ``$_$'') \\
+  $symmetric$ & resolution with symmetry of equality \\
+  $THEN~b$ & resolution with other rule \\
+  $rulified$ & result put into standard rule form \\
+  $elimified$ & destruct rule turned into elimination rule \\
+  $standard$ & result put into standard form \\[1ex]
 
-  \multicolumn{2}{l}{\textbf{Declare rules}} \\[0.5ex]
-  $simp$ & declare Simplifier rules \\
-  $split$ & declare Splitter rules \\
-  $intro$, $elim$, $dest$ & declare Classical Reasoner rules (also ``!'' or ``?'') \\
-  $iff$ & declare Simplifier + Classical Reasoner rules \\
-  $trans$ & declare calculational rules (general transitivity) \\
+  \multicolumn{2}{l}{\textbf{Declarations}} \\[0.5ex]
+  $simp$ & Simplifier rule \\
+  $intro$, $elim$, $dest$ & Classical Reasoner rule \\
+  $iff$ & Simplifier + Classical Reasoner rule \\
+  $split$ & case split rule \\
+  $trans$ & transitivity rule \\
 \end{tabular}
 
 

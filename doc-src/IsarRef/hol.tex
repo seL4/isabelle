@@ -3,22 +3,23 @@
 
 \section{Miscellaneous attributes}
 
-\indexisaratt{rulify}\indexisaratt{rulify-prems}
+\indexisaratt{rulified}
 \begin{matharray}{rcl}
-  rulify & : & \isaratt \\
-  rulify_prems & : & \isaratt \\
+  rulified & : & \isaratt \\
 \end{matharray}
+
+\begin{rail}
+  'rulified' ('(' noasm ')')?
+  ;
+\end{rail}
 
 \begin{descr}
   
-\item [$rulify$] puts a theorem into object-rule form, replacing implication
-  and universal quantification of HOL by the corresponding meta-logical
-  connectives.  This is the same operation as performed in
-  \texttt{qed_spec_mp} in ML.
-  
-\item [$rulify_prems$] is similar to $rulify$, but acts on the premises of a
-  rule.
-
+\item [$rulified$] causes a theorem to be put into standard object-rule form,
+  replacing implication and (bounded) universal quantification of HOL by the
+  corresponding meta-logical connectives.  By default, the result is fully
+  normalized, including assumptions and conclusions at any depth.  The
+  $no_asm$ option restricts the transformation to the conclusion of a rule.
 \end{descr}
 
 

@@ -305,43 +305,41 @@ where the result is treated as an assumption.
 
 
 \indexisaratt{standard}
-\indexisaratt{elimify}
+\indexisaratt{elimified}
 \indexisaratt{no-vars}
 
 \indexisaratt{THEN}\indexisaratt{COMP}
-\indexisaratt{where}
-\indexisaratt{tag}\indexisaratt{untag}
-\indexisaratt{export}
-\indexisaratt{unfold}\indexisaratt{fold}
+\indexisaratt{where}\indexisaratt{tagged}\indexisaratt{untagged}
+\indexisaratt{unfolded}\indexisaratt{folded}\indexisaratt{exported}
 \begin{matharray}{rcl}
-  tag & : & \isaratt \\
-  untag & : & \isaratt \\[0.5ex]
+  tagged & : & \isaratt \\
+  untagged & : & \isaratt \\[0.5ex]
   THEN & : & \isaratt \\
   COMP & : & \isaratt \\[0.5ex]
   where & : & \isaratt \\[0.5ex]
-  unfold & : & \isaratt \\
-  fold & : & \isaratt \\[0.5ex]
+  unfolded & : & \isaratt \\
+  folded & : & \isaratt \\[0.5ex]
   standard & : & \isaratt \\
-  elimify & : & \isaratt \\
+  elimified & : & \isaratt \\
   no_vars & : & \isaratt \\
-  export^* & : & \isaratt \\
+  exported^* & : & \isaratt \\
 \end{matharray}
 
 \begin{rail}
-  'tag' (nameref+)
+  'tagged' (nameref+)
   ;
-  'untag' name
+  'untagged' name
   ;
   ('THEN' | 'COMP') nat? thmref
   ;
   'where' (name '=' term * 'and')
   ;
-  ('unfold' | 'fold') thmrefs
+  ('unfolded' | 'folded') thmrefs
   ;
 \end{rail}
 
 \begin{descr}
-\item [$tag~name~args$ and $untag~name$] add and remove $tags$ of some
+\item [$tagged~name~args$ and $untagged~name$] add and remove $tags$ of some
   theorem.  Tags may be any list of strings that serve as comment for some
   tools (e.g.\ $\LEMMANAME$ causes the tag ``$lemma$'' to be added to the
   result).  The first string is considered the tag name, the rest its
@@ -354,24 +352,18 @@ where the result is treated as an assumption.
   variables occurring in a theorem.  Unlike instantiation tactics such as
   $rule_tac$ (see \S\ref{sec:tactic-commands}), actual schematic variables
   have to be specified (e.g.\ $\Var{x@3}$).
-
-\item [$unfold~\vec a$ and $fold~\vec a$] expand and fold back again the given
-  meta-level definitions throughout a rule.
-
+\item [$unfolded~\vec a$ and $folded~\vec a$] expand and fold back again the
+  given meta-level definitions throughout a rule.
 \item [$standard$] puts a theorem into the standard form of object-rules, just
   as the ML function \texttt{standard} (see \cite[\S5]{isabelle-ref}).
-
-\item [$elimify$] turns an destruction rule into an elimination, just as the
+\item [$elimified$] turns an destruction rule into an elimination, just as the
   ML function \texttt{make\_elim} (see \cite{isabelle-ref}).
-
 \item [$no_vars$] replaces schematic variables by free ones; this is mainly
   for tuning output of pretty printed theorems.
-
-\item [$export$] lifts a local result out of the current proof context,
+\item [$exported$] lifts a local result out of the current proof context,
   generalizing all fixed variables and discharging all assumptions.  Note that
   proper incremental export is already done as part of the basic Isar
   machinery.  This attribute is mainly for experimentation.
-
 \end{descr}
 
 
@@ -601,21 +593,30 @@ method available for single-step case splitting, see \S\ref{sec:basic-eq}.
 
 \subsection{Forward simplification}
 
-\indexisaratt{simplify}\indexisaratt{asm-simplify}
-\indexisaratt{full-simplify}\indexisaratt{asm-full-simplify}
+\indexisaratt{simplified}
 \begin{matharray}{rcl}
-  simplify & : & \isaratt \\
-  asm_simplify & : & \isaratt \\
-  full_simplify & : & \isaratt \\
-  asm_full_simplify & : & \isaratt \\
+  simplified & : & \isaratt \\
 \end{matharray}
 
-These attributes provide forward rules for simplification, which should be
-used only very rarely.  There are no separate options for declaring
-simplification rules locally.
+\begin{rail}
+  'simplified' opt?
+  ;
 
-See the ML functions of the same name in \cite[\S10]{isabelle-ref} for more
-information.
+  opt: '(' (noasm | noasmsimp | noasmuse) ')'
+  ;
+\end{rail}
+
+\begin{descr}
+\item [$simplified$] causes a theorem to be simplified according to the
+  current Simplifier context (there are no separate arguments for declaring
+  additional rules).  By default the result is fully simplified, including
+  assumptions and conclusion.  The options $no_asm$ etc.\ restrict the
+  Simplifier in the same way as the for the $simp$ method (see
+  \S\ref{sec:simp}).
+  
+  The $simplified$ operation should be used only very rarely, usually for
+  experimentation only.
+\end{descr}
 
 
 \section{Basic equational reasoning}\label{sec:basic-eq}
@@ -818,7 +819,7 @@ This is slightly less hazardous than for the Simplifier (see
 
 \item [$delrule$] deletes introduction or elimination rules from the context.
   Note that destruction rules would have to be turned into elimination rules
-  first, e.g.\ by using the $elimify$ attribute.
+  first, e.g.\ by using the $elimified$ attribute.
 \end{descr}
 
 
