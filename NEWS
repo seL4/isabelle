@@ -59,8 +59,9 @@ will be instantiated for other types and logics as well.
 tactical theorem proving; together with the ProofGeneral/isar user
 interface it offers an interactive environment for developing human
 readable proof documents (Isar == Intelligible semi-automated
-reasoning); see isatool doc isar-ref and
-http://isabelle.in.tum.de/Isar/ for more information;
+reasoning); actual document preparation based on (PDF)LaTeX is
+available as well; see isatool doc isar-ref, HOL/Isar_examples and
+http://isabelle.in.tum.de/Isar/ for more information.
 
 * native support for Proof General, both for classic Isabelle and
 Isabelle/Isar (the latter is slightly better supported and more
