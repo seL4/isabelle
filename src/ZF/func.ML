@@ -34,7 +34,7 @@ by (rtac (major RS CollectD1 RS PowD) 1);
 qed "fun_is_rel";
 
 goal thy "!!f. [| f: Pi(A,B);  a:A |] ==> EX! y. <a,y>: f";  
-by (fast_tac ((!claset) addSDs [Pi_iff_old RS iffD1]) 1);
+by (fast_tac (!claset addSDs [Pi_iff_old RS iffD1]) 1);
 qed "fun_unique_Pair";
 
 val prems = goalw thy [Pi_def]
@@ -94,7 +94,7 @@ qed "apply_0";
 
 goal thy "!!f. [| f: Pi(A,B);  c: f |] ==> EX x:A.  c = <x,f`x>";
 by (forward_tac [fun_is_rel] 1);
-by (fast_tac ((!claset) addDs [apply_equality]) 1);
+by (fast_tac (!claset addDs [apply_equality]) 1);
 qed "Pi_memberD";
 
 goal thy "!!f. [| f: Pi(A,B);  a:A |] ==> <a,f`a>: f";
@@ -117,8 +117,8 @@ qed "apply_funtype";
 val [major] = goal thy
     "f: Pi(A,B) ==> <a,b>: f <-> a:A & f`a = b";
 by (cut_facts_tac [major RS fun_is_rel] 1);
-by (fast_tac ((!claset) addSIs [major RS apply_Pair, 
-                            major RSN (2,apply_equality)]) 1);
+by (fast_tac (!claset addSIs [major RS apply_Pair, 
+			      major RSN (2,apply_equality)]) 1);
 qed "apply_iff";
 
 (*Refining one Pi type to another*)
@@ -126,7 +126,7 @@ val pi_prem::prems = goal thy
     "[| f: Pi(A,C);  !!x. x:A ==> f`x : B(x) |] ==> f : Pi(A,B)";
 by (cut_facts_tac [pi_prem] 1);
 by (asm_full_simp_tac (FOL_ss addsimps [Pi_iff]) 1);
-by (fast_tac ((!claset) addIs prems addSDs [pi_prem RS Pi_memberD]) 1);
+by (fast_tac (!claset addIs prems addSDs [pi_prem RS Pi_memberD]) 1);
 qed "Pi_type";
 
 
@@ -169,7 +169,7 @@ qed "lamD";
 
 val prems = goalw thy [lam_def, Pi_def, function_def]
     "[| !!x. x:A ==> b(x): B(x) |] ==> (lam x:A.b(x)) : Pi(A,B)";  
-by (fast_tac ((!claset) addIs prems) 1);
+by (fast_tac (!claset addIs prems) 1);
 qed "lam_type";
 
 goal thy "(lam x:A.b(x)) : A -> {b(x). x:A}";
@@ -259,7 +259,7 @@ qed "image_fun";
 
 goalw thy [restrict_def,lam_def]
     "!!f A. [| f: Pi(C,B);  A<=C |] ==> restrict(f,A) <= f";
-by (fast_tac ((!claset) addIs [apply_Pair]) 1);
+by (fast_tac (!claset addIs [apply_Pair]) 1);
 qed "restrict_subset";
 
 val prems = goalw thy [restrict_def]
@@ -310,7 +310,7 @@ goalw thy [function_def]
     "!!S. [| ALL x:S. function(x); \
 \            ALL x:S. ALL y:S. x<=y | y<=x  |] ==>  \
 \         function(Union(S))";
-by (fast_tac ((!claset) addSDs [bspec RS bspec]) 1);
+by (fast_tac (!claset addSDs [bspec RS bspec]) 1);
 qed "function_Union";
 
 goalw thy [Pi_def]
@@ -384,7 +384,7 @@ qed "fun_extend";
 
 goal thy
     "!!f A B. [| f: A->B;  c~:A;  b: B |] ==> cons(<c,b>,f) : cons(c,A) -> B";
-by (fast_tac ((!claset) addEs [fun_extend RS fun_weaken_type]) 1);
+by (fast_tac (!claset addEs [fun_extend RS fun_weaken_type]) 1);
 qed "fun_extend3";
 
 goal thy "!!f A B. [| f: A->B;  a:A;  c~:A |] ==> cons(<c,b>,f)`a = f`a";
@@ -406,10 +406,10 @@ Addsimps [singleton_apply];
 goal thy
     "!!c. c ~: A ==> cons(c,A) -> B = (UN f: A->B. UN b:B. {cons(<c,b>, f)})";
 by (rtac equalityI 1);
-by (safe_tac ((!claset) addSEs [fun_extend3]));
+by (safe_tac (!claset addSEs [fun_extend3]));
 (*Inclusion of left into right*)
 by (subgoal_tac "restrict(x, A) : A -> B" 1);
-by (fast_tac ((!claset) addEs [restrict_type2]) 2);
+by (fast_tac (!claset addEs [restrict_type2]) 2);
 by (rtac UN_I 1 THEN assume_tac 1);
 by (rtac (apply_funtype RS UN_I) 1 THEN REPEAT (ares_tac [consI1] 1));
 by (Simp_tac 1);
