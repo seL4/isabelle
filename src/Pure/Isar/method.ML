@@ -8,6 +8,7 @@ Proof methods.
 
 signature BASIC_METHOD =
 sig
+  val trace_rules: bool ref
   val print_methods: theory -> unit
   val Method: bstring -> (Args.src -> Proof.context -> Proof.method) -> string -> unit
 end;
@@ -15,6 +16,7 @@ end;
 signature METHOD =
 sig
   include BASIC_METHOD
+  val trace: thm list -> unit
   val print_global_rules: theory -> unit
   val print_local_rules: Proof.context -> unit
   val dest_global: theory attribute
@@ -121,6 +123,16 @@ end;
 
 structure Method: METHOD =
 struct
+
+
+(** tracing *)
+
+val trace_rules = ref false;
+
+fun trace rules =
+  if not (! trace_rules) then ()
+  else Pretty.writeln (Pretty.big_list "rules:" (map Display.pretty_thm rules));
+
 
 
 (** global and local rule data **)
@@ -323,7 +335,7 @@ fun gen_some_rule_tac tac arg_rules ctxt facts =
     if not (null arg_rules) then arg_rules
     else if null facts then #1 (LocalRules.get ctxt)
     else op @ (LocalRules.get ctxt);
-  in tac rules facts end;
+  in trace rules; tac rules facts end;
 
 fun meth tac x = METHOD (HEADGOAL o tac x);
 fun meth' tac x y = METHOD (HEADGOAL o tac x y);
