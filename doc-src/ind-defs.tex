@@ -136,7 +136,7 @@ recursive type package for the Cambridge \textsc{hol} system~\cite{melham89}.
 Such data structures are called \defn{datatypes}
 below, by analogy with datatype declarations in Standard~\textsc{ml}\@.
 Some logics take datatypes as primitive; consider Boyer and Moore's shell
-principle~\cite{bm79} and the Coq type theory~\cite{paulin92}.
+principle~\cite{bm79} and the Coq type theory~\cite{paulin-tlca}.
 
 A datatype is but one example of an \defn{inductive definition}.  This
 specifies the least set closed under given rules~\cite{aczel77}.  The
@@ -144,7 +144,7 @@ collection of theorems in a logic is inductively defined.  A structural
 operational semantics~\cite{hennessy90} is an inductive definition of a
 reduction or evaluation relation on programs.  A few theorem provers
 provide commands for formalizing inductive definitions; these include
-Coq~\cite{paulin92} and again the \textsc{hol} system~\cite{camilleri92}.
+Coq~\cite{paulin-tlca} and again the \textsc{hol} system~\cite{camilleri92}.
 
 The dual notion is that of a \defn{coinductive definition}.  This specifies
 the greatest set closed under given rules.  Important examples include
@@ -246,7 +246,7 @@ The definition may involve arbitrary parameters $\vec{p}=p_1$,
 \ldots,~$p_k$.  Each recursive set then has the form $R_i(\vec{p})$.  The
 parameters must be identical every time they occur within a definition.  This
 would appear to be a serious restriction compared with other systems such as
-Coq~\cite{paulin92}.  For instance, we cannot define the lists of
+Coq~\cite{paulin-tlca}.  For instance, we cannot define the lists of
 $n$ elements as the set $\listn(A,n)$ using rules where the parameter~$n$
 varies.  Section~\ref{listn-sec} describes how to express this set using the
 inductive definition package.
@@ -549,7 +549,7 @@ rule is {\tt Fin.induct}.
 
 \subsection{Lists of $n$ elements}\label{listn-sec}
 This has become a standard example of an inductive definition.  Following
-Paulin-Mohring~\cite{paulin92}, we could attempt to define a new datatype
+Paulin-Mohring~\cite{paulin-tlca}, we could attempt to define a new datatype
 $\listn(A,n)$, for lists of length~$n$, as an $n$-indexed family of sets.
 But her introduction rules
 \[ \hbox{\tt Niln}\in\listn(A,0)  \qquad
@@ -735,7 +735,7 @@ inductively defined to be the least set that contains $a$ if it contains
 all $\prec$-predecessors of~$a$, for $a\in D$.  Thus we need an
 introduction rule of the form 
 \[ \infer{a\in\acc(\prec)}{\forall y.y\prec a\imp y\in\acc(\prec)} \]
-Paulin-Mohring treats this example in Coq~\cite{paulin92}, but it causes
+Paulin-Mohring treats this example in Coq~\cite{paulin-tlca}, but it causes
 difficulties for other systems.  Its premise is not acceptable to the
 inductive definition package of the Cambridge \textsc{hol}
 system~\cite{camilleri92}.  It is also unacceptable to the Isabelle package
@@ -1212,7 +1212,7 @@ wellordering types) express datatype definitions, but the version underlying
 \textsc{alf} requires new rules for each definition~\cite{dybjer91}.  With Coq
 the situation is subtler still; its underlying Calculus of Constructions can
 express inductive definitions~\cite{huet88}, but cannot quite handle datatype
-definitions~\cite{paulin92}.  It seems that researchers tried hard to
+definitions~\cite{paulin-tlca}.  It seems that researchers tried hard to
 circumvent these problems before finally extending the Calculus with rule
 schemes for strictly positive operators.  Recently Gim{\'e}nez has extended
 the Calculus of Constructions with inductive and coinductive
@@ -1414,7 +1414,7 @@ inductive
   type_intrs {\it introduction rules for type-checking}
   type_elims {\it elimination rules for type-checking}
 \end{ttbox}
-A coinductive definition is identical save that it starts with the keyword
+A coinductive definition is identical, but starts with the keyword
 {\tt coinductive}.  
 
 The {\tt monos}, {\tt con\_defs}, {\tt type\_intrs} and {\tt type\_elims}
@@ -1549,8 +1549,8 @@ finitely-branching (co)datatype definition.
   $\quniv(A_1\un\cdots\un A_k)$ is used for a codatatype definition.
 
   These choices should work for all finitely-branching (co)datatype
-  definitions.  For examples of infinitely-branching datatype
-  definitions, see the file {\tt ZF/ex/Brouwer.thy}.
+  definitions.  For examples of infinitely-branching datatypes, 
+  see file {\tt ZF/ex/Brouwer.thy}.
 
 \item[\it datatype declaration] has the form
 \begin{quote}
