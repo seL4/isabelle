@@ -23,7 +23,7 @@ sig
 
   val add_codegen: string -> term codegen -> theory -> theory
   val add_tycodegen: string -> typ codegen -> theory -> theory
-  val add_attribute: string -> theory attribute -> theory -> theory
+  val add_attribute: string -> (Args.T list -> theory attribute * Args.T list) -> theory -> theory
   val print_codegens: theory -> unit
   val generate_code: theory -> (string * string) list -> string
   val generate_code_i: theory -> (string * term) list -> string
@@ -133,7 +133,7 @@ struct
      tycodegens : (string * typ codegen) list,
      consts : ((string * typ) * term mixfix list) list,
      types : (string * typ mixfix list) list,
-     attrs: (string * theory attribute) list,
+     attrs: (string * (Args.T list -> theory attribute * Args.T list)) list,
      test_params: test_params};
 
   val empty =
@@ -214,11 +214,11 @@ fun add_attribute name att thy =
     | Some _ => error ("Code attribute " ^ name ^ " already declared"))
   end;
 
+fun mk_parser (a, p) = (if a = "" then Scan.succeed "" else Args.$$$ a) |-- p;
+
 val code_attr =
-  Attrib.syntax (Scan.depend (fn thy => Scan.optional Args.name "" >>
-    (fn name => (thy, case assoc (#attrs (CodegenData.get thy), name) of
-          None => error ("Unknown code attribute: " ^ quote name)
-        | Some att => att)))); 
+  Attrib.syntax (Scan.depend (fn thy => foldr op || (map mk_parser
+    (#attrs (CodegenData.get thy)), Scan.fail) >> pair thy));
 
 
 (**** associate constants with target language code ****)
