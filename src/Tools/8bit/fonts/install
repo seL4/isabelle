@@ -1,5 +1,0 @@
-#!/bin/bash
-
-#NOTE: just a quick and dirty hack -- assumes correct isatool in PATH
-
-isatool installfonts
