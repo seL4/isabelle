@@ -1,8 +1,9 @@
 
 header {* \title{}\subsection{Example: The ordered ring of integers} *}
 
-theory Ring_and_Field_Example = Ring_and_Field:
+theory Ring_and_Field_Example = Main:
 
+text{*The Integers Form an Ordered Ring*}
 instance int :: ordered_ring
 proof
   fix i j k :: int
@@ -15,6 +16,7 @@ proof
   show "i * j = j * i" by simp
   show "1 * i = i" by simp
   show "(i + j) * k = i * k + j * k" by (simp add: int_distrib)
+  show "0 \<noteq> (1::int)" by simp
   show "i \<le> j ==> k + i \<le> k + j" by simp
   show "i < j ==> 0 < k ==> k * i < k * j" by (simp add: zmult_zless_mono2)
   show "\<bar>i\<bar> = (if i < 0 then -i else i)" by (simp only: zabs_def)

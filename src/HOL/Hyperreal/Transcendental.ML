@@ -28,10 +28,8 @@ by (rtac some_equality 1);
 by (forw_inst_tac [("n","n")] realpow_gt_zero 2);
 by (auto_tac (claset(),simpset() addsimps [real_0_less_mult_iff]));
 by (res_inst_tac [("R1.0","u"),("R2.0","x")] real_linear_less2 1);
-by (dres_inst_tac [("n3","n"),("x","u")] 
-    (zero_less_Suc RSN  (3,conjI RSN (2,conjI RS realpow_less))) 1);
-by (dres_inst_tac [("n3","n"),("x","x")] 
-     (zero_less_Suc RSN (3,conjI RSN (2,conjI RS realpow_less))) 4);
+by (dres_inst_tac [("n1","n"),("x","u")] (zero_less_Suc RSN  (3, realpow_less)) 1);
+by (dres_inst_tac [("n1","n"),("x","x")] (zero_less_Suc RSN (3, realpow_less)) 4);
 by (auto_tac (claset(),simpset() addsimps [real_less_not_refl])); 
 qed "real_root_pos";
 

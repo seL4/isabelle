@@ -1,7 +1,7 @@
-(*  Title:      HOL/Library/Ring_and_Field.thy
-    ID:         $Id$
-    Author:     Gertrud Bauer and Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
+(*  Title:   HOL/Ring_and_Field.thy
+    ID:      $Id$
+    Author:  Gertrud Bauer and Markus Wenzel, TU Muenchen
+    License: GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {*
@@ -9,32 +9,38 @@ header {*
   \author{Gertrud Bauer and Markus Wenzel}
 *}
 
-theory Ring_and_Field = Main:
+theory Ring_and_Field = Inductive:
+
+text{*Lemmas and extension to semirings by L. C. Paulson*}
 
 subsection {* Abstract algebraic structures *}
 
-axclass ring \<subseteq> zero, one, plus, minus, times
+axclass semiring \<subseteq> zero, one, plus, times
   add_assoc: "(a + b) + c = a + (b + c)"
   add_commute: "a + b = b + a"
   left_zero [simp]: "0 + a = a"
-  left_minus [simp]: "- a + a = 0"
-  diff_minus: "a - b = a + (-b)"
 
   mult_assoc: "(a * b) * c = a * (b * c)"
   mult_commute: "a * b = b * a"
   left_one [simp]: "1 * a = a"
 
   left_distrib: "(a + b) * c = a * c + b * c"
+  zero_neq_one [simp]: "0 \<noteq> 1"
 
-axclass ordered_ring \<subseteq> ring, linorder
+axclass ring \<subseteq> semiring, minus
+  left_minus [simp]: "- a + a = 0"
+  diff_minus: "a - b = a + (-b)"
+
+axclass ordered_semiring \<subseteq> semiring, linorder
   add_left_mono: "a \<le> b ==> c + a \<le> c + b"
   mult_strict_left_mono: "a < b ==> 0 < c ==> c * a < c * b"
+
+axclass ordered_ring \<subseteq> ordered_semiring, ring
   abs_if: "\<bar>a\<bar> = (if a < 0 then -a else a)"
 
 axclass field \<subseteq> ring, inverse
   left_inverse [simp]: "a \<noteq> 0 ==> inverse a * a = 1"
   divide_inverse:      "b \<noteq> 0 ==> a / b = a * inverse b"
-  zero_neq_one [simp]: "0 \<noteq> 1"
 
 axclass ordered_field \<subseteq> ordered_ring, field
 
@@ -43,31 +49,30 @@ axclass division_by_zero \<subseteq> zero, inverse
   divide_zero: "a / 0 = 0"
 
 
-
 subsection {* Derived rules for addition *}
 
-lemma right_zero [simp]: "a + 0 = (a::'a::ring)"
+lemma right_zero [simp]: "a + 0 = (a::'a::semiring)"
 proof -
   have "a + 0 = 0 + a" by (simp only: add_commute)
   also have "... = a" by simp
   finally show ?thesis .
 qed
 
-lemma add_left_commute: "a + (b + c) = b + (a + (c::'a::ring))"
+lemma add_left_commute: "a + (b + c) = b + (a + (c::'a::semiring))"
   by (rule mk_left_commute [of "op +", OF add_assoc add_commute])
 
-theorems ring_add_ac = add_assoc add_commute add_left_commute
+theorems add_ac = add_assoc add_commute add_left_commute
 
 lemma right_minus [simp]: "a + -(a::'a::ring) = 0"
 proof -
-  have "a + -a = -a + a" by (simp add: ring_add_ac)
+  have "a + -a = -a + a" by (simp add: add_ac)
   also have "... = 0" by simp
   finally show ?thesis .
 qed
 
 lemma right_minus_eq: "(a - b = 0) = (a = (b::'a::ring))"
 proof
-  have "a = a - b + b" by (simp add: diff_minus ring_add_ac)
+  have "a = a - b + b" by (simp add: diff_minus add_ac)
   also assume "a - b = 0"
   finally show "a = b" by simp
 next
@@ -130,21 +135,21 @@ by (subst neg_equal_iff_equal [symmetric], simp)
 
 subsection {* Derived rules for multiplication *}
 
-lemma right_one [simp]: "a = a * (1::'a::field)"
+lemma right_one [simp]: "a = a * (1::'a::semiring)"
 proof -
   have "a = 1 * a" by simp
   also have "... = a * 1" by (simp add: mult_commute)
   finally show ?thesis .
 qed
 
-lemma mult_left_commute: "a * (b * c) = b * (a * (c::'a::ring))"
+lemma mult_left_commute: "a * (b * c) = b * (a * (c::'a::semiring))"
   by (rule mk_left_commute [of "op *", OF mult_assoc mult_commute])
 
-theorems ring_mult_ac = mult_assoc mult_commute mult_left_commute
+theorems mult_ac = mult_assoc mult_commute mult_left_commute
 
 lemma right_inverse [simp]: "a \<noteq> 0 ==>  a * inverse (a::'a::field) = 1"
 proof -
-  have "a * inverse a = inverse a * a" by (simp add: ring_mult_ac)
+  have "a * inverse a = inverse a * a" by (simp add: mult_ac)
   also assume "a \<noteq> 0"
   hence "inverse a * a = 1" by simp
   finally show ?thesis .
@@ -154,7 +159,7 @@ lemma right_inverse_eq: "b \<noteq> 0 ==> (a / b = 1) = (a = (b::'a::field))"
 proof
   assume neq: "b \<noteq> 0"
   {
-    hence "a = (a / b) * b" by (simp add: divide_inverse ring_mult_ac)
+    hence "a = (a / b) * b" by (simp add: divide_inverse mult_ac)
     also assume "a / b = 1"
     finally show "a = b" by simp
   next
@@ -166,26 +171,24 @@ qed
 lemma divide_self [simp]: "a \<noteq> 0 ==> a / (a::'a::field) = 1"
   by (simp add: divide_inverse)
 
-lemma mult_left_zero [simp]:
-     "0 * a = (0::'a::ring)"
+lemma mult_left_zero [simp]: "0 * a = (0::'a::ring)"
 proof -
   have "0*a + 0*a = 0*a + 0"
     by (simp add: left_distrib [symmetric])
   then show ?thesis by (simp only: add_left_cancel)
 qed
 
-lemma mult_right_zero [simp]:
-     "a * 0 = (0::'a::ring)"
+lemma mult_right_zero [simp]: "a * 0 = (0::'a::ring)"
   by (simp add: mult_commute)
 
 
 subsection {* Distribution rules *}
 
-lemma right_distrib: "a * (b + c) = a * b + a * (c::'a::ring)"
+lemma right_distrib: "a * (b + c) = a * b + a * (c::'a::semiring)"
 proof -
-  have "a * (b + c) = (b + c) * a" by (simp add: ring_mult_ac)
+  have "a * (b + c) = (b + c) * a" by (simp add: mult_ac)
   also have "... = b * a + c * a" by (simp only: left_distrib)
-  also have "... = a * b + a * c" by (simp add: ring_mult_ac)
+  also have "... = a * b + a * c" by (simp add: mult_ac)
   finally show ?thesis .
 qed
 
@@ -193,7 +196,7 @@ theorems ring_distrib = right_distrib left_distrib
 
 lemma minus_add_distrib [simp]: "- (a + b) = -a + -(b::'a::ring)"
 apply (rule equals_zero_I)
-apply (simp add: ring_add_ac) 
+apply (simp add: add_ac) 
 done
 
 lemma minus_mult_left: "- (a * b) = (-a) * (b::'a::ring)"
@@ -213,13 +216,13 @@ by (simp add: right_distrib diff_minus
 
 subsection {* Ordering rules *}
 
-lemma add_right_mono: "a \<le> (b::'a::ordered_ring) ==> a + c \<le> b + c"
+lemma add_right_mono: "a \<le> (b::'a::ordered_semiring) ==> a + c \<le> b + c"
 by (simp add: add_commute [of _ c] add_left_mono)
 
-lemma le_imp_neg_le: "a \<le> (b::'a::ordered_ring) ==> -b \<le> -a"
+lemma le_imp_neg_le:
+   assumes "a \<le> (b::'a::ordered_ring)" shows "-b \<le> -a"
   proof -
-  assume "a\<le>b"
-  then have "-a+a \<le> -a+b"
+  have "-a+a \<le> -a+b"
     by (rule add_left_mono) 
   then have "0 \<le> -a+b"
     by simp
@@ -258,13 +261,15 @@ lemma neg_0_less_iff_less [simp]: "(0 < -a) = (a < (0::'a::ordered_ring))"
 by (subst neg_less_iff_less [symmetric], simp)
 
 lemma mult_strict_right_mono:
-     "[|a < b; 0 < c|] ==> a * c < b * (c::'a::ordered_ring)"
+     "[|a < b; 0 < c|] ==> a * c < b * (c::'a::ordered_semiring)"
 by (simp add: mult_commute [of _ c] mult_strict_left_mono)
 
-lemma mult_left_mono: "[|a \<le> b; 0 < c|] ==> c * a \<le> c * (b::'a::ordered_ring)"
+lemma mult_left_mono:
+     "[|a \<le> b; 0 < c|] ==> c * a \<le> c * (b::'a::ordered_semiring)"
 by (force simp add: mult_strict_left_mono order_le_less) 
 
-lemma mult_right_mono: "[|a \<le> b; 0 < c|] ==> a*c \<le> b * (c::'a::ordered_ring)"
+lemma mult_right_mono:
+     "[|a \<le> b; 0 < c|] ==> a*c \<le> b * (c::'a::ordered_semiring)"
 by (force simp add: mult_strict_right_mono order_le_less) 
 
 lemma mult_strict_left_mono_neg:
@@ -323,7 +328,8 @@ done
 
 lemma zero_le_mult_iff:
      "((0::'a::ordered_ring) \<le> a*b) = (0 \<le> a & 0 \<le> b | a \<le> 0 & b \<le> 0)"
-by (auto simp add: order_le_less linorder_not_less zero_less_mult_iff)
+by (auto simp add: eq_commute [of 0] order_le_less linorder_not_less
+                   zero_less_mult_iff)
 
 lemma mult_less_0_iff:
      "(a*b < (0::'a::ordered_ring)) = (0 < a & b < 0 | a < 0 & 0 < b)"
@@ -339,6 +345,11 @@ done
 
 lemma zero_le_square: "(0::'a::ordered_ring) \<le> a*a"
 by (simp add: zero_le_mult_iff linorder_linear) 
+
+lemma zero_less_one: "(0::'a::ordered_ring) < 1"
+apply (insert zero_le_square [of 1]) 
+apply (simp add: order_less_le) 
+done
 
 
 subsection {* Absolute Value *}
@@ -366,11 +377,6 @@ by (simp add: abs_if linorder_neq_iff)
 
 
 subsection {* Fields *}
-
-lemma zero_less_one: "(0::'a::ordered_field) < 1"
-apply (insert zero_le_square [of 1]) 
-apply (simp add: order_less_le) 
-done
 
 
 end

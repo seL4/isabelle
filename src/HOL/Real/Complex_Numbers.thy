@@ -8,29 +8,6 @@ header {* Complex numbers *}
 
 theory Complex_Numbers = RealPow + Ring_and_Field:
 
-subsection {* The field of real numbers *}  (* FIXME move *)
-
-instance real :: field
-  by intro_classes (simp_all add: real_add_mult_distrib real_divide_def)
-
-lemma real_power_two: "(r::real)\<twosuperior> = r * r"
-  by (simp add: numeral_2_eq_2)
-
-lemma real_sqr_ge_zero [iff]: "0 \<le> (r::real)\<twosuperior>"
-  by (simp add: real_power_two)
-
-lemma real_sqr_gt_zero: "(r::real) \<noteq> 0 ==> 0 < r\<twosuperior>"
-proof -
-  assume "r \<noteq> 0"
-  hence "0 \<noteq> r\<twosuperior>" by simp
-  also have "0 \<le> r\<twosuperior>" by (simp add: real_sqr_ge_zero)
-  finally show ?thesis .
-qed
-
-lemma real_sqr_not_zero: "r \<noteq> 0 ==> (r::real)\<twosuperior> \<noteq> 0"
-  by simp
-
-
 subsection {* Representation of complex numbers *}
 
 datatype complex = Complex real real
@@ -121,7 +98,7 @@ proof
   show "z - w = z + -w"
     by (simp add: add_complex_def minus_complex_def uminus_complex_def)
   show "(u * v) * w = u * (v * w)"
-    by (simp add: mult_complex_def ring_mult_ac ring_distrib real_diff_def)  (* FIXME *)
+    by (simp add: mult_complex_def mult_ac ring_distrib real_diff_def)  (* FIXME *)
   show "z * w = w * z"
     by (simp add: mult_complex_def)
   show "1 * z = z"

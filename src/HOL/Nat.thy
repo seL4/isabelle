@@ -8,7 +8,7 @@ and * (for div, mod and dvd, see theory Divides).
 
 header {* Natural numbers *}
 
-theory Nat = Wellfounded_Recursion:
+theory Nat = Wellfounded_Recursion + Ring_and_Field:
 
 subsection {* Type @{text ind} *}
 
@@ -584,6 +584,7 @@ lemma Least_Suc2: "[|P n; Q m; ~P 0; !k. P (Suc k) = Q k|] ==> Least P = Suc (Le
   done
 
 
+
 subsection {* @{term min} and @{term max} *}
 
 lemma min_0L [simp]: "min 0 n = (0::nat)"
@@ -833,6 +834,30 @@ lemma mult_is_0 [simp]: "((m::nat) * n = 0) = (m=0 | n=0)"
   apply (induct_tac [2] n, simp_all)
   done
 
+text {* strict, in 1st argument; proof is by induction on @{text "k > 0"} *}
+lemma mult_less_mono2: "(i::nat) < j ==> 0 < k ==> k * i < k * j"
+  apply (erule_tac m1 = 0 in less_imp_Suc_add [THEN exE], simp)
+  apply (induct_tac x)
+  apply (simp_all add: add_less_mono)
+  done
+
+text{*The Naturals Form an Ordered Semiring*}
+instance nat :: ordered_semiring
+proof
+  fix i j k :: nat
+  show "(i + j) + k = i + (j + k)" by (rule add_assoc)
+  show "i + j = j + i" by (rule add_commute)
+  show "0 + i = i" by simp
+  show "(i * j) * k = i * (j * k)" by (rule mult_assoc)
+  show "i * j = j * i" by (rule mult_commute)
+  show "1 * i = i" by simp
+  show "(i + j) * k = i * k + j * k" by (simp add: add_mult_distrib)
+  show "0 \<noteq> (1::nat)" by simp
+  show "i \<le> j ==> k + i \<le> k + j" by simp
+  show "i < j ==> 0 < k ==> k * i < k * j" by (simp add: mult_less_mono2)
+qed
+
+
 
 subsection {* Difference *}
 
@@ -964,13 +989,6 @@ lemma mult_le_mono: "i <= (j::nat) ==> k <= l ==> i * k <= j * l"
   apply (erule mult_le_mono2)
   done
 
-text {* strict, in 1st argument; proof is by induction on @{text "k > 0"} *}
-lemma mult_less_mono2: "(i::nat) < j ==> 0 < k ==> k * i < k * j"
-  apply (erule_tac m1 = 0 in less_imp_Suc_add [THEN exE], simp)
-  apply (induct_tac x)
-  apply (simp_all add: add_less_mono)
-  done
-
 lemma mult_less_mono1: "(i::nat) < j ==> 0 < k ==> i * k < j * k"
   by (drule mult_less_mono2) (simp_all add: mult_commute)
 
@@ -1040,5 +1058,6 @@ lemma mult_eq_self_implies_10: "(m::nat) = m * n ==> n = 1 | m = 0"
   apply (fastsimp elim!: less_SucE)
   apply (fastsimp dest: mult_less_mono2)
   done
+
 
 end

@@ -35,14 +35,12 @@ by (ALLGOALS Simp_tac);
 by (ALLGOALS(rtac ccontr));
 by (ALLGOALS(dtac not_real_leE));
 by (dtac realpow_ge_self2 1 THEN assume_tac 1);
-by (dres_inst_tac [("n","n")] (conjI 
-    RSN (2,conjI RS realpow_less)) 1);
+by (dres_inst_tac [("n","n")] realpow_less 1);
 by (REPEAT(assume_tac 1));
 by (dtac real_le_trans 1 THEN assume_tac 1);
 by (dres_inst_tac [("y","y ^ n")] order_less_le_trans 1);
 by (assume_tac 1 THEN etac real_less_irrefl 1);
-by (dres_inst_tac [("n","n")] ((real_zero_less_one) RS (conjI 
-    RSN (2,conjI RS realpow_less))) 1);
+by (dres_inst_tac [("n","n")] ((real_zero_less_one) RS realpow_less) 1);
 by (Auto_tac);
 qed "lemma_nth_realpow_isUb_ex";
 
@@ -164,8 +162,8 @@ Goal "[| (0::real) < a; 0 < n |] ==> EX! r. 0 < r & r ^ n = a";
 by (auto_tac (claset() addSIs [realpow_pos_nth],simpset()));
 by (cut_inst_tac [("R1.0","r"),("R2.0","y")] real_linear 1);
 by (Auto_tac);
-by (dres_inst_tac [("x","r")] (conjI RS realpow_less) 1);
-by (dres_inst_tac [("x","y")] (conjI RS realpow_less) 3);
+by (dres_inst_tac [("x","r")] realpow_less 1);
+by (dres_inst_tac [("x","y")] realpow_less 4);
 by (auto_tac (claset(),simpset() addsimps [real_less_not_refl]));
 qed "realpow_pos_nth_unique";
 

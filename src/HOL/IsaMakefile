@@ -96,7 +96,8 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   Nat.thy NatArith.ML NatArith.thy Numeral.thy \
   Power.ML Power.thy PreList.thy Product_Type.ML Product_Type.thy ROOT.ML \
   Recdef.thy Record.thy Relation.ML Relation.thy Relation_Power.ML \
-  Relation_Power.thy Set.ML Set.thy SetInterval.ML SetInterval.thy \
+  Relation_Power.thy Ring_and_Field.thy\
+  Set.ML Set.thy SetInterval.ML SetInterval.thy \
   Sum_Type.ML Sum_Type.thy Tools/datatype_abs_proofs.ML Tools/datatype_aux.ML \
   Tools/datatype_codegen.ML Tools/datatype_package.ML Tools/datatype_prop.ML \
   Tools/datatype_realizer.ML Tools/datatype_rep_proofs.ML \
@@ -144,7 +145,7 @@ $(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML\
   Real/RealArith0.ML Real/RealArith0.thy Real/real_arith0.ML \
   Real/RealArith.thy Real/real_arith.ML Real/RealBin.ML \
   Real/RealBin.thy Real/RealDef.ML Real/RealDef.thy Real/RealInt.ML \
-  Real/RealInt.thy Real/RealOrd.ML Real/RealOrd.thy Real/RealPow.ML \
+  Real/RealInt.thy Real/RealOrd.thy \
   Real/RealPow.thy Real/document/root.tex Real/real_arith.ML\
   Hyperreal/EvenOdd.ML Hyperreal/EvenOdd.thy Hyperreal/ExtraThms2.ML\
   Hyperreal/ExtraThms2.thy Hyperreal/Fact.ML Hyperreal/Fact.thy\
@@ -198,8 +199,7 @@ HOL-Library: HOL $(LOG)/HOL-Library.gz
 $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/Accessible_Part.thy \
   Library/FuncSet.thy Library/Library.thy \
   Library/List_Prefix.thy Library/Multiset.thy Library/NatPair.thy \
-  Library/Permutation.thy Library/Primes.thy \
-  Library/Quotient.thy Library/Ring_and_Field.thy \
+  Library/Permutation.thy Library/Primes.thy Library/Quotient.thy \
   Library/Ring_and_Field_Example.thy Library/Nat_Infinity.thy \
   Library/README.html Library/Continuity.thy \
   Library/Nested_Environment.thy Library/Rational_Numbers.thy \

@@ -44,7 +44,7 @@ lemma order_le_prod [iff]:
   "order(Product.le rA rB) = (order rA & order rB)"
 apply (unfold order_def)
 apply simp
-apply blast
+apply meson
 done 
 
 

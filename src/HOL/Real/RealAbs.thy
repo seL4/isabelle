@@ -5,10 +5,4 @@
     Description : Absolute value function for the reals
 *) 
 
-RealAbs = RealArith +
-
-
-defs
-  real_abs_def "abs r == (if (0::real) <= r then r else -r)"
-
-end
+RealAbs = RealArith
