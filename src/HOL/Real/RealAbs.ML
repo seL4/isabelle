@@ -13,7 +13,7 @@ Goalw [abs_real_def]
 \       (if neg (number_of v) then number_of (bin_minus v) \
 \        else number_of v)";
 by (simp_tac
-    (simpset_of Int.thy addsimps
+    (simpset () addsimps
       bin_arith_simps@
       [minus_real_number_of, zero_eq_numeral_0, le_real_number_of_eq_not_less,
        less_real_number_of, real_of_int_le_iff]) 1);
@@ -26,7 +26,6 @@ Goalw [abs_real_def]
 by(auto_tac (claset(), simpset() addsimps [zero_eq_numeral_0]));
 qed "abs_split";
 
-arith_tac_split_thms := !arith_tac_split_thms @ [abs_split];
 
 (*----------------------------------------------------------------------------
        Properties of the absolute value function over the reals
@@ -94,8 +93,8 @@ qed "abs_mult";
 Goalw [abs_real_def] "x~= (#0::real) ==> abs(rinv(x)) = rinv(abs(x))";
 by (auto_tac (claset(), 
               simpset() addsimps [real_le_less] @ 
-	    (map (rename_numerals thy) [real_minus_rinv, real_rinv_gt_zero])));
-by (etac (rename_numerals thy (real_rinv_less_zero RSN (2,real_less_asym))) 1);
+	    (map rename_numerals [real_minus_rinv, real_rinv_gt_zero])));
+by (etac (rename_numerals (real_rinv_less_zero RSN (2,real_less_asym))) 1);
 by (arith_tac 1);
 qed "abs_rinv";
 
@@ -138,7 +137,7 @@ by (Simp_tac 1);
 qed "real_mult_0_less";
 
 Goal "[| (#0::real)<y; x<r; y*r<t*s |] ==> y*x<t*s";
-by (blast_tac (claset() addSIs [rename_numerals thy real_mult_less_mono2] 
+by (blast_tac (claset() addSIs [rename_numerals real_mult_less_mono2] 
                         addIs  [real_less_trans]) 1);
 qed "real_mult_less_trans";
 
@@ -153,7 +152,7 @@ by (simp_tac (simpset() addsimps [abs_mult]) 1);
 by (rtac real_mult_le_less_trans 1);
 by (rtac abs_ge_zero 1);
 by (assume_tac 1);
-by (rtac (rename_numerals thy real_mult_order) 2);
+by (rtac (rename_numerals real_mult_order) 2);
 by (auto_tac (claset() addSIs [real_mult_less_mono1,
     abs_ge_zero] addIs [real_le_less_trans],simpset()));
 qed "abs_mult_less";
@@ -168,7 +167,7 @@ by (cut_inst_tac [("x1","y")] (abs_ge_zero RS real_le_imp_less_or_eq) 1);
 by (EVERY1[etac disjE,rtac real_less_imp_le]);
 by (dres_inst_tac [("W","#1")]  real_less_sum_gt_zero 1);
 by (forw_inst_tac [("y","abs x + (-#1)")] 
-    (rename_numerals thy real_mult_order) 1);
+    (rename_numerals real_mult_order) 1);
 by (rtac real_sum_gt_zero_less 2);
 by (asm_full_simp_tac (simpset() 
     addsimps [real_add_mult_distrib2,
@@ -237,7 +236,7 @@ Addsimps [abs_le_zero_iff];
 
 Goal "abs (real_of_nat x) = real_of_nat x";
 by (auto_tac (claset() addIs [abs_eqI1],simpset()
-    addsimps [rename_numerals thy real_of_nat_ge_zero]));
+    addsimps [rename_numerals real_of_nat_ge_zero]));
 qed "abs_real_of_nat_cancel";
 Addsimps [abs_real_of_nat_cancel];
 
