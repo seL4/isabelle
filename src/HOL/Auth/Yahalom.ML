@@ -492,9 +492,8 @@ by (ALLGOALS
 	                 [analz_insert_eq, analz_insert_freshK])));
 (*Prove YM3 by showing that no NB can also be an NA*)
 by (blast_tac (claset() addDs [Says_imp_knows_Spy RS parts.Inj]
-	                addSEs [MPair_parts]
-		        addDs  [no_nonce_YM1_YM2, Gets_imp_Says,
-				Says_unique_NB]) 4);
+	                addSEs [no_nonce_YM1_YM2, MPair_parts]
+		        addDs  [Gets_imp_Says, Says_unique_NB]) 4);
 (*YM2: similar freshness reasoning*) 
 by (blast_tac (claset() addSEs partsEs
 		        addDs  [Gets_imp_Says,
@@ -527,9 +526,9 @@ by (blast_tac (claset() addDs [Says_unique_NB]) 1);
 (*case NB ~= NBa*)
 by (asm_simp_tac (simpset() addsimps [single_Nonce_secrecy]) 1);
 by (Clarify_tac 1);
-by (blast_tac (claset() addSEs [MPair_parts]
-		        addDs  [Says_imp_knows_Spy RS parts.Inj, 
-			        no_nonce_YM1_YM2 (*to prove NB~=NAa*) ]) 1);
+by (blast_tac (claset() addSEs [MPair_parts, no_nonce_YM1_YM2]
+                                             (*to prove NB~=NAa*)
+		        addDs  [Says_imp_knows_Spy RS parts.Inj]) 1);
 bind_thm ("Spy_not_see_NB", result() RSN(2,rev_mp) RSN(2,rev_mp));
 
 

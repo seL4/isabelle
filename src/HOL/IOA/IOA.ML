@@ -8,8 +8,6 @@ The I/O automata of Lynch and Tuttle.
 
 Addsimps [Let_def];
 
-open IOA Asig;
-
 val ioa_projections = [asig_of_def, starts_of_def, trans_of_def];
 
 val exec_rws = [executions_def,is_execution_fragment_def];
@@ -65,13 +63,8 @@ Goalw (reachable_def::exec_rws)
    by (Simp_tac 1);
   by (Asm_full_simp_tac 1);
   by (rtac allI 1);
-  by (res_inst_tac [("m","na"),("n","n")] (make_elim less_linear) 1);
-  by (etac disjE 1);
-   by (asm_simp_tac (simpset() addsimps [less_Suc_eq]) 1);
-  by (etac disjE 1);
-   by (Asm_simp_tac 1);
-  by (ftac less_not_sym 1);
-  by (asm_simp_tac (simpset() addsimps [less_not_refl2,less_Suc_eq]) 1);
+  by (cut_inst_tac [("m","na"),("n","n")] less_linear 1);
+  by Auto_tac;
 qed "reachable_n";
 
 val [p1,p2] = goalw IOA.thy [invariant_def]
@@ -94,7 +87,7 @@ qed "invariantI";
 
 val [p1,p2] = goal IOA.thy
  "[| !!s. s : starts_of(A) ==> P(s); \
-\   !!s t a. reachable A s ==> P(s) --> (s,a,t):trans_of(A) --> P(t) \
+\    !!s t a. reachable A s ==> P(s) --> (s,a,t):trans_of(A) --> P(t) \
 \ |] ==> invariant A P";
   by (fast_tac (claset() addSIs [invariantI] addSDs [p1,p2]) 1);
 qed "invariantI1";
@@ -137,8 +130,9 @@ Goal
 \  (if a:actions(asig_of(D)) then                                            \
 \     (snd(snd(snd(s))),a,snd(snd(snd(t)))):trans_of(D)                      \
 \   else snd(snd(snd(t)))=snd(snd(snd(s)))))";
-  by (simp_tac (simpset() addsimps ([par_def,actions_asig_comp,Pair_fst_snd_eq]@
-                            ioa_projections)) 1);
+  (*SLOW*)
+  by (simp_tac (simpset() addsimps ([par_def,actions_asig_comp,Pair_fst_snd_eq]
+                                    @ ioa_projections)) 1);
 qed "trans_of_par4";
 
 Goal "starts_of(restrict ioa acts) = starts_of(ioa) &     \

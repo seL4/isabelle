@@ -48,7 +48,7 @@ qed "";
 
 (*** A unique fixpoint theorem --- fast/best/meson all fail ***)
 
-Goal "?!x. f(g(x))=x ==> ?!y. g(f(y))=y";
+Goal "EX! x. f(g(x))=x ==> EX! y. g(f(y))=y";
 by (EVERY1[etac ex1E, rtac ex1I, etac arg_cong,
           rtac subst, atac, etac allE, rtac arg_cong, etac mp, etac arg_cong]);
 qed "";
@@ -56,13 +56,13 @@ qed "";
 
 (*** Cantor's Theorem: There is no surjection from a set to its powerset. ***)
 
-Goal "~ (? f:: 'a=>'a set. ! S. ? x. f(x) = S)";
+Goal "~ (EX f:: 'a=>'a set. ALL S. EX x. f(x) = S)";
 (*requires best-first search because it is undirectional*)
 by (best_tac (claset() addSEs [equalityCE]) 1);
 qed "cantor1";
 
 (*This form displays the diagonal term*)
-Goal "! f:: 'a=>'a set. ! x. f(x) ~= ?S(f)";
+Goal "ALL f:: 'a=>'a set. ALL x. f(x) ~= ?S(f)";
 by (best_tac (claset() addSEs [equalityCE]) 1);
 uresult();
 
@@ -97,19 +97,18 @@ Goalw [inj_on_def]
 \        h = (%z. if z:X then f(z) else g(z)) |]       \
 \     ==> inj(h) & surj(h)";
 by (asm_simp_tac (simpset() addsimps [surj_if_then_else]) 1);
-   (*PROOF FAILED if inj_onD*)
-by (blast_tac (claset() addDs [disj_lemma, sym RSN (2,disj_lemma)]) 1);
+by (blast_tac (claset() addDs [disj_lemma, sym]) 1);
 qed "bij_if_then_else";
 
-Goal "? X. X = - (g``(- (f``X)))";
+Goal "EX X. X = - (g``(- (f``X)))";
 by (rtac exI 1);
 by (rtac lfp_Tarski 1);
 by (REPEAT (ares_tac [monoI, image_mono, Compl_anti_mono] 1));
 qed "decomposition";
 
 val [injf,injg] = goal (the_context ())
-   "[| inj (f:: 'a=>'b);  inj (g:: 'b=>'a) |] ==> \
-\   ? h:: 'a=>'b. inj(h) & surj(h)";
+   "[| inj (f:: 'a=>'b);  inj (g:: 'b=>'a) |] \
+\   ==> EX h:: 'a=>'b. inj(h) & surj(h)";
 by (rtac (decomposition RS exE) 1);
 by (rtac exI 1);
 by (rtac bij_if_then_else 1);
