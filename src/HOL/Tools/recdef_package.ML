@@ -24,10 +24,10 @@ sig
   val cong_del_local: Proof.context attribute
   val wf_add_local: Proof.context attribute
   val wf_del_local: Proof.context attribute
-  val add_recdef: xstring -> string -> ((bstring * string) * Args.src list) list ->
+  val add_recdef: bool -> xstring -> string -> ((bstring * string) * Args.src list) list ->
     Args.src option -> theory -> theory
       * {simps: thm list, rules: thm list list, induct: thm, tcs: term list}
-  val add_recdef_i: xstring -> term -> ((bstring * term) * theory attribute list) list ->
+  val add_recdef_i: bool -> xstring -> term -> ((bstring * term) * theory attribute list) list ->
     theory -> theory * {simps: thm list, rules: thm list list, induct: thm, tcs: term list}
   val add_recdef_old: xstring -> string -> ((bstring * string) * Args.src list) list ->
     simpset * thm list -> theory ->
@@ -228,7 +228,7 @@ fun prepare_hints_i thy () =
 
 fun requires_recdef thy = Theory.requires thy "Recdef" "recursive functions";
 
-fun gen_add_recdef tfl_fn prep_att prep_hints raw_name R eq_srcs hints thy =
+fun gen_add_recdef tfl_fn prep_att prep_hints strict raw_name R eq_srcs hints thy =
   let
     val _ = requires_recdef thy;
 
@@ -240,7 +240,7 @@ fun gen_add_recdef tfl_fn prep_att prep_hints raw_name R eq_srcs hints thy =
     val eq_atts = map (map (prep_att thy)) raw_eq_atts;
 
     val (cs, ss, congs, wfs) = prep_hints thy hints;
-    val (thy, {rules = rules_idx, induct, tcs}) = tfl_fn thy cs ss congs wfs name R eqs;
+    val (thy, {rules = rules_idx, induct, tcs}) = tfl_fn strict thy cs ss congs wfs name R eqs;
     val rules = map (map #1) (Library.partition_eq Library.eq_snd rules_idx);
     val simp_att = if null tcs then [Simplifier.simp_add_global] else [];
 
@@ -258,7 +258,7 @@ fun gen_add_recdef tfl_fn prep_att prep_hints raw_name R eq_srcs hints thy =
   in (thy, result) end;
 
 val add_recdef = gen_add_recdef Tfl.define Attrib.global_attribute prepare_hints;
-fun add_recdef_i x y z = gen_add_recdef Tfl.define_i (K I) prepare_hints_i x y z ();
+fun add_recdef_i x y z w = gen_add_recdef Tfl.define_i (K I) prepare_hints_i x y z w ();
 
 
 (* add_recdef_old -- legacy interface *)
@@ -267,7 +267,7 @@ fun prepare_hints_old thy (ss, thms) =
   let val {simps, congs, wfs} = get_global_hints thy
   in (Classical.claset_of thy, ss addsimps simps, map #2 (add_congs thms congs), wfs) end;
 
-val add_recdef_old = gen_add_recdef Tfl.define Attrib.global_attribute prepare_hints_old;
+val add_recdef_old = gen_add_recdef Tfl.define Attrib.global_attribute prepare_hints_old false;
 
 
 
@@ -339,9 +339,10 @@ val hints =
   P.$$$ "(" |-- P.!!! (P.position (P.$$$ "hints" -- P.arguments) --| P.$$$ ")") >> Args.src;
 
 val recdef_decl =
+  Scan.optional (P.$$$ "(" -- P.!!! (P.$$$ "permissive" -- P.$$$ ")") >> K false) true --
   P.name -- P.term -- Scan.repeat1 (P.opt_thm_name ":" -- P.prop --| P.marg_comment)
     -- Scan.option hints
-  >> (fn (((f, R), eqs), src) => #1 o add_recdef f R (map P.triple_swap eqs) src);
+  >> (fn ((((p, f), R), eqs), src) => #1 o add_recdef p f R (map P.triple_swap eqs) src);
 
 val recdefP =
   OuterSyntax.command "recdef" "define general recursive functions (TFL)" K.thy_decl
@@ -369,7 +370,7 @@ val recdef_tcP =
     (recdef_tc_decl >> (Toplevel.print oo (Toplevel.theory_to_proof o mk_recdef_tc)));
 
 
-val _ = OuterSyntax.add_keywords ["congs", "hints"];
+val _ = OuterSyntax.add_keywords ["permissive", "congs", "hints"];
 val _ = OuterSyntax.add_parsers [recdefP, defer_recdefP, recdef_tcP];
 
 end;
