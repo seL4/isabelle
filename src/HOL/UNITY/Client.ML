@@ -89,7 +89,7 @@ qed "ok_guar_rel_prefix_giv";
 Goal "Cli_prg Join G   \
 \       : transient {s. size (giv s) = Suc k &  \
 \                       size (rel s) = k & ask s ! k <= giv s ! k}";
-by (res_inst_tac [("act", "rel_act")] transient_mem 1);
+by (res_inst_tac [("act", "rel_act")] transientI 1);
 by (auto_tac (claset(),
 	      simpset() addsimps [Domain_def, Cli_prg_def]));
 qed "transient_lemma";

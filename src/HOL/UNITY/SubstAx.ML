@@ -424,7 +424,7 @@ fun ensures_tac sact =
 				    ensuresI] 1),
 	      (*now there are two subgoals: co & transient*)
 	      simp_tac (simpset() addsimps !program_defs_ref) 2,
-	      res_inst_tac [("act", sact)] transient_mem 2,
+	      res_inst_tac [("act", sact)] transientI 2,
                  (*simplify the command's domain*)
 	      simp_tac (simpset() addsimps [Domain_def]) 3,
 	      constrains_tac 1,

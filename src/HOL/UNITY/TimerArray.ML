@@ -33,6 +33,6 @@ by (rename_tac "n" 1);
 by (rtac PLam_leadsTo_Basis 1);
 by (auto_tac (claset(), simpset() addsimps [lessThan_Suc RS sym]));
 by (constrains_tac 1);
-by (res_inst_tac [("act", "decr")] transient_mem 1);
+by (res_inst_tac [("act", "decr")] transientI 1);
 by (auto_tac (claset(), simpset() addsimps [Timer_def]));
 qed "TimerArray_leadsTo_zero";

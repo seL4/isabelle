@@ -10,7 +10,7 @@ CONSIDER CHANGING "sum" to work on type "int", not "nat"
   --but need invariants that values are non-negative
 *)
 
-Alloc = Follows + Project + PPROD +
+Alloc = Follows + PPROD +
 
 (*Duplicated from HOL/ex/NatSum.thy.
   Maybe type should be  [nat=>int, nat] => int**)
@@ -84,7 +84,7 @@ constdefs
 	 Increasing giv
 	 guarantees
 	 (INT h. {s. h <= giv s & h pfixGe ask s}
-		 LeadsTo
+		 LeadsTo[givenBy (funPair rel ask)]
 		 {s. tokens h <= (tokens o rel) s})"
 
   client_spec :: clientState program set

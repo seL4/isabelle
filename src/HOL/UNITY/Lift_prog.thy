@@ -6,7 +6,7 @@
 lift_prog, etc: replication of components
 *)
 
-Lift_prog = Project +
+Lift_prog = ELT +
 
 constdefs
 

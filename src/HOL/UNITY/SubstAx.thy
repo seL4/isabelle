@@ -8,10 +8,8 @@ Weak LeadsTo relation (restricted to the set of reachable states)
 
 SubstAx = WFair + Constrains + 
 
-consts
-   LeadsTo :: "['a set, 'a set] => 'a program set"       (infixl 60)
+constdefs
+   LeadsTo :: "['a set, 'a set] => 'a program set"            (infixl 60)
+    "A LeadsTo B == {F. F : (reachable F Int A) leadsTo B}"
 
-defs
-   LeadsTo_def
-    "A LeadsTo B == {F. F : (reachable F Int A) leadsTo  B}"
 end

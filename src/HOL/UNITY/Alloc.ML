@@ -397,17 +397,21 @@ qed "System_Increasing_giv";
 
 (*Lemma (?).  A LOT of work just to lift "Client_Progress" to the array*)
 Goal "lift_prog i Client \
-\  : Increasing (giv o sub i) Int (sub i LocalTo (lift_prog i Client)) \
-\    guarantees \
-\    (INT h. {s. h <=  (giv o sub i) s & \
-\                       h pfixGe (ask o sub i) s}  \
-\            LeadsTo {s. tokens h <= (tokens o rel o sub i) s})";
+\        :  Increasing (giv o sub i) Int \
+\           ((funPair rel ask o sub i) LocalTo (lift_prog i Client)) \
+\          guarantees \
+\          (INT h. {s. h <=  (giv o sub i) s & \
+\                             h pfixGe (ask o sub i) s}  \
+\                  LeadsTo[givenBy (funPair rel ask o sub i)] \
+\                  {s. tokens h <= (tokens o rel o sub i) s})";
 by (rtac (Client_Progress RS drop_prog_guarantees) 1);
-by (rtac (lift_export extending_LeadsTo RS extending_weaken RS
+by (rtac (lift_export extending_LeadsETo RS extending_weaken RS
 	  extending_INT) 2);
 by (rtac subset_refl 4);
-by (simp_tac (simpset()addsimps [lift_export Collect_eq_extend_set RS sym]) 3);
-by (force_tac (claset(), simpset() addsimps [sub_def, lift_prog_correct]) 2);
+by (simp_tac (simpset() addsimps [lift_export Collect_eq_extend_set RS sym,
+				  sub_def]) 3);
+by (force_tac (claset(), 
+	       simpset() addsimps [sub_def, lift_prog_correct]) 2);
 by (rtac (lift_export projecting_Increasing RS projecting_weaken) 1);
 by (auto_tac (claset(), simpset() addsimps [o_def]));
 qed "Client_i_Progress";
@@ -415,15 +419,123 @@ qed "Client_i_Progress";
 (*needed??*)
 Goalw [PLam_def]
      "(plam x:lessThan Nclients. Client) \
-\  : (INT i : lessThan Nclients. \
-\          Increasing (giv o sub i) Int (sub i LocalTo (lift_prog i Client))) \
-\    guarantees \
-\    (INT i : lessThan Nclients. \
-\         INT h. {s. h <=  (giv o sub i) s & \
-\                       h pfixGe (ask o sub i) s}  \
-\            LeadsTo {s. tokens h <= (tokens o rel o sub i) s})";
-br guarantees_JN_INT 1;
-br Client_i_Progress 1;
+\        : (INT i : lessThan Nclients. \
+\             Increasing (giv o sub i) Int \
+\             ((funPair rel ask o sub i) LocalTo (lift_prog i Client))) \
+\          guarantees \
+\          (INT i : lessThan Nclients. \
+\               INT h. {s. h <=  (giv o sub i) s & \
+\                             h pfixGe (ask o sub i) s}  \
+\                  LeadsTo[givenBy (funPair rel ask o sub i)] \
+\                    {s. tokens h <= (tokens o rel o sub i) s})";
+by (rtac guarantees_JN_INT 1);
+by (rtac Client_i_Progress 1);
 qed "PLam_Client_Progress";
 
 (*progress (2), step 7*)
+
+
+
+       [| ALL i:lessThan Nclients.
+             G : (sub i o client) LocalTo
+                 extend sysOfClient (lift_prog i Client) |]
+       ==> G : client LocalTo
+               extend sysOfClient (plam i:lessThan Nclients. Client)
+
+   
+   
+   
+   [| ALL i: I.
+	 G : (sub i o client) LocalTo
+	     extend sysOfClient (lift_prog i Client) |]
+   ==> G : client LocalTo
+	   extend sysOfClient (plam x: I. Client)
+
+
+Goalw [LOCALTO_def, Diff_def, stable_def, constrains_def]
+     "[| ALL i. G : (sub i o v) localTo[C] F |] ==> G : v localTo[C] F";
+by Auto_tac;
+by (case_tac "Restrict C x: Restrict C `` Acts F" 1);
+by (blast_tac (claset() addSEs [equalityE]) 1);
+by (rtac ext 1);
+by (blast_tac (claset() addSDs [bspec]) 1);
+qed "all_sub_localTo";
+
+
+
+ G : (sub i o client) LocalTo extend sysOfClient (plam x: I. Client)
+
+
+xxxxxxxxxxxxxxxx;
+
+THIS PROOF requires an extra locality specification for Network:
+    Network : rel o sub i o client localTo[C] 
+                     extend sysOfClient (lift_prog i Client)
+and similarly for ask o sub i o client.
+
+
+
+Goalw [System_def]
+ "System : (INT i : lessThan Nclients. \
+\         INT h. {s. h <= (giv o sub i o client) s & \
+\                         h pfixGe (ask o sub i o client) s}  \
+\                LeadsTo[givenBy (funPair rel ask o sub i o client)] \
+\                  {s. tokens h <= (tokens o rel o sub i o client) s})";
+by (rtac (guarantees_Join_I2 RS guaranteesD) 1);
+by (rtac (PLam_Client_Progress RS project_guarantees) 1);
+br extending_INT 2;
+by (rtac (client_export extending_LeadsETo RS extending_weaken RS extending_INT) 2);
+by (rtac subset_refl 4);
+by (simp_tac (simpset()addsimps [client_export Collect_eq_extend_set RS sym]) 3);
+by (fast_tac (claset() addIs [projecting_Int, projecting_INT,
+			      client_export projecting_Increasing,
+			      component_PLam,
+			      client_export projecting_LocalTo]) 1);
+auto();
+
+be INT_lower 2;
+
+br projecting_INT 1;
+br projecting_Int 1;
+
+(*The next step goes wrong: it makes an impossible localTo subgoal*)
+(*blast_tac doesn't use HO unification*)
+by (fast_tac (claset() addIs [projecting_Int, projecting_INT,
+			      client_export projecting_Increasing,
+			      component_PLam,
+			      client_export projecting_LocalTo]) 1);
+by (Clarify_tac 2);
+by (asm_simp_tac
+    (simpset() addsimps [rewrite_rule [System_def] System_Increasing_giv,
+			 LocalTo_def, Join_localTo,
+			 sysOfClient_in_client_localTo_xl_Client,
+			 sysOfAlloc_in_client_localTo_xl_Client 
+			  RS localTo_imp_o_localTo,
+			 self_localTo]) 2);
+by Auto_tac;
+
+
+
+OLD PROOF;
+by (rtac (guarantees_Join_I2 RS guaranteesD) 1);
+by (rtac (guarantees_PLam_I RS project_guarantees) 1);
+by (rtac Client_i_Progress 1);
+by (Force_tac 1);
+by (rtac (client_export extending_LeadsTo RS extending_weaken RS extending_INT) 2);
+by (rtac subset_refl 4);
+by (simp_tac (simpset()addsimps [client_export Collect_eq_extend_set RS sym]) 3);
+(*The next step goes wrong: it makes an impossible localTo subgoal*)
+(*blast_tac doesn't use HO unification*)
+by (fast_tac (claset() addIs [projecting_Int,
+			      client_export projecting_Increasing,
+			      component_PLam,
+			      client_export projecting_LocalTo]) 1);
+by (asm_simp_tac
+    (simpset() addsimps [rewrite_rule [System_def] System_Increasing_giv,
+			 LocalTo_def, Join_localTo,
+			 sysOfClient_in_client_localTo_xl_Client,
+			 sysOfAlloc_in_client_localTo_xl_Client]) 2);
+by Auto_tac;
+
+
+

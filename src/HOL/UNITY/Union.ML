@@ -338,6 +338,11 @@ Goalw [LOCALTO_def, stable_def, constrains_def]
 by (Force_tac 1);
 qed "localTo_imp_o_localTo";
 
+Goal "G : v LocalTo F ==> G : (f o v) LocalTo F";
+by (asm_full_simp_tac
+    (simpset() addsimps [LocalTo_def, localTo_imp_o_localTo]) 1);
+qed "LocalTo_imp_o_LocalTo";
+
 (*NOT USED*)
 Goalw [LOCALTO_def, stable_def, constrains_def]
      "(%s. x) localTo[C] F = UNIV";
@@ -366,12 +371,17 @@ by (simp_tac (simpset() addsimps [self_Join_localTo, LocalTo_def,
 				  Join_left_absorb]) 1);
 qed "self_Join_LocalTo";
 
+Goalw [LOCALTO_def]
+     "[| G : v localTo[C] F;  F<=F' |] ==> G : v localTo[C] F'";
+by (Force_tac 1);
+qed "localTo_imp_o_localTo";
+
 
 
 (*** Higher-level rules involving localTo and Join ***)
 
-Goal "[| F : {s. P (v s)} co {s. P' (v s)};  G : v localTo[C] F |]  \
-\     ==> G : C Int {s. P (v s)} co {s. P' (v s)}";
+Goal "[| F : {s. P (v s)} co B;  G : v localTo[C] F |]  \
+\     ==> G : C Int {s. P (v s)} co B";
 by (ftac constrains_imp_subset 1);
 by (auto_tac (claset(), 
 	      simpset() addsimps [LOCALTO_def, stable_def, constrains_def,
@@ -392,12 +402,11 @@ Goalw [LOCALTO_def, stable_def, constrains_def, Diff_def]
 by (Blast_tac 1);
 qed "localTo_pairfun";
 
-Goal "[| F : {s. P (v s) (w s)} co {s. P' (v s) (w s)};   \
+Goal "[| F : {s. P (v s) (w s)} co B;   \
 \        G : v localTo[C] F;       \
 \        G : w localTo[C] F |]               \
-\     ==> G : C Int {s. P (v s) (w s)} co {s. P' (v s) (w s)}";
-by (res_inst_tac [("A", "C Int {s. (%(x,y). P x y) (v s, w s)}"),
-		  ("A'", "{s. (%(x,y). P' x y) (v s, w s)}")] 
+\     ==> G : C Int {s. P (v s) (w s)} co B";
+by (res_inst_tac [("A", "C Int {s. (%(x,y). P x y) (v s, w s)}")] 
     constrains_weaken 1);
 by (rtac (localTo_pairfun RSN (2, constrains_localTo_constrains)) 1);
 by Auto_tac;

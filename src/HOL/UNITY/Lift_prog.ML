@@ -49,7 +49,7 @@ qed "Init_lift_prog";
 Addsimps [Init_lift_prog];
 
 Goalw [lift_prog_def] "Acts (lift_prog i F) = lift_act i `` Acts F";
-by (auto_tac (claset() addIs [Id_in_Acts RSN (2,image_eqI)], simpset()));
+by (auto_tac (claset() addIs [rev_image_eqI], simpset()));
 qed "Acts_lift_prog";
 Addsimps [Acts_lift_prog];
 
@@ -59,7 +59,7 @@ qed "Init_drop_prog";
 Addsimps [Init_drop_prog];
 
 Goal "Acts (drop_prog i C F) = insert Id (drop_act i `` Restrict C `` Acts F)";
-by (auto_tac (claset() addIs [Id_in_Acts RSN (2,image_eqI)], 
+by (auto_tac (claset() addIs [image_eqI], 
 	      simpset() addsimps [drop_prog_def]));
 qed "Acts_drop_prog";
 Addsimps [Acts_drop_prog];
@@ -390,6 +390,18 @@ qed "lift_prog_transient_eq_disj";
 
 
 (*** guarantees properties ***)
+
+(*The raw version*)
+val [xguary,drop_prog,lift_prog] =
+Goal "[| F : X guarantees Y;  \
+\        !!G. lift_prog i F Join G : X' ==> F Join proj G i G : X;  \
+\        !!G. [| F Join proj G i G : Y; lift_prog i F Join G : X' |] \
+\             ==> lift_prog i F Join G : Y' |] \
+\     ==> lift_prog i F : X' guarantees Y'";
+by (rtac (xguary RS guaranteesD RS lift_prog RS guaranteesI) 1);
+by (etac drop_prog 1);
+by (assume_tac 1);
+qed "drop_prog_guarantees_raw";
 
 Goal "[| F : X guarantees Y;  \
 \        projecting C (lift_map i) F X' X;  \

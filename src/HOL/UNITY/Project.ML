@@ -12,7 +12,8 @@ Open_locale "Extend";
 
 (** projection: monotonicity for safety **)
 
-Goal "D <= C ==> project_act h (Restrict D act) <= project_act h (Restrict C act)";
+Goal "D <= C ==> \
+\     project_act h (Restrict D act) <= project_act h (Restrict C act)";
 by (auto_tac (claset(), simpset() addsimps [project_act_def]));
 qed "project_act_mono";
 
@@ -589,7 +590,7 @@ Goal "[| project h C G : transient (A-B) --> F : transient (A-B);  \
 \        F Join project h C G : A ensures B |] \
 \     ==> extend h F Join G : (C Int extend_set h A) ensures (extend_set h B)";
 by (auto_tac (claset() addDs [extend_transient RS iffD2] 
-                       addIs [transient_strengthen, 
+                       addIs [transient_strengthen, project_set_I,
 			      project_unless RS unlessD, unlessI, 
 			      project_extend_constrains_I], 
 	      simpset() addsimps [ensures_def, Join_constrains,
@@ -608,7 +609,7 @@ Goal "[| ALL D. project h C G : transient D --> F : transient D;  \
 by (etac leadsTo_induct 1);
 by (asm_simp_tac (simpset() delsimps UN_simps
 		  addsimps [Int_UN_distrib, leadsTo_UN, extend_set_Union]) 3);
-by (blast_tac (claset() addIs [psp_stable RS leadsTo_weaken, 
+by (blast_tac (claset() addIs [psp_stable2 RS leadsTo_weaken_L, 
 			       leadsTo_Trans]) 2);
 by (blast_tac (claset() addIs [leadsTo_Basis, Join_project_ensures]) 1);
 val lemma = result();
@@ -673,7 +674,7 @@ Goal "[| F : X guarantees Y;  \
 by (rtac (xguary RS guaranteesD RS extend RS guaranteesI) 1);
 by (etac project 1);
 by (assume_tac 1);
-qed "project_guarantees_lemma";
+qed "project_guarantees_raw";
 
 Goal "[| F : X guarantees Y;  \
 \        projecting C h F X' X;  extending C h F X' Y' Y |] \

@@ -399,6 +399,11 @@ by (auto_tac (claset(),
 by (Force_tac 1);
 qed "extend_constrains_project_set";
 
+Goal "extend h F : stable A ==> F : stable (project_set h A)";
+by (asm_full_simp_tac
+    (simpset() addsimps [stable_def, extend_constrains_project_set]) 1);
+qed "extend_stable_project_set";
+
 
 (*** Diff, needed for localTo ***)
 

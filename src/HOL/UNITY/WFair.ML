@@ -29,7 +29,16 @@ qed "transient_strengthen";
 Goalw [transient_def]
     "[| act: Acts F;  A <= Domain act;  act^^A <= -A |] ==> F : transient A";
 by (Blast_tac 1);
-qed "transient_mem";
+qed "transientI";
+
+val major::prems = 
+Goalw [transient_def]
+    "[| F : transient A;  \
+\       !!act. [| act: Acts F;  A <= Domain act;  act^^A <= -A |] ==> P |] \
+\    ==> P";
+by (rtac (major RS CollectD RS bexE) 1);
+by (blast_tac (claset() addIs prems) 1);
+qed "transientE";
 
 Goalw [transient_def] "transient UNIV = {}";
 by Auto_tac;
@@ -53,27 +62,24 @@ Goalw [ensures_def]
 by (Blast_tac 1);
 qed "ensuresD";
 
-(*The L-version (precondition strengthening) doesn't hold for ENSURES*)
 Goalw [ensures_def]
     "[| F : A ensures A'; A'<=B' |] ==> F : A ensures B'";
 by (blast_tac (claset() addIs [constrains_weaken, transient_strengthen]) 1);
 qed "ensures_weaken_R";
 
-Goalw [ensures_def, constrains_def, transient_def]
-    "F : A ensures UNIV";
-by Auto_tac;
-qed "ensures_UNIV";
-
+(*The L-version (precondition strengthening) fails, but we have this*)
 Goalw [ensures_def]
-    "[| F : stable C; \
-\       F : (C Int (A - A')) co (A Un A'); \
-\       F : transient (C Int (A-A')) |]   \
-\   ==> F : (C Int A) ensures (C Int A')";
-by (asm_simp_tac (simpset() addsimps [Int_Un_distrib RS sym,
-				      Diff_Int_distrib RS sym,
-				      stable_constrains_Int]) 1);
+    "[| F : stable C;  F : A ensures B |]   \
+\   ==> F : (C Int A) ensures (C Int B)";
+by (auto_tac (claset(),
+	      simpset() addsimps [ensures_def,
+				  Int_Un_distrib RS sym,
+				  Diff_Int_distrib RS sym]));
+by (blast_tac (claset() addIs [transient_strengthen]) 2);
+by (blast_tac (claset() addIs [stable_constrains_Int, constrains_weaken]) 1);
 qed "stable_ensures_Int";
 
+(*NEVER USED*)
 Goal "[| F : stable A;  F : transient C;  A <= B Un C |] ==> F : A ensures B";
 by (asm_full_simp_tac (simpset() addsimps [ensures_def, stable_def]) 1);
 by (blast_tac (claset() addIs [constrains_weaken, transient_strengthen]) 1);
@@ -95,11 +101,6 @@ Goal "F : transient A ==> F : A leadsTo (-A)";
 by (asm_simp_tac 
     (simpset() addsimps [leadsTo_Basis, ensuresI, Compl_partition]) 1);
 qed "transient_imp_leadsTo";
-
-Goal "F : A leadsTo UNIV";
-by (blast_tac (claset() addIs [ensures_UNIV RS leadsTo_Basis]) 1);
-qed "leadsTo_UNIV";
-Addsimps [leadsTo_UNIV];
 
 (*Useful with cancellation, disjunction*)
 Goal "F : A leadsTo (A' Un A') ==> F : A leadsTo A'";
@@ -164,6 +165,9 @@ bind_thm ("subset_imp_leadsTo", subset_imp_ensures RS leadsTo_Basis);
 bind_thm ("empty_leadsTo", empty_subsetI RS subset_imp_leadsTo);
 Addsimps [empty_leadsTo];
 
+bind_thm ("leadsTo_UNIV", subset_UNIV RS subset_imp_leadsTo);
+Addsimps [leadsTo_UNIV];
+
 
 Goal "[| F : A leadsTo A'; A'<=B' |] ==> F : A leadsTo B'";
 by (blast_tac (claset() addIs [subset_imp_leadsTo, leadsTo_Trans]) 1);
@@ -209,22 +213,6 @@ by (simp_tac (HOL_ss addsimps [Union_image_eq RS sym]) 1);
 by (blast_tac (claset() addIs [leadsTo_Union, leadsTo_weaken_R] 
                         addIs prems) 1);
 qed "leadsTo_UN_UN";
-
-
-(*Version with no index set*)
-val prems = goal thy
-   "(!! i. F : (A i) leadsTo (A' i)) \
-\   ==> F : (UN i. A i) leadsTo (UN i. A' i)";
-by (blast_tac (claset() addIs [leadsTo_UN_UN] 
-                        addIs prems) 1);
-qed "leadsTo_UN_UN_noindex";
-
-(*Version with no index set*)
-Goal "ALL i. F : (A i) leadsTo (A' i) \
-\   ==> F : (UN i. A i) leadsTo (UN i. A' i)";
-by (blast_tac (claset() addIs [leadsTo_UN_UN]) 1);
-qed "all_leadsTo_UN_UN";
-
 
 (*Binary union version*)
 Goal "[| F : A leadsTo A'; F : B leadsTo B' |] \
