@@ -591,7 +591,7 @@ occurrences of~$y$, since parameters are bound variables.
 Let us contrast a proof of the theorem $\forall x.\exists y.x=y$ with an
 attempted proof of the non-theorem $\exists y.\forall x.x=y$.  The former
 proof succeeds, and the latter fails, because of the scope of quantified
-variables~\cite{paulson89}.  Unification helps even in these trivial
+variables~\cite{paulson-found}.  Unification helps even in these trivial
 proofs. In $\forall x.\exists y.x=y$ the $y$ that `exists' is simply $x$,
 but we need never say so. This choice is forced by the reflexive law for
 equality, and happens automatically.
@@ -668,7 +668,7 @@ by (resolve_tac [refl] 1);
 \end{ttbox}
 There can be no proof of $\exists y.\forall x.x=y$ by the soundness of
 first-order logic.  I have elsewhere proved the faithfulness of Isabelle's
-encoding of first-order logic~\cite{paulson89}; there could, of course, be
+encoding of first-order logic~\cite{paulson-found}; there could, of course, be
 faults in the implementation.
 
 

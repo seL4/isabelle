@@ -264,7 +264,7 @@ being summed may belong to any arithmetic type.
 \index{meta-equality|bold}
 
 Object-logics are formalized by extending Isabelle's
-meta-logic~\cite{paulson89}, which is intuitionistic higher-order logic.
+meta-logic~\cite{paulson-found}, which is intuitionistic higher-order logic.
 The meta-level connectives are {\bf implication}, the {\bf universal
   quantifier}, and {\bf equality}.
 \begin{itemize}
@@ -367,7 +367,7 @@ $$ \bot \Imp P.   \eqno(\bot E) $$
 
 \begin{warn}
 Earlier versions of Isabelle, and certain
-papers~\cite{paulson89,paulson700}, use $\List{P}$ to mean $Trueprop(P)$.
+papers~\cite{paulson-found,paulson700}, use $\List{P}$ to mean $Trueprop(P)$.
 \end{warn}
 
 \subsection{Quantifier rules and substitution}
@@ -477,7 +477,7 @@ session.
 
 \section{Proof construction in Isabelle}
 I have elsewhere described the meta-logic and demonstrated it by
-formalizing first-order logic~\cite{paulson89}.  There is a one-to-one
+formalizing first-order logic~\cite{paulson-found}.  There is a one-to-one
 correspondence between meta-level proofs and object-level proofs.  To each
 use of a meta-level axiom, such as $(\forall I)$, there is a use of the
 corresponding object-level rule.  Object-level assumptions and parameters
@@ -759,7 +759,7 @@ resolvent expresses the derived rule
 \[ \vcenter{ \infer{\forall x\,y.Q(x,y)}{Q(x,y)} }
    \quad\hbox{provided $x$, $y$ not free in the assumptions} 
 \] 
-I discuss lifting and parameters at length elsewhere~\cite{paulson89}.
+I discuss lifting and parameters at length elsewhere~\cite{paulson-found}.
 Miller goes into even greater detail~\cite{miller-mixed}.
 
 
@@ -843,7 +843,7 @@ for each $s$ and~$j$ such that $s$ unifies $\lambda x@1 \ldots x@l. \theta@j$
 with $\lambda x@1 \ldots x@l. \theta$.  Isabelle supplies the parameters
 $x@1$,~\ldots,~$x@l$ to higher-order unification as bound variables, which
 regards them as unique constants with a limited scope --- this enforces
-parameter provisos~\cite{paulson89}.
+parameter provisos~\cite{paulson-found}.
 
 The premise represents a proof state with~$n$ subgoals, of which the~$i$th
 is to be solved by assumption.  Isabelle searches the subgoal's context for

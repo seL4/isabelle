@@ -14,8 +14,7 @@ M.~J.~C. Gordon and T.~F. Melham.
 \bibitem{mgordon79}
 Michael J.~C. Gordon, Robin Milner, and Christopher~P. Wadsworth.
 \newblock {\em Edinburgh {LCF}: A Mechanised Logic of Computation}.
-\newblock Springer, 1979.
-\newblock LNCS 78.
+\newblock LNCS 78. Springer, 1979.
 
 \bibitem{haskell-tutorial}
 Paul Hudak and Joseph~H. Fasel.
@@ -49,7 +48,7 @@ Bengt {Nordstr\"om}, Kent Petersson, and Jan Smith.
 \newblock {\em Programming in {Martin-L\"of}'s Type Theory. An Introduction}.
 \newblock Oxford University Press, 1990.
 
-\bibitem{paulson86}
+\bibitem{paulson-natural}
 Lawrence~C. Paulson.
 \newblock Natural deduction as higher-order resolution.
 \newblock {\em Journal of Logic Programming}, 3:237--258, 1986.
@@ -59,7 +58,7 @@ Lawrence~C. Paulson.
 \newblock {\em Logic and Computation: Interactive proof with Cambridge LCF}.
 \newblock Cambridge University Press, 1987.
 
-\bibitem{paulson89}
+\bibitem{paulson-found}
 Lawrence~C. Paulson.
 \newblock The foundation of a generic theorem prover.
 \newblock {\em Journal of Automated Reasoning}, 5(3):363--397, 1989.
