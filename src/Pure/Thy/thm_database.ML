@@ -64,6 +64,7 @@ fun is_ml_identifier name =
 
 fun warn_ml name =
   if is_ml_identifier name then false
+  else if name = "" then true
   else (warning ("Cannot bind theorem(s) " ^ quote name ^ " as ML value"); true);
 
 fun ml_store_thm (name, thm) =
