@@ -71,21 +71,25 @@ shift $(($OPTIND - 1))
 
 if [ $# -eq 1 ]; then
   LOGIC="$ISABELLE_LOGIC"
-  NAME="$1"; shift
+  DIR_NAME="$1"; shift
 elif [ $# -eq 2 ]; then
   LOGIC="$1"; shift
-  NAME="$1"; shift
+  DIR_NAME="$1"; shift
 else
   usage
 fi
 
-[ -z "$SESSION" ] && SESSION=$(basename $NAME)
-
+DIR=$(dirname "$DIR_NAME")
+NAME=$(basename "$DIR_NAME")
 
 
 ## main
 
 # IsaMakefile
+
+mkdir -p "$DIR" || fail "Bad directory: $DIR"
+cd "$DIR"
+
 
 DOCUMENT_ROOT=""
 
