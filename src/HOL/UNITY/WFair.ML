@@ -325,6 +325,8 @@ qed "PSP_unless";
 
 (*** Proving the induction rules ***)
 
+(** The most general rule: r is any wf relation; f is any variant function **)
+
 Goal "[| wf r;     \
 \        ALL m. leadsTo acts (A Int f-``{m})                     \
 \                            ((A Int f-``(r^-1 ^^ {m})) Un B);   \
@@ -355,7 +357,7 @@ qed "leadsTo_wf_induct";
 
 Goal "[| wf r;     \
 \        ALL m:I. leadsTo acts (A Int f-``{m})                   \
-\                            ((A Int f-``(r^-1 ^^ {m})) Un B);   \
+\                              ((A Int f-``(r^-1 ^^ {m})) Un B);   \
 \        id: acts |] \
 \     ==> leadsTo acts A ((A - (f-``I)) Un B)";
 by (etac leadsTo_wf_induct 1);

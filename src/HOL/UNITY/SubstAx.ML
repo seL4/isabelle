@@ -144,7 +144,7 @@ qed "LeadsTo_weaken";
 (*Set difference: maybe combine with leadsTo_weaken_L??
   This is the most useful form of the "disjunction" rule*)
 Goal "[| LeadsTo prg (A-B) C; LeadsTo prg B C; id: (Acts prg) |] \
-\       ==> LeadsTo prg A C";
+\     ==> LeadsTo prg A C";
 by (blast_tac (claset() addIs [LeadsTo_Un, LeadsTo_weaken]) 1);
 qed "LeadsTo_Diff";
 
@@ -162,23 +162,23 @@ qed "LeadsTo_UN_UN";
 
 
 (*Version with no index set*)
-val prems = goal thy
-   "(!! i. LeadsTo prg (A i) (A' i)) \
-\   ==> LeadsTo prg (UN i. A i) (UN i. A' i)";
+val prems = 
+Goal "(!! i. LeadsTo prg (A i) (A' i)) \
+\     ==> LeadsTo prg (UN i. A i) (UN i. A' i)";
 by (blast_tac (claset() addIs [LeadsTo_UN_UN] 
                         addIs prems) 1);
 qed "LeadsTo_UN_UN_noindex";
 
 (*Version with no index set*)
 Goal "ALL i. LeadsTo prg (A i) (A' i) \
-\           ==> LeadsTo prg (UN i. A i) (UN i. A' i)";
+\     ==> LeadsTo prg (UN i. A i) (UN i. A' i)";
 by (blast_tac (claset() addIs [LeadsTo_UN_UN]) 1);
 qed "all_LeadsTo_UN_UN";
 
 
 (*Binary union version*)
 Goal "[| LeadsTo prg A A'; LeadsTo prg B B' |] \
-\                 ==> LeadsTo prg (A Un B) (A' Un B')";
+\           ==> LeadsTo prg (A Un B) (A' Un B')";
 by (blast_tac (claset() addIs [LeadsTo_Un, 
 			       LeadsTo_weaken_R]) 1);
 qed "LeadsTo_Un_Un";
@@ -187,27 +187,27 @@ qed "LeadsTo_Un_Un";
 (** The cancellation law **)
 
 Goal "[| LeadsTo prg A (A' Un B); LeadsTo prg B B'; \
-\              id: (Acts prg) |]    \
-\           ==> LeadsTo prg A (A' Un B')";
+\        id: (Acts prg) |]    \
+\     ==> LeadsTo prg A (A' Un B')";
 by (blast_tac (claset() addIs [LeadsTo_Un_Un, 
 			       subset_imp_LeadsTo, LeadsTo_Trans]) 1);
 qed "LeadsTo_cancel2";
 
 Goal "[| LeadsTo prg A (A' Un B); LeadsTo prg (B-A') B'; id: (Acts prg) |] \
-\           ==> LeadsTo prg A (A' Un B')";
+\     ==> LeadsTo prg A (A' Un B')";
 by (rtac LeadsTo_cancel2 1);
 by (assume_tac 2);
 by (ALLGOALS Asm_simp_tac);
 qed "LeadsTo_cancel_Diff2";
 
 Goal "[| LeadsTo prg A (B Un A'); LeadsTo prg B B'; id: (Acts prg) |] \
-\           ==> LeadsTo prg A (B' Un A')";
+\     ==> LeadsTo prg A (B' Un A')";
 by (asm_full_simp_tac (simpset() addsimps [Un_commute]) 1);
 by (blast_tac (claset() addSIs [LeadsTo_cancel2]) 1);
 qed "LeadsTo_cancel1";
 
 Goal "[| LeadsTo prg A (B Un A'); LeadsTo prg (B-A') B'; id: (Acts prg) |] \
-\           ==> LeadsTo prg A (B' Un A')";
+\     ==> LeadsTo prg A (B' Un A')";
 by (rtac LeadsTo_cancel1 1);
 by (assume_tac 2);
 by (ALLGOALS Asm_simp_tac);
@@ -227,19 +227,19 @@ qed "LeadsTo_empty";
 
 (*Special case of PSP: Misra's "stable conjunction".  Doesn't need id:Acts. *)
 Goal "[| LeadsTo prg A A'; stable (Acts prg) B |] \
-\           ==> LeadsTo prg (A Int B) (A' Int B)";
+\     ==> LeadsTo prg (A Int B) (A' Int B)";
 by (asm_full_simp_tac (simpset() addsimps [LeadsTo_def, Int_assoc RS sym, 
 					   PSP_stable]) 1);
 qed "R_PSP_stable";
 
 Goal "[| LeadsTo prg A A'; stable (Acts prg) B |] \
-\             ==> LeadsTo prg (B Int A) (B Int A')";
+\       ==> LeadsTo prg (B Int A) (B Int A')";
 by (asm_simp_tac (simpset() addsimps (R_PSP_stable::Int_ac)) 1);
 qed "R_PSP_stable2";
 
 
 Goal "[| LeadsTo prg A A'; constrains (Acts prg) B B'; id: (Acts prg) |] \
-\           ==> LeadsTo prg (A Int B) ((A' Int B) Un (B' - B))";
+\     ==> LeadsTo prg (A Int B) ((A' Int B) Un (B' - B))";
 by (full_simp_tac (simpset() addsimps [LeadsTo_def]) 1);
 by (dtac PSP 1);
 by (etac constrains_reachable 1);
@@ -248,13 +248,13 @@ by (ALLGOALS Blast_tac);
 qed "R_PSP";
 
 Goal "[| LeadsTo prg A A'; constrains (Acts prg) B B'; id: (Acts prg) |] \
-\           ==> LeadsTo prg (B Int A) ((B Int A') Un (B' - B))";
+\     ==> LeadsTo prg (B Int A) ((B Int A') Un (B' - B))";
 by (asm_simp_tac (simpset() addsimps (R_PSP::Int_ac)) 1);
 qed "R_PSP2";
 
 Goalw [unless_def]
    "[| LeadsTo prg A A'; unless (Acts prg) B B'; id: (Acts prg) |] \
-\           ==> LeadsTo prg (A Int B) ((A' Int B) Un B')";
+\     ==> LeadsTo prg (A Int B) ((A' Int B) Un B')";
 by (dtac R_PSP 1);
 by (assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [Un_Diff_Diff, Int_Diff_Un]) 2);
@@ -269,10 +269,10 @@ qed "R_PSP_unless";
 
 (** Meta or object quantifier ????? **)
 Goal "[| wf r;     \
-\              ALL m. LeadsTo prg (A Int f-``{m})                     \
-\                                       ((A Int f-``(r^-1 ^^ {m})) Un B);   \
-\              id: (Acts prg) |] \
-\           ==> LeadsTo prg A B";
+\        ALL m. LeadsTo prg (A Int f-``{m})                     \
+\                                 ((A Int f-``(r^-1 ^^ {m})) Un B);   \
+\        id: (Acts prg) |] \
+\     ==> LeadsTo prg A B";
 by (full_simp_tac (simpset() addsimps [LeadsTo_def]) 1);
 by (etac leadsTo_wf_induct 1);
 by (assume_tac 2);
@@ -282,7 +282,7 @@ qed "LeadsTo_wf_induct";
 
 Goal "[| wf r;     \
 \        ALL m:I. LeadsTo prg (A Int f-``{m})                   \
-\                                    ((A Int f-``(r^-1 ^^ {m})) Un B);   \
+\                             ((A Int f-``(r^-1 ^^ {m})) Un B);   \
 \        id: (Acts prg) |] \
 \     ==> LeadsTo prg A ((A - (f-``I)) Un B)";
 by (etac LeadsTo_wf_induct 1);
