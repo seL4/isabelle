@@ -213,6 +213,7 @@ struct
 
   val empty = {splits = [], inj_consts = [], discrete = []};
   val copy = I;
+  val finish = I;
   val prep_ext = I;
   fun merge ({splits= splits1, inj_consts= inj_consts1, discrete= discrete1},
              {splits= splits2, inj_consts= inj_consts2, discrete= discrete2}) =

@@ -111,6 +111,7 @@ struct
 
   val empty = (Symtab.empty, mk_hints ([], [], [])): T;
   val copy = I;
+  val finish = I;
   val prep_ext = I;
   fun merge
    ((tab1, {simps = simps1, congs = congs1, wfs = wfs1}),

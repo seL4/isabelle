@@ -922,6 +922,7 @@ struct
 
   val empty = ref empty_cs;
   fun copy (ref cs) = (ref cs): T;            (*create new reference!*)
+  val finish = I;
   val prep_ext = copy;
   fun merge (ref cs1, ref cs2) = ref (merge_cs (cs1, cs2));
   fun print _ (ref cs) = print_cs cs;
