@@ -15,7 +15,7 @@ sig
   val rep_theory: theory ->
     {sign: Sign.sg,
       axioms: term Symtab.table,
-      oracles: ((Sign.sg * object -> term) * stamp) Symtab.table,
+      oracles: ((Sign.sg * Object.T -> term) * stamp) Symtab.table,
       parents: theory list,
       ancestors: theory list}
   val sign_of: theory -> Sign.sg
@@ -70,7 +70,7 @@ sig
   val add_trrules_i: Syntax.ast Syntax.trrule list -> theory -> theory
   val add_axioms: (bstring * string) list -> theory -> theory
   val add_axioms_i: (bstring * term) list -> theory -> theory
-  val add_oracle: bstring * (Sign.sg * object -> term) -> theory -> theory
+  val add_oracle: bstring * (Sign.sg * Object.T -> term) -> theory -> theory
   val add_defs: (bstring * string) list -> theory -> theory
   val add_defs_i: (bstring * term) list -> theory -> theory
   val add_path: string -> theory -> theory
@@ -78,10 +78,11 @@ sig
   val root_path: theory -> theory
   val add_space: string * string list -> theory -> theory
   val add_name: string -> theory -> theory
-  val init_data: (string * (object * (object -> object) *
-    (object * object -> object) * (Sign.sg -> object -> unit))) list -> theory -> theory
-  val get_data: theory -> string -> object
-  val put_data: string * object -> theory -> theory
+  val init_data: Object.kind -> (Object.T * (Object.T -> Object.T) *
+    (Object.T * Object.T -> Object.T) * (Sign.sg -> Object.T -> unit)) -> theory -> theory
+  val print_data: Object.kind -> theory -> unit
+  val get_data: Object.kind -> (Object.T -> 'a) -> theory -> 'a
+  val put_data: Object.kind -> ('a -> Object.T) -> 'a -> theory -> theory
   val prep_ext: theory -> theory
   val prep_ext_merge: theory list -> theory
   val requires: theory -> string -> string -> unit
@@ -99,14 +100,14 @@ datatype theory =
   Theory of {
     sign: Sign.sg,
     axioms: term Symtab.table,
-    oracles: ((Sign.sg * object -> term) * stamp) Symtab.table,
+    oracles: ((Sign.sg * Object.T -> term) * stamp) Symtab.table,
     parents: theory list,
     ancestors: theory list};
 
 (*forward definition for Isar proof contexts*)
-type local_theory = theory * object Symtab.table;
+type local_theory = theory * Object.T Symtab.table;
 
-fun make_thy sign axms oras parents ancestors =
+fun make_theory sign axms oras parents ancestors =
   Theory {sign = sign, axioms = axms, oracles = oras,
     parents = parents, ancestors = ancestors};
 
@@ -130,7 +131,7 @@ fun requires thy name what =
   else error ("Require theory " ^ quote name ^ " as an ancestor for " ^ what);
 
 (*partial Pure theory*)
-val pre_pure = make_thy Sign.pre_pure Symtab.empty Symtab.empty [] [];
+val pre_pure = make_theory Sign.pre_pure Symtab.empty Symtab.empty [] [];
 
 (*apply transformers*)
 fun apply [] thy = thy
@@ -153,8 +154,7 @@ fun err_dup_axms names =
 fun err_dup_oras names =
   error ("Duplicate oracles " ^ commas_quote names);
 
-
-fun ext_thy thy sign' new_axms new_oras =
+fun ext_theory thy ext_sg new_axms new_oras =
   let
     val Theory {sign, axioms, oracles, parents, ancestors} = thy;
     val draft = Sign.is_draft sign;
@@ -167,44 +167,43 @@ fun ext_thy thy sign' new_axms new_oras =
     val (parents', ancestors') =
       if draft then (parents, ancestors) else ([thy], thy :: ancestors);
   in
-    make_thy sign' axioms' oracles' parents' ancestors'
+    make_theory (ext_sg sign) axioms' oracles' parents' ancestors'
   end;
 
 
 (* extend signature of a theory *)
 
-fun ext_sg extfun decls (thy as Theory {sign, ...}) =
-  ext_thy thy (extfun decls sign) [] [];
+fun ext_sign extfun decls thy = ext_theory thy (extfun decls) [] [];
 
-val add_classes      = ext_sg Sign.add_classes;
-val add_classes_i    = ext_sg Sign.add_classes_i;
-val add_classrel     = ext_sg Sign.add_classrel;
-val add_classrel_i   = ext_sg Sign.add_classrel_i;
-val add_defsort      = ext_sg Sign.add_defsort;
-val add_defsort_i    = ext_sg Sign.add_defsort_i;
-val add_types        = ext_sg Sign.add_types;
-val add_nonterminals = ext_sg Sign.add_nonterminals;
-val add_tyabbrs      = ext_sg Sign.add_tyabbrs;
-val add_tyabbrs_i    = ext_sg Sign.add_tyabbrs_i;
-val add_arities      = ext_sg Sign.add_arities;
-val add_arities_i    = ext_sg Sign.add_arities_i;
-val add_consts       = ext_sg Sign.add_consts;
-val add_consts_i     = ext_sg Sign.add_consts_i;
-val add_syntax       = ext_sg Sign.add_syntax;
-val add_syntax_i     = ext_sg Sign.add_syntax_i;
-val add_modesyntax   = curry (ext_sg Sign.add_modesyntax);
-val add_modesyntax_i = curry (ext_sg Sign.add_modesyntax_i);
-val add_trfuns       = ext_sg Sign.add_trfuns;
-val add_trfunsT      = ext_sg Sign.add_trfunsT;
-val add_tokentrfuns  = ext_sg Sign.add_tokentrfuns;
-val add_trrules      = ext_sg Sign.add_trrules;
-val add_trrules_i    = ext_sg Sign.add_trrules_i;
-val add_path         = ext_sg Sign.add_path;
+val add_classes      = ext_sign Sign.add_classes;
+val add_classes_i    = ext_sign Sign.add_classes_i;
+val add_classrel     = ext_sign Sign.add_classrel;
+val add_classrel_i   = ext_sign Sign.add_classrel_i;
+val add_defsort      = ext_sign Sign.add_defsort;
+val add_defsort_i    = ext_sign Sign.add_defsort_i;
+val add_types        = ext_sign Sign.add_types;
+val add_nonterminals = ext_sign Sign.add_nonterminals;
+val add_tyabbrs      = ext_sign Sign.add_tyabbrs;
+val add_tyabbrs_i    = ext_sign Sign.add_tyabbrs_i;
+val add_arities      = ext_sign Sign.add_arities;
+val add_arities_i    = ext_sign Sign.add_arities_i;
+val add_consts       = ext_sign Sign.add_consts;
+val add_consts_i     = ext_sign Sign.add_consts_i;
+val add_syntax       = ext_sign Sign.add_syntax;
+val add_syntax_i     = ext_sign Sign.add_syntax_i;
+val add_modesyntax   = curry (ext_sign Sign.add_modesyntax);
+val add_modesyntax_i = curry (ext_sign Sign.add_modesyntax_i);
+val add_trfuns       = ext_sign Sign.add_trfuns;
+val add_trfunsT      = ext_sign Sign.add_trfunsT;
+val add_tokentrfuns  = ext_sign Sign.add_tokentrfuns;
+val add_trrules      = ext_sign Sign.add_trrules;
+val add_trrules_i    = ext_sign Sign.add_trrules_i;
+val add_path         = ext_sign Sign.add_path;
 val parent_path      = add_path "..";
 val root_path        = add_path "/";
-val add_space        = ext_sg Sign.add_space;
-val add_name         = ext_sg Sign.add_name;
-val prep_ext         = ext_sg (K Sign.prep_ext) ();
+val add_space        = ext_sign Sign.add_space;
+val add_name         = ext_sign Sign.add_name;
+val prep_ext         = ext_sign (K Sign.prep_ext) ();
 
 
 
@@ -252,9 +251,9 @@ fun ext_axms prep_axm raw_axms (thy as Theory {sign, ...}) =
     val raw_axms' = map (apfst (Sign.full_name sign)) raw_axms;
     val axioms =
       map (apsnd (Term.compress_term o Logic.varify) o prep_axm sign) raw_axms';
-    val sign' = Sign.add_space (axiomK, map fst axioms) sign;
+    val ext_sg = Sign.add_space (axiomK, map fst axioms);
   in
-    ext_thy thy sign' axioms []
+    ext_theory thy ext_sg axioms []
   end;
 
 val add_axioms = ext_axms read_axm;
@@ -266,9 +265,9 @@ val add_axioms_i = ext_axms cert_axm;
 fun add_oracle (raw_name, oracle) (thy as Theory {sign, ...}) =
   let
     val name = Sign.full_name sign raw_name;
-    val sign' = Sign.add_space (oracleK, [name]) sign;
+    val ext_sg = Sign.add_space (oracleK, [name]);
   in
-    ext_thy thy sign' [] [(name, (oracle, stamp ()))]
+    ext_theory thy ext_sg [] [(name, (oracle, stamp ()))]
   end;
 
 
@@ -395,9 +394,10 @@ val add_defs = ext_defns read_axm;
 
 (** additional theory data **)
 
-fun init_data ds = foldl (op o) (I, map (ext_sg Sign.init_data) ds);
-val get_data = Sign.get_data o sign_of;
-val put_data = ext_sg Sign.put_data;
+val init_data = curry (ext_sign Sign.init_data);
+fun print_data kind = Sign.print_data kind o sign_of;
+fun get_data kind f = Sign.get_data kind f o sign_of;
+fun put_data kind f = ext_sign (Sign.put_data kind f);
 
 
 
@@ -431,7 +431,7 @@ fun prep_ext_merge thys =
       val ancestors' =
         gen_distinct eq_thy (parents' @ flat (map ancestors_of thys));
     in
-      make_thy sign' axioms' oracles' parents' ancestors'
+      make_theory sign' axioms' oracles' parents' ancestors'
     end;
 
 fun merge_theories name (thy1, thy2) =
