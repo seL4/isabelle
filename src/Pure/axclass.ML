@@ -6,21 +6,21 @@ User interfaces for axiomatic type classes.
 *)
 
 signature AX_CLASS =
-  sig
+sig
   val add_thms_as_axms: (string * thm) list -> theory -> theory
   val add_classrel_thms: thm list -> theory -> theory
   val add_arity_thms: thm list -> theory -> theory
-  val add_axclass: class * class list -> (string * string) list
+  val add_axclass: rclass * xclass list -> (string * string) list
     -> theory -> theory
-  val add_axclass_i: class * class list -> (string * term) list
+  val add_axclass_i: rclass * class list -> (string * term) list
     -> theory -> theory
+  val add_inst_subclass: xclass * xclass -> string list -> thm list
+    -> tactic option -> theory -> theory
   val add_inst_subclass_i: class * class -> string list -> thm list
     -> tactic option -> theory -> theory
-  val add_inst_subclass: class * class -> string list -> thm list
-    -> tactic option -> theory -> theory
-  val add_inst_arity_i: string * sort list * class list -> string list
+  val add_inst_arity: xstring * xsort list * xclass list -> string list
     -> thm list -> tactic option -> theory -> theory
-  val add_inst_arity: string * sort list * class list -> string list
+  val add_inst_arity_i: string * sort list * class list -> string list
     -> thm list -> tactic option -> theory -> theory
   val axclass_tac: theory -> thm list -> tactic
   val prove_subclass: theory -> class * class -> thm list
@@ -29,7 +29,7 @@ signature AX_CLASS =
     -> tactic option -> thm
   val goal_subclass: theory -> class * class -> thm list
   val goal_arity: theory -> string * sort list * class -> thm list
-  end;
+end;
 
 structure AxClass : AX_CLASS =
 struct
@@ -176,13 +176,17 @@ fun err_bad_tfrees ax =
 
 fun ext_axclass int prep_axm (raw_class, raw_super_classes) raw_axioms old_thy =
   let
-    val axioms = map (prep_axm (sign_of old_thy)) raw_axioms;
+    val old_sign = sign_of old_thy;
+    val axioms = map (prep_axm old_sign) raw_axioms;
+    val class = Sign.full_name old_sign raw_class;
+
     val thy =
       (if int then Theory.add_classes else Theory.add_classes_i)
         [(raw_class, raw_super_classes)] old_thy;
     val sign = sign_of thy;
-    val class = Sign.intern_class sign raw_class;
-    val super_classes = map (Sign.intern_class sign) raw_super_classes;
+    val super_classes =
+      if int then map (Sign.intern_class sign) raw_super_classes
+      else raw_super_classes;
 
 
     (* prepare abstract axioms *)
