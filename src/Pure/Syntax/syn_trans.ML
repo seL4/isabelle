@@ -132,9 +132,14 @@ fun ofclass_tr (*"_ofclass"*) [ty, cls] =
 (* meta implication *)
 
 fun bigimpl_ast_tr (*"_bigimpl"*) [asms, concl] =
-      Ast.fold_ast_p "==>" (Ast.unfold_ast "_asms" asms, concl)
+      Ast.fold_ast_p "==>" (Ast.unfold_ast2 "_asms" "_asm" asms, concl)
   | bigimpl_ast_tr (*"_bigimpl"*) asts = raise Ast.AST ("bigimpl_ast_tr", asts);
 
+(*
+fun bigimpl_ast_tr (*"_bigimpl"*) [asms, concl] =
+      Ast.fold_ast_p "==>" (Ast.unfold_ast "_asms" asms, concl)
+  | bigimpl_ast_tr (*"_bigimpl"*) asts = raise Ast.AST ("bigimpl_ast_tr", asts);
+*)
 
 (* type reflection *)
 
@@ -348,9 +353,18 @@ fun impl_ast_tr' (*"==>"*) asts =
   else
     (case Ast.unfold_ast_p "==>" (Ast.Appl (Ast.Constant "==>" :: asts)) of
       (asms as _ :: _ :: _, concl)
-        => Ast.Appl [Ast.Constant "_bigimpl", Ast.fold_ast "_asms" asms, concl]
+        => Ast.Appl [Ast.Constant "_bigimpl", Ast.fold_ast2 "_asms" "_asm" asms, concl]
     | _ => raise Match);
 
+(*
+fun impl_ast_tr' (*"==>"*) asts =
+  if TypeExt.no_brackets () then raise Match
+  else
+    (case Ast.unfold_ast_p "==>" (Ast.Appl (Ast.Constant "==>" :: asts)) of
+      (asms as _ :: _ :: _, concl)
+        => Ast.Appl [Ast.Constant "_bigimpl", Ast.fold_ast "_asms" asms, concl]
+    | _ => raise Match);
+*)
 
 (* meta conjunction *)
 

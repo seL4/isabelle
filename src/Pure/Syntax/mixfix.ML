@@ -227,7 +227,7 @@ val pure_syntax =
   ("",            "var => aprop",              Delimfix "_"),
   ("_DDDOT",      "aprop",                     Delimfix "..."),
   ("_aprop",      "aprop => prop",             Delimfix "PROP _"),
-  ("",            "prop => asms",              Delimfix "_"),
+  ("_asm",        "prop => asms",              Delimfix "_"),
   ("_asms",       "[prop, asms] => asms",      Delimfix "_;/ _"),
   ("_bigimpl",    "[asms, prop] => prop",      Mixfix ("((3[| _ |])/ ==> _)", [0, 1], 1)),
   ("_ofclass",    "[type, logic] => prop",     Delimfix "(1OFCLASS/(1'(_,/ _')))"),

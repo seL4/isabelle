@@ -23,8 +23,10 @@ signature AST1 =
   val pretty_rule: ast * ast -> Pretty.T
   val pprint_ast: ast -> pprint_args -> unit
   val fold_ast: string -> ast list -> ast
+  val fold_ast2: string -> string -> ast list -> ast
   val fold_ast_p: string -> ast list * ast -> ast
   val unfold_ast: string -> ast -> ast list
+  val unfold_ast2: string -> string -> ast -> ast list
   val unfold_ast_p: string -> ast -> ast list * ast
   val trace_ast: bool ref
   val stat_ast: bool ref
@@ -142,12 +144,21 @@ fun fold_ast _ [] = raise Match
 
 fun fold_ast_p c = foldr (fn (x, xs) => Appl [Constant c, x, xs]);
 
+fun fold_ast2 _ _ [] = raise Match
+  | fold_ast2 _ c1 [y] = Appl [Constant c1, y]
+  | fold_ast2 c c1 (x :: xs) = Appl [Constant c, x, fold_ast2 c c1 xs];
 
 (* unfold asts *)
 
 fun unfold_ast c (y as Appl [Constant c', x, xs]) =
       if c = c' then x :: (unfold_ast c xs) else [y]
   | unfold_ast _ y = [y];
+
+fun unfold_ast2 c c1 (y as Appl [Constant c', x, xs]) =
+      if c = c' then x :: (unfold_ast2 c c1 xs) else [y]
+  | unfold_ast2 _ c1 (y as Appl [Constant c', x]) =
+      if c1 = c' then [x] else [y]
+  | unfold_ast2 _ _ y = [y];
 
 fun unfold_ast_p c (y as Appl [Constant c', x, xs]) =
       if c = c' then apfst (cons x) (unfold_ast_p c xs)
