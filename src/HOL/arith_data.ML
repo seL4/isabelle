@@ -367,12 +367,18 @@ and trace_arith    = Fast_Arith.trace;
 
 local
 
+val isolateSuc =
+  let val thy = theory "Nat"
+  in prove_goal thy "Suc(i+j) = i+j + Suc 0"
+     (fn _ => [simp_tac (simpset_of thy) 1])
+  end;
+
 (* reduce contradictory <= to False.
    Most of the work is done by the cancel tactics.
 *)
 val add_rules =
  [add_0,add_0_right,Zero_not_Suc,Suc_not_Zero,le_0_eq,
-  One_nat_def];
+  One_nat_def,isolateSuc];
 
 val add_mono_thms_nat = map (fn s => prove_goal (the_context ()) s
  (fn prems => [cut_facts_tac prems 1,
