@@ -234,7 +234,7 @@ fun inst_split Ts t tt thm TB state i =
       val sg = #sign(rep_thm state)
       val tsig = #tsig(Sign.rep_sg sg)
       val cntxt = mk_cntxt_splitthm t tt TB;
-      val T = fastype_of cntxt;
+      val T = fastype_of1 (Ts, cntxt);
       val ixnTs = Type.typ_match tsig ([],(PT2, T))
       val abss = foldl (fn (t, T) => Abs ("", T, t))
   in
