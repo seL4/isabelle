@@ -7,14 +7,17 @@ New in Isabelle???? (DATE ????)
 
 *** General Changes ***
 
-* hierachically structured name spaces (for consts, types, axms,
+* hierachically structured name spaces (for consts, types, axms, thms
 etc.); new lexical class 'longid' (e.g. Foo.bar.x) may render much of
 old input syntactically incorrect (e.g. "%x.x"); COMPATIBILITY:
 isatool fixdots ensures space after dots (e.g. "%x. x"); set
-long_names for fully qualified output names; NOTE: in case of severe
-problems with backward campatibility try setting 'global_names' at
-compile time to disable qualified names for theories; may also fine
-tune theories via 'global' and 'local' section;
+long_names for fully qualified output names; NOTE: ML programs
+(special tactics, packages etc.) referring to internal names may have
+to be adapted to cope with fully qualified names; in case of severe
+backward campatibility problems try setting 'global_names' at compile
+time to have enrything declared within a flat name space; one may also
+fine tune name declarations in theories via the 'global' and 'local'
+section;
 
 * reimplemented the implicit simpset and claset using the new anytype
 data filed in signatures; references simpset:simpset ref etc. are
@@ -28,6 +31,8 @@ usedir (see -i option, ISABELLE_USEDIR_OPTIONS);
 
 * defs may now be conditional; improved rewrite_goals_tac to handle
 conditional equations;
+
+* defs now admits additional type arguments, using TYPE('a) syntax;
 
 * theory aliases via merge (e.g. M=A+B+C) no longer supported, always
 creates a new theory node; implicit merge of thms' signatures is
@@ -76,6 +81,8 @@ logics (again);
 
 
 *** Syntax ***
+
+* TYPE('a) syntax for type reflection terms;
 
 * no longer handles consts with name "" -- declare as 'syntax' instead;
 
