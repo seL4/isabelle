@@ -91,6 +91,8 @@ ML
 
 (** Quantifier translations: variable binding **)
 
+(* FIXME should use Syntax.mark_bound(T), Syntax.variant_abs' *)
+
 fun let_tr [Free(id,T),a,b] = Const("let",dummyT) $ a $ absfree(id,T,b);
 fun let_tr' [a,Abs(id,T,b)] =
      let val (id',b') = variant_abs(id,T,b)
