@@ -47,11 +47,11 @@ use     "mono.ML";
 use_thy "fixedpt";
 
 (*Inductive/co-inductive definitions*)
-use     "ind-syntax.ML";
-use     "intr-elim.ML";
+use     "ind_syntax.ML";
+use     "intr_elim.ML";
 use     "indrule.ML";
 use     "inductive.ML";
-use     "co-inductive.ML";
+use     "coinductive.ML";
 
 use_thy "perm";
 use_thy "trancl";
