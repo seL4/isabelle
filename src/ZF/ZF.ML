@@ -86,7 +86,7 @@ val bspec = prove_goalw ZF.thy [Ball_def]
     (resolve_tac prems 1) ]);
 
 val ballE = prove_goalw ZF.thy [Ball_def]
-    "[| ALL x:A. P(x);  P(x) ==> Q;  ~ x:A ==> Q |] ==> Q"
+    "[| ALL x:A. P(x);  P(x) ==> Q;  x~:A ==> Q |] ==> Q"
  (fn major::prems=>
   [ (rtac (major RS allE) 1),
     (REPEAT (eresolve_tac (prems@[asm_rl,impCE]) 1)) ]);
@@ -99,7 +99,7 @@ val rev_bspec = prove_goal ZF.thy
 
 (*Instantiates x first: better for automatic theorem proving?*)
 val rev_ballE = prove_goal ZF.thy
-    "[| ALL x:A. P(x);  ~ x:A ==> Q;  P(x) ==> Q |] ==> Q"
+    "[| ALL x:A. P(x);  x~:A ==> Q;  P(x) ==> Q |] ==> Q"
  (fn major::prems=>
   [ (rtac (major RS ballE) 1),
     (REPEAT (eresolve_tac prems 1)) ]);
@@ -157,7 +157,7 @@ val subsetD = prove_goalw ZF.thy [subset_def] "[| A <= B;  c:A |] ==> c:B"
 
 (*Classical elimination rule*)
 val subsetCE = prove_goalw ZF.thy [subset_def]
-    "[| A <= B;  ~(c:A) ==> P;  c:B ==> P |] ==> P"
+    "[| A <= B;  c~:A ==> P;  c:B ==> P |] ==> P"
  (fn major::prems=>
   [ (rtac (major RS ballE) 1),
     (REPEAT (eresolve_tac prems 1)) ]);
@@ -203,7 +203,7 @@ val equalityE = prove_goal ZF.thy
   [ (DEPTH_SOLVE (resolve_tac (prems@[equalityD1,equalityD2]) 1)) ]);
 
 val equalityCE = prove_goal ZF.thy
-    "[| A = B;  [| c:A; c:B |] ==> P;  [| ~ c:A; ~ c:B |] ==> P |]  ==>  P"
+    "[| A = B;  [| c:A; c:B |] ==> P;  [| c~:A; c~:B |] ==> P |]  ==>  P"
  (fn major::prems=>
   [ (rtac (major RS equalityE) 1),
     (REPEAT (contr_tac 1 ORELSE eresolve_tac ([asm_rl,subsetCE]@prems) 1)) ]);
@@ -360,7 +360,7 @@ val InterD = prove_goalw ZF.thy [Inter_def]
 
 (*"Classical" elimination rule -- does not require exhibiting B:C *)
 val InterE = prove_goalw ZF.thy [Inter_def]
-    "[| A : Inter(C);  A:B ==> R;  ~ B:C ==> R |] ==> R"
+    "[| A : Inter(C);  A:B ==> R;  B~:C ==> R |] ==> R"
  (fn major::prems=>
   [ (rtac (major RS CollectD2 RS ballE) 1),
     (REPEAT (eresolve_tac prems 1)) ]);

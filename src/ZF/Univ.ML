@@ -185,7 +185,7 @@ by (etac ltD 1);
 val Limit_nat = result();
 
 goalw Univ.thy [Limit_def]
-    "!!i. [| 0<i;  ALL y. ~ succ(y)=i |] ==> Limit(i)";
+    "!!i. [| 0<i;  ALL y. succ(y) ~= i |] ==> Limit(i)";
 by (safe_tac subset_cs);
 by (rtac (not_le_iff_lt RS iffD1) 2);
 by (fast_tac (lt_cs addEs [lt_anti_sym]) 4);

@@ -20,7 +20,7 @@ goalw Bool.thy bool_defs "0 : bool";
 by (rtac consI1 1);
 val bool_0I = result();
 
-goalw Bool.thy bool_defs "~ 1=0";
+goalw Bool.thy bool_defs "1~=0";
 by (rtac succ_not_0 1);
 val one_not_0 = result();
 

@@ -380,7 +380,7 @@ by (etac (not_lt_iff_le RS iffD1) 1);
 by (REPEAT (resolve_tac [Ord_0, not_lt0] 1));
 val Ord_0_le = result();
 
-goal Ord.thy "!!i. [| Ord(i);  ~ i=0 |] ==> 0<i";
+goal Ord.thy "!!i. [| Ord(i);  i~=0 |] ==> 0<i";
 by (etac (not_le_iff_lt RS iffD1) 1);
 by (rtac Ord_0 1);
 by (fast_tac lt_cs 1);

@@ -9,7 +9,7 @@ could define cardinality?
 
 prove X:Fin(A) ==> EX n:nat. EX f. f:bij(X,n)
 	card(0)=0
-	[| ~ a:b; b: Fin(A) |] ==> card(cons(a,b)) = succ(card(b))
+	[| a~:b; b: Fin(A) |] ==> card(cons(a,b)) = succ(card(b))
 
 b: Fin(A) ==> inj(b,b)<=surj(b,b)
 
@@ -42,11 +42,11 @@ val FinD = Fin.dom_subset RS subsetD RS PowD;
 
 (** Induction on finite sets **)
 
-(*Discharging ~ x:y entails extra work*)
+(*Discharging x~:y entails extra work*)
 val major::prems = goal Fin.thy 
     "[| b: Fin(A);  \
 \       P(0);        \
-\       !!x y. [| x: A;  y: Fin(A);  ~ x:y;  P(y) |] ==> P(cons(x,y)) \
+\       !!x y. [| x: A;  y: Fin(A);  x~:y;  P(y) |] ==> P(cons(x,y)) \
 \    |] ==> P(b)";
 by (rtac (major RS Fin.induct) 1);
 by (res_inst_tac [("Q","a:b")] (excluded_middle RS disjE) 2);

@@ -339,20 +339,20 @@ by (fast_tac (ZF_cs addIs [PiI]) 1);
 val fun_single_lemma = result();
 
 goalw ZF.thy [cons_def]
-    "!!f A B. [| f: A->B;  ~c:A |] ==> cons(<c,b>,f) : cons(c,A) -> cons(b,B)";
+    "!!f A B. [| f: A->B;  c~:A |] ==> cons(<c,b>,f) : cons(c,A) -> cons(b,B)";
 by (rtac (fun_single_lemma RS fun_disjoint_Un) 1);
 by (assume_tac 1);
 by (rtac equals0I 1);
 by (fast_tac ZF_cs 1);
 val fun_extend = result();
 
-goal ZF.thy "!!f A B. [| f: A->B;  a:A;  ~ c:A |] ==> cons(<c,b>,f)`a = f`a";
+goal ZF.thy "!!f A B. [| f: A->B;  a:A;  c~:A |] ==> cons(<c,b>,f)`a = f`a";
 by (rtac (apply_Pair RS consI2 RS apply_equality) 1);
 by (rtac fun_extend 3);
 by (REPEAT (assume_tac 1));
 val fun_extend_apply1 = result();
 
-goal ZF.thy "!!f A B. [| f: A->B;  ~ c:A |] ==> cons(<c,b>,f)`c = b";
+goal ZF.thy "!!f A B. [| f: A->B;  c~:A |] ==> cons(<c,b>,f)`c = b";
 by (rtac (consI1 RS apply_equality) 1);
 by (rtac fun_extend 1);
 by (REPEAT (assume_tac 1));

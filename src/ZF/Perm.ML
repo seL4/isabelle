@@ -421,7 +421,7 @@ by (fast_tac ZF_cs 1);
 val inj_succ_restrict = result();
 
 goalw Perm.thy [inj_def]
-    "!!f. [| f: inj(A,B);  ~ a:A;  ~ b:B |]  ==> \
+    "!!f. [| f: inj(A,B);  a~:A;  b~:B |]  ==> \
 \         cons(<a,b>,f) : inj(cons(a,A), cons(b,B))";
 (*cannot use safe_tac: must preserve the implication*)
 by (etac CollectE 1);

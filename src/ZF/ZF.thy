@@ -100,6 +100,7 @@ consts
   " ->" :: "[i, i] => i"         ("(_ ->/ _)" [61, 60] 60) (*function space*)
   "<="  :: "[i, i] => o"         (infixl 50) (*subset relation*)
   ":"   :: "[i, i] => o"         (infixl 50) (*membership relation*)
+  "~:"   :: "[i, i] => o"        (infixl 50) (*negated membership relation*)
 
 
 translations
@@ -124,6 +125,8 @@ translations
   "ALL x:A. P"  == "Ball(A, %x. P)"
   "EX x:A. P"   == "Bex(A, %x. P)"
 
+  "x ~: y"      == "~ (x:y)"
+
 
 rules
 
@@ -145,7 +148,7 @@ succ_def        "succ(i) == cons(i,i)"
 infinity        "0:Inf & (ALL y:Inf. succ(y): Inf)"
 
  (*This formulation facilitates case analysis on A. *)
-foundation      "A=0 | (EX x:A. ALL y:x. ~ y:A)"
+foundation      "A=0 | (EX x:A. ALL y:x. y~:A)"
 
  (* Schema axiom since predicate P is a higher-order variable *)
 replacement     "(ALL x:A. ALL y z. P(x,y) & P(x,z) --> y=z) ==> \

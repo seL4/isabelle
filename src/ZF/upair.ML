@@ -56,7 +56,7 @@ val Un_iff = prove_goal ZF.thy "c : A Un B <-> (c:A | c:B)"
  (fn _ => [ (fast_tac (lemmas_cs addIs [UnI1,UnI2] addSEs [UnE]) 1) ]);
 
 (*Classical introduction rule: no commitment to A vs B*)
-val UnCI = prove_goal ZF.thy "(~c : B ==> c : A) ==> c : A Un B"
+val UnCI = prove_goal ZF.thy "(c ~: B ==> c : A) ==> c : A Un B"
  (fn [prem]=>
   [ (rtac (disjCI RS (Un_iff RS iffD2)) 1),
     (etac prem 1) ]);
@@ -91,7 +91,7 @@ val Int_iff = prove_goal ZF.thy "c : A Int B <-> (c:A & c:B)"
 (*** Rules for set difference -- defined via Upair ***)
 
 val DiffI = prove_goalw ZF.thy [Diff_def]
-    "[| c : A;  ~ c : B |] ==> c : A - B"
+    "[| c : A;  c ~: B |] ==> c : A - B"
  (fn prems=> [ (REPEAT (resolve_tac (prems @ [CollectI]) 1)) ]);
 
 val DiffD1 = prove_goalw ZF.thy [Diff_def]
@@ -103,12 +103,12 @@ val DiffD2 = prove_goalw ZF.thy [Diff_def]
  (fn [major,minor]=> [ (rtac (minor RS (major RS CollectD2 RS notE)) 1) ]);
 
 val DiffE = prove_goal ZF.thy
-    "[| c : A - B;  [| c:A; ~ c:B |] ==> P |] ==> P"
+    "[| c : A - B;  [| c:A; c~:B |] ==> P |] ==> P"
  (fn prems=>
   [ (resolve_tac prems 1),
     (REPEAT (ares_tac (prems RL [DiffD1, DiffD2 RS notI]) 1)) ]);
 
-val Diff_iff = prove_goal ZF.thy "c : A-B <-> (c:A & ~ c:B)"
+val Diff_iff = prove_goal ZF.thy "c : A-B <-> (c:A & c~:B)"
  (fn _ => [ (fast_tac (lemmas_cs addSIs [DiffI] addSEs [DiffE]) 1) ]);
 
 (*** Rules for cons -- defined via Un and Upair ***)
@@ -129,7 +129,7 @@ val cons_iff = prove_goal ZF.thy "a : cons(b,A) <-> (a=b | a:A)"
  (fn _ => [ (fast_tac (lemmas_cs addIs [consI1,consI2] addSEs [consE]) 1) ]);
 
 (*Classical introduction rule*)
-val consCI = prove_goal ZF.thy "(~ a:B ==> a=b) ==> a: cons(b,B)"
+val consCI = prove_goal ZF.thy "(a~:B ==> a=b) ==> a: cons(b,B)"
  (fn [prem]=>
   [ (rtac (disjCI RS (cons_iff RS iffD2)) 1),
     (etac prem 1) ]);
@@ -223,7 +223,7 @@ val mem_anti_sym = prove_goal ZF.thy "[| a:b;  b:a |] ==> P"
 val mem_anti_refl = prove_goal ZF.thy "a:a ==> P"
  (fn [major]=> [ (rtac (major RS (major RS mem_anti_sym)) 1) ]);
 
-val mem_not_refl = prove_goal ZF.thy "~ a:a"
+val mem_not_refl = prove_goal ZF.thy "a~:a"
  (K [ (rtac notI 1), (etac mem_anti_refl 1) ]);
 
 (*** Rules for succ ***)
@@ -245,7 +245,7 @@ val succ_iff = prove_goal ZF.thy "i : succ(j) <-> i=j | i:j"
  (fn _ => [ (fast_tac (lemmas_cs addIs [succI1,succI2] addSEs [succE]) 1) ]);
 
 (*Classical introduction rule*)
-val succCI = prove_goal ZF.thy "(~ i:j ==> i=j) ==> i: succ(j)"
+val succCI = prove_goal ZF.thy "(i~:j ==> i=j) ==> i: succ(j)"
  (fn [prem]=>
   [ (rtac (disjCI RS (succ_iff RS iffD2)) 1),
     (etac prem 1) ]);
@@ -256,7 +256,7 @@ val succ_neq_0 = prove_goal ZF.thy "succ(n)=0 ==> P"
     (rtac succI1 1) ]);
 
 (*Useful for rewriting*)
-val succ_not_0 = prove_goal ZF.thy "~ succ(n)=0"
+val succ_not_0 = prove_goal ZF.thy "succ(n) ~= 0"
  (fn _=> [ (rtac notI 1), (etac succ_neq_0 1) ]);
 
 (* succ(c) <= B ==> c : B *)
