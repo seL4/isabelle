@@ -2147,12 +2147,12 @@ fun congc (prover,sign_reft,maxt) {thm=cong,lhs=lhs} (t,(shypst,hypst,ders)) =
                      prop = prop',
                      maxidx = maxidx'};
       val unit = trace_thm false "Applying congruence rule:" thm';
-      fun err() = error("Failed congruence proof!")
+      fun err(msg,thm) = (prthm false msg thm; error("Failed congruence proof!"))
 
   in case prover thm' of
-       None => err()
+       None => err("Could not prove",thm')
      | Some(thm2) => (case check_conv(thm2,prop',ders) of
-                        None => err() | Some trec => trec)
+                        None => err("Should not have proved",thm2) | Some trec => trec)
   end;
 
 fun bottomc ((simprem,useprem,mutsimp),prover,sign_ref,maxidx) =
