@@ -43,22 +43,23 @@ consts
   Ex1           :: ('a => o) => o               (binder "EX! " 10)
 
 
+
 syntax
   "~="          :: ['a, 'a] => o                (infixl 50)
 
 translations
   "x ~= y"      == "~ (x = y)"
 
-syntax (symbolfont)
-  Not           :: o => o                       ("\\{neg} _" [40] 40)
-  "op &"        :: [o, o] => o                  (infixr "\\{vee}" 35)
-  "op |"        :: [o, o] => o                  (infixr "\\{wedge}" 30)
-  "op -->"      :: [o, o] => o                  (infixr "\\{midarrow}\\{rightarrow}" 25)
-  "op <->"      :: [o, o] => o                  (infixr "\\{leftarrow}\\{rightarrow}" 25)
-  "ALL "        :: [idts, o] => o               ("(3\\{forall}_./ _)" 10)
-  "EX "         :: [idts, o] => o               ("(3\\{exists}_./ _)" 10)
-  "EX! "        :: [idts, o] => o               ("(3\\{exists}!_./ _)" 10)
-  "op ~="       :: ['a, 'a] => o                (infixl "\\{noteq}" 50)
+syntax (symbols)
+  Not           :: o => o                       ("\\<not> _" [40] 40)
+  "op &"        :: [o, o] => o                  (infixr "\\<and>" 35)
+  "op |"        :: [o, o] => o                  (infixr "\\<or>" 30)
+  "op -->"      :: [o, o] => o                  (infixr "\\<midarrow>\\<rightarrow>" 25)
+  "op <->"      :: [o, o] => o                  (infixr "\\<leftarrow>\\<rightarrow>" 25)
+  "ALL "        :: [idts, o] => o               ("(3\\<forall>_./ _)" 10)
+  "EX "         :: [idts, o] => o               ("(3\\<exists>_./ _)" 10)
+  "EX! "        :: [idts, o] => o               ("(3\\<exists>!_./ _)" 10)
+  "op ~="       :: ['a, 'a] => o                (infixl "\\<noteq>" 50)
 
 
 rules
