@@ -56,7 +56,6 @@ signature TACTICAL =
   val suppress_tracing  : bool ref
   val THEN              : tactic * tactic -> tactic
   val THEN'             : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
-  val ALLGOALS_RANGE    : (int -> tactic) -> int -> int -> tactic
   val THEN_ALL_NEW	: (int -> tactic) * (int -> tactic) -> int -> tactic
   val REPEAT_ALL_NEW	: (int -> tactic) -> int -> tactic
   val THEN_ELSE         : tactic * (tactic*tactic) -> tactic
@@ -353,12 +352,8 @@ fun CHANGED_GOAL tac i st =
     in  Seq.filter diff (tac i st)  end
     handle Subscript => Seq.empty  (*no subgoal i*);
 
-fun ALLGOALS_RANGE tac (i:int) j st =
-  if i > j then all_tac st
-  else (tac j THEN ALLGOALS_RANGE tac i (j - 1)) st;
-
 fun (tac1 THEN_ALL_NEW tac2) i st =
-  st |> (tac1 i THEN (fn st' => ALLGOALS_RANGE tac2 i (i + nprems_of st' - nprems_of st) st'));
+  st |> (tac1 i THEN (fn st' => Seq.INTERVAL tac2 i (i + nprems_of st' - nprems_of st) st'));
 
 (*repeatedly dig into any emerging subgoals*)
 fun REPEAT_ALL_NEW tac =

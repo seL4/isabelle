@@ -39,6 +39,7 @@ sig
   val TRY: ('a -> 'a seq) -> 'a -> 'a seq
   val REPEAT: ('a -> 'a seq) -> 'a -> 'a seq
   val REPEAT1: ('a -> 'a seq) -> 'a -> 'a seq
+  val INTERVAL: (int -> 'a -> 'a seq) -> int -> int -> 'a -> 'a seq
 end;
 
 structure Seq: SEQ =
@@ -215,6 +216,11 @@ fun REPEAT f =
   in fn x => make (fn () => rep [] x) end;
 
 fun REPEAT1 f = THEN (f, REPEAT f);
+
+
+fun INTERVAL f i j x =
+  if i > j then single x
+  else op THEN (f j, INTERVAL f i (j - 1)) x;
 
 
 end;
