@@ -125,8 +125,7 @@ fun calculate final opt_rules print state =
     val facts = Proof.the_facts state;
     val rules = Seq.of_list (if_none opt_rules [] @ get_local_rules state);
 
-    fun differ thms thms' =
-      length thms <> length thms' orelse exists2 (not o Thm.eq_thm) (thms, thms');
+    fun differ thms thms' = not (Library.equal_lists Thm.eq_thm (thms, thms'));
     fun combine thms =
       Seq.map Library.single (Seq.flat (Seq.map (Method.multi_resolve (thms @ facts)) rules));
 
