@@ -17,8 +17,6 @@ signature DRULE =
   val COMP		: thm * thm -> thm
   val compose		: thm * int * thm -> thm list
   val cprems_of		: thm -> cterm list
-  val cskip_flexpairs	: cterm -> cterm
-  val cstrip_imp_prems	: cterm -> cterm list
   val cterm_instantiate	: (cterm*cterm)list -> thm -> thm
   val cut_rl		: thm
   val equal_abs_elim	: cterm  -> thm -> thm
@@ -35,7 +33,7 @@ signature DRULE =
   val forall_elim_vars	: int -> thm -> thm
   val implies_elim_list	: thm -> thm list -> thm
   val implies_intr_list	: cterm list -> thm -> thm
-  val dest_cimplies     : cterm -> cterm * cterm
+  val dest_implies      : cterm -> cterm * cterm
   val MRL		: thm list list * thm list -> thm list
   val MRS		: thm list * thm -> thm
   val read_instantiate	: (string*string)list -> thm -> thm
@@ -46,6 +44,7 @@ signature DRULE =
                   -> string list -> (string*string)list
                   -> (indexname*ctyp)list * (cterm*cterm)list
   val reflexive_thm	: thm
+  val refl_implies      : thm
   val revcut_rl		: thm
   val rewrite_goal_rule	: bool*bool -> (meta_simpset -> thm -> thm option)
         -> meta_simpset -> int -> thm -> thm
@@ -56,7 +55,9 @@ signature DRULE =
   val RL		: thm list * thm list -> thm list
   val RLN		: thm list * (int * thm list) -> thm list
   val size_of_thm	: thm -> int
+  val skip_flexpairs	: cterm -> cterm
   val standard		: thm -> thm
+  val strip_imp_prems	: cterm -> cterm list
   val swap_prems_rl     : thm
   val symmetric_thm	: thm
   val thin_rl		: thm
@@ -194,32 +195,38 @@ val add_defs = ext_defns read_axm;
 
 (** some cterm->cterm operations: much faster than calling cterm_of! **)
 
+(** SAME NAMES as in structure Logic: use compound identifiers! **)
+
 (*dest_implies for cterms. Note T=prop below*)
-fun dest_cimplies ct =
-  (let val (ct1, ct2) = dest_comb ct
-       val {t, ...} = rep_cterm ct1;
-   in case head_of t of
-          Const("==>", _) => (snd (dest_comb ct1), ct2)
-        | _ => raise TERM ("dest_cimplies", [term_of ct])
-   end
-  ) handle CTERM "dest_comb" => raise TERM ("dest_cimplies", [term_of ct]);
+fun dest_implies ct =
+    case term_of ct of 
+	(Const("==>", _) $ _ $ _) => 
+	    let val (ct1,ct2) = dest_comb ct
+	    in  (#2 (dest_comb ct1), ct2)  end	     
+      | _ => raise TERM ("dest_implies", [term_of ct]) ;
 
 
 (*Discard flexflex pairs; return a cterm*)
-fun cskip_flexpairs ct =
+fun skip_flexpairs ct =
     case term_of ct of
 	(Const("==>", _) $ (Const("=?=",_)$_$_) $ _) =>
-	    cskip_flexpairs (#2 (dest_cimplies ct))
+	    skip_flexpairs (#2 (dest_implies ct))
       | _ => ct;
 
 (* A1==>...An==>B  goes to  [A1,...,An], where B is not an implication *)
-fun cstrip_imp_prems ct =
-    let val (cA,cB) = dest_cimplies ct
-    in  cA :: cstrip_imp_prems cB  end
+fun strip_imp_prems ct =
+    let val (cA,cB) = dest_implies ct
+    in  cA :: strip_imp_prems cB  end
     handle TERM _ => [];
 
+(* A1==>...An==>B  goes to B, where B is not an implication *)
+fun strip_imp_concl ct =
+    case term_of ct of (Const("==>", _) $ _ $ _) => 
+	strip_imp_concl (#2 (dest_comb ct))
+  | _ => ct;
+
 (*The premises of a theorem, as a cterm list*)
-val cprems_of = cstrip_imp_prems o cskip_flexpairs o cprop_of;
+val cprems_of = strip_imp_prems o skip_flexpairs o cprop_of;
 
 
 (** reading of instantiations **)
@@ -518,17 +525,17 @@ val transitive_thm =
 
 (** Below, a "conversion" has type cterm -> thm **)
 
-val refl_cimplies = reflexive (cterm_of Sign.proto_pure implies);
+val refl_implies = reflexive (cterm_of Sign.proto_pure implies);
 
 (*In [A1,...,An]==>B, rewrite the selected A's only -- for rewrite_goals_tac*)
 (*Do not rewrite flex-flex pairs*)
 fun goals_conv pred cv =
   let fun gconv i ct =
-        let val (A,B) = dest_cimplies ct
+        let val (A,B) = dest_implies ct
             val (thA,j) = case term_of A of
                   Const("=?=",_)$_$_ => (reflexive A, i)
                 | _ => (if pred i then cv A else reflexive A, i+1)
-        in  combination (combination refl_cimplies thA) (gconv j B) end
+        in  combination (combination refl_implies thA) (gconv j B) end
         handle TERM _ => reflexive ct
   in gconv 1 end;
 
@@ -576,7 +583,6 @@ fun equal_abs_elim ca eqth =
 fun equal_abs_elim_list cts th = foldr (uncurry equal_abs_elim) (rev cts, th);
 
 local
-  open Logic
   val alpha = TVar(("'a",0), [])     (*  type ?'a::{}  *)
   fun err th = raise THM("flexpair_inst: ", 0, [th])
   fun flexpair_inst def th =
