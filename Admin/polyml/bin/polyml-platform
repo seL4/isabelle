@@ -40,7 +40,7 @@ case `uname -s` in
   Darwin)
     case `uname -m` in
       Power* | power* | ppc)
-        PLATFORM=ppc-bsd
+        PLATFORM=ppc-darwin
         ;;
     esac
     ;;
