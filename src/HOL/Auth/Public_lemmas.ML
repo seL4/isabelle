@@ -34,6 +34,11 @@ qed "not_isSymKey_priK";
 
 AddIffs [not_isSymKey_pubK, not_isSymKey_priK];
 
+Goal "[| Crypt K X \\<in> analz H;  isSymKey K;  Key K  \\<in> analz H |] \
+\     ==> X \\<in> analz H";
+by (auto_tac(claset(), simpset() addsimps [isSymKey_def]));
+qed "analz_isSymKey_Decrypt";
+
 
 (** "Image" equations that hold for injective functions **)
 
