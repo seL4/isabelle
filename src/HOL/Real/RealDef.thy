@@ -406,7 +406,7 @@ proof -
   have "z + x - (z + y) = (z + -z) + (x - y)"
     by (simp add: diff_minus add_ac) 
   with le show ?thesis 
-    by (simp add: real_le_eq_diff [of x] real_le_eq_diff [of "z+x"])
+    by (simp add: real_le_eq_diff[of x] real_le_eq_diff[of "z+x"] diff_minus)
 qed
 
 lemma real_sum_gt_zero_less: "(0 < S + (-W::real)) ==> (W < S)"

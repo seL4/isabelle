@@ -1365,28 +1365,18 @@ proof -
   note addm = add_mono[of "0::'a" _ "0::'a", simplified]
   note addm2 = add_mono[of _ "0::'a" _ "0::'a", simplified]
   have xy: "- ?x <= ?y"
-    apply (simp add: compare_rls)
-    apply (rule add_le_imp_le_left[of "-(pprt a * nprt b + nprt a * pprt b)"])
-    apply (simp add: add_ac)
-    proof -
-      let ?r = "nprt a * nprt b +(nprt a * nprt b + (nprt a * pprt b + (pprt a * nprt b + (pprt a * pprt b + (pprt a * pprt b +
-	(- (nprt a * pprt b) + - (pprt a * nprt b)))))))"
-      let ?rr = "nprt a * nprt b + nprt a * nprt b + ((nprt a * pprt b) + (- (nprt a * pprt b))) + ((pprt a * nprt b) + - (pprt a * nprt b))
-	+ pprt a * pprt b + pprt a * pprt b"
-      have a:"?r = ?rr" by (simp only: add_ac)      
-      have "0 <= ?rr"
-	apply (simp)
-	apply (rule addm)+
-	apply (simp_all add: mult_neg_le mult_pos_le)
-	done
-      with a show "0 <= ?r" by simp
-    qed
+    apply (simp)
+    apply (rule_tac y="0::'a" in order_trans)
+    apply (rule addm2)+
+    apply (simp_all add: mult_pos_le mult_neg_le)
+    apply (rule addm)+
+    apply (simp_all add: mult_pos_le mult_neg_le)
+    done
   have yx: "?y <= ?x"
     apply (simp add: add_ac)
-    apply (simp add: compare_rls)
-    apply (rule add_le_imp_le_right[of _ "-(pprt a * pprt b)"])
-    apply (simp add: add_ac)
-    apply (rule addm2, (simp add: mult_pos_neg_le mult_pos_neg2_le)+)+
+    apply (rule_tac y=0 in order_trans)
+    apply (rule addm2, (simp add: mult_pos_neg_le mult_pos_neg2_le)+)
+    apply (rule addm, (simp add: mult_pos_neg_le mult_pos_neg2_le)+)
     done
   have i1: "a*b <= abs a * abs b" by (simp only: a b yx)
   have i2: "- (abs a * abs b) <= a*b" by (simp only: a b xy)
@@ -1417,9 +1407,16 @@ proof -
     assume "0 <= a * b"
     then show ?thesis
       apply (simp_all add: mulprts abs_prts)
+      apply (simp add: 
+	iff2imp[OF zero_le_iff_zero_nprt]
+	iff2imp[OF le_zero_iff_pprt_id]
+      )
       apply (insert prems)
-      apply (auto simp add: ring_eq_simps iff2imp[OF zero_le_iff_zero_nprt] iff2imp[OF le_zero_iff_zero_pprt]
-	iff2imp[OF le_zero_iff_pprt_id] iff2imp[OF zero_le_iff_nprt_id] order_antisym mult_pos_neg_le[of a b] mult_pos_neg2_le[of b a])
+      apply (auto simp add: 
+	ring_eq_simps 
+	iff2imp[OF zero_le_iff_zero_nprt] iff2imp[OF le_zero_iff_zero_pprt]
+	iff2imp[OF le_zero_iff_pprt_id] iff2imp[OF zero_le_iff_nprt_id] 
+	order_antisym mult_pos_neg_le[of a b] mult_pos_neg2_le[of b a])
       done
   next
     assume "~(0 <= a*b)"

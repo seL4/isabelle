@@ -31,7 +31,6 @@ done
 lemma number_of_pred: "number_of(bin_pred w) = (- 1 + number_of w ::'a::number_ring)"
 apply (induct_tac "w")
 apply (simp_all add: number_of add_assoc [symmetric]) 
-apply (simp add: add_ac)
 done
 
 lemma number_of_minus: "number_of(bin_minus w) = (- (number_of w)::'a::number_ring)"
@@ -49,7 +48,6 @@ apply (simp add: number_of number_of_pred)
 apply (rule allI)
 apply (induct_tac "w")
 apply (simp_all add: number_of bin_add_BIT_BIT number_of_succ number_of_pred add_ac)
-apply (simp add: add_left_commute [of "1::'a::number_ring"]) 
 done
 
 lemma number_of_mult:
@@ -147,8 +145,8 @@ next
     assume eq: "1 + z + z = 0"
     have "0 < 1 + (int n + int n)"
       by (simp add: le_imp_0_less add_increasing) 
-    also have "... = - (1 + z + z)"
-      by (simp add: neg add_assoc [symmetric], simp add: add_commute) 
+    also have "... = - (1 + z + z)" 
+      by (simp add: neg add_assoc [symmetric]) 
     also have "... = 0" by (simp add: eq) 
     finally have "0<0" ..
     thus False by blast

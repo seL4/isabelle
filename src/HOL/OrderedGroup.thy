@@ -9,7 +9,8 @@
 
 header {* Ordered Groups *}
 
-theory OrderedGroup = Inductive + LOrder:
+theory OrderedGroup = Inductive + LOrder
+  files "../Provers/Arith/abel_cancel.ML":
 
 text {*
   The theory of partially ordered groups is taken from the books:
@@ -412,7 +413,7 @@ by (simp add: diff_minus add_ac)
 lemma add_diff_cancel: "a + b - b = (a::'a::ab_group_add)"
 by (simp add: diff_minus add_ac)
 
-text{*Further subtraction laws for ordered rings*}
+text{*Further subtraction laws*}
 
 lemma less_iff_diff_less_0: "(a < b) = (a - b < (0::'a::pordered_ab_group_add))"
 proof -
@@ -801,6 +802,39 @@ proof -
   also have "... \<le> \<bar>a-c\<bar> + \<bar>b-d\<bar>" by (rule abs_triangle_ineq)
   finally show ?thesis .
 qed
+
+text {* Needed for abelian cancellation simprocs: *}
+
+lemma add_cancel_21: "((x::'a::ab_group_add) + (y + z) = y + u) = (x + z = u)"
+apply (subst add_left_commute)
+apply (subst add_left_cancel)
+apply simp
+done
+
+lemma add_cancel_end: "(x + (y + z) = y) = (x = - (z::'a::ab_group_add))"
+apply (subst add_cancel_21[of _ _ _ 0, simplified])
+apply (simp add: add_right_cancel[symmetric, of "x" "-z" "z", simplified])
+done
+
+lemma less_eqI: "(x::'a::pordered_ab_group_add) - y = x' - y' \<Longrightarrow> (x < y) = (x' < y')"
+by (simp add: less_iff_diff_less_0[of x y] less_iff_diff_less_0[of x' y'])
+
+lemma le_eqI: "(x::'a::pordered_ab_group_add) - y = x' - y' \<Longrightarrow> (y <= x) = (y' <= x')"
+apply (simp add: le_iff_diff_le_0[of y x] le_iff_diff_le_0[of  y' x'])
+apply (simp add: neg_le_iff_le[symmetric, of "y-x" 0] neg_le_iff_le[symmetric, of "y'-x'" 0])
+done
+
+lemma eq_eqI: "(x::'a::ab_group_add) - y = x' - y' \<Longrightarrow> (x = y) = (x' = y')"
+by (simp add: eq_iff_diff_eq_0[of x y] eq_iff_diff_eq_0[of x' y'])
+
+lemma diff_def: "(x::'a::ab_group_add) - y == x + (-y)"
+by (simp add: diff_minus)
+
+lemma add_minus_cancel: "(a::'a::ab_group_add) + (-a + b) = b"
+by (simp add: add_assoc[symmetric])
+
+lemma minus_add_cancel: "-(a::'a::ab_group_add) + (a + b) = b"
+by (simp add: add_assoc[symmetric])
 
 ML {*
 val add_zero_left = thm"add_0";
