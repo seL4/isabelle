@@ -5,7 +5,7 @@
 
 HOST=$(hostname)
 
-case  ${HOST} in
+case ${HOST} in
   sunbroy*)
     #test
     DEST=/tmp/isabelle-dist
