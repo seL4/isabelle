@@ -16,7 +16,7 @@ The Makefiles can use two different Standard ML compilers: Poly/ML version
 2.03 or later (from Abstract Hardware Ltd) and Standard ML of New Jersey
 (Version 0.93 or later).  Poly/ML is a commercial product and costs money,
 but it is reliable and its database system is convenient for interactive
-work.  SML of New Jersey requires lots of memory and disc space, but it is
+work.  SML of New Jersey requires lots of store and disc space, but it is
 free and its code sometimes runs faster.  Both compilers are perfectly
 satisfactory for running Isabelle.
 
@@ -27,7 +27,7 @@ ISABELLEBIN is the directory to hold Poly/ML databases or New Jersey ML
 images.  When using Poly/ML, ISABELLEBIN must be an absolute pathname (one
 starting with "/").
 
-ML_DBASE is an absolute pathname to the initial Poly/ML database (not
+ML_DBASE is an *absolute* pathname to the initial Poly/ML database (not
 required for New Jersey ML).
 
 ISABELLECOMP is the ML compiler, typically "poly -noDisplay" or "sml".  If
@@ -79,7 +79,7 @@ executed interactively, using the windows on your workstation.  This is a
 good way to get started.
 
 Each object-logic is built on top of Pure Isabelle, and possibly on top of
-another object logic (like FOL or LK).  A database or binary called Pure is
+another object logic like FOL or LK.  A database or binary called Pure is
 first created, then the object-logic is loaded on top.  Poly/ML extends
 Pure using its "make_database" operation.  Standard ML of New Jersey starts
 with the Pure core image and loads the object-logic's ROOT.ML.
@@ -95,6 +95,12 @@ To obtain Standard ML of New Jersey, contact David MacQueen
 Murray Hill, NJ 07974, USA.  This compiler is available by FTP.  Connect to
 research.att.com; login as anonymous with your userid as password; set
 binary mode; transfer files from the directory dist/ml.
+
+------------------------------------------------------------------------------
+
+The electronic mailing list isabelle-users@cl.cam.ac.uk provides a forum
+for Isabelle users to discuss problems and exchange information.  To join,
+send a message to isabelle-users-request@cl.cam.ac.uk.
 
 ------------------------------------------------------------------------------
 
@@ -115,4 +121,4 @@ T. U. Muenchen			Fax:   +49-89-2105-8183
 D-80290 Muenchen
 Germany
 
-Last updated 5 November 1993
+Last updated 13 December 1993
