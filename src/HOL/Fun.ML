@@ -161,6 +161,11 @@ by (REPEAT (eresolve_tac [asm_rl,major] 1));
 qed "inj_on_inverseI";
 val inj_inverseI = inj_on_inverseI;   (*for compatibility*)
 
+Goal "(inj f) = (inv f o f = id)";
+by (asm_simp_tac (simpset() addsimps [o_def, expand_fun_eq]) 1);
+by (blast_tac (claset() addIs [inj_inverseI, inv_f_f]) 1);
+qed "inj_iff";
+
 Goalw [inj_on_def] "[| inj_on f A;  f(x)=f(y);  x:A;  y:A |] ==> x=y";
 by (Blast_tac 1);
 qed "inj_onD";
@@ -229,6 +234,11 @@ qed "inj_on_inv";
 Goal "surj f ==> inj (inv f)";
 by (asm_simp_tac (simpset() addsimps [inj_on_inv, surj_range]) 1);
 qed "surj_imp_inj_inv";
+
+Goal "(surj f) = (f o inv f = id)";
+by (asm_simp_tac (simpset() addsimps [o_def, expand_fun_eq]) 1);
+by (blast_tac (claset() addIs [surjI, surj_f_inv_f]) 1);
+qed "surj_iff";
 
 
 (** Bijections **)
