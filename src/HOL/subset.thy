@@ -50,6 +50,24 @@ proof -
   qed
 qed
 
+theorem Abs_inject:
+  "type_definition Rep Abs A ==> x \<in> A ==> y \<in> A ==> (Abs x = Abs y) = (x = y)"
+proof -
+  assume tydef: "type_definition Rep Abs A"
+  assume x: "x \<in> A" and y: "y \<in> A"
+  show ?thesis
+  proof
+    assume "Abs x = Abs y"
+    hence "Rep (Abs x) = Rep (Abs y)" by simp
+    moreover note x hence "Rep (Abs x) = x" by (rule Abs_inverse [OF tydef])
+    moreover note y hence "Rep (Abs y) = y" by (rule Abs_inverse [OF tydef])
+    ultimately show "x = y" by (simp only:)
+  next
+    assume "x = y"
+    thus "Abs x = Abs y" by simp
+  qed
+qed
+
 theorem Rep_cases:
   "type_definition Rep Abs A ==> y \<in> A ==> (!!x. y = Rep x ==> P) ==> P"
 proof -
@@ -72,24 +90,6 @@ proof -
     have "Abs (Rep x) = x" by (rule Rep_inverse [OF tydef])
     thus "x = Abs (Rep x)" ..
     show "Rep x \<in> A" by (rule Rep [OF tydef])
-  qed
-qed
-
-theorem Abs_inject:
-  "type_definition Rep Abs A ==> x \<in> A ==> y \<in> A ==> (Abs x = Abs y) = (x = y)"
-proof -
-  assume tydef: "type_definition Rep Abs A"
-  assume x: "x \<in> A" and y: "y \<in> A"
-  show ?thesis
-  proof
-    assume "Abs x = Abs y"
-    hence "Rep (Abs x) = Rep (Abs y)" by simp
-    moreover note x hence "Rep (Abs x) = x" by (rule Abs_inverse [OF tydef])
-    moreover note y hence "Rep (Abs y) = y" by (rule Abs_inverse [OF tydef])
-    ultimately show "x = y" by (simp only:)
-  next
-    assume "x = y"
-    thus "Abs x = Abs y" by simp
   qed
 qed
 
