@@ -316,8 +316,7 @@ Goal "((k::nat) + l) + (m + n) = (k + m) + (n + l)";
 by (simp_tac (simpset() addsimps add_ac) 1);
 qed "zmult_congruent_lemma";
 
-Goal 
-    "congruent2 intrel (%p1 p2.                 \
+Goal "congruent2 intrel (%p1 p2.                 \
 \               split (%x1 y1. split (%x2 y2.   \
 \                   intrel^^{(x1*x2 + y1*y2, x1*y2 + y1*x2)}) p2) p1)";
 by (rtac (equiv_intrel RS congruent2_commuteI) 1);

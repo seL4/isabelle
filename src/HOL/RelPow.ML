@@ -57,8 +57,7 @@ by (blast_tac (claset() addIs [rel_pow_Suc_I] addEs[rel_pow_0_E,rel_pow_Suc_E]) 
 qed_spec_mp "rel_pow_Suc_D2";
 
 
-Goal
-"!x y z. (x,y) : R^n & (y,z) : R --> (? w. (x,w) : R & (w,z) : R^n)";
+Goal "!x y z. (x,y) : R^n & (y,z) : R --> (? w. (x,w) : R & (w,z) : R^n)";
 by (nat_ind_tac "n" 1);
 by (fast_tac (claset() addss (simpset())) 1);
 by (fast_tac (claset() addss (simpset())) 1);

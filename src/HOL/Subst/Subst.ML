@@ -33,8 +33,7 @@ by (ALLGOALS Asm_simp_tac);
 by (Blast_tac 1);
 qed_spec_mp "Var_not_occs";
 
-Goal
-    "(t <|r = t <|s) = (! v. v : vars_of(t) --> Var(v) <|r = Var(v) <|s)";
+Goal "(t <|r = t <|s) = (! v. v : vars_of(t) --> Var(v) <|r = Var(v) <|s)";
 by (induct_tac "t" 1);
 by (ALLGOALS Asm_full_simp_tac);
 by (ALLGOALS Blast_tac);
@@ -171,12 +170,11 @@ by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [sdom_iff, srange_iff])));
 by (ALLGOALS Blast_tac);
 qed_spec_mp "Var_in_srange";
 
-Goal 
-     "[| v : sdom(s); v ~: srange(s) |] ==>  v ~: vars_of(t <| s)";
+Goal "[| v : sdom(s); v ~: srange(s) |] ==>  v ~: vars_of(t <| s)";
 by (blast_tac (claset() addIs [Var_in_srange]) 1);
 qed "Var_elim";
 
-Goal  "v : vars_of(t <| s) --> v : srange(s) | v : vars_of(t)";
+Goal "v : vars_of(t <| s) --> v : srange(s) | v : vars_of(t)";
 by (induct_tac "t" 1);
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [sdom_iff,srange_iff])));
 by (Blast_tac 2);
@@ -184,13 +182,11 @@ by (safe_tac (claset() addSIs [exI, vars_var_iff RS iffD1 RS sym]));
 by Auto_tac;
 qed_spec_mp "Var_intro";
 
-Goal
-    "v : srange(s) --> (? w. w : sdom(s) & v : vars_of(Var(w) <| s))";
+Goal "v : srange(s) --> (? w. w : sdom(s) & v : vars_of(Var(w) <| s))";
 by (simp_tac (simpset() addsimps [srange_iff]) 1);
 qed_spec_mp "srangeD";
 
-Goal
-   "sdom(s) Int srange(s) = {} = (! t. sdom(s) Int vars_of(t <| s) = {})";
+Goal "sdom(s) Int srange(s) = {} = (! t. sdom(s) Int vars_of(t <| s) = {})";
 by (simp_tac (simpset() addsimps [empty_iff_all_not]) 1);
 by (fast_tac (claset() addIs [Var_in_srange] addDs [srangeD]) 1);
 qed "dom_range_disjoint";

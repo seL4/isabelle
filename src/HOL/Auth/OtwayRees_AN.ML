@@ -18,8 +18,7 @@ AddDs [impOfSubs Fake_parts_insert];
 
 
 (*A "possibility property": there are traces that reach the end*)
-Goal 
- "[| A ~= B; A ~= Server; B ~= Server |]                               \
+Goal "[| A ~= B; A ~= Server; B ~= Server |]                            \
 \  ==> EX K. EX NA. EX evs: otway.                                      \
 \       Says B A (Crypt (shrK A) {|Nonce NA, Agent A, Agent B, Key K|}) \
 \       : set evs";

@@ -147,8 +147,7 @@ Addsimps [List_case_NIL, List_case_CONS];
 (* The trancl(pred_sexp) is essential because pred_sexp_CONS_I1,2 would not
    hold if pred_sexp^+ were changed to pred_sexp. *)
 
-Goal
-   "(%M. List_rec M c d) = wfrec (trancl pred_sexp) \
+Goal "(%M. List_rec M c d) = wfrec (trancl pred_sexp) \
                            \     (%g. List_case c (%x y. d x y (g y)))";
 by (simp_tac (HOL_ss addsimps [List_rec_def]) 1);
 val List_rec_unfold = standard 
@@ -339,8 +338,7 @@ qed "Abs_map_inverse";
 
 (** list_case **)
 
-Goal
- "P(list_case a f xs) = ((xs=[] --> P(a)) & \
+Goal "P(list_case a f xs) = ((xs=[] --> P(a)) & \
 \                        (!y ys. xs=y#ys --> P(f y ys)))";
 by (list_ind_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);

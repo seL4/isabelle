@@ -553,8 +553,7 @@ qed "dprod_Sigma";
 val dprod_subset_Sigma = [dprod_mono, dprod_Sigma] MRS subset_trans |>standard;
 
 (*Dependent version*)
-Goal
-    "(Sigma A B <**> Sigma C D) <= Sigma (A<*>C) (Split(%x y. B(x)<*>D(y)))";
+Goal "(Sigma A B <**> Sigma C D) <= Sigma (A<*>C) (Split(%x y. B(x)<*>D(y)))";
 by Safe_tac;
 by (stac Split 1);
 by (Blast_tac 1);

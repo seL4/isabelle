@@ -142,8 +142,7 @@ by (Blast_tac 1);
 result(); 
 
 (*From Wishnu Prasetya*)
-Goal
-   "(!s. q(s) --> r(s)) & ~r(s) & (!s. ~r(s) & ~q(s) --> p(t) | q(t)) \
+Goal "(!s. q(s) --> r(s)) & ~r(s) & (!s. ~r(s) & ~q(s) --> p(t) | q(t)) \
 \   --> p(t) | r(t)";
 by (Blast_tac 1);
 result(); 
@@ -317,8 +316,7 @@ by (Blast_tac 1);
 result();
 
 writeln"Problem 38";
-Goal
-    "(! x. p(a) & (p(x) --> (? y. p(y) & r x y)) -->            \
+Goal "(! x. p(a) & (p(x) --> (? y. p(y) & r x y)) -->            \
 \          (? z. ? w. p(z) & r x w & r w z))  =                 \
 \    (! x. (~p(a) | p(x) | (? z. ? w. p(z) & r x w & r w z)) &  \
 \          (~p(a) | ~(? y. p(y) & r x y) |                      \
@@ -349,8 +347,7 @@ by (Blast_tac 1);
 result();
 
 writeln"Problem 43!!";
-Goal
-    "(! x::'a. ! y::'a. q x y = (! z. p z x = (p z y::bool)))   \
+Goal "(! x::'a. ! y::'a. q x y = (! z. p z x = (p z y::bool)))   \
 \ --> (! x. (! y. q x y = (q y x::bool)))";
 by (Blast_tac 1);
 result();
@@ -364,8 +361,7 @@ by (Blast_tac 1);
 result();
 
 writeln"Problem 45";
-Goal
-    "(! x. f(x) & (! y. g(y) & h x y --> j x y) \
+Goal "(! x. f(x) & (! y. g(y) & h x y --> j x y) \
 \                     --> (! y. g(y) & h x y --> k(y))) &       \
 \    ~ (? y. l(y) & k(y)) &                                     \
 \    (? x. f(x) & (! y. h x y --> l(y))                         \
@@ -402,16 +398,14 @@ by (Blast_tac 1);
 result();
 
 writeln"Problem 51";
-Goal
-    "(? z w. ! x y. P x y = (x=z & y=w)) -->  \
+Goal "(? z w. ! x y. P x y = (x=z & y=w)) -->  \
 \    (? z. ! x. ? w. (! y. P x y = (y=w)) = (x=z))";
 by (Blast_tac 1);
 result();
 
 writeln"Problem 52";
 (*Almost the same as 51. *)
-Goal
-    "(? z w. ! x y. P x y = (x=z & y=w)) -->  \
+Goal "(? z w. ! x y. P x y = (x=z & y=w)) -->  \
 \    (? w. ! y. ? z. (! x. P x y = (x=z)) = (y=w))";
 by (Blast_tac 1);
 result();
@@ -433,14 +427,12 @@ by (Fast_tac 1);
 result();
 
 writeln"Problem 56";
-Goal
-    "(! x. (? y. P(y) & x=f(y)) --> P(x)) = (! x. P(x) --> P(f(x)))";
+Goal "(! x. (? y. P(y) & x=f(y)) --> P(x)) = (! x. P(x) --> P(f(x)))";
 by (Blast_tac 1);
 result();
 
 writeln"Problem 57";
-Goal
-    "P (f a b) (f b c) & P (f b c) (f a c) & \
+Goal "P (f a b) (f b c) & P (f b c) (f a c) & \
 \    (! x y z. P x y & P y z --> P x z)    -->   P (f a b) (f a c)";
 by (Blast_tac 1);
 result();
@@ -457,8 +449,7 @@ by (Blast_tac 1);
 result();
 
 writeln"Problem 60";
-Goal
-    "! x. P x (f x) = (? y. (! z. P z y --> P z (f x)) & P x y)";
+Goal "! x. P x (f x) = (? y. (! z. P z y --> P z (f x)) & P x y)";
 by (Blast_tac 1);
 result();
 

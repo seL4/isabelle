@@ -3,7 +3,6 @@
     Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-For Unifier.thy.
 Properties of unifiers.
 *)
 
@@ -15,15 +14,13 @@ val unify_defs = [Unifier_def, MoreGeneral_def, MGUnifier_def];
  * Unifiers 
  *---------------------------------------------------------------------------*)
 
-Goal
-    "Unifier s (Comb t u) (Comb v w) = (Unifier s t v & Unifier s u w)";
+Goal "Unifier s (Comb t u) (Comb v w) = (Unifier s t v & Unifier s u w)";
 by (simp_tac (simpset() addsimps [Unifier_def]) 1);
 qed "Unifier_Comb";
 
 AddIffs [Unifier_Comb];
 
-Goal
-  "[| v ~: vars_of t; v ~: vars_of u; Unifier s t u |] ==> \
+Goal "[| v ~: vars_of t; v ~: vars_of u; Unifier s t u |] ==> \
 \  Unifier ((v,r)#s) t u";
 by (asm_full_simp_tac (simpset() addsimps [Unifier_def, repl_invariance]) 1);
 qed "Cons_Unifier";
@@ -51,8 +48,7 @@ by (auto_tac (claset() addIs [ssubst_subst2, subst_comp_Nil], simpset()));
 qed "MGU_iff";
 
 
-Goal
-     "~ Var v <: t ==> MGUnifier [(v,t)] (Var v) t";
+Goal "~ Var v <: t ==> MGUnifier [(v,t)] (Var v) t";
 by (simp_tac(simpset() addsimps [MGU_iff, Unifier_def, MoreGeneral_def]
 	              delsimps [subst_Var]) 1);
 by Safe_tac;

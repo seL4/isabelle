@@ -56,13 +56,11 @@ qed "wp_While_False";
 Addsimps [wp_SKIP,wp_Ass,wp_Semi,wp_If,wp_While_True,wp_While_False];
 
 (*Not suitable for rewriting: LOOPS!*)
-Goal
- "wp (WHILE b DO c) Q s = (if b s then wp (c;WHILE b DO c) Q s else Q s)";
+Goal "wp (WHILE b DO c) Q s = (if b s then wp (c;WHILE b DO c) Q s else Q s)";
 by (Simp_tac 1);
 qed "wp_While_if";
 
-Goal
-  "wp (WHILE b DO c) Q s = \
+Goal "wp (WHILE b DO c) Q s = \
 \  (s : gfp(%S.{s. if b s then wp c (%s. s:S) s else Q s}))";
 by (Simp_tac 1);
 by (rtac iffI 1);

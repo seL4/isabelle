@@ -27,8 +27,7 @@ by (Fast_tac 1);
 val hlemma = result();
 
 
-Goal
-  "!s t u c d. (c,s) -n-> (SKIP,t) --> (d,t) -*-> (SKIP,u) --> \
+Goal "!s t u c d. (c,s) -n-> (SKIP,t) --> (d,t) -*-> (SKIP,u) --> \
 \              (c;d, s) -*-> (SKIP, u)";
 by (induct_tac "n" 1);
  by (fast_tac (claset() addIs [rtrancl_into_rtrancl2])1);
@@ -60,8 +59,7 @@ by (fast_tac (claset() addDs [rtrancl_imp_UN_rel_pow]
 qed "evalc_impl_evalc1";
 
 
-Goal
-  "!c d s u. (c;d,s) -n-> (SKIP,u) --> \
+Goal "!c d s u. (c;d,s) -n-> (SKIP,u) --> \
 \            (? t m. (c,s) -*-> (SKIP,t) & (d,t) -m-> (SKIP,u) & m <= n)";
 by (induct_tac "n" 1);
  (* case n = 0 *)
@@ -117,8 +115,7 @@ qed "evalc1_eq_evalc";
 
 section "A Proof Without -n->";
 
-Goal
- "(c1,s1) -*-> (SKIP,s2) ==> \
+Goal "(c1,s1) -*-> (SKIP,s2) ==> \
 \ (c2,s2) -*-> cs3 --> (c1;c2,s1) -*-> cs3";
 by (etac converse_rtrancl_induct2 1);
 by (fast_tac (claset() addIs [rtrancl_into_rtrancl2]) 1);
@@ -183,8 +180,7 @@ of Lemma 1.
 *)
 
 (*Delsimps [update_apply];*)
-Goal 
-  "((c,s) -1-> (c',s')) ==> (!t. <c',s'> -c-> t --> <c,s> -c-> t)";
+Goal "((c,s) -1-> (c',s')) ==> (!t. <c',s'> -c-> t --> <c,s> -c-> t)";
 by (etac evalc1.induct 1);
 by Auto_tac;
 qed_spec_mp "FB_lemma3";

@@ -87,8 +87,7 @@ qed "Rassoc";
  * This lemma proves the nested termination condition for the base cases 
  * 3, 4, and 6. 
  *---------------------------------------------------------------------------*)
-Goal
- "~(Var x <: M) ==> \
+Goal "~(Var x <: M) ==> \
 \   ((N1 <| [(x,M)], N2 <| [(x,M)]), (Comb M N1, Comb(Var x) N2)) : unifyRel \
 \ & ((N1 <| [(x,M)], N2 <| [(x,M)]), (Comb(Var x) N1, Comb M N2)) : unifyRel";
 by (case_tac "Var x = M" 1);
@@ -175,8 +174,7 @@ qed_spec_mp "unify_TC";
  *---------------------------------------------------------------------------*)
 
 (*Desired rule, copied from the theory file.  Could it be made available?*)
-Goal 
-  "unify(Comb M1 N1, Comb M2 N2) =      \
+Goal "unify(Comb M1 N1, Comb M2 N2) =      \
 \      (case unify(M1,M2)               \
 \        of None => None                \
 \         | Some theta => (case unify(N1 <| theta, N2 <| theta)        \

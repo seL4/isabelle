@@ -211,9 +211,8 @@ by (asm_simp_tac (simpset() addsimps [Collect_conv_insert, less_Suc_eq]
                           addcongs [rev_conj_cong]) 1);
 qed "finite_has_card";
 
-Goal
-  "[| x ~: A; insert x A = {f i|i. i<n} |] ==> \
-\  ? m::nat. m<n & (? g. A = {g i|i. i<m})";
+Goal "[| x ~: A; insert x A = {f i|i. i<n} |]  \
+\     ==> ? m::nat. m<n & (? g. A = {g i|i. i<m})";
 by (exhaust_tac "n" 1);
  by (hyp_subst_tac 1);
  by (Asm_full_simp_tac 1);

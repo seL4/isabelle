@@ -85,8 +85,7 @@ qed "mk_disjoint_insert";
 bind_thm ("insert_Collect", prove_goal thy 
 	"insert a (Collect P) = {u. u ~= a --> P u}" (K [Auto_tac]));
 
-Goal
-    "A~={} ==> (UN x:A. insert a (B x)) = insert a (UN x:A. B x)";
+Goal "A~={} ==> (UN x:A. insert a (B x)) = insert a (UN x:A. B x)";
 by (Blast_tac 1);
 qed "UN_insert_distrib";
 
@@ -305,8 +304,7 @@ Goal "(B Int C) Un A =  (B Un A) Int (C Un A)";
 by (Blast_tac 1);
 qed "Un_Int_distrib2";
 
-Goal
- "(A Int B) Un (B Int C) Un (C Int A) = (A Un B) Int (B Un C) Int (C Un A)";
+Goal "(A Int B) Un (B Int C) Un (C Int A) = (A Un B) Int (B Un C) Int (C Un A)";
 by (Blast_tac 1);
 qed "Un_Int_crazy";
 
@@ -556,13 +554,11 @@ Goal "B Un (INT i:I. A(i)) = (INT i:I. B Un A(i))";
 by (Blast_tac 1);
 qed "Un_INT_distrib";
 
-Goal
-    "(UN i:I. A(i)) Int (UN j:J. B(j)) = (UN i:I. UN j:J. A(i) Int B(j))";
+Goal "(UN i:I. A(i)) Int (UN j:J. B(j)) = (UN i:I. UN j:J. A(i) Int B(j))";
 by (Blast_tac 1);
 qed "Int_UN_distrib2";
 
-Goal
-    "(INT i:I. A(i)) Un (INT j:J. B(j)) = (INT i:I. INT j:J. A(i) Un B(j))";
+Goal "(INT i:I. A(i)) Un (INT j:J. B(j)) = (INT i:I. INT j:J. A(i) Un B(j))";
 by (Blast_tac 1);
 qed "Un_INT_distrib2";
 

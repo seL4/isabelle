@@ -108,8 +108,7 @@ fun term_ind2_tac a i =
 
 (*** Term_rec -- by wf recursion on pred_sexp ***)
 
-Goal
-   "(%M. Term_rec M d) = wfrec (trancl pred_sexp) \
+Goal "(%M. Term_rec M d) = wfrec (trancl pred_sexp) \
                              \ (%g. Split(%x y. d x y (Abs_map g y)))";
 by (simp_tac (HOL_ss addsimps [Term_rec_def]) 1);
 bind_thm("Term_rec_unfold", (wf_pred_sexp RS wf_trancl) RS 

@@ -439,8 +439,7 @@ val prems = goal MT.thy
 by (elab_e_elim_tac prems);
 qed "elab_fn_elim_lem";
 
-Goal 
-  " te |- fn x1 => e1 ===> t ==> \
+Goal " te |- fn x1 => e1 ===> t ==> \
 \   (? t1 t2. t=t1->t2 & te + {x1 |=> t1} |- e1 ===> t2)";
 by (dtac elab_fn_elim_lem 1);
 by (Blast_tac 1);
@@ -453,8 +452,7 @@ val prems = goal MT.thy
 by (elab_e_elim_tac prems);
 qed "elab_fix_elim_lem";
 
-Goal 
-  " te |- fix ev1(ev2) = e1 ===> t ==> \
+Goal " te |- fix ev1(ev2) = e1 ===> t ==> \
 \   (? t1 t2. t=t1->t2 & te + {ev1 |=> t1->t2} + {ev2 |=> t1} |- e1 ===> t2)";
 by (dtac elab_fix_elim_lem 1);
 by (Blast_tac 1);
@@ -466,8 +464,7 @@ val prems = goal MT.thy
 by (elab_e_elim_tac prems);
 qed "elab_app_elim_lem";
 
-Goal
- "te |- e1 @ e2 ===> t2 ==> (? t1 . te |- e1 ===> t1->t2 & te |- e2 ===> t1)"; 
+Goal "te |- e1 @ e2 ===> t2 ==> (? t1 . te |- e1 ===> t1->t2 & te |- e2 ===> t1)"; 
 by (dtac elab_app_elim_lem 1);
 by (Blast_tac 1);
 qed "elab_app_elim";
@@ -589,8 +586,7 @@ by (rtac hasty_rel_elim 1);
 by (ALLGOALS (blast_tac (v_ext_cs HOL_cs)));
 qed "hasty_elim_clos_lem";
 
-Goal 
-  "v_clos(<|ev,e,ve|>) hasty t ==>  \
+Goal "v_clos(<|ev,e,ve|>) hasty t ==>  \
 \       ? te. te |- fn ev => e ===> t & ve hastyenv te ";
 by (dtac hasty_elim_clos_lem 1);
 by (Blast_tac 1);
@@ -600,8 +596,7 @@ qed "hasty_elim_clos";
 (* The pointwise extension of hasty to environments             *)
 (* ############################################################ *)
 
-Goal
-  "[| ve hastyenv te; v hasty t |] ==> \
+Goal "[| ve hastyenv te; v hasty t |] ==> \
 \        ve + {ev |-> v} hastyenv te + {ev |=> t}";
 by (rewtac hasty_env_def);
 by (asm_full_simp_tac (simpset() delsimps mem_simps
@@ -617,8 +612,7 @@ qed "hasty_env1";
 (* The Consistency theorem                                      *)
 (* ############################################################ *)
 
-Goal 
-  "[| ve hastyenv te ; te |- e_const(c) ===> t |] ==> v_const(c) hasty t";
+Goal "[| ve hastyenv te ; te |- e_const(c) ===> t |] ==> v_const(c) hasty t";
 by (dtac elab_const_elim 1);
 by (etac hasty_const 1);
 qed "consistency_const";
@@ -630,8 +624,7 @@ by (dtac elab_var_elim 1);
 by (Blast_tac 1);
 qed "consistency_var";
 
-Goal
-  "[| ve hastyenv te ; te |- fn ev => e ===> t |] ==> \
+Goal "[| ve hastyenv te ; te |- fn ev => e ===> t |] ==> \
 \       v_clos(<| ev, e, ve |>) hasty t";
 by (rtac hasty_clos 1);
 by (Blast_tac 1);
@@ -664,8 +657,7 @@ by (etac subst 1);
 by (Blast_tac 1);
 qed "consistency_fix";
 
-Goal 
-  "[| ! t te. ve hastyenv te --> te |- e1 ===> t --> v_const(c1) hasty t;\
+Goal "[| ! t te. ve hastyenv te --> te |- e1 ===> t --> v_const(c1) hasty t;\
 \      ! t te. ve hastyenv te  --> te |- e2 ===> t --> v_const(c2) hasty t; \
 \      ve hastyenv te ; te |- e1 @ e2 ===> t \
 \   |] ==> \
@@ -680,8 +672,7 @@ by (rtac hasty_elim_const 1);
 by (Blast_tac 1);
 qed "consistency_app1";
 
-Goal 
-  "[| ! t te. \
+Goal "[| ! t te. \
 \        ve hastyenv te  --> \
 \        te |- e1 ===> t --> v_clos(<|evm, em, vem|>) hasty t; \
 \      ! t te. ve hastyenv te  --> te |- e2 ===> t --> v2 hasty t; \
@@ -707,8 +698,7 @@ by (dtac elab_fn_elim 1);
 by (blast_tac (claset() addIs [hasty_env1] addSDs [t_fun_inj]) 1);
 qed "consistency_app2";
 
-Goal
-  "ve |- e ---> v ==> \
+Goal "ve |- e ---> v ==> \
 \  (! t te. ve hastyenv te --> te |- e ===> t --> v hasty t)";
 
 (* Proof by induction on the structure of evaluations *)
@@ -736,8 +726,7 @@ by (dtac hasty_const 1);
 by (Asm_simp_tac 1);
 qed "basic_consistency_lem";
 
-Goal
-  "[| ve isofenv te; ve |- e ---> v_const(c); te |- e ===> t |] ==> c isof t";
+Goal "[| ve isofenv te; ve |- e ---> v_const(c); te |- e ===> t |] ==> c isof t";
 by (rtac hasty_elim_const 1);
 by (dtac consistency 1);
 by (blast_tac (claset() addSIs [basic_consistency_lem]) 1);

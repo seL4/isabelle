@@ -246,8 +246,7 @@ val analz_image_freshK_ss =
                         @disj_comms);
 
 (*Lemma for the trivial direction of the if-and-only-if*)
-Goal  
- "(Key K : analz (Key``nE Un H)) --> (K : nE | Key K : analz H)  ==> \
+Goal "(Key K : analz (Key``nE Un H)) --> (K : nE | Key K : analz H)  ==> \
 \        (Key K : analz (Key``nE Un H)) = (K : nE | Key K : analz H)";
 by (blast_tac (claset() addIs [impOfSubs analz_mono]) 1);
 qed "analz_image_freshK_lemma";

@@ -253,8 +253,7 @@ by (rtac split 1);
 qed "prod_fun";
 Addsimps [prod_fun];
 
-Goal 
-    "prod_fun (f1 o f2) (g1 o g2) = ((prod_fun f1 g1) o (prod_fun f2 g2))";
+Goal "prod_fun (f1 o f2) (g1 o g2) = ((prod_fun f1 g1) o (prod_fun f2 g2))";
 by (rtac ext 1);
 by (pair_tac "x" 1);
 by (Asm_simp_tac 1);
@@ -347,8 +346,7 @@ val Collect_split = prove_goal Prod.thy
 Addsimps [Collect_split];
 
 (*Suggested by Pierre Chartier*)
-Goal
-     "(UN (a,b):(A Times B). E a Times F b) = (UNION A E) Times (UNION B F)";
+Goal "(UN (a,b):(A Times B). E a Times F b) = (UNION A E) Times (UNION B F)";
 by (Blast_tac 1);
 qed "UNION_Times_distrib";
 

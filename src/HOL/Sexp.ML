@@ -98,8 +98,7 @@ qed "wf_pred_sexp";
 
 (*** sexp_rec -- by wf recursion on pred_sexp ***)
 
-Goal
-   "(%M. sexp_rec M c d e) = wfrec pred_sexp \
+Goal "(%M. sexp_rec M c d e) = wfrec pred_sexp \
                        \ (%g. sexp_case c d (%N1 N2. e N1 N2 (g N1) (g N2)))";
 by (simp_tac (HOL_ss addsimps [sexp_rec_def]) 1);
 

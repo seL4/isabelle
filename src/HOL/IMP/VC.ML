@@ -43,8 +43,7 @@ by (EVERY[etac allE 1,etac allE 1,etac impE 1,etac allE 2,etac mp 2,atac 2]);
 by (fast_tac (HOL_cs addEs [awp_mono]) 1);
 qed_spec_mp "vc_mono";
 
-Goal
-  "|- {P}c{Q} ==> \
+Goal "|- {P}c{Q} ==> \
 \  (? ac. astrip ac = c & (!s. vc ac Q s) & (!s. P s --> awp ac Q s))";
 by (etac hoare.induct 1);
      by (res_inst_tac [("x","Askip")] exI 1);

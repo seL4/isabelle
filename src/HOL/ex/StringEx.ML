@@ -15,7 +15,6 @@ Goal "''ABCD'' = ''ABCD''";
 by (Simp_tac 1);
 result();
 
-Goal
-  "''ABCDEFGHIJKLMNOPQRSTUVWXYZ'' ~= ''ABCDEFGHIJKLMNOPQRSTUVWXY''";
+Goal "''ABCDEFGHIJKLMNOPQRSTUVWXYZ'' ~= ''ABCDEFGHIJKLMNOPQRSTUVWXY''";
 by (Simp_tac 1);
 result();

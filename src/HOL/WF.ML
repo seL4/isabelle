@@ -317,8 +317,7 @@ qed "def_wfrec";
 
 (**** TFL variants ****)
 
-Goal
-    "!R. wf R --> (!P. (!x. (!y. (y,x):R --> P y) --> P x) --> (!x. P x))";
+Goal "!R. wf R --> (!P. (!x. (!y. (y,x):R --> P y) --> P x) --> (!x. P x))";
 by (Clarify_tac 1);
 by (res_inst_tac [("r","R"),("P","P"), ("a","x")] wf_induct 1);
 by (assume_tac 1);

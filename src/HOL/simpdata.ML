@@ -252,6 +252,9 @@ prove "eq_sym_conv" "(x=y) = (y=x)";
 qed_goalw "o_apply" HOL.thy [o_def] "(f o g) x = f (g x)"
  (K [rtac refl 1]);
 
+
+(** if-then-else rules **)
+
 qed_goalw "if_True" HOL.thy [if_def] "(if True then x else y) = x"
  (K [Blast_tac 1]);
 

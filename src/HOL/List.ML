@@ -243,8 +243,7 @@ qed "append_eq_appendI";
 
 section "map";
 
-Goal
-  "(!x. x : set xs --> f x = g x) --> map f xs = map g xs";
+Goal "(!x. x : set xs --> f x = g x) --> map f xs = map g xs";
 by (induct_tac "xs" 1);
 by (Auto_tac);
 bind_thm("map_ext", impI RS (allI RS (result() RS mp)));
@@ -274,8 +273,7 @@ by (Auto_tac);
 qed "rev_map";
 
 (* a congruence rule for map: *)
-Goal
- "(xs=ys) --> (!x. x : set ys --> f x = g x) --> map f xs = map g ys";
+Goal "(xs=ys) --> (!x. x : set ys --> f x = g x) --> map f xs = map g ys";
 by (rtac impI 1);
 by (hyp_subst_tac 1);
 by (induct_tac "ys" 1);
@@ -520,8 +518,7 @@ qed "rev_concat";
 
 section "nth";
 
-Goal
-  "!xs. (xs@ys)!n = (if n < length xs then xs!n else ys!(n - length xs))";
+Goal "!xs. (xs@ys)!n = (if n < length xs then xs!n else ys!(n - length xs))";
 by (induct_tac "n" 1);
  by (Asm_simp_tac 1);
  by (rtac allI 1);
@@ -596,8 +593,7 @@ by (Auto_tac);
 qed "length_butlast";
 Addsimps [length_butlast];
 
-Goal
-  "!ys. butlast (xs@ys) = (if ys=[] then butlast xs else xs@butlast ys)";
+Goal "!ys. butlast (xs@ys) = (if ys=[] then butlast xs else xs@butlast ys)";
 by (induct_tac "xs" 1);
 by (Auto_tac);
 qed_spec_mp "butlast_append";
@@ -672,8 +668,7 @@ by (exhaust_tac "xs" 1);
  by (Auto_tac);
 qed_spec_mp "drop_all";
 
-Goal 
-  "!xs. take n (xs @ ys) = (take n xs @ take (n - length xs) ys)";
+Goal "!xs. take n (xs @ ys) = (take n xs @ take (n - length xs) ys)";
 by (induct_tac "n" 1);
  by (Auto_tac);
 by (exhaust_tac "xs" 1);

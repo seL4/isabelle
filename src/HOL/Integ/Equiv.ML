@@ -66,8 +66,7 @@ Goalw [equiv_def,refl_def]
 by (Blast_tac 1);
 qed "subset_equiv_class";
 
-Goal
-    "[| r^^{a} = r^^{b};  equiv A r;  b: A |] ==> (a,b): r";
+Goal "[| r^^{a} = r^^{b};  equiv A r;  b: A |] ==> (a,b): r";
 by (REPEAT (ares_tac [equalityD2, subset_equiv_class] 1));
 qed "eq_equiv_class";
 
@@ -82,14 +81,12 @@ val [major] = goalw Equiv.thy [equiv_def,refl_def]
 by (rtac (major RS conjunct1 RS conjunct1) 1);
 qed "equiv_type";
 
-Goal
-    "equiv A r ==> ((x,y): r) = (r^^{x} = r^^{y} & x:A & y:A)";
+Goal "equiv A r ==> ((x,y): r) = (r^^{x} = r^^{y} & x:A & y:A)";
 by (blast_tac (claset() addSIs [equiv_class_eq]
 	               addDs [eq_equiv_class, equiv_type]) 1);
 qed "equiv_class_eq_iff";
 
-Goal
-    "[| equiv A r;  x: A;  y: A |] ==> (r^^{x} = r^^{y}) = ((x,y): r)";
+Goal "[| equiv A r;  x: A;  y: A |] ==> (r^^{x} = r^^{y}) = ((x,y): r)";
 by (blast_tac (claset() addSIs [equiv_class_eq]
 	               addDs [eq_equiv_class, equiv_type]) 1);
 qed "eq_equiv_class_iff";
@@ -193,8 +190,7 @@ by (rewrite_goals_tac [congruent2_def,equiv_def,refl_def]);
 by (Blast_tac 1);
 qed "congruent2_implies_congruent_UN";
 
-Goal
-    "[| equiv A r;  congruent2 r b;  a1: A;  a2: A |]  \
+Goal "[| equiv A r;  congruent2 r b;  a1: A;  a2: A |]  \
 \    ==> (UN x1:r^^{a1}. UN x2:r^^{a2}. b x1 x2) = b a1 a2";
 by (asm_simp_tac (simpset() addsimps [UN_equiv_class,
                                      congruent2_implies_congruent,

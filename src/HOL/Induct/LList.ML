@@ -103,8 +103,7 @@ by (ALLGOALS Asm_simp_tac);
 qed "LList_corec_subset2";
 
 (*the recursion equation for LList_corec -- NOT SUITABLE FOR REWRITING!*)
-Goal
-    "LList_corec a f = sum_case (%u. NIL) \
+Goal "LList_corec a f = sum_case (%u. NIL) \
 \                           (split(%z w. CONS z (LList_corec w f))) (f a)";
 by (REPEAT (resolve_tac [equalityI, LList_corec_subset1, 
                          LList_corec_subset2] 1));
@@ -129,8 +128,7 @@ by (Simp_tac 1);
 qed "LList_corec_type";
 
 (*Lemma for the proof of llist_corec*)
-Goal
-   "LList_corec a (%z. sum_case Inl (split(%v w. Inr((Leaf(v),w)))) (f z)) : \
+Goal "LList_corec a (%z. sum_case Inl (split(%v w. Inr((Leaf(v),w)))) (f z)) : \
 \   llist(range Leaf)";
 by (res_inst_tac [("X", "range(%x. LList_corec x ?g)")] llist_coinduct 1);
 by (rtac rangeI 1);
@@ -235,8 +233,7 @@ by (REPEAT (resolve_tac [equalityI, LListD_subset_diag,
                          diag_subset_LListD] 1));
 qed "LListD_eq_diag";
 
-Goal 
-    "M: llist(A) ==> (M,M) : LListD_Fun (diag A) (X Un diag(llist(A)))";
+Goal "M: llist(A) ==> (M,M) : LListD_Fun (diag A) (X Un diag(llist(A)))";
 by (rtac (LListD_eq_diag RS subst) 1);
 by (rtac LListD_Fun_LListD_I 1);
 by (asm_simp_tac (simpset() addsimps [LListD_eq_diag, diagI]) 1);
@@ -246,8 +243,7 @@ qed "LListD_Fun_diag_I";
 (** To show two LLists are equal, exhibit a bisimulation! 
       [also admits true equality]
    Replace "A" by some particular set, like {x.True}??? *)
-Goal 
-    "[| (M,N) : r;  r <= LListD_Fun (diag A) (r Un diag(llist(A))) \
+Goal "[| (M,N) : r;  r <= LListD_Fun (diag A) (r Un diag(llist(A))) \
 \         |] ==>  M=N";
 by (rtac (LListD_subset_diag RS subsetD RS diagE) 1);
 by (etac LListD_coinduct 1);
@@ -538,8 +534,7 @@ Addsimps [Lappend_NIL, Lappend_NIL2];
 (** Alternative type-checking proofs for Lappend **)
 
 (*weak co-induction: bisimulation and case analysis on both variables*)
-Goal
-    "[| M: llist(A); N: llist(A) |] ==> Lappend M N: llist(A)";
+Goal "[| M: llist(A); N: llist(A) |] ==> Lappend M N: llist(A)";
 by (res_inst_tac
     [("X", "UN u:llist(A). UN v: llist(A). {Lappend u v}")] llist_coinduct 1);
 by (Fast_tac 1);
@@ -551,8 +546,7 @@ by (Blast_tac 1);
 qed "Lappend_type";
 
 (*strong co-induction: bisimulation and case analysis on one variable*)
-Goal
-    "[| M: llist(A); N: llist(A) |] ==> Lappend M N: llist(A)";
+Goal "[| M: llist(A); N: llist(A) |] ==> Lappend M N: llist(A)";
 by (res_inst_tac [("X", "(%u. Lappend u N)``llist(A)")] llist_coinduct 1);
 by (etac imageI 1);
 by (rtac image_subsetI 1);
@@ -627,8 +621,7 @@ by (simp_tac (simpset() addsimps [NIL_def, CONS_def]) 1);
 by (Fast_tac 1);
 qed "LListD_Fun_subset_Sigma_llist";
 
-Goal
-    "prod_fun Rep_llist Rep_llist `` r <= \
+Goal "prod_fun Rep_llist Rep_llist `` r <= \
 \    (llist(range Leaf)) Times (llist(range Leaf))";
 by (fast_tac (claset() delrules [image_subsetI]
 		       addIs [Rep_llist]) 1);
@@ -643,8 +636,7 @@ by (assume_tac 1);
 by (asm_simp_tac (simpset() addsimps [Abs_llist_inverse]) 1);
 qed "prod_fun_lemma";
 
-Goal
-    "prod_fun Rep_llist  Rep_llist `` range(%x. (x, x)) = \
+Goal "prod_fun Rep_llist  Rep_llist `` range(%x. (x, x)) = \
 \    diag(llist(range Leaf))";
 by (rtac equalityI 1);
 by (fast_tac (claset() addIs [Rep_llist]) 1);
@@ -779,8 +771,7 @@ qed "iterates_lmap";
 
 (** Two lemmas about natrec n x (%m.g), which is essentially (g^n)(x) **)
 
-Goal
-    "nat_rec (LCons b l) (%m. lmap(f)) n =      \
+Goal "nat_rec (LCons b l) (%m. lmap(f)) n =      \
 \    LCons (nat_rec b (%m. f) n) (nat_rec l (%m. lmap(f)) n)";
 by (induct_tac "n" 1);
 by (ALLGOALS Asm_simp_tac);

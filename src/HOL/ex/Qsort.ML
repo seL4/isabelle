@@ -41,8 +41,7 @@ by (ALLGOALS Asm_simp_tac);
 qed"Ball_set_filter";
 Addsimps [Ball_set_filter];
 
-Goal
- "sorted le (xs@ys) = (sorted le xs & sorted le ys & \
+Goal "sorted le (xs@ys) = (sorted le xs & sorted le ys & \
 \                     (!x:set xs. !y:set ys. le x y))";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
