@@ -275,8 +275,6 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
     val used = foldr add_typ_tfree_names (recTs, []);
     val newTs = take (length (hd descr), recTs);
 
-    val _ = message ("Adding axioms for datatype(s) " ^ commas_quote new_type_names);
-
     (**** declare new types and constants ****)
 
     val tyvars = map (fn (_, (_, Ts, _)) => map dest_DtTFree Ts) (hd descr);
