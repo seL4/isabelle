@@ -1,7 +1,7 @@
 (*  Title:      HOL/MicroJava/J/Decl.thy
     ID:         $Id$
     Author:     David von Oheimb
-    Copyright   1997 Technische Universitaet Muenchen
+    Copyright   1999 Technische Universitaet Muenchen
 *)
 
 header "Class Declarations and whole Programs"

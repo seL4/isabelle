@@ -103,12 +103,12 @@ consts
   ty_exprs:: "java_mb env => (expr list \<times> ty list) set"
   wt_stmt :: "java_mb env =>  stmt                 set"
 
-syntax
+syntax (xsymbols)
   ty_expr :: "java_mb env => [expr     , ty     ] => bool" ("_ \<turnstile> _ :: _"   [51,51,51]50)
   ty_exprs:: "java_mb env => [expr list, ty list] => bool" ("_ \<turnstile> _ [::] _" [51,51,51]50)
   wt_stmt :: "java_mb env =>  stmt                => bool" ("_ \<turnstile> _ \<surd>"      [51,51   ]50)
 
-syntax (HTML)
+syntax
   ty_expr :: "java_mb env => [expr     , ty     ] => bool" ("_ |- _ :: _"   [51,51,51]50)
   ty_exprs:: "java_mb env => [expr list, ty list] => bool" ("_ |- _ [::] _" [51,51,51]50)
   wt_stmt :: "java_mb env =>  stmt                => bool" ("_ |- _ [ok]"   [51,51   ]50)

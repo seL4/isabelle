@@ -25,7 +25,7 @@ datatype xcpt		(* exceptions *)
 	| ClassCast
 	| OutOfMemory
 
-types	aheap  = "loc \<leadsto> obj" (* "heap" used in a translation below *)
+types	aheap  = "loc \<leadsto> obj" (** "heap" used in a translation below **)
         locals = "vname \<leadsto> val"	
 
         state		(* simple state, i.e. variable contents *)

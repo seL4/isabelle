@@ -13,7 +13,7 @@ consts
   evals :: "java_mb prog => (xstate \<times> expr list \<times> val list \<times> xstate) set"
   exec  :: "java_mb prog => (xstate \<times> stmt                 \<times> xstate) set"
 
-syntax
+syntax (xsymbols)
   eval :: "[java_mb prog,xstate,expr,val,xstate] => bool "
           ("_ \<turnstile> _ -_\<succ>_-> _" [51,82,60,82,82] 81)
   evals:: "[java_mb prog,xstate,expr list,
@@ -22,7 +22,7 @@ syntax
   exec :: "[java_mb prog,xstate,stmt,    xstate] => bool "
           ("_ \<turnstile> _ -_-> _" [51,82,60,82] 81)
 
-syntax (HTML)
+syntax
   eval :: "[java_mb prog,xstate,expr,val,xstate] => bool "
           ("_ |- _ -_>_-> _" [51,82,60,82,82] 81)
   evals:: "[java_mb prog,xstate,expr list,

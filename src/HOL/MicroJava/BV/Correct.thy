@@ -56,7 +56,7 @@ primrec
 
 constdefs
  correct_state :: "[jvm_prog,prog_type,jvm_state] => bool"
-                  ("_,_ \<turnstile>JVM _ \<surd>"  [51,51] 50)
+                  ("_,_ |-JVM _ [ok]"  [51,51] 50)
 "correct_state G phi == \<lambda>(xp,hp,frs).
    case xp of
      None => (case frs of
@@ -73,9 +73,9 @@ constdefs
    | Some x => True" 
 
 
-syntax (HTML)
+syntax (xsymbols)
  correct_state :: "[jvm_prog,prog_type,jvm_state] => bool"
-                  ("_,_ |-JVM _ [ok]"  [51,51] 50)
+                  ("_,_ \<turnstile>JVM _ \<surd>"  [51,51] 50)
 
 
 lemma sup_ty_opt_OK:

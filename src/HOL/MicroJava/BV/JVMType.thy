@@ -43,31 +43,31 @@ constdefs
 
 constdefs
   sup_ty_opt :: "['code prog,ty err,ty err] => bool" 
-                 ("_ \<turnstile> _ <=o _" [71,71] 70)
+                 ("_ |- _ <=o _" [71,71] 70)
   "sup_ty_opt G == Err.le (subtype G)"
 
   sup_loc :: "['code prog,locvars_type,locvars_type] => bool" 
-              ("_ \<turnstile> _ <=l _"  [71,71] 70)
+              ("_ |- _ <=l _"  [71,71] 70)
   "sup_loc G == Listn.le (sup_ty_opt G)"
 
   sup_state :: "['code prog,state_type,state_type] => bool"	  
-               ("_ \<turnstile> _ <=s _"  [71,71] 70)
+               ("_ |- _ <=s _"  [71,71] 70)
   "sup_state G == Product.le (Listn.le (subtype G)) (sup_loc G)"
 
   sup_state_opt :: "['code prog,state_type option,state_type option] => bool" 
-                   ("_ \<turnstile> _ <=' _"  [71,71] 70)
+                   ("_ |- _ <=' _"  [71,71] 70)
   "sup_state_opt G == Opt.le (sup_state G)"
 
 
-syntax (HTML) 
+syntax (xsymbols)
   sup_ty_opt    :: "['code prog,ty err,ty err] => bool" 
-                   ("_ |- _ <=o _")
+                   ("_ \<turnstile> _ <=o _" [71,71] 70)
   sup_loc       :: "['code prog,locvars_type,locvars_type] => bool" 
-                   ("_ |- _ <=l _"  [71,71] 70)
+                   ("_ \<turnstile> _ <=l _" [71,71] 70)
   sup_state     :: "['code prog,state_type,state_type] => bool"	
-                   ("_ |- _ <=s _"  [71,71] 70)
+                   ("_ \<turnstile> _ <=s _" [71,71] 70)
   sup_state_opt :: "['code prog,state_type option,state_type option] => bool"
-                   ("_ |- _ <=' _"  [71,71] 70)
+                   ("_ \<turnstile> _ <=' _" [71,71] 70)
                    
 
 lemma JVM_states_unfold: 

@@ -28,12 +28,12 @@ recdef exec "{}"
 
 constdefs
   exec_all :: "[jvm_prog,jvm_state,jvm_state] => bool"  
-              ("_ \<turnstile> _ -jvm-> _" [61,61,61]60)
-  "G \<turnstile> s -jvm-> t == (s,t) \<in> {(s,t). exec(G,s) = Some t}^*"
-
-
-syntax (HTML)
-  exec_all :: "[jvm_prog,jvm_state,jvm_state] => bool"  
               ("_ |- _ -jvm-> _" [61,61,61]60)
+  "G |- s -jvm-> t == (s,t) \<in> {(s,t). exec(G,s) = Some t}^*"
+
+
+syntax (xsymbols)
+  exec_all :: "[jvm_prog,jvm_state,jvm_state] => bool"  
+              ("_ \<turnstile> _ -jvm-> _" [61,61,61]60)
 
 end

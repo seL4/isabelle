@@ -1,7 +1,7 @@
 (*  Title:      isabelle/Bali/Example.thy
     ID:         $Id$
     Author:     David von Oheimb
-    Copyright   1997 Technische Universitaet Muenchen
+    Copyright   1999 Technische Universitaet Muenchen
 *)
 
 header "Example MicroJava Program"
