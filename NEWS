@@ -4,7 +4,8 @@ Isabelle NEWS -- history user-relevant changes
 
 *** Overview of INCOMPATIBILITIES ***
 
-* HOL/Real: "rinv" and "hrinv" replaced by overloaded "inverse" function;
+* HOL/Real: "rinv" and "hrinv" replaced by overloaded "inverse"
+function;
 
 * HOL: induct renamed to lfp_induct;
 
@@ -26,10 +27,10 @@ definitions);
 * support sub/super scripts (for single symbols only), input syntax is
 like this: "A\<^sup>*" or "A\<^sup>\<star>";
 
-* antiquotation @{goals} and @{subgoals} for output of *dynamic* goals state;
-Note that presentation of goal states does not conform to actual
-human-readable proof documents.  Please do not include goal states
-into document output unless you really know what you are doing!
+* antiquotation @{goals} and @{subgoals} for output of *dynamic* goals
+state; Note that presentation of goal states does not conform to
+actual human-readable proof documents.  Please do not include goal
+states into document output unless you really know what you are doing!
 
 
 *** Isar ***
@@ -87,6 +88,8 @@ and Arith);
 
 
 *** General ***
+
+* system: support Poly/ML 4.0 (current beta versions);
 
 * Pure: the Simplifier has been implemented properly as a derived rule
 outside of the actual kernel (at last!); the overall performance
