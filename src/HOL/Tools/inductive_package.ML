@@ -18,7 +18,7 @@ The recursive sets must *already* be declared as constants in the
 current theory!
 
   Introduction rules have the form
-  [| ti:M(Sj), ..., P(x), ... |] ==> t: Sk |]
+  [| ti:M(Sj), ..., P(x), ... |] ==> t: Sk
   where M is some monotone operator (usually the identity)
   P(x) is any side condition on the free variables
   ti, t are any terms
@@ -379,6 +379,40 @@ fun mk_indrule cs cTs params intr_ts =
 
   in (preds, ind_prems, mutual_ind_concl)
   end;
+
+
+
+(** prepare cases and induct rules **)
+
+(*
+  transform mutual rule:
+    HH ==> (x1:A1 --> P1 x1) & ... & (xn:An --> Pn xn)
+  into i-th projection:
+    xi:Ai ==> HH ==> Pi xi
+*)
+
+fun project_rules [name] rule = [(name, rule)]
+  | project_rules names mutual_rule =
+      let
+        val n = length names;
+        fun proj i =
+          (if i < n then (fn th => th RS conjunct1) else I)
+            (Library.funpow (i - 1) (fn th => th RS conjunct2) mutual_rule)
+            RS mp |> Thm.permute_prems 0 ~1 |> Drule.standard;
+      in names ~~ map proj (1 upto n) end;
+
+fun add_cases_induct no_elim no_ind names elims induct =
+  let
+    val cases_specs =
+      if no_elim then []
+      else map2 (fn (name, elim) => (("", elim), [InductMethod.cases_set_global name]))
+        (names, elims);
+
+    val induct_specs =
+      if no_ind then []
+      else map (fn (name, th) => (("", th), [InductMethod.induct_set_global name]))
+        (project_rules names induct);
+  in PureThy.add_thms (cases_specs @ induct_specs) end;
 
 
 
@@ -743,18 +777,6 @@ fun add_ind_axm verbose declare_consts alt_name coind no_elim no_ind cs
 
 
 (** introduction of (co)inductive sets **)
-
-fun add_cases_induct no_elim no_ind names elims induct =
-  let
-    val cases_specs =
-      if no_elim then []
-      else map2 (fn (name, elim) => (("", elim), [InductMethod.cases_set_global name]))
-        (names, elims);
-    val induct_specs =
-      if no_ind then []
-      else map (fn name => (("", induct), [InductMethod.induct_set_global name])) names;
-  in PureThy.add_thms (cases_specs @ induct_specs) end;
-
 
 fun add_inductive_i verbose declare_consts alt_name coind no_elim no_ind cs
     atts intros monos con_defs thy =
