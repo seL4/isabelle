@@ -510,12 +510,21 @@ Goalw [project_set_def, extend_set_def, project_act_def]
 by (Blast_tac 1);
 qed "act_subset_imp_project_act_subset";
 
+(*This trivial proof is the complementation part of transferring a transient
+  property upwards.  The hard part would be to 
+  show that G's action has a big enough domain.*)
+Goal "[| act: Acts G;       \
+\        (project_act h (Restrict C act))^^ \
+\             (project_set h C Int A - B) <= -(project_set h C Int A - B) |] \
+\     ==> act^^(C Int extend_set h A - extend_set h B) \
+\           <= -(C Int extend_set h A - extend_set h B)"; 
+by (auto_tac (claset(), 
+     simpset() addsimps [project_set_def, extend_set_def, project_act_def]));  
+result();
 
 Goal "[| G : stable ((C Int extend_set h A) - (extend_set h B));  \
 \        project h C G : transient (project_set h C Int A - B) |]  \
-\     ==> G : transient (C Int extend_set h A - extend_set h B)";
-by (case_tac "C Int extend_set h A <= extend_set h B" 1);
-by (asm_simp_tac (simpset() addsimps [Diff_eq_empty_iff RS iffD2]) 1);
+\     ==> (C Int extend_set h A) - extend_set h B = {}";
 by (auto_tac (claset(), 
 	      simpset() addsimps [transient_def, subset_Compl_self_eq,
 				  Domain_project_act, split_extended_all]));
@@ -523,22 +532,20 @@ by (Blast_tac 1);
 by (auto_tac (claset(), 
 	      simpset() addsimps [stable_def, constrains_def]));
 by (ball_tac 1);
-by (thin_tac "ALL act: Acts G. ?P act" 1);
 by (auto_tac (claset(), 
 	      simpset() addsimps [Int_Diff,
 				  extend_set_Diff_distrib RS sym]));
 by (dtac act_subset_imp_project_act_subset 1);
 by (subgoal_tac
-    "project_act h (Restrict C act) ^^ (project_set h C Int (A - B)) <= {}" 1);
+    "project_act h (Restrict C act) ^^ (project_set h C Int (A - B)) = {}" 1);
+by (REPEAT (thin_tac "?r^^?A <= ?B" 1));
 by (rewrite_goals_tac [project_set_def, extend_set_def, project_act_def]);
-(*using Int_greatest actually slows the next step!*)
 by (Blast_tac 2);
 by (rtac ccontr 1);
 by (dtac subsetD 1);
-by (Blast_tac 1);  
+by (Blast_tac 1);
 by (force_tac (claset(), simpset() addsimps [split_extended_all]) 1);
 qed "stable_project_transient";
-
 
 Goal "[| G : stable C;  project h C G : (project_set h C Int A) unless B |] \
 \     ==> G : (C Int extend_set h A) unless (extend_set h B)";
@@ -558,11 +565,14 @@ by (auto_tac (claset() addSIs [rewrite_rule [unless_def] project_unless2]
                        addIs [project_extend_constrains_I], 
 	      simpset() addsimps [ensures_def]));
 (*transient*)
-by (auto_tac (claset(), simpset() addsimps [Join_transient]));
-by (blast_tac (claset() addIs [stable_project_transient]) 2);
+(*A G-action cannot occur*)
+by (force_tac (claset() addDs [stable_project_transient], 
+                        simpset() delsimps [Diff_eq_empty_iff]
+				 addsimps [Diff_eq_empty_iff RS sym]) 2); 
+(*An F-action*)
 by (force_tac (claset() addSEs [extend_transient RS iffD2 RS 
 				transient_strengthen], 
-	       simpset() addsimps [Join_transient, split_extended_all]) 1);
+	       simpset() addsimps [split_extended_all]) 1);
 qed "project_ensures_D_lemma";
 
 Goal "[| F Join project h UNIV G : A ensures B;  \
