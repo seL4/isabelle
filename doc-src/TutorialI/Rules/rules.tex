@@ -749,7 +749,6 @@ rule works.
 \end{isabelle}
 The first step invokes the rule by applying the method \isa{rule allI}. 
 \begin{isabelle}
-%{\isasymforall}x.\ P\ x\ \isasymlongrightarrow\ P\ x\isanewline
 \ 1.\ \isasymAnd x.\ P\ x\ \isasymlongrightarrow\ P\ x
 \end{isabelle}
 Note  that the resulting proof state has a bound variable,
@@ -814,7 +813,7 @@ Applying \isa{erule} deletes an assumption, while many natural deduction
 rules add bound variables or assumptions.
 
 Now, to reason from the universally quantified 
-assumption, we apply the elimination rule using the {\isa{drule}} 
+assumption, we apply the elimination rule using the \isa{drule} 
 method.  This rule is called \isa{spec} because it specializes a universal formula
 to a particular term.
 \begin{isabelle}
@@ -841,7 +840,38 @@ it should simply be~\bigisa{x}.  The \isa{assumption} method, implicit in the
 be identical to the conclusion, provided the two formulas are unifiable.  
 
 
-\subsection{Re-using an Assumption: the {\tt\slshape frule} Method}
+\subsection{Renaming an Assumption: {\tt\slshape rename_tac}}
+
+When you apply a rule such as \isa{allI}, the quantified variable becomes a new
+bound variable of the new subgoal.  Isabelle tries to avoid changing its name, but
+sometimes it has to choose a new name in order to avoid a clash.  Here is a
+contrived example:
+\begin{isabelle}
+\isacommand{lemma}\ "x\ <\ y\ \isasymLongrightarrow \ \isasymforall x\ y.\ P\ x\
+(f\ y)"\isanewline
+\isacommand{apply}\ intro\isanewline
+\ 1.\ \isasymAnd xa\ ya.\ x\ <\ y\ \isasymLongrightarrow \ P\ xa\ (f\ ya)
+\end{isabelle}
+%
+The names \isa{x} and \isa{y} were already in use, so the new bound variables are
+called \isa{xa} and~\isa{ya}.  You can rename them by invoking \isa{rename_tac}:
+
+\begin{isabelle}
+\isacommand{apply}\ (rename_tac\ v\ w)\isanewline
+\ 1.\ \isasymAnd v\ w.\ x\ <\ y\ \isasymLongrightarrow \ P\ v\ (f\ w)
+\end{isabelle}
+Recall that \isa{rule_tac}\index{rule_tac|and renaming} instantiates a
+theorem with specified terms.  These terms may involve the goal's bound
+variables, but beware of referring to  variables
+like~\isa{xa}.  A future change to your theories could change the set of names
+produced at top level, so that \isa{xa} changes to~\isa{xb} or reverts to~\isa{x}.
+It is safer to rename automatically-generated variables before mentioning them.
+
+If the subgoal has more bound variables than there are names given to
+\isa{rename_tac}, the rightmost ones are renamed.
+
+
+\subsection{Reusing an Assumption: {\tt\slshape frule}}
 
 Note that \isa{drule spec} removes the universal quantifier and --- as
 usual with elimination rules --- discards the original formula.  Sometimes, a
@@ -1840,8 +1870,58 @@ conclusion
 
 \section{Methods for Forward Proof}
 
-We have seen that forward proof works well within a backward 
-proof.  Also in that spirit is the \isa{insert} method, which inserts a
+We have seen that the forward proof directives work well within a backward 
+proof.  There are many ways to achieve a forward style, using our existing
+proof methods and some additional ones that we introduce below.  
+
+The methods \isa{drule}, \isa{frule}, \isa{drule_tac}, etc.,
+reason forward from a subgoal.  We have seen them already, using rules such as
+\isa{mp} and
+\isa{spec} to operate on formulae.  They can also operate on terms, using rules
+such as these:
+\begin{isabelle}
+x\ =\ y\ \isasymLongrightarrow \ f\ x\ =\ f\ y%
+\rulename{arg_cong}\isanewline
+i\ \isasymle \ j\ \isasymLongrightarrow \ i\ *\ k\ \isasymle \ j\ *\ k%
+\rulename{mult_le_mono1}
+\end{isabelle}
+
+For example, let us prove a fact about divisibility in the natural numbers:
+\begin{isabelle}
+\isacommand{lemma}\ "\#2\ \isasymle \ u\ \isasymLongrightarrow \ u*m\ \isasymnoteq
+\ Suc(u*n)"\isanewline
+\isacommand{apply}\ intro\isanewline
+\ 1.\ \isasymlbrakk \#2\ \isasymle \ u;\ u\ *\ m\ =\ Suc\ (u\ *\ n)\isasymrbrakk \ \isasymLongrightarrow \ False%
+\end{isabelle}
+%
+The key step is to apply the function \ldots\isa{mod\ u} to both sides of the
+equation
+\isa{u*m\ =\ Suc(u*n)}:
+
+\begin{isabelle}
+\isacommand{apply}\ (drule_tac\ f="\isasymlambda x.\ x\ mod\ u"\ \isakeyword{in}\
+arg_cong)\isanewline
+\ 1.\ \isasymlbrakk \#2\ \isasymle \ u;\ u\ *\ m\ mod\ u\ =\ Suc\ (u\ *\ n)\ mod\
+u\isasymrbrakk \ \isasymLongrightarrow \ False
+\end{isabelle}
+%
+Simplification reduces the left side to 0 and the right side to~1, yielding the
+required contradiction.
+\begin{isabelle}
+\isacommand{apply}\ (simp\ add:\ mod_Suc)\isanewline
+\isacommand{done}
+\end{isabelle}
+
+Our proof has used a fact about remainder:
+\begin{isabelle}
+Suc\ m\ mod\ n\ =\isanewline
+(if\ Suc\ (m\ mod\ n)\ =\ n\ then\ 0\ else\ Suc\ (m\ mod\ n))
+\rulename{mod_Suc}
+\end{isabelle}
+
+\medskip
+The methods designed for supporting forward reasoning are \isa{insert} and
+\isa{subgoal_tac}.  The \isa{insert} method inserts a
 given theorem as a new assumption of the current subgoal.  This already
 is a forward step; moreover, we may (as always when using a theorem) apply
 \isa{of}, \isa{THEN} and other directives.  The new assumption can then
@@ -1988,3 +2068,167 @@ Summary of these methods:
 \item {\isa{subgoal_tac}} adds a formula as a new assumption and leaves the
 subgoal of proving that formula
 \end{itemize}
+
+
+\section{Managing Large Proofs}
+
+Naturally you should try to divide proofs into manageable parts.  Look for lemmas
+that can be proved separately.  Sometimes you will observe that they are
+instances of much simpler facts.  On other occasions, no lemmas suggest themselves
+and you are forced to cope with a long proof involving many subgoals.  
+
+\subsection{Tacticals, or Control Structures}
+
+If the proof is long, perhaps it at least has some regularity.  Then you can
+express it more concisely using \textbf{tacticals}, which provide control
+structures.  Here is a proof (it would be a one-liner using
+\isa{blast}, but forget that) that contains a series of repeated
+commands:
+%
+\begin{isabelle}
+\isacommand{lemma}\ "\isasymlbrakk P\isasymlongrightarrow Q;\
+Q\isasymlongrightarrow R;\ R\isasymlongrightarrow S;\ P\isasymrbrakk \
+\isasymLongrightarrow \ S"\isanewline
+\isacommand{apply}\ (drule\ mp,\ assumption)\isanewline
+\isacommand{apply}\ (drule\ mp,\ assumption)\isanewline
+\isacommand{apply}\ (drule\ mp,\ assumption)\isanewline
+\isacommand{apply}\ (assumption)\isanewline
+\isacommand{done}
+\end{isabelle}
+%
+Each of the three identical commands finds an implication and proves its
+antecedent by assumption.  The first one finds \isa{P\isasymlongrightarrow Q} and
+\isa{P}, concluding~\isa{Q}; the second one concludes~\isa{R} and the third one
+concludes~\isa{S}.  The final step matches the assumption \isa{S} with the goal to
+be proved.
+
+Suffixing a method with a plus sign~(\isa+)
+expresses one or more repetitions:
+\begin{isabelle}
+\isacommand{lemma}\ "\isasymlbrakk P\isasymlongrightarrow Q;\ Q\isasymlongrightarrow R;\ R\isasymlongrightarrow S;\ P\isasymrbrakk \ \isasymLongrightarrow \ S"\isanewline
+\isacommand{by}\ (drule\ mp,\ assumption)+
+\end{isabelle}
+%
+Using \isacommand{by} takes care of the final use of \isa{assumption}.  The new
+proof is more concise.  It is also more general: the repetitive method works
+for a chain of implications having any length, not just three.
+
+Choice is another control structure.  Separating two methods by a vertical
+bar~(\isa|) gives the effect of applying the first method, and if that fails,
+trying the second.  It can be combined with repetition, when the choice must be
+made over and over again.  Here is a chain of implications in which most of the
+antecedents are proved by assumption, but one is proved by arithmetic:
+\begin{isabelle}
+\isacommand{lemma}\ "\isasymlbrakk Q\isasymlongrightarrow R;\ P\isasymlongrightarrow Q;\ x<\#5\isasymlongrightarrow P;\
+Suc\ x\ <\ \#5\isasymrbrakk \ \isasymLongrightarrow \ R"\ \isanewline
+\isacommand{by}\ (drule\ mp,\ (assumption|arith))+
+\end{isabelle}
+The \isa{arith}
+method can prove $x<5$ from $x+1<5$, but it cannot duplicate the effect of
+\isa{assumption}.  Therefore, we combine these methods using the choice
+operator.
+
+A postfixed question mark~(\isa?) expresses zero or one repetitions of a method. 
+It can also be viewed as the choice between executing a method and doing nothing. 
+It is useless at top level but may be valuable within other control structures. 
+
+
+\subsection{Subgoal Numbering}
+
+Another problem in large proofs is contending with huge
+subgoals or many subgoals.  Induction can produce a proof state that looks
+like this:
+\begin{isabelle}
+\ 1.\ bigsubgoal1\isanewline
+\ 2.\ bigsubgoal2\isanewline
+\ 3.\ bigsubgoal3\isanewline
+\ 4.\ bigsubgoal4\isanewline
+\ 5.\ bigsubgoal5\isanewline
+\ 6.\ bigsubgoal6
+\end{isabelle}
+If each \isa{bigsubgoal} is 15 lines or so, the proof state will be too big to
+scroll through.  By default, Isabelle displays at most 10 subgoals.  The 
+\isacommand{pr} command lets you change this limit:
+\begin{isabelle}
+\isacommand{pr}\ 2\isanewline
+\ 1.\ bigsubgoal1\isanewline
+\ 2.\ bigsubgoal2\isanewline
+A total of 6 subgoals...
+\end{isabelle}
+
+\medskip
+All methods apply to the first subgoal.
+Sometimes, not only in a large proof, you may want to focus on some other
+subgoal.  Then you should try the commands \isacommand{defer} or \isacommand{prefer}.
+
+In the following example, the first subgoal looks hard, while the others
+look as if \isa{blast} alone could prove them:
+%\begin{isabelle}
+%\isacommand{lemma}\ "hard\ \isasymand \ (P\ \isasymor \ \isachartilde P)\ \isasymand \ (Q\isasymlongrightarrow Q)"\isanewline
+%\isacommand{apply}\ intro
+%\end{isabelle}
+\begin{isabelle}
+\ 1.\ hard\isanewline
+\ 2.\ \isasymnot \ \isasymnot \ P\ \isasymLongrightarrow \ P\isanewline
+\ 3.\ Q\ \isasymLongrightarrow \ Q%
+\end{isabelle}
+%
+The \isacommand{defer} command moves the first subgoal into the last position.
+\begin{isabelle}
+\isacommand{defer}\ 1\isanewline
+\ 1.\ \isasymnot \ \isasymnot \ P\ \isasymLongrightarrow \ P\isanewline
+\ 2.\ Q\ \isasymLongrightarrow \ Q\isanewline
+\ 3.\ hard%
+\end{isabelle}
+%
+Now we apply \isa{blast} repeatedly to the easy subgoals:
+\begin{isabelle}
+\isacommand{apply}\ blast+\isanewline
+\ 1.\ hard%
+\end{isabelle}
+Using \isacommand{defer}, we have cleared away the trivial parts of the proof so
+that we can devote attention to the difficult part.
+
+\medskip
+The \isacommand{prefer} command moves the specified subgoal into the
+first position.  For example, if you suspect that one of your subgoals is
+invalid (not a theorem), then you should investigate that subgoal first.  If it
+cannot be proved, then there is no point in proving the other subgoals.
+\begin{isabelle}
+\ 1.\ ok1\isanewline
+\ 2.\ ok2\isanewline
+\ 3.\ doubtful%
+\end{isabelle}
+%
+We decide to work on the third subgoal.
+\begin{isabelle}
+\isacommand{prefer}\ 3\isanewline
+\ 1.\ doubtful\isanewline
+\ 2.\ ok1\isanewline
+\ 3.\ ok2
+\end{isabelle}
+If we manage to prove \isa{doubtful}, then we can work on the other
+subgoals, confident that we are not wasting our time.  Finally we revise the
+proof script to remove the \isacommand{prefer} command, since we needed it only to
+focus our exploration.  The previous example is different: its use of
+\isacommand{defer} stops trivial subgoals from cluttering the rest of the
+proof.  Even there, we should consider proving \isa{hard} as a preliminary
+lemma.  Always seek ways to streamline your proofs.
+ 
+
+\medskip
+Summary:
+\begin{itemize}
+\item the control structures \isa+, \isa? and \isa| help express complicated proofs
+\item the \isacommand{pr} command can limit the number of subgoals to display
+\item the \isacommand{defer} and \isacommand{prefer} commands move a 
+subgoal to the last or first position
+\end{itemize}
+
+\begin{exercise}
+This proof uses \isa? and \isa+ to \ldots{} can you explain?
+\begin{isabelle}
+\isacommand{lemma}\ "\isasymlbrakk P\isasymand Q\isasymlongrightarrow R;\ P\isasymlongrightarrow Q;\ P\isasymrbrakk \ \isasymLongrightarrow \ R"\isanewline
+\isacommand{by}\ (drule\ mp,\ intro?,\ assumption+)+
+\end{isabelle}
+\end{exercise}
