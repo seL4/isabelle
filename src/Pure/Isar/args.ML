@@ -72,12 +72,12 @@ fun val_of (Arg (_, (x, _))) = x;
 fun pos_of (Arg (_, (_, pos))) = pos;
 
 fun str_of (Arg (Ident, (x, _))) = x
-  | str_of (Arg (String, (x, _))) = quote x
+  | str_of (Arg (String, (x, _))) = Library.quote x
   | str_of (Arg (Keyword, (x, _))) = x
   | str_of (Arg (EOF, _)) = "end-of-text";
 
 fun string_of (Arg (Ident, (x, _))) = x
-  | string_of (Arg (String, (x, _))) = quote x
+  | string_of (Arg (String, (x, _))) = Library.quote x
   | string_of (Arg (Keyword, (x, _))) = x
   | string_of (Arg (EOF, _)) = "";
 
@@ -229,7 +229,7 @@ fun dest_src (Src src) = src;
 fun err_in_src kind msg (Src ((s, args), pos)) =
   error (kind ^ " " ^ quote s ^ Position.str_of pos ^ ": " ^ msg ^ "\n  " ^
     space_implode " " (map str_of args));
-
+    
 
 (* argument syntax *)
 
