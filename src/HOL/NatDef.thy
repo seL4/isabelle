@@ -64,7 +64,7 @@ defs
   Zero_def      "0 == Abs_Nat(Zero_Rep)"
   Suc_def       "Suc == (%n. Abs_Nat(Suc_Rep(Rep_Nat(n))))"
 
-  (*nat operations and recursion*)
+  (*nat operations*)
   pred_nat_def  "pred_nat == {(m,n). n = Suc m}"
 
   less_def      "m<n == (m,n):trancl(pred_nat)"
