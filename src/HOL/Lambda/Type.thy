@@ -59,16 +59,12 @@ declare IT.intros [intro!]
 
 subsection {* Some examples *}
 
-lemma "\<exists>T U. e |- Abs (Abs (Abs (Var 1 $ (Var 2 $ Var 1 $ Var 0)))) : T \<and> U = T"
-  apply (intro exI conjI)
-   apply force
-  apply (rule refl)
+lemma "e |- Abs (Abs (Abs (Var 1 $ (Var 2 $ Var 1 $ Var 0)))) : ?T"
+  apply force
   done
 
-lemma "\<exists>T U. e |- Abs (Abs (Abs (Var 2 $ Var 0 $ (Var 1 $ Var 0)))) : T \<and> U = T";
-  apply (intro exI conjI)
-   apply force
-  apply (rule refl)
+lemma "e |- Abs (Abs (Abs (Var 2 $ Var 0 $ (Var 1 $ Var 0)))) : ?T"
+  apply force
   done
 
 
