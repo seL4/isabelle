@@ -24,7 +24,8 @@ val ball_simps = map prover
      "(ALL x:cons(a,B).P(x)) <-> P(a) & (ALL x:B. P(x))",
      "(ALL x:RepFun(A,f). P(x)) <-> (ALL y:A. P(f(y)))",
      "(ALL x:Union(A).P(x)) <-> (ALL y:A. ALL x:y. P(x))",
-     "(ALL x:Collect(A,Q).P(x)) <-> (ALL x:A. Q(x) --> P(x))"];
+     "(ALL x:Collect(A,Q).P(x)) <-> (ALL x:A. Q(x) --> P(x))",
+     "(~(ALL x:A. P(x))) <-> (EX x:A. ~P(x))"];
 
 val ball_conj_distrib = 
     prover "(ALL x:A. P(x) & Q(x)) <-> ((ALL x:A. P(x)) & (ALL x:A. Q(x)))";
@@ -37,7 +38,8 @@ val bex_simps = map prover
      "(EX x:cons(a,B).P(x)) <-> P(a) | (EX x:B. P(x))",
      "(EX x:RepFun(A,f). P(x)) <-> (EX y:A. P(f(y)))",
      "(EX x:Union(A).P(x)) <-> (EX y:A. EX x:y.  P(x))",
-     "(EX x:Collect(A,Q).P(x)) <-> (EX x:A. Q(x) & P(x))"];
+     "(EX x:Collect(A,Q).P(x)) <-> (EX x:A. Q(x) & P(x))",
+     "(~(EX x:A. P(x))) <-> (ALL x:A. ~P(x))"];
 
 val bex_disj_distrib = 
     prover "(EX x:A. P(x) | Q(x)) <-> ((EX x:A. P(x)) | (EX x:A. Q(x)))";
