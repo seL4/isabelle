@@ -681,6 +681,12 @@ some pending goal or whether forward chaining is indicated.
   also equivalent to $\FROM{this}~\SHOWNAME$.
 \end{descr}
 
+Note that any goal statement causes some term abbreviations (such as
+$\Var{thesis}$, $\dots$) to be bound automatically, see also
+\S\ref{sec:term-abbrev}.  Furthermore, the local context of a (non-atomic)
+goal is provided via the case name $antecedent$\indexisarcase{antecedent}, see
+also \S\ref{sec:cases}.
+
 
 \subsection{Initial and terminal proof steps}\label{sec:proof-steps}
 

@@ -86,6 +86,9 @@ instead of {a, b, c};
 useful for building new logics, but beware of confusion with the
 Provers/classical ones;
 
+* Pure: the local context of (non-atomic) goals is provided via case
+name 'antecedent';
+
 * Provers: splitter support (via 'split' attribute and 'simp' method
 modifier); 'simp' method: 'only:' modifier removes loopers as well
 (including splits);

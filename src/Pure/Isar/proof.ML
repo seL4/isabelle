@@ -547,6 +547,8 @@ fun from_facts facts state =
 
 (* setup goals *)
 
+val antN = "antecedent";
+
 fun setup_goal opt_block prepp kind after_qed name atts raw_propp state =
   let
     val (state', (prop, gen_binds)) =
@@ -560,6 +562,7 @@ fun setup_goal opt_block prepp kind after_qed name atts raw_propp state =
   in
     state'
     |> put_goal (Some (((kind atts, name, prop), ([], goal)), after_qed o map_context gen_binds))
+    |> map_context (ProofContext.add_cases (RuleCases.make goal [antN]))
     |> auto_bind_goal prop
     |> (if is_chain state then use_facts else reset_facts)
     |> new_block
