@@ -10,7 +10,7 @@ signature ISAR_OUTPUT =
 sig
   val add_commands: (string * (Args.src -> Proof.context -> string)) list -> unit
   val add_options: (string * (string -> (unit -> string) -> unit -> string)) list -> unit
-  val help_antiquotations: unit -> Pretty.T list
+  val print_antiquotations: unit -> unit
   val boolean: string -> bool
   val integer: string -> int
   val args: (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list)) ->
@@ -70,9 +70,10 @@ fun options [] f = f
   | options (opt :: opts) f = option opt (options opts f);
 
 
-fun help_antiquotations () =
- [Pretty.strs ("antiquotation commands:" :: Symtab.keys (! global_commands)),
-  Pretty.strs ("antiquotation options:" :: Symtab.keys (! global_options))];
+fun print_antiquotations () =
+ [Pretty.big_list "antiquotation commands:" (map Pretty.str (Symtab.keys (! global_commands))),
+  Pretty.big_list "antiquotation options:" (map Pretty.str (Symtab.keys (! global_options)))]
+ |> Pretty.chunks |> Pretty.writeln;
 
 end;
 
@@ -204,7 +205,7 @@ in
 fun parse_thy markup lex trs src =
   let
     val text = P.position P.text;
-    val token = Scan.state :-- (fn i => Scan.lift
+    val token = Scan.depend (fn i =>
      (improper |-- markup Markup -- P.!!!! (improper |-- text --| improper_end)
         >> (fn (x, y) => (true, ((Latex.Markup (T.val_of x), y), i))) ||
       improper |-- markup MarkupEnv -- P.!!!! (improper |-- text --| improper_end)
@@ -214,8 +215,8 @@ fun parse_thy markup lex trs src =
       (improper -- markup Verbatim) |-- P.!!!! (improper |-- text --| improper_end)
         >> (fn y => (true, ((Latex.Verbatim, y), i))) ||
       P.position (Scan.one T.not_eof)
-        >> (fn (x, pos) => (T.is_kind T.Command x, ((Latex.Basic x, ("", pos)), i)))))
-      >> #2;
+        >> (fn (x, pos) => (T.is_kind T.Command x, ((Latex.Basic x, ("", pos)), i))))
+      >> pair i);
 
     val body = Scan.any (not o fst andf not o #2 stopper);
     val section = body -- Scan.one fst -- body >> (fn ((x, y), z) => map snd (x @ (y :: z)));
@@ -244,8 +245,10 @@ val display = ref false;
 val quotes = ref false;
 
 val _ = add_options
- [("show_types", Library.setmp show_types o boolean),
-  ("show_sorts", Library.setmp show_sorts o boolean),
+ [("show_types", Library.setmp Syntax.show_types o boolean),
+  ("show_sorts", Library.setmp Syntax.show_sorts o boolean),
+  ("eta_contract", Library.setmp Syntax.eta_contract o boolean),
+  ("long_names", Library.setmp NameSpace.long_names o boolean),
   ("display", Library.setmp display o boolean),
   ("quotes", Library.setmp quotes o boolean),
   ("mode", fn s => fn f => fn () => Library.setmp print_mode (s :: ! print_mode) f ()),
