@@ -595,14 +595,12 @@ fun rename_wrt_term t = rename_aTs (add_term_names(t,[]));
 
 
 
-(*** Compression of terms and types by sharing common subtrees.  Currently
-     naive but could be made to run faster.  Saves 50-75% on storage  
-     requirements.  As it is slow, should be called only for axioms, stored
-     theorems, etc. ***)
+(*** Compression of terms and types by sharing common subtrees.  
+     Saves 50-75% on storage requirements.  As it is fairly slow, 
+     it is called only for axioms, stored theorems, etc. ***)
 
 (** Sharing of types **)
 
-(*Allow non-"fun" types??*)
 fun atomic_tag (Type (a,_)) = if a<>"fun" then a else raise Match
   | atomic_tag (TFree (a,_)) = a
   | atomic_tag (TVar ((a,_),_)) = a;
