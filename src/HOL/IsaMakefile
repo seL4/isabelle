@@ -165,6 +165,7 @@ $(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML\
   Hyperreal/Star.ML Hyperreal/Star.thy Hyperreal/Transcendental.ML\
   Hyperreal/Transcendental.thy Hyperreal/fuf.ML Hyperreal/hypreal_arith.ML \
   Hyperreal/hypreal_arith0.ML\
+  Complex/Complex_Main.thy\
   Complex/CLim.ML Complex/CLim.thy\
   Complex/CSeries.ML Complex/CSeries.thy\
   Complex/CStar.ML Complex/CStar.thy\
