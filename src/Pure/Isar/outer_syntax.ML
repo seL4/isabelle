@@ -19,14 +19,31 @@ end;
 signature OUTER_SYNTAX =
 sig
   include BASIC_OUTER_SYNTAX
+  structure Keyword:
+    sig
+      val control: string
+      val diag: string
+      val thy_begin: string
+      val thy_end: string
+      val thy_heading: string
+      val thy_decl: string
+      val thy_goal: string
+      val qed: string
+      val prf_goal: string
+      val prf_block: string
+      val prf_chain: string
+      val prf_decl: string
+      val prf_script: string
+      val kinds: string list
+    end
   type token
   type parser
-  val command: string -> string ->
+  val command: string -> string -> string ->
     (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
-  val improper_command: string -> string ->
+  val improper_command: string -> string -> string ->
     (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
+  val dest_syntax: unit -> string list * (string * string) list
   val print_outer_syntax: unit -> unit
-  val commands: unit -> string list
   val add_keywords: string list -> unit
   val add_parsers: parser list -> unit
   val theory_header: token list -> (string * string list * (string * bool) list) * token list
@@ -41,15 +58,38 @@ struct
 
 (** outer syntax **)
 
+(* command keyword classification *)
+
+structure Keyword =
+struct
+  val control = "control";
+  val diag = "diag";
+  val thy_begin = "theory-begin";
+  val thy_end = "theory-end";
+  val thy_heading = "theory-heading";
+  val thy_decl = "theory-decl";
+  val thy_goal = "theory-goal";
+  val qed = "qed";
+  val prf_goal = "proof-goal";
+  val prf_block = "proof-block";
+  val prf_chain = "proof-chain";
+  val prf_decl = "proof-decl";
+  val prf_script = "proof-script";
+
+  val kinds = [control, diag, thy_begin, thy_end, thy_heading, thy_decl, thy_goal, qed,
+    prf_goal, prf_block, prf_chain, prf_decl, prf_script];
+end;
+
+
 (* parsers *)
 
 type token = OuterLex.token;
 type parser_fn = token list -> (Toplevel.transition -> Toplevel.transition) * token list;
 
 datatype parser =
-  Parser of string * string * bool * parser_fn;
+  Parser of string * (string * string) * bool * parser_fn;
 
-fun parser int_only name comment parse = Parser (name, comment, int_only, parse);
+fun parser int_only name comment kind parse = Parser (name, (comment, kind), int_only, parse);
 
 
 (* parse command *)
@@ -77,17 +117,19 @@ end;
 (** global syntax state **)
 
 val global_lexicon = ref Scan.empty_lexicon;
-val global_parsers = ref (Symtab.empty: (string * (bool * parser_fn)) Symtab.table);
-
-fun commands () = Symtab.keys (! global_parsers);
+val global_parsers = ref (Symtab.empty: ((string * string) * (bool * parser_fn)) Symtab.table);
 
 
 (* print syntax *)
 
+fun dest_syntax () =
+  (map implode (Scan.dest_lexicon (! global_lexicon)),
+    map (fn (name, ((_, kind), _)) => (name, kind)) (Symtab.dest (! global_parsers)));
+
 fun print_outer_syntax () =
   let
     val keywords = map implode (Scan.dest_lexicon (! global_lexicon));
-    fun pretty_cmd (name, (comment, _)) =
+    fun pretty_cmd (name, ((comment, _), _)) =
       Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
     val (int_cmds, cmds) = partition (#1 o #2 o #2) (Symtab.dest (! global_parsers));
   in
