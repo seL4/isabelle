@@ -123,10 +123,10 @@ $(LOG)/IOA-NTP.gz: $(OUT)/IOA IOA/NTP/Abschannel.ML \
 
 IOA-Storage: IOA $(LOG)/IOA-Storage.gz
 
-$(LOG)/IOA-Storage.gz: IOA/Storage/Action.ML IOA/Storage/Action.thy \
-  IOA/Storage/Correctness.ML IOA/Storage/Correctness.thy \
-  IOA/Storage/Impl.ML IOA/Storage/Impl.thy IOA/Storage/ROOT.ML \
-  IOA/Storage/Spec.thy
+$(LOG)/IOA-Storage.gz: $(OUT)/IOA IOA/Storage/Action.ML \
+  IOA/Storage/Action.thy IOA/Storage/Correctness.ML \
+  IOA/Storage/Correctness.thy IOA/Storage/Impl.ML IOA/Storage/Impl.thy \
+  IOA/Storage/ROOT.ML IOA/Storage/Spec.thy
 	@cd IOA; $(ISATOOL) usedir $(OUT)/IOA Storage
 
 
