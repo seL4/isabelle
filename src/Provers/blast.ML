@@ -67,6 +67,7 @@ signature BLAST_DATA =
 		 uwrappers: (string * wrapper) list,
 		 safe0_netpair: netpair, safep_netpair: netpair,
 		 haz_netpair: netpair, dup_netpair: netpair, xtra_netpair: netpair}
+  val atomize: thm list
   val cla_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
   val cla_meth': (claset -> int -> tactic) -> thm list -> Proof.context -> Proof.method
   end;
@@ -1270,9 +1271,10 @@ fun initialize() =
  "start" is CPU time at start, for printing SEARCH time
 	(also prints reconstruction time)
  "lim" is depth limit.*)
-fun timing_depth_tac start cs lim i st = 
+fun timing_depth_tac start cs lim i st0 = 
  (initialize();
-  let val {sign,...} = rep_thm st
+  let val st = Method.atomize_goal Data.atomize i st0;
+      val {sign,...} = rep_thm st
       val skoprem = fromSubgoal (List.nth(prems_of st, i-1))
       val hyps  = strip_imp_prems skoprem
       and concl = strip_imp_concl skoprem
