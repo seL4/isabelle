@@ -55,6 +55,7 @@ sig
   val intern: sg -> string -> xstring -> string
   val extern: sg -> string -> string -> xstring
   val cond_extern: sg -> string -> string -> xstring
+  val cond_extern_table: sg -> string -> 'a Symtab.table -> (xstring * 'a) list
   val intern_class: sg -> xclass -> class
   val intern_tycon: sg -> xstring -> string
   val intern_const: sg -> xstring -> string
@@ -410,6 +411,7 @@ fun space_of spaces kind =
 fun intrn spaces kind = NameSpace.intern (space_of spaces kind);
 fun extrn spaces kind = NameSpace.extern (space_of spaces kind);
 fun cond_extrn spaces kind = NameSpace.cond_extern (space_of spaces kind);
+fun cond_extrn_table spaces kind tab = NameSpace.cond_extern_table (space_of spaces kind) tab;
 
 (*add names*)
 fun add_names spaces kind names =
@@ -471,6 +473,7 @@ in
   val intern = intrn o spaces_of;
   val extern = extrn o spaces_of;
   val cond_extern = cond_extrn o spaces_of;
+  fun cond_extern_table sg = cond_extrn_table (spaces_of sg);
 
   val intern_class = intrn_class o spaces_of;
   val intern_sort = intrn_sort o spaces_of;
