@@ -1,14 +1,14 @@
+
                               Pure/Syntax/
 
-This directory contains the source files for Isabelle's syntax module, which
-includes a lexer, parser, pretty printer and macro system. Note that only the
-following structures are supposed to be exported:
+
+This directory contains the source files for Isabelle's syntax module,
+which includes a lexer, parser, pretty printer and macro system. Note
+that only the following structures are supposed to be exported:
 
   Pretty        (generic pretty printing module)
-  Scanner       (generic scanner toolbox)
+  Scan          (generic scanner toolbox)
+  Symbol	(baroque characters)
 
   Syntax        (internal interface to the syntax module)
   BasicSyntax   (part of Syntax made pervasive)
-
-There is no IsaMakefile to compile these files separately; they are
-compiled as part of Pure Isabelle.

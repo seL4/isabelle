@@ -1,12 +1,15 @@
+
                         Pure: The Pure Isabelle System
+
 
 This directory contains the ML source files for Pure Isabelle, which
 is the basis for all object-logics:
 
-  IsaMakefile	compiles the Pure system
+  IsaMakefile	compiles the Pure system (use isatool make)
   ML-Systems/   compatibility files for various ML systems
   Syntax/     	the syntax module
   Thy/          the theory file parser and loader
+  ./		the actual meta logic implementation (see ROOT.ML)
 
 Isabelle programmers may want to have a look at the following generic
 modules:
@@ -15,6 +18,8 @@ modules:
   TableFun	efficient tables (see table.ML)
   Seq		unbounded sequences (see seq.ML)
   Pretty	pretty printing module (see Syntax/pretty.ML)
-  Scanner	scanner toolbox (see Syntax/lexicon.ML)
+  Scan		scanner toolbox (see Syntax/scan.ML)
+  Symbol	baroque characters (see Syntax/symbol.ML)
   Path		abstract algebra of file paths (see Thy/path.ML)
   File		file system operations (see Thy/file.ML)
+  NameSpace	hierarchically structured name spaces (see name_space.ML)
