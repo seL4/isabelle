@@ -152,7 +152,7 @@ lemmas [Pure.elim!] = disjE iffE FalseE conjE exE
   and [Pure.intro] = exI disjI2 disjI1
 
 ML_setup {*
-  Context.>> (RuleContext.addSWrapper (fn tac => hyp_subst_tac' ORELSE' tac));
+  Context.>> (ContextRules.addSWrapper (fn tac => hyp_subst_tac ORELSE' tac));
 *}
 
 
