@@ -19,6 +19,7 @@ sig
   val T			: typ		(*the type of group elements*)
 
   val zero		: term
+  val restrict_to_left  : thm
   val add_cancel_21	: thm
   val add_cancel_end	: thm
   val add_left_cancel	: thm
@@ -60,10 +61,10 @@ open Data;
  (*Cancel corresponding terms on the two sides of the equation, NOT on
    the same side!*)
  val cancel_ss = 
-     Data.ss addsimps [add_cancel_21, add_cancel_end, minus_minus] @ 
-                      Data.cancel_simps;
+   Data.ss addsimps [add_cancel_21, add_cancel_end, minus_minus] @ 
+                    (map (fn th => th RS restrict_to_left) Data.cancel_simps);
 
- val inverse_ss = Data.ss addsimps Data.add_inverses;
+ val inverse_ss = Data.ss addsimps Data.add_inverses @ Data.cancel_simps;
 
  fun mk_sum []  = Data.zero
    | mk_sum tms = foldr1 (fn (x,y) => plus $ x $ y) tms;
