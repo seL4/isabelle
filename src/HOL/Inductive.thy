@@ -1,1 +1,2 @@
-Inductive = Gfp + Prod
+Inductive = Gfp + Prod + Sum
+
