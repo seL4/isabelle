@@ -112,49 +112,49 @@ Goal "u: A ==> (UN x:A. insert a (B x)) = insert a (UN x:A. B x)";
 by (Blast_tac 1);
 qed "UN_insert_distrib";
 
-section "``";
+section "`";
 
-Goal "f``{} = {}";
+Goal "f`{} = {}";
 by (Blast_tac 1);
 qed "image_empty";
 Addsimps[image_empty];
 
-Goal "f``insert a B = insert (f a) (f``B)";
+Goal "f`insert a B = insert (f a) (f`B)";
 by (Blast_tac 1);
 qed "image_insert";
 Addsimps[image_insert];
 
-Goal "x:A ==> (%x. c) `` A = {c}";
+Goal "x:A ==> (%x. c) ` A = {c}";
 by (Blast_tac 1);
 qed "image_constant";
 
-Goal "f``(g``A) = (%x. f (g x)) `` A";
+Goal "f`(g`A) = (%x. f (g x)) ` A";
 by (Blast_tac 1);
 qed "image_image";
 
-Goal "x:A ==> insert (f x) (f``A) = f``A";
+Goal "x:A ==> insert (f x) (f`A) = f`A";
 by (Blast_tac 1);
 qed "insert_image";
 Addsimps [insert_image];
 
-Goal "(f``A = {}) = (A = {})";
+Goal "(f`A = {}) = (A = {})";
 by (blast_tac (claset() addSEs [equalityCE]) 1);
 qed "image_is_empty";
 AddIffs [image_is_empty];
 
-Goal "f `` {x. P x} = {f x | x. P x}";
+Goal "f ` {x. P x} = {f x | x. P x}";
 by (Blast_tac 1);
 qed "image_Collect";
 Addsimps [image_Collect];
 
-Goalw [image_def] "(%x. if P x then f x else g x) `` S   \
-\                = (f `` (S Int {x. P x})) Un (g `` (S Int {x. ~(P x)}))";
+Goalw [image_def] "(%x. if P x then f x else g x) ` S   \
+\                = (f ` (S Int {x. P x})) Un (g ` (S Int {x. ~(P x)}))";
 by (Simp_tac 1);
 by (Blast_tac 1);
 qed "if_image_distrib";
 Addsimps[if_image_distrib];
 
-val prems = Goal "[|M = N; !!x. x:N ==> f x = g x|] ==> f``M = g``N";
+val prems = Goal "[|M = N; !!x. x:N ==> f x = g x|] ==> f`M = g`N";
 by (simp_tac (simpset() addsimps image_def::prems) 1);
 qed "image_cong";
 
@@ -165,7 +165,7 @@ Goal "{u. EX x. u = f x} = range f";
 by Auto_tac;
 qed "full_SetCompr_eq";
 
-Goal "range (%x. f (g x)) = f``range g";
+Goal "range (%x. f (g x)) = f`range g";
 by (stac image_image 1);
 by (Simp_tac 1);
 qed "range_composition";
@@ -563,16 +563,16 @@ Goal "u: A ==> (INT x:A. insert a (B x)) = insert a (INT x:A. B x)";
 by (Blast_tac 1);
 qed "INT_insert_distrib";
 
-Goal "Union(B``A) = (UN x:A. B(x))";
+Goal "Union(B`A) = (UN x:A. B(x))";
 by (Blast_tac 1);
 qed "Union_image_eq";
 Addsimps [Union_image_eq];
 
-Goal "f `` Union S = (UN x:S. f `` x)";
+Goal "f ` Union S = (UN x:S. f ` x)";
 by (Blast_tac 1);
 qed "image_Union";
 
-Goal "Inter(B``A) = (INT x:A. B(x))";
+Goal "Inter(B`A) = (INT x:A. B(x))";
 by (Blast_tac 1);
 qed "Inter_image_eq";
 Addsimps [Inter_image_eq];
@@ -614,7 +614,7 @@ qed "Int_Union2";
 
 (* Devlin, Fundamentals of Contemporary Set Theory, page 12, exercise 5: 
    Union of a family of unions **)
-Goal "(UN x:C. A(x) Un B(x)) = Union(A``C)  Un  Union(B``C)";
+Goal "(UN x:C. A(x) Un B(x)) = Union(A`C)  Un  Union(B`C)";
 by (Blast_tac 1);
 qed "Un_Union_image";
 
@@ -627,7 +627,7 @@ Goal "A Un Inter(B) = (INT C:B. A Un C)";
 by (Blast_tac 1);
 qed "Un_Inter";
 
-Goal "(INT x:C. A(x) Int B(x)) = Inter(A``C) Int Inter(B``C)";
+Goal "(INT x:C. A(x) Int B(x)) = Inter(A`C) Int Inter(B`C)";
 by (Blast_tac 1);
 qed "Int_Inter_image";
 
@@ -842,7 +842,7 @@ by Auto_tac;
 qed "Pow_empty";
 Addsimps [Pow_empty];
 
-Goal "Pow (insert a A) = Pow A Un (insert a `` Pow A)";
+Goal "Pow (insert a A) = Pow A Un (insert a ` Pow A)";
 by (blast_tac (claset() addIs [inst "x" "?u-{a}" image_eqI]) 1);
 qed "Pow_insert";
 
@@ -922,7 +922,7 @@ val UN_simps = map prover
      "(UN x:C. A - B x)    = (A - (INT x:C. B x))",
      "(UN x: Union A. B x) = (UN y:A. UN x:y. B x)",
      "(UN z: UNION A B. C z) = (UN  x:A. UN z: B(x). C z)",
-     "(UN x:f``A. B x)     = (UN a:A. B(f a))"];
+     "(UN x:f`A. B x)     = (UN a:A. B(f a))"];
 
 val INT_simps = map prover
     ["!!C. c: C ==> (INT x:C. A x Int B) = ((INT x:C. A x) Int B)",
@@ -934,7 +934,7 @@ val INT_simps = map prover
      "(INT x:C. A Un B x)  = (A Un (INT x:C. B x))",
      "(INT x: Union A. B x) = (INT y:A. INT x:y. B x)",
      "(INT z: UNION A B. C z) = (INT x:A. INT z: B(x). C z)",
-     "(INT x:f``A. B x)    = (INT a:A. B(f a))"];
+     "(INT x:f`A. B x)    = (INT a:A. B(f a))"];
 
 
 val ball_simps = map prover
@@ -948,7 +948,7 @@ val ball_simps = map prover
      "(ALL x:Union(A). P x) = (ALL y:A. ALL x:y. P x)",
      "(ALL x: UNION A B. P x) = (ALL a:A. ALL x: B a. P x)",
      "(ALL x:Collect Q. P x) = (ALL x. Q x --> P x)",
-     "(ALL x:f``A. P x) = (ALL x:A. P(f x))",
+     "(ALL x:f`A. P x) = (ALL x:A. P(f x))",
      "(~(ALL x:A. P x)) = (EX x:A. ~P x)"];
 
 val ball_conj_distrib = 
@@ -963,7 +963,7 @@ val bex_simps = map prover
      "(EX x:Union(A). P x) = (EX y:A. EX x:y.  P x)",
      "(EX x: UNION A B. P x) = (EX a:A. EX x: B a.  P x)",
      "(EX x:Collect Q. P x) = (EX x. Q x & P x)",
-     "(EX x:f``A. P x) = (EX x:A. P(f x))",
+     "(EX x:f`A. P x) = (EX x:A. P(f x))",
      "(~(EX x:A. P x)) = (ALL x:A. ~P x)"];
 
 val bex_disj_distrib = 

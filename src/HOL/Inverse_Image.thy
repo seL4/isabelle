@@ -9,7 +9,7 @@ Inverse image of a function
 Inverse_Image = Set +
 
 constdefs
-  vimage :: ['a => 'b, 'b set] => ('a set)   (infixr "-``" 90)
-    "f-``B  == {x. f(x) : B}"
+  vimage :: ['a => 'b, 'b set] => ('a set)   (infixr "-`" 90)
+    "f-`B  == {x. f(x) : B}"
 
 end

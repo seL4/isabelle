@@ -63,7 +63,7 @@ defs
 
   (*S-expression constructors*)
   Atom_def   "Atom == (%x. {Abs_Node((%k. Inr 0, x))})"
-  Scons_def  "Scons M N == (Push_Node (Inr 1) `` M) Un (Push_Node (Inr 2) `` N)"
+  Scons_def  "Scons M N == (Push_Node (Inr 1) ` M) Un (Push_Node (Inr 2) ` N)"
 
   (*Leaf nodes, with arbitrary or nat labels*)
   Leaf_def   "Leaf == Atom o Inl"
@@ -74,7 +74,7 @@ defs
   In1_def    "In1(M) == Scons (Numb 1) M"
 
   (*Function spaces*)
-  Lim_def "Lim f == Union {z. ? x. z = Push_Node (Inl x) `` (f x)}"
+  Lim_def "Lim f == Union {z. ? x. z = Push_Node (Inl x) ` (f x)}"
   Funs_def "Funs S == {f. range f <= S}"
 
   (*the set of nodes with depth less than k*)
@@ -83,7 +83,7 @@ defs
 
   (*products and sums for the "universe"*)
   uprod_def  "uprod A B == UN x:A. UN y:B. { Scons x y }"
-  usum_def   "usum A B == In0``A Un In1``B"
+  usum_def   "usum A B == In0`A Un In1`B"
 
   (*the corresponding eliminators*)
   Split_def  "Split c M == @u. ? x y. M = Scons x y & u = c x y"

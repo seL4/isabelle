@@ -34,7 +34,7 @@ consts
   Union, Inter  :: (('a set) set) => 'a set             (*of a set*)
   Pow           :: 'a set => 'a set set                 (*powerset*)
   Ball, Bex     :: ['a set, 'a => bool] => bool         (*bounded quantifiers*)
-  "image"       :: ['a => 'b, 'a set] => ('b set)   (infixr "``" 90)
+  "image"       :: ['a => 'b, 'a set] => ('b set)   (infixr "`" 90)
   (*membership*)
   "op :"        :: ['a, 'a set] => bool             ("(_/ : _)" [50, 51] 50)
 
@@ -70,7 +70,7 @@ syntax (HOL)
   "_Bex"        :: [pttrn, 'a set, bool] => bool      ("(3? _:_./ _)" [0, 0, 10] 10)
 
 translations
-  "range f"     == "f``UNIV"
+  "range f"     == "f`UNIV"
   "x ~: y"      == "~ (x : y)"
   "{x, xs}"     == "insert x {xs}"
   "{x}"         == "insert x {}"
@@ -145,7 +145,7 @@ defs
   empty_def     "{}             == {x. False}"
   UNIV_def      "UNIV           == {x. True}"
   insert_def    "insert a B     == {x. x=a} Un B"
-  image_def     "f``A           == {y. ? x:A. y=f(x)}"
+  image_def     "f`A           == {y. ? x:A. y=f(x)}"
 
 
 end

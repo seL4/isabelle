@@ -448,7 +448,7 @@ by Auto_tac;
 qed "set_rev";
 Addsimps [set_rev];
 
-Goal "set(map f xs) = f``(set xs)";
+Goal "set(map f xs) = f`(set xs)";
 by (induct_tac "xs" 1);
 by Auto_tac;
 qed "set_map";
@@ -574,7 +574,7 @@ by Auto_tac;
 qed "Nil_eq_concat_conv";
 AddIffs [Nil_eq_concat_conv];
 
-Goal  "set(concat xs) = Union(set `` set xs)";
+Goal  "set(concat xs) = Union(set ` set xs)";
 by (induct_tac "xs" 1);
 by Auto_tac;
 qed"set_concat";

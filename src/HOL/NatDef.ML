@@ -4,7 +4,7 @@
     Copyright   1991  University of Cambridge
 *)
 
-Goal "mono(%X. {Zero_Rep} Un (Suc_Rep``X))";
+Goal "mono(%X. {Zero_Rep} Un Suc_Rep`X)";
 by (REPEAT (ares_tac [monoI, subset_refl, image_mono, Un_mono] 1));
 qed "Nat_fun_mono";
 

@@ -333,27 +333,27 @@ qed "Range_Union";
 
 overload_1st_set "Relation.Image";
 
-Goalw [Image_def] "b : r```A = (? x:A. (x,b):r)";
+Goalw [Image_def] "b : r``A = (? x:A. (x,b):r)";
 by (Blast_tac 1);
 qed "Image_iff";
 
-Goalw [Image_def] "r```{a} = {b. (a,b):r}";
+Goalw [Image_def] "r``{a} = {b. (a,b):r}";
 by (Blast_tac 1);
 qed "Image_singleton";
 
-Goal "(b : r```{a}) = ((a,b):r)";
+Goal "(b : r``{a}) = ((a,b):r)";
 by (rtac (Image_iff RS trans) 1);
 by (Blast_tac 1);
 qed "Image_singleton_iff";
 
 AddIffs [Image_singleton_iff];
 
-Goalw [Image_def] "[| (a,b): r;  a:A |] ==> b : r```A";
+Goalw [Image_def] "[| (a,b): r;  a:A |] ==> b : r``A";
 by (Blast_tac 1);
 qed "ImageI";
 
 val major::prems = Goalw [Image_def]
-    "[| b: r```A;  !!x.[| (x,b): r;  x:A |] ==> P |] ==> P";
+    "[| b: r``A;  !!x.[| (x,b): r;  x:A |] ==> P |] ==> P";
 by (rtac (major RS CollectE) 1);
 by (Clarify_tac 1);
 by (rtac (hd prems) 1);
@@ -364,58 +364,58 @@ AddIs  [ImageI];
 AddSEs [ImageE];
 
 (*This version's more effective when we already have the required "a"*)
-Goal  "[| a:A;  (a,b): r |] ==> b : r```A";
+Goal  "[| a:A;  (a,b): r |] ==> b : r``A";
 by (Blast_tac 1);
 qed "rev_ImageI";
 
-Goal "R```{} = {}";
+Goal "R``{} = {}";
 by (Blast_tac 1);
 qed "Image_empty";
 
 Addsimps [Image_empty];
 
-Goal "Id ``` A = A";
+Goal "Id `` A = A";
 by (Blast_tac 1);
 qed "Image_Id";
 
-Goal "diag A ``` B = A Int B";
+Goal "diag A `` B = A Int B";
 by (Blast_tac 1);
 qed "Image_diag";
 
 Addsimps [Image_Id, Image_diag];
 
-Goal "R ``` (A Int B) <= R ``` A Int R ``` B";
+Goal "R `` (A Int B) <= R `` A Int R `` B";
 by (Blast_tac 1);
 qed "Image_Int_subset";
 
-Goal "R ``` (A Un B) = R ``` A Un R ``` B";
+Goal "R `` (A Un B) = R `` A Un R `` B";
 by (Blast_tac 1);
 qed "Image_Un";
 
-Goal "r <= A <*> B ==> r```C <= B";
+Goal "r <= A <*> B ==> r``C <= B";
 by (rtac subsetI 1);
 by (REPEAT (eresolve_tac [asm_rl, ImageE, subsetD RS SigmaD2] 1)) ;
 qed "Image_subset";
 
 (*NOT suitable for rewriting*)
-Goal "r```B = (UN y: B. r```{y})";
+Goal "r``B = (UN y: B. r``{y})";
 by (Blast_tac 1);
 qed "Image_eq_UN";
 
-Goal "[| r'<=r; A'<=A |] ==> (r' ``` A') <= (r ``` A)";
+Goal "[| r'<=r; A'<=A |] ==> (r' `` A') <= (r `` A)";
 by (Blast_tac 1);
 qed "Image_mono";
 
-Goal "(r ``` (UNION A B)) = (UN x:A.(r ``` (B x)))";
+Goal "(r `` (UNION A B)) = (UN x:A.(r `` (B x)))";
 by (Blast_tac 1);
 qed "Image_UN";
 
 (*Converse inclusion fails*)
-Goal "(r ``` (INTER A B)) <= (INT x:A.(r ``` (B x)))";
+Goal "(r `` (INTER A B)) <= (INT x:A.(r `` (B x)))";
 by (Blast_tac 1);
 qed "Image_INT_subset";
 
-Goal "(r```A <= B) = (A <= - ((r^-1) ``` (-B)))";
+Goal "(r``A <= B) = (A <= - ((r^-1) `` (-B)))";
 by (Blast_tac 1);
 qed "Image_subset_eq";
 
@@ -442,7 +442,7 @@ Goal "Range{(x,y). P x y} = {y. EX x. P x y}";
 by Auto_tac; 
 qed "Range_Collect_split";
 
-Goal "{(x,y). P x y} ``` A = {y. EX x:A. P x y}";
+Goal "{(x,y). P x y} `` A = {y. EX x:A. P x y}";
 by Auto_tac; 
 qed "Image_Collect_split";
 

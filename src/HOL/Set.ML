@@ -531,7 +531,7 @@ qed "singleton_conv2";
 Addsimps [singleton_conv2];
 
 
-section "Unions of families -- UNION x:A. B(x) is Union(B``A)";
+section "Unions of families -- UNION x:A. B(x) is Union(B`A)";
 
 Goalw [UNION_def] "(b: (UN x:A. B(x))) = (EX x:A. b: B(x))";
 by (Blast_tac 1);
@@ -561,7 +561,7 @@ qed "UN_cong";
 Addcongs [UN_cong];
 
 
-section "Intersections of families -- INTER x:A. B(x) is Inter(B``A)";
+section "Intersections of families -- INTER x:A. B(x) is Inter(B`A)";
 
 Goalw [INTER_def] "(b: (INT x:A. B(x))) = (ALL x:A. b: B(x))";
 by Auto_tac;
@@ -652,7 +652,7 @@ AddEs  [InterD, InterE];
 (*** Image of a set under a function ***)
 
 (*Frequently b does not have the syntactic form of f(x).*)
-Goalw [image_def] "[| b=f(x);  x:A |] ==> b : f``A";
+Goalw [image_def] "[| b=f(x);  x:A |] ==> b : f`A";
 by (Blast_tac 1);
 qed "image_eqI";
 Addsimps [image_eqI];
@@ -660,13 +660,13 @@ Addsimps [image_eqI];
 bind_thm ("imageI", refl RS image_eqI);
 
 (*This version's more effective when we already have the required x*)
-Goalw [image_def] "[| x:A;  b=f(x) |] ==> b : f``A";
+Goalw [image_def] "[| x:A;  b=f(x) |] ==> b : f`A";
 by (Blast_tac 1);
 qed "rev_image_eqI";
 
 (*The eta-expansion gives variable-name preservation.*)
 val major::prems = Goalw [image_def]
-    "[| b : (%x. f(x))``A;  !!x.[| b=f(x);  x:A |] ==> P |] ==> P"; 
+    "[| b : (%x. f(x))`A;  !!x.[| b=f(x);  x:A |] ==> P |] ==> P"; 
 by (rtac (major RS CollectD RS bexE) 1);
 by (REPEAT (ares_tac prems 1));
 qed "imageE";
@@ -674,22 +674,22 @@ qed "imageE";
 AddIs  [image_eqI];
 AddSEs [imageE]; 
 
-Goal "f``(A Un B) = f``A Un f``B";
+Goal "f`(A Un B) = f`A Un f`B";
 by (Blast_tac 1);
 qed "image_Un";
 
-Goal "(z : f``A) = (EX x:A. z = f x)";
+Goal "(z : f`A) = (EX x:A. z = f x)";
 by (Blast_tac 1);
 qed "image_iff";
 
 (*This rewrite rule would confuse users if made default.*)
-Goal "(f``A <= B) = (ALL x:A. f(x): B)";
+Goal "(f`A <= B) = (ALL x:A. f(x): B)";
 by (Blast_tac 1);
 qed "image_subset_iff";
 
 (*Replaces the three steps subsetI, imageE, hyp_subst_tac, but breaks too
   many existing proofs.*)
-val prems = Goal "(!!x. x:A ==> f(x) : B) ==> f``A <= B";
+val prems = Goal "(!!x. x:A ==> f(x) : B) ==> f`A <= B";
 by (blast_tac (claset() addIs prems) 1);
 qed "image_subsetI";
 

@@ -16,8 +16,8 @@ constdefs
   comp  :: "[('b * 'c)set, ('a * 'b)set] => ('a * 'c)set"  (infixr "O" 60)
     "r O s == {(x,z). ? y. (x,y):s & (y,z):r}"
 
-  Image :: "[('a*'b) set,'a set] => 'b set"                (infixl "```" 90)
-    "r ``` s == {y. ? x:s. (x,y):r}"
+  Image :: "[('a*'b) set,'a set] => 'b set"                (infixl "``" 90)
+    "r `` s == {y. ? x:s. (x,y):r}"
 
   Id    :: "('a * 'a)set"                            (*the identity relation*)
     "Id == {p. ? x. p = (x,x)}"

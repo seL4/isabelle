@@ -177,7 +177,7 @@ consts
  lexn :: "('a * 'a)set => nat => ('a list * 'a list)set"
 primrec
 "lexn r 0       = {}"
-"lexn r (Suc n) = (prod_fun (%(x,xs). x#xs) (%(x,xs). x#xs) `` (r <*lex*> lexn r n)) Int
+"lexn r (Suc n) = (prod_fun (%(x,xs). x#xs) (%(x,xs). x#xs) ` (r <*lex*> lexn r n)) Int
                   {(xs,ys). length xs = Suc n & length ys = Suc n}"
 
 constdefs

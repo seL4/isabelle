@@ -394,14 +394,14 @@ by (Asm_simp_tac 1);
 qed "prod_fun_ident";
 Addsimps [prod_fun_ident];
 
-Goal "(a,b):r ==> (f(a),g(b)) : (prod_fun f g)``r";
+Goal "(a,b):r ==> (f(a),g(b)) : (prod_fun f g)`r";
 by (rtac image_eqI 1);
 by (rtac (prod_fun RS sym) 1);
 by (assume_tac 1);
 qed "prod_fun_imageI";
 
 val major::prems = Goal
-    "[| c: (prod_fun f g)``r;  !!x y. [| c=(f(x),g(y));  (x,y):r |] ==> P  \
+    "[| c: (prod_fun f g)`r;  !!x y. [| c=(f(x),g(y));  (x,y):r |] ==> P  \
 \    |] ==> P";
 by (rtac (major RS imageE) 1);
 by (res_inst_tac [("p","x")] PairE 1);

@@ -6,7 +6,7 @@
 Monotonicity of various operations
 *)
 
-Goal "A<=B ==> f``A <= f``B";
+Goal "A<=B ==> f`A <= f`B";
 by (Blast_tac 1);
 qed "image_mono";
 
@@ -107,7 +107,7 @@ val basic_monos = [subset_refl, imp_refl, disj_mono, conj_mono,
 (* Courtesy of Stephan Merz *)
 Goalw [Least_def,mono_def]
   "[| mono (f::'a::order => 'b::order); ? x:S. ! y:S. x <= y |] \
-\  ==> (LEAST y. y : f``S) = f(LEAST x. x : S)";
+\  ==> (LEAST y. y : f`S) = f(LEAST x. x : S)";
 by (etac bexE 1);
 by (rtac someI2 1);
 by (Force_tac 1);

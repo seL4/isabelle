@@ -193,7 +193,7 @@ qed "wf_Un";
  * Wellfoundedness of `image'
  *---------------------------------------------------------------------------*)
 
-Goal "[| wf r; inj f |] ==> wf(prod_fun f f `` r)";
+Goal "[| wf r; inj f |] ==> wf(prod_fun f f ` r)";
 by (asm_full_simp_tac (HOL_basic_ss addsimps [wf_eq_minimal]) 1);
 by (Clarify_tac 1);
 by (case_tac "EX p. f p : Q" 1);

@@ -36,7 +36,7 @@ rules
 (* type definition *)
 
 typedef (Nat)
-  nat = "lfp(%X. {Zero_Rep} Un (Suc_Rep``X))"   (lfp_def)
+  nat = "lfp(%X. {Zero_Rep} Un (Suc_Rep`X))"   (lfp_def)
 
 instance
   nat :: {ord, zero}

@@ -65,15 +65,15 @@ by (Simp_tac 1);
 qed "o_id";
 Addsimps [o_id];
 
-Goalw [o_def] "(f o g)``r = f``(g``r)";
+Goalw [o_def] "(f o g)`r = f`(g`r)";
 by (Blast_tac 1);
 qed "image_compose";
 
-Goal "f``A = (UN x:A. {f x})";
+Goal "f`A = (UN x:A. {f x})";
 by (Blast_tac 1);
 qed "image_eq_UN";
 
-Goalw [o_def] "UNION A (g o f) = UNION (f``A) g";
+Goalw [o_def] "UNION A (g o f) = UNION (f`A) g";
 by (Blast_tac 1);
 qed "UN_o";
 
@@ -205,7 +205,7 @@ qed "inj_imp_surj_inv";
 
 (*** Lemmas about injective functions and inv ***)
 
-Goalw [o_def] "[| inj_on f A;  inj_on g (f``A) |] ==> inj_on (g o f) A";
+Goalw [o_def] "[| inj_on f A;  inj_on g (f`A) |] ==> inj_on (g o f) A";
 by (fast_tac (claset() addIs [inj_onI] addEs [inj_onD]) 1);
 qed "comp_inj_on";
 
@@ -288,147 +288,147 @@ qed "o_inv_distrib";
 (** We seem to need both the id-forms and the (%x. x) forms; the latter can
     arise by rewriting, while id may be used explicitly. **)
 
-Goal "(%x. x) `` Y = Y";
+Goal "(%x. x) ` Y = Y";
 by (Blast_tac 1);
 qed "image_ident";
 
-Goalw [id_def] "id `` Y = Y";
+Goalw [id_def] "id ` Y = Y";
 by (Blast_tac 1);
 qed "image_id";
 Addsimps [image_ident, image_id];
 
-Goal "(%x. x) -`` Y = Y";
+Goal "(%x. x) -` Y = Y";
 by (Blast_tac 1);
 qed "vimage_ident";
 
-Goalw [id_def] "id -`` A = A";
+Goalw [id_def] "id -` A = A";
 by Auto_tac;
 qed "vimage_id";
 Addsimps [vimage_ident, vimage_id];
 
-Goal "f -`` (f `` A) = {y. EX x:A. f x = f y}";
+Goal "f -` (f ` A) = {y. EX x:A. f x = f y}";
 by (blast_tac (claset() addIs [sym]) 1);
 qed "vimage_image_eq";
 
-Goal "f `` (f -`` A) <= A";
+Goal "f ` (f -` A) <= A";
 by (Blast_tac 1);
 qed "image_vimage_subset";
 
-Goal "f `` (f -`` A) = A Int range f";
+Goal "f ` (f -` A) = A Int range f";
 by (Blast_tac 1);
 qed "image_vimage_eq";
 Addsimps [image_vimage_eq];
 
-Goal "surj f ==> f `` (f -`` A) = A";
+Goal "surj f ==> f ` (f -` A) = A";
 by (asm_simp_tac (simpset() addsimps [surj_range]) 1);
 qed "surj_image_vimage_eq";
 
-Goal "surj f ==> f `` (inv f `` A) = A";
+Goal "surj f ==> f ` (inv f ` A) = A";
 by (asm_simp_tac (simpset() addsimps [image_eq_UN, surj_f_inv_f]) 1);
 qed "image_surj_f_inv_f";
 
-Goalw [inj_on_def] "inj f ==> f -`` (f `` A) = A";
+Goalw [inj_on_def] "inj f ==> f -` (f ` A) = A";
 by (Blast_tac 1);
 qed "inj_vimage_image_eq";
 
-Goal "inj f ==> (inv f) `` (f `` A) = A";
+Goal "inj f ==> (inv f) ` (f ` A) = A";
 by (asm_simp_tac (simpset() addsimps [image_eq_UN]) 1);
 qed "image_inv_f_f";
 
-Goalw [surj_def] "surj f ==> f -`` B <= A ==> B <= f `` A";
+Goalw [surj_def] "surj f ==> f -` B <= A ==> B <= f ` A";
 by (blast_tac (claset() addIs [sym]) 1);
 qed "vimage_subsetD";
 
-Goalw [inj_on_def] "inj f ==> B <= f `` A ==> f -`` B <= A";
+Goalw [inj_on_def] "inj f ==> B <= f ` A ==> f -` B <= A";
 by (Blast_tac 1);
 qed "vimage_subsetI";
 
-Goalw [bij_def] "bij f ==> (f -`` B <= A) = (B <= f `` A)";
+Goalw [bij_def] "bij f ==> (f -` B <= A) = (B <= f ` A)";
 by (blast_tac (claset() delrules [subsetI]
 			addIs [vimage_subsetI, vimage_subsetD]) 1);
 qed "vimage_subset_eq";
 
-Goal "f``(A Int B) <= f``A Int f``B";
+Goal "f`(A Int B) <= f`A Int f`B";
 by (Blast_tac 1);
 qed "image_Int_subset";
 
-Goal "f``A - f``B <= f``(A - B)";
+Goal "f`A - f`B <= f`(A - B)";
 by (Blast_tac 1);
 qed "image_diff_subset";
 
 Goalw [inj_on_def]
-   "[| inj_on f C;  A<=C;  B<=C |] ==> f``(A Int B) = f``A Int f``B";
+   "[| inj_on f C;  A<=C;  B<=C |] ==> f`(A Int B) = f`A Int f`B";
 by (Blast_tac 1);
 qed "inj_on_image_Int";
 
 Goalw [inj_on_def]
-   "[| inj_on f C;  A<=C;  B<=C |] ==> f``(A-B) = f``A - f``B";
+   "[| inj_on f C;  A<=C;  B<=C |] ==> f`(A-B) = f`A - f`B";
 by (Blast_tac 1);
 qed "inj_on_image_set_diff";
 
-Goalw [inj_on_def] "inj f ==> f``(A Int B) = f``A Int f``B";
+Goalw [inj_on_def] "inj f ==> f`(A Int B) = f`A Int f`B";
 by (Blast_tac 1);
 qed "image_Int";
 
-Goalw [inj_on_def] "inj f ==> f``(A-B) = f``A - f``B";
+Goalw [inj_on_def] "inj f ==> f`(A-B) = f`A - f`B";
 by (Blast_tac 1);
 qed "image_set_diff";
 
-Goalw [image_def] "inj(f) ==> inv(f)``(f``X) = X";
+Goalw [image_def] "inj(f) ==> inv(f)`(f`X) = X";
 by Auto_tac;
 qed "inv_image_comp";
 
-Goal "inj f ==> (f a : f``A) = (a : A)";
+Goal "inj f ==> (f a : f`A) = (a : A)";
 by (blast_tac (claset() addDs [injD]) 1);
 qed "inj_image_mem_iff";
 
-Goalw [inj_on_def] "inj f ==> (f``A <= f``B) = (A<=B)";
+Goalw [inj_on_def] "inj f ==> (f`A <= f`B) = (A<=B)";
 by (Blast_tac 1);
 qed "inj_image_subset_iff";
 
-Goal "inj f ==> (f``A = f``B) = (A = B)";
+Goal "inj f ==> (f`A = f`B) = (A = B)";
 by (blast_tac (claset() addSEs [equalityE] addDs [injD]) 1);
 qed "inj_image_eq_iff";
 
-Goal  "(f `` (UNION A B)) = (UN x:A.(f `` (B x)))";
+Goal  "(f ` (UNION A B)) = (UN x:A.(f ` (B x)))";
 by (Blast_tac 1);
 qed "image_UN";
 
 (*injectivity's required.  Left-to-right inclusion holds even if A is empty*)
 Goalw [inj_on_def]
    "[| inj_on f C;  ALL x:A. B x <= C;  j:A |] \
-\   ==> f `` (INTER A B) = (INT x:A. f `` B x)";
+\   ==> f ` (INTER A B) = (INT x:A. f ` B x)";
 by (Blast_tac 1);
 qed "image_INT";
 
 (*Compare with image_INT: no use of inj_on, and if f is surjective then
   it doesn't matter whether A is empty*)
-Goalw [bij_def] "bij f ==> f `` (INTER A B) = (INT x:A. f `` B x)";
+Goalw [bij_def] "bij f ==> f ` (INTER A B) = (INT x:A. f ` B x)";
 by (force_tac (claset() addSIs [surj_f_inv_f RS sym RS image_eqI], 
 	       simpset()) 1);
 qed "bij_image_INT";
 
-Goal "bij f ==> f `` Collect P = {y. P (inv f y)}";
+Goal "bij f ==> f ` Collect P = {y. P (inv f y)}";
 by Auto_tac;
 by (force_tac (claset(), simpset() addsimps [bij_is_inj]) 1);
 by (blast_tac (claset() addIs [bij_is_surj RS surj_f_inv_f RS sym]) 1);
 qed "bij_image_Collect_eq";
 
-Goal "bij f ==> f -`` A = inv f `` A";
+Goal "bij f ==> f -` A = inv f ` A";
 by Safe_tac;
 by (asm_simp_tac (simpset() addsimps [bij_is_surj RS surj_f_inv_f]) 2);
 by (blast_tac (claset() addIs [bij_is_inj RS inv_f_f RS sym]) 1);
 qed "bij_vimage_eq_inv_image";
 
-Goal "surj f ==> -(f``A) <= f``(-A)";
+Goal "surj f ==> -(f`A) <= f`(-A)";
 by (auto_tac (claset(), simpset() addsimps [surj_def]));  
 qed "surj_Compl_image_subset";
 
-Goal "inj f ==> f``(-A) <= -(f``A)";
+Goal "inj f ==> f`(-A) <= -(f`A)";
 by (auto_tac (claset(), simpset() addsimps [inj_on_def]));  
 qed "inj_image_Compl_subset";
 
-Goalw [bij_def] "bij f ==> f``(-A) = -(f``A)";
+Goalw [bij_def] "bij f ==> f`(-A) = -(f`A)";
 by (rtac equalityI 1); 
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [inj_image_Compl_subset, 
                                                 surj_Compl_image_subset]))); 
@@ -552,13 +552,13 @@ Goal "[| f: A funcset B; g: B funcset C; x: A |]==> compose A g f x = g(f(x))";
 by (asm_full_simp_tac (simpset() addsimps [compose_def, restrict_def]) 1);
 qed "compose_eq";
 
-Goal "[| f : A funcset B; f `` A = B; g: B funcset C; g `` B = C |]\
-\     ==> compose A g f `` A = C";
+Goal "[| f : A funcset B; f ` A = B; g: B funcset C; g ` B = C |]\
+\     ==> compose A g f ` A = C";
 by (auto_tac (claset(),
 	      simpset() addsimps [image_def, compose_eq]));
 qed "surj_compose";
 
-Goal "[| f : A funcset B; g: B funcset C; f `` A = B; inj_on f A; inj_on g B |]\
+Goal "[| f : A funcset B; g: B funcset C; f ` A = B; inj_on f A; inj_on g B |]\
 \     ==> inj_on (compose A g f) A";
 by (auto_tac (claset(),
 	      simpset() addsimps [inj_on_def, compose_eq]));
@@ -567,7 +567,7 @@ qed "inj_on_compose";
 
 (*** restrict / lam ***)
 
-Goal "f``A <= B ==> (lam x: A. f x) : A funcset B";
+Goal "f`A <= B ==> (lam x: A. f x) : A funcset B";
 by (auto_tac (claset(),
 	      simpset() addsimps [restrict_def, Pi_def]));
 qed "restrict_in_funcset";
@@ -603,17 +603,17 @@ qed "inj_on_restrict_eq";
 
 (*** Inverse ***)
 
-Goal "[|f `` A = B;  x: B |] ==> ? y: A. f y = x";
+Goal "[|f ` A = B;  x: B |] ==> ? y: A. f y = x";
 by (Blast_tac 1);
 qed "surj_image";
 
-Goalw [Inv_def] "[| f `` A = B; f : A funcset B |] \
+Goalw [Inv_def] "[| f ` A = B; f : A funcset B |] \
 \                ==> (lam x: B. (Inv A f) x) : B funcset A";
 by (fast_tac (claset() addIs [restrict_in_funcset, someI2]) 1);
 qed "Inv_funcset";
 
 
-Goal "[| f: A funcset B;  inj_on f A;  f `` A = B;  x: A |] \
+Goal "[| f: A funcset B;  inj_on f A;  f ` A = B;  x: A |] \
 \     ==> (lam y: B. (Inv A f) y) (f x) = x";
 by (asm_simp_tac (simpset() addsimps [restrict_apply1, funcset_mem]) 1);
 by (asm_full_simp_tac (simpset() addsimps [Inv_def, inj_on_def]) 1);
@@ -621,13 +621,13 @@ by (rtac someI2 1);
 by Auto_tac;
 qed "Inv_f_f";
 
-Goal "[| f: A funcset B;  f `` A = B;  x: B |] \
+Goal "[| f: A funcset B;  f ` A = B;  x: B |] \
 \     ==> f ((lam y: B. (Inv A f y)) x) = x";
 by (asm_simp_tac (simpset() addsimps [Inv_def, restrict_apply1]) 1);
 by (fast_tac (claset() addIs [someI2]) 1);
 qed "f_Inv_f";
 
-Goal "[| f: A funcset B;  inj_on f A;  f `` A = B |]\
+Goal "[| f: A funcset B;  inj_on f A;  f ` A = B |]\
 \     ==> compose A (lam y:B. (Inv A f) y) f = (lam x: A. x)";
 by (rtac Pi_extensionality 1);
 by (blast_tac (claset() addIs [funcset_compose, Inv_funcset]) 1);

@@ -40,7 +40,7 @@ defs
   Inl_def       "Inl == (%a. Abs_Sum(Inl_Rep(a)))"
   Inr_def       "Inr == (%b. Abs_Sum(Inr_Rep(b)))"
 
-  sum_def       "A <+> B == (Inl``A) Un (Inr``B)"
+  sum_def       "A <+> B == (Inl`A) Un (Inr`B)"
 
   (*for selecting out the components of a mutually recursive definition*)
   Part_def      "Part A h == A Int {x. ? z. x = h(z)}"
