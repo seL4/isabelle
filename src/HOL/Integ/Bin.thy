@@ -39,7 +39,7 @@ consts
   bin_pred         :: bin=>bin
   bin_minus        :: bin=>bin
   bin_add,bin_mult :: [bin,bin]=>bin
-  h_bin            :: [bin,bool,bin]=>bin
+  adding            :: [bin,bool,bin]=>bin
 
 (*NCons inserts a bit, suppressing leading 0s and 1s*)
 primrec
@@ -54,44 +54,44 @@ primrec
 	                             (integ_of w) + (integ_of w)" 
 
 primrec
-  succ_Pls  "bin_succ Pls = Pls BIT True" 
-  succ_Min  "bin_succ Min = Pls"
-  succ_BIT  "bin_succ(w BIT x) =
-  	        (if x then bin_succ w BIT False
-	              else NCons w True)"
+  bin_succ_Pls  "bin_succ Pls = Pls BIT True" 
+  bin_succ_Min  "bin_succ Min = Pls"
+  bin_succ_BIT  "bin_succ(w BIT x) =
+  	            (if x then bin_succ w BIT False
+	                  else NCons w True)"
 
 primrec
-  pred_Pls  "bin_pred Pls = Min"
-  pred_Min  "bin_pred Min = Min BIT False"
-  pred_BIT  "bin_pred(w BIT x) =
-	        (if x then NCons w False
-		      else (bin_pred w) BIT True)"
+  bin_pred_Pls  "bin_pred Pls = Min"
+  bin_pred_Min  "bin_pred Min = Min BIT False"
+  bin_pred_BIT  "bin_pred(w BIT x) =
+	            (if x then NCons w False
+		          else (bin_pred w) BIT True)"
  
 primrec
-  minus_Pls  "bin_minus Pls = Pls"
-  minus_Min  "bin_minus Min = Pls BIT True"
-  minus_BIT  "bin_minus(w BIT x) =
-	         (if x then bin_pred (NCons (bin_minus w) False)
-		       else bin_minus w BIT False)"
+  bin_minus_Pls  "bin_minus Pls = Pls"
+  bin_minus_Min  "bin_minus Min = Pls BIT True"
+  bin_minus_BIT  "bin_minus(w BIT x) =
+	             (if x then bin_pred (NCons (bin_minus w) False)
+		           else bin_minus w BIT False)"
 
 primrec
-  add_Pls  "bin_add Pls w = w"
-  add_Min  "bin_add Min w = bin_pred w"
-  add_BIT  "bin_add (v BIT x) w = h_bin v x w"
+  bin_add_Pls  "bin_add Pls w = w"
+  bin_add_Min  "bin_add Min w = bin_pred w"
+  bin_add_BIT  "bin_add (v BIT x) w = adding v x w"
 
 primrec
-  "h_bin v x Pls = v BIT x"
-  "h_bin v x Min = bin_pred (v BIT x)"
-  "h_bin v x (w BIT y) =
-	     NCons (bin_add v (if (x & y) then bin_succ w else w))
+  "adding v x Pls = v BIT x"
+  "adding v x Min = bin_pred (v BIT x)"
+  "adding v x (w BIT y) =
+ 	     NCons (bin_add v (if (x & y) then bin_succ w else w))
 	           (x~=y)" 
 
 primrec
-  mult_Pls  "bin_mult Pls w = Pls"
-  mult_Min  "bin_mult Min w = bin_minus w"
-  mult_BIT  "bin_mult (v BIT x) w =
-	        (if x then (bin_add (NCons (bin_mult v w) False) w)
-	              else (NCons (bin_mult v w) False))"
+  bin_mult_Pls  "bin_mult Pls w = Pls"
+  bin_mult_Min  "bin_mult Min w = bin_minus w"
+  bin_mult_BIT  "bin_mult (v BIT x) w =
+	            (if x then (bin_add (NCons (bin_mult v w) False) w)
+	                  else (NCons (bin_mult v w) False))"
 
 
 end
