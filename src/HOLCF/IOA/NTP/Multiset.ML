@@ -42,7 +42,7 @@ goal Multiset.thy "!!M. (!x. P(x) --> Q(x)) ==> (countm M P <= countm M Q)";
   by (res_inst_tac [("M","M")] Multiset.induction 1);
   by (simp_tac (simpset() addsimps [Multiset.countm_empty_def]) 1);
   by (simp_tac (simpset() addsimps[Multiset.countm_nonempty_def]) 1);
-  by (etac (less_eq_add_cong RS mp RS mp) 1);
+  by (etac add_le_mono 1);
   by (asm_full_simp_tac (simpset() addsimps [le_eq_less_or_eq]
                                   setloop (split_tac [expand_if])) 1);
 qed "countm_props";
@@ -76,9 +76,8 @@ goal Multiset.thy
                            Multiset.countm_empty_def]) 1);
   by (asm_simp_tac (simpset() addsimps 
                       [eq_sym_conv,count_addm_simp,Multiset.delm_nonempty_def,
-                       Multiset.countm_nonempty_def,pos_count_imp_pos_countm,
-                       suc_pred_id]
-                    setloop (split_tac [expand_if])) 1);
+                       Multiset.countm_nonempty_def,pos_count_imp_pos_countm]
+                    addsplits [expand_if]) 1);
 qed "countm_done_delm";
 
 

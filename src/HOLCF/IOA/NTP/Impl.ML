@@ -111,8 +111,8 @@ by (tac_ren 1);
 by (rtac impI 1);
 by (REPEAT (etac conjE 1));
 by (asm_simp_tac (simpset() addsimps [hdr_sum_def, Multiset.count_def,
-                               Multiset.countm_nonempty_def]
-                     setloop (split_tac [expand_if])) 1);
+                                      Multiset.countm_nonempty_def]
+                            addsplits [expand_if]) 1);
 (* detour 2 *)
 by (tac 1);
 by (tac_ren 1);
@@ -121,16 +121,13 @@ by (REPEAT (etac conjE 1));
 by (asm_full_simp_tac (simpset() addsimps [Impl.hdr_sum_def, 
                                          Multiset.count_def,
                                          Multiset.countm_nonempty_def,
-                                         Multiset.delm_nonempty_def,
-                                         left_plus_cancel,
-                                         left_plus_cancel_inside_succ,
-                                         unzero_less]
-                               setloop (split_tac [expand_if])) 1);
+                                         Multiset.delm_nonempty_def]
+                                 addsplits [expand_if]) 1);
 by (rtac allI 1);
 by (rtac conjI 1);
 by (rtac impI 1);
 by (hyp_subst_tac 1);
-by (rtac (pred_suc RS mp RS sym RS iffD2) 1);
+by (rtac (pred_suc RS iffD1) 1);
 by (dtac less_le_trans 1);
 by (cut_facts_tac [rewrite_rule[Packet.hdr_def]
                    eq_packet_imp_eq_hdr RS countm_props] 1);;
@@ -199,8 +196,7 @@ val tac2 = asm_full_simp_tac (ss addsimps [inv2_def]);
   by (rtac impI 1);
   by (rtac impI 1);
   by (REPEAT (etac conjE 1));
-  by (dres_inst_tac [("k","count (rsch s) (~sbit(sen s))")] 
-                     (standard(leq_add_leq RS mp)) 1);
+  by (dres_inst_tac [("k","count (rsch s) (~sbit(sen s))")] le_imp_add_le 1);
   by (Asm_full_simp_tac 1);
 
   (* 1 *)
@@ -211,8 +207,7 @@ val tac2 = asm_full_simp_tac (ss addsimps [inv2_def]);
   by (rtac impI 1);
   by (REPEAT (etac conjE 1));
   by (fold_tac  [rewrite_rule[Packet.hdr_def]Impl.hdr_sum_def]);
-  by (dres_inst_tac [("k","hdr_sum (srch s) (sbit(sen s))")] 
-                     (standard(leq_add_leq RS mp)) 1);
+  by (dres_inst_tac [("k","hdr_sum (srch s) (sbit(sen s))")] le_imp_add_le 1);
   by (Asm_full_simp_tac 1);
 qed "inv2";
 
@@ -267,7 +262,7 @@ val tac3 = asm_full_simp_tac (ss addsimps [inv3_def]
                                 (inv1 RS invariantE) RS conjunct2] 1);
   by (asm_full_simp_tac (simpset() addsimps
                          [hdr_sum_def, Multiset.count_def]) 1);
-  by (rtac (less_eq_add_cong RS mp RS mp) 1);
+  by (rtac add_le_mono 1);
   by (rtac countm_props 1);
   by (Simp_tac 1);
   by (rtac countm_props 1);
@@ -331,7 +326,7 @@ val tac4 =  asm_full_simp_tac (ss addsimps [inv4_def]
   by (Asm_full_simp_tac 1);
   by (eres_inst_tac [("x","m")] allE 1);
   by (dtac less_le_trans 1);
-  by (dtac (left_add_leq RS mp) 1);
+  by (dtac add_leD1 1);
   by (Asm_full_simp_tac 1);
   by (Asm_full_simp_tac 1);
 qed "inv4";
