@@ -161,7 +161,6 @@ val UN_cong = thm "UN_cong";
 val UN_constant = thm "UN_constant";
 val UN_empty = thm "UN_empty";
 val UN_empty2 = thm "UN_empty2";
-val UN_empty3 = thm "UN_empty3";
 val UN_eq = thm "UN_eq";
 val UN_iff = thm "UN_iff";
 val UN_insert = thm "UN_insert";

@@ -1292,7 +1292,10 @@ lemma Union_Int_subset: "\<Union>(A \<inter> B) \<subseteq> \<Union>A \<inter> \
   by blast
 
 lemma Union_empty_conv [iff]: "(\<Union>A = {}) = (\<forall>x\<in>A. x = {})"
-  by auto
+  by blast
+
+lemma empty_Union_conv [iff]: "({} = \<Union>A) = (\<forall>x\<in>A. x = {})"
+  by blast
 
 lemma Union_disjoint: "(\<Union>C \<inter> A = {}) = (\<forall>B\<in>C. B \<inter> A = {})"
   by blast
@@ -1314,6 +1317,11 @@ lemma Inter_Un_subset: "\<Inter>A \<union> \<Inter>B \<subseteq> \<Inter>(A \<in
 
 lemma Inter_Un_distrib: "\<Inter>(A \<union> B) = \<Inter>A \<inter> \<Inter>B"
   by blast
+
+lemma Inter_UNIV_conv [iff]:
+  "(\<Inter>A = UNIV) = (\<forall>x\<in>A. x = UNIV)"
+  "(UNIV = \<Inter>A) = (\<forall>x\<in>A. x = UNIV)"
+  by(blast)+
 
 
 text {*
@@ -1386,8 +1394,15 @@ lemma INT_eq: "(\<Inter>x\<in>A. B x) = \<Inter>({Y. \<exists>x\<in>A. Y = B x})
   -- {* Look: it has an \emph{existential} quantifier *}
   by blast
 
-lemma UN_empty3 [iff]: "(UNION A B = {}) = (\<forall>x\<in>A. B x = {})"
-  by auto
+lemma UNION_empty_conv[iff]:
+  "({} = (UN x:A. B x)) = (\<forall>x\<in>A. B x = {})"
+  "((UN x:A. B x) = {}) = (\<forall>x\<in>A. B x = {})"
+by blast+
+
+lemma INTER_UNIV_conv[iff]:
+ "(UNIV = (INT x:A. B x)) = (\<forall>x\<in>A. B x = UNIV)"
+ "((INT x:A. B x) = UNIV) = (\<forall>x\<in>A. B x = UNIV)"
+by blast+
 
 
 text {* \medskip Distributive laws: *}
