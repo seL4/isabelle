@@ -128,10 +128,9 @@ translations
 
   "<x, y, z>"   == "<x, <y, z>>"
   "<x, y>"      == "Pair(x, y)"
-  "%<x,y,zs>.b"   == "split(%x <y,zs>.b)"
-  "%<x,y>.b"      == "split(%x y.b)"
-(* The <= direction fails if split has more than one argument because
-   ast-matching fails.  Otherwise it would work fine *)
+  "%<x,y,zs>.b" == "split(%x <y,zs>.b)"
+  "%<x,y>.b"    == "split(%x y.b)"
+
 
 defs
 
