@@ -682,3 +682,10 @@ qed_goal "nat_neqE" thy
   "[| (m::nat) ~= n; m < n ==> P; n < m ==> P |] ==> P"
   (fn major::prems => [cut_facts_tac [less_linear] 1,
                        REPEAT(eresolve_tac ([disjE,major RS notE]@prems) 1)]);
+
+
+
+(* add function nat_add_primrec *) 
+val (_, nat_add_primrec) = Datatype.add_datatype
+([], "nat", [("0", [], Mixfix ("0", [], max_pri)), ("Suc", [dtTyp ([], "nat")], NoSyn)]) HOL.thy;
+
