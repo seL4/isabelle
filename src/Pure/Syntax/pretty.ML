@@ -125,8 +125,8 @@ fun format ([], _, _) text = text
                             or if breaking would add only breakgain to space *)
            format (es,blockin,after)
                (if not force andalso
-                   pos+wd <= max[!margin - breakdist(es,after),
-                                 blockin + !breakgain]
+                   pos+wd <= Int.max(!margin - breakdist(es,after),
+				     blockin + !breakgain)
                 then blanks wd text  (*just insert wd blanks*)
                 else blanks blockin (newline text)));
 
