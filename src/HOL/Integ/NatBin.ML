@@ -6,6 +6,8 @@
 Binary arithmetic for the natural numbers
 *)
 
+val zcompare_rls = [];
+
 (** nat (coercion from int to nat) **)
 
 Goal "nat (number_of w) = number_of w";
@@ -27,6 +29,7 @@ Goal "#2 = 2";
 by (simp_tac (simpset_of Int.thy addsimps [nat_2, nat_number_of_def]) 1);
 qed "numeral_2_eq_2";
 
+bind_thm ("zero_eq_numeral_0", numeral_0_eq_0 RS sym);
 
 (** int (coercion from nat to int) **)
 
@@ -104,8 +107,7 @@ Goal "nat z - nat z' = \
 \             if neg d then 0 else nat d)";
 by (simp_tac (simpset() addsimps [Let_def, nat_diff_distrib RS sym,
 				  neg_eq_less_0, not_neg_eq_ge_0]) 1);
-by (simp_tac (simpset() addsimps zcompare_rls@
-		                 [diff_is_0_eq, nat_le_eq_zle]) 1);
+by (simp_tac (simpset() addsimps [diff_is_0_eq, nat_le_eq_zle]) 1);
 qed "diff_nat_eq_if";
 
 Goalw [nat_number_of_def]
@@ -385,6 +387,11 @@ Goal "(p::nat) ^ #2 = p*p";
 by (simp_tac numeral_ss 1);
 qed "power_two";
 
+Goal "#0 < (i::nat) ==> #0 < i^n";
+by (asm_simp_tac numeral_ss 1);
+qed "zero_less_power'";
+Addsimps [zero_less_power'];
+
 val binomial_zero = rename_numerals thy binomial_0;
 val binomial_Suc' = rename_numerals thy binomial_Suc;
 val binomial_n_n' = rename_numerals thy binomial_n_n;
@@ -414,6 +421,11 @@ qed "less_0_number_of";
 (*Simplification already handles n<0, n<=0 and 0<=n.*)
 Addsimps [eq_number_of_0, eq_0_number_of, less_0_number_of];
 
+Goal "neg (number_of v) ==> number_of v = 0";
+by (asm_simp_tac (simpset() addsimps [numeral_0_eq_0 RS sym]) 1);
+qed "neg_imp_number_of_eq_0";
+
+
 
 (*** Comparisons involving Suc ***)
 
@@ -423,10 +435,9 @@ Goal "(number_of v = Suc n) = \
 by (simp_tac
     (simpset_of Int.thy addsimps
       [Let_def, neg_eq_less_0, linorder_not_less, number_of_pred,
-       nat_number_of_def, zadd_0]@zadd_ac@zcompare_rls) 1);
+       nat_number_of_def, zadd_0] @ zadd_ac) 1);
 by (res_inst_tac [("x", "number_of v")] spec 1);
-by (auto_tac (claset(),
-	      simpset() addsimps [nat_eq_iff]@zcompare_rls));
+by (auto_tac (claset(), simpset() addsimps [nat_eq_iff]));
 qed "eq_number_of_Suc";
 
 Goal "(Suc n = number_of v) = \
@@ -441,10 +452,9 @@ Goal "(number_of v < Suc n) = \
 by (simp_tac
     (simpset_of Int.thy addsimps
       [Let_def, neg_eq_less_0, linorder_not_less, number_of_pred,
-       nat_number_of_def, zadd_0]@zadd_ac@zcompare_rls) 1);
+       nat_number_of_def, zadd_0] @ zadd_ac) 1);
 by (res_inst_tac [("x", "number_of v")] spec 1);
-by (auto_tac (claset(),
-	      simpset() addsimps [nat_less_iff]@zcompare_rls));
+by (auto_tac (claset(), simpset() addsimps [nat_less_iff]));
 qed "less_number_of_Suc";
 
 Goal "(Suc n < number_of v) = \
@@ -453,10 +463,9 @@ Goal "(Suc n < number_of v) = \
 by (simp_tac
     (simpset_of Int.thy addsimps
       [Let_def, neg_eq_less_0, linorder_not_less, number_of_pred,
-       nat_number_of_def, zadd_0]@zadd_ac@zcompare_rls) 1);
+       nat_number_of_def, zadd_0] @ zadd_ac) 1);
 by (res_inst_tac [("x", "number_of v")] spec 1);
-by (auto_tac (claset(),
-	      simpset() addsimps [zless_nat_eq_int_zless]@zcompare_rls));
+by (auto_tac (claset(), simpset() addsimps [zless_nat_eq_int_zless]));
 qed "less_Suc_number_of";
 
 Goal "(number_of v <= Suc n) = \
