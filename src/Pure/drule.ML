@@ -50,8 +50,8 @@ signature DRULE =
   val read_instantiate_sg: Sign.sg -> (string*string)list -> thm -> thm
   val reflexive_thm: thm
   val revcut_rl: thm
-  val rewrite_goal_rule: (meta_simpset -> thm -> thm option) -> meta_simpset ->
-        int -> thm -> thm
+  val rewrite_goal_rule: bool*bool -> (meta_simpset -> thm -> thm option)
+        -> meta_simpset -> int -> thm -> thm
   val rewrite_goals_rule: thm list -> thm -> thm
   val rewrite_rule: thm list -> thm -> thm
   val RS: thm * thm -> thm
@@ -376,18 +376,18 @@ val transitive_thm =
       val xythm = Thm.assume xy and yzthm = Thm.assume yz
   in standard(Thm.implies_intr yz (Thm.transitive xythm yzthm)) end;
 
-
 (** Below, a "conversion" has type sign->term->thm **)
 
 (*In [A1,...,An]==>B, rewrite the selected A's only -- for rewrite_goals_tac*)
+(*Do not rewrite flex-flex pairs*)
 fun goals_conv pred cv sign = 
   let val triv = reflexive o Sign.fake_cterm_of sign
       fun gconv i t =
         let val (A,B) = Logic.dest_implies t
-	    val thA = if (pred i) then (cv sign A) else (triv A)
-	in  combination (combination (triv implies) thA)
-                        (gconv (i+1) B)
-        end
+            val (thA,j) = case A of
+                  Const("=?=",_)$_$_ => (triv A,i)
+                | _ => (if pred i then cv sign A else triv A, i+1)
+	in  combination (combination (triv implies) thA) (gconv j B) end
         handle TERM _ => triv t
   in gconv 1 end;
 
@@ -397,19 +397,23 @@ fun fconv_rule cv th =
   in  equal_elim (cv sign prop) th  end;
 
 (*rewriting conversion*)
-fun rew_conv prover mss sign t =
-  rewrite_cterm mss prover (Sign.fake_cterm_of sign t);
+fun rew_conv mode prover mss sign t =
+  rewrite_cterm mode mss prover (Sign.fake_cterm_of sign t);
 
 (*Rewrite a theorem*)
-fun rewrite_rule thms = fconv_rule (rew_conv (K(K None)) (Thm.mss_of thms));
+fun rewrite_rule thms =
+  fconv_rule (rew_conv (true,false) (K(K None)) (Thm.mss_of thms));
 
 (*Rewrite the subgoals of a proof state (represented by a theorem) *)
 fun rewrite_goals_rule thms =
-  fconv_rule (goals_conv (K true) (rew_conv (K(K None)) (Thm.mss_of thms)));
+  fconv_rule (goals_conv (K true) (rew_conv (true,false) (K(K None))
+             (Thm.mss_of thms)));
 
 (*Rewrite the subgoal of a proof state (represented by a theorem) *)
-fun rewrite_goal_rule prover mss i =
-      fconv_rule (goals_conv (fn j => j=i) (rew_conv prover mss));
+fun rewrite_goal_rule mode prover mss i thm =
+  if 0 < i  andalso  i <= nprems_of thm
+  then fconv_rule (goals_conv (fn j => j=i) (rew_conv mode prover mss)) thm
+  else raise THM("rewrite_goal_rule",i,[thm]);
 
 
 (** Derived rules mainly for METAHYPS **)

@@ -13,7 +13,7 @@ sig
   in
   val ares_tac: thm list -> int -> tactic
   val asm_rewrite_goal_tac:
-        (meta_simpset -> tactic) -> meta_simpset -> int -> tactic
+        bool*bool -> (meta_simpset -> tactic) -> meta_simpset -> int -> tactic
   val assume_tac: int -> tactic
   val atac: int ->tactic
   val bimatch_from_nets_tac: (int*(bool*thm)) net * (int*(bool*thm)) net -> int -> tactic
@@ -373,8 +373,8 @@ fun result1 tacf mss thm =
   | Some(thm,_) => Some(thm);
 
 (*Rewrite subgoal i only *)
-fun asm_rewrite_goal_tac prover_tac mss i =
-      PRIMITIVE(rewrite_goal_rule (result1 prover_tac) mss i);
+fun asm_rewrite_goal_tac mode prover_tac mss i =
+      PRIMITIVE(rewrite_goal_rule mode (result1 prover_tac) mss i);
 
 (*Rewrite throughout proof state. *)
 fun rewrite_tac defs = PRIMITIVE(rewrite_rule defs);

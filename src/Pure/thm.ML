@@ -66,8 +66,9 @@ signature THM =
   val reflexive: Sign.cterm -> thm 
   val rename_params_rule: string list * int -> thm -> thm
   val rep_thm: thm -> {prop: term, hyps: term list, maxidx: int, sign: Sign.sg}
-  val rewrite_cterm: meta_simpset -> (meta_simpset -> thm -> thm option)
-                     -> Sign.cterm -> thm
+  val rewrite_cterm:
+         bool*bool -> meta_simpset -> (meta_simpset -> thm -> thm option)
+           -> Sign.cterm -> thm
   val set_mk_rews: meta_simpset * (thm -> thm list) -> meta_simpset
   val sign_of: theory -> Sign.sg   
   val syn_of: theory -> Sign.Syntax.syntax
@@ -954,7 +955,7 @@ fun congc (prover,signt) {thm=cong,lhs=lhs} (hypst,t) =
   end;
 
 
-fun bottomc (prover,sign) =
+fun bottomc ((simprem,useprem),prover,sign) =
   let fun botc mss trec = let val trec1 = subc mss trec
                           in case rewritec (prover,sign) mss trec1 of
                                None => trec1
@@ -988,12 +989,11 @@ fun bottomc (prover,sign) =
           | _ => trec)
 
       and impc(hyps,s,u,mss as Mss{mk_rews,...}) =
-        let val (hyps1,s') = botc mss (hyps,s)
-            val (rthms,mss) =
-              if maxidx_of_term s' <> ~1 then ([],mss)
+        let val (hyps1,s') = if simprem then botc mss (hyps,s) else (hyps,s)
+            val mss' =
+              if not useprem orelse maxidx_of_term s' <> ~1 then mss
               else let val thm = Thm{sign=sign,hyps=[s'],prop=s',maxidx= ~1}
-                   in (mk_rews thm, add_prems(mss,[thm])) end
-            val mss' = add_simps(mss,rthms)
+                   in add_simps(add_prems(mss,[thm]), mk_rews thm) end
             val (hyps2,u') = botc mss' (hyps1,u)
             val hyps2' = if s' mem hyps1 then hyps2 else hyps2\s'
         in (hyps2', Logic.mk_implies(s',u')) end
@@ -1003,14 +1003,15 @@ fun bottomc (prover,sign) =
 
 (*** Meta-rewriting: rewrites t to u and returns the theorem t==u ***)
 (* Parameters:
+   mode = (simplify A, use A in simplifying B) when simplifying A ==> B 
    mss: contains equality theorems of the form [|p1,...|] ==> t==u
    prover: how to solve premises in conditional rewrites and congruences
 *)
 
 (*** FIXME: check that #primes(mss) does not "occur" in ct alread ***)
-fun rewrite_cterm mss prover ct =
+fun rewrite_cterm mode mss prover ct =
   let val {sign, t, T, maxidx} = Sign.rep_cterm ct;
-      val (hyps,u) = bottomc (prover,sign) mss ([],t);
+      val (hyps,u) = bottomc (mode,prover,sign) mss ([],t);
       val prop = Logic.mk_equals(t,u)
   in  Thm{sign= sign, hyps= hyps, maxidx= maxidx_of_term prop, prop= prop}
   end
