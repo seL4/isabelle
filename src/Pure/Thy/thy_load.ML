@@ -10,6 +10,7 @@ signature BASIC_THY_LOAD =
 sig
   val show_path: unit -> string list
   val add_path: string -> unit
+  val path_add: string -> unit
   val del_path: string -> unit
   val with_path: string -> ('a -> 'b) -> 'a -> 'b
   val with_paths: string list -> ('a -> 'b) -> 'a -> 'b
@@ -51,6 +52,7 @@ fun change_path f = load_path := f (! load_path);
 fun show_path () = map Path.pack (! load_path);
 fun del_path s = change_path (filter_out (equal (Path.unpack s)));
 fun add_path s = (del_path s; change_path (cons (Path.unpack s)));
+fun path_add s = (del_path s; change_path (fn path => path @ [Path.unpack s]));
 fun reset_path () = load_path := [Path.current];
 fun with_paths ss f x = Library.setmp load_path (! load_path @ map Path.unpack ss) f x;
 fun with_path s f x = with_paths [s] f x;
