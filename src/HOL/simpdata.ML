@@ -71,6 +71,7 @@ local
      "(P & False) = False", "(False & P) = False", "(P & P) = P",
      "(P | True) = True", "(True | P) = True", 
      "(P | False) = P", "(False | P) = P", "(P | P) = P",
+     "((~P) = (~Q)) = (P=Q)",
      "(!x.P) = P", "(? x.P) = P", "? x. x=t", 
      "(? x. x=t & P(x)) = P(t)", "(! x. x=t --> P(x)) = P(t)" ];
 
@@ -87,6 +88,9 @@ val disj_assoc = prover "((P|Q)|R) = (P|(Q|R))";
 
 val imp_disj   = prover "(P|Q --> R) = ((P-->R)&(Q-->R))";
 
+(*Avoids duplication of subgoals after expand_if, when the true and false 
+  cases boil down to the same thing.*) 
+val cases_simp = prover "((P --> Q) & (~P --> Q)) = Q";
 
 val if_True = prove_goalw HOL.thy [if_def] "(if True then x else y) = x"
  (fn _=>[fast_tac (HOL_cs addIs [select_equality]) 1]);
@@ -131,18 +135,37 @@ val imp_cong = impI RSN
 val o_apply = prove_goalw HOL.thy [o_def] "(f o g)(x) = f(g(x))"
  (fn _ => [rtac refl 1]);
 
+(*Miniscoping: pushing in existential quantifiers*)
+val ex_simps = map prover 
+		["(EX x. P x & Q)   = ((EX x.P x) & Q)",
+		 "(EX x. P & Q x)   = (P & (EX x.Q x))",
+		 "(EX x. P x | Q)   = ((EX x.P x) | Q)",
+		 "(EX x. P | Q x)   = (P | (EX x.Q x))",
+		 "(EX x. P x --> Q) = ((ALL x.P x) --> Q)",
+		 "(EX x. P --> Q x) = (P --> (EX x.Q x))"];
+
+(*Miniscoping: pushing in universal quantifiers*)
+val all_simps = map prover
+		["(ALL x. P x & Q)   = ((ALL x.P x) & Q)",
+		 "(ALL x. P & Q x)   = (P & (ALL x.Q x))",
+		 "(ALL x. P x | Q)   = ((ALL x.P x) | Q)",
+		 "(ALL x. P | Q x)   = (P | (ALL x.Q x))",
+		 "(ALL x. P x --> Q) = ((EX x.P x) --> Q)",
+		 "(ALL x. P --> Q x) = (P --> (ALL x.Q x))"];
+
 val HOL_ss = empty_ss
       setmksimps (mksimps mksimps_pairs)
       setsolver (fn prems => resolve_tac (TrueI::refl::prems) ORELSE' atac
                              ORELSE' etac FalseE)
       setsubgoaler asm_simp_tac
-      addsimps ([if_True, if_False, o_apply, imp_disj, conj_assoc, disj_assoc]
-        @ simp_thms)
+      addsimps ([if_True, if_False, o_apply, imp_disj, conj_assoc, disj_assoc,
+		 cases_simp]
+        @ ex_simps @ all_simps @ simp_thms)
       addcongs [imp_cong];
 
 
 (*In general it seems wrong to add distributive laws by default: they
-  might cause exponential blow-up.  This one has been added for a while
+  might cause exponential blow-up.  But imp_disj has been in for a while
   and cannot be removed without affecting existing proofs.  Moreover, 
   rewriting by "(P|Q --> R) = ((P-->R)&(Q-->R))" might be justified on the
   grounds that it allows simplification of R in the two cases.*)
