@@ -62,7 +62,7 @@ locale LC =
   fixes
     f    :: ['b,'a] => 'a
   assumes
-    lcomm    "!! x y z. f x (f y z) = f y (f x z)"
+    lcomm    "f x (f y z) = f y (f x z)"
   defines
     (*nothing*)
 
@@ -71,9 +71,9 @@ locale ACe =
     f    :: ['a,'a] => 'a
     e    :: 'a
   assumes
-    ident    "!! x. f x e = x"
-    commute  "!! x y. f x y = f y x"
-    assoc    "!! x y z. f (f x y) z = f x (f y z)"
+    ident    "f x e = x"
+    commute  "f x y = f y x"
+    assoc    "f (f x y) z = f x (f y z)"
   defines
 
 end

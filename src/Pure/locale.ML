@@ -2,17 +2,19 @@
     ID:         $Id$
     Author:     Florian Kammueller, University of Cambridge
 
-Locales. (* FIXME description *)
+Locales. The theory section 'locale' declarings constants, assumptions and
+definitions that have local scope.  Typical form is
+
+    locale Locale_name =
+      fixes   (*variables that are fixed in the locale's scope*)
+	v :: T
+      assumes (*meta-hypothesis that hold in the locale*)
+	Asm_name "meta-formula"  
+      defines (*local definitions of fixed variables in terms of others*)
+	v_def "v x == ...x..."
 
 TODO:
-  - cleanup this TODO list;
-  - read_cterm, pretty_cterm etc. wrt. current scope: collect defaults;
-  - inner locale name space for rules / defs (?!);
-  - attributes for assumptions (??!);
-  - logical aspects of locales:
-      . unfold / fold defs for in/out (use simplifier);
-      . discharge assumptions and eliminate defs for result;
-  - improve error msgs: more checks, at very beginning;
+  - operations on locales: extension, renaming.
 *)
 
 signature BASIC_LOCALE =
@@ -307,16 +309,20 @@ fun difflist term clist =
             end;
     in distinct(builddiff flist clist) end;
 
-(* Bind a term with !! over a list of "free" Free's *)
-fun abs_over_free clist term =
+(* Bind a term with !! over a list of "free" Free's.
+   To enable definitions like x + y == .... (without quantifier).
+   Complications, because x and y have to be removed from defaults *)
+fun abs_over_free clist ((defaults: (string * sort) list * (string * typ) list * string list), (s, term)) =
     let val diffl = rev(difflist term clist);
         fun abs_o (t, (x as Free(v,T))) = all(T) $ Abs(v, T, abstract_over (x,t))
           | abs_o (_ , _) = error ("Can't be: abs_over_free");
-    in foldl abs_o (term, diffl) end;
+        val diffl' = map (fn (Free (s, T)) => s) diffl;
+        val defaults' = (#1 defaults, filter (fn x => not((fst x) mem diffl')) (#2 defaults), #3 defaults)
+    in (defaults', (s, foldl abs_o (term, diffl))) end;
 
 (* assume a definition, i.e assume the cterm of a definiton term and then eliminate
    the binding !!, so that the def can be applied as rewrite. The meta hyp will still contain !! *)
-fun prep_def clist sg = forall_elim_vars(0) o assume o (cterm_of sg);
+fun prep_hyps clist sg = forall_elim_vars(0) o Thm.assume o (Thm.cterm_of sg);
 
 
 (* concrete syntax *)
@@ -379,9 +385,11 @@ fun gen_add_locale prep_typ prep_term bname raw_consts raw_rules raw_defs thy =
     val new_loc_consts = (map #1 loc_consts);
     val all_loc_consts = old_loc_consts @ new_loc_consts;
 
-    val loc_defs_terms = map (apsnd (abs_over_free (all_loc_consts))) loc_defs;
-    val loc_defs_thms = map (apsnd (prep_def (map #1 loc_consts) syntax_sign)) loc_defs_terms;
-    val loc_thms = (map (apsnd (Thm.assume o Thm.cterm_of syntax_sign)) (loc_rules)) @ loc_defs_thms;
+    val (defaults, loc_defs_terms) = foldl_map (abs_over_free all_loc_consts) (defaults, loc_defs);
+    val loc_defs_thms = map (apsnd (prep_hyps (map #1 loc_consts) syntax_sign)) loc_defs_terms;
+    val (defaults, loc_thms_terms) = foldl_map (abs_over_free all_loc_consts) (defaults, loc_rules);
+    val loc_thms = (map (apsnd (prep_hyps (map #1 loc_consts) syntax_sign)) (loc_thms_terms)) 
+                   @ loc_defs_thms;
 
 
     (* error messages *)        (* FIXME improve *)
@@ -390,7 +398,7 @@ fun gen_add_locale prep_typ prep_term bname raw_consts raw_rules raw_defs thy =
       if is_none (get_locale thy name) then []
       else ["Duplicate definition of locale " ^ quote name];
 
-    (* check if definientes are local constants (in the same locale, so no redefining!) *)
+    (* check if definientes are locale constants (in the same locale, so no redefining!) *)
     val err_def_head =
       let fun peal_appl t = 
             case t of 
@@ -405,14 +413,27 @@ fun gen_add_locale prep_typ prep_term bname raw_consts raw_rules raw_defs thy =
          else ["defined item not declared fixed in locale " ^ quote name]
       end; 
 
-    val errs = err_dup_locale @ err_def_head;
+    (* check that variables on rhs of definitions are either fixed or on lhs *)
+    val err_var_rhs = 
+      let fun compare_var_sides (t, (_, Const ("==", _) $ d1 $ d2)) = 
+            let val varl1 = difflist d1 all_loc_consts;
+                val varl2 = difflist d2 all_loc_consts
+            in t andalso (varl2 subset varl1)
+            end
+            | compare_var_sides (_,_) = error ("an illegal definition");
+          val check = foldl compare_var_sides (true, loc_defs)
+      in if check then []
+         else ["nonfixed variable on right hand side of a locale definition in locale" ^ quote name]
+      end;
+
+    val errs = err_dup_locale @ err_def_head @ err_var_rhs;
   in
     if null errs then ()
     else error (cat_lines errs);
 
     syntax_thy
     |> put_locale (name, 
-		   make_locale loc_consts nosyn loc_rules loc_defs_terms
+		   make_locale loc_consts nosyn loc_thms_terms loc_defs_terms
 		               loc_thms defaults)
   end;
 

@@ -22,15 +22,14 @@ qed "not_E_eq";
 
 Open_locale "Token";
 
-(*Strip meta-quantifiers: perhaps the locale should do this?*)
-val TR2   = forall_elim_vars 0 (thm "TR2");
-val TR3   = forall_elim_vars 0 (thm "TR3");
-val TR4   = forall_elim_vars 0 (thm "TR4");
-val TR5   = forall_elim_vars 0 (thm "TR5");
-val TR6   = forall_elim_vars 0 (thm "TR6");
-val TR7   = forall_elim_vars 0 (thm "TR7");
-val nodeOrder_def   = (thm "nodeOrder_def");
-val next_def   = (thm "next_def");
+val TR2 = thm "TR2";
+val TR3 = thm "TR3";
+val TR4 = thm "TR4";
+val TR5 = thm "TR5";
+val TR6 = thm "TR6";
+val TR7 = thm "TR7";
+val nodeOrder_def = thm "nodeOrder_def";
+val next_def = thm "next_def";
 
 AddIffs [thm "N_positive"];
 

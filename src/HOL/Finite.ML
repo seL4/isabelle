@@ -591,8 +591,7 @@ qed "finite_imp_foldSet";
 
 Open_locale "LC"; 
 
-(*Strip meta-quantifiers: perhaps the locale should do this?*)
-val f_lcomm = forall_elim_vars 0 (thm "lcomm");
+val f_lcomm = thm "lcomm";
 
 
 Goal "ALL A x. card(A) < n --> (A, x) : foldSet f e --> \
@@ -680,10 +679,9 @@ Close_locale();
 
 Open_locale "ACe"; 
 
-(*Strip meta-quantifiers: perhaps the locale should do this?*)
-val f_ident   = forall_elim_vars 0 (thm "ident");
-val f_commute = forall_elim_vars 0 (thm "commute");
-val f_assoc   = forall_elim_vars 0 (thm "assoc");
+val f_ident   = thm "ident";
+val f_commute = thm "commute";
+val f_assoc   = thm "assoc";
 
 
 Goal "f x (f y z) = f y (f x z)";
