@@ -197,7 +197,7 @@ val lemmasP =
     (name_facts >> (Toplevel.theory o IsarThy.have_lemmas));
 
 val declareP =
-  OuterSyntax.improper_command "declare" "declare theorems (improper)" K.thy_script
+  OuterSyntax.command "declare" "declare theorems (improper)" K.thy_script
     (P.xthms1 -- P.marg_comment >> (Toplevel.theory o IsarThy.declare_theorems));
 
 
