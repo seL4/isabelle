@@ -49,7 +49,7 @@ GRAPHFILE=""
 ## main
 
 export CLASSPATH=$ISABELLE_HOME/lib/browser
-[ -z "$GRAPHFILE" ] && cd $ISABELLE_BROWSER_INFO/graph/data
+[ -z "$GRAPHFILE" ] && cd $ISABELLE_BROWSER_INFO
 
 java GraphBrowser.GraphBrowser $GRAPHFILE
 [ -n "$GRAPHFILE" -a -n "$DELETE" ] && rm -f "$GRAPHFILE"
