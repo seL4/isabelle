@@ -136,8 +136,8 @@
 \contentsline {subsection}{The subgoaler}{61}
 \contentsline {subsection}{The solver}{62}
 \contentsline {subsection}{The looper}{62}
-\contentsline {section}{\numberline {8.2}The simplification tactics}{63}
-\contentsline {section}{\numberline {8.3}Example: using the simplifier}{64}
+\contentsline {section}{\numberline {8.2}The simplification tactics}{62}
+\contentsline {section}{\numberline {8.3}Example: using the simplifier}{63}
 \contentsline {chapter}{\numberline {9}The classical theorem prover}{67}
 \contentsline {section}{\numberline {9.1}The sequent calculus}{67}
 \contentsline {section}{\numberline {9.2}Simulating sequents by natural deduction}{68}
