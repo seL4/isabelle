@@ -496,6 +496,27 @@ goal FOL.thy
 by (fast_tac FOL_cs 1);
 result();
 
+(*Halting problem: Formulation of Li Dafa (AAR Newsletter 27, Oct 1994.)
+	author U. Egly*)
+goal FOL.thy
+"((EX X. a(X) & (ALL Y. c(Y) --> (ALL Z. d(X, Y, Z)))) -->  \
+\  (EX W. c(W) & (ALL Y. c(Y) --> (ALL Z. d(W, Y, Z)))))     \
+\ &                                                          \
+\ (ALL W. c(W) & (ALL U. c(U) --> (ALL V. d(W, U, V))) -->       \
+\       (ALL Y Z.                                               \
+\           (c(Y) & h2(Y, Z) --> h3(W, Y, Z) & o(W, g)) &       \
+\           (c(Y) & ~h2(Y, Z) --> h3(W, Y, Z) & o(W, b))))  \
+\ &                    \
+\ (ALL W. c(W) &       \
+\   (ALL Y Z.          \
+\       (c(Y) & h2(Y, Z) --> h3(W, Y, Z) & o(W, g)) &       \
+\       (c(Y) & ~h2(Y, Z) --> h3(W, Y, Z) & o(W, b))) -->       \
+\   (EX V. c(V) &       \
+\         (ALL Y. ((c(Y) & h3(W, Y, Y)) & o(W, g) --> ~h2(V, Y)) &       \
+\                 ((c(Y) & h3(W, Y, Y)) & o(W, b) --> h2(V, Y) & o(V, b))))) \
+\  -->                  \
+\  ~ (EX X. a(X) & (ALL Y. c(Y) --> (ALL Z. d(X, Y, Z))))";
+
 
 writeln"Reached end of file.";
 
