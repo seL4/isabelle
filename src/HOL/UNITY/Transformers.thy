@@ -19,13 +19,15 @@ subsection{*Defining the Predicate Transformers @{term wp},
 
 constdefs
   wp :: "[('a*'a) set, 'a set] => 'a set"  
-    --{*Dijkstra's weakest-precondition operator*}
+    --{*Dijkstra's weakest-precondition operator (for an individual command)*}
     "wp act B == - (act^-1 `` (-B))"
 
-  awp :: "[ 'a program, 'a set] => 'a set"  
+  awp :: "['a program, 'a set] => 'a set"  
+    --{*Dijkstra's weakest-precondition operator (for a program)*}
     "awp F B == (\<Inter>act \<in> Acts F. wp act B)"
 
-  wens :: "[ 'a program, ('a*'a) set, 'a set] => 'a set"  
+  wens :: "['a program, ('a*'a) set, 'a set] => 'a set"  
+    --{*The weakest-ensures transformer*}
     "wens F act B == gfp(\<lambda>X. (wp act B \<inter> awp F (B \<union> X)) \<union> B)"
 
 text{*The fundamental theorem for wp*}
@@ -34,6 +36,13 @@ by (force simp add: wp_def)
 
 lemma Compl_Domain_subset_wp: "- (Domain act) \<subseteq> wp act B"
 by (force simp add: wp_def) 
+
+lemma wp_empty [simp]: "wp act {} = - (Domain act)"
+by (force simp add: wp_def)
+
+text{*The identity relation is the skip action*}
+lemma wp_Id [simp]: "wp Id B = B"
+by (simp add: wp_def) 
 
 lemma awp_Int_eq: "awp F (A\<inter>B) = awp F A \<inter> awp F B"
 by (simp add: awp_def wp_def, blast) 
@@ -54,6 +63,9 @@ apply (simp add: wens_def)
 apply (rule gfp_unfold) 
 apply (simp add: mono_def wp_def awp_def, blast) 
 done
+
+lemma wens_Id [simp]: "wens F Id B = B"
+by (simp add: wens_def gfp_def wp_def awp_def, blast)
 
 text{*These two theorems justify the claim that @{term wens} returns the
 weakest assertion satisfying the ensures property*}
@@ -93,8 +105,7 @@ lemma stable_wens: "F \<in> stable A ==> F \<in> stable (wens F act A)"
 apply (simp add: stable_def)
 apply (drule constrains_Un [OF Diff_wens_constrains [of F act A]]) 
 apply (simp add: Un_Int_distrib2 Compl_partition2) 
-apply (erule constrains_weaken) 
- apply blast 
+apply (erule constrains_weaken, blast) 
 apply (simp add: Un_subset_iff wens_weakening) 
 done
 
@@ -117,6 +128,7 @@ apply (rule equalityI)
  apply (rule wens_Int_eq_lemma, assumption+) 
 apply (rule subset_trans [OF _ wens_mono [of "T\<inter>B" B]], auto) 
 done
+
 
 subsection{*Defining the Weakest Ensures Set*}
 
@@ -146,14 +158,9 @@ done
 lemma wens_set_imp_leadsTo: "A \<in> wens_set F B ==> F \<in> A leadsTo B"
 apply (erule wens_set.induct)
   apply (rule leadsTo_refl)  
- apply (blast intro: wens_ensures leadsTo_Basis leadsTo_Trans ) 
+ apply (blast intro: wens_ensures leadsTo_Trans) 
 apply (blast intro: leadsTo_Union) 
 done
-
-(*????????????????Set.thy Set.all_not_in_conv*)
-lemma ex_in_conv: "(\<exists>x. x \<in> A) = (A \<noteq> {})"
-by blast
-
 
 lemma leadsTo_imp_wens_set: "F \<in> A leadsTo B ==> \<exists>C \<in> wens_set F B. A \<subseteq> C"
 apply (erule leadsTo_induct_pre)
@@ -169,13 +176,12 @@ apply (blast intro: wens_set.Union)
 done
 
 text{*Assertion (9): 4.27 in the thesis.*}
-
 lemma leadsTo_iff_wens_set: "(F \<in> A leadsTo B) = (\<exists>C \<in> wens_set F B. A \<subseteq> C)"
 by (blast intro: leadsTo_imp_wens_set leadsTo_weaken_L wens_set_imp_leadsTo) 
 
 text{*This is the result that requires the definition of @{term wens_set} to
-require @{term W} to be non-empty in the Unio case, for otherwise we should
-always have @{term "{} \<in> wens_set F B"}.*}
+  require @{term W} to be non-empty in the Unio case, for otherwise we should
+  always have @{term "{} \<in> wens_set F B"}.*}
 lemma wens_set_imp_subset: "A \<in> wens_set F B ==> B \<subseteq> A"
 apply (erule wens_set.induct) 
   apply (blast intro: wens_weakening [THEN subsetD])+
@@ -240,7 +246,7 @@ apply (subgoal_tac "T \<inter> wens F act (T\<inter>X) \<union> T\<inter>X = T \
 apply (blast intro: awpG [THEN subsetD] wens_set.Wens)
 done
 
-lemma wens_Union:
+theorem wens_Union:
   assumes awpF: "T-B \<subseteq> awp F T"
       and awpG: "!!X. X \<in> wens_set F B ==> (T\<inter>X) - B \<subseteq> awp G (T\<inter>X)"
       and major: "X \<in> wens_set F B"
@@ -258,6 +264,195 @@ apply (simp add: ball_conj_distrib Bex_def)
 apply (clarify dest!: bchoice) 
 apply (rule_tac x = "\<Union>{Z. \<exists>U\<in>W. Z = f U}" in exI)
 apply (blast intro: wens_set.Union) 
+done
+
+theorem leadsTo_Union:
+  assumes awpF: "T-B \<subseteq> awp F T"
+      and awpG: "!!X. X \<in> wens_set F B ==> (T\<inter>X) - B \<subseteq> awp G (T\<inter>X)"
+      and leadsTo: "F \<in> A leadsTo B"
+  shows "F\<squnion>G \<in> T\<inter>A leadsTo B"
+apply (rule leadsTo [THEN leadsTo_imp_wens_set, THEN bexE]) 
+apply (rule wens_Union [THEN bexE]) 
+   apply (rule awpF) 
+  apply (erule awpG) 
+ apply assumption
+apply (blast intro: wens_set_imp_leadsTo [THEN leadsTo_weaken_L])  
+done
+
+
+subsection {*The Set @{term "wens_set F B"} for a Single-Assignment Program*}
+text{*Thesis Section 4.3.3*}
+
+text{*We start by proving laws about single-assignment programs*}
+lemma awp_single_eq [simp]:
+     "awp (mk_program (init, {act}, allowed)) B = B \<inter> wp act B"
+by (force simp add: awp_def wp_def) 
+
+lemma wp_Un_subset: "wp act A \<union> wp act B \<subseteq> wp act (A \<union> B)"
+by (force simp add: wp_def)
+
+lemma wp_Un_eq: "single_valued act ==> wp act (A \<union> B) = wp act A \<union> wp act B"
+apply (rule equalityI)
+ apply (force simp add: wp_def single_valued_def) 
+apply (rule wp_Un_subset) 
+done
+
+lemma wp_UN_subset: "(\<Union>i\<in>I. wp act (A i)) \<subseteq> wp act (\<Union>i\<in>I. A i)"
+by (force simp add: wp_def)
+
+lemma wp_UN_eq:
+     "[|single_valued act; I\<noteq>{}|]
+      ==> wp act (\<Union>i\<in>I. A i) = (\<Union>i\<in>I. wp act (A i))"
+apply (rule equalityI)
+ prefer 2 apply (rule wp_UN_subset) 
+ apply (simp add: wp_def Image_INT_eq) 
+done
+
+lemma wens_single_eq:
+     "wens (mk_program (init, {act}, allowed)) act B = B \<union> wp act B"
+by (simp add: wens_def gfp_def wp_def, blast)
+
+
+text{*Next, we express the @{term "wens_set"} for single-assignment programs*}
+
+constdefs
+  wens_single_finite :: "[('a*'a) set, 'a set, nat] => 'a set"  
+    "wens_single_finite act B k == \<Union>i \<in> atMost k. ((wp act)^i) B"
+
+  wens_single :: "[('a*'a) set, 'a set] => 'a set"  
+    "wens_single act B == \<Union>i. ((wp act)^i) B"
+
+lemma wens_single_Un_eq:
+      "single_valued act
+       ==> wens_single act B \<union> wp act (wens_single act B) = wens_single act B"
+apply (rule equalityI)
+ apply (simp_all add: Un_upper1 Un_subset_iff) 
+apply (simp add: wens_single_def wp_UN_eq, clarify) 
+apply (rule_tac a="Suc(i)" in UN_I, auto) 
+done
+
+lemma atMost_nat_nonempty: "atMost (k::nat) \<noteq> {}"
+by force
+
+lemma wens_single_finite_Suc:
+      "single_valued act
+       ==> wens_single_finite act B (Suc k) =
+           wens_single_finite act B k \<union> wp act (wens_single_finite act B k) "
+apply (simp add: wens_single_finite_def image_def 
+                 wp_UN_eq [OF _ atMost_nat_nonempty]) 
+apply (force elim!: le_SucE)
+done
+
+lemma wens_single_finite_Suc_eq_wens:
+     "single_valued act
+       ==> wens_single_finite act B (Suc k) =
+           wens (mk_program (init, {act}, allowed)) act 
+                (wens_single_finite act B k)"
+by (simp add: wens_single_finite_Suc wens_single_eq) 
+
+lemma wens_single_finite_Un_eq:
+      "single_valued act
+       ==> wens_single_finite act B k \<union> wp act (wens_single_finite act B k)
+           \<in> range (wens_single_finite act B)"
+by (simp add: wens_single_finite_Suc [symmetric]) 
+
+lemma wens_single_eq_Union:
+      "wens_single act B = \<Union>range (wens_single_finite act B)" 
+by (simp add: wens_single_finite_def wens_single_def, blast) 
+
+lemma wens_single_finite_eq_Union:
+     "wens_single_finite act B n = (\<Union>k\<in>atMost n. wens_single_finite act B k)"
+apply (auto simp add: wens_single_finite_def) 
+apply (blast intro: le_trans) 
+done
+
+lemma wens_single_finite_mono:
+     "m \<le> n ==> wens_single_finite act B m \<subseteq> wens_single_finite act B n"
+by (force simp add:  wens_single_finite_eq_Union [of act B n]) 
+
+lemma wens_single_finite_subset_wens_single:
+      "wens_single_finite act B k \<subseteq> wens_single act B"
+by (simp add: wens_single_eq_Union, blast) 
+
+lemma subset_wens_single_finite:
+      "[|W \<subseteq> wens_single_finite act B ` (atMost k); single_valued act; W\<noteq>{}|]
+       ==> \<exists>m. \<Union>W = wens_single_finite act B m"
+apply (induct k) 
+ apply (simp, blast) 
+apply (auto simp add: atMost_Suc) 
+apply (case_tac "wens_single_finite act B (Suc n) \<in> W") 
+ prefer 2 apply blast 
+apply (drule_tac x="Suc n" in spec)
+apply (erule notE, rule equalityI)
+ prefer 2 apply blast 
+apply (subst wens_single_finite_eq_Union) 
+apply (simp add: atMost_Suc, blast) 
+done
+
+text{*lemma for Union case*}
+lemma Union_eq_wens_single:
+      "\<lbrakk>\<forall>k. \<not> W \<subseteq> wens_single_finite act B ` {..k};
+        W \<subseteq> insert (wens_single act B)
+            (range (wens_single_finite act B))\<rbrakk>
+       \<Longrightarrow> \<Union>W = wens_single act B"
+apply (case_tac "wens_single act B \<in> W")
+ apply (blast dest: wens_single_finite_subset_wens_single [THEN subsetD]) 
+apply (simp add: wens_single_eq_Union) 
+apply (rule equalityI)
+ apply blast 
+apply (simp add: UN_subset_iff, clarify)
+apply (subgoal_tac "\<exists>y\<in>W. \<exists>n. y = wens_single_finite act B n & i\<le>n")  
+ apply (blast intro: wens_single_finite_mono [THEN subsetD] ) 
+apply (drule_tac x=i in spec)
+apply (force simp add: atMost_def)
+done
+
+lemma wens_set_subset_single:
+      "single_valued act
+       ==> wens_set (mk_program (init, {act}, allowed)) B \<subseteq> 
+           insert (wens_single act B) (range (wens_single_finite act B))"
+apply (rule subsetI)  
+apply (erule wens_set.induct)
+  txt{*Basis*} 
+  apply (force simp add: wens_single_finite_def)
+ txt{*Wens inductive step*}
+ apply (case_tac "acta = Id", simp)   
+ apply (simp add: wens_single_eq)
+ apply (elim disjE)   
+ apply (simp add: wens_single_Un_eq)
+ apply (force simp add: wens_single_finite_Un_eq)
+txt{*Union inductive step*}
+apply (case_tac "\<exists>k. W \<subseteq> wens_single_finite act B ` (atMost k)")
+ apply (blast dest!: subset_wens_single_finite, simp) 
+apply (rule disjI1 [OF Union_eq_wens_single], blast+)
+done
+
+lemma wens_single_finite_in_wens_set:
+      "single_valued act \<Longrightarrow>
+         wens_single_finite act B k
+         \<in> wens_set (mk_program (init, {act}, allowed)) B"
+apply (induct_tac k) 
+ apply (simp add: wens_single_finite_def wens_set.Basis)
+apply (simp add: wens_set.Wens
+                 wens_single_finite_Suc_eq_wens [of act B _ init allowed]) 
+done
+
+lemma single_subset_wens_set:
+      "single_valued act
+       ==> insert (wens_single act B) (range (wens_single_finite act B)) \<subseteq> 
+           wens_set (mk_program (init, {act}, allowed)) B"
+apply (simp add: wens_single_eq_Union UN_eq) 
+apply (blast intro: wens_set.Union wens_single_finite_in_wens_set)
+done
+
+text{*Theorem (4.29)*}
+theorem wens_set_single_eq:
+      "single_valued act
+       ==> wens_set (mk_program (init, {act}, allowed)) B =
+           insert (wens_single act B) (range (wens_single_finite act B))"
+apply (rule equalityI)
+apply (erule wens_set_subset_single) 
+apply (erule single_subset_wens_set) 
 done
 
 end
