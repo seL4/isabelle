@@ -24,6 +24,7 @@ unset BASH_ENV
 
 #get actual settings
 . $ISABELLE_HOME/etc/settings || exit 2
+ISABELLE_SITE_SETTINGS_PRESENT=true
 [ -f $ISABELLE_HOME_USER/etc/settings ] && . $ISABELLE_HOME_USER/etc/settings
 
 #append ML system identifier to paths
