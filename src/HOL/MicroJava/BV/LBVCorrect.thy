@@ -134,6 +134,30 @@ next
   finally show ?thesis .
 qed
 
+lemma (in lbvs) phi_in_A:
+  assumes wtl: "wtl ins c 0 s0 \<noteq> \<top>"
+  assumes s0:  "s0 \<in> A"
+  shows "\<phi> \<in> list (length ins) A"
+proof -
+  { fix x assume "x \<in> set \<phi>"
+    then obtain xs ys where "\<phi> = xs @ x # ys" 
+      by (auto simp add: in_set_conv_decomp)
+    then obtain pc where pc: "pc < length \<phi>" and x: "\<phi>!pc = x"
+      by (simp add: that [of "length xs"] nth_append)
+    
+    from wtl s0 pc 
+    have "wtl (take pc ins) c 0 s0 \<in> A" by (auto intro!: wtl_pres)
+    moreover
+    from pc have "pc < length ins" by simp
+    with cert have "c!pc \<in> A" ..
+    ultimately
+    have "\<phi>!pc \<in> A" using pc by (simp add: phi_def)
+    hence "x \<in> A" using x by simp
+  } 
+  hence "set \<phi> \<subseteq> A" ..
+  thus ?thesis by (unfold list_def) simp
+qed
+
 
 lemma (in lbvs) phi0:
   assumes wtl: "wtl ins c 0 s0 \<noteq> \<top>"
@@ -177,8 +201,10 @@ theorem (in lbvs) wtl_sound_strong:
   assumes "wtl ins c 0 s0 \<noteq> \<top>" 
   assumes "s0 \<in> A" 
   assumes "0 < length ins"
-  shows "\<exists>ts. wt_step r \<top> step ts \<and> s0 <=_r ts!0 \<and> size ts = size ins"
-proof -  
+  shows "\<exists>ts \<in> list (length ins) A. wt_step r \<top> step ts \<and> s0 <=_r ts!0"
+proof -
+  have "\<phi> \<in> list (length ins) A" by (rule phi_in_A)
+  moreover
   have "wt_step r \<top> step \<phi>"
   proof (unfold wt_step_def, intro strip conjI)
     fix pc assume "pc < length \<phi>"
@@ -188,8 +214,6 @@ proof -
   qed
   moreover
   have "s0 <=_r \<phi>!0" by (rule phi0)
-  moreover
-  have "size \<phi> = size ins" by simp
   ultimately
   show ?thesis by fast
 qed
