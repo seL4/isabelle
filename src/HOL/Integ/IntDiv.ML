@@ -83,10 +83,6 @@ qed "unique_remainder";
 
 (*** Correctness of posDivAlg, the division algorithm for a>=0 and b>0 ***)
 
-(*Unfold all "let"s involving constants*)
-Addsimps [read_instantiate_sg (sign_of IntDiv.thy)
-	          [("s", "number_of ?v")] Let_def];
-
 
 Goal "adjust a b (q,r) = (let diff = r-b in \
 \                         if #0 <= diff then (#2*q + #1, diff)  \

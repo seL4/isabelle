@@ -463,5 +463,26 @@ Addsimps [eq_number_of_Suc, Suc_eq_number_of,
 	  less_number_of_Suc, less_Suc_number_of, 
 	  le_number_of_Suc, le_Suc_number_of];
 
-(* Pusch int(.) inwards: *)
+(* Push int(.) inwards: *)
 Addsimps [int_Suc,zadd_int RS sym];
+
+(*** Prepare linear arithmetic for nat numerals ***)
+
+let
+
+(* reduce contradictory <= to False *)
+val add_rules =
+  [add_nat_number_of, diff_nat_number_of, mult_nat_number_of,
+   eq_nat_number_of, less_nat_number_of, le_nat_number_of_eq_not_less,
+   le_Suc_number_of,le_number_of_Suc,
+   less_Suc_number_of,less_number_of_Suc,
+   Suc_eq_number_of,eq_number_of_Suc,
+   eq_number_of_0, eq_0_number_of, less_0_number_of,
+   nat_number_of, Let_number_of, if_True, if_False];
+
+val simprocs = [Nat_Plus_Assoc.conv,Nat_Times_Assoc.conv];
+
+in
+LA_Data_Ref.ss_ref := !LA_Data_Ref.ss_ref addsimps add_rules
+                      addsimprocs simprocs
+end;

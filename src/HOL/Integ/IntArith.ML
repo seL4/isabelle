@@ -113,11 +113,6 @@ Addsimprocs [Nat_Plus_Assoc.conv, Nat_Times_Assoc.conv];
 
 (*
 Instantiation of the generic linear arithmetic package for int.
-FIXME: multiplication with constants (eg #2 * i) does not work yet.
-Solution: the cancellation simprocs in Int_Cancel should be able to deal with
-it (eg simplify #3 * i <= 2 * i to i <= #0) or `add_rules' below should
-include rules for turning multiplication with constants into addition.
-(The latter option is very inefficient!)
 *)
 
 (* Update parameters of arithmetic prover *)
@@ -187,6 +182,9 @@ Goal "!!a::int. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
 by (fast_arith_tac 1);
 Goal "!!a::int. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
 \     ==> a+a+a+a+a+a <= l+l+l+l+i+l";
+by (fast_arith_tac 1);
+Goal "!!a::int. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
+\     ==> #6*a <= #5*l+i";
 by (fast_arith_tac 1);
 *)
 
