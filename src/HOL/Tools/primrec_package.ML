@@ -214,6 +214,17 @@ fun find_dts (dt_info : datatype_info Symtab.table) _ [] = []
               (tname, dt)::(find_dts dt_info tnames' tnames)
             else find_dts dt_info tnames' tnames);
 
+fun prepare_induct ({descr, induction, ...}: datatype_info) rec_eqns =
+  let
+    fun constrs_of (_, (_, _, cs)) =
+      map (fn (cname:string, (_, cargs, _, _, _)) => (cname, map fst cargs)) cs;
+    val params_of = Library.assocs (flat (map constrs_of rec_eqns));
+  in
+    induction
+    |> RuleCases.rename_params (map params_of (flat (map (map #1 o #3 o #2) descr)))
+    |> RuleCases.name (RuleCases.get induction)
+  end;
+
 fun add_primrec_i alt_name eqns_atts thy =
   let
     val (eqns, atts) = split_list eqns_atts;
@@ -238,21 +249,23 @@ fun add_primrec_i alt_name eqns_atts thy =
     val defs' = map (make_def sg fs) defs;
     val names1 = map snd fnames;
     val names2 = map fst rec_eqns;
-    val thy' = thy |>
-      Theory.add_path (if alt_name = "" then (space_implode "_"
-        (map (Sign.base_name o #1) defs)) else alt_name) |>
+    val primrec_name =
+      if alt_name = "" then (space_implode "_" (map (Sign.base_name o #1) defs)) else alt_name;
+    val (thy', defs_thms') = thy |> Theory.add_path primrec_name |>
       (if eq_set (names1, names2) then (PureThy.add_defs_i o map Thm.no_attributes) defs'
        else primrec_err ("functions " ^ commas_quote names2 ^
          "\nare not mutually recursive"));
-    val rewrites = o_def :: (map mk_meta_eq rec_rewrites) @ (map (get_thm thy' o fst) defs');
+    val rewrites = o_def :: (map mk_meta_eq rec_rewrites) @ defs_thms';
     val _ = message ("Proving equations for primrec function(s) " ^ commas_quote names1 ^ " ...");
     val char_thms = map (fn (_, t) => prove_goalw_cterm rewrites (cterm_of (Theory.sign_of thy') t)
         (fn _ => [rtac refl 1])) eqns;
     val simps = char_thms;
+
     val thy'' =
       thy'
-      |> PureThy.add_thmss [(("simps", simps), [Simplifier.simp_add_global])]
-      |> PureThy.add_thms ((map fst eqns ~~ simps) ~~ atts)
+      |> (#1 o PureThy.add_thmss [(("simps", simps), [Simplifier.simp_add_global])])
+      |> (#1 o PureThy.add_thms ((map fst eqns ~~ simps) ~~ atts))
+      |> (#1 o PureThy.add_thms [(("induct", prepare_induct (#2 (hd dts)) rec_eqns), [])])
       |> Theory.parent_path;
   in (thy'', char_thms) end;
 
