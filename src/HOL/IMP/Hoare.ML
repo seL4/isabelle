@@ -71,7 +71,7 @@ by (simp_tac (simpset() addsplits [expand_if]) 1);
 by (rtac iffI 1);
  by (rtac weak_coinduct 1);
   by (etac CollectI 1);
- by (safe_tac (claset()));
+ by Safe_tac;
   by (rotate_tac ~1 1);
   by (Asm_full_simp_tac 1);
  by (rotate_tac ~1 1);

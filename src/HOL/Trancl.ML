@@ -78,7 +78,7 @@ bind_thm
 
 (*transitivity of transitive closure!! -- by induction.*)
 goalw Trancl.thy [trans_def] "trans(r^*)";
-by (safe_tac (claset()));
+by Safe_tac;
 by (eres_inst_tac [("b","z")] rtrancl_induct 1);
 by (ALLGOALS(blast_tac (claset() addIs [rtrancl_into_rtrancl])));
 qed "trans_rtrancl";

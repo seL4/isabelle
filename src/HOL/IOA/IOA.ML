@@ -55,7 +55,7 @@ qed "reachable_0";
 goalw IOA.thy (reachable_def::exec_rws)
 "!!A. [| reachable A s; (s,a,t) : trans_of(A) |] ==> reachable A t";
   by (asm_full_simp_tac (simpset() delsimps bex_simps) 1);
-  by (safe_tac (claset()));
+  by Safe_tac;
   by (res_inst_tac [("x","(%i. if i<n then fst ex i                    \
 \                            else (if i=n then Some a else None),    \
 \                         %i. if i<Suc n then snd ex i else t)")] bexI 1);
@@ -77,13 +77,13 @@ val [p1,p2] = goalw IOA.thy [invariant_def]
 \     !!s t a. [|reachable A s; P(s)|] ==> (s,a,t): trans_of(A) --> P(t) |] \
 \  ==> invariant A P";
   by (rewrite_goals_tac(reachable_def::Let_def::exec_rws));
-  by (safe_tac (claset()));
+  by Safe_tac;
   by (res_inst_tac [("Q","reachable A (snd ex n)")] conjunct1 1);
   by (nat_ind_tac "n" 1);
   by (fast_tac (claset() addIs [p1,reachable_0]) 1);
   by (eres_inst_tac[("x","n")]allE 1);
   by (exhaust_tac "fst ex n" 1 THEN ALLGOALS Asm_full_simp_tac);
-  by (safe_tac (claset()));
+  by Safe_tac;
   by (etac (p2 RS mp) 1);
   by (ALLGOALS(fast_tac(claset() addDs [reachable_n])));
 qed "invariantI";

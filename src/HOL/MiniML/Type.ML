@@ -444,7 +444,7 @@ Addsimps [subst_tel_new_scheme_list];
 (* all greater variables are also new *)
 goalw thy [new_tv_def] 
   "!!n m. n<=m ==> new_tv n t ==> new_tv m t";
-by (safe_tac (claset()));
+by Safe_tac;
 by (dtac spec 1);
 by (mp_tac 1);
 by (trans_tac 1);
@@ -547,7 +547,7 @@ Addsimps [new_tv_not_free_tv];
 
 goalw thy [max_def] "!!n::nat. m < n ==> m < max n n'";
 by (simp_tac (simpset() addsplits [expand_if]) 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (trans_tac 1);
 qed "less_maxL";
 

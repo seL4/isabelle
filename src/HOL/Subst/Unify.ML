@@ -225,7 +225,7 @@ by (strip_tac 1);
 by (rotate_tac ~2 1);
 by (asm_full_simp_tac 
     (simpset() addsimps [MGUnifier_def, Unifier_def, MoreGeneral_def]) 1);
-by (safe_tac (claset()) THEN rename_tac "theta sigma gamma" 1);
+by (Safe_tac THEN rename_tac "theta sigma gamma" 1);
 by (eres_inst_tac [("x","gamma")] allE 1 THEN mp_tac 1);
 by (etac exE 1 THEN rename_tac "delta" 1);
 by (eres_inst_tac [("x","delta")] allE 1);
@@ -248,7 +248,7 @@ by (ALLGOALS
        (simpset() addsimps [Var_Idem] 
 	         addsplits [expand_if,split_option_case])));
 (*Comb-Comb case*)
-by (safe_tac (claset()));
+by Safe_tac;
 by (REPEAT (dtac spec 1 THEN mp_tac 1));
 by (safe_tac (claset() addSDs [rewrite_rule [MGUnifier_def] unify_gives_MGU]));
 by (rtac Idem_comp 1);

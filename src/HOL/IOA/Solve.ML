@@ -15,7 +15,7 @@ goalw Solve.thy [is_weak_pmap_def,traces_def]
 \          is_weak_pmap f C A |] ==> traces(C) <= traces(A)";
 
   by (simp_tac(simpset() addsimps [has_trace_def])1);
-  by (safe_tac (claset()));
+  by Safe_tac;
 
   (* choose same trace, therefore same NF *)
   by (res_inst_tac[("x","mk_trace  C (fst ex)")] exI 1);
@@ -32,7 +32,7 @@ goalw Solve.thy [is_weak_pmap_def,traces_def]
 
   (* Now show that it's an execution *)
   by (asm_full_simp_tac(simpset() addsimps [executions_def]) 1);
-  by (safe_tac (claset()));
+  by Safe_tac;
 
   (* Start states map to start states *)
   by (dtac bspec 1);
@@ -40,7 +40,7 @@ goalw Solve.thy [is_weak_pmap_def,traces_def]
 
   (* Show that it's an execution fragment *)
   by (asm_full_simp_tac (simpset() addsimps [is_execution_fragment_def])1);
-  by (safe_tac (claset()));
+  by Safe_tac;
 
   by (eres_inst_tac [("x","snd ex n")] allE 1);
   by (eres_inst_tac [("x","snd ex (Suc n)")] allE 1);
@@ -51,7 +51,7 @@ qed "trace_inclusion";
 (* Lemmata *)
 
 val prems = goal HOL.thy "(P ==> Q-->R) ==> P&Q --> R";
-  by(fast_tac (claset() addDs prems) 1);
+  by (fast_tac (claset() addDs prems) 1);
 val imp_conj_lemma = result();
 
 
@@ -120,7 +120,7 @@ by (REPEAT(etac conjE 1));
 by (simp_tac (simpset() addsimps [externals_of_par_extra]) 1);
 by (simp_tac (simpset() addsimps [par_def]) 1);
 by (asm_full_simp_tac (simpset() addsimps [trans_of_def]) 1);
-by (rtac (expand_if RS ssubst) 1);
+by (stac expand_if 1);
 by (rtac conjI 1);
 by (rtac impI 1); 
 by (etac disjE 1);
@@ -142,7 +142,7 @@ by (Asm_full_simp_tac 2);
 by (Fast_tac 2);
 by (simp_tac (simpset() addsimps [conj_disj_distribR] addcongs [conj_cong]
                  addsplits [expand_if]) 1);
-by(REPEAT((resolve_tac [conjI,impI] 1 ORELSE etac conjE 1) THEN
+by (REPEAT((resolve_tac [conjI,impI] 1 ORELSE etac conjE 1) THEN
         asm_full_simp_tac(simpset() addsimps[comp1_reachable,
                                       comp2_reachable])1));
 qed"fxg_is_weak_pmap_of_product_IOA";
@@ -174,8 +174,8 @@ by (REPEAT (rtac allI 1));
 by (rtac imp_conj_lemma 1);
 by (simp_tac (simpset() addsimps [rename_def]) 1);
 by (asm_full_simp_tac (simpset() addsimps [externals_def,asig_inputs_def,asig_outputs_def,asig_of_def,trans_of_def]) 1);
-by (safe_tac (claset()));
-by (rtac (expand_if RS ssubst) 1);
+by Safe_tac;
+by (stac expand_if 1);
  by (rtac conjI 1);
  by (rtac impI 1);
  by (etac disjE 1);

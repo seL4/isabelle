@@ -111,7 +111,7 @@ by (rtac iffI 1);
  by (blast_tac (claset() addEs [wf_trancl RS wf_irrefl] addIs
       [rtrancl_into_trancl1,wf_subset,impOfSubs rtrancl_mono]) 1);
 by (asm_full_simp_tac (simpset() addsimps [wf_eq_minimal]) 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (EVERY1[rtac allE, atac, etac impE, Blast_tac]);
 by (etac bexE 1);
 by (rename_tac "a" 1);
@@ -327,5 +327,5 @@ qed"tfl_cut_apply";
 
 goal WF.thy "!M R f. (f=wfrec R M) --> wf R --> (!x. f x = M (cut f R x) x)";
 by (Clarify_tac 1);
-be wfrec 1;
+by (etac wfrec 1);
 qed "tfl_wfrec";

@@ -7,46 +7,46 @@ open Lattice;
 (* unique existence *)
 
 goalw thy [inf_def] "is_inf x y (x && y)";
-  br (ex_inf RS spec RS spec RS selectI1) 1;
+  by (rtac (ex_inf RS spec RS spec RS selectI1) 1);
 qed "inf_is_inf";
 
 goal thy "is_inf x y inf --> x && y = inf";
-  br impI 1;
-  br (is_inf_uniq RS mp) 1;
-  br conjI 1;
-  br inf_is_inf 1;
-  ba 1;
+  by (rtac impI 1);
+  by (rtac (is_inf_uniq RS mp) 1);
+  by (rtac conjI 1);
+  by (rtac inf_is_inf 1);
+  by (assume_tac 1);
 qed "inf_uniq";
 
 goalw thy [Ex1_def] "ALL x y. EX! inf::'a::lattice. is_inf x y inf";
-  by (safe_tac (claset()));
+  by Safe_tac;
   by (Step_tac 1);
   by (Step_tac 1);
-  br inf_is_inf 1;
-  br (inf_uniq RS mp RS sym) 1;
-  ba 1;
+  by (rtac inf_is_inf 1);
+  by (rtac (inf_uniq RS mp RS sym) 1);
+  by (assume_tac 1);
 qed "ex1_inf";
 
 
 goalw thy [sup_def] "is_sup x y (x || y)";
-  br (ex_sup RS spec RS spec RS selectI1) 1;
+  by (rtac (ex_sup RS spec RS spec RS selectI1) 1);
 qed "sup_is_sup";
 
 goal thy "is_sup x y sup --> x || y = sup";
-  br impI 1;
-  br (is_sup_uniq RS mp) 1;
-  br conjI 1;
-  br sup_is_sup 1;
-  ba 1;
+  by (rtac impI 1);
+  by (rtac (is_sup_uniq RS mp) 1);
+  by (rtac conjI 1);
+  by (rtac sup_is_sup 1);
+  by (assume_tac 1);
 qed "sup_uniq";
 
 goalw thy [Ex1_def] "ALL x y. EX! sup::'a::lattice. is_sup x y sup";
-  by (safe_tac (claset()));
+  by Safe_tac;
   by (Step_tac 1);
   by (Step_tac 1);
-  br sup_is_sup 1;
-  br (sup_uniq RS mp RS sym) 1;
-  ba 1;
+  by (rtac sup_is_sup 1);
+  by (rtac (sup_uniq RS mp RS sym) 1);
+  by (assume_tac 1);
 qed "ex1_sup";
 
 
@@ -96,30 +96,30 @@ qed "sup_lb_ubs";
 (* the Connection Theorems: "[=" expressed via "&&" or "||" *)
 
 goal thy "(x && y = x) = (x [= y)";
-  br iffI 1;
+  by (rtac iffI 1);
   (*==>*)
-    be subst 1;
-    br inf_lb2 1;
+    by (etac subst 1);
+    by (rtac inf_lb2 1);
   (*<==*)
-    br (inf_uniq RS mp) 1;
+    by (rtac (inf_uniq RS mp) 1);
     by (rewtac is_inf_def);
     by (REPEAT_FIRST (rtac conjI));
-    br le_refl 1;
-    ba 1;
+    by (rtac le_refl 1);
+    by (assume_tac 1);
     by (Fast_tac 1);
 qed "inf_connect";
 
 goal thy "(x || y = y) = (x [= y)";
-  br iffI 1;
+  by (rtac iffI 1);
   (*==>*)
-    be subst 1;
-    br sup_ub1 1;
+    by (etac subst 1);
+    by (rtac sup_ub1 1);
   (*<==*)
-    br (sup_uniq RS mp) 1;
+    by (rtac (sup_uniq RS mp) 1);
     by (rewtac is_sup_def);
     by (REPEAT_FIRST (rtac conjI));
-    ba 1;
-    br le_refl 1;
+    by (assume_tac 1);
+    by (rtac le_refl 1);
     by (Fast_tac 1);
 qed "sup_connect";
 
@@ -127,37 +127,37 @@ qed "sup_connect";
 (* minorized infs / majorized sups *)
 
 goal thy "(x [= y && z) = (x [= y & x [= z)";
-  br iffI 1;
+  by (rtac iffI 1);
   (*==> (level 1)*)
     by (cut_facts_tac [inf_lb1, inf_lb2] 1);
-    br conjI 1;
-    br (le_trans RS mp) 1;
-    be conjI 1;
-    ba 1;
-    br (le_trans RS mp) 1;
-    be conjI 1;
-    ba 1;
+    by (rtac conjI 1);
+    by (rtac (le_trans RS mp) 1);
+    by (etac conjI 1);
+    by (assume_tac 1);
+    by (rtac (le_trans RS mp) 1);
+    by (etac conjI 1);
+    by (assume_tac 1);
   (*<== (level 9)*)
-    be conjE 1;
-    be inf_ub_lbs 1;
-    ba 1;
+    by (etac conjE 1);
+    by (etac inf_ub_lbs 1);
+    by (assume_tac 1);
 qed "le_inf_eq";
 
 goal thy "(x || y [= z) = (x [= z & y [= z)";
-  br iffI 1;
+  by (rtac iffI 1);
   (*==> (level 1)*)
     by (cut_facts_tac [sup_ub1, sup_ub2] 1);
-    br conjI 1;
-    br (le_trans RS mp) 1;
-    be conjI 1;
-    ba 1;
-    br (le_trans RS mp) 1;
-    be conjI 1;
-    ba 1;
+    by (rtac conjI 1);
+    by (rtac (le_trans RS mp) 1);
+    by (etac conjI 1);
+    by (assume_tac 1);
+    by (rtac (le_trans RS mp) 1);
+    by (etac conjI 1);
+    by (assume_tac 1);
   (*<== (level 9)*)
-    be conjE 1;
-    be sup_lb_ubs 1;
-    ba 1;
+    by (etac conjE 1);
+    by (etac sup_lb_ubs 1);
+    by (assume_tac 1);
 qed "ge_sup_eq";
 
 
@@ -175,8 +175,8 @@ goal thy "(x && y) && z = x && (y && z)";
   back();
   back();
   back();
-  br refl 2;
-  br (is_inf_assoc RS mp) 1;
+  by (rtac refl 2);
+  by (rtac (is_inf_assoc RS mp) 1);
   by (REPEAT_FIRST (rtac conjI));
   by (REPEAT_FIRST (rtac inf_is_inf));
 qed "inf_assoc";
@@ -191,8 +191,8 @@ goal thy "(x || y) || z = x || (y || z)";
   back();
   back();
   back();
-  br refl 2;
-  br (is_sup_assoc RS mp) 1;
+  by (rtac refl 2);
+  by (rtac (is_sup_assoc RS mp) 1);
   by (REPEAT_FIRST (rtac conjI));
   by (REPEAT_FIRST (rtac sup_is_sup));
 qed "sup_assoc";
@@ -202,12 +202,12 @@ qed "sup_assoc";
 
 goalw thy [inf_def] "x && y = y && x";
   by (stac (is_inf_commut RS ext) 1);
-  br refl 1;
+  by (rtac refl 1);
 qed "inf_commut";
 
 goalw thy [sup_def] "x || y = y || x";
   by (stac (is_sup_commut RS ext) 1);
-  br refl 1;
+  by (rtac refl 1);
 qed "sup_commut";
 
 
@@ -215,12 +215,12 @@ qed "sup_commut";
 
 goal thy "x && x = x";
   by (stac inf_connect 1);
-  br le_refl 1;
+  by (rtac le_refl 1);
 qed "inf_idemp";
 
 goal thy "x || x = x";
   by (stac sup_connect 1);
-  br le_refl 1;
+  by (rtac le_refl 1);
 qed "sup_idemp";
 
 
@@ -229,12 +229,12 @@ qed "sup_idemp";
 goal thy "x || (x && y) = x";
   by (stac sup_commut 1);
   by (stac sup_connect 1);
-  br inf_lb1 1;
+  by (rtac inf_lb1 1);
 qed "sup_inf_absorb";
 
 goal thy "x && (x || y) = x";
   by (stac inf_connect 1);
-  br sup_ub1 1;
+  by (rtac sup_ub1 1);
 qed "inf_sup_absorb";
 
 
@@ -243,27 +243,27 @@ qed "inf_sup_absorb";
 val prems = goal thy "[| a [= b; x [= y |] ==> a && x [= b && y";
   by (cut_facts_tac prems 1);
   by (stac le_inf_eq 1);
-  br conjI 1;
-  br (le_trans RS mp) 1;
-  br conjI 1;
-  br inf_lb1 1;
-  ba 1;
-  br (le_trans RS mp) 1;
-  br conjI 1;
-  br inf_lb2 1;
-  ba 1;
+  by (rtac conjI 1);
+  by (rtac (le_trans RS mp) 1);
+  by (rtac conjI 1);
+  by (rtac inf_lb1 1);
+  by (assume_tac 1);
+  by (rtac (le_trans RS mp) 1);
+  by (rtac conjI 1);
+  by (rtac inf_lb2 1);
+  by (assume_tac 1);
 qed "inf_mon";
 
 val prems = goal thy "[| a [= b; x [= y |] ==> a || x [= b || y";
   by (cut_facts_tac prems 1);
   by (stac ge_sup_eq 1);
-  br conjI 1;
-  br (le_trans RS mp) 1;
-  br conjI 1;
-  ba 1;
-  br sup_ub1 1;
-  br (le_trans RS mp) 1;
-  br conjI 1;
-  ba 1;
-  br sup_ub2 1;
+  by (rtac conjI 1);
+  by (rtac (le_trans RS mp) 1);
+  by (rtac conjI 1);
+  by (assume_tac 1);
+  by (rtac sup_ub1 1);
+  by (rtac (le_trans RS mp) 1);
+  by (rtac conjI 1);
+  by (assume_tac 1);
+  by (rtac sup_ub2 1);
 qed "sup_mon";

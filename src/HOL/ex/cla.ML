@@ -381,7 +381,7 @@ writeln"Problem 49  NOT PROVED AUTOMATICALLY";
   the type constraint ensures that x,y,z have the same type as a,b,u. *)
 goal HOL.thy "(? x y::'a. ! z. z=x | z=y) & P(a) & P(b) & (~a=b) \
 \               --> (! u::'a. P(u))";
-by (Classical.safe_tac (claset()));
+by (Classical.Safe_tac);
 by (res_inst_tac [("x","a")] allE 1);
 by (assume_tac 1);
 by (res_inst_tac [("x","b")] allE 1);

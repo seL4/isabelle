@@ -87,7 +87,7 @@ by (fast_tac (claset() addSEs [rel_pow_E2]) 1);
 
 (* ASSIGN *)
 by (fast_tac (claset() addSDs [hlemma]  addSEs [rel_pow_E2]
-                      addss simpset()) 1);
+                       addss simpset()) 1);
 
 (* SEMI *)
 by (fast_tac (claset() addSDs [lemma2,rel_pow_imp_rtrancl]) 1);
@@ -98,8 +98,7 @@ by (Asm_full_simp_tac 1);
 by (fast_tac (claset() addSDs [rel_pow_imp_rtrancl]) 1);
 
 (* WHILE, induction on the length of the computation *)
-by (rotate_tac 1 1);
-by (etac rev_mp 1);
+by (eres_inst_tac [("P","?X -n-> ?Y")] rev_mp 1);
 by (res_inst_tac [("x","s")] spec 1);
 by (res_inst_tac [("n","n")] less_induct 1);
 by (strip_tac 1);

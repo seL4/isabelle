@@ -95,7 +95,7 @@ Addsimps [bound_typ_inst_gen];
 
 goalw Generalize.thy [le_type_scheme_def,is_bound_typ_instance]
   "gen ($ S A) ($ S t) <= $ S (gen A t)";
-by (safe_tac (claset()));
+by Safe_tac;
 by (rename_tac "R" 1);
 by (res_inst_tac [("x", "(%a. bound_typ_inst R (gen ($S A) (S a)))")] exI 1);
 by (typ.induct_tac "t" 1);
@@ -105,7 +105,7 @@ qed "gen_bound_typ_instance";
 
 goalw Generalize.thy [le_type_scheme_def,is_bound_typ_instance]
   "!!A B. free_tv B <= free_tv A ==> gen A t <= gen B t";
-by (safe_tac (claset()));
+by Safe_tac;
 by (rename_tac "S" 1);
 by (res_inst_tac [("x","%b. if b:free_tv A then TVar b else S b")] exI 1);
 by (typ.induct_tac "t" 1);

@@ -226,7 +226,7 @@ goalw Univ.thy [ndepth_def,Push_Node_def]
     "ndepth (Push_Node i n) = Suc(ndepth(n))";
 by (stac (Rep_Node RS Node_Push_I RS Abs_Node_inverse) 1);
 by (cut_facts_tac [rewrite_rule [Node_def] Rep_Node] 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (etac ssubst 1);  (*instantiates type variables!*)
 by (Simp_tac 1);
 by (rtac Least_equality 1);
@@ -546,7 +546,7 @@ val dprod_subset_Sigma = [dprod_mono, dprod_Sigma] MRS subset_trans |>standard;
 (*Dependent version*)
 goal Univ.thy
     "(Sigma A B <**> Sigma C D) <= Sigma (A<*>C) (Split(%x y. B(x)<*>D(y)))";
-by (safe_tac (claset()));
+by Safe_tac;
 by (stac Split 1);
 by (Blast_tac 1);
 qed "dprod_subset_Sigma2";

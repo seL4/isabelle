@@ -154,8 +154,8 @@ qed "finite_imageD";
 
 val [prem] = goal Finite.thy
  "finite A ==> (!a:A. finite(B a)) --> finite(UN a:A. B a)";
-br (prem RS finite_induct) 1;
-by(ALLGOALS Asm_simp_tac);
+by (rtac (prem RS finite_induct) 1);
+by (ALLGOALS Asm_simp_tac);
 bind_thm("finite_UnionI", ballI RSN (2, result() RS mp));
 Addsimps [finite_UnionI];
 
@@ -163,7 +163,7 @@ Addsimps [finite_UnionI];
 
 goalw Finite.thy [Sigma_def]
  "!!A. [| finite A; !a:A. finite(B a) |] ==> finite(SIGMA a:A. B a)";
-by(blast_tac (claset() addSIs [finite_UnionI]) 1);
+by (blast_tac (claset() addSIs [finite_UnionI]) 1);
 bind_thm("finite_SigmaI", ballI RSN (2,result()));
 Addsimps [finite_SigmaI];
 
@@ -250,15 +250,15 @@ by (rtac (refl RS disjI2 RS conjI) 1);
 by (etac equalityE 1);
 by (asm_full_simp_tac
      (simpset() addsimps [subset_insert,Collect_conv_insert, less_Suc_eq]) 1);
-by (safe_tac (claset()));
+by Safe_tac;
   by (Asm_full_simp_tac 1);
   by (res_inst_tac [("x","%i. if f i = f m then a else f i")] exI 1);
-  by (SELECT_GOAL(safe_tac (claset()))1);
+  by (SELECT_GOAL Safe_tac 1);
    by (subgoal_tac "x ~= f m" 1);
     by (Blast_tac 2);
    by (subgoal_tac "? k. f k = x & k<m" 1);
     by (Blast_tac 2);
-   by (SELECT_GOAL(safe_tac (claset()))1);
+   by (SELECT_GOAL Safe_tac 1);
    by (res_inst_tac [("x","k")] exI 1);
    by (Asm_simp_tac 1);
   by (simp_tac (simpset() addsplits [expand_if]) 1);
@@ -267,18 +267,18 @@ by (safe_tac (claset()));
  by (rotate_tac ~1 1);
  by (Asm_full_simp_tac 1);
  by (res_inst_tac [("x","%i. if f i = f m then a else f i")] exI 1);
- by (SELECT_GOAL(safe_tac (claset()))1);
+ by (SELECT_GOAL Safe_tac 1);
   by (subgoal_tac "x ~= f m" 1);
    by (Blast_tac 2);
   by (subgoal_tac "? k. f k = x & k<m" 1);
    by (Blast_tac 2);
-  by (SELECT_GOAL(safe_tac (claset()))1);
+  by (SELECT_GOAL Safe_tac 1);
   by (res_inst_tac [("x","k")] exI 1);
   by (Asm_simp_tac 1);
  by (simp_tac (simpset() addsplits [expand_if]) 1);
  by (Blast_tac 1);
 by (res_inst_tac [("x","%j. if f j = f i then f m else f j")] exI 1);
-by (SELECT_GOAL(safe_tac (claset()))1);
+by (SELECT_GOAL Safe_tac 1);
  by (subgoal_tac "x ~= f i" 1);
   by (Blast_tac 2);
  by (case_tac "x = f m" 1);
@@ -286,7 +286,7 @@ by (SELECT_GOAL(safe_tac (claset()))1);
   by (Asm_simp_tac 1);
  by (subgoal_tac "? k. f k = x & k<m" 1);
   by (Blast_tac 2);
- by (SELECT_GOAL(safe_tac (claset()))1);
+ by (SELECT_GOAL Safe_tac 1);
  by (res_inst_tac [("x","k")] exI 1);
  by (Asm_simp_tac 1);
 by (simp_tac (simpset() addsplits [expand_if]) 1);
@@ -335,7 +335,7 @@ by (Simp_tac 1);
 by (Clarify_tac 1);
 by (case_tac "x:B" 1);
  by (dres_inst_tac [("A","B")] mk_disjoint_insert 1);
- by (SELECT_GOAL(safe_tac (claset()))1);
+ by (SELECT_GOAL Safe_tac 1);
  by (rotate_tac ~1 1);
  by (asm_full_simp_tac (simpset() addsimps [subset_insert_iff,finite_subset]) 1);
 by (rotate_tac ~1 1);

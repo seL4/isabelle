@@ -36,7 +36,7 @@ goal thy
 
 by (hoare_tac 1);
 (*Now prove the verification conditions*)
-by (safe_tac (claset()));
+by Safe_tac;
 by (etac less_imp_diff_positive 1);
 by (asm_simp_tac (simpset() addsimps [less_imp_le, gcd_diff_r]) 1);
 by (asm_full_simp_tac (simpset() addsimps [not_less_iff_le, gcd_diff_l]) 2);
@@ -67,7 +67,7 @@ by (hoare_tac 1);
 
 by (simp_tac ((simpset_of Arith.thy) addsimps [pow_0]) 3);
 
-by (safe_tac (claset()));
+by Safe_tac;
 
 by (subgoal_tac "a*a=a pow 2" 1);
 by (Asm_simp_tac 1);
@@ -103,7 +103,7 @@ goal thy
 \ {b = fac A}";
 
 by (hoare_tac 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (res_inst_tac [("n","a")] natE 1);
 by (ALLGOALS
     (asm_simp_tac

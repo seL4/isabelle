@@ -200,7 +200,7 @@ goal thy
 \      ==> EX k. ALL l. list_add (map(%f. f l) fs) < ack(k, list_add l)";
 by (etac lists.induct 1);
 by (res_inst_tac [("x","0")] exI 1 THEN Asm_simp_tac 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (Asm_simp_tac 1);
 by (blast_tac (claset() addIs [add_less_mono, ack_add_bound, less_trans]) 1);
 qed "COMP_map_lemma";

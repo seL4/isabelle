@@ -8,7 +8,7 @@ goal thy
 \{y=rev(X)}";
 by (hoare_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [neq_Nil_conv]) 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (Asm_full_simp_tac 1);
 by (Asm_full_simp_tac 1);
 qed "imperative_reverse";
@@ -23,7 +23,7 @@ goal thy
 \{y = X@Y}";
 by (hoare_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [neq_Nil_conv]) 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (Asm_full_simp_tac 1);
 by (Asm_full_simp_tac 1);
 qed "imperative_append";

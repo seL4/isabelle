@@ -230,7 +230,7 @@ by (resolve_tac (prems RL [lfp_ind2]) 1);
 by (rtac eval_fun_mono 1);
 by (rewtac eval_fun_def);
 by (dtac CollectD 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (ALLGOALS (resolve_tac prems));
 by (ALLGOALS (Blast_tac));
 qed "eval_ind0";
@@ -336,7 +336,7 @@ by (resolve_tac (prems RL [lfp_ind2]) 1);
 by (rtac elab_fun_mono 1);
 by (rewtac elab_fun_def);
 by (dtac CollectD 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (ALLGOALS (resolve_tac prems));
 by (ALLGOALS (Blast_tac));
 qed "elab_ind0";
@@ -387,7 +387,7 @@ by (resolve_tac (prems RL [lfp_elim2]) 1);
 by (rtac elab_fun_mono 1);
 by (rewtac elab_fun_def);
 by (dtac CollectD 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (ALLGOALS (resolve_tac prems));
 by (ALLGOALS (Blast_tac));
 qed "elab_elim0";
@@ -552,7 +552,7 @@ by (rtac mono_hasty_fun 1);
 by (rewtac hasty_fun_def);
 by (dtac CollectD 1);
 by (fold_goals_tac [hasty_fun_def]);
-by (safe_tac (claset()));
+by Safe_tac;
 by (REPEAT (ares_tac prems 1));
 qed "hasty_rel_elim0";
 
@@ -690,7 +690,7 @@ goal MT.thy
 \   |] ==> \
 \   v_const(c_app c1 c2) hasty t";
 by (dtac elab_app_elim 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (rtac hasty_const 1);
 by (rtac isof_app 1);
 by (rtac hasty_elim_const 1);
@@ -711,7 +711,7 @@ goal MT.thy
 \   |] ==> \
 \   v hasty t";
 by (dtac elab_app_elim 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by ((etac allE 1) THEN (etac allE 1) THEN (etac impE 1));
 by (assume_tac 1);
 by (etac impE 1);
@@ -721,7 +721,7 @@ by (assume_tac 1);
 by (etac impE 1);
 by (assume_tac 1);
 by (dtac hasty_elim_clos 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (dtac elab_fn_elim 1);
 by (blast_tac (claset() addIs [hasty_env1] addSDs [t_fun_inj]) 1);
 qed "consistency_app2";
@@ -733,7 +733,7 @@ val [major] = goal MT.thy
 (* Proof by induction on the structure of evaluations *)
 
 by (rtac (major RS eval_ind) 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (DEPTH_SOLVE 
     (ares_tac [consistency_const, consistency_var, consistency_fn,
                consistency_fix, consistency_app1, consistency_app2] 1));
@@ -746,7 +746,7 @@ qed "consistency";
 val prems = goalw MT.thy [isof_env_def,hasty_env_def] 
   "ve isofenv te ==> ve hastyenv te";
 by (cut_facts_tac prems 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (etac allE 1);
 by (etac impE 1);
 by (assume_tac 1);

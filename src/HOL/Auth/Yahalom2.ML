@@ -400,7 +400,7 @@ goal thy
 \        ==> EX X. Says A B {|X, Crypt K (Nonce NB)|} : set evs";
 by (etac (Says_imp_spies RS parts.Inj RS MPair_parts) 1);
 by (dtac B_trusts_YM4_shrK 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (rtac lemma 1);
 by (rtac Spy_not_see_encrypted_key 2);
 by (REPEAT_FIRST assume_tac);
