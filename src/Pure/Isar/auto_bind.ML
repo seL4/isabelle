@@ -4,9 +4,6 @@
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Logic specific patterns and automatic term bindings.
-
-Note: the current implementation is not quite 'generic', but works
-fine with common object-logics (HOL, FOL, ZF etc.).
 *)
 
 signature AUTO_BIND =
@@ -32,7 +29,8 @@ fun statement_binds sg name prop =
 
 (* goal *)
 
-fun goal sg props = statement_binds sg thesisN (Library.last_elem props);
+fun goal sg [prop] = statement_binds sg thesisN prop
+  | goal _ _ = [((thesisN, 0), None)];
 
 
 (* facts *)
