@@ -177,7 +177,7 @@ $(LOG)/HOL-Complex-ex.gz: $(OUT)/HOL-Complex Library/Primes.thy \
 HOL-Library: HOL $(LOG)/HOL-Library.gz
 
 $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/Accessible_Part.thy \
-  Library/FuncSet.thy Library/Library.thy \
+  Library/EfficientNat.thy Library/FuncSet.thy Library/Library.thy \
   Library/List_Prefix.thy Library/Multiset.thy Library/NatPair.thy \
   Library/Permutation.thy Library/Primes.thy Library/Quotient.thy \
   Library/Nat_Infinity.thy Library/Word.thy Library/word_setup.ML \
