@@ -54,7 +54,8 @@ lemma TF_equals_Un: "tree(A) \<union> forest(A) = tree_forest(A)"
   done
 
 lemma (notes rews = tree_forest.con_defs tree_def forest_def)
-  tree_forest_unfold: "tree_forest(A) = (A \<times> forest(A)) + ({0} + tree(A) \<times> forest(A))"
+  tree_forest_unfold: "tree_forest(A) =
+    (A \<times> forest(A)) + ({0} + tree(A) \<times> forest(A))"
     -- {* NOT useful, but interesting \dots *}
   apply (unfold tree_def forest_def)
   apply (fast intro!: tree_forest.intros [unfolded rews, THEN PartD1]
@@ -206,7 +207,8 @@ lemma forest_induct:
       !!t f. [| t \<in> tree(A);  f \<in> forest(A);  R(f) |] ==> R(Fcons(t,f))
    |] ==> R(f)"
   -- {* Essentially the same as list induction. *}
-  apply (erule tree_forest.mutual_induct [THEN conjunct2, THEN spec, THEN [2] rev_mp])
+  apply (erule tree_forest.mutual_induct
+      [THEN conjunct2, THEN spec, THEN [2] rev_mp])
     apply (rule TrueI)
    apply simp
   apply simp

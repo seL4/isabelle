@@ -125,16 +125,17 @@ declare Scomp.intros [simp]
 
 declare Scomp.intros [intro]
 
-inductive_cases [elim!]: "regular(App(b,f,a))"
-inductive_cases [elim!]: "regular(Fun(b))"
-inductive_cases [elim!]: "regular(Var(b))"
-inductive_cases [elim!]: "Fun(u) ~ Fun(t)"
-inductive_cases [elim!]: "u ~ Fun(t)"
-inductive_cases [elim!]: "u ~ Var(n)"
-inductive_cases [elim!]: "u ~ App(b,t,a)"
-inductive_cases [elim!]: "Fun(t) ~ v"
-inductive_cases [elim!]: "App(b,f,a) ~ v"
-inductive_cases [elim!]: "Var(n) ~ u"
+inductive_cases [elim!]:
+  "regular(App(b,f,a))"
+  "regular(Fun(b))"
+  "regular(Var(b))"
+  "Fun(u) ~ Fun(t)"
+  "u ~ Fun(t)"
+  "u ~ Var(n)"
+  "u ~ App(b,t,a)"
+  "Fun(t) ~ v"
+  "App(b,f,a) ~ v"
+  "Var(n) ~ u"
 
 
 

@@ -84,8 +84,8 @@ $(LOG)/ZF-Coind.gz: $(OUT)/ZF Coind/Dynamic.thy \
 
 ZF-IMP: ZF $(LOG)/ZF-IMP.gz
 
-$(LOG)/ZF-IMP.gz: $(OUT)/ZF IMP/Com.thy \
-  IMP/Denotation.thy IMP/Equiv.thy IMP/ROOT.ML
+$(LOG)/ZF-IMP.gz: $(OUT)/ZF IMP/Com.thy IMP/Denotation.thy IMP/Equiv.thy \
+  IMP/ROOT.ML IMP/document/root.bib IMP/document/root.tex
 	@$(ISATOOL) usedir $(OUT)/ZF IMP
 
 

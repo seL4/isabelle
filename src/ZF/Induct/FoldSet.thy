@@ -1,4 +1,4 @@
-(*  Title:      ZF/UNITY/FoldSet.thy
+(*  Title:      ZF/Induct/FoldSet.thy
     ID:         $Id$
     Author:     Sidi O Ehmety, Cambridge University Computer Laboratory
 

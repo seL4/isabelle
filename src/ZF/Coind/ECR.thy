@@ -46,8 +46,9 @@ done
 
 (* Specialised elimination rules *)
 
-inductive_cases htr_constE [elim!]: "<v_const(c),t> \<in> HasTyRel"
-inductive_cases htr_closE  [elim]:  "<v_clos(x,e,ve),t> \<in> HasTyRel"
+inductive_cases
+    htr_constE [elim!]: "<v_const(c),t> \<in> HasTyRel"
+  and htr_closE [elim]: "<v_clos(x,e,ve),t> \<in> HasTyRel"
 
 
 (* Properties of the pointwise extension to environments *)

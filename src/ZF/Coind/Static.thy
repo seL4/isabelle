@@ -54,11 +54,12 @@ inductive
   type_intros te_appI Exp.intros Ty.intros
 
 
-inductive_cases elab_constE [elim!]: "<te,e_const(c),t> \<in> ElabRel"
-inductive_cases elab_varE   [elim!]: "<te,e_var(x),t> \<in> ElabRel"
-inductive_cases elab_fnE    [elim]:  "<te,e_fn(x,e),t> \<in> ElabRel"
-inductive_cases elab_fixE   [elim!]: "<te,e_fix(f,x,e),t> \<in> ElabRel"
-inductive_cases elab_appE   [elim]:  "<te,e_app(e1,e2),t> \<in> ElabRel"
+inductive_cases
+    elab_constE [elim!]: "<te,e_const(c),t> \<in> ElabRel"
+  and elab_varE [elim!]: "<te,e_var(x),t> \<in> ElabRel"
+  and elab_fnE [elim]:   "<te,e_fn(x,e),t> \<in> ElabRel"
+  and elab_fixE [elim!]: "<te,e_fix(f,x,e),t> \<in> ElabRel"
+  and elab_appE [elim]:  "<te,e_app(e1,e2),t> \<in> ElabRel"
 
 declare ElabRel.dom_subset [THEN subsetD, dest]
 

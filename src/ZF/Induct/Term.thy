@@ -167,7 +167,8 @@ text {*
 *}
 
 lemma term_map [simp]:
-    "ts \<in> list(A) ==> term_map(f, Apply(a, ts)) = Apply(f(a), map(term_map(f), ts))"
+  "ts \<in> list(A) ==>
+    term_map(f, Apply(a, ts)) = Apply(f(a), map(term_map(f), ts))"
   by (rule term_map_def [THEN def_term_rec])
 
 lemma term_map_type [TC]:
@@ -289,7 +290,8 @@ text {*
   \medskip Theorems about preorder.
 *}
 
-lemma preorder_term_map: "t \<in> term(A) ==> preorder(term_map(f,t)) = map(f, preorder(t))"
+lemma preorder_term_map:
+    "t \<in> term(A) ==> preorder(term_map(f,t)) = map(f, preorder(t))"
   apply (erule term_induct_eqn)
   apply (simp add: map_flat)
   done

@@ -13,8 +13,8 @@ subsection {* The Brouwer ordinals *}
 consts
   brouwer :: i
 
-datatype \\<subseteq> "Vfrom(0, csucc(nat))"
-    "brouwer" = Zero | Suc ("b \\<in> brouwer") | Lim ("h \\<in> nat -> brouwer")
+datatype \<subseteq> "Vfrom(0, csucc(nat))"
+    "brouwer" = Zero | Suc ("b \<in> brouwer") | Lim ("h \<in> nat -> brouwer")
   monos Pi_mono
   type_intros inf_datatype_intrs
 
@@ -23,16 +23,16 @@ lemma brouwer_unfold: "brouwer = {0} + brouwer + (nat -> brouwer)"
     elim: brouwer.cases [unfolded brouwer.con_defs])
 
 lemma brouwer_induct2:
-  "[| b \\<in> brouwer;
+  "[| b \<in> brouwer;
       P(Zero);
-      !!b. [| b \\<in> brouwer;  P(b) |] ==> P(Suc(b));
-      !!h. [| h \\<in> nat -> brouwer;  \\<forall>i \\<in> nat. P(h`i)
+      !!b. [| b \<in> brouwer;  P(b) |] ==> P(Suc(b));
+      !!h. [| h \<in> nat -> brouwer;  \<forall>i \<in> nat. P(h`i)
            |] ==> P(Lim(h))
    |] ==> P(b)"
   -- {* A nicer induction rule than the standard one. *}
 proof -
   case rule_context
-  assume "b \\<in> brouwer"
+  assume "b \<in> brouwer"
   thus ?thesis
     apply induct
     apply (assumption | rule rule_context)+
@@ -47,26 +47,26 @@ subsection {* The Martin-Löf wellordering type *}
 consts
   Well :: "[i, i => i] => i"
 
-datatype \\<subseteq> "Vfrom(A \\<union> (\\<Union>x \\<in> A. B(x)), csucc(nat \\<union> |\\<Union>x \\<in> A. B(x)|))"
+datatype \<subseteq> "Vfrom(A \<union> (\<Union>x \<in> A. B(x)), csucc(nat \<union> |\<Union>x \<in> A. B(x)|))"
     -- {* The union with @{text nat} ensures that the cardinal is infinite. *}
-  "Well(A, B)" = Sup ("a \\<in> A", "f \\<in> B(a) -> Well(A, B)")
+  "Well(A, B)" = Sup ("a \<in> A", "f \<in> B(a) -> Well(A, B)")
   monos Pi_mono
   type_intros le_trans [OF UN_upper_cardinal le_nat_Un_cardinal] inf_datatype_intrs
 
-lemma Well_unfold: "Well(A, B) = (\\<Sigma>x \\<in> A. B(x) -> Well(A, B))"
+lemma Well_unfold: "Well(A, B) = (\<Sigma>x \<in> A. B(x) -> Well(A, B))"
   by (fast intro!: Well.intros [unfolded Well.con_defs]
     elim: Well.cases [unfolded Well.con_defs])
 
 
 lemma Well_induct2:
-  "[| w \\<in> Well(A, B);
-      !!a f. [| a \\<in> A;  f \\<in> B(a) -> Well(A,B);  \\<forall>y \\<in> B(a). P(f`y)
+  "[| w \<in> Well(A, B);
+      !!a f. [| a \<in> A;  f \<in> B(a) -> Well(A,B);  \<forall>y \<in> B(a). P(f`y)
            |] ==> P(Sup(a,f))
    |] ==> P(w)"
   -- {* A nicer induction rule than the standard one. *}
 proof -
   case rule_context
-  assume "w \\<in> Well(A, B)"
+  assume "w \<in> Well(A, B)"
   thus ?thesis
     apply induct
     apply (assumption | rule rule_context)+
@@ -75,7 +75,7 @@ proof -
     done
 qed
 
-lemma Well_bool_unfold: "Well(bool, %x. x) = 1 + (1 -> Well(bool, %x. x))"
+lemma Well_bool_unfold: "Well(bool, \<lambda>x. x) = 1 + (1 -> Well(bool, \<lambda>x. x))"
   -- {* In fact it's isomorphic to @{text nat}, but we need a recursion operator *}
   -- {* for @{text Well} to prove this. *}
   apply (rule Well_unfold [THEN trans])

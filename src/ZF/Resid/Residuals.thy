@@ -42,25 +42,28 @@ declare Sres.intros [intro]
 declare Sreg.intros [intro]
 declare subst_type [intro]
 
-inductive_cases [elim!]: "residuals(Var(n),Var(n),v)"
-inductive_cases [elim!]: "residuals(Fun(t),Fun(u),v)"
-inductive_cases [elim!]: "residuals(App(b, u1, u2), App(0, v1, v2),v)"
-inductive_cases [elim!]: "residuals(App(b, u1, u2), App(1, Fun(v1), v2),v)"
-inductive_cases [elim!]: "residuals(Var(n),u,v)"
-inductive_cases [elim!]: "residuals(Fun(t),u,v)"
-inductive_cases [elim!]: "residuals(App(b, u1, u2), w,v)"
-inductive_cases [elim!]: "residuals(u,Var(n),v)"
-inductive_cases [elim!]: "residuals(u,Fun(t),v)"
-inductive_cases [elim!]: "residuals(w,App(b, u1, u2),v)"
+inductive_cases [elim!]:
+  "residuals(Var(n),Var(n),v)"
+  "residuals(Fun(t),Fun(u),v)"
+  "residuals(App(b, u1, u2), App(0, v1, v2),v)"
+  "residuals(App(b, u1, u2), App(1, Fun(v1), v2),v)"
+  "residuals(Var(n),u,v)"
+  "residuals(Fun(t),u,v)"
+  "residuals(App(b, u1, u2), w,v)"
+  "residuals(u,Var(n),v)"
+  "residuals(u,Fun(t),v)"
+  "residuals(w,App(b, u1, u2),v)"
 
 
-inductive_cases [elim!]: "Var(n) <== u"
-inductive_cases [elim!]: "Fun(n) <== u"
-inductive_cases [elim!]: "u <== Fun(n)"
-inductive_cases [elim!]: "App(1,Fun(t),a) <== u"
-inductive_cases [elim!]: "App(0,t,a) <== u"
+inductive_cases [elim!]:
+  "Var(n) <== u"
+  "Fun(n) <== u"
+  "u <== Fun(n)"
+  "App(1,Fun(t),a) <== u"
+  "App(0,t,a) <== u"
 
-inductive_cases [elim!]: "Fun(t):redexes"
+inductive_cases [elim!]:
+  "Fun(t) \<in> redexes"
 
 declare Sres.intros [simp]
 

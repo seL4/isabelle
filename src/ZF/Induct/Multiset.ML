@@ -1,4 +1,4 @@
-(*  Title:      ZF/UNITY/Multiset.thy
+(*  Title:      ZF/Induct/Multiset.thy
     ID:         $Id$
     Author:     Sidi O Ehmety, Cambridge University Computer Laboratory
 

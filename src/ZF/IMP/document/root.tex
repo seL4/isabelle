@@ -1,0 +1,49 @@
+
+\documentclass[a4wide]{article}
+\usepackage{isabelle,isabellesym}
+\usepackage{pdfsetup}
+
+\urlstyle{rm}
+\renewcommand{\isachardoublequote}{}
+
+% pretty printing for the Com language
+%\newcommand{\CMD}[1]{\isatext{\bf\sffamily#1}}
+\newcommand{\CMD}[1]{\isatext{\rm\sffamily#1}}
+\newcommand{\isasymSKIP}{\CMD{skip}}
+\newcommand{\isasymASSN}{\CMD{:=}}
+\newcommand{\isasymSEQ}{\CMD{;}}
+\newcommand{\isasymIF}{\CMD{if}}
+\newcommand{\isasymTHEN}{\CMD{then}}
+\newcommand{\isasymELSE}{\CMD{else}}
+\newcommand{\isasymWHILE}{\CMD{while}}
+\newcommand{\isasymDO}{\CMD{do}}
+
+\addtolength{\hoffset}{-1cm}
+\addtolength{\textwidth}{2cm}
+
+
+\begin{document}
+
+\title{IMP --- A {\tt WHILE}-language and two semantics}
+\author{Heiko Loetzbeyer and Robert Sandner}
+\maketitle
+
+\parindent 0pt\parskip 0.5ex
+
+\begin{abstract}\noindent
+  The formalization of the denotational and operational semantics of a simple
+  while-language together with an equivalence proof between the two semantics.
+  The whole development essentially formalizes/transcribes chapters 2 and 5 of
+  \cite{Winskel}.  A much extended version of this development is found in
+  HOL/IMP of the Isabelle distribution.
+\end{abstract}
+
+\tableofcontents
+
+\parindent 0pt\parskip 0.5ex
+\input{session}
+
+\bibliographystyle{plain}
+\bibliography{root}
+
+\end{document}

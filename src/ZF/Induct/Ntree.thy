@@ -34,11 +34,11 @@ datatype "maptree2(A, B)" = Sons2 ("a \<in> A", "h \<in> B -||> maptree2(A, B)")
 constdefs
   ntree_rec :: "[[i, i, i] => i, i] => i"
   "ntree_rec(b) ==
-    Vrecursor(%pr. ntree_case(%x h. b(x, h, \<lambda>i \<in> domain(h). pr`(h`i))))"
+    Vrecursor(\<lambda>pr. ntree_case(\<lambda>x h. b(x, h, \<lambda>i \<in> domain(h). pr`(h`i))))"
 
 constdefs
   ntree_copy :: "i => i"
-  "ntree_copy(z) == ntree_rec(%x h r. Branch(x,r), z)"
+  "ntree_copy(z) == ntree_rec(\<lambda>x h r. Branch(x,r), z)"
 
 
 text {*
