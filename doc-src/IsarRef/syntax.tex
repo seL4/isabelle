@@ -178,6 +178,17 @@ provided these are not superseded by commands or keywords (e.g.\ \texttt{+}).
   ;
 \end{rail}
 
+Positional instantiations are indicated by giving a sequence of terms, or the
+placeholder ``$\_$'' (underscore), which means to skip a position.
+
+\indexoutertoken{inst}\indexoutertoken{insts}
+\begin{rail}
+  inst: underscore | term
+  ;
+  insts: (inst *)
+  ;
+\end{rail}
+
 Type declarations and definitions usually refer to \railnonterm{typespec} on
 the left-hand side.  This models basic type constructor application at the
 outer syntax level.  Note that only plain postfix notation is available here,
