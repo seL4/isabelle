@@ -395,11 +395,10 @@ map (by o best_tac
 	      addEs [new_keys_not_seen RS not_parts_not_analz RSN (2,rev_notE)]
 	      addss (!simpset)))
     [2,1];
-(*NS4*)
-by (step_tac (!claset addSDs [Suc_leD, newK_invKey]) 1);
-by (deepen_tac (!claset addIs [impOfSubs keysFor_mono]) 0 2);
-by (fast_tac (!claset addDs [Says_imp_old_keys]
-	              addss (!simpset addsimps [le_def])) 1);
+(*NS4 and NS5: nonce exchange*)
+by (ALLGOALS (deepen_tac (!claset addSDs [newK_invKey, Says_imp_old_keys]
+	                          addIs  [less_SucI, impOfSubs keysFor_mono]
+		                  addss (!simpset addsimps [le_def])) 0));
 val lemma = result();
 
 goal thy 
@@ -561,7 +560,7 @@ qed "Says_S_message_form_eq";
 ****)
 
 
-(*Not useful in this form, but it says that session keys are not used
+(*NOT useful in this form, but it says that session keys are not used
   to encrypt messages containing other keys, in the actual protocol.
   We require that agents should behave like this subsequently also.*)
 goal thy 
@@ -576,7 +575,8 @@ by (best_tac (!claset addSEs partsEs
 		      addDs [impOfSubs analz_subset_parts,
                              impOfSubs parts_insert_subset_Un]
                       addss (!simpset)) 1);
-by (fast_tac (!claset addss (!simpset)) 1);
+(*NS4 and NS5*)
+by (ALLGOALS (fast_tac (!claset addss (!simpset))));
 result();
 
 

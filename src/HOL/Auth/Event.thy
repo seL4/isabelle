@@ -82,9 +82,6 @@ rules
   isSym_newK "isSymKey (newK evs)"
 
 
-(*NS3 DOESN'T ALLOW INTERLEAVING -- that is, it only responds to the
-  MOST RECENT message.*)
-
 (*Needham-Schroeder Shared-Key protocol (from BAN paper, page 247)*)
 consts  traces   :: "event list set"
 inductive traces
@@ -105,7 +102,8 @@ inductive traces
 
          (*Server's response to Alice's message.
            !! It may respond more than once to A's request !!
-	   We can't trust the sender field, hence the A' in it.*)
+	   Server doesn't know who the true sender is, hence the A' in
+               the sender field.*)
     NS2  "[| evs: traces;  A ~= B;  A ~= Server;
              (Says A' Server {|Agent A, Agent B, Nonce NA|}) : set_of_list evs
           |] ==> (Says Server A 
@@ -123,8 +121,18 @@ inductive traces
              (Says A Server {|Agent A, Agent B, Nonce NA|}) : set_of_list evs
           |] ==> (Says A B X) # evs : traces"
 
+         (*Bob's nonce exchange.  He does not know who the message came
+           from, but responds to A because she is mentioned inside.*)
     NS4  "[| evs: traces;  A ~= B;  
              (Says A' B (Crypt {|Key K, Agent A|} (serverKey B))) 
                : set_of_list evs
           |] ==> (Says B A (Crypt (Nonce (newN evs)) K)) # evs : traces"
+
+         (*Alice responds with (Suc N), if she has seen the key before.*)
+    NS5  "[| evs: traces;  A ~= B;  
+             (Says B' A (Crypt (Nonce N) K)) : set_of_list evs;
+             (Says S  A (Crypt {|Nonce NA, Agent B, Key K, X|} (serverKey A))) 
+               : set_of_list evs
+          |] ==> (Says A B (Crypt (Nonce (Suc N)) K)) # evs : traces"
+
 end
