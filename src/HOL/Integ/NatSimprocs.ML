@@ -129,3 +129,31 @@ Addsimps [numeral_0_eq_0, numeral_1_eq_1, add_2_eq_Suc, add_2_eq_Suc'];
 Goal "Suc (Suc (Suc n)) = #3 + n";
 by (Simp_tac 1);
 qed "Suc3_eq_add_3";
+
+
+(** To collapse some needless occurrences of Suc 
+    At least three Sucs, since two and fewer are rewritten back to Suc again!
+
+    We already have some rules to simplify operands smaller than 3.
+**)
+
+Goal "m div (Suc (Suc (Suc n))) = m div (#3+n)";
+by (simp_tac (simpset() addsimps [Suc3_eq_add_3]) 1);
+qed "div_Suc_eq_div_add3";
+
+Goal "m mod (Suc (Suc (Suc n))) = m mod (#3+n)";
+by (simp_tac (simpset() addsimps [Suc3_eq_add_3]) 1);
+qed "mod_Suc_eq_mod_add3";
+
+Addsimps [div_Suc_eq_div_add3, mod_Suc_eq_mod_add3];
+
+Goal "(Suc (Suc (Suc m))) div n = (#3+m) div n";
+by (simp_tac (simpset() addsimps [Suc3_eq_add_3]) 1);
+qed "Suc_div_eq_add3_div";
+
+Goal "(Suc (Suc (Suc m))) mod n = (#3+m) mod n";
+by (simp_tac (simpset() addsimps [Suc3_eq_add_3]) 1);
+qed "Suc_mod_eq_add3_mod";
+
+Addsimps [inst "n" "number_of ?v" Suc_div_eq_add3_div,
+	  inst "n" "number_of ?v" Suc_mod_eq_add3_mod];
