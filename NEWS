@@ -152,6 +152,8 @@ New in this Isabelle release
   Moreover, the mathematically important symbolic identifier
   \<epsilon> becomes available as variable, constant etc.
 
+* HOL: Summation over nat with syntax '\<Sum>i<k. e' is now just a
+  translation into 'setsum'.
 
 *** HOLCF ***
 
