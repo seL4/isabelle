@@ -216,9 +216,9 @@ fun mk_binder_tr (sy, name) =
 fun aprop_tr (*"_aprop"*) [t] = const constrainC $ t $ const "prop"
   | aprop_tr (*"_aprop"*) ts = raise_term "aprop_tr" ts;
 
-fun insort_tr (*"_insort"*) [ty, srt] =
-      srt $ (const constrainC $ const "TYPE" $ (const "itself" $ ty))
-  | insort_tr (*"_insort"*) ts = raise_term "insort_tr" ts;
+fun ofclass_tr (*"_ofclass"*) [ty, cls] =
+      cls $ (const constrainC $ const "TYPE" $ (const "itself" $ ty))
+  | ofclass_tr (*"_ofclass"*) ts = raise_term "ofclass_tr" ts;
 
 
 (* meta implication *)
@@ -358,7 +358,7 @@ fun prop_tr' show_sorts tm =
       | tr' tys (Abs (x, ty, t)) = Abs (x, ty, tr' (ty :: tys) t)
       | tr' tys (t as t1 $ (t2 as Const ("TYPE", Type ("itself", [ty])))) =
           if is_prop tys t then
-            const "_insort" $ term_of_typ show_sorts ty $ tr' tys t1
+            const "_ofclass" $ term_of_typ show_sorts ty $ tr' tys t1
           else tr' tys t1 $ tr' tys t2
       | tr' tys (t as t1 $ t2) =
           (if is_Const (head_of t) orelse not (is_prop tys t)
@@ -539,8 +539,8 @@ fun ast_to_term trf ast =
 val pure_trfuns =
  ([(applC, appl_ast_tr), ("_lambda", lambda_ast_tr), ("_idtyp", idtyp_ast_tr),
     ("_bigimpl", bigimpl_ast_tr)],
-  [("_abs", abs_tr), ("_aprop", aprop_tr), ("_insort", insort_tr), ("_K", k_tr),
-    ("_explode", explode_tr)],
+  [("_abs", abs_tr), ("_aprop", aprop_tr), ("_ofclass", ofclass_tr),
+    ("_K", k_tr), ("_explode", explode_tr)],
   [],
   [("_abs", abs_ast_tr'), ("_idts", idts_ast_tr'), ("==>", impl_ast_tr'),
     ("_implode", implode_ast_tr')]);
