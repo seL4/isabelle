@@ -113,6 +113,7 @@ Introduction to Isabelle/HOL
 \end{itemize}
 \end{cslide}
 %-----------------------------------------------------------------------------
+\overlays{2}{
 \begin{cslide}{Functional Programming}
 \begin{itemize}
 \item An introductory example
@@ -121,7 +122,12 @@ Introduction to Isabelle/HOL
 \item Advanced datatypes
 \item Advanced recursive functions
 \end{itemize}
-\end{cslide}
+\FromSlide{2}
+There is more:\\
+\emph{\blue records},
+\emph{\blue (axiomatic) type classes},
+\emph{\blue program extraction}, \dots!
+\end{cslide}}
 %-----------------------------------------------------------------------------
 \begin{cslide}{Logic (Natural Deduction)}
 \begin{itemize}
@@ -170,7 +176,7 @@ Structured Proofs in Isabelle/Isar/HOL
 \quad\textbf{have} {\blue\sl intermediate result} \textbf{by} ...\\
 \quad\vdots\\
 \quad\textbf{have} {\blue\sl intermediate result} \textbf{by} ...\\
-\quad\textbf{show} {\blue\sl conclusion}\\
+\quad\textbf{show} {\blue\sl conclusion} \textbf{by} ...\\
 \textbf{qed}
 \end{tabular}
 \bigskip
@@ -197,6 +203,7 @@ Proves {\blue\sl assumption $\Longrightarrow$ conclusion}
 \begin{itemize}
 \item Logic
 \item Induction
+\item Calculation
 \end{itemize}
 \end{cslide}
 %-----------------------------------------------------------------------------
