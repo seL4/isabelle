@@ -528,7 +528,6 @@ in
 
 val hard_asm_tac = Tactic.etac Drule.triv_goal;
 val soft_asm_tac = Tactic.rtac Drule.triv_goal;
-  (* THEN' Tactic.rtac asm_rl   FIXME hack to norm goal *)
 
 val assm = gen_assume ProofContext.assume;
 val assm_i = gen_assume ProofContext.assume_i;
