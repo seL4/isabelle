@@ -22,6 +22,6 @@ constdefs
     "strongest_rhs Acts A == Inter {B. constrains Acts A B}"
 
   unless :: "[('a * 'a)set set, 'a set, 'a set] => bool"
-    "unless mutex A B == constrains mutex (A-B) (A Un B)"
+    "unless Acts A B == constrains Acts (A-B) (A Un B)"
 
 end
