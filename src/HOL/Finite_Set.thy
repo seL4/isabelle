@@ -26,9 +26,12 @@ axclass finite \<subseteq> type
   finite: "finite UNIV"
 
 lemma ex_new_if_finite: -- "does not depend on def of finite at all"
- "[| ~finite(UNIV::'a set); finite A  |] ==> \<exists>a::'a. a \<notin> A"
-by(subgoal_tac "A \<noteq> UNIV", blast, blast)
-
+  assumes "\<not> finite (UNIV :: 'a set)" and "finite A"
+  shows "\<exists>a::'a. a \<notin> A"
+proof -
+  from prems have "A \<noteq> UNIV" by blast
+  thus ?thesis by blast
+qed
 
 lemma finite_induct [case_names empty insert, induct set: Finites]:
   "finite F ==>
@@ -730,7 +733,7 @@ proof -
       by (simp add: AC)
     also have "(f o g) x (fold (f o g) e F) = fold (f o g) e (insert x F)"
       by (rule LC.fold_insert [OF LC.intro, symmetric]) (insert b insert,
-	auto simp add: left_commute)
+        auto simp add: left_commute)
     finally show ?case .
   qed
 qed
@@ -743,11 +746,11 @@ constdefs
   "setsum f A == if finite A then fold (op + o f) 0 A else 0"
 
 syntax
-  "_setsum" :: "idt => 'a set => 'b => 'b::plus_ac0"    ("\<Sum>_:_. _" [0, 51, 10] 10)
+  "_setsum" :: "idt => 'a set => 'b => 'b::plus_ac0"    ("(3\<Sum>_:_. _)" [0, 51, 10] 10)
 syntax (xsymbols)
-  "_setsum" :: "idt => 'a set => 'b => 'b::plus_ac0"    ("\<Sum>_\<in>_. _" [0, 51, 10] 10)
+  "_setsum" :: "idt => 'a set => 'b => 'b::plus_ac0"    ("(3\<Sum>_\<in>_. _)" [0, 51, 10] 10)
 syntax (HTML output)
-  "_setsum" :: "idt => 'a set => 'b => 'b::plus_ac0"    ("\<Sum>_\<in>_. _" [0, 51, 10] 10)
+  "_setsum" :: "idt => 'a set => 'b => 'b::plus_ac0"    ("(3\<Sum>_\<in>_. _)" [0, 51, 10] 10)
 translations
   "\<Sum>i:A. b" == "setsum (%i. b) A"  -- {* Beware of argument permutation! *}
 
@@ -775,7 +778,7 @@ lemma setsum_reindex_id: "finite B ==> inj_on f B ==>
     setsum f B = setsum id (f ` B)"
 by (auto simp add: setsum_reindex id_o)
 
-lemma setsum_reindex_cong: "finite A ==> inj_on f A ==> 
+lemma setsum_reindex_cong: "finite A ==> inj_on f A ==>
     B = f ` A ==> g = h \<circ> f ==> setsum h B = setsum g A"
   by (frule setsum_reindex, assumption, simp)
 
@@ -845,15 +848,15 @@ lemma setsum_Union_disjoint:
   apply (unfold Union_def id_def, assumption+)
   done
 
-lemma setsum_Sigma: "finite A ==> ALL x:A. finite (B x) ==> 
-    (\<Sum> x:A. (\<Sum> y:B x. f x y)) = 
-    (\<Sum> z:(SIGMA x:A. B x). f (fst z) (snd z))"
+lemma setsum_Sigma: "finite A ==> ALL x:A. finite (B x) ==>
+    (\<Sum>x:A. (\<Sum>y:B x. f x y)) =
+    (\<Sum>z:(SIGMA x:A. B x). f (fst z) (snd z))"
   apply (subst Sigma_def)
   apply (subst setsum_UN_disjoint)
   apply assumption
   apply (rule ballI)
   apply (drule_tac x = i in bspec, assumption)
-  apply (subgoal_tac "(UN y:(B i). {(i, y)}) <= (%y. (i, y)) ` (B i)") 
+  apply (subgoal_tac "(UN y:(B i). {(i, y)}) <= (%y. (i, y)) ` (B i)")
   apply (rule finite_surj)
   apply auto
   apply (rule setsum_cong, rule refl)
@@ -863,8 +866,8 @@ lemma setsum_Sigma: "finite A ==> ALL x:A. finite (B x) ==>
   done
 
 lemma setsum_cartesian_product: "finite A ==> finite B ==>
-    (\<Sum> x:A. (\<Sum> y:B. f x y)) = 
-    (\<Sum> z:A <*> B. f (fst z) (snd z))"
+    (\<Sum>x:A. (\<Sum>y:B. f x y)) =
+    (\<Sum>z:A <*> B. f (fst z) (snd z))"
   by (erule setsum_Sigma, auto);
 
 lemma setsum_addf: "setsum (%x. f x + g x) A = (setsum f A + setsum g A)"
@@ -984,18 +987,14 @@ constdefs
   "setprod f A == if finite A then fold (op * o f) 1 A else 1"
 
 syntax
-  "_setprod" :: "idt => 'a set => 'b => 'b::plus_ac0"
-                ("\<Prod>_:_. _" [0, 51, 10] 10)
+  "_setprod" :: "idt => 'a set => 'b => 'b::times_ac1"  ("(3\<Prod>_:_. _)" [0, 51, 10] 10)
 
 syntax (xsymbols)
-  "_setprod" :: "idt => 'a set => 'b => 'b::plus_ac0"
-                ("\<Prod>_\<in>_. _" [0, 51, 10] 10)
+  "_setprod" :: "idt => 'a set => 'b => 'b::times_ac1"  ("(3\<Prod>_\<in>_. _)" [0, 51, 10] 10)
 syntax (HTML output)
-  "_setprod" :: "idt => 'a set => 'b => 'b::plus_ac0"
-                ("\<Prod>_\<in>_. _" [0, 51, 10] 10)
+  "_setprod" :: "idt => 'a set => 'b => 'b::times_ac1"  ("(3\<Prod>_\<in>_. _)" [0, 51, 10] 10)
 translations
   "\<Prod>i:A. b" == "setprod (%i. b) A"  -- {* Beware of argument permutation! *}
-
 
 lemma setprod_empty [simp]: "setprod f {} = 1"
   by (auto simp add: setprod_def)
@@ -1020,7 +1019,7 @@ lemma setprod_reindex_id: "finite B ==> inj_on f B ==>
     setprod f B = setprod id (f ` B)"
 by (auto simp add: setprod_reindex id_o)
 
-lemma setprod_reindex_cong: "finite A ==> inj_on f A ==> 
+lemma setprod_reindex_cong: "finite A ==> inj_on f A ==>
     B = f ` A ==> g = h \<circ> f ==> setprod h B = setprod g A"
   by (frule setprod_reindex, assumption, simp)
 
@@ -1086,15 +1085,15 @@ lemma setprod_Union_disjoint:
   apply (unfold Union_def id_def, assumption+)
   done
 
-lemma setprod_Sigma: "finite A ==> ALL x:A. finite (B x) ==> 
-    (\<Prod> x:A. (\<Prod> y: B x. f x y)) = 
-    (\<Prod> z:(SIGMA x:A. B x). f (fst z) (snd z))"
+lemma setprod_Sigma: "finite A ==> ALL x:A. finite (B x) ==>
+    (\<Prod>x:A. (\<Prod>y: B x. f x y)) =
+    (\<Prod>z:(SIGMA x:A. B x). f (fst z) (snd z))"
   apply (subst Sigma_def)
   apply (subst setprod_UN_disjoint)
   apply assumption
   apply (rule ballI)
   apply (drule_tac x = i in bspec, assumption)
-  apply (subgoal_tac "(UN y:(B i). {(i, y)}) <= (%y. (i, y)) ` (B i)") 
+  apply (subgoal_tac "(UN y:(B i). {(i, y)}) <= (%y. (i, y)) ` (B i)")
   apply (rule finite_surj)
   apply auto
   apply (rule setprod_cong, rule refl)
@@ -1103,9 +1102,9 @@ lemma setprod_Sigma: "finite A ==> ALL x:A. finite (B x) ==>
   apply auto
   done
 
-lemma setprod_cartesian_product: "finite A ==> finite B ==> 
-    (\<Prod> x:A. (\<Prod> y: B. f x y)) = 
-    (\<Prod> z:(A <*> B). f (fst z) (snd z))"
+lemma setprod_cartesian_product: "finite A ==> finite B ==>
+    (\<Prod>x:A. (\<Prod>y: B. f x y)) =
+    (\<Prod>z:(A <*> B). f (fst z) (snd z))"
   by (erule setprod_Sigma, auto)
 
 lemma setprod_timesf: "setprod (%x. f x * g x) A =
@@ -1238,7 +1237,7 @@ next
       assume "x \<le> m" thus ?thesis using m by blast
     next
       assume "~ x \<le> m" thus ?thesis using m
-	by(simp add:linorder_not_le order_less_le)(blast intro: order_trans)
+        by(simp add:linorder_not_le order_less_le)(blast intro: order_trans)
     qed
   qed
 qed
@@ -1261,47 +1260,50 @@ next
       assume "m \<le> x" thus ?thesis using m by blast
     next
       assume "~ m \<le> x" thus ?thesis using m
-	by(simp add:linorder_not_le order_less_le)(blast intro: order_trans)
+        by(simp add:linorder_not_le order_less_le)(blast intro: order_trans)
     qed
   qed
 qed
 
 constdefs
- Min :: "('a::linorder)set => 'a"
-"Min S  ==  THE m. m \<in> S \<and> (\<forall>s \<in> S. m \<le> s)"
+  Min :: "('a::linorder)set => 'a"
+  "Min S  ==  THE m. m \<in> S \<and> (\<forall>s \<in> S. m \<le> s)"
 
- Max :: "('a::linorder)set => 'a"
-"Max S  ==  THE m. m \<in> S \<and> (\<forall>s \<in> S. s \<le> m)"
+  Max :: "('a::linorder)set => 'a"
+  "Max S  ==  THE m. m \<in> S \<and> (\<forall>s \<in> S. s \<le> m)"
 
-lemma Min[simp]: assumes a: "finite S" "S \<noteq> {}"
-                 shows "Min S \<in> S \<and> (\<forall>s \<in> S. Min S \<le> s)" (is "?P(Min S)")
+lemma Min [simp]:
+  assumes a: "finite S"  "S \<noteq> {}"
+  shows "Min S \<in> S \<and> (\<forall>s \<in> S. Min S \<le> s)" (is "?P(Min S)")
 proof (unfold Min_def, rule theI')
   show "\<exists>!m. ?P m"
   proof (rule ex_ex1I)
     show "\<exists>m. ?P m" using ex_Min[OF a] by blast
   next
-    fix m1 m2 assume "?P m1" "?P m2"
-    thus "m1 = m2" by (blast dest:order_antisym)
+    fix m1 m2 assume "?P m1" and "?P m2"
+    thus "m1 = m2" by (blast dest: order_antisym)
   qed
 qed
 
-lemma Max[simp]: assumes a: "finite S" "S \<noteq> {}"
-                 shows "Max S \<in> S \<and> (\<forall>s \<in> S. s \<le> Max S)" (is "?P(Max S)")
+lemma Max [simp]:
+  assumes a: "finite S"  "S \<noteq> {}"
+  shows "Max S \<in> S \<and> (\<forall>s \<in> S. s \<le> Max S)" (is "?P(Max S)")
 proof (unfold Max_def, rule theI')
   show "\<exists>!m. ?P m"
   proof (rule ex_ex1I)
     show "\<exists>m. ?P m" using ex_Max[OF a] by blast
   next
     fix m1 m2 assume "?P m1" "?P m2"
-    thus "m1 = m2" by (blast dest:order_antisym)
+    thus "m1 = m2" by (blast dest: order_antisym)
   qed
 qed
+
 
 subsection {* Theorems about @{text "choose"} *}
 
 text {*
   \medskip Basic theorem about @{text "choose"}.  By Florian
-  Kammüller, tidied by LCP.
+  Kamm\"uller, tidied by LCP.
 *}
 
 lemma card_s_0_eq_empty:
@@ -1369,6 +1371,5 @@ lemma n_sub_lemma:
 theorem n_subsets:
     "finite A ==> card {B. B <= A & card B = k} = (card A choose k)"
   by (simp add: n_sub_lemma)
-
 
 end
