@@ -17,9 +17,10 @@ function fail()
 ## main
 
 if [ -z "$ISABELLE_SYMBOLS" -o "$ISABELLE_SYMBOLS" = false ]; then
-  exec xterm -T Isabelle -n Isabelle $ISABELLE_INTERFACE_OPTIONS -e isabelle "$@"
+  exec xterm -T Isabelle -n Isabelle $ISABELLE_INTERFACE_OPTIONS \
+    -e $ISABELLE_HOME/bin/isabelle "$@"
 else
-  isatool installfonts
+  $ISABELLE_HOME/bin/isatool installfonts
   exec xterm -T Isabelle -n Isabelle $ISABELLE_INTERFACE_OPTIONS -fn isacr14 \
     -xrm "*fontMenu.Label: Isabelle fonts" \
     -xrm "*fontMenu*font1*Label: Large" \
@@ -34,5 +35,5 @@ else
     -xrm "*VT100*font5:" \
     -xrm "*fontMenu*font6*Label:" \
     -xrm "*VT100*font6:" \
-    -e isabelle -e 'print_mode:=["symbols"];' "$@"
+    -e $ISABELLE_HOME/bin/isabelle -e 'print_mode:=["symbols"];' "$@"
 fi
