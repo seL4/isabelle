@@ -32,10 +32,10 @@ translations
   "Ts =>> T" == "foldr Fun Ts T"
 
 inductive typing
-  intros [intro!]
-    Var: "env x = T ==> env |- Var x : T"
-    Abs: "(nat_case T env) |- t : U ==> env |- Abs t : (T => U)"
-    App: "env |- s : T => U ==> env |- t : T ==> env |- (s $ t) : U"
+  intros
+    Var [intro!]: "env x = T ==> env |- Var x : T"
+    Abs [intro!]: "(nat_case T env) |- t : U ==> env |- Abs t : (T => U)"
+    App [intro!]: "env |- s : T => U ==> env |- t : T ==> env |- (s $ t) : U"
 
 inductive_cases [elim!]:
   "e |- Var i : T"

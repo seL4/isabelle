@@ -31,11 +31,11 @@ translations
   "s -e>= t" == "(s, t) \<in> eta^="
 
 inductive eta
-  intros [simp, intro]
-    eta: "\<not> free s 0 ==> Abs (s $ Var 0) -e> s[dummy/0]"
-    appL: "s -e> t ==> s $ u -e> t $ u"
-    appR: "s -e> t ==> u $ s -e> u $ t"
-    abs: "s -e> t ==> Abs s -e> Abs t"
+  intros
+    eta [simp, intro]: "\<not> free s 0 ==> Abs (s $ Var 0) -e> s[dummy/0]"
+    appL [simp, intro]: "s -e> t ==> s $ u -e> t $ u"
+    appR [simp, intro]: "s -e> t ==> u $ s -e> u $ t"
+    abs [simp, intro]: "s -e> t ==> Abs s -e> Abs t"
 
 inductive_cases eta_cases [elim!]:
   "Abs s -e> z"

@@ -23,11 +23,11 @@ translations
   "s => t" == "(s, t) \<in> par_beta"
 
 inductive par_beta
-  intros [simp, intro!]
-    var: "Var n => Var n"
-    abs: "s => t ==> Abs s => Abs t"
-    app: "[| s => s'; t => t' |] ==> s $ t => s' $ t'"
-    beta: "[| s => s'; t => t' |] ==> (Abs s) $ t => s'[t'/0]"
+  intros
+    var [simp, intro!]: "Var n => Var n"
+    abs [simp, intro!]: "s => t ==> Abs s => Abs t"
+    app [simp, intro!]: "[| s => s'; t => t' |] ==> s $ t => s' $ t'"
+    beta [simp, intro!]: "[| s => s'; t => t' |] ==> (Abs s) $ t => s'[t'/0]"
 
 inductive_cases par_beta_cases [elim!]:
   "Var n => t"

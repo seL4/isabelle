@@ -64,11 +64,11 @@ translations
   "s ->> t" == "(s, t) \<in> beta^*"
 
 inductive beta
-  intros [simp, intro!]
-    beta: "Abs s $ t -> s[t/0]"
-    appL: "s -> t ==> s $ u -> t $ u"
-    appR: "s -> t ==> u $ s -> u $ t"
-    abs: "s -> t ==> Abs s -> Abs t"
+  intros
+    beta [simp, intro!]: "Abs s $ t -> s[t/0]"
+    appL [simp, intro!]: "s -> t ==> s $ u -> t $ u"
+    appR [simp, intro!]: "s -> t ==> u $ s -> u $ t"
+    abs [simp, intro!]: "s -> t ==> Abs s -> Abs t"
 
 inductive_cases beta_cases [elim!]:
   "Var i -> t"
