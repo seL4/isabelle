@@ -25,11 +25,6 @@ constdefs
                          approx_stk G hp stk ST  \<and> approx_loc G hp loc LT \<and> 
                          pc < length ins \<and> length loc=length(snd sig)+maxl+1"
 
-  correct_frame_opt :: "[jvm_prog,aheap,state_type option,nat,bytecode] 
-                        => frame => bool"
-  "correct_frame_opt G hp s == 
-    case s of None => \<lambda>maxl ins f. False | Some t => correct_frame G hp t"
-
 
 consts
  correct_frames  :: "[jvm_prog,aheap,prog_type,ty,sig,frame list] => bool"
