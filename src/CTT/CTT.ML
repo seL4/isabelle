@@ -222,27 +222,20 @@ fun pc_tac thms = DEPTH_SOLVE_1 o (step_tac thms);
 
 (** The elimination rules for fst/snd **)
 
-val SumE_fst = prove_goal CTT.thy 
+val SumE_fst = prove_goalw CTT.thy basic_defs
     "p : Sum(A,B) ==> fst(p) : A"
- (fn prems=>
-  [ (rewrite_goals_tac basic_defs),
-    (resolve_tac elim_rls 1),
-    (REPEAT (pc_tac prems 1)),
-    (fold_tac basic_defs) ]);
+ (fn [major] =>
+  [ (rtac (major RS SumE) 1),
+    (assume_tac 1) ]);
 
 (*The first premise must be p:Sum(A,B) !!*)
-val SumE_snd = prove_goal CTT.thy 
+val SumE_snd = prove_goalw CTT.thy basic_defs
     "[| p: Sum(A,B);  A type;  !!x. x:A ==> B(x) type \
 \    |] ==> snd(p) : B(fst(p))"
- (fn prems=>
-  [ (rewrite_goals_tac basic_defs),
-    (resolve_tac elim_rls 1),
-    (resolve_tac prems 1),
-    (resolve_tac [replace_type] 1),
-    (resolve_tac [subst_eqtyparg] 1),   (*like B(x) equality formation?*)
-    (resolve_tac comp_rls 1),
-    (typechk_tac prems),
-    (fold_tac basic_defs) ]);
+ (fn major::prems=>
+  [ (rtac (major RS SumE) 1),
+    (resolve_tac [SumC RS subst_eqtyparg RS replace_type] 1),
+    (typechk_tac prems) ]);
 
 end;
 
