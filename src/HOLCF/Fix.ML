@@ -391,27 +391,31 @@ qed_goal "fix_eq5" thy "f = fix`F ==> f`x = F`f`x"
 
 fun fix_tac5 thm i  = ((rtac trans i) THEN (rtac (thm RS fix_eq5) i)); 
 
-fun fix_prover thy fixdef thm = prove_goal thy thm
- (fn prems =>
-        [
+(* proves the unfolding theorem for function equations f = fix`... *)
+fun fix_prover thy fixeq s = prove_goal thy s (fn prems => [
         (rtac trans 1),
-        (rtac (fixdef RS fix_eq4) 1),
+        (rtac (fixeq RS fix_eq4) 1),
         (rtac trans 1),
         (rtac beta_cfun 1),
         (Simp_tac 1)
         ]);
 
-(* use this one for definitions! *)
-
-fun fix_prover2 thy fixdef thm = prove_goal thy thm
- (fn prems =>
-        [
+(* proves the unfolding theorem for function definitions f == fix`... *)
+fun fix_prover2 thy fixdef s = prove_goal thy s (fn prems => [
         (rtac trans 1),
         (rtac (fix_eq2) 1),
         (rtac fixdef 1),
         (rtac beta_cfun 1),
         (Simp_tac 1)
         ]);
+
+(* proves an application case for a function from its unfolding thm *)
+fun case_prover thy unfold s = prove_goal thy s (fn prems => [
+	(cut_facts_tac prems 1),
+	(rtac trans 1),
+	(stac unfold 1),
+	(Auto_tac ())
+	]);
 
 (* ------------------------------------------------------------------------ *)
 (* better access to definitions                                             *)
@@ -875,10 +879,10 @@ qed_goal "adm_imp"  thy
         "!!P. [| adm(%x.~(P x)); adm Q |] ==> adm(%x.P x --> Q x)"
  (fn prems =>
         [
-        subgoal_tac "(%x.P x --> Q x) = (%x. ~P x | Q x)" 1,
-        (Asm_simp_tac 1),
-        (etac adm_disj 1),
-        (atac 1),
+        (subgoal_tac "(%x.P x --> Q x) = (%x. ~P x | Q x)" 1),
+         (Asm_simp_tac 1),
+         (etac adm_disj 1),
+         (atac 1),
         (rtac ext 1),
         (fast_tac HOL_cs 1)
         ]);
