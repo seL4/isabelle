@@ -7,20 +7,30 @@ New in Isabelle???? (DATE ????)
 
 *** General Changes ***
 
-* hierachically structured name spaces (for consts, types, thms,
-...), use 'begin' or 'path' section in theory files; new lexical class
-'longid' (e.g. Foo.bar.x) renders much of old input syntactically
-incorrect (e.g. "%x.x"); isatool fixdots inserts space after dots
-("%x. x");
+* hierachically structured name spaces (for consts, types, axms,
+etc.); use 'begin' or 'path' section in theory files; new lexical
+class 'longid' (e.g. Foo.bar.x) may render much of old input
+syntactically incorrect (e.g. "%x.x"); isatool fixdots ensures space
+after dots (e.g. "%x. x"); set long_names for fully qualified output
+names;
 
 * HTML output now includes theory graph data for display with Java
 applet or isatool browser; data generated automatically via isatool
-usedir (see -i option);
+usedir (see -i option, ISABELLE_USEDIR_OPTIONS);
 
 * defs may now be conditional; improved rewrite_goals_tac to handle
 conditional equations;
 
-* print_goals: optional output of const types (set show_consts);
+* theory aliases via merge (e.g. M=A+B+C) no longer supported, always
+creates a new theory node; implicit merge of thms' signatures is
+restricted to 'trivial' ones, thus one may have to use
+transfer:theory->thm->thm in (rare) cases;
+
+* slightly changed interfaces for oracles: admit many per theory, named
+(e.g. oracle foo = mlfun), additional name argument for invoke_oracle;
+
+* print_goals: optional output of const types (set show_consts and
+show_types);
 
 * improved output of warnings (###) / errors (***);
 
@@ -32,9 +42,6 @@ conditional equations;
 
 * deleted the obsolete tactical STATE, which was declared by
     fun STATE tacfun st = tacfun st st;
-
-* slightly changed interfaces for oracles: admit many per theory, named
-(e.g. oracle foo = mlfun), additional name argument for invoke_oracle;
 
 
 *** Classical Reasoner ***
