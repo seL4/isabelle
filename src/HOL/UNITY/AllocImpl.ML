@@ -14,30 +14,37 @@ Addsimps [funPair_o_distrib];
 Addsimps [Always_INT_distrib];
 Delsimps [o_apply];
 
-(*Eliminate the "o" operator*)
-val o_simp = simplify (simpset() addsimps [o_def]);
-
 Goalw [merge_spec_def,merge_eqOut_def]
      "[| M: merge_spec; G: preserves merge.Out; G: preserves merge.iOut |] \
 \ ==> M Join G : Always {s. length (merge.Out s) = length (merge.iOut s)}";  
 by (force_tac (claset() addDs [guaranteesD], simpset()) 1);
 qed "Merge_Always_Out_eq_iOut";
 
-(*******ALLOCBASE.ML***)
-Goal "[| finite A; finite B; A Int B = {} |] \
-\     ==> bag_of (sublist l (A Un B)) = \
-\         bag_of (sublist l A) + bag_of (sublist l B)"; 
-by (asm_simp_tac (simpset() addsimps [bag_of_sublist_Un_Int RS sym]) 1);
-qed "bag_of_sublist_Un_disjoint";
+Goalw [merge_spec_def,merge_bounded_def]
+     "[| M: merge_spec; G: preserves merge.iOut |] \
+\ ==> M Join G : Always {s. ALL elt : set (merge.iOut s). elt < Nclients}";  
+by (force_tac (claset() addDs [guaranteesD], simpset()) 1);
+qed "Merge_Bounded";
 
-Goal "[| finite I;  ALL i:I. finite (A i);     \
-\        ALL i:I. ALL j:I. A i Int A j = {} |] \
-\     ==> bag_of (sublist l (UNION I A)) =  \
-\         setsum (%i. bag_of (sublist l (A i))) I";  
-by (asm_simp_tac (simpset() addcongs [setsum_cong]
-			    addsimps [bag_of_sublist, setsum_UN_disjoint]) 1);
-qed_spec_mp "bag_of_sublist_UN_disjoint";
-
+Goal "[| M : merge_spec;  G : preserves (funPair merge.Out iOut) |] \
+\ ==> M Join G : Always \
+\         {s. setsum (%i. bag_of (sublist (merge.Out s) \
+\                                 {k. k < length (iOut s) & iOut s ! k = i})) \
+\                    (lessThan Nclients)   =  \
+\             (bag_of o merge.Out) s}";
+by (rtac ([[Merge_Always_Out_eq_iOut, Merge_Bounded] MRS Always_Int_I,
+	   UNIV_AlwaysI] MRS (Always_Compl_Un_eq RS iffD1)) 1);
+     by Auto_tac; 
+by (stac (bag_of_sublist_UN_disjoint RS sym) 1); 
+  by (Simp_tac 1);
+ by (Blast_tac 1); 
+by (asm_full_simp_tac (simpset() addsimps [set_conv_nth]) 1); 
+by (subgoal_tac
+    "(UN i:lessThan Nclients. {k. k < length (iOut x) & iOut x ! k = i}) = \
+\    lessThan (length (iOut x))" 1);
+ by (Blast_tac 2); 
+by (asm_simp_tac (simpset() addsimps [o_def]) 1); 
+qed "Merge_Bag_Follows_lemma";
 
 Goal "M : merge_spec \
 \ ==> M : (INT i: lessThan Nclients. Increasing (sub i o merge.In)) \
@@ -45,97 +52,92 @@ Goal "M : merge_spec \
 \                (bag_of o merge.Out) Fols \
 \                (%s. setsum (%i. (bag_of o sub i o merge.In) s) \
 \                            (lessThan Nclients))";
-by (rtac guaranteesI 1);
-by (res_inst_tac 
-    [("f", "%s. setsum (%i. bag_of (sublist (merge.Out s) 
-                                    {k. k < size(merge.iOut s) & 
-                                        nth(merge.iOut s)k = i}))
-                       (lessThan Nclients)")] 
-    Always_Follows 1);
-by (rtac UNIV_AlwaysI 1); 
-by (Clarify_tac 1); 
+by (rtac (Merge_Bag_Follows_lemma RS Always_Follows1 RS guaranteesI) 1);
+by Auto_tac;
+by (rtac Follows_setsum 1);
+by (auto_tac (claset(), 
+              simpset() addsimps [merge_spec_def,merge_follows_def, o_def]));
+by (best_tac (claset() addIs [impOfSubs (mono_bag_of RS mono_Follows_apply)]
+                       addDs [guaranteesD]) 1);
+qed "Merge_Bag_Follows";
+
+(*Declare a locale for M : merge_spec and 
+  G : preserves (funPair merge.Out iOut)? *)
+
+
+
+(** Distributor **)
+	 
+Goalw [distr_follows_def]
+     "D : distr_follows \
+\ ==> D : Increasing distr.In Int Increasing distr.iIn Int \
+\        Always {s. ALL elt : set (distr.iIn s). elt < Nclients} \
+\        guarantees[distr.Out] \
+\        (INT i : lessThan Nclients. Increasing (sub i o distr.Out))";
+by (blast_tac (claset() addIs [guaranteesI, Follows_Increasing1]
+                        addDs [guaranteesD]) 1);
+qed "Distr_Increasing_Out";
+
+
+Goal "[| G : preserves distr.Out; \
+\        D Join G : Always {s. ALL elt: set (distr.iIn s). elt < Nclients} |] \
+\ ==> D Join G : Always \
+\         {s. setsum (%i. bag_of (sublist (distr.In s) \
+\                                 {k. k < length (iIn s) & iIn s ! k = i})) \
+\                    (lessThan Nclients)   = \
+\             bag_of (sublist (distr.In s) (lessThan (length (iIn s))))}";
+by (etac ([asm_rl, UNIV_AlwaysI] MRS (Always_Compl_Un_eq RS iffD1)) 1);
+by Auto_tac; 
 by (stac (bag_of_sublist_UN_disjoint RS sym) 1); 
-by (force_tac (claset(), simpset() addsimps []) 1); 
-by (blast_tac (claset() addIs [bounded_nat_set_is_finite]) 1); 
-by (Clarify_tac 1); 
-
-by (simp_tac (simpset() addsimps [o_def]) 1); 
-by (asm_full_simp_tac (simpset() delsimps [sublist_upt_eq_take]
-                                 addsimps [bag_of_sublist]) 1); 
-by (rtac Follows_trans 1); 
-by (rtac Follows_setsum 2);
-by (asm_full_simp_tac (simpset() addsimps []) 3);
-by (Clarify_tac 2); 
-by (asm_full_simp_tac (simpset() addsimps [o_assoc RS sym]) 2); 
-by (rtac (impOfSubs (mono_bag_of RS mono_Follows_o)) 2);
-
-(*Now need to invoke the merge_follows guarantee*)
- 
-by (asm_full_simp_tac (simpset() addsimps [merge_spec_def,merge_follows_def]) 2); 
-
-
-by (res_inst_tac [("f", "%s. bag_of (sublist (merge.Out s) {..length(merge.iOut s)(})")] 
-                  Always_Follows 1);
-
-
-
-
-
-
-
-
-by (rtac guaranteesI 1);
-by (res_inst_tac 
-    [("f", "%s. bag_of (sublist (merge.Out s) {..length(merge.iOut s)(})")] 
-    Always_Follows 1);
-by (etac (Merge_Always_Out_eq_iOut RS Always_Compl_Un_eq RS iffD1) 1);
-by (force_tac (claset() addIs [UNIV_AlwaysI], simpset() addsimps [o_apply]) 3);
-by (Asm_full_simp_tac 1); 
-by (Asm_full_simp_tac 1);
-by (asm_full_simp_tac (simpset() delsimps [sublist_upt_eq_take]
-                                 addsimps [bag_of_sublist]) 1); 
-by (rtac Follows_trans 1); 
-by (rtac Follows_setsum 2);
-by (asm_full_simp_tac (simpset() addsimps []) 3);
-by (Clarify_tac 2); 
-by (asm_full_simp_tac (simpset() addsimps [o_assoc RS sym]) 2); 
-by (rtac (impOfSubs (mono_bag_of RS mono_Follows_o)) 2);
-
-(*Now need to invoke the merge_follows guarantee*)
- 
-by (asm_full_simp_tac (simpset() addsimps [merge_spec_def,merge_follows_def]) 2); 
-
-
-by (res_inst_tac [("f", "%s. bag_of (sublist (merge.Out s) {..length(merge.iOut s)(})")] 
-                  Always_Follows 1);
-
-setsum (%i. if i < length l then {# nth l i #} else {#}) {..length (iOut s)(}
-
-             : (%s. bag_of
-                     (sublist (merge.Out s) {..length (iOut s)(})) Fols
-               (%s. setsum (%i. (bag_of o sub i o merge.In) s)
-                     {..Nclients(})
-
-
-	  (%s. sublist (merge.Out s) 
-                       {k. k < size(merge.iOut s) & nth(merge.iOut s)k = i})
-	  Fols (sub i o merge.In))"
-
-
-by Auto_tac;
-by (dtac guaranteesD 1);
-by Auto_tac;
-by (rtac guaranteesI 1);
-
-merge_eqOut
-
-Always_Int_eq
-
-
-by (simp_tac (simpset() addsimps [o_def]) 1);
+  by (Simp_tac 1);
+ by (Blast_tac 1); 
+by (asm_full_simp_tac (simpset() addsimps [set_conv_nth]) 1); 
 by (subgoal_tac
-    "ALL s. merge.Out s = sublist (merge.Out s) {..length(merge.iOut s)(}" 1);
-by (etac ssubst 1);
-by (asm_simp_tac (simpset() addsimps [bag_of_sublist]) 1);
-by (stac bag_of_sublist 1);
+    "(UN i:lessThan Nclients. {k. k < length (iIn x) & iIn x ! k = i}) = \
+\    lessThan (length (iIn x))" 1);
+ by (Blast_tac 2); 
+by (Asm_simp_tac 1); 
+qed "Distr_Bag_Follows_lemma";
 
+
+Goal "D : distr_follows \
+\ ==> D : Increasing distr.In Int Increasing distr.iIn Int \
+\     Always {s. ALL elt : set (distr.iIn s). elt < Nclients} \
+\     guarantees[distr.Out] \
+\      (INT i : lessThan Nclients. \
+\       (%s. setsum (%i. (bag_of o sub i o distr.Out) s) (lessThan Nclients)) \
+\       Fols \
+\       (%s. bag_of (sublist (distr.In s) (lessThan (length(distr.iIn s))))))";
+by (rtac guaranteesI 1);
+by (Clarify_tac 1);
+by (rtac (Distr_Bag_Follows_lemma RS Always_Follows2) 1);
+by Auto_tac;
+by (rtac Follows_setsum 1);
+by (auto_tac (claset(), 
+              simpset() addsimps [distr_follows_def, o_def]));
+by (best_tac (claset() addIs [impOfSubs (mono_bag_of RS mono_Follows_apply)]
+                       addDs [guaranteesD]) 1);
+qed "Distr_Bag_Follows";
+
+(*
+(INT i : lessThan Nclients. Increasing (sub i o allocAsk) Int
+	                             Increasing (sub i o allocRel))
+         Int
+         Always {s. ALL i. i<Nclients -->
+		     (ALL elt : set ((sub i o allocAsk) s). elt <= NbT)}
+         Int
+         (INT i : lessThan Nclients. 
+	  INT h. {s. h <= (sub i o allocGiv)s & h pfixGe (sub i o allocAsk)s}
+		 LeadsTo
+	         {s. tokens h <= (tokens o sub i o allocRel)s})
+<=
+(INT i : lessThan Nclients. Increasing (sub i o allocAsk) Int
+	                             Increasing (sub i o allocRel))
+         Int
+         Always {s. ALL i. i<Nclients -->
+		     (ALL elt : set ((sub i o allocAsk) s). elt <= NbT)}
+         Int
+         (INT h. {s. h <= (sub i o allocGiv)s & h pfixGe (sub i o allocAsk)s}
+		 LeadsTo
+	         {s. tokens h <= (tokens o sub i o allocRel)s})
+*)
