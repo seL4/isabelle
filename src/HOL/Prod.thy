@@ -14,7 +14,7 @@ Prod = Fun +
 (* type definition *)
 
 consts
-  Pair_Rep      :: "['a, 'b] => ['a, 'b] => bool"
+  Pair_Rep      :: ['a, 'b] => ['a, 'b] => bool
 
 defs
   Pair_Rep_def  "Pair_Rep == (%a b. %x y. x=a & y=b)"
@@ -40,9 +40,9 @@ types pttrns
 syntax
   "@Tuple"      :: "['a, args] => 'a * 'b"            ("(1'(_,/ _'))")
 
-  "@pttrn"  :: "[pttrn,pttrns] => pttrn"              ("'(_,/_')")
-  ""        :: " pttrn         => pttrns"             ("_")
-  "@pttrns" :: "[pttrn,pttrns] => pttrns"             ("_,/_")
+  "@pttrn"  :: [pttrn,pttrns] => pttrn              ("'(_,/_')")
+  ""        ::  pttrn         => pttrns             ("_")
+  "@pttrns" :: [pttrn,pttrns] => pttrns             ("_,/_")
 
 translations
   "(x, y, z)"   == "(x, (y, z))"
@@ -69,7 +69,7 @@ subtype (Unit)
   unit = "{p. p = True}"
 
 consts
-  "()"          :: "unit"                           ("'(')")
+  "()"          :: unit                           ("'(')")
 
 defs
   Unity_def     "() == Abs_Unit(True)"

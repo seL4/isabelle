@@ -35,33 +35,33 @@ consts
 
   (* Constants *)
 
-  Trueprop      :: "bool => prop"                     ("(_)" 5)
-  not           :: "bool => bool"                     ("~ _" [40] 40)
-  True, False   :: "bool"
-  If            :: "[bool, 'a, 'a] => 'a"   ("(if (_)/ then (_)/ else (_))" 10)
-  Inv           :: "('a => 'b) => ('b => 'a)"
+  Trueprop      :: bool => prop                     ("(_)" 5)
+  not           :: bool => bool                     ("~ _" [40] 40)
+  True, False   :: bool
+  If            :: [bool, 'a, 'a] => 'a   ("(if (_)/ then (_)/ else (_))" 10)
+  Inv           :: ('a => 'b) => ('b => 'a)
 
   (* Binders *)
 
-  Eps           :: "('a => bool) => 'a"
-  All           :: "('a => bool) => bool"             (binder "! " 10)
-  Ex            :: "('a => bool) => bool"             (binder "? " 10)
-  Ex1           :: "('a => bool) => bool"             (binder "?! " 10)
-  Let           :: "['a, 'a => 'b] => 'b"
+  Eps           :: ('a => bool) => 'a
+  All           :: ('a => bool) => bool             (binder "! " 10)
+  Ex            :: ('a => bool) => bool             (binder "? " 10)
+  Ex1           :: ('a => bool) => bool             (binder "?! " 10)
+  Let           :: ['a, 'a => 'b] => 'b
 
   (* Infixes *)
 
-  o             :: "['b => 'c, 'a => 'b, 'a] => 'c"   (infixl 55)
-  "="           :: "['a, 'a] => bool"                 (infixl 50)
-  "&"           :: "[bool, bool] => bool"             (infixr 35)
-  "|"           :: "[bool, bool] => bool"             (infixr 30)
-  "-->"         :: "[bool, bool] => bool"             (infixr 25)
+  o             :: ['b => 'c, 'a => 'b, 'a] => 'c   (infixl 55)
+  "="           :: ['a, 'a] => bool                 (infixl 50)
+  "&"           :: [bool, bool] => bool             (infixr 35)
+  "|"           :: [bool, bool] => bool             (infixr 30)
+  "-->"         :: [bool, bool] => bool             (infixr 25)
 
   (* Overloaded Constants *)
 
-  "+"           :: "['a::plus, 'a] => 'a"             (infixl 65)
-  "-"           :: "['a::minus, 'a] => 'a"            (infixl 65)
-  "*"           :: "['a::times, 'a] => 'a"            (infixl 70)
+  "+"           :: ['a::plus, 'a] => 'a             (infixl 65)
+  "-"           :: ['a::minus, 'a] => 'a            (infixl 65)
+  "*"           :: ['a::times, 'a] => 'a            (infixl 70)
 
 
 types
@@ -70,29 +70,29 @@ types
 
 syntax
 
-  "~="          :: "['a, 'a] => bool"                 (infixl 50)
+  "~="          :: ['a, 'a] => bool                 (infixl 50)
 
-  "@Eps"        :: "[pttrn,bool] => 'a"               ("(3@ _./ _)" 10)
+  "@Eps"        :: [pttrn,bool] => 'a               ("(3@ _./ _)" 10)
 
   (* Alternative Quantifiers *)
 
-  "*All"        :: "[idts, bool] => bool"             ("(3ALL _./ _)" 10)
-  "*Ex"         :: "[idts, bool] => bool"             ("(3EX _./ _)" 10)
-  "*Ex1"        :: "[idts, bool] => bool"             ("(3EX! _./ _)" 10)
+  "*All"        :: [idts, bool] => bool             ("(3ALL _./ _)" 10)
+  "*Ex"         :: [idts, bool] => bool             ("(3EX _./ _)" 10)
+  "*Ex1"        :: [idts, bool] => bool             ("(3EX! _./ _)" 10)
 
   (* Let expressions *)
 
-  "_bind"       :: "[pttrn, 'a] => letbind"           ("(2_ =/ _)" 10)
-  ""            :: "letbind => letbinds"              ("_")
-  "_binds"      :: "[letbind, letbinds] => letbinds"  ("_;/ _")
-  "_Let"        :: "[letbinds, 'a] => 'a"             ("(let (_)/ in (_))" 10)
+  "_bind"       :: [pttrn, 'a] => letbind           ("(2_ =/ _)" 10)
+  ""            :: letbind => letbinds              ("_")
+  "_binds"      :: [letbind, letbinds] => letbinds  ("_;/ _")
+  "_Let"        :: [letbinds, 'a] => 'a             ("(let (_)/ in (_))" 10)
 
   (* Case expressions *)
 
-  "@case"       :: "['a, cases_syn] => 'b"            ("(case _ of/ _)" 10)
-  "@case1"      :: "['a, 'b] => case_syn"             ("(2_ =>/ _)" 10)
-  ""            :: "case_syn => cases_syn"            ("_")
-  "@case2"      :: "[case_syn, cases_syn] => cases_syn"   ("_/ | _")
+  "@case"       :: ['a, cases_syn] => 'b            ("(case _ of/ _)" 10)
+  "@case1"      :: ['a, 'b] => case_syn             ("(2_ =>/ _)" 10)
+  ""            :: case_syn => cases_syn            ("_")
+  "@case2"      :: [case_syn, cases_syn] => cases_syn   ("_/ | _")
 
 translations
   "x ~= y"      == "~ (x = y)"

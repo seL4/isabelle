@@ -12,8 +12,8 @@ instance
   nat :: {plus, minus, times}
 
 consts
-  pred      :: "nat => nat"
-  div, mod  :: "[nat, nat] => nat"  (infixl 70)
+  pred      :: nat => nat
+  div, mod  :: [nat, nat] => nat  (infixl 70)
 
 defs
   pred_def  "pred(m) == nat_rec m 0 (%n r.n)"

@@ -12,9 +12,9 @@ axclass
   ord < term
 
 consts
-  "<", "<="     :: "['a::ord, 'a] => bool"              (infixl 50)
-  mono          :: "['a::ord => 'b::ord] => bool"       (*monotonicity*)
-  min, max      :: "['a::ord, 'a] => 'a"
+  "<", "<="     :: ['a::ord, 'a] => bool              (infixl 50)
+  mono          :: ['a::ord => 'b::ord] => bool       (*monotonicity*)
+  min, max      :: ['a::ord, 'a] => 'a
 
 defs
   mono_def      "mono(f) == (!A B. A <= B --> f(A) <= f(B))"

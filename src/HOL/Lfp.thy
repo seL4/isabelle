@@ -7,7 +7,7 @@ The Knaster-Tarski Theorem
 *)
 
 Lfp = mono + Prod +
-consts lfp :: "['a set=>'a set] => 'a set"
+consts lfp :: ['a set=>'a set] => 'a set
 defs
  (*least fixed point*)
  lfp_def "lfp(f) == Inter({u. f(u) <= u})"

@@ -11,8 +11,8 @@ Sum = Prod +
 (* type definition *)
 
 consts
-  Inl_Rep       :: "['a, 'a, 'b, bool] => bool"
-  Inr_Rep       :: "['b, 'a, 'b, bool] => bool"
+  Inl_Rep       :: ['a, 'a, 'b, bool] => bool
+  Inr_Rep       :: ['b, 'a, 'b, bool] => bool
 
 defs
   Inl_Rep_def   "Inl_Rep == (%a. %x y p. x=a & p)"
@@ -32,7 +32,7 @@ consts
 
   (*disjoint sum for sets; the operator + is overloaded with wrong type!*)
   "plus"        :: "['a set, 'b set] => ('a + 'b) set"        (infixr 65)
-  Part          :: "['a set, 'b => 'a] => 'a set"
+  Part          :: ['a set, 'b => 'a] => 'a set
 
 translations
   "case p of Inl(x) => a | Inr(y) => b" == "sum_case (%x.a) (%y.b) p"

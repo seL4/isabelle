@@ -8,7 +8,7 @@ S-expressions, general binary trees for defining recursive data structures
 
 Sexp = Univ +
 consts
-  sexp      :: "'a item set"
+  sexp      :: 'a item set
 
   sexp_case :: "['a=>'b, nat=>'b, ['a item, 'a item]=>'b, 
                 'a item] => 'b"

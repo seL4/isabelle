@@ -19,8 +19,8 @@ arities
   ind :: term
 
 consts
-  Zero_Rep      :: "ind"
-  Suc_Rep       :: "ind => ind"
+  Zero_Rep      :: ind
+  Suc_Rep       :: ind => ind
 
 rules
   (*the axiom of infinity in 2 parts*)
@@ -43,11 +43,11 @@ instance
 (* abstract constants and syntax *)
 
 consts
-  "0"           :: "nat"                ("0")
-  Suc           :: "nat => nat"
-  nat_case      :: "['a, nat => 'a, nat] => 'a"
+  "0"           :: nat                ("0")
+  Suc           :: nat => nat
+  nat_case      :: ['a, nat => 'a, nat] => 'a
   pred_nat      :: "(nat * nat) set"
-  nat_rec       :: "[nat, 'a, [nat, 'a] => 'a] => 'a"
+  nat_rec       :: [nat, 'a, [nat, 'a] => 'a] => 'a
 
 translations
   "case p of 0 => a | Suc(y) => b" == "nat_case a (%y.b) p"

@@ -22,27 +22,27 @@ types
   'a item = "'a node set"
 
 consts
-  Least     :: "(nat=>bool) => nat"    (binder "LEAST " 10)
+  Least     :: (nat=>bool) => nat    (binder "LEAST " 10)
 
   apfst     :: "['a=>'c, 'a*'b] => 'c*'b"
-  Push      :: "[nat, nat=>nat] => (nat=>nat)"
+  Push      :: [nat, nat=>nat] => (nat=>nat)
 
-  Push_Node :: "[nat, 'a node] => 'a node"
-  ndepth    :: "'a node => nat"
+  Push_Node :: [nat, 'a node] => 'a node
+  ndepth    :: 'a node => nat
 
   Atom      :: "('a+nat) => 'a item"
-  Leaf      :: "'a => 'a item"
-  Numb      :: "nat => 'a item"
-  "$"       :: "['a item, 'a item]=> 'a item"   (infixr 60)
-  In0,In1   :: "'a item => 'a item"
+  Leaf      :: 'a => 'a item
+  Numb      :: nat => 'a item
+  "$"       :: ['a item, 'a item]=> 'a item   (infixr 60)
+  In0,In1   :: 'a item => 'a item
 
-  ntrunc    :: "[nat, 'a item] => 'a item"
+  ntrunc    :: [nat, 'a item] => 'a item
 
-  "<*>"  :: "['a item set, 'a item set]=> 'a item set" (infixr 80)
-  "<+>"  :: "['a item set, 'a item set]=> 'a item set" (infixr 70)
+  "<*>"  :: ['a item set, 'a item set]=> 'a item set (infixr 80)
+  "<+>"  :: ['a item set, 'a item set]=> 'a item set (infixr 70)
 
-  Split  :: "[['a item, 'a item]=>'b, 'a item] => 'b"
-  Case   :: "[['a item]=>'b, ['a item]=>'b, 'a item] => 'b"
+  Split  :: [['a item, 'a item]=>'b, 'a item] => 'b
+  Case   :: [['a item]=>'b, ['a item]=>'b, 'a item] => 'b
 
   diag   :: "'a set => ('a * 'a)set"
   "<**>" :: "[('a item * 'a item)set, ('a item * 'a item)set] 

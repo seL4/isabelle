@@ -16,45 +16,45 @@ instance
   set :: (term) {ord, minus}
 
 consts
-  "{}"          :: "'a set"                           ("{}")
-  insert        :: "['a, 'a set] => 'a set"
-  Collect       :: "('a => bool) => 'a set"               (*comprehension*)
-  Compl         :: "('a set) => 'a set"                   (*complement*)
-  Int           :: "['a set, 'a set] => 'a set"       (infixl 70)
-  Un            :: "['a set, 'a set] => 'a set"       (infixl 65)
-  UNION, INTER  :: "['a set, 'a => 'b set] => 'b set"     (*general*)
-  UNION1        :: "['a => 'b set] => 'b set"         (binder "UN " 10)
-  INTER1        :: "['a => 'b set] => 'b set"         (binder "INT " 10)
-  Union, Inter  :: "(('a set)set) => 'a set"              (*of a set*)
-  Pow           :: "'a set => 'a set set"                 (*powerset*)
-  range         :: "('a => 'b) => 'b set"                 (*of function*)
-  Ball, Bex     :: "['a set, 'a => bool] => bool"         (*bounded quantifiers*)
-  inj, surj     :: "('a => 'b) => bool"                   (*inj/surjective*)
-  inj_onto      :: "['a => 'b, 'a set] => bool"
-  "``"          :: "['a => 'b, 'a set] => ('b set)"   (infixl 90)
-  ":"           :: "['a, 'a set] => bool"             (infixl 50) (*membership*)
+  "{}"          :: 'a set                           ("{}")
+  insert        :: ['a, 'a set] => 'a set
+  Collect       :: ('a => bool) => 'a set               (*comprehension*)
+  Compl         :: ('a set) => 'a set                   (*complement*)
+  Int           :: ['a set, 'a set] => 'a set       (infixl 70)
+  Un            :: ['a set, 'a set] => 'a set       (infixl 65)
+  UNION, INTER  :: ['a set, 'a => 'b set] => 'b set     (*general*)
+  UNION1        :: ['a => 'b set] => 'b set         (binder "UN " 10)
+  INTER1        :: ['a => 'b set] => 'b set         (binder "INT " 10)
+  Union, Inter  :: (('a set)set) => 'a set              (*of a set*)
+  Pow           :: 'a set => 'a set set                 (*powerset*)
+  range         :: ('a => 'b) => 'b set                 (*of function*)
+  Ball, Bex     :: ['a set, 'a => bool] => bool         (*bounded quantifiers*)
+  inj, surj     :: ('a => 'b) => bool                   (*inj/surjective*)
+  inj_onto      :: ['a => 'b, 'a set] => bool
+  "``"          :: ['a => 'b, 'a set] => ('b set)   (infixl 90)
+  ":"           :: ['a, 'a set] => bool             (infixl 50) (*membership*)
 
 
 syntax
 
-  "~:"          :: "['a, 'a set] => bool"             (infixl 50)
+  "~:"          :: ['a, 'a set] => bool             (infixl 50)
 
-  "@Finset"     :: "args => 'a set"                   ("{(_)}")
+  "@Finset"     :: args => 'a set                   ("{(_)}")
 
-  "@Coll"       :: "[pttrn, bool] => 'a set"          ("(1{_./ _})")
-  "@SetCompr"   :: "['a, idts, bool] => 'a set"       ("(1{_ |/_./ _})")
+  "@Coll"       :: [pttrn, bool] => 'a set          ("(1{_./ _})")
+  "@SetCompr"   :: ['a, idts, bool] => 'a set       ("(1{_ |/_./ _})")
 
   (* Big Intersection / Union *)
 
-  "@INTER"      :: "[pttrn, 'a set, 'b set] => 'b set"  ("(3INT _:_./ _)" 10)
-  "@UNION"      :: "[pttrn, 'a set, 'b set] => 'b set"  ("(3UN _:_./ _)" 10)
+  "@INTER"      :: [pttrn, 'a set, 'b set] => 'b set  ("(3INT _:_./ _)" 10)
+  "@UNION"      :: [pttrn, 'a set, 'b set] => 'b set  ("(3UN _:_./ _)" 10)
 
   (* Bounded Quantifiers *)
 
-  "@Ball"       :: "[pttrn, 'a set, bool] => bool"      ("(3! _:_./ _)" 10)
-  "@Bex"        :: "[pttrn, 'a set, bool] => bool"      ("(3? _:_./ _)" 10)
-  "*Ball"       :: "[pttrn, 'a set, bool] => bool"      ("(3ALL _:_./ _)" 10)
-  "*Bex"        :: "[pttrn, 'a set, bool] => bool"      ("(3EX _:_./ _)" 10)
+  "@Ball"       :: [pttrn, 'a set, bool] => bool      ("(3! _:_./ _)" 10)
+  "@Bex"        :: [pttrn, 'a set, bool] => bool      ("(3? _:_./ _)" 10)
+  "*Ball"       :: [pttrn, 'a set, bool] => bool      ("(3ALL _:_./ _)" 10)
+  "*Bex"        :: [pttrn, 'a set, bool] => bool      ("(3EX _:_./ _)" 10)
 
 translations
   "x ~: y"      == "~ (x : y)"

@@ -7,7 +7,7 @@ Greatest fixed points (requires Lfp too!)
 *)
 
 Gfp = Lfp +
-consts gfp :: "['a set=>'a set] => 'a set"
+consts gfp :: ['a set=>'a set] => 'a set
 defs
  (*greatest fixed point*)
  gfp_def "gfp(f) == Union({u. u <= f(u)})"

@@ -7,7 +7,7 @@ Finite powerset operator
 *)
 
 Finite = Lfp +
-consts Fin :: "'a set => 'a set set"
+consts Fin :: 'a set => 'a set set
 
 inductive "Fin(A)"
   intrs
