@@ -12,13 +12,13 @@ Fix = Cfun3 +
 
 consts
 
-iterate :: "nat=>('a->'a)=>'a=>'a"
-Ifix    :: "('a->'a)=>'a"
-fix     :: "('a->'a)->'a"
-adm          :: "('a=>bool)=>bool"
-admw         :: "('a=>bool)=>bool"
-chain_finite :: "'a=>bool"
-is_flat         :: "'a=>bool"
+iterate	:: "nat=>('a->'a)=>'a=>'a"
+Ifix	:: "('a->'a)=>'a"
+fix	:: "('a->'a)->'a"
+adm		:: "('a=>bool)=>bool"
+admw		:: "('a=>bool)=>bool"
+chain_finite	:: "'a=>bool"
+is_flat		:: "'a=>bool" (* should be called flat, for consistency *)
 
 defs
 
