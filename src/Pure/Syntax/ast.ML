@@ -22,6 +22,10 @@ signature AST1 =
   val pretty_ast: ast -> Pretty.T
   val pretty_rule: ast * ast -> Pretty.T
   val pprint_ast: ast -> pprint_args -> unit
+  val fold_ast: string -> ast list -> ast
+  val fold_ast_p: string -> ast list * ast -> ast
+  val unfold_ast: string -> ast -> ast list
+  val unfold_ast_p: string -> ast -> ast list * ast
   val trace_ast: bool ref
   val stat_ast: bool ref
   end;
@@ -31,10 +35,6 @@ signature AST =
   include AST1
   val head_of_rule: ast * ast -> string
   val rule_error: ast * ast -> string option
-  val fold_ast: string -> ast list -> ast
-  val fold_ast_p: string -> ast list * ast -> ast
-  val unfold_ast: string -> ast -> ast list
-  val unfold_ast_p: string -> ast -> ast list * ast
   val normalize: bool -> bool -> (string -> (ast * ast) list) -> ast -> ast
   val normalize_ast: (string -> (ast * ast) list) -> ast -> ast
   end;
