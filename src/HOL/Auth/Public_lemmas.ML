@@ -91,25 +91,6 @@ AddIffs [spies_pubK, spies_pubK RS analz.Inj];
 AddSIs  [Spy_spies_bad];
 
 
-(*For not_bad_tac*)
-Goal "[| Crypt (pubK A) X : analz (spies evs);  A: bad |] \
-\           ==> X : analz (spies evs)";
-by (blast_tac (claset() addSDs [analz.Decrypt]) 1);
-qed "Crypt_Spy_analz_bad";
-
-(*Prove that the agent is uncompromised by the confidentiality of 
-  a component of a message she's said.*)
-fun not_bad_tac s =
-    case_tac ("(" ^ s ^ ") : bad") THEN'
-    SELECT_GOAL 
-      (REPEAT_DETERM (dtac (Says_imp_spies RS analz.Inj) 1) THEN
-       REPEAT_DETERM (etac MPair_analz 1) THEN
-       THEN_BEST_FIRST 
-         (dres_inst_tac [("A", s)] Crypt_Spy_analz_bad 1 THEN assume_tac 1)
-         (has_fewer_prems 1, size_of_thm)
-         Safe_tac);
-
-
 (*** Fresh nonces ***)
 
 Goal "Nonce N ~: parts (initState B)";
