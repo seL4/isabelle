@@ -651,7 +651,7 @@ lemma order_eq_refl: "!!x::'a::order. x = y ==> x <= y"
   apply (rule order_refl)
   done
 
-lemma order_less_irrefl [simp]: "~ x < (x::'a::order)"
+lemma order_less_irrefl [iff]: "~ x < (x::'a::order)"
   by (simp add: order_less_le)
 
 lemma order_le_less: "((x::'a::order) <= y) = (x < y | x = y)"
