@@ -18,14 +18,6 @@ defs
 
   confluent_def "confluent(R) == diamond(R^*)"
 
-  confluent1_def
-  "confluent1(R) ==
-   !x y z. (x,y):R --> (x,z):R^* --> (EX u. (y,u):R^* & (z,u):R^*)"
-
-  confluent2_def
-  "confluent2(R) ==
-   !x y z. (x,y):R --> (x,z):R^* --> (EX u. (y,u):R^* & (z,u):R)"
-
   Church_Rosser_def "Church_Rosser(R) ==   
- !x y. (x,y) : (R Un converse(R))^* --> (? z. (x,z) : R^* & (y,z) : R^*)"
+  !x y. (x,y) : (R Un converse(R))^* --> (? z. (x,z) : R^* & (y,z) : R^*)"
 end
