@@ -1,3 +1,4 @@
+
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
@@ -239,10 +240,14 @@ of "lam" -- INCOMPATIBILITY;
 for ML tools): const "()" renamed "Product_Type.Unity", type "unit"
 renamed "Product_Type.unit";
 
-* HOL/GroupTheory: group theory examples including Sylow's theorem, by
-Florian Kammüller;
-
 * HOL: renamed rtrancl_into_rtrancl2 to converse_rtrancl_into_rtrancl
+
+* HOL/GroupTheory: group theory examples including Sylow's theorem (by
+Florian Kammüller);
+
+* HOL/IMP: updated and converted to new-style theory; several parts
+turned into readable document, with proper Isar proof texts and some
+explanations (by Gerwin Klein);
 
 
 *** HOLCF ***
@@ -250,6 +255,8 @@ Florian Kammüller;
 * proper rep_datatype lift (see theory Lift) instead of ML hacks --
 potential INCOMPATIBILITY; now use plain induct_tac instead of former
 lift.induct_tac, always use UU instead of Undef;
+
+* HOLCF/IMP: updated and converted to new-style theory;
 
 
 *** ZF ***
@@ -318,6 +325,9 @@ http://fink.sourceforge.net/);
 
 * system: Proof General keywords specification is now part of the
 Isabelle distribution (see etc/isar-keywords.el);
+
+* system: some support for persistent Proof General sessions (refrain
+from outdating all loaded theories on startup);
 
 * system: smart selection of Isabelle process versus Isabelle
 interface, accommodates case-insensitive file systems (e.g. HFS+); may
