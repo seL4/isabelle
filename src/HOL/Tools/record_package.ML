@@ -659,6 +659,8 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
 
     (* basic components *)
 
+    val rN = "r";
+
     val alphas = map fst args;
     val name = Sign.full_name sign bname;       (*not made part of record name space!*)
 
@@ -666,7 +668,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
     val parent_names = map fst parent_fields;
     val parent_types = map snd parent_fields;
     val parent_len = length parent_fields;
-    val parent_xs = variantlist (map (base o fst) parent_fields, [moreN]);
+    val parent_xs = variantlist (map (base o fst) parent_fields, [moreN, rN]);
     val parent_vars = ListPair.map Free (parent_xs, parent_types);
     val parent_named_vars = parent_names ~~ parent_vars;
 
@@ -674,7 +676,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
     val names = map fst fields;
     val types = map snd fields;
     val len = length fields;
-    val xs = variantlist (map fst bfields, moreN :: parent_xs);
+    val xs = variantlist (map fst bfields, moreN :: rN :: parent_xs);
     val vars = ListPair.map Free (xs, types);
     val named_vars = names ~~ vars;
 
@@ -698,7 +700,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
 
     val rec_schemeT = mk_recordT (all_fields, moreT);
     val rec_scheme = mk_record (all_named_vars, more);
-    val r = Free ("r", rec_schemeT);
+    val r = Free (rN, rec_schemeT);
     val recT = mk_recordT (all_fields, HOLogic.unitT);
 
 
