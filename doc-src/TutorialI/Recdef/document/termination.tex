@@ -35,10 +35,9 @@ showing you what it was unable to prove:
 We can either prove this as a separate lemma, or try to figure out which
 existing lemmas may help. We opt for the second alternative. The theory of
 lists contains the simplification rule \isa{length\ {\isacharparenleft}filter\ P\ xs{\isacharparenright}\ {\isasymle}\ length\ xs},
-which is already
-close to what we need, except that we still need to turn \mbox{\isa{{\isacharless}\ Suc}}
+which is what we need, provided we turn \mbox{\isa{{\isacharless}\ Suc}}
 into
-\isa{{\isasymle}} for the simplification rule to apply. Lemma
+\isa{{\isasymle}} so that the rule applies. Lemma
 \isa{less{\isacharunderscore}Suc{\isacharunderscore}eq{\isacharunderscore}le} does just that: \isa{{\isacharparenleft}m\ {\isacharless}\ Suc\ n{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}m\ {\isasymle}\ n{\isacharparenright}}.
 
 Now we retry the above definition but supply the lemma(s) just found (or

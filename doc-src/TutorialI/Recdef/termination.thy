@@ -28,11 +28,10 @@ showing you what it was unable to prove:
 @{text[display]"length (filter ... xs) < Suc (length xs)"}
 We can either prove this as a separate lemma, or try to figure out which
 existing lemmas may help. We opt for the second alternative. The theory of
-lists contains the simplification rule @{thm length_filter[no_vars]},
-which is already
-close to what we need, except that we still need to turn \mbox{@{text"< Suc"}}
+lists contains the simplification rule @{thm length_filter_le[no_vars]},
+which is what we need, provided we turn \mbox{@{text"< Suc"}}
 into
-@{text"\<le>"} for the simplification rule to apply. Lemma
+@{text"\<le>"} so that the rule applies. Lemma
 @{thm[source]less_Suc_eq_le} does just that: @{thm less_Suc_eq_le[no_vars]}.
 
 Now we retry the above definition but supply the lemma(s) just found (or
