@@ -23,6 +23,8 @@ sig
   val beginning: symbol list -> string
   val scan: string list -> symbol * string list
   val explode: string -> symbol list
+  val length: symbol list -> int
+  val size: string -> int
   val input: string -> string
   val output: string -> string
   val source: bool -> (string, 'a) Source.source ->
@@ -246,6 +248,12 @@ fun sym_explode str =
   end;
 
 
+(* printable length *)
+
+fun sym_length ss = foldl (fn (n, c) => if is_printable c then n + 1 else n) (0, ss);
+val sym_size = sym_length o sym_explode;
+
+
 (* input / output *)
 
 fun input str =
@@ -257,8 +265,10 @@ fun input str =
 val output = implode o map char o sym_explode;
 
 
-(*final declaration of this structure!*)
+(*final declarations of this structure!*)
 val explode = sym_explode;
+val length = sym_length;
+val size = sym_size;
 
 
 end;
