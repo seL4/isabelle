@@ -173,7 +173,7 @@ lemma eval_gext_lemma [rule_format (no_asm)]:
   | In2 vf \<Rightarrow> normal s \<longrightarrow> (\<forall>v x s. s\<le>|snd (assign (snd vf) v (x,s)))  
   | In3 vs \<Rightarrow> True)"
 apply (erule eval_induct)
-prefer 24 
+prefer 26 
   apply (case_tac "inited C (globs s0)", clarsimp, erule thin_rl) (* Init *)
 apply (auto del: conjI  dest!: not_initedD gext_new sxalloc_gext halloc_gext
  simp  add: lvar_def fvar_def2 avar_def2 init_lvars_def2 
@@ -1257,13 +1257,13 @@ proof -
     obtain       conf_s1: "s1\<Colon>\<preceq>(G, L)" and 
            error_free_s1: "error_free s1" 
       by (blast)
-    from conf_s1 have "abupd (absorb (Break l)) s1\<Colon>\<preceq>(G, L)"
+    from conf_s1 have "abupd (absorb l) s1\<Colon>\<preceq>(G, L)"
       by (cases s1) (auto intro: conforms_absorb)
     with wt error_free_s1
-    show "abupd (absorb (Break l)) s1\<Colon>\<preceq>(G, L) \<and>
-          (normal (abupd (absorb (Break l)) s1)
-           \<longrightarrow> G,L,store (abupd (absorb (Break l)) s1)\<turnstile>In1r (l\<bullet> c)\<succ>\<diamondsuit>\<Colon>\<preceq>T) \<and>
-          (error_free (Norm s0) = error_free (abupd (absorb (Break l)) s1))"
+    show "abupd (absorb l) s1\<Colon>\<preceq>(G, L) \<and>
+          (normal (abupd (absorb l) s1)
+           \<longrightarrow> G,L,store (abupd (absorb l) s1)\<turnstile>In1r (l\<bullet> c)\<succ>\<diamondsuit>\<Colon>\<preceq>T) \<and>
+          (error_free (Norm s0) = error_free (abupd (absorb l) s1))"
       by (simp)
   next
     case (Comp c1 c2 s0 s1 s2 L accC T)
@@ -1463,9 +1463,12 @@ proof -
       qed
     qed
   next
-    case (Fin c1 c2 s0 s1 s2 x1 L accC T)
+    case (Fin c1 c2 s0 s1 s2 s3 x1 L accC T)
     have "G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> (x1, s1)" .
     have c2: "G\<turnstile>Norm s1 \<midarrow>c2\<rightarrow> s2" .
+    have s3: "s3= (if \<exists>err. x1 = Some (Error err) 
+                     then (x1, s1)
+                     else abupd (abrupt_if (x1 \<noteq> None) x1) s2)" .
     have  hyp_c1: "PROP ?TypeSafe (Norm s0) (x1,s1) (In1r c1) \<diamondsuit>" .
     have  hyp_c2: "PROP ?TypeSafe (Norm s1) s2      (In1r c2) \<diamondsuit>" .
     have conf_s0: "Norm s0\<Colon>\<preceq>(G, L)" .
@@ -1482,14 +1485,14 @@ proof -
     with wt_c2 hyp_c2
     obtain conf_s2: "s2\<Colon>\<preceq>(G, L)" and error_free_s2: "error_free s2"
       by blast
-    show "abupd (abrupt_if (x1 \<noteq> None) x1) s2\<Colon>\<preceq>(G, L) \<and>
-          (normal (abupd (abrupt_if (x1 \<noteq> None) x1) s2) 
-           \<longrightarrow> G,L,store (abupd (abrupt_if (x1 \<noteq> None) x1) s2)
-               \<turnstile>In1r (c1 Finally c2)\<succ>\<diamondsuit>\<Colon>\<preceq>T) \<and> 
-          (error_free (Norm s0) =
-              error_free (abupd (abrupt_if (x1 \<noteq> None) x1) s2))"
+    from error_free_s1 s3 
+    have s3': "s3=abupd (abrupt_if (x1 \<noteq> None) x1) s2"
+      by simp
+    show "s3\<Colon>\<preceq>(G, L) \<and>
+          (normal s3 \<longrightarrow> G,L,store s3 \<turnstile>In1r (c1 Finally c2)\<succ>\<diamondsuit>\<Colon>\<preceq>T) \<and> 
+          (error_free (Norm s0) = error_free s3)"
     proof (cases x1)
-      case None with conf_s2 wt show ?thesis by auto
+      case None with conf_s2 s3' wt show ?thesis by auto
     next
       case (Some x) 
       with c2 wf conf_s1 conf_s2
@@ -1501,7 +1504,7 @@ proof -
       with error_free_s2
       have "error_free (abrupt_if True (Some x) (abrupt s2), store s2)"
 	by (cases s2) simp
-      with Some wt conf show ?thesis
+      with Some wt conf s3' show ?thesis
 	by (cases s2) auto
     qed
   next
@@ -1679,6 +1682,60 @@ proof -
       by (auto elim!: wt_elim_cases 
                intro: conf_litval simp add: empty_dt_def)
   next
+    case (UnOp e s0 s1 unop v L accC T)
+    have hyp: "PROP ?TypeSafe (Norm s0) s1 (In1l e) (In1 v)" .
+    have conf_s0: "Norm s0\<Colon>\<preceq>(G, L)" .
+    have      wt: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1l (UnOp unop e)\<Colon>T" .
+    then obtain eT
+      where    wt_e: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>e\<Colon>-eT" and
+            wt_unop: "wt_unop unop eT" and
+                  T: "T=Inl (PrimT (unop_type unop))" 
+      by (auto elim!: wt_elim_cases)
+    from conf_s0 wt_e 
+    obtain     conf_s1: "s1\<Colon>\<preceq>(G, L)"  and
+                  wt_v: "normal s1 \<longrightarrow> G,store s1\<turnstile>v\<Colon>\<preceq>eT" and
+         error_free_s1: "error_free s1"
+      by (auto dest!: hyp)
+    from wt_v T wt_unop
+    have "normal s1\<longrightarrow>G,L,snd s1\<turnstile>In1l (UnOp unop e)\<succ>In1 (eval_unop unop v)\<Colon>\<preceq>T"
+      by (cases unop) auto
+    with conf_s1 error_free_s1
+    show "s1\<Colon>\<preceq>(G, L) \<and>
+     (normal s1 \<longrightarrow> G,L,snd s1\<turnstile>In1l (UnOp unop e)\<succ>In1 (eval_unop unop v)\<Colon>\<preceq>T) \<and>
+     error_free (Norm s0) = error_free s1"
+      by simp
+  next
+    case (BinOp binop e1 e2 s0 s1 s2 v1 v2 L accC T)
+    have hyp_e1: "PROP ?TypeSafe (Norm s0) s1 (In1l e1) (In1 v1)" .
+    have hyp_e2: "PROP ?TypeSafe       s1  s2 (In1l e2) (In1 v2)" .
+    have conf_s0: "Norm s0\<Colon>\<preceq>(G, L)" .
+    have      wt: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1l (BinOp binop e1 e2)\<Colon>T" .
+    then obtain e1T e2T where
+         wt_e1: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>e1\<Colon>-e1T" and
+         wt_e2: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>e2\<Colon>-e2T" and
+      wt_binop: "wt_binop G binop e1T e2T" and
+             T: "T=Inl (PrimT (binop_type binop))"
+      by (auto elim!: wt_elim_cases)
+    from conf_s0 wt_e1 
+    obtain      conf_s1: "s1\<Colon>\<preceq>(G, L)"  and
+                  wt_v1: "normal s1 \<longrightarrow> G,store s1\<turnstile>v1\<Colon>\<preceq>e1T" and
+          error_free_s1: "error_free s1"
+      by (auto dest!: hyp_e1)
+    from conf_s1 wt_e2 error_free_s1
+    obtain      conf_s2: "s2\<Colon>\<preceq>(G, L)"  and
+                  wt_v2: "normal s2 \<longrightarrow> G,store s2\<turnstile>v2\<Colon>\<preceq>e2T" and
+          error_free_s2: "error_free s2"
+      by (auto dest!: hyp_e2)
+    from wt_v1 wt_v2 wt_binop T
+    have "G,L,snd s2\<turnstile>In1l (BinOp binop e1 e2)\<succ>In1 (eval_binop binop v1 v2)\<Colon>\<preceq>T"
+      by (cases binop) auto
+    with conf_s2 error_free_s2
+    show "s2\<Colon>\<preceq>(G, L) \<and>
+          (normal s2 \<longrightarrow>
+        G,L,snd s2\<turnstile>In1l (BinOp binop e1 e2)\<succ>In1 (eval_binop binop v1 v2)\<Colon>\<preceq>T) \<and>
+          error_free (Norm s0) = error_free s2"
+      by simp
+  next
     case (Super s L accC T)
     have conf_s: "Norm s\<Colon>\<preceq>(G, L)" .
     have     wt: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1l Super\<Colon>T" .
@@ -1818,7 +1875,7 @@ proof -
     have     hyp_e: "PROP ?TypeSafe (Norm s0) s1 (In1l e) (In1 a')" .
     have  hyp_args: "PROP ?TypeSafe s1 s2 (In3 args) (In3 vs)" .
     have hyp_methd: "PROP ?TypeSafe s3' s4 
-                     (In1l (Methd invDeclC \<lparr>name = mn, parTs = pTs'\<rparr>)) (In1 v)".
+               (In1l (Methd invDeclC \<lparr>name = mn, parTs = pTs'\<rparr>)) (In1 v)".
     have conf_s0: "Norm s0\<Colon>\<preceq>(G, L)" .
     have      wt: "\<lparr>prg=G, cls=accC, lcl=L\<rparr>
                     \<turnstile>In1l ({accC',statT,mode}e\<cdot>mn( {pTs'}args))\<Colon>T" .
@@ -1995,7 +2052,7 @@ proof -
             \<turnstile>Body invDeclC (stmt (mbody (mthd dynM)))\<Colon>-mthdT" and
 	   mthdT_widen: "G\<turnstile>mthdT\<preceq>resTy dynM"
 	  by - (drule wf_mdecl_bodyD,
-                simp cong add: lname.case_cong ename.case_cong)
+                auto simp: cong add: lname.case_cong ename.case_cong)
 	with dynM' iscls_invDeclC invDeclC'
 	have
 	   "\<lparr>prg=G,cls=invDeclC,lcl=L'\<rparr>
@@ -2031,14 +2088,14 @@ proof -
   next
     case (Methd D s0 s1 sig v L accC T)
     have "G\<turnstile>Norm s0 \<midarrow>body G D sig-\<succ>v\<rightarrow> s1" .
-    have hyp: "PROP ?TypeSafe (Norm s0) s1 (In1l (body G D sig)) (In1 v)" .
+    have hyp:"PROP ?TypeSafe (Norm s0) s1 (In1l (body G D sig)) (In1 v)" .
     have conf_s0: "Norm s0\<Colon>\<preceq>(G, L)" .
     have      wt: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1l (Methd D sig)\<Colon>T" .
     then obtain m bodyT where
       D: "is_class G D" and
       m: "methd G D sig = Some m" and
       wt_body: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>
-                   \<turnstile>Body (declclass m) (stmt (mbody (mthd m)))\<Colon>-bodyT" and
+                  \<turnstile>Body (declclass m) (stmt (mbody (mthd m)))\<Colon>-bodyT" and
       T: "T=Inl bodyT"
       by (rule wt_elim_cases) auto
     with hyp [of _ _ "(Inl bodyT)"] conf_s0 
@@ -2079,7 +2136,7 @@ proof -
     show "abupd (absorb Ret) s2\<Colon>\<preceq>(G, L) \<and>
            (normal (abupd (absorb Ret) s2) \<longrightarrow>
              G,L,store (abupd (absorb Ret) s2)
-              \<turnstile>In1l (Body D c)\<succ>In1 (the (locals (store s2) Result))\<Colon>\<preceq>T) \<and>
+             \<turnstile>In1l (Body D c)\<succ>In1 (the (locals (store s2) Result))\<Colon>\<preceq>T) \<and>
           (error_free (Norm s0) = error_free (abupd (absorb Ret) s2)) "
       by (cases s2) (auto intro: conforms_locals)
   next

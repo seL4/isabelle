@@ -447,6 +447,43 @@ check_method_access::
        
 section "evaluation judgments"
 
+consts eval_unop :: "unop \<Rightarrow> val \<Rightarrow> val"
+primrec
+"eval_unop UPlus   v = Intg (the_Intg v)"
+"eval_unop UMinus  v = Intg (- (the_Intg v))"
+"eval_unop UBitNot v = Intg 42"                -- "FIXME: Not yet implemented"
+"eval_unop UNot    v = Bool (\<not> the_Bool v)"
+
+consts eval_binop :: "binop \<Rightarrow> val \<Rightarrow> val \<Rightarrow> val"
+
+
+primrec
+"eval_binop Mul     v1 v2 = Intg ((the_Intg v1) * (the_Intg v2))" 
+"eval_binop Div     v1 v2 = Intg ((the_Intg v1) div (the_Intg v2))"
+"eval_binop Mod     v1 v2 = Intg ((the_Intg v1) mod (the_Intg v2))"
+"eval_binop Plus    v1 v2 = Intg ((the_Intg v1) + (the_Intg v2))"
+"eval_binop Minus   v1 v2 = Intg ((the_Intg v1) - (the_Intg v2))"
+
+-- "Be aware of the explicit coercion of the shift distance to nat"
+"eval_binop LShift  v1 v2 = Intg ((the_Intg v1) *   (2^(nat (the_Intg v2))))"
+"eval_binop RShift  v1 v2 = Intg ((the_Intg v1) div (2^(nat (the_Intg v2))))"
+"eval_binop RShiftU v1 v2 = Intg 42" --"FIXME: Not yet implemented"
+
+"eval_binop Less    v1 v2 = Bool ((the_Intg v1) < (the_Intg v2))" 
+"eval_binop Le      v1 v2 = Bool ((the_Intg v1) \<le> (the_Intg v2))"
+"eval_binop Greater v1 v2 = Bool ((the_Intg v2) < (the_Intg v1))"
+"eval_binop Ge      v1 v2 = Bool ((the_Intg v2) \<le> (the_Intg v1))"
+
+"eval_binop Eq      v1 v2 = Bool (v1=v2)"
+"eval_binop Neq     v1 v2 = Bool (v1\<noteq>v2)"
+"eval_binop BitAnd  v1 v2 = Intg 42" -- "FIXME: Not yet implemented"
+"eval_binop And     v1 v2 = Bool ((the_Bool v1) \<and> (the_Bool v2))"
+"eval_binop BitXor  v1 v2 = Intg 42" -- "FIXME: Not yet implemented"
+"eval_binop Xor     v1 v2 = Bool ((the_Bool v1) \<noteq> (the_Bool v2))"
+"eval_binop BitOr   v1 v2 = Intg 42" -- "FIXME: Not yet implemented"
+"eval_binop Or      v1 v2 = Bool ((the_Bool v1) \<or> (the_Bool v2))"
+
+
 consts
   eval   :: "prog \<Rightarrow> (state \<times> term    \<times> vals \<times> state) set"
   halloc::  "prog \<Rightarrow> (state \<times> obj_tag \<times> loc  \<times> state) set"
@@ -513,7 +550,6 @@ inductive "sxalloc G" intros (* allocating exception objects for
   SXcpt: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>halloc (CInst (SXcpt xn))\<succ>a\<rightarrow> (x,s1)\<rbrakk> \<Longrightarrow>
 	  G\<turnstile>(Some (Xcpt (Std xn)),s0) \<midarrow>sxalloc\<rightarrow> (Some (Xcpt (Loc a)),s1)"
 
-
 inductive "eval G" intros
 
 (* propagation of abrupt completion *)
@@ -533,7 +569,7 @@ inductive "eval G" intros
 				  G\<turnstile>Norm s0 \<midarrow>Expr e\<rightarrow> s1"
 
   Lab:  "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>c \<rightarrow> s1\<rbrakk> \<Longrightarrow>
-                                G\<turnstile>Norm s0 \<midarrow>l\<bullet> c\<rightarrow> abupd (absorb (Break l)) s1"
+                                G\<turnstile>Norm s0 \<midarrow>l\<bullet> c\<rightarrow> abupd (absorb l) s1"
   (* cf. 14.2 *)
   Comp:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>c1 \<rightarrow> s1;
 	  G\<turnstile>     s1 \<midarrow>c2 \<rightarrow> s2\<rbrakk> \<Longrightarrow>
@@ -573,9 +609,12 @@ inductive "eval G" intros
 
   (* cf. 14.18.2 *)
   Fin:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> (x1,s1);
-	  G\<turnstile>Norm s1 \<midarrow>c2\<rightarrow> s2\<rbrakk> \<Longrightarrow>
-               G\<turnstile>Norm s0 \<midarrow>c1 Finally c2\<rightarrow> abupd (abrupt_if (x1\<noteq>None) x1) s2"
-
+	  G\<turnstile>Norm s1 \<midarrow>c2\<rightarrow> s2;
+          s3=(if (\<exists> err. x1=Some (Error err)) 
+              then (x1,s1) 
+              else abupd (abrupt_if (x1\<noteq>None) x1) s2) \<rbrakk> 
+          \<Longrightarrow>
+          G\<turnstile>Norm s0 \<midarrow>c1 Finally c2\<rightarrow> s3"
   (* cf. 12.4.2, 8.5 *)
   Init:	"\<lbrakk>the (class G C) = c;
 	  if inited C (globs s0) then s3 = Norm s0
@@ -630,8 +669,12 @@ inductive "eval G" intros
   (* cf. 15.7.1 *)
   Lit:	"G\<turnstile>Norm s \<midarrow>Lit v-\<succ>v\<rightarrow> Norm s"
 
+  UnOp: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1\<rbrakk> 
+         \<Longrightarrow> G\<turnstile>Norm s0 \<midarrow>UnOp unop e-\<succ>(eval_unop unop v)\<rightarrow> s1"
 
-
+  BinOp: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e1-\<succ>v1\<rightarrow> s1; G\<turnstile>s1 \<midarrow>e2-\<succ>v2\<rightarrow> s2\<rbrakk> 
+         \<Longrightarrow> G\<turnstile>Norm s0 \<midarrow>BinOp binop e1 e2-\<succ>(eval_binop binop v1 v2)\<rightarrow> s2"
+   
   (* cf. 15.10.2 *)
   Super: "G\<turnstile>Norm s \<midarrow>Super-\<succ>val_this s\<rightarrow> Norm s"
 
@@ -666,11 +709,14 @@ inductive "eval G" intros
 
   Methd:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>body G D sig-\<succ>v\<rightarrow> s1\<rbrakk> \<Longrightarrow>
 				G\<turnstile>Norm s0 \<midarrow>Methd D sig-\<succ>v\<rightarrow> s1"
-
+  (* The local variables l are just a dummy here. The are only used by
+     the smallstep semantics *)
   (* cf. 14.15, 12.4.1 *)
   Body:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>Init D\<rightarrow> s1; G\<turnstile>s1 \<midarrow>c\<rightarrow> s2\<rbrakk> \<Longrightarrow>
- G\<turnstile>Norm s0 \<midarrow>Body D c -\<succ>the (locals (store s2) Result)\<rightarrow>abupd (absorb Ret) s2"
-
+           G\<turnstile>Norm s0 \<midarrow>Body D c
+            -\<succ>the (locals (store s2) Result)\<rightarrow>abupd (absorb Ret) s2"
+  (* The local variables l are just a dummy here. The are only used by
+     the smallstep semantics *)
 (* evaluation of variables *)
 
   (* cf. 15.13.1, 15.7.2 *)
@@ -704,21 +750,24 @@ inductive "eval G" intros
 				   G\<turnstile>Norm s0 \<midarrow>e#es\<doteq>\<succ>v#vs\<rightarrow> s2"
 
 (* Rearrangement of premisses:
-[0,1(Abrupt),2(Skip),8(Do),4(Lab),28(Nil),29(Cons),25(LVar),15(Cast),16(Inst),
- 17(Lit),18(Super),19(Acc),3(Expr),5(Comp),23(Methd),24(Body),21(Cond),6(If),
- 7(Loop),11(Fin),9(Throw),13(NewC),14(NewA),12(Init),20(Ass),10(Try),26(FVar),
- 27(AVar),22(Call)]
+[0,1(Abrupt),2(Skip),8(Do),4(Lab),30(Nil),31(Cons),27(LVar),17(Cast),18(Inst),
+ 17(Lit),18(UnOp),19(BinOp),20(Super),21(Acc),3(Expr),5(Comp),25(Methd),26(Body),23(Cond),6(If),
+ 7(Loop),11(Fin),9(Throw),13(NewC),14(NewA),12(Init),22(Ass),10(Try),28(FVar),
+ 29(AVar),24(Call)]
 *)
 ML {*
 bind_thm ("eval_induct_", rearrange_prems 
-[0,1,2,8,4,28,29,25,15,16,
- 17,18,19,3,5,23,24,21,6,
- 7,11,9,13,14,12,20,10,26,
- 27,22] (thm "eval.induct"))
+[0,1,2,8,4,30,31,27,15,16,
+ 17,18,19,20,21,3,5,25,26,23,6,
+ 7,11,9,13,14,12,22,10,28,
+ 29,24] (thm "eval.induct"))
 *}
 
+
+
 lemmas eval_induct = eval_induct_ [split_format and and and and and and and and
-   and and and and s1 (* Acc *) and and s2 (* Comp *) and and and and and and 
+   and and and and and and s1 (* Acc *) and and s2 (* Comp *) and and and and 
+   and and 
    s2 (* Fin *) and and s2 (* NewC *)] 
 
 declare split_if     [split del] split_if_asm     [split del] 
@@ -757,6 +806,8 @@ inductive_cases eval_elim_cases:
 	"G\<turnstile>Norm s \<midarrow>In3  ([])                           \<succ>\<rightarrow> vs'"
 	"G\<turnstile>Norm s \<midarrow>In3  (e#es)                         \<succ>\<rightarrow> vs'"
 	"G\<turnstile>Norm s \<midarrow>In1l (Lit w)                        \<succ>\<rightarrow> vs'"
+        "G\<turnstile>Norm s \<midarrow>In1l (UnOp unop e)                  \<succ>\<rightarrow> vs'"
+        "G\<turnstile>Norm s \<midarrow>In1l (BinOp binop e1 e2)            \<succ>\<rightarrow> vs'"
 	"G\<turnstile>Norm s \<midarrow>In2  (LVar vn)                      \<succ>\<rightarrow> vs'"
 	"G\<turnstile>Norm s \<midarrow>In1l (Cast T e)                     \<succ>\<rightarrow> vs'"
 	"G\<turnstile>Norm s \<midarrow>In1l (e InstOf T)                   \<succ>\<rightarrow> vs'"
@@ -802,6 +853,7 @@ apply (induct_tac "a")
 apply auto
 done
 
+
 ML_setup {*
 fun eval_fun nam inj rhs =
 let
@@ -827,6 +879,68 @@ bind_thms ("AbruptIs", sum3_instantiate (thm "eval.Abrupt"))
 
 declare halloc.Abrupt [intro!] eval.Abrupt [intro!]  AbruptIs [intro!] 
 
+text{* @{text Callee},@{text InsInitE}, @{text InsInitV}, @{text FinA} are only
+used in smallstep semantics, not in the bigstep semantics. So their is no
+valid evaluation of these terms 
+*}
+
+
+lemma eval_Callee: "G\<turnstile>Norm s\<midarrow>Callee l e-\<succ>v\<rightarrow> s' = False"
+proof -
+  { fix s t v s'
+    assume eval: "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (v,s')" and
+         normal: "normal s" and
+         callee: "t=In1l (Callee l e)"
+    then have "False"
+    proof (induct)
+    qed (auto)
+  }  
+  then show ?thesis
+    by (cases s') fastsimp
+qed
+
+
+lemma eval_InsInitE: "G\<turnstile>Norm s\<midarrow>InsInitE c e-\<succ>v\<rightarrow> s' = False"
+proof -
+  { fix s t v s'
+    assume eval: "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (v,s')" and
+         normal: "normal s" and
+         callee: "t=In1l (InsInitE c e)"
+    then have "False"
+    proof (induct)
+    qed (auto)
+  }
+  then show ?thesis
+    by (cases s') fastsimp
+qed
+
+lemma eval_InsInitV: "G\<turnstile>Norm s\<midarrow>InsInitV c w=\<succ>v\<rightarrow> s' = False"
+proof -
+  { fix s t v s'
+    assume eval: "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (v,s')" and
+         normal: "normal s" and
+         callee: "t=In2 (InsInitV c w)"
+    then have "False"
+    proof (induct)
+    qed (auto)
+  }  
+  then show ?thesis
+    by (cases s') fastsimp
+qed
+
+lemma eval_FinA: "G\<turnstile>Norm s\<midarrow>FinA a c\<rightarrow> s' = False"
+proof -
+  { fix s t v s'
+    assume eval: "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (v,s')" and
+         normal: "normal s" and
+         callee: "t=In1r (FinA a c)"
+    then have "False"
+    proof (induct)
+    qed (auto)
+  }  
+  then show ?thesis
+    by (cases s') fastsimp 
+qed
 
 lemma eval_no_abrupt_lemma: 
    "\<And>s s'. G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (w,s') \<Longrightarrow> normal s' \<longrightarrow> normal s"
@@ -909,7 +1023,8 @@ lemma IfI: "\<lbrakk>G\<turnstile>s \<midarrow>e-\<succ>v\<rightarrow> s1; G\<tu
 apply (case_tac "s", case_tac "a = None")
 by (auto intro!: eval.If)
 
-lemma MethdI: "G\<turnstile>s \<midarrow>body G C sig-\<succ>v\<rightarrow> s' \<Longrightarrow> G\<turnstile>s \<midarrow>Methd C sig-\<succ>v\<rightarrow> s'"
+lemma MethdI: "G\<turnstile>s \<midarrow>body G C sig-\<succ>v\<rightarrow> s' 
+                \<Longrightarrow> G\<turnstile>s \<midarrow>Methd C sig-\<succ>v\<rightarrow> s'"
 apply (case_tac "s", case_tac "a = None")
 by (auto intro!: eval.Methd)
 
@@ -979,7 +1094,8 @@ G\<turnstile>(x,(h,l)) \<midarrow>s  \<rightarrow> (x',(h',l'))) \<Longrightarro
 *)
 
 lemma eval_Methd: 
-  "G\<turnstile>s \<midarrow>In1l(body G C sig)\<succ>\<rightarrow> (w,s') \<Longrightarrow> G\<turnstile>s \<midarrow>In1l(Methd C sig)\<succ>\<rightarrow> (w,s')"
+  "G\<turnstile>s \<midarrow>In1l(body G C sig)\<succ>\<rightarrow> (w,s') 
+   \<Longrightarrow> G\<turnstile>s \<midarrow>In1l(Methd C sig)\<succ>\<rightarrow> (w,s')"
 apply (case_tac "s")
 apply (case_tac "a")
 apply clarsimp+
@@ -1025,6 +1141,12 @@ done
 lemma split_pairD: "(x,y) = p \<Longrightarrow> x = fst p & y = snd p"
 by auto
 
+lemma eval_Body: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>Init D\<rightarrow> s1; G\<turnstile>s1 \<midarrow>c\<rightarrow> s2;
+                   res=the (locals (store s2) Result);
+                   s3=abupd (absorb Ret) s2\<rbrakk> \<Longrightarrow>
+ G\<turnstile>Norm s0 \<midarrow>Body D c-\<succ>res\<rightarrow>s3"
+by (auto elim: eval.Body)
+
 lemma unique_eval [rule_format (no_asm)]: 
   "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> ws \<Longrightarrow> (\<forall>ws'. G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> ws' \<longrightarrow> ws' = ws)"
 apply (case_tac "ws")
@@ -1033,18 +1155,18 @@ apply (erule thin_rl)
 apply (erule eval_induct)
 apply (tactic {* ALLGOALS (EVERY'
       [strip_tac, rotate_tac ~1, eresolve_tac (thms "eval_elim_cases")]) *})
-(* 29 subgoals *)
-prefer 26 (* Try *) 
+(* 31 subgoals *)
+prefer 28 (* Try *) 
 apply (simp (no_asm_use) only: split add: split_if_asm)
-(* 32 subgoals *)
-prefer 28 (* Init *)
+(* 34 subgoals *)
+prefer 30 (* Init *)
 apply (case_tac "inited C (globs s0)", (simp only: if_True if_False)+)
-prefer 24 (* While *)
+prefer 26 (* While *)
 apply (simp (no_asm_use) only: split add: split_if_asm, blast)
 apply (drule_tac x="(In1 bb, s1a)" in spec, drule (1) mp, simp)
 apply (drule_tac x="(In1 bb, s1a)" in spec, drule (1) mp, simp)
 apply blast
-(* 31 subgoals *)
+(* 33 subgoals *)
 apply (blast dest: unique_sxalloc unique_halloc split_pairD)+
 done
 

@@ -41,7 +41,7 @@ section "map of / table of"
 
 syntax
   table_of      :: "('a \<times> 'b) list \<Rightarrow> ('a, 'b) table"    (* concrete table *)
-
+  
 translations
   "table_of" == "map_of"
   

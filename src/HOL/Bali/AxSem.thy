@@ -536,6 +536,16 @@ inductive "ax_derivs G" intros
 
   Lit:                          "G,A\<turnstile>{Normal (P\<leftarrow>Val v)} Lit v-\<succ> {P}"
 
+  UnOp: "\<lbrakk>G,A\<turnstile>{Normal P} e-\<succ> {\<lambda>Val:v:. Q\<leftarrow>Val (eval_unop unop v)}\<rbrakk>
+          \<Longrightarrow>
+          G,A\<turnstile>{Normal P} UnOp unop e-\<succ> {Q}"
+
+  BinOp:
+   "\<lbrakk>G,A\<turnstile>{Normal P} e1-\<succ> {Q};
+     \<forall>v1. G,A\<turnstile>{Q\<leftarrow>Val v1} e2-\<succ> {\<lambda>Val:v2:. R\<leftarrow>Val (eval_binop binop v1 v2)}\<rbrakk>
+    \<Longrightarrow>
+    G,A\<turnstile>{Normal P} BinOp binop e1 e2-\<succ> {R}" 
+
   Super:" G,A\<turnstile>{Normal (\<lambda>s.. P\<leftarrow>Val (val_this s))} Super-\<succ> {P}"
 
   Acc:  "\<lbrakk>G,A\<turnstile>{Normal P} va=\<succ> {\<lambda>Var:(v,f):. Q\<leftarrow>Val v}\<rbrakk> \<Longrightarrow>
@@ -583,7 +593,7 @@ inductive "ax_derivs G" intros
   Expr: "\<lbrakk>G,A\<turnstile>{Normal P} e-\<succ> {Q\<leftarrow>\<diamondsuit>}\<rbrakk> \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} .Expr e. {Q}"
 
-  Lab: "\<lbrakk>G,A\<turnstile>{Normal P} .c. {abupd (absorb (Break l)) .; Q}\<rbrakk> \<Longrightarrow>
+  Lab: "\<lbrakk>G,A\<turnstile>{Normal P} .c. {abupd (absorb l) .; Q}\<rbrakk> \<Longrightarrow>
                            G,A\<turnstile>{Normal P} .l\<bullet> c. {Q}"
 
   Comp: "\<lbrakk>G,A\<turnstile>{Normal P} .c1. {Q};
@@ -627,6 +637,14 @@ inductive "ax_derivs G" intros
               .init c. {set_lvars l .; R}\<rbrakk> \<Longrightarrow>
                                G,A\<turnstile>{Normal (P \<and>. Not \<circ> initd C)} .Init C. {R}"
 
+-- {* Some dummy rules for the intermediate terms @{text Callee},
+@{text InsInitE}, @{text InsInitV}, @{text FinA} only used by the smallstep 
+semantics.
+*}
+  InstInitV: " G,A\<turnstile>{Normal P} InsInitV c v=\<succ> {Q}"
+  InstInitE: " G,A\<turnstile>{Normal P} InsInitE c e-\<succ> {Q}"
+  Callee:    " G,A\<turnstile>{Normal P} Callee l e-\<succ> {Q}"
+  FinA:      " G,A\<turnstile>{Normal P} .FinA a c. {Q}"
 axioms (** these terms are the same as above, but with generalized typing **)
   polymorphic_conseq:
         "\<forall>Y s Z . P  Y s Z  \<longrightarrow> (\<exists>P' Q'. G,A\<turnstile>{P'} t\<succ> {Q'} \<and> (\<forall>Y' s'. 
@@ -667,9 +685,9 @@ apply               (erule (1) ax_derivs.insert)
 apply              (fast intro: ax_derivs.asm)
 (*apply           (fast intro: ax_derivs.cut) *)
 apply            (fast intro: ax_derivs.weaken)
-apply           (rule ax_derivs.conseq, intro strip, tactic "smp_tac 3 1",clarify, tactic "smp_tac 1 1",rule exI, rule exI, erule (1) conjI)
-(* 31 subgoals *)
-prefer 16 (* Methd *)
+apply           (rule ax_derivs.conseq, intro strip, tactic "smp_tac 3 1",clarify, tactic "smp_tac 1 1",rule exI, rule exI, erule (1) conjI) 
+(* 37 subgoals *)
+prefer 18 (* Methd *)
 apply (rule ax_derivs.Methd, drule spec, erule mp, fast)
 apply (tactic {* TRYALL (resolve_tac ((funpow 5 tl) (thms "ax_derivs.intros")) 
                      THEN_ALL_NEW Blast_tac) *})
@@ -696,7 +714,7 @@ done
 lemma weaken: 
  "G,(A::'a triple set)|\<turnstile>(ts'::'a triple set) \<Longrightarrow> !ts. ts \<subseteq> ts' \<longrightarrow> G,A|\<turnstile>ts"
 apply (erule ax_derivs.induct)
-(*36 subgoals*)
+(*42 subgoals*)
 apply       (tactic "ALLGOALS strip_tac")
 apply       (tactic {* ALLGOALS(REPEAT o (EVERY'[dtac (thm "subset_singletonD"),
          etac disjE, fast_tac (claset() addSIs [thm "ax_derivs.empty"])]))*})
@@ -708,7 +726,7 @@ apply     (fast intro: ax_derivs.asm)
 (*apply  (blast intro: ax_derivs.cut) *)
 apply   (fast intro: ax_derivs.weaken)
 apply  (rule ax_derivs.conseq, clarify, tactic "smp_tac 3 1", blast(* unused *))
-(*31 subgoals*)
+(*37 subgoals*)
 apply (tactic {* TRYALL (resolve_tac ((funpow 5 tl) (thms "ax_derivs.intros")) 
                    THEN_ALL_NEW Fast_tac) *})
 (*1 subgoal*)

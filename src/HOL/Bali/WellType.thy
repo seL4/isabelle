@@ -180,7 +180,67 @@ lemma Null_staticD:
 apply (clarsimp simp add: invmode_IntVir_eq)
 done
 
+consts unop_type :: "unop \<Rightarrow> prim_ty"
+primrec 
+"unop_type UPlus   = Integer"
+"unop_type UMinus  = Integer"
+"unop_type UBitNot = Integer"
+"unop_type UNot    = Boolean"    
 
+consts wt_unop :: "unop \<Rightarrow> ty \<Rightarrow> bool"
+primrec
+"wt_unop UPlus   t = (t = PrimT Integer)"
+"wt_unop UMinus  t = (t = PrimT Integer)"
+"wt_unop UBitNot t = (t = PrimT Integer)"
+"wt_unop UNot    t = (t = PrimT Boolean)"
+
+consts binop_type :: "binop \<Rightarrow> prim_ty"
+primrec
+"binop_type Mul      = Integer"     
+"binop_type Div      = Integer"
+"binop_type Mod      = Integer"
+"binop_type Plus     = Integer"
+"binop_type Minus    = Integer"
+"binop_type LShift   = Integer"
+"binop_type RShift   = Integer"
+"binop_type RShiftU  = Integer"
+"binop_type Less     = Boolean"
+"binop_type Le       = Boolean"
+"binop_type Greater  = Boolean"
+"binop_type Ge       = Boolean"
+"binop_type Eq       = Boolean"
+"binop_type Neq      = Boolean"
+"binop_type BitAnd   = Integer"
+"binop_type And      = Boolean"
+"binop_type BitXor   = Integer"
+"binop_type Xor      = Boolean"
+"binop_type BitOr    = Integer"
+"binop_type Or       = Boolean"
+
+consts wt_binop :: "prog \<Rightarrow> binop \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> bool"
+primrec
+"wt_binop G Mul     t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
+"wt_binop G Div     t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
+"wt_binop G Mod     t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
+"wt_binop G Plus    t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
+"wt_binop G Minus   t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
+"wt_binop G LShift  t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
+"wt_binop G RShift  t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
+"wt_binop G RShiftU t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
+"wt_binop G Less    t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
+"wt_binop G Le      t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
+"wt_binop G Greater t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
+"wt_binop G Ge      t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
+"wt_binop G Eq      t1 t2 = (G\<turnstile>t1\<preceq>t2 \<or> G\<turnstile>t2\<preceq>t1)" 
+"wt_binop G Neq     t1 t2 = (G\<turnstile>t1\<preceq>t2 \<or> G\<turnstile>t2\<preceq>t1)"
+"wt_binop G BitAnd  t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
+"wt_binop G And     t1 t2 = ((t1 = PrimT Boolean) \<and> (t2 = PrimT Boolean))"
+"wt_binop G BitXor  t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
+"wt_binop G Xor     t1 t2 = ((t1 = PrimT Boolean) \<and> (t2 = PrimT Boolean))"
+"wt_binop G BitOr   t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
+"wt_binop G Or      t1 t2 = ((t1 = PrimT Boolean) \<and> (t2 = PrimT Boolean))"
+
+      
 types tys  =        "ty + ty list"
 translations
   "tys"   <= (type) "ty + ty list"
@@ -235,6 +295,7 @@ translations
 	"E\<turnstile>e\<Colon>-T" == "E,empty_dt\<Turnstile>e\<Colon>-T"
 	"E\<turnstile>e\<Colon>=T" == "E,empty_dt\<Turnstile>e\<Colon>=T"
 	"E\<turnstile>e\<Colon>\<doteq>T" == "E,empty_dt\<Turnstile>e\<Colon>\<doteq>T"
+
 
 
 inductive wt intros 
@@ -312,6 +373,15 @@ inductive wt intros
   Lit:	"\<lbrakk>typeof dt x = Some T\<rbrakk> \<Longrightarrow>
 					 E,dt\<Turnstile>Lit x\<Colon>-T"
 
+  UnOp: "\<lbrakk>E,dt\<Turnstile>e\<Colon>-Te; wt_unop unop Te; T=PrimT (unop_type unop)\<rbrakk> 
+          \<Longrightarrow>
+	  E,dt\<Turnstile>UnOp unop e\<Colon>-T"
+  
+  BinOp: "\<lbrakk>E,dt\<Turnstile>e1\<Colon>-T1; E,dt\<Turnstile>e2\<Colon>-T2; wt_binop (prg E) binop T1 T2; 
+           T=PrimT (binop_type binop)\<rbrakk> 
+           \<Longrightarrow>
+	   E,dt\<Turnstile>BinOp binop e1 e2\<Colon>-T"
+  
   (* cf. 15.10.2, 15.11.1 *)
   Super: "\<lbrakk>lcl E This = Some (Class C); C \<noteq> Object;
 	  class (prg E) C = Some c\<rbrakk> \<Longrightarrow>
@@ -348,6 +418,9 @@ inductive wt intros
  (* The class C is the dynamic class of the method call (cf. Eval.thy). 
   * It hasn't got to be directly accessible from the current package (pkg E). 
   * Only the static class must be accessible (enshured indirectly by Call). 
+  * Note that l is just a dummy value. It is only used in the smallstep 
+  * semantics. To proof typesafety directly for the smallstep semantics 
+  * we would have to assume conformance of l here!
   *)
 
   Body:	"\<lbrakk>is_class (prg E) D;
@@ -359,7 +432,8 @@ inductive wt intros
    * from the current package (pkg E), but can also be indirectly accessible 
    * due to inheritance (enshured in Call)
    * The result type hasn't got to be accessible in Java! (If it is not 
-   * accessible you can only assign it to Object) 
+   * accessible you can only assign it to Object).
+   * For dummy value l see rule Methd. 
    *)
 
 (* well-typed variables *)
@@ -404,6 +478,8 @@ inductive_cases wt_elim_cases:
 	"E,dt\<Turnstile>In1l (Cast T' e)             \<Colon>T"
 	"E,dt\<Turnstile>In1l (e InstOf T')           \<Colon>T"
 	"E,dt\<Turnstile>In1l (Lit x)                 \<Colon>T"
+        "E,dt\<Turnstile>In1l (UnOp unop e)           \<Colon>T"
+        "E,dt\<Turnstile>In1l (BinOp binop e1 e2)     \<Colon>T"
 	"E,dt\<Turnstile>In1l (Super)                 \<Colon>T"
 	"E,dt\<Turnstile>In1l (Acc va)                \<Colon>T"
 	"E,dt\<Turnstile>In1l (Ass va v)              \<Colon>T"
@@ -566,11 +642,11 @@ apply (safe del: disjE)
 apply (simp_all (no_asm_use) split del: split_if_asm)
 apply (safe del: disjE)
 (* 17 subgoals *)
-apply (tactic {* ALLGOALS (fn i => if i = 9 then EVERY'[thin_tac "?E,dt\<Turnstile>e0\<Colon>-PrimT Boolean", thin_tac "?E,dt\<Turnstile>e1\<Colon>-?T1", thin_tac "?E,dt\<Turnstile>e2\<Colon>-?T2"] i else thin_tac "All ?P" i) *})
+apply (tactic {* ALLGOALS (fn i => if i = 11 then EVERY'[thin_tac "?E,dt\<Turnstile>e0\<Colon>-PrimT Boolean", thin_tac "?E,dt\<Turnstile>e1\<Colon>-?T1", thin_tac "?E,dt\<Turnstile>e2\<Colon>-?T2"] i else thin_tac "All ?P" i) *})
 (*apply (safe del: disjE elim!: wt_elim_cases)*)
 apply (tactic {*ALLGOALS (eresolve_tac (thms "wt_elim_cases"))*})
 apply (simp_all (no_asm_use) split del: split_if_asm)
-apply (erule_tac [10] V = "All ?P" in thin_rl) (* Call *)
+apply (erule_tac [12] V = "All ?P" in thin_rl) (* Call *)
 apply ((blast del: equalityCE dest: sym [THEN trans])+)
 done
 

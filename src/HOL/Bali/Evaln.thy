@@ -103,6 +103,12 @@ inductive "evaln G" intros
 
   Lit:			   "G\<turnstile>Norm s \<midarrow>Lit v-\<succ>v\<midarrow>n\<rightarrow> Norm s"
 
+  UnOp: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<midarrow>n\<rightarrow> s1\<rbrakk> 
+         \<Longrightarrow> G\<turnstile>Norm s0 \<midarrow>UnOp unop e-\<succ>(eval_unop unop v)\<midarrow>n\<rightarrow> s1"
+
+  BinOp: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e1-\<succ>v1\<midarrow>n\<rightarrow> s1; G\<turnstile>s1 \<midarrow>e2-\<succ>v2\<midarrow>n\<rightarrow> s2\<rbrakk> 
+         \<Longrightarrow> G\<turnstile>Norm s0 \<midarrow>BinOp binop e1 e2-\<succ>(eval_binop binop v1 v2)\<midarrow>n\<rightarrow> s2"
+
   Super:		   "G\<turnstile>Norm s \<midarrow>Super-\<succ>val_this s\<midarrow>n\<rightarrow> Norm s"
 
   Acc:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>va=\<succ>(v,f)\<midarrow>n\<rightarrow> s1\<rbrakk> \<Longrightarrow>
@@ -128,7 +134,8 @@ inductive "evaln G" intros
 				G\<turnstile>Norm s0 \<midarrow>Methd D sig-\<succ>v\<midarrow>Suc n\<rightarrow> s1"
 
   Body:	"\<lbrakk>G\<turnstile>Norm s0\<midarrow>Init D\<midarrow>n\<rightarrow> s1; G\<turnstile>s1 \<midarrow>c\<midarrow>n\<rightarrow> s2\<rbrakk>\<Longrightarrow>
- G\<turnstile>Norm s0 \<midarrow>Body D c-\<succ>the (locals (store s2) Result)\<midarrow>n\<rightarrow>abupd (absorb Ret) s2"
+         G\<turnstile>Norm s0 \<midarrow>Body D c
+          -\<succ>the (locals (store s2) Result)\<midarrow>n\<rightarrow>abupd (absorb Ret) s2"
 
 (* evaluation of expression lists *)
 
@@ -148,7 +155,7 @@ inductive "evaln G" intros
 				  G\<turnstile>Norm s0 \<midarrow>Expr e\<midarrow>n\<rightarrow> s1"
 
   Lab:  "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>c \<midarrow>n\<rightarrow> s1\<rbrakk> \<Longrightarrow>
-                             G\<turnstile>Norm s0 \<midarrow>l\<bullet> c\<midarrow>n\<rightarrow> abupd (absorb (Break l)) s1"
+                             G\<turnstile>Norm s0 \<midarrow>l\<bullet> c\<midarrow>n\<rightarrow> abupd (absorb l) s1"
 
   Comp:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>c1 \<midarrow>n\<rightarrow> s1;
 	  G\<turnstile>     s1 \<midarrow>c2 \<midarrow>n\<rightarrow> s2\<rbrakk> \<Longrightarrow>
@@ -203,6 +210,8 @@ inductive_cases evaln_elim_cases:
 	"G\<turnstile>Norm s \<midarrow>In3  ([])                      \<succ>\<midarrow>n\<rightarrow> vs'"
 	"G\<turnstile>Norm s \<midarrow>In3  (e#es)                    \<succ>\<midarrow>n\<rightarrow> vs'"
 	"G\<turnstile>Norm s \<midarrow>In1l (Lit w)                   \<succ>\<midarrow>n\<rightarrow> vs'"
+        "G\<turnstile>Norm s \<midarrow>In1l (UnOp unop e)             \<succ>\<midarrow>n\<rightarrow> vs'"
+        "G\<turnstile>Norm s \<midarrow>In1l (BinOp binop e1 e2)       \<succ>\<midarrow>n\<rightarrow> vs'"
 	"G\<turnstile>Norm s \<midarrow>In2  (LVar vn)                 \<succ>\<midarrow>n\<rightarrow> vs'"
 	"G\<turnstile>Norm s \<midarrow>In1l (Cast T e)                \<succ>\<midarrow>n\<rightarrow> vs'"
 	"G\<turnstile>Norm s \<midarrow>In1l (e InstOf T)              \<succ>\<midarrow>n\<rightarrow> vs'"
@@ -261,6 +270,62 @@ Addsimprocs [evaln_expr_proc,evaln_var_proc,evaln_exprs_proc,evaln_stmt_proc];
 bind_thms ("evaln_AbruptIs", sum3_instantiate (thm "evaln.Abrupt"))
 *}
 declare evaln_AbruptIs [intro!]
+
+lemma evaln_Callee: "G\<turnstile>Norm s\<midarrow>In1l (Callee l e)\<succ>\<midarrow>n\<rightarrow> (v,s') = False"
+proof -
+  { fix s t v s'
+    assume eval: "G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (v,s')" and
+         normal: "normal s" and
+         callee: "t=In1l (Callee l e)"
+    then have "False"
+    proof (induct)
+    qed (auto)
+  }
+  then show ?thesis
+    by (cases s') fastsimp 
+qed
+
+lemma evaln_InsInitE: "G\<turnstile>Norm s\<midarrow>In1l (InsInitE c e)\<succ>\<midarrow>n\<rightarrow> (v,s') = False"
+proof -
+  { fix s t v s'
+    assume eval: "G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (v,s')" and
+         normal: "normal s" and
+         callee: "t=In1l (InsInitE c e)"
+    then have "False"
+    proof (induct)
+    qed (auto)
+  }
+  then show ?thesis
+    by (cases s') fastsimp
+qed
+
+lemma evaln_InsInitV: "G\<turnstile>Norm s\<midarrow>In2 (InsInitV c w)\<succ>\<midarrow>n\<rightarrow> (v,s') = False"
+proof -
+  { fix s t v s'
+    assume eval: "G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (v,s')" and
+         normal: "normal s" and
+         callee: "t=In2 (InsInitV c w)"
+    then have "False"
+    proof (induct)
+    qed (auto)
+  }  
+  then show ?thesis
+    by (cases s') fastsimp
+qed
+
+lemma evaln_FinA: "G\<turnstile>Norm s\<midarrow>In1r (FinA a c)\<succ>\<midarrow>n\<rightarrow> (v,s') = False"
+proof -
+  { fix s t v s'
+    assume eval: "G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (v,s')" and
+         normal: "normal s" and
+         callee: "t=In1r (FinA a c)"
+    then have "False"
+    proof (induct)
+    qed (auto)
+  } 
+  then show ?thesis
+    by (cases s') fastsimp
+qed
 
 lemma evaln_abrupt_lemma: "G\<turnstile>s \<midarrow>e\<succ>\<midarrow>n\<rightarrow> (v,s') \<Longrightarrow> 
  fst s = Some xc \<longrightarrow> s' = s \<and> v = arbitrary3 e"
@@ -437,6 +502,14 @@ proof -
     case Lit
     show ?case by (rule eval.Lit)
   next
+    case UnOp
+    with wf show ?case
+      by - (erule wt_elim_cases, rule eval.UnOp,auto dest: eval_type_sound)
+  next
+    case BinOp
+    with wf show ?case
+      by - (erule wt_elim_cases, blast intro!: eval.BinOp dest: eval_type_sound)
+  next
     case Super
     show ?case by (rule eval.Super)
   next
@@ -494,11 +567,11 @@ proof -
          check_method_access G accC' statT mode \<lparr>name = mn, parTs = pTs'\<rparr> a' s3"
       by simp
     have evaln_methd: 
-           "G\<turnstile>?InitLvars \<midarrow>Methd invDeclC \<lparr>name = mn, parTs = pTs'\<rparr>-\<succ>v\<midarrow>n\<rightarrow> s4" .
+     "G\<turnstile>?InitLvars \<midarrow>Methd invDeclC \<lparr>name = mn, parTs = pTs'\<rparr>-\<succ>v\<midarrow>n\<rightarrow> s4" .
     have     hyp_e: "PROP ?EqEval (Norm s0) s1 (In1l e) (In1 a')" .
     have  hyp_args: "PROP ?EqEval s1 s2 (In3 args) (In3 vs)" .
     have hyp_methd: "PROP ?EqEval ?InitLvars s4 
-                     (In1l (Methd invDeclC \<lparr>name = mn, parTs = pTs'\<rparr>)) (In1 v)".
+              (In1l (Methd invDeclC \<lparr>name = mn, parTs = pTs'\<rparr>)) (In1 v)".
     have conf_s0: "Norm s0\<Colon>\<preceq>(G, L)" .
     have      wt: "\<lparr>prg=G, cls=accC, lcl=L\<rparr>
                     \<turnstile>In1l ({accC',statT,mode}e\<cdot>mn( {pTs'}args))\<Colon>T" .
@@ -556,7 +629,7 @@ proof -
       moreover
       from eq_s3'_s3 False keep_abrupt evaln_methd init_lvars
       obtain "s4=s3'"
-	 "In1 v=arbitrary3 (In1l (Methd invDeclC \<lparr>name = mn, parTs = pTs'\<rparr>))"
+      "In1 v=arbitrary3 (In1l (Methd invDeclC \<lparr>name = mn, parTs = pTs'\<rparr>))"
 	by auto
       moreover note False
       ultimately have
@@ -591,7 +664,7 @@ proof -
 	moreover
 	from eq_s3'_s3 np evaln_methd init_lvars
 	obtain "s4=s3'"
-	  "In1 v=arbitrary3 (In1l (Methd invDeclC \<lparr>name = mn, parTs = pTs'\<rparr>))"
+      "In1 v=arbitrary3 (In1l (Methd invDeclC \<lparr>name = mn, parTs = pTs'\<rparr>))"
 	  by auto
 	moreover note np 
 	ultimately have
@@ -674,7 +747,7 @@ proof -
             \<turnstile>Body invDeclC (stmt (mbody (mthd dynM)))\<Colon>-mthdT" and
 	   mthdT_widen: "G\<turnstile>mthdT\<preceq>resTy dynM"
 	  by - (drule wf_mdecl_bodyD,
-                simp cong add: lname.case_cong ename.case_cong)
+                auto simp: cong add: lname.case_cong ename.case_cong)
 	with dynM' iscls_invDeclC invDeclC'
 	have
 	   "\<lparr>prg=G,cls=invDeclC,lcl=L'\<rparr>
@@ -873,10 +946,28 @@ proof -
     show ?case
       by (rule eval.Try)
   next
-    case Fin
-    with wf show ?case
-      by -(erule wt_elim_cases, blast intro!: eval.Fin
-           dest: eval_type_sound intro: conforms_NormI)
+    case (Fin c1 c2 n s0 s1 s2 x1 L accC T)
+    have hyp_c1: "PROP ?EqEval (Norm s0) (x1,s1) (In1r c1) \<diamondsuit>" .
+    have hyp_c2: "PROP ?EqEval (Norm s1) (s2) (In1r c2) \<diamondsuit>" .
+    have conf_s0: "Norm s0\<Colon>\<preceq>(G, L)" .
+    have      wt: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1r (c1 Finally c2)\<Colon>T" .
+    then obtain
+      wt_c1: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>c1\<Colon>\<surd>" and
+      wt_c2: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>c2\<Colon>\<surd>" 
+      by (rule wt_elim_cases) blast
+    from conf_s0 wt_c1
+    have eval_c1: "G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> (x1, s1)"
+      by (rule hyp_c1)
+    with wf wt_c1 conf_s0
+    obtain       conf_s1: "Norm s1\<Colon>\<preceq>(G, L)" and 
+           error_free_s1: "error_free (x1,s1)"
+      by (auto dest!: eval_type_sound intro: conforms_NormI)
+    from conf_s1 wt_c2
+    have eval_c2: "G\<turnstile>Norm s1 \<midarrow>c2\<rightarrow> s2"
+      by (rule hyp_c2)
+    with eval_c1 error_free_s1
+    show "G\<turnstile>Norm s0 \<midarrow>c1 Finally c2\<rightarrow> abupd (abrupt_if (x1 \<noteq> None) x1) s2"
+      by (auto intro: eval.Fin simp add: error_free_def)
   next
     case (Init C c n s0 s1 s2 s3 L accC T)
     have     cls: "the (class G C) = c" .
@@ -994,8 +1085,6 @@ proof -
   show ?thesis .
 qed
 
-text {* *} (* FIXME *)
-
 lemma eval_evaln: 
   assumes eval: "G\<turnstile>s0 \<midarrow>t\<succ>\<rightarrow> (v,s1)" and
             wt: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>t\<Colon>T" and  
@@ -1029,7 +1118,7 @@ proof -
     then obtain n where
       "G\<turnstile>Norm s0 \<midarrow>c\<midarrow>n\<rightarrow> s1"
       by (rules elim!: wt_elim_cases)
-    then have "G\<turnstile>Norm s0 \<midarrow>l\<bullet> c\<midarrow>n\<rightarrow> abupd (absorb (Break l)) s1"
+    then have "G\<turnstile>Norm s0 \<midarrow>l\<bullet> c\<midarrow>n\<rightarrow> abupd (absorb l) s1"
       by (rule evaln.Lab)
     then show ?case ..
   next
@@ -1209,16 +1298,22 @@ proof -
       by (auto intro!: evaln.Try le_maxI1 le_maxI2)
     then show ?case ..
   next
-    case (Fin c1 c2 s0 s1 s2 x1 L accC T)
-    with wf obtain n1 n2 where 
+    case (Fin c1 c2 s0 s1 s2 s3 x1 L accC T)
+    have s3: "s3 = (if \<exists>err. x1 = Some (Error err) 
+                       then (x1, s1)
+                       else abupd (abrupt_if (x1 \<noteq> None) x1) s2)" .
+    from Fin wf obtain n1 n2 where 
       "G\<turnstile>Norm s0 \<midarrow>c1\<midarrow>n1\<rightarrow> (x1, s1)"
-      "G\<turnstile>Norm s1 \<midarrow>c2\<midarrow>n2\<rightarrow> s2"
+      "G\<turnstile>Norm s1 \<midarrow>c2\<midarrow>n2\<rightarrow> s2" and
+      error_free_s1: "error_free (x1,s1)"
       by (blast elim!: wt_elim_cases 
 	         dest: eval_type_sound intro: conforms_NormI)
     then have 
      "G\<turnstile>Norm s0 \<midarrow>c1 Finally c2\<midarrow>max n1 n2\<rightarrow> abupd (abrupt_if (x1 \<noteq> None) x1) s2"
       by (blast intro: evaln.Fin dest: evaln_max2)
-    then show ?case ..
+    with error_free_s1 s3
+    show "\<exists>n. G\<turnstile>Norm s0 \<midarrow>c1 Finally c2\<midarrow>n\<rightarrow> s3"
+      by (auto simp add: error_free_def)
   next
     case (Init C c s0 s1 s2 s3 L accC T)
     have     cls: "the (class G C) = c" .
@@ -1340,6 +1435,24 @@ proof -
       by (rule evaln.Lit)
     then show ?case ..
   next
+    case (UnOp e s0 s1 unop v L accC T)
+    with wf obtain n where
+      "G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<midarrow>n\<rightarrow> s1"
+      by (rules elim!: wt_elim_cases)
+    hence "G\<turnstile>Norm s0 \<midarrow>UnOp unop e-\<succ>eval_unop unop v\<midarrow>n\<rightarrow> s1"
+      by (rule evaln.UnOp)
+    then show ?case ..
+  next
+    case (BinOp binop e1 e2 s0 s1 s2 v1 v2 L accC T)
+    with wf obtain n1 n2 where 
+      "G\<turnstile>Norm s0 \<midarrow>e1-\<succ>v1\<midarrow>n1\<rightarrow> s1"
+      "G\<turnstile>s1 \<midarrow>e2-\<succ>v2\<midarrow>n2\<rightarrow> s2"    
+      by (blast elim!: wt_elim_cases dest: eval_type_sound)
+    hence "G\<turnstile>Norm s0 \<midarrow>BinOp binop e1 e2-\<succ>(eval_binop binop v1 v2)\<midarrow>max n1 n2
+           \<rightarrow> s2"
+      by (blast intro!: evaln.BinOp dest: evaln_max2)
+    then show ?case ..
+  next
     case (Super s L accC T)
     have "G\<turnstile>Norm s \<midarrow>Super-\<succ>val_this s\<midarrow>n\<rightarrow> Norm s"
       by (rule evaln.Super)
@@ -1414,7 +1527,7 @@ proof -
     have     hyp_e: "PROP ?EqEval (Norm s0) s1 (In1l e) (In1 a')" .
     have  hyp_args: "PROP ?EqEval s1 s2 (In3 args) (In3 vs)" .
     have hyp_methd: "PROP ?EqEval s3' s4 
-                     (In1l (Methd invDeclC \<lparr>name = mn, parTs = pTs'\<rparr>)) (In1 v)".
+             (In1l (Methd invDeclC \<lparr>name = mn, parTs = pTs'\<rparr>)) (In1 v)".
     have conf_s0: "Norm s0\<Colon>\<preceq>(G, L)" .
     have      wt: "\<lparr>prg=G, cls=accC, lcl=L\<rparr>
                     \<turnstile>In1l ({accC',statT,mode}e\<cdot>mn( {pTs'}args))\<Colon>T" .
@@ -1475,7 +1588,7 @@ proof -
       moreover
       from eq_s3'_s3 False keep_abrupt eval_methd init_lvars
       obtain "s4=s3'"
-	 "In1 v=arbitrary3 (In1l (Methd invDeclC \<lparr>name = mn, parTs = pTs'\<rparr>))"
+      "In1 v=arbitrary3 (In1l (Methd invDeclC \<lparr>name = mn, parTs = pTs'\<rparr>))"
 	by auto
       moreover note False evaln.Abrupt
       ultimately obtain m where 
@@ -1514,7 +1627,7 @@ proof -
 	moreover
 	from eq_s3'_s3 np eval_methd init_lvars
 	obtain "s4=s3'"
-	  "In1 v=arbitrary3 (In1l (Methd invDeclC \<lparr>name = mn, parTs = pTs'\<rparr>))"
+      "In1 v=arbitrary3 (In1l (Methd invDeclC \<lparr>name = mn, parTs = pTs'\<rparr>))"
 	  by auto
 	moreover note np
 	ultimately obtain m where 
@@ -1600,7 +1713,7 @@ proof -
 	   "\<lparr>prg=G,cls=invDeclC,lcl=L'\<rparr>
             \<turnstile>Body invDeclC (stmt (mbody (mthd dynM)))\<Colon>-mthdT" 
 	  by - (drule wf_mdecl_bodyD,
-                simp cong add: lname.case_cong ename.case_cong)
+                auto simp: cong add: lname.case_cong ename.case_cong)
 	with dynM' iscls_invDeclC invDeclC'
 	have
 	   "\<lparr>prg=G,cls=invDeclC,lcl=L'\<rparr>

@@ -313,17 +313,18 @@ lemma all4_conjunct2:
   "\<forall>a vs D l. (P' a vs D l \<and> P a vs D l) \<Longrightarrow> \<forall>a vs D l. P a vs D l"
 by fast
 
+
 lemmas sound_lemmas = Init_sound Loop_sound Methd_sound
 
 lemma ax_sound2: "wf_prog G \<Longrightarrow> G,A|\<turnstile>ts \<Longrightarrow> G,A|\<Turnstile>\<Colon>ts"
 apply (erule ax_derivs.induct)
-prefer 20 (* Call *)
+prefer 22 (* Call *)
 apply (erule (1) Call_sound) apply simp apply force apply force 
 
 apply (tactic {* TRYALL (eresolve_tac (thms "sound_lemmas") THEN_ALL_NEW 
     eresolve_tac [asm_rl, thm "all_conjunct2", thm "all4_conjunct2"]) *})
 
-apply(tactic "COND (has_fewer_prems(30+3)) (ALLGOALS sound_prepare_tac) no_tac")
+apply(tactic "COND (has_fewer_prems(30+9)) (ALLGOALS sound_prepare_tac) no_tac")
 
                (*empty*)
 apply        fast (* insert *)
@@ -336,7 +337,13 @@ apply    (tactic "smp_tac 3 1", clarify, tactic "smp_tac 1 1",
 apply   (simp (no_asm_use) add: type_ok_def,fast)(* hazard *)
 apply  force (* Abrupt *)
 
-(* 25 subgoals *)
+prefer 28 apply (simp add: evaln_InsInitV)
+prefer 28 apply (simp add: evaln_InsInitE)
+prefer 28 apply (simp add: evaln_Callee)
+prefer 28 apply (simp add: evaln_FinA)
+
+(* 27 subgoals *)
+apply (tactic {* sound_elim_tac 1 *})
 apply (tactic {* ALLGOALS sound_elim_tac *})(* LVar, Lit, Super, Nil, Skip,Do *)
 apply (tactic {* ALLGOALS (asm_simp_tac (noAll_simpset() 
                           delsimps [thm "all_empty"])) *})    (* Done *)
@@ -347,12 +354,11 @@ apply (frule ty_expr_is_type [THEN type_is_class,
 apply (simp,simp,simp) 
 apply (frule_tac [4] wt_init_comp_ty) (* for NewA*)
 apply (tactic "ALLGOALS sound_valid2_tac")
-apply (tactic "TRYALL sound_forw_hyp_tac") (* Cast, Inst, Acc, Expr *)
+apply (tactic "TRYALL sound_forw_hyp_tac") (* UnOp, Cast, Inst, Acc, Expr *)
 apply (tactic {* TRYALL (EVERY'[dtac spec, TRY o EVERY'[rotate_tac ~1, 
   dtac spec], dtac conjunct2, smp_tac 1, 
   TRY o dres_inst_tac [("P","P'")] (thm "subst_Bool_the_BoolI")]) *})
-apply (frule_tac [14] x = x1 in conforms_NormI)  (* for Fin *)
-
+apply (frule_tac [15] x = x1 in conforms_NormI)  (* for Fin *)
 
 (* 15 subgoals *)
 (* FVar *)
@@ -382,6 +388,9 @@ apply (erule (1) halloc_conforms, simp, simp)
 apply (tactic "sound_forw_hyp_tac 1")
 apply (rule conjI,blast)
 apply (erule (1) halloc_conforms, simp, simp, simp add: is_acc_type_def)
+
+(* BinOp *)
+apply (tactic "sound_forw_hyp_tac 1")
 
 (* Ass *)
 apply (tactic "sound_forw_hyp_tac 1")

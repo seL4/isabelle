@@ -467,6 +467,43 @@ apply     (erule (3) error_free_field_access)
 apply       (auto dest: eval_type_sound)
 done
 
+(* FIXME To TypeSafe *)
+lemma wf_eval_Fin: 
+  assumes wf:    "wf_prog G" and
+          wt_c1: "\<lparr>prg = G, cls = C, lcl = L\<rparr>\<turnstile>In1r c1\<Colon>Inl (PrimT Void)" and
+        conf_s0: "Norm s0\<Colon>\<preceq>(G, L)" and
+        eval_c1: "G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> (x1,s1)" and
+        eval_c2: "G\<turnstile>Norm s1 \<midarrow>c2\<rightarrow> s2" and
+            s3: "s3=abupd (abrupt_if (x1\<noteq>None) x1) s2"
+  shows "G\<turnstile>Norm s0 \<midarrow>c1 Finally c2\<rightarrow> s3"
+proof -
+  from eval_c1 wt_c1 wf conf_s0
+  have "error_free (x1,s1)"
+    by (auto dest: eval_type_sound)
+  with eval_c1 eval_c2 s3
+  show ?thesis
+    by - (rule eval.Fin, auto simp add: error_free_def)
+qed
+
+text {* For @{text MGFn_Fin} we need the wellformedness of the program to
+switch from the evaln-semantics to the eval-semantics *}
+lemma MGFn_Fin: 
+"\<lbrakk>wf_prog G; G,A\<turnstile>{=:n} In1r stmt1\<succ> {G\<rightarrow>}; G,A\<turnstile>{=:n} In1r stmt2\<succ> {G\<rightarrow>}\<rbrakk>
+ \<Longrightarrow> G,(A\<Colon>state triple set)\<turnstile>{=:n} In1r (stmt1 Finally stmt2)\<succ> {G\<rightarrow>}"
+apply (tactic "wt_conf_prepare_tac 1")
+apply (rule_tac Q = " (\<lambda>Y' s' s. normal s \<and> G\<turnstile>s \<midarrow>stmt1\<rightarrow> s' \<and> s\<Colon>\<preceq>(G, L)) 
+\<and>. G\<turnstile>init\<le>n" in ax_derivs.Fin)
+apply (tactic "forw_hyp_tac 1")
+apply (tactic "clarsimp_tac eval_css 1")
+apply (rule allI)
+apply (tactic "clarsimp_tac eval_css 1")
+apply (tactic "forw_hyp_tac 1")
+apply (tactic {* pair_tac "sb" 1 *})
+apply (tactic"clarsimp_tac (claset(),simpset() addsimprocs [eval_stmt_proc]) 1")
+apply (rule wf_eval_Fin)
+apply auto
+done
+
 text {* For @{text MGFn_lemma} we need the wellformedness of the program to
 switch from the evaln-semantics to the eval-semantics cf. @{text MGFn_call}, 
 @{text MGFn_FVar}*}
@@ -483,14 +520,15 @@ apply  (tactic "Clarify_tac 2")
 apply  (induct_tac "t")
 apply    (induct_tac "a")
 apply     fast+
-apply (rule var_expr_stmt.induct)
-(* 28 subgoals *)
-prefer 14 apply fast (* Methd *)
-prefer 13 apply (erule (3) MGFn_Call)
+apply (rule var_expr_stmt.induct) 
+(* 34 subgoals *)
+prefer 17 apply fast (* Methd *)
+prefer 16 apply (erule (3) MGFn_Call)
 prefer 2  apply (drule MGFn_Init,erule (2) MGFn_FVar)
 apply (erule_tac [!] V = "All ?P" in thin_rl) (* assumptions on Methd *)
-apply (erule_tac [23] MGFn_Init)
-prefer 18 apply (erule (1) MGFn_Loop)
+apply (erule_tac [29] MGFn_Init)
+prefer 23 apply (erule (1) MGFn_Loop)
+prefer 26 apply (erule (2) MGFn_Fin)
 apply (tactic "ALLGOALS compl_prepare_tac")
 
 apply (rule ax_derivs.LVar [THEN conseq1], tactic "eval_Force_tac 1")
@@ -498,6 +536,8 @@ apply (rule ax_derivs.LVar [THEN conseq1], tactic "eval_Force_tac 1")
 apply (rule ax_derivs.AVar)
 apply  (erule MGFnD [THEN ax_NormalD])
 apply (tactic "forw_hyp_eval_Force_tac 1")
+
+apply (rule ax_derivs.InstInitV)
 
 apply (rule ax_derivs.NewC)
 apply (erule MGFn_InitD [THEN conseq2])
@@ -516,6 +556,12 @@ apply (erule MGFnD'[THEN conseq12,THEN ax_derivs.Cast],tactic"eval_Force_tac 1")
 
 apply (erule MGFnD'[THEN conseq12,THEN ax_derivs.Inst],tactic"eval_Force_tac 1")
 apply (rule ax_derivs.Lit [THEN conseq1], tactic "eval_Force_tac 1")
+apply (rule ax_derivs.UnOp, tactic "forw_hyp_eval_Force_tac 1")
+
+apply (rule ax_derivs.BinOp)
+apply  (erule MGFnD [THEN ax_NormalD])
+apply (tactic "forw_hyp_eval_Force_tac 1")
+
 apply (rule ax_derivs.Super [THEN conseq1], tactic "eval_Force_tac 1")
 apply (erule MGFnD'[THEN conseq12,THEN ax_derivs.Acc],tactic"eval_Force_tac 1")
 
@@ -540,6 +586,10 @@ apply (rule_tac Q = " (\<lambda>Y' s' s. normal s \<and> G\<turnstile>s \<midarr
 apply (tactic "forw_hyp_tac 1")
 apply (tactic {* clarsimp_tac (eval_css delsimps2 [split_paired_all]) 1 *})
 apply (erule (1) eval.Body)
+
+apply (rule ax_derivs.InstInitE)
+
+apply (rule ax_derivs.Callee)
 
 apply (rule ax_derivs.Skip [THEN conseq1], tactic "eval_Force_tac 1")
 
@@ -576,14 +626,7 @@ apply (erule MGFnD [THEN ax_NormalD, THEN conseq2])
 apply (tactic "clarsimp_tac eval_css 1")
 apply (force elim: sxalloc_gext [THEN card_nyinitcls_gext])
 
-apply (rule_tac Q = " (\<lambda>Y' s' s. normal s \<and> G\<turnstile>s \<midarrow>stmt1\<rightarrow> s') \<and>. G\<turnstile>init\<le>n" in ax_derivs.Fin)
-apply  (tactic "forw_hyp_eval_Force_tac 1")
-apply (rule allI)
-apply (tactic "forw_hyp_tac 1")
-apply (tactic {* pair_tac "sb" 1 *})
-apply (tactic"clarsimp_tac (claset(),simpset() addsimprocs [eval_stmt_proc]) 1")
-apply (drule (1) eval.Fin)
-apply clarsimp
+apply (rule ax_derivs.FinA)
 
 apply (rule ax_derivs.Nil [THEN conseq1], tactic "eval_Force_tac 1")
 

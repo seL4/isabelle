@@ -223,13 +223,13 @@ types	globs                  (* global variables: heap and static variables *)
 	= "(oref , obj) table"
 	heap
 	= "(loc  , obj) table"
-	locals
-	= "(lname, val) table" (* local variables *)
+(*	locals                   
+	= "(lname, val) table" *) (* defined in Value.thy local variables *)
 
 translations
  "globs"  <= (type) "(oref , obj) table"
  "heap"   <= (type) "(loc  , obj) table"
- "locals" <= (type) "(lname, val) table"
+(*  "locals" <= (type) "(lname, val) table" *)
 
 datatype st = (* pure state, i.e. contents of all variables *)
 	 st globs locals
@@ -487,18 +487,7 @@ done
 section "abrupt completion"
 
 
-datatype xcpt        (* exception *)
-	= Loc loc    (* location of allocated execption object *)
-	| Std xname  (* intermediate standard exception, see Eval.thy *)
 
-datatype error
-       = AccessViolation (* Access to a member that isn't permitted *)
-
-datatype abrupt      (* abrupt completion *) 
-        = Xcpt xcpt  (* exception *)
-        | Jump jump  (* break, continue, return *)
-        | Error error (* runtime errors, we wan't to detect and proof absent
-                         in welltyped programms *)
 consts
 
   the_Xcpt :: "abrupt \<Rightarrow> xcpt"
@@ -511,8 +500,7 @@ primrec "the_Jump (Jump j) = j"
 primrec "the_Loc (Loc a) = a"
 primrec "the_Std (Std x) = x"
 
-types
-  abopt  = "abrupt option"
+
 	
 
 constdefs

@@ -6,7 +6,7 @@
 
 header {* Java expressions and statements *}
 
-theory Term = Value:
+theory Term = Value + Table:
 
 text {*
 design issues:
@@ -58,6 +58,40 @@ simplifications:
 \end{itemize}
 *}
 
+
+
+types locals = "(lname, val) table"  (* local variables *)
+
+
+datatype jump
+        = Break label (* break *)
+        | Cont label  (* continue *)
+        | Ret         (* return from method *)
+
+datatype xcpt        (* exception *)
+	= Loc loc    (* location of allocated execption object *)
+	| Std xname  (* intermediate standard exception, see Eval.thy *)
+
+datatype error
+       = AccessViolation (* Access to a member that isn't permitted *)
+
+datatype abrupt      (* abrupt completion *) 
+        = Xcpt xcpt  (* exception *)
+        | Jump jump  (* break, continue, return *)
+        | Error error (* runtime errors, we wan't to detect and proof absent
+                         in welltyped programms *)
+types
+  abopt  = "abrupt option"
+
+text {* Local variable store and exception. 
+Anticipation of State.thy used by smallstep semantics. For a method call, 
+we save the local variables of the caller in the term Callee to restore them 
+after method return. Also an exception must be restored after the finally
+statement *}
+
+translations
+ "locals" <= (type) "(lname, val) table"
+
 datatype inv_mode                  (* invocation mode for method calls *)
 	= Static                   (* static *)
 	| SuperM                   (* super  *)
@@ -71,71 +105,112 @@ translations
   "sig" <= (type) "\<lparr>name::mname,parTs::ty list\<rparr>"
   "sig" <= (type) "\<lparr>name::mname,parTs::ty list,\<dots>::'a\<rparr>"
 
-datatype jump
-        = Break label (* break *)
-        | Cont label  (* continue *)
-        | Ret         (* return from method *)
+-- "function codes for unary operations"
+datatype unop =  UPlus    -- "+ unary plus" 
+               | UMinus   -- "- unary minus"
+               | UBitNot  -- "~ bitwise NOT"
+               | UNot     -- "! logical complement"
+
+-- "function codes for binary operations"
+datatype binop = Mul     -- "*   multiplication"
+               | Div     -- "/   division"
+               | Mod     -- "%   remainder"
+               | Plus    -- "+   addition"
+               | Minus   -- "-   subtraction"
+               | LShift  -- "<<  left shift"
+               | RShift  -- ">>  signed right shift"
+               | RShiftU -- ">>> unsigned right shift"
+               | Less    -- "<   less than"
+               | Le      -- "<=  less than or equal"
+               | Greater -- ">   greater than"
+               | Ge      -- ">=  greater than or equal"
+               | Eq      -- "==  equal"
+               | Neq     -- "!=  not equal"
+               | BitAnd  -- "&   bitwise AND"
+               | And     -- "&   boolean AND"
+               | BitXor  -- "^   bitwise Xor"
+               | Xor     -- "^   boolean Xor"
+               | BitOr   -- "|   bitwise Or"
+               | Or      -- "|   boolean Or"
 
 datatype var
 	= LVar                  lname(* local variable (incl. parameters) *)
         | FVar qtname qtname bool expr vname
                                 (*class field*)("{_,_,_}_.._"[10,10,10,85,99]90)
-	| AVar        expr expr      (* array component *) ("_.[_]"[90,10   ]90)
+	| AVar expr expr    (* array component *) ("_.[_]"[90,10   ]90)
+        | InsInitV stmt var (* insertion of initialization before
+                                   evaluation of var (for smallstep sem.) *)
 
 and expr
-	= NewC qtname              (* class instance creation *)
-	| NewA ty expr             (* array creation *) ("New _[_]"[99,10   ]85)
-	| Cast ty expr             (* type cast  *)
-	| Inst expr ref_ty         (* instanceof *)     ("_ InstOf _"[85,99] 85)
-	| Lit  val                 (* literal value, references not allowed *)
-	| Super                    (* special Super keyword *)
-	| Acc  var                 (* variable access *)
-	| Ass  var expr            (* variable assign *) ("_:=_"   [90,85   ]85)
-	| Cond expr expr expr      (* conditional *)  ("_ ? _ : _" [85,85,80]80)
-        | Call qtname ref_ty inv_mode expr mname "(ty list)" (* method call *)
-                  "(expr list)" ("{_,_,_}_\<cdot>_'( {_}_')"[10,10,10,85,99,10,10]85)
-        | Methd qtname sig          (*   (folded) method (see below) *)
-        | Body qtname stmt          (* (unfolded) method body *)
+	= NewC qtname         (* class instance creation *)
+	| NewA ty expr        (* array creation *) ("New _[_]"[99,10   ]85)
+	| Cast ty expr        (* type cast  *)
+	| Inst expr ref_ty    (* instanceof *)     ("_ InstOf _"[85,99] 85)
+	| Lit  val            (* literal value, references not allowed *)
+        | UnOp unop expr        (* unary operation *)
+        | BinOp binop expr expr (* binary operation *)
+        
+	| Super               (* special Super keyword *)
+	| Acc  var            (* variable access *)
+	| Ass  var expr       (* variable assign *) ("_:=_"   [90,85   ]85)
+	| Cond expr expr expr (* conditional *)  ("_ ? _ : _" [85,85,80]80)
+        | Call qtname ref_ty inv_mode expr mname "(ty list)" 
+               "(expr list)"  (* method call *) 
+                              ("{_,_,_}_\<cdot>_'( {_}_')"[10,10,10,85,99,10,10]85)
+        | Methd qtname sig    (*   (folded) method (see below) *)
+        | Body qtname stmt    (* (unfolded) method body *)
+        | InsInitE stmt expr      (* insertion of initialization before
+                                   evaluation of expr (for smallstep sem.) *)
+        | Callee locals expr      (* save Callers locals in Callee-Frame
+                                     (for smallstep semantics) *)
 and  stmt
-	= Skip                     (* empty      statement *)
-	| Expr  expr               (* expression statement *)
-        | Lab   label stmt         ("_\<bullet> _"(* labeled statement*)[      99,66]66)
-                                   (* handles break *)
-	| Comp  stmt stmt          ("_;; _"                     [      66,65]65)
-	| If_   expr stmt stmt     ("If'(_') _ Else _"          [   80,79,79]70)
-	| Loop  label expr stmt    ("_\<bullet> While'(_') _"           [   99,80,79]70)
-        | Do jump                  (* break, continue, return *)
+	= Skip                  (* empty      statement *)
+	| Expr  expr            (* expression statement *)
+        | Lab   jump stmt       ("_\<bullet> _"(* labeled statement*)[      99,66]66)
+                                (* handles break *)
+	| Comp  stmt stmt       ("_;; _"                  [      66,65]65)
+	| If_   expr stmt stmt  ("If'(_') _ Else _"          [   80,79,79]70)
+	| Loop  label expr stmt ("_\<bullet> While'(_') _"           [   99,80,79]70)
+        | Do jump               (* break, continue, return *)
 	| Throw expr
         | TryC  stmt
-	        qtname vname stmt   ("Try _ Catch'(_ _') _"     [79,99,80,79]70)
-	| Fin   stmt stmt          ("_ Finally _"               [      79,79]70)
+	     qtname vname stmt ("Try _ Catch'(_ _') _"     [79,99,80,79]70)
+	| Fin  stmt  stmt        ("_ Finally _"               [      79,79]70)
+        | FinA abopt stmt        (* Save abruption of first statement 
+                                    (for smallstep sem.) *)
 	| Init  qtname              (* class initialization *)
 
 
 text {*
 The expressions Methd and Body are artificial program constructs, in the
 sense that they are not used to define a concrete Bali program. In the 
-evaluation semantic definition they are "generated on the fly" to decompose 
-the task to define the behaviour of the Call expression. They are crucial 
-for the axiomatic semantics to give a syntactic hook to insert 
-some assertions (cf. AxSem.thy, Eval.thy).
-Also the Init statement (to initialize a class on its first use) is inserted 
-in various places by the evaluation semantics.   
+operational semantic's they are "generated on the fly" 
+to decompose the task to define the behaviour of the Call expression. 
+They are crucial for the axiomatic semantics to give a syntactic hook to insert 
+some assertions (cf. AxSem.thy, Eval.thy). 
+The Init statement (to initialize a class on its first use) is 
+inserted in various places by the semantics. 
+Callee, InsInitV, InsInitE,FinA are only needed as intermediate steps in the
+smallstep (transition) semantics (cf. Trans.thy). Callee is used to save the 
+local variables of the caller for method return. So ve avoid modelling a 
+frame stack.
+The InsInitV/E terms are only used by the smallstep semantics to model the
+intermediate steps of class-initialisation.
 *}
  
-types "term" = "(expr+stmt, var, expr list) sum3"
+types "term" = "(expr+stmt,var,expr list) sum3"
 translations
   "sig"   <= (type) "mname \<times> ty list"
   "var"   <= (type) "Term.var"
   "expr"  <= (type) "Term.expr"
   "stmt"  <= (type) "Term.stmt"
-  "term"  <= (type) "(expr+stmt, var, expr list) sum3"
+  "term"  <= (type) "(expr+stmt,var,expr list) sum3"
 
 syntax
   
   this    :: expr
-  LAcc    :: "vname \<Rightarrow>         expr" ("!!")
-  LAss    :: "vname \<Rightarrow> expr \<Rightarrow> stmt" ("_:==_" [90,85] 85)
+  LAcc    :: "vname \<Rightarrow> expr" ("!!")
+  LAss    :: "vname \<Rightarrow> expr \<Rightarrow>stmt" ("_:==_" [90,85] 85)
   Return  :: "expr \<Rightarrow> stmt"
   StatRef :: "ref_ty \<Rightarrow> expr"
 

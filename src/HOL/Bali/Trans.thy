@@ -7,175 +7,434 @@ Operational transition (small-step) semantics of the
 execution of Java expressions and statements
 
 PRELIMINARY!!!!!!!!
-
-improvements over Java Specification 1.0 (cf. 15.11.4.4):
-* dynamic method lookup does not need to check the return type
-* throw raises a NullPointer exception if a null reference is given, and each
-  throw of a system exception yield a fresh exception object (was not specified)
-* if there is not enough memory even to allocate an OutOfMemory exception,
-  evaluation/execution fails, i.e. simply stops (was not specified)
-
-design issues:
-* Lit expressions and Skip statements are considered completely evaluated.
-* the expr entry in rules is redundant in case of exceptions, but its full
-  inclusion helps to make the rule structure independent of exception occurence.
-* the rule format is such that the start state may contain an exception.
-  ++ faciliates exception handling (to be added later)
-  +  symmetry
-* the rules are defined carefully in order to be applicable even in not
-  type-correct situations (yielding undefined values),
-  e.g. the_Adr (Val (Bool b)) = arbitrary.
-  ++ fewer rules 
-  -  less readable because of auxiliary functions like the_Adr
-  Alternative: "defensive" evaluation throwing some InternalError exception
-               in case of (impossible, for correct programs) type mismatches
-
-simplifications:
-* just simple handling (i.e. propagation) of exceptions so far
-* dynamic method lookup does not check return type (should not be necessary)
 *)
 
-Trans = Eval +
+theory Trans = Evaln:
+(*
+constdefs inj_stmt:: "stmt \<Rightarrow> term" ("\<langle>_\<rangle>\<^sub>s" 83)
+    "\<langle>s\<rangle>\<^sub>s \<equiv> In1r s"
+
+constdefs inj_expr:: "expr \<Rightarrow> term" ("\<langle>_\<rangle>\<^sub>e" 83)
+    "\<langle>e\<rangle>\<^sub>e \<equiv> In1l e"
+*)
+axclass inj_term < "type"
+consts inj_term:: "'a::inj_term \<Rightarrow> term" ("\<langle>_\<rangle>" 83)
+
+instance stmt::inj_term ..
+
+defs (overloaded)
+stmt_inj_term_def: "\<langle>c::stmt\<rangle> \<equiv> In1r c"
+
+lemma stmt_inj_term_simp: "\<langle>c::stmt\<rangle> = In1r c"
+by (simp add: stmt_inj_term_def)
+
+instance expr::inj_term ..
+
+defs (overloaded)
+expr_inj_term_def: "\<langle>e::expr\<rangle> \<equiv> In1l e"
+
+lemma expr_inj_term_simp: "\<langle>e::expr\<rangle> = In1l e"
+by (simp add: expr_inj_term_def)
+
+instance var::inj_term ..
+
+defs (overloaded)
+var_inj_term_def: "\<langle>v::var\<rangle> \<equiv> In2 v"
+
+lemma var_inj_term_simp: "\<langle>v::var\<rangle> = In2 v"
+by (simp add: var_inj_term_def)
+
+instance "list":: (type) inj_term ..
+
+defs (overloaded)
+expr_list_inj_term_def: "\<langle>es::expr list\<rangle> \<equiv> In3 es"
+
+lemma expr_list_inj_term_simp: "\<langle>es::expr list\<rangle> = In3 es"
+by (simp add: expr_list_inj_term_def)
+
+constdefs groundVar:: "var \<Rightarrow> bool"
+"groundVar v \<equiv> (case v of
+                   LVar ln \<Rightarrow> True
+                 | {accC,statDeclC,stat}e..fn \<Rightarrow> \<exists> a. e=Lit a
+                 | e1.[e2] \<Rightarrow> \<exists> a i. e1= Lit a \<and> e2 = Lit i
+                 | InsInitV c v \<Rightarrow> False)"
+
+lemma groundVar_cases [consumes 1, case_names LVar FVar AVar]:
+  assumes ground: "groundVar v" and
+          LVar: "\<And> ln. \<lbrakk>v=LVar ln\<rbrakk> \<Longrightarrow> P" and
+          FVar: "\<And> accC statDeclC stat a fn. 
+                    \<lbrakk>v={accC,statDeclC,stat}(Lit a)..fn\<rbrakk> \<Longrightarrow> P" and
+          AVar: "\<And> a i. \<lbrakk>v=(Lit a).[Lit i]\<rbrakk> \<Longrightarrow> P"
+  shows "P"
+proof -
+  from ground LVar FVar AVar
+  show ?thesis
+    apply (cases v)
+    apply (simp add: groundVar_def)
+    apply (simp add: groundVar_def,blast)
+    apply (simp add: groundVar_def,blast)
+    apply (simp add: groundVar_def)
+    done
+qed
+
+constdefs groundExprs:: "expr list \<Rightarrow> bool"
+"groundExprs es \<equiv> list_all (\<lambda> e. \<exists> v. e=Lit v) es"
+  
+consts the_val:: "expr \<Rightarrow> val"
+primrec
+"the_val (Lit v) = v"
+
+consts the_var:: "prog \<Rightarrow> state \<Rightarrow> var \<Rightarrow> (vvar \<times> state)"
+primrec
+"the_var G s (LVar ln)                    =(lvar ln (store s),s)"
+the_var_FVar_def:
+"the_var G s ({accC,statDeclC,stat}a..fn) =fvar statDeclC stat fn (the_val a) s"
+the_var_AVar_def:
+"the_var G s(a.[i])                       =avar G (the_val i) (the_val a) s"
+
+lemma the_var_FVar_simp[simp]:
+"the_var G s ({accC,statDeclC,stat}(Lit a)..fn) = fvar statDeclC stat fn a s"
+by (simp)
+declare the_var_FVar_def [simp del]
+
+lemma the_var_AVar_simp:
+"the_var G s ((Lit a).[Lit i]) = avar G i a s"
+by (simp)
+declare the_var_AVar_def [simp del]
 
 consts
-  texpr_tstmt	:: "prog ë (((expr ò state) ò (expr ò state)) +
-		            ((stmt ò state) ò (stmt ò state))) set"
+  step	:: "prog \<Rightarrow> ((term \<times> state) \<times> (term \<times> state)) set"
 
 syntax (symbols)
-  texpr :: "[prog, expr ò state, expr ò state] ë bool "("_É_ è1 _"[61,82,82] 81)
-  tstmt :: "[prog, stmt ò state, stmt ò state] ë bool "("_É_ í1 _"[61,82,82] 81)
-  Ref   :: "loc ë expr"
+  step :: "[prog,term \<times> state,term \<times> state] \<Rightarrow> bool" ("_\<turnstile>_ \<mapsto>1 _"[61,82,82] 81)
+  stepn:: "[prog, term \<times> state,nat,term \<times> state] \<Rightarrow> bool" 
+                                                  ("_\<turnstile>_ \<mapsto>_ _"[61,82,82] 81)
+"step*":: "[prog,term \<times> state,term \<times> state] \<Rightarrow> bool" ("_\<turnstile>_ \<mapsto>* _"[61,82,82] 81)
+  Ref  :: "loc \<Rightarrow> expr"
+  SKIP :: "expr"
 
 translations
-
-  "GÉe_s è1 ex_s'" == "Inl (e_s, ex_s') Î texpr_tstmt G"
-  "GÉs_s í1 s'_s'" == "Inr (s_s, s'_s') Î texpr_tstmt G"
+  "G\<turnstile>p \<mapsto>1 p' " == "(p,p') \<in> step G"
+  "G\<turnstile>p \<mapsto>n p' " == "(p,p') \<in> (step G)^n"
+  "G\<turnstile>p \<mapsto>* p' " == "(p,p') \<in> (step G)\<^sup>*"
   "Ref a" == "Lit (Addr a)"
+  "SKIP"  == "Lit Unit"
 
-constdefs
-  
-  sub_expr_expr :: "(expr ë expr) ë prop"
-  "sub_expr_expr ef Ú (ÄG e s e' s'. GÉ(   e,s) è1 (   e',s') êë
-				     GÉ(ef e,s) è1 (ef e',s'))"
-
-inductive "texpr_tstmt G" intrs 
+inductive "step G" intros 
 
 (* evaluation of expression *)
   (* cf. 15.5 *)
-  XcptE	"ËÂv. e Û Lit vÌ êë
-				  GÉ(e,Some xc,s) è1 (Lit arbitrary,Some xc,s)"
+Abrupt:	         "\<lbrakk>\<forall>v. t \<noteq> \<langle>Lit v\<rangle>;
+                  \<forall> t. t \<noteq> \<langle>l\<bullet> Skip\<rangle>;
+                  \<forall> C vn c.  t \<noteq> \<langle>Try Skip Catch(C vn) c\<rangle>;
+                  \<forall> x c. t \<noteq> \<langle>Skip Finally c\<rangle> \<and> xc \<noteq> Xcpt x;
+                  \<forall> a c. t \<noteq> \<langle>FinA a c\<rangle>\<rbrakk> 
+                \<Longrightarrow> 
+                  G\<turnstile>(t,Some xc,s) \<mapsto>1 (\<langle>Lit arbitrary\<rangle>,Some xc,s)"
 
- CastXX "PROP sub_expr_expr (Cast T)"
+InsInitE: "\<lbrakk>G\<turnstile>(\<langle>c\<rangle>,Norm s) \<mapsto>1 (\<langle>c'\<rangle>, s')\<rbrakk>
+           \<Longrightarrow> 
+           G\<turnstile>(\<langle>InsInitE c e\<rangle>,Norm s) \<mapsto>1 (\<langle>InsInitE c' e\<rangle>, s')"
 
-(*
+(* SeqE: "G\<turnstile>(\<langle>Seq Skip e\<rangle>,Norm s) \<mapsto>1 (\<langle>e\<rangle>, Norm s)" *)
+(* Specialised rules to evaluate: 
+   InsInitE Skip (NewC C), InisInitE Skip (NewA T[e]) *)
+ 
   (* cf. 15.8.1 *)
-  NewC	"Ënew_Addr (heap s) = Some (a,x);
-	  s' = assign (hupd[aíinit_Obj G C]s) (x,s)Ì êë
-				GÉ(NewC C,None,s) è1 (Ref a,s')"
+NewC: "G\<turnstile>(\<langle>NewC C\<rangle>,Norm s) \<mapsto>1 (\<langle>InsInitE (Init C) (NewC C)\<rangle>, Norm s)"
+NewCInited: "\<lbrakk>G\<turnstile> Norm s \<midarrow>halloc (CInst C)\<succ>a\<rightarrow> s'\<rbrakk> 
+             \<Longrightarrow> 
+             G\<turnstile>(\<langle>InsInitE Skip (NewC C)\<rangle>,Norm s) \<mapsto>1 (\<langle>Ref a\<rangle>, s')"
 
+
+
+(* Alternative when rule SeqE is present 
+NewCInited: "\<lbrakk>inited C (globs s); 
+              G\<turnstile> Norm s \<midarrow>halloc (CInst C)\<succ>a\<rightarrow> s'\<rbrakk> 
+             \<Longrightarrow> 
+              G\<turnstile>(\<langle>NewC C\<rangle>,Norm s) \<mapsto>1 (\<langle>Ref a\<rangle>, s')"
+
+NewC:
+     "\<lbrakk>\<not> inited C (globs s)\<rbrakk> 
+     \<Longrightarrow> 
+      G\<turnstile>(\<langle>NewC C\<rangle>,Norm s) \<mapsto>1 (\<langle>Seq (Init C) (NewC C)\<rangle>, Norm s)"
+
+*)
   (* cf. 15.9.1 *)
-(*NewA1	"sub_expr_expr (NewA T)"*)
-  NewA1	"ËGÉ(e,None,s) è1 (e',s')Ì êë
-			      GÉ(New T[e],None,s) è1 (New T[e'],s')"
-  NewA	"Ëi = the_Intg i'; new_Addr (heap s) = Some (a, x);
-	  s' = assign (hupd[aíinit_Arr T i]s)(raise_if (i<#0) NegArrSize x,s)Ì êë
-			GÉ(New T[Lit i'],None,s) è1 (Ref a,s')"
+NewA: 
+   "G\<turnstile>(\<langle>New T[e]\<rangle>,Norm s) \<mapsto>1 (\<langle>InsInitE (init_comp_ty T) (New T[e])\<rangle>,Norm s)"
+InsInitNewAIdx: 
+   "\<lbrakk>G\<turnstile>(\<langle>e\<rangle>,Norm s) \<mapsto>1 (\<langle>e'\<rangle>, s')\<rbrakk>
+    \<Longrightarrow>  
+    G\<turnstile>(\<langle>InsInitE Skip (New T[e])\<rangle>,Norm s) \<mapsto>1 (\<langle>InsInitE Skip (New T[e'])\<rangle>,s')"
+InsInitNewA: 
+   "\<lbrakk>G\<turnstile>abupd (check_neg i) (Norm s) \<midarrow>halloc (Arr T (the_Intg i))\<succ>a\<rightarrow> s' \<rbrakk>
+    \<Longrightarrow>
+    G\<turnstile>(\<langle>InsInitE Skip (New T[Lit i])\<rangle>,Norm s) \<mapsto>1 (\<langle>Ref a\<rangle>,s')"
+ 
   (* cf. 15.15 *)
-  Cast1	"ËGÉ(e,None,s) è1 (e',s')Ì êë
-			      GÉ(Cast T e,None,s) è1 (Cast T e',s')"
-  Cast	"Ëx'= raise_if (\<questiondown>G,sÉv fits T) ClassCast NoneÌ êë
-		        GÉ(Cast T (Lit v),None,s) è1 (Lit v,x',s)"
+CastE:	
+   "\<lbrakk>G\<turnstile>(\<langle>e\<rangle>,Norm s) \<mapsto>1 (\<langle>e'\<rangle>,s')\<rbrakk> 
+    \<Longrightarrow>
+    G\<turnstile>(\<langle>Cast T e\<rangle>,None,s) \<mapsto>1 (\<langle>Cast T e'\<rangle>,s')" 
+Cast:	
+   "\<lbrakk>s' = abupd (raise_if (\<not>G,s\<turnstile>v fits T)  ClassCast) (Norm s)\<rbrakk> 
+    \<Longrightarrow> 
+    G\<turnstile>(\<langle>Cast T (Lit v)\<rangle>,Norm s) \<mapsto>1 (\<langle>Lit v\<rangle>,s')"
+  (* can be written without abupd, since we know Norm s *)
+
+
+InstE: "\<lbrakk>G\<turnstile>(\<langle>e\<rangle>,Norm s) \<mapsto>1 (\<langle>e'::expr\<rangle>,s')\<rbrakk> 
+        \<Longrightarrow> 
+        G\<turnstile>(\<langle>e InstOf T\<rangle>,Norm s) \<mapsto>1 (\<langle>e'\<rangle>,s')" 
+Inst:  "\<lbrakk>b = (v\<noteq>Null \<and> G,s\<turnstile>v fits RefT T)\<rbrakk> 
+        \<Longrightarrow> 
+        G\<turnstile>(\<langle>(Lit v) InstOf T\<rangle>,Norm s) \<mapsto>1 (\<langle>Lit (Bool b)\<rangle>,s')"
 
   (* cf. 15.7.1 *)
-(*Lit				"GÉ(Lit v,None,s) è1 (Lit v,None,s)"*)
+(*Lit				"G\<turnstile>(Lit v,None,s) \<mapsto>1 (Lit v,None,s)"*)
 
-  (* cf. 15.13.1, 15.2 *)
-  LAcc	"Ëv = the (locals s vn)Ì êë
-			       GÉ(LAcc vn,None,s) è1 (Lit v,None,s)"
+UnOpE:  "\<lbrakk>G\<turnstile>(\<langle>e\<rangle>,Norm s) \<mapsto>1 (\<langle>e'\<rangle>,s') \<rbrakk>
+         \<Longrightarrow> 
+         G\<turnstile>(\<langle>UnOp unop e\<rangle>,Norm s) \<mapsto>1 (\<langle>UnOp unop e'\<rangle>,s')"
+UnOp:   "G\<turnstile>(\<langle>UnOp unop (Lit v)\<rangle>,Norm s) \<mapsto>1 (\<langle>Lit (eval_unop unop v)\<rangle>,Norm s)"
 
-  (* cf. 15.25.1 *)
-  LAss1	"ËGÉ(e,None,s) è1 (e',s')Ì êë
-				 GÉ(f vn:=e,None,s) è1 (vn:=e',s')"
-  LAss			    "GÉ(f vn:=Lit v,None,s) è1 (Lit v,None,lupd[vnív]s)"
+BinOpE1:  "\<lbrakk>G\<turnstile>(\<langle>e1\<rangle>,Norm s) \<mapsto>1 (\<langle>e1'\<rangle>,s') \<rbrakk>
+           \<Longrightarrow> 
+           G\<turnstile>(\<langle>BinOp binop e1 e2\<rangle>,Norm s) \<mapsto>1 (\<langle>BinOp binop e1' e2\<rangle>,s')"
+BinOpE2:  "\<lbrakk>G\<turnstile>(\<langle>e2\<rangle>,Norm s) \<mapsto>1 (\<langle>e2'\<rangle>,s') \<rbrakk>
+           \<Longrightarrow> 
+           G\<turnstile>(\<langle>BinOp binop (Lit v1) e2\<rangle>,Norm s) 
+            \<mapsto>1 (\<langle>BinOp binop (Lit v1) e2'\<rangle>,s')"
+BinOp:    "G\<turnstile>(\<langle>BinOp binop (Lit v1) (Lit v2)\<rangle>,Norm s) 
+            \<mapsto>1 (\<langle>Lit (eval_binop binop v1 v2)\<rangle>,Norm s)"
 
-  (* cf. 15.10.1, 15.2 *)
-  FAcc1	"ËGÉ(e,None,s) è1 (e',s')Ì êë
-			       GÉ({T}e..fn,None,s) è1 ({T}e'..fn,s')"
-  FAcc	"Ëv = the (snd (the_Obj (heap s (the_Addr a'))) (fn,T))Ì êë
-			  GÉ({T}Lit a'..fn,None,s) è1 (Lit v,np a' None,s)"
+Super: "G\<turnstile>(\<langle>Super\<rangle>,Norm s) \<mapsto>1 (\<langle>Lit (val_this s)\<rangle>,Norm s)"
 
-  (* cf. 15.25.1 *)
-  FAss1	"ËGÉ(e1,None,s) è1 (e1',s')Ì êë
-			  GÉ(f ({T}e1..fn):=e2,None,s) è1 (f({T}e1'..fn):=e2,s')"
-  FAss2	"ËGÉ(e2,np a' None,s) è1 (e2',s')Ì êë
-		      GÉ(f({T}Lit a'..fn):=e2,None,s) è1 (f({T}Lit a'..fn):=e2',s')"
-  FAss	"Ëa = the_Addr a'; (c,fs) = the_Obj (heap s a);
-	  s'= assign (hupd[aíObj c (fs[(fn,T)ív])]s) (None,s)Ì êë
-		   GÉ(f({T}Lit a'..fn):=Lit v,None,s) è1 (Lit v,s')"
+AccVA: "\<lbrakk>G\<turnstile>(\<langle>va\<rangle>,Norm s) \<mapsto>1 (\<langle>va'\<rangle>,s') \<rbrakk>
+        \<Longrightarrow> 
+        G\<turnstile>(\<langle>Acc va\<rangle>,Norm s) \<mapsto>1 (\<langle>Acc va'\<rangle>,s')"
+Acc:  "\<lbrakk>groundVar va; ((v,vf),s') = the_var G (Norm s) va\<rbrakk>
+       \<Longrightarrow>  
+       G\<turnstile>(\<langle>Acc va\<rangle>,Norm s) \<mapsto>1 (\<langle>Lit v\<rangle>,s')"
+
+(*
+AccLVar: "G\<turnstile>(\<langle>Acc (LVar vn)\<rangle>,Norm s) \<mapsto>1 (\<langle>Lit (fst (lvar vn s))\<rangle>,Norm s)"
+AccFVar: "\<lbrakk>((v,vf),s') = fvar statDeclC stat fn a (Norm s)\<rbrakk>
+          \<Longrightarrow>  
+          G\<turnstile>(\<langle>Acc ({accC,statDeclC,stat}(Lit a)..fn)\<rangle>,Norm s) 
+           \<mapsto>1 (\<langle>Lit v\<rangle>,s')"
+AccAVar: "\<lbrakk>((v,vf),s') = avar G i a (Norm s)\<rbrakk>
+          \<Longrightarrow>  
+          G\<turnstile>(\<langle>Acc ((Lit a).[Lit i])\<rangle>,Norm s) \<mapsto>1 (\<langle>Lit v\<rangle>,s')"
+*) 
+AssVA:  "\<lbrakk>G\<turnstile>(\<langle>va\<rangle>,Norm s) \<mapsto>1 (\<langle>va'\<rangle>,s')\<rbrakk> 
+         \<Longrightarrow> 
+         G\<turnstile>(\<langle>va:=e\<rangle>,Norm s) \<mapsto>1 (\<langle>va':=e\<rangle>,s')"
+AssE:   "\<lbrakk>groundVar va; G\<turnstile>(\<langle>e\<rangle>,Norm s) \<mapsto>1 (\<langle>e'\<rangle>,s')\<rbrakk> 
+         \<Longrightarrow> 
+         G\<turnstile>(\<langle>va:=e\<rangle>,Norm s) \<mapsto>1 (\<langle>va:=e'\<rangle>,s')"
+Ass:    "\<lbrakk>groundVar va; ((w,f),s') = the_var G (Norm s) va\<rbrakk> 
+         \<Longrightarrow> 
+         G\<turnstile>(\<langle>va:=(Lit v)\<rangle>,Norm s) \<mapsto>1 (\<langle>Lit v\<rangle>,assign f v s')"
+
+CondC: "\<lbrakk>G\<turnstile>(\<langle>e0\<rangle>,Norm s) \<mapsto>1 (\<langle>e0'\<rangle>,s')\<rbrakk> 
+        \<Longrightarrow> 
+        G\<turnstile>(\<langle>e0? e1:e2\<rangle>,Norm s) \<mapsto>1 (\<langle>e0'? e1:e2\<rangle>,s')"
+Cond:  "G\<turnstile>(\<langle>Lit b? e1:e2\<rangle>,Norm s) \<mapsto>1 (\<langle>if the_Bool b then e1 else e2\<rangle>,Norm s)"
 
 
+CallTarget: "\<lbrakk>G\<turnstile>(\<langle>e\<rangle>,Norm s) \<mapsto>1 (\<langle>e'\<rangle>,s')\<rbrakk> 
+             \<Longrightarrow>
+	     G\<turnstile>(\<langle>{accC,statT,mode}e\<cdot>mn({pTs}args)\<rangle>,Norm s) 
+              \<mapsto>1 (\<langle>{accC,statT,mode}e'\<cdot>mn({pTs}args)\<rangle>,s')"
+CallArgs:   "\<lbrakk>G\<turnstile>(\<langle>args\<rangle>,Norm s) \<mapsto>1 (\<langle>args'\<rangle>,s')\<rbrakk> 
+             \<Longrightarrow>
+	     G\<turnstile>(\<langle>{accC,statT,mode}Lit a\<cdot>mn({pTs}args)\<rangle>,Norm s) 
+              \<mapsto>1 (\<langle>{accC,statT,mode}Lit a\<cdot>mn({pTs}args')\<rangle>,s')"
+Call:       "\<lbrakk>groundExprs args; vs = map the_val args;
+              D = invocation_declclass G mode s a statT \<lparr>name=mn,parTs=pTs\<rparr>;
+              s'=init_lvars G D \<lparr>name=mn,parTs=pTs\<rparr> mode a' vs (Norm s)\<rbrakk> 
+             \<Longrightarrow> 
+             G\<turnstile>(\<langle>{accC,statT,mode}Lit a\<cdot>mn({pTs}args)\<rangle>,Norm s) 
+              \<mapsto>1 (\<langle>Callee (locals s) (Methd D \<lparr>name=mn,parTs=pTs\<rparr>)\<rangle>,s')"
+           
+Callee:     "\<lbrakk>G\<turnstile>(\<langle>e\<rangle>,Norm s) \<mapsto>1 (\<langle>e'::expr\<rangle>,s')\<rbrakk>
+             \<Longrightarrow> 
+             G\<turnstile>(\<langle>Callee lcls_caller e\<rangle>,Norm s) \<mapsto>1 (\<langle>e'\<rangle>,s')"
+
+CalleeRet:   "G\<turnstile>(\<langle>Callee lcls_caller (Lit v)\<rangle>,Norm s) 
+               \<mapsto>1 (\<langle>Lit v\<rangle>,(set_lvars lcls_caller (Norm s)))"
+
+Methd: "G\<turnstile>(\<langle>Methd D sig\<rangle>,Norm s) \<mapsto>1 (\<langle>body G D sig\<rangle>,Norm s)"
+
+Body: "G\<turnstile>(\<langle>Body D c\<rangle>,Norm s) \<mapsto>1 (\<langle>InsInitE (Init D) (Body D c)\<rangle>,Norm s)"
+
+InsInitBody: 
+    "\<lbrakk>G\<turnstile>(\<langle>c\<rangle>,Norm s) \<mapsto>1 (\<langle>c'\<rangle>,s')\<rbrakk>
+     \<Longrightarrow> 
+     G\<turnstile>(\<langle>InsInitE Skip (Body D c)\<rangle>,Norm s) \<mapsto>1(\<langle>InsInitE Skip (Body D c')\<rangle>,s')"
+InsInitBodyRet: 
+     "G\<turnstile>(\<langle>InsInitE Skip (Body D Skip)\<rangle>,Norm s)
+       \<mapsto>1 (\<langle>Lit (the ((locals s) Result))\<rangle>,abupd (absorb Ret) (Norm s))"
+
+(*   LVar: "G\<turnstile>(LVar vn,Norm s)" is already evaluated *)
+  
+FVar: "\<lbrakk>\<not> inited statDeclC (globs s)\<rbrakk>
+       \<Longrightarrow> 
+       G\<turnstile>(\<langle>{accC,statDeclC,stat}e..fn\<rangle>,Norm s) 
+        \<mapsto>1 (\<langle>InsInitV (Init statDeclC) ({accC,statDeclC,stat}e..fn)\<rangle>,Norm s)"
+InsInitFVarE:
+      "\<lbrakk>G\<turnstile>(\<langle>e\<rangle>,Norm s) \<mapsto>1 (\<langle>e'\<rangle>,s')\<rbrakk>
+       \<Longrightarrow>
+       G\<turnstile>(\<langle>InsInitV Skip ({accC,statDeclC,stat}e..fn)\<rangle>,Norm s) 
+        \<mapsto>1 (\<langle>InsInitV Skip ({accC,statDeclC,stat}e'..fn)\<rangle>,s')"
+InsInitFVar:
+      "G\<turnstile>(\<langle>InsInitV Skip ({accC,statDeclC,stat}Lit a..fn)\<rangle>,Norm s) 
+        \<mapsto>1 (\<langle>{accC,statDeclC,stat}Lit a..fn\<rangle>,Norm s)"
+--  {* Notice, that we do not have literal values for @{text vars}. 
+The rules for accessing variables (@{text Acc}) and assigning to variables 
+(@{text Ass}), test this with the predicate @{text groundVar}.  After 
+initialisation is done and the @{text FVar} is evaluated, we can't just 
+throw away the @{text InsInitFVar} term and return a literal value, as in the 
+cases of @{text New}  or @{text NewC}. Instead we just return the evaluated 
+@{text FVar} and test for initialisation in the rule @{text FVar}. 
+*}
 
 
+AVarE1: "\<lbrakk>G\<turnstile>(\<langle>e1\<rangle>,Norm s) \<mapsto>1 (\<langle>e1'\<rangle>,s')\<rbrakk> 
+         \<Longrightarrow> 
+         G\<turnstile>(\<langle>e1.[e2]\<rangle>,Norm s) \<mapsto>1 (\<langle>e1'.[e2]\<rangle>,s')"
 
-  (* cf. 15.12.1 *)
-  AAcc1	"ËGÉ(e1,None,s) è1 (e1',s')Ì êë
-				GÉ(e1[e2],None,s) è1 (e1'[e2],s')"
-  AAcc2	"ËGÉ(e2,None,s) è1 (e2',s')Ì êë
-			    GÉ(Lit a'[e2],None,s) è1 (Lit a'[e2'],s')"
-  AAcc	"Ëvo = snd (the_Arr (heap s (the_Addr a'))) (the_Intg i');
-	  x' = raise_if (vo = None) IndOutBound (np a' None)Ì êë
-			GÉ(Lit a'[Lit i'],None,s) è1 (Lit (the vo),x',s)"
+AVarE2: "G\<turnstile>(\<langle>e2\<rangle>,Norm s) \<mapsto>1 (\<langle>e2'\<rangle>,s') 
+         \<Longrightarrow> 
+         G\<turnstile>(\<langle>Lit a.[e2]\<rangle>,Norm s) \<mapsto>1 (\<langle>Lit a.[e2']\<rangle>,s')"
 
+(* AVar: \<langle>(Lit a).[Lit i]\<rangle> is fully evaluated *)
 
-  (* cf. 15.11.4.1, 15.11.4.2, 15.11.4.4, 15.11.4.5, 14.15 *)
-  Call1	"ËGÉ(e,None,s) è1 (e',s')Ì êë
-			  GÉ(e..mn({pT}p),None,s) è1 (e'..mn({pT}p),s')"
-  Call2	"ËGÉ(p,None,s) è1 (p',s')Ì êë
-		     GÉ(Lit a'..mn({pT}p),None,s) è1 (Lit a'..mn({pT}p'),s')"
-  Call	"Ëa = the_Addr a'; (md,(pn,rT),lvars,blk,res) = 
- 			   the (cmethd G (fst (the_Obj (h a))) (mn,pT))Ì êë
-	    GÉ(Lit a'..mn({pT}Lit pv),None,(h,l)) è1 
-      (Body blk res l,np a' x,(h,init_vals lvars[Thisía'][Supería'][pnípv]))"
-  Body1	"ËGÉ(s0,None,s) í1 (s0',s')Ì êë
-		   GÉ(Body s0    e      l,None,s) è1 (Body s0'  e  l,s')"
-  Body2	"ËGÉ(e ,None,s) è1 (e',s')Ì êë
-		   GÉ(Body Skip  e      l,None,s) è1 (Body Skip e' l,s')"
-  Body		  "GÉ(Body Skip (Lit v) l,None,s) è1 (Lit v,None,(heap s,l))"
+(* evaluation of expression lists *)
+
+  -- {* @{text Nil}  is fully evaluated *}
+
+ConsHd: "\<lbrakk>G\<turnstile>(\<langle>e::expr\<rangle>,Norm s) \<mapsto>1 (\<langle>e'::expr\<rangle>,s')\<rbrakk> 
+         \<Longrightarrow>
+         G\<turnstile>(\<langle>e#es\<rangle>,Norm s) \<mapsto>1 (\<langle>e'#es\<rangle>,s')"
+  
+ConsTl: "\<lbrakk>G\<turnstile>(\<langle>es\<rangle>,Norm s) \<mapsto>1 (\<langle>es'\<rangle>,s')\<rbrakk> 
+         \<Longrightarrow>
+         G\<turnstile>(\<langle>(Lit v)#es\<rangle>,Norm s) \<mapsto>1 (\<langle>(Lit v)#es'\<rangle>,s')"
 
 (* execution of statements *)
 
-  (* cf. 14.1 *)
-  XcptS	"Ës0 Û SkipÌ êë
-				 GÉ(s0,Some xc,s) í1 (Skip,Some xc,s)"
-
   (* cf. 14.5 *)
-(*Skip	 			 "GÉ(Skip,None,s) í1 (Skip,None,s)"*)
+Skip: "G\<turnstile>(\<langle>Skip\<rangle>,Norm s) \<mapsto>1 (\<langle>SKIP\<rangle>,Norm s)"
+
+ExprE: "\<lbrakk>G\<turnstile>(\<langle>e\<rangle>,Norm s) \<mapsto>1 (\<langle>e'\<rangle>,s')\<rbrakk> 
+        \<Longrightarrow> 
+        G\<turnstile>(\<langle>Expr e\<rangle>,Norm s) \<mapsto>1 (\<langle>Expr e'\<rangle>,s')"
+Expr:  "G\<turnstile>(\<langle>Expr (Lit v)\<rangle>,Norm s) \<mapsto>1 (\<langle>Skip\<rangle>,Norm s)"
+
+
+LabC: "\<lbrakk>G\<turnstile>(\<langle>c\<rangle>,Norm s) \<mapsto>1 (\<langle>c'\<rangle>,s')\<rbrakk> 
+       \<Longrightarrow>  
+       G\<turnstile>(\<langle>l\<bullet> c\<rangle>,Norm s) \<mapsto>1 (\<langle>l\<bullet> c'\<rangle>,s')"
+Lab:  "G\<turnstile>(\<langle>l\<bullet> Skip\<rangle>,s) \<mapsto>1 (\<langle>Skip\<rangle>, abupd (absorb l) s)"
 
   (* cf. 14.2 *)
-  Comp1	"ËGÉ(s1,None,s) í1 (s1',s')Ì êë
-			       GÉ(s1;; s2,None,s) í1 (s1';; s2,s')"
-  Comp			    "GÉ(Skip;; s2,None,s) í1 (s2,None,s)"
+CompC1:	"\<lbrakk>G\<turnstile>(\<langle>c1\<rangle>,Norm s) \<mapsto>1 (\<langle>c1'\<rangle>,s')\<rbrakk> 
+         \<Longrightarrow> 
+         G\<turnstile>(\<langle>c1;; c2\<rangle>,Norm s) \<mapsto>1 (\<langle>c1';; c2\<rangle>,s')"
 
-
-
-
-
-
-  (* cf. 14.7 *)
-  Expr1	"ËGÉ(e ,None,s) è1 (e',s')Ì êë
-				GÉ(Expr e,None,s) í1 (Expr e',s')"
-  Expr			 "GÉ(Expr (Lit v),None,s) í1 (Skip,None,s)"
+Comp:   "G\<turnstile>(\<langle>Skip;; c2\<rangle>,Norm s) \<mapsto>1 (\<langle>c2\<rangle>,Norm s)"
 
   (* cf. 14.8.2 *)
-  If1	"ËGÉ(e ,None,s) è1 (e',s')Ì êë
-		      GÉ(If(e) s1 Else s2,None,s) í1 (If(e') s1 Else s2,s')"
-  If		 "GÉ(If(Lit v) s1 Else s2,None,s) í1 
-		    (if the_Bool v then s1 else s2,None,s)"
+IfE: "\<lbrakk>G\<turnstile>(\<langle>e\<rangle> ,Norm s) \<mapsto>1 (\<langle>e'\<rangle>,s')\<rbrakk> 
+      \<Longrightarrow>
+      G\<turnstile>(\<langle>If(e) s1 Else s2\<rangle>,Norm s) \<mapsto>1 (\<langle>If(e') s1 Else s2\<rangle>,s')"
+If:  "G\<turnstile>(\<langle>If(Lit v) s1 Else s2\<rangle>,Norm s) 
+       \<mapsto>1 (\<langle>if the_Bool v then s1 else s2\<rangle>,Norm s)"
 
   (* cf. 14.10, 14.10.1 *)
-  Loop			  "GÉ(While(e) s0,None,s) í1 
-			     (If(e) (s0;; While(e) s0) Else Skip,None,s)"
+Loop: "G\<turnstile>(\<langle>l\<bullet> While(e) c\<rangle>,Norm s) 
+        \<mapsto>1 (\<langle>If(e) (Cont l\<bullet>c;; l\<bullet> While(e) c) Else Skip\<rangle>,Norm s)"
+
+Do: "G\<turnstile>(\<langle>Do j\<rangle>,Norm s) \<mapsto>1 (\<langle>Skip\<rangle>,(Some (Jump j), s))"
+
+ThrowE: "\<lbrakk>G\<turnstile>(\<langle>e\<rangle>,Norm s) \<mapsto>1 (\<langle>e'\<rangle>,s')\<rbrakk> 
+         \<Longrightarrow>
+         G\<turnstile>(\<langle>Throw e\<rangle>,Norm s) \<mapsto>1 (\<langle>Throw e'\<rangle>,s')"
+Throw:  "G\<turnstile>(\<langle>Throw (Lit a)\<rangle>,Norm s) \<mapsto>1 (\<langle>Skip\<rangle>,abupd (throw a) (Norm s))"
+
+TryC1: "\<lbrakk>G\<turnstile>(\<langle>c1\<rangle>,Norm s) \<mapsto>1 (\<langle>c1'\<rangle>,s')\<rbrakk> 
+        \<Longrightarrow>
+        G\<turnstile>(\<langle>Try c1 Catch(C vn) c2\<rangle>, Norm s) \<mapsto>1 (\<langle>Try c1' Catch(C vn) c2\<rangle>,s')"
+Try:   "\<lbrakk>G\<turnstile>s \<midarrow>sxalloc\<rightarrow> s'\<rbrakk>
+        \<Longrightarrow>
+        G\<turnstile>(\<langle>Try Skip Catch(C vn) c2\<rangle>, s) 
+         \<mapsto>1 (if G,s'\<turnstile>catch C then (\<langle>c2\<rangle>,new_xcpt_var vn s')
+                              else (\<langle>Skip\<rangle>,s'))"
+
+FinC1: "\<lbrakk>G\<turnstile>(\<langle>c1\<rangle>,Norm s) \<mapsto>1 (\<langle>c1'\<rangle>,s')\<rbrakk> 
+        \<Longrightarrow>
+        G\<turnstile>(\<langle>c1 Finally c2\<rangle>,Norm s) \<mapsto>1 (\<langle>c1' Finally c2\<rangle>,s')"
+
+Fin:    "G\<turnstile>(\<langle>Skip Finally c2\<rangle>,(a,s)) \<mapsto>1 (\<langle>FinA a c2\<rangle>,Norm s)"
+
+FinAC: "\<lbrakk>G\<turnstile>(\<langle>c\<rangle>,s) \<mapsto>1 (\<langle>c'\<rangle>,s')\<rbrakk>
+        \<Longrightarrow>
+        G\<turnstile>(\<langle>FinA a c\<rangle>,s) \<mapsto>1 (\<langle>FinA a c'\<rangle>,s')"
+FinA: "G\<turnstile>(\<langle>FinA a Skip\<rangle>,s) \<mapsto>1 (\<langle>Skip\<rangle>,abupd (abrupt_if (a\<noteq>None) a) s)"
+
+
+Init1: "\<lbrakk>inited C (globs s)\<rbrakk> 
+        \<Longrightarrow> 
+        G\<turnstile>(\<langle>Init C\<rangle>,Norm s) \<mapsto>1 (\<langle>Skip\<rangle>,Norm s)"
+Init: "\<lbrakk>the (class G C)=c; \<not> inited C (globs s)\<rbrakk>  
+       \<Longrightarrow> 
+       G\<turnstile>(\<langle>Init C\<rangle>,Norm s) 
+        \<mapsto>1 (\<langle>(if C = Object then Skip else (Init (super c)));;
+              Expr (Callee (locals s) (InsInitE (init c) SKIP))\<rangle>
+             ,Norm (init_class_obj G C s))"
+-- {* @{text InsInitE} is just used as trick to embed the statement 
+@{text "init c"} into an expression*} 
+InsInitESKIP:
+  "G\<turnstile>(\<langle>InsInitE Skip SKIP\<rangle>,Norm s) \<mapsto>1 (\<langle>SKIP\<rangle>,Norm s)"
+         
+(* Equivalenzen:
+  Bigstep zu Smallstep komplett.
+  Smallstep zu Bigstep, nur wenn nicht die Ausdrücke Callee, FinA ,\<dots>
 *)
-  con_defs "[sub_expr_expr_def]"
+
+lemma rtrancl_imp_rel_pow: "p \<in> R^* \<Longrightarrow> \<exists>n. p \<in> R^n"
+proof -
+  assume "p \<in> R\<^sup>*"
+  moreover obtain x y where p: "p = (x,y)" by (cases p)
+  ultimately have "(x,y) \<in> R\<^sup>*" by hypsubst
+  hence "\<exists>n. (x,y) \<in> R^n"
+  proof induct
+    fix a have "(a,a) \<in> R^0" by simp
+    thus "\<exists>n. (a,a) \<in> R ^ n" ..
+  next
+    fix a b c assume "\<exists>n. (a,b) \<in> R ^ n"
+    then obtain n where "(a,b) \<in> R^n" ..
+    moreover assume "(b,c) \<in> R"
+    ultimately have "(a,c) \<in> R^(Suc n)" by auto
+    thus "\<exists>n. (a,c) \<in> R^n" ..
+  qed
+  with p show ?thesis by hypsubst
+qed  
+
+(*
+lemma imp_eval_trans:
+  assumes eval: "G\<turnstile>s0 \<midarrow>t\<succ>\<rightarrow> (v,s1)" 
+    shows trans: "G\<turnstile>(t,s0) \<mapsto>* (\<langle>Lit v\<rangle>,s1)"
+*)
+(* Jetzt muss man bei trans natürlich wieder unterscheiden: Stmt, Expr, Var!
+   Sowas blödes:
+   Am besten den Terminus ground auf Var,Stmt,Expr hochziehen und dann
+   the_vals definieren\<dots>
+  G\<turnstile>(t,s0) \<mapsto>* (t',s1) \<and> the_vals t' = v
+*)
+
 
 end
