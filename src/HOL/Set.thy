@@ -229,12 +229,6 @@ lemma CollectI: "P(a) ==> a : {x. P(x)}"
 lemma CollectD: "a : {x. P(x)} ==> P(a)"
   by simp
 
-lemma set_ext: assumes prem: "(!!x. (x:A) = (x:B))" shows "A = B"
-  apply (rule prem [THEN ext, THEN arg_cong, THEN box_equals])
-   apply (rule Collect_mem_eq)
-  apply (rule Collect_mem_eq)
-  done
-
 lemma Collect_cong: "(!!x. P x = Q x) ==> {x. P(x)} = {x. Q(x)}"
   by simp
 
@@ -408,6 +402,12 @@ lemma subset_trans: "A \<subseteq> B ==> B \<subseteq> C ==> A \<subseteq> C"
 
 subsubsection {* Equality *}
 
+lemma set_ext: assumes prem: "(!!x. (x:A) = (x:B))" shows "A = B"
+  apply (rule prem [THEN ext, THEN arg_cong, THEN box_equals])
+   apply (rule Collect_mem_eq)
+  apply (rule Collect_mem_eq)
+  done
+
 lemma subset_antisym [intro!]: "A \<subseteq> B ==> B \<subseteq> A ==> A = B"
   -- {* Anti-symmetry of the subset relation. *}
   by (rules intro: set_ext subsetD)
@@ -449,6 +449,9 @@ lemma setup_induction: "p:A ==> (!!z. z:A ==> p = z --> R) ==> R"
   by simp
 
 lemma eqset_imp_iff: "A = B ==> (x : A) = (x : B)"
+  by simp
+
+lemma eqelem_imp_iff: "x = y ==> (x : A) = (y : A)"
   by simp
 
 
