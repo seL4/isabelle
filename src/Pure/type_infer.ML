@@ -247,14 +247,16 @@ fun unify classrel arities =
       "Variable " ^ x ^ "::" ^ Sorts.str_of_sort S' ^ " not of sort " ^
         Sorts.str_of_sort S ^ ".";
 
+    fun no_domain (a, c) = "No way to get " ^ a ^ "::" ^ c ^ ".";
+
     fun meet (_, []) = ()
       | meet (Link (r as (ref (Param S'))), S) =
           if Sorts.sort_le classrel (S', S) then ()
           else r := mk_param (Sorts.inter_sort classrel (S', S))
       | meet (Link (ref T), S) = meet (T, S)
       | meet (PType (a, Ts), S) =
-          seq2 meet (Ts, Sorts.mg_domain classrel arities a S
-            handle TYPE (msg, _, _) => raise NO_UNIFIER msg)
+          seq2 meet (Ts, Sorts.mg_domain (classrel, arities) a S
+            handle Sorts.DOMAIN ac => raise NO_UNIFIER (no_domain ac))
       | meet (PTFree (x, S'), S) =
           if Sorts.sort_le classrel (S', S) then ()
           else raise NO_UNIFIER (not_in_sort x S' S)
