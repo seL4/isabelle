@@ -6,6 +6,8 @@
 Instantiation of the generic simplifier
 *)
 
+section "Simplifier";
+
 open Simplifier;
 
 (*** Integration of simplifier with classical reasoner ***)
@@ -26,6 +28,49 @@ fun auto_tac (cs,ss) =
 fun Auto_tac() = auto_tac (!claset, !simpset);
 
 fun auto() = by (Auto_tac());
+
+
+(*** Addition of rules to simpsets and clasets simultaneously ***)
+
+(*Takes UNCONDITIONAL theorems of the form A<->B to 
+	the Safe Intr     rule B==>A and 
+	the Safe Destruct rule A==>B.
+  Also ~A goes to the Safe Elim rule A ==> ?R
+  Failing other cases, A is added as a Safe Intr rule*)
+local
+  val iff_const = HOLogic.eq_const HOLogic.boolT;
+
+  fun addIff th = 
+      (case HOLogic.dest_Trueprop (#prop(rep_thm th)) of
+		(Const("not",_) $ A) =>
+		    AddSEs [zero_var_indexes (th RS notE)]
+	      | (con $ _ $ _) =>
+		    if con=iff_const
+		    then (AddSIs [zero_var_indexes (th RS iffD2)];  
+			  AddSDs [zero_var_indexes (th RS iffD1)])
+		    else  AddSIs [th]
+	      | _ => AddSIs [th];
+       Addsimps [th])
+      handle _ => error ("AddIffs: theorem must be unconditional\n" ^ 
+			 string_of_thm th)
+
+  fun delIff th = 
+      (case HOLogic.dest_Trueprop (#prop(rep_thm th)) of
+		(Const("not",_) $ A) =>
+		    Delrules [zero_var_indexes (th RS notE)]
+	      | (con $ _ $ _) =>
+		    if con=iff_const
+		    then Delrules [zero_var_indexes (th RS iffD2),
+				   zero_var_indexes (th RS iffD1)]
+		    else Delrules [th]
+	      | _ => Delrules [th];
+       Delsimps [th])
+      handle _ => warning("DelIffs: ignoring conditional theorem\n" ^ 
+			  string_of_thm th)
+in
+val AddIffs = seq addIff
+val DelIffs = seq delIff
+end;
 
 
 local
@@ -268,3 +313,44 @@ qed_goal "if_distrib" HOL.thy
 
 qed_goalw "o_assoc" HOL.thy [o_def] "f o (g o h) = (f o g o h)"
   (fn _=>[rtac ext 1, rtac refl 1]);
+
+
+
+
+(*** Install simpsets and datatypes in theory structure ***)
+
+simpset := HOL_ss;
+
+exception SS_DATA of simpset;
+
+let fun merge [] = SS_DATA empty_ss
+      | merge ss = let val ss = map (fn SS_DATA x => x) ss;
+                   in SS_DATA (foldl merge_ss (hd ss, tl ss)) end;
+
+    fun put (SS_DATA ss) = simpset := ss;
+
+    fun get () = SS_DATA (!simpset);
+in add_thydata "HOL"
+     ("simpset", ThyMethods {merge = merge, put = put, get = get})
+end;
+
+type dtype_info = {case_const:term, case_rewrites:thm list,
+                   constructors:term list, nchotomy:thm, case_cong:thm};
+
+exception DT_DATA of (string * dtype_info) list;
+val datatypes = ref [] : (string * dtype_info) list ref;
+
+let fun merge [] = DT_DATA []
+      | merge ds =
+          let val ds = map (fn DT_DATA x => x) ds;
+          in DT_DATA (foldl (gen_union eq_fst) (hd ds, tl ds)) end;
+
+    fun put (DT_DATA ds) = datatypes := ds;
+
+    fun get () = DT_DATA (!datatypes);
+in add_thydata "HOL"
+     ("datatypes", ThyMethods {merge = merge, put = put, get = get})
+end;
+
+
+add_thy_reader_file "thy_data.ML";
