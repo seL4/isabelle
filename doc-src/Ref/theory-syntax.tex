@@ -120,7 +120,7 @@ rules : 'rules' (( id string ) + )
 defs : 'defs' (( id string ) + )
      ;
 
-constdefs : 'constdefs' (name '::' (string | type) string +)
+constdefs : 'constdefs' (name '::' (string | type) (() | mixfix) string +)
           ;
 
 axclass : 'axclass' classDecl (() | ( id string ) +)
