@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+#
+# $Id$
+# Author: Gerwin Klein, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
+#
+# DESCRIPTION: send email platform independently.
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG subject recipient body"
+  echo
+  echo "  Send email platform independently. Body is a file."
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+## main
+
+# argument checking
+
+[ "$1" = "-?" ] && usage
+[ "$#" != "3" ] && usage
+
+SUBJECT=$1
+TO=$2
+BODY=$3
+
+[ -r $BODY ] || fail "could not read $BODY"
+
+case `uname` in
+    Linux*)
+    mail -s "$SUBJECT" $TO <$BODY
+    ;;
+
+    SunOS*)
+    mail -t $TO <<EOF
+Subject: $SUBJECT
+
+`cat $BODY`
+EOF
+    ;;
+
+    *)  
+    fail "unkown platform"
+    ;;
+esac

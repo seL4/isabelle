@@ -14,6 +14,10 @@ LOGPREFIX=~/log
 
 MASTERLOG=$LOGPREFIX/isatest.log
 
+TMP=/tmp/isatest-makeall.$$
+
+MAIL=~/bin/pmail
+
 ## diagnostics
 
 PRG="$(basename "$0")"
@@ -47,6 +51,8 @@ shift
 
 [ -d $DISTPREFIX ] || fail "$DISTPREFIX is not a directory."
 
+LOGS=""
+
 for SETTINGS in $@; do
 
     [ -r $SETTINGS ] || fail "Cannot read $SETTINGS."
@@ -62,29 +68,18 @@ for SETTINGS in $@; do
 
     echo ------------------- starting test --- `date` --- $HOSTNAME > $TESTLOG 2>&1
 
-    cp $DISTPREFIX/Isabelle/etc/settings $DISTPREFIX/Isabelle/etc/settings.save-$SHORT
     cat $SETTINGS >> $DISTPREFIX/Isabelle/etc/settings
-    $DISTPREFIX/Isabelle/bin/isatool makeall all >> $TESTLOG 2>&1 
+    nice $DISTPREFIX/Isabelle/bin/isatool makeall -j 2 all >> $TESTLOG 2>&1 
 
     if [ $? -eq 0 ]
     then
         echo ------------------- test successful --- `date` --- $HOSTNAME >> $TESTLOG 2>&1
-        mv $DISTPREFIX/Isabelle/etc/settings.save-$SHORT $DISTPREFIX/Isabelle/etc/settings
         gzip -f $TESTLOG
 	rm -rf ~/isabelle-$SHORT
     else
         echo ------------------- test FAILED --- `date` --- $HOSTNAME >> $TESTLOG 2>&1
 	FAIL="$FAIL$SHORT "
-	for R in $MAILTO; do
-    		mail -t $R <<EOM
-Subject: isabelle test failed
-
-Test for platform $SHORT failed. Log file available at
-
-$HOSTNAME:$TESTLOG
-EOM
-	done
-        # more action here
+	LOGS="${LOGS}$HOSTNAME:$TESTLOG\n"
     fi
 
 done
@@ -93,6 +88,16 @@ ELAPSED=$("$HOME/bin/showtime" "$SECONDS")
 
 if [ "$FAIL" != "" ]; then
 	echo "$(date) $HOSTNAME $PRG: targets ${FAIL}FAILED, elapsed time $ELAPSED." >> $MASTERLOG
+	
+	echo "Test for platform(s) ${FAIL}failed. Log file(s) available at" > $TMP
+	echo "$LOGS" >> $TMP
+
+        for R in $MAILTO; do
+	    $MAIL "isabelle test failed" $R $TMP
+	done
+
+	rm $TMP
+
 	exit 1
 else
         echo "$(date) $HOSTNAME $PRG: all tests successful, elapsed time $ELAPSED." >> $MASTERLOG
