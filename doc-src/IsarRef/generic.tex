@@ -82,7 +82,9 @@
 \end{matharray}
 
 \begin{rail}
-  ('tag' | 'untag') (nameref+)
+  'tag' (nameref+)
+  ;
+  'untag' name
   ;
   'OF' thmrefs
   ;
@@ -100,10 +102,11 @@
 \end{rail}
 
 \begin{descr}
-\item [$tag~tags$ and $untag~tags$] add and remove $tags$ of the theorem,
-  respectively.  Tags may be any list of strings that serve as comment for
-  some tools (e.g.\ $\LEMMANAME$ causes the tag ``$lemma$'' to be added to the
-  result).
+\item [$tag~name~args$ and $untag~name$] add and remove $tags$ of some
+  theorem.  Tags may be any list of strings that serve as comment for some
+  tools (e.g.\ $\LEMMANAME$ causes the tag ``$lemma$'' to be added to the
+  result).  The first string is considered the tag name, the rest its
+  arguments.  Note that untag removes any tags of the same name.
 \item [$OF~thms$, $RS~n~thm$, and $COMP~n~thm$] compose rules.  $OF$ applies
   $thms$ in parallel (cf.\ \texttt{MRS} in \cite[\S5]{isabelle-ref}, but note
   the reversed order).  Note that premises may be skipped by including
@@ -174,7 +177,7 @@ command required.
 \begin{rail}
   ('also' | 'finally') transrules? comment?
   ;
-  'trans' (() | 'add' ':' | 'del' ':') thmrefs
+  'trans' (() | 'add' | 'del')
   ;
 
   transrules: '(' thmrefs ')' interest?
@@ -230,8 +233,8 @@ inductive sets and types.
 
 The $\CASENAME$ command provides a shorthand to refer to certain parts of
 logical context symbolically.  Proof methods may provide an environment of
-named ``cases'' of the form $c\colon \vec x, \vec \chi$.  Then the effect of
-$\CASE{c}$ is exactly the same as $\FIX{\vec x}~\ASSUME{c}{\vec\chi}$.
+named ``cases'' of the form $c\colon \vec x, \vec \phi$.  Then the effect of
+$\CASE{c}$ is exactly the same as $\FIX{\vec x}~\ASSUME{c}{\vec\phi}$.
 
 It is important to note that $\CASENAME$ does \emph{not} provide any means to
 peek at the current goal state, which is treated as strictly non-observable in
@@ -261,10 +264,10 @@ manually may be used in advanced case analysis later.
 \end{rail}
 
 \begin{descr}
-\item [$\CASE{c}$] invokes a named local context $c\colon \vec x, \vec \chi$,
+\item [$\CASE{c}$] invokes a named local context $c\colon \vec x, \vec \phi$,
   as provided by an appropriate proof method (such as $cases$ and $induct$,
   see \S\ref{sec:induct-method}).  The command $\CASE{c}$ abbreviates
-  $\FIX{\vec x}~\ASSUME{c}{\vec\chi}$.
+  $\FIX{\vec x}~\ASSUME{c}{\vec\phi}$.
 \item [$\isarkeyword{print_cases}$] prints all local contexts of the current
   goal context, using Isar proof language notation.  This is a diagnostic
   command; $undo$ does not apply.
