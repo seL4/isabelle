@@ -64,20 +64,16 @@ fun process_eqn sign (eq, rec_fns) =
       handle TERM _ => raise RecError "illegal argument in pattern";
     val lfrees = ls @ rs @ cargs;
 
-    val _ = case duplicates lfrees of
-	       [] => ()
-	     | vars => raise RecError("repeated variable names in pattern: " ^ 
-				      commas_quote (map #1 vars))
- 
-    val _ =  case (map dest_Free (term_frees rhs)) \\ lfrees of
-		[] => ()
-	      | vars => raise RecError 
-		      ("extra variables on rhs: " ^ 
-		       commas_quote (map #1 vars))
+    fun check_vars _ [] = ()
+      | check_vars s vars = raise RecError (s ^ commas_quote (map fst vars))
   in
     if length middle > 1 then 
       raise RecError "more than one non-variable in pattern"
-    else (case assoc (rec_fns, fname) of
+    else
+     (check_vars "repeated variable names in pattern: " (duplicates lfrees);
+      check_vars "extra variables on rhs: "
+        (map dest_Free (term_frees rhs) \\ lfrees);
+      case assoc (rec_fns, fname) of
         None =>
           (fname, (tname, rpos, [(cname, (ls, cargs, rs, rhs, eq))]))::rec_fns
       | Some (_, rpos', eqns) =>
