@@ -3,9 +3,9 @@
 Although on the surface this chapter is mainly concerned with how to write
 functional programs in HOL and how to verify them, most of the constructs and
 proof procedures introduced are general purpose and recur in any specification
-or verification task. In fact, it we should really speak of functional
-\emph{modelling} rather than \emph{programming} because our aim is not
-primarily to write programs but to design abstract models of systems.  HOL is
+or verification task. In fact, we really should speak of functional
+\emph{modelling} rather than \emph{programming}: our primary aim is not
+to write programs but to design abstract models of systems.  HOL is
 a specification language that goes well beyond what can be expressed as a
 program. However, for the time being we concentrate on the computable.
 
@@ -80,8 +80,8 @@ The most useful auxiliary commands are:
   \isacommand{redo}\indexbold{*redo}.  Both are only needed at the shell
   level and should not occur in the final theory.
 \item[Printing the current state:] \isacommand{pr}\indexbold{*pr} redisplays
-  the current proof state, for example when it has disappeared off the
-  screen.
+  the current proof state, for example when it has scrolled past the top of
+  the screen.
 \item[Limiting the number of subgoals:] \isacommand{pr}~$n$ tells Isabelle to
   print only the first $n$ subgoals from now on and redisplays the current
   proof state. This is helpful when there are many subgoals.
