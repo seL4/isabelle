@@ -188,12 +188,11 @@ text {*
   Note that this list of rules is in reverse order of priorities.
 *}
 
-lemmas trans_rules [trans] =
+lemmas basic_trans_rules [trans] =
   forw_subst
   back_subst
   rev_mp
   mp
-  transitive
   trans
 
 lemmas [Pure.elim] = sym
