@@ -1,7 +1,7 @@
 #  $Id$
 #########################################################################
 #									#
-# 			Makefile for Isabelle (FOLP)			#
+#			Makefile for Isabelle (FOLP)			#
 #									#
 #########################################################################
 
@@ -21,7 +21,7 @@
 
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
-FILES =  ROOT.ML IFOLP.thy IFOLP.ML FOLP.thy FOLP.ML intprover.ML simpdata.ML\
+FILES =	 ROOT.ML IFOLP.thy IFOLP.ML FOLP.thy FOLP.ML intprover.ML simpdata.ML\
 	 hypsubst.ML classical.ML simp.ML 
 
 EX_FILES = ex/ROOT.ML ex/cla.ML ex/foundn.ML ex/If.ML ex/If.thy ex/int.ML\
@@ -32,44 +32,44 @@ $(BIN)/FOLP:   $(BIN)/Pure  $(FILES)
 	case "$(COMP)" in \
 	poly*)	echo 'make_database"$(BIN)/FOLP"; quit();'  \
 			| $(COMP) $(BIN)/Pure;\
-                if [ "$${MAKE_HTML}" = "true" ]; \
-                then echo 'open PolyML; make_html := true; exit_use_dir".";' \
-                       | $(COMP) $(BIN)/FOLP;\
-		elif [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
-                then echo 'open PolyML; make_html := true; exit_use_dir".";                               make_html := false;' | $(COMP) $(BIN)/FOLP;\
-                else echo 'open PolyML; exit_use_dir".";' \
+		if [ "$${MAKE_HTML}" = "true" ]; \
+		then echo 'open PolyML; make_html := true; exit_use_dir".";' \
 		       | $(COMP) $(BIN)/FOLP;\
-                fi;\
+		elif [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+		then echo 'open PolyML; make_html := true; exit_use_dir".";				  make_html := false;' | $(COMP) $(BIN)/FOLP;\
+		else echo 'open PolyML; exit_use_dir".";' \
+		       | $(COMP) $(BIN)/FOLP;\
+		fi;\
 		discgarb -c $(BIN)/FOLP;;\
 	sml*)	if [ "$${MAKE_HTML}" = "true" ]; \
-                then echo 'make_html := true; exit_use_dir".";                                            xML"$(BIN)/FOLP" banner;' | $(BIN)/Pure;\
-                elif [ "$${MAKE_HTML-undefined}" != "undefined" ];\
-                then echo 'make_html := true; exit_use_dir".";                                            make_html := false; xML"$(BIN)/FOLP" banner;' \
-                       | $(BIN)/Pure;\
-                else echo 'exit_use_dir"."; xML"$(BIN)/FOLP" banner;' \
-                       | $(BIN)/Pure;\
-                fi;;\
+		then echo 'make_html := true; exit_use_dir".";						  xML"$(BIN)/FOLP" banner;' | $(BIN)/Pure;\
+		elif [ "$${MAKE_HTML-undefined}" != "undefined" ];\
+		then echo 'make_html := true; exit_use_dir".";						  make_html := false; xML"$(BIN)/FOLP" banner;' \
+		       | $(BIN)/Pure;\
+		else echo 'exit_use_dir"."; xML"$(BIN)/FOLP" banner;' \
+		       | $(BIN)/Pure;\
+		fi;;\
 	*)	echo Bad value for ISABELLECOMP: \
-                	$(COMP) is not poly or sml;;\
+			$(COMP) is not poly or sml;;\
 	esac
 
 $(BIN)/Pure:
 	cd ../Pure;  $(MAKE)
 
-test:   ex/ROOT.ML  $(BIN)/FOLP  $(EX_FILES) 
+test:	ex/ROOT.ML  $(BIN)/FOLP	 $(EX_FILES) 
 	case "$(COMP)" in \
-	poly*)  if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
-                then echo 'make_html := true; exit_use_dir"ex"; quit();' \
-                       | $(COMP) $(BIN)/FOLP;\
-                else echo 'exit_use_dir"ex"; quit();' | $(COMP) $(BIN)/FOLP;\
-                fi;;\
+	poly*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+		then echo 'make_html := true; exit_use_dir"ex"; quit();' \
+		       | $(COMP) $(BIN)/FOLP;\
+		else echo 'exit_use_dir"ex"; quit();' | $(COMP) $(BIN)/FOLP;\
+		fi;;\
 	sml*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
-                then echo 'make_html := true; exit_use_dir"ex";' \
-                       | $(BIN)/FOLP;\
-                else echo 'exit_use_dir"ex";' | $(BIN)/FOLP;\
-                fi;;\
+		then echo 'make_html := true; exit_use_dir"ex";' \
+		       | $(BIN)/FOLP;\
+		else echo 'exit_use_dir"ex";' | $(BIN)/FOLP;\
+		fi;;\
 	*)	echo Bad value for ISABELLECOMP: \
-                	$(COMP) is not poly or sml;;\
+			$(COMP) is not poly or sml;;\
 	esac
 
 .PRECIOUS:   $(BIN)/Pure  $(BIN)/FOLP 

@@ -1,7 +1,7 @@
 # $Id$
 #########################################################################
 #									#
-# 			Makefile for Isabelle (FOL)			#
+#			Makefile for Isabelle (FOL)			#
 #									#
 #########################################################################
 
@@ -21,7 +21,7 @@
 
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
-FILES =  ROOT.ML IFOL.thy IFOL.ML FOL.thy FOL.ML intprover.ML simpdata.ML \
+FILES =	 ROOT.ML IFOL.thy IFOL.ML FOL.thy FOL.ML intprover.ML simpdata.ML \
 	 ../Provers/hypsubst.ML ../Provers/classical.ML \
 	 ../Provers/simplifier.ML ../Provers/splitter.ML ../Provers/ind.ML
 
@@ -31,51 +31,51 @@ EX_FILES = ex/ROOT.ML ex/cla.ML ex/foundn.ML  ex/int.ML ex/intro.ML\
 
 $(BIN)/FOL:   $(BIN)/Pure  $(FILES) 
 	if [ -d $${ISABELLEBIN:?}/Pure ];\
-           	then echo Bad value for ISABELLEBIN: \
-                	$(BIN) is the Isabelle source directory; \
-                	exit 1; \
-           	fi;\
+		then echo Bad value for ISABELLEBIN: \
+			$(BIN) is the Isabelle source directory; \
+			exit 1; \
+		fi;\
 	case "$(COMP)" in \
 	poly*)	echo 'make_database"$(BIN)/FOL"; quit();' \
 		  | $(COMP) $(BIN)/Pure;\
-                if [ "$${MAKE_HTML}" = "true" ]; \
-                then echo 'open PolyML; make_html := true; exit_use_dir".";' \
-                       | $(COMP) $(BIN)/FOL;\
+		if [ "$${MAKE_HTML}" = "true" ]; \
+		then echo 'open PolyML; make_html := true; exit_use_dir".";' \
+		       | $(COMP) $(BIN)/FOL;\
 		elif [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
-                then echo 'open PolyML; make_html := true; exit_use_dir".";                               make_html := false;' | $(COMP) $(BIN)/FOL;\
-                else echo 'open PolyML; exit_use_dir".";' \
-                       | $(COMP) $(BIN)/FOL;\
-                fi;\
+		then echo 'open PolyML; make_html := true; exit_use_dir".";				  make_html := false;' | $(COMP) $(BIN)/FOL;\
+		else echo 'open PolyML; exit_use_dir".";' \
+		       | $(COMP) $(BIN)/FOL;\
+		fi;\
 		discgarb -c $(BIN)/FOL;;\
 	sml*)	if [ "$${MAKE_HTML}" = "true" ]; \
-                then echo 'make_html := true; exit_use_dir".";                                            xML"$(BIN)/FOL" banner;' | $(BIN)/Pure;\
-                elif [ "$${MAKE_HTML-undefined}" != "undefined" ];\
-                then echo 'make_html := true; exit_use_dir".";                                            make_html := false; xML"$(BIN)/FOL" banner;' \
-                       | $(BIN)/Pure;\
-                else echo 'exit_use_dir"."; xML"$(BIN)/FOL" banner;' \
-                       | $(BIN)/Pure;\
-                fi;;\
+		then echo 'make_html := true; exit_use_dir".";						  xML"$(BIN)/FOL" banner;' | $(BIN)/Pure;\
+		elif [ "$${MAKE_HTML-undefined}" != "undefined" ];\
+		then echo 'make_html := true; exit_use_dir".";						  make_html := false; xML"$(BIN)/FOL" banner;' \
+		       | $(BIN)/Pure;\
+		else echo 'exit_use_dir"."; xML"$(BIN)/FOL" banner;' \
+		       | $(BIN)/Pure;\
+		fi;;\
 	*)	echo Bad value for ISABELLECOMP: \
-                	$(COMP) is not poly or sml;;\
+			$(COMP) is not poly or sml;;\
 	esac
 
 $(BIN)/Pure:
 	cd ../Pure;  $(MAKE)
 
-test:   ex/ROOT.ML  $(BIN)/FOL  $(EX_FILES) 
+test:	ex/ROOT.ML  $(BIN)/FOL	$(EX_FILES) 
 	case "$(COMP)" in \
-	poly*)  if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
-                then echo 'make_html := true; exit_use_dir"ex"; quit();' \
-                       | $(COMP) $(BIN)/FOL;\
-                else echo 'exit_use_dir"ex"; quit();' | $(COMP) $(BIN)/FOL;\
-                fi;;\
+	poly*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+		then echo 'make_html := true; exit_use_dir"ex"; quit();' \
+		       | $(COMP) $(BIN)/FOL;\
+		else echo 'exit_use_dir"ex"; quit();' | $(COMP) $(BIN)/FOL;\
+		fi;;\
 	sml*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
-                then echo 'make_html := true; exit_use_dir"ex";' \
-                       | $(BIN)/FOL;\
-                else echo 'exit_use_dir"ex";' | $(BIN)/FOL;\
-                fi;;\
+		then echo 'make_html := true; exit_use_dir"ex";' \
+		       | $(BIN)/FOL;\
+		else echo 'exit_use_dir"ex";' | $(BIN)/FOL;\
+		fi;;\
 	*)	echo Bad value for ISABELLECOMP: \
-                	$(COMP) is not poly or sml;;\
+			$(COMP) is not poly or sml;;\
 	esac
 
 .PRECIOUS:   $(BIN)/Pure  $(BIN)/FOL 

@@ -1,7 +1,7 @@
 # $Id$
 #########################################################################
 #									#
-# 			Makefile for Isabelle (LCF)			#
+#			Makefile for Isabelle (LCF)			#
 #									#
 #########################################################################
 
@@ -21,42 +21,42 @@
 
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
-FILES =  ROOT.ML LCF.thy LCF.ML simpdata.ML pair.ML fix.ML
+FILES =	 ROOT.ML LCF.thy LCF.ML simpdata.ML pair.ML fix.ML
 
 #Uses cp rather than make_database because Poly/ML allows only 3 levels
 $(BIN)/LCF:   $(BIN)/FOL  $(FILES) 
 	case "$(COMP)" in \
 	poly*)	cp $(BIN)/FOL $(BIN)/LCF;\
-                if [ "$${MAKE_HTML}" = "true" ]; \
-                then echo 'open PolyML; make_html := true; exit_use_dir".";' \
-                       | $(COMP) $(BIN)/LCF;\
+		if [ "$${MAKE_HTML}" = "true" ]; \
+		then echo 'open PolyML; make_html := true; exit_use_dir".";' \
+		       | $(COMP) $(BIN)/LCF;\
 		elif [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
-                then echo 'open PolyML; make_html := true; exit_use_dir".";                               make_html := false;' | $(COMP) $(BIN)/LCF;\
-                else echo 'open PolyML; exit_use_dir".";' \
-                       | $(COMP) $(BIN)/LCF;\
-                fi;\
+		then echo 'open PolyML; make_html := true; exit_use_dir".";				  make_html := false;' | $(COMP) $(BIN)/LCF;\
+		else echo 'open PolyML; exit_use_dir".";' \
+		       | $(COMP) $(BIN)/LCF;\
+		fi;\
 		discgarb -c $(BIN)/LCF;;\
 	sml*)	if [ "$${MAKE_HTML}" = "true" ]; \
-                then echo 'make_html := true; exit_use_dir".";                                            xML"$(BIN)/LCF" banner;' | $(BIN)/FOL;\
-                elif [ "$${MAKE_HTML-undefined}" != "undefined" ];\
-                then echo 'make_html := true; exit_use_dir".";                                            make_html := false; xML"$(BIN)/LCF" banner;' \
-                       | $(BIN)/FOL;\
-                else echo 'exit_use_dir"."; xML"$(BIN)/LCF" banner;' \
-                       | $(BIN)/FOL;\
-                fi;;\
+		then echo 'make_html := true; exit_use_dir".";						  xML"$(BIN)/LCF" banner;' | $(BIN)/FOL;\
+		elif [ "$${MAKE_HTML-undefined}" != "undefined" ];\
+		then echo 'make_html := true; exit_use_dir".";						  make_html := false; xML"$(BIN)/LCF" banner;' \
+		       | $(BIN)/FOL;\
+		else echo 'exit_use_dir"."; xML"$(BIN)/LCF" banner;' \
+		       | $(BIN)/FOL;\
+		fi;;\
 	*)	echo Bad value for ISABELLECOMP: \
-                	$(COMP) is not poly or sml;;\
+			$(COMP) is not poly or sml;;\
 	esac
 
 (BIN)/FOL:
 	cd ../FOL;  $(MAKE)
 
-test:   ex.ML  $(BIN)/LCF
+test:	ex.ML  $(BIN)/LCF
 	case "$(COMP)" in \
 	poly*)	echo 'exit_use"ex.ML"; quit();' | $(COMP) $(BIN)/LCF ;;\
 	sml*)	echo 'exit_use"ex.ML";' | $(BIN)/LCF;;\
 	*)	echo Bad value for ISABELLECOMP: \
-                	$(COMP) is not poly or sml;;\
+			$(COMP) is not poly or sml;;\
 	esac
 
-.PRECIOUS:   $(BIN)/FOL  $(BIN)/LCF 
+.PRECIOUS:   $(BIN)/FOL	 $(BIN)/LCF 

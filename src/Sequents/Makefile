@@ -1,7 +1,7 @@
 # $Id$
 #########################################################################
 #									#
-# 			Makefile for Isabelle (Sequents)		#
+#			Makefile for Isabelle (Sequents)		#
 #									#
 #########################################################################
 
@@ -31,39 +31,39 @@ EX_FILES = ex/ROOT.ML \
     ex/ILL/ILL_kleene_lemmas.ML \
     $(ILL_NAMES:%=ex/ILL/%.thy) $(ILL_NAMES:%=ex/ILL/%.ML)
 
-$(BIN)/Sequents:   $(BIN)/Pure  $(FILES) 
+$(BIN)/Sequents:   $(BIN)/Pure	$(FILES) 
 	case "$(COMP)" in \
-	poly*)	echo 'make_database"$(BIN)/Sequents"; quit();'  \
+	poly*)	echo 'make_database"$(BIN)/Sequents"; quit();'	\
 			| $(COMP) $(BIN)/Pure;\
-                if [ "$${MAKE_HTML}" = "true" ]; \
-                then echo 'open PolyML; make_html := true; exit_use_dir".";' \
-                       | $(COMP) $(BIN)/Sequents;\
+		if [ "$${MAKE_HTML}" = "true" ]; \
+		then echo 'open PolyML; make_html := true; exit_use_dir".";' \
+		       | $(COMP) $(BIN)/Sequents;\
 		elif [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
-                then echo 'open PolyML; make_html := true; exit_use_dir".";                               make_html := false;' | $(COMP) $(BIN)/Sequents;\
-                else echo 'open PolyML; exit_use_dir".";' | $(COMP) $(BIN)/Sequents;\
-                fi;\
+		then echo 'open PolyML; make_html := true; exit_use_dir".";				  make_html := false;' | $(COMP) $(BIN)/Sequents;\
+		else echo 'open PolyML; exit_use_dir".";' | $(COMP) $(BIN)/Sequents;\
+		fi;\
 		discgarb -c $(BIN)/Sequents;;\
 	sml*)	if [ "$${MAKE_HTML}" = "true" ]; \
-                then echo 'make_html := true; exit_use_dir".";                                            xML"$(BIN)/Sequents" banner;' | $(BIN)/Pure;\
-                elif [ "$${MAKE_HTML-undefined}" != "undefined" ];\
-                then echo 'make_html := true; exit_use_dir".";                                            make_html := false; xML"$(BIN)/Sequents" banner;' \
-                       | $(BIN)/Pure;\
-                else echo 'exit_use_dir"."; xML"$(BIN)/Sequents" banner;' \
-                       | $(BIN)/Pure;\
-                fi;;\
+		then echo 'make_html := true; exit_use_dir".";						  xML"$(BIN)/Sequents" banner;' | $(BIN)/Pure;\
+		elif [ "$${MAKE_HTML-undefined}" != "undefined" ];\
+		then echo 'make_html := true; exit_use_dir".";						  make_html := false; xML"$(BIN)/Sequents" banner;' \
+		       | $(BIN)/Pure;\
+		else echo 'exit_use_dir"."; xML"$(BIN)/Sequents" banner;' \
+		       | $(BIN)/Pure;\
+		fi;;\
 	*)	echo Bad value for ISABELLECOMP: \
-                	$(COMP) is not poly or sml;;\
+			$(COMP) is not poly or sml;;\
 	esac
 
 $(BIN)/Pure:
 	cd ../Pure;  $(MAKE)
 
-test:   $(BIN)/Sequents  $(EX_FILES)
+test:	$(BIN)/Sequents	 $(EX_FILES)
 	case "$(COMP)" in \
 	poly*)	echo 'exit_use"ex/ROOT.ML";quit();' | $(COMP) $(BIN)/Sequents;;\
 	sml*)	echo 'exit_use"ex/ROOT.ML";' | $(BIN)/Sequents;;\
 	*)	echo Bad value for ISABELLECOMP: \
-                	$(COMP) is not poly or sml;;\
+			$(COMP) is not poly or sml;;\
 	esac
 
 

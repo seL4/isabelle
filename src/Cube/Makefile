@@ -1,7 +1,7 @@
 # $Id$
 #########################################################################
 #									#
-# 			Makefile for Isabelle (Cube)			#
+#			Makefile for Isabelle (Cube)			#
 #									#
 #########################################################################
 
@@ -22,42 +22,42 @@
 
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
-FILES = 	ROOT.ML  Cube.thy  Cube.ML
+FILES =		ROOT.ML	 Cube.thy  Cube.ML
 
 $(BIN)/Cube:   $(BIN)/Pure  $(FILES) 
 	case "$(COMP)" in \
 	poly*)	echo 'make_database"$(BIN)/Cube"; quit();'  \
 			| $(COMP) $(BIN)/Pure;\
-                if [ "$${MAKE_HTML}" = "true" ]; \
-                then echo 'open PolyML; make_html := true; exit_use_dir".";' \
-                       | $(COMP) $(BIN)/Cube;\
-		elif [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
-                then echo 'open PolyML; make_html := true; exit_use_dir".";                               make_html := false;' | $(COMP) $(BIN)/Cube;\
-                else echo 'open PolyML; exit_use_dir".";' \
+		if [ "$${MAKE_HTML}" = "true" ]; \
+		then echo 'open PolyML; make_html := true; exit_use_dir".";' \
 		       | $(COMP) $(BIN)/Cube;\
-                fi;\
+		elif [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+		then echo 'open PolyML; make_html := true; exit_use_dir".";				  make_html := false;' | $(COMP) $(BIN)/Cube;\
+		else echo 'open PolyML; exit_use_dir".";' \
+		       | $(COMP) $(BIN)/Cube;\
+		fi;\
 		discgarb -c $(BIN)/Cube;;\
 	sml*)	if [ "$${MAKE_HTML}" = "true" ]; \
-                then echo 'make_html := true; exit_use_dir".";                                            xML"$(BIN)/Cube" banner;' | $(BIN)/Pure;\
-                elif [ "$${MAKE_HTML-undefined}" != "undefined" ];\
-                then echo 'make_html := true; exit_use_dir".";                                            make_html := false; xML"$(BIN)/Cube" banner;' \
-                       | $(BIN)/Pure;\
-                else echo 'exit_use_dir"."; xML"$(BIN)/Cube" banner;' \
-                       | $(BIN)/Pure;\
-                fi;;\
+		then echo 'make_html := true; exit_use_dir".";						  xML"$(BIN)/Cube" banner;' | $(BIN)/Pure;\
+		elif [ "$${MAKE_HTML-undefined}" != "undefined" ];\
+		then echo 'make_html := true; exit_use_dir".";						  make_html := false; xML"$(BIN)/Cube" banner;' \
+		       | $(BIN)/Pure;\
+		else echo 'exit_use_dir"."; xML"$(BIN)/Cube" banner;' \
+		       | $(BIN)/Pure;\
+		fi;;\
 	*)	echo Bad value for ISABELLECOMP: \
-                	$(COMP) is not poly or sml;;\
+			$(COMP) is not poly or sml;;\
 	esac
 
 $(BIN)/Pure:
 	cd ../Pure;  $(MAKE)
 
-test:   ex.ML $(BIN)/Cube
+test:	ex.ML $(BIN)/Cube
 	case "$(COMP)" in \
 	poly*)	echo 'exit_use"ex.ML"; quit();' | $(COMP) $(BIN)/Cube ;;\
 	sml*)	echo 'exit_use"ex.ML";' | $(BIN)/Cube;;\
 	*)	echo Bad value for ISABELLECOMP: \
-                	$(COMP) is not poly or sml;;\
+			$(COMP) is not poly or sml;;\
 	esac
 
-.PRECIOUS:  $(BIN)/Pure  $(BIN)/Cube 
+.PRECIOUS:  $(BIN)/Pure	 $(BIN)/Cube 

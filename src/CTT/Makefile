@@ -1,7 +1,7 @@
 # $Id$
 #########################################################################
 #									#
-# 			Makefile for Isabelle (CTT)			#
+#			Makefile for Isabelle (CTT)			#
 #									#
 #########################################################################
 
@@ -21,50 +21,50 @@
 
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
-FILES = 	ROOT.ML CTT.thy CTT.ML Bool.thy Bool.ML \
+FILES =		ROOT.ML CTT.thy CTT.ML Bool.thy Bool.ML \
 		Arith.thy Arith.ML rew.ML ../Provers/typedsimp.ML
 
 EX_FILES = ex/ROOT.ML ex/elim.ML ex/equal.ML ex/synth.ML ex/typechk.ML
 
 $(BIN)/CTT:   $(BIN)/Pure  $(FILES) 
 	if [ -d $${ISABELLEBIN:?}/Pure ];\
-           	then echo Bad value for ISABELLEBIN: \
-                	$(BIN) is the Isabelle source directory; \
-                	exit 1; \
-           	fi;\
+		then echo Bad value for ISABELLEBIN: \
+			$(BIN) is the Isabelle source directory; \
+			exit 1; \
+		fi;\
 	case "$(COMP)" in \
 	poly*)	echo 'make_database"$(BIN)/CTT"; quit();'  \
 			| $(COMP) $(BIN)/Pure;\
-                if [ "$${MAKE_HTML}" = "true" ]; \
-                then echo 'open PolyML; make_html := true; exit_use_dir".";' \
-                       | $(COMP) $(BIN)/CTT;\
+		if [ "$${MAKE_HTML}" = "true" ]; \
+		then echo 'open PolyML; make_html := true; exit_use_dir".";' \
+		       | $(COMP) $(BIN)/CTT;\
 		elif [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
-                then echo 'open PolyML; make_html := true; exit_use_dir".";                               make_html := false;' | $(COMP) $(BIN)/CTT;\
-                else echo 'open PolyML; exit_use_dir".";' \
-                       | $(COMP) $(BIN)/CTT;\
-                fi;\
+		then echo 'open PolyML; make_html := true; exit_use_dir".";				  make_html := false;' | $(COMP) $(BIN)/CTT;\
+		else echo 'open PolyML; exit_use_dir".";' \
+		       | $(COMP) $(BIN)/CTT;\
+		fi;\
 		discgarb -c $(BIN)/CTT;;\
 	sml*)	if [ "$${MAKE_HTML}" = "true" ]; \
-                then echo 'make_html := true; exit_use_dir".";                                            xML"$(BIN)/CTT" banner;' | $(BIN)/Pure;\
-                elif [ "$${MAKE_HTML-undefined}" != "undefined" ];\
-                then echo 'make_html := true; exit_use_dir".";                                            make_html := false; xML"$(BIN)/CTT" banner;' \
-                       | $(BIN)/Pure;\
-                else echo 'exit_use_dir"."; xML"$(BIN)/CTT" banner;' \
-                       | $(BIN)/Pure;\
-                fi;;\
+		then echo 'make_html := true; exit_use_dir".";						  xML"$(BIN)/CTT" banner;' | $(BIN)/Pure;\
+		elif [ "$${MAKE_HTML-undefined}" != "undefined" ];\
+		then echo 'make_html := true; exit_use_dir".";						  make_html := false; xML"$(BIN)/CTT" banner;' \
+		       | $(BIN)/Pure;\
+		else echo 'exit_use_dir"."; xML"$(BIN)/CTT" banner;' \
+		       | $(BIN)/Pure;\
+		fi;;\
 	*)	echo Bad value for ISABELLECOMP: \
-                	$(COMP) is not poly or sml;;\
+			$(COMP) is not poly or sml;;\
 	esac
 
 $(BIN)/Pure:
 	cd ../Pure;  $(MAKE)
 
-test:   ex/ROOT.ML $(BIN)/CTT  $(EX_FILES) 
+test:	ex/ROOT.ML $(BIN)/CTT  $(EX_FILES) 
 	case "$(COMP)" in \
 	poly*)	echo 'exit_use"ex/ROOT.ML"; quit();' | $(COMP) $(BIN)/CTT ;;\
 	sml*)	echo 'exit_use"ex/ROOT.ML";' | $(BIN)/CTT;;\
 	*)	echo Bad value for ISABELLECOMP: \
-                	$(COMP) is not poly or sml;;\
+			$(COMP) is not poly or sml;;\
 	esac
 
-.PRECIOUS:  $(BIN)/Pure  $(BIN)/CTT 
+.PRECIOUS:  $(BIN)/Pure	 $(BIN)/CTT 
