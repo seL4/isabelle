@@ -52,7 +52,7 @@ qed_goalw "Exh_stream" Stream.thy [scons_def]
         (res_inst_tac [("p","stream_rep`s")] sprodE 1),
         (asm_simp_tac (!simpset addsimps stream_rews) 1),
         (Asm_simp_tac  1),
-        (res_inst_tac [("p","y")] liftE1 1),
+        (res_inst_tac [("p","y")] upE1 1),
         (contr_tac 1),
         (rtac disjI2 1),
         (rtac exI 1),

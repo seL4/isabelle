@@ -65,7 +65,7 @@ rules
 stream_abs_iso  "stream_rep`(stream_abs`x) = x"
 stream_rep_iso  "stream_abs`(stream_rep`x) = x"
 stream_copy_def "stream_copy == (LAM f. stream_abs oo 
-                (ssplit`(LAM x y. (|x , (lift`(up oo f))`y|) )) oo stream_rep)"
+                (ssplit`(LAM x y. (|x , (fup`(up oo f))`y|) )) oo stream_rep)"
 stream_reach    "(fix`stream_copy)`x = x"
 
 defs
@@ -80,7 +80,7 @@ scons_def       "scons == (LAM x l. stream_abs`(| x, up`l |))"
 (* discriminator functional                                                *)
 
 stream_when_def 
-"stream_when == (LAM f l.ssplit `(LAM x l.f`x`(lift`ID`l)) `(stream_rep`l))"
+"stream_when == (LAM f l.ssplit `(LAM x l.f`x`(fup`ID`l)) `(stream_rep`l))"
 
 (* ----------------------------------------------------------------------- *)
 (* discriminators and selectors                                            *)
