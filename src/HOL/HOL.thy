@@ -1001,6 +1001,27 @@ ML_setup {*
    class for quasi orders, the tactics Quasi_Tac.trans_tac and
    Quasi_Tac.quasi_tac are not of much use. *)
 
+fun decomp_gen sort sign (Trueprop $ t) =
+  let fun of_sort t = Sign.of_sort sign (type_of t, sort)
+  fun dec (Const ("Not", _) $ t) = (
+	  case dec t of
+	    None => None
+	  | Some (t1, rel, t2) => Some (t1, "~" ^ rel, t2))
+	| dec (Const ("op =",  _) $ t1 $ t2) = 
+	    if of_sort t1
+	    then Some (t1, "=", t2)
+	    else None
+	| dec (Const ("op <=",  _) $ t1 $ t2) = 
+	    if of_sort t1
+	    then Some (t1, "<=", t2)
+	    else None
+	| dec (Const ("op <",  _) $ t1 $ t2) = 
+	    if of_sort t1
+	    then Some (t1, "<", t2)
+	    else None
+	| dec _ = None
+  in dec t end;
+
 structure Quasi_Tac = Quasi_Tac_Fun (
   struct
     val le_trans = thm "order_trans";
@@ -1012,28 +1033,6 @@ structure Quasi_Tac = Quasi_Tac_Fun (
     val le_neq_trans = thm "order_le_neq_trans";
     val neq_le_trans = thm "order_neq_le_trans";
     val less_imp_neq = thm "less_imp_neq";
-
-    fun decomp_gen sort sign (Trueprop $ t) =
-      let fun of_sort t = Sign.of_sort sign (type_of t, sort)
-      fun dec (Const ("Not", _) $ t) = (
-              case dec t of
-                None => None
-              | Some (t1, rel, t2) => Some (t1, "~" ^ rel, t2))
-            | dec (Const ("op =",  _) $ t1 $ t2) = 
-                if of_sort t1
-                then Some (t1, "=", t2)
-                else None
-            | dec (Const ("op <=",  _) $ t1 $ t2) = 
-                if of_sort t1
-                then Some (t1, "<=", t2)
-                else None
-            | dec (Const ("op <",  _) $ t1 $ t2) = 
-                if of_sort t1
-                then Some (t1, "<", t2)
-                else None
-            | dec _ = None
-      in dec t end;
-
     val decomp_trans = decomp_gen ["HOL.order"];
     val decomp_quasi = decomp_gen ["HOL.order"];
 
@@ -1059,28 +1058,6 @@ structure Order_Tac = Order_Tac_Fun (
     val neq_le_trans = thm "order_neq_le_trans";
     val less_imp_neq = thm "less_imp_neq";
     val eq_neq_eq_imp_neq = thm "eq_neq_eq_imp_neq";
-
-    fun decomp_gen sort sign (Trueprop $ t) =
-      let fun of_sort t = Sign.of_sort sign (type_of t, sort)
-      fun dec (Const ("Not", _) $ t) = (
-              case dec t of
-                None => None
-              | Some (t1, rel, t2) => Some (t1, "~" ^ rel, t2))
-            | dec (Const ("op =",  _) $ t1 $ t2) = 
-                if of_sort t1
-                then Some (t1, "=", t2)
-                else None
-            | dec (Const ("op <=",  _) $ t1 $ t2) = 
-                if of_sort t1
-                then Some (t1, "<=", t2)
-                else None
-            | dec (Const ("op <",  _) $ t1 $ t2) = 
-                if of_sort t1
-                then Some (t1, "<", t2)
-                else None
-            | dec _ = None
-      in dec t end;
-
     val decomp_part = decomp_gen ["HOL.order"];
     val decomp_lin = decomp_gen ["HOL.linorder"];
 
