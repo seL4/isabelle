@@ -1,9 +1,11 @@
 \section{Introduction}
 
-Isar is an extension of Isabelle with structured proofs in a stylized
-language of mathematics. These proofs are readable for both a human
-and a machine.  This document is a compact introduction to structured
-proofs in Isar/HOL, an extension of Isabelle/HOL~\cite{LNCS2283}. We
+Isabelle is a generic proof assistant.  Isar is an extension of
+Isabelle with structured proofs in a stylised language of mathematics.
+These proofs are readable for both a human and a machine.
+Isabelle/HOL~\cite{LNCS2283} is a specialisation of Isabelle with
+higher-order logic (HOL). This paper is a compact introduction to
+structured proofs in Isar/HOL, an extension of Isabelle/HOL. We
 intentionally do not present the full language but concentrate on the
 essentials. Neither do we give a formal semantics of Isar. Instead we
 introduce Isar by example. We believe that the language ``speaks for
@@ -26,7 +28,7 @@ uncommented assembly language programs. We call them
 tactics.
 
 A radically different approach was taken by the Mizar
-system~\cite{Rudnicki92} where proofs are written in a stylized language akin
+system~\cite{Rudnicki92} where proofs are written in a stylised language akin
 to that used in ordinary mathematics texts. The most important argument in
 favour of a mathematics-like proof language is communication: as soon as not
 just the theorem but also the proof becomes an object of interest, it should
@@ -94,13 +96,16 @@ do not contribute to the theorem being proved. In contrast,
 
 \subsection{Bits of Isabelle}
 
-In order to make this paper self-contained we recall some basic
-notions and notation from Isabelle~\cite{LNCS2283}. Isabelle's
-meta-logic offers an implication $\Longrightarrow$ and a universal quantifier $\bigwedge$
-for expressing inference rules and generality. Iterated implications
-$A_1 \Longrightarrow \dots A_n \Longrightarrow A$ may be abbreviated to $[\![ A_1; \dots; A_n
-]\!] \Longrightarrow A$. Applying a theorem $A \Longrightarrow B$ (named \isa{T}) to a theorem
-$A$ (named \isa{U}) is written \isa{T[OF U]} and yields theorem $B$.
+We recall some basic notions and notation from Isabelle. For more
+details and for instructions how to run examples see
+elsewhere~\cite{LNCS2283}.
+
+Isabelle's meta-logic comes with a type of \emph{propositions} with
+implication $\Longrightarrow$ and a universal quantifier $\bigwedge$ for expressing
+inference rules and generality.  Iterated implications $A_1 \Longrightarrow \dots
+A_n \Longrightarrow A$ may be abbreviated to $[\![ A_1; \dots; A_n ]\!] \Longrightarrow A$.
+Applying a theorem $A \Longrightarrow B$ (named \isa{T}) to a theorem $A$ (named
+\isa{U}) is written \isa{T[OF U]} and yields theorem $B$.
 
 Isabelle terms are simply typed. Function types are
 written $\tau_1 \Rightarrow \tau_2$.
@@ -112,7 +117,12 @@ by \isa{?}-variables. Thus the theorem can be used with arbitrary instances
 of its free variables.
 
 Isabelle/HOL offers all the usual logical symbols like $\longrightarrow$, $\land$,
-$\forall$ etc. Proof methods include \isa{rule} (which performs a backwards
+$\forall$ etc. HOL formulae are propositions, e.g.\ $\forall$ can appear below
+$\Longrightarrow$, but not the other way around. Beware that $\longrightarrow$ binds more
+tightly than $\Longrightarrow$: in $\forall x. P \longrightarrow Q$ the $\forall x$ covers $P \longrightarrow Q$, whereas
+in $\forall x. P \Longrightarrow Q$ it covers only $P$.
+
+Proof methods include \isa{rule} (which performs a backwards
 step with a given rule, unifying the conclusion of the rule with the
 current subgoal and replacing the subgoal by the premises of the
 rule), \isa{simp} (for simplification) and \isa{blast} (for predicate
@@ -146,5 +156,5 @@ second step.
 
 %Do not be mislead by the simplicity of the formulae being proved,
 %especially in the beginning. Isar has been used very successfully in
-%large applications, for example the formalization of Java, in
+%large applications, for example the formalisation of Java, in
 %particular the verification of the bytecode verifier~\cite{KleinN-TCS}.

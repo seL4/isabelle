@@ -12,34 +12,43 @@ subsection{*Case distinction*}
 
 text{* We have already met the @{text cases} method for performing
 binary case splits. Here is another example: *}
-lemma "P \<or> \<not> P"
+lemma "\<not> A \<or> A"
 proof cases
-  assume "P" thus ?thesis ..
+  assume "A" thus ?thesis ..
 next
-  assume "\<not> P" thus ?thesis ..
+  assume "\<not> A" thus ?thesis ..
 qed
-text{*\noindent Note that the two cases must come in this order.
 
-This form is appropriate if @{term P} is textually small.  However, if
-@{term P} is large, we do not want to repeat it. This can be avoided by
-the following idiom *}
+text{*\noindent The two cases must come in this order because @{text
+cases} merely abbreviates @{text"(rule case_split_thm)"} where
+@{thm[source] case_split_thm} is @{thm case_split_thm}. If we reverse
+the order of the two cases in the proof, the first case would prove
+@{prop"\<not> A \<Longrightarrow> \<not> A \<or> A"} which would solve the first premise of
+@{thm[source] case_split_thm}, instantiating @{text ?P} with @{term "\<not>
+A"}, thus making the second premise @{prop"\<not> \<not> A \<Longrightarrow> \<not> A \<or> A"}.
+Therefore the order of subgoals is not always completely arbitrary.
 
-lemma "P \<or> \<not> P"
-proof (cases "P")
+The above proof is appropriate if @{term A} is textually small.
+However, if @{term A} is large, we do not want to repeat it. This can
+be avoided by the following idiom *}
+
+lemma "\<not> A \<or> A"
+proof (cases "A")
   case True thus ?thesis ..
 next
   case False thus ?thesis ..
 qed
 
-text{*\noindent which is simply a shorthand for the previous
-proof. More precisely, the phrase `\isakeyword{case}~@{text True}'
-abbreviates `\isakeyword{assume}~@{text"True: P"}'
-and analogously for @{text"False"} and @{prop"\<not>P"}.
-In contrast to the previous proof we can prove the cases
-in arbitrary order.
+text{*\noindent which is like the previous proof but instantiates
+@{text ?P} right away with @{term A}. Thus we could prove the two
+cases in any order. The phrase `\isakeyword{case}~@{text True}'
+abbreviates `\isakeyword{assume}~@{text"True: A"}' and analogously for
+@{text"False"} and @{prop"\<not>A"}.
 
-The same game can be played with other datatypes, for example lists:
-\tweakskip
+The same game can be played with other datatypes, for example lists,
+where @{term tl} is the tail of a list, and @{text length} returns a
+natual number:
+\Tweakskip
 *}
 (*<*)declare length_tl[simp del](*>*)
 lemma "length(tl xs) = length xs - 1"
@@ -60,27 +69,15 @@ Luckily, this proof is simple enough we do not need to refer to them.
 However, sometimes one may have to. Hence Isar offers a simple scheme for
 naming those variables: replace the anonymous @{text Cons} by
 @{text"(Cons y ys)"}, which abbreviates `\isakeyword{fix}~@{text"y ys"}
-\isakeyword{assume}~@{text"Cons:"}~@{text"xs = y # ys"}'. Here
-is a (somewhat contrived) example: *}
-
-lemma "length(tl xs) = length xs - 1"
-proof (cases xs)
-  case Nil thus ?thesis by simp
-next
-  case (Cons y ys)
-  hence "length(tl xs) = length ys  \<and>  length xs = length ys + 1"
-    by simp
-  thus ?thesis by simp
-qed
-
-text{* Note that in each \isakeyword{case} the assumption can be
+\isakeyword{assume}~@{text"Cons:"}~@{text"xs = y # ys"}'.
+In each \isakeyword{case} the assumption can be
 referred to inside the proof by the name of the constructor. In
 Section~\ref{sec:full-Ind} below we will come across an example
 of this. *}
 
 subsection{*Structural induction*}
 
-text{* We start with a simple inductive proof where both cases are proved automatically: *}
+text{* We start with an inductive proof where both cases are proved automatically: *}
 lemma "2 * (\<Sum>i<n+1. i) = n*(n+1)"
 by (induct n, simp_all)
 
@@ -111,8 +108,8 @@ corresponding case to be proved, i.e.\ @{text"?P 0"} in the first case and
 empty whereas \isakeyword{case}~@{text Suc} assumes @{text"?P n"}. Again we
 have the same problem as with case distinctions: we cannot refer to an anonymous @{term n}
 in the induction step because it has not been introduced via \isakeyword{fix}
-(in contrast to the previous proof). The solution is the same as above:
-replace @{term Suc} by @{text"(Suc i)"}: *}
+(in contrast to the previous proof). The solution is the one outlined for
+@{text Cons} above: replace @{term Suc} by @{text"(Suc i)"}: *}
 lemma fixes n::nat shows "n < n*n + 1"
 proof (induct n)
   case 0 show ?case by simp
@@ -137,7 +134,7 @@ automatically: for example in case @{text"(Suc n)"}, @{text ?case} is only
 usual induction hypothesis \emph{and} @{prop"P' x"}.
 It should be clear how this generalizes to more complex formulae.
 
-As a concrete example we will now prove complete induction via
+As an example we will now prove complete induction via
 structural induction. *}
 
 lemma assumes A: "(\<And>n. (\<And>m. m < n \<Longrightarrow> P m) \<Longrightarrow> P n)"
@@ -173,7 +170,7 @@ connectives.
 
 Note that in a nested induction over the same data type, the inner
 case labels hide the outer ones of the same name. If you want to refer
-to the outer ones inside, you need to name them on the outside:
+to the outer ones inside, you need to name them on the outside, e.g.\
 \isakeyword{note}~@{text"outer_IH = Suc"}.  *}
 
 subsection{*Rule induction*}
@@ -293,10 +290,4 @@ The proof is so simple that it can be condensed to
 (*<*)lemma "xs \<noteq> [] \<Longrightarrow> rot xs = tl xs @ [hd xs]"(*>*)
 by (induct xs rule: rot.induct, simp_all)
 
-text{*\small
-\paragraph{Acknowledgment}
-I am deeply indebted to Markus Wenzel for conceiving Isar. Clemens Ballarin,
-Gertrud Bauer, Stefan Berghofer, Gerwin Klein, Norbert Schirmer,
-Markus Wenzel and three referees commented on and improved this document.
-*}
 (*<*)end(*>*)

@@ -14,26 +14,27 @@ proof (rule impI)
   show "A" by(rule a)
 qed
 text{*\noindent
-The operational reading: the \isakeyword{assume}-\isakeyword{show} block
-proves @{prop"A \<Longrightarrow> A"},
-which rule @{thm[source]impI} (@{thm impI})
-turns into the desired @{prop"A \<longrightarrow> A"}.
-However, this text is much too detailed for comfort. Therefore Isar
-implements the following principle:
-\begin{quote}\em
-Command \isakeyword{proof} automatically tries to select an introduction rule
-based on the goal and a predefined list of rules.
-\end{quote}
-Here @{thm[source]impI} is applied automatically:
-*}
+The operational reading: the \isakeyword{assume}-\isakeyword{show}
+block proves @{prop"A \<Longrightarrow> A"} (@{term a} is a degenerate rule (no
+assumptions) that proves @{term A} outright), which rule
+@{thm[source]impI} (@{thm impI}) turns into the desired @{prop"A \<longrightarrow>
+A"}.  However, this text is much too detailed for comfort. Therefore
+Isar implements the following principle: \begin{quote}\em Command
+\isakeyword{proof} automatically tries to select an introduction rule
+based on the goal and a predefined list of rules.  \end{quote} Here
+@{thm[source]impI} is applied automatically: *}
 
 lemma "A \<longrightarrow> A"
 proof
-  assume a: "A"
-  show "A" by(rule a)
+  assume a: A
+  show A by(rule a)
 qed
 
-text{* Trivial proofs, in particular those by assumption, should be trivial
+text{*\noindent Single-identifier formulae such as @{term A} need not
+be enclosed in double quotes. However, we will continue to do so for
+uniformity.
+
+Trivial proofs, in particular those by assumption, should be trivial
 to perform. Proof ``.'' does just that (and a bit more). Thus
 naming of assumptions is often superfluous: *}
 lemma "A \<longrightarrow> A"
@@ -54,10 +55,9 @@ text{*\noindent Rule @{thm[source]conjI} is of course @{thm conjI}.
 A drawback of implicit proofs by assumption is that it
 is no longer obvious where an assumption is used.
 
-Proofs of the form \isakeyword{by}@{text"(rule"}~\emph{name}@{text")"} can be
-abbreviated to ``..''
-if \emph{name} refers to one of the predefined introduction rules:
-*}
+Proofs of the form \isakeyword{by}@{text"(rule"}~\emph{name}@{text")"}
+can be abbreviated to ``..''  if \emph{name} refers to one of the
+predefined introduction rules (or elimination rules, see below): *}
 
 lemma "A \<longrightarrow> A \<and> A"
 proof
@@ -133,14 +133,13 @@ proof
 qed
 
 text{*\noindent Because of the frequency of \isakeyword{from}~@{text
-this} Isar provides two abbreviations:
+this}, Isar provides two abbreviations:
 \begin{center}
-\begin{tabular}{rcl}
-\isakeyword{then} &=& \isakeyword{from} @{text this} \\
-\isakeyword{thus} &=& \isakeyword{then} \isakeyword{show}
+\begin{tabular}{r@ {\quad=\quad}l}
+\isakeyword{then} & \isakeyword{from} @{text this} \\
+\isakeyword{thus} & \isakeyword{then} \isakeyword{show}
 \end{tabular}
 \end{center}
-\medskip
 
 Here is an alternative proof that operates purely by forward reasoning: *}
 lemma "A \<and> B \<longrightarrow> B \<and> A"
@@ -150,35 +149,41 @@ proof
   from ab have b: "B" ..
   from b a show "B \<and> A" ..
 qed
-text{*\noindent
-It is worth examining this text in detail because it exhibits a number of new concepts.
 
-For a start, this is the first time we have proved intermediate propositions
-(\isakeyword{have}) on the way to the final \isakeyword{show}. This is the
-norm in any nontrivial proof where one cannot bridge the gap between the
-assumptions and the conclusion in one step. Both \isakeyword{have}s above are
-proved automatically via @{thm[source]conjE} triggered by
-\isakeyword{from}~@{text ab}.
+text{*\noindent It is worth examining this text in detail because it
+exhibits a number of new concepts.  For a start, it is the first time
+we have proved intermediate propositions (\isakeyword{have}) on the
+way to the final \isakeyword{show}. This is the norm in nontrivial
+proofs where one cannot bridge the gap between the assumptions and the
+conclusion in one step. To understand how the proof works we need to
+explain more Isar details.
 
-The \isakeyword{show} command illustrates two things:
-\begin{itemize}
-\item \isakeyword{from} can be followed by any number of facts.
-Given \isakeyword{from}~@{text f}$_1$~\dots~@{text f}$_n$, the
-\isakeyword{proof} step after \isakeyword{show}
-tries to find an elimination rule whose first $n$ premises can be proved
-by the given facts in the given order.
-\item If there is no matching elimination rule, introduction rules are tried,
-again using the facts to prove the premises.
-\end{itemize}
-In this case, the proof succeeds with @{thm[source]conjI}. Note that the proof
-would fail had we written \isakeyword{from}~@{text"a b"}
-instead of \isakeyword{from}~@{text"b a"}.
+Method @{text rule} can be given a list of rules, in which case
+@{text"(rule"}~\textit{rules}@{text")"} applies the first matching
+rule in the list \textit{rules}. Command \isakeyword{from} can be
+followed by any number of facts.  Given \isakeyword{from}~@{text
+f}$_1$~\dots~@{text f}$_n$, the proof step
+@{text"(rule"}~\textit{rules}@{text")"} following a \isakeyword{have}
+or \isakeyword{show} searches \textit{rules} for a rule whose first
+$n$ premises can be proved by @{text f}$_1$~\dots~@{text f}$_n$ in the
+given order. Finally one needs to know that ``..'' is short for
+@{text"by(rule"}~\textit{elim-rules intro-rules}@{text")"} (or
+@{text"by(rule"}~\textit{intro-rules}@{text")"} if there are no facts
+fed into the proof), i.e.\ elimination rules are tried before
+introduction rules.
 
-This treatment of facts fed into a proof is not restricted to implicit
-application of introduction and elimination rules but applies to explicit
-application of rules as well. Thus you could replace the final ``..'' above
-with \isakeyword{by}@{text"(rule conjI)"}. 
-*}
+Thus in the above proof both \isakeyword{have}s are proved via
+@{thm[source]conjE} triggered by \isakeyword{from}~@{text ab} whereas
+in the \isakeyword{show} step no elimination rule is applicable and
+the proof succeeds with @{thm[source]conjI}. The latter would fail had
+we written \isakeyword{from}~@{text"a b"} instead of
+\isakeyword{from}~@{text"b a"}.
+
+Proofs starting with a plain @{text proof} behave the same because the
+latter is short for @{text"proof (rule"}~\textit{elim-rules
+intro-rules}@{text")"} (or @{text"proof
+(rule"}~\textit{intro-rules}@{text")"} if there are no facts fed into
+the proof). *}
 
 subsection{*More constructs*}
 
@@ -234,9 +239,9 @@ Apart from demonstrating the strangeness of classical
 arguments by contradiction, this example also introduces two new
 abbreviations:
 \begin{center}
-\begin{tabular}{lcl}
-\isakeyword{hence} &=& \isakeyword{then} \isakeyword{have} \\
-\isakeyword{with}~\emph{facts} &=&
+\begin{tabular}{l@ {\quad=\quad}l}
+\isakeyword{hence} & \isakeyword{then} \isakeyword{have} \\
+\isakeyword{with}~\emph{facts} &
 \isakeyword{from}~\emph{facts} @{text this}
 \end{tabular}
 \end{center}
@@ -262,6 +267,11 @@ $\land$-elimination and the proofs are separated by \isakeyword{next}:
 when showing @{term"A \<and> B"} we need to show both @{term A} and @{term
 B}.  Each subgoal is proved separately, in \emph{any} order. The
 individual proofs are separated by \isakeyword{next}.
+
+Strictly speaking \isakeyword{next} is only required if the subgoals
+are proved in different assumption contexts which need to be
+separated, which is not the case above. For clarity we
+have employed \isakeyword{next} anyway and will continue to do so.
 \end{description}
 
 This is all very well as long as formulae are small. Let us now look at some
@@ -315,7 +325,6 @@ frequent idiom is as follows:
 \isakeyword{using} \emph{minor-facts}~
 \emph{proof}
 \end{center}
-\medskip
 
 Sometimes it is necessary to suppress the implicit application of rules in a
 \isakeyword{proof}. For example \isakeyword{show}~@{prop"A \<or> B"} would
@@ -379,7 +388,7 @@ as a new local variable.  Technically, \isakeyword{obtain} is similar to
 the elimination involved.
 
 Here is a proof of a well known tautology.
-Figure out which rule is used where!  *}
+Which rule is used where?  *}
 
 lemma assumes ex: "\<exists>x. \<forall>y. P x y" shows "\<forall>y. \<exists>x. P x y"
 proof
@@ -470,6 +479,7 @@ text{* Although we have shown how to employ powerful automatic methods like
 @{text blast} to achieve bigger proof steps, there may still be the
 tendency to use the default introduction and elimination rules to
 decompose goals and facts. This can lead to very tedious proofs:
+\Tweakskip
 *}
 (*<*)ML"set quick_and_dirty"(*>*)
 lemma "\<forall>x y. A x y \<and> B x y \<longrightarrow> C x y"
@@ -554,10 +564,10 @@ subsubsection{*\isakeyword{note}*}
 text{* If you want to remember intermediate fact(s) that cannot be
 named directly, use \isakeyword{note}. For example the result of raw
 proof block can be named by following it with
-\isakeyword{note}~@{text"note some_name = this"}.  As a side effect
+\isakeyword{note}~@{text"some_name = this"}.  As a side effect,
 @{text this} is set to the list of facts on the right-hand side. You
 can also say @{text"note some_fact"}, which simply sets @{text this},
-i.e.\ recalls @{text"some_fact"}. *}
+i.e.\ recalls @{text"some_fact"}, e.g.\ in a \isakeyword{moreover} sequence. *}
 
 
 subsubsection{*\isakeyword{fixes}*}
@@ -587,7 +597,8 @@ lemma comm_mono:
 by(simp add: comm mono)
 
 text{*\noindent The concrete syntax is dropped at the end of the proof and the
-theorem becomes @{thm[display,margin=60]comm_mono} *}
+theorem becomes @{thm[display,margin=60]comm_mono}
+\tweakskip *}
 
 subsubsection{*\isakeyword{obtain}*}
 
