@@ -132,8 +132,10 @@ text{*
 \rulename{dvd_add}
 
 For the integers, I'd list a few theorems that somehow involve negative 
-numbers.  
+numbers.*}
 
+
+text{*
 Division, remainder of negatives
 
 
@@ -176,6 +178,22 @@ by arith
 
 lemma "abs (2*x) = 2 * abs (x :: int)"
 by (simp add: zabs_def) 
+
+
+text {*Induction rules for the Integers
+
+@{thm[display] int_ge_induct[no_vars]}
+\rulename{int_ge_induct}
+
+@{thm[display] int_gr_induct[no_vars]}
+\rulename{int_gr_induct}
+
+@{thm[display] int_le_induct[no_vars]}
+\rulename{int_le_induct}
+
+@{thm[display] int_less_induct[no_vars]}
+\rulename{int_less_induct}
+*}  
 
 text {*REALS
 
