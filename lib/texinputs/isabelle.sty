@@ -8,8 +8,11 @@
 
 % basic environment
 
-\newcommand{\isabellesimplestyle}{}
-\newenvironment{isabellesimple}{\small\tt\slshape\isabellesimplestyle\mbox{}}{}
+\newcommand{\isabellestyle}{}
+\newenvironment{isabelle}{%
+\newdimen\outerparindent\outerparindent=\parindent\parindent=0pt%
+\newdimen\outerparskip\outerparskip=\parskip\parskip=0.5ex%
+\small\tt\slshape\isabellestyle\mbox{}}{}
 \newcommand{\isanewline}{\mbox{}\\\mbox{}}
 
 \chardef\isabraceleft=`\{
@@ -26,7 +29,8 @@
 \newcommand{\isabeginblock}{\isakeyword{\{}}
 \newcommand{\isaendblock}{\isakeyword{\}}}
 
-\newcommand{\isapar}[1]{{\par\medskip #1\par\smallskip}}
+\newcommand{\isapar}[1]{%
+{\parindent=\outerparindent\parskip=\outerparskip\par\medskip #1}\par\smallskip}
 \newcommand{\isamarkupheader}[1]{#1}
 
 \newcommand{\isamarkupchapter}[1]{\chapter{#1}}
