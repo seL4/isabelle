@@ -990,6 +990,8 @@ end;
 (** locale theory setup **)
 
 val setup =
- [LocalesData.init];
+ [LocalesData.init,
+  add_locale_i true "var" empty [Elem (Fixes [(Syntax.internal "x", None, Some Syntax.NoSyn)])],
+  add_locale_i true "struct" empty [Elem (Fixes [(Syntax.internal "S", None, None)])]];
 
 end;
