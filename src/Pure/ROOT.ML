@@ -11,6 +11,11 @@ val version = "Isabelle repository";
 
 print_depth 1;
 
+(* global flags *)
+val print_mode = ref ([]:string list);
+(*if true then some packages will OMIT SOME PROOFS*)
+val quick_and_dirty = ref false;
+
 (*fake hiding of private structures*)
 structure Hidden = struct end;
 
@@ -62,9 +67,6 @@ cd "..";
 use "pure.ML";
 
 use "install_pp.ML";
-
-(*if true then some packages will OMIT SOME PROOFS*)
-val quick_and_dirty = ref false;
 
 (*several object-logics declare theories that hide basis library structures*)
 structure BasisLibrary =

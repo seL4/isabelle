@@ -11,7 +11,6 @@ sig
   val show_sorts: bool ref
   val show_types: bool ref
   val show_no_free_types: bool ref
-  val print_mode: string list ref
 end;
 
 signature PRINTER =
@@ -42,7 +41,6 @@ val show_types = ref false;
 val show_sorts = ref false;
 val show_brackets = ref false;
 val show_no_free_types = ref false;
-val print_mode = ref ([]:string list);
 
 
 
