@@ -5,10 +5,6 @@
     Description : Absolute value function for the reals
 *) 
 
-RealAbs = RealOrd +
-
-constdefs
-   rabs   :: real => real
-   "rabs r      == if 0r<=r then r else -r" 
+RealAbs = RealOrd + RealBin +
 
 end

@@ -94,6 +94,12 @@ by (Auto_tac);
 qed "realpow_eq_one";
 Addsimps [realpow_eq_one];
 
+(** New versions using #0 and #1 instead of 0r and 1r
+    REMOVE AFTER CONVERTING THIS FILE TO USE #0 AND #1 **)
+
+Addsimps (map (rename_numerals thy) [realpow_zero, realpow_eq_one]);
+
+
 Goal "rabs(-(1r ^ n)) = 1r";
 by (simp_tac (simpset() addsimps 
     [rabs_minus_cancel,rabs_one]) 1);
@@ -137,21 +143,13 @@ by (dres_inst_tac [("z","r"),("x","1r")] real_mult_less_mono1 1);
 by (auto_tac (claset() addIs [real_less_trans],simpset()));
 qed "realpow_two_gt_one";
 
-Goal "1r <= r ==> 1r <= r ^ 2";
-by (etac (real_le_imp_less_or_eq RS disjE) 1);
-by (etac (realpow_two_gt_one RS real_less_imp_le) 1);
-by (asm_simp_tac (simpset()) 1);
-qed "realpow_two_ge_one";
-
-(* more general result *)
 Goal "1r < r --> 1r <= r ^ n";
 by (induct_tac "n" 1);
 by (auto_tac (claset() addSDs [real_le_imp_less_or_eq],
-    simpset()));
+	      simpset()));
 by (dtac (real_zero_less_one RS real_mult_less_mono) 1);
-by (dtac sym 4);
 by (auto_tac (claset() addSIs [real_less_imp_le],
-    simpset() addsimps [real_zero_less_one]));
+	      simpset() addsimps [real_zero_less_one]));
 qed_spec_mp "realpow_ge_one";
 
 Goal "1r < r ==> 1r < r ^ (Suc n)";
@@ -166,8 +164,7 @@ qed "realpow_Suc_gt_one";
 
 Goal "1r <= r ==> 1r <= r ^ n";
 by (dtac real_le_imp_less_or_eq 1); 
-by (auto_tac (claset() addDs [realpow_ge_one],
-    simpset()));
+by (auto_tac (claset() addDs [realpow_ge_one], simpset()));
 qed "realpow_ge_one2";
 
 Goal "0r < r ==> 0r < r ^ Suc n";
@@ -181,24 +178,23 @@ qed "realpow_Suc_gt_zero";
 Goal "0r <= r ==> 0r <= r ^ Suc n";
 by (etac (real_le_imp_less_or_eq RS disjE) 1);
 by (etac (realpow_ge_zero) 1);
-by (asm_simp_tac (simpset()) 1);
+by (Asm_simp_tac 1);
 qed "realpow_Suc_ge_zero";
 
-Goal "1r <= (1r +1r) ^ n";
-by (res_inst_tac [("j","1r ^ n")] real_le_trans 1);
+Goal "(#1::real) <= #2 ^ n";
+by (res_inst_tac [("j","#1 ^ n")] real_le_trans 1);
 by (rtac realpow_le 2);
 by (auto_tac (claset() addIs [real_less_imp_le],
-    simpset() addsimps [real_zero_less_one,
-    real_one_less_two]));
+	      simpset() addsimps [zero_eq_numeral_0]));
 qed "two_realpow_ge_one";
 
-Goal "real_of_nat n < (1r + 1r) ^ n";
+Goal "real_of_nat n < #2 ^ n";
 by (induct_tac "n" 1);
 by (auto_tac (claset(),
-	      simpset() addsimps [real_of_nat_Suc, real_of_nat_zero,
-				  real_zero_less_one,real_add_mult_distrib,
-				  real_of_nat_one]));
-by (blast_tac (claset() addSIs [real_add_less_le_mono, two_realpow_ge_one]) 1);
+	      simpset() addsimps [zero_eq_numeral_0, one_eq_numeral_1,
+				  real_mult_2,
+				  real_of_nat_Suc, real_of_nat_zero,
+				  real_add_less_le_mono, two_realpow_ge_one]));
 qed "two_realpow_gt";
 Addsimps [two_realpow_gt,two_realpow_ge_one];
 
@@ -371,3 +367,11 @@ by (asm_simp_tac (simpset() addsimps [realpow_two,
 qed "realpow_two_mult_rinv";
 Addsimps [realpow_two_mult_rinv];
 
+
+(** New versions using #0 and #1 instead of 0r and 1r
+    REMOVE AFTER CONVERTING THIS FILE TO USE #0 AND #1 **)
+
+Addsimps (map (rename_numerals thy) 
+	  [realpow_two_le, realpow_zero_le,
+	   rabs_minus_realpow_one, rabs_realpow_minus_one,
+	   realpow_minus_one, realpow_minus_one2, realpow_minus_one_odd]);

@@ -11,4 +11,8 @@ RealOrd = RealDef +
 instance real :: order (real_le_refl,real_le_trans,real_le_anti_sym,real_less_le)
 instance real :: linorder (real_le_linear)
 
+constdefs
+   rabs   :: real => real
+   "rabs r      == if 0r<=r then r else -r" 
+
 end
