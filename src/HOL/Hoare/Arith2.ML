@@ -98,6 +98,8 @@ qed "less_imp_diff_not_0";
 
 (*******************************************************************)
 
+(** Some of these are now proved, with different names, in HOL/Arith.ML **)
+
 val prems = goal Arith.thy "(i::nat)<j ==> k+i<k+j";
 by (cut_facts_tac prems 1);
 by (nat_ind_tac "k" 1);
@@ -145,25 +147,6 @@ by (ALLGOALS (asm_full_simp_tac ((simpset_of "Arith") addsimps [not_eq_eq_less_o
 qed "mult_not_eq_mono_r";
 
 (******************************************************************)
-
-val prems = goal Arith.thy "(m - n)*k = (m*k) - ((n*k)::nat)";
-by (res_inst_tac [("P","m*k<n*k")] case_split_thm 1);
-by (forward_tac [mult_not_less_mono_r COMP not_imp_swap] 1);
-bd (less_not_sym RS (not_less_eq RS iffD1) RS less_imp_diff_is_0) 1;
-bd (less_not_sym RS (not_less_eq RS iffD1) RS less_imp_diff_is_0) 1;
-br mp 2;
-ba 3;
-by (res_inst_tac [("m","m"),("n","n")] diff_induct 2);
-by (ALLGOALS Asm_simp_tac);
-br impI 1;
-bd (refl RS iffD1) 1;
-by (dres_inst_tac [("k","k")] add_not_less_mono_l 1);
-bd (refl RS iffD1) 1;
-bd (refl RS iffD1) 1;
-bd diff_not_assoc 1;
-by (asm_full_simp_tac ((simpset_of "Arith") addsimps [diff_add_inverse]) 1);
-qed "diff_mult_distrib_r";
-
 
 (*** mod ***)
 
@@ -230,7 +213,7 @@ by (res_inst_tac [("s","n div x * x + n mod x"),("t","n")] subst 1);
 be mod_div_equality 1;
 by (Asm_simp_tac 1);
 by (res_inst_tac [("s","(m div x - n div x) * x"),("t","m div x * x - n div x * x")] subst 1);
-br diff_mult_distrib_r 1;
+br diff_mult_distrib 1;
 be mod_prod_nn_is_0 1;
 qed "mod0_diff";
 
