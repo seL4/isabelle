@@ -394,13 +394,6 @@ proof
     by (rule hcomplex_zero_not_eq_one)
   show "(u + v) * w = u * w + v * w"
     by (simp add: hcomplex_add_mult_distrib)
-  show "z+u = z+v ==> u=v"
-    proof -
-      assume eq: "z+u = z+v"
-      hence "(-z + z) + u = (-z + z) + v" by (simp only: eq hcomplex_add_assoc)
-      thus "u = v"
-        by (simp only: hcomplex_add_minus_left hcomplex_add_zero_left)
-    qed
   assume neq: "w \<noteq> 0"
   thus "z / w = z * inverse w"
     by (simp add: hcomplex_divide_def)

@@ -14,16 +14,11 @@ theory Ring_and_Field = Inductive:
 
 subsection {* Abstract algebraic structures *}
 
-axclass semiring \<subseteq> zero, one, plus, times
+text{*This class underlies both @{text semiring} and @{text ring}*}
+axclass almost_semiring \<subseteq> zero, one, plus, times
   add_assoc: "(a + b) + c = a + (b + c)"
   add_commute: "a + b = b + a"
   add_0 [simp]: "0 + a = a"
-  add_left_imp_eq: "a + b = a + c ==> b=c"
-    --{*This axiom is needed for semirings only: for rings, etc., it is
-        redundant. Including it allows many more of the following results
-        to be proved for semirings too. The drawback is that this redundant
-        axiom must be proved for instances of rings.*}
-
   mult_assoc: "(a * b) * c = a * (b * c)"
   mult_commute: "a * b = b * a"
   mult_1 [simp]: "1 * a = a"
@@ -31,16 +26,35 @@ axclass semiring \<subseteq> zero, one, plus, times
   left_distrib: "(a + b) * c = a * c + b * c"
   zero_neq_one [simp]: "0 \<noteq> 1"
 
-axclass ring \<subseteq> semiring, minus
+axclass semiring \<subseteq> almost_semiring
+  add_left_imp_eq: "a + b = a + c ==> b=c"
+    --{*This axiom is needed for semirings only: for rings, etc., it is
+        redundant. Including it allows many more of the following results
+        to be proved for semirings too.*}
+
+axclass ring \<subseteq> almost_semiring, minus
   left_minus [simp]: "- a + a = 0"
   diff_minus: "a - b = a + (-b)"
 
-axclass ordered_semiring \<subseteq> semiring, linorder
-  zero_less_one [simp]: "0 < 1" --{*This too is needed for semirings only.*}
+text{*Proving axiom @{text add_left_imp_eq} makes all @{text semiring}
+      theorems available to members of @{term ring} *}
+instance ring \<subseteq> semiring
+proof
+  fix a b c :: 'a
+  assume "a + b = a + c"
+  hence  "-a + a + b = -a + a + c" by (simp only: add_assoc)
+  thus "b = c" by simp
+qed
+
+text{*This class underlies @{text ordered_semiring} and @{text ordered_ring}*}
+axclass almost_ordered_semiring \<subseteq> semiring, linorder
   add_left_mono: "a \<le> b ==> c + a \<le> c + b"
   mult_strict_left_mono: "a < b ==> 0 < c ==> c * a < c * b"
 
-axclass ordered_ring \<subseteq> ordered_semiring, ring
+axclass ordered_semiring \<subseteq> almost_ordered_semiring
+  zero_less_one [simp]: "0 < 1" --{*This too is needed for semirings only.*}
+
+axclass ordered_ring \<subseteq> almost_ordered_semiring, ring
   abs_if: "\<bar>a\<bar> = (if a < 0 then -a else a)"
 
 axclass field \<subseteq> ring, inverse
@@ -56,14 +70,14 @@ axclass division_by_zero \<subseteq> zero, inverse
 
 subsection {* Derived Rules for Addition *}
 
-lemma add_0_right [simp]: "a + 0 = (a::'a::semiring)"
+lemma add_0_right [simp]: "a + 0 = (a::'a::almost_semiring)"
 proof -
   have "a + 0 = 0 + a" by (simp only: add_commute)
   also have "... = a" by simp
   finally show ?thesis .
 qed
 
-lemma add_left_commute: "a + (b + c) = b + (a + (c::'a::semiring))"
+lemma add_left_commute: "a + (b + c) = b + (a + (c::'a::almost_semiring))"
   by (rule mk_left_commute [of "op +", OF add_assoc add_commute])
 
 theorems add_ac = add_assoc add_commute add_left_commute
@@ -153,14 +167,14 @@ qed
 
 subsection {* Derived rules for multiplication *}
 
-lemma mult_1_right [simp]: "a * (1::'a::semiring) = a"
+lemma mult_1_right [simp]: "a * (1::'a::almost_semiring) = a"
 proof -
   have "a * 1 = 1 * a" by (simp add: mult_commute)
   also have "... = a" by simp
   finally show ?thesis .
 qed
 
-lemma mult_left_commute: "a * (b * c) = b * (a * (c::'a::semiring))"
+lemma mult_left_commute: "a * (b * c) = b * (a * (c::'a::almost_semiring))"
   by (rule mk_left_commute [of "op *", OF mult_assoc mult_commute])
 
 theorems mult_ac = mult_assoc mult_commute mult_left_commute
@@ -178,7 +192,7 @@ lemma mult_zero_right [simp]: "a * 0 = (0::'a::semiring)"
 
 subsection {* Distribution rules *}
 
-lemma right_distrib: "a * (b + c) = a * b + a * (c::'a::semiring)"
+lemma right_distrib: "a * (b + c) = a * b + a * (c::'a::almost_semiring)"
 proof -
   have "a * (b + c) = (b + c) * a" by (simp add: mult_ac)
   also have "... = b * a + c * a" by (simp only: left_distrib)
@@ -189,7 +203,8 @@ qed
 theorems ring_distrib = right_distrib left_distrib
 
 text{*For the @{text combine_numerals} simproc*}
-lemma combine_common_factor: "a*e + (b*e + c) = (a+b)*e + (c::'a::semiring)"
+lemma combine_common_factor:
+     "a*e + (b*e + c) = (a+b)*e + (c::'a::almost_semiring)"
 by (simp add: left_distrib add_ac)
 
 lemma minus_add_distrib [simp]: "- (a + b) = -a + -(b::'a::ring)"
@@ -226,43 +241,44 @@ by (simp add: diff_minus add_commute)
 
 subsection {* Ordering Rules for Addition *}
 
-lemma add_right_mono: "a \<le> (b::'a::ordered_semiring) ==> a + c \<le> b + c"
+lemma add_right_mono: "a \<le> (b::'a::almost_ordered_semiring) ==> a + c \<le> b + c"
 by (simp add: add_commute [of _ c] add_left_mono)
 
 text {* non-strict, in both arguments *}
-lemma add_mono: "[|a \<le> b;  c \<le> d|] ==> a + c \<le> b + (d::'a::ordered_semiring)"
+lemma add_mono:
+     "[|a \<le> b;  c \<le> d|] ==> a + c \<le> b + (d::'a::almost_ordered_semiring)"
   apply (erule add_right_mono [THEN order_trans])
   apply (simp add: add_commute add_left_mono)
   done
 
 lemma add_strict_left_mono:
-     "a < b ==> c + a < c + (b::'a::ordered_semiring)"
+     "a < b ==> c + a < c + (b::'a::almost_ordered_semiring)"
  by (simp add: order_less_le add_left_mono) 
 
 lemma add_strict_right_mono:
-     "a < b ==> a + c < b + (c::'a::ordered_semiring)"
+     "a < b ==> a + c < b + (c::'a::almost_ordered_semiring)"
  by (simp add: add_commute [of _ c] add_strict_left_mono)
 
 text{*Strict monotonicity in both arguments*}
-lemma add_strict_mono: "[|a<b; c<d|] ==> a + c < b + (d::'a::ordered_semiring)"
+lemma add_strict_mono: "[|a<b; c<d|] ==> a + c < b + (d::'a::almost_ordered_semiring)"
 apply (erule add_strict_right_mono [THEN order_less_trans])
 apply (erule add_strict_left_mono)
 done
 
 lemma add_less_le_mono:
-     "[| a<b; c\<le>d |] ==> a + c < b + (d::'a::ordered_semiring)"
+     "[| a<b; c\<le>d |] ==> a + c < b + (d::'a::almost_ordered_semiring)"
 apply (erule add_strict_right_mono [THEN order_less_le_trans])
 apply (erule add_left_mono) 
 done
 
 lemma add_le_less_mono:
-     "[| a\<le>b; c<d |] ==> a + c < b + (d::'a::ordered_semiring)"
+     "[| a\<le>b; c<d |] ==> a + c < b + (d::'a::almost_ordered_semiring)"
 apply (erule add_right_mono [THEN order_le_less_trans])
 apply (erule add_strict_left_mono) 
 done
 
 lemma add_less_imp_less_left:
-      assumes less: "c + a < c + b"  shows "a < (b::'a::ordered_semiring)"
+      assumes less: "c + a < c + b"  shows "a < (b::'a::almost_ordered_semiring)"
 proof (rule ccontr)
   assume "~ a < b"
   hence "b \<le> a" by (simp add: linorder_not_less)
@@ -272,36 +288,36 @@ proof (rule ccontr)
 qed
 
 lemma add_less_imp_less_right:
-      "a + c < b + c ==> a < (b::'a::ordered_semiring)"
+      "a + c < b + c ==> a < (b::'a::almost_ordered_semiring)"
 apply (rule add_less_imp_less_left [of c])
 apply (simp add: add_commute)  
 done
 
 lemma add_less_cancel_left [simp]:
-    "(c+a < c+b) = (a < (b::'a::ordered_semiring))"
+    "(c+a < c+b) = (a < (b::'a::almost_ordered_semiring))"
 by (blast intro: add_less_imp_less_left add_strict_left_mono) 
 
 lemma add_less_cancel_right [simp]:
-    "(a+c < b+c) = (a < (b::'a::ordered_semiring))"
+    "(a+c < b+c) = (a < (b::'a::almost_ordered_semiring))"
 by (blast intro: add_less_imp_less_right add_strict_right_mono)
 
 lemma add_le_cancel_left [simp]:
-    "(c+a \<le> c+b) = (a \<le> (b::'a::ordered_semiring))"
+    "(c+a \<le> c+b) = (a \<le> (b::'a::almost_ordered_semiring))"
 by (simp add: linorder_not_less [symmetric]) 
 
 lemma add_le_cancel_right [simp]:
-    "(a+c \<le> b+c) = (a \<le> (b::'a::ordered_semiring))"
+    "(a+c \<le> b+c) = (a \<le> (b::'a::almost_ordered_semiring))"
 by (simp add: linorder_not_less [symmetric]) 
 
 lemma add_le_imp_le_left:
-      "c + a \<le> c + b ==> a \<le> (b::'a::ordered_semiring)"
+      "c + a \<le> c + b ==> a \<le> (b::'a::almost_ordered_semiring)"
 by simp
 
 lemma add_le_imp_le_right:
-      "a + c \<le> b + c ==> a \<le> (b::'a::ordered_semiring)"
+      "a + c \<le> b + c ==> a \<le> (b::'a::almost_ordered_semiring)"
 by simp
 
-lemma add_increasing: "[|0\<le>a; b\<le>c|] ==> b \<le> a + (c::'a::ordered_semiring)"
+lemma add_increasing: "[|0\<le>a; b\<le>c|] ==> b \<le> a + (c::'a::almost_ordered_semiring)"
 by (insert add_mono [of 0 a b c], simp)
 
 
@@ -477,33 +493,33 @@ done
 subsection {* Ordering Rules for Multiplication *}
 
 lemma mult_strict_right_mono:
-     "[|a < b; 0 < c|] ==> a * c < b * (c::'a::ordered_semiring)"
+     "[|a < b; 0 < c|] ==> a * c < b * (c::'a::almost_ordered_semiring)"
 by (simp add: mult_commute [of _ c] mult_strict_left_mono)
 
 lemma mult_left_mono:
-     "[|a \<le> b; 0 \<le> c|] ==> c * a \<le> c * (b::'a::ordered_semiring)"
+     "[|a \<le> b; 0 \<le> c|] ==> c * a \<le> c * (b::'a::almost_ordered_semiring)"
   apply (case_tac "c=0", simp)
   apply (force simp add: mult_strict_left_mono order_le_less) 
   done
 
 lemma mult_right_mono:
-     "[|a \<le> b; 0 \<le> c|] ==> a*c \<le> b * (c::'a::ordered_semiring)"
+     "[|a \<le> b; 0 \<le> c|] ==> a*c \<le> b * (c::'a::almost_ordered_semiring)"
   by (simp add: mult_left_mono mult_commute [of _ c]) 
 
 lemma mult_left_le_imp_le:
-     "[|c*a \<le> c*b; 0 < c|] ==> a \<le> (b::'a::ordered_semiring)"
+     "[|c*a \<le> c*b; 0 < c|] ==> a \<le> (b::'a::almost_ordered_semiring)"
   by (force simp add: mult_strict_left_mono linorder_not_less [symmetric])
  
 lemma mult_right_le_imp_le:
-     "[|a*c \<le> b*c; 0 < c|] ==> a \<le> (b::'a::ordered_semiring)"
+     "[|a*c \<le> b*c; 0 < c|] ==> a \<le> (b::'a::almost_ordered_semiring)"
   by (force simp add: mult_strict_right_mono linorder_not_less [symmetric])
 
 lemma mult_left_less_imp_less:
-     "[|c*a < c*b; 0 \<le> c|] ==> a < (b::'a::ordered_semiring)"
+     "[|c*a < c*b; 0 \<le> c|] ==> a < (b::'a::almost_ordered_semiring)"
   by (force simp add: mult_left_mono linorder_not_le [symmetric])
  
 lemma mult_right_less_imp_less:
-     "[|a*c < b*c; 0 \<le> c|] ==> a < (b::'a::ordered_semiring)"
+     "[|a*c < b*c; 0 \<le> c|] ==> a < (b::'a::almost_ordered_semiring)"
   by (force simp add: mult_right_mono linorder_not_le [symmetric])
 
 lemma mult_strict_left_mono_neg:
@@ -521,17 +537,17 @@ done
 
 subsection{* Products of Signs *}
 
-lemma mult_pos: "[| (0::'a::ordered_semiring) < a; 0 < b |] ==> 0 < a*b"
+lemma mult_pos: "[| (0::'a::almost_ordered_semiring) < a; 0 < b |] ==> 0 < a*b"
 by (drule mult_strict_left_mono [of 0 b], auto)
 
-lemma mult_pos_neg: "[| (0::'a::ordered_semiring) < a; b < 0 |] ==> a*b < 0"
+lemma mult_pos_neg: "[| (0::'a::almost_ordered_semiring) < a; b < 0 |] ==> a*b < 0"
 by (drule mult_strict_left_mono [of b 0], auto)
 
 lemma mult_neg: "[| a < (0::'a::ordered_ring); b < 0 |] ==> 0 < a*b"
 by (drule mult_strict_right_mono_neg, auto)
 
 lemma zero_less_mult_pos:
-     "[| 0 < a*b; 0 < a|] ==> 0 < (b::'a::ordered_semiring)"
+     "[| 0 < a*b; 0 < a|] ==> 0 < (b::'a::almost_ordered_semiring)"
 apply (case_tac "b\<le>0") 
  apply (auto simp add: order_le_less linorder_not_less)
 apply (drule_tac mult_pos_neg [of a b]) 
@@ -573,6 +589,14 @@ done
 
 lemma zero_le_square: "(0::'a::ordered_ring) \<le> a*a"
 by (simp add: zero_le_mult_iff linorder_linear) 
+
+text{*Proving axiom @{text zero_less_one} makes all @{text ordered_semiring}
+      theorems available to members of @{term ordered_ring} *}
+instance ordered_ring \<subseteq> ordered_semiring
+proof
+  have "(0::'a) \<le> 1*1" by (rule zero_le_square)
+  thus "(0::'a) < 1" by (simp add: order_le_less ) 
+qed
 
 text{*All three types of comparision involving 0 and 1 are covered.*}
 

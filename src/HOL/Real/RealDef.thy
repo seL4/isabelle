@@ -352,9 +352,6 @@ proof
   show "0 \<noteq> (1::real)" by (rule real_zero_not_eq_one)
   show "x \<noteq> 0 ==> inverse x * x = 1" by (rule real_mult_inverse_left)
   show "y \<noteq> 0 ==> x / y = x * inverse y" by (simp add: real_divide_def)
-  assume eq: "z+x = z+y" 
-    hence "(-z + z) + x = (-z + z) + y" by (simp only: eq real_add_assoc)
-    thus "x = y" by (simp add: real_add_minus_left)
 qed
 
 
@@ -366,14 +363,11 @@ apply (rule someI2)
 apply (auto simp add: zero_neq_one)
 done
 
-lemma DIVISION_BY_ZERO: "a / (0::real) = 0"
-  by (simp add: real_divide_def INVERSE_ZERO)
-
 instance real :: division_by_zero
 proof
   fix x :: real
   show "inverse 0 = (0::real)" by (rule INVERSE_ZERO)
-  show "x/0 = 0" by (rule DIVISION_BY_ZERO) 
+  show "x/0 = 0" by (simp add: real_divide_def INVERSE_ZERO)
 qed
 
 
@@ -524,8 +518,6 @@ subsection{*The Reals Form an Ordered Field*}
 instance real :: ordered_field
 proof
   fix x y z :: real
-  show "0 < (1::real)"
-    by (simp add: real_less_def real_zero_le_one real_zero_not_eq_one)  
   show "x \<le> y ==> z + x \<le> z + y" by (rule real_add_left_mono)
   show "x < y ==> 0 < z ==> z * x < z * y" by (simp add: real_mult_less_mono2)
   show "\<bar>x\<bar> = (if x < 0 then -x else x)"

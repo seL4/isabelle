@@ -325,9 +325,6 @@ proof
   show "(i + j) * k = i * k + j * k" by (simp add: int_distrib)
   show "0 \<noteq> (1::int)" 
     by (simp only: Zero_int_def One_int_def One_nat_def int_int_eq)
-  assume eq: "k+i = k+j" 
-    hence "(-k + k) + i = (-k + k) + j" by (simp only: eq zadd_assoc)
-    thus "i = j" by simp
 qed
 
 
@@ -484,7 +481,6 @@ text{*The Integers Form an Ordered Ring*}
 instance int :: ordered_ring
 proof
   fix i j k :: int
-  show "0 < (1::int)" by (rule int_0_less_1)
   show "i \<le> j ==> k + i \<le> k + j" by (rule zadd_left_mono)
   show "i < j ==> 0 < k ==> k * i < k * j" by (rule zmult_zless_mono2)
   show "\<bar>i\<bar> = (if i < 0 then -i else i)" by (simp only: zabs_def)

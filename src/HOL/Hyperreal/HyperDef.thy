@@ -477,24 +477,16 @@ proof
   show "0 \<noteq> (1::hypreal)" by (rule hypreal_zero_not_eq_one)
   show "x \<noteq> 0 ==> inverse x * x = 1" by (simp add: hypreal_mult_inverse_left)
   show "y \<noteq> 0 ==> x / y = x * inverse y" by (simp add: hypreal_divide_def)
-  assume eq: "z+x = z+y" 
-    hence "(-z + z) + x = (-z + z) + y" by (simp only: eq hypreal_add_assoc)
-    thus "x = y" by (simp add: hypreal_add_minus_left)
 qed
 
-
-lemma HYPREAL_INVERSE_ZERO: "inverse 0 = (0::hypreal)"
-by (simp add: hypreal_inverse hypreal_zero_def)
-
-lemma HYPREAL_DIVISION_BY_ZERO: "a / (0::hypreal) = 0"
-by (simp add: hypreal_divide_def HYPREAL_INVERSE_ZERO 
-              hypreal_mult_commute [of a])
 
 instance hypreal :: division_by_zero
 proof
   fix x :: hypreal
-  show "inverse 0 = (0::hypreal)" by (rule HYPREAL_INVERSE_ZERO)
-  show "x/0 = 0" by (rule HYPREAL_DIVISION_BY_ZERO) 
+  show inv: "inverse 0 = (0::hypreal)" 
+    by (simp add: hypreal_inverse hypreal_zero_def)
+  show "x/0 = 0" 
+    by (simp add: hypreal_divide_def inv hypreal_mult_commute [of a])
 qed
 
 
@@ -569,9 +561,6 @@ subsection{*The Hyperreals Form an Ordered Field*}
 instance hypreal :: ordered_field
 proof
   fix x y z :: hypreal
-  show "0 < (1::hypreal)" 
-    by (simp add: hypreal_zero_def hypreal_one_def linorder_not_le [symmetric],
-        simp add: hypreal_le)
   show "x \<le> y ==> z + x \<le> z + y" 
     by (rule hypreal_add_left_mono)
   show "x < y ==> 0 < z ==> z * x < z * y" 

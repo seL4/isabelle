@@ -246,13 +246,8 @@ proof
   show "0 \<noteq> (1::complex)"
     by (simp add: complex_zero_def complex_one_def)
   show "(u + v) * w = u * w + v * w"
-    by (simp add: complex_mult_def complex_add_def left_distrib real_diff_def add_ac)
-  show "z+u = z+v ==> u=v"
-    proof -
-      assume eq: "z+u = z+v"
-      hence "(-z + z) + u = (-z + z) + v" by (simp only: eq complex_add_assoc)
-      thus "u = v" by (simp add: complex_add_minus_left complex_add_zero_left)
-    qed
+    by (simp add: complex_mult_def complex_add_def left_distrib 
+                  diff_minus add_ac)
   assume neq: "w \<noteq> 0"
   thus "z / w = z * inverse w"
     by (simp add: complex_divide_def)
