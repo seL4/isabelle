@@ -137,10 +137,10 @@ and stable proofs.
 
 \begin{exercise}
   Modify @{term update} (and its type) such that it allows both insertion and
-  deletion of entries with a single function.  Prove (a modified version of)
-  the main theorem above.
-  Optimize you function such that it shrinks tries after
-  deletion, if possible.
+  deletion of entries with a single function.  Prove the corresponding version 
+  of the main theorem above.
+  Optimize your function such that it shrinks tries after
+  deletion if possible.
 \end{exercise}
 
 \begin{exercise}
