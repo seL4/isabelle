@@ -37,7 +37,7 @@ by (rtac impI 1);
 by (etac exec.induct 1);
 by (Blast_tac 3);
 by (Blast_tac 1);
-by (rewrite_goals_tac [single_valued_def]);
+by (rewtac single_valued_def);
 by (REPEAT (blast_tac (claset() addEs [exec_WHILE_case]) 1));
 qed "single_valued_exec";
 

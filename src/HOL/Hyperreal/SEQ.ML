@@ -671,7 +671,7 @@ val lemma_converg4 = result();
 Goalw [convergent_def] 
      "[| Bseq X; ALL m n. m <= n --> X m <= X n |] \
 \                ==> convergent X";
-by (forward_tac [Bseq_isLub] 1);
+by (ftac Bseq_isLub 1);
 by (Step_tac 1);
 by (case_tac "EX m. X m = U" 1 THEN Auto_tac);
 by (blast_tac (claset() addDs [lemma_converg1,
@@ -679,7 +679,7 @@ by (blast_tac (claset() addDs [lemma_converg1,
 (* second case *)
 by (res_inst_tac [("x","U")] exI 1);
 by (stac LIMSEQ_iff 1 THEN Step_tac 1);
-by (forward_tac [lemma_converg2] 1 THEN assume_tac 1);
+by (ftac lemma_converg2 1 THEN assume_tac 1);
 by (dtac lemma_converg4 1 THEN Auto_tac);
 by (res_inst_tac [("x","m")] exI 1 THEN Step_tac 1);
 by (subgoal_tac "X m <= X n" 1 THEN Fast_tac 2);
@@ -711,7 +711,7 @@ qed "Bseq_minus_iff";
  -------------------------------*)
 Goalw [monoseq_def] "[| Bseq X; monoseq X |] ==> convergent X";
 by (Step_tac 1);
-by (rtac (convergent_minus_iff RS ssubst) 2);
+by (stac convergent_minus_iff 2);
 by (dtac (Bseq_minus_iff RS ssubst) 2);
 by (auto_tac (claset() addSIs [Bseq_mono_convergent], simpset()));
 qed "Bseq_monoseq_convergent";
@@ -960,7 +960,7 @@ qed "NSCauchy_NSBseq";
 Goalw [NSconvergent_def,NSLIMSEQ_def]
       "NSCauchy X = NSconvergent X";
 by (Step_tac 1);
-by (forward_tac [NSCauchy_NSBseq] 1);
+by (ftac NSCauchy_NSBseq 1);
 by (auto_tac (claset() addIs [approx_trans2], 
     simpset() addsimps 
     [NSBseq_def,NSCauchy_def]));
@@ -1124,8 +1124,8 @@ by (Step_tac 1 THEN Asm_full_simp_tac 1);
 by (dres_inst_tac [("x","inverse r")] spec 1 THEN Step_tac 1);
 by (res_inst_tac [("x","N")] exI 1 THEN Step_tac 1);
 by (dtac spec 1 THEN Auto_tac);
-by (forward_tac [real_inverse_gt_0] 1);
-by (forward_tac [order_less_trans] 1 THEN assume_tac 1);
+by (ftac real_inverse_gt_0 1);
+by (ftac order_less_trans 1 THEN assume_tac 1);
 by (forw_inst_tac [("x","f n")] real_inverse_gt_0 1);
 by (asm_simp_tac (simpset() addsimps [abs_eqI2]) 1);
 by (res_inst_tac [("t","r")] (real_inverse_inverse RS subst) 1);
@@ -1241,11 +1241,11 @@ Goalw [NSLIMSEQ_def]
      "[| 0 <= x; x < 1 |] ==> (%n. x ^ n) ----NS> 0";
 by (auto_tac (claset() addSDs [convergent_realpow],
               simpset() addsimps [convergent_NSconvergent_iff]));
-by (forward_tac [NSconvergentD] 1);
+by (ftac NSconvergentD 1);
 by (auto_tac (claset(),
         simpset() addsimps [NSLIMSEQ_def, NSCauchy_NSconvergent_iff RS sym,
                             NSCauchy_def, starfunNat_pow]));
-by (forward_tac [HNatInfinite_add_one] 1);
+by (ftac HNatInfinite_add_one 1);
 by (dtac bspec 1 THEN assume_tac 1);
 by (dtac bspec 1 THEN assume_tac 1);
 by (dres_inst_tac [("x","N + (1::hypnat)")] bspec 1 THEN assume_tac 1);

@@ -129,15 +129,15 @@ by (case_tac "x<nat" 1);
  by (case_tac "height (insert x tree1) = Suc (Suc (height tree2))" 1);
   by (forw_inst_tac [("n","nat")]  height_l_bal 1);  
   by (asm_full_simp_tac (simpset() addsimps [max_def]) 1);
-  by(fast_tac (claset() addss simpset()) 1);
+  by (fast_tac (claset() addss simpset()) 1);
  by (asm_full_simp_tac (simpset() addsimps [max_def]) 1);
- by(fast_tac (claset() addss simpset()) 1);
+ by (fast_tac (claset() addss simpset()) 1);
 by (case_tac "height (insert x tree2) = Suc (Suc (height tree1))" 1);
  by (forw_inst_tac [("n","nat")]  height_r_bal 1); 
  by (asm_full_simp_tac (simpset() addsimps [max_def]) 1);
- by(fast_tac (claset() addss simpset()) 1);
+ by (fast_tac (claset() addss simpset()) 1);
 by (asm_full_simp_tac (simpset() addsimps [max_def]) 1);
-by(fast_tac (claset() addss simpset()) 1);
+by (fast_tac (claset() addss simpset()) 1);
 qed_spec_mp "height_insert";
 
 
@@ -174,9 +174,9 @@ by (case_tac "x<nat" 1);
   by (fast_tac (claset() addIs [isbal_r_rot] addss (simpset() 
 	addsimps [l_bal_def])) 1);  
  by (Clarify_tac 1);
- by (forward_tac [isbal_insert_left] 1);
+ by (ftac isbal_insert_left 1);
    by (Asm_full_simp_tac 1); 
-  ba 1;
+  by (assume_tac 1);
  by (Asm_full_simp_tac 1); 
 by (case_tac "height (insert x tree2) = Suc (Suc (height tree1))" 1);
  by (case_tac "bal (insert x tree2) = Left" 1);
@@ -185,9 +185,9 @@ by (case_tac "height (insert x tree2) = Suc (Suc (height tree1))" 1);
  by (fast_tac (claset() addIs [isbal_l_rot] addss (simpset() 
 	addsimps [r_bal_def])) 1);  
 by (Clarify_tac 1);
-by (forward_tac [isbal_insert_right] 1);
+by (ftac isbal_insert_right 1);
    by (Asm_full_simp_tac 1); 
-  ba 1;
+  by (assume_tac 1);
  by (Asm_full_simp_tac 1); 
 qed_spec_mp "isbal_insert";
 
@@ -243,9 +243,9 @@ Goal
 "isin y (insert x t) = (y=x | isin y t)";
 by (induct_tac "t" 1);
  by (Asm_simp_tac 1);
-by(asm_simp_tac (simpset() addsimps [l_bal_def,isin_lr_rot,isin_r_rot,
+by (asm_simp_tac (simpset() addsimps [l_bal_def,isin_lr_rot,isin_r_rot,
 	r_bal_def,isin_rl_rot,isin_l_rot]) 1);
-by(Blast_tac 1);
+by (Blast_tac 1);
 qed "isin_insert";
 
 
@@ -261,7 +261,7 @@ by (case_tac "l" 1);
 by (case_tac "tree2" 1);
  by (Asm_simp_tac 1);
 by (Asm_simp_tac 1);
-by(blast_tac (claset() addIs [less_trans])1);
+by (blast_tac (claset() addIs [less_trans])1);
 qed_spec_mp "isord_lr_rot";
 
 
@@ -282,7 +282,7 @@ by (case_tac "r" 1);
 by (case_tac "tree1" 1);
  by (asm_simp_tac (simpset() addsimps [le_def]) 1);
 by (Asm_simp_tac 1);
-by(blast_tac (claset() addIs [less_trans])1);
+by (blast_tac (claset() addIs [less_trans])1);
 qed_spec_mp "isord_rl_rot";
 
 
@@ -292,7 +292,7 @@ Goalw [bal_def]
 by (case_tac "r" 1); 
  by (Asm_simp_tac 1);
 by (Asm_simp_tac 1);
-by(blast_tac (claset() addIs [less_trans])1);
+by (blast_tac (claset() addIs [less_trans])1);
 qed_spec_mp "isord_l_rot";
 
 (* insert operation presreves isord property *)

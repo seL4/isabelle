@@ -10,17 +10,17 @@ qed "int_diff_minus_eq";
 Addsimps [int_diff_minus_eq];
 
 Goal "abs(abs(x::int)) = abs(x)";
-by(arith_tac 1);
+by (arith_tac 1);
 qed "abs_abs";
 Addsimps [abs_abs];
 
 Goal "abs(-(x::int)) = abs(x)";
-by(arith_tac 1);
+by (arith_tac 1);
 qed "abs_minus";
 Addsimps [abs_minus];
 
 Goal "abs(x+y) <= abs(x) + abs(y::int)";
-by(arith_tac 1);
+by (arith_tac 1);
 qed "triangle_ineq";
 
 
@@ -28,35 +28,35 @@ qed "triangle_ineq";
 
 Goal "(ALL i<n::nat. abs(f(i+1) - f i) <= 1) --> \
 \     f 0 <= k --> k <= f n --> (EX i <= n. f i = (k::int))";
-by(induct_tac "n" 1);
- by(Asm_simp_tac 1);
-by(strip_tac 1);
-by(etac impE 1);
- by(Asm_full_simp_tac 1);
-by(eres_inst_tac [("x","n")] allE 1);
-by(Asm_full_simp_tac 1);
-by(case_tac "k = f(n+1)" 1);
- by(Force_tac 1);
-by(etac impE 1);
- by(asm_full_simp_tac (simpset() addsimps [zabs_def] 
+by (induct_tac "n" 1);
+ by (Asm_simp_tac 1);
+by (strip_tac 1);
+by (etac impE 1);
+ by (Asm_full_simp_tac 1);
+by (eres_inst_tac [("x","n")] allE 1);
+by (Asm_full_simp_tac 1);
+by (case_tac "k = f(n+1)" 1);
+ by (Force_tac 1);
+by (etac impE 1);
+ by (asm_full_simp_tac (simpset() addsimps [zabs_def] 
                                  addsplits [split_if_asm]) 1);
- by(arith_tac 1);
-by(blast_tac (claset() addIs [le_SucI]) 1);
+ by (arith_tac 1);
+by (blast_tac (claset() addIs [le_SucI]) 1);
 val lemma = result();
 
 bind_thm("nat0_intermed_int_val", ObjectLogic.rulify_no_asm lemma);
 
 Goal "[| !i. m <= i & i < n --> abs(f(i + 1::nat) - f i) <= 1; m < n; \
 \        f m <= k; k <= f n |] ==> ? i. m <= i & i <= n & f i = (k::int)";
-by(cut_inst_tac [("n","n-m"),("f", "%i. f(i+m)"),("k","k")]lemma 1);
-by(Asm_full_simp_tac 1);
-by(etac impE 1);
- by(strip_tac 1);
- by(eres_inst_tac [("x","i+m")] allE 1);
- by(arith_tac 1);
-by(etac exE 1);
-by(res_inst_tac [("x","i+m")] exI 1);
-by(arith_tac 1);
+by (cut_inst_tac [("n","n-m"),("f", "%i. f(i+m)"),("k","k")]lemma 1);
+by (Asm_full_simp_tac 1);
+by (etac impE 1);
+ by (strip_tac 1);
+ by (eres_inst_tac [("x","i+m")] allE 1);
+ by (arith_tac 1);
+by (etac exE 1);
+by (res_inst_tac [("x","i+m")] exI 1);
+by (arith_tac 1);
 qed "nat_intermed_int_val";
 
 

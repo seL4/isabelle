@@ -47,7 +47,7 @@ AddIffs [neq0_conv];
 bind_thm ("gr0I", [neq0_conv, notI] MRS iffD1);
 
 Goal "(0<n) = (EX m. n = Suc m)";
-by(fast_tac (claset() addIs [not0_implies_Suc]) 1);
+by (fast_tac (claset() addIs [not0_implies_Suc]) 1);
 qed "gr0_conv_Suc";
 
 Goal "!!n::nat. (~(0 < n)) = (n=0)";
@@ -654,7 +654,7 @@ qed "mult_eq_1_iff";
 Addsimps [mult_eq_1_iff];
 
 Goal "(Suc 0 = m*n) = (m=1 & n=1)";
-by(rtac (mult_eq_1_iff RSN (2,trans)) 1);
+by (rtac (mult_eq_1_iff RSN (2,trans)) 1);
 by (fast_tac (claset() addss simpset()) 1);
 qed "one_eq_mult_iff";
 Addsimps [one_eq_mult_iff];

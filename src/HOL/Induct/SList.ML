@@ -448,8 +448,8 @@ qed "nat_case_dist";
 val [] = Goal "(Alls u:A. P u) = (!n. n < length A --> P(nth n A))";
 by (induct_thm_tac list_induct "A" 1);
 by (ALLGOALS Asm_simp_tac);
-br trans 1;
-br (nat_case_dist RS sym) 2;
+by (rtac trans 1);
+by (rtac (nat_case_dist RS sym) 2);
 by (ALLGOALS Asm_simp_tac);
 qed "alls_P_eq_P_nth";
 
@@ -501,10 +501,10 @@ by (case_tac "f xa = x" 1);
 by (ALLGOALS Asm_simp_tac);
 by (res_inst_tac [("x","xa")] exI 1);
 by (ALLGOALS Asm_simp_tac);
-br impI 1;
+by (rtac impI 1);
 by (rotate_tac 1 1);
 by (ALLGOALS  Asm_full_simp_tac);
-be exE 1; be conjE 1;
+by (etac exE 1); by (etac conjE 1);
 by (res_inst_tac [("x","y")] exI 1);
 by (asm_simp_tac (HOL_ss addsimps [if_cancel]) 1);
 qed "mem_map_aux1";
@@ -513,14 +513,14 @@ Goal
 "(? y. y mem q & x = f y) --> x mem (map f q)";
 by (induct_thm_tac list_induct "q" 1);
 by (Asm_simp_tac 1);
-br impI 1;
-be exE 1;
-be conjE 1;
+by (rtac impI 1);
+by (etac exE 1);
+by (etac conjE 1);
 by (ALLGOALS Asm_simp_tac);
 by (case_tac "xa = y" 1);
 by (rotate_tac 2 1);
 by (asm_full_simp_tac (HOL_ss addsimps [if_cancel]) 1);
-be impE 1;
+by (etac impE 1);
 by (asm_simp_tac (HOL_ss addsimps [if_cancel]) 1);
 by (case_tac "f xa = f y" 2);
 by (res_inst_tac [("x","y")] exI 1);
@@ -531,9 +531,9 @@ qed "mem_map_aux2";
 
 Goal
 "x mem (map f q) = (? y. y mem q & x = f y)";
-br iffI 1;
-br (mem_map_aux1 RS mp) 1;
-br (mem_map_aux2 RS mp) 2;
+by (rtac iffI 1);
+by (rtac (mem_map_aux1 RS mp) 1);
+by (rtac (mem_map_aux2 RS mp) 2);
 by (ALLGOALS atac);
 qed "mem_map";
 
@@ -685,7 +685,7 @@ qed "unzip_Nil";
 
 
 Goalw [o_def] "map(f o g) = ((map f) o (map g))";
-br ext 1;
+by (rtac ext 1);
 by (simp_tac (HOL_ss addsimps [map_compose RS sym,o_def]) 1);
 qed "map_compose_ext";
 
@@ -839,8 +839,8 @@ qed "length_take_drop";
 
 Goal "ALL A. length(A) = n --> take(A@B) n = A";
 by (induct_tac "n" 1);
-br allI 1;
-br allI 2;
+by (rtac allI 1);
+by (rtac allI 2);
 by (induct_thm_tac list_induct "A" 1);
 by (induct_thm_tac list_induct "A" 3);
 by (ALLGOALS  Asm_full_simp_tac);
@@ -848,8 +848,8 @@ qed_spec_mp "take_append";
 
 Goal "ALL A. length(A) = n --> take(A@B) (n+k) = A@take B k";
 by (induct_tac "n" 1);
-br allI 1;
-br allI 2;
+by (rtac allI 1);
+by (rtac allI 2);
 by (induct_thm_tac list_induct "A" 1);
 by (induct_thm_tac list_induct "A" 3);
 by (ALLGOALS  Asm_full_simp_tac);
@@ -865,8 +865,8 @@ qed_spec_mp "take_map";
 
 Goal "ALL A. length(A) = n --> drop(A@B)n = B";
 by (induct_tac "n" 1);
-br allI 1;
-br allI 2;
+by (rtac allI 1);
+by (rtac allI 2);
 by (induct_thm_tac list_induct "A" 1);
 by (induct_thm_tac list_induct "A" 3);
 by (ALLGOALS  Asm_full_simp_tac);
@@ -874,8 +874,8 @@ qed_spec_mp "drop_append";
 
 Goal "ALL A. length(A) = n --> drop(A@B)(n+k) = drop B k";
 by (induct_tac "n" 1);
-br allI 1;
-br allI 2;
+by (rtac allI 1);
+by (rtac allI 2);
 by (induct_thm_tac list_induct "A" 1);
 by (induct_thm_tac list_induct "A" 3);
 by (ALLGOALS  Asm_full_simp_tac);
@@ -884,8 +884,8 @@ qed_spec_mp "drop_append2";
 
 Goal "ALL A. length(A) = n --> drop A n = []";
 by (induct_tac "n" 1);
-br allI 1;
-br allI 2;
+by (rtac allI 1);
+by (rtac allI 2);
 by (induct_thm_tac list_induct "A" 1);
 by (induct_thm_tac list_induct "A" 3);
 by Auto_tac; 
@@ -902,8 +902,8 @@ qed_spec_mp "drop_map";
 
 Goal "ALL A. length(A) = n --> take A n = A";
 by (induct_tac "n" 1);
-br allI 1;
-br allI 2;
+by (rtac allI 1);
+by (rtac allI 2);
 by (induct_thm_tac list_induct "A" 1);
 by (induct_thm_tac list_induct "A" 3);
 by (ALLGOALS (simp_tac (simpset())));
@@ -949,9 +949,9 @@ Goal
 "[| !a. f a e = a; !a. f e a = a;          \
 \   !a b c. f a (f b c) = f(f a b) c |]   \
 \ ==> foldl f e (A @ B) = f(foldl f e A)(foldl f e B)";
-br trans 1;
-br foldl_append 1;
-br (foldl_neutr_distr) 1;
+by (rtac trans 1);
+by (rtac foldl_append 1);
+by (rtac (foldl_neutr_distr) 1);
 by Auto_tac; 
 qed "foldl_append_sym";
 
@@ -983,7 +983,7 @@ qed "foldr_neutr_distr";
 "[| !a. f e a = a; !a b c. f a (f b c) = f(f a b) c |] ==> \
 \ foldr f e (A @ B) = f (foldr f e A) (foldr f e B)";
 by Auto_tac;
-br foldr_neutr_distr 1;
+by (rtac foldr_neutr_distr 1);
 by Auto_tac; 
 qed "foldr_append2";
 
@@ -1020,7 +1020,7 @@ qed "list_all_and_R";
 Goal "ALL i. i < length(A)  --> nth i (map f A) = f(nth i A)";
 by (induct_thm_tac list_induct "A" 1);
 by (ALLGOALS(asm_simp_tac (simpset() delsimps [less_Suc_eq])));
-br allI 1;
+by (rtac allI 1);
 by (induct_tac "i" 1);
 by (ALLGOALS(asm_simp_tac (simpset() addsimps [nth_0,nth_Suc])));
 qed_spec_mp "nth_map";
@@ -1028,7 +1028,7 @@ qed_spec_mp "nth_map";
 Goal "ALL i. i < length(A)  --> nth i(A@B) = nth i A";
 by (induct_thm_tac list_induct "A" 1);
 by (ALLGOALS(asm_simp_tac (simpset() delsimps [less_Suc_eq])));
-br allI 1;
+by (rtac allI 1);
 by (induct_tac "i" 1);
 by (ALLGOALS(asm_simp_tac (simpset() addsimps [nth_0,nth_Suc])));
 qed_spec_mp "nth_app_cancel_right";
@@ -1085,9 +1085,9 @@ by Auto_tac;
 qed "foldl_rev";
 
 Goal "foldr f b (rev l) = foldl (%x y. f y x) b l";
-br sym 1;
-br trans 1;
-br foldl_rev 2;
+by (rtac sym 1);
+by (rtac trans 1);
+by (rtac foldl_rev 2);
 by (simp_tac (HOL_ss addsimps [rev_rev_ident]) 1);
 qed "foldr_rev";
 

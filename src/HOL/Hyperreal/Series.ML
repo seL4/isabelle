@@ -283,7 +283,7 @@ Goalw [sums_def,LIMSEQ_def]
      "(ALL m. n <= Suc m --> f(m) = 0) ==> f sums (sumr 0 n f)";
 by (Step_tac 1);
 by (res_inst_tac [("x","n")] exI 1);
-by (Step_tac 1 THEN forward_tac [le_imp_less_or_eq] 1);
+by (Step_tac 1 THEN ftac le_imp_less_or_eq 1);
 by (Step_tac 1);
 by (dres_inst_tac [("f","f")] sumr_split_add_minus 1);
 by (ALLGOALS (Asm_simp_tac));
@@ -297,7 +297,7 @@ Goalw [sums_def,LIMSEQ_def]
      "(ALL m. n <= m --> f(m) = 0) ==> f sums (sumr 0 n f)";
 by (Step_tac 1);
 by (res_inst_tac [("x","n")] exI 1);
-by (Step_tac 1 THEN forward_tac [le_imp_less_or_eq] 1);
+by (Step_tac 1 THEN ftac le_imp_less_or_eq 1);
 by (Step_tac 1);
 by (dres_inst_tac [("f","f")] sumr_split_add_minus 1);
 by (ALLGOALS (Asm_simp_tac));
@@ -571,7 +571,7 @@ qed "ratio_test_lemma2";
 
 Goal "[| c < 1; ALL n. N <= n --> abs(f(Suc n)) <= c*abs(f n) |] \
 \     ==> summable f";
-by (forward_tac [ratio_test_lemma2] 1);
+by (ftac ratio_test_lemma2 1);
 by Auto_tac;  
 by (res_inst_tac [("g","%n. (abs (f N)/(c ^ N))*c ^ n")] 
     summable_comparison_test 1);

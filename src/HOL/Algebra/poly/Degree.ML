@@ -152,7 +152,7 @@ qed "deg_monom_ring";
 Goal "deg (monom m::'a::domain up) = m";
 by (rtac le_anti_sym 1);
 (* <= *)
-br deg_monom_ring 1;
+by (rtac deg_monom_ring 1);
 (* >= *)
 by (asm_simp_tac 
   (simpset() addsimps [deg_belowI, less_not_refl2 RS not_sym]) 1);

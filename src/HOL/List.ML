@@ -49,8 +49,8 @@ qed "lists_Int_eq";
 Addsimps [lists_Int_eq];
 
 Goal "(xs@ys : lists A) = (xs : lists A & ys : lists A)";
-by(induct_tac "xs" 1);
-by(Auto_tac);
+by (induct_tac "xs" 1);
+by (Auto_tac);
 qed "append_in_lists_conv";
 AddIffs [append_in_lists_conv];
 
@@ -725,7 +725,7 @@ by (Fast_tac  1);
 qed_spec_mp "set_update_subset_insert";
 
 Goal "[| set xs <= A; x:A |] ==> set(xs[i := x]) <= A";
-by(fast_tac (claset() addSDs [set_update_subset_insert RS subsetD]) 1);
+by (fast_tac (claset() addSDs [set_update_subset_insert RS subsetD]) 1);
 qed "set_update_subsetI";
 
 (** last & butlast **)

@@ -220,7 +220,7 @@ Addsimps [real_of_nat_gt_zero_cancel_iff];
 
 Goal "(real (n::nat) <= 0) = (n = 0)";
 by (rtac ((real_of_nat_zero) RS subst) 1);
-by (rtac (real_of_nat_le_iff RS ssubst) 1);
+by (stac real_of_nat_le_iff 1);
 by Auto_tac;
 qed "real_of_nat_le_zero_cancel_iff";
 Addsimps [real_of_nat_le_zero_cancel_iff];

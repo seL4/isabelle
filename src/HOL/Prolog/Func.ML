@@ -1,7 +1,7 @@
 open Func;
 
 val prog_Func = prog_HOHH @ [eval];
-fun pgoal s = (case Goal s of _ => by(prolog_tac prog_Func));
+fun pgoal s = (case Goal s of _ => by (prolog_tac prog_Func));
 val p = ptac prog_Func 1;
 
 pgoal "eval ((S (S Z)) + (S Z)) ?X";

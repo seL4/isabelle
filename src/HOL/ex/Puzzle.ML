@@ -32,9 +32,9 @@ by (induct_tac "n" 1);
  by (Simp_tac 1);
 by (rtac impI 1);
 by (etac le_SucE 1);
- by(cut_inst_tac [("n","n")]lemma2 1);
- by(arith_tac 1);
-by(Asm_simp_tac 1);
+ by (cut_inst_tac [("n","n")]lemma2 1);
+ by (arith_tac 1);
+by (Asm_simp_tac 1);
 qed_spec_mp "f_mono";
 
 Goal "f(n) = n";

@@ -193,7 +193,7 @@ qed "Rep_hypreal_FreeUltrafilterNat";
  -----------------------------------------------------------------------*) 
 
 Goalw [congruent_def] "congruent hyprel (%X. hyprel``{%n. f (X n)})";
-by (safe_tac (claset()));
+by Safe_tac;
 by (ALLGOALS(Fuf_tac));
 qed "starfun_congruent";
 
@@ -472,7 +472,7 @@ qed  "Infinitesimal_FreeUltrafilterNat_iff2";
 Goal "(Abs_hypreal(hyprel``{X}) @= Abs_hypreal(hyprel``{Y})) = \
 \     (ALL m. {n. abs (X n + - Y n) < \
 \                 inverse(real(Suc m))} : FreeUltrafilterNat)";
-by (rtac (approx_minus_iff RS ssubst) 1);
+by (stac approx_minus_iff 1);
 by (rtac (mem_infmal_iff RS subst) 1);
 by (auto_tac (claset(), 
               simpset() addsimps [hypreal_minus, hypreal_add,

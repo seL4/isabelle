@@ -101,7 +101,7 @@ qed "less_2_cases";
 Goal "Suc(Suc(m)) mod 2 = m mod 2";
 by (subgoal_tac "m mod 2 < 2" 1);
 by (Asm_simp_tac 2);
-be (less_2_cases RS disjE) 1;
+by (etac (less_2_cases RS disjE) 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [Let_def, mod_Suc, nat_1])));
 qed "mod2_Suc_Suc";
 Addsimps [mod2_Suc_Suc];

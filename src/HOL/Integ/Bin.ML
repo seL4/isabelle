@@ -313,7 +313,7 @@ qed "le_number_of_eq_not_less";
 Goalw [zabs_def]
  "abs(number_of x::int) = \
 \ (if number_of x < (0::int) then -number_of x else number_of x)";
-by(rtac refl 1);
+by (rtac refl 1);
 qed "zabs_number_of";
 
 (*0 and 1 require special rewrites because they aren't numerals*)

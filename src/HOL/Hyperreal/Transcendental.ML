@@ -211,7 +211,7 @@ Addsimps [real_sqrt_sum_squares_mult_squared_eq];
 Goal "sqrt(x ^ 2) = abs(x)";
 by (rtac (abs_realpow_two RS subst) 1);
 by (rtac (real_sqrt_abs_abs RS subst) 1);
-by (rtac (real_pow_sqrt_eq_sqrt_pow RS ssubst) 1);
+by (stac real_pow_sqrt_eq_sqrt_pow 1);
 by (auto_tac (claset(),simpset() addsimps [numeral_2_eq_2, abs_mult,abs_ge_zero]));
 qed "real_sqrt_abs";
 Addsimps [real_sqrt_abs];
@@ -228,12 +228,12 @@ by (asm_full_simp_tac (simpset() addsimps [real_sqrt_gt_zero_pow2]) 1);
 qed "real_sqrt_pow2_gt_zero";
 
 Goal "0 < x ==> sqrt x ~= 0";
-by (forward_tac [real_sqrt_pow2_gt_zero] 1);
+by (ftac real_sqrt_pow2_gt_zero 1);
 by (auto_tac (claset(),simpset() addsimps [numeral_2_eq_2, real_less_not_refl]));
 qed "real_sqrt_not_eq_zero";
 
 Goal "0 < x ==> inverse (sqrt(x)) ^ 2 = inverse x";
-by (forward_tac [real_sqrt_not_eq_zero] 1);
+by (ftac real_sqrt_not_eq_zero 1);
 by (cut_inst_tac [("n1","2"),("r1","sqrt x")] (realpow_inverse RS sym) 1);
 by (auto_tac (claset() addDs [real_sqrt_gt_zero_pow2],simpset()));
 qed "real_inv_sqrt_pow2";
@@ -286,8 +286,8 @@ by (auto_tac (claset(),simpset() addsimps [abs_mult,real_mult_assoc RS sym]
     delsimps [fact_Suc]));
 by (rtac real_mult_le_le_mono2 1);
 by (res_inst_tac [("w1","abs x")] (real_mult_commute RS ssubst) 2);
-by (rtac (fact_Suc RS ssubst) 2);
-by (rtac (real_of_nat_mult RS ssubst) 2);
+by (stac fact_Suc 2);
+by (stac real_of_nat_mult 2);
 by (auto_tac (claset(),simpset() addsimps [abs_mult,real_inverse_distrib,
     abs_ge_zero]));
 by (auto_tac (claset(), simpset() addsimps 
@@ -402,7 +402,7 @@ Goal "sumr 0 (Suc n) (%p. (x ^ p) * y ^ ((Suc n) - p)) = \
 by (auto_tac (claset(),simpset() addsimps [sumr_mult] delsimps [sumr_Suc]));
 by (rtac sumr_subst 1);
 by (strip_tac 1);
-by (rtac (lemma_realpow_diff RS ssubst) 1);
+by (stac lemma_realpow_diff 1);
 by (auto_tac (claset(),simpset() addsimps real_mult_ac));
 qed "lemma_realpow_diff_sumr";
 
@@ -410,7 +410,7 @@ Goal "x ^ (Suc n) - y ^ (Suc n) = \
 \     (x - y) * sumr 0 (Suc n) (%p. (x ^ p) * (y ^(n - p)))";
 by (induct_tac "n" 1);
 by (auto_tac (claset(),simpset() delsimps [sumr_Suc]));
-by (rtac (sumr_Suc RS ssubst) 1);
+by (stac sumr_Suc 1);
 by (dtac sym 1);
 by (auto_tac (claset(),simpset() addsimps [lemma_realpow_diff_sumr,
     real_add_mult_distrib2,real_diff_def] @ 
@@ -424,7 +424,7 @@ by (auto_tac (claset(),simpset() addsimps [real_mult_commute,
     realpow_add RS sym] delsimps [sumr_Suc]));
 by (res_inst_tac [("c1","x - y")] (real_mult_left_cancel RS iffD1) 1);
 by (rtac (real_minus_minus RS subst) 2);
-by (rtac (real_minus_mult_eq1 RS ssubst) 2);
+by (stac real_minus_mult_eq1 2);
 by (auto_tac (claset(),simpset() addsimps [lemma_realpow_diff_sumr2 
     RS sym] delsimps [sumr_Suc]));
 qed "lemma_realpow_rev_sumr";
@@ -581,7 +581,7 @@ qed "lemma_termdiff2";
 Goal "[| h ~= 0; abs z <= K; abs (z + h) <= K |] \
 \     ==> abs (((z + h) ^ n - z ^ n) * inverse h - real n * z ^ (n - Suc 0)) \
 \         <= real n * real (n - Suc 0) * K ^ (n - 2) * abs h";
-by (rtac (lemma_termdiff2 RS ssubst) 1);
+by (stac lemma_termdiff2 1);
 by (asm_full_simp_tac (simpset() addsimps [abs_mult,real_mult_commute]) 2);
 by (stac real_mult_commute 2); 
 by (rtac (sumr_rabs RS real_le_trans) 2);
@@ -812,9 +812,9 @@ qed "termdiffs";
 Goalw [diffs_def]  
       "diffs (%n. inverse(real (fact n))) = (%n. inverse(real (fact n)))";
 by (rtac ext 1);
-by (rtac (fact_Suc RS ssubst) 1);
-by (rtac (real_of_nat_mult RS ssubst) 1);
-by (rtac (real_inverse_distrib RS ssubst) 1);
+by (stac fact_Suc 1);
+by (stac real_of_nat_mult 1);
+by (stac real_inverse_distrib 1);
 by (auto_tac (claset(),simpset() addsimps [real_mult_assoc RS sym]));
 qed "exp_fdiffs";
 
@@ -825,10 +825,10 @@ Goalw [diffs_def,real_divide_def]
 \                (- 1) ^ (n div 2)/(real (fact n)) \
 \             else 0)";
 by (rtac ext 1);
-by (rtac (fact_Suc RS ssubst) 1);
-by (rtac (real_of_nat_mult RS ssubst) 1);
-by (rtac (even_Suc RS ssubst) 1);
-by (rtac (real_inverse_distrib RS ssubst) 1);
+by (stac fact_Suc 1);
+by (stac real_of_nat_mult 1);
+by (stac even_Suc 1);
+by (stac real_inverse_distrib 1);
 by Auto_tac;
 qed "sin_fdiffs";
 
@@ -838,10 +838,10 @@ Goalw  [diffs_def,real_divide_def]
 \      = (if even n then \
 \                (- 1) ^ (n div 2)/(real (fact n)) \
 \             else 0)";
-by (rtac (fact_Suc RS ssubst) 1);
-by (rtac (real_of_nat_mult RS ssubst) 1);
-by (rtac (even_Suc RS ssubst) 1);
-by (rtac (real_inverse_distrib RS ssubst) 1);
+by (stac fact_Suc 1);
+by (stac real_of_nat_mult 1);
+by (stac even_Suc 1);
+by (stac real_inverse_distrib 1);
 by Auto_tac;
 qed "sin_fdiffs2";
 
@@ -852,10 +852,10 @@ Goalw [diffs_def,real_divide_def]
 \      = (%n. - (if even n then 0 \
 \          else (- 1) ^ ((n - Suc 0)div 2)/(real (fact n))))";
 by (rtac ext 1);
-by (rtac (fact_Suc RS ssubst) 1);
-by (rtac (real_of_nat_mult RS ssubst) 1);
-by (rtac (even_Suc RS ssubst) 1);
-by (rtac (real_inverse_distrib RS ssubst) 1);
+by (stac fact_Suc 1);
+by (stac real_of_nat_mult 1);
+by (stac even_Suc 1);
+by (stac real_inverse_distrib 1);
 by (res_inst_tac [("z1","real (Suc n)")] (real_mult_commute RS ssubst) 1);
 by (res_inst_tac [("z1","inverse(real (Suc n))")] 
      (real_mult_commute RS ssubst) 1);
@@ -869,10 +869,10 @@ Goalw [diffs_def,real_divide_def]
 \                (- 1) ^ (n div 2)/(real (fact n)) else 0) n\
 \      = - (if even n then 0 \
 \          else (- 1) ^ ((n - Suc 0)div 2)/(real (fact n)))";
-by (rtac (fact_Suc RS ssubst) 1);
-by (rtac (real_of_nat_mult RS ssubst) 1);
-by (rtac (even_Suc RS ssubst) 1);
-by (rtac (real_inverse_distrib RS ssubst) 1);
+by (stac fact_Suc 1);
+by (stac real_of_nat_mult 1);
+by (stac even_Suc 1);
+by (stac real_inverse_distrib 1);
 by (res_inst_tac [("z1","real (Suc n)")] (real_mult_commute RS ssubst) 1);
 by (res_inst_tac [("z1","inverse (real (Suc n))")] 
      (real_mult_commute RS ssubst) 1);
@@ -895,7 +895,7 @@ by (auto_tac (claset() addSIs [ext],simpset() addsimps [exp_def]));
 val lemma_exp_ext = result();
 
 Goalw [exp_def] "DERIV exp x :> exp(x)";
-by (rtac (lemma_exp_ext RS ssubst) 1);
+by (stac lemma_exp_ext 1);
 by (subgoal_tac "DERIV (%u. suminf (%n. inverse (real (fact n)) * u ^ n)) x \
 \    :> suminf (%n. diffs (%n. inverse (real (fact n))) n * x ^ n)" 1);
 by (res_inst_tac [("K","1 + abs(x)")] termdiffs 2);
@@ -918,7 +918,7 @@ by (auto_tac (claset() addSIs [ext],simpset() addsimps [cos_def]));
 val lemma_cos_ext = result();
 
 Goalw [cos_def] "DERIV sin x :> cos(x)";
-by (rtac (lemma_sin_ext RS ssubst) 1);
+by (stac lemma_sin_ext 1);
 by (auto_tac (claset(),simpset() addsimps [sin_fdiffs2 RS sym]));
 by (res_inst_tac [("K","1 + abs(x)")] termdiffs 1);
 by (auto_tac (claset() addIs [sin_converges, cos_converges, sums_summable] 
@@ -929,7 +929,7 @@ qed "DERIV_sin";
 Addsimps [DERIV_sin];
 
 Goal "DERIV cos x :> -sin(x)";
-by (rtac (lemma_cos_ext RS ssubst) 1);
+by (stac lemma_cos_ext 1);
 by (auto_tac (claset(),simpset() addsimps [lemma_sin_minus,
     cos_fdiffs2 RS sym,real_minus_mult_eq1]));
 by (res_inst_tac [("K","1 + abs(x)")] termdiffs 1);
@@ -988,7 +988,7 @@ by (auto_tac (claset(),simpset() addsimps
     [CLAIM_SIMP "(%x. exp(-x)) = exp o (%x. - x)" [ext]]));
 by (rtac (real_mult_1_right RS subst) 1);
 by (rtac (real_minus_mult_eq1 RS subst) 1);
-by (rtac (real_minus_mult_eq2 RS ssubst) 1);
+by (stac real_minus_mult_eq2 1);
 by (rtac DERIV_chain 1);
 by (rtac DERIV_minus 2);
 by Auto_tac;
@@ -1034,7 +1034,7 @@ qed "exp_add";
 
 Goal "0 <= exp x";
 by (res_inst_tac [("t","x")] (real_sum_of_halves RS subst) 1);
-by (rtac (exp_add RS ssubst) 1 THEN Auto_tac);
+by (stac exp_add 1 THEN Auto_tac);
 qed "exp_ge_zero";
 Addsimps [exp_ge_zero];
 
@@ -1337,7 +1337,7 @@ qed "sin_cos_squared_add";
 Addsimps [sin_cos_squared_add];
 
 Goal "(cos(x) ^ 2) + (sin(x) ^ 2) = 1";
-by (rtac (real_add_commute RS ssubst) 1);
+by (stac real_add_commute 1);
 by (simp_tac (simpset() delsimps [realpow_Suc]) 1);
 qed "sin_cos_squared_add2";
 Addsimps [sin_cos_squared_add2];
@@ -1586,14 +1586,14 @@ by (asm_simp_tac (simpset() addsimps [numeral_2_eq_2 RS sym, real_mult_assoc RS 
 by (stac (CLAIM "6 = 2 * (3::real)") 2);
 by (rtac real_mult_less_mono 2);  
 by (auto_tac (claset(),simpset() addsimps [real_of_nat_Suc] delsimps [fact_Suc]));
-by (rtac (fact_Suc RS ssubst) 1);
-by (rtac (fact_Suc RS ssubst) 1);
-by (rtac (fact_Suc RS ssubst) 1);
-by (rtac (fact_Suc RS ssubst) 1);
-by (rtac (real_of_nat_mult RS ssubst) 1);
-by (rtac (real_of_nat_mult RS ssubst) 1);
-by (rtac (real_of_nat_mult RS ssubst) 1);
-by (rtac (real_of_nat_mult RS ssubst) 1);
+by (stac fact_Suc 1);
+by (stac fact_Suc 1);
+by (stac fact_Suc 1);
+by (stac fact_Suc 1);
+by (stac real_of_nat_mult 1);
+by (stac real_of_nat_mult 1);
+by (stac real_of_nat_mult 1);
+by (stac real_of_nat_mult 1);
 by (simp_tac (simpset() addsimps [real_divide_def,
     real_inverse_distrib] delsimps [fact_Suc]) 1);
 by (auto_tac (claset(),simpset() addsimps [real_mult_assoc RS sym] 
@@ -1659,9 +1659,9 @@ by (TRYALL(rtac (real_of_nat_fact_gt_zero)));
 by (simp_tac (simpset() addsimps [real_mult_assoc RS sym] 
     delsimps [fact_Suc]) 1);
 by (rtac ((CLAIM "real(n::nat) * 4 = real(4 * n)") RS ssubst) 1);
-by (rtac (fact_Suc RS ssubst) 1);
-by (rtac (real_of_nat_mult RS ssubst) 1);
-by (rtac (real_of_nat_mult RS ssubst) 1);
+by (stac fact_Suc 1);
+by (stac real_of_nat_mult 1);
+by (stac real_of_nat_mult 1);
 by (rtac real_mult_less_mono 1);
 by (Force_tac 1);
 by (Force_tac 2);
@@ -1884,7 +1884,7 @@ by Auto_tac;
 qed "cos_ge_zero";
 
 Goal "[| 0 < x; x < pi  |] ==> 0 < sin x";
-by (rtac (sin_cos_eq RS ssubst) 1);
+by (stac sin_cos_eq 1);
 by (rotate_tac 1 1);
 by (dtac (real_sum_of_halves RS ssubst) 1);
 by (auto_tac (claset() addSIs [cos_gt_zero_pi],
@@ -2425,7 +2425,7 @@ Addsimps [cos_2npi];
 
 Goal "cos (3 / 2 * pi) = 0";
 by (rtac (CLAIM "(1::real) + 1/2 = 3/2" RS subst) 1);
-by (rtac (real_add_mult_distrib RS ssubst) 1);
+by (stac real_add_mult_distrib 1);
 by (auto_tac (claset(),simpset() addsimps [cos_add] @ real_mult_ac));
 qed "cos_3over2_pi";
 Addsimps [cos_3over2_pi];
@@ -2437,7 +2437,7 @@ Addsimps [sin_2npi];
 
 Goal "sin (3 / 2 * pi) = - 1";
 by (rtac (CLAIM "(1::real) + 1/2 = 3/2" RS subst) 1);
-by (rtac (real_add_mult_distrib RS ssubst) 1);
+by (stac real_add_mult_distrib 1);
 by (auto_tac (claset(),simpset() addsimps [sin_add] @real_mult_ac));
 qed "sin_3over2_pi";
 Addsimps [sin_3over2_pi];

@@ -113,7 +113,7 @@ qed "div_add_self_two_is_m";
 Addsimps [div_add_self_two_is_m];
 
 Goal "((m + m) + 2) div 2 = Suc m";
-by (rtac (div_add_self2 RS ssubst) 1);
+by (stac div_add_self2 1);
 by (Auto_tac);
 qed "div_add_self_two";
 
@@ -187,7 +187,7 @@ qed "mod_two_Suc_2m";
 Addsimps [mod_two_Suc_2m];
 
 Goal "(Suc (Suc (2 * m)) div 2) = Suc m";
-by (rtac (div_if RS ssubst) 1 THEN Auto_tac);
+by (stac div_if 1 THEN Auto_tac);
 qed "div_two_Suc_Suc_2m";
 Addsimps [div_two_Suc_Suc_2m];
 
@@ -239,14 +239,14 @@ Addsimps [div_2_gt_zero];
 
 Goal "even n ==> (n + 1) div 2 = n div 2";
 by (rtac (CLAIM "2 * x = 2 * y ==> x = (y::nat)") 1);
-by (rtac (lemma_even_div RS ssubst) 1);
+by (stac lemma_even_div 1);
 by (auto_tac (claset(),simpset() addsimps [even_mult_two_ex]));
 qed "lemma_even_div2";
 Addsimps [lemma_even_div2];
 
 Goal "~even n ==> (n + 1) div 2 = Suc (n div 2)";
 by (rtac (CLAIM "2 * x = 2 * y ==> x = (y::nat)") 1);
-by (rtac (lemma_not_even_div RS ssubst) 1);
+by (stac lemma_not_even_div 1);
 by (auto_tac (claset(),simpset() addsimps [even_not_odd,
     odd_Suc_mult_two_ex])); 
 by (cut_inst_tac [("m","Suc(2*m)"),("n","2")] mod_div_equality 1); 

@@ -222,7 +222,7 @@ qed "acyclic_converse";
 AddIffs [acyclic_converse];
 
 Goalw [acyclic_def,antisym_def] "acyclic r ==> antisym(r^*)";
-by(blast_tac (claset() addEs [rtranclE]
+by (blast_tac (claset() addEs [rtranclE]
      addIs [rtrancl_into_trancl1,rtrancl_trancl_trancl]) 1);
 qed "acyclic_impl_antisym_rtrancl";
 

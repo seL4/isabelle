@@ -1315,7 +1315,7 @@ qed "NSDERIV_pow";
 Goalw [nsderiv_def]
      "x \\<noteq> 0 ==> NSDERIV (%x. inverse(x)) x :> (- (inverse x ^ Suc (Suc 0)))";
 by (rtac ballI 1 THEN Asm_full_simp_tac 1 THEN Step_tac 1);
-by (forward_tac [Infinitesimal_add_not_zero] 1);
+by (ftac Infinitesimal_add_not_zero 1);
 by (asm_full_simp_tac (simpset() addsimps [hypreal_add_commute]) 2); 
 by (auto_tac (claset(),
      simpset() addsimps [starfun_inverse_inverse, realpow_two] 

@@ -189,7 +189,7 @@ qed "starfunNat2_n_starfunNat2";
 
 Goalw [congruent_def] 
       "congruent hypnatrel (%X. hypnatrel``{%n. f (X n)})";
-by (safe_tac (claset()));
+by Safe_tac;
 by (ALLGOALS(Fuf_tac));
 qed "starfunNat_congruent";
 
@@ -414,7 +414,7 @@ qed "starfunNat_inverse_real_of_nat_eq";
  ---------------------------------------------------------*)
 Goalw [congruent_def] 
       "congruent hypnatrel (%X. hypnatrel``{%n. f n (X n)})";
-by (safe_tac (claset()));
+by Safe_tac;
 by (ALLGOALS(Fuf_tac));
 qed "starfunNat_n_congruent";
 

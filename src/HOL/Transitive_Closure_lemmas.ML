@@ -305,7 +305,7 @@ by (blast_tac (claset() addIs prems addSDs [trancl_converseD])1);
 qed "converse_trancl_induct";
 
 Goal "(x,y):R^+ ==> ? z. (x,z):R & (z,y):R^*";
-be converse_trancl_induct 1;
+by (etac converse_trancl_induct 1);
 by Auto_tac;
 by (blast_tac (claset() addIs [rtrancl_trans]) 1);
 qed "tranclD";

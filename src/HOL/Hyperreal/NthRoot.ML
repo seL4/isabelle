@@ -70,7 +70,7 @@ val lemma_nth_realpow_isLub_gt_zero = result();
 Goal "[| isLub (UNIV::real set) {x. x ^ n <= a & (0::real) < x} u; \
 \        0 < a; 0 < n |] ==> ALL k. a <= (u + inverse(real_of_posnat k)) ^ n";
 by (Step_tac 1);
-by (forward_tac [lemma_nth_realpow_seq] 1 THEN Step_tac 1);
+by (ftac lemma_nth_realpow_seq 1 THEN Step_tac 1);
 by (auto_tac (claset() addEs [real_less_asym],
     simpset() addsimps [real_le_def]));
 by (fold_tac [real_le_def]);
@@ -85,7 +85,7 @@ val lemma_nth_realpow_isLub_ge = result();
 Goal "[| (0::real) < a; 0 < n; \
 \    isLub (UNIV::real set) \
 \    {x. x ^ n <= a & 0 < x} u |] ==> a <= u ^ n";
-by (forward_tac [lemma_nth_realpow_isLub_ge] 1 THEN Step_tac 1);
+by (ftac lemma_nth_realpow_isLub_ge 1 THEN Step_tac 1);
 by (rtac (LIMSEQ_inverse_real_of_posnat_add RS LIMSEQ_pow 
     RS LIMSEQ_le_const) 1);
 by (auto_tac (claset(),simpset() addsimps [real_of_nat_def,
@@ -133,7 +133,7 @@ val lemma_nth_realpow_isLub_le = result();
 Goal "[| (0::real) < a; 0 < n; \
 \    isLub (UNIV::real set) \
 \    {x. x ^ n <= a & 0 < x} u |] ==> u ^ n <= a";
-by (forward_tac [lemma_nth_realpow_isLub_le] 1 THEN Step_tac 1);
+by (ftac lemma_nth_realpow_isLub_le 1 THEN Step_tac 1);
 by (rtac (LIMSEQ_inverse_real_of_posnat_add_minus_mult RS LIMSEQ_pow 
     RS LIMSEQ_le_const2) 1);
 by (auto_tac (claset(),simpset() addsimps [real_of_nat_def,real_of_posnat_Suc]));
@@ -141,14 +141,14 @@ qed "realpow_nth_le";
 
 (*----------- The theorem at last! -----------*)
 Goal "[| (0::real) < a; 0 < n |] ==> EX r. r ^ n = a";
-by (forward_tac [nth_realpow_isLub_ex] 1 THEN Auto_tac);
+by (ftac nth_realpow_isLub_ex 1 THEN Auto_tac);
 by (auto_tac (claset() addIs [realpow_nth_le,
     realpow_nth_ge,real_le_anti_sym],simpset()));
 qed "realpow_nth";
 
 (* positive only *)
 Goal "[| (0::real) < a; 0 < n |] ==> EX r. 0 < r & r ^ n = a";
-by (forward_tac [nth_realpow_isLub_ex] 1 THEN Auto_tac);
+by (ftac nth_realpow_isLub_ex 1 THEN Auto_tac);
 by (auto_tac (claset() addIs [realpow_nth_le,
     realpow_nth_ge,real_le_anti_sym,
     lemma_nth_realpow_isLub_gt_zero],simpset()));

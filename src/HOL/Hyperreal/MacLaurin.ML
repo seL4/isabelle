@@ -63,8 +63,8 @@ by (simp_tac (HOL_ss addsimps [real_mult_assoc,real_divide_def]) 2);
 by (asm_simp_tac (HOL_ss addsimps 
     [CLAIM "(a::real) * (b * (c * d)) = (d * a) * (b * c)"]
      delsimps [realpow_Suc]) 2);
-by (rtac (real_mult_inv_left RS ssubst) 2);
-by (rtac (real_mult_inv_left RS ssubst) 3);
+by (stac real_mult_inv_left 2);
+by (stac real_mult_inv_left 3);
 by (dtac (realpow_gt_zero RS real_not_refl2 RS not_sym) 2);
 by (assume_tac 2);
 by (rtac real_of_nat_fact_not_zero 2);
@@ -124,8 +124,8 @@ by (simp_tac (simpset() addsimps [real_divide_def,real_mult_assoc]
 by (rtac DERIV_cmult 2);
 by (rtac lemma_DERIV_subst 2);
 by DERIV_tac;
-by (rtac (fact_Suc RS ssubst) 2);
-by (rtac (real_of_nat_mult RS ssubst) 2);
+by (stac fact_Suc 2);
+by (stac real_of_nat_mult 2);
 by (simp_tac (simpset() addsimps [real_inverse_distrib] @
     real_mult_ac) 2);
 by (subgoal_tac "ALL ma. ma < n --> \
@@ -267,7 +267,7 @@ by (cut_inst_tac [("f","%x. f (-x)"),
                  ("h","-h"),("n","n")] Maclaurin_objl 1);
 by (Asm_full_simp_tac 1);
 by (etac impE 1 THEN Step_tac 1);
-by (rtac (real_minus_mult_eq2 RS ssubst) 1);
+by (stac real_minus_mult_eq2 1);
 by (rtac DERIV_cmult 1);
 by (rtac lemma_DERIV_subst 1);
 by (rtac (read_instantiate [("g","uminus")] DERIV_chain2) 1);
@@ -463,7 +463,7 @@ by (cut_inst_tac [("f","sin"),("n","n"),("x","x"),
 \                     else -cos(x)")] Maclaurin_all_le_objl 1);
 by (Step_tac 1);
 by (Asm_full_simp_tac 1);
-by (rtac (mod_Suc_eq_Suc_mod RS ssubst) 1);
+by (stac mod_Suc_eq_Suc_mod 1);
 by (cut_inst_tac [("m1","m")] (CLAIM "0 < (4::nat)" RS mod_less_divisor
     RS lemma_exhaust_less_4) 1);
 by (Step_tac 1);
@@ -479,7 +479,7 @@ by (rtac (ARITH_PROVE "[|x = y; abs u <= (v::real) |] ==> abs ((x + u) - y) <= v
 by (rtac sumr_fun_eq 1);
 by (Step_tac 1);
 by (rtac (CLAIM "x = y ==> x * z = y * (z::real)") 1);
-by (rtac (even_even_mod_4_iff RS ssubst) 1);
+by (stac even_even_mod_4_iff 1);
 by (cut_inst_tac [("m1","r")] (CLAIM "0 < (4::nat)" RS mod_less_divisor
     RS lemma_exhaust_less_4) 1);
 by (Step_tac 1);

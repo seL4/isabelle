@@ -54,11 +54,11 @@ Goal "|- VARS a b x y. \
 \ DO IF a<b THEN (b := b-a; x := x+y) ELSE (a := a-b; y := y+x) FI OD \
 \ {a = gcd A B & 2*A*B = a*(x+y)}";
 by (hoare_tac (K all_tac) 1);
-by(Asm_simp_tac 1);
-by(asm_simp_tac (simpset() addsimps
+by (Asm_simp_tac 1);
+by (asm_simp_tac (simpset() addsimps
     (distribs @ [gcd_diff_r,not_less_iff_le, gcd_diff_l])) 1);
-by(arith_tac 1);
-by(asm_full_simp_tac (simpset() addsimps (distribs @ [gcd_nnn])) 1);
+by (arith_tac 1);
+by (asm_full_simp_tac (simpset() addsimps (distribs @ [gcd_nnn])) 1);
 qed "gcd_scm";
 
 (** Power by iterated squaring and multiplication **)

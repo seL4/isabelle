@@ -28,7 +28,7 @@ qed "set_via_multiset";
 Goal "transf(le) ==> sorted1 le xs = sorted le xs";
 by (induct_tac "xs" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsplits [list.split])));
-by (rewrite_goals_tac [transf_def]);
+by (rewtac transf_def);
 by (Blast_tac 1);
 qed "sorted1_is_sorted";
 

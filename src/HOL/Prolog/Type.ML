@@ -1,5 +1,5 @@
 val prog_Type = prog_Func @ [good_typeof,common_typeof];
-fun pgoal s = (case Goal s of _ => by(prolog_tac prog_Type));
+fun pgoal s = (case Goal s of _ => by (prolog_tac prog_Type));
 val p = ptac prog_Type 1;
 
 pgoal "typeof (abs(%n. abs(%m. abs(%p. p and (n eq m))))) ?T";

@@ -98,7 +98,7 @@ qed "nat_le_eq_zle";
 
 Goalw [zabs_def]
  "P(abs(i::int)) = ((0 <= i --> P i) & (i < 0 --> P(-i)))";
-by(Simp_tac 1);
+by (Simp_tac 1);
 qed "zabs_split";
 
 Goal "0 <= abs (z::int)";
