@@ -71,13 +71,13 @@ fun warn_ml name =
 fun ml_store_thm (name, thm) =
   let val thm' = store_thm (name, thm) in
     if warn_ml name then ()
-    else (qed_thms := [thm]; use_text true ("val " ^ name ^ " = hd (! ThmDatabase.qed_thms);"))
+    else (qed_thms := [thm']; use_text true ("val " ^ name ^ " = hd (! ThmDatabase.qed_thms);"))
   end;
 
 fun ml_store_thms (name, thms) =
   let val thms' = store_thms (name, thms) in
     if warn_ml name then ()
-    else (qed_thms := thms; use_text true ("val " ^ name ^ " = ! ThmDatabase.qed_thms;"))
+    else (qed_thms := thms'; use_text true ("val " ^ name ^ " = ! ThmDatabase.qed_thms;"))
   end;
 
 fun bind_thm (name, thm) = ml_store_thm (name, standard thm);
