@@ -7,7 +7,7 @@
 header {* Finite sets *}
 
 theory Finite_Set
-imports Divides Power Inductive
+imports Divides Power Inductive Lattice_Locales
 begin
 
 subsection {* Definition and basic properties *}
@@ -1996,83 +1996,23 @@ shows "fold1 f A \<sqsubseteq> x = (\<exists>a\<in>A. a \<sqsubseteq> x)"
 using A
 by(induct rule:finite_ne_induct)(simp_all add:above_f_conv)
 
+
 subsubsection{* Lattices *}
 
-locale Lattice =
-  fixes below :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "\<sqsubseteq>" 50)
-  and inf :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<sqinter>" 70)
-  and sup :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<squnion>" 65)
-  and Inf :: "'a set \<Rightarrow> 'a" ("\<Sqinter>_" [900] 900)
+locale Lattice = lattice +
+  fixes Inf :: "'a set \<Rightarrow> 'a" ("\<Sqinter>_" [900] 900)
   and Sup :: "'a set \<Rightarrow> 'a" ("\<Squnion>_" [900] 900)
-  assumes refl: "x \<sqsubseteq> x"
-  and trans: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> z"
-  and antisym: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> x \<Longrightarrow> x = y"
-  and inf_le1: "x \<sqinter> y \<sqsubseteq> x" and inf_le2: "x \<sqinter> y \<sqsubseteq> y"
-  and inf_least: "x \<sqsubseteq> y \<Longrightarrow> x \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> y \<sqinter> z"
-  and sup_ge1: "x \<sqsubseteq> x \<squnion> y" and sup_ge2: "y \<sqsubseteq> x \<squnion> y"
-  and sup_greatest: "y \<sqsubseteq> x \<Longrightarrow> z \<sqsubseteq> x \<Longrightarrow> y \<squnion> z \<sqsubseteq> x"
-  and inf_sup_absorb: "x \<sqinter> (x \<squnion> y) = x"
-  and sup_inf_absorb: "x \<squnion> (x \<sqinter> y) = x"
   defines "Inf == fold1 inf"  and "Sup == fold1 sup"
 
-
-lemma (in Lattice) inf_comm: "(x \<sqinter> y) = (y \<sqinter> x)"
-by(blast intro: antisym inf_le1 inf_le2 inf_least)
-
-lemma (in Lattice) sup_comm: "(x \<squnion> y) = (y \<squnion> x)"
-by(blast intro: antisym sup_ge1 sup_ge2 sup_greatest)
-
-lemma (in Lattice) inf_assoc: "(x \<sqinter> y) \<sqinter> z = x \<sqinter> (y \<sqinter> z)"
-by(blast intro: antisym inf_le1 inf_le2 inf_least trans)
-
-lemma (in Lattice) sup_assoc: "(x \<squnion> y) \<squnion> z = x \<squnion> (y \<squnion> z)"
-by(blast intro!: antisym sup_ge1 sup_ge2 intro: sup_greatest trans)
-
-lemma (in Lattice) inf_idem[simp]: "x \<sqinter> x = x"
-by(blast intro: antisym inf_le1 inf_le2 inf_least refl)
-
-lemma (in Lattice) sup_idem[simp]: "x \<squnion> x = x"
-by(blast intro: antisym sup_ge1 sup_ge2 sup_greatest refl)
-
-lemma (in Lattice) sup_absorb: "x \<sqsubseteq> y \<Longrightarrow> x \<squnion> y = y"
-by(blast intro: antisym sup_ge2 sup_greatest refl)
-
-lemma (in Lattice) inf_absorb: "x \<sqsubseteq> y \<Longrightarrow> x \<sqinter> y = x"
-by(blast intro: antisym inf_le1 inf_least refl)
-
-text{* Towards distributivity: if you have one of them, you have them all. *}
-
-lemma (in Lattice) distrib_imp1:
-assumes D: "!!x y z. x \<sqinter> (y \<squnion> z) = (x \<sqinter> y) \<squnion> (x \<sqinter> z)"
-shows "x \<squnion> (y \<sqinter> z) = (x \<squnion> y) \<sqinter> (x \<squnion> z)"
-proof-
-  have "x \<squnion> (y \<sqinter> z) = (x \<squnion> (x \<sqinter> z)) \<squnion> (y \<sqinter> z)" by(simp add:sup_inf_absorb)
-  also have "\<dots> = x \<squnion> (z \<sqinter> (x \<squnion> y))" by(simp add:D inf_comm sup_assoc)
-  also have "\<dots> = ((x \<squnion> y) \<sqinter> x) \<squnion> ((x \<squnion> y) \<sqinter> z)"
-    by(simp add:inf_sup_absorb inf_comm)
-  also have "\<dots> = (x \<squnion> y) \<sqinter> (x \<squnion> z)" by(simp add:D)
-  finally show ?thesis .
-qed
-
-lemma (in Lattice) distrib_imp2:
-assumes D: "!!x y z. x \<squnion> (y \<sqinter> z) = (x \<squnion> y) \<sqinter> (x \<squnion> z)"
-shows "x \<sqinter> (y \<squnion> z) = (x \<sqinter> y) \<squnion> (x \<sqinter> z)"
-proof-
-  have "x \<sqinter> (y \<squnion> z) = (x \<sqinter> (x \<squnion> z)) \<sqinter> (y \<squnion> z)" by(simp add:inf_sup_absorb)
-  also have "\<dots> = x \<sqinter> (z \<squnion> (x \<sqinter> y))" by(simp add:D sup_comm inf_assoc)
-  also have "\<dots> = ((x \<sqinter> y) \<squnion> x) \<sqinter> ((x \<sqinter> y) \<squnion> z)"
-    by(simp add:sup_inf_absorb sup_comm)
-  also have "\<dots> = (x \<sqinter> y) \<squnion> (x \<sqinter> z)" by(simp add:D)
-  finally show ?thesis .
-qed
+locale Distrib_Lattice = distrib_lattice + Lattice
 
 text{* Lattices are semilattices *}
 
 lemma (in Lattice) ACf_inf: "ACf inf"
-by(blast intro: ACf.intro inf_comm inf_assoc)
+by(blast intro: ACf.intro inf_commute inf_assoc)
 
 lemma (in Lattice) ACf_sup: "ACf sup"
-by(blast intro: ACf.intro sup_comm sup_assoc)
+by(blast intro: ACf.intro sup_commute sup_assoc)
 
 lemma (in Lattice) ACIf_inf: "ACIf inf"
 apply(rule ACIf.intro)
@@ -2110,27 +2050,6 @@ apply(erule subst)
 apply(rule sup_ge2)
 done
 
-text{* A package of rewrite rules for deciding equivalence wrt ACI: *}
-
-lemmas (in Lattice) ACI = ACIf.ACI[OF ACIf_inf] ACIf.ACI[OF ACIf_sup]
-
-subsubsection{* Distributive lattices *}
-
-locale DistribLattice = Lattice +
-  assumes sup_inf_distrib1: "x \<squnion> (y \<sqinter> z) = (x \<squnion> y) \<sqinter> (x \<squnion> z)"
-
-lemma (in DistribLattice) sup_inf_distrib2: "(y \<sqinter> z) \<squnion> x = (y \<squnion> x) \<sqinter> (z \<squnion> x)"
-by(simp add:ACI sup_inf_distrib1)
-
-lemma (in DistribLattice) inf_sup_distrib1: "x \<sqinter> (y \<squnion> z) = (x \<sqinter> y) \<squnion> (x \<sqinter> z)"
-by(rule distrib_imp2[OF sup_inf_distrib1])
-
-lemma (in DistribLattice) inf_sup_distrib2: "(y \<squnion> z) \<sqinter> x = (y \<sqinter> x) \<squnion> (z \<sqinter> x)"
-by(simp add:ACI inf_sup_distrib1)
-
-lemmas (in DistribLattice) distrib =
-  sup_inf_distrib1 sup_inf_distrib2 inf_sup_distrib1 inf_sup_distrib2
-
 
 subsubsection{* Fold laws in lattices *}
 
@@ -2146,7 +2065,7 @@ done
 
 lemma (in Lattice) sup_Inf_absorb:
   "\<lbrakk> finite A; A \<noteq> {}; a \<in> A \<rbrakk> \<Longrightarrow> (a \<squnion> \<Sqinter>A) = a"
-apply(subst sup_comm)
+apply(subst sup_commute)
 apply(simp add:Inf_def sup_absorb ACIfSL.fold1_belowI[OF ACIfSL_inf])
 done
 
@@ -2155,7 +2074,7 @@ lemma (in Lattice) inf_Sup_absorb:
 by(simp add:Sup_def inf_absorb ACIfSL.fold1_belowI[OF ACIfSL_sup])
 
 
-lemma (in DistribLattice) sup_Inf1_distrib:
+lemma (in Distrib_Lattice) sup_Inf1_distrib:
 assumes A: "finite A" "A \<noteq> {}"
 shows "(x \<squnion> \<Sqinter>A) = \<Sqinter>{x \<squnion> a|a. a \<in> A}"
 using A
@@ -2176,7 +2095,7 @@ next
   finally show ?case .
 qed
 
-lemma (in DistribLattice) sup_Inf2_distrib:
+lemma (in Distrib_Lattice) sup_Inf2_distrib:
 assumes A: "finite A" "A \<noteq> {}" and B: "finite B" "B \<noteq> {}"
 shows "(\<Sqinter>A \<squnion> \<Sqinter>B) = \<Sqinter>{a \<squnion> b|a b. a \<in> A \<and> b \<in> B}"
 using A
@@ -2281,29 +2200,46 @@ apply(rule ACIfSLlin_axioms.intro)
 apply(auto simp:max_def)
 done
 
-lemma Lattice_min_max: "Lattice (op \<le>) (min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a) max"
-apply(rule Lattice.intro)
-apply simp
-apply(erule (1) order_trans)
-apply(erule (1) order_antisym)
-apply(simp add:min_def max_def linorder_not_le order_less_imp_le)
-apply(simp add:min_def max_def linorder_not_le order_less_imp_le)
-apply(simp add:min_def max_def linorder_not_le order_less_imp_le)
-apply(simp add:min_def max_def linorder_not_le order_less_imp_le)
-apply(simp add:min_def max_def linorder_not_le order_less_imp_le)
-apply(simp add:min_def max_def linorder_not_le order_less_imp_le)
-apply(rule_tac x=x and y=y in linorder_le_cases)
-apply(simp add:min_def max_def)
-apply(simp add:min_def max_def)
-apply(rule_tac x=y and y=z in linorder_le_cases)
-apply(simp add:min_def max_def)
-apply(simp add:min_def max_def)
+lemma partial_order_order:
+ "partial_order (op \<le> :: 'a::order \<Rightarrow> 'a \<Rightarrow> bool)"
+apply(rule partial_order.intro)
+apply(simp_all)
 done
 
-lemma DistribLattice_min_max: "DistribLattice (op \<le>) (min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a) max"
-apply(rule DistribLattice.intro)
-apply(rule Lattice_min_max)
-apply(rule DistribLattice_axioms.intro)
+lemma lower_semilattice_lin_min:
+  "lower_semilattice(op \<le>) (min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a)"
+apply(rule lower_semilattice.intro)
+apply(rule partial_order_order)
+apply(rule lower_semilattice_axioms.intro)
+apply(simp add:min_def linorder_not_le order_less_imp_le)
+apply(simp add:min_def linorder_not_le order_less_imp_le)
+apply(simp add:min_def linorder_not_le order_less_imp_le)
+done
+
+lemma upper_semilattice_lin_min:
+  "upper_semilattice(op \<le>) (max :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a)"
+apply(rule upper_semilattice.intro)
+apply(rule partial_order_order)
+apply(rule upper_semilattice_axioms.intro)
+apply(simp add: max_def linorder_not_le order_less_imp_le)
+apply(simp add: max_def linorder_not_le order_less_imp_le)
+apply(simp add: max_def linorder_not_le order_less_imp_le)
+done
+
+lemma Lattice_min_max: "Lattice (op \<le>) (min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a) max"
+apply(rule Lattice.intro)
+apply(rule partial_order_order)
+apply(rule lower_semilattice.axioms[OF lower_semilattice_lin_min])
+apply(rule upper_semilattice.axioms[OF upper_semilattice_lin_min])
+done
+
+lemma Distrib_Lattice_min_max:
+ "Distrib_Lattice (op \<le>) (min :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a) max"
+apply(rule Distrib_Lattice.intro)
+apply(rule partial_order_order)
+apply(rule lower_semilattice.axioms[OF lower_semilattice_lin_min])
+apply(rule upper_semilattice.axioms[OF upper_semilattice_lin_min])
+apply(rule distrib_lattice_axioms.intro)
 apply(rule_tac x=x and y=y in linorder_le_cases)
 apply(rule_tac x=x and y=z in linorder_le_cases)
 apply(rule_tac x=y and y=z in linorder_le_cases)
@@ -2371,6 +2307,6 @@ by(simp add: Min_def Max_def Lattice.Inf_le_Sup[OF Lattice_min_max])
 lemma max_Min2_distrib:
   "\<lbrakk> finite A; A \<noteq> {}; finite B; B \<noteq> {} \<rbrakk> \<Longrightarrow>
   max (Min A) (Min B) = Min{ max a b |a b. a \<in> A \<and> b \<in> B}"
-by(simp add: Min_def DistribLattice.sup_Inf2_distrib[OF DistribLattice_min_max])
+by(simp add: Min_def Distrib_Lattice.sup_Inf2_distrib[OF Distrib_Lattice_min_max])
 
 end
