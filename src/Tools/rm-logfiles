@@ -3,4 +3,4 @@
 #Remove useless files from subdirectories
 rm log */make*.log */make*.log.gz
 rm */test
-find . -name '.*.thy.ML' -print -exec rm {} \;
+rm */.*.thy.ML */.*.thy.ML */*/.*.thy.ML
