@@ -118,8 +118,8 @@ infix 4 addcongs delcongs;
 fun ss addcongs congs = ss addeqcongs (map standard (congs RL [eq_reflection]));
 fun ss delcongs congs = ss deleqcongs (map standard (congs RL [eq_reflection]));
 
-fun Addcongs congs = (simpset := !simpset addcongs congs);
-fun Delcongs congs = (simpset := !simpset delcongs congs);
+fun Addcongs congs = (simpset_ref() := simpset() addcongs congs);
+fun Delcongs congs = (simpset_ref() := simpset() delcongs congs);
 
 fun mksimps pairs = map mk_meta_eq_simp o atomize pairs o gen_all;
 
@@ -448,25 +448,8 @@ fun expand_case_tac P i =
 
 (*** Install simpsets and datatypes in theory structure ***)
 
-simpset := HOL_ss;
+simpset_ref() := HOL_ss;
 
-exception SS_DATA of simpset;
-
-let fun merge [] = SS_DATA empty_ss
-      | merge ss = let val ss = map (fn SS_DATA x => x) ss;
-                   in SS_DATA (foldl merge_ss (hd ss, tl ss)) end;
-
-    fun put (SS_DATA ss) = simpset := ss;
-
-    fun get () = SS_DATA (!simpset);
-in add_thydata "HOL"
-     ("simpset", ThyMethods {merge = merge, put = put, get = get})
-end;
-
-fun simpset_of tname =
-  case get_thydata tname "simpset" of
-      None => empty_ss
-    | Some (SS_DATA ss) => ss;
 
 type dtype_info = {case_const:term,
                    case_rewrites:thm list,
@@ -525,7 +508,7 @@ infix 4 addSss addss;
 fun cs addSss ss = cs addSaltern (CHANGED o (safe_asm_more_full_simp_tac ss));
 fun cs addss  ss = cs addbefore                        asm_full_simp_tac ss;
 
-fun Addss ss = (claset := !claset addss ss);
+fun Addss ss = (claset_ref() := claset() addss ss);
 
 (*Designed to be idempotent, except if best_tac instantiates variables
   in some of the subgoals*)
@@ -558,6 +541,6 @@ fun auto_tac (cs,ss) =
 	       prune_params_tac] 
     end;
 
-fun Auto_tac () = auto_tac (!claset, !simpset);
+fun Auto_tac () = auto_tac (claset(), simpset());
 
 fun auto () = by (Auto_tac ());
