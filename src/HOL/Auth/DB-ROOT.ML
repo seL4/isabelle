@@ -20,5 +20,5 @@ fun qed_spec_mp name =
   let val thm = normalize_thm [RSspec,RSmp] (result())
   in bind_thm(name, thm) end;
 
-use_thy "Shared";
+use_thy "Message";
 
