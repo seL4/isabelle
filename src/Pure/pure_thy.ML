@@ -7,11 +7,12 @@ Theorem database, derived theory operations, and the ProtoPure theory.
 
 signature BASIC_PURE_THY =
 sig
+  type thmref
   val print_theorems: theory -> unit
   val print_theory: theory -> unit
-  val get_thm: theory -> xstring -> thm
-  val get_thms: theory -> xstring -> thm list
-  val get_thmss: theory -> xstring list -> thm list
+  val get_thm: theory -> thmref -> thm
+  val get_thms: theory -> thmref -> thm list
+  val get_thmss: theory -> thmref list -> thm list
   val thms_of: theory -> (string * thm) list
   structure ProtoPure:
     sig
@@ -23,9 +24,10 @@ end;
 signature PURE_THY =
 sig
   include BASIC_PURE_THY
-  val get_thm_closure: theory -> xstring -> thm
-  val get_thms_closure: theory -> xstring -> thm list
+  val get_thm_closure: theory -> thmref -> thm
+  val get_thms_closure: theory -> thmref -> thm list
   val single_thm: string -> thm list -> thm
+  val select_thm: thmref -> thm list -> thm list
   val cond_extern_thm_sg: Sign.sg -> string -> xstring
   val thms_containing: theory -> string list * string list -> (string * thm list) list
   val thms_containing_consts: theory -> string list -> (string * thm) list
@@ -44,7 +46,7 @@ sig
   val add_thmss: ((bstring * thm list) * theory attribute list) list -> theory
     -> theory * thm list list
   val note_thmss: theory attribute -> ((bstring * theory attribute list) *
-    (xstring * theory attribute list) list) list -> theory -> theory * (bstring * thm list) list
+    (thmref * theory attribute list) list) list -> theory -> theory * (bstring * thm list) list
   val note_thmss_i: theory attribute -> ((bstring * theory attribute list) *
     (thm list * theory attribute list) list) list -> theory -> theory * (bstring * thm list) list
   val add_axioms: ((bstring * string) * theory attribute list) list -> theory -> theory * thm list
@@ -129,6 +131,8 @@ fun print_theory thy =
 
 (** retrieve theorems **)
 
+type thmref = xstring * int list option;
+
 (* selections *)
 
 fun the_thms _ (Some thms) = thms
@@ -136,6 +140,11 @@ fun the_thms _ (Some thms) = thms
 
 fun single_thm _ [thm] = thm
   | single_thm name _ = error ("Single theorem expected " ^ quote name);
+
+fun select_thm (s, None) xs = xs
+  | select_thm (s, Some is) xs = map
+      (fn i => nth_elem (i, xs) handle LIST _ =>
+         error ("Bad subscript " ^ string_of_int i ^ " for " ^ quote s)) is;
 
 
 (* get_thm(s)_closure -- statically scoped versions *)
@@ -154,21 +163,23 @@ fun lookup_thms thy =
 
 fun get_thms_closure thy =
   let val closures = map lookup_thms (thy :: Theory.ancestors_of thy)
-  in fn name => the_thms name (get_first (fn f => f name) closures) end;
+  in fn namei as (name, _) => select_thm namei
+    (the_thms name (get_first (fn f => f name) closures))
+  end;
 
 fun get_thm_closure thy =
   let val get = get_thms_closure thy
-  in fn name => single_thm name (get name) end;
+  in fn namei as (name, _) => single_thm name (get namei) end;
 
 
 (* get_thm etc. *)
 
-fun get_thms theory name =
+fun get_thms theory (namei as (name, _)) =
   get_first (fn thy => lookup_thms thy name) (theory :: Theory.ancestors_of theory)
-  |> the_thms name |> map (Thm.transfer theory);
+  |> the_thms name |> select_thm namei |> map (Thm.transfer theory);
 
 fun get_thmss thy names = flat (map (get_thms thy) names);
-fun get_thm thy name = single_thm name (get_thms thy name);
+fun get_thm thy (namei as (name, _)) = single_thm name (get_thms thy namei);
 
 
 (* thms_of *)
@@ -184,7 +195,7 @@ fun thms_of thy =
 fun thms_containing thy idx =
   let
     fun valid (name, ths) =
-      (case try (transform_error (get_thms thy)) name of
+      (case try (transform_error (get_thms thy)) (name, None) of
         None => false
       | Some ths' => Library.equal_lists Thm.eq_thm (ths, ths'));
   in

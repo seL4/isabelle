@@ -71,7 +71,7 @@ sig
     ((bstring * theory attribute list) * (thm list * theory attribute list) list) list ->
     theory -> theory * (bstring * thm list) list
   val note_thmss: string -> xstring ->
-    ((bstring * context attribute list) * (xstring * context attribute list) list) list ->
+    ((bstring * context attribute list) * (thmref * context attribute list) list) list ->
     theory -> theory * (bstring * thm list) list
   val note_thmss_i: string -> string ->
     ((bstring * context attribute list) * (thm list * context attribute list) list) list ->
@@ -106,7 +106,7 @@ val empty = Merge [];
 datatype 'a elem_expr =
   Elem of 'a | Expr of expr;
 
-type 'att element = (string, string, string, 'att) elem;
+type 'att element = (string, string, thmref, 'att) elem;
 type 'att element_i = (typ, term, thm list, 'att) elem;
 
 type locale =

@@ -90,10 +90,10 @@ sig
     -> context * (term list list * (context -> context))
   val bind_propp_schematic_i: context * (term * (term list * term list)) list list
     -> context * (term list list * (context -> context))
-  val get_thm: context -> string -> thm
-  val get_thm_closure: context -> string -> thm
-  val get_thms: context -> string -> thm list
-  val get_thms_closure: context -> string -> thm list
+  val get_thm: context -> thmref -> thm
+  val get_thm_closure: context -> thmref -> thm
+  val get_thms: context -> thmref -> thm list
+  val get_thms_closure: context -> thmref -> thm list
   val cond_extern: context -> string -> xstring
   val qualified: bool -> context -> context
   val restore_qualified: context -> context -> context
@@ -103,7 +103,7 @@ sig
   val put_thmss: (string * thm list) list -> context -> context
   val reset_thms: string -> context -> context
   val note_thmss:
-    ((bstring * context attribute list) * (xstring * context attribute list) list) list ->
+    ((bstring * context attribute list) * (thmref * context attribute list) list) list ->
       context -> context * (bstring * thm list) list
   val note_thmss_i:
     ((bstring * context attribute list) * (thm list * context attribute list) list) list ->
@@ -988,10 +988,11 @@ fun retrieve_thms f g (ctxt as Context {thy, thms = (_, space, tab, _), ...}) =
     val sg_ref = Sign.self_ref (Theory.sign_of thy);
     val get_from_thy = f thy;
   in
-    fn xname =>
+    fn xnamei as (xname, _) =>
       (case Symtab.lookup (tab, NameSpace.intern space xname) of
-        Some (Some ths) => map (Thm.transfer_sg (Sign.deref sg_ref)) ths
-      | _ => get_from_thy xname) |> g xname
+        Some (Some ths) => map (Thm.transfer_sg (Sign.deref sg_ref))
+          (PureThy.select_thm xnamei ths)
+      | _ => get_from_thy xnamei) |> g xname
   end;
 
 val get_thm = retrieve_thms PureThy.get_thms PureThy.single_thm;
@@ -1449,7 +1450,7 @@ fun pretty_context (ctxt as Context {cases, defs = (types, sorts, used, _), ...}
 fun lthms_containing (ctxt as Context {thms = (_, _, _, index), ...}) idx =
   let
     fun valid (name, ths) =
-      (case try (transform_error (fn () => get_thms ctxt name)) () of
+      (case try (transform_error (fn () => get_thms ctxt (name, None))) () of
         None => false
       | Some ths' => Library.equal_lists Thm.eq_thm (ths, ths'));
   in gen_distinct eq_fst (filter valid (FactIndex.find idx index)) end;

@@ -57,14 +57,14 @@ sig
   val print_antiquotations: Toplevel.transition -> Toplevel.transition
   val print_thms_containing: int option * string list
     -> Toplevel.transition -> Toplevel.transition
-  val thm_deps: (string * Args.src list) list -> Toplevel.transition -> Toplevel.transition
+  val thm_deps: (thmref * Args.src list) list -> Toplevel.transition -> Toplevel.transition
   val print_binds: Toplevel.transition -> Toplevel.transition
   val print_lthms: Toplevel.transition -> Toplevel.transition
   val print_cases: Toplevel.transition -> Toplevel.transition
   val print_intros: Toplevel.transition -> Toplevel.transition
-  val print_thms: string list * (string * Args.src list) list
+  val print_thms: string list * (thmref * Args.src list) list
     -> Toplevel.transition -> Toplevel.transition
-  val print_prfs: bool -> string list * (string * Args.src list) list option
+  val print_prfs: bool -> string list * (thmref * Args.src list) list option
     -> Toplevel.transition -> Toplevel.transition
   val print_prop: (string list * string) -> Toplevel.transition -> Toplevel.transition
   val print_term: (string list * string) -> Toplevel.transition -> Toplevel.transition

@@ -58,14 +58,14 @@ sig
   val let_bind_i: (term list * term) list -> state -> state
   val simple_note_thms: string -> thm list -> state -> state
   val note_thmss: ((bstring * context attribute list) *
-    (xstring * context attribute list) list) list -> state -> state
+    (thmref * context attribute list) list) list -> state -> state
   val note_thmss_i: ((bstring * context attribute list) *
     (thm list * context attribute list) list) list -> state -> state
   val with_thmss: ((bstring * context attribute list) *
-    (xstring * context attribute list) list) list -> state -> state
+    (thmref * context attribute list) list) list -> state -> state
   val with_thmss_i: ((bstring * context attribute list) *
     (thm list * context attribute list) list) list -> state -> state
-  val using_thmss: ((xstring * context attribute list) list) list -> state -> state
+  val using_thmss: ((thmref * context attribute list) list) list -> state -> state
   val using_thmss_i: ((thm list * context attribute list) list) list -> state -> state
   val instantiate_locale: string * (string * context attribute list) -> state
     -> state

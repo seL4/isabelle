@@ -133,8 +133,12 @@ fun tag x = Scan.lift (Args.name -- Scan.repeat Args.name) x;
 
 (* theorems *)
 
+val thm_sel = Args.parens (Scan.pass () (Args.enum1 "," (Scan.lift
+  (   Args.nat --| Args.$$$ "-" -- Args.nat >> op upto
+   || Args.nat >> single)) >> flat));
+
 fun gen_thm get attrib app =
-  Scan.depend (fn st => Args.name -- Args.opt_attribs >>
+  Scan.depend (fn st => Args.name -- Scan.option thm_sel -- Args.opt_attribs >>
     (fn (name, srcs) => app ((st, get st name), map (attrib st) srcs)));
 
 val global_thm = gen_thm PureThy.get_thm global_attribute Thm.apply_attributes;

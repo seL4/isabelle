@@ -13,35 +13,35 @@ sig
   val add_axioms_i: ((bstring * term) * theory attribute list) list -> theory -> theory
   val add_defs: bool * ((bstring * string) * Args.src list) list -> theory -> theory
   val add_defs_i: bool * ((bstring * term) * theory attribute list) list -> theory -> theory
-  val theorems: string -> ((bstring * Args.src list) * (xstring * Args.src list) list) list
+  val theorems: string -> ((bstring * Args.src list) * (thmref * Args.src list) list) list
     -> theory -> theory * (string * thm list) list
   val theorems_i: string ->
     ((bstring * theory attribute list) * (thm list * theory attribute list) list) list
     -> theory -> theory * (string * thm list) list
   val locale_theorems: string -> xstring ->
-    ((bstring * Args.src list) * (xstring * Args.src list) list) list
+    ((bstring * Args.src list) * (thmref * Args.src list) list) list
     -> theory -> theory * (bstring * thm list) list
   val locale_theorems_i: string -> string ->
     ((bstring * Proof.context attribute list)
       * (thm list * Proof.context attribute list) list) list
     -> theory -> theory * (string * thm list) list
   val smart_theorems: string -> xstring option ->
-    ((bstring * Args.src list) * (xstring * Args.src list) list) list
+    ((bstring * Args.src list) * (thmref * Args.src list) list) list
     -> theory -> theory * (string * thm list) list
-  val declare_theorems: xstring option -> (xstring * Args.src list) list -> theory -> theory
-  val apply_theorems: (xstring * Args.src list) list -> theory -> theory * thm list
+  val declare_theorems: xstring option -> (thmref * Args.src list) list -> theory -> theory
+  val apply_theorems: (thmref * Args.src list) list -> theory -> theory * thm list
   val apply_theorems_i: (thm list * theory attribute list) list -> theory -> theory * thm list
-  val have_facts: ((string * Args.src list) * (string * Args.src list) list) list
+  val have_facts: ((string * Args.src list) * (thmref * Args.src list) list) list
     -> ProofHistory.T -> ProofHistory.T
   val have_facts_i: ((string * Proof.context attribute list) *
     (thm * Proof.context attribute list) list) list -> ProofHistory.T -> ProofHistory.T
-  val from_facts: (string * Args.src list) list list -> ProofHistory.T -> ProofHistory.T
+  val from_facts: (thmref * Args.src list) list list -> ProofHistory.T -> ProofHistory.T
   val from_facts_i: (thm * Proof.context attribute list) list list
     -> ProofHistory.T -> ProofHistory.T
-  val with_facts: (string * Args.src list) list list -> ProofHistory.T -> ProofHistory.T
+  val with_facts: (thmref * Args.src list) list list -> ProofHistory.T -> ProofHistory.T
   val with_facts_i: (thm * Proof.context attribute list) list list
     -> ProofHistory.T -> ProofHistory.T
-  val using_facts: (string * Args.src list) list list -> ProofHistory.T -> ProofHistory.T
+  val using_facts: (thmref * Args.src list) list list -> ProofHistory.T -> ProofHistory.T
   val using_facts_i: (thm * Proof.context attribute list) list list
     -> ProofHistory.T -> ProofHistory.T
   val chain: ProofHistory.T -> ProofHistory.T
@@ -130,10 +130,10 @@ sig
   val done_proof: Toplevel.transition -> Toplevel.transition
   val skip_proof: Toplevel.transition -> Toplevel.transition
   val forget_proof: Toplevel.transition -> Toplevel.transition
-  val get_thmss: (string * Args.src list) list -> Proof.state -> thm list
-  val also: (string * Args.src list) list option -> Toplevel.transition -> Toplevel.transition
+  val get_thmss: (thmref * Args.src list) list -> Proof.state -> thm list
+  val also: (thmref * Args.src list) list option -> Toplevel.transition -> Toplevel.transition
   val also_i: thm list option -> Toplevel.transition -> Toplevel.transition
-  val finally: (string * Args.src list) list option -> Toplevel.transition -> Toplevel.transition
+  val finally: (thmref * Args.src list) list option -> Toplevel.transition -> Toplevel.transition
   val finally_i: thm list option -> Toplevel.transition -> Toplevel.transition
   val moreover: Toplevel.transition -> Toplevel.transition
   val ultimately: Toplevel.transition -> Toplevel.transition

@@ -67,8 +67,8 @@ sig
   val opt_thm_name: string -> token list -> (bstring * Args.src list) * token list
   val spec_name: token list -> ((bstring * string) * Args.src list) * token list
   val spec_opt_name: token list -> ((bstring * string) * Args.src list) * token list
-  val xthm: token list -> (xstring * Args.src list) * token list
-  val xthms1: token list -> (xstring * Args.src list) list * token list
+  val xthm: token list -> (thmref * Args.src list) * token list
+  val xthms1: token list -> (thmref * Args.src list) list * token list
   val locale_target: token list -> xstring option * token list
   val locale_expr: token list -> Locale.expr * token list
   val locale_keyword: token list -> string * token list
@@ -149,6 +149,7 @@ fun $$$ x =
 val semicolon = $$$ ";";
 
 val underscore = sym_ident :-- (fn "_" => Scan.succeed () | _ => Scan.fail) >> #1;
+val minus = sym_ident :-- (fn "-" => Scan.succeed () | _ => Scan.fail) >> #1;
 
 val nat = number >> (#1 o Library.read_int o Symbol.explode);
 
@@ -295,7 +296,11 @@ fun opt_thm_name s =
 val spec_name = thm_name ":" -- prop >> (fn ((x, y), z) => ((x, z), y));
 val spec_opt_name = opt_thm_name ":" -- prop >> (fn ((x, y), z) => ((x, z), y));
 
-val xthm = xname -- opt_attribs;
+val thm_sel = $$$ "(" |-- list1
+  (   nat --| minus -- nat >> op upto
+   || nat >> single) --| $$$ ")" >> flat;
+
+val xthm = xname -- Scan.option thm_sel -- opt_attribs;
 val xthms1 = Scan.repeat1 xthm;
 
 
