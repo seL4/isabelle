@@ -13,7 +13,6 @@ sig
   val touch_all_thys: Toplevel.transition -> Toplevel.transition
   val touch_thy: string -> Toplevel.transition -> Toplevel.transition
   val remove_thy: string -> Toplevel.transition -> Toplevel.transition
-  val kill_theory: Toplevel.transition -> Toplevel.transition
   val cannot_undo: string -> Toplevel.transition -> Toplevel.transition
   val clear_undo: Toplevel.transition -> Toplevel.transition
   val redo: Toplevel.transition -> Toplevel.transition
@@ -67,7 +66,6 @@ val init_toplevel = Toplevel.imperative (fn () => raise Toplevel.RESTART);
 val touch_all_thys = Toplevel.imperative ThyInfo.touch_all_thys;
 fun touch_thy name = Toplevel.imperative (fn () => ThyInfo.touch_thy name);
 fun remove_thy name = Toplevel.imperative (fn () => ThyInfo.remove_thy name);
-val kill_theory = Toplevel.imperative (fn () => warning "Nothing to kill.") o Toplevel.kill;
 
 
 (* history commands *)
@@ -87,7 +85,7 @@ val kill_proof = Toplevel.history (fn hist =>
 val undo_theory = Toplevel.history (fn hist =>
   if History.is_initial hist then raise Toplevel.UNDEF else History.undo hist);
 
-val undo = kill_theory o undo_theory o undos_proof 1;
+val undo = Toplevel.kill o undo_theory o undos_proof 1;
 
 
 (* use ML text *)
@@ -148,7 +146,7 @@ val print_lthms = Toplevel.keep (ProofContext.print_thms o Proof.context_of o To
 
 fun print_thms args = Toplevel.keep (fn state =>
   let val st = Toplevel.node_case Proof.init_state Proof.enter_forward state
-  in Display.print_thms (IsarThy.get_thmss args st) end);
+  in Pretty.writeln (Proof.pretty_thms (IsarThy.get_thmss args st)) end);
 
 
 fun read_typ thy = Sign.read_typ (Theory.sign_of thy, K None);
