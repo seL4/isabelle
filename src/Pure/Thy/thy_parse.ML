@@ -389,7 +389,7 @@ fun mk_structure tname ((thy_name, old_thys), opt_txts) =
   else
     (case opt_txts of
       Some (extxt, postxt, mltxt) =>
-        "val base = " ^ old_thys ^ " true;\n\n\
+        "val thy = " ^ old_thys ^ " true;\n\n\
         \structure " ^ thy_name ^ " =\n\
         \struct\n\
         \\n\
@@ -399,7 +399,7 @@ fun mk_structure tname ((thy_name, old_thys), opt_txts) =
         \\n"
         ^ mltxt ^ "\n\
         \\n\
-        \val thy = base\n\n\
+        \val thy = thy\n\n\
         \|> add_trfuns\n"
         ^ trfun_args ^ "\n\
         \\n"
@@ -413,11 +413,11 @@ fun mk_structure tname ((thy_name, old_thys), opt_txts) =
         \end;\n\
         \end;\n"
     | None =>
-        "val base = " ^ old_thys ^ " false;\n\n\
+        "val thy = " ^ old_thys ^ " false;\n\n\
         \structure " ^ thy_name ^ " =\n\
         \struct\n\
         \\n\
-        \val thy = base\n\
+        \val thy = thy\n\
         \\n\
         \end;\n");
 
