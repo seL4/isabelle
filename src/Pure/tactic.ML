@@ -471,9 +471,7 @@ fun lessb (brl1,brl2) = subgoals_of_brl brl1 < subgoals_of_brl brl2;
 (*** Meta-Rewriting Tactics ***)
 
 fun result1 tacf mss thm =
-  case Sequence.pull(tacf mss thm) of
-    None => None
-  | Some(thm,_) => Some(thm);
+  apsome fst (Sequence.pull (tacf mss thm));
 
 (*Rewrite subgoal i only.  SELECT_GOAL avoids inefficiencies in goals_conv.*)
 fun asm_rewrite_goal_tac mode prover_tac mss =
