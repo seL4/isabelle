@@ -122,8 +122,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
 
 HOL-Complex-HahnBanach: HOL-Complex $(LOG)/HOL-Complex-HahnBanach.gz
 
-$(LOG)/HOL-Complex-HahnBanach.gz: $(OUT)/HOL-Complex Real/HahnBanach/Aux.thy \
-  Real/HahnBanach/Bounds.thy Real/HahnBanach/FunctionNorm.thy \
+$(LOG)/HOL-Complex-HahnBanach.gz: $(OUT)/HOL-Complex Real/HahnBanach/Bounds.thy Real/HahnBanach/FunctionNorm.thy \
   Real/HahnBanach/FunctionOrder.thy Real/HahnBanach/HahnBanach.thy \
   Real/HahnBanach/HahnBanachExtLemmas.thy	\
   Real/HahnBanach/HahnBanachSupLemmas.thy	\
