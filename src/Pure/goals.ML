@@ -118,7 +118,7 @@ sig
   val setup: (theory -> theory) list
 end;
 
-structure Goals : GOALS =
+structure Goals: GOALS =
 struct
 
 (*** Old-style locales ***)
@@ -1130,38 +1130,24 @@ fun thms_containing raw_consts =
   let
     val thy = theory_of_goal ();
     val consts = map (Sign.intern_const (Theory.sign_of thy)) raw_consts;
-  in ThmDatabase.thms_containing thy consts end;
-
+  in
+    (case filter (is_none o Sign.const_type (Theory.sign_of thy)) consts of
+      [] => ()
+    | cs => error ("thms_containing: undeclared consts " ^ commas_quote cs));
+    PureThy.thms_containing thy (consts, [])
+    |> map #2 |> flat
+    |> map (fn th => (Thm.name_of_thm th, th))
+  end;
 
 (*top_const: main constant, ignoring Trueprop*)
 fun top_const (_ $ t) = (case head_of t of Const (c, _) => Some c | _ => None)
   | top_const _ = None;
 
 val intro_const = top_const o concl_of;
-
 fun elim_const thm = case prems_of thm of [] => None | p::_ => top_const p;
 
-(* In case faster access is necessary, the thm db should provide special
-functions
-
-index_intros, index_elims: string -> (string * thm) list
-
-where thm [| A1 ; ...; An |] ==> B is returned by
-- index_intros c if B  is of the form c t1 ... tn
-- index_elims c  if A1 is of the form c t1 ... tn
-*)
-
-(* could be provided by thm db *)
-fun index_intros c =
-  let fun topc(_,thm) = intro_const thm = Some(c);
-      val named_thms = ThmDatabase.thms_containing (theory_of_goal ()) [c]
-  in filter topc named_thms end;
-
-(* could be provided by thm db *)
-fun index_elims c =
-  let fun topc(_,thm) = elim_const thm = Some(c);
-      val named_thms = ThmDatabase.thms_containing (theory_of_goal ()) [c]
-  in filter topc named_thms end;
+fun index_intros c = thms_containing [c] |> filter (fn (_, thm) => intro_const thm = Some c);
+fun index_elims c = thms_containing [c] |> filter (fn (_, thm) => elim_const thm = Some c);
 
 (*assume that parameters have unique names; reverse them for substitution*)
 fun goal_params i =
