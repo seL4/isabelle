@@ -81,6 +81,7 @@ signature TACTIC =
   val resolve_from_net_tac	: (int*thm) Net.net -> int -> tactic
   val resolve_tac	: thm list -> int -> tactic
   val res_inst_tac	: (string*string)list -> thm -> int -> tactic   
+  val rewrite_goal_tac  : thm list -> int -> tactic
   val rewrite_goals_rule: thm list -> thm -> thm
   val rewrite_rule	: thm list -> thm -> thm
   val rewrite_goals_tac	: thm list -> tactic
@@ -492,12 +493,14 @@ fun asm_rewrite_goal_tac mode prover_tac mss =
         (PRIMITIVE
 	   (rewrite_goal_rule mode (result1 prover_tac) mss 1));
 
+fun rewrite_goal_tac rews =
+  asm_rewrite_goal_tac (true, false, false) (K no_tac) (MetaSimplifier.mss_of rews);
+
 (*Rewrite throughout proof state. *)
 fun rewrite_tac defs = PRIMITIVE(rewrite_rule defs);
 
 (*Rewrite subgoals only, not main goal. *)
 fun rewrite_goals_tac defs = PRIMITIVE (rewrite_goals_rule defs);
-
 fun rewtac def = rewrite_goals_tac [def];
 
 
