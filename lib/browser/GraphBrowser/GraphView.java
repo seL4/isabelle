@@ -2,7 +2,7 @@
   Title:      GraphBrowser/GraphView.java
   ID:         $Id$
   Author:     Stefan Berghofer, TU Muenchen
-  Copyright   1997  TU Muenchen
+  License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
   This class defines the window in which the graph is displayed. It
   contains methods for handling events such as collapsing / uncollapsing
@@ -50,7 +50,9 @@ public class GraphView extends Canvas implements MouseListener, MouseMotionListe
 	}
 
 	public void PS(String fname,boolean printable) throws IOException {
-		gra.PS(fname,printable);
+	    Graph gra3 = (Graph)gra.clone();
+	    gra3.layout(null);
+	    gra3.PS(fname,printable);
 	}
 
 	public void paint(Graphics g) {
