@@ -658,11 +658,11 @@ similar premises.
 \tdx{the_equality}     [| P(a);  !!x. P(x) ==> x=a |] ==> (THE x. P(x)) = a
 \tdx{theI}             EX! x. P(x) ==> P(THE x. P(x))
 
-\tdx{if_P}             P ==> if(P,a,b) = a
-\tdx{if_not_P}        ~P ==> if(P,a,b) = b
+\tdx{if_P}              P ==> if(P,a,b) = a
+\tdx{if_not_P}         ~P ==> if(P,a,b) = b
 
-\tdx{mem_anti_sym}     [| a:b;  b:a |] ==> P
-\tdx{mem_anti_refl}    a:a ==> P
+\tdx{mem_asym}         [| a:b;  b:a |] ==> P
+\tdx{mem_irrefl}       a:a ==> P
 \end{ttbox}
 \caption{Descriptions; non-circularity} \label{zf-the}
 \end{figure}
@@ -692,7 +692,7 @@ because of the two occurrences of~$\Var{P}$.  However,
 many examples of its use.
 
 Finally, the impossibility of having both $a\in b$ and $b\in a$
-(\tdx{mem_anti_sym}) is proved by applying the Axiom of Foundation to
+(\tdx{mem_asym}) is proved by applying the Axiom of Foundation to
 the set $\{a,b\}$.  The impossibility of $a\in a$ is a trivial consequence.
 
 See the file {\tt ZF/upair.ML} for full proofs of the rules discussed in
@@ -1056,8 +1056,8 @@ mutual recursion~\cite{paulson-set-II}.
 \tdx{QPair_def}       <a;b> == a+b
 \tdx{qsplit_def}      qsplit(c,p)  == THE y. EX a b. p=<a;b> & y=c(a,b)
 \tdx{qfsplit_def}     qfsplit(R,z) == EX x y. z=<x;y> & R(x,y)
-\tdx{qconverse_def}   qconverse(r) == {z. w:r, EX x y. w=<x;y> & z=<y;x>}
-\tdx{QSigma_def}      QSigma(A,B)  ==  UN x:A. UN y:B(x). {<x;y>}
+\tdx{qconverse_def}   qconverse(r) == \{z. w:r, EX x y. w=<x;y> & z=<y;x>\}
+\tdx{QSigma_def}      QSigma(A,B)  == UN x:A. UN y:B(x). \{<x;y>\}
 
 \tdx{qsum_def}        A <+> B      == (\{0\} <*> A) Un (\{1\} <*> B)
 \tdx{QInl_def}        QInl(a)      == <0;a>
@@ -1083,8 +1083,8 @@ definitions, for example of infinite lists~\cite{paulson-final}.
 \tdx{bnd_mono_def}   bnd_mono(D,h) == 
                  h(D)<=D & (ALL W X. W<=X --> X<=D --> h(W) <= h(X))
 
-\tdx{lfp_def}        lfp(D,h) == Inter({X: Pow(D). h(X) <= X})
-\tdx{gfp_def}        gfp(D,h) == Union({X: Pow(D). X <= h(X)})
+\tdx{lfp_def}        lfp(D,h) == Inter(\{X: Pow(D). h(X) <= X\})
+\tdx{gfp_def}        gfp(D,h) == Union(\{X: Pow(D). X <= h(X)\})
 
 
 \tdx{lfp_lowerbound} [| h(A) <= A;  A<=D |] ==> lfp(D,h) <= A
