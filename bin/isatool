@@ -48,7 +48,7 @@ function fail()
 
 ## main
 
-[ $# -lt 1 ] && usage
+[ $# -lt 1 -o "$1" = "-?" ] && usage
 
 TOOL_BASE="$1"
 TOOL="$ISABELLE_HOME/lib/Tools/$1"
