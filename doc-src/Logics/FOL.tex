@@ -614,14 +614,16 @@ by (assume_tac 1);
 {\out EX y. ALL x. P(y) --> P(x)}
 {\out No subgoals!}
 \end{ttbox}
-The civilised way to prove this theorem is through \ttindex{best_tac},
-supplying the classical version of~$(\exists I)$:
+The civilised way to prove this theorem is through \ttindex{deepen_tac},
+which automatically uses the classical version of~$(\exists I)$:
 \begin{ttbox}
 goal FOL.thy "EX y. ALL x. P(y)-->P(x)";
 {\out Level 0}
 {\out EX y. ALL x. P(y) --> P(x)}
 {\out  1. EX y. ALL x. P(y) --> P(x)}
-by (best_tac FOL_dup_cs 1);
+by (deepen_tac FOL_cs 0 1);
+{\out Depth = 0}
+{\out Depth = 2}
 {\out Level 1}
 {\out EX y. ALL x. P(y) --> P(x)}
 {\out No subgoals!}
