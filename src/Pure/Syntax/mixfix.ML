@@ -25,6 +25,7 @@ sig
   val no_syn: 'a * 'b -> 'a * 'b * mixfix
   val type_name: string -> mixfix -> string
   val const_name: string -> mixfix -> string
+  val fix_mixfix: string -> mixfix -> mixfix
   val mixfix_args: mixfix -> int
   val pure_nonterms: string list
   val pure_syntax: (string * string * mixfix) list
@@ -84,6 +85,10 @@ fun const_name c (InfixlName _) = c
   | const_name c (Infixl _) = "op " ^ strip_esc c
   | const_name c (Infixr _) = "op " ^ strip_esc c
   | const_name c _ = c;
+
+fun fix_mixfix c (Infixl p) = (InfixlName (c, p))
+  | fix_mixfix c (Infixr p) = (InfixrName (c, p))
+  | fix_mixfix _ mx = mx;
 
 
 (* mixfix_args *)
