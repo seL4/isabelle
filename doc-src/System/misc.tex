@@ -1,0 +1,111 @@
+
+% $Id$
+
+\chapter{Miscellaneous tools}
+
+
+\section{Inspecting the settings environment -- \texttt{isatool getenv}}
+\label{sec:tool-getenv}
+
+The Isabelle settings environment --- as provided by the site-default
+and user-specific settings files --- can be inspected with the
+\tooldx{getenv} utility:
+\begin{ttbox}
+Usage: isatool getenv [OPTIONS] [VARNAMES ...]
+
+  Options are:
+    -a           display complete environment
+    -b           print values only (doesn't work for -a)
+
+  Get value of VARNAMES from the Isabelle settings.
+\end{ttbox}
+
+With the \texttt{-a} option, one may inspect the full process
+environment that Isabelle related programs are run in. This usually
+contains much more variables than are actually Isabelle settings.
+
+Unless the \texttt{-b} option is given, the output is a list of lines
+of the form $varname\mathtt{=}value$.
+
+
+\subsection*{Examples}
+
+Get the {\ML} system identifier and the location where the compiler
+binaries are supposed to be installed as follows:
+\begin{ttbox}
+isatool getenv ML_SYSTEM ML_HOME
+{\out ML_HOME=/usr/local/sml109.27/bin}
+{\out ML_SYSTEM=smlnj-1.09}
+\end{ttbox}
+
+This one peeks at the search path that \texttt{isabelle} uses to
+locate logic images:
+\begin{ttbox}
+isatool getenv -b ISABELLE_PATH
+{\out /home/mmw/isabelle/heaps/smlnj-1.09:/proj/isabelle/heaps/smlnj-1.09}
+\end{ttbox}
+We used the \texttt{-b} option to suppress the \texttt{ISABELLE_PATH=}
+prefix.  The value above is what became of the following assignment in
+the default settings file:
+\begin{ttbox}
+ISABELLE_PATH=\$ISABELLE_HOME_USER/heaps:\$ISABELLE_HOME/heaps
+\end{ttbox}
+Note how \texttt{\$ML_SYSTEM} got appended automatically to each path
+component. This is a special feature of \texttt{ISABELLE_PATH} (and
+also of \texttt{ISABELLE_OUTPUT}).
+
+\section{Get logic images --- \texttt{isatool findlogics}}
+
+\begin{ttbox}
+Usage: isatool findlogics
+
+  Collect heap file names from ISABELLE_PATH.
+\end{ttbox}
+
+\section{Isabelle's version of make --- \texttt{isatool make}}
+
+\begin{ttbox}
+Usage: isatool make [ARGS ...]
+
+  Compiles logic in current directory using IsaMakefile.
+  ARGS are directly passed to the system make program.
+\end{ttbox}
+
+
+\section{ --- \texttt{isatool usedir}}
+
+\begin{ttbox}
+Usage: isatool usedir LOGIC NAME
+
+  Options are:
+    -b           build mode (output heap image, use dir ".")
+    -g BOOL      generate theory graph data (default false)
+    -h BOOL      generate theory HTML data (default false)
+    -s NAME      override session NAME
+
+  Build object-logic or run examples. Also creates browsing
+  information (HTML etc.) according to settings.
+\end{ttbox}
+
+
+\section{ --- \texttt{isatool doc}}
+
+\begin{ttbox}
+Usage: isatool doc [DOC]
+
+  View Isabelle documentation DOC, or show list of available documents.
+\end{ttbox}
+
+
+\section{ --- \texttt{isatool expandshort}}
+
+\begin{ttbox}
+Usage: expandshort [FILES ...]
+
+  Expand shorthand goal commands in FILES.  Also contracts uses of
+  resolve_tac, dresolve_tac, eresolve_tac, rewrite_goals_tac on
+  1-element lists; furthermore expands tabs, since they are now
+  forbidden in ML string constants.
+
+  Renames old versions of FILES by appending "~~".
+\end{ttbox}

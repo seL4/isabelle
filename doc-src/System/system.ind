@@ -1,25 +1,42 @@
 \begin{theindex}
 
-  \item browser, \bold{5}
+  \item browser, \bold{14}
 
   \indexspace
 
-  \item {\tt finish_html}, \bold{2}
+  \item {\tt finish_html}, \bold{11}
 
   \indexspace
 
-  \item HTML, \bold{1}
+  \item {\tt getenv} tool, 5
 
   \indexspace
 
-  \item {\tt init_html}, \bold{2}
+  \item HTML, \bold{10}
 
   \indexspace
 
-  \item {\tt make_html}, \bold{2}
+  \item {\tt init_html}, \bold{11}
+  \item {\tt INSTALL}, 1
+  \item {\tt ISABELLE}, 3
+  \item {\tt Isabelle}, 1
+  \item {\tt isabelle}, 1, 3
+  \item {\tt ISABELLE_HOME}, 2
+  \item {\tt ISABELLE_OUTPUT}, 3
+  \item {\tt ISABELLE_PATH}, 3
+  \item {\tt ISATOOL}, 3
+  \item {\tt isatool}, 1
 
   \indexspace
 
-  \item {\tt use_dir}, 3
+  \item {\tt make_html}, \bold{11}
+
+  \indexspace
+
+  \item settings, \bold{1}
+
+  \indexspace
+
+  \item {\tt use_dir}, 12
 
 \end{theindex}
