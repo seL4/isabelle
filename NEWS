@@ -1,0 +1,52 @@
+
+Isabelle NEWS -- history of user-visible changes
+================================================
+
+New in Isabelle94-8 (???????????)
+---------------------------------
+
+* the NEWS file;
+
+* new utilities to build / run / maintain Isabelle etc. (in parts
+still somewhat experimental);
+
+* simplifier: termless order as parameter; added interface for
+simplification procedures (functions that produce *proven* rewrite
+rules on the fly, depending on current redex);
+
+* now supports alternative (named) syntax tables (parser and pretty
+printer); internal interface is provided by add_modesyntax(_i);
+
+* Pure, FOL, ZF, HOL, HOLCF now support symbolic input and output; to
+be used in conjunction with the isabelle symbol font; uses the
+"symbols" syntax table;
+
+* infixes may now be declared with names independent of their syntax;
+
+* added typed_print_translation (like print_translation, but also gets
+the type of the constant);
+
+* prlim command for dealing with lots of subgoals (an easier way of
+setting goals_limit);
+
+* HOL/ex/Ring.thy declares cring_simp, which solves equational
+problems in commutative rings, using axiomatic type classes for + and *;
+
+* ZF now has Fast_tac, Simp_tac and Auto_tac.  WARNING: don't use
+ZF.thy anymore!  Contains fewer defs and could make a bogus simpset.
+Beware of Union_iff.  eq_cs is gone, can be put back as ZF_cs addSIs
+[equalityI];
+
+* more examples in HOL/MiniML and HOL/Auth;
+
+* more default rewrite rules in HOL for quantifiers, union/intersection;
+
+
+New in Isabelle94-7 (November 96)
+---------------------------------
+
+* allowing negative levels (as offsets) in prlev and choplev;
+
+* many more things we do not remember :-)
+
+$Id$
