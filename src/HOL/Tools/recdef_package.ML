@@ -228,6 +228,7 @@ fun prepare_hints_i thy () =
 
 fun requires_recdef thy = Theory.requires thy "Recdef" "recursive functions";
 
+(*"strict" is true iff (permissive) has been omitted*)
 fun gen_add_recdef tfl_fn prep_att prep_hints strict raw_name R eq_srcs hints thy =
   let
     val _ = requires_recdef thy;
@@ -240,7 +241,12 @@ fun gen_add_recdef tfl_fn prep_att prep_hints strict raw_name R eq_srcs hints th
     val eq_atts = map (map (prep_att thy)) raw_eq_atts;
 
     val (cs, ss, congs, wfs) = prep_hints thy hints;
-    val (thy, {rules = rules_idx, induct, tcs}) = tfl_fn strict thy cs ss congs wfs name R eqs;
+    (*We must remove imp_cong to prevent looping when the induction rule
+      is simplified. Many induction rules have nested implications that would
+      give rise to looping conditional rewriting.*)
+    val (thy, {rules = rules_idx, induct, tcs}) =
+        tfl_fn strict thy cs (ss delcongs [imp_cong])
+               congs wfs name R eqs;
     val rules = map (map #1) (Library.partition_eq Library.eq_snd rules_idx);
     val simp_att = if null tcs then
       [Simplifier.simp_add_global, RecfunCodegen.add] else [];
