@@ -22,7 +22,7 @@ struct
 
 local
 
-val refl_tac = Tactic.rtac (Drule.standard (Drule.reflexive_thm RS Drule.triv_goal));
+val refl_tac = Tactic.rtac (Drule.reflexive_thm RS Drule.triv_goal);
 
 fun dest_lhs cprop =
   let val x = #1 (Logic.dest_equals (Logic.dest_goal (Thm.term_of cprop)))
