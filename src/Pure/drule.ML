@@ -90,6 +90,7 @@ sig
   val tag_assumption    : 'a attribute
   val tag_internal      : 'a attribute
   val has_internal	: tag list -> bool
+  val close_derivation  : thm -> thm
   val compose_single    : thm * int * thm -> thm
   val add_rules		: thm list -> thm list -> thm list
   val del_rules		: thm list -> thm list -> thm list
@@ -322,13 +323,18 @@ fun zero_var_indexes th =
 
 (*Standard form of object-rule: no hypotheses, Frees, or outer quantifiers;
     all generality expressed by Vars having index 0.*)
+
+fun close_derivation thm =
+  if Thm.get_name_tags thm = ("", []) then Thm.name_thm ("", thm)
+  else thm;
+
 fun standard th =
-  let val {maxidx,...} = rep_thm th
-  in
-    th |> implies_intr_hyps
-       |> forall_intr_frees |> forall_elim_vars (maxidx + 1)
-       |> strip_shyps_warning
-       |> zero_var_indexes |> Thm.varifyT |> Thm.compress
+  let val {maxidx,...} = rep_thm th in
+    th
+    |> implies_intr_hyps
+    |> forall_intr_frees |> forall_elim_vars (maxidx + 1)
+    |> strip_shyps_warning
+    |> zero_var_indexes |> Thm.varifyT |> Thm.compress |> close_derivation
   end;
 
 
