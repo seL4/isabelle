@@ -60,4 +60,7 @@ fun file_info "" = ""
            implode result
         end;
 
-fun delete_file name = ExtendedIO.execute ("rm " ^ name);
+(*Delete a file *)
+fun delete_file name =
+  let val (_,_) = ExtendedIO.execute ("rm " ^ name)
+  in () end;

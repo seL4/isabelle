@@ -27,11 +27,6 @@ cd "Syntax";
 use "ROOT.ML";
 cd "..";
 
-(*Theory parser*)
-cd "Thy";
-use "ROOT.ML";
-cd "..";
-
 use "type.ML";
 use "sign.ML";
 use "sequence.ML";
@@ -69,4 +64,13 @@ open BasicSyntax Thm Drule Tactical Tactic Goals;
 structure Pure = struct val thy = pure_thy end;
 
 use "install_pp.ML";
+
+
+
+(*Theory parser
+  (The new Thy/read.ML needs Thm so this has to be done AFTER Thm is
+   created.) *)
+cd "Thy";
+use "ROOT.ML";
+cd "..";
 

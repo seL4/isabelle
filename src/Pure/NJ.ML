@@ -90,5 +90,7 @@ in
     | file_info name = makestring (mtime (PATH name));
 end;
 
-fun delete_file name = System.system ("rm " ^ name);
+fun delete_file name = 
+  let val _ = System.system ("rm " ^ name)
+  in () end;
 
