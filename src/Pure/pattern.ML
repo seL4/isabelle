@@ -15,38 +15,31 @@ TODO: optimize red by special-casing it
 infix aeconv;
 
 signature PATTERN =
-  sig
-  type type_sig
-  type sg
-  type env
+sig
   val trace_unify_fail  : bool ref
   val aeconv            : term * term -> bool
   val eta_contract      : term -> term
   val eta_long          : typ list -> term -> term
   val beta_eta_contract : term -> term
   val eta_contract_atom : term -> term
-  val match             : type_sig -> term * term
+  val match             : Type.tsig -> term * term
                           -> (indexname*typ)list * (indexname*term)list
-  val first_order_match : type_sig -> term * term
+  val first_order_match : Type.tsig -> term * term
                           -> (indexname*typ)list * (indexname*term)list
-  val matches           : type_sig -> term * term -> bool
-  val matches_subterm   : type_sig -> term * term -> bool
-  val unify             : sg * env * (term * term)list -> env
+  val matches           : Type.tsig -> term * term -> bool
+  val matches_subterm   : Type.tsig -> term * term -> bool
+  val unify             : Sign.sg * Envir.env * (term * term)list -> Envir.env
   val first_order       : term -> bool
   val pattern           : term -> bool
-  val rewrite_term      : type_sig -> (term * term) list -> (term -> term option) list
+  val rewrite_term      : Type.tsig -> (term * term) list -> (term -> term option) list
                           -> term -> term
   exception Unif
   exception MATCH
   exception Pattern
-  end;
+end;
 
 structure Pattern : PATTERN =
 struct
-
-type type_sig = Type.type_sig
-type sg = Sign.sg
-type env = Envir.env
 
 exception Unif;
 exception Pattern;
@@ -238,7 +231,7 @@ fun flexflex2(env,binders,F,Fty,is,G,Gty,js) =
                  end;
   in if xless(G,F) then ff(F,Fty,is,G,Gty,js) else ff(G,Gty,js,F,Fty,is) end
 
-val tsgr = ref(Type.tsig0);
+val tsgr = ref(Type.empty_tsig);
 
 fun unify_types(T,U, env as Envir.Envir{asol,iTs,maxidx}) =
   if T=U then env
@@ -296,16 +289,16 @@ fun unify(sg,env,tus) = (sgr := sg; tsgr := Sign.tsig_of sg;
 fun eta_contract t =
   let
     exception SAME;
-    fun eta (Abs (a, T, body)) = 
+    fun eta (Abs (a, T, body)) =
       ((case eta body of
-          body' as (f $ Bound 0) => 
-	    if loose_bvar1 (f, 0) then Abs(a, T, body')
-	    else incr_boundvars ~1 f
+          body' as (f $ Bound 0) =>
+            if loose_bvar1 (f, 0) then Abs(a, T, body')
+            else incr_boundvars ~1 f
         | body' => Abs (a, T, body')) handle SAME =>
        (case body of
-          (f $ Bound 0) => 
-	    if loose_bvar1 (f, 0) then raise SAME
-	    else incr_boundvars ~1 f
+          (f $ Bound 0) =>
+            if loose_bvar1 (f, 0) then raise SAME
+            else incr_boundvars ~1 f
         | _ => raise SAME))
       | eta (f $ t) =
           (let val f' = eta f
@@ -333,7 +326,7 @@ and eta_contract2 (f$t) = f $ eta_contract_atom t
 fun eta_long Ts (Abs (s, T, t)) = Abs (s, T, eta_long (T :: Ts) t)
   | eta_long Ts t = (case strip_comb t of
       (Abs _, _) => eta_long Ts (Envir.beta_norm t)
-    | (u, ts) => 
+    | (u, ts) =>
       let
         val Us = binder_types (fastype_of1 (Ts, t));
         val i = length Us
@@ -524,7 +517,7 @@ fun rewrite_term tsig rules procs tm =
             Abs (_, _, body) =>
               let val tm' = subst_bound (tm2, body)
               in Some (if_none (rew2 skel0 tm') tm') end
-          | _ => 
+          | _ =>
             let val (skel1, skel2) = (case skel of
                 skel1 $ skel2 => (skel1, skel2)
               | _ => (skel0, skel0))

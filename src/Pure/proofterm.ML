@@ -104,7 +104,7 @@ sig
   val add_prf_rrules : (proof * proof) list -> theory -> theory
   val add_prf_rprocs : (string * (Term.typ list -> proof -> proof option)) list ->
     theory -> theory
-  val rewrite_proof : Type.type_sig -> (proof * proof) list *
+  val rewrite_proof : Type.tsig -> (proof * proof) list *
     (string * (typ list -> proof -> proof option)) list -> proof -> proof
   val rewrite_proof_notypes : (proof * proof) list *
     (string * (typ list -> proof -> proof option)) list -> proof -> proof
