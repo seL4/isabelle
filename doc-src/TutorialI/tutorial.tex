@@ -1,8 +1,8 @@
 % pr(latex xsymbols symbols)
-\documentclass[11pt,a4paper]{report}
+\documentclass{article}
 \newif\ifremarks
 \remarkstrue          %TRUE causes remarks to be displayed (as marginal notes)
-\usepackage{isabelle,isabellesym}
+\usepackage{cl2emono-modified,isabelle,isabellesym}
 \usepackage{latexsym,verbatim,graphicx,../iman,../extra,../ttbox,comment}
 \usepackage{proof,amsmath}
 \usepackage{../pdfsetup}    %last package!
@@ -26,7 +26,7 @@
 \renewenvironment{isamarkuptxt}{\begin{isamarkuptext}}{\end{isamarkuptext}}
 
 %% lcp's macros
-\newcommand{\remark}[1]{\ifremarks\marginpar{\raggedright\footnotesize#1}\fi}
+\newcommand{\REMARK}[1]{\ifremarks\marginpar{\raggedright\footnotesize#1}\fi}
 \newcommand{\rulename}[1]{\hfill$(\text{#1})$} %names of Isabelle rules
 \let\bigisa=\isa
 %% was previously

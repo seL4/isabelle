@@ -1,4 +1,3 @@
-% ID:         $Id$
 \chapter{The Rules of the Game}
 \label{chap:rules}
  
@@ -898,7 +897,7 @@ formula $Q$ to prove, it creates a new assumption by removing the quantifier.  A
 the universal introduction  rule, the textbook version imposes a proviso on the
 quantified variable, which Isabelle expresses using its meta-logic.  Note that it is
 enough to have a universal quantifier in the meta-logic; we do not need an existential
-quantifier to be built in as well.\remark{EX example needed?}
+quantifier to be built in as well.\REMARK{EX example needed?}
  
 Isabelle/HOL also provides Hilbert's
 $\epsilon$-operator.  The term $\epsilon x. P(x)$ denotes some $x$ such that $P(x)$ is
@@ -910,7 +909,7 @@ main use of $\epsilon x. P(x)$ is in definitions when $P(x)$ characterizes $x$
 uniquely.  For instance, we can define the cardinality of a finite set~$A$ to be that
 $n$ such that $A$ is in one-to-one correspondence with $\{1,\ldots,n\}$.  We can then
 prove that the cardinality of the empty set is zero (since $n=0$ satisfies the
-description) and proceed to prove other facts.\remark{SOME theorems
+description) and proceed to prove other facts.\REMARK{SOME theorems
 and example}
 
 \begin{exercise}
@@ -1160,7 +1159,7 @@ xs)\isanewline
 \end{isabelle}
 %
 This fact about multiplication is also appropriate for 
-the {\isa{iff}} attribute:\remark{the ?s are ugly here but we need
+the {\isa{iff}} attribute:\REMARK{the ?s are ugly here but we need
 them again when talking about \isa{of}; we need a consistent style}
 \begin{isabelle}
 (\mbox{?m}\ \isacharasterisk\ \mbox{?n}\ =\ 0)\ =\ (\mbox{?m}\ =\ 0\ \isasymor\ \mbox{?n}\ =\ 0)
@@ -1412,7 +1411,7 @@ obvious steps and even applies those that split goals.
 
 The {\isa{force}} method applies the classical reasoner and simplifier 
 to one goal. 
-\remark{example needed? most
+\REMARK{example needed? most
 things done by blast, simp or auto can also be done by force, so why add a new
 one?}
 Unless it can prove the goal, it fails. Contrast 
@@ -1574,7 +1573,7 @@ Here is the result:
 ?n)\ =\ k%
 \end{isabelle}
 \isa{THEN~sym} gives the current theorem to the rule \isa{sym} and returns the
-resulting conclusion.\remark{figure necessary?}  The effect is to exchange the
+resulting conclusion.\REMARK{figure necessary?}  The effect is to exchange the
 two operands of the equality. Typically {\isa{THEN}} is used with destruction
 rules.  Above we have used
 \isa{THEN~conjunct1} to extract the first part of the theorem
@@ -1765,7 +1764,7 @@ Simplification has yielded an equation for \isa{m} that will be used to
 complete the proof. 
 
 \medskip
-Here is another proof using \isa{insert}.  \remark{Effect with unknowns?}
+Here is another proof using \isa{insert}.  \REMARK{Effect with unknowns?}
 Division  and remainder obey a well-known law: 
 \begin{isabelle}
 (?m\ div\ ?n)\ \isacharasterisk\
