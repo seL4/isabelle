@@ -13,6 +13,12 @@ by (Simp_tac 1);
 qed "empty_def2";
 Addsimps [empty_def2];
 
+Goal "sum_case empty empty = empty";
+by (rtac ext 1);
+by (simp_tac (simpset() addsplits [sum.split]) 1);
+qed "sum_case_empty_empty";
+Addsimps [sum_case_empty_empty];
+
 
 section "map_upd";
 
