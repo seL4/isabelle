@@ -574,10 +574,7 @@ val add_rules =
    le_Suc_number_of,le_number_of_Suc,
    less_Suc_number_of,less_number_of_Suc,
    Suc_eq_number_of,eq_number_of_Suc,
-   read_instantiate_sg (sign_of(the_context()))
-      [("m","number_of ?v")] mult_Suc,
-   read_instantiate_sg (sign_of(the_context()))
-      [("m","number_of ?v")] mult_Suc_right,
+   mult_Suc, mult_Suc_right,
    eq_number_of_0, eq_0_number_of, less_0_number_of,
    nat_number_of, Let_number_of, if_True, if_False];
 
