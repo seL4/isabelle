@@ -31,11 +31,11 @@ constdefs
   welldef :: 'a program set  
    "welldef == {F. Init F ~= {}}"
 
-  component :: ['a program, 'a program] => bool
-   "component F H == EX G. F Join G = H"
+  component :: ['a program, 'a program] => bool     (infixl 50)
+   "F component H == EX G. F Join G = H"
 
   guarantees :: ['a program set, 'a program set] => 'a program set (infixl 65)
-   "X guarantees Y == {F. ALL H. component F H --> H:X --> H:Y}"
+   "X guarantees Y == {F. ALL H. F component H --> H:X --> H:Y}"
 
   refines :: ['a program, 'a program, 'a program set] => bool
 			("(3_ refines _ wrt _)" [10,10,10] 10)

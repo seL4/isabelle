@@ -16,48 +16,48 @@ Delsimps [split_paired_All];
 
 (*** component ***)
 
-Goalw [component_def] "component SKIP F";
+Goalw [component_def] "SKIP component F";
 by (force_tac (claset() addIs [Join_SKIP_left], simpset()) 1);
 qed "component_SKIP";
 
-Goalw [component_def] "component F F";
+Goalw [component_def] "F component F";
 by (blast_tac (claset() addIs [Join_SKIP_right]) 1);
 qed "component_refl";
 
 AddIffs [component_SKIP, component_refl];
 
-Goalw [component_def] "component F (F Join G)";
+Goalw [component_def] "F component (F Join G)";
 by (Blast_tac 1);
 qed "component_Join1";
 
-Goalw [component_def] "component G (F Join G)";
+Goalw [component_def] "G component (F Join G)";
 by (simp_tac (simpset() addsimps [Join_commute]) 1);
 by (Blast_tac 1);
 qed "component_Join2";
 
-Goalw [component_def] "i : I ==> component (F i) (JN i:I. (F i))";
+Goalw [component_def] "i : I ==> (F i) component (JN i:I. (F i))";
 by (blast_tac (claset() addIs [JN_absorb]) 1);
 qed "component_JN";
 
-Goalw [component_def] "[| component F G; component G H |] ==> component F H";
+Goalw [component_def] "[| F component G; G component H |] ==> F component H";
 by (blast_tac (claset() addIs [Join_assoc RS sym]) 1);
 qed "component_trans";
 
-Goalw [component_def] "component F G ==> Acts F <= Acts G";
+Goalw [component_def] "F component G ==> Acts F <= Acts G";
 by (force_tac (claset(), simpset() addsimps [Acts_Join]) 1);
 qed "component_Acts";
 
-Goalw [component_def,Join_def] "component F G ==> Init G <= Init F";
+Goalw [component_def,Join_def] "F component G ==> Init G <= Init F";
 by Auto_tac;
 qed "component_Init";
 
-Goal "[| component F G; component G F |] ==> F=G";
+Goal "[| F component G; G component F |] ==> F=G";
 by (blast_tac (claset() addSIs [program_equalityI, 
 				component_Init, component_Acts]) 1);
 qed "component_anti_sym";
 
 Goalw [component_def]
-      "component F H = (EX G. F Join G = H & Disjoint F G)";
+      "F component H = (EX G. F Join G = H & Disjoint F G)";
 by (blast_tac (claset() addSIs [Diff_Disjoint, Join_Diff2]) 1);
 qed "component_eq";
 
@@ -83,7 +83,7 @@ by (blast_tac (claset() addIs [ex1,ex2]) 1);
 qed "ex_prop_finite";
 
 (*Their "equivalent definition" given at the end of section 3*)
-Goal "ex_prop X = (ALL G. G:X = (ALL H. component G H --> H: X))";
+Goal "ex_prop X = (ALL G. G:X = (ALL H. G component H --> H: X))";
 by Auto_tac;
 by (rewrite_goals_tac [ex_prop_def, component_def]);
 by (Blast_tac 1);
@@ -127,6 +127,11 @@ qed "guarantees_eq";
 
 Goalw [guarantees_def] "X <= Y ==> X guarantees Y = UNIV";
 by (Blast_tac 1);
+qed "subset_imp_guarantees_UNIV";
+
+(*Equivalent to subset_imp_guarantees_UNIV but more intuitive*)
+Goalw [guarantees_def] "X <= Y ==> F : X guarantees Y";
+by (Blast_tac 1);
 qed "subset_imp_guarantees";
 
 (*Remark at end of section 4.1*)
@@ -153,21 +158,32 @@ Goalw [guarantees_def] "(X guarantees Y) = -Y guarantees -X";
 by (Blast_tac 1);
 qed "contrapositive";
 
+(** The following two can be expressed using intersection and subset, which
+    is more faithful to the text but looks cryptic.
+**)
+
 Goalw [guarantees_def]
-    "V guarantees X Int ((X Int Y) guarantees Z) <= (V Int Y) guarantees Z";
+    "[| F : V guarantees X;  F : (X Int Y) guarantees Z |]\
+\    ==> F : (V Int Y) guarantees Z";
 by (Blast_tac 1);
 qed "combining1";
 
 Goalw [guarantees_def]
-    "V guarantees (X Un Y) Int (Y guarantees Z) <= V guarantees (X Un Z)";
+    "[| F : V guarantees (X Un Y);  F : Y guarantees Z |]\
+\    ==> F : V guarantees (X Un Z)";
 by (Blast_tac 1);
 qed "combining2";
 
+(** The following two follow Chandy-Sanders, but the use of object-quantifiers
+    does not suit Isabelle... **)
+
+(*Premise should be (!!i. i: I ==> F: X guarantees Y i) *)
 Goalw [guarantees_def]
      "ALL i:I. F : X guarantees (Y i) ==> F : X guarantees (INT i:I. Y i)";
 by (Blast_tac 1);
 qed "all_guarantees";
 
+(*Premises should be [| F: X guarantees Y i; i: I |] *)
 Goalw [guarantees_def]
      "EX i:I. F : X guarantees (Y i) ==> F : X guarantees (UN i:I. Y i)";
 by (Blast_tac 1);
@@ -181,8 +197,7 @@ by (blast_tac (claset() addIs prems) 1);
 qed "guaranteesI";
 
 Goalw [guarantees_def, component_def]
-     "[| F : X guarantees Y;  F Join G : X |] \
-\     ==> F Join G : Y";
+     "[| F : X guarantees Y;  F Join G : X |] ==> F Join G : Y";
 by (Blast_tac 1);
 qed "guaranteesD";
 

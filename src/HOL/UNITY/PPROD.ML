@@ -62,7 +62,7 @@ Goalw [PPROD_def]
 by Auto_tac;
 qed "PPROD_insert";
 
-Goalw [PPROD_def] "i : I ==> component (lift_prog i (F i)) (PPROD I F)";
+Goalw [PPROD_def] "i : I ==> (lift_prog i (F i)) component (PPROD I F)";
 (*blast_tac doesn't use HO unification*)
 by (fast_tac (claset() addIs [component_JN]) 1);
 qed "component_PPROD";
