@@ -126,12 +126,6 @@ qed "well_ord_subset";
 
 (** Order-preserving (monotone) maps **)
 
-(*Rewriting with bijections and converse (function inverse)*)
-val bij_inverse_ss = 
-    ZF_ss setsolver (type_auto_tac [bij_is_fun, apply_type, 
-				    bij_converse_bij, comp_fun, comp_bij])
-          addsimps [right_inverse_bij, left_inverse_bij, comp_fun_apply];
-
 goalw Order.thy [mono_map_def] 
     "!!f. f: mono_map(A,r,B,s) ==> f: A->B";
 by (etac CollectD1 1);
@@ -147,14 +141,6 @@ by (REPEAT
 	    fast_tac ZF_cs 2,
 	    REPEAT (ares_tac [apply_type] 1)]));
 qed "mono_map_is_inj";
-
-(*Transitivity of similarity: the order-isomorphism relation*)
-goalw Order.thy [mono_map_def] 
-    "!!f. [| g: mono_map(A,r,B,s);  f: mono_map(B,s,C,t) |] ==> \
-\         (f O g): mono_map(A,r,C,t)";
-by (safe_tac ZF_cs);
-by (ALLGOALS (asm_full_simp_tac bij_inverse_ss));
-qed "mono_map_trans";
 
 
 (** Order-isomorphisms -- or similarities, as Suppes calls them **)
@@ -186,12 +172,30 @@ by (REPEAT (eresolve_tac [asm_rl,
 by (asm_simp_tac (ZF_ss addsimps [right_inverse_bij]) 1);
 qed "ord_iso_converse";
 
+
+(*Rewriting with bijections and converse (function inverse)*)
+val bij_inverse_ss = 
+    ZF_ss setsolver (type_auto_tac [ord_iso_is_bij, bij_is_fun, apply_type, 
+				    bij_converse_bij, comp_fun, comp_bij])
+          addsimps [right_inverse_bij, left_inverse_bij, comp_fun_apply];
+
+
+(** Symmetry and Transitivity Rules **)
+
 (*Symmetry of similarity: the order-isomorphism relation*)
 goalw Order.thy [ord_iso_def] 
     "!!f. f: ord_iso(A,r,B,s) ==> converse(f): ord_iso(B,s,A,r)";
 by (safe_tac ZF_cs);
 by (ALLGOALS (asm_full_simp_tac bij_inverse_ss));
 qed "ord_iso_sym";
+
+(*Transitivity of similarity: the order-isomorphism relation*)
+goalw Order.thy [mono_map_def] 
+    "!!f. [| g: mono_map(A,r,B,s);  f: mono_map(B,s,C,t) |] ==> \
+\         (f O g): mono_map(A,r,C,t)";
+by (safe_tac ZF_cs);
+by (ALLGOALS (asm_full_simp_tac bij_inverse_ss));
+qed "mono_map_trans";
 
 (*Transitivity of similarity: the order-isomorphism relation*)
 goalw Order.thy [ord_iso_def] 
@@ -267,47 +271,29 @@ qed "well_ord_ord_iso";
 
 (*** Main results of Kunen, Chapter 1 section 6 ***)
 
-(*Inductive argument for proving Kunen's Lemma 6.1*)
-goalw Order.thy [well_ord_def, tot_ord_def, part_ord_def, pred_def]
-  "!!r. [| well_ord(A,r);  x: A;  f: ord_iso(A, r, pred(A,x,r), r);  y: A |] \
-\       ==> f`y = y";
-by (safe_tac ZF_cs);
+(*Inductive argument for Kunen's Lemma 6.1, etc. 
+  Simple proof from Halmos, page 72*)
+goalw Order.thy [well_ord_def, ord_iso_def]
+  "!!r. [| well_ord(A,r);  f: ord_iso(A,r, A',r);  A'<= A;  y: A |] \
+\       ==> ~ <f`y, y>: r";
+by (REPEAT (eresolve_tac [conjE, CollectE] 1));
 by (wf_on_ind_tac "y" [] 1);
-by (forward_tac [ord_iso_is_bij] 1);
-by (subgoal_tac "f`y1 : {y: A . <y, x> : r}" 1);
-by (fast_tac (ZF_cs addSEs [bij_is_fun RS apply_type]) 2);
-(*Now we know f`y1 : A  and  <f`y1, x> : r  *)
-by (etac CollectE 1);
-by (linear_case_tac 1);
-(*Case  <f`y1, y1> : r *)   (*use induction hyp*)
-by (dtac bspec 1 THEN mp_tac 2 THEN assume_tac 1);
-by (dres_inst_tac [("t", "op `(converse(f))")] subst_context 1);
-by (asm_full_simp_tac (ZF_ss addsimps [left_inverse_bij]) 1);
-(*The case  <y1, f`y1> : r  *)
-by (subgoal_tac "<y1,x> : r" 1);
-by (fast_tac (ZF_cs addSEs [trans_onD]) 2);
-by (dtac ord_iso_converse 1 THEN assume_tac 1 THEN fast_tac ZF_cs 2);
+by (dres_inst_tac [("a","y1")] (bij_is_fun RS apply_type) 1);
+by (assume_tac 1);
 by (fast_tac ZF_cs 1);
-by (asm_full_simp_tac (ZF_ss addsimps [left_inverse_bij]) 1);
-(*now use induction hyp*)
-by (dtac bspec 1 THEN mp_tac 2 THEN fast_tac bij_apply_cs 1);
-by (dres_inst_tac [("t", "op `(f)")] subst_context 1);
-by (asm_full_simp_tac (ZF_ss addsimps [right_inverse_bij]) 1);
-qed "not_well_ord_iso_pred_lemma";
-
+qed "well_ord_iso_subset_lemma";
 
 (*Kunen's Lemma 6.1: there's no order-isomorphism to an initial segment
                      of a well-ordering*)
 goal Order.thy
     "!!r. [| well_ord(A,r);  f : ord_iso(A, r, pred(A,x,r), r);  x:A |] ==> P";
-by (metacut_tac not_well_ord_iso_pred_lemma 1);
-by (REPEAT_FIRST assume_tac);
-(*Now we know f`x = x*)
+by (metacut_tac well_ord_iso_subset_lemma 1);
+by (REPEAT_FIRST (ares_tac [pred_subset]));
+(*Now we know  f`x < x *)
 by (EVERY1 [dtac (ord_iso_is_bij RS bij_is_fun RS apply_type),
 	     assume_tac]);
-(*Now we know f`x : pred(A,x,r) *)
+(*Now we also know f`x : pred(A,x,r);  contradiction! *)
 by (asm_full_simp_tac (ZF_ss addsimps [well_ord_def, pred_def]) 1);
-by (fast_tac (ZF_cs addSEs [wf_on_not_refl RS notE]) 1);
 qed "well_ord_iso_predE";
 
 (*Simple consequence of Lemma 6.1*)
@@ -335,10 +321,7 @@ by (asm_simp_tac
 by (safe_tac (eq_cs addSEs [bij_is_fun RS apply_type]));
 by (resolve_tac [RepFun_eqI] 1);
 by (fast_tac (ZF_cs addSIs [right_inverse_bij RS sym]) 1);
-by (asm_simp_tac
-    (ZF_ss addsimps [right_inverse_bij]
-           setsolver type_auto_tac
-	                [bij_is_fun, apply_funtype, bij_converse_bij]) 1);
+by (asm_simp_tac bij_inverse_ss 1);
 qed "ord_iso_image_pred";
 
 (*But in use, A and B may themselves be initial segments.  Then use
@@ -374,41 +357,32 @@ by (eresolve_tac [ord_iso_sym RS ord_iso_trans] 1);
 by (assume_tac 1);
 qed "well_ord_iso_preserving";
 
-(*Inductive argument for proving Kunen's Lemma 6.2*)
-goalw Order.thy [well_ord_def, tot_ord_def, part_ord_def]
-    "!!r. [| well_ord(A,r);  well_ord(B,s);  \
+(*See Halmos, page 72*)
+goal Order.thy
+    "!!r. [| well_ord(A,r);  \
 \            f: ord_iso(A,r, B,s);  g: ord_iso(A,r, B,s);  y: A |] \
-\         ==> f`y = g`y";
+\         ==> ~ <g`y, f`y> : s";
+by (forward_tac [well_ord_iso_subset_lemma] 1);
+by (res_inst_tac [("f","converse(f)"), ("g","g")] ord_iso_trans 1);
+by (REPEAT_FIRST (ares_tac [subset_refl, ord_iso_sym]));
 by (safe_tac ZF_cs);
-by (wf_on_ind_tac "y" [] 1);
-by (subgoals_tac ["f: bij(A,B)", "g: bij(A,B)", "f`y1 : B", "g`y1 : B"] 1);
-by (REPEAT (fast_tac (bij_apply_cs addSEs [ord_iso_is_bij]) 2));
-by (linear_case_tac 1);
-(*The case  <f`y1, g`y1> : s  *)
-by (forw_inst_tac [("f","g")] ord_iso_converse 1 THEN REPEAT (assume_tac 1));
-by (asm_full_simp_tac (ZF_ss addsimps [left_inverse_bij]) 1);
-by (dtac bspec 1 THEN mp_tac 2 THEN fast_tac bij_apply_cs 1);
-by (dres_inst_tac [("t", "op `(converse(f))")] subst_context 1);
-by (dres_inst_tac [("t", "op `(g)")] subst_context 1);
-by (asm_full_simp_tac bij_inverse_ss 1);
-(*The case  <g`y1, f`y1> : s  *)
-by (forw_inst_tac [("f","f")] ord_iso_converse 1 THEN REPEAT (assume_tac 1));
-by (asm_full_simp_tac (ZF_ss addsimps [left_inverse_bij]) 1);
-by (dtac bspec 1 THEN mp_tac 2 THEN fast_tac bij_apply_cs 1);
-by (dres_inst_tac [("t", "op `(converse(g))")] subst_context 1);
-by (dres_inst_tac [("t", "op `(f)")] subst_context 1);
+by (forward_tac [ord_iso_converse] 1);
+by (REPEAT (fast_tac (bij_apply_cs addSEs [ord_iso_is_bij]) 1));
 by (asm_full_simp_tac bij_inverse_ss 1);
 qed "well_ord_iso_unique_lemma";
 
 (*Kunen's Lemma 6.2: Order-isomorphisms between well-orderings are unique*)
 goal Order.thy
-    "!!r. [| well_ord(B,s);  \
+    "!!r. [| well_ord(A,r);  \
 \            f: ord_iso(A,r, B,s);  g: ord_iso(A,r, B,s) |] ==> f = g";
 by (rtac fun_extension 1);
-by (etac (ord_iso_is_bij RS bij_is_fun) 1);
-by (etac (ord_iso_is_bij RS bij_is_fun) 1);
-by (rtac well_ord_iso_unique_lemma 1);
-by (REPEAT_SOME (eresolve_tac [asm_rl, well_ord_ord_iso]));
+by (REPEAT (etac (ord_iso_is_bij RS bij_is_fun) 1));
+by (subgoals_tac ["f`x : B", "g`x : B", "linear(B,s)"] 1);
+by (REPEAT (fast_tac (bij_apply_cs addSEs [ord_iso_is_bij]) 3));
+by (dtac well_ord_ord_iso 2 THEN etac ord_iso_sym 2);
+by (asm_full_simp_tac (ZF_ss addsimps [tot_ord_def, well_ord_def]) 2);
+by (linear_case_tac 1);
+by (DEPTH_SOLVE (eresolve_tac [asm_rl, well_ord_iso_unique_lemma RS notE] 1));
 qed "well_ord_iso_unique";
 
 
@@ -543,7 +517,6 @@ by (forw_inst_tac [("B","B")] range_ord_iso_map_cases 2);
 by (REPEAT_FIRST (eresolve_tac [asm_rl, disjE, bexE]));
 by (ALLGOALS (dresolve_tac [ord_iso_map_ord_iso] THEN' assume_tac THEN' 
 	      asm_full_simp_tac (ZF_ss addsimps [bexI])));
-
 by (resolve_tac [wf_on_not_refl RS notE] 1);
 by (eresolve_tac [well_ord_is_wf] 1);
 by (assume_tac 1);
