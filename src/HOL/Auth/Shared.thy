@@ -19,9 +19,9 @@ rules
 
 primrec initState agent
         (*Server knows all long-term keys; other agents know only their own*)
-  initState_Server  "initState lost Server     = Key `` range shrK"
-  initState_Friend  "initState lost (Friend i) = {Key (shrK (Friend i))}"
-  initState_Spy     "initState lost Spy        = Key``shrK``lost"
+  initState_Server  "initState Server     = Key `` range shrK"
+  initState_Friend  "initState (Friend i) = {Key (shrK (Friend i))}"
+  initState_Spy     "initState Spy        = Key``shrK``lost"
 
 
 rules

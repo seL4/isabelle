@@ -11,7 +11,7 @@ Datatype of events; function "sees"; freshness
 Event = Message + List + 
 
 consts  (*Initial states of agents -- parameter of the construction*)
-  initState :: [agent set, agent] => msg set
+  initState :: agent => msg set
 
 datatype  (*Messages--could add another constructor for agent knowledge*)
   event = Says  agent agent msg
@@ -26,17 +26,22 @@ primrec sees1 event
   sees1_Notes "sees1 A (Notes A' X)   = (if A = A'    then {X} else {})"
 
 consts  
-  sees :: [agent set, agent, event list] => msg set
+  lost :: agent set        (*agents whose private keys have been compromised*)
+  sees :: [agent, event list] => msg set
+
+rules
+  (*Spy has access to his own key for spoof messages, but Server is secure*)
+  Spy_in_lost     "Spy: lost"
+  Server_not_lost "Server ~: lost"
 
 primrec sees list
-  sees_Nil  "sees lost A []       = initState lost A"
-  sees_Cons "sees lost A (ev#evs) = sees1 A ev Un sees lost A evs"
-
+  sees_Nil  "sees A []       = initState A"
+  sees_Cons "sees A (ev#evs) = sees1 A ev Un sees A evs"
 
 constdefs
   (*Set of items that might be visible to somebody: complement of the set
         of fresh items*)
   used :: event list => msg set
-    "used evs == parts (UN lost B. sees lost B evs)"
+    "used evs == parts (UN B. sees B evs)"
 
 end

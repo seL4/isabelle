@@ -21,7 +21,7 @@ HOL_quantifiers := false;
 (*A "possibility property": there are traces that reach the end*)
 goal thy 
  "!!A B. [| A ~= B; A ~= Server; B ~= Server |]                               \
-\        ==> EX K. EX NA. EX evs: otway lost.                                 \
+\        ==> EX K. EX NA. EX evs: otway.                                 \
 \             Says B A (Crypt (shrK A) {|Nonce NA, Agent A, Agent B, Key K|}) \
 \             : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
@@ -33,7 +33,7 @@ result();
 (**** Inductive proofs about otway ****)
 
 (*Nobody sends themselves messages*)
-goal thy "!!evs. evs : otway lost ==> ALL A X. Says A A X ~: set evs";
+goal thy "!!evs. evs : otway ==> ALL A X. Says A A X ~: set evs";
 by (etac otway.induct 1);
 by (Auto_tac());
 qed_spec_mp "not_Says_to_self";
@@ -44,12 +44,12 @@ AddSEs   [not_Says_to_self RSN (2, rev_notE)];
 (** For reasoning about the encrypted portion of messages **)
 
 goal thy "!!evs. Says S' B {|X, Crypt(shrK B) X'|} : set evs ==> \
-\                X : analz (sees lost Spy evs)";
+\                X : analz (sees Spy evs)";
 by (blast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]) 1);
 qed "OR4_analz_sees_Spy";
 
 goal thy "!!evs. Says Server B {|X, Crypt K' {|NB, a, Agent B, K|}|} \
-\                  : set evs ==> K : parts (sees lost Spy evs)";
+\                  : set evs ==> K : parts (sees Spy evs)";
 by (blast_tac (!claset addSEs sees_Spy_partsEs) 1);
 qed "Oops_parts_sees_Spy";
 
@@ -60,40 +60,34 @@ qed "Oops_parts_sees_Spy";
 bind_thm ("OR4_parts_sees_Spy",
           OR4_analz_sees_Spy RS (impOfSubs analz_subset_parts));
 
-(*For proving the easier theorems about X ~: parts (sees lost Spy evs).
-  We instantiate the variable to "lost" since leaving it as a Var would
-  interfere with simplification.*)
-val parts_induct_tac = 
-    let val tac = forw_inst_tac [("lost","lost")] 
-    in  etac otway.induct	   1 THEN 
-        tac OR4_parts_sees_Spy     6 THEN
-        tac Oops_parts_sees_Spy    7 THEN
-	prove_simple_subgoals_tac  1
-    end;
+(*For proving the easier theorems about X ~: parts (sees Spy evs).*)
+fun parts_induct_tac i = 
+    etac otway.induct i			THEN 
+    forward_tac [Oops_parts_sees_Spy] (i+6) THEN
+    forward_tac [OR4_parts_sees_Spy]  (i+5) THEN
+    prove_simple_subgoals_tac  i;
 
 
-(** Theorems of the form X ~: parts (sees lost Spy evs) imply that NOBODY
+(** Theorems of the form X ~: parts (sees Spy evs) imply that NOBODY
     sends messages containing X! **)
 
 (*Spy never sees another agent's shared key! (unless it's lost at start)*)
 goal thy 
- "!!evs. evs : otway lost \
-\        ==> (Key (shrK A) : parts (sees lost Spy evs)) = (A : lost)";
-by parts_induct_tac;
+ "!!evs. evs : otway ==> (Key (shrK A) : parts (sees Spy evs)) = (A : lost)";
+by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
 by (Blast_tac 1);
 qed "Spy_see_shrK";
 Addsimps [Spy_see_shrK];
 
 goal thy 
- "!!evs. evs : otway lost \
-\        ==> (Key (shrK A) : analz (sees lost Spy evs)) = (A : lost)";
+ "!!evs. evs : otway ==> (Key (shrK A) : analz (sees Spy evs)) = (A : lost)";
 by (auto_tac(!claset addDs [impOfSubs analz_subset_parts], !simpset));
 qed "Spy_analz_shrK";
 Addsimps [Spy_analz_shrK];
 
-goal thy  "!!A. [| Key (shrK A) : parts (sees lost Spy evs);       \
-\                  evs : otway lost |] ==> A:lost";
+goal thy  "!!A. [| Key (shrK A) : parts (sees Spy evs);       \
+\                  evs : otway |] ==> A:lost";
 by (blast_tac (!claset addDs [Spy_see_shrK]) 1);
 qed "Spy_see_shrK_D";
 
@@ -102,9 +96,9 @@ AddSDs [Spy_see_shrK_D, Spy_analz_shrK_D];
 
 
 (*Nobody can have used non-existent keys!*)
-goal thy "!!evs. evs : otway lost ==>          \
-\         Key K ~: used evs --> K ~: keysFor (parts (sees lost Spy evs))";
-by parts_induct_tac;
+goal thy "!!evs. evs : otway ==>          \
+\         Key K ~: used evs --> K ~: keysFor (parts (sees Spy evs))";
+by (parts_induct_tac 1);
 (*Fake*)
 by (best_tac
       (!claset addIs [impOfSubs analz_subset_parts]
@@ -131,7 +125,7 @@ goal thy
 \              {|Crypt (shrK A) {|NA, Agent A, Agent B, Key K|},    \
 \                Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|}   \
 \             : set evs;                                            \
-\           evs : otway lost |]                                     \
+\           evs : otway |]                                     \
 \        ==> K ~: range shrK & (EX i. NA = Nonce i) & (EX j. NB = Nonce j)";
 by (etac rev_mp 1);
 by (etac otway.induct 1);
@@ -140,10 +134,10 @@ by (Blast_tac 1);
 qed "Says_Server_message_form";
 
 
-(*For proofs involving analz.  We again instantiate the variable to "lost".*)
+(*For proofs involving analz.*)
 val analz_sees_tac = 
-    dres_inst_tac [("lost","lost")] OR4_analz_sees_Spy 6 THEN
-    forw_inst_tac [("lost","lost")] Says_Server_message_form 7 THEN
+    dtac OR4_analz_sees_Spy 6 THEN
+    forward_tac [Says_Server_message_form] 7 THEN
     assume_tac 7 THEN
     REPEAT ((eresolve_tac [exE, conjE] ORELSE' hyp_subst_tac) 7);
 
@@ -151,8 +145,8 @@ val analz_sees_tac =
 (****
  The following is to prove theorems of the form
 
-  Key K : analz (insert (Key KAB) (sees lost Spy evs)) ==>
-  Key K : analz (sees lost Spy evs)
+  Key K : analz (insert (Key KAB) (sees Spy evs)) ==>
+  Key K : analz (sees Spy evs)
 
  A more general formula must be proved inductively.
 ****)
@@ -162,10 +156,10 @@ val analz_sees_tac =
 
 (*The equality makes the induction hypothesis easier to apply*)
 goal thy  
- "!!evs. evs : otway lost ==>                                    \
-\  ALL K KK. KK <= Compl (range shrK) -->                        \
-\            (Key K : analz (Key``KK Un (sees lost Spy evs))) =  \
-\            (K : KK | Key K : analz (sees lost Spy evs))";
+ "!!evs. evs : otway ==>                                    \
+\  ALL K KK. KK <= Compl (range shrK) -->                   \
+\            (Key K : analz (Key``KK Un (sees Spy evs))) =  \
+\            (K : KK | Key K : analz (sees Spy evs))";
 by (etac otway.induct 1);
 by analz_sees_tac;
 by (REPEAT_FIRST (resolve_tac [allI, impI]));
@@ -179,9 +173,9 @@ qed_spec_mp "analz_image_freshK";
 
 
 goal thy
- "!!evs. [| evs : otway lost;  KAB ~: range shrK |] ==>          \
-\        Key K : analz (insert (Key KAB) (sees lost Spy evs)) =  \
-\        (K = KAB | Key K : analz (sees lost Spy evs))";
+ "!!evs. [| evs : otway;  KAB ~: range shrK |] ==>          \
+\        Key K : analz (insert (Key KAB) (sees Spy evs)) =  \
+\        (K = KAB | Key K : analz (sees Spy evs))";
 by (asm_simp_tac (analz_image_freshK_ss addsimps [analz_image_freshK]) 1);
 qed "analz_insert_freshK";
 
@@ -189,7 +183,7 @@ qed "analz_insert_freshK";
 (*** The Key K uniquely identifies the Server's  message. **)
 
 goal thy 
- "!!evs. evs : otway lost ==>                              \
+ "!!evs. evs : otway ==>                                   \
 \      EX A' B' NA' NB'. ALL A B NA NB.                    \
 \       Says Server B                                      \
 \         {|Crypt (shrK A) {|NA, Agent A, Agent B, K|},             \
@@ -218,7 +212,7 @@ goal thy
 \            {|Crypt (shrK A') {|NA', Agent A', Agent B', K|},     \
 \              Crypt (shrK B') {|NB', Agent A', Agent B', K|}|}    \
 \           : set evs;                                             \
-\          evs : otway lost |]                                     \
+\          evs : otway |]                                          \
 \       ==> A=A' & B=B' & NA=NA' & NB=NB'";
 by (prove_unique_tac lemma 1);
 qed "unique_session_keys";
@@ -229,14 +223,14 @@ qed "unique_session_keys";
 
 (*If the encrypted message appears then it originated with the Server!*)
 goal thy 
- "!!evs. [| A ~: lost;  evs : otway lost |]                 \
-\ ==> Crypt (shrK A) {|NA, Agent A, Agent B, Key K|}        \
-\      : parts (sees lost Spy evs)                          \
+ "!!evs. [| A ~: lost;  evs : otway |]                 \
+\ ==> Crypt (shrK A) {|NA, Agent A, Agent B, Key K|}   \
+\      : parts (sees Spy evs)                          \
 \     --> (EX NB. Says Server B                                          \
 \                  {|Crypt (shrK A) {|NA, Agent A, Agent B, Key K|},     \
 \                    Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|}    \
 \                  : set evs)";
-by parts_induct_tac;
+by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [ex_disj_distrib])));
 (*OR3*)
@@ -249,7 +243,7 @@ qed_spec_mp "NA_Crypt_imp_Server_msg";
 goal thy 
  "!!evs. [| Says B' A (Crypt (shrK A) {|NA, Agent A, Agent B, Key K|})  \
 \            : set evs;                                                 \
-\           A ~: lost;  evs : otway lost |]                             \
+\           A ~: lost;  evs : otway |]                                  \
 \        ==> EX NB. Says Server B                                       \
 \                    {|Crypt (shrK A) {|NA, Agent A, Agent B, Key K|},  \
 \                      Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|} \
@@ -264,13 +258,13 @@ qed "A_trusts_OR4";
     the premises, e.g. by having A=Spy **)
 
 goal thy 
- "!!evs. [| A ~: lost;  B ~: lost;  evs : otway lost |]                    \
+ "!!evs. [| A ~: lost;  B ~: lost;  evs : otway |]                         \
 \        ==> Says Server B                                                 \
 \             {|Crypt (shrK A) {|NA, Agent A, Agent B, Key K|},            \
 \               Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|}           \
 \            : set evs -->                                                 \
 \            Says B Spy {|NA, NB, Key K|} ~: set evs -->                   \
-\            Key K ~: analz (sees lost Spy evs)";
+\            Key K ~: analz (sees Spy evs)";
 by (etac otway.induct 1);
 by analz_sees_tac;
 by (ALLGOALS
@@ -295,8 +289,8 @@ goal thy
 \                Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|}   \
 \             : set evs;                                            \
 \           Says B Spy {|NA, NB, Key K|} ~: set evs;                \
-\           A ~: lost;  B ~: lost;  evs : otway lost |]             \
-\        ==> Key K ~: analz (sees lost Spy evs)";
+\           A ~: lost;  B ~: lost;  evs : otway |]                  \
+\        ==> Key K ~: analz (sees Spy evs)";
 by (forward_tac [Says_Server_message_form] 1 THEN assume_tac 1);
 by (blast_tac (!claset addSEs [lemma]) 1);
 qed "Spy_not_see_encrypted_key";
@@ -306,14 +300,14 @@ qed "Spy_not_see_encrypted_key";
 
 (*If the encrypted message appears then it originated with the Server!*)
 goal thy 
- "!!evs. [| B ~: lost;  evs : otway lost |]                                 \
-\    ==> Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}                     \
-\         : parts (sees lost Spy evs)                                       \
+ "!!evs. [| B ~: lost;  evs : otway |]                                 \
+\    ==> Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}                \
+\         : parts (sees Spy evs)                                       \
 \        --> (EX NA. Says Server B                                          \
 \                     {|Crypt (shrK A) {|NA, Agent A, Agent B, Key K|},     \
 \                       Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|}    \
 \                     : set evs)";
-by parts_induct_tac;
+by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [ex_disj_distrib])));
 (*OR3*)
@@ -324,7 +318,7 @@ qed_spec_mp "NB_Crypt_imp_Server_msg";
 (*Guarantee for B: if it gets a well-formed certificate then the Server
   has sent the correct message in round 3.*)
 goal thy 
- "!!evs. [| B ~: lost;  evs : otway lost;                                   \
+ "!!evs. [| B ~: lost;  evs : otway;                                        \
 \           Says S' B {|X, Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|} \
 \            : set evs |]                                                   \
 \        ==> EX NA. Says Server B                                           \

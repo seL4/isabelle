@@ -19,55 +19,55 @@ From page 11 of
 
 OtwayRees_AN = Shared + 
 
-consts  otway   :: agent set => event list set
-inductive "otway lost"
+consts  otway   :: event list set
+inductive "otway"
   intrs 
          (*Initial trace is empty*)
-    Nil  "[]: otway lost"
+    Nil  "[]: otway"
 
          (*The spy MAY say anything he CAN say.  We do not expect him to
            invent new nonces here, but he can also use NS1.  Common to
            all similar protocols.*)
-    Fake "[| evs: otway lost;  B ~= Spy;  
-             X: synth (analz (sees lost Spy evs)) |]
-          ==> Says Spy B X  # evs : otway lost"
+    Fake "[| evs: otway;  B ~= Spy;  
+             X: synth (analz (sees Spy evs)) |]
+          ==> Says Spy B X  # evs : otway"
 
          (*Alice initiates a protocol run*)
-    OR1  "[| evs: otway lost;  A ~= B;  B ~= Server |]
-          ==> Says A B {|Agent A, Agent B, Nonce NA|} # evs : otway lost"
+    OR1  "[| evs: otway;  A ~= B;  B ~= Server |]
+          ==> Says A B {|Agent A, Agent B, Nonce NA|} # evs : otway"
 
          (*Bob's response to Alice's message.  Bob doesn't know who 
 	   the sender is, hence the A' in the sender field.*)
-    OR2  "[| evs: otway lost;  B ~= Server;
+    OR2  "[| evs: otway;  B ~= Server;
              Says A' B {|Agent A, Agent B, Nonce NA|} : set evs |]
           ==> Says B Server {|Agent A, Agent B, Nonce NA, Nonce NB|}
-                 # evs : otway lost"
+                 # evs : otway"
 
          (*The Server receives Bob's message.  Then he sends a new
            session key to Bob with a packet for forwarding to Alice.*)
-    OR3  "[| evs: otway lost;  B ~= Server;  A ~= B;  Key KAB ~: used evs;
+    OR3  "[| evs: otway;  B ~= Server;  A ~= B;  Key KAB ~: used evs;
              Says B' Server {|Agent A, Agent B, Nonce NA, Nonce NB|}
                : set evs |]
           ==> Says Server B 
                {|Crypt (shrK A) {|Nonce NA, Agent A, Agent B, Key KAB|},
                  Crypt (shrK B) {|Nonce NB, Agent A, Agent B, Key KAB|}|}
-              # evs : otway lost"
+              # evs : otway"
 
          (*Bob receives the Server's (?) message and compares the Nonces with
 	   those in the message he previously sent the Server.*)
-    OR4  "[| evs: otway lost;  A ~= B;
+    OR4  "[| evs: otway;  A ~= B;
              Says B Server {|Agent A, Agent B, Nonce NA, Nonce NB|} : set evs;
              Says S' B {|X, Crypt(shrK B){|Nonce NB,Agent A,Agent B,Key K|}|}
                : set evs |]
-          ==> Says B A X # evs : otway lost"
+          ==> Says B A X # evs : otway"
 
          (*This message models possible leaks of session keys.  The nonces
            identify the protocol run.  B is not assumed to know shrK A.*)
-    Oops "[| evs: otway lost;  B ~= Spy;
+    Oops "[| evs: otway;  B ~= Spy;
              Says Server B 
                       {|Crypt (shrK A) {|Nonce NA, Agent A, Agent B, Key K|}, 
                         Crypt (shrK B) {|Nonce NB, Agent A, Agent B, Key K|}|}
                : set evs |]
-          ==> Says B Spy {|Nonce NA, Nonce NB, Key K|} # evs : otway lost"
+          ==> Says B Spy {|Nonce NA, Nonce NB, Key K|} # evs : otway"
 
 end

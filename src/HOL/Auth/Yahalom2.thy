@@ -15,35 +15,35 @@ From page 259 of
 
 Yahalom2 = Shared + 
 
-consts  yahalom   :: agent set => event list set
-inductive "yahalom lost"
+consts  yahalom   :: event list set
+inductive "yahalom"
   intrs 
          (*Initial trace is empty*)
-    Nil  "[]: yahalom lost"
+    Nil  "[]: yahalom"
 
          (*The spy MAY say anything he CAN say.  We do not expect him to
            invent new nonces here, but he can also use NS1.  Common to
            all similar protocols.*)
-    Fake "[| evs: yahalom lost;  B ~= Spy;  
-             X: synth (analz (sees lost Spy evs)) |]
-          ==> Says Spy B X  # evs : yahalom lost"
+    Fake "[| evs: yahalom;  B ~= Spy;  
+             X: synth (analz (sees Spy evs)) |]
+          ==> Says Spy B X  # evs : yahalom"
 
          (*Alice initiates a protocol run*)
-    YM1  "[| evs: yahalom lost;  A ~= B;  Nonce NA ~: used evs |]
-          ==> Says A B {|Agent A, Nonce NA|} # evs : yahalom lost"
+    YM1  "[| evs: yahalom;  A ~= B;  Nonce NA ~: used evs |]
+          ==> Says A B {|Agent A, Nonce NA|} # evs : yahalom"
 
          (*Bob's response to Alice's message.  Bob doesn't know who 
 	   the sender is, hence the A' in the sender field.*)
-    YM2  "[| evs: yahalom lost;  B ~= Server;  Nonce NB ~: used evs;
+    YM2  "[| evs: yahalom;  B ~= Server;  Nonce NB ~: used evs;
              Says A' B {|Agent A, Nonce NA|} : set evs |]
           ==> Says B Server 
                   {|Agent B, Nonce NB, Crypt (shrK B) {|Agent A, Nonce NA|}|}
-                # evs : yahalom lost"
+                # evs : yahalom"
 
          (*The Server receives Bob's message.  He responds by sending a
            new session key to Alice, with a packet for forwarding to Bob.
            !! Fields are reversed in the 2nd packet to prevent attacks!! *)
-    YM3  "[| evs: yahalom lost;  A ~= B;  A ~= Server;  Key KAB ~: used evs;
+    YM3  "[| evs: yahalom;  A ~= B;  A ~= Server;  Key KAB ~: used evs;
              Says B' Server {|Agent B, Nonce NB,
 			      Crypt (shrK B) {|Agent A, Nonce NA|}|}
                : set evs |]
@@ -51,23 +51,23 @@ inductive "yahalom lost"
                {|Nonce NB, 
                  Crypt (shrK A) {|Agent B, Key KAB, Nonce NA|},
                  Crypt (shrK B) {|Nonce NB, Key KAB, Agent A|}|}
-                 # evs : yahalom lost"
+                 # evs : yahalom"
 
          (*Alice receives the Server's (?) message, checks her Nonce, and
            uses the new session key to send Bob his Nonce.*)
-    YM4  "[| evs: yahalom lost;  A ~= Server;  
+    YM4  "[| evs: yahalom;  A ~= Server;  
              Says S A {|Nonce NB, Crypt (shrK A) {|Agent B, Key K, Nonce NA|},
                         X|}  : set evs;
              Says A B {|Agent A, Nonce NA|} : set evs |]
-          ==> Says A B {|X, Crypt K (Nonce NB)|} # evs : yahalom lost"
+          ==> Says A B {|X, Crypt K (Nonce NB)|} # evs : yahalom"
 
          (*This message models possible leaks of session keys.  The nonces
            identify the protocol run.  Quoting Server here ensures they are
            correct. *)
-    Oops "[| evs: yahalom lost;  A ~= Spy;
+    Oops "[| evs: yahalom;  A ~= Spy;
              Says Server A {|Nonce NB, 
                              Crypt (shrK A) {|Agent B, Key K, Nonce NA|},
                              X|}  : set evs |]
-          ==> Says A Spy {|Nonce NA, Nonce NB, Key K|} # evs : yahalom lost"
+          ==> Says A Spy {|Nonce NA, Nonce NB, Key K|} # evs : yahalom"
 
 end

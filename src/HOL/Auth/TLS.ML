@@ -22,13 +22,30 @@ open TLS;
 proof_timing:=true;
 HOL_quantifiers := false;
 
-AddIffs [Spy_in_lost, Server_not_lost];
-Addsimps [certificate_def];
+(** We mostly DO NOT unfold the definition of "certificate".  The attached
+    lemmas unfold it lazily, when "certificate B KB" occurs in appropriate
+    contexts.
+**)
 
-goal thy "!!A. A ~: lost ==> A ~= Spy";
+goalw thy [certificate_def] 
+    "parts (insert (certificate B KB) H) =  \
+\    parts (insert (Crypt (priK Server) {|Agent B, Key KB|}) H)";
+by (rtac refl 1);
+qed "parts_insert_certificate";
+
+goalw thy [certificate_def] 
+    "analz (insert (certificate B KB) H) =  \
+\    analz (insert (Crypt (priK Server) {|Agent B, Key KB|}) H)";
+by (rtac refl 1);
+qed "analz_insert_certificate";
+Addsimps [parts_insert_certificate, analz_insert_certificate];
+
+goalw thy [certificate_def] 
+    "(X = certificate B KB) = (Crypt (priK Server) {|Agent B, Key KB|} = X)";
 by (Blast_tac 1);
-qed "not_lost_not_eq_Spy";
-Addsimps [not_lost_not_eq_Spy];
+qed "eq_certificate_iff";
+AddIffs [eq_certificate_iff];
+
 
 (*Injectiveness of key-generating functions*)
 AddIffs [inj_clientK RS inj_eq, inj_serverK RS inj_eq];
@@ -36,11 +53,6 @@ AddIffs [inj_clientK RS inj_eq, inj_serverK RS inj_eq];
 (* invKey(clientK x) = clientK x  and similarly for serverK*)
 Addsimps [isSym_clientK, rewrite_rule [isSymKey_def] isSym_clientK,
 	  isSym_serverK, rewrite_rule [isSymKey_def] isSym_serverK];
-
-
-(*Replacing the variable by a constant improves search speed by 50%!*)
-val Says_imp_sees_Spy' = 
-    read_instantiate_sg (sign_of thy) [("lost","lost")] Says_imp_sees_Spy;
 
 
 (*** clientK and serverK make symmetric keys; no clashes with pubK or priK ***)
@@ -102,11 +114,10 @@ result();
 
 (*And one for ClientFinished.  Either FINISHED message may come first.*)
 goal thy 
- "!!A B. A ~= B ==> EX NA XA NB XB M. EX evs: tls.    \
-\  Says A B (Crypt (clientK(NA,NB,M))                 \
-\            (Hash{|Hash{|Nonce NA, Nonce NB, Nonce M|}, \
-\                   Nonce NA, Agent XA,               \
-\                   certificate A (pubK A),      \
+ "!!A B. A ~= B ==> EX NA XA NB XB M. EX evs: tls.              \
+\  Says A B (Crypt (clientK(NA,NB,M))                           \
+\            (Hash{|Hash{|Nonce NA, Nonce NB, Nonce M|},        \
+\                   Nonce NA, Agent XA, certificate A (pubK A), \
 \                   Nonce NB, Agent XB, Agent B|})) : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (tls.Nil RS tls.ClientHello RS tls.ServerHello RS tls.ClientCertKeyEx
@@ -116,7 +127,7 @@ result();
 
 (*Another one, for CertVerify (which is optional)*)
 goal thy 
- "!!A B. A ~= B ==> EX NB M. EX evs: tls.     \
+ "!!A B. A ~= B ==> EX NB M. EX evs: tls.   \
 \  Says A B (Crypt (priK A)                 \
 \            (Hash{|Nonce NB, certificate B (pubK B), Nonce M|})) : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
@@ -137,28 +148,36 @@ Addsimps [not_Says_to_self];
 AddSEs   [not_Says_to_self RSN (2, rev_notE)];
 
 
-(** Theorems of the form X ~: parts (sees lost Spy evs) imply that NOBODY
+(*Induction for regularity theorems.  If induction formula has the form
+   X ~: analz (sees Spy evs) --> ... then it shortens the proof by discarding
+   needless information about analz (insert X (sees Spy evs))  *)
+fun parts_induct_tac i = 
+    etac tls.induct i
+    THEN 
+    REPEAT (FIRSTGOAL analz_mono_contra_tac)
+    THEN 
+    fast_tac (!claset addss (!simpset)) i THEN
+    ALLGOALS (asm_full_simp_tac (!simpset setloop split_tac [expand_if]));
+
+
+(** Theorems of the form X ~: parts (sees Spy evs) imply that NOBODY
     sends messages containing X! **)
 
 (*Spy never sees another agent's private key! (unless it's lost at start)*)
 goal thy 
- "!!evs. evs : tls \
-\        ==> (Key (priK A) : parts (sees lost Spy evs)) = (A : lost)";
-by (etac tls.induct 1);
-by (prove_simple_subgoals_tac 1);
-by (asm_simp_tac (!simpset setloop split_tac [expand_if]) 2);
+ "!!evs. evs : tls ==> (Key (priK A) : parts (sees Spy evs)) = (A : lost)";
+by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
 qed "Spy_see_priK";
 Addsimps [Spy_see_priK];
 
 goal thy 
- "!!evs. evs : tls \
-\        ==> (Key (priK A) : analz (sees lost Spy evs)) = (A : lost)";
+ "!!evs. evs : tls ==> (Key (priK A) : analz (sees Spy evs)) = (A : lost)";
 by (auto_tac(!claset addDs [impOfSubs analz_subset_parts], !simpset));
 qed "Spy_analz_priK";
 Addsimps [Spy_analz_priK];
 
-goal thy  "!!A. [| Key (priK A) : parts (sees lost Spy evs);       \
+goal thy  "!!A. [| Key (priK A) : parts (sees Spy evs);       \
 \                  evs : tls |] ==> A:lost";
 by (blast_tac (!claset addDs [Spy_see_priK]) 1);
 qed "Spy_see_priK_D";
@@ -168,22 +187,20 @@ AddSDs [Spy_see_priK_D, Spy_analz_priK_D];
 
 
 (*This lemma says that no false certificates exist.  One might extend the
-  model to include bogus certificates for the lost agents, but there seems
+  model to include bogus certificates for the agents, but there seems
   little point in doing so: the loss of their private keys is a worse
   breach of security.*)
 goalw thy [certificate_def]
  "!!evs. evs : tls     \
-\        ==> certificate B KB : parts (sees lost Spy evs) --> KB = pubK B";
-by (etac tls.induct 1);
-by (ALLGOALS (asm_full_simp_tac (!simpset setloop split_tac [expand_if])));
-by (Fake_parts_insert_tac 2);
-by (Blast_tac 1);
+\        ==> certificate B KB : parts (sees Spy evs) --> KB = pubK B";
+by (parts_induct_tac 1);
+by (Fake_parts_insert_tac 1);
 bind_thm ("Server_cert_pubB", result() RSN (2, rev_mp));
 
 
 (*Replace key KB in ClientCertKeyEx by (pubK B) *)
 val ClientCertKeyEx_tac = 
-    forward_tac [Says_imp_sees_Spy' RS parts.Inj RS 
+    forward_tac [Says_imp_sees_Spy RS parts.Inj RS 
 		 parts.Snd RS parts.Snd RS parts.Snd RS Server_cert_pubB]
     THEN' assume_tac
     THEN' hyp_subst_tac;
@@ -193,7 +210,6 @@ fun analz_induct_tac i =
     ClientCertKeyEx_tac  (i+7)  THEN	(*ClientFinished*)
     ClientCertKeyEx_tac  (i+6)  THEN	(*CertVerify*)
     ClientCertKeyEx_tac  (i+5)  THEN	(*ClientCertKeyEx*)
-    rewrite_goals_tac  [certificate_def]  THEN
     ALLGOALS (asm_simp_tac 
               (!simpset addsimps [not_parts_not_analz]
                         setloop split_tac [expand_if]))  THEN
@@ -207,36 +223,32 @@ fun analz_induct_tac i =
 (*** Hashing of nonces ***)
 
 (*Every Nonce that's hashed is already in past traffic. *)
-goal thy "!!evs. [| Hash {|Nonce N, X|} : parts (sees lost Spy evs);  \
+goal thy "!!evs. [| Hash {|Nonce N, X|} : parts (sees Spy evs);  \
 \                   evs : tls |]  \
-\                ==> Nonce N : parts (sees lost Spy evs)";
+\                ==> Nonce N : parts (sees Spy evs)";
 by (etac rev_mp 1);
-by (etac tls.induct 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [parts_insert_sees]
-			             setloop split_tac [expand_if])));
-by (Fake_parts_insert_tac 2);
-by (REPEAT (blast_tac (!claset addSDs [Says_imp_sees_Spy' RS parts.Inj]
-		               addSEs partsEs) 1));
+by (parts_induct_tac 1);
+by (ALLGOALS (asm_simp_tac (!simpset addsimps [parts_insert_sees])));
+by (Fake_parts_insert_tac 1);
+by (blast_tac (!claset addSDs [Says_imp_sees_Spy RS parts.Inj]
+	               addSEs partsEs) 1);
 qed "Hash_imp_Nonce1";
 
 (*Lemma needed to prove Hash_Hash_imp_Nonce*)
 goal thy "!!evs. [| Hash{|Nonce NA, Nonce NB, Nonce M|}  \
-\                       : parts (sees lost Spy evs);     \
+\                       : parts (sees Spy evs);     \
 \                   evs : tls |]  \
-\                ==> Nonce M : parts (sees lost Spy evs)";
+\                ==> Nonce M : parts (sees Spy evs)";
 by (etac rev_mp 1);
-by (etac tls.induct 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [parts_insert_sees]
-			             setloop split_tac [expand_if])));
-by (Fake_parts_insert_tac 2);
-by (blast_tac (!claset addSDs [Says_imp_sees_Spy' RS parts.Inj]
-		       addSEs partsEs) 1);
+by (parts_induct_tac 1);
+by (asm_simp_tac (!simpset addsimps [parts_insert_sees]) 1);
+by (Fake_parts_insert_tac 1);
 qed "Hash_imp_Nonce2";
 AddSDs [Hash_imp_Nonce2];
 
 
 goal thy "!!evs. [| Notes A {|Agent B, X|} : set evs;  evs : tls |]  \
-\                ==> Crypt (pubK B) X : parts (sees lost Spy evs)";
+\                ==> Crypt (pubK B) X : parts (sees Spy evs)";
 by (etac rev_mp 1);
 by (analz_induct_tac 1);
 by (blast_tac (!claset addIs [parts_insertI]) 1);
@@ -245,17 +257,16 @@ qed "Notes_Crypt_parts_sees";
 
 (*NEEDED??*)
 goal thy "!!evs. [| Hash {| Hash{|Nonce NA, Nonce NB, Nonce M|}, X |}  \
-\                      : parts (sees lost Spy evs);      \
+\                      : parts (sees Spy evs);      \
 \                   evs : tls |]                         \
-\                ==> Nonce M : parts (sees lost Spy evs)";
+\                ==> Nonce M : parts (sees Spy evs)";
 by (etac rev_mp 1);
-by (etac tls.induct 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [parts_insert_sees]
-			             setloop split_tac [expand_if])));
-by (Fake_parts_insert_tac 2);
-by (step_tac (!claset addSDs [Notes_Crypt_parts_sees,
-			      Says_imp_sees_Spy' RS parts.Inj]
-		      addSEs partsEs) 1);
+by (parts_induct_tac 1);
+by (ALLGOALS (asm_simp_tac (!simpset addsimps [parts_insert_sees])));
+by (Fake_parts_insert_tac 1);
+by (REPEAT (blast_tac (!claset addSDs [Notes_Crypt_parts_sees,
+				       Says_imp_sees_Spy RS parts.Inj]
+		               addSEs partsEs) 1));
 qed "Hash_Hash_imp_Nonce";
 
 
@@ -263,14 +274,13 @@ qed "Hash_Hash_imp_Nonce";
   Every Nonce that's hashed is already in past traffic. 
   This general formulation is tricky to prove and hard to use, since the
   2nd premise is typically proved by simplification.*)
-goal thy "!!evs. [| Hash X : parts (sees lost Spy evs);  \
+goal thy "!!evs. [| Hash X : parts (sees Spy evs);  \
 \                   Nonce N : parts {X};  evs : tls |]  \
-\                ==> Nonce N : parts (sees lost Spy evs)";
+\                ==> Nonce N : parts (sees Spy evs)";
 by (etac rev_mp 1);
-by (etac tls.induct 1);
-by (ALLGOALS (asm_simp_tac (!simpset setloop split_tac [expand_if])));
+by (parts_induct_tac 1);
 by (step_tac (!claset addSDs [Notes_Crypt_parts_sees,
-			      Says_imp_sees_Spy' RS parts.Inj]
+			      Says_imp_sees_Spy RS parts.Inj]
 		      addSEs partsEs) 1);
 by (ALLGOALS (asm_full_simp_tac (!simpset addsimps [parts_insert_sees])));
 by (Fake_parts_insert_tac 1);
@@ -285,16 +295,15 @@ qed "Hash_imp_Nonce_seen";
   Perhaps B~=Spy is unnecessary, but there's no obvious proof if the first
   message is Fake.  We don't need guarantees for the Spy anyway.  We must
   assume A~:lost; otherwise, the Spy can forge A's signature.*)
-goalw thy [certificate_def]
+goal thy
  "!!evs. [| X = Crypt (priK A)                                        \
 \                 (Hash{|Nonce NB, certificate B KB, Nonce M|});      \
 \           evs : tls;  A ~: lost;  B ~= Spy |]                       \
 \    ==> Says B A {|Nonce NA, Nonce NB, Agent XB, certificate B KB|}  \
 \          : set evs --> \
-\        X : parts (sees lost Spy evs) --> Says A B X : set evs";
+\        X : parts (sees Spy evs) --> Says A B X : set evs";
 by (hyp_subst_tac 1);
-by (etac tls.induct 1);
-by (ALLGOALS (asm_simp_tac (!simpset setloop split_tac [expand_if])));
+by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
 (*ServerHello: nonce NB cannot be in X because it's fresh!*)
 by (blast_tac (!claset addSDs [Hash_imp_Nonce1]
@@ -305,25 +314,23 @@ qed_spec_mp "TrustCertVerify";
 (*If CERTIFICATE VERIFY is present then A has chosen M.*)
 goal thy
  "!!evs. [| Crypt (priK A) (Hash{|Nonce NB, certificate B KB, Nonce M|})  \
-\             : parts (sees lost Spy evs);                                \
+\             : parts (sees Spy evs);                                \
 \           evs : tls;  A ~: lost |]                                      \
 \        ==> Notes A {|Agent B, Nonce M|} : set evs";
 be rev_mp 1;
-by (etac tls.induct 1);
-by (ALLGOALS (asm_full_simp_tac (!simpset setloop split_tac [expand_if])));
-by (Fake_parts_insert_tac 2);
-by (Blast_tac 1);
+by (parts_induct_tac 1);
+by (Fake_parts_insert_tac 1);
 qed "UseCertVerify";
 
 
 (*No collection of keys can help the spy get new private keys*)
 goal thy  
  "!!evs. evs : tls ==>                                    \
-\  ALL KK. (Key(priK B) : analz (Key``KK Un (sees lost Spy evs))) =  \
+\  ALL KK. (Key(priK B) : analz (Key``KK Un (sees Spy evs))) =  \
 \            (priK B : KK | B : lost)";
 by (etac tls.induct 1);
 by (ALLGOALS
-    (asm_simp_tac (analz_image_keys_ss 
+    (asm_simp_tac (analz_image_keys_ss
 		   addsimps (certificate_def::keys_distinct))));
 (*Fake*) 
 by (spy_analz_tac 2);
@@ -343,8 +350,8 @@ val lemma = result();
 goal thy  
  "!!evs. evs : tls ==>                                 \
 \    ALL KK. KK <= (range clientK Un range serverK) -->           \
-\            (Nonce N : analz (Key``KK Un (sees lost Spy evs))) = \
-\            (Nonce N : analz (sees lost Spy evs))";
+\            (Nonce N : analz (Key``KK Un (sees Spy evs))) = \
+\            (Nonce N : analz (sees Spy evs))";
 by (etac tls.induct 1);
 by (ClientCertKeyEx_tac 6);
 by (REPEAT_FIRST (resolve_tac [allI, impI]));
@@ -352,8 +359,8 @@ by (REPEAT_FIRST (rtac lemma));
 writeln"SLOW simplification: 50 secs!??";
 by (ALLGOALS
     (asm_simp_tac (analz_image_keys_ss 
-		   addsimps (analz_image_priK::certificate_def::
-			     keys_distinct))));
+                   addsimps (analz_image_priK::certificate_def::
+                             keys_distinct))));
 by (ALLGOALS (asm_simp_tac (analz_image_keys_ss addsimps [analz_image_priK])));
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [insert_absorb])));
 (*ClientCertKeyEx: a nonce is sent, but one needs a priK to read it.*)
@@ -369,7 +376,7 @@ qed_spec_mp "analz_image_keys";
 goal thy
  "!!evs. [| evs : tls;  A ~: lost;  B ~: lost |]           \
 \        ==> Notes A {|Agent B, Nonce M|} : set evs  -->   \
-\            Nonce M ~: analz (sees lost Spy evs)";
+\            Nonce M ~: analz (sees Spy evs)";
 by (analz_induct_tac 1);
 (*ClientHello*)
 by (blast_tac (!claset addSDs [Notes_Crypt_parts_sees]
@@ -382,7 +389,7 @@ by (spy_analz_tac 1);
 by (REPEAT (blast_tac (!claset addSEs partsEs
 			       addDs  [Notes_Crypt_parts_sees,
 				       impOfSubs analz_subset_parts,
-				       Says_imp_sees_Spy' RS analz.Inj]) 1));
+				       Says_imp_sees_Spy RS analz.Inj]) 1));
 bind_thm ("Spy_not_see_premaster_secret", result() RSN (2, rev_mp));
 
 
@@ -395,13 +402,13 @@ bind_thm ("Spy_not_see_premaster_secret", result() RSN (2, rev_mp));
   Converse doesn't hold; betraying M doesn't force the keys to be sent!*)
 
 goal thy 
- "!!evs. [| Nonce M ~: analz (sees lost Spy evs);  evs : tls |]   \
-\        ==> Key (clientK(NA,NB,M)) ~: parts (sees lost Spy evs)";
+ "!!evs. [| Nonce M ~: analz (sees Spy evs);  evs : tls |]   \
+\        ==> Key (clientK(NA,NB,M)) ~: parts (sees Spy evs)";
 by (etac rev_mp 1);
 by (analz_induct_tac 1);
 (*SpyKeys*)
 by (asm_simp_tac (analz_image_keys_ss addsimps [analz_image_keys]) 3);
-by (blast_tac (!claset addDs [Says_imp_sees_Spy' RS analz.Inj]) 3);
+by (blast_tac (!claset addDs [Says_imp_sees_Spy RS analz.Inj]) 3);
 (*Fake*) 
 by (spy_analz_tac 2);
 (*Base*)
@@ -412,13 +419,13 @@ Addsimps [clientK_notin_parts];
 AddSEs [clientK_notin_parts RSN (2, rev_notE)];
 
 goal thy 
- "!!evs. [| Nonce M ~: analz (sees lost Spy evs);  evs : tls |]   \
-\        ==> Key (serverK(NA,NB,M)) ~: parts (sees lost Spy evs)";
+ "!!evs. [| Nonce M ~: analz (sees Spy evs);  evs : tls |]   \
+\        ==> Key (serverK(NA,NB,M)) ~: parts (sees Spy evs)";
 by (etac rev_mp 1);
 by (analz_induct_tac 1);
 (*SpyKeys*)
 by (asm_simp_tac (analz_image_keys_ss addsimps [analz_image_keys]) 3);
-by (blast_tac (!claset addDs [Says_imp_sees_Spy' RS analz.Inj]) 3);
+by (blast_tac (!claset addDs [Says_imp_sees_Spy RS analz.Inj]) 3);
 (*Fake*) 
 by (spy_analz_tac 2);
 (*Base*)
@@ -434,7 +441,7 @@ AddSEs [serverK_notin_parts RSN (2, rev_notE)];
 
 goal thy 
  "!!evs. [| Nonce M ~: used evs;  evs : tls |]                           \
-\        ==> Crypt (clientK(NA,NB,M)) Y ~: parts (sees lost Spy evs)";
+\        ==> Crypt (clientK(NA,NB,M)) Y ~: parts (sees Spy evs)";
 by (etac rev_mp 1);
 by (analz_induct_tac 1);
 (*ClientFinished: since M is fresh, a different instance of clientK was used.*)
@@ -450,7 +457,7 @@ AddEs [Crypt_clientK_notin_parts RSN (2, rev_notE)];
 
 goal thy 
  "!!evs. [| Nonce M ~: used evs;  evs : tls |]                           \
-\        ==> Crypt (serverK(NA,NB,M)) Y ~: parts (sees lost Spy evs)";
+\        ==> Crypt (serverK(NA,NB,M)) Y ~: parts (sees Spy evs)";
 by (etac rev_mp 1);
 by (analz_induct_tac 1);
 (*ServerFinished: since M is fresh, a different instance of serverK was used.*)
@@ -465,10 +472,10 @@ Addsimps [Crypt_serverK_notin_parts];
 AddEs [Crypt_serverK_notin_parts RSN (2, rev_notE)];
 
 
-(*Weakening A~:lost to A~=Spy would complicate later uses of the rule*)
+(*NEEDED??*)
 goal thy
  "!!evs. [| Says A B {|certA, Crypt KB (Nonce M)|} : set evs;   \
-\           A ~: lost;  evs : tls |] ==> KB = pubK B";
+\           A ~= Spy;  evs : tls |] ==> KB = pubK B";
 be rev_mp 1;
 by (analz_induct_tac 1);
 qed "A_Crypt_pubB";
@@ -476,36 +483,25 @@ qed "A_Crypt_pubB";
 
 (*** Unicity results for M, the pre-master-secret ***)
 
-(*Induction for theorems of the form X ~: analz (sees lost Spy evs) --> ...
-  It simplifies the proof by discarding needless information about
-	analz (insert X (sees lost Spy evs)) 
-*)
-fun analz_mono_parts_induct_tac i = 
-    etac tls.induct i           THEN 
-    ClientCertKeyEx_tac  (i+5)  THEN	(*ClientCertKeyEx*)
-    REPEAT_FIRST analz_mono_contra_tac;
-
-
 (*M determines B.  Proof borrowed from NS_Public/unique_NA and from Yahalom*)
 goal thy 
- "!!evs. [| Nonce M ~: analz (sees lost Spy evs);  evs : tls |]   \
+ "!!evs. [| Nonce M ~: analz (sees Spy evs);  evs : tls |]   \
 \        ==> EX B'. ALL B.   \
-\              Crypt (pubK B) (Nonce M) : parts (sees lost Spy evs) --> B=B'";
+\              Crypt (pubK B) (Nonce M) : parts (sees Spy evs) --> B=B'";
 by (etac rev_mp 1);
-by (analz_mono_parts_induct_tac 1);
-by (prove_simple_subgoals_tac 1);
-by (asm_simp_tac (!simpset addsimps [all_conj_distrib]
-                           setloop split_tac [expand_if]) 2);
-(*ClientCertKeyEx*)
-by (expand_case_tac "M = ?y" 2 THEN
-    REPEAT (blast_tac (!claset addSEs partsEs) 2));
+by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
+(*ClientCertKeyEx*)
+by (ClientCertKeyEx_tac 1);
+by (asm_simp_tac (!simpset addsimps [all_conj_distrib]) 1);
+by (expand_case_tac "M = ?y" 1 THEN
+    blast_tac (!claset addSEs partsEs) 1);
 val lemma = result();
 
 goal thy 
- "!!evs. [| Crypt(pubK B)  (Nonce M) : parts (sees lost Spy evs); \
-\           Crypt(pubK B') (Nonce M) : parts (sees lost Spy evs); \
-\           Nonce M ~: analz (sees lost Spy evs);                 \
+ "!!evs. [| Crypt(pubK B)  (Nonce M) : parts (sees Spy evs); \
+\           Crypt(pubK B') (Nonce M) : parts (sees Spy evs); \
+\           Nonce M ~: analz (sees Spy evs);                 \
 \           evs : tls |]                                          \
 \        ==> B=B'";
 by (prove_unique_tac lemma 1);
@@ -514,12 +510,11 @@ qed "unique_M";
 
 (*In A's note to herself, M determines A and B.*)
 goal thy 
- "!!evs. [| Nonce M ~: analz (sees lost Spy evs);  evs : tls |]            \
+ "!!evs. [| Nonce M ~: analz (sees Spy evs);  evs : tls |]            \
 \ ==> EX A' B'. ALL A B.                                                   \
 \        Notes A {|Agent B, Nonce M|} : set evs --> A=A' & B=B'";
 by (etac rev_mp 1);
-by (analz_mono_parts_induct_tac 1);
-by (prove_simple_subgoals_tac 1);
+by (parts_induct_tac 1);
 by (asm_simp_tac (!simpset addsimps [all_conj_distrib]) 1);
 (*ClientCertKeyEx: if M is fresh, then it can't appear in Notes A X.*)
 by (expand_case_tac "M = ?y" 1 THEN
@@ -529,7 +524,7 @@ val lemma = result();
 goal thy 
  "!!evs. [| Notes A  {|Agent B,  Nonce M|} : set evs;  \
 \           Notes A' {|Agent B', Nonce M|} : set evs;  \
-\           Nonce M ~: analz (sees lost Spy evs);      \
+\           Nonce M ~: analz (sees Spy evs);      \
 \           evs : tls |]                               \
 \        ==> A=A' & B=B'";
 by (prove_unique_tac lemma 1);
@@ -550,13 +545,13 @@ goal thy
 \                        Nonce NB, Agent XB, certificate B (pubK B)|}); \
 \           evs : tls;  A ~: lost;  B ~: lost |]                        \
 \        ==> Notes A {|Agent B, Nonce M|} : set evs -->                 \
-\        X : parts (sees lost Spy evs) --> Says B A X : set evs";
+\        X : parts (sees Spy evs) --> Says B A X : set evs";
 by (hyp_subst_tac 1);
 by (analz_induct_tac 1);
 by (REPEAT_FIRST (rtac impI));
 (*Fake: the Spy doesn't have the critical session key!*)
 by (REPEAT (rtac impI 1));
-by (subgoal_tac "Key (serverK(NA,NB,M)) ~: analz (sees lost Spy evsa)" 1);
+by (subgoal_tac "Key (serverK(NA,NB,M)) ~: analz (sees Spy evsa)" 1);
 by (asm_simp_tac (!simpset addsimps [Spy_not_see_premaster_secret, 
 				     not_parts_not_analz]) 2);
 by (Fake_parts_insert_tac 1);
@@ -566,16 +561,17 @@ qed_spec_mp "TrustServerFinished";
 (*This version refers not to SERVER FINISHED but to any message from B.
   We don't assume B has received CERTIFICATE VERIFY, and an intruder could
   have changed A's identity in all other messages, so we can't be sure
-  that B sends his message to A.*)
+  that B sends his message to A.  If CLIENT KEY EXCHANGE were augmented
+  to bind A's identify with M, then we could replace A' by A below.*)
 goal thy
- "!!evs. [| evs : tls;  A ~: lost;  B ~: lost |]                         \
-\        ==> Notes A {|Agent B, Nonce M|} : set evs -->                  \
-\            Crypt (serverK(NA,NB,M)) Y : parts (sees lost Spy evs)  --> \
+ "!!evs. [| evs : tls;  A ~: lost;  B ~: lost |]                     \
+\        ==> Notes A {|Agent B, Nonce M|} : set evs -->              \
+\            Crypt (serverK(NA,NB,M)) Y : parts (sees Spy evs)  -->  \
 \            (EX A'. Says B A' (Crypt (serverK(NA,NB,M)) Y) : set evs)";
 by (analz_induct_tac 1);
 by (REPEAT_FIRST (rtac impI));
 (*Fake: the Spy doesn't have the critical session key!*)
-by (subgoal_tac "Key (serverK(NA,NB,M)) ~: analz (sees lost Spy evsa)" 1);
+by (subgoal_tac "Key (serverK(NA,NB,M)) ~: analz (sees Spy evsa)" 1);
 by (asm_simp_tac (!simpset addsimps [Spy_not_see_premaster_secret, 
 				     not_parts_not_analz]) 2);
 by (Fake_parts_insert_tac 1);
@@ -584,11 +580,11 @@ by (rtac conjI 1 THEN Blast_tac 2);
 (*...otherwise delete induction hyp and use unicity of M.*)
 by (thin_tac "?PP-->?QQ" 1);
 by (Step_tac 1);
-by (subgoal_tac "Nonce M ~: analz (sees lost Spy evsa)" 1);
+by (subgoal_tac "Nonce M ~: analz (sees Spy evsa)" 1);
 by (asm_simp_tac (!simpset addsimps [Spy_not_see_premaster_secret]) 2);
 by (blast_tac (!claset addSEs [MPair_parts]
 		       addDs  [Notes_Crypt_parts_sees,
-			       Says_imp_sees_Spy' RS parts.Inj,
+			       Says_imp_sees_Spy RS parts.Inj,
 			       unique_M]) 1);
 qed_spec_mp "TrustServerMsg";
 
@@ -601,18 +597,18 @@ qed_spec_mp "TrustServerMsg";
 goal thy
  "!!evs. [| evs : tls;  A ~: lost;  B ~: lost |]                         \
 \        ==> Notes A {|Agent B, Nonce M|} : set evs -->                  \
-\            Crypt (clientK(NA,NB,M)) Y : parts (sees lost Spy evs) -->  \
+\            Crypt (clientK(NA,NB,M)) Y : parts (sees Spy evs) -->  \
 \            Says A B (Crypt (clientK(NA,NB,M)) Y) : set evs";
 by (analz_induct_tac 1);
 by (REPEAT_FIRST (rtac impI));
 (*Fake: the Spy doesn't have the critical session key!*)
-by (subgoal_tac "Key (clientK(NA,NB,M)) ~: analz (sees lost Spy evsa)" 1);
+by (subgoal_tac "Key (clientK(NA,NB,M)) ~: analz (sees Spy evsa)" 1);
 by (asm_simp_tac (!simpset addsimps [Spy_not_see_premaster_secret, 
 				     not_parts_not_analz]) 2);
 by (Fake_parts_insert_tac 1);
 (*ClientFinished.  If the message is old then apply induction hypothesis...*)
 by (step_tac (!claset delrules [conjI]) 1);
-by (subgoal_tac "Nonce M ~: analz (sees lost Spy evsa)" 1);
+by (subgoal_tac "Nonce M ~: analz (sees Spy evsa)" 1);
 by (asm_simp_tac (!simpset addsimps [Spy_not_see_premaster_secret]) 2);
 by (blast_tac (!claset addSEs [MPair_parts]
 		       addDs  [Notes_unique_M]) 1);

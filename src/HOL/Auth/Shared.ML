@@ -22,7 +22,7 @@ Addsimps [rewrite_rule [isSymKey_def] isSym_keys];
 (** Rewrites should not refer to  initState(Friend i) 
     -- not in normal form! **)
 
-goalw thy [keysFor_def] "keysFor (parts (initState lost C)) = {}";
+goalw thy [keysFor_def] "keysFor (parts (initState C)) = {}";
 by (agent.induct_tac "C" 1);
 by (Auto_tac ());
 qed "keysFor_parts_initState";
@@ -32,15 +32,15 @@ Addsimps [keysFor_parts_initState];
 (*** Function "sees" ***)
 
 (*Agents see their own shared keys!*)
-goal thy "A ~= Spy --> Key (shrK A) : sees lost A evs";
+goal thy "A ~= Spy --> Key (shrK A) : sees A evs";
 by (list.induct_tac "evs" 1);
 by (agent.induct_tac "A" 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [sees_Cons])));
 by (Blast_tac 1);
 qed_spec_mp "sees_own_shrK";
 
-(*Spy sees shared keys of lost agents!*)
-goal thy "!!A. A: lost ==> Key (shrK A) : sees lost Spy evs";
+(*Spy sees shared keys of agents!*)
+goal thy "!!A. A: lost ==> Key (shrK A) : sees Spy evs";
 by (list.induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [sees_Cons])));
 by (Blast_tac 1);
@@ -49,8 +49,8 @@ qed "Spy_sees_lost";
 AddSIs [sees_own_shrK, Spy_sees_lost];
 
 (*For not_lost_tac*)
-goal thy "!!A. [| Crypt (shrK A) X : analz (sees lost Spy evs);  A: lost |] \
-\              ==> X : analz (sees lost Spy evs)";
+goal thy "!!A. [| Crypt (shrK A) X : analz (sees Spy evs);  A: lost |] \
+\              ==> X : analz (sees Spy evs)";
 by (fast_tac (!claset addSDs [analz.Decrypt] addss (!simpset)) 1);
 qed "Crypt_Spy_analz_lost";
 
@@ -90,7 +90,7 @@ Addsimps [Key_not_used, shrK_neq, shrK_neq RS not_sym];
 
 (*** Fresh nonces ***)
 
-goal thy "Nonce N ~: parts (initState lost B)";
+goal thy "Nonce N ~: parts (initState B)";
 by (agent.induct_tac "B" 1);
 by (Auto_tac ());
 qed "Nonce_notin_initState";

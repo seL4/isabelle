@@ -908,8 +908,6 @@ by (Blast_tac 1);
 val Un_absorb3 = result();
 Addsimps [Un_absorb3];
 
-Addsimps [Un_insert_left, Un_insert_right];
-
 (*By default only o_apply is built-in.  But in the presence of eta-expansion
   this means that some terms displayed as (f o g) will be rewritten, and others
   will not!*)

@@ -16,8 +16,7 @@ Note: this differs from the Woo-Lam protocol discussed by Lowe in his paper
 
 WooLam = Shared + 
 
-consts  lost    :: agent set        (*No need for it to be a variable*)
-	woolam  :: event list set
+consts  woolam  :: event list set
 inductive woolam
   intrs 
          (*Initial trace is empty*)
@@ -27,7 +26,7 @@ inductive woolam
            invent new nonces here, but he can also use NS1.  Common to
            all similar protocols.*)
     Fake "[| evs: woolam;  B ~= Spy;  
-             X: synth (analz (sees lost Spy evs)) |]
+             X: synth (analz (sees Spy evs)) |]
           ==> Says Spy B X  # evs : woolam"
 
          (*Alice initiates a protocol run*)

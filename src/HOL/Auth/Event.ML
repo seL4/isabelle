@@ -10,53 +10,55 @@ Datatype of events; function "sees"; freshness
 
 open Event;
 
+AddIffs [Spy_in_lost, Server_not_lost];
+
 (*** Function "sees" ***)
 
-(** Specialized rewrite rules for (sees lost A (Says...#evs)) **)
+(** Specialized rewrite rules for (sees A (Says...#evs)) **)
 
-goal thy "sees lost B (Says A B X # evs) = insert X (sees lost B evs)";
+goal thy "sees B (Says A B X # evs) = insert X (sees B evs)";
 by (Simp_tac 1);
 qed "sees_own";
 
-goal thy "sees lost B (Notes A X # evs) = \
-\         (if A=B then insert X (sees lost B evs) else sees lost B evs)";
+goal thy "sees B (Notes A X # evs) = \
+\         (if A=B then insert X (sees B evs) else sees B evs)";
 by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
 qed "sees_Notes";
 
-(** Three special-case rules for rewriting of sees lost A **)
+(** Three special-case rules for rewriting of sees A **)
 
 goal thy "!!A. Server ~= B ==> \
-\          sees lost Server (Says A B X # evs) = sees lost Server evs";
+\          sees Server (Says A B X # evs) = sees Server evs";
 by (Asm_simp_tac 1);
 qed "sees_Server";
 
 goal thy "!!A. Friend i ~= B ==> \
-\          sees lost (Friend i) (Says A B X # evs) = sees lost (Friend i) evs";
+\          sees (Friend i) (Says A B X # evs) = sees (Friend i) evs";
 by (Asm_simp_tac 1);
 qed "sees_Friend";
 
-goal thy "sees lost Spy (Says A B X # evs) = insert X (sees lost Spy evs)";
+goal thy "sees Spy (Says A B X # evs) = insert X (sees Spy evs)";
 by (Simp_tac 1);
 qed "sees_Spy";
 
-goal thy "sees lost A (Says A' B X # evs) <= insert X (sees lost A evs)";
+goal thy "sees A (Says A' B X # evs) <= insert X (sees A evs)";
 by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
 by (Fast_tac 1);
 qed "sees_Says_subset_insert";
 
-goal thy "sees lost A evs <= sees lost A (Says A' B X # evs)";
+goal thy "sees A evs <= sees A (Says A' B X # evs)";
 by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
 by (Fast_tac 1);
 qed "sees_subset_sees_Says";
 
-goal thy "sees lost A evs <= sees lost A (Notes A' X # evs)";
+goal thy "sees A evs <= sees A (Notes A' X # evs)";
 by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
 by (Fast_tac 1);
 qed "sees_subset_sees_Notes";
 
 (*Pushing Unions into parts.  One of the agents A is B, and thus sees Y.*)
-goal thy "(UN A. parts (sees lost A (Says B C Y # evs))) = \
-\         parts {Y} Un (UN A. parts (sees lost A evs))";
+goal thy "(UN A. parts (sees A (Says B C Y # evs))) = \
+\         parts {Y} Un (UN A. parts (sees A evs))";
 by (Step_tac 1);
 by (etac rev_mp 1);     (*split_tac does not work on assumptions*)
 by (ALLGOALS
@@ -64,8 +66,8 @@ by (ALLGOALS
 				       setloop split_tac [expand_if]))));
 qed "UN_parts_sees_Says";
 
-goal thy "(UN A. parts (sees lost A (Notes B Y # evs))) = \
-\         parts {Y} Un (UN A. parts (sees lost A evs))";
+goal thy "(UN A. parts (sees A (Notes B Y # evs))) = \
+\         parts {Y} Un (UN A. parts (sees A evs))";
 by (Step_tac 1);
 by (etac rev_mp 1);     (*split_tac does not work on assumptions*)
 by (ALLGOALS
@@ -73,7 +75,7 @@ by (ALLGOALS
 				       setloop split_tac [expand_if]))));
 qed "UN_parts_sees_Notes";
 
-goal thy "Says A B X : set evs --> X : sees lost Spy evs";
+goal thy "Says A B X : set evs --> X : sees Spy evs";
 by (list.induct_tac "evs" 1);
 by (Auto_tac ());
 qed_spec_mp "Says_imp_sees_Spy";
@@ -90,7 +92,7 @@ Delsimps [sees_Cons];
 
 (*** Fresh nonces ***)
 
-goalw thy [used_def] "!!X. X: parts (sees lost B evs) ==> X: used evs";
+goalw thy [used_def] "!!X. X: parts (sees B evs) ==> X: used evs";
 by (etac (impOfSubs parts_mono) 1);
 by (Fast_tac 1);
 qed "usedI";
@@ -124,12 +126,12 @@ by (ALLGOALS Blast_tac);
 qed "used_subset_append";
 
 
-(** Simplifying   parts (insert X (sees lost A evs))
-      = parts {X} Un parts (sees lost A evs) -- since general case loops*)
+(** Simplifying   parts (insert X (sees A evs))
+      = parts {X} Un parts (sees A evs) -- since general case loops*)
 
 val parts_insert_sees = 
     parts_insert |> read_instantiate_sg (sign_of thy)
-                                        [("H", "sees lost A evs")]
+                                        [("H", "sees A evs")]
                  |> standard;
 
 
@@ -140,7 +142,7 @@ val parts_insert_sees =
   it will omit complicated reasoning about analz.*)
 val analz_mono_contra_tac = 
   let val impI' = read_instantiate_sg (sign_of thy)
-                [("P", "?Y ~: analz (sees lost ?A ?evs)")] impI;
+                [("P", "?Y ~: analz (sees ?A ?evs)")] impI;
   in
     rtac impI THEN' 
     REPEAT1 o 

@@ -37,7 +37,7 @@ AddIffs [not_isSymKey_pubK, not_isSymKey_priK];
 (** Rewrites should not refer to  initState(Friend i) 
     -- not in normal form! **)
 
-goalw thy [keysFor_def] "keysFor (parts (initState lost C)) = {}";
+goalw thy [keysFor_def] "keysFor (parts (initState C)) = {}";
 by (agent.induct_tac "C" 1);
 by (auto_tac (!claset addIs [range_eqI], !simpset));
 qed "keysFor_parts_initState";
@@ -47,22 +47,22 @@ Addsimps [keysFor_parts_initState];
 (*** Function "sees" ***)
 
 (*Agents see their own private keys!*)
-goal thy "A ~= Spy --> Key (priK A) : sees lost A evs";
+goal thy "A ~= Spy --> Key (priK A) : sees A evs";
 by (list.induct_tac "evs" 1);
 by (agent.induct_tac "A" 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [sees_Cons])));
 qed_spec_mp "sees_own_priK";
 
 (*All public keys are visible to all*)
-goal thy "Key (pubK A) : sees lost B evs";
+goal thy "Key (pubK A) : sees B evs";
 by (list.induct_tac "evs" 1);
 by (agent.induct_tac "B" 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [sees_Cons])));
 by (Auto_tac ());
 qed_spec_mp "sees_pubK";
 
-(*Spy sees private keys of lost agents!*)
-goal thy "!!A. A: lost ==> Key (priK A) : sees lost Spy evs";
+(*Spy sees private keys of agents!*)
+goal thy "!!A. A: lost ==> Key (priK A) : sees Spy evs";
 by (list.induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [sees_Cons])));
 by (Blast_tac 1);
@@ -73,8 +73,8 @@ AddSIs  [sees_own_priK, Spy_sees_lost];
 
 
 (*For not_lost_tac*)
-goal thy "!!A. [| Crypt (pubK A) X : analz (sees lost Spy evs);  A: lost |] \
-\              ==> X : analz (sees lost Spy evs)";
+goal thy "!!A. [| Crypt (pubK A) X : analz (sees Spy evs);  A: lost |] \
+\              ==> X : analz (sees Spy evs)";
 by (blast_tac (!claset addSDs [analz.Decrypt]) 1);
 qed "Crypt_Spy_analz_lost";
 
@@ -93,7 +93,7 @@ fun not_lost_tac s =
 
 (*** Fresh nonces ***)
 
-goal thy "Nonce N ~: parts (initState lost B)";
+goal thy "Nonce N ~: parts (initState B)";
 by (agent.induct_tac "B" 1);
 by (Auto_tac ());
 qed "Nonce_notin_initState";

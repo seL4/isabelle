@@ -41,41 +41,38 @@ AddSEs   [not_Says_to_self RSN (2, rev_notE)];
 
 (** For reasoning about the encrypted portion of messages **)
 
-goal thy "!!evs. Says A' B X : set evs \
-\                ==> X : analz (sees lost Spy evs)";
+goal thy "!!evs. Says A' B X : set evs ==> X : analz (sees Spy evs)";
 by (etac (Says_imp_sees_Spy RS analz.Inj) 1);
 qed "WL4_analz_sees_Spy";
 
 bind_thm ("WL4_parts_sees_Spy",
           WL4_analz_sees_Spy RS (impOfSubs analz_subset_parts));
 
-(*For proving the easier theorems about X ~: parts (sees lost Spy evs) *)
-val parts_induct_tac = 
-    etac woolam.induct 1  THEN 
-    forward_tac [WL4_parts_sees_Spy] 6  THEN
+(*For proving the easier theorems about X ~: parts (sees Spy evs) *)
+fun parts_induct_tac i = 
+    etac woolam.induct i  THEN 
+    forward_tac [WL4_parts_sees_Spy] (i+5)  THEN
     prove_simple_subgoals_tac 1;
 
 
-(** Theorems of the form X ~: parts (sees lost Spy evs) imply that NOBODY
+(** Theorems of the form X ~: parts (sees Spy evs) imply that NOBODY
     sends messages containing X! **)
 
 (*Spy never sees another agent's shared key! (unless it's lost at start)*)
 goal thy 
- "!!evs. evs : woolam \
-\        ==> (Key (shrK A) : parts (sees lost Spy evs)) = (A : lost)";
-by parts_induct_tac;
+ "!!evs. evs : woolam ==> (Key (shrK A) : parts (sees Spy evs)) = (A : lost)";
+by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
 qed "Spy_see_shrK";
 Addsimps [Spy_see_shrK];
 
 goal thy 
- "!!evs. evs : woolam \
-\        ==> (Key (shrK A) : analz (sees lost Spy evs)) = (A : lost)";
+ "!!evs. evs : woolam ==> (Key (shrK A) : analz (sees Spy evs)) = (A : lost)";
 by (auto_tac(!claset addDs [impOfSubs analz_subset_parts], !simpset));
 qed "Spy_analz_shrK";
 Addsimps [Spy_analz_shrK];
 
-goal thy  "!!A. [| Key (shrK A) : parts (sees lost Spy evs);       \
+goal thy  "!!A. [| Key (shrK A) : parts (sees Spy evs);       \
 \                  evs : woolam |] ==> A:lost";
 by (blast_tac (!claset addDs [Spy_see_shrK]) 1);
 qed "Spy_see_shrK_D";
@@ -91,10 +88,10 @@ AddSDs [Spy_see_shrK_D, Spy_analz_shrK_D];
 
 (*If the encrypted message appears then it originated with Alice*)
 goal thy 
- "!!evs. [| A ~: lost;  evs : woolam |]                   \
-\    ==> Crypt (shrK A) (Nonce NB) : parts (sees lost Spy evs)        \
-\        --> (EX B. Says A B (Crypt (shrK A) (Nonce NB)) : set evs)";
-by parts_induct_tac;
+ "!!evs. [| A ~: lost;  evs : woolam |]                        \
+\        ==> Crypt (shrK A) (Nonce NB) : parts (sees Spy evs)  \
+\            --> (EX B. Says A B (Crypt (shrK A) (Nonce NB)) : set evs)";
+by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
 by (Blast_tac 1);
 qed_spec_mp "NB_Crypt_imp_Alice_msg";
@@ -121,7 +118,7 @@ goal thy
 \        Says Server B (Crypt (shrK B) {|Agent A, NB|}) : set evs           \
 \        --> (EX B'. Says B' Server {|Agent A, Agent B, Crypt (shrK A) NB|} \
 \               : set evs)";
-by parts_induct_tac;
+by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
 by (ALLGOALS Blast_tac);
 bind_thm ("Server_sent_WL5", result() RSN (2, rev_mp));
@@ -129,10 +126,10 @@ bind_thm ("Server_sent_WL5", result() RSN (2, rev_mp));
 
 (*If the encrypted message appears then it originated with the Server!*)
 goal thy 
- "!!evs. [| B ~: lost;  evs : woolam |]                                  \
-\        ==> Crypt (shrK B) {|Agent A, NB|} : parts (sees lost Spy evs)  \
+ "!!evs. [| B ~: lost;  evs : woolam |]                             \
+\        ==> Crypt (shrK B) {|Agent A, NB|} : parts (sees Spy evs)  \
 \        --> Says Server B (Crypt (shrK B) {|Agent A, NB|}) : set evs";
-by parts_induct_tac;
+by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
 qed_spec_mp "NB_Crypt_imp_Server_msg";
 
@@ -161,10 +158,10 @@ qed "B_trusts_WL5";
 
 (*B only issues challenges in response to WL1.  Useful??*)
 goal thy 
- "!!evs. [| B ~= Spy;  evs : woolam |]                   \
+ "!!evs. [| B ~= Spy;  evs : woolam |]        \
 \    ==> Says B A (Nonce NB) : set evs        \
 \        --> (EX A'. Says A' B (Agent A) : set evs)";
-by parts_induct_tac;
+by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
 by (ALLGOALS Blast_tac);
 bind_thm ("B_said_WL2", result() RSN (2, rev_mp));
@@ -172,11 +169,11 @@ bind_thm ("B_said_WL2", result() RSN (2, rev_mp));
 
 (**CANNOT be proved because A doesn't know where challenges come from...
 goal thy 
- "!!evs. [| A ~: lost;  B ~= Spy;  evs : woolam |]                \
-\    ==> Crypt (shrK A) (Nonce NB) : parts (sees lost Spy evs) &  \
-\        Says B A (Nonce NB) : set evs                            \
+ "!!evs. [| A ~: lost;  B ~= Spy;  evs : woolam |]           \
+\    ==> Crypt (shrK A) (Nonce NB) : parts (sees Spy evs) &  \
+\        Says B A (Nonce NB) : set evs                       \
 \        --> Says A B (Crypt (shrK A) (Nonce NB)) : set evs";
-by parts_induct_tac;
+by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
 by (Step_tac 1);
 by (blast_tac (!claset addSEs partsEs) 1);

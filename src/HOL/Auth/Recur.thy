@@ -48,25 +48,25 @@ inductive "responses evs"
                 RA|}  : responses evs"
 
 
-consts     recur   :: agent set => event list set
-inductive "recur lost"
+consts     recur   :: event list set
+inductive "recur"
   intrs 
          (*Initial trace is empty*)
-    Nil  "[]: recur lost"
+    Nil  "[]: recur"
 
          (*The spy MAY say anything he CAN say.  Common to
            all similar protocols.*)
-    Fake "[| evs: recur lost;  B ~= Spy;  
-             X: synth (analz (sees lost Spy evs)) |]
-          ==> Says Spy B X  # evs : recur lost"
+    Fake "[| evs: recur;  B ~= Spy;  
+             X: synth (analz (sees Spy evs)) |]
+          ==> Says Spy B X  # evs : recur"
 
          (*Alice initiates a protocol run.
            "Agent Server" is just a placeholder, to terminate the nesting.*)
-    RA1  "[| evs: recur lost;  A ~= B;  A ~= Server;  Nonce NA ~: used evs |]
+    RA1  "[| evs: recur;  A ~= B;  A ~= Server;  Nonce NA ~: used evs |]
           ==> Says A B 
                 (Hash[Key(shrK A)] 
                  {|Agent A, Agent B, Nonce NA, Agent Server|})
-              # evs : recur lost"
+              # evs : recur"
 
          (*Bob's response to Alice's message.  C might be the Server.
            XA should be the Hash of the remaining components with KA, but
@@ -74,27 +74,27 @@ inductive "recur lost"
            P is the previous recur message from Alice's caller.
            NOTE: existing proofs don't need PA and are complicated by its
                 presence!  See parts_Fake_tac.*)
-    RA2  "[| evs: recur lost;  B ~= C;  B ~= Server;  Nonce NB ~: used evs;
+    RA2  "[| evs: recur;  B ~= C;  B ~= Server;  Nonce NB ~: used evs;
              Says A' B PA : set evs;  
              PA = {|XA, Agent A, Agent B, Nonce NA, P|} |]
           ==> Says B C (Hash[Key(shrK B)] {|Agent B, Agent C, Nonce NB, PA|})
-              # evs : recur lost"
+              # evs : recur"
 
          (*The Server receives Bob's message and prepares a response.*)
-    RA3  "[| evs: recur lost;  B ~= Server;
+    RA3  "[| evs: recur;  B ~= Server;
              Says B' Server PB : set evs;
              (PB,RB,K) : respond evs |]
-          ==> Says Server B RB # evs : recur lost"
+          ==> Says Server B RB # evs : recur"
 
          (*Bob receives the returned message and compares the Nonces with
            those in the message he previously sent the Server.*)
-    RA4  "[| evs: recur lost;  A ~= B;  
+    RA4  "[| evs: recur;  A ~= B;  
              Says B  C {|XH, Agent B, Agent C, Nonce NB, 
                          XA, Agent A, Agent B, Nonce NA, P|} : set evs;
              Says C' B {|Crypt (shrK B) {|Key KBC, Agent C, Nonce NB|}, 
                          Crypt (shrK B) {|Key KAB, Agent A, Nonce NB|}, 
                          RA|} : set evs |]
-          ==> Says B A RA # evs : recur lost"
+          ==> Says B A RA # evs : recur"
 
 (**No "oops" message can easily be expressed.  Each session key is
    associated--in two separate messages--with two nonces.

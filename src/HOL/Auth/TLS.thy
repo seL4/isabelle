@@ -13,7 +13,7 @@ A is the client and B is the server, not to be confused with the constant
 Server, who is in charge of all public keys.
 
 The model assumes that no fraudulent certificates are present, but it does
-assume that some private keys are lost to the spy.
+assume that some private keys are to the spy.
 
 Abstracted from "The TLS Protocol, Version 1.0" by Tim Dierks and Christopher
 Allen, Transport Layer Security Working Group, 21 May 1997,
@@ -56,14 +56,8 @@ rules
   (*Clashes with pubK and priK are impossible, but this axiom is needed.*)
   clientK_range "range clientK <= Compl (range serverK)"
 
-  (*Spy has access to his own key for spoof messages, but Server is secure*)
-  Spy_in_lost     "Spy: lost"
-  Server_not_lost "Server ~: lost"
 
-
-consts  lost :: agent set        (*No need for it to be a variable*)
-	tls  :: event list set
-
+consts    tls :: event list set
 inductive tls
   intrs 
     Nil  (*Initial trace is empty*)
@@ -71,7 +65,7 @@ inductive tls
 
     Fake (*The spy, an active attacker, MAY say anything he CAN say.*)
          "[| evs: tls;  B ~= Spy;  
-             X: synth (analz (sees lost Spy evs)) |]
+             X: synth (analz (sees Spy evs)) |]
           ==> Says Spy B X # evs : tls"
 
     SpyKeys (*The spy may apply clientK & serverK to nonces he's found*)

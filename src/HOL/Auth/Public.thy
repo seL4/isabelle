@@ -21,11 +21,11 @@ translations  (*BEWARE! expressions like  (inj priK)  will NOT work!*)
 
 primrec initState agent
         (*Agents know their private key and all public keys*)
-  initState_Server  "initState lost Server     =    
+  initState_Server  "initState Server     =    
  		         insert (Key (priK Server)) (Key `` range pubK)"
-  initState_Friend  "initState lost (Friend i) =    
+  initState_Friend  "initState (Friend i) =    
  		         insert (Key (priK (Friend i))) (Key `` range pubK)"
-  initState_Spy     "initState lost Spy        =    
+  initState_Spy     "initState Spy        =    
  		         (Key``invKey``pubK``lost) Un (Key `` range pubK)"
 
 
