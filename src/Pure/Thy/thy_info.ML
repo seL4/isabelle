@@ -383,10 +383,13 @@ fun begin_theory present upd name parents paths =
     val deps =
       if known_thy name then get_deps name
       else (init_deps None (map #1 paths));   (*records additional ML files only!*)
-    val _ = change_thys (update_node name parents (deps, Some theory));
     val use_paths = mapfilter (fn (x, true) => Some x | _ => None) paths;
+
+    val _ = change_thys (update_node name parents (deps, Some (Theory.copy theory)));
     val theory' = theory |> present name parents paths;
+    val _ = put_theory name (Theory.copy theory');
     val ((), theory'') = Context.pass_theory theory' (seq (load_file false)) use_paths;
+    val _ = put_theory name (Theory.copy theory'');
   in theory'' end;
 
 fun end_theory theory =
