@@ -81,6 +81,9 @@ the current theory context;
 * new theory section 'setup' for generic ML setup functions
 (e.g. package initialization);
 
+* the distribution now includes Isabelle icons: see
+lib/logo/isabelle-{small,tiny}.xpm;
+
 
 *** HOL ***
 
