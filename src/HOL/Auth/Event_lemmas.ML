@@ -1,4 +1,4 @@
-(*  Title:      HOL/Auth/Event
+(*  Title:      HOL/Auth/Event_lemmas
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
@@ -20,8 +20,7 @@ Addsimps [knows_Cons, used_Nil, used_Cons];
       = parts {X} Un parts (knows Spy evs) -- since general case loops*)
 
 bind_thm ("parts_insert_knows_Spy",
-	  parts_insert |> 
-	  read_instantiate_sg (sign_of thy) [("H", "knows Spy evs")]);
+	  inst "H" "knows Spy evs" parts_insert);
 
 
 val expand_event_case = thm "event.split";

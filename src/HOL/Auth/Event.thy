@@ -14,12 +14,6 @@ Datatype of events; function "spies"; freshness
 theory Event = Message
 files ("Event_lemmas.ML"):
 
-(*from Message.ML*)
-method_setup spy_analz = {*
-    Method.no_args (Method.METHOD (fn facts => spy_analz_tac 1)) *}
-    "for proving the Fake case when analz is involved"
-
-
 consts  (*Initial states of agents -- parameter of the construction*)
   initState :: "agent => msg set"
 

@@ -7,13 +7,43 @@ Datatypes of agents and messages;
 Inductive relations "parts", "analz" and "synth"
 *)
 
+(*ML bindings for definitions and axioms*)
+val invKey = thm "invKey";
+val keysFor_def = thm "keysFor_def";
+val parts_mono = thm "parts_mono";
+val analz_mono = thm "analz_mono";
+val synth_mono = thm "synth_mono";
+val HPair_def = thm "HPair_def";
+val isSymKey_def = thm "isSymKey_def";
 
-(*Eliminates a commonly-occurring expression*)
-goal HOL.thy "~ (ALL x. x~=y)";
-by (Blast_tac 1);
-Addsimps [result()];
+structure parts =
+  struct
+  val induct = thm "parts.induct";
+  val Inj    = thm "parts.Inj";
+  val Fst    = thm "parts.Fst";
+  val Snd    = thm "parts.Snd";
+  val Body   = thm "parts.Body";
+  end;
 
-AddIffs msg.inject;
+structure analz =
+  struct
+  val induct = thm "analz.induct";
+  val Inj    = thm "analz.Inj";
+  val Fst    = thm "analz.Fst";
+  val Snd    = thm "analz.Snd";
+  val Decrypt = thm "analz.Decrypt";
+  end;
+
+structure synth =
+  struct
+  val induct = thm "synth.induct";
+  val Inj    = thm "synth.Inj";
+  val Agent  = thm "synth.Agent";
+  val Number = thm "synth.Number";
+  val Hash   = thm "synth.Hash";
+  val Crypt  = thm "synth.Crypt";
+  end;
+
 
 (*Equations hold because constructors are injective; cannot prove for all f*)
 Goal "(Friend x : Friend`A) = (x:A)";
@@ -39,7 +69,7 @@ by (REPEAT (rtac invKey 2));
 by (Asm_simp_tac 1);
 qed "invKey_eq";
 
-Addsimps [invKey, invKey_eq];
+Addsimps [invKey_eq];
 
 
 (**** keysFor operator ****)
@@ -111,14 +141,12 @@ qed "Crypt_imp_invKey_keysFor";
 
 val major::prems = 
 Goal "[| {|X,Y|} : parts H;       \
-\            [| X : parts H; Y : parts H |] ==> P  \
-\         |] ==> P";
+\         [| X : parts H; Y : parts H |] ==> P  \
+\     |] ==> P";
 by (cut_facts_tac [major] 1);
 by (resolve_tac prems 1);
 by (REPEAT (eresolve_tac [asm_rl, parts.Fst, parts.Snd] 1));
 qed "MPair_parts";
-
-AddIs  [parts.Inj];
 
 AddSEs [MPair_parts, make_elim parts.Body];
 (*NB These two rules are UNSAFE in the formal sense, as they discard the
@@ -129,12 +157,6 @@ AddSEs [MPair_parts, make_elim parts.Body];
 Goal "H <= parts(H)";
 by (Blast_tac 1);
 qed "parts_increasing";
-
-(*Monotonicity*)
-Goalw parts.defs "G<=H ==> parts(G) <= parts(H)";
-by (rtac lfp_mono 1);
-by (REPEAT (ares_tac basic_monos 1));
-qed "parts_mono";
 
 val parts_insertI = impOfSubs (subset_insertI RS parts_mono);
 
@@ -327,10 +349,6 @@ by (REPEAT (eresolve_tac [asm_rl, analz.Fst, analz.Snd] 1));
 qed "MPair_analz";
 
 AddSEs [MPair_analz];     (*Making it safe speeds up proofs*)
-AddDs  [analz.Decrypt];   (*Unsafe: we don't want to split up certificates!*)
-AddIs  [analz.Inj];
-
-Addsimps [analz.Inj];
 
 Goal "H <= analz(H)";
 by (Blast_tac 1);
@@ -359,12 +377,6 @@ by (etac analz.induct 1);
 by Auto_tac;
 qed "analz_parts";
 Addsimps [analz_parts];
-
-(*Monotonicity; Lemma 1 of Lowe*)
-Goalw analz.defs "G<=H ==> analz(G) <= analz(H)";
-by (rtac lfp_mono 1);
-by (REPEAT (ares_tac basic_monos 1));
-qed "analz_mono";
 
 bind_thm ("analz_insertI", impOfSubs (subset_insertI RS analz_mono));
 
@@ -571,26 +583,9 @@ Addsimps [analz_UN_analz];
 
 (**** Inductive relation "synth" ****)
 
-AddIs  synth.intrs;
-
-(*NO Agent_synth, as any Agent name can be synthesized.  Ditto for Number*)
-val Nonce_synth = synth.mk_cases "Nonce n : synth H";
-val Key_synth   = synth.mk_cases "Key K : synth H";
-val Hash_synth  = synth.mk_cases "Hash X : synth H";
-val MPair_synth = synth.mk_cases "{|X,Y|} : synth H";
-val Crypt_synth = synth.mk_cases "Crypt K X : synth H";
-
-AddSEs [Nonce_synth, Key_synth, Hash_synth, MPair_synth, Crypt_synth];
-
 Goal "H <= synth(H)";
 by (Blast_tac 1);
 qed "synth_increasing";
-
-(*Monotonicity*)
-Goalw synth.defs "G<=H ==> synth(G) <= synth(H)";
-by (rtac lfp_mono 1);
-by (REPEAT (ares_tac basic_monos 1));
-qed "synth_mono";
 
 (** Unions **)
 
@@ -665,8 +660,8 @@ by (rtac equalityI 1);
 by (rtac subsetI 1);
 by (etac parts.induct 1);
 by (ALLGOALS
-    (blast_tac (claset() addIs ((synth_increasing RS parts_mono RS subsetD)
-				::parts.intrs))));
+    (blast_tac (claset() addIs [synth_increasing RS parts_mono RS subsetD,
+                                parts.Fst, parts.Snd, parts.Body])));
 qed "parts_synth";
 Addsimps [parts_synth];
 
@@ -680,7 +675,8 @@ by (rtac equalityI 1);
 by (rtac subsetI 1);
 by (etac analz.induct 1);
 by (blast_tac (claset() addIs [impOfSubs analz_mono]) 5);
-by (ALLGOALS (blast_tac (claset() addIs analz.intrs)));
+by (ALLGOALS 
+    (blast_tac (claset() addIs [analz.Fst, analz.Snd, analz.Decrypt])));
 qed "analz_synth_Un";
 
 Goal "analz (synth H) = analz H Un synth H";
@@ -834,14 +830,13 @@ Delrules [make_elim parts.Body];
 (** Rewrites to push in Key and Crypt messages, so that other messages can
     be pulled out using the analz_insert rules **)
 
-fun insComm thy x y = read_instantiate_sg (sign_of thy) [("x",x), ("y",y)] 
-                          insert_commute;
+fun insComm x y = inst "x" x (inst "y" y insert_commute);
 
-val pushKeys = map (insComm thy "Key ?K") 
+val pushKeys = map (insComm "Key ?K") 
                    ["Agent ?C", "Nonce ?N", "Number ?N", 
 		    "Hash ?X", "MPair ?X ?Y", "Crypt ?X ?K'"];
 
-val pushCrypts = map (insComm thy "Crypt ?X ?K") 
+val pushCrypts = map (insComm "Crypt ?X ?K") 
                      ["Agent ?C", "Nonce ?N", "Number ?N", 
 		      "Hash ?X'", "MPair ?X' ?Y"];
 
@@ -898,13 +893,6 @@ fun spy_analz_tac i =
        Simp_tac 1,
        REPEAT (FIRSTGOAL (resolve_tac [allI,impI,notI,conjI,iffI])),
        DEPTH_SOLVE (atomic_spy_analz_tac 1)]) i);
-
-
-(*Needed occasionally with spy_analz_tac, e.g. in analz_insert_Key_newK*)
-goal Set.thy "A Un (B Un A) = B Un A";
-by (Blast_tac 1);
-val Un_absorb3 = result();
-Addsimps [Un_absorb3];
 
 (*By default only o_apply is built-in.  But in the presence of eta-expansion
   this means that some terms displayed as (f o g) will be rewritten, and others
