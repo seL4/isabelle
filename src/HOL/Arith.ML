@@ -437,6 +437,10 @@ by (simp_tac (simpset() addsimps [less_imp_diff_is_0, not_less_eq, Suc_diff_n]
                        addsplits [expand_if]) 1);
 qed "if_Suc_diff_n";
 
+goal Arith.thy "Suc(m)-n <= Suc(m-n)";
+by (simp_tac (simpset() addsimps [if_Suc_diff_n] addsplits [expand_if]) 1);
+qed "diff_Suc_le_Suc_diff";
+
 goal Arith.thy "P(k) --> (!n. P(Suc(n))--> P(n)) --> P(k-i)";
 by (res_inst_tac [("m","k"),("n","i")] diff_induct 1);
 by (ALLGOALS (Clarify_tac THEN' Simp_tac THEN' TRY o Blast_tac));
@@ -611,8 +615,7 @@ by (Asm_full_simp_tac 1);
 qed "add_less_imp_less_diff";
 
 goal Arith.thy "!! n. n <= m ==> Suc m - n = Suc (m - n)";
-by (rtac Suc_diff_n 1);
-by (asm_full_simp_tac (simpset() addsimps [le_eq_less_Suc]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Suc_diff_n, le_eq_less_Suc]) 1);
 qed "Suc_diff_le";
 
 goal Arith.thy "!! n. Suc i <= n ==> Suc (n - Suc i) = n - i";
