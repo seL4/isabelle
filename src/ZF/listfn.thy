@@ -23,7 +23,7 @@ consts
 
  (* List Enumeration *)
  "[]"        :: "i" 	                           	("[]")
- "@List"     :: "args => i" 	                   	("[(_)]")
+ "@List"     :: "is => i" 	                   	("[(_)]")
 
 
 translations
