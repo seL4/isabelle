@@ -147,9 +147,7 @@ val imageE = prove_goalw ZF.thy [image_def]
 
 val image_subset = prove_goal ZF.thy
     "!!A B r. r <= A*B ==> r``C <= B"
- (fn _ =>
-  [ (rtac subsetI 1),
-    (REPEAT (eresolve_tac [asm_rl, imageE, subsetD RS SigmaD2] 1)) ]);
+ (fn _ => [ (fast_tac (pair_cs addSEs [imageE]) 1) ]);
 
 
 (*** Inverse image of a set under a function/relation ***)
