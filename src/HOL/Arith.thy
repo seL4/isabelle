@@ -23,25 +23,16 @@ defs
   div_def   "m div n == wfrec (trancl pred_nat) 
                           (%f j. if j<n then 0 else Suc (f (j-n))) m"
 
-
 primrec "op +" nat 
-"0 + n = n"
-"Suc m + n = Suc(m + n)"
-
+  "0 + n = n"
+  "Suc m + n = Suc(m + n)"
 
 primrec "op -" nat 
-"m - 0 = m"
-"m - Suc n = pred(m - n)"
+  "m - 0 = m"
+  "m - Suc n = pred(m - n)"
 
 primrec "op *"  nat 
-"0 * n = 0"
-"Suc m * n = n + (m * n)"
-
+  "0 * n = 0"
+  "Suc m * n = n + (m * n)"
 
 end
-
-(*"Difference" is subtraction of natural numbers.
-  There are no negative numbers; we have
-     m - n = 0  iff  m<=n   and     m - n = Suc(k) iff m)n.
-  Also, nat_rec(0, %z w.z, m) is pred(m).   *)
-
