@@ -55,7 +55,7 @@ Hennessy, M.,
 Huet, G.,
 \newblock Induction principles formalized in the {Calculus of Constructions},
 \newblock In {\em Programming of Future Generation Computers\/} (1988),
-  Elsevier, pp.~205--216
+  K.~Fuchi, M.~Nivat, Eds., Elsevier, pp.~205--216
 
 \bibitem{melham89}
 Melham, T.~F.,
@@ -98,7 +98,9 @@ Paulson, L.~C.,
 \bibitem{paulson-coind}
 Paulson, L.~C.,
 \newblock Co-induction and co-recursion in higher-order logic,
-\newblock Tech. Rep. 304, Comp. Lab., Univ. Cambridge, July 1993
+\newblock Tech. Rep. 304, Comp. Lab., Univ. Cambridge, July 1993,
+\newblock To appear in the Festscrift for Alonzo Church, edited by A. Anderson
+  and M. Zeleny
 
 \bibitem{isabelle-intro}
 Paulson, L.~C.,
@@ -113,13 +115,14 @@ Paulson, L.~C.,
 \bibitem{paulson-set-II}
 Paulson, L.~C.,
 \newblock Set theory for verification: {II}. {Induction} and recursion,
-\newblock Tech. Rep. 312, Comp. Lab., Univ. Cambridge, 1993,
-\newblock To appear in J. Auto. Reas.
+\newblock {\em J. Auto. Reas. {\bf 15}}, 2 (1995), 167--215
 
 \bibitem{paulson-final}
 Paulson, L.~C.,
 \newblock A concrete final coalgebra theorem for {ZF} set theory,
-\newblock Tech. Rep. 334, Comp. Lab., Univ. Cambridge, 1994
+\newblock In {\em Types for Proofs and Programs: International Workshop {TYPES
+  '94}\/} (published 1995), P.~Dybjer, B.~Nordstr{\"om},, J.~Smith, Eds., LNCS
+  996, Springer, pp.~120--139
 
 \bibitem{pitts94}
 Pitts, A.~M.,
@@ -130,8 +133,7 @@ Pitts, A.~M.,
 Saaltink, M., Kromodimoeljo, S., Pase, B., Craigen, D., Meisels, I.,
 \newblock An {EVES} data abstraction example,
 \newblock In {\em FME '93: Industrial-Strength Formal Methods\/} (1993),
-  J.~C.~P. Woodcock, P.~G. Larsen, Eds., Springer, pp.~578--596,
-\newblock LNCS 670
+  J.~C.~P. Woodcock, P.~G. Larsen, Eds., LNCS 670, Springer, pp.~578--596
 
 \bibitem{szasz93}
 Szasz, N.,

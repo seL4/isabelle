@@ -112,8 +112,9 @@ Kenneth Kunen.
 \bibitem{alf}
 Lena Magnusson and Bengt {Nordstr\"om}.
 \newblock The {ALF} proof editor and its proof engine.
-\newblock In {\em Types for Proofs and Programs: International Workshop {TYPES
-  '93}}, LNCS 806, pages 213--237. Springer, published 1994.
+\newblock In Henk Barendregt and Tobias Nipkow, editors, {\em Types for Proofs
+  and Programs: International Workshop {TYPES '93}}, LNCS 806, pages 213--237.
+  Springer, published 1994.
 
 \bibitem{mw81}
 Zohar Manna and Richard Waldinger.
@@ -124,13 +125,6 @@ Zohar Manna and Richard Waldinger.
 Per Martin-L\"of.
 \newblock {\em Intuitionistic type theory}.
 \newblock Bibliopolis, 1984.
-
-\bibitem{melham89}
-Thomas~F. Melham.
-\newblock Automating recursive type definitions in higher order logic.
-\newblock In Graham Birtwistle and P.~A. Subrahmanyam, editors, {\em Current
-  Trends in Hardware Verification and Automated Theorem Proving}, pages
-  341--386. Springer, 1989.
 
 \bibitem{milner-coind}
 Robin Milner and Mads Tofte.
@@ -197,8 +191,9 @@ Lawrence~C. Paulson.
 \bibitem{paulson-final}
 Lawrence~C. Paulson.
 \newblock A concrete final coalgebra theorem for {ZF} set theory.
-\newblock In {\em Types for Proofs and Programs: International Workshop {TYPES
-  '94}}, LNCS 996, pages 120--139. Springer, published 1995.
+\newblock In Peter Dybjer, Bengt Nordstr{\"om}, and Jan Smith, editors, {\em
+  Types for Proofs and Programs: International Workshop {TYPES '94}}, LNCS 996,
+  pages 120--139. Springer, published 1995.
 
 \bibitem{pelletier86}
 F.~J. Pelletier.
