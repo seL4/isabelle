@@ -144,6 +144,11 @@ by (blast intro: relprime_dvd_mult dvd_trans)
 lemma relprime_20_81: "gcd(#20,#81) = 1";
 by (simp add: gcd.simps)
 
+text{*example of arg_cong (NEW)
+
+@{thm[display] arg_cong[no_vars]}
+\rulename{arg_cong}
+*}
 
 
 text {*
