@@ -167,8 +167,6 @@ goal thy
 
 by (rtac impI 1);
 by (Seq_Finite_induct_tac 1);
-(* base_case *)
-by (fast_tac HOL_cs 1);
 (* main case *)
 by (safe_tac set_cs);
 by (pair_tac "a" 1);

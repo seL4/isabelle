@@ -674,7 +674,7 @@ goal thy "Forall P x --> Filter P`x = x";
 by (Seq_induct_tac "x" [Forall_def,sforall_def,Filter_def] 1);
 qed"ForallPFilterPid1";
 
-bind_thm(" ForallPFilterPid",ForallPFilterPid1 RS mp);
+bind_thm("ForallPFilterPid",ForallPFilterPid1 RS mp);
 
 
 (* holds also in other direction *)
