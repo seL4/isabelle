@@ -45,11 +45,21 @@ sig
   val delsimprocs:  simpset * simproc list -> simpset
   val merge_ss:     simpset * simpset -> simpset
   val prems_of_ss:  simpset -> thm list
-  val simpset:      simpset ref
+
+  val simpset_thy_data: string * (exn * (exn -> exn) * (exn * exn -> exn) * (exn -> unit))
+  val simpset_ref_of_sg: Sign.sg -> simpset ref
+  val simpset_ref_of: theory -> simpset ref
+  val simpset_of_sg: Sign.sg -> simpset
+  val simpset_of: theory -> simpset
+  val SIMPSET: (simpset -> tactic) -> tactic
+  val SIMPSET': (simpset -> 'a -> tactic) -> 'a -> tactic
+  val simpset: unit -> simpset
+  val simpset_ref: unit -> simpset ref
   val Addsimps: thm list -> unit
   val Delsimps: thm list -> unit
   val Addsimprocs: simproc list -> unit
   val Delsimprocs: simproc list -> unit
+
   val               simp_tac: simpset -> int -> tactic
   val           asm_simp_tac: simpset -> int -> tactic
   val          full_simp_tac: simpset -> int -> tactic
@@ -83,7 +93,7 @@ fun mk_simproc name lhss proc =
 fun rep_simproc (Simproc args) = args;
 
 
-(* generic conversion prover *)		(* FIXME move?, rename? *)
+(* generic conversion prover *)
 
 fun conv_prover mk_eqv eqv_refl mk_meta_eq expand_tac norm_tac sg t u =
   let
@@ -232,15 +242,54 @@ fun merge_ss
 
 
 
-(** the current simpset **)
+(** simpset theory data **)
 
-val simpset = ref empty_ss;
+(* data kind simpset *)
 
-fun Addsimps rews = (simpset := ! simpset addsimps rews);
-fun Delsimps rews = (simpset := ! simpset delsimps rews);
+val simpsetK = "simpset";
+exception SimpsetData of simpset ref;
 
-fun Addsimprocs procs = (simpset := ! simpset addsimprocs procs);
-fun Delsimprocs procs = (simpset := ! simpset delsimprocs procs);
+local
+  val empty = SimpsetData (ref empty_ss);
+
+  (*create new reference*)
+  fun prep_ext (SimpsetData (ref ss)) = SimpsetData (ref ss);
+
+  fun merge (SimpsetData (ref ss1), SimpsetData (ref ss2)) =
+    SimpsetData (ref (merge_ss (ss1, ss2)));
+
+  fun print (SimpsetData (ref ss)) = print_ss ss;
+in
+  val simpset_thy_data = (simpsetK, (empty, prep_ext, merge, print));
+end;
+
+
+(* access simpset *)
+
+fun simpset_ref_of_sg sg =
+  (case Sign.get_data sg simpsetK of
+    SimpsetData r => r
+  | _ => sys_error "simpset_ref_of_sg")
+
+val simpset_ref_of = simpset_ref_of_sg o sign_of;
+val simpset_of_sg = ! o simpset_ref_of_sg;
+val simpset_of = simpset_of_sg o sign_of;
+
+fun SIMPSET tacf state = tacf (simpset_of_sg (sign_of_thm state)) state;
+fun SIMPSET' tacf i state = tacf (simpset_of_sg (sign_of_thm state)) i state;
+
+val simpset = simpset_of o Context.get_context;
+val simpset_ref = simpset_ref_of_sg o sign_of o Context.get_context;
+
+
+(* change simpset *)
+
+fun change_simpset f x = simpset_ref () := (f (simpset (), x));
+
+val Addsimps = change_simpset (op addsimps);
+val Delsimps = change_simpset (op delsimps);
+val Addsimprocs = change_simpset (op addsimprocs);
+val Delsimprocs = change_simpset (op delsimprocs);
 
 
 
@@ -284,10 +333,10 @@ val safe_asm_full_simp_tac = basic_gen_simp_tac (true, true);
 
 (** The abstraction over the proof state delays the dereferencing **)
 
-fun          Simp_tac i st =          simp_tac (! simpset) i st;
-fun      Asm_simp_tac i st =      asm_simp_tac (! simpset) i st;
-fun     Full_simp_tac i st =     full_simp_tac (! simpset) i st;
-fun Asm_full_simp_tac i st = asm_full_simp_tac (! simpset) i st;
+fun          Simp_tac i st =          simp_tac (simpset ()) i st;
+fun      Asm_simp_tac i st =      asm_simp_tac (simpset ()) i st;
+fun     Full_simp_tac i st =     full_simp_tac (simpset ()) i st;
+fun Asm_full_simp_tac i st = asm_full_simp_tac (simpset ()) i st;
 
 
 
