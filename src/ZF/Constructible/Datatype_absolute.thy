@@ -101,17 +101,14 @@ constdefs
 
   iterates_replacement :: "[i=>o, [i,i]=>o, i] => o"
    "iterates_replacement(M,isF,v) ==
-      \<forall>n[M]. n\<in>nat -->
+      \<forall>n[M]. n\<in>nat --> 
          wfrec_replacement(M, iterates_MH(M,isF,v), Memrel(succ(n)))"
 
 lemma (in M_axioms) iterates_MH_abs:
   "[| relativize1(M,isF,F); M(n); M(g); M(z) |] 
    ==> iterates_MH(M,isF,v,n,g,z) <-> z = nat_case(v, \<lambda>m. F(g`m), n)"
-apply (simp add: iterates_MH_def) 
-apply (rule nat_case_abs) 
-apply (simp_all add: relativize1_def) 
-done
-
+by (simp add: nat_case_abs [of _ "\<lambda>m. F(g ` m)"]
+              relativize1_def iterates_MH_def)  
 
 lemma (in M_axioms) iterates_imp_wfrec_replacement:
   "[|relativize1(M,isF,F); n \<in> nat; iterates_replacement(M,isF,v)|] 
@@ -159,28 +156,20 @@ by (simp add: is_list_functor_def singleton_0 nat_into_M)
 
 locale M_datatypes = M_wfrank +
  assumes list_replacement1: 
-   "M(A) ==> \<exists>zero[M]. empty(M,zero) & 
-		       iterates_replacement(M, is_list_functor(M,A), zero)"
+   "M(A) ==> iterates_replacement(M, is_list_functor(M,A), 0)"
   and list_replacement2: 
-   "M(A) ==> 
-    \<exists>zero[M]. empty(M,zero) & 
-	      strong_replacement(M, 
+   "M(A) ==> strong_replacement(M, 
          \<lambda>n y. n\<in>nat & 
                (\<exists>sn[M]. \<exists>msn[M]. successor(M,n,sn) & membership(M,sn,msn) &
-               is_wfrec(M, iterates_MH(M,is_list_functor(M,A), zero), 
+               is_wfrec(M, iterates_MH(M,is_list_functor(M,A), 0), 
                         msn, n, y)))"
-
-lemma (in M_datatypes) list_replacement1': 
-   "M(A) ==> iterates_replacement(M, is_list_functor(M,A), 0)"
-apply (insert list_replacement1, simp) 
-done
 
 lemma (in M_datatypes) list_replacement2': 
   "M(A) ==> strong_replacement(M, \<lambda>n y. n\<in>nat & y = (\<lambda>X. {0} + A * X)^n (0))"
 apply (insert list_replacement2 [of A]) 
 apply (rule strong_replacement_cong [THEN iffD1])  
 apply (rule conj_cong [OF iff_refl iterates_abs [of "is_list_functor(M,A)"]]) 
-apply (simp_all add: list_replacement1' relativize1_def) 
+apply (simp_all add: list_replacement1 relativize1_def) 
 done
 
 lemma (in M_datatypes) list_closed [intro,simp]:

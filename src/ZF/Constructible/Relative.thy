@@ -28,6 +28,15 @@ constdefs
   successor :: "[i=>o,i,i] => o"
     "successor(M,a,z) == is_cons(M,a,a,z)"
 
+  number1 :: "[i=>o,i] => o"
+    "number1(M,a) == (\<exists>x[M]. empty(M,x) & successor(M,x,a))"
+
+  number2 :: "[i=>o,i] => o"
+    "number2(M,a) == (\<exists>x[M]. number1(M,x) & successor(M,x,a))"
+
+  number3 :: "[i=>o,i] => o"
+    "number3(M,a) == (\<exists>x[M]. number2(M,x) & successor(M,x,a))"
+
   powerset :: "[i=>o,i,i] => o"
     "powerset(M,A,z) == \<forall>x[M]. x \<in> z <-> subset(M,x,A)"
 
@@ -161,15 +170,6 @@ constdefs
     --{*omega is a limit ordinal none of whose elements are limit*}
     "omega(M,a) == limit_ordinal(M,a) & (\<forall>x[M]. x\<in>a --> ~ limit_ordinal(M,x))"
 
-  number1 :: "[i=>o,i] => o"
-    "number1(M,a) == (\<exists>x[M]. empty(M,x) & successor(M,x,a))"
-
-  number2 :: "[i=>o,i] => o"
-    "number2(M,a) == (\<exists>x[M]. number1(M,x) & successor(M,x,a))"
-
-  number3 :: "[i=>o,i] => o"
-    "number3(M,a) == (\<exists>x[M]. number2(M,x) & successor(M,x,a))"
-
   is_quasinat :: "[i=>o,i] => o"
     "is_quasinat(M,z) == empty(M,z) | (\<exists>m[M]. successor(M,m,z))"
 
@@ -177,7 +177,7 @@ constdefs
     "is_nat_case(M, a, is_b, k, z) == 
        (empty(M,k) --> z=a) &
        (\<forall>m[M]. successor(M,m,k) --> is_b(m,z)) &
-       (is_quasinat(M,k) | z=0)"
+       (is_quasinat(M,k) | empty(M,z))"
 
   relativize1 :: "[i=>o, [i,i]=>o, i=>i] => o"
     "relativize1(M,is_f,f) == \<forall>x[M]. \<forall>y[M]. is_f(x,y) <-> y = f(x)"
@@ -669,8 +669,10 @@ apply (elim disjE exE)
  apply (simp_all add: relativize1_def) 
 done
 
-(*Needed?  surely better to replace is_nat_case by nat_case?*)
-lemma (in M_triv_axioms) is_nat_case_cong [cong]:
+(*NOT for the simplifier.  The assumption M(z') is apparently necessary, but 
+  causes the error "Failed congruence proof!"  It may be better to replace
+  is_nat_case by nat_case before attempting congruence reasoning.*)
+lemma (in M_triv_axioms) is_nat_case_cong:
      "[| a = a'; k = k';  z = z';  M(z');
        !!x y. [| M(x); M(y) |] ==> is_b(x,y) <-> is_b'(x,y) |]
       ==> is_nat_case(M, a, is_b, k, z) <-> is_nat_case(M, a', is_b', k', z')"

@@ -457,6 +457,10 @@ apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
 
+subsection{*Instantiating the locale @{text M_axioms}*}
+text{*Separation (and Strong Replacement) for basic set-theoretic constructions
+such as intersection, Cartesian Product and image.*}
+
 ML
 {*
 val Inter_separation = thm "Inter_separation";
@@ -481,119 +485,119 @@ val m_axioms =
      well_ord_iso_separation, obase_separation,
      obase_equals_separation, omap_replacement, is_recfun_separation]
 
-fun axiomsL th =
-    kill_flex_triv_prems (m_axioms MRS (trivaxL th));
+fun axioms_L th =
+    kill_flex_triv_prems (m_axioms MRS (triv_axioms_L th));
 
-bind_thm ("cartprod_iff", axiomsL (thm "M_axioms.cartprod_iff"));
-bind_thm ("cartprod_closed", axiomsL (thm "M_axioms.cartprod_closed"));
-bind_thm ("sum_closed", axiomsL (thm "M_axioms.sum_closed"));
-bind_thm ("M_converse_iff", axiomsL (thm "M_axioms.M_converse_iff"));
-bind_thm ("converse_closed", axiomsL (thm "M_axioms.converse_closed"));
-bind_thm ("converse_abs", axiomsL (thm "M_axioms.converse_abs"));
-bind_thm ("image_closed", axiomsL (thm "M_axioms.image_closed"));
-bind_thm ("vimage_abs", axiomsL (thm "M_axioms.vimage_abs"));
-bind_thm ("vimage_closed", axiomsL (thm "M_axioms.vimage_closed"));
-bind_thm ("domain_abs", axiomsL (thm "M_axioms.domain_abs"));
-bind_thm ("domain_closed", axiomsL (thm "M_axioms.domain_closed"));
-bind_thm ("range_abs", axiomsL (thm "M_axioms.range_abs"));
-bind_thm ("range_closed", axiomsL (thm "M_axioms.range_closed"));
-bind_thm ("field_abs", axiomsL (thm "M_axioms.field_abs"));
-bind_thm ("field_closed", axiomsL (thm "M_axioms.field_closed"));
-bind_thm ("relation_abs", axiomsL (thm "M_axioms.relation_abs"));
-bind_thm ("function_abs", axiomsL (thm "M_axioms.function_abs"));
-bind_thm ("apply_closed", axiomsL (thm "M_axioms.apply_closed"));
-bind_thm ("apply_abs", axiomsL (thm "M_axioms.apply_abs"));
-bind_thm ("typed_function_abs", axiomsL (thm "M_axioms.typed_function_abs"));
-bind_thm ("injection_abs", axiomsL (thm "M_axioms.injection_abs"));
-bind_thm ("surjection_abs", axiomsL (thm "M_axioms.surjection_abs"));
-bind_thm ("bijection_abs", axiomsL (thm "M_axioms.bijection_abs"));
-bind_thm ("M_comp_iff", axiomsL (thm "M_axioms.M_comp_iff"));
-bind_thm ("comp_closed", axiomsL (thm "M_axioms.comp_closed"));
-bind_thm ("composition_abs", axiomsL (thm "M_axioms.composition_abs"));
-bind_thm ("restriction_is_function", axiomsL (thm "M_axioms.restriction_is_function"));
-bind_thm ("restriction_abs", axiomsL (thm "M_axioms.restriction_abs"));
-bind_thm ("M_restrict_iff", axiomsL (thm "M_axioms.M_restrict_iff"));
-bind_thm ("restrict_closed", axiomsL (thm "M_axioms.restrict_closed"));
-bind_thm ("Inter_abs", axiomsL (thm "M_axioms.Inter_abs"));
-bind_thm ("Inter_closed", axiomsL (thm "M_axioms.Inter_closed"));
-bind_thm ("Int_closed", axiomsL (thm "M_axioms.Int_closed"));
-bind_thm ("finite_fun_closed", axiomsL (thm "M_axioms.finite_fun_closed"));
-bind_thm ("is_funspace_abs", axiomsL (thm "M_axioms.is_funspace_abs"));
-bind_thm ("succ_fun_eq2", axiomsL (thm "M_axioms.succ_fun_eq2"));
-bind_thm ("funspace_succ", axiomsL (thm "M_axioms.funspace_succ"));
-bind_thm ("finite_funspace_closed", axiomsL (thm "M_axioms.finite_funspace_closed"));
+bind_thm ("cartprod_iff", axioms_L (thm "M_axioms.cartprod_iff"));
+bind_thm ("cartprod_closed", axioms_L (thm "M_axioms.cartprod_closed"));
+bind_thm ("sum_closed", axioms_L (thm "M_axioms.sum_closed"));
+bind_thm ("M_converse_iff", axioms_L (thm "M_axioms.M_converse_iff"));
+bind_thm ("converse_closed", axioms_L (thm "M_axioms.converse_closed"));
+bind_thm ("converse_abs", axioms_L (thm "M_axioms.converse_abs"));
+bind_thm ("image_closed", axioms_L (thm "M_axioms.image_closed"));
+bind_thm ("vimage_abs", axioms_L (thm "M_axioms.vimage_abs"));
+bind_thm ("vimage_closed", axioms_L (thm "M_axioms.vimage_closed"));
+bind_thm ("domain_abs", axioms_L (thm "M_axioms.domain_abs"));
+bind_thm ("domain_closed", axioms_L (thm "M_axioms.domain_closed"));
+bind_thm ("range_abs", axioms_L (thm "M_axioms.range_abs"));
+bind_thm ("range_closed", axioms_L (thm "M_axioms.range_closed"));
+bind_thm ("field_abs", axioms_L (thm "M_axioms.field_abs"));
+bind_thm ("field_closed", axioms_L (thm "M_axioms.field_closed"));
+bind_thm ("relation_abs", axioms_L (thm "M_axioms.relation_abs"));
+bind_thm ("function_abs", axioms_L (thm "M_axioms.function_abs"));
+bind_thm ("apply_closed", axioms_L (thm "M_axioms.apply_closed"));
+bind_thm ("apply_abs", axioms_L (thm "M_axioms.apply_abs"));
+bind_thm ("typed_function_abs", axioms_L (thm "M_axioms.typed_function_abs"));
+bind_thm ("injection_abs", axioms_L (thm "M_axioms.injection_abs"));
+bind_thm ("surjection_abs", axioms_L (thm "M_axioms.surjection_abs"));
+bind_thm ("bijection_abs", axioms_L (thm "M_axioms.bijection_abs"));
+bind_thm ("M_comp_iff", axioms_L (thm "M_axioms.M_comp_iff"));
+bind_thm ("comp_closed", axioms_L (thm "M_axioms.comp_closed"));
+bind_thm ("composition_abs", axioms_L (thm "M_axioms.composition_abs"));
+bind_thm ("restriction_is_function", axioms_L (thm "M_axioms.restriction_is_function"));
+bind_thm ("restriction_abs", axioms_L (thm "M_axioms.restriction_abs"));
+bind_thm ("M_restrict_iff", axioms_L (thm "M_axioms.M_restrict_iff"));
+bind_thm ("restrict_closed", axioms_L (thm "M_axioms.restrict_closed"));
+bind_thm ("Inter_abs", axioms_L (thm "M_axioms.Inter_abs"));
+bind_thm ("Inter_closed", axioms_L (thm "M_axioms.Inter_closed"));
+bind_thm ("Int_closed", axioms_L (thm "M_axioms.Int_closed"));
+bind_thm ("finite_fun_closed", axioms_L (thm "M_axioms.finite_fun_closed"));
+bind_thm ("is_funspace_abs", axioms_L (thm "M_axioms.is_funspace_abs"));
+bind_thm ("succ_fun_eq2", axioms_L (thm "M_axioms.succ_fun_eq2"));
+bind_thm ("funspace_succ", axioms_L (thm "M_axioms.funspace_succ"));
+bind_thm ("finite_funspace_closed", axioms_L (thm "M_axioms.finite_funspace_closed"));
 *}
 
 ML
 {*
-bind_thm ("is_recfun_equal", axiomsL (thm "M_axioms.is_recfun_equal"));  
-bind_thm ("is_recfun_cut", axiomsL (thm "M_axioms.is_recfun_cut")); 
-bind_thm ("is_recfun_functional", axiomsL (thm "M_axioms.is_recfun_functional"));
-bind_thm ("is_recfun_relativize", axiomsL (thm "M_axioms.is_recfun_relativize"));
-bind_thm ("is_recfun_restrict", axiomsL (thm "M_axioms.is_recfun_restrict"));
-bind_thm ("univalent_is_recfun", axiomsL (thm "M_axioms.univalent_is_recfun"));
-bind_thm ("exists_is_recfun_indstep", axiomsL (thm "M_axioms.exists_is_recfun_indstep"));
-bind_thm ("wellfounded_exists_is_recfun", axiomsL (thm "M_axioms.wellfounded_exists_is_recfun"));
-bind_thm ("wf_exists_is_recfun", axiomsL (thm "M_axioms.wf_exists_is_recfun")); 
-bind_thm ("is_recfun_abs", axiomsL (thm "M_axioms.is_recfun_abs"));
-bind_thm ("irreflexive_abs", axiomsL (thm "M_axioms.irreflexive_abs"));  
-bind_thm ("transitive_rel_abs", axiomsL (thm "M_axioms.transitive_rel_abs"));  
-bind_thm ("linear_rel_abs", axiomsL (thm "M_axioms.linear_rel_abs"));  
-bind_thm ("wellordered_is_trans_on", axiomsL (thm "M_axioms.wellordered_is_trans_on")); 
-bind_thm ("wellordered_is_linear", axiomsL (thm "M_axioms.wellordered_is_linear")); 
-bind_thm ("wellordered_is_wellfounded_on", axiomsL (thm "M_axioms.wellordered_is_wellfounded_on")); 
-bind_thm ("wellfounded_imp_wellfounded_on", axiomsL (thm "M_axioms.wellfounded_imp_wellfounded_on")); 
-bind_thm ("wellfounded_on_subset_A", axiomsL (thm "M_axioms.wellfounded_on_subset_A"));
-bind_thm ("wellfounded_on_iff_wellfounded", axiomsL (thm "M_axioms.wellfounded_on_iff_wellfounded"));
-bind_thm ("wellfounded_on_imp_wellfounded", axiomsL (thm "M_axioms.wellfounded_on_imp_wellfounded"));
-bind_thm ("wellfounded_on_field_imp_wellfounded", axiomsL (thm "M_axioms.wellfounded_on_field_imp_wellfounded"));
-bind_thm ("wellfounded_iff_wellfounded_on_field", axiomsL (thm "M_axioms.wellfounded_iff_wellfounded_on_field"));
-bind_thm ("wellfounded_induct", axiomsL (thm "M_axioms.wellfounded_induct")); 
-bind_thm ("wellfounded_on_induct", axiomsL (thm "M_axioms.wellfounded_on_induct")); 
-bind_thm ("wellfounded_on_induct2", axiomsL (thm "M_axioms.wellfounded_on_induct2")); 
-bind_thm ("linear_imp_relativized", axiomsL (thm "M_axioms.linear_imp_relativized")); 
-bind_thm ("trans_on_imp_relativized", axiomsL (thm "M_axioms.trans_on_imp_relativized")); 
-bind_thm ("wf_on_imp_relativized", axiomsL (thm "M_axioms.wf_on_imp_relativized")); 
-bind_thm ("wf_imp_relativized", axiomsL (thm "M_axioms.wf_imp_relativized")); 
-bind_thm ("well_ord_imp_relativized", axiomsL (thm "M_axioms.well_ord_imp_relativized")); 
-bind_thm ("order_isomorphism_abs", axiomsL (thm "M_axioms.order_isomorphism_abs"));  
-bind_thm ("pred_set_abs", axiomsL (thm "M_axioms.pred_set_abs"));  
+bind_thm ("is_recfun_equal", axioms_L (thm "M_axioms.is_recfun_equal"));  
+bind_thm ("is_recfun_cut", axioms_L (thm "M_axioms.is_recfun_cut")); 
+bind_thm ("is_recfun_functional", axioms_L (thm "M_axioms.is_recfun_functional"));
+bind_thm ("is_recfun_relativize", axioms_L (thm "M_axioms.is_recfun_relativize"));
+bind_thm ("is_recfun_restrict", axioms_L (thm "M_axioms.is_recfun_restrict"));
+bind_thm ("univalent_is_recfun", axioms_L (thm "M_axioms.univalent_is_recfun"));
+bind_thm ("exists_is_recfun_indstep", axioms_L (thm "M_axioms.exists_is_recfun_indstep"));
+bind_thm ("wellfounded_exists_is_recfun", axioms_L (thm "M_axioms.wellfounded_exists_is_recfun"));
+bind_thm ("wf_exists_is_recfun", axioms_L (thm "M_axioms.wf_exists_is_recfun")); 
+bind_thm ("is_recfun_abs", axioms_L (thm "M_axioms.is_recfun_abs"));
+bind_thm ("irreflexive_abs", axioms_L (thm "M_axioms.irreflexive_abs"));  
+bind_thm ("transitive_rel_abs", axioms_L (thm "M_axioms.transitive_rel_abs"));  
+bind_thm ("linear_rel_abs", axioms_L (thm "M_axioms.linear_rel_abs"));  
+bind_thm ("wellordered_is_trans_on", axioms_L (thm "M_axioms.wellordered_is_trans_on")); 
+bind_thm ("wellordered_is_linear", axioms_L (thm "M_axioms.wellordered_is_linear")); 
+bind_thm ("wellordered_is_wellfounded_on", axioms_L (thm "M_axioms.wellordered_is_wellfounded_on")); 
+bind_thm ("wellfounded_imp_wellfounded_on", axioms_L (thm "M_axioms.wellfounded_imp_wellfounded_on")); 
+bind_thm ("wellfounded_on_subset_A", axioms_L (thm "M_axioms.wellfounded_on_subset_A"));
+bind_thm ("wellfounded_on_iff_wellfounded", axioms_L (thm "M_axioms.wellfounded_on_iff_wellfounded"));
+bind_thm ("wellfounded_on_imp_wellfounded", axioms_L (thm "M_axioms.wellfounded_on_imp_wellfounded"));
+bind_thm ("wellfounded_on_field_imp_wellfounded", axioms_L (thm "M_axioms.wellfounded_on_field_imp_wellfounded"));
+bind_thm ("wellfounded_iff_wellfounded_on_field", axioms_L (thm "M_axioms.wellfounded_iff_wellfounded_on_field"));
+bind_thm ("wellfounded_induct", axioms_L (thm "M_axioms.wellfounded_induct")); 
+bind_thm ("wellfounded_on_induct", axioms_L (thm "M_axioms.wellfounded_on_induct")); 
+bind_thm ("wellfounded_on_induct2", axioms_L (thm "M_axioms.wellfounded_on_induct2")); 
+bind_thm ("linear_imp_relativized", axioms_L (thm "M_axioms.linear_imp_relativized")); 
+bind_thm ("trans_on_imp_relativized", axioms_L (thm "M_axioms.trans_on_imp_relativized")); 
+bind_thm ("wf_on_imp_relativized", axioms_L (thm "M_axioms.wf_on_imp_relativized")); 
+bind_thm ("wf_imp_relativized", axioms_L (thm "M_axioms.wf_imp_relativized")); 
+bind_thm ("well_ord_imp_relativized", axioms_L (thm "M_axioms.well_ord_imp_relativized")); 
+bind_thm ("order_isomorphism_abs", axioms_L (thm "M_axioms.order_isomorphism_abs"));  
+bind_thm ("pred_set_abs", axioms_L (thm "M_axioms.pred_set_abs"));  
 *}
 
 ML
 {*
-bind_thm ("pred_closed", axiomsL (thm "M_axioms.pred_closed"));  
-bind_thm ("membership_abs", axiomsL (thm "M_axioms.membership_abs"));  
-bind_thm ("M_Memrel_iff", axiomsL (thm "M_axioms.M_Memrel_iff"));
-bind_thm ("Memrel_closed", axiomsL (thm "M_axioms.Memrel_closed"));  
-bind_thm ("wellordered_iso_predD", axiomsL (thm "M_axioms.wellordered_iso_predD"));
-bind_thm ("wellordered_iso_pred_eq", axiomsL (thm "M_axioms.wellordered_iso_pred_eq"));
-bind_thm ("wellfounded_on_asym", axiomsL (thm "M_axioms.wellfounded_on_asym"));
-bind_thm ("wellordered_asym", axiomsL (thm "M_axioms.wellordered_asym"));
-bind_thm ("ord_iso_pred_imp_lt", axiomsL (thm "M_axioms.ord_iso_pred_imp_lt"));
-bind_thm ("obase_iff", axiomsL (thm "M_axioms.obase_iff"));
-bind_thm ("omap_iff", axiomsL (thm "M_axioms.omap_iff"));
-bind_thm ("omap_unique", axiomsL (thm "M_axioms.omap_unique"));
-bind_thm ("omap_yields_Ord", axiomsL (thm "M_axioms.omap_yields_Ord"));
-bind_thm ("otype_iff", axiomsL (thm "M_axioms.otype_iff"));
-bind_thm ("otype_eq_range", axiomsL (thm "M_axioms.otype_eq_range"));
-bind_thm ("Ord_otype", axiomsL (thm "M_axioms.Ord_otype"));
-bind_thm ("domain_omap", axiomsL (thm "M_axioms.domain_omap"));
-bind_thm ("omap_subset", axiomsL (thm "M_axioms.omap_subset")); 
-bind_thm ("omap_funtype", axiomsL (thm "M_axioms.omap_funtype")); 
-bind_thm ("wellordered_omap_bij", axiomsL (thm "M_axioms.wellordered_omap_bij"));
-bind_thm ("omap_ord_iso", axiomsL (thm "M_axioms.omap_ord_iso"));
-bind_thm ("Ord_omap_image_pred", axiomsL (thm "M_axioms.Ord_omap_image_pred"));
-bind_thm ("restrict_omap_ord_iso", axiomsL (thm "M_axioms.restrict_omap_ord_iso"));
-bind_thm ("obase_equals", axiomsL (thm "M_axioms.obase_equals")); 
-bind_thm ("omap_ord_iso_otype", axiomsL (thm "M_axioms.omap_ord_iso_otype"));
-bind_thm ("obase_exists", axiomsL (thm "M_axioms.obase_exists"));
-bind_thm ("omap_exists", axiomsL (thm "M_axioms.omap_exists"));
-bind_thm ("otype_exists", axiomsL (thm "M_axioms.otype_exists"));
-bind_thm ("omap_ord_iso_otype", axiomsL (thm "M_axioms.omap_ord_iso_otype"));
-bind_thm ("ordertype_exists", axiomsL (thm "M_axioms.ordertype_exists"));
-bind_thm ("relativized_imp_well_ord", axiomsL (thm "M_axioms.relativized_imp_well_ord")); 
-bind_thm ("well_ord_abs", axiomsL (thm "M_axioms.well_ord_abs"));  
+bind_thm ("pred_closed", axioms_L (thm "M_axioms.pred_closed"));  
+bind_thm ("membership_abs", axioms_L (thm "M_axioms.membership_abs"));  
+bind_thm ("M_Memrel_iff", axioms_L (thm "M_axioms.M_Memrel_iff"));
+bind_thm ("Memrel_closed", axioms_L (thm "M_axioms.Memrel_closed"));  
+bind_thm ("wellordered_iso_predD", axioms_L (thm "M_axioms.wellordered_iso_predD"));
+bind_thm ("wellordered_iso_pred_eq", axioms_L (thm "M_axioms.wellordered_iso_pred_eq"));
+bind_thm ("wellfounded_on_asym", axioms_L (thm "M_axioms.wellfounded_on_asym"));
+bind_thm ("wellordered_asym", axioms_L (thm "M_axioms.wellordered_asym"));
+bind_thm ("ord_iso_pred_imp_lt", axioms_L (thm "M_axioms.ord_iso_pred_imp_lt"));
+bind_thm ("obase_iff", axioms_L (thm "M_axioms.obase_iff"));
+bind_thm ("omap_iff", axioms_L (thm "M_axioms.omap_iff"));
+bind_thm ("omap_unique", axioms_L (thm "M_axioms.omap_unique"));
+bind_thm ("omap_yields_Ord", axioms_L (thm "M_axioms.omap_yields_Ord"));
+bind_thm ("otype_iff", axioms_L (thm "M_axioms.otype_iff"));
+bind_thm ("otype_eq_range", axioms_L (thm "M_axioms.otype_eq_range"));
+bind_thm ("Ord_otype", axioms_L (thm "M_axioms.Ord_otype"));
+bind_thm ("domain_omap", axioms_L (thm "M_axioms.domain_omap"));
+bind_thm ("omap_subset", axioms_L (thm "M_axioms.omap_subset")); 
+bind_thm ("omap_funtype", axioms_L (thm "M_axioms.omap_funtype")); 
+bind_thm ("wellordered_omap_bij", axioms_L (thm "M_axioms.wellordered_omap_bij"));
+bind_thm ("omap_ord_iso", axioms_L (thm "M_axioms.omap_ord_iso"));
+bind_thm ("Ord_omap_image_pred", axioms_L (thm "M_axioms.Ord_omap_image_pred"));
+bind_thm ("restrict_omap_ord_iso", axioms_L (thm "M_axioms.restrict_omap_ord_iso"));
+bind_thm ("obase_equals", axioms_L (thm "M_axioms.obase_equals")); 
+bind_thm ("omap_ord_iso_otype", axioms_L (thm "M_axioms.omap_ord_iso_otype"));
+bind_thm ("obase_exists", axioms_L (thm "M_axioms.obase_exists"));
+bind_thm ("omap_exists", axioms_L (thm "M_axioms.omap_exists"));
+bind_thm ("otype_exists", axioms_L (thm "M_axioms.otype_exists"));
+bind_thm ("omap_ord_iso_otype", axioms_L (thm "M_axioms.omap_ord_iso_otype"));
+bind_thm ("ordertype_exists", axioms_L (thm "M_axioms.ordertype_exists"));
+bind_thm ("relativized_imp_well_ord", axioms_L (thm "M_axioms.relativized_imp_well_ord")); 
+bind_thm ("well_ord_abs", axioms_L (thm "M_axioms.well_ord_abs"));  
 *}
 
 declare cartprod_closed [intro,simp]

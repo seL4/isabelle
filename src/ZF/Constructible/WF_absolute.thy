@@ -611,19 +611,6 @@ apply (rule sym)
 apply (simp add: wfrec_relativize, blast) 
 done
 
-lemma (in M_wfrank) wfrec_closed_lemma [rule_format]:
-     "[|wf(r); M(r); 
-        strong_replacement(M, \<lambda>x y. y = \<langle>x, wfrec(r, x, H)\<rangle>);
-        \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g)) |] 
-      ==> M(a) --> M(wfrec(r,a,H))"
-apply (rule_tac a=a in wf_induct, assumption+)
-apply (subst wfrec, assumption, clarify)
-apply (drule_tac x1=x and x="\<lambda>x\<in>r -`` {x}. wfrec(r, x, H)" 
-       in rspec [THEN rspec]) 
-apply (simp_all add: function_lam) 
-apply (blast intro: dest: pair_components_in_M ) 
-done
-
 text{*Full version not assuming transitivity, but maybe not very useful.*}
 theorem (in M_wfrank) wfrec_closed:
      "[|wf(r); M(r); M(a);
