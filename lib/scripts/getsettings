@@ -12,4 +12,7 @@ set -o allexport
 . $ISABELLE_HOME/etc/settings || exit 2
 [ -f $ISABELLE_HOME_USER/etc/settings ] && . $ISABELLE_HOME_USER/etc/settings
 
+ISABELLE=$ISABELLE_HOME/bin/isabelle
+ISATOOL=$ISABELLE_HOME/bin/isatool
+
 set +o allexport
