@@ -45,6 +45,10 @@ Syntax Transformations
 
 page 145, line -5: delete repeated "the" in "before the the .thy file"
 
+Simplification
+
+page 158, "!": Isabelle now permits more general left-hand sides, so called
+higher-order patterns.
 
 ISABELLE'S OBJECT-LOGICS
 
