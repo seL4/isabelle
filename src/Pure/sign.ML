@@ -455,7 +455,7 @@ in
   val intern_tycons = intrn_tycons o spaces_of;
 
   val full_name = full o #path o rep_sg;
-  fun full_name_path sg elems name =		(* FIXME "..", "/" semantics (!?) *)
+  fun full_name_path sg elems name =
     full (#path (rep_sg sg) @ NameSpace.unpack elems) name;
 end;
 
