@@ -48,6 +48,7 @@ The directory Pure containes pure Isabelle, which has no object-logic.
 Other important files include...
   COPYRIGHT   		Copyright notice and Disclaimer of Warranty
   make-all		shell script for building entire system
+  change_simp		shell script to help convert sources to new simplifier
   expandshort		shell script to expand "shortcuts" in files
   prove_goal.el       	Emacs command to change proof format
   xlisten		shell script for running Isabelle under X
@@ -97,8 +98,8 @@ binary mode; transfer files from the directory dist/ml.
 
 ------------------------------------------------------------------------------
 
-Please report any problems you encounter.  While we will try to be helpful,
-we can accept no responsibility for the deficiences of Isabelle amd their
+Please report any problems you encounter.  While we shall try to be helpful,
+we can accept no responsibility for the deficiences of Isabelle and their
 consequences.
 
 Lawrence C Paulson		E-mail: lcp@cl.cam.ac.uk
@@ -115,4 +116,4 @@ Postfach 20 24 20
 D-8000 Muenchen 2
 Germany
 
-Last updated 28 October 1993
+Last updated 5 November 1993
