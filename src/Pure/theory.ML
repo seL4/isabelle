@@ -355,7 +355,7 @@ fun dest_defn tm =
 (* check_defn *)
 
 fun err_in_defn sg name msg =
-  (writeln msg; error ("The error(s) above occurred in definition " ^
+  (error_msg msg; error ("The error(s) above occurred in definition " ^
     quote (Sign.full_name sg name)));
 
 fun check_defn sign (axms, (name, tm)) =

@@ -573,7 +573,7 @@ fun abbr_errors tsig (a, (lhs_vs, rhs)) =
 
 fun prep_abbr tsig (a, vs, raw_rhs) =
   let
-    fun err msgs = (seq writeln msgs;
+    fun err msgs = (seq error_msg msgs;
       error ("The error(s) above occurred in type abbreviation " ^ quote a));
 
     val rhs = rem_sorts (varifyT (no_tvars raw_rhs))
