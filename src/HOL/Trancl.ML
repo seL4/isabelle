@@ -238,6 +238,12 @@ by (rtac (rtrancl_trans RS rtrancl_into_trancl1) 1);
 by (REPEAT (ares_tac [r_into_rtrancl] 1));
 qed "rtrancl_into_trancl2";
 
+Goal "(a, b) : R^* ==> a = b | (a, b) : R^+";
+by (etac rtranclE 1);
+by  (datac rtrancl_into_trancl1 1 2);
+by   Auto_tac;
+qed "rtranclD";
+
 (*Nice induction rule for trancl*)
 val major::prems = Goal
   "[| (a,b) : r^+;                                      \
@@ -333,6 +339,15 @@ by (rtac ((major RS converseI RS trancl_converseI) RS trancl_induct) 1);
 by (blast_tac (claset() addIs prems addSDs [trancl_converseD])1);
 qed "converse_trancl_induct";
 
+Goal "(x,y):R^+ ==> ? z. (x,z):R & (z,y):R^*";
+be converse_trancl_induct 1;
+by Auto_tac;
+br exI 1;
+be conjI 1;
+be (r_into_rtrancl RS rtrancl_trans) 1;
+ba 1;
+qed "tranclD";
+
 (*Unused*)
 Goal "r^-1 Int r^+ = {} ==> (x, x) ~: r^+";
 by (subgoal_tac "!y. (x, y) : r^+ --> x~=y" 1);
@@ -341,6 +356,10 @@ by (strip_tac 1);
 by (etac trancl_induct 1);
 by (auto_tac (claset() addIs [r_into_trancl], simpset()));
 qed "irrefl_tranclI";
+
+Goal "!!X. [| !x. (x, x) ~: r^+; (x,y) : r |] ==> x ~= y";
+by (blast_tac (claset() addDs [r_into_trancl]) 1);
+qed "irrefl_trancl_rD";
 
 Goal "[| (a,b) : r^*;  r <= A <*> A |] ==> a=b | a:A";
 by (etac rtrancl_induct 1);
