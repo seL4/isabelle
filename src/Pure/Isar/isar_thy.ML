@@ -137,12 +137,6 @@ sig
     -> Toplevel.transition -> Toplevel.transition
   val finally_i: (thm list * Comment.interest) option * Comment.text
     -> Toplevel.transition -> Toplevel.transition
-  val obtain: ((string list * string option) * Comment.text) list
-    * ((string * Args.src list * (string * (string list * string list)) list)
-      * Comment.text) list -> ProofHistory.T -> ProofHistory.T
-  val obtain_i: ((string list * typ option) * Comment.text) list
-    * ((string * Proof.context attribute list * (term * (term list * term list)) list)
-      * Comment.text) list -> ProofHistory.T -> ProofHistory.T
   val use_mltext: string -> bool -> theory option -> unit
   val use_mltext_theory: string -> bool -> theory -> theory
   val use_setup: string -> theory -> theory
@@ -168,24 +162,24 @@ struct
 
 (** derived theory and proof operations **)
 
-(* formal comments *)
+(* markup commands *)
 
 fun add_header comment =
   Toplevel.keep (fn state => if Toplevel.is_toplevel state then () else raise Toplevel.UNDEF);
 
-fun add_text comment thy = thy:theory;
+fun add_text _ x = x;
 fun add_text_raw _ x = x;
-val add_chapter = add_text;
 
-fun gen_add_section add present txt thy =
+fun add_heading add present txt thy =
   (Context.setmp (Some thy) present (Comment.string_of txt); add txt thy);
 
-val add_section = gen_add_section add_text Present.section;
-val add_subsection = gen_add_section add_text Present.subsection;
-val add_subsubsection = gen_add_section add_text Present.subsubsection;
+val add_chapter = add_heading add_text Present.section;
+val add_section = add_heading add_text Present.section;
+val add_subsection = add_heading add_text Present.subsection;
+val add_subsubsection = add_heading add_text Present.subsubsection;
 
-fun add_txt comment = ProofHistory.apply Proof.assert_forward;
-val add_txt_raw = add_text_raw;
+fun add_txt (_: Comment.text) = ProofHistory.apply I;
+val add_txt_raw = add_txt;
 val add_sect = add_txt;
 val add_subsect = add_txt;
 val add_subsubsect = add_txt;
@@ -295,9 +289,6 @@ val match_bind_i = ProofHistory.apply o Proof.match_bind_i o map Comment.ignore;
 
 (* statements *)
 
-fun multi_local_attribute state (name, src, s) =
-  (name, map (Attrib.local_attribute (Proof.theory_of state)) src, s);
-
 local
 
 fun global_statement f (name, src, s) int thy =
@@ -311,6 +302,9 @@ fun local_statement f g (name, src, s) = ProofHistory.apply (fn state =>
   f name (map (Attrib.local_attribute (Proof.theory_of state)) src) s (g state));
 
 fun local_statement_i f g (name, atts, t) = ProofHistory.apply (f name atts t o g);
+
+fun multi_local_attribute state (name, src, s) =
+  (name, map (Attrib.local_attribute (Proof.theory_of state)) src, s);
 
 fun multi_statement f args = ProofHistory.apply (fn state =>
   f (map (multi_local_attribute state) args) state);
@@ -447,16 +441,6 @@ fun finally x = proof''' (ProofHistory.applys o gen_calc get_thmss Calculation.f
 fun finally_i x = proof''' (ProofHistory.applys o gen_calc get_thmss_i Calculation.finally x);
 
 end;
-
-
-(* obtain *)
-
-fun obtain (xs, asms) = ProofHistory.applys (fn state =>
-  Obtain.obtain (map Comment.ignore xs)
-    (map (multi_local_attribute state o Comment.ignore) asms) state);
-
-fun obtain_i (xs, asms) = ProofHistory.applys
-  (Obtain.obtain_i (map Comment.ignore xs) (map Comment.ignore asms));
 
 
 (* use ML text *)
