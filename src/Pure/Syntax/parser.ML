@@ -5,7 +5,6 @@
 Isabelle's main parser (used for terms and typs).
 
 TODO:
-  improve syntax error
   extend_gram: remove 'roots' arg
 *)
 
@@ -469,12 +468,42 @@ end;
 
 
 
-fun syntax_error toks =
-  error ("Syntax error at: " ^ quote (space_implode " " (map str_of_token toks)));
+fun syntax_error toks allowed =
+  error 
+  ((if toks = [] then
+      "error: unexpected end of input\n"
+    else
+      "Syntax error at: " ^ quote (space_implode " " (map str_of_token toks))
+      ^ "\n")
+   ^ "Expected tokens: " 
+   ^ space_implode ", " (map (quote o str_of_token) allowed));
 
-fun produce stateset i indata =
+fun produce stateset i indata prev_token =
+                     (*the argument prev_token is only used for error messages*)
   (case Array.sub (stateset, i) of
-    [] => syntax_error indata (* MMW *)(* FIXME *)
+    [] => let (*compute a list of allowed starting tokens 
+                for a list of nonterminals*)
+              fun get_starts [] = []
+                | get_starts (rhss_ref :: refs) =
+                    let fun get [] = []
+                          | get ((Some tok, _) :: rhss) =
+                              tok :: (get rhss)
+                          | get ((None, _) :: rhss) =
+                              get rhss;
+                    in (get (!rhss_ref)) union (get_starts refs) end;
+
+              val NTs = map (fn (_, _, _, Nonterm (a, _) :: _, _, _) => a)
+                            (filter (fn (_, _, _, Nonterm _ :: _, _, _) => true
+                                     | _ => false) (Array.sub (stateset, i-1)));
+              val allowed = get_starts NTs union
+                            (map (fn (_, _, _, Term a :: _, _, _) => a)
+                            (filter (fn (_, _, _, Term _ :: _, _, _) => true
+                                    | _ => false) (Array.sub (stateset, i-1))));
+                                             (*terminals have to be searched for
+                                               because of lambda productions*)
+          in syntax_error (if prev_token = EndToken then indata
+                           else prev_token :: indata) allowed
+          end
   | s =>
     (case indata of
       [] => Array.sub (stateset, i)
@@ -484,7 +513,7 @@ fun produce stateset i indata =
       in
         Array.update (stateset, i, si);
         Array.update (stateset, i + 1, sii);
-        produce stateset (i + 1) cs
+        produce stateset (i + 1) cs c
       end));
 
 
@@ -503,7 +532,7 @@ fun earley grammar startsymbol indata =
   in
     Array.update (Estate, 0, S0);
     let
-      val l = produce Estate 0 indata;
+      val l = produce Estate 0 indata EndToken(*dummy*);
       val p_trees = get_trees l;
     in p_trees end
   end;
