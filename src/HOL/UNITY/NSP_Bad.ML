@@ -11,6 +11,10 @@ From page 260 of
   Proc. Royal Soc. 426 (1989)
 *)
 
+fun impOfAlways th = 
+    normalize_thm [RSspec,RSmp]
+       (th RS Always_includes_reachable RS subsetD RS CollectD);
+
 AddEs spies_partsEs;
 AddDs [impOfSubs analz_subset_parts];
 AddDs [impOfSubs Fake_parts_insert];
@@ -25,7 +29,8 @@ AddIffs (map simp_of_act [Fake_def, NS1_def, NS2_def, NS3_def]);
 Addsimps [Nprg_def RS def_prg_simps];
 
 
-(*A "possibility property": there are traces that reach the end*)
+(*A "possibility property": there are traces that reach the end.
+  Replace by LEADSTO proof!*)
 Goal "A ~= B ==> EX NB. EX s: reachable Nprg.                \
 \                  Says A B (Crypt (pubK B) (Nonce NB)) : set s";
 by (REPEAT (resolve_tac [exI,bexI] 1));
@@ -52,68 +57,75 @@ by (rtac analz_impI 2);
 by (auto_tac (claset() addSDs [spies_Says_analz_contraD], simpset()));
 *)
 
-val parts_induct_tac = 
+fun ns_constrains_tac i = 
+   SELECT_GOAL
+      (EVERY [REPEAT (eresolve_tac [Always_ConstrainsI] 1),
+	      REPEAT (resolve_tac [StableI, stableI,
+				   constrains_imp_Constrains] 1),
+	      rtac constrainsI 1,
+	      Full_simp_tac 1,
+	      REPEAT (FIRSTGOAL (etac disjE)),
+	      ALLGOALS (clarify_tac (claset() delrules [impI,impCE])),
+	      REPEAT (FIRSTGOAL analz_mono_contra_tac),
+	      ALLGOALS Asm_simp_tac]) i;
+
+(*Tactic for proving secrecy theorems*)
+val ns_induct_tac = 
   (SELECT_GOAL o EVERY)
-     [etac reachable.induct 1,
+     [rtac AlwaysI 1,
       Force_tac 1,
-      Full_simp_tac 1,
-      safe_tac (claset() delrules [impI,impCE]),
-      REPEAT (FIRSTGOAL analz_mono_contra_tac),
-      ALLGOALS Asm_simp_tac];
+      (*"reachable" gets in here*)
+      rtac (Always_reachable RS Always_StableI) 1,
+      ns_constrains_tac 1];
 
 
 (** Theorems of the form X ~: parts (spies evs) imply that NOBODY
     sends messages containing X! **)
 
 (*Spy never sees another agent's private key! (unless it's bad at start)*)
-(*
-    Goal "Nprg : Always {s. (Key (priK A) : parts (spies s)) = (A : bad)}";
-    by (rtac AlwaysI 1);
-    by (Force_tac 1);
-    by (constrains_tac 1);
-    by Auto_tac;
-    qed "Spy_see_priK";
-*)
-
-Goal "s : reachable Nprg ==> (Key (priK A) : parts (spies s)) = (A : bad)";
-by (etac reachable.induct 1);
-by (ALLGOALS Force_tac);
+Goal "Nprg : Always {s. (Key (priK A) : parts (spies s)) = (A : bad)}";
+by (ns_induct_tac 1);
+by (Blast_tac 1);
 qed "Spy_see_priK";
-Addsimps [Spy_see_priK];
+Addsimps [impOfAlways Spy_see_priK];
 
-Goal "s : reachable Nprg ==> (Key (priK A) : analz (spies s)) = (A : bad)";
+Goal "Nprg : Always {s. (Key (priK A) : analz (spies s)) = (A : bad)}";
+br (Always_reachable RS Always_weaken) 1;
 by Auto_tac;
 qed "Spy_analz_priK";
-Addsimps [Spy_analz_priK];
+Addsimps [impOfAlways Spy_analz_priK];
 
+(**
 AddSDs [Spy_see_priK RSN (2, rev_iffD1), 
 	Spy_analz_priK RSN (2, rev_iffD1)];
+**)
 
 
 (**** Authenticity properties obtained from NS2 ****)
 
 (*It is impossible to re-use a nonce in both NS1 and NS2, provided the nonce
   is secret.  (Honest users generate fresh nonces.)*)
-Goal "[| Crypt (pubK B) {|Nonce NA, Agent A|} : parts (spies s); \
-\        Nonce NA ~: analz (spies s);   s : reachable Nprg |]       \
-\     ==> Crypt (pubK C) {|NA', Nonce NA|} ~: parts (spies s)";
-by (etac rev_mp 1);
-by (etac rev_mp 1);
-by (parts_induct_tac 1);
+Goal
+ "Nprg \
+\  : Always {s. Nonce NA ~: analz (spies s) -->  \
+\               Crypt (pubK B) {|Nonce NA, Agent A|} : parts (spies s) --> \
+\               Crypt (pubK C) {|NA', Nonce NA|} ~: parts (spies s)}";
+by (ns_induct_tac 1);
 by (ALLGOALS Blast_tac);
 qed "no_nonce_NS1_NS2";
 
 (*Adding it to the claset slows down proofs...*)
-val nonce_NS1_NS2_E = no_nonce_NS1_NS2 RSN (2, rev_notE);
+val nonce_NS1_NS2_E = impOfAlways no_nonce_NS1_NS2 RSN (2, rev_notE);
 
 
 (*Unicity for NS1: nonce NA identifies agents A and B*)
-Goal "[| Nonce NA ~: analz (spies s);  s : reachable Nprg |]      \
-\     ==> EX A' B'. ALL A B.                                            \
-\            Crypt (pubK B) {|Nonce NA, Agent A|} : parts (spies s) --> \
-\               A=A' & B=B'";
-by (etac rev_mp 1);
-by (parts_induct_tac 1);
+Goal
+ "Nprg \
+\  : Always {s. Nonce NA ~: analz (spies s)  --> \
+\               (EX A' B'. ALL A B. \
+     \            Crypt (pubK B) {|Nonce NA, Agent A|} : parts (spies s) --> \
+\                   A=A' & B=B')}";
+by (ns_induct_tac 1);
 by (ALLGOALS (simp_tac (simpset() addsimps [all_conj_distrib])));
 (*NS1*)
 by (expand_case_tac "NA = ?y" 2 THEN Blast_tac 2);
@@ -126,27 +138,16 @@ Goal "[| Crypt(pubK B)  {|Nonce NA, Agent A|}  : parts(spies s); \
 \        Nonce NA ~: analz (spies s);                            \
 \        s : reachable Nprg |]                                   \
 \     ==> A=A' & B=B'";
-by (prove_unique_tac lemma 1);
+by (prove_unique_tac (impOfAlways lemma) 1);
 qed "unique_NA";
 
 
-(*Tactic for proving secrecy theorems*)
-val analz_induct_tac = 
-  (SELECT_GOAL o EVERY)
-     [etac reachable.induct 1,
-      Force_tac 1,
-      Full_simp_tac 1,
-      safe_tac (claset() delrules [impI,impCE]),
-      ALLGOALS Asm_simp_tac];
-
-
-
 (*Secrecy: Spy does not see the nonce sent in msg NS1 if A and B are secure*)
-Goal "[| Says A B (Crypt(pubK B) {|Nonce NA, Agent A|}) : set s;   \
-\        A ~: bad;  B ~: bad;  s : reachable Nprg |]                    \
-\     ==>  Nonce NA ~: analz (spies s)";
-by (etac rev_mp 1);
-by (analz_induct_tac 1);
+Goal "[| A ~: bad;  B ~: bad |]                     \
+\ ==> Nprg : Always \
+\             {s. Says A B (Crypt(pubK B) {|Nonce NA, Agent A|}) : set s \
+\                 --> Nonce NA ~: analz (spies s)}";
+by (ns_induct_tac 1);
 (*NS3*)
 by (blast_tac (claset() addEs [nonce_NS1_NS2_E]) 4);
 (*NS2*)
@@ -160,32 +161,31 @@ qed "Spy_not_see_NA";
 
 (*Authentication for A: if she receives message 2 and has used NA
   to start a run, then B has sent message 2.*)
-Goal "[| Says A  B (Crypt(pubK B) {|Nonce NA, Agent A|}) : set s;  \
-\        Says B' A (Crypt(pubK A) {|Nonce NA, Nonce NB|}): set s;  \
-\        A ~: bad;  B ~: bad;  s : reachable Nprg |]                    \
-\     ==> Says B A (Crypt(pubK A) {|Nonce NA, Nonce NB|}): set s";
-by (etac rev_mp 1);
-(*prepare induction over Crypt (pubK A) {|NA,NB|} : parts H*)
-by (etac (Says_imp_spies RS parts.Inj RS rev_mp) 1);
-by (parts_induct_tac 1);
+val prems =
+goal thy "[| A ~: bad;  B ~: bad |]                     \
+\ ==> Nprg : Always \
+\             {s. Says A B (Crypt(pubK B) {|Nonce NA, Agent A|}) : set s &  \
+\                 Crypt(pubK A) {|Nonce NA, Nonce NB|} : parts (knows Spy s) \
+\        --> Says B A (Crypt(pubK A) {|Nonce NA, Nonce NB|}): set s}";
+  (*insert an invariant for use in some of the subgoals*)
+by (cut_facts_tac ([prems MRS Spy_not_see_NA] @ prems) 1);
+by (ns_induct_tac 1);
 by (ALLGOALS Clarify_tac);
 (*NS2*)
-by (blast_tac (claset() addDs [Spy_not_see_NA, unique_NA]) 3);
+by (blast_tac (claset() addDs [unique_NA]) 3);
 (*NS1*)
 by (Blast_tac 2);
 (*Fake*)
-by (blast_tac (claset() addDs [Spy_not_see_NA]) 1);
+by (Blast_tac 1);
 qed "A_trusts_NS2";
 
 
 (*If the encrypted message appears then it originated with Alice in NS1*)
-Goal "[| Crypt (pubK B) {|Nonce NA, Agent A|} : parts (spies s); \
-\        Nonce NA ~: analz (spies s);                            \
-\        s : reachable Nprg |]                                        \
-\     ==> Says A B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set s";
-by (etac rev_mp 1);
-by (etac rev_mp 1);
-by (parts_induct_tac 1);
+Goal "Nprg : Always \
+\             {s. Nonce NA ~: analz (spies s) --> \
+\                 Crypt (pubK B) {|Nonce NA, Agent A|} : parts (spies s) \
+\        --> Says A B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set s}";
+by (ns_induct_tac 1);
 by (Blast_tac 1);
 qed "B_trusts_NS1";
 
@@ -195,12 +195,13 @@ qed "B_trusts_NS1";
 
 (*Unicity for NS2: nonce NB identifies nonce NA and agent A
   [proof closely follows that for unique_NA] *)
-Goal "[| Nonce NB ~: analz (spies s);  s : reachable Nprg |]         \
-\     ==> EX A' NA'. ALL A NA.                                       \
-\           Crypt (pubK A) {|Nonce NA, Nonce NB|} : parts (spies s)  \
-\                -->  A=A' & NA=NA'";
-by (etac rev_mp 1);
-by (parts_induct_tac 1);
+Goal
+ "Nprg \
+\  : Always {s. Nonce NB ~: analz (spies s)  --> \
+\               (EX A' NA'. ALL A NA. \
+\                 Crypt (pubK A) {|Nonce NA, Nonce NB|} : parts (spies s)  \
+\                    -->  A=A' & NA=NA')}";
+by (ns_induct_tac 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [all_conj_distrib])));
 (*NS2*)
 by (expand_case_tac "NB = ?y" 2 THEN Blast_tac 2);
@@ -213,18 +214,17 @@ Goal "[| Crypt(pubK A) {|Nonce NA, Nonce NB|}  : parts(spies s); \
 \        Nonce NB ~: analz (spies s);                            \
 \        s : reachable Nprg |]                                        \
 \     ==> A=A' & NA=NA'";
-by (prove_unique_tac lemma 1);
+by (prove_unique_tac (impOfAlways lemma) 1);
 qed "unique_NB";
 
 
 (*NB remains secret PROVIDED Alice never responds with round 3*)
-Goal "[| Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set s;  \
-\       ALL C. Says A C (Crypt (pubK C) (Nonce NB)) ~: set s;      \
-\       A ~: bad;  B ~: bad;  s : reachable Nprg |]                     \
-\    ==> Nonce NB ~: analz (spies s)";
-by (etac rev_mp 1);
-by (etac rev_mp 1);
-by (analz_induct_tac 1);
+Goal "[| A ~: bad;  B ~: bad |]                     \
+\ ==> Nprg : Always \
+\             {s. Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set s &  \
+\                 (ALL C. Says A C (Crypt (pubK C) (Nonce NB)) ~: set s) \
+\                 --> Nonce NB ~: analz (spies s)}";
+by (ns_induct_tac 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [all_conj_distrib])));
 by (ALLGOALS Clarify_tac);
 (*NS3: because NB determines A*)
@@ -241,31 +241,32 @@ qed "Spy_not_see_NB";
 
 (*Authentication for B: if he receives message 3 and has used NB
   in message 2, then A has sent message 3--to somebody....*)
-Goal "[| Says B A  (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set s; \
-\        Says A' B (Crypt (pubK B) (Nonce NB)): set s;              \
-\        A ~: bad;  B ~: bad;  s : reachable Nprg |]                \
-\     ==> EX C. Says A C (Crypt (pubK C) (Nonce NB)) : set s";
-by (etac rev_mp 1);
-(*prepare induction over Crypt (pubK B) NB : parts H*)
-by (etac (Says_imp_spies RS parts.Inj RS rev_mp) 1);
-by (parts_induct_tac 1);
+val prems =
+goal thy "[| A ~: bad;  B ~: bad |]                     \
+\ ==> Nprg : Always \
+\             {s. Crypt (pubK B) (Nonce NB) : parts (spies s) &  \
+\                 Says B A  (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set s \
+\                 --> (EX C. Says A C (Crypt (pubK C) (Nonce NB)) : set s)}";
+  (*insert an invariant for use in some of the subgoals*)
+by (cut_facts_tac ([prems MRS Spy_not_see_NB] @ prems) 1);
+by (ns_induct_tac 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [ex_disj_distrib])));
 by (ALLGOALS Clarify_tac);
 (*NS3: because NB determines A (this use of unique_NB is more robust) *)
-by (blast_tac (claset() addDs [Spy_not_see_NB]
-			addIs [unique_NB RS conjunct1]) 3);
+by (blast_tac (claset() addIs [unique_NB RS conjunct1]) 3);
 (*NS1: by freshness*)
 by (Blast_tac 2);
 (*Fake*)
-by (blast_tac (claset() addDs [Spy_not_see_NB]) 1);
+by (Blast_tac 1);
 qed "B_trusts_NS3";
 
 
 (*Can we strengthen the secrecy theorem?  NO*)
-Goal "[| A ~: bad;  B ~: bad;  s : reachable Nprg |]           \
-\     ==> Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set s \
-\           --> Nonce NB ~: analz (spies s)";
-by (analz_induct_tac 1);
+Goal "[| A ~: bad;  B ~: bad |]                     \
+\ ==> Nprg : Always \
+\             {s. Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set s  \
+\                 --> Nonce NB ~: analz (spies s)}";
+by (ns_induct_tac 1);
 by (ALLGOALS Clarify_tac);
 (*NS2: by freshness and unicity of NB*)
 by (blast_tac (claset() addEs [nonce_NS1_NS2_E]) 3);
@@ -281,15 +282,16 @@ by (rename_tac "s B' C" 1);
 
 (*
 THIS IS THE ATTACK!
-Level 8
-!!s. [| A ~: bad; B ~: bad; s : reachable Nprg |]
-       ==> Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set s -->
-           Nonce NB ~: analz (spies s)
+[| A ~: bad; B ~: bad |]
+==> Nprg
+    : Always
+       {s. Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set s -->
+           Nonce NB ~: analz (knows Spy s)}
  1. !!s B' C.
        [| A ~: bad; B ~: bad; s : reachable Nprg;
           Says A C (Crypt (pubK C) {|Nonce NA, Agent A|}) : set s;
-          Says B' A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set s; C : bad;
-          Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set s;
-          Nonce NB ~: analz (spies s) |]
+          Says B' A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set s;
+          C : bad; Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set s;
+          Nonce NB ~: analz (knows Spy s) |]
        ==> False
 *)
