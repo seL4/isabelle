@@ -84,6 +84,31 @@ next
   qed
 qed
 
+lemma split_div_lemma:
+  "0 < n \<Longrightarrow> (n * q <= m \<and> m < n * (Suc q)) = (q = ((m::nat) div n))"
+  apply (rule iffI)
+  apply (rule_tac a=m and r = "m - n * q" and r' = "m mod n" in unique_quotient)
+  apply (simp_all add: quorem_def)
+  apply arith
+  apply (rule conjI)
+  apply (rule_tac P="%x. n * (m div n) \<le> x" in
+    subst [OF mod_div_equality [of _ n]])
+  apply (simp only: add: mult_ac)
+  apply (rule_tac P="%x. x < n + n * (m div n)" in
+    subst [OF mod_div_equality [of _ n]])
+  apply (simp only: add: mult_ac add_ac)
+  apply (rule add_less_mono1)
+  apply simp
+  done
+
+theorem split_div':
+  "P ((m::nat) div n) = ((n = 0 \<and> P 0) \<or>
+   (\<exists>q. (n * q <= m \<and> m < n * (Suc q)) \<and> P q))"
+  apply (case_tac "0 < n")
+  apply (simp only: add: split_div_lemma)
+  apply (simp_all add: DIVISION_BY_ZERO_DIV)
+  done
+
 lemma split_mod:
  "P(n mod k :: nat) =
  ((k = 0 \<longrightarrow> P n) \<and> (k \<noteq> 0 \<longrightarrow> (!i. !j<k. n = k*i + j \<longrightarrow> P j)))"
@@ -116,6 +141,12 @@ next
     show ?P by simp
   qed
 qed
+
+theorem mod_div_equality': "(m::nat) mod n = m - (m div n) * n"
+  apply (rule_tac P="%x. m mod n = x - (m div n) * n" in
+    subst [OF mod_div_equality [of _ n]])
+  apply arith
+  done
 
 (*
 lemma split_div:
