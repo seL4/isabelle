@@ -1045,3 +1045,6 @@ in
 end;
 
 end; (* TFL *)
+
+val Add_recdef_congs = Prim.Add_recdef_congs;
+val Del_recdef_congs = Prim.Del_recdef_congs;
