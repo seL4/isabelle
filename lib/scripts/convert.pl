@@ -58,7 +58,8 @@ sub process_tac {
   s/\( /\(/g; s/ \)/\)/g; # remove leading and trailing space inside parentheses
   s/\[ /\[/g; s/ \]/\]/g; # remove leading and trailing space inside sq brackets
   s/ ?\( ?\)/\(\)/g;      # remove space before and inside empty tuples
-  s/\(\)([^ ])/\(\) $1/g; # possibly add space after empty tuples
+  s/([^ ])\(/$1 \(/g;     # possibly add space before opening parentheses
+  s/\)([^ ])/\) $1/g;     # possibly add space after  closing parentheses
 
   s/EVERY *\[(.*?)\]/$1/;
   if(s/EVERY\' ?\[(.*?)\] *(\d+)/$1 $2/) {
@@ -92,10 +93,10 @@ sub process_tac {
   s/^Force_tac (\d+)/{$prefer="prefer $1 "; "force"}/e;
   s/Clarsimp_tac 1/clarsimp/g;
 
-  s/auto_tac \(claset\(\) (.*?), *simpset\(\) (.*?)\)/auto $1 $2/g;
-  s/force_tac \(claset\(\) (.*?), *simpset\(\) (.*?)\) 1/force $1 $2/g;
-  s/^force_tac \(claset\(\) (.*?), *simpset\(\) (.*?)\) (\d+)/{$prefer="prefer $3 "; "force $1 $2"}/e;
-  s/clarsimp_tac \(claset\(*\) (.*?), *simpset\(\) (.*?)\) 1/clarsimp $1 $2/g;
+  s/auto_tac \(claset \(\) (.*?), *simpset \(\) (.*?)\)/auto $1 $2/g;
+  s/force_tac \(claset \(\) (.*?), *simpset \(\) (.*?)\) 1/force $1 $2/g;
+  s/^force_tac \(claset \(\) (.*?), *simpset \(\) (.*?)\) (\d+)/{$prefer="prefer $3 "; "force $1 $2"}/e;
+  s/clarsimp_tac \(claset \(*\) (.*?), *simpset \(\) (.*?)\) 1/clarsimp $1 $2/g;
 
   s/Asm_full_simp_tac 1/simp/g;
   s/Full_simp_tac 1/simp (no_asm_use)/g;
@@ -106,14 +107,14 @@ sub process_tac {
   s/ALLGOALS Asm_simp_tac/simp_all (no_asm_simp)/g;
   s/ALLGOALS Simp_tac/simp_all (no_asm)/g;
 
-  s/asm_full_simp_tac \(simpset\(\) (.*?)\) 1/simp $1/g;
-  s/full_simp_tac \(simpset\(\) (.*?)\) 1/simp (no_asm_use) $1/g;
-  s/asm_simp_tac \(simpset\(\) (.*?)\) 1/simp (no_asm_simp) $1/g;
-  s/simp_tac \(simpset\(\) (.*?)\) 1/simp (no_asm) $1/g;
-  s/ALLGOALS \(asm_full_simp_tac \(simpset\(\) (.*?)\)\)/simp_all $1/g;
-  s/ALLGOALS \(full_simp_tac \(simpset\(\) (.*?)\)\)/simp_all (no_asm_use) $1/g;
-  s/ALLGOALS \(asm_simp_tac \(simpset\(\) (.*?)\)\)/simp_all (no_asm_simp) $1/g;
-  s/ALLGOALS \(simp_tac \(simpset\(\) (.*?)\)\)/simp_all (no_asm) $1/g;
+  s/asm_full_simp_tac \(simpset \(\) (.*?)\) 1/simp $1/g;
+  s/full_simp_tac \(simpset \(\) (.*?)\) 1/simp (no_asm_use) $1/g;
+  s/asm_simp_tac \(simpset \(\) (.*?)\) 1/simp (no_asm_simp) $1/g;
+  s/simp_tac \(simpset \(\) (.*?)\) 1/simp (no_asm) $1/g;
+  s/ALLGOALS \(asm_full_simp_tac \(simpset \(\) (.*?)\) \)/simp_all $1/g;
+  s/ALLGOALS \(full_simp_tac \(simpset \(\) (.*?)\) \)/simp_all (no_asm_use) $1/g;
+  s/ALLGOALS \(asm_simp_tac \(simpset \(\) (.*?)\) \)/simp_all (no_asm_simp) $1/g;
+  s/ALLGOALS \(simp_tac \(simpset \(\) (.*?)\) \)/simp_all (no_asm) $1/g;
 
   s/a(ssume_)?tac 1/assumption/g;
   s/^a(ssume_)?tac (\d+)/{$prefer="prefer $2 "; "assumption"}/e;
@@ -139,7 +140,7 @@ sub process_tac {
   s/ORELSE/|/g;
   subst_RS();
 
-  s/\(\"(.*?)\" *, *(\".*?\")\) *, */$1 = $2 and /g; # instantiations
+  s/\(\"(.*?)\" *, *(\".*?\")\) , */$1 = $2 and /g; # instantiations
   s/\(\"(.*?)\" *, *(\".*?\")\)/$1 = $2/g;       # last instantiation
 
   s/rewtac ([\w\'\. \[,\]]+)/unfold $1/g;
