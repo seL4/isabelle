@@ -9,9 +9,13 @@ New in Isabelle???? (DATE ????)
 
 * hierachically structured name spaces (for consts, types, thms,
 ...), use 'begin' or 'path' section in theory files; new lexical class
-'longid' (e.g. Foo.bar.x) renders many old input syntactically
+'longid' (e.g. Foo.bar.x) renders much of old input syntactically
 incorrect (e.g. "%x.x"); isatool fixdots inserts space after dots
 ("%x. x");
+
+* HTML output now includes theory graph data for display with Java
+applet or isatool browser; data generated automatically via isatool
+usedir (see -i option);
 
 * defs may now be conditional; improved rewrite_goals_tac to handle
 conditional equations;
