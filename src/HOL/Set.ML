@@ -200,6 +200,67 @@ by (REPEAT (resolve_tac (refl::prems) 1));
 qed "setup_induction";
 
 
+section "The empty set -- {}";
+
+qed_goalw "empty_iff" Set.thy [empty_def] "(c : {}) = False"
+ (fn _ => [ (Fast_tac 1) ]);
+
+Addsimps [empty_iff];
+
+qed_goal "emptyE" Set.thy "!!a. a:{} ==> P"
+ (fn _ => [Full_simp_tac 1]);
+
+AddSEs [emptyE];
+
+qed_goal "empty_subsetI" Set.thy "{} <= A"
+ (fn _ => [ (Fast_tac 1) ]);
+
+qed_goal "equals0I" Set.thy "[| !!y. y:A ==> False |] ==> A={}"
+ (fn [prem]=>
+  [ (fast_tac (!claset addIs [prem RS FalseE]) 1) ]);
+
+qed_goal "equals0D" Set.thy "!!a. [| A={};  a:A |] ==> P"
+ (fn _ => [ (Fast_tac 1) ]);
+
+goal Set.thy "Ball {} P = True";
+by (simp_tac (HOL_ss addsimps [mem_Collect_eq, Ball_def, empty_def]) 1);
+qed "ball_empty";
+
+goal Set.thy "Bex {} P = False";
+by (simp_tac (HOL_ss addsimps [mem_Collect_eq, Bex_def, empty_def]) 1);
+qed "bex_empty";
+Addsimps [ball_empty, bex_empty];
+
+goalw Set.thy [Ball_def] "(!x:A.False) = (A = {})";
+by(Fast_tac 1);
+qed "ball_False";
+Addsimps [ball_False];
+
+(* The dual is probably not helpful:
+goal Set.thy "(? x:A.True) = (A ~= {})";
+by(Fast_tac 1);
+qed "bex_True";
+Addsimps [bex_True];
+*)
+
+
+section "The Powerset operator -- Pow";
+
+qed_goalw "Pow_iff" Set.thy [Pow_def] "(A : Pow(B)) = (A <= B)"
+ (fn _ => [ (Asm_simp_tac 1) ]);
+
+AddIffs [Pow_iff]; 
+
+qed_goalw "PowI" Set.thy [Pow_def] "!!A B. A <= B ==> A : Pow(B)"
+ (fn _ => [ (etac CollectI 1) ]);
+
+qed_goalw "PowD" Set.thy [Pow_def] "!!A B. A : Pow(B)  ==>  A<=B"
+ (fn _=> [ (etac CollectD 1) ]);
+
+val Pow_bottom = empty_subsetI RS PowI;        (* {}: Pow(B) *)
+val Pow_top = subset_refl RS PowI;             (* A : Pow(A) *)
+
+
 section "Set complement -- Compl";
 
 qed_goalw "Compl_iff" Set.thy [Compl_def] "(c : Compl(A)) = (c~:A)"
@@ -310,49 +371,6 @@ qed_goal "DiffE" Set.thy "[| c : A - B;  [| c:A; c~:B |] ==> P |] ==> P"
 AddSIs [DiffI];
 AddSEs [DiffE];
 
-section "The empty set -- {}";
-
-qed_goalw "empty_iff" Set.thy [empty_def] "(c : {}) = False"
- (fn _ => [ (Fast_tac 1) ]);
-
-Addsimps [empty_iff];
-
-qed_goal "emptyE" Set.thy "!!a. a:{} ==> P"
- (fn _ => [Full_simp_tac 1]);
-
-AddSEs [emptyE];
-
-qed_goal "empty_subsetI" Set.thy "{} <= A"
- (fn _ => [ (Fast_tac 1) ]);
-
-qed_goal "equals0I" Set.thy "[| !!y. y:A ==> False |] ==> A={}"
- (fn [prem]=>
-  [ (fast_tac (!claset addIs [prem RS FalseE]) 1) ]);
-
-qed_goal "equals0D" Set.thy "!!a. [| A={};  a:A |] ==> P"
- (fn _ => [ (Fast_tac 1) ]);
-
-goal Set.thy "Ball {} P = True";
-by (simp_tac (HOL_ss addsimps [mem_Collect_eq, Ball_def, empty_def]) 1);
-qed "ball_empty";
-
-goal Set.thy "Bex {} P = False";
-by (simp_tac (HOL_ss addsimps [mem_Collect_eq, Bex_def, empty_def]) 1);
-qed "bex_empty";
-Addsimps [ball_empty, bex_empty];
-
-goalw Set.thy [Ball_def] "(!x:A.False) = (A = {})";
-by(Fast_tac 1);
-qed "ball_False";
-Addsimps [ball_False];
-
-(* The dual is probably not helpful:
-goal Set.thy "(? x:A.True) = (A ~= {})";
-by(Fast_tac 1);
-qed "bex_True";
-Addsimps [bex_True];
-*)
-
 
 section "Augmenting a set -- insert";
 
@@ -400,6 +418,9 @@ goal Set.thy "!!a b. {a}={b} ==> a=b";
 by (fast_tac (!claset addEs [equalityE]) 1);
 qed "singleton_inject";
 
+(*Redundant? But unlike insertCI, it proves the subgoal immediately!*)
+AddSIs [singletonI];   
+    
 AddSDs [singleton_inject];
 
 
@@ -576,23 +597,6 @@ qed "InterE";
 
 AddSIs [InterI];
 AddEs  [InterD, InterE];
-
-
-section "The Powerset operator -- Pow";
-
-qed_goalw "Pow_iff" Set.thy [Pow_def] "(A : Pow(B)) = (A <= B)"
- (fn _ => [ (Asm_simp_tac 1) ]);
-
-AddIffs [Pow_iff]; 
-
-qed_goalw "PowI" Set.thy [Pow_def] "!!A B. A <= B ==> A : Pow(B)"
- (fn _ => [ (etac CollectI 1) ]);
-
-qed_goalw "PowD" Set.thy [Pow_def] "!!A B. A : Pow(B)  ==>  A<=B"
- (fn _=> [ (etac CollectD 1) ]);
-
-val Pow_bottom = empty_subsetI RS PowI;        (* {}: Pow(B) *)
-val Pow_top = subset_refl RS PowI;             (* A : Pow(A) *)
 
 
 
