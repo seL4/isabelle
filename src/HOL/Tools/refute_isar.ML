@@ -74,8 +74,8 @@ struct
 
 	fun refute_params_trans args =
 		let
-			fun add_params (thy, []) = thy
-				| add_params (thy, p::ps) = add_params (Refute.set_default_param p thy, ps)
+			fun add_params (thy, [])    = thy
+			  | add_params (thy, p::ps) = add_params (Refute.set_default_param p thy, ps)
 		in
 			Toplevel.theory (fn thy =>
 				let
