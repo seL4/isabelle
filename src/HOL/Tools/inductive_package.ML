@@ -36,6 +36,8 @@ sig
     {names: string list, coind: bool} * {defs: thm list, elims: thm list, raw_induct: thm,
       induct: thm, intrs: thm list, mk_cases: string -> thm, mono: thm, unfold: thm}
   val print_inductives: theory -> unit
+  val cases_of: Sign.sg -> string -> thm
+  val cases: Sign.sg -> thm list
   val mono_add_global: theory attribute
   val mono_del_global: theory attribute
   val get_monos: theory -> thm list
@@ -102,11 +104,29 @@ fun put_inductives names info thy =
       handle Symtab.DUP name => error ("Duplicate definition of (co)inductive set " ^ quote name);
   in InductiveData.put tab_monos thy end;
 
-val get_monos = snd o InductiveData.get;
 
-fun put_monos thms thy = InductiveData.put (fst (InductiveData.get thy), thms) thy;
+(* cases rules *)
+
+fun cases_of sg name =
+  let
+    fun find (None, (_, ({names, ...}, {elims, ...}): inductive_info)) =
+          assoc (names ~~ elims, name)
+      | find (some, _) = some;
+    val (tab, _) = InductiveData.get_sg sg;
+  in
+    (case Symtab.foldl find (None, tab) of
+      None => error ("Unknown (co)inductive set " ^ quote name)
+    | Some thm => thm)
+  end;
+
+fun cases sg = flat (map (#elims o #2 o #2) (Symtab.dest (#1 (InductiveData.get_sg sg))));
+      
+
 
 (** monotonicity rules **)
+
+val get_monos = snd o InductiveData.get;
+fun put_monos thms thy = InductiveData.put (fst (InductiveData.get thy), thms) thy;
 
 fun mk_mono thm =
   let
