@@ -295,7 +295,7 @@ by (simp add: wellordered_def, blast dest: wellfounded_on_asym)
 
 
 text{*Surely a shorter proof using lemmas in @{text Order}?
-     Like well_ord_iso_preserving?*}
+     Like @{text well_ord_iso_preserving}?*}
 lemma (in M_axioms) ord_iso_pred_imp_lt:
      "[| f \<in> ord_iso(Order.pred(A,x,r), r, i, Memrel(i));
        g \<in> ord_iso(Order.pred(A,y,r), r, j, Memrel(j));

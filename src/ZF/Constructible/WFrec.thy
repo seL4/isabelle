@@ -113,7 +113,7 @@ apply (erule is_recfun_type)+
 apply (blast intro!: is_recfun_equal dest: transM) 
 done 
 
-text{*Tells us that is_recfun can (in principle) be relativized.*}
+text{*Tells us that @{text is_recfun} can (in principle) be relativized.*}
 lemma (in M_axioms) is_recfun_relativize:
   "[| M(r); M(f); \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g)) |] 
    ==> is_recfun(r,a,H,f) <->
@@ -347,7 +347,7 @@ locale M_ord_arith = M_axioms +
 
 
 
-text{*is_oadd_fun: Relating the pure "language of set theory" to Isabelle/ZF*}
+text{*@{text is_oadd_fun}: Relating the pure "language of set theory" to Isabelle/ZF*}
 lemma (in M_ord_arith) is_oadd_fun_iff:
    "[| a\<le>j; M(i); M(j); M(a); M(f) |] 
     ==> is_oadd_fun(M,i,j,a,f) <->
