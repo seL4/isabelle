@@ -99,13 +99,13 @@ done
 
 (** Well-founded Induction **)
 
-(*Consider the least z in domain(r) Un {a} such that P(z) does not hold...*)
+(*Consider the least z in domain(r) such that P(z) does not hold...*)
 lemma wf_induct:
     "[| wf(r);
         !!x.[| ALL y. <y,x>: r --> P(y) |] ==> P(x)
      |]  ==>  P(a)"
 apply (unfold wf_def) 
-apply (erule_tac x = "{z:domain (r) Un {a}. ~P (z) }" in allE)
+apply (erule_tac x = "{z : domain(r). ~ P(z)}" in allE)
 apply blast 
 done
 
@@ -133,14 +133,6 @@ apply (unfold wf_on_def)
 apply (erule wf_induct2, assumption)
 apply (rule field_Int_square, blast)
 done
-
-text{*The assumption @{term "r \<subseteq> A*A"} justifies strengthening the induction
-      hypothesis by removing the restriction to @{term A}.*}
-lemma wf_on_induct2:
-    "[| wf[A](r);  a:A;  r \<subseteq> A*A; 
-        !!x.[| x: A;  ALL y. <y,x>: r --> P(y) |] ==> P(x)
-     |]  ==>  P(a)"
-by (rule wf_on_induct, assumption+, blast)
 
 (*fixed up for induct method*)
 lemmas wf_on_induct = wf_on_induct [consumes 2, induct set: wf_on]
