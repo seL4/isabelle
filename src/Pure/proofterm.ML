@@ -945,7 +945,7 @@ fun rewrite_prf tmatch (rules, procs) prf =
 fun rewrite_proof tsig = rewrite_prf (fn (tab, f) =>
   Type.typ_match tsig (tab, f ()) handle Type.TYPE_MATCH => raise PMatch);
 
-val rewrite_proof_notypes = rewrite_prf fst;
+fun rewrite_proof_notypes tsig = rewrite_prf fst tsig;
 
 (**** theory data ****)
 
