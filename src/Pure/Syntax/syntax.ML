@@ -339,9 +339,9 @@ fun test_read (Syntax tabs) root str =
 
     fun show_pt pt =
       let
-        val raw_ast = SynTrans.pt_to_ast (K None) pt;
+        val [raw_ast] = SynTrans.pts_to_asts (K None) [pt];
         val _ = writeln ("raw: " ^ Ast.str_of_ast raw_ast);
-        val pre_ast = SynTrans.pt_to_ast (lookup_tr parse_ast_trtab) pt;
+        val [pre_ast] = SynTrans.pts_to_asts (lookup_tr parse_ast_trtab) [pt];
         val _ = Ast.normalize true true (lookup_ruletab parse_ruletab) pre_ast;
       in () end;
   in seq show_pt (Parser.parse gram root toks) end;
@@ -359,7 +359,7 @@ fun read_asts (Syntax tabs) xids root str =
     val pts = Parser.parse gram root' (Lexicon.tokenize lexicon xids chars);
 
     fun show_pt pt =
-      warning (Pretty.string_of (Ast.pretty_ast (SynTrans.pt_to_ast (K None) pt)));
+      warning (Pretty.string_of (Ast.pretty_ast (hd (SynTrans.pts_to_asts (K None) [pt]))));
   in
     if length pts > ! ambiguity_level then
         if ! ambiguity_is_error then
@@ -369,7 +369,7 @@ fun read_asts (Syntax tabs) xids root str =
              warning "produces the following parse trees:";
              seq show_pt pts)
     else ();
-    map (SynTrans.pt_to_ast (lookup_tr parse_ast_trtab)) pts
+    SynTrans.pts_to_asts (lookup_tr parse_ast_trtab) pts
   end;
 
 
@@ -380,7 +380,7 @@ fun read (syn as Syntax tabs) ty str =
     val {parse_ruletab, parse_trtab, ...} = tabs;
     val asts = read_asts syn false (SynExt.typ_to_nonterm ty) str;
   in
-    map (SynTrans.ast_to_term (lookup_tr parse_trtab))
+    SynTrans.asts_to_terms (lookup_tr parse_trtab)
       (map (Ast.normalize_ast (lookup_ruletab parse_ruletab)) asts)
   end;
 
