@@ -182,8 +182,7 @@ lemma lift_IT [rule_format, intro!]:
      apply auto
    done
 
-lemma lifts_IT:
-    "ts \<in> lists IT \<Longrightarrow> map (\<lambda>t. lift t 0) ts \<in> lists IT"
+lemma lifts_IT: "ts \<in> lists IT \<Longrightarrow> map (\<lambda>t. lift t 0) ts \<in> lists IT"
   by (induct ts) auto
 
 lemma lift_type [intro!]: "e \<turnstile> t : T \<Longrightarrow> e\<langle>i:U\<rangle> \<turnstile> lift t i : T"
@@ -362,7 +361,7 @@ proof (induct U)
           with nT have "e\<langle>i:T\<rangle> \<turnstile> Var n \<^sub>\<degree> a \<^sub>\<degree>\<^sub>\<degree> as : T'" by simp
           then obtain Ts
               where headT: "e\<langle>i:T\<rangle> \<turnstile> Var n \<^sub>\<degree> a : Ts \<Rrightarrow> T'"
-              and argsT: "(e\<langle>i:T\<rangle>) \<tturnstile> as : Ts"
+              and argsT: "e\<langle>i:T\<rangle> \<tturnstile> as : Ts"
             by (rule list_app_typeE)
           from headT obtain T''
               where varT: "e\<langle>i:T\<rangle> \<turnstile> Var n : T'' \<Rightarrow> Ts \<Rrightarrow> T'"
@@ -418,7 +417,7 @@ proof (induct U)
               by (rule typing.Var) simp
             moreover from uT argsT have "e \<tturnstile> map (\<lambda>t. t[u/i]) as : Ts"
               by (rule substs_lemma)
-            hence "(e\<langle>0:Ts \<Rrightarrow> T'\<rangle>) \<tturnstile> ?ls as : Ts"
+            hence "e\<langle>0:Ts \<Rrightarrow> T'\<rangle> \<tturnstile> ?ls as : Ts"
               by (rule lift_typings)
             ultimately show "e\<langle>0:Ts \<Rrightarrow> T'\<rangle> \<turnstile> Var 0 \<^sub>\<degree>\<^sub>\<degree> ?ls as : T'"
               by (rule list_app_typeI)
@@ -433,7 +432,7 @@ proof (induct U)
       next
         case False
         from Var have "rs \<in> lists {t. ?R t}" by simp
-        moreover from nT obtain Ts where "(e\<langle>i:T\<rangle>) \<tturnstile> rs : Ts"
+        moreover from nT obtain Ts where "e\<langle>i:T\<rangle> \<tturnstile> rs : Ts"
           by (rule list_app_typeE)
         hence "rs \<in> lists ?ty" by (rule lists_typings)
         ultimately have "rs \<in> lists ({t. ?R t} \<inter> ?ty)"
