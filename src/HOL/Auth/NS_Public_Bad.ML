@@ -123,8 +123,8 @@ by (simp_tac (!simpset addsimps [all_conj_distrib, parts_insert_sees]) 1);
 by (step_tac (!claset addSIs [analz_insertI]) 1);
 by (ex_strip_tac 1);
 by (blast_tac (!claset delrules [conjI]
-                      addSDs [impOfSubs Fake_parts_insert]
-                      addDs  [impOfSubs analz_subset_parts]) 1);
+                       addSDs [impOfSubs Fake_parts_insert]
+                       addDs  [impOfSubs analz_subset_parts]) 1);
 val lemma = result();
 
 goal thy 
@@ -256,8 +256,7 @@ by (ALLGOALS (asm_simp_tac (!simpset addsimps [all_conj_distrib])));
 by (step_tac (!claset delrules [allI]) 1);
 by (Blast_tac 5);
 (*NS3*)
-by (blast_tac (!claset addDs [Says_imp_sees_Spy' RS parts.Inj,
-			      Spy_not_see_NB, unique_NB]) 4);
+by (blast_tac (!claset addDs [Says_imp_sees_Spy' RS parts.Inj, unique_NB]) 4);
 (*NS2*)
 by (blast_tac (!claset addSEs sees_Spy_partsEs) 3);
 by (blast_tac (!claset addSDs [Says_imp_sees_Spy' RS parts.Inj]
