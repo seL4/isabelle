@@ -4,20 +4,20 @@
     Copyright   1996 TU Muenchen
 
 
-The following lemma essentially shows that all composite natural numbers are
-sums of fours squares, provided all prime numbers are. However, this is an
-abstract thm about commutative rings and has a priori nothing to do with nat.
-*)
+The following lemma essentially shows that every natural number is the sum of
+four squares, provided all prime numbers are.  However, this is an abstract
+theorem about commutative rings.  It has, a priori, nothing to do with nat.*)
 
-Goalw [Lagrange.sq_def] "!!x1::'a::cring. \
+Goalw [Lagrange.sq_def]
+ "!!x1::'a::cring. \
 \  (sq x1 + sq x2 + sq x3 + sq x4) * (sq y1 + sq y2 + sq y3 + sq y4) = \
 \  sq(x1*y1 - x2*y2 - x3*y3 - x4*y4)  + \
 \  sq(x1*y2 + x2*y1 + x3*y4 - x4*y3)  + \
 \  sq(x1*y3 - x2*y4 + x3*y1 + x4*y2)  + \
 \  sq(x1*y4 + x2*y3 - x3*y2 + x4*y1)";
-(*Takes up to three minutes...*)
-by (cring_tac 1);
+by (cring_tac 1);  (*once a slow step, but now (2001) just three seconds!*)
 qed "Lagrange_lemma";
+
 
 (* A challenge by John Harrison.
    Takes forever because of the naive bottom-up strategy of the rewriter.
@@ -33,5 +33,5 @@ Goalw [Lagrange.sq_def] "!!p1::'a::cring.\
 \    sq (p1*u2 + q1*t2 - r1*w2 + s1*v2 - t1*q2 + u1*p2 - v1*s2 + w1*r2) +\
 \    sq (p1*v2 + q1*w2 + r1*t2 - s1*u2 - t1*r2 + u1*s2 + v1*p2 - w1*q2) +\
 \    sq (p1*w2 - q1*v2 + r1*u2 + s1*t2 - t1*s2 - u1*r2 + v1*q2 + w1*p2)";
-
+by (cring_tac 1);
 *)
