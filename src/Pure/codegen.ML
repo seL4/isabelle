@@ -11,6 +11,7 @@ sig
   val quiet_mode : bool ref
   val message : string -> unit
   val mode : string list ref
+  val margin : int ref
 
   datatype 'a mixfix =
       Arg
@@ -57,6 +58,8 @@ val quiet_mode = ref true;
 fun message s = if !quiet_mode then () else writeln s;
 
 val mode = ref ([] : string list);
+
+val margin = ref 80;
 
 (**** Mixfix syntax ****)
 
@@ -427,7 +430,7 @@ fun default_tycodegen thy gr dep brack (TVar ((s, i), _)) =
 fun output_code gr xs = implode (map (snd o Graph.get_node gr)
   (rev (Graph.all_preds gr xs)));
 
-fun gen_generate_code prep_term thy = Pretty.setmp_margin 80 (fn xs =>
+fun gen_generate_code prep_term thy = Pretty.setmp_margin (!margin) (fn xs =>
   let
     val sg = sign_of thy;
     val gr = Graph.new_node ("<Top>", (None, "")) Graph.empty;
