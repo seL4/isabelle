@@ -170,6 +170,9 @@ invocation of the underlying oracle).  For SVC see
 * HOL/Real/HahnBanach: the Hahn-Banach theorem for real vector spaces
 (in Isabelle/Isar) -- by Gertrud Bauer;
 
+* HOL/BCV: generic model of bytecode verification, i.e. data-flow
+analysis for assembly languages with subtypes;
+
 * HOL/TLA (Lamport's Temporal Logic of Actions): major reorganization
 -- avoids syntactic ambiguities and treats state, transition, and
 temporal levels more uniformly; introduces INCOMPATIBILITIES due to
