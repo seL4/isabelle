@@ -111,6 +111,10 @@ sig
   val conjunction_tac: tactic
   val prove: Sign.sg -> string list -> term list -> term -> (thm list -> tactic) -> thm
   val prove_standard: Sign.sg -> string list -> term list -> term -> (thm list -> tactic) -> thm
+  val compose_inst_tac' : (indexname * string) list -> (bool * thm * int) ->
+                          int -> tactic
+  val lift_inst_rule'   : thm * int * (indexname * string) list * thm -> thm
+  val res_inst_tac'     : (indexname * string) list -> thm -> int -> tactic
 end;
 
 structure Tactic: TACTIC =
@@ -212,7 +216,7 @@ fun innermost_params i st =
   in rename_wrt_term Bi (Logic.strip_params Bi) end;
 
 (*Lift and instantiate a rule wrt the given state and subgoal number *)
-fun lift_inst_rule (st, i, sinsts, rule) =
+fun lift_inst_rule' (st, i, sinsts, rule) =
 let val {maxidx,sign,...} = rep_thm st
     val (_, _, Bi, _) = dest_state(st,i)
     val params = Logic.strip_params Bi          (*params of subgoal i*)
@@ -237,6 +241,9 @@ let val {maxidx,sign,...} = rep_thm st
 in Drule.instantiate (map lifttvar Tinsts, map liftpair insts)
                      (lift_rule (st,i) rule)
 end;
+
+fun lift_inst_rule (st, i, sinsts, rule) = lift_inst_rule'
+  (st, i, map (apfst Syntax.indexname) sinsts, rule);
 
 (*
 Like lift_inst_rule but takes terms, not strings, where the terms may contain
@@ -271,12 +278,15 @@ end;
      subgoal.  Fails if "i" is out of range.  ***)
 
 (*compose version: arguments are as for bicompose.*)
-fun compose_inst_tac sinsts (bires_flg, rule, nsubgoal) i st =
+fun gen_compose_inst_tac instf sinsts (bires_flg, rule, nsubgoal) i st =
   if i > nprems_of st then no_tac st
   else st |>
-    (compose_tac (bires_flg, lift_inst_rule (st, i, sinsts, rule), nsubgoal) i
+    (compose_tac (bires_flg, instf (st, i, sinsts, rule), nsubgoal) i
      handle TERM (msg,_)   => (warning msg;  no_tac)
           | THM  (msg,_,_) => (warning msg;  no_tac));
+
+val compose_inst_tac = gen_compose_inst_tac lift_inst_rule;
+val compose_inst_tac' = gen_compose_inst_tac lift_inst_rule';
 
 (*"Resolve" version.  Note: res_inst_tac cannot behave sensibly if the
   terms that are substituted contain (term or type) unknowns from the
@@ -289,6 +299,9 @@ fun compose_inst_tac sinsts (bires_flg, rule, nsubgoal) i st =
 *)
 fun res_inst_tac sinsts rule i =
     compose_inst_tac sinsts (false, rule, nprems_of rule) i;
+
+fun res_inst_tac' sinsts rule i =
+    compose_inst_tac' sinsts (false, rule, nprems_of rule) i;
 
 (*eresolve elimination version*)
 fun eres_inst_tac sinsts rule i =

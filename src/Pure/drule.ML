@@ -20,7 +20,7 @@ sig
   val read_insts        :
           Sign.sg -> (indexname -> typ option) * (indexname -> sort option)
                   -> (indexname -> typ option) * (indexname -> sort option)
-                  -> string list -> (string*string)list
+                  -> string list -> (indexname * string) list
                   -> (indexname*ctyp)list * (cterm*cterm)list
   val types_sorts: thm -> (indexname-> typ option) * (indexname-> sort option)
   val strip_shyps_warning : thm -> thm
@@ -218,14 +218,11 @@ fun inst_failure ixn =
 
 fun read_insts sign (rtypes,rsorts) (types,sorts) used insts =
 let
-    fun split([],tvs,vs) = (tvs,vs)
-      | split((sv,st)::l,tvs,vs) = (case Symbol.explode sv of
-                  "'"::cs => split(l,(Syntax.indexname cs,st)::tvs,vs)
-                | cs => split(l,tvs,(Syntax.indexname cs,st)::vs));
-    val (tvs,vs) = split(insts,[],[]);
-    fun readT((a,i),st) =
-        let val ixn = ("'" ^ a,i);
-            val S = case rsorts ixn of Some S => S | None => absent ixn;
+    fun is_tv ((a, _), _) =
+      (case Symbol.explode a of "'" :: _ => true | _ => false);
+    val (tvs, vs) = partition is_tv insts;
+    fun readT (ixn, st) =
+        let val S = case rsorts ixn of Some S => S | None => absent ixn;
             val T = Sign.read_typ (sign,sorts) st;
         in if Sign.typ_instance sign (T, TVar(ixn,S)) then (ixn,T)
            else inst_failure ixn
@@ -789,7 +786,8 @@ fun instantiate instpair th = Thm.instantiate instpair th  COMP   asm_rl;
 fun read_instantiate_sg sg sinsts th =
     let val ts = types_sorts th;
         val used = add_term_tvarnames (prop_of th, []);
-    in  instantiate (read_insts sg ts ts used sinsts) th  end;
+        val sinsts' = map (apfst Syntax.indexname) sinsts
+    in  instantiate (read_insts sg ts ts used sinsts') th  end;
 
 (*Instantiate theorem th, reading instantiations under theory of th*)
 fun read_instantiate sinsts th =
