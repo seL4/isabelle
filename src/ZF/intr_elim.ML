@@ -119,9 +119,12 @@ val _ = writeln "  Proving the elimination rule...";
 
 (*Includes rules for succ and Pair since they are common constructions*)
 val elim_rls = [asm_rl, FalseE, succ_neq_0, sym RS succ_neq_0, 
-		Pair_neq_0, sym RS Pair_neq_0, make_elim succ_inject, 
+		Pair_neq_0, sym RS Pair_neq_0, Pair_inject,
+		make_elim succ_inject, 
 		refl_thin, conjE, exE, disjE];
 
+(*Standard sum/products for datatypes, variant ones for codatatypes;
+  We always include Pair_inject above*)
 val sumprod_free_SEs = 
     map (gen_make_elim [conjE,FalseE])
 	([Su.distinct, Su.distinct', Su.inl_iff, Su.inr_iff, Pr.pair_iff] 
