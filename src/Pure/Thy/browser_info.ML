@@ -88,12 +88,13 @@ val package = ref "";
    corresponding to theory with given path *)
 local
   fun make_path q p =
-    let val base  = tack_on (normalize_path (!output_dir)) q;
+    let val outp_dir = normalize_path (!output_dir);
+        val base = if q = "" then outp_dir else tack_on outp_dir q;
         val rpath = if p subdir_of (!base_path) then relative_path (!base_path) p
                     else relative_path (normalize_path (!home_path)) p;
     in tack_on base rpath end
 in
-  val html_path = make_path "html";
+  val html_path = make_path "";
   val graph_path = make_path "graph/data"
 end;
 
@@ -544,7 +545,7 @@ fun finish_html () = if not (!make_html) then () else
        not contain the string "Isabelle/"*)
      val title = (if inside_isabelle then "Isabelle/" else "") ^ subdir;
      val rel_graph_path = tack_on (relative_path (!index_path) (graph_path (!original_path)))
-                                  "theories.html"
+                                  "small.html"
   in TextIO.output (out,
        "<HTML><HEAD><TITLE>" ^ title ^ "</TITLE></HEAD>\n\
        \<BODY><H2>" ^ title ^ "</H2>\n\
@@ -680,24 +681,24 @@ fun init_graph usedir_arg =
           val rel_index_path = tack_on (relative_path
             abs_path (tack_on (normalize_path (!output_dir)) "graph")) "index.html";
           val outfile =
-            tack_on abs_path ((if large then "all_" else "") ^ "theories.html");
+            tack_on abs_path ((if large then "large" else "small") ^ ".html");
           val os = TextIO.openOut outfile;
           val _ = TextIO.output(os,
             "<HTML><HEAD><TITLE>" ^ dir_name ^ "</TITLE></HEAD>\n\
             \<BODY><H2>" ^ dir_name ^ "</H2>\n" ^
             (if other_graph then
               (if large then
-                 "View <A HREF=\"theories.html\">small graph</A> without \
+                 "View <A HREF=\"small.html\">small graph</A> without \
                  \subdirectories<P>\n"
                else
-                 "View <A HREF=\"all_theories.html\">large graph</A> including \
+                 "View <A HREF=\"large.html\">large graph</A> including \
                  \all subdirectories<P>\n")
              else "") ^
             "<A HREF=\"" ^ rel_index_path ^ "\">Back</A> to index\n<HR>\n\
             \<APPLET CODE=\"GraphBrowser/GraphBrowser.class\" \
             \CODEBASE=\"" ^ rel_codebase ^ "\" WIDTH=550 HEIGHT=450>\n\
             \<PARAM NAME=\"graphfile\" VALUE=\"" ^
-            (if large then "all_theories.graph" else "theories.graph") ^ "\">\n\
+            (if large then "large.graph" else "small.graph") ^ "\">\n\
             \</APPLET>\n<HR>\n</BODY></HTML>")
           val _ = TextIO.closeOut os
         in () end;
@@ -709,11 +710,11 @@ fun init_graph usedir_arg =
      base_path := normalize_path (!base_path);
      mkdir gpath;
      original_path := pwd ();
-     graph_file := tack_on gpath "theories.graph";
+     graph_file := tack_on gpath "small.graph";
      graph_root_dir := (if usedir_arg = "." then pwd ()
                         else normalize_path (tack_on (pwd ()) ".."));
      (if (!graph_base_file) = "" then
-        (large_graph_file := tack_on gpath "all_theories.graph";
+        (large_graph_file := tack_on gpath "large.graph";
          default_graph (!graph_file);
          default_graph (!large_graph_file);
          mk_applet_page gpath false true;
@@ -725,7 +726,7 @@ fun init_graph usedir_arg =
            (copy_graph (!graph_base_file) (!graph_file) true;
             mk_applet_page gpath false false)
          else
-           (large_graph_file := tack_on gpath "all_theories.graph";
+           (large_graph_file := tack_on gpath "large.graph";
             mk_applet_page gpath false true;
             mk_applet_page gpath true true;
             copy_graph (!graph_base_file) (!graph_file) false;
