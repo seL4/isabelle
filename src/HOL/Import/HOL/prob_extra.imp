@@ -39,7 +39,7 @@ thm_maps
   "MEM_FILTER" > "HOL4Prob.prob_extra.MEM_FILTER"
   "MAP_MEM" > "HOL4Prob.prob_extra.MAP_MEM"
   "MAP_ID" > "List.map_ident"
-  "LENGTH_FILTER" > "List.length_filter"
+  "LENGTH_FILTER" > "List.length_filter_le"
   "LAST_MEM" > "HOL4Prob.prob_extra.LAST_MEM"
   "LAST_MAP_CONS" > "HOL4Prob.prob_extra.LAST_MAP_CONS"
   "IS_PREFIX_TRANS" > "HOL4Prob.prob_extra.IS_PREFIX_TRANS"

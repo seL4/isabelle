@@ -1,4 +1,6 @@
-theory HOL4Base = HOL4Compat + HOL4Syntax:
+(* AUTOMATICALLY GENERATED, DO NOT EDIT! *)
+
+theory HOL4Base = "../HOL4Compat" + "../HOL4Syntax":
 
 ;setup_theory bool
 
@@ -755,7 +757,11 @@ lemma WF_RECURSION_THM: "ALL R. WF R --> (ALL M. EX! f. ALL x. f x = M (RESTRICT
 lemma CURRY_ONE_ONE_THM: "(curry f = curry g) = (f = g)"
   by (import pair CURRY_ONE_ONE_THM)
 
-lemma UNCURRY_ONE_ONE_THM: "(split f = split g) = (f = g)"
+lemma UNCURRY_ONE_ONE_THM: "(op =::bool => bool => bool)
+ ((op =::('a * 'b => 'c) => ('a * 'b => 'c) => bool)
+   ((split::('a => 'b => 'c) => 'a * 'b => 'c) (f::'a => 'b => 'c))
+   ((split::('a => 'b => 'c) => 'a * 'b => 'c) (g::'a => 'b => 'c)))
+ ((op =::('a => 'b => 'c) => ('a => 'b => 'c) => bool) f g)"
   by (import pair UNCURRY_ONE_ONE_THM)
 
 lemma pair_Axiom: "ALL f. EX x. ALL xa y. x (xa, y) = f xa y"
@@ -772,18 +778,53 @@ lemma ELIM_PEXISTS: "(EX p. P (fst p) (snd p)) = (EX p1. Ex (P p1))"
 lemma ELIM_PFORALL: "(ALL p. P (fst p) (snd p)) = (ALL p1. All (P p1))"
   by (import pair ELIM_PFORALL)
 
-lemma PFORALL_THM: "ALL x. (ALL xa. All (x xa)) = All (split x)"
+lemma PFORALL_THM: "(All::(('a => 'b => bool) => bool) => bool)
+ (%x::'a => 'b => bool.
+     (op =::bool => bool => bool)
+      ((All::('a => bool) => bool)
+        (%xa::'a. (All::('b => bool) => bool) (x xa)))
+      ((All::('a * 'b => bool) => bool)
+        ((split::('a => 'b => bool) => 'a * 'b => bool) x)))"
   by (import pair PFORALL_THM)
 
-lemma PEXISTS_THM: "ALL x. (EX xa. Ex (x xa)) = Ex (split x)"
+lemma PEXISTS_THM: "(All::(('a => 'b => bool) => bool) => bool)
+ (%x::'a => 'b => bool.
+     (op =::bool => bool => bool)
+      ((Ex::('a => bool) => bool)
+        (%xa::'a. (Ex::('b => bool) => bool) (x xa)))
+      ((Ex::('a * 'b => bool) => bool)
+        ((split::('a => 'b => bool) => 'a * 'b => bool) x)))"
   by (import pair PEXISTS_THM)
 
-lemma LET2_RAND: "ALL (x::'c => 'd) (xa::'a * 'b) xb::'a => 'b => 'c.
-   x (Let xa (split xb)) = (let (xa::'a, y::'b) = xa in x (xb xa y))"
+lemma LET2_RAND: "(All::(('c => 'd) => bool) => bool)
+ (%x::'c => 'd.
+     (All::('a * 'b => bool) => bool)
+      (%xa::'a * 'b.
+          (All::(('a => 'b => 'c) => bool) => bool)
+           (%xb::'a => 'b => 'c.
+               (op =::'d => 'd => bool)
+                (x ((Let::'a * 'b => ('a * 'b => 'c) => 'c) xa
+                     ((split::('a => 'b => 'c) => 'a * 'b => 'c) xb)))
+                ((Let::'a * 'b => ('a * 'b => 'd) => 'd) xa
+                  ((split::('a => 'b => 'd) => 'a * 'b => 'd)
+                    (%(xa::'a) y::'b. x (xb xa y)))))))"
   by (import pair LET2_RAND)
 
-lemma LET2_RATOR: "ALL (x::'a1 * 'a2) (xa::'a1 => 'a2 => 'b => 'c) xb::'b.
-   Let x (split xa) xb = (let (x::'a1, y::'a2) = x in xa x y xb)"
+lemma LET2_RATOR: "(All::('a1 * 'a2 => bool) => bool)
+ (%x::'a1 * 'a2.
+     (All::(('a1 => 'a2 => 'b => 'c) => bool) => bool)
+      (%xa::'a1 => 'a2 => 'b => 'c.
+          (All::('b => bool) => bool)
+           (%xb::'b.
+               (op =::'c => 'c => bool)
+                ((Let::'a1 * 'a2 => ('a1 * 'a2 => 'b => 'c) => 'b => 'c) x
+                  ((split::('a1 => 'a2 => 'b => 'c)
+                           => 'a1 * 'a2 => 'b => 'c)
+                    xa)
+                  xb)
+                ((Let::'a1 * 'a2 => ('a1 * 'a2 => 'c) => 'c) x
+                  ((split::('a1 => 'a2 => 'c) => 'a1 * 'a2 => 'c)
+                    (%(x::'a1) y::'a2. xa x y xb))))))"
   by (import pair LET2_RATOR)
 
 lemma pair_case_cong: "ALL x xa xb.
@@ -1116,10 +1157,10 @@ lemma WOP: "(All::((nat => bool) => bool) => bool)
                     ((Not::bool => bool) (P m)))))))"
   by (import arithmetic WOP)
 
-lemma INV_PRE_LESS: "ALL m. 0 < m --> (ALL n. (PRE m < PRE n) = (m < n))"
+lemma INV_PRE_LESS: "ALL m>0. ALL n. (PRE m < PRE n) = (m < n)"
   by (import arithmetic INV_PRE_LESS)
 
-lemma INV_PRE_LESS_EQ: "ALL n. 0 < n --> (ALL m. (PRE m <= PRE n) = (m <= n))"
+lemma INV_PRE_LESS_EQ: "ALL n>0. ALL m. (PRE m <= PRE n) = (m <= n)"
   by (import arithmetic INV_PRE_LESS_EQ)
 
 lemma SUB_EQ_EQ_0: "ALL (m::nat) n::nat. (m - n = m) = (m = (0::nat) | n = (0::nat))"
@@ -1282,7 +1323,7 @@ lemma DA: "ALL (k::nat) n::nat.
    (0::nat) < n --> (EX (x::nat) q::nat. k = q * n + x & x < n)"
   by (import arithmetic DA)
 
-lemma DIV_LESS_EQ: "ALL n::nat. (0::nat) < n --> (ALL k::nat. k div n <= k)"
+lemma DIV_LESS_EQ: "ALL n>0::nat. ALL k::nat. k div n <= k"
   by (import arithmetic DIV_LESS_EQ)
 
 lemma DIV_UNIQUE: "ALL (n::nat) (k::nat) q::nat.
@@ -1296,33 +1337,28 @@ lemma MOD_UNIQUE: "ALL (n::nat) (k::nat) r::nat.
 lemma DIV_MULT: "ALL (n::nat) r::nat. r < n --> (ALL q::nat. (q * n + r) div n = q)"
   by (import arithmetic DIV_MULT)
 
-lemma MOD_EQ_0: "ALL n::nat. (0::nat) < n --> (ALL k::nat. k * n mod n = (0::nat))"
+lemma MOD_EQ_0: "ALL n>0::nat. ALL k::nat. k * n mod n = (0::nat)"
   by (import arithmetic MOD_EQ_0)
 
-lemma ZERO_MOD: "ALL n::nat. (0::nat) < n --> (0::nat) mod n = (0::nat)"
+lemma ZERO_MOD: "ALL n>0::nat. (0::nat) mod n = (0::nat)"
   by (import arithmetic ZERO_MOD)
 
-lemma ZERO_DIV: "ALL n::nat. (0::nat) < n --> (0::nat) div n = (0::nat)"
+lemma ZERO_DIV: "ALL n>0::nat. (0::nat) div n = (0::nat)"
   by (import arithmetic ZERO_DIV)
 
 lemma MOD_MULT: "ALL (n::nat) r::nat. r < n --> (ALL q::nat. (q * n + r) mod n = r)"
   by (import arithmetic MOD_MULT)
 
-lemma MOD_TIMES: "ALL n::nat.
-   (0::nat) < n --> (ALL (q::nat) r::nat. (q * n + r) mod n = r mod n)"
+lemma MOD_TIMES: "ALL n>0::nat. ALL (q::nat) r::nat. (q * n + r) mod n = r mod n"
   by (import arithmetic MOD_TIMES)
 
-lemma MOD_PLUS: "ALL n::nat.
-   (0::nat) < n -->
-   (ALL (j::nat) k::nat. (j mod n + k mod n) mod n = (j + k) mod n)"
+lemma MOD_PLUS: "ALL n>0::nat. ALL (j::nat) k::nat. (j mod n + k mod n) mod n = (j + k) mod n"
   by (import arithmetic MOD_PLUS)
 
-lemma MOD_MOD: "ALL n::nat. (0::nat) < n --> (ALL k::nat. k mod n mod n = k mod n)"
+lemma MOD_MOD: "ALL n>0::nat. ALL k::nat. k mod n mod n = k mod n"
   by (import arithmetic MOD_MOD)
 
-lemma ADD_DIV_ADD_DIV: "ALL x::nat.
-   (0::nat) < x -->
-   (ALL (xa::nat) r::nat. (xa * x + r) div x = xa + r div x)"
+lemma ADD_DIV_ADD_DIV: "ALL x>0::nat. ALL (xa::nat) r::nat. (xa * x + r) div x = xa + r div x"
   by (import arithmetic ADD_DIV_ADD_DIV)
 
 lemma MOD_MULT_MOD: "ALL (m::nat) n::nat.
@@ -1330,7 +1366,7 @@ lemma MOD_MULT_MOD: "ALL (m::nat) n::nat.
    (ALL x::nat. x mod (n * m) mod n = x mod n)"
   by (import arithmetic MOD_MULT_MOD)
 
-lemma DIVMOD_ID: "ALL n::nat. (0::nat) < n --> n div n = (1::nat) & n mod n = (0::nat)"
+lemma DIVMOD_ID: "ALL n>0::nat. n div n = (1::nat) & n mod n = (0::nat)"
   by (import arithmetic DIVMOD_ID)
 
 lemma DIV_DIV_DIV_MULT: "ALL (x::nat) xa::nat.
@@ -1348,9 +1384,7 @@ lemma MOD_P: "ALL (P::nat => bool) (p::nat) q::nat.
    P (p mod q) = (EX (k::nat) r::nat. p = k * q + r & r < q & P r)"
   by (import arithmetic MOD_P)
 
-lemma MOD_TIMES2: "ALL n::nat.
-   (0::nat) < n -->
-   (ALL (j::nat) k::nat. j mod n * (k mod n) mod n = j * k mod n)"
+lemma MOD_TIMES2: "ALL n>0::nat. ALL (j::nat) k::nat. j mod n * (k mod n) mod n = j * k mod n"
   by (import arithmetic MOD_TIMES2)
 
 lemma MOD_COMMON_FACTOR: "ALL (n::nat) (p::nat) q::nat.
@@ -1362,7 +1396,7 @@ lemma num_case_cong: "ALL M M' b f.
    nat_case b f M = nat_case b' f' M'"
   by (import arithmetic num_case_cong)
 
-lemma SUC_ELIM_THM: "ALL P. (ALL n. P (Suc n) n) = (ALL n. 0 < n --> P n (n - 1))"
+lemma SUC_ELIM_THM: "ALL P. (ALL n. P (Suc n) n) = (ALL n>0. P n (n - 1))"
   by (import arithmetic SUC_ELIM_THM)
 
 lemma SUB_ELIM_THM: "(P::nat => bool) ((a::nat) - (b::nat)) =
@@ -1375,7 +1409,7 @@ lemma PRE_ELIM_THM: "P (PRE n) = (ALL m. (n = 0 --> P 0) & (n = Suc m --> P m))"
 lemma MULT_INCREASES: "ALL m n. 1 < m & 0 < n --> Suc n <= m * n"
   by (import arithmetic MULT_INCREASES)
 
-lemma EXP_ALWAYS_BIG_ENOUGH: "ALL b::nat. (1::nat) < b --> (ALL n::nat. EX m::nat. n <= b ^ m)"
+lemma EXP_ALWAYS_BIG_ENOUGH: "ALL b>1::nat. ALL n::nat. EX m::nat. n <= b ^ m"
   by (import arithmetic EXP_ALWAYS_BIG_ENOUGH)
 
 lemma EXP_EQ_0: "ALL (n::nat) m::nat. (n ^ m = (0::nat)) = (n = (0::nat) & (0::nat) < m)"
@@ -2449,7 +2483,7 @@ lemma DIVIDES_ADD_2: "ALL (a::nat) (b::nat) c::nat. a dvd b & a dvd b + c --> a 
 lemma NOT_LT_DIV: "ALL (a::nat) b::nat. (0::nat) < b & b < a --> ~ a dvd b"
   by (import divides NOT_LT_DIV)
 
-lemma DIVIDES_FACT: "ALL b. 0 < b --> b dvd FACT b"
+lemma DIVIDES_FACT: "ALL b>0. b dvd FACT b"
   by (import divides DIVIDES_FACT)
 
 lemma DIVIDES_MULT_LEFT: "ALL (x::nat) xa::nat. (x * xa dvd xa) = (xa = (0::nat) | x = (1::nat))"
@@ -2661,9 +2695,21 @@ lemma EL_ZIP: "ALL l1 l2 n.
    EL n (zip l1 l2) = (EL n l1, EL n l2)"
   by (import list EL_ZIP)
 
-lemma MAP2_ZIP: "ALL l1 l2.
-   length l1 = length l2 -->
-   (ALL f. map2 f l1 l2 = map (split f) (zip l1 l2))"
+lemma MAP2_ZIP: "(All::('a list => bool) => bool)
+ (%l1::'a list.
+     (All::('b list => bool) => bool)
+      (%l2::'b list.
+          (op -->::bool => bool => bool)
+           ((op =::nat => nat => bool) ((size::'a list => nat) l1)
+             ((size::'b list => nat) l2))
+           ((All::(('a => 'b => 'c) => bool) => bool)
+             (%f::'a => 'b => 'c.
+                 (op =::'c list => 'c list => bool)
+                  ((map2::('a => 'b => 'c) => 'a list => 'b list => 'c list)
+                    f l1 l2)
+                  ((map::('a * 'b => 'c) => ('a * 'b) list => 'c list)
+                    ((split::('a => 'b => 'c) => 'a * 'b => 'c) f)
+                    ((zip::'a list => 'b list => ('a * 'b) list) l1 l2))))))"
   by (import list MAP2_ZIP)
 
 lemma MEM_EL: "(All::('a list => bool) => bool)
@@ -4260,9 +4306,6 @@ lemma NULL_FOLDR: "ALL l. null l = foldr (%x l'. False) l True"
 lemma NULL_FOLDL: "ALL l. null l = foldl (%x l'. False) True l"
   by (import rich_list NULL_FOLDL)
 
-lemma FILTER_REVERSE: "ALL P l. filter P (rev l) = rev (filter P l)"
-  by (import rich_list FILTER_REVERSE)
-
 lemma SEG_LENGTH_ID: "ALL l. SEG (length l) 0 l = l"
   by (import rich_list SEG_LENGTH_ID)
 
@@ -4539,7 +4582,7 @@ lemma ELL_LAST: "ALL l. ~ null l --> ELL 0 l = last l"
 lemma ELL_0_SNOC: "ALL l x. ELL 0 (SNOC x l) = x"
   by (import rich_list ELL_0_SNOC)
 
-lemma ELL_SNOC: "ALL n. 0 < n --> (ALL x l. ELL n (SNOC x l) = ELL (PRE n) l)"
+lemma ELL_SNOC: "ALL n>0. ALL x l. ELL n (SNOC x l) = ELL (PRE n) l"
   by (import rich_list ELL_SNOC)
 
 lemma ELL_SUC_SNOC: "ALL n x xa. ELL (Suc n) (SNOC x xa) = ELL n xa"
@@ -4614,9 +4657,6 @@ lemma FLAT_REVERSE: "ALL l. concat (rev l) = rev (concat (map rev l))"
 
 lemma FLAT_FLAT: "ALL l. concat (concat l) = concat (map concat l)"
   by (import rich_list FLAT_FLAT)
-
-lemma ALL_EL_REVERSE: "ALL P l. list_all P (rev l) = list_all P l"
-  by (import rich_list ALL_EL_REVERSE)
 
 lemma SOME_EL_REVERSE: "ALL P l. list_exists P (rev l) = list_exists P l"
   by (import rich_list SOME_EL_REVERSE)
@@ -4735,7 +4775,7 @@ lemma EL_APPEND2: "ALL l1 n.
 lemma EL_MAP: "ALL n l. n < length l --> (ALL f. EL n (map f l) = f (EL n l))"
   by (import rich_list EL_MAP)
 
-lemma EL_CONS: "ALL n. 0 < n --> (ALL x l. EL n (x # l) = EL (PRE n) l)"
+lemma EL_CONS: "ALL n>0. ALL x l. EL n (x # l) = EL (PRE n) l"
   by (import rich_list EL_CONS)
 
 lemma EL_SEG: "ALL n l. n < length l --> EL n l = hd (SEG 1 n l)"
@@ -4805,7 +4845,7 @@ lemma LENGTH_GENLIST: "ALL f n. length (GENLIST f n) = n"
 lemma LENGTH_REPLICATE: "ALL n x. length (REPLICATE n x) = n"
   by (import rich_list LENGTH_REPLICATE)
 
-lemma IS_EL_REPLICATE: "ALL n. 0 < n --> (ALL x. x mem REPLICATE n x)"
+lemma IS_EL_REPLICATE: "ALL n>0. ALL x. x mem REPLICATE n x"
   by (import rich_list IS_EL_REPLICATE)
 
 lemma ALL_EL_REPLICATE: "ALL x n. list_all (op = x) (REPLICATE n x)"
@@ -4837,9 +4877,24 @@ lemma UNIT_DEF: "ALL x::'b. UNIT x = Pair x"
 
 constdefs
   BIND :: "('a => 'b * 'a) => ('b => 'a => 'c * 'a) => 'a => 'c * 'a" 
-  "BIND == %g f. split f o g"
+  "(op ==::(('a => 'b * 'a) => ('b => 'a => 'c * 'a) => 'a => 'c * 'a)
+        => (('a => 'b * 'a) => ('b => 'a => 'c * 'a) => 'a => 'c * 'a)
+           => prop)
+ (BIND::('a => 'b * 'a) => ('b => 'a => 'c * 'a) => 'a => 'c * 'a)
+ (%(g::'a => 'b * 'a) f::'b => 'a => 'c * 'a.
+     (op o::('b * 'a => 'c * 'a) => ('a => 'b * 'a) => 'a => 'c * 'a)
+      ((split::('b => 'a => 'c * 'a) => 'b * 'a => 'c * 'a) f) g)"
 
-lemma BIND_DEF: "ALL g f. BIND g f = split f o g"
+lemma BIND_DEF: "(All::(('a => 'b * 'a) => bool) => bool)
+ (%g::'a => 'b * 'a.
+     (All::(('b => 'a => 'c * 'a) => bool) => bool)
+      (%f::'b => 'a => 'c * 'a.
+          (op =::('a => 'c * 'a) => ('a => 'c * 'a) => bool)
+           ((BIND::('a => 'b * 'a)
+                   => ('b => 'a => 'c * 'a) => 'a => 'c * 'a)
+             g f)
+           ((op o::('b * 'a => 'c * 'a) => ('a => 'b * 'a) => 'a => 'c * 'a)
+             ((split::('b => 'a => 'c * 'a) => 'b * 'a => 'c * 'a) f) g)))"
   by (import state_transformer BIND_DEF)
 
 constdefs

@@ -1,3 +1,5 @@
+(* AUTOMATICALLY GENERATED, DO NOT EDIT! *)
+
 theory HOL4Word32 = HOL4Base:
 
 ;setup_theory bits
@@ -293,22 +295,17 @@ lemma BITWISE_NOT_COR: "ALL x n oper a b.
    ~ oper (bit x a) (bit x b) --> BITWISE n oper a b div 2 ^ x mod 2 = 0"
   by (import bits BITWISE_NOT_COR)
 
-lemma MOD_PLUS_RIGHT: "ALL n::nat.
-   (0::nat) < n -->
-   (ALL (j::nat) k::nat. (j + k mod n) mod n = (j + k) mod n)"
+lemma MOD_PLUS_RIGHT: "ALL n>0::nat. ALL (j::nat) k::nat. (j + k mod n) mod n = (j + k) mod n"
   by (import bits MOD_PLUS_RIGHT)
 
-lemma MOD_PLUS_1: "ALL n::nat.
-   (0::nat) < n -->
-   (ALL x::nat.
-       ((x + (1::nat)) mod n = (0::nat)) = (x mod n + (1::nat) = n))"
+lemma MOD_PLUS_1: "ALL n>0::nat.
+   ALL x::nat. ((x + (1::nat)) mod n = (0::nat)) = (x mod n + (1::nat) = n)"
   by (import bits MOD_PLUS_1)
 
-lemma MOD_ADD_1: "ALL n::nat.
-   (0::nat) < n -->
-   (ALL x::nat.
-       (x + (1::nat)) mod n ~= (0::nat) -->
-       (x + (1::nat)) mod n = x mod n + (1::nat))"
+lemma MOD_ADD_1: "ALL n>0::nat.
+   ALL x::nat.
+      (x + (1::nat)) mod n ~= (0::nat) -->
+      (x + (1::nat)) mod n = x mod n + (1::nat)"
   by (import bits MOD_ADD_1)
 
 ;end_setup

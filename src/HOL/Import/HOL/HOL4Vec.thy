@@ -1,3 +1,5 @@
+(* AUTOMATICALLY GENERATED, DO NOT EDIT! *)
+
 theory HOL4Vec = HOL4Base:
 
 ;setup_theory res_quan
@@ -1102,9 +1104,9 @@ lemma BV_VB: "(All::(nat => bool) => bool)
      (op -->::bool => bool => bool)
       ((op <::nat => nat => bool) x
         ((number_of::bin => nat)
-          ((op BIT::bin => bool => bin)
-            ((op BIT::bin => bool => bin) (Numeral.Pls::bin) (True::bool))
-            (False::bool))))
+          ((op BIT::bin => bit => bin)
+            ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
+            (bit.B0::bit))))
       ((op =::nat => nat => bool) ((BV::bool => nat) ((VB::nat => bool) x))
         x))"
   by (import bword_num BV_VB)
@@ -1157,8 +1159,7 @@ lemma WSEG_NBWORD_SUC: "ALL n m. WSEG n 0 (NBWORD (Suc n) m) = NBWORD n m"
 lemma NBWORD_SUC_WSEG: "ALL n. RES_FORALL (PWORDLEN (Suc n)) (%w. NBWORD n (BNVAL w) = WSEG n 0 w)"
   by (import bword_num NBWORD_SUC_WSEG)
 
-lemma DOUBL_EQ_SHL: "ALL x.
-   0 < x -->
+lemma DOUBL_EQ_SHL: "ALL x>0.
    RES_FORALL (PWORDLEN x)
     (%xa. ALL xb.
              NBWORD x (BNVAL xa + BNVAL xa + BV xb) = snd (SHL False xa xb))"
@@ -1297,10 +1298,10 @@ lemma ACARRY_EQ_ADD_DIV: "(All::(nat => bool) => bool)
                            ((BV::bool => nat) cin))
                          ((op ^::nat => nat => nat)
                            ((number_of::bin => nat)
-                             ((op BIT::bin => bool => bin)
-                               ((op BIT::bin => bool => bin)
-                                 (Numeral.Pls::bin) (True::bool))
-                               (False::bool)))
+                             ((op BIT::bin => bit => bin)
+                               ((op BIT::bin => bit => bin)
+                                 (Numeral.Pls::bin) (bit.B1::bit))
+                               (bit.B0::bit)))
                            k)))))))"
   by (import bword_arith ACARRY_EQ_ADD_DIV)
 

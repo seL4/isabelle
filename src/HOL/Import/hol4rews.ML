@@ -496,7 +496,7 @@ fun export_hol4_pending thy =
     end;
 
 fun setup_dump (dir,thyname) thy =
-    HOL4Dump.put (dir,thyname,[]) thy
+    HOL4Dump.put (dir,thyname,["(* AUTOMATICALLY GENERATED, DO NOT EDIT! *)"]) thy
 
 fun add_dump str thy =
     let

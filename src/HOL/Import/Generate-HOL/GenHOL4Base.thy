@@ -3,13 +3,13 @@
     Author:     Sebastian Skalberg (TU Muenchen)
 *)
 
-theory GenHOL4Base = HOL4Compat + HOL4Syntax:;
+theory GenHOL4Base = "../HOL4Compat" + "../HOL4Syntax":;
 
 import_segment "hol4";
 
 setup_dump "../HOL" "HOL4Base";
 
-append_dump "theory HOL4Base = HOL4Compat + HOL4Syntax:";
+append_dump {*theory HOL4Base = "../HOL4Compat" + "../HOL4Syntax":*};
 
 import_theory bool;
 
@@ -50,8 +50,8 @@ type_maps
   sum > "+";
 
 const_maps
-  INL      > Inl
-  INR      > Inr
+  INL      > Sum_Type.Inl
+  INR      > Sum_Type.Inr
   ISL      > HOL4Compat.ISL
   ISR      > HOL4Compat.ISR
   OUTL     > HOL4Compat.OUTL
@@ -166,7 +166,7 @@ end_import;
 import_theory prim_rec;
 
 const_maps
-    "<" > "op <" :: "[nat,nat]\<Rightarrow>bool";
+    "<" > "op <" :: "[nat,nat]=>bool";
 
 end_import;
 
@@ -181,15 +181,15 @@ const_maps
   ">"          > HOL4Compat.nat_gt
   ">="         > HOL4Compat.nat_ge
   FUNPOW       > HOL4Compat.FUNPOW
-  "<="         > "op <="          :: "[nat,nat]\<Rightarrow>bool"
-  "+"          > "op +"           :: "[nat,nat]\<Rightarrow>nat"
-  "*"          > "op *"           :: "[nat,nat]\<Rightarrow>nat"
-  "-"          > "op -"           :: "[nat,nat]\<Rightarrow>nat"
-  MIN          > HOL.min          :: "[nat,nat]\<Rightarrow>nat"
-  MAX          > HOL.max          :: "[nat,nat]\<Rightarrow>nat"
-  DIV          > "Divides.op div" :: "[nat,nat]\<Rightarrow>nat"
-  MOD          > "Divides.op mod" :: "[nat,nat]\<Rightarrow>nat"
-  EXP          > Nat.power        :: "[nat,nat]\<Rightarrow>nat";
+  "<="         > "op <="          :: "[nat,nat]=>bool"
+  "+"          > "op +"           :: "[nat,nat]=>nat"
+  "*"          > "op *"           :: "[nat,nat]=>nat"
+  "-"          > "op -"           :: "[nat,nat]=>nat"
+  MIN          > Orderings.min    :: "[nat,nat]=>nat"
+  MAX          > Orderings.max    :: "[nat,nat]=>nat"
+  DIV          > "Divides.op div" :: "[nat,nat]=>nat"
+  MOD          > "Divides.op mod" :: "[nat,nat]=>nat"
+  EXP          > Nat.power        :: "[nat,nat]=>nat";
 
 end_import;
 
@@ -208,7 +208,7 @@ end_import;
 import_theory divides;
 
 const_maps
-    divides > "Divides.op dvd" :: "[nat,nat]\<Rightarrow>bool";
+    divides > "Divides.op dvd" :: "[nat,nat]=>bool";
 
 end_import;
 

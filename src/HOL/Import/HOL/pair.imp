@@ -21,7 +21,7 @@ const_maps
   "##" > "prod_fun"
 
 thm_maps
-  "pair_induction" > "Product_Type.prod_induct"
+  "pair_induction" > "Datatype.prod.induct"
   "pair_case_thm" > "Product_Type.split"
   "pair_case_def" > "HOL4Compat.pair_case_def"
   "pair_case_cong" > "HOL4Base.pair.pair_case_cong"
@@ -41,7 +41,7 @@ thm_maps
   "PEXISTS_THM" > "HOL4Base.pair.PEXISTS_THM"
   "PAIR_MAP_THM" > "Product_Type.prod_fun"
   "PAIR_MAP" > "HOL4Compat.PAIR_MAP"
-  "PAIR_EQ" > "Product_Type.Pair_eq"
+  "PAIR_EQ" > "Datatype.prod.simps_1"
   "PAIR" > "HOL4Compat.PAIR"
   "LEX_def" > "HOL4Base.pair.LEX_def"
   "LEX_DEF" > "HOL4Base.pair.LEX_DEF"
@@ -57,8 +57,8 @@ thm_maps
   "CURRY_UNCURRY_THM" > "Product_Type.curry_split"
   "CURRY_ONE_ONE_THM" > "HOL4Base.pair.CURRY_ONE_ONE_THM"
   "CURRY_DEF" > "Product_Type.curry_conv"
-  "CLOSED_PAIR_EQ" > "Product_Type.Pair_eq"
-  "ABS_PAIR_THM" > "Product_Type.surj_pair"
+  "CLOSED_PAIR_EQ" > "Datatype.prod.simps_1"
+  "ABS_PAIR_THM" > "Datatype.prod.nchotomy"
 
 ignore_thms
   "prod_TY_DEF"

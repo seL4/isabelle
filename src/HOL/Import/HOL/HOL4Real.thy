@@ -1,3 +1,5 @@
+(* AUTOMATICALLY GENERATED, DO NOT EDIT! *)
+
 theory HOL4Real = HOL4Base:
 
 ;setup_theory realax
@@ -254,9 +256,6 @@ lemma REAL_LNEG_UNIQ: "ALL (x::real) y::real. (x + y = (0::real)) = (x = - y)"
 lemma REAL_LT_ANTISYM: "ALL (x::real) y::real. ~ (x < y & y < x)"
   by (import real REAL_LT_ANTISYM)
 
-lemma REAL_LET_TOTAL: "ALL (x::real) y::real. x <= y | y < x"
-  by (import real REAL_LET_TOTAL)
-
 lemma REAL_LTE_TOTAL: "ALL (x::real) y::real. x < y | y <= x"
   by (import real REAL_LTE_TOTAL)
 
@@ -284,6 +283,12 @@ lemma REAL_LT_ADD1: "ALL (x::real) y::real. x <= y --> x < y + (1::real)"
 lemma REAL_SUB_ADD2: "ALL (x::real) y::real. y + (x - y) = x"
   by (import real REAL_SUB_ADD2)
 
+lemma REAL_SUB_LT: "ALL (x::real) y::real. ((0::real) < x - y) = (y < x)"
+  by (import real REAL_SUB_LT)
+
+lemma REAL_SUB_LE: "ALL (x::real) y::real. ((0::real) <= x - y) = (y <= x)"
+  by (import real REAL_SUB_LE)
+
 lemma REAL_ADD_SUB: "ALL (x::real) y::real. x + y - x = y"
   by (import real REAL_ADD_SUB)
 
@@ -307,7 +312,7 @@ lemma REAL_LT_LMUL: "ALL (x::real) (y::real) z::real. (0::real) < x --> (x * y <
 lemma REAL_LINV_UNIQ: "ALL (x::real) y::real. x * y = (1::real) --> x = inverse y"
   by (import real REAL_LINV_UNIQ)
 
-lemma REAL_LE_INV: "ALL x::real. (0::real) <= x --> (0::real) <= inverse x"
+lemma REAL_LE_INV: "ALL x>=0::real. (0::real) <= inverse x"
   by (import real REAL_LE_INV)
 
 lemma REAL_LE_ADDR: "ALL (x::real) y::real. (x <= x + y) = ((0::real) <= y)"
@@ -355,7 +360,7 @@ lemma REAL_DIV_LMUL: "ALL (x::real) y::real. y ~= (0::real) --> y * (x / y) = x"
 lemma REAL_DIV_RMUL: "ALL (x::real) y::real. y ~= (0::real) --> x / y * y = x"
   by (import real REAL_DIV_RMUL)
 
-lemma REAL_DOWN: "ALL x::real. (0::real) < x --> (EX xa::real. (0::real) < xa & xa < x)"
+lemma REAL_DOWN: "ALL x>0::real. EX xa>0::real. xa < x"
   by (import real REAL_DOWN)
 
 lemma REAL_SUB_SUB: "ALL (x::real) y::real. x - y - x = - y"
@@ -417,7 +422,7 @@ lemma REAL_LE_DIV: "ALL (x::real) xa::real.
 lemma REAL_LT_1: "ALL (x::real) y::real. (0::real) <= x & x < y --> x / y < (1::real)"
   by (import real REAL_LT_1)
 
-lemma REAL_POS_NZ: "ALL x::real. (0::real) < x --> x ~= (0::real)"
+lemma REAL_POS_NZ: "ALL x>0::real. x ~= (0::real)"
   by (import real REAL_POS_NZ)
 
 lemma REAL_EQ_LMUL_IMP: "ALL (x::real) (xa::real) xb::real.
@@ -446,9 +451,6 @@ lemma REAL_MIDDLE2: "ALL (a::real) b::real. a <= b --> (a + b) / (2::real) <= b"
 lemma ABS_LT_MUL2: "ALL (w::real) (x::real) (y::real) z::real.
    abs w < y & abs x < z --> abs (w * x) < y * z"
   by (import real ABS_LT_MUL2)
-
-lemma ABS_SUB: "ALL (x::real) y::real. abs (x - y) = abs (y - x)"
-  by (import real ABS_SUB)
 
 lemma ABS_REFL: "ALL x::real. (abs x = x) = ((0::real) <= x)"
   by (import real ABS_REFL)
@@ -492,16 +494,16 @@ lemma ABS_BETWEEN2: "ALL (x0::real) (x::real) (y0::real) y::real.
    x < y"
   by (import real ABS_BETWEEN2)
 
-lemma POW_PLUS1: "ALL e. 0 < e --> (ALL n. 1 + real n * e <= (1 + e) ^ n)"
+lemma POW_PLUS1: "ALL e>0. ALL n. 1 + real n * e <= (1 + e) ^ n"
   by (import real POW_PLUS1)
 
 lemma POW_M1: "ALL n::nat. abs ((- (1::real)) ^ n) = (1::real)"
   by (import real POW_M1)
 
-lemma REAL_LE1_POW2: "ALL x::real. (1::real) <= x --> (1::real) <= x ^ 2"
+lemma REAL_LE1_POW2: "ALL x>=1::real. (1::real) <= x ^ 2"
   by (import real REAL_LE1_POW2)
 
-lemma REAL_LT1_POW2: "ALL x::real. (1::real) < x --> (1::real) < x ^ 2"
+lemma REAL_LT1_POW2: "ALL x>1::real. (1::real) < x ^ 2"
   by (import real REAL_LT1_POW2)
 
 lemma POW_POS_LT: "ALL (x::real) n::nat. (0::real) < x --> (0::real) < x ^ Suc n"
@@ -571,9 +573,7 @@ lemma REAL_SUP_LE: "ALL P.
 lemma REAL_SUP_UBOUND_LE: "ALL P. Ex P & (EX z. ALL x. P x --> x <= z) --> (ALL y. P y --> y <= sup P)"
   by (import real REAL_SUP_UBOUND_LE)
 
-lemma REAL_ARCH_LEAST: "ALL y.
-   0 < y -->
-   (ALL x. 0 <= x --> (EX n. real n * y <= x & x < real (Suc n) * y))"
+lemma REAL_ARCH_LEAST: "ALL y>0. ALL x>=0. EX n. real n * y <= x & x < real (Suc n) * y"
   by (import real REAL_ARCH_LEAST)
 
 consts
@@ -587,7 +587,12 @@ consts
   sum :: "nat * nat => (nat => real) => real" 
 
 defs
-  sum_def: "real.sum == split sumc"
+  sum_def: "(op ==::(nat * nat => (nat => real) => real)
+        => (nat * nat => (nat => real) => real) => prop)
+ (real.sum::nat * nat => (nat => real) => real)
+ ((split::(nat => nat => (nat => real) => real)
+          => nat * nat => (nat => real) => real)
+   (sumc::nat => nat => (nat => real) => real))"
 
 lemma SUM_DEF: "ALL m n f. real.sum (m, n) f = sumc m n f"
   by (import real SUM_DEF)
@@ -913,25 +918,22 @@ constdefs
   mtop :: "'a metric => 'a topology" 
   "mtop ==
 %m. topology
-     (%S'. ALL x.
-              S' x --> (EX e. 0 < e & (ALL y. dist m (x, y) < e --> S' y)))"
+     (%S'. ALL x. S' x --> (EX e>0. ALL y. dist m (x, y) < e --> S' y))"
 
 lemma mtop: "ALL m.
    mtop m =
    topology
-    (%S'. ALL x.
-             S' x --> (EX e. 0 < e & (ALL y. dist m (x, y) < e --> S' y)))"
+    (%S'. ALL x. S' x --> (EX e>0. ALL y. dist m (x, y) < e --> S' y))"
   by (import topology mtop)
 
 lemma mtop_istopology: "ALL m.
    istopology
-    (%S'. ALL x.
-             S' x --> (EX e. 0 < e & (ALL y. dist m (x, y) < e --> S' y)))"
+    (%S'. ALL x. S' x --> (EX e>0. ALL y. dist m (x, y) < e --> S' y))"
   by (import topology mtop_istopology)
 
 lemma MTOP_OPEN: "ALL S' x.
    open (mtop x) S' =
-   (ALL xa. S' xa --> (EX e. 0 < e & (ALL y. dist x (xa, y) < e --> S' y)))"
+   (ALL xa. S' xa --> (EX e>0. ALL y. dist x (xa, y) < e --> S' y))"
   by (import topology MTOP_OPEN)
 
 constdefs
@@ -948,8 +950,7 @@ lemma BALL_NEIGH: "ALL m x e. 0 < e --> neigh (mtop m) (B m (x, e), x)"
   by (import topology BALL_NEIGH)
 
 lemma MTOP_LIMPT: "ALL m x S'.
-   limpt (mtop m) x S' =
-   (ALL e. 0 < e --> (EX y. x ~= y & S' y & dist m (x, y) < e))"
+   limpt (mtop m) x S' = (ALL e>0. EX y. x ~= y & S' y & dist m (x, y) < e)"
   by (import topology MTOP_LIMPT)
 
 lemma ISMET_R1: "ismet (%(x, y). abs (y - x))"
@@ -1054,8 +1055,7 @@ lemma DORDER_TENDSTO: "ALL m x. dorder (tendsto (m, x))"
 
 lemma MTOP_TENDS: "ALL d g x x0.
    tends x x0 (mtop d, g) =
-   (ALL e.
-       0 < e --> (EX n. g n n & (ALL m. g m n --> dist d (x m, x0) < e)))"
+   (ALL e>0. EX n. g n n & (ALL m. g m n --> dist d (x m, x0) < e))"
   by (import nets MTOP_TENDS)
 
 lemma MTOP_TENDS_UNIQ: "ALL (g::'b => 'b => bool) d::'a metric.
@@ -1067,29 +1067,27 @@ lemma MTOP_TENDS_UNIQ: "ALL (g::'b => 'b => bool) d::'a metric.
 
 lemma SEQ_TENDS: "ALL d x x0.
    tends x x0 (mtop d, nat_ge) =
-   (ALL xa. 0 < xa --> (EX xb. ALL xc. xb <= xc --> dist d (x xc, x0) < xa))"
+   (ALL xa>0. EX xb. ALL xc. xb <= xc --> dist d (x xc, x0) < xa)"
   by (import nets SEQ_TENDS)
 
 lemma LIM_TENDS: "ALL m1 m2 f x0 y0.
    limpt (mtop m1) x0 re_universe -->
    tends f y0 (mtop m2, tendsto (m1, x0)) =
-   (ALL e.
-       0 < e -->
-       (EX d. 0 < d &
-              (ALL x.
-                  0 < dist m1 (x, x0) & dist m1 (x, x0) <= d -->
-                  dist m2 (f x, y0) < e)))"
+   (ALL e>0.
+       EX d>0.
+          ALL x.
+             0 < dist m1 (x, x0) & dist m1 (x, x0) <= d -->
+             dist m2 (f x, y0) < e)"
   by (import nets LIM_TENDS)
 
 lemma LIM_TENDS2: "ALL m1 m2 f x0 y0.
    limpt (mtop m1) x0 re_universe -->
    tends f y0 (mtop m2, tendsto (m1, x0)) =
-   (ALL e.
-       0 < e -->
-       (EX d. 0 < d &
-              (ALL x.
-                  0 < dist m1 (x, x0) & dist m1 (x, x0) < d -->
-                  dist m2 (f x, y0) < e)))"
+   (ALL e>0.
+       EX d>0.
+          ALL x.
+             0 < dist m1 (x, x0) & dist m1 (x, x0) < d -->
+             dist m2 (f x, y0) < e)"
   by (import nets LIM_TENDS2)
 
 lemma MR1_BOUNDED: "ALL g f.
@@ -1915,16 +1913,16 @@ lemma SER_PAIR: "(All::((nat => real) => bool) => bool)
              ((Pair::nat => nat => nat * nat)
                ((op *::nat => nat => nat)
                  ((number_of::bin => nat)
-                   ((op BIT::bin => bool => bin)
-                     ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                       (True::bool))
-                     (False::bool)))
+                   ((op BIT::bin => bit => bin)
+                     ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                       (bit.B1::bit))
+                     (bit.B0::bit)))
                  n)
                ((number_of::bin => nat)
-                 ((op BIT::bin => bool => bin)
-                   ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                     (True::bool))
-                   (False::bool))))
+                 ((op BIT::bin => bit => bin)
+                   ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                     (bit.B1::bit))
+                   (bit.B0::bit))))
              f)
         ((suminf::(nat => real) => real) f)))"
   by (import seq SER_PAIR)
@@ -1956,19 +1954,19 @@ lemma SER_POS_LT_PAIR: "(All::((nat => real) => bool) => bool)
                       (f ((op +::nat => nat => nat) n
                            ((op *::nat => nat => nat)
                              ((number_of::bin => nat)
-                               ((op BIT::bin => bool => bin)
-                                 ((op BIT::bin => bool => bin)
-                                   (Numeral.Pls::bin) (True::bool))
-                                 (False::bool)))
+                               ((op BIT::bin => bit => bin)
+                                 ((op BIT::bin => bit => bin)
+                                   (Numeral.Pls::bin) (bit.B1::bit))
+                                 (bit.B0::bit)))
                              d)))
                       (f ((op +::nat => nat => nat) n
                            ((op +::nat => nat => nat)
                              ((op *::nat => nat => nat)
                                ((number_of::bin => nat)
-                                 ((op BIT::bin => bool => bin)
-                                   ((op BIT::bin => bool => bin)
-                                     (Numeral.Pls::bin) (True::bool))
-                                   (False::bool)))
+                                 ((op BIT::bin => bit => bin)
+                                   ((op BIT::bin => bit => bin)
+                                     (Numeral.Pls::bin) (bit.B1::bit))
+                                   (bit.B0::bit)))
                                d)
                              (1::nat))))))))
            ((op <::real => real => bool)
@@ -2824,10 +2822,10 @@ lemma DIFF_XM1: "(All::(real => bool) => bool)
         ((uminus::real => real)
           ((op ^::real => nat => real) ((inverse::real => real) x)
             ((number_of::bin => nat)
-              ((op BIT::bin => bool => bin)
-                ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                  (True::bool))
-                (False::bool)))))
+              ((op BIT::bin => bit => bin)
+                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                  (bit.B1::bit))
+                (bit.B0::bit)))))
         x))"
   by (import lim DIFF_XM1)
 
@@ -2848,10 +2846,10 @@ lemma DIFF_INV: "(All::((real => real) => bool) => bool)
                     ((op /::real => real => real) l
                       ((op ^::real => nat => real) (f x)
                         ((number_of::bin => nat)
-                          ((op BIT::bin => bool => bin)
-                            ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                              (True::bool))
-                            (False::bool))))))
+                          ((op BIT::bin => bit => bin)
+                            ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                              (bit.B1::bit))
+                            (bit.B0::bit))))))
                   x))))"
   by (import lim DIFF_INV)
 
@@ -2885,10 +2883,10 @@ lemma DIFF_DIV: "(All::((real => real) => bool) => bool)
                                 ((op *::real => real => real) m (f x)))
                               ((op ^::real => nat => real) (g x)
                                 ((number_of::bin => nat)
-                                  ((op BIT::bin => bool => bin)
-                                    ((op BIT::bin => bool => bin)
-(Numeral.Pls::bin) (True::bool))
-                                    (False::bool)))))
+                                  ((op BIT::bin => bit => bin)
+                                    ((op BIT::bin => bit => bin)
+(Numeral.Pls::bin) (bit.B1::bit))
+                                    (bit.B0::bit)))))
                             x))))))"
   by (import lim DIFF_DIV)
 
@@ -3869,9 +3867,9 @@ lemma TERMDIFF_LEMMA2: "(All::(real => bool) => bool)
 ((op -::nat => nat => nat)
   ((op -::nat => nat => nat) n
     ((number_of::bin => nat)
-      ((op BIT::bin => bool => bin)
-        ((op BIT::bin => bool => bin) (Numeral.Pls::bin) (True::bool))
-        (False::bool))))
+      ((op BIT::bin => bit => bin)
+        ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
+        (bit.B0::bit))))
   p)
 q)))))))))))"
   by (import powser TERMDIFF_LEMMA2)
@@ -3916,10 +3914,10 @@ lemma TERMDIFF_LEMMA3: "(All::(real => bool) => bool)
                              ((op ^::real => nat => real) k'
                                ((op -::nat => nat => nat) n
                                  ((number_of::bin => nat)
-                                   ((op BIT::bin => bool => bin)
-                                     ((op BIT::bin => bool => bin)
- (Numeral.Pls::bin) (True::bool))
-                                     (False::bool)))))
+                                   ((op BIT::bin => bit => bin)
+                                     ((op BIT::bin => bit => bin)
+ (Numeral.Pls::bin) (bit.B1::bit))
+                                     (bit.B0::bit)))))
                              ((abs::real => real) h)))))))))"
   by (import powser TERMDIFF_LEMMA3)
 
@@ -4112,10 +4110,10 @@ lemma DIFF_COMPOSITE: "(op &::bool => bool => bool)
        ((op /::real => real => real) l
          ((op ^::real => nat => real) (f x)
            ((number_of::bin => nat)
-             ((op BIT::bin => bool => bin)
-               ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                 (True::bool))
-               (False::bool))))))
+             ((op BIT::bin => bit => bin)
+               ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                 (bit.B1::bit))
+               (bit.B0::bit))))))
      x))
  ((op &::bool => bool => bool)
    ((op -->::bool => bool => bool)
@@ -4134,10 +4132,10 @@ lemma DIFF_COMPOSITE: "(op &::bool => bool => bool)
            ((op *::real => real => real) m (f x)))
          ((op ^::real => nat => real) (g x)
            ((number_of::bin => nat)
-             ((op BIT::bin => bool => bin)
-               ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                 (True::bool))
-               (False::bool)))))
+             ((op BIT::bin => bit => bin)
+               ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                 (bit.B1::bit))
+               (bit.B0::bit)))))
        x))
    ((op &::bool => bool => bool)
      ((op -->::bool => bool => bool)
@@ -4212,19 +4210,10 @@ lemma DIFF_COMPOSITE: "(op &::bool => bool => bool)
 lemma EXP_0: "exp 0 = 1"
   by (import transc EXP_0)
 
-lemma EXP_LE_X: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op <=::real => real => bool) (0::real) x)
-      ((op <=::real => real => bool)
-        ((op +::real => real => real) (1::real) x) ((exp::real => real) x)))"
+lemma EXP_LE_X: "ALL x>=0. 1 + x <= exp x"
   by (import transc EXP_LE_X)
 
-lemma EXP_LT_1: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op <::real => real => bool) (0::real) x)
-      ((op <::real => real => bool) (1::real) ((exp::real => real) x)))"
+lemma EXP_LT_1: "ALL x>0. 1 < exp x"
   by (import transc EXP_LT_1)
 
 lemma EXP_ADD_MUL: "ALL x y. exp (x + y) * exp (- x) = exp y"
@@ -4275,26 +4264,10 @@ lemma EXP_MONO_LE: "ALL x y. (exp x <= exp y) = (x <= y)"
 lemma EXP_INJ: "ALL x y. (exp x = exp y) = (x = y)"
   by (import transc EXP_INJ)
 
-lemma EXP_TOTAL_LEMMA: "(All::(real => bool) => bool)
- (%y::real.
-     (op -->::bool => bool => bool)
-      ((op <=::real => real => bool) (1::real) y)
-      ((Ex::(real => bool) => bool)
-        (%x::real.
-            (op &::bool => bool => bool)
-             ((op <=::real => real => bool) (0::real) x)
-             ((op &::bool => bool => bool)
-               ((op <=::real => real => bool) x
-                 ((op -::real => real => real) y (1::real)))
-               ((op =::real => real => bool) ((exp::real => real) x) y)))))"
+lemma EXP_TOTAL_LEMMA: "ALL y>=1. EX x>=0. x <= y - 1 & exp x = y"
   by (import transc EXP_TOTAL_LEMMA)
 
-lemma EXP_TOTAL: "(All::(real => bool) => bool)
- (%y::real.
-     (op -->::bool => bool => bool)
-      ((op <::real => real => bool) (0::real) y)
-      ((Ex::(real => bool) => bool)
-        (%x::real. (op =::real => real => bool) ((exp::real => real) x) y)))"
+lemma EXP_TOTAL: "ALL y>0. EX x. exp x = y"
   by (import transc EXP_TOTAL)
 
 constdefs
@@ -4341,13 +4314,7 @@ lemma LN_INJ: "(All::(real => bool) => bool)
 lemma LN_1: "ln 1 = 0"
   by (import transc LN_1)
 
-lemma LN_INV: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op <::real => real => bool) (0::real) x)
-      ((op =::real => real => bool)
-        ((ln::real => real) ((inverse::real => real) x))
-        ((uminus::real => real) ((ln::real => real) x))))"
+lemma LN_INV: "ALL x>0. ln (inverse x) = - ln x"
   by (import transc LN_INV)
 
 lemma LN_DIV: "(All::(real => bool) => bool)
@@ -4404,26 +4371,13 @@ lemma LN_POW: "(All::(nat => bool) => bool)
                ((ln::real => real) x)))))"
   by (import transc LN_POW)
 
-lemma LN_LE: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op <=::real => real => bool) (0::real) x)
-      ((op <=::real => real => bool)
-        ((ln::real => real) ((op +::real => real => real) (1::real) x)) x))"
+lemma LN_LE: "ALL x>=0. ln (1 + x) <= x"
   by (import transc LN_LE)
 
-lemma LN_LT_X: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op <::real => real => bool) (0::real) x)
-      ((op <::real => real => bool) ((ln::real => real) x) x))"
+lemma LN_LT_X: "ALL x>0. ln x < x"
   by (import transc LN_LT_X)
 
-lemma LN_POS: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op <=::real => real => bool) (1::real) x)
-      ((op <=::real => real => bool) (0::real) ((ln::real => real) x)))"
+lemma LN_POS: "ALL x>=1. 0 <= ln x"
   by (import transc LN_POS)
 
 constdefs
@@ -4630,34 +4584,16 @@ lemma SQRT_0: "sqrt 0 = 0"
 lemma SQRT_1: "sqrt 1 = 1"
   by (import transc SQRT_1)
 
-lemma SQRT_POS_LT: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op <::real => real => bool) (0::real) x)
-      ((op <::real => real => bool) (0::real) ((sqrt::real => real) x)))"
+lemma SQRT_POS_LT: "ALL x>0. 0 < sqrt x"
   by (import transc SQRT_POS_LT)
 
-lemma SQRT_POS_LE: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op <=::real => real => bool) (0::real) x)
-      ((op <=::real => real => bool) (0::real) ((sqrt::real => real) x)))"
+lemma SQRT_POS_LE: "ALL x>=0. 0 <= sqrt x"
   by (import transc SQRT_POS_LE)
 
 lemma SQRT_POW2: "ALL x. (sqrt x ^ 2 = x) = (0 <= x)"
   by (import transc SQRT_POW2)
 
-lemma SQRT_POW_2: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op <=::real => real => bool) (0::real) x)
-      ((op =::real => real => bool)
-        ((op ^::real => nat => real) ((sqrt::real => real) x)
-          ((number_of::bin => nat)
-            ((op BIT::bin => bool => bin)
-              ((op BIT::bin => bool => bin) (Numeral.Pls::bin) (True::bool))
-              (False::bool))))
-        x))"
+lemma SQRT_POW_2: "ALL x>=0. sqrt x ^ 2 = x"
   by (import transc SQRT_POW_2)
 
 lemma POW_2_SQRT: "(op -->::bool => bool => bool)
@@ -4666,9 +4602,9 @@ lemma POW_2_SQRT: "(op -->::bool => bool => bool)
    ((sqrt::real => real)
      ((op ^::real => nat => real) x
        ((number_of::bin => nat)
-         ((op BIT::bin => bool => bin)
-           ((op BIT::bin => bool => bin) (Numeral.Pls::bin) (True::bool))
-           (False::bool)))))
+         ((op BIT::bin => bit => bin)
+           ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
+           (bit.B0::bit)))))
    x)"
   by (import transc POW_2_SQRT)
 
@@ -4684,10 +4620,10 @@ lemma SQRT_POS_UNIQ: "(All::(real => bool) => bool)
                ((op =::real => real => bool)
                  ((op ^::real => nat => real) xa
                    ((number_of::bin => nat)
-                     ((op BIT::bin => bool => bin)
-                       ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                         (True::bool))
-                       (False::bool))))
+                     ((op BIT::bin => bit => bin)
+                       ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                         (bit.B1::bit))
+                       (bit.B0::bit))))
                  x)))
            ((op =::real => real => bool) ((sqrt::real => real) x) xa)))"
   by (import transc SQRT_POS_UNIQ)
@@ -4706,13 +4642,7 @@ lemma SQRT_MUL: "(All::(real => bool) => bool)
                ((sqrt::real => real) xa)))))"
   by (import transc SQRT_MUL)
 
-lemma SQRT_INV: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op <=::real => real => bool) (0::real) x)
-      ((op =::real => real => bool)
-        ((sqrt::real => real) ((inverse::real => real) x))
-        ((inverse::real => real) ((sqrt::real => real) x))))"
+lemma SQRT_INV: "ALL x>=0. sqrt (inverse x) = inverse (sqrt x)"
   by (import transc SQRT_INV)
 
 lemma SQRT_DIV: "(All::(real => bool) => bool)
@@ -4748,31 +4678,25 @@ lemma SQRT_EVEN_POW2: "(All::(nat => bool) => bool)
         ((sqrt::real => real)
           ((op ^::real => nat => real)
             ((number_of::bin => real)
-              ((op BIT::bin => bool => bin)
-                ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                  (True::bool))
-                (False::bool)))
+              ((op BIT::bin => bit => bin)
+                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                  (bit.B1::bit))
+                (bit.B0::bit)))
             n))
         ((op ^::real => nat => real)
           ((number_of::bin => real)
-            ((op BIT::bin => bool => bin)
-              ((op BIT::bin => bool => bin) (Numeral.Pls::bin) (True::bool))
-              (False::bool)))
+            ((op BIT::bin => bit => bin)
+              ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
+              (bit.B0::bit)))
           ((op div::nat => nat => nat) n
             ((number_of::bin => nat)
-              ((op BIT::bin => bool => bin)
-                ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                  (True::bool))
-                (False::bool)))))))"
+              ((op BIT::bin => bit => bin)
+                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                  (bit.B1::bit))
+                (bit.B0::bit)))))))"
   by (import transc SQRT_EVEN_POW2)
 
-lemma REAL_DIV_SQRT: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op <=::real => real => bool) (0::real) x)
-      ((op =::real => real => bool)
-        ((op /::real => real => real) x ((sqrt::real => real) x))
-        ((sqrt::real => real) x)))"
+lemma REAL_DIV_SQRT: "ALL x>=0. x / sqrt x = sqrt x"
   by (import transc REAL_DIV_SQRT)
 
 lemma SQRT_EQ: "(All::(real => bool) => bool)
@@ -4784,10 +4708,10 @@ lemma SQRT_EQ: "(All::(real => bool) => bool)
              ((op =::real => real => bool)
                ((op ^::real => nat => real) x
                  ((number_of::bin => nat)
-                   ((op BIT::bin => bool => bin)
-                     ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                       (True::bool))
-                     (False::bool))))
+                   ((op BIT::bin => bit => bin)
+                     ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                       (bit.B1::bit))
+                     (bit.B0::bit))))
                y)
              ((op <=::real => real => bool) (0::real) x))
            ((op =::real => real => bool) x ((sqrt::real => real) y))))"
@@ -4852,9 +4776,9 @@ lemma SIN_POS: "(All::(real => bool) => bool)
         ((op <::real => real => bool) (0::real) x)
         ((op <::real => real => bool) x
           ((number_of::bin => real)
-            ((op BIT::bin => bool => bin)
-              ((op BIT::bin => bool => bin) (Numeral.Pls::bin) (True::bool))
-              (False::bool)))))
+            ((op BIT::bin => bit => bin)
+              ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
+              (bit.B0::bit)))))
       ((op <::real => real => bool) (0::real) ((sin::real => real) x)))"
   by (import transc SIN_POS)
 
@@ -4927,10 +4851,10 @@ lemma SIN_POS_PI2: "(All::(real => bool) => bool)
         ((op <::real => real => bool) x
           ((op /::real => real => real) (pi::real)
             ((number_of::bin => real)
-              ((op BIT::bin => bool => bin)
-                ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                  (True::bool))
-                (False::bool))))))
+              ((op BIT::bin => bit => bin)
+                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                  (bit.B1::bit))
+                (bit.B0::bit))))))
       ((op <::real => real => bool) (0::real) ((sin::real => real) x)))"
   by (import transc SIN_POS_PI2)
 
@@ -4942,10 +4866,10 @@ lemma COS_POS_PI2: "(All::(real => bool) => bool)
         ((op <::real => real => bool) x
           ((op /::real => real => real) (pi::real)
             ((number_of::bin => real)
-              ((op BIT::bin => bool => bin)
-                ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                  (True::bool))
-                (False::bool))))))
+              ((op BIT::bin => bit => bin)
+                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                  (bit.B1::bit))
+                (bit.B0::bit))))))
       ((op <::real => real => bool) (0::real) ((cos::real => real) x)))"
   by (import transc COS_POS_PI2)
 
@@ -4957,18 +4881,18 @@ lemma COS_POS_PI: "(All::(real => bool) => bool)
           ((uminus::real => real)
             ((op /::real => real => real) (pi::real)
               ((number_of::bin => real)
-                ((op BIT::bin => bool => bin)
-                  ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                    (True::bool))
-                  (False::bool)))))
+                ((op BIT::bin => bit => bin)
+                  ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                    (bit.B1::bit))
+                  (bit.B0::bit)))))
           x)
         ((op <::real => real => bool) x
           ((op /::real => real => real) (pi::real)
             ((number_of::bin => real)
-              ((op BIT::bin => bool => bin)
-                ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                  (True::bool))
-                (False::bool))))))
+              ((op BIT::bin => bit => bin)
+                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                  (bit.B1::bit))
+                (bit.B0::bit))))))
       ((op <::real => real => bool) (0::real) ((cos::real => real) x)))"
   by (import transc COS_POS_PI)
 
@@ -4989,10 +4913,10 @@ lemma COS_POS_PI2_LE: "(All::(real => bool) => bool)
         ((op <=::real => real => bool) x
           ((op /::real => real => real) (pi::real)
             ((number_of::bin => real)
-              ((op BIT::bin => bool => bin)
-                ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                  (True::bool))
-                (False::bool))))))
+              ((op BIT::bin => bit => bin)
+                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                  (bit.B1::bit))
+                (bit.B0::bit))))))
       ((op <=::real => real => bool) (0::real) ((cos::real => real) x)))"
   by (import transc COS_POS_PI2_LE)
 
@@ -5004,18 +4928,18 @@ lemma COS_POS_PI_LE: "(All::(real => bool) => bool)
           ((uminus::real => real)
             ((op /::real => real => real) (pi::real)
               ((number_of::bin => real)
-                ((op BIT::bin => bool => bin)
-                  ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                    (True::bool))
-                  (False::bool)))))
+                ((op BIT::bin => bit => bin)
+                  ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                    (bit.B1::bit))
+                  (bit.B0::bit)))))
           x)
         ((op <=::real => real => bool) x
           ((op /::real => real => real) (pi::real)
             ((number_of::bin => real)
-              ((op BIT::bin => bool => bin)
-                ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                  (True::bool))
-                (False::bool))))))
+              ((op BIT::bin => bit => bin)
+                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                  (bit.B1::bit))
+                (bit.B0::bit))))))
       ((op <=::real => real => bool) (0::real) ((cos::real => real) x)))"
   by (import transc COS_POS_PI_LE)
 
@@ -5027,10 +4951,10 @@ lemma SIN_POS_PI2_LE: "(All::(real => bool) => bool)
         ((op <=::real => real => bool) x
           ((op /::real => real => real) (pi::real)
             ((number_of::bin => real)
-              ((op BIT::bin => bool => bin)
-                ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                  (True::bool))
-                (False::bool))))))
+              ((op BIT::bin => bit => bin)
+                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                  (bit.B1::bit))
+                (bit.B0::bit))))))
       ((op <=::real => real => bool) (0::real) ((sin::real => real) x)))"
   by (import transc SIN_POS_PI2_LE)
 
@@ -5071,19 +4995,19 @@ lemma SIN_TOTAL: "(All::(real => bool) => bool)
                ((uminus::real => real)
                  ((op /::real => real => real) (pi::real)
                    ((number_of::bin => real)
-                     ((op BIT::bin => bool => bin)
-                       ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                         (True::bool))
-                       (False::bool)))))
+                     ((op BIT::bin => bit => bin)
+                       ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                         (bit.B1::bit))
+                       (bit.B0::bit)))))
                x)
              ((op &::bool => bool => bool)
                ((op <=::real => real => bool) x
                  ((op /::real => real => real) (pi::real)
                    ((number_of::bin => real)
-                     ((op BIT::bin => bool => bin)
-                       ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                         (True::bool))
-                       (False::bool)))))
+                     ((op BIT::bin => bit => bin)
+                       ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                         (bit.B1::bit))
+                       (bit.B0::bit)))))
                ((op =::real => real => bool) ((sin::real => real) x) y)))))"
   by (import transc SIN_TOTAL)
 
@@ -5101,10 +5025,10 @@ lemma COS_ZERO_LEMMA: "(All::(real => bool) => bool)
                ((op *::real => real => real) ((real::nat => real) n)
                  ((op /::real => real => real) (pi::real)
                    ((number_of::bin => real)
-                     ((op BIT::bin => bool => bin)
-                       ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                         (True::bool))
-                       (False::bool)))))))))"
+                     ((op BIT::bin => bit => bin)
+                       ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                         (bit.B1::bit))
+                       (bit.B0::bit)))))))))"
   by (import transc COS_ZERO_LEMMA)
 
 lemma SIN_ZERO_LEMMA: "(All::(real => bool) => bool)
@@ -5120,10 +5044,10 @@ lemma SIN_ZERO_LEMMA: "(All::(real => bool) => bool)
                ((op *::real => real => real) ((real::nat => real) n)
                  ((op /::real => real => real) (pi::real)
                    ((number_of::bin => real)
-                     ((op BIT::bin => bool => bin)
-                       ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                         (True::bool))
-                       (False::bool)))))))))"
+                     ((op BIT::bin => bit => bin)
+                       ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                         (bit.B1::bit))
+                       (bit.B0::bit)))))))))"
   by (import transc SIN_ZERO_LEMMA)
 
 lemma COS_ZERO: "ALL x.
@@ -5198,36 +5122,36 @@ lemma TAN_DOUBLE: "(All::(real => bool) => bool)
             ((cos::real => real)
               ((op *::real => real => real)
                 ((number_of::bin => real)
-                  ((op BIT::bin => bool => bin)
-                    ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                      (True::bool))
-                    (False::bool)))
+                  ((op BIT::bin => bit => bin)
+                    ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                      (bit.B1::bit))
+                    (bit.B0::bit)))
                 x))
             (0::real))))
       ((op =::real => real => bool)
         ((tan::real => real)
           ((op *::real => real => real)
             ((number_of::bin => real)
-              ((op BIT::bin => bool => bin)
-                ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                  (True::bool))
-                (False::bool)))
+              ((op BIT::bin => bit => bin)
+                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                  (bit.B1::bit))
+                (bit.B0::bit)))
             x))
         ((op /::real => real => real)
           ((op *::real => real => real)
             ((number_of::bin => real)
-              ((op BIT::bin => bool => bin)
-                ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                  (True::bool))
-                (False::bool)))
+              ((op BIT::bin => bit => bin)
+                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                  (bit.B1::bit))
+                (bit.B0::bit)))
             ((tan::real => real) x))
           ((op -::real => real => real) (1::real)
             ((op ^::real => nat => real) ((tan::real => real) x)
               ((number_of::bin => nat)
-                ((op BIT::bin => bool => bin)
-                  ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                    (True::bool))
-                  (False::bool))))))))"
+                ((op BIT::bin => bit => bin)
+                  ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                    (bit.B1::bit))
+                  (bit.B0::bit))))))))"
   by (import transc TAN_DOUBLE)
 
 lemma TAN_POS_PI2: "(All::(real => bool) => bool)
@@ -5238,10 +5162,10 @@ lemma TAN_POS_PI2: "(All::(real => bool) => bool)
         ((op <::real => real => bool) x
           ((op /::real => real => real) (pi::real)
             ((number_of::bin => real)
-              ((op BIT::bin => bool => bin)
-                ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                  (True::bool))
-                (False::bool))))))
+              ((op BIT::bin => bit => bin)
+                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                  (bit.B1::bit))
+                (bit.B0::bit))))))
       ((op <::real => real => bool) (0::real) ((tan::real => real) x)))"
   by (import transc TAN_POS_PI2)
 
@@ -5254,49 +5178,17 @@ lemma DIFF_TAN: "(All::(real => bool) => bool)
         ((inverse::real => real)
           ((op ^::real => nat => real) ((cos::real => real) x)
             ((number_of::bin => nat)
-              ((op BIT::bin => bool => bin)
-                ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                  (True::bool))
-                (False::bool)))))
+              ((op BIT::bin => bit => bin)
+                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                  (bit.B1::bit))
+                (bit.B0::bit)))))
         x))"
   by (import transc DIFF_TAN)
 
-lemma TAN_TOTAL_LEMMA: "(All::(real => bool) => bool)
- (%y::real.
-     (op -->::bool => bool => bool)
-      ((op <::real => real => bool) (0::real) y)
-      ((Ex::(real => bool) => bool)
-        (%x::real.
-            (op &::bool => bool => bool)
-             ((op <::real => real => bool) (0::real) x)
-             ((op &::bool => bool => bool)
-               ((op <::real => real => bool) x
-                 ((op /::real => real => real) (pi::real)
-                   ((number_of::bin => real)
-                     ((op BIT::bin => bool => bin)
-                       ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                         (True::bool))
-                       (False::bool)))))
-               ((op <::real => real => bool) y ((tan::real => real) x))))))"
+lemma TAN_TOTAL_LEMMA: "ALL y>0. EX x>0. x < pi / 2 & y < tan x"
   by (import transc TAN_TOTAL_LEMMA)
 
-lemma TAN_TOTAL_POS: "(All::(real => bool) => bool)
- (%y::real.
-     (op -->::bool => bool => bool)
-      ((op <=::real => real => bool) (0::real) y)
-      ((Ex::(real => bool) => bool)
-        (%x::real.
-            (op &::bool => bool => bool)
-             ((op <=::real => real => bool) (0::real) x)
-             ((op &::bool => bool => bool)
-               ((op <::real => real => bool) x
-                 ((op /::real => real => real) (pi::real)
-                   ((number_of::bin => real)
-                     ((op BIT::bin => bool => bin)
-                       ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                         (True::bool))
-                       (False::bool)))))
-               ((op =::real => real => bool) ((tan::real => real) x) y)))))"
+lemma TAN_TOTAL_POS: "ALL y>=0. EX x>=0. x < pi / 2 & tan x = y"
   by (import transc TAN_TOTAL_POS)
 
 lemma TAN_TOTAL: "ALL y. EX! x. - (pi / 2) < x & x < pi / 2 & tan x = y"
@@ -5334,19 +5226,19 @@ lemma ASN: "(All::(real => bool) => bool)
           ((uminus::real => real)
             ((op /::real => real => real) (pi::real)
               ((number_of::bin => real)
-                ((op BIT::bin => bool => bin)
-                  ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                    (True::bool))
-                  (False::bool)))))
+                ((op BIT::bin => bit => bin)
+                  ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                    (bit.B1::bit))
+                  (bit.B0::bit)))))
           ((asn::real => real) y))
         ((op &::bool => bool => bool)
           ((op <=::real => real => bool) ((asn::real => real) y)
             ((op /::real => real => real) (pi::real)
               ((number_of::bin => real)
-                ((op BIT::bin => bool => bin)
-                  ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                    (True::bool))
-                  (False::bool)))))
+                ((op BIT::bin => bit => bin)
+                  ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                    (bit.B1::bit))
+                  (bit.B0::bit)))))
           ((op =::real => real => bool)
             ((sin::real => real) ((asn::real => real) y)) y))))"
   by (import transc ASN)
@@ -5372,18 +5264,18 @@ lemma ASN_BOUNDS: "(All::(real => bool) => bool)
           ((uminus::real => real)
             ((op /::real => real => real) (pi::real)
               ((number_of::bin => real)
-                ((op BIT::bin => bool => bin)
-                  ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                    (True::bool))
-                  (False::bool)))))
+                ((op BIT::bin => bit => bin)
+                  ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                    (bit.B1::bit))
+                  (bit.B0::bit)))))
           ((asn::real => real) y))
         ((op <=::real => real => bool) ((asn::real => real) y)
           ((op /::real => real => real) (pi::real)
             ((number_of::bin => real)
-              ((op BIT::bin => bool => bin)
-                ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                  (True::bool))
-                (False::bool)))))))"
+              ((op BIT::bin => bit => bin)
+                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                  (bit.B1::bit))
+                (bit.B0::bit)))))))"
   by (import transc ASN_BOUNDS)
 
 lemma ASN_BOUNDS_LT: "(All::(real => bool) => bool)
@@ -5397,18 +5289,18 @@ lemma ASN_BOUNDS_LT: "(All::(real => bool) => bool)
           ((uminus::real => real)
             ((op /::real => real => real) (pi::real)
               ((number_of::bin => real)
-                ((op BIT::bin => bool => bin)
-                  ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                    (True::bool))
-                  (False::bool)))))
+                ((op BIT::bin => bit => bin)
+                  ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                    (bit.B1::bit))
+                  (bit.B0::bit)))))
           ((asn::real => real) y))
         ((op <::real => real => bool) ((asn::real => real) y)
           ((op /::real => real => real) (pi::real)
             ((number_of::bin => real)
-              ((op BIT::bin => bool => bin)
-                ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                  (True::bool))
-                (False::bool)))))))"
+              ((op BIT::bin => bit => bin)
+                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                  (bit.B1::bit))
+                (bit.B0::bit)))))))"
   by (import transc ASN_BOUNDS_LT)
 
 lemma SIN_ASN: "(All::(real => bool) => bool)
@@ -5419,18 +5311,18 @@ lemma SIN_ASN: "(All::(real => bool) => bool)
           ((uminus::real => real)
             ((op /::real => real => real) (pi::real)
               ((number_of::bin => real)
-                ((op BIT::bin => bool => bin)
-                  ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                    (True::bool))
-                  (False::bool)))))
+                ((op BIT::bin => bit => bin)
+                  ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                    (bit.B1::bit))
+                  (bit.B0::bit)))))
           x)
         ((op <=::real => real => bool) x
           ((op /::real => real => real) (pi::real)
             ((number_of::bin => real)
-              ((op BIT::bin => bool => bin)
-                ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                  (True::bool))
-                (False::bool))))))
+              ((op BIT::bin => bit => bin)
+                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                  (bit.B1::bit))
+                (bit.B0::bit))))))
       ((op =::real => real => bool)
         ((asn::real => real) ((sin::real => real) x)) x))"
   by (import transc SIN_ASN)
@@ -5508,18 +5400,18 @@ lemma TAN_ATN: "(All::(real => bool) => bool)
           ((uminus::real => real)
             ((op /::real => real => real) (pi::real)
               ((number_of::bin => real)
-                ((op BIT::bin => bool => bin)
-                  ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                    (True::bool))
-                  (False::bool)))))
+                ((op BIT::bin => bit => bin)
+                  ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                    (bit.B1::bit))
+                  (bit.B0::bit)))))
           x)
         ((op <::real => real => bool) x
           ((op /::real => real => real) (pi::real)
             ((number_of::bin => real)
-              ((op BIT::bin => bool => bin)
-                ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                  (True::bool))
-                (False::bool))))))
+              ((op BIT::bin => bit => bin)
+                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                  (bit.B1::bit))
+                (bit.B0::bit))))))
       ((op =::real => real => bool)
         ((atn::real => real) ((tan::real => real) x)) x))"
   by (import transc TAN_ATN)
@@ -5533,16 +5425,16 @@ lemma TAN_SEC: "(All::(real => bool) => bool)
         ((op +::real => real => real) (1::real)
           ((op ^::real => nat => real) ((tan::real => real) x)
             ((number_of::bin => nat)
-              ((op BIT::bin => bool => bin)
-                ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                  (True::bool))
-                (False::bool)))))
+              ((op BIT::bin => bit => bin)
+                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                  (bit.B1::bit))
+                (bit.B0::bit)))))
         ((op ^::real => nat => real)
           ((inverse::real => real) ((cos::real => real) x))
           ((number_of::bin => nat)
-            ((op BIT::bin => bool => bin)
-              ((op BIT::bin => bool => bin) (Numeral.Pls::bin) (True::bool))
-              (False::bool))))))"
+            ((op BIT::bin => bit => bin)
+              ((op BIT::bin => bit => bin) (Numeral.Pls::bin) (bit.B1::bit))
+              (bit.B0::bit))))))"
   by (import transc TAN_SEC)
 
 lemma SIN_COS_SQ: "(All::(real => bool) => bool)
@@ -5556,10 +5448,10 @@ lemma SIN_COS_SQ: "(All::(real => bool) => bool)
           ((op -::real => real => real) (1::real)
             ((op ^::real => nat => real) ((cos::real => real) x)
               ((number_of::bin => nat)
-                ((op BIT::bin => bool => bin)
-                  ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                    (True::bool))
-                  (False::bool))))))))"
+                ((op BIT::bin => bit => bin)
+                  ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                    (bit.B1::bit))
+                  (bit.B0::bit))))))))"
   by (import transc SIN_COS_SQ)
 
 lemma COS_SIN_SQ: "(All::(real => bool) => bool)
@@ -5570,27 +5462,27 @@ lemma COS_SIN_SQ: "(All::(real => bool) => bool)
           ((uminus::real => real)
             ((op /::real => real => real) (pi::real)
               ((number_of::bin => real)
-                ((op BIT::bin => bool => bin)
-                  ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                    (True::bool))
-                  (False::bool)))))
+                ((op BIT::bin => bit => bin)
+                  ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                    (bit.B1::bit))
+                  (bit.B0::bit)))))
           x)
         ((op <=::real => real => bool) x
           ((op /::real => real => real) (pi::real)
             ((number_of::bin => real)
-              ((op BIT::bin => bool => bin)
-                ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                  (True::bool))
-                (False::bool))))))
+              ((op BIT::bin => bit => bin)
+                ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                  (bit.B1::bit))
+                (bit.B0::bit))))))
       ((op =::real => real => bool) ((cos::real => real) x)
         ((sqrt::real => real)
           ((op -::real => real => real) (1::real)
             ((op ^::real => nat => real) ((sin::real => real) x)
               ((number_of::bin => nat)
-                ((op BIT::bin => bool => bin)
-                  ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                    (True::bool))
-                  (False::bool))))))))"
+                ((op BIT::bin => bit => bin)
+                  ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                    (bit.B1::bit))
+                  (bit.B0::bit))))))))"
   by (import transc COS_SIN_SQ)
 
 lemma COS_ATN_NZ: "ALL x. cos (atn x) ~= 0"
@@ -5627,10 +5519,10 @@ lemma COS_SIN_SQRT: "(All::(real => bool) => bool)
           ((op -::real => real => real) (1::real)
             ((op ^::real => nat => real) ((sin::real => real) x)
               ((number_of::bin => nat)
-                ((op BIT::bin => bool => bin)
-                  ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                    (True::bool))
-                  (False::bool))))))))"
+                ((op BIT::bin => bit => bin)
+                  ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                    (bit.B1::bit))
+                  (bit.B0::bit))))))))"
   by (import transc COS_SIN_SQRT)
 
 lemma SIN_COS_SQRT: "(All::(real => bool) => bool)
@@ -5642,18 +5534,13 @@ lemma SIN_COS_SQRT: "(All::(real => bool) => bool)
           ((op -::real => real => real) (1::real)
             ((op ^::real => nat => real) ((cos::real => real) x)
               ((number_of::bin => nat)
-                ((op BIT::bin => bool => bin)
-                  ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                    (True::bool))
-                  (False::bool))))))))"
+                ((op BIT::bin => bit => bin)
+                  ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                    (bit.B1::bit))
+                  (bit.B0::bit))))))))"
   by (import transc SIN_COS_SQRT)
 
-lemma DIFF_LN: "(All::(real => bool) => bool)
- (%x::real.
-     (op -->::bool => bool => bool)
-      ((op <::real => real => bool) (0::real) x)
-      ((diffl::(real => real) => real => real => bool) (ln::real => real)
-        ((inverse::real => real) x) x))"
+lemma DIFF_LN: "ALL x>0. diffl ln (inverse x) x"
   by (import transc DIFF_LN)
 
 lemma DIFF_ASN_LEMMA: "(All::(real => bool) => bool)
@@ -5680,10 +5567,10 @@ lemma DIFF_ASN: "(All::(real => bool) => bool)
             ((op -::real => real => real) (1::real)
               ((op ^::real => nat => real) x
                 ((number_of::bin => nat)
-                  ((op BIT::bin => bool => bin)
-                    ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                      (True::bool))
-                    (False::bool)))))))
+                  ((op BIT::bin => bit => bin)
+                    ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                      (bit.B1::bit))
+                    (bit.B0::bit)))))))
         x))"
   by (import transc DIFF_ASN)
 
@@ -5713,10 +5600,10 @@ lemma DIFF_ACS: "(All::(real => bool) => bool)
               ((op -::real => real => real) (1::real)
                 ((op ^::real => nat => real) x
                   ((number_of::bin => nat)
-                    ((op BIT::bin => bool => bin)
-                      ((op BIT::bin => bool => bin) (Numeral.Pls::bin)
-                        (True::bool))
-                      (False::bool))))))))
+                    ((op BIT::bin => bit => bin)
+                      ((op BIT::bin => bit => bin) (Numeral.Pls::bin)
+                        (bit.B1::bit))
+                      (bit.B0::bit))))))))
         x))"
   by (import transc DIFF_ACS)
 

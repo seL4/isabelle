@@ -19,11 +19,11 @@ type_maps
 const_maps
   real_0   > 0           :: real
   real_1   > 1           :: real
-  real_neg > uminus      :: "real \<Rightarrow> real"
-  inv      > HOL.inverse :: "real \<Rightarrow> real"
-  real_add > "op +"      :: "[real,real] \<Rightarrow> real"
-  real_mul > "op *"      :: "[real,real] \<Rightarrow> real"
-  real_lt  > "op <"      :: "[real,real] \<Rightarrow> bool";
+  real_neg > uminus      :: "real => real"
+  inv      > HOL.inverse :: "real => real"
+  real_add > "op +"      :: "[real,real] => real"
+  real_mul > "op *"      :: "[real,real] => real"
+  real_lt  > "op <"      :: "[real,real] => bool";
 
 ignore_thms
     real_TY_DEF
@@ -51,12 +51,12 @@ import_theory real;
 const_maps
   real_gt     > HOL4Compat.real_gt
   real_ge     > HOL4Compat.real_ge
-  real_lte    > "op <="      :: "[real,real] \<Rightarrow> bool"
-  real_sub    > "op -"       :: "[real,real] \<Rightarrow> real"
-  "/"         > HOL.divide   :: "[real,real] \<Rightarrow> real"
-  pow         > Nat.power    :: "[real,nat] \<Rightarrow> real"
-  abs         > HOL.abs      :: "real \<Rightarrow> real"
-  real_of_num > RealDef.real :: "nat \<Rightarrow> real";
+  real_lte    > "op <="      :: "[real,real] => bool"
+  real_sub    > "op -"       :: "[real,real] => real"
+  "/"         > HOL.divide   :: "[real,real] => real"
+  pow         > Nat.power    :: "[real,nat] => real"
+  abs         > HOL.abs      :: "real => real"
+  real_of_num > RealDef.real :: "nat => real";
 
 end_import;
 

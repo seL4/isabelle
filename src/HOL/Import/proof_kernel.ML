@@ -203,7 +203,7 @@ fun smart_string_of_cterm ct =
 		   then F true n
 		   else F false (n+1)
     in
-	transform_error (Library.setmp Syntax.ambiguity_is_error true (F false)) 0
+	transform_error (Library.setmp print_mode [] (Library.setmp Syntax.ambiguity_is_error true (F false))) 0
     end
     handle ERROR_MESSAGE mesg =>
 	   (writeln "Exception in smart_string_of_cterm!";
@@ -1217,6 +1217,7 @@ fun rewrite_hol4_term t thy =
 
 fun get_isabelle_thm thyname thmname hol4conc thy =
     let
+	val _ = message "get_isabelle_thm called..."
 	val sg = sign_of thy
 
 	val (info,hol4conc') = disamb_term hol4conc
@@ -1257,7 +1258,7 @@ fun get_isabelle_thm thyname thmname hol4conc thy =
 			 if_debug prin isaconc)
 		val cs = non_trivial_term_consts isaconc
 		val _ = (message "Looking for consts:";
-			 message (String.concat cs))
+			 message (commas cs))
 		val pot_thms = Shuffler.find_potential thy isaconc
 		val _ = message ((Int.toString (length pot_thms)) ^ " potential theorems")
 	    in
@@ -1273,16 +1274,16 @@ fun get_isabelle_thm thyname thmname hol4conc thy =
 		  | NONE => (thy,NONE)
 	    end
     end
-    handle _ => (thy,NONE)
+    handle e => (message "Exception in get_isabelle_thm"; if_debug print_exn e handle _ => (); (thy,NONE))
 
 fun get_thm thyname thmname thy =
     case get_hol4_thm thyname thmname thy of
 	SOME hth => (thy,SOME hth)
       | NONE => ((case fst (import_proof thyname thmname thy) of
 		      SOME f => get_isabelle_thm thyname thmname (f thy) thy
-		    | NONE => (thy,NONE))
-		 handle e as IO.Io _ => (thy,NONE)
-		      | e as PK _ => (thy,NONE))
+		    | NONE => (message "No conclusion"; (thy,NONE)))
+		 handle e as IO.Io _ => (message "IO exception"; (thy,NONE))
+		      | e as PK _ => (message "PK exception"; (thy,NONE)))
 
 fun rename_const thyname thy name =
     case get_hol4_const_renaming thyname name thy of
