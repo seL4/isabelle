@@ -94,9 +94,6 @@ val sum_cs = ZF_cs addSIs [PartI, InlI, InrI]
                    addSEs [PartE, sumE, Inl_neq_Inr, Inr_neq_Inl]
                    addSDs [Inl_inject, Inr_inject];
 
-val sum_ss = ZF_ss addsimps [InlI, InrI, Inl_iff, Inr_iff, 
-			     Inl_Inr_iff, Inr_Inl_iff];
-
 goal Sum.thy "!!A B. Inl(a): A+B ==> a: A";
 by (fast_tac sum_cs 1);
 qed "InlD";
@@ -153,6 +150,12 @@ by (fast_tac sum_cs 1);
 by (asm_simp_tac (ZF_ss addsimps [case_Inr]) 1);
 by (fast_tac sum_cs 1);
 qed "expand_case";
+
+val sum_ss = ZF_ss addsimps [InlI, InrI, Inl_iff, Inr_iff, 
+			     Inl_Inr_iff, Inr_Inl_iff,
+			     case_Inl, case_Inr];
+
+(*** More rules for Part(A,h) ***)
 
 goal Sum.thy "!!A B h. A<=B ==> Part(A,h)<=Part(B,h)";
 by (fast_tac sum_cs 1);
