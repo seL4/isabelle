@@ -28,12 +28,13 @@ by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (otway.Nil RS otway.OR1 RS otway.OR2 RS otway.OR3 RS otway.OR4) 2);
 by (ALLGOALS (simp_tac (!simpset setsolver safe_solver)));
 by (REPEAT_FIRST (resolve_tac [refl, conjI]));
-by (ALLGOALS (fast_tac (!claset addss (!simpset setsolver safe_solver))));
+by (REPEAT_FIRST (fast_tac (!claset addss (!simpset setsolver safe_solver))));
 result();
 
 
 (**** Inductive proofs about otway ****)
 
+(*Monotonicity*)
 goal thy "!!evs. lost' <= lost ==> otway lost' <= otway lost";
 by (rtac subsetI 1);
 by (etac otway.induct 1);
@@ -220,19 +221,13 @@ by (parts_induct_tac 1);
 (*OR1 and OR3*)
 by (EVERY (map (fast_tac (!claset addDs [Suc_leD] addss (!simpset))) [4,2]));
 (*Fake, OR2, OR4: these messages send unknown (X) components*)
-by (EVERY 
-    (map
-     (best_tac
+by (REPEAT
+    (best_tac
       (!claset addDs [impOfSubs (analz_subset_parts RS keysFor_mono),
                       impOfSubs (parts_insert_subset_Un RS keysFor_mono),
                       Suc_leD]
                addEs [new_keys_not_seen RS not_parts_not_analz RSN(2,rev_notE)]
-               addss (!simpset)))
-     [3,2,1]));
-(*Reveal: dummy message*)
-by (best_tac (!claset addEs  [new_keys_not_seen RSN(2,rev_notE)]
-                      addIs  [less_SucI, impOfSubs keysFor_mono]
-                      addss (!simpset addsimps [le_def])) 1);
+               addss (!simpset)) 1));
 val lemma = result();
 
 goal thy 
@@ -298,25 +293,6 @@ val analz_Fake_tac =
 ****)
 
 
-(*NOT useful in this form, but it says that session keys are not used
-  to encrypt messages containing other keys, in the actual protocol.
-  We require that agents should behave like this subsequently also.*)
-goal thy 
- "!!evs. evs : otway lost ==> \
-\        (Crypt X (newK evt)) : parts (sees lost Spy evs) & \
-\        Key K : parts {X} --> Key K : parts (sees lost Spy evs)";
-by (etac otway.induct 1);
-by parts_Fake_tac;
-by (ALLGOALS Asm_simp_tac);
-(*Deals with Faked messages*)
-by (best_tac (!claset addSEs partsEs
-                      addDs [impOfSubs parts_insert_subset_Un]
-                      addss (!simpset)) 2);
-(*Base case and Reveal*)
-by (Auto_tac());
-result();
-
-
 (** Session keys are not used to encrypt other session keys **)
 
 (*The equality makes the induction hypothesis easier to apply*)
@@ -333,7 +309,7 @@ by (ALLGOALS (*Takes 28 secs*)
      (!simpset addsimps ([insert_Key_singleton, insert_Key_image, pushKey_newK]
                          @ pushes)
                setloop split_tac [expand_if])));
-(** LEVEL 7 **)
+(** LEVEL 5 **)
 (*Reveal case 2, OR4, OR2, Fake*) 
 by (EVERY (map spy_analz_tac [7,5,3,2]));
 (*Reveal case 1, OR3, Base*)
@@ -552,18 +528,17 @@ by (ALLGOALS
      (!simpset addsimps ([analz_subset_parts RS contra_subsetD,
                           analz_insert_Key_newK] @ pushes)
                setloop split_tac [expand_if])));
-(** LEVEL 6 **)
 (*OR3*)
 by (fast_tac (!claset addSIs [parts_insertI]
                       addEs [Says_imp_old_keys RS less_irrefl]
                       addss (!simpset addsimps [parts_insert2])) 3);
 (*Reveal case 2, OR4, OR2, Fake*) 
 by (REPEAT_FIRST (resolve_tac [conjI, impI] ORELSE' spy_analz_tac));
-(*Reveal case 1*) (** LEVEL 8 **)
-by (excluded_middle_tac "Aa : lost" 1);
+(*Reveal case 1*) (** LEVEL 6 **)
+by (case_tac "Aa : lost" 1);
 (*But this contradicts Key K ~: analz (sees lost Spy evsa) *)
-by (dtac (Says_imp_sees_Spy RS analz.Inj) 2);
-by (fast_tac (!claset addSDs [analz.Decrypt] addss (!simpset)) 2);
+by (dtac (Says_imp_sees_Spy RS analz.Inj) 1);
+by (fast_tac (!claset addSDs [analz.Decrypt] addss (!simpset)) 1);
 (*So now we have  Aa ~: lost *)
 by (dtac A_trust_OR4 1);
 by (REPEAT (assume_tac 1));
