@@ -1,6 +1,8 @@
 
 (*** Examples of performing binary arithmetic by simplification ***)
 
+(** Addition **)
+
 Goal "#13  +  #19 = #32";
 by (Simp_tac 1);
 result();
@@ -17,13 +19,18 @@ Goal "#93746 +  #~46375 = #47371";
 by (Simp_tac 1);
 result();
 
-Goal "$~ #65745 = #~65745";
+(** Negation **)
+
+Goal "- #65745 = #~65745";
 by (Simp_tac 1);
 result();
 
-Goal "$~ #~54321 = #54321";
+Goal "- #~54321 = #54321";
 by (Simp_tac 1);
 result();
+
+
+(** Multiplication **)
 
 Goal "#13  *  #19 = #247";
 by (Simp_tac 1);

@@ -33,7 +33,7 @@ datatype
         | Bcons bin bool
 
 consts
-  integ_of_bin     :: bin=>int
+  integ_of     :: bin=>int
   norm_Bcons       :: [bin,bool]=>bin
   bin_succ         :: bin=>bin
   bin_pred         :: bin=>bin
@@ -49,9 +49,10 @@ primrec
   norm_Bcons "norm_Bcons (Bcons w' x') b = Bcons (Bcons w' x') b"
  
 primrec
-  iob_Plus  "integ_of_bin PlusSign = $#0"
-  iob_Minus "integ_of_bin MinusSign = $~($#1)"
-  iob_Bcons "integ_of_bin(Bcons w x) = (if x then $#1 else $#0) + (integ_of_bin w) + (integ_of_bin w)" 
+  integ_of_Plus  "integ_of PlusSign = $# 0"
+  integ_of_Minus "integ_of MinusSign = - ($# 1)"
+  integ_of_Bcons "integ_of(Bcons w x) = (if x then $# 1 else $# 0) +
+	                               (integ_of w) + (integ_of w)" 
 
 primrec
   succ_Plus  "bin_succ PlusSign = Bcons PlusSign True" 
@@ -81,8 +82,15 @@ primrec
 primrec
   h_Plus  "h_bin v x PlusSign =  Bcons v x"
   h_Minus "h_bin v x MinusSign = bin_pred (Bcons v x)"
-  h_BCons "h_bin v x (Bcons w y) = norm_Bcons (bin_add v (if (x & y) then bin_succ w else w)) (x~=y)" 
+  h_BCons "h_bin v x (Bcons w y) = norm_Bcons
+	            (bin_add v (if (x & y) then bin_succ w else w)) (x~=y)" 
 
+
+(*For implementing the equality test on integer constants*)
+constdefs
+  iszero :: int => bool
+  "iszero z == z = $# 0"
+  
 end
 
 ML
@@ -154,7 +162,7 @@ local
   (* translation of integer constant tokens to and from binary *)
 
   fun int_tr (*"_Int"*) [t as Free (str, _)] =
-        (const "integ_of_bin" $
+        (const "integ_of" $
           (mk_bin str handle ERROR => raise TERM ("int_tr", [t])))
     | int_tr (*"_Int"*) ts = raise TERM ("int_tr", ts);
 
@@ -162,5 +170,5 @@ local
     | int_tr' (*"integ_of"*) _ = raise Match;
 in
   val parse_translation = [("_Int", int_tr)];
-  val print_translation = [("integ_of_bin", int_tr')]; 
+  val print_translation = [("integ_of", int_tr')]; 
 end;

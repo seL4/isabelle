@@ -17,13 +17,14 @@ typedef (Integ)
 instance
   int :: {ord, plus, times, minus}
 
+defs
+  zminus_def
+    "- Z == Abs_Integ(UN p:Rep_Integ(Z). split (%x y. intrel^^{(y,x)}) p)"
+
 constdefs
 
   znat        :: nat => int                                  ("$# _" [80] 80)
   "$# m == Abs_Integ(intrel ^^ {(m,0)})"
-
-  zminus      :: int => int                                  ("$~ _" [80] 80)
-  "$~ Z == Abs_Integ(UN p:Rep_Integ(Z). split (%x y. intrel^^{(y,x)}) p)"
 
   znegative   :: int => bool
   "znegative(Z) == EX x y. x<y & (x,y::nat):Rep_Integ(Z)"
@@ -32,19 +33,13 @@ constdefs
   "zmagnitude(Z) == Abs_Integ(UN p:Rep_Integ(Z).
                               split (%x y. intrel^^{((y-x) + (x-y),0)}) p)"
 
-  zpred       :: int=>int
-  "zpred(Z) == Z - $# Suc(0)"
-
-  zsuc        :: int=>int
-  "zsuc(Z) == Z + $# Suc(0)"
-
 defs
   zadd_def
    "Z1 + Z2 == 
        Abs_Integ(UN p1:Rep_Integ(Z1). UN p2:Rep_Integ(Z2).   
            split (%x1 y1. split (%x2 y2. intrel^^{(x1+x2, y1+y2)}) p2) p1)"
 
-  zdiff_def "Z1 - Z2 == Z1 + zminus(Z2)"
+  zdiff_def "Z1 - Z2 == Z1 + -(Z2::int)"
 
   zless_def "Z1<Z2 == znegative(Z1 - Z2)"
 
