@@ -14,6 +14,7 @@ for f in $*
 do
 echo Expanding shorthands in $f. \ Backup file is $f~~
 mv $f $f~~; sed -e '
+s/^by(/by (/
 s/^ba \([0-9]*\);/by (assume_tac \1);/
 s/^br \([^;]*\) \([0-9]*\);/by (rtac \1 \2);/
 s/^brs \([^;]*\) \([0-9]*\);/by (resolve_tac \1 \2);/
