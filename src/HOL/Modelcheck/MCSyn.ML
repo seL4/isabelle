@@ -11,7 +11,7 @@ case drop(i-1,prems_of state) of
    [] => Sequence.null |
    subgoal::_ => 
 	let val concl = Logic.strip_imp_concl subgoal;
-	    val OraAss = invoke_oracle(MCSyn.thy,sign,MCOracleExn concl);
+	    val OraAss = invoke_oracle MCSyn.thy "mc" (sign,MCOracleExn concl);
 	in
 	((cut_facts_tac [OraAss] i) THEN (atac i)) state
         end

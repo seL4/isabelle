@@ -28,6 +28,6 @@ syntax (Eindhoven output)
   "Nu "		:: [idts, 'a pred] => 'a pred		("(3[nu _./ _])" 1000)
 
 oracle
-  mk_mc_oracle
+  mc = mk_mc_oracle
 
 end

@@ -10,6 +10,7 @@ exception MCFailureExn of string;
 
 val trace_mc = ref false;
 
+local
 
 fun termtext sign term =
   setmp print_mode ["Eindhoven"]
@@ -18,6 +19,7 @@ fun termtext sign term =
 fun call_mc s =
   execute ( "echo \"" ^ s ^ "\" | pmu -w" );
 
+in
 
 fun mk_mc_oracle (sign, MCOracleExn trm) =
   let
@@ -33,3 +35,5 @@ fun mk_mc_oracle (sign, MCOracleExn trm) =
       "FALSE\n" => (error "MC oracle yields FALSE") |
     _ => (error ("MC syntax error: " ^ result)))
   end;
+
+end;
