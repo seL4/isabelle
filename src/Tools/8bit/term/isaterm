@@ -55,6 +55,7 @@ xterm -fn "isabelle14" -title "IsaTerm" -geometry 80x40 -xrm "\
 *fontMenu*font2*Label:        Isabelle 24 bold"      -xrm "\
 *VT100*font2:            isabelle24"          -xrm "\
 *xterm*vt100.translations: #override\
+	!Mod2 <Key>space:		string(0xa0)  \n\
 	!Mod2 Shift <Key>g:		string(0xa1)  \n\
 	!Mod2 Shift <Key>d:		string(0xa2)  \n\
 	!Mod2 Shift <Key>j:		string(0xa3)  \n\
@@ -91,25 +92,6 @@ xterm -fn "isabelle14" -title "IsaTerm" -geometry 80x40 -xrm "\
 	!Mod4 <Key>f:		string(0xc2)  \n\
 	!Mod4 <Key>t:		string(0xc3)  \n\
 	!Mod4 Shift <Key>f:		string(0xc4)  \n\
-	!Ctrl <Key>F5:		string(0xc5)  \n\
-	!Ctrl <Key>F6:		string(0xc6)  \n\
-	!Ctrl <Key>F7:		string(0xc7)  \n\
-	!Ctrl <Key>F8:		string(0xc8)  \n\
-	!Ctrl <Key>F9:		string(0xc9)  \n\
-	!Ctrl <Key>F10:		string(0xca)  \n\
-	!Ctrl <Key>F11:		string(0xcb)  \n\
-	!Ctrl <Key>F12:		string(0xcc)  \n\
-	!Mod4 <Key>F5:		string(0xcf)  \n\
-	!Mod4 <Key>F6:		string(0xf9)  \n\
-	!Mod4 <Key>F7:		string(0xfa)  \n\
-	!Mod4 <Key>F1:		string(0xd0)  \n\
-	!Mod4 <Key>F2:		string(0xd1)  \n\
-	!Mod4 <Key>F3:		string(0xd2)  \n\
-	!Mod4 <Key>F4:		string(0xd3)  \n\
-	!Ctrl <Key>F1:		string(0xd4)  \n\
-	!Ctrl <Key>F2:		string(0xd5)  \n\
-	!Ctrl <Key>F3:		string(0xd6)  \n\
-	!Ctrl <Key>F4:		string(0xd7)  \n\
 	!Mod4 <Key>b:		string(0xd8)  \n\
 	!Mod4 <Key>e:		string(0xd9)  \n\
 	!Mod4 Shift <Key>e:		string(0xda)  \n\
@@ -122,43 +104,63 @@ xterm -fn "isabelle14" -title "IsaTerm" -geometry 80x40 -xrm "\
 	!Mod4 Shift <Key>g:		string(0xe1)  \n\
 	!Mod4 <Key>s:		string(0xe2)  \n\
 	!Mod4 Shift <Key>s:		string(0xe3)  \n\
-	!Shift <Key>F11:		string(0xe4)  \n\
-	!Shift <Key>F12:		string(0xe5)  \n\
-	!Mod2 <Key>F1:		string(0xe6)  \n\
-	!Mod2 <Key>F2:		string(0xe7)  \n\
-	!Mod2 <Key>F3:		string(0xe8)  \n\
+	!Mod4 <Key>i:		string(0xe7) string(0xe8)  \n\
+	!Mod4 Shift <Key>i:		string(0xea) string(0xeb)  \n\
+	!Mod4 Shift <Key>m:		string(0xe8)  \n\
+	!Mod4 <Key>m:		string(0xeb)  \n\
+	!Mod4 Shift <Key>n:		string(0xf7)  \n\
+	!Mod4 <Key>x:		string(0xf2)  \n\
+	! <Key>F2:		string(0xe4)  \n\
+	! <Key>F3:		string(0xdd)  \n\
+	! <Key>F4:		string(0xcf)  \n\
+	! <Key>F5:		string(0xce)  \n\
+	! <Key>F6:		string(0xf1)  \n\
+	! <Key>F7:		string(0xe5)  \n\
+	! <Key>F8:		string(0xda)  \n\
+	! <Key>F9:		string(0xc4)  \n\
+	! <Key>F10:		string(0xcb)  \n\
+	! <Key>F11:		string(0xcc)  \n\
+	! <Key>F12:		string(0xea) string(0xeb)  \n\
 	!Shift <Key>F1:		string(0xe9)  \n\
 	!Shift <Key>F2:		string(0xea)  \n\
 	!Shift <Key>F3:		string(0xeb)  \n\
-	!Mod2 <Key>F5:		string(0xec)  \n\
-	!Mod2 <Key>F6:		string(0xed)  \n\
-	!Mod2 <Key>F7:		string(0xee)  \n\
-	!Mod2 <Key>F8:		string(0xef)  \n\
-	!Mod2 <Key>F9:		string(0xf0)  \n\
-	!Mod2 <Key>F10:		string(0xcd)  \n\
-	!Mod4 <Key>x:		string(0xf2)  \n\
+	!Shift <Key>F4:		string(0xe9) string(0xeb)  \n\
 	!Shift <Key>F5:		string(0xf3)  \n\
 	!Shift <Key>F6:		string(0xf4)  \n\
 	!Shift <Key>F7:		string(0xf5)  \n\
 	!Shift <Key>F8:		string(0xf6)  \n\
-	!Shift <Key>F9:		string(0xf7)  \n\
-	!Shift <Key>F10:		string(0xf8)  \n\
-	!Mod2 <Key>F11:		string(0xce)  \n\
-	!Mod2 <Key>F12:		string(0xf1)  \n\
-	!Mod4 <Key>F8:		string(0xfb)  \n\
-	!Mod4 <Key>F9:		string(0xfc)  \n\
-	!Mod4 <Key>F10:		string(0xfd)  \n\
+	!Shift <Key>F9:		string(0xca)  \n\
+	!Shift <Key>F10:		string(0xc9)  \n\
+	!Ctrl <Key>F1:		string(0xe6)  \n\
+	!Ctrl <Key>F2:		string(0xe7)  \n\
+	!Ctrl <Key>F3:		string(0xe8)  \n\
+	!Ctrl <Key>F4:		string(0xe6) string(0xe8)  \n\
+	!Ctrl <Key>F5:		string(0xc5)  \n\
+	!Ctrl <Key>F6:		string(0xc6)  \n\
+	!Ctrl <Key>F7:		string(0xc7)  \n\
+	!Ctrl <Key>F8:		string(0xc8)  \n\
+	!Ctrl <Key>F9:		string(0xfd)  \n\
+	!Ctrl <Key>F10:		string(0xcd)  \n\
+	!Mod2 <Key>F1:		string(0xed)  \n\
+	!Mod2 <Key>F2:		string(0xee)  \n\
+	!Mod2 <Key>F3:		string(0xef)  \n\
+	!Mod2 <Key>F4:		string(0xf0)  \n\
+	!Mod2 <Key>F5:		string(0xd4)  \n\
+	!Mod2 <Key>F6:		string(0xd5)  \n\
+	!Mod2 <Key>F7:		string(0xd6)  \n\
+	!Mod2 <Key>F8:		string(0xd7)  \n\
+	!Mod2 <Key>F9:		string(0xdc)  \n\
+	!Mod2 <Key>F10:		string(0xf8)  \n\
+	!Mod4 <Key>F1:		string(0xf9)  \n\
+	!Mod4 <Key>F2:		string(0xfa)  \n\
+	!Mod4 <Key>F3:		string(0xfb)  \n\
+	!Mod4 <Key>F4:		string(0xfc)  \n\
+	!Mod4 <Key>F5:		string(0xd0)  \n\
+	!Mod4 <Key>F6:		string(0xd1)  \n\
+	!Mod4 <Key>F7:		string(0xd2)  \n\
+	!Mod4 <Key>F8:		string(0xd3)  \n\
+	!Mod4 <Key>F9:		string(0xf7)  \n\
+	!Mod4 <Key>F10:		string(0xec)  \n\
 	!Mod4 <Key>F11:		string(0xfe)  \n\
-	!Mod4 <Key>F12:		string(0xff)  \n\
-	!Shift <Key>F4:		string(0xe9) string(0xeb)  \n\
-	!Mod2 <Key>F4:		string(0xe6) string(0xe8)  \n\
-	!Mod4 <Key>i:		string(0xe7) string(0xe8)  \n\
-	!Mod4 Shift <Key>i:		string(0xea) string(0xeb)  \n\
-	!Mod4 <Key>m:		string(0xe8)  \n\
-	!Mod4 Shift <Key>m:		string(0xeb)  \n\
-	!Mod4 Shift <Key>n:		string(0xf7)  \n\
-	! <Key>F9:		string(0xc4)  \n\
-	! <Key>F10:		string(0xea) string(0xeb)  \n\
-	! <Key>F11:		string(0xda)  \n\
-	! <Key>F12:		string(0xdb)  \
+	!Mod4 <Key>F12:		string(0xff)  \
 " $* -e $ISATERMDIR/initisaterm 
