@@ -12,7 +12,7 @@ $< is a linear ordering
 $+ and $* are monotonic wrt $<
 *)
 
-open Integ;
+AddSEs [quotientE];
 
 (*** Proving that intrel is an equivalence relation ***)
 
@@ -82,12 +82,20 @@ Goalw [integ_def,quotient_def,znat_def]
 by (fast_tac (claset() addSIs [nat_0I]) 1);
 qed "znat_type";
 
-Goalw [znat_def] "[| $#m = $#n;  n: nat |] ==> m=n";
-by (dtac eq_intrelD 1);
+Addsimps [znat_type];
+
+Goalw [znat_def] "[| $#m = $#n;  m: nat |] ==> m=n";
+by (dtac (sym RS eq_intrelD) 1);
 by (typechk_tac [nat_0I, SigmaI]);
 by (Asm_full_simp_tac 1);
 qed "znat_inject";
 
+AddSDs [znat_inject];
+
+Goal "m: nat ==> ($# m = $# n) <-> (m = n)"; 
+by (Blast_tac 1); 
+qed "znat_znat_eq"; 
+Addsimps [znat_znat_eq]; 
 
 (**** zminus: unary negation on integ ****)
 
@@ -126,6 +134,8 @@ Goalw [integ_def, znat_def] "$~ ($#0) = $#0";
 by (simp_tac (simpset() addsimps [zminus]) 1);
 qed "zminus_0";
 
+Addsimps [zminus_zminus, zminus_0];
+
 
 (**** znegative: the test for negative integers ****)
 
@@ -138,56 +148,77 @@ by (fast_tac (claset() addss
               (simpset() addsimps [add_le_self2 RS le_imp_not_lt])) 1);
 qed "not_znegative_znat";
 
+Addsimps [not_znegative_znat];
+AddSEs   [not_znegative_znat RS notE];
+
 Goalw [znegative_def, znat_def] "n: nat ==> znegative($~ $# succ(n))";
 by (asm_simp_tac (simpset() addsimps [zminus]) 1);
 by (blast_tac (claset() addIs [nat_0_le]) 1);
 qed "znegative_zminus_znat";
 
+Addsimps [znegative_zminus_znat];
+
+Goalw [znegative_def, znat_def] "[| n: nat; ~ znegative($~ $# n) |] ==> n=0";
+by (asm_full_simp_tac (simpset() addsimps [zminus, image_singleton_iff]) 1);
+be natE 1;
+by (dres_inst_tac [("x","0")] spec 2);
+by Auto_tac;
+qed "not_znegative_imp_zero";
 
 (**** zmagnitude: magnitide of an integer, as a natural number ****)
 
-Goalw [congruent_def] "congruent(intrel, %<x,y>. (y#-x) #+ (x#-y))";
-by Safe_tac;
-by (ALLGOALS Asm_simp_tac);
-by (etac rev_mp 1);
-by (res_inst_tac [("m","x1"),("n","y1")] diff_induct 1 THEN 
-    REPEAT (assume_tac 1));
-by (Asm_simp_tac 3);
-by (asm_simp_tac  (*this one's very sensitive to order of rewrites*)
-    (simpset() delsimps [add_succ_right] 
-              addsimps [diff_add_inverse,diff_add_0]) 2);
-by (Asm_simp_tac 1);
-by (rtac impI 1);
-by (etac subst 1);
-by (res_inst_tac [("m1","x")] (add_commute RS ssubst) 1 THEN
-    REPEAT (assume_tac 1));
-by (asm_simp_tac (simpset() addsimps [diff_add_inverse, diff_add_0]) 1);
-qed "zmagnitude_congruent";
-
-
-(*Resolve th against the corresponding facts for zmagnitude*)
-val zmagnitude_ize = RSLIST [equiv_intrel, zmagnitude_congruent];
-
-Goalw [integ_def,zmagnitude_def]
-    "z : integ ==> zmagnitude(z) : nat";
-by (typechk_tac [split_type, zmagnitude_ize UN_equiv_class_type,
-                 add_type, diff_type]);
-qed "zmagnitude_type";
-
-Goalw [zmagnitude_def]
-    "[| x: nat;  y: nat |]  \
-\    ==> zmagnitude (intrel``{<x,y>}) = (y #- x) #+ (x #- y)";
-by (asm_simp_tac
-    (simpset() addsimps [zmagnitude_ize UN_equiv_class, SigmaI]) 1);
-qed "zmagnitude";
-
-Goalw [znat_def] "n: nat ==> zmagnitude($# n) = n";
-by (asm_simp_tac (simpset() addsimps [zmagnitude]) 1);
+Goalw [zmagnitude_def] "n: nat ==> zmagnitude($# n) = n";
+by Auto_tac;
 qed "zmagnitude_znat";
 
-Goalw [znat_def] "n: nat ==> zmagnitude($~ $# n) = n";
-by (asm_simp_tac (simpset() addsimps [zmagnitude, zminus]) 1);
+Goalw [zmagnitude_def] "n: nat ==> zmagnitude($~ $# n) = n";
+by (auto_tac(claset() addDs [not_znegative_imp_zero], simpset()));
 qed "zmagnitude_zminus_znat";
+
+Addsimps [zmagnitude_znat, zmagnitude_zminus_znat];
+
+Goalw [zmagnitude_def] "zmagnitude(z) : nat";
+br theI2 1;
+by Auto_tac;
+qed "zmagnitude_type";
+
+Goalw [integ_def, znegative_def, znat_def]
+     "[| z: integ; ~ znegative(z) |] ==> EX n:nat. z = $# n"; 
+by (auto_tac(claset() , simpset() addsimps [image_singleton_iff]));
+by (rename_tac "i j" 1);
+by (dres_inst_tac [("x", "i")] spec 1);
+by (dres_inst_tac [("x", "j")] spec 1);
+br bexI 1;
+br (add_diff_inverse2 RS sym) 1;
+by Auto_tac;
+by (asm_full_simp_tac (simpset() addsimps [nat_into_Ord, not_lt_iff_le]) 1);
+qed "not_zneg_znat";
+
+Goal "[| z: integ; ~ znegative(z) |] ==> $# (zmagnitude(z)) = z"; 
+bd not_zneg_znat 1;
+by Auto_tac;
+qed "not_zneg_mag"; 
+
+Addsimps [not_zneg_mag];
+
+
+Goalw [integ_def, znegative_def, znat_def]
+     "[| z: integ; znegative(z) |] ==> EX n:nat. z = $~ ($# succ(n))"; 
+by (auto_tac(claset() addSDs [less_imp_Suc_add], 
+	     simpset() addsimps [zminus, image_singleton_iff]));
+by (rename_tac "m n j k" 1);
+by (subgoal_tac "j #+ succ(m #+ k) = j #+ n" 1);
+by (rotate_tac ~2 2);
+by (asm_full_simp_tac (simpset() addsimps add_ac) 2);
+by (blast_tac (claset() addSDs [add_left_cancel]) 1);
+qed "zneg_znat";
+
+Goal "[| z: integ; znegative(z) |] ==> $# (zmagnitude(z)) = $~ z"; 
+bd zneg_znat 1;
+by Auto_tac;
+qed "zneg_mag"; 
+
+Addsimps [zneg_mag];
 
 
 (**** zadd: addition on integ ****)
@@ -277,6 +308,8 @@ by (rtac (zadd_commute RS trans) 1);
 by (REPEAT (ares_tac [znat_type, nat_0I, zadd_0] 1));
 qed "zadd_0_right";
 
+Addsimps [zadd_0, zadd_0_right, zadd_zminus_inverse, zadd_zminus_inverse2];
+
 
 (*Need properties of $- ???  Or use $- just as an abbreviation?
      [| m: nat;  n: nat;  m>=n |] ==> $# (m #- n) = ($#m) $- ($#n)
@@ -333,6 +366,8 @@ by (REPEAT (eresolve_tac [quotientE, SigmaE, ssubst] 1));
 by (asm_simp_tac (simpset() addsimps ([zminus, zmult] @ add_ac)) 1);
 qed "zmult_zminus";
 
+Addsimps [zmult_0, zmult_1, zmult_zminus];
+
 Goalw [integ_def] "[| z: integ;  w: integ |] ==> ($~ z) $* ($~ w) = (z $* w)";
 by (REPEAT (eresolve_tac [quotientE, SigmaE, ssubst] 1));
 by (asm_simp_tac (simpset() addsimps ([zminus, zmult] @ add_ac)) 1);
@@ -373,10 +408,5 @@ val integ_typechecks =
 
 Addsimps integ_typechecks;
 
-Addsimps [zadd_0, zadd_0_right, zadd_zminus_inverse, zadd_zminus_inverse2];
 
-Addsimps [zminus_zminus, zminus_0];
 
-Addsimps [zmult_0, zmult_1, zmult_zminus];
-
-Addsimps [zmagnitude_znat, zmagnitude_zminus_znat];

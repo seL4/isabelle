@@ -36,7 +36,9 @@ defs
         "znegative(Z) == EX x y. x<y & y:nat & <x,y>:Z"
     
     zmagnitude_def
-        "zmagnitude(Z) == UN <x,y>:Z. (y#-x) #+ (x#-y)"
+        "zmagnitude(Z) ==
+	 THE m. m : nat & ((~ znegative(Z) & Z = $# m) |
+	                   (znegative(Z) & $~ Z = $# m))"
     
     (*Cannot use UN<x1,y2> here or in zmult because of the form of congruent2.
       Perhaps a "curried" or even polymorphic congruent predicate would be
