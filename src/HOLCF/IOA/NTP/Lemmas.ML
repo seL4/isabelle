@@ -53,7 +53,8 @@ val set_lemmas =
          "!!a. (!x y. a ~= f x y) ==> a ~: (UN x y. {f x y})"];
 
 
-(* Arithmetic *)
+(* Arithmetic *)	(* FIXME cleanup *)
+
 goal Arith.thy "n ~= 0 --> Suc(m+pred(n)) = m+n";
   by (nat_ind_tac "n" 1);
   by (REPEAT(Simp_tac 1));
@@ -131,7 +132,7 @@ goal Arith.thy "(w <= y) --> ((x::nat) + y <= z) --> (x + w <= z)";
   by (dtac (less_eq_add_cong RS mp) 1);
   by (cut_facts_tac [le_refl] 1);
   by (dres_inst_tac [("P","x<=x")] mp 1);by (assume_tac 1);
-  by (asm_full_simp_tac (simpset() addsimps [add_commute]) 1);
+  by (asm_full_simp_tac (simpset() delsimprocs nat_cancel addsimps [add_commute]) 1);
   by (rtac impI 1);
   by (etac le_trans 1);
   by (assume_tac 1);
