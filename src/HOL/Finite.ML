@@ -41,7 +41,7 @@ qed "finite_UnI";
 (*Every subset of a finite set is finite*)
 Goal "finite B ==> ALL A. A<=B --> finite A";
 by (etac finite_induct 1);
-by (Simp_tac 1);
+ by (simp_tac (simpset() addsimps [subset_empty]) 1);
 by (safe_tac (claset() addSDs [subset_insert_iff RS iffD1]));
 by (eres_inst_tac [("t","A")] (insert_Diff RS subst) 2);
 by (ALLGOALS Asm_simp_tac);
@@ -343,6 +343,10 @@ Goal "[| finite A; x: A |] ==> card (A-{x}) = card A - 1";
 by (asm_simp_tac (simpset() addsimps [card_Suc_Diff1 RS sym]) 1);
 qed "card_Diff_singleton";
 
+Goal "finite A ==> card (A-{x}) = (if x:A then card A - 1 else card A)";
+by (asm_simp_tac (simpset() addsimps [card_Diff_singleton]) 1);
+qed "card_Diff_singleton_if";
+
 Goal "finite A ==> card(insert x A) = Suc(card(A-{x}))";
 by (asm_simp_tac (simpset() addsimps [card_insert_if,card_Suc_Diff1]) 1);
 qed "card_insert";
@@ -351,18 +355,30 @@ Goal "finite A ==> card A <= card (insert x A)";
 by (asm_simp_tac (simpset() addsimps [card_insert_if]) 1);
 qed "card_insert_le";
 
-Goal  "finite A ==> !B. B <= A --> card(B) <= card(A)";
+Goal "finite B ==> ALL A. A <= B --> card B <= card A --> A = B";
 by (etac finite_induct 1);
-by (Simp_tac 1);
+ by (simp_tac (simpset() addsimps [subset_empty]) 1);
 by (Clarify_tac 1);
-by (case_tac "x:B" 1);
- by (dres_inst_tac [("A","B")] mk_disjoint_insert 1);
- by (asm_full_simp_tac (simpset() addsimps [le_SucI, subset_insert_iff]) 2);
-by (force_tac (claset(),
-	       simpset() addsimps [subset_insert_iff, finite_subset]
-			 delsimps [insert_subset]) 1);
-qed_spec_mp "card_mono";
+by (subgoal_tac "finite A & A-{x} <= F" 1);
+ by (blast_tac (claset() addIs [finite_subset]) 2); 
+by (dres_inst_tac [("x","A-{x}")] spec 1); 
+by (asm_full_simp_tac (simpset() addsimps [card_Diff_singleton_if]
+                                 addsplits [split_if_asm]) 1); 
+by (case_tac "card A" 1);
+by Auto_tac; 
+qed_spec_mp "card_seteq";
 
+Goalw [psubset_def] "[| finite B;  A < B |] ==> card A < card B";
+by (simp_tac (simpset() addsimps [linorder_not_le RS sym]) 1);
+by (blast_tac (claset() addDs [card_seteq]) 1); 
+qed "psubset_card_mono" ;
+
+Goal "[| finite B;  A <= B |] ==> card A <= card B";
+by (case_tac "A=B" 1);
+ by (Asm_simp_tac 1); 
+by (simp_tac (simpset() addsimps [linorder_not_less RS sym]) 1);
+by (blast_tac (claset() addDs [card_seteq] addIs [order_less_imp_le]) 1); 
+qed "card_mono" ;
 
 Goal "[| finite A; finite B |] \
 \     ==> card A + card B = card (A Un B) + card (A Int B)";
@@ -399,30 +415,6 @@ by (case_tac "x: A" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [card_Diff1_less, less_imp_le])));
 qed "card_Diff1_le";
 
-Goalw [psubset_def] "finite B ==> !A. A < B --> card(A) < card(B)";
-by (etac finite_induct 1);
-by (Simp_tac 1);
-by (Clarify_tac 1);
-by (case_tac "x:A" 1);
-(*1*)
-by (dres_inst_tac [("A","A")]mk_disjoint_insert 1);
-by (Clarify_tac 1);
-by (rotate_tac ~3 1);
-by (asm_full_simp_tac (simpset() addsimps [finite_subset]) 1);
-by (Blast_tac 1);
-(*2*)
-by (eres_inst_tac [("P","?a<?b")] notE 1);
-by (asm_full_simp_tac (simpset() addsimps [subset_insert_iff]) 1);
-by (case_tac "A=F" 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [less_SucI])));
-qed_spec_mp "psubset_card" ;
-
-Goal "[| A <= B; card B <= card A; finite B |] ==> A = B";
-by (case_tac "A < B" 1);
-by (datac psubset_card 1 1);
-by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [psubset_eq])));
-qed "card_seteq";
-
 Goal "[| finite B; A <= B; card A < card B |] ==> A < B";
 by (etac psubsetI 1);
 by (Blast_tac 1);
@@ -432,8 +424,9 @@ qed "card_psubset";
 
 Goal "finite A ==> card (f `` A) <= card A";
 by (etac finite_induct 1);
-by (Simp_tac 1);
-by (asm_simp_tac (simpset() addsimps [le_SucI,finite_imageI,card_insert_if]) 1);
+ by (Simp_tac 1);
+by (asm_simp_tac (simpset() addsimps [le_SucI, finite_imageI, 
+				      card_insert_if]) 1);
 qed "card_image_le";
 
 Goal "finite(A) ==> inj_on f A --> card (f `` A) = card A";
@@ -449,9 +442,7 @@ by (Blast_tac 1);
 qed_spec_mp "card_image";
 
 Goal "[| finite A; f``A <= A; inj_on f A |] ==> f``A = A";
-by (etac card_seteq 1);
-by (dtac (card_image RS sym) 1);
-by Auto_tac;
+by (asm_simp_tac (simpset() addsimps [card_seteq, card_image]) 1);
 qed "endo_inj_surj";
 
 (*** Cardinality of the Powerset ***)
@@ -814,30 +805,23 @@ qed "constr_bij";
 (* Main theorem: combinatorial theorem about number of subsets of a set *)
 Goal "(ALL A. finite A --> card {s. s <= A & card s = k} = (card A choose k))";
 by (induct_tac "k" 1);
-by (simp_tac (simpset() addsimps [card_s_0_eq_empty]) 1);
+ by (simp_tac (simpset() addsimps [card_s_0_eq_empty]) 1);
 (* first 0 case finished *)
 (* prepare finite set induction *)
 by (rtac allI 1 THEN rtac impI 1);
 (* second induction *)
 by (etac finite_induct 1);
 by (ALLGOALS
-    (simp_tac (simpset() addcongs [conj_cong] addsimps [card_s_0_eq_empty])));
-by (stac choose_deconstruct 1);
-by (assume_tac 1);
-by (assume_tac 1);
+    (asm_simp_tac (simpset() addcongs [conj_cong] 
+                             addsimps [subset_empty, card_s_0_eq_empty, 
+				       choose_deconstruct])));
 by (stac card_Un_disjoint 1);
-by (Force_tac 3);
-(** LEVEL 10 **)
-(* use bijection *)
-by (force_tac (claset(), simpset() addsimps [constr_bij]) 3);
-(* finite goal *)
-by (res_inst_tac [("B","Pow F")] finite_subset 1);
-by (Blast_tac 1);
-by (etac (finite_Pow_iff RS iffD2) 1);
-(* finite goal *)
-by (res_inst_tac [("B","Pow (insert x F)")] finite_subset 1);
-by (Blast_tac 1);
-by (blast_tac (claset() addIs [finite_Pow_iff RS iffD2]) 1);
+   by (force_tac (claset(), simpset() addsimps [constr_bij]) 4);
+  by (Force_tac 3);
+ by (blast_tac (claset() addIs [finite_Pow_iff RS iffD2, 
+			 inst "B" "Pow (insert ?x ?F)" finite_subset]) 2);
+by (blast_tac (claset() addIs [finite_Pow_iff RS iffD2 
+			       RSN (2, finite_subset)]) 1);
 qed "n_sub_lemma";
 
 Goal "finite M ==> card {s. s <= M & card(s) = k} = ((card M) choose k)";
