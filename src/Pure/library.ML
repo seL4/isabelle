@@ -5,7 +5,7 @@
 
 Basic library: functions, options, pairs, booleans, lists, integers,
 strings, lists as sets, association lists, generic tables, balanced trees,
-input / output, timing, filenames, misc functions.
+orders, input / output, timing, filenames, misc functions.
 *)
 
 infix |> ~~ \ \\ orelf ins ins_string ins_int orf andf prefix upto downto
@@ -686,6 +686,22 @@ fun accesses_bal (f, g, x) n =
           in  if n-n2=n2 then map f acc2 @ map g acc2
                          else map f acc2 @ map g (acc (n-n2)) end
   in  if 1<=n then acc n else raise Balance  end;
+
+
+
+(** orders **)
+
+datatype order = LESS | EQUAL | GREATER;
+
+fun intord (i, j: int) =
+  if i < j then LESS
+  else if i = j then EQUAL
+  else GREATER;
+
+fun stringord (a, b: string) =
+  if a < b then LESS
+  else if a = b then EQUAL
+  else GREATER;
 
 
 
