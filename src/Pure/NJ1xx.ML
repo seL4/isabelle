@@ -14,11 +14,6 @@ fun exit 0 = OS.Process.exit OS.Process.success
   | exit _ = OS.Process.exit OS.Process.failure;
 fun quit () = exit 0;
 
-structure Int = Integer;
-
-(*To change the current directory*)
-val cd = OS.FileSys.chDir;
-
 (*To limit the printing depth [divided by 2 for comparibility with Poly/ML]*)
 fun print_depth n = (Compiler.Control.Print.printDepth := n div 2;
                      Compiler.Control.Print.printLength := n);
@@ -51,9 +46,9 @@ val _ = (Compiler.Control.Print.printLength := 1000;
          Compiler.Control.Print.stringDepth := 250;
          Compiler.Control.Print.signatures := 2);
 
-(*** Character/string functions which are compatibel with 0.93 and Poly/ML ***)
+(*** Character/string functions which are compatible with 0.93 and Poly/ML ***)
 
-val ord = Char.ord o hd o explode;
+fun ord s = Char.ord (String.sub(s,0));
 val chr = str o Char.chr;
 val explode = (map str) o String.explode;
 val implode = String.concat;
@@ -83,18 +78,11 @@ fun cond_timeit flag f =
 (*** File handling ***)
 
 (*Get time of last modification; if file doesn't exist return an empty string*)
-local
-    open Timer;
-    open Posix.FileSys;
-in
-  fun file_info "" = ""
-    | file_info name = Time.toString (ST.mtime (stat name))  handle _ => "";
+fun file_info "" = ""
+  | file_info name = Time.toString
+			 (Posix.FileSys.ST.mtime (Posix.FileSys.stat name))  
+		     handle _ => "";
 
-  val delete_file = unlink;
-end;
-
-(*Get pathname of current working directory *)
-fun pwd () = OS.FileSys.getDir ();
 
 
 (*** ML command execution ***)
@@ -102,6 +90,9 @@ fun pwd () = OS.FileSys.getDir ();
 fun use_string commands = 
    Compiler.Interact.use_stream (open_string (implode commands));
 
+(*For later versions of Standard ML of New Jersey use...
+val use_string = Compiler.Interact.useStream o TextIO.openString o implode;
+*)
 
 (*** System command execution ***)
 
@@ -112,28 +103,27 @@ fun use_string commands =
 fun execute command =
   let val tmp_name = "isa_converted.tmp"
       val is = (OS.Process.system (command ^ " > " ^ tmp_name);
-                open_in tmp_name);
-      val result = input (is, 999999);
-  in close_in is;
-     delete_file tmp_name;
+                TextIO.openIn tmp_name);
+      val result = TextIO.inputAll is;
+  in TextIO.closeIn is;
+     OS.FileSys.remove tmp_name;
      result
   end;
 
-
-(*For use in Makefiles -- saves space*)
+(*For exporting images.  The short name saves space in Makefiles*)
 fun xML filename banner =
-  let val runtime = List.hd (SMLofNJ.getAllArgs())
-      val exec_file = IO.open_out filename
-
-      val _ = IO.output (exec_file,
-			 String.concat
-			 ["#!/bin/sh\n",
-			  runtime, " @SMLdebug=/dev/null @SMLload=", filename,
-                          ".heap\n"])
-                             (*"@SMLdebug=..." sends GC messages to /dev/null*)
-
-	val _ = IO.close_out exec_file;
-	val _ = OS.Process.system ("chmod a+x " ^ filename)
-    in exportML (filename^".heap");
-       print(banner^"\n")
-    end;
+  let open SMLofNJ
+      val runtime = hd (SMLofNJ.getAllArgs())
+      and exec_file = TextIO.openOut filename
+  in 
+     TextIO.output  (*Write a shell script to invoke the actual image*)
+       (exec_file,
+	String.concat
+	["#!/bin/sh\n", runtime, 
+	 " @SMLdebug=/dev/null",  (*suppresses GC messages*)
+	 " @SMLload=", filename, ".heap\n"]);
+     TextIO.closeOut exec_file;
+     OS.Process.system ("chmod a+x " ^ filename);
+     exportML (filename^".heap");
+     print(banner^"\n")
+  end;
