@@ -36,6 +36,8 @@ sig
   val fold: thm list -> Proof.method
   val multi_resolve: thm list -> thm -> thm Seq.seq
   val multi_resolves: thm list -> thm list -> thm Seq.seq
+  val debug_rules: bool ref
+  val rules_tac: Proof.context -> int option -> int -> tactic
   val rule_tac: thm list -> thm list -> int -> tactic
   val some_rule_tac: thm list -> Proof.context -> thm list -> int -> tactic
   val rule: thm list -> Proof.method
@@ -199,11 +201,63 @@ fun multi_resolves facts rules = Seq.flat (Seq.map (multi_resolve facts) (Seq.of
 end;
 
 
-(* single rules *)
+(* rules_tac *)
 
 local
 
-fun may_unify t nets = RuleContext.orderlist (flat (map (fn net => Net.unify_term net t) nets));
+fun remdups_tac i thm =
+  let val prems = Logic.strip_assums_hyp (Library.nth_elem (i - 1, Thm.prems_of thm))
+  in REPEAT_DETERM_N (length prems - length (gen_distinct op aconv prems))
+    (Tactic.ematch_tac [Drule.remdups_rl] i THEN Tactic.eq_assume_tac i) thm
+  end;
+
+fun REMDUPS tac = tac THEN_ALL_NEW remdups_tac;
+
+fun gen_eq_set e s1 s2 =
+  length s1 = length s2 andalso
+  gen_subset e (s1, s2) andalso gen_subset e (s2, s1);
+
+val bires_tac = Tactic.biresolution_from_nets_tac RuleContext.orderlist;
+
+fun safe_step_tac ctxt =
+  RuleContext.Swrap ctxt (eq_assume_tac ORELSE' bires_tac true (RuleContext.Snetpair ctxt));
+
+fun unsafe_step_tac ctxt =
+  RuleContext.wrap ctxt (assume_tac APPEND'
+    bires_tac false (RuleContext.Snetpair ctxt) APPEND'
+    bires_tac false (RuleContext.netpair ctxt));
+
+fun step_tac ctxt i =
+  REPEAT_DETERM1 (REMDUPS (safe_step_tac ctxt) i) ORELSE
+  REMDUPS (unsafe_step_tac ctxt) i;
+
+fun intpr_tac ctxt gs d lim = SUBGOAL (fn (g, i) => if d > lim then no_tac else
+  let
+    val ps = Logic.strip_assums_hyp g;
+    val c = Logic.strip_assums_concl g;
+  in
+    if gen_mem (fn ((ps1, c1), (ps2, c2)) =>
+      c1 aconv c2 andalso gen_eq_set op aconv ps1 ps2) ((ps, c), gs) then no_tac
+    else (step_tac ctxt THEN_ALL_NEW intpr_tac ctxt ((ps, c) :: gs) (d + 1) lim) i
+  end);
+
+in
+
+val debug_rules = ref false;
+
+fun rules_tac ctxt opt_lim =
+ (conditional (! debug_rules) (fn () => RuleContext.print_local_rules ctxt);
+  DEEPEN (2, if_none opt_lim 20) (intpr_tac ctxt [] 0) 4);
+
+end;
+
+
+(* rule_tac etc. *)
+
+local
+
+fun may_unify t nets = RuleContext.orderlist_no_weight
+  (flat (map (fn net => Net.unify_term net t) nets));
 
 fun find_erules [] = K []
   | find_erules (fact :: _) = may_unify (Logic.strip_assums_concl (#prop (Thm.rep_thm fact)));
@@ -437,6 +491,41 @@ fun thm_args f = thms_args (fn [thm] => f thm | _ => error "Single theorem expec
 end;
 
 
+(* rules syntax *)
+
+local
+
+val introN = "intro";
+val elimN = "elim";
+val destN = "dest";
+val ruleN = "rule";
+
+fun modifier name kind kind' att =
+  Args.$$$ name |-- (kind >> K None || kind' |-- Args.nat --| Args.colon >> Some)
+    >> (pair (I: Proof.context -> Proof.context) o att);
+
+val rules_modifiers =
+ [modifier destN Args.query_colon Args.query RuleContext.dest_query_local,
+  modifier destN Args.bang_colon Args.bang RuleContext.dest_bang_local,
+  modifier destN Args.colon (Scan.succeed ()) RuleContext.dest_local,
+  modifier elimN Args.query_colon Args.query RuleContext.elim_query_local,
+  modifier elimN Args.bang_colon Args.bang RuleContext.elim_bang_local,
+  modifier elimN Args.colon (Scan.succeed ()) RuleContext.elim_local,
+  modifier introN Args.query_colon Args.query RuleContext.intro_query_local,
+  modifier introN Args.bang_colon Args.bang RuleContext.intro_bang_local,
+  modifier introN Args.colon (Scan.succeed ()) RuleContext.intro_local,
+  Args.del -- Args.colon >> K (I, RuleContext.rule_del_local)];
+
+in
+
+fun rules_args m = bang_sectioned_args' rules_modifiers (Scan.lift (Scan.option Args.nat)) m;
+
+fun rules_meth n prems ctxt = METHOD (fn facts =>
+  HEADGOAL (insert_tac (prems @ facts) THEN' rules_tac ctxt n));
+
+end;
+
+
 (* tactic syntax *)
 
 fun nat_thms_args f = uncurry f oo
@@ -559,6 +648,7 @@ val pure_methods =
   ("fold", thms_args fold, "fold definitions"),
   ("atomize", no_args (SIMPLE_METHOD' HEADGOAL (CHANGED_PROP o ObjectLogic.atomize_tac)),
     "present local premises as object-level statements"),
+  ("rules", rules_args rules_meth, "apply many rules, including proof search"),
   ("rule", thms_ctxt_args some_rule, "apply some rule"),
   ("erule", nat_thms_args erule, "apply rule in elimination manner (improper)"),
   ("drule", nat_thms_args drule, "apply rule in destruct manner (improper)"),
