@@ -65,7 +65,7 @@ by (resolve_tac [not_emptyE] 1 THEN (atac 1));
 by (forward_tac [singleton_subsetI] 1);
 by (forward_tac [subsetD] 1 THEN (atac 1));
 by (res_inst_tac [("A2","A")] 
-     (diff_sing_lepoll RSN (2, subset_imp_lepoll RS lepoll_trans)) 1 
+     (Diff_sing_lepoll RSN (2, subset_imp_lepoll RS lepoll_trans)) 1 
     THEN (REPEAT (atac 2)));
 by (fast_tac ZF_cs 1);
 val Diff_lepoll = result();

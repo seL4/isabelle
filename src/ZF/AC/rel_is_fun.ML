@@ -39,7 +39,7 @@ by (eresolve_tac [domainE] 1);
 by (resolve_tac [ex1I] 1 THEN (atac 1));
 by (resolve_tac [excluded_middle RS disjE] 1 THEN (atac 2));
 by (fast_tac (ZF_cs addSEs [lepoll_trans RS succ_lepoll_natE, 
-			diff_sing_lepoll RSN (2, lepoll_m_imp_domain_lepoll_m)]
+			Diff_sing_lepoll RSN (2, lepoll_m_imp_domain_lepoll_m)]
 		addEs [not_sym RSN (2, domain_diff_eq_domain) RS subst]) 1);
 val rel_domain_ex1 = result();
 

@@ -6,8 +6,6 @@ The proof of "WO6 ==> WO1".  Simplified by L C Paulson.
 
 From the book "Equivalents of the Axiom of Choice" by Rubin & Rubin,
 pages 2-5
-
-Simplifier bug in proof of UN_gg2_eq????
 *)
 
 open WO6_WO1;
@@ -204,7 +202,7 @@ by (assume_tac 2);
 by (resolve_tac [subsetI] 1);
 by (excluded_middle_tac "?P" 1 THEN (assume_tac 2));
 by (eresolve_tac [subset_Diff_sing RS subset_imp_lepoll RSN (2, 
-		diff_sing_lepoll RSN (3, lepoll_trans RS lepoll_trans)) RS 
+		Diff_sing_lepoll RSN (3, lepoll_trans RS lepoll_trans)) RS 
 		succ_lepoll_natE] 1
 	THEN REPEAT (assume_tac 1));
 val supset_lepoll_imp_eq = result();
@@ -257,8 +255,7 @@ by (asm_simp_tac
     (OrdQuant_ss addsimps [UN_oadd, lt_oadd1,
 			   oadd_le_self RS le_imp_not_lt, lt_Ord,
 			   odiff_oadd_inverse, ww2_def,
-			   standard (vv2_subset RS Diff_partition)]) 1);
-(*Omitting "standard" above causes "Failed congruence proof!" bug??*)
+			   vv2_subset RS Diff_partition]) 1);
 val UN_gg2_eq = result();
 
 goal thy "domain(gg2(f,a,b,s)) = a++a";
@@ -271,9 +268,8 @@ val domain_gg2 = result();
 
 goalw thy [vv2_def]
     "!!m. [| m:nat; m~=0 |] ==> vv2(f,b,g,s) lepoll m";
-by (asm_simp_tac (OrdQuant_ss
-	addsimps [empty_lepollI]
-        setloop split_tac [expand_if]) 1);
+by (asm_simp_tac (OrdQuant_ss addsimps [empty_lepollI]
+                              setloop split_tac [expand_if]) 1);
 by (fast_tac (AC_cs
 	addSDs [le_imp_subset RS subset_imp_lepoll RS lepoll_0_is_0]
 	addSIs [singleton_eqpoll_1 RS eqpoll_imp_lepoll RS lepoll_trans,
@@ -285,8 +281,7 @@ goalw thy [ww2_def]
     "!!m. [| ALL b<a. f`b lepoll succ(m);  g<a;  m:nat;  vv2(f,b,g,d) <= f`g  \
 \	  |] ==> ww2(f,b,g,d) lepoll m";
 by (excluded_middle_tac "f`g = 0" 1);
-by (asm_simp_tac (OrdQuant_ss
-		addsimps [empty_lepollI]) 2);
+by (asm_simp_tac (OrdQuant_ss addsimps [empty_lepollI]) 2);
 by (dresolve_tac [ospec] 1 THEN (assume_tac 1));
 by (resolve_tac [Diff_lepoll] 1
 	THEN (TRYALL assume_tac));
@@ -449,11 +444,11 @@ by (REPEAT (ares_tac prems 1));
 val rev_induct = result();
 
 goalw thy [NN_def] "!!n. n:NN(y) ==> n:nat";
-by (fast_tac ZF_cs 1);
+by (etac CollectD1 1);
 val NN_into_nat = result();
 
 goal thy "!!n. [| n:NN(y); y*y <= y; n~=0 |] ==> 1:NN(y)";
-by (resolve_tac [rev_induct] 1 THEN (REPEAT (ares_tac [NN_into_nat] 1)));
+by (resolve_tac [rev_induct] 1 THEN REPEAT (ares_tac [NN_into_nat] 1));
 by (resolve_tac [lemma_ii] 1 THEN REPEAT (assume_tac 1));
 val lemma3 = result();
 
