@@ -1,7 +1,7 @@
 \begin{isabelle}%
 %
 \isamarkupheader{Semigroups}
-\isacommand{theory}~Semigroups~=~Main:%
+\isacommand{theory}\ Semigroups\ =\ Main:%
 \begin{isamarkuptext}%
 \medskip\noindent An axiomatic type class is simply a class of types
  that all meet certain properties, which are also called \emph{class
@@ -15,10 +15,10 @@
  semigroups.%
 \end{isamarkuptext}%
 \isacommand{consts}\isanewline
-~~times~::~{"}'a~{\isasymRightarrow}~'a~{\isasymRightarrow}~'a{"}~~~~(\isakeyword{infixl}~{"}{\isasymOtimes}{"}~70)\isanewline
+\ \ times\ ::\ {"}'a\ {\isasymRightarrow}\ 'a\ {\isasymRightarrow}\ 'a{"}\ \ \ \ (\isakeyword{infixl}\ {"}{\isasymOtimes}{"}\ 70)\isanewline
 \isacommand{axclass}\isanewline
-~~semigroup~<~{"}term{"}\isanewline
-~~assoc:~{"}(x~{\isasymOtimes}~y)~{\isasymOtimes}~z~=~x~{\isasymOtimes}~(y~{\isasymOtimes}~z){"}%
+\ \ semigroup\ <\ {"}term{"}\isanewline
+\ \ assoc:\ {"}(x\ {\isasymOtimes}\ y)\ {\isasymOtimes}\ z\ =\ x\ {\isasymOtimes}\ (y\ {\isasymOtimes}\ z){"}%
 \begin{isamarkuptext}%
 \noindent Above we have first declared a polymorphic constant $\TIMES
  :: \alpha \To \alpha \To \alpha$ and then defined the class
@@ -37,10 +37,10 @@
  to semigroups $(\tau, \TIMES^\tau)$.%
 \end{isamarkuptext}%
 \isacommand{consts}\isanewline
-~~plus~::~{"}'a~{\isasymRightarrow}~'a~{\isasymRightarrow}~'a{"}~~~~(\isakeyword{infixl}~{"}{\isasymOplus}{"}~70)\isanewline
+\ \ plus\ ::\ {"}'a\ {\isasymRightarrow}\ 'a\ {\isasymRightarrow}\ 'a{"}\ \ \ \ (\isakeyword{infixl}\ {"}{\isasymOplus}{"}\ 70)\isanewline
 \isacommand{axclass}\isanewline
-~~plus\_semigroup~<~{"}term{"}\isanewline
-~~assoc:~{"}(x~{\isasymOplus}~y)~{\isasymOplus}~z~=~x~{\isasymOplus}~(y~{\isasymOplus}~z){"}%
+\ \ plus\_semigroup\ <\ {"}term{"}\isanewline
+\ \ assoc:\ {"}(x\ {\isasymOplus}\ y)\ {\isasymOplus}\ z\ =\ x\ {\isasymOplus}\ (y\ {\isasymOplus}\ z){"}%
 \begin{isamarkuptext}%
 \noindent Even if classes $plus_semigroup$ and $semigroup$ both
  represent semigroups in a sense, they are certainly not quite the

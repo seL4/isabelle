@@ -1,7 +1,7 @@
 \begin{isabelle}%
 %
 \isamarkupheader{Defining natural numbers in FOL \label{sec:ex-natclass}}
-\isacommand{theory}~NatClass~=~FOL:%
+\isacommand{theory}\ NatClass\ =\ FOL:%
 \begin{isamarkuptext}%
 \medskip\noindent Axiomatic type classes abstract over exactly one
  type argument. Thus, any \emph{axiomatic} theory extension where each
@@ -13,21 +13,21 @@
  \url{http://isabelle.in.tum.de/library/FOL/ex/NatClass.html}}%
 \end{isamarkuptext}%
 \isacommand{consts}\isanewline
-~~zero~::~'a~~~~({"}0{"})\isanewline
-~~Suc~::~{"}'a~{\isasymRightarrow}~'a{"}\isanewline
-~~rec~::~{"}'a~{\isasymRightarrow}~'a~{\isasymRightarrow}~('a~{\isasymRightarrow}~'a~{\isasymRightarrow}~'a)~{\isasymRightarrow}~'a{"}\isanewline
+\ \ zero\ ::\ 'a\ \ \ \ ({"}0{"})\isanewline
+\ \ Suc\ ::\ {"}'a\ {\isasymRightarrow}\ 'a{"}\isanewline
+\ \ rec\ ::\ {"}'a\ {\isasymRightarrow}\ 'a\ {\isasymRightarrow}\ ('a\ {\isasymRightarrow}\ 'a\ {\isasymRightarrow}\ 'a)\ {\isasymRightarrow}\ 'a{"}\isanewline
 \isanewline
 \isacommand{axclass}\isanewline
-~~nat~<~{"}term{"}\isanewline
-~~induct:~~~~~{"}P(0)~{\isasymLongrightarrow}~({\isasymAnd}x.~P(x)~{\isasymLongrightarrow}~P(Suc(x)))~{\isasymLongrightarrow}~P(n){"}\isanewline
-~~Suc\_inject:~{"}Suc(m)~=~Suc(n)~{\isasymLongrightarrow}~m~=~n{"}\isanewline
-~~Suc\_neq\_0:~~{"}Suc(m)~=~0~{\isasymLongrightarrow}~R{"}\isanewline
-~~rec\_0:~~~~~~{"}rec(0,~a,~f)~=~a{"}\isanewline
-~~rec\_Suc:~~~~{"}rec(Suc(m),~a,~f)~=~f(m,~rec(m,~a,~f)){"}\isanewline
+\ \ nat\ <\ {"}term{"}\isanewline
+\ \ induct:\ \ \ \ \ {"}P(0)\ {\isasymLongrightarrow}\ ({\isasymAnd}x.\ P(x)\ {\isasymLongrightarrow}\ P(Suc(x)))\ {\isasymLongrightarrow}\ P(n){"}\isanewline
+\ \ Suc\_inject:\ {"}Suc(m)\ =\ Suc(n)\ {\isasymLongrightarrow}\ m\ =\ n{"}\isanewline
+\ \ Suc\_neq\_0:\ \ {"}Suc(m)\ =\ 0\ {\isasymLongrightarrow}\ R{"}\isanewline
+\ \ rec\_0:\ \ \ \ \ \ {"}rec(0,\ a,\ f)\ =\ a{"}\isanewline
+\ \ rec\_Suc:\ \ \ \ {"}rec(Suc(m),\ a,\ f)\ =\ f(m,\ rec(m,\ a,\ f)){"}\isanewline
 \isanewline
 \isacommand{constdefs}\isanewline
-~~add~::~{"}'a::nat~{\isasymRightarrow}~'a~{\isasymRightarrow}~'a{"}~~~~(\isakeyword{infixl}~{"}+{"}~60)\isanewline
-~~{"}m~+~n~{\isasymequiv}~rec(m,~n,~{\isasymlambda}x~y.~Suc(y)){"}%
+\ \ add\ ::\ {"}'a::nat\ {\isasymRightarrow}\ 'a\ {\isasymRightarrow}\ 'a{"}\ \ \ \ (\isakeyword{infixl}\ {"}+{"}\ 60)\isanewline
+\ \ {"}m\ +\ n\ {\isasymequiv}\ rec(m,\ n,\ {\isasymlambda}x\ y.\ Suc(y)){"}%
 \begin{isamarkuptext}%
 This is an abstract version of the plain $Nat$ theory in
  FOL.\footnote{See
