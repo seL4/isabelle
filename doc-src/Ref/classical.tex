@@ -240,6 +240,12 @@ installed!):
 \begin{ttbox} 
 empty_cs    : claset
 print_cs    : claset -> unit
+rep_cs      : claset -> {safeEs: thm list, safeIs: thm list,
+                         hazEs: thm list,  hazIs: thm list, 
+                         swrappers: (string * wrapper) list, 
+                         uwrappers: (string * wrapper) list,
+                         safe0_netpair: netpair, safep_netpair: netpair,
+                           haz_netpair: netpair,   dup_netpair: netpair}
 addSIs      : claset * thm list -> claset                 \hfill{\bf infix 4}
 addSEs      : claset * thm list -> claset                 \hfill{\bf infix 4}
 addSDs      : claset * thm list -> claset                 \hfill{\bf infix 4}
@@ -256,7 +262,14 @@ claset, but see the warning below concerning destruction rules.
 \begin{ttdescription}
 \item[\ttindexbold{empty_cs}] is the empty classical set.
 
-\item[\ttindexbold{print_cs} $cs$] prints the rules of~$cs$.
+\item[\ttindexbold{print_cs} $cs$] displays the printable contents of~$cs$,
+  which is the rules. All other parts are non-printable.
+
+\item[\ttindexbold{rep_cs} $cs$] decomposes $cs$ as a record of its internal 
+  components, namely the safe intruduction and elimination rules, the unsafe
+  intruduction and elimination rules, the lists of safe and unsafe wrappers
+  (see \ref{sec:modifying-search}),
+  and the internal representation of the rules.
 
 \item[$cs$ addSIs $rules$] \indexbold{*addSIs}
 adds safe introduction~$rules$ to~$cs$.
@@ -302,6 +315,7 @@ tried first (see \S\ref{biresolve_tac}).
 
 
 \subsection{Modifying the search step}
+\label{sec:modifying-search}
 For a given classical set, the proof strategy is simple.  Perform as many safe
 inferences as possible; or else, apply certain safe rules, allowing
 instantiation of unknowns; or else, apply an unsafe rule.  The tactics also
