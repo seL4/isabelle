@@ -67,30 +67,4 @@ qed "smult_r_minus";
 
 val smult_minus = [smult_l_minus, smult_r_minus];
 
-(* Integrity of smult *)
-(*
-Goal
-  "!! a::'a::domain. a *s b = <0> ==> a = <0> | b = <0>";
-by (simp_tac (simpset() addsimps [disj_commute]) 1);
-
-by (rtac (disj_commute RS trans) 1);
-by (rtac contrapos2 1);
-by (assume_tac 1);
-by (rtac up_neqI 1);
-by (Full_simp_tac 1);
-by (etac conjE 1);
-by (rtac not_integral 1);
-by (assume_tac 1);
-by (etac contrapos 1);
-back();
-by (rtac up_eqI 1);
-by (Simp_tac 1);
-
-by (rtac integral 1);
-
-by (etac conjE 1);
-
-by (rtac disjCI 1);
-*)
-
 Addsimps [smult_one, smult_l_null, smult_r_null];

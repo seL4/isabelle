@@ -199,8 +199,8 @@ qed "in_pideal_imp_dvd";
 
 Goal "~ (a dvd b) ==> ideal_of {a::'a::ring} < ideal_of {a, b}";
 by (asm_simp_tac (simpset() addsimps [psubset_eq, ideal_of_mono]) 1);
-by (simp_tac (simpset() addsimps [ideal_of_2_structure]) 1);
-by (etac contrapos 1);
+by (etac contrapos_pp 1);
+by (full_simp_tac (simpset() addsimps [ideal_of_2_structure]) 1);
 by (rtac in_pideal_imp_dvd 1);
 by (Asm_simp_tac 1);
 by (res_inst_tac [("x", "<0>")] exI 1);

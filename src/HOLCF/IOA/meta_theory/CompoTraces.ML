@@ -451,8 +451,7 @@ by Auto_tac;
 qed"FiniteConcUU1";
 
 Goal "~ Finite ((x::'a Seq)@@UU)";
-by (rtac (FiniteConcUU1 COMP rev_contrapos) 1);
-by Auto_tac;
+by (auto_tac (claset() addDs [FiniteConcUU1], simpset()));
 qed"FiniteConcUU";
 
 finiteR_mksch
@@ -968,10 +967,10 @@ by (Fast_tac 1);
 by (subgoal_tac "schB=UU" 1);
 by (Asm_simp_tac 1);
 (* first side: mksch = UU *)
-by (SELECT_GOAL (auto_tac (claset() addSIs [ForallQFilterPUU,
-                                           (finiteR_mksch RS mp COMP rev_contrapos),
-                                            ForallAnBmksch],
-                           simpset())) 1);
+by (force_tac (claset() addSIs [ForallQFilterPUU,
+                                (finiteR_mksch RS mp COMP rev_contrapos),
+                                  ForallAnBmksch],
+               simpset()) 1);
 (* schA = UU *)
 by (eres_inst_tac [("A","B")] LastActExtimplUU 1);
 by (Asm_simp_tac 1);

@@ -11,17 +11,11 @@ Strict sum with typedef
 (* ------------------------------------------------------------------------ *)
 
 Goalw [Ssum_def] "Sinl_Rep(a):Ssum";
-by (rtac CollectI 1);
-by (rtac disjI1 1);
-by (rtac exI 1);
-by (rtac refl 1);
+by (Blast_tac 1);
 qed "SsumIl";
 
 Goalw [Ssum_def] "Sinr_Rep(a):Ssum";
-by (rtac CollectI 1);
-by (rtac disjI2 1);
-by (rtac exI 1);
-by (rtac refl 1);
+by (Blast_tac 1);
 qed "SsumIr";
 
 Goal "inj_on Abs_Ssum Ssum";
@@ -129,16 +123,14 @@ by (rtac SsumIr 1);
 by (rtac SsumIr 1);
 qed "inject_Isinr";
 
+AddSDs [inject_Isinl, inject_Isinr];
+
 Goal "a1~=a2 ==> Isinl(a1) ~= Isinl(a2)";
-by (rtac contrapos 1);
-by (etac inject_Isinl 2);
-by (atac 1);
+by (Blast_tac 1);
 qed "inject_Isinl_rev";
 
 Goal "b1~=b2 ==> Isinr(b1) ~= Isinr(b2)";
-by (rtac contrapos 1);
-by (etac inject_Isinr 2);
-by (atac 1);
+by (Blast_tac 1);
 qed "inject_Isinr_rev";
 
 (* ------------------------------------------------------------------------ *)
@@ -159,9 +151,9 @@ by (rtac exI 1);
 by (rtac conjI 1);
 by (rtac (Rep_Ssum_inverse RS sym RS trans) 1);
 by (etac arg_cong 1);
-by (res_inst_tac [("Q","Sinl_Rep(a)=Sinl_Rep(UU)")] contrapos 1);
+by (res_inst_tac [("Q","Sinl_Rep(a)=Sinl_Rep(UU)")] contrapos_nn 1);
 by (etac arg_cong 2);
-by (etac contrapos 1);
+by (etac contrapos_nn 1);
 by (rtac (Rep_Ssum_inverse RS sym RS trans) 1);
 by (rtac trans 1);
 by (etac arg_cong 1);
@@ -175,10 +167,10 @@ by (rtac exI 1);
 by (rtac conjI 1);
 by (rtac (Rep_Ssum_inverse RS sym RS trans) 1);
 by (etac arg_cong 1);
-by (res_inst_tac [("Q","Sinr_Rep(b)=Sinl_Rep(UU)")] contrapos 1);
+by (res_inst_tac [("Q","Sinr_Rep(b)=Sinl_Rep(UU)")] contrapos_nn 1);
 by (hyp_subst_tac 2);
 by (rtac (strict_SinlSinr_Rep RS sym) 2);
-by (etac contrapos 1);
+by (etac contrapos_nn 1);
 by (rtac (Rep_Ssum_inverse RS sym RS trans) 1);
 by (rtac trans 1);
 by (etac arg_cong 1);
@@ -262,7 +254,7 @@ by (fast_tac HOL_cs  1);
 by (strip_tac 1);
 by (res_inst_tac [("P","Isinl(x) = Isinr(b)")] notE 1);
 by (fast_tac HOL_cs  2);
-by (rtac contrapos 1);
+by (rtac contrapos_nn 1);
 by (etac noteq_IsinlIsinr 2);
 by (fast_tac HOL_cs  1);
 qed "Iwhen2";
@@ -282,7 +274,7 @@ by (rtac conjI 1);
 by (strip_tac 1);
 by (res_inst_tac [("P","Isinr(y) = Isinl(a)")] notE 1);
 by (fast_tac HOL_cs  2);
-by (rtac contrapos 1);
+by (rtac contrapos_nn 1);
 by (etac (sym RS noteq_IsinlIsinr) 2);
 by (fast_tac HOL_cs  1);
 by (strip_tac 1);

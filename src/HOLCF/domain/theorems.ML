@@ -43,10 +43,9 @@ val all2E = prove_goal HOL.thy "[| !x y . P x y; P x y ==> R |] ==> R"
                                 cut_facts_tac prems 1,
                                 fast_tac HOL_cs 1]);
 
-val dist_eqI = prove_goal Porder.thy "~(x::'a::po) << y ==> x ~= y" (fn prems => [
-                                rtac rev_contrapos 1,
-                                etac (antisym_less_inverse RS conjunct1) 1,
-                                resolve_tac prems 1]);
+val dist_eqI = prove_goal Porder.thy "!!x::'a::po. ~ x << y ==> x ~= y" 
+             (fn prems => [
+               (blast_tac (claset() addDs [antisym_less_inverse]) 1)]);
 (*
 infixr 0 y;
 val b = 0;

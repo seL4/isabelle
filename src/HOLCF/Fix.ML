@@ -367,7 +367,7 @@ qed "admw_def2";
 (* an admissible formula is also weak admissible                            *)
 (* ------------------------------------------------------------------------ *)
 
-Goalw [admw_def] "!!P. adm(P)==>admw(P)";
+Goalw [admw_def] "adm(P)==>admw(P)";
 by (strip_tac 1);
 by (etac admD 1);
 by (rtac chain_iterate 1);
@@ -483,7 +483,7 @@ by (blast_tac (claset() addIs [lub_mono]) 1);
 qed "adm_less";
 Addsimps [adm_less];
 
-Goal   "!!P. [| adm P; adm Q |] ==> adm(%x. P x & Q x)";
+Goal   "[| adm P; adm Q |] ==> adm(%x. P x & Q x)";
 by (fast_tac (HOL_cs addEs [admD] addIs [admI]) 1);
 qed "adm_conj";
 Addsimps [adm_conj];
@@ -493,9 +493,9 @@ by (fast_tac HOL_cs 1);
 qed "adm_not_free";
 Addsimps [adm_not_free];
 
-Goalw [adm_def] "!!t. cont t ==> adm(%x.~ (t x) << u)";
+Goalw [adm_def] "cont t ==> adm(%x.~ (t x) << u)";
 by (strip_tac 1);
-by (rtac contrapos 1);
+by (rtac contrapos_nn 1);
 by (etac spec 1);
 by (rtac trans_less 1);
 by (atac 2);
@@ -504,13 +504,13 @@ by (rtac is_ub_thelub 1);
 by (atac 1);
 qed "adm_not_less";
 
-Goal   "!!P. !y. adm(P y) ==> adm(%x.!y. P y x)";
+Goal   "!y. adm(P y) ==> adm(%x.!y. P y x)";
 by (fast_tac (HOL_cs addIs [admI] addEs [admD]) 1);
 qed "adm_all";
 
 bind_thm ("adm_all2", allI RS adm_all);
 
-Goal   "!!P. [|cont t; adm P|] ==> adm(%x. P (t x))";
+Goal   "[|cont t; adm P|] ==> adm(%x. P (t x))";
 by (rtac admI 1);
 by (stac (cont2contlub RS contlubE RS spec RS mp) 1);
 by (atac 1);
@@ -528,7 +528,7 @@ qed "adm_UU_not_less";
 
 Goalw [adm_def] "cont(t)==> adm(%x.~ (t x) = UU)";
 by (strip_tac 1);
-by (rtac contrapos 1);
+by (rtac contrapos_nn 1);
 by (etac spec 1);
 by (rtac (chain_UU_I RS spec) 1);
 by (etac (cont2mono RS ch2ch_monofun) 1);
@@ -678,7 +678,7 @@ by (etac adm_disj_lemma10 1);
 by (atac 1);
 qed "adm_lemma11";
 
-Goal   "!!P. [| adm P; adm Q |] ==> adm(%x. P x | Q x)";
+Goal "[| adm P; adm Q |] ==> adm(%x. P x | Q x)";
 by (rtac admI 1);
 by (rtac (adm_disj_lemma1 RS disjE) 1);
 by (atac 1);
@@ -696,7 +696,7 @@ qed "adm_disj";
 bind_thm("adm_lemma11",adm_lemma11);
 bind_thm("adm_disj",adm_disj);
 
-Goal   "!!P. [| adm(%x.~(P x)); adm Q |] ==> adm(%x. P x --> Q x)";
+Goal "[| adm(%x.~(P x)); adm Q |] ==> adm(%x. P x --> Q x)";
 by (subgoal_tac "(%x. P x --> Q x) = (%x. ~P x | Q x)" 1);
 by (etac ssubst 1);
 by (etac adm_disj 1);

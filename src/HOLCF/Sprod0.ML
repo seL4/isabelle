@@ -87,7 +87,7 @@ qed "strict_Ispair2";
 
 Goal "~Ispair x y = Ispair UU UU ==> ~x=UU & ~y=UU";
 by (rtac (de_Morgan_disj RS subst) 1);
-by (etac contrapos 1);
+by (etac contrapos_nn 1);
 by (etac strict_Ispair 1);
 qed "strict_Ispair_rev";
 
@@ -101,7 +101,7 @@ by (rtac SprodI 1);
 qed "defined_Ispair_rev";
 
 Goal "[|a~=UU; b~=UU|] ==> (Ispair a b) ~= (Ispair UU UU)";
-by (rtac contrapos 1);
+by (rtac contrapos_nn 1);
 by (etac defined_Ispair_rev 2);
 by (rtac (de_Morgan_disj RS iffD2) 1);
 by (etac conjI 1);

@@ -205,7 +205,7 @@ by (rtac (chain_mono2 RS exE) 1);
 by (atac 2);
 by (rtac chain_UU_I_inverse2 1);
 by (stac inst_ssum_pcpo 1);
-by (etac swap 1);
+by (etac contrapos_np 1);
 by (rtac inject_Isinl 1);
 by (rtac trans 1);
 by (etac sym 1);
@@ -253,7 +253,7 @@ by (rtac (chain_mono2 RS exE) 1);
 by (atac 2);
 by (rtac chain_UU_I_inverse2 1);
 by (stac inst_ssum_pcpo 1);
-by (etac swap 1);
+by (etac contrapos_np 1);
 by (rtac inject_Isinr 1);
 by (rtac trans 1);
 by (etac sym 1);
@@ -323,50 +323,44 @@ Goalw [sinl_def] "sinl`UU =UU";
 by (simp_tac (Ssum0_ss addsimps [cont_Isinl]) 1);
 by (rtac (inst_ssum_pcpo RS sym) 1);
 qed "strict_sinl";
+Addsimps [strict_sinl];
 
 Goalw [sinr_def] "sinr`UU=UU";
 by (simp_tac (Ssum0_ss addsimps [cont_Isinr]) 1);
 by (rtac (inst_ssum_pcpo RS sym) 1);
 qed "strict_sinr";
+Addsimps [strict_sinr];
 
 Goalw [sinl_def,sinr_def] 
         "sinl`a=sinr`b ==> a=UU & b=UU";
-by (rtac noteq_IsinlIsinr 1);
-by (etac box_equals 1);
-by (asm_simp_tac (Ssum0_ss addsimps [cont_Isinr,cont_Isinl]) 1);
-by (asm_simp_tac (Ssum0_ss addsimps [cont_Isinr,cont_Isinl]) 1);
+by (auto_tac (claset() addSDs [noteq_IsinlIsinr], simpset()));
 qed "noteq_sinlsinr";
 
 Goalw [sinl_def,sinr_def] 
         "sinl`a1=sinl`a2==> a1=a2";
-by (rtac inject_Isinl 1);
-by (etac box_equals 1);
-by (asm_simp_tac (Ssum0_ss addsimps [cont_Isinr,cont_Isinl]) 1);
-by (asm_simp_tac (Ssum0_ss addsimps [cont_Isinr,cont_Isinl]) 1);
+by Auto_tac;
 qed "inject_sinl";
 
 Goalw [sinl_def,sinr_def] 
         "sinr`a1=sinr`a2==> a1=a2";
-by (rtac inject_Isinr 1);
-by (etac box_equals 1);
-by (asm_simp_tac (Ssum0_ss addsimps [cont_Isinr,cont_Isinl]) 1);
-by (asm_simp_tac (Ssum0_ss addsimps [cont_Isinr,cont_Isinl]) 1);
+by Auto_tac;
 qed "inject_sinr";
 
+AddSDs [inject_sinl, inject_sinr];
 
 Goal "x~=UU ==> sinl`x ~= UU";
-by (etac swap 1);
+by (etac contrapos_nn 1);
 by (rtac inject_sinl 1);
-by (stac strict_sinl 1);
-by (etac notnotD 1);
+by Auto_tac;
 qed "defined_sinl";
+Addsimps [defined_sinl];
 
 Goal "x~=UU ==> sinr`x ~= UU";
-by (etac swap 1);
+by (etac contrapos_nn 1);
 by (rtac inject_sinr 1);
-by (stac strict_sinr 1);
-by (etac notnotD 1);
+by Auto_tac;
 qed "defined_sinr";
+Addsimps [defined_sinr];
 
 Goalw [sinl_def,sinr_def] 
         "z=UU | (? a. z=sinl`a & a~=UU) | (? b. z=sinr`b & b~=UU)";
@@ -415,6 +409,7 @@ by (stac beta_cfun 1);
 by tac;
 by (simp_tac Ssum0_ss  1);
 qed "sscase1";
+Addsimps [sscase1];
 
 
 val tac = (REPEAT (resolve_tac (cont_lemmas1 @ [cont_Iwhen1,cont_Iwhen2,
@@ -432,6 +427,7 @@ by (stac beta_cfun 1);
 by tac;
 by (asm_simp_tac Ssum0_ss  1);
 qed "sscase2";
+Addsimps [sscase2];
 
 Goalw [sscase_def,sinl_def,sinr_def] 
         "x~=UU==> sscase`f`g`(sinr`x) = g`x";
@@ -445,6 +441,7 @@ by (stac beta_cfun 1);
 by tac;
 by (asm_simp_tac Ssum0_ss  1);
 qed "sscase3";
+Addsimps [sscase3];
 
 
 Goalw [sinl_def,sinr_def] 
@@ -561,12 +558,9 @@ by (etac thelub_ssum2b 1);
 by (atac 1);
 qed "thelub_ssum3";
 
-
 Goal "sscase`sinl`sinr`z=z";
 by (res_inst_tac [("p","z")] ssumE 1);
-by (asm_simp_tac ((simpset_of Cfun3.thy) addsimps [sscase1,sscase2,sscase3]) 1);
-by (asm_simp_tac ((simpset_of Cfun3.thy) addsimps [sscase1,sscase2,sscase3]) 1);
-by (asm_simp_tac ((simpset_of Cfun3.thy) addsimps [sscase1,sscase2,sscase3]) 1);
+by Auto_tac;
 qed "sscase4";
 
 
@@ -575,7 +569,4 @@ qed "sscase4";
 (* ------------------------------------------------------------------------ *)
 
 val Ssum_rews = [strict_sinl,strict_sinr,defined_sinl,defined_sinr,
-                sscase1,sscase2,sscase3];
-
-Addsimps [strict_sinl,strict_sinr,defined_sinl,defined_sinr,
                 sscase1,sscase2,sscase3];

@@ -335,8 +335,7 @@ qed "iso_strict";
 
 
 Goal "[|!x. rep`(ab`x)=x;!y. ab`(rep`y)=y; z~=UU|] ==> rep`z ~= UU";
-by (etac swap 1);
-by (dtac notnotD 1);
+by (etac contrapos_nn 1);
 by (dres_inst_tac [("f","ab")] cfun_arg_cong 1);
 by (etac box_equals 1);
 by (fast_tac HOL_cs 1);
@@ -345,8 +344,7 @@ by (atac 1);
 qed "isorep_defined";
 
 Goal "[|!x. rep`(ab`x) = x;!y. ab`(rep`y)=y ; z~=UU|] ==> ab`z ~= UU";
-by (etac swap 1);
-by (dtac notnotD 1);
+by (etac contrapos_nn 1);
 by (dres_inst_tac [("f","rep")] cfun_arg_cong 1);
 by (etac box_equals 1);
 by (fast_tac HOL_cs 1);

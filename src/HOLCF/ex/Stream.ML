@@ -24,7 +24,7 @@ section "scons";
 
 Goal "a && s = UU = (a = UU)";
 by Safe_tac;
-by (etac contrapos2 1);
+by (etac contrapos_pp 1);
 by (safe_tac (claset() addSIs stream.con_rews));
 qed "scons_eq_UU";
 

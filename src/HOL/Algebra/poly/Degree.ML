@@ -6,13 +6,9 @@
 
 (* Relating degree and bound *)
 
-goal ProtoPoly.thy
-  "!! f. [| bound m f; f n ~= <0> |] ==> n <= m";
-by (rtac classical 1);
-by (dtac not_leE 1);
-by (dtac boundD 1 THEN atac 1);
-by (etac notE 1);
-by (assume_tac 1);
+Goal "[| bound m f; f n ~= <0> |] ==> n <= m";
+by (force_tac (claset() addDs [inst "m" "n" boundD], 
+               simpset()) 1); 
 qed "below_bound";
 
 goal UnivPoly.thy "bound (LEAST n. bound n (Rep_UP p)) (Rep_UP p)";
@@ -61,7 +57,7 @@ val lemma1 = result();
 
 Goalw [deg_def, coeff_def]
   "deg p = Suc y ==> coeff (deg p) p ~= <0>";
-by (rtac classical 1);
+by (rtac ccontr 1);
 by (dtac notnotD 1);
 by (cut_inst_tac [("p", "p")] Least_is_bound 1);
 by (subgoal_tac "bound y (Rep_UP p)" 1);
@@ -94,10 +90,9 @@ by (Asm_simp_tac 1);
 qed "deg_lcoeff";
 
 Goal "p ~= <0> ==> coeff (deg p) p ~= <0>";
-by (etac contrapos 1);
-by (ftac contrapos2 1);
-by (rtac deg_lcoeff 1);
-by (assume_tac 1);
+by (etac contrapos_np 1); 
+by (case_tac "deg p = 0" 1);
+by (blast_tac (claset() addSDs [deg_lcoeff]) 2); 
 by (rtac up_eqI 1);
 by (case_tac "n=0" 1);
 by (rotate_tac ~2 1);

@@ -308,10 +308,7 @@ by (Fast_tac 1);
 qed "l_integral";
 
 Goal "!! a::'a::domain. [| a ~= <0>; b ~= <0> |] ==> a * b ~= <0>";
-by (etac contrapos 1);
-by (rtac l_integral 1);
-by (assume_tac 1);
-by (assume_tac 1);
+by (blast_tac (claset() addIs [l_integral]) 1); 
 qed "not_integral";
 
 Addsimps [not_integral];
