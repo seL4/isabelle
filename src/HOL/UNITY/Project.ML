@@ -124,16 +124,30 @@ by (asm_full_simp_tac
 			 extend_constrains]) 1);
 qed "project_constrains_D";
 
-Goalw [projecting_def]
-     "[| ALL i:I. projecting C h F (X' i) (X i) |] \
-\     ==> projecting C h F (INT i:I. X' i) (INT i:I. X i)";
-by Auto_tac;
-qed "projecting_INT";
+(** "projecting" and union/intersection **)
 
 Goalw [projecting_def]
-     "[| ALL i:I. projecting C h F (X' i) (X i) |] \
+     "[| projecting C h F XA' XA;  projecting C h F XB' XB |] \
+\     ==> projecting C h F (XA' Int XB') (XA Int XB)";
+by (Blast_tac 1);
+qed "projecting_Int";
+
+Goalw [projecting_def]
+     "[| projecting C h F XA' XA;  projecting C h F XB' XB |] \
+\     ==> projecting C h F (XA' Un XB') (XA Un XB)";
+by (Blast_tac 1);
+qed "projecting_Un";
+
+val [prem] = Goalw [projecting_def]
+     "[| !!i. i:I ==> projecting C h F (X' i) (X i) |] \
+\     ==> projecting C h F (INT i:I. X' i) (INT i:I. X i)";
+by (blast_tac (claset() addDs [prem RS spec RS mp]) 1);
+qed "projecting_INT";
+
+val [prem] = Goalw [projecting_def]
+     "[| !!i. i:I ==> projecting C h F (X' i) (X i) |] \
 \     ==> projecting C h F (UN i:I. X' i) (UN i:I. X i)";
-by Auto_tac;
+by (blast_tac (claset() addDs [prem RS spec RS mp]) 1);
 qed "projecting_UN";
 
 Goalw [projecting_def]
@@ -141,17 +155,30 @@ Goalw [projecting_def]
 by Auto_tac;
 qed "projecting_weaken";
 
-(*Is this the right way to handle the X' argument?*)
 Goalw [extending_def]
-     "[| ALL i:I. extending C h F (X' i) (Y' i) (Y i) |] \
-\     ==> extending C h F (INT i:I. X' i) (INT i:I. Y' i) (INT i:I. Y i)";
-by Auto_tac;
-qed "extending_INT";
+     "[| extending C h F X' YA' YA;  extending C h F X' YB' YB |] \
+\     ==> extending C h F X' (YA' Int YB') (YA Int YB)";
+by (Blast_tac 1);
+qed "extending_Int";
 
 Goalw [extending_def]
-     "[| ALL i:I. extending C h F X' (Y' i) (Y i) |] \
+     "[| extending C h F X' YA' YA;  extending C h F X' YB' YB |] \
+\     ==> extending C h F X' (YA' Un YB') (YA Un YB)";
+by (Blast_tac 1);
+qed "extending_Un";
+
+(*This is the right way to handle the X' argument.  Having (INT i:I. X' i)
+  would strengthen the premise.*)
+val [prem] = Goalw [extending_def]
+     "[| !!i. i:I ==> extending C h F X' (Y' i) (Y i) |] \
+\     ==> extending C h F X' (INT i:I. Y' i) (INT i:I. Y i)";
+by (blast_tac (claset() addDs [prem RS spec RS mp]) 1);
+qed "extending_INT";
+
+val [prem] = Goalw [extending_def]
+     "[| !!i. i:I ==> extending C h F X' (Y' i) (Y i) |] \
 \     ==> extending C h F X' (UN i:I. Y' i) (UN i:I. Y i)";
-by Auto_tac;
+by (blast_tac (claset() addDs [prem RS spec RS mp]) 1);
 qed "extending_UN";
 
 Goalw [extending_def]
@@ -203,6 +230,13 @@ qed "extending_increasing";
 
 (*Opposite direction fails because Diff in the extended state may remove
   fewer actions, i.e. those that affect other state variables.*)
+
+Goal "Diff (project C h G) (project_act C h `` acts) <= \
+\         project C h (Diff G acts)";
+by (auto_tac (claset(), simpset() addsimps [component_eq_subset, Diff_def,
+					    UN_subset_iff]));
+qed "Diff_project_project_component_project_Diff";
+
 Goal "(UN act:acts. Domain act) <= project_set h C \
 \     ==> Diff (project C h G) acts <= \
 \         project C h (Diff G (extend_act h `` acts))";
@@ -610,6 +644,21 @@ qed "extend_guarantees_eq";
 
 (*Weak precondition and postcondition; this is the good one!
   Not clear that it has a converse [or that we want one!]*)
+
+(*The raw version*)
+val [xguary,project,extend] =
+Goal "[| F : X guarantees Y;  \
+\        !!G. extend h F Join G : X' ==> F Join proj G h G : X;  \
+\        !!G. [| F Join proj G h G : Y; extend h F Join G : X'; \
+\                Disjoint (extend h F) G |] \
+\             ==> extend h F Join G : Y' |] \
+\     ==> extend h F : X' guarantees Y'";
+by (rtac (xguary RS guaranteesD RS extend RS guaranteesI) 1);
+by (etac project 1);
+by (assume_tac 1);
+by (assume_tac 1);
+qed "project_guarantees_lemma";
+
 Goal "[| F : X guarantees Y;  \
 \        projecting C h F X' X;  extending C h F X' Y' Y |] \
 \     ==> extend h F : X' guarantees Y'";
@@ -618,7 +667,7 @@ by (auto_tac (claset(),
         simpset() addsimps [guaranteesD, projecting_def, extending_def]));
 qed "project_guarantees";
 
-(** It seems that neither "guarantees" law can be proved from the other. **)
+(*It seems that neither "guarantees" law can be proved from the other.*)
 
 
 (*** guarantees corollaries ***)
@@ -732,8 +781,8 @@ qed "extending_leadsTo";
 
 Goalw [extending_def]
      "extending (%G. reachable (extend h F Join G)) h F \
-\                (f localTo extend h F) \
-\                (extend_set h A LeadsTo extend_set h B) (A LeadsTo B)";
+\               (f localTo extend h F) \
+\               (extend_set h A LeadsTo extend_set h B) (A LeadsTo B)";
 by (blast_tac (claset() addSDs [Join_localTo RS iffD1]
 			addIs [project_LeadsTo_D]) 1);
 qed "extending_LeadsTo";
