@@ -302,7 +302,7 @@ fun store_thm (name, thm) =
 
 (*Store result of proof in loaded_thys and as ML value*)
 
-val qed_thm = ref flexpair_def(*dummy*);
+val qed_thm = ref ProtoPure.flexpair_def(*dummy*);
 
 
 fun bind_thm (name, thm) =
