@@ -9,9 +9,10 @@ theory VectorSpace = Bounds + Aux:;
 
 subsection {* Signature *};
 
-text {* For the definition of real vector spaces a type $\alpha$ is 
-considered, on which the operations addition and real scalar
-multiplication are defined, and which has an zero element.*};
+text {* For the definition of real vector spaces a type $\alpha$
+of the sort $\idt{plus}, \idt{minus}$ is considered, on which a
+real scalar multiplication $\mult$ is defined, and which has an zero 
+element $\zero$.*};
 
 consts
 (***
@@ -24,8 +25,9 @@ syntax (symbols)
   prod  :: "[real, 'a] => 'a"                       (infixr "\<prod>" 70)
   zero  :: 'a                                       ("\<zero>");
 
-text {* The unary and binary minus can be considered as 
+(* text {* The unary and binary minus can be considered as 
 abbreviations: *};
+*)
 
 (***
 constdefs 
@@ -37,15 +39,14 @@ constdefs
 
 subsection {* Vector space laws *};
 
-text {* A \emph{vector space} is a non-empty set $V$ of elements 
-from $\alpha$ with the following vector space laws: 
-The set $V$ is closed under addition and scalar multiplication, 
-addition is associative and  commutative. $\minus x$ is the inverse
-of $x$ w.~r.~t.~addition and $\zero$ is the neutral element of 
-addition. 
-Addition and multiplication are distributive. 
-Scalar multiplication is associative and the real $1$ is the neutral 
-element of scalar multiplication.
+text {* A \emph{vector space} is a non-empty set $V$ of elements from
+  $\alpha$ with the following vector space laws: The set $V$ is closed
+  under addition and scalar multiplication, addition is associative
+  and commutative; $\minus x$ is the inverse of $x$ w.~r.~t.~addition
+  and $\zero$ is the neutral element of addition.  Addition and
+  multiplication are distributive; scalar multiplication is
+  associative and the real $1$ is the neutral element of scalar
+  multiplication.
 *};
 
 constdefs

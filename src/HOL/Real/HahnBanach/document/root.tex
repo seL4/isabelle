@@ -12,32 +12,42 @@
 \pagestyle{headings}
 \pagenumbering{arabic}
 
-\title{The Hahn-Banach Theorem for Real Vectorspaces}
+\title{The Hahn-Banach Theorem for Real Vector Spaces}
 \author{Gertrud Bauer}
 \maketitle
 
 \begin{abstract}
-The Hahn-Banach theorem is one of the most important theorems
-of functional analysis. We present the fully formal proof of two versions of
-the theorem, one for general linear spaces and one for normed spaces
-as a corollary of the first. 
-
-The first part contains the definition of basic notions of
-linear algebra, such as vector spaces, subspaces, normed spaces,
-continous linearforms, norm of functions and an order on
-functions by domain extension.
-
-The second part contains some lemmas about the supremum w.r.t. the
-function order and the extension of a non-maximal function, 
-which are needed for the proof of the main theorem.
-
-The third part is the proof of the theorem in its two different versions.
-
+  The Hahn-Banach theorem is one of the most fundamental results in functional
+  analysis. We present a fully formal proof of two versions of the theorem,
+  one for general linear spaces and another for normed spaces.  This
+  development is based on simply-typed classical set-theory, as provided by
+  Isabelle/HOL.
 \end{abstract}
 
-\tableofcontents
 
-\part {Basic notions}
+\tableofcontents
+\parindent 0pt \parskip 0.5ex
+
+\clearpage
+\section{Preface}
+
+This is a fully formal proof of the Hahn-Banach theorem. It closely follows
+the informal presentation given in the textbook \cite[\S 36]{Heuser:1986}.
+Another formal proof of the same theorem has been done in Mizar
+\cite{Nowak:1993}.  A general overview of the relevance and history of the
+Hahn-Banach theorem is given in \cite{Narici:1996}.
+
+\medskip The document is structured as follows.  The first part contains
+definitions of basic notions of linear algebra: vector spaces, subspaces,
+normed spaces, continuous linearforms, norm of functions and an order on
+functions by domain extension.  The second part contains some lemmas about the
+supremum (w.r.t.\ the function order) and extension of non-maximal functions.
+With these preliminaries, the main proof of the theorem (in its two versions)
+is conducted in the third part.
+
+
+\clearpage
+\part {Basic Notions}
 
 \input{Bounds.tex}
 \input{Aux.tex}
@@ -49,15 +59,17 @@ The third part is the proof of the theorem in its two different versions.
 \input{FunctionNorm.tex}
 \input{ZornLemma.tex}
 
-\part {Lemmas for the proof}
+\clearpage
+\part {Lemmas for the Proof}
 
 \input{HahnBanachSupLemmas.tex}
 \input{HahnBanachExtLemmas.tex}
 
-\part {The proof}
+\clearpage
+\part {The Main Proof}
 
 \input{HahnBanach.tex}
 \bibliographystyle{abbrv}
-\bibliography{bib}
+\bibliography{root}
 
 \end{document}

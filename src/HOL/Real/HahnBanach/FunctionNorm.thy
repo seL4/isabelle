@@ -12,7 +12,7 @@ subsection {* Continous linearforms*};
 text{* A linearform $f$ on a normed vector space $(V, \norm{\cdot})$
 is \emph{continous}, iff it is bounded, i.~e.
 \[\exists\ap c\in R.\ap \forall\ap x\in V.\ap 
-|f\ap x| \leq c \cdot \norm x.\]
+|f\ap x| \leq c \cdot \norm x\]
 In our application no other functions than linearforms are considered,
 so we can define continous linearforms as follows:
 *};
@@ -48,15 +48,15 @@ text{* The least real number $c$ for which holds
 is called the \emph{norm} of $f$.
 
 For the non-trivial vector space $V$ the norm can be defined as 
-\[\fnorm {f} =\sup_{x\neq\zero}\frac{|f\ap x|}{\norm x}. \] 
+\[\fnorm {f} =\sup_{x\neq\zero}\frac{|f\ap x|}{\norm x} \] 
 
-For the case that the vector space $V$ contains only the zero vector 
-set, the set $B$ this supremum is taken from would be empty, and any 
-real number is a supremum of $B$. So it must be guarateed that there 
-is an element in $B$. This element must be greater or equal $0$ so 
-that $\idt{function{\dsh}norm}$ has the norm properties. Furthermore 
-it does not have to change the norm in all other cases, so it must be
-$0$, as all other elements of $B$ are greater or equal $0$.
+For the case that the vector space $V$ contains only the $\zero$
+vector, the set $B$ this supremum is taken from would be empty, and
+any real number is a supremum of $B$. So it must be guarateed that
+there is an element in $B$. This element must be ${} \ge 0$ so that
+$\idt{function{\dsh}norm}$ has the norm properties. Furthermore it
+does not have to change the norm in all other cases, so it must be
+$0$, as all other elements of $B$ are ${} \ge 0$.
 
 Thus $B$ is defined as follows.
 *};
@@ -250,7 +250,7 @@ proof -;
 
  txt{* The proof is by case analysis on $x$. *};
  
-  show "?thesis";
+  show ?thesis;
   proof (rule case_split);
 
     txt {* For the case $x = \zero$ the thesis follows

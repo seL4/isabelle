@@ -72,7 +72,8 @@ qed;
 
 subsection {* Norms *};
 
-text{* A \emph{norm} $\norm{\cdot}$ is a quasinorm that maps only $\zero$ to $0$. *};
+text{* A \emph{norm} $\norm{\cdot}$ is a quasinorm that maps only the
+$\zero$ vector to $0$. *};
 
 constdefs
   is_norm :: "['a::{minus, plus} set, 'a => real] => bool"

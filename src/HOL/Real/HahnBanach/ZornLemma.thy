@@ -13,8 +13,8 @@ $S$ has an upper bound in $S$, then there exists a maximal element in $S$.
 In our application $S$ is a set of sets, ordered by set inclusion. Since 
 the union of a chain of sets is an upperbound for all elements of the 
 chain, the conditions of Zorn's lemma can be modified:
-If $S$ is non-empty, it suffices to show that for every non-empty 
-chain $c$ in $S$ the union of $c$ also lies in $S$:
+if $S$ is non-empty, it suffices to show that for every non-empty 
+chain $c$ in $S$ the union of $c$ also lies in $S$.
 *};
 
 theorem Zorn's_Lemma: 
@@ -35,7 +35,7 @@ proof (rule Zorn_Lemma2);
       assume "c={}"; 
       with aS; show ?thesis; by fast;
 
-      txt{* If $c$ is non-empty, then $\cup\; c$ 
+      txt{* If $c$ is non-empty, then $\Union c$ 
       is an upperbound of $c$, that lies in $S$. *};
 
     next;

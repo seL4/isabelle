@@ -15,7 +15,7 @@ In this section the following context is presumed.
 Let $E$ be a real vector space with a quasinorm $q$ on $E$. 
 $F$ is a subspace of $E$ and $f$ a linearform on $F$. We 
 consider a chain $c$ of norm preserving extensions of $f$, such that
-$\cup\; c = \idt{graph}\ap H\ap h$. 
+$\Union c = \idt{graph}\ap H\ap h$. 
 We will show some properties about the limit function $h$, 
 i.~e.~the supremum of the chain $c$.
 *}; 
@@ -348,8 +348,8 @@ proof -;
   thus ?thesis;
   proof (elim UnionE chainE2);
 
-    txt{* Since both $(x, y) \in \cup\; c$ and $(x, z) \in cup c$
-    they are menbers of some graphs $G_1$ and $G_2$, resp.~, such that
+    txt{* Since both $(x, y) \in \Union c$ and $(x, z) \in \Union c$
+    they are members of some graphs $G_1$ and $G_2$, resp., such that
     both $G_1$ and $G_2$ are members of $c$*};
 
     fix G1 G2; assume
@@ -390,13 +390,11 @@ proof -;
   qed;
 qed;
 
-text{* The limit function $h$ is linear: Every element $x$
-in the domain of $h$ is in the domain of 
-a function $h'$ in the chain of norm preserving extensions.
-Futher $h$ is an extension of $h'$ so the value
-of $x$ are identical for $h'$ and $h$.
-Finally, the function $h'$ is linear by construction of $M$.
-*};
+text{* The limit function $h$ is linear: every element $x$ in the
+domain of $h$ is in the domain of a function $h'$ in the chain of norm
+preserving extensions.  Furthermore, $h$ is an extension of $h'$ so
+the value of $x$ are identical for $h'$ and $h$.  Finally, the
+function $h'$ is linear by construction of $M$.  *};
 
 lemma sup_lf: 
   "[| M = norm_pres_extensions E p F f; c: chain M; 
@@ -439,7 +437,7 @@ proof -;
       by (rule some_H'h');
 
     txt{* We have to show that h is linear w.~r.~t. 
-    skalar multiplication. *};
+    scalar multiplication. *};
 
     thus "h (a <*> x) = a * h x";
     proof (elim exE conjE);
@@ -494,10 +492,10 @@ proof -;
   qed;
 qed;
 
-text{* The domain $H$ of the limit function is a superspace
-of $F$, since $F$ is a subset of $H$. The existence of 
-the $\zero$ element in $F$ and the closeness properties
-follow from the fact that $F$ is a vectorspace. *};
+text{* The domain $H$ of the limit function is a superspace of $F$,
+since $F$ is a subset of $H$. The existence of the $\zero$ element in
+$F$ and the closure properties follow from the fact that $F$ is a
+vectorspace. *};
 
 lemma sup_supF: 
   "[| M = norm_pres_extensions E p F f; c: chain M; EX x. x:c;
@@ -528,7 +526,7 @@ proof -;
   qed;
 qed;
 
-text{* The domain $H$ of the limt function is a subspace
+text{* The domain $H$ of the limit function is a subspace
 of $E$. *};
 
 lemma sup_subE: 
@@ -588,7 +586,7 @@ proof -;
       qed;
     qed;      
 
-    txt{* $H$ is closed under skalar multiplication. *};
+    txt{* $H$ is closed under scalar multiplication. *};
 
     show "ALL x:H. ALL a. a <*> x : H"; 
     proof (intro ballI allI); 
@@ -610,8 +608,8 @@ proof -;
   qed;
 qed;
 
-text {* The limit functon is bounded by 
-the norm $p$ as well, simce all elements in the chain are norm preserving.
+text {* The limit function is bounded by 
+the norm $p$ as well, since all elements in the chain are norm preserving.
 *};
 
 lemma sup_norm_pres: 

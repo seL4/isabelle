@@ -213,9 +213,8 @@ all sums of elements from $U$ and $V$. *};
 instance set :: (plus) plus; by intro_classes;
 
 defs vs_sum_def:
-  "U + V == {x. EX u:U. EX v:V. x = u + v}";
+  "U + V == {x. EX u:U. EX v:V. x = u + v}";(***  
 
-(***
 constdefs 
   vs_sum :: 
   "['a::{minus, plus} set, 'a set] => 'a set"         (infixl "+" 65)
@@ -318,7 +317,7 @@ subsection {* Direct sums *};
 text {* The sum of $U$ and $V$ is called \emph{direct}, iff the zero 
 element is the only common element of $U$ and $V$. For every element
 $x$ of the direct sum of $U$ and $V$ the decomposition in
-$x = u + v$ with $u:U$ and $v:V$ is unique.*}; 
+$x = u + v$ with $u \in U$ and $v \in V$ is unique.*}; 
 
 lemma decomp: 
   "[| is_vectorspace E; is_subspace U E; is_subspace V E; 
@@ -352,7 +351,7 @@ qed;
 text {* An application of the previous lemma will be used in the 
 proof of the Hahn-Banach theorem: for an element $y + a \mult x_0$ 
 of the direct sum of a vectorspace $H$ and the linear closure of 
-$x_0$ the components $y:H$ and $a$ are unique. *}; 
+$x_0$ the components $y \in H$ and $a$ are unique. *}; 
 
 lemma decomp_H0: 
   "[| is_vectorspace E; is_subspace H E; y1 : H; y2 : H; 
@@ -426,7 +425,7 @@ qed (simp!)+;
 
 text {* The components $y\in H$ and $a$ in $y \plus a \mult x_0$ 
 are unique, so the function $h_0$ defined by 
-$h_0 (y \plus a \mult x_0) = h y + a * xi$ is definite. *};
+$h_0 (y \plus a \mult x_0) = h y + a \cdot \xi$ is definite. *};
 
 lemma h0_definite:
   "[| h0 = (\<lambda>x. let (y, a) = SOME (y, a). (x = y + a <*> x0 & y:H)

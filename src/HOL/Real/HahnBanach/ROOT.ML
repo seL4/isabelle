@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Gertrud Bauer, TU Munich
 
-The Hahn-Banach theorem for real vectorspaces (Isabelle/Isar).
+The Hahn-Banach theorem for real vector spaces (Isabelle/Isar).
 *)
 
 time_use_thy "Bounds";

@@ -10,7 +10,7 @@ theory HahnBanach
 
 text {*
   We present the proof of two different versions of the Hahn-Banach 
-  Theorem, closely following \cite{Heuser:1986}.
+  Theorem, closely following \cite[\S36]{Heuser:1986}.
 *};
 
 subsection {* The case of general linear spaces *};
@@ -49,7 +49,7 @@ proof -;
   the union of all functions in the chain is again a norm preserving
   function. (The union is an upper bound for all elements. 
   It is even the least upper bound, because every upper bound of $M$
-  is also an upper bound for $\cup\; c$.) *};
+  is also an upper bound for $\Union c$.) *};
 
   have "!! c. [| c : chain M; EX x. x:c |] ==> Union c : M";  
   proof -;
@@ -91,7 +91,7 @@ proof -;
     qed;
   qed;
  
-  txt {* According to Zorn's Lemma there exists 
+  txt {* According to Zorn's Lemma there is
   a maximal norm-preserving extension $g\in M$. *};
   
   with aM; have bex_g: "EX g:M. ALL x:M. g <= x --> g = x";
@@ -283,7 +283,7 @@ txt {* Assume the domain of the supremum is not $E$. *};
     thus ?thesis; ..;
   qed;
 
-  txt {* We have shown, that $h$ can still be extended to 
+  txt {* We have shown that $h$ can still be extended to 
   some $h_0$, in contradiction to the assumption that 
   $h$ is a maximal element. *};
 
@@ -293,7 +293,7 @@ txt {* Assume the domain of the supremum is not $E$. *};
   thus ?thesis; by contradiction;
 qed; 
 
-txt{* It follows $H = E$ and the thesis can be shown. *};
+txt{* It follows $H = E$, and the thesis can be shown. *};
 
 show "is_linearform E h & (ALL x:F. h x = f x) 
      & (ALL x:E. h x <= p x)";
@@ -372,8 +372,8 @@ proof -;
 
   txt{* We define the function $p$ on $E$ as follows:
   \begin{matharray}{l}
-  p\ap x = \fnorm f * \norm x\\
-  % p\ap x = \fnorm f * \fnorm x.\\
+  p\ap x = \fnorm f \cdot \norm x\\
+  % p\ap x = \fnorm f \cdot \fnorm x\\
   \end{matharray}
   *};
 
@@ -408,7 +408,7 @@ proof -;
       finally; show ?thesis; .;
     qed;
 
-    txt{* Furthermore $p$ obeys the triangle inequation: *};
+    txt{* Furthermore, $p$ obeys the triangle inequation: *};
 
     show "p (x + y) <= p x + p y";
     proof -;
@@ -478,7 +478,7 @@ proof -;
         a solution
         for the inequation 
         \begin{matharray}{l}
-        \forall\ap x\in E.\ap |g\ap x| \leq c * \norm x.
+        \forall\ap x\in E.\ap |g\ap x| \leq c \cdot \norm x
         \end{matharray} *};
 
         have "ALL x:E. rabs (g x) <= function_norm F norm f * norm x";

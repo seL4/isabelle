@@ -12,11 +12,11 @@ subsection {* The graph of a function *};
 
 text{* We define the \emph{graph} of a (real) function $f$ with the 
 domain $F$ as the set 
-\begin{matharray}{l}
-\{(x, f\ap x). \ap x:F\}.
-\end{matharray}
+\[
+\{(x, f\ap x). \ap x:F\}
+\]
 So we are modelling partial functions by specifying the domain and 
-the mapping function. We use the notion 'function' also for the graph
+the mapping function. We use the notion ``function'' also for the graph
 of a function. 
 *};
 

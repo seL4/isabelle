@@ -2,7 +2,7 @@
 \renewcommand{\isamarkupheader}[1]{\section{#1}}
 \newcommand{\isasymbollambda}{${\mathtt{\lambda}}$}
 
-\parindent 0pt \parskip 0.5ex
+
 
 \newcommand{\name}[1]{\textsf{#1}}
 
@@ -34,16 +34,17 @@
 \newcommand{\Le}{\le}
 \newcommand{\Lt}{\lt}
 \newcommand{\lam}[1]{\mathop{\lambda} #1\dt\;}
-\newcommand{\ap}{\mathbin{\!}}
+\newcommand{\ap}{\mathbin{}}
+\newcommand{\Union}{\bigcup}
 
 
-\newcommand{\norm}[1]{\|\, #1\,\|}
-\newcommand{\fnorm}[1]{\|\, #1\,\|}
-\newcommand{\zero}{{\mathord{\mathbf {0}}}}
-\newcommand{\plus}{{\mathbin{\;\mathtt {+}\;}}}
-\newcommand{\minus}{{\mathbin{\;\mathtt {-}\;}}}
-\newcommand{\mult}{{\mathbin{\;\mathbf {\odot}\;}}}
-\newcommand{\1}{{\mathord{\mathrm{1}}}}
+\newcommand{\norm}[1]{\left\|#1\right\|}
+\newcommand{\fnorm}[1]{\left\|#1\right\|}
+\newcommand{\zero}{\mathord{\mathbf 0}}
+\newcommand{\plus}{\mathbin{\mathbf +}}
+\newcommand{\minus}{\mathbin{\mathbf -}}
+\newcommand{\mult}{\mathbin{\mathbf\odot}}
+\newcommand{\1}{\mathord{\mathrm{1}}}
 %\newcommand{\zero}{{\mathord{\small\sl\tt {<0>}}}}
 %\newcommand{\plus}{{\mathbin{\;\small\sl\tt {[+]}\;}}}
 %\newcommand{\minus}{{\mathbin{\;\small\sl\tt {[-]}\;}}}

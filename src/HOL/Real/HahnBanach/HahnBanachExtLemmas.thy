@@ -3,7 +3,7 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
-header {* Extending a non-ma\-xi\-mal function *};
+header {* Extending a non-maximal function *};
 
 theory HahnBanachExtLemmas = FunctionNorm:;
 
@@ -30,7 +30,7 @@ reals. To show
 \end{matharray}
 it suffices to show that 
 \begin{matharray}{l}
-\forall u\in F. \ap\forall v\in F. \ap a\ap u \leq b \ap v.
+\forall u\in F. \ap\forall v\in F. \ap a\ap u \leq b \ap v
 \end{matharray}
 *};
 
@@ -84,7 +84,7 @@ proof -;
     show ?thesis;
     proof (intro exI conjI ballI); 
    
-      txt {* For all $y\in F$ is $a\ap y \leq \xi$. *};
+      txt {* For all $y\in F$ holds $a\ap y \leq \xi$. *};
      
       fix y; assume y: "y:F";
       show "a y <= xi";    
@@ -93,7 +93,7 @@ proof -;
       qed (force!);
     next;
 
-      txt {* For all $y\in F$ is $\xi\leq b\ap y$. *};
+      txt {* For all $y\in F$ holds $\xi\leq b\ap y$. *};
 
       fix y; assume "y:F";
       show "xi <= b y";  
@@ -115,8 +115,8 @@ proof -;
   qed;
 qed;
 
-text{* The function $h_0$ is defined as a linear extension of $h$
-to $H_0$. $h_0$ is linear. *};
+text{* The function $h_0$ is defined as a canonical linear extension
+of $h$ to $H_0$. *};
 
 lemma h0_lf: 
   "[| h0 = (\<lambda>x. let (y, a) = SOME (y, a). x = y + a <*> x0 & y:H 
@@ -142,7 +142,7 @@ proof -;
     fix x1 x2; assume x1: "x1 : H0" and x2: "x2 : H0"; 
 
     txt{* We now have to show that $h_0$ is linear 
-    w.~r.~t.~addition, i.~e.~
+    w.~r.~t.~addition, i.~e.\
     $h_0 \ap (x_1\plus x_2) = h_0\ap x_1 + h_0\ap x_2$
     for $x_1, x_2\in H$. *}; 
 
@@ -192,8 +192,8 @@ proof -;
  
     txt{* We further have to show that $h_0$ is linear 
     w.~r.~t.~scalar multiplication, 
-    i.~e.~ $c\in real$ $h_0\ap (c \mult x_1) = c \cdot h_0\ap x_1$
-    for $x\in H$ and real $c$. 
+    i.~e.\ $h_0\ap (c \mult x_1) = c \cdot h_0\ap x_1$
+    for $x\in H$ and any real number $c$. 
     *}; 
 
   next;  
@@ -268,7 +268,7 @@ proof;
       by (rule h0_definite);
 
     txt{* Now we show  
-    $h\ap y + a * xi\leq  p\ap (y\plus a \mult x_0)$ 
+    $h\ap y + a \cdot xi\leq  p\ap (y\plus a \mult x_0)$ 
     by case analysis on $a$. *};
 
     also; have "... <= p (y + a <*> x0)";
@@ -278,7 +278,7 @@ proof;
       with vs y a; show ?thesis; by simp;
 
     txt {* In the case $a < 0$ we use $a_1$ with $y$ taken as
-    $\frac{y}{a}$. *};
+    $y/a$. *};
 
     next;
       assume lz: "a < 0r"; hence nz: "a ~= 0r"; by simp;
@@ -308,7 +308,7 @@ proof;
       thus ?thesis; by simp;
 
       txt {* In the case $a > 0$ we use $a_2$ with $y$ taken
-      as $\frac{y}{a}$. *};
+      as $y/a$. *};
     next; 
       assume gz: "0r < a"; hence nz: "a ~= 0r"; by simp;
       have "xi <= p (rinv a <*> y + x0) - h (rinv a <*> y)";
