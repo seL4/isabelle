@@ -36,7 +36,7 @@ Linear <em>arithmetic</em> facts are proved automatically. Isabelle is
 closely integrated with the <a
 href="http://proofgeneral.inf.ed.ac.uk/">Proof
 General</a> user interface, which eases the task of writing and
-maintaining proof scripts.. </p>
+maintaining proof scripts. </p>
 
 <p>Isabelle comes with large theories of formally verified
 mathematics, including elementary number theory (for example, Gauss's
