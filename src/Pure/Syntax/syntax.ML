@@ -104,7 +104,7 @@ fun merge_tokentrtabs tabs1 tabs2 =
   let
     fun eq_tr ((c1, (_, s1)), (c2, (_, s2))) = c1 = c2 andalso s1 = s2;
 
-    fun name (s, _) = implode (tl (explode s));
+    fun name (s, _) = implode (tl (Symbol.explode s));
 
     fun merge mode =
       let
@@ -162,7 +162,7 @@ fun merge_ruletabs tab1 tab2 =
 
 datatype syntax =
   Syntax of {
-    lexicon: lexicon,
+    lexicon: Scan.lexicon,
     logtypes: string list,
     gram: gram,
     consts: string list,
@@ -181,7 +181,7 @@ datatype syntax =
 
 val empty_syntax =
   Syntax {
-    lexicon = empty_lexicon,
+    lexicon = Scan.empty_lexicon,
     logtypes = [],
     gram = empty_gram,
     consts = [],
@@ -208,7 +208,7 @@ fun extend_syntax (mode, inout) (Syntax tabs) syn_ext =
       print_ast_translation, token_translation} = syn_ext;
   in
     Syntax {
-      lexicon = if inout then extend_lexicon lexicon (delims_of xprods) else lexicon,
+      lexicon = if inout then Scan.extend_lexicon lexicon (delims_of xprods) else lexicon,
       logtypes = extend_list logtypes1 logtypes2,
       gram = if inout then extend_gram gram xprods else gram,
       consts = consts2 union consts1,
@@ -243,7 +243,7 @@ fun merge_syntaxes (Syntax tabs1) (Syntax tabs2) =
       tokentrtab = tokentrtab2, prtabs = prtabs2} = tabs2;
   in
     Syntax {
-      lexicon = merge_lexicons lexicon1 lexicon2,
+      lexicon = Scan.merge_lexicons lexicon1 lexicon2,
       logtypes = merge_lists logtypes1 logtypes2,
       gram = merge_grams gram1 gram2,
       consts = merge_lists consts1 consts2,
@@ -282,7 +282,7 @@ fun print_gram (Syntax tabs) =
     val {lexicon, logtypes, prmodes, gram, prtabs, ...} = tabs;
     val prmodes' = sort_strings (filter_out (equal "") prmodes);
   in
-    Pretty.writeln (pretty_strs_qs "lexicon:" (dest_lexicon lexicon));
+    Pretty.writeln (pretty_strs_qs "lexicon:" (map implode (Scan.dest_lexicon lexicon)));
     Pretty.writeln (Pretty.strs ("logtypes:" :: logtypes));
     Pretty.writeln (Pretty.big_list "prods:" (pretty_gram gram));
     Pretty.writeln (pretty_strs_qs "print modes:" prmodes')
@@ -299,8 +299,10 @@ fun print_trans (Syntax tabs) =
     fun pretty_ruletab name tab =
       Pretty.big_list name (map pretty_rule (dest_ruletab tab));
 
+    fun pretty_tokentr (mode, trs) = Pretty.strs (quote mode ^ ":" :: map fst trs);
+
     val {consts, parse_ast_trtab, parse_ruletab, parse_trtab, print_trtab,
-      print_ruletab, print_ast_trtab, ...} = tabs;
+      print_ruletab, print_ast_trtab, tokentrtab, ...} = tabs;
   in
     Pretty.writeln (pretty_strs_qs "consts:" consts);
     Pretty.writeln (pretty_trtab "parse_ast_translation:" parse_ast_trtab);
@@ -308,7 +310,8 @@ fun print_trans (Syntax tabs) =
     Pretty.writeln (pretty_trtab "parse_translation:" parse_trtab);
     Pretty.writeln (pretty_trtab "print_translation:" print_trtab);
     Pretty.writeln (pretty_ruletab "print_rules:" print_ruletab);
-    Pretty.writeln (pretty_trtab "print_ast_translation:" print_ast_trtab)
+    Pretty.writeln (pretty_trtab "print_ast_translation:" print_ast_trtab);
+    Pretty.writeln (Pretty.big_list "token_translation:" (map pretty_tokentr tokentrtab))
   end;
 
 
@@ -326,7 +329,7 @@ fun test_read (Syntax tabs) root str =
   let
     val {lexicon, gram, parse_ast_trtab, parse_ruletab, ...} = tabs;
 
-    val chars = SymbolFont.read_charnames (explode str);
+    val chars = Symbol.explode str;
     val toks = tokenize lexicon false chars;
     val _ = writeln ("tokens: " ^ space_implode " " (map display_token toks));
 
@@ -350,7 +353,7 @@ fun read_asts (Syntax tabs) xids root str =
   let
     val {lexicon, gram, parse_ast_trtab, logtypes, ...} = tabs;
     val root' = if root mem logtypes then logic else root;
-    val chars = SymbolFont.read_charnames (explode str);
+    val chars = Symbol.explode str;
     val pts = parse gram root' (tokenize lexicon xids chars);
 
     fun show_pt pt =
