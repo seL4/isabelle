@@ -7,55 +7,56 @@ New in this Isabelle release
 *** General ***
 
 * Pure: considerably improved version of 'constdefs' command.  Now
-performs automatic type-inference of declared constants; additional
-support for local structure declarations (cf. locales and HOL
-records), see also isar-ref manual.  Potential INCOMPATIBILITY: need
-to observe strictly sequential dependencies of definitions within a
-single 'constdefs' section; moreover, the declared name needs to be an
-identifier.  If all fails, consider to fall back on 'consts' and
-'defs' separately.
+  performs automatic type-inference of declared constants; additional
+  support for local structure declarations (cf. locales and HOL
+  records), see also isar-ref manual.  Potential INCOMPATIBILITY: need
+  to observe strictly sequential dependencies of definitions within a
+  single 'constdefs' section; moreover, the declared name needs to be
+  an identifier.  If all fails, consider to fall back on 'consts' and
+  'defs' separately.
 
 * Pure: improved indexed syntax and implicit structures.  First of
-all, indexed syntax provides a notational device for subscripted
-application, using the new syntax \<^bsub>term\<^esub> for arbitrary
-expressions.  Secondly, in a local context with structure
-declarations, number indexes \<^sub>n or the empty index (default
-number 1) refer to a certain fixed variable implicitly; option
-show_structs controls printing of implicit structures.  Typical
-applications of these concepts involve record types and locales.
+  all, indexed syntax provides a notational device for subscripted
+  application, using the new syntax \<^bsub>term\<^esub> for arbitrary
+  expressions.  Secondly, in a local context with structure
+  declarations, number indexes \<^sub>n or the empty index (default
+  number 1) refer to a certain fixed variable implicitly; option
+  show_structs controls printing of implicit structures.  Typical
+  applications of these concepts involve record types and locales.
+
+* Pure: syntax of terms, types etc. includes (*(*nested*) comments*).
 
 * Pure: 'advanced' translation functions (parse_translation etc.) may
-depend on the signature of the theory context being presently used for
-parsing/printing, see also isar-ref manual.
+  depend on the signature of the theory context being presently used
+  for parsing/printing, see also isar-ref manual.
 
 * Pure: tuned internal renaming of symbolic identifiers -- attach
-primes instead of base 26 numbers.
+  primes instead of base 26 numbers.
 
 
 *** HOL ***
 
+* HOL/record: reimplementation of records. Improved scalability for
+  records with many fields, avoiding performance problems for type
+  inference. Records are no longer composed of nested field types, but
+  of nested extension types. Therefore the record type only grows
+  linear in the number of extensions and not in the number of fields.
+  The top-level (users) view on records is preserved.  Potential
+  INCOMPATIBILITY only in strange cases, where the theory depends on
+  the old record representation. The type generated for a record is
+  called <record_name>_ext_type.
 
-* HOL/record: reimplementation of records. Improved scalability for records with
-many fields, avoiding performance problems for type inference. Records are no 
-longer composed of nested field types,
-but of nested extension types. Therefore the record type only grows
-linear in the number of extensions and not in the number of fields.
-The top-level (users) view on records is preserved. 
-Potential INCOMPATIBILITY only in strange cases, where the theory
-depends on the old record representation. The type generated for
-a record is called <record_name>_ext_type.    
+* Simplifier: "record_upd_simproc" for simplification of multiple
+  record updates enabled by default.  INCOMPATIBILITY: old proofs
+  break occasionally, since simplification is more powerful by
+  default.
 
-
-* Simplifier: "record_upd_simproc" for simplification of multiple record 
-updates enabled by default. 
-INCOMPATIBILITY: old proofs break occasionally, since simplification
-is more powerful by default.
 
 *** HOLCF ***
 
 * HOLCF: discontinued special version of 'constdefs' (which used to
-support continuous functions) in favor of the general Pure one with
-full type-inference.
+  support continuous functions) in favor of the general Pure one with
+  full type-inference.
 
 
 
@@ -80,10 +81,10 @@ New in Isabelle2004 (April 2004)
 
 * Pure: Macintosh and Windows line-breaks are now allowed in theory files.
 
-* Pure: single letter sub/superscripts (\<^isub> and \<^isup>) are now 
-  allowed in identifiers. Similar to Greek letters \<^isub> is now considered 
-  a normal (but invisible) letter. For multiple letter subscripts repeat 
-  \<^isub> like this: x\<^isub>1\<^isub>2. 
+* Pure: single letter sub/superscripts (\<^isub> and \<^isup>) are now
+  allowed in identifiers. Similar to Greek letters \<^isub> is now considered
+  a normal (but invisible) letter. For multiple letter subscripts repeat
+  \<^isub> like this: x\<^isub>1\<^isub>2.
 
 * Pure: There are now sub-/superscripts that can span more than one
   character. Text between \<^bsub> and \<^esub> is set in subscript in
@@ -104,7 +105,7 @@ New in Isabelle2004 (April 2004)
   (i.e. intersections of classes),
 
 * Presentation: generated HTML now uses a CSS style sheet to make layout
-  (somewhat) independent of content. It is copied from lib/html/isabelle.css. 
+  (somewhat) independent of content. It is copied from lib/html/isabelle.css.
   It can be changed to alter the colors/layout of generated pages.
 
 
@@ -174,15 +175,15 @@ New in Isabelle2004 (April 2004)
     of blast or auto after simplification become unnecessary because the goal
     is solved by simplification already.
 
-* Numerics: new theory Ring_and_Field contains over 250 basic numerical laws, 
+* Numerics: new theory Ring_and_Field contains over 250 basic numerical laws,
     all proved in axiomatic type classes for semirings, rings and fields.
 
 * Numerics:
   - Numeric types (nat, int, and in HOL-Complex rat, real, complex, etc.) are
-    now formalized using the Ring_and_Field theory mentioned above. 
+    now formalized using the Ring_and_Field theory mentioned above.
   - INCOMPATIBILITY: simplification and arithmetic behaves somewhat differently
     than before, because now they are set up once in a generic manner.
-  - INCOMPATIBILITY: many type-specific arithmetic laws have gone. 
+  - INCOMPATIBILITY: many type-specific arithmetic laws have gone.
     Look for the general versions in Ring_and_Field (and Power if they concern
     exponentiation).
 
@@ -192,12 +193,12 @@ New in Isabelle2004 (April 2004)
   - Record types are now by default printed with their type abbreviation
     instead of the list of all field types. This can be configured via
     the reference "print_record_type_abbr".
-  - Simproc "record_upd_simproc" for simplification of multiple updates added 
+  - Simproc "record_upd_simproc" for simplification of multiple updates added
     (not enabled by default).
   - Simproc "record_ex_sel_eq_simproc" to simplify EX x. sel r = x resp.
     EX x. x = sel r to True (not enabled by default).
   - Tactic "record_split_simp_tac" to split and simplify records added.
- 
+
 * 'specification' command added, allowing for definition by
   specification.  There is also an 'ax_specification' command that
   introduces the new constants axiomatically.
@@ -209,7 +210,7 @@ New in Isabelle2004 (April 2004)
 * HOL-ex: InductiveInvariant_examples illustrates advanced recursive function
   definitions, thanks to Sava Krsti\'{c} and John Matthews.
 
-* HOL-Matrix: a first theory for matrices in HOL with an application of 
+* HOL-Matrix: a first theory for matrices in HOL with an application of
   matrix theory to linear programming.
 
 * Unions and Intersections:
@@ -220,8 +221,8 @@ New in Isabelle2004 (April 2004)
   The subscript version is also accepted as input syntax.
 
 * Unions and Intersections over Intervals:
-  There is new short syntax "UN i<=n. A" for "UN i:{0..n}. A". There is 
-  also an x-symbol version with subscripts "\<Union>\<^bsub>i <= n\<^esub>. A" 
+  There is new short syntax "UN i<=n. A" for "UN i:{0..n}. A". There is
+  also an x-symbol version with subscripts "\<Union>\<^bsub>i <= n\<^esub>. A"
   like in normal math, and corresponding versions for < and for intersection.
 
 * ML: the legacy theory structures Int and List have been removed. They had
@@ -364,7 +365,7 @@ rather than just a warning (in interactive mode);
 
  - Calls full Presburger arithmetic (by Amine Chaieb) if quantifier-free
    linear arithmetic fails. This takes account of quantifiers and divisibility.
-   Presburger arithmetic can also be called explicitly via presburger(_tac). 
+   Presburger arithmetic can also be called explicitly via presburger(_tac).
 
 * simp's arithmetic capabilities have been enhanced a bit: it now
 takes ~= in premises into account (by performing a case split);
@@ -374,9 +375,9 @@ are distributed over a sum of terms;
 
 * New tactic "trans_tac" and method "trans" instantiate
 Provers/linorder.ML for axclasses "order" and "linorder" (predicates
-"<=", "<" and "="). 
+"<=", "<" and "=").
 
-* function INCOMPATIBILITIES: Pi-sets have been redefined and moved from main 
+* function INCOMPATIBILITIES: Pi-sets have been redefined and moved from main
 HOL to Library/FuncSet; constant "Fun.op o" is now called "Fun.comp";
 
 * 'typedef' command has new option "open" to suppress the set
@@ -402,13 +403,13 @@ Univariate Polynomials).  Contributions welcome;
 
 * GroupTheory: deleted, since its material has been moved to Algebra;
 
-* Complex: new directory of the complex numbers with numeric constants, 
-nonstandard complex numbers, and some complex analysis, standard and 
+* Complex: new directory of the complex numbers with numeric constants,
+nonstandard complex numbers, and some complex analysis, standard and
 nonstandard (Jacques Fleuriot);
 
 * HOL-Complex: new image for analysis, replacing HOL-Real and HOL-Hyperreal;
 
-* Hyperreal: introduced Gauge integration and hyperreal logarithms (Jacques 
+* Hyperreal: introduced Gauge integration and hyperreal logarithms (Jacques
 Fleuriot);
 
 * Real/HahnBanach: updated and adapted to locales;
@@ -454,13 +455,13 @@ up simprocs;
 shift some page breaks in large documents. To get the old behaviour
 use \renewcommand{\isanewline}{\mbox{}\\\mbox{}} in root.tex.
 
-* minimized dependencies of isabelle.sty and isabellesym.sty on 
+* minimized dependencies of isabelle.sty and isabellesym.sty on
 other packages
 
 * \<euro> now needs package babel/greek instead of marvosym (which
 broke \Rightarrow)
 
-* normal size for \<zero>...\<nine> (uses \mathbf instead of 
+* normal size for \<zero>...\<nine> (uses \mathbf instead of
 textcomp package)
 
 
@@ -708,9 +709,9 @@ via 'generate_code' theory section;
 * HOL: canonical cases/induct rules for n-tuples (n = 3..7);
 
 * HOL: consolidated and renamed several theories.  In particular:
-	Ord.thy has been absorbed into HOL.thy
-	String.thy has been absorbed into List.thy
- 
+        Ord.thy has been absorbed into HOL.thy
+        String.thy has been absorbed into List.thy
+
 * HOL: concrete setsum syntax "\<Sum>i:A. b" == "setsum (%i. b) A"
 (beware of argument permutation!);
 
