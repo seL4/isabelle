@@ -209,6 +209,7 @@
     "pre"
     "rename"
     "restrict"
+    "shows"
     "signature"
     "states"
     "structure"

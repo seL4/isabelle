@@ -191,6 +191,7 @@
     "output"
     "overloaded"
     "recursor_eqns"
+    "shows"
     "structure"
     "type_elims"
     "type_intros"
