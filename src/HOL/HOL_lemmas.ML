@@ -472,7 +472,7 @@ fun case_tac a = res_inst_tac [("P",a)] case_split_thm;
 
 (** Standard abbreviations **)
 
-(* combination of (spec RS spec RS ...(j times) ... spec RS mp *)
+(* combination of (spec RS spec RS ...(j times) ... spec RS mp) *)
 local
   fun wrong_prem (Const ("All", _) $ (Abs (_, _, t))) = wrong_prem t
   |   wrong_prem (Bound _) = true
