@@ -286,7 +286,6 @@ $(LOG)/HOL-GroupTheory.gz: $(OUT)/HOL \
   Library/Primes.thy Library/FuncSet.thy \
   GroupTheory/Bij.thy \
   GroupTheory/Group.thy \
-  GroupTheory/Summation.thy \
   GroupTheory/ROOT.ML \
   GroupTheory/document/root.tex
 	@$(ISATOOL) usedir -g true $(OUT)/HOL GroupTheory
