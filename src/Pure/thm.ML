@@ -363,7 +363,7 @@ datatype thm = Thm of
   {sign: Sign.sg,		(*signature for hyps and prop*)
    der: deriv,			(*derivation*)
    maxidx: int,			(*maximum index of any Var or TVar*)
-   shyps: sort list,		(* FIXME comment *)
+   shyps: sort list,		(*sort hypotheses*)
    hyps: term list,		(*hypotheses*)
    prop: term};			(*conclusion*)
 
