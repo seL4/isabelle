@@ -74,6 +74,11 @@ rather than just a warning (in interactive mode);
 
 *** HOL ***
 
+* new flag trace_unify_fail causes unification to print diagnostic
+information (PG: in trace buffer) when it fails. This is useful for
+figuring out why single step proofs like rule, erule or assumption
+failed.
+
 * function INCOMPATIBILITIES: Pi-sets have been redefined and moved from main 
 HOL to Library/FuncSet; constant "Fun.op o" is now called "Fun.comp";
 
