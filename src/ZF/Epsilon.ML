@@ -42,7 +42,7 @@ val arg_into_eclose_sing = arg_in_eclose_sing RS ecloseD;
 bind_thm ("eclose_induct", Transset_eclose RSN (2, Transset_induct));
 
 (*Epsilon induction*)
-val prems = goal Epsilon.thy
+val prems = Goal
     "[| !!x. ALL y:x. P(y) ==> P(x) |]  ==>  P(a)";
 by (rtac (arg_in_eclose_sing RS eclose_induct) 1);
 by (eresolve_tac prems 1);
@@ -74,7 +74,7 @@ by (REPEAT (assume_tac 1));
 qed "eclose_least";
 
 (*COMPLETELY DIFFERENT induction principle from eclose_induct!!*)
-val [major,base,step] = goal Epsilon.thy
+val [major,base,step] = Goal
     "[| a: eclose(b);                                           \
 \       !!y.   [| y: b |] ==> P(y);                             \
 \       !!y z. [| y: eclose(b);  P(y);  z: y |] ==> P(z)        \
@@ -126,10 +126,10 @@ by (asm_simp_tac (simpset() addsimps [under_Memrel_eclose,
                                   jmemi RSN (2,mem_eclose_sing_trans)]) 1);
 qed "wfrec_eclose_eq";
 
-val [prem] = goal Epsilon.thy
+Goal
     "k: i ==> wfrec(Memrel(eclose({i})),k,H) = wfrec(Memrel(eclose({k})),k,H)";
 by (rtac (arg_in_eclose_sing RS wfrec_eclose_eq) 1);
-by (rtac (prem RS arg_into_eclose_sing) 1);
+by (etac arg_into_eclose_sing 1);
 qed "wfrec_eclose_eq2";
 
 Goalw [transrec_def]
@@ -140,13 +140,13 @@ by (simp_tac (simpset() addsimps [wfrec_eclose_eq2, arg_in_eclose_sing,
 qed "transrec";
 
 (*Avoids explosions in proofs; resolve it with a meta-level definition.*)
-val rew::prems = goal Epsilon.thy
+val rew::prems = Goal
     "[| !!x. f(x)==transrec(x,H) |] ==> f(a) = H(a, lam x:a. f(x))";
 by (rewtac rew);
 by (REPEAT (resolve_tac (prems@[transrec]) 1));
 qed "def_transrec";
 
-val prems = goal Epsilon.thy
+val prems = Goal
     "[| !!x u. [| x:eclose({a});  u: Pi(x,B) |] ==> H(x,u) : B(x)   \
 \    |]  ==> transrec(a,H) : B(a)";
 by (res_inst_tac [("i", "a")] (arg_in_eclose_sing RS eclose_induct) 1);
@@ -159,7 +159,7 @@ by (etac (Ord_is_Transset RS Transset_succ RS eclose_least) 1);
 by (rtac (succI1 RS singleton_subsetI) 1);
 qed "eclose_sing_Ord";
 
-val prems = goal Epsilon.thy
+val prems = Goal
     "[| j: i;  Ord(i);  \
 \       !!x u. [| x: i;  u: Pi(x,B) |] ==> H(x,u) : B(x)   \
 \    |]  ==> transrec(j,H) : B(j)";
@@ -186,8 +186,8 @@ by (assume_tac 1);
 qed "Ord_rank";
 Addsimps [Ord_rank];
 
-val [major] = goal Epsilon.thy "Ord(i) ==> rank(i) = i";
-by (rtac (major RS trans_induct) 1);
+Goal "Ord(i) ==> rank(i) = i";
+by (etac trans_induct 1);
 by (stac rank 1);
 by (asm_simp_tac (simpset() addsimps [Ord_equality]) 1);
 qed "rank_of_Ord";
@@ -199,8 +199,8 @@ by (rtac Ord_UN 2);
 by Auto_tac;
 qed "rank_lt";
 
-val [major] = goal Epsilon.thy "a: eclose(b) ==> rank(a) < rank(b)";
-by (rtac (major RS eclose_induct_down) 1);
+Goal "a: eclose(b) ==> rank(a) < rank(b)";
+by (etac eclose_induct_down 1);
 by (etac rank_lt 1);
 by (etac (rank_lt RS lt_trans) 1);
 by (assume_tac 1);

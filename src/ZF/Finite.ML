@@ -48,8 +48,8 @@ Addsimps [Fin_UnI];
 
 
 (*The union of a set of finite sets is finite.*)
-val [major] = goal Finite.thy "C : Fin(Fin(A)) ==> Union(C) : Fin(A)";
-by (rtac (major RS Fin_induct) 1);
+Goal "C : Fin(Fin(A)) ==> Union(C) : Fin(A)";
+by (etac Fin_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "Fin_UnionI";
 

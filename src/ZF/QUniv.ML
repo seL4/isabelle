@@ -1,4 +1,4 @@
-(*  Title:      ZF/quniv
+(*  Title:      ZF/QUniv
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
@@ -8,17 +8,14 @@ A small universe for lazy recursive types
 
 (** Properties involving Transset and Sum **)
 
-val [prem1,prem2] = goalw QUniv.thy [sum_def]
-    "[| Transset(C); A+B <= C |] ==> A <= C & B <= C";
-by (rtac (prem2 RS (Un_subset_iff RS iffD1) RS conjE) 1);
-by (REPEAT (etac (prem1 RS Transset_includes_range) 1
-     ORELSE resolve_tac [conjI, singletonI] 1));
+Goalw [sum_def] "[| Transset(C); A+B <= C |] ==> A <= C & B <= C";
+by (dtac (Un_subset_iff RS iffD1) 1);
+by (blast_tac (claset() addDs [Transset_includes_range]) 1);
 qed "Transset_includes_summands";
 
-val [prem] = goalw QUniv.thy [sum_def]
-    "Transset(C) ==> (A+B) Int C <= (A Int C) + (B Int C)";
+Goalw [sum_def] "Transset(C) ==> (A+B) Int C <= (A Int C) + (B Int C)";
 by (stac Int_Un_distrib 1);
-by (blast_tac (claset() addSDs [prem RS Transset_Pair_D]) 1);
+by (blast_tac (claset() addDs [Transset_Pair_D]) 1);
 qed "Transset_sum_Int_subset";
 
 (** Introduction and elimination rules avoid tiresome folding/unfolding **)

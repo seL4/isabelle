@@ -71,9 +71,9 @@ by (REPEAT (ares_tac [Card_fun_Vcsucc RS subsetD] 1));
 qed "Card_fun_in_Vcsucc";
 
 (*Proved explicitly, in theory InfDatatype, to allow the bind_thm calls below*)
-qed_goal "Limit_csucc" InfDatatype.thy
-    "!!K. InfCard(K) ==> Limit(csucc(K))"
-  (fn _ => [etac (InfCard_csucc RS InfCard_is_Limit) 1]);
+Goal "InfCard(K) ==> Limit(csucc(K))";
+by (etac (InfCard_csucc RS InfCard_is_Limit) 1);
+qed "Limit_csucc";
 
 bind_thm ("Pair_in_Vcsucc",  Limit_csucc RSN (3, Pair_in_VLimit));
 bind_thm ("Inl_in_Vcsucc",   Limit_csucc RSN (2, Inl_in_VLimit));

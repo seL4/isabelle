@@ -7,23 +7,23 @@ Quantifiers and union operator for ordinals.
 
 (*** universal quantifier for ordinals ***)
 
-qed_goalw "oallI" thy [oall_def]
-    "[| !!x. x<A ==> P(x) |] ==> ALL x<A. P(x)"
- (fn prems=> [ (REPEAT (ares_tac (prems @ [allI,impI]) 1)) ]);
+val prems = Goalw [oall_def] 
+    "[| !!x. x<A ==> P(x) |] ==> ALL x<A. P(x)";
+by (REPEAT (ares_tac (prems @ [allI,impI]) 1)) ;
+qed "oallI";
 
-qed_goalw "ospec" thy [oall_def]
-    "[| ALL x<A. P(x);  x<A |] ==> P(x)"
- (fn major::prems=>
-  [ (rtac (major RS spec RS mp) 1),
-    (resolve_tac prems 1) ]);
+Goalw [oall_def] "[| ALL x<A. P(x);  x<A |] ==> P(x)";
+by (etac (spec RS mp) 1);
+by (assume_tac 1) ;
+qed "ospec";
 
-qed_goalw "oallE" thy [oall_def]
-    "[| ALL x<A. P(x);  P(x) ==> Q;  ~x<A ==> Q |] ==> Q"
- (fn major::prems=>
-  [ (rtac (major RS allE) 1),
-    (REPEAT (eresolve_tac (prems@[asm_rl,impCE]) 1)) ]);
+val major::prems = Goalw [oall_def] 
+    "[| ALL x<A. P(x);  P(x) ==> Q;  ~x<A ==> Q |] ==> Q";
+by (rtac (major RS allE) 1);
+by (REPEAT (eresolve_tac (prems@[asm_rl,impCE]) 1)) ;
+qed "oallE";
 
-val major::prems= goal thy
+val major::prems = Goal
     "[| ALL x<A. P(x);  ~x<A ==> Q;  P(x) ==> Q |] ==> Q";
 by (rtac (major RS oallE) 1);
 by (REPEAT (eresolve_tac prems 1)) ;
@@ -35,16 +35,18 @@ by (REPEAT (ares_tac [TrueI,oallI,iffI] 1)) ;
 qed "oall_simp";
 
 (*Congruence rule for rewriting*)
-qed_goalw "oall_cong" thy [oall_def]
-    "[| a=a';  !!x. x<a' ==> P(x) <-> P'(x) |] ==> oall(a,P) <-> oall(a',P')"
- (fn prems=> [ (simp_tac (simpset() addsimps prems) 1) ]);
+val prems = Goalw [oall_def] 
+    "[| a=a';  !!x. x<a' ==> P(x) <-> P'(x) |] ==> oall(a,P) <-> oall(a',P')";
+by (simp_tac (simpset() addsimps prems) 1) ;
+qed "oall_cong";
 
 
 (*** existential quantifier for ordinals ***)
 
-qed_goalw "oexI" thy [oex_def]
-    "[| P(x);  x<A |] ==> EX x<A. P(x)"
- (fn prems=> [ (REPEAT (ares_tac (prems @ [exI,conjI]) 1)) ]);
+val prems = Goalw [oex_def] 
+    "[| P(x);  x<A |] ==> EX x<A. P(x)";
+by (REPEAT (ares_tac (prems @ [exI,conjI]) 1)) ;
+qed "oexI";
 
 (*Not of the general form for such rules; ~EX has become ALL~ *)
 val prems = Goal
@@ -53,35 +55,36 @@ by (rtac classical 1);
 by (REPEAT (ares_tac (prems@[oexI,oallI,notI,notE]) 1)) ;
 qed "oexCI";
 
-qed_goalw "oexE" thy [oex_def]
+val major::prems = Goalw [oex_def] 
     "[| EX x<A. P(x);  !!x. [| x<A; P(x) |] ==> Q \
-\    |] ==> Q"
- (fn major::prems=>
-  [ (rtac (major RS exE) 1),
-    (REPEAT (eresolve_tac (prems @ [asm_rl,conjE]) 1)) ]);
+\    |] ==> Q";
+by (rtac (major RS exE) 1);
+by (REPEAT (eresolve_tac (prems @ [asm_rl,conjE]) 1)) ;
+qed "oexE";
 
-qed_goalw "oex_cong" thy [oex_def]
+val prems = Goalw [oex_def] 
     "[| a=a';  !!x. x<a' ==> P(x) <-> P'(x) \
-\    |] ==> oex(a,P) <-> oex(a',P')"
- (fn prems=> [ (simp_tac (simpset() addsimps prems addcongs [conj_cong]) 1) ]);
+\    |] ==> oex(a,P) <-> oex(a',P')";
+by (simp_tac (simpset() addsimps prems addcongs [conj_cong]) 1) ;
+qed "oex_cong";
 
 
 (*** Rules for Ordinal-Indexed Unions ***)
 
-qed_goalw "OUN_I" thy [OUnion_def]
-        "!!i. [| a<i;  b: B(a) |] ==> b: (UN z<i. B(z))"
- (fn _=> [ fast_tac (claset() addSEs [ltE]) 1 ]);
+Goalw [OUnion_def] "[| a<i;  b: B(a) |] ==> b: (UN z<i. B(z))";
+by (blast_tac (claset() addSEs [ltE]) 1);
+qed "OUN_I";
 
-qed_goalw "OUN_E" thy [OUnion_def]
-    "[| b : (UN z<i. B(z));  !!a.[| b: B(a);  a<i |] ==> R |] ==> R"
- (fn major::prems=>
-  [ (rtac (major RS CollectE) 1),
-    (rtac UN_E 1),
-    (REPEAT (ares_tac (ltI::prems) 1)) ]);
+val major::prems = Goalw [OUnion_def] 
+    "[| b : (UN z<i. B(z));  !!a.[| b: B(a);  a<i |] ==> R |] ==> R";
+by (rtac (major RS CollectE) 1);
+by (rtac UN_E 1);
+by (REPEAT (ares_tac (ltI::prems) 1)) ;
+qed "OUN_E";
 
-qed_goalw "OUN_iff" thy [oex_def]
-    "b : (UN x<i. B(x)) <-> (EX x<i. b : B(x))"
- (fn _=> [ (fast_tac (claset() addIs [OUN_I] addSEs [OUN_E]) 1) ]);
+Goalw [oex_def] "b : (UN x<i. B(x)) <-> (EX x<i. b : B(x))";
+by (fast_tac (claset() addIs [OUN_I] addSEs [OUN_E]) 1) ;
+qed "OUN_iff";
 
 val prems = Goal
     "[| i=j;  !!x. x<j ==> C(x)=D(x) |] ==> (UN x<i. C(x)) = (UN x<j. D(x))";

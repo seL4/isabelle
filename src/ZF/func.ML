@@ -237,13 +237,16 @@ by (blast_tac (claset() addIs [fun_extension]) 1);
 qed "fun_extension_iff";
 
 (*thanks to Mark Staples*)
-val fun_subset_eq = prove_goal thy
-    "!!f. [| f:Pi(A,B); g:Pi(A,C) |] ==> f <= g <-> (f = g)"
- (fn _=> 
-  [ (rtac iffI 1), (asm_full_simp_tac ZF_ss 2),
-    (rtac fun_extension 1), (REPEAT (atac 1)),
-    (dtac (apply_Pair RSN (2,subsetD)) 1), (REPEAT (atac 1)),
-    (rtac (apply_equality RS sym) 1), (REPEAT (atac 1)) ]);
+Goal "[| f:Pi(A,B); g:Pi(A,C) |] ==> f <= g <-> (f = g)";
+by (rtac iffI 1);
+by (asm_full_simp_tac ZF_ss 2);
+by (rtac fun_extension 1);
+by (REPEAT (atac 1));
+by (dtac (apply_Pair RSN (2,subsetD)) 1);
+by (REPEAT (atac 1));
+by (rtac (apply_equality RS sym) 1);
+by (REPEAT (atac 1)) ;
+qed "fun_subset_eq";
 
 
 (*Every element of Pi(A,B) may be expressed as a lambda abstraction!*)

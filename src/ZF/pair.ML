@@ -18,10 +18,10 @@ by (resolve_tac [extension RS iff_trans] 1);
 by (Blast_tac 1) ;
 qed "doubleton_eq_iff";
 
-qed_goalw "Pair_iff" thy [Pair_def]
-    "<a,b> = <c,d> <-> a=c & b=d"
- (fn _=> [ (simp_tac (simpset() addsimps [doubleton_eq_iff]) 1),
-           (Blast_tac 1) ]);
+Goalw [Pair_def] "<a,b> = <c,d> <-> a=c & b=d";
+by (simp_tac (simpset() addsimps [doubleton_eq_iff]) 1);
+by (Blast_tac 1) ;
+qed "Pair_iff";
 
 Addsimps [Pair_iff];
 
@@ -32,31 +32,33 @@ AddSEs [Pair_inject];
 bind_thm ("Pair_inject1", Pair_iff RS iffD1 RS conjunct1);
 bind_thm ("Pair_inject2", Pair_iff RS iffD1 RS conjunct2);
 
-qed_goalw "Pair_not_0" thy [Pair_def] "<a,b> ~= 0"
- (fn _ => [ (blast_tac (claset() addEs [equalityE]) 1) ]);
+Goalw [Pair_def]  "<a,b> ~= 0";
+by (blast_tac (claset() addEs [equalityE]) 1) ;
+qed "Pair_not_0";
 
 bind_thm ("Pair_neq_0", Pair_not_0 RS notE);
 
 AddSEs [Pair_neq_0, sym RS Pair_neq_0];
 
-qed_goalw "Pair_neq_fst" thy [Pair_def] "<a,b>=a ==> P"
- (fn [major]=>
-  [ (rtac (consI1 RS mem_asym RS FalseE) 1),
-    (rtac (major RS subst) 1),
-    (rtac consI1 1) ]);
+Goalw [Pair_def]  "<a,b>=a ==> P";
+by (rtac (consI1 RS mem_asym RS FalseE) 1);
+by (etac subst 1);
+by (rtac consI1 1) ;
+qed "Pair_neq_fst";
 
-qed_goalw "Pair_neq_snd" thy [Pair_def] "<a,b>=b ==> P"
- (fn [major]=>
-  [ (rtac (consI1 RS consI2 RS mem_asym RS FalseE) 1),
-    (rtac (major RS subst) 1),
-    (rtac (consI1 RS consI2) 1) ]);
+Goalw [Pair_def]  "<a,b>=b ==> P";
+by (rtac (consI1 RS consI2 RS mem_asym RS FalseE) 1);
+by (etac subst 1);
+by (rtac (consI1 RS consI2) 1) ;
+qed "Pair_neq_snd";
 
 
 (*** Sigma: Disjoint union of a family of sets
      Generalizes Cartesian product ***)
 
-qed_goalw "Sigma_iff" thy [Sigma_def] "<a,b>: Sigma(A,B) <-> a:A & b:B(a)"
- (fn _ => [ Blast_tac 1 ]);
+Goalw [Sigma_def]  "<a,b>: Sigma(A,B) <-> a:A & b:B(a)";
+by (Blast_tac 1) ;
+qed "Sigma_iff";
 
 Addsimps [Sigma_iff];
 
@@ -70,13 +72,13 @@ bind_thm ("SigmaD1", Sigma_iff RS iffD1 RS conjunct1);
 bind_thm ("SigmaD2", Sigma_iff RS iffD1 RS conjunct2);
 
 (*The general elimination rule*)
-qed_goalw "SigmaE" thy [Sigma_def]
+val major::prems= Goalw [Sigma_def] 
     "[| c: Sigma(A,B);  \
 \       !!x y.[| x:A;  y:B(x);  c=<x,y> |] ==> P \
-\    |] ==> P"
- (fn major::prems=>
-  [ (cut_facts_tac [major] 1),
-    (REPEAT (eresolve_tac [UN_E, singletonE] 1 ORELSE ares_tac prems 1)) ]);
+\    |] ==> P";
+by (cut_facts_tac [major] 1);
+by (REPEAT (eresolve_tac [UN_E, singletonE] 1 ORELSE ares_tac prems 1)) ;
+qed "SigmaE";
 
 val [major,minor]= Goal
     "[| <a,b> : Sigma(A,B);    \
@@ -87,10 +89,11 @@ by (rtac (major RS SigmaD1) 1);
 by (rtac (major RS SigmaD2) 1) ;
 qed "SigmaE2";
 
-qed_goalw "Sigma_cong" thy [Sigma_def]
+val prems= Goalw [Sigma_def] 
     "[| A=A';  !!x. x:A' ==> B(x)=B'(x) |] ==> \
-\    Sigma(A,B) = Sigma(A',B')"
- (fn prems=> [ (simp_tac (simpset() addsimps prems) 1) ]);
+\    Sigma(A,B) = Sigma(A',B')";
+by (simp_tac (simpset() addsimps prems) 1) ;
+qed "Sigma_cong";
 
 
 (*Sigma_cong, Pi_cong NOT given to Addcongs: they cause
@@ -117,11 +120,13 @@ qed "Sigma_empty_iff";
 
 (*** Projections: fst, snd ***)
 
-qed_goalw "fst_conv" thy [fst_def] "fst(<a,b>) = a"
- (fn _=> [ (Blast_tac 1) ]);
+Goalw [fst_def]  "fst(<a,b>) = a";
+by (Blast_tac 1) ;
+qed "fst_conv";
 
-qed_goalw "snd_conv" thy [snd_def] "snd(<a,b>) = b"
- (fn _=> [ (Blast_tac 1) ]);
+Goalw [snd_def]  "snd(<a,b>) = b";
+by (Blast_tac 1) ;
+qed "snd_conv";
 
 Addsimps [fst_conv,snd_conv];
 

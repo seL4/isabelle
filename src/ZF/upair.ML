@@ -20,9 +20,9 @@ val Pow_top = subset_refl RS PowI;              (* A : Pow(A) *)
 
 (*** Unordered pairs - Upair ***)
 
-qed_goalw "Upair_iff" thy [Upair_def]
-    "c : Upair(a,b) <-> (c=a | c=b)"
- (fn _ => [ (Blast_tac 1) ]);
+Goalw [Upair_def] "c : Upair(a,b) <-> (c=a | c=b)";
+by (Blast_tac 1) ;
+qed "Upair_iff";
 
 Addsimps [Upair_iff];
 
@@ -45,8 +45,9 @@ AddSEs [UpairE];
 
 (*** Rules for binary union -- Un -- defined via Upair ***)
 
-qed_goalw "Un_iff" thy [Un_def] "c : A Un B <-> (c:A | c:B)"
- (fn _ => [(Blast_tac 1)]);
+Goalw [Un_def]  "c : A Un B <-> (c:A | c:B)";
+by (Blast_tac 1);
+qed "Un_iff";
 
 Addsimps [Un_iff];
 
@@ -87,8 +88,9 @@ AddSEs [UnE];
 
 (*** Rules for small intersection -- Int -- defined via Upair ***)
 
-qed_goalw "Int_iff" thy [Int_def] "c : A Int B <-> (c:A & c:B)"
- (fn _ => [(Blast_tac 1)]);
+Goalw [Int_def]  "c : A Int B <-> (c:A & c:B)";
+by (Blast_tac 1);
+qed "Int_iff";
 
 Addsimps [Int_iff];
 
@@ -114,8 +116,9 @@ AddSEs [IntE];
 
 (*** Rules for set difference -- defined via Upair ***)
 
-qed_goalw "Diff_iff" thy [Diff_def] "c : A-B <-> (c:A & c~:B)"
- (fn _ => [(Blast_tac 1)]);
+Goalw [Diff_def]  "c : A-B <-> (c:A & c~:B)";
+by (Blast_tac 1);
+qed "Diff_iff";
 
 Addsimps [Diff_iff];
 
@@ -141,8 +144,9 @@ AddSEs [DiffE];
 
 (*** Rules for cons -- defined via Un and Upair ***)
 
-qed_goalw "cons_iff" thy [cons_def] "a : cons(b,A) <-> (a=b | a:A)"
- (fn _ => [(Blast_tac 1)]);
+Goalw [cons_def]  "a : cons(b,A) <-> (a=b | a:A)";
+by (Blast_tac 1);
+qed "cons_iff";
 
 Addsimps [cons_iff];
 
@@ -210,10 +214,10 @@ AddSEs [singletonE];
 
 (*** Rules for Descriptions ***)
 
-qed_goalw "the_equality" thy [the_def]
-    "[| P(a);  !!x. P(x) ==> x=a |] ==> (THE x. P(x)) = a"
- (fn [pa,eq] =>
-  [ (fast_tac (claset() addSIs [pa] addEs [eq RS subst]) 1) ]);
+val [pa,eq] = Goalw [the_def] 
+    "[| P(a);  !!x. P(x) ==> x=a |] ==> (THE x. P(x)) = a";
+by (fast_tac (claset() addSIs [pa] addEs [eq RS subst]) 1) ;
+qed "the_equality";
 
 AddIs [the_equality];
 
@@ -337,23 +341,25 @@ qed "mem_imp_not_eq";
 
 (*** Rules for succ ***)
 
-qed_goalw "succ_iff" thy [succ_def] "i : succ(j) <-> i=j | i:j"
- (fn _ => [(Blast_tac 1)]);
+Goalw [succ_def]  "i : succ(j) <-> i=j | i:j";
+by (Blast_tac 1);
+qed "succ_iff";
 
-qed_goalw "succI1" thy [succ_def] "i : succ(i)"
- (fn _=> [ (rtac consI1 1) ]);
+Goalw [succ_def]  "i : succ(i)";
+by (rtac consI1 1) ;
+qed "succI1";
 
 Addsimps [succI1];
 
-qed_goalw "succI2" thy [succ_def]
-    "i : j ==> i : succ(j)"
- (fn [prem]=> [ (rtac (prem RS consI2) 1) ]);
+Goalw [succ_def] "i : j ==> i : succ(j)";
+by (etac consI2 1) ;
+qed "succI2";
 
-qed_goalw "succE" thy [succ_def]
-    "[| i : succ(j);  i=j ==> P;  i:j ==> P |] ==> P"
- (fn major::prems=>
-  [ (rtac (major RS consE) 1),
-    (REPEAT (eresolve_tac prems 1)) ]);
+val major::prems= Goalw [succ_def] 
+    "[| i : succ(j);  i=j ==> P;  i:j ==> P |] ==> P";
+by (rtac (major RS consE) 1);
+by (REPEAT (eresolve_tac prems 1)) ;
+qed "succE";
 
 (*Classical introduction rule*)
 val [prem]= Goal "(i~:j ==> i=j) ==> i: succ(j)";

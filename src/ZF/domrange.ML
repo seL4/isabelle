@@ -8,27 +8,27 @@ Converse, domain, range of a relation or function
 
 (*** converse ***)
 
-qed_goalw "converse_iff" thy [converse_def]
-    "<a,b>: converse(r) <-> <b,a>:r"
- (fn _ => [ (Blast_tac 1) ]);
+Goalw [converse_def] "<a,b>: converse(r) <-> <b,a>:r";
+by (Blast_tac 1) ;
+qed "converse_iff";
 
-qed_goalw "converseI" thy [converse_def]
-    "!!a b r. <a,b>:r ==> <b,a>:converse(r)"
- (fn _ => [ (Blast_tac 1) ]);
+Goalw [converse_def] "<a,b>:r ==> <b,a>:converse(r)";
+by (Blast_tac 1) ;
+qed "converseI";
 
-qed_goalw "converseD" thy [converse_def]
-    "!!a b r. <a,b> : converse(r) ==> <b,a> : r"
- (fn _ => [ (Blast_tac 1) ]);
+Goalw [converse_def] "<a,b> : converse(r) ==> <b,a> : r";
+by (Blast_tac 1) ;
+qed "converseD";
 
-qed_goalw "converseE" thy [converse_def]
+val [major,minor]= Goalw [converse_def] 
     "[| yx : converse(r);  \
 \       !!x y. [| yx=<y,x>;  <x,y>:r |] ==> P \
-\    |] ==> P"
- (fn [major,minor]=>
-  [ (rtac (major RS ReplaceE) 1),
-    (REPEAT (eresolve_tac [exE, conjE, minor] 1)),
-    (hyp_subst_tac 1),
-    (assume_tac 1) ]);
+\    |] ==> P";
+by (rtac (major RS ReplaceE) 1);
+by (REPEAT (eresolve_tac [exE, conjE, minor] 1));
+by (hyp_subst_tac 1);
+by (assume_tac 1) ;
+qed "converseE";
 
 Addsimps [converse_iff];
 AddSIs [converseI];
@@ -52,16 +52,16 @@ qed "converse_empty";
 
 Addsimps [converse_prod, converse_empty];
 
-val converse_subset_iff = prove_goal thy
-  "!!z. A <= Sigma(X,Y) ==> converse(A) <= converse(B) <-> A <= B"
- (fn _=> [ (Blast_tac 1) ]);
+Goal "A <= Sigma(X,Y) ==> converse(A) <= converse(B) <-> A <= B";
+by (Blast_tac 1) ;
+qed "converse_subset_iff";
 
 
 (*** domain ***)
 
-qed_goalw "domain_iff" thy [domain_def]
-    "a: domain(r) <-> (EX y. <a,y>: r)"
- (fn _=> [ (Blast_tac 1) ]);
+Goalw [domain_def] "a: domain(r) <-> (EX y. <a,y>: r)";
+by (Blast_tac 1) ;
+qed "domain_iff";
 
 Goal "<a,b>: r ==> a: domain(r)";
 by (etac (exI RS (domain_iff RS iffD2)) 1) ;
@@ -82,44 +82,48 @@ qed "domain_subset";
 
 (*** range ***)
 
-qed_goalw "rangeI" thy [range_def] "!!a b r.<a,b>: r ==> b : range(r)"
- (fn _ => [ (etac (converseI RS domainI) 1) ]);
+Goalw [range_def]  "<a,b>: r ==> b : range(r)";
+by (etac (converseI RS domainI) 1) ;
+qed "rangeI";
 
-qed_goalw "rangeE" thy [range_def]
-    "[| b : range(r);  !!x. <x,b>: r ==> P |] ==> P"
- (fn major::prems=>
-  [ (rtac (major RS domainE) 1),
-    (resolve_tac prems 1),
-    (etac converseD 1) ]);
+val major::prems= Goalw [range_def] 
+    "[| b : range(r);  !!x. <x,b>: r ==> P |] ==> P";
+by (rtac (major RS domainE) 1);
+by (resolve_tac prems 1);
+by (etac converseD 1) ;
+qed "rangeE";
 
 AddIs  [rangeI];
 AddSEs [rangeE];
 
-qed_goalw "range_subset" thy [range_def] "range(A*B) <= B"
- (fn _ =>
-  [ (stac converse_prod 1),
-    (rtac domain_subset 1) ]);
+Goalw [range_def]  "range(A*B) <= B";
+by (stac converse_prod 1);
+by (rtac domain_subset 1) ;
+qed "range_subset";
 
 
 (*** field ***)
 
-qed_goalw "fieldI1" thy [field_def] "!!r. <a,b>: r ==> a : field(r)"
- (fn _ => [ (Blast_tac 1) ]);
+Goalw [field_def]  "<a,b>: r ==> a : field(r)";
+by (Blast_tac 1) ;
+qed "fieldI1";
 
-qed_goalw "fieldI2" thy [field_def] "!!r. <a,b>: r ==> b : field(r)"
- (fn _ => [ (Blast_tac 1) ]);
+Goalw [field_def]  "<a,b>: r ==> b : field(r)";
+by (Blast_tac 1) ;
+qed "fieldI2";
 
-qed_goalw "fieldCI" thy [field_def]
-    "(~ <c,a>:r ==> <a,b>: r) ==> a : field(r)"
- (fn [prem]=> [ (blast_tac (claset() addIs [prem]) 1) ]);
+val [prem]= Goalw [field_def] 
+    "(~ <c,a>:r ==> <a,b>: r) ==> a : field(r)";
+by (blast_tac (claset() addIs [prem]) 1) ;
+qed "fieldCI";
 
-qed_goalw "fieldE" thy [field_def]
+val major::prems= Goalw [field_def] 
      "[| a : field(r);  \
 \        !!x. <a,x>: r ==> P;  \
-\        !!x. <x,a>: r ==> P        |] ==> P"
- (fn major::prems=>
-  [ (rtac (major RS UnE) 1),
-    (REPEAT (eresolve_tac (prems@[domainE,rangeE]) 1)) ]);
+\        !!x. <x,a>: r ==> P        |] ==> P";
+by (rtac (major RS UnE) 1);
+by (REPEAT (eresolve_tac (prems@[domainE,rangeE]) 1)) ;
+qed "fieldE";
 
 AddIs  [fieldCI];
 AddSEs [fieldE];
@@ -128,13 +132,13 @@ Goal "field(A*B) <= A Un B";
 by (Blast_tac 1) ;
 qed "field_subset";
 
-qed_goalw "domain_subset_field" thy [field_def]
-    "domain(r) <= field(r)"
- (fn _ => [ (rtac Un_upper1 1) ]);
+Goalw [field_def] "domain(r) <= field(r)";
+by (rtac Un_upper1 1) ;
+qed "domain_subset_field";
 
-qed_goalw "range_subset_field" thy [field_def]
-    "range(r) <= field(r)"
- (fn _ => [ (rtac Un_upper2 1) ]);
+Goalw [field_def] "range(r) <= field(r)";
+by (rtac Un_upper2 1) ;
+qed "range_subset_field";
 
 Goal "r <= Sigma(A,B) ==> r <= domain(r)*range(r)";
 by (Blast_tac 1) ;
@@ -156,15 +160,15 @@ by (rtac (image_iff RS iff_trans) 1);
 by (Blast_tac 1) ;
 qed "image_singleton_iff";
 
-qed_goalw "imageI" thy [image_def]
-    "!!a b r. [| <a,b>: r;  a:A |] ==> b : r``A"
- (fn _ => [ (Blast_tac 1) ]);
+Goalw [image_def] "[| <a,b>: r;  a:A |] ==> b : r``A";
+by (Blast_tac 1) ;
+qed "imageI";
 
-qed_goalw "imageE" thy [image_def]
-    "[| b: r``A;  !!x.[| <x,b>: r;  x:A |] ==> P |] ==> P"
- (fn major::prems=>
-  [ (rtac (major RS CollectE) 1),
-    (REPEAT (etac bexE 1 ORELSE ares_tac prems 1)) ]);
+val major::prems= Goalw [image_def] 
+    "[| b: r``A;  !!x.[| <x,b>: r;  x:A |] ==> P |] ==> P";
+by (rtac (major RS CollectE) 1);
+by (REPEAT (etac bexE 1 ORELSE ares_tac prems 1)) ;
+qed "imageE";
 
 AddIs  [imageI];
 AddSEs [imageE];
@@ -176,28 +180,29 @@ qed "image_subset";
 
 (*** Inverse image of a set under a function/relation ***)
 
-qed_goalw "vimage_iff" thy [vimage_def,image_def,converse_def]
-    "a : r-``B <-> (EX y:B. <a,y>:r)"
- (fn _ => [ (Blast_tac 1) ]);
+Goalw [vimage_def,image_def,converse_def] 
+    "a : r-``B <-> (EX y:B. <a,y>:r)";
+by (Blast_tac 1) ;
+qed "vimage_iff";
 
 Goal "a : r-``{b} <-> <a,b>:r";
 by (rtac (vimage_iff RS iff_trans) 1);
 by (Blast_tac 1) ;
 qed "vimage_singleton_iff";
 
-qed_goalw "vimageI" thy [vimage_def]
-    "!!A B r. [| <a,b>: r;  b:B |] ==> a : r-``B"
- (fn _ => [ (Blast_tac 1) ]);
+Goalw [vimage_def] "[| <a,b>: r;  b:B |] ==> a : r-``B";
+by (Blast_tac 1) ;
+qed "vimageI";
 
-qed_goalw "vimageE" thy [vimage_def]
-    "[| a: r-``B;  !!x.[| <a,x>: r;  x:B |] ==> P |] ==> P"
- (fn major::prems=>
-  [ (rtac (major RS imageE) 1),
-    (REPEAT (etac converseD 1 ORELSE ares_tac prems 1)) ]);
+val major::prems= Goalw [vimage_def] 
+    "[| a: r-``B;  !!x.[| <a,x>: r;  x:B |] ==> P |] ==> P";
+by (rtac (major RS imageE) 1);
+by (REPEAT (etac converseD 1 ORELSE ares_tac prems 1)) ;
+qed "vimageE";
 
-qed_goalw "vimage_subset" thy [vimage_def]
-    "!!A B r. r <= A*B ==> r-``C <= A"
- (fn _ => [ (etac (converse_type RS image_subset) 1) ]);
+Goalw [vimage_def] "r <= A*B ==> r-``C <= A";
+by (etac (converse_type RS image_subset) 1) ;
+qed "vimage_subset";
 
 
 (** Theorem-proving for ZF set theory **)

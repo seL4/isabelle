@@ -41,16 +41,16 @@ qed "subset_succI";
 
 (*But if j is an ordinal or is transitive, then i:j implies i<=j! 
   See ordinal/Ord_succ_subsetI*)
-qed_goalw "succ_subsetI" thy [succ_def]
-    "!!i j. [| i:j;  i<=j |] ==> succ(i)<=j"
- (fn _=> [ (Blast_tac 1) ]);
+Goalw [succ_def] "[| i:j;  i<=j |] ==> succ(i)<=j";
+by (Blast_tac 1) ;
+qed "succ_subsetI";
 
-qed_goalw "succ_subsetE" thy [succ_def] 
+val major::prems= Goalw [succ_def]  
     "[| succ(i) <= j;  [| i:j;  i<=j |] ==> P \
-\    |] ==> P"
- (fn major::prems=>
-  [ (rtac (major RS cons_subsetE) 1),
-    (REPEAT (ares_tac prems 1)) ]);
+\    |] ==> P";
+by (rtac (major RS cons_subsetE) 1);
+by (REPEAT (ares_tac prems 1)) ;
+qed "succ_subsetE";
 
 (*** singletons ***)
 

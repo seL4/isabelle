@@ -18,7 +18,6 @@ print_depth 1;
 (*Add user sections for inductive/datatype definitions*)
 use     "thy_syntax";
 
-use_thy "Let";
 use_thy "ZF";
 use     "Tools/typechk";
 use_thy "mono";
@@ -28,7 +27,6 @@ use_thy "Fixedpt";
 use     "Tools/inductive_package";
 use     "Tools/induct_tacs";
 use     "Tools/primrec_package";
-use_thy "Inductive";
 use_thy "QUniv";
 use     "Tools/datatype_package";
 

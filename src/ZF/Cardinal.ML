@@ -219,12 +219,13 @@ by (REPEAT (eresolve_tac [asm_rl, ltE] 1));
 qed "less_LeastE";
 
 (*Easier to apply than LeastI: conclusion has only one occurrence of P*)
-qed_goal "LeastI2" Cardinal.thy
-    "[| P(i);  Ord(i);  !!j. P(j) ==> Q(j) |] ==> Q(LEAST j. P(j))"
- (fn prems => [ resolve_tac prems 1, 
-                rtac LeastI 1, 
-                resolve_tac prems 1, 
-                resolve_tac prems 1 ]);
+val prems = goal Cardinal.thy
+    "[| P(i);  Ord(i);  !!j. P(j) ==> Q(j) |] ==> Q(LEAST j. P(j))";
+by (resolve_tac prems 1);
+by (rtac LeastI 1);
+by (resolve_tac prems 1);
+by (resolve_tac prems 1) ;
+qed "LeastI2";
 
 (*If there is no such P then LEAST is vacuously 0*)
 Goalw [Least_def]

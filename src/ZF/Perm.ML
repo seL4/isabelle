@@ -25,7 +25,7 @@ qed "surj_range";
 
 (** A function with a right inverse is a surjection **)
 
-val prems = goalw Perm.thy [surj_def]
+val prems = Goalw [surj_def]
     "[| f: A->B;  !!y. y:B ==> d(y): A;  !!y. y:B ==> f`d(y) = y \
 \    |] ==> f: surj(A,B)";
 by (blast_tac (claset() addIs prems) 1);
@@ -92,7 +92,7 @@ qed "bij_is_surj";
 (* f: bij(A,B) ==> f: A->B *)
 bind_thm ("bij_is_fun", bij_is_inj RS inj_is_fun);
 
-val prems = goalw Perm.thy [bij_def]
+val prems = Goalw [bij_def]
     "[| !!x. x:A ==> c(x): B;           \
 \       !!y. y:B ==> d(y): A;           \
 \       !!x. x:A ==> d(c(x)) = x;       \
@@ -111,11 +111,11 @@ qed "RepFun_bijective";
 
 (** Identity function **)
 
-val [prem] = goalw Perm.thy [id_def] "a:A ==> <a,a> : id(A)";  
-by (rtac (prem RS lamI) 1);
+Goalw [id_def] "a:A ==> <a,a> : id(A)";  
+by (etac lamI 1);
 qed "idI";
 
-val major::prems = goalw Perm.thy [id_def]
+val major::prems = Goalw [id_def]
     "[| p: id(A);  !!x.[| x:A; p=<x,x> |] ==> P  \
 \    |] ==>  P";  
 by (rtac (major RS lamE) 1);
@@ -133,8 +133,8 @@ qed "id_conv";
 
 Addsimps [id_conv];
 
-val [prem] = goalw Perm.thy [id_def] "A<=B ==> id(A) <= id(B)";
-by (rtac (prem RS lam_mono) 1);
+Goalw [id_def] "A<=B ==> id(A) <= id(B)";
+by (etac lam_mono 1);
 qed "id_mono";
 
 Goalw [inj_def,id_def] "A<=B ==> id(A): inj(A,B)";
@@ -233,7 +233,7 @@ Goalw [comp_def] "[| <a,b>:s; <b,c>:r |] ==> <a,c> : r O s";
 by (Blast_tac 1);
 qed "compI";
 
-val prems = goalw Perm.thy [comp_def]
+val prems = Goalw [comp_def]
     "[| xz : r O s;  \
 \       !!x y z. [| xz=<x,z>;  <x,y>:s;  <y,z>:r |] ==> P \
 \    |] ==> P";

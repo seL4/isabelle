@@ -133,8 +133,7 @@ by (blast_tac (claset() addIs [r_into_trancl]) 1);
 qed "r_subset_trancl";
 
 (*intro rule by definition: from r^* and r  *)
-Goalw [trancl_def]
-    "!!r. [| <a,b> : r^*;  <b,c> : r |]   ==>  <a,c> : r^+";
+Goalw [trancl_def] "[| <a,b> : r^*;  <b,c> : r |]   ==>  <a,c> : r^+";
 by (Blast_tac 1);
 qed "rtrancl_into_trancl1";
 
