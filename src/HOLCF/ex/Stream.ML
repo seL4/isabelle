@@ -454,7 +454,7 @@ by (Asm_full_simp_tac 1);
 qed "slen_scons_eq_rev";
 
 Goal "!x. (Fin n < #x) = (stream_take n\\<cdot>x ~= x)";
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
 by  (simp_tac(simpset() addsimps [slen_empty_eq, thm "Fin_0"]) 1);
 by  (Fast_tac 1);
 by (rtac allI 1);
@@ -476,7 +476,7 @@ by (asm_simp_tac (simpset() addsimps [slen_take_eq_rev RS sym]) 1);
 qed "slen_take_lemma1";
 
 Goal "!x. ~stream_finite x --> #(stream_take i\\<cdot>x) = Fin i";
-by (nat_ind_tac "i" 1);
+by (induct_tac "i" 1);
 by  (simp_tac(simpset() addsimps [thm "Fin_0"]) 1);
 by (rtac allI 1);
 by (stream_case_tac "x" 1);
@@ -515,7 +515,7 @@ qed "slen_mono";
 
 Goal "!(x::'a::flat stream) y. Fin n <= #x --> x << y --> \
 \ stream_take n\\<cdot>x = stream_take n\\<cdot>y";
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
 by ( simp_tac(simpset() addsimps [slen_empty_eq]) 1);
 by (strip_tac 1);
 by (stream_case_tac "x" 1);
@@ -553,7 +553,7 @@ by (Fast_tac 1);
 qed "slen_strict_mono";
 
 Goal "!x. Fin (i + j) <= #x --> Fin j <= #(iterate i rt x)";
-by (nat_ind_tac "i" 1);
+by (induct_tac "i" 1);
 by  (Simp_tac 1);
 by (strip_tac 1);
 by (stream_case_tac "x" 1);

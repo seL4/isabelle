@@ -86,14 +86,14 @@ qed "q_def3";
 
 Goal "(ALL m. m< Suc k --> b1$(iterate m g x)=TT) -->\
 \  p$(iterate k g x)=p$x";
-by (nat_ind_tac "k" 1);
+by (induct_tac "k" 1);
 by (Simp_tac 1);
 by (Simp_tac 1);
 by (strip_tac 1);
-by (res_inst_tac [("s","p$(iterate k g x)")] trans 1);
+by (res_inst_tac [("s","p$(iterate n g x)")] trans 1);
 by (rtac trans 1);
 by (rtac (p_def3 RS sym) 2);
-by (res_inst_tac [("s","TT"),("t","b1$(iterate k g x)")] ssubst 1);
+by (res_inst_tac [("s","TT"),("t","b1$(iterate n g x)")] ssubst 1);
 by (rtac mp 1);
 by (etac spec 1);
 by (simp_tac (simpset() addsimps [less_Suc_eq]) 1);
@@ -108,14 +108,14 @@ qed "hoare_lemma9";
 
 Goal "(ALL m. m< Suc k --> b1$(iterate m g x)=TT) --> \
 \ q$(iterate k g x)=q$x";
-by (nat_ind_tac "k" 1);
+by (induct_tac "k" 1);
 by (Simp_tac 1);
 by (simp_tac (simpset() addsimps [less_Suc_eq]) 1);
 by (strip_tac 1);
-by (res_inst_tac [("s","q$(iterate k g x)")] trans 1);
+by (res_inst_tac [("s","q$(iterate n g x)")] trans 1);
 by (rtac trans 1);
 by (rtac (q_def3 RS sym) 2);
-by (res_inst_tac [("s","TT"),("t","b1$(iterate k g x)")] ssubst 1);
+by (res_inst_tac [("s","TT"),("t","b1$(iterate n g x)")] ssubst 1);
 by (fast_tac HOL_cs 1);
 by (simp_tac HOLCF_ss 1);
 by (etac mp 1);

@@ -60,7 +60,7 @@ Goalw [stream_monoP_def]
 \ Fin l <= #x --> (x::'a::flat stream) << y --> x:down_iterate F i --> y:down_iterate F i";
 by (safe_tac HOL_cs);
 by (res_inst_tac [("x","i*ia")] exI 1);
-by (nat_ind_tac "ia" 1);
+by (induct_tac "ia" 1);
 by ( Simp_tac 1);
 by (Simp_tac 1);
 by (strip_tac 1);
@@ -109,13 +109,13 @@ qed_goalw "stream_antiP2I" thy [stream_antiP_def]
 "!!X. [|stream_antiP (F::(('a::flat stream)set => ('a stream set)))|]\
 \ ==> !i x y. x << y --> y:down_iterate F i --> x:down_iterate F i" (K [
 	rtac allI 1,
-	nat_ind_tac "i" 1,
+	induct_tac "i" 1,
 	 Simp_tac 1,
 	Simp_tac 1,
 	strip_tac 1,
 	etac allE 1 THEN etac all_dupE 1 THEN etac exE 1 THEN etac exE 1,
 	etac conjE 1,
-	case_tac "#x < Fin ia" 1,
+	case_tac "#x < Fin i" 1,
 	 fast_tac HOL_cs 1,
 	fold_goals_tac [thm "ile_def"],
 	mp_tac 1,

@@ -30,7 +30,7 @@ by (Simp_tac 1);
 qed "while_unfold";
 
 Goal "ALL x. while$b$g$x = while$b$g$(iterate k (step$b$g) x)";
-by (nat_ind_tac "k" 1);
+by (induct_tac "k" 1);
 by (simp_tac HOLCF_ss 1);
 by (rtac allI 1);
 by (rtac trans 1);
@@ -86,26 +86,26 @@ qed "loop_lemma2";
 Goal "[| ALL x. INV x & b$x=TT & g$x~=UU --> INV (g$x);\
 \        EX y. b$y=FF; INV x |] \
 \     ==> iterate k (step$b$g) x ~=UU --> INV (iterate k (step$b$g) x)";
-by (nat_ind_tac "k" 1);
+by (induct_tac "k" 1);
 by (Asm_simp_tac 1);
 by (strip_tac 1);
 by (simp_tac (simpset() addsimps [step_def2]) 1);
-by (res_inst_tac [("p","b$(iterate k (step$b$g) x)")] trE 1);
+by (res_inst_tac [("p","b$(iterate n (step$b$g) x)")] trE 1);
 by (etac notE 1);
 by (asm_simp_tac (HOLCF_ss addsimps [step_def2] ) 1);
 by (asm_simp_tac HOLCF_ss 1);
 by (rtac mp 1);
 by (etac spec 1);
 by (asm_simp_tac (HOLCF_ss delsimps [iterate_Suc] addsimps [loop_lemma2] ) 1);
-by (res_inst_tac [("s","iterate (Suc k) (step$b$g) x"),
-                  ("t","g$(iterate k (step$b$g) x)")] ssubst 1);
+by (res_inst_tac [("s","iterate (Suc n) (step$b$g) x"),
+                  ("t","g$(iterate n (step$b$g) x)")] ssubst 1);
 by (atac 2);
 by (asm_simp_tac (HOLCF_ss addsimps [step_def2] ) 1);
 by (asm_simp_tac (HOLCF_ss delsimps [iterate_Suc] addsimps [loop_lemma2] ) 1);
 qed_spec_mp "loop_lemma3";
 
 Goal "ALL x. b$(iterate k (step$b$g) x)=FF --> while$b$g$x= iterate k (step$b$g) x";
-by (nat_ind_tac "k" 1);
+by (induct_tac "k" 1);
 by (Simp_tac 1);
 by (strip_tac 1);
 by (stac while_unfold 1);

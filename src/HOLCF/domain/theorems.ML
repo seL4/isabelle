@@ -371,7 +371,7 @@ local
   val copy_take_defs =(if n_eqs = 1 then [] else [ax_copy2_def]) @ axs_take_def;
   val take_stricts=pg copy_take_defs(mk_trp(foldr' mk_conj(map(fn((dn,args),_)=>
             strict(dc_take dn $ %:"n")) eqs))) ([
-                        nat_ind_tac "n" 1,
+                        induct_tac "n" 1,
                          simp_tac iterate_Cprod_ss 1,
                         asm_simp_tac (iterate_Cprod_ss addsimps copy_rews)1]);
   val take_stricts' = rewrite_rule copy_take_defs take_stricts;
@@ -385,7 +385,7 @@ local
          con_app2 con (app_rec_arg (fn n=>dc_take (nth_elem(n,dnames))$ %:"n"))
                               args)) cons) eqs)))) ([
                                 simp_tac iterate_Cprod_ss 1,
-                                nat_ind_tac "n" 1,
+                                induct_tac "n" 1,
                             simp_tac(iterate_Cprod_ss addsimps copy_con_rews) 1,
                                 asm_full_simp_tac (HOLCF_ss addsimps 
                                       (filter (has_fewer_prems 1) copy_rews)) 1,
@@ -442,7 +442,7 @@ val finite_ind = pg'' thy [] (ind_term (fn n => fn dn => %:(P_name n)$
                              (dc_take dn $ %:"n" `%(x_name n)))) (fn prems => [
                                 quant_tac 1,
                                 simp_tac HOL_ss 1,
-                                nat_ind_tac "n" 1,
+                                induct_tac "n" 1,
                                 simp_tac (take_ss addsimps prems) 1,
                                 TRY(safe_tac HOL_cs)]
                                 @ flat(map (fn (cons,cases) => [
@@ -494,7 +494,7 @@ val (finites,ind) = if is_finite then
          mk_disj(dc_take dn $ Bound 1 ` Bound 0 === UU,
                  dc_take dn $ Bound 1 ` Bound 0 === Bound 0))) 1 eqs)))) ([
                                 rtac allI 1,
-                                nat_ind_tac "n" 1,
+                                induct_tac "n" 1,
                                 simp_tac take_ss 1,
                         TRY(safe_tac(empty_cs addSEs[conjE] addSIs[conjI]))] @
                                 flat(mapn (fn n => fn (cons,cases) => [
@@ -564,7 +564,7 @@ local
                                 (dc_take dn $ %:"n" `bnd_arg n 0 === 
                                 (dc_take dn $ %:"n" `bnd_arg n 1)))0 dnames))))))
                              ([ rtac impI 1,
-                                nat_ind_tac "n" 1,
+                                induct_tac "n" 1,
                                 simp_tac take_ss 1,
                                 safe_tac HOL_cs] @
                                 flat(mapn (fn n => fn x => [

@@ -160,7 +160,7 @@ qed "Buf_AC_imp_Eq";
 
 Goal "\\<forall>s f ff. f\\<in>BufEq \\<longrightarrow> ff\\<in>BufEq \\<longrightarrow> \
 \ s\\<in>BufAC_Asm \\<longrightarrow> stream_take n\\<cdot>(f\\<cdot>s) = stream_take n\\<cdot>(ff\\<cdot>s)";
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
 by  (Simp_tac 1);
 by (strip_tac 1);
 by (dtac (BufAC_Asm_unfold RS iffD1) 1);
