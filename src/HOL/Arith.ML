@@ -849,25 +849,21 @@ struct
 val ccontr = ccontr;
 val conjI = conjI;
 val lessD = Suc_leI;
-val nat_neqE = nat_neqE;
+val neqE = nat_neqE;
 val notI = notI;
 val not_leD = not_leE RS Suc_leI;
 val not_lessD = leI;
 val sym = sym;
 
-val nat = Type("nat",[]);
-val boolT = Type("bool",[]);
-
-fun nnb T = T = ([nat,nat] ---> boolT);
-
 (* Turn term into list of summand * multiplicity plus a constant *)
 fun poly(Const("Suc",_)$t, (p,i)) = poly(t, (p,i+1))
-  | poly(Const("op +",Type("fun",[Type("nat",[]),_])) $ s $ t, pi) =
-      poly(s,poly(t,pi))
+  | poly(Const("op +",_) $ s $ t, pi) = poly(s,poly(t,pi))
   | poly(t,(p,i)) =
-      if t = Const("0",nat) then (p,i)
+      if t = Const("0",HOLogic.natT) then (p,i)
       else (case assoc(p,t) of None => ((t,1)::p,i)
             | Some m => (overwrite(p,(t,m+1)), i))
+
+fun nnb T = T = ([HOLogic.natT,HOLogic.natT] ---> HOLogic.boolT);
 
 fun decomp2(rel,T,lhs,rhs) =
   if not(nnb T) then None else
@@ -908,12 +904,12 @@ val add_mono_thms = map (fn s => prove_goal Arith.thy s
 
 fun is_False thm =
   let val _ $ t = #prop(rep_thm thm)
-  in t = Const("False",boolT) end;
+  in t = Const("False",HOLogic.boolT) end;
 
-fun is_nat(t) = fastype_of1 t = nat;
+fun is_nat(t) = fastype_of1 t = HOLogic.natT;
 
 fun mk_nat_thm sg t =
-  let val ct = cterm_of sg t  and cn = cterm_of sg (Var(("n",0),nat))
+  let val ct = cterm_of sg t  and cn = cterm_of sg (Var(("n",0),HOLogic.natT))
   in instantiate ([],[(cn,ct)]) le0 end;
 
 end;
