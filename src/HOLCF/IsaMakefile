@@ -79,7 +79,12 @@ $(OUT)/IOA: $(OUT)/HOLCF IOA/ROOT.ML IOA/meta_theory/Traces.thy \
   IOA/meta_theory/Sequence.thy IOA/meta_theory/Automata.ML \
   IOA/meta_theory/CompoExecs.thy IOA/meta_theory/RefMappings.thy \
   IOA/meta_theory/RefCorrectness.ML IOA/meta_theory/Compositionality.ML \
-  IOA/meta_theory/Compositionality.thy
+  IOA/meta_theory/Compositionality.thy \
+  IOA/meta_theory/TL.thy IOA/meta_theory/TL.ML IOA/meta_theory/TLS.thy \
+  IOA/meta_theory/TLS.ML IOA/meta_theory/LiveIOA.thy IOA/meta_theory/LiveIOA.ML \
+  IOA/meta_theory/Pred.thy IOA/meta_theory/Abstraction.thy \
+  IOA/meta_theory/Abstraction.ML IOA/meta_theory/TrivEx.thy IOA/meta_theory/TrivEx.ML \
+  IOA/meta_theory/TrivEx2.thy IOA/meta_theory/TrivEx2.ML
 	@cd IOA; $(ISATOOL) usedir -b $(OUT)/HOLCF IOA
 
 
