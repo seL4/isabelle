@@ -131,13 +131,13 @@ by (rtac guaranteesI 1);
 by (Clarify_tac 1);
 by (rtac Stable_transient_reachable_LeadsTo 1);
 by (res_inst_tac [("k", "k")] transient_lemma 2);
-be Disjoint_States_eq 2;
+by (etac Disjoint_States_eq 2);
 by (force_tac (claset() addDs [impOfSubs Increasing_size,
 			       impOfSubs Increasing_Stable_less],
 	       simpset()) 1);
 by (rtac (make_elim (lemma1 RS guaranteesD)) 1);
  by (Blast_tac 1);
-be Disjoint_States_eq 1;
+by (etac Disjoint_States_eq 1);
 by (auto_tac (claset(),
 	      simpset() addsimps [Invariant_eq_always, giv_meets_ask_def]));
 by (ALLGOALS Force_tac);

@@ -232,7 +232,7 @@ Goalw [strict_ex_prop_def]
 \         (F:X --> G:X)";
 by Safe_tac;
 by (Blast_tac 1);
-auto();
+by Auto_tac;
 qed "strict_ex_refine_lemma";
 
 Goalw [strict_ex_prop_def]
@@ -249,7 +249,7 @@ Goal "[| strict_ex_prop X;  States F = States G;  \
 \        ALL H. States F = States H & F Join H : welldef Int X \
 \          --> G Join H : welldef |] \
 \     ==> (G refines F wrt X) = (G iso_refines F wrt X)";
-bd sym 1;
+by (dtac sym 1);
 by (res_inst_tac [("x","SKIP (States G)")] allE 1
     THEN assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [refines_def, iso_refines_def,
