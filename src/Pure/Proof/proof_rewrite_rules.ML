@@ -263,12 +263,21 @@ fun elim_defs sign r defs prf =
 fun elim_vars mk_default prf =
   let
     val prop = Reconstruct.prop_of prf;
-    val vars = fold_proof_terms add_term_vars snd ([], prf) \\ term_vars prop;
-    val inst = map (fn Var (ixn, T) => (ixn, list_abs
-      (apfst (map (pair "x")) (apsnd mk_default (strip_type T))))) vars
+    val tv = term_vars prop;
+    val tf = term_frees prop;
+
+    fun mk_default' T = list_abs
+      (apfst (map (pair "x")) (apsnd mk_default (strip_type T)));
+
+    fun elim_varst (t $ u) = elim_varst t $ elim_varst u
+      | elim_varst (Abs (s, T, t)) = Abs (s, T, elim_varst t)
+      | elim_varst (f as Free (_, T)) = if f mem tf then f else mk_default' T
+      | elim_varst (v as Var (_, T)) = if v mem tv then v else mk_default' T
+      | elim_varst t = t
   in
-    norm_proof (Envir.Envir {iTs = Vartab.empty, asol = Vartab.make inst,
-      maxidx = 0}) prf
+    map_proof_terms (fn t => if not (null (term_vars t \\ tv)) orelse
+        not (null (term_frees t \\ tf)) then Envir.beta_norm (elim_varst t)
+      else t) I prf
   end;
 
 end;
