@@ -140,14 +140,13 @@ build the logic \emph{and} run it on all distributed examples.
 
 The \tooldx{usedir} utility builds object-logic images, or runs
 example sessions based on existing logics. Its usage is:
-%FIXME
-%    -g BOOL      generate theory graph data (default false)
 \begin{ttbox}
-Usage: isatool usedir LOGIC NAME
+Usage: usedir LOGIC NAME
 
   Options are:
     -b           build mode (output heap image, use dir ".")
-    -h BOOL      generate theory HTML data (default false)
+    -i BOOL      generate theory browsing information,
+                 i.e. HTML / graph data (default false)
     -s NAME      override session NAME
 
   Build object-logic or run examples. Also creates browsing
@@ -182,9 +181,9 @@ automatic \texttt{use_dir"NAME";} I.e.\ it assumes that some file
 \texttt{ROOT.ML} in directory \texttt{NAME} contains appropriate {\ML}
 commands to run the desired examples.
 
-\medskip The \texttt{-h} option controls HTML browsing data
+\medskip The \texttt{-i} option controls theory browsing data
 generation. It may be explicitely turned on or off --- the last
-occurrence of some \texttt{-h} on the command line wins.
+occurrence of some \texttt{-i} on the command line wins.
 
 \medskip Any \texttt{usedir} session is named by some \emph{session
   identifier}. These accumulate, documenting the way sessions depend
