@@ -43,6 +43,7 @@ sig
   type datatype_info
 
   exception Datatype
+  exception Datatype_Empty of string
   val name_of_typ : typ -> string
   val dtyp_of_typ : (string * string list) list -> typ -> dtyp
   val mk_Free : string -> typ -> int -> term
@@ -203,6 +204,7 @@ fun subst_DtTFree _ substs (T as (DtTFree name)) =
   | subst_DtTFree i _ (DtRec j) = DtRec (i + j);
 
 exception Datatype;
+exception Datatype_Empty of string;
 
 fun dest_DtTFree (DtTFree a) = a
   | dest_DtTFree _ = raise Datatype;
@@ -284,7 +286,7 @@ fun check_nonempty descr =
       in exists ((forall (arg_nonempty o strip_dtyp)) o snd) constrs
       end
   in assert_all (fn (i, _) => is_nonempty_dt [i] i) (hd descr)
-    (fn (_, (s, _, _)) => "Nonemptiness check failed for datatype " ^ s)
+    (fn (_, (s, _, _)) => raise Datatype_Empty s)
   end;
 
 (* unfold a list of mutually recursive datatype specifications *)

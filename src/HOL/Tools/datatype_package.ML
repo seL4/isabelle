@@ -29,7 +29,7 @@ sig
        induction : thm,
        size : thm list,
        simps : thm list}
-  val add_datatype_i : bool -> string list -> (string list * bstring * mixfix *
+  val add_datatype_i : bool -> bool -> string list -> (string list * bstring * mixfix *
     (bstring * typ list * mixfix) list) list -> theory -> theory *
       {distinct : thm list list,
        inject : thm list list,
@@ -904,7 +904,7 @@ val rep_datatype_i = gen_rep_datatype IsarThy.apply_theorems_i;
 
 (******************************** add datatype ********************************)
 
-fun gen_add_datatype prep_typ flat_names new_type_names dts thy =
+fun gen_add_datatype prep_typ err flat_names new_type_names dts thy =
   let
     val _ = Theory.requires thy "Datatype_Universe" "datatype definitions";
 
@@ -963,7 +963,9 @@ fun gen_add_datatype prep_typ flat_names new_type_names dts thy =
     val sorts = sorts' @ (map (rpair (Sign.defaultS sign)) (tyvars \\ map fst sorts'));
     val dt_info = get_datatypes thy;
     val (descr, _) = unfold_datatypes sign dts' sorts dt_info dts' i;
-    val _ = check_nonempty descr;
+    val _ = check_nonempty descr handle (exn as Datatype_Empty s) =>
+      if err then error ("Nonemptiness check failed for datatype " ^ s)
+      else raise exn;
 
     val descr' = flat descr;
     val case_names_induct = mk_case_names_induct descr';
@@ -975,7 +977,7 @@ fun gen_add_datatype prep_typ flat_names new_type_names dts thy =
   end;
 
 val add_datatype_i = gen_add_datatype cert_typ;
-val add_datatype = gen_add_datatype read_typ;
+val add_datatype = gen_add_datatype read_typ true;
 
 
 (** package setup **)
