@@ -82,6 +82,7 @@ signature TACTIC =
   val rotate_tac	: int -> int -> tactic
   val rtac		: thm -> int -> tactic
   val rule_by_tactic	: tactic -> thm -> thm
+  val solve_tac		: thm list -> int -> tactic
   val subgoal_tac	: string -> int -> tactic
   val subgoals_tac	: string list -> int -> tactic
   val subgoals_of_brl	: bool * thm -> int
@@ -178,6 +179,8 @@ val atac = assume_tac;
 
 (*Use an assumption or some rules ... A popular combination!*)
 fun ares_tac rules = assume_tac  ORELSE'  resolve_tac rules;
+
+fun solve_tac rules = resolve_tac rules THEN_ALL_NEW assume_tac;
 
 (*Matching tactics -- as above, but forbid updating of state*)
 fun bimatch_tac brules i = PRIMSEQ (biresolution true brules i);
