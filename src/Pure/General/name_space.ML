@@ -37,16 +37,6 @@ end;
 structure NameSpace: NAME_SPACE =
 struct
 
-
-(** utils **)
-
-fun prefixes1 [] = []
-  | prefixes1 (x :: xs) = map (cons x) ([] :: prefixes1 xs);
-
-fun suffixes1 xs = map rev (prefixes1 (rev xs));
-
-
-
 (** long identifiers **)
 
 val separator = ".";
@@ -70,8 +60,8 @@ fun accesses name =
   let
     val uname = unpack name;
     val (q, b) = split_last uname;
-    val sfxs = suffixes1 uname;
-    val pfxs = map (fn x => x @ [b]) (prefixes1 q);
+    val sfxs = Library.suffixes1 uname;
+    val pfxs = map (fn x => x @ [b]) (Library.prefixes1 q);
   in map pack (sfxs @ pfxs) end;
 
 
@@ -151,7 +141,7 @@ fun extern space name =
       | try (nm :: nms) =
           let val (full_nm, uniq) = lookup space nm
           in if full_nm = name andalso uniq then nm else try nms end
-  in try (map pack (suffixes1 (unpack name))) end;
+  in try (map pack (Library.suffixes1 (unpack name))) end;
 
 (*prune names on output by default*)
 val long_names = ref false;
