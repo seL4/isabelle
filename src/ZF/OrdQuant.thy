@@ -39,8 +39,8 @@ syntax (xsymbols)
 (** simplification of the new quantifiers **)
 
 
-(*MOST IMPORTANT that this is added to the simpset BEFORE OrdQuant.ML
-  is loaded: it's Ord_atomize would convert this rule to 
+(*MOST IMPORTANT that this is added to the simpset BEFORE Ord_atomize
+  is proved.  Ord_atomize would convert this rule to 
     x < 0 ==> P(x) == True, which causes dire effects!*)
 lemma [simp]: "(ALL x<0. P(x))"
 by (simp add: oall_def) 
@@ -198,5 +198,125 @@ by (simp add: OUnion_def)
 lemma atomize_oall [symmetric, rulify]:
      "(!!x. x<A ==> P(x)) == Trueprop (ALL x<A. P(x))"
 by (simp add: oall_def atomize_all atomize_imp)
+
+(*** universal quantifier for ordinals ***)
+
+lemma oallI [intro!]:
+    "[| !!x. x<A ==> P(x) |] ==> ALL x<A. P(x)"
+by (simp add: oall_def); 
+
+lemma ospec: "[| ALL x<A. P(x);  x<A |] ==> P(x)"
+by (simp add: oall_def); 
+
+lemma oallE:
+    "[| ALL x<A. P(x);  P(x) ==> Q;  ~x<A ==> Q |] ==> Q"
+apply (simp add: oall_def); 
+apply (blast intro: elim:); 
+done
+
+lemma rev_oallE [elim]:
+    "[| ALL x<A. P(x);  ~x<A ==> Q;  P(x) ==> Q |] ==> Q"
+apply (simp add: oall_def);
+apply (blast intro: elim:);  
+done
+
+
+(*Trival rewrite rule;   (ALL x<a.P)<->P holds only if a is not 0!*)
+lemma oall_simp [simp]: "(ALL x<a. True) <-> True"
+apply (blast intro: elim:); 
+done
+
+(*Congruence rule for rewriting*)
+lemma oall_cong [cong]:
+    "[| a=a';  !!x. x<a' ==> P(x) <-> P'(x) |] ==> oall(a,P) <-> oall(a',P')"
+by (simp add: oall_def)
+
+
+(*** existential quantifier for ordinals ***)
+
+lemma oexI [intro]:
+    "[| P(x);  x<A |] ==> EX x<A. P(x)"
+apply (simp add: oex_def); 
+apply (blast intro: elim:); 
+done
+
+(*Not of the general form for such rules; ~EX has become ALL~ *)
+lemma oexCI:
+   "[| ALL x<A. ~P(x) ==> P(a);  a<A |] ==> EX x<A. P(x)"
+apply (simp add: oex_def); 
+apply (blast intro: elim:); 
+done
+
+lemma oexE [elim!]:
+    "[| EX x<A. P(x);  !!x. [| x<A; P(x) |] ==> Q |] ==> Q"
+apply (simp add: oex_def); 
+apply (blast intro: elim:); 
+done
+
+lemma oex_cong [cong]:
+    "[| a=a';  !!x. x<a' ==> P(x) <-> P'(x) |] ==> oex(a,P) <-> oex(a',P')"
+apply (simp add: oex_def cong add: conj_cong)
+done
+
+
+(*** Rules for Ordinal-Indexed Unions ***)
+
+lemma OUN_I [intro]: "[| a<i;  b: B(a) |] ==> b: (UN z<i. B(z))"
+apply (unfold OUnion_def lt_def)
+apply (blast)
+done
+
+lemma OUN_E [elim!]:
+    "[| b : (UN z<i. B(z));  !!a.[| b: B(a);  a<i |] ==> R |] ==> R"
+apply (unfold OUnion_def lt_def)
+apply (blast)
+done
+
+lemma OUN_iff: "b : (UN x<i. B(x)) <-> (EX x<i. b : B(x))"
+apply (unfold OUnion_def oex_def lt_def)
+apply (blast intro: elim:); 
+done
+
+lemma OUN_cong [cong]:
+    "[| i=j;  !!x. x<j ==> C(x)=D(x) |] ==> (UN x<i. C(x)) = (UN x<j. D(x))"
+by (simp add: OUnion_def lt_def OUN_iff)
+
+declare ltD [THEN beta, simp]
+
+
+lemma lt_induct: 
+    "[| i<k;  !!x.[| x<k;  ALL y<x. P(y) |] ==> P(x) |]  ==>  P(i)"
+apply (simp add: lt_def oall_def)
+apply (erule conjE) 
+apply (erule Ord_induct, assumption)
+apply (blast intro: elim:); 
+done
+
+ML
+{*
+val oall_def = thm "oall_def"
+val oex_def = thm "oex_def"
+val OUnion_def = thm "OUnion_def"
+
+val oallI = thm "oallI";
+val ospec = thm "ospec";
+val oallE = thm "oallE";
+val rev_oallE = thm "rev_oallE";
+val oall_simp = thm "oall_simp";
+val oall_cong = thm "oall_cong";
+val oexI = thm "oexI";
+val oexCI = thm "oexCI";
+val oexE = thm "oexE";
+val oex_cong = thm "oex_cong";
+val OUN_I = thm "OUN_I";
+val OUN_E = thm "OUN_E";
+val OUN_iff = thm "OUN_iff";
+val OUN_cong = thm "OUN_cong";
+val lt_induct = thm "lt_induct";
+
+val Ord_atomize =
+    atomize (("OrdQuant.oall", [ospec])::ZF_conn_pairs, ZF_mem_pairs);
+simpset_ref() := simpset() setmksimps (map mk_eq o Ord_atomize o gen_all);
+*}
 
 end

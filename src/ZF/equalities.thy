@@ -15,70 +15,52 @@ theory equalities = pair + subset:
 (*** converse ***)
 
 lemma converse_iff [iff]: "<a,b>: converse(r) <-> <b,a>:r"
-apply (unfold converse_def)
-apply blast
-done
+by (unfold converse_def, blast)
 
 lemma converseI: "<a,b>:r ==> <b,a>:converse(r)"
-apply (unfold converse_def)
-apply blast
-done
+by (unfold converse_def, blast)
 
 lemma converseD: "<a,b> : converse(r) ==> <b,a> : r"
-apply (unfold converse_def)
-apply blast
-done
+by (unfold converse_def, blast)
 
 lemma converseE [elim!]:
     "[| yx : converse(r);   
         !!x y. [| yx=<y,x>;  <x,y>:r |] ==> P |]
      ==> P"
-apply (unfold converse_def)
-apply (blast intro: elim:); 
+apply (unfold converse_def, blast) 
 done
 
 lemma converse_converse: "r<=Sigma(A,B) ==> converse(converse(r)) = r"
-apply blast
-done
+by blast
 
 lemma converse_type: "r<=A*B ==> converse(r)<=B*A"
-apply blast
-done
+by blast
 
 lemma converse_prod [simp]: "converse(A*B) = B*A"
-apply blast
-done
+by blast
 
 lemma converse_empty [simp]: "converse(0) = 0"
-apply blast
-done
+by blast
 
 lemma converse_subset_iff: "A <= Sigma(X,Y) ==> converse(A) <= converse(B) <-> A <= B"
-apply blast
-done
+by blast
 
 
 (*** domain ***)
 
 lemma domain_iff: "a: domain(r) <-> (EX y. <a,y>: r)"
-apply (unfold domain_def)
-apply blast
-done
+by (unfold domain_def, blast)
 
 lemma domainI [intro]: "<a,b>: r ==> a: domain(r)"
-apply (unfold domain_def)
-apply blast
-done
+by (unfold domain_def, blast)
 
 lemma domainE [elim!]:
     "[| a : domain(r);  !!y. <a,y>: r ==> P |] ==> P"
-apply (unfold domain_def)
-apply blast
+apply (unfold domain_def, blast)
 done
 
 lemma domain_subset: "domain(Sigma(A,B)) <= A"
-apply blast
-done
+by blast
 
 (*** range ***)
 
@@ -88,9 +70,7 @@ apply (erule converseI [THEN domainI])
 done
 
 lemma rangeE [elim!]: "[| b : range(r);  !!x. <x,b>: r ==> P |] ==> P"
-apply (unfold range_def)
-apply (blast intro: elim:); 
-done
+by (unfold range_def, blast)
 
 lemma range_subset: "range(A*B) <= B"
 apply (unfold range_def)
@@ -102,32 +82,25 @@ done
 (*** field ***)
 
 lemma fieldI1: "<a,b>: r ==> a : field(r)"
-apply (unfold field_def)
-apply blast
-done
+by (unfold field_def, blast)
 
 lemma fieldI2: "<a,b>: r ==> b : field(r)"
-apply (unfold field_def)
-apply blast
-done
+by (unfold field_def, blast)
 
 lemma fieldCI [intro]: 
     "(~ <c,a>:r ==> <a,b>: r) ==> a : field(r)"
-apply (unfold field_def)
-apply blast
+apply (unfold field_def, blast)
 done
 
 lemma fieldE [elim!]: 
      "[| a : field(r);   
          !!x. <a,x>: r ==> P;   
          !!x. <x,a>: r ==> P        |] ==> P"
-apply (unfold field_def)
-apply blast
+apply (unfold field_def, blast)
 done
 
 lemma field_subset: "field(A*B) <= A Un B"
-apply blast
-done
+by blast
 
 lemma domain_subset_field: "domain(r) <= field(r)"
 apply (unfold field_def)
@@ -140,64 +113,48 @@ apply (rule Un_upper2)
 done
 
 lemma domain_times_range: "r <= Sigma(A,B) ==> r <= domain(r)*range(r)"
-apply blast
-done
+by blast
 
 lemma field_times_field: "r <= Sigma(A,B) ==> r <= field(r)*field(r)"
-apply blast
-done
+by blast
 
 
 (*** Image of a set under a function/relation ***)
 
 lemma image_iff: "b : r``A <-> (EX x:A. <x,b>:r)"
-apply (unfold image_def)
-apply blast
-done
+by (unfold image_def, blast)
 
 lemma image_singleton_iff: "b : r``{a} <-> <a,b>:r"
-apply (rule image_iff [THEN iff_trans])
-apply blast
-done
+by (rule image_iff [THEN iff_trans], blast)
 
 lemma imageI [intro]: "[| <a,b>: r;  a:A |] ==> b : r``A"
-apply (unfold image_def)
-apply blast
-done
+by (unfold image_def, blast)
 
 lemma imageE [elim!]: 
     "[| b: r``A;  !!x.[| <x,b>: r;  x:A |] ==> P |] ==> P"
-apply (unfold image_def)
-apply blast
+apply (unfold image_def, blast)
 done
 
 lemma image_subset: "r <= A*B ==> r``C <= B"
-apply blast
-done
+by blast
 
 
 (*** Inverse image of a set under a function/relation ***)
 
 lemma vimage_iff: 
     "a : r-``B <-> (EX y:B. <a,y>:r)"
-apply (unfold vimage_def image_def converse_def)
-apply blast
+apply (unfold vimage_def image_def converse_def, blast)
 done
 
 lemma vimage_singleton_iff: "a : r-``{b} <-> <a,b>:r"
-apply (rule vimage_iff [THEN iff_trans])
-apply blast
-done
+by (rule vimage_iff [THEN iff_trans], blast)
 
 lemma vimageI [intro]: "[| <a,b>: r;  b:B |] ==> a : r-``B"
-apply (unfold vimage_def)
-apply blast
-done
+by (unfold vimage_def, blast)
 
 lemma vimageE [elim!]: 
     "[| a: r-``B;  !!x.[| <a,x>: r;  x:B |] ==> P |] ==> P"
-apply (unfold vimage_def)
-apply blast
+apply (unfold vimage_def, blast)
 done
 
 lemma vimage_subset: "r <= A*B ==> r-``C <= A"
@@ -213,16 +170,13 @@ by blast
 
 (** The Union of 2 relations is a relation (Lemma for fun_Un)  **)
 lemma rel_Un: "[| r <= A*B;  s <= C*D |] ==> (r Un s) <= (A Un C) * (B Un D)"
-apply blast
-done
+by blast
 
 lemma domain_Diff_eq: "[| <a,c> : r; c~=b |] ==> domain(r-{<a,b>}) = domain(r)"
-apply blast
-done
+by blast
 
 lemma range_Diff_eq: "[| <c,b> : r; c~=a |] ==> range(r-{<a,b>}) = range(r)"
-apply blast
-done
+by blast
 
 
 
