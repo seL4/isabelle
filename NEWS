@@ -35,6 +35,8 @@ HOL, but was unused); should better use HOL's datatype package anyway;
 Lfp, Gfp, WF); this only affects ML packages that refer to const names
 internally;
 
+* Isar: changed syntax of local blocks from {{ }} to { };
+
 * ML: PureThy.add_thms/add_axioms/add_defs return theorems as well;
 
 * LaTeX: several improvements of isabelle.sty;
@@ -71,6 +73,11 @@ plain accumulation of results, without applying any rules yet;
 language element refers to local contexts symbolically, as produced by
 certain proof methods; internally, case names are attached to theorems
 as "tags";
+
+* Pure: changed syntax of local blocks from {{ }} to { };
+
+* Pure: syntax of sorts made inner, i.e. have to write "{a, b, c}"
+instead of {a, b, c};
 
 * Pure now provides its own version of intro/elim/dest attributes;
 useful for building new logics, but beware of confusion with the
