@@ -160,9 +160,10 @@ val typ_to_nonterm1 = typ_to_nt logic;
 fun mfix_to_xprod convert logtypes (Mfix (sy, typ, const, pris, pri)) =
   let
     fun err msg =
-      (writeln ("Error in mixfix annotation " ^ quote sy ^ " for "
-                ^ quote const);
+      (writeln ("Error in mixfix annotation " ^ quote sy ^ " for " ^ quote const);
         error msg);
+    fun post_err () = error ("The error(s) above occurred in mixfix annotation " ^
+      quote sy ^ " for " ^ quote const);
 
     fun check_pri p =
       if p >= 0 andalso p <= max_pri then ()
@@ -186,13 +187,6 @@ fun mfix_to_xprod convert logtypes (Mfix (sy, typ, const, pris, pri)) =
       fun scan_delim_char ("'" :: c :: cs) =
             if is_blank c then raise LEXICAL_ERROR else (c, cs)
         | scan_delim_char ["'"] = err "trailing escape character"
-        | scan_delim_char ("\\" :: "<" :: cs) =
-            let
-              val (ch_name, cs') = (scan_id -- $$ ">" >> #1) cs
-                handle LEXICAL_ERROR => err "malformed symbolic char specification";
-              val c = the (SymbolFont.char ch_name)
-                handle OPTION _ => err ("unknown symbolic char name: " ^ quote ch_name);
-            in (c, cs') end
         | scan_delim_char (chs as c :: cs) =
             if is_blank c orelse is_meta c then raise LEXICAL_ERROR else (c, cs)
         | scan_delim_char [] = raise LEXICAL_ERROR;
@@ -246,16 +240,21 @@ fun mfix_to_xprod convert logtypes (Mfix (sy, typ, const, pris, pri)) =
           else a
       | unify_logtypes _ a = a;
 
-    val raw_symbs = scan_symbs (explode sy);
+
+    val sy_chars =
+      SymbolFont.read_charnames (explode sy) handle ERROR => post_err ();
+    val raw_symbs = scan_symbs sy_chars;
     val (symbs, lhs) = add_args raw_symbs typ pris;
-    val copy_prod = lhs mem ["prop", "logic"]
-          andalso const <> ""
-          andalso not (null symbs)
-          andalso not (exists is_delim symbs);
-    val lhs' = if convert andalso not copy_prod then
-                 (if lhs mem logtypes then logic
-                  else if lhs = "prop" then sprop else lhs)
-               else lhs;
+    val copy_prod =
+      lhs mem ["prop", "logic"]
+        andalso const <> ""
+        andalso not (null symbs)
+        andalso not (exists is_delim symbs);
+    val lhs' =
+      if convert andalso not copy_prod then
+       (if lhs mem logtypes then logic
+        else if lhs = "prop" then sprop else lhs)
+      else lhs;
     val symbs' = map (unify_logtypes copy_prod) symbs;
     val xprod = XProd (lhs', symbs', const, pri);
   in
@@ -340,4 +339,3 @@ val pure_ext = mk_syn_ext false []
   ([], []);
 
 end;
-
