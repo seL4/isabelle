@@ -116,6 +116,17 @@ apply (erule equalityI [OF eclose_least arg_subset_eclose])
 apply (rule subset_refl)
 done
 
+text{*A transitive set either is empty or contains the empty set.*}
+lemma Transset_0_lemma [rule_format]: "Transset(A) ==> x\<in>A --> 0\<in>A";
+apply (simp add: Transset_def) 
+apply (rule_tac a=x in eps_induct, clarify) 
+apply (drule bspec, assumption) 
+apply (rule_tac P = "x=0" in case_split_thm, auto)
+done
+
+lemma Transset_0_disj: "Transset(A) ==> A=0 | 0\<in>A";
+by (blast dest: Transset_0_lemma)
+
 
 subsection{*Epsilon Recursion*}
 

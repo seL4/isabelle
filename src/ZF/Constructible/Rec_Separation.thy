@@ -996,4 +996,26 @@ done
 text{*NB The proofs for type @{term formula} are virtually identical to those
 for @{term "list(A)"}.  It was a cut-and-paste job! *}
 
+
+subsubsection{*Instantiating the locale @{text M_datatypes}*}
+ML
+{*
+val list_replacement1 = thm "list_replacement1"; 
+val list_replacement2 = thm "list_replacement2";
+val formula_replacement1 = thm "formula_replacement1";
+val formula_replacement2 = thm "formula_replacement2";
+
+val m_datatypes = [list_replacement1, list_replacement2, 
+                   formula_replacement1, formula_replacement2];
+
+fun datatypes_L th =
+    kill_flex_triv_prems (m_datatypes MRS (wfrank_L th));
+
+bind_thm ("list_closed", datatypes_L (thm "M_datatypes.list_closed"));
+bind_thm ("formula_closed", datatypes_L (thm "M_datatypes.formula_closed"));
+*}
+
+declare list_closed [intro,simp]
+declare formula_closed [intro,simp]
+
 end
