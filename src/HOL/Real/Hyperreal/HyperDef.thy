@@ -9,7 +9,7 @@ HyperDef = Filter + Real +
 
 consts 
  
-    FreeUltrafilterNat   :: nat set set
+    FreeUltrafilterNat   :: nat set set    ("\\<U>")
 
 defs
 
