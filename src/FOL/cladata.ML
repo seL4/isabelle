@@ -24,12 +24,11 @@ structure Classical_Data =
   val classical = classical
   val sizef     = size_of_thm
   val hyp_subst_tacs=[hyp_subst_tac]
+  val atomize	= thms "atomize"
   end;
 
 structure Cla = ClassicalFun(Classical_Data);
 structure BasicClassical: BASIC_CLASSICAL = Cla; open BasicClassical;
-structure Obtain = ObtainFun(val atomic_thesis = FOLogic.atomic_Trueprop and
-  that_atts = [Simplifier.simp_add_local, Cla.haz_intro_local]);
 
 
 (*Better for fast_tac: needs no quantifier duplication!*)

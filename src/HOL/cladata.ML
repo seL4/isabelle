@@ -47,6 +47,7 @@ structure Classical_Data =
   val classical = classical
   val sizef     = size_of_thm
   val hyp_subst_tacs=[hyp_subst_tac]
+  val atomize	= thms "atomize"
   end;
 
 structure Classical = ClassicalFun(Classical_Data);
@@ -55,9 +56,6 @@ structure BasicClassical: BASIC_CLASSICAL = Classical;
 open BasicClassical;
 
 bind_thm ("contrapos_np", inst "Pa" "?Q" swap);
-
-structure Obtain = ObtainFun(val atomic_thesis = HOLogic.atomic_Trueprop and
-  that_atts = [Simplifier.simp_add_local, Classical.haz_intro_local]);
 
 (*Propositional rules*)
 val prop_cs = empty_cs addSIs [refl,TrueI,conjI,disjCI,impI,notI,iffI]

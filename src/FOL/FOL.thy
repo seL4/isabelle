@@ -24,30 +24,30 @@ axioms
 subsection {* Setup of several proof tools *}
 
 use "FOL_lemmas1.ML"
-use "cladata.ML"
-setup Cla.setup
-setup clasetup
 
 lemma all_eq: "(!!x. P(x)) == Trueprop (ALL x. P(x))"
 proof (rule equal_intr_rule)
   assume "!!x. P(x)"
-  show "ALL x. P(x)" ..
+  show "ALL x. P(x)" by (rule allI)
 next
   assume "ALL x. P(x)"
-  thus "!!x. P(x)" ..
+  thus "!!x. P(x)" by (rule allE)
 qed
 
 lemma imp_eq: "(A ==> B) == Trueprop (A --> B)"
 proof (rule equal_intr_rule)
   assume r: "A ==> B"
-  show "A --> B"
-    by (rule) (rule r)
+  show "A --> B" by (rule impI) (rule r)
 next
   assume "A --> B" and A
-  thus B ..
+  thus B by (rule mp)
 qed
 
 lemmas atomize = all_eq imp_eq
+
+use "cladata.ML"
+setup Cla.setup
+setup clasetup
 
 use "blastdata.ML"
 setup Blast.setup
