@@ -80,11 +80,10 @@ apply (rule ReflectsE [OF rtran_closure_mem_reflection], assumption)
 apply (drule subset_Lset_ltD, assumption) 
 apply (erule reflection_imp_L_separation)
   apply (simp_all add: lt_Ord2)
-apply (rule DPowI2)
+apply (rule DPow_LsetI)
 apply (rename_tac u)
 apply (rule_tac env = "[u,r,A]" in rtran_closure_mem_iff_sats)
 apply (rule sep_rules | simp)+
-apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
 
@@ -189,12 +188,11 @@ apply (rule ReflectsE [OF wellfounded_trancl_reflects], assumption)
 apply (drule subset_Lset_ltD, assumption) 
 apply (erule reflection_imp_L_separation)
   apply (simp_all add: lt_Ord2)
-apply (rule DPowI2)
+apply (rule DPow_LsetI)
 apply (rename_tac u) 
 apply (rule bex_iff_sats conj_iff_sats)+
 apply (rule_tac env = "[w,u,r,Z]" in mem_iff_sats) 
 apply (rule sep_rules tran_closure_iff_sats | simp)+
-apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
 
@@ -348,12 +346,11 @@ apply (rule ReflectsE [OF wfrank_Reflects], assumption)
 apply (drule subset_Lset_ltD, assumption) 
 apply (erule reflection_imp_L_separation)
   apply (simp_all add: lt_Ord2, clarify)
-apply (rule DPowI2)
+apply (rule DPow_LsetI)
 apply (rename_tac u)  
 apply (rule ball_iff_sats imp_iff_sats)+
 apply (rule_tac env="[rplus,u,r]" in tran_closure_iff_sats)
 apply (rule sep_rules is_recfun_iff_sats | simp)+
-apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
 
@@ -390,12 +387,11 @@ apply (rule ReflectsE [OF wfrank_replacement_Reflects], assumption)
 apply (drule subset_Lset_ltD, assumption) 
 apply (erule reflection_imp_L_separation)
   apply (simp_all add: lt_Ord2)
-apply (rule DPowI2)
+apply (rule DPow_LsetI)
 apply (rename_tac u) 
 apply (rule bex_iff_sats ball_iff_sats conj_iff_sats)+
 apply (rule_tac env = "[x,u,B,r]" in mem_iff_sats) 
 apply (rule sep_rules tran_closure_iff_sats is_recfun_iff_sats | simp)+
-apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
 
@@ -430,12 +426,11 @@ apply (rule ReflectsE [OF Ord_wfrank_Reflects], assumption)
 apply (drule subset_Lset_ltD, assumption) 
 apply (erule reflection_imp_L_separation)
   apply (simp_all add: lt_Ord2, clarify)
-apply (rule DPowI2)
+apply (rule DPow_LsetI)
 apply (rename_tac u)  
 apply (rule ball_iff_sats imp_iff_sats)+
 apply (rule_tac env="[rplus,u,r]" in tran_closure_iff_sats)
 apply (rule sep_rules is_recfun_iff_sats | simp)+
-apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
 
@@ -790,7 +785,6 @@ done
 
 subsection{*@{term L} is Closed Under the Operator @{term list}*} 
 
-
 lemma list_replacement1_Reflects:
  "REFLECTS
    [\<lambda>x. \<exists>u[L]. u \<in> B \<and> (\<exists>y[L]. pair(L,u,y,x) \<and>
@@ -816,7 +810,7 @@ apply (rule ReflectsE [OF list_replacement1_Reflects], assumption)
 apply (drule subset_Lset_ltD, assumption) 
 apply (erule reflection_imp_L_separation)
   apply (simp_all add: lt_Ord2)
-apply (rule DPowI2)
+apply (rule DPow_LsetI)
 apply (rename_tac v) 
 apply (rule bex_iff_sats conj_iff_sats)+
 apply (rule_tac env = "[u,v,A,n,B,0,Memrel(succ(n))]" in mem_iff_sats)
@@ -861,16 +855,13 @@ apply (rule ReflectsE [OF list_replacement2_Reflects], assumption)
 apply (drule subset_Lset_ltD, assumption) 
 apply (erule reflection_imp_L_separation)
   apply (simp_all add: lt_Ord2)
-apply (rule DPowI2)
+apply (rule DPow_LsetI)
 apply (rename_tac v) 
 apply (rule bex_iff_sats conj_iff_sats)+
 apply (rule_tac env = "[u,v,A,B,0,nat]" in mem_iff_sats)
 apply (rule sep_rules | simp)+
 apply (simp add: is_wfrec_def M_is_recfun_def iterates_MH_def is_nat_case_def)
 apply (rule sep_rules list_functor_iff_sats quasinat_iff_sats | simp)+
-apply (simp_all add: succ_Un_distrib [symmetric] Memrel_closed)
 done
-
-
 
 end

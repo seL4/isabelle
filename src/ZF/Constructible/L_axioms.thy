@@ -372,6 +372,16 @@ apply (simp only: empty_def setclass_simps)
 apply (intro FOL_reflections)  
 done
 
+text{*Not used.  But maybe useful?*}
+lemma Transset_sats_empty_fm_eq_0:
+   "[| n \<in> nat; env \<in> list(A); Transset(A)|]
+    ==> sats(A, empty_fm(n), env) <-> nth(n,env) = 0"
+apply (simp add: empty_fm_def empty_def Transset_def, auto)
+apply (case_tac "n < length(env)") 
+apply (frule nth_type, assumption+, blast)  
+apply (simp_all add: not_lt_iff_le nth_eq_0) 
+done
+
 
 subsubsection{*Unordered Pairs, Internalized*}
 

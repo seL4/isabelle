@@ -1013,4 +1013,80 @@ done
 theorem LPow_in_L: "L(X) ==> L({y \<in> Pow(X). L(y)})"
 by (blast intro: L_I dest: L_D LPow_in_Lset)
 
+
+subsection{*Eliminating @{term arity} from the Definition of @{term Lset}*}
+
+
+lemma nth_zero_eq_0: "n \<in> nat ==> nth(n,[0]) = 0"
+by (induct_tac n, auto)
+
+lemma sats_app_0_iff [rule_format]:
+  "[| p \<in> formula; 0 \<in> A |]
+   ==> \<forall>env \<in> list(A). sats(A,p, env@[0]) <-> sats(A,p,env)"
+apply (induct_tac p)
+apply (simp_all del: app_Cons add: app_Cons [symmetric]
+		add: nth_zero_eq_0 nth_append not_lt_iff_le nth_eq_0)
+done
+
+lemma sats_app_zeroes_iff:
+  "[| p \<in> formula; 0 \<in> A; env \<in> list(A); n \<in> nat |]
+   ==> sats(A,p,env @ repeat(0,n)) <-> sats(A,p,env)"
+apply (induct_tac n, simp) 
+apply (simp del: repeat.simps
+            add: repeat_succ_app sats_app_0_iff app_assoc [symmetric]) 
+done
+
+lemma exists_bigger_env:
+  "[| p \<in> formula; 0 \<in> A; env \<in> list(A) |]
+   ==> \<exists>env' \<in> list(A). arity(p) \<le> succ(length(env')) & 
+              (\<forall>a\<in>A. sats(A,p,Cons(a,env')) <-> sats(A,p,Cons(a,env)))"
+apply (rule_tac x="env @ repeat(0,arity(p))" in bexI) 
+apply (simp del: app_Cons add: app_Cons [symmetric]
+	    add: length_repeat sats_app_zeroes_iff, typecheck)
+done
+
+
+text{*A simpler version of @{term DPow}: no arity check!*}
+constdefs DPow' :: "i => i"
+  "DPow'(A) == {X \<in> Pow(A). 
+                \<exists>env \<in> list(A). \<exists>p \<in> formula. 
+                    X = {x\<in>A. sats(A, p, Cons(x,env))}}"
+
+lemma DPow_subset_DPow': "DPow(A) <= DPow'(A)";
+by (simp add: DPow_def DPow'_def, blast)
+
+lemma DPow'_0: "DPow'(0) = {0}"
+by (auto simp add: DPow'_def)
+
+lemma DPow'_subset_DPow: "0 \<in> A ==> DPow'(A) \<subseteq> DPow(A)"
+apply (auto simp add: DPow'_def DPow_def) 
+apply (frule exists_bigger_env, assumption+, force)  
+done
+
+lemma DPow_eq_DPow': "Transset(A) ==> DPow(A) = DPow'(A)"
+apply (drule Transset_0_disj) 
+apply (erule disjE) 
+ apply (simp add: DPow'_0 DPow_0) 
+apply (rule equalityI)
+ apply (rule DPow_subset_DPow') 
+apply (erule DPow'_subset_DPow) 
+done
+
+text{*And thus we can relativize @{term Lset} without bothering with
+      @{term arity} and @{term length}*}
+lemma Lset_eq_transrec_DPow': "Lset(i) = transrec(i, %x f. \<Union>y\<in>x. DPow'(f`y))"
+apply (rule_tac a=i in eps_induct)
+apply (subst Lset)
+apply (subst transrec)
+apply (simp only: DPow_eq_DPow' [OF Transset_Lset], simp) 
+done
+
+text{*With this rule we can specify @{term p} later and don't worry about
+      arities at all!*}
+lemma DPow_LsetI [rule_format]:
+  "[|\<forall>x\<in>Lset(i). P(x) <-> sats(Lset(i), p, Cons(x,env));
+     env \<in> list(Lset(i));  p \<in> formula|]
+   ==> {x\<in>Lset(i). P(x)} \<in> DPow(Lset(i))"
+by (simp add: DPow_eq_DPow' [OF Transset_Lset] DPow'_def, blast) 
+
 end

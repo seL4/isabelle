@@ -6,21 +6,43 @@ theory Datatype_absolute = Formula + WF_absolute:
 subsection{*The lfp of a continuous function can be expressed as a union*}
 
 constdefs
-  contin :: "[i=>i]=>o"
-   "contin(h) == (\<forall>A. A\<noteq>0 --> h(\<Union>A) = (\<Union>X\<in>A. h(X)))"
+  directed :: "i=>o"
+   "directed(A) == A\<noteq>0 & (\<forall>x\<in>A. \<forall>y\<in>A. x \<union> y \<in> A)"
+
+  contin :: "(i=>i) => o"
+   "contin(h) == (\<forall>A. directed(A) --> h(\<Union>A) = (\<Union>X\<in>A. h(X)))"
 
 lemma bnd_mono_iterates_subset: "[|bnd_mono(D, h); n \<in> nat|] ==> h^n (0) <= D"
 apply (induct_tac n) 
  apply (simp_all add: bnd_mono_def, blast) 
 done
 
+lemma bnd_mono_increasing [rule_format]:
+     "[|i \<in> nat; j \<in> nat; bnd_mono(D,h)|] ==> i \<le> j --> h^i(0) \<subseteq> h^j(0)"
+apply (rule_tac m=i and n=j in diff_induct, simp_all)
+apply (blast del: subsetI
+	     intro: bnd_mono_iterates_subset bnd_monoD2 [of concl: h] ) 
+done
+
+lemma directed_iterates: "bnd_mono(D,h) ==> directed({h^n (0). n\<in>nat})"
+apply (simp add: directed_def, clarify) 
+apply (rename_tac i j)
+apply (rule_tac x="i \<union> j" in bexI) 
+apply (rule_tac i = i and j = j in Ord_linear_le)
+apply (simp_all add: subset_Un_iff [THEN iffD1] le_imp_subset
+                     subset_Un_iff2 [THEN iffD1])
+apply (simp_all add: subset_Un_iff [THEN iff_sym] bnd_mono_increasing
+                     subset_Un_iff2 [THEN iff_sym])
+done
+
 
 lemma contin_iterates_eq: 
-    "contin(h) \<Longrightarrow> h(\<Union>n\<in>nat. h^n (0)) = (\<Union>n\<in>nat. h^n (0))"
-apply (simp add: contin_def) 
+    "[|bnd_mono(D, h); contin(h)|] 
+     ==> h(\<Union>n\<in>nat. h^n (0)) = (\<Union>n\<in>nat. h^n (0))"
+apply (simp add: contin_def directed_iterates) 
 apply (rule trans) 
 apply (rule equalityI) 
- apply (simp_all add: UN_subset_iff) 
+ apply (simp_all add: UN_subset_iff)
  apply safe
  apply (erule_tac [2] natE) 
   apply (rule_tac a="succ(x)" in UN_I) 
@@ -51,20 +73,53 @@ by (blast del: subsetI
           intro: lfp_subset_Union Union_subset_lfp)
 
 
+subsubsection{*Some Standard Datatype Constructions Preserve Continuity*}
+
+lemma contin_imp_mono: "[|X\<subseteq>Y; contin(F)|] ==> F(X) \<subseteq> F(Y)"
+apply (simp add: contin_def) 
+apply (drule_tac x="{X,Y}" in spec) 
+apply (simp add: directed_def subset_Un_iff2 Un_commute) 
+done
+
+lemma sum_contin: "[|contin(F); contin(G)|] ==> contin(\<lambda>X. F(X) + G(X))"
+by (simp add: contin_def, blast)
+
+lemma prod_contin: "[|contin(F); contin(G)|] ==> contin(\<lambda>X. F(X) * G(X))" 
+apply (subgoal_tac "\<forall>B C. F(B) \<subseteq> F(B \<union> C)")
+ prefer 2 apply (simp add: Un_upper1 contin_imp_mono) 
+apply (subgoal_tac "\<forall>B C. G(C) \<subseteq> G(B \<union> C)")
+ prefer 2 apply (simp add: Un_upper2 contin_imp_mono) 
+apply (simp add: contin_def, clarify) 
+apply (rule equalityI) 
+ prefer 2 apply blast 
+apply clarify 
+apply (rename_tac B C) 
+apply (rule_tac a="B \<union> C" in UN_I) 
+ apply (simp add: directed_def, blast)  
+done
+
+lemma const_contin: "contin(\<lambda>X. A)"
+by (simp add: contin_def directed_def)
+
+lemma id_contin: "contin(\<lambda>X. X)"
+by (simp add: contin_def)
+
+
+
 subsection {*lists without univ*}
 
-lemmas datatype_univs = A_into_univ Inl_in_univ Inr_in_univ 
-                        Pair_in_univ zero_in_univ
+lemmas datatype_univs = Inl_in_univ Inr_in_univ 
+                        Pair_in_univ nat_into_univ A_into_univ 
 
 lemma list_fun_bnd_mono: "bnd_mono(univ(A), \<lambda>X. {0} + A*X)"
 apply (rule bnd_monoI)
  apply (intro subset_refl zero_subset_univ A_subset_univ 
 	      sum_subset_univ Sigma_subset_univ) 
- apply (blast intro!: subset_refl sum_mono Sigma_mono del: subsetI)
+apply (rule subset_refl sum_mono Sigma_mono | assumption)+
 done
 
 lemma list_fun_contin: "contin(\<lambda>X. {0} + A*X)"
-by (simp add: contin_def, blast)
+by (intro sum_contin prod_contin id_contin const_contin) 
 
 text{*Re-expresses lists using sum and product*}
 lemma list_eq_lfp2: "list(A) = lfp(univ(A), \<lambda>X. {0} + A*X)"

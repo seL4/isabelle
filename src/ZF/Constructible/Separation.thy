@@ -61,7 +61,7 @@ apply (rule ReflectsE [OF Inter_Reflects], assumption)
 apply (drule subset_Lset_ltD, assumption) 
 apply (erule reflection_imp_L_separation)
   apply (simp_all add: lt_Ord2, clarify)
-apply (rule DPowI2) 
+apply (rule DPow_LsetI) 
 apply (rule ball_iff_sats) 
 apply (rule imp_iff_sats)
 apply (rule_tac [2] i=1 and j=0 and env="[y,x,A]" in mem_iff_sats)
@@ -86,13 +86,12 @@ apply (rule ReflectsE [OF cartprod_Reflects], assumption)
 apply (drule subset_Lset_ltD, assumption) 
 apply (erule reflection_imp_L_separation)
   apply (simp_all add: lt_Ord2, clarify) 
-apply (rule DPowI2)
+apply (rule DPow_LsetI)
 apply (rename_tac u)  
 apply (rule bex_iff_sats) 
 apply (rule conj_iff_sats)
 apply (rule_tac i=0 and j=2 and env="[x,u,A,B]" in mem_iff_sats, simp_all)
 apply (rule sep_rules | simp)+
-apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
 subsection{*Separation for Image*}
@@ -111,12 +110,11 @@ apply (rule ReflectsE [OF image_Reflects], assumption)
 apply (drule subset_Lset_ltD, assumption) 
 apply (erule reflection_imp_L_separation)
   apply (simp_all add: lt_Ord2, clarify)
-apply (rule DPowI2)
+apply (rule DPow_LsetI)
 apply (rule bex_iff_sats) 
 apply (rule conj_iff_sats)
 apply (rule_tac env="[p,y,A,r]" in mem_iff_sats)
 apply (rule sep_rules | simp)+
-apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
 
@@ -137,13 +135,12 @@ apply (rule ReflectsE [OF converse_Reflects], assumption)
 apply (drule subset_Lset_ltD, assumption) 
 apply (erule reflection_imp_L_separation)
   apply (simp_all add: lt_Ord2, clarify)
-apply (rule DPowI2)
+apply (rule DPow_LsetI)
 apply (rename_tac u) 
 apply (rule bex_iff_sats) 
 apply (rule conj_iff_sats)
 apply (rule_tac i=0 and j=2 and env="[p,u,r]" in mem_iff_sats, simp_all)
 apply (rule sep_rules | simp)+
-apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
 
@@ -162,13 +159,12 @@ apply (rule ReflectsE [OF restrict_Reflects], assumption)
 apply (drule subset_Lset_ltD, assumption) 
 apply (erule reflection_imp_L_separation)
   apply (simp_all add: lt_Ord2, clarify)
-apply (rule DPowI2)
+apply (rule DPow_LsetI)
 apply (rename_tac u) 
 apply (rule bex_iff_sats) 
 apply (rule conj_iff_sats)
 apply (rule_tac i=0 and j=2 and env="[x,u,A]" in mem_iff_sats, simp_all)
 apply (rule sep_rules | simp)+
-apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
 
@@ -194,14 +190,13 @@ apply (rule ReflectsE [OF comp_Reflects], assumption)
 apply (drule subset_Lset_ltD, assumption) 
 apply (erule reflection_imp_L_separation)
   apply (simp_all add: lt_Ord2, clarify)
-apply (rule DPowI2)
+apply (rule DPow_LsetI)
 apply (rename_tac u) 
 apply (rule bex_iff_sats)+
 apply (rename_tac x y z)  
 apply (rule conj_iff_sats)
 apply (rule_tac env="[z,y,x,u,r,s]" in pair_iff_sats)
 apply (rule sep_rules | simp)+
-apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
 subsection{*Separation for Predecessors in an Order*}
@@ -219,13 +214,12 @@ apply (rule ReflectsE [OF pred_Reflects], assumption)
 apply (drule subset_Lset_ltD, assumption) 
 apply (erule reflection_imp_L_separation)
   apply (simp_all add: lt_Ord2, clarify)
-apply (rule DPowI2)
+apply (rule DPow_LsetI)
 apply (rename_tac u) 
 apply (rule bex_iff_sats)
 apply (rule conj_iff_sats)
 apply (rule_tac env = "[p,u,r,x]" in mem_iff_sats) 
 apply (rule sep_rules | simp)+
-apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
 
@@ -244,12 +238,11 @@ apply (rule ReflectsE [OF Memrel_Reflects], assumption)
 apply (drule subset_Lset_ltD, assumption) 
 apply (erule reflection_imp_L_separation)
   apply (simp_all add: lt_Ord2)
-apply (rule DPowI2)
+apply (rule DPow_LsetI)
 apply (rename_tac u) 
 apply (rule bex_iff_sats conj_iff_sats)+
 apply (rule_tac env = "[y,x,u]" in pair_iff_sats) 
 apply (rule sep_rules | simp)+
-apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
 
@@ -278,13 +271,12 @@ apply (rule ReflectsE [OF funspace_succ_Reflects], assumption)
 apply (drule subset_Lset_ltD, assumption) 
 apply (erule reflection_imp_L_separation)
   apply (simp_all add: lt_Ord2)
-apply (rule DPowI2)
+apply (rule DPow_LsetI)
 apply (rename_tac u) 
 apply (rule bex_iff_sats)
 apply (rule conj_iff_sats)
 apply (rule_tac env = "[p,u,n,A]" in mem_iff_sats) 
 apply (rule sep_rules | simp)+
-apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
 
@@ -307,12 +299,11 @@ apply (rule ReflectsE [OF well_ord_iso_Reflects], assumption)
 apply (drule subset_Lset_ltD, assumption) 
 apply (erule reflection_imp_L_separation)
   apply (simp_all add: lt_Ord2)
-apply (rule DPowI2)
+apply (rule DPow_LsetI)
 apply (rename_tac u) 
 apply (rule imp_iff_sats)
 apply (rule_tac env = "[u,A,f,r]" in mem_iff_sats) 
 apply (rule sep_rules | simp)+
-apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
 
@@ -339,13 +330,12 @@ apply (rule ReflectsE [OF obase_reflects], assumption)
 apply (drule subset_Lset_ltD, assumption) 
 apply (erule reflection_imp_L_separation)
   apply (simp_all add: lt_Ord2)
-apply (rule DPowI2)
+apply (rule DPow_LsetI)
 apply (rename_tac u) 
 apply (rule bex_iff_sats)
 apply (rule conj_iff_sats)
 apply (rule_tac env = "[x,u,A,r]" in ordinal_iff_sats) 
 apply (rule sep_rules | simp)+
-apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
 
@@ -375,12 +365,11 @@ apply (rule ReflectsE [OF obase_equals_reflects], assumption)
 apply (drule subset_Lset_ltD, assumption) 
 apply (erule reflection_imp_L_separation)
   apply (simp_all add: lt_Ord2)
-apply (rule DPowI2)
+apply (rule DPow_LsetI)
 apply (rename_tac u) 
 apply (rule imp_iff_sats ball_iff_sats disj_iff_sats not_iff_sats)+
 apply (rule_tac env = "[u,A,r]" in mem_iff_sats) 
 apply (rule sep_rules | simp)+
-apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
 
@@ -412,12 +401,11 @@ apply (rule ReflectsE [OF omap_reflects], assumption)
 apply (drule subset_Lset_ltD, assumption) 
 apply (erule reflection_imp_L_separation)
   apply (simp_all add: lt_Ord2)
-apply (rule DPowI2)
+apply (rule DPow_LsetI)
 apply (rename_tac u) 
 apply (rule bex_iff_sats conj_iff_sats)+
 apply (rule_tac env = "[a,u,A,B,r]" in mem_iff_sats) 
 apply (rule sep_rules | simp)+
-apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
 
@@ -448,12 +436,11 @@ apply (rule ReflectsE [OF is_recfun_reflects], assumption)
 apply (drule subset_Lset_ltD, assumption) 
 apply (erule reflection_imp_L_separation)
   apply (simp_all add: lt_Ord2)
-apply (rule DPowI2)
+apply (rule DPow_LsetI)
 apply (rename_tac u) 
 apply (rule bex_iff_sats conj_iff_sats)+
 apply (rule_tac env = "[xa,u,r,f,g,a,b]" in pair_iff_sats) 
 apply (rule sep_rules | simp)+
-apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
 
