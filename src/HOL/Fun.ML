@@ -38,6 +38,11 @@ by (rtac refl 1);
 qed "id_apply";
 Addsimps [id_apply];
 
+Goal "inv id = id";
+by (simp_tac (simpset() addsimps [inv_def,id_def]) 1);
+qed "inv_id";
+Addsimps [inv_id];
+
 
 section "o";
 
