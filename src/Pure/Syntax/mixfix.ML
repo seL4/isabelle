@@ -224,6 +224,7 @@ val pure_sym_syntax =
 
 val pure_xsym_syntax =
  [("==>",      "[prop, prop] => prop",  InfixrName ("\\<Longrightarrow>", 1)),
+  ("=?=",      "['a::{}, 'a] => prop",  InfixrName ("\\<equiv>\\<^sup>?", 2)),
   ("_DDDOT",   "aprop",                 Delimfix "\\<dots>"),
   ("_bigimpl", "[asms, prop] => prop",  Mixfix ("((3\\<lbrakk>_\\<rbrakk>)/ \\<Longrightarrow> _)", [0, 1], 1)),
   ("_DDDOT",   "logic",                 Delimfix "\\<dots>")];
