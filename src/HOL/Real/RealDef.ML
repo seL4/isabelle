@@ -649,10 +649,14 @@ by (blast_tac (claset() addDs [preal_add_less_mono]
     addIs [preal_lemma_trans]) 1);
 qed "real_less_trans";
 
-Goal "!! (R1::real). [| R1 < R2; R2 < R1 |] ==> P";
+Goal "!! (R1::real). R1 < R2 ==> ~ (R2 < R1)";
+by (rtac notI 1);
 by (dtac real_less_trans 1 THEN assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [real_less_not_refl]) 1);
-qed "real_less_asym";
+qed "real_less_not_sym";
+
+(* [| x < y;  ~P ==> y < x |] ==> P *)
+bind_thm ("real_less_asym", real_less_not_sym RS swap);
 
 (****)(****)(****)(****)(****)(****)(****)(****)(****)(****)
     (****** Map and more real_less ******)

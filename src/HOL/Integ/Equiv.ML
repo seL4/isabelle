@@ -260,8 +260,8 @@ Goal "[| finite A;  equiv A r;  ! X : A/r. k dvd card(X) |] ==> k dvd card(A)";
 by (rtac (Union_quotient RS subst) 1);
 by (assume_tac 1);
 by (rtac dvd_partition 1);
-by (blast_tac (claset() addEs [quotient_disj RS disjE]) 4);
+by (blast_tac (claset() addDs [quotient_disj]) 4);
 by (ALLGOALS 
     (asm_simp_tac (simpset() addsimps [Union_quotient, equiv_type, 
-				      finite_quotient])));
+				       finite_quotient])));
 qed "equiv_imp_dvd_card";
