@@ -590,7 +590,7 @@ end;
 
 fun mk_cong_thy thy f =
 let val sg = sign_of thy;
-    val T = case Sign.Symtab.lookup(#const_tab(Sign.rep_sg sg),f) of
+    val T = case Sign.const_type sg f of
 		None => error(f^" not declared") | Some(T) => T;
     val T' = incr_tvar 9 T;
 in mk_cong_type sg (Const(f,T'),T') end;
@@ -602,7 +602,7 @@ let val sg = sign_of thy;
     val S0 = Type.defaultS(#tsig(Sign.rep_sg sg))
     fun readfT(f,s) =
 	let val T = incr_tvar 9 (Sign.read_typ(sg,K(Some(S0))) s);
-	    val t = case Sign.Symtab.lookup(#const_tab(Sign.rep_sg sg),f) of
+	    val t = case Sign.const_type sg f of
 		      Some(_) => Const(f,T) | None => Free(f,T)
 	in (t,T) end
 in flat o map (mk_cong_type sg o readfT) end;
