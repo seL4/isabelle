@@ -31,7 +31,8 @@ fun mk_all (Free(x,T),P) = all_const T $ (absfree (x,T,P));
 (*Creates All(%v.v:A --> P(v)) rather than Ball(A,P) *)
 fun mk_all_imp (A,P) = 
   let val T = dest_setT (fastype_of A)
-  in  all_const T $ Abs("v", T, imp $ (mk_mem (Bound 0, A)) $ (P $ Bound 0))
+  in  all_const T $ Abs("v", T, imp $ (mk_mem (Bound 0, A)) $ 
+			        betapply(P, Bound 0))
   end;
 
 (** Disjoint sum type **)

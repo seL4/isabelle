@@ -24,7 +24,8 @@ val mem_const = Const("op :", [iT,iT]--->FOLogic.oT);
 (*Creates All(%v.v:A --> P(v)) rather than Ball(A,P) *)
 fun mk_all_imp (A,P) = 
     FOLogic.all_const iT $ 
-      Abs("v", iT, FOLogic.imp $ (mem_const $ Bound 0 $ A) $ (P $ Bound 0));
+      Abs("v", iT, FOLogic.imp $ (mem_const $ Bound 0 $ A) $ 
+	           betapply(P, Bound 0));
 
 val Part_const = Const("Part", [iT,iT-->iT]--->iT);
 
