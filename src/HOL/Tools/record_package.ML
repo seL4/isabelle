@@ -800,21 +800,18 @@ fun quick_and_dirty_prove sg asms prop tac =
 
 
 fun prove_split_simp sg T prop =
-  (case get_splits sg (rec_id T) of
-     Some (all_thm,_,_,_) 
-     => let
-	   val {sel_upd={simpset,...},extsplit,...} = RecordsData.get_sg sg;
-           val extsplits = 
-                 foldl (fn (thms,(n,_)) => (list (Symtab.lookup (extsplit,n)))@thms) 
+  let 
+    val {sel_upd={simpset,...},extsplit,...} = RecordsData.get_sg sg;
+    val extsplits = 
+            foldl (fn (thms,(n,_)) => (list (Symtab.lookup (extsplit,n)))@thms) 
                     ([],dest_recTs T);
-           val thms = all_thm::(case extsplits of [thm] => [] | _ => extsplits);
-                                     (* [thm] is the same as all_thm *)
-        in (quick_and_dirty_prove sg [] prop 
-            (fn _ => (simp_tac (simpset addsimps thms) 1)))
-        end
-   | _ => error "RecordPackage.prove_split_simp:code should never been reached")
-
-
+    val thms = (case get_splits sg (rec_id T) of
+                   Some (all_thm,_,_,_) => 
+                     all_thm::(case extsplits of [thm] => [] | _ => extsplits)
+                              (* [thm] is the same as all_thm *)
+                 | None => extsplits)                                
+  in (quick_and_dirty_prove sg [] prop (fn _ => (simp_tac (simpset addsimps thms) 1)))
+  end;
 
 local
 
