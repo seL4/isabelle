@@ -39,9 +39,8 @@ val contextP =
 
 (** formal comments **)
 
-val titleP = OuterSyntax.command "title" "document title" K.thy_heading
-  ((P.comment -- Scan.optional P.comment Comment.none -- Scan.optional P.comment Comment.none)
-    >> (fn ((x, y), z) => Toplevel.theory (IsarThy.add_title x y z)));
+val headerP = OuterSyntax.command "header" "theory header" K.diag
+  (P.comment >> IsarThy.add_header);
 
 val chapterP = OuterSyntax.command "chapter" "chapter heading" K.thy_heading
   (P.comment >> (Toplevel.theory o IsarThy.add_chapter));
@@ -425,9 +424,9 @@ val cannot_undoP =
   OuterSyntax.improper_command "cannot_undo" "report 'cannot undo' error message" K.control
     (P.name >> IsarCmd.cannot_undo);
 
-val clear_undoP =
-  OuterSyntax.improper_command "clear_undo" "clear undo information" K.control
-    (Scan.succeed IsarCmd.clear_undo);
+val clear_undosP =
+  OuterSyntax.improper_command "clear_undos" "clear theory-level undo information" K.control
+    (P.nat >> IsarCmd.clear_undos_theory);
 
 val redoP =
   OuterSyntax.improper_command "redo" "redo last command" K.control
@@ -600,7 +599,7 @@ val parsers = [
   (*theory structure*)
   theoryP, end_excursionP, kill_excursionP, contextP,
   (*formal comments*)
-  titleP, chapterP, sectionP, subsectionP, subsubsectionP, textP,
+  headerP, chapterP, sectionP, subsectionP, subsubsectionP, textP,
   sectP, subsectP, subsubsectP, txtP,
   (*theory sections*)
   classesP, classrelP, defaultsortP, typedeclP, typeabbrP, nontermP,
@@ -614,7 +613,7 @@ val parsers = [
   defP, fixP, letP, thenP, thenceP, fromP, withP, noteP, beginP, endP,
   nextP, qedP, terminal_proofP, immediate_proofP, default_proofP,
   skip_proofP, applyP, then_applyP, proofP, alsoP, finallyP, obtainP,
-  backP, cannot_undoP, clear_undoP, redoP, undos_proofP, kill_proofP, undoP,
+  backP, cannot_undoP, clear_undosP, redoP, undos_proofP, kill_proofP, undoP,
   (*diagnostic commands*)
   pretty_setmarginP, print_commandsP, print_contextP, print_theoryP,
   print_syntaxP, print_theoremsP, print_attributesP, print_methodsP,
