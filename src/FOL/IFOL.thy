@@ -117,12 +117,43 @@ subsection {* Lemmas and proof tools *}
 setup Simplifier.setup
 use "IFOL_lemmas.ML"
 
-declare impE [Pure.elim]  iffD1 [Pure.elim]  iffD2 [Pure.elim]
+declare impE [Pure.elim?]  iffD1 [Pure.elim?]  iffD2 [Pure.elim?]
 
 use "fologic.ML"
 use "hypsubstdata.ML"
 setup hypsubst_setup
 use "intprover.ML"
+
+
+lemma impE':
+  (assumes 1: "P --> Q" and 2: "Q ==> R" and 3: "P --> Q ==> P") R
+proof -
+  from 3 and 1 have P .
+  with 1 have Q ..
+  with 2 show R .
+qed
+
+lemma allE':
+  (assumes 1: "ALL x. P(x)" and 2: "P(x) ==> ALL x. P(x) ==> Q") Q
+proof -
+  from 1 have "P(x)" by (rule spec)
+  from this and 1 show Q by (rule 2)
+qed
+
+lemma notE': (assumes 1: "~ P" and 2: "~ P ==> P") R
+proof -
+  from 2 and 1 have P .
+  with 1 show R by (rule notE)
+qed
+
+lemmas [Pure.elim!] = disjE iffE FalseE conjE exE
+  and [Pure.intro!] = iffI conjI impI TrueI notI allI refl
+  and [Pure.elim 2] = allE notE' impE'
+  and [Pure.intro] = exI disjI2 disjI1
+
+ML_setup {*
+  Context.>> (RuleContext.addSWrapper (fn tac => hyp_subst_tac' ORELSE' tac));
+*}
 
 
 subsection {* Atomizing meta-level rules *}
@@ -191,6 +222,6 @@ lemmas basic_trans_rules [trans] =
   mp
   trans
 
-lemmas [Pure.elim] = sym
+lemmas [Pure.elim?] = sym
 
 end
