@@ -10,6 +10,7 @@ meta level rules.
 signature PROOF_REWRITE_RULES =
 sig
   val rprocs : (string * (typ list -> Proofterm.proof -> Proofterm.proof option)) list
+  val setup : (theory -> theory) list
 end;
 
 structure ProofRewriteRules : PROOF_REWRITE_RULES =
@@ -111,7 +112,6 @@ fun rew _ (PThm (("ProtoPure.rev_triv_goal", _), _, _, _) % _ %%
   | rew _ _ = None;
 
 val rprocs = [("Pure/meta_equality", rew)];
+val setup = [Proofterm.add_prf_rprocs rprocs];
 
 end;
-
-Proofterm.add_prf_rprocs ProtoPure.thy ProofRewriteRules.rprocs;
