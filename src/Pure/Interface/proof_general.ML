@@ -90,18 +90,17 @@ val plain_output = Library.std_output o suffix "\n";
 fun decorate_lines bg en "" = plain_output o enclose bg en
   | decorate_lines bg en prfx = plain_output o enclose bg en o prefix_lines prfx;
 
-val message = decorate_lines (oct_char "360") (oct_char "361") "";
-
 fun setup_messages () =
- (warning_fn := (decorate_lines (oct_char "362") (oct_char "363") "### ");
+ (priority_fn := decorate_lines (oct_char "360") (oct_char "361") "";
+  warning_fn := (decorate_lines (oct_char "362") (oct_char "363") "### ");
   error_fn := (decorate_lines (oct_char "364") (oct_char "365") "*** "));
 
 
 (* notification *)
 
-fun tell_clear_goals () = message "Proof General, please clear the goals buffer.";
-fun tell_clear_response () = message "Proof General, please clear the response buffer.";
-fun tell_file msg path = message ("Proof General, " ^ msg ^ " " ^ quote (File.sysify_path path));
+fun tell_clear_goals () = priority "Proof General, please clear the goals buffer.";
+fun tell_clear_response () = priority "Proof General, please clear the response buffer.";
+fun tell_file msg path = priority ("Proof General, " ^ msg ^ " " ^ quote (File.sysify_path path));
 
 
 (* theory / proof state output *)
@@ -168,7 +167,7 @@ fun inform_file_retracted file =
 
 fun thms_containing cs = ThmDatabase.print_thms_containing (the_context ()) cs;
 
-val welcome = message o Session.welcome;
+val welcome = priority o Session.welcome;
 val help = welcome;
 val show_context = Context.the_context;
 
