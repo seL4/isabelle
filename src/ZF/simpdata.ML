@@ -10,7 +10,7 @@ Rewriting for ZF set theory: specialized extraction of rewrites from theorems
 
 (*For proving rewrite rules*)
 fun prove_fun s = 
-    (writeln s;  prove_goal thy s
+    (writeln s;  prove_goal ZF.thy s
        (fn prems => [ (cut_facts_tac prems 1), (Fast_tac 1) ]));
 
 (*Are all these really suitable?*)
