@@ -22,9 +22,10 @@ sig
   val print_thms: context -> unit
   val print_context: context -> unit
   val print_proof_data: theory -> unit
-  val init_context: theory -> context
+  val init: theory -> context
   val read_typ: context -> string -> typ
   val cert_typ: context -> typ -> typ
+  val read_termTs: context -> (string * typ) list -> term list * (indexname * typ) list
   val read_term: context -> string -> term
   val read_prop: context -> string -> term
   val read_pat: context -> string -> term
@@ -32,6 +33,7 @@ sig
   val cert_prop: context -> term -> term
   val declare_term: term -> context -> context
   val declare_terms: term list -> context -> context
+  val declare_thm: thm -> context -> context
   val add_binds: (indexname * string) list -> context -> context
   val add_binds_i: (indexname * term) list -> context -> context
   val match_binds: (string * string) list -> context -> context
@@ -65,7 +67,6 @@ sig
   val get_data: Object.kind -> (Object.T -> 'a) -> context -> 'a
   val put_data: Object.kind -> ('a -> Object.T) -> 'a -> context -> context
 end;
-
 
 structure ProofContext: PROOF_CONTEXT_PRIVATE =
 struct
@@ -265,8 +266,8 @@ fun put_data kind f x ctxt =
 
 (* init context *)
 
-fun init_context thy =
-  let val data = Symtab.map (fn (_, (init, _)) => init thy) (ProofDataData.get thy) in
+fun init thy =
+  let val data = Symtab.map (fn (_, (f, _)) => f thy) (ProofDataData.get thy) in
     make_context (thy, data, ([], ([], [])), Vartab.empty, Symtab.empty,
       (Vartab.empty, Vartab.empty, ~1, []))
   end;
@@ -301,13 +302,18 @@ fun cert_typ ctxt raw_T =
 
 (* read / certify wrt. signature *)     (*exception ERROR*) (*exception TERM*)
 
-fun read_def_termT sg (types, sorts, used) (s, T) =
-  Thm.term_of (#1 (Thm.read_def_cterm (sg, types, sorts) used true (s, T)));
+fun read_def_termTs freeze sg (types, sorts, used) sTs =
+  let val (cts, env) = Thm.read_def_cterms (sg, types, sorts) used freeze sTs
+  in (map Thm.term_of cts, env) end;
+
+fun read_def_termT freeze sg defs sT = apfst hd (read_def_termTs freeze sg defs [sT]);
+
 
 fun read_term_sg sg (defs as (_, _, used)) s =
-  read_def_termT sg defs (s, TVar ((variant used "'z", 0), logicS));
+  #1 (read_def_termT true sg defs (s, TVar ((variant used "'z", 0), logicS)));
 
-fun read_prop_sg sg defs s = read_def_termT sg defs (s, propT);
+fun read_prop_sg sg defs s =
+  #1 (read_def_termT true sg defs (s, propT));
 
 
 fun cert_term_sg sg t = Thm.term_of (Thm.cterm_of sg t);
@@ -375,7 +381,7 @@ fun norm_term (ctxt as Context {binds, ...}) =
 
 (* read terms *)
 
-fun gen_read read is_pat (ctxt as Context {binds, defs = (types, sorts, _, used), ...}) s =
+fun gen_read read app is_pat (ctxt as Context {binds, defs = (types, sorts, _, used), ...}) s =
   let
     val sign = sign_of ctxt;
 
@@ -389,13 +395,14 @@ fun gen_read read is_pat (ctxt as Context {binds, defs = (types, sorts, _, used)
     (transform_error (read sign (def_type, def_sort, used)) s
       handle TERM (msg, _) => raise CONTEXT (msg, ctxt)
       | ERROR_MESSAGE msg => raise CONTEXT (msg, ctxt))
-    |> intern_skolem ctxt true
-    |> (if is_pat then I else norm_term ctxt)
+    |> app (intern_skolem ctxt true)
+    |> app (if is_pat then I else norm_term ctxt)
   end;
 
-val read_term = gen_read read_term_sg false;
-val read_prop = gen_read read_prop_sg false;
-val read_pat = gen_read read_term_sg true;
+val read_termTs = gen_read (read_def_termTs false) (apfst o map) false;
+val read_term = gen_read read_term_sg I false;
+val read_prop = gen_read read_prop_sg I false;
+val read_pat = gen_read read_term_sg I true;
 
 
 (* certify terms *)
@@ -441,6 +448,10 @@ fun declare (ctxt, t) =
 
 fun declare_term t ctxt = declare (ctxt, t);
 fun declare_terms ts ctxt = foldl declare (ctxt, ts);
+
+fun declare_thm thm ctxt =
+  let val {prop, hyps, ...} = Thm.rep_thm thm
+  in ctxt |> declare_terms (prop :: hyps) end;
 
 fun prep_declare prep (ctxt, s) =
   let val t = prep ctxt s
