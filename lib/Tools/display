@@ -62,7 +62,7 @@ FILE="$1"; shift
 [ -f "$FILE" ] || fail "Bad file: $FILE"
 
 if [ -n "$CLEAN" ]; then
-  PRIVATE_FILE=$ISABELLE_TMP/$(basename "$FILE" .dvi)$$.dvi
+  PRIVATE_FILE="$ISABELLE_TMP/"$(basename "$FILE" .dvi)$$.dvi
   mv "$FILE" "$PRIVATE_FILE" || fail "Cannot move file: $FILE"
   $DVI_VIEWER "$PRIVATE_FILE"
   rm -f "$PRIVATE_FILE"
