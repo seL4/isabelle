@@ -6,7 +6,7 @@
 Notions about functions.
 *)
 
-Fun = Inverse_Image + Typedef + 
+Fun = Typedef +
 
 instance set :: (term) order
                        (subset_refl,subset_trans,subset_antisym,psubset_eq)
@@ -35,7 +35,7 @@ consts
 translations
  "fun_sum" == "sum_case"
 *)
-  
+
 constdefs
   id ::  'a => 'a
     "id == %x. x"
@@ -58,13 +58,13 @@ translations
 constdefs
   surj :: ('a => 'b) => bool                   (*surjective*)
     "surj f == ! y. ? x. y=f(x)"
-  
+
   bij :: ('a => 'b) => bool                    (*bijective*)
     "bij f == inj f & surj f"
-  
+
 
 (*The Pi-operator, by Florian Kammueller*)
-  
+
 constdefs
   Pi      :: "['a set, 'a => 'b set] => ('a => 'b) set"
     "Pi A B == {f. ! x. if x:A then f(x) : B(x) else f(x) = arbitrary}"
@@ -74,7 +74,7 @@ constdefs
 
 syntax
   "@Pi"  :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3PI _:_./ _)" 10)
-  funcset :: "['a set, 'b set] => ('a => 'b) set"      (infixr 60) 
+  funcset :: "['a set, 'b set] => ('a => 'b) set"      (infixr 60)
   "@lam" :: "[pttrn, 'a set, 'a => 'b] => ('a => 'b)"  ("(3lam _:_./ _)" 10)
 
   (*Giving funcset the arrow syntax (namely ->) clashes with other theories*)
@@ -91,8 +91,6 @@ constdefs
   compose :: "['a set, 'b => 'c, 'a => 'b] => ('a => 'c)"
     "compose A g f == lam x : A. g(f x)"
 
-
-  
 end
 
 ML
