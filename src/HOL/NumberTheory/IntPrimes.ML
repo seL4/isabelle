@@ -28,7 +28,7 @@ Goal "gcd (m+k, k) = gcd (m+k, m)";
 by (simp_tac (simpset() addsimps [gcd_commute]) 1); 
 qed "gcd_add1_eq";
 
-Goal "m <= n \\<Longrightarrow> gcd (n, n - m) = gcd (n, m)";
+Goal "m <= n ==> gcd (n, n - m) = gcd (n, m)";
 by (subgoal_tac "n = m + (n-m)" 1);
 by (etac ssubst 1 THEN rtac gcd_add1_eq 1);
 by (Asm_simp_tac 1);
@@ -672,7 +672,7 @@ qed "zmod_zdvd_zmod";
 val [xzgcda_eq] = xzgcda.simps;
 Delsimps xzgcda.simps;
 
-Goal "zgcd(r',r) = k --> #0 < r \\<longrightarrow> \
+Goal "zgcd(r',r) = k --> #0 < r --> \
 \     (EX sn tn. xzgcda (m,n,r',r,s',s,t',t) = (k,sn,tn))";
 by (res_inst_tac [("u","m"),("v","n"),("w","r'"),("x","r"),
                   ("y","s'"),("z","s"),("aa","t'"),("ab","t")] 
@@ -691,7 +691,7 @@ by Auto_tac;
 by (asm_full_simp_tac (simpset() addsimps [zabs_def]) 1); 
 val lemma1 = result();
 
-Goal "(EX sn tn. xzgcda (m,n,r',r,s',s,t',t) = (k,sn,tn)) --> #0 < r \\<longrightarrow>  \
+Goal "(EX sn tn. xzgcda (m,n,r',r,s',s,t',t) = (k,sn,tn)) --> #0 < r --> \
 \     zgcd(r',r) = k";
 by (res_inst_tac [("u","m"),("v","n"),("w","r'"),("x","r"),
                   ("y","s'"),("z","s"),("aa","t'"),("ab","t")] 
@@ -709,7 +709,7 @@ by Auto_tac;
 by (asm_full_simp_tac (simpset() addsimps [zabs_def]) 1); 
 val lemma2 = result();
 
-Goalw [xzgcd_def] "#0 < n \\<Longrightarrow> (zgcd(m,n) = k) = (EX s t. xzgcd m n = (k,s,t))"; 
+Goalw [xzgcd_def] "#0 < n ==> (zgcd(m,n) = k) = (EX s t. xzgcd m n = (k,s,t))"; 
 by (rtac iffI 1);
 by (rtac (lemma2 RS mp RS mp) 2);
 by (rtac (lemma1 RS mp RS mp) 1);

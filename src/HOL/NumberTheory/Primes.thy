@@ -1,4 +1,4 @@
-(*  Title:      HOL/ex/Primes.thy
+(*  Title:      HOL/NumberTheory/Primes.thy
     ID:         $Id$
     Author:     Christophe Tabacznyj and Lawrence C Paulson
     Copyright   1996  University of Cambridge
@@ -149,7 +149,7 @@ lemma relprime_dvd_mult: "[| gcd(k,n)=1; k dvd (m*n) |] ==> k dvd m";
   apply (simp)
   done
 
-lemma relprime_dvd_mult_iff: "gcd(k,n)=1 \<Longrightarrow> k dvd (m*n) = k dvd m";
+lemma relprime_dvd_mult_iff: "gcd(k,n)=1 ==> k dvd (m*n) = k dvd m";
   apply (blast intro: relprime_dvd_mult dvd_trans)
   done
 
