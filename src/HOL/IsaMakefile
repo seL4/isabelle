@@ -158,8 +158,7 @@ $(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML\
   Hyperreal/SEQ.ML Hyperreal/SEQ.thy Hyperreal/Series.ML Hyperreal/Series.thy\
   Hyperreal/Star.thy Hyperreal/Transcendental.ML\
   Hyperreal/Transcendental.thy Hyperreal/fuf.ML Hyperreal/hypreal_arith.ML \
-  Complex/Complex_Main.thy Complex/CLim.thy\
-  Complex/CSeries.ML Complex/CSeries.thy\
+  Complex/Complex_Main.thy Complex/CLim.thy Complex/CSeries.thy\
   Complex/CStar.ML Complex/CStar.thy Complex/Complex.thy Complex/ComplexBin.thy\
   Complex/NSCA.ML Complex/NSCA.thy\
   Complex/NSComplex.thy
