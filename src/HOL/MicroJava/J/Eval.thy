@@ -87,6 +87,7 @@ inductive "eval G" "evals G" "exec G" intros
             h' = h(a\<mapsto>(c,(fs((fn,T)\<mapsto>v)))) |] ==>
          G\<turnstile>Norm s0 -{T}e1..fn:=e2\<succ>v-> c_hupd h' (x2,s2)"
 
+
   (* cf. 15.11.4.1, 15.11.4.2, 15.11.4.4, 15.11.4.5, 14.15 *)
   Call: "[| G\<turnstile>Norm s0 -e\<succ>a'-> s1; a = the_Addr a';
             G\<turnstile>s1 -ps[\<succ>]pvs-> (x,(h,l)); dynT = fst (the (h a));
@@ -94,7 +95,6 @@ inductive "eval G" "evals G" "exec G" intros
             G\<turnstile>(np a' x,(h,(init_vars lvars)(pns[\<mapsto>]pvs)(This\<mapsto>a'))) -blk-> s3;
             G\<turnstile> s3 -res\<succ>v -> (x4,s4) |] ==>
          G\<turnstile>Norm s0 -{C}e..mn({pTs}ps)\<succ>v-> (x4,(heap s4,l))"
-
 
 (* evaluation of expression lists *)
 
