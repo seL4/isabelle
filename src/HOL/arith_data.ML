@@ -262,7 +262,7 @@ end;
 
 (* arith theory data *)
 
-structure ArithDataArgs =
+structure ArithTheoryDataArgs =
 struct
   val name = "HOL/arith";
   type T = {splits: thm list, discrete: (string * bool) list};
@@ -276,12 +276,12 @@ struct
   fun print _ _ = ();
 end;
 
-structure ArithData = TheoryDataFun(ArithDataArgs);
+structure ArithTheoryData = TheoryDataFun(ArithTheoryDataArgs);
 
-fun arith_split_add (thy, thm) = (ArithData.map (fn {splits, discrete} =>
+fun arith_split_add (thy, thm) = (ArithTheoryData.map (fn {splits, discrete} =>
   {splits = thm :: splits, discrete = discrete}) thy, thm);
 
-fun arith_discrete d = ArithData.map (fn {splits, discrete} =>
+fun arith_discrete d = ArithTheoryData.map (fn {splits, discrete} =>
   {splits = splits, discrete = d :: discrete});
 
 
@@ -342,7 +342,7 @@ fun decomp2 discrete (_$(Const(rel,T)$lhs$rhs)) = decomp1 discrete (T,(rel,lhs,r
       negate(decomp1 discrete (T,(rel,lhs,rhs)))
   | decomp2 discrete _ = None
 
-val decomp = decomp2 o #discrete o ArithData.get_sg;
+val decomp = decomp2 o #discrete o ArithTheoryData.get_sg;
 
 end;
 
@@ -377,7 +377,7 @@ val init_lin_arith_data =
    {add_mono_thms = add_mono_thms @ add_mono_thms_nat,
     lessD = lessD @ [Suc_leI],
     simpset = HOL_basic_ss addsimps add_rules addsimprocs nat_cancel_sums_add}),
-  ArithData.init, arith_discrete ("nat", true)];
+  ArithTheoryData.init, arith_discrete ("nat", true)];
 
 end;
 
@@ -407,7 +407,7 @@ solver all the time rather than add the additional check. *)
    (l <= min m n + k) = (l <= m+k & l <= n+k)
 *)
 fun arith_tac i st =
-  refute_tac (K true) (REPEAT o split_tac (#splits (ArithData.get_sg (Thm.sign_of_thm st))))
+  refute_tac (K true) (REPEAT o split_tac (#splits (ArithTheoryData.get_sg (Thm.sign_of_thm st))))
              ((REPEAT_DETERM o etac linorder_neqE) THEN' fast_arith_tac) i st;
 
 fun arith_method prems =
