@@ -329,6 +329,7 @@ val defer_recdefP =
   OuterSyntax.command "defer_recdef" "defer general recursive functions (TFL)" K.thy_decl
     (defer_recdef_decl >> Toplevel.theory);
 
+val _ = OuterSyntax.add_keywords ["hints"];
 val _ = OuterSyntax.add_parsers [recdefP, defer_recdefP];
 
 end;
