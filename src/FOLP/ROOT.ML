@@ -16,8 +16,8 @@ structure Readthy = ReadthyFUN (structure ThySyn = ThySyn);
 open Readthy;
 
 print_depth 1;  
-use_thy "ifolp";
-use_thy "folp";
+use_thy "IFOLP";
+use_thy "FOLP";
 
 use "../Provers/hypsubst.ML";
 use "classical.ML";      (* Patched 'cos matching won't instantiate proof *)
@@ -47,7 +47,7 @@ structure Hypsubst_Data =
 structure Hypsubst = HypsubstFun(Hypsubst_Data);
 open Hypsubst;
 
-use "int-prover.ML";
+use "intprover.ML";
 
 (*** Applying ClassicalFun to create a classical prover ***)
 structure Classical_Data = 
