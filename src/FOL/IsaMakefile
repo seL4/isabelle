@@ -28,7 +28,7 @@ Pure:
 
 $(OUT)/FOL: $(OUT)/Pure $(SRC)/Provers/blast.ML	$(SRC)/Provers/make_elim.ML \
   $(SRC)/Provers/clasimp.ML $(SRC)/Provers/classical.ML \
-  $(SRC)/Provers/hypsubst.ML $(SRC)/Provers/ind.ML \
+  $(SRC)/Provers/hypsubst.ML $(SRC)/Provers/ind.ML $(SRC)/Provers/rulify.ML \
   $(SRC)/Provers/simplifier.ML $(SRC)/Provers/splitter.ML FOL.ML \
   FOL.thy FOL_lemmas1.ML FOL_lemmas2.ML IFOL.ML IFOL.thy \
   IFOL_lemmas.ML ROOT.ML blastdata.ML cladata.ML fologic.ML \
