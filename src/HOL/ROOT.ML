@@ -57,9 +57,8 @@ use_thy "List";
 use_thy "Map";
 
 (*TFL: recursive function definitions*)
-cd "../TFL";
+cd "$ISABELLE_HOME/src/TFL";
 use "sys.sml";
-cd "../HOL";
 
 print_depth 8;
 
