@@ -350,7 +350,7 @@ fun make_syntax keywords sects =
 (* header *)
 
 fun mk_header (thy_name, bases) =
-  (thy_name, "base_on " ^ mk_list bases ^ " " ^ quote thy_name);
+  (thy_name, "mk_base " ^ mk_list bases ^ " " ^ quote thy_name);
 
 val base =
   ident >> (cat "Thy" o quote) ||
@@ -389,7 +389,8 @@ fun mk_structure tname ((thy_name, old_thys), opt_txts) =
   else
     (case opt_txts of
       Some (extxt, postxt, mltxt) =>
-        "structure " ^ thy_name ^ " =\n\
+        "val base = " ^ old_thys ^ " true;\n\n\
+        \structure " ^ thy_name ^ " =\n\
         \struct\n\
         \\n\
         \local\n"
@@ -398,7 +399,7 @@ fun mk_structure tname ((thy_name, old_thys), opt_txts) =
         \\n"
         ^ mltxt ^ "\n\
         \\n\
-        \val thy = (" ^ old_thys ^ " true)\n\n\
+        \val thy = base\n\n\
         \|> add_trfuns\n"
         ^ trfun_args ^ "\n\
         \\n"
@@ -412,10 +413,11 @@ fun mk_structure tname ((thy_name, old_thys), opt_txts) =
         \end;\n\
         \end;\n"
     | None =>
-        "structure " ^ thy_name ^ " =\n\
+        "val base = " ^ old_thys ^ " false;\n\n\
+        \structure " ^ thy_name ^ " =\n\
         \struct\n\
         \\n\
-        \val thy = (" ^ old_thys ^ " false);\n\
+        \val thy = base\n\
         \\n\
         \end;\n");
 

@@ -33,7 +33,7 @@ sig
   val update         : unit -> unit
   val time_use_thy   : string -> unit
   val unlink_thy     : string -> unit
-  val base_on        : basetype list -> string -> bool -> theory
+  val mk_base        : basetype list -> string -> bool -> theory
   val store_theory   : theory * string -> unit
 
   val theory_of_sign: Sign.sg -> theory
@@ -333,7 +333,7 @@ fun update () =
 
 (*Merge theories to build a base for a new theory.
   Base members are only loaded if they are missing. *)
-fun base_on bases child mk_draft =
+fun mk_base bases child mk_draft =
       let (*List all descendants of a theory list *)
           fun list_descendants (t :: ts) =
                 let val tinfo = get_thyinfo t
