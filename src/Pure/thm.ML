@@ -5,7 +5,6 @@
 
 The abstract types "theory" and "thm".
 Also "cterm" / "ctyp" (certified terms / typs under a signature).
-
 *)
 
 signature THM =
@@ -103,7 +102,7 @@ sig
 end;
 
 functor ThmFun (structure Logic: LOGIC and Unify: UNIFY and Pattern: PATTERN
-  and Net:NET sharing type Pattern.type_sig = Unify.Sign.Type.type_sig)(*: THM *) (* FIXME debug *) =
+  and Net:NET sharing type Pattern.type_sig = Unify.Sign.Type.type_sig) : THM =
 struct
 
 structure Sequence = Unify.Sequence;
@@ -599,7 +598,7 @@ fun dest_state (state as Thm{prop,...}, i) =
   end
   handle TERM _ => raise THM("dest_state", i, [state]);
 
-(*Increment variables and parameters of rule as required for
+(*Increment variables and parameters of orule as required for
   resolution with goal i of state. *)
 fun lift_rule (state, i) orule =
   let val Thm{prop=sprop,maxidx=smax,...} = state;
