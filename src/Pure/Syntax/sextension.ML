@@ -6,15 +6,15 @@ Syntax extensions (external interface): mixfix declarations, infixes,
 binders, translation rules / functions and the Pure syntax.
 
 TODO:
-  move ast_to_term (?)
+  move ast_to_term, pt_to_ast (?)
 *)
 
 infix |-> <-| <->;
 
 signature SEXTENSION0 =
 sig
-  structure Ast: AST
-  local open Ast in
+  structure Parser: PARSER
+  local open Parser.SynExt.Ast in
     datatype mixfix =
       Mixfix of string * string * string * int list * int |
       Delimfix of string * string * string |
@@ -61,25 +61,22 @@ end;
 signature SEXTENSION =
 sig
   include SEXTENSION1
-  structure Extension: EXTENSION
-  sharing Extension.XGram.Ast = Ast
-  local open Extension Ast in
+  local open Parser Parser.SynExt Parser.SynExt.Ast in
     val xrules_of: sext -> xrule list
     val abs_tr': term -> term
     val appl_ast_tr': ast * ast list -> ast
-    val ext_of_sext: string list -> string list -> (string -> typ) -> sext -> ext
+    val syn_ext_of_sext: string list -> string list -> (string -> typ) -> sext -> syn_ext
+    val pt_to_ast: (string -> (ast list -> ast) option) -> parsetree -> ast
     val ast_to_term: (string -> (term list -> term) option) -> ast -> term
-    val constrainIdtC: string
     val apropC: string
   end
 end;
 
-functor SExtensionFun(structure TypeExt: TYPE_EXT and Lexicon: LEXICON): SEXTENSION =
+functor SExtensionFun(Parser: PARSER): SEXTENSION =
 struct
 
-structure Extension = TypeExt.Extension;
-structure Ast = Extension.XGram.Ast;
-open Lexicon Extension Extension.XGram Ast;
+structure Parser = Parser;
+open Parser.Lexicon Parser.SynExt.Ast Parser.SynExt Parser;
 
 
 (** datatype sext **)
@@ -214,6 +211,25 @@ fun bigimpl_ast_tr (*"_bigimpl"*) [asms, concl] =
   | bigimpl_ast_tr (*"_bigimpl"*) asts = raise_ast "bigimpl_ast_tr" asts;
 
 
+(* explode atoms *)  (* FIXME check, leading 0s (?) *)
+
+fun explode_tr (*"_explode"*) [consC, nilC, bit0, bit1, Free (str, _)] =
+      let
+        fun mk_list [] = nilC
+          | mk_list (t :: ts) = consC $ t $ mk_list ts;
+
+        fun encode_bit 0 = bit0
+          | encode_bit 1 = bit1
+          | encode_bit _ = sys_error "encode_bit";
+
+        fun encode_char c =
+          mk_list (map encode_bit (radixpand (2, (ord c))));
+      in
+        mk_list (map encode_char (explode str))
+      end
+  | explode_tr (*"_explode"*) ts = raise_term "explode_tr" ts;
+
+
 
 (** print (ast) translations **)
 
@@ -319,8 +335,31 @@ fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
   | dependent_tr' _ _ = raise Match;
 
 
+(* implode atoms *)  (* FIXME check *)
 
-(** ext_of_sext **)
+fun implode_ast_tr' (*"_implode"*) (asts as [Constant cons_name, nilC,
+    bit0, bit1, bitss]) =
+      let
+        fun fail () = raise_ast "implode_ast_tr'" asts;
+
+        fun strip_list lst =
+          let val (xs, y) = unfold_ast_p cons_name lst
+          in if y = nilC then xs else fail ()
+          end;
+
+        fun decode_bit bit =
+          if bit = bit0 then "0" else if bit = bit1 then "1" else fail ();
+
+        fun decode_char bits =
+          chr (#1 (scan_radixint (2, map decode_bit (strip_list bits))));
+      in
+        Variable (implode (map decode_char (strip_list bitss)))
+      end
+  | implode_ast_tr' (*"_implode"*) asts = raise_ast "implode_ast_tr'" asts;
+
+
+
+(** syn_ext_of_sext **)
 
 fun strip_esc str =
   let
@@ -335,7 +374,7 @@ fun strip_esc str =
 fun infix_name sy = "op " ^ strip_esc sy;
 
 
-fun ext_of_sext roots xconsts read_typ sext =
+fun syn_ext_of_sext roots xconsts read_typ sext =
   let
     val {mixfix, parse_ast_translation, parse_translation, print_translation,
       print_ast_translation, ...} = sext_components sext;
@@ -351,9 +390,9 @@ fun ext_of_sext roots xconsts read_typ sext =
           [Type ("idts", []), T2] ---> T3
       | _ => error ("Illegal binder type " ^ quote ty));
 
-    fun mk_infix sy T c p1 p2 p3 =
-      [Mfix ("op " ^ sy, T, c, [], max_pri),
-       Mfix ("(_ " ^ sy ^ "/ _)", T, c, [p1, p2], p3)];
+    fun mk_infix sy ty c p1 p2 p3 =
+      [Mfix ("(_ " ^ sy ^ "/ _)", ty, c, [p1, p2], p3),
+       Mfix ("op " ^ sy, ty, c, [], max_pri)];
 
     fun mfix_of (Mixfix (sy, ty, c, ps, p)) = [Mfix (sy, read_typ ty, c, ps, p)]
       | mfix_of (Delimfix (sy, ty, c)) = [Mfix (sy, read_typ ty, c, [], max_pri)]
@@ -371,15 +410,14 @@ fun ext_of_sext roots xconsts read_typ sext =
     val mfix = flat (map mfix_of mixfix);
     val binders = mapfilter binder mixfix;
     val bparses = map mk_binder_tr binders;
-    val bprints = map (mk_binder_tr' o (fn (x, y) => (y, x))) binders;
+    val bprints = map (mk_binder_tr' o swap) binders;
   in
-    Ext {
-      roots = roots, mfix = mfix,
-      extra_consts = distinct (filter is_xid xconsts),
-      parse_ast_translation = parse_ast_translation,
-      parse_translation = bparses @ parse_translation,
-      print_translation = bprints @ print_translation,
-      print_ast_translation = print_ast_translation}
+    syn_ext roots mfix (distinct (filter is_xid xconsts))
+      (parse_ast_translation,
+        bparses @ parse_translation,
+        bprints @ print_translation,
+        print_ast_translation)
+      ([], [])
   end;
 
 
@@ -396,6 +434,24 @@ fun constants sext =
       | consts _ = ([""], "");    (*is filtered out below*)
   in
     distinct (filter_out (fn (l, _) => l = [""]) (map consts (mixfix_of sext)))
+  end;
+
+
+
+(** pt_to_ast **)
+
+fun pt_to_ast trf pt =
+  let
+    fun trans a args =
+      (case trf a of
+        None => mk_appl (Constant a) args
+      | Some f => f args handle exn
+          => (writeln ("Error in parse ast translation for " ^ quote a); raise exn));
+
+    fun ast_of (Node (a, pts)) = trans a (map ast_of pts)
+      | ast_of (Tip tok) = Variable (str_of_token tok);
+  in
+    ast_of pt
   end;
 
 
@@ -438,7 +494,7 @@ val pure_sext =
       Mixfix   ("_/ _",       "[idt, idts] => idts",           "_idts", [1, 0], 0),
       Delimfix ("_",          "id => aprop",                   ""),
       Delimfix ("_",          "var => aprop",                  ""),
-      Mixfix   ("(1_/(1'(_')))", "[('b => 'a), " ^ args ^ "] => aprop", applC, [max_pri, 0], 0),
+      Mixfix   ("(1_/(1'(_')))", "[('b => 'a), " ^ args ^ "] => aprop", applC, [max_pri, 0], max_pri),  (* FIXME lhs pri: 0 vs. max_pri *)
       Delimfix ("PROP _",     "aprop => prop",                 "_aprop"),
       Delimfix ("_",          "prop => asms",                  ""),
       Delimfix ("_;/ _",      "[prop, asms] => asms",          "_asms"),
@@ -448,18 +504,17 @@ val pure_sext =
       Mixfix   ("(_ ==>/ _)", "[prop, prop] => prop",          "==>", [2, 1], 1),
       Binder   ("!!",         "('a::logic => prop) => prop",   "all", 0, 0)],
     xrules = [],
-    parse_ast_translation =
-      [(applC, appl_ast_tr), ("_lambda", lambda_ast_tr), ("_idtyp", idtyp_ast_tr),
-        ("_bigimpl", bigimpl_ast_tr)],
-    parse_translation = [("_abs", abs_tr), ("_K", k_tr), ("_aprop", aprop_tr)],
+    parse_ast_translation = [(applC, appl_ast_tr), ("_lambda", lambda_ast_tr),
+      ("_idtyp", idtyp_ast_tr), ("_bigimpl", bigimpl_ast_tr)],
+    parse_translation = [("_abs", abs_tr), ("_aprop", aprop_tr), ("_K", k_tr),
+      ("_explode", explode_tr)],
     print_translation = [],
     print_ast_translation = [("_abs", abs_ast_tr'), ("_idts", idts_ast_tr'),
-      ("==>", impl_ast_tr')]};
+      ("==>", impl_ast_tr'), ("_implode", implode_ast_tr')]};
 
-val syntax_types = [id, var, tfree, tvar, logic, "type", "types", "sort",
-  "classes", args, "idt", "idts", "aprop", "asms"];
+val syntax_types = terminals @ [logic, "type", "types", "sort", "classes",
+  args, "idt", "idts", "aprop", "asms"];
 
-val constrainIdtC = "_idtyp";
 val constrainAbsC = "_constrainAbs";
 val apropC = "_aprop";
 
