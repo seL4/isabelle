@@ -49,6 +49,9 @@ struct
   structure Args = Args;
   structure Attrib = Attrib;
   structure Method = Method;
+  structure LocalDefs = LocalDefs;
+  structure Calculation = Calculation;
+  structure SkipProof = SkipProof;
   structure Comment = Comment;
   structure OuterLex = OuterLex;
   structure OuterParse = OuterParse;
