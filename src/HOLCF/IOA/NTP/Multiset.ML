@@ -38,7 +38,7 @@ Goal "!!M. (!x. P(x) --> Q(x)) ==> (countm M P <= countm M Q)";
 by (res_inst_tac [("M","M")] Multiset.induction 1);
  by (simp_tac (simpset() addsimps [Multiset.countm_empty_def]) 1);
 by (simp_tac (simpset() addsimps[Multiset.countm_nonempty_def]) 1);
-auto();
+by Auto_tac;
 qed "countm_props";
 
 Goal "!!P. ~P(obj) ==> countm M P = countm (delm M obj) P";

@@ -21,7 +21,7 @@ qed "neq_Nil_conv";
 (* Induction over the length of a list: *)
 val [prem] = Goal
   "(!!xs. (!ys. length ys < length xs --> P ys) ==> P xs) ==> P(xs)";
-by(rtac measure_induct 1 THEN etac prem 1);
+by (rtac measure_induct 1 THEN etac prem 1);
 qed "length_induct";
 
 
@@ -184,14 +184,14 @@ AddSDs
  [same_append_eq RS iffD1, append1_eq_conv RS iffD1, append_same_eq RS iffD1];
 
 Goal "(xs @ ys = ys) = (xs=[])";
-by(cut_inst_tac [("zs","[]")] append_same_eq 1);
+by (cut_inst_tac [("zs","[]")] append_same_eq 1);
 by (Auto_tac);
 qed "append_self_conv2";
 
 Goal "(ys = xs @ ys) = (xs=[])";
-by(simp_tac (simpset() addsimps
+by (simp_tac (simpset() addsimps
      [simplify (simpset()) (read_instantiate[("ys","[]")]append_same_eq)]) 1);
-by(Blast_tac 1);
+by (Blast_tac 1);
 qed "self_append_conv2";
 AddIffs [append_self_conv2,self_append_conv2];
 
@@ -309,16 +309,16 @@ qed "Nil_is_rev_conv";
 AddIffs [Nil_is_rev_conv];
 
 val prems = Goal "[| P []; !!x xs. P xs ==> P(xs@[x]) |] ==> P xs";
-by(stac (rev_rev_ident RS sym) 1);
+by (stac (rev_rev_ident RS sym) 1);
 br(read_instantiate [("P","%xs. ?P(rev xs)")]list.induct)1;
-by(ALLGOALS Simp_tac);
-brs prems 1;
-bes prems 1;
+by (ALLGOALS Simp_tac);
+by (resolve_tac prems 1);
+by (eresolve_tac prems 1);
 qed "rev_induct";
 
 Goal  "(xs = [] --> P) -->  (!ys y. xs = ys@[y] --> P) --> P";
-by(res_inst_tac [("xs","xs")] rev_induct 1);
-by(Auto_tac);
+by (res_inst_tac [("xs","xs")] rev_induct 1);
+by (Auto_tac);
 bind_thm ("rev_exhaust",
   impI RSN (2,allI RSN (2,allI RSN (2,impI RS (result() RS mp RS mp)))));
 

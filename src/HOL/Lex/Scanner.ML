@@ -6,5 +6,5 @@
 
 Goal
  "DA.accepts (nae2da(rexp2nae r)) w = (w : lang r)";
-by(simp_tac (simpset() addsimps [NAe_DA_equiv,accepts_rexp2nae]) 1);
+by (simp_tac (simpset() addsimps [NAe_DA_equiv,accepts_rexp2nae]) 1);
 qed "accepts_nae2da_rexp2nae";

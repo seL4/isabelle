@@ -256,7 +256,7 @@ section "Corollary:  F A I R  T R A C E - I N C L U S I O N";
 
 
 Goalw [fin_often_def] "(~inf_often P s) = fin_often P s";
-auto();
+by Auto_tac;
 qed"fininf";
 
 
@@ -264,17 +264,17 @@ Goal
 "is_wfair A W (s,ex) = \
 \ (fin_often (%x. ~Enabled A W (snd x)) ex --> inf_often (%x. fst x :W) ex)";
 by (asm_full_simp_tac (simpset() addsimps [is_wfair_def,fin_often_def])1);
-auto();
+by Auto_tac;
 qed"WF_alt";
 
 Goal  
 "!! ex. [|is_wfair A W (s,ex); inf_often (%x. Enabled A W (snd x)) ex; \
 \         en_persistent A W|] \
 \   ==> inf_often (%x. fst x :W) ex";
-bd persistent 1;
-ba 1;
+by (dtac persistent 1);
+by (assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [WF_alt])1);
-auto();
+by Auto_tac;
 qed"WF_persistent";
 
 
@@ -305,7 +305,7 @@ by (safe_tac set_cs);
   by (asm_full_simp_tac (simpset() addsimps [reachable.reachable_0]) 1);
 
  (* Fairness *)
-auto();
+by Auto_tac;
 qed"fair_trace_inclusion";
 
 Goal "!! C A. \
@@ -335,7 +335,7 @@ by (safe_tac set_cs);
   by (asm_full_simp_tac (simpset() addsimps [reachable.reachable_0]) 1);
 
  (* Fairness *)
-auto();
+by Auto_tac;
 qed"fair_trace_inclusion2";
 
 

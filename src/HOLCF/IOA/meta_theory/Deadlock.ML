@@ -59,7 +59,7 @@ by (asm_full_simp_tac (simpset() addsimps [compositionality_sch,locals_def]) 1);
 by (rtac conjI 1);
 (* a : act (A||B) *)
 by (asm_full_simp_tac (simpset() addsimps [actions_of_par]) 2);
-by(blast_tac (claset() addDs [int_is_act,out_is_act]) 2);
+by (blast_tac (claset() addDs [int_is_act,out_is_act]) 2);
 
 (* Filter B (sch@@[a]) : schedules B *)
 

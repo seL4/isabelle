@@ -56,7 +56,7 @@ Goalw (reachable_def::exec_rws)
 "!!A. [| reachable A s; (s,a,t) : trans_of(A) |] ==> reachable A t";
   by (asm_full_simp_tac (simpset() delsimps bex_simps) 1);
   by (split_all_tac 1);
-  by (Safe_tac);
+  by Safe_tac;
   by (rename_tac "ex1 ex2 n" 1);
   by (res_inst_tac [("x","(%i. if i<n then ex1 i                    \
 \                            else (if i=n then Some a else None),    \
@@ -79,7 +79,7 @@ val [p1,p2] = goalw IOA.thy [invariant_def]
 \     !!s t a. [|reachable A s; P(s)|] ==> (s,a,t): trans_of(A) --> P(t) |] \
 \  ==> invariant A P";
   by (rewrite_goals_tac(reachable_def::Let_def::exec_rws));
-  by (Safe_tac);
+  by Safe_tac;
   by (rename_tac "ex1 ex2 n" 1);
   by (res_inst_tac [("Q","reachable A (ex2 n)")] conjunct1 1);
   by (Asm_full_simp_tac 1);

@@ -12,7 +12,7 @@ Delsimps [split_paired_Ex];
 Goalw [live_implements_def] 
 "!! A. [| live_implements (A,LA) (B,LB); live_implements (B,LB) (C,LC) |] \
 \     ==> live_implements (A,LA) (C,LC)"; 
-auto();
+by Auto_tac;
 qed"live_implements_trans";
 
 
@@ -51,7 +51,7 @@ by (safe_tac set_cs);
   by (asm_full_simp_tac (simpset() addsimps [reachable.reachable_0]) 1);
 
  (* Liveness *)
-auto();
+by Auto_tac;
 qed"live_implements";
 
 

@@ -53,7 +53,7 @@ Goalw [reachable_def]
 \        ==> P s' |] \
 \  ==> P za";
 by (cut_facts_tac [major] 1);
-auto();
+by Auto_tac;
 be traces.induct 1;
 by (ALLGOALS (blast_tac (claset() addIs prems)));
 qed "reachable_induct";

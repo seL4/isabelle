@@ -27,9 +27,9 @@ Goal "corresp_ex_simC A R  = (LAM ex. (%s. case ex of \
 \                              @@ ((corresp_ex_simC A R `xs) T'))   \
 \                        `x) ))";
 by (rtac trans 1);
-br fix_eq2 1;
-br corresp_ex_simC_def 1;
-br beta_cfun 1;
+by (rtac fix_eq2 1);
+by (rtac corresp_ex_simC_def 1);
+by (rtac beta_cfun 1);
 by (simp_tac (simpset() addsimps [flift1_def]) 1);
 qed"corresp_ex_simC_unfold";
 
@@ -48,7 +48,7 @@ Goal "(corresp_ex_simC A R`((a,t)>>xs)) s = \
 \           in  \
 \            (@cex. move A cex s a T')  \ 
 \             @@ ((corresp_ex_simC A R`xs) T'))";
-br trans 1;
+by (rtac trans 1);
 by (stac corresp_ex_simC_unfold 1);
 by (asm_full_simp_tac (simpset() addsimps [Cons_def,flift1_def]) 1);
 by (Simp_tac 1);
@@ -84,15 +84,15 @@ by (eres_inst_tac [("x","t")] allE 2);
 by (eres_inst_tac [("x","a")] allE 2);
 by (Asm_full_simp_tac 2); 
 (* Go on as usual *)
-be exE 1;
+by (etac exE 1);
 by (dres_inst_tac [("x","t'"),
          ("P","%t'. ? ex.(t,t'):R & move A ex s' a t'")] selectI 1);
-be exE 1;
-be conjE 1;
+by (etac exE 1);
+by (etac conjE 1);
 by (asm_full_simp_tac (simpset() addsimps [Let_def]) 1);
 by (res_inst_tac [("x","ex")] selectI 1);
-be conjE 1;
-ba 1;
+by (etac conjE 1);
+by (assume_tac 1);
 qed"move_is_move_sim";
 
 
@@ -168,7 +168,7 @@ by (safe_tac set_cs);
 ren "ex a t s s'" 1;
 by (asm_full_simp_tac (simpset() addsimps [mk_traceConc]) 1);
 by (forward_tac [reachable.reachable_n] 1);
-ba 1;
+by (assume_tac 1);
 by (eres_inst_tac [("x","t")] allE 1);
 by (eres_inst_tac [("x",
                     "@t'. ? ex1. (t,t'):R & move A ex1 s' a t'")] 
@@ -202,12 +202,12 @@ by (res_inst_tac [("t",
     lemma_2_1 1);
 
 (* Finite *)
-be (rewrite_rule [Let_def] move_subprop2_sim) 1;
+by (etac (rewrite_rule [Let_def] move_subprop2_sim) 1);
 by (REPEAT (atac 1));
 by (rtac conjI 1);
 
 (* is_exec_frag *)
-be  (rewrite_rule [Let_def] move_subprop1_sim) 1;
+by (etac (rewrite_rule [Let_def] move_subprop1_sim) 1);
 by (REPEAT (atac 1));
 by (rtac conjI 1);
 
@@ -219,11 +219,11 @@ by (eres_inst_tac [("x",
      allE 1);
 by (Asm_full_simp_tac 1);
 by (forward_tac [reachable.reachable_n] 1);
-ba 1;
+by (assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps 
             [rewrite_rule [Let_def] move_subprop5_sim]) 1);
 (* laststate *)
-be ((rewrite_rule [Let_def] move_subprop3_sim) RS sym) 1;
+by (etac ((rewrite_rule [Let_def] move_subprop3_sim) RS sym) 1);
 by (REPEAT (atac 1));
 qed_spec_mp"correspsim_is_execution";
 
@@ -246,11 +246,11 @@ Goal
   by (asm_full_simp_tac (simpset() addsimps [is_simulation_def,
          corresp_ex_sim_def, Int_non_empty,Image_def]) 1);
   by (REPEAT (etac conjE 1));
-  be ballE 1;
+  by (etac ballE 1);
   by (Blast_tac 2);
-  be exE 1;
-  br selectI2 1;
-  ba 1;
+  by (etac exE 1);
+  by (rtac selectI2 1);
+  by (assume_tac 1);
   by (Blast_tac 1);
 qed"simulation_starts";
 
@@ -290,7 +290,7 @@ Goalw [traces_def]
   (* is-execution-fragment *)
   by (asm_full_simp_tac (simpset() addsimps [corresp_ex_sim_def]) 1);
   by (res_inst_tac [("s","s")] correspsim_is_execution 1);
-  ba 1;
+  by (assume_tac 1);
   by (asm_full_simp_tac (simpset() addsimps [reachable.reachable_0,sim_starts1]) 1);
 qed"trace_inclusion_for_simulations"; 
 

@@ -10,7 +10,7 @@ Simulations in HOLCF/IOA
 
 Goal "(A~={}) = (? x. x:A)";
 by (safe_tac set_cs);
-auto();
+by Auto_tac;
 qed"set_non_empty";
 
 Goal "(A Int B ~= {}) = (? x. x: A & x:B)";

@@ -210,6 +210,6 @@ qed_spec_mp "deltas_below";
 Goalw [regset_of_DA_def]
  "[| bounded (next A) k; start A < k; j < k |] ==> \
 \ w : regset_of_DA A k = accepts A w";
-by(asm_simp_tac (simpset() addcongs [conj_cong] addsimps
+by (asm_simp_tac (simpset() addcongs [conj_cong] addsimps
  [regset_below,deltas_below,accepts_def,delta_def]) 1);
 qed "regset_DA_equiv";

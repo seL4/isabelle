@@ -15,7 +15,7 @@ Goalw [is_weak_pmap_def,traces_def]
 \          is_weak_pmap f C A |] ==> traces(C) <= traces(A)";
 
   by (simp_tac(simpset() addsimps [has_trace_def])1);
-  by (Safe_tac);
+  by Safe_tac;
   by (rename_tac "ex1 ex2" 1);
 
   (* choose same trace, therefore same NF *)

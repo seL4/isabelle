@@ -39,13 +39,13 @@ section "lemmas";
 Goal "temp_weakening Q P h = (! ex. (ex |== P) --> (cex_abs h ex |== Q))";
 by (simp_tac (simpset() addsimps [temp_weakening_def,temp_strengthening_def,
      NOT_def,temp_sat_def,satisfies_def]) 1);
-auto();
+by Auto_tac;
 qed"temp_weakening_def2";
 
 Goal "state_weakening Q P h = (! s t a. P (s,a,t) --> Q (h(s),a,h(t)))";
 by (simp_tac (simpset() addsimps [state_weakening_def,state_strengthening_def,
      NOT_def]) 1);
-auto();
+by Auto_tac;
 qed"state_weakening_def2";
 
 
@@ -74,7 +74,7 @@ qed"exec_frag_abstraction";
 
 Goal "!!A. is_abstraction h C A ==> weakeningIOA A C h";
 by (asm_full_simp_tac (simpset() addsimps [weakeningIOA_def])1);
-auto();
+by Auto_tac;
 by (asm_full_simp_tac (simpset() addsimps [executions_def]) 1);
 (* start state *) 
 by (rtac conjI 1);
@@ -87,7 +87,7 @@ qed"abs_is_weakening";
 
 Goal "!!A. [|is_abstraction h C A; validIOA A Q; temp_strengthening Q P h |] \
 \         ==> validIOA C P";
-bd abs_is_weakening 1;
+by (dtac abs_is_weakening 1);
 by (asm_full_simp_tac (simpset() addsimps [weakeningIOA_def, 
     validIOA_def, temp_strengthening_def])1);
 by (safe_tac set_cs);
@@ -120,8 +120,8 @@ Goalw [is_live_abstraction_def]
    "!!A. [|is_live_abstraction h (C,L) (A,M); \
 \         validLIOA (A,M) Q;  temp_strengthening Q P h |] \
 \         ==> validLIOA (C,L) P";
-auto();
-bd abs_is_weakening 1;
+by Auto_tac;
+by (dtac abs_is_weakening 1);
 by (asm_full_simp_tac (simpset() addsimps [weakeningIOA_def, temp_weakening_def2,
     validLIOA_def, validIOA_def, temp_strengthening_def])1);
 by (safe_tac set_cs);
@@ -134,8 +134,8 @@ Goalw [is_live_abstraction_def]
 \         validLIOA (A,M) (H1 .--> Q);  temp_strengthening Q P h; \
 \         temp_weakening H1 H2 h; validLIOA (C,L) H2 |] \
 \         ==> validLIOA (C,L) P";
-auto();
-bd abs_is_weakening 1;
+by Auto_tac;
+by (dtac abs_is_weakening 1);
 by (asm_full_simp_tac (simpset() addsimps [weakeningIOA_def, temp_weakening_def2,
     validLIOA_def, validIOA_def, temp_strengthening_def])1);
 by (safe_tac set_cs);
@@ -162,10 +162,10 @@ Goal "!! h. [| inp(C)=inp(A); out(C)=out(A); \
 \                  is_abstraction h C A |] \
 \               ==> C =<| A";
 by (asm_full_simp_tac (simpset() addsimps [ioa_implements_def]) 1);
-br trace_inclusion 1;
+by (rtac trace_inclusion 1);
 by (simp_tac (simpset() addsimps [externals_def])1);
 by (SELECT_GOAL (auto_tac (claset(),simpset()))1);
-be abstraction_is_ref_map 1;
+by (etac abstraction_is_ref_map 1);
 qed"abs_safety";
 
 
@@ -244,7 +244,7 @@ qed"abs_liveness";
 
 Goalw [ioa_implements_def] 
 "!! A. [| A =<| B; B =<| C|] ==> A =<| C"; 
-auto();
+by Auto_tac;
 qed"implements_trans";
 
 
@@ -260,13 +260,13 @@ Goal "!! C. [| inp(C)=inp(A); out(C)=out(A); \
 \                  A =<| Q ; \
 \                  is_abstraction h2 Q P |] \
 \               ==> C =<| P";   
-bd abs_safety 1;
+by (dtac abs_safety 1);
 by (REPEAT (atac 1));
-bd abs_safety 1;
+by (dtac abs_safety 1);
 by (REPEAT (atac 1));
-be implements_trans 1;
-be implements_trans 1;
-ba 1;
+by (etac implements_trans 1);
+by (etac implements_trans 1);
+by (assume_tac 1);
 qed"AbsRuleA1";
 
 
@@ -276,13 +276,13 @@ Goal "!! C. [| inp(C)=inp(A); out(C)=out(A); \
 \                  live_implements (A,LA) (Q,LQ) ; \
 \                  is_live_abstraction h2 (Q,LQ) (P,LP) |] \
 \               ==> live_implements (C,LC) (P,LP)";   
-bd abs_liveness 1;
+by (dtac abs_liveness 1);
 by (REPEAT (atac 1));
-bd abs_liveness 1;
+by (dtac abs_liveness 1);
 by (REPEAT (atac 1));
-be live_implements_trans 1;
-be live_implements_trans 1;
-ba 1;
+by (etac live_implements_trans 1);
+by (etac live_implements_trans 1);
+by (assume_tac 1);
 qed"AbsRuleA2";
 
 
@@ -299,21 +299,21 @@ Goalw [temp_strengthening_def]
 "!! h. [| temp_strengthening P1 Q1 h; \
 \         temp_strengthening P2 Q2 h |] \
 \      ==> temp_strengthening (P1 .& P2) (Q1 .& Q2) h";
-auto();
+by Auto_tac;
 qed"strength_AND";
 
 Goalw [temp_strengthening_def]
 "!! h. [| temp_strengthening P1 Q1 h; \
 \         temp_strengthening P2 Q2 h |] \
 \      ==> temp_strengthening (P1 .| P2) (Q1 .| Q2) h";
-auto();
+by Auto_tac;
 qed"strength_OR";
 
 Goalw [temp_strengthening_def]
 "!! h. [| temp_weakening P Q h |] \
 \      ==> temp_strengthening (.~ P) (.~ Q) h";
 by (asm_full_simp_tac (simpset() addsimps [temp_weakening_def2])1);
-auto();
+by Auto_tac;
 qed"strength_NOT";
 
 Goalw [temp_strengthening_def]
@@ -347,7 +347,7 @@ Goalw [temp_strengthening_def]
 "!! h. [| temp_strengthening P Q h |] \
 \      ==> temp_weakening (.~ P) (.~ Q) h";
 by (asm_full_simp_tac (simpset() addsimps [temp_weakening_def2])1);
-auto();
+by Auto_tac;
 qed"weak_NOT";
 
 Goalw [temp_strengthening_def]
@@ -387,16 +387,16 @@ by (asm_full_simp_tac (simpset() addsimps [UU_is_Conc])1);
 by (asm_full_simp_tac (simpset() addsimps [nil_is_Conc])1);
 (* cons case *)
 by (pair_tac "aa" 1);
-auto();
+by Auto_tac;
 qed_spec_mp"ex2seqConc";
 
 (* important property of ex2seq: can be shiftet, as defined "pointwise" *)
 
 Goalw [tsuffix_def,suffix_def]
 "!!s. tsuffix s (ex2seq ex) ==> ? ex'. s = (ex2seq ex')";
-auto();
-bd ex2seqConc 1;
-auto();
+by Auto_tac;
+by (dtac ex2seqConc 1);
+by Auto_tac;
 qed"ex2seq_tsuffix";
 
 
@@ -414,7 +414,7 @@ qed"MapUU";
 
 Goalw [tsuffix_def,suffix_def,cex_absSeq_def]
 "!! s. tsuffix s t ==> tsuffix (cex_absSeq h s) (cex_absSeq h t)";
-auto();
+by Auto_tac;
 by (asm_full_simp_tac (simpset() addsimps [Mapnil])1);
 by (asm_full_simp_tac (simpset() addsimps [MapUU])1);
 by (res_inst_tac [("x","Map (%(s,a,t). (h s,a, h t))`s1")] exI 1);
@@ -486,7 +486,7 @@ Goal "!!ex. [| (snd ex)~=UU ; (snd ex)~=nil |] ==> (? ex'. TL`(ex2seq ex) = ex2s
 by (pair_tac "ex" 1);
 by (Seq_case_simp_tac "y" 1);
 by (pair_tac "a" 1);
-auto();
+by Auto_tac;
 qed"TLex2seq";
 
 
@@ -520,9 +520,9 @@ by (asm_full_simp_tac (simpset() addsimps [TL_ex2seq_nil,TL_ex2seq_UU]) 1);
 (* cons case *)
 by (asm_full_simp_tac (simpset() addsimps [TL_ex2seq_nil,TL_ex2seq_UU,
         ex2seq_abs_cex,cex_absSeq_TL RS sym, ex2seqUUTL,ex2seqnilTL])1);
-bd TLex2seq 1;
-ba 1;
-auto();
+by (dtac TLex2seq 1);
+by (assume_tac 1);
+by Auto_tac;
 qed"strength_Next";
 
 
@@ -572,18 +572,18 @@ by (asm_full_simp_tac (simpset() addsimps [temp_weakening_def2,
 Goalw [Diamond_def]
 "!! h. [| temp_strengthening P Q h |]\
 \      ==> temp_strengthening (<> P) (<> Q) h";
-br strength_NOT 1;
-br weak_Box 1;
-be weak_NOT 1;
+by (rtac strength_NOT 1);
+by (rtac weak_Box 1);
+by (etac weak_NOT 1);
 qed"strength_Diamond";
 
 Goalw [Leadsto_def]
 "!! h. [| temp_weakening P1 P2 h;\
 \         temp_strengthening Q1 Q2 h |]\
 \      ==> temp_strengthening (P1 ~> Q1) (P2 ~> Q2) h";
-br strength_Box 1;
-be strength_IMPLIES 1;
-be strength_Diamond 1;
+by (rtac strength_Box 1);
+by (etac strength_IMPLIES 1);
+by (etac strength_Diamond 1);
 qed"strength_Leadsto";
 
 
@@ -595,30 +595,30 @@ qed"strength_Leadsto";
 Goalw [Diamond_def]
 "!! h. [| temp_weakening P Q h |]\
 \      ==> temp_weakening (<> P) (<> Q) h";
-br weak_NOT 1;
-br strength_Box 1;
-be strength_NOT 1;
+by (rtac weak_NOT 1);
+by (rtac strength_Box 1);
+by (etac strength_NOT 1);
 qed"weak_Diamond";
 
 Goalw [Leadsto_def]
 "!! h. [| temp_strengthening P1 P2 h;\
 \         temp_weakening Q1 Q2 h |]\
 \      ==> temp_weakening (P1 ~> Q1) (P2 ~> Q2) h";
-br weak_Box 1;
-be weak_IMPLIES 1;
-be weak_Diamond 1;
+by (rtac weak_Box 1);
+by (etac weak_IMPLIES 1);
+by (etac weak_Diamond 1);
 qed"weak_Leadsto";
 
 Goalw [WF_def]
   " !!A. [| !! s. Enabled A acts (h s) ==> Enabled C acts s|] \ 
 \   ==> temp_weakening (WF A acts) (WF C acts) h";
-br weak_IMPLIES 1;
-br strength_Diamond 1;
-br strength_Box 1;
-br strength_Init 1;
-br weak_Box 2;
-br weak_Diamond 2;
-br weak_Init 2;
+by (rtac weak_IMPLIES 1);
+by (rtac strength_Diamond 1);
+by (rtac strength_Box 1);
+by (rtac strength_Init 1);
+by (rtac weak_Box 2);
+by (rtac weak_Diamond 2);
+by (rtac weak_Init 2);
 by (auto_tac (claset(),
               simpset() addsimps [state_weakening_def,state_strengthening_def,
                              xt2_def,plift_def,option_lift_def,NOT_def]));
@@ -627,13 +627,13 @@ qed"weak_WF";
 Goalw [SF_def]
   " !!A. [| !! s. Enabled A acts (h s) ==> Enabled C acts s|] \ 
 \   ==> temp_weakening (SF A acts) (SF C acts) h";
-br weak_IMPLIES 1;
-br strength_Box 1;
-br strength_Diamond 1;
-br strength_Init 1;
-br weak_Box 2;
-br weak_Diamond 2;
-br weak_Init 2;
+by (rtac weak_IMPLIES 1);
+by (rtac strength_Box 1);
+by (rtac strength_Diamond 1);
+by (rtac strength_Init 1);
+by (rtac weak_Box 2);
+by (rtac weak_Diamond 2);
+by (rtac weak_Init 2);
 by (auto_tac (claset(),
               simpset() addsimps [state_weakening_def,state_strengthening_def,
                              xt2_def,plift_def,option_lift_def,NOT_def]));

@@ -601,7 +601,7 @@ qed "nat_less_le";
 Goal "(m::nat) <= n | n <= m";
 by (simp_tac (simpset() addsimps [le_eq_less_or_eq]) 1);
 by (cut_facts_tac [less_linear] 1);
-by(Blast_tac 1);
+by (Blast_tac 1);
 qed "nat_le_linear";
 
 

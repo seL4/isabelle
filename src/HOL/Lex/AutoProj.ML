@@ -5,15 +5,15 @@
 *)
 
 Goalw [start_def] "start(q,d,f) = q";
-by(Simp_tac 1);
+by (Simp_tac 1);
 qed "start_conv";
 
 Goalw [next_def] "next(q,d,f) = d";
-by(Simp_tac 1);
+by (Simp_tac 1);
 qed "next_conv";
 
 Goalw [fin_def] "fin(q,d,f) = f";
-by(Simp_tac 1);
+by (Simp_tac 1);
 qed "fin_conv";
 
 Addsimps [start_conv,next_conv,fin_conv];

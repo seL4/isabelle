@@ -156,7 +156,7 @@ val split_etas = split_eta::map (fn s => prove_goal Prod.thy s
 Addsimps split_etas; (* pragmatic solution *)
 
 Goal "(%(x,y,z).f(x,y,z)) = t";
-by(simp_tac (simpset() addsimps [cond_split_eta]) 1);
+by (simp_tac (simpset() addsimps [cond_split_eta]) 1);
 
 qed_goal "split_beta" Prod.thy "(%(x,y). P x y) z = P (fst z) (snd z)"
 	(K [stac surjective_pairing 1, stac split 1, rtac refl 1]);

@@ -114,9 +114,9 @@ qed "rtrancl_idemp";
 Addsimps [rtrancl_idemp];
 
 Goal "R^* O R^* = R^*";
-br set_ext 1;
-by(split_all_tac 1);
-by(blast_tac (claset() addIs [rtrancl_trans]) 1);
+by (rtac set_ext 1);
+by (split_all_tac 1);
+by (blast_tac (claset() addIs [rtrancl_trans]) 1);
 qed "rtrancl_idemp_self_comp";
 Addsimps [rtrancl_idemp_self_comp];
 
@@ -341,7 +341,7 @@ by  (etac trancl_into_rtrancl 1);
 by (etac rtranclE 1);
 by  (Auto_tac );
 by (etac rtrancl_into_trancl1 1);
-ba 1;
+by (assume_tac 1);
 qed "reflcl_trancl";
 Addsimps[reflcl_trancl];
 

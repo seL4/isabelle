@@ -8,9 +8,9 @@ Temporal Logic
 
 
 Goal "[] <> (.~ P) = (.~ <> [] P)";
-br ext 1;
+by (rtac ext 1);
 by (simp_tac (simpset() addsimps [Diamond_def,NOT_def,Box_def])1);
-auto();
+by Auto_tac;
 qed"simple_try";
 
 Goal "nil |= [] P";
@@ -39,7 +39,7 @@ section "TLA Axiomatization by Merz";
 Goal "suffix s s";
 by (simp_tac (simpset() addsimps [suffix_def])1);
 by (res_inst_tac [("x","nil")] exI 1);
-auto();
+by Auto_tac;
 qed"suffix_refl";
 
 Goal "s~=UU & s~=nil --> (s |= [] F .--> F)";
@@ -52,19 +52,19 @@ qed"reflT";
 
 Goal "!!x. [| suffix y x ; suffix z y |]  ==> suffix z x";
 by (asm_full_simp_tac (simpset() addsimps [suffix_def])1);
-auto();
+by Auto_tac;
 by (res_inst_tac [("x","s1 @@ s1a")] exI 1);
-auto();
+by Auto_tac;
 by (simp_tac (simpset() addsimps [Conc_assoc]) 1); 
 qed"suffix_trans";
 
 Goal "s |= [] F .--> [] [] F";
 by (simp_tac (simpset() addsimps [satisfies_def,IMPLIES_def,Box_def,tsuffix_def])1);
-auto();
-bd suffix_trans 1;
-ba 1;
+by Auto_tac;
+by (dtac suffix_trans 1);
+by (assume_tac 1);
 by (eres_inst_tac [("x","s2a")] allE 1);
-auto();
+by Auto_tac;
 qed"transT";
 
 
@@ -76,13 +76,13 @@ qed"normalT";
 (*
 Goal "s |= <> F .& <> G .--> (<> (F .& <> G) .| <> (G .& <> F))";
 by (simp_tac (simpset() addsimps [satisfies_def,IMPLIES_def,AND_def,OR_def,Diamond_def2])1);
-br impI 1;
-be conjE 1;
-be exE 1;
-be exE 1;
+by (rtac impI 1);
+by (etac conjE 1);
+by (etac exE 1);
+by (etac exE 1);
 
 
-br disjI1 1;
+by (rtac disjI1 1);
 
 Goal "!!s. [| tsuffix s1 s ; tsuffix s2 s|] ==> tsuffix s2 s1 | tsuffix s1 s2";
 by (asm_full_simp_tac (simpset() addsimps [tsuffix_def,suffix_def])1);
@@ -109,8 +109,8 @@ by (asm_full_simp_tac (simpset() addsimps [valid_def,validT_def,satisfies_def,In
 qed"STL1b";
 
 Goal "!! P. valid P ==> validT ([] (Init P))";
-br STL1a 1;
-be STL1b 1;
+by (rtac STL1a 1);
+by (etac STL1b 1);
 qed"STL1";
 
 
@@ -130,10 +130,10 @@ section "LTL Axioms by Manna/Pnueli";
 
 Goalw [tsuffix_def,suffix_def]
 "s~=UU & s~=nil --> tsuffix s2 (TL`s) --> tsuffix s2 s";
-auto();
+by Auto_tac;
 by (Seq_case_simp_tac "s" 1);
 by (res_inst_tac [("x","a>>s1")] exI 1);
-auto();
+by Auto_tac;
 qed_spec_mp"tsuffix_TL";
 
 val tsuffix_TL2 = conjI RS tsuffix_TL;
@@ -141,16 +141,16 @@ val tsuffix_TL2 = conjI RS tsuffix_TL;
 Delsplits[split_if];
 Goalw [Next_def,satisfies_def,NOT_def,IMPLIES_def,AND_def,Box_def] 
    "s~=UU & s~=nil --> (s |= [] F .--> (F .& (Next ([] F))))";
-auto();
+by Auto_tac;
 (* []F .--> F *)
 by (eres_inst_tac [("x","s")] allE 1);
 by (asm_full_simp_tac (simpset() addsimps [tsuffix_def,suffix_refl])1);
 (* []F .--> Next [] F *)
 by (asm_full_simp_tac (simpset() addsplits [split_if]) 1);
-auto();
-bd tsuffix_TL2 1;
+by Auto_tac;
+by (dtac tsuffix_TL2 1);
 by (REPEAT (atac 1));
-auto();
+by Auto_tac;
 qed"LTL1";
 Addsplits[split_if];
 
@@ -173,11 +173,11 @@ qed"LTL3";
 Goalw [Next_def,satisfies_def,Box_def,NOT_def,IMPLIES_def] 
  "s |= [] (F .--> Next F) .--> F .--> []F";
 by (Asm_full_simp_tac 1);
-auto();
+by Auto_tac;
 
 
 by (asm_full_simp_tac (simpset() addsimps [tsuffix_def,suffix_def])1);
-auto();
+by Auto_tac;
 
 
 

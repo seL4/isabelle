@@ -232,7 +232,7 @@ by (etac ssubst 1);
 by (simp_tac (HOL_ss addsimps [cuts_eq]) 1);
 by (Clarify_tac 1);
 by (stac cut_apply 1);
- by(fast_tac (claset() addDs [transD]) 1);
+ by (fast_tac (claset() addDs [transD]) 1);
 by (rtac (refl RSN (2,H_cong)) 1);
 by (fold_tac [is_recfun_def]);
 by (asm_simp_tac (wf_super_ss addsimps[is_recfun_cut]) 1);

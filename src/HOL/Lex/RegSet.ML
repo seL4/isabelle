@@ -15,7 +15,7 @@ qed_spec_mp "concat_in_star";
 
 Goal
  "w : star U = (? us. (!u : set(us). u : U) & (w = concat us))";
-br iffI 1;
+by (rtac iffI 1);
  be star.induct 1;
   by (res_inst_tac [("x","[]")] exI 1);
   by (Simp_tac 1);
