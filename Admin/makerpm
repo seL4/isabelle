@@ -191,8 +191,8 @@ rpm --rcfile "$TMP/rpmrc" -bb "$TMP/SPECS/isabelle.spec"
 mkdir -p "$DISTBASE/rpm"
 cd "$TMP/RPMS/i386"
 cp "isabelle-$RPMVERSION-1.i386.rpm" "$DISTBASE/rpm/isabelle.rpm"
-cp "isabelle-HOL-$RPMVERSION-1.i386.rpm" "$DISTBASE/rpm/isabelle-HOL.i386.rpm"
-cp "isabelle-ZF-$RPMVERSION-1.i386.rpm" "$DISTBASE/rpm/isabelle-ZF.i386.rpm"
+cp "isabelle-HOL-$RPMVERSION-1.i386.rpm" "$DISTBASE/rpm/isa-HOL.rpm"
+cp "isabelle-ZF-$RPMVERSION-1.i386.rpm" "$DISTBASE/rpm/isa-ZF.rpm"
 
 # clean up
 cd /
