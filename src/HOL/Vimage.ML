@@ -71,9 +71,17 @@ Goal "f-``(INT x:A. B x) = (INT x:A. f -`` B x)";
 by (Blast_tac 1);
 qed "vimage_INT";
 
-bind_thm ("vimage_Collect", allI RS prove_goalw thy [vimage_def]
-  "! x. P (f x) = Q x ==> f -`` (Collect P) = Collect Q"
-    (fn prems => [cut_facts_tac prems 1, Fast_tac 1]));
+Goal "f -`` Collect P = {y. P (f y)}";
+by (Blast_tac 1);
+qed "vimage_Collect_eq";
+Addsimps [vimage_Collect_eq];
+
+(*A strange result used in Tools/inductive_package*)
+bind_thm ("vimage_Collect", 
+	  allI RS 
+	  prove_goalw thy [vimage_def]
+	  "! x. P (f x) = Q x ==> f -`` (Collect P) = Collect Q"
+	      (fn prems => [cut_facts_tac prems 1, Fast_tac 1]));
 
 Addsimps [vimage_empty, vimage_Un, vimage_Int];
 
