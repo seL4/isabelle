@@ -15,6 +15,7 @@ use "attrib.ML";
 use "method.ML";
 
 (*outer syntax*)
+use "comment.ML";
 use "outer_lex.ML";
 use "outer_parse.ML";
 
