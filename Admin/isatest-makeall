@@ -119,7 +119,7 @@ for SETTINGS in $@; do
         echo ------------------- test FAILED --- `date` --- $HOSTNAME >> $TESTLOG 2>&1
 
         # error log
-        echo "Test for platform ${SHORT}failed. Log file available at" >> $ERRORLOG
+        echo "Test for platform ${SHORT} failed. Log file available at" >> $ERRORLOG
         echo "$HOSTNAME:$TESTLOG" >> $ERRORLOG
         echo "[...]" >> $ERRORLOG
         tail -3 $L >> $ERRORLOG
