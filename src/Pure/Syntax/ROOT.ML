@@ -6,9 +6,9 @@ This file builds the syntax module.
 *)
 
 use "pretty.ML";
+use "scan.ML";
+use "symbol.ML";
 use "lexicon.ML";
-structure Scanner: SCANNER = Lexicon;
-use "symbol_font.ML";
 use "token_trans.ML";
 use "ast.ML";
 use "syn_ext.ML";
