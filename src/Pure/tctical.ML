@@ -198,7 +198,9 @@ fun RANGE [] _ = all_tac
 fun print_tac msg =
     (fn st =>
      (tracing msg;
-      Display.print_goals (! Display.goals_limit) st; Seq.single st));
+      tracing ((Pretty.string_of o Pretty.chunks o 
+                 Display.pretty_goals (! Display.goals_limit)) st); 
+      Seq.single st));
 
 (*Pause until a line is typed -- if non-empty then fail. *)
 fun pause_tac st =
