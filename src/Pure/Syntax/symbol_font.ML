@@ -26,7 +26,7 @@ struct
 
 (* tables *)
 
-val enc_start = 161;
+val enc_start = 160;
 val enc_end = 255;
 
 val enc_vector =
