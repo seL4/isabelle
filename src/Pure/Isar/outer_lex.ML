@@ -23,6 +23,7 @@ sig
   val is_proper: token -> bool
   val is_begin_ignore: token -> bool
   val is_end_ignore: token -> bool
+  val is_newline: token -> bool
   val is_indent: token -> bool
   val val_of: token -> string
   val is_sid: string -> bool
@@ -107,7 +108,12 @@ fun is_begin_ignore (Token (_, (Comment, "<"))) = true
 fun is_end_ignore (Token (_, (Comment, ">"))) = true
   | is_end_ignore _ = false;
 
-(*indentations; note that space tokens obey lines*)
+
+(* newline and indentations (note that space tokens obey lines) *)
+
+fun is_newline (Token (_, (Space, "\n"))) = true
+  | is_newline _ = false;
+
 fun is_indent (Token (_, (Space, s))) =
       let val n = size s in n > 0 andalso String.substring (s, n - 1, 1) <> "\n" end
   | is_indent _ = false;
