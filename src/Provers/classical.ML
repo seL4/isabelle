@@ -72,8 +72,8 @@ sig
   val addSaltern 	: claset * (string * (int -> tactic)) -> claset
   val addbefore 	: claset * (string * (int -> tactic)) -> claset
   val addaltern	 	: claset * (string * (int -> tactic)) -> claset
-  val appWrappers	: claset -> wrapper
   val appSWrappers	: claset -> wrapper
+  val appWrappers	: claset -> wrapper
 
   val claset_ref_of_sg: Sign.sg -> claset ref
   val claset_ref_of: theory -> claset ref
@@ -539,7 +539,7 @@ fun (CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
      safeEs	= safeEs,
      hazIs	= hazIs,
      hazEs	= hazEs,
-     swrappers   = swrappers,
+     swrappers  = swrappers,
      uwrappers 	= (case assoc_string (uwrappers,(fst new_uwrapper)) of None =>()
 	   | Some x => warning ("overwriting unsafe wrapper "^fst new_uwrapper);
 		   overwrite (uwrappers, new_uwrapper)),
@@ -599,15 +599,19 @@ fun cs addaltern  (name,tac2) = cs addWrapper  (name,
   treatment of priority might get muddled up.*)
 fun merge_cs
     (cs as CS{safeIs, safeEs, hazIs, hazEs, ...},
-     CS{safeIs=safeIs2, safeEs=safeEs2, hazIs=hazIs2, hazEs=hazEs2,...}) =
+     CS{safeIs=safeIs2, safeEs=safeEs2, hazIs=hazIs2, hazEs=hazEs2,
+	swrappers, uwrappers, ...}) =
   let val safeIs' = gen_rems eq_thm (safeIs2,safeIs)
       val safeEs' = gen_rems eq_thm (safeEs2,safeEs)
       val  hazIs' = gen_rems eq_thm ( hazIs2, hazIs)
       val  hazEs' = gen_rems eq_thm ( hazEs2, hazEs)
-  in cs addSIs safeIs'
-        addSEs safeEs'
-        addIs  hazIs'
-        addEs  hazEs'
+      val cs'   = cs addSIs safeIs'
+		     addSEs safeEs'
+		     addIs  hazIs'
+		     addEs  hazEs'
+      val cs''  = foldl (op addSWrapper) (cs' , swrappers);
+      val cs''' = foldl (op addWrapper ) (cs'', uwrappers);
+  in cs''' 
   end;
 
 
