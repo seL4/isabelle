@@ -1,0 +1,17 @@
+#!/bin/bash
+#
+# $Id$
+#
+
+case $(hostname) in
+  foobar)
+    DEST=/foo/bar/dist
+    ;;
+  *)
+    echo "Unknown destination directory!"
+    exit 2
+    ;;
+esac
+
+rsync --rsh ssh --rsync-path /usr/local/dist/bin/rsync -va \
+  sunbroy30.informatik.tu-muenchen.de:/home/html/isabelle/html-data/dist/. $DEST/.
