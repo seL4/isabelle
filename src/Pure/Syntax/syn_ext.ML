@@ -190,10 +190,8 @@ fun mfix_to_xprod convert logtypes (Mfix (sy, typ, const, pris, pri)) =
             let
               val (ch_name, cs') = (scan_id -- $$ "}" >> #1) cs
                 handle LEXICAL_ERROR => err "malformed symbolic char specification";
-              val c =
-                if ch_name mem SymbolFont.char_names then
-                  SymbolFont.char ch_name
-                else err ("unknown symbolic char name: " ^ quote ch_name);
+              val c = the (SymbolFont.char ch_name)
+                handle OPTION _ => err ("unknown symbolic char name: " ^ quote ch_name);
             in (c, cs') end
         | scan_delim_char (chs as c :: cs) =
             if is_blank c orelse is_meta c then raise LEXICAL_ERROR else (c, cs)
