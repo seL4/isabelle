@@ -38,7 +38,7 @@ signature TACTICAL =
   val ORELSE            : tactic * tactic -> tactic
   val ORELSE'           : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
   val pause_tac         : tactic
-  val print_tac         : tactic
+  val print_tac         : string -> tactic
   val REPEAT            : tactic -> tactic
   val REPEAT1           : tactic -> tactic
   val REPEAT_DETERM_N   : int -> tactic -> tactic
@@ -192,9 +192,10 @@ fun FIRST1 tacs = FIRST' tacs 1;
 val goals_limit = ref 10;
 
 (*Print the current proof state and pass it on.*)
-val print_tac = 
+fun print_tac msg = 
     (fn st => 
-     (print_goals (!goals_limit) st; Seq.single st));
+     (writeln msg;
+      print_goals (!goals_limit) st; Seq.single st));
 
 (*Pause until a line is typed -- if non-empty then fail. *)
 fun pause_tac st =  
