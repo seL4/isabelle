@@ -36,7 +36,6 @@ sig
   val fold: thm list -> Proof.method
   val multi_resolve: thm list -> thm -> thm Seq.seq
   val multi_resolves: thm list -> thm list -> thm Seq.seq
-  val debug_rules: bool ref
   val rules_tac: Proof.context -> int option -> int -> tactic
   val rule_tac: thm list -> thm list -> int -> tactic
   val some_rule_tac: thm list -> Proof.context -> thm list -> int -> tactic
@@ -217,15 +216,18 @@ fun gen_eq_set e s1 s2 =
   length s1 = length s2 andalso
   gen_subset e (s1, s2) andalso gen_subset e (s2, s1);
 
-val bires_tac = Tactic.biresolution_from_nets_tac RuleContext.orderlist;
+val bires_tac = Tactic.biresolution_from_nets_tac ContextRules.orderlist;
 
 fun safe_step_tac ctxt =
-  RuleContext.Swrap ctxt (eq_assume_tac ORELSE' bires_tac true (RuleContext.Snetpair ctxt));
+  ContextRules.Swrap ctxt
+   (eq_assume_tac ORELSE'
+    bires_tac true (ContextRules.netpair_bang ctxt));
 
 fun unsafe_step_tac ctxt =
-  RuleContext.wrap ctxt (assume_tac APPEND'
-    bires_tac false (RuleContext.Snetpair ctxt) APPEND'
-    bires_tac false (RuleContext.netpair ctxt));
+  ContextRules.wrap ctxt
+   (assume_tac APPEND'
+    bires_tac false (ContextRules.netpair_bang ctxt) APPEND'
+    bires_tac false (ContextRules.netpair ctxt));
 
 fun step_tac ctxt i =
   REPEAT_DETERM1 (REMDUPS (safe_step_tac ctxt) i) ORELSE
@@ -243,11 +245,7 @@ fun intpr_tac ctxt gs d lim = SUBGOAL (fn (g, i) => if d > lim then no_tac else
 
 in
 
-val debug_rules = ref false;
-
-fun rules_tac ctxt opt_lim =
- (conditional (! debug_rules) (fn () => RuleContext.print_local_rules ctxt);
-  DEEPEN (2, if_none opt_lim 20) (intpr_tac ctxt [] 0) 4);
+fun rules_tac ctxt opt_lim = DEEPEN (2, if_none opt_lim 20) (intpr_tac ctxt [] 0) 4;
 
 end;
 
@@ -256,8 +254,8 @@ end;
 
 local
 
-fun may_unify t nets = RuleContext.orderlist_no_weight
-  (flat (map (fn net => Net.unify_term net t) nets));
+fun may_unify t nets =
+  flat (map (ContextRules.orderlist_no_weight o (fn net => Net.unify_term net t)) nets);
 
 fun find_erules [] = K []
   | find_erules (fact :: _) = may_unify (Logic.strip_assums_concl (#prop (Thm.rep_thm fact)));
@@ -274,7 +272,7 @@ fun gen_arule_tac tac j rules facts =
 
 fun gen_some_rule_tac tac arg_rules ctxt facts = SUBGOAL (fn (goal, i) =>
   let
-    val netpairs = RuleContext.netpairs ctxt;
+    val netpairs = ContextRules.netpairs ctxt;
     val rules =
       if not (null arg_rules) then arg_rules
       else map #2 (find_erules facts (map #2 netpairs) @ find_rules goal (map #1 netpairs));
@@ -505,23 +503,23 @@ fun modifier name kind kind' att =
     >> (pair (I: Proof.context -> Proof.context) o att);
 
 val rules_modifiers =
- [modifier destN Args.query_colon Args.query RuleContext.dest_query_local,
-  modifier destN Args.bang_colon Args.bang RuleContext.dest_bang_local,
-  modifier destN Args.colon (Scan.succeed ()) RuleContext.dest_local,
-  modifier elimN Args.query_colon Args.query RuleContext.elim_query_local,
-  modifier elimN Args.bang_colon Args.bang RuleContext.elim_bang_local,
-  modifier elimN Args.colon (Scan.succeed ()) RuleContext.elim_local,
-  modifier introN Args.query_colon Args.query RuleContext.intro_query_local,
-  modifier introN Args.bang_colon Args.bang RuleContext.intro_bang_local,
-  modifier introN Args.colon (Scan.succeed ()) RuleContext.intro_local,
-  Args.del -- Args.colon >> K (I, RuleContext.rule_del_local)];
+ [modifier destN Args.query_colon Args.query ContextRules.dest_query_local,
+  modifier destN Args.bang_colon Args.bang ContextRules.dest_bang_local,
+  modifier destN Args.colon (Scan.succeed ()) ContextRules.dest_local,
+  modifier elimN Args.query_colon Args.query ContextRules.elim_query_local,
+  modifier elimN Args.bang_colon Args.bang ContextRules.elim_bang_local,
+  modifier elimN Args.colon (Scan.succeed ()) ContextRules.elim_local,
+  modifier introN Args.query_colon Args.query ContextRules.intro_query_local,
+  modifier introN Args.bang_colon Args.bang ContextRules.intro_bang_local,
+  modifier introN Args.colon (Scan.succeed ()) ContextRules.intro_local,
+  Args.del -- Args.colon >> K (I, ContextRules.rule_del_local)];
 
 in
 
 fun rules_args m = bang_sectioned_args' rules_modifiers (Scan.lift (Scan.option Args.nat)) m;
 
 fun rules_meth n prems ctxt = METHOD (fn facts =>
-  HEADGOAL (insert_tac (prems @ facts) THEN' rules_tac ctxt n));
+  HEADGOAL (insert_tac (prems @ facts) THEN' ObjectLogic.atomize_tac THEN' rules_tac ctxt n));
 
 end;
 
@@ -672,7 +670,7 @@ val pure_methods =
 
 val setup =
  [MethodsData.init, add_methods pure_methods,
-  (#1 o PureThy.add_thms [(("", Drule.equal_intr_rule), [RuleContext.intro_query_global None])])];
+  (#1 o PureThy.add_thms [(("", Drule.equal_intr_rule), [ContextRules.intro_query_global None])])];
 
 
 end;

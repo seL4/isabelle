@@ -1,17 +1,17 @@
-(*  Title:      Pure/Isar/rule_context.ML
+(*  Title:      Pure/Isar/context_rules.ML
     ID:         $Id$
     Author:     Stefan Berghofer and Markus Wenzel, TU Muenchen
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Declarations of intro/elim/dest rules in Pure; see
-Provers/classical.ML for a more specialized version.
+Provers/classical.ML for a more specialized version of the same idea.
 *)
 
-signature RULE_CONTEXT =
+signature CONTEXT_RULES =
 sig
   type netpair
   type T
-  val Snetpair: Proof.context -> netpair
+  val netpair_bang: Proof.context -> netpair
   val netpair: Proof.context -> netpair
   val netpairs: Proof.context -> netpair list
   val orderlist: ((int * int) * 'a) list -> 'a list
@@ -45,7 +45,7 @@ sig
   val setup: (theory -> theory) list
 end;
 
-structure RuleContext: RULE_CONTEXT =
+structure ContextRules: CONTEXT_RULES =
 struct
 
 
@@ -151,8 +151,11 @@ end;
 structure LocalRules = ProofDataFun(LocalRulesArgs);
 val print_local_rules = LocalRules.print;
 
+
+(* access data *)
+
 fun netpairs ctxt = let val Rules {netpairs, ...} = LocalRules.get ctxt in netpairs end;
-val Snetpair = hd o netpairs;
+val netpair_bang = hd o netpairs;
 val netpair = hd o tl o netpairs;
 
 
@@ -165,8 +168,6 @@ fun untaglist [] = []
 fun orderlist brls = untaglist (sort (prod_ord int_ord int_ord o pairself fst) brls);
 fun orderlist_no_weight brls = untaglist (sort (int_ord o pairself (snd o fst)) brls);
 
-
-(* wrappers *)
 
 fun gen_add_wrapper upd w = GlobalRules.map (fn (rs as Rules {next, rules, netpairs, wrappers}) =>
   make_rules next rules netpairs (upd (fn ws => (w, stamp ()) :: ws) wrappers));
