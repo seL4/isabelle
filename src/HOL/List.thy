@@ -235,13 +235,13 @@ lemma lists_IntI:
   by induct blast+
 
 lemma lists_Int_eq [simp]: "lists (A \<inter> B) = lists A \<inter> lists B"
-apply (rule mono_Int [THEN equalityI])
-apply (simp add: mono_def lists_mono)
-apply (blast intro!: lists_IntI)
-done
+proof (rule mono_Int [THEN equalityI])
+  show "mono lists" by (simp add: mono_def lists_mono)
+  show "lists A \<inter> lists B \<subseteq> lists (A \<inter> B)" by (blast intro: lists_IntI)
+qed
 
 lemma append_in_lists_conv [iff]:
-"(xs @ ys : lists A) = (xs : lists A \<and> ys : lists A)"
+     "(xs @ ys : lists A) = (xs : lists A \<and> ys : lists A)"
 by (induct xs) auto
 
 
@@ -620,12 +620,21 @@ apply (erule ssubst, auto)
 done
 
 lemma in_set_conv_decomp: "(x : set xs) = (\<exists>ys zs. xs = ys @ x # zs)"
-apply (induct xs, simp, simp)
-apply (rule iffI)
- apply (blast intro: eq_Nil_appendI Cons_eq_appendI)
-apply (erule exE)+
-apply (case_tac ys, auto)
-done
+proof (induct xs)
+  case Nil show ?case by simp
+  case (Cons a xs)
+  show ?case
+  proof 
+    assume "x \<in> set (a # xs)"
+    with prems show "\<exists>ys zs. a # xs = ys @ x # zs"
+      by (simp, blast intro: Cons_eq_appendI)
+  next
+    assume "\<exists>ys zs. a # xs = ys @ x # zs"
+    then obtain ys zs where eq: "a # xs = ys @ x # zs" by blast
+    show "x \<in> set (a # xs)" 
+      by (cases ys, auto simp add: eq)
+  qed
+qed
 
 lemma in_lists_conv_set: "(xs : lists A) = (\<forall>x \<in> set xs. x : A)"
 -- {* eliminate @{text lists} in favour of @{text set} *}
