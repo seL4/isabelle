@@ -250,7 +250,6 @@ fun required_by [] = ""
 
 fun load_thy ml time initiators dir name parents =
   let
-    val _ = if name mem_string initiators then error (cycle_msg name (rev initiators)) else ();
     val _ = writeln ("Loading theory " ^ quote name ^ required_by initiators);
 
     val _ = touch_thy name;
@@ -299,6 +298,7 @@ fun require_thy ml time strict keep_strict initiators prfx (visited, str) =
     val path = Path.expand (Path.unpack str);
     val name = Path.pack (Path.base path);
   in
+    if name mem_string initiators then error (cycle_msg name initiators) else ();
     if name mem_string visited then (visited, (true, name))
     else
       let
