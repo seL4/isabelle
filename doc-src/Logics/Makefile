@@ -1,34 +1,28 @@
-#  $Id$
-#########################################################################
-#									#
-#	Makefile for the report "Isabelle's Object-Logics"		#
-#									#
-#########################################################################
+#
+# $Id$
+#
+
+## targets
+
+default: dvi
+dist: dvi
 
 
-FILES =  logics.tex preface.tex syntax.tex LK.tex CTT.tex\
-	 ../rail.sty ../proof.sty ../iman.sty ../extra.sty
+## dependencies
 
-logics.dvi.gz:   $(FILES) 
-	test -r isabelle.eps || ln -s ../gfx/isabelle.eps .
-	-rm logics.dvi*
-	latex logics
-	rail logics
-	bibtex logics
-	latex logics
-	latex logics
-	../sedindex logics
-	latex logics
-	gzip -f logics.dvi
+include ../Makefile.in
 
-dist:   $(FILES) 
-	test -r isabelle.eps || ln -s ../gfx/isabelle.eps .
-	-rm logics.dvi*
-	latex logics
-	latex logics
-	../sedindex logics
-	latex logics
+NAME = logics
+FILES = logics.tex preface.tex syntax.tex LK.tex CTT.tex \
+	../proof.sty ../iman.sty ../extra.sty
 
-clean:
-	@rm *.aux *.log *.toc *.idx *.rai
+dvi: $(NAME).dvi
 
+$(NAME).dvi: $(FILES) isabelle_hol.eps
+	touch $(NAME).ind
+	$(LATEX) $(NAME)
+	$(BIBTEX) $(NAME)
+	$(LATEX) $(NAME)
+	$(LATEX) $(NAME)
+	$(SEDINDEX) $(NAME)
+	$(LATEX) $(NAME)
