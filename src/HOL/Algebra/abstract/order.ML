@@ -49,12 +49,12 @@ fun foldl2 f (x::xs) = foldl f (x,xs)
 
 (* Compares two terms, ignoring type information. *)
 infix e;
-fun Const (s1, _)   e Const (s2, _)   = s1 = s2
-  | Free (s1, _)    e Free (s2, _)    = s1 = s2
-  | Var (ix1, _)    e Var (ix2, _)    = ix1 = ix2
-  | Bound i1        e Bound i2        = i1 = i2
-  | Abs (s1, _, t1) e Abs (s2, _, t2) = s1 = s2 andalso t1 = t2
-  | (s1 $ s2)       e (t1 $ t2)       = s1 = t1 andalso s2 = t2
+fun (Const (s1, _))   e (Const (s2, _))   = s1 = s2
+  | (Free (s1, _))    e (Free (s2, _))    = s1 = s2
+  | (Var (ix1, _))    e (Var (ix2, _))    = ix1 = ix2
+  | (Bound i1)        e (Bound i2)        = i1 = i2
+  | (Abs (s1, _, t1)) e (Abs (s2, _, t2)) = s1 = s2 andalso t1 = t2
+  | (s1 $ s2)         e (t1 $ t2)         = s1 = t1 andalso s2 = t2
   | _ e _ = false
 
 
