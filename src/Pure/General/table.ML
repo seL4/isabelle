@@ -24,6 +24,7 @@ sig
   val foldl: ('a * (key * 'b) -> 'a) -> 'a * 'b table -> 'a
   val dest: 'a table -> (key * 'a) list
   val keys: 'a table -> key list
+  val min_key: 'a table -> key option
   val exists: (key * 'a -> bool) -> 'a table -> bool
   val lookup: 'a table * key -> 'a option
   val update: (key * 'a) * 'a table -> 'a table
@@ -78,6 +79,10 @@ fun foldl_table _ (x, Empty) = x
 fun dest tab = rev (foldl_table (fn (rev_ps, p) => p :: rev_ps) ([], tab));
 fun keys tab = rev (foldl_table (fn (rev_ks, (k, _)) => k :: rev_ks) ([], tab));
 fun exists P tab = foldl_table (fn (false, e) => P e | (b, _) => b) (false, tab);
+
+fun min_key Empty = None
+  | min_key (Branch2 (left, (k, _), _)) = Some (if_none (min_key left) k)
+  | min_key (Branch3 (left, (k, _), _, _, _)) = Some (if_none (min_key left) k);
 
 
 (* lookup *)
