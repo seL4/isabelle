@@ -455,8 +455,9 @@ done
 
 subsection {* Subtypes (typedef), typedecl *}
 
+text {* A completely unspecified non-empty subset of @{typ "'a"}: *}
+
 typedef 'a myTdef = "insert (arbitrary::'a) (arbitrary::'a set)"
-  -- {* a completely unspecified non-empty subset of @{typ "'a"} *}
   by auto
 
 lemma "(x::'a myTdef) = y"
