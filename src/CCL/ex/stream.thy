@@ -14,7 +14,7 @@ consts
 
 rules 
 
-  iter1_def   "iter1(f,a) == letrec iter x be x.iter(f(x)) in iter(a)"
-  iter2_def   "iter2(f,a) == letrec iter x be x.map(f,iter(x)) in iter(a)"
+  iter1_def   "iter1(f,a) == letrec iter x be x$iter(f(x)) in iter(a)"
+  iter2_def   "iter2(f,a) == letrec iter x be x$map(f,iter(x)) in iter(a)"
 
 end

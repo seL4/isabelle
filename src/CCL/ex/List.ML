@@ -17,15 +17,15 @@ val listBs = map (fn s=>prove_goalw List.thy list_defs s (fn _ => [simp_tac term
      ["(f o g) = (%a.f(g(a)))",
       "(f o g)(a) = f(g(a))",
       "map(f,[]) = []",
-      "map(f,x.xs) = f(x).map(f,xs)",
+      "map(f,x$xs) = f(x)$map(f,xs)",
       "[] @ m = m",
-      "x.xs @ m = x.(xs @ m)",
+      "x$xs @ m = x$(xs @ m)",
       "filter(f,[]) = []",
-      "filter(f,x.xs) = if f`x then x.filter(f,xs) else filter(f,xs)",
+      "filter(f,x$xs) = if f`x then x$filter(f,xs) else filter(f,xs)",
       "flat([]) = []",
-      "flat(x.xs) = x @ flat(xs)",
-      "insert(f,a,[]) = a.[]",
-      "insert(f,a,x.xs) = if f`a`x then a.x.xs else x.insert(f,a,xs)"];
+      "flat(x$xs) = x @ flat(xs)",
+      "insert(f,a,[]) = a$[]",
+      "insert(f,a,x$xs) = if f`a`x then a$x$xs else x$insert(f,a,xs)"];
 
 val list_ss = nat_ss addsimps listBs;
 
@@ -36,7 +36,7 @@ br (prem RS Nat_ind) 1;
 by (ALLGOALS (asm_simp_tac list_ss));
 val nmapBnil = result();
 
-val [prem] = goal List.thy "n:Nat ==> map(f)^n`(x.xs) = f^n`x.map(f)^n`xs";
+val [prem] = goal List.thy "n:Nat ==> map(f)^n`(x$xs) = (f^n`x)$(map(f)^n`xs)";
 br (prem RS Nat_ind) 1;
 by (ALLGOALS (asm_simp_tac list_ss));
 val nmapBcons = result();

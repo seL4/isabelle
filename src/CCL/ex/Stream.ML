@@ -82,21 +82,21 @@ val ilist_append = result();
 
 (*** The equivalance of two versions of an iteration function       ***)
 (*                                                                    *)
-(*        fun iter1(f,a) = a.iter1(f,f(a))                            *)
-(*        fun iter2(f,a) = a.map(f,iter2(f,a))                        *)
+(*        fun iter1(f,a) = a$iter1(f,f(a))                            *)
+(*        fun iter2(f,a) = a$map(f,iter2(f,a))                        *)
 
-goalw Stream.thy [iter1_def] "iter1(f,a) = a.iter1(f,f(a))";
+goalw Stream.thy [iter1_def] "iter1(f,a) = a$iter1(f,f(a))";
 br (letrecB RS trans) 1;
 by (simp_tac term_ss 1);
 val iter1B = result();
 
-goalw Stream.thy [iter2_def] "iter2(f,a) = a . map(f,iter2(f,a))";
+goalw Stream.thy [iter2_def] "iter2(f,a) = a $ map(f,iter2(f,a))";
 br (letrecB RS trans) 1;
 br refl 1;
 val iter2B = result();
 
 val [prem] =goal Stream.thy
-   "n:Nat ==> map(f) ^ n ` iter2(f,a) = f ^ n ` a . map(f) ^ n ` map(f,iter2(f,a))";
+   "n:Nat ==> map(f) ^ n ` iter2(f,a) = (f ^ n ` a) $ (map(f) ^ n ` map(f,iter2(f,a)))";
 br (iter2B RS ssubst) 1;back();back();
 by (simp_tac (list_ss addsimps [prem RS nmapBcons]) 1);
 val iter2Blemma = result();
