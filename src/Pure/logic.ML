@@ -26,6 +26,7 @@ signature LOGIC =
   val list_flexpairs	: (term*term)list * term -> term
   val list_implies	: term list * term -> term
   val list_rename_params: string list * term -> term
+  val is_equals         : term -> bool
   val mk_equals		: term * term -> term
   val mk_flexpair	: term * term -> term
   val mk_implies	: term * term -> term
@@ -63,6 +64,10 @@ fun mk_equals(t,u) = equals(fastype_of t) $ t $ u;
 
 fun dest_equals (Const("==",_) $ t $ u)  =  (t,u)
   | dest_equals t = raise TERM("dest_equals", [t]);
+
+fun is_equals (Const ("==", _) $ _ $ _) = true
+  | is_equals _ = false;
+
 
 (** implies **)
 
