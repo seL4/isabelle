@@ -88,8 +88,6 @@ by (simp add: mono_le_subset_def le_imp_subset Lset_mono)
 lemma Lset_cont: "cont_Ord(Lset)"
 by (simp add: cont_Ord_def Limit_Lset_eq OUnion_def Limit_is_Ord)
 
-lemmas Pair_in_Lset = Formula.Pair_in_LLimit
-
 lemmas L_nat = Ord_in_L [OF Ord_nat]
 
 theorem M_trivial_L: "PROP M_trivial(L)"
@@ -260,8 +258,9 @@ done
 
 
 lemma reflection_Lset: "reflection(Lset)"
-apply (blast intro: reflection.intro Lset_mono_le Lset_cont Pair_in_Lset) +
-done
+by (blast intro: reflection.intro Lset_mono_le Lset_cont 
+                 Formula.Pair_in_LLimit)+
+
 
 theorem Ex_reflection:
      "REFLECTS[\<lambda>x. P(fst(x),snd(x)), \<lambda>a x. Q(a,fst(x),snd(x))]
@@ -370,10 +369,6 @@ lemma empty_type [TC]:
      "x \<in> nat ==> empty_fm(x) \<in> formula"
 by (simp add: empty_fm_def)
 
-lemma arity_empty_fm [simp]:
-     "x \<in> nat ==> arity(empty_fm(x)) = succ(x)"
-by (simp add: empty_fm_def succ_Un_distrib [symmetric] Un_ac)
-
 lemma sats_empty_fm [simp]:
    "[| x \<in> nat; env \<in> list(A)|]
     ==> sats(A, empty_fm(x), env) <-> empty(**A, nth(x,env))"
@@ -416,11 +411,6 @@ lemma upair_type [TC]:
      "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> upair_fm(x,y,z) \<in> formula"
 by (simp add: upair_fm_def)
 
-lemma arity_upair_fm [simp]:
-     "[| x \<in> nat; y \<in> nat; z \<in> nat |]
-      ==> arity(upair_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
-by (simp add: upair_fm_def succ_Un_distrib [symmetric] Un_ac)
-
 lemma sats_upair_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
     ==> sats(A, upair_fm(x,y,z), env) <->
@@ -462,11 +452,6 @@ lemma pair_type [TC]:
      "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> pair_fm(x,y,z) \<in> formula"
 by (simp add: pair_fm_def)
 
-lemma arity_pair_fm [simp]:
-     "[| x \<in> nat; y \<in> nat; z \<in> nat |]
-      ==> arity(pair_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
-by (simp add: pair_fm_def succ_Un_distrib [symmetric] Un_ac)
-
 lemma sats_pair_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
     ==> sats(A, pair_fm(x,y,z), env) <->
@@ -497,11 +482,6 @@ constdefs union_fm :: "[i,i,i]=>i"
 lemma union_type [TC]:
      "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> union_fm(x,y,z) \<in> formula"
 by (simp add: union_fm_def)
-
-lemma arity_union_fm [simp]:
-     "[| x \<in> nat; y \<in> nat; z \<in> nat |]
-      ==> arity(union_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
-by (simp add: union_fm_def succ_Un_distrib [symmetric] Un_ac)
 
 lemma sats_union_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
@@ -535,11 +515,6 @@ lemma cons_type [TC]:
      "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> cons_fm(x,y,z) \<in> formula"
 by (simp add: cons_fm_def)
 
-lemma arity_cons_fm [simp]:
-     "[| x \<in> nat; y \<in> nat; z \<in> nat |]
-      ==> arity(cons_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
-by (simp add: cons_fm_def succ_Un_distrib [symmetric] Un_ac)
-
 lemma sats_cons_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
     ==> sats(A, cons_fm(x,y,z), env) <->
@@ -567,11 +542,6 @@ constdefs succ_fm :: "[i,i]=>i"
 
 lemma succ_type [TC]:
      "[| x \<in> nat; y \<in> nat |] ==> succ_fm(x,y) \<in> formula"
-by (simp add: succ_fm_def)
-
-lemma arity_succ_fm [simp]:
-     "[| x \<in> nat; y \<in> nat |]
-      ==> arity(succ_fm(x,y)) = succ(x) \<union> succ(y)"
 by (simp add: succ_fm_def)
 
 lemma sats_succ_fm [simp]:
@@ -604,10 +574,6 @@ lemma number1_type [TC]:
      "x \<in> nat ==> number1_fm(x) \<in> formula"
 by (simp add: number1_fm_def)
 
-lemma arity_number1_fm [simp]:
-     "x \<in> nat ==> arity(number1_fm(x)) = succ(x)"
-by (simp add: number1_fm_def succ_Un_distrib [symmetric] Un_ac)
-
 lemma sats_number1_fm [simp]:
    "[| x \<in> nat; env \<in> list(A)|]
     ==> sats(A, number1_fm(x), env) <-> number1(**A, nth(x,env))"
@@ -639,11 +605,6 @@ lemma big_union_type [TC]:
      "[| x \<in> nat; y \<in> nat |] ==> big_union_fm(x,y) \<in> formula"
 by (simp add: big_union_fm_def)
 
-lemma arity_big_union_fm [simp]:
-     "[| x \<in> nat; y \<in> nat |]
-      ==> arity(big_union_fm(x,y)) = succ(x) \<union> succ(y)"
-by (simp add: big_union_fm_def succ_Un_distrib [symmetric] Un_ac)
-
 lemma sats_big_union_fm [simp]:
    "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
     ==> sats(A, big_union_fm(x,y), env) <->
@@ -666,8 +627,11 @@ done
 
 subsubsection{*Variants of Satisfaction Definitions for Ordinals, etc.*}
 
-text{*Differs from the one in Formula by using "ordinal" rather than "Ord"*}
-
+text{*The @{text sats} theorems below are standard versions of the ones proved
+in theory @{text Formula}.  They relate elements of type @{term formula} to
+relativized concepts such as @{term subset} or @{term ordinal} rather than to
+real concepts such as @{term Ord}.  Now that we have instantiated the locale
+@{text M_trivial}, we no longer require the earlier versions.*}
 
 lemma sats_subset_fm':
    "[|x \<in> nat; y \<in> nat; env \<in> list(A)|]
@@ -724,11 +688,6 @@ lemma Memrel_type [TC]:
      "[| x \<in> nat; y \<in> nat |] ==> Memrel_fm(x,y) \<in> formula"
 by (simp add: Memrel_fm_def)
 
-lemma arity_Memrel_fm [simp]:
-     "[| x \<in> nat; y \<in> nat |]
-      ==> arity(Memrel_fm(x,y)) = succ(x) \<union> succ(y)"
-by (simp add: Memrel_fm_def succ_Un_distrib [symmetric] Un_ac)
-
 lemma sats_Memrel_fm [simp]:
    "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
     ==> sats(A, Memrel_fm(x,y), env) <->
@@ -762,11 +721,6 @@ lemma pred_set_type [TC]:
      "[| A \<in> nat; x \<in> nat; r \<in> nat; B \<in> nat |]
       ==> pred_set_fm(A,x,r,B) \<in> formula"
 by (simp add: pred_set_fm_def)
-
-lemma arity_pred_set_fm [simp]:
-   "[| A \<in> nat; x \<in> nat; r \<in> nat; B \<in> nat |]
-    ==> arity(pred_set_fm(A,x,r,B)) = succ(A) \<union> succ(x) \<union> succ(r) \<union> succ(B)"
-by (simp add: pred_set_fm_def succ_Un_distrib [symmetric] Un_ac)
 
 lemma sats_pred_set_fm [simp]:
    "[| U \<in> nat; x \<in> nat; r \<in> nat; B \<in> nat; env \<in> list(A)|]
@@ -803,11 +757,6 @@ lemma domain_type [TC]:
      "[| x \<in> nat; y \<in> nat |] ==> domain_fm(x,y) \<in> formula"
 by (simp add: domain_fm_def)
 
-lemma arity_domain_fm [simp]:
-     "[| x \<in> nat; y \<in> nat |]
-      ==> arity(domain_fm(x,y)) = succ(x) \<union> succ(y)"
-by (simp add: domain_fm_def succ_Un_distrib [symmetric] Un_ac)
-
 lemma sats_domain_fm [simp]:
    "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
     ==> sats(A, domain_fm(x,y), env) <->
@@ -841,11 +790,6 @@ constdefs range_fm :: "[i,i]=>i"
 lemma range_type [TC]:
      "[| x \<in> nat; y \<in> nat |] ==> range_fm(x,y) \<in> formula"
 by (simp add: range_fm_def)
-
-lemma arity_range_fm [simp]:
-     "[| x \<in> nat; y \<in> nat |]
-      ==> arity(range_fm(x,y)) = succ(x) \<union> succ(y)"
-by (simp add: range_fm_def succ_Un_distrib [symmetric] Un_ac)
 
 lemma sats_range_fm [simp]:
    "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
@@ -881,11 +825,6 @@ constdefs field_fm :: "[i,i]=>i"
 lemma field_type [TC]:
      "[| x \<in> nat; y \<in> nat |] ==> field_fm(x,y) \<in> formula"
 by (simp add: field_fm_def)
-
-lemma arity_field_fm [simp]:
-     "[| x \<in> nat; y \<in> nat |]
-      ==> arity(field_fm(x,y)) = succ(x) \<union> succ(y)"
-by (simp add: field_fm_def succ_Un_distrib [symmetric] Un_ac)
 
 lemma sats_field_fm [simp]:
    "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
@@ -923,11 +862,6 @@ lemma image_type [TC]:
      "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> image_fm(x,y,z) \<in> formula"
 by (simp add: image_fm_def)
 
-lemma arity_image_fm [simp]:
-     "[| x \<in> nat; y \<in> nat; z \<in> nat |]
-      ==> arity(image_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
-by (simp add: image_fm_def succ_Un_distrib [symmetric] Un_ac)
-
 lemma sats_image_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
     ==> sats(A, image_fm(x,y,z), env) <->
@@ -962,11 +896,6 @@ constdefs pre_image_fm :: "[i,i,i]=>i"
 lemma pre_image_type [TC]:
      "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> pre_image_fm(x,y,z) \<in> formula"
 by (simp add: pre_image_fm_def)
-
-lemma arity_pre_image_fm [simp]:
-     "[| x \<in> nat; y \<in> nat; z \<in> nat |]
-      ==> arity(pre_image_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
-by (simp add: pre_image_fm_def succ_Un_distrib [symmetric] Un_ac)
 
 lemma sats_pre_image_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
@@ -1003,11 +932,6 @@ lemma fun_apply_type [TC]:
      "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> fun_apply_fm(x,y,z) \<in> formula"
 by (simp add: fun_apply_fm_def)
 
-lemma arity_fun_apply_fm [simp]:
-     "[| x \<in> nat; y \<in> nat; z \<in> nat |]
-      ==> arity(fun_apply_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
-by (simp add: fun_apply_fm_def succ_Un_distrib [symmetric] Un_ac)
-
 lemma sats_fun_apply_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
     ==> sats(A, fun_apply_fm(x,y,z), env) <->
@@ -1040,10 +964,6 @@ constdefs relation_fm :: "i=>i"
 lemma relation_type [TC]:
      "[| x \<in> nat |] ==> relation_fm(x) \<in> formula"
 by (simp add: relation_fm_def)
-
-lemma arity_relation_fm [simp]:
-     "x \<in> nat ==> arity(relation_fm(x)) = succ(x)"
-by (simp add: relation_fm_def succ_Un_distrib [symmetric] Un_ac)
 
 lemma sats_relation_fm [simp]:
    "[| x \<in> nat; env \<in> list(A)|]
@@ -1081,10 +1001,6 @@ lemma function_type [TC]:
      "[| x \<in> nat |] ==> function_fm(x) \<in> formula"
 by (simp add: function_fm_def)
 
-lemma arity_function_fm [simp]:
-     "x \<in> nat ==> arity(function_fm(x)) = succ(x)"
-by (simp add: function_fm_def succ_Un_distrib [symmetric] Un_ac)
-
 lemma sats_function_fm [simp]:
    "[| x \<in> nat; env \<in> list(A)|]
     ==> sats(A, function_fm(x), env) <-> is_function(**A, nth(x,env))"
@@ -1121,11 +1037,6 @@ constdefs typed_function_fm :: "[i,i,i]=>i"
 lemma typed_function_type [TC]:
      "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> typed_function_fm(x,y,z) \<in> formula"
 by (simp add: typed_function_fm_def)
-
-lemma arity_typed_function_fm [simp]:
-     "[| x \<in> nat; y \<in> nat; z \<in> nat |]
-      ==> arity(typed_function_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
-by (simp add: typed_function_fm_def succ_Un_distrib [symmetric] Un_ac)
 
 lemma sats_typed_function_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
@@ -1187,11 +1098,6 @@ lemma composition_type [TC]:
      "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> composition_fm(x,y,z) \<in> formula"
 by (simp add: composition_fm_def)
 
-lemma arity_composition_fm [simp]:
-     "[| x \<in> nat; y \<in> nat; z \<in> nat |]
-      ==> arity(composition_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
-by (simp add: composition_fm_def succ_Un_distrib [symmetric] Un_ac)
-
 lemma sats_composition_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
     ==> sats(A, composition_fm(x,y,z), env) <->
@@ -1232,11 +1138,6 @@ lemma injection_type [TC]:
      "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> injection_fm(x,y,z) \<in> formula"
 by (simp add: injection_fm_def)
 
-lemma arity_injection_fm [simp]:
-     "[| x \<in> nat; y \<in> nat; z \<in> nat |]
-      ==> arity(injection_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
-by (simp add: injection_fm_def succ_Un_distrib [symmetric] Un_ac)
-
 lemma sats_injection_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
     ==> sats(A, injection_fm(x,y,z), env) <->
@@ -1274,11 +1175,6 @@ lemma surjection_type [TC]:
      "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> surjection_fm(x,y,z) \<in> formula"
 by (simp add: surjection_fm_def)
 
-lemma arity_surjection_fm [simp]:
-     "[| x \<in> nat; y \<in> nat; z \<in> nat |]
-      ==> arity(surjection_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
-by (simp add: surjection_fm_def succ_Un_distrib [symmetric] Un_ac)
-
 lemma sats_surjection_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
     ==> sats(A, surjection_fm(x,y,z), env) <->
@@ -1310,11 +1206,6 @@ constdefs bijection_fm :: "[i,i,i]=>i"
 lemma bijection_type [TC]:
      "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> bijection_fm(x,y,z) \<in> formula"
 by (simp add: bijection_fm_def)
-
-lemma arity_bijection_fm [simp]:
-     "[| x \<in> nat; y \<in> nat; z \<in> nat |]
-      ==> arity(bijection_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
-by (simp add: bijection_fm_def succ_Un_distrib [symmetric] Un_ac)
 
 lemma sats_bijection_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
@@ -1351,11 +1242,6 @@ constdefs restriction_fm :: "[i,i,i]=>i"
 lemma restriction_type [TC]:
      "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> restriction_fm(x,y,z) \<in> formula"
 by (simp add: restriction_fm_def)
-
-lemma arity_restriction_fm [simp]:
-     "[| x \<in> nat; y \<in> nat; z \<in> nat |]
-      ==> arity(restriction_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
-by (simp add: restriction_fm_def succ_Un_distrib [symmetric] Un_ac)
 
 lemma sats_restriction_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
@@ -1404,12 +1290,6 @@ lemma order_isomorphism_type [TC]:
       ==> order_isomorphism_fm(A,r,B,s,f) \<in> formula"
 by (simp add: order_isomorphism_fm_def)
 
-lemma arity_order_isomorphism_fm [simp]:
-     "[| A \<in> nat; r \<in> nat; B \<in> nat; s \<in> nat; f \<in> nat |]
-      ==> arity(order_isomorphism_fm(A,r,B,s,f)) =
-          succ(A) \<union> succ(r) \<union> succ(B) \<union> succ(s) \<union> succ(f)"
-by (simp add: order_isomorphism_fm_def succ_Un_distrib [symmetric] Un_ac)
-
 lemma sats_order_isomorphism_fm [simp]:
    "[| U \<in> nat; r \<in> nat; B \<in> nat; s \<in> nat; f \<in> nat; env \<in> list(A)|]
     ==> sats(A, order_isomorphism_fm(U,r,B,s,f), env) <->
@@ -1451,10 +1331,6 @@ constdefs limit_ordinal_fm :: "i=>i"
 lemma limit_ordinal_type [TC]:
      "x \<in> nat ==> limit_ordinal_fm(x) \<in> formula"
 by (simp add: limit_ordinal_fm_def)
-
-lemma arity_limit_ordinal_fm [simp]:
-     "x \<in> nat ==> arity(limit_ordinal_fm(x)) = succ(x)"
-by (simp add: limit_ordinal_fm_def succ_Un_distrib [symmetric] Un_ac)
 
 lemma sats_limit_ordinal_fm [simp]:
    "[| x \<in> nat; env \<in> list(A)|]
@@ -1522,10 +1398,6 @@ constdefs omega_fm :: "i=>i"
 lemma omega_type [TC]:
      "x \<in> nat ==> omega_fm(x) \<in> formula"
 by (simp add: omega_fm_def)
-
-lemma arity_omega_fm [simp]:
-     "x \<in> nat ==> arity(omega_fm(x)) = succ(x)"
-by (simp add: omega_fm_def succ_Un_distrib [symmetric] Un_ac)
 
 lemma sats_omega_fm [simp]:
    "[| x \<in> nat; env \<in> list(A)|]

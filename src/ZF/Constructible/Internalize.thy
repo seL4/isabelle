@@ -726,11 +726,6 @@ lemma cartprod_type [TC]:
      "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> cartprod_fm(x,y,z) \<in> formula"
 by (simp add: cartprod_fm_def)
 
-lemma arity_cartprod_fm [simp]:
-     "[| x \<in> nat; y \<in> nat; z \<in> nat |]
-      ==> arity(cartprod_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
-by (simp add: cartprod_fm_def succ_Un_distrib [symmetric] Un_ac)
-
 lemma sats_cartprod_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
     ==> sats(A, cartprod_fm(x,y,z), env) <->
@@ -770,11 +765,6 @@ lemma sum_type [TC]:
      "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> sum_fm(x,y,z) \<in> formula"
 by (simp add: sum_fm_def)
 
-lemma arity_sum_fm [simp]:
-     "[| x \<in> nat; y \<in> nat; z \<in> nat |]
-      ==> arity(sum_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
-by (simp add: sum_fm_def succ_Un_distrib [symmetric] Un_ac)
-
 lemma sats_sum_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
     ==> sats(A, sum_fm(x,y,z), env) <->
@@ -804,10 +794,6 @@ constdefs quasinat_fm :: "i=>i"
 lemma quasinat_type [TC]:
      "x \<in> nat ==> quasinat_fm(x) \<in> formula"
 by (simp add: quasinat_fm_def)
-
-lemma arity_quasinat_fm [simp]:
-     "x \<in> nat ==> arity(quasinat_fm(x)) = succ(x)"
-by (simp add: quasinat_fm_def succ_Un_distrib [symmetric] Un_ac)
 
 lemma sats_quasinat_fm [simp]:
    "[| x \<in> nat; env \<in> list(A)|]
@@ -1080,11 +1066,6 @@ constdefs list_functor_fm :: "[i,i,i]=>i"
 lemma list_functor_type [TC]:
      "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> list_functor_fm(x,y,z) \<in> formula"
 by (simp add: list_functor_fm_def)
-
-lemma arity_list_functor_fm [simp]:
-     "[| x \<in> nat; y \<in> nat; z \<in> nat |]
-      ==> arity(list_functor_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
-by (simp add: list_functor_fm_def succ_Un_distrib [symmetric] Un_ac)
 
 lemma sats_list_functor_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]

@@ -53,11 +53,6 @@ lemma rtran_closure_mem_type [TC]:
  "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> rtran_closure_mem_fm(x,y,z) \<in> formula"
 by (simp add: rtran_closure_mem_fm_def)
 
-lemma arity_rtran_closure_mem_fm [simp]:
-     "[| x \<in> nat; y \<in> nat; z \<in> nat |]
-      ==> arity(rtran_closure_mem_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
-by (simp add: rtran_closure_mem_fm_def succ_Un_distrib [symmetric] Un_ac)
-
 lemma sats_rtran_closure_mem_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
     ==> sats(A, rtran_closure_mem_fm(x,y,z), env) <->
@@ -103,11 +98,6 @@ lemma rtran_closure_type [TC]:
      "[| x \<in> nat; y \<in> nat |] ==> rtran_closure_fm(x,y) \<in> formula"
 by (simp add: rtran_closure_fm_def)
 
-lemma arity_rtran_closure_fm [simp]:
-     "[| x \<in> nat; y \<in> nat |]
-      ==> arity(rtran_closure_fm(x,y)) = succ(x) \<union> succ(y)"
-by (simp add: rtran_closure_fm_def succ_Un_distrib [symmetric] Un_ac)
-
 lemma sats_rtran_closure_fm [simp]:
    "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
     ==> sats(A, rtran_closure_fm(x,y), env) <->
@@ -139,11 +129,6 @@ constdefs tran_closure_fm :: "[i,i]=>i"
 lemma tran_closure_type [TC]:
      "[| x \<in> nat; y \<in> nat |] ==> tran_closure_fm(x,y) \<in> formula"
 by (simp add: tran_closure_fm_def)
-
-lemma arity_tran_closure_fm [simp]:
-     "[| x \<in> nat; y \<in> nat |]
-      ==> arity(tran_closure_fm(x,y)) = succ(x) \<union> succ(y)"
-by (simp add: tran_closure_fm_def succ_Un_distrib [symmetric] Un_ac)
 
 lemma sats_tran_closure_fm [simp]:
    "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
