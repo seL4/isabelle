@@ -143,6 +143,15 @@ lemma quotient_is_empty2 [iff]: "({} = A//r) = (A = {})"
 by(simp add: quotient_def)
 
 
+lemma singleton_quotient: "{x}//r = {r `` {x}}"
+by(simp add:quotient_def)
+
+lemma quotient_diff1:
+  "\<lbrakk> inj_on (%a. {a}//r) A; a \<in> A \<rbrakk> \<Longrightarrow> (A - {a})//r = A//r - {a}//r"
+apply(simp add:quotient_def inj_on_def)
+apply blast
+done
+
 subsection {* Defining unary operations upon equivalence classes *}
 
 text{*A congruence-preserving function*}

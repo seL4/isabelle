@@ -13,6 +13,8 @@ datatype 'a list =
     Nil    ("[]")
   | Cons 'a  "'a list"    (infixr "#" 65)
 
+section{*Basic list processing functions*}
+
 consts
   "@" :: "'a list => 'a list => 'a list"    (infixr 65)
   filter:: "('a => bool) => 'a list => 'a list"
@@ -42,6 +44,10 @@ consts
   null:: "'a list => bool"
   "distinct":: "'a list => bool"
   replicate :: "nat => 'a => 'a list"
+  rotate1 :: "'a list \<Rightarrow> 'a list"
+  rotate :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list"
+  sublist :: "'a list => nat set => 'a list"
+
 
 nonterminals lupdbinds lupdbind
 
@@ -91,6 +97,7 @@ typed_print_translation {*
       | size_tr' _ _ _ = raise Match;
   in [("size", size_tr')] end
 *}
+
 
 primrec
 "hd(x#xs) = x"
@@ -181,29 +188,15 @@ primrec
 replicate_0: "replicate 0 x = []"
 replicate_Suc: "replicate (Suc n) x = x # replicate n x"
 defs
- list_all2_def:
- "list_all2 P xs ys == length xs = length ys \<and> (\<forall>(x, y) \<in> set (zip xs ys). P x y)"
+rotate1_def: "rotate1 xs == (case xs of [] \<Rightarrow> [] | x#xs \<Rightarrow> xs @ [x])"
+rotate_def:  "rotate n == rotate1 ^ n"
 
+list_all2_def:
+ "list_all2 P xs ys ==
+  length xs = length ys \<and> (\<forall>(x, y) \<in> set (zip xs ys). P x y)"
 
-subsection {* Lexicographic orderings on lists *}
-
-consts
-lexn :: "('a * 'a)set => nat => ('a list * 'a list)set"
-primrec
-"lexn r 0 = {}"
-"lexn r (Suc n) =
-(prod_fun (%(x,xs). x#xs) (%(x,xs). x#xs) ` (r <*lex*> lexn r n)) Int
-{(xs,ys). length xs = Suc n \<and> length ys = Suc n}"
-
-constdefs
-lex :: "('a \<times> 'a) set => ('a list \<times> 'a list) set"
-"lex r == \<Union>n. lexn r n"
-
-lexico :: "('a \<times> 'a) set => ('a list \<times> 'a list) set"
-"lexico r == inv_image (less_than <*lex*> lex r) (%xs. (length xs, xs))"
-
-sublist :: "'a list => nat set => 'a list"
-"sublist xs A == map fst (filter (%p. snd p : A) (zip xs [0..size xs(]))"
+sublist_def:
+ "sublist xs A == map fst (filter (%p. snd p : A) (zip xs [0..size xs(]))"
 
 
 lemma not_Cons_self [simp]: "xs \<noteq> x # xs"
@@ -217,34 +210,6 @@ by (induct xs) auto
 lemma length_induct:
 "(!!xs. \<forall>ys. length ys < length xs --> P ys ==> P xs) ==> P xs"
 by (rule measure_induct [of length]) rules
-
-
-subsection {* @{text lists}: the list-forming operator over sets *}
-
-consts lists :: "'a set => 'a list set"
-inductive "lists A"
- intros
-  Nil [intro!]: "[]: lists A"
-  Cons [intro!]: "[| a: A;l: lists A|] ==> a#l : lists A"
-
-inductive_cases listsE [elim!]: "x#l : lists A"
-
-lemma lists_mono [mono]: "A \<subseteq> B ==> lists A \<subseteq> lists B"
-by (unfold lists.defs) (blast intro!: lfp_mono)
-
-lemma lists_IntI:
-  assumes l: "l: lists A" shows "l: lists B ==> l: lists (A Int B)" using l
-  by induct blast+
-
-lemma lists_Int_eq [simp]: "lists (A \<inter> B) = lists A \<inter> lists B"
-proof (rule mono_Int [THEN equalityI])
-  show "mono lists" by (simp add: mono_def lists_mono)
-  show "lists A \<inter> lists B \<subseteq> lists (A \<inter> B)" by (blast intro: lists_IntI)
-qed
-
-lemma append_in_lists_conv [iff]:
-     "(xs @ ys : lists A) = (xs : lists A \<and> ys : lists A)"
-by (induct xs) auto
 
 
 subsection {* @{text length} *}
@@ -645,19 +610,6 @@ proof (induct xs)
   qed
 qed
 
-lemma in_lists_conv_set: "(xs : lists A) = (\<forall>x \<in> set xs. x : A)"
--- {* eliminate @{text lists} in favour of @{text set} *}
-by (induct xs) auto
-
-lemma in_listsD [dest!]: "xs \<in> lists A ==> \<forall>x\<in>set xs. x \<in> A"
-by (rule in_lists_conv_set [THEN iffD1])
-
-lemma in_listsI [intro!]: "\<forall>x\<in>set xs. x \<in> A ==> xs \<in> lists A"
-by (rule in_lists_conv_set [THEN iffD2])
-
-lemma lists_UNIV [simp]: "lists UNIV = UNIV"
-by auto
-
 lemma finite_list: "finite A ==> EX l. set l = A"
 apply (erule finite_induct, auto)
 apply (rule_tac x="x#l" in exI, auto)
@@ -667,83 +619,11 @@ lemma card_length: "card (set xs) \<le> length xs"
 by (induct xs) (auto simp add: card_insert_if)
 
 
-subsection{*Sets of Lists*}
-
-text{*Resembles a Cartesian product: it denotes the set of lists with head
-  drawn from @{term A} and tail drawn from @{term Xs}.*}
-constdefs
-  set_Cons :: "'a set \<Rightarrow> 'a list set \<Rightarrow> 'a list set"
-   "set_Cons A XS == {z. \<exists>x xs. z = x#xs & x \<in> A & xs \<in> XS}"
-
-lemma [simp]: "set_Cons A {[]} = (%x. [x])`A"
-by (auto simp add: set_Cons_def)
-
-text{*Yields the set of lists, all of the same length as the argument and
-with elements drawn from the corresponding element of the argument.*}
-consts  listset :: "'a set list \<Rightarrow> 'a list set"
-primrec
-   "listset []    = {[]}"
-   "listset(A#As) = set_Cons A (listset As)"
-
-
-subsection{*Lifting a Relation on List Elements to the Lists*}
-consts  listrel :: "('a * 'a)set => ('a list * 'a list)set"
-
-inductive "listrel(r)"
- intros
-   Nil:  "([],[]) \<in> listrel r"
-   Cons: "[| (x,y) \<in> r; (xs,ys) \<in> listrel r |] ==> (x#xs, y#ys) \<in> listrel r"
-
-inductive_cases listrel_Nil1 [elim!]: "([],xs) \<in> listrel r"
-inductive_cases listrel_Nil2 [elim!]: "(xs,[]) \<in> listrel r"
-inductive_cases listrel_Cons1 [elim!]: "(y#ys,xs) \<in> listrel r"
-inductive_cases listrel_Cons2 [elim!]: "(xs,y#ys) \<in> listrel r"
-
-
-lemma listrel_mono: "r \<subseteq> s \<Longrightarrow> listrel r \<subseteq> listrel s"
-apply clarify  
-apply (erule listrel.induct)
-apply (blast intro: listrel.intros)+
-done
-
-lemma listrel_subset: "r \<subseteq> A \<times> A \<Longrightarrow> listrel r \<subseteq> lists A \<times> lists A"
-apply clarify 
-apply (erule listrel.induct, auto) 
-done
-
-lemma listrel_refl: "refl A r \<Longrightarrow> refl (lists A) (listrel r)" 
-apply (simp add: refl_def listrel_subset Ball_def)
-apply (rule allI) 
-apply (induct_tac x) 
-apply (auto intro: listrel.intros)
-done
-
-lemma listrel_sym: "sym r \<Longrightarrow> sym (listrel r)" 
-apply (auto simp add: sym_def)
-apply (erule listrel.induct) 
-apply (blast intro: listrel.intros)+
-done
-
-lemma listrel_trans: "trans r \<Longrightarrow> trans (listrel r)" 
-apply (simp add: trans_def)
-apply (intro allI) 
-apply (rule impI) 
-apply (erule listrel.induct) 
-apply (blast intro: listrel.intros)+
-done
-
-theorem equiv_listrel: "equiv A r \<Longrightarrow> equiv (lists A) (listrel r)"
-by (simp add: equiv_def listrel_refl listrel_sym listrel_trans) 
-
-lemma listrel_Nil [simp]: "listrel r `` {[]} = {[]}"
-by (blast intro: listrel.intros)
-
-lemma listrel_Cons:
-     "listrel r `` {x#xs} = set_Cons (r``{x}) (listrel r `` {xs})";
-by (auto simp add: set_Cons_def intro: listrel.intros) 
-
-
 subsection {* @{text mem} *}
+
+text{* Only use @{text mem} for generating executable code.  Otherwise
+use @{prop"x : set xs"} instead --- it is much easier to reason
+about. *}
 
 lemma set_mem_eq: "(x mem xs) = (x : set xs)"
 by (induct xs) auto
@@ -1544,6 +1424,22 @@ apply (simp add: le_max_iff_disj take_all)
 done
 
 
+lemma take_Cons':
+     "take n (x # xs) = (if n = 0 then [] else x # take (n - 1) xs)"
+by (cases n) simp_all
+
+lemma drop_Cons':
+     "drop n (x # xs) = (if n = 0 then x # xs else drop (n - 1) xs)"
+by (cases n) simp_all
+
+lemma nth_Cons': "(x # xs)!n = (if n = 0 then x else xs!(n - 1))"
+by (cases n) simp_all
+
+lemmas [simp] = take_Cons'[of "number_of v",standard]
+                drop_Cons'[of "number_of v",standard]
+                nth_Cons'[of _ _ "number_of v",standard]
+
+
 subsection {* @{text "distinct"} and @{text remdups} *}
 
 lemma distinct_append [simp]:
@@ -1704,69 +1600,82 @@ lemma in_set_replicateD: "x : set (replicate n y) ==> x = y"
 by (simp add: set_replicate_conv_if split: split_if_asm)
 
 
-subsection {* Lexicographic orderings on lists *}
+subsection{*@{text rotate1} and @{text rotate}*}
 
-lemma wf_lexn: "wf r ==> wf (lexn r n)"
-apply (induct n, simp, simp)
-apply(rule wf_subset)
- prefer 2 apply (rule Int_lower1)
-apply(rule wf_prod_fun_image)
- prefer 2 apply (rule inj_onI, auto)
+lemma rotate_simps[simp]: "rotate1 [] = [] \<and> rotate1 (x#xs) = xs @ [x]"
+by(simp add:rotate1_def)
+
+lemma rotate0[simp]: "rotate 0 = id"
+by(simp add:rotate_def)
+
+lemma rotate_Suc[simp]: "rotate (Suc n) xs = rotate1(rotate n xs)"
+by(simp add:rotate_def)
+
+lemma rotate_add:
+  "rotate (m+n) = rotate m o rotate n"
+by(simp add:rotate_def funpow_add)
+
+lemma rotate_rotate: "rotate m (rotate n xs) = rotate (m+n) xs"
+by(simp add:rotate_add)
+
+lemma rotate1_length01[simp]: "length xs <= 1 \<Longrightarrow> rotate1 xs = xs"
+by(cases xs) simp_all
+
+lemma rotate_length01[simp]: "length xs <= 1 \<Longrightarrow> rotate n xs = xs"
+apply(induct n)
+ apply simp
+apply (simp add:rotate_def)
 done
 
-lemma lexn_length:
-     "!!xs ys. (xs, ys) : lexn r n ==> length xs = n \<and> length ys = n"
-by (induct n) auto
+lemma rotate1_hd_tl: "xs \<noteq> [] \<Longrightarrow> rotate1 xs = tl xs @ [hd xs]"
+by(simp add:rotate1_def split:list.split)
 
-lemma wf_lex [intro!]: "wf r ==> wf (lex r)"
-apply (unfold lex_def)
-apply (rule wf_UN)
-apply (blast intro: wf_lexn, clarify)
-apply (rename_tac m n)
-apply (subgoal_tac "m \<noteq> n")
- prefer 2 apply blast
-apply (blast dest: lexn_length not_sym)
+lemma rotate_drop_take:
+  "rotate n xs = drop (n mod length xs) xs @ take (n mod length xs) xs"
+apply(induct n)
+ apply simp
+apply(simp add:rotate_def)
+apply(cases "xs = []")
+ apply (simp)
+apply(case_tac "n mod length xs = 0")
+ apply(simp add:mod_Suc)
+ apply(simp add: rotate1_hd_tl drop_Suc take_Suc)
+apply(simp add:mod_Suc rotate1_hd_tl drop_Suc[symmetric] drop_tl[symmetric]
+                take_hd_drop linorder_not_le)
 done
 
-lemma lexn_conv:
-"lexn r n =
-{(xs,ys). length xs = n \<and> length ys = n \<and>
-(\<exists>xys x y xs' ys'. xs= xys @ x#xs' \<and> ys= xys @ y # ys' \<and> (x, y):r)}"
-apply (induct n, simp, blast)
-apply (simp add: image_Collect lex_prod_def, safe, blast)
- apply (rule_tac x = "ab # xys" in exI, simp)
-apply (case_tac xys, simp_all, blast)
-done
+lemma rotate_conv_mod: "rotate n xs = rotate (n mod length xs) xs"
+by(simp add:rotate_drop_take)
 
-lemma lex_conv:
-"lex r =
-{(xs,ys). length xs = length ys \<and>
-(\<exists>xys x y xs' ys'. xs = xys @ x # xs' \<and> ys = xys @ y # ys' \<and> (x, y):r)}"
-by (force simp add: lex_def lexn_conv)
+lemma rotate_id[simp]: "n mod length xs = 0 \<Longrightarrow> rotate n xs = xs"
+by(simp add:rotate_drop_take)
 
-lemma wf_lexico [intro!]: "wf r ==> wf (lexico r)"
-by (unfold lexico_def) blast
+lemma length_rotate1[simp]: "length(rotate1 xs) = length xs"
+by(simp add:rotate1_def split:list.split)
 
-lemma lexico_conv:
-"lexico r = {(xs,ys). length xs < length ys |
-length xs = length ys \<and> (xs, ys) : lex r}"
-by (simp add: lexico_def diag_def lex_prod_def measure_def inv_image_def)
+lemma length_rotate[simp]: "!!xs. length(rotate n xs) = length xs"
+by (induct n) (simp_all add:rotate_def)
 
-lemma Nil_notin_lex [iff]: "([], ys) \<notin> lex r"
-by (simp add: lex_conv)
+lemma distinct1_rotate[simp]: "distinct(rotate1 xs) = distinct xs"
+by(simp add:rotate1_def split:list.split) blast
 
-lemma Nil2_notin_lex [iff]: "(xs, []) \<notin> lex r"
-by (simp add:lex_conv)
+lemma distinct_rotate[simp]: "distinct(rotate n xs) = distinct xs"
+by (induct n) (simp_all add:rotate_def)
 
-lemma Cons_in_lex [iff]:
-"((x # xs, y # ys) : lex r) =
-((x, y) : r \<and> length xs = length ys | x = y \<and> (xs, ys) : lex r)"
-apply (simp add: lex_conv)
-apply (rule iffI)
- prefer 2 apply (blast intro: Cons_eq_appendI, clarify)
-apply (case_tac xys, simp, simp)
-apply blast
-done
+lemma rotate_map: "rotate n (map f xs) = map f (rotate n xs)"
+by(simp add:rotate_drop_take take_map drop_map)
+
+lemma set_rotate1[simp]: "set(rotate1 xs) = set xs"
+by(simp add:rotate1_def split:list.split)
+
+lemma set_rotate[simp]: "set(rotate n xs) = set xs"
+by (induct n) (simp_all add:rotate_def)
+
+lemma rotate1_is_Nil_conv[simp]: "(rotate1 xs = []) = (xs = [])"
+by(simp add:rotate1_def split:list.split)
+
+lemma rotate_is_Nil_conv[simp]: "(rotate n xs = []) = (xs = [])"
+by (induct n) (simp_all add:rotate_def)
 
 
 subsection {* @{text sublist} --- a generalization of @{text nth} to sets *}
@@ -1847,39 +1756,211 @@ apply (simp split: nat_diff_split add: sublist_append)
 done
 
 
-lemma take_Cons':
-     "take n (x # xs) = (if n = 0 then [] else x # take (n - 1) xs)"
-by (cases n) simp_all
+subsection{*Sets of Lists*}
 
-lemma drop_Cons':
-     "drop n (x # xs) = (if n = 0 then x # xs else drop (n - 1) xs)"
-by (cases n) simp_all
+subsection {* @{text lists}: the list-forming operator over sets *}
 
-lemma nth_Cons': "(x # xs)!n = (if n = 0 then x else xs!(n - 1))"
-by (cases n) simp_all
+consts lists :: "'a set => 'a list set"
+inductive "lists A"
+ intros
+  Nil [intro!]: "[]: lists A"
+  Cons [intro!]: "[| a: A;l: lists A|] ==> a#l : lists A"
 
-lemmas [simp] = take_Cons'[of "number_of v",standard]
-                drop_Cons'[of "number_of v",standard]
-                nth_Cons'[of _ _ "number_of v",standard]
+inductive_cases listsE [elim!]: "x#l : lists A"
 
+lemma lists_mono [mono]: "A \<subseteq> B ==> lists A \<subseteq> lists B"
+by (unfold lists.defs) (blast intro!: lfp_mono)
 
-lemma "card (set xs) = size xs \<Longrightarrow> distinct xs"
-proof (induct xs)
-  case Nil thus ?case by simp
-next
-  case (Cons x xs)
-  show ?case
-  proof (cases "x \<in> set xs")
-    case False with Cons show ?thesis by simp
-  next
-    case True with Cons.prems
-    have "card (set xs) = Suc (length xs)" 
-      by (simp add: card_insert_if split: split_if_asm)
-    moreover have "card (set xs) \<le> length xs" by (rule card_length)
-    ultimately have False by simp
-    thus ?thesis ..
-  qed
+lemma lists_IntI:
+  assumes l: "l: lists A" shows "l: lists B ==> l: lists (A Int B)" using l
+  by induct blast+
+
+lemma lists_Int_eq [simp]: "lists (A \<inter> B) = lists A \<inter> lists B"
+proof (rule mono_Int [THEN equalityI])
+  show "mono lists" by (simp add: mono_def lists_mono)
+  show "lists A \<inter> lists B \<subseteq> lists (A \<inter> B)" by (blast intro: lists_IntI)
 qed
+
+lemma append_in_lists_conv [iff]:
+     "(xs @ ys : lists A) = (xs : lists A \<and> ys : lists A)"
+by (induct xs) auto
+
+lemma in_lists_conv_set: "(xs : lists A) = (\<forall>x \<in> set xs. x : A)"
+-- {* eliminate @{text lists} in favour of @{text set} *}
+by (induct xs) auto
+
+lemma in_listsD [dest!]: "xs \<in> lists A ==> \<forall>x\<in>set xs. x \<in> A"
+by (rule in_lists_conv_set [THEN iffD1])
+
+lemma in_listsI [intro!]: "\<forall>x\<in>set xs. x \<in> A ==> xs \<in> lists A"
+by (rule in_lists_conv_set [THEN iffD2])
+
+lemma lists_UNIV [simp]: "lists UNIV = UNIV"
+by auto
+
+subsection{*Lists as Cartesian products*}
+
+text{*@{text"set_Cons A Xs"}: the set of lists with head drawn from
+@{term A} and tail drawn from @{term Xs}.*}
+
+constdefs
+  set_Cons :: "'a set \<Rightarrow> 'a list set \<Rightarrow> 'a list set"
+  "set_Cons A XS == {z. \<exists>x xs. z = x#xs & x \<in> A & xs \<in> XS}"
+
+lemma [simp]: "set_Cons A {[]} = (%x. [x])`A"
+by (auto simp add: set_Cons_def)
+
+text{*Yields the set of lists, all of the same length as the argument and
+with elements drawn from the corresponding element of the argument.*}
+
+consts  listset :: "'a set list \<Rightarrow> 'a list set"
+primrec
+   "listset []    = {[]}"
+   "listset(A#As) = set_Cons A (listset As)"
+
+
+section{*Relations on lists*}
+
+subsection {* Lexicographic orderings on lists *}
+
+consts
+lexn :: "('a * 'a)set => nat => ('a list * 'a list)set"
+primrec
+"lexn r 0 = {}"
+"lexn r (Suc n) =
+(prod_fun (%(x,xs). x#xs) (%(x,xs). x#xs) ` (r <*lex*> lexn r n)) Int
+{(xs,ys). length xs = Suc n \<and> length ys = Suc n}"
+
+constdefs
+lex :: "('a \<times> 'a) set => ('a list \<times> 'a list) set"
+"lex r == \<Union>n. lexn r n"
+
+lexico :: "('a \<times> 'a) set => ('a list \<times> 'a list) set"
+"lexico r == inv_image (less_than <*lex*> lex r) (%xs. (length xs, xs))"
+
+
+lemma wf_lexn: "wf r ==> wf (lexn r n)"
+apply (induct n, simp, simp)
+apply(rule wf_subset)
+ prefer 2 apply (rule Int_lower1)
+apply(rule wf_prod_fun_image)
+ prefer 2 apply (rule inj_onI, auto)
+done
+
+lemma lexn_length:
+     "!!xs ys. (xs, ys) : lexn r n ==> length xs = n \<and> length ys = n"
+by (induct n) auto
+
+lemma wf_lex [intro!]: "wf r ==> wf (lex r)"
+apply (unfold lex_def)
+apply (rule wf_UN)
+apply (blast intro: wf_lexn, clarify)
+apply (rename_tac m n)
+apply (subgoal_tac "m \<noteq> n")
+ prefer 2 apply blast
+apply (blast dest: lexn_length not_sym)
+done
+
+lemma lexn_conv:
+"lexn r n =
+{(xs,ys). length xs = n \<and> length ys = n \<and>
+(\<exists>xys x y xs' ys'. xs= xys @ x#xs' \<and> ys= xys @ y # ys' \<and> (x, y):r)}"
+apply (induct n, simp, blast)
+apply (simp add: image_Collect lex_prod_def, safe, blast)
+ apply (rule_tac x = "ab # xys" in exI, simp)
+apply (case_tac xys, simp_all, blast)
+done
+
+lemma lex_conv:
+"lex r =
+{(xs,ys). length xs = length ys \<and>
+(\<exists>xys x y xs' ys'. xs = xys @ x # xs' \<and> ys = xys @ y # ys' \<and> (x, y):r)}"
+by (force simp add: lex_def lexn_conv)
+
+lemma wf_lexico [intro!]: "wf r ==> wf (lexico r)"
+by (unfold lexico_def) blast
+
+lemma lexico_conv:
+"lexico r = {(xs,ys). length xs < length ys |
+length xs = length ys \<and> (xs, ys) : lex r}"
+by (simp add: lexico_def diag_def lex_prod_def measure_def inv_image_def)
+
+lemma Nil_notin_lex [iff]: "([], ys) \<notin> lex r"
+by (simp add: lex_conv)
+
+lemma Nil2_notin_lex [iff]: "(xs, []) \<notin> lex r"
+by (simp add:lex_conv)
+
+lemma Cons_in_lex [iff]:
+"((x # xs, y # ys) : lex r) =
+((x, y) : r \<and> length xs = length ys | x = y \<and> (xs, ys) : lex r)"
+apply (simp add: lex_conv)
+apply (rule iffI)
+ prefer 2 apply (blast intro: Cons_eq_appendI, clarify)
+apply (case_tac xys, simp, simp)
+apply blast
+done
+
+
+subsection{*Lifting a Relation on List Elements to the Lists*}
+
+consts  listrel :: "('a * 'a)set => ('a list * 'a list)set"
+
+inductive "listrel(r)"
+ intros
+   Nil:  "([],[]) \<in> listrel r"
+   Cons: "[| (x,y) \<in> r; (xs,ys) \<in> listrel r |] ==> (x#xs, y#ys) \<in> listrel r"
+
+inductive_cases listrel_Nil1 [elim!]: "([],xs) \<in> listrel r"
+inductive_cases listrel_Nil2 [elim!]: "(xs,[]) \<in> listrel r"
+inductive_cases listrel_Cons1 [elim!]: "(y#ys,xs) \<in> listrel r"
+inductive_cases listrel_Cons2 [elim!]: "(xs,y#ys) \<in> listrel r"
+
+
+lemma listrel_mono: "r \<subseteq> s \<Longrightarrow> listrel r \<subseteq> listrel s"
+apply clarify  
+apply (erule listrel.induct)
+apply (blast intro: listrel.intros)+
+done
+
+lemma listrel_subset: "r \<subseteq> A \<times> A \<Longrightarrow> listrel r \<subseteq> lists A \<times> lists A"
+apply clarify 
+apply (erule listrel.induct, auto) 
+done
+
+lemma listrel_refl: "refl A r \<Longrightarrow> refl (lists A) (listrel r)" 
+apply (simp add: refl_def listrel_subset Ball_def)
+apply (rule allI) 
+apply (induct_tac x) 
+apply (auto intro: listrel.intros)
+done
+
+lemma listrel_sym: "sym r \<Longrightarrow> sym (listrel r)" 
+apply (auto simp add: sym_def)
+apply (erule listrel.induct) 
+apply (blast intro: listrel.intros)+
+done
+
+lemma listrel_trans: "trans r \<Longrightarrow> trans (listrel r)" 
+apply (simp add: trans_def)
+apply (intro allI) 
+apply (rule impI) 
+apply (erule listrel.induct) 
+apply (blast intro: listrel.intros)+
+done
+
+theorem equiv_listrel: "equiv A r \<Longrightarrow> equiv (lists A) (listrel r)"
+by (simp add: equiv_def listrel_refl listrel_sym listrel_trans) 
+
+lemma listrel_Nil [simp]: "listrel r `` {[]} = {[]}"
+by (blast intro: listrel.intros)
+
+lemma listrel_Cons:
+     "listrel r `` {x#xs} = set_Cons (r``{x}) (listrel r `` {xs})";
+by (auto simp add: set_Cons_def intro: listrel.intros) 
+
+
+section{*Miscellany*}
 
 subsection {* Characters and strings *}
 
