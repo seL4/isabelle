@@ -1605,6 +1605,12 @@ fun clear_mss (Mss {mk_rews, termless, ...}) =
 
 (** simpset operations **)
 
+(* term variables *)
+
+val add_term_varnames = foldl_aterms (fn (xs, Var (x, _)) => ins_ix (x, xs) | (xs, _) => xs);
+fun term_varnames t = add_term_varnames ([], t);
+
+
 (* dest_mss *)
 
 fun dest_mss (Mss {rules, congs, procs, ...}) =
@@ -1632,6 +1638,7 @@ fun merge_mss
         generic_merge eq_prem I I prems1 prems2,
         mk_rews, termless);
 
+
 (* add_simps *)
 
 fun mk_rrule2{thm,lhs,perm} =
@@ -1654,15 +1661,14 @@ fun vperm (Var _, Var _) = true
   | vperm (t, u) = (t = u);
 
 fun var_perm (t, u) =
-  vperm (t, u) andalso eq_set_term (term_vars t, term_vars u);
+  vperm (t, u) andalso eq_set (term_varnames t, term_varnames u);
 
 (* FIXME: it seems that the conditions on extra variables are too liberal if
 prems are nonempty: does solving the prems really guarantee instantiation of
 all its Vars? Better: a dynamic check each time a rule is applied.
 *)
 fun rewrite_rule_extra_vars prems elhs erhs =
-  not ((term_vars erhs) subset
-       (union_term (term_vars elhs, List.concat(map term_vars prems))))
+  not (term_varnames erhs subset foldl add_term_varnames (term_varnames elhs, prems))
   orelse
   not ((term_tvars erhs) subset
        (term_tvars elhs  union  List.concat(map term_tvars prems)));
@@ -1705,7 +1711,7 @@ fun mk_eq_True (Mss{mk_rews={mk_eq_True,...},...}) thm =
    in case there are extra vars on the rhs *)
 fun rrule_eq_True(thm,lhs,rhs,mss,thm2) =
   let val rrule = {thm=thm, lhs=lhs, perm=false}
-  in if (term_vars rhs)  subset (term_vars lhs) andalso
+  in if (term_varnames rhs)  subset (term_varnames lhs) andalso
         (term_tvars rhs) subset (term_tvars lhs)
      then [rrule]
      else mk_eq_True mss thm2 @ [rrule]
@@ -1988,7 +1994,7 @@ fun uncond_skel((_,weak),(lhs,rhs)) =
    while the premises are solved.
 *)
 fun cond_skel(args as (congs,(lhs,rhs))) =
-  if term_vars rhs subset term_vars lhs then uncond_skel(args)
+  if term_varnames rhs subset term_varnames lhs then uncond_skel(args)
   else skel0;
 
 (*
