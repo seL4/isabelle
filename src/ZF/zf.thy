@@ -9,7 +9,7 @@ Zermelo-Fraenkel Set Theory
 ZF = FOL +
 
 types
-  i, is, syntax 0
+  i, is 0
 
 arities
   i :: term
@@ -46,8 +46,7 @@ consts
 
   (* Descriptions *)
 
-  "@THE"       :: "[idt, o] => i"              ("(3THE _./ _)" 10)
-  The          :: "[i => o] => i"
+  The          :: "(i => o) => i"              (binder "THE " 10)
   if           :: "[o, i, i] => i"
 
   (* Enumerations of type i *)
@@ -64,7 +63,6 @@ consts
   (* Ordered Pairing and n-Tuples *)
 
   "@Tuple"     :: "[i, is] => i"               ("<(_,/ _)>")
-  PAIR         :: "syntax"
   Pair         :: "[i, i] => i"
   fst, snd     :: "i => i"
   split        :: "[[i,i] => i, i] => i"
@@ -100,19 +98,14 @@ consts
   " ->" :: "[i, i] => i"         ("(_ ->/ _)" [61, 60] 60) (*function space*)
   "<="  :: "[i, i] => o"         (infixl 50) (*subset relation*)
   ":"   :: "[i, i] => o"         (infixl 50) (*membership relation*)
-  "~:"   :: "[i, i] => o"        (infixl 50) (*negated membership relation*)
+  "~:"  :: "[i, i] => o"         (infixl 50) (*negated membership relation*)
 
 
 translations
   "{x, xs}"     == "cons(x, {xs})"
   "{x}"         == "cons(x, 0)"
-
-  "PAIR(x, Pair(y, z))" <= "Pair(x, Pair(y, z))"
-  "PAIR(x, PAIR(y, z))" <= "Pair(x, PAIR(y, z))"
-  "<x, y, z>"           <= "PAIR(x, <y, z>)"
-  "<x, y, z>"           == "Pair(x, <y, z>)"
-  "<x, y>"              == "Pair(x, y)"
-
+  "<x, y, z>"   == "<x, <y, z>>"
+  "<x, y>"      == "Pair(x, y)"
   "{x:A. P}"    == "Collect(A, %x. P)"
   "{y. x:A, Q}" == "Replace(A, %x y. Q)"
   "{f. x:A}"    == "RepFun(A, %x. f)"
@@ -120,11 +113,11 @@ translations
   "UN x:A. B"   == "Union({B. x:A})"
   "PROD x:A. B" => "Pi(A, %x. B)"
   "SUM x:A. B"  => "Sigma(A, %x. B)"
-  "THE x. P"    == "The(%x. P)"
+  "A -> B"      => "Pi(A, _K(B))"
+  "A * B"       => "Sigma(A, _K(B))"
   "lam x:A. f"  == "Lambda(A, %x. f)"
   "ALL x:A. P"  == "Ball(A, %x. P)"
   "EX x:A. P"   == "Bex(A, %x. P)"
-
   "x ~: y"      == "~ (x:y)"
 
 
@@ -221,10 +214,7 @@ ML
 
 (* 'Dependent' type operators *)
 
-val parse_translation =
-  [(" ->", ndependent_tr "Pi"),
-   (" *", ndependent_tr "Sigma")];
-
 val print_translation =
   [("Pi", dependent_tr' ("@PROD", " ->")),
    ("Sigma", dependent_tr' ("@SUM", " *"))];
+
