@@ -64,7 +64,11 @@ qed_goal "iffD2" HOL.thy "[| P=Q; Q |] ==> P"
  (fn prems =>
         [rtac ssubst 1, resolve_tac prems 1, resolve_tac prems 1]);
 
-val iffD1 = sym RS iffD2;
+qed_goal "rev_iffD2" HOL.thy "!!P. [| Q; P=Q |] ==> P"
+ (fn _ => [etac iffD2 1, assume_tac 1]);
+
+bind_thm ("iffD1", sym RS iffD2);
+bind_thm ("rev_iffD1", sym RSN (2, rev_iffD2));
 
 qed_goal "iffE" HOL.thy
     "[| P=Q; [| P --> Q; Q --> P |] ==> R |] ==> R"
