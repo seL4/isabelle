@@ -388,17 +388,17 @@ fun cert_typ ctxt raw_T =
 fun fixes_of (Context {asms = (_, (fixes, _)), ...}) = fixes;
 fun get_skolem ctxt x = assoc (fixes_of ctxt, x);
 
-fun no_internal_skolem ctxt x =
+fun no_skolem no_internal ctxt x =
   if can Syntax.dest_skolem x then
     raise CONTEXT ("Illegal reference to internal Skolem constant: " ^ quote x, ctxt)
-  else if can Syntax.dest_internal x then
+  else if no_internal andalso can Syntax.dest_internal x then
     raise CONTEXT ("Illegal reference to internal variable: " ^ quote x, ctxt)
   else x;
 
 fun intern_skolem ctxt =
   let
     fun intern (t as Free (x, T)) =
-          (case get_skolem ctxt (no_internal_skolem ctxt x) of
+          (case get_skolem ctxt (no_skolem true ctxt x) of
             Some x' => Free (x', T)
           | None => t)
       | intern (t $ u) = intern t $ intern u
@@ -917,7 +917,7 @@ end;
 
 fun prep_vars prep_typ (ctxt, (xs, raw_T)) =
   let
-    val _ = (case filter (not o Syntax.is_identifier) (map (no_internal_skolem ctxt) xs) of
+    val _ = (case filter (not o Syntax.is_identifier) (map (no_skolem false ctxt) xs) of
       [] => () | bads => raise CONTEXT ("Bad variable name(s): " ^ commas_quote bads, ctxt));
 
     val opt_T = apsome (prep_typ ctxt) raw_T;
