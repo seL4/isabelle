@@ -8,18 +8,6 @@ header {* HOL type definitions *}
 theory Typedef = Set
 files ("Tools/typedef_package.ML"):
 
-lemma Least_mono: 
-  "mono (f::'a::order => 'b::order) ==> EX x:S. ALL y:S. x <= y
-    ==> (LEAST y. y : f ` S) = f (LEAST x. x : S)"
-    -- {* Courtesy of Stephan Merz *}
-  apply clarify
-  apply (erule_tac P = "%x. x : S" in LeastI2)
-   apply fast
-  apply (rule LeastI2)
-  apply (auto elim: monoD intro!: order_antisym)
-  done
-
-
 subsection {* HOL type definitions *}
 
 constdefs

@@ -893,4 +893,15 @@ use "subset.ML"
 use "equalities.ML"
 use "mono.ML"
 
+lemma Least_mono:
+  "mono (f::'a::order => 'b::order) ==> EX x:S. ALL y:S. x <= y
+    ==> (LEAST y. y : f ` S) = f (LEAST x. x : S)"
+    -- {* Courtesy of Stephan Merz *}
+  apply clarify
+  apply (erule_tac P = "%x. x : S" in LeastI2)
+   apply fast
+  apply (rule LeastI2)
+  apply (auto elim: monoD intro!: order_antisym)
+  done
+
 end
