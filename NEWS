@@ -85,13 +85,17 @@ New in this Isabelle release
   - Rule sets <locale>.intro and <locale>.axioms no longer declared as
     [intro?] and [elim?] (respectively) by default.
   - Experimental command for instantiation of locales in proof contexts:
-        instantiate <label>: <loc>
+        instantiate <label>[<attrs>]: <loc>
     Instantiates locale <loc> and adds all its theorems to the current context
-    taking into account their attributes, and qualifying their names with
-    <label>.  If the locale has assumptions, a chained fact of the form
+    taking into account their attributes.  Label and attrs are optional
+    modifiers, like in theorem declarations.  If present, names of
+    instantiated theorems are qualified with <label>, and the attributes
+    <attrs> are applied after any attributes these theorems might have already.
+      If the locale has assumptions, a chained fact of the form
     "<loc> t1 ... tn" is expected from which instantiations of the parameters
-    are derived.
-    A few (very simple) examples can be found in FOL/ex/LocaleInst.thy.
+    are derived.  The command does not support old-style locales declared
+    with "locale (open)".
+      A few (very simple) examples can be found in FOL/ex/LocaleInst.thy.
 
 * HOL: Tactic emulation methods induct_tac and case_tac understand static
   (Isar) contexts.

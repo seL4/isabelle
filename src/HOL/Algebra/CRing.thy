@@ -302,6 +302,9 @@ locale "domain" = cring +
     and integral: "[| a \<otimes> b = \<zero>; a \<in> carrier R; b \<in> carrier R |] ==>
                   a = \<zero> | b = \<zero>"
 
+locale field = "domain" +
+  assumes field_Units: "Units R = carrier R - {\<zero>}"
+
 subsection {* Basic Facts of Rings *}
 
 lemma ringI:
@@ -357,7 +360,7 @@ lemma (in cring) is_comm_monoid:
   "comm_monoid R"
   by (auto intro!: comm_monoidI m_assoc m_comm)
 
-subsection {* Normaliser for Commutative Rings *}
+subsection {* Normaliser for Rings *}
 
 lemma (in abelian_group) r_neg2:
   "[| x \<in> carrier G; y \<in> carrier G |] ==> x \<oplus> (\<ominus> x \<oplus> y) = y"

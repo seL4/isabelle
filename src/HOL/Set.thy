@@ -943,6 +943,10 @@ text {* \medskip Big Intersection -- greatest lower bound of a set. *}
 lemma Inter_lower: "B \<in> A ==> Inter A \<subseteq> B"
   by blast
 
+lemma Inter_subset:
+  "[| !!X. X \<in> A ==> X \<subseteq> B; A ~= {} |] ==> \<Inter>A \<subseteq> B"
+  by blast
+
 lemma Inter_greatest: "(!!X. X \<in> A ==> C \<subseteq> X) ==> C \<subseteq> Inter A"
   by (rules intro: InterI subsetI dest: subsetD)
 

@@ -341,6 +341,7 @@ $(LOG)/HOL-Algebra.gz: $(OUT)/HOL Algebra/ROOT.ML \
   Algebra/Exponent.thy \
   Algebra/FiniteProduct.thy \
   Algebra/Group.thy \
+  Algebra/Lattice.thy \
   Algebra/Module.thy \
   Algebra/Sylow.thy \
   Algebra/UnivPoly.thy \

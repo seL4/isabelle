@@ -410,6 +410,7 @@ lemma (in submagma) semigroupI [intro]:
   shows "semigroup (G(| carrier := H |))"
   using prems by fast
 
+
 locale subgroup = submagma H G +
   assumes one_closed [intro, simp]: "\<one> \<in> H"
     and m_inv_closed [intro, simp]: "x \<in> H ==> inv x \<in> H"

@@ -18,10 +18,18 @@ locale L1 = notes rev_conjI [intro] = conjI [THEN iffD1 [OF conj_commute]]
 
 lemma "[| A; B |] ==> A & B"
 proof -
-  instantiate my: L1   txt {* No chained fact required. *}
-  assume B and A  txt {* order reversed *}
+  instantiate my: L1           txt {* No chained fact required. *}
+  assume B and A               txt {* order reversed *}
+  then show "A & B" ..         txt {* Applies @{thm my.rev_conjI}. *}
+qed
+
+locale L11 = notes rev_conjI = conjI [THEN iffD1 [OF conj_commute]]
+
+lemma "[| A; B |] ==> A & B"
+proof -
+  instantiate [intro]: L11     txt {* Attribute supplied at instantiation. *}
+  assume B and A
   then show "A & B" ..
-  txt {* Applies @{thm my.rev_conjI}. *}
 qed
 
 section {* Simple locale with assumptions *}
@@ -109,6 +117,17 @@ proof -
   assume "L5(op #)"
   then instantiate my: L5
   show ?thesis by (rule lem)  (* lem instantiated to True *)
+qed
+
+section {* Instantiation in a context with target *}
+
+lemma (in L4)  (* Target might confuse instantiation command. *)
+  fixes A (infixl "$" 60)
+  assumes A: "L4(A)"
+  shows "(x::i) $ y $ z $ w = y $ x $ w $ z"
+proof -
+  from A instantiate A: L4
+  show ?thesis by (simp only: A.OP.AC)
 qed
 
 end
