@@ -32,7 +32,7 @@ signature THY_INFO =
 sig
   val loaded_thys: thy_info Symtab.table ref
   val get_thyinfo: string -> thy_info option
-  val store_theory: theory * string -> unit
+  val store_theory: theory -> unit
   val path_of: string -> string
   val children_of: string -> string list
   val parents_of_name: string -> string list
@@ -111,8 +111,9 @@ fun theory_of name =
 
 (* store_theory *)
 
-fun store_theory (thy, name) =
+fun store_theory thy =
   let
+    val name = PureThy.get_name thy;
     val {path, children, parents, thy_time, ml_time, theory = _} =
       the_thyinfo name;
     val info = {path = path, children = children, parents = parents,
