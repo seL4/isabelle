@@ -49,6 +49,10 @@ New in this Isabelle release
   - No longer aborts on failed congruence proof.  Instead, the
     congruence is ignored.
 
+* Pure: New generic framework for extracting programs from constructive
+  proofs. See HOL/Extraction.thy for an example instantiation, as well
+  as HOL/Extraction for some case studies.
+
 * Pure: The main goal of the proof state is no longer shown by default, only
 the subgoals. This behaviour is controlled by a new flag.
    PG menu: Isabelle/Isar -> Settings -> Show Main Goal
