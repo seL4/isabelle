@@ -33,8 +33,8 @@ sig
   val declare_term: term -> context -> context
   val declare_terms: term list -> context -> context
   val declare_thm: thm -> context -> context
-  val add_binds: (indexname * string) list -> context -> context
-  val add_binds_i: (indexname * term) list -> context -> context
+  val add_binds: (indexname * string option) list -> context -> context
+  val add_binds_i: (indexname * term option) list -> context -> context
   val match_binds: (string list * string) list -> context -> context
   val match_binds_i: (term list * term) list -> context -> context
   val bind_propp: context * (string * (string list * string list)) -> context * term
@@ -47,6 +47,7 @@ sig
   val put_thm: string * thm -> context -> context
   val put_thms: string * thm list -> context -> context
   val put_thmss: (string * thm list) list -> context -> context
+  val reset_thms: string -> context -> context
   val have_thmss: thm list -> string -> context attribute list
     -> (thm list * context attribute list) list -> context -> context * (string * thm list)
   val assumptions: context -> (cterm * ((int -> tactic) * (int -> tactic))) list
@@ -86,8 +87,8 @@ datatype context =
       ((cterm * ((int -> tactic) * (int -> tactic))) list *		(*assumes: A ==> _*)
         (string * thm list) list) *
       ((string * string) list * string list),                           (*fixes: !!x. _*)
-    binds: (term * typ) Vartab.table,                                   (*term bindings*)
-    thms: thm list Symtab.table,                                        (*local thms*)
+    binds: (term * typ) option Vartab.table,                            (*term bindings*)
+    thms: thm list option Symtab.table,                                 (*local thms*)
     defs:
       typ Vartab.table *                                                (*type constraints*)
       sort Vartab.table *                                               (*default sorts*)
@@ -134,14 +135,16 @@ fun strings_of_items prt name items =
 
 (* term bindings *)
 
+val smash_option = fn (_, None) => None | (xi, Some b) => Some (xi, b);
+
 fun strings_of_binds (ctxt as Context {binds, ...}) =
   let
     val prt_term = Sign.pretty_term (sign_of ctxt);
     fun pretty_bind (xi, (t, T)) = prt_term (Logic.mk_equals (Var (xi, T), t));
+    val bs = mapfilter smash_option (Vartab.dest binds);
   in
-    if Vartab.is_empty binds andalso not (! verbose) then []
-    else [Pretty.string_of (Pretty.big_list "term bindings:"
-      (map pretty_bind (Vartab.dest binds)))]
+    if null bs andalso not (! verbose) then []
+    else [Pretty.string_of (Pretty.big_list "term bindings:" (map pretty_bind bs))]
   end;
 
 val print_binds = seq writeln o strings_of_binds;
@@ -150,7 +153,7 @@ val print_binds = seq writeln o strings_of_binds;
 (* local theorems *)
 
 fun strings_of_thms (Context {thms, ...}) =
-  strings_of_items pretty_thm "local theorems:" (Symtab.dest thms);
+  strings_of_items pretty_thm "local theorems:" (mapfilter smash_option (Symtab.dest thms));
 
 val print_thms = seq writeln o strings_of_thms;
 
@@ -175,8 +178,11 @@ fun strings_of_context (ctxt as Context {asms = (_, (fixes, _)),
     val pretty_thy = Pretty.block [Pretty.str "Theory:", Pretty.brk 1, Sign.pretty_sg sign];
 
     (*fixes*)
+    fun prt_fix (x, x') = Pretty.block
+      [prt_term (Syntax.free x), Pretty.str " =", Pretty.brk 1, prt_term (Syntax.free x')];
+
     fun prt_fixes xs = Pretty.block (Pretty.str "fixed variables:" :: Pretty.brk 1 ::
-      Pretty.commas (map (fn (x, x') => Pretty.str (x ^ " = " ^ x')) xs));
+      Pretty.commas (map prt_fix xs));
 
 
     (* defaults *)
@@ -387,10 +393,10 @@ fun norm_term (ctxt as Context {binds, ...}) =
 
     fun norm (t as Var (xi, T)) =
           (case Vartab.lookup (binds, xi) of
-            Some (u, U) =>
+            Some (Some (u, U)) =>
               if T = U then (norm u handle SAME => u)
               else raise TYPE ("norm_term: ill-typed variable assigment", [T, U], [t, u])
-          | None => raise CONTEXT ("Unbound schematic variable: " ^ Syntax.string_of_vname xi, ctxt))
+          | _ => raise CONTEXT ("Unbound schematic variable: " ^ Syntax.string_of_vname xi, ctxt))
       | norm (Abs (a, T, body)) =  Abs (a, T, norm body)
       | norm (Abs (_, _, body) $ t) = normh (subst_bound (t, body))
       | norm (f $ t) =
@@ -429,7 +435,9 @@ fun gen_read read app is_pat (ctxt as Context {binds, defs = (types, sorts, _, u
   let
     fun def_type xi =
       (case Vartab.lookup (types, xi) of
-        None => if is_pat then None else apsome #2 (Vartab.lookup (binds, xi))
+        None =>
+          if is_pat then None
+          else (case Vartab.lookup (binds, xi) of Some (Some (_, T)) => Some T | _ => None)
       | some => some);
 
     fun def_sort xi = Vartab.lookup (sorts, xi);
@@ -512,23 +520,33 @@ fun declare_thm thm ctxt =
 
 (* update_binds *)
 
+fun del_bind (ctxt, xi) =
+  ctxt
+  |> map_context (fn (thy, data, asms, binds, thms, defs) =>
+      (thy, data, asms, Vartab.update ((xi, None), binds), thms, defs));
+
 fun upd_bind (ctxt, (xi, t)) =
   let val T = fastype_of t in
     ctxt
     |> declare_term t
     |> map_context (fn (thy, data, asms, binds, thms, defs) =>
-        (thy, data, asms, Vartab.update ((xi, (t, T)), binds), thms, defs))
+        (thy, data, asms, Vartab.update ((xi, Some (t, T)), binds), thms, defs))
   end;
+
+fun del_upd_bind (ctxt, (xi, None)) = del_bind (ctxt, xi)
+  | del_upd_bind (ctxt, (xi, Some t)) = upd_bind (ctxt, (xi, t));
 
 fun update_binds bs ctxt = foldl upd_bind (ctxt, bs);
 fun update_binds_env env = (*Envir.norm_term ensures proper type instantiation*)
   update_binds (map (apsnd (Envir.norm_term env)) (Envir.alist_of env));
 
+fun delete_update_binds bs ctxt = foldl del_upd_bind (ctxt, bs);
+
 
 (* add_binds(_i) -- sequential *)
 
 fun gen_bind prep (ctxt, (xi as (x, _), raw_t)) =
-  ctxt |> update_binds [(xi, prep ctxt raw_t)];
+  ctxt |> delete_update_binds [(xi, apsome (prep ctxt) raw_t)];
 
 fun gen_binds prep binds ctxt = foldl (gen_bind prep) (ctxt, binds);
 
@@ -543,7 +561,6 @@ fun prep_declare_match (prep_pat, prep) (ctxt, (raw_pats, raw_t)) =
     val t = prep ctxt raw_t;
     val ctxt' = ctxt |> declare_term t;
     val matches = map (fn (f, raw_pat) => (prep_pat ctxt' raw_pat, f t)) raw_pats;
-           (* FIXME seq / par / simult (??) *)
   in (ctxt', (matches, t)) end;
 
 fun gen_match_binds _ [] ctxt = ctxt
@@ -589,14 +606,14 @@ val auto_bind_facts = add_binds_i oo AutoBind.facts;
 
 fun get_thm (ctxt as Context {thy, thms, ...}) name =
   (case Symtab.lookup (thms, name) of
-    Some [th] => th
-  | Some _ => raise CONTEXT ("Single theorem expected: " ^ quote name, ctxt)
-  | None => (PureThy.get_thm thy name handle THEORY (msg, _) => raise CONTEXT (msg, ctxt)));
+    Some (Some [th]) => th
+  | Some (Some _) => raise CONTEXT ("Single theorem expected: " ^ quote name, ctxt)
+  | _ => (PureThy.get_thm thy name handle THEORY (msg, _) => raise CONTEXT (msg, ctxt)));
 
 fun get_thms (ctxt as Context {thy, thms, ...}) name =
   (case Symtab.lookup (thms, name) of
-    Some ths => ths
-  | None => (PureThy.get_thms thy name handle THEORY (msg, _) => raise CONTEXT (msg, ctxt)));
+    Some (Some ths) => ths
+  | _ => (PureThy.get_thms thy name handle THEORY (msg, _) => raise CONTEXT (msg, ctxt)));
 
 fun get_thmss ctxt names = flat (map (get_thms ctxt) names);
 
@@ -606,12 +623,18 @@ fun get_thmss ctxt names = flat (map (get_thms ctxt) names);
 fun put_thms ("", _) = I
   | put_thms (name, ths) = map_context
       (fn (thy, data, asms, binds, thms, defs) =>
-        (thy, data, asms, binds, Symtab.update ((name, ths), thms), defs));
+        (thy, data, asms, binds, Symtab.update ((name, Some ths), thms), defs));
 
 fun put_thm (name, th) = put_thms (name, [th]);
 
 fun put_thmss [] ctxt = ctxt
   | put_thmss (th :: ths) ctxt = ctxt |> put_thms th |> put_thmss ths;
+
+
+(* reset_thms *)
+
+fun reset_thms name = map_context (fn (thy, data, asms, binds, thms, defs) =>
+  (thy, data, asms, binds, Symtab.update ((name, None), thms), defs));
 
 
 (* have_thmss *)
