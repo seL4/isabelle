@@ -7,14 +7,15 @@ case $(hostname) in
   sunbroy30)
     DEST=/home/html/isabelle/html-data
     ;;
-  foobar)
-    DEST=/foo/bar
+  *.cl.cam.ac.uk)
+    USER=paulson
+    DEST=/anfs/www/html/Research/HVG/Isabelle
     ;;
   *)
-    echo "Unknown destination directory!"
+    echo "Unknown destination directory for $(hostname)!"
     exit 2
     ;;
 esac
 
 rsync --rsh ssh --rsync-path /usr/local/dist/bin/rsync -va \
-  sunbroy1.informatik.tu-muenchen.de:/usr/proj/isabelle-repository/www/. $DEST/.
+  $USER@sunbroy1.informatik.tu-muenchen.de:/usr/proj/isabelle-repository/www/. $DEST/.
