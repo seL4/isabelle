@@ -20,6 +20,7 @@ sig
   val evaluate: (string -> T) -> T -> T
   val expand: (string -> string) -> string -> string
   val base_name: string -> string
+  val is_base: string -> bool
 end;
 
 structure Path: PATH =
@@ -95,6 +96,9 @@ fun expand env str =
   pack (evaluate (unpack o env) (unpack str));
 
 val base_name = base o unpack;
+
+fun is_base str =
+  not (exists (equal "/" orf equal "$") (explode str));
 
 
 end;
