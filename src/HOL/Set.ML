@@ -252,12 +252,18 @@ AddSEs [emptyE];
 qed_goal "empty_subsetI" Set.thy "{} <= A"
  (fn _ => [ (Blast_tac 1) ]);
 
+(*One effect is to delete the ASSUMPTION {} <= A*)
+AddIffs [empty_subsetI];
+
 qed_goal "equals0I" Set.thy "[| !!y. y:A ==> False |] ==> A={}"
  (fn [prem]=>
   [ (blast_tac (claset() addIs [prem RS FalseE]) 1) ]);
 
-qed_goal "equals0D" Set.thy "!!a. [| A={};  a:A |] ==> P"
+(*Use for reasoning about disjointness: A Int B = {} *)
+qed_goal "equals0E" Set.thy "!!a. [| A={};  a:A |] ==> P"
  (fn _ => [ (Blast_tac 1) ]);
+
+AddEs [equals0E];
 
 Goalw [Ball_def] "Ball {} P = True";
 by (Simp_tac 1);
@@ -669,7 +675,7 @@ val mksimps_pairs = ("Ball",[bspec]) :: mksimps_pairs;
 simpset_ref() := simpset() addcongs [ball_cong,bex_cong]
                     setmksimps (mksimps mksimps_pairs);
 
-Addsimps[subset_UNIV, empty_subsetI, subset_refl];
+Addsimps[subset_UNIV, subset_refl];
 
 
 (*** < ***)
