@@ -209,15 +209,14 @@ AddIffs  [Scons_not_Atom, Atom_not_Scons, Scons_Scons_eq];
 Goalw [ndepth_def] "ndepth (Abs_Node(%k. Inr 0, x)) = 0";
 by (EVERY1[stac (Node_K0_I RS Abs_Node_inverse), stac split]);
 by (rtac Least_equality 1);
-by (rtac refl 1);
-by (etac less_zeroE 1);
+by Auto_tac;  
 qed "ndepth_K0";
 
-Goal "k < Suc(LEAST x. f x = Inr 0) --> nat_case (Inr (Suc i)) f k ~= Inr 0";
+Goal "nat_case (Inr (Suc i)) f k = Inr 0 --> Suc(LEAST x. f x = Inr 0) <= k";
 by (induct_tac "k" 1);
 by (ALLGOALS Simp_tac);
-by (rtac impI 1);
-by (etac not_less_Least 1);
+by (rtac impI 1); 
+by (etac Least_le 1);
 val lemma = result();
 
 Goalw [ndepth_def,Push_Node_def]
@@ -229,9 +228,8 @@ by (etac ssubst 1);  (*instantiates type variables!*)
 by (Simp_tac 1);
 by (rtac Least_equality 1);
 by (rewtac Push_def);
-by (rtac (nat_case_Suc RS trans) 1);
+by (auto_tac (claset(), simpset() addsimps [lemma]));  
 by (etac LeastI 1);
-by (asm_simp_tac (simpset() addsimps [lemma]) 1);
 qed "ndepth_Push_Node";
 
 

@@ -68,32 +68,79 @@ by (case_tac "m" 1);
 by Auto_tac;
 qed "less_Suc_eq_0_disj";
 
-Goalw [Least_nat_def]
- "[| ? n. P(Suc n); ~ P 0 |] ==> (LEAST n. P n) = Suc (LEAST m. P(Suc m))";
-by (rtac some_equality 1);
-by (fold_goals_tac [Least_nat_def]);
-by (safe_tac (claset() addSEs [LeastI]));
-by (rename_tac "j" 1);
-by (case_tac "j" 1);
-by (Blast_tac 1);
-by (blast_tac (claset() addDs [Suc_less_SucD, not_less_Least]) 1);
-by (rename_tac "k n" 1);
-by (case_tac "k" 1);
-by (Blast_tac 1);
-by (hyp_subst_tac 1);
-by (rewtac Least_nat_def);
-by (rtac (some_equality RS arg_cong RS sym) 1);
-by (blast_tac (claset() addDs [Suc_mono]) 1);
-by (cut_inst_tac [("m","m")] less_linear 1);
-by (blast_tac (claset() addIs [Suc_mono]) 1);
-qed "Least_Suc";
-
 val prems = Goal "[| P 0; P 1; !!k. P k ==> P (Suc (Suc k)) |] ==> P n";
 by (rtac nat_less_induct 1);
 by (case_tac "n" 1);
 by (case_tac "nat" 2);
 by (ALLGOALS (blast_tac (claset() addIs prems@[less_trans])));
 qed "nat_induct2";
+
+
+(*** LEAST -- the least number operator ***)
+
+(*This version is polymorphic over type class "order"! *) 
+Goalw [Least_def]
+     "[| P(k::'a::order);  ALL x. P x --> k <= x |] ==> (LEAST x. P(x)) = k";
+by (blast_tac (claset() addIs [some_equality, order_antisym]) 1); 
+bind_thm ("Least_equality", allI RSN (2, result()));
+
+(*LEAST and wellorderings*)
+Goal "wf({(x,y::'a). x<y}) \
+\     ==> P(k::'a::linorder) --> P(LEAST x. P(x)) & (LEAST x. P(x)) <= k";
+by (eres_inst_tac [("a","k")] wf_induct 1);
+by (rtac impI 1);
+by (rtac classical 1);
+by (res_inst_tac [("s","x")] (Least_equality RS ssubst) 1);
+by Auto_tac;  
+by (auto_tac (claset(), simpset() addsimps [linorder_not_less RS sym]));  
+by (blast_tac (claset() addIs [order_less_trans]) 1);
+bind_thm("wellorder_LeastI",   result() RS mp RS conjunct1);
+bind_thm("wellorder_Least_le", result() RS mp RS conjunct2);
+
+Goal "[| wf({(x,y::'a). x<y});  k < (LEAST x. P(x)) |] \
+\     ==> ~P(k::'a::linorder)";
+by (rtac notI 1);
+by (dtac wellorder_Least_le 1); 
+by (asm_full_simp_tac (simpset() addsimps [linorder_not_le RS sym]) 2);
+by (fast_tac (claset() addIs []) 2); 
+by (assume_tac 1); 
+qed "wellorder_not_less_Least";
+
+(** LEAST theorems for type "nat" by specialization **)
+
+Goalw [less_def] "wf {(x,y::nat). x<y}"; 
+by (rtac (wf_pred_nat RS wf_trancl RS wf_subset) 1);
+by (Blast_tac 1); 
+qed "wf_less";
+
+bind_thm("LeastI",   wf_less RS wellorder_LeastI);
+bind_thm("Least_le", wf_less RS wellorder_Least_le);
+bind_thm("not_less_Least", wf_less RS wellorder_not_less_Least);
+
+Goal "(S::nat set) ~= {} ==> EX x:S. ALL y:S. x <= y";
+by (cut_facts_tac [wf_pred_nat RS wf_trancl RS (wf_eq_minimal RS iffD1)] 1);
+by (dres_inst_tac [("x","S")] spec 1);
+by (Asm_full_simp_tac 1);
+by (etac impE 1);
+by (Force_tac 1);
+by (force_tac (claset(), simpset() addsimps [less_eq,not_le_iff_less]) 1);
+qed "nonempty_has_least";
+
+Goal "[| P n; ~ P 0 |] ==> (LEAST n. P n) = Suc (LEAST m. P(Suc m))";
+by (case_tac "n" 1);
+by Auto_tac;  
+by (ftac LeastI 1); 
+by (dres_inst_tac [("P","%x. P (Suc x)")] LeastI 1);
+by (subgoal_tac "(LEAST x. P x) <= Suc (LEAST x. P (Suc x))" 1); 
+by (etac Least_le 2); 
+by (case_tac "LEAST x. P x" 1);
+by Auto_tac;  
+by (dres_inst_tac [("P","%x. P (Suc x)")] Least_le 1);
+by (blast_tac (claset() addIs [order_antisym]) 1); 
+qed "Least_Suc";
+
+
+(** min and max **)
 
 Goal "min 0 n = (0::nat)";
 by (rtac min_leastL 1);

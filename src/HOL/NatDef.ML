@@ -462,65 +462,6 @@ qed "not_less_less_Suc_eq";
   Not suitable as default simprules because they often lead to looping*)
 bind_thms ("not_less_simps", [not_less_less_Suc_eq, leD RS not_less_less_Suc_eq]);
 
-(** LEAST -- the least number operator **)
-
-Goal "(ALL m::nat. P m --> n <= m) = (ALL m. m < n --> ~ P m)";
-by (blast_tac (claset() addIs [leI] addEs [leE]) 1);
-val lemma = result();
-
-(* This is an old def of Least for nat, which is derived for compatibility *)
-Goalw [Least_def]
-  "(LEAST n::nat. P n) == (@n. P(n) & (ALL m. m < n --> ~P(m)))";
-by (simp_tac (simpset() addsimps [lemma]) 1);
-qed "Least_nat_def";
-
-val [prem1,prem2] = Goalw [Least_nat_def]
-    "[| P(k::nat);  !!x. x<k ==> ~P(x) |] ==> (LEAST x. P(x)) = k";
-by (rtac some_equality 1);
-by (blast_tac (claset() addSIs [prem1,prem2]) 1);
-by (cut_facts_tac [less_linear] 1);
-by (blast_tac (claset() addSIs [prem1] addSDs [prem2]) 1);
-qed "Least_equality";
-
-Goal "P(k::nat) ==> P(LEAST x. P(x))";
-by (etac rev_mp 1);
-by (res_inst_tac [("n","k")] nat_less_induct 1);
-by (rtac impI 1);
-by (rtac classical 1);
-by (res_inst_tac [("s","n")] (Least_equality RS ssubst) 1);
-by (assume_tac 1);
-by (assume_tac 2);
-by (Blast_tac 1);
-qed "LeastI";
-
-(*Proof is almost identical to the one above!*)
-Goal "P(k::nat) ==> (LEAST x. P(x)) <= k";
-by (etac rev_mp 1);
-by (res_inst_tac [("n","k")] nat_less_induct 1);
-by (rtac impI 1);
-by (rtac classical 1);
-by (res_inst_tac [("s","n")] (Least_equality RS ssubst) 1);
-by (assume_tac 1);
-by (rtac le_refl 2);
-by (blast_tac (claset() addIs [less_imp_le,le_trans]) 1);
-qed "Least_le";
-
-Goal "k < (LEAST x. P(x)) ==> ~P(k::nat)";
-by (rtac notI 1);
-by (etac (rewrite_rule [le_def] Least_le RS notE) 1 THEN assume_tac 1);
-qed "not_less_Least";
-
-(* [| m ~= n; m < n ==> P; n < m ==> P |] ==> P *)
-bind_thm("nat_neqE", nat_neq_iff RS iffD1 RS disjE);
-
-Goal "(S::nat set) ~= {} ==> EX x:S. ALL y:S. x <= y";
-by (cut_facts_tac [wf_pred_nat RS wf_trancl RS (wf_eq_minimal RS iffD1)] 1);
-by (dres_inst_tac [("x","S")] spec 1);
-by (Asm_full_simp_tac 1);
-by (etac impE 1);
-by (Force_tac 1);
-by (force_tac (claset(), simpset() addsimps [less_eq,not_le_iff_less]) 1);
-qed "nonempty_has_least";
 
 (** Re-orientation of the equations 0=x and Suc n = x. *
 
