@@ -10,20 +10,6 @@ open Finite;
 
 section "finite";
 
-(*
-goalw Finite.thy Fin.defs "!!A B. A<=B ==> Fin(A) <= Fin(B)";
-by (rtac lfp_mono 1);
-by (REPEAT (ares_tac basic_monos 1));
-qed "Fin_mono";
-
-goalw Finite.thy Fin.defs "Fin(A) <= Pow(A)";
-by (blast_tac (claset() addSIs [lfp_lowerbound]) 1);
-qed "Fin_subset_Pow";
-
-(* A : Fin(B) ==> A <= B *)
-val FinD = Fin_subset_Pow RS subsetD RS PowD;
-*)
-
 (*Discharging ~ x:y entails extra work*)
 val major::prems = goal Finite.thy 
     "[| finite F;  P({}); \
@@ -323,6 +309,11 @@ by (assume_tac 1);
 qed "card_insert_disjoint";
 Addsimps [card_insert_disjoint];
 
+goal Finite.thy "!!A. finite A ==> card A <= card (insert x A)";
+by (case_tac "x: A" 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [insert_absorb])));
+qed "card_insert_le";
+
 goal Finite.thy  "!!A. finite A ==> !B. B <= A --> card(B) <= card(A)";
 by (etac finite_induct 1);
 by (Simp_tac 1);
@@ -366,21 +357,18 @@ by (rtac Suc_less_SucD 1);
 by (asm_simp_tac (simpset() addsimps [card_Suc_Diff]) 1);
 qed "card_Diff";
 
+goal Finite.thy "!!A. finite A ==> card(A-{x}) <= card A";
+by (case_tac "x: A" 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [card_Diff, less_imp_le])));
+qed "card_Diff_le";
+
 
 (*** Cardinality of the Powerset ***)
 
-val [major] = goal Finite.thy
-  "finite A ==> card(insert x A) = Suc(card(A-{x}))";
+goal Finite.thy "!!A. finite A ==> card(insert x A) = Suc(card(A-{x}))";
 by (case_tac "x:A" 1);
-by (asm_simp_tac (simpset() addsimps [insert_absorb]) 1);
-by (dtac mk_disjoint_insert 1);
-by (etac exE 1);
-by (Asm_simp_tac 1);
-by (rtac card_insert_disjoint 1);
-by (rtac (major RSN (2,finite_subset)) 1);
-by (Blast_tac 1);
-by (Blast_tac 1);
-by (asm_simp_tac (simpset() addsimps [major RS card_insert_disjoint]) 1);
+by (ALLGOALS 
+    (asm_simp_tac (simpset() addsimps [card_Suc_Diff, insert_absorb])));
 qed "card_insert";
 Addsimps [card_insert];
 
