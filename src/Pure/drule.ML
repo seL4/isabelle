@@ -329,7 +329,7 @@ fun cterm_instantiate ctpairs0 th =
   in  instantiate (map ctyp2 tye, map instT ctpairs0) th  end
   handle TERM _ =>
            raise THM("cterm_instantiate: incompatible signatures",0,[th])
-       | TYPE _ => raise THM("cterm_instantiate: types", 0, [th])
+       | TYPE (msg, _, _) => raise THM("cterm_instantiate: " ^ msg, 0, [th])
 end;
 
 
