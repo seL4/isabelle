@@ -3,36 +3,34 @@
     Author:     David Aspinall, Stefan Berghofer and Markus Wenzel
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Basic support for XML input and output.
+Basic support for XML.
 *)
 
 signature XML =
 sig
+  val header: string
+  val text: string -> string
+  val cdata: string -> string
+  val element: string -> (string * string) list -> string list -> string
   datatype tree =
       Elem of string * (string * string) list * tree list
     | Text of string
-  val element: string -> (string * string) list -> string list -> string
-  val text: string -> string
-  val cdata: string -> string
-  val header: string
   val string_of_tree: tree -> string
-  val tree_of_string: string -> tree
   val parse_content: string list -> tree list * string list
   val parse_elem: string list -> tree * string list
   val parse_document: string list -> (string option * tree) * string list
+  val tree_of_string: string -> tree
 end;
 
 structure XML: XML =
 struct
 
-(* character data *)
+(** string based representation (small scale) **)
 
-fun encode "<" = "&lt;"
-  | encode ">" = "&gt;"
-  | encode "&" = "&amp;"
-  | encode "'" = "&apos;"
-  | encode "\"" = "&quot;"
-  | encode c = c;
+val header = "<?xml version=\"1.0\"?>\n";
+
+
+(* text and character data *)
 
 fun decode "&lt;" = "<"
   | decode "&gt;" = ">"
@@ -41,19 +39,19 @@ fun decode "&lt;" = "<"
   | decode "&quot;" = "\""
   | decode c = c;
 
+fun encode "<" = "&lt;"
+  | encode ">" = "&gt;"
+  | encode "&" = "&amp;"
+  | encode "'" = "&apos;"
+  | encode "\"" = "&quot;"
+  | encode c = c;
+
 val text = Library.translate_string encode;
 
-val cdata_open  = "<![CDATA["
-val cdata_close = "]]>"
-
-fun cdata s = cdata_open ^ s ^ cdata_close;
+val cdata = enclose "<![CDATA[" "]]>";
 
 
 (* elements *)
-
-datatype tree =
-    Elem of string * (string * string) list * tree list
-  | Text of string;
 
 fun attribute (a, x) = a ^ " = \"" ^ text x ^ "\"";
 
@@ -63,14 +61,34 @@ fun element name atts cs =
     else enclose "<" ">" elem ^ implode cs ^ enclose "</" ">" name
   end;
 
-fun string_of_tree (Elem (name, atts, ts)) =
-      element name atts (map string_of_tree ts)
-  | string_of_tree (Text s) = s;
-
-val header = "<?xml version=\"1.0\"?>\n";
 
 
-(* parser *)
+(** explicit XML trees **)
+
+datatype tree =
+    Elem of string * (string * string) list * tree list
+  | Text of string;
+
+fun string_of_tree tree =
+  let
+    fun string_of (Elem (name, atts, ts)) buf =
+        let val buf' =
+          buf |> Buffer.add "<"
+          |> fold Buffer.add (separate " " (name :: map attribute atts))
+        in
+          if null ts then
+            buf' |> Buffer.add "/>"
+          else
+            buf' |> Buffer.add ">"
+            |> fold string_of ts
+            |> Buffer.add "</" |> Buffer.add name |> Buffer.add ">"
+        end
+      | string_of (Text s) buf = Buffer.add (text s) buf;
+  in Buffer.content (string_of tree Buffer.empty) end;
+
+
+
+(** XML parsing **)
 
 fun err s (xs, _) =
   "XML parsing error: " ^ s ^ "\nfound: " ^ quote (Symbol.beginning 100 xs);
