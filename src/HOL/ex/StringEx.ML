@@ -1,20 +1,20 @@
 
 Goal "hd(''ABCD'') = CHR ''A''";
 by (Simp_tac 1);
-result();
+qed "";
 
 Goal "hd(''ABCD'') ~= CHR ''B''";
 by (Simp_tac 1);
-result();
+qed "";
 
 Goal "''ABCD'' ~= ''ABCX''";
 by (Simp_tac 1);
-result();
+qed "";
 
 Goal "''ABCD'' = ''ABCD''";
 by (Simp_tac 1);
-result();
+qed "";
 
 Goal "''ABCDEFGHIJKLMNOPQRSTUVWXYZ'' ~= ''ABCDEFGHIJKLMNOPQRSTUVWXY''";
 by (Simp_tac 1);
-result();
+qed "";
