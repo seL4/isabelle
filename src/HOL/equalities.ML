@@ -502,6 +502,10 @@ Goal "Union(B``A) = (UN x:A. B(x))";
 by (Blast_tac 1);
 qed "Union_image_eq";
 
+Goal "f `` Union S = (UN x:S. f `` x)";
+by (Blast_tac 1);
+qed "image_Union_eq";
+
 Goal "Inter(B``A) = (INT x:A. B(x))";
 by (Blast_tac 1);
 qed "Inter_image_eq";
