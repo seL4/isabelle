@@ -9,6 +9,11 @@ open RelPow;
 val [rel_pow_0, rel_pow_Suc] = nat_recs rel_pow_def;
 Addsimps [rel_pow_0];
 
+goal RelPow.thy "R^1 = R";
+by(simp_tac (!simpset addsimps [rel_pow_Suc]) 1);
+qed "rel_pow_1";
+Addsimps [rel_pow_1];
+
 goal RelPow.thy "(x,x) : R^0";
 by (Simp_tac 1);
 qed "rel_pow_0_I";
