@@ -1,0 +1,67 @@
+<!-- $Id$ -->
+<HTML><HEAD><TITLE>Sequents/ReadMe</TITLE></HEAD><BODY>
+
+<H2>Sequents: Various Sequent Calculi</H2>
+
+This directory contains the Standard ML sources of the Isabelle system for
+various Sequent, Linear, and Modal Logic.  Important files include
+
+<DL>
+<DT>ROOT.ML
+<DD>loads all source files.  Enter an ML image containing Pure
+Isabelle and type:    use "ROOT.ML";
+
+<DT>Makefile
+<DD>compiles the files under Poly/ML or SML of New Jersey
+
+
+<DT>ex
+<DD>subdirectory containing examples.  Files are arranged in
+subdirectories. To execute all of them, enter an ML image containing
+Sequents and type 
+<PRE>
+	use "ex/ROOT.ML";
+</PRE>
+To execute examples in a particular logic (LK/ILL/Modal) use the
+appropriate command:
+<PRE>
+	use "ex/LK/ROOT.ML";
+	use "ex/ILL/ROOT.ML";
+	use "ex/Modal/ROOT.ML";
+</PRE>
+</DL>
+
+<P>Much of the work in Modal logic was done by Martin Coen. Thanks to
+Rajeev Gore' for supplying the inference system for S43. Sara Kalvala
+reorganized the files and supplied Linear Logic. Jacob Frost provided
+some improvements to the syntax of sequents.
+
+<P>Useful references on sequent calculi:
+
+<UL>
+<LI>Steve Reeves and Michael Clarke,<BR>
+    Logic for Computer Science (Addison-Wesley, 1990)
+<LI>G. Takeuti,<BR>
+    Proof Theory (North Holland, 1987)
+</UL>
+
+Useful references on Modal Logics:
+<UL>
+<LI>Melvin C Fitting,<BR>
+    Proof Methods for Modal and Intuitionistic Logics (Reidel, 1983)
+
+<LI>Lincoln A. Wallen,<BR>
+    Automated Deduction in Nonclassical Logics (MIT Press, 1990)
+</UL>
+
+Useful references on Linear Logic:
+<UL>
+<LI>A. S. Troelstra<BR>
+    Lectures on Linear Logic (CSLI, 1992)
+
+<LI>S. Kalvala and V. de Paiva<BR>
+    Linear Logic in Isabelle (in TR 379, University of Cambridge
+				Computer Lab, 1995, ed L. Paulson)
+</UL>
+</UL>
+</BODY></HTML>
