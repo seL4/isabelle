@@ -220,7 +220,7 @@ fun proper_inform_file_processed file state =
 (* misc commands for ProofGeneral/isa *)
 
 fun thms_containing ss =
-  ProofContext.print_thms_containing (ProofContext.init (the_context ())) ss;
+  ProofContext.print_thms_containing (ProofContext.init (the_context ())) None ss;
 
 val welcome = priority o Session.welcome;
 val help = welcome;

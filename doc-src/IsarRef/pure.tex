@@ -1355,7 +1355,7 @@ way to include formal items into the printed text document.
 \railterm{thmdeps}
 
 \begin{rail}
-  thmscontaining (term * )
+  thmscontaining ('(' nat ')')? (term * )
   ;
   thmdeps thmrefs
   ;
@@ -1391,7 +1391,8 @@ for simplifications.
 \item [$\isarkeyword{thms_containing}~\vec t$] retrieves facts from the theory
   or proof context containing all of the constants or variables occurring in
   terms $\vec t$.  Note that giving the empty list yields \emph{all} currently
-  known facts.
+  known facts.  An optional limit for the number printed facts may be given;
+  the default is 40.
   
 \item [$\isarkeyword{thm_deps}~\vec a$] visualizes dependencies of facts,
   using Isabelle's graph browser tool (see also \cite{isabelle-sys}).

@@ -9,7 +9,9 @@ New in this Isabelle release
 
 * improved thms_containing: proper indexing of facts instead of raw
 theorems; check validity of results wrt. current name space; include
-local facts of proof configuration (also covers active locales);
+local facts of proof configuration (also covers active locales); an
+optional limit for the number of printed facts may be given (the
+default is 40);
 
 
 *** HOL ***

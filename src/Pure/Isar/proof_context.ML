@@ -125,7 +125,8 @@ sig
   val prems_limit: int ref
   val pretty_asms: context -> Pretty.T list
   val pretty_context: context -> Pretty.T list
-  val print_thms_containing: context -> string list -> unit
+  val thms_containing_limit: int ref
+  val print_thms_containing: context -> int option -> string list -> unit
   val setup: (theory -> theory) list
 end;
 
@@ -1378,7 +1379,9 @@ fun lthms_containing (ctxt as Context {thms = (_, _, _, index), ...}) idx =
   in gen_distinct eq_fst (filter valid (FactIndex.find idx index)) end;
 
 
-fun print_thms_containing ctxt ss =
+val thms_containing_limit = ref 40;
+
+fun print_thms_containing ctxt opt_limit ss =
   let
     val prt_term = pretty_term ctxt;
     val prt_fact = pretty_fact ctxt;
@@ -1398,13 +1401,16 @@ fun print_thms_containing ctxt ss =
       else [Pretty.block (Pretty.breaks (Pretty.str "Facts containing" ::
         separate (Pretty.str "and") (prt_consts cs @ prt_frees xs)) @
           [Pretty.str ":", Pretty.fbrk])]
-    val globals = PureThy.thms_containing (theory_of ctxt) (cs, xs);
-    val locals = lthms_containing ctxt (cs, xs);
+    val facts =
+      PureThy.thms_containing (theory_of ctxt) (cs, xs) @ lthms_containing ctxt (cs, xs)
+      |> sort_wrt #1;
+    val len = length facts;
+    val limit = if_none opt_limit (! thms_containing_limit);
   in
     if empty_idx andalso not (Library.null ss) then
       warning "thms_containing: no consts/frees in specification"
-    else (header @ map prt_fact (sort_wrt #1 (globals @ locals)))
-      |> Pretty.chunks |> Pretty.writeln
+    else (header @ (if len <= limit then [] else [Pretty.str "..."]) @
+        map prt_fact (Library.drop (len - limit, facts))) |> Pretty.chunks |> Pretty.writeln
   end;
 
 
