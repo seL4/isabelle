@@ -12,11 +12,19 @@ support for local structure declarations (cf. locales and HOL
 records), see also isar-ref manual.  Potential INCOMPATIBILITY: need
 to observe strictly sequential dependencies of definitions within a
 single 'constdefs' section -- some existing specifications may have to
-be reordered.
+be reordered; moreover, the declared name needs to be an identifier.
+In the worst case may have to fall back on plain 'consts' + 'defs'.
 
 * Pure: 'advanced' translation functions (parse_translation etc.) may
 depend on the signature of the theory context being presently used for
 parsing/printing, see also isar-ref manual.
+
+
+*** HOLCF ***
+
+* HOLCF: discontinued special version of 'constdefs' (which used to
+support continuous functions) in favor of the general Pure one with
+full type-inference.
 
 
 

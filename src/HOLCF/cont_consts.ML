@@ -3,16 +3,14 @@
     Author:     Tobias Mayr, David von Oheimb, and Markus Wenzel
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-HOLCF version of consts/constdefs: handle continuous function types in
-mixfix syntax.
+HOLCF version of consts: handle continuous function types in mixfix
+syntax.
 *)
 
 signature CONT_CONSTS =
 sig
   val add_consts: (bstring * string * mixfix) list -> theory -> theory
   val add_consts_i: (bstring * typ * mixfix) list -> theory -> theory
-  val add_constdefs: ((bstring * string * mixfix) * string) list -> theory -> theory
-  val add_constdefs_i: ((bstring * typ * mixfix) * term) list -> theory -> theory
 end;
 
 structure ContConsts: CONT_CONSTS =
@@ -104,18 +102,6 @@ val add_consts = gen_add_consts Thm.read_ctyp;
 val add_consts_i = gen_add_consts Thm.ctyp_of;
 
 
-(* add_constdefs(_i) *)
-
-fun gen_add_constdefs consts defs args thy =
-  thy
-  |> consts (map fst args)
-  |> defs (false, map (fn ((c, _, mx), s) =>
-    ((Thm.def_name (Syntax.const_name c mx), s), [])) args);
-
-fun add_constdefs args = gen_add_constdefs add_consts IsarThy.add_defs args;
-fun add_constdefs_i args = gen_add_constdefs add_consts_i IsarThy.add_defs_i args;
-
-
 (* outer syntax *)
 
 local structure P = OuterParse and K = OuterSyntax.Keyword in
@@ -124,12 +110,7 @@ val constsP =
   OuterSyntax.command "consts" "declare constants (HOLCF)" K.thy_decl
     (Scan.repeat1 P.const >> (Toplevel.theory o add_consts));
 
-val constdefsP =
-  OuterSyntax.command "constdefs" "declare and define constants (HOLCF)" K.thy_decl
-    (Scan.repeat1 (P.const -- P.term) >> (Toplevel.theory o add_constdefs));
-
-
-val _ = OuterSyntax.add_parsers [constsP, constdefsP];
+val _ = OuterSyntax.add_parsers [constsP];
 
 end;
 
