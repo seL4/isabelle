@@ -1,0 +1,235 @@
+(*  Title:      Pure/Syntax/symbol.ML
+    ID:         $Id$
+    Author:     Markus Wenzel, TU Muenchen
+
+Baroque characters.
+*)
+
+signature SYMBOL =
+sig
+  type symbol
+  val eof: symbol
+  val is_eof: symbol -> bool
+  val not_eof: symbol -> bool
+  val is_ascii: symbol -> bool
+  val is_letter: symbol -> bool
+  val is_digit: symbol -> bool
+  val is_quasi_letter: symbol -> bool
+  val is_letdig: symbol -> bool
+  val is_blank: symbol -> bool
+  val is_printable: symbol -> bool
+  val scan: string list -> symbol * string list
+  val explode: string -> symbol list
+  val input: string -> string
+  val output: string -> string
+end;
+
+structure Symbol: SYMBOL =
+struct
+
+
+(** encoding table (isabelle-0) **)
+
+val enc_start = 160;
+val enc_end = 255;
+
+val enc_vector =
+[
+(* GENERATED TEXT FOLLOWS - Do not edit! *)
+  "\\<space2>",
+  "\\<Gamma>",
+  "\\<Delta>",
+  "\\<Theta>",
+  "\\<Lambda>",
+  "\\<Pi>",
+  "\\<Sigma>",
+  "\\<Phi>",
+  "\\<Psi>",
+  "\\<Omega>",
+  "\\<alpha>",
+  "\\<beta>",
+  "\\<gamma>",
+  "\\<delta>",
+  "\\<epsilon>",
+  "\\<zeta>",
+  "\\<eta>",
+  "\\<theta>",
+  "\\<kappa>",
+  "\\<lambda>",
+  "\\<mu>",
+  "\\<nu>",
+  "\\<xi>",
+  "\\<pi>",
+  "\\<rho>",
+  "\\<sigma>",
+  "\\<tau>",
+  "\\<phi>",
+  "\\<chi>",
+  "\\<psi>",
+  "\\<omega>",
+  "\\<not>",
+  "\\<and>",
+  "\\<or>",
+  "\\<forall>",
+  "\\<exists>",
+  "\\<And>",
+  "\\<lceil>",
+  "\\<rceil>",
+  "\\<lfloor>",
+  "\\<rfloor>",
+  "\\<turnstile>",
+  "\\<Turnstile>",
+  "\\<lbrakk>",
+  "\\<rbrakk>",
+  "\\<cdot>",
+  "\\<in>",
+  "\\<subseteq>",
+  "\\<inter>",
+  "\\<union>",
+  "\\<Inter>",
+  "\\<Union>",
+  "\\<sqinter>",
+  "\\<squnion>",
+  "\\<Sqinter>",
+  "\\<Squnion>",
+  "\\<bottom>",
+  "\\<doteq>",
+  "\\<equiv>",
+  "\\<noteq>",
+  "\\<sqsubset>",
+  "\\<sqsubseteq>",
+  "\\<prec>",
+  "\\<preceq>",
+  "\\<succ>",
+  "\\<approx>",
+  "\\<sim>",
+  "\\<simeq>",
+  "\\<le>",
+  "\\<Colon>",
+  "\\<leftarrow>",
+  "\\<midarrow>",
+  "\\<rightarrow>",
+  "\\<Leftarrow>",
+  "\\<Midarrow>",
+  "\\<Rightarrow>",
+  "\\<bow>",
+  "\\<mapsto>",
+  "\\<leadsto>",
+  "\\<up>",
+  "\\<down>",
+  "\\<notin>",
+  "\\<times>",
+  "\\<oplus>",
+  "\\<ominus>",
+  "\\<otimes>",
+  "\\<oslash>",
+  "\\<subset>",
+  "\\<infinity>",
+  "\\<box>",
+  "\\<diamond>",
+  "\\<circ>",
+  "\\<bullet>",
+  "\\<parallel>",
+  "\\<surd>",
+  "\\<copyright>"
+(* END OF GENERATED TEXT *)
+];
+
+val enc_rel = enc_vector ~~ map chr (enc_start upto enc_end);
+
+val char_tab = Symtab.make enc_rel;
+val symbol_tab = Symtab.make (map swap enc_rel);
+
+fun lookup_symbol c =
+  if ord c < enc_start then None
+  else Symtab.lookup (symbol_tab, c);
+
+
+(* encode / decode *)
+
+fun char s = if_none (Symtab.lookup (char_tab, s)) s;
+fun symbol c = if_none (lookup_symbol c) c;
+
+fun symbol' c =
+  (case lookup_symbol c of
+    None => c
+  | Some s => "\\" ^ s);
+
+
+
+(** type symbol **)
+
+type symbol = string;
+
+
+(* kinds *)
+
+val eof = "";
+fun is_eof s = s = eof;
+fun not_eof s = s <> eof;
+
+fun is_ascii s = size s = 1 andalso ord s < 128;
+
+fun is_letter s =
+  size s = 1 andalso
+   (ord "A" <= ord s andalso ord s <= ord "Z" orelse
+    ord "a" <= ord s andalso ord s <= ord "z");
+
+fun is_digit s =
+  size s = 1 andalso ord "0" <= ord s andalso ord s <= ord "9";
+
+fun is_quasi_letter "_" = true
+  | is_quasi_letter "'" = true
+  | is_quasi_letter s = is_letter s;
+
+val is_blank =
+  fn " " => true | "\t" => true | "\n" => true | "\^L" => true | "\\<space2>" => true
+    | _ => false;
+
+val is_letdig = is_quasi_letter orf is_digit;
+
+fun is_printable s =
+  size s = 1 andalso ord " " <= ord s andalso ord s <= ord "~" orelse
+  size s > 2 andalso nth_elem (2, explode s) <> "^";
+
+
+(* scan *)
+
+val scan_id = Scan.one is_letter ^^ (Scan.any is_letdig >> implode);
+
+val scan =
+  ($$ "\\" --| Scan.optional ($$ "\\") "") ^^ $$ "<" ^^
+    !! (fn cs => "Malformed symbolic character specification: \\" ^ "<" ^ beginning cs)
+      (Scan.optional ($$ "^") "" ^^ scan_id ^^ $$ ">") ||
+  Scan.one not_eof;
+
+
+(* explode *)
+
+fun no_syms [] = true
+  | no_syms ("\\" :: "<" :: _) = false
+  | no_syms (c :: cs) = ord c < enc_start andalso no_syms cs;
+
+fun sym_explode str =
+  let val chs = explode str in
+    if no_syms chs then chs	(*tune trivial case*)
+    else map symbol (#1 (Scan.error (Scan.finite eof (Scan.repeat scan)) chs))
+  end;
+
+
+(* input / output *)
+
+fun input str =
+  let val chs = explode str in
+    if forall (fn c => ord c < enc_start) chs then str
+    else implode (map symbol' chs)
+  end;
+
+val output = implode o map char o sym_explode;
+
+
+(*final declaration of this structure!*)
+val explode = sym_explode;
+
+
+end;

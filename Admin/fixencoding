@@ -123,7 +123,7 @@ $enc_last = -1;
 # make tables
 
 for ($current = $enc_first; $current <= $enc_last; $current++) {
-    push(@ml_tab, '"' . $enc_tab[$current] . '"');
+    push(@ml_tab, '"\\\\<' . $enc_tab[$current] . '>"');
     push(@perl_tab, sprintf('"\\x%2x", "\\\\<%s>"', $current, $enc_tab[$current]));
     push(@perl_revtab, sprintf('"\\\\<%s>", "\\x%2x"', $enc_tab[$current], $current));
 }
@@ -135,7 +135,7 @@ $perl_revtab = "  " . join(",\n  ", @perl_revtab) . "\n";
 
 # patch files
 
-&patch_file("Pure/Syntax/symbol_font.ML", $ml_tab);
+&patch_file("Pure/Syntax/symbol.ML", $ml_tab);
 &patch_file("Distribution/lib/scripts/symbolinput.pl", $perl_tab);
 &patch_file("Distribution/lib/scripts/feeder.pl", $perl_tab);
 #&patch_file("Distribution/lib/scripts/symboloutput.pl", $perl_revtab);
