@@ -28,8 +28,7 @@ fun DO_GOAL tfs = SELECT_GOAL (CHECK_SOLVED (EVERY1 tfs));
 
 print_depth 1;
 
-use_thy "CardinalArith";
-use_thy "Fin";
+use_thy "Cardinal_AC";
 use_thy "ListFn";
 
 (*printing functions are inherited from FOL*)

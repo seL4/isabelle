@@ -19,17 +19,18 @@
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
 FILES = ROOT.ML ZF.thy ZF.ML upair.ML subset.ML pair.ML domrange.ML \
-	func.ML simpdata.ML Bool.thy Bool.ML \
+	func.ML AC.thy AC.ML simpdata.ML Bool.thy Bool.ML \
 	Sum.thy Sum.ML QPair.thy QPair.ML mono.ML Fixedpt.thy Fixedpt.ML \
 	ind_syntax.ML intr_elim.ML indrule.ML inductive.ML coinductive.ML \
 	equalities.ML Perm.thy Perm.ML Rel.thy Rel.ML Trancl.thy Trancl.ML \
 	WF.thy WF.ML Order.thy Order.ML Ordinal.thy Ordinal.ML \
 	OrderArith.thy OrderArith.ML OrderType.thy OrderType.ML \
 	Cardinal.thy Cardinal.ML CardinalArith.thy CardinalArith.ML \
-	Nat.thy Nat.ML \
+	Cardinal_AC.thy Cardinal_AC.ML \
+	Zorn0.thy Zorn0.ML Zorn.thy Zorn.ML Nat.thy Nat.ML Fin.ML \
 	Epsilon.thy Epsilon.ML Arith.thy Arith.ML Univ.thy Univ.ML \
 	QUniv.thy QUniv.ML constructor.ML Datatype.ML  \
-	Fin.ML List.ML ListFn.thy ListFn.ML
+	List.ML ListFn.thy ListFn.ML
 
 IMP_FILES = IMP/ROOT.ML IMP/Aexp.ML IMP/Aexp.thy IMP/Assign.ML IMP/Assign.thy\
             IMP/Bexp.ML IMP/Bexp.thy IMP/Com.ML IMP/Com.thy IMP/Denotation.ML\
@@ -44,8 +45,9 @@ EX_FILES = ex/ROOT.ML ex/Acc.ML ex/Bin.ML ex/BinFn.ML ex/BinFn.thy\
 	   ex/ListN.ML ex/LList.ML ex/LList_Eq.ML ex/LListFn.ML ex/LListFn.thy\
 	   ex/misc.ML ex/ParContract.ML ex/Primrec0.ML ex/Primrec0.thy\
 	   ex/Prop.ML ex/PropLog.ML ex/PropLog.thy ex/Ramsey.ML ex/Ramsey.thy\
-	   ex/Rmap.ML ex/Term.ML ex/TermFn.ML ex/TermFn.thy ex/TF.ML\
-	   ex/TF_Fn.ML ex/TF_Fn.thy ex/twos_compl.ML
+	   ex/Rmap.ML ex/Term.ML ex/TermFn.ML ex/TermFn.thy \
+	   ex/Ntree.ML ex/Ntree.thy \
+	   ex/TF.ML ex/TF_Fn.ML ex/TF_Fn.thy ex/twos_compl.ML
 
 #Uses cp rather than make_database because Poly/ML allows only 3 levels
 $(BIN)/ZF:   $(BIN)/FOL  $(FILES) 

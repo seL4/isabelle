@@ -1,18 +1,13 @@
 (*  Title: 	ZF/ex/Fin.ML
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1993  University of Cambridge
+    Copyright   1994  University of Cambridge
 
 Finite powerset operator
 
-prove X:Fin(A) ==> EX n:nat. EX f. f:bij(X,n)
-	card(0)=0
-	[| a~:b; b: Fin(A) |] ==> card(cons(a,b)) = succ(card(b))
+prove X:Fin(A) ==> |X| < nat
 
-b: Fin(A) ==> inj(b,b)<=surj(b,b)
-
-Limit(i) ==> Fin(Vfrom(A,i)) <= Un j:i. Fin(Vfrom(A,j))
-Fin(univ(A)) <= univ(A)
+prove:  b: Fin(A) ==> inj(b,b)<=surj(b,b)
 *)
 
 structure Fin = Inductive_Fun
@@ -101,3 +96,11 @@ by (rtac (Diff_cancel RS subst) 1);
 by (rtac (Fin_0_induct_lemma RS mp) 1);
 by (REPEAT (ares_tac (subset_refl::prems) 1));
 val Fin_0_induct = result();
+
+(*Functions from a finite ordinal*)
+val prems = goal Fin.thy "n: nat ==> n->A <= Fin(nat*A)";
+by (nat_ind_tac "n" prems 1);
+by (simp_tac (ZF_ss addsimps [Pi_empty1, Fin_0I, subset_iff, cons_iff]) 1);
+by (asm_simp_tac (ZF_ss addsimps [succ_def, mem_not_refl RS cons_fun_eq]) 1);
+by (fast_tac (ZF_cs addSIs [Fin_consI]) 1);
+val nat_fun_subset_Fin = result();

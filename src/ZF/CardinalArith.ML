@@ -8,26 +8,7 @@ Cardinal arithmetic -- WITHOUT the Axiom of Choice
 
 open CardinalArith;
 
-goalw CardinalArith.thy [jump_cardinal_def]
-    "Ord(jump_cardinal(K))";
-by (rtac (Ord_is_Transset RSN (2,OrdI)) 1);
-by (safe_tac (ZF_cs addSIs [Ord_ordertype]));
-
-bw Transset_def;
-by (safe_tac (ZF_cs addSIs [Ord_ordertype]));
-br (ordertype_subset RS exE) 1;
-ba 1;
-ba 1;
-by (safe_tac (ZF_cs addSIs [Ord_ordertype]));
-fr UN_I;
-br ReplaceI 2;
-by (fast_tac ZF_cs 4);
-by (fast_tac ZF_cs 1);
-
-(****************************************************************)
-
-
-
+(*** Elementary properties ***)
 
 (*Use AC to discharge first premise*)
 goal CardinalArith.thy
@@ -59,17 +40,36 @@ val bij_inverse_ss =
 		      left_inverse_bij, right_inverse_bij];
 
 
-(*Congruence law for  succ  under equipollence*)
+(*Congruence law for  cons  under equipollence*)
 goalw CardinalArith.thy [eqpoll_def]
-    "!!A B. A eqpoll B ==> succ(A) eqpoll succ(B)";
+    "!!A B. [| A eqpoll B;  a ~: A;  b ~: B |] ==> cons(a,A) eqpoll cons(b,B)";
 by (safe_tac ZF_cs);
 by (rtac exI 1);
-by (res_inst_tac [("c", "%z.if(z=A,B,f`z)"), 
-                  ("d", "%z.if(z=B,A,converse(f)`z)")] lam_bijective 1);
+by (res_inst_tac [("c", "%z.if(z=a,b,f`z)"), 
+                  ("d", "%z.if(z=b,a,converse(f)`z)")] lam_bijective 1);
 by (ALLGOALS
-    (asm_simp_tac (bij_inverse_ss addsimps [succI2, mem_imp_not_eq]
- 		                  setloop etac succE )));
+    (asm_simp_tac (bij_inverse_ss addsimps [consI2]
+ 		                  setloop (etac consE ORELSE' 
+				           split_tac [expand_if]))));
+by (fast_tac (ZF_cs addIs [bij_is_fun RS apply_type]) 1);
+by (fast_tac (ZF_cs addIs [bij_converse_bij RS bij_is_fun RS apply_type]) 1);
+val cons_eqpoll_cong = result();
+
+(*Congruence law for  succ  under equipollence*)
+goalw CardinalArith.thy [succ_def]
+    "!!A B. A eqpoll B ==> succ(A) eqpoll succ(B)";
+by (REPEAT (ares_tac [cons_eqpoll_cong, mem_not_refl] 1));
 val succ_eqpoll_cong = result();
+
+(*Each element of Fin(A) is equivalent to a natural number*)
+goal CardinalArith.thy
+    "!!X A. X: Fin(A) ==> EX n:nat. X eqpoll n";
+by (eresolve_tac [Fin_induct] 1);
+by (fast_tac (ZF_cs addIs [eqpoll_refl, nat_0I]) 1);
+by (fast_tac (ZF_cs addSIs [cons_eqpoll_cong, 
+			    rewrite_rule [succ_def] nat_succI] 
+                            addSEs [mem_irrefl]) 1);
+val Fin_eqpoll = result();
 
 (*Congruence law for + under equipollence*)
 goalw CardinalArith.thy [eqpoll_def]
@@ -125,7 +125,7 @@ val sum_assoc_eqpoll = result();
 
 (*Unconditional version requires AC*)
 goalw CardinalArith.thy [cadd_def]
-    "!!i j k. [| Ord(i); Ord(j); Ord(k) |] ==>	\
+    "!!i j k. [| well_ord(i,ri); well_ord(j,rj); well_ord(k,rk) |] ==>	\
 \             (i |+| j) |+| k = i |+| (j |+| k)";
 by (rtac cardinal_cong 1);
 br ([well_ord_cardinal_eqpoll, eqpoll_refl] MRS sum_eqpoll_cong RS
@@ -133,8 +133,8 @@ br ([well_ord_cardinal_eqpoll, eqpoll_refl] MRS sum_eqpoll_cong RS
 by (rtac (sum_assoc_eqpoll RS eqpoll_trans) 2);
 br ([eqpoll_refl, well_ord_cardinal_eqpoll] MRS sum_eqpoll_cong RS
     eqpoll_sym) 2;
-by (REPEAT (ares_tac [well_ord_radd, well_ord_Memrel] 1));
-val Ord_cadd_assoc = result();
+by (REPEAT (ares_tac [well_ord_radd] 1));
+val well_ord_cadd_assoc = result();
 
 (** 0 is the identity for addition **)
 
@@ -145,7 +145,7 @@ by (res_inst_tac [("c", "case(%x.x, %y.y)"), ("d", "Inr")]
 by (ALLGOALS (asm_simp_tac (case_ss setloop eresolve_tac [sumE,emptyE])));
 val sum_0_eqpoll = result();
 
-goalw CardinalArith.thy [cadd_def] "!!i. Card(i) ==> 0 |+| i = i";
+goalw CardinalArith.thy [cadd_def] "!!K. Card(K) ==> 0 |+| K = K";
 by (asm_simp_tac (ZF_ss addsimps [sum_0_eqpoll RS cardinal_cong, 
 				  Card_cardinal_eq]) 1);
 val cadd_0 = result();
@@ -212,7 +212,7 @@ val prod_assoc_eqpoll = result();
 
 (*Unconditional version requires AC*)
 goalw CardinalArith.thy [cmult_def]
-    "!!i j k. [| Ord(i); Ord(j); Ord(k) |] ==>	\
+    "!!i j k. [| well_ord(i,ri); well_ord(j,rj); well_ord(k,rk) |] ==>	\
 \             (i |*| j) |*| k = i |*| (j |*| k)";
 by (rtac cardinal_cong 1);
 br ([well_ord_cardinal_eqpoll, eqpoll_refl] MRS prod_eqpoll_cong RS
@@ -220,8 +220,8 @@ br ([well_ord_cardinal_eqpoll, eqpoll_refl] MRS prod_eqpoll_cong RS
 by (rtac (prod_assoc_eqpoll RS eqpoll_trans) 2);
 br ([eqpoll_refl, well_ord_cardinal_eqpoll] MRS prod_eqpoll_cong RS
     eqpoll_sym) 2;
-by (REPEAT (ares_tac [well_ord_rmult, well_ord_Memrel] 1));
-val Ord_cmult_assoc = result();
+by (REPEAT (ares_tac [well_ord_rmult] 1));
+val well_ord_cmult_assoc = result();
 
 (** Cardinal multiplication distributes over addition **)
 
@@ -240,7 +240,7 @@ by (res_inst_tac [("x", "lam x:A. <x,x>")] exI 1);
 by (simp_tac (ZF_ss addsimps [lam_type]) 1);
 val prod_square_lepoll = result();
 
-goalw CardinalArith.thy [cmult_def] "!!k. Card(k) ==> k le k |*| k";
+goalw CardinalArith.thy [cmult_def] "!!K. Card(K) ==> K le K |*| K";
 by (rtac le_trans 1);
 by (rtac well_ord_lepoll_imp_le 2);
 by (rtac prod_square_lepoll 3);
@@ -270,7 +270,7 @@ by (safe_tac ZF_cs);
 by (ALLGOALS (asm_simp_tac ZF_ss));
 val prod_singleton_eqpoll = result();
 
-goalw CardinalArith.thy [cmult_def, succ_def] "!!i. Card(i) ==> 1 |*| i = i";
+goalw CardinalArith.thy [cmult_def, succ_def] "!!K. Card(K) ==> 1 |*| K = K";
 by (asm_simp_tac (ZF_ss addsimps [prod_singleton_eqpoll RS cardinal_cong, 
 				  Card_cardinal_eq]) 1);
 val cmult_1 = result();
@@ -309,6 +309,7 @@ val nat_cmult_eq_mult = result();
 
 (*** Infinite Cardinals are Limit Ordinals ***)
 
+(*Using lam_injective might simplify this proof!*)
 goalw CardinalArith.thy [lepoll_def, inj_def]
     "!!i. nat <= A ==> succ(A) lepoll A";
 by (res_inst_tac [("x",
@@ -333,12 +334,12 @@ by (etac (nat_succ_lepoll RS eqpollI) 1);
 by (rtac (subset_succI RS subset_imp_lepoll) 1);
 val nat_succ_eqpoll = result();
 
-goalw CardinalArith.thy [InfCard_def] "!!i. InfCard(i) ==> Card(i)";
+goalw CardinalArith.thy [InfCard_def] "!!K. InfCard(K) ==> Card(K)";
 by (etac conjunct1 1);
 val InfCard_is_Card = result();
 
 (*Kunen's Lemma 10.11*)
-goalw CardinalArith.thy [InfCard_def] "!!i. InfCard(i) ==> Limit(i)";
+goalw CardinalArith.thy [InfCard_def] "!!K. InfCard(K) ==> Limit(K)";
 by (etac conjE 1);
 by (rtac (ltI RS non_succ_LimitI) 1);
 by (etac ([asm_rl, nat_0I] MRS (le_imp_subset RS subsetD)) 1);
@@ -369,8 +370,8 @@ val ordermap_eqpoll_pred = result();
 (** Establishing the well-ordering **)
 
 goalw CardinalArith.thy [inj_def]
- "!!k. Ord(k) ==>	\
-\ (lam z:k*k. split(%x y. <x Un y, <x, y>>, z)) : inj(k*k, k*k*k)";
+ "!!K. Ord(K) ==>	\
+\ (lam z:K*K. split(%x y. <x Un y, <x, y>>, z)) : inj(K*K, K*K*K)";
 by (safe_tac ZF_cs);
 by (fast_tac (ZF_cs addIs [lam_type, Un_least_lt RS ltD, ltI]
                     addSEs [split_type]) 1);
@@ -378,7 +379,7 @@ by (asm_full_simp_tac ZF_ss 1);
 val csquare_lam_inj = result();
 
 goalw CardinalArith.thy [csquare_rel_def]
- "!!k. Ord(k) ==> well_ord(k*k, csquare_rel(k))";
+ "!!K. Ord(K) ==> well_ord(K*K, csquare_rel(K))";
 by (rtac (csquare_lam_inj RS well_ord_rvimage) 1);
 by (REPEAT (ares_tac [well_ord_rmult, well_ord_Memrel] 1));
 val well_ord_csquare = result();
@@ -386,8 +387,8 @@ val well_ord_csquare = result();
 (** Characterising initial segments of the well-ordering **)
 
 goalw CardinalArith.thy [csquare_rel_def]
- "!!k. [| x<k;  y<k;  z<k |] ==> \
-\      <<x,y>, <z,z>> : csquare_rel(k) --> x le z & y le z";
+ "!!K. [| x<K;  y<K;  z<K |] ==> \
+\      <<x,y>, <z,z>> : csquare_rel(K) --> x le z & y le z";
 by (REPEAT (etac ltE 1));
 by (asm_simp_tac (ZF_ss addsimps [rvimage_iff, rmult_iff, Memrel_iff,
                                   Un_absorb, Un_least_mem_iff, ltD]) 1);
@@ -398,7 +399,7 @@ val csquareD_lemma = result();
 val csquareD = csquareD_lemma RS mp |> standard;
 
 goalw CardinalArith.thy [pred_def]
- "!!k. z<k ==> pred(k*k, <z,z>, csquare_rel(k)) <= succ(z)*succ(z)";
+ "!!K. z<K ==> pred(K*K, <z,z>, csquare_rel(K)) <= succ(z)*succ(z)";
 by (safe_tac (lemmas_cs addSEs [SigmaE]));	(*avoids using succCI*)
 by (rtac (csquareD RS conjE) 1);
 by (rewtac lt_def);
@@ -407,9 +408,9 @@ by (ALLGOALS (fast_tac ZF_cs));
 val pred_csquare_subset = result();
 
 goalw CardinalArith.thy [csquare_rel_def]
- "!!k. [| x<z;  y<z;  z<k |] ==> \
-\      <<x,y>, <z,z>> : csquare_rel(k)";
-by (subgoals_tac ["x<k", "y<k"] 1);
+ "!!K. [| x<z;  y<z;  z<K |] ==> \
+\      <<x,y>, <z,z>> : csquare_rel(K)";
+by (subgoals_tac ["x<K", "y<K"] 1);
 by (REPEAT (eresolve_tac [asm_rl, lt_trans] 2));
 by (REPEAT (etac ltE 1));
 by (asm_simp_tac (ZF_ss addsimps [rvimage_iff, rmult_iff, Memrel_iff,
@@ -418,9 +419,9 @@ val csquare_ltI = result();
 
 (*Part of the traditional proof.  UNUSED since it's harder to prove & apply *)
 goalw CardinalArith.thy [csquare_rel_def]
- "!!k. [| x le z;  y le z;  z<k |] ==> \
-\      <<x,y>, <z,z>> : csquare_rel(k) | x=z & y=z";
-by (subgoals_tac ["x<k", "y<k"] 1);
+ "!!K. [| x le z;  y le z;  z<K |] ==> \
+\      <<x,y>, <z,z>> : csquare_rel(K) | x=z & y=z";
+by (subgoals_tac ["x<K", "y<K"] 1);
 by (REPEAT (eresolve_tac [asm_rl, lt_trans1] 2));
 by (REPEAT (etac ltE 1));
 by (asm_simp_tac (ZF_ss addsimps [rvimage_iff, rmult_iff, Memrel_iff,
@@ -434,10 +435,10 @@ val csquare_or_eqI = result();
 (** The cardinality of initial segments **)
 
 goal CardinalArith.thy
-    "!!k. [| InfCard(k);  x<k;  y<k;  z=succ(x Un y) |] ==> \
-\         ordermap(k*k, csquare_rel(k)) ` <x,y> lepoll 		\
-\         ordermap(k*k, csquare_rel(k)) ` <z,z>";
-by (subgoals_tac ["z<k", "well_ord(k*k, csquare_rel(k))"] 1);
+    "!!K. [| InfCard(K);  x<K;  y<K;  z=succ(x Un y) |] ==> \
+\         ordermap(K*K, csquare_rel(K)) ` <x,y> lepoll 		\
+\         ordermap(K*K, csquare_rel(K)) ` <z,z>";
+by (subgoals_tac ["z<K", "well_ord(K*K, csquare_rel(K))"] 1);
 by (etac (InfCard_is_Card RS Card_is_Ord RS well_ord_csquare) 2);
 by (fast_tac (ZF_cs addSIs [Un_least_lt, InfCard_is_Limit, Limit_has_succ]) 2);
 by (rtac (OrdmemD RS subset_imp_lepoll) 1);
@@ -448,13 +449,13 @@ by (ALLGOALS
                      addSEs [ltE])));
 val ordermap_z_lepoll = result();
 
-(*Kunen: "each <x,y>: k*k has no more than z*z predecessors..." (page 29) *)
+(*Kunen: "each <x,y>: K*K has no more than z*z predecessors..." (page 29) *)
 goalw CardinalArith.thy [cmult_def]
-  "!!k. [| InfCard(k);  x<k;  y<k;  z=succ(x Un y) |] ==> \
-\       | ordermap(k*k, csquare_rel(k)) ` <x,y> | le  |succ(z)| |*| |succ(z)|";
+  "!!K. [| InfCard(K);  x<K;  y<K;  z=succ(x Un y) |] ==> \
+\       | ordermap(K*K, csquare_rel(K)) ` <x,y> | le  |succ(z)| |*| |succ(z)|";
 by (rtac (well_ord_rmult RS well_ord_lepoll_imp_le) 1);
 by (REPEAT (ares_tac [Ord_cardinal, well_ord_Memrel] 1));
-by (subgoals_tac ["z<k"] 1);
+by (subgoals_tac ["z<K"] 1);
 by (fast_tac (ZF_cs addSIs [Un_least_lt, InfCard_is_Limit, 
                             Limit_has_succ]) 2);
 by (rtac (ordermap_z_lepoll RS lepoll_trans) 1);
@@ -469,10 +470,10 @@ by (rtac (prod_eqpoll_cong RS eqpoll_sym RS eqpoll_imp_lepoll) 1);
 by (REPEAT_FIRST (etac (Ord_succ RS Ord_cardinal_eqpoll)));
 val ordermap_csquare_le = result();
 
-(*Kunen: "... so the order type <= k" *)
+(*Kunen: "... so the order type <= K" *)
 goal CardinalArith.thy
-    "!!k. [| InfCard(k);  ALL y:k. InfCard(y) --> y |*| y = y |]  ==>  \
-\         ordertype(k*k, csquare_rel(k)) le k";
+    "!!K. [| InfCard(K);  ALL y:K. InfCard(y) --> y |*| y = y |]  ==>  \
+\         ordertype(K*K, csquare_rel(K)) le K";
 by (forward_tac [InfCard_is_Card RS Card_is_Ord] 1);
 by (rtac all_lt_imp_le 1);
 by (assume_tac 1);
@@ -504,7 +505,7 @@ val ordertype_csquare_le = result();
 
 (*This lemma can easily be generalized to premise well_ord(A*A,r) *)
 goalw CardinalArith.thy [cmult_def]
-    "!!k. Ord(k) ==> k |*| k  =  |ordertype(k*k, csquare_rel(k))|";
+    "!!K. Ord(K) ==> K |*| K  =  |ordertype(K*K, csquare_rel(K))|";
 by (rtac cardinal_cong 1);
 by (rewtac eqpoll_def);
 by (rtac exI 1);
@@ -512,11 +513,10 @@ by (etac (well_ord_csquare RS ordermap_bij) 1);
 val csquare_eq_ordertype = result();
 
 (*Main result: Kunen's Theorem 10.12*)
-goal CardinalArith.thy
-    "!!k. InfCard(k) ==> k |*| k = k";
+goal CardinalArith.thy "!!K. InfCard(K) ==> K |*| K = K";
 by (forward_tac [InfCard_is_Card RS Card_is_Ord] 1);
 by (etac rev_mp 1);
-by (trans_ind_tac "k" [] 1);
+by (trans_ind_tac "K" [] 1);
 by (rtac impI 1);
 by (rtac le_anti_sym 1);
 by (etac (InfCard_is_Card RS cmult_square_le) 2);
@@ -527,3 +527,111 @@ by (asm_simp_tac
     (ZF_ss addsimps [csquare_eq_ordertype, Ord_cardinal_le,
                      well_ord_csquare RS Ord_ordertype]) 1);
 val InfCard_csquare_eq = result();
+
+
+goal CardinalArith.thy
+    "!!A. [| well_ord(A,r);  InfCard(|A|) |] ==> A*A eqpoll A";
+by (resolve_tac [prod_eqpoll_cong RS eqpoll_trans] 1);
+by (REPEAT (etac (well_ord_cardinal_eqpoll RS eqpoll_sym) 1));
+by (resolve_tac [well_ord_cardinal_eqE] 1);
+by (REPEAT (ares_tac [Ord_cardinal, well_ord_rmult, well_ord_Memrel] 1));
+by (asm_simp_tac (ZF_ss addsimps [symmetric cmult_def, InfCard_csquare_eq]) 1);
+val well_ord_InfCard_square_eq = result();
+
+
+(*** For every cardinal number there exists a greater one
+     [Kunen's Theorem 10.16, which would be trivial using AC] ***)
+
+goalw CardinalArith.thy [jump_cardinal_def] "Ord(jump_cardinal(K))";
+by (rtac (Ord_is_Transset RSN (2,OrdI)) 1);
+by (safe_tac (ZF_cs addSIs [Ord_ordertype]));
+bw Transset_def;
+by (safe_tac ZF_cs);
+by (rtac (ordertype_subset RS exE) 1 THEN REPEAT (assume_tac 1));
+by (resolve_tac [UN_I] 1);
+by (resolve_tac [ReplaceI] 2);
+by (ALLGOALS (fast_tac (ZF_cs addSEs [well_ord_subset])));
+val Ord_jump_cardinal = result();
+
+(*Allows selective unfolding.  Less work than deriving intro/elim rules*)
+goalw CardinalArith.thy [jump_cardinal_def]
+     "i : jump_cardinal(K) <->   \
+\         (EX r X. r <= K*K & X <= K & well_ord(X,r) & i = ordertype(X,r))";
+by (fast_tac subset_cs 1);	(*It's vital to avoid reasoning about <=*)
+val jump_cardinal_iff = result();
+
+(*The easy part of Theorem 10.16: jump_cardinal(K) exceeds K*)
+goal CardinalArith.thy "!!K. Ord(K) ==> K < jump_cardinal(K)";
+by (resolve_tac [Ord_jump_cardinal RSN (2,ltI)] 1);
+by (resolve_tac [jump_cardinal_iff RS iffD2] 1);
+by (REPEAT_FIRST (ares_tac [exI, conjI, well_ord_Memrel]));
+by (resolve_tac [subset_refl] 2);
+by (asm_simp_tac (ZF_ss addsimps [Memrel_def, subset_iff]) 1);
+by (asm_simp_tac (ZF_ss addsimps [ordertype_Memrel]) 1);
+val K_lt_jump_cardinal = result();
+
+(*The proof by contradiction: the bijection f yields a wellordering of X
+  whose ordertype is jump_cardinal(K).  *)
+goal CardinalArith.thy
+    "!!K. [| well_ord(X,r);  r <= K * K;  X <= K;	\
+\            f : bij(ordertype(X,r), jump_cardinal(K)) 	\
+\	  |] ==> jump_cardinal(K) : jump_cardinal(K)";
+by (subgoal_tac "f O ordermap(X,r): bij(X, jump_cardinal(K))" 1);
+by (REPEAT (ares_tac [comp_bij, ordermap_bij] 2));
+by (resolve_tac [jump_cardinal_iff RS iffD2] 1);
+by (REPEAT_FIRST (resolve_tac [exI, conjI]));
+by (rtac ([rvimage_type, Sigma_mono] MRS subset_trans) 1);
+by (REPEAT (assume_tac 1));
+by (etac (bij_is_inj RS well_ord_rvimage) 1);
+by (rtac (Ord_jump_cardinal RS well_ord_Memrel) 1);
+by (asm_simp_tac
+    (ZF_ss addsimps [well_ord_Memrel RSN (2, bij_ordertype_vimage), 
+		     ordertype_Memrel, Ord_jump_cardinal]) 1);
+val Card_jump_cardinal_lemma = result();
+
+(*The hard part of Theorem 10.16: jump_cardinal(K) is itself a cardinal*)
+goal CardinalArith.thy "Card(jump_cardinal(K))";
+by (rtac (Ord_jump_cardinal RS CardI) 1);
+by (rewrite_goals_tac [eqpoll_def]);
+by (safe_tac (ZF_cs addSDs [ltD, jump_cardinal_iff RS iffD1]));
+by (REPEAT (ares_tac [Card_jump_cardinal_lemma RS mem_irrefl] 1));
+val Card_jump_cardinal = result();
+
+(*** Basic properties of successor cardinals ***)
+
+goalw CardinalArith.thy [csucc_def]
+    "!!K. Ord(K) ==> Card(csucc(K)) & K < csucc(K)";
+by (rtac LeastI 1);
+by (REPEAT (ares_tac [conjI, Card_jump_cardinal, K_lt_jump_cardinal,
+		      Ord_jump_cardinal] 1));
+val csucc_basic = result();
+
+val Card_csucc = csucc_basic RS conjunct1 |> standard;
+
+val lt_csucc = csucc_basic RS conjunct2 |> standard;
+
+goalw CardinalArith.thy [csucc_def]
+    "!!K L. [| Card(L);  K<L |] ==> csucc(K) le L";
+by (rtac Least_le 1);
+by (REPEAT (ares_tac [conjI, Card_is_Ord] 1));
+val csucc_le = result();
+
+goal CardinalArith.thy
+    "!!K. [| Ord(i); Card(K) |] ==> i < csucc(K) <-> |i| le K";
+by (resolve_tac [iffI] 1);
+by (resolve_tac [Card_lt_imp_lt] 2);
+by (eresolve_tac [lt_trans1] 2);
+by (REPEAT (ares_tac [lt_csucc, Card_csucc, Card_is_Ord] 2));
+by (resolve_tac [notI RS not_lt_imp_le] 1);
+by (resolve_tac [Card_cardinal RS csucc_le RS lt_trans1 RS lt_irrefl] 1);
+by (assume_tac 1);
+by (resolve_tac [Ord_cardinal_le RS lt_trans1] 1);
+by (REPEAT (ares_tac [Ord_cardinal] 1
+     ORELSE eresolve_tac [ltE, Card_is_Ord] 1));
+val lt_csucc_iff = result();
+
+goal CardinalArith.thy
+    "!!K' K. [| Card(K'); Card(K) |] ==> K' < csucc(K) <-> K' le K";
+by (asm_simp_tac 
+    (ZF_ss addsimps [lt_csucc_iff, Card_cardinal_eq, Card_is_Ord]) 1);
+val Card_lt_csucc_iff = result();

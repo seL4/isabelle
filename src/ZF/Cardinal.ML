@@ -201,7 +201,7 @@ goalw Cardinal.thy [cardinal_def] "!!i. Ord(i) ==> |i| le i";
 by (etac (eqpoll_refl RS Least_le) 1);
 val Ord_cardinal_le = result();
 
-goalw Cardinal.thy [Card_def] "!!i. Card(i) ==> |i| = i";
+goalw Cardinal.thy [Card_def] "!!K. Card(K) ==> |K| = K";
 by (etac sym 1);
 val Card_cardinal_eq = result();
 
@@ -216,7 +216,7 @@ by (etac ssubst 1);
 by (rtac Ord_Least 1);
 val Card_is_Ord = result();
 
-goalw Cardinal.thy [cardinal_def] "Ord( |A| )";
+goalw Cardinal.thy [cardinal_def] "Ord(|A|)";
 by (rtac Ord_Least 1);
 val Ord_cardinal = result();
 
@@ -225,7 +225,7 @@ by (rtac (Ord_0 RS CardI) 1);
 by (fast_tac (ZF_cs addSEs [ltE]) 1);
 val Card_0 = result();
 
-goalw Cardinal.thy [cardinal_def] "Card( |A| )";
+goalw Cardinal.thy [cardinal_def] "Card(|A|)";
 by (excluded_middle_tac "EX i. Ord(i) & i eqpoll A" 1);
 by (etac (Least_0 RS ssubst) 1 THEN rtac Card_0 1);
 by (rtac (Ord_Least RS CardI) 1);
@@ -265,10 +265,20 @@ by (etac (lt_trans2 RS lt_irrefl) 1);
 by (etac cardinal_mono 1);
 val cardinal_lt_imp_lt = result();
 
-goal Cardinal.thy "!!i j. [| |i| < k;  Ord(i);  Card(k) |] ==> i < k";
+goal Cardinal.thy "!!i j. [| |i| < K;  Ord(i);  Card(K) |] ==> i < K";
 by (asm_simp_tac (ZF_ss addsimps 
 		  [cardinal_lt_imp_lt, Card_is_Ord, Card_cardinal_eq]) 1);
 val Card_lt_imp_lt = result();
+
+goal Cardinal.thy "!!i j. [| Ord(i);  Card(K) |] ==> (|i| < K) <-> (i < K)";
+by (fast_tac (ZF_cs addEs [Card_lt_imp_lt, Ord_cardinal_le RS lt_trans1]) 1);
+val Card_lt_iff = result();
+
+goal Cardinal.thy "!!i j. [| Ord(i);  Card(K) |] ==> (K le |i|) <-> (K le i)";
+by (asm_simp_tac (ZF_ss addsimps 
+		  [Card_lt_iff, Card_is_Ord, Ord_cardinal, 
+		   not_lt_iff_le RS iff_sym]) 1);
+val Card_le_iff = result();
 
 
 (** The swap operator [NOT USED] **)

@@ -39,7 +39,25 @@ by (REPEAT (eresolve_tac [asm_rl, Pair_mem_PiE, CollectE] 1));
 by (fast_tac ZF_cs 1);
 val inj_equality = result();
 
-(** Bijections -- simple lemmas but no intro/elim rules -- use unfolding **)
+(** A function with a left inverse is an injection **)
+
+val prems = goal Perm.thy
+    "[| f: A->B;  !!x. x:A ==> d(f`x)=x |] ==> f: inj(A,B)";
+by (asm_simp_tac (ZF_ss addsimps ([inj_def] @ prems)) 1);
+by (safe_tac ZF_cs);
+by (eresolve_tac [subst_context RS box_equals] 1);
+by (REPEAT (ares_tac prems 1));
+val f_imp_injective = result();
+
+val prems = goal Perm.thy
+    "[| !!x. x:A ==> c(x): B;		\
+\       !!x. x:A ==> d(c(x)) = x      	\
+\    |] ==> (lam x:A.c(x)) : inj(A,B)";
+by (res_inst_tac [("d", "d")] f_imp_injective 1);
+by (ALLGOALS (asm_simp_tac (ZF_ss addsimps ([lam_type]@prems)) ));
+val lam_injective = result();
+
+(** Bijections **)
 
 goalw Perm.thy [bij_def] "!!f A B. f: bij(A,B) ==> f: inj(A,B)";
 by (etac IntD1 1);
@@ -347,9 +365,8 @@ goalw Perm.thy [bij_def, inj_def, surj_def]
 \    |] ==> (lam x:A.c(x)) : bij(A,B)";
 by (simp_tac (ZF_ss addsimps ([lam_type]@prems)) 1);
 by (safe_tac ZF_cs);
-(*Apply d to both sides then simplify (type constraint is essential) *)
-by (dres_inst_tac [("t", "d::i=>i")] subst_context 1);
-by (asm_full_simp_tac (ZF_ss addsimps prems) 1);
+by (eresolve_tac [subst_context RS box_equals] 1);
+by (REPEAT (ares_tac prems 1));
 by (fast_tac (ZF_cs addIs prems) 1);
 val lam_bijective = result();
 

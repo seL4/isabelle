@@ -74,7 +74,7 @@ val def_lfp_subset = result();
 val subset0_cs = FOL_cs
   addSIs [ballI, InterI, CollectI, PowI, empty_subsetI]
   addIs [bexI, UnionI, ReplaceI, RepFunI]
-  addSEs [bexE, make_elim PowD, UnionE, ReplaceE, RepFunE,
+  addSEs [bexE, make_elim PowD, UnionE, ReplaceE2, RepFunE,
 	  CollectE, emptyE]
   addEs [rev_ballE, InterD, make_elim InterD, subsetD];
 

@@ -25,6 +25,31 @@ goalw Order.thy [part_ord_def, irrefl_def, trans_on_def, asym_def]
 by (fast_tac ZF_cs 1);
 val part_ord_Imp_asym = result();
 
+(** Subset properties for the various forms of relation **)
+
+
+(*Note: a relation s such that s<=r need not be a partial ordering*)
+goalw Order.thy [part_ord_def, irrefl_def, trans_on_def]
+    "!!A B r. [| part_ord(A,r);  B<=A |] ==> part_ord(B,r)";
+by (fast_tac ZF_cs 1);
+val part_ord_subset = result();
+
+goalw Order.thy [linear_def]
+    "!!A B r. [| linear(A,r);  B<=A |] ==> linear(B,r)";
+by (fast_tac ZF_cs 1);
+val linear_subset = result();
+
+goalw Order.thy [tot_ord_def]
+    "!!A B r. [| tot_ord(A,r);  B<=A |] ==> tot_ord(B,r)";
+by (fast_tac (ZF_cs addSEs [part_ord_subset, linear_subset]) 1);
+val tot_ord_subset = result();
+
+goalw Order.thy [well_ord_def]
+    "!!A B r. [| well_ord(A,r);  B<=A |] ==> well_ord(B,r)";
+by (fast_tac (ZF_cs addSEs [tot_ord_subset, wf_on_subset_A]) 1);
+val well_ord_subset = result();
+
+
 (** Order-isomorphisms **)
 
 goalw Order.thy [ord_iso_def] 
@@ -168,7 +193,6 @@ goalw Order.thy [well_ord_def, tot_ord_def, part_ord_def]
     "!!r. well_ord(A,r) ==> trans[A](r)";
 by (safe_tac ZF_cs);
 val well_ord_is_trans_on = result();
-
 
 (*** Derived rules for pred(A,x,r) ***)
 

@@ -95,6 +95,15 @@ by (safe_tac (ZF_cs addSIs [ltI, nat_0I, nat_1I, nat_succI, Ord_nat]));
 by (etac ltD 1);
 val Limit_nat = result();
 
+goal Nat.thy "!!i. Limit(i) ==> nat le i";
+by (resolve_tac [subset_imp_le] 1);
+by (rtac subsetI 1);
+by (eresolve_tac [nat_induct] 1);
+by (fast_tac (ZF_cs addIs [Limit_has_succ RS ltD, ltI, Limit_is_Ord]) 2);
+by (REPEAT (ares_tac [Limit_has_0 RS ltD,
+		      Ord_nat, Limit_is_Ord] 1));
+val nat_le_Limit = result();
+
 (* succ(i): nat ==> i: nat *)
 val succ_natD = [succI1, asm_rl, Ord_nat] MRS Ord_trans;
 

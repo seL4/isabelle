@@ -10,8 +10,8 @@ structure List = Datatype_Fun
  (val thy        = Univ.thy
   val thy_name   = "List"
   val rec_specs  = [("list", "univ(A)",
-                      [(["Nil"],    "i", NoSyn), 
-                       (["Cons"],   "[i,i]=>i", NoSyn)])]
+                      [(["Nil"],    "i", 	NoSyn), 
+                       (["Cons"],   "[i,i]=>i",	NoSyn)])]
   val rec_styp   = "i=>i"
   val sintrs     = ["Nil : list(A)",
                     "[| a: A;  l: list(A) |] ==> Cons(a,l) : list(A)"]
