@@ -35,13 +35,15 @@ bind_thm ("QPair_inject", (QPair_iff RS iffD1 RS conjE));
 Addsimps [QPair_empty, QPair_iff];
 AddSEs   [QPair_inject];
 
-qed_goal "QPair_inject1" thy "<a;b> = <c;d> ==> a=c"
- (fn [major]=>
-  [ (rtac (major RS QPair_inject) 1), (assume_tac 1) ]);
+val [major]= goal thy "<a;b> = <c;d> ==> a=c";
+by (rtac (major RS QPair_inject) 1);
+by (assume_tac 1) ;
+qed "QPair_inject1";
 
-qed_goal "QPair_inject2" thy "<a;b> = <c;d> ==> b=d"
- (fn [major]=>
-  [ (rtac (major RS QPair_inject) 1), (assume_tac 1) ]);
+val [major]= goal thy "<a;b> = <c;d> ==> b=d";
+by (rtac (major RS QPair_inject) 1);
+by (assume_tac 1) ;
+qed "QPair_inject2";
 
 
 (*** QSigma: Disjoint union of a family of sets
@@ -69,13 +71,15 @@ val QSigmaE2 =
                   THEN prune_params_tac)
       (inst "c" "<a;b>" QSigmaE);  
 
-qed_goal "QSigmaD1" thy "<a;b> : QSigma(A,B) ==> a : A"
- (fn [major]=>
-  [ (rtac (major RS QSigmaE2) 1), (assume_tac 1) ]);
+val [major]= goal thy "<a;b> : QSigma(A,B) ==> a : A";
+by (rtac (major RS QSigmaE2) 1);
+by (assume_tac 1) ;
+qed "QSigmaD1";
 
-qed_goal "QSigmaD2" thy "<a;b> : QSigma(A,B) ==> b : B(a)"
- (fn [major]=>
-  [ (rtac (major RS QSigmaE2) 1), (assume_tac 1) ]);
+val [major]= goal thy "<a;b> : QSigma(A,B) ==> b : B(a)";
+by (rtac (major RS QSigmaE2) 1);
+by (assume_tac 1) ;
+qed "QSigmaD2";
 
 AddSEs [QSigmaE2, QSigmaE];
 
@@ -85,11 +89,13 @@ qed_goalw "QSigma_cong" thy [QSigma_def]
 \    QSigma(A,B) = QSigma(A',B')"
  (fn prems=> [ (simp_tac (simpset() addsimps prems) 1) ]);
 
-qed_goal "QSigma_empty1" thy "QSigma(0,B) = 0"
- (fn _ => [ (Blast_tac 1) ]);
+Goal "QSigma(0,B) = 0";
+by (Blast_tac 1) ;
+qed "QSigma_empty1";
 
-qed_goal "QSigma_empty2" thy "A <*> 0 = 0"
- (fn _ => [ (Blast_tac 1) ]);
+Goal "A <*> 0 = 0";
+by (Blast_tac 1) ;
+qed "QSigma_empty2";
 
 Addsimps [QSigma_empty1, QSigma_empty2];
 
@@ -106,13 +112,13 @@ qed_goalw "qsnd_conv" thy [qsnd_def] "qsnd(<a;b>) = b"
 
 Addsimps [qfst_conv, qsnd_conv];
 
-qed_goal "qfst_type" thy
-    "!!p. p:QSigma(A,B) ==> qfst(p) : A"
- (fn _=> [ Auto_tac ]);
+Goal "p:QSigma(A,B) ==> qfst(p) : A";
+by (Auto_tac) ;
+qed "qfst_type";
 
-qed_goal "qsnd_type" thy
-    "!!p. p:QSigma(A,B) ==> qsnd(p) : B(qfst(p))"
- (fn _=> [ Auto_tac ]);
+Goal "p:QSigma(A,B) ==> qsnd(p) : B(qfst(p))";
+by (Auto_tac) ;
+qed "qsnd_type";
 
 Goal "a: QSigma(A,B) ==> <qfst(a); qsnd(a)> = a";
 by Auto_tac;
@@ -127,13 +133,13 @@ by (Simp_tac 1);
 qed "qsplit";
 Addsimps [qsplit];
 
-qed_goal "qsplit_type" thy
+val major::prems= goal thy
     "[|  p:QSigma(A,B);   \
 \        !!x y.[| x:A; y:B(x) |] ==> c(x,y):C(<x;y>) \
-\    |] ==> qsplit(%x y. c(x,y), p) : C(p)"
- (fn major::prems=>
-  [ (rtac (major RS QSigmaE) 1),
-    (asm_simp_tac (simpset() addsimps prems) 1) ]);
+\    |] ==> qsplit(%x y. c(x,y), p) : C(p)";
+by (rtac (major RS QSigmaE) 1);
+by (asm_simp_tac (simpset() addsimps prems) 1) ;
+qed "qsplit_type";
 
 Goalw [qsplit_def]
  "u: A<*>B ==> R(qsplit(c,u)) <-> (ALL x:A. ALL y:B. u = <x;y> --> R(c(x,y)))";
@@ -185,19 +191,21 @@ qed_goalw "qconverseE" thy [qconverse_def]
 AddSIs [qconverseI];
 AddSEs [qconverseD, qconverseE];
 
-qed_goal "qconverse_qconverse" thy
-    "!!A B r. r<=QSigma(A,B) ==> qconverse(qconverse(r)) = r"
- (fn _ => [ (Blast_tac 1) ]);
+Goal "r<=QSigma(A,B) ==> qconverse(qconverse(r)) = r";
+by (Blast_tac 1) ;
+qed "qconverse_qconverse";
 
-qed_goal "qconverse_type" thy
-    "!!A B r. r <= A <*> B ==> qconverse(r) <= B <*> A"
- (fn _ => [ (Blast_tac 1) ]);
+Goal "r <= A <*> B ==> qconverse(r) <= B <*> A";
+by (Blast_tac 1) ;
+qed "qconverse_type";
 
-qed_goal "qconverse_prod" thy "qconverse(A <*> B) = B <*> A"
- (fn _ => [ (Blast_tac 1) ]);
+Goal "qconverse(A <*> B) = B <*> A";
+by (Blast_tac 1) ;
+qed "qconverse_prod";
 
-qed_goal "qconverse_empty" thy "qconverse(0) = 0"
- (fn _ => [ (Blast_tac 1) ]);
+Goal "qconverse(0) = 0";
+by (Blast_tac 1) ;
+qed "qconverse_empty";
 
 
 (**** The Quine-inspired notion of disjoint sum ****)

@@ -348,12 +348,13 @@ Goal "b:B ==> domain(A*B) = A";
 by (Blast_tac 1);
 qed "domain_of_prod";
 
-qed_goal "domain_0" thy "domain(0) = 0"
- (fn _ => [ Blast_tac 1 ]);
+Goal "domain(0) = 0";
+by (Blast_tac 1);
+qed "domain_0";
 
-qed_goal "domain_cons" thy
-    "domain(cons(<a,b>,r)) = cons(a, domain(r))"
- (fn _ => [ Blast_tac 1 ]);
+Goal "domain(cons(<a,b>,r)) = cons(a, domain(r))";
+by (Blast_tac 1);
+qed "domain_cons";
 
 Goal "domain(A Un B) = domain(A) Un domain(B)";
 by (Blast_tac 1);
@@ -380,12 +381,13 @@ Goal "a:A ==> range(A*B) = B";
 by (Blast_tac 1);
 qed "range_of_prod";
 
-qed_goal "range_0" thy "range(0) = 0"
- (fn _ => [ Blast_tac 1 ]); 
+Goal "range(0) = 0";
+by (Blast_tac 1);
+qed "range_0"; 
 
-qed_goal "range_cons" thy
-    "range(cons(<a,b>,r)) = cons(b, range(r))"
- (fn _ => [ Blast_tac 1 ]);
+Goal "range(cons(<a,b>,r)) = cons(b, range(r))";
+by (Blast_tac 1);
+qed "range_cons";
 
 Goal "range(A Un B) = range(A) Un range(B)";
 by (Blast_tac 1);
@@ -408,15 +410,18 @@ Addsimps [range_0, range_cons, range_Un_eq, range_converse];
 
 (** Field **)
 
-qed_goal "field_of_prod" thy "field(A*A) = A"
- (fn _ => [ Blast_tac 1 ]); 
+Goal "field(A*A) = A";
+by (Blast_tac 1);
+qed "field_of_prod"; 
 
-qed_goal "field_0" thy "field(0) = 0"
- (fn _ => [ Blast_tac 1 ]); 
+Goal "field(0) = 0";
+by (Blast_tac 1);
+qed "field_0"; 
 
-qed_goal "field_cons" thy
-    "field(cons(<a,b>,r)) = cons(a, cons(b, field(r)))"
- (fn _ => [ rtac equalityI 1, ALLGOALS (Blast_tac) ]);
+Goal "field(cons(<a,b>,r)) = cons(a, cons(b, field(r)))";
+by (rtac equalityI 1);
+by (ALLGOALS Blast_tac) ;
+qed "field_cons";
 
 Goal "field(A Un B) = field(A) Un field(B)";
 by (Blast_tac 1);

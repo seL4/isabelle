@@ -529,14 +529,13 @@ Goalw [inj_def] "[| f: inj(A,B);  B<=D |] ==> f: inj(A,D)";
 by (blast_tac (claset() addIs [fun_weaken_type]) 1);
 qed "inj_weaken_type";
 
-val [major] = goal Perm.thy  
-    "[| f: inj(succ(m), A) |] ==> restrict(f,m) : inj(m, A-{f`m})";
-by (rtac (major RS restrict_bij RS bij_is_inj RS inj_weaken_type) 1);
+Goal "[| f: inj(succ(m), A) |] ==> restrict(f,m) : inj(m, A-{f`m})";
+by (rtac (restrict_bij RS bij_is_inj RS inj_weaken_type) 1);
+by (assume_tac 1);
 by (Blast_tac 1);
-by (cut_facts_tac [major] 1);
 by (rewtac inj_def);
 by (fast_tac (claset() addEs [range_type, mem_irrefl] 
-	              addDs [apply_equality]) 1);
+	               addDs [apply_equality]) 1);
 qed "inj_succ_restrict";
 
 Goalw [inj_def]

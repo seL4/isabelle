@@ -34,18 +34,21 @@ Addsimps [converse_iff];
 AddSIs [converseI];
 AddSEs [converseD,converseE];
 
-qed_goal "converse_converse" thy
-    "!!A B r. r<=Sigma(A,B) ==> converse(converse(r)) = r"
- (fn _ => [ (Blast_tac 1) ]);
+Goal "r<=Sigma(A,B) ==> converse(converse(r)) = r";
+by (Blast_tac 1) ;
+qed "converse_converse";
 
-qed_goal "converse_type" thy "!!A B r. r<=A*B ==> converse(r)<=B*A"
- (fn _ => [ (Blast_tac 1) ]);
+Goal "r<=A*B ==> converse(r)<=B*A";
+by (Blast_tac 1) ;
+qed "converse_type";
 
-qed_goal "converse_prod" thy "converse(A*B) = B*A"
- (fn _ => [ (Blast_tac 1) ]);
+Goal "converse(A*B) = B*A";
+by (Blast_tac 1) ;
+qed "converse_prod";
 
-qed_goal "converse_empty" thy "converse(0) = 0"
- (fn _ => [ (Blast_tac 1) ]);
+Goal "converse(0) = 0";
+by (Blast_tac 1) ;
+qed "converse_empty";
 
 Addsimps [converse_prod, converse_empty];
 
@@ -60,20 +63,22 @@ qed_goalw "domain_iff" thy [domain_def]
     "a: domain(r) <-> (EX y. <a,y>: r)"
  (fn _=> [ (Blast_tac 1) ]);
 
-qed_goal "domainI" thy "!!a b r. <a,b>: r ==> a: domain(r)"
- (fn _=> [ (etac (exI RS (domain_iff RS iffD2)) 1) ]);
+Goal "<a,b>: r ==> a: domain(r)";
+by (etac (exI RS (domain_iff RS iffD2)) 1) ;
+qed "domainI";
 
-qed_goal "domainE" thy
-    "[| a : domain(r);  !!y. <a,y>: r ==> P |] ==> P"
- (fn prems=>
-  [ (rtac (domain_iff RS iffD1 RS exE) 1),
-    (REPEAT (ares_tac prems 1)) ]);
+val prems= Goal
+    "[| a : domain(r);  !!y. <a,y>: r ==> P |] ==> P";
+by (rtac (domain_iff RS iffD1 RS exE) 1);
+by (REPEAT (ares_tac prems 1)) ;
+qed "domainE";
 
 AddIs  [domainI];
 AddSEs [domainE];
 
-qed_goal "domain_subset" thy "domain(Sigma(A,B)) <= A"
- (fn _=> [ (Blast_tac 1) ]);
+Goal "domain(Sigma(A,B)) <= A";
+by (Blast_tac 1) ;
+qed "domain_subset";
 
 (*** range ***)
 
@@ -119,8 +124,9 @@ qed_goalw "fieldE" thy [field_def]
 AddIs  [fieldCI];
 AddSEs [fieldE];
 
-qed_goal "field_subset" thy "field(A*B) <= A Un B"
- (fn _ => [ (Blast_tac 1) ]);
+Goal "field(A*B) <= A Un B";
+by (Blast_tac 1) ;
+qed "field_subset";
 
 qed_goalw "domain_subset_field" thy [field_def]
     "domain(r) <= field(r)"
@@ -130,23 +136,25 @@ qed_goalw "range_subset_field" thy [field_def]
     "range(r) <= field(r)"
  (fn _ => [ (rtac Un_upper2 1) ]);
 
-qed_goal "domain_times_range" thy
-    "!!A B r. r <= Sigma(A,B) ==> r <= domain(r)*range(r)"
- (fn _ => [ (Blast_tac 1) ]);
+Goal "r <= Sigma(A,B) ==> r <= domain(r)*range(r)";
+by (Blast_tac 1) ;
+qed "domain_times_range";
 
-qed_goal "field_times_field" thy
-    "!!A B r. r <= Sigma(A,B) ==> r <= field(r)*field(r)"
- (fn _ => [ (Blast_tac 1) ]);
+Goal "r <= Sigma(A,B) ==> r <= field(r)*field(r)";
+by (Blast_tac 1) ;
+qed "field_times_field";
 
 
 (*** Image of a set under a function/relation ***)
 
-qed_goalw "image_iff" thy [image_def] "b : r``A <-> (EX x:A. <x,b>:r)"
- (fn _ => [ (Blast_tac 1) ]);
+Goalw [image_def] "b : r``A <-> (EX x:A. <x,b>:r)";
+by (Blast_tac 1);
+qed "image_iff";
 
-qed_goal "image_singleton_iff" thy    "b : r``{a} <-> <a,b>:r"
- (fn _ => [ rtac (image_iff RS iff_trans) 1,
-            Blast_tac 1 ]);
+Goal "b : r``{a} <-> <a,b>:r";
+by (rtac (image_iff RS iff_trans) 1);
+by (Blast_tac 1) ;
+qed "image_singleton_iff";
 
 qed_goalw "imageI" thy [image_def]
     "!!a b r. [| <a,b>: r;  a:A |] ==> b : r``A"
@@ -161,8 +169,9 @@ qed_goalw "imageE" thy [image_def]
 AddIs  [imageI];
 AddSEs [imageE];
 
-qed_goal "image_subset" thy "!!A B r. r <= A*B ==> r``C <= B"
- (fn _ => [ (Blast_tac 1) ]);
+Goal "r <= A*B ==> r``C <= B";
+by (Blast_tac 1) ;
+qed "image_subset";
 
 
 (*** Inverse image of a set under a function/relation ***)
@@ -171,10 +180,10 @@ qed_goalw "vimage_iff" thy [vimage_def,image_def,converse_def]
     "a : r-``B <-> (EX y:B. <a,y>:r)"
  (fn _ => [ (Blast_tac 1) ]);
 
-qed_goal "vimage_singleton_iff" thy
-    "a : r-``{b} <-> <a,b>:r"
- (fn _ => [ rtac (vimage_iff RS iff_trans) 1,
-            Blast_tac 1 ]);
+Goal "a : r-``{b} <-> <a,b>:r";
+by (rtac (vimage_iff RS iff_trans) 1);
+by (Blast_tac 1) ;
+qed "vimage_singleton_iff";
 
 qed_goalw "vimageI" thy [vimage_def]
     "!!A B r. [| <a,b>: r;  b:B |] ==> a : r-``B"
@@ -205,10 +214,9 @@ by (Blast_tac 1);
 qed "rel_Union";
 
 (** The Union of 2 relations is a relation (Lemma for fun_Un)  **)
-qed_goal "rel_Un" thy
-    "!!r s. [| r <= A*B;  s <= C*D |] ==> (r Un s) <= (A Un C) * (B Un D)"
- (fn _ => [ (Blast_tac 1) ]);
-
+Goal "[| r <= A*B;  s <= C*D |] ==> (r Un s) <= (A Un C) * (B Un D)";
+by (Blast_tac 1) ;
+qed "rel_Un";
 
 Goal "[| <a,c> : r; c~=b |] ==> domain(r-{<a,b>}) = domain(r)";
 by (Blast_tac 1);

@@ -50,7 +50,7 @@ val bool_into_nat = bool_subset_nat RS subsetD;
 (** Injectivity properties and induction **)
 
 (*Mathematical induction*)
-val major::prems = goal Nat.thy
+val major::prems = Goal
     "[| n: nat;  P(0);  !!x. [| x: nat;  P(x) |] ==> P(succ(x)) |] ==> P(n)";
 by (rtac ([nat_def, nat_bnd_mono, major] MRS def_induct) 1);
 by (blast_tac (claset() addIs prems) 1);
@@ -62,15 +62,15 @@ fun nat_ind_tac a prems i =
            rename_last_tac a ["1"] (i+2),
            ares_tac prems i];
 
-val major::prems = goal Nat.thy
+val major::prems = Goal
     "[| n: nat;  n=0 ==> P;  !!x. [| x: nat; n=succ(x) |] ==> P |] ==> P";
 by (rtac (major RS (nat_unfold RS equalityD1 RS subsetD) RS UnE) 1);
 by (DEPTH_SOLVE (eresolve_tac [singletonE,RepFunE] 1
           ORELSE ares_tac prems 1));
 qed "natE";
 
-val prems = goal Nat.thy "n: nat ==> Ord(n)";
-by (nat_ind_tac "n" prems 1);
+Goal "n: nat ==> Ord(n)";
+by (nat_ind_tac "n" [] 1);
 by (REPEAT (ares_tac [Ord_0, Ord_succ] 1));
 qed "nat_into_Ord";
 
@@ -135,7 +135,7 @@ qed "le_in_nat";
 (*complete induction*)
 val complete_induct = Ord_nat RSN (2, Ord_induct);
 
-val prems = goal Nat.thy
+val prems = Goal
     "[| m: nat;  n: nat;  \
 \       !!x. [| x: nat;  m le x;  P(x) |] ==> P(succ(x)) \
 \    |] ==> m le n --> P(m) --> P(n)";
@@ -146,7 +146,7 @@ by (ALLGOALS
 qed "nat_induct_from_lemma";
 
 (*Induction starting from m rather than 0*)
-val prems = goal Nat.thy
+val prems = Goal
     "[| m le n;  m: nat;  n: nat;  \
 \       P(m);  \
 \       !!x. [| x: nat;  m le x;  P(x) |] ==> P(succ(x)) \
@@ -156,7 +156,7 @@ by (REPEAT (ares_tac prems 1));
 qed "nat_induct_from";
 
 (*Induction suitable for subtraction and less-than*)
-val prems = goal Nat.thy
+val prems = Goal
     "[| m: nat;  n: nat;  \
 \       !!x. x: nat ==> P(x,0);  \
 \       !!y. y: nat ==> P(0,succ(y));  \
@@ -180,7 +180,7 @@ by (ALLGOALS
              blast_tac le_cs, blast_tac le_cs])); 
 qed "succ_lt_induct_lemma";
 
-val prems = goal Nat.thy
+val prems = Goal
     "[| m<n;  n: nat;                                   \
 \       P(m,succ(m));                                   \
 \       !!x. [| x: nat;  P(m,x) |] ==> P(m,succ(x))     \
@@ -202,7 +202,7 @@ qed "nat_case_succ";
 
 Addsimps [nat_case_0, nat_case_succ];
 
-val major::prems = goal Nat.thy
+val major::prems = Goal
     "[| n: nat;  a: C(0);  !!m. m: nat ==> b(m): C(succ(m))  \
 \    |] ==> nat_case(a,b,n) : C(n)";
 by (rtac (major RS nat_induct) 1);

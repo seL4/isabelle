@@ -8,15 +8,15 @@ Ordered pairs in Zermelo-Fraenkel Set Theory
 
 (** Lemmas for showing that <a,b> uniquely determines a and b **)
 
-qed_goal "singleton_eq_iff" thy
-    "{a} = {b} <-> a=b"
- (fn _=> [ (resolve_tac [extension RS iff_trans] 1),
-           (Blast_tac 1) ]);
+Goal "{a} = {b} <-> a=b";
+by (resolve_tac [extension RS iff_trans] 1);
+by (Blast_tac 1) ;
+qed "singleton_eq_iff";
 
-qed_goal "doubleton_eq_iff" thy
-    "{a,b} = {c,d} <-> (a=c & b=d) | (a=d & b=c)"
- (fn _=> [ (resolve_tac [extension RS iff_trans] 1),
-           (Blast_tac 1) ]);
+Goal "{a,b} = {c,d} <-> (a=c & b=d) | (a=d & b=c)";
+by (resolve_tac [extension RS iff_trans] 1);
+by (Blast_tac 1) ;
+qed "doubleton_eq_iff";
 
 qed_goalw "Pair_iff" thy [Pair_def]
     "<a,b> = <c,d> <-> a=c & b=d"
@@ -60,9 +60,10 @@ qed_goalw "Sigma_iff" thy [Sigma_def] "<a,b>: Sigma(A,B) <-> a:A & b:B(a)"
 
 Addsimps [Sigma_iff];
 
-qed_goal "SigmaI" thy
-    "!!a b. [| a:A;  b:B(a) |] ==> <a,b> : Sigma(A,B)"
- (fn _ => [ Asm_simp_tac 1 ]);
+Goal "[| a:A;  b:B(a) |] ==> <a,b> : Sigma(A,B)";
+by (Asm_simp_tac 1);
+qed "SigmaI";
+
 AddTCs [SigmaI];
 
 bind_thm ("SigmaD1", Sigma_iff RS iffD1 RS conjunct1);
@@ -77,14 +78,14 @@ qed_goalw "SigmaE" thy [Sigma_def]
   [ (cut_facts_tac [major] 1),
     (REPEAT (eresolve_tac [UN_E, singletonE] 1 ORELSE ares_tac prems 1)) ]);
 
-qed_goal "SigmaE2" thy
+val [major,minor]= Goal
     "[| <a,b> : Sigma(A,B);    \
 \       [| a:A;  b:B(a) |] ==> P   \
-\    |] ==> P"
- (fn [major,minor]=>
-  [ (rtac minor 1),
-    (rtac (major RS SigmaD1) 1),
-    (rtac (major RS SigmaD2) 1) ]);
+\    |] ==> P";
+by (rtac minor 1);
+by (rtac (major RS SigmaD1) 1);
+by (rtac (major RS SigmaD2) 1) ;
+qed "SigmaE2";
 
 qed_goalw "Sigma_cong" thy [Sigma_def]
     "[| A=A';  !!x. x:A' ==> B(x)=B'(x) |] ==> \
@@ -99,11 +100,13 @@ qed_goalw "Sigma_cong" thy [Sigma_def]
 AddSIs [SigmaI];
 AddSEs [SigmaE2, SigmaE];
 
-qed_goal "Sigma_empty1" thy "Sigma(0,B) = 0"
- (fn _ => [ (Blast_tac 1) ]);
+Goal "Sigma(0,B) = 0";
+by (Blast_tac 1) ;
+qed "Sigma_empty1";
 
-qed_goal "Sigma_empty2" thy "A*0 = 0"
- (fn _ => [ (Blast_tac 1) ]);
+Goal "A*0 = 0";
+by (Blast_tac 1) ;
+qed "Sigma_empty2";
 
 Addsimps [Sigma_empty1, Sigma_empty2];
 
@@ -122,15 +125,17 @@ qed_goalw "snd_conv" thy [snd_def] "snd(<a,b>) = b"
 
 Addsimps [fst_conv,snd_conv];
 
-qed_goal "fst_type" thy "!!p. p:Sigma(A,B) ==> fst(p) : A"
- (fn _=> [ Auto_tac ]);
+Goal "p:Sigma(A,B) ==> fst(p) : A";
+by (Auto_tac) ;
+qed "fst_type";
 
-qed_goal "snd_type" thy "!!p. p:Sigma(A,B) ==> snd(p) : B(fst(p))"
- (fn _=> [ Auto_tac ]);
+Goal "p:Sigma(A,B) ==> snd(p) : B(fst(p))";
+by (Auto_tac) ;
+qed "snd_type";
 
-qed_goal "Pair_fst_snd_eq" thy
-    "!!a A B. a: Sigma(A,B) ==> <fst(a),snd(a)> = a"
- (fn _=> [ Auto_tac ]);
+Goal "a: Sigma(A,B) ==> <fst(a),snd(a)> = a";
+by (Auto_tac) ;
+qed "Pair_fst_snd_eq";
 
 
 (*** Eliminator - split ***)
@@ -141,13 +146,13 @@ by (Simp_tac 1);
 qed "split";
 Addsimps [split];
 
-qed_goal "split_type" thy
+val major::prems= Goal
     "[|  p:Sigma(A,B);   \
 \        !!x y.[| x:A; y:B(x) |] ==> c(x,y):C(<x,y>) \
-\    |] ==> split(%x y. c(x,y), p) : C(p)"
- (fn major::prems=>
-  [ (rtac (major RS SigmaE) 1),
-    (asm_simp_tac (simpset() addsimps prems) 1) ]);
+\    |] ==> split(%x y. c(x,y), p) : C(p)";
+by (rtac (major RS SigmaE) 1);
+by (asm_simp_tac (simpset() addsimps prems) 1);
+qed "split_type";
 AddTCs [split_type];
 
 Goalw [split_def]

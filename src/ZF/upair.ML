@@ -26,17 +26,19 @@ qed_goalw "Upair_iff" thy [Upair_def]
 
 Addsimps [Upair_iff];
 
-qed_goal "UpairI1" thy "a : Upair(a,b)"
- (fn _ => [ Simp_tac 1 ]);
+Goal "a : Upair(a,b)";
+by (Simp_tac 1);
+qed "UpairI1";
 
-qed_goal "UpairI2" thy "b : Upair(a,b)"
- (fn _ => [ Simp_tac 1 ]);
+Goal "b : Upair(a,b)";
+by (Simp_tac 1);
+qed "UpairI2";
 
-qed_goal "UpairE" thy
-    "[| a : Upair(b,c);  a=b ==> P;  a=c ==> P |] ==> P"
- (fn major::prems=>
-  [ (rtac (major RS (Upair_iff RS iffD1 RS disjE)) 1),
-    (REPEAT (eresolve_tac prems 1)) ]);
+val major::prems= Goal
+    "[| a : Upair(b,c);  a=b ==> P;  a=c ==> P |] ==> P";
+by (rtac (major RS (Upair_iff RS iffD1 RS disjE)) 1);
+by (REPEAT (eresolve_tac prems 1)) ;
+qed "UpairE";
 
 AddSIs [UpairI1,UpairI2];
 AddSEs [UpairE];
@@ -44,37 +46,40 @@ AddSEs [UpairE];
 (*** Rules for binary union -- Un -- defined via Upair ***)
 
 qed_goalw "Un_iff" thy [Un_def] "c : A Un B <-> (c:A | c:B)"
- (fn _ => [ Blast_tac 1 ]);
+ (fn _ => [(Blast_tac 1)]);
 
 Addsimps [Un_iff];
 
-qed_goal "UnI1" thy "!!c. c : A ==> c : A Un B"
- (fn _ => [ Asm_simp_tac 1 ]);
+Goal "c : A ==> c : A Un B";
+by (Asm_simp_tac 1);
+qed "UnI1";
 
-qed_goal "UnI2" thy "!!c. c : B ==> c : A Un B"
- (fn _ => [ Asm_simp_tac 1 ]);
+Goal "c : B ==> c : A Un B";
+by (Asm_simp_tac 1);
+qed "UnI2";
 
-qed_goal "UnE" thy 
-    "[| c : A Un B;  c:A ==> P;  c:B ==> P |] ==> P"
- (fn major::prems=>
-  [ (rtac (major RS (Un_iff RS iffD1 RS disjE)) 1),
-    (REPEAT (eresolve_tac prems 1)) ]);
+val major::prems= Goal 
+    "[| c : A Un B;  c:A ==> P;  c:B ==> P |] ==> P";
+by (rtac (major RS (Un_iff RS iffD1 RS disjE)) 1);
+by (REPEAT (eresolve_tac prems 1)) ;
+qed "UnE";
 
 (*Stronger version of the rule above*)
-qed_goal "UnE'" thy
-    "[| c : A Un B;  c:A ==> P;  [| c:B;  c~:A |] ==> P |] ==> P"
- (fn major::prems =>
-  [(rtac (major RS UnE) 1),
-   (eresolve_tac prems 1),
-   (rtac classical 1),
-   (eresolve_tac prems 1),
-   (swap_res_tac prems 1),
-   (etac notnotD 1)]);
+val major::prems = Goal
+    "[| c : A Un B;  c:A ==> P;  [| c:B;  c~:A |] ==> P |] ==> P";
+by (rtac (major RS UnE) 1);
+by (eresolve_tac prems 1);
+by (rtac classical 1);
+by (eresolve_tac prems 1);
+by (swap_res_tac prems 1);
+by (etac notnotD 1);
+qed "UnE'";
 
 (*Classical introduction rule: no commitment to A vs B*)
-qed_goal "UnCI" thy "(c ~: B ==> c : A) ==> c : A Un B"
- (fn prems=>
-  [ Simp_tac 1, blast_tac (claset() addSIs prems) 1 ]);
+val prems = Goal "(c ~: B ==> c : A) ==> c : A Un B";
+by (Simp_tac 1);
+by (blast_tac (claset() addSIs prems) 1);
+qed "UnCI";
 
 AddSIs [UnCI];
 AddSEs [UnE];
@@ -83,24 +88,26 @@ AddSEs [UnE];
 (*** Rules for small intersection -- Int -- defined via Upair ***)
 
 qed_goalw "Int_iff" thy [Int_def] "c : A Int B <-> (c:A & c:B)"
- (fn _ => [ Blast_tac 1 ]);
+ (fn _ => [(Blast_tac 1)]);
 
 Addsimps [Int_iff];
 
-qed_goal "IntI" thy "!!c. [| c : A;  c : B |] ==> c : A Int B"
- (fn _ => [ Asm_simp_tac 1 ]);
+Goal "[| c : A;  c : B |] ==> c : A Int B";
+by (Asm_simp_tac 1);
+qed "IntI";
 
-qed_goal "IntD1" thy "!!c. c : A Int B ==> c : A"
- (fn _ => [ Asm_full_simp_tac 1 ]);
+Goal "c : A Int B ==> c : A";
+by (Asm_full_simp_tac 1);
+qed "IntD1";
 
-qed_goal "IntD2" thy "!!c. c : A Int B ==> c : B"
- (fn _ => [ Asm_full_simp_tac 1 ]);
+Goal "c : A Int B ==> c : B";
+by (Asm_full_simp_tac 1);
+qed "IntD2";
 
-qed_goal "IntE" thy
-    "[| c : A Int B;  [| c:A; c:B |] ==> P |] ==> P"
- (fn prems=>
-  [ (resolve_tac prems 1),
-    (REPEAT (resolve_tac (prems RL [IntD1,IntD2]) 1)) ]);
+val prems = Goal "[| c : A Int B;  [| c:A; c:B |] ==> P |] ==> P";
+by (resolve_tac prems 1);
+by (REPEAT (resolve_tac (prems RL [IntD1,IntD2]) 1)) ;
+qed "IntE";
 
 AddSIs [IntI];
 AddSEs [IntE];
@@ -108,24 +115,26 @@ AddSEs [IntE];
 (*** Rules for set difference -- defined via Upair ***)
 
 qed_goalw "Diff_iff" thy [Diff_def] "c : A-B <-> (c:A & c~:B)"
- (fn _ => [ Blast_tac 1 ]);
+ (fn _ => [(Blast_tac 1)]);
 
 Addsimps [Diff_iff];
 
-qed_goal "DiffI" thy "!!c. [| c : A;  c ~: B |] ==> c : A - B"
- (fn _ => [ Asm_simp_tac 1 ]);
+Goal "[| c : A;  c ~: B |] ==> c : A - B";
+by (Asm_simp_tac 1);
+qed "DiffI";
 
-qed_goal "DiffD1" thy "!!c. c : A - B ==> c : A"
- (fn _ => [ Asm_full_simp_tac 1 ]);
+Goal "c : A - B ==> c : A";
+by (Asm_full_simp_tac 1);
+qed "DiffD1";
 
-qed_goal "DiffD2" thy "!!c. c : A - B ==> c ~: B"
- (fn _ => [ Asm_full_simp_tac 1 ]);
+Goal "c : A - B ==> c ~: B";
+by (Asm_full_simp_tac 1);
+qed "DiffD2";
 
-qed_goal "DiffE" thy
-    "[| c : A - B;  [| c:A; c~:B |] ==> P |] ==> P"
- (fn prems=>
-  [ (resolve_tac prems 1),
-    (REPEAT (ares_tac (prems RL [DiffD1, DiffD2]) 1)) ]);
+val prems = Goal "[| c : A - B;  [| c:A; c~:B |] ==> P |] ==> P";
+by (resolve_tac prems 1);
+by (REPEAT (ares_tac (prems RL [DiffD1, DiffD2]) 1)) ;
+qed "DiffE";
 
 AddSIs [DiffI];
 AddSEs [DiffE];
@@ -133,47 +142,51 @@ AddSEs [DiffE];
 (*** Rules for cons -- defined via Un and Upair ***)
 
 qed_goalw "cons_iff" thy [cons_def] "a : cons(b,A) <-> (a=b | a:A)"
- (fn _ => [ Blast_tac 1 ]);
+ (fn _ => [(Blast_tac 1)]);
 
 Addsimps [cons_iff];
 
-qed_goal "consI1" thy "a : cons(a,B)"
- (fn _ => [ Simp_tac 1 ]);
+Goal "a : cons(a,B)";
+by (Simp_tac 1);
+qed "consI1";
 
 Addsimps [consI1];
 AddTCs   [consI1];   (*risky as a typechecking rule, but solves otherwise
 		       unconstrained goals of the form  x : ?A*)
 
-qed_goal "consI2" thy "!!B. a : B ==> a : cons(b,B)"
- (fn _ => [ Asm_simp_tac 1 ]);
+Goal "a : B ==> a : cons(b,B)";
+by (Asm_simp_tac 1);
+qed "consI2";
 
-qed_goal "consE" thy
-    "[| a : cons(b,A);  a=b ==> P;  a:A ==> P |] ==> P"
- (fn major::prems=>
-  [ (rtac (major RS (cons_iff RS iffD1 RS disjE)) 1),
-    (REPEAT (eresolve_tac (prems @ [UpairE]) 1)) ]);
+val major::prems= Goal
+    "[| a : cons(b,A);  a=b ==> P;  a:A ==> P |] ==> P";
+by (rtac (major RS (cons_iff RS iffD1 RS disjE)) 1);
+by (REPEAT (eresolve_tac (prems @ [UpairE]) 1)) ;
+qed "consE";
 
 (*Stronger version of the rule above*)
-qed_goal "consE'" thy
-    "[| a : cons(b,A);  a=b ==> P;  [| a:A;  a~=b |] ==> P |] ==> P"
- (fn major::prems =>
-  [(rtac (major RS consE) 1),
-   (eresolve_tac prems 1),
-   (rtac classical 1),
-   (eresolve_tac prems 1),
-   (swap_res_tac prems 1),
-   (etac notnotD 1)]);
+val major::prems = Goal
+    "[| a : cons(b,A);  a=b ==> P;  [| a:A;  a~=b |] ==> P |] ==> P";
+by (rtac (major RS consE) 1);
+by (eresolve_tac prems 1);
+by (rtac classical 1);
+by (eresolve_tac prems 1);
+by (swap_res_tac prems 1);
+by (etac notnotD 1);
+qed "consE'";
 
 (*Classical introduction rule*)
-qed_goal "consCI" thy "(a~:B ==> a=b) ==> a: cons(b,B)"
- (fn prems=>
-  [ Simp_tac 1, blast_tac (claset() addSIs prems) 1 ]);
+val prems = Goal "(a~:B ==> a=b) ==> a: cons(b,B)";
+by (Simp_tac 1);
+by (blast_tac (claset() addSIs prems) 1);
+qed "consCI";
 
 AddSIs [consCI];
 AddSEs [consE];
 
-qed_goal "cons_not_0" thy "cons(a,B) ~= 0"
- (fn _ => [ (blast_tac (claset() addEs [equalityE]) 1) ]);
+Goal "cons(a,B) ~= 0";
+by (blast_tac (claset() addEs [equalityE]) 1) ;
+qed "cons_not_0";
 
 bind_thm ("cons_neq_0", cons_not_0 RS notE);
 
@@ -182,11 +195,13 @@ Addsimps [cons_not_0, cons_not_0 RS not_sym];
 
 (*** Singletons - using cons ***)
 
-qed_goal "singleton_iff" thy "a : {b} <-> a=b"
- (fn _ => [ Simp_tac 1 ]);
+Goal "a : {b} <-> a=b";
+by (Simp_tac 1);
+qed "singleton_iff";
 
-qed_goal "singletonI" thy "a : {a}"
- (fn _=> [ (rtac consI1 1) ]);
+Goal "a : {a}";
+by (rtac consI1 1) ;
+qed "singletonI";
 
 bind_thm ("singletonE", make_elim (singleton_iff RS iffD1));
 
@@ -217,7 +232,7 @@ qed "theI";
   (THE x.P(x))  rewrites to  (THE x. Q(x))  *)
 
 (*If it's "undefined", it's zero!*)
-Goalw  [the_def] "!!P. ~ (EX! x. P(x)) ==> (THE x. P(x))=0";
+Goalw  [the_def] "~ (EX! x. P(x)) ==> (THE x. P(x))=0";
 by (blast_tac (claset() addSEs [ReplaceE]) 1);
 qed "the_0";
 
@@ -262,11 +277,11 @@ qed "if_not_P";
 
 Addsimps [if_true, if_false];
 
-qed_goal "split_if" thy
-    "P(if Q then x else y) <-> ((Q --> P(x)) & (~Q --> P(y)))"
- (fn _=> [ (case_tac "Q" 1),
-           (Asm_simp_tac 1),
-           (Asm_simp_tac 1) ]);
+Goal "P(if Q then x else y) <-> ((Q --> P(x)) & (~Q --> P(y)))";
+by (case_tac "Q" 1);
+by (Asm_simp_tac 1);
+by (Asm_simp_tac 1) ;
+qed "split_if";
 
 (** Rewrite rules for boolean case-splitting: faster than 
 	addsplits[split_if]
@@ -282,42 +297,48 @@ val split_ifs = [split_if_eq1, split_if_eq2,
 		 split_if_mem1, split_if_mem2];
 
 (*Logically equivalent to split_if_mem2*)
-qed_goal "if_iff" thy "a: (if P then x else y) <-> P & a:x | ~P & a:y"
- (fn _=> [ (simp_tac (simpset() addsplits [split_if]) 1) ]);
+Goal "a: (if P then x else y) <-> P & a:x | ~P & a:y";
+by (simp_tac (simpset() addsplits [split_if]) 1) ;
+qed "if_iff";
 
-qed_goal "if_type" thy
-    "[| P ==> a: A;  ~P ==> b: A |] ==> (if P then a else b): A"
- (fn prems=> [ (simp_tac 
-                (simpset() addsimps prems addsplits [split_if]) 1) ]);
+val prems = Goal
+    "[| P ==> a: A;  ~P ==> b: A |] ==> (if P then a else b): A";
+by (simp_tac (simpset() addsimps prems addsplits [split_if]) 1) ;
+qed "if_type";
+
 AddTCs [if_type];
 
 (*** Foundation lemmas ***)
 
 (*was called mem_anti_sym*)
-qed_goal "mem_asym" thy "[| a:b;  ~P ==> b:a |] ==> P"
- (fn prems=>
-  [ (rtac classical 1),
-    (res_inst_tac [("A1","{a,b}")] (foundation RS disjE) 1),
-    REPEAT (blast_tac (claset() addIs prems addSEs [equalityE]) 1) ]);
+val prems = Goal "[| a:b;  ~P ==> b:a |] ==> P";
+by (rtac classical 1);
+by (res_inst_tac [("A1","{a,b}")] (foundation RS disjE) 1);
+by (REPEAT (blast_tac (claset() addIs prems addSEs [equalityE]) 1));
+qed "mem_asym";
 
 (*was called mem_anti_refl*)
-qed_goal "mem_irrefl" thy "a:a ==> P"
- (fn [major]=> [ (rtac ([major,major] MRS mem_asym) 1) ]);
+Goal "a:a ==> P";
+by (blast_tac (claset() addIs [mem_asym]) 1);
+qed "mem_irrefl";
 
 (*mem_irrefl should NOT be added to default databases:
       it would be tried on most goals, making proofs slower!*)
 
-qed_goal "mem_not_refl" thy "a ~: a"
- (K [ (rtac notI 1), (etac mem_irrefl 1) ]);
+Goal "a ~: a";
+by (rtac notI 1);
+by (etac mem_irrefl 1);
+qed "mem_not_refl";
 
 (*Good for proving inequalities by rewriting*)
-qed_goal "mem_imp_not_eq" thy "!!a A. a:A ==> a ~= A"
- (fn _=> [ blast_tac (claset() addSEs [mem_irrefl]) 1 ]);
+Goal "a:A ==> a ~= A";
+by (blast_tac (claset() addSEs [mem_irrefl]) 1);
+qed "mem_imp_not_eq";
 
 (*** Rules for succ ***)
 
 qed_goalw "succ_iff" thy [succ_def] "i : succ(j) <-> i=j | i:j"
- (fn _ => [ Blast_tac 1 ]);
+ (fn _ => [(Blast_tac 1)]);
 
 qed_goalw "succI1" thy [succ_def] "i : succ(i)"
  (fn _=> [ (rtac consI1 1) ]);
@@ -335,16 +356,17 @@ qed_goalw "succE" thy [succ_def]
     (REPEAT (eresolve_tac prems 1)) ]);
 
 (*Classical introduction rule*)
-qed_goal "succCI" thy "(i~:j ==> i=j) ==> i: succ(j)"
- (fn [prem]=>
-  [ (rtac (disjCI RS (succ_iff RS iffD2)) 1),
-    (etac prem 1) ]);
+val [prem]= Goal "(i~:j ==> i=j) ==> i: succ(j)";
+by (rtac (disjCI RS (succ_iff RS iffD2)) 1);
+by (etac prem 1) ;
+qed "succCI";
 
 AddSIs [succCI];
 AddSEs [succE];
 
-qed_goal "succ_not_0" thy "succ(n) ~= 0"
- (fn _=> [ (blast_tac (claset() addSEs [equalityE]) 1) ]);
+Goal "succ(n) ~= 0";
+by (blast_tac (claset() addSEs [equalityE]) 1) ;
+qed "succ_not_0";
 
 bind_thm ("succ_neq_0", succ_not_0 RS notE);
 
@@ -358,9 +380,9 @@ val succ_subsetD = succI1 RSN (2,subsetD);
 (* succ(b) ~= b *)
 bind_thm ("succ_neq_self", succI1 RS mem_imp_not_eq RS not_sym);
 
-
-qed_goal "succ_inject_iff" thy "succ(m) = succ(n) <-> m=n"
- (fn _=> [ (blast_tac (claset() addEs [mem_asym] addSEs [equalityE]) 1) ]);
+Goal "succ(m) = succ(n) <-> m=n";
+by (blast_tac (claset() addEs [mem_asym] addSEs [equalityE]) 1) ;
+qed "succ_inject_iff";
 
 bind_thm ("succ_inject", succ_inject_iff RS iffD1);
 

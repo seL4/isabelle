@@ -101,7 +101,7 @@ by (eresolve_tac prems 1);
 by (blast_tac (claset() addIs (prems RL [subsetD])) 1);
 qed "wf_induct2";
 
-Goal "!!r A. field(r Int A*A) <= A";
+Goal "field(r Int A*A) <= A";
 by (Blast_tac 1);
 qed "field_Int_square";
 

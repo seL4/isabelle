@@ -235,11 +235,14 @@ qed "lt_not_sym";
 (* [| i<j;  ~P ==> j<i |] ==> P *)
 bind_thm ("lt_asym", lt_not_sym RS swap);
 
-qed_goal "lt_irrefl" Ordinal.thy "i<i ==> P"
- (fn [major]=> [ (rtac (major RS (major RS lt_asym)) 1) ]);
+val [major]= goal Ordinal.thy "i<i ==> P";
+by (rtac (major RS (major RS lt_asym)) 1) ;
+qed "lt_irrefl";
 
-qed_goal "lt_not_refl" Ordinal.thy "~ i<i"
- (fn _=> [ (rtac notI 1), (etac lt_irrefl 1) ]);
+Goal "~ i<i";
+by (rtac notI 1);
+by (etac lt_irrefl 1) ;
+qed "lt_not_refl";
 
 AddSEs [lt_irrefl, lt0E];
 

@@ -683,7 +683,7 @@ by (REPEAT (ares_tac [Ord_cardinal] 1
      ORELSE eresolve_tac [ltE, Card_is_Ord] 1));
 qed "lt_csucc_iff";
 
-Goal "!!K' K. [| Card(K'); Card(K) |] ==> K' < csucc(K) <-> K' le K";
+Goal "[| Card(K'); Card(K) |] ==> K' < csucc(K) <-> K' le K";
 by (asm_simp_tac 
     (simpset() addsimps [lt_csucc_iff, Card_cardinal_eq, Card_is_Ord]) 1);
 qed "Card_lt_csucc_iff";

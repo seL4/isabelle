@@ -23,15 +23,16 @@ qed_goalw "oallE" thy [oall_def]
   [ (rtac (major RS allE) 1),
     (REPEAT (eresolve_tac (prems@[asm_rl,impCE]) 1)) ]);
 
-qed_goal "rev_oallE" thy
-    "[| ALL x<A. P(x);  ~x<A ==> Q;  P(x) ==> Q |] ==> Q"
- (fn major::prems=>
-  [ (rtac (major RS oallE) 1),
-    (REPEAT (eresolve_tac prems 1)) ]);
+val major::prems= goal thy
+    "[| ALL x<A. P(x);  ~x<A ==> Q;  P(x) ==> Q |] ==> Q";
+by (rtac (major RS oallE) 1);
+by (REPEAT (eresolve_tac prems 1)) ;
+qed "rev_oallE";
 
 (*Trival rewrite rule;   (ALL x<a.P)<->P holds only if a is not 0!*)
-qed_goal "oall_simp" thy "(ALL x<a. True) <-> True"
- (fn _=> [ (REPEAT (ares_tac [TrueI,oallI,iffI] 1)) ]);
+Goal "(ALL x<a. True) <-> True";
+by (REPEAT (ares_tac [TrueI,oallI,iffI] 1)) ;
+qed "oall_simp";
 
 (*Congruence rule for rewriting*)
 qed_goalw "oall_cong" thy [oall_def]
@@ -46,11 +47,11 @@ qed_goalw "oexI" thy [oex_def]
  (fn prems=> [ (REPEAT (ares_tac (prems @ [exI,conjI]) 1)) ]);
 
 (*Not of the general form for such rules; ~EX has become ALL~ *)
-qed_goal "oexCI" thy 
-   "[| ALL x<A. ~P(x) ==> P(a);  a<A |] ==> EX x<A. P(x)"
- (fn prems=>
-  [ (rtac classical 1),
-    (REPEAT (ares_tac (prems@[oexI,oallI,notI,notE]) 1)) ]);
+val prems = Goal
+   "[| ALL x<A. ~P(x) ==> P(a);  a<A |] ==> EX x<A. P(x)";
+by (rtac classical 1);
+by (REPEAT (ares_tac (prems@[oexI,oallI,notI,notE]) 1)) ;
+qed "oexCI";
 
 qed_goalw "oexE" thy [oex_def]
     "[| EX x<A. P(x);  !!x. [| x<A; P(x) |] ==> Q \
@@ -82,11 +83,11 @@ qed_goalw "OUN_iff" thy [oex_def]
     "b : (UN x<i. B(x)) <-> (EX x<i. b : B(x))"
  (fn _=> [ (fast_tac (claset() addIs [OUN_I] addSEs [OUN_E]) 1) ]);
 
-qed_goal "OUN_cong" thy
-    "[| i=j;  !!x. x<j ==> C(x)=D(x) |] ==> (UN x<i. C(x)) = (UN x<j. D(x))"
- (fn prems=>
-      [ rtac equality_iffI 1,
-        simp_tac (simpset() addcongs [oex_cong] addsimps OUN_iff::prems) 1 ]);
+val prems = Goal
+    "[| i=j;  !!x. x<j ==> C(x)=D(x) |] ==> (UN x<i. C(x)) = (UN x<j. D(x))";
+by (rtac equality_iffI 1);
+by (simp_tac (simpset() addcongs [oex_cong] addsimps OUN_iff::prems) 1) ;
+qed "OUN_cong";
 
 AddSIs [oallI];
 AddIs  [oexI, OUN_I];
@@ -100,7 +101,7 @@ simpset_ref() := simpset() setmksimps (map mk_eq o Ord_atomize o gen_all)
                         addsimps [oall_simp, ltD RS beta]
                         addcongs [oall_cong, oex_cong, OUN_cong];
 
-val major::prems = goalw thy [lt_def, oall_def]
+val major::prems = Goalw [lt_def, oall_def]
     "[| i<k;  !!x.[| x<k;  ALL y<x. P(y) |] ==> P(x) \
 \    |]  ==>  P(i)";
 by (rtac (major RS conjE) 1);

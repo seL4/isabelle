@@ -9,30 +9,35 @@ Union and Intersection as lattice operations
 
 (*** cons ***)
 
-qed_goal "cons_subsetI" thy "!!a. [| a:C; B<=C |] ==> cons(a,B) <= C"
- (fn _ => [ Blast_tac 1 ]);
+Goal "[| a:C; B<=C |] ==> cons(a,B) <= C";
+by (Blast_tac 1);
+qed "cons_subsetI";
 
-qed_goal "subset_consI" thy "B <= cons(a,B)"
- (fn _ => [ Blast_tac 1 ]);
+Goal "B <= cons(a,B)";
+by (Blast_tac 1);
+qed "subset_consI";
 
-qed_goal "cons_subset_iff" thy "cons(a,B)<=C <-> a:C & B<=C"
- (fn _ => [ Blast_tac 1 ]);
+Goal "cons(a,B)<=C <-> a:C & B<=C";
+by (Blast_tac 1);
+qed "cons_subset_iff";
 
 (*A safe special case of subset elimination, adding no new variables 
   [| cons(a,B) <= C; [| a : C; B <= C |] ==> R |] ==> R *)
 bind_thm ("cons_subsetE", cons_subset_iff RS iffD1 RS conjE);
 
-qed_goal "subset_empty_iff" thy "A<=0 <-> A=0"
- (fn _=> [ (Blast_tac 1) ]);
+Goal "A<=0 <-> A=0";
+by (Blast_tac 1) ;
+qed "subset_empty_iff";
 
-qed_goal "subset_cons_iff" thy
-    "C<=cons(a,B) <-> C<=B | (a:C & C-{a} <= B)"
- (fn _=> [ (Blast_tac 1) ]);
+Goal "C<=cons(a,B) <-> C<=B | (a:C & C-{a} <= B)";
+by (Blast_tac 1) ;
+qed "subset_cons_iff";
 
 (*** succ ***)
 
-qed_goal "subset_succI" thy "i <= succ(i)"
- (fn _=> [ (Blast_tac 1) ]);
+Goal "i <= succ(i)";
+by (Blast_tac 1) ;
+qed "subset_succI";
 
 (*But if j is an ordinal or is transitive, then i:j implies i<=j! 
   See ordinal/Ord_succ_subsetI*)
@@ -49,26 +54,29 @@ qed_goalw "succ_subsetE" thy [succ_def]
 
 (*** singletons ***)
 
-qed_goal "singleton_subsetI" thy "!!a c. a:C ==> {a} <= C"
- (fn _=> [ (Blast_tac 1) ]);
+Goal "a:C ==> {a} <= C";
+by (Blast_tac 1) ;
+qed "singleton_subsetI";
 
-qed_goal "singleton_subsetD" thy "!!a C. {a} <= C  ==>  a:C"
- (fn _=> [ (Blast_tac 1) ]);
+Goal "{a} <= C  ==>  a:C";
+by (Blast_tac 1) ;
+qed "singleton_subsetD";
 
 (*** Big Union -- least upper bound of a set  ***)
 
-qed_goal "Union_subset_iff" thy "Union(A) <= C <-> (ALL x:A. x <= C)"
- (fn _ => [ Blast_tac 1 ]);
+Goal "Union(A) <= C <-> (ALL x:A. x <= C)";
+by (Blast_tac 1);
+qed "Union_subset_iff";
 
-qed_goal "Union_upper" thy
-    "!!B A. B:A ==> B <= Union(A)"
- (fn _ => [ Blast_tac 1 ]);
+Goal "B:A ==> B <= Union(A)";
+by (Blast_tac 1);
+qed "Union_upper";
 
-qed_goal "Union_least" thy
-    "[| !!x. x:A ==> x<=C |] ==> Union(A) <= C"
- (fn [prem]=>
-  [ (rtac (ballI RS (Union_subset_iff RS iffD2)) 1),
-    (etac prem 1) ]);
+val [prem]= Goal
+    "[| !!x. x:A ==> x<=C |] ==> Union(A) <= C";
+by (rtac (ballI RS (Union_subset_iff RS iffD2)) 1);
+by (etac prem 1) ;
+qed "Union_least";
 
 (*** Union of a family of sets  ***)
 
@@ -76,87 +84,97 @@ Goal "A <= (UN i:I. B(i)) <-> A = (UN i:I. A Int B(i))";
 by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "subset_UN_iff_eq";
 
-qed_goal "UN_subset_iff" thy
-     "(UN x:A. B(x)) <= C <-> (ALL x:A. B(x) <= C)"
- (fn _ => [ Blast_tac 1 ]);
+Goal "(UN x:A. B(x)) <= C <-> (ALL x:A. B(x) <= C)";
+by (Blast_tac 1);
+qed "UN_subset_iff";
 
-qed_goal "UN_upper" thy
-    "!!x A. x:A ==> B(x) <= (UN x:A. B(x))"
- (fn _ => [ etac (RepFunI RS Union_upper) 1 ]);
+Goal "x:A ==> B(x) <= (UN x:A. B(x))";
+by (etac (RepFunI RS Union_upper) 1);
+qed "UN_upper";
 
-qed_goal "UN_least" thy
-    "[| !!x. x:A ==> B(x)<=C |] ==> (UN x:A. B(x)) <= C"
- (fn [prem]=>
-  [ (rtac (ballI RS (UN_subset_iff RS iffD2)) 1),
-    (etac prem 1) ]);
+val [prem]= Goal
+    "[| !!x. x:A ==> B(x)<=C |] ==> (UN x:A. B(x)) <= C";
+by (rtac (ballI RS (UN_subset_iff RS iffD2)) 1);
+by (etac prem 1) ;
+qed "UN_least";
 
 
 (*** Big Intersection -- greatest lower bound of a nonempty set ***)
 
-qed_goal "Inter_subset_iff" thy
-     "!!a A. a: A  ==>  C <= Inter(A) <-> (ALL x:A. C <= x)"
- (fn _ => [ Blast_tac 1 ]);
+Goal "a: A  ==>  C <= Inter(A) <-> (ALL x:A. C <= x)";
+by (Blast_tac 1);
+qed "Inter_subset_iff";
 
-qed_goal "Inter_lower" thy "!!B A. B:A ==> Inter(A) <= B"
- (fn _ => [ Blast_tac 1 ]);
+Goal "B:A ==> Inter(A) <= B";
+by (Blast_tac 1);
+qed "Inter_lower";
 
-qed_goal "Inter_greatest" thy
-    "[| a:A;  !!x. x:A ==> C<=x |] ==> C <= Inter(A)"
- (fn [prem1,prem2]=>
-  [ (rtac ([prem1, ballI] MRS (Inter_subset_iff RS iffD2)) 1),
-    (etac prem2 1) ]);
+val [prem1,prem2]= Goal
+    "[| a:A;  !!x. x:A ==> C<=x |] ==> C <= Inter(A)";
+by (rtac ([prem1, ballI] MRS (Inter_subset_iff RS iffD2)) 1);
+by (etac prem2 1) ;
+qed "Inter_greatest";
 
 (*** Intersection of a family of sets  ***)
 
-qed_goal "INT_lower" thy
-    "!!x. x:A ==> (INT x:A. B(x)) <= B(x)"
- (fn _ => [ Blast_tac 1 ]);
+Goal "x:A ==> (INT x:A. B(x)) <= B(x)";
+by (Blast_tac 1);
+qed "INT_lower";
 
-qed_goal "INT_greatest" thy
-    "[| a:A;  !!x. x:A ==> C<=B(x) |] ==> C <= (INT x:A. B(x))"
- (fn [nonempty,prem] =>
-  [ rtac (nonempty RS RepFunI RS Inter_greatest) 1,
-    REPEAT (eresolve_tac [RepFunE, prem, ssubst] 1) ]);
+val [nonempty,prem] = Goal
+    "[| a:A;  !!x. x:A ==> C<=B(x) |] ==> C <= (INT x:A. B(x))";
+by (rtac (nonempty RS RepFunI RS Inter_greatest) 1);
+by (REPEAT (eresolve_tac [RepFunE, prem, ssubst] 1));
+qed "INT_greatest";
 
 
 (*** Finite Union -- the least upper bound of 2 sets ***)
 
-qed_goal "Un_subset_iff" thy "A Un B <= C <-> A <= C & B <= C"
- (fn _ => [ Blast_tac 1 ]);
+Goal "A Un B <= C <-> A <= C & B <= C";
+by (Blast_tac 1);
+qed "Un_subset_iff";
 
-qed_goal "Un_upper1" thy "A <= A Un B"
- (fn _ => [ Blast_tac 1 ]);
+Goal "A <= A Un B";
+by (Blast_tac 1);
+qed "Un_upper1";
 
-qed_goal "Un_upper2" thy "B <= A Un B"
- (fn _ => [ Blast_tac 1 ]);
+Goal "B <= A Un B";
+by (Blast_tac 1);
+qed "Un_upper2";
 
-qed_goal "Un_least" thy "!!A B C. [| A<=C;  B<=C |] ==> A Un B <= C"
- (fn _ => [ Blast_tac 1 ]);
+Goal "[| A<=C;  B<=C |] ==> A Un B <= C";
+by (Blast_tac 1);
+qed "Un_least";
 
 
 (*** Finite Intersection -- the greatest lower bound of 2 sets *)
 
-qed_goal "Int_subset_iff" thy "C <= A Int B <-> C <= A & C <= B"
- (fn _ => [ Blast_tac 1 ]);
+Goal "C <= A Int B <-> C <= A & C <= B";
+by (Blast_tac 1);
+qed "Int_subset_iff";
 
-qed_goal "Int_lower1" thy "A Int B <= A"
- (fn _ => [ Blast_tac 1 ]);
+Goal "A Int B <= A";
+by (Blast_tac 1);
+qed "Int_lower1";
 
-qed_goal "Int_lower2" thy "A Int B <= B"
- (fn _ => [ Blast_tac 1 ]);
+Goal "A Int B <= B";
+by (Blast_tac 1);
+qed "Int_lower2";
 
-qed_goal "Int_greatest" thy "!!A B C. [| C<=A;  C<=B |] ==> C <= A Int B"
- (fn _ => [ Blast_tac 1 ]);
+Goal "[| C<=A;  C<=B |] ==> C <= A Int B";
+by (Blast_tac 1);
+qed "Int_greatest";
 
 
 (*** Set difference *)
 
-qed_goal "Diff_subset" thy "A-B <= A"
- (fn _ => [ Blast_tac 1 ]);
+Goal "A-B <= A";
+by (Blast_tac 1);
+qed "Diff_subset";
 
-qed_goal "Diff_contains" thy
-    "!!C. [| C<=A;  C Int B = 0 |] ==> C <= A-B"
- (fn _ => [ Blast_tac 1 ]);
+Goal "[| C<=A;  C Int B = 0 |] ==> C <= A-B";
+by (Blast_tac 1);
+qed "Diff_contains";
 
 Goal "B <= A - cons(c,C)  <->  B<=A-C & c ~: B";
 by (Blast_tac 1);
@@ -166,8 +184,9 @@ qed "subset_Diff_cons_iff";
 
 (** Collect **)
 
-qed_goal "Collect_subset" thy "Collect(A,P) <= A"
- (fn _ => [ Blast_tac 1 ]);
+Goal "Collect(A,P) <= A";
+by (Blast_tac 1);
+qed "Collect_subset";
 
 
 (** RepFun **)
