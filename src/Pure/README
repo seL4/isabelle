@@ -9,20 +9,9 @@ is the basis for all object-logics:
   ML-Systems/   compatibility files for various ML systems
   General/	general tools
   Syntax/     	the syntax module
-  Thy/          the theory file parser and loader
+  Thy/          the theory file parser (old format) and loader
   Isar/		Intelligible Semi-Automated Reasoning subsystem
   ./		the actual meta logic implementation (see ROOT.ML)
 
-Isabelle programmers may want to have a look at the following generic
-modules:
-
-  Library	basic library (see library.ML)
-  TableFun	efficient tables (see General/table.ML)
-  Seq		unbounded sequences (see General/seq.ML)
-  Pretty	pretty printing module (see Syntax/pretty.ML)
-  Scan		scanner toolbox (see Syntax/scan.ML)
-  Source	co-algebraic data sources (see Syntax/source.ML)
-  Symbol	generalized characters (see Syntax/symbol.ML)
-  Path		abstract algebra of file paths (see General/path.ML)
-  File		file system operations (see General/file.ML)
-  NameSpace	hierarchically structured name spaces (see General/name_space.ML)
+Isabelle programmers may want to have a look at the generic modules
+Library (see library.ML) and those in General/ (see General/README).

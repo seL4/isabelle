@@ -3,8 +3,8 @@
 
 
 This directory contains the source files for Isabelle's syntax module,
-which includes a lexer, parser, pretty printer and macro system. Note
-that only the following structures are exported:
+which includes a lexer, parser, pretty printer and macro system.  Only
+the following structures are exported:
 
   Syntax        (internal interface to the syntax module)
   BasicSyntax   (part of Syntax made pervasive)
