@@ -73,6 +73,6 @@ translations
   "LAM <x,y>.b"           == "csplit`(LAM x y. b)"
 
 syntax (symbols)
-  "_LAM"    :: "[patterns, 'a => 'b] => ('a -> 'b)"  ("(3\\<Lambda><_>./ _)" [0, 10] 10)
+  "_LAM"    :: "[patterns, 'a => 'b] => ('a -> 'b)"  ("(3\\<Lambda>()<_>./ _)" [0, 10] 10)
 
 end
