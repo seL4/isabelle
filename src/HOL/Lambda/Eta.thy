@@ -7,11 +7,11 @@ Eta-reduction and relatives.
 *)
 
 Eta = ParRed + Commutation +
-consts free :: "db => nat => bool"
-       decr :: "[db,nat] => db"
+consts free :: db => nat => bool
+       decr :: [db,nat] => db
        eta  :: "(db * db) set"
 
-syntax  "-e>", "-e>>", "-e>=" , "->=" :: "[db,db] => bool" (infixl 50)
+syntax  "-e>", "-e>>", "-e>=" , "->=" :: [db,db] => bool (infixl 50)
 
 translations
   "s -e>  t" == "(s,t) : eta"

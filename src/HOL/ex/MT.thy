@@ -46,48 +46,48 @@ arities
   TyEnv :: term
 
 consts
-  c_app :: "[Const, Const] => Const"
+  c_app :: [Const, Const] => Const
 
-  e_const :: "Const => Ex"
-  e_var :: "ExVar => Ex"
-  e_fn :: "[ExVar, Ex] => Ex" ("fn _ => _" [0,51] 1000)
-  e_fix :: "[ExVar, ExVar, Ex] => Ex" ("fix _ ( _ ) = _" [0,51,51] 1000)
-  e_app :: "[Ex, Ex] => Ex" ("_ @ _" [51,51] 1000)
-  e_const_fst :: "Ex => Const"
+  e_const :: Const => Ex
+  e_var :: ExVar => Ex
+  e_fn :: [ExVar, Ex] => Ex ("fn _ => _" [0,51] 1000)
+  e_fix :: [ExVar, ExVar, Ex] => Ex ("fix _ ( _ ) = _" [0,51,51] 1000)
+  e_app :: [Ex, Ex] => Ex ("_ @ _" [51,51] 1000)
+  e_const_fst :: Ex => Const
 
-  t_const :: "TyConst => Ty"
-  t_fun :: "[Ty, Ty] => Ty" ("_ -> _" [51,51] 1000)
+  t_const :: TyConst => Ty
+  t_fun :: [Ty, Ty] => Ty ("_ -> _" [51,51] 1000)
 
-  v_const :: "Const => Val"
-  v_clos :: "Clos => Val"
+  v_const :: Const => Val
+  v_clos :: Clos => Val
   
-  ve_emp :: "ValEnv"
-  ve_owr :: "[ValEnv, ExVar, Val] => ValEnv" ("_ + { _ |-> _ }" [36,0,0] 50)
-  ve_dom :: "ValEnv => ExVar set"
-  ve_app :: "[ValEnv, ExVar] => Val"
+  ve_emp :: ValEnv
+  ve_owr :: [ValEnv, ExVar, Val] => ValEnv ("_ + { _ |-> _ }" [36,0,0] 50)
+  ve_dom :: ValEnv => ExVar set
+  ve_app :: [ValEnv, ExVar] => Val
 
-  clos_mk :: "[ExVar, Ex, ValEnv] => Clos" ("<| _ , _ , _ |>" [0,0,0] 1000)
+  clos_mk :: [ExVar, Ex, ValEnv] => Clos ("<| _ , _ , _ |>" [0,0,0] 1000)
 
-  te_emp :: "TyEnv"
-  te_owr :: "[TyEnv, ExVar, Ty] => TyEnv" ("_ + { _ |=> _ }" [36,0,0] 50)
-  te_app :: "[TyEnv, ExVar] => Ty"
-  te_dom :: "TyEnv => ExVar set"
+  te_emp :: TyEnv
+  te_owr :: [TyEnv, ExVar, Ty] => TyEnv ("_ + { _ |=> _ }" [36,0,0] 50)
+  te_app :: [TyEnv, ExVar] => Ty
+  te_dom :: TyEnv => ExVar set
 
   eval_fun :: "((ValEnv * Ex) * Val) set => ((ValEnv * Ex) * Val) set"
   eval_rel :: "((ValEnv * Ex) * Val) set"
-  eval :: "[ValEnv, Ex, Val] => bool" ("_ |- _ ---> _" [36,0,36] 50)
+  eval :: [ValEnv, Ex, Val] => bool ("_ |- _ ---> _" [36,0,36] 50)
 
   elab_fun :: "((TyEnv * Ex) * Ty) set => ((TyEnv * Ex) * Ty) set"
   elab_rel :: "((TyEnv * Ex) * Ty) set"
-  elab :: "[TyEnv, Ex, Ty] => bool" ("_ |- _ ===> _" [36,0,36] 50)
+  elab :: [TyEnv, Ex, Ty] => bool ("_ |- _ ===> _" [36,0,36] 50)
   
-  isof :: "[Const, Ty] => bool" ("_ isof _" [36,36] 50)
-  isof_env :: "[ValEnv,TyEnv] => bool" ("_ isofenv _")
+  isof :: [Const, Ty] => bool ("_ isof _" [36,36] 50)
+  isof_env :: [ValEnv,TyEnv] => bool ("_ isofenv _")
 
   hasty_fun :: "(Val * Ty) set => (Val * Ty) set"
   hasty_rel :: "(Val * Ty) set"
-  hasty :: "[Val, Ty] => bool" ("_ hasty _" [36,36] 50)
-  hasty_env :: "[ValEnv,TyEnv] => bool" ("_ hastyenv _ " [36,36] 35)
+  hasty :: [Val, Ty] => bool ("_ hasty _" [36,36] 50)
+  hasty_env :: [ValEnv,TyEnv] => bool ("_ hastyenv _ " [36,36] 35)
 
 rules
 

@@ -8,7 +8,7 @@ Quicksort
 
 Qsort = Sorting +
 consts
-  qsort  :: "[['a,'a] => bool, 'a list] => 'a list"
+  qsort  :: [['a,'a] => bool, 'a list] => 'a list
 
 rules
 

@@ -15,13 +15,13 @@ types
 
 consts
 
-sender_asig   :: "'m action signature"
-sender_trans  :: "('m action, 'm sender_state)transition set"
-sender_ioa    :: "('m action, 'm sender_state)ioa"
-sq            :: "'m sender_state => 'm list"
-ssent,srcvd   :: "'m sender_state => bool multiset"
-sbit          :: "'m sender_state => bool"
-ssending      :: "'m sender_state => bool"
+sender_asig   :: 'm action signature
+sender_trans  :: ('m action, 'm sender_state)transition set
+sender_ioa    :: ('m action, 'm sender_state)ioa
+sq            :: 'm sender_state => 'm list
+ssent,srcvd   :: 'm sender_state => bool multiset
+sbit          :: 'm sender_state => bool
+ssending      :: 'm sender_state => bool
 
 defs
 

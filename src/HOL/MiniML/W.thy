@@ -13,7 +13,7 @@ types
 
 (* type inference algorithm W *)
 consts
-	W :: "[expr, type_expr list, nat] => result_W"
+	W :: [expr, type_expr list, nat] => result_W
 
 primrec W expr
   W_Var	"W (Var i) a n = (if i < length a then Ok(id_subst, nth i a, n)

@@ -9,7 +9,7 @@ Permutations: example of an inductive definition
 Perm = List +
 
 consts  perm    :: "('a list * 'a list) set"   
-syntax "@perm"  :: "['a list, 'a list] => bool" ("_ <~~> _"  [50,50] 50)
+syntax "@perm"  :: ['a list, 'a list] => bool ("_ <~~> _"  [50,50] 50)
 
 translations
     "x <~~> y" == "(x,y) : perm"

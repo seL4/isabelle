@@ -10,9 +10,9 @@ Spec = List + IOA + Action +
 
 consts
 
-spec_sig   :: "'m action signature"
-spec_trans :: "('m action, 'm list)transition set"
-spec_ioa   :: "('m action, 'm list)ioa"
+spec_sig   :: 'm action signature
+spec_trans :: ('m action, 'm list)transition set
+spec_ioa   :: ('m action, 'm list)ioa
 
 defs
 

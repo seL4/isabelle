@@ -8,7 +8,7 @@
 I = W +
 
 consts
-	I :: "[expr, type_expr list, nat, subst] => result_W"
+	I :: [expr, type_expr list, nat, subst] => result_W
 
 primrec I expr
         I_Var	"I (Var i) a n s = (if i < length a then Ok(s, nth i a, n)

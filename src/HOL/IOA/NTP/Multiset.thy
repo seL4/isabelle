@@ -19,11 +19,11 @@ arities
 
 consts
 
-  "{|}"  :: "'a multiset"                        ("{|}")
-  addm   :: "['a multiset, 'a] => 'a multiset"
-  delm   :: "['a multiset, 'a] => 'a multiset"
-  countm :: "['a multiset, 'a => bool] => nat"
-  count  :: "['a multiset, 'a] => nat"
+  "{|}"  :: 'a multiset                        ("{|}")
+  addm   :: ['a multiset, 'a] => 'a multiset
+  delm   :: ['a multiset, 'a] => 'a multiset
+  countm :: ['a multiset, 'a => bool] => nat
+  count  :: ['a multiset, 'a] => nat
 
 rules
 

@@ -10,7 +10,7 @@ ParRed = Lambda + Commutation +
 
 consts  par_beta :: "(db * db) set"
 
-syntax  "=>" :: "[db,db] => bool" (infixl 50)
+syntax  "=>" :: [db,db] => bool (infixl 50)
 
 translations
   "s => t" == "(s,t) : par_beta"
@@ -23,8 +23,8 @@ inductive "par_beta"
     beta  "[| s => s'; t => t' |] ==> (Fun s) @ t => s'[t'/0]"
 
 consts
-  cd  :: "db => db"
-  deFun :: "db => db"
+  cd  :: db => db
+  deFun :: db => db
 
 primrec cd db
   cd_Var "cd(Var n) = Var n"

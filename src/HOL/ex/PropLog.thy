@@ -10,12 +10,12 @@ PropLog = Finite +
 datatype
     'a pl = false | var 'a ("#_" [1000]) | "->" ('a pl) ('a pl) (infixr 90)
 consts
-  thms :: "'a pl set => 'a pl set"
-  "|-" 	:: "['a pl set, 'a pl] => bool"	(infixl 50)
-  "|="	:: "['a pl set, 'a pl] => bool"	(infixl 50)
-  eval2	:: "['a pl, 'a set] => bool"
-  eval	:: "['a set, 'a pl] => bool"	("_[_]" [100,0] 100)
-  hyps	:: "['a pl, 'a set] => 'a pl set"
+  thms :: 'a pl set => 'a pl set
+  "|-" 	:: ['a pl set, 'a pl] => bool	(infixl 50)
+  "|="	:: ['a pl set, 'a pl] => bool	(infixl 50)
+  eval2	:: ['a pl, 'a set] => bool
+  eval	:: ['a set, 'a pl] => bool	("_[_]" [100,0] 100)
+  hyps	:: ['a pl, 'a set] => 'a pl set
 
 translations
   "H |- p" == "p : thms(H)"

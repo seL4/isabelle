@@ -16,11 +16,11 @@ types
 
 consts
 
- impl_fin_ioa    :: "('m action, 'm impl_fin_state)ioa"
- sen_fin         :: "'m impl_fin_state => 'm sender_state"
- rec_fin         :: "'m impl_fin_state => 'm receiver_state"
- srch_fin        :: "'m impl_fin_state => 'm packet list"
- rsch_fin        :: "'m impl_fin_state => bool list"
+ impl_fin_ioa    :: ('m action, 'm impl_fin_state)ioa
+ sen_fin         :: 'm impl_fin_state => 'm sender_state
+ rec_fin         :: 'm impl_fin_state => 'm receiver_state
+ srch_fin        :: 'm impl_fin_state => 'm packet list
+ rsch_fin        :: 'm impl_fin_state => bool list
 
 defs
 

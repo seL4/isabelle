@@ -10,7 +10,7 @@ Correctness = Solve + Impl + Spec +
 
 consts
 
-hom :: "'m impl_state => 'm list"
+hom :: 'm impl_state => 'm list
 
 defs
 

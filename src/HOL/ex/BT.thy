@@ -11,13 +11,13 @@ BT = List +
 datatype 'a bt = Lf  |  Br 'a ('a bt) ('a bt)
   
 consts
-    n_nodes	:: "'a bt => nat"
-    n_leaves   	:: "'a bt => nat"
-    reflect 	:: "'a bt => 'a bt"
-    bt_map      :: "('a=>'b) => ('a bt => 'b bt)"
-    preorder    :: "'a bt => 'a list"
-    inorder     :: "'a bt => 'a list"
-    postorder   :: "'a bt => 'a list"
+    n_nodes	:: 'a bt => nat
+    n_leaves   	:: 'a bt => nat
+    reflect 	:: 'a bt => 'a bt
+    bt_map      :: ('a=>'b) => ('a bt => 'b bt)
+    preorder    :: 'a bt => 'a list
+    inorder     :: 'a bt => 'a list
+    postorder   :: 'a bt => 'a list
 
 primrec n_nodes bt
   n_nodes_Lf "n_nodes (Lf) = 0"

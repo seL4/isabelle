@@ -14,8 +14,8 @@ types
 
 consts
 
-  hdr  :: "'msg packet => bool"
-  msg :: "'msg packet => 'msg"
+  hdr  :: 'msg packet => bool
+  msg :: 'msg packet => 'msg
 
 defs
 

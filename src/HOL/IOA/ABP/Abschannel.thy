@@ -14,21 +14,21 @@ datatype ('a)act =   S('a) | R('a)
 
 consts
  
-ch_asig  :: "'a act signature"
-ch_trans :: "('a act, 'a list)transition set"
-ch_ioa   :: "('a act, 'a list)ioa"
+ch_asig  :: 'a act signature
+ch_trans :: ('a act, 'a list)transition set
+ch_ioa   :: ('a act, 'a list)ioa
 
-rsch_actions  :: "'m action => bool act option"
+rsch_actions  :: 'm action => bool act option
 srch_actions  :: "'m action =>(bool * 'm) act option"
 
 srch_asig, 
-rsch_asig  :: "'m action signature"
+rsch_asig  :: 'm action signature
 
-srch_trans :: "('m action, 'm packet list)transition set"
-rsch_trans :: "('m action, bool list)transition set"
+srch_trans :: ('m action, 'm packet list)transition set
+rsch_trans :: ('m action, bool list)transition set
 
-srch_ioa   :: "('m action, 'm packet list)ioa"
-rsch_ioa   :: "('m action, bool list)ioa"   
+srch_ioa   :: ('m action, 'm packet list)ioa
+rsch_ioa   :: ('m action, bool list)ioa   
 
 
 defs

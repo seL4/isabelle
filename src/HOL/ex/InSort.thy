@@ -9,8 +9,8 @@ Insertion sort
 InSort  =  Sorting +
 
 consts
-  ins :: "[['a,'a]=>bool, 'a, 'a list] => 'a list"
-  insort :: "[['a,'a]=>bool, 'a list] => 'a list"
+  ins :: [['a,'a]=>bool, 'a, 'a list] => 'a list
+  insort :: [['a,'a]=>bool, 'a list] => 'a list
 
 primrec ins List.list
   ins_Nil  "ins f x [] = [x]"

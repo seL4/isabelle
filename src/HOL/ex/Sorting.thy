@@ -8,11 +8,11 @@ Specification of sorting
 
 Sorting = List +
 consts
-  sorted1:: "[['a,'a] => bool, 'a list] => bool"
-  sorted :: "[['a,'a] => bool, 'a list] => bool"
-  mset   :: "'a list => ('a => nat)"
-  total  :: "(['a,'a] => bool) => bool"
-  transf :: "(['a,'a] => bool) => bool"
+  sorted1:: [['a,'a] => bool, 'a list] => bool
+  sorted :: [['a,'a] => bool, 'a list] => bool
+  mset   :: 'a list => ('a => nat)
+  total  :: (['a,'a] => bool) => bool
+  transf :: (['a,'a] => bool) => bool
 
 rules
 

@@ -7,6 +7,6 @@ An question from "Bundeswettbewerb Mathematik"
 *)
 
 Puzzle = Nat +
-consts f :: "nat => nat"
+consts f :: nat => nat
 rules  f_ax "f(f(n)) < f(Suc(n))"
 end

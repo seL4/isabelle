@@ -12,11 +12,11 @@ Lambda = Arith +
 datatype db = Var nat | "@" db db (infixl 200) | Fun db
 
 consts
-  subst  :: "[db,db,nat]=>db" ("_[_'/_]" [300,0,0] 300)
-  lift   :: "[db,nat] => db"
+  subst  :: [db,db,nat]=>db ("_[_'/_]" [300,0,0] 300)
+  lift   :: [db,nat] => db
   (* optimized versions *)
-  substn :: "[db,db,nat] => db"
-  liftn  :: "[nat,db,nat] => db"
+  substn :: [db,db,nat] => db
+  liftn  :: [nat,db,nat] => db
 
 primrec lift db
   lift_Var "lift (Var i) k = (if i < k then Var i else Var(Suc i))"
@@ -42,7 +42,7 @@ primrec substn db
 
 consts  beta :: "(db * db) set"
 
-syntax  "->", "->>" :: "[db,db] => bool" (infixl 50)
+syntax  "->", "->>" :: [db,db] => bool (infixl 50)
 
 translations
   "s -> t"  == "(s,t) : beta"

@@ -17,8 +17,8 @@ types
   string = "char list"
 
 syntax
-  "_Char"       :: "xstr => char"       ("CHR _")
-  "_String"     :: "xstr => string"     ("_")
+  "_Char"       :: xstr => char       ("CHR _")
+  "_String"     :: xstr => string     ("_")
 
 end
 

@@ -32,34 +32,34 @@ arities
    llist :: (term)term
 
 consts
-  list_Fun   :: "['a item set, 'a item set] => 'a item set"
+  list_Fun   :: ['a item set, 'a item set] => 'a item set
   LListD_Fun :: 
       "[('a item * 'a item)set, ('a item * 'a item)set] => 
       ('a item * 'a item)set"
 
-  llist      :: "'a item set => 'a item set"
+  llist      :: 'a item set => 'a item set
   LListD     :: "('a item * 'a item)set => ('a item * 'a item)set"
   llistD_Fun :: "('a llist * 'a llist)set => ('a llist * 'a llist)set"
 
-  Rep_llist  :: "'a llist => 'a item"
-  Abs_llist  :: "'a item => 'a llist"
-  LNil       :: "'a llist"
-  LCons      :: "['a, 'a llist] => 'a llist"
+  Rep_llist  :: 'a llist => 'a item
+  Abs_llist  :: 'a item => 'a llist
+  LNil       :: 'a llist
+  LCons      :: ['a, 'a llist] => 'a llist
   
-  llist_case :: "['b, ['a, 'a llist]=>'b, 'a llist] => 'b"
+  llist_case :: ['b, ['a, 'a llist]=>'b, 'a llist] => 'b
 
   LList_corec_fun :: "[nat, 'a=>unit+('b item * 'a), 'a] => 'b item"
   LList_corec     :: "['a, 'a => unit + ('b item * 'a)] => 'b item"
   llist_corec     :: "['a, 'a => unit + ('b * 'a)] => 'b llist"
 
-  Lmap	     :: "('a item => 'b item) => ('a item => 'b item)"
-  lmap	     :: "('a=>'b) => ('a llist => 'b llist)"
+  Lmap	     :: ('a item => 'b item) => ('a item => 'b item)
+  lmap	     :: ('a=>'b) => ('a llist => 'b llist)
 
-  iterates   :: "['a => 'a, 'a] => 'a llist"
+  iterates   :: ['a => 'a, 'a] => 'a llist
 
-  Lconst     :: "'a item => 'a item"
-  Lappend    :: "['a item, 'a item] => 'a item"
-  lappend    :: "['a llist, 'a llist] => 'a llist"
+  Lconst     :: 'a item => 'a item
+  Lappend    :: ['a item, 'a item] => 'a item
+  lappend    :: ['a llist, 'a llist] => 'a llist
 
 
 coinductive "llist(A)"

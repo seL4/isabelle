@@ -16,14 +16,14 @@ types   'a term
 arities term :: (term)term
 
 consts
-  term		:: "'a item set => 'a item set"
-  Rep_term	:: "'a term => 'a item"
-  Abs_term	:: "'a item => 'a term"
-  Rep_Tlist	:: "'a term list => 'a item"
-  Abs_Tlist	:: "'a item => 'a term list"
-  App		:: "['a, ('a term)list] => 'a term"
-  Term_rec	:: "['a item, ['a item , 'a item, 'b list]=>'b] => 'b"
-  term_rec	:: "['a term, ['a ,'a term list, 'b list]=>'b] => 'b"
+  term		:: 'a item set => 'a item set
+  Rep_term	:: 'a term => 'a item
+  Abs_term	:: 'a item => 'a term
+  Rep_Tlist	:: 'a term list => 'a item
+  Abs_Tlist	:: 'a item => 'a term list
+  App		:: ['a, ('a term)list] => 'a term
+  Term_rec	:: ['a item, ['a item , 'a item, 'b list]=>'b] => 'b
+  term_rec	:: ['a term, ['a ,'a term list, 'b list]=>'b] => 'b
 
 inductive "term(A)"
   intrs

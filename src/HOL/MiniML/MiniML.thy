@@ -16,7 +16,7 @@ datatype
 consts
 	has_type :: "(type_expr list * expr * type_expr)set"
 syntax
-        "@has_type" :: "[type_expr list, expr, type_expr] => bool"
+        "@has_type" :: [type_expr list, expr, type_expr] => bool
                        ("((_) |-/ (_) :: (_))" 60)
 translations 
         "a |- e :: t" == "(a,e,t):has_type"

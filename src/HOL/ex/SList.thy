@@ -21,36 +21,36 @@ arities
 
 consts
 
-  list      :: "'a item set => 'a item set"
-  Rep_list  :: "'a list => 'a item"
-  Abs_list  :: "'a item => 'a list"
-  NIL       :: "'a item"
-  CONS      :: "['a item, 'a item] => 'a item"
-  Nil       :: "'a list"
-  "#"       :: "['a, 'a list] => 'a list"                   	(infixr 65)
-  List_case :: "['b, ['a item, 'a item]=>'b, 'a item] => 'b"
-  List_rec  :: "['a item, 'b, ['a item, 'a item, 'b]=>'b] => 'b"
-  list_case :: "['b, ['a, 'a list]=>'b, 'a list] => 'b"
-  list_rec  :: "['a list, 'b, ['a, 'a list, 'b]=>'b] => 'b"
-  Rep_map   :: "('b => 'a item) => ('b list => 'a item)"
-  Abs_map   :: "('a item => 'b) => 'a item => 'b list"
-  null      :: "'a list => bool"
-  hd        :: "'a list => 'a"
-  tl,ttl    :: "'a list => 'a list"
-  mem		:: "['a, 'a list] => bool"			(infixl 55)
-  list_all  :: "('a => bool) => ('a list => bool)"
-  map       :: "('a=>'b) => ('a list => 'b list)"
-  "@"	    :: "['a list, 'a list] => 'a list"			(infixr 65)
-  filter    :: "['a => bool, 'a list] => 'a list"
+  list      :: 'a item set => 'a item set
+  Rep_list  :: 'a list => 'a item
+  Abs_list  :: 'a item => 'a list
+  NIL       :: 'a item
+  CONS      :: ['a item, 'a item] => 'a item
+  Nil       :: 'a list
+  "#"       :: ['a, 'a list] => 'a list                   	(infixr 65)
+  List_case :: ['b, ['a item, 'a item]=>'b, 'a item] => 'b
+  List_rec  :: ['a item, 'b, ['a item, 'a item, 'b]=>'b] => 'b
+  list_case :: ['b, ['a, 'a list]=>'b, 'a list] => 'b
+  list_rec  :: ['a list, 'b, ['a, 'a list, 'b]=>'b] => 'b
+  Rep_map   :: ('b => 'a item) => ('b list => 'a item)
+  Abs_map   :: ('a item => 'b) => 'a item => 'b list
+  null      :: 'a list => bool
+  hd        :: 'a list => 'a
+  tl,ttl    :: 'a list => 'a list
+  mem		:: ['a, 'a list] => bool			(infixl 55)
+  list_all  :: ('a => bool) => ('a list => bool)
+  map       :: ('a=>'b) => ('a list => 'b list)
+  "@"	    :: ['a list, 'a list] => 'a list			(infixr 65)
+  filter    :: ['a => bool, 'a list] => 'a list
 
   (* list Enumeration *)
 
-  "[]"      :: "'a list"                            ("[]")
-  "@list"   :: "args => 'a list"                    ("[(_)]")
+  "[]"      :: 'a list                            ("[]")
+  "@list"   :: args => 'a list                    ("[(_)]")
 
   (* Special syntax for list_all and filter *)
-  "@Alls"	:: "[idt, 'a list, bool] => bool"	("(2Alls _:_./ _)" 10)
-  "@filter"	:: "[idt, 'a list, bool] => 'a list"	("(1[_:_ ./ _])")
+  "@Alls"	:: [idt, 'a list, bool] => bool	("(2Alls _:_./ _)" 10)
+  "@filter"	:: [idt, 'a list, bool] => 'a list	("(1[_:_ ./ _])")
 
 translations
   "[x, xs]"     == "x#[xs]"

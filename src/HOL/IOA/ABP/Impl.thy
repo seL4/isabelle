@@ -16,11 +16,11 @@ types
 
 
 consts
- impl_ioa    :: "('m action, 'm impl_state)ioa"
- sen         :: "'m impl_state => 'm sender_state"
- rec         :: "'m impl_state => 'm receiver_state"
- srch        :: "'m impl_state => 'm packet list"
- rsch        :: "'m impl_state => bool list"
+ impl_ioa    :: ('m action, 'm impl_state)ioa
+ sen         :: 'm impl_state => 'm sender_state
+ rec         :: 'm impl_state => 'm receiver_state
+ srch        :: 'm impl_state => 'm packet list
+ rsch        :: 'm impl_state => bool list
 
 defs
 

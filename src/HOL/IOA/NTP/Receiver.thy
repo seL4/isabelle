@@ -16,14 +16,14 @@ types
 
 consts
 
-  receiver_asig :: "'m action signature"
-  receiver_trans:: "('m action, 'm receiver_state)transition set"
-  receiver_ioa  :: "('m action, 'm receiver_state)ioa"
-  rq            :: "'m receiver_state => 'm list"
-  rsent         :: "'m receiver_state => bool multiset"
-  rrcvd         :: "'m receiver_state => 'm packet multiset"
-  rbit          :: "'m receiver_state => bool"
-  rsending      :: "'m receiver_state => bool"
+  receiver_asig :: 'm action signature
+  receiver_trans:: ('m action, 'm receiver_state)transition set
+  receiver_ioa  :: ('m action, 'm receiver_state)ioa
+  rq            :: 'm receiver_state => 'm list
+  rsent         :: 'm receiver_state => bool multiset
+  rrcvd         :: 'm receiver_state => 'm packet multiset
+  rbit          :: 'm receiver_state => bool
+  rsending      :: 'm receiver_state => bool
 
 defs
 

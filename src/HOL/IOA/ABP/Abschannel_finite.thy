@@ -10,22 +10,22 @@ Abschannel_finite = Abschannel+ IOA + Action + Lemmas + List +
  
 consts
  
-ch_fin_asig  :: "'a act signature"
+ch_fin_asig  :: 'a act signature
 
-ch_fin_trans :: "('a act, 'a list)transition set"
+ch_fin_trans :: ('a act, 'a list)transition set
 
-ch_fin_ioa   :: "('a act, 'a list)ioa"
+ch_fin_ioa   :: ('a act, 'a list)ioa
 
 srch_fin_asig, 
-rsch_fin_asig  :: "'m action signature"
+rsch_fin_asig  :: 'm action signature
 
-srch_fin_trans :: "('m action, 'm packet list)transition set"
-rsch_fin_trans :: "('m action, bool list)transition set"
+srch_fin_trans :: ('m action, 'm packet list)transition set
+rsch_fin_trans :: ('m action, bool list)transition set
 
-srch_fin_ioa   :: "('m action, 'm packet list)ioa"
-rsch_fin_ioa   :: "('m action, bool list)ioa"   
+srch_fin_ioa   :: ('m action, 'm packet list)ioa
+rsch_fin_ioa   :: ('m action, bool list)ioa   
 
-reverse        :: "'a list => 'a list"
+reverse        :: 'a list => 'a list
 
 primrec
   reverse List.list  

@@ -16,14 +16,14 @@ types
 
 
 consts
- impl_ioa    :: "('m action, 'm impl_state)ioa"
- sen         :: "'m impl_state => 'm sender_state"
- rec         :: "'m impl_state => 'm receiver_state"
- srch        :: "'m impl_state => 'm packet multiset"
- rsch        :: "'m impl_state => bool multiset"
+ impl_ioa    :: ('m action, 'm impl_state)ioa
+ sen         :: 'm impl_state => 'm sender_state
+ rec         :: 'm impl_state => 'm receiver_state
+ srch        :: 'm impl_state => 'm packet multiset
+ rsch        :: 'm impl_state => bool multiset
  inv1, inv2, 
- inv3, inv4  :: "'m impl_state => bool"
- hdr_sum     :: "'m packet multiset => bool => nat"
+ inv3, inv4  :: 'm impl_state => bool
+ hdr_sum     :: 'm packet multiset => bool => nat
 
 defs
 

@@ -21,16 +21,16 @@ types    'a tree
 arities  tree,forest :: (term)term
 
 consts
-  TF          :: "'a item set => 'a item set"
-  FNIL        :: "'a item"
-  TCONS,FCONS :: "['a item, 'a item] => 'a item"
-  Rep_Tree    :: "'a tree => 'a item"
-  Abs_Tree    :: "'a item => 'a tree"
-  Rep_Forest  :: "'a forest => 'a item"
-  Abs_Forest  :: "'a item => 'a forest"
-  Tcons       :: "['a, 'a forest] => 'a tree"
-  Fcons       :: "['a tree, 'a forest] => 'a forest"
-  Fnil        :: "'a forest"
+  TF          :: 'a item set => 'a item set
+  FNIL        :: 'a item
+  TCONS,FCONS :: ['a item, 'a item] => 'a item
+  Rep_Tree    :: 'a tree => 'a item
+  Abs_Tree    :: 'a item => 'a tree
+  Rep_Forest  :: 'a forest => 'a item
+  Abs_Forest  :: 'a item => 'a forest
+  Tcons       :: ['a, 'a forest] => 'a tree
+  Fcons       :: ['a tree, 'a forest] => 'a forest
+  Fnil        :: 'a forest
   TF_rec      :: "['a item, ['a item , 'a item, 'b]=>'b,     
                  'b, ['a item , 'a item, 'b, 'b]=>'b] => 'b"
   tree_rec    :: "['a tree, ['a, 'a forest, 'b]=>'b,          

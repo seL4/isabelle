@@ -10,9 +10,9 @@ Correctness = Solve + Env + Impl + Impl_finite +
 
 consts
 
-reduce           :: "'a list => 'a list"
+reduce           :: 'a list => 'a list
 
-abs              :: "'c"
+abs              :: 'c
 system_ioa       :: "('m action, bool * 'm impl_state)ioa"
 system_fin_ioa   :: "('m action, bool * 'm impl_state)ioa"
   
