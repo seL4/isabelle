@@ -47,6 +47,8 @@ next
   thus B ..
 qed
 
+lemmas atomize = all_eq imp_eq
+
 use "blastdata.ML"
 setup Blast.setup
 use "FOL_lemmas2.ML"
