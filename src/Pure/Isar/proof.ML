@@ -348,7 +348,8 @@ fun print_state nr (state as State (Node {context = ctxt, facts, mode, goal = _}
 
     fun prt_names names =
       (case filter_out (equal "") names of [] => ""
-      | nms => " " ^ enclose "(" ")" (space_implode " and " nms));
+      | nms => " " ^ enclose "(" ")" (space_implode " and " (take (7, nms) @
+          (if length nms > 7 then ["..."] else []))));
 
     fun prt_goal (_, (i, (((kind, names, _), (goal_facts, thm)), _))) =
       pretty_facts "using " ctxt
