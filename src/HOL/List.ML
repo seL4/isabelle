@@ -10,7 +10,8 @@ goal thy "!x. xs ~= x#xs";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed_spec_mp "not_Cons_self";
-Addsimps [not_Cons_self];
+bind_thm("not_Cons_self2",not_Cons_self RS not_sym);
+Addsimps [not_Cons_self,not_Cons_self2];
 
 goal thy "(xs ~= []) = (? y ys. xs = y#ys)";
 by (induct_tac "xs" 1);
@@ -94,6 +95,18 @@ by (ALLGOALS Asm_simp_tac);
 by (Blast_tac 1);
 qed "Nil_is_append_conv";
 AddIffs [Nil_is_append_conv];
+
+goal thy "(xs @ ys = xs) = (ys=[])";
+by (induct_tac "xs" 1);
+by (ALLGOALS Asm_simp_tac);
+qed "append_self_conv";
+
+goal thy "(xs = xs @ ys) = (ys=[])";
+by (induct_tac "xs" 1);
+by (ALLGOALS Asm_simp_tac);
+by (Blast_tac 1);
+qed "self_append_conv";
+AddIffs [append_self_conv,self_append_conv];
 
 goal thy "(xs @ ys = xs @ zs) = (ys=zs)";
 by (induct_tac "xs" 1);
