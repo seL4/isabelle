@@ -11,6 +11,7 @@ Semi-Automated Reasoning for Isabelle.  Interesting modules include:
 
   LocalDefs	(local definitions)
   Calculation	(calculational proofs)
+  ObtainFun     (generalized existence reasoning)
 
   Toplevel	(the Isabelle/Isar toplevel)
   IsarThy	(Isar derived theory operations)
