@@ -8,6 +8,8 @@ The Kerberos protocol, BAN version.
 From page 251 of
   Burrows, Abadi and Needham.  A Logic of Authentication.
   Proc. Royal Soc. 426 (1989)
+
+Tidied by lcp.
 *)
 
 open Kerberos_BAN;
@@ -27,9 +29,7 @@ AddEs spies_partsEs;
 AddDs [impOfSubs analz_subset_parts];
 AddDs [impOfSubs Fake_parts_insert];
 
-AddSIs [SesKeyLife_LB, AutLife_LB];
-
-Addsimps [SesKeyLife_LB, AutLife_LB];
+AddIffs [SesKeyLife_LB, AutLife_LB];
 
 
 (*A "possibility property": there are traces that reach the end.*)
@@ -263,41 +263,29 @@ qed "unique_session_keys";
 **)
 
 goal thy 
- "!!evs. [| A ~: bad;  B ~: bad;  evs : kerberos_ban |]               \
-\        ==> Says Server A                                            \
-\              (Crypt (shrK A) {|Number Ts, Agent B, Key K,           \
-\                            Crypt (shrK B) {|Number Ts, Agent A, Key K|}|})\
-\           : set evs -->                                             \
+ "!!evs. [| A ~: bad;  B ~: bad;  evs : kerberos_ban |]           \
+\    ==> Says Server A                                            \
+\            (Crypt (shrK A) {|Number Ts, Agent B, Key K,         \
+\                              Crypt (shrK B) {|Number Ts, Agent A, Key K|}|})\
+\           : set evs -->                                         \
 \        Key K : analz (spies evs) --> Expired Ts evs"; 
 by (etac kerberos_ban.induct 1);
 by analz_spies_tac;
 by (ALLGOALS
-    (asm_simp_tac (simpset() 
-		   addsimps ([analz_insert_eq, analz_insert_freshK] @ pushes @ split_ifs))));
+    (asm_simp_tac (simpset() addsimps ([analz_insert_eq, analz_insert_freshK]
+				       @ pushes))));
 (*Oops*)
 by (blast_tac (claset() addDs [unique_session_keys] addIs [less_SucI]) 4);
 (*Kb2*)
-by (fast_tac (claset() addIs [parts_insertI, less_SucI]) 2);
+by (blast_tac (claset() addIs [parts_insertI, less_SucI]) 2);
 (*Fake*) 
 by (spy_analz_tac 1);
 (**LEVEL 6 **)
-by (clarify_tac (claset() delrules [impCE]) 1);
-by (case_tac "Ba : bad" 1);
-by (blast_tac (claset() addIs [less_SucI]) 2);
-(**LEVEL 9**)
-by (rotate_tac 10 1);
-by (forward_tac [mp] 1 THEN assume_tac 1);
-by (etac disjE 1);
-by (blast_tac (claset() addIs [less_SucI]) 2);
-(**LEVEL 13**)
-by (Clarify_tac 1);
+(*Kb3*)
 by (case_tac "Aa : bad" 1);
-by (blast_tac (claset() addDs [Says_imp_spies RS parts.Inj,
-                               A_trusts_K_by_Kb2, unique_session_keys]) 2);
-(**LEVEL 16**)
-by (blast_tac (claset() addDs [Says_imp_spies RS analz.Inj RS 
-                               Crypt_Spy_analz_bad RS analz.Snd RS 
-                               analz.Snd RS analz.Fst]
+by (blast_tac (claset() addDs [A_trusts_K_by_Kb2, unique_session_keys]) 2);
+by (blast_tac (claset() addDs [Says_imp_spies RS analz.Inj,
+                               Crypt_Spy_analz_bad, analz.Fst, analz.Snd]
                         addIs [less_SucI]) 1);
 val lemma = result() RS mp RS mp RSN(1,rev_notE);
 
@@ -313,8 +301,7 @@ goal thy
 \           A ~: bad;  B ~: bad;  evs : kerberos_ban                \
 \        |] ==> Key K ~: analz (spies evs)";
 by (forward_tac [Says_Server_message_form] 1 THEN assume_tac 1);
-by (Clarify_tac 1);
-by (rtac ccontr 1);
+by (Clarify_tac 1);   (*prevents PROOF FAILED*)
 by (blast_tac (claset() addSEs [lemma]) 1);
 qed "Confidentiality_S";
 
@@ -330,8 +317,7 @@ goal thy
 \           ~ Expired T evs;          \
 \           A ~: bad;  B ~: bad;  evs : kerberos_ban                \
 \        |] ==> Key K ~: analz (spies evs)";
-by (blast_tac (claset() addSDs [A_trusts_K_by_Kb2, 
-                                Confidentiality_S]) 1);
+by (blast_tac (claset() addSDs [A_trusts_K_by_Kb2, Confidentiality_S]) 1);
 qed "Confidentiality_A";
 
 
@@ -359,21 +345,18 @@ by (etac kerberos_ban.induct 1);
 by (forward_tac [Says_S_message_form] 5 THEN assume_tac 5);     
 by (dtac Kb3_msg_in_parts_spies 5);
 by (forward_tac [Oops_parts_spies] 7);
-by (TRYALL (rtac impI));
-by (REPEAT_FIRST (dtac (spies_subset_spies_Says RS analz_mono RS contra_subsetD)));
+by (REPEAT (FIRSTGOAL analz_mono_contra_tac));
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [all_conj_distrib])));
-(**LEVEL 7**)
+(**LEVEL 6**)
 by (Blast_tac 1);
-by (REPEAT_FIRST (rtac impI ORELSE' etac conjE ORELSE' hyp_subst_tac));
+by (Clarify_tac 1);
 (*
 Subgoal 1: contradiction from the assumptions  
 Key K ~: used evs2  and Crypt K (Number Ta) : parts (spies evs2)
 *)
 by (dtac Crypt_imp_invKey_keysFor 1);
 by (Asm_full_simp_tac 1);
-(* the two tactics above detectthe contradiction*)
-by (rtac disjI1 1);
-by (thin_tac "?PP-->?QQ" 1); (*deletes the matching assumptions*)
+(* the two tactics above detect the contradiction*)
 by (case_tac "Ba : bad" 1);  (*splits up the subgoal by the stated case*)
 by (blast_tac (claset() addDs [Says_imp_spies RS parts.Inj RS parts.Fst RS 
                               B_trusts_K_by_Kb3, 
@@ -409,39 +392,24 @@ by (etac kerberos_ban.induct 1);
 by (forward_tac [Says_S_message_form] 5 THEN assume_tac 5);     
 by (forward_tac [Kb3_msg_in_parts_spies] 5);
 by (forward_tac [Oops_parts_spies] 7);
-by (TRYALL (rtac impI));
-by (REPEAT_FIRST (dtac (spies_subset_spies_Says RS analz_mono RS contra_subsetD)));
+by (REPEAT (FIRSTGOAL analz_mono_contra_tac));
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [all_conj_distrib])));
-(**LEVEL 7**)
+(**LEVEL 6**)
 by (Blast_tac 1);
-by (REPEAT_FIRST (rtac impI ORELSE' etac conjE ORELSE' hyp_subst_tac));
+by (Clarify_tac 1);
 by (dtac Crypt_imp_invKey_keysFor 1);
 by (Asm_full_simp_tac 1);
-by (rtac disjI1 1);
-(*Last Subgoal! ...to be refined...*)
-by (thin_tac "Says ?A Server ?X : set evs3" 1);
-by (dresolve_tac [Says_imp_spies RS parts.Inj] 1);
-by (dresolve_tac [Says_imp_spies RS parts.Inj] 1);
-by (dtac A_trusts_K_by_Kb2 1);
-by (assume_tac 1);
-by (assume_tac 1);
-by (dtac A_trusts_K_by_Kb2 1);
-by (assume_tac 1);
-by (assume_tac 1);
-by (dtac unique_session_keys 1);
-by (assume_tac 1);
-by (assume_tac 1);
-by (Blast_tac 1);
+by (blast_tac (claset() addDs [A_trusts_K_by_Kb2, unique_session_keys]) 1);
 val lemma_A = result();
 
 
 (*AUTHENTICATION OF A TO B*)
 goal thy
- "!!evs. [| Crypt K {|Agent A, Number Ta|} : parts (spies evs);           \
-\           Crypt (shrK B) {|Number Ts, Agent A, Key K|}       \
-\           : parts (spies evs);                                         \
-\           ~ Expired Ts evs;          \
-\           A ~: bad;  B ~: bad;  evs : kerberos_ban |]           \
+ "!!evs. [| Crypt K {|Agent A, Number Ta|} : parts (spies evs);  \
+\           Crypt (shrK B) {|Number Ts, Agent A, Key K|}         \
+\           : parts (spies evs);                                 \
+\           ~ Expired Ts evs;                                    \
+\           A ~: bad;  B ~: bad;  evs : kerberos_ban |]          \
 \        ==> Says A B {|Crypt (shrK B) {|Number Ts, Agent A, Key K|}, \       
 \                       Crypt K {|Agent A, Number Ta|}|} : set evs";
 by (blast_tac (claset() addSDs [B_trusts_K_by_Kb3]
