@@ -59,6 +59,11 @@ in add_thydata "HOL"
      ("claset", ThyMethods {merge = merge, put = put, get = get})
 end;
 
+fun claset_of tname =
+  case get_thydata tname "claset" of
+      None => empty_cs
+    | Some (CS_DATA cs) => cs;
+
 claset := HOL_cs;
 
 (*Better then ex1E for classical reasoner: needs no quantifier duplication!*)

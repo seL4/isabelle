@@ -349,7 +349,7 @@ fun RSmp th =
      _ $ (Const("op -->",_)$_$_) => th RS mp
   | _ => raise THM("RSmp",0,[th]));
 
-(*Used in qed_spec_mp, etc., which are declared in thy_data.ML*)
+(*Used in qed_spec_mp, etc.*)
 fun normalize_thm funs =
 let fun trans [] th = th
       | trans (f::fs) th = (trans funs (f th)) handle THM _ => trans fs th
@@ -357,6 +357,15 @@ in trans funs end;
 
 end;
 
+fun qed_spec_mp name =
+  let val thm = normalize_thm [RSspec,RSmp] (result())
+  in bind_thm(name, thm) end;
+
+fun qed_goal_spec_mp name thy s p = 
+	bind_thm (name, normalize_thm [RSspec,RSmp] (prove_goal thy s p));
+
+fun qed_goalw_spec_mp name thy defs s p = 
+	bind_thm (name, normalize_thm [RSspec,RSmp] (prove_goalw thy defs s p));
 
 (*Thus, assignments to the references claset and simpset are recorded
   with theory "HOL".  These files cannot be loaded directly in ROOT.ML.*)

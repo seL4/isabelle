@@ -401,6 +401,11 @@ in add_thydata "HOL"
      ("simpset", ThyMethods {merge = merge, put = put, get = get})
 end;
 
+fun simpset_of tname =
+  case get_thydata tname "simpset" of
+      None => empty_ss
+    | Some (SS_DATA ss) => ss;
+
 type dtype_info = {case_const:term,
                    case_rewrites:thm list,
                    constructors:term list,
@@ -424,10 +429,6 @@ let fun merge [] = DT_DATA []
 in add_thydata "HOL"
      ("datatypes", ThyMethods {merge = merge, put = put, get = get})
 end;
-
-
-add_thy_reader_file "thy_data.ML";
-
 
 
 
