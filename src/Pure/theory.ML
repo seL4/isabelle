@@ -79,19 +79,24 @@ sig
   val root_path: theory -> theory
   val add_space: string * string list -> theory -> theory
   val add_name: string -> theory -> theory
-  val init_data: Object.kind -> (Object.T * (Object.T -> Object.T) *
-    (Object.T * Object.T -> Object.T) * (Sign.sg -> Object.T -> unit)) -> theory -> theory
-  val print_data: Object.kind -> theory -> unit
-  val get_data: Object.kind -> (Object.T -> 'a) -> theory -> 'a
-  val put_data: Object.kind -> ('a -> Object.T) -> 'a -> theory -> theory
   val prep_ext: theory -> theory
   val prep_ext_merge: theory list -> theory
   val requires: theory -> string -> string -> unit
   val pre_pure: theory
 end;
 
+signature THEORY_PRIVATE =
+sig
+  include THEORY
+  val init_data: Object.kind -> (Object.T * (Object.T -> Object.T) *
+    (Object.T * Object.T -> Object.T) * (Sign.sg -> Object.T -> unit)) -> theory -> theory
+  val print_data: Object.kind -> theory -> unit
+  val get_data: Object.kind -> (Object.T -> 'a) -> theory -> 'a
+  val put_data: Object.kind -> ('a -> Object.T) -> 'a -> theory -> theory
+end;
 
-structure Theory: THEORY =
+
+structure Theory: THEORY_PRIVATE =
 struct
 
 

@@ -121,11 +121,6 @@ sig
   val add_space: string * string list -> sg -> sg
   val add_name: string -> sg -> sg
   val data_kinds: data -> string list
-  val init_data: Object.kind * (Object.T * (Object.T -> Object.T) *
-    (Object.T * Object.T -> Object.T) * (sg -> Object.T -> unit)) -> sg -> sg
-  val get_data: Object.kind -> (Object.T -> 'a) -> sg -> 'a
-  val put_data: Object.kind -> ('a -> Object.T) -> 'a -> sg -> sg
-  val print_data: Object.kind -> sg -> unit
   val merge_refs: sg_ref * sg_ref -> sg_ref
   val merge: sg * sg -> sg
   val prep_ext: sg -> sg
@@ -135,7 +130,17 @@ sig
   val class_of_const: string -> class
 end;
 
-structure Sign: SIGN =
+signature SIGN_PRIVATE =
+sig
+  include SIGN
+  val init_data: Object.kind * (Object.T * (Object.T -> Object.T) *
+    (Object.T * Object.T -> Object.T) * (sg -> Object.T -> unit)) -> sg -> sg
+  val get_data: Object.kind -> (Object.T -> 'a) -> sg -> 'a
+  val put_data: Object.kind -> ('a -> Object.T) -> 'a -> sg -> sg
+  val print_data: Object.kind -> sg -> unit
+end;
+
+structure Sign: SIGN_PRIVATE =
 struct
 
 
