@@ -507,6 +507,8 @@ done
 lemma inj_map[iff]: "inj (map f) = inj f"
 by (blast dest: inj_mapD intro: inj_mapI)
 
+lemma map_idI: "(\<And>x. x \<in> set xs \<Longrightarrow> f x = x) \<Longrightarrow> map f xs = xs"
+by (induct xs, auto)
 
 subsection {* @{text rev} *}
 
