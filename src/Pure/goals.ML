@@ -28,6 +28,7 @@ signature GOALS =
   val byev		: tactic list -> unit
   val chop		: unit -> unit
   val choplev		: int -> unit
+  val export_thy        : theory -> thm -> thm
   val export            : thm -> thm
   val fa		: unit -> unit
   val fd		: thm -> unit
@@ -141,8 +142,40 @@ fun varify th =
   end;
 
 (** exporting a theorem out of a locale means turning all meta-hyps into assumptions
-    and expand and cancel the locale definitions. It's relatively easy, because 
-    a definiendum is a locale const, hence Free, hence Var, after standard **)
+    and expand and cancel the locale definitions. 
+    export goes through all levels in case of nested locales, whereas
+    export_thy just goes one up. (Here the version with theory parameter, the real export
+    resides in Thy/context.ML **)
+
+fun get_top_scope_thms thy = 
+   let val sc = (Locale.get_scope_sg (sign_of thy))
+   in if (null sc) then (warning "No locale in theory"; [])
+      else map (#prop o rep_thm) (map #2 (#thms(snd(hd sc))))
+   end;
+
+fun implies_intr_some_hyps thy A_set th = 
+   let 
+       val sign = sign_of thy;
+       val used_As = A_set inter #hyps(rep_thm(th));
+       val ctl = map (cterm_of sign) used_As
+   in foldl (fn (x, y) => Thm.implies_intr y x) (th, ctl)
+   end; 
+
+fun standard_some thy A_set th =
+  let val {maxidx,...} = rep_thm th
+  in
+    th |> implies_intr_some_hyps thy A_set
+       |> forall_intr_frees |> forall_elim_vars (maxidx + 1)
+       |> Thm.strip_shyps |> Thm.implies_intr_shyps
+       |> zero_var_indexes |> Thm.varifyT |> Thm.compress
+  end;
+
+fun export_thy thy th = 
+  let val A_set = get_top_scope_thms thy
+  in
+     standard_some thy [] (Seq.hd ((REPEAT (FIRSTGOAL (rtac reflexive_thm))) (standard_some thy A_set th)))
+  end;
+
 val export = standard o Seq.hd o (REPEAT (FIRSTGOAL (rtac reflexive_thm))) o standard;
 
 (*Common treatment of "goal" and "prove_goal":

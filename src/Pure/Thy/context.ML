@@ -15,6 +15,7 @@ sig
   val Goalw: thm list -> string -> thm list
   val Open_locale: xstring -> unit
   val Close_locale: unit -> unit
+  val Export: thm -> thm
 end;
 
 signature CONTEXT =
@@ -89,7 +90,7 @@ fun Goalw thms s = Goals.atomic_goalw (the_context ()) thms s;
 
 fun Open_locale xname = (Locale.open_locale xname (the_context ()); ());
 fun Close_locale () = (Locale.close_locale (the_context ()); ());
-
+fun Export th = export_thy (the_context ()) th;
 
 end;
 
