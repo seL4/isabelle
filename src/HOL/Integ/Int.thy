@@ -239,15 +239,6 @@ by auto
 
 subsection{*Instances of the equations above, for zero*}
 
-(*instantiate a variable to zero and simplify*)
-
-declare zless_zminus [of 0, simplified, simp]
-declare zminus_zless [of _ 0, simplified, simp]
-declare zle_zminus   [of 0, simplified, simp]
-declare zminus_zle [of _ 0, simplified, simp]
-declare equation_zminus [of 0, simplified, simp]
-declare zminus_equation [of _ 0, simplified, simp]
-
 lemma negative_zless_0: "- (int (Suc n)) < 0"
 by (simp add: zless_def)
 
@@ -343,53 +334,10 @@ apply (case_tac "0 < z")
 apply (auto simp add: nat_mono_iff linorder_not_less)
 done
 
-(* a case theorem distinguishing non-negative and negative int *)  
 
-lemma int_cases: 
-     "[|!! n. z = int n ==> P;  !! n. z =  - (int (Suc n)) ==> P |] ==> P"
-apply (case_tac "neg z")
-apply (fast dest!: negD)
-apply (drule not_neg_nat [symmetric], auto) 
-done
+subsection{*Strict Monotonicity of Multiplication*}
 
-
-subsection{*Monotonicity of Multiplication*}
-
-lemma zmult_zle_mono1_lemma: "i \<le> (j::int) ==> i * int k \<le> j * int k"
-apply (induct_tac "k")
-apply (simp_all (no_asm_simp) add: int_Suc zadd_zmult_distrib2 zadd_zle_mono int_Suc0_eq_1)
-done
-
-lemma zmult_zle_mono1: "[| i \<le> j;  (0::int) \<le> k |] ==> i*k \<le> j*k"
-apply (rule_tac t = k in not_neg_nat [THEN subst])
-apply (erule_tac [2] zmult_zle_mono1_lemma)
-apply (simp (no_asm_use) add: not_neg_eq_ge_0)
-done
-
-lemma zmult_zle_mono1_neg: "[| i \<le> j;  k \<le> (0::int) |] ==> j*k \<le> i*k"
-apply (rule zminus_zle_zminus [THEN iffD1])
-apply (simp add: zmult_zminus_right [symmetric] zmult_zle_mono1 zle_zminus)
-done
-
-lemma zmult_zle_mono2: "[| i \<le> j;  (0::int) \<le> k |] ==> k*i \<le> k*j"
-apply (drule zmult_zle_mono1)
-apply (simp_all add: zmult_commute)
-done
-
-lemma zmult_zle_mono2_neg: "[| i \<le> j;  k \<le> (0::int) |] ==> k*j \<le> k*i"
-apply (drule zmult_zle_mono1_neg)
-apply (simp_all add: zmult_commute)
-done
-
-(* \<le> monotonicity, BOTH arguments*)
-lemma zmult_zle_mono: "[| i \<le> j;  k \<le> l;  (0::int) \<le> j;  (0::int) \<le> k |] ==> i*k \<le> j*l"
-apply (erule zmult_zle_mono1 [THEN order_trans], assumption)
-apply (erule zmult_zle_mono2, assumption)
-done
-
-
-subsection{*strict, in 1st argument; proof is by induction on k>0*}
-
+text{*strict, in 1st argument; proof is by induction on k>0*}
 lemma zmult_zless_mono2_lemma: "i<j ==> 0<k --> int k * i < int k * j"
 apply (induct_tac "k", simp) 
 apply (simp add: int_Suc)
@@ -422,6 +370,25 @@ proof
   show "i < j ==> 0 < k ==> k * i < k * j" by (simp add: zmult_zless_mono2)
   show "\<bar>i\<bar> = (if i < 0 then -i else i)" by (simp only: zabs_def)
 qed
+
+subsection{*Monotonicity of Multiplication*}
+
+lemma zmult_zle_mono1: "[| i \<le> j;  (0::int) \<le> k |] ==> i*k \<le> j*k"
+  by (rule mult_right_mono)
+
+lemma zmult_zle_mono1_neg: "[| i \<le> j;  k \<le> (0::int) |] ==> j*k \<le> i*k"
+  by (rule mult_right_mono_neg)
+
+lemma zmult_zle_mono2: "[| i \<le> j;  (0::int) \<le> k |] ==> k*i \<le> k*j"
+  by (rule mult_left_mono)
+
+lemma zmult_zle_mono2_neg: "[| i \<le> j;  k \<le> (0::int) |] ==> k*j \<le> k*i"
+  by (rule mult_left_mono_neg)
+
+(* \<le> monotonicity, BOTH arguments*)
+lemma zmult_zle_mono:
+     "[| i \<le> j;  k \<le> l;  (0::int) \<le> j;  (0::int) \<le> k |] ==> i*k \<le> j*l"
+  by (rule mult_mono)
 
 lemma zmult_zless_mono1: "[| i<j;  (0::int) < k |] ==> i*k < j*k"
   by (rule Ring_and_Field.mult_strict_right_mono)
@@ -466,6 +433,16 @@ lemma zdiff_int [rule_format]: "n\<le>m --> int m - int n = int (m-n)"
 apply (induct_tac m n rule: diff_induct)
 apply (auto simp add: int_Suc symmetric zdiff_def)
 done
+
+(* a case theorem distinguishing non-negative and negative int *)  
+
+lemma int_cases: 
+     "[|!! n. z = int n ==> P;  !! n. z =  - (int (Suc n)) ==> P |] ==> P"
+apply (case_tac "neg z")
+apply (fast dest!: negD)
+apply (drule not_neg_nat [symmetric], auto) 
+done
+
 
 
 

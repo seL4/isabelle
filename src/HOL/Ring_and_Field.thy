@@ -22,7 +22,7 @@ axclass semiring \<subseteq> zero, one, plus, times
 
   mult_assoc: "(a * b) * c = a * (b * c)"
   mult_commute: "a * b = b * a"
-  left_one [simp]: "1 * a = a"
+  mult_1 [simp]: "1 * a = a"
 
   left_distrib: "(a + b) * c = a * c + b * c"
   zero_neq_one [simp]: "0 \<noteq> 1"
@@ -133,10 +133,10 @@ by (subst neg_equal_iff_equal [symmetric], simp)
 
 subsection {* Derived rules for multiplication *}
 
-lemma right_one [simp]: "a = a * (1::'a::semiring)"
+lemma mult_1_right [simp]: "a * (1::'a::semiring) = a"
 proof -
-  have "a = 1 * a" by simp
-  also have "... = a * 1" by (simp add: mult_commute)
+  have "a * 1 = 1 * a" by (simp add: mult_commute)
+  also have "... = a" by simp
   finally show ?thesis .
 qed
 
@@ -217,6 +217,12 @@ subsection {* Ordering rules *}
 lemma add_right_mono: "a \<le> (b::'a::ordered_semiring) ==> a + c \<le> b + c"
 by (simp add: add_commute [of _ c] add_left_mono)
 
+text {* non-strict, in both arguments *}
+lemma add_mono: "[|a \<le> b;  c \<le> d|] ==> a + c \<le> b + (d::'a::ordered_semiring)"
+  apply (erule add_right_mono [THEN order_trans])
+  apply (simp add: add_commute add_left_mono)
+  done
+
 lemma le_imp_neg_le:
    assumes "a \<le> (b::'a::ordered_ring)" shows "-b \<le> -a"
   proof -
@@ -261,12 +267,14 @@ lemma mult_strict_right_mono:
 by (simp add: mult_commute [of _ c] mult_strict_left_mono)
 
 lemma mult_left_mono:
-     "[|a \<le> b; 0 < c|] ==> c * a \<le> c * (b::'a::ordered_semiring)"
-by (force simp add: mult_strict_left_mono order_le_less) 
+     "[|a \<le> b; 0 \<le> c|] ==> c * a \<le> c * (b::'a::ordered_ring)"
+  apply (case_tac "c=0", simp)
+  apply (force simp add: mult_strict_left_mono order_le_less) 
+  done
 
 lemma mult_right_mono:
-     "[|a \<le> b; 0 < c|] ==> a*c \<le> b * (c::'a::ordered_semiring)"
-by (force simp add: mult_strict_right_mono order_le_less) 
+     "[|a \<le> b; 0 \<le> c|] ==> a*c \<le> b * (c::'a::ordered_ring)"
+  by (simp add: mult_left_mono mult_commute [of _ c]) 
 
 lemma mult_strict_left_mono_neg:
      "[|b < a; c < 0|] ==> c * a < c * (b::'a::ordered_ring)"
@@ -281,12 +289,14 @@ apply (simp_all add: minus_mult_right [symmetric])
 done
 
 lemma mult_left_mono_neg:
-     "[|b \<le> a; c < 0|] ==> c * a \<le> c * (b::'a::ordered_ring)"
-by (force simp add: mult_strict_left_mono_neg order_le_less) 
+     "[|b \<le> a; c \<le> 0|] ==> c * a \<le> c * (b::'a::ordered_ring)"
+apply (drule mult_left_mono [of _ _ "-c"]) 
+apply (simp_all add: minus_mult_left [symmetric]) 
+done
 
 lemma mult_right_mono_neg:
-     "[|b \<le> a; c < 0|] ==> a * c \<le> b * (c::'a::ordered_ring)"
-by (force simp add: mult_strict_right_mono_neg order_le_less) 
+     "[|b \<le> a; c \<le> 0|] ==> a * c \<le> b * (c::'a::ordered_ring)"
+  by (simp add: mult_left_mono_neg mult_commute [of _ c]) 
 
 text{*Strict monotonicity in both arguments*}
 lemma mult_strict_mono:
@@ -294,6 +304,14 @@ lemma mult_strict_mono:
 apply (erule mult_strict_right_mono [THEN order_less_trans], assumption)
 apply (erule mult_strict_left_mono, assumption)
 done
+
+lemma mult_mono:
+     "[|a \<le> b; c \<le> d; 0 \<le> b; 0 \<le> c|] 
+      ==> a * c  \<le>  b * (d::'a::ordered_ring)"
+apply (erule mult_right_mono [THEN order_trans], assumption)
+apply (erule mult_left_mono, assumption)
+done
+
 
 subsection{*Cancellation Laws for Relationships With a Common Factor*}
 

@@ -211,7 +211,7 @@ fun find_first_coeff past u [] = raise TERM("find_first_coeff", [])
 
 (*Simplify 1*n and n*1 to n*)
 val add_0s  = map rename_numerals [add_0, add_0_right];
-val mult_1s = map rename_numerals [mult_1, mult_1_right];
+val mult_1s = map rename_numerals [thm"nat_mult_1", thm"nat_mult_1_right"];
 
 (*Final simplification: cancel + and *; replace Numeral0 by 0 and Numeral1 by 1*)
 
