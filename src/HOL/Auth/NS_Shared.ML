@@ -239,7 +239,7 @@ by (ALLGOALS
      (simpset() addsimps ([analz_insert_eq, analz_insert_freshK] @ 
 			  pushes @ split_ifs))));
 (*Oops*)
-by (blast_tac (claset() addSDs [unique_session_keys]) 5);
+by (blast_tac (claset() addDs [unique_session_keys]) 5);
 (*NS3, replay sub-case*) 
 by (Blast_tac 4);
 (*NS2*)
@@ -252,8 +252,9 @@ by (forward_tac [Says_imp_spies RS parts.Inj RS A_trusts_NS2] 1);
 by (assume_tac 2);
 by (blast_tac (claset() addDs [Says_imp_spies RS analz.Inj RS
 			       Crypt_Spy_analz_bad]) 1);
+(*PROOF FAILED if addDs*)
 by (blast_tac (claset() addSDs [unique_session_keys]) 1);
-val lemma = result() RS mp RS mp RSN(2,rev_notE);
+qed_spec_mp "lemma2";
 
 
 (*Final version: Server's message in the most abstract form*)
@@ -263,7 +264,8 @@ Goal "[| Says Server A                                        \
 \           A ~: bad;  B ~: bad;  evs : ns_shared                \
 \        |] ==> Key K ~: analz (spies evs)";
 by (forward_tac [Says_Server_message_form] 1 THEN assume_tac 1);
-by (blast_tac (claset() addSDs [lemma]) 1);
+by (blast_tac (claset() delrules [notI]
+			addIs [lemma2]) 1);
 qed "Spy_not_see_encrypted_key";
 
 
