@@ -119,11 +119,11 @@ Owre, S., Shankar, N., Rushby, J.~M.,
   1993,
 \newblock Beta release
 
-\bibitem{paulin92}
+\bibitem{paulin-tlca}
 Paulin-Mohring, C.,
 \newblock Inductive definitions in the system {Coq}: Rules and properties,
-\newblock Research Report 92-49, LIP, Ecole Normale Sup\'erieure de Lyon, Dec.
-  1992
+\newblock In {\em Typed Lambda Calculi and Applications\/} (1993), M.~Bezem
+  J.~Groote, Eds., LNCS 664, Springer, pp.~328--345
 
 \bibitem{paulson-markt}
 Paulson, L.~C.,
