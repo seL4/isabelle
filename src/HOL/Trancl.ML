@@ -195,9 +195,8 @@ by (REPEAT (eresolve_tac ([asm_rl,exE,disjE,conjE]@prems) 1));
 qed "rtranclE2";
 
 goal Trancl.thy "r O r^* = r^* O r";
-by (Step_tac 1);
- by (blast_tac (!claset addEs [rtranclE2] addIs [rtrancl_into_rtrancl]) 1);
-by (blast_tac (!claset addEs [rtranclE] addIs [rtrancl_into_rtrancl2]) 1);
+by (blast_tac (!claset addEs [rtranclE, rtranclE2] 
+	               addIs [rtrancl_into_rtrancl, rtrancl_into_rtrancl2]) 1);
 qed "r_comp_rtrancl_eq";
 
 
