@@ -12,19 +12,19 @@ open Bin;
 (** extra rules for bin_succ, bin_pred, bin_add, bin_mult **)
 
 qed_goal "norm_Bcons_Plus_0" Bin.thy
-    "norm_Bcons Plus False = Plus"
+    "norm_Bcons PlusSign False = PlusSign"
  (fn _ => [(Simp_tac 1)]);
 
 qed_goal "norm_Bcons_Plus_1" Bin.thy
-    "norm_Bcons Plus True = Bcons Plus True"
+    "norm_Bcons PlusSign True = Bcons PlusSign True"
  (fn _ => [(Simp_tac 1)]);
 
 qed_goal "norm_Bcons_Minus_0" Bin.thy
-    "norm_Bcons Minus False = Bcons Minus False"
+    "norm_Bcons MinusSign False = Bcons MinusSign False"
  (fn _ => [(Simp_tac 1)]);
 
 qed_goal "norm_Bcons_Minus_1" Bin.thy
-    "norm_Bcons Minus True = Minus"
+    "norm_Bcons MinusSign True = MinusSign"
  (fn _ => [(Simp_tac 1)]);
 
 qed_goal "norm_Bcons_Bcons" Bin.thy
@@ -74,11 +74,11 @@ qed_goal "bin_add_Bcons_Bcons0" Bin.thy
  (fn _ => [(simp_tac (!simpset addsimps [lemma]) 1)]);
 
 qed_goal "bin_add_Bcons_Plus" Bin.thy
-    "bin_add (Bcons v x) Plus = Bcons v x"
+    "bin_add (Bcons v x) PlusSign = Bcons v x"
  (fn _ => [(Simp_tac 1)]);
 
 qed_goal "bin_add_Bcons_Minus" Bin.thy
-    "bin_add (Bcons v x) Minus = bin_pred (Bcons v x)"
+    "bin_add (Bcons v x) MinusSign = bin_pred (Bcons v x)"
  (fn _ => [(Simp_tac 1)]);
 
 qed_goal "bin_add_Bcons_Bcons" Bin.thy
@@ -211,11 +211,11 @@ goal Bin.thy
                        zadd_zminus_inverse2]) 1); 
 val iob_eq_eq_diff_0 = result(); 
 
-goal Bin.thy "(integ_of_bin Plus = $# 0) = True"; 
+goal Bin.thy "(integ_of_bin PlusSign = $# 0) = True"; 
   by (stac iob_Plus 1); by (Simp_tac 1); 
 val iob_Plus_eq_0 = result(); 
 
-goal Bin.thy "(integ_of_bin Minus = $# 0) = False"; 
+goal Bin.thy "(integ_of_bin MinusSign = $# 0) = False"; 
   by (stac iob_Minus 1); 
   by (Simp_tac 1);
 val iob_Minus_not_eq_0 = result(); 
@@ -242,11 +242,11 @@ goalw Bin.thy [zless_def,zdiff_def]
   by (Simp_tac 1); 
 val iob_less_eq_diff_lt_0 = result(); 
 
-goal Bin.thy "(integ_of_bin Plus < $# 0) = False"; 
+goal Bin.thy "(integ_of_bin PlusSign < $# 0) = False"; 
   by (stac iob_Plus 1); by (Simp_tac 1); 
 val iob_Plus_not_lt_0 = result(); 
 
-goal Bin.thy "(integ_of_bin Minus < $# 0) = True"; 
+goal Bin.thy "(integ_of_bin MinusSign < $# 0) = True"; 
   by (stac iob_Minus 1); by (Simp_tac 1);
 val iob_Minus_lt_0 = result(); 
 
