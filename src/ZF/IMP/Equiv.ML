@@ -59,23 +59,25 @@ by (rewrite_tac (Gamma_def::C_rewrite_rules));
 by (fast_tac comp_cs 1);
 
 (* assign *)
-by (asm_full_simp_tac (ZF_ss addsimps [aexp1,assign_type] @
-                                      op_type_intrs) 1);
+by (asm_full_simp_tac (ZF_ss addsimps [aexp1,assign_type] @ op_type_intrs) 1);
+
 (* comp *)
 by (fast_tac comp_cs 1);
 
 (* if *)
-by (fast_tac (ZF_cs addSIs [bexp1] addIs  [(fst_conv RS ssubst)]) 1);
-by (fast_tac (ZF_cs addSIs [bexp1] addIs  [(fst_conv RS ssubst)]) 1);
+by (asm_simp_tac (ZF_ss addsimps [bexp1]) 1);
+by (asm_simp_tac (ZF_ss addsimps [bexp1]) 1);
 
 (* while *)
-by (etac (rewrite_rule [Gamma_def] (Gamma_bnd_mono RS lfp_Tarski RS ssubst)) 1);
-by (fast_tac (comp_cs addSIs [bexp1,idI]@evalb_type_intrs
-                      addIs  [(fst_conv RS ssubst)]) 1);
+by (etac (rewrite_rule [Gamma_def]
+	  (Gamma_bnd_mono RS lfp_Tarski RS ssubst)) 1);
+by (asm_simp_tac (ZF_ss addsimps [bexp1]) 1);
+by (fast_tac (comp_cs addSIs [bexp1,idI]@evalb_type_intrs) 1);
 
-by (etac (rewrite_rule [Gamma_def] (Gamma_bnd_mono RS lfp_Tarski RS ssubst)) 1);
-by (fast_tac (comp_cs addSIs [bexp1,compI]@evalb_type_intrs
-                      addIs  [(fst_conv RS ssubst)]) 1);
+by (etac (rewrite_rule [Gamma_def]
+	  (Gamma_bnd_mono RS lfp_Tarski RS ssubst)) 1);
+by (asm_simp_tac (ZF_ss addsimps [bexp1]) 1);
+by (fast_tac (comp_cs addSIs [bexp1,compI]@evalb_type_intrs) 1);
 
 val com1 = result();
 
