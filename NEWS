@@ -15,6 +15,10 @@ New in Isabelle99-2 (February 2001)
 
 *** Overview of INCOMPATIBILITIES ***
 
+* HOL: please note that theories in the Library and elsewhere often use the
+new-style (Isar) format; to refer to their theorems in an ML script you must
+bind them to ML identifers by e.g.	val thm_name = thm "thm_name";
+
 * HOL: inductive package no longer splits induction rule aggressively,
 but only as far as specified by the introductions given; the old
 format may be recovered via ML function complete_split_rule or attribute
