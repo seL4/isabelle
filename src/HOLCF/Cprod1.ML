@@ -11,11 +11,12 @@ Partial ordering for cartesian product of HOL theory Product_Type.thy
 (* less_cprod is a partial order on 'a * 'b                                 *)
 (* ------------------------------------------------------------------------ *)
 
+(*###TO Product_Type_lemmas.ML *)
 Goal "[|fst x = fst y; snd x = snd y|] ==> x = y";
 by (subgoal_tac "(fst x,snd x)=(fst y,snd y)" 1);
 by (rotate_tac ~1 1);
 by (asm_full_simp_tac(HOL_ss addsimps[surjective_pairing RS sym])1);
-by (asm_simp_tac (simpset_of Product_Type.thy) 1);
+by (asm_simp_tac (simpset_of (theory "Product_Type")) 1);
 qed "Sel_injective_cprod";
 
 Goalw [less_cprod_def] "(p::'a*'b) << p";

@@ -7,7 +7,11 @@ Ordered Pairs and the Cartesian product type.
 The unit type.
 *)
 
-Product_Type = Fun +
+theory Product_Type = Fun
+files 
+  ("Tools/split_rule.ML")
+  ("Product_Type_lemmas.ML")
+:
 
 
 (** products **)
@@ -15,31 +19,34 @@ Product_Type = Fun +
 (* type definition *)
 
 constdefs
-  Pair_Rep      :: ['a, 'b] => ['a, 'b] => bool
-  "Pair_Rep == (%a b. %x y. x=a & y=b)"
+  Pair_Rep :: "['a, 'b] => ['a, 'b] => bool"
+ "Pair_Rep == (%a b. %x y. x=a & y=b)"
 
 global
 
 typedef (Prod)
   ('a, 'b) "*"          (infixr 20)
     = "{f. ? a b. f = Pair_Rep (a::'a) (b::'b)}"
+proof
+  fix a b show "Pair_Rep a b : ?Prod"
+    by blast
+qed
 
 syntax (symbols)
-  "*"           :: [type, type] => type         ("(_ \\<times>/ _)" [21, 20] 20)
-
+  "*"      :: "[type, type] => type"         ("(_ \<times>/ _)" [21, 20] 20)
 syntax (HTML output)
-  "*"           :: [type, type] => type         ("(_ \\<times>/ _)" [21, 20] 20)
+  "*"      :: "[type, type] => type"         ("(_ \<times>/ _)" [21, 20] 20)
 
 
 (* abstract constants and syntax *)
 
 consts
-  fst           :: "'a * 'b => 'a"
-  snd           :: "'a * 'b => 'b"
-  split         :: "[['a, 'b] => 'c, 'a * 'b] => 'c"
-  prod_fun      :: "['a => 'b, 'c => 'd, 'a * 'c] => 'b * 'd"
-  Pair          :: "['a, 'b] => 'a * 'b"
-  Sigma         :: "['a set, 'a => 'b set] => ('a * 'b) set"
+  fst      :: "'a * 'b => 'a"
+  snd      :: "'a * 'b => 'b"
+  split    :: "[['a, 'b] => 'c, 'a * 'b] => 'c"
+  prod_fun :: "['a => 'b, 'c => 'd, 'a * 'c] => 'b * 'd"
+  Pair     :: "['a, 'b] => 'a * 'b"
+  Sigma    :: "['a set, 'a => 'b set] => ('a * 'b) set"
 
 
 (* patterns -- extends pre-defined type "pttrn" used in abstractions *)
@@ -51,11 +58,11 @@ syntax
   "_tuple"      :: "'a => tuple_args => 'a * 'b"        ("(1'(_,/ _'))")
   "_tuple_arg"  :: "'a => tuple_args"                   ("_")
   "_tuple_args" :: "'a => tuple_args => tuple_args"     ("_,/ _")
-  "_pattern"    :: [pttrn, patterns] => pttrn           ("'(_,/ _')")
-  ""            :: pttrn => patterns                    ("_")
-  "_patterns"   :: [pttrn, patterns] => patterns        ("_,/ _")
-  "@Sigma"      :: "[pttrn, 'a set, 'b set] => ('a * 'b) set"   ("(3SIGMA _:_./ _)" 10)
-  "@Times"      :: "['a set, 'a => 'b set] => ('a * 'b) set"    (infixr "<*>" 80)
+  "_pattern"    :: "[pttrn, patterns] => pttrn"         ("'(_,/ _')")
+  ""            :: "pttrn => patterns"                  ("_")
+  "_patterns"   :: "[pttrn, patterns] => patterns"      ("_,/ _")
+  "@Sigma" ::"[pttrn, 'a set, 'b set] => ('a * 'b) set" ("(3SIGMA _:_./ _)" 10)
+  "@Times" ::"['a set,  'a => 'b set] => ('a * 'b) set" (infixr "<*>" 80)
 
 translations
   "(x, y)"       == "Pair x y"
@@ -70,8 +77,10 @@ translations
   "A <*> B"      => "Sigma A (_K B)"
 
 syntax (symbols)
-  "@Sigma"      :: "[pttrn, 'a set, 'b set] => ('a * 'b) set"   ("(3\\<Sigma> _\\<in>_./ _)" 10)
-  "@Times"      :: "['a set, 'a => 'b set] => ('a * 'b) set"    ("_ \\<times> _" [81, 80] 80)
+  "@Sigma" :: "[pttrn, 'a set, 'b set] => ('a * 'b) set"  ("(3\<Sigma> _\<in>_./ _)"   10)
+  "@Times" :: "['a set,  'a => 'b set] => ('a * 'b) set"  ("_ \<times> _" [81, 80] 80)
+
+print_translation {* [("Sigma", dependent_tr' ("@Sigma", "@Times"))]; *}
 
 
 (* definitions *)
@@ -79,12 +88,12 @@ syntax (symbols)
 local
 
 defs
-  Pair_def      "Pair a b == Abs_Prod(Pair_Rep a b)"
-  fst_def       "fst p == @a. ? b. p = (a, b)"
-  snd_def       "snd p == @b. ? a. p = (a, b)"
-  split_def     "split == (%c p. c (fst p) (snd p))"
-  prod_fun_def  "prod_fun f g == split(%x y.(f(x), g(y)))"
-  Sigma_def     "Sigma A B == UN x:A. UN y:B(x). {(x, y)}"
+  Pair_def:     "Pair a b == Abs_Prod(Pair_Rep a b)"
+  fst_def:      "fst p == @a. ? b. p = (a, b)"
+  snd_def:      "snd p == @b. ? a. p = (a, b)"
+  split_def:    "split == (%c p. c (fst p) (snd p))"
+  prod_fun_def: "prod_fun f g == split(%x y.(f(x), g(y)))"
+  Sigma_def:    "Sigma A B == UN x:A. UN y:B(x). {(x, y)}"
 
 
 
@@ -92,7 +101,11 @@ defs
 
 global
 
-typedef  unit = "{True}"
+typedef  unit = "{True}" 
+proof
+  show "True : ?unit"
+    by blast
+qed
 
 consts
   "()"          :: unit                           ("'(')")
@@ -100,10 +113,11 @@ consts
 local
 
 defs
-  Unity_def     "() == Abs_unit True"
+  Unity_def:    "() == Abs_unit True"
+
+use "Product_Type_lemmas.ML"
+
+use "Tools/split_rule.ML"
+setup split_attributes
 
 end
-
-ML
-
-val print_translation = [("Sigma", dependent_tr' ("@Sigma", "@Times"))];

@@ -462,7 +462,8 @@ result();
 
 (*From Davis, Obvious Logical Inferences, IJCAI-81, 530-531
   Fast_tac indeed copes!*)
-goal Product_Type.thy "(ALL x. F(x) & ~G(x) --> (EX y. H(x,y) & J(y))) & \
+goal (theory "Product_Type") 
+             "(ALL x. F(x) & ~G(x) --> (EX y. H(x,y) & J(y))) & \
 \             (EX x. K(x) & F(x) & (ALL y. H(x,y) --> K(y))) &   \
 \             (ALL x. K(x) --> ~G(x))  -->  (EX x. K(x) & J(x))";
 by (Fast_tac 1);
@@ -470,7 +471,7 @@ result();
 
 (*From Rudnicki, Obvious Inferences, JAR 3 (1987), 383-393.  
   It does seem obvious!*)
-goal Product_Type.thy
+goal (theory "Product_Type")
     "(ALL x. F(x) & ~G(x) --> (EX y. H(x,y) & J(y))) &        \
 \    (EX x. K(x) & F(x) & (ALL y. H(x,y) --> K(y)))  &        \
 \    (ALL x. K(x) --> ~G(x))   -->   (EX x. K(x) --> ~G(x))";
@@ -488,7 +489,7 @@ Goal "(ALL x. honest(x) & industrious(x) --> healthy(x)) & \
 by (Blast_tac 1);
 result();
 
-goal Product_Type.thy
+goal (theory "Product_Type")
     "(ALL x y. R(x,y) | R(y,x)) &                \
 \    (ALL x y. S(x,y) & S(y,x) --> x=y) &        \
 \    (ALL x y. R(x,y) --> S(x,y))    -->   (ALL x y. S(x,y) --> R(x,y))";
