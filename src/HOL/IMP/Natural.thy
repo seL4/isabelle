@@ -11,11 +11,11 @@ theory Natural = Com:
 
 subsection "Execution of commands"
 
-consts  evalc  :: "(com \<times> state \<times> state) set" 
-        "@evalc" :: "[com,state,state] \<Rightarrow> bool" ("<_,_>/ -c-> _" [0,0,60] 60)
+consts  evalc   :: "(com \<times> state \<times> state) set" 
+syntax "_evalc" :: "[com,state,state] \<Rightarrow> bool" ("<_,_>/ -c-> _" [0,0,60] 60)
 
 syntax (xsymbols)
-  "@evalc" :: "[com,state,state] \<Rightarrow> bool" ("\<langle>_,_\<rangle>/ \<longrightarrow>\<^sub>c _" [0,0,60] 60)
+  "_evalc" :: "[com,state,state] \<Rightarrow> bool" ("\<langle>_,_\<rangle>/ \<longrightarrow>\<^sub>c _" [0,0,60] 60)
 
 text {*
   We write @{text "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c s'"} for \emph{Statement @{text c}, started 

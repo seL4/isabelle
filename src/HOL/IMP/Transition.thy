@@ -28,12 +28,12 @@ text {*
   @{text option} part in configurations:
 *}
 syntax
-  "@angle" :: "[com, state] \<Rightarrow> com option \<times> state" ("<_,_>")
-  "@angle2" :: "state \<Rightarrow> com option \<times> state" ("<_>")
+  "_angle" :: "[com, state] \<Rightarrow> com option \<times> state" ("<_,_>")
+  "_angle2" :: "state \<Rightarrow> com option \<times> state" ("<_>")
 
 syntax (xsymbols)
-  "@angle" :: "[com, state] \<Rightarrow> com option \<times> state" ("\<langle>_,_\<rangle>")
-  "@angle2" :: "state \<Rightarrow> com option \<times> state" ("\<langle>_\<rangle>")
+  "_angle" :: "[com, state] \<Rightarrow> com option \<times> state" ("\<langle>_,_\<rangle>")
+  "_angle2" :: "state \<Rightarrow> com option \<times> state" ("\<langle>_\<rangle>")
 
 translations
   "\<langle>c,s\<rangle>" == "(Some c, s)"
@@ -44,19 +44,19 @@ text {*
   iteration.
 *}
 syntax
-  "@evalc1" :: "[(com option\<times>state),(com option\<times>state)] \<Rightarrow> bool"
+  "_evalc1" :: "[(com option\<times>state),(com option\<times>state)] \<Rightarrow> bool"
     ("_ -1-> _" [60,60] 60)
-  "@evalcn" :: "[(com option\<times>state),nat,(com option\<times>state)] \<Rightarrow> bool"
+  "_evalcn" :: "[(com option\<times>state),nat,(com option\<times>state)] \<Rightarrow> bool"
     ("_ -_-> _" [60,60,60] 60)
-  "@evalc*" :: "[(com option\<times>state),(com option\<times>state)] \<Rightarrow> bool"
+  "_evalc*" :: "[(com option\<times>state),(com option\<times>state)] \<Rightarrow> bool"
     ("_ -*-> _" [60,60] 60)
 
 syntax (xsymbols)
-  "@evalc1" :: "[(com option\<times>state),(com option\<times>state)] \<Rightarrow> bool"
+  "_evalc1" :: "[(com option\<times>state),(com option\<times>state)] \<Rightarrow> bool"
     ("_ \<longrightarrow>\<^sub>1 _" [60,60] 61)
-  "@evalcn" :: "[(com option\<times>state),nat,(com option\<times>state)] \<Rightarrow> bool"
+  "_evalcn" :: "[(com option\<times>state),nat,(com option\<times>state)] \<Rightarrow> bool"
     ("_ -_\<rightarrow>\<^sub>1 _" [60,60,60] 60)
-  "@evalc*" :: "[(com option\<times>state),(com option\<times>state)] \<Rightarrow> bool"
+  "_evalc*" :: "[(com option\<times>state),(com option\<times>state)] \<Rightarrow> bool"
     ("_ \<longrightarrow>\<^sub>1\<^sup>* _" [60,60] 60)
 
 translations

@@ -14,7 +14,7 @@ constdefs hoare_valid :: "[assn,com,assn] => bool" ("|= {(1_)}/ (_)/ {(1_)}" 50)
           "|= {P}c{Q} == !s t. (s,t) : C(c) --> P s --> Q t"
 
 consts hoare :: "(assn * com * assn) set"
-syntax "@hoare" :: "[bool,com,bool] => bool" ("|- ({(1_)}/ (_)/ {(1_)})" 50)
+syntax "_hoare" :: "[bool,com,bool] => bool" ("|- ({(1_)}/ (_)/ {(1_)})" 50)
 translations "|- {P}c{Q}" == "(P,c,Q) : hoare"
 
 inductive hoare

@@ -19,15 +19,15 @@ text {* We describe execution of programs in the machine by
 consts  stepa1 :: "instr list \<Rightarrow> ((state\<times>nat) \<times> (state\<times>nat))set"
 
 syntax
-  "@stepa1" :: "[instr list,state,nat,state,nat] \<Rightarrow> bool"
+  "_stepa1" :: "[instr list,state,nat,state,nat] \<Rightarrow> bool"
                ("_ |- <_,_>/ -1-> <_,_>" [50,0,0,0,0] 50)
-  "@stepa" :: "[instr list,state,nat,state,nat] \<Rightarrow> bool"
+  "_stepa" :: "[instr list,state,nat,state,nat] \<Rightarrow> bool"
                ("_ |-/ <_,_>/ -*-> <_,_>" [50,0,0,0,0] 50)
 
 syntax (xsymbols)
-  "@stepa1" :: "[instr list,state,nat,state,nat] \<Rightarrow> bool"
+  "_stepa1" :: "[instr list,state,nat,state,nat] \<Rightarrow> bool"
                ("_ \<turnstile> \<langle>_,_\<rangle>/ -1\<rightarrow> \<langle>_,_\<rangle>" [50,0,0,0,0] 50)
-  "@stepa" :: "[instr list,state,nat,state,nat] \<Rightarrow> bool"
+  "_stepa" :: "[instr list,state,nat,state,nat] \<Rightarrow> bool"
                ("_ \<turnstile>/ \<langle>_,_\<rangle>/ -*\<rightarrow> \<langle>_,_\<rangle>" [50,0,0,0,0] 50)
 
 translations  

@@ -253,7 +253,8 @@ fun frozen_tvars ctxt Ts =
 fun unify_frozen ctxt maxidx Ts Us =
   let
     val tsig = Sign.tsig_of (ProofContext.sign_of ctxt);
-    fun unify (env, (Some T, Some U)) = Type.unify tsig env (U, T)
+    fun unify (env, (Some T, Some U)) = (Type.unify tsig env (U, T)
+          handle Type.TUNIFY => raise TYPE ("unify_frozen: failed to unify types", [U, T], []))
       | unify (env, _) = env;
     fun paramify (i, None) = (i, None)
       | paramify (i, Some T) = apsnd Some (Type.paramify_dummies (i, T));
@@ -378,13 +379,13 @@ end;
 
 (* activate elements *)
 
-fun declare_fixes (s: string) fixes = (PolyML.print s; PolyML.print fixes;
+fun declare_fixes fixes =
   ProofContext.add_syntax fixes o
-  ProofContext.fix_direct (map (fn (x, T, _) => ([x], T)) fixes));
+  ProofContext.fix_direct (map (fn (x, T, _) => ([x], T)) fixes);
 
 local
 
-fun activate_elem (Fixes fixes) = declare_fixes "activate_elem" fixes
+fun activate_elem (Fixes fixes) = declare_fixes fixes
   | activate_elem (Assumes asms) =
       #1 o ProofContext.assume_i ProofContext.export_assume asms o
       ProofContext.fix_frees (flat (map (map #1 o #2) asms))
@@ -394,11 +395,17 @@ fun activate_elem (Fixes fixes) = declare_fixes "activate_elem" fixes
         in ((if name = "" then Thm.def_name c else name, atts), [(t', (ps, []))]) end) defs) ctxt))
   | activate_elem (Notes facts) = #1 o ProofContext.have_thmss facts;
 
-in
-
 fun activate_elems ((name, ps), elems) = ProofContext.qualified (fn ctxt =>
   foldl (fn (c, e) => activate_elem e c) (ctxt, elems) handle ProofContext.CONTEXT (msg, ctxt) =>
     err_in_locale ctxt msg [(name, map fst ps)]);
+
+in
+
+fun activate_facts prep_facts (ctxt, ((name, ps), raw_elems)) =
+  let
+    val elems = map (prep_facts ctxt) raw_elems;
+    val res = ((name, ps), elems);
+  in (ctxt |> activate_elems res, res) end;
 
 end;
 
@@ -411,6 +418,20 @@ end;
 fun intern_expr sg (Locale xname) = Locale (intern sg xname)
   | intern_expr sg (Merge exprs) = Merge (map (intern_expr sg) exprs)
   | intern_expr sg (Rename (expr, xs)) = Rename (intern_expr sg expr, xs);
+
+
+(* attributes *)
+
+local fun read_att attrib (x, srcs) = (x, map attrib srcs) in
+
+fun attribute _ (Elem (Fixes fixes)) = Elem (Fixes fixes)
+  | attribute attrib (Elem (Assumes asms)) = Elem (Assumes (map (apfst (read_att attrib)) asms))
+  | attribute attrib (Elem (Defines defs)) = Elem (Defines (map (apfst (read_att attrib)) defs))
+  | attribute attrib (Elem (Notes facts)) =
+      Elem (Notes (map (apfst (read_att attrib) o apsnd (map (read_att attrib))) facts))
+  | attribute _ (Expr expr) = Expr expr;
+
+end;
 
 
 (* parameters *)
@@ -436,12 +457,12 @@ datatype ('a, 'b) int_ext = Int of 'a | Ext of 'b;
 local
 
 fun declare_int_elem i (ctxt, Fixes fixes) =
-      (ctxt |> declare_fixes "declare_int_elem" (map (fn (x, T, mx) =>
+      (ctxt |> declare_fixes (map (fn (x, T, mx) =>
         (x, apsome (Term.map_type_tfree (Type.param i)) T, mx)) fixes), [])
   | declare_int_elem _ (ctxt, _) = (ctxt, []);
 
 fun declare_ext_elem prep_fixes (ctxt, Fixes fixes) =
-      (ctxt |> declare_fixes "declare_ext_elem" (prep_fixes ctxt fixes), [])
+      (ctxt |> declare_fixes (prep_fixes ctxt fixes), [])
   | declare_ext_elem _ (ctxt, Assumes asms) = (ctxt, map #2 asms)
   | declare_ext_elem _ (ctxt, Defines defs) = (ctxt, map (fn (_, (t, ps)) => [(t, (ps, []))]) defs)
   | declare_ext_elem _ (ctxt, Notes facts) = (ctxt, []);
@@ -450,7 +471,7 @@ fun declare_elems prep_fixes ((ctxt, i), ((name, ps), elems)) =
   let val (ctxt', propps) =
     (case elems of
       Int es => foldl_map (declare_int_elem i) (ctxt, es)
-    | Ext es => foldl_map (declare_ext_elem prep_fixes) (ctxt, es))
+    | Ext e => foldl_map (declare_ext_elem prep_fixes) (ctxt, [e]))
     handle ProofContext.CONTEXT (msg, ctxt) => err_in_locale ctxt msg [(name, map fst ps)]
   in ((ctxt', i + 1), propps) end;
 
@@ -477,7 +498,7 @@ fun finish_elems ctxt parms close (((name, ps), elems), propps) =
     val elems' =
       (case elems of
         Int es => map Int (#2 (hd (unify_elemss ctxt parms [((name, ps), es)])))
-      | Ext es => map2 (finish_elem parms close) (es, propps));
+      | Ext e => [finish_elem parms close (e, hd propps)]);
     val ps' = map (fn (x, _) => (x, assoc (parms, x))) ps;
   in ((name, ps'), elems') end;
 
@@ -542,22 +563,7 @@ fun get_facts_i x = prep_facts (K I) x;
 end;
 
 
-(* attributes *)
-
-local fun read_att attrib (x, srcs) = (x, map attrib srcs) in
-
-fun attribute _ (Elem (Fixes fixes)) = Elem (Fixes fixes)
-  | attribute attrib (Elem (Assumes asms)) = Elem (Assumes (map (apfst (read_att attrib)) asms))
-  | attribute attrib (Elem (Defines defs)) = Elem (Defines (map (apfst (read_att attrib)) defs))
-  | attribute attrib (Elem (Notes facts)) =
-      Elem (Notes (map (apfst (read_att attrib) o apsnd (map (read_att attrib))) facts))
-  | attribute _ (Expr expr) = Expr expr;
-
-end;
-
-
-
-(** prepare context statements: import + elements + conclusion **)
+(* full context statements: import + elements + conclusion *)
 
 local
 
@@ -565,24 +571,19 @@ fun prep_context_statement prep_expr prep_elemss prep_facts
     close fixed_params import elements raw_concl context =
   let
     val sign = ProofContext.sign_of context;
-    fun flatten (Elem (Fixes fixes)) = [(("", map (rpair None o #1) fixes), Ext [Fixes fixes])]
-      | flatten (Elem elem) = [(("", []), Ext [elem])]
+    fun flatten (Elem (Fixes fixes)) = [(("", map (rpair None o #1) fixes), Ext (Fixes fixes))]
+      | flatten (Elem elem) = [(("", []), Ext elem)]
       | flatten (Expr expr) = map (apsnd Int) (flatten_expr context (prep_expr sign expr));
+    val activate = activate_facts prep_facts;
 
     val raw_import_elemss = flatten (Expr import);
     val raw_elemss = flat (map flatten elements);
     val (parms, all_elemss, concl) =
       prep_elemss close context fixed_params (raw_import_elemss @ raw_elemss) raw_concl;
 
-    fun activate_facts (ctxt, ((name, ps), raw_elems)) =
-      let
-        val elems = map (prep_facts ctxt) raw_elems;
-        val res = ((name, ps), elems);
-      in (ctxt |> activate_elems res, res) end;
-
     val n = length raw_import_elemss;
-    val (import_ctxt, import_elemss) = foldl_map activate_facts (context, take (n, all_elemss));
-    val (ctxt, elemss) = foldl_map activate_facts (import_ctxt, drop (n, all_elemss));
+    val (import_ctxt, import_elemss) = foldl_map activate (context, take (n, all_elemss));
+    val (ctxt, elemss) = foldl_map activate (import_ctxt, drop (n, all_elemss));
   in (((import_ctxt, import_elemss), (ctxt, elemss)), concl) end;
 
 val gen_context = prep_context_statement intern_expr read_elemss get_facts;

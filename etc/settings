@@ -14,7 +14,7 @@
 # binaries.  Do not invent new ML system names unless you know what
 # you are doing.  Only one of the sections below should be activated.
 
-# Poly/ML 3.x and 4.0 or later
+# Poly/ML 3.x, 4.0, 4.1, and 4.1.1
 if [ -e /usr/bin/poly -a -e /usr/lib/poly ]; then
   #maybe a shrink-wrapped polyml-4.1.1 on x86-linux ...
   ML_SYSTEM=polyml-4.1.1
@@ -120,7 +120,7 @@ fi
 [ -n "$ISABELLE_SITE_SETTINGS_PRESENT" ] && \
   { echo >&2 "### Isabelle site settings already present!  Maybe copied etc/settings in full?"; }
 
-# Users may want to change this.
+# Users may want to override this.
 ISABELLE_LOGIC=HOL
 
 
