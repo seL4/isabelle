@@ -48,7 +48,7 @@ sig
   val local_path: theory -> theory
   val begin_theory: string -> theory list -> theory
   val end_theory: theory -> theory
-  val backup: theory -> theory
+  val checkpoint: theory -> theory
   val add_typedecls: (bstring * string list * mixfix) list -> theory -> theory
   val dummy_patternN: string
 end;
@@ -361,16 +361,14 @@ fun begin_theory name thys =
 
 fun end_theory thy = Theory.add_name (get_name thy) thy;
 
-
-(* make backup copy *)
-
-fun backup thy =
-  let val {name, version} = get_info thy in
-    thy
-    |> Theory.prep_ext
-    |> Theory.add_name ("#" ^ name ^ ":" ^ string_of_int version)
-    |> put_info {name = name, version = version + 1}
-  end;
+fun checkpoint thy =
+  if is_draft thy then
+    let val {name, version} = get_info thy in
+      thy
+      |> Theory.add_name (name ^ ":" ^ string_of_int version)
+      |> put_info {name = name, version = version + 1}
+    end
+  else thy;
 
 
 
