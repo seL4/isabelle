@@ -4,6 +4,15 @@ Isabelle NEWS -- history user-relevant changes
 New in this Isabelle release
 ----------------------------
 
+*** HOL ***
+
+* 'specification' command added, allowing for definition by
+specification.
+
+
+New in Isabelle2003 (May 2003)
+--------------------------------
+
 *** General ***
 
 * Provers/simplifier:
@@ -109,9 +118,6 @@ rather than just a warning (in interactive mode);
 
 
 *** HOL ***
-
-* 'specification' command added, allowing for definition by
-specification.
 
 * arith(_tac)
 
