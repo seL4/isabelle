@@ -38,18 +38,16 @@ val strenthen_pre = prove_goalw thy [Spec_def]
   (fn [prem1,prem2] =>[cut_facts_tac [prem2] 1,
                        fast_tac (!claset addIs [prem1]) 1]);
 
-val [iter_0,iter_Suc] = nat_recs Iter_def;
-
 val lemma = prove_goalw thy [Spec_def,While_def]
-  "[| Spec (%s.inv s & b s) c inv; !!s. [| inv s; ~b s |] ==> q s |] \
-\  ==> Spec inv (While b inv c) q"
+  "[| Spec (%s.I s & b s) c I; !!s. [| I s; ~b s |] ==> q s |] \
+\  ==> Spec I (While b I c) q"
   (fn [prem1,prem2] =>
      [REPEAT(rtac allI 1), rtac impI 1, etac exE 1, rtac mp 1, atac 2,
       etac thin_rl 1, res_inst_tac[("x","s")]spec 1,
       res_inst_tac[("x","s'")]spec 1, nat_ind_tac "n" 1,
-      simp_tac (!simpset addsimps [iter_0]) 1,
+      Simp_tac 1,
       fast_tac (!claset addIs [prem2]) 1,
-      simp_tac (!simpset addsimps [iter_Suc,Seq_def]) 1,
+      simp_tac (!simpset addsimps [Seq_def]) 1,
       cut_facts_tac [prem1] 1, fast_tac (!claset addIs [prem2]) 1]);
 
 val WhileRule = lemma RSN (2,strenthen_pre);

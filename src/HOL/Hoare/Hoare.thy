@@ -42,12 +42,15 @@ constdefs
   Cond          :: ['a bexp, 'a com, 'a com] => 'a com
   "Cond b c c' s s' == (b(s) --> c s s') & (~b s --> c' s s')"
 
-  While         :: ['a bexp, 'a bexp, 'a com] => 'a com
-  "While b inv c s s' == ? n. Iter n b c s s'"
-
+consts
   Iter          :: [nat, 'a bexp, 'a com] => 'a com
-  "Iter n b c == nat_rec (%s s'.~b(s) & (s=s'))
-             (%n_rec iter_rec.%s s'.b(s) & Seq c iter_rec s s') n"
+primrec Iter nat
+  "Iter 0 b c = (%s s'.~b(s) & (s=s'))"
+  "Iter (Suc n) b c = (%s s'. b(s) & Seq c (Iter n b c) s s')"
+
+constdefs
+  While         :: ['a bexp, 'a bexp, 'a com] => 'a com
+  "While b I c s s' == ? n. Iter n b c s s'"
 
   Spec          :: ['a bexp, 'a com, 'a bexp] => bool
   "Spec p c q == !s s'. c s s' --> p s --> q s'"
