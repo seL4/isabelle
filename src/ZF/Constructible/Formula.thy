@@ -1,3 +1,9 @@
+(*  Title:      ZF/Constructible/Formula.thy
+    ID: $Id$
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   2002  University of Cambridge
+*)
+
 header {* First-Order Formulas and the Definition of the Class L *}
 
 theory Formula = Main:

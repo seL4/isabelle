@@ -1,3 +1,9 @@
+(*  Title:      ZF/Constructible/WF_absolute.thy
+    ID:         $Id$
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   2002  University of Cambridge
+*)
+
 header {*Absoluteness for Well-Founded Relations and Well-Founded Recursion*}
 
 theory WF_absolute = WFrec:
@@ -310,7 +316,8 @@ apply (rule strong_replacement_closed)
  apply (rule univalent_is_recfun)
    apply (blast intro: wellfounded_trancl)
   apply (rule trans_trancl)
- apply (simp add: trancl_subset_times, blast)
+ apply (simp add: trancl_subset_times) 
+apply (blast dest: transM) 
 done
 
 lemma (in M_wfrank) Ord_wfrank_range [rule_format]:
@@ -569,7 +576,7 @@ apply (subst wfrec, assumption, clarify)
 apply (drule_tac x1=x and x="\<lambda>x\<in>r -`` {x}. wfrec(r, x, H)" 
        in rspec [THEN rspec]) 
 apply (simp_all add: function_lam) 
-apply (blast intro: lam_closed dest: pair_components_in_M ) 
+apply (blast intro: lam_closed dest: pair_components_in_M) 
 done
 
 text{*Eliminates one instance of replacement.*}

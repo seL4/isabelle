@@ -1,3 +1,9 @@
+(*  Title:      ZF/Constructible/Normal.thy
+    ID:         $Id$
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   2002  University of Cambridge
+*)
+
 header {*Closed Unbounded Classes and Normal Functions*}
 
 theory Normal = Main:

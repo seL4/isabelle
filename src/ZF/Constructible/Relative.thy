@@ -1,3 +1,9 @@
+(*  Title:      ZF/Constructible/Relative.thy
+    ID:         $Id$
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   2002  University of Cambridge
+*)
+
 header {*Relativization and Absoluteness*}
 
 theory Relative = Main:
@@ -42,6 +48,9 @@ constdefs
 
   is_Collect :: "[i=>o,i,i=>o,i] => o"
     "is_Collect(M,A,P,z) == \<forall>x[M]. x \<in> z <-> x \<in> A & P(x)"
+
+  is_Replace :: "[i=>o,i,[i,i]=>o,i] => o"
+    "is_Replace(M,A,P,z) == \<forall>u[M]. u \<in> z <-> (\<exists>x[M]. x\<in>A & P(x,u))"
 
   inter :: "[i=>o,i,i,i] => o"
     "inter(M,a,b,z) == \<forall>x[M]. x \<in> z <-> x \<in> a & x \<in> b"
@@ -294,12 +303,20 @@ lemma separation_cong [cong]:
       ==> separation(M, %x. P(x)) <-> separation(M, %x. P'(x))"
 by (simp add: separation_def) 
 
-text{*Congruence rules for replacement*}
 lemma univalent_cong [cong]:
      "[| A=A'; !!x y. [| x\<in>A; M(x); M(y) |] ==> P(x,y) <-> P'(x,y) |] 
       ==> univalent(M, A, %x y. P(x,y)) <-> univalent(M, A', %x y. P'(x,y))"
 by (simp add: univalent_def) 
 
+lemma univalent_triv [intro,simp]:
+     "univalent(M, A, \<lambda>x y. y = f(x))"
+by (simp add: univalent_def) 
+
+lemma univalent_conjI2 [intro,simp]:
+     "univalent(M,A,Q) ==> univalent(M, A, \<lambda>x y. P(x,y) & Q(x,y))"
+by (simp add: univalent_def, blast) 
+
+text{*Congruence rule for replacement*}
 lemma strong_replacement_cong [cong]:
      "[| !!x y. [| M(x); M(y) |] ==> P(x,y) <-> P'(x,y) |] 
       ==> strong_replacement(M, %x y. P(x,y)) <-> 
@@ -616,21 +633,46 @@ apply (blast dest: transM)+
 done
 
 
+subsubsection{*The Operator @{term is_Replace}*}
+
+
+lemma is_Replace_cong [cong]:
+     "[| A=A'; 
+         !!x y. [| M(x); M(y) |] ==> P(x,y) <-> P'(x,y);
+         z=z' |] 
+      ==> is_Replace(M, A, %x y. P(x,y), z) <-> 
+          is_Replace(M, A', %x y. P'(x,y), z')" 
+by (simp add: is_Replace_def) 
+
+lemma (in M_triv_axioms) univalent_Replace_iff: 
+     "[| M(A); univalent(M,A,P);
+         !!x y. [| x\<in>A; P(x,y) |] ==> M(y) |] 
+      ==> u \<in> Replace(A,P) <-> (\<exists>x. x\<in>A & P(x,u))"
+apply (simp add: Replace_iff univalent_def) 
+apply (blast dest: transM)
+done
+
 (*The last premise expresses that P takes M to M*)
 lemma (in M_triv_axioms) strong_replacement_closed [intro,simp]:
      "[| strong_replacement(M,P); M(A); univalent(M,A,P); 
-       !!x y. [| x\<in>A; P(x,y); M(x) |] ==> M(y) |] ==> M(Replace(A,P))"
+         !!x y. [| x\<in>A; P(x,y) |] ==> M(y) |] ==> M(Replace(A,P))"
 apply (simp add: strong_replacement_def) 
-apply (drule rspec, auto) 
+apply (drule_tac x=A in rspec, safe) 
 apply (subgoal_tac "Replace(A,P) = Y")
  apply simp 
-apply (rule equality_iffI) 
-apply (simp add: Replace_iff, safe)
- apply (blast dest: transM) 
-apply (frule transM, assumption) 
- apply (simp add: univalent_def)
- apply (drule rspec [THEN iffD1], assumption, assumption)
- apply (blast dest: transM) 
+apply (rule equality_iffI)
+apply (simp add: univalent_Replace_iff)
+apply (blast dest: transM) 
+done
+
+lemma (in M_triv_axioms) Replace_abs: 
+     "[| M(A); M(z); univalent(M,A,P); strong_replacement(M, P);
+         !!x y. [| x\<in>A; P(x,y) |] ==> M(y)  |] 
+      ==> is_Replace(M,A,P,z) <-> z = Replace(A,P)"
+apply (simp add: is_Replace_def)
+apply (rule iffI) 
+apply (rule M_equalityI) 
+apply (simp_all add: univalent_Replace_iff, blast, blast) 
 done
 
 (*The first premise can't simply be assumed as a schema.
@@ -1490,34 +1532,34 @@ done
 subsubsection{*The Modified Operators @{term hd'} and @{term tl'}*}
 
 lemma (in M_triv_axioms) is_hd_Nil: "is_hd(M,[],Z) <-> empty(M,Z)"
-by (simp add: is_hd_def )
+by (simp add: is_hd_def)
 
 lemma (in M_triv_axioms) is_hd_Cons:
      "[|M(a); M(l)|] ==> is_hd(M,Cons(a,l),Z) <-> Z = a"
-by (force simp add: is_hd_def ) 
+by (force simp add: is_hd_def) 
 
 lemma (in M_triv_axioms) hd_abs [simp]:
      "[|M(x); M(y)|] ==> is_hd(M,x,y) <-> y = hd'(x)"
 apply (simp add: hd'_def)
 apply (intro impI conjI)
  prefer 2 apply (force simp add: is_hd_def) 
-apply (simp add: quasilist_def is_hd_def )
+apply (simp add: quasilist_def is_hd_def)
 apply (elim disjE exE, auto)
 done 
 
 lemma (in M_triv_axioms) is_tl_Nil: "is_tl(M,[],Z) <-> Z = []"
-by (simp add: is_tl_def )
+by (simp add: is_tl_def)
 
 lemma (in M_triv_axioms) is_tl_Cons:
      "[|M(a); M(l)|] ==> is_tl(M,Cons(a,l),Z) <-> Z = l"
-by (force simp add: is_tl_def ) 
+by (force simp add: is_tl_def) 
 
 lemma (in M_triv_axioms) tl_abs [simp]:
      "[|M(x); M(y)|] ==> is_tl(M,x,y) <-> y = tl'(x)"
 apply (simp add: tl'_def)
 apply (intro impI conjI)
  prefer 2 apply (force simp add: is_tl_def) 
-apply (simp add: quasilist_def is_tl_def )
+apply (simp add: quasilist_def is_tl_def)
 apply (elim disjE exE, auto)
 done 
 

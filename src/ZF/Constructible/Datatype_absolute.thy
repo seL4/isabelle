@@ -1,3 +1,9 @@
+(*  Title:      ZF/Constructible/Datatype_absolute.thy
+    ID: $Id$
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   2002  University of Cambridge
+*)
+
 header {*Absoluteness Properties for Recursive Datatypes*}
 
 theory Datatype_absolute = Formula + WF_absolute:

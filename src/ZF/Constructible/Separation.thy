@@ -62,7 +62,7 @@ by (intro FOL_reflections)
 lemma Inter_separation:
      "L(A) ==> separation(L, \<lambda>x. \<forall>y[L]. y\<in>A --> x\<in>y)"
 apply (rule separation_CollectI)
-apply (rule_tac A="{A,z}" in subset_LsetE, blast )
+apply (rule_tac A="{A,z}" in subset_LsetE, blast)
 apply (rule ReflectsE [OF Inter_Reflects], assumption)
 apply (drule subset_Lset_ltD, assumption)
 apply (erule reflection_imp_L_separation)
@@ -84,7 +84,7 @@ by (intro FOL_reflections)
 lemma Diff_separation:
      "L(B) ==> separation(L, \<lambda>x. x \<notin> B)"
 apply (rule separation_CollectI) 
-apply (rule_tac A="{B,z}" in subset_LsetE, blast ) 
+apply (rule_tac A="{B,z}" in subset_LsetE, blast) 
 apply (rule ReflectsE [OF Diff_Reflects], assumption)
 apply (drule subset_Lset_ltD, assumption) 
 apply (erule reflection_imp_L_separation)
@@ -107,7 +107,7 @@ lemma cartprod_separation:
      "[| L(A); L(B) |]
       ==> separation(L, \<lambda>z. \<exists>x[L]. x\<in>A & (\<exists>y[L]. y\<in>B & pair(L,x,y,z)))"
 apply (rule separation_CollectI)
-apply (rule_tac A="{A,B,z}" in subset_LsetE, blast )
+apply (rule_tac A="{A,B,z}" in subset_LsetE, blast)
 apply (rule ReflectsE [OF cartprod_Reflects], assumption)
 apply (drule subset_Lset_ltD, assumption)
 apply (erule reflection_imp_L_separation)
@@ -131,7 +131,7 @@ lemma image_separation:
      "[| L(A); L(r) |]
       ==> separation(L, \<lambda>y. \<exists>p[L]. p\<in>r & (\<exists>x[L]. x\<in>A & pair(L,x,y,p)))"
 apply (rule separation_CollectI)
-apply (rule_tac A="{A,r,z}" in subset_LsetE, blast )
+apply (rule_tac A="{A,r,z}" in subset_LsetE, blast)
 apply (rule ReflectsE [OF image_Reflects], assumption)
 apply (drule subset_Lset_ltD, assumption)
 apply (erule reflection_imp_L_separation)
@@ -156,7 +156,7 @@ lemma converse_separation:
      "L(r) ==> separation(L,
          \<lambda>z. \<exists>p[L]. p\<in>r & (\<exists>x[L]. \<exists>y[L]. pair(L,x,y,p) & pair(L,y,x,z)))"
 apply (rule separation_CollectI)
-apply (rule_tac A="{r,z}" in subset_LsetE, blast )
+apply (rule_tac A="{r,z}" in subset_LsetE, blast)
 apply (rule ReflectsE [OF converse_Reflects], assumption)
 apply (drule subset_Lset_ltD, assumption)
 apply (erule reflection_imp_L_separation)
@@ -180,7 +180,7 @@ by (intro FOL_reflections function_reflections)
 lemma restrict_separation:
    "L(A) ==> separation(L, \<lambda>z. \<exists>x[L]. x\<in>A & (\<exists>y[L]. pair(L,x,y,z)))"
 apply (rule separation_CollectI)
-apply (rule_tac A="{A,z}" in subset_LsetE, blast )
+apply (rule_tac A="{A,z}" in subset_LsetE, blast)
 apply (rule ReflectsE [OF restrict_Reflects], assumption)
 apply (drule subset_Lset_ltD, assumption)
 apply (erule reflection_imp_L_separation)
@@ -211,7 +211,7 @@ lemma comp_separation:
                   pair(L,x,z,xz) & pair(L,x,y,xy) & pair(L,y,z,yz) &
                   xy\<in>s & yz\<in>r)"
 apply (rule separation_CollectI)
-apply (rule_tac A="{r,s,z}" in subset_LsetE, blast )
+apply (rule_tac A="{r,s,z}" in subset_LsetE, blast)
 apply (rule ReflectsE [OF comp_Reflects], assumption)
 apply (drule subset_Lset_ltD, assumption)
 apply (erule reflection_imp_L_separation)
@@ -235,7 +235,7 @@ by (intro FOL_reflections function_reflections)
 lemma pred_separation:
      "[| L(r); L(x) |] ==> separation(L, \<lambda>y. \<exists>p[L]. p\<in>r & pair(L,y,x,p))"
 apply (rule separation_CollectI)
-apply (rule_tac A="{r,x,z}" in subset_LsetE, blast )
+apply (rule_tac A="{r,x,z}" in subset_LsetE, blast)
 apply (rule ReflectsE [OF pred_Reflects], assumption)
 apply (drule subset_Lset_ltD, assumption)
 apply (erule reflection_imp_L_separation)
@@ -259,7 +259,7 @@ by (intro FOL_reflections function_reflections)
 lemma Memrel_separation:
      "separation(L, \<lambda>z. \<exists>x[L]. \<exists>y[L]. pair(L,x,y,z) & x \<in> y)"
 apply (rule separation_CollectI)
-apply (rule_tac A="{z}" in subset_LsetE, blast )
+apply (rule_tac A="{z}" in subset_LsetE, blast)
 apply (rule ReflectsE [OF Memrel_Reflects], assumption)
 apply (drule subset_Lset_ltD, assumption)
 apply (erule reflection_imp_L_separation)
@@ -292,7 +292,7 @@ lemma funspace_succ_replacement:
 apply (rule strong_replacementI)
 apply (rule rallI)
 apply (rule separation_CollectI)
-apply (rule_tac A="{n,A,z}" in subset_LsetE, blast )
+apply (rule_tac A="{n,A,z}" in subset_LsetE, blast)
 apply (rule ReflectsE [OF funspace_succ_Reflects], assumption)
 apply (drule subset_Lset_ltD, assumption)
 apply (erule reflection_imp_L_separation)
@@ -320,7 +320,7 @@ lemma well_ord_iso_separation:
       ==> separation (L, \<lambda>x. x\<in>A --> (\<exists>y[L]. (\<exists>p[L].
                      fun_apply(L,f,x,y) & pair(L,y,x,p) & p \<in> r)))"
 apply (rule separation_CollectI)
-apply (rule_tac A="{A,f,r,z}" in subset_LsetE, blast )
+apply (rule_tac A="{A,f,r,z}" in subset_LsetE, blast)
 apply (rule ReflectsE [OF well_ord_iso_Reflects], assumption)
 apply (drule subset_Lset_ltD, assumption)
 apply (erule reflection_imp_L_separation)
@@ -351,7 +351,7 @@ lemma obase_separation:
              ordinal(L,x) & membership(L,x,mx) & pred_set(L,A,a,r,par) &
              order_isomorphism(L,par,r,x,mx,g))"
 apply (rule separation_CollectI)
-apply (rule_tac A="{A,r,z}" in subset_LsetE, blast )
+apply (rule_tac A="{A,r,z}" in subset_LsetE, blast)
 apply (rule ReflectsE [OF obase_reflects], assumption)
 apply (drule subset_Lset_ltD, assumption)
 apply (erule reflection_imp_L_separation)
@@ -386,7 +386,7 @@ lemma obase_equals_separation:
                               membership(L,y,my) & pred_set(L,A,x,r,pxr) &
                               order_isomorphism(L,pxr,r,y,my,g))))"
 apply (rule separation_CollectI)
-apply (rule_tac A="{A,r,z}" in subset_LsetE, blast )
+apply (rule_tac A="{A,r,z}" in subset_LsetE, blast)
 apply (rule ReflectsE [OF obase_equals_reflects], assumption)
 apply (drule subset_Lset_ltD, assumption)
 apply (erule reflection_imp_L_separation)
@@ -422,7 +422,7 @@ apply (rule strong_replacementI)
 apply (rule rallI)
 apply (rename_tac B)
 apply (rule separation_CollectI)
-apply (rule_tac A="{A,B,r,z}" in subset_LsetE, blast )
+apply (rule_tac A="{A,B,r,z}" in subset_LsetE, blast)
 apply (rule ReflectsE [OF omap_reflects], assumption)
 apply (drule subset_Lset_ltD, assumption)
 apply (erule reflection_imp_L_separation)
@@ -457,7 +457,7 @@ lemma is_recfun_separation:
                 (\<exists>fx[L]. \<exists>gx[L]. fun_apply(L,f,x,fx) & fun_apply(L,g,x,gx) &
                                    fx \<noteq> gx))"
 apply (rule separation_CollectI)
-apply (rule_tac A="{r,f,g,a,b,z}" in subset_LsetE, blast )
+apply (rule_tac A="{r,f,g,a,b,z}" in subset_LsetE, blast)
 apply (rule ReflectsE [OF is_recfun_reflects], assumption)
 apply (drule subset_Lset_ltD, assumption)
 apply (erule reflection_imp_L_separation)

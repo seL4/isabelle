@@ -246,7 +246,7 @@ lemma DPow_separation:
 apply (subgoal_tac "L(env) & L(p)") 
  prefer 2 apply (blast intro: transL) 
 apply (rule separation_CollectI)
-apply (rule_tac A="{A,env,p,z}" in subset_LsetE, blast )
+apply (rule_tac A="{A,env,p,z}" in subset_LsetE, blast)
 apply (rule ReflectsE [OF DPow_body_reflection], assumption)
 apply (drule subset_Lset_ltD, assumption)
 apply (erule reflection_imp_L_separation)
@@ -315,5 +315,352 @@ theorem M_DPow_L: "PROP M_DPow(L)"
 
 lemmas DPow'_closed [intro, simp] = M_DPow.DPow'_closed [OF M_DPow_L]
   and DPow'_abs [intro, simp] = M_DPow.DPow'_abs [OF M_DPow_L]
+
+
+subsubsection{*The Operator @{term is_Collect}*}
+
+text{*The formula @{term is_P} has one free variable, 0, and it is
+enclosed within a single quantifier.*}
+
+(* is_Collect :: "[i=>o,i,i=>o,i] => o"
+    "is_Collect(M,A,P,z) == \<forall>x[M]. x \<in> z <-> x \<in> A & P(x)" *)
+
+constdefs Collect_fm :: "[i, i, i]=>i"
+ "Collect_fm(A,is_P,z) == 
+        Forall(Iff(Member(0,succ(z)),
+                   And(Member(0,succ(A)), is_P)))"
+
+lemma is_Collect_type [TC]:
+     "[| is_P \<in> formula; x \<in> nat; y \<in> nat |] 
+      ==> Collect_fm(x,is_P,y) \<in> formula"
+by (simp add: Collect_fm_def)
+
+lemma sats_Collect_fm:
+  assumes is_P_iff_sats: 
+      "!!a. a \<in> A ==> is_P(a) <-> sats(A, p, Cons(a, env))"
+  shows 
+      "[|x \<in> nat; y \<in> nat; env \<in> list(A)|]
+       ==> sats(A, Collect_fm(x,p,y), env) <->
+           is_Collect(**A, nth(x,env), is_P, nth(y,env))"
+by (simp add: Collect_fm_def is_Collect_def is_P_iff_sats [THEN iff_sym])
+
+lemma Collect_iff_sats:
+  assumes is_P_iff_sats: 
+      "!!a. a \<in> A ==> is_P(a) <-> sats(A, p, Cons(a, env))"
+  shows 
+  "[| nth(i,env) = x; nth(j,env) = y;
+      i \<in> nat; j \<in> nat; env \<in> list(A)|]
+   ==> is_Collect(**A, x, is_P, y) <-> sats(A, Collect_fm(i,p,j), env)"
+by (simp add: sats_Collect_fm [OF is_P_iff_sats])
+
+
+text{*The second argument of @{term is_P} gives it direct access to @{term x},
+  which is essential for handling free variable references.*}
+theorem Collect_reflection:
+  assumes is_P_reflection:
+    "!!h f g. REFLECTS[\<lambda>x. is_P(L, f(x), g(x)),
+                     \<lambda>i x. is_P(**Lset(i), f(x), g(x))]"
+  shows "REFLECTS[\<lambda>x. is_Collect(L, f(x), is_P(L,x), g(x)),
+               \<lambda>i x. is_Collect(**Lset(i), f(x), is_P(**Lset(i), x), g(x))]"
+apply (simp (no_asm_use) only: is_Collect_def setclass_simps)
+apply (intro FOL_reflections is_P_reflection)
+done
+
+
+subsubsection{*The Operator @{term is_Replace}*}
+
+text{*BEWARE!  The formula @{term is_P} has free variables 0, 1
+ and not the usual 1, 0!  It is enclosed within two quantifiers.*}
+
+(*  is_Replace :: "[i=>o,i,[i,i]=>o,i] => o"
+    "is_Replace(M,A,P,z) == \<forall>u[M]. u \<in> z <-> (\<exists>x[M]. x\<in>A & P(x,u))" *)
+
+constdefs Replace_fm :: "[i, i, i]=>i"
+ "Replace_fm(A,is_P,z) == 
+        Forall(Iff(Member(0,succ(z)),
+                   Exists(And(Member(0,A#+2), is_P))))"
+
+lemma is_Replace_type [TC]:
+     "[| is_P \<in> formula; x \<in> nat; y \<in> nat |] 
+      ==> Replace_fm(x,is_P,y) \<in> formula"
+by (simp add: Replace_fm_def)
+
+lemma sats_Replace_fm:
+  assumes is_P_iff_sats: 
+      "!!a b. [|a \<in> A; b \<in> A|] 
+              ==> is_P(a,b) <-> sats(A, p, Cons(a,Cons(b,env)))"
+  shows 
+      "[|x \<in> nat; y \<in> nat; env \<in> list(A)|]
+       ==> sats(A, Replace_fm(x,p,y), env) <->
+           is_Replace(**A, nth(x,env), is_P, nth(y,env))"
+by (simp add: Replace_fm_def is_Replace_def is_P_iff_sats [THEN iff_sym])
+
+lemma Replace_iff_sats:
+  assumes is_P_iff_sats: 
+      "!!a b. [|a \<in> A; b \<in> A|] 
+              ==> is_P(a,b) <-> sats(A, p, Cons(a,Cons(b,env)))"
+  shows 
+  "[| nth(i,env) = x; nth(j,env) = y;
+      i \<in> nat; j \<in> nat; env \<in> list(A)|]
+   ==> is_Replace(**A, x, is_P, y) <-> sats(A, Replace_fm(i,p,j), env)"
+by (simp add: sats_Replace_fm [OF is_P_iff_sats])
+
+
+text{*The second argument of @{term is_P} gives it direct access to @{term x},
+  which is essential for handling free variable references.*}
+theorem Replace_reflection:
+  assumes is_P_reflection:
+    "!!h f g. REFLECTS[\<lambda>x. is_P(L, f(x), g(x), h(x)),
+                     \<lambda>i x. is_P(**Lset(i), f(x), g(x), h(x))]"
+  shows "REFLECTS[\<lambda>x. is_Replace(L, f(x), is_P(L,x), g(x)),
+               \<lambda>i x. is_Replace(**Lset(i), f(x), is_P(**Lset(i), x), g(x))]"
+apply (simp (no_asm_use) only: is_Replace_def setclass_simps)
+apply (intro FOL_reflections is_P_reflection)
+done
+
+
+
+subsubsection{*The Operator @{term is_DPow'}, Internalized*}
+
+(*  "is_DPow'(M,A,Z) == 
+       \<forall>X[M]. X \<in> Z <-> 
+         subset(M,X,A) & 
+           (\<exists>env[M]. \<exists>p[M]. mem_formula(M,p) & mem_list(M,A,env) &
+                    is_Collect(M, A, is_DPow_body(M,A,env,p), X))" *)
+
+constdefs DPow'_fm :: "[i,i]=>i"
+    "DPow'_fm(A,Z) == 
+      Forall(
+       Iff(Member(0,succ(Z)),
+        And(subset_fm(0,succ(A)),
+         Exists(Exists(
+          And(mem_formula_fm(0),
+           And(mem_list_fm(A#+3,1),
+            Collect_fm(A#+3, 
+                       DPow_body_fm(A#+4, 2, 1, 0), 2))))))))"
+
+lemma is_DPow'_type [TC]:
+     "[| x \<in> nat; y \<in> nat |] ==> DPow'_fm(x,y) \<in> formula"
+by (simp add: DPow'_fm_def)
+
+lemma sats_DPow'_fm [simp]:
+   "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
+    ==> sats(A, DPow'_fm(x,y), env) <->
+        is_DPow'(**A, nth(x,env), nth(y,env))"
+by (simp add: DPow'_fm_def is_DPow'_def sats_subset_fm' sats_Collect_fm)
+
+lemma DPow'_iff_sats:
+      "[| nth(i,env) = x; nth(j,env) = y; 
+          i \<in> nat; j \<in> nat; env \<in> list(A)|]
+       ==> is_DPow'(**A, x, y) <-> sats(A, DPow'_fm(i,j), env)"
+by (simp add: sats_DPow'_fm)
+
+theorem DPow'_reflection:
+     "REFLECTS[\<lambda>x. is_DPow'(L,f(x),g(x)),
+               \<lambda>i x. is_DPow'(**Lset(i),f(x),g(x))]"
+apply (simp only: is_DPow'_def setclass_simps)
+apply (intro FOL_reflections function_reflections mem_formula_reflection
+             mem_list_reflection Collect_reflection DPow_body_reflection)
+done
+
+(*????????????????move up*)
+
+
+
+
+
+subsection{*Additional Constraints on the Class Model @{term M}*}
+
+constdefs
+  transrec_body :: "[i=>o,i,i,i,i] => o"
+    "transrec_body(M,g,x) ==
+      \<lambda>y z. \<exists>gy[M]. y \<in> x & fun_apply(M,g,y,gy) & is_DPow'(M,gy,z)"
+
+lemma (in M_DPow) transrec_body_abs:
+     "[|M(x); M(g); M(z)|]
+    ==> transrec_body(M,g,x,y,z) <-> y \<in> x & z = DPow'(g`y)"
+by (simp add: transrec_body_def DPow'_abs transM [of _ x])
+
+locale M_Lset = M_DPow +
+ assumes strong_rep:
+   "[|M(x); M(g)|] ==> strong_replacement(M, \<lambda>y z. transrec_body(M,g,x,y,z))"
+ and transrec_rep: 
+    "M(i) ==> transrec_replacement(M, \<lambda>x f u. 
+              \<exists>r[M]. is_Replace(M, x, transrec_body(M,f,x), r) & 
+                     big_union(M, r, u), i)"
+
+
+lemma (in M_Lset) strong_rep':
+   "[|M(x); M(g)|]
+    ==> strong_replacement(M, \<lambda>y z. y \<in> x & z = DPow'(g`y))"
+by (insert strong_rep [of x g], simp add: transrec_body_abs)
+
+lemma (in M_Lset) DPow_apply_closed:
+   "[|M(f); M(x); y\<in>x|] ==> M(DPow'(f`y))"
+by (blast intro: DPow'_closed dest: transM) 
+
+lemma (in M_Lset) RepFun_DPow_apply_closed:
+   "[|M(f); M(x)|] ==> M({DPow'(f`y). y\<in>x})"
+by (blast intro: DPow_apply_closed RepFun_closed2 strong_rep') 
+
+lemma (in M_Lset) RepFun_DPow_abs:
+     "[|M(x); M(f); M(r) |]
+      ==> is_Replace(M, x, \<lambda>y z. transrec_body(M,f,x,y,z), r) <->
+          r =  {DPow'(f`y). y\<in>x}"
+apply (simp add: transrec_body_abs RepFun_def) 
+apply (rule iff_trans) 
+apply (rule Replace_abs) 
+apply (simp_all add: DPow_apply_closed strong_rep') 
+done
+
+lemma (in M_Lset) transrec_rep':
+   "M(i) ==> transrec_replacement(M, \<lambda>x f u. u = (\<Union>y\<in>x. DPow'(f ` y)), i)"
+apply (insert transrec_rep [of i]) 
+apply (simp add: RepFun_DPow_apply_closed RepFun_DPow_abs 
+       transrec_replacement_def) 
+done
+
+
+
+constdefs
+
+  is_Lset :: "[i=>o, i, i] => o"
+   "is_Lset(M,a,z) == is_transrec(M, %x f u. u = (\<Union>y\<in>x. DPow'(f`y)), a, z)"
+
+lemma (in M_Lset) Lset_abs:
+  "[|Ord(i);  M(i);  M(z)|] 
+   ==> is_Lset(M,i,z) <-> z = Lset(i)"
+apply (simp add: is_Lset_def Lset_eq_transrec_DPow') 
+apply (rule transrec_abs)  
+apply (simp_all add: transrec_rep' relativize2_def RepFun_DPow_apply_closed)
+done
+
+lemma (in M_Lset) Lset_closed:
+  "[|Ord(i);  M(i)|] ==> M(Lset(i))"
+apply (simp add: Lset_eq_transrec_DPow') 
+apply (rule transrec_closed [OF transrec_rep']) 
+apply (simp_all add: relativize2_def RepFun_DPow_apply_closed)
+done
+
+
+subsection{*Instantiating the Locale @{text M_Lset}*}
+
+
+subsubsection{*The First Instance of Replacement*}
+
+lemma strong_rep_Reflects:
+ "REFLECTS [\<lambda>u. \<exists>v[L]. v \<in> B & (\<exists>gy[L].
+                          v \<in> x & fun_apply(L,g,v,gy) & is_DPow'(L,gy,u)),
+   \<lambda>i u. \<exists>v \<in> Lset(i). v \<in> B & (\<exists>gy \<in> Lset(i).
+            v \<in> x & fun_apply(**Lset(i),g,v,gy) & is_DPow'(**Lset(i),gy,u))]"
+by (intro FOL_reflections function_reflections DPow'_reflection)
+
+lemma strong_rep:
+   "[|L(x); L(g)|] ==> strong_replacement(L, \<lambda>y z. transrec_body(L,g,x,y,z))"
+apply (unfold transrec_body_def)  
+apply (rule strong_replacementI) 
+apply (rule rallI)
+apply (rename_tac B)  
+apply (rule separation_CollectI) 
+apply (rule_tac A="{x,g,B,z}" in subset_LsetE, blast) 
+apply (rule ReflectsE [OF strong_rep_Reflects], assumption)
+apply (drule subset_Lset_ltD, assumption) 
+apply (erule reflection_imp_L_separation)
+  apply (simp_all add: lt_Ord2)
+apply (rule DPow_LsetI)
+apply (rename_tac u) 
+apply (rule bex_iff_sats conj_iff_sats conj_iff_sats)+
+apply (rule_tac env = "[v,u,x,g,B,z]" in mem_iff_sats) 
+apply (rule sep_rules DPow'_iff_sats | simp)+
+done
+
+
+subsubsection{*The Second Instance of Replacement*}
+
+lemma transrec_rep_Reflects:
+ "REFLECTS [\<lambda>x. \<exists>v[L]. v \<in> B &
+              (\<exists>y[L]. pair(L,v,y,x) &
+             is_wfrec (L, \<lambda>x f u. \<exists>r[L].
+                is_Replace (L, x, \<lambda>y z. 
+                     \<exists>gy[L]. y \<in> x & fun_apply(L,f,y,gy) & 
+                      is_DPow'(L,gy,z), r) & big_union(L,r,u), mr, v, y)),
+    \<lambda>i x. \<exists>v \<in> Lset(i). v \<in> B &
+              (\<exists>y \<in> Lset(i). pair(**Lset(i),v,y,x) &
+             is_wfrec (**Lset(i), \<lambda>x f u. \<exists>r \<in> Lset(i).
+                is_Replace (**Lset(i), x, \<lambda>y z. 
+                     \<exists>gy \<in> Lset(i). y \<in> x & fun_apply(**Lset(i),f,y,gy) & 
+                      is_DPow'(**Lset(i),gy,z), r) & 
+                      big_union(**Lset(i),r,u), mr, v, y))]" 
+apply (simp only: setclass_simps [symmetric])
+  --{*Convert @{text "\<exists>y\<in>Lset(i)"} to @{text "\<exists>y[**Lset(i)]"} within the body
+       of the @{term is_wfrec} application. *}
+apply (intro FOL_reflections function_reflections 
+          is_wfrec_reflection Replace_reflection DPow'_reflection) 
+done
+
+
+
+lemma transrec_rep: 
+    "[|L(j)|]
+    ==> transrec_replacement(L, \<lambda>x f u. 
+              \<exists>r[L]. is_Replace(L, x, transrec_body(L,f,x), r) & 
+                     big_union(L, r, u), j)"
+apply (subgoal_tac "L(Memrel(eclose({j})))")
+ prefer 2 apply simp
+apply (rule transrec_replacementI, assumption)
+apply (rule strong_replacementI)
+apply (unfold transrec_body_def)  
+apply (rule rallI)
+apply (rename_tac B)
+apply (rule separation_CollectI)
+apply (rule_tac A="{j,B,z,Memrel(eclose({j}))}" in subset_LsetE, blast)
+apply (rule ReflectsE [OF transrec_rep_Reflects], assumption)
+apply (drule subset_Lset_ltD, assumption)
+apply (erule reflection_imp_L_separation)
+  apply (simp_all add: lt_Ord2 Memrel_closed)
+apply (elim conjE)
+apply (rule DPow_LsetI)
+apply (rename_tac w)
+apply (rule bex_iff_sats conj_iff_sats)+
+apply (rule_tac env = "[v,w,j,B,Memrel(eclose({j}))]" in mem_iff_sats)
+apply (rule sep_rules is_wfrec_iff_sats Replace_iff_sats DPow'_iff_sats | 
+       simp)+
+done
+
+
+subsubsection{*Actually Instantiating @{text M_Lset}*}
+
+lemma M_Lset_axioms_L: "M_Lset_axioms(L)"
+  apply (rule M_Lset_axioms.intro)
+       apply (assumption | rule strong_rep transrec_rep)+
+  done
+
+theorem M_Lset_L: "PROP M_Lset(L)"
+apply (rule M_Lset.intro) 
+     apply (rule M_DPow.axioms [OF M_DPow_L])+
+apply (rule M_Lset_axioms_L) 
+done
+
+text{*Finally: the point of the whole theory!*}
+lemmas Lset_closed = M_Lset.Lset_closed [OF M_Lset_L]
+   and Lset_abs = M_Lset.Lset_abs [OF M_Lset_L]
+
+
+subsection{*The Notion of Constructible Set*}
+
+
+constdefs
+  constructible :: "[i=>o,i] => o"
+    "constructible(M,x) ==
+       \<exists>i[M]. \<exists>Li[M]. ordinal(M,i) & is_Lset(M,i,Li) & x \<in> Li"
+
+
+theorem V_equals_L_in_L:
+  "L(x) ==> constructible(L,x)"
+apply (simp add: constructible_def Lset_abs Lset_closed) 
+apply (simp add: L_def)
+apply (blast intro: Ord_in_L) 
+done
+
 
 end

@@ -1,3 +1,8 @@
+(*  Title:      ZF/Constructible/L_axioms.thy
+    ID:         $Id$
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   2002  University of Cambridge
+*)
 
 header {* The ZF Axioms (Except Separation) in L *}
 
@@ -1079,7 +1084,7 @@ lemma sats_function_fm [simp]:
     ==> sats(A, function_fm(x), env) <-> is_function(**A, nth(x,env))"
 by (simp add: function_fm_def is_function_def)
 
-lemma function_iff_sats:
+lemma is_function_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y;
           i \<in> nat; env \<in> list(A)|]
        ==> is_function(**A, x) <-> sats(A, function_fm(i), env)"
@@ -1141,11 +1146,11 @@ lemmas function_reflections =
 lemmas function_iff_sats =
         empty_iff_sats number1_iff_sats
         upair_iff_sats pair_iff_sats union_iff_sats
-        cons_iff_sats successor_iff_sats
+        big_union_iff_sats cons_iff_sats successor_iff_sats
         fun_apply_iff_sats  Memrel_iff_sats
         pred_set_iff_sats domain_iff_sats range_iff_sats field_iff_sats
         image_iff_sats pre_image_iff_sats
-        relation_iff_sats function_iff_sats
+        relation_iff_sats is_function_iff_sats
 
 
 theorem typed_function_reflection:

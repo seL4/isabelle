@@ -1,3 +1,9 @@
+(*  Title:      ZF/Constructible/Internalize.thy
+    ID: $Id$
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   2002  University of Cambridge
+*)
+
 theory Internalize = L_axioms + Datatype_absolute:
 
 subsection{*Internalized Forms of Data Structuring Operators*}

@@ -1,3 +1,9 @@
+(*  Title:      ZF/Constructible/WFrec.thy
+    ID:         $Id$
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   2002  University of Cambridge
+*)
+
 header{*Relativized Well-Founded Recursion*}
 
 theory WFrec = Wellorderings:
@@ -190,7 +196,7 @@ apply (subgoal_tac "\<forall>y \<in> r-``{x}. \<forall>z. <y,z>:Y <-> <y,z>:f")
  apply (frule is_recfun_type [THEN fun_is_rel], blast)
 apply (frule pair_components_in_M, assumption, clarify) 
 apply (rule iffI)
- apply (frule_tac y="<y,z>" in transM, assumption )
+ apply (frule_tac y="<y,z>" in transM, assumption)
  apply (rotate_tac -1)   
  apply (clarsimp simp add: vimage_singleton_iff is_recfun_type [THEN apply_iff]
 			   apply_recfun is_recfun_cut) 

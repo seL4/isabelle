@@ -1,3 +1,9 @@
+(*  Title:      ZF/Constructible/Wellorderings.thy
+    ID:         $Id$
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   2002  University of Cambridge
+*)
+
 header {*Relativized Wellorderings*}
 
 theory Wellorderings = Relative:
@@ -57,15 +63,15 @@ by (simp add: linear_rel_def linear_def)
 
 lemma (in M_axioms) wellordered_is_trans_on: 
     "[| wellordered(M,A,r); M(A) |] ==> trans[A](r)"
-by (auto simp add: wellordered_def )
+by (auto simp add: wellordered_def)
 
 lemma (in M_axioms) wellordered_is_linear: 
     "[| wellordered(M,A,r); M(A) |] ==> linear(A,r)"
-by (auto simp add: wellordered_def )
+by (auto simp add: wellordered_def)
 
 lemma (in M_axioms) wellordered_is_wellfounded_on: 
     "[| wellordered(M,A,r); M(A) |] ==> wellfounded_on(M,A,r)"
-by (auto simp add: wellordered_def )
+by (auto simp add: wellordered_def)
 
 lemma (in M_axioms) wellfounded_imp_wellfounded_on: 
     "[| wellfounded(M,r); M(A) |] ==> wellfounded_on(M,A,r)"
@@ -629,7 +635,7 @@ done
 lemma (in M_axioms) relativized_imp_well_ord: 
      "[| wellordered(M,A,r); M(A); M(r) |] ==> well_ord(A,r)" 
 apply (insert ordertype_exists [of A r], simp)
-apply (blast intro: well_ord_ord_iso well_ord_Memrel )  
+apply (blast intro: well_ord_ord_iso well_ord_Memrel)  
 done
 
 subsection {*Kunen's theorem 5.4, poage 127*}
