@@ -214,8 +214,7 @@ fun read_thy name ml path =
       if is_old_theory (src, pos) then ThySyn.load_thy name (Source.exhaust src)
       else (Toplevel.excursion (parse_thy (src, pos))
         handle exn => error (Toplevel.exn_message exn));
-    val theory = ThyInfo.get_theory name;
-  in Context.setmp theory try_ml_file name ml end;
+  in Context.context (ThyInfo.get_theory name); try_ml_file name ml end;
 
 fun load_thy name ml time path =
   if not time then read_thy name ml path
