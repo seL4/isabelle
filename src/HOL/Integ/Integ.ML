@@ -321,10 +321,11 @@ goal Integ.thy
 \               split (%x1 y1. split (%x2 y2.   \
 \                   intrel^^{(x1*x2 + y1*y2, x1*y2 + y1*x2)}) p2) p1)";
 by (rtac (equiv_intrel RS congruent2_commuteI) 1);
+ by (pair_tac "w" 2);
+ by (rename_tac "z1 z2" 2);
  by Safe_tac;
  by (rewtac split_def);
  by (simp_tac (simpset() addsimps add_ac@mult_ac) 1);
-by (rename_tac "x1 y1 x2 y2 z1 z2" 1);
 by (asm_simp_tac (simpset() delsimps [equiv_intrel_iff]
                            addsimps add_ac@mult_ac) 1);
 by (rtac (intrelI RS(equiv_intrel RS equiv_class_eq)) 1);
