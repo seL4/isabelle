@@ -120,6 +120,11 @@ available.
 temporal levels more uniformly; introduces INCOMPATIBILITIES due to
 changed syntax and (many) tactics;
 
+* HOL/datatype: Now also handles arbitrarily branching datatypes
+  (using function types) such as
+
+  datatype 'a tree = Atom 'a | Branch "nat => 'a tree"
+
 * HOL/typedef: fixed type inference for representing set; type
 arguments now have to occur explicitly on the rhs as type constraints;
 
