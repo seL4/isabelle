@@ -9,11 +9,49 @@
 
 ## diagnostics
 
+function usage()
+{
+  echo
+  echo "Usage: $PRG [OPTIONS]"
+  echo
+  echo "  Make Pure Isabelle."
+  echo
+  echo "    -r           just prepare RAW image"
+  echo
+  exit 1
+}
+
 function fail()
 {
   echo "$1" >&2
   exit 2
 }
+
+
+## process command line
+
+# options
+
+RAW=""
+
+while getopts "r" OPT
+do
+  case "$OPT" in
+    r)
+      RAW=true
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+
+# args
+
+[ $# -ne 0 ] && usage
 
 
 ## main
@@ -27,7 +65,14 @@ COMPAT=""
 [ -f "ML-Systems/$ML_SYSTEM.ML" ] && COMPAT="ML-Systems/$ML_SYSTEM.ML"
 [ -z "$COMPAT" ] && fail "Missing compatibility file for ML system \"$ML_SYSTEM\"!"
 
-$ISABELLE \
-  -e "val ml_system = \"$ML_SYSTEM\";" \
-  -e "use\"$COMPAT\"; use\"ROOT.ML\" handle _ => exit 1;" \
-  -q -w RAW_ML_SYSTEM Pure
+if [ -z "$RAW" ]; then
+  $ISABELLE \
+    -e "val ml_system = \"$ML_SYSTEM\";" \
+    -e "use\"$COMPAT\"; use\"ROOT.ML\" handle _ => exit 1;" \
+    -q -w RAW_ML_SYSTEM Pure
+else
+  $ISABELLE \
+    -e "val ml_system = \"$ML_SYSTEM\";" \
+    -e "use\"$COMPAT\";" \
+    -q -w RAW_ML_SYSTEM RAW
+fi
