@@ -1192,8 +1192,10 @@ and lextermord(t::ts,u::us) =
 
 fun termless tu = (termord tu = LESS);
 
-fun check_conv(thm as Thm{hyps,prop,...}, prop0) =
-  let fun err() = (trace_thm "Proved wrong thm (Check subgoaler?)" thm; None)
+fun check_conv(thm as Thm{hyps,prop,sign,...}, prop0) =
+  let fun err() = (trace_thm "Proved wrong thm (Check subgoaler?)" thm;
+                   trace_term "Should have proved" sign prop0;
+                   None)
       val (lhs0,_) = Logic.dest_equals(Logic.strip_imp_concl prop0)
   in case prop of
        Const("==",_) $ lhs $ rhs =>
