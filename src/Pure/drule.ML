@@ -86,6 +86,15 @@ end;
 signature DRULE =
 sig
   include BASIC_DRULE
+  val rule_attribute    : ('a -> thm -> thm) -> 'a attribute
+  val tag_rule          : tag -> thm -> thm
+  val untag_rule        : string -> thm -> thm
+  val tag               : tag -> 'a attribute
+  val untag             : string -> 'a attribute
+  val tag_lemma         : 'a attribute
+  val tag_assumption    : 'a attribute
+  val tag_internal      : 'a attribute
+  val has_internal	: tag list -> bool
   val compose_single    : thm * int * thm -> thm
   val merge_rules	: thm list * thm list -> thm list
   val triv_goal         : thm
@@ -101,14 +110,6 @@ sig
   val unvarifyT         : thm -> thm
   val unvarify          : thm -> thm
   val tvars_intr_list	: string list -> thm -> thm
-  val rule_attribute    : ('a -> thm -> thm) -> 'a attribute
-  val tag_rule          : tag -> thm -> thm
-  val untag_rule        : string -> thm -> thm
-  val tag               : tag -> 'a attribute
-  val untag             : string -> 'a attribute
-  val tag_lemma         : 'a attribute
-  val tag_assumption    : 'a attribute
-  val tag_internal      : 'a attribute
 end;
 
 structure Drule: DRULE =
@@ -206,6 +207,36 @@ fun types_sorts thm =
         fun typ(a,i) = if i<0 then assoc(frees,a) else assoc(vars,(a,i));
         fun sort(a,i) = if i<0 then assoc(tfrees,a) else assoc(tvars,(a,i));
     in (typ,sort) end;
+
+
+
+(** basic attributes **)
+
+(* dependent rules *)
+
+fun rule_attribute f (x, thm) = (x, (f x thm));
+
+
+(* add / delete tags *)
+
+fun map_tags f thm =
+  Thm.put_name_tags (Thm.name_of_thm thm, f (#2 (Thm.get_name_tags thm))) thm;
+
+fun tag_rule tg = map_tags (fn tgs => if tg mem tgs then tgs else tgs @ [tg]);
+fun untag_rule s = map_tags (filter_out (equal s o #1));
+
+fun tag tg x = rule_attribute (K (tag_rule tg)) x;
+fun untag s x = rule_attribute (K (untag_rule s)) x;
+
+fun simple_tag name x = tag (name, []) x;
+
+fun tag_lemma x = simple_tag "lemma" x;
+fun tag_assumption x = simple_tag "assumption" x;
+
+val internal_tag = ("internal", []);
+fun tag_internal x = tag internal_tag x;
+fun has_internal tags = exists (equal internal_tag) tags;
+
 
 
 (** Standardization of rules **)
@@ -408,24 +439,22 @@ val proto_sign = Theory.sign_of ProtoPure.thy;
 
 fun read_prop s = read_cterm proto_sign (s, propT);
 
-fun store_thm name thm = hd (PureThy.smart_store_thms (name, [standard thm]));
+fun store_thm name thm = hd (PureThy.smart_store_thms (name, [thm]));
+fun store_standard_thm name thm = store_thm name (standard thm);
 
 val reflexive_thm =
   let val cx = cterm_of proto_sign (Var(("x",0),TVar(("'a",0),logicS)))
-  in store_thm "reflexive" (Thm.reflexive cx) end;
+  in store_standard_thm "reflexive" (Thm.reflexive cx) end;
 
 val symmetric_thm =
   let val xy = read_prop "x::'a::logic == y"
-  in store_thm "symmetric"
-      (Thm.implies_intr_hyps(Thm.symmetric(Thm.assume xy)))
-   end;
+  in store_standard_thm "symmetric" (Thm.implies_intr_hyps (Thm.symmetric (Thm.assume xy))) end;
 
 val transitive_thm =
   let val xy = read_prop "x::'a::logic == y"
       val yz = read_prop "y::'a::logic == z"
       val xythm = Thm.assume xy and yzthm = Thm.assume yz
-  in store_thm "transitive" (Thm.implies_intr yz (Thm.transitive xythm yzthm))
-  end;
+  in store_standard_thm "transitive" (Thm.implies_intr yz (Thm.transitive xythm yzthm)) end;
 
 fun symmetric_fun thm = thm RS symmetric_thm;
 
@@ -475,13 +504,13 @@ fun rewrite_goal_rule mode prover mss i thm =
 (*** Some useful meta-theorems ***)
 
 (*The rule V/V, obtains assumption solving for eresolve_tac*)
-val asm_rl = store_thm "asm_rl" (trivial(read_prop "PROP ?psi"));
+val asm_rl = store_standard_thm "asm_rl" (Thm.trivial (read_prop "PROP ?psi"));
 val _ = store_thm "_" asm_rl;
 
 (*Meta-level cut rule: [| V==>W; V |] ==> W *)
 val cut_rl =
-  store_thm "cut_rl"
-    (trivial(read_prop "PROP ?psi ==> PROP ?theta"));
+  store_standard_thm "cut_rl"
+    (Thm.trivial (read_prop "PROP ?psi ==> PROP ?theta"));
 
 (*Generalized elim rule for one conclusion; cut_rl with reversed premises:
      [| PROP V;  PROP V ==> PROP W |] ==> PROP W *)
@@ -489,7 +518,7 @@ val revcut_rl =
   let val V = read_prop "PROP V"
       and VW = read_prop "PROP V ==> PROP W";
   in
-    store_thm "revcut_rl"
+    store_standard_thm "revcut_rl"
       (implies_intr V (implies_intr VW (implies_elim (assume VW) (assume V))))
   end;
 
@@ -497,7 +526,7 @@ val revcut_rl =
 val thin_rl =
   let val V = read_prop "PROP V"
       and W = read_prop "PROP W";
-  in  store_thm "thin_rl" (implies_intr V (implies_intr W (assume W)))
+  in  store_standard_thm "thin_rl" (implies_intr V (implies_intr W (assume W)))
   end;
 
 (* (!!x. PROP ?V) == PROP ?V       Allows removal of redundant parameters*)
@@ -506,9 +535,9 @@ val triv_forall_equality =
       and QV = read_prop "!!x::'a. PROP V"
       and x  = read_cterm proto_sign ("x", TypeInfer.logicT);
   in
-    store_thm "triv_forall_equality"
-      (equal_intr (implies_intr QV (forall_elim x (assume QV)))
-        (implies_intr V  (forall_intr x (assume V))))
+    store_standard_thm "triv_forall_equality"
+      (standard (equal_intr (implies_intr QV (forall_elim x (assume QV)))
+        (implies_intr V  (forall_intr x (assume V)))))
   end;
 
 (* (PROP ?PhiA ==> PROP ?PhiB ==> PROP ?Psi) ==>
@@ -522,7 +551,7 @@ val swap_prems_rl =
       val minor1 = assume cminor1;
       val cminor2 = read_prop "PROP PhiB";
       val minor2 = assume cminor2;
-  in store_thm "swap_prems_rl"
+  in store_standard_thm "swap_prems_rl"
        (implies_intr cmajor (implies_intr cminor2 (implies_intr cminor1
          (implies_elim (implies_elim major minor1) minor2))))
   end;
@@ -535,7 +564,7 @@ val equal_intr_rule =
   let val PQ = read_prop "PROP phi ==> PROP psi"
       and QP = read_prop "PROP psi ==> PROP phi"
   in
-    store_thm "equal_intr_rule"
+    store_standard_thm "equal_intr_rule"
       (implies_intr PQ (implies_intr QP (equal_intr (assume PQ) (assume QP))))
   end;
 
@@ -626,8 +655,10 @@ local
   val G = read_prop "GOAL (PROP A)";
   val (G_def, _) = freeze_thaw ProtoPure.Goal_def;
 in
-  val triv_goal = store_thm "triv_goal" (Thm.equal_elim (Thm.symmetric G_def) (Thm.assume A));
-  val rev_triv_goal = store_thm "rev_triv_goal" (Thm.equal_elim G_def (Thm.assume G));
+  val triv_goal = store_thm "triv_goal"
+    (tag_rule internal_tag (standard (Thm.equal_elim (Thm.symmetric G_def) (Thm.assume A))));
+  val rev_triv_goal = store_thm "rev_triv_goal"
+    (tag_rule internal_tag (standard (Thm.equal_elim G_def (Thm.assume G))));
 end;
 
 val mk_cgoal = Thm.capply (Thm.cterm_of proto_sign (Const ("Goal", propT --> propT)));
@@ -758,32 +789,6 @@ val freeze_all = freeze_all_Vars o freeze_all_TVars;
 
 (*make an initial proof state, "PROP A ==> (PROP A)" *)
 fun mk_triv_goal ct = instantiate' [] [Some ct] triv_goal;
-
-
-
-(** basic attributes **)
-
-(* dependent rules *)
-
-fun rule_attribute f (x, thm) = (x, (f x thm));
-
-
-(* add / delete tags *)
-
-fun map_tags f thm =
-  Thm.put_name_tags (Thm.name_of_thm thm, f (#2 (Thm.get_name_tags thm))) thm;
-
-fun tag_rule tg = map_tags (fn tgs => if tg mem tgs then tgs else tgs @ [tg]);
-fun untag_rule s = map_tags (filter_out (equal s o #1));
-
-fun tag tg x = rule_attribute (K (tag_rule tg)) x;
-fun untag s x = rule_attribute (K (untag_rule s)) x;
-
-fun simple_tag name x = tag (name, []) x;
-
-fun tag_lemma x = simple_tag "lemma" x;
-fun tag_assumption x = simple_tag "assumption" x;
-fun tag_internal x = simple_tag "internal" x;
 
 
 end;
