@@ -321,7 +321,7 @@ where the result is treated as an assumption.
   folded & : & \isaratt \\[0.5ex]
   standard & : & \isaratt \\
   elimified & : & \isaratt \\
-  no_vars & : & \isaratt \\
+  no_vars^* & : & \isaratt \\
   exported^* & : & \isaratt \\
 \end{matharray}
 
@@ -787,20 +787,23 @@ This is slightly less hazardous than for the Simplifier (see
 
 \indexisarcmd{print-claset}
 \indexisaratt{intro}\indexisaratt{elim}\indexisaratt{dest}
-\indexisaratt{iff}\indexisaratt{delrule}
+\indexisaratt{iff}\indexisaratt{rule}
 \begin{matharray}{rcl}
   print_claset & : & \isarkeep{theory~|~proof} \\
   intro & : & \isaratt \\
   elim & : & \isaratt \\
   dest & : & \isaratt \\
+  rule & : & \isaratt \\
   iff & : & \isaratt \\
-  delrule & : & \isaratt \\
 \end{matharray}
 
 \begin{rail}
   ('intro' | 'elim' | 'dest') ('!' | () | '?')
   ;
+  'rule' 'del'
+  ;
   'iff' (() | 'add' | 'del')
+  ;
 \end{rail}
 
 \begin{descr}
@@ -813,13 +816,10 @@ This is slightly less hazardous than for the Simplifier (see
   single ``!'' classifies as \emph{safe}, and ``?'' as \emph{extra} (i.e.\ not
   applied in the search-oriented automated methods, but only in single-step
   methods such as $rule$).
-
+\item [$rule~del$] deletes introduction, elimination, or destruct rules from
+  the context.
 \item [$iff$] declares equations both as rules for the Simplifier and
   Classical Reasoner.
-
-\item [$delrule$] deletes introduction or elimination rules from the context.
-  Note that destruction rules would have to be turned into elimination rules
-  first, e.g.\ by using the $elimified$ attribute.
 \end{descr}
 
 

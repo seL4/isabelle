@@ -845,7 +845,7 @@ object-logic specific tools and packages (see chapters \ref{ch:gen-tools} and
 \ref{ch:hol-tools}).
 
 \indexisarmeth{assumption}\indexisarmeth{this}\indexisarmeth{rule}\indexisarmeth{$-$}
-\indexisaratt{intro}\indexisaratt{elim}\indexisaratt{dest}
+\indexisaratt{intro}\indexisaratt{elim}\indexisaratt{dest}\indexisaratt{rule}
 \indexisaratt{OF}\indexisaratt{of}
 \begin{matharray}{rcl}
   assumption & : & \isarmeth \\
@@ -857,7 +857,7 @@ object-logic specific tools and packages (see chapters \ref{ch:gen-tools} and
   intro & : & \isaratt \\
   elim & : & \isaratt \\
   dest & : & \isaratt \\
-  delrule & : & \isaratt \\
+  rule & : & \isaratt \\
 \end{matharray}
 
 \begin{rail}
@@ -866,6 +866,8 @@ object-logic specific tools and packages (see chapters \ref{ch:gen-tools} and
   'OF' thmrefs
   ;
   'of' insts ('concl' ':' insts)?
+  ;
+  'rule' 'del'
   ;
 \end{rail}
 
@@ -906,7 +908,7 @@ object-logic specific tools and packages (see chapters \ref{ch:gen-tools} and
   attributes, and the $rule$ method, too.  In object-logics with classical
   reasoning enabled, the latter version should be used all the time to avoid
   confusion!
-\item [$delrule$] undeclares introduction or elimination rules.
+\item [$rule~del$] undeclares introduction, elimination, or destruct rules.
 \end{descr}
 
 
