@@ -314,8 +314,10 @@ goal HOL.thy
     "(! x. p(a) & (p(x) --> (? y. p(y) & r x y)) -->            \
 \          (? z. ? w. p(z) & r x w & r w z))  =                 \
 \    (! x. (~p(a) | p(x) | (? z. ? w. p(z) & r x w & r w z)) &  \
-\          (~p(a) | ~(? y. p(y) & r x y) |                              \
+\          (~p(a) | ~(? y. p(y) & r x y) |                      \
 \           (? z. ? w. p(z) & r x w & r w z)))";
+by (deepen_tac HOL_cs 0 1);  (*beats fast_tac!*)
+result();
 
 writeln"Problem 39";
 goal HOL.thy "~ (? x. ! y. F y x = (~ F y y))";
