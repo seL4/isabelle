@@ -306,9 +306,9 @@ fun splitto splitths genth =
           (case find_thms_split splitths 1 th of 
              None => 
              (writeln "th:";
-              print th; writeln "split ths:";
-             print splitths; writeln "\n--";
-             raise ERROR_MESSAGE "splitto: cannot find variable to split on")
+              Display.print_thm th; writeln "split ths:";
+              Display.print_thms splitths; writeln "\n--";
+              raise ERROR_MESSAGE "splitto: cannot find variable to split on")
             | Some v => 
              let 
                val gt = Data.dest_Trueprop (nth_elem(0, Thm.prems_of th));
