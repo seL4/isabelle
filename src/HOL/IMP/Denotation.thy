@@ -13,7 +13,7 @@ types com_den = "(state*state)set"
 constdefs
   Gamma :: [bexp,com_den] => (com_den => com_den)
            "Gamma b cd == (%phi.{(s,t). (s,t) : (phi O cd) & b(s)} Un 
-                                 {(s,t). (s,t) : id & ~b(s)})"
+                                 {(s,t). s=t & ~b(s)})"
     
 consts
   C     :: com => com_den
