@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+#
+# $Id$
+# Author: Gerwin Klein, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
+#
+# DESCRIPTION: sends email for failed tests (checks for error.log)
+
+# source bashrc, we're called by cron
+. ~/.bashrc
+
+
+## global settings
+
+# send mail to:
+MAILTO="kleing@in.tum.de nipkow@in.tum.de berghofe@in.tum.de schirmer@in.tum.de lp15@cam.ac.uk"
+
+ADMIN="kleing@in.tum.de"
+
+# canoncical home for all platforms
+HOME=/usr/stud/isatest
+
+# mail program
+MAIL=$HOME/bin/pmail
+
+# where the error log is
+ERRORLOG=$HOME/var/error.log
+
+# where the test-still-running files are
+RUNNING=$HOME/var/run/
+
+# tmp file for sending mail
+TMP=/tmp/isatest-makedist.$$
+
+
+## diagnostics
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG"
+  echo
+  echo "   sends email for failed tests, checks for error.log."
+  echo "   To be called by cron."
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+## main
+
+# check if tests are still running, wait for them to finish for max 10h
+i=0
+while [ -n $(ls $RUNNING) -a $((i < 10)) ]; do 
+    sleep 3600
+    $((i = i+1))
+done
+
+# still running -> give up
+if [ -n $(ls $RUNNING) ]; then
+    echo "giving up waiting for test to finish at $(date)" > $TMP
+    echo >> $TMP
+    echo "Have a nice day," >> $TMP
+    echo "  isatest" >> $TMP
+
+    for R in $ADMIN; do
+        $MAIL "isabelle taking to long" $R $TMP
+    done
+    
+    exit 1
+fi
+
+# no tests running, check if there were errors
+if [ -e $ERRORLOG ]; then
+  cat $ERRORLOG > $TMP
+	echo "Have a nice day," >> $TMP
+	echo "  isatest" >> $TMP
+
+  for R in $MAILTO; do
+	    $MAIL "isabelle test failed" $R $TMP
+	done
+
+	rm $TMP
+fi
+
+## end
