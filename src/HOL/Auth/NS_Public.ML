@@ -5,12 +5,19 @@
 
 Inductive relation "ns_public" for the Needham-Schroeder Public-Key protocol.
 Version incorporating Lowe's fix (inclusion of B's identify in round 2).
+
+This version is experimental.  It adds many more rules to the claset and even
+replaces Fake_parts_insert_tac by Blast_tac.
 *)
 
 open NS_Public;
 
 set proof_timing;
 HOL_quantifiers := false;
+
+AddEs spies_partsEs;
+AddDs [impOfSubs analz_subset_parts];
+AddDs [impOfSubs Fake_parts_insert];
 
 AddIffs [Spy_in_bad];
 
@@ -53,13 +60,9 @@ fun parts_induct_tac i =
 goal thy 
  "!!A. evs: ns_public ==> (Key (priK A) : parts (spies evs)) = (A : bad)";
 by (parts_induct_tac 1);
-by (Fake_parts_insert_tac 1);
+by (Blast_tac 1);
 qed "Spy_see_priK";
 Addsimps [Spy_see_priK];
-
-AddDs [impOfSubs analz_subset_parts];
-AddDs [Says_imp_spies RS parts.Inj];
-AddDs [impOfSubs Fake_parts_insert];
 
 goal thy 
  "!!A. evs: ns_public ==> (Key (priK A) : analz (spies evs)) = (A : bad)";
@@ -67,13 +70,8 @@ by (Auto_tac());
 qed "Spy_analz_priK";
 Addsimps [Spy_analz_priK];
 
-goal thy  "!!A. [| Key (priK A) : parts (spies evs);       \
-\                  evs : ns_public |] ==> A:bad";
-by (blast_tac (claset() addDs [Spy_see_priK]) 1);
-qed "Spy_see_priK_D";
-
-bind_thm ("Spy_analz_priK_D", analz_subset_parts RS subsetD RS Spy_see_priK_D);
-AddSDs [Spy_see_priK_D, Spy_analz_priK_D];
+AddSDs [Spy_see_priK RSN (2, rev_iffD1), 
+	Spy_analz_priK RSN (2, rev_iffD1)];
 
 
 (**** Authenticity properties obtained from NS2 ****)
@@ -88,12 +86,11 @@ goal thy
 by (etac rev_mp 1);
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
-(*NS3*)
-by (blast_tac (claset() addSEs partsEs) 3);
-(*NS2*)
-by (blast_tac (claset() addSEs partsEs) 2);
-by (Fake_parts_insert_tac 1);
+by (ALLGOALS Blast_tac);
 qed "no_nonce_NS1_NS2";
+
+(*Adding it to the claset slows down proofs...*)
+val nonce_NS1_NS2_E = no_nonce_NS1_NS2 RSN (2, rev_notE);
 
 
 (*Unicity for NS1: nonce NA identifies agents A and B*)
@@ -105,13 +102,14 @@ goal thy
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
 by (ALLGOALS
-    (asm_simp_tac (simpset() addsimps [all_conj_distrib, parts_insert_spies])));
+    (asm_simp_tac (simpset() addsimps [all_conj_distrib,
+				       parts_insert_spies])));
 (*NS1*)
-by (expand_case_tac "NA = ?y" 2 THEN blast_tac (claset() addSEs partsEs) 2);
+by (expand_case_tac "NA = ?y" 2 THEN Blast_tac 2);
 (*Fake*)
 by (Clarify_tac 1);
 by (ex_strip_tac 1);
-by (Fake_parts_insert_tac 1);
+by (Blast_tac 1);
 val lemma = result();
 
 goal thy 
@@ -127,8 +125,7 @@ qed "unique_NA";
 (*Tactic for proving secrecy theorems*)
 fun analz_induct_tac i = 
     etac ns_public.induct i   THEN
-    ALLGOALS (asm_simp_tac 
-              (simpset() addsplits [expand_if]));
+    ALLGOALS (asm_simp_tac (simpset() addsplits [expand_if]));
 
 
 (*Secrecy: Spy does not see the nonce sent in msg NS1 if A and B are secure*)
@@ -139,12 +136,11 @@ goal thy
 by (etac rev_mp 1);
 by (analz_induct_tac 1);
 (*NS3*)
-by (blast_tac (claset() addEs  [no_nonce_NS1_NS2 RSN (2, rev_notE)]) 4);
+by (blast_tac (claset() addEs [nonce_NS1_NS2_E]) 4);
 (*NS2*)
-by (blast_tac (claset() addSEs [MPair_parts]
-		        addDs  [parts.Body, unique_NA]) 3);
+by (blast_tac (claset() addDs [unique_NA]) 3);
 (*NS1*)
-by (blast_tac (claset() addSEs spies_partsEs) 2);
+by (Blast_tac 2);
 (*Fake*)
 by (spy_analz_tac 1);
 qed "Spy_not_see_NA";
@@ -165,7 +161,7 @@ by (etac (Says_imp_spies RS parts.Inj RS rev_mp) 1);
 by (etac ns_public.induct 1);
 by (ALLGOALS Asm_simp_tac);
 (*NS1*)
-by (blast_tac (claset() addSEs spies_partsEs) 2);
+by (Blast_tac 2);
 (*Fake*)
 by (blast_tac (claset() addDs [Spy_not_see_NA]) 1);
 qed "A_trusts_NS2";
@@ -179,7 +175,7 @@ goal thy
 by (etac rev_mp 1);
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
-by (Fake_parts_insert_tac 1);
+by (Blast_tac 1);
 qed "B_trusts_NS1";
 
 
@@ -200,11 +196,11 @@ by (ALLGOALS
     (asm_simp_tac (simpset() addsimps [all_conj_distrib, 
 				       parts_insert_spies])));
 (*NS2*)
-by (expand_case_tac "NB = ?y" 2 THEN blast_tac (claset() addSEs partsEs) 2);
+by (expand_case_tac "NB = ?y" 2 THEN Blast_tac 2);
 (*Fake*)
 by (Clarify_tac 1);
 by (ex_strip_tac 1);
-by (Fake_parts_insert_tac 1);
+by (Blast_tac 1);
 val lemma = result();
 
 goal thy 
@@ -218,6 +214,8 @@ goal thy
 by (prove_unique_tac lemma 1);
 qed "unique_NB";
 
+AddDs [unique_NB];
+
 
 (*Secrecy: Spy does not see the nonce sent in msg NS2 if A and B are secure*)
 goal thy 
@@ -228,12 +226,11 @@ goal thy
 by (etac rev_mp 1);
 by (analz_induct_tac 1);
 (*NS3*)
-by (blast_tac (claset() addDs [unique_NB]) 4);
+by (Blast_tac 4);
 (*NS2: by freshness and unicity of NB*)
-by (blast_tac (claset() addEs [no_nonce_NS1_NS2 RSN (2, rev_notE)]
-                        addEs partsEs) 3);
+by (blast_tac (claset() addEs [nonce_NS1_NS2_E]) 3);
 (*NS1*)
-by (blast_tac (claset() addSEs spies_partsEs) 2);
+by (Blast_tac 2);
 (*Fake*)
 by (spy_analz_tac 1);
 qed "Spy_not_see_NB";
@@ -254,12 +251,7 @@ by (etac rev_mp 1);
 by (etac (Says_imp_spies RS parts.Inj RS rev_mp) 1);
 by (parts_induct_tac 1);
 by (ALLGOALS Clarify_tac);
-(*NS3: because NB determines A*)
-by (blast_tac (claset() addDs [unique_NB]) 3);
-(*NS1: by freshness*)
-by (blast_tac (claset() addSEs spies_partsEs) 2);
-(*Fake*)
-by (Blast_tac 1);
+by (ALLGOALS Blast_tac);
 qed "B_trusts_NS3";
 
 
@@ -284,11 +276,7 @@ by (etac (Says_imp_spies RS parts.Inj RS rev_mp) 1);
 by (etac ns_public.induct 1);
 by (ALLGOALS Asm_simp_tac);
 by (ALLGOALS Clarify_tac);
-(*NS3: because NB determines A and NA*)
-by (blast_tac (claset() addDs [unique_NB]) 3);
-(*NS1*)
-by (blast_tac (claset() addSEs spies_partsEs) 2);
-(*Fake*)
-by (Blast_tac 1);
+(*NS3 holds because NB determines A and NA*)
+by (ALLGOALS Blast_tac);
 qed "B_trusts_protocol";
 

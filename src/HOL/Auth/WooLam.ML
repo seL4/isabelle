@@ -15,6 +15,10 @@ open WooLam;
 set proof_timing;
 HOL_quantifiers := false;
 
+AddEs spies_partsEs;
+AddDs [impOfSubs analz_subset_parts];
+AddDs [impOfSubs Fake_parts_insert];
+
 
 (*A "possibility property": there are traces that reach the end*)
 goal thy 
@@ -62,23 +66,18 @@ fun parts_induct_tac i =
 goal thy 
  "!!evs. evs : woolam ==> (Key (shrK A) : parts (spies evs)) = (A : bad)";
 by (parts_induct_tac 1);
-by (Fake_parts_insert_tac 1);
+by (Blast_tac 1);
 qed "Spy_see_shrK";
 Addsimps [Spy_see_shrK];
 
 goal thy 
  "!!evs. evs : woolam ==> (Key (shrK A) : analz (spies evs)) = (A : bad)";
-by (auto_tac(claset() addDs [impOfSubs analz_subset_parts], simpset()));
+by (Auto_tac());
 qed "Spy_analz_shrK";
 Addsimps [Spy_analz_shrK];
 
-goal thy  "!!A. [| Key (shrK A) : parts (spies evs);       \
-\                  evs : woolam |] ==> A:bad";
-by (blast_tac (claset() addDs [Spy_see_shrK]) 1);
-qed "Spy_see_shrK_D";
-
-bind_thm ("Spy_analz_shrK_D", analz_subset_parts RS subsetD RS Spy_see_shrK_D);
-AddSDs [Spy_see_shrK_D, Spy_analz_shrK_D];
+AddSDs [Spy_see_shrK RSN (2, rev_iffD1), 
+	Spy_analz_shrK RSN (2, rev_iffD1)];
 
 
 (**** Autheticity properties for Woo-Lam ****)
@@ -88,60 +87,52 @@ AddSDs [Spy_see_shrK_D, Spy_analz_shrK_D];
 
 (*If the encrypted message appears then it originated with Alice*)
 goal thy 
- "!!evs. [| A ~: bad;  evs : woolam |]                        \
-\        ==> Crypt (shrK A) (Nonce NB) : parts (spies evs)  \
-\            --> (EX B. Says A B (Crypt (shrK A) (Nonce NB)) : set evs)";
+ "!!evs. [| Crypt (shrK A) (Nonce NB) : parts (spies evs);  \
+\           A ~: bad;  evs : woolam |]                      \
+\        ==> EX B. Says A B (Crypt (shrK A) (Nonce NB)) : set evs";
+by (etac rev_mp 1);
 by (parts_induct_tac 1);
-by (Fake_parts_insert_tac 1);
-by (Blast_tac 1);
-qed_spec_mp "NB_Crypt_imp_Alice_msg";
+by (ALLGOALS Blast_tac);
+qed "NB_Crypt_imp_Alice_msg";
 
 (*Guarantee for Server: if it gets a message containing a certificate from 
   Alice, then she originated that certificate.  But we DO NOT know that B
   ever saw it: the Spy may have rerouted the message to the Server.*)
 goal thy 
- "!!evs. [| A ~: bad;  evs : woolam;                      \
-\           Says B' Server {|Agent A, Agent B, Crypt (shrK A) (Nonce NB)|} \
-\            : set evs |]                                  \
+ "!!evs. [| Says B' Server {|Agent A, Agent B, Crypt (shrK A) (Nonce NB)|} \
+\             : set evs;                                                   \
+\           A ~: bad;  evs : woolam |]                                     \
 \        ==> EX B. Says A B (Crypt (shrK A) (Nonce NB)) : set evs";
-by (blast_tac (claset() addSIs [NB_Crypt_imp_Alice_msg]
-                      addSEs [MPair_parts]
-                      addDs  [Says_imp_spies RS parts.Inj]) 1);
+by (blast_tac (claset() addSIs [NB_Crypt_imp_Alice_msg]) 1);
 qed "Server_trusts_WL4";
+
+AddDs [Server_trusts_WL4];
 
 
 (*** WL5 ***)
 
 (*Server sent WL5 only if it received the right sort of message*)
 goal thy 
- "!!evs. evs : woolam ==>                                                   \
-\        Says Server B (Crypt (shrK B) {|Agent A, NB|}) : set evs           \
-\        --> (EX B'. Says B' Server {|Agent A, Agent B, Crypt (shrK A) NB|} \
-\               : set evs)";
+ "!!evs. [| Says Server B (Crypt (shrK B) {|Agent A, NB|}) : set evs;      \
+\           evs : woolam |]                                                \
+\        ==> EX B'. Says B' Server {|Agent A, Agent B, Crypt (shrK A) NB|} \
+\               : set evs";
+by (etac rev_mp 1);
 by (parts_induct_tac 1);
-by (Fake_parts_insert_tac 1);
 by (ALLGOALS Blast_tac);
-bind_thm ("Server_sent_WL5", result() RSN (2, rev_mp));
+qed "Server_sent_WL5";
 
+AddDs [Server_sent_WL5];
 
 (*If the encrypted message appears then it originated with the Server!*)
 goal thy 
- "!!evs. [| B ~: bad;  evs : woolam |]                             \
-\        ==> Crypt (shrK B) {|Agent A, NB|} : parts (spies evs)  \
-\        --> Says Server B (Crypt (shrK B) {|Agent A, NB|}) : set evs";
-by (parts_induct_tac 1);
-by (Fake_parts_insert_tac 1);
-qed_spec_mp "NB_Crypt_imp_Server_msg";
-
-(*Partial guarantee for B: if it gets a message of correct form then the Server
-  sent the same message.*)
-goal thy 
- "!!evs. [| Says S B (Crypt (shrK B) {|Agent A, NB|}) : set evs;         \
-\           B ~: bad;  evs : woolam |]                                  \
+ "!!evs. [| Crypt (shrK B) {|Agent A, NB|} : parts (spies evs);  \
+\           B ~: bad;  evs : woolam |]                           \
 \        ==> Says Server B (Crypt (shrK B) {|Agent A, NB|}) : set evs";
-by (blast_tac (claset() addSIs [NB_Crypt_imp_Server_msg]
-                      addDs  [Says_imp_spies RS parts.Inj]) 1);
-qed "B_got_WL5";
+by (etac rev_mp 1);
+by (parts_induct_tac 1);
+by (Blast_tac 1);
+qed_spec_mp "NB_Crypt_imp_Server_msg";
 
 (*Guarantee for B.  If B gets the Server's certificate then A has encrypted
   the nonce using her key.  This event can be no older than the nonce itself.
@@ -151,20 +142,18 @@ goal thy
  "!!evs. [| Says S B (Crypt (shrK B) {|Agent A, Nonce NB|}): set evs; \
 \           A ~: bad;  B ~: bad;  evs : woolam  |]                  \
 \        ==> EX B. Says A B (Crypt (shrK A) (Nonce NB)) : set evs";
-by (blast_tac (claset() addIs  [Server_trusts_WL4]
-                      addSDs [B_got_WL5 RS Server_sent_WL5]) 1);
+by (blast_tac (claset() addSDs [NB_Crypt_imp_Server_msg]) 1);
 qed "B_trusts_WL5";
 
 
-(*B only issues challenges in response to WL1.  Useful??*)
+(*B only issues challenges in response to WL1.  Not used.*)
 goal thy 
- "!!evs. [| B ~= Spy;  evs : woolam |]        \
-\    ==> Says B A (Nonce NB) : set evs        \
-\        --> (EX A'. Says A' B (Agent A) : set evs)";
+ "!!evs. [| Says B A (Nonce NB) : set evs;  B ~= Spy;  evs : woolam |]  \
+\        ==> EX A'. Says A' B (Agent A) : set evs";
+by (etac rev_mp 1);
 by (parts_induct_tac 1);
-by (Fake_parts_insert_tac 1);
 by (ALLGOALS Blast_tac);
-bind_thm ("B_said_WL2", result() RSN (2, rev_mp));
+qed "B_said_WL2";
 
 
 (**CANNOT be proved because A doesn't know where challenges come from...
@@ -174,7 +163,6 @@ goal thy
 \        Says B A (Nonce NB) : set evs                       \
 \        --> Says A B (Crypt (shrK A) (Nonce NB)) : set evs";
 by (parts_induct_tac 1);
-by (Fake_parts_insert_tac 1);
+by (Blast_tac 1);
 by Safe_tac;
-by (blast_tac (claset() addSEs partsEs) 1);
 **)

@@ -15,6 +15,10 @@ open NS_Shared;
 set proof_timing;
 HOL_quantifiers := false;
 
+AddEs spies_partsEs;
+AddDs [impOfSubs analz_subset_parts];
+AddDs [impOfSubs Fake_parts_insert];
+
 
 (*A "possibility property": there are traces that reach the end*)
 goal thy 
@@ -49,13 +53,13 @@ AddSEs   [not_Says_to_self RSN (2, rev_notE)];
 (*For reasoning about the encrypted portion of message NS3*)
 goal thy "!!evs. Says S A (Crypt KA {|N, B, K, X|}) : set evs \
 \                ==> X : parts (spies evs)";
-by (blast_tac (claset() addSEs spies_partsEs) 1);
+by (Blast_tac 1);
 qed "NS3_msg_in_parts_spies";
                               
 goal thy
     "!!evs. Says Server A (Crypt (shrK A) {|NA, B, K, X|}) : set evs \
 \           ==> K : parts (spies evs)";
-by (blast_tac (claset() addSEs spies_partsEs) 1);
+by (Blast_tac 1);
 qed "Oops_parts_spies";
 
 (*For proving the easier theorems about X ~: parts (spies evs).*)
@@ -74,24 +78,18 @@ fun parts_induct_tac i =
 goal thy 
  "!!evs. evs : ns_shared ==> (Key (shrK A) : parts (spies evs)) = (A : bad)";
 by (parts_induct_tac 1);
-by (Fake_parts_insert_tac 1);
 by (ALLGOALS Blast_tac);
 qed "Spy_see_shrK";
 Addsimps [Spy_see_shrK];
 
 goal thy 
  "!!evs. evs : ns_shared ==> (Key (shrK A) : analz (spies evs)) = (A : bad)";
-by (auto_tac(claset() addDs [impOfSubs analz_subset_parts], simpset()));
+by (Auto_tac());
 qed "Spy_analz_shrK";
 Addsimps [Spy_analz_shrK];
 
-goal thy  "!!A. [| Key (shrK A) : parts (spies evs);       \
-\                  evs : ns_shared |] ==> A:bad";
-by (blast_tac (claset() addDs [Spy_see_shrK]) 1);
-qed "Spy_see_shrK_D";
-
-bind_thm ("Spy_analz_shrK_D", analz_subset_parts RS subsetD RS Spy_see_shrK_D);
-AddSDs [Spy_see_shrK_D, Spy_analz_shrK_D];
+AddSDs [Spy_see_shrK RSN (2, rev_iffD1), 
+	Spy_analz_shrK RSN (2, rev_iffD1)];
 
 
 (*Nobody can have used non-existent keys!*)
@@ -105,7 +103,7 @@ by (best_tac
                 addDs  [impOfSubs (analz_subset_parts RS keysFor_mono)]
                 addss  (simpset())) 1);
 (*NS2, NS4, NS5*)
-by (ALLGOALS (blast_tac (claset() addSEs spies_partsEs)));
+by (ALLGOALS (Blast_tac));
 qed_spec_mp "new_keys_not_used";
 
 bind_thm ("new_keys_not_analzd",
@@ -138,7 +136,7 @@ goal thy
 \               : set evs";
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
-by (Fake_parts_insert_tac 1);
+by (Blast_tac 1);
 qed "A_trusts_NS2";
 
 
@@ -162,7 +160,7 @@ goal thy
 by (case_tac "A : bad" 1);
 by (fast_tac (claset() addSDs [Says_imp_spies RS analz.Inj]
                        addss (simpset())) 1);
-by (blast_tac (claset() addSDs [Says_imp_spies RS parts.Inj, cert_A_form]) 1);
+by (blast_tac (claset() addSDs [cert_A_form]) 1);
 qed "Says_S_message_form";
 
 
@@ -191,7 +189,7 @@ goal thy
 \           (Crypt KAB X) : parts (spies evs) &         \
 \           Key K : parts {X} --> Key K : parts (spies evs)";
 by (parts_induct_tac 1);
-(*Deals with Faked messages*)
+(*Fake*)
 by (blast_tac (claset() addSEs partsEs
                         addDs [impOfSubs parts_insert_subset_Un]) 1);
 (*Base, NS4 and NS5*)
@@ -242,8 +240,7 @@ by (Blast_tac 2);
 (*NS2: it can't be a new key*)
 by (expand_case_tac "K = ?y" 1);
 by (REPEAT (ares_tac [refl,exI,impI,conjI] 2));
-by (blast_tac (claset() delrules [conjI]   (*prevent splitup into 4 subgoals*)
-                        addSEs spies_partsEs) 1);
+by (Blast_tac 1);
 val lemma = result();
 
 (*In messages of this form, the session key uniquely identifies the rest*)
@@ -278,9 +275,7 @@ by (blast_tac (claset() addDs [unique_session_keys]) 5);
 (*NS3, replay sub-case*) 
 by (Blast_tac 4);
 (*NS2*)
-by (blast_tac (claset() addSEs spies_partsEs
-                        addIs  [parts_insertI, 
-			        impOfSubs analz_subset_parts]) 2);
+by (Blast_tac 2);
 (*Fake*) 
 by (spy_analz_tac 1);
 (*NS3, Server sub-case*) (**LEVEL 6 **)
@@ -288,7 +283,7 @@ by (clarify_tac (claset() delrules [impCE]) 1);
 by (forward_tac [Says_imp_spies RS parts.Inj RS A_trusts_NS2] 1);
 by (assume_tac 2);
 by (blast_tac (claset() addDs [Says_imp_spies RS analz.Inj RS
-			      Crypt_Spy_analz_bad]) 1);
+			       Crypt_Spy_analz_bad]) 1);
 by (blast_tac (claset() addDs [unique_session_keys]) 1);
 val lemma = result() RS mp RS mp RSN(2,rev_notE);
 
@@ -320,8 +315,6 @@ goal thy
 \             : set evs";
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
-by (Fake_parts_insert_tac 1);
-(*Fake case*)
 by (ALLGOALS Blast_tac);
 qed "B_trusts_NS3";
 
@@ -339,7 +332,7 @@ by (etac rev_mp 1);
 by (parts_induct_tac 1);
 (*NS3*)
 by (Blast_tac 3);
-by (Fake_parts_insert_tac 1);
+by (Blast_tac 1);
 (*NS2: contradiction from the assumptions  
   Key K ~: used evs2  and Crypt K (Nonce NB) : parts (spies evs2) *)
 by (blast_tac (claset() addSEs [new_keys_not_used RSN (2,rev_notE)]
@@ -348,8 +341,7 @@ by (blast_tac (claset() addSEs [new_keys_not_used RSN (2,rev_notE)]
 (*NS4*)
 by (Clarify_tac 1);
 by (not_bad_tac "Ba" 1);
-by (blast_tac (claset() addDs [Says_imp_spies RS parts.Inj RS B_trusts_NS3, 
-			       unique_session_keys]) 1);
+by (blast_tac (claset() addDs [B_trusts_NS3, unique_session_keys]) 1);
 qed "A_trusts_NS4_lemma";
 
 
@@ -381,7 +373,7 @@ by (etac rev_mp 1);
 by (parts_induct_tac 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [ex_disj_distrib])));
 by (ALLGOALS Clarify_tac);
-by (Fake_parts_insert_tac 1);
+by (Blast_tac 1);
 (**LEVEL 7**)
 (*NS2*)
 by (blast_tac (claset() addSEs [new_keys_not_used RSN (2,rev_notE)]
@@ -407,19 +399,18 @@ goal thy
 \            Says A B (Crypt K {|Nonce NB, Nonce NB|}) : set evs";
 by (parts_induct_tac 1);
 (*NS4*)
-by (blast_tac (claset() addSEs spies_partsEs) 4);
+by (Blast_tac 4);
 (*NS3*)
-by (blast_tac (claset() addSDs [Says_imp_spies RS parts.Inj, cert_A_form]) 3);
+by (blast_tac (claset() addSDs [cert_A_form]) 3);
 (*NS2*)
 by (blast_tac (claset() addSEs [new_keys_not_used RSN (2,rev_notE)]
 			addSDs [Crypt_imp_keysFor]) 2);
-by (Fake_parts_insert_tac 1);
+by (Blast_tac 1);
 (**LEVEL 5**)
 (*NS5*)
 by (Clarify_tac 1);
 by (not_bad_tac "Aa" 1);
-by (blast_tac (claset() addDs [Says_imp_spies RS parts.Inj RS A_trusts_NS2, 
-			       unique_session_keys]) 1);
+by (blast_tac (claset() addDs [A_trusts_NS2, unique_session_keys]) 1);
 val lemma = result();
 
 
