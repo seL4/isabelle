@@ -8,36 +8,32 @@ Functions in Zermelo-Fraenkel Set Theory
 
 (*** The Pi operator -- dependent function space ***)
 
-goalw thy [Pi_def]
+goalw ZF.thy [Pi_def]
     "f: Pi(A,B) <-> function(f) & f<=Sigma(A,B) & A<=domain(f)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Pi_iff";
 
 (*For upward compatibility with the former definition*)
-goalw thy [Pi_def, function_def]
+goalw ZF.thy [Pi_def, function_def]
     "f: Pi(A,B) <-> f<=Sigma(A,B) & (ALL x:A. EX! y. <x,y>: f)";
-by (safe_tac (!claset));
-by (Best_tac 1);
-by (Best_tac 1);
-by (set_mp_tac 1);
-by (Deepen_tac 3 1);
+by (Blast_tac 1);
 qed "Pi_iff_old";
 
-goal thy "!!f. f: Pi(A,B) ==> function(f)";
+goal ZF.thy "!!f. f: Pi(A,B) ==> function(f)";
 by (asm_full_simp_tac (FOL_ss addsimps [Pi_iff]) 1);
 qed "fun_is_function";
 
 (**Two "destruct" rules for Pi **)
 
-val [major] = goalw thy [Pi_def] "f: Pi(A,B) ==> f <= Sigma(A,B)";  
+val [major] = goalw ZF.thy [Pi_def] "f: Pi(A,B) ==> f <= Sigma(A,B)";  
 by (rtac (major RS CollectD1 RS PowD) 1);
 qed "fun_is_rel";
 
-goal thy "!!f. [| f: Pi(A,B);  a:A |] ==> EX! y. <a,y>: f";  
-by (fast_tac (!claset addSDs [Pi_iff_old RS iffD1]) 1);
+goal ZF.thy "!!f. [| f: Pi(A,B);  a:A |] ==> EX! y. <a,y>: f";  
+by (blast_tac (!claset addSDs [Pi_iff_old RS iffD1]) 1);
 qed "fun_unique_Pair";
 
-val prems = goalw thy [Pi_def]
+val prems = goalw ZF.thy [Pi_def]
     "[| A=A';  !!x. x:A' ==> B(x)=B'(x) |] ==> Pi(A,B) = Pi(A',B')";
 by (simp_tac (FOL_ss addsimps prems addcongs [Sigma_cong]) 1);
 qed "Pi_cong";
@@ -47,101 +43,101 @@ qed "Pi_cong";
   Sigmas and Pis are abbreviated as * or -> *)
 
 (*Weakening one function type to another; see also Pi_type*)
-goalw thy [Pi_def] "!!f. [| f: A->B;  B<=D |] ==> f: A->D";
+goalw ZF.thy [Pi_def] "!!f. [| f: A->B;  B<=D |] ==> f: A->D";
 by (Best_tac 1);
 qed "fun_weaken_type";
 
 (*Empty function spaces*)
-goalw thy [Pi_def, function_def] "Pi(0,A) = {0}";
-by (Fast_tac 1);
+goalw ZF.thy [Pi_def, function_def] "Pi(0,A) = {0}";
+by (Blast_tac 1);
 qed "Pi_empty1";
 
-goalw thy [Pi_def] "!!A a. a:A ==> A->0 = 0";
-by (Fast_tac 1);
+goalw ZF.thy [Pi_def] "!!A a. a:A ==> A->0 = 0";
+by (Blast_tac 1);
 qed "Pi_empty2";
 
 (*The empty function*)
-goalw thy [Pi_def, function_def] "0: Pi(0,B)";
-by (Fast_tac 1);
+goalw ZF.thy [Pi_def, function_def] "0: Pi(0,B)";
+by (Blast_tac 1);
 qed "empty_fun";
 
 (*The singleton function*)
-goalw thy [Pi_def, function_def] "{<a,b>} : {a} -> {b}";
-by (Fast_tac 1);
+goalw ZF.thy [Pi_def, function_def] "{<a,b>} : {a} -> {b}";
+by (Blast_tac 1);
 qed "singleton_fun";
 
 Addsimps [empty_fun, singleton_fun];
 
 (*** Function Application ***)
 
-goalw thy [Pi_def, function_def]
+goalw ZF.thy [Pi_def, function_def]
      "!!a b f. [| <a,b>: f;  <a,c>: f;  f: Pi(A,B) |] ==> b=c";
-by (Deepen_tac 3 1);
+by (Blast_tac 1);
 qed "apply_equality2";
 
-goalw thy [apply_def] "!!a b f. [| <a,b>: f;  f: Pi(A,B) |] ==> f`a = b";
+goalw ZF.thy [apply_def] "!!a b f. [| <a,b>: f;  f: Pi(A,B) |] ==> f`a = b";
 by (rtac the_equality 1);
 by (rtac apply_equality2 2);
 by (REPEAT (assume_tac 1));
 qed "apply_equality";
 
 (*Applying a function outside its domain yields 0*)
-goalw thy [apply_def]
+goalw ZF.thy [apply_def]
     "!!a b f. [| a ~: domain(f);  f: Pi(A,B) |] ==> f`a = 0";
 by (rtac the_0 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "apply_0";
 
-goal thy "!!f. [| f: Pi(A,B);  c: f |] ==> EX x:A.  c = <x,f`x>";
+goal ZF.thy "!!f. [| f: Pi(A,B);  c: f |] ==> EX x:A.  c = <x,f`x>";
 by (forward_tac [fun_is_rel] 1);
-by (fast_tac (!claset addDs [apply_equality]) 1);
+by (blast_tac (!claset addDs [apply_equality]) 1);
 qed "Pi_memberD";
 
-goal thy "!!f. [| f: Pi(A,B);  a:A |] ==> <a,f`a>: f";
+goal ZF.thy "!!f. [| f: Pi(A,B);  a:A |] ==> <a,f`a>: f";
 by (rtac (fun_unique_Pair RS ex1E) 1);
 by (resolve_tac [apply_equality RS ssubst] 3);
 by (REPEAT (assume_tac 1));
 qed "apply_Pair";
 
 (*Conclusion is flexible -- use res_inst_tac or else apply_funtype below!*)
-goal thy "!!f. [| f: Pi(A,B);  a:A |] ==> f`a : B(a)"; 
+goal ZF.thy "!!f. [| f: Pi(A,B);  a:A |] ==> f`a : B(a)"; 
 by (rtac (fun_is_rel RS subsetD RS SigmaE2) 1);
 by (REPEAT (ares_tac [apply_Pair] 1));
 qed "apply_type";
 
 (*This version is acceptable to the simplifier*)
-goal thy "!!f. [| f: A->B;  a:A |] ==> f`a : B"; 
+goal ZF.thy "!!f. [| f: A->B;  a:A |] ==> f`a : B"; 
 by (REPEAT (ares_tac [apply_type] 1));
 qed "apply_funtype";
 
-val [major] = goal thy
+val [major] = goal ZF.thy
     "f: Pi(A,B) ==> <a,b>: f <-> a:A & f`a = b";
 by (cut_facts_tac [major RS fun_is_rel] 1);
-by (fast_tac (!claset addSIs [major RS apply_Pair, 
+by (blast_tac (!claset addSIs [major RS apply_Pair, 
 			      major RSN (2,apply_equality)]) 1);
 qed "apply_iff";
 
 (*Refining one Pi type to another*)
-val pi_prem::prems = goal thy
+val pi_prem::prems = goal ZF.thy
     "[| f: Pi(A,C);  !!x. x:A ==> f`x : B(x) |] ==> f : Pi(A,B)";
 by (cut_facts_tac [pi_prem] 1);
 by (asm_full_simp_tac (FOL_ss addsimps [Pi_iff]) 1);
-by (fast_tac (!claset addIs prems addSDs [pi_prem RS Pi_memberD]) 1);
+by (blast_tac (!claset addIs prems addSDs [pi_prem RS Pi_memberD]) 1);
 qed "Pi_type";
 
 
 (** Elimination of membership in a function **)
 
-goal thy "!!a A. [| <a,b> : f;  f: Pi(A,B) |] ==> a : A";
+goal ZF.thy "!!a A. [| <a,b> : f;  f: Pi(A,B) |] ==> a : A";
 by (REPEAT (ares_tac [fun_is_rel RS subsetD RS SigmaD1] 1));
 qed "domain_type";
 
-goal thy "!!b B a. [| <a,b> : f;  f: Pi(A,B) |] ==> b : B(a)";
+goal ZF.thy "!!b B a. [| <a,b> : f;  f: Pi(A,B) |] ==> b : B(a)";
 by (etac (fun_is_rel RS subsetD RS SigmaD2) 1);
 by (assume_tac 1);
 qed "range_type";
 
-val prems = goal thy
+val prems = goal ZF.thy
     "[| <a,b>: f;  f: Pi(A,B);       \
 \       [| a:A;  b:B(a);  f`a = b |] ==> P  \
 \    |] ==> P";
@@ -152,49 +148,49 @@ qed "Pair_mem_PiE";
 
 (*** Lambda Abstraction ***)
 
-goalw thy [lam_def] "!!A b. a:A ==> <a,b(a)> : (lam x:A. b(x))";  
+goalw ZF.thy [lam_def] "!!A b. a:A ==> <a,b(a)> : (lam x:A. b(x))";  
 by (etac RepFunI 1);
 qed "lamI";
 
-val major::prems = goalw thy [lam_def]
+val major::prems = goalw ZF.thy [lam_def]
     "[| p: (lam x:A. b(x));  !!x.[| x:A; p=<x,b(x)> |] ==> P  \
 \    |] ==>  P";  
 by (rtac (major RS RepFunE) 1);
 by (REPEAT (ares_tac prems 1));
 qed "lamE";
 
-goal thy "!!a b c. [| <a,c>: (lam x:A. b(x)) |] ==> c = b(a)";  
+goal ZF.thy "!!a b c. [| <a,c>: (lam x:A. b(x)) |] ==> c = b(a)";  
 by (REPEAT (eresolve_tac [asm_rl,lamE,Pair_inject,ssubst] 1));
 qed "lamD";
 
-val prems = goalw thy [lam_def, Pi_def, function_def]
+val prems = goalw ZF.thy [lam_def, Pi_def, function_def]
     "[| !!x. x:A ==> b(x): B(x) |] ==> (lam x:A.b(x)) : Pi(A,B)";  
-by (fast_tac (!claset addIs prems) 1);
+by (blast_tac (!claset addIs prems) 1);
 qed "lam_type";
 
-goal thy "(lam x:A.b(x)) : A -> {b(x). x:A}";
+goal ZF.thy "(lam x:A.b(x)) : A -> {b(x). x:A}";
 by (REPEAT (ares_tac [refl,lam_type,RepFunI] 1));
 qed "lam_funtype";
 
-goal thy "!!a A. a : A ==> (lam x:A.b(x)) ` a = b(a)";
+goal ZF.thy "!!a A. a : A ==> (lam x:A.b(x)) ` a = b(a)";
 by (REPEAT (ares_tac [apply_equality,lam_funtype,lamI] 1));
 qed "beta";
 
-goalw thy [lam_def] "(lam x:0. b(x)) = 0";
+goalw ZF.thy [lam_def] "(lam x:0. b(x)) = 0";
 by (Simp_tac 1);
 qed "lam_empty";
 
 Addsimps [beta, lam_empty];
 
 (*congruence rule for lambda abstraction*)
-val prems = goalw thy [lam_def] 
+val prems = goalw ZF.thy [lam_def] 
     "[| A=A';  !!x. x:A' ==> b(x)=b'(x) |] ==> Lambda(A,b) = Lambda(A',b')";
 by (simp_tac (FOL_ss addsimps prems addcongs [RepFun_cong]) 1);
 qed "lam_cong";
 
 Addcongs [lam_cong];
 
-val [major] = goal thy
+val [major] = goal ZF.thy
     "(!!x. x:A ==> EX! y. Q(x,y)) ==> EX f. ALL x:A. Q(x, f`x)";
 by (res_inst_tac [("x", "lam x: A. THE y. Q(x,y)")] exI 1);
 by (rtac ballI 1);
@@ -207,7 +203,7 @@ qed "lam_theI";
 (** Extensionality **)
 
 (*Semi-extensionality!*)
-val prems = goal thy
+val prems = goal ZF.thy
     "[| f : Pi(A,B);  g: Pi(C,D);  A<=C; \
 \       !!x. x:A ==> f`x = g`x       |] ==> f<=g";
 by (rtac subsetI 1);
@@ -217,14 +213,14 @@ by (resolve_tac (prems RL [ssubst]) 1);
 by (REPEAT (ares_tac (prems@[apply_Pair,subsetD]) 1));
 qed "fun_subset";
 
-val prems = goal thy
+val prems = goal ZF.thy
     "[| f : Pi(A,B);  g: Pi(A,D);  \
 \       !!x. x:A ==> f`x = g`x       |] ==> f=g";
 by (REPEAT (ares_tac (prems @ (prems RL [sym]) @
                       [subset_refl,equalityI,fun_subset]) 1));
 qed "fun_extension";
 
-goal thy "!!f A B. f : Pi(A,B) ==> (lam x:A. f`x) = f";
+goal ZF.thy "!!f A B. f : Pi(A,B) ==> (lam x:A. f`x) = f";
 by (rtac fun_extension 1);
 by (REPEAT (ares_tac [lam_type,apply_type,beta] 1));
 qed "eta";
@@ -232,7 +228,7 @@ qed "eta";
 Addsimps [eta];
 
 (*Every element of Pi(A,B) may be expressed as a lambda abstraction!*)
-val prems = goal thy
+val prems = goal ZF.thy
     "[| f: Pi(A,B);        \
 \       !!b. [| ALL x:A. b(x):B(x);  f = (lam x:A.b(x)) |] ==> P   \
 \    |] ==> P";
@@ -244,11 +240,11 @@ qed "Pi_lamE";
 
 (** Images of functions **)
 
-goalw thy [lam_def] "!!C A. C <= A ==> (lam x:A.b(x)) `` C = {b(x). x:C}";
-by (Fast_tac 1);
+goalw ZF.thy [lam_def] "!!C A. C <= A ==> (lam x:A.b(x)) `` C = {b(x). x:C}";
+by (Blast_tac 1);
 qed "image_lam";
 
-goal thy "!!C A. [| f : Pi(A,B);  C <= A |] ==> f``C = {f`x. x:C}";
+goal ZF.thy "!!C A. [| f : Pi(A,B);  C <= A |] ==> f``C = {f`x. x:C}";
 by (etac (eta RS subst) 1);
 by (asm_full_simp_tac (FOL_ss addsimps [beta, image_lam, subset_iff]
                               addcongs [RepFun_cong]) 1);
@@ -257,44 +253,44 @@ qed "image_fun";
 
 (*** properties of "restrict" ***)
 
-goalw thy [restrict_def,lam_def]
+goalw ZF.thy [restrict_def,lam_def]
     "!!f A. [| f: Pi(C,B);  A<=C |] ==> restrict(f,A) <= f";
-by (fast_tac (!claset addIs [apply_Pair]) 1);
+by (blast_tac (!claset addIs [apply_Pair]) 1);
 qed "restrict_subset";
 
-val prems = goalw thy [restrict_def]
+val prems = goalw ZF.thy [restrict_def]
     "[| !!x. x:A ==> f`x: B(x) |] ==> restrict(f,A) : Pi(A,B)";  
 by (rtac lam_type 1);
 by (eresolve_tac prems 1);
 qed "restrict_type";
 
-val [pi,subs] = goal thy 
+val [pi,subs] = goal ZF.thy 
     "[| f: Pi(C,B);  A<=C |] ==> restrict(f,A) : Pi(A,B)";  
 by (rtac (pi RS apply_type RS restrict_type) 1);
 by (etac (subs RS subsetD) 1);
 qed "restrict_type2";
 
-goalw thy [restrict_def] "!!a A. a : A ==> restrict(f,A) ` a = f`a";
+goalw ZF.thy [restrict_def] "!!a A. a : A ==> restrict(f,A) ` a = f`a";
 by (etac beta 1);
 qed "restrict";
 
-goalw thy [restrict_def] "restrict(f,0) = 0";
+goalw ZF.thy [restrict_def] "restrict(f,0) = 0";
 by (Simp_tac 1);
 qed "restrict_empty";
 
 Addsimps [restrict, restrict_empty];
 
 (*NOT SAFE as a congruence rule for the simplifier!  Can cause it to fail!*)
-val prems = goalw thy [restrict_def]
+val prems = goalw ZF.thy [restrict_def]
     "[| A=B;  !!x. x:B ==> f`x=g`x |] ==> restrict(f,A) = restrict(g,B)";
 by (REPEAT (ares_tac (prems@[lam_cong]) 1));
 qed "restrict_eqI";
 
-goalw thy [restrict_def, lam_def] "domain(restrict(f,C)) = C";
-by (Fast_tac 1);
+goalw ZF.thy [restrict_def, lam_def] "domain(restrict(f,C)) = C";
+by (Blast_tac 1);
 qed "domain_restrict";
 
-val [prem] = goalw thy [restrict_def]
+val [prem] = goalw ZF.thy [restrict_def]
     "A<=C ==> restrict(lam x:C. b(x), A) = (lam x:A. b(x))";
 by (rtac (refl RS lam_cong) 1);
 by (etac (prem RS subsetD RS beta) 1);  (*easier than calling simp_tac*)
@@ -306,18 +302,18 @@ qed "restrict_lam_eq";
 
 (** The Union of a set of COMPATIBLE functions is a function **)
 
-goalw thy [function_def]
+goalw ZF.thy [function_def]
     "!!S. [| ALL x:S. function(x); \
 \            ALL x:S. ALL y:S. x<=y | y<=x  |] ==>  \
 \         function(Union(S))";
-by (fast_tac (!claset addSDs [bspec RS bspec]) 1);
+by (blast_tac (!claset addSDs [bspec RS bspec]) 1);
 qed "function_Union";
 
-goalw thy [Pi_def]
+goalw ZF.thy [Pi_def]
     "!!S. [| ALL f:S. EX C D. f:C->D; \
 \            ALL f:S. ALL y:S. f<=y | y<=f  |] ==>  \
 \         Union(S) : domain(Union(S)) -> range(Union(S))";
-by (fast_tac (subset_cs addSIs [rel_Union, function_Union]) 1);
+by (blast_tac (subset_cs addSIs [rel_Union, function_Union]) 1);
 qed "fun_Union";
 
 
@@ -327,30 +323,24 @@ val Un_rls = [Un_subset_iff, domain_Un_eq, SUM_Un_distrib1, prod_Un_distrib2,
               Un_upper1 RSN (2, subset_trans), 
               Un_upper2 RSN (2, subset_trans)];
 
-goal thy
+goal ZF.thy
     "!!f. [| f: A->B;  g: C->D;  A Int C = 0  |] ==>  \
 \         (f Un g) : (A Un C) -> (B Un D)";
-(*Solve the product and domain subgoals using distributive laws*)
-by (asm_full_simp_tac (FOL_ss addsimps [Pi_iff,extension]@Un_rls) 1);
-by (asm_simp_tac (FOL_ss addsimps [function_def]) 1);
+(*Prove the product and domain subgoals using distributive laws*)
+by (asm_full_simp_tac (!simpset addsimps [Pi_iff,extension]@Un_rls) 1);
 by (safe_tac (!claset));
-(*Solve the two cases that contradict A Int C = 0*)
-by (Deepen_tac 2 2);
-by (Deepen_tac 2 2);
 by (rewtac function_def);
-by (REPEAT_FIRST (dtac (spec RS spec)));
-by (Deepen_tac 1 1);
-by (Deepen_tac 1 1);
+by (Blast.depth_tac (!claset) 8 1);
 qed "fun_disjoint_Un";
 
-goal thy
+goal ZF.thy
     "!!f g a. [| a:A;  f: A->B;  g: C->D;  A Int C = 0 |] ==>  \
 \             (f Un g)`a = f`a";
 by (rtac (apply_Pair RS UnI1 RS apply_equality) 1);
 by (REPEAT (ares_tac [fun_disjoint_Un] 1));
 qed "fun_disjoint_apply1";
 
-goal thy
+goal ZF.thy
     "!!f g c. [| c:C;  f: A->B;  g: C->D;  A Int C = 0 |] ==>  \
 \             (f Un g)`c = g`c";
 by (rtac (apply_Pair RS UnI2 RS apply_equality) 1);
@@ -359,41 +349,41 @@ qed "fun_disjoint_apply2";
 
 (** Domain and range of a function/relation **)
 
-goalw thy [Pi_def] "!!f. f : Pi(A,B) ==> domain(f)=A";
-by (Fast_tac 1);
+goalw ZF.thy [Pi_def] "!!f. f : Pi(A,B) ==> domain(f)=A";
+by (Blast_tac 1);
 qed "domain_of_fun";
 
-goal thy "!!f. [| f : Pi(A,B);  a: A |] ==> f`a : range(f)";
+goal ZF.thy "!!f. [| f : Pi(A,B);  a: A |] ==> f`a : range(f)";
 by (etac (apply_Pair RS rangeI) 1);
 by (assume_tac 1);
 qed "apply_rangeI";
 
-val [major] = goal thy "f : Pi(A,B) ==> f : A->range(f)";
+val [major] = goal ZF.thy "f : Pi(A,B) ==> f : A->range(f)";
 by (rtac (major RS Pi_type) 1);
 by (etac (major RS apply_rangeI) 1);
 qed "range_of_fun";
 
 (*** Extensions of functions ***)
 
-goal thy
+goal ZF.thy
     "!!f A B. [| f: A->B;  c~:A |] ==> cons(<c,b>,f) : cons(c,A) -> cons(b,B)";
 by (forward_tac [singleton_fun RS fun_disjoint_Un] 1);
 by (asm_full_simp_tac (FOL_ss addsimps [cons_eq]) 2);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "fun_extend";
 
-goal thy
+goal ZF.thy
     "!!f A B. [| f: A->B;  c~:A;  b: B |] ==> cons(<c,b>,f) : cons(c,A) -> B";
-by (fast_tac (!claset addEs [fun_extend RS fun_weaken_type]) 1);
+by (blast_tac (!claset addIs [fun_extend RS fun_weaken_type]) 1);
 qed "fun_extend3";
 
-goal thy "!!f A B. [| f: A->B;  a:A;  c~:A |] ==> cons(<c,b>,f)`a = f`a";
+goal ZF.thy "!!f A B. [| f: A->B;  a:A;  c~:A |] ==> cons(<c,b>,f)`a = f`a";
 by (rtac (apply_Pair RS consI2 RS apply_equality) 1);
 by (rtac fun_extend 3);
 by (REPEAT (assume_tac 1));
 qed "fun_extend_apply1";
 
-goal thy "!!f A B. [| f: A->B;  c~:A |] ==> cons(<c,b>,f)`c = b";
+goal ZF.thy "!!f A B. [| f: A->B;  c~:A |] ==> cons(<c,b>,f)`c = b";
 by (rtac (consI1 RS apply_equality) 1);
 by (rtac fun_extend 1);
 by (REPEAT (assume_tac 1));
@@ -403,13 +393,13 @@ bind_thm ("singleton_apply", [singletonI, singleton_fun] MRS apply_equality);
 Addsimps [singleton_apply];
 
 (*For Finite.ML.  Inclusion of right into left is easy*)
-goal thy
+goal ZF.thy
     "!!c. c ~: A ==> cons(c,A) -> B = (UN f: A->B. UN b:B. {cons(<c,b>, f)})";
 by (rtac equalityI 1);
 by (safe_tac (!claset addSEs [fun_extend3]));
 (*Inclusion of left into right*)
 by (subgoal_tac "restrict(x, A) : A -> B" 1);
-by (fast_tac (!claset addEs [restrict_type2]) 2);
+by (blast_tac (!claset addIs [restrict_type2]) 2);
 by (rtac UN_I 1 THEN assume_tac 1);
 by (rtac (apply_funtype RS UN_I) 1 THEN REPEAT (ares_tac [consI1] 1));
 by (Simp_tac 1);

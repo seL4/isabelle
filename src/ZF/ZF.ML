@@ -54,7 +54,7 @@ val ball_tac = dtac bspec THEN' assume_tac;
 
 (*Trival rewrite rule;   (ALL x:A.P)<->P holds only if A is nonempty!*)
 qed_goal "ball_simp" ZF.thy "(ALL x:A. True) <-> True"
- (fn _=> [ Fast_tac 1 ]);
+ (fn _=> [ Blast_tac 1 ]);
 
 Addsimps [ball_simp];
 
@@ -67,7 +67,7 @@ qed_goalw "ball_cong" ZF.thy [Ball_def]
 
 qed_goalw "bexI" ZF.thy [Bex_def]
     "!!P. [| P(x);  x: A |] ==> EX x:A. P(x)"
- (fn _=> [ Fast_tac 1 ]);
+ (fn _=> [ Blast_tac 1 ]);
 
 (*Not of the general form for such rules; ~EX has become ALL~ *)
 qed_goal "bexCI" ZF.thy 
@@ -124,21 +124,21 @@ val set_mp_tac = dtac subsetD THEN' assume_tac;
 
 (*Sometimes useful with premises in this order*)
 qed_goal "rev_subsetD" ZF.thy "!!A B c. [| c:A; A<=B |] ==> c:B"
- (fn _=> [ Fast_tac 1 ]);
+ (fn _=> [ Blast_tac 1 ]);
 
 qed_goal "contra_subsetD" ZF.thy "!!c. [| A <= B; c ~: B |] ==> c ~: A"
- (fn _=> [ Fast_tac 1 ]);
+ (fn _=> [ Blast_tac 1 ]);
 
 qed_goal "rev_contra_subsetD" ZF.thy "!!c. [| c ~: B;  A <= B |] ==> c ~: A"
- (fn _=> [ Fast_tac 1 ]);
+ (fn _=> [ Blast_tac 1 ]);
 
 qed_goal "subset_refl" ZF.thy "A <= A"
- (fn _=> [ Fast_tac 1 ]);
+ (fn _=> [ Blast_tac 1 ]);
 
 Addsimps [subset_refl];
 
 qed_goal "subset_trans" ZF.thy "!!A B C. [| A<=B;  B<=C |] ==> A<=C"
- (fn _=> [ Fast_tac 1 ]);
+ (fn _=> [ Blast_tac 1 ]);
 
 (*Useful for proving A<=B by rewriting in some cases*)
 qed_goalw "subset_iff" ZF.thy [subset_def,Ball_def]
@@ -267,10 +267,10 @@ Addcongs [RepFun_cong];
 
 qed_goalw "RepFun_iff" ZF.thy [Bex_def]
     "b : {f(x). x:A} <-> (EX x:A. b=f(x))"
- (fn _ => [Fast_tac 1]);
+ (fn _ => [Blast_tac 1]);
 
 goal ZF.thy "{x.x:A} = A";
-by (fast_tac (!claset) 1);
+by (Blast_tac 1);
 qed "triv_RepFun";
 
 Addsimps [RepFun_iff, triv_RepFun];
@@ -280,7 +280,7 @@ Addsimps [RepFun_iff, triv_RepFun];
 (*Separation is derivable from Replacement*)
 qed_goalw "separation" ZF.thy [Collect_def]
     "a : {x:A. P(x)} <-> a:A & P(a)"
- (fn _=> [Fast_tac 1]);
+ (fn _=> [Blast_tac 1]);
 
 Addsimps [separation];
 
@@ -314,7 +314,7 @@ Addsimps [Union_iff];
 
 (*The order of the premises presupposes that C is rigid; A may be flexible*)
 qed_goal "UnionI" ZF.thy "!!C. [| B: C;  A: B |] ==> A: Union(C)"
- (fn _=> [ Simp_tac 1, Fast_tac 1 ]);
+ (fn _=> [ Simp_tac 1, Blast_tac 1 ]);
 
 qed_goal "UnionE" ZF.thy
     "[| A : Union(C);  !!B.[| A: B;  B: C |] ==> R |] ==> R"
@@ -327,13 +327,13 @@ qed_goal "UnionE" ZF.thy
 
 qed_goalw "UN_iff" ZF.thy [Bex_def]
     "b : (UN x:A. B(x)) <-> (EX x:A. b : B(x))"
- (fn _=> [ Simp_tac 1, Fast_tac 1 ]);
+ (fn _=> [ Simp_tac 1, Blast_tac 1 ]);
 
 Addsimps [UN_iff];
 
 (*The order of the premises presupposes that A is rigid; b may be flexible*)
 qed_goal "UN_I" ZF.thy "!!A B. [| a: A;  b: B(a) |] ==> b: (UN x:A. B(x))"
- (fn _=> [ Simp_tac 1, Fast_tac 1 ]);
+ (fn _=> [ Simp_tac 1, Blast_tac 1 ]);
 
 qed_goal "UN_E" ZF.thy
     "[| b : (UN x:A. B(x));  !!x.[| x: A;  b: B(x) |] ==> R |] ==> R"
@@ -360,19 +360,19 @@ AddSEs [UnionE];
 (*Not obviously useful towards proving InterI, InterD, InterE*)
 qed_goalw "Inter_iff" ZF.thy [Inter_def,Ball_def]
     "A : Inter(C) <-> (ALL x:C. A: x) & (EX x. x:C)"
- (fn _=> [ Simp_tac 1, Fast_tac 1 ]);
+ (fn _=> [ Simp_tac 1, Blast_tac 1 ]);
 
 (* Intersection is well-behaved only if the family is non-empty! *)
 qed_goal "InterI" ZF.thy
     "[| !!x. x: C ==> A: x;  EX c. c:C |] ==> A : Inter(C)"
  (fn prems=> [ (simp_tac (!simpset addsimps [Inter_iff]) 1), 
-	       Cla.fast_tac (!claset addIs prems) 1 ]);
+	       blast_tac (!claset addIs prems) 1 ]);
 
 (*A "destruct" rule -- every B in C contains A as an element, but
   A:B can hold when B:C does not!  This rule is analogous to "spec". *)
 qed_goalw "InterD" ZF.thy [Inter_def]
     "!!C. [| A : Inter(C);  B : C |] ==> A : B"
- (fn _=> [ Fast_tac 1 ]);
+ (fn _=> [ Blast_tac 1 ]);
 
 (*"Classical" elimination rule -- does not require exhibiting B:C *)
 qed_goalw "InterE" ZF.thy [Inter_def]
@@ -393,7 +393,7 @@ qed_goalw "INT_iff" ZF.thy [Inter_def]
 
 qed_goal "INT_I" ZF.thy
     "[| !!x. x: A ==> b: B(x);  a: A |] ==> b: (INT x:A. B(x))"
- (fn prems=> [ fast_tac (!claset addIs prems) 1 ]);
+ (fn prems=> [ blast_tac (!claset addIs prems) 1 ]);
 
 qed_goal "INT_E" ZF.thy
     "[| b : (INT x:A. B(x));  a: A |] ==> b : B(a)"
@@ -435,19 +435,19 @@ Addsimps [not_mem_empty];
 AddSEs [emptyE];
 
 qed_goal "empty_subsetI" ZF.thy "0 <= A"
- (fn _=> [ Fast_tac 1 ]);
+ (fn _=> [ Blast_tac 1 ]);
 
 Addsimps [empty_subsetI];
 AddSIs [empty_subsetI];
 
 qed_goal "equals0I" ZF.thy "[| !!y. y:A ==> False |] ==> A=0"
- (fn prems=> [ fast_tac (!claset addDs prems) 1 ]);
+ (fn prems=> [ blast_tac (!claset addDs prems) 1 ]);
 
 qed_goal "equals0D" ZF.thy "!!P. [| A=0;  a:A |] ==> P"
- (fn _=> [ Full_simp_tac 1, Fast_tac 1 ]);
+ (fn _=> [ Full_simp_tac 1, Blast_tac 1 ]);
 
 qed_goal "not_emptyI" ZF.thy "!!A a. a:A ==> A ~= 0"
- (fn _=> [ Fast_tac 1 ]);
+ (fn _=> [ Blast_tac 1 ]);
 
 qed_goal "not_emptyE" ZF.thy "[| A ~= 0;  !!x. x:A ==> R |] ==> R"
  (fn [major,minor]=>
@@ -465,10 +465,10 @@ val cantor_cs = FOL_cs   (*precisely the rules needed for the proof*)
 (*The search is undirected; similar proof attempts may fail.
   b represents ANY map, such as (lam x:A.b(x)): A->Pow(A). *)
 qed_goal "cantor" ZF.thy "EX S: Pow(A). ALL x:A. b(x) ~= S"
- (fn _ => [Cla.best_tac cantor_cs 1]);
+ (fn _ => [best_tac cantor_cs 1]);
 
 (*Lemma for the inductive definition in Zorn.thy*)
 qed_goal "Union_in_Pow" ZF.thy
     "!!Y. Y : Pow(Pow(A)) ==> Union(Y) : Pow(A)"
- (fn _ => [Fast_tac 1]);
+ (fn _ => [Blast_tac 1]);
 
