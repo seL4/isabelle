@@ -454,7 +454,7 @@ lemma type_implies_IT: "e |- t : T ==> t \<in> IT"
    apply simp
   apply (rule subst_type_IT)
   apply (rule lists.Nil
-    [THEN 2 lists.Cons [THEN IT.Var], unfolded foldl_Nil [THEN eq_reflection]
+    [THEN [2] lists.Cons [THEN IT.Var], unfolded foldl_Nil [THEN eq_reflection]
       foldl_Cons [THEN eq_reflection]])
       apply (erule lift_IT)
      apply (rule typing.App)
