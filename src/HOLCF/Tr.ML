@@ -91,86 +91,59 @@ val ifte_thms = map prover [
 Addsimps (dist_less_tr @ dist_eq_tr @ andalso_thms @ 
 	  orelse_thms @ neg_thms @ ifte_thms);
 
+(* ------------------------------------------------------------------- *)
+(*  split-tac for If via If2 because the constant has to be a constant *)
+(* ------------------------------------------------------------------- *)
+  
+goalw thy [If2_def] 
+  "P (If2 Q x y ) = ((Q=UU --> P UU) & (Q=TT --> P x) & (Q=FF --> P y))";
+by (res_inst_tac [("p","Q")] trE 1);
+by (REPEAT (Asm_full_simp_tac 1));
+qed"expand_If2";
 
-                
-(* --------------------------------------------------------- *)
-(*                Theroems for the liftings                  *)
-(* --------------------------------------------------------- *)
+val split_If_tac =
+  simp_tac (HOL_basic_ss addsimps [symmetric If2_def]) THEN' (split_tac [expand_If2]);
 
-
-(* --------------------------------------------------------- *)
-(*                Admissibility tactic and tricks            *)
-(* --------------------------------------------------------- *)
-
-
-goal thy "x~=FF = (x=TT|x=UU)";
-by (res_inst_tac [("p","x")] trE 1);
-  by (TRYALL (Asm_full_simp_tac));
-qed"adm_trick_1";
-
-goal thy "x~=TT = (x=FF|x=UU)";
-by (res_inst_tac [("p","x")] trE 1);
-  by (TRYALL (Asm_full_simp_tac));
-qed"adm_trick_2";
-
-val adm_tricks = [adm_trick_1,adm_trick_2];
-
-(*val adm_tac = (fn i => ((resolve_tac adm_lemmas i)));*)
-(*val adm_tacR = (fn i => (REPEAT (adm_tac i)));*)
-(*val adm_cont_tac = (fn i => ((adm_tacR i) THEN (cont_tacR i)));*)
+ 
 
 (* ----------------------------------------------------------------- *)
-(*     Relations between domains and terms using lift constructs     *)
+        section"Rewriting of HOLCF operations to HOL functions";
 (* ----------------------------------------------------------------- *)
+
+
+goal thy
+"!!t.[|t~=UU|]==> ((t andalso s)=FF)=(t=FF | s=FF)";
+by (rtac iffI 1);
+by (res_inst_tac [("p","t")] trE 1);
+auto();
+by (res_inst_tac [("p","t")] trE 1);
+auto();
+qed"andalso_or";
 
 goal thy "!!t.[|t~=UU|]==> ((t andalso s)~=FF)=(t~=FF & s~=FF)";
 by (rtac iffI 1);
-(* 1 *)
 by (res_inst_tac [("p","t")] trE 1);
-by (fast_tac HOL_cs 1);
-by (res_inst_tac [("p","s")] trE 1);
-by (Asm_full_simp_tac 1);
-by (Asm_full_simp_tac 1);
-by (subgoal_tac "(t andalso s) = FF" 1);
-by (fast_tac HOL_cs 1);
-by (Asm_full_simp_tac 1);
-by (res_inst_tac [("p","s")] trE 1);
-by (subgoal_tac "(t andalso s) = FF" 1);
-by (fast_tac HOL_cs 1);
-by (Asm_full_simp_tac 1);
-by (subgoal_tac "(t andalso s) = FF" 1);
-by (fast_tac HOL_cs 1);
-by (Asm_full_simp_tac 1);
-by (subgoal_tac "(t andalso s) = FF" 1);
-by (fast_tac HOL_cs 1);
-by (Asm_full_simp_tac 1);
-(* 2*)
+auto();
 by (res_inst_tac [("p","t")] trE 1);
-by (fast_tac HOL_cs 1);
-by (Asm_full_simp_tac 1);
-by (fast_tac HOL_cs 1);
+auto();
 qed"andalso_and";
-
-goal thy "Def x ~=UU";
-by (Simp_tac 1);
-qed"blift_not_UU";
 
 goal thy "(Def x ~=FF)= x";
 by (simp_tac (!simpset addsimps [FF_def]) 1);
-qed"blift_and_bool";
-
-goal thy "(Def x = TT) = x";
-by (simp_tac (!simpset addsimps [TT_def]) 1);
-qed"blift_and_bool2";
+qed"Def_bool1";
 
 goal thy "(Def x = FF) = (~x)";
 by (simp_tac (!simpset addsimps [FF_def]) 1);
 by (fast_tac HOL_cs 1);
-qed"blift_and_bool3";
+qed"Def_bool2";
 
-goal thy "plift P`(Def y) = Def (P y)";
-by (simp_tac (!simpset addsimps [plift_def,flift1_def]) 1);
-qed"plift2blift";
+goal thy "(Def x = TT) = x";
+by (simp_tac (!simpset addsimps [TT_def]) 1);
+qed"Def_bool3";
+
+goal thy "(Def x ~= TT) = (~x)";
+by (simp_tac (!simpset addsimps [TT_def]) 1);
+qed"Def_bool4";
 
 goal thy 
   "(If Def P then A else B fi)= (if P then A else B)";
@@ -180,5 +153,38 @@ by (asm_full_simp_tac (!simpset addsimps tr_defs@[flift1_def,o_def]) 1);
 by (asm_full_simp_tac (!simpset addsimps tr_defs@[flift1_def,o_def]) 1);
 qed"If_and_if";
 
-Addsimps [plift2blift,If_and_if,blift_not_UU,
-	blift_and_bool,blift_and_bool2,blift_and_bool3];
+Addsimps [Def_bool1,Def_bool2,Def_bool3,Def_bool4];
+
+(* ----------------------------------------------------------------- *)
+        section"admissibility";
+(* ----------------------------------------------------------------- *)
+
+
+(* The following rewrite rules for admissibility should in the future be 
+   replaced by a more general admissibility test that also checks 
+   chain-finiteness, of which these lemmata are specific examples *)
+
+goal thy "x~=FF = (x=TT|x=UU)";
+by (res_inst_tac [("p","x")] trE 1);
+by (TRYALL (Asm_full_simp_tac));
+qed"adm_trick_1";
+
+goal thy "x~=TT = (x=FF|x=UU)";
+by (res_inst_tac [("p","x")] trE 1);
+by (TRYALL (Asm_full_simp_tac));
+qed"adm_trick_2";
+
+val adm_tricks = [adm_trick_1,adm_trick_2];
+
+
+goal thy "!!f. cont(f) ==> adm (%x. (f x)~=TT)";
+by (simp_tac (HOL_basic_ss addsimps adm_tricks) 1);
+by (REPEAT ((resolve_tac (adm_lemmas@cont_lemmas1) 1) ORELSE atac 1));
+qed"adm_nTT";
+
+goal thy "!!f. cont(f) ==> adm (%x. (f x)~=FF)";
+by (simp_tac (HOL_basic_ss addsimps adm_tricks) 1);
+by (REPEAT ((resolve_tac (adm_lemmas@cont_lemmas1) 1) ORELSE atac 1));
+qed"adm_nFF";
+
+Addsimps [adm_nTT,adm_nFF];
