@@ -2,8 +2,8 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-The 'obtain' language element -- eliminated existential quantification
-at the level of proof texts.
+The 'obtain' language element -- generalized existence at the level of
+proof texts.
 
 The common case:
 
@@ -31,18 +31,13 @@ The general case:
     have/show !!x. G x ==> C x
     proof succeed
       fix x
-      assume antecedent: G x
+      assume hyps: G x
       def thesis == C x
       presume that: !!a. P a ==> thesis
       from goal_facts show thesis <proof>
     next
       fix a
       assume P a
-
-TODO:
-  - bind terms for goal as well (done?);
-  - improve block structure (admit subsequent occurences of 'next') (no?);
-  - handle general case (easy??);
 *)
 
 signature OBTAIN_DATA =
@@ -67,25 +62,18 @@ struct
 (** obtain(_i) **)
 
 val thatN = "that";
+val hypsN = "hyps";
 
 fun gen_obtain prep_vars prep_propp prep_att (raw_vars, raw_asms) state =
   let
-    (*thesis*)
-    val (prop, (goal_facts, goal)) = Proof.get_goal (Proof.assert_backward state);
+    val _ = Proof.assert_backward state;
 
-    val parms = Logic.strip_params prop;        (* FIXME unused *)
-    val _ =
-      if null parms then () else raise Proof.STATE ("Cannot handle params in goal (yet)", state);
-    val hyps = Logic.strip_assums_hyp prop;     (* FIXME unused *)
-    val concl = Logic.strip_assums_concl prop;
-    val ((thesis_name, thesis_term), atomic_thesis) = AutoBind.atomic_thesis concl;
-
-    (*vars*)
+    (*obtain vars*)
     val (vars_ctxt, vars) =
       foldl_map prep_vars (Proof.context_of state, map Comment.ignore raw_vars);
     val xs = flat (map fst vars);
 
-    (*asms*)
+    (*obtain asms*)
     fun prep_asm (ctxt, (name, src, raw_propps)) =
       let
         val atts = map (prep_att (ProofContext.theory_of ctxt)) src;
@@ -95,6 +83,21 @@ fun gen_obtain prep_vars prep_propp prep_att (raw_vars, raw_asms) state =
     val (asms_ctxt, asms) = foldl_map prep_asm (vars_ctxt, map Comment.ignore raw_asms);
     val asm_props = flat (map (map fst o #3) asms);
     val _ = ProofContext.warn_extra_tfrees vars_ctxt asms_ctxt;
+
+    (*thesis*)
+    val (prop, (goal_facts, goal)) = Proof.get_goal state;
+
+    val parms = Logic.strip_params prop;
+    val parm_names = Term.variantlist (map #1 parms, Term.add_term_names (prop, xs));
+    val parm_types = map #2 parms;
+    val parm_vars = map Library.single parm_names ~~ map Some parm_types;
+
+    val frees = map2 Free (parm_names, parm_types);
+    val rev_frees = rev frees;
+
+    val hyps = map (fn t => Term.subst_bounds (rev_frees, t)) (Logic.strip_assums_hyp prop);
+    val concl = Term.subst_bounds (rev_frees, Logic.strip_assums_concl prop);
+    val ((thesis_name, thesis_term), atomic_thesis) = AutoBind.atomic_thesis concl;
 
     (*that_prop*)
     fun find_free x t =
@@ -113,6 +116,8 @@ fun gen_obtain prep_vars prep_propp prep_att (raw_vars, raw_asms) state =
     state
     |> Method.proof (Some (Method.Basic (K Method.succeed)))
     |> Seq.map (fn st => st
+      |> Proof.fix_i parm_vars
+      |> Proof.assume_i [(hypsN, [], map (rpair ([], [])) hyps)]
       |> LocalDefs.def_i "" [] ((thesis_name, None), (thesis_term, []))
       |> Proof.presume_i [(thatN, Data.that_atts, [(that_prop, ([], []))])]
       |> Proof.from_facts goal_facts
@@ -133,7 +138,7 @@ val obtain_i = ProofHistory.applys o
 local structure P = OuterParse and K = OuterSyntax.Keyword in
 
 val obtainP =
-  OuterSyntax.command "obtain" "proof text-level existential quantifier"
+  OuterSyntax.command "obtain" "generalized existence"
     K.prf_asm_goal
     (Scan.optional
       (P.and_list1 (Scan.repeat1 P.name -- Scan.option (P.$$$ "::" |-- P.typ) -- P.marg_comment)
