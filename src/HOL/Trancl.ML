@@ -150,21 +150,21 @@ by (case_tac "a=b" 1);
 by (blast_tac (claset() addSIs [r_into_rtrancl]) 1);
 qed "rtrancl_r_diff_Id";
 
-Goal "(x,y) : (r^-1)^* ==> (x,y) : (r^*)^-1";
-by (rtac converseI 1);
+Goal "(x,y) : (r^-1)^* ==> (y,x) : r^*";
 by (etac rtrancl_induct 1);
 by (rtac rtrancl_refl 1);
 by (blast_tac (claset() addIs [r_into_rtrancl,rtrancl_trans]) 1);
 qed "rtrancl_converseD";
 
-Goal "(x,y) : (r^*)^-1 ==> (x,y) : (r^-1)^*";
-by (dtac converseD 1);
+Goal "(y,x) : r^* ==> (x,y) : (r^-1)^*";
 by (etac rtrancl_induct 1);
 by (rtac rtrancl_refl 1);
 by (blast_tac (claset() addIs [r_into_rtrancl,rtrancl_trans]) 1);
 qed "rtrancl_converseI";
 
 Goal "(r^-1)^* = (r^*)^-1";
+(*blast_tac fails: the split_all_tac wrapper must be called to convert
+  the set element to a pair*)
 by (safe_tac (claset() addSDs [rtrancl_converseD] addSIs [rtrancl_converseI]));
 qed "rtrancl_converse";
 
@@ -172,7 +172,7 @@ val major::prems = Goal
     "[| (a,b) : r^*; P(b); \
 \       !!y z.[| (y,z) : r;  (z,b) : r^*;  P(z) |] ==> P(y) |]  \
 \     ==> P(a)";
-by (rtac ((major RS converseI RS rtrancl_converseI) RS rtrancl_induct) 1);
+by (rtac (major RS rtrancl_converseI RS rtrancl_induct) 1);
 by (resolve_tac prems 1);
 by (blast_tac (claset() addIs prems addSDs[rtrancl_converseD])1);
 qed "converse_rtrancl_induct";
