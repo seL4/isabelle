@@ -16,8 +16,8 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -b           build mode (output heap image, use dir \".\")"
-  echo "    -g BOOL      generate theory graph data (default false)"
-  echo "    -h BOOL      generate theory HTML data (default false)"
+  echo "    -i BOOL      generate theory browsing information,"
+  echo "                 i.e. HTML / graph data (default false)"
   echo "    -s NAME      override session NAME"
   echo
   echo "  Build object-logic or run examples. Also creates browsing"
@@ -32,24 +32,20 @@ function usage()
 # options
 
 BUILD=""
-GRAPH=false
-HTML=false
+INFO=false
 SESSION=""
 
 function getoptions()
 {
   OPTIND=1
-  while getopts "bcg:h:s:" OPT
+  while getopts "bi:s:" OPT
   do
     case "$OPT" in
       b)
         BUILD=true
         ;;
-      g)
-        GRAPH="$OPTARG"
-        ;;
-      h)
-        HTML="$OPTARG"
+      i)
+        INFO="$OPTARG"
         ;;
       s)
         SESSION="$OPTARG"
@@ -77,19 +73,10 @@ NAME="$1"; shift
 
 # prepare directories for html and graph output
 
-if [ $HTML = "true" -o $GRAPH = "true" ]; then
-  if [ ! -d $ISABELLE_BROWSER_INFO/gif ]; then
-    mkdir -p $ISABELLE_BROWSER_INFO/gif
-    cp $ISABELLE_HOME/lib/images/*.gif $ISABELLE_BROWSER_INFO/gif
-  fi
-fi
-
-if [ $HTML = "true" -a ! -d $ISABELLE_BROWSER_INFO/html ]; then
-  mkdir -p $ISABELLE_BROWSER_INFO/html
-  cp $ISABELLE_HOME/lib/html/index1.html $ISABELLE_BROWSER_INFO/html/index.html
-fi
-
-if [ $GRAPH = "true" -a ! -d $ISABELLE_BROWSER_INFO/graph ]; then
+if [ $INFO = "true" -a ! -d $ISABELLE_BROWSER_INFO ]; then
+  mkdir -p $ISABELLE_BROWSER_INFO/gif
+  cp $ISABELLE_HOME/lib/images/*.gif $ISABELLE_BROWSER_INFO/gif
+  cp $ISABELLE_HOME/lib/html/index1.html $ISABELLE_BROWSER_INFO/index.html
   mkdir -p $ISABELLE_BROWSER_INFO/graph
   cp $ISABELLE_HOME/lib/html/index2.html $ISABELLE_BROWSER_INFO/graph/index.html
   mkdir $ISABELLE_BROWSER_INFO/graph/GraphBrowser
@@ -105,10 +92,10 @@ fi
 
 if [ -n "$BUILD" ]; then
   exec $ISABELLE \
-    -e "make_html := $HTML; make_graph := $GRAPH; output_dir := \"$ISABELLE_BROWSER_INFO\"; home_path := \"$HOME\"; set_session\"$SESSION\"; exit_use_dir\".\"; make_html := false; make_graph := false;" \
+    -e "make_html := $INFO; make_graph := $INFO; output_dir := \"$ISABELLE_BROWSER_INFO\"; home_path := \"$HOME\"; set_session\"$SESSION\"; exit_use_dir\".\"; make_html := false; make_graph := false;" \
     -q -w $LOGIC $NAME
 else
   exec $ISABELLE \
-    -e "make_html := $HTML; make_graph := $GRAPH; output_dir := \"$ISABELLE_BROWSER_INFO\"; home_path := \"$HOME\"; set_session\"$SESSION\"; exit_use_dir\"$NAME\"; make_html := false; make_graph := false; quit();" \
+    -e "make_html := $INFO; make_graph := $INFO; output_dir := \"$ISABELLE_BROWSER_INFO\"; home_path := \"$HOME\"; set_session\"$SESSION\"; exit_use_dir\"$NAME\"; make_html := false; make_graph := false; quit();" \
     -r -q $LOGIC
 fi
