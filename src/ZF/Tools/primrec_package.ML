@@ -106,7 +106,7 @@ fun process_fun thy (fname, ftype, ls, rs, con_info: constructor_info, eqns) =
     and recursor_pairs = map (dest_eqn o concl_of) rec_rewrites
 
     fun absterm (Free(a,T), body) = absfree (a,T,body)
-      | absterm (t,body)          = Abs("rec", iT, abstract_over (t, body))
+      | absterm (t,body) = Abs("rec", Ind_Syntax.iT, abstract_over (t, body))
 
     (*Translate rec equations into function arguments suitable for recursor.
       Missing cases are replaced by 0 and all cases are put into order.*)
@@ -115,7 +115,8 @@ fun process_fun thy (fname, ftype, ls, rs, con_info: constructor_info, eqns) =
 	    case assoc (eqns, cname) of
 		None => (warning ("no equation for constructor " ^ cname ^
 				  "\nin definition of function " ^ fname);
-			 (Const ("0", iT), #2 recursor_pair, Const ("0", iT)))
+			 (Const ("0", Ind_Syntax.iT), 
+			  #2 recursor_pair, Const ("0", Ind_Syntax.iT)))
 	      | Some (rhs, cargs', eq) =>
 		    (rhs, inst_recursor (recursor_pair, cargs'), eq)
 	  val allowed_terms = map use_fabs (#2 (strip_comb recursor_rhs))
@@ -139,7 +140,7 @@ fun process_fun thy (fname, ftype, ls, rs, con_info: constructor_info, eqns) =
 
     (*the recursive argument*)
     val rec_arg = Free (variant (map #1 (ls@rs)) (Sign.base_name big_rec_name),
-			iT)
+			Ind_Syntax.iT)
 
     val def_tm = Logic.mk_equals
 	            (subst_bound (rec_arg, fabs),
