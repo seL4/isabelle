@@ -114,8 +114,8 @@ qed "real_of_int_less_cancel";
 
 Goal "(real (x::int) = real y) = (x = y)";
 by (blast_tac (claset() addSDs [inj_real_of_int RS injD]) 1);
-qed "real_of_int_eq_iff";
-AddIffs [real_of_int_eq_iff];
+qed "real_of_int_inject";
+AddIffs [real_of_int_inject];
 
 Goal "x < y ==> (real (x::int) < real y)";
 by (full_simp_tac (simpset() addsimps [linorder_not_le RS sym]) 1);

@@ -82,7 +82,7 @@ Goal "((number_of v :: real) = number_of v') = \
 \     iszero (number_of (bin_add v (bin_minus v')))";
 by (simp_tac
     (HOL_ss addsimps [real_number_of_def, 
-	              real_of_int_eq_iff, eq_number_of_eq]) 1);
+	              real_of_int_inject, eq_number_of_eq]) 1);
 qed "eq_real_number_of";
 
 Addsimps [eq_real_number_of];
