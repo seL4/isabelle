@@ -10,6 +10,8 @@ New in Isabelle94-8 (May 1997)
 * new utilities to build / run / maintain Isabelle etc. (in parts
 still somewhat experimental); old Makefiles etc. still functional;
 
+* new 'Isabelle System Manual';
+
 * INSTALL text, together with ./configure and ./build scripts;
 
 * reimplemented type inference for greater efficiency, better error
