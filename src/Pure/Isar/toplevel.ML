@@ -233,6 +233,7 @@ fun raised_msg name msg = raised name ^ ": " ^ msg;
 
 fun exn_message TERMINATE = "Exit."
   | exn_message (BREAK _) = "Break."
+  | exn_message (FAIL (exn, msg)) = cat_lines [exn_message exn, msg]
   | exn_message Interrupt = "Interrupt (exec)."
   | exn_message (ERROR_MESSAGE msg) = msg
   | exn_message (THEORY (msg, _)) = msg
