@@ -1,6 +1,7 @@
-(*  Title:      HOLCF/Up1.thy
+(*  Title:      HOLCF/Up.thy
     ID:         $Id$
     Author:     Franz Regensburger
+                Additions by Brian Huffman
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Lifting.
@@ -12,13 +13,15 @@ theory Up
 imports Cfun Sum_Type Datatype
 begin
 
+defaultsort cpo
+
 subsection {* Definition of new type for lifting *}
 
 typedef (Up) ('a) "u" = "UNIV :: (unit + 'a) set" ..
 
 consts
   Iup         :: "'a => ('a)u"
-  Ifup        :: "('a->'b)=>('a)u => 'b"
+  Ifup        :: "('a->'b)=>('a)u => 'b::pcpo"
 
 defs
   Iup_def:     "Iup x == Abs_Up(Inr(x))"
@@ -140,7 +143,7 @@ apply auto
 apply (blast intro: trans_less)
 done
 
-instance u :: (pcpo) po
+instance u :: (cpo) po
 by intro_classes
   (assumption | rule refl_less_up antisym_less_up trans_less_up)+
 
@@ -238,17 +241,105 @@ lemmas thelub_up1b = lub_up1b [THEN thelubI, standard]
  lub (range ?Y1) = UU_up
 *)
 
+text {* New versions where @{typ "'a"} does not have to be a pcpo *}
+
+lemma up_lemma1a: "EX x. z=Iup(x) ==> Iup(THE a. Iup a = z) = z"
+apply (erule exE)
+apply (rule theI)
+apply (erule sym)
+apply simp
+apply (erule inject_Iup)
+done
+
+text {* Now some lemmas about chains of @{typ "'a u"} elements *}
+
+lemma up_chain_lemma1:
+  "[| chain Y; EX x. Y j = Iup x |] ==> EX x. Y (i + j) = Iup x"
+apply (drule_tac x="j" and y="i + j" in chain_mono3)
+apply (rule le_add2)
+apply (rule_tac p="Y (i + j)" in upE)
+apply auto
+done
+
+lemma up_chain_lemma2:
+  "[| chain Y; EX x. Y j = Iup x |] ==>
+    Iup (THE a. Iup a = Y (i + j)) = Y (i + j)"
+apply (drule_tac i=i in up_chain_lemma1)
+apply assumption
+apply (erule up_lemma1a)
+done
+
+lemma up_chain_lemma3:
+  "[| chain Y; EX x. Y j = Iup x |] ==> chain (%i. THE a. Iup a = Y (i + j))"
+apply (rule chainI)
+apply (rule less_up1c [THEN iffD1])
+apply (simp only: up_chain_lemma2)
+apply (simp add: chainE)
+done
+
+lemma up_chain_lemma4:
+  "[| chain Y; EX x. Y j = Iup x |] ==>
+    (%i. Y (i + j)) = (%i. Iup (THE a. Iup a = Y (i + j)))"
+apply (rule ext)
+apply (rule up_chain_lemma2 [symmetric])
+apply assumption+
+done
+
+lemma is_lub_range_shift:
+  "[| chain S; range (%i. S (i + j)) <<| x |] ==> range S <<| x"
+apply (rule is_lubI)
+apply (rule ub_rangeI)
+apply (rule trans_less)
+apply (erule chain_mono3)
+apply (rule le_add1)
+apply (erule is_ub_lub)
+apply (erule is_lub_lub)
+apply (rule ub_rangeI)
+apply (erule ub_rangeD)
+done
+
+lemma is_lub_Iup:
+  "range S <<| x \<Longrightarrow> range (%i. Iup (S i)) <<| Iup x"
+apply (rule is_lubI)
+apply (rule ub_rangeI)
+apply (subst less_up1c)
+apply (erule is_ub_lub)
+apply (rule_tac p=u in upE)
+apply (drule ub_rangeD)
+apply (simp only: less_up1b)
+apply (simp only: less_up1c)
+apply (erule is_lub_lub)
+apply (rule ub_rangeI)
+apply (drule_tac i=i in ub_rangeD)
+apply (simp only: less_up1c)
+done
+
+lemma lub_up1c: "[|chain(Y); EX x. Y(j)=Iup(x)|]  
+      ==> range(Y) <<| Iup(lub(range(%i. THE a. Iup a = Y(i + j))))"
+apply (rule_tac j=j in is_lub_range_shift)
+apply assumption
+apply (subst up_chain_lemma4)
+apply assumption+
+apply (rule is_lub_Iup)
+apply (rule thelubE [OF _ refl])
+apply (rule up_chain_lemma3)
+apply assumption+
+done
+
+lemmas thelub_up1c = lub_up1c [THEN thelubI, standard]
+
 lemma cpo_up: "chain(Y::nat=>('a)u) ==> EX x. range(Y) <<|x"
-apply (case_tac "\<exists> i x. Y i = Iup x")
+apply (case_tac "EX i x. Y i = Iup x")
+apply (erule exE)
 apply (rule exI)
-apply (erule lub_up1a)
+apply (erule lub_up1c)
 apply assumption
 apply (rule exI)
 apply (erule lub_up1b)
 apply simp
 done
 
-instance u :: (pcpo) cpo
+instance u :: (cpo) cpo
 by intro_classes (rule cpo_up)
 
 subsection {* Type @{typ "'a u"} is pointed *}
@@ -263,7 +354,7 @@ apply (rule_tac x = "Abs_Up (Inl ())" in exI)
 apply (rule minimal_up [THEN allI])
 done
 
-instance u :: (pcpo) pcpo
+instance u :: (cpo) pcpo
 by intro_classes (rule least_up)
 
 text {* for compatibility with old HOLCF-Version *}
@@ -286,25 +377,13 @@ subsection {* Continuity of @{term Iup} and @{term Ifup} *}
 
 text {* continuity for @{term Iup} *}
 
-lemma contlub_Iup: "contlub(Iup)"
-apply (rule contlubI [rule_format])
-apply (rule trans)
-apply (rule_tac [2] thelub_up1a [symmetric])
-prefer 3 apply fast
-apply (erule_tac [2] monofun_Iup [THEN ch2ch_monofun])
-apply (rule_tac f = "Iup" in arg_cong)
-apply (rule lub_equal)
-apply assumption
-apply (rule monofun_Ifup2 [THEN ch2ch_monofun])
-apply (erule monofun_Iup [THEN ch2ch_monofun])
-apply simp
+lemma cont_Iup [iff]: "cont(Iup)"
+apply (rule contI [rule_format])
+apply (rule is_lub_Iup)
+apply (erule thelubE [OF _ refl])
 done
 
-lemma cont_Iup [iff]: "cont(Iup)"
-apply (rule monocontlub2cont)
-apply (rule monofun_Iup)
-apply (rule contlub_Iup)
-done
+lemmas contlub_Iup = cont_Iup [THEN cont2contlub]
 
 text {* continuity for @{term Ifup} *}
 
@@ -323,16 +402,16 @@ done
 
 lemma contlub_Ifup2: "contlub(Ifup(f))"
 apply (rule contlubI [rule_format])
-apply (rule disjE)
-defer 1
-apply (subst thelub_up1a)
+apply (case_tac "EX i x. Y i = Iup x")
+apply (erule exE)
+apply (subst thelub_up1c)
 apply assumption
 apply assumption
 apply simp
 prefer 2
 apply (subst thelub_up1b)
 apply assumption
-apply assumption
+apply simp
 apply simp
 apply (rule chain_UU_I_inverse [symmetric])
 apply (rule allI)
@@ -340,28 +419,26 @@ apply (rule_tac p = "Y(i)" in upE)
 apply simp
 apply simp
 apply (subst contlub_cfun_arg)
-apply  (erule monofun_Ifup2 [THEN ch2ch_monofun])
-apply (rule lub_equal2)
-apply   (rule_tac [2] monofun_Rep_CFun2 [THEN ch2ch_monofun])
-apply   (erule_tac [2] monofun_Ifup2 [THEN ch2ch_monofun])
-apply  (erule_tac [2] monofun_Ifup2 [THEN ch2ch_monofun])
-apply (rule chain_mono2 [THEN exE])
-prefer 2 apply   (assumption)
-apply  (erule exE)
-apply  (erule exE)
-apply  (rule exI)
-apply  (rule_tac s = "Iup (x) " and t = "Y (i) " in ssubst)
-apply   assumption
-apply  (rule defined_Iup2)
-apply (rule exI)
-apply (intro strip)
-apply (rule_tac p = "Y (i) " in upE)
-prefer 2 apply simp
-apply (rule_tac P = "Y (i) = UU" in notE)
-apply  fast
-apply (subst inst_up_pcpo)
+apply  (erule up_chain_lemma3)
+apply  assumption
+apply (rule trans)
+prefer 2
+apply (rule_tac j=i in lub_range_shift)
+apply (erule monofun_Ifup2 [THEN ch2ch_monofun])
+apply (rule lub_equal [rule_format])
+apply (rule chain_monofun)
+apply (erule up_chain_lemma3)
 apply assumption
-apply fast
+apply (rule monofun_Ifup2 [THEN ch2ch_monofun])
+apply (erule chain_shift)
+apply (drule_tac i=k in up_chain_lemma1)
+apply assumption
+apply clarify
+apply simp
+apply (subst the_equality)
+apply (rule refl)
+apply (erule inject_Iup)
+apply (rule refl)
 done
 
 lemma cont_Ifup1: "cont(Ifup)"
@@ -381,7 +458,7 @@ subsection {* Continuous versions of constants *}
 constdefs  
         up  :: "'a -> ('a)u"
        "up  == (LAM x. Iup(x))"
-        fup :: "('a->'c)-> ('a)u -> 'c"
+        fup :: "('a->'c)-> ('a)u -> 'c::pcpo"
        "fup == (LAM f p. Ifup(f)(p))"
 
 translations
