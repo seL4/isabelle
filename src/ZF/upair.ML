@@ -16,14 +16,13 @@ Observe the order of dependence:
 
 val Pow_bottom = empty_subsetI RS PowI;         (* 0 : Pow(B) *)
 val Pow_top = subset_refl RS PowI;              (* A : Pow(A) *)
-val Pow_neq_0 = Pow_top RSN (2,equals0E);       (* Pow(a)=0 ==> P *) 
 
 
 (*** Unordered pairs - Upair ***)
 
 qed_goalw "Upair_iff" thy [Upair_def]
     "c : Upair(a,b) <-> (c=a | c=b)"
- (fn _ => [ (blast_tac (claset() addEs [Pow_neq_0, sym RS Pow_neq_0]) 1) ]);
+ (fn _ => [ (Blast_tac 1) ]);
 
 Addsimps [Upair_iff];
 
