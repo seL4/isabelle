@@ -346,23 +346,23 @@ constdefs
   obase :: "[i=>o,i,i,i] => o"
        --{*the domain of @{text om}, eventually shown to equal @{text A}*}
    "obase(M,A,r,z) == 
-	\<forall>a. M(a) --> 
-         (a \<in> z <-> 
+	\<forall>a[M]. 
+         a \<in> z <-> 
           (a\<in>A & (\<exists>x g mx par. M(x) & M(g) & M(mx) & M(par) & ordinal(M,x) & 
                                membership(M,x,mx) & pred_set(M,A,a,r,par) &  
-                               order_isomorphism(M,par,r,x,mx,g))))"
+                               order_isomorphism(M,par,r,x,mx,g)))"
 
 
   omap :: "[i=>o,i,i,i] => o"  
     --{*the function that maps wosets to order types*}
    "omap(M,A,r,f) == 
-	\<forall>z. M(z) --> 
-         (z \<in> f <-> 
+	\<forall>z[M].
+         z \<in> f <-> 
           (\<exists>a\<in>A. M(a) & 
            (\<exists>x g mx par. M(x) & M(g) & M(mx) & M(par) & ordinal(M,x) & 
                          pair(M,a,x,z) & membership(M,x,mx) & 
                          pred_set(M,A,a,r,par) &  
-                         order_isomorphism(M,par,r,x,mx,g))))"
+                         order_isomorphism(M,par,r,x,mx,g)))"
 
 
   otype :: "[i=>o,i,i,i] => o"  --{*the order types themselves*}
@@ -392,8 +392,10 @@ lemma (in M_axioms) omap_iff:
                    g \<in> ord_iso(Order.pred(A,a,r),r,x,Memrel(x)))"
 apply (rotate_tac 1) 
 apply (simp add: omap_def Memrel_closed pred_closed) 
-apply (rule iffI) 
-apply (drule_tac x=z in spec, blast dest: transM)+ 
+apply (rule iffI)
+ apply (drule_tac [2] x=z in rspec)
+ apply (drule_tac x=z in rspec)
+ apply (blast dest: transM)+
 done
 
 lemma (in M_axioms) omap_unique:
@@ -576,35 +578,37 @@ theorem (in M_axioms) omap_ord_iso_otype:
        M(A); M(r); M(f); M(B); M(i) |] ==> f \<in> ord_iso(A, r, i, Memrel(i))"
 apply (frule omap_ord_iso, assumption+) 
 apply (frule obase_equals, assumption+, blast) 
-done
+done 
 
 lemma (in M_axioms) obase_exists:
-     "[| M(A); M(r) |] ==> \<exists>z. M(z) & obase(M,A,r,z)"
+     "[| M(A); M(r) |] ==> \<exists>z[M]. obase(M,A,r,z)"
 apply (simp add: obase_def) 
 apply (insert obase_separation [of A r])
 apply (simp add: separation_def)  
 done
 
 lemma (in M_axioms) omap_exists:
-     "[| M(A); M(r) |] ==> \<exists>z. M(z) & omap(M,A,r,z)"
+     "[| M(A); M(r) |] ==> \<exists>z[M]. omap(M,A,r,z)"
 apply (insert obase_exists [of A r]) 
 apply (simp add: omap_def) 
 apply (insert omap_replacement [of A r])
 apply (simp add: strong_replacement_def, clarify) 
-apply (drule_tac x=z in spec, clarify) 
+apply (drule_tac x=x in spec, clarify) 
 apply (simp add: Memrel_closed pred_closed obase_iff)
 apply (erule impE) 
  apply (clarsimp simp add: univalent_def)
  apply (blast intro: Ord_iso_implies_eq ord_iso_sym ord_iso_trans, clarify)  
-apply (rule_tac x=Y in exI) 
-apply (simp add: Memrel_closed pred_closed obase_iff, blast)   
+apply (rule_tac x=Y in rexI) 
+apply (simp add: Memrel_closed pred_closed obase_iff, blast, assumption)
 done
+
+declare rall_simps [simp] rex_simps [simp]
 
 lemma (in M_axioms) otype_exists:
      "[| wellordered(M,A,r); M(A); M(r) |] ==> \<exists>i. M(i) & otype(M,A,r,i)"
-apply (insert omap_exists [of A r]) 
-apply (simp add: otype_def, clarify) 
-apply (rule_tac x="range(z)" in exI) 
+apply (insert omap_exists [of A r])  
+apply (simp add: otype_def, safe)
+apply (rule_tac x="range(x)" in exI) 
 apply blast 
 done
 

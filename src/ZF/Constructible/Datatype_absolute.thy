@@ -138,15 +138,16 @@ locale M_datatypes = M_wfrank +
 lemma (in M_datatypes) list_replacement1':
   "[|M(A); n \<in> nat|]
    ==> strong_replacement
-	  (M, \<lambda>x y. \<exists>z[M]. \<exists>g[M]. y = \<langle>x,z\<rangle> &
-               is_recfun (Memrel(succ(n)), x,
+	  (M, \<lambda>x y. \<exists>z[M]. y = \<langle>x,z\<rangle> &
+               (\<exists>g[M]. is_recfun (Memrel(succ(n)), x,
 		          \<lambda>n f. nat_case(0, \<lambda>m. {0} + A \<times> f`m, n), g) &
- 	       z = nat_case(0, \<lambda>m. {0} + A \<times> g ` m, x))"
+ 	       z = nat_case(0, \<lambda>m. {0} + A \<times> g ` m, x)))"
 by (insert list_replacement1, simp add: nat_into_M) 
 
 
 lemma (in M_datatypes) list_closed [intro,simp]:
      "M(A) ==> M(list(A))"
 by (simp add: list_eq_Union list_replacement1' list_replacement2')
+
 
 end

@@ -335,20 +335,21 @@ apply (rule OrdI [OF _ Ord_is_Transset])
  apply (blast intro: Ord_wfrank_range)
 txt{*We still must show that the range is a transitive set.*}
 apply (simp add: Transset_def, clarify, simp)
-apply (rename_tac x f i u)
+apply (rename_tac x i f u)
 apply (frule is_recfun_imp_in_r, assumption)
 apply (subgoal_tac "M(u) & M(i) & M(x)")
  prefer 2 apply (blast dest: transM, clarify)
 apply (rule_tac a=u in rangeI)
-apply (rule ReplaceI)
-  apply (rule_tac x=i in rexI, simp)
-   apply (rule_tac x="restrict(f, r^+ -`` {u})" in rexI)
-    apply (blast intro: is_recfun_restrict trans_trancl dest: apply_recfun2)
-   apply (simp, simp, blast) 
+apply (rule_tac x=u in ReplaceI)
+  apply simp 
+  apply (rule_tac x="restrict(f, r^+ -`` {u})" in rexI)
+   apply (blast intro: is_recfun_restrict trans_trancl dest: apply_recfun2)
+  apply simp 
+apply blast 
 txt{*Unicity requirement of Replacement*}
 apply clarify
 apply (frule apply_recfun2, assumption)
-apply (simp add: trans_trancl is_recfun_cut)+
+apply (simp add: trans_trancl is_recfun_cut)
 done
 
 lemma (in M_wfrank) function_wellfoundedrank:
@@ -368,10 +369,9 @@ apply (simp add: wellfoundedrank_def function_def)
 apply (rule equalityI, auto)
 apply (frule transM, assumption)
 apply (frule_tac a=x in exists_wfrank, assumption+, clarify)
-apply (rule domainI)
-apply (rule ReplaceI)
-  apply (rule_tac x="range(f)" in rexI)
-  apply simp
+apply (rule_tac b="range(f)" in domainI)
+apply (rule_tac x=x in ReplaceI)
+  apply simp 
   apply (rule_tac x=f in rexI, blast, simp_all)
 txt{*Uniqueness (for Replacement): repeated above!*}
 apply clarify
@@ -502,8 +502,8 @@ text{*Assuming @{term r} is transitive simplifies the occurrences of @{text H}.
       before we can replace @{term "r^+"} by @{term r}. *}
 theorem (in M_trancl) trans_wfrec_relativize:
   "[|wf(r);  trans(r);  relation(r);  M(r);  M(a);
-     strong_replacement(M, \<lambda>x z. \<exists>y[M]. \<exists>g[M].
-                pair(M,x,y,z) & is_recfun(r,x,H,g) & y = H(x,g)); 
+     strong_replacement(M, \<lambda>x z. \<exists>y[M]. 
+                pair(M,x,y,z) & (\<exists>g[M]. is_recfun(r,x,H,g) & y = H(x,g))); 
      \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g))|] 
    ==> wfrec(r,a,H) = z <-> (\<exists>f[M]. is_recfun(r,a,H,f) & z = H(a,f))" 
 by (simp cong: is_recfun_cong
@@ -513,13 +513,13 @@ by (simp cong: is_recfun_cong
 
 lemma (in M_trancl) trans_eq_pair_wfrec_iff:
   "[|wf(r);  trans(r); relation(r); M(r);  M(y); 
-     strong_replacement(M, \<lambda>x z. \<exists>y[M]. \<exists>g[M].
-                pair(M,x,y,z) & is_recfun(r,x,H,g) & y = H(x,g)); 
+     strong_replacement(M, \<lambda>x z. \<exists>y[M]. 
+                pair(M,x,y,z) & (\<exists>g[M]. is_recfun(r,x,H,g) & y = H(x,g))); 
      \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g))|] 
    ==> y = <x, wfrec(r, x, H)> <-> 
        (\<exists>f[M]. is_recfun(r,x,H,f) & y = <x, H(x,f)>)"
-apply safe  
- apply (simp add: trans_wfrec_relativize [THEN iff_sym]) 
+apply safe 
+ apply (simp add: trans_wfrec_relativize [THEN iff_sym, of concl: _ x]) 
 txt{*converse direction*}
 apply (rule sym)
 apply (simp add: trans_wfrec_relativize, blast) 
@@ -577,7 +577,7 @@ lemma (in M_trancl) eq_pair_wfrec_iff:
        (\<exists>f[M]. is_recfun(r^+, x, \<lambda>x f. H(x, restrict(f, r -`` {x})), f) & 
             y = <x, H(x,restrict(f,r-``{x}))>)"
 apply safe  
- apply (simp add: wfrec_relativize [THEN iff_sym]) 
+ apply (simp add: wfrec_relativize [THEN iff_sym, of concl: _ x]) 
 txt{*converse direction*}
 apply (rule sym)
 apply (simp add: wfrec_relativize, blast) 

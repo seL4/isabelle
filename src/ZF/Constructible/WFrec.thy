@@ -187,10 +187,10 @@ apply (rule iffI)
  apply (clarsimp simp add: vimage_singleton_iff is_recfun_type [THEN apply_iff]
 			   apply_recfun is_recfun_cut) 
 txt{*Opposite inclusion: something in f, show in Y*}
-apply (frule_tac y="<y,z>" in transM, assumption, simp) 
-apply (rule_tac x=y in bexI)
-prefer 2 apply (blast dest: transD)
-apply (rule_tac x=z in rexI) 
+apply (frule_tac y="<y,z>" in transM, assumption)  
+apply (simp add: vimage_singleton_iff) 
+apply (rule conjI) 
+ apply (blast dest: transD) 
 apply (rule_tac x="restrict(f, r -`` {y})" in rexI) 
 apply (simp_all add: is_recfun_restrict
                      apply_recfun is_recfun_type [THEN apply_iff]) 
@@ -200,7 +200,7 @@ text{*For typical applications of Replacement for recursive definitions*}
 lemma (in M_axioms) univalent_is_recfun:
      "[|wellfounded(M,r); trans(r); M(r)|]
       ==> univalent (M, A, \<lambda>x p. 
-              \<exists>y[M]. \<exists>f[M]. p = \<langle>x, y\<rangle> & is_recfun(r,x,H,f) & y = H(x,f))"
+              \<exists>y[M]. p = \<langle>x,y\<rangle> & (\<exists>f[M]. is_recfun(r,x,H,f) & y = H(x,f)))"
 apply (simp add: univalent_def) 
 apply (blast dest: is_recfun_functional) 
 done
@@ -228,13 +228,10 @@ apply safe
  apply (simp add: vimage_singleton_iff restrict_Y_lemma [of r H]) 
 txt{*one more case*}
 apply (simp (no_asm_simp) add: Bex_def vimage_singleton_iff)
-apply (rename_tac x) 
-apply (rule_tac x=x in exI, simp) 
-apply (rule_tac x="H(x, restrict(Y, r -`` {x}))" in rexI) 
 apply (drule_tac x1=x in spec [THEN mp], assumption, clarify) 
 apply (rename_tac f) 
 apply (rule_tac x=f in rexI) 
-apply (simp add: restrict_Y_lemma [of r H], simp_all)
+apply (simp_all add: restrict_Y_lemma [of r H])
 done
 
 text{*Relativized version, when we have the (currently weaker) premise
@@ -337,14 +334,16 @@ locale M_ord_arith = M_axioms +
   assumes oadd_strong_replacement:
    "[| M(i); M(j) |] ==>
     strong_replacement(M, 
-         \<lambda>x z. \<exists>y[M]. \<exists>f[M]. \<exists>fx[M]. pair(M,x,y,z) & is_oadd_fun(M,i,j,x,f) & 
-		                      image(M,f,x,fx) & y = i Un fx)" 
+         \<lambda>x z. \<exists>y[M]. pair(M,x,y,z) & 
+                  (\<exists>f[M]. \<exists>fx[M]. is_oadd_fun(M,i,j,x,f) & 
+		           image(M,f,x,fx) & y = i Un fx))"
+
  and omult_strong_replacement':
    "[| M(i); M(j) |] ==>
-    strong_replacement(M, \<lambda>x z. \<exists>y[M]. \<exists>g[M]. 
-	     z = <x,y> &
-	     is_recfun(Memrel(succ(j)),x,%x g. THE z. omult_eqns(i,x,g,z),g) & 
-	     y = (THE z. omult_eqns(i, x, g, z)))" 
+    strong_replacement(M, 
+         \<lambda>x z. \<exists>y[M]. z = <x,y> &
+	     (\<exists>g[M]. is_recfun(Memrel(succ(j)),x,%x g. THE z. omult_eqns(i,x,g,z),g) & 
+	     y = (THE z. omult_eqns(i, x, g, z))))" 
 
 
 
@@ -365,10 +364,10 @@ done
 
 lemma (in M_ord_arith) oadd_strong_replacement':
     "[| M(i); M(j) |] ==>
-     strong_replacement(M, \<lambda>x z. \<exists>y[M]. \<exists>g[M].
-		  z = <x,y> &
-		  is_recfun(Memrel(succ(j)),x,%x g. i Un g``x,g) & 
-		  y = i Un g``x)" 
+     strong_replacement(M, 
+            \<lambda>x z. \<exists>y[M]. z = <x,y> &
+		  (\<exists>g[M]. is_recfun(Memrel(succ(j)),x,%x g. i Un g``x,g) & 
+		  y = i Un g``x))" 
 apply (insert oadd_strong_replacement [of i j]) 
 apply (simp add: Memrel_closed Un_closed image_closed is_oadd_fun_def
                  is_recfun_iff_M)  
