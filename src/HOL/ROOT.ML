@@ -15,6 +15,7 @@ print_depth 1;
 (*old-style theory syntax*)
 use "~~/src/Pure/section_utils.ML";
 use "thy_syntax.ML";
+use "hologic.ML";
 
 use "~~/src/Provers/simplifier.ML";
 use "~~/src/Provers/split_paired_all.ML";
@@ -29,23 +30,13 @@ use "~~/src/Provers/Arith/cancel_factor.ML";
 use "~~/src/Provers/Arith/abel_cancel.ML";
 use "~~/src/Provers/Arith/assoc_fold.ML";
 use "~~/src/Provers/quantifier1.ML";
-
-use_thy "HOL";
-use "hologic.ML";
 use "~~/src/Provers/Arith/combine_coeff.ML";
-use "cladata.ML";
-use "simpdata.ML";
 
-use_thy "Ord";
 use_thy "subset";
 use "Tools/typedef_package.ML";
-use_thy "Sum";
-use_thy "Gfp";
 
-use_thy "NatDef";
-
-use "Tools/inductive_package.ML";
 use_thy "Inductive";
+use_thy "NatDef";
 
 use "Tools/datatype_aux.ML";
 use "Tools/datatype_prop.ML";
@@ -54,20 +45,13 @@ use "Tools/datatype_abs_proofs.ML";
 use "Tools/datatype_package.ML";
 use "Tools/primrec_package.ML";
 use_thy "Datatype";
-use_thy "Numeral";
-
-use "Tools/record_package.ML";
-use_thy "Record";
 
 (*TFL: recursive function definitions*)
 use_thy "WF_Rel";
-cd "../TFL";
-use "sys.sml";
-cd "../HOL";
-use "Tools/recdef_package.ML";
-use "Tools/induct_method.ML";
+cd "../TFL"; use "sys.sml"; cd "../HOL";
 use_thy "Recdef";
 
+use_thy "Numeral";
 cd "Integ";
 use_thy "IntDef";
 use "simproc.ML";

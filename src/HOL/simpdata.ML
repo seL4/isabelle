@@ -89,14 +89,14 @@ val simpdata_setup =
 end;
 
 
-val [prem] = goal HOL.thy "x==y ==> x=y";
+val [prem] = goal (the_context ()) "x==y ==> x=y";
 by (rewtac prem);
 by (rtac refl 1);
 qed "meta_eq_to_obj_eq";
 
 local
 
-  fun prover s = prove_goal HOL.thy s (fn _ => [(Blast_tac 1)]);
+  fun prover s = prove_goal (the_context ()) s (fn _ => [(Blast_tac 1)]);
 
 in
 
@@ -157,7 +157,7 @@ fun Delcongs congs = (simpset_ref() := simpset() delcongs congs);
 
 
 val imp_cong = impI RSN
-    (2, prove_goal HOL.thy "(P=P')--> (P'--> (Q=Q'))--> ((P-->Q) = (P'-->Q'))"
+    (2, prove_goal (the_context ()) "(P=P')--> (P'--> (Q=Q'))--> ((P-->Q) = (P'-->Q'))"
         (fn _=> [(Blast_tac 1)]) RS mp RS mp);
 
 (*Miniscoping: pushing in existential quantifiers*)
@@ -182,10 +182,10 @@ val all_simps = map prover
 (* elimination of existential quantifiers in assumptions *)
 
 val ex_all_equiv =
-  let val lemma1 = prove_goal HOL.thy
+  let val lemma1 = prove_goal (the_context ())
         "(? x. P(x) ==> PROP Q) ==> (!!x. P(x) ==> PROP Q)"
         (fn prems => [resolve_tac prems 1, etac exI 1]);
-      val lemma2 = prove_goalw HOL.thy [Ex_def]
+      val lemma2 = prove_goalw (the_context ()) [Ex_def]
         "(!!x. P(x) ==> PROP Q) ==> (? x. P(x) ==> PROP Q)"
         (fn prems => [(REPEAT(resolve_tac prems 1))])
   in equal_intr lemma1 lemma2 end;
@@ -194,13 +194,13 @@ end;
 
 (* Elimination of True from asumptions: *)
 
-val True_implies_equals = prove_goal HOL.thy
+val True_implies_equals = prove_goal (the_context ())
  "(True ==> PROP P) == PROP P"
 (fn _ => [rtac equal_intr_rule 1, atac 2,
           METAHYPS (fn prems => resolve_tac prems 1) 1,
           rtac TrueI 1]);
 
-fun prove nm thm  = qed_goal nm HOL.thy thm (fn _ => [(Blast_tac 1)]);
+fun prove nm thm  = qed_goal nm (the_context ()) thm (fn _ => [(Blast_tac 1)]);
 
 prove "conj_commute" "(P&Q) = (Q&P)";
 prove "conj_left_commute" "(P&(Q&R)) = (Q&(P&R))";
@@ -255,19 +255,19 @@ prove "all_conj_distrib" "(!x. P(x) & Q(x)) = ((! x. P(x)) & (! x. Q(x)))";
 (* '&' congruence rule: not included by default!
    May slow rewrite proofs down by as much as 50% *)
 
-let val th = prove_goal HOL.thy 
+let val th = prove_goal (the_context ()) 
                 "(P=P')--> (P'--> (Q=Q'))--> ((P&Q) = (P'&Q'))"
                 (fn _=> [(Blast_tac 1)])
 in  bind_thm("conj_cong",standard (impI RSN (2, th RS mp RS mp)))  end;
 
-let val th = prove_goal HOL.thy 
+let val th = prove_goal (the_context ()) 
                 "(Q=Q')--> (Q'--> (P=P'))--> ((P&Q) = (P'&Q'))"
                 (fn _=> [(Blast_tac 1)])
 in  bind_thm("rev_conj_cong",standard (impI RSN (2, th RS mp RS mp)))  end;
 
 (* '|' congruence rule: not included by default! *)
 
-let val th = prove_goal HOL.thy 
+let val th = prove_goal (the_context ()) 
                 "(P=P')--> (~P'--> (Q=Q'))--> ((P|Q) = (P'|Q'))"
                 (fn _=> [(Blast_tac 1)])
 in  bind_thm("disj_cong",standard (impI RSN (2, th RS mp RS mp)))  end;
@@ -358,10 +358,10 @@ end);
 
 local
 val ex_pattern =
-  Thm.read_cterm (Theory.sign_of HOL.thy) ("EX x. P(x) & Q(x)",HOLogic.boolT)
+  Thm.read_cterm (Theory.sign_of (the_context ())) ("EX x. P(x) & Q(x)",HOLogic.boolT)
 
 val all_pattern =
-  Thm.read_cterm (Theory.sign_of HOL.thy) ("ALL x. P(x) & P'(x) --> Q(x)",HOLogic.boolT)
+  Thm.read_cterm (Theory.sign_of (the_context ())) ("ALL x. P(x) & P'(x) --> Q(x)",HOLogic.boolT)
 
 in
 val defEX_regroup =
@@ -478,7 +478,7 @@ qed "if_distrib";
 
 
 (*For expand_case_tac*)
-val prems = goal HOL.thy "[| P ==> Q(True); ~P ==> Q(False) |] ==> Q(P)";
+val prems = goal (the_context ()) "[| P ==> Q(True); ~P ==> Q(False) |] ==> Q(P)";
 by (case_tac "P" 1);
 by (ALLGOALS (asm_simp_tac (HOL_ss addsimps prems)));
 val expand_case = result();
@@ -491,9 +491,8 @@ fun expand_case_tac P i =
     Simp_tac i;
 
 
-(* install implicit simpset *)
-
-simpset_ref() := HOL_ss addcongs [if_weak_cong];
+(* default simpset *)
+val simpsetup = [fn thy => (simpset_ref_of thy := HOL_ss addcongs [if_weak_cong]; thy)];
 
 
 (*** integration of simplifier with classical reasoner ***)
