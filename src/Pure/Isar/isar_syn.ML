@@ -196,7 +196,8 @@ val lemmasP =
 
 val declareP =
   OuterSyntax.command "declare" "declare theorems (improper)" K.thy_script
-    (P.locale_target -- P.xthms1 >> (Toplevel.theory o uncurry IsarThy.declare_theorems));
+    (P.locale_target -- (P.and_list1 P.xthms1 >> flat)
+      >> (Toplevel.theory o uncurry IsarThy.declare_theorems));
 
 
 (* name space entry path *)
@@ -376,8 +377,7 @@ val obtainP =
     K.prf_asm_goal
     (Scan.optional
       (P.and_list1 (Scan.repeat1 P.name -- Scan.option (P.$$$ "::" |-- P.typ))
-        --| P.$$$ "where") [] -- statement
-    >> (Toplevel.print oo (Toplevel.proof o IsarThy.obtain)));
+        --| P.$$$ "where") [] -- statement >> (Toplevel.print oo IsarThy.obtain));
 
 val letP =
   OuterSyntax.command "let" "bind text variables" K.prf_decl
