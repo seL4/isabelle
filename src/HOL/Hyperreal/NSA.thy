@@ -405,7 +405,7 @@ lemma not_Infinitesimal_not_zero2: "x \<in> HFinite - Infinitesimal ==> x \<note
 by auto
 
 lemma Infinitesimal_hrabs_iff: "(abs x \<in> Infinitesimal) = (x \<in> Infinitesimal)"
-by (auto simp add: hrabs_def)
+by (auto simp add: abs_if)
 declare Infinitesimal_hrabs_iff [iff]
 
 lemma HFinite_diff_Infinitesimal_hrabs:
@@ -845,7 +845,7 @@ by (blast intro: Infinitesimal_less_SReal)
 lemma SReal_not_Infinitesimal:
      "[| 0 < y;  y \<in> Reals|] ==> y \<notin> Infinitesimal"
 apply (simp add: Infinitesimal_def)
-apply (auto simp add: hrabs_def)
+apply (auto simp add: abs_if)
 done
 
 lemma SReal_minus_not_Infinitesimal:
@@ -1324,7 +1324,7 @@ lemma HInfinite_HFinite_not_Infinitesimal_mult2:
 by (auto simp add: hypreal_mult_commute HInfinite_HFinite_not_Infinitesimal_mult)
 
 lemma HInfinite_gt_SReal: "[| x \<in> HInfinite; 0 < x; y \<in> Reals |] ==> y < x"
-by (auto dest!: bspec simp add: HInfinite_def hrabs_def order_less_imp_le)
+by (auto dest!: bspec simp add: HInfinite_def abs_if order_less_imp_le)
 
 lemma HInfinite_gt_zero_gt_one: "[| x \<in> HInfinite; 0 < x |] ==> 1 < x"
 by (auto intro: HInfinite_gt_SReal)

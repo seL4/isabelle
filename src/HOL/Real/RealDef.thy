@@ -830,16 +830,16 @@ subsection{*Absolute Value Function for the Reals*}
 
 text{*FIXME: these should go!*}
 lemma abs_eqI1: "(0::real)\<le>x ==> abs x = x"
-by (simp add: real_abs_def)
+by (simp add: abs_if)
 
 lemma abs_eqI2: "(0::real) < x ==> abs x = x"
-by (simp add: real_abs_def)
+by (simp add: abs_if)
 
 lemma abs_minus_eqI2: "x < (0::real) ==> abs x = -x"
-by (simp add: real_abs_def linorder_not_less [symmetric])
+by (simp add: abs_if linorder_not_less [symmetric])
 
 lemma abs_minus_add_cancel: "abs(x + (-y)) = abs (y + (-(x::real)))"
-by (simp add: real_abs_def)
+by (simp add: abs_if)
 
 lemma abs_interval_iff: "(abs x < r) = (-r < x & x < (r::real))"
 by (force simp add: Ring_and_Field.abs_less_iff)
@@ -849,7 +849,7 @@ by (force simp add: OrderedGroup.abs_le_iff)
 
 (*FIXME: used only once, in SEQ.ML*)
 lemma abs_add_one_gt_zero [simp]: "(0::real) < 1 + abs(x)"
-by (simp add: real_abs_def)
+by (simp add: abs_if)
 
 lemma abs_real_of_nat_cancel [simp]: "abs (real x) = real (x::nat)"
 by (auto intro: abs_eqI1 simp add: real_of_nat_ge_zero)

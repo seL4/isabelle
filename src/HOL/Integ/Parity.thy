@@ -233,22 +233,22 @@ lemma odd_nat_equiv_def2: "odd (x::nat) = (EX y. x = Suc(Suc (Suc 0) * y))"
 subsection {* Powers of negative one *}
 
 lemma neg_one_even_odd_power:
-     "(even x --> (-1::'a::{number_ring,ringpower})^x = 1) & 
+     "(even x --> (-1::'a::{number_ring,recpower})^x = 1) & 
       (odd x --> (-1::'a)^x = -1)"
   apply (induct_tac x)
   apply (simp, simp add: power_Suc)
   done
 
 lemma neg_one_even_power [simp]:
-     "even x ==> (-1::'a::{number_ring,ringpower})^x = 1"
+     "even x ==> (-1::'a::{number_ring,recpower})^x = 1"
   by (rule neg_one_even_odd_power [THEN conjunct1, THEN mp], assumption)
 
 lemma neg_one_odd_power [simp]:
-     "odd x ==> (-1::'a::{number_ring,ringpower})^x = -1"
+     "odd x ==> (-1::'a::{number_ring,recpower})^x = -1"
   by (rule neg_one_even_odd_power [THEN conjunct2, THEN mp], assumption)
 
 lemma neg_power_if:
-     "(-x::'a::{comm_ring_1,ringpower}) ^ n = 
+     "(-x::'a::{comm_ring_1,recpower}) ^ n = 
       (if even n then (x ^ n) else -(x ^ n))"
   by (induct n, simp_all split: split_if_asm add: power_Suc) 
 
@@ -256,13 +256,13 @@ lemma neg_power_if:
 subsection {* An Equivalence for @{term "0 \<le> a^n"} *}
 
 lemma even_power_le_0_imp_0:
-     "a ^ (2*k) \<le> (0::'a::{ordered_idom,ringpower}) ==> a=0"
+     "a ^ (2*k) \<le> (0::'a::{ordered_idom,recpower}) ==> a=0"
 apply (induct k) 
 apply (auto simp add: zero_le_mult_iff mult_le_0_iff power_Suc)  
 done
 
 lemma zero_le_power_iff:
-     "(0 \<le> a^n) = (0 \<le> (a::'a::{ordered_idom,ringpower}) | even n)"
+     "(0 \<le> a^n) = (0 \<le> (a::'a::{ordered_idom,recpower}) | even n)"
       (is "?P n")
 proof cases
   assume even: "even n"

@@ -86,21 +86,20 @@ subsection{*Absolute Value Function for the Hyperreals*}
 
 declare abs_mult [simp]
 
-lemma hrabs_add_less: "[| abs x < r; abs y < s |] ==> abs(x+y) < r + (s::hypreal)"
-apply (unfold hrabs_def)
-apply (simp split add: split_if_asm)
-done
+lemma hrabs_add_less:
+     "[| abs x < r; abs y < s |] ==> abs(x+y) < r + (s::hypreal)"
+by (simp add: abs_if split: split_if_asm)
 
 text{*used once in NSA*}
 lemma hrabs_less_gt_zero: "abs x < r ==> (0::hypreal) < r"
 by (blast intro!: order_le_less_trans abs_ge_zero)
 
 lemma hrabs_disj: "abs x = (x::hypreal) | abs x = -x"
-by (simp add: hrabs_def)
+by (simp add: abs_if)
 
 (* Needed in Geom.ML *)
 lemma hrabs_add_lemma_disj: "(y::hypreal) + - x + (y + - z) = abs (x + - z) ==> y = z | x = y"
-by (simp add: hrabs_def split add: split_if_asm)
+by (simp add: abs_if split add: split_if_asm)
 
 lemma hypreal_of_real_hrabs:
     "abs (hypreal_of_real r) = hypreal_of_real (abs r)"

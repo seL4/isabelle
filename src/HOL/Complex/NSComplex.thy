@@ -864,7 +864,7 @@ primrec
      hcomplexpow_0:   "z ^ 0       = 1"
      hcomplexpow_Suc: "z ^ (Suc n) = (z::hcomplex) * (z ^ n)"
 
-instance hcomplex :: ringpower
+instance hcomplex :: recpower
 proof
   fix z :: hcomplex
   fix n :: nat

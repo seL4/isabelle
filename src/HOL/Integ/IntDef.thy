@@ -503,7 +503,7 @@ apply arith
 done
 
 lemma abs_int_eq [simp]: "abs (int m) = int m"
-by (simp add: zabs_def)
+by (simp add: abs_if)
 
 text{*This version is proved for all ordered rings, not just integers!
       It is proved here because attribute @{text arith_split} is not available

@@ -65,10 +65,10 @@ lemma gcd_diff2: "m \<le> n ==> gcd (n, n - m) = gcd (n, m)"
 subsection {* Euclid's Algorithm and GCD *}
 
 lemma zgcd_0 [simp]: "zgcd (m, 0) = abs m"
-  by (simp add: zgcd_def zabs_def)
+  by (simp add: zgcd_def abs_if)
 
 lemma zgcd_0_left [simp]: "zgcd (0, m) = abs m"
-  by (simp add: zgcd_def zabs_def)
+  by (simp add: zgcd_def abs_if)
 
 lemma zgcd_zminus [simp]: "zgcd (-m, n) = zgcd (m, n)"
   by (simp add: zgcd_def)
@@ -78,7 +78,7 @@ lemma zgcd_zminus2 [simp]: "zgcd (m, -n) = zgcd (m, n)"
 
 lemma zgcd_non_0: "0 < n ==> zgcd (m, n) = zgcd (n, m mod n)"
   apply (frule_tac b = n and a = m in pos_mod_sign)
-  apply (simp del: pos_mod_sign add: zgcd_def zabs_def nat_mod_distrib)
+  apply (simp del: pos_mod_sign add: zgcd_def abs_if nat_mod_distrib)
   apply (auto simp add: gcd_non_0 nat_mod_distrib [symmetric] zmod_zminus1_eq_if)
   apply (frule_tac a = m in pos_mod_bound)
   apply (simp del: pos_mod_bound add: nat_diff_distrib gcd_diff2 nat_le_eq_zle)
@@ -91,19 +91,19 @@ lemma zgcd_eq: "zgcd (m, n) = zgcd (n, m mod n)"
   done
 
 lemma zgcd_1 [simp]: "zgcd (m, 1) = 1"
-  by (simp add: zgcd_def zabs_def)
+  by (simp add: zgcd_def abs_if)
 
 lemma zgcd_0_1_iff [simp]: "(zgcd (0, m) = 1) = (abs m = 1)"
-  by (simp add: zgcd_def zabs_def)
+  by (simp add: zgcd_def abs_if)
 
 lemma zgcd_zdvd1 [iff]: "zgcd (m, n) dvd m"
-  by (simp add: zgcd_def zabs_def int_dvd_iff)
+  by (simp add: zgcd_def abs_if int_dvd_iff)
 
 lemma zgcd_zdvd2 [iff]: "zgcd (m, n) dvd n"
-  by (simp add: zgcd_def zabs_def int_dvd_iff)
+  by (simp add: zgcd_def abs_if int_dvd_iff)
 
 lemma zgcd_greatest_iff: "k dvd zgcd (m, n) = (k dvd m \<and> k dvd n)"
-  by (simp add: zgcd_def zabs_def int_dvd_iff dvd_int_iff nat_dvd_iff)
+  by (simp add: zgcd_def abs_if int_dvd_iff dvd_int_iff nat_dvd_iff)
 
 lemma zgcd_commute: "zgcd (m, n) = zgcd (n, m)"
   by (simp add: zgcd_def gcd_commute)
@@ -125,11 +125,11 @@ lemmas zgcd_ac = zgcd_assoc zgcd_commute zgcd_left_commute
 
 lemma zgcd_zmult_distrib2: "0 \<le> k ==> k * zgcd (m, n) = zgcd (k * m, k * n)"
   by (simp del: minus_mult_right [symmetric]
-      add: minus_mult_right nat_mult_distrib zgcd_def zabs_def
+      add: minus_mult_right nat_mult_distrib zgcd_def abs_if
           mult_less_0_iff gcd_mult_distrib2 [symmetric] zmult_int [symmetric])
 
 lemma zgcd_zmult_distrib2_abs: "zgcd (k * m, k * n) = abs k * zgcd (m, n)"
-  by (simp add: zabs_def zgcd_zmult_distrib2)
+  by (simp add: abs_if zgcd_zmult_distrib2)
 
 lemma zgcd_self [simp]: "0 \<le> m ==> zgcd (m, m) = m"
   by (cut_tac k = m and m = 1 and n = 1 in zgcd_zmult_distrib2, simp_all)
@@ -465,7 +465,7 @@ lemma xzgcd_correct_aux1:
   apply (rule exI)
   apply (rule exI)
   apply (subst xzgcda.simps, auto)
-  apply (simp add: zabs_def)
+  apply (simp add: abs_if)
   done
 
 lemma xzgcd_correct_aux2:
@@ -481,7 +481,7 @@ lemma xzgcd_correct_aux2:
    apply (frule_tac a = "r'" in pos_mod_sign, auto)
   apply (erule_tac P = "xzgcda ?u = ?v" in rev_mp)
   apply (subst xzgcda.simps, auto)
-  apply (simp add: zabs_def)
+  apply (simp add: abs_if)
   done
 
 lemma xzgcd_correct:

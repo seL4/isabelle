@@ -455,7 +455,7 @@ by (induct x, simp add: complex_mod complex_minus power2_eq_square)
 
 lemma complex_mod_mult_cnj: "cmod(z * cnj(z)) = cmod(z) ^ 2"
 apply (induct z, simp add: complex_mod complex_cnj complex_mult)
-apply (simp add: power2_eq_square real_abs_def)
+apply (simp add: power2_eq_square abs_if linorder_not_less)
 done
 
 lemma complex_mod_squared: "cmod(Complex x y) ^ 2 = x ^ 2 + y ^ 2"
@@ -571,7 +571,7 @@ primrec
      complexpow_Suc: "z ^ (Suc n) = (z::complex) * (z ^ n)"
 
 
-instance complex :: ringpower
+instance complex :: recpower
 proof
   fix z :: complex
   fix n :: nat
@@ -947,7 +947,7 @@ test "(k) / (k*(y::complex)) = (uu::complex)";
 test "(a*(b*c)) / ((b::complex)) = (uu::complex)";
 test "(a*(b*c)) / (d*(b::complex)*(x*a)) = (uu::complex)";
 
-(*FIXME: what do we do about this?*)
+FIXME: what do we do about this?
 test "a*(b*c)/(y*z) = d*(b::complex)*(x*a)/z";
 *)
 

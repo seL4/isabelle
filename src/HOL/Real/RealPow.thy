@@ -17,7 +17,7 @@ primrec (realpow)
      realpow_Suc: "r ^ (Suc n) = (r::real) * (r ^ n)"
 
 
-instance real :: ringpower
+instance real :: recpower
 proof
   fix z :: real
   fix n :: nat

@@ -1328,7 +1328,7 @@ apply (drule_tac x = "f n + - lim f" in spec, safe)
 apply (drule_tac P = "%na. no\<le>na --> ?Q na" and x = "no + n" in spec, auto)
 apply (subgoal_tac "lim f \<le> f (no + n) ")
 apply (induct_tac [2] "no")
-apply (auto intro: order_trans simp add: diff_minus real_abs_def)
+apply (auto intro: order_trans simp add: diff_minus abs_if)
 apply (drule_tac no=no and m=n in lemma_f_mono_add)
 apply (auto simp add: add_commute)
 done
@@ -1660,22 +1660,38 @@ apply (rule_tac [2] x = xb in exI)
 apply (rule_tac [4] x = xb in exI, simp_all)
 done
 
-(*----------------------------------------------------------------------------*)
-(* If f'(x) > 0 then x is locally strictly increasing at the right            *)
-(*----------------------------------------------------------------------------*)
+
+subsection{*If @{term "0 < f'(x)"} then @{term x} is Locally Strictly Increasing At The Right*}
 
 lemma DERIV_left_inc:
-    "[| DERIV f x :> l;  0 < l |]
-     ==> \<exists>d. 0 < d & (\<forall>h. 0 < h & h < d --> f(x) < f(x + h))"
-apply (simp add: deriv_def LIM_def)
-apply (drule spec, auto)
-apply (rule_tac x = s in exI, auto)
-apply (subgoal_tac "0 < l*h")
- prefer 2 apply (simp add: zero_less_mult_iff)
-apply (drule_tac x = h in spec)
-apply (simp add: real_abs_def pos_le_divide_eq pos_less_divide_eq 
-            split add: split_if_asm)
-done
+  assumes der: "DERIV f x :> l"
+      and l:   "0 < l"
+  shows "\<exists>d. 0 < d & (\<forall>h. 0 < h & h < d --> f(x) < f(x + h))"
+proof -
+  from l der [THEN DERIV_D, THEN LIM_D [where r = "l"]]
+  have "\<exists>s. 0 < s \<and>
+              (\<forall>z. z \<noteq> 0 \<and> \<bar>z\<bar> < s \<longrightarrow> \<bar>(f(x+z) - f x) / z - l\<bar> < l)"
+    by (simp add: diff_minus)
+  then obtain s
+        where s:   "0 < s" 
+          and all: "!!z. z \<noteq> 0 \<and> \<bar>z\<bar> < s \<longrightarrow> \<bar>(f(x+z) - f x) / z - l\<bar> < l"
+    by auto
+  thus ?thesis
+  proof (intro exI conjI strip)
+    show "0<s" .
+    fix h::real
+    assume "0 < h \<and> h < s"
+    with all [of h] show "f x < f (x+h)" 
+    proof (simp add: abs_if pos_less_divide_eq diff_minus [symmetric] 
+		split add: split_if_asm)
+      assume "~ (f (x+h) - f x) / h < l" and h: "0 < h" 
+      with l 
+      have "0 < (f (x+h) - f x) / h" by arith
+      thus "f x < f (x+h)"
+	by (simp add: pos_less_divide_eq h)
+    qed
+  qed
+qed
 
 lemma DERIV_left_dec:
   assumes der: "DERIV f x :> l"
@@ -1696,9 +1712,9 @@ proof -
     fix h::real
     assume "0 < h \<and> h < s"
     with all [of "-h"] show "f x < f (x-h)" 
-    proof (simp add: real_abs_def pos_less_divide_eq diff_minus [symmetric] 
+    proof (simp add: abs_if pos_less_divide_eq diff_minus [symmetric] 
 		split add: split_if_asm)
-      assume "~ l \<le> - ((f (x-h) - f x) / h)" and h: "0 < h" 
+      assume " - ((f (x-h) - f x) / h) < l" and h: "0 < h" 
       with l 
       have "0 < (f (x-h) - f x) / h" by arith
       thus "f x < f (x-h)"

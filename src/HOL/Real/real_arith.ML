@@ -12,8 +12,6 @@ Instantiation of the generic linear arithmetic package for type real.
 val real_mult_left_mono =
     read_instantiate_sg(sign_of (the_context())) [("a","?a::real")] mult_left_mono;
 
-val real_abs_def = thm "real_abs_def";
-
 val real_le_def = thm "real_le_def";
 val real_diff_def = thm "real_diff_def";
 val real_divide_def = thm "real_divide_def";

@@ -60,7 +60,7 @@ constdefs
 
 lemma abs_eq_1_iff [iff]: "(abs z = (1::int)) = (z = 1 \<or> z = -1)"
   -- {* LCP: not sure why this lemma is needed now *}
-by (auto simp add: zabs_def)
+by (auto simp add: abs_if)
 
 
 text {* \medskip @{text norRRset} *}

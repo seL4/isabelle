@@ -506,7 +506,7 @@ apply (simp add: mult_ac)
 apply (rule_tac x = "abs (f N) * (1/ (1 - c)) / (c ^ N) " in exI)
 apply (rule sums_divide)
 apply (rule sums_mult)
-apply (auto intro!: sums_mult geometric_sums simp add: real_abs_def)
+apply (auto intro!: sums_mult geometric_sums simp add: abs_if)
 done
 
 

@@ -1126,7 +1126,7 @@ lemma int_dvd_iff: "(int m dvd z) = (m dvd nat (abs z))"
   done
 
 lemma dvd_int_iff: "(z dvd int m) = (nat (abs z) dvd m)"
-  apply (auto simp add: dvd_def zabs_def zmult_int [symmetric])
+  apply (auto simp add: dvd_def abs_if zmult_int [symmetric])
     apply (rule_tac [3] x = "nat k" in exI)
     apply (rule_tac [2] x = "-(int k)" in exI)
     apply (rule_tac x = "nat (-k)" in exI)
@@ -1172,7 +1172,7 @@ primrec
   "p ^ (Suc n) = (p::int) * (p ^ n)"
 
 
-instance int :: ringpower
+instance int :: recpower
 proof
   fix z :: int
   fix n :: nat

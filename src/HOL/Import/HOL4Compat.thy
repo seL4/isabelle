@@ -510,10 +510,10 @@ lemma real_of_num: "((0::real) = 0) & (!n. real (Suc n) = real n + 1)"
   by (simp add: real_of_nat_Suc)
 
 lemma abs: "abs (x::real) = (if 0 <= x then x else -x)"
-  by (simp add: real_abs_def)
+  by (simp add: abs_if)
 
 lemma pow: "(!x::real. x ^ 0 = 1) & (!x::real. ALL n. x ^ (Suc n) = x * x ^ n)"
-  by simp;
+  by simp
 
 constdefs
   real_gt :: "real => real => bool" 

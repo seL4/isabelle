@@ -169,14 +169,11 @@ by (simp add: starfun_n_def starfun_def)
 
 
 (*
-   Prove that hrabs is a nonstandard extension of rabs without
+   Prove that abs for hypreal is a nonstandard extension of abs for real w/o
    use of congruence property (proved after this for general
-   nonstandard extensions of real valued functions). This makes
-   proof much longer- see comments at end of HREALABS.thy where
-   we proved a congruence theorem for hrabs.
+   nonstandard extensions of real valued functions). 
 
-   NEW!!! No need to prove all the lemmas anymore. Use the ultrafilter
-   tactic!
+   Proof now Uses the ultrafilter tactic!
 *)
 
 lemma hrabs_is_starext_rabs: "is_starext abs abs"
@@ -185,7 +182,9 @@ apply (rule_tac z = x in eq_Abs_hypreal)
 apply (rule_tac z = y in eq_Abs_hypreal, auto)
 apply (rule bexI, rule_tac [2] lemma_hyprel_refl)
 apply (rule bexI, rule_tac [2] lemma_hyprel_refl)
-apply (auto dest!: spec simp add: hypreal_minus hrabs_def hypreal_zero_def hypreal_le_def hypreal_less_def)
+apply (auto dest!: spec 
+            simp add: hypreal_minus abs_if hypreal_zero_def
+                  hypreal_le hypreal_less)
 apply (arith | ultra)+
 done
 
@@ -224,6 +223,7 @@ done
  ------------------------------------------*)
 lemma starfun_mult: "( *f* f) xa * ( *f* g) xa = ( *f* (%x. f x * g x)) xa"
 by (cases xa, simp add: starfun hypreal_mult)
+
 declare starfun_mult [symmetric, simp]
 
 (*---------------------------------------

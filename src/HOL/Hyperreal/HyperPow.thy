@@ -16,7 +16,7 @@ primrec
    hpowr_Suc: "r ^ (Suc n) = (r::hypreal) * (r ^ n)"
 
 
-instance hypreal :: ringpower
+instance hypreal :: recpower
 proof
   fix z :: hypreal
   fix n :: nat
@@ -39,25 +39,21 @@ defs
 lemma hrealpow_two: "(r::hypreal) ^ Suc (Suc 0) = r * r"
 by simp
 
-lemma hrealpow_two_le: "(0::hypreal) \<le> r ^ Suc (Suc 0)"
+lemma hrealpow_two_le [simp]: "(0::hypreal) \<le> r ^ Suc (Suc 0)"
 by (auto simp add: zero_le_mult_iff)
-declare hrealpow_two_le [simp]
 
-lemma hrealpow_two_le_add_order:
+lemma hrealpow_two_le_add_order [simp]:
      "(0::hypreal) \<le> u ^ Suc (Suc 0) + v ^ Suc (Suc 0)"
 by (simp only: hrealpow_two_le hypreal_le_add_order)
-declare hrealpow_two_le_add_order [simp]
 
-lemma hrealpow_two_le_add_order2:
+lemma hrealpow_two_le_add_order2 [simp]:
      "(0::hypreal) \<le> u ^ Suc (Suc 0) + v ^ Suc (Suc 0) + w ^ Suc (Suc 0)"
-apply (simp only: hrealpow_two_le hypreal_le_add_order)
-done
-declare hrealpow_two_le_add_order2 [simp]
+by (simp only: hrealpow_two_le hypreal_le_add_order)
 
 lemma hypreal_add_nonneg_eq_0_iff:
      "[| 0 \<le> x; 0 \<le> y |] ==> (x+y = 0) = (x = 0 & y = (0::hypreal))"
-apply arith
-done
+by arith
+
 
 text{*FIXME: DELETE THESE*}
 lemma hypreal_three_squares_add_zero_iff:
@@ -78,12 +74,11 @@ by (simp add: abs_mult)
 lemma two_hrealpow_ge_one [simp]: "(1::hypreal) \<le> 2 ^ n"
 by (insert power_increasing [of 0 n "2::hypreal"], simp)
 
-lemma two_hrealpow_gt: "hypreal_of_nat n < 2 ^ n"
+lemma two_hrealpow_gt [simp]: "hypreal_of_nat n < 2 ^ n"
 apply (induct_tac "n")
 apply (auto simp add: hypreal_of_nat_Suc left_distrib)
 apply (cut_tac n = n in two_hrealpow_ge_one, arith)
 done
-declare two_hrealpow_gt [simp] 
 
 lemma hrealpow:
     "Abs_hypreal(hyprel``{%n. X n}) ^ m = Abs_hypreal(hyprel``{%n. (X n) ^ m})"
@@ -99,11 +94,9 @@ by (simp add: right_distrib left_distrib hypreal_of_nat_Suc)
 
 subsection{*Literal Arithmetic Involving Powers and Type @{typ hypreal}*}
 
-lemma hypreal_of_real_power: "hypreal_of_real (x ^ n) = hypreal_of_real x ^ n"
-apply (induct_tac "n")
-apply (simp_all add: nat_mult_distrib)
-done
-declare hypreal_of_real_power [simp]
+lemma hypreal_of_real_power [simp]:
+     "hypreal_of_real (x ^ n) = hypreal_of_real x ^ n"
+by (induct_tac "n", simp_all add: nat_mult_distrib)
 
 lemma power_hypreal_of_real_number_of:
      "(number_of v :: hypreal) ^ n = hypreal_of_real ((number_of v) ^ n)"
@@ -169,11 +162,10 @@ apply (cases n, cases m, cases r)
 apply (auto simp add: hyperpow hypnat_add hypreal_mult power_add)
 done
 
-lemma hyperpow_one: "r pow (1::hypnat) = r"
+lemma hyperpow_one [simp]: "r pow (1::hypnat) = r"
 apply (unfold hypnat_one_def, cases r)
 apply (auto simp add: hyperpow)
 done
-declare hyperpow_one [simp]
 
 lemma hyperpow_two:
      "r pow ((1::hypnat) + (1::hypnat)) = r * r"
@@ -200,57 +192,48 @@ apply (erule FreeUltrafilterNat_Int [THEN FreeUltrafilterNat_subset], assumption
 apply (auto intro: power_mono)
 done
 
-lemma hyperpow_eq_one: "1 pow n = (1::hypreal)"
+lemma hyperpow_eq_one [simp]: "1 pow n = (1::hypreal)"
 apply (cases n)
 apply (auto simp add: hypreal_one_def hyperpow)
 done
-declare hyperpow_eq_one [simp]
 
-lemma hrabs_hyperpow_minus_one: "abs(-1 pow n) = (1::hypreal)"
+lemma hrabs_hyperpow_minus_one [simp]: "abs(-1 pow n) = (1::hypreal)"
 apply (subgoal_tac "abs ((- (1::hypreal)) pow n) = (1::hypreal) ")
 apply simp
 apply (cases n)
 apply (auto simp add: hypreal_one_def hyperpow hypreal_minus hypreal_hrabs)
 done
-declare hrabs_hyperpow_minus_one [simp]
 
 lemma hyperpow_mult: "(r * s) pow n = (r pow n) * (s pow n)"
 apply (cases n, cases r, cases s)
 apply (auto simp add: hyperpow hypreal_mult power_mult_distrib)
 done
 
-lemma hyperpow_two_le: "(0::hypreal) \<le> r pow ((1::hypnat) + (1::hypnat))"
+lemma hyperpow_two_le [simp]: "0 \<le> r pow (1 + 1)"
 by (auto simp add: hyperpow_two zero_le_mult_iff)
-declare hyperpow_two_le [simp]
 
 lemma hrabs_hyperpow_two [simp]: "abs(x pow (1 + 1)) = x pow (1 + 1)"
-by (simp add: hrabs_def hyperpow_two_le)
+by (simp add: abs_if hyperpow_two_le linorder_not_less)
 
-lemma hyperpow_two_hrabs:
-     "abs(x) pow (1 + 1)  = x pow (1 + 1)"
-apply (simp add: hyperpow_hrabs)
-done
-declare hyperpow_two_hrabs [simp]
+lemma hyperpow_two_hrabs [simp]: "abs(x) pow (1 + 1)  = x pow (1 + 1)"
+by (simp add: hyperpow_hrabs)
 
-lemma hyperpow_two_gt_one:
-     "(1::hypreal) < r ==> 1 < r pow (1 + 1)"
+lemma hyperpow_two_gt_one: "1 < r ==> 1 < r pow (1 + 1)"
 apply (auto simp add: hyperpow_two)
 apply (rule_tac y = "1*1" in order_le_less_trans)
 apply (rule_tac [2] hypreal_mult_less_mono, auto)
 done
 
 lemma hyperpow_two_ge_one:
-     "(1::hypreal) \<le> r ==> 1 \<le> r pow (1 + 1)"
-apply (auto dest!: order_le_imp_less_or_eq intro: hyperpow_two_gt_one order_less_imp_le)
-done
+     "1 \<le> r ==> 1 \<le> r pow (1 + 1)"
+by (auto dest!: order_le_imp_less_or_eq intro: hyperpow_two_gt_one order_less_imp_le)
 
-lemma two_hyperpow_ge_one: "(1::hypreal) \<le> 2 pow n"
+lemma two_hyperpow_ge_one [simp]: "(1::hypreal) \<le> 2 pow n"
 apply (rule_tac y = "1 pow n" in order_trans)
 apply (rule_tac [2] hyperpow_le, auto)
 done
-declare two_hyperpow_ge_one [simp]
 
-lemma hyperpow_minus_one2:
+lemma hyperpow_minus_one2 [simp]:
      "-1 pow ((1 + 1)*n) = (1::hypreal)"
 apply (subgoal_tac " (- ((1::hypreal))) pow ((1 + 1)*n) = (1::hypreal) ")
 apply simp
@@ -258,7 +241,6 @@ apply (simp only: hypreal_one_def, cases n)
 apply (auto simp add: nat_mult_2 [symmetric] hyperpow hypnat_add hypreal_minus
                       left_distrib)
 done
-declare hyperpow_minus_one2 [simp]
 
 lemma hyperpow_less_le:
      "[|(0::hypreal) \<le> r; r \<le> 1; n < N|] ==> r pow N \<le> r pow n"
@@ -277,18 +259,16 @@ by (auto intro!: hyperpow_less_le simp add: HNatInfinite_iff)
 
 lemma hyperpow_realpow:
       "(hypreal_of_real r) pow (hypnat_of_nat n) = hypreal_of_real (r ^ n)"
-apply (simp add: hypreal_of_real_def hypnat_of_nat_eq hyperpow)
-done
+by (simp add: hypreal_of_real_def hypnat_of_nat_eq hyperpow)
 
-lemma hyperpow_SReal: "(hypreal_of_real r) pow (hypnat_of_nat n) \<in> Reals"
-apply (unfold SReal_def)
-apply (simp (no_asm) del: hypreal_of_real_power add: hyperpow_realpow)
-done
-declare hyperpow_SReal [simp]
+lemma hyperpow_SReal [simp]:
+     "(hypreal_of_real r) pow (hypnat_of_nat n) \<in> Reals"
+by (simp del: hypreal_of_real_power add: hyperpow_realpow SReal_def)
 
-lemma hyperpow_zero_HNatInfinite: "N \<in> HNatInfinite ==> (0::hypreal) pow N = 0"
+
+lemma hyperpow_zero_HNatInfinite [simp]:
+     "N \<in> HNatInfinite ==> (0::hypreal) pow N = 0"
 by (drule HNatInfinite_is_Suc, auto)
-declare hyperpow_zero_HNatInfinite [simp]
 
 lemma hyperpow_le_le:
      "[| (0::hypreal) \<le> r; r \<le> 1; n \<le> N |] ==> r pow N \<le> r pow n"

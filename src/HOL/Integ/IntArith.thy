@@ -130,7 +130,7 @@ lemma abs_minus_one [simp]: "abs (-1) = (1::'a::{ordered_idom,number_ring})"
 by (simp add: abs_if)
 
 lemma abs_power_minus_one [simp]:
-     "abs(-1 ^ n) = (1::'a::{ordered_idom,number_ring,ringpower})"
+     "abs(-1 ^ n) = (1::'a::{ordered_idom,number_ring,recpower})"
 by (simp add: power_abs)
 
 lemma of_int_number_of_eq:
@@ -227,7 +227,7 @@ done
 
 lemma nat_abs_mult_distrib: "nat (abs (w * z)) = nat (abs w) * nat (abs z)"
 apply (case_tac "z=0 | w=0")
-apply (auto simp add: zabs_def nat_mult_distrib [symmetric] 
+apply (auto simp add: abs_if nat_mult_distrib [symmetric] 
                       nat_mult_distrib_neg [symmetric] mult_less_0_iff)
 done
 
@@ -318,7 +318,7 @@ apply (erule_tac x = n in allE, simp)
 apply (case_tac "k = f (n+1) ")
  apply force
 apply (erule impE)
- apply (simp add: zabs_def split add: split_if_asm)
+ apply (simp add: abs_if split add: split_if_asm)
 apply (blast intro: le_SucI)
 done
 
