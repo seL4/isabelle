@@ -4,11 +4,6 @@
     Copyright   1998  TU Muenchen
 
 Datatype package for Isabelle/HOL.
-
-TODO:
-  - streamline internal interfaces (!??);
-  - methods: induct, exhaust;
-  - infix types (!?!?);
 *)
 
 signature BASIC_DATATYPE_PACKAGE =
