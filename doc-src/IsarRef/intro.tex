@@ -255,15 +255,27 @@ documents (in PDF).
   big mathematics application on infinitary vector spaces and functional
   analysis.
 \item \url{http://isabelle.in.tum.de/library/HOL/Lambda/} develops fundamental
-  properties of $\lambda$-calculus (Church-Rosser and termination).  This may
-  serve as a realistic example of porting of legacy proof scripts into Isar
-  tactic emulation scripts.
+  properties of $\lambda$-calculus (Church-Rosser and termination).
+  
+  This may serve as a realistic example of porting of legacy proof scripts
+  into Isar tactic emulation scripts.
+\item \url{http://isabelle.in.tum.de/library/HOL/Unix/} gives a mathematical
+  model of the main aspects of the Unix file-system including its security
+  model, but ignoring processes.  A few odd effects caused by the general
+  ``worse-is-better'' approach followed in Unix are discussed within the
+  formal model.
+  
+  This example represents a non-trivial verification task, with all proofs
+  carefully worked out using the proper part of the Isar proof language;
+  unstructured scripts are only used for symbolic evaluation.
 \item \url{http://isabelle.in.tum.de/library/HOL/MicroJava/} is a
   formalization of a fragment of Java, together with a corresponding virtual
   machine and a specification of its bytecode verifier and a lightweight
-  bytecode verifier, including proofs of type-safety.  This represents a very
-  ``realistic'' example of large formalizations performed in either form of
-  legacy scripts, tactic emulation scripts, and proper Isar proof texts.
+  bytecode verifier, including proofs of type-safety.
+  
+  This represents a very ``realistic'' example of large formalizations
+  performed in either form of legacy scripts, tactic emulation scripts, and
+  proper Isar proof texts.
 \end{itemize}
 
 
