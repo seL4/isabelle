@@ -1,0 +1,33 @@
+#!/bin/bash -norc
+#
+# $Id$
+#
+# mk - build Pure Isabelle.
+#
+# Notes:
+#   (1) edit etc/settings approprately
+#   (2) cd here and run ./mk
+#
+
+
+## diagnostics
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## main
+
+ML_SYSTEM=$(isatool getenv ML_SYSTEM)
+ML_SYSTEM_BASE=$(echo $ML_SYSTEM | cut -f1 -d-)
+[ -z "$ML_SYSTEM" ] && fail "Missing ML system settings! Unable to build Isabelle."
+
+COMPAT=""
+[ -f "ML-Systems/$ML_SYSTEM_BASE.ML" ] && COMPAT="ML-Systems/$ML_SYSTEM_BASE.ML"
+[ -f "ML-Systems/$ML_SYSTEM.ML" ] && COMPAT="ML-Systems/$ML_SYSTEM.ML"
+[ -z "$COMPAT" ] && fail "Missing compatibility file for ML system \"$ML_SYSTEM\"!"
+
+exec isabelle -e "use\"$COMPAT\"; use\"ROOT.ML\" handle _ => exit 1;" -cq SYSTEM Pure
