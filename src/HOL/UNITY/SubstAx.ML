@@ -356,11 +356,11 @@ Goal "[| reachable prg <= {s. #0 <= f s};  \
 \                           ((A Int {s. f s < z}) Un B);   \
 \        id: Acts prg |] \
 \     ==> LeadsTo prg A B";
-by (res_inst_tac [("f", "nat_of o f")] (allI RS LessThan_induct) 1);
+by (res_inst_tac [("f", "nat o f")] (allI RS LessThan_induct) 1);
 by (simp_tac (simpset() addsimps [vimage_def]) 1);
 br ([reach, prem] MRS reachable_LeadsTo_weaken) 1;
 by (auto_tac (claset(),
-	      simpset() addsimps [id, nat_of_eq_iff, nat_of_less_iff]));
+	      simpset() addsimps [id, nat_eq_iff, nat_less_iff]));
 qed "integ_0_le_induct";
 
 Goal "[| ALL m:(greaterThan l). LeadsTo prg (A Int f-``{m})   \

@@ -140,8 +140,6 @@ by (safe_tac (claset() addSDs [normal_BIT_D]));
 by (ALLGOALS Asm_simp_tac);
 qed_spec_mp "bin_add_normal";
 
-
-
 Goal "w: normal ==> (w = Pls) = (integ_of w = #0)";
 by (etac normal.induct 1);
 by Auto_tac;
@@ -154,15 +152,14 @@ by (resolve_tac normal.intrs 1);
 by (assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [normal_Pls_eq_0]) 1);
 by (asm_full_simp_tac 
-    (simpset_of Integ.thy addsimps [integ_of_minus, iszero_def, 
-				    zminus_exchange]) 1);
+    (simpset_of Int.thy addsimps [integ_of_minus, iszero_def, 
+				  zminus_exchange]) 1);
 qed "bin_minus_normal";
-
 
 Goal "w : normal ==> z: normal --> bin_mult w z : normal";
 by (etac normal.induct 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [bin_minus_normal,
-						bin_mult_BIT])));
+by (ALLGOALS
+    (asm_simp_tac (simpset() addsimps [bin_minus_normal, bin_mult_BIT])));
 by (safe_tac (claset() addSDs [normal_BIT_D]));
 by (asm_simp_tac (simpset() addsimps [bin_add_normal]) 1);
 qed_spec_mp "bin_mult_normal";
