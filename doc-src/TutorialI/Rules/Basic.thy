@@ -36,7 +36,7 @@ apply (drule mp)
  apply assumption
 done
 
-text {*NEW
+text {*
 by eliminates uses of assumption and done
 *}
 
@@ -63,59 +63,27 @@ also provable by simp (re-orients)
 *};
 
 lemma "\<lbrakk> x = f x; P (f x) (f x) x \<rbrakk> \<Longrightarrow> P x x x"
-apply (erule ssubst)
-back
-back
-back
-back
+apply (erule ssubst) 
+  --{* @{subgoals[display,indent=0,margin=65]} *}
+back --{* @{subgoals[display,indent=0,margin=65]} *}
+back --{* @{subgoals[display,indent=0,margin=65]} *}
+back --{* @{subgoals[display,indent=0,margin=65]} *}
+back --{* @{subgoals[display,indent=0,margin=65]} *}
 apply assumption
 done
-
-text {*
-proof\ {\isacharparenleft}prove{\isacharparenright}{\isacharcolon}\ step\ \isadigit{1}\isanewline
-\isanewline
-goal\ {\isacharparenleft}lemma{\isacharparenright}{\isacharcolon}\isanewline
-{\isasymlbrakk}x\ {\isacharequal}\ f\ x{\isacharsemicolon}\ P\ {\isacharparenleft}f\ x{\isacharparenright}\ {\isacharparenleft}f\ x{\isacharparenright}\ x{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ x\ x\ x\isanewline
-\ \isadigit{1}{\isachardot}\ P\ {\isacharparenleft}f\ x{\isacharparenright}\ {\isacharparenleft}f\ x{\isacharparenright}\ x\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}f\ x{\isacharparenright}\ {\isacharparenleft}f\ x{\isacharparenright}\ {\isacharparenleft}f\ x{\isacharparenright}
-
-proof\ {\isacharparenleft}prove{\isacharparenright}{\isacharcolon}\ step\ \isadigit{1}\isanewline
-\isanewline
-goal\ {\isacharparenleft}lemma{\isacharparenright}{\isacharcolon}\isanewline
-{\isasymlbrakk}x\ {\isacharequal}\ f\ x{\isacharsemicolon}\ P\ {\isacharparenleft}f\ x{\isacharparenright}\ {\isacharparenleft}f\ x{\isacharparenright}\ x{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ x\ x\ x\isanewline
-\ \isadigit{1}{\isachardot}\ P\ {\isacharparenleft}f\ x{\isacharparenright}\ {\isacharparenleft}f\ x{\isacharparenright}\ x\ {\isasymLongrightarrow}\ P\ x\ {\isacharparenleft}f\ x{\isacharparenright}\ {\isacharparenleft}f\ x{\isacharparenright}
-
-proof\ {\isacharparenleft}prove{\isacharparenright}{\isacharcolon}\ step\ \isadigit{1}\isanewline
-\isanewline
-goal\ {\isacharparenleft}lemma{\isacharparenright}{\isacharcolon}\isanewline
-{\isasymlbrakk}x\ {\isacharequal}\ f\ x{\isacharsemicolon}\ P\ {\isacharparenleft}f\ x{\isacharparenright}\ {\isacharparenleft}f\ x{\isacharparenright}\ x{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ x\ x\ x\isanewline
-\ \isadigit{1}{\isachardot}\ P\ {\isacharparenleft}f\ x{\isacharparenright}\ {\isacharparenleft}f\ x{\isacharparenright}\ x\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}f\ x{\isacharparenright}\ x\ {\isacharparenleft}f\ x{\isacharparenright}
-
-proof\ {\isacharparenleft}prove{\isacharparenright}{\isacharcolon}\ step\ \isadigit{1}\isanewline
-\isanewline
-goal\ {\isacharparenleft}lemma{\isacharparenright}{\isacharcolon}\isanewline
-{\isasymlbrakk}x\ {\isacharequal}\ f\ x{\isacharsemicolon}\ P\ {\isacharparenleft}f\ x{\isacharparenright}\ {\isacharparenleft}f\ x{\isacharparenright}\ x{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ x\ x\ x\isanewline
-\ \isadigit{1}{\isachardot}\ P\ {\isacharparenleft}f\ x{\isacharparenright}\ {\isacharparenleft}f\ x{\isacharparenright}\ x\ {\isasymLongrightarrow}\ P\ x\ x\ {\isacharparenleft}f\ x{\isacharparenright}
-
-proof\ {\isacharparenleft}prove{\isacharparenright}{\isacharcolon}\ step\ \isadigit{1}\isanewline
-\isanewline
-goal\ {\isacharparenleft}lemma{\isacharparenright}{\isacharcolon}\isanewline
-{\isasymlbrakk}x\ {\isacharequal}\ f\ x{\isacharsemicolon}\ P\ {\isacharparenleft}f\ x{\isacharparenright}\ {\isacharparenleft}f\ x{\isacharparenright}\ x{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ x\ x\ x\isanewline
-\ \isadigit{1}{\isachardot}\ P\ {\isacharparenleft}f\ x{\isacharparenright}\ {\isacharparenleft}f\ x{\isacharparenright}\ x\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}f\ x{\isacharparenright}\ {\isacharparenleft}f\ x{\isacharparenright}\ x
-*};
 
 lemma "\<lbrakk> x = f x; P (f x) (f x) x \<rbrakk> \<Longrightarrow> P x x x"
 apply (erule ssubst, assumption)
 done
 
 text{*
-or better still NEW
+or better still 
 *}
 
 lemma "\<lbrakk> x = f x; P (f x) (f x) x \<rbrakk> \<Longrightarrow> P x x x"
 by (erule ssubst)
 
 
-text{*NEW*}
 lemma "\<lbrakk> x = f x; P (f x) (f x) x \<rbrakk> \<Longrightarrow> P x x x"
 apply (erule_tac P="\<lambda>u. P u u x" in ssubst)
 apply (assumption)
@@ -151,50 +119,21 @@ negation
 
 lemma "\<lbrakk>\<not>(P\<longrightarrow>Q); \<not>(R\<longrightarrow>Q)\<rbrakk> \<Longrightarrow> R"
 apply (erule_tac Q="R\<longrightarrow>Q" in contrapos_np)
-txt{*
-proof\ {\isacharparenleft}prove{\isacharparenright}{\isacharcolon}\ step\ {\isadigit{1}}\isanewline
-\isanewline
-goal\ {\isacharparenleft}lemma{\isacharparenright}{\isacharcolon}\isanewline
-{\isasymlbrakk}{\isasymnot}\ {\isacharparenleft}P\ {\isasymlongrightarrow}\ Q{\isacharparenright}{\isacharsemicolon}\ {\isasymnot}\ {\isacharparenleft}R\ {\isasymlongrightarrow}\ Q{\isacharparenright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ R\isanewline
-\ {\isadigit{1}}{\isachardot}\ {\isasymlbrakk}{\isasymnot}\ {\isacharparenleft}P\ {\isasymlongrightarrow}\ Q{\isacharparenright}{\isacharsemicolon}\ {\isasymnot}\ R{\isasymrbrakk}\ {\isasymLongrightarrow}\ R\ {\isasymlongrightarrow}\ Q
-*}
-
+	--{* @{subgoals[display,indent=0,margin=65]} *}
 apply intro
-txt{*
-proof\ {\isacharparenleft}prove{\isacharparenright}{\isacharcolon}\ step\ {\isadigit{3}}\isanewline
-\isanewline
-goal\ {\isacharparenleft}lemma{\isacharparenright}{\isacharcolon}\isanewline
-{\isasymlbrakk}{\isasymnot}\ {\isacharparenleft}P\ {\isasymlongrightarrow}\ Q{\isacharparenright}{\isacharsemicolon}\ {\isasymnot}\ {\isacharparenleft}R\ {\isasymlongrightarrow}\ Q{\isacharparenright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ R\isanewline
-\ {\isadigit{1}}{\isachardot}\ {\isasymlbrakk}{\isasymnot}\ {\isacharparenleft}P\ {\isasymlongrightarrow}\ Q{\isacharparenright}{\isacharsemicolon}\ {\isasymnot}\ R{\isacharsemicolon}\ R{\isasymrbrakk}\ {\isasymLongrightarrow}\ Q
-*}
+	--{* @{subgoals[display,indent=0,margin=65]} *}
 by (erule notE)
-text{*NEW*}
-
-
 
 lemma "(P \<or> Q) \<and> R \<Longrightarrow> P \<or> Q \<and> R"
 apply intro
-txt{*
-proof\ {\isacharparenleft}prove{\isacharparenright}{\isacharcolon}\ step\ {\isadigit{1}}\isanewline
-\isanewline
-goal\ {\isacharparenleft}lemma{\isacharparenright}{\isacharcolon}\isanewline
-{\isacharparenleft}P\ {\isasymor}\ Q{\isacharparenright}\ {\isasymand}\ R\ {\isasymLongrightarrow}\ P\ {\isasymor}\ Q\ {\isasymand}\ R\isanewline
-\ {\isadigit{1}}{\isachardot}\ {\isasymlbrakk}{\isacharparenleft}P\ {\isasymor}\ Q{\isacharparenright}\ {\isasymand}\ R{\isacharsemicolon}\ {\isasymnot}\ {\isacharparenleft}Q\ {\isasymand}\ R{\isacharparenright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ P
-*}
+	--{* @{subgoals[display,indent=0,margin=65]} *}
 
 apply (elim conjE disjE)
  apply assumption
-
-txt{*
-proof\ {\isacharparenleft}prove{\isacharparenright}{\isacharcolon}\ step\ {\isadigit{4}}\isanewline
-\isanewline
-goal\ {\isacharparenleft}lemma{\isacharparenright}{\isacharcolon}\isanewline
-{\isacharparenleft}P\ {\isasymor}\ Q{\isacharparenright}\ {\isasymand}\ R\ {\isasymLongrightarrow}\ P\ {\isasymor}\ Q\ {\isasymand}\ R\isanewline
-\ {\isadigit{1}}{\isachardot}\ {\isasymlbrakk}{\isasymnot}\ {\isacharparenleft}Q\ {\isasymand}\ R{\isacharparenright}{\isacharsemicolon}\ R{\isacharsemicolon}\ Q{\isasymrbrakk}\ {\isasymLongrightarrow}\ P
-*}
+	--{* @{subgoals[display,indent=0,margin=65]} *}
 
 by (erule contrapos_np, rule conjI)
-text{*NEW
+text{*
 proof\ {\isacharparenleft}prove{\isacharparenright}{\isacharcolon}\ step\ {\isadigit{6}}\isanewline
 \isanewline
 goal\ {\isacharparenleft}lemma{\isacharparenright}{\isacharcolon}\isanewline
@@ -209,43 +148,34 @@ text{*Quantifiers*}
 lemma "\<forall>x. P x \<longrightarrow> P x"
 apply (rule allI)
 by (rule impI)
-text{*NEW*}
 
 lemma "(\<forall>x. P \<longrightarrow> Q x) \<Longrightarrow> P \<longrightarrow> (\<forall>x. Q x)"
 apply (rule impI, rule allI)
 apply (drule spec)
 by (drule mp)
-text{*NEW*}
+
+text{*NEW: rename_tac*}
+lemma "x < y \<Longrightarrow> \<forall>x y. P x (f y)"
+apply intro
+	--{* @{subgoals[display,indent=0,margin=65]} *}
+apply (rename_tac v w)
+	--{* @{subgoals[display,indent=0,margin=65]} *}
+oops
+
 
 lemma "\<lbrakk>\<forall>x. P x \<longrightarrow> P (h x); P a\<rbrakk> \<Longrightarrow> P(h (h a))"
 apply (frule spec)
+	--{* @{subgoals[display,indent=0,margin=65]} *}
 apply (drule mp, assumption)
 apply (drule spec)
+	--{* @{subgoals[display,indent=0,margin=65]} *}
 by (drule mp)
-text{*NEW*}
 
-
-text
-{*
-proof\ {\isacharparenleft}prove{\isacharparenright}{\isacharcolon}\ step\ {\isadigit{1}}\isanewline
-\isanewline
-goal\ {\isacharparenleft}lemma{\isacharparenright}{\isacharcolon}\isanewline
-{\isasymlbrakk}{\isasymforall}x{\isachardot}\ P\ x\ {\isasymlongrightarrow}\ P\ {\isacharparenleft}f\ x{\isacharparenright}{\isacharsemicolon}\ P\ a{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}f\ {\isacharparenleft}f\ a{\isacharparenright}{\isacharparenright}\isanewline
-\ {\isadigit{1}}{\isachardot}\ {\isasymlbrakk}{\isasymforall}x{\isachardot}\ P\ x\ {\isasymlongrightarrow}\ P\ {\isacharparenleft}f\ x{\isacharparenright}{\isacharsemicolon}\ P\ a{\isacharsemicolon}\ P\ {\isacharquery}x\ {\isasymlongrightarrow}\ P\ {\isacharparenleft}f\ {\isacharquery}x{\isacharparenright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}f\ {\isacharparenleft}f\ a{\isacharparenright}{\isacharparenright}
-*}
-
-text{*
-proof\ {\isacharparenleft}prove{\isacharparenright}{\isacharcolon}\ step\ {\isadigit{3}}\isanewline
-\isanewline
-goal\ {\isacharparenleft}lemma{\isacharparenright}{\isacharcolon}\isanewline
-{\isasymlbrakk}{\isasymforall}x{\isachardot}\ P\ x\ {\isasymlongrightarrow}\ P\ {\isacharparenleft}f\ x{\isacharparenright}{\isacharsemicolon}\ P\ a{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}f\ {\isacharparenleft}f\ a{\isacharparenright}{\isacharparenright}\isanewline
-\ {\isadigit{1}}{\isachardot}\ {\isasymlbrakk}{\isasymforall}x{\isachardot}\ P\ x\ {\isasymlongrightarrow}\ P\ {\isacharparenleft}f\ x{\isacharparenright}{\isacharsemicolon}\ P\ a{\isacharsemicolon}\ P\ {\isacharparenleft}f\ a{\isacharparenright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}f\ {\isacharparenleft}f\ a{\isacharparenright}{\isacharparenright}
-*}
 
 lemma "\<lbrakk>\<forall>x. P x \<longrightarrow> P (f x); P a\<rbrakk> \<Longrightarrow> P(f (f a))"
 by blast
 
-text{*NEW
+text{*
 Hilbert-epsilon theorems*}
 
 text{*
@@ -323,7 +253,8 @@ theorem axiom_of_choice: "(\<forall>x. \<exists> y. P x y) \<Longrightarrow> \<e
 apply (rule exI [of _  "\<lambda>x. SOME y. P x y"])
 by (blast intro: someI);
 
-text{*end of NEW material*}
+text{*end of Epsilon section*}
+
 
 lemma "(\<exists>x. P x) \<or> (\<exists>x. Q x) \<Longrightarrow> \<exists>x. P x \<or> Q x"
 apply elim
