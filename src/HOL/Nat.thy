@@ -18,8 +18,10 @@ rep_datatype nat
 instance nat :: order (le_refl,le_trans,le_anti_sym,nat_less_le)
 instance nat :: linorder (nat_le_linear)
 
+axclass power < term
+
 consts
-  "^"           :: ['a::power,nat] => 'a            (infixr 80)
+  power :: ['a::power, nat] => 'a            (infixr "^" 80)
 
 
 (* arithmetic operators + - and * *)
