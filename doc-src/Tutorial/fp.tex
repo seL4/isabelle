@@ -219,7 +219,7 @@ leads to the desired message \texttt{No subgoals!}:
 \end{ttbox}
 Now we can give the lemma just proved a suitable name
 \begin{ttbox}
-\input{ToyList/qed2}\end{ttbox}
+\input{ToyList/qed2}\end{ttbox}\index{*qed}
 and tell Isabelle to use this lemma in all future proofs by simplification:
 \begin{ttbox}
 \input{ToyList/addsimps2}\end{ttbox}
@@ -854,7 +854,7 @@ by(Simp_tac 1);
   is like \verb$Simp_tac$, but extracts additional rewrite rules from
   the assumptions of the subgoal. For example, it solves
 \begin{ttbox}\makeatother
-{\out 1. xs = [] ==> xs @ xs = xs}
+{\out 1. xs = [] ==> xs @ ys = ys @ xs}
 \end{ttbox}
 which \texttt{Simp_tac} does not do.
   

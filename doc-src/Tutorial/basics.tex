@@ -245,9 +245,10 @@ variables.
 
 Most of the time you can and should ignore unknowns and work with ordinary
 variables. Just don't be surprised that after you have finished the
-proof of a theorem, Isabelle will turn your free variables into unknowns: it
-merely indicates that Isabelle will automatically instantiate those unknowns
-suitably when the theorem is used in some other proof.
+proof of a theorem, Isabelle (i.e.\ \ttindex{qed} at the end of a proof) will
+turn your free variables into unknowns: it merely indicates that Isabelle will
+automatically instantiate those unknowns suitably when the theorem is used in
+some other proof.
 \begin{warn}
   The existential quantifier \texttt{?}\index{$HOLQ@{\tt?}} needs to be
   followed by a space. Otherwise \texttt{?x} is interpreted as a schematic
