@@ -616,7 +616,7 @@ fun is_quasi_letter "_" = true
   | is_quasi_letter ch = is_letter ch;
 
 (*white space: blanks, tabs, newlines, formfeeds*)
-val is_blank : string -> bool =
+val is_blank : string -> bool =					(* FIXME *)
   fn " " => true | "\t" => true | "\n" => true | "\^L" => true | "\160" => true
     | _ => false;
 
