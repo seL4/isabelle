@@ -132,7 +132,7 @@ fun sign_error (sign,sign') =
   special applications.*)
 fun result_error_default state msg : thm =
   Pretty.str "Bad final proof state:" :: pretty_goals (!goals_limit) state @
-    [Pretty.str "Proof failed!"] |> Pretty.chunks |> Pretty.string_of |> error;
+    [Pretty.str msg, Pretty.str "Proof failed!"] |> Pretty.chunks |> Pretty.string_of |> error;
 
 val result_error_fn = ref result_error_default;
 
