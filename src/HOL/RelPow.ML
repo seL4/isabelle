@@ -21,7 +21,7 @@ by (Blast_tac 1);
 qed "rel_pow_Suc_I";
 
 Goal "!z. (x,y) : R --> (y,z):R^n -->  (x,z):R^(Suc n)";
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
 by (Simp_tac  1);
 by (Asm_full_simp_tac 1);
 by (Blast_tac 1);
@@ -51,7 +51,7 @@ by (REPEAT(ares_tac [p3] 1));
 qed "rel_pow_E";
 
 Goal "!x z. (x,z):R^(Suc n) --> (? y. (x,y):R & (y,z):R^n)";
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
 by (blast_tac (claset() addIs [rel_pow_0_I] 
 	                addEs [rel_pow_0_E,rel_pow_Suc_E]) 1);
 by (blast_tac (claset() addIs [rel_pow_Suc_I]  
@@ -60,7 +60,7 @@ qed_spec_mp "rel_pow_Suc_D2";
 
 
 Goal "!x y z. (x,y) : R^n & (y,z) : R --> (? w. (x,w) : R & (w,z) : R^n)";
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
 by (ALLGOALS Asm_simp_tac);
 by (Blast_tac 1);
 qed_spec_mp "rel_pow_Suc_D2'";
@@ -89,7 +89,7 @@ by (ALLGOALS (blast_tac (claset() addIs [rel_pow_0_I,rel_pow_Suc_I])));
 qed "rtrancl_imp_UN_rel_pow";
 
 Goal "!y. (x,y):R^n --> (x,y):R^*";
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
 by (blast_tac (claset() addIs [rtrancl_refl] addEs [rel_pow_0_E]) 1);
 by (blast_tac (claset() addEs [rel_pow_Suc_E]
                        addIs [rtrancl_into_rtrancl]) 1);

@@ -214,7 +214,7 @@ by (etac less_zeroE 1);
 qed "ndepth_K0";
 
 Goal "k < Suc(LEAST x. f x = Inr 0) --> nat_case (Inr (Suc i)) f k ~= Inr 0";
-by (nat_ind_tac "k" 1);
+by (induct_tac "k" 1);
 by (ALLGOALS Simp_tac);
 by (rtac impI 1);
 by (etac not_less_Least 1);
