@@ -947,10 +947,10 @@ They must appear before any other term argument of a theorem
 or axiom. In contrast to term arguments, type arguments may
 be completely omitted.
 \begin{ttbox}
-  val read_proof : theory -> bool -> string -> Proofterm.proof
-  val pretty_proof : Sign.sg -> Proofterm.proof -> Pretty.T
-  val pretty_proof_of : bool -> thm -> Pretty.T
-  val print_proof_of : bool -> thm -> unit
+ProofSyntax.read_proof : theory -> bool -> string -> Proofterm.proof
+ProofSyntax.pretty_proof : Sign.sg -> Proofterm.proof -> Pretty.T
+ProofSyntax.pretty_proof_of : bool -> thm -> Pretty.T
+ProofSyntax.print_proof_of : bool -> thm -> unit
 \end{ttbox}
 \begin{figure}
 \begin{center}
