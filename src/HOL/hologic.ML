@@ -36,6 +36,7 @@ sig
   val mk_eq: term * term -> term
   val dest_eq: term -> term * term
   val mk_all: string * typ * term -> term
+  val list_all: (string * typ) list * term -> term
   val mk_exists: string * typ * term -> term
   val mk_Collect: string * typ * term -> term
   val mk_mem: term * term -> term
@@ -139,6 +140,7 @@ fun dest_eq (Const ("op =", _) $ lhs $ rhs) = (lhs, rhs)
 
 fun all_const T = Const ("All", [T --> boolT] ---> boolT);
 fun mk_all (x, T, P) = all_const T $ absfree (x, T, P);
+val list_all = foldr (fn ((x, T), P) => all_const T $ Abs (x, T, P));
 
 fun exists_const T = Const ("Ex", [T --> boolT] ---> boolT);
 fun mk_exists (x, T, P) = exists_const T $ absfree (x, T, P);
