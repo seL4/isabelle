@@ -15,10 +15,7 @@ assured because both have type "prop".
 
 
 signature UNIFY = 
-sig
-  structure Sign: SIGN
-  structure Envir : ENVIR
-  structure Sequence : SEQUENCE
+  sig
   (*references for control and tracing*)
   val trace_bound: int ref
   val trace_simp: bool ref
@@ -31,19 +28,10 @@ sig
 	-> (Envir.env Sequence.seq)
   val unifiers: Sign.sg * Envir.env * ((term*term)list)
 	-> (Envir.env * (term * term)list) Sequence.seq
-end;
+  end;
 
-functor UnifyFun (structure Sign: SIGN and Envir: ENVIR and Sequence: SEQUENCE
-                  and Pattern:PATTERN
-                  sharing type Sign.sg = Pattern.sg
-                  and     type Envir.env = Pattern.env)
-	: UNIFY = 
+structure Unify	: UNIFY = 
 struct
-
-structure Sign = Sign;
-structure Envir = Envir;
-structure Sequence = Sequence;
-structure Pretty = Sign.Syntax.Pretty;
 
 (*Unification options*)
 
@@ -243,10 +231,10 @@ exception ASSIGN;	(*Raised if not an assignment*)
 
 fun unify_types(T,U, env as Envir.Envir{asol,iTs,maxidx}) =
   if T=U then env
-  else let val (iTs',maxidx') = Sign.Type.unify (#tsig(Sign.rep_sg (!sgr)))
+  else let val (iTs',maxidx') = Type.unify (#tsig(Sign.rep_sg (!sgr)))
                                                 maxidx iTs (U,T)
        in Envir.Envir{asol=asol,maxidx=maxidx',iTs=iTs'} end
-       handle Sign.Type.TUNIFY => raise CANTUNIFY;
+       handle Type.TUNIFY => raise CANTUNIFY;
 
 fun test_unify_types(args as (T,U,_)) =
 let val sot = Sign.string_of_typ (!sgr);
