@@ -58,7 +58,7 @@ subtype (Unit)
   unit = "{p. p = True}"
 
 consts
-  Unity         :: "unit"                       ("<>")
+  Unity         :: "unit"                       ("'(')")
 
 defs
   Unity_def     "Unity == Abs_Unit(True)"
