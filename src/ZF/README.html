@@ -1,0 +1,89 @@
+<HTML><HEAD><TITLE>ZF/ReadMe</TITLE></HEAD><BODY>
+
+<H2>ZF: Zermelo-Fraenkel Set Theory</H2>
+
+This directory contains the Standard ML sources of the Isabelle system for
+ZF Set Theory.  It is loaded upon FOL, not Pure Isabelle.  Important files
+include
+
+<DL>
+<DT>Makefile
+<DD>compiles the files under Poly/ML or SML of New Jersey.  Can also
+run all the tests described below.<P>
+
+<DT>ROOT.ML
+<DD>loads all source files.  Enter an ML image containing FOL and
+type: use "ROOT.ML";
+</DL>
+
+There are also several subdirectories of examples.  To execute the examples on
+some directory &lt;Dir&gt;, enter an ML image containing ZF and type
+<TT>use "&lt;Dir&gt;/ROOT.ML";</TT>
+
+<DL>
+<DT>AC
+<DD>subdirectory containing proofs from the book "Equivalents of the Axiom
+of Choice, II" by H. Rubin and J.E. Rubin, 1985.  Thanks to Krzysztof
+Gr`abczewski.<P>
+
+<DT>Coind
+<DD>subdirectory containing a large example of proof by co-induction.  It
+is by Jacob Frost following a paper by Robin Milner and Mads Tofte.<P>
+
+<DT>IMP
+<DD>subdirectory containing a semantics equivalence proof between
+operational and denotational definitions of a simple programming language.
+Thanks to Heiko Loetzbeyer & Robert Sandner.<P>
+
+<DT>Resid
+<DD>subdirectory containing a proof of the Church-Rosser Theorem.  It is
+by Ole Rasmussen, following the Coq proof by Gérard Huet.<P>
+
+<DT>ex
+<DD>subdirectory containing various examples.
+</DL>
+
+Isabelle/ZF formalizes the greater part of elementary set theory,
+including relations, functions, injections, surjections, ordinals and
+cardinals.  Results proved include Cantor's Theorem, the Recursion
+Theorem, the Schroeder-Bernstein Theorem, and (assuming AC) the
+Wellordering Theorem.<P>
+
+Isabelle/ZF also provides theories of lists, trees, etc., for
+formalizing computational notions.  It supports inductive definitions
+of infinite-branching trees for any cardinality of branching.<P>
+
+Useful references for Isabelle/ZF:
+
+<UL>
+<LI>	Lawrence C. Paulson,<BR>
+	Set theory for verification: I. From foundations to functions.<BR>
+	J. Automated Reasoning 11 (1993), 353-389.
+
+<LI>	Lawrence C. Paulson,<BR>
+	Set theory for verification: II. Induction and recursion.<BR>
+	Report 312, Computer Lab (1993).<BR>
+
+<LI>	Lawrence C. Paulson,<BR>
+	A fixedpoint approach to implementing (co)inductive definitions. <BR> 
+	In: A. Bundy (editor),<BR>
+	CADE-12: 12th International Conference on Automated Deduction,<BR>
+	(Springer LNAI 814, 1994), 148-161.
+</UL>
+
+Useful references on ZF set theory:
+
+<UL>
+<LI>	Paul R. Halmos, Naive Set Theory (Van Nostrand, 1960)
+
+<LI>	Patrick Suppes, Axiomatic Set Theory (Dover, 1972)
+
+<LI>	Keith J. Devlin,<BR>
+	Fundamentals of Contemporary Set Theory (Springer, 1979)
+
+<LI>	Kenneth Kunen<BR>
+	Set Theory: An Introduction to Independence Proofs<BR>
+	(North-Holland, 1980)
+</UL>
+
+</BODY></HTML>
