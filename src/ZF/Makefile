@@ -18,40 +18,18 @@
 
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
-FILES = ROOT.ML ZF.thy ZF.ML upair.thy upair.ML subset.thy subset.ML \
-	thy_syntax.ML pair.thy pair.ML domrange.thy domrange.ML \
-	func.thy func.ML AC.thy AC.ML simpdata.thy simpdata.ML\
-	equalities.thy equalities.ML Bool.thy Bool.ML \
-	Sum.thy Sum.ML QPair.thy QPair.ML mono.ML Fixedpt.thy Fixedpt.ML \
-	../Pure/section_utils.ML ind_syntax.thy ind_syntax.ML \
-         add_ind_def.thy add_ind_def.ML \
-	intr_elim.thy intr_elim.ML indrule.thy indrule.ML \
-	Inductive.thy Inductive.ML \
-	Perm.thy Perm.ML Rel.thy Rel.ML EquivClass.ML EquivClass.thy \
-	Trancl.thy Trancl.ML \
-	WF.thy WF.ML Order.thy Order.ML Ordinal.thy Ordinal.ML \
-	Epsilon.thy Epsilon.ML Arith.thy Arith.ML Univ.thy Univ.ML \
-	QUniv.thy QUniv.ML constructor.ML Datatype.thy Datatype.ML  \
-	OrderArith.thy OrderArith.ML OrderType.thy OrderType.ML \
-	Cardinal.thy Cardinal.ML CardinalArith.thy CardinalArith.ML \
-	Cardinal_AC.thy Cardinal_AC.ML InfDatatype.thy InfDatatype.ML \
-	Zorn.thy Zorn.ML Nat.thy Nat.ML Finite.thy Finite.ML \
-	List.thy List.ML
+THYS = ZF.thy upair.thy subset.thy pair.thy domrange.thy \
+       func.thy AC.thy simpdata.thy equalities.thy Bool.thy \
+       Sum.thy QPair.thy mono.thy Fixedpt.thy ind_syntax.thy add_ind_def.thy \
+       constructor.thy intr_elim.thy indrule.thy Inductive.thy \
+       Perm.thy Rel.thy EquivClass.thy Trancl.thy \
+       WF.thy Order.thy Ordinal.thy Epsilon.thy Arith.thy Univ.thy \
+       QUniv.thy Datatype.thy OrderArith.thy OrderType.thy \
+       Cardinal.thy CardinalArith.thy Cardinal_AC.thy InfDatatype.thy \
+       Zorn.thy Nat.thy Finite.thy List.thy 
 
-IMP_FILES = IMP/ROOT.ML IMP/Com.ML IMP/Com.thy IMP/Denotation.ML\
-            IMP/Denotation.thy IMP/Equiv.ML IMP/Equiv.thy
-
-EX_FILES = ex/ROOT.ML ex/misc.ML ex/Ramsey.ML ex/Ramsey.thy\
-	   ex/Integ.ML ex/Integ.thy\
-           ex/twos_compl.thy ex/twos_compl.ML ex/Bin.thy ex/Bin.ML\
-	   ex/BT.thy ex/BT.ML ex/Term.thy ex/Term.ML \
-	   ex/TF.thy ex/TF.ML ex/Ntree.thy ex/Ntree.ML \
-           ex/Brouwer.thy ex/Brouwer.ML \
-	   ex/Data.thy ex/Data.ML ex/Enum.thy ex/Enum.ML \
-	   ex/Rmap.thy ex/Rmap.ML ex/PropLog.ML ex/PropLog.thy \
-	   ex/ListN.thy ex/ListN.ML ex/Acc.thy ex/Acc.ML\
-	   ex/Comb.thy ex/Comb.ML ex/Primrec.thy ex/Primrec.ML\
-           ex/LList.thy ex/LList.ML ex/CoUnit.thy ex/CoUnit.ML
+FILES = ROOT.ML thy_syntax.ML ../Pure/section_utils.ML $(THYS) $(THYS:.thy=.ML)
+	
 
 #Uses cp rather than make_database because Poly/ML allows only 3 levels
 $(BIN)/ZF:   $(BIN)/FOL  $(FILES) 
@@ -60,21 +38,54 @@ $(BIN)/ZF:   $(BIN)/FOL  $(FILES)
 		echo 'open PolyML; use"ROOT";' | $(COMP) $(BIN)/ZF ;;\
 	sml*)	echo 'use"ROOT.ML"; xML"$(BIN)/ZF" banner;' | $(BIN)/FOL;;\
 	*)	echo Bad value for ISABELLECOMP: \
-                	$(COMP) is not poly or sml;;\
+                	$(COMP) is not poly or sml; exit 1;;\
 	esac
 
 $(BIN)/FOL:
 	cd ../FOL;  $(MAKE)
 
-#Directory IMP also tests the system
-#Load ex/ROOT.ML last since it creates the file "test"
-test:   $(BIN)/ZF  $(IMP_FILES) $(EX_FILES)
-	case "$(COMP)" in \
-	poly*)	echo '(use"IMP/ROOT.ML"; use"ex/ROOT.ML"); quit();' | \
-			$(COMP) $(BIN)/ZF ;;\
-	sml*)	echo '(use"IMP/ROOT.ML"; use"ex/ROOT.ML");' | $(BIN)/ZF;;\
-	*)	echo Bad value for ISABELLECOMP: \
-                	$(COMP) is not poly or sml;;\
+#### Testing of ZF
+
+#A macro referring to the object-logic (depends on ML compiler)
+LOGIC:sh=case $ISABELLECOMP in \
+	poly*)	echo "$ISABELLECOMP $ISABELLEBIN/ZF" ;;\
+	sml*)	echo "$ISABELLEBIN/ZF" ;;\
+	*)	echo "echo Bad value for ISABELLECOMP: \
+                	$ISABELLEBIN is not poly or sml; exit 1" ;;\
 	esac
+
+##IMP-semantics example
+IMP_THYS = IMP/Com.thy IMP/Denotation.thy IMP/Equiv.thy
+IMP_FILES = IMP/ROOT.ML $(IMP_THYS) $(IMP_THYS:.thy=.ML)
+
+IMP:   $(BIN)/ZF  $(IMP_FILES)
+	echo 'use"IMP/ROOT.ML";quit();' | $(LOGIC)
+
+##Coinduction example
+COIND_THYS = Coind/ECR.thy Coind/Language.thy\
+	     Coind/MT.thy Coind/Map.thy Coind/Static.thy \
+	     Coind/Types.thy Coind/Values.thy 
+
+COIND_FILES = Coind/ROOT.ML Coind/BCR.thy  Coind/Dynamic.thy \
+              $(COIND_THYS) $(COIND_THYS:.thy=.ML)
+
+Coind:  $(BIN)/ZF  $(COIND_FILES)
+	echo 'use"Coind/ROOT.ML";quit();' | $(LOGIC)
+
+##Miscellaneous examples
+EX_THYS = ex/Ramsey.thy ex/Integ.thy ex/twos_compl.thy ex/Bin.thy \
+	  ex/BT.thy ex/Term.thy  ex/TF.thy ex/Ntree.thy \
+	  ex/Brouwer.thy ex/Data.thy ex/Enum.thy \
+	  ex/Rmap.thy ex/PropLog.thy ex/ListN.thy ex/Acc.thy \
+	  ex/Comb.thy ex/Primrec.thy ex/LList.thy ex/CoUnit.thy 
+EX_FILES = ex/ROOT.ML ex/misc.ML $(EX_THYS) $(EX_THYS:.thy=.ML)
+
+#Test ZF by loading the examples in directory ex
+ex:     $(BIN)/ZF  $(EX_FILES)
+	echo 'use"ex/ROOT.ML";quit();' | $(LOGIC)
+
+#Full test.
+test:   $(BIN)/ZF IMP Coind ex
+	echo 'Test examples ran successfully' > test
 
 .PRECIOUS:  $(BIN)/FOL $(BIN)/ZF 
