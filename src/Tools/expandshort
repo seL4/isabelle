@@ -13,6 +13,7 @@
 for f in $*
 do
 echo Expanding shorthands in $f. \ Backup file is $f~~
+if [ ! -s $f ]; then echo "File $f is EMPTY!!"; exit 1; fi
 mv $f $f~~; sed -e '
 s/\<by(/by (/
 s/\<ba \([0-9][0-9]*\);/by (assume_tac \1);/
@@ -24,6 +25,7 @@ s/\<be \([^;]*\) \([0-9][0-9]*\);/by (etac \1 \2);/
 s/\<bes \([^;]*\) \([0-9][0-9]*\);/by (eresolve_tac \1 \2);/
 s/\<bw \([^;]*\);/by (rewtac \1);/
 s/\<bws \([^;]*\);/by (rewrite_goals_tac \1);/
+s/\<auto *()/by (Auto_tac())/
 s/dresolve_tac *\[\([a-zA-Z0-9_]*\)\] */dtac \1 /g
 s/eresolve_tac *\[\([a-zA-Z0-9_]*\)\] */etac \1 /g
 s/resolve_tac *\[\([a-zA-Z0-9_]*\)\] */rtac \1 /g
