@@ -14,16 +14,16 @@ end;
 signature METHOD =
 sig
   include BASIC_METHOD
-  val LIFT: tactic -> thm -> (thm * (indexname * term) list * (string * tthm list) list) Seq.seq
-  val METHOD: (tthm list -> tactic) -> Proof.method
+  val LIFT: tactic -> thm -> (thm * (indexname * term) list * (string * thm list) list) Seq.seq
+  val METHOD: (thm list -> tactic) -> Proof.method
   val METHOD0: tactic -> Proof.method
   val fail: Proof.method
   val succeed: Proof.method
   val trivial: Proof.method
   val assumption: Proof.method
   val forward_chain: thm list -> thm list -> thm Seq.seq
-  val rule_tac: tthm list -> tthm list -> int -> tactic
-  val rule: tthm list -> Proof.method
+  val rule_tac: thm list -> thm list -> int -> tactic
+  val rule: thm list -> Proof.method
   exception METHOD_FAIL of (string * Position.T) * exn
   val method: theory -> Args.src -> Proof.context -> Proof.method
   val add_methods: (bstring * (Args.src -> Proof.context -> Proof.method) * string) list
@@ -40,7 +40,7 @@ sig
     (Proof.context -> Proof.method) -> Args.src -> Proof.context -> Proof.method
   val only_sectioned_args: (Args.T list -> Proof.context attribute * Args.T list) list ->
     (Proof.context -> Proof.method) -> Args.src -> Proof.context -> Proof.method
-  val thms_args: (tthm list -> Proof.method) -> Args.src -> Proof.context -> Proof.method
+  val thms_args: (thm list -> Proof.method) -> Args.src -> Proof.context -> Proof.method
   datatype text =
     Basic of (Proof.context -> Proof.method) |
     Source of Args.src |
@@ -59,7 +59,7 @@ sig
   val trivial_proof: Proof.state -> Proof.state Seq.seq
   val default_proof: Proof.state -> Proof.state Seq.seq
   val qed: bstring option -> theory attribute list option -> Proof.state
-    -> theory * (string * string * tthm)
+    -> theory * (string * string * thm)
   val setup: (theory -> theory) list
 end;
 
@@ -86,10 +86,8 @@ val succeed = METHOD (K all_tac);
 
 fun trivial_tac [] = K all_tac
   | trivial_tac facts =
-      let
-        val thms = Attribute.thms_of facts;
-        val r = ~ (length facts);
-      in metacuts_tac thms THEN' rotate_tac r end;
+      let val r = ~ (length facts);
+      in metacuts_tac facts THEN' rotate_tac r end;
 
 val trivial = METHOD (ALLGOALS o trivial_tac);
 val assumption = METHOD (fn facts => FIRSTGOAL (trivial_tac facts THEN' assume_tac));
@@ -109,10 +107,10 @@ fun multi_resolve facts rule =
 
 fun forward_chain facts rules = Seq.flat (Seq.map (multi_resolve facts) (Seq.of_list rules));
 
-fun rule_tac rules [] = resolve_tac (Attribute.thms_of rules)
+fun rule_tac rules [] = resolve_tac rules
   | rule_tac erules facts =
       let
-        val rules = forward_chain (Attribute.thms_of facts) (Attribute.thms_of erules);
+        val rules = forward_chain facts erules;
         fun tac i state = Seq.flat (Seq.map (fn rule => Tactic.rtac rule i state) rules);
       in tac end;
 
@@ -209,7 +207,7 @@ fun sect ss = Scan.first (map (fn s => Scan.lift (s --| Args.$$$ ":")) ss);
 fun thms ss = Scan.unless (sect ss) Attrib.local_thms;
 fun thmss ss = Scan.repeat (thms ss) >> flat;
 
-fun apply att (ctxt, ths) = Attribute.applys ((ctxt, ths), [att]);
+fun apply att (ctxt, ths) = Thm.applys_attributes ((ctxt, ths), [att]);
 
 fun section ss = (sect ss -- thmss ss) :-- (fn (att, ths) => Scan.depend (fn ctxt =>
   Scan.succeed (apply att (ctxt, ths)))) >> #2;

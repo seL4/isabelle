@@ -21,12 +21,12 @@ sig
   val local_attribute': Proof.context -> Args.src -> Proof.context attribute
   val add_attributes: (bstring * ((Args.src -> theory attribute) *
       (Args.src -> Proof.context attribute)) * string) list -> theory -> theory
-  val global_thm: theory * Args.T list -> tthm * (theory * Args.T list)
-  val global_thms: theory * Args.T list -> tthm list * (theory * Args.T list)
-  val global_thmss: theory * Args.T list -> tthm list * (theory * Args.T list)
-  val local_thm: Proof.context * Args.T list -> tthm * (Proof.context * Args.T list)
-  val local_thms: Proof.context * Args.T list -> tthm list * (Proof.context * Args.T list)
-  val local_thmss: Proof.context * Args.T list -> tthm list * (Proof.context * Args.T list)
+  val global_thm: theory * Args.T list -> thm * (theory * Args.T list)
+  val global_thms: theory * Args.T list -> thm list * (theory * Args.T list)
+  val global_thmss: theory * Args.T list -> thm list * (theory * Args.T list)
+  val local_thm: Proof.context * Args.T list -> thm * (Proof.context * Args.T list)
+  val local_thms: Proof.context * Args.T list -> thm list * (Proof.context * Args.T list)
+  val local_thmss: Proof.context * Args.T list -> thm list * (Proof.context * Args.T list)
   val syntax: ('a * Args.T list -> 'a attribute * ('a * Args.T list)) -> Args.src -> 'a attribute
   val no_args: 'a attribute -> Args.src -> 'a attribute
   val setup: (theory -> theory) list
@@ -127,12 +127,12 @@ fun gen_thm get attrib app =
   Scan.depend (fn st => Args.name -- Args.opt_attribs >>
     (fn (name, srcs) => app ((st, get st name), map (attrib st) srcs)));
 
-val global_thm = gen_thm PureThy.get_tthm global_attribute Attribute.apply;
-val global_thms = gen_thm PureThy.get_tthms global_attribute Attribute.applys;
+val global_thm = gen_thm PureThy.get_thm global_attribute Thm.apply_attributes;
+val global_thms = gen_thm PureThy.get_thms global_attribute Thm.applys_attributes;
 val global_thmss = Scan.repeat global_thms >> flat;
 
-val local_thm = gen_thm ProofContext.get_tthm local_attribute' Attribute.apply;
-val local_thms = gen_thm ProofContext.get_tthms local_attribute' Attribute.applys;
+val local_thm = gen_thm ProofContext.get_thm local_attribute' Thm.apply_attributes;
+val local_thms = gen_thm ProofContext.get_thms local_attribute' Thm.applys_attributes;
 val local_thmss = Scan.repeat local_thms >> flat;
 
 
@@ -151,13 +151,13 @@ fun no_args x = syntax (Scan.succeed x);
 
 (* tags *)
 
-fun gen_tag x = syntax (tag >> Attribute.tag) x;
-fun gen_untag x = syntax (tag >> Attribute.untag) x;
+fun gen_tag x = syntax (tag >> Drule.tag) x;
+fun gen_untag x = syntax (tag >> Drule.untag) x;
 
 
 (* transfer *)
 
-fun gen_transfer theory_of = no_args (Attribute.rule (fn st => Thm.transfer (theory_of st)));
+fun gen_transfer theory_of = no_args (Drule.rule_attribute (fn st => Thm.transfer (theory_of st)));
 
 val global_transfer = gen_transfer I;
 val local_transfer = gen_transfer ProofContext.theory_of;
@@ -165,8 +165,7 @@ val local_transfer = gen_transfer ProofContext.theory_of;
 
 (* RS *)
 
-fun resolve (i, B) (x, A) =
-  (x, Attribute.tthm_of (Attribute.thm_of A RSN (i, Attribute.thm_of B)));
+fun resolve (i, B) (x, A) = (x, A RSN (i, B));
 
 fun gen_RS thm = syntax (Scan.lift (Scan.optional Args.nat 1) -- thm >> resolve);
 val global_RS = gen_RS global_thm;
@@ -175,8 +174,7 @@ val local_RS = gen_RS local_thm;
 
 (* APP *)
 
-fun apply Bs (x, A) =
-  (x, Attribute.tthm_of (Attribute.thms_of Bs MRS Attribute.thm_of A));
+fun apply Bs (x, A) = (x, Bs MRS A);
 
 val global_APP = syntax (global_thmss >> apply);
 val local_APP = syntax (local_thmss >> apply);
@@ -207,7 +205,7 @@ fun read_instantiate context_of insts x thm =
 
 fun insts x = Scan.lift (Args.enum "and" (Args.var --| Args.$$$ "=" -- Args.name)) x;
 
-fun gen_where context_of = syntax (insts >> (Attribute.rule o read_instantiate context_of));
+fun gen_where context_of = syntax (insts >> (Drule.rule_attribute o read_instantiate context_of));
 
 val global_where = gen_where ProofContext.init;
 val local_where = gen_where I;
@@ -231,7 +229,7 @@ val inst_arg = Scan.unless concl (Args.$$$ "_" >> K None || Args.name >> Some);
 val inst_args = Scan.repeat inst_arg;
 fun insts' x = Scan.lift (inst_args -- Scan.optional (concl |-- Args.!!! inst_args) []) x;
 
-fun gen_with context_of = syntax (insts' >> (Attribute.rule o read_instantiate' context_of));
+fun gen_with context_of = syntax (insts' >> (Drule.rule_attribute o read_instantiate' context_of));
 
 val global_with = gen_with ProofContext.init;
 val local_with = gen_with I;
@@ -239,8 +237,8 @@ val local_with = gen_with I;
 
 (* misc rules *)
 
-fun standard x = no_args (Attribute.rule (K Drule.standard)) x;
-fun elimify x = no_args (Attribute.rule (K Tactic.make_elim)) x;
+fun standard x = no_args (Drule.rule_attribute (K Drule.standard)) x;
+fun elimify x = no_args (Drule.rule_attribute (K Tactic.make_elim)) x;
 
 
 

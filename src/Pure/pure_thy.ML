@@ -23,18 +23,16 @@ end;
 signature PURE_THY =
 sig
   include BASIC_PURE_THY
-  val thms_closure: theory -> xstring -> tthm list option
-  val get_tthm: theory -> xstring -> tthm
-  val get_tthms: theory -> xstring -> tthm list
-  val get_tthmss: theory -> xstring list -> tthm list
+  val thms_closure: theory -> xstring -> thm list option
+  val get_thmss: theory -> xstring list -> thm list
   val thms_containing: theory -> string list -> (string * thm) list
   val default_name: string -> string
-  val store_tthm: (bstring * tthm) * theory attribute list -> theory -> theory * tthm
+  val store_thm: (bstring * thm) * theory attribute list -> theory -> theory * thm
   val smart_store_thm: (bstring * thm) -> thm
-  val add_tthms: ((bstring * tthm) * theory attribute list) list -> theory -> theory
-  val add_tthmss: ((bstring * tthm list) * theory attribute list) list -> theory -> theory
-  val have_tthmss: bstring -> theory attribute list ->
-    (tthm list * theory attribute list) list -> theory -> theory * tthm list
+  val add_thms: ((bstring * thm) * theory attribute list) list -> theory -> theory
+  val add_thmss: ((bstring * thm list) * theory attribute list) list -> theory -> theory
+  val have_thmss: bstring -> theory attribute list ->
+    (thm list * theory attribute list) list -> theory -> theory * thm list
   val add_axioms: ((bstring * string) * theory attribute list) list -> theory -> theory
   val add_axioms_i: ((bstring * term) * theory attribute list) list -> theory -> theory
   val add_axiomss: ((bstring * string list) * theory attribute list) list -> theory -> theory
@@ -68,8 +66,8 @@ struct
 
   type T =
     {space: NameSpace.T,
-      thms_tab: tthm list Symtab.table,
-      const_idx: int * (int * tthm) list Symtab.table} ref;
+      thms_tab: thm list Symtab.table,
+      const_idx: int * (int * thm) list Symtab.table} ref;
 
   fun mk_empty _ =
     ref {space = NameSpace.empty, thms_tab = Symtab.empty, const_idx = (0, Symtab.empty)} : T;
@@ -80,7 +78,7 @@ struct
 
   fun print sg (ref {space, thms_tab, const_idx = _}) =
     let
-      val prt_thm = Attribute.pretty_tthm o apfst (Thm.transfer_sg sg);
+      val prt_thm = Display.pretty_thm o Thm.transfer_sg sg;
       fun prt_thms (name, [th]) =
             Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 1, prt_thm th]
         | prt_thms (name, ths) = Pretty.big_list (name ^ ":") (map prt_thm ths);
@@ -125,25 +123,22 @@ fun thms_closure thy =
 
 fun lookup_thms name thy = thms_closure_aux thy name;
 
-fun get_tthms thy name =
+fun get_thms thy name =
   (case get_first (lookup_thms name) (thy :: Theory.ancestors_of thy) of
     None => raise THEORY ("Unknown theorem(s) " ^ quote name, [thy])
   | Some thms => thms);
 
-fun get_tthm thy name =
-  (case get_tthms thy name of
+fun get_thm thy name =
+  (case get_thms thy name of
     [thm] => thm
   | _ => raise THEORY ("Single theorem expected " ^ quote name, [thy]));
 
-fun get_tthmss thy names = flat (map (get_tthms thy) names);
-
-fun get_thms thy = Attribute.thms_of o get_tthms thy;
-fun get_thm thy = Attribute.thm_of o get_tthm thy;
+fun get_thmss thy names = flat (map (get_thms thy) names);
 
 
 (* thms_of *)
 
-fun attach_name (thm, _) = (Thm.name_of_thm thm, thm);
+fun attach_name thm = (Thm.name_of_thm thm, thm);
 
 fun thms_of thy =
   let val ref {thms_tab, ...} = get_theorems thy in
@@ -158,14 +153,14 @@ fun thms_of thy =
 
 val ignore = ["Trueprop", "all", "==>", "=="];
 
-fun add_const_idx ((next, table), tthm as (thm, _)) =
+fun add_const_idx ((next, table), thm) =
   let
     val {hyps, prop, ...} = Thm.rep_thm thm;
     val consts =
       foldr add_term_consts (hyps, add_term_consts (prop, [])) \\ ignore;
 
     fun add (tab, c) =
-      Symtab.update ((c, (next, tthm) :: Symtab.lookup_multi (tab, c)), tab);
+      Symtab.update ((c, (next, thm) :: Symtab.lookup_multi (tab, c)), tab);
   in (next + 1, foldl add (table, consts)) end;
 
 fun make_const_idx thm_tab =
@@ -214,7 +209,7 @@ fun name_single name x = [(default_name name, x)];
 fun name_multi name xs = gen_names (length xs) (default_name name) ~~ xs;
 
 
-(* enter_tthmx *)
+(* enter_thmx *)
 
 fun cond_warning name msg = if Sign.base_name name = defaultN then () else warning msg;
 
@@ -224,72 +219,68 @@ fun warn_overwrite name =
 fun warn_same name =
   cond_warning name ("Theorem database already contains a copy of " ^ quote name);
 
-fun enter_tthmx sg app_name (bname, tthmx) =
+fun enter_thmx sg app_name (bname, thmx) =
   let
     val name = Sign.full_name sg bname;
-    fun name_tthm (nm, (thm, tgs)) = (Thm.name_thm (nm, thm), tgs);
-    val named_tthms = map name_tthm (app_name name tthmx);
-
-    fun eq_tthm ((th1, _), (th2, _)) = Thm.eq_thm (th1, th2);
+    val named_thms = map Thm.name_thm (app_name name thmx);
 
     val r as ref {space, thms_tab, const_idx} = get_theorems_sg sg;
 
     val overwrite =
       (case Symtab.lookup (thms_tab, name) of
         None => false
-      | Some tthms' =>
-          if length tthms' = length named_tthms andalso forall2 eq_tthm (tthms', named_tthms) then
+      | Some thms' =>
+          if length thms' = length named_thms andalso forall2 Thm.eq_thm (thms', named_thms) then
             (warn_same name; false)
           else (warn_overwrite name; true));
 
     val space' = NameSpace.extend (space, [name]);
-    val thms_tab' = Symtab.update ((name, named_tthms), thms_tab);
+    val thms_tab' = Symtab.update ((name, named_thms), thms_tab);
     val const_idx' =
       if overwrite then make_const_idx thms_tab'
-      else foldl add_const_idx (const_idx, named_tthms);
+      else foldl add_const_idx (const_idx, named_thms);
   in
     r := {space = space', thms_tab = thms_tab', const_idx = const_idx'};
-    named_tthms
+    named_thms
   end;
 
 
-(* add_tthms(s) *)
+(* add_thms(s) *)
 
-fun add_tthmx app_name app_att ((bname, tthmx), atts) thy =
+fun add_thmx app_name app_att ((bname, thmx), atts) thy =
   let
-    val (thy', tthmx') = app_att ((thy, tthmx), atts);
-    val tthms'' = enter_tthmx (Theory.sign_of thy') app_name (bname, tthmx');
-  in (thy', tthms'') end;
+    val (thy', thmx') = app_att ((thy, thmx), atts);
+    val thms'' = enter_thmx (Theory.sign_of thy') app_name (bname, thmx');
+  in (thy', thms'') end;
 
-fun add_tthmxs name app = Library.apply o map (fst oo add_tthmx name app);
+fun add_thmxs name app = Library.apply o map (fst oo add_thmx name app);
 
-val add_tthms = add_tthmxs name_single Attribute.apply;
-val add_tthmss = add_tthmxs name_multi Attribute.applys;
+val add_thms = add_thmxs name_single Thm.apply_attributes;
+val add_thmss = add_thmxs name_multi Thm.applys_attributes;
 
 
-(* have_tthmss *)
+(* have_thmss *)
 
-fun have_tthmss bname more_atts ths_atts thy =
+fun have_thmss bname more_atts ths_atts thy =
   let
-    fun app (x, (ths, atts)) = Attribute.applys ((x, ths), atts);
-    val (thy', tthmss') =
+    fun app (x, (ths, atts)) = Thm.applys_attributes ((x, ths), atts);
+    val (thy', thmss') =
       foldl_map app (thy, map (fn (ths, atts) => (ths, atts @ more_atts)) ths_atts);
-    val tthms'' = enter_tthmx (Theory.sign_of thy') name_multi (bname, flat tthmss');
-  in (thy, tthms'') end;
+    val thms'' = enter_thmx (Theory.sign_of thy') name_multi (bname, flat thmss');
+  in (thy, thms'') end;
 
 
-(* store_tthm *)
+(* store_thm *)
 
-fun store_tthm th_atts thy =
-  let val (thy', [th']) = add_tthmx name_single Attribute.apply th_atts thy
+fun store_thm th_atts thy =
+  let val (thy', [th']) = add_thmx name_single Thm.apply_attributes th_atts thy
   in (thy', th') end;
 
 
 (* smart_store_thm *)
 
 fun smart_store_thm (name, thm) =
-  let val [(thm', _)] = enter_tthmx (Thm.sign_of_thm thm) name_single (name, Attribute.tthm_of thm)
-  in thm' end;
+  hd (enter_thmx (Thm.sign_of_thm thm) name_single (name, thm));
 
 
 (* store axioms as theorems *)
@@ -299,8 +290,8 @@ local
     let
       val named_axs = app_name name axs;
       val thy' = add named_axs thy;
-      val tthms = map (Attribute.tthm_of o Thm.get_axiom thy' o fst) named_axs;
-    in add_tthmss [((name, tthms), atts)] thy' end;
+      val thms = map (Thm.get_axiom thy' o fst) named_axs;
+    in add_thmss [((name, thms), atts)] thy' end;
 
   fun add_axs app_name add = Library.apply o map (add_ax app_name add);
 in
@@ -441,7 +432,7 @@ val proto_pure =
   |> Theory.add_modesyntax ("", false)
     [("Goal", "prop => prop", Mixfix ("_", [0], 0))]
   |> local_path
-  |> (add_defs o map Attribute.none)
+  |> (add_defs o map Thm.no_attributes)
    [("flexpair_def", "(t =?= u) == (t == u::'a::{})"),
     ("Goal_def", "GOAL (PROP A) == PROP A")]
   |> end_theory;

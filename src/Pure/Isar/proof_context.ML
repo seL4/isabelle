@@ -41,21 +41,21 @@ sig
   val match_binds_i: (term list * term) list -> context -> context
   val bind_propp: context * (string * string list) -> context * term
   val bind_propp_i: context * (term * term list) -> context * term
-  val thms_closure: context -> xstring -> tthm list option
-  val get_tthm: context -> string -> tthm
-  val get_tthms: context -> string -> tthm list
-  val get_tthmss: context -> string list -> tthm list
-  val put_tthm: string * tthm -> context -> context
-  val put_tthms: string * tthm list -> context -> context
-  val put_tthmss: (string * tthm list) list -> context -> context
-  val have_tthmss: string -> context attribute list
-    -> (tthm list * context attribute list) list -> context -> context * (string * tthm list)
-  val assumptions: context -> tthm list
+  val thms_closure: context -> xstring -> thm list option
+  val get_thm: context -> string -> thm
+  val get_thms: context -> string -> thm list
+  val get_thmss: context -> string list -> thm list
+  val put_thm: string * thm -> context -> context
+  val put_thms: string * thm list -> context -> context
+  val put_thmss: (string * thm list) list -> context -> context
+  val have_thmss: string -> context attribute list
+    -> (thm list * context attribute list) list -> context -> context * (string * thm list)
+  val assumptions: context -> thm list
   val fixed_names: context -> string list
   val assume: string -> context attribute list -> (string * string list) list -> context
-    -> context * (string * tthm list)
+    -> context * (string * thm list)
   val assume_i: string -> context attribute list -> (term * term list) list -> context
-    -> context * (string * tthm list)
+    -> context * (string * thm list)
   val fix: (string * string option) list -> context -> context
   val fix_i: (string * typ) list -> context -> context
   val setup: (theory -> theory) list
@@ -82,10 +82,10 @@ datatype context =
    {thy: theory,                                (*current theory*)
     data: Object.T Symtab.table,                (*user data*)
     asms:
-      (string * tthm list) list *               (*assumes: A ==> _*)
+      (string * thm list) list *                (*assumes: A ==> _*)
       ((string * string) list * string list),   (*fixes: !!x. _*)
     binds: (term * typ) Vartab.table,           (*term bindings*)
-    thms: tthm list Symtab.table,               (*local thms*)
+    thms: thm list Symtab.table,                (*local thms*)
     defs:
       typ Vartab.table *                        (*type constraints*)
       sort Vartab.table *                       (*default sorts*)
@@ -136,7 +136,7 @@ fun print_binds (Context {thy, binds, ...}) =
 (* local theorems *)
 
 fun print_thms (Context {thms, ...}) =
-  print_items Attribute.pretty_tthm "Local theorems:" (Symtab.dest thms);
+  print_items Display.pretty_thm "Local theorems:" (Symtab.dest thms);
 
 
 (* main context *)
@@ -146,7 +146,6 @@ fun print_context (ctxt as Context {thy, data = _, asms = (assumes, (fixes, _)),
   let
     val sign = Theory.sign_of thy;
 
-    val term_of_tthm = #prop o Thm.rep_thm o Attribute.thm_of;
     val prt_term = Sign.pretty_term sign;
     val prt_typ = Sign.pretty_typ sign;
     val prt_sort = Sign.pretty_sort sign;
@@ -173,7 +172,7 @@ fun print_context (ctxt as Context {thy, data = _, asms = (assumes, (fixes, _)),
   in
     debug Pretty.writeln pretty_thy;
     Pretty.writeln (Pretty.big_list "Fixed variables:" (map prt_fix (rev fixes)));
-    print_items (prt_term o term_of_tthm) "Assumptions:" assumes;
+    print_items (prt_term o #prop o Thm.rep_thm) "Assumptions:" assumes;
     debug print_binds ctxt;
     debug print_thms ctxt;
     debug Pretty.writeln (Pretty.big_list "Type constraints:" (map prt_defT (Vartab.dest types)));
@@ -550,44 +549,44 @@ fun thms_closure (Context {thy, thms, ...}) =
   in get end;
 
 
-(* get_tthm(s) *)
+(* get_thm(s) *)
 
-fun get_tthm (ctxt as Context {thy, thms, ...}) name =
+fun get_thm (ctxt as Context {thy, thms, ...}) name =
   (case Symtab.lookup (thms, name) of
     Some [th] => th
   | Some _ => raise CONTEXT ("Single theorem expected: " ^ quote name, ctxt)
-  | None => (PureThy.get_tthm thy name handle THEORY (msg, _) => raise CONTEXT (msg, ctxt)));
+  | None => (PureThy.get_thm thy name handle THEORY (msg, _) => raise CONTEXT (msg, ctxt)));
 
-fun get_tthms (ctxt as Context {thy, thms, ...}) name =
+fun get_thms (ctxt as Context {thy, thms, ...}) name =
   (case Symtab.lookup (thms, name) of
     Some ths => ths
-  | None => (PureThy.get_tthms thy name handle THEORY (msg, _) => raise CONTEXT (msg, ctxt)));
+  | None => (PureThy.get_thms thy name handle THEORY (msg, _) => raise CONTEXT (msg, ctxt)));
 
-fun get_tthmss ctxt names = flat (map (get_tthms ctxt) names);
+fun get_thmss ctxt names = flat (map (get_thms ctxt) names);
 
 
-(* put_tthm(s) *)
+(* put_thm(s) *)
 
-fun put_tthms (name, ths) = map_context
+fun put_thms (name, ths) = map_context
   (fn (thy, data, asms, binds, thms, defs) =>
     (thy, data, asms, binds, Symtab.update ((name, ths), thms), defs));
 
-fun put_tthm (name, th) = put_tthms (name, [th]);
+fun put_thm (name, th) = put_thms (name, [th]);
 
-fun put_tthmss [] ctxt = ctxt
-  | put_tthmss (th :: ths) ctxt = ctxt |> put_tthms th |> put_tthmss ths;
+fun put_thmss [] ctxt = ctxt
+  | put_thmss (th :: ths) ctxt = ctxt |> put_thms th |> put_thmss ths;
 
 
-(* have_tthmss *)
+(* have_thmss *)
 
-fun have_tthmss name more_attrs ths_attrs ctxt =
+fun have_thmss name more_attrs ths_attrs ctxt =
   let
     fun app ((ct, ths), (th, attrs)) =
-      let val (ct', th') = Attribute.applys ((ct, th), attrs @ more_attrs)
+      let val (ct', th') = Thm.applys_attributes ((ct, th), attrs @ more_attrs)
       in (ct', th' :: ths) end
     val (ctxt', rev_thms) = foldl app ((ctxt, []), ths_attrs);
     val thms = flat (rev rev_thms);
-  in (ctxt' |> put_tthms (name, thms), (name, thms)) end;
+  in (ctxt' |> put_thms (name, thms), (name, thms)) end;
 
 
 
@@ -606,18 +605,18 @@ fun gen_assume prepp name attrs raw_prop_pats ctxt =
     val (ctxt', props) = foldl_map prepp (ctxt, raw_prop_pats);
     val sign = sign_of ctxt';
 
-    val asms = map (Attribute.tthm_of o Thm.assume o Thm.cterm_of sign) props;
+    val asms = map (Thm.assume o Thm.cterm_of sign) props;
 
     val ths = map (fn th => ([th], [])) asms;
-    val (ctxt'', (_, tthms)) =
+    val (ctxt'', (_, thms)) =
       ctxt'
-      |> have_tthmss name (attrs @ [Attribute.tag_assumption]) ths
+      |> have_thmss name (attrs @ [Drule.tag_assumption]) ths;
 
     val ctxt''' =
       ctxt''
       |> map_context (fn (thy, data, (assumes, fixes), binds, thms, defs) =>
         (thy, data, (assumes @ [(name, asms)], fixes), binds, thms, defs));
-  in (ctxt''', (name, tthms)) end;
+  in (ctxt''', (name, thms)) end;
 
 val assume = gen_assume bind_propp;
 val assume_i = gen_assume bind_propp_i;

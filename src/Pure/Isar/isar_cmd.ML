@@ -98,19 +98,19 @@ val print_lthms = Toplevel.keep (ProofContext.print_thms o Proof.context_of o To
 (* print theorems *)
 
 fun global_attribs thy ths srcs =
-  #2 (Attribute.applys ((Theory.copy thy, ths), map (Attrib.global_attribute thy) srcs));
+  #2 (Thm.applys_attributes ((Theory.copy thy, ths), map (Attrib.global_attribute thy) srcs));
 
 fun local_attribs st ths srcs =
-  #2 (Attribute.applys ((Proof.context_of st, ths),
+  #2 (Thm.applys_attributes ((Proof.context_of st, ths),
     map (Attrib.local_attribute (Proof.theory_of st)) srcs));
 
 fun print_thms (name, srcs) = Toplevel.keep (fn state =>
   let
-    val ths = map (apfst (Thm.transfer (Toplevel.theory_of state)))
-      (Toplevel.node_cases PureThy.get_tthms (ProofContext.get_tthms o Proof.context_of)
+    val ths = map (Thm.transfer (Toplevel.theory_of state))
+      (Toplevel.node_cases PureThy.get_thms (ProofContext.get_thms o Proof.context_of)
         state name);
     val ths' = Toplevel.node_cases global_attribs local_attribs state ths srcs;
-  in Attribute.print_tthms ths' end);
+  in Display.print_thms ths' end);
 
 
 (* print types, terms and props *)

@@ -22,23 +22,23 @@ sig
   val context_of: state -> context
   val theory_of: state -> theory
   val sign_of: state -> Sign.sg
-  val the_facts: state -> tthm list
-  val goal_facts: (state -> tthm list) -> state -> state
+  val the_facts: state -> thm list
+  val goal_facts: (state -> thm list) -> state -> state
   val use_facts: state -> state
   val reset_facts: state -> state
   val assert_backward: state -> state
   val enter_forward: state -> state
   val print_state: state -> unit
   type method
-  val method: (tthm list -> thm ->
-    (thm * (indexname * term) list * (string * tthm list) list) Seq.seq) -> method
+  val method: (thm list -> thm ->
+    (thm * (indexname * term) list * (string * thm list) list) Seq.seq) -> method
   val refine: (context -> method) -> state -> state Seq.seq
   val bind: (indexname * string) list -> state -> state
   val bind_i: (indexname * term) list -> state -> state
   val match_bind: (string list * string) list -> state -> state
   val match_bind_i: (term list * term) list -> state -> state
-  val have_tthmss: string -> context attribute list ->
-    (tthm list * context attribute list) list -> state -> state
+  val have_thmss: string -> context attribute list ->
+    (thm list * context attribute list) list -> state -> state
   val assume: string -> context attribute list -> (string * string list) list -> state -> state
   val assume_i: string -> context attribute list -> (term * term list) list -> state -> state
   val fix: (string * string option) list -> state -> state
@@ -48,7 +48,7 @@ sig
   val lemma: bstring -> theory attribute list -> string * string list -> theory -> state
   val lemma_i: bstring -> theory attribute list -> term * term list -> theory -> state
   val chain: state -> state
-  val from_facts: tthm list -> state -> state
+  val from_facts: thm list -> state -> state
   val show: string -> context attribute list -> string * string list -> state -> state
   val show_i: string -> context attribute list -> term * term list -> state -> state
   val have: string -> context attribute list -> string * string list -> state -> state
@@ -57,7 +57,7 @@ sig
   val next_block: state -> state
   val end_block: (context -> method) -> state -> state Seq.seq
   val qed: (context -> method) -> bstring option -> theory attribute list option -> state
-    -> theory * (string * string * tthm)
+    -> theory * (string * string * thm)
 end;
 
 signature PROOF_PRIVATE =
@@ -87,11 +87,11 @@ val kind_name =
   fn Theorem _ => "theorem" | Lemma _ => "lemma" | Goal _ => "show" | Aux _ => "have";
 
 type goal =
- (kind *		(*result kind*)
+ (kind *                (*result kind*)
   string *              (*result name*)
   cterm list *          (*result assumptions*)
   term) *               (*result statement*)
- (tthm list *           (*use facts*)
+ (thm list *            (*use facts*)
   thm);                 (*goal: subgoals ==> statement*)
 
 
@@ -107,7 +107,7 @@ val mode_name =
 
 type node =
  {context: context,
-  facts: tthm list option,
+  facts: thm list option,
   mode: mode,
   goal: goal option};
 
@@ -154,8 +154,8 @@ fun map_context_result f (state as State ({context, facts, mode, goal}, nodes)) 
 fun put_data kind f = map_context o ProofContext.put_data kind f;
 val declare_term = map_context o ProofContext.declare_term;
 val add_binds = map_context o ProofContext.add_binds_i;
-val put_tthms = map_context o ProofContext.put_tthms;
-val put_tthmss = map_context o ProofContext.put_tthmss;
+val put_thms = map_context o ProofContext.put_thms;
+val put_thmss = map_context o ProofContext.put_thmss;
 
 
 (* bind statements *)
@@ -164,19 +164,19 @@ fun bind_props bs state =
   let val mk_bind = map (fn (x, t) => ((Syntax.binding x, 0), t)) o ObjectLogic.dest_statement
   in state |> add_binds (flat (map mk_bind bs)) end;
 
-fun bind_tthms (name, tthms) state =
+fun bind_thms (name, thms) state =
   let
-    val props = map (#prop o Thm.rep_thm o Attribute.thm_of) tthms;
+    val props = map (#prop o Thm.rep_thm) thms;
     val named_props =
       (case props of
         [prop] => [(name, prop)]
       | props => map2 (fn (i, t) => (name ^ string_of_int i, t)) (1 upto length props, props));
   in state |> bind_props named_props end;
 
-fun let_tthms name_tthms state =
+fun let_thms name_thms state =
   state
-  |> put_tthms name_tthms
-  |> bind_tthms name_tthms;
+  |> put_thms name_thms
+  |> bind_thms name_thms;
 
 
 (* facts *)
@@ -187,14 +187,14 @@ fun the_facts (State ({facts = Some facts, ...}, _)) = facts
 fun put_facts facts state =
   state
   |> map_current (fn (ctxt, _, mode, goal) => (ctxt, facts, mode, goal))
-  |> let_tthms ("facts", if_none facts []);
+  |> let_thms ("facts", if_none facts []);
 
 val reset_facts = put_facts None;
 
 fun have_facts (name, facts) state =
   state
   |> put_facts (Some facts)
-  |> let_tthms (name, facts);
+  |> let_thms (name, facts);
 
 fun these_facts (state, ths) = have_facts ths state;
 fun fetch_facts (State ({facts, ...}, _)) = put_facts facts;
@@ -266,20 +266,19 @@ fun close_block (State (_, node :: nodes)) = State (node, nodes)
 fun print_state (state as State ({context, facts, mode, goal = _}, nodes)) =
   let
     val ref (_, _, begin_goal) = Goals.current_goals_markers;
-    val prt_tthm = Attribute.pretty_tthm;
 
     fun print_facts None = ()
       | print_facts (Some ths) =
-          Pretty.writeln (Pretty.big_list "Current facts:" (map prt_tthm ths));
+          Pretty.writeln (Pretty.big_list "Current facts:" (map Display.pretty_thm ths));
 
     fun levels_up 0 = ""
       | levels_up i = " (" ^ string_of_int i ^ " levels up)";
 
     fun print_goal (i, ((kind, name, _, _), (_, thm))) =
-      (writeln (kind_name kind ^ " " ^ quote name ^ levels_up (i div 1) ^ ":");	(* FIXME *)
+      (writeln (kind_name kind ^ " " ^ quote name ^ levels_up (i div 1) ^ ":"); (* FIXME *)
         Locale.print_goals_marker begin_goal (! goals_limit) thm);
   in
-    writeln ("Nesting level: " ^ string_of_int (length nodes div 1));	(* FIXME *)
+    writeln ("Nesting level: " ^ string_of_int (length nodes div 1));   (* FIXME *)
     writeln "";
     writeln (mode_name mode ^ " mode");
     writeln "";
@@ -296,11 +295,11 @@ fun print_state (state as State ({context, facts, mode, goal = _}, nodes)) =
 (* datatype method *)
 
 datatype method = Method of
-  tthm list ->                   	(*use facts*)
+  thm list ->                           (*use facts*)
   thm                                   (*goal: subgoals ==> statement*)
     -> (thm *                           (*refined goal*)
        (indexname * term) list *        (*new bindings*)
-       (string * tthm list) list)       (*new thms*)
+       (string * thm list) list)        (*new thms*)
          Seq.seq;
 
 val method = Method;
@@ -322,7 +321,7 @@ fun refine meth_fun (state as State ({context, ...}, _)) =
           |> check_sign (sign_of_thm thm')
           |> map_goal (K (result, (facts, thm')))
           |> add_binds new_binds
-          |> put_tthmss new_thms;
+          |> put_thmss new_thms;
       in Seq.map refn (meth facts thm) end;
 
 
@@ -429,12 +428,12 @@ val match_bind = gen_bind ProofContext.match_binds;
 val match_bind_i = gen_bind ProofContext.match_binds_i;
 
 
-(* have_tthmss *)
+(* have_thmss *)
 
-fun have_tthmss name atts ths_atts state =
+fun have_thmss name atts ths_atts state =
   state
   |> assert_forward
-  |> map_context_result (ProofContext.have_tthmss (PureThy.default_name name) atts ths_atts)
+  |> map_context_result (ProofContext.have_thmss (PureThy.default_name name) atts ths_atts)
   |> these_facts;
 
 
@@ -457,7 +456,7 @@ fun gen_assume f name atts props state =
   |> assert_forward
   |> map_context_result (f (PureThy.default_name name) atts props)
   |> these_facts
-  |> (fn st => let_tthms ("prems", ProofContext.assumptions (context_of st)) st);
+  |> (fn st => let_thms ("prems", ProofContext.assumptions (context_of st)) st);
 
 val assume = gen_assume ProofContext.assume;
 val assume_i = gen_assume ProofContext.assume_i;
@@ -490,8 +489,7 @@ fun setup_goal opt_block prepp kind name atts raw_propp state =
       |> opt_block
       |> map_context_result (fn c => prepp (c, raw_propp));
 
-    val casms = map (#prop o Thm.crep_thm o Attribute.thm_of)
-      (ProofContext.assumptions (context_of state'));
+    val casms = map (#prop o Thm.crep_thm) (ProofContext.assumptions (context_of state'));
     val asms = map Thm.term_of casms;
 
     val prop = Logic.list_implies (asms, concl);
@@ -597,7 +595,7 @@ fun finish_local state =
   in
     state
     |> close_block
-    |> have_tthmss name atts [([(result, [])], [])]
+    |> have_thmss name atts [Thm.no_attributes [result]]
     |> opt_solve
   end;
 
@@ -626,10 +624,10 @@ fun finish_global alt_name alt_atts state =
     val atts =
       (case kind of
         Theorem atts => if_none alt_atts atts
-      | Lemma atts => (if_none alt_atts atts) @ [Attribute.tag_lemma]
+      | Lemma atts => (if_none alt_atts atts) @ [Drule.tag_lemma]
       | _ => raise STATE ("No global goal!", state));
 
-    val (thy', result') = PureThy.store_tthm ((name, (result, [])), atts) (theory_of state);
+    val (thy', result') = PureThy.store_thm ((name, result), atts) (theory_of state);
   in (thy', (kind_name kind, name, result')) end;
 
 fun qed meth_fun alt_name alt_atts state =

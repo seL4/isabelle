@@ -94,16 +94,16 @@ fun gen_have_thmss get attrib f ((name, more_srcs), th_srcs) x =
 
 
 val have_theorems =
-  #1 oo gen_have_thmss PureThy.get_tthms Attrib.global_attribute PureThy.have_tthmss;
+  #1 oo gen_have_thmss PureThy.get_thms Attrib.global_attribute PureThy.have_thmss;
 
 val have_lemmas =
-  #1 oo gen_have_thmss PureThy.get_tthms Attrib.global_attribute
-    (fn name => fn more_atts => PureThy.have_tthmss name (more_atts @ [Attribute.tag_lemma]));
+  #1 oo gen_have_thmss PureThy.get_thms Attrib.global_attribute
+    (fn name => fn more_atts => PureThy.have_thmss name (more_atts @ [Drule.tag_lemma]));
 
 
 val have_thmss =
-  gen_have_thmss (ProofContext.get_tthms o Proof.context_of)
-    (Attrib.local_attribute o Proof.theory_of) Proof.have_tthmss;
+  gen_have_thmss (ProofContext.get_thms o Proof.context_of)
+    (Attrib.local_attribute o Proof.theory_of) Proof.have_thmss;
 
 val have_facts = ProofHistory.apply o have_thmss;
 val from_facts = ProofHistory.apply o (Proof.chain oo curry have_thmss ("", []));
@@ -143,10 +143,10 @@ fun qed_with (alt_name, alt_tags) prf =
     val state = ProofHistory.current prf;
     val thy = Proof.theory_of state;
     val alt_atts = apsome (map (Attrib.global_attribute thy)) alt_tags;
-    val (thy', (kind, name, tthm)) = Method.qed alt_name alt_atts state;
+    val (thy', (kind, name, thm)) = Method.qed alt_name alt_atts state;
 
     val prt_result = Pretty.block
-      [Pretty.str (kind ^ " " ^ name ^ ":"), Pretty.fbrk, Attribute.pretty_tthm tthm];
+      [Pretty.str (kind ^ " " ^ name ^ ":"), Pretty.fbrk, Display.pretty_thm thm];
   in Pretty.writeln prt_result; thy end;
 
 val qed = qed_with (None, None);
