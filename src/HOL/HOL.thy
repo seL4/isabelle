@@ -62,6 +62,7 @@ consts
   "+"           :: "['a::plus, 'a]  => 'a"          (infixl 65)
   -             :: "['a::minus, 'a] => 'a"          (infixl 65)
   uminus        :: "['a::minus] => 'a"              ("- _" [81] 80)
+  abs		:: "('a::minus) => 'a"
   *             :: "['a::times, 'a] => 'a"          (infixl 70)
   (*See Nat.thy for "^"*)
 
