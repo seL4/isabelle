@@ -348,7 +348,8 @@ end;
 (* remove_thy *)
 
 fun remove_thy name =
-  if is_finished name then error (loader_msg "cannot remove finished theory" [name])
+  if is_none (lookup_thy name) then warning (loader_msg "nothing known about theory" [name])
+  else if is_finished name then error (loader_msg "cannot remove finished theory" [name])
   else
     let val succs = thy_graph Graph.all_succs [name] in
       writeln (loader_msg "removing" succs);
