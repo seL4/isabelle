@@ -52,7 +52,7 @@ Goalw [nodeOrder_def, next_def, inv_image_def]
     "[| i<N; j<N |] ==> ((next i, i) : nodeOrder j) = (i ~= j)";
 by (auto_tac (claset(), simpset() addsimps [mod_Suc, mod_geq]));
 by (auto_tac (claset(), 
-              simpset() addsplits [nat_diff_split']
+              simpset() addsplits [nat_diff_split]
                         addsimps [linorder_neq_iff, mod_geq]));
 qed "nodeOrder_eq";
 
