@@ -113,7 +113,7 @@ local
   val database = ref (Graph.empty: thy Graph.T);
 in
   fun get_thys () = ! database;
-  fun change_thys f = database := (f (! database));
+  val change_thys = Library.change database;
 end;
 
 
