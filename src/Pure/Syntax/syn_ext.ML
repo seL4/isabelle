@@ -35,6 +35,7 @@ signature SYN_EXT =
       logtypes: string list,
       xprods: xprod list,
       consts: string list,
+      prmodes: string list,
       parse_ast_translation: (string * (Ast.ast list -> Ast.ast)) list,
       parse_rules: (Ast.ast * Ast.ast) list,
       parse_translation: (string * (term list -> term)) list,
@@ -286,13 +287,14 @@ datatype syn_ext =
     logtypes: string list,
     xprods: xprod list,
     consts: string list,
+    prmodes: string list,
     parse_ast_translation: (string * (Ast.ast list -> Ast.ast)) list,
     parse_rules: (Ast.ast * Ast.ast) list,
     parse_translation: (string * (term list -> term)) list,
     print_translation: (string * (typ -> term list -> term)) list,
     print_rules: (Ast.ast * Ast.ast) list,
     print_ast_translation: (string * (Ast.ast list -> Ast.ast)) list,
-    token_translation: (string * string * (string -> string * int)) list};
+    token_translation: (string * string * (string -> string * int)) list}
 
 
 (* syn_ext *)
@@ -311,6 +313,7 @@ fun mk_syn_ext convert logtypes mfixes consts trfuns tokentrfuns rules =
       logtypes = logtypes',
       xprods = xprods,
       consts = filter is_xid (consts union mfix_consts),
+      prmodes = distinct (map (fn (m, _, _) => m) tokentrfuns),
       parse_ast_translation = parse_ast_translation,
       parse_rules = parse_rules,
       parse_translation = parse_translation,

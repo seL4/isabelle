@@ -11,8 +11,11 @@ sig
   val char: string -> string option
   val name: string -> string option
   val read_charnames: string list -> string list
-  val write_charnames:  string list -> string list	(*normal backslashes*)
-  val write_charnames':  string list -> string list	(*escaped backslashes*)
+  val read_chnames: string -> string
+  val write_charnames: string list -> string list	(*normal backslashes*)
+  val write_chnames: string -> string
+  val write_charnames': string list -> string list	(*escaped backslashes*)
+  val write_chnames': string -> string
 end;
 
 
@@ -78,6 +81,8 @@ in
   fun read_charnames chs =
     if forall (not_equal "\\") chs then chs
     else #1 (repeat (scan_symbol || scan_one (K true)) chs);
+
+  val read_chnames = implode o read_charnames o explode;
 end;
 
 
@@ -95,5 +100,7 @@ fun write_chars prfx chs =
 val write_charnames = write_chars "";
 val write_charnames' = write_chars "\\";
 
+val write_chnames = implode o write_charnames o explode;
+val write_chnames' = implode o write_charnames' o explode;
 
 end;

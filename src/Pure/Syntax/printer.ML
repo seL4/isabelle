@@ -20,7 +20,6 @@ sig
   val term_to_ast: (string -> (typ -> term list -> term) option) -> term -> Ast.ast
   val typ_to_ast: (string -> (typ -> term list -> term) option) -> typ -> Ast.ast
   type prtabs
-  val prmodes_of: prtabs -> string list
   val empty_prtabs: prtabs
   val extend_prtabs: prtabs -> string -> SynExt.xprod list -> prtabs
   val merge_prtabs: prtabs -> prtabs -> prtabs
@@ -176,8 +175,6 @@ datatype symb =
   Block of int * symb list;
 
 type prtabs = (string * ((symb list * int * int) list) Symtab.table) list;
-
-fun prmodes_of prtabs = filter_out (equal "") (map fst prtabs);
 
 (*find tab for mode*)
 fun get_tab prtabs mode =
