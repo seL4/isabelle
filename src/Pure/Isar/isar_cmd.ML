@@ -106,9 +106,9 @@ fun local_attribs st ths srcs =
 fun print_thms (name, srcs) = Toplevel.keep (fn state =>
   let
     val ths = map (Thm.transfer (Toplevel.theory_of state))
-      (Toplevel.node_cases PureThy.get_thms (ProofContext.get_thms o Proof.context_of)
+      (Toplevel.node_case PureThy.get_thms (ProofContext.get_thms o Proof.context_of)
         state name);
-    val ths' = Toplevel.node_cases global_attribs local_attribs state ths srcs;
+    val ths' = Toplevel.node_case global_attribs local_attribs state ths srcs;
   in Display.print_thms ths' end);
 
 
@@ -123,13 +123,13 @@ fun read_term T thy s =
 fun print_type s = Toplevel.keep (fn state =>
   let
     val sign = Toplevel.sign_of state;
-    val T = Toplevel.node_cases read_typ (ProofContext.read_typ o Proof.context_of) state s;
+    val T = Toplevel.node_case read_typ (ProofContext.read_typ o Proof.context_of) state s;
   in Pretty.writeln (Pretty.quote (Sign.pretty_typ sign T)) end);
 
 fun print_term s = Toplevel.keep (fn state =>
   let
     val sign = Toplevel.sign_of state;
-    val t = Toplevel.node_cases (read_term (TVar (("'z", 0), logicS)))
+    val t = Toplevel.node_case (read_term (TVar (("'z", 0), logicS)))
       (ProofContext.read_term o Proof.context_of) state s;
     val T = Term.type_of t;
   in
@@ -141,7 +141,7 @@ fun print_prop s = Toplevel.keep (fn state =>
   let
     val sign = Toplevel.sign_of state;
     val prop =
-      Toplevel.node_cases (read_term propT) (ProofContext.read_prop o Proof.context_of) state s;
+      Toplevel.node_case (read_term propT) (ProofContext.read_prop o Proof.context_of) state s;
   in Pretty.writeln (Pretty.quote (Sign.pretty_term sign prop)) end);
 
 
