@@ -35,9 +35,14 @@ follows:
 by (Blast_tac \(i\));
 \end{ttbox}
 If the subgoal is a simple formula of the predicate calculus or set theory,
-then it should be proved quickly.  However, to use the classical reasoner
-effectively, you need to know how it works and how to choose among the many
-tactics available, including {\tt Fast_tac} and {\tt Best_tac}.
+then it should be proved quickly.  To attempt to prove \emph{all} subgoals
+using a combination of rewriting and classical reasoning, try
+\begin{ttbox}
+by (Auto_tac());
+\end{ttbox}
+To use the classical reasoner effectively, you need to know how it works.  It
+provides many tactics to choose from, including {\tt Fast_tac} and {\tt
+  Best_tac}.
 
 We shall first discuss the underlying principles, then present the
 classical reasoner.  Finally, we shall see how to instantiate it for
@@ -374,11 +379,11 @@ to combine their effects.
 If installed, the classical module provides several tactics (and other
 operations) for simulating the classical sequent calculus.
 
-\subsection{The automatic tableau prover}
-The tactic {\tt blast_tac} finds a proof rapidly using a separate tableau
-prover and then reconstructs the proof using Isabelle tactics.  It is much
-faster and more powerful than the other classical reasoning tactics, but has
-major limitations too.  
+\subsection{The tableau prover}
+The tactic {\tt blast_tac} searches for a proof using a fast tableau prover,
+coded directly in \ML.  It then reconstructs the proof using Isabelle
+tactics.  It is faster and more powerful than the other classical
+reasoning tactics, but has major limitations too.
 \begin{itemize}
 \item It does not use the wrapper tacticals described above, such as
   \ttindex{addss}.
@@ -419,17 +424,38 @@ successively to~20, {\tt Blast.depth_tac} applies a user-supplied search bound.
   has been closed, extended or split.
 \end{ttdescription}
 
-\subsection{The automatic tactics}
+
+\subsection{An automatic tactic}
+\begin{ttbox} 
+auto_tac      : claset * simpset -> tactic
+auto          : unit -> unit
+\end{ttbox}
+The auto-tactic attempts to prove all subgoals using a combination of
+simplification and classical reasoning.  It is intended for situations where
+there are a lot of mostly trivial subgoals; it proves all the easy ones,
+leaving the ones it cannot prove.  (Unfortunately, attempting to prove the
+hard ones may take a long time.)  It must be supplied both a simpset and a
+claset; therefore it is most easily called as \texttt{Auto_tac}, which uses
+the default claset and simpset (see \S\ref{sec:current-claset} below).  For
+interactive use, the shorthand \texttt{auto();} abbreviates 
+\begin{ttbox}
+by (Auto_tac());
+\end{ttbox}
+
+\subsection{Other classical tactics}
 \begin{ttbox} 
 fast_tac      : claset -> int -> tactic
 best_tac      : claset -> int -> tactic
 slow_tac      : claset -> int -> tactic
 slow_best_tac : claset -> int -> tactic
 \end{ttbox}
-These tactics work by applying {\tt step_tac} or {\tt slow_step_tac}
-repeatedly.  Their effect is restricted (by {\tt SELECT_GOAL}) to one subgoal;
-they either prove this subgoal or fail.  The {\tt slow_} versions are more
-powerful but can be much slower.  
+These tactics attempt to prove a subgoal using sequent-style reasoning.
+Unlike \texttt{blast_tac}, they construct proofs directly in Isabelle.  Their
+effect is restricted (by {\tt SELECT_GOAL}) to one subgoal; they either prove
+this subgoal or fail.  The {\tt slow_} versions conduct a broader
+search.%
+\footnote{They may, when backtracking from a failed proof attempt, undo even
+  the step of proving a subgoal by assumption.}
 
 The best-first tactics are guided by a heuristic function: typically, the
 total size of the proof state.  This function is supplied in the functor call
@@ -505,7 +531,7 @@ but allows unknowns to be instantiated.
   The resulting search space is larger.
 \end{ttdescription}
 
-\subsection{The current claset}
+\subsection{The current claset}\label{sec:current-claset}
 Some logics (\FOL, {\HOL} and \ZF) support the concept of a current
 claset\index{claset!current}.  This is a default set of classical rules.  The
 underlying idea is quite similar to that of a current simpset described in
@@ -514,12 +540,14 @@ warnings.  Just like simpsets, clasets can be associated with theories.  The
 tactics
 \begin{ttbox}
 Blast_tac    : int -> tactic
+Auto_tac     : unit -> tactic
 Fast_tac     : int -> tactic
 Best_tac     : int -> tactic
 Deepen_tac   : int -> int -> tactic
 Step_tac     : int -> tactic
 \end{ttbox}
-\indexbold{*Blast_tac}\indexbold{*Best_tac}\indexbold{*Fast_tac}%
+\indexbold{*Blast_tac}\indexbold{*Auto_tac}
+\indexbold{*Best_tac}\indexbold{*Fast_tac}%
 \indexbold{*Deepen_tac}\indexbold{*Step_tac}
 make use of the current claset. E.g. {\tt Blast_tac} is defined as follows:
 \begin{ttbox}
@@ -533,12 +561,11 @@ AddSIs, AddSEs, AddSDs, AddIs, AddEs, AddDs: thm list -> unit
 \indexbold{*AddSIs} \indexbold{*AddSEs} \indexbold{*AddSDs}
 \indexbold{*AddIs} \indexbold{*AddEs} \indexbold{*AddDs}
 are used to add rules to the current claset. They work exactly like their
-lower case counterparts {\tt addSIs} etc.
+lower case counterparts, such as {\tt addSIs}.  Calling
 \begin{ttbox}
 Delrules : thm list -> unit
 \end{ttbox}
-deletes rules from the current claset. You do not need to worry via which of
-the above {\tt Add} functions the rule was initially added.
+deletes rules from the current claset. 
 
 \subsection{Other useful tactics}
 \index{tactics!for contradiction}
