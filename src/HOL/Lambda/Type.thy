@@ -10,65 +10,58 @@ Matthes.
 
 theory Type = InductTermi:
 
-datatype "typ" =
+datatype type =
     Atom nat
-  | Fun "typ" "typ"     (infixr "=>" 200)
+  | Fun type type     (infixr "=>" 200)
 
 consts
-  typing :: "((nat => typ) * dB * typ) set"
+  typing :: "((nat => type) \<times> dB \<times> type) set"
 
 syntax
-  "_typing" :: "[nat => typ, dB, typ] => bool"   ("_ |- _ : _" [50,50,50] 50)
-  "_funs"   :: "[typ list, typ] => typ"         (infixl "=>>" 150)
+  "_typing" :: "[nat => type, dB, type] => bool"   ("_ |- _ : _" [50,50,50] 50)
+  "_funs"   :: "[type list, type] => type"         (infixl "=>>" 150)
 
 translations
   "env |- t : T" == "(env, t, T) : typing"
   "Ts =>> T" == "foldr Fun Ts T"
 
-lemmas [intro!] = IT.BetaI IT.LambdaI IT.VarI
-
-(* FIXME
-declare IT.intros [intro!]
-*)
-
 inductive typing
-intros (* FIXME [intro!] *)
+intros [intro!]
   Var: "env x = T ==> env |- Var x : T"
   Abs: "(nat_case T env) |- t : U ==> env |- (Abs t) : (T => U)"
   App: "env |- s : T => U ==> env |- t : T ==> env |- (s $ t) : U"
 
-lemmas [intro!] = App Abs Var
+inductive_cases [elim!]:
+  "e |- Var i : T"
+  "e |- t $ u : T"
+  "e |- Abs t : T"
 
 consts
-  "types" :: "[nat => typ, dB list, typ list] => bool"
+  "types" :: "[nat => type, dB list, type list] => bool"
 primrec
   "types e [] Ts = (Ts = [])"
   "types e (t # ts) Ts =
     (case Ts of
       [] => False
-    | T # Ts => e |- t : T & types e ts Ts)"
-
-(* FIXME order *)
-inductive_cases [elim!]:
-  "e |- Abs t : T"
-  "e |- t $ u : T"
-  "e |- Var i : T"
+    | T # Ts => e |- t : T \<and> types e ts Ts)"
 
 inductive_cases [elim!]:
   "x # xs : lists S"
+
+declare IT.intros [intro!]
 
 
 text {* Some tests. *}
 
 lemma "\<exists>T U. e |- Abs (Abs (Abs (Var 1 $ (Var 2 $ Var 1 $ Var 0)))) : T \<and> U = T"
   apply (intro exI conjI)
-  apply force
+   apply force
   apply (rule refl)
   done
 
 lemma "\<exists>T U. e |- Abs (Abs (Abs (Var 2 $ Var 0 $ (Var 1 $ Var 0)))) : T \<and> U = T";
   apply (intro exI conjI)
-  apply force
+   apply force
   apply (rule refl)
   done
 
@@ -133,13 +126,13 @@ text {* lifting preserves termination and well-typedness *}
 lemma lift_map [rulify, simp]:
     "\<forall>t. lift (t $$ ts) i = lift t i $$ map (\<lambda>t. lift t i) ts"
   apply (induct_tac ts)
-  apply simp_all
+   apply simp_all
   done
 
 lemma subst_map [rulify, simp]:
   "\<forall>t. subst (t $$ ts) u i = subst t u i $$ map (\<lambda>t. subst t u i) ts"
   apply (induct_tac ts)
-  apply simp_all
+   apply simp_all
   done
 
 lemma lift_IT [rulify, intro!]:
@@ -178,18 +171,17 @@ lemma shift_env [simp]:
   apply (case_tac j)
    apply simp
   apply (case_tac nat)
-  apply simp_all
+   apply simp_all
   done
 
 lemma lift_type' [rulify]:
   "e |- t : T ==> \<forall>i U.
     (\<lambda>j. if j < i then e j
-          else if j = i then U 
+          else if j = i then U
           else e (j - 1)) |- lift t i : T"
   apply (erule typing.induct)
     apply auto
   done
-
 
 lemma lift_type [intro!]:
   "e |- t : T ==> nat_case U e |- lift t 0 : T"
@@ -248,7 +240,7 @@ lemma substs_lemma [rulify]:
   "e |- u : T ==>
     \<forall>Ts. types (\<lambda>j. if j < i then e j
                      else if j = i then T else e (j - 1)) ts Ts -->
-      types e (map (%t. t[u/i]) ts) Ts"
+      types e (map (\<lambda>t. t[u/i]) ts) Ts"
   apply (induct_tac ts)
    apply (intro strip)
    apply (case_tac Ts)
@@ -260,7 +252,7 @@ lemma substs_lemma [rulify]:
   apply simp
   apply (erule conjE)
   apply (erule subst_lemma)
-  apply (rule refl)
+   apply (rule refl)
   apply assumption
   done
 
@@ -282,12 +274,7 @@ lemma subject_reduction [rulify]:
      apply assumption
     apply (rule ext)
     apply (case_tac j)
-
-    apply simp
-    apply simp
-    apply fast
-    apply fast
-      (* FIXME apply auto *)
+     apply auto
   done
 
 text {* additional lemmas *}
@@ -296,10 +283,9 @@ lemma app_last: "(t $$ ts) $ u = t $$ (ts @ [u])"
   apply simp
   done
 
-
 lemma subst_Var_IT [rulify]: "r : IT ==> \<forall>i j. r[Var i/j] : IT"
   apply (erule IT.induct)
-    txt {* Var *}
+    txt {* @{term Var} *}
     apply (intro strip)
     apply (simp (no_asm) add: subst_Var)
     apply
@@ -314,12 +300,12 @@ lemma subst_Var_IT [rulify]: "r : IT ==> \<forall>i j. r[Var i/j] : IT"
       rule lists.Cons,
       fast,
       assumption)+
-   txt {* Lambda *}
+   txt {* @{term Lambda} *}
    apply (intro strip)
    apply simp
    apply (rule IT.LambdaI)
    apply fast
-  txt {* Beta *}
+  txt {* @{term Beta} *}
   apply (intro strip)
   apply (simp (no_asm_use) add: subst_subst [symmetric])
   apply (rule IT.BetaI)
@@ -364,10 +350,10 @@ lemma subst_type_IT [rulify]:
   apply (rule allI)
   apply (rule impI)
   apply (erule IT.induct)
-    txt {* Var *}
+    txt {* @{term Var} *}
     apply (intro strip)
     apply (case_tac "n = i")
-     txt {* n=i *}
+     txt {* #{term "n = i"} *}
      apply (case_tac rs)
       apply simp
      apply simp
@@ -375,7 +361,7 @@ lemma subst_type_IT [rulify]:
      apply (elim exE conjE)
      apply (ind_cases "e |- t $ u : T")
      apply (ind_cases "e |- Var i : T")
-     apply (drule_tac s = "(?T::typ) => ?U" in sym)
+     apply (drule_tac s = "(?T::type) => ?U" in sym)
      apply simp
      apply (subgoal_tac "lift u 0 $ Var 0 : IT")
       prefer 2
@@ -383,35 +369,29 @@ lemma subst_type_IT [rulify]:
       apply (erule lift_IT)
      apply (subgoal_tac "(lift u 0 $ Var 0)[a[u/i]/0] : IT")
       apply (simp (no_asm_use))
-      apply (subgoal_tac "(Var 0 $$ map (%t. lift t 0)
-        (map (%t. t[u/i]) list))[(u $ a[u/i])/0] : IT")
+      apply (subgoal_tac "(Var 0 $$ map (\<lambda>t. lift t 0)
+        (map (\<lambda>t. t[u/i]) list))[(u $ a[u/i])/0] : IT")
        apply (simp (no_asm_use) del: map_compose add: map_compose [symmetric] o_def)
       apply (erule_tac x = "Ts =>> T" in allE)
       apply (erule impE)
        apply simp
       apply (erule_tac x = "Var 0 $$
-        map (%t. lift t 0) (map (%t. t[u/i]) list)" in allE)
+        map (\<lambda>t. lift t 0) (map (\<lambda>t. t[u/i]) list)" in allE)
       apply (erule impE)
        apply (rule IT.VarI)
        apply (rule lifts_IT)
        apply (drule lists_types)
        apply
         (ind_cases "x # xs : lists (Collect P)",
-	 erule lists_IntI [THEN lists.induct],
-	 assumption)
-	apply fastsimp
+         erule lists_IntI [THEN lists.induct],
+         assumption)
+        apply fastsimp
        apply fastsimp
       apply (erule_tac x = e in allE)
       apply (erule_tac x = T in allE)
       apply (erule_tac x = "u $ a[u/i]" in allE)
       apply (erule_tac x = 0 in allE)
       apply (fastsimp intro!: list_app_typeI lift_types subst_lemma substs_lemma)
-
-(* FIXME
-       apply (tactic { * fast_tac (claset()
-  addSIs [thm "list_app_typeI", thm "lift_types", thm "subst_lemma", thm "substs_lemma"]
-  addss simpset()) 1 * }) *)
-
      apply (erule_tac x = Ta in allE)
      apply (erule impE)
       apply simp
@@ -428,21 +408,21 @@ lemma subst_type_IT [rulify]:
       apply (rule typing.Var)
       apply simp
      apply (fast intro!: subst_lemma)
-    txt {* n~=i *}
+    txt {* @{term "n ~= i"} *}
     apply (drule list_app_typeD)
     apply (erule exE)
     apply (erule conjE)
     apply (drule lists_types)
-    apply (subgoal_tac "map (%x. x[u/i]) rs : lists IT")
+    apply (subgoal_tac "map (\<lambda>x. x[u/i]) rs : lists IT")
      apply (simp add: subst_Var)
      apply fast
     apply (erule lists_IntI [THEN lists.induct])
       apply assumption
      apply fastsimp
     apply fastsimp
-   txt {* Lambda *}
+   txt {* @{term Lambda} *}
    apply fastsimp
-  txt {* Beta *}
+  txt {* @{term Beta} *}
   apply (intro strip)
   apply (simp (no_asm))
   apply (rule IT.BetaI)
