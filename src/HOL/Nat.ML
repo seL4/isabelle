@@ -75,56 +75,11 @@ by (case_tac "nat" 2);
 by (ALLGOALS (blast_tac (claset() addIs prems@[less_trans])));
 qed "nat_induct2";
 
-
-(*** LEAST -- the least number operator ***)
-
-(*This version is polymorphic over type class "order"! *) 
-Goalw [Least_def]
-     "[| P(k::'a::order);  ALL x. P x --> k <= x |] ==> (LEAST x. P(x)) = k";
-by (blast_tac (claset() addIs [some_equality, order_antisym]) 1); 
-bind_thm ("Least_equality", allI RSN (2, result()));
-
-(*LEAST and wellorderings*)
-Goal "wf({(x,y::'a). x<y}) \
-\     ==> P(k::'a::linorder) --> P(LEAST x. P(x)) & (LEAST x. P(x)) <= k";
-by (eres_inst_tac [("a","k")] wf_induct 1);
-by (rtac impI 1);
-by (rtac classical 1);
-by (res_inst_tac [("s","x")] (Least_equality RS ssubst) 1);
-by Auto_tac;  
-by (auto_tac (claset(), simpset() addsimps [linorder_not_less RS sym]));  
-by (blast_tac (claset() addIs [order_less_trans]) 1);
-bind_thm("wellorder_LeastI",   result() RS mp RS conjunct1);
-bind_thm("wellorder_Least_le", result() RS mp RS conjunct2);
-
-Goal "[| wf({(x,y::'a). x<y});  k < (LEAST x. P(x)) |] \
-\     ==> ~P(k::'a::linorder)";
-by (rtac notI 1);
-by (dtac wellorder_Least_le 1); 
-by (asm_full_simp_tac (simpset() addsimps [linorder_not_le RS sym]) 2);
-by (fast_tac (claset() addIs []) 2); 
-by (assume_tac 1); 
-qed "wellorder_not_less_Least";
-
 (** LEAST theorems for type "nat" by specialization **)
 
-Goalw [less_def] "wf {(x,y::nat). x<y}"; 
-by (rtac (wf_pred_nat RS wf_trancl RS wf_subset) 1);
-by (Blast_tac 1); 
-qed "wf_less";
-
-bind_thm("LeastI",   wf_less RS wellorder_LeastI);
-bind_thm("Least_le", wf_less RS wellorder_Least_le);
-bind_thm("not_less_Least", wf_less RS wellorder_not_less_Least);
-
-Goal "(S::nat set) ~= {} ==> EX x:S. ALL y:S. x <= y";
-by (cut_facts_tac [wf_pred_nat RS wf_trancl RS (wf_eq_minimal RS iffD1)] 1);
-by (dres_inst_tac [("x","S")] spec 1);
-by (Asm_full_simp_tac 1);
-by (etac impE 1);
-by (Force_tac 1);
-by (force_tac (claset(), simpset() addsimps [less_eq,not_le_iff_less]) 1);
-qed "nonempty_has_least";
+bind_thm("LeastI", wellorder_LeastI);
+bind_thm("Least_le", wellorder_Least_le);
+bind_thm("not_less_Least", wellorder_not_less_Least);
 
 Goal "[| P n; ~ P 0 |] ==> (LEAST n. P n) = Suc (LEAST m. P(Suc m))";
 by (case_tac "n" 1);
@@ -152,22 +107,24 @@ by (rtac min_leastR 1);
 by (Simp_tac 1);
 qed "min_0R";
 
-Goalw [min_def] "min (Suc m) (Suc n) = Suc(min m n)";
-by (Simp_tac 1);
+Goal "min (Suc m) (Suc n) = Suc (min m n)";
+by (simp_tac (simpset() addsimps [min_of_mono]) 1);
 qed "min_Suc_Suc";
 
 Addsimps [min_0L,min_0R,min_Suc_Suc];
 
-Goalw [max_def] "max 0 n = (n::nat)";
+Goal "max 0 n = (n::nat)";
+by (rtac max_leastL 1);
 by (Simp_tac 1);
 qed "max_0L";
 
-Goalw [max_def] "max n 0 = (n::nat)";
+Goal "max n 0 = (n::nat)";
+by (rtac max_leastR 1);
 by (Simp_tac 1);
 qed "max_0R";
 
-Goalw [max_def] "max (Suc m) (Suc n) = Suc(max m n)";
-by (Simp_tac 1);
+Goal "max (Suc m) (Suc n) = Suc(max m n)";
+by (simp_tac (simpset() addsimps [max_of_mono]) 1);
 qed "max_Suc_Suc";
 
 Addsimps [max_0L,max_0R,max_Suc_Suc];
