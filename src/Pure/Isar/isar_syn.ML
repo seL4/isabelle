@@ -379,7 +379,7 @@ val skip_proofP =
     (P.marg_comment >> IsarThy.skip_proof);
 
 val forget_proofP =
-  OuterSyntax.improper_command "oops" "forget proof" K.qed_global
+  OuterSyntax.command "oops" "forget proof" K.qed_global
     (P.marg_comment >> IsarThy.forget_proof);
 
 
@@ -447,10 +447,6 @@ val redoP =
 val undos_proofP =
   OuterSyntax.improper_command "undos_proof" "undo last proof commands" K.control
     (P.nat >> (Toplevel.print oo IsarCmd.undos_proof));
-
-val kill_proofP =
-  OuterSyntax.improper_command "kill_proof" "undo current proof" K.control
-    (Scan.succeed IsarCmd.kill_proof);
 
 val undoP =
   OuterSyntax.improper_command "undo" "undo last command" K.control
@@ -643,7 +639,7 @@ val parsers = [
   nextP, qedP, terminal_proofP, immediate_proofP, default_proofP,
   skip_proofP, forget_proofP, deferP, preferP, applyP, apply_endP,
   proofP, alsoP, finallyP, backP, cannot_undoP, clear_undosP, redoP,
-  undos_proofP, kill_proofP, undoP, killP,
+  undos_proofP, undoP, killP,
   (*diagnostic commands*)
   pretty_setmarginP, print_commandsP, print_contextP, print_theoryP,
   print_syntaxP, print_theoremsP, print_attributesP, print_methodsP,
