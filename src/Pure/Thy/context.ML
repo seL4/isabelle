@@ -12,6 +12,7 @@ sig
   val reset_session: unit -> unit
   val get_context: unit -> theory
   val context: theory -> unit
+  val reset_context: unit -> unit
 end;
 
 structure Context: CONTEXT =
@@ -29,10 +30,15 @@ fun reset_session () = current_session := [];
 
 (* theory context *)
 
-val current_theory = ref ProtoPure.thy;
+val current_theory = ref (None: theory option);
 
-fun context thy = current_theory := thy;
-fun get_context () = ! current_theory;
+fun get_context () =
+  (case current_theory of
+    ref (Some thy) => thy
+  | _ => error "Unknown theory context");
+
+fun context thy = current_theory := Some thy;
+fun reset_context () = current_theory := None;
 
 
 end;
