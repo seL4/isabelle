@@ -10,6 +10,7 @@ signature DATATYPE_PROP =
 sig
   val dtK : int ref
   val indexify_names: string list -> string list
+  val make_tnames: typ list -> string list
   val make_injs : (int * (string * DatatypeAux.dtyp list *
     (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
       term list list
