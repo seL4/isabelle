@@ -12,6 +12,7 @@ fine with common object-logics (HOL, FOL, ZF etc.).
 signature AUTO_BIND =
 sig
   val is_judgment: term -> bool
+  val drop_judgment: term -> term
   val atomic_judgment: theory -> string -> term
   val add_judgment: bstring * string * mixfix -> theory -> theory
   val add_judgment_i: bstring * typ * mixfix -> theory -> theory
@@ -28,13 +29,14 @@ struct
 
 val TruepropN = "Trueprop";
 
-fun strip_judgment prop =
-  (case Logic.strip_assums_concl prop of
-    tm as (Const (c, _) $ t) => if c = TruepropN then t else tm
-  | tm => tm);
-
 fun is_judgment (Const (c, _) $ _) = c = TruepropN
   | is_judgment _ = false;
+
+fun drop_judgment (Abs (x, T, t)) = Abs (x, T, drop_judgment t)
+  | drop_judgment (tm as (Const (c, _) $ t)) = if c = TruepropN then t else tm
+  | drop_judgment tm = tm;
+
+val strip_judgment = drop_judgment o Logic.strip_assums_concl;
 
 fun atomic_judgment thy x =
   let  (*be robust wrt. low-level errors*)
@@ -61,10 +63,8 @@ val add_judgment_i = gen_add_judgment Theory.add_consts_i;
 val thesisN = "thesis";
 val thisN = "this";
 
-fun list_abs parms tm = foldr (fn ((x, T), t) => Abs (x, T, t)) (parms, tm);
-
 fun statement_binds name prop =
-  [((name, 0), Some (list_abs (Logic.strip_params prop) (strip_judgment prop)))];
+  [((name, 0), Some (Term.list_abs (Logic.strip_params prop, strip_judgment prop)))];
 
 
 (* goal *)
@@ -76,12 +76,13 @@ fun goal prop = statement_binds thesisN prop;
 
 fun get_arg prop =
   (case strip_judgment prop of
-    _ $ t => Some (list_abs (Logic.strip_params prop) t)
+    _ $ t => Some (Term.list_abs (Logic.strip_params prop, t))
   | _ => None);
 
 fun facts _ [] = []
   | facts name props =
       let val prop = Library.last_elem props
       in [(Syntax.dddot_indexname, get_arg prop)] @ statement_binds thisN prop end;
+
 
 end;
