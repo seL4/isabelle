@@ -176,7 +176,7 @@ val temp = prove_goal Dnat.thy  "~dzero << dsucc`n"
         [
         (res_inst_tac [("P1","TT << FF")] classical3 1),
         (resolve_tac dist_less_tr 1),
-        (dres_inst_tac [("fo5","is_dzero")] monofun_cfun_arg 1),
+        (dres_inst_tac [("fo","is_dzero")] monofun_cfun_arg 1),
         (etac box_less 1),
         (asm_simp_tac (!simpset addsimps dnat_rews) 1),
         (case_tac "n=UU" 1),
@@ -192,7 +192,7 @@ val temp = prove_goal Dnat.thy  "n~=UU ==> ~dsucc`n << dzero"
         (cut_facts_tac prems 1),
         (res_inst_tac [("P1","TT << FF")] classical3 1),
         (resolve_tac dist_less_tr 1),
-        (dres_inst_tac [("fo5","is_dsucc")] monofun_cfun_arg 1),
+        (dres_inst_tac [("fo","is_dsucc")] monofun_cfun_arg 1),
         (etac box_less 1),
         (asm_simp_tac (!simpset addsimps dnat_rews) 1),
         (asm_simp_tac (!simpset addsimps dnat_rews) 1)
@@ -228,7 +228,7 @@ prove_goal Dnat.thy
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (dres_inst_tac [("fo5","dnat_when`c`(LAM x.x)")] monofun_cfun_arg 1),
+        (dres_inst_tac [("fo","dnat_when`c`(LAM x.x)")] monofun_cfun_arg 1),
         (etac box_less 1),
         (asm_simp_tac (!simpset addsimps dnat_rews) 1),
         (asm_simp_tac (!simpset addsimps dnat_rews) 1)

@@ -53,11 +53,11 @@ qed_goalw "Exh_stream" Stream.thy [scons_def]
         (asm_simp_tac (!simpset addsimps stream_rews) 1),
         (Asm_simp_tac  1),
         (res_inst_tac [("p","y")] upE1 1),
-        (contr_tac 1),
+         (contr_tac 1),
         (rtac disjI2 1),
         (rtac exI 1),
-        (rtac exI 1),
         (etac conjI 1),
+	(rtac exI 1),
         (Asm_simp_tac  1)
         ]);
 
@@ -174,11 +174,11 @@ prove_goal Stream.thy "[|x1~=UU; y1~=UU;\
         [
         (cut_facts_tac prems 1),
         (rtac conjI 1),
-        (dres_inst_tac [("fo5","stream_when`(LAM x l.x)")] monofun_cfun_arg 1),
+        (dres_inst_tac [("fo","stream_when`(LAM x l.x)")] monofun_cfun_arg 1),
         (etac box_less 1),
         (asm_simp_tac (!simpset addsimps stream_when) 1),
         (asm_simp_tac (!simpset addsimps stream_when) 1),
-        (dres_inst_tac [("fo5","stream_when`(LAM x l.l)")] monofun_cfun_arg 1),
+        (dres_inst_tac [("fo","stream_when`(LAM x l.l)")] monofun_cfun_arg 1),
         (etac box_less 1),
         (asm_simp_tac (!simpset addsimps stream_when) 1),
         (asm_simp_tac (!simpset addsimps stream_when) 1)
@@ -323,7 +323,7 @@ fun prover reach defs thm  = prove_goalw Stream.thy defs thm
         (rtac (is_chain_iterate RS ch2ch_fappL) 1),
         (rtac (is_chain_iterate RS ch2ch_fappL) 1),
         (rtac allI 1),
-        (resolve_tac prems 1),
+        (resolve_tac prems 1)
         ]);
 
 val stream_take_lemma = prover stream_reach  [stream_take_def]
@@ -494,7 +494,7 @@ qed_goalw "stream_coind_lemma2" Stream.thy [stream_bisim_def]
         (fast_tac HOL_cs 1),
         (rtac disjI2 1),
         (rtac disjE 1),
-        (etac (de_morgan2 RS ssubst) 1),
+        (etac (de_Morgan_conj RS subst) 1),
         (res_inst_tac [("x","shd`s1")] exI 1),
         (res_inst_tac [("x","stl`s1")] exI 1),
         (res_inst_tac [("x","stl`s2")] exI 1),
@@ -582,19 +582,17 @@ qed_goal "stream_take_lemma2" Stream.thy
         [
         (nat_ind_tac "n" 1),
         (simp_tac (!simpset addsimps stream_rews) 1),
-        (strip_tac 1 ),
-        (hyp_subst_tac  1),
-        (simp_tac (!simpset addsimps stream_rews) 1),
-        (rtac allI 1),
+        (strip_tac 1),
         (res_inst_tac [("s","s2")] streamE 1),
-        (asm_simp_tac (!simpset addsimps stream_rews) 1),
-        (asm_simp_tac (!simpset addsimps stream_rews) 1),
-        (strip_tac 1 ),
+         (asm_simp_tac (!simpset addsimps stream_rews) 1),
+	(hyp_subst_tac 1),
+	(rotate_tac ~1 1),
+        (asm_full_simp_tac (!simpset addsimps stream_rews) 1),
         (subgoal_tac "stream_take n1`xs = xs" 1),
-        (rtac ((hd stream_inject) RS conjunct2) 2),
-        (atac 4),
-        (atac 2),
-        (atac 2),
+         (rtac ((hd stream_inject) RS conjunct2) 2),
+           (atac 4),
+          (atac 2),
+         (atac 2),
         (rtac cfun_arg_cong 1),
         (fast_tac HOL_cs 1)
         ]);

@@ -8,6 +8,8 @@ Lemmas for dlist.thy
 
 open Dlist;
 
+Delsimps (ex_simps @ all_simps);
+
 (* ------------------------------------------------------------------------*)
 (* The isomorphisms dlist_rep_iso and dlist_abs_iso are strict             *)
 (* ------------------------------------------------------------------------*)
@@ -226,7 +228,7 @@ val temp = prove_goal Dlist.thy  "~dnil << dcons`(x::'a)`xl"
         [
         (res_inst_tac [("P1","TT << FF")] classical3 1),
         (resolve_tac dist_less_tr 1),
-        (dres_inst_tac [("fo5","is_dnil")] monofun_cfun_arg 1),
+        (dres_inst_tac [("fo","is_dnil")] monofun_cfun_arg 1),
         (etac box_less 1),
         (asm_simp_tac (!simpset addsimps dlist_rews) 1),
         (case_tac "(x::'a)=UU" 1),
@@ -244,7 +246,7 @@ val temp = prove_goal Dlist.thy  "[|x~=UU;xl~=UU|]==>~ dcons`x`xl << dnil"
         (cut_facts_tac prems 1),
         (res_inst_tac [("P1","TT << FF")] classical3 1),
         (resolve_tac dist_less_tr 1),
-        (dres_inst_tac [("fo5","is_dcons")] monofun_cfun_arg 1),
+        (dres_inst_tac [("fo","is_dcons")] monofun_cfun_arg 1),
         (etac box_less 1),
         (asm_simp_tac (!simpset addsimps dlist_rews) 1),
         (asm_simp_tac (!simpset addsimps dlist_rews) 1)
@@ -281,11 +283,11 @@ val temp = prove_goal Dlist.thy "[|x1~=UU; y1~=UU;x2~=UU; y2~=UU;\
         [
         (cut_facts_tac prems 1),
         (rtac conjI 1),
-        (dres_inst_tac [("fo5","dlist_when`UU`(LAM x l.x)")] monofun_cfun_arg 1),
+        (dres_inst_tac [("fo","dlist_when`UU`(LAM x l.x)")] monofun_cfun_arg 1),
         (etac box_less 1),
         (asm_simp_tac (!simpset addsimps dlist_when) 1),
         (asm_simp_tac (!simpset addsimps dlist_when) 1),
-        (dres_inst_tac [("fo5","dlist_when`UU`(LAM x l.l)")] monofun_cfun_arg 1),
+        (dres_inst_tac [("fo","dlist_when`UU`(LAM x l.l)")] monofun_cfun_arg 1),
         (etac box_less 1),
         (asm_simp_tac (!simpset addsimps dlist_when) 1),
         (asm_simp_tac (!simpset addsimps dlist_when) 1)

@@ -7,6 +7,8 @@
 
 open Focus_ex;
 
+	Delsimps (ex_simps @ all_simps);
+
 (* first some logical trading *)
 
 val prems = goal Focus_ex.thy
