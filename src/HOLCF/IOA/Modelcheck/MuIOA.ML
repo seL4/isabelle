@@ -1,8 +1,9 @@
+
 (* MuIOA.ML declares function mk_sim_oracle used by oracle "Sim" (see MuIOAOracle.thy).
 	There, implementation relations for I/O automatons are proved using
 	the model checker mucke (invoking cal_mucke_tac defined in MCSyn.ML). *)
 
-exception SimOracleExn of (term*theory*(thm list));
+exception SimOracleExn of (term*(thm list));
 exception SimFailureExn of string;
 
 val ioa_simps = [asig_of_def,starts_of_def,trans_of_def];
@@ -161,7 +162,7 @@ merge_var_and_type _ _ = raise malformed;
 
 in
 
-fun mk_sim_oracle (sign, SimOracleExn (subgoal,t,thl)) =
+fun mk_sim_oracle (sign, SimOracleExn (subgoal,thl)) =
 (let
 	val concl = (Logic.strip_imp_concl subgoal);
 
@@ -225,7 +226,7 @@ structured_tuple con_post_varlist (element_type(#T(rep_cterm(cterm_of sign (Star
 in
 (
 push_proof();
-goal t 
+Goal 
 ( "(Internal_of_A = (% a::(" ^ action_type_str ^ "). a:(" ^ ia_str^
   "))) --> (Internal_of_C = (% a::(" ^ action_type_str ^ "). a:(" ^ ic_str ^ 
   "))) --> (Start_of_A = (% (" ^ abs_pre_tupel_typed ^
@@ -262,7 +263,7 @@ by (full_simp_tac ((simpset() delsimps [not_iff,split_part])
                                         rename_simps @ ioa_simps @ asig_simps)) 1);
 by (full_simp_tac (Mucke_ss delsimps [not_iff,split_part]) 1);
 by (REPEAT (if_full_simp_tac (simpset() delsimps [not_iff,split_part]) 1));
-by (call_mucke_tac t 1);
+by (call_mucke_tac 1);
 (* Bis hierher wird im Kapitel 5 erl"autert, ab hier wieder im Kapitel 4 *)
 by (atac 1);
 result();
