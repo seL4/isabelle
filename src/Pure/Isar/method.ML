@@ -20,11 +20,11 @@ sig
   val dest_global: theory attribute
   val elim_global: theory attribute
   val intro_global: theory attribute
-  val delrule_global: theory attribute
+  val rule_del_global: theory attribute
   val dest_local: Proof.context attribute
   val elim_local: Proof.context attribute
   val intro_local: Proof.context attribute
-  val delrule_local: Proof.context attribute
+  val rule_del_local: Proof.context attribute
   val METHOD: (thm list -> tactic) -> Proof.method
   val METHOD_CASES:
     (thm list -> thm -> (thm * (string * RuleCases.T) list) Seq.seq) -> Proof.method
@@ -175,27 +175,31 @@ val print_local_rules = LocalRules.print;
 
 local
 
-fun add_rule thm rules = Library.gen_ins Thm.eq_thm (thm, rules);
-fun del_rule thm rules = Library.gen_rem Thm.eq_thm (rules, thm);
+fun add_dest th (intro, elim) = (intro, Drule.add_rules [Tactic.make_elim th] elim);
+fun add_elim th (intro, elim) = (intro, Drule.add_rules [th] elim);
+fun add_intro th (intro, elim) = (Drule.add_rules [th] intro, elim);
 
-fun add_dest thm (intro, elim) = (intro, add_rule (Tactic.make_elim thm) elim);
-fun add_elim thm (intro, elim) = (intro, add_rule thm elim);
-fun add_intro thm (intro, elim) = (add_rule thm intro, elim);
-fun delrule thm (intro, elim) = (del_rule thm intro, del_rule thm elim);
+fun del_rule th (intro, elim) =
+  let
+    val th' = Tactic.make_elim th;
+    val del = Drule.del_rules [th'] o Drule.del_rules [th];
+  in (del intro, del elim) end;
 
-fun mk_att f g (x, thm) = (f (g thm) x, thm);
+fun mk_att f g (x, th) = (f (g th) x, th);
 
 in
 
 val dest_global = mk_att GlobalRules.map add_dest;
 val elim_global = mk_att GlobalRules.map add_elim;
 val intro_global = mk_att GlobalRules.map add_intro;
-val delrule_global = mk_att GlobalRules.map delrule;
+val rule_del_global = mk_att GlobalRules.map del_rule;
 
 val dest_local = mk_att LocalRules.map add_dest;
 val elim_local = mk_att LocalRules.map add_elim;
 val intro_local = mk_att LocalRules.map add_intro;
-val delrule_local = mk_att LocalRules.map delrule;
+val rule_del_local = mk_att LocalRules.map del_rule;
+
+fun del_args att = Attrib.syntax (Scan.lift (Args.$$$ "del") >> K att);
 
 end;
 
@@ -209,7 +213,7 @@ val rule_atts =
     "declaration of elimination rule"),
   ("intro", (Attrib.no_args intro_global, Attrib.no_args intro_local),
     "declaration of introduction rule"),
-  ("delrule", (Attrib.no_args delrule_global, Attrib.no_args delrule_local),
+  ("rule", (del_args rule_del_global, del_args rule_del_local),
     "remove declaration of elim/intro rule")];
 
 
