@@ -64,6 +64,13 @@ syntax (HTML output)
 
 local
 
+finalconsts
+  False All Ex
+  "op ="
+  "op &"
+  "op |"
+  "op -->"
+
 axioms
 
   (* Equality *)
@@ -86,18 +93,6 @@ axioms
 
   FalseE:       "False ==> P"
 
-
-  (* Definitions *)
-
-  True_def:     "True  == False-->False"
-  not_def:      "~P    == P-->False"
-  iff_def:      "P<->Q == (P-->Q) & (Q-->P)"
-
-  (* Unique existence *)
-
-  ex1_def:      "EX! x. P(x) == EX x. P(x) & (ALL y. P(y) --> y=x)"
-
-
   (* Quantifiers *)
 
   allI:         "(!!x. P(x)) ==> (ALL x. P(x))"
@@ -111,6 +106,17 @@ axioms
   eq_reflection:  "(x=y)   ==> (x==y)"
   iff_reflection: "(P<->Q) ==> (P==Q)"
 
+
+defs
+  (* Definitions *)
+
+  True_def:     "True  == False-->False"
+  not_def:      "~P    == P-->False"
+  iff_def:      "P<->Q == (P-->Q) & (Q-->P)"
+
+  (* Unique existence *)
+
+  ex1_def:      "Ex1(P) == EX x. P(x) & (ALL y. P(y) --> y=x)"
 
 
 subsection {* Lemmas and proof tools *}

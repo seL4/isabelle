@@ -14,7 +14,7 @@ time_use     "foundn.ML";
 time_use_thy "Prolog";
 
 writeln"\n** Intuitionistic examples **\n";
-time_use_thy "int";
+time_use_thy "Intuitionistic";
 
 val thy = IFOL.thy  and  tac = IntPr.fast_tac 1;
 time_use     "prop.ML";
@@ -22,7 +22,7 @@ time_use     "quant.ML";
 
 writeln"\n** Classical examples **\n";
 time_use     "mini.ML";
-time_use     "cla.ML";
+time_use_thy "Classical";
 time_use_thy "If";
 
 val thy = FOL.thy  and  tac = Cla.fast_tac FOL_cs 1;
