@@ -46,11 +46,16 @@ sig
       (xstring * Args.src list) list -> theory -> theory *
       {defs: thm list, elims: thm list, raw_induct: thm, induct: thm,
        intrs: thm list, mk_cases: string -> thm, mono: thm, unfold: thm}
+  val inductive_cases: (((bstring * Args.src list) * xstring) * string list) * Comment.text
+    -> theory -> theory
+  val inductive_cases_i: (((bstring * theory attribute list) * string) * term list) * Comment.text
+    -> theory -> theory
   val setup: (theory -> theory) list
 end;
 
 structure InductivePackage: INDUCTIVE_PACKAGE =
 struct
+
 
 (** utilities **)
 
@@ -96,9 +101,8 @@ fun unify_consts sign cs intr_ts =
 
 (* misc *)
 
-(*For proving monotonicity of recursion operator*)
-val basic_monos = [subset_refl, imp_refl, disj_mono, conj_mono, 
-                   ex_mono, Collect_mono, in_mono, vimage_mono];
+(*for proving monotonicity of recursion operator*)
+val default_monos = basic_monos @ [vimage_mono];
 
 val Const _ $ (vimage_f $ _) $ _ = HOLogic.dest_Trueprop (concl_of vimageD);
 
@@ -326,7 +330,7 @@ fun prove_mono setT fp_fun monos thy =
 
     val mono = prove_goalw_cterm [] (cterm_of (Theory.sign_of thy) (HOLogic.mk_Trueprop
       (Const (mono_name, (setT --> setT) --> HOLogic.boolT) $ fp_fun)))
-        (fn _ => [rtac monoI 1, REPEAT (ares_tac (basic_monos @ monos) 1)])
+        (fn _ => [rtac monoI 1, REPEAT (ares_tac (default_monos @ monos) 1)])
 
   in mono end;
 
@@ -402,15 +406,43 @@ fun con_elim_tac ss =
      THEN prune_params_tac
   end;
 
-(*String s should have the form t:Si where Si is an inductive set*)
-fun mk_cases elims s =
-  let val prem = assume (read_cterm (Thm.sign_of_thm (hd elims)) (s, propT))
-      fun mk_elim rl = rule_by_tactic (con_elim_tac (simpset())) (prem RS rl) 
-	               |> standard
-  in case find_first is_some (map (try mk_elim) elims) of
-       Some (Some r) => r
-     | None => error ("mk_cases: string '" ^ s ^ "' not of form 't : S_i'")
+(*cprop should have the form t:Si where Si is an inductive set*)
+fun mk_cases_i elims ss cprop =
+  let
+    val prem = Thm.assume cprop;
+    fun mk_elim rl = standard (rule_by_tactic (con_elim_tac ss) (prem RS rl));
+  in
+    (case get_first (try mk_elim) elims of
+      Some r => r
+    | None => error (Pretty.string_of (Pretty.block
+        [Pretty.str "mk_cases: proposition not of form 't : S_i'", Pretty.fbrk,
+          Display.pretty_cterm cprop])))
   end;
+
+fun mk_cases elims s =
+  mk_cases_i elims (simpset()) (Thm.read_cterm (Thm.sign_of_thm (hd elims)) (s, propT));
+
+
+(* inductive_cases(_i) *)
+
+fun gen_inductive_cases prep_att prep_const prep_prop
+    ((((name, raw_atts), raw_set), raw_props), comment) thy =
+  let
+    val sign = Theory.sign_of thy;
+
+    val atts = map (prep_att thy) raw_atts;
+    val (_, {elims, ...}) = get_inductive thy (prep_const sign raw_set);
+    val cprops = map (Thm.cterm_of sign o prep_prop (ProofContext.init thy)) raw_props;
+    val thms = map (mk_cases_i elims (Simplifier.simpset_of thy)) cprops;
+  in
+    thy
+    |> IsarThy.have_theorems_i (((name, atts), map Thm.no_attributes thms), comment)
+  end;
+
+val inductive_cases =
+  gen_inductive_cases Attrib.global_attribute Sign.intern_const ProofContext.read_prop;
+
+val inductive_cases_i = gen_inductive_cases (K I) (K I) ProofContext.cert_prop;
 
 
 
@@ -730,8 +762,17 @@ val inductiveP =
 val coinductiveP =
   OuterSyntax.command "coinductive" "define coinductive sets" K.thy_decl (ind_decl true);
 
+
+val ind_cases =
+  P.opt_thm_name "=" -- P.xname --| P.$$$ ":" -- Scan.repeat1 P.prop -- P.marg_comment
+  >> (Toplevel.theory o inductive_cases);
+
+val inductive_casesP =
+  OuterSyntax.command "inductive_cases" "create simplified instances of elimination rules"
+    K.thy_decl ind_cases;
+
 val _ = OuterSyntax.add_keywords ["intrs", "monos", "con_defs"];
-val _ = OuterSyntax.add_parsers [inductiveP, coinductiveP];
+val _ = OuterSyntax.add_parsers [inductiveP, coinductiveP, inductive_casesP];
 
 end;
 
