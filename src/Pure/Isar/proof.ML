@@ -3,15 +3,6 @@
     Author:     Markus Wenzel, TU Muenchen
 
 Proof states and methods.
-
-TODO:
-  - assume: improve schematic Vars handling (!?);
-  - warn_vars;
-  - bind: check rhs (extra (T)Vars etc.) (How to handle these anyway?);
-  - prep_result: avoid duplicate asms;
-  - prep_result error: use error channel (!);
-  - check_finished: trace results (!?);
-  - next_block: fetch_facts (!?);
 *)
 
 signature PROOF =
@@ -58,7 +49,8 @@ sig
   val next_block: state -> state
   val end_block: state -> state
   val at_bottom: state -> bool
-  val local_qed: (state -> state Seq.seq) -> bool -> state -> state Seq.seq
+  val local_qed: (state -> state Seq.seq) -> ({kind: string, name: string, thm: thm} -> unit)
+    -> state -> state Seq.seq
   val global_qed: (state -> state Seq.seq) -> bstring option
     -> theory attribute list option -> state -> theory * {kind: string, name: string, thm: thm}
 end;
@@ -241,7 +233,7 @@ val enter_backward = put_mode Backward;
 fun assert_mode pred state =
   let val mode = get_mode state in
     if pred mode then state
-    else raise STATE ("Illegal application of command in " ^ mode_name mode ^ " mode", state)
+    else raise STATE ("Illegal application of proof command in " ^ mode_name mode ^ " mode", state)
   end;
 
 fun is_chain state = get_mode state = ForwardChain;
@@ -367,7 +359,8 @@ fun prep_result state asms t raw_thm =
       raw_thm RS Drule.rev_triv_goal
       |> implies_elim_hyps
       |> Drule.implies_intr_list asms
-      |> varify_frees (ProofContext.fixed_names ctxt);
+      |> varify_frees (ProofContext.fixed_names ctxt)
+      |> Thm.varifyT;
 
     val {hyps, prop, sign, ...} = Thm.rep_thm thm;
     val tsig = Sign.tsig_of sign;
@@ -608,7 +601,7 @@ fun end_block state =
 
 (* local_qed *)
 
-fun finish_local state =
+fun finish_local print_result state =
   let
     val ((kind, name, asms, t), (_, raw_thm)) = current_goal state;
     val result = prep_result state asms t raw_thm;
@@ -618,16 +611,17 @@ fun finish_local state =
       | Aux atts => (atts, Seq.single)
       | _ => raise STATE ("No local goal!", state));
   in
+    print_result {kind = kind_name kind, name = name, thm = result};
     state
     |> close_block
     |> have_thmss name atts [Thm.no_attributes [result]]
     |> opt_solve
   end;
 
-fun local_qed finalize int state =	(* FIXME handle int *)
+fun local_qed finalize print_result state =
   state
   |> finish_proof false finalize
-  |> (Seq.flat o Seq.map finish_local);
+  |> (Seq.flat o Seq.map (finish_local print_result));
 
 
 (* global_qed *)
