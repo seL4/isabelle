@@ -1,4 +1,3 @@
-
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
@@ -123,6 +122,9 @@ ISABELLE_HOME/bin;
 
 
 *** HOL ***
+
+** There is now a HOL TUTORIAL **
+   Use `isatool doc tutorial' or see Doc/Tutorial.
 
 * HOL/inductive package reorganized and improved: now supports mutual
 definitions such as
