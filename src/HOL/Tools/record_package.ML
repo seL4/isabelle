@@ -69,10 +69,6 @@ infix 0 :== ===;
 val (op :==) = Logic.mk_defpair;
 val (op ===) = HOLogic.mk_Trueprop o HOLogic.mk_eq;
 
-fun lambda v t =
-  let val (x, T) = Term.dest_Free v
-  in Abs (x, T, abstract_over (v, t)) end;
-
 fun prefix_base s = NameSpace.map_base (fn bname => s ^ bname);
 
 
