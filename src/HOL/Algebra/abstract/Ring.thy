@@ -9,7 +9,7 @@ Ring = Main +
 (* Syntactic class ring *)
 
 axclass
-  ringS < plus, minus, times, power
+  ringS < plus, minus, times, power, inverse
 
 consts
   (* Basic rings *)
@@ -22,13 +22,8 @@ consts
   irred		:: 'a::ringS => bool
   prime		:: 'a::ringS => bool
 
-  (* Fields *)
-  inverse	:: 'a::ringS => 'a
-  "'/"		:: ['a, 'a] => 'a::ringS		(infixl 70)
-
 translations
   "a -- b" 	== "a + (-b)"
-  "a / b"	== "a * inverse b"
 
 (* Class ring and ring axioms *)
 
@@ -50,6 +45,8 @@ axclass
   one_not_zero	"<1> ~= <0>"
   		(* if <1> = <0>, then the ring has only one element! *)
 
+  inverse_ax    "inverse a = (if a dvd <1> then @x. a*x = <1> else <0>)"
+  divide_ax     "a / b = a * inverse b"
   power_ax	"a ^ n = nat_rec <1> (%u b. b * a) n"
 
 defs
@@ -58,8 +55,6 @@ defs
                           & (ALL d. d dvd a --> d dvd <1> | a dvd d)"
   prime_def	"prime p == p ~= <0> & ~ p dvd <1>
                           & (ALL a b. p dvd (a*b) --> p dvd a | p dvd b)"
-
-  inverse_def	"inverse a == if a dvd <1> then @x. a*x = <1> else <0>"
 
 (* Integral domains *)
 
