@@ -24,6 +24,7 @@ sig
   val get_sg: Sign.sg -> T
   val get: theory -> T
   val put: T -> theory -> theory
+  val map: (T -> T) -> theory -> theory
 end;
 
 functor TheoryDataFun(Args: THEORY_DATA_ARGS): THEORY_DATA =
@@ -47,6 +48,7 @@ val print = Theory.print_data kind;
 val get_sg = Sign.get_data kind (fn Data x => x);
 val get = get_sg o Theory.sign_of;
 val put = Theory.put_data kind Data;
+fun map f thy = put (f (get thy)) thy;
 
 end;
 
