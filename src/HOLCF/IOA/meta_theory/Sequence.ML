@@ -857,9 +857,9 @@ Goal
 \   --> seq_take n`(x @@ (t>>y1)) =  seq_take n`(x @@ (t>>y2)))";
 by (Seq_induct_tac "x" [] 1);
 by (strip_tac 1);
-by (exhaust_tac "n" 1);
+by (cases_tac "n" 1);
 by Auto_tac;
-by (exhaust_tac "n" 1);
+by (cases_tac "n" 1);
 by Auto_tac;
 qed"take_reduction1";
 
@@ -879,9 +879,9 @@ Goal
 \   --> seq_take n`(x @@ (t>>y1)) <<  seq_take n`(x @@ (t>>y2)))";
 by (Seq_induct_tac "x" [] 1);
 by (strip_tac 1);
-by (exhaust_tac "n" 1);
+by (cases_tac "n" 1);
 by Auto_tac;
-by (exhaust_tac "n" 1);
+by (cases_tac "n" 1);
 by Auto_tac;
 qed"take_reduction_less1";
 
