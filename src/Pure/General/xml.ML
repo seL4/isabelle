@@ -41,7 +41,7 @@ fun decode "&lt;" = "<"
   | decode "&quot;" = "\""
   | decode c = c;
 
-val text = implode o map encode o explode;
+val text = String.translate (encode o String.str);
 
 
 (* elements *)
@@ -50,7 +50,7 @@ datatype tree =
     Elem of string * (string * string) list * tree list
   | Text of string;
 
-fun attribute (a, x) = a ^ " = " ^ quote (text x);
+fun attribute (a, x) = a ^ " = " ^ Library.quote (text x);
 
 fun element name atts cs =
   let val elem = space_implode " " (name :: map attribute atts) in
