@@ -36,13 +36,9 @@ sig
     -> token list -> 'a list * token list
   val enum1: string -> (token list -> 'a * token list)
     -> token list -> 'a list * token list
-  val enum2: string -> (token list -> 'a * token list)
-    -> token list -> 'a list * token list
   val list: (token list -> 'a * token list)
     -> token list -> 'a list * token list
   val list1: (token list -> 'a * token list)
-    -> token list -> 'a list * token list
-  val list2: (token list -> 'a * token list)
     -> token list -> 'a list * token list
   val name: token list -> string * token list
   val sort: token list -> string * token list
@@ -150,12 +146,10 @@ fun repeat parse toks = (parse -- repeat parse >> op :: || empty) toks;
 fun repeat1 parse = parse -- repeat parse >> op ::;
 
 fun enum1 sep parse = parse -- repeat (sep $$-- parse) >> op ::;
-fun enum2 sep parse = parse --$$ sep -- enum1 sep parse >> op ::;
 fun enum sep parse = enum1 sep parse || empty;
 
 val list = enum ",";
 val list1 = enum1 ",";
-val list2 = enum2 ","; (*list with at least two elements*)
 
 
 (** theory parsers **)
