@@ -118,35 +118,34 @@ qed
 
 
 lemma app_mono: 
-"[|G \<turnstile> s <=' s'; app i G m rT s'|] ==> app i G m rT s";
+"[|G \<turnstile> s <=' s'; app i G m rT s'|] ==> app i G m rT s"
 proof -
 
   { fix s1 s2
     assume G:   "G \<turnstile> s2 <=s s1"
     assume app: "app i G m rT (Some s1)"
 
+    (*
     from G
     have l: "length (fst s2) = length (fst s1)"
       by simp
+      *)
 
     have "app i G m rT (Some s2)"
     proof (cases (open) i)
       case Load
     
-      from G
-      have l: "length (snd s1) = length (snd s2)" by (simp add: sup_state_length)
-      
       from G Load app
       have "G \<turnstile> snd s2 <=l snd s1" by (auto simp add: sup_state_def)
       
-      with G Load app l
+      with G Load app 
       show ?thesis by clarsimp (drule sup_loc_some, simp+)
     next
       case Store
       with G app
       show ?thesis
-        by - (cases s2,
-              auto simp add: map_eq_Cons sup_loc_Cons2 sup_loc_length sup_state_def)
+        by - (cases s2, auto simp add: map_eq_Cons sup_loc_Cons2 
+                                       sup_loc_length sup_state_def)
     next
       case Bipush
       with G app
@@ -262,7 +261,7 @@ proof -
       proof -
         from l s1 G 
         have "length list < length (fst s2)" 
-          by (simp add: sup_state_length)
+          by simp
         hence "\<exists>a b c. (fst s2) = rev a @ b # c \<and> length a = length list"
           by (rule rev_append_cons [rule_format])
         thus ?thesis
@@ -300,12 +299,12 @@ proof -
       show ?thesis
         by (simp del: split_paired_Ex) blast
     qed
-  } note mono_Some = this
+  } note this [simp]
 
   assume "G \<turnstile> s <=' s'" "app i G m rT s'"
   
   thus ?thesis 
-    by - (cases s, cases s', auto simp add: mono_Some)
+    by - (cases s, cases s', auto)
 qed
     
 lemmas [simp del] = split_paired_Ex
