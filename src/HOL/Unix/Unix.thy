@@ -975,7 +975,7 @@ text {*
   performed by @{term user1} alone.  Note that this holds for any
   @{term path} given, the particular @{term bogus_path} is not
   required here.
-*}  (* FIXME The overall structure of the proof is as follows \dots *)
+*}
 
 lemma preserve_invariant: "root \<midarrow>x\<rightarrow> root' \<Longrightarrow>
   invariant root path \<Longrightarrow> uid_of x = user1 \<Longrightarrow> invariant root' path"
