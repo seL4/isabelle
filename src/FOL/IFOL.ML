@@ -383,3 +383,44 @@ by (rewrite_goals_tac prems);
 by (rtac refl 1);
 qed "def_imp_eq";
 
+
+(** strip ALL and --> from proved goal while preserving ALL-bound var names **)
+
+local
+
+(* Use XXX to avoid forall_intr failing because of duplicate variable name *)
+val myspec = read_instantiate [("P","?XXX")] spec;
+val _ $ (_ $ (vx as Var(_,vxT))) = concl_of myspec;
+val cvx = cterm_of (#sign(rep_thm myspec)) vx;
+val aspec = forall_intr cvx myspec;
+
+in
+
+fun RSspec th =
+  (case concl_of th of
+     _ $ (Const("All",_) $ Abs(a,_,_)) =>
+         let val ca = cterm_of (#sign(rep_thm th)) (Var((a,0),vxT))
+         in th RS forall_elim ca aspec end
+  | _ => raise THM("RSspec",0,[th]));
+
+fun RSmp th =
+  (case concl_of th of
+     _ $ (Const("op -->",_)$_$_) => th RS mp
+  | _ => raise THM("RSmp",0,[th]));
+
+fun normalize_thm funs =
+let fun trans [] th = th
+      | trans (f::fs) th = (trans funs (f th)) handle THM _ => trans fs th
+in trans funs end;
+
+fun qed_spec_mp name =
+  let val thm = normalize_thm [RSspec,RSmp] (result())
+  in bind_thm(name, thm) end;
+
+fun qed_goal_spec_mp name thy s p = 
+      bind_thm (name, normalize_thm [RSspec,RSmp] (prove_goal thy s p));
+
+fun qed_goalw_spec_mp name thy defs s p = 
+      bind_thm (name, normalize_thm [RSspec,RSmp] (prove_goalw thy defs s p));
+
+end;
