@@ -12,55 +12,55 @@ struct
 (*Inductive definitions theory section.   co is either "" or "Co"*)
 fun inductive_decl co =
   let open ThyParse 
-      fun mk_intr_name (s,_) =  (*the "op" cancels any infix status*)
-	  if Syntax.is_identifier s then "op " ^ s  else "_"
-      fun mk_params ((((((rec_tms, sdom_sum), ipairs), 
-			monos), con_defs), type_intrs), type_elims) =
-        let val big_rec_name = space_implode "_" 
-		             (map (scan_to_id o trim) rec_tms)
-	    and srec_tms = mk_list rec_tms
-	    and sintrs   = mk_big_list (map snd ipairs)
-            val stri_name = big_rec_name ^ "_Intrnl"
-        in
-	   (";\n\n\
-            \structure " ^ stri_name ^ " =\n\
-            \  struct\n\
-            \  val _ = writeln \"" ^ co ^ 
-	               "Inductive definition " ^ big_rec_name ^ "\"\n\
-            \  val rec_tms\t= map (readtm (sign_of thy) Ind_Syntax.iT) "
-	                     ^ srec_tms ^ "\n\
-            \  and dom_sum\t= readtm (sign_of thy) Ind_Syntax.iT " ^ sdom_sum ^ "\n\
-            \  and intr_tms\t= map (readtm (sign_of thy) propT)\n"
-	                     ^ sintrs ^ "\n\
-            \  end;\n\n\
-            \val thy = thy |> " ^ co ^ "Ind.add_fp_def_i \n    (" ^ 
-	       stri_name ^ ".rec_tms, " ^
-               stri_name ^ ".dom_sum, " ^
-               stri_name ^ ".intr_tms)"
-           ,
-	    "structure " ^ big_rec_name ^ " =\n\
-            \ let\n\
-            \  val _ = writeln \"Proofs for " ^ co ^ 
-	               "Inductive definition " ^ big_rec_name ^ "\"\n\
-            \  structure Result = " ^ co ^ "Ind_section_Fun\n\
-            \\t  (open " ^ stri_name ^ "\n\
-            \\t   val thy\t\t= thy\n\
-            \\t   val monos\t\t= " ^ monos ^ "\n\
-            \\t   val con_defs\t\t= " ^ con_defs ^ "\n\
-            \\t   val type_intrs\t= " ^ type_intrs ^ "\n\
-            \\t   val type_elims\t= " ^ type_elims ^ ")\n\
-            \ in\n\
-            \  struct\n\
-            \  val " ^ mk_list (map mk_intr_name ipairs) ^ " = Result.intrs;\n\
-            \  open Result\n\
-            \  end\n\
-            \ end;\n\n\
-            \structure " ^ stri_name ^ " = struct end;\n\n"
-	   )
-	end
-      val domains = "domains" $$-- enum1 "+" string --$$ "<=" -- !! string
-      val ipairs  = "intrs"   $$-- repeat1 (ident -- !! string)
-      fun optstring s = optional (s $$-- string) "\"[]\"" >> trim
+    fun mk_intr_name (s,_) =  (*the "op" cancels any infix status*)
+	if Syntax.is_identifier s then "op " ^ s  else "_"
+    fun mk_params ((((((rec_tms, sdom_sum), ipairs), 
+		      monos), con_defs), type_intrs), type_elims) =
+      let val big_rec_name = space_implode "_" 
+			   (map (scan_to_id o trim) rec_tms)
+	  and srec_tms = mk_list rec_tms
+	  and sintrs   = mk_big_list (map snd ipairs)
+	  val stri_name = big_rec_name ^ "_Intrnl"
+      in
+	 (";\n\n\
+	  \structure " ^ stri_name ^ " =\n\
+	  \  struct\n\
+	  \  val _ = writeln \"" ^ co ^ 
+		     "Inductive definition " ^ big_rec_name ^ "\"\n\
+	  \  val rec_tms\t= map (readtm (sign_of thy) Ind_Syntax.iT) "
+			   ^ srec_tms ^ "\n\
+	  \  and dom_sum\t= readtm (sign_of thy) Ind_Syntax.iT " ^ sdom_sum ^ "\n\
+	  \  and intr_tms\t= map (readtm (sign_of thy) propT)\n"
+			   ^ sintrs ^ "\n\
+	  \  end;\n\n\
+	  \val thy = thy |> " ^ co ^ "Ind.add_fp_def_i \n    (" ^ 
+	     stri_name ^ ".rec_tms, " ^
+	     stri_name ^ ".dom_sum, " ^
+	     stri_name ^ ".intr_tms)"
+	 ,
+	  "structure " ^ big_rec_name ^ " =\n\
+	  \ let\n\
+	  \  val _ = writeln \"Proofs for " ^ co ^ 
+		     "Inductive definition " ^ big_rec_name ^ "\"\n\
+	  \  structure Result = " ^ co ^ "Ind_section_Fun\n\
+	  \\t  (open " ^ stri_name ^ "\n\
+	  \\t   val thy\t\t= thy\n\
+	  \\t   val monos\t\t= " ^ monos ^ "\n\
+	  \\t   val con_defs\t\t= " ^ con_defs ^ "\n\
+	  \\t   val type_intrs\t= " ^ type_intrs ^ "\n\
+	  \\t   val type_elims\t= " ^ type_elims ^ ")\n\
+	  \ in\n\
+	  \  struct\n\
+	  \  val " ^ mk_list (map mk_intr_name ipairs) ^ " = Result.intrs;\n\
+	  \  open Result\n\
+	  \  end\n\
+	  \ end;\n\n\
+	  \structure " ^ stri_name ^ " = struct end;\n\n"
+	 )
+      end
+    val domains = "domains" $$-- enum1 "+" string --$$ "<=" -- !! string
+    val ipairs  = "intrs"   $$-- repeat1 (ident -- !! string)
+    fun optstring s = optional (s $$-- string) "\"[]\"" >> trim
   in domains -- ipairs -- optstring "monos" -- optstring "con_defs"
              -- optstring "type_intrs" -- optstring "type_elims"
      >> mk_params
