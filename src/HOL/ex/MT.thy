@@ -13,7 +13,7 @@ Written up as
     Report 308, Computer Lab, University of Cambridge (1993).
 *)
 
-MT = Gfp + Sum + 
+MT = Inductive + 
 
 types 
   Const

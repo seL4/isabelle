@@ -9,7 +9,7 @@ See Ch. Paulin-Mohring, Inductive Definitions in the System Coq.
 Research Report 92-49, LIP, ENS Lyon.  Dec 1992.
 *)
 
-Acc = WF + 
+Acc = WF + Inductive +
 
 constdefs
   pred :: "['b, ('a * 'b)set] => 'a set"        (*Set of predecessors*)

@@ -6,7 +6,7 @@
 Natural semantics of commands
 *)
 
-Natural = Com +
+Natural = Com + Inductive +
 
 (** Execution of commands **)
 consts  evalc    :: "(com*state*state)set"

@@ -6,7 +6,7 @@
 Inductive definition of Hoare logic
 *)
 
-Hoare = Denotation + Gfp +
+Hoare = Denotation + Inductive +
 
 types assn = state => bool
 

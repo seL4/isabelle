@@ -544,8 +544,8 @@ by (res_inst_tac
     [("X", "UN u:llist(A). UN v: llist(A). {Lappend u v}")] llist_coinduct 1);
 by (Fast_tac 1);
 by Safe_tac;
-by (eres_inst_tac [("a", "u")] llist.elim 1);
-by (eres_inst_tac [("a", "v")] llist.elim 1);
+by (eres_inst_tac [("aa", "u")] llist.elim 1);
+by (eres_inst_tac [("aa", "v")] llist.elim 1);
 by (ALLGOALS Asm_simp_tac);
 by (Blast_tac 1);
 qed "Lappend_type";
@@ -556,7 +556,7 @@ Goal
 by (res_inst_tac [("X", "(%u. Lappend u N)``llist(A)")] llist_coinduct 1);
 by (etac imageI 1);
 by (rtac image_subsetI 1);
-by (eres_inst_tac [("a", "x")] llist.elim 1);
+by (eres_inst_tac [("aa", "x")] llist.elim 1);
 by (asm_simp_tac (simpset() addsimps [list_Fun_llist_I]) 1);
 by (Asm_simp_tac 1);
 qed "Lappend_type";

@@ -242,7 +242,7 @@ val [p1,p2] = goalw thy [invariant_def]
 \  ==> invariant A P";
 by (rtac allI 1);
 by (rtac impI 1);
-by (res_inst_tac [("za","s")] reachable.induct 1);
+by (res_inst_tac [("xa","s")] reachable.induct 1);
 by (atac 1);
 by (etac p1 1);
 by (eres_inst_tac [("s1","sa")] (p2 RS mp) 1);

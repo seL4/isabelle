@@ -7,7 +7,7 @@ Arithmetic expressions and Boolean expressions.
 Not used in the rest of the language, but included for completeness.
 *)
 
-Expr = Arith +
+Expr = Arith + Inductive +
 
 (** Arithmetic expressions **)
 types loc
