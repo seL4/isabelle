@@ -74,6 +74,10 @@ many laws relating division to addition, multiplication, etc.;
 
 * Meta-level proof terms (by Stefan Berghofer), see also ref manual;
 
+* new token syntax "num" for plain numerals (without "#" of "xnum");
+potential INCOMPATIBILITY, since -0, -1 etc. are now separate tokens,
+so expressions involving minus need to be spaced properly;
+
 * Classical reasoner: renamed addaltern to addafter, addSaltern to
 addSafter;
 
