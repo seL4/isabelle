@@ -355,11 +355,12 @@ associated concrete syntax.  The translations section specifies
 rewrite rules on abstract syntax trees, handling notations and
 abbreviations.  \index{*ML section} The {\tt ML} section may contain
 code to perform arbitrary syntactic transformations.  The main
-declaration forms are discussed below.  The full syntax can be found
-in \iflabelundefined{app:TheorySyntax}{an appendix of the {\it
-    Reference Manual}}{App.\ts\ref{app:TheorySyntax}}.  Also note that
-object-logics may add further theory sections, for example {\tt
-  typedef}, {\tt datatype} in \HOL.
+declaration forms are discussed below.  There are some more sections
+not presented here, the full syntax can be found in
+\iflabelundefined{app:TheorySyntax}{an appendix of the {\it Reference
+    Manual}}{App.\ts\ref{app:TheorySyntax}}.  Also note that
+object-logics may add further theory sections, for example
+\texttt{typedef}, \texttt{datatype} in \HOL.
 
 All the declaration parts can be omitted or repeated and may appear in
 any order, except that the {\ML} section must be last (after the {\tt
@@ -619,6 +620,12 @@ The constants \hbox{\verb|op ~&|} and \hbox{\verb|op #|} are declared
 automatically, just as in \ML.  Hence you may write propositions like
 \verb|op #(True) == op ~&(True)|, which asserts that the functions $\lambda
 Q.True \xor Q$ and $\lambda Q.True \nand Q$ are identical.
+
+\medskip Infix syntax and constant names may be also specified
+independently. For example, consider this version of $\nand$:
+\begin{ttbox}
+consts  nand     :: [o,o] => o         (infixl "~&" 35)
+\end{ttbox}
 
 \bigskip\index{mixfix declarations}
 {\bf Mixfix} operators may have arbitrary context-free syntaxes.  Let us
