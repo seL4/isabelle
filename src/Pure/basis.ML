@@ -34,6 +34,8 @@ structure General =
     | valOf NONE     = raise Option
   end;
 
+open General;
+
 
 structure Int =
   struct
