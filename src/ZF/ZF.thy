@@ -82,7 +82,7 @@ consts
 
 types
   is
-  pttrns
+  patterns
 
 syntax
   ""          :: i => is                   ("_")
@@ -105,9 +105,9 @@ syntax
 
   (** Patterns -- extends pre-defined type "pttrn" used in abstractions **)
 
-  "@pttrn"  :: pttrns => pttrn            ("<_>")
-  ""        ::  pttrn           => pttrns ("_")
-  "@pttrns" :: [pttrn,pttrns]   => pttrns ("_,/_")
+  "@pattern"  :: patterns => pttrn         ("<_>")
+  ""          :: pttrn => patterns         ("_")
+  "@patterns" :: [pttrn, patterns] => patterns  ("_,/_")
 
 translations
   "x ~: y"      == "~ (x : y)"
@@ -151,7 +151,7 @@ syntax (symbols)
   "@Bex"      :: [pttrn, i, o] => o        ("(3\\<exists> _\\<in>_./ _)" 10)
 (*
   "@Tuple"    :: [i, is] => i              ("\\<langle>(_,/ _)\\<rangle>")
-  "@pttrn"    :: pttrns => pttrn           ("\\<langle>_\\<rangle>")
+  "@pattern"  :: patterns => pttrn         ("\\<langle>_\\<rangle>")
 *)
 
 

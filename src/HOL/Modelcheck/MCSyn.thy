@@ -1,6 +1,6 @@
 (*  Title:      HOL/Modelcheck/MCSyn.thy
     ID:         $Id$
-    Author:     Olaf M"uller, Jan Philipps, Robert Sandner
+    Author:     Olaf Mueller, Jan Philipps, Robert Sandner
     Copyright   1997  TU Muenchen
 *)
 
@@ -19,10 +19,10 @@ syntax (Eindhoven output)
   "? "		:: [idts, bool] => bool			("'((3E _./ _)')" [0, 10] 10)
   "ALL " 	:: [idts, bool] => bool			("'((3A _./ _)')" [0, 10] 10)
   "EX "		:: [idts, bool] => bool			("'((3E _./ _)')" [0, 10] 10)
-   "_lambda"	:: [idts, 'a::logic] => 'b::logic	("(3L _./ _)" 10)
+   "_lambda"	:: [pttrns, 'a] => 'b			("(3L _./ _)" 10)
 
-  "_idts"     	:: [pttrn, idts] => idts		("_,/_" [1, 0] 0)
-  "_pttrn"      :: [pttrn, pttrns] => pttrn     	("_,/_" [1, 0] 0)
+  "_idts"     	:: [idt, idts] => idts		        ("_,/_" [1, 0] 0)
+  "_pattern"    :: [pttrn, patterns] => pttrn     	("_,/_" [1, 0] 0)
 
   "Mu "		:: [idts, 'a pred] => 'a pred		("(3[mu _./ _])" 1000)
   "Nu "		:: [idts, 'a pred] => 'a pred		("(3[nu _./ _])" 1000)

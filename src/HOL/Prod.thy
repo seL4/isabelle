@@ -39,16 +39,16 @@ consts
 
 (* patterns -- extends pre-defined type "pttrn" used in abstractions *)
 
-types pttrns
+types patterns
 
 syntax
-  "@Tuple"      :: "['a, args] => 'a * 'b"      ("(1'(_,/ _'))")
+  "@Tuple"      :: "['a, args] => 'a * 'b"       ("(1'(_,/ _'))")
 
-  "_pttrn"      :: [pttrn, pttrns] => pttrn     ("'(_,/_')")
-  ""            :: pttrn => pttrns              ("_")
-  "_pttrns"     :: [pttrn, pttrns] => pttrns    ("_,/_")
+  "_pattern"    :: [pttrn, patterns] => pttrn    ("'(_,/_')")
+  ""            :: pttrn => patterns             ("_")
+  "_patterns"   :: [pttrn, patterns] => patterns ("_,/_")
 
-  "@Sigma"      :: "[idt, 'a set, 'b set] => ('a * 'b) set"     ("(3SIGMA _:_./ _)" 10)
+  "@Sigma"      :: "[pttrn, 'a set, 'b set] => ('a * 'b) set"   ("(3SIGMA _:_./ _)" 10)
   "@Times"      :: "['a set, 'a => 'b set] => ('a * 'b) set"    ("_ Times _" [81, 80] 80)
 
 translations
@@ -65,7 +65,7 @@ translations
   "A Times B"   => "Sigma A (_K B)"
 
 syntax (symbols)
-  "@Sigma"      :: "[idt, 'a set, 'b set] => ('a * 'b) set"     ("(3\\<Sigma> _\\<in>_./ _)" 10)
+  "@Sigma"      :: "[pttrn, 'a set, 'b set] => ('a * 'b) set"   ("(3\\<Sigma> _\\<in>_./ _)" 10)
   "@Times"      :: "['a set, 'a => 'b set] => ('a * 'b) set"    ("_ \\<times> _" [81, 80] 80)
 
 
