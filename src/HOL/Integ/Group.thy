@@ -25,7 +25,13 @@ axclass  add_monoid < add_semigroup, zero
   zeroR    "x + zero = x"
 
 (* additive groups *)
-
+(*
+The inverse is the binary `-'. Groups with unary and binary inverse are
+interdefinable: x-y := x+(zero-y) and -x := zero-x. The law left_inv is
+simply the translation of (-x)+x = zero. This characterizes groups already,
+provided we only allow (zero-x). Law minus_inv `defines' the general x-y in
+terms of the specific zero-y.
+*)
 axclass  add_group < add_monoid, minus
   left_inv  "(zero-x)+x = zero"
   minus_inv "x-y = x + (zero-y)"
